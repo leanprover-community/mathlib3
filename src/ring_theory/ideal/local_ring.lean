@@ -286,7 +286,7 @@ end
 end
 
 section
-variables (R) [comm_ring R] [local_ring R]
+variables (R) [comm_ring R] [local_ring R] [comm_ring S] [local_ring S]
 
 /-- The residue field of a local ring is the quotient of the ring by its maximal ideal. -/
 def residue_field := R ⧸ maximal_ideal R
@@ -303,9 +303,9 @@ ideal.quotient.mk _
 noncomputable
 instance residue_field.algebra : algebra R (residue_field R) := (residue R).to_algebra
 
-namespace residue_field
+variables {R}
 
-variables {R} [comm_ring S] [local_ring S]
+namespace residue_field
 
 /-- The map on residue fields induced by a local homomorphism between local rings -/
 noncomputable def map (f : R →+* S) [is_local_ring_hom f] :

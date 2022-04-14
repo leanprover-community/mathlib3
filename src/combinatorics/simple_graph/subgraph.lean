@@ -461,11 +461,11 @@ by ext; simp [and_assoc, not_or_distrib]
 by ext; simp
 
 @[simp] lemma delete_edges_spanning_coe_eq :
-  (G'.spanning_coe.delete_edges s) = (G'.delete_edges s).spanning_coe :=
+  G'.spanning_coe.delete_edges s = (G'.delete_edges s).spanning_coe :=
 by { ext, simp }
 
 lemma delete_edges_coe_eq (s : set (sym2 G'.verts)) :
-  (G'.coe.delete_edges s) = (G'.delete_edges (sym2.map coe '' s)).coe :=
+  G'.coe.delete_edges s = (G'.delete_edges (sym2.map coe '' s)).coe :=
 begin
   ext ⟨v, hv⟩ ⟨w, hw⟩,
   simp only [simple_graph.delete_edges_adj, coe_adj, subtype.coe_mk, delete_edges_adj,
@@ -482,6 +482,10 @@ begin
     exact h' _ hs rfl, },
 end
 
+lemma coe_delete_edges_eq (s : set (sym2 V)) :
+  (G'.delete_edges s).coe = G'.coe.delete_edges (sym2.map coe ⁻¹' s) :=
+by { ext ⟨v, hv⟩ ⟨w, hw⟩, simp }
+
 lemma delete_edges_le : G'.delete_edges s ≤ G' :=
 by split; simp { contextual := tt }
 
@@ -493,8 +497,12 @@ begin
   exact λ v w hvw hs' hs, hs' (h hs),
 end
 
-lemma delete_edges_eq_delete_edges_inter_edge_set :
-  G'.delete_edges s = G'.delete_edges (s ∩ G'.edge_set) :=
+@[simp] lemma delete_edges_inter_edge_set_left_eq :
+  G'.delete_edges (G'.edge_set ∩ s) = G'.delete_edges s :=
+by ext; simp [imp_false] { contextual := tt }
+
+@[simp] lemma delete_edges_inter_edge_set_right_eq :
+  G'.delete_edges (s ∩ G'.edge_set) = G'.delete_edges s :=
 by ext; simp [imp_false] { contextual := tt }
 
 lemma coe_delete_edges_le :

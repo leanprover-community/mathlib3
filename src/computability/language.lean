@@ -85,6 +85,10 @@ instance : semiring (language α) :=
   left_distrib := λ _ _ _, image2_union_right,
   right_distrib := λ _ _ _, image2_union_left }
 
+@[simp] lemma mem_sum {x : list α} : ∀ {L : list (language α)}, x ∈ L.sum ↔ ∃ l ∈ L, x ∈ l
+| [] := iff_of_false id (by simp)
+| (l :: L) := by simp [or_and_distrib_right, exists_or_distrib, mem_sum]
+
 @[simp] lemma add_self (l : language α) : l + l = l := sup_idem
 
 /-- Maps the alphabet of a language. -/

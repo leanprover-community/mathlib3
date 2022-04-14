@@ -26,6 +26,19 @@ universe u
 
 variables {α β γ : Type*} [dec : decidable_eq α]
 
+namespace list
+
+@[simp] lemma join_map_singleton : ∀ l : list α, (l.map $ λ a, [a]).join = l
+| [] := rfl
+| (a :: l) := congr_arg (cons a) (join_map_singleton _)
+
+@[simp] lemma sum_append_singleton [has_zero α] [has_add α] (a : α) (l : list α) :
+  (l ++ [a]).sum = l.sum + a :=
+foldl_append _ _ _ _
+
+end list
+open list
+
 /--
 This is the definition of regular expressions. The names used here is to mirror the definition
 of a Kleene algebra (https://en.wikipedia.org/wiki/Kleene_algebra).
@@ -80,6 +93,14 @@ attribute [pattern] has_mul.mul
   (P * Q).matches = P.matches * Q.matches := rfl
 @[simp] lemma matches_star (P : regular_expression α) : P.star.matches = P.matches.star := rfl
 
+-- Note: This is NOT obvious because `regular_expression α` is not an `add_zero_class`
+@[simp] lemma matches_sum (l : list (regular_expression α)) : l.sum.matches = (l.map matches).sum :=
+begin
+  induction l using list.reverse_rec_on with l P ih,
+  { refl },
+  { simp_rw [map_append, map_singleton, sum_append_singleton, matches_add, ih] }
+end
+
 /-- `match_epsilon P` is true if and only if `P` matches the empty string -/
 def match_epsilon : regular_expression α → bool
 | 0 := ff
@@ -114,23 +135,20 @@ def deriv : regular_expression α → α → regular_expression α
 @[simp] lemma deriv_star (P : regular_expression α) (a : α) :
   deriv (P.star) a = deriv P a * star P := rfl
 
+@[simp] lemma deriv_sum (L : list (regular_expression α)) : L.sum.deriv = (L.map deriv).sum :=
+begin
+  ext a,
+  induction L using list.reverse_rec_on with l P ih,
+  { refl },
+  { simp_rw [map_append, map_singleton, sum_append_singleton, deriv_add, ih],
+    refl }
+end
+
 /-- `P.rmatch x` is true if and only if `P` matches `x`. This is a computable definition equivalent
   to `matches`. -/
 def rmatch : regular_expression α → list α → bool
 | P [] := match_epsilon P
 | P (a::as) := rmatch (P.deriv a) as
-
-@[simp] lemma zero_deriv (a : α) : deriv 0 a = 0 := rfl
-@[simp] lemma one_deriv (a : α) : deriv 1 a = 0 := rfl
-@[simp] lemma char_match_deriv (a : α) : deriv (char a) a = 1 :=
-by simp only [deriv, if_true, eq_self_iff_true]
-@[simp] lemma char_no_match_deriv (a b : α) : a ≠ b → deriv (char a) b = 0 :=
-begin
-  rw [deriv, ite_eq_right_iff],
-  tauto
-end
-@[simp] lemma add_deriv (P Q : regular_expression α) (a : α) :
-  deriv (P + Q) a = deriv P a + deriv Q a := rfl
 
 @[simp] lemma zero_rmatch (x : list α) : rmatch 0 x = ff :=
 by induction x; simp [rmatch, match_epsilon, *]
@@ -371,50 +389,27 @@ omit dec
     exact image_Union.symm,
   end
 
-def wild' : Π {n : nat}, regular_expression (fin n)
-| 0 := 0
-| (n+1) := map fin.cast_succ wild' + char n
+/-- The wildcard. -/
+def wild (l : list α) : regular_expression α := (l.map char).sum
 
-@[simp] lemma wild'_zero : @wild' 0 = 0 := rfl
-@[simp] lemma wild'_succ {n : nat} :
-  @wild' (n+1) = map fin.cast_succ wild' + char n := rfl
+@[simp] lemma wild_nil : wild ([] : list α) = 0 := rfl
 
-lemma wild'_matches_singleton {n : nat} (m : fin n) : wild'.matches [m] :=
+@[simp] lemma matches_wild (l : list α) : (wild l).matches = (l.map $ λ a, {[a]}).sum :=
+by { rw [wild, matches_sum, list.map_map], refl }
+
+lemma mem_matches_wild_iff {l x : list α} : x ∈ (wild l).matches ↔ ∃ a ∈ l, x = [a] := by simp
+
+lemma deriv_wild [decidable_eq α] (l : list α) (a : α) :
+  (wild l).deriv a = if a ∈ l then 1 else 0 :=
 begin
-  induction n with n ih,
-  apply absurd m.property (nat.not_lt_zero _),
-  rw [wild'_succ, matches, language.add_def],
-  by_cases h: m = n,
-  {
-    right,
-    simp only [h, matches, set.mem_singleton]
-  },
-  {
-    left,
-    sorry
-  }
+  rw [wild, deriv_sum, list.map_map],
+  sorry
 end
 
-def any' {n : nat} : regular_expression (fin n) := wild'.star
+def any' {n : nat} : regular_expression (fin n) := (wild $ fin_range _).star
 
 lemma any'_matches_any {n : nat} (x : list (fin n)) : any'.matches x :=
-begin
-  induction x with a x ih,
-  {
-    rw [any', matches],
-    exact language.epsilon_mem_star _,
-  },
-  {
-    rw [any', matches, language.star_def] at ⊢ ih,
-    cases ih with X hX,
-    use ([a]::X),
-    split,
-    simp only [hX.left, list.join, eq_self_iff_true, and_self, list.singleton_append],
-    rintros y (rfl | h),
-    exact wild'_matches_singleton _,
-    exact hX.2 _ h
-  }
-end
+⟨x.map (λ a, [a]), x.join_map_singleton.symm, by simp⟩
 
 lemma fin_univ_succ {n : nat} : (@fin.cast_succ n) '' set.univ ∪ {n} = set.univ :=
 begin
@@ -431,38 +426,6 @@ begin
     simp },
   simp [h],
 end
-
-lemma wild'_matches {n : nat} : (@wild' n).matches = (λ a, [a]) '' set.univ :=
-begin
-  induction n with n ih,
-  { rw [wild'_zero, matches, language.zero_def, ←set.image_empty],
-    congr,
-    exact dec_trivial },
-  { rw [wild'_succ, matches, matches],
-    rw [←fin_univ_succ, matches_map, ih, image_union, set.image_image, language.add_def],
-    apply congr_arg2,
-    ext x,
-    simp only [set.image_univ, set.mem_range, set.mem_image, set.mem_set_of_eq, fin.range_cast_succ, list.map],
-    split,
-    { rintro ⟨y, hy⟩,
-      use fin.cast_succ y,
-      simp [*, fin.is_lt y] },
-    { rintro ⟨ x, h1, h2 ⟩,
-      use x,
-      assumption,
-      simp [*], },
-    simp },
-end
-
-lemma deriv_wild' {n : nat} (m : fin n) : wild'.deriv m = 1 :=
-begin
-  induction n,
-    apply absurd m.property (nat.not_lt_zero _),
-  rw wild',
-  simp [wild', *],
-end
-
-def wild {n : nat} {α : Sort*} (e : α ≃ fin n) : regular_expression α := map e.symm wild'
 
 def to_regular_expression : Π {n : nat} (σ ≃ fin n), DFA α σ → regular_expression α
 | 0 σ E M := absurd (E M.start).property (nat.not_lt_zero _)

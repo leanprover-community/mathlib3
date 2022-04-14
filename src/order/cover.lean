@@ -9,12 +9,14 @@ import data.set.intervals.ord_connected
 # The covering relation
 
 This file defines the covering relation in an order. `b` is said to cover `a` if `a < b` and there
-is no element in between. We say that `b` weakly covers `a` if `b` covers `a` or `b = a`.
+is no element in between. We say that `b` weakly covers `a` if `a ≤ b` and there is no element
+between `a` and `b`. In a partial order this is equivalent to `a ⋖ b ∨ a = b`, in a preorder this
+is equivalent to `a ⋖ b ∨ (a ≤ b ∧ b ≤ a)`
 
 ## Notation
 
 * `a ⋖ b` means that `b` covers `a`.
-* `a ⩿ b` means that `b` covers `a` or `b = a`.
+* `a ⩿ b` means that `b` weakly covers `a`.
 -/
 
 open set order_dual
@@ -172,6 +174,10 @@ lemma covby_iff_wcovby_and_lt : a ⋖ b ↔ a ⩿ b ∧ a < b :=
 lemma covby_iff_wcovby_and_not_le : a ⋖ b ↔ a ⩿ b ∧ ¬ b ≤ a :=
 ⟨λ h, ⟨h.wcovby, h.lt.not_le⟩, λ h, h.1.covby_of_not_le h.2⟩
 
+lemma wcovby_iff_covby_or_le_and_le : a ⩿ b ↔ a ⋖ b ∨ (a ≤ b ∧ b ≤ a) :=
+⟨λ h, or_iff_not_imp_right.mpr $ λ h', h.covby_of_not_le $ λ hba, h' ⟨h.le, hba⟩,
+  λ h', h'.elim (λ h, h.wcovby) (λ h, wcovby_of_le_of_le h.1 h.2)⟩
+
 instance : is_nonstrict_strict_order α (⩿) (⋖) :=
 ⟨λ a b, covby_iff_wcovby_and_not_le.trans $ and_congr_right $ λ h, h.wcovby_iff_le.not.symm⟩
 
@@ -202,6 +208,9 @@ lemma wcovby.covby_of_ne (h : a ⩿ b) (h2 : a ≠ b) : a ⋖ b := ⟨h.le.lt_of
 
 lemma covby_iff_wcovby_and_ne : a ⋖ b ↔ a ⩿ b ∧ a ≠ b :=
 ⟨λ h, ⟨h.wcovby, h.ne⟩, λ h, h.1.covby_of_ne h.2⟩
+
+lemma wcovby_iff_covby_or_eq : a ⩿ b ↔ a ⋖ b ∨ a = b :=
+by rw [le_antisymm_iff, wcovby_iff_covby_or_le_and_le]
 
 lemma covby.Ico_eq (h : a ⋖ b) : Ico a b = {a} :=
 by rw [←Ioo_union_left h.lt, h.Ioo_eq, empty_union]

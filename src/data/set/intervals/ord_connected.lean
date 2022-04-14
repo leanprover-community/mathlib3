@@ -135,16 +135,25 @@ instance [densely_ordered α] {s : set α} [hs : ord_connected s] :
 ⟨λ a b (h : (a : α) < b), let ⟨x, H⟩ := exists_between h in
     ⟨⟨x, (hs.out a.2 b.2) (Ioo_subset_Icc_self H)⟩, H⟩ ⟩
 
-@[instance] lemma _root_.order_iso.ord_connected_image (e : α ≃o β) {s : set α}
+@[instance] lemma ord_connected_image {E : Type*} [order_iso_class E α β] (e : E) {s : set α}
   [hs : ord_connected s] : ord_connected (e '' s) :=
 begin
   constructor,
   rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ z ⟨hxz, hzy⟩,
-  exact ⟨e.symm z, hs.out hx hy ⟨e.le_symm_apply.mpr hxz, e.symm_apply_le.mpr hzy⟩, e.right_inv z⟩
+  exact ⟨equiv_like.inv e z, hs.out hx hy ⟨(le_map_inv_iff e).mpr hxz, (map_inv_le_iff e).mpr hzy⟩,
+    equiv_like.right_inv e z⟩
 end
 
-@[instance] lemma _root_.order_iso.ord_connected_range (e : α ≃o β) : ord_connected (range e) :=
-by simp_rw [← image_univ, e.ord_connected_image]
+@[instance] lemma ord_connected_range {E : Type*} [order_iso_class E α β] (e : E) :
+  ord_connected (range e) :=
+by simp_rw [← image_univ, ord_connected_image e]
+
+lemma _root_.order_iso.ord_connected_image (e : α ≃o β) {s : set α}
+  [hs : ord_connected s] : ord_connected (e '' s) :=
+ord_connected_image e
+
+lemma _root_.order_iso.ord_connected_range (e : α ≃o β) : ord_connected (range e) :=
+ord_connected_range e
 
 end preorder
 

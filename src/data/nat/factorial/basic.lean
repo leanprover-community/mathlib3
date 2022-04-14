@@ -52,7 +52,7 @@ theorem factorial_ne_zero (n : ℕ) : n! ≠ 0 := ne_of_gt (factorial_pos _)
 theorem factorial_dvd_factorial {m n} (h : m ≤ n) : m! ∣ n! :=
 begin
   induction n with n IH; simp,
-  { obtain rfl := nat.eq_zero_of_le_zero h, subst m, simp },
+  { have := nat.eq_zero_of_le_zero h, subst m, simp },
   obtain he | hl := h.eq_or_lt,
   { subst m, simp },
   exact (IH (le_of_lt_succ hl)).mul_left _,

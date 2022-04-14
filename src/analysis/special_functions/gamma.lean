@@ -259,11 +259,10 @@ noncomputable def Gamma_aux : ℕ → (ℂ → ℂ)
 | 0      := Gamma_integral
 | (n+1)  := λ s:ℂ, (Gamma_aux n (s+1)) / s
 
-lemma Gamma_aux_recurrence1 (s : ℂ) (n : ℕ) (h1 : 1 - s.re ≤ ↑n ) : Gamma_aux n s =
-  (Gamma_aux n (s+1) ) / s :=
+lemma Gamma_aux_recurrence1 (s : ℂ) (n : ℕ) (h1 : 1 - s.re ≤ ↑n) :
+  Gamma_aux n s = Gamma_aux n (s+1) / s :=
 begin
-  revert s,
-  induction n with n hn,
+  induction n with n hn generalizing s,
   { intros s h1, simp only [nat.cast_zero, sub_nonpos] at h1,
     dsimp only [Gamma_aux], rw Gamma_integral_recurrence h1,
     rw [mul_comm, mul_div_cancel], contrapose! h1, rw h1,

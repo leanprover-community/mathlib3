@@ -447,7 +447,7 @@ end padic_val_nat
 
 section padic_val_nat
 
-lemma dvd_of_one_le_padic_val_nat {n p : nat} [prime : fact p.prime] (hp : 1 ≤ padic_val_nat p n) :
+lemma dvd_of_one_le_padic_val_nat {n p : nat} (hp : 1 ≤ padic_val_nat p n) :
   p ∣ n :=
 begin
   by_contra h,

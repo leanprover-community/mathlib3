@@ -140,41 +140,6 @@ namespace complex
 
 section Gamma_recurrence
 
-/- first some lemmas about real and complex functions -/
-
-/- This is not a special case of `continuous_at_cpow_const`, since here we get continuity on a
-larger domain (including 0) at the cost of stronger hypotheses on the exponent. -/
-lemma cts_cpow {s : ℂ} (hs : 0 < s.re): continuous_on (λ x, x ^ s : ℝ → ℂ) (Ici 0) :=
-begin
-  -- There must be a better way of doing this.
-  intros x hx,
-  by_cases 0 < x,
-  { apply continuous_at.continuous_within_at,
-    refine (_ : continuous_at (λ x : ℂ, x ^ s) ↑x).comp continuous_of_real.continuous_at,
-    apply continuous_at_cpow_const, rw of_real_re, exact or.inl h },
-  have : x = 0 := by { rw mem_Ici at hx, linarith }, rw this,
-  have hs2 : s ≠ 0 := by { contrapose! hs, rw [hs, zero_re], },
-  rw continuous_within_at,
-  have : ↑(0 : ℝ) ^ s = (0 : ℂ) := by { rw of_real_zero, exact zero_cpow hs2 },
-  rw [this, tendsto_zero_iff_norm_tendsto_zero],
-  have u: eq_on (λ (e : ℝ), e ^ s.re)  (λ (e : ℝ), abs(↑e ^ s)) (Ici 0),
-  { intros y hy, exact (abs_cpow_eq_rpow_re_of_nonneg hy hs.ne').symm },
-  have w: tendsto (λ (e : ℝ), e ^ s.re) (𝓝[Ici 0] 0) (𝓝 (0 ^ s.re)),
-  { exact tendsto.rpow_const continuous_within_at_id (or.inr hs.le), },
-  rw zero_rpow hs.ne' at w,
-  exact tendsto.congr' (eventually_nhds_within_of_forall u) w,
-end
-
-lemma has_deriv_at_coe (t : ℝ) : has_deriv_at (coe : ℝ → ℂ) 1 t :=
-begin
-  rw has_deriv_at_iff_tendsto,
-  simpa using tendsto_const_nhds,
-end
-
-lemma has_deriv_at_of_real {f : ℝ → ℝ} {d x : ℝ} (hf : has_deriv_at f d x) :
-  (has_deriv_at ((coe ∘ f) : ℝ → ℂ) ↑d x) :=
-by simpa using has_deriv_at.scomp x (has_deriv_at_coe $ f x) hf
-
 /-- The indefinite version of the Γ function, Γ(s, X) = ∫ x ∈ 0..X, exp(-x) x ^ (s - 1). -/
 def partial_Gamma (s : ℂ) (X : ℝ) : ℂ := ∫ x in 0..X, (-x).exp * x ^ (s - 1)
 
@@ -230,18 +195,19 @@ begin
   { intros x hx,
     have d1 : has_deriv_at (λ (y: ℝ), (-y).exp) (-(-x).exp) x,
     { simpa using (has_deriv_at_neg x).exp },
+    have d1b : has_deriv_at (λ y, ↑(-y).exp : ℝ → ℂ) (↑-(-x).exp) x,
+    { convert has_deriv_at.scomp x of_real_clm.has_deriv_at d1, simp, },
     have d2: has_deriv_at (λ (y : ℝ), ↑y ^ s) (s * x ^ (s - 1)) x,
     { have t := @has_deriv_at.cpow_const _ _ _ s (has_deriv_at_id ↑x),
       simp only [id.def, of_real_re, of_real_im,
         ne.def, eq_self_iff_true, not_true, or_false, mul_one] at t,
-      simpa using has_deriv_at.comp _ (t hx.left) (has_deriv_at_coe x), },
-    simpa using has_deriv_at.mul (has_deriv_at_of_real d1) d2 },
-  have cont := (continuous_of_real.comp continuous_neg.exp).continuous_on.mul
-    (cts_cpow (lt_of_lt_of_le zero_lt_one hs)),
+      simpa using has_deriv_at.comp x (t hx.left) of_real_clm.has_deriv_at, },
+    simpa only [of_real_neg, neg_mul] using d1b.mul d2 },
+  have cont := (continuous_of_real.comp continuous_neg.exp).mul
+    (continuous_of_real_cpow_const $ lt_of_lt_of_le zero_lt_one hs),
   have der_ible := (Gamma_integrand_deriv_integrable_A hs hX).add
     (Gamma_integrand_deriv_integrable_B hs hX),
-  have int_eval := integral_eq_sub_of_has_deriv_at_of_le hX (cont.mono Icc_subset_Ici_self)
-    F_der_I der_ible,
+  have int_eval := integral_eq_sub_of_has_deriv_at_of_le hX cont.continuous_on F_der_I der_ible,
   -- We are basically done here but manipulating the output into the right form is fiddly.
   apply_fun (λ x:ℂ, -x) at int_eval,
   rw [interval_integral.integral_add (Gamma_integrand_deriv_integrable_A hs hX)
@@ -262,32 +228,24 @@ end
 theorem Gamma_integral_recurrence {s : ℂ} (hs: 1 ≤ s.re) :
   Gamma_integral (s + 1) = s * Gamma_integral s :=
 begin
-  have t1: tendsto (partial_Gamma (s+1)) at_top (𝓝 (Gamma_integral (s+1))),
-  { apply tendsto_partial_Gamma, rw [add_re, one_re], linarith, },
-  suffices t2: tendsto (partial_Gamma (s+1)) at_top (𝓝 $ s * Gamma_integral s),
-  { apply tendsto_nhds_unique t1 t2 },
-  have a: eventually_eq at_top
-    (partial_Gamma (s+1)) (λ X:ℝ, s * partial_Gamma s X - X ^ s * (-X).exp),
+  suffices : tendsto (s+1).partial_Gamma at_top (𝓝 $ s * Gamma_integral s),
+  { refine tendsto_nhds_unique _ this,
+    apply tendsto_partial_Gamma, rw [add_re, one_re], linarith, },
+  have : (λ X:ℝ, s * partial_Gamma s X - X ^ s * (-X).exp) =ᶠ[at_top] (s+1).partial_Gamma,
   { apply eventually_eq_of_mem (Ici_mem_at_top (0:ℝ)),
     intros X hX,
     rw partial_Gamma_recurrence hs (mem_Ici.mp hX),
     ring_nf, },
-  refine tendsto.congr' a.symm _,
-  suffices l1: tendsto (λ X:ℝ, -(↑X ^ s) * (-X).exp : ℝ → ℂ) at_top (𝓝 0),
-  { simpa using tendsto.add (tendsto.const_mul s (tendsto_partial_Gamma hs)) l1 },
-  have l2: tendsto (λ X:ℝ, ↑X ^ s * (-X).exp : ℝ → ℂ) at_top (𝓝 0),
-  { rw tendsto_zero_iff_norm_tendsto_zero,
-    have: eventually_eq at_top (λ (e : ℝ), ∥(e:ℂ) ^ s * ↑((-e).exp)∥ )
-      (λ (e : ℝ), e ^ s.re * (-e).exp ),
-    { refine eventually_eq_of_mem (Ioi_mem_at_top 0) _,
-      intros x hx, dsimp,
-      rw [abs_mul, abs_cpow_eq_rpow_re_of_pos hx, abs_of_nonneg (exp_pos(-x)).le], },
-    rw (tendsto_congr' this),
-    simpa using (tendsto_rpow_mul_exp_neg_mul_at_top_nhds_0 s.re (1:ℝ) zero_lt_one), },
-  have: (λ X, -↑X ^ s *  (-X).exp : ℝ → ℂ) = (λ X, (-1) * (↑X ^ s *  (-X).exp ): ℝ → ℂ) :=
-    by ring_nf, rw this,
-  have : (0:ℂ) = (-1) * 0 := by ring, rw this,
-  exact tendsto.const_mul (-1) l2,
+  refine tendsto.congr' this _,
+  suffices : tendsto (λ X, -X ^ s * (-X).exp : ℝ → ℂ) at_top (𝓝 0),
+  { simpa using tendsto.add (tendsto.const_mul s (tendsto_partial_Gamma hs)) this },
+  rw tendsto_zero_iff_norm_tendsto_zero,
+  have : (λ (e : ℝ), ∥-(e:ℂ) ^ s * (-e).exp∥ ) =ᶠ[at_top] (λ (e : ℝ), e ^ s.re * (-1 * e).exp ),
+  { refine eventually_eq_of_mem (Ioi_mem_at_top 0) _,
+    intros x hx, dsimp only,
+    rw [norm_eq_abs, abs_mul, abs_neg, abs_cpow_eq_rpow_re_of_pos hx,
+      abs_of_nonneg (exp_pos(-x)).le, neg_mul, one_mul],},
+  exact (tendsto_congr' this).mpr (tendsto_rpow_mul_exp_neg_mul_at_top_nhds_0 _ _ zero_lt_one),
 end
 
 end Gamma_recurrence

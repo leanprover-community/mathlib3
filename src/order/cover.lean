@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yaël Dillies, Violeta Hernández Palacios, Grayson Burton
+Authors: Yaël Dillies, Violeta Hernández Palacios, Grayson Burton, Floris van Doorn
 -/
 import data.set.intervals.ord_connected
 
@@ -38,6 +38,14 @@ lemma wcovby.le (h : a ⩿ b) : a ≤ b := h.1
 lemma wcovby.refl (a : α) : a ⩿ a := ⟨le_rfl, λ c hc, hc.not_lt⟩
 lemma wcovby.rfl : a ⩿ a := wcovby.refl a
 
+lemma eq.wcovby (h : a = b) : a ⩿ b := h ▸ wcovby.rfl
+
+lemma wcovby_of_le_of_le (h1 : a ≤ b) (h2 : b ≤ a) : a ⩿ b :=
+⟨h1, λ c hac hcb, (hac.trans hcb).not_le h2⟩
+
+lemma wcovby.wcovby_iff_le (hab : a ⩿ b) : b ⩿ a ↔ b ≤ a :=
+⟨λ h, h.le, λ h, wcovby_of_le_of_le h hab.le⟩
+
 lemma wcovby_of_eq_or_eq (hab : a ≤ b) (h : ∀ c, a ≤ c → c ≤ b → c = a ∨ c = b) : a ⩿ b :=
 begin
   refine ⟨hab, λ c hac hcb, _⟩,
@@ -48,7 +56,7 @@ end
 lemma not_wcovby_iff (h : a ≤ b) : ¬ a ⩿ b ↔ ∃ c, a < c ∧ c < b :=
 by simp_rw [wcovby, h, true_and, not_forall, exists_prop, not_not]
 
-instance wcovby.is_refl : is_refl α (⩿) := ⟨λ _, wcovby.rfl⟩
+instance wcovby.is_refl : is_refl α (⩿) := ⟨wcovby.refl⟩
 
 lemma wcovby.Ioo_eq (h : a ⩿ b) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x hx, h.2 hx.1 hx.2
@@ -64,7 +72,7 @@ begin
   exact hab.2 ha hb,
 end
 
-protected lemma set.ord_connected.apply_wcovby_apply_iff (h : (range f).ord_connected) :
+lemma set.ord_connected.apply_wcovby_apply_iff (h : (range f).ord_connected) :
   f a ⩿ f b ↔ a ⩿ b :=
 ⟨λ h2, h2.of_image, λ hab, hab.image h⟩
 
@@ -154,15 +162,18 @@ lemma covby.le (h : a ⋖ b) : a ≤ b := h.1.le
 protected lemma covby.ne (h : a ⋖ b) : a ≠ b := h.lt.ne
 lemma covby.ne' (h : a ⋖ b) : b ≠ a := h.lt.ne'
 
-lemma covby.wcovby (h : a ⋖ b) : a ⩿ b := ⟨h.le, h.2⟩
+protected lemma covby.wcovby (h : a ⋖ b) : a ⩿ b := ⟨h.le, h.2⟩
 lemma wcovby.covby_of_not_le (h : a ⩿ b) (h2 : ¬ b ≤ a) : a ⋖ b := ⟨h.le.lt_of_not_le h2, h.2⟩
 lemma wcovby.covby_of_lt (h : a ⩿ b) (h2 : a < b) : a ⋖ b := ⟨h2, h.2⟩
 
-lemma wcovby_and_lt_iff : a ⩿ b ∧ a < b ↔ a ⋖ b :=
-⟨λ h, h.1.covby_of_lt h.2, λ h, ⟨h.wcovby, h.lt⟩⟩
+lemma covby_iff_wcovby_and_lt : a ⋖ b ↔ a ⩿ b ∧ a < b :=
+⟨λ h, ⟨h.wcovby, h.lt⟩, λ h, h.1.covby_of_lt h.2⟩
 
-lemma wcovby_and_not_le_iff : a ⩿ b ∧ ¬ b ≤ a ↔ a ⋖ b :=
-⟨λ h, h.1.covby_of_not_le h.2, λ h, ⟨h.wcovby, h.lt.not_le⟩⟩
+lemma covby_iff_wcovby_and_not_le : a ⋖ b ↔ a ⩿ b ∧ ¬ b ≤ a :=
+⟨λ h, ⟨h.wcovby, h.lt.not_le⟩, λ h, h.1.covby_of_not_le h.2⟩
+
+instance : is_nonstrict_strict_order α (⩿) (⋖) :=
+⟨λ a b, covby_iff_wcovby_and_not_le.trans $ and_congr_right $ λ h, h.wcovby_iff_le.not.symm⟩
 
 instance covby.is_irrefl : is_irrefl α (⋖) := ⟨λ a ha, ha.ne rfl⟩
 
@@ -175,7 +186,7 @@ lemma covby.of_image (h : f a ⋖ f b) : a ⋖ b :=
 lemma covby.image (hab : a ⋖ b) (h : (range f).ord_connected) : f a ⋖ f b :=
 (hab.wcovby.image h).covby_of_lt $ f.strict_mono hab.lt
 
-protected lemma set.ord_connected.apply_covby_apply_iff (h : (range f).ord_connected) :
+lemma set.ord_connected.apply_covby_apply_iff (h : (range f).ord_connected) :
   f a ⋖ f b ↔ a ⋖ b :=
 ⟨covby.of_image, λ hab, hab.image h⟩
 
@@ -189,8 +200,8 @@ variables [partial_order α] {a b : α}
 
 lemma wcovby.covby_of_ne (h : a ⩿ b) (h2 : a ≠ b) : a ⋖ b := ⟨h.le.lt_of_ne h2, h.2⟩
 
-lemma wcovby_and_ne_iff : a ⩿ b ∧ a ≠ b ↔ a ⋖ b :=
-⟨λ h, h.1.covby_of_ne h.2, λ h, ⟨h.wcovby, h.ne⟩⟩
+lemma covby_iff_wcovby_and_ne : a ⋖ b ↔ a ⩿ b ∧ a ≠ b :=
+⟨λ h, ⟨h.wcovby, h.ne⟩, λ h, h.1.covby_of_ne h.2⟩
 
 lemma covby.Ico_eq (h : a ⋖ b) : Ico a b = {a} :=
 by rw [←Ioo_union_left h.lt, h.Ioo_eq, empty_union]

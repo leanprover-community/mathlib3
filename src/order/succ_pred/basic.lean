@@ -156,8 +156,11 @@ lemma le_of_lt_succ {a b : α} : a < succ b → a ≤ b := succ_order.le_of_lt_s
 
 alias lt_succ_iff_not_is_max ↔ _ order.lt_succ_of_not_is_max
 
+lemma wcovby_succ (a : α) : a ⩿ succ a :=
+⟨le_succ a, λ b hb, (succ_le_of_lt hb).not_lt⟩
+
 lemma covby_succ_of_not_is_max (h : ¬ is_max a) : a ⋖ succ a :=
-⟨lt_succ_of_not_is_max h, λ b hb, (succ_le_of_lt hb).not_lt⟩
+(wcovby_succ a).covby_of_lt $ lt_succ_of_not_is_max h
 
 lemma lt_succ_iff_of_not_is_max (ha : ¬ is_max a) : b < succ a ↔ b ≤ a :=
 ⟨le_of_lt_succ, λ h, h.trans_lt $ lt_succ_of_not_is_max ha⟩
@@ -316,8 +319,11 @@ lemma le_of_pred_lt {a b : α} : pred a < b → a ≤ b := pred_order.le_of_pred
 
 alias pred_lt_iff_not_is_min ↔ _ order.pred_lt_of_not_is_min
 
+lemma pred_wcovby (a : α) : pred a ⩿ a :=
+⟨pred_le a, λ b hb, (le_of_pred_lt hb).not_lt⟩
+
 lemma pred_covby_of_not_is_min (h : ¬ is_min a) : pred a ⋖ a :=
-⟨pred_lt_of_not_is_min h, λ b hb, (le_of_pred_lt hb).not_lt⟩
+(pred_wcovby a).covby_of_lt $ pred_lt_of_not_is_min h
 
 lemma pred_lt_iff_of_not_is_min (ha : ¬ is_min a) : pred a < b ↔ a ≤ b :=
 ⟨le_of_pred_lt, (pred_lt_of_not_is_min ha).trans_le⟩

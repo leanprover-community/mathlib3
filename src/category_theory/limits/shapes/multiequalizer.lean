@@ -408,7 +408,8 @@ preserves and reflects limit cones.
 def multifork_equiv_pi_fork : multifork I ≌ fork I.fst_pi_map I.snd_pi_map :=
 { functor := to_pi_fork_functor I,
   inverse := of_pi_fork_functor I,
-  unit_iso := nat_iso.of_components (λ K, cones.ext (iso.refl _) (by rintros (_|_); dsimp; simp))
+  unit_iso := nat_iso.of_components (λ K, cones.ext (iso.refl _)
+    (by { rintros (_|_); dsimp; simp,  }))
     (λ K₁ K₂ f, by { ext, simp }),
   counit_iso := nat_iso.of_components (λ K, fork.ext (iso.refl _) (by { ext, dsimp, simp }))
     (λ K₁ K₂ f, by { ext, simp }) }

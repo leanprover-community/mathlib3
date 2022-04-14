@@ -1408,16 +1408,7 @@ ht.hom_ext $ λ j, by { rw ht.fac, cases j; simp }
     bicone. -/
 def is_binary_bilimit_of_is_limit {X Y : C} (t : binary_bicone X Y) (ht : is_limit t.to_cone) :
   t.is_bilimit :=
-is_binary_bilimit_of_total _
-begin
-  refine binary_fan.is_limit.hom_ext ht _ _,
-  { rw [inl_of_is_limit ht, inr_of_is_limit ht, add_comp, category.assoc, category.assoc, ht.fac,
-      ht.fac, binary_fan.mk_π_app_left, binary_fan.mk_π_app_left, comp_zero, add_zero,
-      binary_bicone.binary_fan_fst_to_cone, category.comp_id, category.id_comp] },
-  { rw [inr_of_is_limit ht, inl_of_is_limit ht, add_comp, category.assoc, category.assoc, ht.fac,
-      ht.fac, binary_fan.mk_π_app_right, binary_fan.mk_π_app_right, comp_zero, zero_add,
-      binary_bicone.binary_fan_snd_to_cone, category.comp_id, category.id_comp] }
-end
+is_binary_bilimit_of_total _ (by refine binary_fan.is_limit.hom_ext ht _ _; simp)
 
 /-- We can turn any limit cone over a pair into a bilimit bicone. -/
 def binary_bicone_is_bilimit_of_limit_cone_of_is_limit {X Y : C} {t : cone (pair X Y)}
@@ -1477,15 +1468,9 @@ def is_binary_bilimit_of_is_colimit {X Y : C} (t : binary_bicone X Y)
   (ht : is_colimit t.to_cocone) : t.is_bilimit :=
 is_binary_bilimit_of_total _
 begin
-  refine binary_cofan.is_colimit.hom_ext ht _ _,
-  { rw [fst_of_is_colimit ht, snd_of_is_colimit ht, comp_add, ht.fac_assoc, ht.fac_assoc,
-      binary_cofan.mk_ι_app_left, binary_cofan.mk_ι_app_left,
-      binary_bicone.binary_cofan_inl_to_cocone, zero_comp, add_zero, category.id_comp t.inl,
-      category.comp_id t.inl] },
-  { rw [fst_of_is_colimit ht, snd_of_is_colimit ht, comp_add, ht.fac_assoc, ht.fac_assoc,
-      binary_cofan.mk_ι_app_right, binary_cofan.mk_ι_app_right,
-      binary_bicone.binary_cofan_inr_to_cocone, zero_comp, zero_add, category.comp_id t.inr,
-      category.id_comp t.inr] }
+  refine binary_cofan.is_colimit.hom_ext ht _ _; simp,
+  { rw [category.comp_id t.inl] },
+  { rw [category.comp_id t.inr] }
 end
 
 /-- We can turn any colimit cocone over a pair into a bilimit bicone. -/

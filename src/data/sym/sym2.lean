@@ -263,7 +263,7 @@ begin
   split; { rintro ⟨w, hw, rfl⟩, exact ⟨w, hw, by simp [hw, h]⟩ },
 end
 
-/-- Note: `sym2.map id z` is not in simp-normal form due to `sym2.map_congr`. -/
+/-- Note: `sym2.map_id` will not simplify `sym2.map id z` due to `sym2.map_congr`. -/
 @[simp] lemma map_id' {z : sym2 α} : map (λ x, x) z = z := congr_fun map_id z
 
 /-! ### Diagonal -/

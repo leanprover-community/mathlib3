@@ -1909,6 +1909,8 @@ namespace submodule
 variables {R M : Type*} [ring R] [add_comm_group M] [module R M] [topological_space M]
   (S : submodule R M)
 
+/-- The quotient module `M ⧸ S` is homeomorphic to the quotient group `M ⧸ S`. This is
+  `submodule.quotient_equiv_quotient_group` as an homeomorphism. -/
 noncomputable def quotient_homeomorph_quotient_group : M ⧸ S ≃ₜ M ⧸ S.to_add_subgroup :=
 { continuous_to_fun :=
   begin

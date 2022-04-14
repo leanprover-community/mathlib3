@@ -89,3 +89,18 @@ begin
     norm_cast,
     exact nat.succ_le_of_lt hi, },
 end
+
+lemma antitone_integral_le_sum_on_Ico {a b : ℕ} {f : ℝ → ℝ} (hab : a ≤ b)
+  (hf : antitone_on f (set.Icc a b)) : ∫ x in a..b, f x ≤ ∑ x in finset.Ico a b, f x :=
+begin
+  sorry,
+  -- have bb : b = (b - a) + a, { zify, ring, },
+  -- conv { to_rhs, rw [←zero_add a, bb], },
+  -- have bb' : (b : ℝ) = (a : ℝ) + ↑(b - a), { simp [hab], },
+  -- conv { to_lhs, rw bb', },
+  -- rw [shift_sum, nat.Ico_zero_eq_range],
+  -- conv
+  -- { to_rhs, congr, skip, funext, rw nat.cast_add i a, rw add_comm, },
+  -- apply antitone_on.integral_le_sum,
+  -- rwa ←bb',
+end

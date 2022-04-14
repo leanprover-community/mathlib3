@@ -202,9 +202,11 @@ open divisor_chain
 
 lemma pow_image_of_prime_by_factor_order_iso_dvd {m p : associates M} {n : associates N}
   (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
-  (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) {s : ℕ} (hs : s ≠ 0)
+  (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) {s : ℕ}
   (hs' : p^s ≤ m) : (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N)^s ≤ n :=
 begin
+  by_cases hs : s = 0,
+  { simp [hs], },
   suffices : (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N)^s = ↑(d ⟨p^s, hs'⟩),
   { rw this,
     apply subtype.prop (d ⟨p^s, hs'⟩) },
@@ -234,14 +236,15 @@ variables [decidable_rel ((∣) : associates M → associates M → Prop)]
  [decidable_rel ((∣) : associates N → associates N → Prop)]
 
 lemma multiplicity_prime_le_multiplicity_image_by_factor_order_iso {m p : associates M}
-  {n : associates N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
+  {n : associates N} (hp : p ∈ normalized_factors m)
   (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   multiplicity p m ≤ multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n :=
 begin
+  by_cases hn : n = 0,
+  { simp [hn], },
+  by_cases hm : m = 0,
+  { simpa [hm] using hp, },
   rw [←enat.coe_get (finite_iff_dom.1 $ finite_prime_left (prime_of_normalized_factor p hp) hm),
     ←pow_dvd_iff_le_multiplicity],
-  refine pow_image_of_prime_by_factor_order_iso_dvd hn hp d (λ H, _) (pow_multiplicity_dvd _),
-  refine (dvd_of_mem_normalized_factors hp).multiplicity_pos.ne' (part.eq_some_iff.mpr _),
-  rw ←H,
-  exact part.get_mem _,
+  exact pow_image_of_prime_by_factor_order_iso_dvd hn hp d (pow_multiplicity_dvd _),
 end

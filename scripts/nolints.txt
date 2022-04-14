@@ -124,7 +124,6 @@ apply_nolint traversable.free.mk doc_blame
 apply_nolint traversable.length doc_blame
 apply_nolint traversable.map_fold doc_blame
 apply_nolint traversable.mfoldl doc_blame
-apply_nolint traversable.mfoldl.unop_of_free_monoid unused_arguments
 apply_nolint traversable.mfoldr doc_blame
 
 -- control/monad/cont.lean
@@ -626,34 +625,21 @@ apply_nolint gaussian_int.mod doc_blame
 -- order/filter/at_top_bot.lean
 apply_nolint filter.map_at_top_finset_prod_le_of_prod_eq to_additive_doc
 
--- order/filter/pointwise.lean
-apply_nolint filter.has_add check_reducibility
-apply_nolint filter.has_mul check_reducibility
-
 -- order/prime_ideal.lean
 apply_nolint order.ideal.is_prime.is_maximal fails_quickly
 
 -- ring_theory/witt_vector/basic.lean
 apply_nolint witt_vector.comm_ring check_reducibility
 
--- set_theory/cofinality.lean
-apply_nolint strict_order.cof doc_blame
-
--- set_theory/game.lean
-apply_nolint pgame.inv_ty has_inhabited_instance
-
 -- set_theory/lists.lean
 apply_nolint finsets doc_blame
 
 -- set_theory/pgame.lean
-apply_nolint pgame.left_moves has_inhabited_instance
 apply_nolint pgame.relabelling has_inhabited_instance
 apply_nolint pgame.restricted has_inhabited_instance
-apply_nolint pgame.right_moves has_inhabited_instance
 
 -- set_theory/zfc.lean
 apply_nolint Set.map_definable_aux unused_arguments
-apply_nolint pSet.type has_inhabited_instance
 
 -- tactic/abel.lean
 apply_nolint tactic.abel.eval doc_blame

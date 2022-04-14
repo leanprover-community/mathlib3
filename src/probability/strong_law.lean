@@ -8,6 +8,10 @@ noncomputable theory
 
 open_locale topological_space big_operators measure_theory probability_theory ennreal
 
+#check real.rpow_one
+
+lemma real.rpow_two (x : ℝ) : x ^ (2 : ℝ) = x ^ 2 :=
+by { rw ← real.rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
 
 lemma measure_theory.mem_ℒp.integrable_sq
   {α : Type*} {m : measurable_space α} {μ : measure α} {f : α → ℝ} (h : mem_ℒp f 2 μ) :
@@ -26,11 +30,15 @@ open measure_theory finset
 namespace probability_theory
 
 def variance {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) :=
-μ[f ^ 2] - μ[f] ^ 2
+μ[(f - (λ x, μ[f])) ^ 2]
 
 @[simp] lemma variance_zero {Ω : Type*} {m : measurable_space Ω} (μ : measure Ω) :
   variance 0 μ = 0 :=
 by simp [variance]
+
+lemma variance_nonneg {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) :
+  0 ≤ variance f μ :=
+integral_nonneg (λ x, sq_nonneg _)
 
 localized "notation `Var[` X `]` := probability_theory.variance X volume" in probability_theory
 localized "notation `ℙ` := volume" in probability_theory
@@ -38,9 +46,9 @@ localized "notation `ℙ` := volume" in probability_theory
 variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)]
 
 lemma variance_def' {X : Ω → ℝ} (hX : mem_ℒp X 2) :
-  Var[X] = 𝔼[(X - (λ x, 𝔼[X]))^2] :=
+  Var[X] = 𝔼[X^2] - 𝔼[X]^2 :=
 begin
-  rw [sub_sq, integral_sub', integral_add'], rotate,
+  rw [variance, sub_sq', integral_sub', integral_add'], rotate,
   { exact hX.integrable_sq },
   { convert integrable_const (𝔼[X] ^ 2),
     apply_instance },
@@ -54,14 +62,6 @@ begin
     integral_const (integral ℙ X ^ 2), integral_mul_left (2 : ℝ), one_mul,
     variance, pi.pow_apply, measure_univ, ennreal.one_to_real, algebra.id.smul_eq_mul],
   ring,
-end
-
-lemma variance_nonneg {X : Ω → ℝ} (hX : mem_ℒp X 2) :
-  0 ≤ Var[X] :=
-begin
-  rw variance_def' hX,
-  apply integral_nonneg (λ x, _),
-  exact sq_nonneg _
 end
 
 open_locale nnreal
@@ -85,7 +85,7 @@ begin
     { apply real.rpow_nonneg_of_nonneg,
       apply integral_nonneg (λ x, _),
       apply real.rpow_nonneg_of_nonneg (norm_nonneg _) },
-    rw [variance_def' hX, ← real.rpow_mul, inv_mul_cancel], rotate,
+    rw [variance, ← real.rpow_mul, inv_mul_cancel], rotate,
     { exact two_ne_zero },
     { apply integral_nonneg (λ x, _),
       apply real.rpow_nonneg_of_nonneg (norm_nonneg _) },
@@ -99,7 +99,7 @@ theorem indep_fun.Var_add {X Y : Ω → ℝ} (hX : mem_ℒp X 2) (hY : mem_ℒp 
   Var[X + Y] = Var[X] + Var[Y] :=
 calc
 Var[X + Y] = 𝔼[λ a, (X a)^2 + (Y a)^2 + 2 * X a * Y a] - 𝔼[X+Y]^2 :
-  by simp [variance, add_sq]
+  by simp [variance_def' (hX.add hY), add_sq']
 ... = (𝔼[X^2] + 𝔼[Y^2] + 2 * 𝔼[X * Y]) - (𝔼[X] + 𝔼[Y])^2 :
 begin
   simp only [pi.add_apply, pi.pow_apply, pi.mul_apply, mul_assoc],
@@ -119,7 +119,7 @@ begin
     (hX.integrable ennreal.one_le_two) (hY.integrable ennreal.one_le_two),
 end
 ... = Var[X] + Var[Y] :
-  by { simp_rw [variance], ring }
+  by { simp only [variance_def', hX, hY, pi.pow_apply], ring }
 
 
 open finset
@@ -131,8 +131,8 @@ begin
   classical,
   induction s using finset.induction_on with k s ks IH,
   { simp only [finset.sum_empty, variance_zero] },
-  rw [variance, sum_insert ks, sum_insert ks],
-  simp only [add_sq],
+  rw [variance_def' (mem_ℒp_finset_sum' _ hs), sum_insert ks, sum_insert ks],
+  simp only [add_sq'],
   calc 𝔼[X k ^ 2 + (∑ i in s, X i) ^ 2 + 2 * X k * ∑ i in s, X i] - 𝔼[X k + ∑ i in s, X i] ^ 2
   = (𝔼[X k ^ 2] + 𝔼[(∑ i in s, X i) ^ 2] + 𝔼[2 * X k * ∑ i in s, X i])
     - (𝔼[X k] + 𝔼[∑ i in s, X i]) ^ 2 :
@@ -162,7 +162,11 @@ begin
   end
   ... = Var[X k] + Var[∑ i in s, X i] +
     (𝔼[2 * X k * ∑ i in s, X i] - 2 * 𝔼[X k] * 𝔼[∑ i in s, X i]) :
-      by { simp_rw [variance], ring }
+  begin
+    rw [variance_def' (hs _ (mem_insert_self _ _)),
+        variance_def' (mem_ℒp_finset_sum' _ (λ i hi, (hs _ (mem_insert_of_mem hi))))],
+    ring,
+  end
   ... = Var[X k] + Var[∑ i in s, X i] :
   begin
     simp only [mul_assoc, integral_mul_left, pi.mul_apply, pi.bit0_apply, pi.one_apply, sum_apply,

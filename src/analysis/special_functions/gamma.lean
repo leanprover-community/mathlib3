@@ -263,12 +263,11 @@ lemma Gamma_aux_recurrence1 (s : ℂ) (n : ℕ) (h1 : 1 - s.re ≤ ↑n) :
   Gamma_aux n s = Gamma_aux n (s+1) / s :=
 begin
   induction n with n hn generalizing s,
-  { intros s h1, simp only [nat.cast_zero, sub_nonpos] at h1,
+  { simp only [nat.cast_zero, sub_nonpos] at h1,
     dsimp only [Gamma_aux], rw Gamma_integral_recurrence h1,
     rw [mul_comm, mul_div_cancel], contrapose! h1, rw h1,
     simp },
   { dsimp only [Gamma_aux],
-    intros s h1,
     have hh1 : 1 - (s+1).re ≤ n,
     { rw [nat.succ_eq_add_one, nat.cast_add, nat.cast_one] at h1,
       rw [add_re, one_re], linarith, },

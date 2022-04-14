@@ -688,7 +688,7 @@ theorem lift_injective_of_ping_pong:
   function.injective (lift f) :=
 begin
   classical,
-  apply (monoid_hom.injective_iff (lift f)).mpr,
+  apply (injective_iff_map_eq_one (lift f)).mpr,
   rw free_product.word.equiv.forall_congr_left',
   { intros w Heq,
     dsimp [word.equiv] at *,

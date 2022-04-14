@@ -603,9 +603,8 @@ lemma padic_val_int.mul (p : ℕ) [fact p.prime] {a b : ℤ} (ha : a ≠ 0) (hb 
 begin
   simp_rw padic_val_int,
   rw int.nat_abs_mul,
-  rw padic_val_nat.mul,
-  exact int.nat_abs_ne_zero.mpr ha,
-  exact int.nat_abs_ne_zero.mpr hb,
+  rw padic_val_nat.mul;
+  rwa int.nat_abs_ne_zero,
 end
 
 lemma padic_val_int_mul_eq_succ (p : ℕ) [pp : fact p.prime] (a : ℤ) (ha : a ≠ 0) :

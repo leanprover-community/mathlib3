@@ -269,7 +269,7 @@ begin
 end
 
 /--  Suppose that `Q` is a statement about Laurent polynomials such that
-* `Q` is true on ~~Laurent~~ polynomials;
+* `Q` is true on *ordinary* polynomials;
 * `Q (f * T)` implies `Q f`;
 
 is true on all Laurent polynomials. -/

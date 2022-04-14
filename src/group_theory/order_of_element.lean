@@ -383,7 +383,6 @@ calc x ^ i = x ^ (i % order_of x + order_of x * (i / order_of x)) :
     by rw [int.mod_add_div]
        ... = x ^ (i % order_of x) :
     by simp [zpow_add, zpow_mul, pow_order_of_eq_one]
-    set_option pp.all true
 
 @[to_additive nsmul_inj_iff_of_add_order_of_eq_zero]
 lemma pow_inj_iff_of_order_of_eq_zero (h : order_of x = 0) {n m : ℕ} :
@@ -741,9 +740,9 @@ have pow_mem : ∀ a : M, a ∈ S → ∀ n : ℕ, a ^ (n + 1) ∈ S :=
 def subgroup_of_idempotent {G : Type*} [group G] [fintype G] (S : set G)
   (hS1 : S.nonempty) (hS2 : S * S = S) : subgroup G :=
 { carrier := S,
-  inv_mem' := λ a ha, by
+  inv_mem' := λ a ha, show a⁻¹ ∈ submonoid_of_idempotent S hS1 hS2, by
   { rw [←one_mul a⁻¹, ←pow_one a, ←pow_order_of_eq_one a, ←pow_sub a (order_of_pos a)],
-    exact (submonoid_of_idempotent S hS1 hS2).pow_mem ha (order_of a - 1) },
+    exact pow_mem ha (order_of a - 1) },
   .. submonoid_of_idempotent S hS1 hS2 }
 
 /-- If `S` is a nonempty subset of a finite group `G`, then `S ^ |G|` is a subgroup -/

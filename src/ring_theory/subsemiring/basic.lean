@@ -43,12 +43,10 @@ instance subsemiring_class.add_submonoid_class (S : Type*) (R : out_param $ Type
 variables [set_like S R] [hSR : subsemiring_class S R] (s : S)
 include hSR
 
-open one_mem_class add_submonoid_class
-
-namespace subsemiring_class
-
 lemma coe_nat_mem (n : ℕ) : (n : R) ∈ s :=
 by simp only [← nsmul_one, nsmul_mem, one_mem]
+
+namespace subsemiring_class
 
 /-- A subsemiring of a `non_assoc_semiring` inherits a `non_assoc_semiring` structure -/
 @[priority 75] -- Prefer subclasses of `non_assoc_semiring` over subclasses of `subsemiring_class`.
@@ -216,61 +214,50 @@ namespace subsemiring
 variables (s : subsemiring R)
 
 /-- A subsemiring contains the semiring's 1. -/
-theorem one_mem : (1 : R) ∈ s := s.one_mem'
+protected theorem one_mem : (1 : R) ∈ s := one_mem s
 
 /-- A subsemiring contains the semiring's 0. -/
-theorem zero_mem : (0 : R) ∈ s := s.zero_mem'
+protected theorem zero_mem : (0 : R) ∈ s := zero_mem s
 
 /-- A subsemiring is closed under multiplication. -/
-theorem mul_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x * y ∈ s := s.mul_mem'
+protected theorem mul_mem {x y : R} : x ∈ s → y ∈ s → x * y ∈ s := mul_mem
 
 /-- A subsemiring is closed under addition. -/
-theorem add_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x + y ∈ s := s.add_mem'
+protected theorem add_mem {x y : R} : x ∈ s → y ∈ s → x + y ∈ s := add_mem
 
 /-- Product of a list of elements in a `subsemiring` is in the `subsemiring`. -/
 lemma list_prod_mem {R : Type*} [semiring R] (s : subsemiring R) {l : list R} :
   (∀x ∈ l, x ∈ s) → l.prod ∈ s :=
-s.to_submonoid.list_prod_mem
+list_prod_mem
 
 /-- Sum of a list of elements in a `subsemiring` is in the `subsemiring`. -/
-lemma list_sum_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.sum ∈ s :=
-s.to_add_submonoid.list_sum_mem
+protected lemma list_sum_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.sum ∈ s := list_sum_mem
 
 /-- Product of a multiset of elements in a `subsemiring` of a `comm_semiring`
     is in the `subsemiring`. -/
-lemma multiset_prod_mem {R} [comm_semiring R] (s : subsemiring R) (m : multiset R) :
+protected lemma multiset_prod_mem {R} [comm_semiring R] (s : subsemiring R) (m : multiset R) :
   (∀a ∈ m, a ∈ s) → m.prod ∈ s :=
-s.to_submonoid.multiset_prod_mem m
+multiset_prod_mem m
 
 /-- Sum of a multiset of elements in a `subsemiring` of a `semiring` is
 in the `add_subsemiring`. -/
-lemma multiset_sum_mem (m : multiset R) :
+protected lemma multiset_sum_mem (m : multiset R) :
   (∀a ∈ m, a ∈ s) → m.sum ∈ s :=
-s.to_add_submonoid.multiset_sum_mem m
+multiset_sum_mem m
 
 /-- Product of elements of a subsemiring of a `comm_semiring` indexed by a `finset` is in the
     subsemiring. -/
-lemma prod_mem {R : Type*} [comm_semiring R] (s : subsemiring R)
+protected lemma prod_mem {R : Type*} [comm_semiring R] (s : subsemiring R)
   {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
   ∏ i in t, f i ∈ s :=
-s.to_submonoid.prod_mem h
+prod_mem h
 
 /-- Sum of elements in an `subsemiring` of an `semiring` indexed by a `finset`
 is in the `add_subsemiring`. -/
-lemma sum_mem (s : subsemiring R)
+protected lemma sum_mem (s : subsemiring R)
   {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
   ∑ i in t, f i ∈ s :=
-s.to_add_submonoid.sum_mem h
-
-lemma pow_mem {R : Type*} [semiring R] (s : subsemiring R) {x : R} (hx : x ∈ s) (n : ℕ) :
-  x^n ∈ s := s.to_submonoid.pow_mem hx n
-
-lemma nsmul_mem {x : R} (hx : x ∈ s) (n : ℕ) :
-  n • x ∈ s := s.to_add_submonoid.nsmul_mem hx n
-
-lemma coe_nat_mem (n : ℕ) : (n : R) ∈ s :=
-by simp only [← nsmul_one, nsmul_mem, one_mem]
-
+sum_mem h
 /-- A subsemiring of a `non_assoc_semiring` inherits a `non_assoc_semiring` structure -/
 instance to_non_assoc_semiring : non_assoc_semiring s :=
 { mul_zero := λ x, subtype.eq $ mul_zero x,
@@ -286,6 +273,9 @@ instance to_non_assoc_semiring : non_assoc_semiring s :=
 
 instance nontrivial [nontrivial R] : nontrivial s :=
 nontrivial_of_ne 0 1 $ λ H, zero_ne_one (congr_arg subtype.val H)
+
+protected lemma pow_mem {R : Type*} [semiring R] (s : subsemiring R) {x : R} (hx : x ∈ s) (n : ℕ) :
+  x^n ∈ s := pow_mem hx n
 
 instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors s :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ x y h,
@@ -333,6 +323,8 @@ subtype.coe_injective.linear_ordered_semiring coe
 
 /-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
 
+protected lemma nsmul_mem {x : R} (hx : x ∈ s) (n : ℕ) :
+  n • x ∈ s := nsmul_mem hx n
 
 @[simp] lemma mem_to_submonoid {s : subsemiring R} {x : R} : x ∈ s.to_submonoid ↔ x ∈ s := iff.rfl
 @[simp] lemma coe_to_submonoid (s : subsemiring R) : (s.to_submonoid : set R) = s := rfl
@@ -471,7 +463,7 @@ mk'_to_add_submonoid _ _
 /-- Subsemirings of a semiring form a complete lattice. -/
 instance : complete_lattice (subsemiring R) :=
 { bot := (⊥),
-  bot_le := λ s x hx, let ⟨n, hn⟩ := mem_bot.1 hx in hn ▸ s.coe_nat_mem n,
+  bot_le := λ s x hx, let ⟨n, hn⟩ := mem_bot.1 hx in hn ▸ coe_nat_mem s n,
   top := (⊤),
   le_top := λ s x hx, trivial,
   inf := (⊓),
@@ -685,7 +677,7 @@ lemma mem_closure_iff_exists_list {R} [semiring R] {s : set R} {x} : x ∈ closu
   ⟨[], list.forall_mem_nil _, rfl⟩
   (λ x y ⟨L, HL1, HL2⟩ ⟨M, HM1, HM2⟩, ⟨L ++ M, list.forall_mem_append.2 ⟨HL1, HM1⟩,
     by rw [list.map_append, list.sum_append, HL2, HM2]⟩),
-λ ⟨L, HL1, HL2⟩, HL2 ▸ list_sum_mem _ (λ r hr, let ⟨t, ht1, ht2⟩ := list.mem_map.1 hr in
+λ ⟨L, HL1, HL2⟩, HL2 ▸ list_sum_mem (λ r hr, let ⟨t, ht1, ht2⟩ := list.mem_map.1 hr in
   ht2 ▸ list_prod_mem _ (λ y hy, subset_closure $ HL1 t ht1 y hy))⟩
 
 variable (R)
@@ -899,7 +891,7 @@ lemma range_snd : (snd R S).srange = ⊤ :=
 lemma prod_bot_sup_bot_prod (s : subsemiring R) (t : subsemiring S) :
   (s.prod ⊥) ⊔ (prod ⊥ t) = s.prod t :=
 le_antisymm (sup_le (prod_mono_right s bot_le) (prod_mono_left t bot_le)) $
-assume p hp, prod.fst_mul_snd p ▸ mul_mem _
+assume p hp, prod.fst_mul_snd p ▸ mul_mem
   ((le_sup_left : s.prod ⊥ ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨hp.1, set_like.mem_coe.2 $ one_mem ⊥⟩)
   ((le_sup_right : prod ⊥ t ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨set_like.mem_coe.2 $ one_mem ⊥, hp.2⟩)
 

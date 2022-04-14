@@ -1007,22 +1007,55 @@ end with_top
 /-! ### Subtype, order dual, product lattices -/
 
 namespace subtype
+variables {p : α → Prop}
 
-/-- A subtype remains a `⊥`-order if the property holds at `⊥`.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def order_bot [preorder α] [order_bot α] {P : α → Prop} (Pbot : P ⊥) :
-  order_bot {x : α // P x} :=
-{ bot := ⟨⊥, Pbot⟩,
+/-- A subtype remains a `⊥`-order if the property holds at `⊥`. -/
+@[reducible] -- See note [reducible non-instances]
+protected def order_bot [has_le α] [order_bot α] (hbot : p ⊥) : order_bot {x : α // p x} :=
+{ bot := ⟨⊥, hbot⟩,
   bot_le := λ _, bot_le }
 
-/-- A subtype remains a `⊤`-order if the property holds at `⊤`.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def order_top [preorder α] [order_top α] {P : α → Prop} (Ptop : P ⊤) :
-  order_top {x : α // P x} :=
-{ top := ⟨⊤, Ptop⟩,
+/-- A subtype remains a `⊤`-order if the property holds at `⊤`. -/
+@[reducible] -- See note [reducible non-instances]
+protected def order_top [has_le α] [order_top α] (htop : p ⊤) : order_top {x : α // p x} :=
+{ top := ⟨⊤, htop⟩,
   le_top := λ _, le_top }
+
+/-- A subtype remains a bounded order if the property holds at `⊥` and `⊤`. -/
+@[reducible] -- See note [reducible non-instances]
+protected def bounded_order [has_le α] [bounded_order α] (hbot : p ⊥) (htop : p ⊤) :
+  bounded_order (subtype p) :=
+{ ..subtype.order_top htop, ..subtype.order_bot hbot }
+
+variables [partial_order α]
+
+@[simp] lemma mk_bot [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) : mk ⊥ hbot = ⊥ :=
+le_bot_iff.1 $ coe_le_coe.1 bot_le
+
+@[simp] lemma mk_top [order_top α] [order_top (subtype p)] (htop : p ⊤) : mk ⊤ htop = ⊤ :=
+top_le_iff.1 $ coe_le_coe.1 le_top
+
+lemma coe_bot [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) : ((⊥ : subtype p) : α) = ⊥ :=
+congr_arg coe (mk_bot hbot).symm
+
+lemma coe_top [order_top α] [order_top (subtype p)] (htop : p ⊤) : ((⊤ : subtype p) : α) = ⊤ :=
+congr_arg coe (mk_top htop).symm
+
+@[simp] lemma coe_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : {x // p x}} :
+  (x : α) = ⊥ ↔ x = ⊥ :=
+by rw [←coe_bot hbot, ext_iff]
+
+@[simp] lemma coe_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : {x // p x}} :
+  (x : α) = ⊤ ↔ x = ⊤ :=
+by rw [←coe_top htop, ext_iff]
+
+@[simp] lemma mk_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : α} (hx : p x) :
+  (⟨x, hx⟩ : subtype p) = ⊥ ↔ x = ⊥ :=
+(coe_eq_bot_iff hbot).symm
+
+@[simp] lemma mk_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : α} (hx : p x) :
+  (⟨x, hx⟩ : subtype p) = ⊤ ↔ x = ⊤ :=
+(coe_eq_top_iff htop).symm
 
 end subtype
 

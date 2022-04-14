@@ -33,16 +33,6 @@ open mem_left_transversals
 
 variables {G : Type*} [group G] {H : subgroup G}
 
-@[to_additive] instance : mul_action G (left_transversals (H : set G)) :=
-{ smul := λ g T, ⟨left_coset g T, mem_left_transversals_iff_exists_unique_inv_mul_mem.mpr (λ g', by
-  { obtain ⟨t, ht1, ht2⟩ := mem_left_transversals_iff_exists_unique_inv_mul_mem.mp T.2 (g⁻¹ * g'),
-    simp_rw [←mul_assoc, ←mul_inv_rev] at ht1 ht2,
-    refine ⟨⟨g * t, mem_left_coset g t.2⟩, ht1, _⟩,
-    rintros ⟨_, t', ht', rfl⟩ h,
-    exact subtype.ext ((mul_right_inj g).mpr (subtype.ext_iff.mp (ht2 ⟨t', ht'⟩ h))) })⟩,
-  one_smul := λ T, subtype.ext (one_left_coset T),
-  mul_smul := λ g g' T, subtype.ext (left_coset_assoc ↑T g g').symm }
-
 lemma smul_symm_apply_eq_mul_symm_apply_inv_smul
   (g : G) (α : left_transversals (H : set G)) (q : G ⧸ H) :
   ↑(to_equiv (g • α).2 q) = g * (to_equiv α.2 (g⁻¹ • q : G ⧸ H)) :=

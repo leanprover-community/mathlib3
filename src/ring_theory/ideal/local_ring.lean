@@ -41,22 +41,17 @@ variables [comm_semiring R]
 
 namespace local_ring
 
-lemma of_nonunits_ideal (hnze : (0:R) ≠ 1) (h : ∀ x y ∈ nonunits R, x + y ∈ nonunits R) :
-  local_ring R :=
-{ exists_pair_ne := ⟨0, 1, hnze⟩,
-  nonunits_add := λ x y hx hy, h x hx y hy }
-
 lemma of_unique_max_ideal (h : ∃! I : ideal R, I.is_maximal) :
   local_ring R :=
-of_nonunits_ideal
-(let ⟨I, Imax, _⟩ := h in (λ (H : 0 = 1), Imax.1.1 $ I.eq_top_iff_one.2 $ H ▸ I.zero_mem))
-$ λ x hx y hy H,
-let ⟨I, Imax, Iuniq⟩ := h in
-let ⟨Ix, Ixmax, Hx⟩ := exists_max_ideal_of_mem_nonunits hx in
-let ⟨Iy, Iymax, Hy⟩ := exists_max_ideal_of_mem_nonunits hy in
-have xmemI : x ∈ I, from ((Iuniq Ix Ixmax) ▸ Hx),
-have ymemI : y ∈ I, from ((Iuniq Iy Iymax) ▸ Hy),
-Imax.1.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
+@local_ring.mk _ _ (nontrivial_of_ne (0 : R) 1 $
+  let ⟨I, Imax, _⟩ := h in (λ (H : 0 = 1), Imax.1.1 $ I.eq_top_iff_one.2 $ H ▸ I.zero_mem)) $
+  λ x y hx hy H,
+    let ⟨I, Imax, Iuniq⟩ := h in
+    let ⟨Ix, Ixmax, Hx⟩ := exists_max_ideal_of_mem_nonunits hx in
+    let ⟨Iy, Iymax, Hy⟩ := exists_max_ideal_of_mem_nonunits hy in
+    have xmemI : x ∈ I, from ((Iuniq Ix Ixmax) ▸ Hx),
+    have ymemI : y ∈ I, from ((Iuniq Iy Iymax) ▸ Hy),
+    Imax.1.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
 
 lemma of_unique_nonzero_prime (h : ∃! P : ideal R, P ≠ ⊥ ∧ ideal.is_prime P) :
   local_ring R :=

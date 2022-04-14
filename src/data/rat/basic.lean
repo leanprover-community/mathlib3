@@ -126,9 +126,9 @@ int.dvd_nat_abs.1 $ int.coe_nat_dvd.2 $ nat.gcd_dvd_left (int.nat_abs a) b
 
 @[simp] theorem mk_eq_zero {a b : ℤ} (b0 : b ≠ 0) : a /. b = 0 ↔ a = 0 :=
 begin
-  ⟨λ h, _, by { rintro rfl, simp }⟩,
+  refine ⟨λ h, _, by { rintro rfl, simp }⟩,
   have : ∀ {a b}, mk_pnat a b = 0 → a = 0,
-  { intros a b e, cases b with b h,
+  { rintro a ⟨b, h⟩ e,
     injection e with e,
     apply int.eq_mul_of_div_eq_right gcd_abs_dvd_left e },
   cases b with b; simp [mk, mk_nat] at h,

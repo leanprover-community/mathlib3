@@ -302,7 +302,7 @@ let ⟨x, hx1, (hx2 : (f : filter X) = pure x)⟩ :=
 universe u
 
 /-- Let `E` be an intermediate field of `L/K` with `E/K` finite, and let `f` be an ultrafilter
-  on `L ≃ₐ[K] L`. Then the restriction map `(L ≃ₐ[K] L) → (E →ₐ[K] L)` gives pushes `f` forward
+  on `L ≃ₐ[K] L`. Then the restriction map `(L ≃ₐ[K] L) → (E →ₐ[K] L)` pushes `f` forward
   to an ultrafilter on `E →ₐ[K] L`. Since `E →ₐ[K] L` is a finite set, this ultrafilter is
   principal. The element of `E →ₐ[K] L` generating this principal ultrafilter is
   `alg_hom_of_finite_dimensional_of_ultrafilter h_findim f`, where

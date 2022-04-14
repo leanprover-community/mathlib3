@@ -728,7 +728,7 @@ variables (𝕜 n) (A : Type*) [normed_ring A] [normed_algebra 𝕜 A]
 `m` the product of all the `m i`.
 
 See also: `multilinear_map.mk_pi_algebra`. -/
-protected def mk_pi_algebra_fin : A [×n]→L[𝕜] A :=
+protected def mk_pi_algebra_fin : continuous_multilinear_map 𝕜 (λ i : fin n, A) A :=
 multilinear_map.mk_continuous
   (multilinear_map.mk_pi_algebra_fin 𝕜 n A) (nat.cases_on n ∥(1 : A)∥ (λ _, 1)) $
   begin

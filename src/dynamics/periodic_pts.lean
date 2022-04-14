@@ -441,7 +441,7 @@ begin
   use λ ⟨a, ha, ha'⟩, ⟨a, ha'⟩,
   rintro ⟨n, rfl⟩,
   use [n % minimal_period f x, mod_lt _ (minimal_period_pos_of_mem_periodic_pts hx)],
-  rw iterate_eq_mod_minimal_period
+  rw iterate_mod_minimal_period_eq
 end
 
 @[simp] theorem iterate_mem_orbit (hx : x ∈ periodic_pts f) (n : ℕ) : f^[n] x ∈ orbit f x :=

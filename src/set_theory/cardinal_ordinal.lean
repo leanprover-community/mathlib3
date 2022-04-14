@@ -229,6 +229,9 @@ end
 theorem ord_aleph_is_limit (o : ordinal) : is_limit (aleph o).ord :=
 ord_is_limit $ omega_le_aleph _
 
+instance (o : ordinal) : no_max_order (aleph o).ord.out.α :=
+ordinal.out_no_max_of_succ_lt (ord_aleph_is_limit o).2
+
 theorem exists_aleph {c : cardinal} : ω ≤ c ↔ ∃ o, c = aleph o :=
 ⟨λ h, ⟨aleph_idx c - ordinal.omega,
   by rw [aleph, ordinal.add_sub_cancel_of_le, aleph'_aleph_idx];

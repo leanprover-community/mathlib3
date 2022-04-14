@@ -6,7 +6,7 @@ Authors: Chris Hughes
 import number_theory.zsqrtd.basic
 import data.complex.basic
 import ring_theory.principal_ideal_domain
-import number_theory.quadratic_reciprocity
+import number_theory.legendre_symbol.quadratic_reciprocity
 /-!
 # Gaussian integers
 

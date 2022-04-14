@@ -23,8 +23,8 @@ API to directly address these issues forthwith.
 
 ## Main Results
 
-* `antitone_on.integral_le_sum`: The integral of an antitone function is at most the sum of its values
-  integer points (left hand side)
+* `antitone_on.integral_le_sum`: The integral of an antitone function is at most the sum of its
+  values at integer steps
 
 ## Tags
 
@@ -43,7 +43,8 @@ begin
   rw this,
   conv
   { to_rhs, congr, skip, funext, rw ←@integral_const_on_unit_interval (x₀ + i) (f (x₀ + i)), },
-  have hint : ∀ (k : ℕ), k < a → interval_integrable (λ x, f (x₀ + x)) real.measure_space.volume k (k + 1),
+  have hint : ∀ (k : ℕ), k < a → interval_integrable (λ x, f (x₀ + x))
+    real.measure_space.volume k (k + 1),
   { intros k hk,
     apply antitone_on.interval_integrable,
     rw interval_of_le,
@@ -72,7 +73,8 @@ begin
   { apply antitone_on.interval_integrable,
     rw interval_of_le,
     { intros x hx y hy hxy,
-      refine hf ⟨le_trans (by simp) hx.left, le_trans hx.right _⟩ ⟨le_trans (by simp) hy.left, le_trans hy.right _⟩ hxy,
+      refine hf ⟨le_trans (by simp) hx.left, le_trans hx.right _⟩
+        ⟨le_trans (by simp) hy.left, le_trans hy.right _⟩ hxy,
       { rw add_le_add_iff_left,
         norm_cast,
         exact nat.succ_le_of_lt hi,},

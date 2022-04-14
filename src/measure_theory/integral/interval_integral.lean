@@ -246,23 +246,6 @@ begin
   { exact (hn (λ k hk, hint k (hk.trans n.lt_succ_self))).trans (hint n n.lt_succ_self) }
 end
 
-lemma trans_iterate'
-  {a : ℕ → ℝ} {m n : ℕ}
-  (hint : ∀ (k : ℕ), (k < m + n) → interval_integrable f μ (a k) (a $ k+1)) :
-  interval_integrable f μ (a m) (a (m + n)) :=
-begin
-  induction n with n hn,
-  { simp },
-  { have : interval_integrable f μ (a $ m + n) (a $ m + n.succ),
-    { exact hint (m + n) (add_lt_add_left n.lt_succ_self m), },
-    have hint' : ∀ (k : ℕ), (k < m + n) → interval_integrable f μ (a k) (a $ k+1),
-    { intros k hk,
-      refine hint k _,
-      rw m.add_succ n,
-      exact lt_trans hk (nat.lt_succ_self $ m + n), },
-    exact interval_integrable.trans (hn hint') this, },
-end
-
 lemma neg (h : interval_integrable f μ a b) : interval_integrable (-f) μ a b :=
 ⟨h.1.neg, h.2.neg⟩
 
@@ -796,27 +779,6 @@ begin
     exact integral_add_adjacent_intervals
       (interval_integrable.trans_iterate $ λ k hk, hint k (hk.trans n.lt_succ_self))
       (hint n n.lt_succ_self) }
-end
-
-lemma sum_integral_adjacent_intervals' {a : ℕ → ℝ} {m n : ℕ}
-  (hint : ∀ (k : ℕ), (k < m + n) → interval_integrable f μ (a k) (a $ k+1)) :
-  ∑ (k : ℕ) in finset.Ico m (m + n), ∫ x in (a k)..(a $ k+1), f x ∂μ =
-  ∫ x in (a m)..(a (m + n)), f x ∂μ :=
-begin
-  induction n with n hn,
-  { simp, },
-  { rw nat.add_succ m n,
-    rw finset.sum_Ico_succ_top (calc m ≤ m + n : by linarith),
-    have hint': ∀ (k : ℕ), (k < m + n) → interval_integrable f μ (a k) (a $ k+1),
-    { exact λ k hk, hint k (lt_trans hk (add_lt_add_left n.lt_succ_self m)), },
-    rw hn hint',
-    apply interval_integral.integral_add_adjacent_intervals,
-    { have : ∀ (k : ℕ), k < m + n → interval_integrable f μ (a k) (a (k + 1)),
-      { intros k hk,
-        exact hint k (lt_trans hk (add_lt_add_left n.lt_succ_self m)), },
-      apply interval_integrable.trans_iterate',
-      intros k hk, exact this k hk, },
-    { exact hint (m + n) (nat.add_lt_add_left n.lt_succ_self m), }, },
 end
 
 lemma integral_interval_sub_left (hab : interval_integrable f μ a b)

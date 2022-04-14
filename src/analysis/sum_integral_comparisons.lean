@@ -90,7 +90,7 @@ begin
     exact nat.succ_le_of_lt hi, },
 end
 
-lemma antitone_integral_le_sum_Ico {a b : ℕ} {f : ℝ → ℝ} (hab : a ≤ b)
+lemma antitone_on.integral_le_sum_Ico {a b : ℕ} {f : ℝ → ℝ} (hab : a ≤ b)
   (hf : antitone_on f (set.Icc a b)) : ∫ x in a..b, f x ≤ ∑ x in finset.Ico a b, f x :=
 begin
   have bb : b = (b - a) + a, { zify, ring, },

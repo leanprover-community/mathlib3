@@ -384,23 +384,22 @@ inductive is_path : path F → M F → Prop
   is_path xs (f i) →
   is_path (⟨a,i⟩ :: xs) x
 
-lemma is_path_cons {xs : path F} {a a'} {f : F.B a → M F} {i : F.B a'}
-  (h : is_path (⟨a',i⟩ :: xs) (M.mk ⟨a,f⟩)) :
-  a = a' :=
+lemma is_path_cons {xs : path F} {a a'} {f : F.B a → M F} {i : F.B a'} :
+  is_path (⟨a',i⟩ :: xs) (M.mk ⟨a,f⟩) → a = a' :=
 begin
-  revert h, generalize h : (M.mk ⟨a,f⟩) = x,
-  intros h', cases h', subst x,
-  cases mk_inj ‹_›, refl,
+  generalize h : (M.mk ⟨a,f⟩) = x,
+  rintro (_ | ⟨_, _, _, _, _, rfl, _⟩),
+  cases mk_inj h,
+  refl
 end
 
-lemma is_path_cons' {xs : path F} {a} {f : F.B a → M F} {i : F.B a}
-  (h : is_path (⟨a,i⟩ :: xs) (M.mk ⟨a,f⟩)) :
-  is_path xs (f i) :=
+lemma is_path_cons' {xs : path F} {a} {f : F.B a → M F} {i : F.B a} :
+  is_path (⟨a,i⟩ :: xs) (M.mk ⟨a,f⟩) → is_path xs (f i) :=
 begin
-  revert h, generalize h : (M.mk ⟨a,f⟩) = x,
-  intros h', cases h', subst x,
-  have := mk_inj ‹_›, cases this, cases this,
-  assumption,
+  generalize h : (M.mk ⟨a,f⟩) = x,
+  rintro (_ | ⟨_, _, _, _, _, rfl, hp⟩),
+  cases mk_inj h,
+  exact hp
 end
 
 /-- follow a path through a value of `M F` and return the subtree

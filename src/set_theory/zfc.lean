@@ -598,7 +598,7 @@ theorem pair_inj {x y x' y' : Set.{u}} (H : pair x y = pair x' y') : x = x' ∧ 
       simp at m, simp [*] } },
   subst x',
   have he : y = x → y = y',
-  { intro yx, subst y,
+  { rintro rfl,
     cases (ae {x, y'}).2 (by simp only [eq_self_iff_true, or_true]) with xy'x xy'xx,
     { rw [eq_comm, ←mem_singleton, ←xy'x, mem_pair],
       exact or.inr rfl },

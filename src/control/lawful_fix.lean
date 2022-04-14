@@ -106,10 +106,10 @@ include f
 /-- The series of approximations of `fix f` (see `approx`) as a `chain` -/
 def approx_chain : chain (Π a, part $ β a) := ⟨approx f, approx_mono f⟩
 
-lemma le_f_of_mem_approx {x} (hx : x ∈ approx_chain f) : x ≤ f x :=
+lemma le_f_of_mem_approx {x} : x ∈ approx_chain f → x ≤ f x :=
 begin
-  revert hx, simp [(∈)],
-  intros i hx, subst x,
+  simp [(∈)],
+  rintro i rfl,
   apply approx_mono'
 end
 

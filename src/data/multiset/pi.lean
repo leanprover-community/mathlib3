@@ -39,11 +39,12 @@ dif_neg h
 lemma pi.cons_swap {a a' : α} {b : δ a} {b' : δ a'} {m : multiset α} {f : Πa∈m, δ a} (h : a ≠ a') :
   pi.cons (a' ::ₘ m) a b (pi.cons m a' b' f) == pi.cons (a ::ₘ m) a' b' (pi.cons m a b f) :=
 begin
-  apply hfunext, { refl }, intros a'' _ h, subst h,
+  apply hfunext, { refl },
+  rintro a'' _ rfl,
   apply hfunext, { rw [cons_swap] }, intros ha₁ ha₂ h,
   by_cases h₁ : a'' = a,
-  simp [*, pi.cons_same, pi.cons_ne] at *,
-  { subst h₁, rw [pi.cons_same, pi.cons_same] },
+  { simp [*, pi.cons_same, pi.cons_ne] at *,
+    subst h₁, rw [pi.cons_same, pi.cons_same] },
   by_cases h₂ : a'' = a';
     simp [*, pi.cons_same, pi.cons_ne] at *;
     subst h₂; rw [pi.cons_same, pi.cons_same]

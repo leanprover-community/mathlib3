@@ -117,14 +117,12 @@ begin
     by simp only [this, norm],
   ext r,
   split,
-  { rintros ⟨m, hm : mk' S m = x, rfl⟩,
-    subst hm,
+  { rintros ⟨m, rfl : mk' S m = x, rfl⟩,
     rw ← norm_neg,
     exact ⟨-m, by simp only [(mk' S).map_neg, set.mem_set_of_eq], rfl⟩ },
   { rintros ⟨m, hm : mk' S m = -x, rfl⟩,
     use -m,
-    simp at hm,
-    simp [hm], }
+    simpa at hm, }
 end
 
 lemma quotient_norm_sub_rev {S : add_subgroup M} (x y : M ⧸ S) : ∥x - y∥ = ∥y - x∥ :=

@@ -126,7 +126,7 @@ int.dvd_nat_abs.1 $ int.coe_nat_dvd.2 $ nat.gcd_dvd_left (int.nat_abs a) b
 
 @[simp] theorem mk_eq_zero {a b : ℤ} (b0 : b ≠ 0) : a /. b = 0 ↔ a = 0 :=
 begin
-  constructor; intro h; [skip, {subst a, simp}],
+  ⟨λ h, _, by { rintro rfl, simp }⟩,
   have : ∀ {a b}, mk_pnat a b = 0 → a = 0,
   { intros a b e, cases b with b h,
     injection e with e,
@@ -430,7 +430,7 @@ by { rw [← mk_one_one, mk_eq_zero one_ne_zero], exact one_ne_zero }
 
 protected theorem mul_inv_cancel : a ≠ 0 → a * a⁻¹ = 1 :=
 num_denom_cases_on' a $ λ n d h a0,
-have n0 : n ≠ 0, from mt (by intro e; subst e; simp) a0,
+have n0 : n ≠ 0, from mt (by { rintro rfl, simp }) a0,
 by simpa [h, n0, mul_comm] using @div_mk_div_cancel_left 1 1 _ n0
 
 protected theorem inv_mul_cancel (h : a ≠ 0) : a⁻¹ * a = 1 :=

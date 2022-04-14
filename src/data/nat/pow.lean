@@ -256,12 +256,11 @@ begin
   cases b, {exact absurd rfl h},
   have : shiftl' tt m n + 1 = 1 := congr_arg (+1) s0,
   rw [shiftl'_tt_eq_mul_pow] at this,
-  have m0 := succ.inj (eq_one_of_dvd_one ⟨_, this.symm⟩),
-  subst m0,
-  simp at this,
-  have : n = 0 := nat.eq_zero_of_le_zero (le_of_not_gt $ λ hn,
+  obtain rfl := succ.inj (eq_one_of_dvd_one ⟨_, this.symm⟩),
+  rw one_mul at this,
+  obtain rfl : n = 0 := nat.eq_zero_of_le_zero (le_of_not_gt $ λ hn,
     ne_of_gt (pow_lt_pow_of_lt_right dec_trivial hn) this),
-  subst n, refl
+  refl
 end
 
 @[simp] theorem size_shiftl {m} (h : m ≠ 0) (n) :

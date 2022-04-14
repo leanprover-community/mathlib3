@@ -1105,8 +1105,7 @@ dim_add_dim_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (
   begin ext ⟨x, hx⟩, refl end
   begin
     rintros ⟨b₁, hb₁⟩ ⟨b₂, hb₂⟩ eq,
-    have : b₁ = b₂ := congr_arg subtype.val eq,
-    subst this,
+    obtain rfl : b₁ = b₂ := congr_arg subtype.val eq,
     exact ⟨⟨b₁, hb₁, hb₂⟩, rfl, rfl⟩
   end
 

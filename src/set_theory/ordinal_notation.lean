@@ -122,11 +122,12 @@ theorem eq_of_cmp_eq : ∀ {o₁ o₂}, cmp o₁ o₂ = ordering.eq → o₁ = o
 | o₁@(oadd e₁ n₁ a₁) o₂@(oadd e₂ n₂ a₂) h := begin
   revert h, simp [cmp],
   cases h₁ : cmp e₁ e₂; intro h; try {cases h},
-  have := eq_of_cmp_eq h₁, subst e₂,
+  obtain rfl := eq_of_cmp_eq h₁,
   revert h, cases h₂ : _root_.cmp (n₁:ℕ) n₂; intro h; try {cases h},
-  have := eq_of_cmp_eq h, subst a₂,
+  obtain rfl := eq_of_cmp_eq h,
   rw [_root_.cmp, cmp_using_eq_eq] at h₂,
-  have := subtype.eq (eq_of_incomp h₂), subst n₂, simp
+  obtain rfl := subtype.eq (eq_of_incomp h₂),
+  simp
 end
 
 theorem zero_lt_one : (0 : onote) < 1 :=
@@ -264,7 +265,7 @@ theorem cmp_compares : ∀ (a b : onote) [NF a] [NF b], (cmp a b).compares a b
     case ordering.gt
     { rw cmp_using_eq_gt at nh, exact oadd_lt_oadd_2 h₂ nh },
     rw cmp_using_eq_eq at nh,
-    have := subtype.eq (eq_of_incomp nh), subst n₂,
+    obtain rfl := subtype.eq (eq_of_incomp nh),
     have IHa := @cmp_compares _ _ h₁.snd h₂.snd,
     cases cmp a₁ a₂,
     case ordering.lt { exact oadd_lt_oadd_3 IHa },

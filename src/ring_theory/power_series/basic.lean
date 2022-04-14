@@ -1441,7 +1441,9 @@ begin
     suffices : m < i,
     { have : m + n < i + j := add_lt_add_of_lt_of_le this hj,
       exfalso, exact ne_of_lt this hij.symm },
-    contrapose! hne, have : i = m := le_antisymm hne hi, subst i, clear hi hne,
+    contrapose! hne,
+    obtain rfl : i = m := le_antisymm hne hi,
+    clear hi hne,
     simpa [ne.def, prod.mk.inj_iff] using (add_right_inj m).mp hij },
   { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end

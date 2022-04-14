@@ -675,11 +675,10 @@ begin
       by_contradiction hni,
       simp [hi, hni] at ha,
       norm_cast at ha } },
-  { intro h,
-    have hm : m₁ = m₂,
+  { intro h, -- todo ERIC: check this one with oleans
+    obtain rfl : m₁ = m₂,
     { subst h,
       simpa [h₁] using h₂ },
-    subst hm,
     congr,
     exact h }
 end

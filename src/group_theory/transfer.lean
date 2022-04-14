@@ -18,19 +18,6 @@ In this file we construct the transfer homomorphism.
 - `transfer ϕ : G →* A` for `ϕ : H →* A` from `H : subgroup G` to a commutative group `A`.
 -/
 
-namespace mul_action
-
-open subgroup
-
-variables (α : Type*) {β : Type*} [monoid α] [mul_action α β] [group β] (H : subgroup β)
-
-@[to_additive] instance right_quotient_action : quotient_action H.normalizer.opposite H :=
-⟨λ b c _ _, by rwa [smul_def, smul_def, mul_opposite.smul_eq_mul_unop, mul_inv_rev,
-  mul_opposite.smul_eq_mul_unop,
-  ←mul_assoc, ←subtype.val_eq_coe, mem_normalizer_iff'.mp b.2, mul_assoc, mul_inv_cancel_left]⟩
-
-end mul_action
-
 open_locale big_operators
 
 open subgroup
@@ -45,19 +32,6 @@ namespace left_transversals
 open mul_action
 
 open_locale pointwise
-
-variables {F : Type*} [group F] [mul_action F G] [mul_action.quotient_action F H]
-
-@[to_additive] lemma smul_to_equiv (f : F) (T : left_transversals (H : set G)) (q : G ⧸ H) :
-  f • (mem_left_transversals.to_equiv T.2 q : G) =
-    mem_left_transversals.to_equiv (f • T).2 (f • q) :=
-quotient.induction_on' q (λ g, smul_to_fun f T g)
-
-@[to_additive] lemma smul_apply_eq_smul_apply_inv_smul
-  (f : F) (T : left_transversals (H : set G)) (q : G ⧸ H) :
-  (mem_left_transversals.to_equiv (f • T).2 q : G) =
-    f • (mem_left_transversals.to_equiv T.2 (f⁻¹ • q) : G) :=
-by rw [smul_to_equiv, smul_inv_smul]
 
 variables [fintype (G ⧸ H)]
 

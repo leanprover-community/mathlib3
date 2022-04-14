@@ -575,6 +575,7 @@ instance : has_coe_t F (α →+* β) :=
 ⟨λ f, { to_fun := f, map_zero' := map_zero f, map_one' := map_one f, map_mul' := map_mul f,
   map_add' := map_add f }⟩
 
+@[priority 100]
 instance ring_hom_class.to_non_unital_ring_hom_class : non_unital_ring_hom_class F α β :=
 { .. ‹ring_hom_class F α β› }
 

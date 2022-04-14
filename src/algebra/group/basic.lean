@@ -481,7 +481,9 @@ end
 end group
 
 section comm_group
-variables {G : Type u} [comm_group G]
+variables {G : Type u} [comm_group G] {a b c d : G}
+
+local attribute [simp] mul_assoc mul_comm mul_left_comm div_eq_mul_inv
 
 @[to_additive neg_add]
 lemma mul_inv (a b : G) : (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
@@ -492,13 +494,12 @@ lemma div_eq_of_eq_mul' {a b c : G} (h : a = b * c) : a / b = c :=
 by rw [h, div_eq_mul_inv, mul_comm, inv_mul_cancel_left]
 
 @[to_additive]
+lemma mul_div_left_comm {x y z : G} : x * (y / z) = y * (x / z) :=
+by simp_rw [div_eq_mul_inv, mul_left_comm]
+
+@[to_additive]
 lemma div_mul_div_comm (a b c d : G) : a / b * (c / d) = a * c / (b * d) :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_assoc,
-  mul_left_cancel_iff, mul_comm, mul_assoc]
-
-variables {a b c d : G}
-
-local attribute [simp] mul_assoc mul_comm mul_left_comm div_eq_mul_inv
+by simp
 
 @[to_additive]
 lemma div_mul_eq_div_div (a b c : G) : a / (b * c) = a / b / c :=

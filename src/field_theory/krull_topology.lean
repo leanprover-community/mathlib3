@@ -379,8 +379,8 @@ lemma alg_hom_of_finite_dimensional_of_ultrafilter_functor {K L : Type*} [field 
   `alg_hom_of_finite_dimensional_of_ultrafilter` gives a map `ϕₓ : K(x) → L`. We define
   `function_of_ultrafilter h_int f` to be the function taking `x` to `ϕₓ(x)` for all `x : L`. -/
 noncomputable def function_of_ultrafilter {K L : Type*} [field K] [field L] [algebra K L]
-(h_int : algebra.is_integral K L) (f : ultrafilter (L ≃ₐ[K] L)) :
-(L → L) :=
+  (h_int : algebra.is_integral K L) (f : ultrafilter (L ≃ₐ[K] L)) :
+  (L → L) :=
 λ x, (alg_hom_of_finite_dimensional_of_ultrafilter
 (intermediate_field.adjoin.finite_dimensional (h_int x)) f)
 (⟨x, intermediate_field.mem_adjoin_simple_self K x⟩)

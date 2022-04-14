@@ -26,14 +26,11 @@ to `q ^ degree p` (where `q ^ degree 0 = 0`) is an absolute value.
 
 namespace polynomial
 
-variables {Fq : Type*} [fintype Fq]
+variables {Fq : Type*} [field Fq] [fintype Fq]
 
 open absolute_value
 
 open_locale classical polynomial
-
-section
-variables [ring Fq] [no_zero_divisors Fq]
 
 /-- `card_pow_degree` is the absolute value on `𝔽_q[t]` sending `f` to `q ^ degree f`.
 
@@ -74,10 +71,6 @@ lemma card_pow_degree_apply (p : Fq[X]) :
 @[simp] lemma card_pow_degree_nonzero (p : Fq[X]) (hp : p ≠ 0) :
   card_pow_degree p = fintype.card Fq ^ p.nat_degree :=
 if_neg hp
-
-end
-
-variables [field Fq]
 
 lemma card_pow_degree_is_euclidean :
   is_euclidean (card_pow_degree : absolute_value Fq[X] ℤ) :=

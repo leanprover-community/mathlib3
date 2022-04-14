@@ -49,10 +49,16 @@ lemma int.not_is_field : ¬ is_field ℤ :=
 
 namespace number_field
 
-variables (K L : Type*) [field L]
+variables (K L : Type*) [field K] [field L] [nf : number_field K]
 
-section comm_ring
-variables [comm_ring K]
+include nf
+
+-- See note [lower instance priority]
+attribute [priority 100, instance] number_field.to_char_zero number_field.to_finite_dimensional
+
+protected lemma is_algebraic : algebra.is_algebraic ℚ K := algebra.is_algebraic_of_finite _ _
+
+omit nf
 
 /-- The ring of integers (or number ring) corresponding to a number field
 is the integral closure of ℤ in the number field. -/
@@ -74,22 +80,9 @@ def ring_of_integers_algebra [algebra K L] : algebra (𝓞 K) (𝓞 L) := ring_h
   map_add' := λ x y, subtype.ext $ by simp only [map_add, subalgebra.coe_add, subtype.coe_mk],
   map_mul' := λ x y, subtype.ext $ by simp only [subalgebra.coe_mul, map_mul, subtype.coe_mk] }
 
-end comm_ring
-
-open_locale number_field
-
-variables {K} [field K] [nf : number_field K]
-
-include nf
-
--- See note [lower instance priority]
-attribute [priority 100, instance] number_field.to_char_zero number_field.to_finite_dimensional
-
-protected lemma is_algebraic : algebra.is_algebraic ℚ K := algebra.is_algebraic_of_finite _ _
-
-omit nf
-
 namespace ring_of_integers
+
+variables {K}
 
 instance [number_field K] : is_fraction_ring (𝓞 K) K :=
 integral_closure.is_fraction_ring_of_finite_extension ℚ _

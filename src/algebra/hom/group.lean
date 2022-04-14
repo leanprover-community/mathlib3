@@ -1080,24 +1080,24 @@ protected theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G)
 map_mul_inv f g h
 
 /-- A homomorphism from a group to a monoid is injective iff its kernel is trivial.
-For the iff statement on the triviality of the kernel, see `monoid_hom.injective_iff'`.  -/
+For the iff statement on the triviality of the kernel, see `injective_iff_map_eq_one'`.  -/
 @[to_additive "A homomorphism from an additive group to an additive monoid is injective iff
 its kernel is trivial. For the iff statement on the triviality of the kernel,
-see `add_monoid_hom.injective_iff'`."]
-lemma injective_iff {G H} [group G] [mul_one_class H] [monoid_hom_class F G H] (f : F) :
-  function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
+see `injective_iff_map_eq_zero'`."]
+lemma _root_.injective_iff_map_eq_one {G H} [group G] [mul_one_class H] [monoid_hom_class F G H]
+  (f : F) : function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
 ⟨λ h x, (map_eq_one_iff f h).mp,
  λ h x y hxy, mul_inv_eq_one.1 $ h _ $ by rw [map_mul, hxy, ← map_mul, mul_inv_self, map_one]⟩
 
 /-- A homomorphism from a group to a monoid is injective iff its kernel is trivial,
 stated as an iff on the triviality of the kernel.
-For the implication, see `monoid_hom.injective_iff`. -/
+For the implication, see `injective_iff_map_eq_one`. -/
 @[to_additive "A homomorphism from an additive group to an additive monoid is injective iff its
 kernel is trivial, stated as an iff on the triviality of the kernel. For the implication, see
-`add_monoid_hom.injective_iff`."]
-lemma injective_iff' {G H} [group G] [mul_one_class H] [monoid_hom_class F G H] (f : F) :
-  function.injective f ↔ (∀ a, f a = 1 ↔ a = 1) :=
-(injective_iff f).trans $ forall_congr $ λ a, ⟨λ h, ⟨h, λ H, H.symm ▸ map_one f⟩, iff.mp⟩
+`injective_iff_map_eq_zero`."]
+lemma _root_.injective_iff_map_eq_one' {G H} [group G] [mul_one_class H] [monoid_hom_class F G H]
+  (f : F) : function.injective f ↔ (∀ a, f a = 1 ↔ a = 1) :=
+(injective_iff_map_eq_one f).trans $ forall_congr $ λ a, ⟨λ h, ⟨h, λ H, H.symm ▸ map_one f⟩, iff.mp⟩
 
 include mM
 /-- Makes a group homomorphism from a proof that the map preserves multiplication. -/

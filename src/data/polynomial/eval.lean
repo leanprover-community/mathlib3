@@ -860,7 +860,7 @@ by rw [is_root, eval_map, eval₂_hom, h.eq_zero, f.map_zero]
 
 lemma is_root.of_map {R} [comm_ring R] {f : R →+* S} {x : R} {p : R[X]}
   (h : is_root (p.map f) (f x)) (hf : function.injective f) : is_root p x :=
-by rwa [is_root, ←f.injective_iff'.mp hf, ←eval₂_hom, ←eval_map]
+by rwa [is_root, ←(injective_iff_map_eq_zero' f).mp hf, ←eval₂_hom, ←eval_map]
 
 lemma is_root_map_iff {R : Type*} [comm_ring R] {f : R →+* S} {x : R} {p : R[X]}
   (hf : function.injective f) : is_root (p.map f) (f x) ↔ is_root p x :=

@@ -387,9 +387,9 @@ begin
   -- Choose an element `b` of the product that is not in `J`.
   obtain ⟨b, hbZ, hbJ⟩ := set_like.not_le_iff_exists.mp hnle,
   have hnz_fa : algebra_map A K a ≠ 0 :=
-    mt ((ring_hom.injective_iff _).mp (is_fraction_ring.injective A K) a) ha0,
+    mt ((injective_iff_map_eq_zero _).mp (is_fraction_ring.injective A K) a) ha0,
   have hb0 : algebra_map A K b ≠ 0 :=
-    mt ((ring_hom.injective_iff _).mp (is_fraction_ring.injective A K) b)
+    mt ((injective_iff_map_eq_zero _).mp (is_fraction_ring.injective A K) b)
       (λ h, hbJ $ h.symm ▸ J.zero_mem),
   -- Then `b a⁻¹ : K` is in `M⁻¹` but not in `1`.
   refine ⟨algebra_map A K b * (algebra_map A K a)⁻¹, (mem_inv_iff _).mpr _, _⟩,

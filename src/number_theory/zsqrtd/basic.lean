@@ -784,7 +784,7 @@ def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
 `ℤ` into `R` is injective). -/
 lemma lift_injective [char_zero R] {d : ℤ} (r : {r : R // r * r = ↑d}) (hd : ∀ n : ℤ, d ≠ n*n) :
   function.injective (lift r) :=
-(lift r).injective_iff.mpr $ λ a ha,
+(injective_iff_map_eq_zero (lift r)).mpr $ λ a ha,
 begin
   have h_inj : function.injective (coe : ℤ → R) := int.cast_injective,
   suffices : lift r a.norm = 0,

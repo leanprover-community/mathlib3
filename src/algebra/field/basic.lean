@@ -307,7 +307,8 @@ lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_monoid_with_zero_hom.map_inv x
 
 lemma map_div : g (x / y) = g x / g y := g.to_monoid_with_zero_hom.map_div x y
 
-protected lemma injective : function.injective f := f.injective_iff.2 $ λ x, f.map_eq_zero.1
+protected lemma injective : function.injective f :=
+(injective_iff_map_eq_zero f).2 $ λ x, f.map_eq_zero.1
 
 end
 

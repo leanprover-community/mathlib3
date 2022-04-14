@@ -327,7 +327,12 @@ lemma mul_right_apply {R : Type*} [non_unital_non_assoc_semiring R] (a r : R) :
 end add_monoid_hom
 
 /-- Bundled non-unital semiring homomorphisms; use this for bundled non-unital ring
-homomorphisms too. -/
+homomorphisms too.
+
+When possible, instead of parametrizing results over `(f : α →ₙ+* β)`,
+you should parametrize over `(F : Type*) [non_unital_ring_hom_class F α β] (f : F)`.
+
+When you extend this structure, make sure to extend `non_unital_ring_hom_class`. -/
 structure non_unital_ring_hom (α : Type*) (β : Type*) [non_unital_non_assoc_semiring α]
   [non_unital_non_assoc_semiring β] extends mul_hom α β, α →+ β
 
@@ -388,17 +393,13 @@ instance : has_coe_to_fun (α →ₙ+* β) (λ _, α → β) := ⟨non_unital_ri
 @[simp] lemma coe_coe {F : Type*} [non_unital_ring_hom_class F α β] (f : F) :
   ((f : α →ₙ+* β) : α → β) = f := rfl
 
-@[simp, norm_cast] lemma coe_mul_hom (f : α →ₙ+* β) : ⇑(f : mul_hom α β) = f := rfl
-
-@[simp] lemma to_mul_hom_eq_coe (f : α →ₙ+* β) : f.to_mul_hom = f := rfl
+@[simp] lemma coe_to_mul_hom (f : α →ₙ+* β) : ⇑f.to_mul_hom = f := rfl
 
 @[simp] lemma coe_mul_hom_mk (f : α → β) (h₁ h₂ h₃) :
   ((⟨f, h₁, h₂, h₃⟩ : α →ₙ+* β) : mul_hom α β) = ⟨f, h₁⟩ :=
 rfl
 
-@[simp, norm_cast] lemma coe_add_monoid_hom (f : α →ₙ+* β) : ⇑(f : α →+ β) = f := rfl
-
-@[simp] lemma to_add_monoid_hom_eq_coe (f : α →ₙ+* β) : f.to_add_monoid_hom = f := rfl
+@[simp] lemma coe_to_add_monoid_hom (f : α →ₙ+* β) : ⇑f.to_add_monoid_hom = f := rfl
 
 @[simp] lemma coe_add_monoid_hom_mk (f : α → β) (h₁ h₂ h₃) :
   ((⟨f, h₁, h₂, h₃⟩ : α →ₙ+* β) : α →+ β) = ⟨f, h₂, h₃⟩ :=
@@ -440,7 +441,7 @@ protected def id (α : Type*) [non_unital_non_assoc_semiring α] : α →ₙ+* �
 by refine {to_fun := id, ..}; intros; refl
 
 /-- The zero non-unital ring homomorphism between non-unital semirings.  -/
-def zero (α : Type*) (β : Type*) [non_unital_non_assoc_semiring α]
+protected def zero (α : Type*) (β : Type*) [non_unital_non_assoc_semiring α]
   [non_unital_non_assoc_semiring β] : α →ₙ+* β :=
 { to_fun := function.const α 0,
   map_mul' := λ x y, (mul_zero (0 : β)).symm,
@@ -449,7 +450,7 @@ def zero (α : Type*) (β : Type*) [non_unital_non_assoc_semiring α]
 
 include rα rβ
 
-instance : has_zero (α →ₙ+* β) := ⟨zero α β⟩
+instance : has_zero (α →ₙ+* β) := ⟨non_unital_ring_hom.zero α β⟩
 instance : inhabited (α →ₙ+* β) := ⟨0⟩
 
 @[simp] lemma coe_zero : ⇑(0 : α →ₙ+* β) = function.const α 0 := rfl
@@ -477,12 +478,14 @@ lemma comp_assoc {δ} {rδ : non_unital_non_assoc_semiring δ} (f : α →ₙ+* 
   (h : γ →ₙ+* δ) : (h.comp g).comp f = h.comp (g.comp f) := rfl
 
 @[simp] lemma coe_comp (g : β →ₙ+* γ) (f : α →ₙ+* β) : (g.comp f : α → γ) = g ∘ f := rfl
+@[simp] lemma comp_apply (hnp : β →ₙ+* γ) (hmn : α →ₙ+* β) (x : α) : (hnp.comp hmn : α → γ) x =
+  (hnp (hmn x)) := rfl
+
 @[simp] lemma coe_comp_add_monoid_hom (g : β →ₙ+* γ) (f : α →ₙ+* β) :
   (g.comp f : α →+ γ) = (g : β →+ γ).comp f := rfl
 @[simp] lemma coe_comp_mul_hom (g : β →ₙ+* γ) (f : α →ₙ+* β) :
   (g.comp f : mul_hom α γ) = (g : mul_hom β γ).comp f := rfl
-@[simp] lemma comp_apply (hnp : β →ₙ+* γ) (hmn : α →ₙ+* β) (x : α) : (hnp.comp hmn : α → γ) x =
-  (hnp (hmn x)) := rfl
+
 @[simp] lemma comp_zero (g : β →ₙ+* γ) : g.comp (0 : α →ₙ+* β) = 0 := by { ext, simp }
 @[simp] lemma zero_comp (f : α →ₙ+* β) : (0 : β →ₙ+* γ).comp f = 0 := by { ext, refl }
 

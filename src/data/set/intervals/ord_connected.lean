@@ -148,13 +148,6 @@ end
   ord_connected (range e) :=
 by simp_rw [← image_univ, ord_connected_image e]
 
-lemma _root_.order_iso.ord_connected_image (e : α ≃o β) {s : set α}
-  [hs : ord_connected s] : ord_connected (e '' s) :=
-ord_connected_image e
-
-lemma _root_.order_iso.ord_connected_range (e : α ≃o β) : ord_connected (range e) :=
-ord_connected_range e
-
 end preorder
 
 section linear_order

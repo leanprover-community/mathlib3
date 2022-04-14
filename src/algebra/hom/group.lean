@@ -1088,10 +1088,10 @@ For the iff statement on the triviality of the kernel, see `monoid_hom.injective
 @[to_additive "A homomorphism from an additive group to an additive monoid is injective iff
 its kernel is trivial. For the iff statement on the triviality of the kernel,
 see `add_monoid_hom.injective_iff'`."]
-lemma injective_iff {G H} [group G] [mul_one_class H] (f : G →* H) :
+lemma injective_iff {G H} [group G] [mul_one_class H] [monoid_hom_class F G H] (f : F) :
   function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
 ⟨λ h x, (map_eq_one_iff f h).mp,
- λ h x y hxy, mul_inv_eq_one.1 $ h _ $ by rw [f.map_mul, hxy, ← f.map_mul, mul_inv_self, f.map_one]⟩
+ λ h x y hxy, mul_inv_eq_one.1 $ h _ $ by rw [map_mul, hxy, ← map_mul, mul_inv_self, map_one]⟩
 
 /-- A homomorphism from a group to a monoid is injective iff its kernel is trivial,
 stated as an iff on the triviality of the kernel.
@@ -1099,9 +1099,9 @@ For the implication, see `monoid_hom.injective_iff`. -/
 @[to_additive "A homomorphism from an additive group to an additive monoid is injective iff its
 kernel is trivial, stated as an iff on the triviality of the kernel. For the implication, see
 `add_monoid_hom.injective_iff`."]
-lemma injective_iff' {G H} [group G] [mul_one_class H] (f : G →* H) :
+lemma injective_iff' {G H} [group G] [mul_one_class H] [monoid_hom_class F G H] (f : F) :
   function.injective f ↔ (∀ a, f a = 1 ↔ a = 1) :=
-f.injective_iff.trans $ forall_congr $ λ a, ⟨λ h, ⟨h, λ H, H.symm ▸ f.map_one⟩, iff.mp⟩
+(injective_iff f).trans $ forall_congr $ λ a, ⟨λ h, ⟨h, λ H, H.symm ▸ map_one f⟩, iff.mp⟩
 
 include mM
 /-- Makes a group homomorphism from a proof that the map preserves multiplication. -/

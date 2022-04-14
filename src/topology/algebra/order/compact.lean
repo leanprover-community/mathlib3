@@ -258,7 +258,7 @@ lemma continuous.exists_forall_ge [nonempty β] {f : β → α}
 
 lemma is_compact.Sup_lt_iff_of_continuous {f : β → α}
   {K : set β} (hK : is_compact K) (h0K : K.nonempty) (hf : continuous_on f K) (y : α) :
-    Sup (f '' K) < y ↔ ∀ x ∈ K, f x < y :=
+  Sup (f '' K) < y ↔ ∀ x ∈ K, f x < y :=
 begin
   refine ⟨λ h x hx, (le_cSup (hK.bdd_above_image hf) $ mem_image_of_mem f hx).trans_lt h, λ h, _⟩,
   obtain ⟨x, hx, h2x⟩ := hK.exists_forall_ge h0K hf,
@@ -270,7 +270,7 @@ lemma is_compact.lt_Inf_iff_of_continuous {α β : Type*}
   [conditionally_complete_linear_order α] [topological_space α]
   [order_topology α] [topological_space β] {f : β → α}
   {K : set β} (hK : is_compact K) (h0K : K.nonempty) (hf : continuous_on f K) (y : α) :
-    y < Inf (f '' K) ↔ ∀ x ∈ K, y < f x :=
+  y < Inf (f '' K) ↔ ∀ x ∈ K, y < f x :=
 @is_compact.Sup_lt_iff_of_continuous (order_dual α) β _ _ _ _ _ _ hK h0K hf y
 
 /-- A continuous function with compact support has a global minimum. -/

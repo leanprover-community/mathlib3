@@ -32,8 +32,7 @@ universes u v w u'
 
 variables {R : Type u} {S : Type v} {T : Type w} {K : Type u'}
 
-/-- A commutative ring is local if it has a unique maximal ideal. Note that
-  `local_ring` is a predicate. -/
+/-- A semiring is local if it has a unique maximal ideal. Note that `local_ring` is a predicate. -/
 class local_ring (R : Type u) [semiring R] extends nontrivial R : Prop :=
 (nonunits_add : ∀ {a b : R}, a ∈ nonunits R → b ∈ nonunits R → a + b ∈ nonunits R)
 

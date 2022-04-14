@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Markus Himmel
+Authors: Markus Himmel, Jakob von Raumer
 -/
 import algebra.big_operators.basic
 import algebra.hom.group
@@ -233,12 +233,21 @@ fork.of_ι c.ι $ by rw [← sub_eq_zero, ← comp_sub, c.condition]
 def kernel_fork_of_fork (c : fork f g) : kernel_fork (f - g) :=
 fork.of_ι c.ι $ by rw [comp_sub, comp_zero, sub_eq_zero, c.condition]
 
+@[simp] lemma kernel_fork_of_fork_ι (c : fork f g) : (kernel_fork_of_fork c).ι = c.ι := rfl
+
+@[simp] lemma kernel_fork_of_fork_of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
+  (kernel_fork_of_fork (fork.of_ι ι w)) = kernel_fork.of_ι ι (by simp [w]) := rfl
+
 /-- A kernel of `f - g` is an equalizer of `f` and `g`. -/
 def is_limit_fork_of_kernel_fork {c : kernel_fork (f - g)} (i : is_limit c) :
   is_limit (fork_of_kernel_fork c) :=
 fork.is_limit.mk' _ $ λ s,
   ⟨i.lift (kernel_fork_of_fork s), i.fac _ _,
    λ m h, by { apply fork.is_limit.hom_ext i, rw [i.fac], exact h }⟩
+
+@[simp]
+lemma is_limit_fork_of_kernel_fork_lift {c : kernel_fork (f - g)} (i : is_limit c) (s : fork f g) :
+  (is_limit_fork_of_kernel_fork i).lift s = i.lift (kernel_fork_of_fork s) := rfl
 
 /-- An equalizer of `f` and `g` is a kernel of `f - g`. -/
 def is_limit_kernel_fork_of_fork {c : fork f g} (i : is_limit c) :
@@ -273,8 +282,7 @@ cofork.of_π c.π $ by rw [sub_comp, zero_comp, sub_eq_zero, c.condition]
   (cokernel_cofork_of_cofork c).π = c.π := rfl
 
 @[simp] lemma cokernel_cofork_of_cofork_of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
-  (cokernel_cofork_of_cofork (cofork.of_π π w)) = limits.cokernel_cofork.of_π π (by simp [w]) :=
-rfl
+  (cokernel_cofork_of_cofork (cofork.of_π π w)) = cokernel_cofork.of_π π (by simp [w]) := rfl
 
 /-- A cokernel of `f - g` is a coequalizer of `f` and `g`. -/
 def is_colimit_cofork_of_cokernel_cofork {c : cokernel_cofork (f - g)} (i : is_colimit c) :
@@ -284,7 +292,7 @@ cofork.is_colimit.mk' _ $ λ s,
    λ m h, by { apply cofork.is_colimit.hom_ext i, rw [i.fac], exact h }⟩
 
 @[simp]
-lemma is_colimit_cofork_of_cokernel_cofork_desc {c : cokernel_cofork (f - g)} 
+lemma is_colimit_cofork_of_cokernel_cofork_desc {c : cokernel_cofork (f - g)}
   (i : is_colimit c) (s : cofork f g) :
   (is_colimit_cofork_of_cokernel_cofork i).desc s = i.desc (cokernel_cofork_of_cofork s) := rfl
 

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Jakob von Raumer
 -/
 import algebra.group.ext
 import category_theory.limits.shapes.finite_products
@@ -1529,9 +1529,10 @@ lemma biprod.map_eq [has_binary_biproducts C] {W X Y Z : C} {f : W ⟶ Y} {g : X
 by apply biprod.hom_ext; apply biprod.hom_ext'; simp
 
 /--
-Every split mono with a cokernel induces a binary bicone with `f` as its `inl` and
+Every split mono `f` with a cokernel induces a binary bicone with `f` as its `inl` and
 the cokernel map as its `snd`.
-We will show in TODO that this binary bicone is in fact already a biproduct. -/
+We will show in `is_bilimit_binary_bicone_of_split_mono_of_cokernel` that this binary bicone is in
+fact already a biproduct. -/
 @[simps]
 def binary_bicone_of_split_mono_of_cokernel {X Y : C} {f : X ⟶ Y} [split_mono f]
   {c : cokernel_cofork f} (i : is_colimit c) : binary_bicone X c.X :=
@@ -1562,7 +1563,8 @@ def binary_bicone_of_split_mono_of_cokernel {X Y : C} {f : X ⟶ Y} [split_mono 
   end,
   inr_snd' := by apply split_epi.id }
 
-/-- The bicone constructed in `binary_bicone_of_split_mono_of_cokernel` is a bilimit. -/
+/-- The bicone constructed in `binary_bicone_of_split_mono_of_cokernel` is a bilimit.
+This is a version of the splitting lemma that holds in all preadditive categories. -/
 def is_bilimit_binary_bicone_of_split_mono_of_cokernel {X Y : C} {f : X ⟶ Y} [split_mono f]
   {c : cokernel_cofork f} (i : is_colimit c) :
   (binary_bicone_of_split_mono_of_cokernel i).is_bilimit :=
@@ -1575,6 +1577,55 @@ begin
   rw [is_colimit_cofork_of_cokernel_cofork_desc, is_cokernel_epi_comp_desc],
   simp only [cofork.is_colimit.π_desc_of_π, cokernel_cofork_of_cofork_π,
     cofork.π_of_π, binary_bicone_of_split_mono_of_cokernel_inl, add_sub_cancel'_right],
+end
+
+/--
+Every split epi `f` with a kernel induces a binary bicone with `f` as its `snd` and
+the kernel map as its `inl`.
+We will show in `binary_bicone_of_split_mono_of_cokernel` that this binary bicone is in fact
+already a biproduct. -/
+@[simps]
+def binary_bicone_of_split_epi_of_kernel {X Y : C} {f : X ⟶ Y} [split_epi f]
+  {c : kernel_fork f} (i : is_limit c) : binary_bicone c.X Y :=
+{ X := X,
+  fst :=
+    let c' : kernel_fork (𝟙 X - (𝟙 X - f ≫ section_ f)) :=
+      kernel_fork.of_ι (fork.ι c) (by simp) in
+    let i' : is_limit c' := is_kernel_comp_mono i (section_ f) (by simp) in
+    let i'' := is_limit_fork_of_kernel_fork i' in
+    (split_mono_of_idempotent_of_is_limit_fork C (by simp) i'').retraction,
+  snd := f,
+  inl := c.ι,
+  inr := section_ f,
+  inl_fst' := by apply split_mono.id,
+  inl_snd' := by simp,
+  inr_fst' :=
+  begin
+    dsimp only,
+    rw [split_mono_of_idempotent_of_is_limit_fork_retraction,
+      is_limit_fork_of_kernel_fork_lift, is_kernel_comp_mono_lift],
+    dsimp only [kernel_fork_of_fork_ι],
+    letI := mono_of_is_limit_parallel_pair i,
+    apply zero_of_comp_mono c.ι,
+    simp only [comp_sub, category.comp_id, category.assoc, sub_self, fork.ι_eq_app_zero,
+      fork.is_limit.lift_of_ι_ι, fork.of_ι_π_app, split_epi.id_assoc]
+  end,
+  inr_snd' := by simp }
+
+/-- The bicone constructed in `binary_bicone_of_split_epi_of_kernel` is a bilimit.
+This is a version of the splitting lemma that holds in all preadditive categories. -/
+def is_bilimit_binary_bicone_of_split_epi_of_kernel {X Y : C} {f : X ⟶ Y} [split_epi f]
+  {c : kernel_fork f} (i : is_limit c) :
+  (binary_bicone_of_split_epi_of_kernel i).is_bilimit :=
+is_binary_bilimit_of_total _
+begin
+  simp only [binary_bicone_of_split_epi_of_kernel_fst, binary_bicone_of_split_epi_of_kernel_inl,
+    binary_bicone_of_split_epi_of_kernel_inr, binary_bicone_of_split_epi_of_kernel_snd,
+    split_mono_of_idempotent_of_is_limit_fork_retraction],
+  dsimp only [binary_bicone_of_split_epi_of_kernel_X],
+  rw [is_limit_fork_of_kernel_fork_lift, is_kernel_comp_mono_lift],
+  simp only [fork.ι_eq_app_zero, kernel_fork.condition, comp_zero, zero_comp, eq_self_iff_true,
+    fork.is_limit.lift_of_ι_ι, kernel_fork_of_fork_ι, fork.of_ι_π_app, sub_add_cancel]
 end
 
 end

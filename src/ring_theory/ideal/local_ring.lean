@@ -32,7 +32,7 @@ universes u v w u'
 
 variables {R : Type u} {S : Type v} {T : Type w} {K : Type u'}
 
-/-- A semiring is local if it is nontrivial and the set of nonunits is closed under the addition.
+/-- A semiring is local if it is nontrivial and `a` or `b` is a unit whenever `a + b = 1`.
 Note that `local_ring` is a predicate. -/
 class local_ring (R : Type u) [semiring R] extends nontrivial R : Prop :=
 of_is_unit_or_is_unit_of_add_one ::

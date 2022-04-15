@@ -52,7 +52,6 @@ abbreviation to_arrow {X : Top} {x : X} (p : fundamental_group X x) : x ⟶ x :=
 p.hom
 
 /-- An element of the fundamental group as a quotient of homotopic paths. -/
-@[reducible]
 abbreviation to_path {X : Top} {x : X} (p : fundamental_group X x) :
   path.homotopic.quotient x x := to_arrow p
 

@@ -55,6 +55,11 @@ begin
     (orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f n) : E)) n,
 end
 
+lemma gram_schmidt_def' (f : ℕ → E) (n : ℕ):
+  f n = gram_schmidt 𝕜 f n + ∑ i in finset.range n,
+    orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f n) :=
+by simp only [gram_schmidt_def, sub_add_cancel]
+
 @[simp] lemma gram_schmidt_zero (f : ℕ → E) :
   gram_schmidt 𝕜 f 0 = f 0 :=
 by simp only [gram_schmidt, fintype.univ_of_is_empty, finset.sum_empty, sub_zero]
@@ -110,10 +115,9 @@ begin
   { simp_intros b hb only [finset.mem_range, nat.succ_eq_add_one],
     replace hb : b ≤ c := by linarith,
     rw ← hc,
-    have h₁ : gram_schmidt 𝕜 f b ∈ gram_schmidt 𝕜 f '' Iic c,
-    { simp only [mem_image, mem_Iic],
-      refine ⟨b, hb, by refl⟩, },
-    exact subset_span h₁, },
+    refine subset_span _,
+    simp only [mem_image, mem_Iic],
+    refine ⟨b, hb, by refl⟩, },
   simp only [h, span_insert, image_insert_eq, hc],
   apply le_antisymm,
   { rw gram_schmidt_def,
@@ -129,10 +133,7 @@ begin
       specialize h₀ b hb,
       exact h₀, }, },
   { simp only [sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
-    have hc₁ : f c.succ = gram_schmidt 𝕜 f c.succ + ∑ i in finset.range c.succ,
-      orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f c.succ)
-        := by simp only [gram_schmidt_def, sub_add_cancel],
-    rw hc₁, clear hc₁,
+    rw gram_schmidt_def' 𝕜 f c.succ,
     simp only [orthogonal_projection_singleton],
     apply add_mem _ _ _,
     { apply mem_sup_left,
@@ -158,22 +159,17 @@ begin
     simp only [function.comp_app, fin.coe_zero, h], },
   { by_contra h₁,
     rw nat.succ_eq_add_one at hn h₀ h₁,
-    have h₂ : f (n + 1) = gram_schmidt 𝕜 f (n + 1) + ∑ i in finset.range (n + 1),
-      orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f (n + 1))
-        := by simp only [gram_schmidt_def, sub_add_cancel],
-    simp only [h₁, orthogonal_projection_singleton, zero_add] at h₂,
-    have h₃ : ∑ (x : ℕ) in finset.range (n + 1),
-      ((⟪gram_schmidt 𝕜 f x, f (n + 1)⟫ / ∥gram_schmidt 𝕜 f x∥ ^ 2) : 𝕜)
-        • gram_schmidt 𝕜 f x ∈ span 𝕜 (gram_schmidt 𝕜 f '' Iic n),
-    { apply sum_mem _ _,
+    have h₂ := gram_schmidt_def' 𝕜 f n.succ,
+    simp only [nat.succ_eq_add_one, h₁, orthogonal_projection_singleton, zero_add] at h₂,
+    have h₃ : f (n + 1) ∈ span 𝕜 (f '' Iic n),
+    { rw [h₂, ← span_gram_schmidt 𝕜 f n],
+      apply sum_mem _ _,
       intros a ha,
       apply smul_mem _ _ _,
-      have ha₁ : gram_schmidt 𝕜 f a ∈ gram_schmidt 𝕜 f '' Iic n,
-      { simp only [mem_image, mem_Iic],
-        rw finset.mem_range at ha,
-        refine ⟨a, by linarith, by refl⟩, },
-      exact subset_span ha₁, },
-    rw [span_gram_schmidt 𝕜 f n, ← h₂] at h₃,
+      refine subset_span _,
+      simp only [mem_image, mem_Iic],
+      rw finset.mem_range at ha,
+      refine ⟨a, by linarith, by refl⟩, },
     change linear_independent 𝕜 (f ∘ (coe : fin (n + 2) → ℕ)) at h₀,
     have h₄ : ((n + 1) : fin (n + 2)) ∉ (coe : fin (n + 2) → ℕ) ⁻¹' (Iic n),
     { simp only [mem_preimage, mem_Iic, not_le],

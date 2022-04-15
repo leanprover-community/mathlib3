@@ -340,6 +340,15 @@ begin
   simp,
 end
 
+lemma mem_ℒp_top_const (c : E) : mem_ℒp (λ a:α, c) ∞ μ :=
+begin
+  refine ⟨ae_strongly_measurable_const, _⟩,
+  by_cases h : μ = 0,
+  { simp only [h, snorm_measure_zero, with_top.zero_lt_top] },
+  { rw snorm_const _ ennreal.top_ne_zero h,
+    simp only [ennreal.top_to_real, div_zero, ennreal.rpow_zero, mul_one, ennreal.coe_lt_top] }
+end
+
 lemma mem_ℒp_const_iff {p : ℝ≥0∞} {c : E} (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   mem_ℒp (λ x : α, c) p μ ↔ c = 0 ∨ μ set.univ < ∞ :=
 begin
@@ -1804,21 +1813,30 @@ end
 
 end indicator_const_Lp
 
+lemma mem_ℒp.norm_rpow_div {f : α → E}
+  (hf : mem_ℒp f p μ) (q : ℝ≥0∞) :
+  mem_ℒp (λ (x : α), ∥f x∥ ^ q.to_real) (p/q) μ :=
+begin
+  refine ⟨(hf.1.norm.ae_measurable.pow_const q.to_real).ae_strongly_measurable, _⟩,
+  by_cases q_top : q = ∞, { simp [q_top] },
+  by_cases q_zero : q = 0,
+  { simp [q_zero],
+    by_cases p_zero : p = 0, { simp [p_zero] },
+    rw ennreal.div_zero p_zero,
+    exact (mem_ℒp_top_const (1 : ℝ)).2 },
+  rw snorm_norm_rpow _ (ennreal.to_real_pos q_zero q_top),
+  apply ennreal.rpow_lt_top_of_nonneg ennreal.to_real_nonneg,
+  rw [ennreal.of_real_to_real q_top, div_eq_mul_inv, mul_assoc,
+    ennreal.inv_mul_cancel q_zero q_top, mul_one],
+  exact hf.2.ne
+end
+
 lemma mem_ℒp.norm_rpow {f : α → E}
   (hf : mem_ℒp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   mem_ℒp (λ (x : α), ∥f x∥ ^ p.to_real) 1 μ :=
 begin
-  refine ⟨(hf.1.norm.ae_measurable.pow_const p.to_real).ae_strongly_measurable, _⟩,
-  have := hf.snorm_ne_top,
-  rw snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top at this,
-  rw snorm_one_eq_lintegral_nnnorm,
-  convert ennreal.rpow_lt_top_of_nonneg (@ennreal.to_real_nonneg p) this,
-  rw [← ennreal.rpow_mul, one_div_mul_cancel (ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm,
-      ennreal.rpow_one],
-  congr,
-  ext1 x,
-  rw [ennreal.coe_rpow_of_nonneg _ ennreal.to_real_nonneg, real.nnnorm_of_nonneg],
-  congr
+  convert hf.norm_rpow_div p,
+  rw [div_eq_mul_inv, ennreal.mul_inv_cancel hp_ne_zero hp_ne_top],
 end
 
 end measure_theory

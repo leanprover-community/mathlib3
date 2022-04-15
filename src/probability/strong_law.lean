@@ -2,11 +2,58 @@ import probability.martingale
 import probability.independence
 import probability.integration
 
-open measure_theory filter set finset
+open measure_theory filter finset
 
 noncomputable theory
 
 open_locale topological_space big_operators measure_theory probability_theory ennreal nnreal
+
+/-- The Cesaro average of a converging sequence converges to the same limit. -/
+lemma filter.tendsto.cesaro_smul {E : Type*} [normed_group E] [normed_space ℝ E]
+  {u : ℕ → E} {l : E} (h : tendsto u at_top (𝓝 l)) :
+  tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) • (∑ i in range n, u i)) at_top (𝓝 l) :=
+begin
+  refine metric.tendsto_nhds.2 (λ ε εpos, _),
+  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (b : ℕ), N ≤ b → dist (u b) l < ε / 2,
+    by simpa only [eventually_at_top] using metric.tendsto_nhds.1 h (ε / 2) (half_pos εpos),
+  have L : ∀ᶠ (n : ℕ) in at_top, ∥∑ i in range N, (u i - l)∥ < n * (ε / 2),
+  { have : tendsto (λ (n : ℕ), (n : ℝ) * (ε / 2)) at_top at_top,
+      by apply tendsto_coe_nat_at_top_at_top.at_top_mul (half_pos εpos) tendsto_const_nhds,
+    filter_upwards [tendsto_at_top.1 this (∥∑ i in range N, (u i - l)∥ + 1)] with n hn,
+    exact (lt_add_one _).trans_le hn },
+  filter_upwards [Ici_mem_at_top N, Ioi_mem_at_top 0, L] with n Nn npos hnL,
+  have nposℝ : (0 : ℝ) < n := nat.cast_pos.2 npos,
+  suffices : ∥(range n).sum u - n • l∥ < ε * n,
+  { have A : l = (n ⁻¹ : ℝ) • ((n : ℝ) • l), by rw [smul_smul, inv_mul_cancel nposℝ.ne', one_smul],
+    rwa [dist_eq_norm, A, ← smul_sub, norm_smul, norm_inv, real.norm_coe_nat, ← div_eq_inv_mul,
+      div_lt_iff nposℝ, ← nsmul_eq_smul_cast] },
+  calc ∥(range n).sum u - n • l∥ = ∥∑ i in range n, (u i - l)∥ :
+    by simp only [sum_sub_distrib, sum_const, card_range]
+  ... = ∥∑ i in range N, (u i - l) + ∑ i in Ico N n, (u i - l)∥ :
+    by rw sum_range_add_sum_Ico _ Nn
+  ... ≤ ∥∑ i in range N, (u i - l)∥ + ∥∑ i in Ico N n, (u i - l)∥ :
+    norm_add_le _ _
+  ... ≤ ∥∑ i in range N, (u i - l)∥ + ∑ i in Ico N n, ε / 2 :
+    begin
+      refine add_le_add le_rfl (norm_sum_le_of_le _ (λ i hi, _)),
+      rw ← dist_eq_norm,
+      exact (hN _ (mem_Ico.1 hi).1).le,
+    end
+  ... ≤ ∥∑ i in range N, (u i - l)∥ + n * (ε / 2) :
+    begin
+      refine add_le_add le_rfl _,
+      simp only [sum_const, nat.card_Ico, nsmul_eq_mul],
+      apply mul_le_mul _ le_rfl (half_pos εpos).le nposℝ.le,
+      simp only [nat.cast_le, tsub_le_self]
+    end
+  ... < n * (ε / 2) + n * (ε / 2) : (add_lt_add_iff_right _).2 hnL
+  ... = ε * n : by ring
+end
+
+lemma filter.tendsto.cesaro
+  {u : ℕ → ℝ} {l : ℝ} (h : tendsto u at_top (𝓝 l)) :
+  tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) * (∑ i in range n, u i)) at_top (𝓝 l) :=
+h.cesaro_smul
 
 namespace probability_theory
 
@@ -43,6 +90,24 @@ begin
     integral_const (integral ℙ X ^ 2), integral_mul_left (2 : ℝ), one_mul,
     variance, pi.pow_apply, measure_univ, ennreal.one_to_real, algebra.id.smul_eq_mul],
   ring,
+end
+
+lemma variance_le {X : Ω → ℝ} :
+  Var[X] ≤ 𝔼[X^2] :=
+begin
+  by_cases hX : mem_ℒp X 2,
+  { rw variance_def' hX,
+    simp only [sq_nonneg, sub_le_self_iff] },
+  { rw [variance, integral_undef],
+    { apply integral_nonneg,
+      assume a,
+      exact sq_nonneg _ },
+    { assume h,
+      have Z := mem_ℒp.integrable_sq,
+
+    }
+
+  }
 end
 
 theorem meas_ge_le_mul_variance {X : Ω → ℝ} (hX : mem_ℒp X 2) {c : ℝ≥0} (hc : c ≠ 0) :
@@ -171,12 +236,14 @@ begin
       (h.mono (by simp only [coe_insert, set.subset_insert]))
 end
 
+open set (indicator)
+
 section truncation
 
 variables {α : Type*}
 
 def truncation {α : Type*} (f : α → ℝ) (A : ℝ) :=
-(indicator (Icc (-A) A) id) ∘ f
+(indicator (set.Icc (-A) A) id) ∘ f
 
 variables {m : measurable_space α} {μ : measure α} {f : α → ℝ}
 
@@ -194,7 +261,7 @@ by simp [le_abs_self]
 lemma abs_truncation_le_bound (f : α → ℝ) (A : ℝ) (x : α) :
   abs (truncation f A x) ≤ |A| :=
 begin
-  simp only [truncation, indicator, set.mem_Icc, id.def, function.comp_app],
+  simp only [truncation, set.indicator, set.mem_Icc, id.def, function.comp_app],
   split_ifs,
   { simp only [real.norm_eq_abs, abs_le],
     split,
@@ -212,6 +279,15 @@ begin
   { simp [abs_nonneg] },
 end
 
+lemma truncation_eq_self {f : α → ℝ} {A : ℝ} {x : α} (h : |f x| ≤ A) :
+  truncation f A x = f x :=
+begin
+  simp only [truncation, indicator, set.mem_Icc, id.def, function.comp_app, ite_eq_left_iff,
+    not_le],
+  assume H,
+  exact H.elim (abs_le.1 h),
+end
+
 lemma _root_.measure_theory.ae_strongly_measurable.mem_ℒp_truncation [is_finite_measure μ]
   (hf : ae_strongly_measurable f μ) {A : ℝ} {p : ℝ≥0∞} :
   mem_ℒp (truncation f A) p μ :=
@@ -221,49 +297,50 @@ begin
     (eventually_of_forall (λ x, abs_truncation_le_bound _ _ _)),
 end
 
+/-- If a function is integrable, then the integral of its truncated versions converges to the
+integral of the whole function. -/
 lemma tendsto_integral_truncation {f : α → ℝ} (hf : integrable f μ) :
   tendsto (λ A, ∫ x, truncation f A x ∂μ) at_top (𝓝 (∫ x, f x ∂μ)) :=
 begin
-  apply tendsto_integral_filter_of_dominated_convergence (λ x, abs (f x)),
+  refine tendsto_integral_filter_of_dominated_convergence (λ x, abs (f x)) _ _ _ _,
   { exact eventually_of_forall (λ A, hf.ae_strongly_measurable.truncation) },
   { apply eventually_of_forall (λ A, _),
     apply eventually_of_forall (λ x, _),
     rw real.norm_eq_abs,
     exact abs_truncation_le_abs_self _ _ _ },
-  { apply integrable.norm,
-
-  }
-
+  { apply hf.abs },
+  { apply eventually_of_forall (λ x, _),
+    apply tendsto_const_nhds.congr' _,
+    filter_upwards [Ici_mem_at_top (abs (f x))] with A hA,
+    exact (truncation_eq_self hA).symm },
 end
 
+end truncation
 
-
-#exit
 
 theorem
   strong_law1
   (X : ℕ → Ω → ℝ) (hint : ∀ i, integrable (X i))
   (hindep : pairwise (λ i j, indep_fun (X i) (X j)))
-  (h'i : ∀ i j, measure.map (X i) ℙ = measure.map (X j) ℙ)
+  (h'i : ∀ i, measure.map (X i) ℙ = measure.map (X 0) ℙ)
   (h''i : ∀ i ω, 0 ≤ X i ω) :
-  ∀ᵐ ω, tendsto (λ n, (∑ i in finset.range n, X i ω) / (n : ℝ)) at_top (𝓝 (𝔼[X 0])) :=
+  ∀ᵐ ω, tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) * (∑ i in range n, X i ω)) at_top (𝓝 (𝔼[X 0])) :=
 begin
-  have A : ∀ i, strongly_measurable (indicator (Icc (0 : ℝ) i) id) :=
+  have A : ∀ i, strongly_measurable (indicator (set.Icc (-i : ℝ) i) id) :=
     λ i, strongly_measurable_id.indicator measurable_set_Icc,
-  let Y := λ (n : ℕ), (indicator (Icc (0 : ℝ) n) id) ∘ (X n),
-  have Y_meas : ∀ n, ae_strongly_measurable (Y n) ℙ :=
-    λ n, (A n).ae_strongly_measurable.comp_ae_measurable (hint n).ae_measurable,
+  let Y := λ (n : ℕ), truncation (X n) n,
   have : pairwise (λ i j, indep_fun (Y i) (Y j) ℙ),
   { assume i j hij,
     exact (hindep i j hij).comp (A i).measurable (A j).measurable },
-  have Itop : ∀ i, mem_ℒp (Y i) ∞,
-  { assume i,
-    apply mem_ℒp_top_of_bound (Y_meas i) i (eventually_of_forall (λ x, _)),
-    simp only [Y, indicator, set.mem_Icc, id.def, function.comp_app],
-    split_ifs,
-    { simp only [h.1, h.2, real.norm_eq_abs, abs_of_nonneg] },
-    { simp only [norm_zero, nat.cast_nonneg] } },
-  have : ∀ i, mem_ℒp (Y i) 2 := λ i, (Itop i).mem_ℒp_of_exponent_le le_top,
+  have : tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) * (∑ i in range n, 𝔼[Y i])) at_top (𝓝 (𝔼[X 0])),
+  { apply filter.tendsto.cesaro,
+    convert (tendsto_integral_truncation (hint 0)).comp tendsto_coe_nat_at_top_at_top,
+    ext i,
+    calc 𝔼[Y i] = ∫ x, (indicator (set.Icc (-i : ℝ) i) id) x ∂(measure.map (X i) ℙ) :
+      by { rw integral_map (hint i).ae_measurable (A i).ae_strongly_measurable, refl }
+    ... = ∫ x, (indicator (set.Icc (-i : ℝ) i) id) x ∂(measure.map (X 0) ℙ) : by rw h'i i
+    ... = 𝔼[truncation (X 0) i] :
+    by { rw integral_map (hint 0).ae_measurable (A i).ae_strongly_measurable, refl } },
 
 end
 

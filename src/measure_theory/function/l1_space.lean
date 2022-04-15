@@ -403,6 +403,39 @@ lemma mem_ℒp.integrable_sq
 by simpa [real.norm_eq_abs, ← mem_ℒp_one_iff_integrable]
   using h.norm_rpow ennreal.two_ne_zero ennreal.two_ne_top
 
+lemma mem_ℒp_two_iff_integrable_sq_norm
+  {α : Type*} {m : measurable_space α} {μ : measure α} {f : α → β}
+  (hf : ae_strongly_measurable f μ) :
+  mem_ℒp f 2 μ ↔ integrable (λ x, ∥f x∥^2) μ :=
+begin
+  split,
+  { assume h,
+    simpa [real.norm_eq_abs, ← mem_ℒp_one_iff_integrable]
+      using h.norm_rpow ennreal.two_ne_zero ennreal.two_ne_top },
+  { assume h,
+    refine ⟨hf, _⟩,
+    rw ← mem_ℒp_one_iff_integrable at h,
+    have A : mem_ℒp (λ x, ∥f x∥) 2 μ,
+    { convert h.norm_rpow_div (2 ⁻¹),
+      ext x,
+      simp_rw [norm_pow, norm_norm, ← real.rpow_two, ennreal.to_real_inv,
+        ← real.rpow_mul (norm_nonneg _)],
+      { simp },
+      { simp only [one_div, inv_inv] } },
+    rw ← snorm_norm,
+    exact A.2 }
+end
+
+lemma mem_ℒp_two_iff_integrable_sq
+  {α : Type*} {m : measurable_space α} {μ : measure α} {f : α → ℝ}
+  (hf : ae_strongly_measurable f μ) :
+  mem_ℒp f 2 μ ↔ integrable (λ x, (f x)^2) μ :=
+begin
+  convert mem_ℒp_two_iff_integrable_sq_norm hf,
+  ext x,
+  simp [real.norm_eq_abs],
+end
+
 lemma integrable.ae_strongly_measurable {f : α → β} (hf : integrable f μ) :
   ae_strongly_measurable f μ :=
 hf.1

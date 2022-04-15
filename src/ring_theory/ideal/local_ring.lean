@@ -32,7 +32,8 @@ universes u v w u'
 
 variables {R : Type u} {S : Type v} {T : Type w} {K : Type u'}
 
-/-- A semiring is local if it has a unique maximal ideal. Note that `local_ring` is a predicate. -/
+/-- A semiring is local if it is nontrivial and the set of nonunits is closed under the addition.
+Note that `local_ring` is a predicate. -/
 class local_ring (R : Type u) [semiring R] extends nontrivial R : Prop :=
 (nonunits_add : ∀ {a b : R}, a ∈ nonunits R → b ∈ nonunits R → a + b ∈ nonunits R)
 
@@ -41,6 +42,7 @@ variables [comm_semiring R]
 
 namespace local_ring
 
+/-- A semiring is local if it has a unique maximal ideal. -/
 lemma of_unique_max_ideal (h : ∃! I : ideal R, I.is_maximal) :
   local_ring R :=
 @local_ring.mk _ _ (nontrivial_of_ne (0 : R) 1 $

@@ -108,7 +108,7 @@ def approx_chain : chain (Π a, part $ β a) := ⟨approx f, approx_mono f⟩
 
 lemma le_f_of_mem_approx {x} : x ∈ approx_chain f → x ≤ f x :=
 begin
-  simp [(∈)],
+  simp only [(∈), forall_exists_index],
   rintro i rfl,
   apply approx_mono'
 end

@@ -658,29 +658,25 @@ faces are given by the same subset of points. -/
   {fs₁ fs₂ : finset (fin (n + 1))} {m₁ m₂ : ℕ} (h₁ : fs₁.card = m₁ + 1) (h₂ : fs₂.card = m₂ + 1) :
   fs₁.centroid k s.points = fs₂.centroid k s.points ↔ fs₁ = fs₂ :=
 begin
-  split,
-  { intro h,
-    rw [finset.centroid_eq_affine_combination_fintype,
-        finset.centroid_eq_affine_combination_fintype] at h,
-    have ha := (affine_independent_iff_indicator_eq_of_affine_combination_eq k s.points).1
-      s.independent _ _ _ _ (fs₁.sum_centroid_weights_indicator_eq_one_of_card_eq_add_one k h₁)
-      (fs₂.sum_centroid_weights_indicator_eq_one_of_card_eq_add_one k h₂) h,
-    simp_rw [finset.coe_univ, set.indicator_univ, function.funext_iff,
-             finset.centroid_weights_indicator_def, finset.centroid_weights, h₁, h₂] at ha,
-    ext i,
-    replace ha := ha i,
-    split,
-    all_goals
-    { intro hi,
-      by_contradiction hni,
-      simp [hi, hni] at ha,
-      norm_cast at ha } },
-  { intro h, -- todo ERIC: check this one with oleans
-    obtain rfl : m₁ = m₂,
-    { subst h,
-      simpa [h₁] using h₂ },
-    congr,
-    exact h }
+  refine ⟨λ h, _, congr_arg _⟩,
+  rw [finset.centroid_eq_affine_combination_fintype,
+      finset.centroid_eq_affine_combination_fintype] at h,
+  have ha := (affine_independent_iff_indicator_eq_of_affine_combination_eq k s.points).1
+    s.independent _ _ _ _ (fs₁.sum_centroid_weights_indicator_eq_one_of_card_eq_add_one k h₁)
+    (fs₂.sum_centroid_weights_indicator_eq_one_of_card_eq_add_one k h₂) h,
+  simp_rw [finset.coe_univ, set.indicator_univ, function.funext_iff,
+           finset.centroid_weights_indicator_def, finset.centroid_weights, h₁, h₂] at ha,
+  ext i,
+  specialize ha i,
+  split, -- note that `refine ⟨λ hi, _, λ hi, _⟩` doesn't work here; I'm not sure why.
+  all_goals
+  { intro hi,
+    by_contradiction hni,
+    obtain ⟨n, hn⟩ : ∃ n : ℕ, (n : k) + 1 = 0,
+    swap, { norm_cast at hn } },
+  work_on_goal 1 { use m₁ },
+  work_on_goal 2 { use m₂, symmetry },
+  all_goals { simpa [hni, hi] using ha }
 end
 
 /-- Over a characteristic-zero division ring, the centroids of two

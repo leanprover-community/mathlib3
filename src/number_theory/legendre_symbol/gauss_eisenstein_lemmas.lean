@@ -66,7 +66,6 @@ end zmod
 
 section gauss_eisenstein
 
--- put the following in a separate namespace
 namespace legendre_symbol
 
 /-- The image of the map sending a non zero natural number `x ≤ p / 2` to the absolute value

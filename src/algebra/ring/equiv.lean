@@ -42,7 +42,8 @@ variables {F α β R S S' : Type*}
 
 set_option old_structure_cmd true
 
-/-- An equivalence between two (semi)rings that preserves the algebraic structure. -/
+/-- An equivalence between two (non-unital non-associative semi)rings that preserves the
+algebraic structure. -/
 structure ring_equiv (R S : Type*) [has_mul R] [has_add R] [has_mul S] [has_add S]
   extends R ≃ S, R ≃* S, R ≃+ S
 
@@ -81,6 +82,15 @@ instance to_ring_hom_class (F R S : Type*)
   coe_injective' := fun_like.coe_injective,
   map_zero := map_zero,
   map_one := map_one,
+  .. h }
+
+@[priority 100] -- See note [lower instance priority]
+instance to_non_unital_ring_hom_class (F R S : Type*)
+  [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S] [h : ring_equiv_class F R S] :
+  non_unital_ring_hom_class F R S :=
+{ coe := coe_fn,
+  coe_injective' := fun_like.coe_injective,
+  map_zero := map_zero,
   .. h }
 
 end ring_equiv_class

@@ -46,7 +46,8 @@ begin
   have hn := two_power_part_mul_odd_part (n),
   have hm := two_power_part_mul_odd_part (m),
   have hnm' := mul_two_power_part n m,
-  have pos_two_power_part : 0 < two_power_part (n * m), sorry,
+  have pos_two_power_part : 0 < two_power_part (n * m),
+  sorry,
   -- TODO(Sean): See if you can prove this. I've given a bunch of have statements for things I think are necessary.
   sorry,
 end

@@ -520,6 +520,7 @@ begin
 end
 
 /-- The tensor product functor from `C × C` to `C` as a monoidal functor. -/
+@[simps]
 def tensor_monoidal : monoidal_functor (C × C) C :=
 { ε := (λ_ (𝟙_ C)).inv,
   μ := λ X Y, tensor_μ C X Y,

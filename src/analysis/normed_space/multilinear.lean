@@ -361,7 +361,7 @@ end
 
 section
 variables {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' G] [smul_comm_class 𝕜 𝕜' G]
-variables [normed_space 𝕜' G'] [smul_comm_class 𝕜 𝕜' G']
+variables [normed_space 𝕜' G']
 
 lemma op_norm_smul_le (c : 𝕜') : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
 (c • f).op_norm_le_bound
@@ -389,7 +389,7 @@ instance normed_space : normed_space 𝕜' (continuous_multilinear_map 𝕜 E G)
 
 /-- An alias of `continuous_multilinear_map.normed_space` with non-dependent types to help typeclass
 search. -/
-instance normed_space' : normed_space 𝕜' (continuous_multilinear_map 𝕜 (λ i : ι, G) G') :=
+instance normed_space' : normed_space 𝕜' (continuous_multilinear_map 𝕜 (λ i : ι, G') G) :=
 continuous_multilinear_map.normed_space
 
 theorem le_op_norm_mul_prod_of_le {b : ι → ℝ} (hm : ∀ i, ∥m i∥ ≤ b i) : ∥f m∥ ≤ ∥f∥ * ∏ i, b i :=

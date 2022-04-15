@@ -340,8 +340,8 @@ begin
 end
 
 /-- The `v`-adic valuation on `K`. -/
-def valuation  : valuation K (with_zero (multiplicative ℤ)) := {
-  to_fun    := v.valuation_def,
+def valuation  : valuation K (with_zero (multiplicative ℤ)) :=
+{ to_fun    := v.valuation_def,
   map_zero' := valuation.map_zero' v,
   map_one'  := valuation.map_one' v,
   map_mul'  := valuation.map_mul' v,

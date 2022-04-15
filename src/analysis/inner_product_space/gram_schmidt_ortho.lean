@@ -159,6 +159,7 @@ begin
     simp only [function.comp_app, fin.coe_zero, h], },
   { by_contra h₁,
     rw nat.succ_eq_add_one at hn h₀ h₁,
+    simp [gram_schmidt_def] at h₁,
     have h₂ : f (n + 1) = gram_schmidt 𝕜 f (n + 1) + ∑ i in finset.range (n + 1),
       orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f (n + 1))
         := by simp only [gram_schmidt_def, sub_add_cancel],

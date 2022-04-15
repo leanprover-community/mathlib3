@@ -371,6 +371,14 @@ continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_const_mul (or.inl h
 protected lemma continuous_mul_const {a : ℝ≥0∞} (ha : a ≠ ⊤) : continuous (λ x, x * a) :=
 continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_mul_const (or.inl ha)
 
+protected lemma continuous_div_const (c : ℝ≥0∞) (c_ne_zero : c ≠ 0) :
+  continuous (λ (x : ℝ≥0∞), x / c) :=
+begin
+  simp_rw [div_eq_mul_inv, continuous_iff_continuous_at],
+  intro x,
+  exact ennreal.continuous_at_mul_const (or.intro_left _ (inv_ne_top.mpr c_ne_zero)),
+end
+
 @[continuity]
 lemma continuous_pow (n : ℕ) : continuous (λ a : ℝ≥0∞, a ^ n) :=
 begin

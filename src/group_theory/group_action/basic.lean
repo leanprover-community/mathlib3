@@ -318,6 +318,10 @@ attribute [to_additive add_action.quotient_action] mul_action.quotient_action
 ⟨λ b c _ _, by rwa [smul_def, smul_def, smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev, ←mul_assoc,
   mem_normalizer_iff'.mp b.prop, mul_assoc, mul_inv_cancel_left]⟩
 
+@[to_additive] instance right_quotient_action' [hH : H.normal] : quotient_action αᵐᵒᵖ H :=
+⟨λ _ _ _ _, by rwa [smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev, mul_assoc, hH.mem_comm_iff,
+  mul_assoc, mul_inv_cancel_right]⟩
+
 @[to_additive] instance quotient [quotient_action β H] : mul_action β (α ⧸ H) :=
 { smul := λ b, quotient.map' ((•) b) (λ a a' h, quotient_action.inv_mul_mem b h),
   one_smul := λ q, quotient.induction_on' q (λ a, congr_arg quotient.mk' (one_smul β a)),

@@ -154,9 +154,9 @@ lemma gram_schmidt_ne_zero (f : ℕ → E) (n : ℕ)
 begin
   induction n with n hn,
   { simp only [gram_schmidt_zero, ne.def],
-    have h : f 0 = (f ∘ (coe : fin 1 → ℕ)) 0 := by simp only [function.comp_app, fin.coe_zero],
-    rw h,
-    exact linear_independent.ne_zero 0 h₀, },
+    intro h,
+    refine linear_independent.ne_zero 0 h₀ _,
+    simp only [function.comp_app, fin.coe_zero, h], },
   { by_contra h₁,
     rw nat.succ_eq_add_one at hn h₀ h₁,
     have h₂ : f (n + 1) = gram_schmidt 𝕜 f (n + 1) + ∑ i in finset.range (n + 1),

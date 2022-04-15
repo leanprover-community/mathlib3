@@ -348,28 +348,6 @@ lemma eventually_eq_one_of_mem_ball (h : x ∈ ball c f.r) :
 lemma eventually_eq_one : f =ᶠ[𝓝 c] 1 :=
 f.eventually_eq_one_of_mem_ball (mem_ball_self f.r_pos)
 
-protected lemma cont_diff_at {n} :
-  cont_diff_at ℝ n f x :=
-begin
-  rcases em (x = c) with rfl|hx,
-  { refine cont_diff_at.congr_of_eventually_eq _ f.eventually_eq_one,
-    rw pi.one_def,
-    exact cont_diff_at_const },
-  { exact real.smooth_transition.cont_diff_at.comp x
-      (cont_diff_at.div_const $ cont_diff_at_const.sub $
-        cont_diff_at_id.dist cont_diff_at_const hx) }
-end
-
-protected lemma cont_diff : cont_diff ℝ n f :=
-cont_diff_iff_cont_diff_at.2 $ λ y, f.cont_diff_at
-
-protected lemma cont_diff_within_at {s} :
-  cont_diff_within_at ℝ n f s x :=
-f.cont_diff_at.cont_diff_within_at
-
-protected lemma continuous : continuous f :=
-cont_diff_zero.mp f.cont_diff
-
 /-- `cont_diff_bump` is `𝒞ⁿ` in all its arguments. -/
 protected lemma _root_.cont_diff_at.cont_diff_bump {c g : X → E}
   {f : ∀ x, cont_diff_bump_of_inner (c x)} {x : X}
@@ -394,6 +372,17 @@ lemma _root_.cont_diff.cont_diff_bump {c g : X → E} {f : ∀ x, cont_diff_bump
   (hg : cont_diff ℝ n g) : cont_diff ℝ n (λ x, f x (g x)) :=
 by { rw [cont_diff_iff_cont_diff_at] at *, exact λ x, (hc x).cont_diff_bump (hr x) (hR x) (hg x) }
 
+protected lemma cont_diff : cont_diff ℝ n f :=
+cont_diff_const.cont_diff_bump cont_diff_const cont_diff_const cont_diff_id
+
+protected lemma cont_diff_at : cont_diff_at ℝ n f x :=
+f.cont_diff.cont_diff_at
+
+protected lemma cont_diff_within_at {s : set E} : cont_diff_within_at ℝ n f s x :=
+f.cont_diff_at.cont_diff_within_at
+
+protected lemma continuous : continuous f :=
+cont_diff_zero.mp f.cont_diff
 
 open measure_theory
 variables [measurable_space E] {μ : measure E}

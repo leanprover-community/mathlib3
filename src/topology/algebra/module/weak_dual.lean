@@ -228,9 +228,6 @@ theorem tendsto_iff_forall_eval_tendsto_top_dual_pairing
   {l : filter α} {f : α → weak_dual 𝕜 E} {x : weak_dual 𝕜 E} :
   tendsto f l (𝓝 x) ↔
     ∀ y, tendsto (λ i, top_dual_pairing 𝕜 E (f i) y) l (𝓝 (top_dual_pairing 𝕜 E x y)) :=
-begin
-  apply tendsto_iff_forall_eval_tendsto,
-  exact continuous_linear_map.coe_injective,
-end
+tendsto_iff_forall_eval_tendsto _ continuous_linear_map.coe_injective
 
 end weak_star_topology

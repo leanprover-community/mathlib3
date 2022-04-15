@@ -295,8 +295,7 @@ lemma to_weak_dual_bcnn_eval (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
 /-- The topology of weak convergence on `finite_measures α` is inherited (induced) from the weak-*
 topology on `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)` via the function `finite_measures.to_weak_dual_bcnn`. -/
 instance : topological_space (finite_measure α) :=
-topological_space.induced
-  (λ (μ : finite_measure α), μ.to_weak_dual_bcnn) infer_instance
+topological_space.induced to_weak_dual_bcnn infer_instance
 
 lemma to_weak_dual_bcnn_continuous :
   continuous (@finite_measure.to_weak_dual_bcnn α _ _ _) :=
@@ -311,24 +310,19 @@ lemma continuous_test_against_nn_eval (f : α →ᵇ ℝ≥0) :
 
 lemma tendsto_iff_weak_star_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
-  tendsto μs F (𝓝 μ) ↔
-    tendsto (λ i, (μs(i)).to_weak_dual_bcnn)
-      F (𝓝 μ.to_weak_dual_bcnn) :=
+  tendsto μs F (𝓝 μ) ↔ tendsto (λ i, (μs(i)).to_weak_dual_bcnn) F (𝓝 μ.to_weak_dual_bcnn) :=
 inducing.tendsto_nhds_iff ⟨rfl⟩
 
 theorem tendsto_iff_forall_test_against_nn_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
   tendsto μs F (𝓝 μ) ↔
-  ∀ (f : α →ᵇ ℝ≥0),
-    tendsto (λ i, (μs(i)).to_weak_dual_bcnn f)
-      F (𝓝 (μ.to_weak_dual_bcnn f)) :=
+  ∀ (f : α →ᵇ ℝ≥0), tendsto (λ i, (μs(i)).to_weak_dual_bcnn f) F (𝓝 (μ.to_weak_dual_bcnn f)) :=
 by { rw [tendsto_iff_weak_star_tendsto, tendsto_iff_forall_eval_tendsto_top_dual_pairing], refl, }
 
 theorem tendsto_iff_forall_lintegral_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
   tendsto μs F (𝓝 μ) ↔
-  ∀ (f : α →ᵇ ℝ≥0), tendsto (λ i, (∫⁻ x, (f x) ∂(μs(i) : measure α))) F
-    (𝓝 ((∫⁻ x, (f x) ∂(μ : measure α)))) :=
+  ∀ (f : α →ᵇ ℝ≥0), tendsto (λ i, (∫⁻ x, (f x) ∂(μs(i) : measure α))) F (𝓝 ((∫⁻ x, (f x) ∂(μ : measure α)))) :=
 begin
   rw tendsto_iff_forall_test_against_nn_tendsto,
   simp_rw [to_weak_dual_bcnn_eval' _ _,
@@ -393,16 +387,13 @@ variables [opens_measurable_space α]
 
 lemma test_against_nn_lipschitz (μ : probability_measure α) :
   lipschitz_with 1 (λ (f : α →ᵇ ℝ≥0), μ.to_finite_measure.test_against_nn f) :=
-begin
-  have key := μ.to_finite_measure.test_against_nn_lipschitz,
-  rwa μ.mass_to_finite_measure at key,
-end
+μ.mass_to_finite_measure ▸ μ.to_finite_measure.test_against_nn_lipschitz
 
 /-- The topology of weak convergence on `probability_measures α`. This is inherited (induced) from
 the weak-*  topology on `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)` via the function
 `probability_measures.to_weak_dual_bcnn`. -/
 instance : topological_space (probability_measure α) :=
-topological_space.induced (λ (μ : probability_measure α), μ.to_finite_measure) infer_instance
+topological_space.induced to_finite_measure infer_instance
 
 lemma to_finite_measure_continuous :
   continuous (to_finite_measure : probability_measure α → finite_measure α) :=
@@ -418,27 +409,20 @@ lemma to_weak_dual_bcnn_eval (μ : probability_measure α) (f : α →ᵇ ℝ≥
 
 lemma to_weak_dual_bcnn_continuous :
   continuous (λ (μ : probability_measure α), μ.to_weak_dual_bcnn) :=
-by apply continuous.comp finite_measure.to_weak_dual_bcnn_continuous to_finite_measure_continuous
+finite_measure.to_weak_dual_bcnn_continuous.comp to_finite_measure_continuous
 
 /- Integration of (nonnegative bounded continuous) test functions against Borel probability
 measures depends continuously on the measure. -/
 lemma continuous_test_against_nn_eval (f : α →ᵇ ℝ≥0) :
   continuous (λ (μ : probability_measure α), μ.to_finite_measure.test_against_nn f) :=
-by apply continuous.comp
-  (finite_measure.continuous_test_against_nn_eval f) to_finite_measure_continuous
+(finite_measure.continuous_test_against_nn_eval f).comp to_finite_measure_continuous
 
 /- The canonical mapping from probability measures to finite measures is an embedding. -/
 lemma to_finite_measure_embedding (α : Type*)
   [measurable_space α] [topological_space α] [opens_measurable_space α] :
   embedding (to_finite_measure : probability_measure α → finite_measure α) :=
 { induced := rfl,
-  inj := begin
-    intros μ ν h,
-    apply subtype.eq,
-    simp only [val_eq_to_measure],
-    rw [←μ.coe_comp_to_finite_measure_eq_coe, ←ν.coe_comp_to_finite_measure_eq_coe],
-    apply congr_arg _ h,
-  end, }
+  inj := λ μ ν h, subtype.eq (by convert congr_arg coe h) }
 
 lemma tendsto_nhds_iff_to_finite_measures_tendsto_nhds {δ : Type*}
   (F : filter δ) {μs : δ → probability_measure α} {μ₀ : probability_measure α} :
@@ -456,7 +440,7 @@ theorem tendsto_iff_forall_lintegral_tendsto {γ : Type*} {F : filter γ}
     (𝓝 ((∫⁻ x, (f x) ∂(μ : measure α)))) :=
 begin
   rw tendsto_nhds_iff_to_finite_measures_tendsto_nhds,
-  apply finite_measure.tendsto_iff_forall_lintegral_tendsto,
+  exact finite_measure.tendsto_iff_forall_lintegral_tendsto,
 end
 
 end probability_measure

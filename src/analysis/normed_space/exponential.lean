@@ -452,7 +452,7 @@ lemma exp_smul {G} [monoid G] [mul_semiring_action G 𝔸] [has_continuous_const
 
 lemma exp_units_conj (y : 𝔸ˣ) (x : 𝔸)  :
   exp 𝕂 𝔸 (y * x * ↑(y⁻¹)) = y * exp 𝕂 𝔸 x * ↑(y⁻¹) :=
-exp_smul (conj_act.to_conj y) x
+exp_smul _ (conj_act.to_conj_act y) x
 
 lemma exp_units_conj' (y : 𝔸ˣ) (x : 𝔸)  :
   exp 𝕂 𝔸 (↑(y⁻¹) * x * y) = ↑(y⁻¹) * exp 𝕂 𝔸 x * y :=

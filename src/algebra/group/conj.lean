@@ -172,6 +172,14 @@ instance [fintype α] [decidable_rel (is_conj : α → α → Prop)] :
   fintype (conj_classes α) :=
 quotient.fintype (is_conj.setoid α)
 
+instance [decidable_rel (is_conj : α → α → Prop)] : decidable_eq (conj_classes α) :=
+quotient.decidable_eq
+
+noncomputable
+lemma decidable_rel_is_conj [decidable_eq α] [fintype α] :
+  decidable_rel (is_conj : α → α → Prop) :=
+λ a b, by { delta is_conj semiconj_by, apply_instance }
+
 end monoid
 
 section comm_monoid
@@ -242,5 +250,25 @@ end
 lemma carrier_eq_preimage_mk {a : conj_classes α} :
   a.carrier = conj_classes.mk ⁻¹' {a} :=
 set.ext (λ x, mem_carrier_iff_mk_eq)
+
+section fintype
+
+variables [fintype α]
+
+variables [decidable_eq (conj_classes α)]
+
+/-- Given a conjugacy class `x`, `fincarrier x` is the finset it represents. -/
+def fincarrier (x : conj_classes α) : finset α :=
+finset.univ.filter $ λ a, conj_classes.mk a = x
+
+lemma coe_fincarrier (x : conj_classes α) : (x.fincarrier : set α) = x.carrier :=
+begin
+  rw [fincarrier, carrier_eq_preimage_mk],
+  ext a,
+  simp only [set.sep_univ, set.mem_preimage, set.mem_singleton_iff, finset.coe_univ,
+    set.mem_set_of_eq, finset.coe_filter],
+end
+
+end fintype
 
 end conj_classes

@@ -452,17 +452,7 @@ lemma exp_smul {G} [monoid G] [mul_semiring_action G 𝔸] [has_continuous_const
 
 lemma exp_units_conj (y : 𝔸ˣ) (x : 𝔸)  :
   exp 𝕂 𝔸 (y * x * ↑(y⁻¹)) = y * exp 𝕂 𝔸 x * ↑(y⁻¹) :=
-begin
-  -- TODO: where does this belong?
-  let conj_act : 𝔸 →+* 𝔸 :=
-  { to_fun := λ a, y * a * ↑(y⁻¹),
-    map_one' := by simp,
-    map_mul' := λ a₁ a₂, by simp [mul_assoc],
-    map_zero' := by simp,
-    map_add' := λ a₁ a₂, by simp [mul_add, add_mul]},
-  have : continuous conj_act := (continuous_const.mul continuous_id).mul continuous_const,
-  exact (map_exp 𝕂 conj_act this x).symm,
-end
+exp_smul (conj_act.to_conj y) x
 
 lemma exp_units_conj' (y : 𝔸ˣ) (x : 𝔸)  :
   exp 𝕂 𝔸 (↑(y⁻¹) * x * y) = ↑(y⁻¹) * exp 𝕂 𝔸 x * y :=

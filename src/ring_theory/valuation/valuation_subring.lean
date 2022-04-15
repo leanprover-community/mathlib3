@@ -30,7 +30,7 @@ variables {K} (A : valuation_subring K)
 
 instance : set_like (valuation_subring K) K :=
 { coe := λ A, A.to_subring,
-  coe_injective' := λ A B h, by { obtain ⟨⟨⟩⟩ := A, obtain ⟨⟨⟩⟩ := B, congr, exact h } }
+  coe_injective' := by { rintro ⟨⟨⟩⟩ ⟨⟨⟩⟩ _, congr' } }
 
 @[simp] lemma mem_carrier (x : K) : x ∈ A.carrier ↔ x ∈ A := iff.refl _
 @[simp] lemma mem_to_subring (x : K) : x ∈ A.to_subring ↔ x ∈ A := iff.refl _
@@ -63,16 +63,15 @@ instance : order_top (valuation_subring K) :=
 instance : inhabited (valuation_subring K) := ⟨⊤⟩
 
 instance : valuation_ring A :=
-begin
-  constructor,
-  intros a b,
-  by_cases (b : K) = 0, { use 0, left, ext, simp [h] },
-  by_cases (a : K) = 0, { use 0, right, ext, simp [h] },
-  cases A.mem_or_inv_mem (a/b) with hh hh,
-  { use ⟨a/b,hh⟩, right, ext, field_simp, ring },
-  { rw (show (a/b : K)⁻¹ = b/a, by field_simp) at hh,
-    use ⟨b/a,hh⟩, left, ext, field_simp, ring },
-end
+{ cond := λ a b,
+  begin
+    by_cases (b : K) = 0, { use 0, left, ext, simp [h] },
+    by_cases (a : K) = 0, { use 0, right, ext, simp [h] },
+    cases A.mem_or_inv_mem (a/b) with hh hh,
+    { use ⟨a/b,hh⟩, right, ext, field_simp, ring },
+    { rw (show (a/b : K)⁻¹ = b/a, by field_simp) at hh,
+      use ⟨b/a,hh⟩, left, ext, field_simp, ring },
+  end }
 
 instance : algebra A K :=
 show algebra A.to_subring K, by apply_instance
@@ -191,61 +190,27 @@ lemma map_of_le_valuation_apply (R S : valuation_subring K) (h : R ≤ S) (x : K
 
 def ideal_of_le (R S : valuation_subring K) (h : R ≤ S) : ideal R :=
 (local_ring.maximal_ideal S).comap (R.inclusion S h)
-/-{ carrier := { r | S.valuation r < 1 },
-  add_mem' := λ a b ha hb, lt_of_le_of_lt (S.valuation.map_add a b) (max_lt ha hb),
-  zero_mem' := zero_lt_one₀,
-  smul_mem' := begin
-    rintros c a (ha : S.valuation _ < _), rw smul_eq_mul,
-    let t : S := ⟨c, h c.2⟩,
-    change S.valuation (c * a) < _,
-    rw S.valuation.map_mul,
-    refine lt_of_le_of_lt _ ha,
-    refine mul_le_of_le_one_left' _,
-    rw S.valuation_le_one_iff,
-    exact h c.2
-  end }-/
 
 instance prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
-  (ideal_of_le R S h).is_prime :=
-begin
-  constructor,
-  { rw ideal.ne_top_iff_one, rintro (c : S.valuation _ < _),
-    push_cast at c, rw S.valuation.map_one at c, exact ne_of_lt c rfl },
-  { rintros x y (hh : S.valuation _ < _), push_cast at hh,
-    rw S.valuation.map_mul at hh,
-    by_cases hx : S.valuation x < 1, { exact or.inl hx },
-    right,
-    have : S.valuation x = 1,
-    { cases S.valuation_lt_one_or_eq_one ⟨x, h x.2⟩ with h1 h1,
-      { contradiction },
-      { assumption } },
-    { rwa [this, one_mul] at hh, } }
-end
+  (ideal_of_le R S h).is_prime := (local_ring.maximal_ideal S).comap_is_prime _
 
 def of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   valuation_subring K :=
 of_le A (localization.subring K P.prime_compl $
   le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem) $
-λ a ha, ⟨⟨a, ha⟩, 1, P.prime_compl.one_mem, by simp⟩
+  λ a ha, ⟨⟨a, ha⟩, 1, P.prime_compl.one_mem, by simp⟩
 
 instance of_prime_algebra (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   algebra A (A.of_prime P) :=
-show algebra A (localization.subring _ P.prime_compl
-  (le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem)),
-by apply_instance
+show algebra A (localization.subring _ _ _), by apply_instance
 
 instance of_prime_scalar_tower (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   is_scalar_tower A (A.of_prime P) K :=
-show is_scalar_tower A (localization.subring _ P.prime_compl
-  (le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem)) K,
-by apply_instance
+show is_scalar_tower A (localization.subring _ _ _) K, by apply_instance
 
 instance of_prime_localization (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   is_localization.at_prime (A.of_prime P) P :=
-show is_localization P.prime_compl
-  (localization.subring _ P.prime_compl
-  (le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem)),
-  by apply_instance
+show is_localization P.prime_compl (localization.subring _ _ _), by apply_instance
 
 lemma le_of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   A ≤ of_prime A P :=
@@ -256,34 +221,14 @@ lemma of_prime_valuation_eq_one_iff_mem_prime_compl
   (P : ideal A) [P.is_prime] (x : A) :
   (of_prime A P).valuation x = 1 ↔ x ∈ P.prime_compl :=
 begin
-  rw ← is_localization.at_prime.is_unit_to_map_iff (A.of_prime P) P x,
-  let y : A.of_prime P := ⟨x, le_of_prime _ _ x.2⟩,
-  change (A.of_prime P).valuation y = 1 ↔ is_unit y,
-  exact (valuation_eq_one_iff _ _).symm,
+  rw [← is_localization.at_prime.is_unit_to_map_iff (A.of_prime P) P x, valuation_eq_one_iff],
+  exact iff.rfl,
 end
 
 @[simp]
 lemma ideal_of_le_of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   ideal_of_le A (of_prime A P) (le_of_prime A P) = P :=
-begin
-  ext a,
-  change (A.of_prime P).valuation a < 1 ↔ _,
-  have : (A.of_prime P).valuation a ≤ 1,
-  { rw [← (A.map_of_le (A.of_prime P) (A.le_of_prime _)).map_one,
-      ← A.map_of_le_valuation_apply (A.of_prime P) (le_of_prime _ _)],
-    mono,
-    apply valuation_le_one },
-  replace this := lt_or_eq_of_le this,
-  cases this,
-  { refine ⟨_, λ _, this⟩,
-    intro _, rw ← is_localization.at_prime.to_map_mem_maximal_iff (A.of_prime P) P,
-    rwa valuation_lt_one_iff },
-  { split,
-    { intro h, rw this at h, exact false.elim (ne_of_lt h rfl) },
-    { intro h,
-      rw ← is_localization.at_prime.to_map_mem_maximal_iff (A.of_prime P) P at h,
-      rwa valuation_lt_one_iff at h } }
-end
+by { ext, apply is_localization.at_prime.to_map_mem_maximal_iff }
 
 @[simp]
 lemma of_prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
@@ -291,37 +236,21 @@ lemma of_prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
 begin
   ext x,
   split,
-  { rintro ⟨a,r,hr,rfl⟩,
-    change _ ∉ _ at hr, dsimp [ideal_of_le] at hr,
-    let s : S := R.inclusion S h r,
-    change ¬ S.valuation s < 1 at hr,
-    have hs : S.valuation s = 1,
-    { cases S.valuation_lt_one_or_eq_one s, { contradiction }, { assumption } },
-    rw [← valuation_le_one_iff, valuation.map_mul, valuation.map_inv],
-    rw [mul_inv_le_iff₀, one_mul], erw hs,
-    rw valuation_le_one_iff, apply h, exact a.2,
-    { erw hs, exact one_ne_zero } },
-  { intro hx,
-    by_cases hγ : R.valuation x ≤ 1,
-    { use x, rwa valuation_le_one_iff at hγ, use 1, split, apply submonoid.one_mem _, simp },
-    use 1, simp only [ring_hom.map_one, one_mul], push_neg at hγ,
-    use x⁻¹, rw [← valuation_le_one_iff, valuation.map_inv,
-      ← inv_one, inv_le_inv₀], exact le_of_lt hγ,
-    { intro c, rw c at hγ,
-      apply not_lt_of_lt hγ,
-      exact zero_lt_one₀, },
-    { exact one_ne_zero },
-    split,
-    { change ¬ (S.valuation _ < 1),
-      push_neg, push_cast, rw [valuation.map_inv, ← inv_one, inv_le_inv₀],
-      { rwa valuation_le_one_iff, },
-      { exact one_ne_zero },
-      { intro c, rw ← R.valuation.map_one at hγ,
-        replace hγ := le_of_lt hγ, replace hγ := monotone_map_of_le R S h hγ,
-        simp only [valuation.map_one, (map_of_le _ _ _).map_one, map_of_le_valuation_apply] at hγ,
-        rw c at hγ,
-        apply not_lt_of_le hγ, exact zero_lt_one₀ } },
-    { simp } }
+  { rintro ⟨a,r,hr,rfl⟩, apply mul_mem, { exact h a.2 },
+    { rw [← valuation_le_one_iff, valuation.map_inv, ← inv_one, inv_le_inv₀],
+      { exact not_lt.1 ((not_iff_not.2 $ valuation_lt_one_iff S _).1 hr) },
+      { intro hh, erw [valuation.zero_iff, subring.coe_eq_zero_iff] at hh,
+        apply hr, rw hh, apply ideal.zero_mem (R.ideal_of_le S h) },
+      { exact one_ne_zero } } },
+  { intro hx, by_cases hr : x ∈ R, { exact R.le_of_prime _ hr },
+    have : x ≠ 0 := λ h, hr (by { rw h, exact R.zero_mem }),
+    replace hr := (R.mem_or_inv_mem x).resolve_left hr,
+    { use [1, x⁻¹, hr], split,
+      { change (⟨x⁻¹, h hr⟩ : S) ∉ nonunits S,
+        erw [mem_nonunits_iff, not_not],
+        apply is_unit_of_mul_eq_one _ (⟨x,hx⟩ : S),
+        ext, field_simp },
+      { field_simp } } },
 end
 
 lemma of_prime_le_of_le (P Q : ideal A) [P.is_prime] [Q.is_prime]
@@ -334,12 +263,10 @@ end
 lemma ideal_of_le_le_of_le (R S : valuation_subring K)
   (hR : A ≤ R) (hS : A ≤ S) (h : R ≤ S) :
   ideal_of_le A S hS ≤ ideal_of_le A R hR :=
-begin
-  rintros x (hx : S.valuation _ < 1),
-  change R.valuation _ < 1,
+λ x hx, (valuation_lt_one_iff R _).2 begin
   by_contra c, push_neg at c, replace c := monotone_map_of_le R S h c,
   rw [(map_of_le _ _ _).map_one, map_of_le_valuation_apply] at c,
-  apply not_le_of_lt hx c,
+  apply not_le_of_lt ((valuation_lt_one_iff S _).1 hx) c,
 end
 
 @[simps]
@@ -353,40 +280,21 @@ def prime_spectrum_equiv :
 @[simps]
 def prime_spectrum_order_equiv :
   order_dual (prime_spectrum A) ≃o { S | A ≤ S } :=
-{ map_rel_iff' := begin
-    intros P Q, dsimp, split,
-    { intros h,
-      let P' : prime_spectrum A := P,
-      let Q' : prime_spectrum A := Q,
-      change Q' ≤ P',
-      rw ← (prime_spectrum_equiv A).symm_apply_apply P',
-      rw ← (prime_spectrum_equiv A).symm_apply_apply Q',
-      apply ideal_of_le_le_of_le,
-      exact h },
-    { intros h,
-      apply of_prime_le_of_le,
-      exact h }
-  end,
+{ map_rel_iff' := λ P Q,
+    ⟨ λ h, begin
+        have := ideal_of_le_le_of_le A _ _ _ _ h,
+        iterate 2 { erw ideal_of_le_of_prime at this },
+        exact this,
+      end,
+      λ h, by { apply of_prime_le_of_le, exact h } ⟩,
   ..(prime_spectrum_equiv A) }
 
 open_locale classical
 
 noncomputable
 instance linear_order_overring : linear_order { S | A ≤ S } :=
-{ le_total := begin
-    intros R S,
-    let P := ideal_of_le A R R.2,
-    let Q := ideal_of_le A S S.2,
-    cases le_total P Q,
-    { right, change S.1 ≤ R.1,
-      rw ← of_prime_ideal_of_le A R.1 R.2,
-      rw ← of_prime_ideal_of_le A S.1 S.2,
-      apply of_prime_le_of_le, exact h },
-    { left, change R.1 ≤ S.1,
-      rw ← of_prime_ideal_of_le A R.1 R.2,
-      rw ← of_prime_ideal_of_le A S.1 S.2,
-      apply of_prime_le_of_le, exact h }
-  end,
+{ le_total := let i : is_total (prime_spectrum A) (≤) := (subtype.rel_embedding _ _).is_total in
+    by exactI (prime_spectrum_order_equiv A).symm.to_rel_embedding.is_total.total,
   decidable_le := infer_instance,
   ..(infer_instance : partial_order _) }
 

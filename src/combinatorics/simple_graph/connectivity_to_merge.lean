@@ -10,8 +10,6 @@ import combinatorics.simple_graph.connectivity
 
 ## Main definitions
 
-* `simple_graph.connected_component`
-
 * `simple_graph.is_acyclic` and `simple_graph.is_tree`
 
 * `simple_graph.edge_connected` for k-edge-connectivity of a graph
@@ -41,6 +39,7 @@ open function
 namespace simple_graph
 variables {V : Type u} {V' : Type*} (G : simple_graph V)
 
+/-- doesn't seem to be used -/
 lemma dart.to_prod_injective {G : simple_graph V} : injective (dart.to_prod : G.dart → V × V) :=
 λ d e h, by { cases d, cases e, congr' }
 
@@ -85,7 +84,7 @@ def to_delete_edges (s : set (sym2 V)) :
       (p.to_delete_edges s (λ e he, hp e (by simp [he]))) := rfl
 
 /-- Given a walk that avoids an edge, create a walk in the subgraph with that edge deleted. -/
-def to_delete_edge {v w : V} (e : sym2 V) (p : G.walk v w) (hp : e ∉ p.edges) :
+abbreviation to_delete_edge {v w : V} (e : sym2 V) (p : G.walk v w) (hp : e ∉ p.edges) :
   (G.delete_edges {e}).walk v w :=
 p.to_delete_edges {e} (λ e', by { contrapose!, simp [hp] { contextual := tt } })
 
@@ -140,21 +139,6 @@ end path
 
 variables (G)
 
-
-/-- The connected components of a graph are elements of the quotient of vertices by
-the `simple_graph.reachable` relation. -/
-def connected_component := quot G.reachable
-
-/-- Gives the connected component containing a particular vertex. -/
-def connected_component_of (v : V) : G.connected_component := quot.mk G.reachable v
-
-instance connected_components.inhabited [inhabited V] : inhabited G.connected_component :=
-⟨G.connected_component_of default⟩
-
-lemma connected_component.subsingleton_of_connected (h : G.preconnected) :
-  subsingleton G.connected_component :=
-⟨λ c d, quot.ind (λ v d, quot.ind (λ w, quot.sound (h v w)) d) c d⟩
-
 /-- A graph is *k-edge-connected* if it remains connected whenever
 fewer than k edges are removed. -/
 def edge_connected (k : ℕ) : Prop :=
@@ -166,9 +150,7 @@ lemma edge_connected.to_preconnected {k : ℕ} (h : G.edge_connected k) (hk : 0 
   G.preconnected :=
 begin
   intros v w,
-  have h' := (h ∅ (by simp) (by simp [hk])).preconnected v w,
-  simp only [finset.coe_empty, delete_edges_empty_eq] at h',
-  exact h',
+  simpa using (h ∅ (by simp) (by simp [hk])).preconnected v w,
 end
 
 lemma edge_connected.to_connected {k : ℕ} (h : G.edge_connected k) (hk : 0 < k) : G.connected :=
@@ -220,15 +202,9 @@ begin
     specialize hpe (p'.map (hom.map_spanning_subgraphs (G.delete_edges_le _))),
     simp only [set_coe.exists, walk.edges_map, list.mem_map] at hpe,
     obtain ⟨z, he, hd⟩ := hpe,
-    simp only [hom.map_spanning_subgraphs, rel_hom.coe_fn_mk] at hd,
-    change sym2.map id z = _ at hd,
-    simp only [id.def, sym2.map_id] at hd,
-    subst z,
-    have := p'.edges_subset_edge_set he,
-    simpa using this }
+    simp [hom.map_spanning_subgraphs, rel_hom.coe_fn_mk] at hd,
+    simpa [hd] using p'.edges_subset_edge_set he }
 end
-
---variables [decidable_eq V]
 
 lemma is_bridge_iff_no_cycle_contains.aux1 [decidable_eq V]
   {u v w : V}
@@ -343,12 +319,11 @@ begin
   { intros ha v w hvw,
     rw is_bridge_iff_no_cycle_contains _ hvw,
     intros u p hp,
-    exact (ha _ p hp).elim },
-  { intros hb v p hp,
-    cases p,
+    exact absurd hp (ha _ p), },
+  { rintros hb v (_ | ⟨_, _, _, ha, p⟩) hp,
     { simpa [walk.is_cycle_def] using hp },
-    { specialize hb p_h,
-      rw is_bridge_iff_no_cycle_contains _ p_h at hb,
+    { specialize hb ha,
+      rw is_bridge_iff_no_cycle_contains _ ha at hb,
       apply hb _ hp,
       rw [walk.edges_cons],
       apply list.mem_cons_self } },
@@ -407,11 +382,7 @@ begin
 end
 
 lemma is_acyclic_iff : G.is_acyclic ↔ ∀ (v w : V) (p q : G.path v w), p = q :=
-begin
-  split,
-  { apply unique_path_if_is_acyclic },
-  { apply is_acyclic_if_unique_path }
-end
+⟨by apply unique_path_if_is_acyclic, by apply is_acyclic_if_unique_path⟩
 
 lemma is_tree_iff : G.is_tree ↔ nonempty V ∧ ∀ (v w : V), ∃!(p : G.walk v w), p.is_path :=
 begin
@@ -419,9 +390,8 @@ begin
   simp only [is_tree, is_acyclic_iff],
   split,
   { intro h,
-    split,
-    { cases h with h hne,
-      simp [h.2] },
+    haveI : nonempty V := h.1.2,
+    refine ⟨infer_instance, _⟩,
     intros v w,
     cases h with hc hu,
     let q := (hc.1 v w).some.to_path,
@@ -577,8 +547,7 @@ begin
   have finj : function.injective f,
   { rintros ⟨u₁, h₁⟩ ⟨u₂, h₂⟩,
     by_cases hne : u₁ = u₂,
-    { subst u₂,
-      simp },
+    { simp [hne] },
     simp only [subtype.mk_eq_mk, subtype.coe_mk],
     generalize he₁ : G.next_edge _ _ _ _ = e₁,
     generalize he₂ : G.next_edge _ _ _ _ = e₂,
@@ -590,8 +559,7 @@ begin
     cases heu₂ with heu₂_edge heu₂_adj,
     simp only [subtype.coe_mk] at heu₁_adj heu₂_adj,
     have e_is : e₁ = ⟦(u₁, u₂)⟧,
-    { induction e₁ using quotient.ind,
-      cases e₁ with v₁ w₁,
+    { induction e₁ using sym2.ind with v₁ w₁,
       simp only [sym2.mem_iff] at heu₁_adj heu₂_adj,
       obtain (rfl|rfl) := heu₁_adj;
       obtain (rfl|rfl) := heu₂_adj;
@@ -600,33 +568,34 @@ begin
     subst e₁,
     apply is_rootward_antisymm h root,
     { split,
-      exact heu₂_edge,
-      convert G.next_edge_mem_edges _ _ h₁ _,
-      erw he₁, refl },
+      { exact heu₂_edge, },
+      { convert G.next_edge_mem_edges _ _ h₁ _,
+        erw he₁,
+        refl } },
     { split,
-      exact G.symm heu₂_edge,
-      convert G.next_edge_mem_edges _ _ h₂ _,
-      erw he₂, simp [sym2.eq_swap] } },
+      { exact G.symm heu₂_edge, },
+      { convert G.next_edge_mem_edges _ _ h₂ _,
+        erw he₂, simp [sym2.eq_swap] } } },
   have fsurj : function.surjective f,
-  { intro e,
-    cases e with e he,
-    induction e using quotient.ind,
-    cases e with u₁ u₂,
+  { rintro ⟨e, he⟩,
+    induction e using sym2.ind with u₁ u₂,
     cases is_rootward_or_reverse h root he with hr hr,
     { use u₁,
-      rintro rfl,
-      dsimp only [is_rootward] at hr,
-      exact path.nonempty_path_not_loop _ hr.2,
-      cases hr,
-      simp only [f],
-      erw eq_next_edge_if_mem_path _ ⟨he, _⟩ _ hr_right; simp [he]},
+      { rintro rfl,
+        dsimp only [is_rootward] at hr,
+        exact path.nonempty_path_not_loop _ hr.2, },
+      { cases hr,
+        simp only [f],
+        erw eq_next_edge_if_mem_path _ ⟨he, _⟩ _ hr_right;
+        simp [he] } },
     { use u₂,
-      rintro rfl,
-      dsimp only [is_rootward] at hr,
-      exact path.nonempty_path_not_loop _ hr.2,
-      cases hr,
-      simp only [f],
-      erw eq_next_edge_if_mem_path _ ⟨_ , _⟩ _ hr_right; simp [he, sym2.eq_swap] } },
+      { rintro rfl,
+        dsimp only [is_rootward] at hr,
+        exact path.nonempty_path_not_loop _ hr.2, },
+      { cases hr,
+        simp only [f],
+        erw eq_next_edge_if_mem_path _ ⟨_ , _⟩ _ hr_right;
+        simp [he, sym2.eq_swap] } } },
   exact (card_of_bijective ⟨finj, fsurj⟩).symm,
 end
 

@@ -209,7 +209,7 @@ lequiv_congr_left R h f k = f (h.symm k) := equiv_congr_left_apply _ _ _
 end congr_left
 
 section sigma
-variables {α : ι → Type u} {δ : Π i, α i → Type w}
+variables {α : ι → Type*} {δ : Π i, α i → Type w}
 variables [Π i j, add_comm_monoid (δ i j)] [Π i j, module R (δ i j)]
 
 /--`curry` as a linear map.-/

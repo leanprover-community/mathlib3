@@ -43,23 +43,22 @@ variables [comm_semiring R]
 
 namespace local_ring
 
-lemma of_nonunits_ideal (hnze : (0:R) ≠ 1) (h : ∀ x y ∈ nonunits R, x + y ∈ nonunits R) :
+lemma of_nonunits_add [nontrivial R]
+  (h : ∀ a b : R, a ∈ nonunits R → b ∈ nonunits R → a + b ∈ nonunits R) :
   local_ring R :=
-{ exists_pair_ne := ⟨0, 1, hnze⟩,
-  is_unit_or_is_unit_of_add_one :=
-    λ a b hab, or_iff_not_and_not.2 $ λ H, h a H.1 b H.2 $ hab.symm ▸ is_unit_one }
+⟨λ a b hab, or_iff_not_and_not.2 $ λ H, h a b H.1 H.2 $ hab.symm ▸ is_unit_one⟩
 
 lemma of_unique_max_ideal (h : ∃! I : ideal R, I.is_maximal) :
   local_ring R :=
-of_nonunits_ideal
-(let ⟨I, Imax, _⟩ := h in (λ (H : 0 = 1), Imax.1.1 $ I.eq_top_iff_one.2 $ H ▸ I.zero_mem))
-$ λ x hx y hy H,
-let ⟨I, Imax, Iuniq⟩ := h in
-let ⟨Ix, Ixmax, Hx⟩ := exists_max_ideal_of_mem_nonunits hx in
-let ⟨Iy, Iymax, Hy⟩ := exists_max_ideal_of_mem_nonunits hy in
-have xmemI : x ∈ I, from ((Iuniq Ix Ixmax) ▸ Hx),
-have ymemI : y ∈ I, from ((Iuniq Iy Iymax) ▸ Hy),
-Imax.1.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
+@of_nonunits_add _ _ (nontrivial_of_ne (0 : R) 1 $
+  let ⟨I, Imax, _⟩ := h in (λ (H : 0 = 1), Imax.1.1 $ I.eq_top_iff_one.2 $ H ▸ I.zero_mem)) $
+  λ x y hx hy H,
+    let ⟨I, Imax, Iuniq⟩ := h in
+    let ⟨Ix, Ixmax, Hx⟩ := exists_max_ideal_of_mem_nonunits hx in
+    let ⟨Iy, Iymax, Hy⟩ := exists_max_ideal_of_mem_nonunits hy in
+    have xmemI : x ∈ I, from Iuniq Ix Ixmax ▸ Hx,
+    have ymemI : y ∈ I, from Iuniq Iy Iymax ▸ Hy,
+    Imax.1.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
 
 lemma of_unique_nonzero_prime (h : ∃! P : ideal R, P ≠ ⊥ ∧ ideal.is_prime P) :
   local_ring R :=
@@ -222,11 +221,10 @@ lemma _root_.ring_hom.domain_local_ring {R S : Type*} [comm_semiring R] [comm_se
   [is_local_ring_hom f] : _root_.local_ring R :=
 begin
   haveI : nontrivial R := pullback_nonzero f f.map_zero f.map_one,
-  apply local_ring.of_nonunits_ideal,
-  exact zero_ne_one,
+  apply local_ring.of_nonunits_add,
+  intros a b,
   simp_rw [←map_mem_nonunits_iff f, f.map_add],
-  intros a ha b hb,
-  exact local_ring.nonunits_add ha hb
+  apply local_ring.nonunits_add
 end
 
 section

@@ -559,6 +559,20 @@ lemma continuous.if_le [topological_space γ] [Π x, decidable (f x ≤ g x)] {f
   continuous (λ x, if f x ≤ g x then f' x else g' x) :=
 continuous_if_le hf hg hf'.continuous_on hg'.continuous_on hfg
 
+lemma continuous_at.eventually_lt {x₀ : β} (hf : continuous_at f x₀)
+  (hg : continuous_at g x₀) (hfg : f x₀ < g x₀) : ∀ᶠ x in 𝓝 x₀, f x < g x :=
+begin
+  by_cases h : f x₀ ⋖ g x₀,
+  { filter_upwards [hf.preimage_mem_nhds (Iio_mem_nhds hfg),
+      hg.preimage_mem_nhds (Ioi_mem_nhds hfg)],
+    rw [h.Iio_eq],
+    exact λ x hfx hgx, lt_of_le_of_lt hfx hgx },
+  { obtain ⟨z, hfz, hzg⟩ := (not_covby_iff hfg).mp h,
+    filter_upwards [hf.preimage_mem_nhds (Iio_mem_nhds hfz),
+      hg.preimage_mem_nhds (Ioi_mem_nhds hzg)],
+    exact λ x, lt_trans },
+end
+
 @[continuity] lemma continuous.min (hf : continuous f) (hg : continuous g) :
   continuous (λb, min (f b) (g b)) :=
 by { simp only [min_def], exact hf.if_le hg hf hg (λ x, id) }

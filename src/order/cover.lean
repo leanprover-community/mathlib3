@@ -113,3 +113,15 @@ lemma covby.Icc_eq (h : a ⋖ b) : Icc a b = {a, b} :=
 by { rw [←set.Ico_union_right h.le, h.Ico_eq], refl }
 
 end partial_order
+
+section linear_order
+
+variables [linear_order α] {a b : α}
+
+lemma covby.Ioi_eq (h : a ⋖ b) : Ioi a = Ici b :=
+by rw [← Ioo_union_Ici_eq_Ioi h.lt, h.Ioo_eq, empty_union]
+
+lemma covby.Iio_eq (h : a ⋖ b) : Iio b = Iic a :=
+by rw [← Iic_union_Ioo_eq_Iio h.lt, h.Ioo_eq, union_empty]
+
+end linear_order

@@ -668,15 +668,12 @@ begin
            finset.centroid_weights_indicator_def, finset.centroid_weights, h₁, h₂] at ha,
   ext i,
   specialize ha i,
-  split, -- note that `refine ⟨λ hi, _, λ hi, _⟩` doesn't work here; I'm not sure why.
-  all_goals
-  { intro hi,
-    by_contradiction hni,
-    obtain ⟨n, hn⟩ : ∃ n : ℕ, (n : k) + 1 = 0,
-    swap, { norm_cast at hn } },
-  work_on_goal 1 { use m₁ },
-  work_on_goal 2 { use m₂, symmetry },
-  all_goals { simpa [hni, hi] using ha }
+  have key : ∀ n : ℕ, (n : k) + 1 ≠ 0 := λ n h, by norm_cast at h,
+  -- we should be able to golf this to `refine ⟨λ hi, decidable.by_contradiction (λ hni, _), ...⟩`,
+  -- but for some unknown reason it doesn't work.
+  split; intro hi; by_contra hni,
+  { simpa [hni, hi, key] using ha },
+  { simpa [hni, hi, key] using ha.symm }
 end
 
 /-- Over a characteristic-zero division ring, the centroids of two

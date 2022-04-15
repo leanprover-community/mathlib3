@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel
+Authors: Sébastien Gouëzel, Floris van Doorn
 -/
 import analysis.calculus.iterated_deriv
 import analysis.inner_product_space.euclidean_dist

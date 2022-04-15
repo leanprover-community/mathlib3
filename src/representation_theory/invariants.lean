@@ -42,7 +42,8 @@ lemma average_def : average k G = ⅟(fintype.card G : k) • ∑ g : G, of k G 
 theorem mul_average_left (g : G) :
   (finsupp.single g 1 * average k G : monoid_algebra k G) = average k G :=
 begin
-  simp [average_def, finset.mul_sum],
+  simp only [mul_one, finset.mul_sum, algebra.mul_smul_comm, average_def, monoid_algebra.of_apply,
+    finset.sum_congr, monoid_algebra.single_mul_single],
   set f : G → monoid_algebra k G := λ x, finsupp.single x 1,
   show ⅟ ↑(fintype.card G) • ∑ (x : G), f (g * x) = ⅟ ↑(fintype.card G) • ∑ (x : G), f x,
   rw function.bijective.sum_comp (group.mul_left_bijective g) _,
@@ -55,7 +56,8 @@ end
 theorem mul_average_right (g : G) :
   average k G * finsupp.single g 1 = average k G :=
 begin
-  simp [average_def, finset.sum_mul],
+  simp only [mul_one, finset.sum_mul, algebra.smul_mul_assoc, average_def, monoid_algebra.of_apply,
+    finset.sum_congr, monoid_algebra.single_mul_single],
   set f : G → monoid_algebra k G := λ x, finsupp.single x 1,
   show ⅟ ↑(fintype.card G) • ∑ (x : G), f (x * g) = ⅟ ↑(fintype.card G) • ∑ (x : G), f x,
   rw function.bijective.sum_comp (group.mul_right_bijective g) _,
@@ -73,9 +75,9 @@ The subspace of invariants, consisting of the vectors fixed by all elements of `
 -/
 def invariants : submodule k V :=
 { carrier := set_of (λ v, ∀ (g : G), g • v = v),
-  zero_mem' := by simp,
-  add_mem' := λ v w hv hw g, by simp [hv g, hw g],
-  smul_mem' := λ r v hv g, by simp [smul_comm, hv g] }
+  zero_mem' := by simp only [forall_const, set.mem_set_of_eq, smul_zero],
+  add_mem' := λ v w hv hw g, by simp only [smul_add, add_left_inj, eq_self_iff_true, hv g, hw g],
+  smul_mem' := λ r v hv g, by simp only [eq_self_iff_true, smul_comm, hv g]}
 
 @[simp]
 lemma mem_invariants (v : V) : v ∈ (invariants k G V) ↔ ∀ (g: G), g • v = v := by refl
@@ -104,11 +106,11 @@ theorem smul_average_invariant (v : V) : (average k G) • v ∈ invariants k G 
 /--
 `average k G` acts as the identity on the subspace of invariants.
 -/
-theorem smul_average_id (v ∈ invariants k G V) : (average k G) • v = v :=
+theorem smul_average_id (v : V) (H : v ∈ invariants k G V) : (average k G) • v = v :=
 begin
-  simp at H,
-  simp [average_def, sum_smul, H, card_univ, nsmul_eq_smul_cast k _ v, smul_smul, of_smul,
-    -of_apply],
+  rw [representation.mem_invariants] at H,
+  simp_rw [average_def, smul_assoc, finset.sum_smul, representation.of_smul, H, finset.sum_const,
+    finset.card_univ, nsmul_eq_smul_cast k _ v, smul_smul, inv_of_mul_self, one_smul],
 end
 
 /--

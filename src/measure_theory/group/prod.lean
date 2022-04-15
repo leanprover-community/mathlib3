@@ -59,14 +59,8 @@ open measure
 @[to_additive map_prod_sum_eq]
 lemma map_prod_mul_eq [is_mul_left_invariant ν] :
   map (λ z : G × G, (z.1, z.1 * z.2)) (μ.prod ν) = μ.prod ν :=
-begin
-  refine (prod_eq _).symm, intros s t hs ht,
-  simp_rw [map_apply (measurable_fst.prod_mk (measurable_fst.mul measurable_snd)) (hs.prod ht),
-    prod_apply ((measurable_fst.prod_mk (measurable_fst.mul measurable_snd)) (hs.prod ht)),
-    preimage_preimage],
-  conv_lhs { congr, skip, funext, rw [mk_preimage_prod_right_fn_eq_if ((*) x), measure_if] },
-  simp_rw [measure_preimage_mul, lintegral_indicator _ hs, set_lintegral_const, mul_comm]
-end
+((measure_preserving.id μ).skew_product measurable_mul
+  (filter.eventually_of_forall $ map_mul_left_eq_self ν)).map_eq
 
 /-- The function we are mapping along is `SR` in [Halmos, §59],
   where `S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/

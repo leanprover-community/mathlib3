@@ -156,11 +156,6 @@ open_locale pointwise
 @[simp] lemma singleton_vsub_self (p : P) : ({p} : set P) -ᵥ {p} = {(0:G)} :=
 by rw [set.singleton_vsub_singleton, vsub_self]
 
-instance add_action : add_action (set G) (set P) :=
-{ zero_vadd := λ s, by simp [has_vadd.vadd, ←singleton_zero, image2_singleton_left],
-  add_vadd := λ s t p, by { apply image2_assoc, intros, apply add_vadd },
-  ..(show has_vadd (set G) (set P), by apply_instance) }
-
 end set
 
 @[simp] lemma vadd_vsub_vadd_cancel_right (v₁ v₂ : G) (p : P) :

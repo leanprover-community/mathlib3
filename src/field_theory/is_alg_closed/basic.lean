@@ -286,7 +286,7 @@ begin
   intros x _,
   let p := minpoly K x,
   let N : subalgebra K L := (maximal_subfield_with_hom M hL).carrier,
-  letI : field N := is_field.to_field _ (subalgebra.is_field_of_algebraic N hL),
+  letI : field N := (subalgebra.is_field_of_algebraic N hL).to_field,
   letI : algebra N M := (maximal_subfield_with_hom M hL).emb.to_ring_hom.to_algebra,
   cases is_alg_closed.exists_aeval_eq_zero M (minpoly N x)
     (ne_of_gt (minpoly.degree_pos

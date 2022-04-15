@@ -153,10 +153,12 @@ begin
     exact degree_derivative_lt (λ h, hp (h.symm ▸ nat_degree_zero)) }
 end
 
-theorem nat_degree_derivative_le (p : R[X]) : p.derivative.nat_degree ≤ p.nat_degree :=
-let _ := classical.prop_decidable in by exactI
-if h : p.nat_degree = 0 then by simp [derivative_of_nat_degree_zero h]
-                        else (nat_degree_derivative_lt h).le
+lemma nat_degree_derivative_le (p : R[X]) : p.derivative.nat_degree ≤ p.nat_degree - 1 :=
+begin
+  by_cases p0 : p.nat_degree = 0,
+  { simp [p0, derivative_of_nat_degree_zero] },
+  { exact nat.le_pred_of_lt (nat_degree_derivative_lt p0) }
+end
 
 @[simp] lemma derivative_cast_nat {n : ℕ} : derivative (n : R[X]) = 0 :=
 begin
@@ -357,8 +359,8 @@ end
 
 end comm_ring
 
-section is_domain
-variables [ring R] [is_domain R]
+section no_zero_divisors
+variables [ring R] [no_zero_divisors R]
 
 lemma mem_support_derivative [char_zero R] (p : R[X]) (n : ℕ) :
   n ∈ (derivative p).support ↔ n + 1 ∈ p.support :=
@@ -386,7 +388,7 @@ begin
     exact hp }
 end
 
-end is_domain
+end no_zero_divisors
 
 end derivative
 end polynomial

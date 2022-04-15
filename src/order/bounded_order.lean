@@ -96,6 +96,9 @@ variables [partial_order α] [order_top α] {a b : α}
 @[simp] lemma is_top_iff_eq_top : is_top a ↔ a = ⊤ :=
 ⟨λ h, h.is_max.eq_of_le le_top, λ h b, h.symm ▸ le_top⟩
 
+lemma not_is_max_iff_ne_top : ¬ is_max a ↔ a ≠ ⊤ := is_max_iff_eq_top.not
+lemma not_is_top_iff_ne_top : ¬ is_top a ↔ a ≠ ⊤ := is_top_iff_eq_top.not
+
 alias is_max_iff_eq_top ↔ _ is_max.eq_top
 alias is_top_iff_eq_top ↔ _ is_top.eq_top
 
@@ -111,6 +114,11 @@ lemma ne_top_of_le_ne_top (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ := (hab.t
 
 lemma eq_top_of_maximal (h : ∀ b, ¬ a < b) : a = ⊤ :=
 or.elim (lt_or_eq_of_le le_top) (λ hlt, absurd hlt (h ⊤)) (λ he, he)
+
+variables [nontrivial α]
+
+lemma not_is_min_top : ¬ is_min (⊤ : α) :=
+λ h, let ⟨a, ha⟩ := exists_ne (⊤ : α) in ha $ top_le_iff.1 $ h le_top
 
 end order_top
 
@@ -168,6 +176,9 @@ variables [partial_order α] [order_bot α] {a b : α}
 @[simp] lemma is_bot_iff_eq_bot : is_bot a ↔ a = ⊥ :=
 ⟨λ h, h.is_min.eq_of_ge bot_le, λ h b, h.symm ▸ bot_le⟩
 
+lemma not_is_min_iff_ne_bot : ¬ is_min a ↔ a ≠ ⊥ := is_min_iff_eq_bot.not
+lemma not_is_bot_iff_ne_bot : ¬ is_bot a ↔ a ≠ ⊥ := is_bot_iff_eq_bot.not
+
 alias is_min_iff_eq_bot ↔ _ is_min.eq_bot
 alias is_bot_iff_eq_bot ↔ _ is_bot.eq_bot
 
@@ -181,6 +192,11 @@ lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ := (eq_bot_or_bot_lt a).
 lemma ne.bot_lt (h : a ≠ ⊥) : ⊥ < a := bot_lt_iff_ne_bot.mpr h
 lemma ne.bot_lt' (h : ⊥ ≠ a) : ⊥ < a := h.symm.bot_lt
 lemma ne_bot_of_le_ne_bot (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ := (hb.bot_lt.trans_le hab).ne'
+
+variables [nontrivial α]
+
+lemma not_is_max_bot : ¬ is_max (⊥ : α) :=
+λ h, let ⟨a, ha⟩ := exists_ne (⊥ : α) in ha $ le_bot_iff.1 $ h bot_le
 
 end order_bot
 
@@ -580,6 +596,7 @@ theorem coe_le [has_le α] {a b : α} :
 
 @[norm_cast]
 lemma coe_lt_coe [has_lt α] {a b : α} : (a : with_bot α) < b ↔ a < b := some_lt_some
+lemma not_coe_le_bot [preorder α] (a : α) : ¬ (a : with_bot α) ≤ ⊥ := (bot_lt_coe a).not_le
 
 lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a.get_or_else b
 | (some a) b := le_refl a
@@ -713,6 +730,10 @@ instance [has_lt α] [no_max_order α] [nonempty α] : no_max_order (with_bot α
     exact ⟨b, with_bot.coe_lt_coe.mpr ha⟩, }
 end⟩
 
+protected lemma _root_.is_max.with_bot [has_le α] {a : α} (h : is_max a) : is_max (a : with_bot α)
+| none _ := bot_le
+| (some b) hb := some_le_some.2 $ h $ some_le_some.1 hb
+
 end with_bot
 
 --TODO(Mario): Construct using order dual on with_bot
@@ -843,11 +864,11 @@ theorem le_coe_iff [partial_order α] {b : α} : ∀{x : with_top α}, x ≤ b �
 | (some a) := by simp [some_eq_coe, coe_eq_coe]
 | none     := by simp [none_eq_top]
 
-theorem coe_le_iff [partial_order α] {a : α} : ∀{x : with_top α}, ↑a ≤ x ↔ (∀b:α, x = ↑b → a ≤ b)
+theorem coe_le_iff [preorder α] {a : α} : ∀{x : with_top α}, ↑a ≤ x ↔ (∀b:α, x = ↑b → a ≤ b)
 | (some b) := by simp [some_eq_coe, coe_eq_coe]
 | none     := by simp [none_eq_top]
 
-theorem lt_iff_exists_coe [partial_order α] : ∀{a b : with_top α}, a < b ↔ (∃p:α, a = p ∧ ↑p < b)
+theorem lt_iff_exists_coe [preorder α] : ∀{a b : with_top α}, a < b ↔ (∃p:α, a = p ∧ ↑p < b)
 | (some a) b := by simp [some_eq_coe, coe_eq_coe]
 | none     b := by simp [none_eq_top]
 
@@ -860,8 +881,7 @@ theorem coe_lt_iff [preorder α] {a : α} : ∀{x : with_top α}, ↑a < x ↔ (
 | (some b) := by simp [some_eq_coe, coe_eq_coe, coe_lt_coe]
 | none     := by simp [none_eq_top, coe_lt_top]
 
-lemma not_top_le_coe [preorder α] (a : α) : ¬ (⊤:with_top α) ≤ ↑a :=
-λ h, (lt_irrefl ⊤ (lt_of_le_of_lt h (coe_lt_top a))).elim
+lemma not_top_le_coe [preorder α] (a : α) : ¬ (⊤ : with_top α) ≤ ↑a := (coe_lt_top a).not_le
 
 instance decidable_le [has_le α] [@decidable_rel α (≤)] : @decidable_rel (with_top α) (≤) :=
 λ x y, @with_bot.decidable_le (order_dual α) _ _ y x
@@ -978,27 +998,64 @@ instance [has_lt α] [no_min_order α] [nonempty α] : no_min_order (with_top α
     exact ⟨b, with_top.coe_lt_coe.mpr ha⟩, }
 end⟩
 
+protected lemma _root_.is_min.with_top [has_le α] {a : α} (h : is_min a) : is_min (a : with_top α)
+| none _ := le_top
+| (some b) hb := some_le_some.2 $ h $ some_le_some.1 hb
+
 end with_top
 
 /-! ### Subtype, order dual, product lattices -/
 
 namespace subtype
+variables {p : α → Prop}
 
-/-- A subtype remains a `⊥`-order if the property holds at `⊥`.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def order_bot [preorder α] [order_bot α] {P : α → Prop} (Pbot : P ⊥) :
-  order_bot {x : α // P x} :=
-{ bot := ⟨⊥, Pbot⟩,
+/-- A subtype remains a `⊥`-order if the property holds at `⊥`. -/
+@[reducible] -- See note [reducible non-instances]
+protected def order_bot [has_le α] [order_bot α] (hbot : p ⊥) : order_bot {x : α // p x} :=
+{ bot := ⟨⊥, hbot⟩,
   bot_le := λ _, bot_le }
 
-/-- A subtype remains a `⊤`-order if the property holds at `⊤`.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def order_top [preorder α] [order_top α] {P : α → Prop} (Ptop : P ⊤) :
-  order_top {x : α // P x} :=
-{ top := ⟨⊤, Ptop⟩,
+/-- A subtype remains a `⊤`-order if the property holds at `⊤`. -/
+@[reducible] -- See note [reducible non-instances]
+protected def order_top [has_le α] [order_top α] (htop : p ⊤) : order_top {x : α // p x} :=
+{ top := ⟨⊤, htop⟩,
   le_top := λ _, le_top }
+
+/-- A subtype remains a bounded order if the property holds at `⊥` and `⊤`. -/
+@[reducible] -- See note [reducible non-instances]
+protected def bounded_order [has_le α] [bounded_order α] (hbot : p ⊥) (htop : p ⊤) :
+  bounded_order (subtype p) :=
+{ ..subtype.order_top htop, ..subtype.order_bot hbot }
+
+variables [partial_order α]
+
+@[simp] lemma mk_bot [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) : mk ⊥ hbot = ⊥ :=
+le_bot_iff.1 $ coe_le_coe.1 bot_le
+
+@[simp] lemma mk_top [order_top α] [order_top (subtype p)] (htop : p ⊤) : mk ⊤ htop = ⊤ :=
+top_le_iff.1 $ coe_le_coe.1 le_top
+
+lemma coe_bot [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) : ((⊥ : subtype p) : α) = ⊥ :=
+congr_arg coe (mk_bot hbot).symm
+
+lemma coe_top [order_top α] [order_top (subtype p)] (htop : p ⊤) : ((⊤ : subtype p) : α) = ⊤ :=
+congr_arg coe (mk_top htop).symm
+
+@[simp] lemma coe_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : {x // p x}} :
+  (x : α) = ⊥ ↔ x = ⊥ :=
+by rw [←coe_bot hbot, ext_iff]
+
+@[simp] lemma coe_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : {x // p x}} :
+  (x : α) = ⊤ ↔ x = ⊤ :=
+by rw [←coe_top htop, ext_iff]
+
+@[simp] lemma mk_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : α} (hx : p x) :
+  (⟨x, hx⟩ : subtype p) = ⊥ ↔ x = ⊥ :=
+(coe_eq_bot_iff hbot).symm
+
+@[simp] lemma mk_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : α} (hx : p x) :
+  (⟨x, hx⟩ : subtype p) = ⊤ ↔ x = ⊤ :=
+(coe_eq_top_iff htop).symm
 
 end subtype
 
@@ -1097,12 +1154,9 @@ lemma disjoint.of_disjoint_inf_of_le' {a b c : α} (h : disjoint (a ⊓ b) c) (h
 
 end semilattice_inf_bot
 
-section bounded_order
+section order_bot
 
-variables [lattice α] [bounded_order α] {a : α}
-
-@[simp] theorem disjoint_top : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
-@[simp] theorem top_disjoint : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]
+variables [lattice α] [order_bot α]
 
 lemma eq_bot_of_disjoint_absorbs
   {a b : α} (w : disjoint a b) (h : a ⊔ b = a) : b = ⊥ :=
@@ -1111,6 +1165,15 @@ begin
   rw [←w, right_eq_inf],
   rwa sup_eq_left at h,
 end
+
+end order_bot
+
+section bounded_order
+
+variables [lattice α] [bounded_order α] {a : α}
+
+@[simp] theorem disjoint_top : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
+@[simp] theorem top_disjoint : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]
 
 end bounded_order
 

@@ -162,7 +162,7 @@ both `f` and `g` are defined at `x` and `f x = g x` form a submodule. -/
 def eq_locus (f g : linear_pmap R E F) : submodule R E :=
 { carrier   := {x | ∃ (hf : x ∈ f.domain) (hg : x ∈ g.domain), f ⟨x, hf⟩ = g ⟨x, hg⟩},
   zero_mem' := ⟨zero_mem _, zero_mem _, f.map_zero.trans g.map_zero.symm⟩,
-  add_mem'  := λ x y ⟨hfx, hgx, hx⟩ ⟨hfy, hgy, hy⟩, ⟨add_mem _ hfx hfy, add_mem _ hgx hgy,
+  add_mem'  := λ x y ⟨hfx, hgx, hx⟩ ⟨hfy, hgy, hy⟩, ⟨add_mem hfx hfy, add_mem hgx hgy,
     by erw [f.map_add ⟨x, hfx⟩ ⟨y, hfy⟩, g.map_add ⟨x, hgx⟩ ⟨y, hgy⟩, hx, hy]⟩,
   smul_mem' := λ c x ⟨hfx, hgx, hx⟩, ⟨smul_mem _ c hfx, smul_mem _ c hgx,
     by erw [f.map_smul c ⟨x, hfx⟩, g.map_smul c ⟨x, hgx⟩, hx]⟩ }
@@ -223,7 +223,8 @@ begin
     rw [add_comm, ← sub_eq_sub_iff_add_eq_add, eq_comm, ← map_sub, ← map_sub],
     apply h,
     simp only [← eq_sub_iff_add_eq] at hxy,
-    simp only [coe_sub, coe_mk, coe_mk, hxy, ← sub_add, ← sub_sub, sub_self, zero_sub, ← H],
+    simp only [add_subgroup_class.coe_sub, coe_mk, coe_mk, hxy, ← sub_add, ← sub_sub, sub_self,
+      zero_sub, ← H],
     apply neg_add_eq_sub },
   refine ⟨{ to_fun := fg, .. }, fg_eq⟩,
   { rintros ⟨z₁, hz₁⟩ ⟨z₂, hz₂⟩,

@@ -186,9 +186,10 @@ lemma nat_degree_prod' (h : ∏ i in s, (f i).leading_coeff ≠ 0) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 by simpa using nat_degree_multiset_prod' (s.1.map f) (by simpa using h)
 
-lemma nat_degree_multiset_prod_of_monic [nontrivial R] (h : ∀ f ∈ t, monic f) :
+lemma nat_degree_multiset_prod_of_monic (h : ∀ f ∈ t, monic f) :
   t.prod.nat_degree = (t.map nat_degree).sum :=
 begin
+  nontriviality R,
   apply nat_degree_multiset_prod',
   suffices : (t.map (λ f, leading_coeff f)).prod = 1, { rw this, simp },
   convert prod_repeat (1 : R) t.card,
@@ -199,7 +200,7 @@ begin
   { simp }
 end
 
-lemma nat_degree_prod_of_monic [nontrivial R] (h : ∀ i ∈ s, (f i).monic) :
+lemma nat_degree_prod_of_monic (h : ∀ i ∈ s, (f i).monic) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 by simpa using nat_degree_multiset_prod_of_monic (s.1.map f) (by simpa using h)
 
@@ -254,9 +255,10 @@ lemma prod_X_sub_C_next_coeff {s : finset ι} (f : ι → R) :
   next_coeff ∏ i in s, (X - C (f i)) = -∑ i in s, f i :=
 by simpa using multiset_prod_X_sub_C_next_coeff (s.1.map f)
 
-lemma multiset_prod_X_sub_C_coeff_card_pred [nontrivial R] (t : multiset R) (ht : 0 < t.card) :
+lemma multiset_prod_X_sub_C_coeff_card_pred (t : multiset R) (ht : 0 < t.card) :
   (t.map (λ x, (X - C x))).prod.coeff (t.card - 1) = -t.sum :=
 begin
+  nontriviality R,
   convert multiset_prod_X_sub_C_next_coeff (by assumption),
   rw next_coeff, split_ifs,
   { rw nat_degree_multiset_prod_of_monic at h; simp only [multiset.mem_map] at *,
@@ -268,7 +270,7 @@ begin
   congr, rw nat_degree_multiset_prod_of_monic; { simp [nat_degree_X_sub_C, monic_X_sub_C] },
 end
 
-lemma prod_X_sub_C_coeff_card_pred [nontrivial R] (s : finset ι) (f : ι → R) (hs : 0 < s.card) :
+lemma prod_X_sub_C_coeff_card_pred (s : finset ι) (f : ι → R) (hs : 0 < s.card) :
   (∏ i in s, (X - C (f i))).coeff (s.card - 1) = - ∑ i in s, f i :=
 by simpa using multiset_prod_X_sub_C_coeff_card_pred (s.1.map f) (by simpa using hs)
 
@@ -284,18 +286,20 @@ the sum of the degrees.
 See `polynomial.nat_degree_prod'` (with a `'`) for a version for commutative semirings,
 where additionally, the product of the leading coefficients must be nonzero.
 -/
-lemma nat_degree_prod [nontrivial R] (h : ∀ i ∈ s, f i ≠ 0) :
+lemma nat_degree_prod (h : ∀ i ∈ s, f i ≠ 0) :
   (∏ i in s, f i).nat_degree = ∑ i in s, (f i).nat_degree :=
 begin
+  nontriviality R,
   apply nat_degree_prod',
   rw prod_ne_zero_iff,
   intros x hx, simp [h x hx]
 end
 
-lemma nat_degree_multiset_prod [nontrivial R] (s : multiset R[X])
+lemma nat_degree_multiset_prod (s : multiset R[X])
   (h : (0 : R[X]) ∉ s) :
   nat_degree s.prod = (s.map nat_degree).sum :=
 begin
+  nontriviality R,
   rw nat_degree_multiset_prod',
   simp_rw [ne.def, multiset.prod_eq_zero_iff, multiset.mem_map, leading_coeff_eq_zero],
   rintro ⟨_, h, rfl⟩,

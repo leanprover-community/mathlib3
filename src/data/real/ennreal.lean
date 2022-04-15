@@ -246,7 +246,7 @@ def ne_top_equiv_nnreal : {a | a ≠ ∞} ≃ ℝ≥0 :=
   right_inv := λ x, to_nnreal_coe }
 
 lemma cinfi_ne_top [has_Inf α] (f : ℝ≥0∞ → α) : (⨅ x : {x // x ≠ ∞}, f x) = ⨅ x : ℝ≥0, f x :=
-eq.symm $ infi_congr _ ne_top_equiv_nnreal.symm.surjective $ λ x, rfl
+eq.symm $ ne_top_equiv_nnreal.symm.surjective.infi_congr _$ λ x, rfl
 
 lemma infi_ne_top [complete_lattice α] (f : ℝ≥0∞ → α) : (⨅ x ≠ ∞, f x) = ⨅ x : ℝ≥0, f x :=
 by rw [infi_subtype', cinfi_ne_top]

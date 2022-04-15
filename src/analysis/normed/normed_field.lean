@@ -137,6 +137,16 @@ lemma nnnorm_mul_le (a b : α) : ∥a * b∥₊ ≤ ∥a∥₊ * ∥b∥₊ :=
 by simpa only [←norm_to_nnreal, ←real.to_nnreal_mul (norm_nonneg _)]
   using real.to_nnreal_mono (norm_mul_le _ _)
 
+lemma filter.tendsto.zero_mul_is_bounded_under_le {f g : ι → α} {l : filter ι}
+  (hf : tendsto f l (𝓝 0)) (hg : is_bounded_under (≤) l (norm ∘ g)) :
+  tendsto (λ x, f x * g x) l (𝓝 0) :=
+hf.op_zero_is_bounded_under_le hg (*) norm_mul_le
+
+lemma filter.is_bounded_under_le.mul_tendsto_zero {f g : ι → α} {l : filter ι}
+  (hf : is_bounded_under (≤) l (norm ∘ f)) (hg : tendsto g l (𝓝 0)) :
+  tendsto (λ x, f x * g x) l (𝓝 0) :=
+hg.op_zero_is_bounded_under_le hf (flip (*)) (λ x y, ((norm_mul_le y x).trans_eq (mul_comm _ _)))
+
 /-- In a seminormed ring, the left-multiplication `add_monoid_hom` is bounded. -/
 lemma mul_left_bound (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_left x y∥ ≤ ∥x∥ * ∥y∥ :=
@@ -164,24 +174,18 @@ instance prod.non_unital_semi_normed_ring [non_unital_semi_normed_ring β] :
         ... = (∥x∥*∥y∥) : rfl,
   ..prod.semi_normed_group }
 
-/-- Seminormed group instance (using sup norm of sup norm) for matrices over a seminormed ring. Not
-declared as an instance because there are several natural choices for defining the norm of a
-matrix. -/
-def matrix.semi_normed_group {n m : Type*} [fintype n] [fintype m] :
-  semi_normed_group (matrix n m α) :=
-pi.semi_normed_group
-
-local attribute [instance] matrix.semi_normed_group
-
-lemma norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 ≤ r)
-  {A : matrix n m α} :
-  ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
-by simp [pi_norm_le_iff hr]
-
-lemma norm_matrix_lt_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 < r)
-  {A : matrix n m α} :
-  ∥A∥ < r ↔ ∀ i j, ∥A i j∥ < r :=
-by simp [pi_norm_lt_iff hr]
+/-- Non-unital seminormed ring structure on the product of finitely many non-unital seminormed
+rings, using the sup norm. -/
+instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
+  [Π i, non_unital_semi_normed_ring (π i)] :
+  non_unital_semi_normed_ring (Π i, π i) :=
+{ norm_mul := λ x y, nnreal.coe_mono $
+    calc  finset.univ.sup (λ i, ∥x i * y i∥₊)
+        ≤ finset.univ.sup ((λ i, ∥x i∥₊) * (λ i, ∥y i∥₊)) :
+            finset.sup_mono_fun $ λ b hb, norm_mul_le _ _
+    ... ≤ finset.univ.sup (λ i, ∥x i∥₊) * finset.univ.sup (λ i, ∥y i∥₊) :
+            finset.sup_mul_le_mul_sup_of_nonneg _ (λ i _, zero_le _) (λ i _, zero_le _),
+  ..pi.semi_normed_group }
 
 end non_unital_semi_normed_ring
 
@@ -265,6 +269,13 @@ instance prod.semi_normed_ring [semi_normed_ring β] :
 { ..prod.non_unital_semi_normed_ring,
   ..prod.semi_normed_group, }
 
+/-- Seminormed ring structure on the product of finitely many seminormed rings,
+  using the sup norm. -/
+instance pi.semi_normed_ring {π : ι → Type*} [fintype ι] [Π i, semi_normed_ring (π i)] :
+  semi_normed_ring (Π i, π i) :=
+{ ..pi.non_unital_semi_normed_ring,
+  ..pi.semi_normed_group, }
+
 end semi_normed_ring
 
 section non_unital_normed_ring
@@ -276,11 +287,12 @@ instance prod.non_unital_normed_ring [non_unital_normed_ring β] : non_unital_no
 { norm_mul := norm_mul_le,
   ..prod.semi_normed_group }
 
-/-- Normed group instance (using sup norm of sup norm) for matrices over a normed ring.  Not
-declared as an instance because there are several natural choices for defining the norm of a
-matrix. -/
-def matrix.normed_group {n m : Type*} [fintype n] [fintype m] : normed_group (matrix n m α) :=
-pi.normed_group
+/-- Normed ring structure on the product of finitely many non-unital normed rings, using the sup
+norm. -/
+instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι] [Π i, non_unital_normed_ring (π i)] :
+  non_unital_normed_ring (Π i, π i) :=
+{ norm_mul := norm_mul_le,
+  ..pi.normed_group }
 
 end non_unital_normed_ring
 
@@ -296,10 +308,16 @@ instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.semi_normed_group }
 
+/-- Normed ring structure on the product of finitely many normed rings, using the sup norm. -/
+instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π i)] :
+  normed_ring (Π i, π i) :=
+{ norm_mul := norm_mul_le,
+  ..pi.semi_normed_group }
+
 end normed_ring
 
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_ring_top_monoid [semi_normed_ring α] : has_continuous_mul α :=
+instance semi_normed_ring_top_monoid [non_unital_semi_normed_ring α] : has_continuous_mul α :=
 ⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     begin
       have : ∀ e : α × α, ∥e.1 * e.2 - x.1 * x.2∥ ≤ ∥e.1∥ * ∥e.2 - x.2∥ + ∥e.1 - x.1∥ * ∥x.2∥,
@@ -318,7 +336,7 @@ instance semi_normed_ring_top_monoid [semi_normed_ring α] : has_continuous_mul 
 
 /-- A seminormed ring is a topological ring. -/
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_top_ring [semi_normed_ring α] : topological_ring α := { }
+instance semi_normed_top_ring [non_unital_semi_normed_ring α] : topological_ring α := { }
 
 section normed_division_ring
 
@@ -566,6 +584,13 @@ nnreal.eq $ calc ((n.nat_abs : ℝ≥0) : ℝ)
                = (n.nat_abs : ℤ) : by simp only [int.cast_coe_nat, nnreal.coe_nat_cast]
            ... = |n|           : by simp only [← int.abs_eq_nat_abs, int.cast_abs]
            ... = ∥n∥              : rfl
+
+lemma int.abs_le_floor_nnreal_iff (z : ℤ) (c : ℝ≥0) : |z| ≤ ⌊c⌋₊ ↔ ∥z∥₊ ≤ c :=
+begin
+  rw [int.abs_eq_nat_abs, int.coe_nat_le, nat.le_floor_iff (zero_le c)],
+  congr',
+  exact nnreal.coe_nat_abs z,
+end
 
 instance : norm_one_class ℤ :=
 ⟨by simp [← int.norm_cast_real]⟩

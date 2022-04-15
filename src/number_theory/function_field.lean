@@ -189,7 +189,7 @@ begin
         rw [le_max_iff,
         with_zero.coe_le_coe, multiplicative.of_add_le, with_zero.coe_le_coe,
         multiplicative.of_add_le, ← le_max_iff],
-        exact ratfunc.int_degree_add_le hx hy hxy }}}
+        exact ratfunc.int_degree_add_le hy hxy }}}
 end
 
 @[simp] lemma infty_valuation_of_nonzero {x : ratfunc Fq} (hx : x ≠ 0) :

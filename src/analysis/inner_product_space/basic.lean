@@ -6,6 +6,7 @@ Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 import algebra.direct_sum.module
 import analysis.complex.basic
 import analysis.normed_space.bounded_linear_maps
+import analysis.convex.strict_convex_space
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 
@@ -1568,6 +1569,19 @@ of the equality case for Cauchy-Schwarz.
 Compare `abs_inner_eq_norm_iff`, which takes the weaker hypothesis `abs ⟪x, y⟫ = ∥x∥ * ∥y∥`. -/
 lemma inner_eq_norm_mul_iff_real {x y : F} : ⟪x, y⟫_ℝ = ∥x∥ * ∥y∥ ↔ ∥y∥ • x = ∥x∥ • y :=
 inner_eq_norm_mul_iff
+
+/-- An inner product space is strictly convex. We do not register this as an instance for an inner
+space over `𝕜`, `is_R_or_C 𝕜`, because there is no order of the typeclass argument that does not
+lead to a search of `[is_scalar_tower ℝ ?m E]` with unknown `?m`. -/
+instance inner_product_space.strict_convex_space : strict_convex_space ℝ F :=
+begin
+  refine strict_convex_space.of_norm_add (λ x y h, _),
+  rw [same_ray_iff_norm_smul_eq, eq_comm, ← inner_eq_norm_mul_iff_real,
+    real_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two, h,
+    add_mul_self_eq, sub_sub, add_sub_add_right_eq_sub, add_sub_cancel', mul_assoc,
+    mul_div_cancel_left],
+  exact _root_.two_ne_zero
+end
 
 /-- If the inner product of two unit vectors is `1`, then the two vectors are equal. One form of
 the equality case for Cauchy-Schwarz. -/

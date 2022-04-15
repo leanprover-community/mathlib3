@@ -39,8 +39,7 @@ variables [comm_semiring R] {p q : R[X]}
 
 lemma multiplicity_finite_of_degree_pos_of_monic (hp : (0 : with_bot ℕ) < degree p)
   (hmp : monic p) (hq : q ≠ 0) : multiplicity.finite p q :=
-have zn0 : (0 : R) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one h;
-  exact hq (subsingleton.elim _ _),
+have zn0 : (0 : R) ≠ 1, by haveI := nontrivial.of_polynomial_ne hq; exact zero_ne_one,
 ⟨nat_degree q, λ ⟨r, hr⟩,
   have hp0 : p ≠ 0, from λ hp0, by simp [hp0] at hp; contradiction,
   have hr0 : r ≠ 0, from λ hr0, by simp * at *,
@@ -390,32 +389,27 @@ lemma eval₂_mod_by_monic_eq_self_of_root [comm_ring S] {f : R →+* S}
   (p %ₘ q).eval₂ f x = p.eval₂ f x :=
 by rw [mod_by_monic_eq_sub_mul_div p hq, eval₂_sub, eval₂_mul, hx, zero_mul, sub_zero]
 
-lemma sum_fin [add_comm_monoid S] (f : ℕ → R → S) (hf : ∀ i, f i 0 = 0)
-  {n : ℕ} (hn : p.degree < n) :
-  ∑ (i : fin n), f i (p.coeff i) = p.sum f :=
+lemma sum_mod_by_monic_coeff (hq : q.monic) {n : ℕ} (hn : q.degree ≤ n) :
+  ∑ (i : fin n), monomial i ((p %ₘ q).coeff i) = p %ₘ q :=
 begin
-  by_cases hp : p = 0,
-  { rw [hp, sum_zero_index, finset.sum_eq_zero], intros i _, exact hf i },
-  rw [degree_eq_nat_degree hp, with_bot.coe_lt_coe] at hn,
-  calc  ∑ (i : fin n), f i (p.coeff i)
-      = ∑ i in finset.range n, f i (p.coeff i) : fin.sum_univ_eq_sum_range (λ i, f i (p.coeff i)) _
-  ... = ∑ i in p.support, f i (p.coeff i) : (finset.sum_subset
-    (supp_subset_range_nat_degree_succ.trans (finset.range_subset.mpr hn))
-    (λ i _ hi, show f i (p.coeff i) = 0, by rw [not_mem_support_iff.mp hi, hf])).symm
-  ... = p.sum f : p.sum_def _
+  nontriviality R,
+  exact (sum_fin (λ i c, monomial i c) (by simp)
+    ((degree_mod_by_monic_lt _ hq).trans_le hn)).trans
+    (sum_monomial_eq _)
 end
 
-lemma sum_mod_by_monic_coeff [nontrivial R] (hq : q.monic)
-  {n : ℕ} (hn : q.degree ≤ n) :
-  ∑ (i : fin n), monomial i ((p %ₘ q).coeff i) = p %ₘ q :=
-(sum_fin (λ i c, monomial i c) (by simp)
-  ((degree_mod_by_monic_lt _ hq).trans_le hn)).trans
-  (sum_monomial_eq _)
+lemma sub_dvd_eval_sub (a b : R) (p : R[X]) : a - b ∣ p.eval a - p.eval b :=
+begin
+  suffices : X - C b ∣ p - C (p.eval b),
+  { simpa only [coe_eval_ring_hom, eval_sub, eval_X, eval_C] using (eval_ring_hom a).map_dvd this },
+  simp [dvd_iff_is_root]
+end
 
 variable (R)
 
-lemma not_is_field [nontrivial R] : ¬ is_field R[X] :=
+lemma not_is_field : ¬ is_field R[X] :=
 begin
+  nontriviality R,
   rw ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top,
   use ideal.span {polynomial.X},
   split,
@@ -440,11 +434,13 @@ open_locale classical
 
 lemma multiplicity_X_sub_C_finite (a : R) (h0 : p ≠ 0) :
   multiplicity.finite (X - C a) p :=
-multiplicity_finite_of_degree_pos_of_monic
-  (have (0 : R) ≠ 1, from (λ h, by haveI := subsingleton_of_zero_eq_one h;
-      exact h0 (subsingleton.elim _ _)),
-    by haveI : nontrivial R := ⟨⟨0, 1, this⟩⟩; rw degree_X_sub_C; exact dec_trivial)
-    (monic_X_sub_C _) h0
+begin
+  haveI := nontrivial.of_polynomial_ne h0,
+  refine multiplicity_finite_of_degree_pos_of_monic _ (monic_X_sub_C _) h0,
+  rw degree_X_sub_C,
+  dec_trivial,
+end
+
 /-- The largest power of `X - C a` which divides `p`.
 This is computable via the divisibility algorithm `decidable_dvd_monic`. -/
 def root_multiplicity (a : R) (p : R[X]) : ℕ :=

@@ -149,6 +149,11 @@ def tensor_Bimod {X Y Z : Mon_ C} (M : Bimod X Y) (N : Bimod Y Z) : Bimod X Z :=
     dsimp, simp, dsimp,
     slice_lhs 1 1 { rw ←tensor_id_comp_id_tensor, },
     slice_lhs 2 3 { },
-     /- kawow -/ sorry end, }
+     /- kawow -/ sorry
+  end,
+  act_right_one' := sorry,
+  left_assoc' := sorry,
+  right_assoc' := sorry,
+  middle_assoc' := sorry, }
 
 end Bimod

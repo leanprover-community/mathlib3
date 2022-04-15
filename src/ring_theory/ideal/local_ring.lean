@@ -32,8 +32,8 @@ universes u v w u'
 
 variables {R : Type u} {S : Type v} {T : Type w} {K : Type u'}
 
-/-- A commutative ring is local if it has a unique maximal ideal. Note that
-  `local_ring` is a predicate. -/
+/-- A semiring is local if it is nontrivial and the set of nonunits is closed under the addition.
+Note that `local_ring` is a predicate. -/
 class local_ring (R : Type u) [semiring R] extends nontrivial R : Prop :=
 of_is_unit_or_is_unit_of_add_one ::
 (is_unit_or_is_unit_of_add_one (a b : R) (h : a + b = 1) : is_unit a ∨ is_unit b)
@@ -165,9 +165,9 @@ end local_ring
 
 end comm_ring
 
-/-- A local ring homomorphism is a homomorphism between local rings
-  such that the image of the maximal ideal of the source is contained within
-  the maximal ideal of the target. -/
+/-- A local ring homomorphism is a homomorphism `f` between local rings such that `a` in the domain
+  is a unit if `f a` is a unit for any `a`. See `local_ring.local_hom_tfae` for other equivalent
+  definitions. -/
 class is_local_ring_hom [semiring R] [semiring S] (f : R →+* S) : Prop :=
 (map_nonunit : ∀ a, is_unit (f a) → is_unit a)
 
@@ -250,6 +250,9 @@ section
 open local_ring
 variables [comm_semiring R] [local_ring R] [comm_semiring S] [local_ring S]
 
+/--
+The image of the maximal ideal of the source is contained within the maximal ideal of the target.
+-/
 lemma map_nonunit (f : R →+* S) [is_local_ring_hom f] (a : R) (h : a ∈ maximal_ideal R) :
   f a ∈ maximal_ideal S :=
 λ H, h $ is_unit_of_map_unit f a H

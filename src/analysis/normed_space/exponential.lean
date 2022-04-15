@@ -458,6 +458,22 @@ lemma exp_units_conj' (y : 𝔸ˣ) (x : 𝔸)  :
   exp 𝕂 𝔸 (↑(y⁻¹) * x * y) = ↑(y⁻¹) * exp 𝕂 𝔸 x * y :=
 exp_units_conj _ _ _
 
+@[simp] lemma prod.fst_exp [complete_space 𝔹] (x : 𝔸 × 𝔹) : (exp 𝕂 (𝔸 × 𝔹) x).fst = exp 𝕂 𝔸 x.fst :=
+map_exp _ (ring_hom.fst 𝔸 𝔹) continuous_fst x
+
+@[simp] lemma prod.snd_exp [complete_space 𝔹] (x : 𝔸 × 𝔹) : (exp 𝕂 (𝔸 × 𝔹) x).snd = exp 𝕂 𝔹 x.snd :=
+map_exp _ (ring_hom.snd 𝔸 𝔹) continuous_snd x
+
+/- At the time of writing _statement_ times out, but might not in future:
+```lean
+@[simp] lemma pi.exp_apply {ι : Type*} {𝔸 : ι → Type*} [fintype ι] [Π i, normed_ring (𝔸 i)]
+  [Π i, normed_algebra 𝕂 (𝔸 i)]
+  [Π i, complete_space (𝔸 i)] (x : Π i, 𝔸 i) (i : ι) :
+  (exp 𝕂 (Π i, 𝔸 i) x : Π i, 𝔸 i) i = exp 𝕂 (𝔸 i) (x i) :=
+sorry
+```
+-/
+
 end complete_algebra
 
 lemma algebra_map_exp_comm (x : 𝕂) :

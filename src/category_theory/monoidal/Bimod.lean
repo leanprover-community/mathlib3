@@ -103,23 +103,19 @@ def tensor_Bimod {X Y Z : Mon_ C} (M : Bimod X Y) (N : Bimod Y Z) : Bimod X Z :=
     apply colim_map,
     fapply parallel_pair_hom,
     dsimp,
-    refine
-      (α_ _ _ _).inv ≫ ((α_ _ _ _).inv ⊗ 𝟙 _) ≫ (α_ _ _ _).hom ≫
-      (M.act_left ⊗ 𝟙 Y.X ⊗ 𝟙 N.X) ≫
-      (α_ _ _ _).inv,
+    refine (𝟙 _ ⊗ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv ≫ (M.act_left ⊗ 𝟙 Y.X ⊗ 𝟙 N.X) ≫ (α_ _ _ _).inv,
     refine (α_ _ _ _).inv ≫ (M.act_left ⊗ 𝟙 N.X),
     { dsimp,
       slice_lhs 1 2 { rw associator_inv_naturality },
-      slice_rhs 4 5 { rw associator_inv_naturality },
-      slice_rhs 5 6 { rw [←tensor_comp,
+      slice_rhs 3 4 { rw associator_inv_naturality },
+      slice_rhs 4 5 { rw [←tensor_comp,
                           middle_assoc,
                           ←category.id_comp (𝟙 N.X ≫ 𝟙 N.X), tensor_comp, tensor_comp] },
       coherence, },
     { dsimp,
       simp,
       slice_lhs 2 3 { rw associator_inv_naturality },
-      simp,
-      coherence, },
+      simp, },
   end,
   act_right := begin
     refine (preserves_coequalizer.iso (tensor_right Z.X) _ _).inv ≫ _,

@@ -612,16 +612,6 @@ apply_nolint tactic.mono doc_blame
 -- number_theory/dioph.lean
 apply_nolint poly has_inhabited_instance
 
--- number_theory/zsqrtd/basic.lean
-apply_nolint zsqrtd.le doc_blame
-apply_nolint zsqrtd.lt doc_blame
-apply_nolint zsqrtd.norm doc_blame
-
--- number_theory/zsqrtd/gaussian_int.lean
-apply_nolint gaussian_int doc_blame
-apply_nolint gaussian_int.div doc_blame
-apply_nolint gaussian_int.mod doc_blame
-
 -- order/filter/at_top_bot.lean
 apply_nolint filter.map_at_top_finset_prod_le_of_prod_eq to_additive_doc
 

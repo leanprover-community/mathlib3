@@ -161,14 +161,8 @@ lemma min_le_of_zpow_le_max {x : K} (hx : 1 < x) {a b c : ℤ}
   (h_max : x ^ (-c) ≤ max (x ^ (-a)) (x ^ (-b)) ) : min a b ≤ c :=
 begin
   rw min_le_iff,
-<<<<<<< HEAD
   refine or.imp (λ h, _) (λ h, _) (le_max_iff.mp h_max);
   rwa [zpow_le_iff_le hx, neg_le_neg_iff] at h
-=======
-  cases le_max_iff.mp h_max with h; [left, right];
-  rw [zpow_le_iff_le hx, neg_le_neg_iff] at h;
-  exact h
->>>>>>> feat(algebra/field_power): resolve merge conflict
 end
 
 @[simp] lemma pos_div_pow_pos {a b : K} (ha : 0 < a) (hb : 0 < b) (k : ℕ) : 0 < a/b^k :=

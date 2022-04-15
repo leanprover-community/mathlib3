@@ -361,7 +361,6 @@ end
 
 section
 variables {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' G] [smul_comm_class 𝕜 𝕜' G]
-variables [normed_space 𝕜' G']
 
 lemma op_norm_smul_le (c : 𝕜') : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
 (c • f).op_norm_le_bound

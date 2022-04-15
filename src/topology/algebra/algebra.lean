@@ -153,6 +153,7 @@ end ring
 
 section division_ring
 
+/-- The action induced by `algebra_rat` is continuous. -/
 instance division_ring.has_continuous_const_smul_rat
   {A} [division_ring A] [topological_space A] [has_continuous_mul A] [char_zero A] :
   has_continuous_const_smul ℚ A :=

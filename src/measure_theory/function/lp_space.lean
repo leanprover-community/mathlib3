@@ -1831,6 +1831,21 @@ begin
   exact hf.2.ne
 end
 
+lemma mem_ℒp_norm_rpow_iff {q : ℝ≥0∞} {f : α → E} (hf : ae_strongly_measurable f μ)
+  (q_zero : q ≠ 0) (q_top : q ≠ ∞) :
+  mem_ℒp (λ (x : α), ∥f x∥ ^ q.to_real) (p/q) μ ↔ mem_ℒp f p μ :=
+begin
+  refine ⟨λ h, _, λ h, h.norm_rpow_div q⟩,
+  apply (mem_ℒp_norm_iff hf).1,
+  convert h.norm_rpow_div (q⁻¹),
+  { ext x,
+    rw [real.norm_eq_abs, real.abs_rpow_of_nonneg (norm_nonneg _), ← real.rpow_mul (abs_nonneg _),
+      ennreal.to_real_inv, mul_inv_cancel, abs_of_nonneg (norm_nonneg _), real.rpow_one],
+    simp [ennreal.to_real_eq_zero_iff, not_or_distrib, q_zero, q_top] },
+  { rw [div_eq_mul_inv, inv_inv, div_eq_mul_inv, mul_assoc, ennreal.inv_mul_cancel q_zero q_top,
+    mul_one] }
+end
+
 lemma mem_ℒp.norm_rpow {f : α → E}
   (hf : mem_ℒp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   mem_ℒp (λ (x : α), ∥f x∥ ^ p.to_real) 1 μ :=

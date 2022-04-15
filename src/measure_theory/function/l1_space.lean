@@ -397,45 +397,6 @@ ae_strongly_measurable f μ ∧ has_finite_integral f μ
 lemma mem_ℒp_one_iff_integrable {f : α → β} : mem_ℒp f 1 μ ↔ integrable f μ :=
 by simp_rw [integrable, has_finite_integral, mem_ℒp, snorm_one_eq_lintegral_nnnorm]
 
-lemma mem_ℒp.integrable_sq
-  {α : Type*} {m : measurable_space α} {μ : measure α} {f : α → ℝ} (h : mem_ℒp f 2 μ) :
-  integrable (λ x, (f x)^2) μ :=
-by simpa [real.norm_eq_abs, ← mem_ℒp_one_iff_integrable]
-  using h.norm_rpow ennreal.two_ne_zero ennreal.two_ne_top
-
-lemma mem_ℒp_two_iff_integrable_sq_norm
-  {α : Type*} {m : measurable_space α} {μ : measure α} {f : α → β}
-  (hf : ae_strongly_measurable f μ) :
-  mem_ℒp f 2 μ ↔ integrable (λ x, ∥f x∥^2) μ :=
-begin
-  split,
-  { assume h,
-    simpa [real.norm_eq_abs, ← mem_ℒp_one_iff_integrable]
-      using h.norm_rpow ennreal.two_ne_zero ennreal.two_ne_top },
-  { assume h,
-    refine ⟨hf, _⟩,
-    rw ← mem_ℒp_one_iff_integrable at h,
-    have A : mem_ℒp (λ x, ∥f x∥) 2 μ,
-    { convert h.norm_rpow_div (2 ⁻¹),
-      ext x,
-      simp_rw [norm_pow, norm_norm, ← real.rpow_two, ennreal.to_real_inv,
-        ← real.rpow_mul (norm_nonneg _)],
-      { simp },
-      { simp only [one_div, inv_inv] } },
-    rw ← snorm_norm,
-    exact A.2 }
-end
-
-lemma mem_ℒp_two_iff_integrable_sq
-  {α : Type*} {m : measurable_space α} {μ : measure α} {f : α → ℝ}
-  (hf : ae_strongly_measurable f μ) :
-  mem_ℒp f 2 μ ↔ integrable (λ x, (f x)^2) μ :=
-begin
-  convert mem_ℒp_two_iff_integrable_sq_norm hf,
-  ext x,
-  simp [real.norm_eq_abs],
-end
-
 lemma integrable.ae_strongly_measurable {f : α → β} (hf : integrable f μ) :
   ae_strongly_measurable f μ :=
 hf.1
@@ -484,6 +445,25 @@ end
 
 lemma integrable_const [is_finite_measure μ] (c : β) : integrable (λ x : α, c) μ :=
 integrable_const_iff.2 $ or.inr $ measure_lt_top _ _
+
+lemma mem_ℒp.integrable_norm_rpow {f : α → β} {p : ℝ≥0∞}
+  (hf : mem_ℒp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
+  integrable (λ (x : α), ∥f x∥ ^ p.to_real) μ :=
+begin
+  rw ← mem_ℒp_one_iff_integrable,
+  exact hf.norm_rpow hp_ne_zero hp_ne_top,
+end
+
+lemma mem_ℒp.integrable_norm_rpow' [is_finite_measure μ] {f : α → β} {p : ℝ≥0∞}
+  (hf : mem_ℒp f p μ) :
+  integrable (λ (x : α), ∥f x∥ ^ p.to_real) μ :=
+begin
+  by_cases h_zero : p = 0,
+  { simp [h_zero, integrable_const] },
+  by_cases h_top : p = ∞,
+  { simp [h_top, integrable_const] },
+  exact hf.integrable_norm_rpow h_zero h_top
+end
 
 lemma integrable.mono_measure {f : α → β} (h : integrable f ν) (hμ : μ ≤ ν) : integrable f μ :=
 ⟨h.ae_strongly_measurable.mono_measure hμ, h.has_finite_integral.mono_measure hμ⟩

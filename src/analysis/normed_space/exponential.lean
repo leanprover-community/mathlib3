@@ -12,9 +12,12 @@ import data.finset.noncomm_prod
 /-!
 # Exponential in a Banach algebra
 
-In this file, we define `exp 𝕂 𝔸`, the exponential map in a normed algebra `𝔸` over a nondiscrete
-normed field `𝕂`. Although the definition doesn't require `𝔸` to be complete, we need to assume it
-for most results.
+In this file, we define `exp 𝕂 𝔸`, the exponential map in a topological algebra `𝔸` over a field
+`𝕂`.
+
+While for most interesting results we need `𝔸` to be normed algebra, we do not require this in the
+definition in order to make `exp` independent of a particular choice of norm. The definition also
+does not require that `𝔸` be complete, but we need to assume it for most results.
 
 We then prove some basic results, but we avoid importing derivatives here to minimize dependencies.
 Results involving derivatives and comparisons with `real.exp` and `complex.exp` can be found in
@@ -65,14 +68,12 @@ section topological_algebra
 variables (𝕂 𝔸 : Type*) [field 𝕂] [ring 𝔸] [algebra 𝕂 𝔸] [topological_space 𝔸]
   [topological_ring 𝔸] [has_continuous_const_smul 𝕂 𝔸]
 
-/-- In a Banach algebra `𝔸` over a normed field `𝕂`, `exp_series 𝕂 𝔸` is the
-`formal_multilinear_series` whose `n`-th term is the map `(xᵢ) : 𝔸ⁿ ↦ (1/n! : 𝕂) • ∏ xᵢ`.
-Its sum is the exponential map `exp 𝕂 𝔸 : 𝔸 → 𝔸`. -/
+/-- `exp_series 𝕂 𝔸` is the `formal_multilinear_series` whose `n`-th term is the map
+`(xᵢ) : 𝔸ⁿ ↦ (1/n! : 𝕂) • ∏ xᵢ`. Its sum is the exponential map `exp 𝕂 𝔸 : 𝔸 → 𝔸`. -/
 def exp_series : formal_multilinear_series 𝕂 𝔸 𝔸 :=
-  λ n, (1/n! : 𝕂) • continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸
+λ n, (1/n! : 𝕂) • continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸
 
-/-- In a Banach algebra `𝔸` over a normed field `𝕂`, `exp 𝕂 𝔸 : 𝔸 → 𝔸` is the exponential map
-determined by the action of `𝕂` on `𝔸`.
+/-- `exp 𝕂 𝔸 : 𝔸 → 𝔸` is the exponential map determined by the action of `𝕂` on `𝔸`.
 It is defined as the sum of the `formal_multilinear_series` `exp_series 𝕂 𝔸`. -/
 noncomputable def exp (x : 𝔸) : 𝔸 := (exp_series 𝕂 𝔸).sum x
 
@@ -491,8 +492,9 @@ end is_R_or_C
 
 section scalar_tower
 
-variables (𝕂 𝕂' 𝔸 : Type*) [nondiscrete_normed_field 𝕂] [nondiscrete_normed_field 𝕂']
-  [normed_ring 𝔸] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂' 𝔸]
+variables (𝕂 𝕂' 𝔸 : Type*) [field 𝕂] [field 𝕂'] [ring 𝔸] [algebra 𝕂 𝔸] [algebra 𝕂' 𝔸]
+  [topological_space 𝔸] [topological_ring 𝔸]
+  [has_continuous_const_smul 𝕂 𝔸] [has_continuous_const_smul 𝕂' 𝔸]
 
 /-- If a normed ring `𝔸` is a normed algebra over two fields, then they define the same
 `exp_series` on `𝔸`. -/

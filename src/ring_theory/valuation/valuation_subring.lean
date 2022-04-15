@@ -178,7 +178,7 @@ def map_of_le (R S : valuation_subring K) (h : R ≤ S) :
 @[mono]
 lemma monotone_map_of_le (R S : valuation_subring K) (h : R ≤ S) :
   monotone (R.map_of_le S h) :=
-by { rintros ⟨x⟩ ⟨y⟩ ⟨a,ha⟩, exact ⟨R.inclusion S h a, ha⟩ }
+by { rintros ⟨⟩ ⟨⟩ ⟨a,ha⟩, exact ⟨R.inclusion S h a, ha⟩ }
 
 @[simp]
 lemma map_of_le_comp_valuation (R S : valuation_subring K) (h : R ≤ S) :

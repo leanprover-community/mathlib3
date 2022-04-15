@@ -292,12 +292,6 @@ section compact
 
 open set
 
-lemma ultrafilter.eq_principal_of_fintype (X : Type*) [fintype X]
-  (f : ultrafilter X) : ∃ x : X, (f : filter X) = pure x :=
-let ⟨x, hx1, (hx2 : (f : filter X) = pure x)⟩ :=
-  ultrafilter.eq_principal_of_finite_mem (finite_univ : (univ : set X).finite)
-  (filter.univ_mem) in
-⟨x, hx2⟩
 
 universe u
 
@@ -328,21 +322,11 @@ classical.some_spec
   (@ultrafilter.eq_principal_of_fintype (E →ₐ[K] L) _
   (f.map (λ σ, σ.to_alg_hom.comp (intermediate_field.val E))))
 
-lemma ultrafilter.map_map {X Y Z: Type*} (m : X → Y) (n : Y → Z) (f : ultrafilter X) :
-(f.map m).map n = f.map(n ∘ m) :=
+lemma map_pure {X Y : Type*} (x : X) (m : X → Y) :
+(pure x : ultrafilter X).map m = pure (m x) :=
 begin
-  ext,
-  split,
-  { intro hs,
-    rw [ultrafilter.mem_map, set.preimage_comp, ← ultrafilter.mem_map, ← ultrafilter.mem_map],
-    exact hs },
-  { intro hs,
-    rw [ultrafilter.mem_map, ultrafilter.mem_map, ← set.preimage_comp, ← ultrafilter.mem_map],
-    exact hs },
+  refl,
 end
-
-lemma ultrafilter.map_pure {X Y : Type*} (x : X) (m : X → Y):
-(pure x : ultrafilter X).map m = pure (m x) := rfl
 
 lemma alg_hom_of_finite_dimensional_of_ultrafilter_functor {K L : Type*} [field K] [field L]
   [algebra K L] {E : intermediate_field K L} (hE : finite_dimensional K E)

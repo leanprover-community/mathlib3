@@ -128,6 +128,19 @@ of_compl_not_mem_iff (map m f) $ λ s, @compl_not_mem_iff _ f (m ⁻¹' s)
 @[simp] lemma mem_map {m : α → β} {f : ultrafilter α} {s : set β} :
   s ∈ map m f ↔ m ⁻¹' s ∈ f := iff.rfl
 
+lemma map_map {X Y Z: Type*} (m : X → Y) (n : Y → Z) (f : ultrafilter X) :
+  (f.map m).map n = f.map(n ∘ m) :=
+begin
+  ext,
+  split,
+  { intro hs,
+    rw [ultrafilter.mem_map, set.preimage_comp, ← ultrafilter.mem_map, ← ultrafilter.mem_map],
+    exact hs },
+  { intro hs,
+    rw [ultrafilter.mem_map, ultrafilter.mem_map, ← set.preimage_comp, ← ultrafilter.mem_map],
+    exact hs },
+end
+
 /-- The pullback of an ultrafilter along an injection whose range is large with respect to the given
 ultrafilter. -/
 def comap {m : α → β} (u : ultrafilter β) (inj : injective m)
@@ -165,6 +178,13 @@ begin
   change (f : filter α) ≤ pure a,
   rwa [← principal_singleton, le_principal_iff]
 end
+
+lemma eq_principal_of_fintype (X : Type*) [fintype X]
+  (f : ultrafilter X) : ∃ x : X, (f : filter X) = pure x :=
+let ⟨x, hx1, (hx2 : (f : filter X) = pure x)⟩ :=
+  ultrafilter.eq_principal_of_finite_mem (finite_univ : (univ : set X).finite)
+  (filter.univ_mem) in
+⟨x, hx2⟩
 
 /-- Monadic bind for ultrafilters, coming from the one on filters
 defined in terms of map and join.-/

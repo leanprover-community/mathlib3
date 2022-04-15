@@ -437,7 +437,7 @@ variables (R n) (A : Type*) [comm_semiring R] [semiring A] [algebra R A]
 `m` the product of all the `m i`.
 
 See also: `continuous_multilinear_map.mk_pi_algebra`. -/
-protected def mk_pi_algebra_fin : continuous_multilinear_map R (λ i : fin n, A) A :=
+protected def mk_pi_algebra_fin : A [×n]→L[R] A :=
 { cont := begin
     change continuous (λ m, (list.of_fn m).prod),
     simp_rw list.of_fn_eq_map,

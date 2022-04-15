@@ -42,7 +42,14 @@ def thin {X I} (H : incidence_geometry X I)
 (c : set X) (hc : chain H.r c) (hhc : ∃ i, (∀ j, (∃ x, x ∈ c ∧ H.type x = j) ↔ j ≠ i)) :=
 ∃ (a b : residue_type H.1 c), (a ≠ b) ∧ ∀ (z : residue_type H.1 c), (z.1 = a.1 ∨ z.1 = b.1)
 
-def connected {X I} (H : incidence_system X I) : Prop := sorry
+def connected {X I} (H : incidence_system X I) : Prop := 
+∀ (fm fn : set X), (flag H fm) → (flag H fn) → 
+∃ (m n : ℤ) (path : ℤ → set X),
+(path m = fm ∧ path n = fn ∧ ∀ (k : ℤ),
+(flag H (path k) ∧ ∀ (w x y z : X), (
+(w ∈ path k ∧ y ∈ path (k+1) ∧ w ≠ y ∧ H.type w = H.type y) ∧
+(x ∈ path k ∧ z ∈ path (k+1) ∧ x ≠ z ∧ H.type x = H.type z)
+)→ w = y))
 
 /- How to refer to incidence system/geometry? -/
 

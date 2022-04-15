@@ -1981,7 +1981,7 @@ by simp_rw [prod_filter_index, support_filter, prod_filter_mul_prod_filter_not, 
 
 @[simp, to_additive] lemma prod_div_prod_filter [comm_group G] (g : α → M → G) :
   f.prod g / (f.filter p).prod g = (f.filter (λ a, ¬p a)).prod g :=
-div_eq_of_eq_mul' (prod_filter_pos_mul_neg _ _ _).symm
+div_eq_of_eq_mul' (prod_filter_mul_prod_filter_not _ _ _).symm
 
 end has_zero
 

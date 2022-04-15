@@ -262,6 +262,20 @@ ultrafilter_extend_extends f
 lemma continuous_stone_cech_extend : continuous (stone_cech_extend hf) :=
 continuous_quot_lift _ (continuous_ultrafilter_extend f)
 
+lemma unique_stone_cech_extend {g: stone_cech α → γ} (hg: continuous g)
+(hfg: g ∘ stone_cech_unit = (stone_cech_extend hf) ∘ stone_cech_unit):
+g = stone_cech_extend hf :=
+begin
+  have h_eq_on: eq_on g (stone_cech_extend hf) (range stone_cech_unit) :=
+  begin
+    rw eq_on,
+    rintros _ ⟨a, ha⟩,
+    rw [← ha, ← function.comp_apply g stone_cech_unit a],
+    rw [← function.comp_apply (stone_cech_extend hf) stone_cech_unit a, hfg],
+  end,
+    exact continuous.ext_on dense_range_stone_cech_unit hg (continuous_stone_cech_extend hf) h_eq_on,
+end
+
 end extension
 
 lemma convergent_eqv_pure {u : ultrafilter α} {x : α} (ux : ↑u ≤ 𝓝 x) : u ≈ pure x :=

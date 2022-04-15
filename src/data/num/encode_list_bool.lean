@@ -42,14 +42,14 @@ def equiv_list_bool : pos_num ≃ list bool :=
 @[simp] lemma equiv_list_bool_symm_cons_ff (l : list bool) :
   equiv_list_bool.symm (ff :: l) = bit0 (equiv_list_bool.symm l) := rfl
 
-lemma encode_pos_num_len (n : pos_num) : (equiv_list_bool n).length = nat.log 2 n :=
+lemma to_trailing_bits_len (n : pos_num) : (equiv_list_bool n).length = nat.log 2 n :=
 begin
   induction n with b ih b ih, { erw equiv_list_bool_one, simp, },
   { simp [cast_bit1, nat.bit1_val b, ih], },
   { simp [cast_bit0, nat.bit0_val b, ih], }
 end
 
-lemma decode_pos_num_lt (ls : list bool) : (equiv_list_bool.symm ls : ℕ) < 2^(ls.length+1) :=
+lemma equiv_list_bool_symm_lt (ls : list bool) : (equiv_list_bool.symm ls : ℕ) < 2^(ls.length+1) :=
 begin
   induction ls with hd tl ih, { simp [equiv_list_bool], },
   cases hd,
@@ -66,85 +66,85 @@ end pos_num
 namespace num
 
 /-- An encoding function of the binary numbers in bool. -/
-def encode_num : num → list bool
+def to_bits : num → list bool
 | num.zero := []
 | (num.pos n) := (pos_num.equiv_list_bool n) ++ [tt]
 
-@[simp] lemma encode_zero : encode_num 0 = [] := rfl
+@[simp] lemma to_bits_zero : to_bits 0 = [] := rfl
 
-@[simp] lemma encode_bit0 (n : num) (hn : n ≠ 0) : (num.bit0 n).encode_num = ff :: n.encode_num :=
-by { cases n, { contradiction, }, simp [encode_num, num.bit0], }
+@[simp] lemma to_bits_bit0 (n : num) (hn : n ≠ 0) : (num.bit0 n).to_bits = ff :: n.to_bits :=
+by { cases n, { contradiction, }, simp [to_bits, num.bit0], }
 
-@[simp] lemma encode_bit1 (n : num) : (num.bit1 n).encode_num = tt :: n.encode_num :=
-by { cases n, { refl, }, simp [encode_num, num.bit1], }
+@[simp] lemma to_bits_bit1 (n : num) : (num.bit1 n).to_bits = tt :: n.to_bits :=
+by { cases n, { refl, }, simp [to_bits, num.bit1], }
 
 /-- A decoding function from `list bool` to `num` -/
-def decode_num (L : list bool) : num := if L = [] then 0 else pos_num.equiv_list_bool.inv_fun L.init
+def of_bits (L : list bool) : num := if L = [] then 0 else pos_num.equiv_list_bool.symm L.init
 
-@[simp] lemma decode_num_nil : decode_num [] = 0 := rfl
-@[simp] lemma decode_num_cons_ff (l : list bool) (hl : l ≠ []) :
-  decode_num (ff :: l) = num.bit0 (decode_num l) := by simp [decode_num, hl, num.bit0]
-@[simp] lemma decode_num_cons_tt (l : list bool) : decode_num (tt :: l) = num.bit1 (decode_num l) :=
-by { cases l, { refl, }, simp [decode_num, num.bit1], }
+@[simp] lemma of_bits_nil : of_bits [] = 0 := rfl
+@[simp] lemma of_bits_cons_ff (l : list bool) (hl : l ≠ []) :
+  of_bits (ff :: l) = num.bit0 (of_bits l) := by simp [of_bits, hl, num.bit0]
+@[simp] lemma of_bits_cons_tt (l : list bool) : of_bits (tt :: l) = num.bit1 (of_bits l) :=
+by { cases l, { refl, }, simp [of_bits, num.bit1], }
 
-@[simp] lemma decode_encode_num (n : num) : decode_num (encode_num n) = n :=
-by { cases n, { refl, }, simp [decode_num, encode_num], }
+@[simp] lemma of_bits_to_bits (n : num) : of_bits (to_bits n) = n :=
+by { cases n, { refl, }, simp [of_bits, to_bits], }
 
-lemma decode_encode_left_inv : function.left_inverse decode_num encode_num := decode_encode_num
+lemma of_bits_to_bits_left_inv : function.left_inverse of_bits to_bits := of_bits_to_bits
 
-lemma mem_encode_range_iff (l : list bool) :
-  l ∈ set.range encode_num ↔ l = [] ∨ tt ∈ l.last' :=
+lemma mem_to_bits_range_iff (l : list bool) :
+  l ∈ set.range to_bits ↔ l = [] ∨ tt ∈ l.last' :=
 begin
-  split, { rintro ⟨n, h⟩, subst h, cases n; simp [encode_num], },
+  split, { rintro ⟨n, h⟩, subst h, cases n; simp [to_bits], },
   apply list.reverse_cases_on l, { intro, use 0, refl, },
   intros st lt h,
-  use (pos_num.equiv_list_bool.inv_fun st),
-  symmetry, simpa [encode_num] using h,
+  use (pos_num.equiv_list_bool.symm st),
+  symmetry, simpa [to_bits] using h,
 end
 
-@[simp] lemma encode_decode_list_bool_valid {l : list bool} (h : l ∈ set.range encode_num) :
-  encode_num (decode_num l) = l := decode_encode_left_inv.right_inv_on_range h
+@[simp] lemma to_bits_of_bits_valid {l : list bool} (h : l ∈ set.range to_bits) :
+  to_bits (of_bits l) = l := of_bits_to_bits_left_inv.right_inv_on_range h
 
-@[simp] lemma decode_list_bool_invalid (l : list bool) :
-  decode_num (l ++ [ff]) = decode_num (l ++ [tt]) := by simp [decode_num]
+@[simp] lemma of_bits_invalid (l : list bool) :
+  of_bits (l ++ [ff]) = of_bits (l ++ [tt]) := by simp [of_bits]
 
-lemma encode_num_len (n : num) : (encode_num n).length = if n = 0 then 0 else nat.log 2 n + 1 :=
+lemma to_bits_len (n : num) : (to_bits n).length = if n = 0 then 0 else nat.log 2 n + 1 :=
 begin
   cases n, { refl, },
-  simp [(show pos n ≠ 0, by trivial), encode_num, pos_num.encode_pos_num_len],
+  simp [(show pos n ≠ 0, by trivial), to_bits, pos_num.to_trailing_bits_len],
 end
 
-lemma encode_num_len_le (n : num) : (encode_num n).length ≤ nat.log 2 n + 1 :=
-by { rw encode_num_len, split_ifs with h; simp [h],  }
+lemma to_bits_len_le (n : num) : (to_bits n).length ≤ nat.log 2 n + 1 :=
+by { rw to_bits_len, split_ifs with h; simp [h],  }
 
-lemma decode_num_lt (l : list bool) : (decode_num l : ℕ) < 2^l.length :=
+lemma of_bits_lt (l : list bool) : (of_bits l : ℕ) < 2^l.length :=
 begin
-  apply list.reverse_cases_on l, { simp [decode_num], },
-  intros st tl, cases tl; simpa [decode_num] using pos_num.decode_pos_num_lt _,
+  apply list.reverse_cases_on l, { simp [of_bits], },
+  intros st tl, cases tl; simpa [of_bits] using pos_num.equiv_list_bool_symm_lt _,
 end
 
-lemma le_decode_num (l : list bool) (hl : l ≠ []) : 2^(l.length - 1) ≤ (decode_num l : ℕ) :=
+lemma le_of_bits (l : list bool) (hl : l ≠ []) : 2^(l.length - 1) ≤ (of_bits l : ℕ) :=
 begin
   induction l with hd tl ih, { contradiction, },
-  cases tl with h t, { cases hd; simp [decode_num], },
+  cases tl with h t, { cases hd; simp [of_bits], },
   specialize ih (by trivial),
   cases hd,
-  { simpa [pow_add, nat.bit0_val (decode_num (h :: t)), mul_comm] using ih, },
-  simp only [decode_num_cons_tt, nat.bit1_val (decode_num (h :: t)), num.cast_bit1],
+  { simpa [pow_add, nat.bit0_val (of_bits (h :: t)), mul_comm] using ih, },
+  simp only [of_bits_cons_tt, nat.bit1_val (of_bits (h :: t)), num.cast_bit1],
   refine trans _ (nat.le_succ _),
   simpa [pow_add, mul_comm] using ih,
 end
 
-lemma decode_num_strict_mono (l₁ l₂ : list bool) (h : l₁.length < l₂.length) :
-  (decode_num l₁ : ℕ) < decode_num l₂ :=
-calc (decode_num l₁ : ℕ) < 2^l₁.length : decode_num_lt l₁
+lemma of_bits_strict_mono (l₁ l₂ : list bool) (h : l₁.length < l₂.length) :
+  (of_bits l₁ : ℕ) < of_bits l₂ :=
+calc (of_bits l₁ : ℕ) < 2^l₁.length : of_bits_lt l₁
                     ...  ≤ 2^(l₂.length - 1) : pow_mono (show 1 ≤ 2, by simp) (nat.le_pred_of_lt h)
-                    ...  ≤ decode_num l₂ : le_decode_num l₂ (λ H, by { subst H, simpa using h, })
+                    ...  ≤ of_bits l₂ : le_of_bits l₂ (λ H, by { subst H, simpa using h, })
 
-@[simp] lemma encode_num_nil_iff (n : num) : encode_num n = [] ↔ n = 0 :=
-⟨λ h, by simpa using congr_arg decode_num h, λ h, by { rw h, refl, }⟩
+@[simp] lemma to_bits_nil_iff (n : num) : to_bits n = [] ↔ n = 0 :=
+⟨λ h, by simpa using congr_arg of_bits h, λ h, by { rw h, refl, }⟩
 
-@[simp] lemma decode_list_zero_iff (l : list bool) : decode_num l = 0 ↔ l = [] :=
-⟨λ h, by { by_contra H, simp [decode_num, H] at h, contradiction, }, λ h, by { rw h, refl, }⟩
+@[simp] lemma of_bits_zero_iff (l : list bool) : of_bits l = 0 ↔ l = [] :=
+⟨λ h, by { by_contra H, simp [of_bits, H] at h, contradiction, }, λ h, by { rw h, refl, }⟩
 
 end num

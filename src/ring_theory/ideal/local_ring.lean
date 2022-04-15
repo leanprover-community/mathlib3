@@ -35,6 +35,7 @@ variables {R : Type u} {S : Type v} {T : Type w} {K : Type u'}
 /-- A commutative ring is local if it has a unique maximal ideal. Note that
   `local_ring` is a predicate. -/
 class local_ring (R : Type u) [semiring R] extends nontrivial R : Prop :=
+of_is_unit_or_is_unit_of_add_one ::
 (is_unit_or_is_unit_of_add_one (a b : R) (h : a + b = 1) : is_unit a ∨ is_unit b)
 
 section comm_semiring

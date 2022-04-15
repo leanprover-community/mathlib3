@@ -78,8 +78,8 @@ function.has_left_inverse.injective (Exists.intro section_Γ'_bool left_inverse_
 /-- A binary encoding of ℕ in bool. -/
 def encoding_nat_bool : encoding ℕ :=
 { Γ := bool,
-  encode := λ n, num.encode_num n,
-  decode := λ n, some (num.decode_num n),
+  encode := λ n, num.to_bits n,
+  decode := λ n, some (num.of_bits n),
   decode_encode := λ n, by simp }
 
 /-- A binary fin_encoding of ℕ in bool. -/
@@ -88,8 +88,8 @@ def fin_encoding_nat_bool : fin_encoding ℕ := ⟨encoding_nat_bool, bool.finty
 /-- A binary encoding of ℕ in Γ'. -/
 def encoding_nat_Γ' : encoding ℕ :=
 { Γ := Γ',
-  encode := λ x, list.map inclusion_bool_Γ' (num.encode_num x),
-  decode := λ x, some (num.decode_num (list.map section_Γ'_bool x)),
+  encode := λ x, list.map inclusion_bool_Γ' (num.to_bits x),
+  decode := λ x, some (num.of_bits (list.map section_Γ'_bool x)),
   decode_encode := λ x, by simp [function.left_inverse.comp_eq_id left_inverse_section_inclusion] }
 
 /-- A binary fin_encoding of ℕ in Γ'. -/

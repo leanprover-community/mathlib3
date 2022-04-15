@@ -246,7 +246,7 @@ theorem mk'_eq_iff_eq_mul {x} {y : M} {z} :
   mk' S x y = z ↔ algebra_map R S x = z * algebra_map R S y :=
 (to_localization_map M S).mk'_eq_iff_eq_mul
 
-theorem mk'_add_eq_iff_add_eq_mul {x} {y : M} {z₁ z₂} :
+theorem mk'_add_eq_iff_add_mul_eq_mul {x} {y : M} {z₁ z₂} :
   mk' S x y + z₁ = z₂ ↔ algebra_map R S x + z₁ * algebra_map R S y = z₂ * algebra_map R S y :=
 by rw [←mk'_spec S x y, ←is_unit.mul_left_inj (is_localization.map_units S y), right_distrib]
 
@@ -381,9 +381,9 @@ lemma mk'_add (x₁ x₂ : R) (y₁ y₂ : M) :
   mk' S (x₁ * y₂ + x₂ * y₁) (y₁ * y₂) = mk' S x₁ y₁ + mk' S x₂ y₂ :=
 mk'_eq_iff_eq_mul.2 $ eq.symm
 begin
-  rw [mul_comm (_ + _), mul_add, mul_mk'_eq_mk'_of_mul, mk'_add_eq_iff_add_eq_mul,
+  rw [mul_comm (_ + _), mul_add, mul_mk'_eq_mk'_of_mul, mk'_add_eq_iff_add_mul_eq_mul,
     mul_comm (_ * _), ←mul_assoc, add_comm, ←map_mul, mul_mk'_eq_mk'_of_mul,
-    mk'_add_eq_iff_add_eq_mul],
+    mk'_add_eq_iff_add_mul_eq_mul],
   simp only [map_add, submonoid.coe_mul, map_mul],
   ring
 end

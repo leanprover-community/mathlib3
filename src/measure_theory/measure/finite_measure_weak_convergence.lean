@@ -279,18 +279,12 @@ end
 
 /-- Finite measures yield elements of the `weak_dual` of bounded continuous nonnegative
 functions via `finite_measure.test_against_nn`, i.e., integration. -/
-def to_weak_dual_bcnn (μ : finite_measure α) :
+@[simps apply] def to_weak_dual_bcnn (μ : finite_measure α) :
   weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
 { to_fun := λ f, μ.test_against_nn f,
   map_add' := test_against_nn_add μ,
   map_smul' := test_against_nn_smul μ,
   cont := μ.test_against_nn_lipschitz.continuous, }
-
-lemma to_weak_dual_bcnn_eval' (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
-  μ.to_weak_dual_bcnn f = μ.test_against_nn f := rfl
-
-lemma to_weak_dual_bcnn_eval (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
-  μ.to_weak_dual_bcnn f = (∫⁻ x, f x ∂(μ : measure α)).to_nnreal := rfl
 
 /-- The topology of weak convergence on `finite_measures α` is inherited (induced) from the weak-*
 topology on `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)` via the function `finite_measures.to_weak_dual_bcnn`. -/
@@ -325,7 +319,7 @@ theorem tendsto_iff_forall_lintegral_tendsto {γ : Type*} {F : filter γ}
   ∀ (f : α →ᵇ ℝ≥0), tendsto (λ i, (∫⁻ x, (f x) ∂(μs(i) : measure α))) F (𝓝 ((∫⁻ x, (f x) ∂(μ : measure α)))) :=
 begin
   rw tendsto_iff_forall_test_against_nn_tendsto,
-  simp_rw [to_weak_dual_bcnn_eval' _ _,
+  simp_rw [to_weak_dual_bcnn_apply _ _,
            ←test_against_nn_coe_eq, ennreal.tendsto_coe],
 end
 
@@ -401,11 +395,8 @@ continuous_induced_dom
 
 /-- Probability measures yield elements of the `weak_dual` of bounded continuous nonnegative
 functions via `finite_measure.test_against_nn`, i.e., integration. -/
-def to_weak_dual_bcnn : probability_measure α → weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
+@[simps apply] def to_weak_dual_bcnn : probability_measure α → weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
 finite_measure.to_weak_dual_bcnn ∘ to_finite_measure
-
-lemma to_weak_dual_bcnn_eval (μ : probability_measure α) (f : α →ᵇ ℝ≥0) :
-  μ.to_weak_dual_bcnn f = (∫⁻ x, f x ∂(μ : measure α)).to_nnreal := rfl
 
 lemma to_weak_dual_bcnn_continuous :
   continuous (λ (μ : probability_measure α), μ.to_weak_dual_bcnn) :=

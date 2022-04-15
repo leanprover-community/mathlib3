@@ -464,15 +464,11 @@ map_exp _ (ring_hom.fst 𝔸 𝔹) continuous_fst x
 @[simp] lemma prod.snd_exp [complete_space 𝔹] (x : 𝔸 × 𝔹) : (exp 𝕂 (𝔸 × 𝔹) x).snd = exp 𝕂 𝔹 x.snd :=
 map_exp _ (ring_hom.snd 𝔸 𝔹) continuous_snd x
 
-/- At the time of writing _statement_ times out, but might not in future:
-```lean
-@[simp] lemma pi.exp_apply {ι : Type*} {𝔸 : ι → Type*} [fintype ι] [Π i, normed_ring (𝔸 i)]
-  [Π i, normed_algebra 𝕂 (𝔸 i)]
-  [Π i, complete_space (𝔸 i)] (x : Π i, 𝔸 i) (i : ι) :
+@[simp] lemma pi.exp_apply {ι : Type*} {𝔸 : ι → Type*} [fintype ι] [nonempty ι]
+  [Π i, normed_ring (𝔸 i)] [Π i, normed_algebra 𝕂 (𝔸 i)] [Π i, complete_space (𝔸 i)]
+  (x : Π i, 𝔸 i) (i : ι) :
   (exp 𝕂 (Π i, 𝔸 i) x : Π i, 𝔸 i) i = exp 𝕂 (𝔸 i) (x i) :=
-sorry
-```
--/
+map_exp _ (pi.eval_ring_hom 𝔸 i) (continuous_apply _) x
 
 end complete_algebra
 

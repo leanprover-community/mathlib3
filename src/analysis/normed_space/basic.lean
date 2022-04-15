@@ -453,6 +453,13 @@ instance pi.normed_algebra {E : ι → Type*} [fintype ι] [nonempty ι]
   end,
   .. pi.algebra _ E }
 
+/-- A copy of `pi.normed_algebra` with stronger typeclass assumptions. Typeclass search times out on
+`pi.exp_apply` without this. -/
+instance pi.normed_algebra' {E : ι → Type*} [fintype ι] [nonempty ι]
+  [Π i, normed_ring (E i)] [Π i, normed_algebra 𝕜 (E i)] :
+  normed_algebra 𝕜 (Π i, E i) :=
+pi.normed_algebra _
+
 end normed_algebra
 
 section restrict_scalars

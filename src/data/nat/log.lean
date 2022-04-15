@@ -128,9 +128,12 @@ begin
   simp [hn, this]
 end
 
-lemma lt_pow_succ_log_self {b : ℕ} (hb : 1 < b) {x : ℕ} (hx : 0 < x) :
+lemma lt_pow_succ_log_self {b : ℕ} (hb : 1 < b) (x : ℕ) :
   x < b ^ (log b x).succ :=
 begin
+  cases x.eq_zero_or_pos with hx hx,
+  { simp only [hx, log_zero_right, pow_one],
+    exact pos_of_gt hb },
   rw [←not_le, pow_le_iff_le_log hb hx, not_le],
   exact lt_succ_self _,
 end

@@ -322,7 +322,7 @@ classical.some_spec
   (@ultrafilter.eq_principal_of_fintype (E →ₐ[K] L) _
   (f.map (λ σ, σ.to_alg_hom.comp (intermediate_field.val E))))
 
-lemma map_pure {X Y : Type*} (x : X) (m : X → Y) :
+lemma ultrafilter.map_pure {X Y : Type*} (x : X) (m : X → Y) :
 (pure x : ultrafilter X).map m = pure (m x) :=
 begin
   refl,

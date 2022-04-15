@@ -25,7 +25,8 @@ variables {α β : Type*} {ι : Sort*}
 
 namespace filter
 
-/-- The filter `f.small_sets` is the largest filter containing all powersets of members of `f`. -/
+/-- The filter `f.small_sets` is the largest filter containing all powersets of members of `f`.
+  Note: `𝓟` is the principal filter and `𝒫` is the powerset. -/
 def small_sets (f : filter α) : filter (set α) :=
 ⨅ t ∈ f, 𝓟 (𝒫 t)
 

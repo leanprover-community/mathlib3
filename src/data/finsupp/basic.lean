@@ -1975,7 +1975,7 @@ begin
   rw [filter_apply_pos _ _ hx.2]
 end
 
-@[simp, to_additive] lemma prod_filter_pos_mul_neg [comm_monoid N] (g : α → M → N) :
+@[simp, to_additive] lemma prod_filter_mul_prod_filter_not [comm_monoid N] (g : α → M → N) :
   (f.filter p).prod g * (f.filter (λ a, ¬ p a)).prod g = f.prod g :=
 by simp_rw [prod_filter_index, support_filter, prod_filter_mul_prod_filter_not, finsupp.prod]
 

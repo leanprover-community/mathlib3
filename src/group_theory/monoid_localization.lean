@@ -1395,10 +1395,10 @@ namespace localization_with_zero_map
 /-- Short for `to_monoid_with_zero_hom`; used to apply a localization map as a function. -/
 abbreviation to_map (f : localization_with_zero_map S N) := f.to_monoid_with_zero_hom
 
-/-- Given a localization map `f : M →* N` for a submonoid `S ⊆ M` and a map of `comm_monoid_with_zero`s
-`g : M →* P` such that `g y` is invertible for all `y : S`, the homomorphism induced from
-`N` to `P` sending `z : N` to `g x * (g y)⁻¹`, where `(x, y) : M × S` are such that
-`z = f x * (f y)⁻¹`. -/
+/-- Given a localization map `f : M →*₀ N` for a submonoid `S ⊆ M` and a map of
+`comm_monoid_with_zero`s `g : M →*₀ P` such that `g y` is invertible for all `y : S`, the
+homomorphism induced from `N` to `P` sending `z : N` to `g x * (g y)⁻¹`, where `(x, y) : M × S`
+are such that `z = f x * (f y)⁻¹`. -/
 noncomputable def lift (f : localization_with_zero_map S N)
   {g : M →*₀ P} (hg : ∀ y : S, is_unit (g y)) : N →*₀ P :=
 { map_zero' :=

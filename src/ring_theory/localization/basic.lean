@@ -23,7 +23,7 @@ ring homomorphism `f : R →+* S` satisfying 3 properties:
 In the following, let `R, P` be commutative rings, `S, Q` be `R`- and `P`-algebras
 and `M, T` be submonoids of `R` and `P` respectively, e.g.:
 ```
-variables (R S P Q : Type*) [comm_semiring R] [comm_semiring S] [comm_semiring P] [comm_semiring Q]
+variables (R S P Q : Type*) [comm_ring R] [comm_ring S] [comm_ring P] [comm_ring Q]
 variables [algebra R S] [algebra P Q] (M : submonoid R) (T : submonoid P)
 ```
 
@@ -45,7 +45,7 @@ variables [algebra R S] [algebra P Q] (M : submonoid R) (T : submonoid P)
 ## Main results
 
  * `localization M S`, a construction of the localization as a quotient type, defined in
-   `group_theory.monoid_localization`, has `comm_semiring`, `algebra R` and `is_localization M`
+   `group_theory.monoid_localization`, has `comm_ring`, `algebra R` and `is_localization M`
    instances if `R` is a ring. `localization.away`, `localization.at_prime` and `fraction_ring`
    are abbreviations for `localization`s and have their corresponding `is_localization` instances
 
@@ -72,9 +72,9 @@ These show the quotient map `mk : R → M → localization M` equals the surject
 The lemma `mk_eq_of_mk'` hence gives you access to the results in the rest of the file,
 which are about the `localization_map.mk'` induced by any localization map.
 
-The proof that "a `comm_semiring` `K` which is the localization of an integral domain `R` at `R \ {0}`
+The proof that "a `comm_ring` `K` which is the localization of an integral domain `R` at `R \ {0}`
 is a field" is a `def` rather than an `instance`, so if you want to reason about a field of
-fractions `K`, assume `[field K]` instead of just `[comm_semiring K]`.
+fractions `K`, assume `[field K]` instead of just `[comm_ring K]`.
 
 ## Tags
 localization, ring localization, commutative ring localization, characteristic predicate,
@@ -767,8 +767,8 @@ begin
   ring
 end
 
-private meta def tac := `[{
-  intros,
+private meta def tac := `[
+{ intros,
   simp only [add_mk, localization.mk_mul, ← localization.mk_zero 1],
   refine mk_eq_mk_iff.mpr (r_of_eq _),
   simp only [submonoid.coe_mul],

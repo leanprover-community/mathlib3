@@ -112,18 +112,18 @@ begin
   simp only [←map_pow, *, mem_roots_of_unity, set_like.mem_coe, monoid_hom.map_one] at *
 end
 
-variables [comm_ring R]
-
-@[norm_cast]
-lemma roots_of_unity.coe_pow (ζ : roots_of_unity k R) (m : ℕ) : ↑(ζ ^ m) = (ζ ^ m : R) :=
+@[norm_cast] lemma roots_of_unity.coe_pow [comm_monoid R] (ζ : roots_of_unity k R) (m : ℕ) :
+  ↑(ζ ^ m) = (ζ ^ m : R) :=
 begin
   change ↑(↑(ζ ^ m) : Rˣ) = ↑(ζ : Rˣ) ^ m,
   rw [subgroup.coe_pow, units.coe_pow],
 end
 
-variables [comm_ring S]
+section comm_semiring
 
-/-- Restrict a ring homomorphism between integral domains to the nth roots of unity -/
+variables [comm_semiring R] [comm_semiring S]
+
+/-- Restrict a ring homomorphism to the nth roots of unity -/
 def restrict_roots_of_unity [ring_hom_class F R S] (σ : F) (n : ℕ+) :
   roots_of_unity n R →* roots_of_unity n S :=
 let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
@@ -139,7 +139,7 @@ let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
   (ζ : roots_of_unity k R) : ↑(restrict_roots_of_unity σ k ζ) = σ ↑ζ :=
 rfl
 
-/-- Restrict a ring isomorphism between integral domains to the nth roots of unity -/
+/-- Restrict a ring isomorphism to the nth roots of unity -/
 def ring_equiv.restrict_roots_of_unity (σ : R ≃+* S) (n : ℕ+) :
   roots_of_unity n R ≃* roots_of_unity n S :=
 { to_fun := restrict_roots_of_unity σ.to_ring_hom n,
@@ -156,7 +156,11 @@ rfl
   (σ.restrict_roots_of_unity k).symm = σ.symm.restrict_roots_of_unity k :=
 rfl
 
-variables [is_domain R]
+end comm_semiring
+
+section is_domain
+
+variables [comm_ring R] [is_domain R]
 
 lemma mem_roots_of_unity_iff_mem_nth_roots {ζ : Rˣ} :
   ζ ∈ roots_of_unity k R ↔ (ζ : R) ∈ nth_roots k (1 : R) :=
@@ -225,6 +229,8 @@ begin
       zpow_coe_nat, roots_of_unity.coe_pow],
   exact ⟨(m % (order_of ζ)).to_nat, rfl⟩,
 end
+
+end is_domain
 
 end roots_of_unity
 
@@ -321,6 +327,10 @@ begin
   { rintro rfl, exact one }
 end
 
+@[simp] lemma coe_submonoid_class_iff {M B : Type*} [comm_monoid M] [set_like B M]
+  [submonoid_class B M] {N : B} {ζ : N} : is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
+by simp [iff_def, ← submonoid_class.coe_pow]
+
 @[simp] lemma coe_units_iff {ζ : Mˣ} :
   is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
 by simp only [iff_def, units.ext_iff, units.coe_pow, units.coe_one]
@@ -397,6 +407,23 @@ begin
   rw [order_of_pow' _ hp, ← eq_order_of h, nat.gcd_eq_right hdiv]
 end
 
+protected
+lemma mem_roots_of_unity {ζ : Mˣ} {n : ℕ+} (h : is_primitive_root ζ n) : ζ ∈ roots_of_unity n M :=
+h.pow_eq_one
+
+/-- If there is a `n`-th primitive root of unity in `R` and `b` divides `n`,
+then there is a `b`-th primitive root of unity in `R`. -/
+lemma pow {n : ℕ} {a b : ℕ} (hn : 0 < n) (h : is_primitive_root ζ n) (hprod : n = a * b) :
+  is_primitive_root (ζ ^ a) b :=
+begin
+  subst n,
+  simp only [iff_def, ← pow_mul, h.pow_eq_one, eq_self_iff_true, true_and],
+  intros l hl,
+  have ha0 : a ≠ 0, { rintro rfl, simpa only [nat.not_lt_zero, zero_mul] using hn },
+  rwa ← mul_dvd_mul_iff_left ha0,
+  exact h.dvd_of_pow_eq_one _ hl
+end
+
 end comm_monoid
 
 section comm_monoid_with_zero
@@ -453,10 +480,6 @@ begin
   rw [int.gcd, ← int.nat_abs_neg, ← hi'] at hi,
   exact hi
 end
-
-@[simp] lemma coe_subgroup_iff (H : subgroup G) {ζ : H} :
-  is_primitive_root (ζ : G) k ↔ is_primitive_root ζ k :=
-by simp only [iff_def, ← subgroup.coe_pow, ← H.coe_one, ← subtype.ext_iff]
 
 end comm_group
 
@@ -564,13 +587,6 @@ begin
     exact hx }
 end
 
-lemma eq_neg_one_of_two_right (h : is_primitive_root ζ 2) : ζ = -1 :=
-begin
-  apply (eq_or_eq_neg_of_sq_eq_sq ζ 1 _).resolve_left,
-  { rw [← pow_one ζ], apply h.pow_ne_one_of_pos_of_lt; dec_trivial },
-  { simp only [h.pow_eq_one, one_pow] }
-end
-
 end is_domain
 
 section is_domain
@@ -578,16 +594,19 @@ section is_domain
 variables [comm_ring R]
 variables {ζ : Rˣ} (h : is_primitive_root ζ k)
 
+lemma eq_neg_one_of_two_right [no_zero_divisors R] {ζ : R} (h : is_primitive_root ζ 2) : ζ = -1 :=
+begin
+  apply (eq_or_eq_neg_of_sq_eq_sq ζ 1 _).resolve_left,
+  { rw [← pow_one ζ], apply h.pow_ne_one_of_pos_of_lt; dec_trivial },
+  { simp only [h.pow_eq_one, one_pow] }
+end
+
 lemma neg_one (p : ℕ) [nontrivial R] [h : char_p R p] (hp : p ≠ 2) : is_primitive_root (-1 : R) 2 :=
 begin
   convert is_primitive_root.order_of (-1 : R),
   rw [order_of_neg_one, if_neg],
   rwa ring_char.eq_iff.mpr h
 end
-
-protected
-lemma mem_roots_of_unity {n : ℕ+} (h : is_primitive_root ζ n) : ζ ∈ roots_of_unity n R :=
-h.pow_eq_one
 
 /-- The (additive) monoid equivalence between `zmod k`
 and the powers of a primitive root of unity `ζ`. -/
@@ -646,20 +665,6 @@ by rw [← h.zmod_equiv_zpowers.symm_apply_apply i, zmod_equiv_zpowers_apply_coe
 @[simp] lemma zmod_equiv_zpowers_symm_apply_pow' (i : ℕ) :
   h.zmod_equiv_zpowers.symm ⟨ζ ^ i, i, rfl⟩ = i :=
 h.zmod_equiv_zpowers_symm_apply_pow i
-
-/-- If there is a `n`-th primitive root of unity in `R` and `b` divides `n`,
-then there is a `b`-th primitive root of unity in `R`. -/
-lemma pow {ζ : R} {n : ℕ} {a b : ℕ}
-  (hn : 0 < n) (h : is_primitive_root ζ n) (hprod : n = a * b) :
-  is_primitive_root (ζ ^ a) b :=
-begin
-  subst n,
-  simp only [iff_def, ← pow_mul, h.pow_eq_one, eq_self_iff_true, true_and],
-  intros l hl,
-  have ha0 : a ≠ 0, { rintro rfl, simpa only [nat.not_lt_zero, zero_mul] using hn },
-  rwa ← mul_dvd_mul_iff_left ha0,
-  exact h.dvd_of_pow_eq_one _ hl
-end
 
 variables [is_domain R]
 

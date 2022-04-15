@@ -529,6 +529,9 @@ by rw [closure_compl, frontier, diff_eq]
 
 lemma frontier_subset_closure {s : set α} : frontier s ⊆ closure s := diff_subset _ _
 
+lemma is_closed.frontier_subset (hs : is_closed s) : frontier s ⊆ s :=
+frontier_subset_closure.trans hs.closure_eq.subset
+
 lemma frontier_closure_subset {s : set α} : frontier (closure s) ⊆ frontier s :=
 diff_subset_diff closure_closure.subset $ interior_mono subset_closure
 

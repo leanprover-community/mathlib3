@@ -1067,7 +1067,7 @@ open submodule
 
 lemma submodule.convex [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] (K : submodule 𝕜 E) :
   convex 𝕜 (↑K : set E) :=
-by { repeat {intro}, refine add_mem _ (smul_mem _ _ _) (smul_mem _ _ _); assumption }
+by { repeat {intro}, refine add_mem (smul_mem _ _ _) (smul_mem _ _ _); assumption }
 
 lemma subspace.convex [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] (K : subspace 𝕜 E) :
   convex 𝕜 (↑K : set E) :=

@@ -779,6 +779,12 @@ instance : comm_semiring (localization M) :=
   one  := 1,
   add  := (+),
   mul  := (*),
+  npow := localization.npow _,
+  nsmul := (•),
+  nsmul_zero' := λ x, localization.induction_on x
+    (λ x, by simp only [smul_mk, zero_nsmul, mk_zero]),
+  nsmul_succ' := λ n x, localization.induction_on x
+    (λ x, by simp only [smul_mk, succ_nsmul, add_mk_self]),
   add_assoc      := λ m n k, localization.induction_on₃ m n k (by tac),
   zero_add       := λ y, localization.induction_on y (by tac),
   add_zero       := λ y, localization.induction_on y (by tac),
@@ -919,7 +925,14 @@ lemma neg_mk (a b) : -(mk a b : localization M) = mk (-a) b :=
 by { unfold has_neg.neg localization.neg, apply lift_on_mk }
 
 instance : comm_ring (localization M) :=
-{ neg            := has_neg.neg,
+{ zsmul := (•),
+  zsmul_zero' := λ x, localization.induction_on x
+    (λ x, by simp only [smul_mk, zero_zsmul, mk_zero]),
+  zsmul_succ' := λ n x, localization.induction_on x
+    (λ x, by simp [smul_mk, add_mk_self, -mk_eq_monoid_of_mk', add_comm (n : ℤ) 1, add_smul]),
+  zsmul_neg' := λ n x, localization.induction_on x
+    (λ x, by { rw [smul_mk, smul_mk, neg_mk, ← neg_smul], refl }),
+  neg            := has_neg.neg,
   sub            := λ x y, x + -y,
   sub_eq_add_neg := λ x y, rfl,
   add_left_neg   := λ y, by exact localization.induction_on y

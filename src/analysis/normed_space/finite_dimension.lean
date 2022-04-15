@@ -20,8 +20,6 @@ are continuous. Moreover, a finite-dimensional subspace is always complete and c
 
 ## Main results:
 
-* `linear_map.continuous_of_finite_dimensional` : a linear map on a finite-dimensional space over a
-  complete field is continuous.
 * `finite_dimensional.complete` : a finite-dimensional space over a complete field is complete. This
   is not registered as an instance, as the field would be an unknown metavariable in typeclass
   resolution.

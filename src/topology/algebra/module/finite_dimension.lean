@@ -4,8 +4,23 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Anatole Dedecker
 -/
 import analysis.locally_convex.balanced_core_hull
+
 /-!
-# TODO
+# Finite dimensional topological vector spaces over complete fields
+
+Over a complete nondiscrete field, in finite dimension, all norms are equivalent and all linear maps
+are continuous.
+
+## Main results :
+
+* `linear_map.continuous_iff_is_closed_ker` : a linear form is continuous if and only if its kernel
+  is closed.
+* `linear_map.continuous_of_finite_dimensional` : a linear map on a finite-dimensional space over a
+  complete field is continuous.
+
+## TODO
+
+Generalize more of `analysis/normed_space/finite_dimension` to general TVSs.
 -/
 
 universes u v w x

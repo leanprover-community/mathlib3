@@ -277,7 +277,7 @@ instance valued_Fqt_infty : valued (Fqt_infty Fq) (with_zero (multiplicative ℤ
 lemma valued_Fqt_infty.def {x : Fqt_infty Fq} :
   valued.v (x) = @valued.extension (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq) x := rfl
 
-instance Fqt_infty.topologal_space : topological_space (Fqt_infty Fq) :=
+instance Fqt_infty.topological_space : topological_space (Fqt_infty Fq) :=
 valued.topological_space (with_zero (multiplicative ℤ))
 
 instance Fqt_infty.topological_division_ring : topological_division_ring (Fqt_infty Fq) :=

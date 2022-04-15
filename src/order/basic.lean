@@ -96,9 +96,9 @@ protected lemma ge [preorder α] {x y : α} (h : x = y) : y ≤ x := h.symm.le
 
 lemma trans_le [preorder α] {x y z : α} (h1 : x = y) (h2 : y ≤ z) : x ≤ z := h1.le.trans h2
 
-lemma not_lt [partial_order α] {x y : α} (h : x = y) : ¬(x < y) := λ h', h'.ne h
+lemma not_lt [preorder α] {x y : α} (h : x = y) : ¬(x < y) := λ h', h'.ne h
 
-lemma not_gt [partial_order α] {x y : α} (h : x = y) : ¬(y < x) := h.symm.not_lt
+lemma not_gt [preorder α] {x y : α} (h : x = y) : ¬(y < x) := h.symm.not_lt
 
 end eq
 
@@ -205,7 +205,7 @@ lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a <
 ⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩
 
 -- See Note [decidable namespace]
-protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [@decidable_rel α (≤)]
+protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [decidable_eq α]
   {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
 ⟨λ h, decidable.by_cases le_of_eq (le_of_lt ∘ h.mp), λ h, ⟨lt_of_le_of_ne h, ne_of_lt⟩⟩
 

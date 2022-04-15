@@ -1011,8 +1011,7 @@ h₁.mul_is_O h₂.is_O
 theorem is_O_with.pow' {f : α → R} {g : α → 𝕜} (h : is_O_with c f g l) :
   ∀ n : ℕ, is_O_with (nat.cases_on n ∥(1 : R)∥ (λ n, c ^ (n + 1))) (λ x, f x ^ n) (λ x, g x ^ n) l
 | 0 := by simpa using is_O_with_const_const (1 : R) (@one_ne_zero 𝕜 _ _) l
-| 1 := by simpa
-| (n + 2) := by simpa [pow_succ] using h.mul (is_O_with.pow' (n + 1))
+| (n + 1) := by simpa [pow_succ] using h.mul (is_O_with.pow' n)
 
 theorem is_O_with.pow [norm_one_class R] {f : α → R} {g : α → 𝕜} (h : is_O_with c f g l) :
   ∀ n : ℕ, is_O_with (c ^ n) (λ x, f x ^ n) (λ x, g x ^ n) l

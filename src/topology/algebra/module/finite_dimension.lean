@@ -15,14 +15,19 @@ noncomputable theory
 open set finite_dimensional topological_space filter
 open_locale classical big_operators filter topological_space nnreal uniformity
 
+section any_field
+
+variables {ι 𝕜 E F : Type*} [fintype ι] [field 𝕜] [topological_space 𝕜]
+  [add_comm_group E] [module 𝕜 E] [topological_space E]
+  [add_comm_group F] [module 𝕜 F] [topological_space F]
+  [topological_add_group F] [has_continuous_smul 𝕜 F]
+
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
-lemma linear_map.continuous_on_pi' {ι : Type w} [fintype ι] {𝕜 : Type u} [field 𝕜]
-  [topological_space 𝕜] {E : Type v}  [add_comm_group E] [module 𝕜 E] [topological_space E]
-  [topological_add_group E] [has_continuous_smul 𝕜 E] (f : (ι → 𝕜) →ₗ[𝕜] E) : continuous f :=
+lemma linear_map.continuous_on_pi (f : (ι → 𝕜) →ₗ[𝕜] F) : continuous f :=
 begin
   -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
   -- function.
-  have : (f : (ι → 𝕜) → E) =
+  have : (f : (ι → 𝕜) → F) =
          (λx, ∑ i : ι, x i • (f (λj, if i = j then 1 else 0))),
     by { ext x, exact f.pi_apply_eq_sum_univ x },
   rw this,
@@ -30,13 +35,8 @@ begin
   exact (continuous_apply i).smul continuous_const
 end
 
-#check continuous_linear_map.finite_dimensional
-
 /-- The space of continuous linear maps between finite-dimensional spaces is finite-dimensional. -/
-instance {𝕜 E F : Type*} [field 𝕜] [topological_space 𝕜]
-  [topological_space E] [add_comm_group E] [module 𝕜 E] [finite_dimensional 𝕜 E]
-  [topological_space F] [add_comm_group F] [module 𝕜 F] [topological_add_group F]
-  [has_continuous_smul 𝕜 F] [finite_dimensional 𝕜 F] :
+instance [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] :
   finite_dimensional 𝕜 (E →L[𝕜] F) :=
 begin
   haveI : is_noetherian 𝕜 (E →ₗ[𝕜] F) := is_noetherian.iff_fg.mpr (by apply_instance),
@@ -44,43 +44,63 @@ begin
   exact module.finite.of_injective I continuous_linear_map.coe_injective
 end
 
-section complete_field
+end any_field
 
-variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
+section normed_field
+
+variables {𝕜 : Type u} [hnorm : nondiscrete_normed_field 𝕜]
 {E : Type v} [add_comm_group E] [module 𝕜 E] [topological_space E]
 [topological_add_group E] [has_continuous_smul 𝕜 E]
 {F : Type w} [add_comm_group F] [module 𝕜 F] [topological_space F]
 [topological_add_group F] [has_continuous_smul 𝕜 F]
 {F' : Type x} [add_comm_group F'] [module 𝕜 F'] [topological_space F']
 [topological_add_group F'] [has_continuous_smul 𝕜 F']
-[complete_space 𝕜]
 
-lemma unique_topology_of_t2 [hnorm : nondiscrete_normed_field 𝕜] {t : topological_space 𝕜}
+include hnorm
+
+/-- If `𝕜` is a nondiscrete normed field, any T2 topology on `𝕜` which makes it a topologial vector
+    space over itself (with the norm topology) is *equal* to the norm topology. -/
+lemma unique_topology_of_t2 {t : topological_space 𝕜}
   (h₁ : @topological_add_group 𝕜 t _)
   (h₂ : @has_continuous_smul 𝕜 𝕜 _ hnorm.to_uniform_space.to_topological_space t)
   (h₃ : @t2_space 𝕜 t) :
 t = hnorm.to_uniform_space.to_topological_space :=
 begin
+  -- Let `𝓣₀` denote the topology on `𝕜` induced by the norm, and `𝓣` be any T2 vector
+  -- topology on `𝕜`. To show that `𝓣₀ = 𝓣`, it suffices to show that they have the same
+  -- neighborhoods of 0.
   refine topological_add_group.ext h₁ infer_instance (le_antisymm _ _),
-  { rw metric.nhds_basis_closed_ball.ge_iff,
+  { -- To show `𝓣 ≤ 𝓣₀`, we have to show that closed balls are `𝓣`-neighborhoods of 0.
+    rw metric.nhds_basis_closed_ball.ge_iff,
+    -- Let `ε > 0`. Since `𝕜` is nondiscrete, we have `0 < ∥ξ₀∥ < ε` for some `ξ₀ : 𝕜`.
     intros ε hε,
     rcases normed_field.exists_norm_lt 𝕜 hε with ⟨ξ₀, hξ₀, hξ₀ε⟩,
+    -- Since `ξ₉ ≠ 0` and `𝓣` is T2, we know that `{ξ₀}ᶜ` is a `𝓣`-neighborhood of 0.
     have : {ξ₀}ᶜ ∈ @nhds 𝕜 t 0 :=
       is_open.mem_nhds is_open_compl_singleton (ne.symm $ norm_ne_zero_iff.mp hξ₀.ne.symm),
+    -- Thus, its balanced core `𝓑` is too. Let's show that the closed ball of radius `ε` contains
+    -- `𝓑`, which will imply that the closed ball is indeed a `𝓣`-neighborhood of 0.
     have : balanced_core 𝕜 {ξ₀}ᶜ ∈ @nhds 𝕜 t 0 := balanced_core_mem_nhds_zero this,
     refine mem_of_superset this (λ ξ hξ, _),
+    -- Let `ξ ∈ 𝓑`. We want to show `∥ξ∥ < ε`. If `ξ = 0`, this is trivial.
     by_cases hξ0 : ξ = 0,
     { rw hξ0,
       exact metric.mem_closed_ball_self hε.le },
     { rw [mem_closed_ball_zero_iff],
+      -- Now suppose `ξ ≠ 0`. By contradiction, let's assume `ε < ∥ξ∥`, and show that
+      -- `ξ₀ ∈ 𝓑 ⊆ {ξ₀}ᶜ`, which is a contradiction.
       by_contra' h,
       suffices : (ξ₀ * ξ⁻¹) • ξ ∈ balanced_core 𝕜 {ξ₀}ᶜ,
       { rw [smul_eq_mul 𝕜, mul_assoc, inv_mul_cancel hξ0, mul_one] at this,
         exact not_mem_compl_iff.mpr (mem_singleton ξ₀) ((balanced_core_subset _) this) },
+      -- For that, we use that `𝓑` is balanced : since `∥ξ₀∥ < ε < ∥ξ∥`, we have `∥ξ₀ / ξ∥ ≤ 1`,
+      -- hence `ξ₀ = (ξ₀ / ξ) • ξ ∈ 𝓑` because `ξ ∈ 𝓑`.
       refine balanced_mem (balanced_core_balanced _) hξ _,
       rw [norm_mul, norm_inv, mul_inv_le_iff (norm_pos_iff.mpr hξ0), mul_one],
       exact (hξ₀ε.trans h).le } },
-  { calc (@nhds 𝕜 hnorm.to_uniform_space.to_topological_space 0)
+  { -- Finally, to show `𝓣₀ ≤ 𝓣`, we simply argue that `id = (λ x, x • 1)` is continuous from
+    -- `(𝕜, 𝓣₀)` to `(𝕜, 𝓣)` because `(•) : (𝕜, 𝓣₀) × (𝕜, 𝓣) → (𝕜, 𝓣)` is continuous.
+    calc (@nhds 𝕜 hnorm.to_uniform_space.to_topological_space 0)
         = map id (@nhds 𝕜 hnorm.to_uniform_space.to_topological_space 0) : map_id.symm
     ... = map (λ x, id x • 1) (@nhds 𝕜 hnorm.to_uniform_space.to_topological_space 0) :
         by conv_rhs {congr, funext, rw [smul_eq_mul, mul_one]}; refl
@@ -90,14 +110,19 @@ begin
     ... = (@nhds 𝕜 t 0) : by rw zero_smul }
 end
 
+/-- Any linear form on a topological vector space over a nondiscrete normed field is continuous if
+    its kernel is closed. -/
 lemma linear_map.continuous_of_is_closed_ker (l : E →ₗ[𝕜] 𝕜) (hl : is_closed (l.ker : set E)) :
   continuous l :=
 begin
+  -- `l` is either constant or surjective. If it is constant, the result is trivial.
   by_cases H : finrank 𝕜 l.range = 0,
   { rw [finrank_eq_zero, linear_map.range_eq_bot] at H,
     rw H,
     exact continuous_zero },
-  { letI : t2_space (E ⧸ l.ker) := l.ker.t2_quotient_of_is_closed hl,
+  { -- In the case where `l` is surjective, we factor it as `φ : (E ⧸ l.ker) ≃ₗ[𝕜] 𝕜`. Note that
+    -- `E ⧸ l.ker` is T2 since `l.ker` is closed.
+    letI : t2_space (E ⧸ l.ker) := l.ker.t2_quotient_of_is_closed hl,
     have : finrank 𝕜 l.range = 1,
       from le_antisymm (finrank_self 𝕜 ▸ l.range.finrank_le) (zero_lt_iff.mpr H),
     have hi : function.injective (l.ker.liftq l (le_refl _)),
@@ -109,23 +134,40 @@ begin
     let φ : (E ⧸ l.ker) ≃ₗ[𝕜] 𝕜 := linear_equiv.of_bijective (l.ker.liftq l (le_refl _)) hi hs,
     have hlφ : (l : E → 𝕜) = φ ∘ l.ker.mkq,
       by ext; refl,
+    -- Since the quotient map `E →ₗ[𝕜] (E ⧸ l.ker)` is continuous, the continuity of `l` will follow
+    -- form the continuity of `φ`.
     suffices : continuous φ.to_equiv,
     { rw hlφ,
       exact this.comp continuous_quot_mk },
-    rw [continuous_iff_coinduced_le, ← equiv.induced_symm],
-    refine le_of_eq (unique_topology_of_t2 (topological_add_group_induced φ.symm.to_linear_map)
-      (has_continuous_smul_induced φ.symm.to_linear_map) _),
-    rw t2_space_iff,
-    exact λ x y hxy, @separated_by_continuous _ _ (induced _ _) _ _ _
-      continuous_induced_dom _ _ (φ.to_equiv.symm.injective.ne hxy) }
+    -- The pullback by `φ.symm` of the quotient topology is a T2 topology on `𝕜`, because `φ.symm`
+    -- is injective. Since `φ.symm` is linear, it is also a vector space topology.
+    -- Hence, we know that it is equal to the topology induced by the norm.
+    have : induced φ.to_equiv.symm infer_instance = hnorm.to_uniform_space.to_topological_space,
+    { refine unique_topology_of_t2 (topological_add_group_induced φ.symm.to_linear_map)
+        (has_continuous_smul_induced φ.symm.to_linear_map) _,
+      rw t2_space_iff,
+      exact λ x y hxy, @separated_by_continuous _ _ (induced _ _) _ _ _
+        continuous_induced_dom _ _ (φ.to_equiv.symm.injective.ne hxy) },
+    -- Finally, the pullback by `φ.symm` is exactly the pushforward by `φ`, so we have to prove
+    -- that `φ` is continuous when `𝕜` is endowed with the pushforward by `φ` of the quotient
+    -- topology, which is trivial by definition of the pushforward.
+    rw [this.symm, equiv.induced_symm],
+    exact continuous_coinduced_rng }
 end
 
-/-- In finite dimension over a complete field, the canonical identification (in terms of a basis)
-with `𝕜^n` together with its sup norm is continuous. This is the nontrivial part in the fact that
-all norms are equivalent in finite dimension.
+/-- Any linear form on a topological vector space over a nondiscrete normed field is continuous if
+    and only if its kernel is closed. -/
+lemma linear_map.continuous_iff_is_closed_ker (l : E →ₗ[𝕜] 𝕜) :
+  continuous l ↔ is_closed (l.ker : set E) :=
+⟨λ h, is_closed_singleton.preimage h, l.continuous_of_is_closed_ker⟩
 
-This statement is superceded by the fact that every linear map on a finite-dimensional space is
-continuous, in `linear_map.continuous_of_finite_dimensional`. -/
+variables [complete_space 𝕜]
+
+/-- In finite dimension over a nondiscrete complete normed field, the canonical identification
+(in terms of a basis) with `𝕜^n` (endowed with the product topology) is continuous.
+This is the key fact wich makes all linear maps from a T2 finite dimensional TVS over such a field
+continuous (see `linear_map.continuous_of_finite_dimensional`), which in turn implies that all
+norm are equivalent in finite dimension. -/
 lemma continuous_equiv_fun_basis' [ht2 : t2_space E] {ι : Type v} [fintype ι] (ξ : basis ι 𝕜 E) :
   continuous ξ.equiv_fun :=
 begin
@@ -275,4 +317,4 @@ rfl
 
 end continuous_linear_map
 
-end complete_field
+end normed_field

@@ -163,7 +163,7 @@ fin_succ_equiv' 0
 
 @[simp] lemma fin_succ_equiv_zero {n : ℕ} :
   (fin_succ_equiv n) 0 = none :=
-by cases n; refl
+rfl
 
 @[simp] lemma fin_succ_equiv_succ {n : ℕ} (m : fin n):
   (fin_succ_equiv n) m.succ = some m :=

@@ -322,11 +322,6 @@ classical.some_spec
   (@ultrafilter.eq_principal_of_fintype (E →ₐ[K] L) _
   (f.map (λ σ, σ.to_alg_hom.comp (intermediate_field.val E))))
 
-lemma ultrafilter.map_pure {X Y : Type*} (x : X) (m : X → Y) :
-(pure x : ultrafilter X).map m = pure (m x) :=
-begin
-  refl,
-end
 
 lemma alg_hom_of_finite_dimensional_of_ultrafilter_functor {K L : Type*} [field K] [field L]
   [algebra K L] {E : intermediate_field K L} (hE : finite_dimensional K E)

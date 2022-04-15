@@ -164,6 +164,9 @@ instance : has_pure ultrafilter :=
 
 @[simp] lemma mem_pure {a : α} {s : set α} : s ∈ (pure a : ultrafilter α) ↔ a ∈ s := iff.rfl
 
+lemma map_pure {X Y : Type*} (x : X) (m : X → Y) :
+  (pure x : ultrafilter X).map m = pure (m x) := rfl
+
 instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure default⟩
 instance [nonempty α] : nonempty (ultrafilter α) := nonempty.map pure infer_instance
 

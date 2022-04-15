@@ -31,6 +31,9 @@ function cannot have:
   function: real numbers `r`, `R`, and proofs of `0 < r < R`. The function itself is available
   through `coe_fn`.
 
+* If `f : cont_diff_bump_of_inner c` and `μ` is a measure on the domain of `f`, then `f.normed μ`
+  is a smooth bump function with integral `1` w.r.t. `μ`.
+
 * `f : cont_diff_bump c`, where `c` is a point in a finite dimensional real vector space, is a
   bundled smooth function such that
 

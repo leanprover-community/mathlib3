@@ -4,16 +4,25 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: María Inés de Frutos-Fernández
 -/
 import ring_theory.dedekind_domain.ideal
+import ring_theory.valuation.integers
+import topology.algebra.valued_field
 
 /-!
 # Adic valuations on Dedekind domains
 Given a Dedekind domain `R` of Krull dimension 1 and a maximal ideal `v` of `R`, we define the
-`v`-adic valuation on `R`.
+`v`-adic valuation on `R` and its extension to the field of fractions `K` of `R`.
 We prove several properties of this valuation, including the existence of uniformizers.
-TODO: extend the valuation to the field of fractions `K` of `R`.
+
+We define the completion of `K` with respect to the `v`-adic valuation, denoted
+`v.adic_completion`,and its ring of integers, denoted `v.adic_completion_integers`.
 
 ## Main definitions
  - `is_dedekind_domain.height_one_spectrum.int_valuation v` is the `v`-adic valuation on `R`.
+ - `is_dedekind_domain.height_one_spectrum.valuation v` is the `v`-adic valuation on `K`.
+ - `is_dedekind_domain.height_one_spectrum.adic_completion v` is the completion of `K` with respect
+    to its `v`-adic valuation.
+ - `is_dedekind_domain.height_one_spectrum.adic_completion_integers v` is the ring of integers of
+    `v.adic_completion`.
 
 ## Main results
 - `is_dedekind_domain.height_one_spectrum.int_valuation_le_one` : The `v`-adic valuation on `R` is
@@ -25,6 +34,14 @@ TODO: extend the valuation to the field of fractions `K` of `R`.
   ideal `(r)`.
 - `is_dedekind_domain.height_one_spectrum.int_valuation_exists_uniformizer` : There exists `π ∈ R`
   with `v`-adic valuation `multiplicative.of_add (-1)`.
+- `is_dedekind_domain.height_one_spectrum.int_valuation_div_eq_div` : The valuation of `k ∈ K` is
+  independent on how we express `k` as a fraction.
+- `is_dedekind_domain.height_one_spectrum.valuation_of_mk'` : The `v`-adic valuation of `r/s ∈ K`
+  is the valuation of `r` divided by the valuation of `s`.
+- `is_dedekind_domain.height_one_spectrum.valuation_of_algebra_map` : The `v`-adic valuation on `K`
+  extends the `v`-adic valuation on `R`.
+- `is_dedekind_domain.height_one_spectrum.valuation_exists_uniformizer` : There exists `π ∈ K` with
+  `v`-adic valuation `multiplicative.of_add (-1)`.
 
 ## Implementation notes
 We are only interested in Dedekind domains with Krull dimension 1.
@@ -221,5 +238,227 @@ begin
   rw [associates.mk_pow, associates.prime_pow_dvd_iff_le hπ hv, not_le] at nmem,
   exact nat.eq_of_le_of_lt_succ mem nmem,
 end
+
+/-! ### Adic valuations on the field of fractions `K` -/
+/-- The `v`-adic valuation of `x ∈ K` is the valuation of `r` divided by the valuation of `s`,
+where `r` and `s` are chosen so that `x = r/s`. -/
+def valuation_def (x : K) : (with_zero (multiplicative ℤ)) :=
+let s := classical.some (classical.some_spec (is_localization.mk'_surjective
+  (non_zero_divisors R) x)) in (v.int_valuation_def (classical.some
+    (is_localization.mk'_surjective (non_zero_divisors R) x)))/(v.int_valuation_def s)
+
+variable (K)
+/-- The valuation of `k ∈ K` is independent on how we express `k` as a fraction. -/
+lemma int_valuation_div_eq_div {r r' : R} {s s' : non_zero_divisors R}
+  (h_mk : is_localization.mk' K r s = is_localization.mk' K r' s') :
+  (v.int_valuation_def r)/(v.int_valuation_def s) =
+  (v.int_valuation_def r')/(v.int_valuation_def s') :=
+begin
+  rw [div_eq_div_iff (int_valuation_ne_zero' v s) (int_valuation_ne_zero' v s'),
+    ← int_valuation.map_mul', ← int_valuation.map_mul',
+    is_fraction_ring.injective R K (is_localization.mk'_eq_iff_eq.mp h_mk)],
+end
+
+/-- The `v`-adic valuation of `r/s ∈ K` is the valuation of `r` divided by the valuation of `s`. -/
+lemma valuation_of_mk' {r : R} {s : non_zero_divisors R} :
+  v.valuation_def (is_localization.mk' K r s) = (v.int_valuation_def r)/(v.int_valuation_def s) :=
+begin
+  rw valuation_def,
+  exact int_valuation_div_eq_div K v
+    (classical.some_spec (classical.some_spec (is_localization.mk'_surjective (non_zero_divisors R)
+    (is_localization.mk' K r s)))),
+end
+
+variable {K}
+/-- The `v`-adic valuation on `K` extends the `v`-adic valuation on `R`. -/
+lemma valuation_of_algebra_map {r : R} :
+  v.valuation_def (algebra_map R K r) = v.int_valuation_def r :=
+by rw [← is_localization.mk'_one K r, valuation_of_mk', submonoid.coe_one,
+    int_valuation.map_one', div_one _]
+
+/-- The `v`-adic valuation on `R` is bounded above by 1. -/
+lemma valuation_le_one (r : R) : v.valuation_def (algebra_map R K r) ≤ 1 :=
+by { rw valuation_of_algebra_map, exact v.int_valuation_le_one r }
+
+/-- The `v`-adic valuation of `r ∈ R` is less than 1 if and only if `v` divides the ideal `(r)`. -/
+lemma valuation_lt_one_iff_dvd (r : R) :
+  v.valuation_def (algebra_map R K r) < 1 ↔ v.as_ideal ∣ ideal.span {r} :=
+by { rw valuation_of_algebra_map, exact v.int_valuation_lt_one_iff_dvd r }
+
+/-- The `v`-adic valuation of `0 : R` equals 0. -/
+lemma valuation.map_zero' : v.valuation_def (0 : K) = 0 :=
+begin
+  rw [← (algebra_map R K).map_zero, valuation_of_algebra_map v],
+  exact v.int_valuation.map_zero',
+end
+
+/-- The `v`-adic valuation of `1 : R` equals 1. -/
+lemma valuation.map_one' : v.valuation_def (1 : K) = 1 :=
+begin
+  rw [← (algebra_map R K).map_one, valuation_of_algebra_map v],
+  exact v.int_valuation.map_one',
+end
+
+/-- The `v`-adic valuation of a product is the product of the valuations. -/
+lemma valuation.map_mul' (x y : K) :
+  v.valuation_def (x * y) = v.valuation_def x * v.valuation_def y :=
+begin
+  rw [valuation_def, valuation_def, valuation_def, div_mul_div_comm₀, ← int_valuation.map_mul',
+    ← int_valuation.map_mul', ← submonoid.coe_mul],
+  apply int_valuation_div_eq_div K v,
+  rw [(classical.some_spec (valuation_def._proof_2 (x * y))), is_fraction_ring.mk'_eq_div,
+    (algebra_map R K).map_mul, submonoid.coe_mul, (algebra_map R K).map_mul, ← div_mul_div_comm₀,
+    ← is_fraction_ring.mk'_eq_div, ← is_fraction_ring.mk'_eq_div,
+    (classical.some_spec (valuation_def._proof_2 x)),
+    (classical.some_spec (valuation_def._proof_2 y))],
+end
+
+/-- The `v`-adic valuation of a sum is bounded above by the maximum of the valuations. -/
+lemma valuation.map_add_le_max' (x y : K) :
+  v.valuation_def (x + y) ≤ max (v.valuation_def x) (v.valuation_def y) :=
+begin
+  obtain ⟨rx, sx, hx⟩ := is_localization.mk'_surjective (non_zero_divisors R) x,
+  obtain ⟨rxy, sxy, hxy⟩ := is_localization.mk'_surjective (non_zero_divisors R) (x + y),
+  obtain ⟨ry, sy, hy⟩ := is_localization.mk'_surjective (non_zero_divisors R) y,
+  rw [← hxy, ← hx, ← hy, valuation_of_mk', valuation_of_mk', valuation_of_mk'],
+  have h_frac_xy : is_localization.mk' K rxy sxy =
+    is_localization.mk' K (rx*(sy : R) + ry*(sx : R)) (sx*sy),
+  { rw [is_localization.mk'_add, hx, hy, hxy], },
+  have h_frac_x : is_localization.mk' K rx sx = is_localization.mk' K (rx*(sy : R)) (sx*sy),
+  { rw [is_localization.mk'_eq_iff_eq, submonoid.coe_mul, mul_assoc, mul_comm (sy : R) _], },
+  have h_frac_y : is_localization.mk' K ry sy = is_localization.mk' K (ry*(sx : R)) (sx*sy),
+  { rw [is_localization.mk'_eq_iff_eq, submonoid.coe_mul, mul_assoc], },
+  have h_denom : 0 < v.int_valuation_def ↑(sx * sy),
+  { rw [int_valuation_def, if_neg _],
+    { exact with_zero.zero_lt_coe _ },
+    { exact non_zero_divisors.ne_zero
+        (submonoid.mul_mem (non_zero_divisors R) sx.property sy.property), }},
+  rw [int_valuation_div_eq_div K v h_frac_x, int_valuation_div_eq_div K v h_frac_y,
+    int_valuation_div_eq_div K v h_frac_xy, le_max_iff, div_le_div_right₀ (ne_of_gt h_denom),
+    div_le_div_right₀ (ne_of_gt h_denom), ← le_max_iff],
+  exact v.int_valuation.map_add_le_max' _ _,
+end
+
+/-- The `v`-adic valuation on `K`. -/
+def valuation  : valuation K (with_zero (multiplicative ℤ)) := {
+  to_fun    := v.valuation_def,
+  map_zero' := valuation.map_zero' v,
+  map_one'  := valuation.map_one' v,
+  map_mul'  := valuation.map_mul' v,
+  map_add_le_max'  := valuation.map_add_le_max' v }
+
+variable (K)
+/-- There exists `π ∈ K` with `v`-adic valuation `multiplicative.of_add (-1)`. -/
+lemma valuation_exists_uniformizer :
+  ∃ (π : K), v.valuation_def π = multiplicative.of_add (-1 : ℤ) :=
+begin
+  obtain ⟨r, hr⟩ := v.int_valuation_exists_uniformizer,
+  use algebra_map R K r,
+  rw valuation_of_algebra_map v,
+  exact hr,
+end
+
+/-- Uniformizers are nonzero. -/
+lemma valuation_uniformizer_ne_zero :
+  (classical.some (v.valuation_exists_uniformizer K)) ≠ 0 :=
+begin
+  have hu := (classical.some_spec (v.valuation_exists_uniformizer K)),
+  have h : v.valuation_def (classical.some _) = valuation v (classical.some _) := rfl,
+  rw h at hu,
+  exact (valuation.ne_zero_iff _).mp (ne_of_eq_of_ne hu with_zero.coe_ne_zero),
+end
+
+/-! ### Completions with respect to adic valuations
+Given a Dedekind domain `R` with field of fractions `K` and a maximal ideal `v` of `R`, we define
+the completion of `K` with respect to its `v`-adic valuation, denoted `v.adic_completion`, and its
+ring of integers, denoted `v.adic_completion_integers`. -/
+
+variable {K}
+
+/-- `K` as a valued field with the `v`-adic valuation. -/
+def v_valued_K : valued K (with_zero (multiplicative ℤ)) := ⟨v.valuation⟩
+
+lemma v_valued_K_def {x : K} : @valued.v K _ _ _ (v_valued_K v) (x) = v.valuation_def x := rfl
+
+/-- The topological space structure on `K` corresponding to the `v`-adic valuation. -/
+def v_valued_K_topological_space : topological_space K :=
+@valued.topological_space K _ _ _ (v_valued_K v)
+
+lemma v_valued_K_topological_division_ring :
+  @topological_division_ring K _ v.v_valued_K_topological_space :=
+@valued.topological_division_ring K _ _ _ (v_valued_K v)
+
+lemma v_valued_K_topological_ring : @topological_ring K  v.v_valued_K_topological_space _ :=
+infer_instance
+
+lemma v_valued_K_topological_add_group :
+  @topological_add_group K v.v_valued_K_topological_space _ := infer_instance
+
+/-- The uniform space structure on `K` corresponding to the `v`-adic valuation. -/
+def v_valued_K_uniform_space : uniform_space K :=
+@topological_add_group.to_uniform_space K _ v.v_valued_K_topological_space
+  v.v_valued_K_topological_add_group
+
+lemma v_valued_K_uniform_add_group : @uniform_add_group K v.v_valued_K_uniform_space _ :=
+@topological_add_group_is_uniform K _ v.v_valued_K_topological_space
+  v.v_valued_K_topological_add_group
+
+lemma v_valued_K_completable_top_field : @completable_top_field K _ v.v_valued_K_uniform_space :=
+@valued.completable K _ _ _ (v_valued_K v)
+
+lemma v_valued_K_separated_space : @separated_space K v.v_valued_K_uniform_space :=
+@valued_ring.separated K _ _ _ (v_valued_K v)
+
+variables (K)
+/-- The completion of `K` with respect to its `v`-adic valuation. -/
+def adic_completion := @uniform_space.completion K v.v_valued_K_uniform_space
+
+instance : field (v.adic_completion K) :=
+@field_completion K _ v.v_valued_K_uniform_space v.v_valued_K_topological_division_ring _
+  v.v_valued_K_uniform_add_group
+
+instance : inhabited (v.adic_completion K) := ⟨0⟩
+
+variables {K}
+instance valued_adic_completion : valued (v.adic_completion K) (with_zero (multiplicative ℤ)) :=
+⟨@valued.extension_valuation K _ _ _ (v_valued_K v)⟩
+
+lemma valued_adic_completion_def {x : v.adic_completion K} :
+  valued.v (x) = @valued.extension K _ _ _ (v_valued_K v)  x := rfl
+
+instance adic_completion_topological_space : topological_space (v.adic_completion K) :=
+@valued.topological_space (v.adic_completion K) _ _ _ v.valued_adic_completion
+
+instance adic_completion_topological_division_ring :
+  @topological_division_ring (v.adic_completion K) _ v.adic_completion_topological_space :=
+@valued.topological_division_ring (v.adic_completion K) _ _ _ v.valued_adic_completion
+
+instance adic_completion_topological_ring :
+  @topological_ring (v.adic_completion K) v.adic_completion_topological_space _ :=
+v.adic_completion_topological_division_ring.to_topological_ring
+
+instance adic_completion_topological_add_group :
+  @topological_add_group (v.adic_completion K) v.adic_completion_topological_space _ :=
+@topological_ring.to_topological_add_group (v.adic_completion K) _
+  v.adic_completion_topological_space v.adic_completion_topological_ring
+
+instance adic_completion_uniform_space : uniform_space (v.adic_completion K) :=
+@topological_add_group.to_uniform_space (v.adic_completion K) _
+  v.adic_completion_topological_space v.adic_completion_topological_add_group
+
+instance adic_completion_uniform_add_group :
+  @uniform_add_group (v.adic_completion K) v.adic_completion_uniform_space _ :=
+@topological_add_group_is_uniform (v.adic_completion K) _ v.adic_completion_topological_space
+  v.adic_completion_topological_add_group
+
+instance : has_lift_t K (@uniform_space.completion K v.v_valued_K_uniform_space) := infer_instance
+instance adic_completion.has_lift_t : has_lift_t K (v.adic_completion K) :=
+uniform_space.completion.has_lift_t v
+
+variables (K)
+/-- The ring of integers of `adic_completion`. -/
+def adic_completion_integers : subring (v.adic_completion K) :=
+@valuation.integer (v.adic_completion K) (with_zero (multiplicative ℤ)) _ _
+  v.valued_adic_completion.v
 
 end is_dedekind_domain.height_one_spectrum

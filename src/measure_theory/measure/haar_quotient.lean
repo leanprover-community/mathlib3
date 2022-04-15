@@ -32,6 +32,16 @@ Note that a group `G` with Haar measure that is both left and right invariant is
 **unimodular**.
 -/
 
+open measure_theory
+open_locale measure_theory
+
+lemma foo {α β : Type*} [measurable_space α] [topological_space β] {μ ν : measure α} (h : ν ≪ μ)
+  (g : α → β) (hμ : ae_strongly_measurable g μ) : ae_strongly_measurable g ν :=
+begin
+  obtain ⟨g₁, hg₁, hg₁'⟩ := hμ,
+  refine ⟨g₁, hg₁, h.ae_eq hg₁'⟩,
+end
+
 
 lemma measure_theory.integral_tsum {α : Type*} {β : Type*} {m : measurable_space α}
   {μ : measure_theory.measure α} [encodable β] {E : Type*} [normed_group E] [normed_space ℝ E]
@@ -272,6 +282,25 @@ begin
   exact quotient_group.mk_mul_of_mem x (mul_opposite.unop γ) hγ,
 end
 
+open_locale measure_theory
+
+
+lemma _root_.measure_theory.is_fundamental_domain.absolutely_continuous_map
+  [μ.is_mul_right_invariant] :
+  map (quotient_group.mk : G → G ⧸ Γ) μ ≪ map (quotient_group.mk : G → G ⧸ Γ) (μ.restrict 𝓕) :=
+begin
+  set π : G → G ⧸ Γ := quotient_group.mk,
+  have meas_π : measurable π := continuous_quotient_mk.measurable,
+  apply measure_theory.measure.absolutely_continuous.mk,
+  intros s s_meas hs,
+  rw map_apply meas_π s_meas at hs ⊢,
+  apply h𝓕.measure_zero_of_invariant _ hs,
+  intros γ g hg,
+  rw mem_preimage at hg ⊢,
+  convert hg using 1,
+  exact quotient_group.mk_mul_of_mem g (mul_opposite.unop γ) γ.2,
+end
+
 /-- This is the "unfolding" trick -/
 @[to_additive]
 lemma mul_unfolding_trick [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]
@@ -316,8 +345,10 @@ begin
   { refine integrable.mul_ℒ_infinity f _ (λ x : G, g (x : G ⧸ Γ)) _ _,
     { rw measure.restrict_univ,
       exact f_ℒ_1 },
-    { rw measure.restrict_univ,
-      have hg' : ae_strongly_measurable g (map π μ) := sorry, -- dubious? `map π μ` is basically `∞`
+    { rw measure.restrict_univ, -- ** MAke a lemma between absolutely_continuous and ae_strongly_measureable
+      have hg' : ae_strongly_measurable g (map π μ),
+      { obtain ⟨g₁, hg₁, hg₁'⟩ := hg,
+        refine ⟨g₁, hg₁, h𝓕.absolutely_continuous_map.ae_eq hg₁'⟩, },
       exact hg'.comp_measurable meas_π },
     { have hg' : ae_strongly_measurable (λ x, ↑∥g x∥₊) μ_𝓕 :=
         (ennreal.continuous_coe.comp continuous_nnnorm).comp_ae_strongly_measurable hg,

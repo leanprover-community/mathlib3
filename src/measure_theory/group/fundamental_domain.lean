@@ -158,6 +158,21 @@ by rw [← lintegral_sum_measure, h.sum_restrict_of_ac hν]
   sum (λ g : G, μ.restrict (g • s)) = μ :=
 h.sum_restrict_of_ac (refl _)
 
+lemma measure_zero_of_invariant (h : is_fundamental_domain G s μ) {t : set α}
+  (ht : ∀ g : G, ∀ x ∈ t, g • x ∈ t)
+  (ht' : μ.restrict s t = 0) :
+  μ t = 0 :=
+begin
+  sorry,
+/-  set π : G → G ⧸ Γ := quotient_group.mk,
+  intros s hs,
+  rw map_apply at hs ⊢,
+  set pre_s := π ⁻¹' s,
+  rw ← h𝓕.sum_restrict_of_ac (_ : μ ≪ μ),
+  --change (μ.restrict 𝓕) pre_s = 0 at hs,
+  -/
+end
+
 @[to_additive] lemma lintegral_eq_tsum (h : is_fundamental_domain G s μ) (f : α → ℝ≥0∞) :
   ∫⁻ x, f x ∂μ = ∑' g : G, ∫⁻ x in g • s, f x ∂μ :=
 h.lintegral_eq_tsum_of_ac (refl _) f

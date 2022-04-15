@@ -537,7 +537,7 @@ section dvr
 /-! ### Discrete valuation ring -/
 
 instance : local_ring ℤ_[p] :=
-local_ring.mk $ by simp only [mem_nonunits]; exact λ x y, norm_lt_one_add
+local_ring.of_nonunits_add $ by simp only [mem_nonunits]; exact λ x y, norm_lt_one_add
 
 lemma p_nonnunit : (p : ℤ_[p]) ∈ nonunits ℤ_[p] :=
 have (p : ℝ)⁻¹ < 1, from inv_lt_one $ by exact_mod_cast hp_prime.1.one_lt,

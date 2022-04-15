@@ -43,11 +43,18 @@ variables [comm_semiring R]
 
 namespace local_ring
 
+lemma of_is_unit_or_is_unit_of_is_unit_add [nontrivial R]
+  (h : ∀ a b : R, is_unit (a + b) → is_unit a ∨ is_unit b) :
+  local_ring R :=
+⟨λ a b hab,  h a b $ hab.symm ▸ is_unit_one⟩
+
+/-- A semiring is local if it is nontrivial and the set of nonunits is closed under the addition. -/
 lemma of_nonunits_add [nontrivial R]
   (h : ∀ a b : R, a ∈ nonunits R → b ∈ nonunits R → a + b ∈ nonunits R) :
   local_ring R :=
 ⟨λ a b hab, or_iff_not_and_not.2 $ λ H, h a b H.1 H.2 $ hab.symm ▸ is_unit_one⟩
 
+/-- A semiring is local if it has a unique maximal ideal. -/
 lemma of_unique_max_ideal (h : ∃! I : ideal R, I.is_maximal) :
   local_ring R :=
 @of_nonunits_add _ _ (nontrivial_of_ne (0 : R) 1 $
@@ -78,9 +85,8 @@ lemma is_unit_or_is_unit_of_is_unit_add (a b : R) (h : is_unit (a + b)) :
 begin
   rcases h with ⟨u, hu⟩,
   replace hu : ↑u⁻¹ * a + ↑u⁻¹ * b = 1, from by rw [←mul_add, ←hu, units.inv_mul],
-  cases is_unit_or_is_unit_of_add_one (↑u⁻¹ * a) (↑u⁻¹ * b) hu,
-  case inl : hu { exact or.inl (is_unit_of_mul_is_unit_right hu) },
-  case inr : hu { exact or.inr (is_unit_of_mul_is_unit_right hu) }
+  cases is_unit_or_is_unit_of_add_one _ _ hu; [left, right];
+    exact (is_unit_of_mul_is_unit_right (by assumption))
 end
 
 lemma nonunits_add {a b : R} (ha : a ∈ nonunits R) (hb : b ∈ nonunits R) : a + b ∈ nonunits R:=
@@ -150,17 +156,6 @@ lemma is_unit_one_sub_self_of_mem_nonunits (a : R) (h : a ∈ nonunits R) :
   is_unit (1 - a) :=
 or_iff_not_imp_left.1 (is_unit_or_is_unit_one_sub_self a) h
 
-lemma of_surjective [comm_ring S] [nontrivial S] (f : R →+* S) (hf : function.surjective f) :
-  local_ring S :=
-of_is_unit_or_is_unit_one_sub_self
-begin
-  intros b,
-  obtain ⟨a, rfl⟩ := hf b,
-  apply (is_unit_or_is_unit_one_sub_self a).imp f.is_unit_map _,
-  rw [← f.map_one, ← f.map_sub],
-  apply f.is_unit_map,
-end
-
 end local_ring
 
 end comm_ring
@@ -191,11 +186,11 @@ instance is_local_ring_hom_comp
 { map_nonunit := λ a, is_local_ring_hom.map_nonunit a ∘ is_local_ring_hom.map_nonunit (f a) }
 
 instance is_local_ring_hom_equiv (f : R ≃+* S) :
-  is_local_ring_hom f.to_ring_hom :=
+  is_local_ring_hom (f : R →+* S) :=
 { map_nonunit := λ a ha,
   begin
-    convert f.symm.to_ring_hom.is_unit_map ha,
-    rw ring_equiv.symm_to_ring_hom_apply_to_ring_hom_apply,
+    convert (f.symm : S →+* R).is_unit_map ha,
+    exact (ring_equiv.symm_apply_apply f a).symm,
   end }
 
 @[simp] lemma is_unit_of_map_unit (f : R →+* S) [is_local_ring_hom f]
@@ -224,7 +219,7 @@ begin
   apply local_ring.of_nonunits_add,
   intros a b,
   simp_rw [←map_mem_nonunits_iff f, f.map_add],
-  apply local_ring.nonunits_add
+  exact local_ring.nonunits_add
 end
 
 section
@@ -286,6 +281,19 @@ begin
   tfae_finish,
 end
 
+end
+
+lemma of_surjective [comm_semiring R] [local_ring R] [comm_semiring S] [nontrivial S]
+  (f : R →+* S) [is_local_ring_hom f] (hf : function.surjective f) :
+  local_ring S :=
+of_is_unit_or_is_unit_of_is_unit_add
+begin
+  intros a b hab,
+  obtain ⟨a, rfl⟩ := hf a,
+  obtain ⟨b, rfl⟩ := hf b,
+  replace hab : is_unit (f (a + b)), from by simpa only [map_add] using hab,
+  refine (is_unit_or_is_unit_of_is_unit_add _ _ $ is_local_ring_hom.map_nonunit _ hab).imp
+    f.is_unit_map f.is_unit_map
 end
 
 section

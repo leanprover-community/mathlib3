@@ -17,7 +17,7 @@ Define local rings as commutative rings having a unique maximal ideal.
 ## Main definitions
 
 * `local_ring`: A predicate on commutative semirings, stating that for any pair of elements that
-  add up to `1`, one of them is a unit. This is shown to be equivalent to the condition that there
+  adds up to `1`, one of them is a unit. This is shown to be equivalent to the condition that there
   exists a unique maximal ideal.
 * `local_ring.maximal_ideal`: The unique maximal ideal for a local rings. Its carrier set is the
   set of non units.

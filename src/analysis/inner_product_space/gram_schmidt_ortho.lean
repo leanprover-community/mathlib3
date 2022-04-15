@@ -187,8 +187,7 @@ begin
     { norm_cast,
       apply fin.coe_coe_of_lt,
       linarith, },
-    { rw inter_eq_left_iff_subset,
-      simp only [Iic, set_of_subset_set_of],
+    { simp only [inter_eq_left_iff_subset, Iic, set_of_subset_set_of],
       intros a ha,
       linarith, }, },
 end

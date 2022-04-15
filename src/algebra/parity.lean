@@ -82,21 +82,22 @@ by { rintro ⟨c, rfl⟩ a, simp_rw [←two_mul, pow_mul, neg_sq] }
 
 lemma even.neg_one_pow (h : even n) : (-1 : α) ^ n = 1 := by rw [h.neg_pow, one_pow]
 
+@[simp]
+lemma is_square_zero [mul_zero_class α] : is_square (0 : α) := ⟨0, (mul_zero _).symm⟩
+
 end monoid
 
+section comm_monoid
+variable [comm_monoid α]
+
 @[to_additive]
-lemma is_square.mul_is_square [comm_monoid α] {m n : α} (hm : is_square m) (hn : is_square n) :
+lemma is_square.mul_is_square {m n : α} (hm : is_square m) (hn : is_square n) :
   is_square (m * n) :=
 begin
   rcases hm with ⟨m, rfl⟩,
   rcases hn with ⟨n, rfl⟩,
   refine ⟨m * n, mul_mul_mul_comm m m n n⟩,
 end
-
-section monoid
-
-@[simp]
-lemma is_square_zero [mul_zero_class α] : is_square (0 : α) := ⟨0, (mul_zero _).symm⟩
 
 @[simp]
 lemma irreducible.not_square [comm_monoid α] {x : α} (h : irreducible x) :
@@ -112,15 +113,22 @@ end
 lemma is_square.not_irreducible [comm_monoid α] {x : α} (h : is_square x) : ¬irreducible x :=
 λ h', h'.not_square h
 
+end comm_monoid
+
+section cancel_comm_monoid_with_zero
+variable [cancel_comm_monoid_with_zero α]
+
 @[simp]
-lemma prime.not_square [cancel_comm_monoid_with_zero α] {x : α} (h : prime x) :
+lemma prime.not_square {x : α} (h : prime x) :
   ¬is_square x := h.irreducible.not_square
 
-@[simp]
-lemma is_square.not_prime [cancel_comm_monoid_with_zero α] {x : α} (h : is_square x) : ¬prime x :=
+-- @[simp]
+-- NOTE (khw): Including this as a `simp` lemma creates a loop as can be seen by looking at
+-- `data.nat.prime` after uncommenting this `@[simp]`
+lemma is_square.not_prime {x : α} (h : is_square x) : ¬prime x :=
 λ h', h'.not_square h
 
-end monoid
+end cancel_comm_monoid_with_zero
 
 section group
 variable [group α]
@@ -149,7 +157,7 @@ by { rw div_eq_mul_inv,  exact hm.mul_is_square ((is_square_inv n).mpr hn) }
 end comm_group
 
 -- `odd.tsub_odd` requires `canonically_linear_ordered_semiring`, which we don't have
-lemma  even.tsub_even [canonically_linear_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
+lemma even.tsub_even [canonically_linear_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
   [contravariant_class α α (+) (≤)] {m n : α} (hm : even m) (hn : even n) : even (m - n) :=
 begin
   obtain ⟨a, rfl⟩ := hm,

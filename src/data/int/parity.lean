@@ -205,12 +205,7 @@ lemma two_mul_div_two_of_odd (h : odd n) : 2 * (n / 2) = n - 1 :=
 eq_sub_of_add_eq (two_mul_div_two_add_one_of_odd h)
 
 instance : decidable_pred (is_square : ℤ → Prop) :=
-begin
-  intros n,
-  have : is_square n ↔ ∃ (n' : ℤ), n' * n' = n,
-  { exact exists_congr (λ _, eq_comm), },
-  exact decidable_of_iff' _ (this.trans n.exists_mul_self),
-end
+λ n, decidable_of_iff _ $ n.exists_mul_self.symm.trans $ exists_congr $ λ _, eq_comm
 
 -- Here are examples of how `parity_simps` can be used with `int`.
 

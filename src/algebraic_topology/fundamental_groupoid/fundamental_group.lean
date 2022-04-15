@@ -47,28 +47,21 @@ def fundamental_group_mul_equiv_of_path_connected [path_connected_space X] :
   (fundamental_group X x₀) ≃* (fundamental_group X x₁) :=
 fundamental_group_mul_equiv_of_path (path_connected_space.some_path x₀ x₁)
 
-/-- Help the typechecker by converting an element in the fundamental group of
-a topological space back to an arrow in the fundamental groupoid. -/
-@[reducible]
-def to_arrow {X : Top} {x : X} (p : fundamental_group X x) : x ⟶ x :=
+/-- An element of the fundamental group as an arrow in the fundamental groupoid. -/
+abbreviation to_arrow {X : Top} {x : X} (p : fundamental_group X x) : x ⟶ x :=
 p.hom
 
-/-- Help the typechecker by converting an element in the fundamental group of
-a topological space back to a path in that space (i.e. `path.homotopic.quotient`). -/
+/-- An element of the fundamental group as a quotient of homotopic paths. -/
 @[reducible]
-def to_path {X : Top} {x : X} (p : fundamental_group X x) :
+abbreviation to_path {X : Top} {x : X} (p : fundamental_group X x) :
   path.homotopic.quotient x x := to_arrow p
 
-/-- Help the typechecker by convering an arrow loop in the fundamental groupoid to an
-element of the fundamental group. -/
-@[reducible]
-def from_arrow {X : Top} {x : X} (p : x ⟶ x) : fundamental_group X x :=
+/-- An element of the fundamental group, constructed from an arrow in the fundamental groupoid. -/
+abbreviation from_arrow {X : Top} {x : X} (p : x ⟶ x) : fundamental_group X x :=
 ⟨p, category_theory.groupoid.inv p⟩
 
-/-- Help the typechecker by convering a path in a topological space to an element of the
-fundamental group of that space. -/
-@[reducible]
-def from_path {X : Top} {x : X} (p : path.homotopic.quotient x x) :
+/-- An element of the fundamental gorup, constructed from a quotient of homotopic paths. -/
+abbreviation from_path {X : Top} {x : X} (p : path.homotopic.quotient x x) :
   fundamental_group X x := from_arrow p
 
 end fundamental_group

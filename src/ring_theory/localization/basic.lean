@@ -390,7 +390,7 @@ begin
 end
 
 lemma mul_add_inv_left {g : R →+* P} (h : ∀ y : M, is_unit (g y)) (y : M) (w z₁ z₂ : P) :
-  w * ↑(is_unit.lift_right (g.to_monoid_hom.mrestrict M) h y)⁻¹ + z₁= z₂
+  w * ↑(is_unit.lift_right (g.to_monoid_hom.mrestrict M) h y)⁻¹ + z₁ = z₂
     ↔ w + g y * z₁ = g y * z₂ :=
 begin
   rw [mul_comm, ←one_mul z₁, ←units.inv_mul (is_unit.lift_right (g.to_monoid_hom.mrestrict M) h y),
@@ -400,8 +400,7 @@ begin
 end
 
 lemma lift_spec_mul_add {g : R →+* P} (hg : ∀ y : M, is_unit (g y)) (z w w' v) :
-  @submonoid.localization_with_zero_map.lift _ _ _ _ _ _ _
-    (to_localization_with_zero_map M S) g.to_monoid_with_zero_hom hg z * w + w' = v
+  ((to_localization_with_zero_map M S).lift g.to_monoid_with_zero_hom hg) z * w + w' = v
     ↔ g ((to_localization_map M S).sec z).1 * w + g ((to_localization_map M S).sec z).2 * w'
       = g ((to_localization_map M S).sec z).2 * v :=
 begin

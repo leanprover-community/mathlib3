@@ -1399,7 +1399,7 @@ namespace localization_with_zero_map
 homomorphism induced from `N` to `P` sending `z : N` to `g x * (g y)⁻¹`, where `(x, y) : M × S`
 are such that `z = f x * (f y)⁻¹`. -/
 noncomputable def lift (f : localization_with_zero_map S N)
-  {g : M →*₀ P} (hg : ∀ y : S, is_unit (g y)) : N →*₀ P :=
+  (g : M →*₀ P) (hg : ∀ y : S, is_unit (g y)) : N →*₀ P :=
 { map_zero' :=
   begin
     rw [monoid_hom.to_fun_eq_coe, localization_map.lift_spec, mul_zero,

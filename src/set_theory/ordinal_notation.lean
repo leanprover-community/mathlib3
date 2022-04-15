@@ -120,7 +120,7 @@ theorem eq_of_cmp_eq : ∀ {o₁ o₂}, cmp o₁ o₂ = ordering.eq → o₁ = o
 | (oadd e n a) 0 h := by injection h
 | 0 (oadd e n a) h := by injection h
 | o₁@(oadd e₁ n₁ a₁) o₂@(oadd e₂ n₂ a₂) h := begin
-  revert h, simp [cmp],
+  revert h, simp only [cmp],
   cases h₁ : cmp e₁ e₂; intro h; try {cases h},
   obtain rfl := eq_of_cmp_eq h₁,
   revert h, cases h₂ : _root_.cmp (n₁:ℕ) n₂; intro h; try {cases h},

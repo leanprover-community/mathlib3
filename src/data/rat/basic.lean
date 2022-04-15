@@ -131,8 +131,8 @@ begin
   { rintro a ⟨b, h⟩ e,
     injection e with e,
     apply int.eq_mul_of_div_eq_right gcd_abs_dvd_left e },
-  cases b with b; simp [mk, mk_nat] at h,
-  { simp [mt (congr_arg int.of_nat) b0] at h,
+  cases b with b; simp only [mk, mk_nat, int.of_nat_eq_coe, dite_eq_left_iff] at h,
+  { simp only [mt (congr_arg int.of_nat) b0, not_false_iff, forall_true_left] at h,
     exact this h },
   { apply neg_injective, simp [this h] }
 end

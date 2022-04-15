@@ -1331,8 +1331,9 @@ variables {M : Type*} [comm_monoid_with_zero M] (S : submonoid M)
 
 namespace submonoid
 
-/-- The type of monoid homomorphisms satisfying the characteristic predicate: if `f : M →* N`
-satisfies this predicate, then `N` is isomorphic to the localization of `M` at `S`. -/
+/-- The type of homomorphisms between monoids with zero satisfying the characteristic predicate:
+if `f : M →*₀ N` satisfies this predicate, then `N` is isomorphic to the localization of `M` at
+`S`. -/
 @[nolint has_inhabited_instance] structure localization_with_zero_map
   extends localization_map S N :=
 (map_zero' : to_fun 0 = 0)
@@ -1352,7 +1353,7 @@ namespace localization
 
 local attribute [semireducible] localization
 
-/-- The zero element in a ring localization is defined as `(0, 1)`.
+/-- The zero element in a localization is defined as `(0, 1)`.
 
 Should not be confused with `add_localization.zero` which is `(0, 0)`. -/
 @[irreducible] protected def zero : localization S :=
@@ -1363,7 +1364,8 @@ instance : has_zero (localization S) :=⟨localization.zero S⟩
 local attribute [semireducible] localization.zero localization.mul
 
 instance : comm_monoid_with_zero (localization S) :=
-by refine_struct { zero := 0, .. localization.comm_monoid S };
+by refine_struct
+{ zero := 0, .. localization.comm_monoid S };
   exact λ x, localization.induction_on x $ by
   { intros,
     refine mk_eq_mk_iff.mpr (r_of_eq _),
@@ -1391,9 +1393,6 @@ namespace submonoid
 by rw [localization_map.sec_spec', mul_zero]
 
 namespace localization_with_zero_map
-
-/-- Short for `to_monoid_with_zero_hom`; used to apply a localization map as a function. -/
-abbreviation to_map (f : localization_with_zero_map S N) := f.to_monoid_with_zero_hom
 
 /-- Given a localization map `f : M →*₀ N` for a submonoid `S ⊆ M` and a map of
 `comm_monoid_with_zero`s `g : M →*₀ P` such that `g y` is invertible for all `y : S`, the

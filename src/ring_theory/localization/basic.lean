@@ -123,7 +123,8 @@ lemma of_le (N : submonoid R) (h₁ : M ≤ N)
 
 variables (S)
 
-/-- `is_localization.to_localization_map M S` shows `S` is the monoid localization of `R` at `M`. -/
+/-- `is_localization.to_localization_with_zero_map M S` shows `S` is the monoid localization of
+`R` at `M`. -/
 @[simps]
 def to_localization_with_zero_map : submonoid.localization_with_zero_map M S :=
 { to_fun := algebra_map R S,

@@ -51,10 +51,7 @@ lemma wcovby.wcovby_iff_le (hab : a ⩿ b) : b ⩿ a ↔ b ≤ a :=
 ⟨λ h, h.le, λ h, h.wcovby_of_le hab.le⟩
 
 lemma wcovby_of_eq_or_eq (hab : a ≤ b) (h : ∀ c, a ≤ c → c ≤ b → c = a ∨ c = b) : a ⩿ b :=
-begin
-  refine ⟨hab, λ c hac hcb, _⟩,
-  rcases h c hac.le hcb.le with rfl|rfl; exact lt_irrefl c ‹c < c›
-end
+⟨hab, λ c ha hb, (h c ha.le hb.le).elim ha.ne' hb.ne⟩
 
 /-- If `a ≤ b`, then `b` does not cover `a` iff there's an element in between. -/
 lemma not_wcovby_iff (h : a ≤ b) : ¬ a ⩿ b ↔ ∃ c, a < c ∧ c < b :=

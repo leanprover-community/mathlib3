@@ -35,8 +35,10 @@ Note that a group `G` with Haar measure that is both left and right invariant is
 open measure_theory
 open_locale measure_theory
 
-lemma foo {α β : Type*} [measurable_space α] [topological_space β] {μ ν : measure α} (h : ν ≪ μ)
-  (g : α → β) (hμ : ae_strongly_measurable g μ) : ae_strongly_measurable g ν :=
+@[to_additive ae_strongly_measurable_of_absolutely_continuous_add]
+lemma ae_strongly_measurable_of_absolutely_continuous {α β : Type*} [measurable_space α]
+  [topological_space β] {μ ν : measure α} (h : ν ≪ μ) (g : α → β)
+  (hμ : ae_strongly_measurable g μ) : ae_strongly_measurable g ν :=
 begin
   obtain ⟨g₁, hg₁, hg₁'⟩ := hμ,
   refine ⟨g₁, hg₁, h.ae_eq hg₁'⟩,
@@ -284,7 +286,7 @@ end
 
 open_locale measure_theory
 
-
+@[to_additive]
 lemma _root_.measure_theory.is_fundamental_domain.absolutely_continuous_map
   [μ.is_mul_right_invariant] :
   map (quotient_group.mk : G → G ⧸ Γ) μ ≪ map (quotient_group.mk : G → G ⧸ Γ) (μ.restrict 𝓕) :=
@@ -345,11 +347,9 @@ begin
   { refine integrable.mul_ℒ_infinity f _ (λ x : G, g (x : G ⧸ Γ)) _ _,
     { rw measure.restrict_univ,
       exact f_ℒ_1 },
-    { rw measure.restrict_univ, -- ** MAke a lemma between absolutely_continuous and ae_strongly_measureable
-      have hg' : ae_strongly_measurable g (map π μ),
-      { obtain ⟨g₁, hg₁, hg₁'⟩ := hg,
-        refine ⟨g₁, hg₁, h𝓕.absolutely_continuous_map.ae_eq hg₁'⟩, },
-      exact hg'.comp_measurable meas_π },
+    { rw measure.restrict_univ,
+      exact (ae_strongly_measurable_of_absolutely_continuous h𝓕.absolutely_continuous_map _
+        hg).comp_measurable meas_π, },
     { have hg' : ae_strongly_measurable (λ x, ↑∥g x∥₊) μ_𝓕 :=
         (ennreal.continuous_coe.comp continuous_nnnorm).comp_ae_strongly_measurable hg,
       rw [measure.restrict_univ, ← mul_ess_sup_of_g h𝓕 (λ x, ↑∥g x∥₊) hg'.ae_measurable],

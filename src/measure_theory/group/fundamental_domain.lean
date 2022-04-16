@@ -158,7 +158,7 @@ by rw [← lintegral_sum_measure, h.sum_restrict_of_ac hν]
   sum (λ g : G, μ.restrict (g • s)) = μ :=
 h.sum_restrict_of_ac (refl _)
 
-lemma measure_zero_of_invariant (h : is_fundamental_domain G s μ) {t : set α}
+@[to_additive] lemma measure_zero_of_invariant (h : is_fundamental_domain G s μ) {t : set α}
   (ht : ∀ g : G, ∀ x ∈ t, g • x ∈ t)
   (ht' : μ.restrict s t = 0) :
   μ t = 0 :=

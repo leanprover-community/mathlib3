@@ -5,6 +5,7 @@ Authors: Paul van Wamelen
 -/
 import number_theory.pythagorean_triples
 import ring_theory.coprime.lemmas
+import tactic.linear_combination
 
 /-!
 # Fermat's Last Theorem for the case n = 4
@@ -33,18 +34,14 @@ begin
   { intro f42,
     split, { exact mul_ne_zero hk0 f42.1 },
     split, { exact mul_ne_zero hk0 f42.2.1 },
-    { calc (k * a) ^ 4 + (k * b) ^ 4
-          = k ^ 4 * (a ^ 4 + b ^ 4) : by ring
-      ... = k ^ 4 * c ^ 2 : by rw f42.2.2
-      ... = (k ^ 2 * c) ^ 2 : by ring }},
+    { have H : a ^ 4 + b ^ 4 = c ^ 2 := f42.2.2,
+      linear_combination (H, k ^ 4) } },
   { intro f42,
     split, { exact right_ne_zero_of_mul f42.1 },
     split, { exact right_ne_zero_of_mul f42.2.1 },
     apply (mul_right_inj' (pow_ne_zero 4 hk0)).mp,
-    { calc k ^ 4 * (a ^ 4 + b ^ 4)
-          = (k * a) ^ 4 + (k * b) ^ 4 : by ring
-      ... = (k ^ 2 * c) ^ 2 : by rw f42.2.2
-      ... = k ^ 4 * c ^ 2 : by ring }}
+    have H : (k * a) ^ 4 + (k * b) ^ 4 = (k ^ 2 * c) ^ 2 := f42.2.2,
+    linear_combination H }
 end
 
 lemma ne_zero {a b c : ℤ} (h : fermat_42 a b c) : c ≠ 0 :=
@@ -170,24 +167,22 @@ begin
   -- a ^ 2 = m ^ 2 - n ^ 2, b ^ 2 = 2 * m * n and c = m ^ 2 + n ^ 2
   -- first the formula:
   have ht : pythagorean_triple (a ^ 2) (b ^ 2) c,
-  { calc ((a ^ 2) * (a ^ 2)) + ((b ^ 2) * (b ^ 2))
-        = a ^ 4 + b ^ 4 : by ring
-    ... = c ^ 2 : by rw h.1.2.2
-    ... = c * c : by rw sq },
+  { delta pythagorean_triple,
+    have H := h.1.2.2,
+    linear_combination H },
   -- coprime requirement:
   have h2 : int.gcd (a ^ 2) (b ^ 2) = 1 :=
     int.gcd_eq_one_iff_coprime.mpr (coprime_of_minimal h).pow,
   -- in order to reduce the possibilities we get from the classification of pythagorean triples
   -- it helps if we know the parity of a ^ 2 (and the sign of c):
   have ha22 : a ^ 2 % 2 = 1, { rw [sq, int.mul_mod, ha2], norm_num },
-  obtain ⟨m, n, ht1, ht2, ht3, ht4, ht5, ht6⟩ :=
-    pythagorean_triple.coprime_classification' ht h2 ha22 hc,
+  obtain ⟨m, n, ht1, ht2, ht3, ht4, ht5, ht6⟩ := ht.coprime_classification' h2 ha22 hc,
   -- Now a, n, m form a pythagorean triple and so we can obtain r and s such that
   -- a = r ^ 2 - s ^ 2, n = 2 * r * s and m = r ^ 2 + s ^ 2
   -- formula:
   have htt : pythagorean_triple a n m,
   { delta pythagorean_triple,
-    rw [← sq, ← sq, ← sq], exact (add_eq_of_eq_sub ht1) },
+    linear_combination ht1 },
   -- a and n are coprime, because a ^ 2 = m ^ 2 - n ^ 2 and m and n are coprime.
   have h3 : int.gcd a n = 1,
   { apply int.gcd_eq_one_iff_coprime.mpr,
@@ -201,8 +196,7 @@ begin
     rintro rfl,
     revert hb20,
     rw ht2, simp },
-  obtain ⟨r, s, htt1, htt2, htt3, htt4, htt5, htt6⟩ :=
-    pythagorean_triple.coprime_classification' htt h3 ha2 h4,
+  obtain ⟨r, s, htt1, htt2, htt3, htt4, htt5, htt6⟩ := htt.coprime_classification' h3 ha2 h4,
   -- Now use the fact that (b / 2) ^ 2 = m * r * s, and m, r and s are pairwise coprime to obtain
   -- i, j and k such that m = i ^ 2, r = j ^ 2 and s = k ^ 2.
   -- m and r * s are coprime because m = r ^ 2 + s ^ 2 and r and s are coprime.
@@ -217,9 +211,7 @@ begin
   cases hb2 with b' hb2',
   have hs : b' ^ 2 = m * (r * s),
   { apply (mul_right_inj' (by norm_num : (4 : ℤ) ≠ 0)).mp,
-    calc 4 * b' ^ 2 = (2 * b') * (2 * b') : by ring
-                    ... = 2 * m * (2 * r * s) : by rw [← hb2', ← sq, ht2, htt2]
-                    ... = 4 * (m * (r * s)) : by ring },
+    linear_combination (hb2', - b - 2 * b') (ht2, 1) (htt2, 2 * m) },
   have hrsz : r * s ≠ 0, -- because b ^ 2 is not zero and (b / 2) ^ 2 = m * (r * s)
   { by_contradiction hrsz,
     revert hb20, rw [ht2, htt2, mul_assoc, @mul_assoc _ _ _ r s, hrsz],

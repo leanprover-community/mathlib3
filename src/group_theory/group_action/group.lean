@@ -94,6 +94,16 @@ lemma smul_zpow [group β] [smul_comm_class α β β] [is_scalar_tower α β β]
   (c • x) ^ p = c ^ p • x ^ p :=
 by { cases p; simp [smul_pow, smul_inv] }
 
+@[simp] lemma commute.smul_right_iff [has_mul β] [smul_comm_class α β β] [is_scalar_tower α β β]
+  {a b : β} (r : α) :
+  commute a (r • b) ↔ commute a b :=
+⟨λ h, inv_smul_smul r b ▸ h.smul_right r⁻¹, λ h, h.smul_right r⟩
+
+@[simp] lemma commute.smul_left_iff [has_mul β] [smul_comm_class α β β] [is_scalar_tower α β β]
+  {a b : β} (r : α) :
+  commute (r • a) b ↔ commute a b :=
+by rw [commute.symm_iff, commute.smul_right_iff, commute.symm_iff]
+
 @[to_additive] protected lemma mul_action.bijective (g : α) : function.bijective (λ b : β, g • b) :=
 (mul_action.to_perm g).bijective
 
@@ -133,6 +143,16 @@ lemma inv_smul_eq_iff₀ {a : α} (ha : a ≠ 0) {x y : β} : a⁻¹ • x = y �
 
 lemma eq_inv_smul_iff₀ {a : α} (ha : a ≠ 0) {x y : β} : x = a⁻¹ • y ↔ a • x = y :=
 (mul_action.to_perm (units.mk0 a ha)).eq_symm_apply
+
+@[simp] lemma commute.smul_right_iff₀ [has_mul β] [smul_comm_class α β β] [is_scalar_tower α β β]
+  {a b : β} {c : α} (hc : c ≠ 0) :
+  commute a (c • b) ↔ commute a b :=
+commute.smul_right_iff (units.mk0 c hc)
+
+@[simp] lemma commute.smul_left_iff₀ [has_mul β] [smul_comm_class α β β] [is_scalar_tower α β β]
+  {a b : β} {c : α} (hc : c ≠ 0) :
+  commute (c • a) b ↔ commute a b :=
+commute.smul_left_iff (units.mk0 c hc)
 
 end gwz
 
@@ -262,7 +282,17 @@ end distrib_mul_action
 
 end is_unit
 
-@[simp] lemma is_unit_smul_iff [group α] [monoid β] [mul_action α β]
-  [smul_comm_class α β β] [is_scalar_tower α β β] {g : α} {m : β} :
-  is_unit (g • m) ↔ is_unit m :=
+section smul
+
+variables [group α] [monoid β]
+
+@[simp] lemma is_unit_smul_iff [mul_action α β] [smul_comm_class α β β] [is_scalar_tower α β β]
+  (g : α) (m : β) : is_unit (g • m) ↔ is_unit m :=
 ⟨λ h, inv_smul_smul g m ▸ h.smul g⁻¹, is_unit.smul g⟩
+
+lemma is_unit.smul_sub_iff_sub_inv_smul
+  [add_group β] [distrib_mul_action α β] [is_scalar_tower α β β] [smul_comm_class α β β]
+  (r : α) (a : β) : is_unit (r • 1 - a) ↔ is_unit (1 - r⁻¹ • a) :=
+by rw [←is_unit_smul_iff r (1 - r⁻¹ • a), smul_sub, smul_inv_smul]
+
+end smul

@@ -1,6 +1,7 @@
 import probability.martingale
 import probability.independence
 import probability.integration
+import measure_theory.function.l2_space
 
 open measure_theory filter finset
 
@@ -92,9 +93,11 @@ begin
   ring,
 end
 
-lemma variance_le {X : Ω → ℝ} :
+lemma variance_le_expectation_sq {X : Ω → ℝ} :
   Var[X] ≤ 𝔼[X^2] :=
 begin
+  by_cases h_int : integrable X, swap,
+  { simp only [variance, integral_undef h_int, pi.pow_apply, pi.sub_apply, sub_zero] },
   by_cases hX : mem_ℒp X 2,
   { rw variance_def' hX,
     simp only [sq_nonneg, sub_le_self_iff] },
@@ -103,25 +106,27 @@ begin
       assume a,
       exact sq_nonneg _ },
     { assume h,
-      have Z := mem_ℒp.integrable_sq,
-
-    }
-
-  }
+      have A : mem_ℒp (X - λ (x : Ω), 𝔼[X]) 2 ℙ := (mem_ℒp_two_iff_integrable_sq
+        (h_int.ae_strongly_measurable.sub ae_strongly_measurable_const)).2 h,
+      have B : mem_ℒp (λ (x : Ω), 𝔼[X]) 2 ℙ := mem_ℒp_const _,
+      apply hX,
+      convert A.add B,
+      simp } }
 end
 
-theorem meas_ge_le_mul_variance {X : Ω → ℝ} (hX : mem_ℒp X 2) {c : ℝ≥0} (hc : c ≠ 0) :
-  ℙ {ω | (c : ℝ) ≤ |X ω - 𝔼[X]|} ≤ 1/c^2 * ennreal.of_real (Var[X]) :=
+theorem meas_ge_le_mul_variance {X : Ω → ℝ} (hX : mem_ℒp X 2) {c : ℝ} (hc : 0 < c) :
+  ℙ {ω | c ≤ |X ω - 𝔼[X]|} ≤ ennreal.of_real (Var[X] / c ^ 2) :=
 begin
+  have A : (ennreal.of_real c : ℝ≥0∞) ≠ 0,
+    by simp only [hc, ne.def, ennreal.of_real_eq_zero, not_le],
   have B : ae_strongly_measurable (λ (ω : Ω), 𝔼[X]) ℙ := ae_strongly_measurable_const,
   convert meas_ge_le_mul_pow_snorm ℙ ennreal.two_ne_zero ennreal.two_ne_top
-    (hX.ae_strongly_measurable.sub B) (ennreal.coe_ne_zero.2 hc),
+    (hX.ae_strongly_measurable.sub B) A,
   { ext ω,
+    set d : ℝ≥0 := ⟨c, hc.le⟩ with hd,
+    have cd : c = d, by simp only [subtype.coe_mk],
     simp only [pi.sub_apply, ennreal.coe_le_coe, ← real.norm_eq_abs, ← coe_nnnorm,
-      nnreal.coe_le_coe] },
-  { norm_cast,
-    simp only [hc, one_div, inv_pow₀, ennreal.coe_inv, ne.def, pow_eq_zero_iff, nat.succ_pos',
-      not_false_iff] },
+      nnreal.coe_le_coe, cd, ennreal.of_real_coe_nnreal] },
   { rw (hX.sub (mem_ℒp_const _)).snorm_eq_rpow_integral_rpow_norm
       ennreal.two_ne_zero ennreal.two_ne_top,
     simp only [pi.sub_apply, ennreal.to_real_bit0, ennreal.one_to_real],
@@ -134,7 +139,9 @@ begin
     { apply integral_nonneg (λ x, _),
       apply real.rpow_nonneg_of_nonneg (norm_nonneg _) },
     simp only [pi.pow_apply, pi.sub_apply, real.rpow_two, real.rpow_one, real.norm_eq_abs,
-      pow_bit0_abs] }
+      pow_bit0_abs, ennreal.of_real_inv_of_pos hc, ennreal.rpow_two],
+    rw [← ennreal.of_real_pow (inv_nonneg.2 hc.le), ← ennreal.of_real_mul (sq_nonneg _),
+      div_eq_inv_mul, inv_pow₀] }
 end
 
 theorem indep_fun.Var_add {X Y : Ω → ℝ} (hX : mem_ℒp X 2) (hY : mem_ℒp Y 2) (h : indep_fun X Y) :
@@ -243,7 +250,7 @@ section truncation
 variables {α : Type*}
 
 def truncation {α : Type*} (f : α → ℝ) (A : ℝ) :=
-(indicator (set.Icc (-A) A) id) ∘ f
+(indicator (set.Ioc (-A) A) id) ∘ f
 
 variables {m : measurable_space α} {μ : measure α} {f : α → ℝ}
 
@@ -252,7 +259,7 @@ lemma _root_.measure_theory.ae_strongly_measurable.truncation
   ae_strongly_measurable (truncation f A) μ :=
 begin
   apply ae_strongly_measurable.comp_ae_measurable _ hf.ae_measurable,
-  exact (strongly_measurable_id.indicator measurable_set_Icc).ae_strongly_measurable,
+  exact (strongly_measurable_id.indicator measurable_set_Ioc).ae_strongly_measurable,
 end
 
 lemma neg_abs_le_neg (a : ℝ) : -|a| ≤ -a :=
@@ -279,13 +286,14 @@ begin
   { simp [abs_nonneg] },
 end
 
-lemma truncation_eq_self {f : α → ℝ} {A : ℝ} {x : α} (h : |f x| ≤ A) :
+lemma truncation_eq_self {f : α → ℝ} {A : ℝ} {x : α} (h : |f x| < A) :
   truncation f A x = f x :=
 begin
   simp only [truncation, indicator, set.mem_Icc, id.def, function.comp_app, ite_eq_left_iff,
     not_le],
   assume H,
-  exact H.elim (abs_le.1 h),
+  apply H.elim,
+  simp [(abs_lt.1 h).1, (abs_lt.1 h).2.le],
 end
 
 lemma _root_.measure_theory.ae_strongly_measurable.mem_ℒp_truncation [is_finite_measure μ]
@@ -311,12 +319,67 @@ begin
   { apply hf.abs },
   { apply eventually_of_forall (λ x, _),
     apply tendsto_const_nhds.congr' _,
-    filter_upwards [Ici_mem_at_top (abs (f x))] with A hA,
+    filter_upwards [Ioi_mem_at_top (abs (f x))] with A hA,
     exact (truncation_eq_self hA).symm },
 end
 
 end truncation
 
+
+lemma glouk0 (N : ℕ) (j : ℝ) (hj : 0 < j) (c : ℝ) (hc : 1 < c) :
+  ∑ i in (range N).filter (λ i, j < c ^ i), 1/ (c ^ i) ^ 2 ≤ 1 / j ^ 2 :=
+calc
+∑ i in (range N).filter (λ i, j < c ^ i), 1/ (c ^ i) ^ 2
+    ≤ ∑ i in Ico (⌊real.log j / real.log c⌋₊) N, 1/ (c ^ i) ^ 2 :
+  begin
+    refine sum_le_sum_of_subset_of_nonneg _ (λ i hi h'i, div_nonneg zero_le_one (sq_nonneg _)),
+    assume i hi,
+    simp only [mem_filter, mem_range] at hi,
+    simp only [hi.1, mem_Ico, and_true],
+    apply nat.floor_le_of_le,
+    apply le_of_lt,
+    rw [div_lt_iff (real.log_pos hc), ← real.log_pow],
+    exact real.log_lt_log hj hi.2
+  end
+... = ∑ i in Ico (⌊real.log j / real.log c⌋₊) N, ((c⁻¹) ^ 2) ^ i :
+  begin
+    congr' 1 with i,
+    simp [← pow_mul, mul_comm],
+  end
+... ≤ 1 / j ^ 2 : sorry
+
+
+#exit
+
+lemma glouk (N : ℕ) (j : ℕ) (c : ℝ) (hc : 1 < c) :
+  ∑ i in (range N).filter (λ i, (j : ℝ) < ⌊c ^ i⌋₊), 1/ ⌊c ^ i⌋₊ ^ 2 ≤ 1 / j ^ 2 :=
+begin
+  have : ∀ (i : ℕ), (1 : ℝ) / ⌊c ^ i⌋₊  ≤ (c/(c-1)) / (c ^ i),
+  { assume i,
+    rcases nat.eq_zero_or_pos i with rfl|hi,
+    { simp only [pow_zero, nat.floor_one, nat.cast_one, div_one],
+      rw le_div_iff (sub_pos.2 hc),
+      simp only [one_mul, sub_le_self_iff, zero_le_one] },
+    rw div_le_div_iff, rotate,
+    { refine zero_lt_one.trans_le _,
+      simp only [one_le_sq_iff_one_le_abs, nat.abs_cast, nat.one_le_cast],
+      apply nat.le_floor,
+      rw nat.cast_one,
+      apply one_le_pow_of_one_le hc.le },
+    { apply pow_pos,
+      apply zero_lt_one.trans hc },
+    have h'i : 1 ≤ i := hi,
+    simp only [← mul_pow, one_mul, div_eq_inv_mul, mul_assoc],
+    rw [← div_eq_inv_mul, le_div_iff (sub_pos.2 hc)],
+    calc c ^ i * (c - 1) = c ^ (i + 1) - c ^ i : by ring_exp
+    ... ≤ c ^ (i + 1) - c : by simpa using pow_le_pow hc.le h'i
+    ... = c * (c ^ i - 1) : by ring_exp
+    ... ≤ c * ⌊c ^ i⌋₊ :
+      (mul_le_mul_left (zero_lt_one.trans hc)).2 (nat.sub_one_lt_floor _).le },
+  sorry,
+end
+
+#exit
 
 theorem
   strong_law1
@@ -326,22 +389,92 @@ theorem
   (h''i : ∀ i ω, 0 ≤ X i ω) :
   ∀ᵐ ω, tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) * (∑ i in range n, X i ω)) at_top (𝓝 (𝔼[X 0])) :=
 begin
-  have A : ∀ i, strongly_measurable (indicator (set.Icc (-i : ℝ) i) id) :=
-    λ i, strongly_measurable_id.indicator measurable_set_Icc,
+  have A : ∀ i, strongly_measurable (indicator (set.Ioc (-i : ℝ) i) id) :=
+    λ i, strongly_measurable_id.indicator measurable_set_Ioc,
   let Y := λ (n : ℕ), truncation (X n) n,
-  have : pairwise (λ i j, indep_fun (Y i) (Y j) ℙ),
-  { assume i j hij,
-    exact (hindep i j hij).comp (A i).measurable (A j).measurable },
+  set S := λ n, ∑ i in range n, Y i with hS,
   have : tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) * (∑ i in range n, 𝔼[Y i])) at_top (𝓝 (𝔼[X 0])),
-  { apply filter.tendsto.cesaro,
+  sorry { apply filter.tendsto.cesaro,
     convert (tendsto_integral_truncation (hint 0)).comp tendsto_coe_nat_at_top_at_top,
     ext i,
-    calc 𝔼[Y i] = ∫ x, (indicator (set.Icc (-i : ℝ) i) id) x ∂(measure.map (X i) ℙ) :
+    calc 𝔼[Y i] = ∫ x, (indicator (set.Ioc (-i : ℝ) i) id) x ∂(measure.map (X i) ℙ) :
       by { rw integral_map (hint i).ae_measurable (A i).ae_strongly_measurable, refl }
-    ... = ∫ x, (indicator (set.Icc (-i : ℝ) i) id) x ∂(measure.map (X 0) ℙ) : by rw h'i i
+    ... = ∫ x, (indicator (set.Ioc (-i : ℝ) i) id) x ∂(measure.map (X 0) ℙ) : by rw h'i i
     ... = 𝔼[truncation (X 0) i] :
     by { rw integral_map (hint 0).ae_measurable (A i).ae_strongly_measurable, refl } },
+  have c : ℝ := sorry,
+  have c_one : 1 < c := sorry;
+  let u : ℕ → ℕ := λ n, ⌊c ^ n⌋₊,
+  have u_mono : monotone u := sorry,
+  have ε : ℝ := sorry,
+  have εpos : 0 < ε := sorry,
+  have : ∀ N, ∑ i in range N, ((u i : ℝ) ^ 2) ⁻¹ * Var[S (u i)] ≤ 10,
+  { assume N,
+    calc
+    ∑ i in range N, ((u i : ℝ) ^ 2) ⁻¹ * Var[S (u i)]
+        = ∑ i in range N, ((u i : ℝ) ^ 2) ⁻¹ * (∑ j in range (u i), Var[Y j]) :
+      begin
+        congr' 1 with i,
+        congr' 1,
+        rw [hS, indep_fun.Var_sum],
+        { assume j hj,
+          exact (hint j).1.mem_ℒp_truncation },
+        { assume k hk l hl hkl,
+          exact (hindep k l hkl).comp (A k).measurable (A l).measurable }
+      end
+    ... ≤ ∑ i in range N, ((u i : ℝ) ^ 2) ⁻¹ * (∑ j in range (u i), 𝔼[Y j ^ 2]) :
+      begin
+        apply sum_le_sum (λ i hi, _),
+        apply mul_le_mul le_rfl, rotate,
+        { exact sum_nonneg (λ j hj, variance_nonneg (Y j) _) },
+        { exact inv_nonneg.2 (sq_nonneg _) },
+        exact sum_le_sum (λ i hi, variance_le_expectation_sq),
+      end
+    ... = ∑ j in range (u (N - 1)),
+            (∑ i in (range N).filter (λ i, j < u i), ((u i : ℝ) ^ 2) ⁻¹) * 𝔼[Y j ^ 2] :
+      begin
+        simp_rw [mul_sum, sum_mul, sum_sigma'],
+        refine sum_bij' (λ (p : (Σ (i : ℕ), ℕ)) hp, (⟨p.2, p.1⟩ : (Σ (i : ℕ), ℕ))) _ (λ a ha, rfl)
+          (λ (p : (Σ (i : ℕ), ℕ)) hp, (⟨p.2, p.1⟩ : (Σ (i : ℕ), ℕ))) _ _ _,
+        { rintros ⟨i, j⟩ hij,
+          simp only [mem_sigma, mem_range] at hij,
+          simp only [hij.1, hij.2, mem_sigma, mem_range, mem_filter, and_true],
+          exact hij.2.trans_le (u_mono (nat.le_pred_of_lt hij.1)) },
+        { rintros ⟨i, j⟩ hij,
+          simp only [mem_sigma, mem_range, mem_filter] at hij,
+          simp only [hij.2.1, hij.2.2, mem_sigma, mem_range, and_self] },
+        { rintros ⟨i, j⟩ hij, refl },
+        { rintros ⟨i, j⟩ hij, refl },
+      end
 
+    ... ≤ 10 : sorry
+
+  }
+end
+
+#exit
+  have : ∀ N, ∑ i in range N, ℙ {ω | (u i * ε : ℝ) ≤ |S (u i) ω - 𝔼[S (u i)]|} ≤ 10,
+  { assume N,
+    calc ∑ i in range N, ℙ {ω | (u i * ε : ℝ) ≤ |S (u i) ω - 𝔼[S (u i)]|}
+    ≤ ∑ i in range N, ennreal.of_real (Var[S (u i)] / (u i * ε) ^ 2) :
+    begin
+      refine sum_le_sum (λ i hi, _),
+      apply meas_ge_le_mul_variance,
+      { exact mem_ℒp_finset_sum' _ (λ j hj, (hint j).1.mem_ℒp_truncation) },
+      { apply mul_pos (nat.cast_pos.2 _) εpos,
+        refine zero_lt_one.trans_le _,
+        apply nat.le_floor,
+        rw nat.cast_one,
+        apply one_le_pow_of_one_le c_one.le }
+    end
+    ... = ennreal.of_real (∑ i in range N, Var[S (u i)] / (u i * ε) ^ 2) :
+    begin
+      rw ennreal.of_real_sum_of_nonneg (λ i hi, _),
+      exact div_nonneg (variance_nonneg _ _) (sq_nonneg _),
+    end
+    ... ≤ 10 : sorry
+
+  }
 end
 
 end probability_theory

@@ -26,12 +26,10 @@ open topological_space measure_theory measure_theory.Lp
 open_locale nnreal ennreal measure_theory
 
 namespace measure_theory
-namespace L2
 
-variables {α E F 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] {μ : measure α}
-  [inner_product_space 𝕜 E] [normed_group F]
+section
 
-local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
+variables {α F : Type*} {m : measurable_space α} {μ : measure α} [normed_group F]
 
 lemma mem_ℒp.integrable_sq {f : α → ℝ} (h : mem_ℒp f 2 μ) :
   integrable (λ x, (f x)^2) μ :=
@@ -54,6 +52,16 @@ begin
   ext x,
   simp [real.norm_eq_abs],
 end
+
+end
+
+namespace L2
+
+variables {α E F 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] {μ : measure α}
+  [inner_product_space 𝕜 E] [normed_group F]
+
+
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 lemma snorm_rpow_two_norm_lt_top (f : Lp F 2 μ) : snorm (λ x, ∥f x∥ ^ (2 : ℝ)) 1 μ < ∞ :=
 begin

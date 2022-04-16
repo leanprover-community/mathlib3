@@ -306,9 +306,10 @@ eval₂_monomial _ _
 
 @[simp] lemma eval_bit1 : (bit1 p).eval x = bit1 (p.eval x) := eval₂_bit1 _ _
 
-@[simp] lemma eval_smul (p : R[X]) (x : R) {s : R} :
-  (s • p).eval x = s * p.eval x :=
-eval₂_smul (ring_hom.id _) _ _
+@[simp] lemma eval_smul [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R]
+  (s : S) (p : R[X]) (x : R) :
+  (s • p).eval x = s • p.eval x :=
+by rw [← smul_one_smul R s p, eval, eval₂_smul, ring_hom.id_apply, smul_one_mul]
 
 @[simp] lemma eval_C_mul : (C a * p).eval x = a * p.eval x :=
 begin
@@ -323,7 +324,7 @@ end
 @[simps] def leval {R : Type*} [semiring R] (r : R) : R[X] →ₗ[R] R :=
 { to_fun := λ f, f.eval r,
   map_add' := λ f g, eval_add,
-  map_smul' := λ c f, eval_smul f r }
+  map_smul' := λ c f, eval_smul c f r }
 
 @[simp] lemma eval_nat_cast_mul {n : ℕ} : ((n : R[X]) * p).eval x = n * p.eval x :=
 by rw [←C_eq_nat_cast, eval_C_mul]
@@ -468,6 +469,10 @@ by simp only [bit0, add_comp]
 
 @[simp] lemma bit1_comp : comp (bit1 p : R[X]) q = bit1 (p.comp q) :=
 by simp only [bit1, add_comp, bit0_comp, one_comp]
+
+@[simp] lemma smul_comp [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R]
+  (s : S) (p q : R[X]) : (s • p).comp q = s • p.comp q :=
+by rw [← smul_one_smul R s p, comp, comp, eval₂_smul, ← smul_eq_C_mul, smul_assoc, one_smul]
 
 lemma comp_assoc {R : Type*} [comm_semiring R] (φ ψ χ : R[X]) :
   (φ.comp ψ).comp χ = φ.comp (ψ.comp χ) :=

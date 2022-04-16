@@ -50,7 +50,7 @@ is_scalar_tower.of_algebra_map_eq $ λ a, (coe_algebra_hom_apply K S hS a).symm
 instance is_localization_subring :
   is_localization S (subring K S hS) :=
 is_localization.is_localization_of_alg_equiv S
-{ commutes' := λ _, rfl .. ring_equiv.of_bijective (ring_hom.range_restrict _)
+{ commutes' := λ _, rfl .. ring_equiv.of_bijective _
   ⟨ begin
       refine λ a b h, (is_localization.lift_injective_iff _).2 (λ a b, _) (subtype.ext_iff.1 h),
       exact ⟨ λ h, congr_arg _ (is_localization.injective _ hS h),

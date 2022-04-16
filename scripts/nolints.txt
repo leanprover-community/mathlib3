@@ -612,16 +612,6 @@ apply_nolint tactic.mono doc_blame
 -- number_theory/dioph.lean
 apply_nolint poly has_inhabited_instance
 
--- number_theory/zsqrtd/basic.lean
-apply_nolint zsqrtd.le doc_blame
-apply_nolint zsqrtd.lt doc_blame
-apply_nolint zsqrtd.norm doc_blame
-
--- number_theory/zsqrtd/gaussian_int.lean
-apply_nolint gaussian_int doc_blame
-apply_nolint gaussian_int.div doc_blame
-apply_nolint gaussian_int.mod doc_blame
-
 -- order/filter/at_top_bot.lean
 apply_nolint filter.map_at_top_finset_prod_le_of_prod_eq to_additive_doc
 
@@ -631,24 +621,15 @@ apply_nolint order.ideal.is_prime.is_maximal fails_quickly
 -- ring_theory/witt_vector/basic.lean
 apply_nolint witt_vector.comm_ring check_reducibility
 
--- set_theory/cofinality.lean
-apply_nolint strict_order.cof doc_blame
-
--- set_theory/game.lean
-apply_nolint pgame.inv_ty has_inhabited_instance
-
 -- set_theory/lists.lean
 apply_nolint finsets doc_blame
 
 -- set_theory/pgame.lean
-apply_nolint pgame.left_moves has_inhabited_instance
 apply_nolint pgame.relabelling has_inhabited_instance
 apply_nolint pgame.restricted has_inhabited_instance
-apply_nolint pgame.right_moves has_inhabited_instance
 
 -- set_theory/zfc.lean
 apply_nolint Set.map_definable_aux unused_arguments
-apply_nolint pSet.type has_inhabited_instance
 
 -- tactic/abel.lean
 apply_nolint tactic.abel.eval doc_blame

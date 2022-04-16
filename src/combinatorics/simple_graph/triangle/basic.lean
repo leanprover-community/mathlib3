@@ -10,16 +10,16 @@ import combinatorics.simple_graph.clique
 
 This file defines triangles in simple graphs.
 
-A triangle is a `3`-clique, that is a set of three vertices which are all connected.
+A triangle is a `3`-clique, namely a set of three vertices that are all adjacent.
 
 ## Main declarations
 
 * `simple_graph.triangle_free_far`: Predicate for a graph to have enough triangles that one must
   remove a lot of edges to remove all of them. This is the crux of the Triangle Removal lemma.
-  
-  ## TODO
-  
-  * Generalise `triangle_free_far` to other graphs, to state and prove the Graph Removal Lemma.
+
+## TODO
+
+* Generalise `triangle_free_far` to other graphs, to state and prove the Graph Removal Lemma.
 -/
 
 open finset fintype

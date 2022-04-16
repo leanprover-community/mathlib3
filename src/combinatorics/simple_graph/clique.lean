@@ -9,8 +9,8 @@ import data.finset.pairwise
 /-!
 # Graph cliques
 
-This file defines cliques in simple graphs. A clique is a set of vertices which are pairwise
-connected.
+This file defines cliques in simple graphs. A clique is a set of vertices that are pairwise
+adjacent.
 
 ## Main declarations
 
@@ -35,7 +35,7 @@ variables {α : Type*} (G H : simple_graph α)
 section clique
 variables {s t : set α}
 
-/-- A clique in a graph is a set of vertices which are pairwise connected. -/
+/-- A clique in a graph is a set of vertices that are pairwise adjacent. -/
 abbreviation is_clique (s : set α) : Prop := s.pairwise G.adj
 
 lemma is_clique_iff : G.is_clique s ↔ s.pairwise G.adj := iff.rfl

@@ -166,6 +166,9 @@ lemma norm_add_le_of_le {g₁ g₂ : E} {n₁ n₂ : ℝ} (H₁ : ∥g₁∥ ≤
   ∥g₁ + g₂∥ ≤ n₁ + n₂ :=
 le_trans (norm_add_le g₁ g₂) (add_le_add H₁ H₂)
 
+lemma norm_add₃_le (x y z : E) : ∥x + y + z∥ ≤ ∥x∥ + ∥y∥ + ∥z∥ :=
+norm_add_le_of_le (norm_add_le _ _) le_rfl
+
 lemma dist_add_add_le (g₁ g₂ h₁ h₂ : E) :
   dist (g₁ + g₂) (h₁ + h₂) ≤ dist g₁ h₁ + dist g₂ h₂ :=
 by simpa only [dist_add_left, dist_add_right] using dist_triangle (g₁ + g₂) (h₁ + g₂) (h₁ + h₂)
@@ -1010,7 +1013,7 @@ def normed_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
   end
   ..semi_normed_group.of_core E (normed_group.core.to_semi_normed_group.core C) }
 
-variables [normed_group E] [normed_group F]
+variables [normed_group E] [normed_group F] {x y : E}
 
 @[simp] lemma norm_eq_zero {g : E} : ∥g∥ = 0 ↔ g = 0 := norm_eq_zero_iff'
 
@@ -1022,6 +1025,9 @@ lemma norm_ne_zero_iff {g : E} : ∥g∥ ≠ 0 ↔ g ≠ 0 := not_congr norm_eq_
 
 lemma norm_sub_eq_zero_iff {u v : E} : ∥u - v∥ = 0 ↔ u = v :=
 by rw [norm_eq_zero, sub_eq_zero]
+
+lemma norm_sub_pos_iff : 0 < ∥x - y∥ ↔ x ≠ y :=
+by { rw [(norm_nonneg _).lt_iff_ne, ne_comm], exact norm_sub_eq_zero_iff.not }
 
 lemma eq_of_norm_sub_le_zero {g h : E} (a : ∥g - h∥ ≤ 0) : g = h :=
 by rwa [← sub_eq_zero, ← norm_le_zero_iff]

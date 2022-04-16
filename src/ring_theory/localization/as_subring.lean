@@ -24,18 +24,30 @@ variables
 
 open_locale non_zero_divisors
 
+variables (S : submonoid A) (hS : S ≤ A⁰)
+include hS
+
 /--
 Given a domain `A` with fraction field `K`, and a submonoid `S` of `A` which
 contains no zero divisor, this is the localization of `A` at `S`, considered as
 a subring of `K`.
 -/
-noncomputable def subring (S : submonoid A) (hS : S ≤ A⁰) : subring K :=
+noncomputable def subring : subring K :=
 (is_localization.lift
   (λ s, by apply is_localization.map_units K ⟨s.1, hS s.2⟩) : localization S →+* K).range
 
 namespace subring
 
-variables (S : submonoid A) (hS : S ≤ A⁰)
+lemma mem_iff (x : K) :
+  x ∈ subring K S hS ↔ ∃ (a : A) (s : S), x * algebra_map A K s = algebra_map A K a :=
+begin
+  split,
+  { rintro ⟨y,rfl⟩, obtain ⟨w,h⟩ := is_localization.surj S y, use [w.1, w.2],
+    convert ← congr_arg (is_localization.lift _) h using 1,
+    { rw map_mul, congr, apply is_localization.lift_eq }, apply is_localization.lift_eq },
+  { rintro ⟨a,s,h⟩, use is_localization.mk' _ a s,
+    rw [is_localization.lift_mk'_spec, mul_comm, h] },
+end
 
 noncomputable instance algebra : algebra A (subring K S hS) :=
 ring_hom.to_algebra $ (ring_hom.range_restrict _).comp $ algebra_map A (localization S)

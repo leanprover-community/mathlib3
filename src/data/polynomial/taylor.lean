@@ -94,7 +94,7 @@ by simp only [taylor_apply, mul_comp]
 def taylor_alg_hom {R} [comm_semiring R] (r : R) : R[X] →ₐ[R] R[X] :=
 alg_hom.of_linear_map (taylor r) (taylor_one r) (taylor_mul r)
 
-def taylor_alg_hom_apply {R} [comm_semiring R] (r : R) (f : R[X]) :
+lemma taylor_alg_hom_apply {R} [comm_semiring R] (r : R) (f : R[X]) :
   taylor_alg_hom r f = taylor r f := rfl
 
 lemma taylor_taylor {R} [comm_semiring R] (f : R[X]) (r s : R) :

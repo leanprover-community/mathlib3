@@ -22,13 +22,19 @@ lemma _root_.ennreal.div_le_div {a b c d : ℝ≥0∞} (hab : a ≤ b) (hdc : d 
   a / c ≤ b / d :=
 begin
   rw [div_eq_mul_inv, div_eq_mul_inv],
-  apply ennreal.mul_le_mul hab (inv_le_inv.mpr hdc),
+  apply ennreal.mul_le_mul hab (ennreal.inv_le_inv.mpr hdc),
 end
 
 section thickened_indicator
 
 variables {α : Type*} [pseudo_emetric_space α]
 
+/-- The `δ`-thickened indicator of a set `E` is the function that equals `1` on `E`
+and `0` outside a `δ`-thickening of `E` and interpolates (continuously) between
+these values using `inf_edist _ E`.
+
+`thickened_indicator'` is the unbundled `ℝ≥0∞`-valued function. See `thickened_indicator`
+for the (bundled) bounded continuous function with `ℝ≥0`-values. -/
 def thickened_indicator' (δ : ℝ) (E : set α) : α → ℝ≥0∞ :=
 λ (x : α), (1 : ℝ≥0∞) - (inf_edist x E) / (ennreal.of_real δ)
 
@@ -92,6 +98,46 @@ begin
   exact ennreal.div_le_div (inf_edist_le_inf_edist_of_subset subset) rfl.le,
 end
 
+lemma thickened_indicator'_tendsto_indicator_closure
+  {δseq : ℕ → ℝ} (δseq_lim : tendsto δseq at_top (𝓝 0)) (E : set α) :
+  tendsto (λ n, (thickened_indicator' (δseq n) E)) at_top
+    (𝓝 (indicator (closure E) (λ x, (1 : ℝ≥0∞)))) :=
+begin
+  rw tendsto_pi_nhds,
+  intro x,
+  by_cases x_mem_closure : x ∈ closure E,
+  { simp_rw [thickened_indicator'_one_of_mem_closure _ E x_mem_closure],
+    rw (show (indicator (closure E) (λ _, (1 : ℝ≥0∞))) x = 1,
+        by simp only [x_mem_closure, indicator_of_mem]),
+    exact tendsto_const_nhds, },
+  { rw (show (closure E).indicator (λ _, (1 : ℝ≥0∞)) x = 0,
+        by simp only [x_mem_closure, indicator_of_not_mem, not_false_iff]),
+    rw mem_closure_iff_inf_edist_zero at x_mem_closure,
+    obtain ⟨ε, ⟨ε_pos, ε_le⟩⟩ : ∃ (ε : ℝ), 0 < ε ∧ ennreal.of_real ε ≤ inf_edist x E,
+    { by_cases dist_infty : inf_edist x E = ∞,
+      { rw dist_infty,
+        use [1, zero_lt_one, le_top], },
+      { use (inf_edist x E).to_real,
+        exact ⟨(to_real_lt_to_real zero_ne_top dist_infty).mpr (pos_iff_ne_zero.mpr x_mem_closure),
+                of_real_to_real_le⟩, }, },
+    rw metric.tendsto_nhds at δseq_lim,
+    specialize δseq_lim ε ε_pos,
+    simp only [dist_zero_right, real.norm_eq_abs, eventually_at_top, ge_iff_le] at δseq_lim,
+    rcases δseq_lim with ⟨N, hN⟩,
+    apply @tendsto_at_top_of_eventually_const _ _ _ _ _ _ _ N,
+    intros n n_large,
+    have key : x ∉ thickening ε E, by rwa [thickening, mem_set_of_eq, not_lt],
+    refine le_antisymm _ bot_le,
+    apply (thickened_indicator'_mono (lt_of_abs_lt (hN n n_large)).le E x).trans,
+    exact (thickened_indicator'_zero ε_pos E key).le, },
+end
+
+/-- The `δ`-thickened indicator of a set `E` is the function that equals `1` on `E`
+and `0` outside a `δ`-thickening of `E` and interpolates (continuously) between
+these values using `inf_edist _ E`.
+
+`thickened_indicator` is the (bundled) bounded continuous function with `ℝ≥0`-values.
+See `thickened_indicator'` for the unbundled `ℝ≥0∞`-valued function. -/
 @[simps] def thickened_indicator {δ : ℝ} (δ_pos : 0 < δ) (E : set α) : α →ᵇ ℝ≥0 :=
 { to_fun := λ (x : α), (thickened_indicator' δ E x).to_nnreal,
   continuous_to_fun := begin

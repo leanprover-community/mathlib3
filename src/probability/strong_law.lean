@@ -325,12 +325,26 @@ end
 
 end truncation
 
+lemma geom_sum_Ico_le_of_lt_one {a b : ℕ} {c : ℝ} (hc : 0 ≤ c) (h'c : c < 1) :
+  ∑ i in Ico a b, c ^ i ≤ c ^ a / (1 - c) :=
+begin
+  rcases le_or_lt a b with hab | hab, swap,
+  { rw [Ico_eq_empty, sum_empty],
+    { apply div_nonneg (pow_nonneg hc _),
+      simpa using h'c.le },
+    { simpa using hab.le } },
+  rw geom_sum_Ico' h'c.ne hab,
+  apply div_le_div (pow_nonneg hc _) _ (sub_pos.2 h'c) le_rfl,
+  simpa using pow_nonneg hc _
+end
 
-lemma glouk0 (N : ℕ) (j : ℝ) (hj : 0 < j) (c : ℝ) (hc : 1 < c) :
-  ∑ i in (range N).filter (λ i, j < c ^ i), 1/ (c ^ i) ^ 2 ≤ 1 / j ^ 2 :=
-calc
-∑ i in (range N).filter (λ i, j < c ^ i), 1/ (c ^ i) ^ 2
-    ≤ ∑ i in Ico (⌊real.log j / real.log c⌋₊) N, 1/ (c ^ i) ^ 2 :
+lemma aux_sum_horrible (N : ℕ) (j : ℝ) (hj : 0 < j) (c : ℝ) (hc : 1 < c) :
+  ∑ i in (range N).filter (λ i, j < c ^ i), 1 / (c ^ i) ^ 2 ≤ (c^2 * (1 - c⁻¹ ^ 2) ⁻¹) / j ^ 2 :=
+begin
+  have A : 0 < (c⁻¹) ^ 2 := sq_pos_of_pos (inv_pos.2 (zero_lt_one.trans hc)),
+  calc
+  ∑ i in (range N).filter (λ i, j < c ^ i), 1/ (c ^ i) ^ 2
+    ≤ ∑ i in Ico (⌊real.log j / real.log c⌋₊) N, 1 / (c ^ i) ^ 2 :
   begin
     refine sum_le_sum_of_subset_of_nonneg _ (λ i hi h'i, div_nonneg zero_le_one (sq_nonneg _)),
     assume i hi,
@@ -341,18 +355,46 @@ calc
     rw [div_lt_iff (real.log_pos hc), ← real.log_pow],
     exact real.log_lt_log hj hi.2
   end
-... = ∑ i in Ico (⌊real.log j / real.log c⌋₊) N, ((c⁻¹) ^ 2) ^ i :
+  ... = ∑ i in Ico (⌊real.log j / real.log c⌋₊) N, ((c⁻¹) ^ 2) ^ i :
   begin
     congr' 1 with i,
     simp [← pow_mul, mul_comm],
   end
-... ≤ 1 / j ^ 2 : sorry
+  ... ≤ ((c⁻¹) ^ 2) ^ (⌊real.log j / real.log c⌋₊) / (1 - (c⁻¹) ^ 2) :
+  begin
+    apply geom_sum_Ico_le_of_lt_one (sq_nonneg _),
+    rw sq_lt_one_iff (inv_nonneg.2 (zero_le_one.trans hc.le)),
+    exact inv_lt_one hc
+  end
+  ... ≤ ((c⁻¹) ^ 2) ^ (real.log j / real.log c - 1) / (1 - (c⁻¹) ^ 2) :
+  begin
+    apply div_le_div _ _ _ le_rfl,
+    { apply real.rpow_nonneg_of_nonneg (sq_nonneg _) },
+    { rw ← real.rpow_nat_cast,
+      apply real.rpow_le_rpow_of_exponent_ge A,
+      { exact pow_le_one _ (inv_nonneg.2 (zero_le_one.trans hc.le)) (inv_le_one hc.le) },
+      { exact (nat.sub_one_lt_floor _).le } },
+    { simpa only [inv_pow₀, sub_pos] using inv_lt_one (one_lt_pow hc two_ne_zero) }
+  end
+  ... = (c^2 * (1 - c⁻¹ ^ 2) ⁻¹) / j ^ 2 :
+  begin
+    have I : (c ⁻¹ ^ 2) ^ (real.log j / real.log c) = 1 / j ^ 2,
+    { apply real.log_inj_on_pos (real.rpow_pos_of_pos A _),
+      { rw [one_div], exact inv_pos.2 (sq_pos_of_pos hj) },
+      rw real.log_rpow A,
+      simp only [one_div, real.log_inv, real.log_pow, nat.cast_bit0, nat.cast_one, mul_neg,
+        neg_inj],
+      field_simp [(real.log_pos hc).ne'],
+      ring },
+    rw [real.rpow_sub A, I],
+    have : c^2 - 1 ≠ 0 := (sub_pos.2 (one_lt_pow hc two_ne_zero)).ne',
+    field_simp [hj.ne', (zero_lt_one.trans hc).ne'],
+    ring,
+  end
+end
 
-
-#exit
-
-lemma glouk (N : ℕ) (j : ℕ) (c : ℝ) (hc : 1 < c) :
-  ∑ i in (range N).filter (λ i, (j : ℝ) < ⌊c ^ i⌋₊), 1/ ⌊c ^ i⌋₊ ^ 2 ≤ 1 / j ^ 2 :=
+lemma glouk (N : ℕ) (j : ℝ) (hj : 0 < j) (c : ℝ) (hc : 1 < c) :
+  ∑ i in (range N).filter (λ i, j < ⌊c ^ i⌋₊), (1 : ℝ) / ⌊c ^ i⌋₊ ^ 2 ≤ 1 / j ^ 2 :=
 begin
   have : ∀ (i : ℕ), (1 : ℝ) / ⌊c ^ i⌋₊  ≤ (c/(c-1)) / (c ^ i),
   { assume i,

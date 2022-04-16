@@ -49,9 +49,9 @@ begin
   { simp only [iterated_deriv_succ, ih, derivative_add] }
 end
 
-@[simp] lemma iterated_deriv_smul {M : Type*} [monoid M]
-  [distrib_mul_action M R] [is_scalar_tower M R R]
-  (m : M) : iterated_deriv (m • p) n = m • iterated_deriv p n :=
+@[simp] lemma iterated_deriv_smul {S : Type*} [monoid S]
+  [distrib_mul_action S R] [is_scalar_tower S R R]
+  (s : S) : iterated_deriv (s • p) n = s • iterated_deriv p n :=
 begin
   induction n with n ih,
   { simp only [iterated_deriv_zero_right] },

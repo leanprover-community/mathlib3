@@ -324,7 +324,7 @@ end
 @[simps] def leval {R : Type*} [semiring R] (r : R) : R[X] →ₗ[R] R :=
 { to_fun := λ f, f.eval r,
   map_add' := λ f g, eval_add,
-  map_smul' := λ c f, eval_smul f r }
+  map_smul' := λ c f, eval_smul c f r }
 
 @[simp] lemma eval_nat_cast_mul {n : ℕ} : ((n : R[X]) * p).eval x = n * p.eval x :=
 by rw [←C_eq_nat_cast, eval_C_mul]

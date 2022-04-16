@@ -117,7 +117,7 @@ begin
 end
 
 lemma cokernel_zero_of_nonzero_to_simple
-  {X Y : C} [simple Y] {f : X ⟶ Y} [has_cokernel f] (w : f ≠ 0) :
+  {X Y : C} [simple Y] {f : X ⟶ Y} (w : f ≠ 0) :
   cokernel.π f = 0 :=
 begin
   classical,

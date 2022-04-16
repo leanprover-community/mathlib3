@@ -420,6 +420,10 @@ section mul_zero_one_class
 
 variables [mul_zero_one_class M]
 
+lemma inter_indicator_one {s t : set α} :
+  (s ∩ t).indicator (1 : _ → M) = s.indicator 1 * t.indicator 1 :=
+funext (λ _, by simpa only [← inter_indicator_mul, pi.mul_apply, pi.one_apply, one_mul])
+
 lemma indicator_prod_one {s : set α} {t : set β} {x : α} {y : β} :
   (s ×ˢ t : set _).indicator (1 : _ → M) (x, y) = s.indicator 1 x * t.indicator 1 y :=
 by simp [indicator, ← ite_and]

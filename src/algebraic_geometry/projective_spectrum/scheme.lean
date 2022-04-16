@@ -20,8 +20,8 @@ This file is to prove that `Proj` is a scheme.
 * `pbo f`     : basic open set at `f` in `Proj`
 * `Spec`      : `Spec` as a locally ringed space
 * `Spec.T`    : the underlying topological space of `Spec`
-* `spo g`     : basic open set at `g` in `Spec`
-* `A⁰ₓ`       : the degree zero part of localized ring `Aₓ`
+* `sbo g`     : basic open set at `g` in `Spec`
+* `A⁰_x`       : the degree zero part of localized ring `Aₓ`
 
 ## Implementation
 
@@ -51,7 +51,7 @@ For a homogeneous element `f` of degree `n`
   of `sbo a/f^m` under `forward f` is `pbo f ∩ pbo a`.
 
 
-* [Robin Hartshorne, *Algebraic Geometry*][Har77]
+* [Robin Hartshorne, *Algebraic Geometry*][Har77]: Chapter II.2 Proposition 2.5
 -/
 
 noncomputable theory
@@ -96,7 +96,7 @@ variable {𝒜}
 The degree zero part of the localized ring `Aₓ` is the subring of elements of the form `a/x^n` such
 that `a` and `x^n` have the same degree.
 -/
-def degree_zero_part {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) : subring (away f) :=
+def degree_zero_part {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) : subring (away f) :=
 { carrier := { y | ∃ (n : ℕ) (a : 𝒜 (m * n)), y = mk a.1 ⟨f^n, ⟨n, rfl⟩⟩ },
   mul_mem' := λ _ _ ⟨n, ⟨a, h⟩⟩ ⟨n', ⟨b, h'⟩⟩, h.symm ▸ h'.symm ▸
     ⟨n+n', ⟨⟨a.1 * b.1, (mul_add m n n').symm ▸ mul_mem a.2 b.2⟩,
@@ -120,32 +120,37 @@ def degree_zero_part {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) : subring (away f)
   zero_mem' := ⟨0, ⟨0, (mk_zero _).symm⟩⟩,
   neg_mem' := λ x ⟨n, ⟨a, h⟩⟩, h.symm ▸ ⟨n, ⟨-a, neg_mk _ _⟩⟩ }
 
-instance (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m) : comm_ring (degree_zero_part m f_deg) :=
-(degree_zero_part m f_deg).to_comm_ring
+instance (f : A) {m : ℕ} (f_deg : f ∈ 𝒜 m) : comm_ring (degree_zero_part f_deg) :=
+(degree_zero_part f_deg).to_comm_ring
 
+end
+
+local notation `A⁰_` f_deg := degree_zero_part f_deg
+
+section
 /--
 Every element in the degree zero part of `Aₓ` can be written as `a/x^n` for some `a` and `n : ℕ`,
 `degree_zero_part.deg` picks this natural number `n`
 -/
-def degree_zero_part.deg {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) (x : degree_zero_part m f_deg) : ℕ :=
+def degree_zero_part.deg {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x : A⁰_ f_deg) : ℕ :=
 x.2.some
 
 /--
 Every element in the degree zero part of `Aₓ` can be written as `a/x^n` for some `a` and `n : ℕ`,
 `degree_zero_part.deg` picks the numerator `a`
 -/
-def degree_zero_part.num {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) (x : degree_zero_part m f_deg) : A :=
+def degree_zero_part.num {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x : A⁰_ f_deg) : A :=
 x.2.some_spec.some.1
 
-lemma degree_zero_part.num_mem {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) (x : degree_zero_part m f_deg) :
-  degree_zero_part.num m f_deg x ∈ 𝒜 (m * degree_zero_part.deg m f_deg x) :=
+lemma degree_zero_part.num_mem {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x : A⁰_ f_deg) :
+  degree_zero_part.num f_deg x ∈ 𝒜 (m * degree_zero_part.deg f_deg x) :=
 x.2.some_spec.some.2
 
-lemma degree_zero_part.eq {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) (x : degree_zero_part m f_deg) :
-  x.1 = mk (degree_zero_part.num m f_deg x) ⟨f^(degree_zero_part.deg m f_deg x), ⟨_, rfl⟩⟩ :=
+lemma degree_zero_part.eq {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x : A⁰_ f_deg) :
+  x.1 = mk (degree_zero_part.num f_deg x) ⟨f^(degree_zero_part.deg f_deg x), ⟨_, rfl⟩⟩ :=
 x.2.some_spec.some_spec
 
-lemma degree_zero_part.mul_val {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) (x y : degree_zero_part m f_deg) :
+lemma degree_zero_part.mul_val {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x y : A⁰_ f_deg) :
   (x * y).1 = x.1 * y.1 := rfl
 
 end
@@ -193,11 +198,11 @@ variables {𝒜} {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) (x : Proj| (pbo f))
 
 /--For any `x` in `Proj| (pbo f)`, the corresponding ideal in `Spec A⁰_f`. This fact that this ideal
 is prime is proven in `Top_component.forward.to_fun`-/
-def carrier : ideal (degree_zero_part m f_deg) :=
-ideal.comap (algebra_map (degree_zero_part m f_deg) (away f))
+def carrier : ideal (A⁰_ f_deg) :=
+ideal.comap (algebra_map (A⁰_ f_deg) (away f))
   (ideal.span { y | ∃ (g : A), g ∈ x.1.as_homogeneous_ideal.1 ∧ y = (mk g 1 : away f) })
 
-lemma mem_carrier_iff (z : degree_zero_part m f_deg) :
+lemma mem_carrier_iff (z : A⁰_ f_deg) :
   z ∈ carrier m f_deg x ↔
   z.1 ∈ ideal.span { y | ∃ (g : A), g ∈ x.1.as_homogeneous_ideal.1 ∧ y = (mk g 1 : away f) } :=
 iff.rfl
@@ -306,7 +311,7 @@ end
 /--The function between the basic open set `D(f)` in `Proj` to the corresponding basic open set in
 `Spec A⁰_f`. The fact that this function is continuous is proven in `Top_component.forward`.
 -/
-def to_fun : (Proj.T| (pbo f)) → (Spec.T (degree_zero_part m f_deg)) := λ x,
+def to_fun : (Proj.T| (pbo f)) → (Spec.T (A⁰_ f_deg)) := λ x,
 ⟨carrier m f_deg x,
   ⟨begin
     classical,
@@ -433,9 +438,9 @@ def to_fun : (Proj.T| (pbo f)) → (Spec.T (degree_zero_part m f_deg)) := λ x,
   end⟩⟩
 
 lemma preimage_eq (a : A) (n : ℕ)
-  (a_mem_degree_zero : (mk a ⟨f ^ n, ⟨n, rfl⟩⟩ : away f) ∈ degree_zero_part m f_deg) :
+  (a_mem_degree_zero : (mk a ⟨f ^ n, ⟨n, rfl⟩⟩ : away f) ∈ A⁰_ f_deg) :
   to_fun 𝒜 m f_deg ⁻¹'
-      (sbo (⟨mk a ⟨f ^ n, ⟨_, rfl⟩⟩, a_mem_degree_zero⟩ : degree_zero_part m f_deg)).1
+      (sbo (⟨mk a ⟨f ^ n, ⟨_, rfl⟩⟩, a_mem_degree_zero⟩ : A⁰_ f_deg)).1
   = {x | x.1 ∈ (pbo f) ⊓ (pbo a)} :=
 begin
   haveI : decidable_eq (away f) := classical.dec_eq _,
@@ -607,7 +612,7 @@ variable {𝒜}
 open set in `Spec A⁰_f`.
 -/
 def forward {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) :
-  (Proj.T| (pbo f)) ⟶ (Spec.T (degree_zero_part m f_deg)) :=
+  (Proj.T| (pbo f)) ⟶ (Spec.T (A⁰_ f_deg)) :=
 { to_fun := forward.to_fun 𝒜 m f_deg,
   continuous_to_fun := begin
     apply is_topological_basis.continuous (prime_spectrum.is_topological_basis_basic_opens),
@@ -631,7 +636,7 @@ def forward {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) :
         erw set.mem_preimage,
         exact hz, }, },
     suffices : set1 = forward.to_fun 𝒜 m f_deg ⁻¹'
-      (prime_spectrum.basic_open (⟨mk a ⟨f ^ n, _⟩, hg⟩ : degree_zero_part m f_deg)).1,
+      (prime_spectrum.basic_open (⟨mk a ⟨f ^ n, _⟩, hg⟩ : A⁰_ f_deg)).1,
     { erw ←this, exact o1, },
     { symmetry, apply forward.preimage_eq },
   end }

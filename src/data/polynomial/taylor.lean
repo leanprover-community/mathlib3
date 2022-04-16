@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import data.polynomial.hasse_deriv
 import data.polynomial.algebra_map
+import data.polynomial.hasse_deriv
 
 /-!
 # Taylor expansions of polynomials

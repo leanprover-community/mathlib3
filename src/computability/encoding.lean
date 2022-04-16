@@ -6,7 +6,7 @@ Authors: Pim Spelier, Daan van Gent
 
 import data.fintype.basic
 import data.num.lemmas
-import data.num.encode_list_bool
+import data.num.to_bits
 import tactic.derive_fintype
 import set_theory.cardinal_ordinal
 

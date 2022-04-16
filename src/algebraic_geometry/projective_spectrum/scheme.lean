@@ -21,7 +21,7 @@ This file is to prove that `Proj` is a scheme.
 * `Spec`      : `Spec` as a locally ringed space
 * `Spec.T`    : the underlying topological space of `Spec`
 * `sbo g`     : basic open set at `g` in `Spec`
-* `A⁰ₓ`       : the degree zero part of localized ring `Aₓ`
+* `A⁰_x`       : the degree zero part of localized ring `Aₓ`
 
 ## Implementation
 
@@ -96,7 +96,7 @@ variable {𝒜}
 The degree zero part of the localized ring `Aₓ` is the subring of elements of the form `a/x^n` such
 that `a` and `x^n` have the same degree.
 -/
-def degree_zero_part {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) : subring (away f) :=
+def degree_zero_part {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) : subring (away f) :=
 { carrier := { y | ∃ (n : ℕ) (a : 𝒜 (m * n)), y = mk a.1 ⟨f^n, ⟨n, rfl⟩⟩ },
   mul_mem' := λ _ _ ⟨n, ⟨a, h⟩⟩ ⟨n', ⟨b, h'⟩⟩, h.symm ▸ h'.symm ▸
     ⟨n+n', ⟨⟨a.1 * b.1, (mul_add m n n').symm ▸ mul_mem a.2 b.2⟩,
@@ -120,32 +120,34 @@ def degree_zero_part {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) : subring (away f)
   zero_mem' := ⟨0, ⟨0, (mk_zero _).symm⟩⟩,
   neg_mem' := λ x ⟨n, ⟨a, h⟩⟩, h.symm ▸ ⟨n, ⟨-a, neg_mk _ _⟩⟩ }
 
-instance (f : A) (m : ℕ) (f_deg : f ∈ 𝒜 m) : comm_ring (degree_zero_part m f_deg) :=
-(degree_zero_part m f_deg).to_comm_ring
+local notation `A⁰_` f_deg := degree_zero_part f_deg
+
+instance (f : A) {m : ℕ} (f_deg : f ∈ 𝒜 m) : comm_ring (degree_zero_part f_deg) :=
+(degree_zero_part f_deg).to_comm_ring
 
 /--
 Every element in the degree zero part of `Aₓ` can be written as `a/x^n` for some `a` and `n : ℕ`,
 `degree_zero_part.deg` picks this natural number `n`
 -/
-def degree_zero_part.deg {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) (x : degree_zero_part m f_deg) : ℕ :=
+def degree_zero_part.deg {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x : A⁰_ f_deg) : ℕ :=
 x.2.some
 
 /--
 Every element in the degree zero part of `Aₓ` can be written as `a/x^n` for some `a` and `n : ℕ`,
 `degree_zero_part.deg` picks the numerator `a`
 -/
-def degree_zero_part.num {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) (x : degree_zero_part m f_deg) : A :=
+def degree_zero_part.num {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x : A⁰_ f_deg) : A :=
 x.2.some_spec.some.1
 
-lemma degree_zero_part.num_mem {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) (x : degree_zero_part m f_deg) :
-  degree_zero_part.num m f_deg x ∈ 𝒜 (m * degree_zero_part.deg m f_deg x) :=
+lemma degree_zero_part.num_mem {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x : A⁰_ f_deg) :
+  degree_zero_part.num f_deg x ∈ 𝒜 (m * degree_zero_part.deg f_deg x) :=
 x.2.some_spec.some.2
 
-lemma degree_zero_part.eq {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) (x : degree_zero_part m f_deg) :
-  x.1 = mk (degree_zero_part.num m f_deg x) ⟨f^(degree_zero_part.deg m f_deg x), ⟨_, rfl⟩⟩ :=
+lemma degree_zero_part.eq {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x : A⁰_ f_deg) :
+  x.1 = mk (degree_zero_part.num f_deg x) ⟨f^(degree_zero_part.deg f_deg x), ⟨_, rfl⟩⟩ :=
 x.2.some_spec.some_spec
 
-lemma degree_zero_part.mul_val {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) (x y : degree_zero_part m f_deg) :
+lemma degree_zero_part.mul_val {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x y : A⁰_ f_deg) :
   (x * y).1 = x.1 * y.1 := rfl
 
 end

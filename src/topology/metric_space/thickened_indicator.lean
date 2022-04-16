@@ -18,6 +18,13 @@ open_locale classical nnreal ennreal topological_space bounded_continuous_functi
 
 open nnreal ennreal set metric emetric filter
 
+lemma _root_.ennreal.div_le_div {a b c d : ℝ≥0∞} (hab : a ≤ b) (hdc : d ≤ c) :
+  a / c ≤ b / d :=
+begin
+  rw [div_eq_mul_inv, div_eq_mul_inv],
+  apply ennreal.mul_le_mul hab (inv_le_inv.mpr hdc),
+end
+
 section thickened_indicator
 
 variables {α : Type*} [pseudo_emetric_space α]
@@ -33,7 +40,7 @@ begin
   let sub := λ (p : ℝ≥0 × ℝ≥0∞), ((p.1 : ℝ≥0∞) - p.2),
   rw (show (λ (x : α), ((1 : ℝ≥0∞)) - (inf_edist x E) / (ennreal.of_real δ)) = sub ∘ f, by refl),
   apply continuous.comp (@ennreal.continuous_nnreal_sub 1),
-  apply (ennreal.continuous_at_div_const (ennreal.of_real δ) _).comp continuous_inf_edist,
+  apply (ennreal.continuous_div_const (ennreal.of_real δ) _).comp continuous_inf_edist,
   norm_num [δ_pos],
 end
 

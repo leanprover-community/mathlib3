@@ -23,23 +23,6 @@ variables {α : Type*} [pseudo_emetric_space α]
 def thickened_indicator' (δ : ℝ) (E : set α) : α → ℝ≥0∞ :=
 λ (x : α), (1 : ℝ≥0∞) - (inf_edist x E) / (ennreal.of_real δ)
 
-lemma thickened_indicator'_empty {δ : ℝ} (δ_pos : 0 < δ) :
-  thickened_indicator' δ (∅ : set α) = 0 :=
-begin
-  rw thickened_indicator',
-  simp_rw [inf_edist_empty, top_div],
-  have := top_div,
-  sorry,
-end
-
-example : has_continuous_div ℝ≥0∞ :=
-sorry --by library_search!
-
-example : has_continuous_mul ℝ≥0∞ :=
-sorry --by library_search!
-
-#check ennreal.continuous_at_const_mul
-
 lemma continuous_thickened_indicator' {δ : ℝ} (δ_pos : 0 < δ) (E : set α) :
   continuous (thickened_indicator' δ E) :=
 begin
@@ -60,11 +43,20 @@ lemma thickened_indicator'_lt_top {δ : ℝ} {E : set α} {x : α} :
   thickened_indicator' δ E x < ∞ :=
 lt_of_le_of_lt (thickened_indicator'_le_one _ _ _) one_lt_top
 
+lemma thickened_indicator'_closure_eq (δ : ℝ) (E : set α) :
+  thickened_indicator' δ (closure E) = thickened_indicator' δ E :=
+by simp_rw [thickened_indicator', inf_edist_closure]
+
 lemma thickened_indicator'_one (δ : ℝ) (E : set α) {x : α} (x_in_E : x ∈ E) :
   thickened_indicator' δ E x = 1 :=
 by simp [thickened_indicator', inf_edist_zero_of_mem x_in_E, tsub_zero]
 
-lemma thickened_indicator'_zero {δ : ℝ} (δ_pos : 0 < δ) (E : set α) {x : α} (x_out : x ∉ thickening δ E) :
+lemma thickened_indicator'_one_of_mem_closure (δ : ℝ) (E : set α) {x : α} (x_mem : x ∈ closure E) :
+  thickened_indicator' δ E x = 1 :=
+by rw [←thickened_indicator'_closure_eq, thickened_indicator'_one δ (closure E) x_mem]
+
+lemma thickened_indicator'_zero
+  {δ : ℝ} (δ_pos : 0 < δ) (E : set α) {x : α} (x_out : x ∉ thickening δ E) :
   thickened_indicator' δ E x = 0 :=
 begin
   rw [thickening, mem_set_of_eq, not_lt] at x_out,
@@ -125,11 +117,17 @@ begin
     (thickened_indicator'_le_one δ E x),
 end
 
+lemma thickened_indicator_one_of_mem_closure
+  {δ : ℝ} (δ_pos : 0 < δ) (E : set α) {x : α} (x_mem : x ∈ closure E) :
+  thickened_indicator δ_pos E x = 1 :=
+by rw [thickened_indicator_apply, thickened_indicator'_one_of_mem_closure δ E x_mem, one_to_nnreal]
+
 lemma thickened_indicator_one {δ : ℝ} (δ_pos : 0 < δ) (E : set α) {x : α} (x_in_E : x ∈ E) :
   thickened_indicator δ_pos E x = 1 :=
-by rw [thickened_indicator_apply, thickened_indicator'_one δ E x_in_E, one_to_nnreal]
+thickened_indicator_one_of_mem_closure _ _ (subset_closure x_in_E)
 
-lemma thickened_indicator_zero {δ : ℝ} (δ_pos : 0 < δ) (E : set α) {x : α} (x_out : x ∉ thickening δ E) :
+lemma thickened_indicator_zero
+  {δ : ℝ} (δ_pos : 0 < δ) (E : set α) {x : α} (x_out : x ∉ thickening δ E) :
   thickened_indicator δ_pos E x = 0 :=
 by rw [thickened_indicator_apply, thickened_indicator'_zero δ_pos E x_out, zero_to_nnreal]
 

@@ -93,7 +93,7 @@ end n_clique
 /-! ### Graphs without cliques -/
 
 section clique_free
-variables {n : ℕ}
+variables {m n : ℕ}
 
 /-- `G.clique_free n` means that `G` has no `n`-cliques. -/
 def clique_free (n : ℕ) : Prop := ∀ t, ¬ G.is_n_clique n t
@@ -107,7 +107,14 @@ begin
   linarith,
 end
 
-lemma clique_free.mono (h : G ≤ H) : H.clique_free n → G.clique_free n :=
+lemma clique_free.mono (h : m ≤ n) : G.clique_free m → G.clique_free n :=
+begin
+  rintro hG s hs,
+  obtain ⟨t, hts, ht⟩ := s.exists_smaller_set _ (h.trans hs.card_eq.ge),
+  exact hG _ ⟨hs.clique.subset hts, ht⟩,
+end
+
+lemma clique_free.anti (h : G ≤ H) : H.clique_free n → G.clique_free n :=
 forall_imp $ λ s, mt $ is_n_clique.mono h
 
 end clique_free

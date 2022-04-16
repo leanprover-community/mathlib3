@@ -1039,6 +1039,10 @@ class comm_ring (α : Type u) extends ring α, comm_monoid α
 instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
 { mul_zero := mul_zero, zero_mul := zero_mul, ..s }
 
+@[priority 100] -- see Note [lower instance priority]
+instance comm_ring.to_non_unital_comm_ring [s : comm_ring α] : non_unital_comm_ring α :=
+{ mul_zero := mul_zero, zero_mul := zero_mul, ..s }
+
 section non_unital_ring
 variables [non_unital_ring α] {a b c : α}
 

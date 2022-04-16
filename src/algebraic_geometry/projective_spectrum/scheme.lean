@@ -128,6 +128,7 @@ end
 local notation `A⁰_` f_deg := degree_zero_part f_deg
 
 section
+variable {𝒜}
 /--
 Every element in the degree zero part of `Aₓ` can be written as `a/x^n` for some `a` and `n : ℕ`,
 `degree_zero_part.deg` picks this natural number `n`

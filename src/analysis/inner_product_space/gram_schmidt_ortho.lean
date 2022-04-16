@@ -203,7 +203,7 @@ Normalized Gram-Schmidt process produces an orthornormal system of vectors. -/
 theorem gram_schmidt_orthonormal (f : ℕ → E) (h₀ : linear_independent 𝕜 f) :
   orthonormal 𝕜 (gram_schmidt_normed 𝕜 f) :=
 begin
-  simp only [orthonormal],
+  unfold orthonormal,
   split,
   { simp only [gram_schmidt_normed_unit_length', h₀, forall_const], },
   { intros i j hij,

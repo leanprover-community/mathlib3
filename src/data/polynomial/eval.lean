@@ -510,13 +510,13 @@ begin
   rw [eval₂_monomial, monomial_eq_C_mul_X], refl,
 end
 
-@[simp] lemma map_zero : (0 : R[X]).map f = 0 :=  eval₂_zero _ _
+@[simp] protected lemma map_zero : (0 : R[X]).map f = 0 :=  eval₂_zero _ _
 
-@[simp] lemma map_add : (p + q).map f = p.map f + q.map f := eval₂_add _ _
+@[simp] protected lemma map_add : (p + q).map f = p.map f + q.map f := eval₂_add _ _
 
-@[simp] lemma map_one : (1 : R[X]).map f = 1 := eval₂_one _ _
+@[simp] protected lemma map_one : (1 : R[X]).map f = 1 := eval₂_one _ _
 
-@[simp] lemma map_mul : (p * q).map f = p.map f * q.map f :=
+@[simp] protected lemma map_mul : (p * q).map f = p.map f * q.map f :=
 by { rw [map, eval₂_mul_noncomm], exact λ k, (commute_X _).symm }
 
 @[simp] lemma map_smul (r : R) : (r • p).map f = f r • p.map f :=
@@ -531,10 +531,10 @@ by rw [map, eval₂_smul, ring_hom.comp_apply, C_mul']
 -- lean/blob/487ac5d7e9b34800502e1ddf3c7c806c01cf9d51/src/frontends/lean/elaborator.cpp#L1876-L1913
 def map_ring_hom (f : R →+* S) : R[X] →+* S[X] :=
 { to_fun := polynomial.map f,
-  map_add' := λ _ _, map_add f,
-  map_zero' := map_zero f,
-  map_mul' := λ _ _, map_mul f,
-  map_one' := map_one f }
+  map_add' := λ _ _, polynomial.map_add f,
+  map_zero' := polynomial.map_zero f,
+  map_mul' := λ _ _, polynomial.map_mul f,
+  map_one' := polynomial.map_one f }
 
 @[simp] lemma coe_map_ring_hom (f : R →+* S) : ⇑(map_ring_hom f) = map f := rfl
 
@@ -578,7 +578,8 @@ lemma map_injective (hf : function.injective f) : function.injective (map f) :=
 
 lemma map_surjective (hf : function.surjective f) : function.surjective (map f) :=
 λ p, polynomial.induction_on' p
- (λ p q hp hq, let ⟨p', hp'⟩ := hp, ⟨q', hq'⟩ := hq in ⟨p' + q', by rw [map_add f, hp', hq']⟩)
+ (λ p q hp hq, let ⟨p', hp'⟩ := hp, ⟨q', hq'⟩ := hq
+                 in ⟨p' + q', by rw [polynomial.map_add f, hp', hq']⟩)
  (λ n s, let ⟨r, hr⟩ := hf s in ⟨monomial n r, by rw [map_monomial f, hr]⟩)
 
 lemma degree_map_le (p : R[X]) : degree (p.map f) ≤ degree p :=
@@ -648,7 +649,7 @@ begin
     intros i hi,
     rcases h i with ⟨c, hc⟩,
     use [C c * X^i],
-    rw [coe_map_ring_hom, map_mul, map_C, hc, polynomial.map_pow, map_X] }
+    rw [coe_map_ring_hom, polynomial.map_mul, map_C, hc, polynomial.map_pow, map_X] }
 end
 
 lemma mem_map_range {R S : Type*} [ring R] [ring S] (f : R →+* S)
@@ -669,10 +670,10 @@ protected lemma map_sum {ι : Type*} (g : ι → R[X]) (s : finset ι) :
 lemma map_comp (p q : R[X]) : map f (p.comp q) = (map f p).comp (map f q) :=
 polynomial.induction_on p
   (by simp only [map_C, forall_const, C_comp, eq_self_iff_true])
-  (by simp only [map_add, add_comp, forall_const, implies_true_iff, eq_self_iff_true]
+  (by simp only [polynomial.map_add, add_comp, forall_const, implies_true_iff, eq_self_iff_true]
         {contextual := tt})
   (by simp only [pow_succ', ←mul_assoc, comp, forall_const, eval₂_mul_X, implies_true_iff,
-        eq_self_iff_true, map_X, map_mul] {contextual := tt})
+        eq_self_iff_true, map_X, polynomial.map_mul] {contextual := tt})
 
 @[simp]
 lemma eval_zero_map (f : R →+* S) (p : R[X]) :
@@ -684,7 +685,7 @@ lemma eval_one_map (f : R →+* S) (p : R[X]) :
   (p.map f).eval 1 = f (p.eval 1) :=
 begin
   apply polynomial.induction_on' p,
-  { intros p q hp hq, simp only [hp, hq, map_add, ring_hom.map_add, eval_add] },
+  { intros p q hp hq, simp only [hp, hq, polynomial.map_add, ring_hom.map_add, eval_add] },
   { intros n r, simp only [one_pow, mul_one, eval_monomial, map_monomial] }
 end
 
@@ -693,7 +694,7 @@ lemma eval_nat_cast_map (f : R →+* S) (p : R[X]) (n : ℕ) :
   (p.map f).eval n = f (p.eval n) :=
 begin
   apply polynomial.induction_on' p,
-  { intros p q hp hq, simp only [hp, hq, map_add, ring_hom.map_add, eval_add] },
+  { intros p q hp hq, simp only [hp, hq, polynomial.map_add, ring_hom.map_add, eval_add] },
   { intros n r, simp only [map_nat_cast f, eval_monomial, map_monomial, f.map_pow, f.map_mul] }
 end
 
@@ -703,7 +704,7 @@ lemma eval_int_cast_map {R S : Type*} [ring R] [ring S]
   (p.map f).eval i = f (p.eval i) :=
 begin
   apply polynomial.induction_on' p,
-  { intros p q hp hq, simp only [hp, hq, map_add, ring_hom.map_add, eval_add] },
+  { intros p q hp hq, simp only [hp, hq, polynomial.map_add, ring_hom.map_add, eval_add] },
   { intros n r, simp only [f.map_int_cast, eval_monomial, map_monomial, f.map_pow, f.map_mul] }
 end
 
@@ -877,11 +878,11 @@ lemma C_neg : C (-a) = -C a := ring_hom.map_neg C a
 
 lemma C_sub : C (a - b) = C a - C b := ring_hom.map_sub C a b
 
-@[simp] lemma map_sub {S} [ring S] (f : R →+* S) :
+@[simp] protected lemma map_sub {S} [ring S] (f : R →+* S) :
   (p - q).map f = p.map f - q.map f :=
 (map_ring_hom f).map_sub p q
 
-@[simp] lemma map_neg {S} [ring S] (f : R →+* S) :
+@[simp] protected lemma map_neg {S} [ring S] (f : R →+* S) :
   (-p).map f = -(p.map f) :=
 (map_ring_hom f).map_neg p
 

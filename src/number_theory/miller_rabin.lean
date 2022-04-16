@@ -359,7 +359,13 @@ begin
   -- TODO(Sean): Try to prove this using coprime_factorization_or_prime_power (no other lemmas from this file should be needed) (first do a have statement to get the coprime_factorization_or_prime_power result into the hypotheses here)
 end
 
-lemma card_le_half_of_proper_subgroup {G : Type} [fintype G] [group G] {H : subgroup G} [fintype H]
+instance subgroup_fintype {G : Type} [fintype G] [group G] {H : subgroup G} : fintype H :=
+begin
+  -- library_search
+  sorry,
+end
+
+lemma card_le_half_of_proper_subgroup {G : Type} [fintype G] [group G] {H : subgroup G} -- [fintype H]
   (x : G) (proper : x ∉ H) : (fintype.card H) * 2 ≤ (fintype.card G) :=
 begin
   rcases subgroup.card_subgroup_dvd_card H with ⟨index, hindex⟩,
@@ -395,9 +401,40 @@ begin
   exact mul_le_mul_left' two_le_index (fintype.card ↥H),
 end
 
+
+instance (n : ℕ) [hn_pos : fact (0 < n)] :
+  decidable_pred (@is_unit (zmod n) _) :=
+λ a, begin
+  exact fintype.decidable_exists_fintype,
+end
+
+/-- The finset of units of zmod n -/
+def finset_units (n : ℕ) [hn_pos : fact (0 < n)] : finset (zmod n) :=
+(finset.univ : finset (zmod n)).filter is_unit
+
+
+-- finite subgroup
+
+-- the cardinality of a subgroup is the cardinality of its carrier
+lemma card_subgroup_eq_card_carrier {G : Type} [group G] [fintype G] {H : subgroup G} :
+  fintype.card H = finset.card (H.carrier : finset G) :=
+begin
+
+end
+
+lemma foocard (n e : ℕ) [fact (0 < n)] :
+  (fintype.card (↥(pow_alt_subgroup n e)) : ℕ)
+  = finset.card ((finset.univ : finset ((zmod n)ˣ)).filter (λ (a : (zmod n)ˣ), a^e = 1 ∨ a^e = -1))
+  :=
+begin
+  rw fintype.card,
+  -- simp,
+end
+
+
 lemma unlikely_strong_probable_prime_of_coprime_mul (n : ℕ) [hn_pos : fact (0 < n)]
   (h : (∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1)) (not_prime : ¬ n.prime) :
-  ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card * 2 ≤ n :=
+  ((finset_units n).filter (λ a, strong_probable_prime n a)).card * 2 ≤ (finset_units n).card :=
 begin
   rcases h with ⟨n0, n1, h_coprime, h_mul, hn0, hn1⟩,
   let i0 := ((finset.range (odd_part (n-1))).filter (λ i, ∃ a_0 : zmod n, a_0^(2^i) = -1)).max' (
@@ -424,12 +461,34 @@ begin
     -- nat.chinese_remainder_lt_mul
     sorry,
   },
-  sorry,
+  rcases h_proper with ⟨x, hx⟩,
+  have hsubgroup :
+    (finset.filter (λ (a : zmod n), strong_probable_prime n a) (finset_units n)).card * 2
+    ≤ fintype.card ↥(pow_alt_subgroup n (i0 * odd_part (n - 1))) * 2,
+  { simp [mul_le_mul_right],
+    rw foocard,
+    -- rw card_cast,
+    apply finset.card_le_card_of_inj_on,
+    {
+      intros a ha,
+      rw finset.mem_filter at ha,
+      cases ha,
+      rw finset_units at ha_left,
+      rw finset.mem_filter at ha_left,
+      exact ha_left.left,
+    }
+    sorry,  },
+  apply trans hsubgroup,
+  clear hsubgroup,
+  convert card_le_half_of_proper_subgroup x hx using 1,
+  { -- TODO(Bolton):
+    sorry, },
+
 end
 
 lemma unlikely_strong_probable_prime_of_prime_power (n : ℕ) [hn_pos : fact (0 < n)] (h1 : 1 < n)
   (h : (∃ (p k : ℕ), p.prime ∧ p^k = n)) (not_prime : ¬ n.prime) :
-  ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card * 2 ≤ n :=
+  ((finset_units n).filter (λ a, strong_probable_prime n a)).card * 2 ≤ (finset_units n).card :=
 begin
   rcases h with ⟨p, k, p_prime, n_pow⟩,
   have n_pos : 0 < n, exact hn_pos.out,
@@ -441,51 +500,31 @@ begin
     simp at n_pow,
     rw n_pow at h1,
     exact nat.lt_asymm h1 h1,
-    { sorry, },
     { apply not_prime,
-      sorry, },
+      sorry, -- TODO(Sean)
+    },
   },
   sorry,
 end
 
-instance (n : ℕ) [hn_pos : fact (0 < n)] :
-  decidable_pred (@is_unit (zmod n) _) :=
-begin
-  sorry,
-end
 
-/-- The finset of units of zmod n -/
-def finset_units (n : ℕ) [hn_pos : fact (0 < n)] : finset (zmod n) :=
-(finset.univ : finset (zmod n)).filter is_unit
-
-example : is_unit (0 : zmod 1) :=
-begin
-  simp,
-end
-
-
-lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [hn_pos : fact (0 < n)]
+lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [hn_pos : fact (0 < n)] (hn1 : 1 < n)
   (not_prime : ¬ n.prime) :
   ((finset_units n).filter (λ a, strong_probable_prime n a)).card * 2 ≤ (finset_units n).card :=
 begin
   cases one_or_coprime_factorization_or_prime_power n (hn_pos.out),
-  { have : (finset_units n).card = 0,
-    { rw finset_units,
-      simp only [finset.card_eq_zero],
-      rw finset.filter_eq_empty_iff,
-      intros x hx,
-      rw h at x,
-      sorry,
-    },
-    simp_rw strong_probable_prime,
-    simp [this, h], },
+  { exfalso,
+    -- TODO(Sean)
+    sorry,
+  },
+  -- clear hn1,
   cases h,
   { apply unlikely_strong_probable_prime_of_coprime_mul,
     exact h,
     exact not_prime,
-    -- didn't need unlikely_strong_probable_prime_of_prime_power
   },
   { -- n is a prime power
+    -- TODO(Sean): unlikely_strong_probable_prime_of_prime_power should be able to finish this
     sorry,
   },
 end

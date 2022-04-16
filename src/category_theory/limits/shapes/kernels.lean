@@ -318,12 +318,12 @@ variables [has_zero_object C]
 open_locale zero_object
 
 /-- The morphism from the zero object determines a cone on a kernel diagram -/
-def kernel.zero_cone : cone (parallel_pair f 0) :=
+def kernel.zero_kernel_fork : kernel_fork f :=
 { X := 0,
   π := { app := λ j, 0 }}
 
 /-- The map from the zero object is a kernel of a monomorphism -/
-def kernel.is_limit_cone_zero_cone [mono f] : is_limit (kernel.zero_cone f) :=
+def kernel.is_limit_cone_zero_cone [mono f] : is_limit (kernel.zero_kernel_fork f) :=
 fork.is_limit.mk _ (λ s, 0)
   (λ s, by { erw zero_comp,
     convert (zero_of_comp_mono f _).symm,
@@ -645,12 +645,13 @@ variables [has_zero_object C]
 open_locale zero_object
 
 /-- The morphism to the zero object determines a cocone on a cokernel diagram -/
-def cokernel.zero_cocone : cocone (parallel_pair f 0) :=
+def cokernel.zero_cokernel_cofork : cokernel_cofork f :=
 { X := 0,
   ι := { app := λ j, 0 } }
 
 /-- The morphism to the zero object is a cokernel of an epimorphism -/
-def cokernel.is_colimit_cocone_zero_cocone [epi f] : is_colimit (cokernel.zero_cocone f) :=
+def cokernel.is_colimit_cocone_zero_cocone [epi f] :
+  is_colimit (cokernel.zero_cokernel_cofork f) :=
 cofork.is_colimit.mk _ (λ s, 0)
   (λ s, by { erw zero_comp,
     convert (zero_of_epi_comp f _).symm,

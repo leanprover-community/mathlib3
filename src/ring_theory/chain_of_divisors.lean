@@ -295,13 +295,13 @@ begin
     haveI : order_bot {l : associates M // l ≤ m} := subtype.order_bot bot_le,
     haveI : order_bot {l : associates N // l ≤ n} := subtype.order_bot bot_le,
     suffices : x = ⊥,
-    { rw [this, order_iso.map_bot d, divisors_bot'] at hx,
+    { rw [this, order_iso.map_bot d] at hx,
       exact subtype.mk_eq_mk.mp hx.symm  },
     obtain ⟨a, ha⟩ := x,
     rw [divisors_bot', ← mem_divisors_eq_bot_iff],
     exact ((associates.is_atom_iff (prime.ne_zero (prime_of_normalized_factor p hp))).mpr
       (irreducible_of_normalized_factor p hp) ).right a (subtype.mk_lt_mk.mp (d.lt_iff_lt.mp hb)) },
-      -/
+     -/
       sorry
 end
 
@@ -322,12 +322,12 @@ lemma multiplicity_prime_eq_multiplicity_image_by_factor_order_iso [decidable_eq
   (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   multiplicity p m = multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n :=
 begin
-  refine le_antisymm (multiplicity_prime_le_multiplicity_image_by_factor_order_iso hm hn hp d) _,
+  refine le_antisymm (multiplicity_prime_le_multiplicity_image_by_factor_order_iso hp d) _,
   suffices : multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n ≤
     multiplicity ↑(d.symm (d ⟨p, dvd_of_mem_normalized_factors hp⟩)) m,
   { rw [d.symm_apply_apply ⟨p, dvd_of_mem_normalized_factors hp⟩, subtype.coe_mk] at this,
     exact this },
-  have := (multiplicity_prime_le_multiplicity_image_by_factor_order_iso hn hm
+  have := (multiplicity_prime_le_multiplicity_image_by_factor_order_iso
     (mem_normalized_factors_factor_order_iso_of_mem_normalized_factors hm hn hp d) d.symm),
   rw [subtype.coe_eta] at this,
   exact this,
@@ -354,8 +354,7 @@ noncomputable def mk_factor_order_iso_of_factor_dvd_equiv [decidable_eq (associa
     equiv.apply_symm_apply, subtype.coe_mk, associates.mk_monoid_equiv_apply_symm'],
   map_rel_iff' := by rintros ⟨a, ha⟩ ⟨b, hb⟩ ; simp only [subtype.val_eq_coe, subtype.coe_mk,
     equiv.coe_fn_mk, subtype.mk_le_mk, associates.mk_le_mk_iff_dvd_iff, hd, subtype.coe_mk,
-    subtype.coe_mk, associates.mk_monoid_equiv_symm_dvd_iff_le]
-}
+    subtype.coe_mk, associates.mk_monoid_equiv_symm_dvd_iff_le] }
 
 variables [decidable_eq M] [decidable_eq N] [decidable_eq (associates M)]
   [decidable_eq (associates N)]

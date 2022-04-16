@@ -45,6 +45,17 @@ lemma nat.prime.mod_two_eq_one_of_not_eq_two {p : ℕ} [pp : fact p.prime] (hp :
 or.dcases_on (nat.prime.eq_two_or_odd pp.1)
              (λ (h : p = 2), absurd h hp) (λ (h : p % 2 = 1), rfl.mpr h)
 
+/-- A prime `p` satisfies `p % 2 = 1` if and only if `p ≠ 2`. -/
+lemma nat.prime.mod_two_eq_one_iff_not_eq_two {p : ℕ} [pp : fact p.prime] : p % 2 = 1 ↔ p ≠ 2 :=
+begin
+  split,
+  { intros h hf,
+    simp [hf] at h,
+    exact h, },
+  { intro h,
+    exact nat.prime.mod_two_eq_one_of_not_eq_two h, },
+end
+
 /-- Euler's Criterion: A unit `x` of `zmod p` is a square if and only if `x ^ (p / 2) = 1`. -/
 lemma euler_criterion_units (x : (zmod p)ˣ) :
   (∃ y : (zmod p)ˣ, y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=

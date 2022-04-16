@@ -16,6 +16,8 @@ import topology.continuous_function.bounded
 noncomputable theory
 open_locale classical nnreal ennreal topological_space bounded_continuous_function
 
+open nnreal ennreal set metric emetric filter
+
 section thickened_indicator
 
 variables {α : Type*} [pseudo_emetric_space α]

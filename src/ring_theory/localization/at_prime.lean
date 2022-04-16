@@ -28,8 +28,8 @@ See `src/ring_theory/localization/basic.lean` for a design overview.
 localization, ring localization, commutative ring localization, characteristic predicate,
 commutative ring, field of fractions
 -/
-variables {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*) [comm_ring S]
-variables [algebra R S] {P : Type*} [comm_ring P]
+variables {R : Type*} [comm_semiring R] (M : submonoid R) (S : Type*) [comm_semiring S]
+variables [algebra R S] {P : Type*} [comm_semiring P]
 
 section at_prime
 
@@ -81,13 +81,11 @@ theorem at_prime.local_ring [is_localization.at_prime S I] : local_ring S :=
     rw ←hrx at hx, rw ←hry at hy,
     obtain ⟨t, ht⟩ := is_localization.eq.1 hxyz,
     simp only [mul_one, one_mul, submonoid.coe_mul, subtype.coe_mk] at ht,
-    rw [←sub_eq_zero, ←sub_mul] at ht,
-    have hr := (hp.mem_or_mem_of_mul_eq_zero ht).resolve_right t.2,
-    rw sub_eq_add_neg at hr,
-    have := I.neg_mem_iff.1 ((ideal.add_mem_iff_right _ _).1 hr),
-    { exact not_or (mt hp.mem_or_mem (not_or sx.2 sy.2)) sz.2 (hp.mem_or_mem this)},
-    { exact I.mul_mem_right _ (I.add_mem (I.mul_mem_right _ (this hx))
-                                         (I.mul_mem_right _ (this hy)))}
+    have hr := (@ideal.is_prime.mem_or_mem _ _ _ hp (sx * sy * sz) t _).resolve_right t.2,
+    { exact not_or (mt hp.mem_or_mem (not_or sx.2 sy.2)) sz.2 (hp.mem_or_mem hr) },
+    { rw ←ht,
+      exact (I.mul_mem_right _ $ I.mul_mem_right _ $ I.add_mem
+        (I.mul_mem_right _ $ this hx) (I.mul_mem_right _ (this hy))) }
   end)
 
 end is_localization

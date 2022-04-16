@@ -5,6 +5,7 @@ Authors: Anne Baanen, Paul Lezeau
 -/
 import algebra.is_prime_pow
 import algebra.squarefree
+import order.hom.bounded
 
 /-!
 
@@ -256,19 +257,15 @@ lemma map_is_unit_of_monotone_is_unit {m u : associates M} {n : associates N}
   (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   is_unit (d ⟨u, hu'⟩ : associates N) :=
 begin
-  sorry,
-  /-
-  rw associates.is_unit_iff_eq_one,
-  rw ← bot_eq_one,
+  rw [associates.is_unit_iff_eq_one, ← associates.bot_eq_one],
   suffices : d ⟨u, hu'⟩ = ⟨⊥, bot_le⟩,
   { rw [subtype.ext_iff, subtype.coe_mk] at this,
     exact this },
-  have : (⊥ :  {l : associates N // l ≤ n}) = ⟨⊥, bot_le⟩ := rfl,
-  rw ← this,
-  rw order_iso.map_eq_bot_iff d,
-  rw associates.is_unit_iff_eq_one at hu,
-  have : (⊥ :  {l : associates M // l ≤ m}) = ⟨⊥, bot_le⟩ := rfl,
-  simp only [this, hu, bot_eq_one],-/
+  haveI : order_bot {l : associates M // l ≤ m} := subtype.order_bot bot_le,
+  haveI : order_bot {l : associates N // l ≤ n} := subtype.order_bot bot_le,
+  rwa [subtype.mk_bot, map_eq_bot_iff d, subtype.mk_eq_bot_iff, associates.bot_eq_one,
+    ← associates.is_unit_iff_eq_one],
+  exact bot_le,
 end
 
 lemma map_is_unit_iff_is_unit [decidable_eq (associates N)] {m u : associates M} {n : associates N}
@@ -284,8 +281,7 @@ lemma map_prime_of_monotone_equiv [decidable_eq (associates N)]
   prime (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N) :=
 begin
   rw ← irreducible_iff_prime,
-  /-
-  refine (associates.is_atom_iff (ne_zero_of_dvd_ne_zero hn (d ⟨p, _⟩).prop)).mp ⟨_, λ b hb, _⟩,
+  refine (associates.is_atom_iff $ ne_zero_of_dvd_ne_zero hn (d ⟨p, _⟩).prop).mp ⟨_, λ b hb, _⟩,
   { rw [ne.def, ← associates.is_unit_iff_eq_bot, ← map_is_unit_iff_is_unit
     (dvd_of_mem_normalized_factors hp) d],
     exact prime.not_unit (prime_of_normalized_factor p hp) },
@@ -295,14 +291,14 @@ begin
     haveI : order_bot {l : associates M // l ≤ m} := subtype.order_bot bot_le,
     haveI : order_bot {l : associates N // l ≤ n} := subtype.order_bot bot_le,
     suffices : x = ⊥,
-    { rw [this, order_iso.map_bot d] at hx,
-      exact subtype.mk_eq_mk.mp hx.symm  },
+    { rw [this, order_iso.map_bot d ] at hx,
+      refine (subtype.mk_eq_bot_iff _ _).mp hx.symm,
+      exact bot_le },
     obtain ⟨a, ha⟩ := x,
-    rw [divisors_bot', ← mem_divisors_eq_bot_iff],
-    exact ((associates.is_atom_iff (prime.ne_zero (prime_of_normalized_factor p hp))).mpr
-      (irreducible_of_normalized_factor p hp) ).right a (subtype.mk_lt_mk.mp (d.lt_iff_lt.mp hb)) },
-     -/
-      sorry
+    rw subtype.mk_eq_bot_iff,
+    exact ((associates.is_atom_iff $ prime.ne_zero $ prime_of_normalized_factor p hp).mpr
+      $ irreducible_of_normalized_factor p hp).right a (subtype.mk_lt_mk.mp $ d.lt_iff_lt.mp hb),
+    exact bot_le },
 end
 
 lemma mem_normalized_factors_factor_order_iso_of_mem_normalized_factors
@@ -340,19 +336,22 @@ noncomputable def mk_factor_order_iso_of_factor_dvd_equiv [decidable_eq (associa
   {m : M} {n : N} (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}) (hd : ∀ l l',
   ((d l) : N) ∣ (d l') ↔ (l : M) ∣ (l' : M)) :
    {l : associates M // l ≤ associates.mk m} ≃o {l : associates N // l ≤ associates.mk n} :=
-{ to_fun := λ l, ⟨associates.mk (d ⟨mk_monoid_equiv.symm ↑l , by obtain ⟨x, hx⟩ := l ;
-    rw [subtype.coe_mk, ← mk_monoid_equiv.symm_apply_apply m, mk_monoid_equiv_apply,
-    associates.mk_monoid_equiv_symm_dvd_iff_le] ; exact hx⟩),
+{ to_fun := λ l, ⟨associates.mk (d ⟨mk_monoid_equiv.symm ↑l ,
+    by obtain ⟨x, hx⟩ := l ;
+      rw [subtype.coe_mk, ← mk_monoid_equiv.symm_apply_apply m, mk_monoid_equiv_apply,
+      associates.mk_monoid_equiv_symm_dvd_iff_le] ; exact hx⟩),
     mk_le_mk_iff_dvd_iff.mpr (subtype.prop (d ⟨mk_monoid_equiv.symm ↑l,_⟩))⟩,
-  inv_fun := λ l, ⟨associates.mk (d.symm (⟨(mk_monoid_equiv.symm ↑l), by obtain ⟨x, hx⟩ := l ;
-  rw [subtype.coe_mk, ← mk_monoid_equiv.symm_apply_apply n, mk_monoid_equiv_apply,
-    associates.mk_monoid_equiv_symm_dvd_iff_le] ; exact hx⟩)),
+  inv_fun := λ l, ⟨associates.mk (d.symm (⟨(mk_monoid_equiv.symm ↑l),
+    by obtain ⟨x, hx⟩ := l ;
+      rw [subtype.coe_mk, ← mk_monoid_equiv.symm_apply_apply n, mk_monoid_equiv_apply,
+      associates.mk_monoid_equiv_symm_dvd_iff_le] ; exact hx⟩)),
     mk_le_mk_iff_dvd_iff.mpr (subtype.prop (d.symm ⟨mk_monoid_equiv.symm ↑l,_⟩)) ⟩,
   left_inv := λ ⟨l, hl⟩, by simp only [associates.mk_monoid_equiv_apply_symm_mk, subtype.coe_eta,
     equiv.symm_apply_apply, subtype.coe_mk, associates.mk_monoid_equiv_apply_symm'],
   right_inv := λ ⟨l, hl⟩, by simp only [associates.mk_monoid_equiv_apply_symm_mk, subtype.coe_eta,
     equiv.apply_symm_apply, subtype.coe_mk, associates.mk_monoid_equiv_apply_symm'],
-  map_rel_iff' := by rintros ⟨a, ha⟩ ⟨b, hb⟩ ; simp only [subtype.val_eq_coe, subtype.coe_mk,
+  map_rel_iff' :=
+    by rintros ⟨a, ha⟩ ⟨b, hb⟩ ; simp only [subtype.val_eq_coe, subtype.coe_mk,
     equiv.coe_fn_mk, subtype.mk_le_mk, associates.mk_le_mk_iff_dvd_iff, hd, subtype.coe_mk,
     subtype.coe_mk, associates.mk_monoid_equiv_symm_dvd_iff_le] }
 

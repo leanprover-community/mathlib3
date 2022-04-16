@@ -2,6 +2,7 @@ import probability.martingale
 import probability.independence
 import probability.integration
 import measure_theory.function.l2_space
+import measure_theory.integral.interval_integral
 
 open measure_theory filter finset
 
@@ -277,6 +278,10 @@ begin
   { simp [abs_nonneg] }
 end
 
+@[simp] lemma truncation_zero (f : α → ℝ) :
+  truncation f 0 = 0 :=
+by simp [truncation]
+
 lemma abs_truncation_le_abs_self (f : α → ℝ) (A : ℝ) (x : α) :
   |truncation f A x| ≤ |f x| :=
 begin
@@ -338,10 +343,19 @@ begin
   simpa using pow_nonneg hc _
 end
 
-lemma aux_sum_horrible (N : ℕ) (j : ℝ) (hj : 0 < j) (c : ℝ) (hc : 1 < c) :
-  ∑ i in (range N).filter (λ i, j < c ^ i), 1 / (c ^ i) ^ 2 ≤ (c^2 * (1 - c⁻¹ ^ 2) ⁻¹) / j ^ 2 :=
+
+lemma aux_sum_horrible (N : ℕ) {j : ℝ} (hj : 0 < j) {c : ℝ} (hc : 1 < c) :
+  ∑ i in (range N).filter (λ i, j < c ^ i), 1 / (c ^ i) ^ 2 ≤ (c^3 * (c - 1) ⁻¹) / j ^ 2 :=
 begin
-  have A : 0 < (c⁻¹) ^ 2 := sq_pos_of_pos (inv_pos.2 (zero_lt_one.trans hc)),
+  have cpos : 0 < c := zero_lt_one.trans hc,
+  have A : 0 < (c⁻¹) ^ 2 := sq_pos_of_pos (inv_pos.2 cpos),
+  have B : c^2 * (1 - c⁻¹ ^ 2) ⁻¹ ≤ c^3 * (c - 1) ⁻¹,
+  { rw [← div_eq_mul_inv, ← div_eq_mul_inv, div_le_div_iff _ (sub_pos.2 hc)], swap,
+    { exact sub_pos.2 (pow_lt_one (inv_nonneg.2 cpos.le) (inv_lt_one hc) two_ne_zero) },
+    have : c ^ 3 = c^2 * c, by ring_exp,
+    simp only [mul_sub, this, mul_one, inv_pow₀, sub_le_sub_iff_left],
+    rw [mul_assoc, mul_comm c, ← mul_assoc, mul_inv_cancel (sq_pos_of_pos cpos).ne', one_mul],
+    simpa using pow_le_pow hc.le one_le_two },
   calc
   ∑ i in (range N).filter (λ i, j < c ^ i), 1/ (c ^ i) ^ 2
     ≤ ∑ i in Ico (⌊real.log j / real.log c⌋₊) N, 1 / (c ^ i) ^ 2 :
@@ -391,37 +405,73 @@ begin
     field_simp [hj.ne', (zero_lt_one.trans hc).ne'],
     ring,
   end
+  ... ≤ (c^3 * (c - 1) ⁻¹) / j ^ 2 :
+  begin
+    apply div_le_div _ B (sq_pos_of_pos hj) le_rfl,
+    exact mul_nonneg (pow_nonneg cpos.le _) (inv_nonneg.2 (sub_pos.2 hc).le),
+  end
 end
 
-lemma glouk (N : ℕ) (j : ℝ) (hj : 0 < j) (c : ℝ) (hc : 1 < c) :
-  ∑ i in (range N).filter (λ i, j < ⌊c ^ i⌋₊), (1 : ℝ) / ⌊c ^ i⌋₊ ^ 2 ≤ 1 / j ^ 2 :=
+lemma mul_pow_le_nat_floor_pow {c : ℝ} (hc : 1 < c) (i : ℕ) :
+  (1 - c⁻¹) * c ^ i ≤ ⌊c ^ i⌋₊ :=
 begin
-  have : ∀ (i : ℕ), (1 : ℝ) / ⌊c ^ i⌋₊  ≤ (c/(c-1)) / (c ^ i),
-  { assume i,
-    rcases nat.eq_zero_or_pos i with rfl|hi,
-    { simp only [pow_zero, nat.floor_one, nat.cast_one, div_one],
-      rw le_div_iff (sub_pos.2 hc),
-      simp only [one_mul, sub_le_self_iff, zero_le_one] },
-    rw div_le_div_iff, rotate,
-    { refine zero_lt_one.trans_le _,
-      simp only [one_le_sq_iff_one_le_abs, nat.abs_cast, nat.one_le_cast],
-      apply nat.le_floor,
-      rw nat.cast_one,
-      apply one_le_pow_of_one_le hc.le },
-    { apply pow_pos,
-      apply zero_lt_one.trans hc },
-    have h'i : 1 ≤ i := hi,
-    simp only [← mul_pow, one_mul, div_eq_inv_mul, mul_assoc],
-    rw [← div_eq_inv_mul, le_div_iff (sub_pos.2 hc)],
-    calc c ^ i * (c - 1) = c ^ (i + 1) - c ^ i : by ring_exp
-    ... ≤ c ^ (i + 1) - c : by simpa using pow_le_pow hc.le h'i
-    ... = c * (c ^ i - 1) : by ring_exp
-    ... ≤ c * ⌊c ^ i⌋₊ :
-      (mul_le_mul_left (zero_lt_one.trans hc)).2 (nat.sub_one_lt_floor _).le },
-  sorry,
+  have cpos : 0 < c := zero_lt_one.trans hc,
+  rcases nat.eq_zero_or_pos i with rfl|hi,
+  { simp only [pow_zero, nat.floor_one, nat.cast_one, mul_one, sub_le_self_iff, inv_nonneg,
+      cpos.le] },
+  have h'i : 1 ≤ i := hi,
+  calc (1 - c⁻¹) * c ^ i
+      = c ^ i - c ^ i * c ⁻¹ : by ring
+  ... ≤ c ^ i - 1 :
+    by simpa only [←div_eq_mul_inv, sub_le_sub_iff_left, one_le_div cpos, pow_one]
+      using pow_le_pow hc.le h'i
+  ... ≤ ⌊c ^ i⌋₊ : (nat.sub_one_lt_floor _).le
 end
 
-#exit
+lemma aux_sum_horrible2 (N : ℕ) {j : ℝ} (hj : 0 < j) {c : ℝ} (hc : 1 < c) :
+  ∑ i in (range N).filter (λ i, j < ⌊c ^ i⌋₊), (1 : ℝ) / ⌊c ^ i⌋₊ ^ 2
+    ≤ (c ^ 5 * (c - 1) ⁻¹ ^ 3) / j ^ 2 :=
+begin
+  have cpos : 0 < c := zero_lt_one.trans hc,
+  have A : 0 < 1 - c⁻¹ := sub_pos.2 (inv_lt_one hc),
+  calc
+  ∑ i in (range N).filter (λ i, j < ⌊c ^ i⌋₊), (1 : ℝ) / ⌊c ^ i⌋₊ ^ 2
+      ≤ ∑ i in (range N).filter (λ i, j < c ^ i), (1 : ℝ) / ⌊c ^ i⌋₊ ^ 2 :
+  begin
+    apply sum_le_sum_of_subset_of_nonneg,
+    { assume i hi,
+      simp only [mem_filter, mem_range] at hi,
+      simpa only [hi.1, mem_filter, mem_range, true_and]
+        using hi.2.trans_le (nat.floor_le (pow_nonneg cpos.le _)) },
+    { assume i hi h'i,
+      exact div_nonneg zero_le_one (sq_nonneg _), }
+  end
+  ... ≤ ∑ i in (range N).filter (λ i, j < c ^ i), ((1 - c⁻¹) ⁻¹) ^ 2 * (1 / (c ^ i) ^ 2) :
+  begin
+    apply sum_le_sum (λ i hi, _),
+    rw [mul_div_assoc', mul_one, div_le_div_iff], rotate,
+    { apply sq_pos_of_pos,
+      refine zero_lt_one.trans_le _,
+      simp only [nat.le_floor, one_le_pow_of_one_le, hc.le, nat.one_le_cast, nat.cast_one] },
+    { exact sq_pos_of_pos (pow_pos cpos _) },
+    rw [one_mul, ← mul_pow],
+    apply pow_le_pow_of_le_left (pow_nonneg cpos.le _),
+    rw [← div_eq_inv_mul, le_div_iff A, mul_comm],
+    exact mul_pow_le_nat_floor_pow hc i,
+  end
+  ... ≤ ((1 - c⁻¹) ⁻¹) ^ 2 * (c^3 * (c - 1) ⁻¹) / j ^ 2 :
+  begin
+    rw [← mul_sum, ← mul_div_assoc'],
+    refine mul_le_mul_of_nonneg_left _ (sq_nonneg _),
+    exact aux_sum_horrible N hj hc,
+  end
+  ... = (c ^ 5 * (c - 1) ⁻¹ ^ 3) / j ^ 2 :
+  begin
+    congr' 1,
+    field_simp [cpos.ne', (sub_pos.2 hc).ne'],
+    ring,
+  end
+end
 
 theorem
   strong_law1
@@ -431,9 +481,32 @@ theorem
   (h''i : ∀ i ω, 0 ≤ X i ω) :
   ∀ᵐ ω, tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) * (∑ i in range n, X i ω)) at_top (𝓝 (𝔼[X 0])) :=
 begin
+  let ρ : measure ℝ := measure.map (X 0) ℙ,
   have A : ∀ i, strongly_measurable (indicator (set.Ioc (-i : ℝ) i) id) :=
     λ i, strongly_measurable_id.indicator measurable_set_Ioc,
   let Y := λ (n : ℕ), truncation (X n) n,
+  have : ∀ n, 𝔼[Y n ^ 2] = ∫ x in 0..n, x ^ 2 ∂ρ,
+  {
+
+  },
+
+end
+
+#exit
+
+  have : ∀ K, ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * Var[Y j] ≤ 10,
+  { assume K,
+    calc ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * Var[Y j]
+        ≤ ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * 𝔼[Y j ^ 2] : sum_le_sum (λ i hi,
+          mul_le_mul_of_nonneg_left variance_le_expectation_sq (inv_nonneg.2 (sq_nonneg _)))
+    ... ≤ 10 : sorry
+
+  }
+
+end
+
+#exit
+
   set S := λ n, ∑ i in range n, Y i with hS,
   have : tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) * (∑ i in range n, 𝔼[Y i])) at_top (𝓝 (𝔼[X 0])),
   sorry { apply filter.tendsto.cesaro,
@@ -450,6 +523,12 @@ begin
   have u_mono : monotone u := sorry,
   have ε : ℝ := sorry,
   have εpos : 0 < ε := sorry,
+
+end
+
+#exit
+
+
   have : ∀ N, ∑ i in range N, ((u i : ℝ) ^ 2) ⁻¹ * Var[S (u i)] ≤ 10,
   { assume N,
     calc
@@ -464,16 +543,8 @@ begin
         { assume k hk l hl hkl,
           exact (hindep k l hkl).comp (A k).measurable (A l).measurable }
       end
-    ... ≤ ∑ i in range N, ((u i : ℝ) ^ 2) ⁻¹ * (∑ j in range (u i), 𝔼[Y j ^ 2]) :
-      begin
-        apply sum_le_sum (λ i hi, _),
-        apply mul_le_mul le_rfl, rotate,
-        { exact sum_nonneg (λ j hj, variance_nonneg (Y j) _) },
-        { exact inv_nonneg.2 (sq_nonneg _) },
-        exact sum_le_sum (λ i hi, variance_le_expectation_sq),
-      end
     ... = ∑ j in range (u (N - 1)),
-            (∑ i in (range N).filter (λ i, j < u i), ((u i : ℝ) ^ 2) ⁻¹) * 𝔼[Y j ^ 2] :
+            (∑ i in (range N).filter (λ i, j < u i), ((u i : ℝ) ^ 2) ⁻¹) * Var[Y j] :
       begin
         simp_rw [mul_sum, sum_mul, sum_sigma'],
         refine sum_bij' (λ (p : (Σ (i : ℕ), ℕ)) hp, (⟨p.2, p.1⟩ : (Σ (i : ℕ), ℕ))) _ (λ a ha, rfl)
@@ -488,13 +559,27 @@ begin
         { rintros ⟨i, j⟩ hij, refl },
         { rintros ⟨i, j⟩ hij, refl },
       end
-
+    ... ≤ ∑ j in range (u (N - 1)), (c ^ 5 * (c - 1) ⁻¹ ^ 3 / j ^ 2) * Var[Y j] :
+      begin
+        apply sum_le_sum (λ j hj, _),
+        rcases @eq_zero_or_pos _ _ j with rfl|hj,
+        { simp only [Y, nat.cast_zero, zero_pow', ne.def, bit0_eq_zero, nat.one_ne_zero,
+            not_false_iff, div_zero, zero_mul],
+          simp only [nat.cast_zero, truncation_zero, variance_zero, mul_zero] },
+        apply mul_le_mul_of_nonneg_right _ (variance_nonneg _ _),
+        convert aux_sum_horrible2 N (nat.cast_pos.2 hj) c_one,
+        { simp only [nat.cast_lt] },
+        { simp only [one_div] }
+      end
     ... ≤ 10 : sorry
 
   }
 end
 
 #exit
+
+
+
   have : ∀ N, ∑ i in range N, ℙ {ω | (u i * ε : ℝ) ≤ |S (u i) ω - 𝔼[S (u i)]|} ≤ 10,
   { assume N,
     calc ∑ i in range N, ℙ {ω | (u i * ε : ℝ) ≤ |S (u i) ω - 𝔼[S (u i)]|}

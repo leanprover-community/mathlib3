@@ -106,9 +106,9 @@ begin
     smul_right_inj hb.ne'] using (h _ _ H).norm_smul_eq.symm
 end
 
-lemma strict_convex_space.of_norm_add_lt_aux {a b c d : ℝ} (ha : 0 < a) (hb : 0 < b)
-  (hab : a + b = 1) (hc : 0 < c) (hd : 0 < d) (hcd : c + d = 1) (hca : c ≤ a) {x y : E}
-  (hy : ∥y∥ ≤ 1) (hxy : ∥a • x + b • y∥ < 1) :
+lemma strict_convex_space.of_norm_add_lt_aux {a b c d : ℝ} (ha : 0 < a) (hab : a + b = 1)
+  (hc : 0 < c) (hd : 0 < d) (hcd : c + d = 1) (hca : c ≤ a) {x y : E} (hy : ∥y∥ ≤ 1)
+  (hxy : ∥a • x + b • y∥ < 1) :
   ∥c • x + d • y∥ < 1 :=
 begin
   have hbd : b ≤ d,
@@ -144,9 +144,9 @@ begin
   rw [interior_closed_ball (0 : E) one_ne_zero, mem_ball_zero_iff],
   rw mem_closed_ball_zero_iff at hx hy,
   obtain hca | hac := le_total c a,
-  { exact strict_convex_space.of_norm_add_lt_aux ha hb hab hc hd hcd hca hy (h _ _ hx hy hxy) },
+  { exact strict_convex_space.of_norm_add_lt_aux ha hab hc hd hcd hca hy (h _ _ hx hy hxy) },
   rw add_comm at ⊢ hab hcd,
-  refine strict_convex_space.of_norm_add_lt_aux hb ha hab hd hc hcd _ hx _,
+  refine strict_convex_space.of_norm_add_lt_aux hb hab hd hc hcd _ hx _,
   { refine le_of_add_le_add_right (hcd.trans_le _),
     rw ←hab,
     exact add_le_add_left hac _ },

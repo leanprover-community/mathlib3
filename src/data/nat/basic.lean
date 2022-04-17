@@ -435,11 +435,9 @@ iff.intro
 
 lemma add_eq_one_iff : ∀ {a b : ℕ}, a + b = 1 ↔ (a = 0 ∧ b = 1) ∨ (a = 1 ∧ b = 0)
 | 0     0     := dec_trivial
-| 0     1     := dec_trivial
 | 1     0     := dec_trivial
-| 1     1     := dec_trivial
 | (a+2) _     := by rw add_right_comm; exact dec_trivial
-| _     (b+2) := by rw [← add_assoc]; simp only [nat.succ_inj', nat.succ_ne_zero]; simp
+| _     (b+1) := by rw [← add_assoc]; simp only [nat.succ_inj', nat.succ_ne_zero]; simp
 
 theorem le_add_one_iff {i j : ℕ} : i ≤ j + 1 ↔ (i ≤ j ∨ i = j + 1) :=
 ⟨λ h,

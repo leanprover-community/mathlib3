@@ -62,6 +62,8 @@ begin
   convert one_mul _,
 end
 
+example (a : ℕ) : a.succ - a = 1 := norm_num.sub_nat_pos (nat.succ a) a 1 rfl
+
 lemma finset.sum_range_mul_eq_sum_Ico {m n : ℕ} (f : ℕ → S) :
   ∑ a in finset.range (m * n), f a =
   ∑ i in finset.range n, (∑ a in finset.Ico (m * i) (m * i.succ), f a) :=
@@ -73,49 +75,11 @@ begin
      (mul_le_mul (le_refl _) (nat.le_succ _) (nat.zero_le _) (nat.zero_le _))], },
 end
 
-example {a b c : ℚ} (h : a + b = c) : b = c - a := eq_sub_of_add_eq' h
+example (f : ℕ × ℕ → ℚ) (a b : ℕ) :
+  (∑ i in finset.range a, (∑ j in finset.range b, (f (i, j)))) =
+    ∑ i in finset.range b, (∑ j in finset.range a, f (i, j)) := by {simp}
 
-theorem bernoulli_polynomial.eval_mul (m : ℕ) {k x : ℕ} (hk : k ≠ 0) (hx : 0 < x) :
-  (bernoulli_poly m).eval (k * x) = k^(m - 1 : ℤ) *
-  ∑ i in finset.range k, (bernoulli_poly m).eval (x + i / k) :=
-begin
-  apply nat.strong_induction_on m (λ n h, _),
-  suffices : (((n.succ : ℚ) • bernoulli_poly n).eval (k * x)) =
-    (k^(n - 1 : ℤ) * ∑ i in finset.range k, ((n.succ : ℚ) • bernoulli_poly n).eval (x + i / k)),
-  { /-rw mul_eq_mul_left_iff at this, cases this,
-    { rw this, },
-    { exfalso, norm_cast at this, }, -/ sorry, },
-  { have := bernoulli_poly.sum_bernoulli_poly n,
-    rw finset.sum_range_succ at this,
-    have f2 := eq_sub_of_add_eq' this,
-    rw nat.choose_succ_self_right n at f2,
-    rw f2,
-    sorry, },
-
-
-  simp at this,
---  induction m with d  hd,
-  { simp only [gpow_one, bernoulli_poly.bernoulli_poly_zero, zero_sub, int.coe_nat_zero,
-      finset.sum_const, polynomial.eval_one, fpow_neg, finset.card_range, nat.smul_one_eq_coe],
-    rw inv_mul_cancel _,
-    simp only [hk, ne.def, nat.cast_eq_zero, not_false_iff], },
-  {
-    sorry, },
-  have f1 := bernoulli_poly.exp_bernoulli_poly' (k * x : ℚ),
-
---  rw ←power_series.exp_pow_eq_rescale_exp at f1,
-  have f2 := geom_sum_eq _ k,
-  induction x with d hd,
-  simp,
-  rw bernoulli_poly_def,
-  /-rw polynomial.eval_finset_sum,
-  simp_rw [polynomial.eval_monomial], -/
-  conv_rhs { congr, skip, apply_congr, skip, rw polynomial.eval_finset_sum, },
-  simp_rw [polynomial.eval_monomial],
---  conv_rhs { congr, skip, apply_congr, skip, apply_congr, skip, rw polynomial.eval_monomial, },
-
-  sorry
-end
+example (a b c : ℚ) (hc : c ≠ 0) : c * (a / (b * c)) = a / b := sorry
 
 lemma eq_sum_bernoulli_of_conductor_dvd {F : ℕ} [hF : fact (0 < F)] (m : ℕ) (h : ψ.conductor ∣ F) :
   general_bernoulli_number ψ m =
@@ -124,8 +88,26 @@ lemma eq_sum_bernoulli_of_conductor_dvd {F : ℕ} [hF : fact (0 < F)] (m : ℕ) 
 begin
   cases h with k h, rw h,
   rw finset.sum_range_mul_eq_sum_Ico,
-  --rw bernoulli_polynomial.eval_mul,
+  simp_rw [finset.sum_Ico_eq_sum_range],
+  simp_rw [←nat.mul_sub_left_distrib],
+  simp_rw [norm_num.sub_nat_pos (nat.succ _) _ 1 rfl],
+  simp_rw [mul_one],
+  rw general_bernoulli_number_def,
+  have hk1 : k ≠ 0, sorry,
+  have hk2 : (k : ℚ) ≠ 0, sorry,
+  conv_lhs { congr, skip, apply_congr, skip,
+    rw [←mul_div_mul_left _ _ hk2, ←mul_div_assoc', bernoulli_poly.eval_mul _ hk1,
+    (algebra_map _ _).map_mul, (algebra_map _ _).map_sum, ←mul_assoc,
+    mul_comm ((asso_dirichlet_character ψ) ↑(x.succ)) _, mul_assoc, finset.mul_sum], },
+  rw [←finset.mul_sum, ←mul_assoc],
+  apply congr_arg2,
   sorry,
+  { rw finset.sum_comm,
+    apply finset.sum_congr rfl (λ i hi, _),
+    apply finset.sum_congr rfl (λ j hj, _),
+    apply congr_arg2,
+    sorry,
+    { apply congr_arg, congr, sorry, }, },
 end
 
 end general_bernoulli_number

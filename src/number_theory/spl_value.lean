@@ -462,7 +462,6 @@ theorem p_adic_L_function_eval_neg_int [semi_normed_algebra ℚ R] (n : ℕ) :
   (general_bernoulli_number (dirichlet_character.mul χ
     ((teichmuller_character_mod_p_change_level p d R m)^n)) n) :=
 begin
-  cases dirichlet_character.is_odd_or_is_even χ,
   sorry
 end
 -- don't really need to change level to d*p^m for ω, right?

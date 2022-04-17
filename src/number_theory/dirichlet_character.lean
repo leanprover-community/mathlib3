@@ -27,7 +27,7 @@ p-adic, L-function, Bernoulli measure, Dirichlet character
 -/
 
 lemma is_unit.unit_mul {α : Type*} [monoid α] {x y : α} (hx : is_unit x) (hy : is_unit y) :
-  (is_unit.unit hx) * (is_unit.unit hy) = is_unit.unit (is_unit.mul hx hy) :=
+  hx.unit * hy.unit = (hx.mul hy).unit :=
   by { rw ←units.eq_iff, simp [is_unit.unit_spec] }
 
 /-- A Dirichlet character is defined as a multiplicative homomorphism which is periodic. -/
@@ -235,6 +235,13 @@ end
 
 lemma conductor_eq_one_iff (hn : 0 < n) : χ = 1 ↔ χ.conductor = 1 :=
 ⟨λ h, by { rw h, rw conductor_one hn, }, λ h, by {rw χ.conductor_eq_one h,}⟩
+
+lemma asso_dirichlet_character_eval_add_conductor (m k : ℕ) :
+  asso_dirichlet_character χ (m + k * χ.conductor : zmod n) = asso_dirichlet_character χ m :=
+begin
+  by_cases is_unit (m : zmod n),
+  { rw asso_dirichlet_character_eq_char' χ h, },
+end
 
 /-- A character is primitive if its level is equal to its conductor. -/
 def is_primitive : Prop := χ.conductor = n

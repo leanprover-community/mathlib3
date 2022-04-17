@@ -182,7 +182,8 @@ end
 
 /-- A version of the law of total probability for counting probabilites. -/
 lemma cond_count_add_compl_eq (hs : s.finite) :
-  cond_count (s ∩ u) t * cond_count s u + cond_count (s ∩ uᶜ) t * cond_count s uᶜ = cond_count s t :=
+  cond_count (s ∩ u) t * cond_count s u + cond_count (s ∩ uᶜ) t * cond_count s uᶜ =
+  cond_count s t :=
 begin
   conv_rhs { rw [(by simp : s = s ∩ u ∪ s ∩ uᶜ),
     ← cond_count_disjoint_union (hs.inter_of_left _) (hs.inter_of_left _)

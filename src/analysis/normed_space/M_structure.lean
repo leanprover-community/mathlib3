@@ -217,17 +217,7 @@ instance : has_sdiff {P : X →L[𝕜] X // is_Lprojection P} :=
 instance : partial_order {P : X →L[𝕜] X // is_Lprojection P} :=
 { le := λ P Q, (↑P:X →L[𝕜] X) = ↑(P ⊓ Q),
   le_refl := λ P, by simpa only [coe_inf, ←sq] using (projection_def P.prop.left).symm,
-  le_trans := λ P Q R,
-  λ h₁ h₂, begin
-    simp only [coe_inf],
-    have e₁: ↑P = ↑P * ↑Q := h₁,
-    have e₂: ↑Q = ↑Q * ↑R := h₂,
-    exact
-    ( begin
-      nth_rewrite_rhs 0 e₁,
-      rw [mul_assoc, ← e₂, ← e₁],
-    end : (↑P:X →L[𝕜] X) = ↑P * ↑R)
-  end,
+  le_trans := λ P Q R h₁ h₂, by { simp only [coe_inf] at ⊢ h₁ h₂, rw [h₁, mul_assoc, ←h₂] },
   le_antisymm := λ P Q,
   λ h₁ h₂, begin
     have e₁: ↑P = ↑P * ↑Q := h₁,

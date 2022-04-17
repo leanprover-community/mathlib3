@@ -49,6 +49,29 @@ def map₂ (m : α → β → γ) (f : filter α) (g : filter β) : filter γ :=
 lemma image2_mem_map₂ (hs : s ∈ f) (ht : t ∈ g) : image2 m s t ∈ map₂ m f g :=
 ⟨_, _, hs, ht, subset.rfl⟩
 
+lemma map₂_eq_map_prod (m : α → β → γ) (f : filter α) (g : filter β) :
+  map₂ m f g = filter.map (λ p : α × β, m p.1 p.2) (filter.prod f g) :=
+begin
+  rw filter.ext_iff,
+  intro s,
+  split,
+  intro hmem,
+  rw mem_map₂_iff at hmem,
+  obtain ⟨t, t', ht, ht', hsub⟩ := hmem,
+  rw ← set.image_prod at hsub,
+  rw filter.mem_map_iff_exists_image,
+  exact ⟨t ×ˢ t', filter.prod_mem_prod ht ht', hsub⟩,
+  intro hmem,
+  rw mem_map₂_iff,
+  rw filter.mem_map_iff_exists_image at hmem,
+  obtain ⟨s', hs', hsub⟩ := hmem,
+  rw filter.mem_prod_iff at hs',
+  obtain ⟨t, ht, t', ht', hsub'⟩ := hs',
+  refine ⟨t, t', ht, ht', _⟩,
+  rw ← set.image_prod,
+  exact subset_trans (set.image_subset (λ (p : α × β), m p.fst p.snd) hsub') hsub,
+end
+
 -- lemma image2_mem_map₂_iff (hm : injective2 m) : image2 m s t ∈ map₂ m f g ↔ s ∈ f ∧ t ∈ g :=
 -- ⟨by { rintro ⟨u, v, hu, hv, h⟩, rw image2_subset_image2_iff hm at h,
 --   exact ⟨mem_of_superset hu h.1, mem_of_superset hv h.2⟩ }, λ h, image2_mem_map₂ h.1 h.2⟩

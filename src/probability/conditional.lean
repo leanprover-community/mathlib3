@@ -33,7 +33,7 @@ application `μ[|s] t`).
 ## Implementation notes
 
 Because we have the alternative measure restriction application principles
-`measure.restrict_apply` and `measure.restrict_apply'`, which require 
+`measure.restrict_apply` and `measure.restrict_apply'`, which require
 measurability of the restricted and restricting sets, respectively,
 many of the theorems here will have corresponding alternatives as well.
 For the sake of brevity, we've chosen to only go with `measure.restrict_apply'`
@@ -61,7 +61,7 @@ namespace probability_theory
 
 section definitions
 
-/-- The conditional probability measure of measure `μ` on set `s` is `μ` restricted to `s` 
+/-- The conditional probability measure of measure `μ` on set `s` is `μ` restricted to `s`
 and scaled by the inverse of `μ s` (to make it a probability measure):
 `(μ s)⁻¹ • μ.restrict s`. -/
 def cond (s : set α) : measure α :=
@@ -69,8 +69,8 @@ def cond (s : set α) : measure α :=
 
 end definitions
 
-local notation  μ `[` s `|` t `]` := cond μ t s
-local notation  μ `[|`:60 t`]` := cond μ t
+localized "notation  μ `[` s `|` t `]` := cond μ t s" in probability_theory
+localized "notation  μ `[|`:60 t`]` := cond μ t" in probability_theory
 
 /-- The conditional probability measure of any finite measure on any set of positive measure
 is a probability measure. -/

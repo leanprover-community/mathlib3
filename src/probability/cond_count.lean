@@ -1,4 +1,35 @@
+/-
+Copyright (c) 2022 Kexing Ying and Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kexing Ying, Bhavik Mehta
+-/
 import probability.conditional
+
+/-!
+# Classical probability
+
+The classical formulation of probability states that the probability of an event occuring is the
+ratio of that event to all possible events. This notion can be expressed with measure theory using
+the counting measure. In particular, given the sets `s` and `t`, we define the probability of `t`
+occuring in `s` to be `|s|⁻¹ * |s ∩ t|`. With this definition, we recover the the probability over
+the entire sample space when `s = set.univ`.
+
+Classical probability is often used in combinatorics and we prove some useful lemmas in this file
+for that purpose.
+
+## main definition
+
+* `probability_theory.cond_count`: given a set `s`, `cond_count s` is the counting measure
+  conditioned on `s`. This is a probability measure when `s` is finite and nonempty.
+
+## notes
+
+The original aim of this file is to provide a measure theoretic method of describing the
+probability an element of a set `s` satisfies some predicate `P`. Our current formulation still
+allow us to describe this by abusing the definitional equality of sets and predicates by simply
+writting `cond_count s P`. We should avoid this however as none of the lemmas are written for
+predicates.
+-/
 
 noncomputable theory
 
@@ -10,6 +41,11 @@ namespace probability_theory
 
 variables {α : Type*} [measurable_space α]
 
+/-- Given a set `s`, `cond_count s` is the counting measure conditioned on `s`. In particular,
+`cond_count s t` is the proportion of `s` that is contained in `t`.
+
+This is a probability measure when `s` is finite and nonempty and is given by
+`probability_theory.cond_count_is_probability_measure`. -/
 def cond_count (s : set α) : measure α := measure.count[|s]
 
 @[simp] lemma cond_count_empty_meas : (cond_count ∅ : measure α) = 0 :=
@@ -122,8 +158,8 @@ begin
 end
 
 lemma cond_count_disjoint_union (hs : s.finite) (ht : t.finite) (hst : disjoint s t) :
-  cond_count (s ∪ t) u =
-  cond_count s u * cond_count (s ∪ t) s + cond_count t u * cond_count (s ∪ t) t :=
+  cond_count s u * cond_count (s ∪ t) s + cond_count t u * cond_count (s ∪ t) t =
+  cond_count (s ∪ t) u :=
 begin
   rcases s.eq_empty_or_nonempty with (rfl | hs');
   rcases t.eq_empty_or_nonempty with (rfl | ht'),
@@ -133,7 +169,7 @@ begin
   rw [cond_count, cond_count, cond_count, cond_apply _ hs.measurable_set,
     cond_apply _ ht.measurable_set, cond_apply _ (hs.union ht).measurable_set,
     cond_apply _ (hs.union ht).measurable_set, cond_apply _ (hs.union ht).measurable_set],
-  conv_rhs {
+  conv_lhs {
     rw [set.union_inter_cancel_left, set.union_inter_cancel_right,
       mul_comm (measure.count (s ∪ t))⁻¹, mul_comm (measure.count (s ∪ t))⁻¹,
       ← mul_assoc, ← mul_assoc, mul_comm _ (measure.count s), mul_comm _ (measure.count t),
@@ -146,12 +182,11 @@ begin
 end
 
 /-- A version of the law of total probability for counting probabilites. -/
-lemma conditional (hs : s.finite) :
-  cond_count s t =
-  cond_count (s ∩ u) t * cond_count s u + cond_count (s ∩ uᶜ) t * cond_count s uᶜ :=
+lemma cond_count_add_compl_eq (hs : s.finite) :
+  cond_count (s ∩ u) t * cond_count s u + cond_count (s ∩ uᶜ) t * cond_count s uᶜ = cond_count s t :=
 begin
-  conv_lhs { rw [(by simp : s = s ∩ u ∪ s ∩ uᶜ),
-    cond_count_disjoint_union (hs.inter_of_left _) (hs.inter_of_left _)
+  conv_rhs { rw [(by simp : s = s ∩ u ∪ s ∩ uᶜ),
+    ← cond_count_disjoint_union (hs.inter_of_left _) (hs.inter_of_left _)
     (disjoint_compl_right.mono inf_le_right inf_le_right)] },
   simp [cond_count_inter_self hs],
 end

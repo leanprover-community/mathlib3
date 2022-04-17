@@ -216,12 +216,7 @@ instance : has_sdiff {P : X →L[𝕜] X // is_Lprojection P} :=
 
 instance : partial_order {P : X →L[𝕜] X // is_Lprojection P} :=
 { le := λ P Q, (↑P:X →L[𝕜] X) = ↑(P ⊓ Q),
-  le_refl := λ P,
-  begin
-    simp only [coe_inf],
-    rw [← sq, projection_def],
-    exact P.prop.left,
-  end,
+  le_refl := λ P, by simpa only [coe_inf, ←sq] using (projection_def P.prop.left).symm,
   le_trans := λ P Q R,
   λ h₁ h₂, begin
     simp only [coe_inf],

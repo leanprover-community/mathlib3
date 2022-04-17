@@ -1,15 +1,6 @@
-import data.fintype.basic
-import group_theory.order_of_element
-import tactic.zify
-import data.nat.totient
+
 import data.zmod.basic
-import number_theory.padics.padic_norm
-import field_theory.finite.basic
-import data.fintype.basic
 
-def two_power_part (n : ℕ) := 2 ^ (padic_val_nat 2 n)
-
-def odd_part (n : ℕ) := n / two_power_part n
 
 def binpow {M} [has_one M] [has_mul M] (m : M) : ℕ → M :=
 nat.binary_rec 1 (λ b _ ih, let ih2 := ih * ih in cond b (m * ih2) ih2)
@@ -26,8 +17,15 @@ binpow a (fast_odd_part (n-1)) = 1
 def fermat_strong_probable_prime (n : nat) (a : zmod n) : Prop :=
 binpow a (n-1) = 1
 
-
 instance {n : ℕ} {a : zmod n} : decidable (fast_strong_probable_prime n a) := or.decidable
+
+#eval to_bool (fast_strong_probable_prime 1241213 3)
+
+instance {n : ℕ} {a : zmod n} : decidable (fermat_strong_probable_prime n a) :=
+set.decidable_set_of 1 (eq (binpow a (n - 1)))
+
+#eval to_bool (fermat_strong_probable_prime 1241213 3)
+
 --instance {n : ℕ} {a : zmod n} : decidable (fermat_strong_probable_prime n a) := by library_search
 
 /- lemma strong_probable_prime_iff_fast_strong_probable_prime (n : nat) (a : zmod n) :

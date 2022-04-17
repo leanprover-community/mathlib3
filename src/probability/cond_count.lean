@@ -169,8 +169,7 @@ begin
   rw [cond_count, cond_count, cond_count, cond_apply _ hs.measurable_set,
     cond_apply _ ht.measurable_set, cond_apply _ (hs.union ht).measurable_set,
     cond_apply _ (hs.union ht).measurable_set, cond_apply _ (hs.union ht).measurable_set],
-  conv_lhs {
-    rw [set.union_inter_cancel_left, set.union_inter_cancel_right,
+  conv_lhs { rw [set.union_inter_cancel_left, set.union_inter_cancel_right,
       mul_comm (measure.count (s ∪ t))⁻¹, mul_comm (measure.count (s ∪ t))⁻¹,
       ← mul_assoc, ← mul_assoc, mul_comm _ (measure.count s), mul_comm _ (measure.count t),
       ← mul_assoc, ← mul_assoc] },

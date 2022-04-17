@@ -878,18 +878,6 @@ namespace is_freely_generated_by
 
 variables {G : Type*} [group G] {X : Type} [is_freely_generated_by G X]
 
-/- Is this a good idea?
-instance is_freely_generated_by.fun_like : fun_like (is_freely_generated_by G X) X (λ _, G) :=
- { coe := λ h x, mul_equiv.to_fun h (free_group.of x),
-   coe_injective' :=
-   begin
-     intros h1 h2 h,
-     apply mul_equiv.to_monoid_hom_injective,
-     ext a,
-     apply congr_fun h a,
-   end, }
--/
-
 def of : X → G := is_freely_generated_by.mul_equiv.to_fun ∘ free_group.of
 
 variables {H : Type*} [group H]
@@ -897,10 +885,10 @@ variables {H : Type*} [group H]
 @[simps symm_apply]
 def lift : (X → H) ≃ (G →* H) :=
   free_group.lift.trans
-  { to_fun := λ f, f.comp _inst_2.mul_equiv.symm.to_monoid_hom ,
+  { to_fun := λ f, f.comp _inst_2.mul_equiv.symm.to_monoid_hom, -- TODO _inst_2
     inv_fun := λ f, f.comp _inst_2.mul_equiv.to_monoid_hom,
-    left_inv := λ f, begin ext, simp, /- congr' 1, apply mul_equiv.symm_apply_apply, -/ end,
-    right_inv := λ f, begin ext, simp, /- congr' 1, apply mul_equiv.apply_symm_apply, -/ end }
+    left_inv := λ f, by { ext, simp, },
+    right_inv := λ f, by { ext, simp, }, }
 
 @[simp] lemma lift_of (f : X → H) (a : X) :
   (lift f) (@of G _ _ _ a) = f a :=

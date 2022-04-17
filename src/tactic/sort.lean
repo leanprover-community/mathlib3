@@ -83,11 +83,11 @@ match (monomial_weight eₗ, monomial_weight eᵣ) with
 | _                := eₗ.to_string ≤ eᵣ.to_string -- this solution forces an unique ordering
 end
 
--- /--  If we have an expression involving monomials, `sum_sorted_monomials` returns an ordered sum
--- of its terms.  Every summands that is not a monomial appears first, after that, monomials are
--- sorted by increasing size of exponent. -/
--- meta def sum_sorted_monomials (e : expr) : tactic unit :=
--- sorted_sum_with_weight monomial_weight e
+/--  If we have an expression involving monomials, `sum_sorted_monomials` returns an ordered sum
+of its terms.  Every summands that is not a monomial appears first, after that, monomials are
+sorted by increasing size of exponent. -/
+meta def sum_sorted_monomials (e : expr) : tactic unit :=
+sorted_sum_with_cmp_fn compare_fn e
 
 /--  If the target is an equality involving monomials,
 then  `sort_monomials_lhs` sorts the summands on the lhs. -/

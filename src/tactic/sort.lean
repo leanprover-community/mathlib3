@@ -12,7 +12,7 @@ namespace tactic
 /--  Given an expression `ei` and a list `l : list expr`, returns a `tactic expr` that is
 `ei + sum_of_list l`. -/
 meta def build_sum (ei : expr) (l : list expr) : tactic expr :=
-l.reverse.mfoldr (λ e1 e2, mk_app `has_add.add [e2, e1]) ei
+l.mfoldl (λ e1 e2, mk_app `has_add.add [e1, e2]) ei
 
 /--  Takes an `expr` and returns a list of its summands. -/
 meta def get_summands : expr → list expr
@@ -124,7 +124,7 @@ open_locale polynomial classical
 
 variables {R : Type*} [semiring R] (f g : R[X]) {r s t u : R} (r0 : t ≠ 0)
 
-/-
+--/-
 example :
   (monomial 1) u + 5 * X +
   (g + (monomial 5) 1) + ((monomial 0) s + (monomial 2) t + f) + (monomial 8) 1 =

@@ -43,7 +43,7 @@ match sort_summands_with_weight e wt with
   assert n e_eq,
   reflexivity <|>
     `[{ simp only [add_comm, add_assoc, add_left_comm], done, }] <|>
-      fail "failed to prove {e_eq}", -- how to print this?
+      fail "Failed to prove equality", -- Is it possible to print `e_eq`?
   h ← get_local n,
   rewrite_target h,
   clear h
@@ -124,16 +124,17 @@ open_locale polynomial classical
 variables {R : Type*} [semiring R] (f g : R[X]) {r s t u : R} (r0 : t ≠ 0)
 
 example : (monomial 1) u + 5 * X + (g + (monomial 5) 1) + ((monomial 0) s + (monomial 2) t + f) +
-   (monomial 8) 1 = 5 * X + f + g + (monomial 0) s + (monomial 1) u + (monomial 2) t +
-   (monomial 5) 1 + (monomial 8) 1 :=
+   (monomial 8) 1 = (5 * X + (monomial 8) 1 + (monomial 2) t) + f + g + ((monomial 0) s +
+   (monomial 1) u) + (monomial 5) 1 :=
 begin
 --  `ac_refl` works and takes 7s,
 -- `sort_monomials, refl` takes under 400ms
-  sort_monomials, -- LHS and RHS already agree here
-  sort_monomials_lhs,
-  sort_monomials_rhs,
+  sort_monomials,
+  sort_monomials_lhs, -- LHS and RHS agree here
+  sort_monomials_rhs, -- Hmm, both sides change?
+                      -- Probably, due to the `rw` matching both sides of the equality
   symmetry,
-  sort_monomials_lhs,
+  sort_monomials_lhs, -- Both sides change again.
   refl,
 end
 

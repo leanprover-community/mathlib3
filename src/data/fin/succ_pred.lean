@@ -19,78 +19,43 @@ namespace fin
 instance : ∀ {n : ℕ}, succ_order (fin n)
 | 0 := by constructor; exact elim0
 | (n+1) :=
-{ succ := λ i, if i < fin.last n then i + 1 else i,
-  le_succ := λ a,
-  begin
-    cases n,
-    { exact (subsingleton.elim _ _).le },
-    split_ifs,
-    { rw [le_iff_coe_le_coe, coe_add_one_of_lt h],
-      exact (a : ℕ).le_succ },
-    { exact le_rfl }
-   end,
-  max_of_succ_le := λ a,
-  begin
-    split_ifs,
-    { rw [le_iff_coe_le_coe, coe_add_one_of_lt h],
-      intro h,
-      cases (lt_add_one _).ne (antisymm (a : ℕ).le_succ h) },
-    { rintro -,
-      rw [eq_last_of_not_lt h],
-      exact is_max_top }
-  end,
-  succ_le_of_lt := λ a b h', let h := h'.trans_le (le_last _) in
-                             by rwa [if_pos h, le_iff_coe_le_coe, coe_add_one_of_lt h],
-  le_of_lt_succ := λ a b h,
-  begin
-    split_ifs at h with hab,
-    swap, { exact h.le },
-    rw [lt_iff_coe_lt_coe, coe_add_one_of_lt hab] at h,
-    exact nat.le_of_lt_succ h
-  end }
+_root_.succ_order.of_core (λ i, if i < fin.last n then i + 1 else i)
+begin
+  intros a ha b,
+  rw [is_max_iff_eq_top, eq_top_iff, not_le, top_eq_last] at ha,
+  rw [if_pos ha, lt_iff_coe_lt_coe, le_iff_coe_le_coe, coe_add_one_of_lt ha],
+  exact nat.lt_iff_add_one_le
+end
+begin
+  intros a ha,
+  rw [is_max_iff_eq_top, top_eq_last] at ha,
+  rw [if_neg ha.not_lt],
+end
 
 @[simp] lemma succ_eq {n : ℕ} : succ_order.succ = λ a, if a < fin.last n then a + 1 else a := rfl
-lemma succ_apply {n : ℕ} (a) : succ_order.succ a = if a < fin.last n then a + 1 else a := rfl
+@[simp] lemma succ_apply {n : ℕ} (a) :
+  succ_order.succ a = if a < fin.last n then a + 1 else a := rfl
 
 instance : ∀ {n : ℕ}, pred_order (fin n)
 | 0 := by constructor; exact elim0
 | (n+1) :=
-{ pred := λ x, if x = 0 then 0 else x - 1,
-  pred_le := λ a,
-  begin
-    split_ifs,
-    { exact zero_le _ },
-    rw [le_iff_coe_le_coe, coe_sub_one, if_neg h],
-    exact tsub_le_self
-  end,
-  min_of_le_pred := λ a,
-  begin
-    split_ifs,
-    { subst h,
-      exact λ _, is_min_bot },
-    intro ha,
-    contrapose! ha,
-    rw [lt_iff_coe_lt_coe, coe_sub_one, if_neg h],
-    refine nat.sub_lt_of_pos_le _ _ nat.zero_lt_one (nat.one_le_iff_ne_zero.mpr _),
-    rwa subtype.ext_iff at h,
-  end,
-  le_pred_of_lt := λ a b h',
-  begin
-    have h := (zero_le a).trans_lt h',
-    rwa [if_neg h.ne', le_iff_coe_le_coe, coe_sub_one, if_neg h.ne', le_tsub_iff_left, add_comm],
-    exact h,
-  end,
-  le_of_pred_lt := λ a b h',
-  begin
-    split_ifs at h' with h,
-    { simp [h, zero_le] },
-    rw [lt_iff_coe_lt_coe, coe_sub_one, if_neg h, tsub_lt_iff_left, add_comm 1] at h',
-    { exact nat.le_of_lt_succ h' },
-    apply nat.one_le_iff_ne_zero.mpr,
-    rwa subtype.ext_iff at h
-  end }
+_root_.pred_order.of_core (λ x, if x = 0 then 0 else x - 1)
+begin
+  intros a ha b,
+  rw [is_min_iff_eq_bot, eq_bot_iff, not_le, bot_eq_zero] at ha,
+  rw [if_neg ha.ne', lt_iff_coe_lt_coe, le_iff_coe_le_coe, coe_sub_one,
+      if_neg ha.ne', le_tsub_iff_right, iff.comm],
+  exact nat.lt_iff_add_one_le,
+  exact ha
+end
+begin
+  intros a ha,
+  rw [is_min_iff_eq_bot, bot_eq_zero] at ha,
+  rwa [if_pos ha, eq_comm],
+end
 
 @[simp] lemma pred_eq {n} : pred_order.pred = λ a : fin (n + 1), if a = 0 then 0 else a - 1 := rfl
-lemma pred_apply {n : ℕ} (a : fin (n + 1)) : pred_order.pred a = if a = 0 then 0 else a - 1 := rfl
+@[simp] lemma pred_apply {n : ℕ} (a : fin (n + 1)) :
+  pred_order.pred a = if a = 0 then 0 else a - 1 := rfl
 
 end fin

@@ -114,6 +114,29 @@ end preorder
 section linear_order
 variables [linear_order α]
 
+/-- A constructor for `succ_order α` for `α` a linear order. -/
+@[simps] def succ_order.of_core (succ : α → α) (hn : ∀ {a}, ¬ is_max a → ∀ b, a < b ↔ succ a ≤ b)
+  (hm : ∀ a, is_max a → succ a = a) : succ_order α :=
+{ succ           := succ,
+  succ_le_of_lt  := λ a b, classical.by_cases (λ h hab, (hm a h).symm ▸ hab.le) (λ h, (hn h b).mp),
+  le_succ        := λ a, classical.by_cases (λ h, (hm a h).symm.le)
+                                            (λ h, le_of_lt $ by simpa using (hn h a).not),
+  le_of_lt_succ  := λ a b hab, classical.by_cases (λ h, hm b h ▸ hab.le)
+                                                  (λ h, by simpa [hab] using (hn h a).not),
+  max_of_succ_le := λ a, not_imp_not.mp $ λ h, by simpa using (hn h a).not }
+
+/-- A constructor for `pred_order α` for `α` a linear order. -/
+@[simps] def pred_order.of_core {α} [linear_order α] (pred : α → α)
+  (hn : ∀ {a}, ¬ is_min a → ∀ b, b ≤ pred a ↔ b < a) (hm : ∀ a, is_min a → pred a = a) :
+  pred_order α :=
+{ pred           := pred,
+  le_pred_of_lt  := λ a b, classical.by_cases (λ h hab, (hm b h).symm ▸ hab.le) (λ h, (hn h a).mpr),
+  pred_le        := λ a, classical.by_cases (λ h, (hm a h).le)
+                                            (λ h, le_of_lt $ by simpa using (hn h a).not),
+  le_of_pred_lt  := λ a b hab, classical.by_cases (λ h, hm a h ▸ hab.le)
+                                                  (λ h, by simpa [hab] using (hn h b).not),
+  min_of_le_pred := λ a, not_imp_not.mp $ λ h, by simpa using (hn h a).not }
+
 /-- A constructor for `succ_order α` usable when `α` is a linear order with no maximal element. -/
 def succ_order.of_succ_le_iff (succ : α → α) (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b) :
   succ_order α :=

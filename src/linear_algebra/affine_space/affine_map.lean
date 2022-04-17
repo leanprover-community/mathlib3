@@ -112,17 +112,22 @@ points. -/
   f.linear (p1 -ᵥ p2) = f p1 -ᵥ f p2 :=
 by conv_rhs { rw [←vsub_vadd p1 p2, map_vadd, vadd_vsub] }
 
+lemma coe_linear (f : P1 →ᵃ[k] P2) (p : P1) :
+  ⇑f.linear = λ v, f (v +ᵥ p) -ᵥ f p :=
+funext $ λ v, by rw [f.map_vadd, vadd_vsub]
+
+lemma coe_of_linear (f : P1 →ᵃ[k] P2) (p : P1) :
+  (f : P1 → P2) = λ p', f.linear (p' -ᵥ p) +ᵥ f p :=
+funext $ λ p', by rw [linear_map_vsub, vsub_vadd]
+
 /-- Two affine maps are equal if they coerce to the same function. -/
 @[ext] lemma ext {f g : P1 →ᵃ[k] P2} (h : ∀ p, f p = g p) : f = g :=
 begin
-  rcases f with ⟨f, f_linear, f_add⟩,
-  rcases g with ⟨g, g_linear, g_add⟩,
-  have : f = g := funext h,
-  subst g,
-  congr' with v,
-  cases (add_torsor.nonempty : nonempty P1) with p,
-  apply vadd_right_cancel (f p),
-  erw [← f_add, ← g_add]
+  inhabit P1,
+  replace h : (f : P1 → P2) = g, from funext h,
+  have H : f.linear = g.linear,
+    by simp only [fun_like.ext'_iff, coe_linear _ default, h],
+  cases f, cases g, congr'
 end
 
 lemma ext_iff {f g : P1 →ᵃ[k] P2} : f = g ↔ ∀ p, f p = g p := ⟨λ h p, h ▸ rfl, ext⟩
@@ -589,9 +594,13 @@ by { ext p, simp [homothety_apply] }
 
 @[simp] lemma homothety_apply_same (c : P1) (r : k) : homothety c r c = c := line_map_same_apply c r
 
+lemma homothety_mul_apply (c : P1) (r₁ r₂ : k) (p : P1) :
+  homothety c (r₁ * r₂) p = homothety c r₁ (homothety c r₂ p) :=
+by simp [homothety_apply, mul_smul]
+
 lemma homothety_mul (c : P1) (r₁ r₂ : k) :
   homothety c (r₁ * r₂) = (homothety c r₁).comp (homothety c r₂) :=
-by { ext p, simp [homothety_apply, mul_smul] }
+ext $ homothety_mul_apply c r₁ r₂
 
 @[simp] lemma homothety_zero (c : P1) : homothety c (0:k) = const k P1 c :=
 by { ext p, simp [homothety_apply] }

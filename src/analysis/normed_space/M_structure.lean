@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
 import analysis.normed_space.basic
+import tactic.noncomm_ring
 
 /-!
 # M-structure
@@ -149,8 +150,7 @@ begin
   begin
     have e1: P * (1 - Q) = P * (1 - Q) - (Q * P - Q * P * Q) :=
     calc P * (1 - Q) = (1 - Q) * P * (1 - Q) : by rw PR_eq_RPR (1 - Q) h₂.Lcomplement
-    ... = P * (1 - Q) - (Q * P - Q * P * Q) :
-      by rw [mul_assoc, sub_mul, one_mul, mul_sub, mul_one, mul_sub Q, mul_assoc],
+    ... = P * (1 - Q) - (Q * P - Q * P * Q) : by noncomm_ring,
     rwa [eq_sub_iff_add_eq, add_right_eq_self, sub_eq_zero] at e1
   end,
   show P * Q = Q * P, by rw [QP_eq_QPQ, PR_eq_RPR Q h₂]
@@ -179,8 +179,7 @@ end
 lemma join {P Q: X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) :
   is_Lprojection (P + Q - P * Q) :=
 begin
-  have e1:  1 - (1 - P) * (1 - Q) = P + Q - P * Q,
-  { rw [sub_mul, one_mul, sub_sub, sub_sub_self, mul_sub, mul_one, add_sub, add_comm] },
+  have e1:  1 - (1 - P) * (1 - Q) = P + Q - P * Q := by noncomm_ring,
   rw [← e1, ← is_Lprojection.Lcomplement_iff],
   exact is_Lprojection.mul (is_Lprojection.Lcomplement h₁) (is_Lprojection.Lcomplement h₂)
 end

@@ -218,12 +218,7 @@ instance : partial_order {P : X →L[𝕜] X // is_Lprojection P} :=
 { le := λ P Q, (↑P:X →L[𝕜] X) = ↑(P ⊓ Q),
   le_refl := λ P, by simpa only [coe_inf, ←sq] using (projection_def P.prop.left).symm,
   le_trans := λ P Q R h₁ h₂, by { simp only [coe_inf] at ⊢ h₁ h₂, rw [h₁, mul_assoc, ←h₂] },
-  le_antisymm := λ P Q,
-  λ h₁ h₂, begin
-    have e₁: ↑P = ↑P * ↑Q := h₁,
-    have e₂: ↑Q = ↑Q * ↑P := h₂,
-    exact subtype.eq (by rw [e₁, commute.eq (commute P.prop Q.prop), ← e₂] : (↑P:X →L[𝕜] X) = ↑Q),
-  end, }
+  le_antisymm := λ P Q h₁ h₂, subtype.eq (by convert (commute P.prop Q.prop).eq) }
 
 instance : has_zero {P : X →L[𝕜] X // is_Lprojection P}  :=
 ⟨⟨0, ⟨by rw [is_projection, sq, zero_mul],

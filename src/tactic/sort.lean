@@ -11,11 +11,8 @@ namespace tactic
 
 /--  Given an expression `ei` and a list `l : list expr`, returns a `tactic expr` that is
 `ei + sum_of_list l`. -/
-meta def build_sum : expr → list expr → tactic expr
-| ei (e :: es) := do
-  e' ← build_sum ei es,
-  mk_app `has_add.add [e', e]
-| ei [] := pure ei
+meta def build_sum (ei : expr) (l : list expr) : tactic expr :=
+l.reverse.mfoldr (λ e1 e2, mk_app `has_add.add [e2, e1]) ei
 
 /--  Takes an `expr` and returns a list of its summands. -/
 meta def get_summands : expr → list expr
@@ -28,8 +25,8 @@ variables {N : Type*} [has_lt N] [decidable_rel (has_lt.lt : N → N → Prop)]
 /--  Given an expression `a` and a weight function `wt : expr → N` to a Type `N` with `<`,
 `sort_summands_with_weight a wt` returns the list of summands appearing in `a`, sorted using the
 order `<`. -/
-meta def sort_summands_with_weight : expr → (expr → N) → list expr
-| a wt := (get_summands a).qsort (λ e f, wt e < wt f)
+meta def sort_summands_with_weight (a : expr) (wt : expr → N) : list expr :=
+(get_summands a).qsort $ λ f g, wt f < wt g
 
 /--  Let `wt : expr → N` be a "weight function": any function from `expr` to a Type `N` with a
 decidable relation `<`.
@@ -40,12 +37,12 @@ appearing in `e`. -/
 meta def sorted_sum_with_weight (wt : expr → N) (e : expr) : tactic unit :=
 match sort_summands_with_weight e wt with
 | ei::es := do
-  el' ← build_sum ei es.reverse,
+  el' ← build_sum ei es,
   e_eq ← mk_app `eq [e, el'],
   n ← get_unused_name,
   assert n e_eq,
   -- should we return a meaningful error if this does not manage to prove `e_eq`?
-  reflexivity <|> `[{ simp only [add_comm, add_assoc, add_left_comm], done, }],
+  `[{ simp only [add_comm, add_assoc, add_left_comm], done, }],
   h ← get_local n,
   rewrite_target h,
   clear h
@@ -153,4 +150,4 @@ begin
   sort_monomials,
   -- (monomial 0) s + ((monomial 1) u + ((monomial 2) t + ((monomial 5) 1 + (monomial 8) 1))) = 0
 end
--/
+--/

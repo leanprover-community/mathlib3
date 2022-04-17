@@ -302,8 +302,7 @@ map_neg (block_diagonal_add_monoid_hom m n o α) M
   block_diagonal (M - N) = block_diagonal M - block_diagonal N :=
 map_sub (block_diagonal_add_monoid_hom m n o α) M N
 
-@[simp] lemma block_diagonal_mul [fintype n] [fintype o]
-  [non_unital_non_assoc_semiring α]
+@[simp] lemma block_diagonal_mul [fintype n] [fintype o] [non_unital_non_assoc_semiring α]
   (M : o → matrix m n α) (N : o → matrix n p α) :
   block_diagonal (λ k, M k ⬝ N k) = block_diagonal M ⬝ block_diagonal N :=
 begin

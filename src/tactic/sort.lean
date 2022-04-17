@@ -26,7 +26,7 @@ variables {N : Type*} [has_lt N] [decidable_rel (has_lt.lt : N → N → Prop)]
 `sort_summands_with_weight a wt` returns the list of summands appearing in `a`, sorted using the
 order `<`. -/
 meta def sort_summands_with_weight (a : expr) (wt : expr → N) : list expr :=
-(get_summands a).qsort $ λ f g, ! (wt g < wt f)
+(get_summands a).merge_sort $ function.on_fun (<) wt
 
 /--  Let `wt : expr → N` be a "weight function": any function from `expr` to a Type `N` with a
 decidable relation `<`.
@@ -123,16 +123,20 @@ open_locale polynomial classical
 
 variables {R : Type*} [semiring R] (f g : R[X]) {r s t u : R} (r0 : t ≠ 0)
 
--- example :
---   (monomial 1) u + 5 * X +
---   (g + (monomial 5) 1) + ((monomial 0) s + (monomial 2) t + f) + (monomial 8) 1 =
---     X + monomial 7 1 + 2 * X :=
--- begin
---   sort_monomials,
---   sort_monomials_lhs,
---   sort_monomials_rhs,
---   symmetry, sort_monomials_lhs
--- end
+set_option profiler true
+lemma pro : (monomial 1) u + 5 * X + (g + (monomial 5) 1) + ((monomial 0) s + (monomial 2) t + f) +
+   (monomial 8) 1 = 5 * X + f + g + (monomial 0) s + (monomial 1) u + (monomial 2) t +
+   (monomial 5) 1 + (monomial 8) 1 :=
+begin
+--  `ac_refl` works and takes 7s,
+-- `sort_monomials, refl` takes under 400ms
+  sort_monomials, -- LHS and RHS already agree here
+  sort_monomials_lhs,
+  sort_monomials_rhs,
+  symmetry,
+  sort_monomials_lhs,
+  refl,
+end
 
 
 -- example {R : Type*} [semiring R] (f g : R[X]) {r s t u : R} (r0 : t ≠ 0) :

@@ -7,7 +7,10 @@ import data.polynomial.degree.definitions
 
 /-!  # A tactic for sorting sums  -/
 
-namespace tactic
+namespace tactic.interactive
+
+open tactic
+setup_tactic_parser
 
 /--  Takes an `expr` and returns a list of its summands. -/
 meta def get_summands : expr → list expr
@@ -19,7 +22,8 @@ section with_cmp_fn
 /--  Given compare function `cmp_fn : expr → expr → bool` and an expression `e`, in an additive
 commutative semigroup, `sorted_sum_with_cmp cmp_fn e` returns an ordered sum of its terms, where
 the order is determined using `cmp_fn`. -/
-meta def sorted_sum_with_cmp_fn (cmp_fn : expr → expr → bool) (e : expr) : tactic unit :=
+meta def sorted_sum_with_cmp_fn (hyp : option name) (cmp_fn : expr → expr → bool) (e : expr) :
+  tactic unit :=
 match (get_summands e).qsort cmp_fn with
 | ei::es := do
   el' ← es.mfoldl (λ e1 e2, mk_app `has_add.add [e1, e2]) ei,
@@ -32,28 +36,30 @@ match (get_summands e).qsort cmp_fn with
     -- `[{ abel, done, }] <|> -- this works too. it's more robust but also a bit slower
       fail format!"Failed to prove:\n {e_eq_fmt}",
   h ← get_local n,
-  rewrite_target h,
-  clear h
+  match hyp with
+  | some hyp := do
+    hyp ← get_local hyp,
+    rewrite_hyp h hyp,
+    tactic.clear h
+  | none     := do
+    rewrite_target h,
+    tactic.clear h
+  end
 | [] := skip
 end
 
-inductive sort_side | lhs | rhs | both
+-- inductive sort_side | lhs | rhs | both
 
 /-- If the target is an equality, `sort_summands` sorts the summands on either side of the equality.
 -/
-meta def sort_summands (sl : sort_side) (cmp_fn : expr → expr → bool) : tactic unit :=
+meta def sort_summands (hyp : option name) (cmp_fn : expr → expr → bool) : tactic unit :=
 do
   t ← target,
   match t.is_eq with
   | none          := fail "The goal is not an equality"
-  | some (el, er) :=
-    match sl with
-    | sort_side.lhs  := sorted_sum_with_cmp_fn cmp_fn el
-    | sort_side.rhs  := sorted_sum_with_cmp_fn cmp_fn er
-    | sort_side.both := do
-      sorted_sum_with_cmp_fn cmp_fn el,
-      sorted_sum_with_cmp_fn cmp_fn er
-    end
+  | some (el, er) := do
+    sorted_sum_with_cmp_fn hyp cmp_fn el,
+    sorted_sum_with_cmp_fn hyp cmp_fn er
   end
 
 end with_cmp_fn
@@ -74,28 +80,40 @@ match (monomial_weight eₗ, monomial_weight eᵣ) with
 | _                := eₗ.to_string ≤ eᵣ.to_string -- this solution forces an unique ordering
 end
 
-/--  If we have an expression involving monomials, `sum_sorted_monomials` returns an ordered sum
-of its terms.  Every summands that is not a monomial appears first, after that, monomials are
-sorted by increasing size of exponent. -/
-meta def sum_sorted_monomials (e : expr) : tactic unit :=
-sorted_sum_with_cmp_fn compare_fn e
+-- /--  If we have an expression involving monomials, `sum_sorted_monomials` returns an ordered sum
+-- of its terms.  Every summands that is not a monomial appears first, after that, monomials are
+-- sorted by increasing size of exponent. -/
+-- meta def sum_sorted_monomials (e : expr) : tactic unit :=
+-- sorted_sum_with_cmp_fn compare_fn e
 
-/--  If the target is an equality involving monomials,
-then  `sort_monomials_lhs` sorts the summands on the lhs. -/
-meta def sort_monomials_lhs : tactic unit :=
-sort_summands sort_side.lhs compare_fn
+-- /--  If the target is an equality involving monomials,
+-- then  `sort_monomials_lhs` sorts the summands on the lhs. -/
+-- meta def sort_monomials_lhs : tactic unit :=
+-- sort_summands sort_side.lhs compare_fn
 
-/-- If the target is an equality involving monomials,
-then  `sort_monomials_rhs` sorts the summands on the rhs. -/
-meta def sort_monomials_rhs : tactic unit :=
-sort_summands sort_side.rhs compare_fn
+-- /-- If the target is an equality involving monomials,
+-- then  `sort_monomials_rhs` sorts the summands on the rhs. -/
+-- meta def sort_monomials_rhs : tactic unit :=
+-- sort_summands sort_side.rhs compare_fn
+
+private meta def sort_monomials_core (allow_failure : bool) (hyp : option name) : itactic :=
+if allow_failure then sort_summands hyp compare_fn <|> skip else sort_summands hyp compare_fn
 
 /-- If the target is an equality involving monomials,
 then  `sort_monomials` sorts the summands on either side of the equality. -/
-meta def sort_monomials : tactic unit :=
-sort_summands sort_side.both compare_fn
+meta def sort_monomials (locat : parse location) : itactic :=
+match locat with
+| loc.wildcard := do
+  sort_monomials_core tt none,
+  ctx ← local_context,
+  ctx.mmap (λ e, sort_monomials_core tt (expr.local_pp_name e)),
+  skip
+| loc.ns names := do
+  names.mmap $ sort_monomials_core ff,
+  skip
+end
 
-end tactic
+end tactic.interactive
 
 open polynomial tactic
 open_locale polynomial classical
@@ -109,11 +127,11 @@ begin
 --  `ac_refl` works and takes 7s,
 -- `sort_monomials, refl` takes under 300ms
   sort_monomials,
-  sort_monomials_lhs, -- LHS and RHS agree here
-  sort_monomials_rhs, -- Hmm, both sides change?
-                      -- Probably, due to the `rw` matching both sides of the equality
-  symmetry,
-  sort_monomials_lhs, -- Both sides change again.
+  -- sort_monomials_lhs, -- LHS and RHS agree here
+  -- sort_monomials_rhs, -- Hmm, both sides change?
+  --                     -- Probably, due to the `rw` matching both sides of the equality
+  -- symmetry,
+  -- sort_monomials_lhs, -- Both sides change again.
   refl,
 end
 

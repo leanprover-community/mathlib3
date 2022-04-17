@@ -562,7 +562,7 @@ by rw [eval, nat.unpaired, nat.unpair_mkpair, nat.elim_zero]
 /-- Helper lemma for the evaluation of `prec` in the recursive case. -/
 lemma eval_prec_succ (cf cg : code) (a k : ℕ) :
   eval (prec cf cg) (mkpair a (nat.succ k)) =
-    (mkpair <$> pure a <*> (mkpair <$> pure k <*> (eval (prec cf cg) (mkpair a k)))) >>= eval cg :=
+    do ih <- eval (prec cf cg) (mkpair a k), eval cg (mkpair a (mkpair k ih)) :=
 begin
   rw [eval, nat.unpaired, part.bind_eq_bind, nat.unpair_mkpair, nat.elim_succ, map_pure,
     pure_seq_eq_map, part.map_eq_map, part.bind_map, seq_eq_bind_map],

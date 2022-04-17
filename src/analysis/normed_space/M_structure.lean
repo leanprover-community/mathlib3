@@ -275,18 +275,15 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
     intros h₁ h₂,
     rw [← h₂, ← h₁],
   end,
-  inf_le_left := λ P Q, (by rw [coe_inf, mul_assoc, commute.eq (commute Q.prop P.prop), ← mul_assoc,
-  ← sq, (projection_def P.prop.left)] : ↑(P ⊓ Q) = ↑(P ⊓ Q) * ↑P),
-  inf_le_right := λ P Q, (by rw [coe_inf, mul_assoc,  ← sq, (projection_def Q.prop.left)] :
-    ↑(P ⊓ Q) = ↑(P ⊓ Q) * ↑Q),
+  inf_le_left := λ P Q, by rw [le_def, coe_inf, coe_inf, coe_inf, mul_assoc,
+    commute.eq (commute Q.prop P.prop), ← mul_assoc, ← sq, (projection_def P.prop.left)],
+  inf_le_right := λ P Q, by rw [le_def, coe_inf, coe_inf, coe_inf, mul_assoc,
+    ← sq, (projection_def Q.prop.left)],
   le_inf := λ P Q R,
   begin
+    rw [le_def, le_def, le_def, coe_inf, coe_inf, coe_inf, coe_inf, ← mul_assoc],
     intros h₁ h₂,
-    have e₁: ↑P = ↑P * ↑Q := h₁,
-    exact (begin
-      rw [coe_inf, ← mul_assoc, ← e₁],
-      exact h₂,
-    end : ↑P =  ↑P * ↑(Q ⊓ R))
+    rw [← h₁, ← h₂],
   end,
   le_sup_inf := λ P Q R,
   begin

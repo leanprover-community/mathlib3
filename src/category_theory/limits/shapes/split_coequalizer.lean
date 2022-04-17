@@ -93,8 +93,7 @@ def is_split_coequalizer.as_cofork {Z : C} {h : Y ⟶ Z} (t : is_split_coequaliz
 cofork.of_π h t.condition
 
 @[simp] lemma is_split_coequalizer.as_cofork_π  {Z : C} {h : Y ⟶ Z}
-  (t : is_split_coequalizer f g h) :
-  t.as_cofork.π = h := rfl
+  (t : is_split_coequalizer f g h) : t.as_cofork.π = h := rfl
 
 /--
 The cofork induced by a split coequalizer is a coequalizer, justifying the name. In some cases it

@@ -264,9 +264,9 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
   { app := λ X, walking_parallel_pair.cases_on X (f ≫ π) π,
     naturality' := λ i j f, by { cases f; dsimp; simp [w] } } } -- See note [dsimp, simp]
 
-lemma fork.ι_of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
+@[simp] lemma fork.ι_of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
   (fork.of_ι ι w).ι = ι := rfl
-lemma cofork.π_of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
+@[simp] lemma cofork.π_of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
   (cofork.of_π π w).π = π := rfl
 
 @[simp, reassoc]
@@ -300,12 +300,12 @@ lemma cofork.is_colimit.hom_ext {s : cofork f g} (hs : is_colimit s) {W : C} {k 
   (h : cofork.π s ≫ k = cofork.π s ≫ l) : k = l :=
 hs.hom_ext $ cofork.coequalizer_ext _ h
 
-@[simp] lemma fork.is_limit.lift_of_ι_ι {s : fork f g} (hs : is_limit s) {W : C}
-  {k : W ⟶ X} (hk : k ≫ f = k ≫ g) : hs.lift (fork.of_ι k hk) ≫ s.ι = k :=
+@[simp, reassoc] lemma fork.is_limit.lift_comp_ι {s t : fork f g} (hs : is_limit s) :
+  hs.lift t ≫ s.ι = t.ι :=
 hs.fac _ _
 
-@[simp] lemma cofork.is_colimit.π_desc_of_π {s : cofork f g} (hs : is_colimit s) {W : C}
-  {k : Y ⟶ W} (hk : f ≫ k = g ≫ k) : s.π ≫ hs.desc (cofork.of_π k hk) = k :=
+@[simp, reassoc] lemma cofork.is_colimit.π_comp_desc {s t : cofork f g} (hs : is_colimit s) :
+  s.π ≫ hs.desc t = t.π :=
 hs.fac _ _
 
 /-- If `s` is a limit fork over `f` and `g`, then a morphism `k : W ⟶ X` satisfying
@@ -942,7 +942,7 @@ def split_mono_of_idempotent_of_is_limit_fork {X : C} {f : X ⟶ X} (hf : f ≫ 
   id' :=
   begin
     letI := mono_of_is_limit_parallel_pair i,
-    rw [← cancel_mono_id c.ι, category.assoc, fork.is_limit.lift_of_ι_ι, c.condition],
+    rw [←cancel_mono_id c.ι, category.assoc, fork.is_limit.lift_comp_ι, fork.ι_of_ι, c.condition],
     exact category.comp_id c.ι
   end }
 
@@ -1012,7 +1012,8 @@ def split_epi_of_idempotent_of_is_colimit_cofork {X : C} {f : X ⟶ X} (hf : f �
   id' :=
   begin
     letI ei := epi_of_is_colimit_parallel_pair i,
-    rw [← cancel_epi_id c.π, ← category.assoc, cofork.is_colimit.π_desc_of_π, c.condition],
+    rw [←cancel_epi_id c.π, ←category.assoc, cofork.is_colimit.π_comp_desc, cofork.π_of_π,
+      c.condition],
     exact category.id_comp _,
   end }
 

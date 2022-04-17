@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import order.filter.basic
-open_locale filter
 
 /-!
 # N-ary maps of filter
@@ -23,6 +22,7 @@ This file is very similar to the n-ary section of `data.set.basic`. Please keep 
 -/
 
 open function set
+open_locale filter
 
 namespace filter
 variables {α α' β β' γ γ' δ δ' ε ε' : Type*} {m : α → β → γ} {f f₁ f₂ : filter α}

@@ -307,4 +307,19 @@ end
 instance stone_cech.compact_space : compact_space (stone_cech α) :=
 quotient.compact_space
 
+section universal_property
+
+variables {δ : Type u} [topological_space δ]
+
+/-- The universal property that characterizes the Stone-Čech compactification of `α`,
+  when it's a Tychonoff space. Notice that a suitable `ext_f` always exists by
+  `stone_cech_extend_extends`, `continuous_stone_cech_extend` and `stone_cech_hom_ext`,
+  but `stone_cech_unit` is not an embedding for a general topological space. -/
+def stone_cech_extension_property (e : α → δ) :=
+  ∀ {γ : Type u} [topological_space γ], by exactI ∀ [t2_space γ]
+  [compact_space γ] (f : α → γ) (hf: continuous f),
+  ∃! (ext_f : δ → γ), continuous ext_f ∧ f = ext_f ∘ e
+
+end universal_property
+
 end stone_cech

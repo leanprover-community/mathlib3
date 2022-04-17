@@ -49,6 +49,9 @@ begin
   have pos_two_power_part : 0 < two_power_part (n * m),
   sorry,
   -- TODO(Sean): See if you can prove this. I've given a bunch of have statements for things I think are necessary.
+  have thing : n * m = two_power_part (n * m) * odd_part (n * m),
+  exact hnm.symm,
+  rw ← hn at thing,
   sorry,
 end
 
@@ -355,6 +358,13 @@ lemma one_or_coprime_factorization_or_prime_power (n : ℕ) (h : 0 < n) :
   (∃ (p k : ℕ), 1 ≤ k ∧ p.prime ∧ p^k = n) :=
 begin
   have stuff := coprime_factorization_or_prime_power n h,
+  cases stuff with one two,
+  cases one with roo too,
+  right,
+  left,
+  exact one,
+  right,
+  right,
   sorry,
   -- This is a slight modification of the lemma coprime_factorization_or_prime_power above.
   -- TODO(Sean): Try to prove this using coprime_factorization_or_prime_power (no other lemmas from this file should be needed) (first do a have statement to get the coprime_factorization_or_prime_power result into the hypotheses here)

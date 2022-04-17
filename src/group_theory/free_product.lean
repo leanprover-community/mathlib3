@@ -715,6 +715,21 @@ instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] [hG : ∀ i, is_fr
     { intros g hfg, ext i x, simpa using hfg ⟨i, x⟩, }
   end, }
 
+/-- The free product of free groups is itself a free group -/
+@[simps]
+instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] (X : ι → Type*)
+  [hG : ∀ i, is_freely_generated_by (G i) (X i)] :
+  is_freely_generated_by (free_product G) (Σ i, X i):=
+{ mul_equiv :=
+  monoid_hom.to_mul_equiv
+    (free_group.lift (λ (x : Σ i, X i), free_product.of (is_freely_generated_by.of x.2 : G x.1)))
+    (free_product.lift (λ (i : ι),
+      (is_freely_generated_by.lift.to_fun (λ (x : X i), free_group.of (⟨i, x⟩ : Σ i, X i))
+        : G i →* (free_group (Σ i, X i)))))
+    (by {ext, simp,})
+    (by {ext, simp, sorry,  })
+}
+
 /-- A free group is a free product of copies of the free_group over one generator. -/
 
 -- NB: One might expect this theorem to be phrased with ℤ, but ℤ is an additive group,

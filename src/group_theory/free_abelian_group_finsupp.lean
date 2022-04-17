@@ -121,6 +121,17 @@ def equiv.of_free_group_equiv {α β : Type*}
   α ≃ β :=
 equiv.of_free_abelian_group_equiv e.abelianization_congr.to_additive
 
+open is_freely_generated_by
+/-- Isomorphic free groups have equivalent bases (`is_freely_generated_by` variant`). -/
+def equiv.of_is_freely_generated_by_equiv {G H X1 X2 : Type*}
+  [group G] [group H] [is_freely_generated_by G X1] [is_freely_generated_by H X2]
+  (e : G ≃* H) :
+  X1 ≃ X2 :=
+equiv.of_free_group_equiv $
+  mul_equiv.trans (is_freely_generated_by.mul_equiv) $
+  mul_equiv.trans e $
+  is_freely_generated_by.mul_equiv.symm
+
 open is_free_group
 /-- Isomorphic free groups have equivalent bases (`is_free_group` variant`). -/
 def equiv.of_is_free_group_equiv {G H : Type*}

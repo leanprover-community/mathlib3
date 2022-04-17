@@ -235,6 +235,10 @@ lemma add_one_mul (a b : α) : (a + 1) * b = a * b + b :=
 by rw [add_mul, one_mul]
 lemma mul_add_one (a b : α) : a * (b + 1) = a * b + a :=
 by rw [mul_add, mul_one]
+lemma one_add_mul (a b : α) : (1 + a) * b = b + a * b :=
+by rw [add_mul, one_mul]
+lemma mul_one_add (a b : α) : a * (1 + b) = a + a * b :=
+by rw [mul_add, mul_one]
 
 theorem two_mul (n : α) : 2 * n = n + n :=
 eq.trans (right_distrib 1 1 n) (by simp)
@@ -863,6 +867,10 @@ protected def function.surjective.non_assoc_ring
 lemma sub_one_mul (a b : α) : (a - 1) * b = a * b - b :=
 by rw [sub_mul, one_mul]
 lemma mul_sub_one (a b : α) : a * (b - 1) = a * b - a :=
+by rw [mul_sub, mul_one]
+lemma one_sub_mul (a b : α) : (1 - a) * b = b - a * b :=
+by rw [sub_mul, one_mul]
+lemma mul_one_sub (a b : α) : a * (1 - b) = a - a * b :=
 by rw [mul_sub, mul_one]
 
 end non_assoc_ring

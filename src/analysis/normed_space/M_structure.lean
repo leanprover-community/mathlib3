@@ -270,11 +270,10 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
     end : (↑Q: X →L[𝕜] X) = ↑Q * ↑(P ⊔ Q)),
   sup_le := λ P Q R,
   begin
+    rw [le_def, le_def, le_def, coe_inf, coe_inf, coe_sup, coe_inf, coe_sup, ← add_sub, add_mul,
+      sub_mul, mul_assoc],
     intros h₁ h₂,
-    have e₁: ↑P = ↑P * ↑R := h₁,
-    have e₂: ↑Q = ↑Q * ↑R := h₂,
-    exact (by rw [coe_sup, ← add_sub, add_mul, sub_mul, mul_assoc, ← e₂, ← e₁] :
-      ↑(P ⊔ Q) = ↑(P ⊔ Q) * ↑R)
+    rw [← h₂, ← h₁],
   end,
   inf_le_left := λ P Q, (by rw [coe_inf, mul_assoc, commute.eq (commute Q.prop P.prop), ← mul_assoc,
   ← sq, (projection_def P.prop.left)] : ↑(P ⊓ Q) = ↑(P ⊓ Q) * ↑P),

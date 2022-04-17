@@ -317,7 +317,7 @@ variables {δ₂ : Type u} [topological_space δ₂] [t2_space δ₂] [compact_s
 /-- The universal property that uniquely characterizes the Stone-Čech compactification of `α`, when
   `stone_cech_unit` is an embedding. Notice that `stone_cech α` has this property
   in general by `stone_cech_extend_extends`, `continuous_stone_cech_extend` and
-  `stone_cech_hom_ext`, but lemma `stone_cech_extension_property_unique` assumes a dense,
+  `stone_cech_hom_ext`, but lemma `stone_cech_extension_property_unique` assumes a dense
   embedding that `stone_cech_unit` is not guaranteed to be. -/
 def stone_cech_extension_property (e : α → δ) :=
   ∀ {γ : Type u} [topological_space γ], by exactI ∀ [t2_space γ]

@@ -13,6 +13,7 @@ the equalizer of `f` and `0 : X ⟶ Y`. (Similarly the cokernel is the coequaliz
 
 The basic definitions are
 * `kernel : (X ⟶ Y) → C`
+
 * `kernel.ι : kernel f ⟶ X`
 * `kernel.condition : kernel.ι f ≫ f = 0` and
 * `kernel.lift (k : W ⟶ X) (h : k ≫ f = 0) : W ⟶ kernel f` (as well as the dual versions)

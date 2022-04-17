@@ -268,7 +268,7 @@ def ι (a : I.L) : K.X ⟶ I.left a := K.π.app (walking_multicospan.left _)
 
 @[simp] lemma app_left_eq_ι (a) : K.π.app (walking_multicospan.left a) = K.ι a := rfl
 
-@[reassoc] lemma app_right_eq_ι_comp_fst (b) :
+@[simp, reassoc] lemma app_right_eq_ι_comp_fst (b) :
   K.π.app (walking_multicospan.right b) = K.ι (I.fst_to b) ≫ I.fst b :=
 by { rw ← K.w (walking_multicospan.hom.fst b), refl }
 
@@ -295,10 +295,10 @@ def of_ι (I : multicospan_index C) (P : C) (ι : Π a, P ⟶ I.left a)
       { dsimp, rw category.id_comp, apply w }
     end } }
 
-@[reassoc]
+@[simp, reassoc]
 lemma condition (b) :
   K.ι (I.fst_to b) ≫ I.fst b = K.ι (I.snd_to b) ≫ I.snd b :=
-by simp[←app_right_eq_ι_comp_fst, ←app_right_eq_ι_comp_snd]
+by rw [←app_right_eq_ι_comp_fst, ←app_right_eq_ι_comp_snd]
 
 /-- This definition provides a convenient way to show that a multifork is a limit. -/
 @[simps]
@@ -328,7 +328,7 @@ variables [has_product I.left] [has_product I.right]
 
 @[simp, reassoc]
 lemma pi_condition : pi.lift K.ι ≫ I.fst_pi_map = pi.lift K.ι ≫ I.snd_pi_map :=
-by { ext, simp[←app_right_eq_ι_comp_fst, ←app_right_eq_ι_comp_snd] }
+by { ext, simp }
 
 /-- Given a multifork, we may obtain a fork over `∏ I.left ⇉ ∏ I.right`. -/
 @[simps X] noncomputable
@@ -378,7 +378,7 @@ def of_pi_fork (c : fork I.fst_pi_map I.snd_pi_map) : multifork I :=
 @[simp] lemma of_pi_fork_π_app_right (c : fork I.fst_pi_map I.snd_pi_map) (a) :
   (of_pi_fork I c).π.app (walking_multicospan.right a) = c.ι ≫ I.fst_pi_map ≫ pi.π _ _ := rfl
 
-@[simp] lemma hom_comp_ι (K₁ K₂ : multifork I) (f : K₁ ⟶ K₂) (j : I.L) :
+@[simp, reassoc] lemma hom_comp_ι (K₁ K₂ : multifork I) (f : K₁ ⟶ K₂) (j : I.L) :
   f.hom ≫ K₂.ι j = K₁.ι j := f.w (walking_multicospan.left j)
 
 end multifork
@@ -392,15 +392,7 @@ local attribute [tidy] tactic.case_bash
 /-- `multifork.to_pi_fork` is functorial. -/
 @[simps] noncomputable
 def to_pi_fork_functor : multifork I ⥤ fork I.fst_pi_map I.snd_pi_map :=
-{ obj := multifork.to_pi_fork,
-  map := λ K₁ K₂ f, { hom := f.hom, w' := by {
-    intros j,
-    tactic.case_bash,
-    { ext1, simp,  },
-    { ext1,
-      simp only [multifork.to_pi_fork_π_app_one, multifork.pi_condition,
-        category.assoc, snd_pi_map_π, limit.lift_π_assoc, fan.mk_π_app], rw [←category.assoc],
-      simp } } } }
+{ obj := multifork.to_pi_fork, map := λ K₁ K₂ f, { hom := f.hom } }
 
 /-- `multifork.of_pi_fork` is functorial. -/
 @[simps] noncomputable
@@ -432,16 +424,14 @@ variables {I : multispan_index C} (K : multicofork I)
 def π (b : I.R) : I.right b ⟶ K.X :=
 K.ι.app (walking_multispan.right _)
 
-@[simp] lemma π_eq_app_right (b) : K.π b = K.ι.app (walking_multispan.right _) := rfl
+@[simp] lemma π_eq_app_right (b) : K.ι.app (walking_multispan.right _) = K.π b := rfl
 
-@[simp] lemma fst_app_right (a) :
-  I.fst a ≫ K.ι.app (walking_multispan.right (I.fst_from a)) =
-    K.ι.app (walking_multispan.left a) :=
+@[simp, reassoc] lemma fst_app_right (a) :
+  K.ι.app (walking_multispan.left a) = I.fst a ≫ K.π _ :=
 by { rw ← K.w (walking_multispan.hom.fst a), refl }
 
-@[simp] lemma snd_app_right (a) :
-  I.snd a ≫ K.ι.app (walking_multispan.right (I.snd_from a)) =
-    K.ι.app (walking_multispan.left a) :=
+@[reassoc] lemma snd_app_right (a) :
+  K.ι.app (walking_multispan.left a) = I.snd a ≫ K.π _ :=
 by { rw ← K.w (walking_multispan.hom.snd a), refl }
 
 /-- Construct a multicofork using a collection `π` of morphisms. -/
@@ -463,9 +453,9 @@ def of_π (I : multispan_index C) (P : C) (π : Π b, I.right b ⟶ P)
       { dsimp, rw category.comp_id, apply (w _).symm }
     end } }
 
-@[reassoc]
-lemma condition (a) :
-  I.fst a ≫ K.π (I.fst_from a) = I.snd a ≫ K.π (I.snd_from a) := by simp
+@[simp, reassoc]
+lemma condition (a) : I.fst a ≫ K.π (I.fst_from a) = I.snd a ≫ K.π (I.snd_from a) :=
+by rw [←K.snd_app_right, ←K.fst_app_right]
 
 /-- This definition provides a convenient way to show that a multicofork is a colimit. -/
 @[simps]
@@ -535,11 +525,11 @@ def of_sigma_cofork (c : cofork I.fst_sigma_map I.snd_sigma_map) : multicofork I
     begin
       rintros (_|_) (_|_) (_|_|_),
       any_goals { dsimp, rw category.comp_id, apply category.id_comp },
-      { change _ ≫ _ ≫ _ = (_ ≫ _) ≫ _,
-        dsimp, simp [←cofork.left_app_one, -cofork.left_app_one] },
+      { change _ ≫ _ ≫ _ = (_ ≫ _) ≫ _, dsimp,
+        simp only [cofork.condition, category.comp_id],
+        rw [←I.ι_fst_sigma_map_assoc, c.condition] },
       { change _ ≫ _ ≫ _ = (_ ≫ _) ≫ 𝟙 _,
-        rw c.condition,
-        dsimp, simp [←cofork.right_app_one, -cofork.right_app_one] }
+        rw c.condition, simp }
     end } }
 
 @[simp] lemma of_sigma_cofork_ι_app_left (c : cofork I.fst_sigma_map I.snd_sigma_map) (a) :
@@ -577,7 +567,8 @@ it preserves and reflects colimit cocones.
 def multicofork_equiv_sigma_cofork : multicofork I ≌ cofork I.fst_sigma_map I.snd_sigma_map :=
 { functor := to_sigma_cofork_functor I,
   inverse := of_sigma_cofork_functor I,
-  unit_iso := nat_iso.of_components (λ K, cocones.ext (iso.refl _) (by rintros (_|_); dsimp; simp))
+  unit_iso := nat_iso.of_components (λ K, cocones.ext (iso.refl _)
+      (by { rintros (_|_); dsimp, }))
     (λ K₁ K₂ f, by { ext, simp }),
   counit_iso := nat_iso.of_components (λ K, cofork.ext (iso.refl _) (by { ext, dsimp, simp }))
     (λ K₁ K₂ f, by { ext, dsimp, simp, }) }

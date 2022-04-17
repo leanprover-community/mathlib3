@@ -523,6 +523,12 @@ def cofork.mk_hom {s t : cofork f g} (k : s.X ⟶ t.X) (w : s.π ≫ k = t.π) :
     { exact w }
   end }
 
+@[simp, reassoc] lemma fork.hom_comp_ι {s t : fork f g} (f : s ⟶ t) : f.hom ≫ t.ι = s.ι :=
+by tidy
+
+@[simp, reassoc] lemma fork.π_comp_hom {s t : cofork f g} (f : s ⟶ t) : s.π ≫ f.hom = t.π :=
+by tidy
+
 /--
 To construct an isomorphism between coforks,
 it suffices to give an isomorphism between the cocone points

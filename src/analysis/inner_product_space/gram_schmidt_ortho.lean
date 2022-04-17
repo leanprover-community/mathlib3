@@ -99,6 +99,9 @@ end
 
 open submodule set
 
+/-- This is from PR #13486 -/
+lemma Iic_succ (a : ℕ) : Iic a.succ = insert a.succ (Iic a) := sorry
+
 /-- Gram-Schmidt process preserves span -/
 lemma span_gram_schmidt (f : ℕ → E) (c : ℕ) :
   span 𝕜 (gram_schmidt 𝕜 f '' Iic c) = span 𝕜 (f '' Iic c) :=

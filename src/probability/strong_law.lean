@@ -10,46 +10,166 @@ noncomputable theory
 
 open_locale topological_space big_operators measure_theory probability_theory ennreal nnreal
 
+
+#check Ico_union_Ico_eq_Ico
+
+-- a placer pres de ...
+@[simp] lemma Ioc_union_Ioc_eq_Ioc {α : Type*} [linear_order α] [locally_finite_order α]
+  {a b c : α} (h₁ : a ≤ b) (h₂ : b ≤ c) :
+  Ioc a b ∪ Ioc b c = Ioc a c :=
+by rw [←coe_inj, coe_union, coe_Ioc, coe_Ioc, coe_Ioc, set.Ioc_union_Ioc_eq_Ioc h₁ h₂]
+
+
+#check prod_Ico_consecutive
+
+@[to_additive]
+lemma prod_Ioc_consecutive {β : Type*} [comm_monoid β]
+  (f : ℕ → β) {m n k : ℕ} (hmn : m ≤ n) (hnk : n ≤ k) :
+  (∏ i in Ioc m n, f i) * (∏ i in Ioc n k, f i) = (∏ i in Ioc m k, f i) :=
+begin
+  rw [← Ioc_union_Ioc_eq_Ioc hmn hnk, prod_union],
+  apply disjoint_left.2 (λ x hx h'x, _),
+  exact lt_irrefl _ ((mem_Ioc.1 h'x).1.trans_le (mem_Ioc.1 hx).2),
+end
+
+@[simp] lemma Ioc_self_succ (b : ℕ) : Ioc b b.succ = {b+1} :=
+by rw [← nat.Icc_succ_left, Icc_self]
+
+@[to_additive]
+lemma prod_Ioc_succ_top {β : Type*} [comm_monoid β] {a b : ℕ} (hab : a ≤ b) (f : ℕ → β) :
+  (∏ k in Ioc a (b + 1), f k) = (∏ k in Ioc a b, f k) * f (b + 1) :=
+by rw [← prod_Ioc_consecutive _ hab (nat.le_succ b), Ioc_self_succ, prod_singleton]
+
+lemma sum_Ioc_div_sq_le_sub {α : Type*} [linear_ordered_field α] {k n : ℕ} (hk : k ≠ 0) (h : k ≤ n) :
+  ∑ i in Ioc k n, (1 : α) / i ^ 2 ≤ 1 / k - 1 / n :=
+begin
+  refine nat.le_induction _ _ n h,
+  { simp only [Ioc_self, sum_empty, sub_self] },
+  assume n hn IH,
+  rw [sum_Ioc_succ_top hn],
+  apply (add_le_add IH le_rfl).trans,
+  simp only [sub_eq_add_neg, add_assoc, nat.cast_add, nat.cast_one, le_add_neg_iff_add_le,
+    add_le_iff_nonpos_right, neg_add_le_iff_le_add, add_zero],
+  have A : 0 < (n : α), by simpa using hk.bot_lt.trans_le hn,
+  have B : 0 < (n : α) + 1, by linarith,
+  field_simp [B.ne'],
+  rw [div_le_div_iff _ A, ← sub_nonneg],
+  { ring_nf, exact B.le },
+  { nlinarith },
+end
+
+lemma sum_Ioo_div_sq_le {α : Type*} [linear_ordered_field α] (k n : ℕ) :
+  ∑ i in Ioo k n, (1 : α) / i ^ 2 ≤ 2 / (k + 1) :=
+calc
+∑ i in Ioo k n, (1 : α) / i ^ 2 ≤ ∑ i in Ioc k (max (k+1) n), 1 / i ^ 2 :
+begin
+  apply sum_le_sum_of_subset_of_nonneg,
+  { assume x hx,
+    simp only [mem_Ioo] at hx,
+    simp only [hx, hx.2.le, mem_Ioc, le_max_iff, or_true, and_self] },
+  { assume i hi h'i,
+    exact div_nonneg zero_le_one (sq_nonneg _), }
+end
+... ≤ 1 / (k + 1) ^ 2 + ∑ i in Ioc k.succ (max (k + 1) n), 1 / i ^ 2 :
+begin
+  rw [← nat.Icc_succ_left, ← nat.Ico_succ_right, sum_eq_sum_Ico_succ_bot],
+  swap, { exact nat.succ_lt_succ ((nat.lt_succ_self k).trans_le (le_max_left _ _)) },
+  rw [nat.Ico_succ_right, nat.Icc_succ_left, nat.cast_succ],
+end
+... ≤ 1 / (k + 1) ^ 2 + 1 / (k + 1) :
+begin
+  refine add_le_add le_rfl ((sum_Ioc_div_sq_le_sub _ (le_max_left _ _)).trans _),
+  { simp only [ne.def, nat.succ_ne_zero, not_false_iff] },
+  { simp only [nat.cast_succ, one_div, sub_le_self_iff, inv_nonneg, nat.cast_nonneg] }
+end
+... ≤ 1 / (k + 1) + 1 / (k + 1) :
+begin
+  have A : (1 : α) ≤ k + 1, by simp only [le_add_iff_nonneg_left, nat.cast_nonneg],
+  apply add_le_add_right,
+  refine div_le_div zero_le_one le_rfl (zero_lt_one.trans_le A) _,
+  simpa using pow_le_pow A one_le_two,
+end
+... = 2 / (k + 1) : by ring
+
+namespace asymptotics
+
+lemma is_o.sum_range {α : Type*} [normed_group α]
+  {f : ℕ → α} {g : ℕ → ℝ} (h : is_o f g at_top)
+  (hg : 0 ≤ g) (h'g : tendsto (λ n, ∑ i in range n, g i) at_top at_top) :
+  is_o (λ n, ∑ i in range n, f i) (λ n, ∑ i in range n, g i) at_top :=
+begin
+  have A : ∀ i, ∥g i∥ = g i := λ i, real.norm_of_nonneg (hg i),
+  have B : ∀ n, ∥∑ i in range n, g i∥ = ∑ i in range n, g i,
+  { assume n,
+    rw [real.norm_eq_abs, abs_sum_of_nonneg'],
+    exact hg },
+  apply is_o_iff.2 (λ ε εpos, _),
+  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (b : ℕ), N ≤ b → ∥f b∥ ≤ ε / 2 * g b,
+    by simpa only [A, eventually_at_top] using is_o_iff.mp h (half_pos εpos),
+  have : is_o (λ (n : ℕ), ∑ i in range N, f i) (λ (n : ℕ), ∑ i in range n, g i) at_top,
+  { apply is_o_const_left.2,
+    exact or.inr (h'g.congr (λ n, (B n).symm)) },
+  filter_upwards [is_o_iff.1 this (half_pos εpos), Ici_mem_at_top N] with n hn Nn,
+  calc ∥∑ i in range n, f i∥
+  = ∥∑ i in range N, f i + ∑ i in Ico N n, f i∥ :
+    by rw sum_range_add_sum_Ico _ Nn
+  ... ≤ ∥∑ i in range N, f i∥ + ∥∑ i in Ico N n, f i∥ :
+    norm_add_le _ _
+  ... ≤ ∥∑ i in range N, f i∥ + ∑ i in Ico N n, (ε / 2) * g i :
+    add_le_add le_rfl (norm_sum_le_of_le _ (λ i hi, hN _ (mem_Ico.1 hi).1))
+  ... ≤ ∥∑ i in range N, f i∥ + ∑ i in range n, (ε / 2) * g i :
+    begin
+      refine add_le_add le_rfl _,
+      apply sum_le_sum_of_subset_of_nonneg,
+      { rw range_eq_Ico,
+        exact Ico_subset_Ico (zero_le _) le_rfl },
+      { assume i hi h'i,
+        exact mul_nonneg (half_pos εpos).le (hg i) }
+    end
+  ... ≤ (ε / 2) * ∥∑ i in range n, g i∥ + (ε / 2) * (∑ i in range n, g i) :
+    begin
+      rw ← mul_sum,
+      exact add_le_add hn (mul_le_mul_of_nonneg_left le_rfl (half_pos εpos).le),
+    end
+  ... = ε * ∥(∑ i in range n, g i)∥ : by { simp [B], ring }
+end
+
+lemma is_o_sum_range_of_tendsto_zero {α : Type*} [normed_group α]
+  {f : ℕ → α} (h : tendsto f at_top (𝓝 0)) :
+  is_o (λ n, ∑ i in range n, f i) (λ n, (n : ℝ)) at_top :=
+begin
+  have := ((is_o_one_iff ℝ).2 h).sum_range (λ i, zero_le_one),
+  simp only [sum_const, card_range, nat.smul_one_eq_coe] at this,
+  exact this tendsto_coe_nat_at_top_at_top
+end
+
+end asymptotics
+
+open asymptotics
+
+lemma tendsto_sub_nhds_zero_iff
+  {α : Type*} {l : filter α} {E : Type*} [normed_group E] {x : E} {u : α → E} :
+  tendsto u l (𝓝 x) ↔ tendsto (λ n, u n - x) l (𝓝 0) :=
+begin
+  have A : tendsto (λ (n : α), x) l (𝓝 x) := tendsto_const_nhds,
+  exact ⟨λ h, by simpa using h.sub A, λ h, by simpa using h.add A⟩
+end
+
 /-- The Cesaro average of a converging sequence converges to the same limit. -/
 lemma filter.tendsto.cesaro_smul {E : Type*} [normed_group E] [normed_space ℝ E]
   {u : ℕ → E} {l : E} (h : tendsto u at_top (𝓝 l)) :
   tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) • (∑ i in range n, u i)) at_top (𝓝 l) :=
 begin
-  refine metric.tendsto_nhds.2 (λ ε εpos, _),
-  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (b : ℕ), N ≤ b → dist (u b) l < ε / 2,
-    by simpa only [eventually_at_top] using metric.tendsto_nhds.1 h (ε / 2) (half_pos εpos),
-  have L : ∀ᶠ (n : ℕ) in at_top, ∥∑ i in range N, (u i - l)∥ < n * (ε / 2),
-  { have : tendsto (λ (n : ℕ), (n : ℝ) * (ε / 2)) at_top at_top,
-      by apply tendsto_coe_nat_at_top_at_top.at_top_mul (half_pos εpos) tendsto_const_nhds,
-    filter_upwards [tendsto_at_top.1 this (∥∑ i in range N, (u i - l)∥ + 1)] with n hn,
-    exact (lt_add_one _).trans_le hn },
-  filter_upwards [Ici_mem_at_top N, Ioi_mem_at_top 0, L] with n Nn npos hnL,
-  have nposℝ : (0 : ℝ) < n := nat.cast_pos.2 npos,
-  suffices : ∥(range n).sum u - n • l∥ < ε * n,
-  { have A : l = (n ⁻¹ : ℝ) • ((n : ℝ) • l), by rw [smul_smul, inv_mul_cancel nposℝ.ne', one_smul],
-    rwa [dist_eq_norm, A, ← smul_sub, norm_smul, norm_inv, real.norm_coe_nat, ← div_eq_inv_mul,
-      div_lt_iff nposℝ, ← nsmul_eq_smul_cast] },
-  calc ∥(range n).sum u - n • l∥ = ∥∑ i in range n, (u i - l)∥ :
-    by simp only [sum_sub_distrib, sum_const, card_range]
-  ... = ∥∑ i in range N, (u i - l) + ∑ i in Ico N n, (u i - l)∥ :
-    by rw sum_range_add_sum_Ico _ Nn
-  ... ≤ ∥∑ i in range N, (u i - l)∥ + ∥∑ i in Ico N n, (u i - l)∥ :
-    norm_add_le _ _
-  ... ≤ ∥∑ i in range N, (u i - l)∥ + ∑ i in Ico N n, ε / 2 :
-    begin
-      refine add_le_add le_rfl (norm_sum_le_of_le _ (λ i hi, _)),
-      rw ← dist_eq_norm,
-      exact (hN _ (mem_Ico.1 hi).1).le,
-    end
-  ... ≤ ∥∑ i in range N, (u i - l)∥ + n * (ε / 2) :
-    begin
-      refine add_le_add le_rfl _,
-      simp only [sum_const, nat.card_Ico, nsmul_eq_mul],
-      apply mul_le_mul _ le_rfl (half_pos εpos).le nposℝ.le,
-      simp only [nat.cast_le, tsub_le_self]
-    end
-  ... < n * (ε / 2) + n * (ε / 2) : (add_lt_add_iff_right _).2 hnL
-  ... = ε * n : by ring
+  rw [tendsto_sub_nhds_zero_iff, ← is_o_one_iff ℝ],
+  have := asymptotics.is_o_sum_range_of_tendsto_zero (tendsto_sub_nhds_zero_iff.1 h),
+  apply ((is_O_refl (λ (n : ℕ), (n : ℝ) ⁻¹) at_top).smul_is_o this).congr' _ _,
+  { filter_upwards [Ici_mem_at_top 1] with n npos,
+    have nposℝ : (0 : ℝ) < n := nat.cast_pos.2 npos,
+    simp only [smul_sub, sum_sub_distrib, sum_const, card_range, sub_right_inj],
+    rw [nsmul_eq_smul_cast ℝ, smul_smul, inv_mul_cancel nposℝ.ne', one_smul] },
+  { filter_upwards [Ici_mem_at_top 1] with n npos,
+    have nposℝ : (0 : ℝ) < n := nat.cast_pos.2 npos,
+    rw [algebra.id.smul_eq_mul, inv_mul_cancel nposℝ.ne'] }
 end
 
 lemma filter.tendsto.cesaro
@@ -301,6 +421,20 @@ begin
   simp [(abs_lt.1 h).1, (abs_lt.1 h).2.le],
 end
 
+lemma truncation_eq_of_nonneg {f : α → ℝ} {A : ℝ}  (h : ∀ x, 0 ≤ f x) :
+  truncation f A = (indicator (set.Ioc 0 A) id) ∘ f :=
+begin
+  ext x,
+  rcases lt_trichotomy 0 (f x) with hx|hx|hx,
+  { simp only [truncation, indicator, hx, set.mem_Ioc, id.def, function.comp_app, true_and],
+    by_cases h'x : f x ≤ A,
+    { have : - A < f x, by linarith [h x],
+      simp only [this, true_and]},
+    { simp only [h'x, and_false]} },
+  { simp only [truncation, indicator, hx, id.def, function.comp_app, if_t_t]},
+  { linarith [h x] },
+end
+
 lemma _root_.measure_theory.ae_strongly_measurable.mem_ℒp_truncation [is_finite_measure μ]
   (hf : ae_strongly_measurable f μ) {A : ℝ} {p : ℝ≥0∞} :
   mem_ℒp (truncation f A) p μ :=
@@ -309,6 +443,67 @@ begin
   apply mem_ℒp_top_of_bound hf.truncation _
     (eventually_of_forall (λ x, abs_truncation_le_bound _ _ _)),
 end
+
+lemma _root_.measure_theory.ae_strongly_measurable.integrable_truncation [is_finite_measure μ]
+  (hf : ae_strongly_measurable f μ) {A : ℝ} :
+  integrable (truncation f A) μ :=
+by { rw ← mem_ℒp_one_iff_integrable, exact hf.mem_ℒp_truncation }
+
+lemma moment_truncation_eq_interval_integral (hf : ae_strongly_measurable f μ) {A : ℝ}
+  (hA : 0 ≤ A) {n : ℕ} (hn : n ≠ 0) :
+  ∫ x, (truncation f A x) ^ n ∂μ = ∫ y in (-A)..A, y ^ n ∂(measure.map f μ) :=
+begin
+  have M : measurable_set (set.Ioc (-A) A) := measurable_set_Ioc,
+  change ∫ x, (λ z, (indicator (set.Ioc (-A) A) id z) ^ n) (f x) ∂μ = _,
+  rw [← integral_map hf.ae_measurable, interval_integral.integral_of_le, ← integral_indicator M],
+  { simp only [indicator, zero_pow' _ hn, id.def, ite_pow] },
+  { linarith },
+  { apply measurable.ae_strongly_measurable,
+    convert (measurable_id.pow_const n).indicator M,
+    simp only [indicator, zero_pow' _ hn, ite_pow] }
+end
+
+lemma moment_truncation_eq_interval_integral_of_nonneg (hf : ae_strongly_measurable f μ) {A : ℝ}
+  {n : ℕ} (hn : n ≠ 0) (h'f : 0 ≤ f) :
+  ∫ x, (truncation f A x) ^ n ∂μ = ∫ y in 0..A, y ^ n ∂(measure.map f μ) :=
+begin
+  have M : measurable_set (set.Ioc 0 A) := measurable_set_Ioc,
+  have M' : measurable_set (set.Ioc A 0) := measurable_set_Ioc,
+  rw truncation_eq_of_nonneg h'f,
+  change ∫ x, (λ z, (indicator (set.Ioc 0 A) id z) ^ n) (f x) ∂μ = _,
+  rcases le_or_lt 0 A with hA | hA,
+  { rw [← integral_map hf.ae_measurable, interval_integral.integral_of_le hA,
+        ← integral_indicator M],
+    { simp only [indicator, zero_pow' _ hn, id.def, ite_pow] },
+    { apply measurable.ae_strongly_measurable,
+      convert (measurable_id.pow_const n).indicator M,
+      simp only [indicator, zero_pow' _ hn, ite_pow] } },
+  { rw [← integral_map hf.ae_measurable, interval_integral.integral_of_ge hA.le,
+        ← integral_indicator M'],
+    { simp only [set.Ioc_eq_empty (not_lt.2 hA.le), zero_pow' _ hn, set.indicator_empty,
+        integral_const, algebra.id.smul_eq_mul, mul_zero, zero_eq_neg],
+      apply integral_eq_zero_of_ae,
+      have : ∀ᵐ x ∂(measure.map f μ), (0 : ℝ) ≤ x :=
+        (ae_map_iff hf.ae_measurable measurable_set_Ici).2 (eventually_of_forall h'f),
+      filter_upwards [this] with x hx,
+      simp only [set.mem_Ioc, pi.zero_apply, ite_eq_right_iff, and_imp],
+      assume h'x h''x,
+      have : x = 0, by linarith,
+      simp [this, zero_pow' _ hn] },
+    { apply measurable.ae_strongly_measurable,
+      convert (measurable_id.pow_const n).indicator M,
+      simp only [indicator, zero_pow' _ hn, ite_pow] } }
+end
+
+lemma integral_truncation_eq_interval_integral (hf : ae_strongly_measurable f μ) {A : ℝ}
+  (hA : 0 ≤ A) :
+  ∫ x, truncation f A x ∂μ = ∫ y in (-A)..A, y ∂(measure.map f μ) :=
+by simpa using moment_truncation_eq_interval_integral hf hA one_ne_zero
+
+lemma integral_truncation_eq_interval_integral_of_nonneg (hf : ae_strongly_measurable f μ) {A : ℝ}
+  (h'f : 0 ≤ f) :
+  ∫ x, truncation f A x ∂μ = ∫ y in 0..A, y ∂(measure.map f μ) :=
+by simpa using moment_truncation_eq_interval_integral_of_nonneg hf one_ne_zero h'f
 
 /-- If a function is integrable, then the integral of its truncated versions converges to the
 integral of the whole function. -/
@@ -473,63 +668,151 @@ begin
   end
 end
 
-theorem
-  strong_law1
-  (X : ℕ → Ω → ℝ) (hint : ∀ i, integrable (X i))
-  (hindep : pairwise (λ i j, indep_fun (X i) (X j)))
-  (h'i : ∀ i, measure.map (X i) ℙ = measure.map (X 0) ℙ)
-  (h''i : ∀ i ω, 0 ≤ X i ω) :
-  ∀ᵐ ω, tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) * (∑ i in range n, X i ω)) at_top (𝓝 (𝔼[X 0])) :=
+lemma sum_variance_truncation_le
+  {X : Ω → ℝ} (hint : integrable X) (h''i : 0 ≤ X) (K : ℕ) :
+  ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * 𝔼[(truncation X j) ^ 2] ≤ 2 * 𝔼[X] :=
 begin
+  set Y := λ (n : ℕ), truncation X n,
+  let ρ : measure ℝ := measure.map X ℙ,
+  have Y2 : ∀ n, 𝔼[Y n ^ 2] = ∫ x in 0..n, x ^ 2 ∂ρ,
+  { assume n,
+    change 𝔼[λ x, (Y n x)^2] = _,
+    rw [moment_truncation_eq_interval_integral_of_nonneg hint.1 two_ne_zero h''i] },
+  calc ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * 𝔼[Y j ^ 2]
+      = ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * ∫ x in 0..j, x ^ 2 ∂ρ :
+    by simp_rw [Y2]
+  ... = ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * ∑ k in range j, ∫ x in k..(k+1 : ℕ), x ^ 2 ∂ρ :
+    begin
+      congr' 1 with j,
+      congr' 1,
+      rw interval_integral.sum_integral_adjacent_intervals,
+      { refl },
+      assume k hk,
+      exact (continuous_id.pow _).interval_integrable _ _,
+    end
+  ... = ∑ k in range K, (∑ j in Ioo k K, ((j : ℝ) ^ 2) ⁻¹) * ∫ x in k..(k+1 : ℕ), x ^ 2 ∂ρ :
+    begin
+      simp_rw [mul_sum, sum_mul, sum_sigma'],
+      refine sum_bij' (λ (p : (Σ (i : ℕ), ℕ)) hp, (⟨p.2, p.1⟩ : (Σ (i : ℕ), ℕ))) _ (λ a ha, rfl)
+        (λ (p : (Σ (i : ℕ), ℕ)) hp, (⟨p.2, p.1⟩ : (Σ (i : ℕ), ℕ))) _ _ _,
+      { rintros ⟨i, j⟩ hij,
+        simp only [mem_sigma, mem_range, mem_filter] at hij,
+        simp [hij, mem_sigma, mem_range, and_self, hij.2.trans hij.1], },
+      { rintros ⟨i, j⟩ hij,
+        simp only [mem_sigma, mem_range, mem_Ioo] at hij,
+        simp only [hij, mem_sigma, mem_range, and_self], },
+      { rintros ⟨i, j⟩ hij, refl },
+      { rintros ⟨i, j⟩ hij, refl },
+    end
+  ... ≤ ∑ k in range K, (2/ (k+1)) * ∫ x in k..(k+1 : ℕ), x ^ 2 ∂ρ :
+    begin
+      apply sum_le_sum (λ k hk, _),
+      simp_rw [← one_div],
+      refine mul_le_mul_of_nonneg_right (sum_Ioo_div_sq_le _ _) _,
+      refine interval_integral.integral_nonneg_of_forall _ (λ u, sq_nonneg _),
+      simp only [nat.cast_add, nat.cast_one, le_add_iff_nonneg_right, zero_le_one],
+    end
+  ... ≤ ∑ k in range K, ∫ x in k..(k+1 : ℕ), 2 * x ∂ρ :
+    begin
+      apply sum_le_sum (λ k hk, _),
+      have Ik : (k : ℝ) ≤ (k + 1 : ℕ), by simp,
+      rw ← interval_integral.integral_const_mul,
+      rw [interval_integral.integral_of_le Ik, interval_integral.integral_of_le Ik],
+      apply set_integral_mono_on,
+      { apply continuous.integrable_on_Ioc,
+        exact continuous_const.mul (continuous_pow 2) },
+      { apply continuous.integrable_on_Ioc,
+        exact continuous_const.mul continuous_id' },
+      { exact measurable_set_Ioc },
+      { assume x hx,
+        calc 2 / (↑k + 1) * x ^ 2 = (x / (k+1)) * (2 * x) : by ring_exp
+        ... ≤ 1 * (2 * x) :
+          begin
+            apply mul_le_mul_of_nonneg_right _
+              (mul_nonneg zero_le_two ((nat.cast_nonneg k).trans hx.1.le)),
+            apply (div_le_one _).2 hx.2,
+            simp only [nat.cast_add, nat.cast_one],
+            linarith only [show (0 : ℝ) ≤ k, from  nat.cast_nonneg k],
+          end
+        ... = 2 * x : by rw one_mul }
+    end
+  ... = 2 * ∫ x in (0 : ℝ)..K, x ∂ρ :
+    begin
+      rw interval_integral.sum_integral_adjacent_intervals (λ k hk, _),
+      swap, { exact (continuous_const.mul continuous_id').interval_integrable _ _ },
+      rw interval_integral.integral_const_mul,
+      refl
+    end
+  ... ≤ 2 * 𝔼[X] :
+    begin
+      apply mul_le_mul_of_nonneg_left _ zero_le_two,
+      calc ∫ x in 0..↑K, x ∂ρ = ∫ a, truncation X K a :
+        by rw integral_truncation_eq_interval_integral_of_nonneg hint.1 h''i
+      ... ≤ ∫ (a : Ω), X a :
+        begin
+          apply integral_mono_of_nonneg (eventually_of_forall (λ x, _)) hint
+            (eventually_of_forall (λ x, _)),
+          { simp only [truncation, indicator, pi.zero_apply, set.mem_Ioc, id.def,
+              function.comp_app],
+            split_ifs,
+            { exact h''i x },
+            { exact le_rfl } },
+          { simp only [truncation, indicator, set.mem_Ioc, id.def, function.comp_app],
+            split_ifs,
+            { exact le_rfl },
+            { exact h''i x } }
+        end
+    end
+end
+
+/- Introduire une notion de "identically distributed", et dire qu'alors l'intégrale d'une composition
+est la même. -/
+
+structure identically_distributed {α β γ : Type*} [measurable_space α] [measurable_space β]
+  [measurable_space γ]
+  (X : α → γ) (Y : β → γ) (μ : measure α . volume_tac) (ν : measure β . volume_tac) :=
+(meas_X : ae_measurable X μ)
+(meas_Y : ae_measurable Y ν)
+(distrib_eq : measure.map X μ = measure.map Y ν)
+
+variables (X : ℕ → Ω → ℝ) (hint : ∀ i, integrable (X i))
+  (hindep : pairwise (λ i j, indep_fun (X i) (X j)))
+  (h'i : ∀ i, identically_distributed (X i) (X 0))
+  (h''i : ∀ i ω, 0 ≤ X i ω)
+
+include X hint hindep h'i h''i
+
+lemma strong_law_aux1 {c : ℝ} (c_one : 1 < c) {ε : ℝ} (εpos : 0 < ε) :
+  ∀ᵐ ω, ∀ᶠ (n : ℕ) in at_top,
+    |∑ i in range ⌊c^n⌋₊, truncation (X i) i ω - 𝔼[∑ i in range ⌊c^n⌋₊, truncation (X i) i]|
+      < ε * ⌊c^n⌋₊ :=
+begin
+  have c_pos : 0 < c := zero_lt_one.trans c_one,
   let ρ : measure ℝ := measure.map (X 0) ℙ,
   have A : ∀ i, strongly_measurable (indicator (set.Ioc (-i : ℝ) i) id) :=
     λ i, strongly_measurable_id.indicator measurable_set_Ioc,
-  let Y := λ (n : ℕ), truncation (X n) n,
-  have : ∀ n, 𝔼[Y n ^ 2] = ∫ x in 0..n, x ^ 2 ∂ρ,
-  {
-
-  },
-
-end
-
-#exit
-
-  have : ∀ K, ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * Var[Y j] ≤ 10,
-  { assume K,
-    calc ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * Var[Y j]
-        ≤ ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * 𝔼[Y j ^ 2] : sum_le_sum (λ i hi,
-          mul_le_mul_of_nonneg_left variance_le_expectation_sq (inv_nonneg.2 (sq_nonneg _)))
-    ... ≤ 10 : sorry
-
-  }
-
-end
-
-#exit
-
+  set Y := λ (n : ℕ), truncation (X n) n with hY,
   set S := λ n, ∑ i in range n, Y i with hS,
-  have : tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) * (∑ i in range n, 𝔼[Y i])) at_top (𝓝 (𝔼[X 0])),
-  sorry { apply filter.tendsto.cesaro,
-    convert (tendsto_integral_truncation (hint 0)).comp tendsto_coe_nat_at_top_at_top,
-    ext i,
-    calc 𝔼[Y i] = ∫ x, (indicator (set.Ioc (-i : ℝ) i) id) x ∂(measure.map (X i) ℙ) :
-      by { rw integral_map (hint i).ae_measurable (A i).ae_strongly_measurable, refl }
-    ... = ∫ x, (indicator (set.Ioc (-i : ℝ) i) id) x ∂(measure.map (X 0) ℙ) : by rw h'i i
-    ... = 𝔼[truncation (X 0) i] :
-    by { rw integral_map (hint 0).ae_measurable (A i).ae_strongly_measurable, refl } },
-  have c : ℝ := sorry,
-  have c_one : 1 < c := sorry;
   let u : ℕ → ℕ := λ n, ⌊c ^ n⌋₊,
-  have u_mono : monotone u := sorry,
-  have ε : ℝ := sorry,
-  have εpos : 0 < ε := sorry,
-
-end
-
-#exit
-
-
-  have : ∀ N, ∑ i in range N, ((u i : ℝ) ^ 2) ⁻¹ * Var[S (u i)] ≤ 10,
+  have u_mono : monotone u :=
+    λ i j hij, nat.floor_mono (pow_le_pow c_one.le hij),
+  have I1 : ∀ K, ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * Var[Y j] ≤ 2 * 𝔼[X 0],
+  { assume K,
+    calc ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * Var[Y j] ≤
+      ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * 𝔼[(truncation (X 0) j)^2] :
+      begin
+        apply sum_le_sum (λ j hj, _),
+        refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 (sq_nonneg _)),
+        refine variance_le_expectation_sq.trans _,
+        apply le_of_eq,
+        change ∫ a, (truncation (X j) j a) ^ 2 = ∫ a, (truncation (X 0) j a) ^ 2,
+        rw [moment_truncation_eq_interval_integral_of_nonneg (hint j).1 two_ne_zero (h''i j),
+          moment_truncation_eq_interval_integral_of_nonneg (hint 0).1 two_ne_zero (h''i 0),
+          (h'i j).distrib_eq],
+      end
+      ... ≤ 2 * 𝔼[X 0] : sum_variance_truncation_le (hint 0) (h''i 0) K },
+  let C := (c ^ 5 * (c - 1) ⁻¹ ^ 3) * (2 * 𝔼[X 0]),
+  have I2 : ∀ N, ∑ i in range N, ((u i : ℝ) ^ 2) ⁻¹ * Var[S (u i)] ≤ C,
   { assume N,
     calc
     ∑ i in range N, ((u i : ℝ) ^ 2) ⁻¹ * Var[S (u i)]
@@ -571,37 +854,238 @@ end
         { simp only [nat.cast_lt] },
         { simp only [one_div] }
       end
-    ... ≤ 10 : sorry
-
-  }
+    ... = (c ^ 5 * (c - 1) ⁻¹ ^ 3) * ∑ j in range (u (N - 1)), ((j : ℝ) ^ 2) ⁻¹ * Var[Y j] :
+        by { simp_rw [mul_sum, div_eq_mul_inv], ring_nf }
+    ... ≤ (c ^ 5 * (c - 1) ⁻¹ ^ 3) * (2 * 𝔼[X 0]) :
+      begin
+        apply mul_le_mul_of_nonneg_left (I1 _),
+        apply mul_nonneg (pow_nonneg c_pos.le _),
+        exact pow_nonneg (inv_nonneg.2 (sub_nonneg.2 c_one.le)) _
+      end },
+  have I3 : ∀ N, ∑ i in range N,
+    ℙ {ω | (u i * ε : ℝ) ≤ |S (u i) ω - 𝔼[S (u i)]|} ≤ ennreal.of_real (ε ⁻¹ ^ 2 * C),
+  { assume N,
+    calc ∑ i in range N, ℙ {ω | (u i * ε : ℝ) ≤ |S (u i) ω - 𝔼[S (u i)]|}
+        ≤ ∑ i in range N, ennreal.of_real (Var[S (u i)] / (u i * ε) ^ 2) :
+      begin
+        refine sum_le_sum (λ i hi, _),
+        apply meas_ge_le_mul_variance,
+        { exact mem_ℒp_finset_sum' _ (λ j hj, (hint j).1.mem_ℒp_truncation) },
+        { apply mul_pos (nat.cast_pos.2 _) εpos,
+          refine zero_lt_one.trans_le _,
+          apply nat.le_floor,
+          rw nat.cast_one,
+          apply one_le_pow_of_one_le c_one.le }
+      end
+    ... = ennreal.of_real (∑ i in range N, Var[S (u i)] / (u i * ε) ^ 2) :
+      begin
+        rw ennreal.of_real_sum_of_nonneg (λ i hi, _),
+        exact div_nonneg (variance_nonneg _ _) (sq_nonneg _),
+      end
+    ... ≤ ennreal.of_real (ε ⁻¹ ^ 2 * C) :
+      begin
+        apply ennreal.of_real_le_of_real,
+        simp_rw [div_eq_inv_mul, ← inv_pow₀, mul_inv₀, mul_comm _ (ε⁻¹), mul_pow, mul_assoc,
+          ← mul_sum],
+        refine mul_le_mul_of_nonneg_left _ (sq_nonneg _),
+        simp_rw [inv_pow₀],
+        exact I2 N
+      end },
+  have I4 : ∑' i, ℙ {ω | (u i * ε : ℝ) ≤ |S (u i) ω - 𝔼[S (u i)]|} < ∞ :=
+    (le_of_tendsto_of_tendsto' (ennreal.tendsto_nat_tsum _) tendsto_const_nhds I3).trans_lt
+      ennreal.of_real_lt_top,
+  filter_upwards [ae_eventually_not_mem I4.ne] with ω hω,
+  simp_rw [not_le, mul_comm, S, sum_apply] at hω,
+  exact hω,
 end
+
+lemma strong_law_aux2 {c : ℝ} (c_one : 1 < c) :
+  ∀ᵐ ω, asymptotics.is_o
+  (λ (n : ℕ), ∑ i in range ⌊c^n⌋₊, truncation (X i) i ω - 𝔼[∑ i in range ⌊c^n⌋₊, truncation (X i) i])
+    (λ (n : ℕ), (⌊c^n⌋₊ : ℝ)) at_top :=
+begin
+  obtain ⟨v, -, v_pos, v_lim⟩ :
+    ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧ tendsto u at_top (𝓝 0) :=
+    exists_seq_strict_anti_tendsto (0 : ℝ),
+  have := λ i, strong_law_aux1 X hint hindep h'i h''i c_one (v_pos i),
+  filter_upwards [ae_all_iff.2 this] with ω hω,
+  apply asymptotics.is_o_iff.2 (λ ε εpos, _),
+  obtain ⟨i, hi⟩ : ∃ i, v i < ε := ((tendsto_order.1 v_lim).2 ε εpos).exists,
+  filter_upwards [hω i] with n hn,
+  simp only [real.norm_eq_abs, lattice_ordered_comm_group.abs_abs, nat.abs_cast],
+  exact hn.le.trans (mul_le_mul_of_nonneg_right hi.le (nat.cast_nonneg _)),
+end
+
+omit hindep
+lemma strong_law_aux3 :
+  asymptotics.is_o (λ n, 𝔼[∑ i in range n, truncation (X i) i] - n * 𝔼[X 0])
+    (λ (n : ℕ), (n : ℝ)) at_top :=
+begin
+  have A : ∀ i, strongly_measurable (indicator (set.Ioc (-i : ℝ) i) id) :=
+    λ i, strongly_measurable_id.indicator measurable_set_Ioc,
+  set Y := λ (n : ℕ), truncation (X n) n with hY,
+  have A : tendsto (λ i, 𝔼[Y i]) at_top (𝓝 (𝔼[X 0])),
+  { convert (tendsto_integral_truncation (hint 0)).comp tendsto_coe_nat_at_top_at_top,
+    ext i,
+    calc 𝔼[Y i] = ∫ x, (indicator (set.Ioc (-i : ℝ) i) id) x ∂(measure.map (X i) ℙ) :
+      by { rw integral_map (hint i).ae_measurable (A i).ae_strongly_measurable, refl }
+    ... = ∫ x, (indicator (set.Ioc (-i : ℝ) i) id) x ∂(measure.map (X 0) ℙ) :
+      by rw (h'i i).distrib_eq
+    ... = 𝔼[truncation (X 0) i] :
+      by { rw integral_map (hint 0).ae_measurable (A i).ae_strongly_measurable, refl } },
+  convert asymptotics.is_o_sum_range_of_tendsto_zero (tendsto_sub_nhds_zero_iff.1 A),
+  ext1 n,
+  simp only [sum_sub_distrib, sum_const, card_range, nsmul_eq_mul, sum_apply, sub_left_inj],
+  rw integral_finset_sum _ (λ i hi, _),
+  exact (hint i).1.integrable_truncation,
+end
+include hindep
+
+lemma strong_law_aux4 {c : ℝ} (c_one : 1 < c) :
+  ∀ᵐ ω, asymptotics.is_o
+  (λ (n : ℕ), ∑ i in range ⌊c^n⌋₊, truncation (X i) i ω - ⌊c^n⌋₊ * 𝔼[X 0])
+    (λ (n : ℕ), (⌊c^n⌋₊ : ℝ)) at_top :=
+begin
+  filter_upwards [strong_law_aux2 X hint hindep h'i h''i c_one] with ω hω,
+  have A : tendsto (λ (n : ℕ), ⌊c ^ n⌋₊) at_top at_top := sorry,
+  convert hω.add ((strong_law_aux3 X hint h'i h''i).comp_tendsto A),
+  ext1 n,
+  simp,
+end
+
 
 #exit
 
-
-
-  have : ∀ N, ∑ i in range N, ℙ {ω | (u i * ε : ℝ) ≤ |S (u i) ω - 𝔼[S (u i)]|} ≤ 10,
-  { assume N,
+theorem
+  strong_law1
+  (X : ℕ → Ω → ℝ) (hint : ∀ i, integrable (X i))
+  (hindep : pairwise (λ i j, indep_fun (X i) (X j)))
+  (h'i : ∀ i, identically_distributed (X i) (X 0))
+  (h''i : ∀ i ω, 0 ≤ X i ω) :
+  ∀ᵐ ω, tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) * (∑ i in range n, X i ω)) at_top (𝓝 (𝔼[X 0])) :=
+begin
+  let ρ : measure ℝ := measure.map (X 0) ℙ,
+  have A : ∀ i, strongly_measurable (indicator (set.Ioc (-i : ℝ) i) id) :=
+    λ i, strongly_measurable_id.indicator measurable_set_Ioc,
+  set Y := λ (n : ℕ), truncation (X n) n with hY,
+  have I1 : ∀ K, ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * Var[Y j] ≤ 2 * 𝔼[X 0],
+  sorry { assume K,
+    calc ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * Var[Y j] ≤
+      ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * 𝔼[(truncation (X 0) j)^2] :
+      begin
+        apply sum_le_sum (λ j hj, _),
+        refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 (sq_nonneg _)),
+        refine variance_le_expectation_sq.trans _,
+        apply le_of_eq,
+        change ∫ a, (truncation (X j) j a) ^ 2 = ∫ a, (truncation (X 0) j a) ^ 2,
+        rw [moment_truncation_eq_interval_integral_of_nonneg (hint j).1 two_ne_zero (h''i j),
+          moment_truncation_eq_interval_integral_of_nonneg (hint 0).1 two_ne_zero (h''i 0),
+          (h'i j).distrib_eq],
+      end
+      ... ≤ 2 * 𝔼[X 0] : sum_variance_truncation_le (hint 0) (h''i 0) K },
+  set S := λ n, ∑ i in range n, Y i with hS,
+  have : tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) * (∑ i in range n, 𝔼[Y i])) at_top (𝓝 (𝔼[X 0])),
+  sorry { apply filter.tendsto.cesaro,
+    convert (tendsto_integral_truncation (hint 0)).comp tendsto_coe_nat_at_top_at_top,
+    ext i,
+    calc 𝔼[Y i] = ∫ x, (indicator (set.Ioc (-i : ℝ) i) id) x ∂(measure.map (X i) ℙ) :
+      by { rw integral_map (hint i).ae_measurable (A i).ae_strongly_measurable, refl }
+    ... = ∫ x, (indicator (set.Ioc (-i : ℝ) i) id) x ∂(measure.map (X 0) ℙ) : by rw h'i i
+    ... = 𝔼[truncation (X 0) i] :
+    by { rw integral_map (hint 0).ae_measurable (A i).ae_strongly_measurable, refl } },
+  have c : ℝ := sorry,
+  have c_one : 1 < c := sorry,
+  have c_pos : 0 < c := sorry,
+  let u : ℕ → ℕ := λ n, ⌊c ^ n⌋₊,
+  have u_mono : monotone u := sorry,
+  have ε : ℝ := sorry,
+  have εpos : 0 < ε := sorry,
+  let C := (c ^ 5 * (c - 1) ⁻¹ ^ 3) * (2 * 𝔼[X 0]),
+  have I2 : ∀ N, ∑ i in range N, ((u i : ℝ) ^ 2) ⁻¹ * Var[S (u i)] ≤ C,
+  sorry { assume N,
+    calc
+    ∑ i in range N, ((u i : ℝ) ^ 2) ⁻¹ * Var[S (u i)]
+        = ∑ i in range N, ((u i : ℝ) ^ 2) ⁻¹ * (∑ j in range (u i), Var[Y j]) :
+      begin
+        congr' 1 with i,
+        congr' 1,
+        rw [hS, indep_fun.Var_sum],
+        { assume j hj,
+          exact (hint j).1.mem_ℒp_truncation },
+        { assume k hk l hl hkl,
+          exact (hindep k l hkl).comp (A k).measurable (A l).measurable }
+      end
+    ... = ∑ j in range (u (N - 1)),
+            (∑ i in (range N).filter (λ i, j < u i), ((u i : ℝ) ^ 2) ⁻¹) * Var[Y j] :
+      begin
+        simp_rw [mul_sum, sum_mul, sum_sigma'],
+        refine sum_bij' (λ (p : (Σ (i : ℕ), ℕ)) hp, (⟨p.2, p.1⟩ : (Σ (i : ℕ), ℕ))) _ (λ a ha, rfl)
+          (λ (p : (Σ (i : ℕ), ℕ)) hp, (⟨p.2, p.1⟩ : (Σ (i : ℕ), ℕ))) _ _ _,
+        { rintros ⟨i, j⟩ hij,
+          simp only [mem_sigma, mem_range] at hij,
+          simp only [hij.1, hij.2, mem_sigma, mem_range, mem_filter, and_true],
+          exact hij.2.trans_le (u_mono (nat.le_pred_of_lt hij.1)) },
+        { rintros ⟨i, j⟩ hij,
+          simp only [mem_sigma, mem_range, mem_filter] at hij,
+          simp only [hij.2.1, hij.2.2, mem_sigma, mem_range, and_self] },
+        { rintros ⟨i, j⟩ hij, refl },
+        { rintros ⟨i, j⟩ hij, refl },
+      end
+    ... ≤ ∑ j in range (u (N - 1)), (c ^ 5 * (c - 1) ⁻¹ ^ 3 / j ^ 2) * Var[Y j] :
+      begin
+        apply sum_le_sum (λ j hj, _),
+        rcases @eq_zero_or_pos _ _ j with rfl|hj,
+        { simp only [Y, nat.cast_zero, zero_pow', ne.def, bit0_eq_zero, nat.one_ne_zero,
+            not_false_iff, div_zero, zero_mul],
+          simp only [nat.cast_zero, truncation_zero, variance_zero, mul_zero] },
+        apply mul_le_mul_of_nonneg_right _ (variance_nonneg _ _),
+        convert aux_sum_horrible2 N (nat.cast_pos.2 hj) c_one,
+        { simp only [nat.cast_lt] },
+        { simp only [one_div] }
+      end
+    ... = (c ^ 5 * (c - 1) ⁻¹ ^ 3) * ∑ j in range (u (N - 1)), ((j : ℝ) ^ 2) ⁻¹ * Var[Y j] :
+        by { simp_rw [mul_sum, div_eq_mul_inv], ring_nf }
+    ... ≤ (c ^ 5 * (c - 1) ⁻¹ ^ 3) * (2 * 𝔼[X 0]) :
+      begin
+        apply mul_le_mul_of_nonneg_left (I1 _),
+        apply mul_nonneg (pow_nonneg c_pos.le _),
+        exact pow_nonneg (inv_nonneg.2 (sub_nonneg.2 c_one.le)) _
+      end },
+  have I3 : ∀ N, ∑ i in range N,
+    ℙ {ω | (u i * ε : ℝ) ≤ |S (u i) ω - 𝔼[S (u i)]|} ≤ ennreal.of_real (ε ⁻¹ ^ 2 * C),
+  sorry { assume N,
     calc ∑ i in range N, ℙ {ω | (u i * ε : ℝ) ≤ |S (u i) ω - 𝔼[S (u i)]|}
-    ≤ ∑ i in range N, ennreal.of_real (Var[S (u i)] / (u i * ε) ^ 2) :
-    begin
-      refine sum_le_sum (λ i hi, _),
-      apply meas_ge_le_mul_variance,
-      { exact mem_ℒp_finset_sum' _ (λ j hj, (hint j).1.mem_ℒp_truncation) },
-      { apply mul_pos (nat.cast_pos.2 _) εpos,
-        refine zero_lt_one.trans_le _,
-        apply nat.le_floor,
-        rw nat.cast_one,
-        apply one_le_pow_of_one_le c_one.le }
-    end
+        ≤ ∑ i in range N, ennreal.of_real (Var[S (u i)] / (u i * ε) ^ 2) :
+      begin
+        refine sum_le_sum (λ i hi, _),
+        apply meas_ge_le_mul_variance,
+        { exact mem_ℒp_finset_sum' _ (λ j hj, (hint j).1.mem_ℒp_truncation) },
+        { apply mul_pos (nat.cast_pos.2 _) εpos,
+          refine zero_lt_one.trans_le _,
+          apply nat.le_floor,
+          rw nat.cast_one,
+          apply one_le_pow_of_one_le c_one.le }
+      end
     ... = ennreal.of_real (∑ i in range N, Var[S (u i)] / (u i * ε) ^ 2) :
-    begin
-      rw ennreal.of_real_sum_of_nonneg (λ i hi, _),
-      exact div_nonneg (variance_nonneg _ _) (sq_nonneg _),
-    end
-    ... ≤ 10 : sorry
+      begin
+        rw ennreal.of_real_sum_of_nonneg (λ i hi, _),
+        exact div_nonneg (variance_nonneg _ _) (sq_nonneg _),
+      end
+    ... ≤ ennreal.of_real (ε ⁻¹ ^ 2 * C) :
+      begin
+        apply ennreal.of_real_le_of_real,
+        simp_rw [div_eq_inv_mul, ← inv_pow₀, mul_inv₀, mul_comm _ (ε⁻¹), mul_pow, mul_assoc,
+          ← mul_sum],
+        refine mul_le_mul_of_nonneg_left _ (sq_nonneg _),
+        simp_rw [inv_pow₀],
+        exact I2 N
+      end },
+  have I4 : ∑' i, ℙ {ω | (u i * ε : ℝ) ≤ |S (u i) ω - 𝔼[S (u i)]|} < ∞ :=
+    (le_of_tendsto_of_tendsto' (ennreal.tendsto_nat_tsum _) tendsto_const_nhds I3).trans_lt
+      ennreal.of_real_lt_top,
+  have I5 : ∀ᵐ ω, ∀ᶠ i in at_top, ¬((u i * ε : ℝ) ≤ |S (u i) ω - 𝔼[S (u i)]|) :=
+    ae_eventually_not_mem I4.ne,
 
-  }
 end
 
 end probability_theory

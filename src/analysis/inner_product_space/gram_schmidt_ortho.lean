@@ -162,11 +162,9 @@ begin
     simp only [function.comp_app, subtype.range_coe_subtype],
     convert h₃,
     { norm_cast,
-      apply fin.coe_coe_of_lt,
-      linarith, },
+      refine fin.coe_coe_of_lt (by linarith), },
     { simp only [inter_eq_left_iff_subset, Iic, set_of_subset_set_of],
-      intros a ha,
-      linarith, }, },
+      exact (λ a ha, by linarith), }, },
 end
 
 /-- If the input of gram_schmidt is linearly independent, then output is non-zero -/

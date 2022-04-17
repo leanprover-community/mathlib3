@@ -10,24 +10,34 @@ namespace probability_theory
 
 variables {α : Type*} [measurable_space α]
 
-def cond_count (s : set α) : measure α := measure.count[|s]
-
 -- move
 lemma measure.count_empty : measure.count (∅ : set α) = 0 :=
 by rw [measure.count_apply measurable_set.empty, tsum_empty]
 
+section measurable_singleton_class
+
 variable [measurable_singleton_class α]
 
-lemma measure.count_eq_zero {s : set α} (hs : s.finite) (hsc : measure.count s = 0) :
+lemma measure.empty_of_count_eq_zero {s : set α} (hsc : measure.count s = 0) :
   s = ∅ :=
 begin
+  have hs : s.finite,
+  { rw [← measure.count_apply_lt_top, hsc],
+    exact with_top.zero_lt_top },
   rw measure.count_apply_finite _ hs at hsc,
   simpa using hsc,
 end
 
-@[simp] lemma measure.count_eq_zero_iff {s : set α} (hs : s.finite) :
+@[simp] lemma measure.count_eq_zero_iff {s : set α} :
   measure.count s = 0 ↔ s = ∅ :=
-⟨measure.count_eq_zero hs, λ h, h.symm ▸ measure.count_empty⟩
+⟨measure.empty_of_count_eq_zero, λ h, h.symm ▸ measure.count_empty⟩
+
+lemma measure.count_neq_zero {s : set α} (hs' : s.nonempty) :
+  measure.count s ≠ 0:=
+begin
+  rw [ne.def, measure.count_eq_zero_iff],
+  exact hs'.ne_empty,
+end
 
 lemma measure.count_singleton (a : α) : measure.count ({a} : set α) = 1 :=
 begin
@@ -35,14 +45,26 @@ begin
   simp,
 end
 
+end measurable_singleton_class
+
 ---------------------------------------------------------------------
+
+def cond_count (s : set α) : measure α := measure.count[|s]
+
+@[simp] lemma cond_count_empty_meas : (cond_count ∅ : measure α) = 0 :=
+by simp [cond_count]
+
+@[simp] lemma cond_count_empty {s : set α} : cond_count s ∅ = 0 :=
+by { ext x, simp [cond_count] }
+
+variables [measurable_singleton_class α]
 
 lemma cond_count_is_probability_measure {s : set α} (hs : s.finite) (hs' : s.nonempty) :
   is_probability_measure (cond_count s) :=
 { measure_univ :=
   begin
     rw [cond_count, cond_apply _ hs.measurable_set, set.inter_univ, ennreal.inv_mul_cancel],
-    { exact λ h, hs'.ne_empty $ measure.count_eq_zero hs h },
+    { exact λ h, hs'.ne_empty $ measure.empty_of_count_eq_zero h },
     { exact (measure.count_apply_lt_top.2 hs).ne }
   end }
 
@@ -56,19 +78,17 @@ begin
   { rw [(by simpa : ({a} : set α) ∩ t = ∅), measure.count_empty] },
 end
 
-@[simp] lemma cond_count_empty_meas : (cond_count ∅ : measure α) = 0 :=
-by { ext x, simp [cond_count] }
-
 variables {s t u : set α}
 
-@[simp] lemma cond_count_empty : cond_count s ∅ = 0 :=
-by { ext x, simp [cond_count] }
+lemma cond_count_inter_self (hs : s.finite):
+  cond_count s (s ∩ t) = cond_count s t :=
+by rw [cond_count, cond_inter_self _ hs.measurable_set]
 
 lemma cond_count_cond (hs : s.finite) (hs' : s.nonempty) :
   cond_count s s = 1 :=
 begin
   rw [cond_count, cond_apply _ hs.measurable_set, set.inter_self, ennreal.inv_mul_cancel],
-  { exact λ h, hs'.ne_empty $ measure.count_eq_zero hs h },
+  { exact λ h, hs'.ne_empty $ measure.empty_of_count_eq_zero h },
   { exact (measure.count_apply_lt_top.2 hs).ne }
 end
 
@@ -81,7 +101,7 @@ begin
   exact measure_mono ht,
 end
 
-lemma pred_true_of_cond_count_eq_one (hs : s.finite) (hs' : s.nonempty)
+lemma pred_true_of_cond_count_eq_one (hs : s.finite)
   (h : cond_count s t = 1) : s ⊆ t :=
 begin
   rw [cond_count, cond_apply _ hs.measurable_set, mul_comm] at h,
@@ -114,7 +134,7 @@ begin
     cond_apply _ (hs.inter_of_left _).measurable_set,
     mul_comm _ (measure.count (s ∩ t)), ← mul_assoc, mul_comm _ (measure.count (s ∩ t)),
     ← mul_assoc, ennreal.mul_inv_cancel, one_mul, mul_comm, set.inter_assoc],
-  { rwa ← measure.count_eq_zero_iff (hs.inter_of_left _) at hst },
+  { rwa ← measure.count_eq_zero_iff at hst },
   { exact (measure.count_apply_lt_top.2 $ hs.inter_of_left _).ne }
 end
 
@@ -140,40 +160,39 @@ begin
     (cond_count_is_probability_measure hs hs').measure_univ],
 end
 
--- lemma Prob_disjoint_union (hs : s.finite) (hs' : s.nonempty) (ht : t.finite) (hst : disjoint s t) :
---   cond_count (s ∪ t) u =
---   cond_count s u * (s.card / (s ∪ t).card) + Prob t P * (t.card / (s ∪ t).card) :=
--- begin
---   rcases s.eq_empty_or_nonempty with (rfl | hs),
---   { rcases t.eq_empty_or_nonempty with (rfl | ht),
---     { simp [Prob] },
---     { rw [empty_union, card_empty, nat.cast_zero, zero_div, mul_zero, zero_add, div_self, mul_one],
---       rw [← card_pos, nat.pos_iff_ne_zero] at ht,
---       norm_cast at * } },
---   { rcases t.eq_empty_or_nonempty with (rfl | ht),
---     { rw [union_empty, card_empty, nat.cast_zero, zero_div, mul_zero, add_zero, div_self, mul_one],
---       rw [←card_pos, nat.pos_iff_ne_zero] at hs,
---       norm_cast at * },
---     { rw [←card_pos, nat.pos_iff_ne_zero] at hs ht,
---       rw [Prob, Prob, Prob, filter_union, card_disjoint_union h₁,
---         card_disjoint_union (disjoint_filter_filter h₁), nat.cast_add, nat.cast_add, add_div,
---         div_mul_div_cancel, div_mul_div_cancel];
---       norm_cast at * } },
--- end
+lemma cond_count_disjoint_union (hs : s.finite) (ht : t.finite) (hst : disjoint s t) :
+  cond_count (s ∪ t) u =
+  cond_count s u * cond_count (s ∪ t) s + cond_count t u * cond_count (s ∪ t) t :=
+begin
+  rcases s.eq_empty_or_nonempty with (rfl | hs');
+  rcases t.eq_empty_or_nonempty with (rfl | ht'),
+  { simp },
+  { simp [cond_count_cond ht ht'] },
+  { simp [cond_count_cond hs hs'] },
+  rw [cond_count, cond_count, cond_count, cond_apply _ hs.measurable_set,
+    cond_apply _ ht.measurable_set, cond_apply _ (hs.union ht).measurable_set,
+    cond_apply _ (hs.union ht).measurable_set, cond_apply _ (hs.union ht).measurable_set],
+  conv_rhs {
+    rw [set.union_inter_cancel_left, set.union_inter_cancel_right,
+      mul_comm (measure.count (s ∪ t))⁻¹, mul_comm (measure.count (s ∪ t))⁻¹,
+      ← mul_assoc, ← mul_assoc, mul_comm _ (measure.count s), mul_comm _ (measure.count t),
+      ← mul_assoc, ← mul_assoc] },
+  rw [ennreal.mul_inv_cancel, ennreal.mul_inv_cancel, one_mul, one_mul, ← add_mul,
+    ← measure_union, set.union_inter_distrib_right, mul_comm],
+  exacts [hst.mono inf_le_left inf_le_left, (ht.inter_of_left _).measurable_set,
+    measure.count_neq_zero ht', (measure.count_apply_lt_top.2 ht).ne,
+    measure.count_neq_zero hs', (measure.count_apply_lt_top.2 hs).ne],
+end
 
--- lemma conditional {α : Type*} (s : finset α) (P Q : α → Prop)
---   [decidable_eq α] [decidable_pred P] [decidable_pred Q] :
---   Prob s P = Prob (filter Q s) P * Prob s Q + Prob (filter (λ a, ¬Q a) s) P * Prob s (λ a, ¬Q a) :=
--- begin
---   have : Prob s P = Prob s (λ x, P x ∧ Q x) + Prob s (λ x, P x ∧ ¬ Q x),
---     rw [Prob, Prob, Prob, ← add_div],
---     congr' 1,
---     norm_cast,
---     rw [← filter_filter, ← filter_filter, ← card_union_eq, filter_union_filter_neg_eq],
---     rw [disjoint_iff_inter_eq_empty, filter_inter_filter_neg_eq],
---   rw this,
---   rw Prob_and,
---   rw Prob_and,
--- end
+/-- A version of the law of total probability for counting probabilites. -/
+lemma conditional (hs : s.finite) :
+  cond_count s t =
+  cond_count (s ∩ u) t * cond_count s u + cond_count (s ∩ uᶜ) t * cond_count s uᶜ :=
+begin
+  conv_lhs { rw [(by simp : s = s ∩ u ∪ s ∩ uᶜ),
+    cond_count_disjoint_union (hs.inter_of_left _) (hs.inter_of_left _)
+    (disjoint_compl_right.mono inf_le_right inf_le_right)] },
+  simp [cond_count_inter_self hs],
+end
 
 end probability_theory

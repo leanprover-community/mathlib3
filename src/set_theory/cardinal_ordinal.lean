@@ -229,6 +229,9 @@ end
 theorem ord_aleph_is_limit (o : ordinal) : is_limit (aleph o).ord :=
 ord_is_limit $ omega_le_aleph _
 
+instance (o : ordinal) : no_max_order (aleph o).ord.out.α :=
+ordinal.out_no_max_of_succ_lt (ord_aleph_is_limit o).2
+
 theorem exists_aleph {c : cardinal} : ω ≤ c ↔ ∃ o, c = aleph o :=
 ⟨λ h, ⟨aleph_idx c - ordinal.omega,
   by rw [aleph, ordinal.add_sub_cancel_of_le, aleph'_aleph_idx];
@@ -358,6 +361,9 @@ max_le
   (by simpa only [one_mul] using
     mul_le_mul_right' (one_lt_omega.le.trans ha) b)
 
+@[simp] theorem mul_mk_eq_max {α β : Type*} [infinite α] [infinite β] : #α * #β = max (#α) (#β) :=
+mul_eq_max (omega_le_mk α) (omega_le_mk β)
+
 @[simp] theorem aleph_mul_aleph (o₁ o₂ : ordinal) : aleph o₁ * aleph o₂ = aleph (max o₁ o₂) :=
 by rw [cardinal.mul_eq_max (omega_le_aleph o₁) (omega_le_aleph o₂), max_aleph_eq]
 
@@ -366,6 +372,12 @@ by rw [cardinal.mul_eq_max (omega_le_aleph o₁) (omega_le_aleph o₂), max_alep
 
 @[simp] theorem mul_omega_eq {a : cardinal} (ha : ω ≤ a) : a * ω = a :=
 (mul_eq_max ha le_rfl).trans (max_eq_left ha)
+
+@[simp] theorem omega_mul_mk_eq {α : Type*} [infinite α] : ω * #α = #α :=
+omega_mul_eq (omega_le_mk α)
+
+@[simp] theorem mk_mul_omega_eq {α : Type*} [infinite α] : #α * ω = #α :=
+mul_omega_eq (omega_le_mk α)
 
 @[simp] theorem omega_mul_aleph (o : ordinal) : ω * aleph o = aleph o :=
 omega_mul_eq (omega_le_aleph o)
@@ -470,6 +482,15 @@ le_antisymm
     add_le_add (le_max_left _ _) (le_max_right _ _)) $
 max_le (self_le_add_right _ _) (self_le_add_left _ _)
 
+theorem add_eq_max' {a b : cardinal} (ha : ω ≤ b) : a + b = max a b :=
+by rw [add_comm, max_comm, add_eq_max ha]
+
+@[simp] theorem add_mk_eq_max {α β : Type*} [infinite α] : #α + #β = max (#α) (#β) :=
+add_eq_max (omega_le_mk α)
+
+@[simp] theorem add_mk_eq_max' {α β : Type*} [infinite β] : #α + #β = max (#α) (#β) :=
+add_eq_max' (omega_le_mk β)
+
 theorem add_le_max (a b : cardinal) : a + b ≤ max (max a b) ω :=
 begin
   by_cases ha : ω ≤ a,
@@ -526,6 +547,9 @@ by { rw [add_comm, add_eq_left_iff] }
 lemma add_one_eq {a : cardinal} (ha : ω ≤ a) : a + 1 = a :=
 have 1 ≤ a, from le_trans (le_of_lt one_lt_omega) ha,
 add_eq_left ha this
+
+@[simp] lemma mk_add_one_eq {α : Type*} [infinite α] : #α + 1 = #α :=
+add_one_eq (omega_le_mk α)
 
 protected lemma eq_of_add_eq_add_left {a b c : cardinal} (h : a + b = a + c) (ha : a < ω) :
   b = c :=
@@ -641,10 +665,20 @@ calc  #(list α)
 theorem mk_list_eq_omega (α : Type u) [encodable α] [nonempty α] : #(list α) = ω :=
 mk_le_omega.antisymm (omega_le_mk _)
 
+theorem mk_list_eq_max_mk_omega (α : Type u) [nonempty α] : #(list α) = max (#α) ω :=
+begin
+  casesI fintype_or_infinite α,
+  { haveI : encodable α := fintype.to_encodable α,
+    rw [mk_list_eq_omega, eq_comm, max_eq_right],
+    exact mk_le_omega },
+  { rw [mk_list_eq_mk, eq_comm, max_eq_left],
+    exact omega_le_mk α }
+end
+
 theorem mk_list_le_max (α : Type u) : #(list α) ≤ max ω (#α) :=
 begin
   casesI fintype_or_infinite α,
-  { haveI := fintype.encodable α,
+  { haveI := fintype.to_encodable α,
     exact mk_le_omega.trans (le_max_left _ _) },
   { rw mk_list_eq_mk,
     apply le_max_right }

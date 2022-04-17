@@ -187,6 +187,16 @@ end
 lemma arg_of_real_of_nonneg {x : ℝ} (hx : 0 ≤ x) : arg x = 0 :=
 by simp [arg, hx]
 
+lemma arg_eq_zero_iff {z : ℂ} : arg z = 0 ↔ 0 ≤ z.re ∧ z.im = 0 :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { rw [←abs_mul_cos_add_sin_mul_I z, h],
+    simp [abs_nonneg] },
+  { cases z with x y,
+    rintro ⟨h, rfl : y = 0⟩,
+    exact arg_of_real_of_nonneg h }
+end
+
 lemma arg_eq_pi_iff {z : ℂ} : arg z = π ↔ z.re < 0 ∧ z.im = 0 :=
 begin
   by_cases h₀ : z = 0, { simp [h₀, lt_irrefl, real.pi_ne_zero.symm] },

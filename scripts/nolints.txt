@@ -124,7 +124,6 @@ apply_nolint traversable.free.mk doc_blame
 apply_nolint traversable.length doc_blame
 apply_nolint traversable.map_fold doc_blame
 apply_nolint traversable.mfoldl doc_blame
-apply_nolint traversable.mfoldl.unop_of_free_monoid unused_arguments
 apply_nolint traversable.mfoldr doc_blame
 
 -- control/monad/cont.lean
@@ -479,7 +478,6 @@ apply_nolint mul_action.to_perm_injective to_additive_doc
 apply_nolint has_mul.to_has_opposite_scalar to_additive_doc
 apply_nolint left_cancel_monoid.to_has_faithful_opposite_scalar to_additive_doc
 apply_nolint monoid.to_opposite_mul_action to_additive_doc
-apply_nolint mul_action.opposite_regular.is_pretransitive to_additive_doc
 
 -- group_theory/group_action/pi.lean
 apply_nolint pi.has_faithful_scalar_at to_additive_doc
@@ -522,11 +520,6 @@ apply_nolint affine_subspace.to_add_torsor fails_quickly
 -- linear_algebra/pi.lean
 apply_nolint function.has_scalar to_additive_doc
 apply_nolint function.smul_comm_class to_additive_doc
-
--- logic/equiv/list.lean
-apply_nolint encodable.fintype_arrow doc_blame
-apply_nolint encodable.fintype_pi doc_blame
-apply_nolint encodable.trunc_encodable_of_fintype doc_blame
 
 -- logic/relator.lean
 apply_nolint relator.bi_total doc_blame
@@ -614,22 +607,8 @@ apply_nolint tactic.mono doc_blame
 -- number_theory/dioph.lean
 apply_nolint poly has_inhabited_instance
 
--- number_theory/zsqrtd/basic.lean
-apply_nolint zsqrtd.le doc_blame
-apply_nolint zsqrtd.lt doc_blame
-apply_nolint zsqrtd.norm doc_blame
-
--- number_theory/zsqrtd/gaussian_int.lean
-apply_nolint gaussian_int doc_blame
-apply_nolint gaussian_int.div doc_blame
-apply_nolint gaussian_int.mod doc_blame
-
 -- order/filter/at_top_bot.lean
 apply_nolint filter.map_at_top_finset_prod_le_of_prod_eq to_additive_doc
-
--- order/filter/pointwise.lean
-apply_nolint filter.has_add check_reducibility
-apply_nolint filter.has_mul check_reducibility
 
 -- order/prime_ideal.lean
 apply_nolint order.ideal.is_prime.is_maximal fails_quickly
@@ -637,24 +616,15 @@ apply_nolint order.ideal.is_prime.is_maximal fails_quickly
 -- ring_theory/witt_vector/basic.lean
 apply_nolint witt_vector.comm_ring check_reducibility
 
--- set_theory/cofinality.lean
-apply_nolint strict_order.cof doc_blame
-
--- set_theory/game.lean
-apply_nolint pgame.inv_ty has_inhabited_instance
-
 -- set_theory/lists.lean
 apply_nolint finsets doc_blame
 
 -- set_theory/pgame.lean
-apply_nolint pgame.left_moves has_inhabited_instance
 apply_nolint pgame.relabelling has_inhabited_instance
 apply_nolint pgame.restricted has_inhabited_instance
-apply_nolint pgame.right_moves has_inhabited_instance
 
 -- set_theory/zfc.lean
 apply_nolint Set.map_definable_aux unused_arguments
-apply_nolint pSet.type has_inhabited_instance
 
 -- tactic/abel.lean
 apply_nolint tactic.abel.eval doc_blame

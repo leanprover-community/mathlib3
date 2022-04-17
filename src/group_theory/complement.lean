@@ -287,6 +287,44 @@ quotient.exact' (mk'_to_equiv hS _)
 
 end mem_right_transversals
 
+section action
+
+open_locale pointwise
+
+open mul_action mem_left_transversals
+
+variables {F : Type*} [group F] [mul_action F G] [quotient_action F H]
+
+@[to_additive] instance : mul_action F (left_transversals (H : set G)) :=
+{ smul := λ f T, ⟨f • T, by
+  { refine mem_left_transversals_iff_exists_unique_inv_mul_mem.mpr (λ g, _),
+    obtain ⟨t, ht1, ht2⟩ := mem_left_transversals_iff_exists_unique_inv_mul_mem.mp T.2 (f⁻¹ • g),
+    refine ⟨⟨f • t, set.smul_mem_smul_set t.2⟩, _, _⟩,
+    { exact (congr_arg _ (smul_inv_smul f g)).mp (quotient_action.inv_mul_mem f ht1) },
+    { rintros ⟨-, t', ht', rfl⟩ h,
+      replace h := quotient_action.inv_mul_mem f⁻¹ h,
+      simp only [subtype.ext_iff, subtype.coe_mk, smul_left_cancel_iff, inv_smul_smul] at h ⊢,
+      exact subtype.ext_iff.mp (ht2 ⟨t', ht'⟩ h) } }⟩,
+  one_smul := λ T, subtype.ext (one_smul F T),
+  mul_smul := λ f₁ f₂ T, subtype.ext (mul_smul f₁ f₂ T) }
+
+@[to_additive] lemma smul_to_fun (f : F) (T : left_transversals (H : set G)) (g : G) :
+  (f • to_fun T.2 g : G) = to_fun (f • T).2 (f • g) :=
+subtype.ext_iff.mp $ @unique_of_exists_unique ↥(f • T) (λ s, (↑s)⁻¹ * f • g ∈ H)
+  (mem_left_transversals_iff_exists_unique_inv_mul_mem.mp (f • T).2 (f • g))
+  ⟨f • to_fun T.2 g, set.smul_mem_smul_set (subtype.coe_prop _)⟩ (to_fun (f • T).2 (f • g))
+  (quotient_action.inv_mul_mem f (inv_to_fun_mul_mem T.2 g)) (inv_to_fun_mul_mem (f • T).2 (f • g))
+
+@[to_additive] lemma smul_to_equiv (f : F) (T : left_transversals (H : set G)) (q : G ⧸ H) :
+  f • (to_equiv T.2 q : G) = to_equiv (f • T).2 (f • q) :=
+quotient.induction_on' q (λ g, smul_to_fun f T g)
+
+@[to_additive] lemma smul_apply_eq_smul_apply_inv_smul (f : F) (T : left_transversals (H : set G))
+  (q : G ⧸ H) : (to_equiv (f • T).2 q : G) = f • (to_equiv T.2 (f⁻¹ • q) : G) :=
+by rw [smul_to_equiv, smul_inv_smul]
+
+end action
+
 @[to_additive] instance : inhabited (left_transversals (H : set G)) :=
 ⟨⟨set.range quotient.out', mem_left_transversals_iff_bijective.mpr ⟨by
 { rintros ⟨_, q₁, rfl⟩ ⟨_, q₂, rfl⟩ hg,
@@ -342,5 +380,19 @@ lemma is_complement'_of_coprime [fintype G] [fintype H] [fintype K]
   (h2 : nat.coprime (fintype.card H) (fintype.card K)) :
   is_complement' H K :=
 is_complement'_of_card_mul_and_disjoint h1 (disjoint_iff.mpr (inf_eq_bot_of_coprime h2))
+
+lemma is_complement'_stabilizer {α : Type*} [mul_action G α] (a : α)
+  (h1 : ∀ (h : H), h • a = a → h = 1) (h2 : ∀ g : G, ∃ h : H, h • (g • a) = a) :
+  is_complement' H (mul_action.stabilizer G a) :=
+begin
+  refine is_complement_iff_exists_unique.mpr (λ g, _),
+  obtain ⟨h, hh⟩ := h2 g,
+  have hh' : (↑h * g) • a = a := by rwa [mul_smul],
+  refine ⟨⟨h⁻¹, h * g, hh'⟩, inv_mul_cancel_left h g, _⟩,
+  rintros ⟨h', g, hg : g • a = a⟩ rfl,
+  specialize h1 (h * h') (by rwa [mul_smul, smul_def h', ←hg, ←mul_smul, hg]),
+  refine prod.ext (eq_inv_of_eq_inv (eq_inv_of_mul_eq_one h1)) (subtype.ext _),
+  rwa [subtype.ext_iff, coe_one, coe_mul, ←self_eq_mul_left, mul_assoc ↑h ↑h' g] at h1,
+end
 
 end subgroup

@@ -493,22 +493,21 @@ lemma circle_integral_sub_inv_smul_of_differentiable_on_off_countable
 by { rw [← two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable_on_off_countable
   hs hw hc hd, smul_inv_smul₀], simp [real.pi_ne_zero, I_ne_zero] }
 
-/-- **Cauchy integral formula**: if `f : ℂ → E` is continuous on a closed disc of radius `R` and is
-complex differentiable on its interior, then for any `w` in this interior we have
-$\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=2πif(w)$.
--/
-lemma _root_.diff_on_int_cont.circle_integral_sub_inv_smul {R : ℝ} {c w : ℂ} {f : ℂ → E}
-  (h : diff_on_int_cont ℂ f (closed_ball c R)) (hw : w ∈ ball c R) :
+/-- **Cauchy integral formula**: if `f : ℂ → E` is complex differentiable on an open disc and is
+continuous on its closure, then for any `w` in this open ball we have
+$\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=2πif(w)$. -/
+lemma _root_.diff_cont_on_cl.circle_integral_sub_inv_smul {R : ℝ} {c w : ℂ} {f : ℂ → E}
+  (h : diff_cont_on_cl ℂ f (ball c R)) (hw : w ∈ ball c R) :
   ∮ z in C(c, R), (z - w)⁻¹ • f z = (2 * π * I : ℂ) • f w :=
 circle_integral_sub_inv_smul_of_differentiable_on_off_countable countable_empty hw
-  h.continuous_on $ λ z hz, h.differentiable_at $ ball_subset_interior_closed_ball hz.1
+  h.continuous_on_ball $ λ x hx, h.differentiable_at is_open_ball hx.1
 
 /-- **Cauchy integral formula**: if `f : ℂ → E` is complex differentiable on a closed disc of radius
 `R`, then for any `w` in its interior we have $\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=2πif(w)$. -/
 lemma _root_.differentiable_on.circle_integral_sub_inv_smul {R : ℝ} {c w : ℂ} {f : ℂ → E}
   (hd : differentiable_on ℂ f (closed_ball c R)) (hw : w ∈ ball c R)  :
   ∮ z in C(c, R), (z - w)⁻¹ • f z = (2 * π * I : ℂ) • f w :=
-hd.diff_on_int_cont.circle_integral_sub_inv_smul hw
+(hd.mono closure_ball_subset_closed_ball).diff_cont_on_cl.circle_integral_sub_inv_smul hw
 
 /-- **Cauchy integral formula**: if `f : ℂ → ℂ` is continuous on a closed disc of radius `R` and is
 complex differentiable at all but countably many points of its interior, then for any `w` in this
@@ -541,14 +540,14 @@ lemma has_fpower_series_on_ball_of_differentiable_off_countable {R : ℝ≥0} {c
         ((hc.mono sphere_subset_closed_ball).circle_integrable R.2) hR).has_sum hw
     end }
 
-/-- If `f : ℂ → E` is continuous on a closed ball of positive radius and is complex differentiable
-on its interior, then it is analytic on the open ball with coefficients of the power series given by
+/-- If `f : ℂ → E` is complex differentiable on an open disc of positive radius and is continuous
+on its closure, then it is analytic on the open disc with coefficients of the power series given by
 Cauchy integral formulas. -/
-lemma _root_.diff_on_int_cont.has_fpower_series_on_ball {R : ℝ≥0} {c : ℂ} {f : ℂ → E}
-  (hf : diff_on_int_cont ℂ f (closed_ball c R)) (hR : 0 < R) :
+lemma _root_.diff_cont_on_cl.has_fpower_series_on_ball {R : ℝ≥0} {c : ℂ} {f : ℂ → E}
+  (hf : diff_cont_on_cl ℂ f (ball c R)) (hR : 0 < R) :
   has_fpower_series_on_ball f (cauchy_power_series f c R) c R :=
-has_fpower_series_on_ball_of_differentiable_off_countable countable_empty hf.continuous_on
-  (λ z hz, hf.differentiable_at $ ball_subset_interior_closed_ball hz.1) hR
+has_fpower_series_on_ball_of_differentiable_off_countable countable_empty hf.continuous_on_ball
+  (λ z hz, hf.differentiable_at is_open_ball hz.1) hR
 
 /-- If `f : ℂ → E` is complex differentiable on a closed disc of positive radius, then it is
 analytic on the corresponding open disc, and the coefficients of the power series are given by
@@ -558,7 +557,7 @@ weaker assumptions. -/
 protected lemma _root_.differentiable_on.has_fpower_series_on_ball {R : ℝ≥0} {c : ℂ} {f : ℂ → E}
   (hd : differentiable_on ℂ f (closed_ball c R)) (hR : 0 < R) :
   has_fpower_series_on_ball f (cauchy_power_series f c R) c R :=
-hd.diff_on_int_cont.has_fpower_series_on_ball hR
+(hd.mono closure_ball_subset_closed_ball).diff_cont_on_cl.has_fpower_series_on_ball hR
 
 /-- If `f : ℂ → E` is complex differentiable on some set `s`, then it is analytic at any point `z`
 such that `s ∈ 𝓝 z` (equivalently, `z ∈ interior s`). -/

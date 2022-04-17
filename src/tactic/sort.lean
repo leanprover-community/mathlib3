@@ -9,11 +9,6 @@ import data.polynomial.degree.definitions
 
 namespace tactic
 
-/--  Given an expression `ei` and a list `l : list expr`, returns an `expr` that is
-`ei + sum_of_list l`. -/
-meta def build_sum (ei : expr) (l : list expr) : tactic expr :=
-l.mfoldl (λ e1 e2, mk_app `has_add.add [e1, e2]) ei
-
 /--  Takes an `expr` and returns a list of its summands. -/
 meta def get_summands : expr → list expr
 | `(%%a + %%b) := get_summands a ++ get_summands b
@@ -37,7 +32,7 @@ appearing in `e`. -/
 meta def sorted_sum_with_weight (wt : expr → N) (e : expr) : tactic unit :=
 match sort_summands_with_weight e wt with
 | ei::es := do
-  el' ← build_sum ei es,
+  el' ← es.mfoldl (λ e1 e2, mk_app `has_add.add [e1, e2]) ei,
   e_eq ← mk_app `eq [e, el'],
   n ← get_unused_name,
   assert n e_eq,

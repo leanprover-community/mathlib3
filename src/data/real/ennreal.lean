@@ -484,23 +484,23 @@ by simpa only [pos_iff_ne_zero] using ennreal.pow_pos
 
 @[simp] lemma not_lt_zero : ¬ a < 0 := by simp
 
-protected lemma le_of_add_le_add_left : a ≠ ⊤ → a + b ≤ a + c → b ≤ c :=
+protected lemma le_of_add_le_add_left : a ≠ ∞ → a + b ≤ a + c → b ≤ c :=
 with_top.le_of_add_le_add_left
-protected lemma le_of_add_le_add_right : a ≠ ⊤ → b + a ≤ c + a → b ≤ c :=
+protected lemma le_of_add_le_add_right : a ≠ ∞ → b + a ≤ c + a → b ≤ c :=
 with_top.le_of_add_le_add_right
-protected lemma add_lt_add_left : a ≠ ⊤ → b < c → a + b < a + c := with_top.add_lt_add_left
-protected lemma add_lt_add_right : a ≠ ⊤ → b < c → b + a < c + a := with_top.add_lt_add_right
-protected lemma add_le_add_iff_left : a ≠ ⊤ → (a + b ≤ a + c ↔ b ≤ c) :=
+protected lemma add_lt_add_left : a ≠ ∞ → b < c → a + b < a + c := with_top.add_lt_add_left
+protected lemma add_lt_add_right : a ≠ ∞ → b < c → b + a < c + a := with_top.add_lt_add_right
+protected lemma add_le_add_iff_left : a ≠ ∞ → (a + b ≤ a + c ↔ b ≤ c) :=
 with_top.add_le_add_iff_left
-protected lemma add_le_add_iff_right : a ≠ ⊤ → (b + a ≤ c + a ↔ b ≤ c) :=
+protected lemma add_le_add_iff_right : a ≠ ∞ → (b + a ≤ c + a ↔ b ≤ c) :=
 with_top.add_le_add_iff_right
-protected lemma add_lt_add_iff_left : a ≠ ⊤ → (a + b < a + c ↔ b < c) :=
+protected lemma add_lt_add_iff_left : a ≠ ∞ → (a + b < a + c ↔ b < c) :=
 with_top.add_lt_add_iff_left
-protected lemma add_lt_add_iff_right : a ≠ ⊤ → (b + a < c + a ↔ b < c) :=
+protected lemma add_lt_add_iff_right : a ≠ ∞ → (b + a < c + a ↔ b < c) :=
 with_top.add_lt_add_iff_right
-protected lemma add_lt_add_of_le_of_lt : a ≠ ⊤ → a ≤ b → c < d → a + c < b + d :=
+protected lemma add_lt_add_of_le_of_lt : a ≠ ∞ → a ≤ b → c < d → a + c < b + d :=
 with_top.add_lt_add_of_le_of_lt
-protected lemma add_lt_add_of_lt_of_le : c ≠ ⊤ → a < b → c ≤ d → a + c < b + d :=
+protected lemma add_lt_add_of_lt_of_le : c ≠ ∞ → a < b → c ≤ d → a + c < b + d :=
 with_top.add_lt_add_of_lt_of_le
 
 instance contravariant_class_add_lt : contravariant_class ℝ≥0∞ ℝ≥0∞ (+) (<) :=

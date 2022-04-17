@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import order.filter.basic
+open_locale filter
 
 /-!
 # N-ary maps of filter
@@ -49,18 +50,12 @@ def map₂ (m : α → β → γ) (f : filter α) (g : filter β) : filter γ :=
 lemma image2_mem_map₂ (hs : s ∈ f) (ht : t ∈ g) : image2 m s t ∈ map₂ m f g :=
 ⟨_, _, hs, ht, subset.rfl⟩
 
-lemma map₂_eq_map_prod (m : α → β → γ) (f : filter α) (g : filter β) :
-  map₂ m f g = filter.map (λ p : α × β, m p.1 p.2) (filter.prod f g) :=
+lemma map_prod_eq_map₂ {f : filter α} {g : filter β} (m : α → β → γ) :
+  filter.map (λ p : α × β, m p.1 p.2) (f ×ᶠ g) = map₂ m f g :=
 begin
   rw filter.ext_iff,
   intro s,
   split,
-  intro hmem,
-  rw mem_map₂_iff at hmem,
-  obtain ⟨t, t', ht, ht', hsub⟩ := hmem,
-  rw ← set.image_prod at hsub,
-  rw filter.mem_map_iff_exists_image,
-  exact ⟨t ×ˢ t', filter.prod_mem_prod ht ht', hsub⟩,
   intro hmem,
   rw mem_map₂_iff,
   rw filter.mem_map_iff_exists_image at hmem,
@@ -70,6 +65,12 @@ begin
   refine ⟨t, t', ht, ht', _⟩,
   rw ← set.image_prod,
   exact subset_trans (set.image_subset (λ (p : α × β), m p.fst p.snd) hsub') hsub,
+  intro hmem,
+  rw mem_map₂_iff at hmem,
+  obtain ⟨t, t', ht, ht', hsub⟩ := hmem,
+  rw ← set.image_prod at hsub,
+  rw filter.mem_map_iff_exists_image,
+  exact ⟨t ×ˢ t', filter.prod_mem_prod ht ht', hsub⟩,
 end
 
 -- lemma image2_mem_map₂_iff (hm : injective2 m) : image2 m s t ∈ map₂ m f g ↔ s ∈ f ∧ t ∈ g :=

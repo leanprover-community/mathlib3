@@ -213,12 +213,14 @@ begin
   exact bot_le,
 end
 
-lemma map_is_unit_iff_is_unit [decidable_eq (associates N)] {m u : associates M} {n : associates N}
+lemma map_is_unit_iff_is_unit {m u : associates M} {n : associates N}
   (hu' : u ≤ m) (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   is_unit u ↔ is_unit (d ⟨u, hu'⟩ : associates N) :=
 ⟨λ hu, map_is_unit_of_monotone_is_unit hu hu' d, λ hu, by
   { rw (show u = ↑(d.symm ⟨↑(d ⟨u, hu'⟩), (d ⟨u, hu'⟩).prop⟩), from by simp),
     exact map_is_unit_of_monotone_is_unit hu _ d.symm }⟩
+
+section
 
 variables [unique_factorization_monoid N] [unique_factorization_monoid M]
 
@@ -256,16 +258,16 @@ begin
   exact ne_zero_of_dvd_ne_zero hn (subtype.prop (d ⟨c₁ 1 ^ s, _⟩))
 end
 
-lemma map_prime_of_monotone_equiv [decidable_eq (associates M)] [decidable_eq (associates N)]
-  {m p : associates M} {n : associates N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
+lemma map_prime_of_monotone_equiv [decidable_eq (associates M)]
+  {m p : associates M} {n : associates N} (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
   (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   prime (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N) :=
 begin
   rw ← irreducible_iff_prime,
   refine (associates.is_atom_iff $ ne_zero_of_dvd_ne_zero hn (d ⟨p, _⟩).prop).mp ⟨_, λ b hb, _⟩,
-  { rw [ne.def, ← associates.is_unit_iff_eq_bot, ← map_is_unit_iff_is_unit
-    (dvd_of_mem_normalized_factors hp) d],
-    exact prime.not_unit (prime_of_normalized_factor p hp) },
+  { classical,
+    rw [ne.def, ← associates.is_unit_iff_eq_bot, ← map_is_unit_iff_is_unit _ d],
+    exact prime.not_unit (prime_of_normalized_factor p (by convert hp)) },
   { obtain ⟨x, hx⟩ := d.surjective ⟨b, le_trans (le_of_lt hb)
       (d ⟨p, dvd_of_mem_normalized_factors hp⟩).prop⟩,
     rw [← subtype.coe_mk b _ , subtype.coe_lt_coe, ← hx] at hb,
@@ -284,12 +286,12 @@ end
 
 lemma mem_normalized_factors_factor_order_iso_of_mem_normalized_factors
   [decidable_eq (associates M)] [decidable_eq (associates N)] {m p : associates M}
-  {n : associates N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
+  {n : associates N} (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
   (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) ∈ normalized_factors n :=
 begin
   obtain ⟨q, hq, hq'⟩ := exists_mem_normalized_factors_of_dvd hn
-      (map_prime_of_monotone_equiv hm hn hp d).irreducible
+      (map_prime_of_monotone_equiv hn hp d).irreducible
       (d ⟨p, dvd_of_mem_normalized_factors hp⟩).prop,
     rw associated_iff_eq at hq',
     rwa hq'
@@ -312,7 +314,7 @@ begin
 end
 
 lemma multiplicity_prime_eq_multiplicity_image_by_factor_order_iso [decidable_eq (associates M)]
-  [decidable_eq (associates N)] {m p : associates M} {n : associates N} (hm : m ≠ 0) (hn : n ≠ 0)
+  {m p : associates M} {n : associates N} (hn : n ≠ 0)
   (hp : p ∈ normalized_factors m) (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   multiplicity p m = multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n :=
 begin
@@ -321,14 +323,20 @@ begin
     multiplicity ↑(d.symm (d ⟨p, dvd_of_mem_normalized_factors hp⟩)) m,
   { rw [d.symm_apply_apply ⟨p, dvd_of_mem_normalized_factors hp⟩, subtype.coe_mk] at this,
     exact this },
+  classical,
   have := (multiplicity_prime_le_multiplicity_image_by_factor_order_iso
-    (mem_normalized_factors_factor_order_iso_of_mem_normalized_factors hm hn hp d) d.symm),
+    (mem_normalized_factors_factor_order_iso_of_mem_normalized_factors hn
+    (by convert hp) d) d.symm),
   rw [subtype.coe_eta] at this,
-  exact this,
+  convert this,
+end
+
 end
 
 variables [unique (Mˣ)] [unique (Nˣ)]
 
+/-- The order isomorphism between the factors of `mk m` and the of factors of `mk m` induced by a
+  bijection between the factors of `m` and the factors of `n` that preserves `∣` -/
 @[simps]
 noncomputable def mk_factor_order_iso_of_factor_dvd_equiv
   {m : M} {n : N} (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}) (hd : ∀ l l',
@@ -353,11 +361,12 @@ noncomputable def mk_factor_order_iso_of_factor_dvd_equiv
     equiv.coe_fn_mk, subtype.mk_le_mk, associates.mk_le_mk_iff_dvd_iff, hd, subtype.coe_mk,
     subtype.coe_mk, associates.mk_monoid_equiv_symm_dvd_iff_le] }
 
-variables [decidable_eq M] [decidable_eq N]
+variables [unique_factorization_monoid M] [unique_factorization_monoid N]
+  [decidable_eq M]
 
-lemma mem_normalized_factors_factor_dvd_iso_of_mem_normalized_factors {m p : M} {n : N} (hm : m ≠ 0)
-  (hn : n ≠ 0) (hp : p ∈ normalized_factors m) (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n})
-  (hd : ∀ l l', ((d l) : N) ∣ (d l') ↔ (l : M) ∣ (l' : M)) :
+lemma mem_normalized_factors_factor_dvd_iso_of_mem_normalized_factors  [decidable_eq N] {m p : M}
+  {n : N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
+  (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}) (hd : ∀ l l', ((d l) : N) ∣ (d l') ↔ (l : M) ∣ (l' : M)):
     ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) ∈ normalized_factors n :=
 begin
   suffices : prime ↑(d ⟨mk_monoid_equiv.symm (mk_monoid_equiv p),
@@ -373,12 +382,14 @@ begin
   { rw mk_factor_order_iso_of_factor_dvd_equiv_apply_coe, refl },
   rw [ ← associates.prime_mk, this],
   classical,
-  refine map_prime_of_monotone_equiv (mk_ne_zero.mpr hm) (mk_ne_zero.mpr hn) _ _,
+  refine map_prime_of_monotone_equiv (mk_ne_zero.mpr hn) _ _,
    obtain ⟨q, hq, hq'⟩ := exists_mem_normalized_factors_of_dvd (mk_ne_zero.mpr hm)
     ((prime_mk p).mpr (prime_of_normalized_factor p (by convert hp))).irreducible
       (mk_le_mk_of_dvd (dvd_of_mem_normalized_factors (by convert hp))),
     rwa [mk_monoid_equiv_apply, associated_iff_eq.mp hq'],
 end
+
+variables [decidable_rel ((∣) : M → M → Prop)] [decidable_rel ((∣) : N → N → Prop)]
 
 lemma multiplicity_eq_multiplicity_factor_dvd_iso_of_mem_normalized_factor {m p : M} {n : N}
   (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
@@ -398,8 +409,8 @@ begin
   { rw mk_factor_order_iso_of_factor_dvd_equiv_apply_coe, refl },
   rw this,
   classical,
-  convert multiplicity_prime_eq_multiplicity_image_by_factor_order_iso (mk_ne_zero.mpr hm)
-    (mk_ne_zero.mpr hn) _ (mk_factor_order_iso_of_factor_dvd_equiv d hd),
+  convert multiplicity_prime_eq_multiplicity_image_by_factor_order_iso (mk_ne_zero.mpr hn) _
+    (mk_factor_order_iso_of_factor_dvd_equiv d hd),
   obtain ⟨q, hq, hq'⟩ := exists_mem_normalized_factors_of_dvd (mk_ne_zero.mpr hm)
     ((prime_mk p).mpr (prime_of_normalized_factor p (by convert hp))).irreducible
       (mk_le_mk_of_dvd (dvd_of_mem_normalized_factors (by convert hp))),

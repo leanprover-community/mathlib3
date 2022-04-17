@@ -467,16 +467,7 @@ begin
     ≤ fintype.card ↥(pow_alt_subgroup n (i0 * odd_part (n - 1))) * 2,
   { simp [mul_le_mul_right],
     rw foocard,
-    -- rw card_cast,
-    apply finset.card_le_card_of_inj_on,
-    {
-      intros a ha,
-      rw finset.mem_filter at ha,
-      cases ha,
-      rw finset_units at ha_left,
-      rw finset.mem_filter at ha_left,
-      exact ha_left.left,
-    }
+
     sorry,  },
   apply trans hsubgroup,
   clear hsubgroup,

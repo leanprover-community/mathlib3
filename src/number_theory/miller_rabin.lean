@@ -118,10 +118,9 @@ end
 lemma strong_probable_prime_of_prime (p : ℕ) [fact (p.prime)] (a : zmod p) (ha : a ≠ 0) :
   strong_probable_prime p a  :=
 begin
-  have fermat := zmod.pow_card_sub_one_eq_one ha, -- you'll need this lemma for this
   rw strong_probable_prime,
   apply repeated_halving_of_exponent,
-  exact fermat,
+  exact zmod.pow_card_sub_one_eq_one ha,
 end
 
 lemma fermat_pseudoprime_of_strong_probable_prime (n : ℕ) (a : zmod n)

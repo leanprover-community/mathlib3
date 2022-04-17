@@ -10,45 +10,6 @@ namespace probability_theory
 
 variables {α : Type*} [measurable_space α]
 
--- move
-lemma measure.count_empty : measure.count (∅ : set α) = 0 :=
-by rw [measure.count_apply measurable_set.empty, tsum_empty]
-
-section measurable_singleton_class
-
-variable [measurable_singleton_class α]
-
-lemma measure.empty_of_count_eq_zero {s : set α} (hsc : measure.count s = 0) :
-  s = ∅ :=
-begin
-  have hs : s.finite,
-  { rw [← measure.count_apply_lt_top, hsc],
-    exact with_top.zero_lt_top },
-  rw measure.count_apply_finite _ hs at hsc,
-  simpa using hsc,
-end
-
-@[simp] lemma measure.count_eq_zero_iff {s : set α} :
-  measure.count s = 0 ↔ s = ∅ :=
-⟨measure.empty_of_count_eq_zero, λ h, h.symm ▸ measure.count_empty⟩
-
-lemma measure.count_neq_zero {s : set α} (hs' : s.nonempty) :
-  measure.count s ≠ 0:=
-begin
-  rw [ne.def, measure.count_eq_zero_iff],
-  exact hs'.ne_empty,
-end
-
-lemma measure.count_singleton (a : α) : measure.count ({a} : set α) = 1 :=
-begin
-  rw [measure.count_apply_finite ({a} : set α) (set.finite_singleton _), set.finite.to_finset],
-  simp,
-end
-
-end measurable_singleton_class
-
----------------------------------------------------------------------
-
 def cond_count (s : set α) : measure α := measure.count[|s]
 
 @[simp] lemma cond_count_empty_meas : (cond_count ∅ : measure α) = 0 :=

@@ -139,11 +139,13 @@ instance [semiring R] [add_comm_monoid α] [module R α] :
   (0 : matrix m n α).map f = 0 :=
 by { ext, simp [h], }
 
-protected lemma map_add [has_add α] [has_add β] (f : α → β) (hf : ∀ a₁ a₂, f (a₁ + a₂) = f a₁ + f a₂)
+protected lemma map_add [has_add α] [has_add β] (f : α → β)
+  (hf : ∀ a₁ a₂, f (a₁ + a₂) = f a₁ + f a₂)
   (M N : matrix m n α) : (M + N).map f = M.map f + N.map f :=
 ext $ λ _ _, hf _ _
 
-protected lemma map_sub [has_sub α] [has_sub β] (f : α → β) (hf : ∀ a₁ a₂, f (a₁ - a₂) = f a₁ - f a₂)
+protected lemma map_sub [has_sub α] [has_sub β] (f : α → β)
+  (hf : ∀ a₁ a₂, f (a₁ - a₂) = f a₁ - f a₂)
   (M N : matrix m n α) : (M - N).map f = M.map f - N.map f :=
 ext $ λ _ _, hf _ _
 

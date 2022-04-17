@@ -11,8 +11,8 @@ import data.fintype.card
 
 Some results about products and sums over the type `fin`.
 
-The most important results are the induction formulas `prod_univ_cast_succ`
-and `prod_univ_succ`, and the formula `prod_const` for the product of a
+The most important results are the induction formulas `fin.prod_univ_cast_succ`
+and `fin.prod_univ_succ`, and the formula `fin.prod_const` for the product of a
 constant function. These results have variants for sums instead of products.
 
 -/

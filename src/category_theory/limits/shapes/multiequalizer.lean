@@ -409,7 +409,7 @@ def multifork_equiv_pi_fork : multifork I ≌ fork I.fst_pi_map I.snd_pi_map :=
 { functor := to_pi_fork_functor I,
   inverse := of_pi_fork_functor I,
   unit_iso := nat_iso.of_components (λ K, cones.ext (iso.refl _)
-    (by { rintros (_|_); dsimp; simp[←fork.app_one_eq_ι_comp_left],  }))
+    (by { rintros (_|_); dsimp; simp[←fork.app_one_eq_ι_comp_left, -fork.app_one_eq_ι_comp_left] }))
     (λ K₁ K₂ f, by { ext, simp }),
   counit_iso := nat_iso.of_components (λ K, fork.ext (iso.refl _) (by { ext, dsimp, simp }))
     (λ K₁ K₂ f, by { ext, simp }) }
@@ -503,11 +503,7 @@ def to_sigma_cofork (K : multicofork I) : cofork I.fst_sigma_map I.snd_sigma_map
       all_goals { change _ ≫ sigma.desc _ = (_ ≫ _) ≫ 𝟙 _, simp }
     end } }
 
-@[simp] lemma to_sigma_cofork_ι_app_zero :
-  K.to_sigma_cofork.ι.app walking_parallel_pair.zero = I.fst_sigma_map ≫ sigma.desc K.π := rfl
-
-@[simp] lemma to_sigma_cofork_ι_app_one :
-  K.to_sigma_cofork.ι.app walking_parallel_pair.one = sigma.desc K.π := rfl
+@[simp] lemma to_sigma_cofork_π : K.to_sigma_cofork.π = sigma.desc K.π := rfl
 
 variable (I)
 
@@ -568,9 +564,10 @@ def multicofork_equiv_sigma_cofork : multicofork I ≌ cofork I.fst_sigma_map I.
 { functor := to_sigma_cofork_functor I,
   inverse := of_sigma_cofork_functor I,
   unit_iso := nat_iso.of_components (λ K, cocones.ext (iso.refl _)
-      (by { rintros (_|_); dsimp, }))
+      (by { rintros (_|_); dsimp; simp }))
     (λ K₁ K₂ f, by { ext, simp }),
-  counit_iso := nat_iso.of_components (λ K, cofork.ext (iso.refl _) (by { ext, dsimp, simp }))
+  counit_iso := nat_iso.of_components (λ K, cofork.ext (iso.refl _)
+      (by { ext, dsimp, simp only [category.comp_id, colimit.ι_desc, cofan.mk_ι_app], refl }))
     (λ K₁ K₂ f, by { ext, dsimp, simp, }) }
 
 end multispan_index

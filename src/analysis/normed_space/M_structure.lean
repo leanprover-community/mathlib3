@@ -81,12 +81,7 @@ end
 
 
 lemma complement_iff {P: R} : is_projection P ↔ is_projection (1-P) :=
-⟨ is_projection.complement ,
-begin
-  intros h,
-  rw ← sub_sub_cancel 1 P,
-  exact is_projection.complement h,
-end ⟩
+⟨ is_projection.complement , λ h, sub_sub_cancel 1 P ▸ h.complement⟩
 
 instance : has_compl (subtype (is_projection  : R → Prop)) :=
 ⟨λ P, ⟨1-P, P.prop.complement⟩⟩

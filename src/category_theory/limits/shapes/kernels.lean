@@ -359,7 +359,7 @@ def is_kernel.of_comp_iso {Z : C} (l : X ⟶ Z) (i : Z ≅ Y) (h : l ≫ i.hom =
 fork.is_limit.mk _
   (λ s, hs.lift $ kernel_fork.of_ι (fork.ι s) $ by simp [←h])
   (λ s, by simp)
-  (λ s m h, by { apply fork.is_limit.hom_ext hs, simpa using h walking_parallel_pair.zero })
+  (λ s m h, by { apply fork.is_limit.hom_ext hs, simpa using h })
 
 /-- If `i` is an isomorphism such that `l ≫ i.hom = f`, then the kernel of `f` is a kernel of `l`.-/
 def kernel.of_comp_iso [has_kernel f]
@@ -753,7 +753,7 @@ def is_cokernel.of_iso_comp {Z : C} (l : Z ⟶ Y) (i : X ≅ Z) (h : i.hom ≫ l
 cofork.is_colimit.mk _
   (λ s, hs.desc $ cokernel_cofork.of_π (cofork.π s) $ by simp [←h])
   (λ s, by simp)
-  (λ s m h, by { apply cofork.is_colimit.hom_ext hs, simpa using h walking_parallel_pair.one })
+  (λ s m h, by { apply cofork.is_colimit.hom_ext hs, simpa using h })
 
 /-- If `i` is an isomorphism such that `i.hom ≫ l = f`, then the cokernel of `f` is a cokernel of
     `l`. -/

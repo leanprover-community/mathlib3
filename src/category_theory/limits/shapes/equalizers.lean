@@ -332,16 +332,16 @@ lemma cofork.is_colimit.exists_unique {s : cofork f g} (hs : is_colimit s) {W : 
 
 /-- This is a slightly more convenient method to verify that a fork is a limit cone. It
     only asks for a proof of facts that carry any mathematical content -/
+@[simps lift]
 def fork.is_limit.mk (t : fork f g)
   (lift : Π (s : fork f g), s.X ⟶ t.X)
   (fac : ∀ (s : fork f g), lift s ≫ fork.ι t = fork.ι s)
-  (uniq : ∀ (s : fork f g) (m : s.X ⟶ t.X)
-    (w : ∀ j : walking_parallel_pair, m ≫ t.π.app j = s.π.app j), m = lift s) :
+  (uniq : ∀ (s : fork f g) (m : s.X ⟶ t.X) (w : m ≫ t.ι = s.ι), m = lift s) :
   is_limit t :=
 { lift := lift,
   fac' := λ s j, walking_parallel_pair.cases_on j (fac s) $
     by erw [←s.w left, ←t.w left, ←category.assoc, fac]; refl,
-  uniq' := uniq }
+  uniq' := λ s m j, by tidy }
 
 /-- This is another convenient method to verify that a fork is a limit cone. It
     only asks for a proof of facts that carry any mathematical content, and allows access to the
@@ -352,20 +352,19 @@ is_limit t :=
 fork.is_limit.mk t
   (λ s, (create s).1)
   (λ s, (create s).2.1)
-  (λ s m w, (create s).2.2 (w zero))
+  (λ s m w, (create s).2.2 w)
 
 /-- This is a slightly more convenient method to verify that a cofork is a colimit cocone. It
     only asks for a proof of facts that carry any mathematical content -/
 def cofork.is_colimit.mk (t : cofork f g)
   (desc : Π (s : cofork f g), t.X ⟶ s.X)
   (fac : ∀ (s : cofork f g), cofork.π t ≫ desc s = cofork.π s)
-  (uniq : ∀ (s : cofork f g) (m : t.X ⟶ s.X)
-    (w : ∀ j : walking_parallel_pair, t.ι.app j ≫ m = s.ι.app j), m = desc s) :
+  (uniq : ∀ (s : cofork f g) (m : t.X ⟶ s.X) (w : t.π ≫ m = s.π), m = desc s) :
   is_colimit t :=
 { desc := desc,
   fac' := λ s j, walking_parallel_pair.cases_on j
     (by erw [←s.w left, ←t.w left, category.assoc, fac]; refl) (fac s),
-  uniq' := uniq }
+  uniq' := by tidy }
 
 /-- This is another convenient method to verify that a fork is a limit cone. It
     only asks for a proof of facts that carry any mathematical content, and allows access to the
@@ -376,17 +375,17 @@ is_colimit t :=
 cofork.is_colimit.mk t
   (λ s, (create s).1)
   (λ s, (create s).2.1)
-  (λ s m w, (create s).2.2 (w one))
+  (λ s m w, (create s).2.2 w)
 
 /-- Noncomputably make a limit cone from the existence of unique factorizations. -/
 def fork.is_limit.of_exists_unique {t : fork f g}
   (hs : ∀ (s : fork f g), ∃! l : s.X ⟶ t.X, l ≫ fork.ι t = fork.ι s) : is_limit t :=
-by { choose d hd hd' using hs, exact fork.is_limit.mk _ d hd (λ s m hm, hd' _ _ (hm _)) }
+by { choose d hd hd' using hs, exact fork.is_limit.mk _ d hd (λ s m hm, hd' _ _ hm) }
 
 /-- Noncomputably make a colimit cocone from the existence of unique factorizations. -/
 def cofork.is_colimit.of_exists_unique {t : cofork f g}
   (hs : ∀ (s : cofork f g), ∃! d : t.X ⟶ s.X, cofork.π t ≫ d = cofork.π s) : is_colimit t :=
-by { choose d hd hd' using hs, exact cofork.is_colimit.mk _ d hd (λ s m hm, hd' _ _ (hm _)) }
+by { choose d hd hd' using hs, exact cofork.is_colimit.mk _ d hd (λ s m hm, hd' _ _ hm) }
 
 /--
 Given a limit cone for the pair `f g : X ⟶ Y`, for any `Z`, morphisms from `Z` to its point are in
@@ -628,7 +627,7 @@ def is_limit_id_fork (h : f = g) : is_limit (id_fork h) :=
 fork.is_limit.mk _
   (λ s, fork.ι s)
   (λ s, category.comp_id _)
-  (λ s m h, by { convert h zero, exact (category.comp_id _).symm })
+  (λ s m h, by { convert h, exact (category.comp_id _).symm })
 
 /-- Every equalizer of `(f, g)`, where `f = g`, is an isomorphism. -/
 lemma is_iso_limit_cone_parallel_pair_of_eq (h₀ : f = g) {c : fork f g}
@@ -769,7 +768,7 @@ def is_colimit_id_cofork (h : f = g) : is_colimit (id_cofork h) :=
 cofork.is_colimit.mk _
   (λ s, cofork.π s)
   (λ s, category.id_comp _)
-  (λ s m h, by { convert h one, exact (category.id_comp _).symm })
+  (λ s m h, by { convert h, exact (category.id_comp _).symm })
 
 /-- Every coequalizer of `(f, g)`, where `f = g`, is an isomorphism. -/
 lemma is_iso_colimit_cocone_parallel_pair_of_eq (h₀ : f = g) {c : cofork f g}  (h : is_colimit c) :

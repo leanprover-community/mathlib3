@@ -94,8 +94,8 @@ has_limit.mk { cone := fork.of_ι pullback.fst huu,
     (by simp only [prod.comp_lift, fork.condition]))
   (λ s, by simp only [fork.ι_of_ι, pullback.lift_fst])
   (λ s m h, pullback.hom_ext
-    (by simpa only [pullback.lift_fst] using h walking_parallel_pair.zero)
-    (by simpa only [huv.symm, pullback.lift_fst] using h walking_parallel_pair.zero)) }
+    (by simpa only [pullback.lift_fst] using h)
+    (by simpa only [huv.symm, pullback.lift_fst] using h)) }
 
 end
 
@@ -216,8 +216,8 @@ has_colimit.mk { cocone := cofork.of_π pushout.inl huu,
     (by simp only [coprod.desc_comp, cofork.condition]))
   (λ s, by simp only [pushout.inl_desc, cofork.π_of_π])
   (λ s m h, pushout.hom_ext
-    (by simpa only [pushout.inl_desc] using h walking_parallel_pair.one)
-    (by simpa only [huv.symm, pushout.inl_desc] using h walking_parallel_pair.one)) }
+    (by simpa only [pushout.inl_desc] using h)
+    (by simpa only [huv.symm, pushout.inl_desc] using h)) }
 
 end
 

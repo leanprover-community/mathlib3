@@ -88,7 +88,8 @@ meta def monomial_weight : expr → with_bot ℕ
 | a := do
   let as := match a.app_fn with
   | `(coe_fn $ polynomial.monomial %%n) := n.to_nat
-  | _ := (⊥ : with_bot ℕ)  -- why do I have to remind Lean that this is `with_bot ℕ` and not `option ℕ`?
+  -- why do I have to remind Lean that this is `with_bot ℕ` and not `option ℕ`?
+  | _ := (⊥ : with_bot ℕ)
   end,
   as
 
@@ -120,6 +121,7 @@ open_locale polynomial classical
 
 variables {R : Type*} [semiring R] (f g : R[X]) {r s t u : R} (r0 : t ≠ 0)
 
+/-
 example :
   (monomial 1) u + 5 * X +
   (g + (monomial 5) 1) + ((monomial 0) s + (monomial 2) t + f) + (monomial 8) 1 =
@@ -132,98 +134,6 @@ begin
 end
 
 
-example : (X + f) * (X + f) = X * X + X * f + f * X + f * f :=
-begin
-  simp [add_mul, mul_add],
-  abel,
-end
-
-namespace tactic
-
-/--  Check whether an `expr` is a product of two terms. -/
-meta def is_mul : expr → bool
-| `(%%_ * %%_) := tt
-| _            := ff
-
-/--  Check whether an `expr` is a sum of two terms. -/
-meta def is_add : expr → bool
-| `(%%_ + %%_) := tt
-| _            := ff
-
-/--  Check whether an `expr` is a `polynomial.monomial`. -/
-meta def is_monomial : expr → bool
-| `(coe_fn $ polynomial.monomial %%n) := tt
-| _            := ff
-
-/--  If `a : expr` is `monomial n r`, then `convert_monomial a = (a, (n : with_bot ℕ))`,
-otherwise `convert_monomial a = (a, ⊥)`. -/
-meta def convert_monomial : expr → expr × with_bot ℕ
-| a := do
-  let as := match a.app_fn with
-  | `(coe_fn $ polynomial.monomial %%n) := (a, expr.to_nat n)
-  | _ := (a, none)
-  end,
-  as
-
-meta def get_monomials_from_add_aux : expr → list (expr × with_bot ℕ) → list (expr × with_bot ℕ)
-| `(%%a + %%b) l := get_monomials_from_add_aux a l ++ get_monomials_from_add_aux b l
-| a l := convert_monomial a :: l
-
-meta def get_monomials_from_add_aux' : expr → list (expr × option ℕ) → list (expr × option ℕ)
-| `(%%a + %%b) l := do
-  let as := match a.app_fn with
-  | `(coe_fn $ polynomial.monomial %%n) := (a, expr.to_nat n) :: l
-  | _ := if (is_add a) then get_monomials_from_add_aux a l else (a, none) :: l
-  end,
-  let bs := match b.app_fn with
-  | `(coe_fn $ polynomial.monomial %%n) := (b, expr.to_nat n) :: l
-  | _ := if (is_add b) then get_monomials_from_add_aux b l else (b, none) :: l
-  end,
-  as ++ bs
-| _ l := l
-
-meta def order_fn : expr × option ℕ → expr × option ℕ → bool
-| (_, none)    _          := tt
-| _           (_, none)   := ff
-| (_, some a) (_, some b) := a < b
-
-meta def get_sorted_monomials_from_add (e : expr) : list expr :=
-do
-  let l := (get_monomials_from_add_aux e []).qsort (λ x y, x.2 < y.2), --order_fn
-  l.map (λ x, x.1)
-
-meta def build_add : expr → list expr → tactic expr
-| ei ((e : expr)::es) := do
-  e' ← build_add ei es,
-  mk_app `has_add.add [e', e]
-| ei [] := pure ei
-
-meta def sort_monomials_add (e : expr) : tactic unit :=
-match get_sorted_monomials_from_add e with
-| ei::es := do
-  el' ← build_add ei es.reverse,
-  e_eq ← mk_app `eq [e, el'],
-  n ← get_unused_name,
-  assert n e_eq,
-  reflexivity <|> `[{ simp only [add_comm, add_assoc, add_left_comm], done, }],
-  h ← get_local n,
-  rewrite_target h,
-  clear h
-| [] := skip
-end
-
-meta def sort_monomials : tactic unit :=
-do
-  -- e ← get_local `h,
-  -- t ← infer_type e,
-  t ← target,
-  match t.is_eq with
-  | none          := fail "not an equality"
-  | some (el, er) := do
-    sort_monomials_add el,
-    sort_monomials_add er
-  end
-
 example {R : Type*} [semiring R] (f g : R[X]) {r s t u : R} (r0 : t ≠ 0) :
   C u * X + (g + X ^ 5) + (C s + C t * X ^ 2 + f) + X ^ 8 = 0 :=
 begin
@@ -235,7 +145,6 @@ begin
   try { simp only [zero_add, add_zero, mul_one, one_mul, one_pow] },
   sort_monomials,
   sort_monomials,
-  -- ⇑(monomial 0) s + (⇑(monomial 1) u + (⇑(monomial 2) t + (⇑(monomial 5) 1 + ⇑(monomial 8) 1))) = 0
+  -- (monomial 0) s + ((monomial 1) u + ((monomial 2) t + ((monomial 5) 1 + (monomial 8) 1))) = 0
 end
-
-end tactic
+-/

@@ -123,8 +123,7 @@ open_locale polynomial classical
 
 variables {R : Type*} [semiring R] (f g : R[X]) {r s t u : R} (r0 : t ≠ 0)
 
-set_option profiler true
-lemma pro : (monomial 1) u + 5 * X + (g + (monomial 5) 1) + ((monomial 0) s + (monomial 2) t + f) +
+example : (monomial 1) u + 5 * X + (g + (monomial 5) 1) + ((monomial 0) s + (monomial 2) t + f) +
    (monomial 8) 1 = 5 * X + f + g + (monomial 0) s + (monomial 1) u + (monomial 2) t +
    (monomial 5) 1 + (monomial 8) 1 :=
 begin

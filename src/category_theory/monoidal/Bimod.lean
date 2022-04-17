@@ -144,8 +144,25 @@ def tensor_Bimod {X Y Z : Mon_ C} (M : Bimod X Y) (N : Bimod Y Z) : Bimod X Z :=
     erw ι_comp_coequalizer_comparison_assoc,
     dsimp, simp, dsimp,
     slice_lhs 1 1 { rw ←tensor_id_comp_id_tensor, },
-    slice_lhs 2 3 { },
-     /- kawow -/ sorry
+    slice_lhs 2 2 { rw [←tensor_left_map, ←ι_comp_coequalizer_comparison] },
+    slice_lhs 3 3 { rw [←preserves_coequalizer.iso_hom] },
+    slice_lhs 3 4 { rw iso.hom_inv_id },
+    simp,
+    slice_lhs 1 2 { rw [←tensor_id, associator_inv_naturality] },
+    slice_lhs 2 3 { rw [←tensor_comp, one_act_left], simp },
+    slice_rhs 1 2 { rw left_unitor_naturality },
+    -- How can I avoid the following?  E.g., `unfold coequalizer.π` fails.
+    have :
+        colimit.ι
+          (parallel_pair (M.act_right ⊗ 𝟙 N.X) ((α_ M.X Y.X N.X).hom ≫ (𝟙 M.X ⊗ N.act_left)))
+          walking_parallel_pair.one
+      = coequalizer.π (M.act_right ⊗ 𝟙 N.X) ((α_ M.X Y.X N.X).hom ≫ (𝟙 M.X ⊗ N.act_left)) := rfl,
+    rw this, clear this,
+    -- Why does `coherence` fail at this point?
+    have :
+        (α_ (𝟙_ C) M.X N.X).inv ≫ ((λ_ M.X).hom ⊗ 𝟙 N.X)
+      = (λ_ (M.X ⊗ N.X)).hom := by pure_coherence,
+    slice_lhs 1 2 { rw this },
   end,
   act_right_one' := sorry,
   left_assoc' := sorry,

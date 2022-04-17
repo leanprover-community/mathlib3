@@ -46,8 +46,12 @@ begin
   have hn := two_power_part_mul_odd_part (n),
   have hm := two_power_part_mul_odd_part (m),
   have hnm' := mul_two_power_part n m,
-  have pos_two_power_part : 0 < two_power_part (n * m), sorry,
+  have pos_two_power_part : 0 < two_power_part (n * m),
+  sorry,
   -- TODO(Sean): See if you can prove this. I've given a bunch of have statements for things I think are necessary.
+  have thing : n * m = two_power_part (n * m) * odd_part (n * m),
+  exact hnm.symm,
+  rw ← hn at thing,
   sorry,
 end
 
@@ -114,10 +118,9 @@ end
 lemma strong_probable_prime_of_prime (p : ℕ) [fact (p.prime)] (a : zmod p) (ha : a ≠ 0) :
   strong_probable_prime p a  :=
 begin
-  have fermat := zmod.pow_card_sub_one_eq_one ha, -- you'll need this lemma for this
   rw strong_probable_prime,
   apply repeated_halving_of_exponent,
-  exact fermat,
+  exact zmod.pow_card_sub_one_eq_one ha,
 end
 
 lemma fermat_pseudoprime_of_strong_probable_prime (n : ℕ) (a : zmod n)
@@ -354,6 +357,13 @@ lemma one_or_coprime_factorization_or_prime_power (n : ℕ) (h : 0 < n) :
   (∃ (p k : ℕ), 1 ≤ k ∧ p.prime ∧ p^k = n) :=
 begin
   have stuff := coprime_factorization_or_prime_power n h,
+  cases stuff with one two,
+  cases one with roo too,
+  right,
+  left,
+  exact one,
+  right,
+  right,
   sorry,
   -- This is a slight modification of the lemma coprime_factorization_or_prime_power above.
   -- TODO(Sean): Try to prove this using coprime_factorization_or_prime_power (no other lemmas from this file should be needed) (first do a have statement to get the coprime_factorization_or_prime_power result into the hypotheses here)

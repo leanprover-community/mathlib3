@@ -116,7 +116,7 @@ lemma Lcomplement {P: X →L[𝕜] X} (h: is_Lprojection P) :  is_Lprojection (1
 ⟨is_projection.complement_iff.mp h.1, λ x, by { rw [add_comm, sub_sub_cancel], exact h.2 x }⟩
 
 lemma Lcomplement_iff (P: X →L[𝕜] X) : is_Lprojection P ↔ is_Lprojection (1-P) :=
-⟨Lcomplement, λ h, by { rw [← sub_sub_cancel 1 P], exact Lcomplement h }⟩
+⟨Lcomplement, λ h, sub_sub_cancel 1 P ▸ Lcomplement h⟩
 
 lemma commute {P Q: X →L[𝕜] X} (h₁: is_Lprojection P) (h₂ : is_Lprojection Q) : commute P Q :=
 begin

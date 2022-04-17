@@ -16,20 +16,11 @@ meta def get_summands : expr → list expr
 
 section with_cmp_fn
 
-/--  Given an expression `e` and a compare function `cmp_fn : expr → expr → bool`,
-`sort_summands_with_weight e cmp_fn` returns the list of summands appearing in `e`, sorted using the
-compare function `cmp_fn`. -/
-meta def sort_summands_with_cmp_fn (e : expr) (cmp_fn : expr → expr → bool) : list expr :=
-(get_summands e).qsort cmp_fn
-
-/--  Let `wt : expr → N` be a "weight function": any function from `expr` to a Type `N` with a
-decidable relation `<`.
-
-Given an expression `e` in an additive commutative semigroup, `sorted_sum_with_weight wt e`
-returns an ordered sum of its terms, where the order is determined by applying `wt` to the summands
-appearing in `e`. -/
+/--  Given compare function `cmp_fn : expr → expr → bool` and an expression `e`, in an additive
+commutative semigroup, `sorted_sum_with_cmp cmp_fn e` returns an ordered sum of its terms, where
+the order is determined using `cmp_fn`. -/
 meta def sorted_sum_with_cmp_fn (cmp_fn : expr → expr → bool) (e : expr) : tactic unit :=
-match sort_summands_with_cmp_fn e cmp_fn with
+match (get_summands e).qsort cmp_fn with
 | ei::es := do
   el' ← es.mfoldl (λ e1 e2, mk_app `has_add.add [e1, e2]) ei,
   e_eq ← mk_app `eq [e, el'],
@@ -39,7 +30,7 @@ match sort_summands_with_cmp_fn e cmp_fn with
   reflexivity <|>
     `[{ simp only [add_comm, add_assoc, add_left_comm], done, }] <|>
     -- `[{ abel, done, }] <|> -- this works too. it's more robust but also a bit slower
-      fail format!"failed to prove:\n {e_eq_fmt}",
+      fail format!"Failed to prove:\n {e_eq_fmt}",
   h ← get_local n,
   rewrite_target h,
   clear h
@@ -54,7 +45,7 @@ meta def sort_summands (sl : sort_side) (cmp_fn : expr → expr → bool) : tact
 do
   t ← target,
   match t.is_eq with
-  | none          := fail "the goal is not an equality"
+  | none          := fail "The goal is not an equality"
   | some (el, er) :=
     match sl with
     | sort_side.lhs  := sorted_sum_with_cmp_fn cmp_fn el
@@ -116,7 +107,7 @@ example : (monomial 1) u + 5 * X + (g + (monomial 5) 1) + ((monomial 0) s + (mon
    (monomial 1) u) + (monomial 5) 1 :=
 begin
 --  `ac_refl` works and takes 7s,
--- `sort_monomials, refl` takes under 400ms
+-- `sort_monomials, refl` takes under 300ms
   sort_monomials,
   sort_monomials_lhs, -- LHS and RHS agree here
   sort_monomials_rhs, -- Hmm, both sides change?

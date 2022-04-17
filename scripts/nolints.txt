@@ -521,11 +521,6 @@ apply_nolint affine_subspace.to_add_torsor fails_quickly
 apply_nolint function.has_scalar to_additive_doc
 apply_nolint function.smul_comm_class to_additive_doc
 
--- logic/equiv/list.lean
-apply_nolint encodable.fintype_arrow doc_blame
-apply_nolint encodable.fintype_pi doc_blame
-apply_nolint encodable.trunc_encodable_of_fintype doc_blame
-
 -- logic/relator.lean
 apply_nolint relator.bi_total doc_blame
 apply_nolint relator.bi_unique doc_blame

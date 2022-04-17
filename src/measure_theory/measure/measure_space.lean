@@ -1616,7 +1616,7 @@ calc (∑' i : s, 1 : ℝ≥0∞) = ∑' i, indicator s 1 i : tsum_subtype s 1
 lemma count_apply (hs : measurable_set s) : count s = ∑' i : s, 1 :=
 by simp only [count, sum_apply, hs, dirac_apply', ← tsum_subtype s 1, pi.one_apply]
 
-@[simp] lemma measure.count_empty : measure.count (∅ : set α) = 0 :=
+@[simp] lemma count_empty : measure.count (∅ : set α) = 0 :=
 by rw [measure.count_apply measurable_set.empty, tsum_empty]
 
 @[simp] lemma count_apply_finset [measurable_singleton_class α] (s : finset α) :

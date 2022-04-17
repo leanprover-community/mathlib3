@@ -95,7 +95,7 @@ begin
     (set.finite.to_finset_mono.2 (s.inter_subset_left t)) h.symm.le
 end
 
-lemma cond_count_eq_zero_iff (hs : s.finite) (hs' : s.nonempty) :
+lemma cond_count_eq_zero_iff (hs : s.finite) :
   cond_count s t = 0 ↔ s ∩ t = ∅ :=
 by simp [cond_count, cond_apply _ hs.measurable_set, measure.count_apply_eq_top,
     set.not_infinite.2 hs, measure.count_apply_finite _ (hs.inter_of_left _)]
@@ -104,12 +104,12 @@ lemma cond_count_univ (hs : s.finite) (hs' : s.nonempty) :
   cond_count s set.univ = 1 :=
 cond_count_eq_one_of hs hs' s.subset_univ
 
-lemma cond_count_inter (hs : s.finite) (hs' : s.nonempty) :
+lemma cond_count_inter (hs : s.finite) :
   cond_count s (t ∩ u) = cond_count (s ∩ t) u * cond_count s t :=
 begin
   by_cases hst : s ∩ t = ∅,
   { rw [hst, cond_count_empty_meas, measure.coe_zero, pi.zero_apply, zero_mul,
-      cond_count_eq_zero_iff hs hs', ← set.inter_assoc, hst, set.empty_inter] },
+      cond_count_eq_zero_iff hs, ← set.inter_assoc, hst, set.empty_inter] },
   rw [cond_count, cond_count, cond_apply _ hs.measurable_set, cond_apply _ hs.measurable_set,
     cond_apply _ (hs.inter_of_left _).measurable_set,
     mul_comm _ (measure.count (s ∩ t)), ← mul_assoc, mul_comm _ (measure.count (s ∩ t)),
@@ -118,14 +118,14 @@ begin
   { exact (measure.count_apply_lt_top.2 $ hs.inter_of_left _).ne }
 end
 
-lemma cond_count_inter' (hs : s.finite) (hs' : s.nonempty) :
+lemma cond_count_inter' (hs : s.finite) :
   cond_count s (t ∩ u) = cond_count (s ∩ u) t * cond_count s u :=
 begin
   rw ← set.inter_comm,
-  exact cond_count_inter hs hs',
+  exact cond_count_inter hs,
 end
 
-lemma cond_count_union (hs : s.finite) (hs' : s.nonempty) (htu : disjoint t u) :
+lemma cond_count_union (hs : s.finite) (htu : disjoint t u) :
   cond_count s (t ∪ u) = cond_count s t + cond_count s u :=
 begin
   rw [cond_count, cond_apply _ hs.measurable_set, cond_apply _ hs.measurable_set,
@@ -136,45 +136,44 @@ end
 lemma cond_count_compl (hs : s.finite) (hs' : s.nonempty) :
   cond_count s t + cond_count s tᶜ = 1 :=
 begin
-  rw [← cond_count_union hs hs' disjoint_compl_right, set.union_compl_self,
+  rw [← cond_count_union hs disjoint_compl_right, set.union_compl_self,
     (cond_count_is_probability_measure hs hs').measure_univ],
 end
 
-lemma Prob_disjoint_union {α : Type*} [decidable_eq α] (s t : finset α) (h₁ : disjoint s t)
-  (P : α → Prop) [decidable_pred P] :
-  Prob (s ∪ t) P =
-    Prob s P * (s.card / (s ∪ t).card) + Prob t P * (t.card / (s ∪ t).card) :=
-begin
-  rcases s.eq_empty_or_nonempty with (rfl | hs),
-  { rcases t.eq_empty_or_nonempty with (rfl | ht),
-    { simp [Prob] },
-    { rw [empty_union, card_empty, nat.cast_zero, zero_div, mul_zero, zero_add, div_self, mul_one],
-      rw [← card_pos, nat.pos_iff_ne_zero] at ht,
-      norm_cast at * } },
-  { rcases t.eq_empty_or_nonempty with (rfl | ht),
-    { rw [union_empty, card_empty, nat.cast_zero, zero_div, mul_zero, add_zero, div_self, mul_one],
-      rw [←card_pos, nat.pos_iff_ne_zero] at hs,
-      norm_cast at * },
-    { rw [←card_pos, nat.pos_iff_ne_zero] at hs ht,
-      rw [Prob, Prob, Prob, filter_union, card_disjoint_union h₁,
-        card_disjoint_union (disjoint_filter_filter h₁), nat.cast_add, nat.cast_add, add_div,
-        div_mul_div_cancel, div_mul_div_cancel];
-      norm_cast at * } },
-end
+-- lemma Prob_disjoint_union (hs : s.finite) (hs' : s.nonempty) (ht : t.finite) (hst : disjoint s t) :
+--   cond_count (s ∪ t) u =
+--   cond_count s u * (s.card / (s ∪ t).card) + Prob t P * (t.card / (s ∪ t).card) :=
+-- begin
+--   rcases s.eq_empty_or_nonempty with (rfl | hs),
+--   { rcases t.eq_empty_or_nonempty with (rfl | ht),
+--     { simp [Prob] },
+--     { rw [empty_union, card_empty, nat.cast_zero, zero_div, mul_zero, zero_add, div_self, mul_one],
+--       rw [← card_pos, nat.pos_iff_ne_zero] at ht,
+--       norm_cast at * } },
+--   { rcases t.eq_empty_or_nonempty with (rfl | ht),
+--     { rw [union_empty, card_empty, nat.cast_zero, zero_div, mul_zero, add_zero, div_self, mul_one],
+--       rw [←card_pos, nat.pos_iff_ne_zero] at hs,
+--       norm_cast at * },
+--     { rw [←card_pos, nat.pos_iff_ne_zero] at hs ht,
+--       rw [Prob, Prob, Prob, filter_union, card_disjoint_union h₁,
+--         card_disjoint_union (disjoint_filter_filter h₁), nat.cast_add, nat.cast_add, add_div,
+--         div_mul_div_cancel, div_mul_div_cancel];
+--       norm_cast at * } },
+-- end
 
-lemma conditional {α : Type*} (s : finset α) (P Q : α → Prop)
-  [decidable_eq α] [decidable_pred P] [decidable_pred Q] :
-  Prob s P = Prob (filter Q s) P * Prob s Q + Prob (filter (λ a, ¬Q a) s) P * Prob s (λ a, ¬Q a) :=
-begin
-  have : Prob s P = Prob s (λ x, P x ∧ Q x) + Prob s (λ x, P x ∧ ¬ Q x),
-    rw [Prob, Prob, Prob, ← add_div],
-    congr' 1,
-    norm_cast,
-    rw [← filter_filter, ← filter_filter, ← card_union_eq, filter_union_filter_neg_eq],
-    rw [disjoint_iff_inter_eq_empty, filter_inter_filter_neg_eq],
-  rw this,
-  rw Prob_and,
-  rw Prob_and,
-end
+-- lemma conditional {α : Type*} (s : finset α) (P Q : α → Prop)
+--   [decidable_eq α] [decidable_pred P] [decidable_pred Q] :
+--   Prob s P = Prob (filter Q s) P * Prob s Q + Prob (filter (λ a, ¬Q a) s) P * Prob s (λ a, ¬Q a) :=
+-- begin
+--   have : Prob s P = Prob s (λ x, P x ∧ Q x) + Prob s (λ x, P x ∧ ¬ Q x),
+--     rw [Prob, Prob, Prob, ← add_div],
+--     congr' 1,
+--     norm_cast,
+--     rw [← filter_filter, ← filter_filter, ← card_union_eq, filter_union_filter_neg_eq],
+--     rw [disjoint_iff_inter_eq_empty, filter_inter_filter_neg_eq],
+--   rw this,
+--   rw Prob_and,
+--   rw Prob_and,
+-- end
 
 end probability_theory

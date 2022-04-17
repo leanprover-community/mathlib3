@@ -9,7 +9,8 @@ open_locale pointwise
 
 variables {α : Type*} [add_group α] [decidable_eq α]
 
-lemma ruzsa_triangle_inequality (A B C : finset α) :
+/-- **Ruzsa's triangle inequality** -/
+lemma card_sub_mul_le_card_sub_mul_card_sub (A B C : finset α) :
   (A - C).card * B.card ≤ (A - B).card * (B - C).card :=
 begin
   rw [←card_product (A - B), ←mul_one ((finset.product _ _).card)],
@@ -25,6 +26,46 @@ begin
   }
 end
 
-lemma ruzsa_sum_triangle_inequality (A B C : finset α) :
+/-- **Ruzsa's triangle inequality** -/
+lemma card_sub_mul_le_card_add_mul_card_add (A B C : finset α) :
+  (A - C).card * B.card ≤ (A + B).card * (B + C).card :=
+begin
+  -- rw [←sub_neg_eq_add A, ←card_neg B, ←card_neg (B + C)],
+  sorry
+end
+
+/-- **Ruzsa's triangle inequality** -/
+lemma card_add_mul_le_card_sub_mul_card_add (A B C : finset α) :
+  (A + C).card * B.card ≤ (A - B).card * (B + C).card :=
+begin
+  sorry
+end
+
+/-- **Ruzsa's triangle inequality** -/
+lemma card_add_mul_le_card_add_mul_card_sub (A B C : finset α) :
+  (A + C).card * B.card ≤ (A + B).card * (B - C).card :=
+begin
+  sorry
+end
+
+/-! ### Sum triangle inequality -/
+
+/-- **Ruzsa's triangle inequality** -/
+lemma card_add_mul_le_card_add_mul_card_add (A B C : finset α) :
   (A + C).card * B.card ≤ (A + B).card * (B + C).card :=
+sorry
+
+/-- **Ruzsa's triangle inequality** -/
+lemma card_add_mul_le_card_sub_mul_card_sub (A B C : finset α) :
+  (A + C).card * B.card ≤ (A - B).card * (B - C).card :=
+sorry
+
+/-- **Ruzsa's triangle inequality** -/
+lemma card_sub_mul_le_card_add_mul_card_sub (A B C : finset α) :
+  (A - C).card * B.card ≤ (A + B).card * (B - C).card :=
+sorry
+
+/-- **Ruzsa's triangle inequality** -/
+lemma card_sub_mul_le_card_sub_mul_card_add (A B C : finset α) :
+  (A - C).card * B.card ≤ (A - B).card * (B + C).card :=
 sorry

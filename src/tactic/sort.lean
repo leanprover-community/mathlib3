@@ -9,7 +9,7 @@ import data.polynomial.degree.definitions
 
 namespace tactic
 
-/--  Given an expression `ei` and a list `l : list expr`, returns a `tactic expr` that is
+/--  Given an expression `ei` and a list `l : list expr`, returns an `expr` that is
 `ei + sum_of_list l`. -/
 meta def build_sum (ei : expr) (l : list expr) : tactic expr :=
 l.mfoldl (λ e1 e2, mk_app `has_add.add [e1, e2]) ei
@@ -41,8 +41,9 @@ match sort_summands_with_weight e wt with
   e_eq ← mk_app `eq [e, el'],
   n ← get_unused_name,
   assert n e_eq,
-  -- should we return a meaningful error if this does not manage to prove `e_eq`?
-  `[{ simp only [add_comm, add_assoc, add_left_comm], done, }],
+  reflexivity <|>
+    `[{ simp only [add_comm, add_assoc, add_left_comm], done, }]
+      <|> fail "failed to prove {e_eq}", -- how to print this?
   h ← get_local n,
   rewrite_target h,
   clear h
@@ -57,8 +58,8 @@ do
   -- t ← infer_type e,
   t ← target,
   match t.is_eq with
-  | some (el, er) := do sorted_sum_with_weight wt el
-  | none          := trace "The goal is not an equality"
+  | some (el, er) := sorted_sum_with_weight wt el
+  | none          := fail "The goal is not an equality"
   end
 
 /-- If the target is an equality, `sort_summands_rhs` sorts the summands on the rhs.
@@ -67,8 +68,8 @@ meta def sort_summands_rhs (wt : expr → N) : tactic unit :=
 do
   t ← target,
   match t.is_eq with
-  | some (el, er) := do sorted_sum_with_weight wt er
-  | none          := trace "The goal is not an equality"
+  | some (el, er) := sorted_sum_with_weight wt er
+  | none          := fail "The goal is not an equality"
   end
 
 /-- If the target is an equality, `sort_summands` sorts the summands on either side of the equality.
@@ -88,13 +89,11 @@ end with_weights
 /--  The order on `polynomial.monomial n r`, where monomials are compared by their "exponent" `n`.
 If the expression is not a monomial, then the weight is `⊥`. -/
 meta def monomial_weight : expr → with_bot ℕ
-| a := do
-  let as := match a.app_fn with
+| a := match a.app_fn with
   | `(coe_fn $ polynomial.monomial %%n) := n.to_nat
   -- why do I have to remind Lean that this is `with_bot ℕ` and not `option ℕ`?
   | _ := (⊥ : with_bot ℕ)
-  end,
-  as
+  end
 
 /--  If we have an expression involving monomials, `sum_sorted_monomials` returns an ordered sum
 of its terms.  Every summands that is not a monomial appears first, after that, monomials are
@@ -124,30 +123,28 @@ open_locale polynomial classical
 
 variables {R : Type*} [semiring R] (f g : R[X]) {r s t u : R} (r0 : t ≠ 0)
 
-/-
-example :
-  (monomial 1) u + 5 * X +
-  (g + (monomial 5) 1) + ((monomial 0) s + (monomial 2) t + f) + (monomial 8) 1 =
-    X + monomial 7 1 + 2 * X :=
-begin
-  sort_monomials,
-  sort_monomials_lhs,
-  sort_monomials_rhs,
-  symmetry, sort_monomials_lhs
-end
+-- example :
+--   (monomial 1) u + 5 * X +
+--   (g + (monomial 5) 1) + ((monomial 0) s + (monomial 2) t + f) + (monomial 8) 1 =
+--     X + monomial 7 1 + 2 * X :=
+-- begin
+--   sort_monomials,
+--   sort_monomials_lhs,
+--   sort_monomials_rhs,
+--   symmetry, sort_monomials_lhs
+-- end
 
 
-example {R : Type*} [semiring R] (f g : R[X]) {r s t u : R} (r0 : t ≠ 0) :
-  C u * X + (g + X ^ 5) + (C s + C t * X ^ 2 + f) + X ^ 8 = 0 :=
-begin
-  try { unfold X },
-  try { rw ← C_1 },
-  repeat { rw ← monomial_zero_left },
-  repeat { rw monomial_pow },
-  repeat { rw monomial_mul_monomial },
-  try { simp only [zero_add, add_zero, mul_one, one_mul, one_pow] },
-  sort_monomials,
-  sort_monomials,
-  -- (monomial 0) s + ((monomial 1) u + ((monomial 2) t + ((monomial 5) 1 + (monomial 8) 1))) = 0
-end
---/
+-- example {R : Type*} [semiring R] (f g : R[X]) {r s t u : R} (r0 : t ≠ 0) :
+--   C u * X + (g + X ^ 5) + (C s + C t * X ^ 2 + f) + X ^ 8 = 0 :=
+-- begin
+--   try { unfold X },
+--   try { rw ← C_1 },
+--   repeat { rw ← monomial_zero_left },
+--   repeat { rw monomial_pow },
+--   repeat { rw monomial_mul_monomial },
+--   try { simp only [zero_add, add_zero, mul_one, one_mul, one_pow] },
+--   sort_monomials,
+--   sort_monomials,
+--   -- (monomial 0) s + ((monomial 1) u + ((monomial 2) t + ((monomial 5) 1 + (monomial 8) 1))) = 0
+-- end

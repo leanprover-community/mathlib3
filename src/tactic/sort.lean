@@ -42,8 +42,8 @@ match sort_summands_with_weight e wt with
   n ← get_unused_name,
   assert n e_eq,
   reflexivity <|>
-    `[{ simp only [add_comm, add_assoc, add_left_comm], done, }]
-      <|> fail "failed to prove {e_eq}", -- how to print this?
+    `[{ simp only [add_comm, add_assoc, add_left_comm], done, }] <|>
+      fail "failed to prove {e_eq}", -- how to print this?
   h ← get_local n,
   rewrite_target h,
   clear h

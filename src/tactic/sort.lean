@@ -14,22 +14,13 @@ meta def get_summands : expr → list expr
 | `(%%a + %%b) := get_summands a ++ get_summands b
 | a            := [a]
 
-section with_weights
-variables {N : Type*} [has_le N] [decidable_rel (has_le.le : N → N → Prop)]
+section with_cmp_fn
 
-meta def compare_fn (wt : expr → option N) (eₗ eᵣ : expr) : bool :=
-match (wt eₗ, wt eᵣ) with
-| (some l, some r) := l ≤ r
-| (none, some _)   := tt
-| (some _, none)   := ff
-| _                := eₗ.to_string ≤ eᵣ.to_string -- this solution forces an unique ordering
-end
-
-/--  Given an expression `e` and a weight function `wt : expr → N` to a Type `N` with `<`,
-`sort_summands_with_weight a wt` returns the list of summands appearing in `a`, sorted using the
-order `<`. -/
-meta def sort_summands_with_weight (e : expr) (wt : expr → option N) : list expr :=
-(get_summands e).qsort $ compare_fn wt
+/--  Given an expression `e` and a compare function `cmp_fn : expr → expr → bool`,
+`sort_summands_with_weight e cmp_fn` returns the list of summands appearing in `e`, sorted using the
+compare function `cmp_fn`. -/
+meta def sort_summands_with_cmp_fn (e : expr) (cmp_fn : expr → expr → bool) : list expr :=
+(get_summands e).qsort cmp_fn
 
 /--  Let `wt : expr → N` be a "weight function": any function from `expr` to a Type `N` with a
 decidable relation `<`.
@@ -37,8 +28,8 @@ decidable relation `<`.
 Given an expression `e` in an additive commutative semigroup, `sorted_sum_with_weight wt e`
 returns an ordered sum of its terms, where the order is determined by applying `wt` to the summands
 appearing in `e`. -/
-meta def sorted_sum_with_weight (wt : expr → option N) (e : expr) : tactic unit :=
-match sort_summands_with_weight e wt with
+meta def sorted_sum_with_cmp_fn (cmp_fn : expr → expr → bool) (e : expr) : tactic unit :=
+match sort_summands_with_cmp_fn e cmp_fn with
 | ei::es := do
   el' ← es.mfoldl (λ e1 e2, mk_app `has_add.add [e1, e2]) ei,
   e_eq ← mk_app `eq [e, el'],
@@ -59,22 +50,22 @@ inductive sort_side | lhs | rhs | both
 
 /-- If the target is an equality, `sort_summands` sorts the summands on either side of the equality.
 -/
-meta def sort_summands (sl : sort_side) (wt : expr → option N) : tactic unit :=
+meta def sort_summands (sl : sort_side) (cmp_fn : expr → expr → bool) : tactic unit :=
 do
   t ← target,
   match t.is_eq with
   | none          := fail "the goal is not an equality"
   | some (el, er) :=
     match sl with
-    | sort_side.lhs  := sorted_sum_with_weight wt el
-    | sort_side.rhs  := sorted_sum_with_weight wt er
+    | sort_side.lhs  := sorted_sum_with_cmp_fn cmp_fn el
+    | sort_side.rhs  := sorted_sum_with_cmp_fn cmp_fn er
     | sort_side.both := do
-      sorted_sum_with_weight wt el,
-      sorted_sum_with_weight wt er
+      sorted_sum_with_cmp_fn cmp_fn el,
+      sorted_sum_with_cmp_fn cmp_fn er
     end
   end
 
-end with_weights
+end with_cmp_fn
 
 /--  The order on `polynomial.monomial n r`, where monomials are compared by their "exponent" `n`.
 If the expression is not a monomial, then the weight is `⊥`. -/
@@ -83,6 +74,14 @@ meta def monomial_weight : expr → option ℕ
   | `(coe_fn $ polynomial.monomial %%n) := n.to_nat
   | _ := none
   end
+
+meta def compare_fn (eₗ eᵣ : expr) : bool :=
+match (monomial_weight eₗ, monomial_weight eᵣ) with
+| (some l, some r) := l ≤ r
+| (none, some _)   := true
+| (some _, none)   := false
+| _                := eₗ.to_string ≤ eᵣ.to_string -- this solution forces an unique ordering
+end
 
 -- /--  If we have an expression involving monomials, `sum_sorted_monomials` returns an ordered sum
 -- of its terms.  Every summands that is not a monomial appears first, after that, monomials are
@@ -93,17 +92,17 @@ meta def monomial_weight : expr → option ℕ
 /--  If the target is an equality involving monomials,
 then  `sort_monomials_lhs` sorts the summands on the lhs. -/
 meta def sort_monomials_lhs : tactic unit :=
-sort_summands sort_side.lhs monomial_weight
+sort_summands sort_side.lhs compare_fn
 
 /-- If the target is an equality involving monomials,
 then  `sort_monomials_rhs` sorts the summands on the rhs. -/
 meta def sort_monomials_rhs : tactic unit :=
-sort_summands sort_side.rhs monomial_weight
+sort_summands sort_side.rhs compare_fn
 
 /-- If the target is an equality involving monomials,
 then  `sort_monomials` sorts the summands on either side of the equality. -/
 meta def sort_monomials : tactic unit :=
-sort_summands sort_side.both monomial_weight
+sort_summands sort_side.both compare_fn
 
 end tactic
 

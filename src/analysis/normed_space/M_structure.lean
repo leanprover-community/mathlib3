@@ -122,46 +122,44 @@ lemma Lcomplement {P: X →L[𝕜] X} (h: is_Lprojection P) :  is_Lprojection (1
 lemma Lcomplement_iff (P: X →L[𝕜] X) : is_Lprojection P ↔ is_Lprojection (1-P) :=
 ⟨Lcomplement, λ h, by { rw [← sub_sub_cancel 1 P], exact Lcomplement h }⟩
 
-lemma PQ_eq_QPQ (P Q : X →L[𝕜] X) (h₁: is_Lprojection P) (h₂: is_Lprojection Q) :
-  P * Q = Q * P * Q :=
-begin
-  ext,
-  rw ← norm_sub_eq_zero_iff,
-  have e1 : ∥Q x∥ ≥ ∥Q x∥ + 2 • ∥ (P * Q) x - (Q * P * Q) x∥ :=
-  calc ∥Q x∥ = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥(Q * Q) x - Q (P (Q x))∥
-    + ∥(1-Q) ((1 - P) (Q x))∥) :
-    by rw [h₁.right, h₂.right, h₂.right ((1 - P) (Q x)), continuous_linear_map.sub_apply 1 P,
-      continuous_linear_map.one_apply, map_sub, continuous_linear_map.coe_mul]
-  ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q x - Q (P (Q x))∥
-    + ∥((1-Q) * Q) x - (1-Q) (P (Q x))∥) : by rw [← sq, projection_def h₂.left,
-      continuous_linear_map.sub_apply 1 P, continuous_linear_map.one_apply,
-      map_sub,continuous_linear_map.coe_mul]
-  ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q x - Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥) :
-    by rw [sub_mul, ← sq, projection_def h₂.left, one_mul, sub_self,
-      continuous_linear_map.zero_apply, zero_sub, norm_neg]
-  ... = ∥Q (P (Q x))∥ + ∥Q x - Q (P (Q x))∥ + 2•∥(1-Q) (P (Q x))∥  : by abel
-  ... ≥ ∥Q x∥ + 2 • ∥ (P * Q) x - (Q * P * Q) x∥ :
-    by exact add_le_add_right (norm_le_insert' (Q x) (Q (P (Q x)))) (2•∥(1-Q) (P (Q x))∥),
-  rw ge at e1,
-  nth_rewrite_rhs 0 ← add_zero (∥Q x∥) at e1,
-  rw [add_le_add_iff_left, two_smul,  ← two_mul]  at e1,
-  rw le_antisymm_iff,
-  refine ⟨_, norm_nonneg _⟩,
-  rwa [←mul_zero (2:ℝ), mul_le_mul_left (show (0:ℝ) < 2, by norm_num)] at e1
-end
-
-lemma QP_eq_QPQ (P Q : X →L[𝕜] X) (h₁: is_Lprojection P) (h₂: is_Lprojection Q) : Q * P = Q * P * Q
-  :=
-begin
-  have e1: P * (1 - Q) = P * (1 - Q) - (Q * P - Q * P * Q) :=
-  calc P * (1 - Q) = (1 - Q) * P * (1 - Q) : by rw PQ_eq_QPQ P (1 - Q) h₁ h₂.Lcomplement
-  ... = P * (1 - Q) - (Q * P - Q * P * Q) :
-    by rw [mul_assoc, sub_mul, one_mul, mul_sub, mul_one, mul_sub Q, mul_assoc],
-  rwa [eq_sub_iff_add_eq, add_right_eq_self, sub_eq_zero] at e1
-end
-
 lemma commute {P Q: X →L[𝕜] X} (h₁: is_Lprojection P) (h₂ : is_Lprojection Q) : commute P Q :=
-show P * Q = Q * P, by rw [QP_eq_QPQ P Q h₁ h₂, PQ_eq_QPQ P Q h₁ h₂]
+begin
+  have PR_eq_RPR : ∀ R : (X →L[𝕜] X), is_Lprojection R →  (P * R = R * P * R) :=λ R h₃,
+  begin
+    ext,
+    rw ← norm_sub_eq_zero_iff,
+    have e1 : ∥R x∥ ≥ ∥R x∥ + 2 • ∥ (P * R) x - (R * P * R) x∥ :=
+    calc ∥R x∥ = ∥R (P (R x))∥ + ∥(1-R) (P (R x))∥ + (∥(R * R) x - R (P (R x))∥
+      + ∥(1-R) ((1 - P) (R x))∥) :
+      by rw [h₁.right, h₃.right, h₃.right ((1 - P) (R x)), continuous_linear_map.sub_apply 1 P,
+        continuous_linear_map.one_apply, map_sub, continuous_linear_map.coe_mul]
+    ... = ∥R (P (R x))∥ + ∥(1-R) (P (R x))∥ + (∥R x - R (P (R x))∥
+      + ∥((1-R) * R) x - (1-R) (P (R x))∥) : by rw [← sq, projection_def h₃.left,
+        continuous_linear_map.sub_apply 1 P, continuous_linear_map.one_apply,
+        map_sub,continuous_linear_map.coe_mul]
+    ... = ∥R (P (R x))∥ + ∥(1-R) (P (R x))∥ + (∥R x - R (P (R x))∥ + ∥(1-R) (P (R x))∥) :
+      by rw [sub_mul, ← sq, projection_def h₃.left, one_mul, sub_self,
+        continuous_linear_map.zero_apply, zero_sub, norm_neg]
+    ... = ∥R (P (R x))∥ + ∥R x - R (P (R x))∥ + 2•∥(1-R) (P (R x))∥  : by abel
+    ... ≥ ∥R x∥ + 2 • ∥ (P * R) x - (R * P * R) x∥ :
+      by exact add_le_add_right (norm_le_insert' (R x) (R (P (R x)))) (2•∥(1-R) (P (R x))∥),
+    rw ge at e1,
+    nth_rewrite_rhs 0 ← add_zero (∥R x∥) at e1,
+    rw [add_le_add_iff_left, two_smul,  ← two_mul]  at e1,
+    rw le_antisymm_iff,
+    refine ⟨_, norm_nonneg _⟩,
+    rwa [←mul_zero (2:ℝ), mul_le_mul_left (show (0:ℝ) < 2, by norm_num)] at e1
+  end,
+  have QP_eq_QPQ : Q * P = Q * P * Q :=
+  begin
+    have e1: P * (1 - Q) = P * (1 - Q) - (Q * P - Q * P * Q) :=
+    calc P * (1 - Q) = (1 - Q) * P * (1 - Q) : by rw PR_eq_RPR (1 - Q) h₂.Lcomplement
+    ... = P * (1 - Q) - (Q * P - Q * P * Q) :
+      by rw [mul_assoc, sub_mul, one_mul, mul_sub, mul_one, mul_sub Q, mul_assoc],
+    rwa [eq_sub_iff_add_eq, add_right_eq_self, sub_eq_zero] at e1
+  end,
+  show P * Q = Q * P, by rw [QP_eq_QPQ, PR_eq_RPR Q h₂]
+end
 
 lemma mul {P Q : X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) :
   is_Lprojection (P*Q) :=

@@ -86,8 +86,7 @@ If the expression is not a monomial, then the weight is `⊥`. -/
 meta def monomial_weight : expr → with_bot ℕ
 | a := match a.app_fn with
   | `(coe_fn $ polynomial.monomial %%n) := n.to_nat
-  -- why do I have to remind Lean that this is `with_bot ℕ` and not `option ℕ`?
-  | _ := (⊥ : with_bot ℕ)
+  | _ := ⊥
   end
 
 /--  If we have an expression involving monomials, `sum_sorted_monomials` returns an ordered sum

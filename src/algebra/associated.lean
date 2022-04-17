@@ -631,6 +631,7 @@ section unique_units
 
 variable [unique (αˣ)]
 
+/-- `associates.mk` as a monoid equiv -/
 noncomputable def mk_monoid_equiv : α ≃* associates α :=
 mul_equiv.of_bijective
   (@associates.mk_monoid_hom α _) ⟨associates.mk_injective, associates.mk_surjective⟩

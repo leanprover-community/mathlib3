@@ -362,14 +362,15 @@ lemma of_bijective_apply {M N} [mul_one_class M] [mul_one_class N] {m : M} (f : 
   (hf : function.bijective f) : mul_equiv.of_bijective f hf m = f m := rfl
 
 @[simp]
+lemma of_bijective_apply_symm_apply {M N} [mul_one_class M] [mul_one_class N] {n : N} (f : M →* N)
+  (hf : function.bijective f) : f ((mul_equiv.of_bijective f hf).symm n) = n :=
+(mul_equiv.of_bijective f hf).apply_symm_apply n
+
+@[simp]
 lemma of_bijective_apply_symm {M N} [mul_one_class M] [mul_one_class N] {n : N} (f : M →* N)
   (hf : function.bijective f) :
     (mul_equiv.of_bijective f hf).symm n = (equiv.of_bijective f hf).symm n := rfl
 
-@[simp]
-lemma of_bijective_apply_symm_apply {M N} [mul_one_class M] [mul_one_class N] {n : N} (f : M →* N)
-  (hf : function.bijective f) : f ((mul_equiv.of_bijective f hf).symm n) = n :=
-(mul_equiv.of_bijective f hf).apply_symm_apply n
 
 /--
 Extract the forward direction of a multiplicative equivalence

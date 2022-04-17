@@ -238,24 +238,14 @@ def is_limit_fork_of_kernel_fork {c : kernel_fork (f - g)} (i : is_limit c) :
   is_limit (fork_of_kernel_fork c) :=
 fork.is_limit.mk' _ $ λ s,
   ⟨i.lift (kernel_fork_of_fork s), i.fac _ _,
-   λ m h,
-   begin
-     apply fork.is_limit.hom_ext i,
-     dsimp only [kernel_fork_of_fork, fork_of_kernel_fork] at ⊢ h,
-     simpa [fork.is_limit.lift_of_ι_ι, h]
-   end⟩
+   λ m h, by apply fork.is_limit.hom_ext i; tidy⟩
 
 /-- An equalizer of `f` and `g` is a kernel of `f - g`. -/
 def is_limit_kernel_fork_of_fork {c : fork f g} (i : is_limit c) :
   is_limit (kernel_fork_of_fork c) :=
 fork.is_limit.mk' _ $ λ s,
   ⟨i.lift (fork_of_kernel_fork s), i.fac _ _,
-    λ m h,
-    begin
-     apply fork.is_limit.hom_ext i,
-     dsimp only [kernel_fork_of_fork, fork_of_kernel_fork] at ⊢ h,
-     simpa [fork.is_limit.lift_of_ι_ι, h]
-   end⟩
+    λ m h, by apply fork.is_limit.hom_ext i; tidy⟩
 
 variables (f g)
 
@@ -284,24 +274,14 @@ def is_colimit_cofork_of_cokernel_cofork {c : cokernel_cofork (f - g)} (i : is_c
   is_colimit (cofork_of_cokernel_cofork c) :=
 cofork.is_colimit.mk' _ $ λ s,
   ⟨i.desc (cokernel_cofork_of_cofork s), i.fac _ _,
-    λ m h,
-    begin
-      apply cofork.is_colimit.hom_ext i,
-      dsimp only [cofork_of_cokernel_cofork, cokernel_cofork_of_cofork] at ⊢ h,
-      simpa [limits.cofork.is_colimit.π_desc_of_π, h]
-    end⟩
+    λ m h, by apply cofork.is_colimit.hom_ext i; tidy⟩
 
 /-- A coequalizer of `f` and `g` is a cokernel of `f - g`. -/
 def is_colimit_cokernel_cofork_of_cofork {c : cofork f g} (i : is_colimit c) :
   is_colimit (cokernel_cofork_of_cofork c) :=
 cofork.is_colimit.mk' _ $ λ s,
   ⟨i.desc (cofork_of_cokernel_cofork s), i.fac _ _,
-    λ m h,
-    begin
-      apply cofork.is_colimit.hom_ext i,
-      dsimp only [cofork_of_cokernel_cofork, cokernel_cofork_of_cofork] at ⊢ h,
-      simpa [limits.cofork.is_colimit.π_desc_of_π, h]
-    end⟩
+    λ m h, by apply cofork.is_colimit.hom_ext i; tidy⟩
 
 variables (f g)
 

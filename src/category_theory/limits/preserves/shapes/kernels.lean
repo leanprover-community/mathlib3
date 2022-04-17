@@ -48,7 +48,8 @@ begin
   refine (is_limit.postcompose_hom_equiv _ _).symm.trans (is_limit.equiv_iso_limit _),
   refine parallel_pair.ext (iso.refl _) (iso.refl _) _ _; simp,
   refine fork.ext (iso.refl _) _,
-  simp,
+  simp [cones.postcompose],
+  
 end
 
 /--

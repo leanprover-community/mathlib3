@@ -260,14 +260,14 @@ by rw [add_mul, mul_add, mul_add, mul_assoc ↑Pᶜ ↑R (↑Q * ↑R * ↑Pᶜ)
     Pᶜ.prop.left]
 
 instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
-{ le_sup_left := λ P Q, (by rw [coe_sup, ← add_sub, mul_add, mul_sub, ← mul_assoc, ← sq,
-      projection_def P.prop.left, sub_self, add_zero] : ↑P = ↑P * ↑(P ⊔ Q)),
-  le_sup_right := λ P Q, by exact
-    ( begin
-      rw [coe_sup, ← add_sub, mul_add, mul_sub, commute.eq (commute P.prop Q.prop), ← mul_assoc,
-      ← sq, projection_def Q.prop.left],
-      abel,
-    end : (↑Q: X →L[𝕜] X) = ↑Q * ↑(P ⊔ Q)),
+{ le_sup_left := λ P Q, by rw [le_def, coe_inf, coe_sup, ← add_sub, mul_add, mul_sub, ← mul_assoc,
+    ← sq, projection_def P.prop.left, sub_self, add_zero],
+  le_sup_right := λ P Q,
+  begin
+    rw [le_def, coe_inf, coe_sup, ← add_sub, mul_add, mul_sub, commute.eq (commute P.prop Q.prop),
+      ← mul_assoc, ← sq, projection_def Q.prop.left],
+    abel,
+  end,
   sup_le := λ P Q R,
   begin
     rw [le_def, le_def, le_def, coe_inf, coe_inf, coe_sup, coe_inf, coe_sup, ← add_sub, add_mul,
@@ -297,7 +297,7 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
       coe_sup, coe_sup, ← add_sub, ← add_sub, ← add_sub, compl_mul_left, compl_mul_left,
       compl_mul_left, commute.eq (commute Pᶜ.prop (Q⊓R).prop), coe_inf, mul_assoc,
       distrib_lattice_lemma, commute.eq (commute Q.prop R.prop), distrib_lattice_lemma],
-    exact (by rw [e₂, e₁] : ↑((P ⊔ Q) ⊓ (P ⊔ R)) = ↑((P ⊔ Q) ⊓ (P ⊔ R)) * ↑(P ⊔ Q ⊓ R)),
+    rw [le_def, e₁, coe_inf, e₂],
   end,
   .. is_Lprojection.subtype.has_inf,
   .. is_Lprojection.subtype.has_sup,

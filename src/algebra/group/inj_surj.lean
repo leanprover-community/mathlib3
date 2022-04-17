@@ -191,6 +191,8 @@ protected def div_inv_monoid [div_inv_monoid M₂]
   zpow_zero' := λ x, hf $ by erw [zpow, zpow_zero, one],
   zpow_succ' := λ n x, hf $ by erw [zpow, mul, zpow_of_nat, pow_succ, zpow, zpow_of_nat],
   zpow_neg' := λ n x, hf $ by erw [zpow, zpow_neg_succ_of_nat, inv, zpow, zpow_coe_nat],
+  inv_inv := λ x, hf $ by erw [inv, inv, inv_inv],
+  inv_mul_rev := λ x y, hf $ by erw [inv, mul, inv_mul_rev, mul, inv, inv],
    div_eq_mul_inv := λ x y, hf $ by erw [div, mul, inv, div_eq_mul_inv],
   .. hf.monoid f one mul npow, .. ‹has_inv M₁›, .. ‹has_div M₁› }
 
@@ -316,9 +318,12 @@ protected def div_inv_monoid [div_inv_monoid M₁]
   zpow_zero' := hf.forall.2 $ λ x, by erw [←zpow, zpow_zero, ←one],
   zpow_succ' := λ n, hf.forall.2 $ λ x, by
     erw [←zpow, ←zpow, zpow_of_nat, zpow_of_nat, pow_succ, ←mul],
-  zpow_neg' := λ n, hf.forall.2 $ λ x, by
-    erw [←zpow, ←zpow, zpow_neg_succ_of_nat, zpow_coe_nat, inv],
-  div_eq_mul_inv := hf.forall₂.2 $ λ x y, by erw [← inv, ← mul, ← div, div_eq_mul_inv],
+  zpow_neg' := λ n, hf.forall.2 $ λ x,
+    by { erw [←zpow, ←zpow, zpow_neg_succ_of_nat, zpow_coe_nat, inv], refl },
+  inv_inv := hf.forall.2 $ λ x, by erw [←inv, ←inv, inv_inv],
+  inv_mul_rev := hf.forall₂.2 $ λ x y,
+    by { erw [←mul, ←inv, ←inv,  inv_mul_rev, mul, inv, inv], refl },
+  div_eq_mul_inv := hf.forall₂.2 $ λ x y, by erw [←inv, ←mul, ←div, div_eq_mul_inv],
   .. hf.monoid f one mul npow, .. ‹has_div M₂›, .. ‹has_inv M₂› }
 
 /-- A type endowed with `1`, `*` and `⁻¹` is a group,

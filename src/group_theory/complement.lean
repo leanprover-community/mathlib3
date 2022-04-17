@@ -68,7 +68,7 @@ begin
   let ψ : G ≃ G := equiv.mk (λ g : G, g⁻¹) (λ g : G, g⁻¹) inv_inv inv_inv,
   suffices : ψ ∘ (λ x : H × K, x.1.1 * x.2.1) = (λ x : K × H, x.1.1 * x.2.1) ∘ ϕ,
   { rwa [is_complement'_def, is_complement, ←equiv.bijective_comp, ←this, equiv.comp_bijective] },
-  exact funext (λ x, mul_inv_rev _ _),
+  exact funext (λ x, inv_mul_rev _ _),
 end
 
 @[to_additive] lemma is_complement'_comm : is_complement' H K ↔ is_complement' K H :=
@@ -254,7 +254,7 @@ quotient.exact' (mk'_to_equiv hS g)
 
 @[to_additive] lemma inv_mul_to_fun_mem (hS : S ∈ subgroup.left_transversals (H : set G))
   (g : G) : g⁻¹ * to_fun hS g ∈ H :=
-(congr_arg (∈ H) (by rw [mul_inv_rev, inv_inv])).mp (H.inv_mem (inv_to_fun_mul_mem hS g))
+(congr_arg (∈ H) (by rw [inv_mul_rev, inv_inv])).mp (H.inv_mem (inv_to_fun_mul_mem hS g))
 
 end mem_left_transversals
 
@@ -283,7 +283,7 @@ quotient.exact' (mk'_to_equiv hS _)
 
 @[to_additive] lemma to_fun_mul_inv_mem (hS : S ∈ subgroup.right_transversals (H : set G))
   (g : G) : (to_fun hS g : G) * g⁻¹ ∈ H :=
-(congr_arg (∈ H) (by rw [mul_inv_rev, inv_inv])).mp (H.inv_mem (mul_inv_to_fun_mem hS g))
+(congr_arg (∈ H) (by rw [inv_mul_rev, inv_inv])).mp (H.inv_mem (mul_inv_to_fun_mem hS g))
 
 end mem_right_transversals
 

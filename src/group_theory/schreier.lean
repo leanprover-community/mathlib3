@@ -49,7 +49,7 @@ begin
     rw [mul_right_inj, inv_inj, ←subtype.coe_mk r hr, ←subtype.ext_iff, subtype.coe_mk],
     apply (mem_right_transversals_iff_exists_unique_mul_inv_mem.mp hR (f (r * s⁻¹) * s)).unique
       (mul_inv_to_fun_mem hR (f (r * s⁻¹) * s)),
-    rw [mul_assoc, ←inv_inv s, ←mul_inv_rev, inv_inv],
+    rw [mul_assoc, ←inv_inv s, ←inv_mul_rev, inv_inv],
     exact to_fun_mul_inv_mem hR (r * s⁻¹) },
 end
 
@@ -72,7 +72,7 @@ begin
   apply (mem_right_transversals_iff_exists_unique_mul_inv_mem.mp hR r).unique,
   { rw [subtype.coe_mk, mul_inv_self],
     exact H.one_mem },
-  { rw [subtype.coe_mk, one_inv, mul_one],
+  { rw [subtype.coe_mk, inv_one, mul_one],
     exact (H.mul_mem_cancel_left (hU hg)).mp hh },
 end
 

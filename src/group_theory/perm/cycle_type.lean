@@ -120,7 +120,7 @@ end
 lemma cycle_type_inv (σ : perm α) : σ⁻¹.cycle_type = σ.cycle_type :=
 cycle_induction_on (λ τ : perm α, τ⁻¹.cycle_type = τ.cycle_type) σ rfl
   (λ σ hσ, by rw [hσ.cycle_type, hσ.inv.cycle_type, support_inv])
-  (λ σ τ hστ hc hσ hτ, by rw [mul_inv_rev, hστ.cycle_type, ←hσ, ←hτ, add_comm,
+  (λ σ τ hστ hc hσ hτ, by rw [inv_mul_rev, hστ.cycle_type, ←hσ, ←hτ, add_comm,
     disjoint.cycle_type (λ x, or.imp (λ h : τ x = x, inv_eq_iff_eq.mpr h.symm)
     (λ h : σ x = x, inv_eq_iff_eq.mpr h.symm) (hστ x).symm)])
 

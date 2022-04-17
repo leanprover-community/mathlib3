@@ -491,7 +491,7 @@ protected def homeomorph.inv : G ≃ₜ G :=
 
 @[to_additive]
 lemma nhds_one_symm : comap has_inv.inv (𝓝 (1 : G)) = 𝓝 (1 : G) :=
-((homeomorph.inv G).comap_nhds_eq _).trans (congr_arg nhds one_inv)
+((homeomorph.inv G).comap_nhds_eq _).trans (congr_arg nhds inv_one)
 
 /-- The map `(x, y) ↦ (x, xy)` as a homeomorphism. This is a shear mapping. -/
 @[to_additive "The map `(x, y) ↦ (x, x + y)` as a homeomorphism.
@@ -537,8 +537,8 @@ end
 
 @[to_additive] lemma is_open.closure_mul {U : set G} (hU : is_open U) (s : set G) :
   closure s * U = s * U :=
-by rw [← inv_inv (closure s * U), set.mul_inv_rev, inv_closure, hU.inv.mul_closure,
-  set.mul_inv_rev, inv_inv, inv_inv]
+by rw [← inv_inv (closure s * U), set.inv_mul_rev, inv_closure, hU.inv.mul_closure,
+  set.inv_mul_rev, inv_inv, inv_inv]
 
 namespace subgroup
 
@@ -628,7 +628,7 @@ end
   [topological_group G] {g : G} (hg : g ∈ connected_component (1 : G)) :
   g⁻¹ ∈ connected_component (1 : G) :=
 begin
-  rw ← one_inv,
+  rw ← inv_one,
   exact continuous.image_connected_component_subset continuous_inv _
     ((set.mem_image _ _ _).mp ⟨g, hg, rfl⟩)
 end
@@ -1058,7 +1058,7 @@ begin
     simpa [mul_comm, mul_assoc, mul_left_comm] using h (v * x⁻¹) v_mem (w * y⁻¹) w_mem },
   { rintros ⟨a, c, ⟨b, hb, ba⟩, ⟨d, hd, dc⟩, ac⟩,
     refine ⟨b ∩ d, inter_mem hb hd, assume v, _⟩,
-    simp only [preimage_subset_iff, mul_inv_rev, mem_preimage] at *,
+    simp only [preimage_subset_iff, inv_mul_rev, mem_preimage] at *,
     rintros ⟨vb, vd⟩,
     refine ac ⟨v * y⁻¹, y, _, _, _⟩,
     { rw ← mul_assoc _ _ _ at vb, exact ba _ vb },

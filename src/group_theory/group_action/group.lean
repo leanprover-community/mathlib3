@@ -240,8 +240,8 @@ section arrow
 /-- If `G` acts on `A`, then it acts also on `A → B`, by `(g • F) a = F (g⁻¹ • a)`. -/
 @[simps] def arrow_action {G A B : Type*} [group G] [mul_action G A] : mul_action G (A → B) :=
 { smul := λ g F a, F (g⁻¹ • a),
-  one_smul := by { intro, simp only [one_inv, one_smul] },
-  mul_smul := by { intros, simp only [mul_smul, mul_inv_rev] } }
+  one_smul := by { intro, simp only [inv_one, one_smul] },
+  mul_smul := by { intros, simp only [mul_smul, inv_mul_rev] } }
 
 local attribute [instance] arrow_action
 

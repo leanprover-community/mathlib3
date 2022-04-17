@@ -217,9 +217,9 @@ begin
   apply @h g₁⁻¹,
   split; simp only [set.mem_inv, set.mem_mul, exists_exists_and_eq_and, exists_and_distrib_left],
   { refine ⟨_, h2g₂, (g₁ * g₂)⁻¹, _, _⟩, simp only [inv_inv, h1g₂],
-    simp only [mul_inv_rev, mul_inv_cancel_left] },
+    simp only [inv_mul_rev, mul_inv_cancel_left] },
   { refine ⟨_, h2g₃, (g₁ * g₃)⁻¹, _, _⟩, simp only [inv_inv, h1g₃],
-    simp only [mul_inv_rev, mul_inv_cancel_left] }
+    simp only [inv_mul_rev, mul_inv_cancel_left] }
 end
 
 @[to_additive add_left_add_index_le]
@@ -431,7 +431,7 @@ begin
   let V := V₁ ∩ V₂,
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀
     ⟨V⁻¹, (is_open.inter h2V₁ h2V₂).preimage continuous_inv,
-    by simp only [mem_inv, one_inv, h3V₁, h3V₂, V, mem_inter_eq, true_and]⟩),
+    by simp only [mem_inv, inv_one, h3V₁, h3V₂, V, mem_inter_eq, true_and]⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩,
     simp only [mem_preimage, eval, sub_eq_zero, mem_singleton_iff], rw [eq_comm],

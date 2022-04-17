@@ -513,11 +513,11 @@ lemma image_op_inv : op '' s⁻¹ = (op '' s)⁻¹ := by simp_rw [←image_inv, 
 
 end has_involutive_inv
 
-@[to_additive] protected lemma mul_inv_rev [group α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
-by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev }
-
-protected lemma mul_inv_rev₀ [group_with_zero α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
-by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev₀ }
+@[to_additive] protected lemma inv_mul_rev [group α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
+by { simp_rw ←image_inv, exact image_image2_antidistrib inv_mul_rev }
+-- TOODOO
+protected lemma inv_mul_rev [group_with_zero α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
+by { simp_rw ←image_inv, exact image_image2_antidistrib inv_mul_rev }
 
 end inv
 

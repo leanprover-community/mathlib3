@@ -167,7 +167,7 @@ end
 lemma measure_mul_right_null [is_mul_left_invariant μ] {E : set G} (y : G) :
   μ ((λ x, x * y) ⁻¹' E) = 0 ↔ μ E = 0 :=
 calc μ ((λ x, x * y) ⁻¹' E) = 0 ↔ μ (has_inv.inv ⁻¹' ((λ x, y⁻¹ * x) ⁻¹' (has_inv.inv ⁻¹' E))) = 0 :
-  by simp only [preimage_preimage, mul_inv_rev, inv_inv]
+  by simp only [preimage_preimage, inv_mul_rev, inv_inv]
 ... ↔ μ E = 0 : by simp only [measure_inv_null μ, measure_preimage_mul]
 
 @[to_additive]

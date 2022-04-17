@@ -203,8 +203,8 @@ section nat
 @[simp, to_additive] theorem inv_pow (a : G) (n : ℕ) : (a⁻¹)^n = (a^n)⁻¹ :=
 begin
   induction n with n ih,
-  { rw [pow_zero, pow_zero, one_inv] },
-  { rw [pow_succ', pow_succ, ih, mul_inv_rev] }
+  { rw [pow_zero, pow_zero, inv_one] },
+  { rw [pow_succ', pow_succ, ih, inv_mul_rev] }
 end
 
 @[to_additive] -- rename to sub_nsmul?
@@ -227,7 +227,7 @@ end nat
 @[to_additive zsmul_zero, simp]
 theorem one_zpow : ∀ (n : ℤ), (1 : G) ^ n = 1
 | (n : ℕ) := by rw [zpow_coe_nat, one_pow]
-| -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, one_inv]
+| -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, inv_one]
 
 @[simp, to_additive neg_zsmul]
 theorem zpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
@@ -237,7 +237,7 @@ theorem zpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 
 @[to_additive neg_one_zsmul_add] lemma mul_zpow_neg_one (a b : G) :
   (a*b)^(-(1:ℤ)) = b^(-(1:ℤ))*a^(-(1:ℤ)) :=
-by simp only [mul_inv_rev, zpow_one, zpow_neg]
+by simp only [inv_mul_rev, zpow_one, zpow_neg]
 
 @[to_additive zsmul_neg]
 theorem inv_zpow (a : G) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹

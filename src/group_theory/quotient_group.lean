@@ -50,7 +50,7 @@ protected def con : con G :=
 { to_setoid := left_rel N,
   mul' := λ a b c d (hab : a⁻¹ * b ∈ N) (hcd : c⁻¹ * d ∈ N),
     calc (a * c)⁻¹ * (b * d) = c⁻¹ * (a⁻¹ * b) * c⁻¹⁻¹ * (c⁻¹ * d) :
-      by simp only [mul_inv_rev, mul_assoc, inv_mul_cancel_left]
+      by simp only [inv_mul_rev, mul_assoc, inv_mul_cancel_left]
     ... ∈ N : N.mul_mem (nN.conj_mem _ hab _) hcd }
 
 @[to_additive quotient_add_group.add_group]
@@ -138,7 +138,7 @@ group homomorphism `G/N →* H`. -/
 descends (i.e. `lift`s) to a group homomorphism `G/N →* H`."]
 def lift (φ : G →* H) (HN : ∀x∈N, φ x = 1) : Q →* H :=
 (quotient_group.con N).lift φ $ λ x y (h : x⁻¹ * y ∈ N),
-  calc φ x = φ (y * (x⁻¹ * y)⁻¹) : by rw [mul_inv_rev, inv_inv, mul_inv_cancel_left]
+  calc φ x = φ (y * (x⁻¹ * y)⁻¹) : by rw [inv_mul_rev, inv_inv, mul_inv_cancel_left]
        ... = φ y                 : by rw [φ.map_mul, HN _ (N.inv_mem h), mul_one]
 
 @[simp, to_additive quotient_add_group.lift_mk]
@@ -433,7 +433,7 @@ is the whole additive group."] lemma subgroup_eq_top_of_subsingleton (H : subgro
   (h : subsingleton (G ⧸ H)) : H = ⊤ :=
 top_unique $ λ x _,
   have this : 1⁻¹ * x ∈ H := quotient_group.eq.1 (subsingleton.elim _ _),
-  by rwa [one_inv, one_mul] at this
+  by rwa [inv_one, one_mul] at this
 
 end trivial
 

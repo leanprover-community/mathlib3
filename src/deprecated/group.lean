@@ -132,7 +132,7 @@ preserves multiplication when the target is commutative. -/
 @[to_additive]
 lemma inv {α β} [mul_one_class α] [comm_group β] {f : α → β} (hf : is_monoid_hom f) :
   is_monoid_hom (λ a, (f a)⁻¹) :=
-{ map_one := hf.map_one.symm ▸ one_inv,
+{ map_one := hf.map_one.symm ▸ inv_one,
   map_mul := λ a b, (hf.map_mul a b).symm ▸ mul_inv _ _ }
 
 end is_monoid_hom

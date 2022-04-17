@@ -235,7 +235,7 @@ mul_assoc _ _ _
 units.mul_left_inj _
 
 theorem divp_divp_eq_divp_mul (x : α) (u₁ u₂ : αˣ) : (x /ₚ u₁) /ₚ u₂ = x /ₚ (u₂ * u₁) :=
-by simp only [divp, mul_inv_rev, units.coe_mul, mul_assoc]
+by simp only [divp, inv_mul_rev, units.coe_mul, mul_assoc]
 
 theorem divp_eq_iff_mul_eq {x : α} {u : αˣ} {y : α} : x /ₚ u = y ↔ y * u = x :=
 u.mul_left_inj.symm.trans $ by rw [divp_mul_cancel]; exact ⟨eq.symm, eq.symm⟩

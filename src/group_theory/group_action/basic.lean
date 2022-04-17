@@ -312,10 +312,10 @@ class _root_.add_action.quotient_action {α : Type*} (β : Type*) [add_group α]
 attribute [to_additive add_action.quotient_action] mul_action.quotient_action
 
 @[to_additive] instance left_quotient_action : quotient_action α H :=
-⟨λ _ _ _ _, by rwa [smul_eq_mul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]⟩
+⟨λ _ _ _ _, by rwa [smul_eq_mul, smul_eq_mul, inv_mul_rev, mul_assoc, inv_mul_cancel_left]⟩
 
 @[to_additive] instance right_quotient_action : quotient_action H.normalizer.opposite H :=
-⟨λ b c _ _, by rwa [smul_def, smul_def, smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev, ←mul_assoc,
+⟨λ b c _ _, by rwa [smul_def, smul_def, smul_eq_mul_unop, smul_eq_mul_unop, inv_mul_rev, ←mul_assoc,
   mem_normalizer_iff'.mp b.prop, mul_assoc, mul_inv_cancel_left]⟩
 
 @[to_additive] instance quotient [quotient_action β H] : mul_action β (α ⧸ H) :=
@@ -571,7 +571,7 @@ begin
   refine le_antisymm (λ g hg, equiv.perm.ext (λ q, quotient_group.induction_on q
     (λ g', (mul_action.quotient.smul_mk H g g').trans (quotient_group.eq.mpr _))))
     (subgroup.normal_le_normal_core.mpr (λ g hg, _)),
-  { rw [smul_eq_mul, mul_inv_rev, ←inv_inv g', inv_inv],
+  { rw [smul_eq_mul, inv_mul_rev, ←inv_inv g', inv_inv],
     exact H.normal_core.inv_mem hg g'⁻¹ },
   { rw [←H.inv_mem_iff, ←mul_one g⁻¹, ←quotient_group.eq, ←mul_one g],
     exact (mul_action.quotient.smul_mk H g 1).symm.trans (equiv.perm.ext_iff.mp hg (1 : G)) },

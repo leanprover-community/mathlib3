@@ -300,7 +300,7 @@ end monoid_with_zero
 section group
 variables [group G]
 
-/-- This is the `list.prod` version of `mul_inv_rev` -/
+/-- This is the `list.prod` version of `inv_mul_rev` -/
 @[to_additive "This is the `list.sum` version of `add_neg_rev`"]
 lemma prod_inv_reverse : ∀ (L : list G), L.prod⁻¹ = (L.map (λ x, x⁻¹)).reverse.prod
 | [] := by simp
@@ -503,7 +503,7 @@ variables [comm_group α]
 
 @[to_additive] lemma alternating_prod_cons' :
   ∀ (a : α) (l : list α), alternating_prod (a :: l) = a * (alternating_prod l)⁻¹
-| a [] := by rw [alternating_prod_nil, one_inv, mul_one, alternating_prod_singleton]
+| a [] := by rw [alternating_prod_nil, inv_one, mul_one, alternating_prod_singleton]
 | a (b :: l) :=
 by rw [alternating_prod_cons_cons', alternating_prod_cons' b l, mul_inv, inv_inv, mul_assoc]
 

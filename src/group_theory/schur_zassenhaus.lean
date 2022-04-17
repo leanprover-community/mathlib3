@@ -65,7 +65,7 @@ begin
     (λ q _, subtype.ext _) (λ q _, ↑g * q) (λ _ _, finset.mem_univ _)
     (λ q _, mul_inv_cancel_left g q) (λ q _, inv_mul_cancel_left g q)) (ϕ.map_prod _ _).symm,
   change _ * _ = g * (_ * _) * g⁻¹,
-  simp_rw [smul_apply_eq_smul_apply_inv_smul, smul_eq_mul, mul_inv_rev, mul_assoc],
+  simp_rw [smul_apply_eq_smul_apply_inv_smul, smul_eq_mul, inv_mul_rev, mul_assoc],
   refl,
 end
 
@@ -84,7 +84,7 @@ variables (H)
 
 instance setoid_diff [H.normal] : setoid (left_transversals (H : set G)) :=
 setoid.mk (λ α β, diff α β = 1) ⟨λ α, diff_self α, λ α β h₁,
-  by rw [←diff_inv, h₁, one_inv], λ α β γ h₁ h₂, by rw [←diff_mul_diff, h₁, h₂, one_mul]⟩
+  by rw [←diff_inv, h₁, inv_one], λ α β γ h₁ h₂, by rw [←diff_mul_diff, h₁, h₂, one_mul]⟩
 
 /-- The quotient of the transversals of an abelian normal `N` by the `diff` relation -/
 def quotient_diff [H.normal] :=

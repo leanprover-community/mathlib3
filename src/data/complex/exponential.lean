@@ -1239,7 +1239,7 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
     (nat.cast_ne_zero.2 (pos_iff_ne_zero.1 hn)),
   have h₄ : (n.succ - 1 : α) = n, by simp,
   by rw [← geom_sum_def, geom_sum_inv h₁ h₂, eq_div_iff_mul_eq h₃,
-      mul_comm _ (n! * n : α), ← mul_assoc (n!⁻¹ : α), ← mul_inv_rev₀, h₄,
+      mul_comm _ (n! * n : α), ← mul_assoc (n!⁻¹ : α), ← inv_mul_rev, h₄,
       ← mul_assoc (n! * n : α), mul_comm (n : α) n!, mul_inv_cancel h₃];
     simp [mul_add, add_mul, mul_assoc, mul_comm]
 ... ≤ n.succ / (n! * n) :

@@ -70,7 +70,7 @@ begin
     ... = (v x⁻¹) * (v $ y - x) * (v y⁻¹) : by repeat { rw valuation.map_mul }
     ... = (v x)⁻¹ * (v $ y - x) * (v y)⁻¹ : by rw [v.map_inv, v.map_inv]
     ... = (v $ y - x) * ((v y) * (v y))⁻¹ : by
-      { rw [mul_assoc, mul_comm, key, mul_assoc, mul_inv_rev₀] }
+      { rw [mul_assoc, mul_comm, key, mul_assoc, inv_mul_rev] }
     ... = (v $ y - x) * ((v y) * (v y))⁻¹ : rfl
     ... = (v $ x - y) * ((v y) * (v y))⁻¹ : by rw valuation.map_sub_swap
     ... < γ : hyp1',

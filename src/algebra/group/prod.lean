@@ -462,9 +462,9 @@ Used mainly to define the natural topology of `αˣ`. -/
 Used mainly to define the natural topology of `add_units α`."]
 def embed_product (α : Type*) [monoid α] : αˣ →* α × αᵐᵒᵖ :=
 { to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
-  map_one' := by simp only [one_inv, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
+  map_one' := by simp only [inv_one, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,
     and_self],
-  map_mul' := λ x y, by simp only [mul_inv_rev, op_mul, units.coe_mul, prod.mk_mul_mk] }
+  map_mul' := λ x y, by simp only [inv_mul_rev, op_mul, units.coe_mul, prod.mk_mul_mk] }
 
 end units
 
@@ -495,7 +495,7 @@ def mul_monoid_with_zero_hom [comm_monoid_with_zero α] : α × α →*₀ α :=
 @[to_additive "Subtraction as an additive monoid homomorphism.", simps]
 def div_monoid_hom [comm_group α] : α × α →* α :=
 { to_fun := λ a, a.1 / a.2,
-  map_one' := div_one' _,
+  map_one' := div_one _,
   map_mul' := λ a b, mul_div_comm' _ _ _ _ }
 
 /-- Division as a multiplicative homomorphism with zero. -/

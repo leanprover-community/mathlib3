@@ -52,7 +52,7 @@ lemma mul_mem_center [semigroup M] {a b : M}
 
 @[simp, to_additive neg_mem_add_center]
 lemma inv_mem_center [group M] {a : M} (ha : a ∈ set.center M) : a⁻¹ ∈ set.center M :=
-λ g, by rw [← inv_inj, mul_inv_rev, inv_inv, ← ha, mul_inv_rev, inv_inv]
+λ g, by rw [← inv_inj, inv_mul_rev, inv_inv, ← ha, inv_mul_rev, inv_inv]
 
 @[simp]
 lemma add_mem_center [distrib M] {a b : M}

@@ -41,7 +41,7 @@ variables (g₁ g₂ g₃ g)
 (commute.one_left g).commutator_eq
 
 @[simp] lemma commutator_element_inv : ⁅g₁, g₂⁆⁻¹ = ⁅g₂, g₁⁆ :=
-by simp_rw [commutator_element_def, mul_inv_rev, inv_inv, mul_assoc]
+by simp_rw [commutator_element_def, inv_mul_rev, inv_inv, mul_assoc]
 
 lemma map_commutator_element : (f ⁅g₁, g₂⁆ : G') = ⁅f g₁, f g₂⁆ :=
 by simp_rw [commutator_element_def, map_mul f, map_inv f]

@@ -743,7 +743,7 @@ protected lemma inv_eq_iff_mul_eq_one {φ ψ : mv_power_series σ k} (h : consta
   ψ⁻¹ = φ ↔ φ * ψ = 1 :=
 by rw [eq_comm, mv_power_series.eq_inv_iff_mul_eq_one h]
 
-@[simp] protected lemma mul_inv_rev (φ ψ : mv_power_series σ k) :
+@[simp] protected lemma inv_mul_rev (φ ψ : mv_power_series σ k) :
   (φ * ψ)⁻¹ = ψ⁻¹ * φ⁻¹ :=
 begin
   by_cases h : constant_coeff σ k (φ * ψ) = 0,
@@ -1574,9 +1574,9 @@ lemma inv_eq_iff_mul_eq_one {φ ψ : power_series k} (h : constant_coeff k ψ �
   ψ⁻¹ = φ ↔ φ * ψ = 1 :=
 mv_power_series.inv_eq_iff_mul_eq_one h
 
-@[simp] protected lemma mul_inv_rev (φ ψ : power_series k) :
+@[simp] protected lemma inv_mul_rev (φ ψ : power_series k) :
   (φ * ψ)⁻¹ = ψ⁻¹ * φ⁻¹ :=
-mv_power_series.mul_inv_rev _ _
+mv_power_series.inv_mul_rev _ _
 
 @[simp] lemma one_inv : (1 : power_series k)⁻¹ = 1 :=
 mv_power_series.one_inv

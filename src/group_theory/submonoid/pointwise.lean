@@ -48,9 +48,9 @@ open_locale pointwise
 protected def has_inv : has_inv (submonoid G):=
 { inv := λ S,
   { carrier := (S : set G)⁻¹,
-    one_mem' := show (1 : G)⁻¹ ∈ S, by { rw one_inv, exact S.one_mem },
+    one_mem' := show (1 : G)⁻¹ ∈ S, by { rw inv_one, exact S.one_mem },
     mul_mem' := λ a b (ha : a⁻¹ ∈ S) (hb : b⁻¹ ∈ S), show (a * b)⁻¹ ∈ S,
-      by { rw mul_inv_rev, exact S.mul_mem hb ha } } }
+      by { rw inv_mul_rev, exact S.mul_mem hb ha } } }
 
 localized "attribute [instance] submonoid.has_inv" in pointwise
 open_locale pointwise
@@ -95,7 +95,7 @@ lemma inv_sup (S T : submonoid G) : (S ⊔ T)⁻¹ = S⁻¹ ⊔ T⁻¹ :=
 
 @[simp, to_additive]
 lemma inv_bot : (⊥ : submonoid G)⁻¹ = ⊥ :=
-set_like.coe_injective $ (set.inv_singleton 1).trans $ congr_arg _ one_inv
+set_like.coe_injective $ (set.inv_singleton 1).trans $ congr_arg _ inv_one
 
 @[simp, to_additive]
 lemma inv_top : (⊤ : submonoid G)⁻¹ = ⊤ :=

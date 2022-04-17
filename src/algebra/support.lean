@@ -188,7 +188,7 @@ mul_support_binop_subset (λ a b, a * b⁻¹) (by simp) f g
 
 @[to_additive support_sub] lemma mul_support_group_div [group G] (f g : α → G) :
   mul_support (λ x, f x / g x) ⊆ mul_support f ∪ mul_support g :=
-mul_support_binop_subset (/) (by simp only [one_div, one_inv]) f g
+mul_support_binop_subset (/) (by simp only [one_div, inv_one]) f g
 
 lemma mul_support_div [group_with_zero G₀] (f g : α → G₀) :
   mul_support (λ x, f x / g x) ⊆ mul_support f ∪ mul_support g :=

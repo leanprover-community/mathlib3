@@ -115,7 +115,7 @@ begin
   apply forall_congr,
   intro y,
   rw [coe_mk', ←quotient_group.coe_mul, ←quotient_group.coe_mul, eq_comm, eq_iff_div_mem,
-    div_eq_mul_inv, mul_inv_rev, mul_assoc],
+    div_eq_mul_inv, inv_mul_rev, mul_assoc],
 end
 
 instance : normal (upper_central_series_step H) :=
@@ -501,7 +501,7 @@ lemma lower_central_series_succ_eq_bot {n : ℕ} (h : lower_central_series G n �
 begin
   rw [lower_central_series_succ, closure_eq_bot_iff, set.subset_singleton_iff],
   rintro x ⟨y, hy1, z, ⟨⟩, rfl⟩,
-  rw [mul_assoc, ←mul_inv_rev, mul_inv_eq_one, eq_comm],
+  rw [mul_assoc, ←inv_mul_rev, mul_inv_eq_one, eq_comm],
   exact mem_center_iff.mp (h hy1) z,
 end
 

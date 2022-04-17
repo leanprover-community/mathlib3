@@ -26,7 +26,7 @@ variables {N : Type*} [has_lt N] [decidable_rel (has_lt.lt : N → N → Prop)]
 `sort_summands_with_weight a wt` returns the list of summands appearing in `a`, sorted using the
 order `<`. -/
 meta def sort_summands_with_weight (a : expr) (wt : expr → N) : list expr :=
-(get_summands a).qsort $ λ f g, wt f < wt g
+(get_summands a).qsort $ λ f g, ! (wt g < wt f)
 
 /--  Let `wt : expr → N` be a "weight function": any function from `expr` to a Type `N` with a
 decidable relation `<`.

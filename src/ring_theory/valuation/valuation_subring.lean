@@ -194,13 +194,13 @@ def ideal_of_le (R S : valuation_subring K) (h : R ≤ S) : ideal R :=
 instance prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
   (ideal_of_le R S h).is_prime := (local_ring.maximal_ideal S).comap_is_prime _
 
-def of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
+noncomputable def of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   valuation_subring K :=
 of_le A (localization.subring K P.prime_compl $
   le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem) $
-  λ a ha, ⟨⟨a, ha⟩, 1, P.prime_compl.one_mem, by simp⟩
+  λ a ha, ⟨algebra_map A _ ⟨a,ha⟩, is_localization.lift_eq _ _⟩
 
-instance of_prime_algebra (A : valuation_subring K) (P : ideal A) [P.is_prime] :
+noncomputable instance of_prime_algebra (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   algebra A (A.of_prime P) :=
 show algebra A (localization.subring _ _ _), by apply_instance
 
@@ -214,7 +214,7 @@ show is_localization P.prime_compl (localization.subring _ _ _), by apply_instan
 
 lemma le_of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   A ≤ of_prime A P :=
-λ a ha, ⟨⟨a, ha⟩, 1, P.prime_compl.one_mem, by simp⟩
+λ a ha, ⟨algebra_map A _ ⟨a,ha⟩, is_localization.lift_eq _ _⟩
 
 lemma of_prime_valuation_eq_one_iff_mem_prime_compl
   (A : valuation_subring K)
@@ -234,9 +234,9 @@ by { ext, apply is_localization.at_prime.to_map_mem_maximal_iff }
 lemma of_prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
   of_prime R (ideal_of_le R S h) = S :=
 begin
-  ext x,
-  split,
-  { rintro ⟨a,r,hr,rfl⟩, apply mul_mem, { exact h a.2 },
+  ext x, split,
+  { erw localization.subring.mem_iff_of_field,
+    rintro ⟨a,r,hr,rfl⟩, apply mul_mem, { exact h a.2 },
     { rw [← valuation_le_one_iff, valuation.map_inv, ← inv_one, inv_le_inv₀],
       { exact not_lt.1 ((not_iff_not.2 $ valuation_lt_one_iff S _).1 hr) },
       { intro hh, erw [valuation.zero_iff, subring.coe_eq_zero_iff] at hh,
@@ -245,7 +245,8 @@ begin
   { intro hx, by_cases hr : x ∈ R, { exact R.le_of_prime _ hr },
     have : x ≠ 0 := λ h, hr (by { rw h, exact R.zero_mem }),
     replace hr := (R.mem_or_inv_mem x).resolve_left hr,
-    { use [1, x⁻¹, hr], split,
+    { erw localization.subring.mem_iff_of_field,
+      use [1, x⁻¹, hr], split,
       { change (⟨x⁻¹, h hr⟩ : S) ∉ nonunits S,
         erw [mem_nonunits_iff, not_not],
         apply is_unit_of_mul_eq_one _ (⟨x,hx⟩ : S),
@@ -255,9 +256,9 @@ end
 
 lemma of_prime_le_of_le (P Q : ideal A) [P.is_prime] [Q.is_prime]
   (h : P ≤ Q) : of_prime A Q ≤ of_prime A P :=
-begin
-  rintros x ⟨a,s,hs,rfl⟩,
-  exact ⟨a, s, λ c, hs (h c), rfl⟩,
+λ x, begin
+  iterate 2 { erw localization.subring.mem_iff_of_field },
+  exact λ ⟨a, s, hs, he⟩, ⟨a, s, λ c, hs (h c), he⟩,
 end
 
 lemma ideal_of_le_le_of_le (R S : valuation_subring K)
@@ -270,7 +271,7 @@ lemma ideal_of_le_le_of_le (R S : valuation_subring K)
 end
 
 @[simps]
-def prime_spectrum_equiv :
+noncomputable def prime_spectrum_equiv :
   prime_spectrum A ≃ { S | A ≤ S } :=
 { to_fun := λ P, ⟨of_prime A P.as_ideal, le_of_prime _ _⟩,
   inv_fun := λ S, ⟨ideal_of_le _ S S.2, infer_instance⟩,
@@ -278,7 +279,7 @@ def prime_spectrum_equiv :
   right_inv := λ S, by { ext1, simp } }
 
 @[simps]
-def prime_spectrum_order_equiv :
+noncomputable def prime_spectrum_order_equiv :
   order_dual (prime_spectrum A) ≃o { S | A ≤ S } :=
 { map_rel_iff' := λ P Q,
     ⟨ λ h, begin

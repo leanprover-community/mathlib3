@@ -5,6 +5,7 @@ Authors: Reid Barton
 -/
 import topology.bases
 import topology.dense_embedding
+import topology.homeomorph
 
 /-! # Stone-Čech compactification
 
@@ -306,5 +307,60 @@ end
 
 instance stone_cech.compact_space : compact_space (stone_cech α) :=
 quotient.compact_space
+
+section universal_property
+
+variables {δ : Type u} [topological_space δ]
+variables {δ₁ : Type u} [topological_space δ₁] [t2_space δ₁] [compact_space δ₁]
+variables {δ₂ : Type u} [topological_space δ₂] [t2_space δ₂] [compact_space δ₂]
+
+/-- The universal property that characterizes the Stone-Čech compactification
+  of a Tychonoff space. -/
+def stone_cech_universal_property (e : α → δ) :=
+  dense_embedding e ∧ ∀ {γ : Type u} [topological_space γ], by exactI ∀ [t2_space γ]
+  [compact_space γ] (f : α → γ) (hf: continuous f),
+  ∃! (ext_f : δ → γ), continuous ext_f ∧ f = ext_f ∘ e
+
+lemma stone_cech_universal_unique
+{e₁ : α → δ₁} {e₂ : α → δ₂}
+(he₁ : stone_cech_universal_property e₁) (he₂ : stone_cech_universal_property e₂) : δ₁ ≃ₜ δ₂ :=
+begin
+  obtain ⟨c₁, d₁, c₂, d₂⟩ : continuous e₁ ∧ dense_range e₁ ∧ continuous e₂ ∧ dense_range e₂,
+  { rcases he₁ with ⟨⟨⟨i₁, d₁⟩, _⟩, _⟩,
+    rcases he₂ with ⟨⟨⟨i₂, d₂⟩, _⟩, _⟩,
+    exact ⟨inducing.continuous i₁, d₁, inducing.continuous i₂, d₂⟩,
+  },
+  rcases he₁ with ⟨emb₁, he₁⟩, specialize he₁ e₂ c₂, choose ext₁ hext₁' using he₁,
+  rcases hext₁' with ⟨⟨c_ext₁, hext₁⟩, _⟩,
+  rcases he₂ with ⟨emb₂, he₂⟩, specialize he₂ e₁ c₁, choose ext₂ hext₂' using he₂,
+  rcases hext₂' with ⟨⟨c_ext₂, hext₂⟩, _⟩,
+  exact {
+    continuous_to_fun := c_ext₁,
+    continuous_inv_fun := c_ext₂,
+    to_equiv :=
+    { to_fun := ext₁,
+      inv_fun := ext₂,
+      left_inv := begin
+        have e: eq_on (ext₂ ∘ ext₁) id (range e₁), {
+          rw eq_on, intros x hx, simp at *, rcases hx with ⟨y, rfl⟩,
+          rw [← function.comp_apply ext₁ e₁, ← hext₁, ← function.comp_apply ext₂ e₂, ← hext₂],
+        },
+        have c: continuous (ext₂ ∘ ext₁), { exact continuous.comp c_ext₂ c_ext₁, },
+        have inverses : ext₂ ∘ ext₁ = id := continuous.ext_on d₁ c continuous_id e,
+        intro x, apply congr_fun inverses,
+      end,
+      right_inv := begin
+        have e: eq_on (ext₁ ∘ ext₂) id (range e₂), {
+          rw eq_on, intros x hx, simp at *, rcases hx with ⟨y, rfl⟩,
+          rw [← function.comp_apply ext₂ e₂, ← hext₂, ← function.comp_apply ext₁ e₁, ← hext₁],
+        },
+        have c: continuous (ext₁ ∘ ext₂), { exact continuous.comp c_ext₁ c_ext₂, },
+        have inverses : ext₁ ∘ ext₂ = id := continuous.ext_on d₂ c continuous_id e,
+        intro x, apply congr_fun inverses,
+      end, }
+  },
+end
+
+end universal_property
 
 end stone_cech

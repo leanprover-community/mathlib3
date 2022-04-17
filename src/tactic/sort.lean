@@ -133,7 +133,6 @@ begin
   refl,
 end
 
-
 -- example {R : Type*} [semiring R] (f g : R[X]) {r s t u : R} (r0 : t ≠ 0) :
 --   C u * X + (g + X ^ 5) + (C s + C t * X ^ 2 + f) + X ^ 8 = 0 :=
 -- begin

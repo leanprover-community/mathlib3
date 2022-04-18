@@ -120,10 +120,10 @@ lemma frobenius_norm_mul [is_R_or_C α] (A : matrix l m α) (B : matrix m n α) 
   ∥A ⬝ B∥ ≤ ∥A∥ * ∥B∥ :=
 frobenius_nnorm_mul A B
 
-instance frobenius_normed_ring [is_R_or_C α] : normed_ring (matrix m m α) :=
+instance frobenius_normed_ring [is_R_or_C α] [decidable_eq m] : normed_ring (matrix m m α) :=
 { norm := has_norm.norm,
   norm_mul := frobenius_norm_mul,
-  ..(matrix.frobenius_normed_group : normed_group (matrix m m α)) }
+  ..matrix.frobenius_semi_normed_group }
 
 end frobenius
 end matrix

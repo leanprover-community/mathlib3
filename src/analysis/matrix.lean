@@ -88,7 +88,7 @@ instance frobenius_normed_space [normed_field R] [semi_normed_group α] [normed_
 
 open_locale matrix big_operators
 
-lemma frobenius_nnorm_mul [normed_ring α] (A : matrix l m α) (B : matrix m n α) :
+lemma frobenius_nnorm_mul [is_R_or_C α] (A : matrix l m α) (B : matrix m n α) :
   ∥A ⬝ B∥₊ ≤ ∥A∥₊ * ∥B∥₊ :=
 begin
   simp_rw pi_Lp.nnorm_eq,
@@ -104,29 +104,26 @@ begin
       ←pi_Lp.nnorm_eq, ←pi_Lp.nnorm_eq],
   dsimp,
   let a : pi_Lp 2 _ := A i,
+  let a' : pi_Lp 2 _ := λ j, star (a j),
   let b : pi_Lp 2 _ := λ k, B k j,
+  letI : inner_product_space α (pi_Lp 2 (λ i : m, α)) := pi_Lp.inner_product_space _,
   change ∥∑ k, a k * b k∥₊ ≤ ∥a∥₊ * ∥b∥₊,
-  refine nnorm_inner_le_nnorm a b,
-  have := abs_inner_le_norm (show pi_Lp 2 (λ i : m, α), from a) b,
-  simp_rw [←hb],
-  sorry
+  convert nnorm_inner_le_nnorm a' b using 2,
+  { simp,
+    simp_rw [star_ring_end_apply, star_star], },
+  simp [pi_Lp.nnorm_eq, a'],
+  simp_rw [star_ring_end_apply, nnorm_star],
 end
 
-lemma frobenius_norm_mul [normed_ring α] (A : matrix l m α) (B : matrix m n α) :
+
+lemma frobenius_norm_mul [is_R_or_C α] (A : matrix l m α) (B : matrix m n α) :
   ∥A ⬝ B∥ ≤ ∥A∥ * ∥B∥ :=
-begin
-  simp_rw pi_Lp.norm_eq,
-  rw [←real.mul_rpow, finset.sum_mul_sum],
-  refine real.rpow_le_rpow _ _ _,
-  simp_rw ←real.rpow_mul (_ : 0 ≤ (2 : ℝ)),
-end
+frobenius_nnorm_mul A B
 
-#check normed_ring.norm_mul
-
--- instance frobenius_normed_ring [normed_group α] : normed_ring (matrix m m α) :=
--- { norm := has_norm.norm,
---   norm_mul := sorry,
---   ..(matrix.frobenius_normed_group : normed_group (matrix m m α)) }
+instance frobenius_normed_ring [is_R_or_C α] : normed_ring (matrix m m α) :=
+{ norm := has_norm.norm,
+  norm_mul := frobenius_norm_mul,
+  ..(matrix.frobenius_normed_group : normed_group (matrix m m α)) }
 
 end frobenius
 end matrix

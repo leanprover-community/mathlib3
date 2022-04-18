@@ -500,6 +500,19 @@ protected lemma preimage_sUnion {α β} (f : α ≃ β) {s : set (set β)} :
   f ⁻¹' (⋃₀ s) = ⋃₀ (_root_.set.image f ⁻¹' s) :=
 by { ext x, simp [(equiv.set.congr f).symm.exists_congr_left] }
 
+lemma preimage_pi_equiv_pi_subtype_prod_symm_pi {α : Type*} {β : α → Type*}
+  (p : α → Prop) [decidable_pred p] (s : Π i, set (β i)) :
+  (pi_equiv_pi_subtype_prod p β).symm ⁻¹' set.pi univ s =
+    (set.pi univ (λ i : {i // p i}, s i)) ×ˢ (set.pi univ (λ i : {i // ¬p i}, s i)) :=
+begin
+  ext ⟨f, g⟩,
+  simp only [mem_preimage, mem_univ_pi, prod_mk_mem_set_prod_eq, subtype.forall,
+    ← forall_and_distrib],
+  refine forall_congr (λ i, _),
+  dsimp only [subtype.coe_mk],
+  by_cases hi : p i; simp [hi]
+end
+
 end equiv
 
 /-- If a function is a bijection between two sets `s` and `t`, then it induces an

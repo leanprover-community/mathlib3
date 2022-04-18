@@ -223,7 +223,8 @@ by rw [pow_sub a⁻¹ h, inv_pow, inv_pow, inv_inv]
 
 end nat
 
-@[simp, to_additive zsmul_zero]
+-- the attributes are intentionally out of order. `smul_zero` proves `zsmul_zero`.
+@[to_additive zsmul_zero, simp]
 theorem one_zpow : ∀ (n : ℤ), (1 : G) ^ n = 1
 | (n : ℕ) := by rw [zpow_coe_nat, one_pow]
 | -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, one_inv]
@@ -384,10 +385,11 @@ by rw [pow_bit0', neg_mul_neg, pow_bit0']
 @[simp] theorem neg_pow_bit1 (a : R) (n : ℕ) : (- a) ^ (bit1 n) = - a ^ (bit1 n) :=
 by simp only [bit1, pow_succ, neg_pow_bit0, neg_mul_eq_neg_mul]
 
-@[simp] lemma neg_sq (a : R) : (-a)^2 = a^2 :=
-by simp [sq]
+@[simp] lemma neg_sq (a : R) : (-a) ^ 2 = a ^ 2 := by simp [sq]
+@[simp] lemma neg_one_sq : (-1 : R) ^ 2 = 1 := by rw [neg_sq, one_pow]
 
 alias neg_sq ← neg_pow_two
+alias neg_one_sq ← neg_one_pow_two
 
 end has_distrib_neg
 

@@ -55,25 +55,19 @@ end
 /-- If the target is an equality, `sort_summands` sorts the summands on either side of the equality.
 -/
 meta def sort_summands (hyp : option name) (cmp_fn : expr → expr → bool) : tactic unit :=
-match hyp with
-| none := do
-  t ← target,
+do
+  t ← match hyp with
+  | some hyp := do
+    hyp ← get_local hyp,
+    infer_type hyp
+  | none     := target
+  end,
   match t.is_eq with
   | none          := fail "The goal is not an equality"
   | some (el, er) := do
     sorted_sum_with_cmp_fn hyp cmp_fn el,
     sorted_sum_with_cmp_fn hyp cmp_fn er
   end
-| some loc := do
-  cloc ← get_local loc,
-  tloc ← infer_type cloc,
-  match tloc.is_eq with
-  | none          := fail "The target is not an equality"
-  | some (el, er) := do
-    sorted_sum_with_cmp_fn hyp cmp_fn el,
-    sorted_sum_with_cmp_fn hyp cmp_fn er
-  end
-end
 
 end with_cmp_fn
 
@@ -114,7 +108,7 @@ end
 -- meta def sort_monomials_rhs : tactic unit :=
 -- sort_summands sort_side.rhs compare_fn
 
-private meta def sort_monomials_core (allow_failure : bool) (hyp : option name) : itactic :=
+private meta def sort_monomials_core (allow_failure : bool) (hyp : option name) : tactic unit :=
 if allow_failure then sort_summands hyp compare_fn <|> skip else sort_summands hyp compare_fn
 
 /-- If the target is an equality involving monomials,

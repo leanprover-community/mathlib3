@@ -285,7 +285,7 @@ lemma norm_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [∀i, semi_normed_group (β i)] (f : pi_Lp p β) :
   ∥f∥ = (∑ (i : ι), ∥f i∥ ^ p) ^ (1/p) := rfl
 
-lemma nnorm_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
+lemma nnnorm_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [∀i, semi_normed_group (β i)] (f : pi_Lp p β) :
   ∥f∥₊ = (∑ (i : ι), ∥f i∥₊ ^ p) ^ (1/p) :=
 by { ext, simp [nnreal.coe_sum, norm_eq] }

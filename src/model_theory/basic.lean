@@ -173,7 +173,7 @@ instance countable_empty : language.empty.countable :=
 ⟨begin
   rw [card_eq_card_functions_add_card_relations, add_le_omega, lift_le_omega, lift_le_omega,
     ← cardinal.encodable_iff, ← cardinal.encodable_iff],
-  exact ⟨⟨encodable.sigma⟩, ⟨encodable.sigma⟩⟩,
+  exact ⟨⟨sigma.encodable⟩, ⟨sigma.encodable⟩⟩,
 end⟩
 
 @[priority 100] instance countable.countable_functions [L.countable] :

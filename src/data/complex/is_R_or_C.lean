@@ -288,10 +288,10 @@ by { simp only [norm_sq, map_add, monoid_with_zero_hom.coe_mk, mul_neg,
                 sub_neg_eq_add] with is_R_or_C_simps, ring }
 
 lemma re_sq_le_norm_sq (z : K) : re z * re z ≤ norm_sq z :=
-le_add_of_nonneg_right (mul_self_nonneg _)
+le_add_of_nonneg_right _ (mul_self_nonneg _)
 
 lemma im_sq_le_norm_sq (z : K) : im z * im z ≤ norm_sq z :=
-le_add_of_nonneg_left (mul_self_nonneg _)
+le_add_of_nonneg_left _ (mul_self_nonneg _)
 
 theorem mul_conj (z : K) : z * conj z = ((norm_sq z) : K) :=
 by simp only [map_add, add_zero, ext_iff, monoid_with_zero_hom.coe_mk,

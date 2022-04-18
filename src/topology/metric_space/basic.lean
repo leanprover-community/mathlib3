@@ -1270,7 +1270,7 @@ begin
   let R := finset.sup (finset.range N) (λ n, nndist (u n) (u N)),
   refine ⟨↑R + 1, add_pos_of_nonneg_of_pos R.2 zero_lt_one, λ n, _⟩,
   cases le_or_lt N n,
-  { exact lt_of_lt_of_le (hN _ h) (le_add_of_nonneg_left R.2) },
+  { exact lt_of_lt_of_le (hN _ h) (le_add_of_nonneg_left _ R.2) },
   { have : _ ≤ R := finset.le_sup (finset.mem_range.2 h),
     exact lt_of_le_of_lt this (lt_add_of_pos_right _ zero_lt_one) }
 end

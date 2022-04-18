@@ -1043,7 +1043,7 @@ This tactic tries to turn an (in)equality about `znum`s to one about `int`s by r
 example (n : znum) (m : znum) : n ≤ n + m * m :=
 begin
   znum.transfer_rw,
-  exact le_add_of_nonneg_right (mul_self_nonneg _)
+  exact le_add_of_nonneg_right _ (mul_self_nonneg _)
 end
 ```
 -/

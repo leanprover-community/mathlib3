@@ -127,7 +127,7 @@ begin
       { exact ⟨0, λ n hn nbad, he ⟨n, hbad.mem_to_finset.2 nbad⟩⟩ } },
     have h : ∀ (n : ℕ), ∃ (n' : ℕ), n < n' ∧ r (f (n + m)) (f (n' + m)),
     { intro n,
-      have h := hm _ (le_add_of_nonneg_left n.zero_le),
+      have h := hm _ (le_add_of_nonneg_left _ n.zero_le),
       simp only [exists_prop, not_not, set.mem_set_of_eq, not_forall] at h,
       obtain ⟨n', hn1, hn2⟩ := h,
       obtain ⟨x, hpos, rfl⟩ := exists_pos_add_of_lt hn1,

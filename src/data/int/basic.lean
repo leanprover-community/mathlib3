@@ -244,7 +244,7 @@ begin
   { induction n with n ih,
     { convert H0 using 1,
       rw [of_nat_zero, zero_add] },
-    convert Hs _ (le_add_of_nonneg_left (of_nat_nonneg _)) ih using 1,
+    convert Hs _ (le_add_of_nonneg_left _ (of_nat_nonneg _)) ih using 1,
     rw [of_nat_succ, add_assoc, add_comm 1 b, ←add_assoc] },
   { induction n with n ih,
     { convert Hp _ le_rfl H0 using 1,

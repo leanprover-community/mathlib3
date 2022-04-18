@@ -1703,7 +1703,7 @@ begin
   refine ⟨lt_of_le_of_lt _ (mul_lt_mul'' ha hb hε' hε'),
     lt_of_lt_of_le (mul_lt_mul'' ha' hb' ha0 hb0) _⟩,
   { calc 1 - ε = 1 - ε / 2 - ε/2 : by ring_nf
-    ... ≤ 1 - ε/2 - ε/2 + (ε/2)*(ε/2) : le_add_of_nonneg_right (le_of_lt (mul_pos ε_pos' ε_pos'))
+    ... ≤ 1 - ε/2 - ε/2 + (ε/2)*(ε/2) : le_add_of_nonneg_right _ (le_of_lt (mul_pos ε_pos' ε_pos'))
     ... = (1 - ε/2) * (1 - ε/2) : by ring_nf
     ... ≤ (1 - ε/4) * (1 - ε/4) : mul_le_mul (by linarith) (by linarith) (by linarith) hε' },
   { calc (1 + ε/4) * (1 + ε/4) = 1 + ε/2 + (ε/4)*(ε/4) : by ring_nf

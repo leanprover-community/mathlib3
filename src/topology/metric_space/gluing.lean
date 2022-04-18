@@ -268,8 +268,8 @@ private lemma sum.dist_comm (x y : X ⊕ Y) : sum.dist x y = sum.dist y x :=
 by cases x; cases y; simp only [sum.dist, dist_comm, add_comm, add_left_comm]
 
 lemma sum.one_dist_le {x : X} {y : Y} : 1 ≤ sum.dist (inl x) (inr y) :=
-le_trans (le_add_of_nonneg_right dist_nonneg) $
-add_le_add_right (le_add_of_nonneg_left dist_nonneg) _
+le_trans (le_add_of_nonneg_right _ dist_nonneg) $
+add_le_add_right (le_add_of_nonneg_left _ dist_nonneg) _
 
 lemma sum.one_dist_le' {x : X} {y : Y} : 1 ≤ sum.dist (inr y) (inl x) :=
 by rw sum.dist_comm; exact sum.one_dist_le

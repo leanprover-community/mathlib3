@@ -1095,7 +1095,7 @@ begin
 end
 
 theorem factors_mono : ∀{a b : associates α}, a ≤ b → a.factors ≤ b.factors
-| s t ⟨d, rfl⟩ := by rw [factors_mul] ; exact le_add_of_nonneg_right bot_le
+| s t ⟨d, rfl⟩ := by rw [factors_mul] ; exact le_add_of_nonneg_right _ bot_le
 
 theorem factors_le {a b : associates α} : a.factors ≤ b.factors ↔ a ≤ b :=
 iff.intro

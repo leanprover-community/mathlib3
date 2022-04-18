@@ -3,8 +3,8 @@ Copyright (c) 2022 Yaël Dillies, Sara Rousta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Sara Rousta
 -/
-import data.set.lattice
 import data.set_like.basic
+import order.hom.complete_lattice
 
 /-!
 # Up-sets and down-sets
@@ -19,6 +19,10 @@ This file defines upper and lower sets in an order.
   of the set is in the set itself.
 * `upper_set`: The type of upper sets.
 * `lower_set`: The type of lower sets.
+* `upper_set.Ici`: Principal upper set. `set.Ici` as an upper set.
+* `upper_set.Ioi`: Strict principal upper set. `set.Ioi` as an upper set.
+* `lower_set.Iic`: Principal lower set. `set.Iic` as an lower set.
+* `lower_set.Iio`: Strict principal lower set. `set.Iio` as an lower set.
 
 ## TODO
 
@@ -27,11 +31,11 @@ Lattice structure on antichains. Order equivalence between upper/lower sets and 
 
 open order_dual set
 
-variables {ι : Sort*} {κ : ι → Sort*} {α : Type*}
+variables {α : Type*} {ι : Sort*} {κ : ι → Sort*}
 
 /-! ### Unbundled upper/lower sets -/
 
-section unbundled
+section has_le
 variables [has_le α] {s t : set α}
 
 /-- An upper set in an order `α` is a set such that any element greater than one of its members is
@@ -115,7 +119,17 @@ alias is_upper_set_preimage_of_dual_iff ↔ _ is_lower_set.of_dual
 alias is_lower_set_preimage_to_dual_iff ↔ _ is_upper_set.to_dual
 alias is_upper_set_preimage_to_dual_iff ↔ _ is_lower_set.to_dual
 
-end unbundled
+end has_le
+
+section preorder
+variables [preorder α] (a : α)
+
+lemma is_upper_set_Ici : is_upper_set (Ici a) := λ _ _, ge_trans
+lemma is_lower_set_Iic : is_lower_set (Iic a) := λ _ _, le_trans
+lemma is_upper_set_Ioi : is_upper_set (Ioi a) := λ _ _, flip lt_of_lt_of_le
+lemma is_lower_set_Iio : is_lower_set (Iio a) := λ _ _, lt_of_le_of_lt
+
+end preorder
 
 /-! ### Bundled upper/lower sets -/
 
@@ -346,33 +360,52 @@ section preorder
 variables [preorder α] {a b : α}
 
 /-- The smallest upper set containing a given element. -/
-def principal (a : α) : upper_set α := ⟨{x | a ≤ x}, λ b c, ge_trans⟩
+def Ici (a : α) : upper_set α := ⟨Ici a, is_upper_set_Ici a⟩
 
-@[simp] lemma coe_principal (a : α) : ↑(principal a) = {x | a ≤ x} := rfl
-@[simp] lemma mem_principal_iff : b ∈ principal a ↔ a ≤ b := iff.rfl
+/-- The smallest upper set containing a given element. -/
+def Ioi (a : α) : upper_set α := ⟨Ioi a, is_upper_set_Ioi a⟩
+
+@[simp] lemma coe_Ici (a : α) : ↑(Ici a) = set.Ici a := rfl
+@[simp] lemma coe_Ioi (a : α) : ↑(Ioi a) = set.Ioi a := rfl
+@[simp] lemma mem_Ici_iff : b ∈ Ici a ↔ a ≤ b := iff.rfl
+@[simp] lemma mem_Ioi_iff : b ∈ Ioi a ↔ a < b := iff.rfl
+
+lemma Ioi_le_Ici (a : α) : Ioi a ≤ Ici a := Ioi_subset_Ici_self
+
+@[simp] lemma Ici_top [order_bot α] : Ici (⊥ : α) = ⊤ := set_like.coe_injective Ici_bot
+@[simp] lemma Ioi_bot [order_top α] : Ioi (⊤ : α) = ⊥ := set_like.coe_injective Ioi_top
 
 end preorder
 
 section semilattice_sup
 variables [semilattice_sup α]
 
-@[simp] lemma principal_sup (a b : α) : principal (a ⊔ b) = principal a ⊓ principal b :=
-set_like.ext $ λ c, sup_le_iff
+@[simp] lemma Ici_sup (a b : α) : Ici (a ⊔ b) = Ici a ⊓ Ici b := ext Ici_inter_Ici.symm
+
+/-- `upper_set.Ici` as a `sup_hom`. -/
+def Ici_sup_hom : sup_hom α (order_dual $ upper_set α) := ⟨Ici, Ici_sup⟩
+
+@[simp] lemma Ici_sup_hom_apply (a : α) : Ici_sup_hom a = to_dual (Ici a) := rfl
 
 end semilattice_sup
 
 section complete_lattice
 variables [complete_lattice α]
 
-@[simp] lemma principal_Sup (S : set α) : principal (Sup S) = ⨅ a ∈ S, principal a :=
-set_like.ext $ λ c, by simp only [mem_principal_iff, mem_infi₂_iff, Sup_le_iff]
+@[simp] lemma Ici_Sup (S : set α) : Ici (Sup S) = ⨅ a ∈ S, Ici a :=
+set_like.ext $ λ c, by simp only [mem_Ici_iff, mem_infi_iff, Sup_le_iff]
 
-@[simp] lemma principal_supr (f : ι → α) : principal (⨆ i, f i) = ⨅ i, principal (f i) :=
-set_like.ext $ λ c, by simp only [mem_principal_iff, mem_infi_iff, supr_le_iff]
+@[simp] lemma Ici_supr (f : ι → α) : Ici (⨆ i, f i) = ⨅ i, Ici (f i) :=
+set_like.ext $ λ c, by simp only [mem_Ici_iff, mem_infi_iff, supr_le_iff]
 
-@[simp] lemma principal_supr₂ (f : Π i, κ i → α) :
-  principal (⨆ i j, f i j) = ⨅ i j, principal (f i j) :=
-by simp_rw principal_supr
+@[simp] lemma Ici_supr₂ (f : Π i, κ i → α) : Ici (⨆ i j, f i j) = ⨅ i j, Ici (f i j) :=
+by simp_rw Ici_supr
+
+/-- `upper_set.Ici` as a `Sup_hom`. -/
+def Ici_Sup_hom : Sup_hom α (order_dual $ upper_set α) :=
+⟨Ici, λ s, (Ici_Sup s).trans Inf_image.symm⟩
+
+@[simp] lemma Ici_Sup_hom_apply (a : α) : Ici_Sup_hom a = to_dual (Ici a) := rfl
 
 end complete_lattice
 end upper_set
@@ -381,38 +414,56 @@ namespace lower_set
 section preorder
 variables [preorder α] {a b : α}
 
-/-- The smallest lower set containing a given element. -/
-def principal (a : α) : lower_set α := ⟨{x | x ≤ a}, λ b c, le_trans⟩
+/-- Principal lower set. `set.Iic` as a lower set. The smallest lower set containing a given
+element. -/
+def Iic (a : α) : lower_set α := ⟨Iic a, is_lower_set_Iic a⟩
 
-@[simp] lemma coe_principal (a : α) : ↑(principal a) = {x | x ≤ a} := rfl
-@[simp] lemma mem_principal_iff : b ∈ principal a ↔ b ≤ a := iff.rfl
+/-- Strict principal lower set. `set.Iio` as a lower set. -/
+def Iio (a : α) : lower_set α := ⟨Iio a, is_lower_set_Iio a⟩
 
-variables [order_top α]
+@[simp] lemma coe_Iic (a : α) : ↑(Iic a) = set.Iic a := rfl
+@[simp] lemma coe_Iio (a : α) : ↑(Iio a) = set.Iio a := rfl
+@[simp] lemma mem_Iic_iff : b ∈ Iic a ↔ b ≤ a := iff.rfl
+@[simp] lemma mem_Iio_iff : b ∈ Iio a ↔ b < a := iff.rfl
 
-@[simp] lemma principal_top : principal (⊤ : α) = ⊤ := set_like.ext $ λ c, (iff_true _).2 le_top
+lemma Ioi_le_Ici (a : α) : Ioi a ≤ Ici a := Ioi_subset_Ici_self
+
+@[simp] lemma Iic_top [order_top α] : Iic (⊤ : α) = ⊤ := set_like.coe_injective Iic_top
+@[simp] lemma Iio_bot [order_bot α] : Iio (⊥ : α) = ⊥ := set_like.coe_injective Iio_bot
 
 end preorder
 
 section semilattice_inf
 variables [semilattice_inf α]
 
-@[simp] lemma principal_inf (a b : α) : principal (a ⊓ b) = principal a ⊓ principal b :=
-set_like.ext $ λ c, le_inf_iff
+@[simp] lemma Iic_inf (a b : α) : Iic (a ⊓ b) = Iic a ⊓ Iic b :=
+set_like.coe_injective Iic_inter_Iic.symm
+
+/-- `lower_set.Iic` as an `inf_hom`. -/
+def Iic_inf_hom : inf_hom α (lower_set α) := ⟨Iic, Iic_inf⟩
+
+@[simp] lemma coe_Iic_inf_hom : (Iic_inf_hom : α → lower_set α) = Iic := rfl
+@[simp] lemma Iic_inf_hom_apply (a : α) : Iic_inf_hom a = Iic a := rfl
 
 end semilattice_inf
 
 section complete_lattice
 variables [complete_lattice α]
 
-@[simp] lemma principal_Inf (S : set α) : principal (Inf S) = ⨅ a ∈ S, principal a :=
-set_like.ext $ λ c, by simp only [mem_principal_iff, mem_infi₂_iff, le_Inf_iff]
+@[simp] lemma Iic_Inf (S : set α) : Iic (Inf S) = ⨅ a ∈ S, Iic a :=
+set_like.ext $ λ c, by simp only [mem_Iic_iff, mem_infi₂_iff, le_Inf_iff]
 
-@[simp] lemma principal_infi (f : ι → α) : principal (⨅ i, f i) = ⨅ i, principal (f i) :=
-set_like.ext $ λ c, by simp only [mem_principal_iff, mem_infi_iff, le_infi_iff]
+@[simp] lemma Iic_infi (f : ι → α) : Iic (⨅ i, f i) = ⨅ i, Iic (f i) :=
+set_like.ext $ λ c, by simp only [mem_Iic_iff, mem_infi_iff, le_infi_iff]
 
-@[simp] lemma principal_infi₂ (f : Π i, κ i → α) :
-  principal (⨅ i j, f i j) = ⨅ i j, principal (f i j) :=
-by simp_rw principal_infi
+@[simp] lemma Iic_infi₂ (f : Π i, κ i → α) : Iic (⨅ i j, f i j) = ⨅ i j, Iic (f i j) :=
+by simp_rw Iic_infi
+
+/-- `lower_set.Iic` as an `Inf_hom`. -/
+def Iic_Inf_hom : Inf_hom α (lower_set α) := ⟨Iic, λ s, (Iic_Inf s).trans Inf_image.symm⟩
+
+@[simp] lemma coe_Iic_Inf_hom : (Iic_Inf_hom : α → lower_set α) = Iic := rfl
+@[simp] lemma Iic_Inf_hom_apply (a : α) : Iic_Inf_hom a = Iic a := rfl
 
 end complete_lattice
 end lower_set

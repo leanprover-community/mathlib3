@@ -258,6 +258,11 @@ lemma integral_indicator_const (e : E) ⦃s : set α⦄ (s_meas : measurable_set
   ∫ (a : α), s.indicator (λ (x : α), e) a ∂μ = (μ s).to_real • e :=
 by rw [integral_indicator s_meas, ← set_integral_const]
 
+@[simp]
+lemma integral_indicator_one ⦃s : set α⦄ (hs : measurable_set s) :
+  ∫ a, s.indicator 1 a ∂μ = (μ s).to_real :=
+(integral_indicator_const 1 hs).trans ((smul_eq_mul _).trans (mul_one _))
+
 lemma set_integral_indicator_const_Lp {p : ℝ≥0∞} (hs : measurable_set s) (ht : measurable_set t)
   (hμt : μ t ≠ ∞) (x : E) :
   ∫ a in s, indicator_const_Lp p ht hμt x a ∂μ = (μ (t ∩ s)).to_real • x :=
@@ -274,11 +279,13 @@ calc ∫ a, indicator_const_Lp p ht hμt x a ∂μ
 ... = (μ t).to_real • x : by rw inter_univ
 
 lemma set_integral_map {β} [measurable_space β] {g : α → β} {f : β → E} {s : set β}
-  (hs : measurable_set s) (hf : ae_strongly_measurable f (measure.map g μ)) (hg : measurable g) :
+  (hs : measurable_set s)
+  (hf : ae_strongly_measurable f (measure.map g μ)) (hg : ae_measurable g μ) :
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
 begin
-  rw [measure.restrict_map hg hs, integral_map hg (hf.mono_measure _)],
-  exact measure.map_mono g measure.restrict_le_self
+  rw [measure.restrict_map_of_ae_measurable hg hs,
+      integral_map (hg.mono_measure measure.restrict_le_self) (hf.mono_measure _)],
+  exact measure.map_mono_of_ae_measurable measure.restrict_le_self hg
 end
 
 lemma _root_.measurable_embedding.set_integral_map {β} {_ : measurable_space β} {f : α → β}

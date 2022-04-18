@@ -37,7 +37,8 @@ def locally_integrable (f : X → E) (μ : measure X . volume_tac) : Prop :=
 lemma integrable.locally_integrable (hf : integrable f μ) : locally_integrable f μ :=
 λ K hK, hf.integrable_on
 
-lemma locally_integrable.ae_measurable [sigma_compact_space X] (hf : locally_integrable f μ) :
+lemma locally_integrable.ae_strongly_measurable [sigma_compact_space X]
+  (hf : locally_integrable f μ) :
   ae_strongly_measurable f μ :=
 begin
   rw [← @restrict_univ _ _ μ, ← Union_compact_covering, ae_strongly_measurable_Union_iff],

@@ -209,7 +209,15 @@ library_note "fact non-instances"
 lemma fact.elim {p : Prop} (h : fact p) : p := h.1
 lemma fact_iff {p : Prop} : fact p ↔ p := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
+/-- Swaps two pairs of arguments to a function. -/
+@[reducible] def function.swap₂ {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  {φ : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Sort*} (f : Π i₁ j₁ i₂ j₂, φ i₁ j₁ i₂ j₂) :
+  Π i₂ j₂ i₁ j₁, φ i₁ j₁ i₂ j₂ :=
+λ i₂ j₂ i₁ j₁, f i₁ j₁ i₂ j₂
+
 end miscellany
+
+open function
 
 /-!
 ### Declarations about propositional connectives
@@ -285,8 +293,6 @@ the arguments flipped, but it is in the `not` namespace so that projection notat
 def not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
 @[reducible] theorem not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
-
-lemma iff.not (h : a ↔ b) : ¬ a ↔ ¬ b := not_congr h
 
 theorem not_not_of_not_imp : ¬(a → b) → ¬¬a :=
 mt not.elim
@@ -390,6 +396,10 @@ theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
 
 theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
 imp.swap
+
+lemma iff.not (h : a ↔ b) : ¬ a ↔ ¬ b := not_congr h
+lemma iff.not_left (h : a ↔ ¬ b) : ¬ a ↔ b := h.not.trans not_not
+lemma iff.not_right (h : ¬ a ↔ b) : a ↔ ¬ b := not_not.symm.trans h.not
 
 /-! ### Declarations about `xor` -/
 
@@ -947,6 +957,11 @@ exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨swap, swap⟩
+
+lemma forall₂_swap {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  {p : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Prop} :
+  (∀ i₁ j₁ i₂ j₂, p i₁ j₁ i₂ j₂) ↔ ∀ i₂ j₂ i₁ j₁, p i₁ j₁ i₂ j₂ :=
+⟨swap₂, swap₂⟩
 
 /-- We intentionally restrict the type of `α` in this lemma so that this is a safer to use in simp
 than `forall_swap`. -/

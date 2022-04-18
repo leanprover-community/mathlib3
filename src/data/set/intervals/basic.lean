@@ -33,7 +33,7 @@ open set
 open order_dual (to_dual of_dual)
 
 section preorder
-variables {α : Type u} [preorder α] {a a₁ a₂ b b₁ b₂ x : α}
+variables {α : Type u} [preorder α] {a a₁ a₂ b b₁ b₂ c x : α}
 
 /-- Left-open right-open interval -/
 def Ioo (a b : α) := {x | a < x ∧ x < b}
@@ -375,6 +375,9 @@ lemma _root_.is_bot.Ici_eq (h : is_bot a) : Ici a = univ := eq_univ_of_forall h
 lemma _root_.is_max.Ioi_eq (h : is_max a) : Ioi a = ∅ := eq_empty_of_subset_empty $ λ b, h.not_lt
 lemma _root_.is_min.Iio_eq (h : is_min a) : Iio a = ∅ := eq_empty_of_subset_empty $ λ b, h.not_lt
 
+lemma Iic_inter_Ioc_of_le (h : a ≤ c) : Iic a ∩ Ioc b c = Ioc b a :=
+ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
+
 end preorder
 
 section partial_order
@@ -500,9 +503,6 @@ lemma _root_.is_max.Ici_eq (h : is_max a) : Ici a = {a} :=
 eq_singleton_iff_unique_mem.2 ⟨left_mem_Ici, λ b, h.eq_of_ge⟩
 
 lemma _root_.is_min.Iic_eq (h : is_min a) : Iic a = {a} := h.to_dual.Ici_eq
-
-lemma Iic_inter_Ioc_of_le (h : a ≤ c) : Iic a ∩ Ioc b c = Ioc b a :=
-ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
 
 end partial_order
 
@@ -1402,3 +1402,47 @@ def Ici_bot [preorder α] [order_bot α] : set.Ici (⊥ : α) ≃o α :=
   .. (@equiv.subtype_univ_equiv α (set.Ici (⊥ : α)) (λ x, bot_le)) }
 
 end order_iso
+
+/-! ### Lemmas about intervals in dense orders -/
+
+section dense
+
+variables (α : Type*) [preorder α] [densely_ordered α] {x y : α}
+
+instance : no_min_order (set.Ioo x y) :=
+⟨λ ⟨a, ha₁, ha₂⟩, begin
+  rcases exists_between ha₁ with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, hb₁, hb₂.trans ha₂⟩, hb₂⟩
+end⟩
+
+instance : no_min_order (set.Ioc x y) :=
+⟨λ ⟨a, ha₁, ha₂⟩, begin
+  rcases exists_between ha₁ with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, hb₁, hb₂.le.trans ha₂⟩, hb₂⟩
+end⟩
+
+instance : no_min_order (set.Ioi x) :=
+⟨λ ⟨a, ha⟩, begin
+  rcases exists_between ha with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, hb₁⟩, hb₂⟩
+end⟩
+
+instance : no_max_order (set.Ioo x y) :=
+⟨λ ⟨a, ha₁, ha₂⟩, begin
+  rcases exists_between ha₂ with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, ha₁.trans hb₁, hb₂⟩, hb₁⟩
+end⟩
+
+instance : no_max_order (set.Ico x y) :=
+⟨λ ⟨a, ha₁, ha₂⟩, begin
+  rcases exists_between ha₂ with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, ha₁.trans hb₁.le, hb₂⟩, hb₁⟩
+end⟩
+
+instance : no_max_order (set.Iio x) :=
+⟨λ ⟨a, ha⟩, begin
+  rcases exists_between ha with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, hb₂⟩, hb₁⟩
+end⟩
+
+end dense

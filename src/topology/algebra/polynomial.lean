@@ -35,9 +35,9 @@ open is_absolute_value filter
 namespace polynomial
 open_locale polynomial
 
-section topological_ring
+section topological_semiring
 
-variables {R S : Type*} [semiring R] [topological_space R] [topological_ring R]
+variables {R S : Type*} [semiring R] [topological_space R] [topological_semiring R]
   (p : R[X])
 
 @[continuity]
@@ -61,12 +61,12 @@ p.continuous.continuous_within_at
 protected lemma continuous_on {s} : continuous_on (λ x, p.eval x) s :=
 p.continuous.continuous_on
 
-end topological_ring
+end topological_semiring
 
 section topological_algebra
 
 variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
-  [topological_space A] [topological_ring A]
+  [topological_space A] [topological_semiring A]
   (p : R[X])
 
 @[continuity]

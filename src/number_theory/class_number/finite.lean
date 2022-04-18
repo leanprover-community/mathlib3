@@ -90,7 +90,7 @@ end
 
 /-- If the `R`-integral element `a : S` has coordinates `< y` with respect to some basis `b`,
 its norm is strictly less than `norm_bound abv b * y ^ dim S`. -/
-lemma norm_lt {T : Type*} [linear_ordered_comm_ring T]
+lemma norm_lt {T : Type*} [linear_ordered_ring T]
   (a : S) {y : T} (hy : ∀ k, (abv (bS.repr a k) : T) < y) :
   (abv (algebra.norm R a) : T) < norm_bound abv bS * y ^ fintype.card ι :=
 begin

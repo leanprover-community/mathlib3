@@ -41,13 +41,13 @@ def pow_half : ℕ → pgame
 by cases n; refl
 
 @[simp] lemma pow_half_right_moves {n} : (pow_half (n + 1)).right_moves = punit :=
-by cases n; refl
+rfl
 
 @[simp] lemma pow_half_move_left {n i} : (pow_half n).move_left i = 0 :=
 by cases n; cases i; refl
 
 @[simp] lemma pow_half_move_right {n i} : (pow_half (n + 1)).move_right i = pow_half n :=
-by cases n; cases i; refl
+rfl
 
 lemma pow_half_move_left' (n) :
   (pow_half n).move_left (equiv.cast (pow_half_left_moves.symm) punit.star) = 0 :=

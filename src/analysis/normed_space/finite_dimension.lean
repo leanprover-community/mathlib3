@@ -238,10 +238,36 @@ begin
   rw [basis.equiv_fun_symm_apply, basis.sum_repr]
 end
 
-theorem affine_map.continuous_of_finite_dimensional {PE PF : Type*}
-  [metric_space PE] [normed_add_torsor E PE] [metric_space PF] [normed_add_torsor F PF]
-  [finite_dimensional 𝕜 E] (f : PE →ᵃ[𝕜] PF) : continuous f :=
+section affine
+
+variables  {PE PF : Type*} [metric_space PE] [normed_add_torsor E PE] [metric_space PF]
+  [normed_add_torsor F PF] [finite_dimensional 𝕜 E]
+
+include E F
+
+theorem affine_map.continuous_of_finite_dimensional (f : PE →ᵃ[𝕜] PF) : continuous f :=
 affine_map.continuous_linear_iff.1 f.linear.continuous_of_finite_dimensional
+
+theorem affine_equiv.continuous_of_finite_dimensional (f : PE ≃ᵃ[𝕜] PF) : continuous f :=
+f.to_affine_map.continuous_of_finite_dimensional
+
+/-- Reinterpret an affine equivalence as a homeomorphism. -/
+def affine_equiv.to_homeomorph_of_finite_dimensional (f : PE ≃ᵃ[𝕜] PF) : PE ≃ₜ PF :=
+{ to_equiv := f.to_equiv,
+  continuous_to_fun := f.continuous_of_finite_dimensional,
+  continuous_inv_fun :=
+    begin
+      haveI : finite_dimensional 𝕜 F, from f.linear.finite_dimensional,
+      exact f.symm.continuous_of_finite_dimensional
+    end }
+
+@[simp] lemma affine_equiv.coe_to_homeomorph_of_finite_dimensional (f : PE ≃ᵃ[𝕜] PF) :
+  ⇑f.to_homeomorph_of_finite_dimensional = f := rfl
+
+@[simp] lemma affine_equiv.coe_to_homeomorph_of_finite_dimensional_symm (f : PE ≃ᵃ[𝕜] PF) :
+  ⇑f.to_homeomorph_of_finite_dimensional.symm = f.symm := rfl
+
+end affine
 
 lemma continuous_linear_map.continuous_det :
   continuous (λ (f : E →L[𝕜] E), f.det) :=
@@ -251,14 +277,14 @@ begin
   by_cases h : ∃ (s : finset E), nonempty (basis ↥s 𝕜 E),
   { rcases h with ⟨s, ⟨b⟩⟩,
     haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finset_basis b,
-    letI : normed_group (matrix s s 𝕜) := matrix.normed_group,
+    letI : semi_normed_group (matrix s s 𝕜) := matrix.semi_normed_group,
     letI : normed_space 𝕜 (matrix s s 𝕜) := matrix.normed_space,
     simp_rw linear_map.det_eq_det_to_matrix_of_finset b,
     have A : continuous (λ (f : E →L[𝕜] E), linear_map.to_matrix b b f),
     { change continuous ((linear_map.to_matrix b b).to_linear_map.comp
         (continuous_linear_map.coe_lm 𝕜)),
       exact linear_map.continuous_of_finite_dimensional _ },
-    convert continuous_det.comp A,
+    convert A.matrix_det,
     ext f,
     congr },
   { unfold linear_map.det,
@@ -592,6 +618,11 @@ complete_space_coe_iff_is_complete.1 (finite_dimensional.complete 𝕜 s)
 lemma submodule.closed_of_finite_dimensional (s : submodule 𝕜 E) [finite_dimensional 𝕜 s] :
   is_closed (s : set E) :=
 s.complete_of_finite_dimensional.is_closed
+
+lemma affine_subspace.closed_of_finite_dimensional {P : Type*} [metric_space P]
+  [normed_add_torsor E P] (s : affine_subspace 𝕜 P) [finite_dimensional 𝕜 s.direction] :
+  is_closed (s : set P) :=
+s.is_closed_direction_iff.mp s.direction.closed_of_finite_dimensional
 
 section riesz
 

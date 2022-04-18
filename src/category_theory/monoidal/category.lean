@@ -420,7 +420,7 @@ section
 variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 
 /-- The tensor product expressed as a functor. -/
-def tensor : (C × C) ⥤ C :=
+@[simps] def tensor : (C × C) ⥤ C :=
 { obj := λ X, X.1 ⊗ X.2,
   map := λ {X Y : C × C} (f : X ⟶ Y), f.1 ⊗ f.2 }
 
@@ -597,6 +597,51 @@ def full_monoidal_subcategory (P : C → Prop) (h_id : P (𝟙_ C))
   triangle' := λ X Y, triangle X.1 Y.1 }
 
 end
+
+end
+
+section
+
+universes v₁ v₂ u₁ u₂
+
+variables (C₁ : Type u₁) [category.{v₁} C₁] [monoidal_category.{v₁} C₁]
+variables (C₂ : Type u₂) [category.{v₂} C₂] [monoidal_category.{v₂} C₂]
+
+local attribute [simp]
+associator_naturality left_unitor_naturality right_unitor_naturality pentagon
+
+@[simps tensor_obj tensor_hom tensor_unit associator]
+instance prod_monoidal : monoidal_category (C₁ × C₂) :=
+{ tensor_obj := λ X Y, (X.1 ⊗ Y.1, X.2 ⊗ Y.2),
+  tensor_hom := λ _ _ _ _ f g, (f.1 ⊗ g.1, f.2 ⊗ g.2),
+  tensor_unit := (𝟙_ C₁, 𝟙_ C₂),
+  associator := λ X Y Z, (α_ X.1 Y.1 Z.1).prod (α_ X.2 Y.2 Z.2),
+  left_unitor := λ ⟨X₁, X₂⟩, (λ_ X₁).prod (λ_ X₂),
+  right_unitor := λ ⟨X₁, X₂⟩, (ρ_ X₁).prod (ρ_ X₂) }
+
+@[simp] lemma prod_monoidal_left_unitor_hom_fst (X : C₁ × C₂) :
+  ((λ_ X).hom : (𝟙_ _) ⊗ X ⟶ X).1 = (λ_ X.1).hom := by { cases X, refl }
+
+@[simp] lemma prod_monoidal_left_unitor_hom_snd (X : C₁ × C₂) :
+  ((λ_ X).hom : (𝟙_ _) ⊗ X ⟶ X).2 = (λ_ X.2).hom := by { cases X, refl }
+
+@[simp] lemma prod_monoidal_left_unitor_inv_fst (X : C₁ × C₂) :
+  ((λ_ X).inv : X ⟶ (𝟙_ _) ⊗ X).1 = (λ_ X.1).inv := by { cases X, refl }
+
+@[simp] lemma prod_monoidal_left_unitor_inv_snd (X : C₁ × C₂) :
+  ((λ_ X).inv : X ⟶ (𝟙_ _) ⊗ X).2 = (λ_ X.2).inv := by { cases X, refl }
+
+@[simp] lemma prod_monoidal_right_unitor_hom_fst (X : C₁ × C₂) :
+  ((ρ_ X).hom : X ⊗ (𝟙_ _) ⟶ X).1 = (ρ_ X.1).hom := by { cases X, refl }
+
+@[simp] lemma prod_monoidal_right_unitor_hom_snd (X : C₁ × C₂) :
+  ((ρ_ X).hom : X ⊗ (𝟙_ _) ⟶ X).2 = (ρ_ X.2).hom := by { cases X, refl }
+
+@[simp] lemma prod_monoidal_right_unitor_inv_fst (X : C₁ × C₂) :
+  ((ρ_ X).inv : X ⟶ X ⊗ (𝟙_ _)).1 = (ρ_ X.1).inv := by { cases X, refl }
+
+@[simp] lemma prod_monoidal_right_unitor_inv_snd (X : C₁ × C₂) :
+  ((ρ_ X).inv : X ⟶ X ⊗ (𝟙_ _)).2 = (ρ_ X.2).inv := by { cases X, refl }
 
 end
 

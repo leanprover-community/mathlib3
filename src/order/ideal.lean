@@ -103,7 +103,8 @@ instance : partial_order (ideal P) := partial_order.lift coe set_like.coe_inject
 @[simp] lemma coe_subset_coe : (s : set P) ⊆ t ↔ s ≤ t := iff.rfl
 @[simp] lemma coe_ssubset_coe : (s : set P) ⊂ t ↔ s < t := iff.rfl
 
-@[trans] lemma mem_of_mem_of_le : x ∈ s → s ≤ t → x ∈ t := @mem_of_mem_of_subset P x s t
+@[trans] lemma mem_of_mem_of_le {x : P} {I J : ideal P} : x ∈ I → I ≤ J → x ∈ J :=
+@set.mem_of_mem_of_subset P x I J
 
 /-- A proper ideal is one that is not the whole set.
     Note that the whole set might not be an ideal. -/
@@ -190,8 +191,8 @@ variables {I J : ideal P} {x y : P}
 
 /-- The smallest ideal containing a given element. -/
 @[simps] def principal (p : P) : ideal P :=
-{ to_lower_set := lower_set.principal p,
-  nonempty' := ⟨p, le_rfl⟩,
+{ to_lower_set := lower_set.Iic p,
+  nonempty' := nonempty_Iic,
   directed' := λ x hx y hy, ⟨p, le_rfl, hx, hy⟩ }
 
 instance [inhabited P] : inhabited (ideal P) := ⟨ideal.principal default⟩
@@ -218,8 +219,7 @@ end order_bot
 section order_top
 variables [order_top P]
 
-@[simp] lemma principal_top : principal (⊤ : P) = ⊤ :=
-to_lower_set_injective $ lower_set.principal_top
+@[simp] lemma principal_top : principal (⊤ : P) = ⊤ := to_lower_set_injective $ lower_set.Iic_top
 
 end order_top
 end preorder

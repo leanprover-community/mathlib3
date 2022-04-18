@@ -408,7 +408,7 @@ lemma ae_ae_of_ae_prod {p : α × β → Prop} (h : ∀ᵐ z ∂μ.prod ν, p z)
 measure_ae_null_of_prod_null h
 
 /-- `μ.prod ν` has finite spanning sets in rectangles of finite spanning sets. -/
-def finite_spanning_sets_in.prod {ν : measure β} {C : set (set α)} {D : set (set β)}
+noncomputable! def finite_spanning_sets_in.prod {ν : measure β} {C : set (set α)} {D : set (set β)}
   (hμ : μ.finite_spanning_sets_in C) (hν : ν.finite_spanning_sets_in D) :
   (μ.prod ν).finite_spanning_sets_in (image2 (×ˢ) C D) :=
 begin
@@ -549,7 +549,7 @@ lemma map_prod_map {δ} [measurable_space δ] {f : α → β} {g : γ → δ}
   (hgc : sigma_finite (map g μc)) (hf : measurable f) (hg : measurable g) :
   (map f μa).prod (map g μc) = map (prod.map f g) (μa.prod μc) :=
 begin
-  haveI := hgc.of_map μc hg,
+  haveI := hgc.of_map μc hg.ae_measurable,
   refine prod_eq (λ s t hs ht, _),
   rw [map_apply (hf.prod_map hg) (hs.prod ht), map_apply hf hs, map_apply hg ht],
   exact prod_prod (f ⁻¹' s) (g ⁻¹' t)
@@ -575,10 +575,10 @@ begin
   to deduce `sigma_finite μc`. -/
   rcases eq_or_ne μa 0 with (rfl|ha),
   { rw [← hf.map_eq, zero_prod, measure.map_zero, zero_prod],
-    exact ⟨this, (mapₗ _).map_zero⟩ },
+    exact ⟨this, by simp only [measure.map_zero]⟩ },
   haveI : sigma_finite μc,
   { rcases (ae_ne_bot.2 ha).nonempty_of_mem hg with ⟨x, hx : map (g x) μc = μd⟩,
-    exact sigma_finite.of_map _ hgm.of_uncurry_left (by rwa hx) },
+    exact sigma_finite.of_map _ hgm.of_uncurry_left.ae_measurable (by rwa hx) },
   -- Thus we can apply `measure.prod_eq` to prove equality of measures.
   refine ⟨this, (prod_eq $ λ s t hs ht, _).symm⟩,
   rw [map_apply this (hs.prod ht)],
@@ -654,7 +654,7 @@ variables [sigma_finite ν]
 
 lemma lintegral_prod_swap [sigma_finite μ] (f : α × β → ℝ≥0∞)
   (hf : ae_measurable f (μ.prod ν)) : ∫⁻ z, f z.swap ∂(ν.prod μ) = ∫⁻ z, f z ∂(μ.prod ν) :=
-by { rw ← prod_swap at hf, rw [← lintegral_map' hf measurable_swap, prod_swap] }
+by { rw ← prod_swap at hf, rw [← lintegral_map' hf measurable_swap.ae_measurable, prod_swap] }
 
 /-- **Tonelli's Theorem**: For `ℝ≥0∞`-valued measurable functions on `α × β`,
   the integral of `f` is equal to the iterated integral. -/
@@ -831,7 +831,7 @@ lemma integral_prod_swap (f : α × β → E)
   (hf : ae_strongly_measurable f (μ.prod ν)) : ∫ z, f z.swap ∂(ν.prod μ) = ∫ z, f z ∂(μ.prod ν) :=
 begin
   rw ← prod_swap at hf,
-  rw [← integral_map measurable_swap hf, prod_swap]
+  rw [← integral_map measurable_swap.ae_measurable hf, prod_swap]
 end
 
 variables {E' : Type*} [normed_group E'] [complete_space E'] [normed_space ℝ E']

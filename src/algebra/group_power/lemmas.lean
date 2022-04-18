@@ -110,9 +110,8 @@ by cases n; simp
 @[to_additive add_one_zsmul]
 lemma zpow_add_one (a : G) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
 | (of_nat n) := by simp [← int.coe_nat_succ, pow_succ']
-| -[1+0]     := by simp [int.neg_succ_of_nat_eq]
-| -[1+(n+1)] := by rw [int.neg_succ_of_nat_eq, zpow_neg, neg_add, neg_add_cancel_right, zpow_neg,
-  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev,
+| -[1+n] := by rw [int.neg_succ_of_nat_eq, zpow_neg, neg_add, neg_add_cancel_right, zpow_neg,
+  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ n, mul_inv_rev,
   inv_mul_cancel_right]
 
 @[to_additive zsmul_sub_one]
@@ -335,11 +334,11 @@ end linear_ordered_add_comm_group
   ((n • a : A) : with_bot A) = n • a :=
 add_monoid_hom.map_nsmul ⟨(coe : A → with_bot A), with_bot.coe_zero, with_bot.coe_add⟩ a n
 
-theorem nsmul_eq_mul' [semiring R] (a : R) (n : ℕ) : n • a = a * n :=
+theorem nsmul_eq_mul' [non_assoc_semiring R] (a : R) (n : ℕ) : n • a = a * n :=
 by induction n with n ih; [rw [zero_nsmul, nat.cast_zero, mul_zero],
   rw [succ_nsmul', ih, nat.cast_succ, mul_add, mul_one]]
 
-@[simp] theorem nsmul_eq_mul [semiring R] (n : ℕ) (a : R) : n • a = n * a :=
+@[simp] theorem nsmul_eq_mul [non_assoc_semiring R] (n : ℕ) (a : R) : n • a = n * a :=
 by rw [nsmul_eq_mul', (n.cast_commute a).eq]
 
 /-- Note that `add_comm_monoid.nat_smul_comm_class` requires stronger assumptions on `R`. -/
@@ -374,19 +373,19 @@ by induction k with k ih; [refl, rw [pow_succ', int.nat_abs_mul, pow_succ', ih]]
 -- The next four lemmas allow us to replace multiplication by a numeral with a `zsmul` expression.
 -- They are used by the `noncomm_ring` tactic, to normalise expressions before passing to `abel`.
 
-lemma bit0_mul [ring R] {n r : R} : bit0 n * r = (2 : ℤ) • (n * r) :=
+lemma bit0_mul [non_unital_non_assoc_ring R] {n r : R} : bit0 n * r = (2 : ℤ) • (n * r) :=
 by { dsimp [bit0], rw [add_mul, add_zsmul, one_zsmul], }
 
-lemma mul_bit0 [ring R] {n r : R} : r * bit0 n = (2 : ℤ) • (r * n) :=
+lemma mul_bit0 [non_unital_non_assoc_ring R] {n r : R} : r * bit0 n = (2 : ℤ) • (r * n) :=
 by { dsimp [bit0], rw [mul_add, add_zsmul, one_zsmul], }
 
-lemma bit1_mul [ring R] {n r : R} : bit1 n * r = (2 : ℤ) • (n * r) + r :=
+lemma bit1_mul [non_assoc_ring R] {n r : R} : bit1 n * r = (2 : ℤ) • (n * r) + r :=
 by { dsimp [bit1], rw [add_mul, bit0_mul, one_mul], }
 
-lemma mul_bit1 [ring R] {n r : R} : r * bit1 n = (2 : ℤ) • (r * n) + r :=
+lemma mul_bit1 [non_assoc_ring R] {n r : R} : r * bit1 n = (2 : ℤ) • (r * n) + r :=
 by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
 
-@[simp] theorem zsmul_eq_mul [ring R] (a : R) : ∀ (n : ℤ), n • a = n * a
+@[simp] theorem zsmul_eq_mul [non_assoc_ring R] (a : R) : ∀ (n : ℤ), n • a = n * a
 | (n : ℕ) := by { rw [coe_nat_zsmul, nsmul_eq_mul], refl }
 | -[1+ n] := by simp [nat.cast_succ, neg_add_rev, int.cast_neg_succ_of_nat, add_mul]
 

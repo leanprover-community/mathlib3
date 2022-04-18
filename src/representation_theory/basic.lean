@@ -193,15 +193,19 @@ variables {k G V W}
 /--
 The tensor product representation `V ⊗[k,G] W` is equivalent to `V ⊗[k] W` as a `k`-module
 -/
-@[simp]
 def of_tensor_rep : (V ⊗[k,G] W) ≃ₗ[k] (V ⊗[k] W) :=
   ⟨id, λ _ _, rfl, λ _ _, rfl, id, λ _, rfl, λ _, rfl⟩
 
 /--
 The tensor product representation `V ⊗[k,G] W` is equivalent to `V ⊗[k] W` as a `k`-module
 -/
-@[simp]
 def to_tensor_rep : (V ⊗[k] W) ≃ₗ[k] (V ⊗[k,G] W) := (of_tensor_rep).symm
+
+@[simp]
+lemma to_tensor_rep_of_tensor_rep (x : V ⊗[k,G] W) : to_tensor_rep (of_tensor_rep x) = x := rfl
+
+@[simp]
+lemma of_tensor_rep_to_tensor_rep (x : V ⊗[k] W) : of_tensor_rep (to_tensor_rep x) = x := rfl
 
 notation v ` ⊗ₜ[` k `,` G `] ` w := to_tensor_rep (v ⊗ₜ[k] w)
 
@@ -222,13 +226,15 @@ instance tensor_rep_smul_comm_class : smul_comm_class G k (V ⊗[k,G] W) :=
 {smul_comm := λ g r x, by simp}
 
 @[simp]
-lemma tensor_rep_to_linear_map (g : G) : to_linear_map k (V ⊗[k,G] W) g = tensor_product.map
-          (to_linear_map k V g) (to_linear_map k W g) :=
+lemma tensor_rep_to_linear_map (g : G) : to_linear_map k (V ⊗[k,G] W) g =
+  to_tensor_rep.to_linear_map ∘ₗ (tensor_product.map (to_linear_map k V g) (to_linear_map k W g)) ∘ₗ
+  (of_tensor_rep.to_linear_map) :=
 by {ext, simp}
 
 @[simp]
-lemma tensor_rep_to_module_End (g : G) : to_module_End k (V ⊗[k,G] W) g = tensor_product.map
-          (to_module_End k V g) (to_module_End k W g) :=
+lemma tensor_rep_to_module_End (g : G) : to_module_End k (V ⊗[k,G] W) g =
+  to_tensor_rep.to_linear_map ∘ₗ (tensor_product.map (to_linear_map k V g) (to_linear_map k W g)) ∘ₗ
+  (of_tensor_rep.to_linear_map) :=
 by simp only [to_module_End_apply, tensor_rep_to_linear_map]
 
 end tensor

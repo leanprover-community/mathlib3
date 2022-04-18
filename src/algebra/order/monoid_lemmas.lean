@@ -41,13 +41,14 @@ variables [has_le α]
 /- The prime on this lemma is present only on the multiplicative version.  The unprimed version
 is taken by the analogous lemma for semiring, with an extra non-negativity assumption. -/
 @[to_additive add_le_add_left]
-lemma mul_le_mul_left' [covariant_class α α (*) (≤)] {b c : α} (bc : b ≤ c) (a : α) :
+lemma mul_le_mul_left' [covariant_class α α (*) (≤)]
+  {b c : α} (bc : b ≤ c) (a : α) :
   a * b ≤ a * c :=
 covariant_class.elim _ bc
 
 @[to_additive le_of_add_le_add_left]
 lemma le_of_mul_le_mul_left' [contravariant_class α α (*) (≤)]
-  (bc : a * b ≤ a * c) :
+  {a b c : α} (bc : a * b ≤ a * c) :
   b ≤ c :=
 contravariant_class.elim _ bc
 
@@ -55,13 +56,13 @@ contravariant_class.elim _ bc
 is taken by the analogous lemma for semiring, with an extra non-negativity assumption. -/
 @[to_additive add_le_add_right]
 lemma mul_le_mul_right' [covariant_class α α (swap (*)) (≤)]
-  (bc : b ≤ c) (a : α) :
+  {b c : α} (bc : b ≤ c) (a : α) :
   b * a ≤ c * a :=
 covariant_class.elim a bc
 
 @[to_additive le_of_add_le_add_right]
 lemma le_of_mul_le_mul_right' [contravariant_class α α (swap (*)) (≤)]
-  (bc : b * a ≤ c * a) :
+  {a b c : α} (bc : b * a ≤ c * a) :
   b ≤ c :=
 contravariant_class.elim a bc
 
@@ -97,25 +98,26 @@ lemma mul_lt_mul_iff_right
 rel_iff_cov α α (swap (*)) (<) a
 
 @[to_additive add_lt_add_left]
-lemma mul_lt_mul_left' [covariant_class α α (*) (<)] {b c : α} (bc : b < c) (a : α) :
+lemma mul_lt_mul_left' [covariant_class α α (*) (<)]
+  {b c : α} (bc : b < c) (a : α) :
   a * b < a * c :=
 covariant_class.elim _ bc
 
 @[to_additive lt_of_add_lt_add_left]
 lemma lt_of_mul_lt_mul_left' [contravariant_class α α (*) (<)]
-  (bc : a * b < a * c) :
+  {a b c : α} (bc : a * b < a * c) :
   b < c :=
 contravariant_class.elim _ bc
 
 @[to_additive add_lt_add_right]
 lemma mul_lt_mul_right' [covariant_class α α (swap (*)) (<)]
-  (bc : b < c) (a : α) :
+  {b c : α} (bc : b < c) (a : α) :
   b * a < c * a :=
 covariant_class.elim a bc
 
 @[to_additive lt_of_add_lt_add_right]
 lemma lt_of_mul_lt_mul_right' [contravariant_class α α (swap (*)) (<)]
-  (bc : b * a < c * a) :
+  {a b c : α} (bc : b * a < c * a) :
   b < c :=
 contravariant_class.elim a bc
 

@@ -830,6 +830,9 @@ begin
   exact ((right.mul_lt_mul hac hbd).ne h).elim,
 end
 
+alias left.mul_eq_mul_iff_eq_and_eq ← mul_eq_mul_iff_eq_and_eq
+attribute [to_additive] mul_eq_mul_iff_eq_and_eq
+
 end partial_order
 
 end semigroup

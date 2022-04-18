@@ -26,7 +26,7 @@ pullbacks and finite wide pullbacks.
 
 universes v u
 
-open category_theory category_theory.limits
+open category_theory category_theory.limits opposite
 
 namespace category_theory.limits
 
@@ -370,5 +370,83 @@ begin
 end
 
 end wide_pushout
+
+variable (J)
+
+/-- The obvious functor `wide_pullback_shape J ⥤ (wide_pushout_shape J)ᵒᵖ` -/
+@[simps]
+def wide_pullback_shape_op : wide_pullback_shape J ⥤ (wide_pushout_shape J)ᵒᵖ :=
+{ obj := λ X, op X,
+  map := λ X Y f, begin
+    apply quiver.hom.op,
+    cases f,
+    { apply wide_pushout_shape.hom.id, },
+    { apply wide_pushout_shape.hom.init, },
+  end, }
+
+/-- The obvious functor `wide_pushout_shape J ⥤ (wide_pullback_shape J)ᵒᵖ` -/
+@[simps]
+def wide_pushout_shape_op : wide_pushout_shape J ⥤ (wide_pullback_shape J)ᵒᵖ :=
+{ obj := λ X, op X,
+  map := λ X Y f, begin
+    apply quiver.hom.op,
+    cases f,
+    { apply wide_pullback_shape.hom.id, },
+    { apply wide_pullback_shape.hom.term, },
+  end, }
+
+/-- The obvious functor `(wide_pullback_shape J)ᵒᵖ ⥤ wide_pushout_shape J`-/
+@[simps]
+def wide_pullback_shape_unop : (wide_pullback_shape J)ᵒᵖ ⥤ wide_pushout_shape J :=
+(wide_pullback_shape_op J).left_op
+
+/-- The obvious functor `(wide_pushout_shape J)ᵒᵖ ⥤ wide_pullback_shape J` -/
+@[simps]
+def wide_pushout_shape_unop : (wide_pushout_shape J)ᵒᵖ ⥤ wide_pullback_shape J :=
+(wide_pushout_shape_op J).left_op
+
+lemma wide_pushout_shape_op_unop : wide_pushout_shape_unop J ⋙ wide_pullback_shape_op J = 𝟭 _ :=
+begin
+  apply category_theory.functor.ext,
+  { intros X Y f, simp only [eq_iff_true_of_subsingleton], },
+  { intro X, refl, }
+end
+
+lemma wide_pushout_shape_unop_op : wide_pushout_shape_op J ⋙ wide_pullback_shape_unop J = 𝟭 _ :=
+begin
+  apply category_theory.functor.ext,
+  { intros X Y f, simp only [eq_iff_true_of_subsingleton], },
+  { intro X, refl, }
+end
+
+lemma wide_pullback_shape_op_unop : wide_pullback_shape_unop J ⋙ wide_pushout_shape_op J = 𝟭 _ :=
+begin
+  apply category_theory.functor.ext,
+  { intros X Y f, simp only [eq_iff_true_of_subsingleton], },
+  { intro X, refl, }
+end
+
+lemma wide_pullback_shape_unop_op : wide_pullback_shape_op J ⋙ wide_pushout_shape_unop J = 𝟭 _ :=
+begin
+  apply category_theory.functor.ext,
+  { intros X Y f, simp only [eq_iff_true_of_subsingleton], },
+  { intro X, refl, }
+end
+
+/-- The duality equivalence `(wide_pushout_shape J)ᵒᵖ ≌ wide_pullback_shape J` -/
+@[simps]
+def wide_pushout_shape_op_equiv : (wide_pushout_shape J)ᵒᵖ ≌ wide_pullback_shape J :=
+{ functor := wide_pushout_shape_unop J,
+  inverse := wide_pullback_shape_op J,
+  unit_iso := eq_to_iso (wide_pushout_shape_op_unop J).symm,
+  counit_iso := eq_to_iso (wide_pullback_shape_unop_op J), }
+
+/-- The duality equivalence `(wide_pullback_shape J)ᵒᵖ ≌ wide_pushout_shape J` -/
+@[simps]
+def wide_pullback_shape_op_equiv : (wide_pullback_shape J)ᵒᵖ ≌ wide_pushout_shape J :=
+{ functor := wide_pullback_shape_unop J,
+  inverse := wide_pushout_shape_op J,
+  unit_iso := eq_to_iso (wide_pullback_shape_op_unop J).symm,
+  counit_iso := eq_to_iso (wide_pushout_shape_unop_op J), }
 
 end category_theory.limits

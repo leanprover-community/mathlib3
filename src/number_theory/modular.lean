@@ -501,27 +501,13 @@ end
 /-- If `z∈𝒟ᵒ`, and `n:ℤ`, then `|z+n|>1`. -/
 lemma move_by_T {z : ℍ} (hz : z ∈ 𝒟ᵒ) (n : ℤ) : 1 < norm_sq (((T^n) • z) : ℍ) :=
 begin
-  simp only [coe_T_zpow, upper_half_plane.num, coe_smul, coe_fn_eq_coe, coe_matrix_coe,
-    int.coe_cast_ring_hom, map_apply, cons_val_zero, int.cast_one, of_real_one, one_mul,
-    cons_val_one, head_cons, of_real_int_cast, denom_apply, int.cast_zero, zero_mul, zero_add,
-    div_one, complex.norm_sq_apply],
-  have hz1 : 1 < z.re * z.re + z.im * z.im,
-  { have := hz.1,
-    rw norm_sq at this,
-    convert this using 1, },
-  rw (by simp : ((z:ℂ) + n).im = z.im),
-  rw (by simp : ((z:ℂ) + n).re = z.re + n),
-  rw (by ring : (z.re + ↑n) * (z.re + ↑n) = z.re * z.re + 2 * n * z.re + n * n),
-  have : 0 ≤  2 * ↑n * z.re + ↑n * ↑n := int.non_neg_of_lt_half n (z.re) hz.2,
-  have : 0 ≤  2 * ↑n * z.re + ↑n * ↑n,
-  { convert nneg_mul_add_sq_of_abs_le_one n (2*z.re) _ using 1,
-    { ring, },
-    rw _root_.abs_mul,
-    norm_num,
-    have := hz.2,
-    nlinarith, },
-  { simp, },
-  { ring_nf, },
+  have hz₁ : 1 < z.re * z.re + z.im * z.im := hz.1,
+  have hz₂ : |2 * z.re| ≤ 1,
+  { rw [_root_.abs_mul, _root_.abs_two, ← le_div_iff' (@two_pos ℝ _ _)],
+    exact hz.2.le, },
+  have hzn := int.nneg_mul_add_sq_of_abs_le_one n (2*z.re) hz₂,
+  suffices : 1 < (z.re + ↑n) * (z.re + ↑n) + z.im * z.im, { simpa [coe_T_zpow, norm_sq], },
+  linarith,
 end
 
 /-- If `c=1`, then `[[1,-a],[0,1]]*g = S * [[1,d],[0,1]]`. -/

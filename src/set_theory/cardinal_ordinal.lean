@@ -479,7 +479,7 @@ of the cardinalities of `α` and `β`. -/
 theorem add_eq_max {a b : cardinal} (ha : ω ≤ a) : a + b = max a b :=
 le_antisymm
   (add_eq_self (le_trans ha (le_max_left a b)) ▸
-    add_le_add (le_max_left _ _) (le_max_right _ _)) $
+    left.add_le_add (le_max_left _ _) (le_max_right _ _)) $
 max_le (self_le_add_right _ _) (self_le_add_left _ _)
 
 theorem add_eq_max' {a b : cardinal} (ha : ω ≤ b) : a + b = max a b :=
@@ -504,11 +504,11 @@ end
 
 theorem add_le_of_le {a b c : cardinal} (hc : ω ≤ c)
   (h1 : a ≤ c) (h2 : b ≤ c) : a + b ≤ c :=
-(add_le_add h1 h2).trans $ le_of_eq $ add_eq_self hc
+(left.add_le_add h1 h2).trans $ le_of_eq $ add_eq_self hc
 
 theorem add_lt_of_lt {a b c : cardinal} (hc : ω ≤ c)
   (h1 : a < c) (h2 : b < c) : a + b < c :=
-lt_of_le_of_lt (add_le_add (le_max_left a b) (le_max_right a b)) $
+lt_of_le_of_lt (left.add_le_add (le_max_left a b) (le_max_right a b)) $
 (lt_or_le (max a b) ω).elim
   (λ h, lt_of_lt_of_le (add_lt_omega h h) hc)
   (λ h, by rw add_eq_self h; exact max_lt h1 h2)

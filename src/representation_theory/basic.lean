@@ -124,8 +124,7 @@ noncomputable def character (g : G) : k := trace k V (as_group_hom k G V g)
 theorem char_one : character k G V 1 = finite_dimensional.finrank k V := by simp
 
 /-- The character of a representation is constant on conjugacy classes. -/
-theorem char_conj (g : G) (h : G) : (character k G V) (h * g * h⁻¹) = (character k G V) g :=
-by simp
+theorem char_conj (g : G) (h : G) : (character k G V) (h * g * h⁻¹) = (character k G V) g := by simp
 
 end character
 

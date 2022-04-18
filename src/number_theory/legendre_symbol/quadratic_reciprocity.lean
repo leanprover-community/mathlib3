@@ -39,23 +39,6 @@ namespace zmod
 
 variables (p q : ℕ) [fact p.prime] [fact q.prime]
 
-/-- A prime `p` that is not 2 satisfies `p % 2 = 1` -/
-lemma nat.prime.mod_two_eq_one_of_not_eq_two {p : ℕ} [pp : fact p.prime] (hp : p ≠ 2) :
-  p % 2 = 1 :=
-or.dcases_on (nat.prime.eq_two_or_odd pp.1)
-             (λ (h : p = 2), absurd h hp) (λ (h : p % 2 = 1), rfl.mpr h)
-
-/-- A prime `p` satisfies `p % 2 = 1` if and only if `p ≠ 2`. -/
-lemma nat.prime.mod_two_eq_one_iff_not_eq_two {p : ℕ} [pp : fact p.prime] : p % 2 = 1 ↔ p ≠ 2 :=
-begin
-  split,
-  { intros h hf,
-    simp [hf] at h,
-    exact h, },
-  { intro h,
-    exact nat.prime.mod_two_eq_one_of_not_eq_two h, },
-end
-
 /-- Euler's Criterion: A unit `x` of `zmod p` is a square if and only if `x ^ (p / 2) = 1`. -/
 lemma euler_criterion_units (x : (zmod p)ˣ) :
   (∃ y : (zmod p)ˣ, y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
@@ -177,7 +160,7 @@ lemma gauss_lemma {a : ℤ} (hp : p ≠ 2) (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym p a = (-1) ^ ((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card :=
 begin
-  haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_of_not_eq_two hp⟩,
+  haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
   have : (legendre_sym p a : zmod p) = (((-1)^((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card : ℤ) : zmod p) :=
     by { rw [legendre_sym_eq_pow, legendre_symbol.gauss_lemma_aux p ha0]; simp },
@@ -199,7 +182,7 @@ end
 lemma eisenstein_lemma (hp : p ≠ 2) {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym p a = (-1)^∑ x in Ico 1 (p / 2).succ, (x * a) / p :=
 begin
-  haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_of_not_eq_two hp⟩,
+  haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
   have ha0' : ((a : ℤ) : zmod p) ≠ 0 := by { norm_cast, exact ha0 },
   rw [neg_one_pow_eq_pow_mod_two, gauss_lemma p hp ha0', neg_one_pow_eq_pow_mod_two,
       (by norm_cast : ((a : ℤ) : zmod p) = (a : zmod p)),
@@ -211,13 +194,13 @@ theorem quadratic_reciprocity (hp1 : p ≠ 2) (hq1 : q ≠ 2) (hpq : p ≠ q) :
   legendre_sym q p * legendre_sym p q = (-1) ^ ((p / 2) * (q / 2)) :=
 have hpq0 : (p : zmod q) ≠ 0, from prime_ne_zero q p hpq.symm,
 have hqp0 : (q : zmod p) ≠ 0, from prime_ne_zero p q hpq,
-by rw [eisenstein_lemma q hq1 (nat.prime.mod_two_eq_one_of_not_eq_two hp1) hpq0,
-       eisenstein_lemma p hp1 (nat.prime.mod_two_eq_one_of_not_eq_two hq1) hqp0,
+by rw [eisenstein_lemma q hq1 (nat.prime.mod_two_eq_one_iff_ne_two.mpr hp1) hpq0,
+       eisenstein_lemma p hp1 (nat.prime.mod_two_eq_one_iff_ne_two.mpr hq1) hqp0,
   ← pow_add, legendre_symbol.sum_mul_div_add_sum_mul_div_eq_mul q p hpq0, mul_comm]
 
 lemma legendre_sym_two (hp2 : p ≠ 2) : legendre_sym p 2 = (-1) ^ (p / 4 + p / 2) :=
 begin
-  have hp1 := nat.prime.mod_two_eq_one_of_not_eq_two hp2,
+  have hp1 := nat.prime.mod_two_eq_one_iff_ne_two.mpr hp2,
   have hp22 : p / 2 / 2 = _ := legendre_symbol.div_eq_filter_card (show 0 < 2, from dec_trivial)
     (nat.div_le_self (p / 2) 2),
   have hcard : (Ico 1 (p / 2).succ).card = p / 2, by simp,
@@ -261,7 +244,7 @@ begin
   erw [legendre_sym_two p hp1, neg_one_pow_eq_one_iff_even (show (-1 : ℤ) ≠ 1, from dec_trivial),
     even_add, even_div, even_div],
   have := nat.mod_lt p (show 0 < 8, from dec_trivial),
-  have hp := nat.prime.mod_two_eq_one_of_not_eq_two hp1,
+  have hp := nat.prime.mod_two_eq_one_iff_ne_two.mpr hp1,
   revert this hp,
   erw [hpm4, hpm2],
   generalize hm : p % 8 = m, unfreezingI {clear_dependent p},

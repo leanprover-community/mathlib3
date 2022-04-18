@@ -207,20 +207,24 @@ def lift_nc_ring_hom (f : k →+* R) (g : G →* R) (h_comm : ∀ x y, commute (
 
 end semiring
 
-instance [comm_semiring k] [comm_monoid G] : comm_semiring (monoid_algebra k G) :=
+instance [comm_semiring k] [comm_semigroup G] : non_unital_comm_semiring (monoid_algebra k G) :=
 { mul_comm := assume f g,
   begin
     simp only [mul_def, finsupp.sum, mul_comm],
     rw [finset.sum_comm],
     simp only [mul_comm]
   end,
-  .. monoid_algebra.semiring }
+  .. monoid_algebra.non_unital_semiring }
 
 instance [semiring k] [nontrivial k] [nonempty G]: nontrivial (monoid_algebra k G) :=
 finsupp.nontrivial
 
 /-! #### Derived instances -/
 section derived_instances
+
+instance [comm_semiring k] [comm_monoid G] : comm_semiring (monoid_algebra k G) :=
+{ .. monoid_algebra.non_unital_comm_semiring,
+  .. monoid_algebra.semiring }
 
 instance [semiring k] [subsingleton k] : unique (monoid_algebra k G) :=
 finsupp.unique_of_right
@@ -244,8 +248,13 @@ instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
 { .. monoid_algebra.non_unital_non_assoc_ring,
   .. monoid_algebra.semiring }
 
+instance [comm_ring k] [comm_semigroup G] : non_unital_comm_ring (monoid_algebra k G) :=
+{ .. monoid_algebra.non_unital_comm_semiring,
+  .. monoid_algebra.non_unital_ring }
+
 instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
-{ mul_comm := mul_comm, .. monoid_algebra.ring}
+{ .. monoid_algebra.non_unital_comm_ring,
+  .. monoid_algebra.ring }
 
 variables {S : Type*}
 
@@ -1000,15 +1009,19 @@ def lift_nc_ring_hom (f : k →+* R) (g : multiplicative G →* R)
 
 end semiring
 
-instance [comm_semiring k] [add_comm_monoid G] : comm_semiring (add_monoid_algebra k G) :=
+instance [comm_semiring k] [add_comm_semigroup G] : non_unital_comm_semiring (add_monoid_algebra k G) :=
 { mul_comm := @mul_comm (monoid_algebra k $ multiplicative G) _,
-  .. add_monoid_algebra.semiring }
+  .. add_monoid_algebra.non_unital_semiring }
 
 instance [semiring k] [nontrivial k] [nonempty G] : nontrivial (add_monoid_algebra k G) :=
 finsupp.nontrivial
 
 /-! #### Derived instances -/
 section derived_instances
+
+instance [comm_semiring k] [add_comm_monoid G] : comm_semiring (add_monoid_algebra k G) :=
+{ .. add_monoid_algebra.non_unital_comm_semiring,
+  .. add_monoid_algebra.semiring }
 
 instance [semiring k] [subsingleton k] : unique (add_monoid_algebra k G) :=
 finsupp.unique_of_right
@@ -1032,8 +1045,13 @@ instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
 { .. add_monoid_algebra.non_unital_non_assoc_ring,
   .. add_monoid_algebra.semiring }
 
+instance [comm_ring k] [add_comm_semigroup G] : non_unital_comm_ring (add_monoid_algebra k G) :=
+{ .. add_monoid_algebra.non_unital_comm_semiring,
+  .. add_monoid_algebra.non_unital_ring }
+
 instance [comm_ring k] [add_comm_monoid G] : comm_ring (add_monoid_algebra k G) :=
-{ mul_comm := mul_comm, .. add_monoid_algebra.ring}
+{ .. add_monoid_algebra.non_unital_comm_ring,
+  .. add_monoid_algebra.ring }
 
 variables {S : Type*}
 

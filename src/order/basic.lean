@@ -94,7 +94,7 @@ alias decidable.lt_or_eq_of_le ← has_le.le.lt_or_eq_dec
 
 alias le_of_lt        ← has_lt.lt.le
 alias lt_trans        ← has_lt.lt.trans
-alias lt_trans        ← has_lt.lt.trans'
+alias lt_trans'       ← has_lt.lt.trans'
 alias lt_of_lt_of_le  ← has_lt.lt.trans_le
 alias lt_of_lt_of_le' ← has_lt.lt.trans_le'
 alias ne_of_lt        ← has_lt.lt.ne

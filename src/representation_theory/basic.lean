@@ -215,8 +215,6 @@ instance tensor_rep_distrib_mul_action : distrib_mul_action G (V ⊗[k,G] W) :=
 lemma tensor_rep_def (g : G) (x : V ⊗[k,G] W) : g • x = tensor_product.map
   (to_module_End k V g) (to_module_End k W g) x := rfl
 
-lemma tensor_rep_def' (g : G) (v : V) (w : W) : g • (v ⊗ₜ[k,G] w) = (g • v) ⊗ₜ[k,G] (g • w) := rfl
-
 instance tensor_rep_smul_comm_class : smul_comm_class G k (V ⊗[k,G] W) :=
 {smul_comm := λ g r x, by simp only [tensor_rep_def, map_smulₛₗ, ring_hom.id_apply]}
 

@@ -189,6 +189,28 @@ monotone.map_max cast_mono
   ((|q| : ℤ) : α) = |q| :=
 by simp [abs_eq_max_neg]
 
+lemma cast_one_le_of_pos {α : Type*} [linear_ordered_ring α] {n : ℤ} (hn : 0 < n) :
+  (1 : α) ≤ n := by exact_mod_cast int.add_one_le_of_lt hn
+
+lemma cast_le_neg_one_of_neg {α : Type*} [linear_ordered_ring α] {n : ℤ} (hn : n < 0) :
+  (n : α) ≤ -1 := by exact_mod_cast int.le_sub_one_of_lt hn
+
+lemma nneg_mul_add_sq_of_abs_le_one {α : Type*} [linear_ordered_ring α] (n : ℤ) (x : α)
+  (hx : |x| ≤ 1) : (0 : α) ≤ n * x + n * n :=
+begin
+  have hnx : 0 < n → 0 ≤ x + n := λ hn, by
+  { convert add_le_add (neg_le_of_abs_le hx) (cast_one_le_of_pos hn),
+    rw add_left_neg, },
+  have hnx' : n < 0 → x + n ≤ 0 := λ hn, by
+  { convert add_le_add (le_of_abs_le hx) (cast_le_neg_one_of_neg hn),
+    rw add_right_neg, },
+  rw [← mul_add, mul_nonneg_iff],
+  rcases lt_trichotomy n 0 with h | rfl | h,
+  { exact or.inr ⟨by exact_mod_cast h.le, hnx' h⟩, },
+  { simp [le_total 0 x], },
+  { exact or.inl ⟨by exact_mod_cast h.le, hnx h⟩, },
+end
+
 lemma cast_nat_abs {R : Type*} [linear_ordered_ring R] : ∀ (n : ℤ), (n.nat_abs : R) = |n|
 | (n : ℕ) := by simp only [int.nat_abs_of_nat, int.cast_coe_nat, nat.abs_cast]
 | -[1+n]  := by simp only [int.nat_abs, int.cast_neg_succ_of_nat, abs_neg,

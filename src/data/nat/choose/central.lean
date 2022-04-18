@@ -152,16 +152,15 @@ lemma prime_le_three_is_two : ∀ {p : ℕ} (hp : prime p) (p_small : p < 3), p 
 lemma multiplicity_central_binom_of_large_eq_zero
   {p : nat} (hp : p.prime)
   {n : nat} (n_big : 2 < n)
-  (p_le_n : p ≤ n) (big : 2 * n < 3 * p)
-  : padic_val_nat p (central_binom n) = 0 :=
+  (p_le_n : p ≤ n) (big : 2 * n < 3 * p) : 
+  padic_val_nat p (central_binom n) = 0 :=
 begin
   rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_ne_zero n),
   unfold central_binom,
   have two_n_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
   simp only [
     nat.prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
-    two_n_sub, ←two_mul, finset.card_eq_zero, enat.get_coe', finset.filter_congr_decidable
-  ],
+    two_n_sub, ←two_mul, finset.card_eq_zero, enat.get_coe', finset.filter_congr_decidable],
   clear two_n_sub,
 
   have three_lt_p : 3 ≤ p,

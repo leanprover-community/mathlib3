@@ -177,25 +177,29 @@ by rw [← cast_zero, cast_lt]
 @[simp] theorem cast_lt_zero [ordered_ring α] [nontrivial α] {n : ℤ} : (n : α) < 0 ↔ n < 0 :=
 by rw [← cast_zero, cast_lt]
 
-@[simp, norm_cast] theorem cast_min [linear_ordered_ring α] {a b : ℤ} :
+section linear_ordered_ring
+
+variables [linear_ordered_ring α]
+
+@[simp, norm_cast] theorem cast_min {a b : ℤ} :
   (↑(min a b) : α) = min a b :=
 monotone.map_min cast_mono
 
-@[simp, norm_cast] theorem cast_max [linear_ordered_ring α] {a b : ℤ} :
+@[simp, norm_cast] theorem cast_max {a b : ℤ} :
   (↑(max a b) : α) = max a b :=
 monotone.map_max cast_mono
 
-@[simp, norm_cast] theorem cast_abs [linear_ordered_ring α] {q : ℤ} :
+@[simp, norm_cast] theorem cast_abs {q : ℤ} :
   ((|q| : ℤ) : α) = |q| :=
 by simp [abs_eq_max_neg]
 
-lemma cast_one_le_of_pos {α : Type*} [linear_ordered_ring α] {n : ℤ} (hn : 0 < n) :
+lemma cast_one_le_of_pos {n : ℤ} (hn : 0 < n) :
   (1 : α) ≤ n := by exact_mod_cast int.add_one_le_of_lt hn
 
-lemma cast_le_neg_one_of_neg {α : Type*} [linear_ordered_ring α] {n : ℤ} (hn : n < 0) :
+lemma cast_le_neg_one_of_neg {n : ℤ} (hn : n < 0) :
   (n : α) ≤ -1 := by exact_mod_cast int.le_sub_one_of_lt hn
 
-lemma nneg_mul_add_sq_of_abs_le_one {α : Type*} [linear_ordered_ring α] (n : ℤ) (x : α)
+lemma nneg_mul_add_sq_of_abs_le_one (n : ℤ) (x : α)
   (hx : |x| ≤ 1) : (0 : α) ≤ n * x + n * n :=
 begin
   have hnx : 0 < n → 0 ≤ x + n := λ hn, by
@@ -211,10 +215,12 @@ begin
   { exact or.inl ⟨by exact_mod_cast h.le, hnx h⟩, },
 end
 
-lemma cast_nat_abs {R : Type*} [linear_ordered_ring R] : ∀ (n : ℤ), (n.nat_abs : R) = |n|
+lemma cast_nat_abs : ∀ (n : ℤ), (n.nat_abs : α) = |n|
 | (n : ℕ) := by simp only [int.nat_abs_of_nat, int.cast_coe_nat, nat.abs_cast]
 | -[1+n]  := by simp only [int.nat_abs, int.cast_neg_succ_of_nat, abs_neg,
                            ← nat.cast_succ, nat.abs_cast]
+
+end linear_ordered_ring
 
 lemma coe_int_dvd [comm_ring α] (m n : ℤ) (h : m ∣ n) :
   (m : α) ∣ (n : α) :=

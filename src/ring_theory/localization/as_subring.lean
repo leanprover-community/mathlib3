@@ -32,16 +32,16 @@ noncomputable def subring (hS : S ≤ A⁰) : subring K :=
 (is_localization.lift
   (λ s, by apply is_localization.map_units K ⟨s.1, hS s.2⟩) : localization S →+* K).range
 
+def subalgebra (hS : S ≤ A⁰) : subalgebra A K :=
+{ algebra_map_mem' := λ a, ⟨algebra_map A _ a, is_localization.lift_eq _ _⟩ .. subring K S hS }
+
 namespace subring
 
 lemma mem_iff (x : K) :
-  x ∈ subring K S hS ↔ ∃ (a : A) (s : S), x * algebra_map A K s = algebra_map A K a :=
-⟨ begin
-    rintro ⟨y,rfl⟩, obtain ⟨w,h⟩ := is_localization.surj S y, use [w.1, w.2],
-    convert ← congr_arg (is_localization.lift _) h using 1,
-    { rw map_mul, congr, apply is_localization.lift_eq }, apply is_localization.lift_eq,
-  end,
-  λ ⟨a,s,h⟩, ⟨ is_localization.mk' _ a s, by rw [is_localization.lift_mk'_spec, mul_comm, h] ⟩ ⟩
+  x ∈ subring K S hS ↔ ∃ (a : A) (s : S), x = is_localization.mk' K a ⟨s, hS s.2⟩ :=
+⟨ by { rintro ⟨x,rfl⟩, obtain ⟨a,s,rfl⟩ := is_localization.mk'_surjective S x,
+    use [a, s], apply is_localization.lift_mk' },
+  by { rintro ⟨a,s,rfl⟩, use is_localization.mk' _ a s, apply is_localization.lift_mk' } ⟩
 
 noncomputable instance algebra : algebra A (subring K S hS) :=
 ((algebra_map A K).cod_restrict' (subring K S hS) $
@@ -76,12 +76,10 @@ namespace subring
 lemma mem_iff_of_field (x : K) :
   x ∈ subring K S hS ↔ ∃ (a s : A) (hs : s ∈ S), x = algebra_map A K a * (algebra_map A K s)⁻¹ :=
 begin
-  rw mem_iff, haveI := (algebra_map A K).domain_nontrivial,
-  split,
-  { rintro ⟨a,s,h⟩, use [a, s, s.2], rw eq_mul_inv_iff_mul_eq₀,
-    exacts [h, is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors (hS s.2)] },
-  { rintro ⟨a,s,hs,he⟩, use [a, ⟨s,hs⟩], rw ← eq_mul_inv_iff_mul_eq₀,
-    exacts [he, is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors (hS hs)] },
+  rw mem_iff, unfold is_localization.mk' submonoid.localization_map.mk',
+  simp_rw units.coe_inv', split,
+  { rintro ⟨a,⟨s,hs⟩,rfl⟩, rw is_unit.coe_lift_right, exact ⟨a,s,hs,rfl⟩ },
+  { rintro ⟨a,s,hs,rfl⟩, use [a,s,hs], rw is_unit.coe_lift_right, refl },
 end
 
 end subring

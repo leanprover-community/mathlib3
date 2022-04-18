@@ -87,10 +87,9 @@ begin
     { simp only [h, inner_zero_left, zero_div, zero_mul, sub_zero], },
     { rw [← inner_self_eq_norm_sq_to_K, div_mul_cancel, sub_self],
       rwa [ne.def, inner_self_eq_zero], }, },
-  intros i hi hia,
+  simp_intros i hi hia only [finset.mem_range],
   simp only [mul_eq_zero, div_eq_zero_iff, inner_self_eq_zero],
   right,
-  rw finset.mem_range at hi,
   cases hia.lt_or_lt with hia₁ hia₂,
   { rw inner_eq_zero_sym,
     exact hc a h₀ i a hia₁ le_rfl, },
@@ -150,7 +149,7 @@ begin
       apply smul_mem _ _ _,
       refine subset_span _,
       simp only [mem_image, mem_Iic],
-      refine ⟨a, by linarith, by refl⟩, },
+      exact ⟨a, by linarith, by refl⟩, },
     change linear_independent 𝕜 (f ∘ (coe : fin (n + 2) → ℕ)) at h₀,
     have h₄ : ((n + 1) : fin (n + 2)) ∉ (coe : fin (n + 2) → ℕ) ⁻¹' (Iic n),
     { simp only [mem_preimage, mem_Iic, not_le],
@@ -170,12 +169,7 @@ end
 /-- If the input of gram_schmidt is linearly independent, then output is non-zero -/
 lemma gram_schmidt_ne_zero' (f : ℕ → E) (h₀ : linear_independent 𝕜 f) (n : ℕ) :
   gram_schmidt 𝕜 f n ≠ 0 :=
-begin
-  apply gram_schmidt_ne_zero 𝕜 f n,
-  apply linear_independent.comp,
-  { exact h₀, },
-  { exact fin.coe_injective, },
-end
+gram_schmidt_ne_zero 𝕜 f n (linear_independent.comp h₀ _ (fin.coe_injective))
 
 /-- Normalized Gram-Schmidt process
 (i.e each vector in 'gram_schmidt_normed` has unit length) -/

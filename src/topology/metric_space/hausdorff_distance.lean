@@ -789,7 +789,7 @@ end --section
 
 section thickening
 
-variables {α : Type u} [pseudo_emetric_space α]
+variables {α : Type u} [pseudo_emetric_space α] {δ : ℝ}
 
 open emetric
 
@@ -871,7 +871,7 @@ end thickening --section
 
 section cthickening
 
-variables {α : Type*} [pseudo_emetric_space α]
+variables {α : Type*} [pseudo_emetric_space α] {δ ε : ℝ} {s : set α} {x : α}
 
 open emetric
 
@@ -1139,8 +1139,9 @@ begin
   refine le_of_forall_lt' (λ r h, _),
   simp_rw [←lt_tsub_iff_right, inf_edist_lt_iff, mem_cthickening_iff] at h,
   obtain ⟨y, hy, hxy⟩ := h,
-  refine inf_edist_le_edist_add_inf_edist.trans_lt _,
-  sorry, sorry -- done
+  exact inf_edist_le_edist_add_inf_edist.trans_lt ((ennreal.add_lt_add_of_lt_of_le
+    (hy.trans_lt ennreal.of_real_lt_top).ne hxy hy).trans_le
+    (tsub_add_cancel_of_le $ le_self_add.trans (lt_tsub_iff_left.1 hxy).le).le),
 end
 
 lemma inf_edist_le_inf_edist_thickening_add :
@@ -1169,8 +1170,8 @@ begin
   simp_rw [mem_thickening_iff_exists_edist_lt, mem_cthickening_iff, ←inf_edist_lt_iff,
     ennreal.of_real_add hε hδ],
   rintro ⟨y, hy, hxy⟩,
-  refine inf_edist_le_edist_add_inf_edist.trans_lt sorry,
-  sorry -- done by `with_top.add_lt_add_of_lt_of_le`
+  exact inf_edist_le_edist_add_inf_edist.trans_lt
+    (ennreal.add_lt_add_of_lt_of_le (hy.trans_lt ennreal.of_real_lt_top).ne hxy hy),
 end
 
 @[simp] lemma cthickening_thickening_subset (hε : 0 ≤ ε) (δ : ℝ) (s : set α) :

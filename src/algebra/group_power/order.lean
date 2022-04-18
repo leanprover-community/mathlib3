@@ -31,7 +31,7 @@ attribute [mono] nsmul_le_nsmul_of_le_right
 @[to_additive nsmul_nonneg]
 theorem one_le_pow_of_one_le' {a : M} (H : 1 ≤ a) : ∀ n : ℕ, 1 ≤ a ^ n
 | 0       := by simp
-| (k + 1) := by { rw pow_succ, exact one_le_mul' H (one_le_pow_of_one_le' k) }
+| (k + 1) := by { rw pow_succ, exact one_le_mul H (one_le_pow_of_one_le' k) }
 
 @[to_additive nsmul_nonpos]
 theorem pow_le_one' {a : M} (H : a ≤ 1) (n : ℕ) : a ^ n ≤ 1 :=

@@ -670,27 +670,27 @@ lemma right.one_lt_mul' [covariant_class α α (swap (*)) (≤)]
   {a b : α} (ha : 1 < a) (hb : 1 < b) : 1 < a * b :=
 lt_mul_of_one_lt_of_lt' ha hb
 
-alias left.mul_le_one               ← mul_le_one'
-alias left.add_nonpos               ← add_nonpos
-alias left.mul_lt_one_of_le_of_lt   ← mul_lt_one_of_le_of_lt
-alias left.add_neg_of_nonpos_of_neg ← add_neg_of_nonpos_of_neg
-alias left.mul_lt_one_of_lt_of_le   ← mul_lt_one_of_lt_of_le
-alias left.add_neg_of_neg_of_nonpos ← add_neg_of_neg_of_nonpos
-alias left.mul_lt_one               ← mul_lt_one
-alias left.add_neg                  ← add_neg
-alias left.mul_lt_one'              ← mul_lt_one'
-alias left.add_neg'                 ← add_neg'
+alias left.mul_le_one             ← mul_le_one'
+alias left.mul_lt_one_of_le_of_lt ← mul_lt_one_of_le_of_lt
+alias left.mul_lt_one_of_lt_of_le ← mul_lt_one_of_lt_of_le
+alias left.mul_lt_one             ← mul_lt_one
+alias left.mul_lt_one'            ← mul_lt_one'
+attribute [to_additive add_nonpos] mul_le_one'
+attribute [to_additive add_neg_of_nonpos_of_neg] mul_lt_one_of_le_of_lt
+attribute [to_additive add_neg_of_neg_of_nonpos] mul_lt_one_of_lt_of_le
+attribute [to_additive] mul_lt_one
+attribute [to_additive] mul_lt_one'
 
-alias left.one_le_mul               ← one_le_mul
-alias left.add_nonneg               ← add_nonneg
-alias left.one_lt_mul_of_le_of_lt   ← one_lt_mul_of_le_of_lt'
-alias left.add_pos_of_nonneg_of_pos ← add_pos_of_nonneg_of_pos
-alias left.one_lt_mul_of_lt_of_le   ← one_lt_mul_of_lt_of_le'
-alias left.add_pos_of_pos_of_nonneg ← add_pos_of_pos_of_nonneg
-alias left.one_lt_mul               ← one_lt_mul'
-alias left.add_pos                  ← add_pos
-alias left.one_lt_mul'              ← one_lt_mul''
-alias left.add_pos'                 ← add_pos'
+alias left.one_le_mul             ← one_le_mul
+alias left.one_lt_mul_of_le_of_lt ← one_lt_mul_of_le_of_lt'
+alias left.one_lt_mul_of_lt_of_le ← one_lt_mul_of_lt_of_le'
+alias left.one_lt_mul             ← one_lt_mul'
+alias left.one_lt_mul'            ← one_lt_mul''
+attribute [to_additive add_nonneg] one_le_mul
+attribute [to_additive add_pos_of_nonneg_of_pos] one_lt_mul_of_le_of_lt'
+attribute [to_additive add_pos_of_pos_of_nonneg] one_lt_mul_of_lt_of_le'
+attribute [to_additive add_pos] one_lt_mul'
+attribute [to_additive add_pos'] one_lt_mul''
 
 @[to_additive]
 lemma lt_of_mul_lt_of_one_le_left [covariant_class α α (*) (≤)]

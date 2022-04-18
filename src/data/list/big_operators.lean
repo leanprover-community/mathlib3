@@ -260,7 +260,7 @@ begin
   -- [covariant_class M M (function.swap (*)) (≤)]
   induction l with hd tl ih, { refl },
   rw prod_cons,
-  exact one_le_mul' (hl₁ hd (mem_cons_self hd tl)) (ih (λ x h, hl₁ x (mem_cons_of_mem hd h)))
+  exact one_le_mul (hl₁ hd (mem_cons_self hd tl)) (ih (λ x h, hl₁ x (mem_cons_of_mem hd h)))
 end
 
 end monoid

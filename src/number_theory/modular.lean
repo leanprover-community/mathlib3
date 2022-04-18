@@ -355,6 +355,14 @@ localized "notation `𝒟` := modular_group.fundamental_domain" in modular
 
 localized "notation `𝒟ᵒ` := fundamental_domain_open" in modular
 
+lemma three_lt_four_mul_im_sq_of_mem_fdo {z : ℍ} (h : z ∈ 𝒟ᵒ) : 3 < 4 * z.im^2 :=
+begin
+  have : 1 < z.re * z.re + z.im * z.im := by simpa [complex.norm_sq_apply] using h.1,
+  have := h.2,
+  cases abs_cases z.re;
+  nlinarith,
+end
+
 /-- If `|z| < 1`, then applying `S` strictly decreases `im` -/
 lemma im_lt_im_S_smul {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=
 begin
@@ -409,64 +417,33 @@ begin
       simp [T', sub_eq_add_neg] } }
 end
 
-
-/-- Crucial lemma showing that if `c ≠ 0`, then `3/4 < 4/(3 c^4)` -/
-lemma ineq_1 (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) (c_ne_z : ↑ₘg 1 0 ≠ 0) :
-  (3 : ℝ) / 4 < 4 / (3 * (↑ₘg 1 0) ^ 4) :=
+lemma abs_c_le_one (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) :
+  |↑ₘg 1 0| ≤ 1 :=
 begin
-  have z_im := z.im_ne_zero,
-  have c_4_pos : (0 : ℝ) < (↑ₘg 1 0)^4,
-    exact_mod_cast (by simp: even 4).pow_pos c_ne_z ,
-  /- Any point `w∈𝒟ᵒ` has imaginary part at least `sqrt (3/4)` -/
-  have ImGeInD : ∀ (w : ℍ), w ∈ 𝒟ᵒ → 3/4 < (w.im)^2,
-  { intros w hw,
-    have : 1 < w.re * w.re + w.im * w.im := by simpa [complex.norm_sq_apply] using hw.1,
-    have := hw.2,
-    cases abs_cases w.re; nlinarith, },
-  /- The next argument is simply that `c^2 y^2 ≤ |c z + d|^2`. -/
-  have czPdGecy : (↑ₘg 1 0 : ℝ)^2 * (z.im)^2 ≤ norm_sq (denom g z) :=
-    calc
-    (↑ₘg 1 0 : ℝ)^2 * (z.im)^2 ≤ (↑ₘg 1 0 : ℝ)^2 * (z.im)^2 + (↑ₘg 1 0 * z.re + ↑ₘg 1 1)^2 :
-      by nlinarith
-    ... = norm_sq (denom g z) : by simp [norm_sq]; ring,
-  have zIm : (3 : ℝ) / 4 < (z.im)^2 := ImGeInD _ hz,
-  /- This is the main calculation:
-  `sqrt 3 / 2 < Im(g•z) = Im(z)/|cz+d|^2 ≤ y/(c^2 y^2) < 2/(c^2 sqrt 3)`
-  -/
-  calc
-  (3 : ℝ) / 4 < ((g • z).im) ^ 2 : ImGeInD _ hg
-  ... = (z.im) ^ 2 / (norm_sq (denom g z)) ^ 2 : _
-  ... ≤ (1 : ℝ) / ((↑ₘg 1 0) ^ 4 * (z.im) ^ 2) : _
-  ... < (4 : ℝ) / (3 * (↑ₘg 1 0) ^ 4) : _,
-  { convert congr_arg (λ (x:ℝ), x ^ 2) (im_smul_eq_div_norm_sq g z) using 1,
-    exact (div_pow _ _ 2).symm, },
-  { rw div_le_div_iff,
-    convert pow_le_pow_of_le_left _ czPdGecy 2 using 1;
-    ring_nf,
-    { nlinarith, },
-    { exact pow_two_pos_of_ne_zero _ (norm_sq_denom_ne_zero g z), },
-    { nlinarith, }, },
-  { rw div_lt_div_iff,
-    repeat {nlinarith}, },
-end
+  let c' : ℤ := ↑ₘg 1 0,
+  let c : ℝ := (c' : ℝ),
 
-/-- Knowing that `3/4 < 4/(3c^4)` from `ineq_1`, and `c≠0`, we conclude that `c = ±1`. -/
-lemma ineq_2 (c : ℤ) (hc₁ : (3 : ℝ)/4 < 4/ (3* c^4)) (hc₂ : c ≠ 0) : c = 1 ∨ c = -1 :=
-begin
-  rcases le_or_gt (|c|) 1 with h | (h : 2 ≤ |c|),
-  { -- case |c| ≤ 1
-    obtain ⟨h1c, hc1⟩ : -1 ≤ c ∧ c ≤ 1 := abs_le.mp h,
-    interval_cases c; tauto },
-  { -- case 2 ≤ |c|
-    exfalso,
-    have : 2^4 ≤ c^4,
-    { refine pow_four_le_pow_four _,
-      convert h using 1, },
-    have : (2:ℝ)^4 ≤ c^4,
-    { norm_cast,
-      convert this using 1, },
-    have := (div_lt_div_iff _ _).mp hc₁,
-    repeat {linarith}, },
+  suffices : 3 * c^2 < 4,
+  { rw [← int.cast_pow, ← int.cast_three, ← int.cast_four, ← int.cast_mul, int.cast_lt] at this,
+    replace this : c'^2 ≤ 1^2, { linarith, },
+    rw ← _root_.abs_one,
+    exact abs_le_abs_of_sq_le_sq this, },
+
+  suffices : c ≠ 0 → 9 * c^4 < 16,
+  { rcases eq_or_ne c 0 with hc | hc,
+    { rw hc, norm_num, },
+    { refine (abs_lt_of_sq_lt_sq' _ (by norm_num)).2,
+      specialize this hc,
+      linarith, }, },
+  intros hc,
+  replace hc : 0 < c^4, { rw pow_bit0_pos_iff; trivial, },
+
+  have h₂ : (c * (z.im))^2 ≤ norm_sq (denom g z) := upper_half_plane.c_mul_im_sq_le_norm_sq_denom z g,
+  replace h₂ := div_le_one_of_le (pow_four_le_pow_two_of_pow_two_le h₂) (sq_nonneg _),
+
+  calc 9 * c^4 < c^4 * z.im^2 * (g • z).im^2 * 16 : by { have := mul_lt_mul_of_pos_right (mul_lt_mul'' (three_lt_four_mul_im_sq_of_mem_fdo hg) (three_lt_four_mul_im_sq_of_mem_fdo hz) (by linarith) (by linarith)) hc, linarith, }
+           ... = c^4 * z.im^4 / (norm_sq (denom g z))^2 * 16 : by { rw [im_smul_eq_div_norm_sq g z, div_pow], ring, }
+           ... ≤ 16 : by { rw ← mul_pow, linarith, },
 end
 
 lemma coe_T : ↑ₘT = ![![1, 1], ![0, 1]] := rfl
@@ -614,15 +591,15 @@ begin
   { -- case `c ≠ 0`
     exfalso,
     -- argue first that `c=± 1`
-    have := ineq_2 _ (ineq_1 z g hz hg h) h,
     -- then show this is impossible
-    cases this with hc,
+    rcases (int.abs_le_one_iff.mp $ abs_c_le_one z g hz hg) with hc | hc | hc,
+    { contradiction, },
     { -- `c = 1`
       exact c_ne_one hz hg  hc, },
     { -- `c = -1`
       have neg_c_one : ↑ₘ(-g) 1 0 = 1,
-      { have := eq_neg_of_eq_neg this,
-        simp [this], },
+      { have := eq_neg_of_eq_neg hc,
+        simp [hc], },
       have neg_g_𝒟 : (-g) • z ∈ 𝒟ᵒ,
       { convert hg using 1,
         simp, },

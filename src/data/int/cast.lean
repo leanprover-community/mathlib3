@@ -143,6 +143,10 @@ by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
 lemma cast_two [ring α] : ((2 : ℤ) : α) = 2 := by simp
 
+lemma cast_three [ring α] : ((3 : ℤ) : α) = 3 := by simp
+
+lemma cast_four [ring α] : ((4 : ℤ) : α) = 4 := by simp
+
 theorem cast_mono [ordered_ring α] : monotone (coe : ℤ → α) :=
 begin
   intros m n h,
@@ -194,13 +198,15 @@ monotone.map_max cast_mono
 by simp [abs_eq_max_neg]
 
 lemma cast_one_le_of_pos {n : ℤ} (hn : 0 < n) :
-  (1 : α) ≤ n := by exact_mod_cast int.add_one_le_of_lt hn
+  (1 : α) ≤ n :=
+by exact_mod_cast int.add_one_le_of_lt hn
 
 lemma cast_le_neg_one_of_neg {n : ℤ} (hn : n < 0) :
-  (n : α) ≤ -1 := by exact_mod_cast int.le_sub_one_of_lt hn
+  (n : α) ≤ -1 :=
+by exact_mod_cast int.le_sub_one_of_lt hn
 
-lemma nneg_mul_add_sq_of_abs_le_one (n : ℤ) (x : α)
-  (hx : |x| ≤ 1) : (0 : α) ≤ n * x + n * n :=
+lemma nneg_mul_add_sq_of_abs_le_one (n : ℤ) (x : α) (hx : |x| ≤ 1) :
+  (0 : α) ≤ n * x + n * n :=
 begin
   have hnx : 0 < n → 0 ≤ x + n := λ hn, by
   { convert add_le_add (neg_le_of_abs_le hx) (cast_one_le_of_pos hn),

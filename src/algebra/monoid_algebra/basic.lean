@@ -1009,7 +1009,8 @@ def lift_nc_ring_hom (f : k →+* R) (g : multiplicative G →* R)
 
 end semiring
 
-instance [comm_semiring k] [add_comm_semigroup G] : non_unital_comm_semiring (add_monoid_algebra k G) :=
+instance [comm_semiring k] [add_comm_semigroup G] :
+  non_unital_comm_semiring (add_monoid_algebra k G) :=
 { mul_comm := @mul_comm (monoid_algebra k $ multiplicative G) _,
   .. add_monoid_algebra.non_unital_semiring }
 

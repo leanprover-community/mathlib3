@@ -55,7 +55,8 @@ end
 /-- If the target is an equality, `sort_summands` sorts the summands on either side of the equality.
 -/
 meta def sort_summands (hyp : option name) (cmp_fn : expr → expr → bool) : tactic unit :=
-do
+match hyp with
+| none := do
   t ← target,
   match t.is_eq with
   | none          := fail "The goal is not an equality"
@@ -63,6 +64,16 @@ do
     sorted_sum_with_cmp_fn hyp cmp_fn el,
     sorted_sum_with_cmp_fn hyp cmp_fn er
   end
+| some loc := do
+  cloc ← get_local loc,
+  tloc ← infer_type cloc,
+  match tloc.is_eq with
+  | none          := fail "The target is not an equality"
+  | some (el, er) := do
+    sorted_sum_with_cmp_fn hyp cmp_fn el,
+    sorted_sum_with_cmp_fn hyp cmp_fn er
+  end
+end
 
 end with_cmp_fn
 
@@ -125,21 +136,27 @@ end tactic.interactive
 open polynomial tactic
 open_locale polynomial classical
 
-variables {R : Type*} [semiring R] (f g : R[X]) {r s t u : R} (r0 : t ≠ 0)
+variables {R : Type*} [semiring R] (f g h : R[X]) {r s t u : R} (r0 : t ≠ 0)
 
-example : (monomial 1) u + 5 * X + (g + (monomial 5) 1) + ((monomial 0) s + (monomial 2) t + f) +
-   (monomial 8) 1 = (5 * X + (monomial 8) 1 + (monomial 2) t) + f + g + ((monomial 0) s +
-   (monomial 1) u) + (monomial 5) 1 :=
+example
+  (hp : (monomial 1) u + (g + (monomial 5) 1) + 5 * X + ((monomial 0) s + (monomial 2) t + f) +
+  (monomial 8) 1 = (3 * X + (monomial 8) 1 + (monomial 6) (t + 1)) + f + h + ((monomial 0) s +
+  (monomial 1) u) + (monomial 5) 1) :
+  (monomial 1) u + 5 * X + (g + (monomial 5) 1) + ((monomial 0) s + (monomial 2) t + f) +
+  (monomial 8) 1 = (3 * X + (monomial 8) 1 + (monomial 6) (t + 1)) + f + h + ((monomial 0) s +
+  (monomial 1) u) + (monomial 5) 1 :=
 begin
---  `ac_refl` works and takes 7s,
--- `sort_monomials, refl` takes under 300ms
+  -- `convert hp using 1, ac_refl,` works and takes 6s,
+  -- `sort_monomials at ⊢ up, assumption` takes under 300ms
   sort_monomials,
+  sort_monomials at hp,
+  sort_monomials at ⊢ hp, -- does nothing more
+  assumption,
   -- sort_monomials_lhs, -- LHS and RHS agree here
   -- sort_monomials_rhs, -- Hmm, both sides change?
   --                     -- Probably, due to the `rw` matching both sides of the equality
   -- symmetry,
   -- sort_monomials_lhs, -- Both sides change again.
-  refl,
 end
 
 -- example {R : Type*} [semiring R] (f g : R[X]) {r s t u : R} (r0 : t ≠ 0) :

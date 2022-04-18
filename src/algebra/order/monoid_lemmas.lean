@@ -670,7 +670,7 @@ lemma right.one_lt_mul' [covariant_class α α (swap (*)) (≤)]
   {a b : α} (ha : 1 < a) (hb : 1 < b) : 1 < a * b :=
 lt_mul_of_one_lt_of_lt' ha hb
 
-alias left.mul_le_one               ← mul_le_one
+alias left.mul_le_one               ← mul_le_one'
 alias left.add_nonpos               ← add_nonpos
 alias left.mul_lt_one_of_le_of_lt   ← mul_lt_one_of_le_of_lt
 alias left.add_neg_of_nonpos_of_neg ← add_neg_of_nonpos_of_neg

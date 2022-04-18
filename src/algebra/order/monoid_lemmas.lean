@@ -687,9 +687,9 @@ alias left.one_lt_mul_of_le_of_lt   ← one_lt_mul_of_le_of_lt
 alias left.add_pos_of_nonneg_of_pos ← add_pos_of_nonneg_of_pos
 alias left.one_lt_mul_of_lt_of_le   ← one_lt_mul_of_lt_of_le
 alias left.add_pos_of_pos_of_nonneg ← add_pos_of_pos_of_nonneg
-alias left.one_lt_mul               ← one_lt_mul
+alias left.one_lt_mul               ← one_lt_mul'
 alias left.add_pos                  ← add_pos
-alias left.one_lt_mul'              ← one_lt_mul'
+alias left.one_lt_mul'              ← one_lt_mul''
 alias left.add_pos'                 ← add_pos'
 
 @[to_additive]

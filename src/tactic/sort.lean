@@ -52,8 +52,10 @@ end
 
 -- inductive sort_side | lhs | rhs | both
 
-/-- If the target is an equality, `sort_summands` sorts the summands on either side of the equality.
--/
+/-- If `sl : sort_side` and the target is an equality, `sort_summands sl` sorts the summands on the
+`sl` side of the equality.
+
+`sl` can be `lhs, rhs, both`. -/
 meta def sort_summands (hyp : option name) (cmp_fn : expr → expr → bool) : tactic unit :=
 match hyp with
 | none := do
@@ -118,7 +120,7 @@ private meta def sort_monomials_core (allow_failure : bool) (hyp : option name) 
 if allow_failure then sort_summands hyp compare_fn <|> skip else sort_summands hyp compare_fn
 
 /-- If the target is an equality involving monomials,
-then  `sort_monomials` sorts the summands on either side of the equality. -/
+then `sort_monomials` sorts the summands on either side of the equality. -/
 meta def sort_monomials (locat : parse location) : itactic :=
 match locat with
 | loc.wildcard := do

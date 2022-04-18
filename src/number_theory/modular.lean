@@ -520,16 +520,6 @@ begin
   { exact or.inl ⟨by exact_mod_cast h.le, hnx h⟩, },
 end
 
-/-- Nontrivial lemma: if `|x|<1/2` and `n : ℤ`, then `2nx+n^2 ≥ 0`. (False for `n : ℝ`!) -/
-lemma _root_.int.non_neg_of_lt_half (n : ℤ) (x : ℝ) (hx : |x| < 1/2) : (0:ℝ) ≤ 2 * n * x + n * n :=
-begin
-  convert nneg_mul_add_sq_of_abs_le_one n (2*x) _ using 1,
-  { ring, },
-  rw _root_.abs_mul,
-  norm_num,
-  nlinarith,
-end
-
 /-- If `z∈𝒟ᵒ`, and `n:ℤ`, then `|z+n|>1`. -/
 lemma move_by_T {z : ℍ} (hz : z ∈ 𝒟ᵒ) (n : ℤ) : 1 < norm_sq (((T^n) • z) : ℍ) :=
 begin

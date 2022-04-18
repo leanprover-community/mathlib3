@@ -107,7 +107,10 @@ lemma four_pow_le_two_mul_self_mul_central_binom : ∀ (n : ℕ) (n_pos : 0 < n)
 calc 4 ^ n ≤ n * central_binom n : (four_pow_lt_mul_central_binom _ le_add_self).le
 ... ≤ 2 * n * central_binom n    : by { rw [mul_assoc], refine le_mul_of_pos_left zero_lt_two }
 
-lemma multiplicity_central_binom_le {p : ℕ} (hp : p.prime) {n : ℕ} :
+/--
+A logarithmic upper bound on the multiplicity of a prime in the central binomial coefficient.
+-/
+lemma padic_val_nat_central_binom_le {p : ℕ} (hp : p.prime) {n : ℕ} :
   padic_val_nat p (central_binom n) ≤ log p (2 * n) :=
 begin
   rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_ne_zero n),
@@ -119,7 +122,10 @@ begin
       ... = (log p (2 * n) + 1) - 1                 : nat.card_Ico _ _,
 end
 
-lemma multiplicity_central_binom_of_large_le_one {p : nat} (hp : p.prime) {n : nat}
+/--
+Sufficiently large primes appear only to multiplicity 0 or 1 in the central binomial coefficient.
+-/
+lemma padic_val_nat_central_binom_of_large_le_one {p : nat} (hp : p.prime) {n : nat}
   (p_large : 2 * n < p ^ 2) : (padic_val_nat p (central_binom n)) ≤ 1 :=
 begin
   have log_weak_bound : log p (2 * n) ≤ 2,
@@ -140,7 +146,7 @@ begin
         { rw log_eq_zero (or.inl h),
           exact zero_le 1, }, }, },
 
-  exact le_trans (multiplicity_central_binom_le hp) log_bound,
+  exact le_trans (padic_val_nat_central_binom_le hp) log_bound,
 end
 
 lemma prime_le_three_is_two : ∀ {p : ℕ} (hp : prime p) (p_small : p < 3), p = 2
@@ -149,10 +155,13 @@ lemma prime_le_three_is_two : ∀ {p : ℕ} (hp : prime p) (p_small : p < 3), p 
 | 2 _ _ := rfl
 | (n + 3) _ big := by linarith
 
-lemma multiplicity_central_binom_of_large_eq_zero
+/--
+Sufficiently large primes less than `n` do not appear in the factorisation of `central_binom n`.
+-/
+lemma padic_val_nat_central_binom_of_large_eq_zero
   {p : nat} (hp : p.prime)
   {n : nat} (n_big : 2 < n)
-  (p_le_n : p ≤ n) (big : 2 * n < 3 * p) : 
+  (p_le_n : p ≤ n) (big : 2 * n < 3 * p) :
   padic_val_nat p (central_binom n) = 0 :=
 begin
   rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_ne_zero n),

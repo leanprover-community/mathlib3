@@ -313,7 +313,7 @@ begin
   { simpa only [sub_add_cancel, eq_self_iff_true, forall_true_left, zero_add, smul_zero'] using
       h (sub_nonneg_of_le ha₁) ha₀ },
   { rw [smul_zero', zero_add],
-    exact h hb (by { rw ←hab, exact le_add_of_nonneg_left _ ha }) }
+    exact h hb (by { rw ←hab, exact le_add_of_nonneg_left ha }) }
 end
 
 end add_comm_monoid

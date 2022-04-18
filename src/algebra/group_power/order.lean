@@ -135,7 +135,7 @@ begin
   have h2 := add_nonneg hx hy,
   calc x^n.succ + y^n.succ
     ≤ x*x^n + y*y^n + (x*y^n + y*x^n) :
-      by { rw [pow_succ _ n, pow_succ _ n], exact le_add_of_nonneg_right _ h1 }
+      by { rw [pow_succ _ n, pow_succ _ n], exact le_add_of_nonneg_right h1 }
     ... = (x+y) * (x^n + y^n) :
       by rw [add_mul, mul_add, mul_add, add_comm (y*x^n), ← add_assoc,
         ← add_assoc, add_assoc (x*x^n) (x*y^n), add_comm (x*y^n) (y*y^n), ← add_assoc]

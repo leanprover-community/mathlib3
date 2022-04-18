@@ -231,7 +231,7 @@ lemma zero_of_nonpos (h : x ≤ 0) : smooth_transition x = 0 :=
 by rw [smooth_transition, zero_of_nonpos h, zero_div]
 
 lemma le_one (x : ℝ) : smooth_transition x ≤ 1 :=
-(div_le_one (pos_denom x)).2 $ le_add_of_nonneg_right _ (nonneg _)
+(div_le_one (pos_denom x)).2 $ le_add_of_nonneg_right (nonneg _)
 
 lemma nonneg (x : ℝ) : 0 ≤ smooth_transition x :=
 div_nonneg (exp_neg_inv_glue.nonneg _) (pos_denom x).le

@@ -193,7 +193,7 @@ begin
       tsum_le_tsum ule sNu (summable.mul_right _ summable_geometric_two)
     ... = (∑'n, (1/2)^n) * (C * ∥y∥) : tsum_mul_right
     ... = 2 * C * ∥y∥ : by rw [tsum_geometric_two, mul_assoc]
-    ... ≤ 2 * C * ∥y∥ + ∥y∥ : le_add_of_nonneg_right _ (norm_nonneg y)
+    ... ≤ 2 * C * ∥y∥ + ∥y∥ : le_add_of_nonneg_right (norm_nonneg y)
     ... = (2 * C + 1) * ∥y∥ : by ring,
   have fsumeq : ∀n:ℕ, f (∑ i in finset.range n, u i) = y - (h^[n]) y,
   { assume n,

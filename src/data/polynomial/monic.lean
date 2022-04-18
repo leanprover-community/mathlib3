@@ -249,7 +249,7 @@ have degree p ≤ 0,
         by rw [hm.leading_coeff, one_mul, ne.def, leading_coeff_eq_zero];
           exact hu0,
       by rw [hu, degree_mul' this];
-        exact le_add_of_nonneg_right _ (degree_nonneg_iff_ne_zero.2 hu0)
+        exact le_add_of_nonneg_right (degree_nonneg_iff_ne_zero.2 hu0)
   ... ≤ 0 : degree_one_le,
 by rw [eq_C_of_degree_le_zero this, ← nat_degree_eq_zero_iff_degree_le_zero.2 this,
     ← leading_coeff, hm.leading_coeff, C_1]

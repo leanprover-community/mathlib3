@@ -251,7 +251,7 @@ begin
     calc
       ∥u - v∥ * ∥u - v∥ ≤ ∥u - v∥ * ∥u - v∥ - 2 * inner (u - v) ((w:F) - v) : by linarith
       ... ≤ ∥u - v∥^2 - 2 * inner (u - v) ((w:F) - v) + ∥(w:F) - v∥^2 :
-        by { rw sq, refine le_add_of_nonneg_right _ _, exact sq_nonneg _ }
+        by { rw sq, refine le_add_of_nonneg_right _, exact sq_nonneg _ }
       ... = ∥(u - v) - (w - v)∥^2 : norm_sub_sq.symm
       ... = ∥u - w∥ * ∥u - w∥ :
         by { have : (u - v) - (w - v) = u - w, abel, rw [this, sq] } },

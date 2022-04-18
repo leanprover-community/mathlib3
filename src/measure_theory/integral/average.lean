@@ -152,7 +152,7 @@ begin
   { refine mem_segment_iff_div.mpr ⟨(μ s).to_real, (μ t).to_real, ennreal.to_real_nonneg,
       ennreal.to_real_nonneg, _, (average_union hd ht hsμ htμ hfs hft).symm⟩,
     calc 0 < (μ s).to_real : ennreal.to_real_pos hse hsμ
-    ... ≤ _ : le_add_of_nonneg_right _ ennreal.to_real_nonneg }
+    ... ≤ _ : le_add_of_nonneg_right ennreal.to_real_nonneg }
 end
 
 lemma average_mem_open_segment_compl_self [is_finite_measure μ] {f : α → E} {s : set α}

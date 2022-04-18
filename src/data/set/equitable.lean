@@ -62,7 +62,7 @@ section ordered_semiring
 variables [ordered_semiring β]
 
 lemma subsingleton.equitable_on {s : set α} (hs : s.subsingleton) (f : α → β) : s.equitable_on f :=
-λ i j hi hj, by { rw hs hi hj, exact le_add_of_nonneg_right _ zero_le_one }
+λ i j hi hj, by { rw hs hi hj, exact le_add_of_nonneg_right zero_le_one }
 
 lemma equitable_on_singleton (a : α) (f : α → β) : set.equitable_on {a} f :=
 set.subsingleton_singleton.equitable_on f

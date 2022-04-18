@@ -415,7 +415,7 @@ variables [ordered_add_comm_monoid β] {l : filter α} {f g : α → β}
 
 lemma tendsto_at_top_add_nonneg_left' (hf : ∀ᶠ x in l, 0 ≤ f x) (hg : tendsto g l at_top) :
   tendsto (λ x, f x + g x) l at_top :=
-tendsto_at_top_mono' l (hf.mono (λ x, le_add_of_nonneg_left _)) hg
+tendsto_at_top_mono' l (hf.mono (λ x, le_add_of_nonneg_left)) hg
 
 lemma tendsto_at_bot_add_nonpos_left' (hf : ∀ᶠ x in l, f x ≤ 0) (hg : tendsto g l at_bot) :
   tendsto (λ x, f x + g x) l at_bot :=
@@ -431,7 +431,7 @@ lemma tendsto_at_bot_add_nonpos_left (hf : ∀ x, f x ≤ 0) (hg : tendsto g l a
 
 lemma tendsto_at_top_add_nonneg_right' (hf : tendsto f l at_top) (hg : ∀ᶠ x in l, 0 ≤ g x) :
   tendsto (λ x, f x + g x) l at_top :=
-tendsto_at_top_mono' l (monotone_mem (λ x, le_add_of_nonneg_right _) hg) hf
+tendsto_at_top_mono' l (monotone_mem (λ x, le_add_of_nonneg_right) hg) hf
 
 lemma tendsto_at_bot_add_nonpos_right' (hf : tendsto f l at_bot) (hg : ∀ᶠ x in l, g x ≤ 0) :
   tendsto (λ x, f x + g x) l at_bot :=

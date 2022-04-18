@@ -189,7 +189,7 @@ have hx : ∃ m, ↑y + m + 1 ∈ s, from exists_succ _,
 show ↑x ≤ ↑y + nat.find hx + 1,
 from le_of_not_gt $ λ hxy,
 (h ⟨_, nat.find_spec hx⟩ hxy).not_lt $
-  calc ↑y ≤ ↑y + nat.find hx : le_add_of_nonneg_right _ (nat.zero_le _)
+  calc ↑y ≤ ↑y + nat.find hx : le_add_of_nonneg_right (nat.zero_le _)
   ... < ↑y + nat.find hx + 1 : nat.lt_succ_self _
 
 lemma lt_succ_self (x : s) : x < succ x :=

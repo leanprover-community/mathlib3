@@ -997,10 +997,10 @@ of_real_inj.1 $ by simp
 by rw [add_comm, sin_sq_add_cos_sq]
 
 lemma sin_sq_le_one : sin x ^ 2 ≤ 1 :=
-by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_right _ (sq_nonneg _)
+by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_right (sq_nonneg _)
 
 lemma cos_sq_le_one : cos x ^ 2 ≤ 1 :=
-by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_left _ (sq_nonneg _)
+by rw ← sin_sq_add_cos_sq x; exact le_add_of_nonneg_left (sq_nonneg _)
 
 lemma abs_sin_le_one : |sin x| ≤ 1 :=
 abs_le_one_iff_mul_self_le_one.2 $ by simp only [← sq, sin_sq_le_one]

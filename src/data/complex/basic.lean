@@ -289,10 +289,10 @@ lemma norm_sq_add (z w : ℂ) : norm_sq (z + w) =
 by dsimp [norm_sq]; ring
 
 lemma re_sq_le_norm_sq (z : ℂ) : z.re * z.re ≤ norm_sq z :=
-le_add_of_nonneg_right _ (mul_self_nonneg _)
+le_add_of_nonneg_right (mul_self_nonneg _)
 
 lemma im_sq_le_norm_sq (z : ℂ) : z.im * z.im ≤ norm_sq z :=
-le_add_of_nonneg_left _ (mul_self_nonneg _)
+le_add_of_nonneg_left (mul_self_nonneg _)
 
 theorem mul_conj (z : ℂ) : z * conj z = norm_sq z :=
 ext_iff.2 $ by simp [norm_sq, mul_comm, sub_eq_neg_add, add_comm]

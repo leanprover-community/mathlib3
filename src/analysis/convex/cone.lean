@@ -347,7 +347,7 @@ lemma salient_positive_cone : salient (positive_cone 𝕜 E) :=
 λ x xs hx hx', lt_irrefl (0 : E)
   (calc
     0   < x         : lt_of_le_of_ne xs hx.symm
-    ... ≤ x + (-x)  : le_add_of_nonneg_right _ hx'
+    ... ≤ x + (-x)  : le_add_of_nonneg_right hx'
     ... = 0         : add_neg_self x)
 
 /-- The positive cone of an ordered module is always pointed. -/

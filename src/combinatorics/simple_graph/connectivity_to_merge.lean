@@ -70,20 +70,6 @@ lemma right_mem_support_of_mem_edges {t u v w : V} (p : G.walk v w) (he : ⟦(t,
   u ∈ p.support :=
 by { rw sym2.eq_swap at he, exact p.mem_support_of_mem_edges he }
 
-@[simp]
-lemma _root_.simple_graph.path.is_trail {u v : V} (p : G.path u v) : (p : G.walk u v).is_trail :=
-p.property.to_trail
-
-@[simp]
-lemma _root_.simple_graph.path.nodup_support {u v : V} (p : G.path u v) :
-  (p : G.walk u v).support.nodup :=
-(is_path_def _).mp p.property
-
-lemma _root_.simple_graph.path.cons_is_cycle {u v : V} (p : G.path v u) (h : G.adj u v)
-  (he : ¬ ⟦(u, v)⟧ ∈ (p : G.walk v u).edges):
-  (walk.cons h ↑p).is_cycle :=
-by simp [is_cycle_def, cons_is_trail_iff, he]
-
 /-- Given a walk that avoids a set of edges, produce a walk in the graph
 with those edges deleted. -/
 def to_delete_edges (s : set (sym2 V)) :
@@ -152,6 +138,14 @@ begin
   { cases hp,
     simpa using hp_support_nodup },
 end
+
+@[simp] lemma nodup_support {u v : V} (p : G.path u v) : (p : G.walk u v).support.nodup :=
+(walk.is_path_def _).mp p.property
+
+lemma cons_is_cycle {u v : V} (p : G.path v u) (h : G.adj u v)
+  (he : ¬ ⟦(u, v)⟧ ∈ (p : G.walk v u).edges):
+  (walk.cons h ↑p).is_cycle :=
+by simp [walk.is_cycle_def, walk.cons_is_trail_iff, he]
 
 end path
 

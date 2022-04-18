@@ -59,7 +59,7 @@ lemma norm_entry_le_entrywise_sup_norm (A : matrix n m α) {i : n} {j : m} :
 
 lemma nnnorm_entry_le_entrywise_sup_nnorm (A : matrix n m α) {i : n} {j : m} :
   ∥A i j∥₊ ≤ ∥A∥₊ :=
-(nnnorm_le_pi_nnorm (A i) j).trans (nnnorm_le_pi_nnorm A i)
+(nnnorm_le_pi_nnnorm (A i) j).trans (nnnorm_le_pi_nnnorm A i)
 
 end semi_normed_group
 

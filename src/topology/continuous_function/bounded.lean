@@ -180,6 +180,20 @@ instance : metric_space (α →ᵇ β) :=
     (dist_le (add_nonneg dist_nonneg' dist_nonneg')).2 $ λ x,
       le_trans (dist_triangle _ _ _) (add_le_add (dist_coe_le_dist _) (dist_coe_le_dist _)) }
 
+lemma nndist_eq : nndist f g = Inf {C | ∀ x : α, nndist (f x) (g x) ≤ C} :=
+subtype.ext $ dist_eq.trans $ begin
+  rw [nnreal.coe_Inf, subtype.coe_image],
+  refine congr_arg Inf _,
+  dunfold has_mem.mem set.mem set_of, -- `simp_rw mem_set_of_eq` doesn't work
+  simp_rw [←nnreal.coe_le_coe, subtype.coe_mk, exists_prop, coe_nndist],
+end
+
+lemma nndist_set_exists : ∃ C, ∀ x : α, nndist (f x) (g x) ≤ C :=
+subtype.exists.mpr $ dist_set_exists.imp $ λ a ⟨ha, h⟩, ⟨ha, h⟩
+
+lemma nndist_coe_le_nndist (x : α) : nndist (f x) (g x) ≤ nndist f g :=
+dist_coe_le_dist x
+
 /-- On an empty space, bounded continuous functions are at distance 0 -/
 lemma dist_zero_of_empty [is_empty α] : dist f g = 0 :=
 dist_eq_zero.2 (eq_of_empty f g)
@@ -190,6 +204,9 @@ begin
   refine (dist_le_iff_of_nonempty.mpr $ le_csupr _).antisymm (csupr_le dist_coe_le_dist),
   exact dist_set_exists.imp (λ C hC, forall_range_iff.2 hC.2)
 end
+
+lemma nndist_eq_supr : nndist f g = ⨆ x : α, nndist (f x) (g x) :=
+subtype.ext $ dist_eq_supr.trans $ by simp_rw [nnreal.coe_supr, coe_nndist]
 
 lemma tendsto_iff_tendsto_uniformly {ι : Type*} {F : ι → (α →ᵇ β)} {f : α →ᵇ β} {l : filter ι} :
   tendsto F l (𝓝 f) ↔ tendsto_uniformly (λ i, F i) f l :=
@@ -830,6 +847,8 @@ fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _
 
 instance : normed_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
+
+lemma nnnorm_def : ∥f∥₊ = nndist f 0 := rfl
 
 lemma abs_diff_coe_le_dist : ∥f x - g x∥ ≤ dist f g :=
 by { rw dist_eq_norm, exact (f - g).norm_coe_le_norm x }

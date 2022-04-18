@@ -218,9 +218,15 @@ lemma list.norm_prod_le' : ∀ {l : list α}, l ≠ [] → ∥l.prod∥ ≤ (l.m
     exact list.norm_prod_le' (list.cons_ne_nil b l)
   end
 
+lemma list.nnnorm_prod_le' {l : list α} (hl : l ≠ []) : ∥l.prod∥₊ ≤ (l.map nnnorm).prod :=
+(list.norm_prod_le' hl).trans_eq $ by simp [nnreal.coe_list_prod, list.map_map]
+
 lemma list.norm_prod_le [norm_one_class α] : ∀ l : list α, ∥l.prod∥ ≤ (l.map norm).prod
 | [] := by simp
 | (a::l) := list.norm_prod_le' (list.cons_ne_nil a l)
+
+lemma list.nnnorm_prod_le [norm_one_class α] (l : list α) : ∥l.prod∥₊ ≤ (l.map nnnorm).prod :=
+l.norm_prod_le.trans_eq $ by simp [nnreal.coe_list_prod, list.map_map]
 
 lemma finset.norm_prod_le' {α : Type*} [normed_comm_ring α] (s : finset ι) (hs : s.nonempty)
   (f : ι → α) :
@@ -231,6 +237,11 @@ begin
   simpa using list.norm_prod_le' this
 end
 
+lemma finset.nnnorm_prod_le' {α : Type*} [normed_comm_ring α] (s : finset ι) (hs : s.nonempty)
+  (f : ι → α) :
+  ∥∏ i in s, f i∥₊ ≤ ∏ i in s, ∥f i∥₊ :=
+(s.norm_prod_le' hs f).trans_eq $ by simp [nnreal.coe_prod]
+
 lemma finset.norm_prod_le {α : Type*} [normed_comm_ring α] [norm_one_class α] (s : finset ι)
   (f : ι → α) :
   ∥∏ i in s, f i∥ ≤ ∏ i in s, ∥f i∥ :=
@@ -238,6 +249,11 @@ begin
   rcases s with ⟨⟨l⟩, hl⟩,
   simpa using (l.map f).norm_prod_le
 end
+
+lemma finset.nnnorm_prod_le {α : Type*} [normed_comm_ring α] [norm_one_class α] (s : finset ι)
+  (f : ι → α) :
+  ∥∏ i in s, f i∥₊ ≤ ∏ i in s, ∥f i∥₊ :=
+(s.norm_prod_le f).trans_eq $ by simp [nnreal.coe_prod]
 
 /-- If `α` is a seminormed ring, then `∥a ^ n∥₊ ≤ ∥a∥₊ ^ n` for `n > 0`.
 See also `nnnorm_pow_le`. -/
@@ -302,6 +318,9 @@ variables [normed_ring α]
 
 lemma units.norm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥ :=
 norm_pos_iff.mpr (units.ne_zero x)
+
+lemma units.nnorm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥₊ :=
+x.norm_pos
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
 instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=

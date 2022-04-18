@@ -550,6 +550,8 @@ instance semi_normed_group.to_has_nnnorm : has_nnnorm E := ⟨λ a, ⟨norm a, n
 
 @[simp, norm_cast] lemma coe_nnnorm (a : E) : (∥a∥₊ : ℝ) = norm a := rfl
 
+@[simp] lemma coe_comp_nnnorm : (coe : ℝ≥0 → ℝ) ∘ (nnnorm : E → ℝ≥0) = norm := rfl
+
 lemma norm_to_nnreal {a : E} : ∥a∥.to_nnreal = ∥a∥₊ :=
 @real.to_nnreal_coe ∥a∥₊
 
@@ -569,6 +571,13 @@ nnreal.eq $ norm_neg g
 
 lemma nndist_nnnorm_nnnorm_le (g h : E) : nndist ∥g∥₊ ∥h∥₊ ≤ ∥g - h∥₊ :=
 nnreal.coe_le_coe.1 $ dist_norm_norm_le g h
+
+/-- The direct path from `0` to `v` is shorter than the path with `u` inserted in between. -/
+lemma nnnorm_le_insert (u v : E) : ∥v∥₊ ≤ ∥u∥₊ + ∥u - v∥₊ := norm_le_insert u v
+
+lemma nnnorm_le_insert' (u v : E) : ∥u∥₊ ≤ ∥v∥₊ + ∥u - v∥₊ := norm_le_insert' u v
+
+lemma nnnorm_le_add_nnnorm_add (u v : E) : ∥u∥₊ ≤ ∥u + v∥₊ + ∥v∥₊ := norm_le_add_norm_add u v
 
 lemma of_real_norm_eq_coe_nnnorm (x : E) : ennreal.of_real ∥x∥ = (∥x∥₊ : ℝ≥0∞) :=
 ennreal.of_real_eq_coe_nnreal _
@@ -762,7 +771,7 @@ lemma pi_norm_le_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (
   (hr : 0 ≤ r) {x : Πi, π i} : ∥x∥ ≤ r ↔ ∀i, ∥x i∥ ≤ r :=
 by simp only [← dist_zero_right, dist_pi_le_iff hr, pi.zero_apply]
 
-lemma pi_nnorm_le_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] {r : ℝ≥0}
+lemma pi_nnnorm_le_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] {r : ℝ≥0}
   {x : Πi, π i} : ∥x∥₊ ≤ r ↔ ∀i, ∥x i∥₊ ≤ r :=
 pi_norm_le_iff r.coe_nonneg
 

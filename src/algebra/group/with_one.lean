@@ -351,9 +351,11 @@ instance [div_inv_monoid α] : div_inv_monoid (with_zero α) :=
     | some x := congr_arg some $ div_inv_monoid.zpow_neg' _ _
     end,
   .. with_zero.has_div,
-  .. with_zero.has_involutive_inv,
+  .. with_zero.has_inv,
   .. with_zero.monoid_with_zero, }
 
+instance [division_monoid α] : division_monoid (with_zero α) :=
+{ .. with_zero.div_inv_monoid, .. with_zero.has_involutive_inv }
 
 section group
 variables [group α]

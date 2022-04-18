@@ -1161,16 +1161,6 @@ section valuation
 
 variables [linear_ordered_add_comm_group Γ] [ring R] [is_domain R]
 
-instance : linear_ordered_comm_group (multiplicative Γ) :=
-{ .. (infer_instance : linear_order (multiplicative Γ)),
-  .. (infer_instance : ordered_comm_group (multiplicative Γ)) }
-
-instance : linear_ordered_comm_group_with_zero (with_zero (multiplicative Γ)) :=
-{ zero_le_one := with_zero.zero_le 1,
-  .. (with_zero.ordered_comm_monoid),
-  .. (infer_instance : linear_order (with_zero (multiplicative Γ))),
-  .. (infer_instance : comm_group_with_zero (with_zero (multiplicative Γ))) }
-
 variables (Γ) (R)
 
 /-- The additive valuation on `hahn_series Γ R`, returning the smallest index at which

@@ -542,7 +542,7 @@ lemma eq_inv_of_mul_left_eq_one (h : a * b = 1) :
 by rw [← mul_inv_cancel_right₀ (right_ne_zero_of_mul_eq_one h) a, h, one_mul]
 
 @[priority 100] -- See note [lower instance priority]
-instance group_with_zero.to_div_inv_monoid : div_inv_monoid G₀ :=
+instance group_with_zero.to_division_monoid : division_monoid G₀ :=
 { inv := has_inv.inv,
   inv_inv := λ a, begin
     by_cases h : a = 0, { simp [h] },

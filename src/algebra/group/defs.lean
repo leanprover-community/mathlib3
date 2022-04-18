@@ -520,10 +520,9 @@ variables [has_involutive_inv G]
 end has_involutive_inv
 
 /-- A `div_inv_monoid` is a `monoid` with operations `/` and `⁻¹` satisfying
-`div_eq_mul_inv : ∀ a b, a / b = a * b⁻¹`.
+`div_eq_mul_inv : ∀ a b, a / b = a * b⁻¹` and `inv_mul_rev : ∀ a b, (a * b)⁻¹ = b⁻¹ * a⁻¹`.
 
-This is the immediate common ancestor of `group` and `group_with_zero`,
-in order to deduplicate the name `div_eq_mul_inv`.
+This deduplicates the name `div_eq_mul_inv`.
 The default for `div` is such that `a / b = a * b⁻¹` holds by definition.
 
 Adding `div` as a field rather than defining `a / b := a * b⁻¹` allows us to
@@ -536,10 +535,9 @@ the `(/)` coming from `foo.has_div`.
 
 In the same way, adding a `zpow` field makes it possible to avoid definitional failures
 in diamonds. See the definition of `monoid` and Note [forgetful inheritance] for more
-explanations on this.
--/
-@[protect_proj, ancestor monoid has_involutive_inv has_div]
-class div_inv_monoid (G : Type u) extends monoid G, has_involutive_inv G, has_div G :=
+explanations on this. -/
+@[protect_proj, ancestor monoid has_inv has_div]
+class div_inv_monoid (G : Type u) extends monoid G, has_inv G, has_div G :=
 (div := λ a b, a * b⁻¹)
 (div_eq_mul_inv : ∀ a b : G, a / b = a * b⁻¹ . try_refl_tac)
 (inv_mul_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹)
@@ -550,8 +548,8 @@ class div_inv_monoid (G : Type u) extends monoid G, has_involutive_inv G, has_di
 (zpow_neg' :
   ∀ (n : ℕ) (a : G), zpow (-[1+ n]) a = (zpow n.succ a)⁻¹ . try_refl_tac)
 
-/-- A `sub_neg_monoid` is an `add_monoid` with unary `-` and binary `-` operations
-satisfying `sub_eq_add_neg : ∀ a b, a - b = a + -b`.
+/-- A `sub_neg_monoid` is an `add_monoid` with unary `-` and binary `-` operations satisfying
+`sub_eq_add_neg : ∀ a b, a - b = a + -b` and `neg_add_rev : ∀ a b, -(a + b) = -b + -a`.
 
 The default for `sub` is such that `a - b = a + -b` holds by definition.
 
@@ -567,8 +565,8 @@ In the same way, adding a `zsmul` field makes it possible to avoid definitional 
 in diamonds. See the definition of `add_monoid` and Note [forgetful inheritance] for more
 explanations on this.
 -/
-@[protect_proj, ancestor add_monoid has_involutive_neg has_sub]
-class sub_neg_monoid (G : Type u) extends add_monoid G, has_involutive_neg G, has_sub G :=
+@[protect_proj, ancestor add_monoid has_neg has_sub]
+class sub_neg_monoid (G : Type u) extends add_monoid G, has_neg G, has_sub G :=
 (sub := λ a b, a + -b)
 (sub_eq_add_neg : ∀ a b : G, a - b = a + -b . try_refl_tac)
 (neg_add_rev (a b : G) : -(a + b) = -b + -a)
@@ -589,7 +587,7 @@ instance sub_neg_monoid.has_scalar_int {M} [sub_neg_monoid M] : has_scalar ℤ M
 
 attribute [to_additive sub_neg_monoid.has_scalar_int] div_inv_monoid.has_pow
 
-section
+section div_inv_monoid
 variables [div_inv_monoid G] {a b : G}
 
 @[simp, to_additive zsmul_eq_smul]
@@ -621,7 +619,19 @@ lemma inv_mul_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ := div_inv_monoid.i
 
 alias div_eq_mul_inv ← division_def
 
-end
+end div_inv_monoid
+
+/-- A `division_monoid` is a `div_inv_monoid` with involutive inversion.
+
+This is the immediate common ancestor of `group` and `group_with_zero`. -/
+@[protect_proj, ancestor div_inv_monoid has_involutive_inv]
+class division_monoid (G : Type u) extends div_inv_monoid G, has_involutive_inv G
+
+/-- A `subtraction_monoid` is a `sub_neg_monoid` with involutive negation. -/
+@[protect_proj, ancestor sub_neg_monoid has_involutive_neg]
+class subtraction_monoid (G : Type u) extends sub_neg_monoid G, has_involutive_neg G
+
+attribute [to_additive subtraction_monoid] division_monoid
 
 /-- A `group` is a `monoid` with an operation `⁻¹` satisfying `a⁻¹ * a = 1`.
 
@@ -691,9 +701,10 @@ by rw [mul_assoc, mul_right_inv, mul_one]
 by rw [mul_assoc, mul_left_inv, mul_one]
 
 @[priority 100, to_additive]
-instance group.to_div_inv_monoid : div_inv_monoid G :=
+instance group.to_division_monoid : division_monoid G :=
 { inv_inv := λ a, inv_eq_of_mul_eq_one (mul_left_inv a),
-  inv_mul_rev := λ a b, inv_eq_of_mul_eq_one $ by simp [mul_assoc],
+  inv_mul_rev := λ a b, inv_eq_of_mul_eq_one $
+    by rw [mul_assoc, mul_inv_cancel_left, mul_right_inv],
   ..‹group G› }
 
 @[priority 100, to_additive]    -- see Note [lower instance priority]
@@ -705,11 +716,11 @@ instance group.to_cancel_monoid : cancel_monoid G :=
 end group
 
 @[to_additive]
-lemma group.to_div_inv_monoid_injective {G : Type*} :
-  function.injective (@group.to_div_inv_monoid G) :=
+lemma group.to_division_monoid_injective {G : Type*} :
+  function.injective (@group.to_division_monoid G) :=
 begin
   rintros ⟨⟩ ⟨⟩ h,
-  replace h := div_inv_monoid.mk.inj h,
+  replace h := division_monoid.mk.inj h,
   dsimp at h,
   rcases h with ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩,
   refl

@@ -94,7 +94,9 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
 @[to_additive] instance [h : has_inv α] : has_inv (order_dual α) := h
 @[to_additive] instance [h : has_div α] : has_div (order_dual α) := h
 @[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv (order_dual α) := h
-@[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid (order_dual α) := h
+@[to_additive sub_neg_monoid] instance [h : div_inv_monoid α] : div_inv_monoid (order_dual α) := h
+@[to_additive subtraction_monoid]
+instance [h : division_monoid α] : division_monoid (order_dual α) := h
 @[to_additive] instance [h : group α] : group (order_dual α) := h
 @[to_additive] instance [h : comm_group α] : comm_group (order_dual α) := h
 
@@ -882,11 +884,21 @@ addition is monotone. -/
 @[protect_proj, ancestor ordered_add_comm_group linear_order]
 class linear_ordered_add_comm_group (α : Type u) extends ordered_add_comm_group α, linear_order α
 
+set_option formatter.hide_full_terms false
+
 /-- A linearly ordered commutative monoid with an additively absorbing `⊤` element.
   Instances should include number systems with an infinite element adjoined.` -/
-@[protect_proj, ancestor linear_ordered_add_comm_monoid_with_top sub_neg_monoid nontrivial]
+@[protect_proj, ancestor linear_ordered_add_comm_monoid_with_top has_neg has_sub nontrivial]
 class linear_ordered_add_comm_group_with_top (α : Type*)
-  extends linear_ordered_add_comm_monoid_with_top α, sub_neg_monoid α, nontrivial α :=
+  extends linear_ordered_add_comm_monoid_with_top α, has_neg α, has_sub α, nontrivial α :=
+(sub := λ a b : α, a + -b)
+(sub_eq_add_neg : ∀ a b : α, a - b = a + -b . try_refl_tac)
+(zsmul : ℤ → α → α := zsmul_rec)
+(zsmul_zero' : ∀ (a : α), zsmul 0 a = 0 . try_refl_tac)
+(zsmul_succ' :
+  ∀ (n : ℕ) (a : α), zsmul (int.of_nat n.succ) a = a + zsmul (int.of_nat n) a . try_refl_tac)
+(zsmul_neg' :
+  ∀ (n : ℕ) (a : α), zsmul (-[1+ n]) a = - (zsmul n.succ a) . try_refl_tac)
 (neg_top : - (⊤ : α) = ⊤)
 (add_neg_cancel : ∀ a:α, a ≠ ⊤ → a + (- a) = 0)
 
@@ -1311,12 +1323,12 @@ end linear_ordered_add_comm_group
 
 namespace prod
 
-variables {G H : Type*}
+variables {α H : Type*}
 
 @[to_additive]
-instance [ordered_comm_group G] [ordered_comm_group H] :
-  ordered_comm_group (G × H) :=
-{ .. prod.comm_group, .. prod.partial_order G H, .. prod.ordered_cancel_comm_monoid }
+instance [ordered_comm_group α] [ordered_comm_group H] :
+  ordered_comm_group (α × H) :=
+{ .. prod.comm_group, .. prod.partial_order α H, .. prod.ordered_cancel_comm_monoid }
 
 end prod
 

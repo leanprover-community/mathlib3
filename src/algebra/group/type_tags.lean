@@ -242,7 +242,7 @@ instance [div_inv_monoid α] : sub_neg_monoid (additive α) :=
   zsmul_zero' := div_inv_monoid.zpow_zero',
   zsmul_succ' := div_inv_monoid.zpow_succ',
   zsmul_neg' := div_inv_monoid.zpow_neg',
-  .. additive.has_involutive_neg, .. additive.has_sub, .. additive.add_monoid }
+  .. additive.has_neg, .. additive.has_sub, .. additive.add_monoid }
 
 instance [sub_neg_monoid α] : div_inv_monoid (multiplicative α) :=
 { inv_mul_rev := @neg_add_rev _ _,
@@ -251,7 +251,13 @@ instance [sub_neg_monoid α] : div_inv_monoid (multiplicative α) :=
   zpow_zero' := sub_neg_monoid.zsmul_zero',
   zpow_succ' := sub_neg_monoid.zsmul_succ',
   zpow_neg' := sub_neg_monoid.zsmul_neg',
-  .. multiplicative.has_involutive_inv, .. multiplicative.has_div, .. multiplicative.monoid }
+  .. multiplicative.has_inv, .. multiplicative.has_div, .. multiplicative.monoid }
+
+instance [division_monoid α] : subtraction_monoid (additive α) :=
+{ .. additive.sub_neg_monoid, .. additive.has_involutive_neg }
+
+instance [subtraction_monoid α] : division_monoid (multiplicative α) :=
+{ .. multiplicative.div_inv_monoid, .. multiplicative.has_involutive_inv }
 
 instance [group α] : add_group (additive α) :=
 { add_left_neg := @mul_left_inv α _,

@@ -105,7 +105,11 @@ We also generate additive structures on `αᵃᵒᵖ` using `to_additive`
   zpow_succ' := λ n x, unop_injective $
     by rw [unop_op, zpow_of_nat, zpow_of_nat, pow_succ', unop_mul, unop_op],
   zpow_neg' := λ z x, unop_injective $ div_inv_monoid.zpow_neg' z x.unop,
-  .. mul_opposite.monoid α, .. mul_opposite.has_involutive_inv α }
+  .. mul_opposite.monoid α, .. mul_opposite.has_inv α }
+
+@[to_additive add_opposite.subtraction_monoid] instance [division_monoid α] :
+  division_monoid αᵐᵒᵖ :=
+{ .. mul_opposite.div_inv_monoid α, .. mul_opposite.has_involutive_inv α }
 
 @[to_additive] instance [group α] : group αᵐᵒᵖ :=
 { mul_left_inv := λ x, unop_injective $ mul_inv_self $ unop x,

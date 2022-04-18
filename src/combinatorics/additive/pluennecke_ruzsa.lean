@@ -22,7 +22,18 @@ begin
     { have := congr_arg prod.fst h,
       exact sub_right_injective this } },
   {
-    sorry
+    intros x hx,
+    rw card_le_one_iff,
+    intros u v hu hv,
+    rw mem_bipartite_below at hu hv,
+    cases hu with _ hu,
+    cases hv with _ hv,
+    have fact : x.1 + x.2 = u,
+    exact hu,
+    have fact2 : x.1 + x.2 = v,
+    exact hv,
+    rw ← fact,
+    rw ← fact2,
   }
 end
 

@@ -28,7 +28,7 @@ This file proves properties of the central binomial coefficients (that is, `nat.
 * `nat.multiplicity_central_binom_of_large_le_one`: sufficiently large primes appear at most once
   in the factorisation of the central binomial coefficient.
 * `nat.multiplicity_central_binom_of_large_eq_zero`: sufficiently large primes less than n do not
-appear in the factorisation of the central binomial coefficient.
+  appear in the factorisation of the central binomial coefficient.
 -/
 
 namespace nat

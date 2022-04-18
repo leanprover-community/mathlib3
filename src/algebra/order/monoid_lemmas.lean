@@ -305,28 +305,28 @@ end has_le
 section has_lt
 variable [has_lt α]
 
-@[to_additive lt_add_of_nonneg_right]
+@[to_additive lt_add_of_pos_right]
 lemma lt_mul_of_one_lt_right' [covariant_class α α (*) (<)]
   (a : α) {b : α} (h : 1 < b) :
   a < a * b :=
 calc  a = a * 1  : (mul_one a).symm
     ... < a * b  : mul_lt_mul_left' h a
 
-@[to_additive add_lt_of_nonpos_right]
+@[to_additive add_lt_of_neg_right]
 lemma mul_lt_of_lt_one_right' [covariant_class α α (*) (<)]
   (a : α) {b : α} (h : b < 1) :
   a * b < a :=
 calc  a * b < a * 1 : mul_lt_mul_left' h a
         ... = a     : mul_one a
 
-@[to_additive lt_add_of_nonneg_left]
+@[to_additive lt_add_of_pos_left]
 lemma lt_mul_of_one_lt_left' [covariant_class α α (swap (*)) (<)]
   (a : α) {b : α} (h : 1 < b) :
   a < b * a :=
 calc  a = 1 * a  : (one_mul a).symm
     ... < b * a  : mul_lt_mul_right' h a
 
-@[to_additive add_lt_of_nonpos_left]
+@[to_additive add_lt_of_neg_left]
 lemma mul_lt_of_lt_one_left' [covariant_class α α (swap (*)) (<)]
   (a : α) {b : α} (h : b < 1) :
   b * a < a :=

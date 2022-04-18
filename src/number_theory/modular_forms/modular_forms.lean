@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2022 Chris Birkbeck. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Birkbeck
+-/
 import algebra.module.submodule
 import analysis.complex.upper_half_plane
 import linear_algebra.general_linear_group
@@ -10,7 +15,6 @@ universes u v
 open complex
 
 open_locale topological_space manifold upper_half_plane
-
 
 noncomputable theory
 
@@ -167,7 +171,7 @@ end
 lemma slash_k_mul_subgroup (k1 k2 : ℤ) (Γ : subgroup SL(2,ℤ)) (A : Γ) (f g : ℍ → ℂ) :
   (f * g) ∣[k1+k2] A = (f ∣[k1] A) * (g ∣[k2] A) :=
   begin
-  have hd: ((A : GL(2,ℝ)⁺).1.det : ℂ) = (A : SL(2,ℤ)) .1.det, by {simp [det_coe_sl]},
+  have hd: ((A : GL(2,ℝ)⁺).1.det : ℂ) = (A : SL(2,ℤ)).1.det, by {simp [det_coe_sl]},
   rw slash_k_mul,
   ext1,
   have : (((A : GL(2,ℝ)⁺).1.det) • (f ∣[k1] A) * (g ∣[k2] A)) x =
@@ -188,10 +192,10 @@ begin
   apply h2,
 end
 
-/--A function `f:ℍ → ℂ` is modular, of level `Γ` and weight `k ∈ ℤ`, if for every matrix in
+/--A function `f : ℍ → ℂ` is modular, of level `Γ` and weight `k ∈ ℤ`, if for every matrix in
  `γ ∈  Γ` we have `f(γ  • z)= (c*z+d)^k f(z)` where `γ= ![![a, b], ![c, d]]`,
  and it acts on `ℍ` via Moebius trainsformations. -/
- @[simp]
+@[simp]
 lemma wmodular_mem' (k : ℤ) (Γ : subgroup SL(2,ℤ)) (f : ℍ → ℂ) :
   f ∈ (weakly_modular_submodule k Γ) ↔  ∀ γ : Γ, ∀ z : ℍ,
   f ((γ : matrix.GL_pos (fin 2) ℝ) • z) = ((↑ₘγ 1 0 : ℝ) * z +(↑ₘγ 1 1 : ℝ))^k * f z :=
@@ -245,7 +249,7 @@ end
 
 lemma mul_modular  (k_1 k_2 : ℤ) (Γ : subgroup SL(2,ℤ)) (f g : ℍ → ℂ)
   (hf : f ∈  weakly_modular_submodule k_1 Γ)  (hg : g ∈ weakly_modular_submodule k_2 Γ) :
-  f * g  ∈  weakly_modular_submodule (k_1+k_2) Γ :=
+  f * g  ∈  weakly_modular_submodule (k_1 + k_2) Γ :=
 begin
   simp only [wmodular_mem', pi.mul_apply, coe_coe] at *,
   intros γ z,
@@ -259,25 +263,6 @@ begin
   rw pown,
   ring,
 end
-
-
-open_locale direct_sum
-
-/-
-instance gmod  (Γ : subgroup SL(2,ℤ)) : direct_sum.gcomm_monoid (λ k, weakly_modular_submodule k Γ) :=
-begin
-have one_mem : (1 : ℍ → ℂ) ∈ weakly_modular_submodule 0 Γ, by {simp only [wmodular_mem',
-   mul_one, forall_const, gpow_zero, implies_true_iff, eq_self_iff_true, pi.one_apply],},
-apply direct_sum.gcomm_monoid.of_submodules (λ k, weakly_modular_submodule k Γ) (one_mem) ,
-intros k_1 k_2 f g,
-apply mul_modular k_1 k_2 Γ f g, apply f.property, apply g.property,
-end
-
-
-instance semiring_of_mod_forms (Γ : subgroup SL(2,ℤ)): comm_semiring (⨁  k, weakly_modular_submodule k Γ)
-  := infer_instance
--/
-
 
 /--The definition of the zero modular form, whose values at all points is zero-/
 def zero_form : ℍ → ℂ:= (0 : (ℍ → ℂ))
@@ -336,7 +321,7 @@ begin
   exact dec_trivial,
 end
 
-@[simp]lemma smul_sim (f: ℍ → ℂ) (z : ℂ) (x : ℍ): (z • f) x= z* (f x):=
+@[simp]lemma smul_sim (f: ℍ → ℂ) (z : ℂ) (x : ℍ): (z • f) x= z * (f x):=
 begin
   simp only [algebra.id.smul_eq_mul, pi.smul_apply],
 end
@@ -346,8 +331,7 @@ def bounded_at_infty_submodule: submodule (ℂ) (ℍ  → ℂ):={
   carrier :={ f : ℍ → ℂ | ∃ (M A : ℝ), ∀ z : ℍ, A ≤ im z → abs (f z) ≤ M },
   zero_mem' :=by {simp only [pi.zero_apply, complex.abs_zero, subtype.forall,
   upper_half_plane.coe_im, set.mem_set_of_eq],
-  use (1: ℝ ),
-  use (0: ℝ ),
+  refine ⟨1 ,0 ,_⟩,
   intros x  h1,
   simp only [zero_le_one, pi.zero_apply, complex.abs_zero, implies_true_iff], },
   add_mem' := by  {intros f g hf hg, begin
@@ -383,7 +367,7 @@ def bounded_at_infty_submodule: submodule (ℂ) (ℍ  → ℂ):={
 
 
  /--The submodule of functions that are zero at infinity-/
-def zero_at_infty_submodule: submodule (ℂ) (ℍ  → ℂ) := {
+def zero_at_infty_submodule : submodule (ℂ) (ℍ  → ℂ) := {
   carrier := { f : ℍ → ℂ | ∀ ε : ℝ, 0 < ε  → ∃ A : ℝ, ∀ z : ℍ, A ≤ im z  → abs (f z) ≤ ε },
   zero_mem' := by {simp only [pi.zero_apply, complex.abs_zero, subtype.forall,
   upper_half_plane.coe_im,
@@ -427,7 +411,8 @@ def zero_at_infty_submodule: submodule (ℂ) (ℍ  → ℂ) := {
   end },
   }
 
-lemma is_zero_at_inf_is_bound' (f: ℍ → ℂ): (f ∈ is_zero_at_infinity) → (f ∈ is_bound_at_infinity):=
+lemma is_zero_at_inf_is_bound' (f : ℍ → ℂ) : (f ∈ is_zero_at_infinity) →
+(f ∈ is_bound_at_infinity):=
 begin
  simp only [zero_at_inf_mem, bound_mem, gt_iff_lt, ge_iff_le, set_coe.forall, subtype.coe_mk],
  intro H,
@@ -438,7 +423,7 @@ begin
 end
 
 /-- The product of two bounded-at-infinity functions is bounded-at-infinty --/
-lemma prod_of_bound_is_bound (f: ℍ → ℂ) (g: ℍ → ℂ) :
+lemma prod_of_bound_is_bound (f g : ℍ → ℂ) :
   (f ∈ is_bound_at_infinity) ∧ (g ∈ is_bound_at_infinity) → ((f * g) ∈ is_bound_at_infinity) :=
 begin
   intro h,
@@ -467,7 +452,7 @@ instance : has_coe (ℍ → ℂ) (ℍ' → ℂ) :=
 
   structure is_modular_form_of_lvl_and_weight (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ) : Prop :=
   (hol      : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑f : ℍ' → ℂ))
-  (transf   :  f ∈ weakly_modular_submodule k Γ )
+  (transf   : f ∈ weakly_modular_submodule k Γ )
   (infinity : ∀ (A : (⊤ : subgroup SL(2,ℤ))), (f ∣[k] A) ∈ is_bound_at_infinity )
 
 lemma mk (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ)
@@ -479,8 +464,8 @@ lemma mk (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ)
   transf := h2,
   infinity := h3,}
 
-lemma mod_mem (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ) : is_modular_form_of_lvl_and_weight Γ k f ↔
-  mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑f : ℍ' → ℂ) ∧
+lemma mod_mem (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ) :
+  is_modular_form_of_lvl_and_weight Γ k f ↔ mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑f : ℍ' → ℂ) ∧
   f ∈ weakly_modular_submodule k Γ  ∧
   (∀ (A : (⊤ : subgroup SL(2,ℤ))), (f ∣[k] A) ∈ is_bound_at_infinity) :=
 begin
@@ -493,7 +478,7 @@ begin
 end
 
   /-- The zero modular form is a modular form-/
-lemma zero_mod_form :  (is_modular_form_of_lvl_and_weight Γ   (k : ℤ) ) (zero_form ):=
+lemma zero_mod_form :  (is_modular_form_of_lvl_and_weight Γ (k : ℤ) ) (zero_form ):=
 { hol :=  by {apply mdifferentiable_zero},
   transf := (weakly_modular_submodule k Γ).zero_mem',
   infinity := by {simp only [bound_mem, ge_iff_le],
@@ -522,7 +507,7 @@ lemma is_cuspform_mk (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ)
   infinity := h3,
 }
 
-lemma cusp_mem (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f: ℍ → ℂ): is_cusp_form_of_lvl_and_weight Γ k f ↔
+lemma cusp_mem (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ): is_cusp_form_of_lvl_and_weight Γ k f ↔
   mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑f : ℍ' → ℂ) ∧
   f ∈ weakly_modular_submodule k Γ ∧
   ( ∀ (A : (⊤ : subgroup SL(2,ℤ))), (f ∣[k] A) ∈ is_zero_at_infinity) :=
@@ -537,7 +522,7 @@ end
 
 
 /-- The zero modular form is a cusp form-/
-lemma zero_cusp_form :  (is_cusp_form_of_lvl_and_weight Γ k)  (zero_form ) :=
+lemma zero_cusp_form :  (is_cusp_form_of_lvl_and_weight Γ k) (zero_form ) :=
   { hol := by {apply mdifferentiable_zero,},
   transf := (weakly_modular_submodule k Γ).zero_mem',
   infinity := by {simp only [zero_at_inf_mem, gt_iff_lt, ge_iff_le],
@@ -548,7 +533,7 @@ lemma zero_cusp_form :  (is_cusp_form_of_lvl_and_weight Γ k)  (zero_form ) :=
   simp [slash_k, complex.abs_zero, zero_mul, pi.zero_apply],
   linarith}}
 
-lemma is_modular_form_of_lvl_and_weight_of_is_cusp_form_of_lvl_and_weight  (f : ℍ → ℂ)
+lemma is_modular_form_of_lvl_and_weight_of_is_cusp_form_of_lvl_and_weight (f : ℍ → ℂ)
   (h : is_cusp_form_of_lvl_and_weight Γ k f) : is_modular_form_of_lvl_and_weight Γ k f :={
    hol := h.1,
    transf := h.2,
@@ -556,7 +541,7 @@ lemma is_modular_form_of_lvl_and_weight_of_is_cusp_form_of_lvl_and_weight  (f : 
 
 
 /-- This is the space of modular forms of level `Γ` and weight `k`-/
-def space_of_mod_forms_of_level_and_weight (Γ : subgroup SL(2,ℤ)) (k : ℤ): submodule ℂ (ℍ → ℂ):={
+def space_of_mod_forms_of_level_and_weight (Γ : subgroup SL(2,ℤ)) (k : ℤ) : submodule ℂ (ℍ → ℂ) :={
   carrier:={ f : ℍ → ℂ | is_modular_form_of_lvl_and_weight Γ k f},
   zero_mem':=by {simp only [set.mem_set_of_eq], apply zero_mod_form, },
   add_mem' :=by {simp only [set.mem_set_of_eq], intros a b ha hb,
@@ -566,11 +551,12 @@ def space_of_mod_forms_of_level_and_weight (Γ : subgroup SL(2,ℤ)) (k : ℤ): 
   split,
   apply (weakly_modular_submodule  k Γ).add_mem' ha.transf hb.transf,
   intro A,
-  have:= bounded_at_infty_submodule.add_mem' (ha.infinity A) (hb.infinity A),
+  have := bounded_at_infty_submodule.add_mem' (ha.infinity A) (hb.infinity A),
   rw slash_k_add,
   apply this, },
   smul_mem' := by {intros c f hf,  simp at *,
-  simp only [mod_mem, complex.abs_mul, ge_iff_le, subtype.forall, smul_sim, upper_half_plane.coe_im],
+  simp only [mod_mem, complex.abs_mul, ge_iff_le, subtype.forall, smul_sim,
+  upper_half_plane.coe_im],
   split,
   apply mdifferentiable_smul _ _ hf.hol,
   split,
@@ -584,10 +570,10 @@ def space_of_mod_forms_of_level_and_weight (Γ : subgroup SL(2,ℤ)) (k : ℤ): 
 localized "notation `Mₖ[`k`](`Γ`)`:= space_of_mod_forms_of_level_and_weight Γ k" in modular_forms
 
 /-- This is the space of cuspforms of level `Γ` and weigth `k`-/
-def space_of_cusp_forms_of_level_and_weight (Γ : subgroup SL(2,ℤ)) (k : ℤ): submodule ℂ (ℍ → ℂ):={
+def space_of_cusp_forms_of_level_and_weight (Γ : subgroup SL(2,ℤ)) (k : ℤ): submodule ℂ (ℍ → ℂ) :={
   carrier:={ f : ℍ → ℂ | is_cusp_form_of_lvl_and_weight Γ k f},
-  zero_mem':=by {simp only [set.mem_set_of_eq], apply zero_cusp_form, },
-  add_mem' :=by {simp only [set.mem_set_of_eq], intros a b ha hb,
+  zero_mem' := by {simp only [set.mem_set_of_eq], apply zero_cusp_form, },
+  add_mem' := by {simp only [set.mem_set_of_eq], intros a b ha hb,
   simp only [cusp_mem, pi.add_apply, ge_iff_le, subtype.forall, upper_half_plane.coe_im],
   split,
   apply mdifferentiable_add _ _ ha.hol hb.hol,

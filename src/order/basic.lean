@@ -57,6 +57,16 @@ open function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
+section preorder
+variables [preorder α] {a b c : α}
+
+lemma le_trans' : b ≤ c → a ≤ b → a ≤ c := flip le_trans
+lemma lt_trans' : b < c → a < b → a < c := flip lt_trans
+lemma lt_of_le_of_lt' : b ≤ c → a < b → a < c := flip lt_of_lt_of_le
+lemma lt_of_lt_of_le' : b < c → a ≤ b → a < c := flip lt_of_le_of_lt
+
+end preorder
+
 section partial_order
 variables [partial_order α] {a b : α}
 
@@ -71,7 +81,9 @@ attribute [simp] le_refl
 attribute [ext] has_le
 
 alias le_trans        ← has_le.le.trans
+alias le_trans'       ← has_le.le.trans'
 alias lt_of_le_of_lt  ← has_le.le.trans_lt
+alias lt_of_le_of_lt' ← has_le.le.trans_lt'
 alias le_antisymm     ← has_le.le.antisymm
 alias ge_antisymm     ← has_le.le.antisymm'
 alias lt_of_le_of_ne  ← has_le.le.lt_of_ne
@@ -82,7 +94,9 @@ alias decidable.lt_or_eq_of_le ← has_le.le.lt_or_eq_dec
 
 alias le_of_lt        ← has_lt.lt.le
 alias lt_trans        ← has_lt.lt.trans
+alias lt_trans        ← has_lt.lt.trans'
 alias lt_of_lt_of_le  ← has_lt.lt.trans_le
+alias lt_of_lt_of_le' ← has_lt.lt.trans_le'
 alias ne_of_lt        ← has_lt.lt.ne
 alias lt_asymm        ← has_lt.lt.asymm has_lt.lt.not_lt
 

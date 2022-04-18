@@ -170,7 +170,19 @@ protected def cancel_comm_monoid [cancel_comm_monoid M₂] (f : M₁ → M₂) (
   cancel_comm_monoid M₁ :=
 { .. hf.left_cancel_semigroup f mul, .. hf.comm_monoid f one mul npow }
 
-variables [has_inv M₁] [has_div M₁] [has_pow M₁ ℤ]
+variables [has_inv M₁]
+
+/-- A type has an involutive inversion if it admits a surjective map that preserves `⁻¹` to a type
+which has an involutive inversion. -/
+@[reducible, to_additive "A type has an involutive negation if it admits a surjective map that
+preserves `⁻¹` to a type which has an involutive inversion."] --See note [reducible non-instances]
+protected def has_involutive_inv [has_involutive_inv M₂]
+  (f : M₁ → M₂) (hf : injective f) (inv : ∀ x, f x⁻¹ = (f x)⁻¹) :
+  has_involutive_inv M₁ :=
+{ inv := has_inv.inv,
+  inv_inv := λ x, hf $ by rw [inv, inv, inv_inv] }
+
+variables [has_div M₁] [has_pow M₁ ℤ]
 
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `div_inv_monoid`
 if it admits an injective map that preserves `1`, `*`, `⁻¹`, and `/` to a `div_inv_monoid`.
@@ -191,7 +203,6 @@ protected def div_inv_monoid [div_inv_monoid M₂]
   zpow_zero' := λ x, hf $ by erw [zpow, zpow_zero, one],
   zpow_succ' := λ n x, hf $ by erw [zpow, mul, zpow_of_nat, pow_succ, zpow, zpow_of_nat],
   zpow_neg' := λ n x, hf $ by erw [zpow, zpow_neg_succ_of_nat, inv, zpow, zpow_coe_nat],
-  inv_mul_rev := λ x y, hf $ by erw [inv, mul, inv_mul_rev, mul, inv, inv],
   div_eq_mul_inv := λ x y, hf $ by erw [div, mul, inv, div_eq_mul_inv],
   .. hf.monoid f one mul npow, .. ‹has_inv M₁›, .. ‹has_div M₁› }
 
@@ -210,14 +221,9 @@ protected def division_monoid [division_monoid M₂]
   (div : ∀ x y, f (x / y) = f x / f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
   (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
   division_monoid M₁ :=
-{ zpow := λ n x, x ^ n,
-  zpow_zero' := λ x, hf $ by erw [zpow, zpow_zero, one],
-  zpow_succ' := λ n x, hf $ by erw [zpow, mul, zpow_of_nat, pow_succ, zpow, zpow_of_nat],
-  zpow_neg' := λ n x, hf $ by erw [zpow, zpow_neg_succ_of_nat, inv, zpow, zpow_coe_nat],
-  inv_inv := λ x, hf $ by erw [inv, inv, inv_inv],
-  inv_mul_rev := λ x y, hf $ by erw [inv, mul, inv_mul_rev, mul, inv, inv],
+{ inv_mul_rev := λ x y, hf $ by erw [inv, mul, inv_mul_rev, mul, inv, inv],
   div_eq_mul_inv := λ x y, hf $ by erw [div, mul, inv, div_eq_mul_inv],
-  .. hf.monoid f one mul npow, .. ‹has_inv M₁›, .. ‹has_div M₁› }
+  .. hf.div_inv_monoid f one mul inv div npow zpow, .. hf.has_involutive_inv f inv  }
 
 /-- A type endowed with `1`, `*` and `⁻¹` is a group,
 if it admits an injective map that preserves `1`, `*` and `⁻¹` to a group.
@@ -355,8 +361,6 @@ protected def div_inv_monoid [div_inv_monoid M₁]
     erw [←zpow, ←zpow, zpow_of_nat, zpow_of_nat, pow_succ, ←mul],
   zpow_neg' := λ n, hf.forall.2 $ λ x,
     by erw [←zpow, ←zpow, zpow_neg_succ_of_nat, zpow_coe_nat, inv],
-  inv_mul_rev := hf.forall₂.2 $ λ x y,
-    by { erw [←mul, ←inv, ←inv,  inv_mul_rev, mul, inv, inv], refl },
   div_eq_mul_inv := hf.forall₂.2 $ λ x y, by erw [←inv, ←mul, ←div, div_eq_mul_inv],
   .. hf.monoid f one mul npow, .. ‹has_div M₂›, .. ‹has_inv M₂›, }
 
@@ -373,7 +377,9 @@ protected def division_monoid [division_monoid M₁]
   (div : ∀ x y, f (x / y) = f x / f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
   (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
   division_monoid M₂ :=
-{ .. hf.div_inv_monoid f one mul inv div npow zpow, .. hf.has_involutive_inv f inv }
+{ inv_mul_rev := hf.forall₂.2 $ λ x y,
+    by { erw [←mul, ←inv, ←inv,  inv_mul_rev, mul, inv, inv], refl },
+  .. hf.div_inv_monoid f one mul inv div npow zpow, .. hf.has_involutive_inv f inv }
 
 /-- A type endowed with `1`, `*` and `⁻¹` is a group,
 if it admits a surjective map that preserves `1`, `*` and `⁻¹` to a group.

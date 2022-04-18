@@ -49,18 +49,10 @@ universe u
 variables {K : Type u}
 
 /-- A `division_ring` is a `ring` with multiplicative inverses for nonzero elements -/
-@[protect_proj, ancestor ring has_involutive_inv has_div nontrivial]
-class division_ring (K : Type u) extends ring K, has_inv K, has_div K, nontrivial K :=
+@[protect_proj, ancestor ring div_inv_monoid nontrivial]
+class division_ring (K : Type u) extends ring K, div_inv_monoid K, nontrivial K :=
 (mul_inv_cancel : ∀ {a : K}, a ≠ 0 → a * a⁻¹ = 1)
 (inv_zero : (0 : K)⁻¹ = 0)
-(div := λ a b, a * b⁻¹)
-(div_eq_mul_inv : ∀ a b : K, a / b = a * b⁻¹ . try_refl_tac)
-(zpow : ℤ → K → K := zpow_rec)
-(zpow_zero' : ∀ (a : K), zpow 0 a = 1 . try_refl_tac)
-(zpow_succ' :
-  ∀ (n : ℕ) (a : K), zpow (int.of_nat n.succ) a = a * zpow (int.of_nat n) a . try_refl_tac)
-(zpow_neg' :
-  ∀ (n : ℕ) (a : K), zpow (-[1+ n]) a = (zpow n.succ a)⁻¹ . try_refl_tac)
 
 section division_ring
 variables [division_ring K] {a b : K}
@@ -171,18 +163,10 @@ instance division_ring.is_domain : is_domain K :=
 end division_ring
 
 /-- A `field` is a `comm_ring` with multiplicative inverses for nonzero elements -/
-@[protect_proj, ancestor comm_ring has_inv has_div nontrivial]
-class field (K : Type u) extends comm_ring K, has_inv K, has_div K, nontrivial K :=
+@[protect_proj, ancestor comm_ring div_inv_monoid nontrivial]
+class field (K : Type u) extends comm_ring K, div_inv_monoid K, nontrivial K :=
 (mul_inv_cancel : ∀ {a : K}, a ≠ 0 → a * a⁻¹ = 1)
 (inv_zero : (0 : K)⁻¹ = 0)
-(div := λ a b, a * b⁻¹)
-(div_eq_mul_inv : ∀ a b : K, a / b = a * b⁻¹ . try_refl_tac)
-(zpow : ℤ → K → K := zpow_rec)
-(zpow_zero' : ∀ (a : K), zpow 0 a = 1 . try_refl_tac)
-(zpow_succ' :
-  ∀ (n : ℕ) (a : K), zpow (int.of_nat n.succ) a = a * zpow (int.of_nat n) a . try_refl_tac)
-(zpow_neg' :
-  ∀ (n : ℕ) (a : K), zpow (-[1+ n]) a = (zpow n.succ a)⁻¹ . try_refl_tac)
 
 section field
 

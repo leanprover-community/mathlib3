@@ -124,8 +124,7 @@ instance [monoid M] [monoid N] : monoid (M × N) :=
 
 @[to_additive prod.sub_neg_monoid]
 instance [div_inv_monoid G] [div_inv_monoid H] : div_inv_monoid (G × H) :=
-{ inv_mul_rev := λ a b, ext (inv_mul_rev _ _) (inv_mul_rev _ _),
-  div_eq_mul_inv := λ a b, mk.inj_iff.mpr ⟨div_eq_mul_inv _ _, div_eq_mul_inv _ _⟩,
+{ div_eq_mul_inv := λ a b, mk.inj_iff.mpr ⟨div_eq_mul_inv _ _, div_eq_mul_inv _ _⟩,
   zpow := λ z a, ⟨div_inv_monoid.zpow z a.1, div_inv_monoid.zpow z a.2⟩,
   zpow_zero' := λ z, ext (div_inv_monoid.zpow_zero' _) (div_inv_monoid.zpow_zero' _),
   zpow_succ' := λ z a, ext (div_inv_monoid.zpow_succ' _ _) (div_inv_monoid.zpow_succ' _ _),
@@ -134,7 +133,8 @@ instance [div_inv_monoid G] [div_inv_monoid H] : div_inv_monoid (G × H) :=
 
 @[to_additive subtraction_monoid]
 instance [division_monoid G] [division_monoid H] : division_monoid (G × H) :=
-{ .. prod.div_inv_monoid, .. prod.has_involutive_inv }
+{ inv_mul_rev := λ a b, ext (inv_mul_rev _ _) (inv_mul_rev _ _),
+  .. prod.div_inv_monoid, .. prod.has_involutive_inv }
 
 @[to_additive]
 instance [group G] [group H] : group (G × H) :=

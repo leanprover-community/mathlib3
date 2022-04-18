@@ -558,9 +558,8 @@ instance group_with_zero.to_division_monoid : division_monoid G₀ :=
   end,
   ..‹group_with_zero G₀› }
 
-/-- Pullback a `group_with_zero` class along an injective function.
-See note [reducible non-instances]. -/
-@[reducible]
+/-- Pullback a `group_with_zero` along an injective function. -/
+@[reducible] -- See note [reducible non-instances]
 protected def function.injective.group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']
   [has_inv G₀'] [has_div G₀'] [has_pow G₀' ℕ] [has_pow G₀' ℤ]
   (f : G₀' → G₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -574,9 +573,8 @@ protected def function.injective.group_with_zero [has_zero G₀'] [has_mul G₀'
   .. hf.div_inv_monoid f one mul inv div npow zpow,
   .. pullback_nonzero f zero one, }
 
-/-- Pushforward a `group_with_zero` class along an surjective function.
-See note [reducible non-instances]. -/
-@[reducible]
+/-- Pushforward a `group_with_zero` along a surjective function. -/
+@[reducible] -- See note [reducible non-instances]
 protected def function.surjective.group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']
   [has_inv G₀'] [has_div G₀'] [has_pow G₀' ℕ] [has_pow G₀' ℤ]
   (h01 : (0:G₀') ≠ 1) (f : G₀ → G₀') (hf : surjective f)
@@ -584,7 +582,7 @@ protected def function.surjective.group_with_zero [has_zero G₀'] [has_mul G₀
   (inv : ∀ x, f x⁻¹ = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n):
   group_with_zero G₀' :=
-{ inv_zero := by erw [← zero, ← inv, inv_zero],
+{ inv_zero := by erw [←zero, ←inv,inv_zero],
   mul_inv_cancel := hf.forall.2 $ λ x hx,
     by erw [← inv, ← mul, mul_inv_cancel (mt (congr_arg f) $ trans_rel_left ne hx zero.symm)];
       exact one,

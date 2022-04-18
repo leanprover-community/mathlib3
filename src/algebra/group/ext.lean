@@ -22,6 +22,7 @@ monoid, group, extensionality
 -/
 
 universe u
+variables {G : Type*}
 
 @[ext, to_additive]
 lemma monoid.ext {M : Type u} ⦃m₁ m₂ : monoid M⦄ (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=
@@ -117,6 +118,16 @@ begin
     exact @monoid_hom.map_div' M M m₁ m₂ f (congr_fun h_inv) a b },
   unfreezingI { cases m₁, cases m₂ },
   congr, exacts [h_mul, h₁, hpow, h_inv, hdiv, hzpow]
+end
+
+@[ext, to_additive subtraction_monoid]
+lemma division_monoid.ext ⦃g₁ g₂ : division_monoid G⦄ (h_mul : g₁.mul = g₂.mul)
+  (h_inv : m₁.inv = m₂.inv) : g₁ = g₂ :=
+begin
+  set f := @monoid_hom.mk' G G (by letI := g₁; apply_instance) g₂ id
+    (λ a b, congr_fun (congr_fun h_mul a) b),
+  exact group.to_div_inv_monoid_injective (div_inv_monoid.ext h_mul
+    (funext $ @monoid_hom.map_inv G G g₁ g₂ f))
 end
 
 @[ext, to_additive]

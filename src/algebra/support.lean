@@ -54,6 +54,15 @@ iff.rfl
   mul_support f ⊆ s ↔ ∀ x ∉ s, f x = 1 :=
 forall_congr $ λ x, not_imp_comm
 
+@[to_additive] lemma mul_support_disjoint_iff {f : α → M} {s : set α} :
+  disjoint (mul_support f) s ↔ eq_on f 1 s :=
+by simp_rw [disjoint_iff_subset_compl_right, mul_support_subset_iff', not_mem_compl_iff, eq_on,
+  pi.one_apply]
+
+@[to_additive] lemma disjoint_mul_support_iff {f : α → M} {s : set α} :
+  disjoint s (mul_support f) ↔ eq_on f 1 s :=
+by rw [disjoint.comm, mul_support_disjoint_iff]
+
 @[simp, to_additive] lemma mul_support_eq_empty_iff {f : α → M} :
   mul_support f = ∅ ↔ f = 1 :=
 by { simp_rw [← subset_empty_iff, mul_support_subset_iff', funext_iff], simp }
@@ -148,9 +157,18 @@ by tidy
 
 end has_one
 
-@[to_additive] lemma mul_support_mul [monoid M] (f g : α → M) :
+@[to_additive] lemma mul_support_mul [mul_one_class M] (f g : α → M) :
   mul_support (λ x, f x * g x) ⊆ mul_support f ∪ mul_support g :=
 mul_support_binop_subset (*) (one_mul _) f g
+
+@[to_additive] lemma mul_support_pow [monoid M] (f : α → M) (n : ℕ) :
+  mul_support (λ x, f x ^ n) ⊆ mul_support f :=
+begin
+  induction n with n hfn,
+  { simpa only [pow_zero, mul_support_one] using empty_subset _ },
+  { simpa only [pow_succ]
+      using subset_trans (mul_support_mul f _) (union_subset (subset.refl _) hfn) }
+end
 
 @[simp, to_additive] lemma mul_support_inv [group G] (f : α → G) :
   mul_support (λ x, (f x)⁻¹) = mul_support f :=
@@ -180,6 +198,14 @@ mul_support_binop_subset (/) (by simp only [div_one]) f g
   support (λ x, f x * g x) = support f ∩ support g :=
 set.ext $ λ x, by simp only [mem_support, mul_ne_zero_iff, mem_inter_eq, not_or_distrib]
 
+@[simp] lemma support_mul_subset_left [mul_zero_class R] (f g : α → R) :
+  support (λ x, f x * g x) ⊆ support f :=
+λ x hfg hf, hfg $ by simp only [hf, zero_mul]
+
+@[simp] lemma support_mul_subset_right [mul_zero_class R] (f g : α → R) :
+  support (λ x, f x * g x) ⊆ support g :=
+λ x hfg hg, hfg $ by simp only [hg, mul_zero]
+
 lemma support_smul_subset_right [add_monoid A] [monoid B] [distrib_mul_action B A]
   (b : B) (f : α → A) :
   support (b • f) ⊆ support f :=
@@ -194,6 +220,11 @@ lemma support_smul [semiring R] [add_comm_monoid M] [module R M]
   [no_zero_smul_divisors R M] (f : α → R) (g : α → M) :
   support (f • g) = support f ∩ support g :=
 ext $ λ x, smul_ne_zero
+
+lemma support_const_smul_of_ne_zero [semiring R] [add_comm_monoid M] [module R M]
+  [no_zero_smul_divisors R M] (c : R) (g : α → M) (hc : c ≠ 0) :
+  support (c • g) = support g :=
+ext $ λ x, by simp only [hc, mem_support, pi.smul_apply, ne.def, smul_eq_zero, false_or]
 
 @[simp] lemma support_inv [group_with_zero G₀] (f : α → G₀) :
   support (λ x, (f x)⁻¹) = support f :=

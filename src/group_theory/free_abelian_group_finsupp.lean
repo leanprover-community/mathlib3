@@ -4,8 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import group_theory.free_abelian_group
+import algebra.module.equiv
 import data.finsupp.basic
+import group_theory.free_abelian_group
+import group_theory.is_free_group
+import linear_algebra.dimension
 
 /-!
 # Isomorphism between `free_abelian_group X` and `X →₀ ℤ`
@@ -93,6 +96,41 @@ def equiv_finsupp : free_abelian_group X ≃+ (X →₀ ℤ) :=
   left_inv := to_free_abelian_group_to_finsupp,
   right_inv := to_finsupp_to_free_abelian_group,
   map_add' := to_finsupp.map_add }
+
+/-- `A` is a basis of the ℤ-module `free_abelian_group A`. -/
+noncomputable def basis (α : Type*) :
+  basis α ℤ (free_abelian_group α) :=
+⟨(free_abelian_group.equiv_finsupp α).to_int_linear_equiv ⟩
+
+/-- Isomorphic free ablian groups (as modules) have equivalent bases. -/
+def equiv.of_free_abelian_group_linear_equiv {α β : Type*}
+  (e : free_abelian_group α ≃ₗ[ℤ] free_abelian_group β) :
+  α ≃ β :=
+let t : _root_.basis α ℤ (free_abelian_group β) := (free_abelian_group.basis α).map e
+  in t.index_equiv $ free_abelian_group.basis _
+
+/-- Isomorphic free abelian groups (as additive groups) have equivalent bases. -/
+def equiv.of_free_abelian_group_equiv {α β : Type*}
+  (e : free_abelian_group α ≃+ free_abelian_group β) :
+  α ≃ β :=
+equiv.of_free_abelian_group_linear_equiv e.to_int_linear_equiv
+
+/-- Isomorphic free groups have equivalent bases. -/
+def equiv.of_free_group_equiv {α β : Type*}
+  (e : free_group α ≃* free_group β) :
+  α ≃ β :=
+equiv.of_free_abelian_group_equiv e.abelianization_congr.to_additive
+
+open is_free_group
+/-- Isomorphic free groups have equivalent bases (`is_free_group` variant`). -/
+def equiv.of_is_free_group_equiv {G H : Type*}
+  [group G] [group H] [is_free_group G] [is_free_group H]
+  (e : G ≃* H) :
+  generators G ≃ generators H :=
+equiv.of_free_group_equiv $
+  mul_equiv.trans ((to_free_group G).symm) $
+  mul_equiv.trans e $
+  to_free_group H
 
 variable {X}
 

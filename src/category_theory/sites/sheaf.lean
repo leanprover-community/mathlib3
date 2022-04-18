@@ -20,7 +20,7 @@ that we need no assumptions whatsoever on `A` other than the assumption that the
 and `A` live in the same universe.
 
 * An `A`-valued presheaf `P : Cᵒᵖ ⥤ A` is defined to be a sheaf (for the topology `J`) iff for
-  every `X : A`, the type-valued presheaves of sets given by sending `U : Cᵒᵖ` to `Hom_{A}(X, P U)`
+  every `E : A`, the type-valued presheaves of sets given by sending `U : Cᵒᵖ` to `Hom_{A}(E, P U)`
   are all sheaves of sets, see `category_theory.presheaf.is_sheaf`.
 * When `A = Type`, this recovers the basic definition of sheaves of sets, see
   `category_theory.is_sheaf_iff_is_sheaf_of_type`.
@@ -30,8 +30,8 @@ and `A` live in the same universe.
 * When `A = Type`, this is *definitionally* equal to the equalizer condition for presieves in
   `category_theory.sites.sheaf_of_types`.
 * When `A` has limits and there is a functor `s : A ⥤ Type` which is faithful, reflects isomorphisms
-  and preserves limits, then `P : C^op ⥤ A` is a sheaf iff the underlying presheaf of types
-  `P ⋙ s : C^op ⥤ Type` is a sheaf (`category_theory.presheaf.is_sheaf_iff_is_sheaf_forget`).
+  and preserves limits, then `P : Cᵒᵖ ⥤ A` is a sheaf iff the underlying presheaf of types
+  `P ⋙ s : Cᵒᵖ ⥤ Type` is a sheaf (`category_theory.presheaf.is_sheaf_iff_is_sheaf_forget`).
   Cf https://stacks.math.columbia.edu/tag/0073, which is a weaker version of this statement (it's
   only over spaces, not sites) and https://stacks.math.columbia.edu/tag/00YR (a), which
   additionally assumes filtered colimits.
@@ -43,7 +43,7 @@ noncomputable theory
 
 namespace category_theory
 
-open opposite category_theory category limits sieve classical
+open opposite category_theory category limits sieve
 
 namespace presheaf
 
@@ -54,13 +54,124 @@ variables (J : grothendieck_topology C)
 -- We follow https://stacks.math.columbia.edu/tag/00VL definition 00VR
 
 /--
-A sheaf of A is a presheaf P : C^op => A such that for every X : A, the
-presheaf of types given by sending U : C to Hom_{A}(X, P U) is a sheaf of types.
+A sheaf of A is a presheaf P : Cᵒᵖ => A such that for every E : A, the
+presheaf of types given by sending U : C to Hom_{A}(E, P U) is a sheaf of types.
 
 https://stacks.math.columbia.edu/tag/00VR
 -/
 def is_sheaf (P : Cᵒᵖ ⥤ A) : Prop :=
-∀ X : A, presieve.is_sheaf J (P ⋙ coyoneda.obj (op X))
+∀ E : A, presieve.is_sheaf J (P ⋙ coyoneda.obj (op E))
+
+section limit_sheaf_condition
+open presieve presieve.family_of_elements limits
+variables (P : Cᵒᵖ ⥤ A) {X : C} (S : sieve X) (R : presieve X) (E : Aᵒᵖ)
+
+/-- Given a sieve `S` on `X : C`, a presheaf `P : Cᵒᵖ ⥤ A`, and an object `E` of `A`,
+    the cones over the natural diagram `S.arrows.diagram.op ⋙ P` associated to `S` and `P`
+    with cone point `E` are in 1-1 correspondence with sieve_compatible family of elements
+    for the sieve `S` and the presheaf of types `Hom (E, P -)`. -/
+@[simps] def cones_equiv_sieve_compatible_family :
+  (S.arrows.diagram.op ⋙ P).cones.obj E ≃
+  {x : family_of_elements (P ⋙ coyoneda.obj E) S // x.sieve_compatible} :=
+{ to_fun := λ π, ⟨λ Y f h, π.app (op ⟨over.mk f, h⟩), λ _, by
+    { intros, apply (id_comp _).symm.trans, dsimp,
+      convert π.naturality (quiver.hom.op (over.hom_mk _ _)); dsimp; refl }⟩,
+  inv_fun := λ x, { app := λ f, x.1 f.unop.1.hom f.unop.2,
+    naturality' := λ f f' g, by
+    { refine eq.trans _ (x.2 f.unop.1.hom g.unop.left f.unop.2),
+      erw id_comp, congr, rw over.w g.unop } },
+  left_inv := λ π, by { ext, dsimp, congr,
+    rw op_eq_iff_eq_unop, ext, symmetry, apply costructured_arrow.eq_mk },
+  right_inv := λ x, by { ext, refl } }
+
+variables {P S E} {x : family_of_elements (P ⋙ coyoneda.obj E) S} (hx : x.sieve_compatible)
+
+/-- The cone corresponding to a sieve_compatible family of elements, dot notation enabled. -/
+@[simp] def _root_.category_theory.presieve.family_of_elements.sieve_compatible.cone :
+  cone (S.arrows.diagram.op ⋙ P) :=
+{ X := E.unop, π := (cones_equiv_sieve_compatible_family P S E).inv_fun ⟨x,hx⟩ }
+
+/-- Cone morphisms from the cone corresponding to a sieve_compatible family to the natural
+    cone associated to a sieve `S` and a presheaf `P` are in 1-1 correspondence with amalgamations
+    of the family. -/
+def hom_equiv_amalgamation :
+  (hx.cone ⟶ P.map_cone S.arrows.cocone.op) ≃ {t // x.is_amalgamation t} :=
+{ to_fun := λ l, ⟨l.hom, λ Y f hf, l.w (op ⟨over.mk f, hf⟩)⟩,
+  inv_fun := λ t, ⟨t.1, λ f, t.2 f.unop.1.hom f.unop.2⟩,
+  left_inv := λ l, by { ext, refl },
+  right_inv := λ t, by { ext, refl } }
+
+variables (P S)
+
+/-- Given sieve `S` and presheaf `P : Cᵒᵖ ⥤ A`, their natural associated cone is a limit cone
+    iff `Hom (E, P -)` is a sheaf of types for the sieve `S` and all `E : A`. -/
+lemma is_limit_iff_is_sheaf_for :
+  nonempty (is_limit (P.map_cone S.arrows.cocone.op)) ↔
+  ∀ E : Aᵒᵖ, is_sheaf_for (P ⋙ coyoneda.obj E) S :=
+begin
+  dsimp [is_sheaf_for], simp_rw compatible_iff_sieve_compatible,
+  rw ((cone.is_limit_equiv_is_terminal _).trans (is_terminal_equiv_unique _ _)).nonempty_congr,
+  rw classical.nonempty_pi, split,
+  { intros hu E x hx, specialize hu hx.cone,
+    erw (hom_equiv_amalgamation hx).unique_congr.nonempty_congr at hu,
+    exact (unique_subtype_iff_exists_unique _).1 hu },
+  { rintros h ⟨E,π⟩, let eqv := cones_equiv_sieve_compatible_family P S (op E),
+    rw ← eqv.left_inv π, erw (hom_equiv_amalgamation (eqv π).2).unique_congr.nonempty_congr,
+    rw unique_subtype_iff_exists_unique, exact h _ _ (eqv π).2 },
+end
+
+/-- Given sieve `S` and presheaf `P : Cᵒᵖ ⥤ A`, their natural associated cone admits at most one
+    morphism from every cone in the same category (i.e. over the same diagram),
+    iff `Hom (E, P -)`is separated for the sieve `S` and all `E : A`. -/
+lemma subsingleton_iff_is_separated_for :
+  (∀ c, subsingleton (c ⟶ P.map_cone S.arrows.cocone.op)) ↔
+  ∀ E : Aᵒᵖ, is_separated_for (P ⋙ coyoneda.obj E) S :=
+begin
+  split,
+  { intros hs E x t₁ t₂ h₁ h₂, have hx := is_compatible_of_exists_amalgamation x ⟨t₁,h₁⟩,
+    rw compatible_iff_sieve_compatible at hx, specialize hs hx.cone, cases hs,
+    have := (hom_equiv_amalgamation hx).symm.injective,
+    exact subtype.ext_iff.1 (@this ⟨t₁,h₁⟩ ⟨t₂,h₂⟩ (hs _ _)) },
+  { rintros h ⟨E,π⟩, let eqv := cones_equiv_sieve_compatible_family P S (op E), split,
+    rw ← eqv.left_inv π, intros f₁ f₂, let eqv' := hom_equiv_amalgamation (eqv π).2,
+    apply eqv'.injective, ext, apply h _ (eqv π).1; exact (eqv' _).2 },
+end
+
+/-- A presheaf `P` is a sheaf for the Grothendieck topology `J` iff for every covering sieve
+    `S` of `J`, the natural cone associated to `P` and `S` is a limit cone. -/
+lemma is_sheaf_iff_is_limit : is_sheaf J P ↔
+  ∀ ⦃X : C⦄ (S : sieve X), S ∈ J X → nonempty (is_limit (P.map_cone S.arrows.cocone.op)) :=
+⟨λ h X S hS, (is_limit_iff_is_sheaf_for P S).2 (λ E, h E.unop S hS),
+ λ h E X S hS, (is_limit_iff_is_sheaf_for P S).1 (h S hS) (op E)⟩
+
+/-- A presheaf `P` is separated for the Grothendieck topology `J` iff for every covering sieve
+    `S` of `J`, the natural cone associated to `P` and `S` admits at most one morphism from every
+    cone in the same category. -/
+lemma is_separated_iff_subsingleton :
+  (∀ E : A, is_separated J (P ⋙ coyoneda.obj (op E))) ↔
+  ∀ ⦃X : C⦄ (S : sieve X), S ∈ J X → ∀ c, subsingleton (c ⟶ P.map_cone S.arrows.cocone.op) :=
+⟨λ h X S hS, (subsingleton_iff_is_separated_for P S).2 (λ E, h E.unop S hS),
+ λ h E X S hS, (subsingleton_iff_is_separated_for P S).1 (h S hS) (op E)⟩
+
+/-- Given presieve `R` and presheaf `P : Cᵒᵖ ⥤ A`, the natural cone associated to `P` and
+    the sieve `sieve.generate R` generated by `R` is a limit cone iff `Hom (E, P -)` is a
+    sheaf of types for the presieve `R` and all `E : A`. -/
+lemma is_limit_iff_is_sheaf_for_presieve :
+  nonempty (is_limit (P.map_cone (generate R).arrows.cocone.op)) ↔
+  ∀ E : Aᵒᵖ, is_sheaf_for (P ⋙ coyoneda.obj E) R :=
+(is_limit_iff_is_sheaf_for P _).trans (forall_congr (λ _, (is_sheaf_for_iff_generate _).symm))
+
+/-- A presheaf `P` is a sheaf for the Grothendieck topology generated by a pretopology `K`
+    iff for every covering presieve `R` of `K`, the natural cone associated to `P` and
+    `sieve.generate R` is a limit cone. -/
+lemma is_sheaf_iff_is_limit_pretopology [has_pullbacks C] (K : pretopology C) :
+  is_sheaf (K.to_grothendieck C) P ↔ ∀ ⦃X : C⦄ (R : presieve X), R ∈ K X →
+    nonempty (is_limit (P.map_cone (generate R).arrows.cocone.op)) :=
+by { dsimp [is_sheaf], simp_rw is_sheaf_pretopology, exact
+  ⟨λ h X R hR, (is_limit_iff_is_sheaf_for_presieve P R).2 (λ E, h E.unop R hR),
+   λ h E X R hR, (is_limit_iff_is_sheaf_for_presieve P R).1 (h R hR) (op E)⟩ }
+
+end limit_sheaf_condition
 
 variable {J}
 
@@ -144,7 +255,7 @@ instance : faithful (Sheaf_to_presheaf J A) := {}
 
 /-- The sheaf of sections guaranteed by the sheaf condition. -/
 @[simps] def sheaf_over {A : Type u₂} [category.{v₂} A] {J : grothendieck_topology C}
-  (ℱ : Sheaf J A) (X : A) : SheafOfTypes J := ⟨ℱ.val ⋙ coyoneda.obj (op X), ℱ.cond X⟩
+  (ℱ : Sheaf J A) (E : A) : SheafOfTypes J := ⟨ℱ.val ⋙ coyoneda.obj (op E), ℱ.cond E⟩
 
 lemma is_sheaf_iff_is_sheaf_of_type (P : Cᵒᵖ ⥤ Type w) :
   presheaf.is_sheaf J P ↔ presieve.is_sheaf J P :=
@@ -201,7 +312,7 @@ end category_theory
 
 namespace category_theory
 
-open opposite category_theory category limits sieve classical
+open opposite category_theory category limits sieve
 
 namespace presheaf
 
@@ -225,7 +336,7 @@ def is_limit_of_is_sheaf {X : C} (S : J.cover X) (hP : is_sheaf J P) :
     rintros (E : multifork _) (a|b),
     { apply hP.amalgamate_map },
     { rw [← E.w (walking_multicospan.hom.fst b),
-        ← (S.multifork P).w (walking_multicospan.hom.fst b), ← category.assoc],
+        ← (S.multifork P).w (walking_multicospan.hom.fst b), ← assoc],
       congr' 1,
       apply hP.amalgamate_map }
   end,
@@ -256,7 +367,7 @@ begin
     rintros (a|b),
     { apply he },
     { rw [← K.w (walking_multicospan.hom.fst b),
-        ← (T.multifork P).w (walking_multicospan.hom.fst b), ← category.assoc],
+        ← (T.multifork P).w (walking_multicospan.hom.fst b), ← assoc],
       congr' 1,
       apply he } }
 end

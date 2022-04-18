@@ -96,6 +96,11 @@ lemma tendsto_uniformly_iff_tendsto {F : ι → α → β} {f : α → β} {p : 
   tendsto_uniformly F f p ↔ tendsto (λ q : ι × α, (f q.2, F q.1 q.2)) (p ×ᶠ ⊤) (𝓤 β) :=
 forall₂_congr $ λ u u_in, by simp [mem_map, filter.eventually, mem_prod_top]
 
+/-- Uniform converence implies pointwise convergence. -/
+lemma tendsto_uniformly.tendsto_at (h : tendsto_uniformly F f p) (x : α) :
+  tendsto (λ n, F n x) p $ 𝓝 (f x) :=
+uniform.tendsto_nhds_right.mpr $ λ u hu, mem_map.mpr $ by { filter_upwards [h u hu], tauto, }
+
 lemma tendsto_uniformly_on_univ :
   tendsto_uniformly_on F f p univ ↔ tendsto_uniformly F f p :=
 by simp [tendsto_uniformly_on, tendsto_uniformly]
@@ -111,20 +116,54 @@ protected lemma tendsto_uniformly.tendsto_uniformly_on
 /-- Composing on the right by a function preserves uniform convergence on a set -/
 lemma tendsto_uniformly_on.comp (h : tendsto_uniformly_on F f p s) (g : γ → α) :
   tendsto_uniformly_on (λ n, F n ∘ g) (f ∘ g) p (g ⁻¹' s) :=
-begin
-  assume u hu,
-  apply (h u hu).mono (λ n hn, _),
-  exact λ x hx, hn _ hx
-end
+λ u hu, (h u hu).mono (λ i hi, λ a, hi (g a))
 
 /-- Composing on the right by a function preserves uniform convergence -/
 lemma tendsto_uniformly.comp (h : tendsto_uniformly F f p) (g : γ → α) :
   tendsto_uniformly (λ n, F n ∘ g) (f ∘ g) p :=
+λ u hu, (h u hu).mono (λ i hi, λ a, hi (g a))
+
+/-- Composing on the left by a uniformly continuous function preserves
+  uniform convergence on a set -/
+lemma tendsto_uniformly_on.comp' [uniform_space γ] {g : β → γ} (h : tendsto_uniformly_on F f p s)
+  (hg : uniform_continuous g) : tendsto_uniformly_on (λ i, g ∘ (F i)) (g ∘ f) p s :=
+λ u hu, h _ (hg hu)
+
+/-- Composing on the left by a uniformly continuous function preserves uniform convergence -/
+lemma tendsto_uniformly.comp' [uniform_space γ] {g : β → γ} (h : tendsto_uniformly F f p)
+  (hg : uniform_continuous g) : tendsto_uniformly (λ i, g ∘ (F i)) (g ∘ f) p :=
+λ u hu, h _ (hg hu)
+
+lemma tendsto_uniformly_on.prod_map {ι' α' β' : Type*} [uniform_space β']
+  {F' : ι' → α' → β'} {f' : α' → β'} {p' : filter ι'} {s' : set α'}
+  (h : tendsto_uniformly_on F f p s) (h' : tendsto_uniformly_on F' f' p' s') :
+  tendsto_uniformly_on (λ (i : ι × ι'), prod.map (F i.1) (F' i.2))
+    (prod.map f f') (p.prod p') (s ×ˢ s') :=
 begin
-  assume u hu,
-  apply (h u hu).mono (λ n hn, _),
-  exact λ x, hn _
+  intros u hu,
+  rw [uniformity_prod_eq_prod, mem_map, mem_prod_iff] at hu,
+  obtain ⟨v, hv, w, hw, hvw⟩ := hu,
+  exact mem_prod_iff.mpr ⟨_, h v hv, _, h' w hw,
+    λ i hi a ha, hvw (show (_, _) ∈ v ×ˢ w, from ⟨hi.1 a.1 ha.1, hi.2 a.2 ha.2⟩)⟩,
 end
+
+lemma tendsto_uniformly.prod_map {ι' α' β' : Type*} [uniform_space β'] {F' : ι' → α' → β'}
+  {f' : α' → β'} {p' : filter ι'} (h : tendsto_uniformly F f p) (h' : tendsto_uniformly F' f' p') :
+  tendsto_uniformly (λ (i : ι × ι'), prod.map (F i.1) (F' i.2)) (prod.map f f') (p.prod p') :=
+begin
+  rw [←tendsto_uniformly_on_univ, ←univ_prod_univ] at *,
+  exact h.prod_map h',
+end
+
+lemma tendsto_uniformly_on.prod {ι' β' : Type*} [uniform_space β'] {F' : ι' → α → β'} {f' : α → β'}
+  {p' : filter ι'} (h : tendsto_uniformly_on F f p s) (h' : tendsto_uniformly_on F' f' p' s) :
+  tendsto_uniformly_on (λ (i : ι × ι') a, (F i.1 a, F' i.2 a)) (λ a, (f a, f' a)) (p.prod p') s :=
+(congr_arg _ s.inter_self).mp ((h.prod_map h').comp (λ a, (a, a)))
+
+lemma tendsto_uniformly.prod {ι' β' : Type*} [uniform_space β'] {F' : ι' → α → β'} {f' : α → β'}
+  {p' : filter ι'} (h : tendsto_uniformly F f p) (h' : tendsto_uniformly F' f' p') :
+  tendsto_uniformly (λ (i : ι × ι') a, (F i.1 a, F' i.2 a)) (λ a, (f a, f' a)) (p.prod p') :=
+(h.prod_map h').comp (λ a, (a, a))
 
 /-- Uniform convergence to a constant function is equivalent to convergence in `p ×ᶠ ⊤`. -/
 lemma tendsto_prod_top_iff {c : β} : tendsto ↿F (p ×ᶠ ⊤) (𝓝 c) ↔ tendsto_uniformly F (λ _, c) p :=
@@ -161,6 +200,55 @@ lemma uniform_continuous₂.tendsto_uniformly [uniform_space α] [uniform_space 
 uniform_continuous_on.tendsto_uniformly univ_mem $
   by rwa [univ_prod_univ, uniform_continuous_on_univ]
 
+section seq_tendsto
+
+lemma tendsto_uniformly_on_of_seq_tendsto_uniformly_on {l : filter ι} [l.is_countably_generated]
+  (h : ∀ u : ℕ → ι, tendsto u at_top l → tendsto_uniformly_on (λ n, F (u n)) f at_top s) :
+  tendsto_uniformly_on F f l s :=
+begin
+  rw [tendsto_uniformly_on_iff_tendsto, tendsto_iff_seq_tendsto],
+  intros u hu,
+  rw tendsto_prod_iff' at hu,
+  specialize h (λ n, (u n).fst) hu.1,
+  rw tendsto_uniformly_on_iff_tendsto at h,
+  have : ((λ (q : ι × α), (f q.snd, F q.fst q.snd)) ∘ u)
+    = (λ (q : ℕ × α), (f q.snd, F ((λ (n : ℕ), (u n).fst) q.fst) q.snd)) ∘ (λ n, (n, (u n).snd)),
+  { ext1 n, simp, },
+  rw this,
+  refine tendsto.comp h _,
+  rw tendsto_prod_iff',
+  exact ⟨tendsto_id, hu.2⟩,
+end
+
+lemma tendsto_uniformly_on.seq_tendsto_uniformly_on {l : filter ι}
+  (h : tendsto_uniformly_on F f l s) (u : ℕ → ι) (hu : tendsto u at_top l) :
+  tendsto_uniformly_on (λ n, F (u n)) f at_top s :=
+begin
+  rw tendsto_uniformly_on_iff_tendsto at h ⊢,
+  have : (λ (q : ℕ × α), (f q.snd, F (u q.fst) q.snd))
+    = (λ (q : ι × α), (f q.snd, F q.fst q.snd)) ∘ (λ p : ℕ × α, (u p.fst, p.snd)),
+  { ext1 x, simp, },
+  rw this,
+  refine h.comp _,
+  rw tendsto_prod_iff',
+  exact ⟨hu.comp tendsto_fst, tendsto_snd⟩,
+end
+
+lemma tendsto_uniformly_on_iff_seq_tendsto_uniformly_on {l : filter ι} [l.is_countably_generated] :
+  tendsto_uniformly_on F f l s
+    ↔ ∀ u : ℕ → ι, tendsto u at_top l → tendsto_uniformly_on (λ n, F (u n)) f at_top s :=
+⟨tendsto_uniformly_on.seq_tendsto_uniformly_on, tendsto_uniformly_on_of_seq_tendsto_uniformly_on⟩
+
+lemma tendsto_uniformly_iff_seq_tendsto_uniformly {l : filter ι} [l.is_countably_generated] :
+  tendsto_uniformly F f l
+    ↔ ∀ u : ℕ → ι, tendsto u at_top l → tendsto_uniformly (λ n, F (u n)) f at_top :=
+begin
+  simp_rw ← tendsto_uniformly_on_univ,
+  exact tendsto_uniformly_on_iff_seq_tendsto_uniformly_on,
+end
+
+end seq_tendsto
+
 variable [topological_space α]
 
 /-- A sequence of functions `Fₙ` converges locally uniformly on a set `s` to a limiting function
@@ -192,6 +280,19 @@ begin
     exact ⟨u ∩ s,
            mem_nhds_within_iff_exists_mem_nhds_inter.mpr ⟨u, hu₁, rfl.subset⟩,
            ht₂.mono (λ i hi y hy, hi y hy.2 (hu₂ (by simp [hy.1])))⟩, },
+end
+
+lemma tendsto_locally_uniformly_iff_forall_tendsto :
+  tendsto_locally_uniformly F f p ↔
+  ∀ x, tendsto (λ (y : ι × α), (f y.2, F y.1 y.2)) (p ×ᶠ (𝓝 x)) (𝓤 β) :=
+begin
+  simp only [tendsto_locally_uniformly, filter.forall_in_swap, tendsto_def, mem_prod_iff,
+    set.prod_subset_iff],
+  refine forall₃_congr (λ x u hu, ⟨_, _⟩),
+  { rintros ⟨n, hn, hp⟩,
+    exact ⟨_, hp, n, hn, λ i hi a ha, hi a ha⟩, },
+  { rintros ⟨I, hI, n, hn, hu⟩,
+    exact ⟨n, hn, by filter_upwards [hI] using hu⟩, },
 end
 
 protected lemma tendsto_uniformly_on.tendsto_locally_uniformly_on

@@ -224,9 +224,9 @@ begin
   let C : t → set α := λ i, K ∩ closure (U ((i : K) : α)),
   have hC : K ⊆ ⋃ i, C i,
   { rw [← K.inter_Union, subset_inter_iff],
-    refine ⟨rfl.subset, ht.trans _⟩,
+    refine ⟨subset.rfl, ht.trans _⟩,
     simp only [set_coe.forall, subtype.coe_mk, Union_subset_iff],
-    exact λ x hx₁ hx₂, subset_subset_Union (⟨_, hx₂⟩ : t) (by simp [subset_closure]), },
+    exact λ x hx₁ hx₂, subset_Union_of_subset (⟨_, hx₂⟩ : t) (by simp [subset_closure]) },
   have hfC : ∀ (i : t), C i ⊆ f ⁻¹' ball (f ((i : K) : α)) W,
   { simp only [← image_subset_iff, ← mem_preimage],
     rintros ⟨⟨x, hx₁⟩, hx₂⟩,
@@ -276,22 +276,26 @@ def compact_convergence_uniformity : filter (C(α, β) × C(α, β)) :=
 ⨅ KV ∈ { KV : set α × set (β × β) | is_compact KV.1 ∧ KV.2 ∈ 𝓤 β },
 𝓟 { fg : C(α, β) × C(α, β) | ∀ (x : α), x ∈ KV.1 → (fg.1 x, fg.2 x) ∈ KV.2 }
 
+lemma has_basis_compact_convergence_uniformity_aux :
+  has_basis (@compact_convergence_uniformity α β _ _)
+    (λ p : set α × set (β × β), is_compact p.1 ∧ p.2 ∈ 𝓤 β)
+    (λ p, { fg : C(α, β) × C(α, β) | ∀ x ∈ p.1, (fg.1 x, fg.2 x) ∈ p.2 }) :=
+begin
+  refine filter.has_basis_binfi_principal _ compact_conv_nhd_compact_entourage_nonempty,
+  rintros ⟨K₁, V₁⟩ ⟨hK₁, hV₁⟩ ⟨K₂, V₂⟩ ⟨hK₂, hV₂⟩,
+  refine ⟨⟨K₁ ∪ K₂, V₁ ∩ V₂⟩, ⟨hK₁.union hK₂, filter.inter_mem hV₁ hV₂⟩, _⟩,
+  simp only [le_eq_subset, prod.forall, set_of_subset_set_of, ge_iff_le, order.preimage,
+      ← forall_and_distrib, mem_inter_eq, mem_union_eq],
+  exact λ f g, forall_imp (λ x, by tauto!),
+end
+
 /-- An intermediate lemma. Usually `mem_compact_convergence_entourage_iff` is more useful. -/
 lemma mem_compact_convergence_uniformity (X : set (C(α, β) × C(α, β))) :
   X ∈ @compact_convergence_uniformity α β _ _ ↔
   ∃ (K : set α) (V : set (β × β)) (hK : is_compact K) (hV : V ∈ 𝓤 β),
     { fg : C(α, β) × C(α, β) | ∀ x ∈ K, (fg.1 x, fg.2 x) ∈ V } ⊆ X :=
-begin
-  rw [compact_convergence_uniformity,
-    (filter.has_basis_binfi_principal _ compact_conv_nhd_compact_entourage_nonempty).mem_iff],
-  { simp only [exists_prop, prod.forall, set_of_subset_set_of, mem_set_of_eq, prod.exists],
-    exact exists₂_congr (λ K V, by tauto) },
-  { rintros ⟨K₁, V₁⟩ ⟨hK₁, hV₁⟩ ⟨K₂, V₂⟩ ⟨hK₂, hV₂⟩,
-    refine ⟨⟨K₁ ∪ K₂, V₁ ∩ V₂⟩, ⟨hK₁.union hK₂, filter.inter_mem hV₁ hV₂⟩, _⟩,
-    simp only [le_eq_subset, prod.forall, set_of_subset_set_of, ge_iff_le, order.preimage,
-      ← forall_and_distrib, mem_inter_eq, mem_union_eq],
-    exact λ f g, forall_imp (λ x, by tauto!), },
-end
+by simp only [has_basis_compact_convergence_uniformity_aux.mem_iff, exists_prop, prod.exists,
+  and_assoc]
 
 /-- Note that we ensure the induced topology is definitionally the compact-open topology. -/
 instance compact_convergence_uniform_space : uniform_space C(α, β) :=
@@ -346,7 +350,20 @@ mem_compact_convergence_uniformity X
 lemma has_basis_compact_convergence_uniformity :
   has_basis (𝓤 C(α, β)) (λ p : set α × set (β × β), is_compact p.1 ∧ p.2 ∈ 𝓤 β)
             (λ p, { fg : C(α, β) × C(α, β) | ∀ x ∈ p.1, (fg.1 x, fg.2 x) ∈ p.2 }) :=
-⟨λ t, by { simp only [mem_compact_convergence_entourage_iff, prod.exists], tauto, }⟩
+has_basis_compact_convergence_uniformity_aux
+
+lemma _root_.filter.has_basis.compact_convergence_uniformity {ι : Type*} {pi : ι → Prop}
+  {s : ι → set (β × β)} (h : (𝓤 β).has_basis pi s) :
+  has_basis (𝓤 C(α, β)) (λ p : set α × ι, is_compact p.1 ∧ pi p.2)
+    (λ p, { fg : C(α, β) × C(α, β) | ∀ x ∈ p.1, (fg.1 x, fg.2 x) ∈ s p.2 }) :=
+begin
+  refine has_basis_compact_convergence_uniformity.to_has_basis _ _,
+  { rintro ⟨t₁, t₂⟩ ⟨h₁, h₂⟩,
+    rcases h.mem_iff.1 h₂ with ⟨i, hpi, hi⟩,
+    exact ⟨(t₁, i), ⟨h₁, hpi⟩, λ fg hfg x hx, hi (hfg _ hx)⟩ },
+  { rintro ⟨t, i⟩ ⟨ht, hi⟩,
+    exact ⟨(t, s i), ⟨ht, h.mem_of_mem hi⟩, subset.rfl⟩ }
+end
 
 variables {ι : Type u₃} {p : filter ι} {F : ι → C(α, β)} {f}
 

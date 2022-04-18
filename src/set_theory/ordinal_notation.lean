@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
-import set_theory.ordinal_arithmetic
+import set_theory.principal
 
 /-!
 # Ordinal notation
@@ -196,9 +196,9 @@ begin
   induction h with _ e n a eb b h₁ h₂ h₃ _ IH,
   { exact opow_pos _ omega_pos },
   { rw repr,
-    refine lt_of_lt_of_le ((ordinal.add_lt_add_iff_left _).2 IH) _,
+    apply ((add_lt_add_iff_left _).2 IH).trans_le,
     rw ← mul_succ,
-    refine le_trans (mul_le_mul_left _ $ ordinal.succ_le.2 $ nat_lt_omega _) _,
+    apply (mul_le_mul_left' (ordinal.succ_le.2 (nat_lt_omega _)) _).trans,
     rw ← opow_succ,
     exact opow_le_opow_right omega_pos (ordinal.succ_le.2 h₃) }
 end
@@ -234,7 +234,7 @@ theorem oadd_lt_oadd_2 {e o₁ o₂ : onote} {n₁ n₂ : ℕ+}
   (h₁ : NF (oadd e n₁ o₁)) (h : (n₁:ℕ) < n₂) : oadd e n₁ o₁ < oadd e n₂ o₂ :=
 begin
   simp [lt_def],
-  refine lt_of_lt_of_le ((ordinal.add_lt_add_iff_left _).2 h₁.snd'.repr_lt)
+  refine lt_of_lt_of_le ((add_lt_add_iff_left _).2 h₁.snd'.repr_lt)
     (le_trans _ (le_add_right _ _)),
   rwa [← mul_succ, mul_le_mul_iff_left (opow_pos _ omega_pos),
        ordinal.succ_le, nat_cast_lt]
@@ -244,7 +244,7 @@ theorem oadd_lt_oadd_3 {e n a₁ a₂} (h : a₁ < a₂) :
   oadd e n a₁ < oadd e n a₂ :=
 begin
   rw lt_def, unfold repr,
-  exact (ordinal.add_lt_add_iff_left _).2 h
+  exact add_lt_add_left h _
 end
 
 theorem cmp_compares : ∀ (a b : onote) [NF a] [NF b], (cmp a b).compares a b
@@ -437,7 +437,7 @@ instance sub_NF (o₁ o₂) : ∀ [NF o₁] [NF o₂], NF (o₁ - o₂)
           add_comm, nat.cast_add, ordinal.mul_add, add_assoc, add_sub_add_cancel],
       refine (ordinal.sub_eq_of_add_eq $ add_absorp h₂.snd'.repr_lt $
         le_trans _ (le_add_right _ _)).symm,
-      simpa using mul_le_mul_left _ (nat_cast_le.2 $ nat.succ_pos _) } },
+      simpa using mul_le_mul_left' (nat_cast_le.2 $ nat.succ_pos _) _ } },
   { exact (ordinal.sub_eq_of_add_eq $ add_absorp (h₂.below_of_lt ee).repr_lt $
       omega_le_oadd _ _ _).symm }
 end
@@ -471,7 +471,7 @@ theorem oadd_mul_NF_below {e₁ n₁ a₁ b₁} (h₁ : NF_below (oadd e₁ n₁
   { haveI := h₁.fst, haveI := h₂.fst,
     apply NF_below.oadd, apply_instance,
     { rwa repr_add },
-    { rw [repr_add, ordinal.add_lt_add_iff_left], exact h₂.lt } }
+    { rw [repr_add, add_lt_add_iff_left], exact h₂.lt } }
 end
 
 instance mul_NF : ∀ o₁ o₂ [NF o₁] [NF o₂], NF (o₁ * o₂)
@@ -629,7 +629,7 @@ begin
   cases NF_repr_split h with h₁ h₂,
   cases h₁.of_dvd_omega (split_dvd h) with e0 d,
   have := h₁.fst, have := h₁.snd,
-  refine add_lt_omega_opow h₁.snd'.repr_lt (lt_of_lt_of_le (nat_lt_omega _) _),
+  apply principal_add_omega_opow _ h₁.snd'.repr_lt (lt_of_lt_of_le (nat_lt_omega _) _),
   simpa using opow_le_opow_right omega_pos (one_le_iff_ne_zero.2 e0),
 end
 
@@ -676,20 +676,19 @@ begin
   have No := Ne.oadd n (Na.below_of_lt' h),
   have := omega_le_oadd e n a, unfold repr at this,
   refine le_antisymm _ (opow_le_opow_left _ this),
-  apply (opow_le_of_limit
-    (ne_of_gt $ lt_of_lt_of_le (opow_pos _ omega_pos) this) omega_is_limit).2,
+  apply (opow_le_of_limit ((opow_pos _ omega_pos).trans_le this).ne' omega_is_limit).2,
   intros b l,
   have := (No.below_of_lt (lt_succ_self _)).repr_lt, unfold repr at this,
-  apply le_trans (opow_le_opow_left b $ le_of_lt this),
+  apply (opow_le_opow_left b $ this.le).trans,
   rw [← opow_mul, ← opow_mul],
   apply opow_le_opow_right omega_pos,
   cases le_or_lt ω (repr e) with h h,
-  { apply le_trans (mul_le_mul_left _ $ le_of_lt $ lt_succ_self _),
+  { apply (mul_le_mul_left' (lt_succ_self _).le _).trans,
     rw [succ, add_mul_succ _ (one_add_of_omega_le h), ← succ,
         succ_le, mul_lt_mul_iff_left (ordinal.pos_iff_ne_zero.2 e0)],
     exact omega_is_limit.2 _ l },
-  { refine le_trans (le_of_lt $ mul_lt_omega (omega_is_limit.2 _ h) l) _,
-    simpa using mul_le_mul_right ω (one_le_iff_ne_zero.2 e0) }
+  { apply (principal_mul_omega (omega_is_limit.2 _ h) l).le.trans,
+    simpa using mul_le_mul_right' (one_le_iff_ne_zero.2 e0) ω }
 end
 
 section
@@ -726,14 +725,14 @@ begin
   { rw [RR, ← opow_mul _ _ (succ k.succ)],
     have e0 := ordinal.pos_iff_ne_zero.2 e0,
     have rr0 := lt_of_lt_of_le e0 (le_add_left _ _),
-    apply add_lt_omega_opow,
+    apply principal_add_omega_opow,
     { simp [opow_mul, ω0, opow_add, mul_assoc],
       rw [mul_lt_mul_iff_left ω00, ← ordinal.opow_add],
       have := (No.below_of_lt _).repr_lt, unfold repr at this,
       refine mul_lt_omega_opow rr0 this (nat_lt_omega _),
       simpa using (add_lt_add_iff_left (repr a0)).2 e0 },
     { refine lt_of_lt_of_le Rl (opow_le_opow_right omega_pos $
-        mul_le_mul_left _ $ succ_le_succ.2 $ nat_cast_le.2 $ le_of_lt k.lt_succ_self) } },
+        mul_le_mul_left' (succ_le_succ.2 (nat_cast_le.2 (le_of_lt k.lt_succ_self))) _) } },
   calc
         ω0 ^ k.succ * α' + R'
       = ω0 ^ succ k * α' + (ω0 ^ k * α' * m + R) : by rw [nat_cast_succ, RR, ← mul_assoc]
@@ -746,17 +745,17 @@ begin
         add_mul_limit _ (is_limit_iff_omega_dvd.2 ⟨ne_of_gt α0, αd⟩), mul_assoc,
         @mul_omega_dvd n (nat_cast_pos.2 n.pos) (nat_lt_omega _) _ αd],
     apply @add_absorp _ (repr a0 * succ k),
-    { refine add_lt_omega_opow _ Rl,
+    { refine principal_add_omega_opow _ _ Rl,
       rw [opow_mul, opow_succ, mul_lt_mul_iff_left ω00],
       exact No.snd'.repr_lt },
-    { have := mul_le_mul_left (ω0 ^ succ k) (one_le_iff_pos.2 $ nat_cast_pos.2 n.pos),
+    { have := mul_le_mul_left' (one_le_iff_pos.2 $ nat_cast_pos.2 n.pos) (ω0 ^ succ k),
       rw opow_mul, simpa [-opow_succ] } },
   { cases m,
     { have : R = 0, {cases k; simp [R, opow_aux]}, simp [this] },
     { rw [← nat_cast_succ, add_mul_succ],
       apply add_absorp Rl,
       rw [opow_mul, opow_succ],
-      apply ordinal.mul_le_mul_left,
+      apply mul_le_mul_left',
       simpa [α', repr] using omega_le_oadd a0 n a' } }
 end
 

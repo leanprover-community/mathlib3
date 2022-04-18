@@ -140,7 +140,7 @@ lemma monotone_close {X : C} :
 lemma close_close {X : C} (S : sieve X) :
   J₁.close (J₁.close S) = J₁.close S :=
 le_antisymm
-  (J₁.le_close_of_is_closed (le_refl _) (J₁.close_is_closed S))
+  (J₁.le_close_of_is_closed le_rfl (J₁.close_is_closed S))
   (J₁.monotone_close (J₁.le_close _))
 
 /--
@@ -169,7 +169,7 @@ closure_operator.mk'
   J₁.close
   (λ S₁ S₂ h, J₁.le_close_of_is_closed (h.trans (J₁.le_close _)) (J₁.close_is_closed S₂))
   J₁.le_close
-  (λ S, J₁.le_close_of_is_closed (le_refl _) (J₁.close_is_closed S))
+  (λ S, J₁.le_close_of_is_closed le_rfl (J₁.close_is_closed S))
 
 @[simp]
 lemma closed_iff_closed {X : C} (S : sieve X) :
@@ -238,7 +238,7 @@ begin
       ext1,
       dsimp,
       rw [← J₁.pullback_close, this _ hf],
-      apply le_antisymm (J₁.le_close_of_is_closed (le_refl _) (x f hf).2) (J₁.le_close _) } },
+      apply le_antisymm (J₁.le_close_of_is_closed le_rfl (x f hf).2) (J₁.le_close _) } },
 end
 
 /--

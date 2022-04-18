@@ -28,7 +28,7 @@ instance : denumerable ℚ :=
 begin
   let T := { x : ℤ × ℕ // 0 < x.2 ∧ x.1.nat_abs.coprime x.2 },
   letI : infinite T := infinite.of_injective _ denumerable_aux.injective,
-  letI : encodable T := encodable.subtype,
+  letI : encodable T := subtype.encodable,
   letI : denumerable T := of_encodable_of_infinite T,
   exact denumerable.of_equiv T denumerable_aux
 end
@@ -39,6 +39,6 @@ namespace cardinal
 
 open_locale cardinal
 
-lemma mk_rat : #ℚ = ω := mk_denumerable ℚ
+@[simp] lemma mk_rat : #ℚ = ω := mk_denumerable ℚ
 
 end cardinal

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import algebra.group_power.order
+import algebra.big_operators.basic
 
 /-!
 # Definitions and properties of `gcd`, `lcm`, and `coprime`
@@ -97,6 +98,10 @@ or.elim (nat.eq_zero_or_pos k)
   (λH3, nat.eq_of_mul_eq_mul_right H3 $ by rw [
     nat.div_mul_cancel (dvd_gcd H1 H2), ←gcd_mul_right,
     nat.div_mul_cancel H1, nat.div_mul_cancel H2])
+
+theorem gcd_greatest {a b d : ℕ} (hda : d ∣ a) (hdb : d ∣ b)
+  (hd : ∀ e : ℕ, e ∣ a → e ∣ b → e ∣ d) : d = a.gcd b :=
+(dvd_antisymm (hd _ (gcd_dvd_left a b) (gcd_dvd_right a b)) (dvd_gcd hda hdb)).symm
 
 theorem gcd_dvd_gcd_of_dvd_left {m k : ℕ} (n : ℕ) (H : m ∣ k) : gcd m n ∣ gcd k n :=
 dvd_gcd ((gcd_dvd_left m n).trans H) (gcd_dvd_right m n)
@@ -430,7 +435,7 @@ theorem coprime.pow_right {m k : ℕ} (n : ℕ) (H1 : coprime k m) : coprime k (
 theorem coprime.pow {k l : ℕ} (m n : ℕ) (H1 : coprime k l) : coprime (k ^ m) (l ^ n) :=
 (H1.pow_left _).pow_right _
 
-lemma coprime_pow_left_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
+@[simp] lemma coprime_pow_left_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
   nat.coprime (a ^ n) b ↔ nat.coprime a b :=
 begin
   obtain ⟨n, rfl⟩ := exists_eq_succ_of_ne_zero hn.ne',
@@ -438,7 +443,7 @@ begin
   exact ⟨and.left, λ hab, ⟨hab, hab.pow_left _⟩⟩
 end
 
-lemma coprime_pow_right_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
+@[simp] lemma coprime_pow_right_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
   nat.coprime a (b ^ n) ↔ nat.coprime a b :=
 by rw [nat.coprime_comm, coprime_pow_left_iff hn, nat.coprime_comm]
 
@@ -461,6 +466,33 @@ by simp [coprime]
 
 @[simp] theorem coprime_self (n : ℕ) : coprime n n ↔ n = 1 :=
 by simp [coprime]
+
+lemma gcd_mul_of_coprime_of_dvd {a b c : ℕ} (hac : coprime a c) (b_dvd_c : b ∣ c) :
+  gcd (a * b) c = b :=
+begin
+  rcases exists_eq_mul_left_of_dvd b_dvd_c with ⟨d, rfl⟩,
+  rw [gcd_mul_right],
+  convert one_mul b,
+  exact coprime.coprime_mul_right_right hac,
+end
+
+section big_operators
+
+open_locale big_operators
+
+/-- See `is_coprime.prod_left` for the corresponding lemma about `is_coprime` -/
+lemma coprime_prod_left
+  {ι : Type*} {x : ℕ} {s : ι → ℕ} {t : finset ι} :
+  (∀ (i : ι), i ∈ t → coprime (s i) x) → coprime (∏ (i : ι) in t, s i) x :=
+finset.prod_induction s (λ y, y.coprime x) (λ a b, coprime.mul) (by simp)
+
+/-- See `is_coprime.prod_right` for the corresponding lemma about `is_coprime` -/
+lemma coprime_prod_right
+  {ι : Type*} {x : ℕ} {s : ι → ℕ} {t : finset ι} :
+  (∀ (i : ι), i ∈ t → coprime x (s i)) → coprime x (∏ (i : ι) in t, s i) :=
+finset.prod_induction s (λ y, x.coprime y) (λ a b, coprime.mul_right) (by simp)
+
+end big_operators
 
 lemma coprime.eq_of_mul_eq_zero {m n : ℕ} (h : m.coprime n) (hmn : m * n = 0) :
   m = 0 ∧ n = 1 ∨ m = 1 ∧ n = 0 :=
@@ -540,6 +572,19 @@ begin
   have h1 := dvd_gcd hka hkb,
   rw h_ab_coprime at h1,
   exact nat.dvd_one.mp h1,
+end
+
+lemma coprime.mul_add_mul_ne_mul {m n a b : ℕ} (cop : coprime m n) (ha : a ≠ 0) (hb : b ≠ 0) :
+  a * m + b * n ≠ m * n :=
+begin
+  intro h,
+  obtain ⟨x, rfl⟩ : n ∣ a := cop.symm.dvd_of_dvd_mul_right
+    ((nat.dvd_add_iff_left (dvd_mul_left n b)).mpr ((congr_arg _ h).mpr (dvd_mul_left n m))),
+  obtain ⟨y, rfl⟩ : m ∣ b := cop.dvd_of_dvd_mul_right
+    ((nat.dvd_add_iff_right (dvd_mul_left m (n*x))).mpr ((congr_arg _ h).mpr (dvd_mul_right m n))),
+  rw [mul_comm, mul_ne_zero_iff, ←one_le_iff_ne_zero] at ha hb,
+  refine mul_ne_zero hb.2 ha.2 (eq_zero_of_mul_eq_self_left (ne_of_gt (add_le_add ha.1 hb.1)) _),
+  rw [← mul_assoc, ← h, add_mul, add_mul, mul_comm _ n, ←mul_assoc, mul_comm y]
 end
 
 end nat

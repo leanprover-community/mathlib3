@@ -3,10 +3,10 @@ Copyright (c) 2021 Devon Tuma. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
-import analysis.normed_space.ordered
 import analysis.asymptotics.asymptotics
-import topology.algebra.ordered.liminf_limsup
+import analysis.normed_space.ordered
 import data.polynomial.eval
+import topology.algebra.order.liminf_limsup
 
 /-!
 # Super-Polynomial Function Decay
@@ -150,7 +150,8 @@ lemma superpolynomial_decay_iff_abs_tendsto_zero :
 
 lemma superpolynomial_decay_iff_superpolynomial_decay_abs :
   superpolynomial_decay l k f ↔ superpolynomial_decay l (λ a, |k a|) (λ a, |f a|) :=
-(superpolynomial_decay_iff_abs_tendsto_zero l k f).trans (by simp [superpolynomial_decay, abs_mul])
+(superpolynomial_decay_iff_abs_tendsto_zero l k f).trans
+  (by simp_rw [superpolynomial_decay, abs_mul, abs_pow])
 
 variables {l k f}
 

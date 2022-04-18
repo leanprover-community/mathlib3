@@ -92,7 +92,7 @@ end
 /-- The Teichmüller lift of an element of `R` to `𝕎 R`.
 The `0`-th coefficient of `teichmuller p r` is `r`, and all others are `0`.
 This is a monoid homomorphism. -/
-noncomputable def teichmuller : R →* 𝕎 R :=
+def teichmuller : R →* 𝕎 R :=
 { to_fun := teichmuller_fun p,
   map_one' :=
   begin

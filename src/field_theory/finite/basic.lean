@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
 import tactic.apply_fun
-import data.equiv.ring
+import algebra.ring.equiv
 import data.zmod.algebra
 import linear_algebra.finite_dimensional
 import ring_theory.integral_domain
@@ -20,7 +20,7 @@ and `q` is notation for the cardinality of `K`.
 
 See `ring_theory.integral_domain` for the fact that the unit group of a finite field is a
 cyclic group, as well as the fact that every finite integral domain is a field
-(`field_of_is_domain`).
+(`fintype.field_of_domain`).
 
 ## Main results
 
@@ -47,7 +47,7 @@ diamonds, as `fintype` carries data.
 variables {K : Type*} {R : Type*}
 local notation `q` := fintype.card K
 
-open_locale big_operators
+open_locale big_operators polynomial
 
 namespace finite_field
 open finset function
@@ -60,7 +60,7 @@ open polynomial
 
 /-- The cardinality of a field is at most `n` times the cardinality of the image of a degree `n`
   polynomial -/
-lemma card_image_polynomial_eval [decidable_eq R] [fintype R] {p : polynomial R}
+lemma card_image_polynomial_eval [decidable_eq R] [fintype R] {p : R[X]}
   (hp : 0 < p.degree) : fintype.card R ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
 finset.card_le_mul_card_image _ _
   (λ a _, calc _ = (p - C a).roots.to_finset.card : congr_arg card
@@ -69,7 +69,7 @@ finset.card_le_mul_card_image _ _
     ... ≤ _ : card_roots_sub_C' hp)
 
 /-- If `f` and `g` are quadratic polynomials, then the `f.eval a + g.eval b = 0` has a solution. -/
-lemma exists_root_sum_quadratic [fintype R] {f g : polynomial R} (hf2 : degree f = 2)
+lemma exists_root_sum_quadratic [fintype R] {f g : R[X]} (hf2 : degree f = 2)
   (hg2 : degree g = 2) (hR : fintype.card R % 2 = 1) : ∃ a b, f.eval a + g.eval b = 0 :=
 by letI := classical.dec_eq R; exact
 suffices ¬ disjoint (univ.image (λ x : R, eval x f)) (univ.image (λ x : R, eval x (-g))),
@@ -104,7 +104,7 @@ begin
   have : (∏ x in (@univ Kˣ _).erase (-1), x) = 1,
   from prod_involution (λ x _, x⁻¹) (by simp)
     (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
-    (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm] {contextual := tt})
+    (λ a, by simp [@inv_eq_iff_inv_eq _ _ a, eq_comm])
     (by simp),
   rw [← insert_erase (mem_univ (-1 : Kˣ)), prod_insert (not_mem_erase _ _),
       this, mul_one]
@@ -140,7 +140,7 @@ variables (K) [field K] [fintype K]
 theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
 begin
   haveI hp : fact p.prime := ⟨char_p.char_is_prime K p⟩,
-  letI : module (zmod p) K := { .. (zmod.cast_hom dvd_rfl K).to_module },
+  letI : module (zmod p) K := { .. (zmod.cast_hom dvd_rfl K : zmod p →+* _).to_module },
   obtain ⟨n, h⟩ := vector_space.card_fintype (zmod p) K,
   rw zmod.card at h,
   refine ⟨⟨n, _⟩, hp.1, h⟩,
@@ -230,51 +230,51 @@ section
 variables (K' : Type*) [field K'] {p n : ℕ}
 
 lemma X_pow_card_sub_X_nat_degree_eq (hp : 1 < p) :
-  (X ^ p - X : polynomial K').nat_degree = p :=
+  (X ^ p - X : K'[X]).nat_degree = p :=
 begin
-  have h1 : (X : polynomial K').degree < (X ^ p : polynomial K').degree,
+  have h1 : (X : K'[X]).degree < (X ^ p : K'[X]).degree,
   { rw [degree_X_pow, degree_X],
     exact_mod_cast hp },
   rw [nat_degree_eq_of_degree_eq (degree_sub_eq_left_of_degree_lt h1), nat_degree_X_pow],
 end
 
 lemma X_pow_card_pow_sub_X_nat_degree_eq (hn : n ≠ 0) (hp : 1 < p) :
-  (X ^ p ^ n - X : polynomial K').nat_degree = p ^ n :=
+  (X ^ p ^ n - X : K'[X]).nat_degree = p ^ n :=
 X_pow_card_sub_X_nat_degree_eq K' $ nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) hp
 
-lemma X_pow_card_sub_X_ne_zero (hp : 1 < p) : (X ^ p - X : polynomial K') ≠ 0 :=
+lemma X_pow_card_sub_X_ne_zero (hp : 1 < p) : (X ^ p - X : K'[X]) ≠ 0 :=
 ne_zero_of_nat_degree_gt $
 calc 1 < _ : hp
 ... = _ : (X_pow_card_sub_X_nat_degree_eq K' hp).symm
 
 lemma X_pow_card_pow_sub_X_ne_zero (hn : n ≠ 0) (hp : 1 < p) :
-  (X ^ p ^ n - X : polynomial K') ≠ 0 :=
+  (X ^ p ^ n - X : K'[X]) ≠ 0 :=
 X_pow_card_sub_X_ne_zero K' $ nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) hp
 
 end
 
 variables (p : ℕ) [fact p.prime] [char_p K p]
-lemma roots_X_pow_card_sub_X : roots (X^q - X : polynomial K) = finset.univ.val :=
+lemma roots_X_pow_card_sub_X : roots (X^q - X : K[X]) = finset.univ.val :=
 begin
   classical,
-  have aux : (X^q - X : polynomial K) ≠ 0 := X_pow_card_sub_X_ne_zero K fintype.one_lt_card,
-  have : (roots (X^q - X : polynomial K)).to_finset = finset.univ,
+  have aux : (X^q - X : K[X]) ≠ 0 := X_pow_card_sub_X_ne_zero K fintype.one_lt_card,
+  have : (roots (X^q - X : K[X])).to_finset = finset.univ,
   { rw eq_univ_iff_forall,
     intro x,
     rw [multiset.mem_to_finset, mem_roots aux, is_root.def, eval_sub, eval_pow, eval_X, sub_eq_zero,
       pow_card] },
-  rw [←this, multiset.to_finset_val, eq_comm, multiset.erase_dup_eq_self],
+  rw [←this, multiset.to_finset_val, eq_comm, multiset.dedup_eq_self],
   apply nodup_roots,
   rw separable_def,
-  convert is_coprime_one_right.neg_right,
-  rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
-    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub],
-end
+  convert is_coprime_one_right.neg_right using 1,
+  { rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
+    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub], },
+  end
 
 instance : is_splitting_field (zmod p) K (X^q - X) :=
 { splits :=
   begin
-    have h : (X^q - X : polynomial K).nat_degree = q :=
+    have h : (X^q - X : K[X]).nat_degree = q :=
       X_pow_card_sub_X_nat_degree_eq K fintype.one_lt_card,
     rw [←splits_id_iff_splits, splits_iff_card_roots, polynomial.map_sub, polynomial.map_pow,
       map_X, h, roots_X_pow_card_sub_X K, ←finset.card_def, finset.card_univ],
@@ -282,7 +282,7 @@ instance : is_splitting_field (zmod p) K (X^q - X) :=
   adjoin_roots :=
   begin
     classical,
-    transitivity algebra.adjoin (zmod p) ((roots (X^q - X : polynomial K)).to_finset : set K),
+    transitivity algebra.adjoin (zmod p) ((roots (X^q - X : K[X])).to_finset : set K),
     { simp only [polynomial.map_pow, map_X, polynomial.map_sub], convert rfl },
     { rw [roots_X_pow_card_sub_X, val_to_finset, coe_univ, algebra.adjoin_univ], }
   end }
@@ -301,7 +301,7 @@ end
 
 open polynomial
 
-lemma expand_card (f : polynomial K) :
+lemma expand_card (f : K[X]) :
   expand K q f = f ^ q :=
 begin
   cases char_p.exists K with p hp,
@@ -323,8 +323,8 @@ lemma sq_add_sq (p : ℕ) [hp : fact p.prime] (x : zmod p) :
 begin
   cases hp.1.eq_two_or_odd with hp2 hp_odd,
   { substI p, change fin 2 at x, fin_cases x, { use 0, simp }, { use [0, 1], simp } },
-  let f : polynomial (zmod p) := X^2,
-  let g : polynomial (zmod p) := X^2 - C x,
+  let f : (zmod p)[X] := X^2,
+  let g : (zmod p)[X] := X^2 - C x,
   obtain ⟨a, b, hab⟩ : ∃ a b, f.eval a + g.eval b = 0 :=
     @exists_root_sum_quadratic _ _ _ _ f g
       (degree_X_pow 2) (degree_X_pow_sub_C dec_trivial _) (by rw [zmod.card, hp_odd]),

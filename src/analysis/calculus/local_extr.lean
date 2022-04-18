@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.calculus.deriv
-import topology.algebra.ordered.extend_from
+import data.polynomial.field_division
+import topology.algebra.order.extend_from
 import topology.algebra.polynomial
 import topology.local_extr
-import data.polynomial.field_division
 
 /-!
 # Local extrema of smooth functions
@@ -65,7 +65,7 @@ local extremum, Fermat's Theorem, Rolle's Theorem
 universes u v
 
 open filter set
-open_locale topological_space classical
+open_locale topological_space classical polynomial
 
 section module
 
@@ -327,7 +327,7 @@ lemma exists_has_deriv_at_eq_zero' (hab : a < b)
   ∃ c ∈ Ioo a b, f' c = 0 :=
 begin
   have : continuous_on f (Ioo a b) := λ x hx, (hff' x hx).continuous_at.continuous_within_at,
-  have hcont := continuous_on_Icc_extend_from_Ioo hab this hfa hfb,
+  have hcont := continuous_on_Icc_extend_from_Ioo hab.ne this hfa hfb,
   obtain ⟨c, hc, hcextr⟩ : ∃ c ∈ Ioo a b, is_local_extr (extend_from (Ioo a b) f) c,
   { apply exists_local_extr_Ioo _ hab hcont,
     rw eq_lim_at_right_extend_from_Ioo hab hfb,
@@ -357,7 +357,7 @@ end Rolle
 
 namespace polynomial
 
-lemma card_root_set_le_derivative {F : Type*} [field F] [algebra F ℝ] (p : polynomial F) :
+lemma card_root_set_le_derivative {F : Type*} [field F] [algebra F ℝ] (p : F[X]) :
   fintype.card (p.root_set ℝ) ≤ fintype.card (p.derivative.root_set ℝ) + 1 :=
 begin
   haveI : char_zero F :=

@@ -31,7 +31,10 @@ namespace quot
 variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
 local notation `⟦`:max a `⟧` := quot.mk _ a
 
-instance [inhabited α] : inhabited (quot ra) := ⟨⟦default⟧⟩
+instance (r : α → α → Prop) [inhabited α] : inhabited (quot r) := ⟨⟦default⟧⟩
+
+instance [subsingleton α] : subsingleton (quot ra) :=
+⟨λ x, quot.induction_on x (λ y, quot.ind (λ b, congr_arg _ (subsingleton.elim _ _)))⟩
 
 /-- Recursion on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quot ra) (qb : quot rb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)
@@ -136,7 +139,10 @@ namespace quotient
 variables [sa : setoid α] [sb : setoid β]
 variables {φ : quotient sa → quotient sb → Sort*}
 
-instance [inhabited α] : inhabited (quotient sa) := ⟨⟦default⟧⟩
+instance (s : setoid α) [inhabited α] : inhabited (quotient s) := ⟨⟦default⟧⟩
+
+instance (s : setoid α) [subsingleton α] : subsingleton (quotient s) :=
+quot.subsingleton
 
 /-- Induction on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)
@@ -182,6 +188,10 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
 @[simp] lemma quotient.lift_mk [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
   (x : α) :
   quotient.lift f h (quotient.mk x) = f x := rfl
+
+@[simp] lemma quotient.lift_comp_mk [setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b) :
+  quotient.lift f h ∘ quotient.mk = f :=
+rfl
 
 @[simp] lemma quotient.lift₂_mk {α : Sort*} {β : Sort*} {γ : Sort*} [setoid α] [setoid β]
   (f : α → β → γ)
@@ -241,11 +251,11 @@ begin
   rw quotient.out_eq x,
 end
 
-@[simp] lemma quotient.out_equiv_out [s : setoid α] {x y : quotient s} :
+@[simp] lemma quotient.out_equiv_out {s : setoid α} {x y : quotient s} :
   x.out ≈ y.out ↔ x = y :=
 by rw [← quotient.eq_mk_iff_out, quotient.out_eq]
 
-@[simp] lemma quotient.out_inj [s : setoid α] {x y : quotient s} :
+@[simp] lemma quotient.out_inj {s : setoid α} {x y : quotient s} :
   x.out = y.out ↔ x = y :=
 ⟨λ h, quotient.out_equiv_out.1 $ h ▸ setoid.refl _, λ h, h ▸ rfl⟩
 
@@ -488,7 +498,7 @@ rfl
 
 /-- Map a function `f : α → β` that sends equivalent elements to equivalent elements
 to a function `quotient sa → quotient sb`. Useful to define unary operations on quotients. -/
-protected def map' (f : α → β) (h : ((≈) ⇒ (≈)) f f) :
+protected def map' (f : α → β) (h : (s₁.r ⇒ s₂.r) f f) :
   quotient s₁ → quotient s₂ :=
 quot.map f h
 
@@ -497,7 +507,7 @@ quot.map f h
 rfl
 
 /-- A version of `quotient.map₂` using curly braces and unification. -/
-protected def map₂' (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f) :
+protected def map₂' (f : α → β → γ) (h : (s₁.r ⇒ s₂.r ⇒ s₃.r) f f) :
   quotient s₁ → quotient s₂ → quotient s₃ :=
 quotient.map₂ f h
 
@@ -525,5 +535,20 @@ noncomputable def out' (a : quotient s₁) : α := quotient.out a
 
 theorem mk_out' (a : α) : @setoid.r α s₁ (quotient.mk' a : quotient s₁).out' a :=
 quotient.exact (quotient.out_eq _)
+
+section
+
+variables [setoid α]
+
+protected lemma mk'_eq_mk (x : α) : quotient.mk' x = ⟦x⟧ := rfl
+
+@[simp] protected lemma lift_on'_mk (x : α) (f : α → β) (h) : ⟦x⟧.lift_on' f h = f x := rfl
+
+@[simp] protected lemma lift_on₂'_mk [setoid β] (f : α → β → γ) (h) (a : α) (b : β) :
+  quotient.lift_on₂' ⟦a⟧ ⟦b⟧ f h = f a b := quotient.lift_on₂'_mk' _ _ _ _
+
+@[simp] lemma map'_mk [setoid β] (f : α → β) (h) (x : α) : ⟦x⟧.map' f h = ⟦f x⟧ := rfl
+
+end
 
 end quotient

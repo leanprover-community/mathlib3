@@ -199,13 +199,13 @@ lemma is_bounded_under_sup [semilattice_sup α] {f : filter β} {u v : β → α
   f.is_bounded_under (≤) u → f.is_bounded_under (≤) v → f.is_bounded_under (≤) (λa, u a ⊔ v a)
 | ⟨bu, (hu : ∀ᶠ x in f, u x ≤ bu)⟩ ⟨bv, (hv : ∀ᶠ x in f, v x ≤ bv)⟩ :=
   ⟨bu ⊔ bv, show ∀ᶠ x in f, u x ⊔ v x ≤ bu ⊔ bv,
-    by filter_upwards [hu, hv] assume x, sup_le_sup⟩
+    by filter_upwards [hu, hv] with _ using sup_le_sup⟩
 
 lemma is_bounded_under_inf [semilattice_inf α] {f : filter β} {u v : β → α} :
   f.is_bounded_under (≥) u → f.is_bounded_under (≥) v → f.is_bounded_under (≥) (λa, u a ⊓ v a)
 | ⟨bu, (hu : ∀ᶠ x in f, u x ≥ bu)⟩ ⟨bv, (hv : ∀ᶠ x in f, v x ≥ bv)⟩ :=
   ⟨bu ⊓ bv, show ∀ᶠ x in f, u x ⊓ v x ≥ bu ⊓ bv,
-    by filter_upwards [hu, hv] assume x, inf_le_inf⟩
+    by filter_upwards [hu, hv] with _ using inf_le_inf⟩
 
 /-- Filters are automatically bounded or cobounded in complete lattices. To use the same statements
 in complete and conditionally complete lattices but let automation fill automatically the
@@ -370,7 +370,7 @@ bot_unique $ Sup_le $
 lemma limsup_const_bot {f : filter β} : limsup f (λ x : β, (⊥ : α)) = (⊥ : α) :=
 begin
   rw [limsup_eq, eq_bot_iff],
-  exact Inf_le (eventually_of_forall (λ x, le_refl _)),
+  exact Inf_le (eventually_of_forall (λ x, le_rfl)),
 end
 
 /-- Same as limsup_const applied to `⊤` but without the `ne_bot f` assumption -/
@@ -380,9 +380,9 @@ lemma liminf_const_top {f : filter β} : liminf f (λ x : β, (⊤ : α)) = (⊤
 theorem has_basis.Limsup_eq_infi_Sup {ι} {p : ι → Prop} {s} {f : filter α} (h : f.has_basis p s) :
   f.Limsup = ⨅ i (hi : p i), Sup (s i) :=
 le_antisymm
-  (le_binfi $ λ i hi, Inf_le $ h.eventually_iff.2 ⟨i, hi, λ x, le_Sup⟩)
+  (le_infi₂ $ λ i hi, Inf_le $ h.eventually_iff.2 ⟨i, hi, λ x, le_Sup⟩)
   (le_Inf $ assume a ha, let ⟨i, hi, ha⟩ := h.eventually_iff.1 ha in
-    infi_le_of_le _ $ infi_le_of_le hi $ Sup_le ha)
+    infi₂_le_of_le _ hi $ Sup_le ha)
 
 theorem has_basis.Liminf_eq_supr_Inf {p : ι → Prop} {s : ι → set α} {f : filter α}
   (h : f.has_basis p s) : f.Liminf = ⨆ i (hi : p i), Inf (s i) :=

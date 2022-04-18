@@ -103,6 +103,20 @@ def stabilizer.submonoid (b : β) : submonoid α :=
   orbit α x = set.univ :=
 (surjective_smul α x).range_eq
 
+variables {α} {β}
+
+@[to_additive] lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}
+  [fintype (orbit α a)] : a ∈ fixed_points α β ↔ fintype.card (orbit α a) = 1 :=
+begin
+  rw [fintype.card_eq_one_iff, mem_fixed_points],
+  split,
+  { exact λ h, ⟨⟨a, mem_orbit_self _⟩, λ ⟨b, ⟨x, hx⟩⟩, subtype.eq $ by simp [h x, hx.symm]⟩ },
+  { assume h x,
+    rcases h with ⟨⟨z, hz⟩, hz₁⟩,
+    calc x • a = z : subtype.mk.inj (hz₁ ⟨x • a, mem_orbit _ _⟩)
+      ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
+end
+
 end mul_action
 
 namespace mul_action
@@ -142,18 +156,6 @@ instance (x : β) : is_pretransitive α (orbit α x) :=
    orbit α a = orbit α b ↔ a ∈ orbit α b:=
 ⟨λ h, h ▸ mem_orbit_self _, λ ⟨c, hc⟩, hc ▸ orbit_smul _ _⟩
 
-@[to_additive] lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}
-  [fintype (orbit α a)] : a ∈ fixed_points α β ↔ fintype.card (orbit α a) = 1 :=
-begin
-  rw [fintype.card_eq_one_iff, mem_fixed_points],
-  split,
-  { exact λ h, ⟨⟨a, mem_orbit_self _⟩, λ ⟨b, ⟨x, hx⟩⟩, subtype.eq $ by simp [h x, hx.symm]⟩ },
-  { assume h x,
-    rcases h with ⟨⟨z, hz⟩, hz₁⟩,
-    calc x • a = z : subtype.mk.inj (hz₁ ⟨x • a, mem_orbit _ _⟩)
-      ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
-end
-
 variables (α) {β}
 
 @[to_additive] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=
@@ -170,6 +172,51 @@ def orbit_rel : setoid β :=
   iseqv := ⟨mem_orbit_self, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
     λ a b, by simp [orbit_eq_iff.symm, eq_comm] {contextual := tt}⟩ }
 
+local attribute [instance] orbit_rel
+
+variables {α} {β}
+/-- When you take a set `U` in `β`, push it down to the quotient, and pull back, you get the union
+of the orbit of `U` under `α`.
+-/
+@[to_additive] lemma quotient_preimage_image_eq_union_mul (U : set β) :
+  quotient.mk ⁻¹' (quotient.mk '' U) = ⋃ a : α, ((•) a) '' U :=
+begin
+  set f : β → quotient (mul_action.orbit_rel α β) := quotient.mk,
+  ext,
+  split,
+  { rintros ⟨y , hy, hxy⟩,
+    obtain ⟨a, rfl⟩ := quotient.exact hxy,
+    rw set.mem_Union,
+    exact ⟨a⁻¹, a • x, hy, inv_smul_smul a x⟩ },
+  { intros hx,
+    rw set.mem_Union at hx,
+    obtain ⟨a, u, hu₁, hu₂⟩ := hx,
+    rw [set.mem_preimage, set.mem_image_iff_bex],
+    refine ⟨a⁻¹ • x, _, by simp only [quotient.eq]; use a⁻¹⟩,
+    rw ← hu₂,
+    convert hu₁,
+    simp only [inv_smul_smul], },
+end
+
+@[to_additive]
+lemma image_inter_image_iff (U V : set β) :
+  (quotient.mk '' U) ∩ (quotient.mk '' V) = ∅ ↔ ∀ x ∈ U, ∀ a : α, a • x ∉ V :=
+begin
+  set f : β → quotient (mul_action.orbit_rel α β) := quotient.mk,
+  rw set.eq_empty_iff_forall_not_mem,
+  split,
+  { intros h x x_in_U a a_in_V,
+    refine h (f (a • x)) ⟨⟨x, x_in_U, _⟩, ⟨a • x, a_in_V, rfl⟩⟩,
+    rw quotient.eq,
+    use a⁻¹,
+    simp, },
+  { rintros h x ⟨⟨y, hy₁, hy₂⟩, ⟨z, hz₁, hz₂⟩⟩,
+    obtain ⟨a, ha⟩ := quotient.exact (hz₂.trans hy₂.symm),
+    apply h y hy₁ a,
+    convert hz₁, },
+end
+
+variables (α) (β)
 local notation `Ω` := (quotient $ orbit_rel α β)
 
 /-- Decomposition of a type `X` as a disjoint union of its orbits under a group action.
@@ -245,36 +292,54 @@ end add_action
 
 namespace mul_action
 
-variables [group α] [mul_action α β]
+variables [group α]
+
+section quotient_action
+
+open subgroup mul_opposite
+
+variables (β) [monoid β] [mul_action β α] (H : subgroup α)
+
+/-- A typeclass for when a `mul_action β α` descends to the quotient `α ⧸ H`. -/
+class quotient_action : Prop :=
+(inv_mul_mem : ∀ (b : β) {a a' : α}, a⁻¹ * a' ∈ H → (b • a)⁻¹ * (b • a') ∈ H)
+
+/-- A typeclass for when an `add_action β α` descends to the quotient `α ⧸ H`. -/
+class _root_.add_action.quotient_action {α : Type*} (β : Type*) [add_group α] [add_monoid β]
+  [add_action β α] (H : add_subgroup α) : Prop :=
+(inv_mul_mem : ∀ (b : β) {a a' : α}, -a + a' ∈ H → -(b +ᵥ a) + (b +ᵥ a') ∈ H)
+
+attribute [to_additive add_action.quotient_action] mul_action.quotient_action
+
+@[to_additive] instance left_quotient_action : quotient_action α H :=
+⟨λ _ _ _ _, by rwa [smul_eq_mul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]⟩
+
+@[to_additive] instance right_quotient_action : quotient_action H.normalizer.opposite H :=
+⟨λ b c _ _, by rwa [smul_def, smul_def, smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev, ←mul_assoc,
+  mem_normalizer_iff'.mp b.prop, mul_assoc, mul_inv_cancel_left]⟩
+
+@[to_additive] instance quotient [quotient_action β H] : mul_action β (α ⧸ H) :=
+{ smul := λ b, quotient.map' ((•) b) (λ a a' h, quotient_action.inv_mul_mem b h),
+  one_smul := λ q, quotient.induction_on' q (λ a, congr_arg quotient.mk' (one_smul β a)),
+  mul_smul := λ b b' q, quotient.induction_on' q (λ a, congr_arg quotient.mk' (mul_smul b b' a)) }
+
+variables {β}
+
+@[simp, to_additive] lemma quotient.smul_mk [quotient_action β H] (a : β) (x : α) :
+  (a • quotient_group.mk x : α ⧸ H) = quotient_group.mk (a • x) := rfl
+
+@[simp, to_additive] lemma quotient.smul_coe [quotient_action β H] (a : β) (x : α) :
+  (a • x : α ⧸ H) = ↑(a • x) := rfl
+
+end quotient_action
 
 open quotient_group
-
-/-- Action on left cosets. -/
-@[to_additive "Action on left cosets."]
-def mul_left_cosets (H : subgroup α)
-  (x : α) (y : α ⧸ H) : α ⧸ H :=
-quotient.lift_on' y (λ y, quotient_group.mk ((x : α) * y))
-  (λ a b (hab : _ ∈ H), quotient_group.eq.2
-    (by rwa [mul_inv_rev, ← mul_assoc, mul_assoc (a⁻¹), inv_mul_self, mul_one]))
-
-@[to_additive] instance quotient (H : subgroup α) : mul_action α (α ⧸ H) :=
-{ smul := mul_left_cosets H,
-  one_smul := λ a, quotient.induction_on' a (λ a, quotient_group.eq.2
-    (by simp [subgroup.one_mem])),
-  mul_smul := λ x y a, quotient.induction_on' a (λ a, quotient_group.eq.2
-    (by simp [mul_inv_rev, subgroup.one_mem, mul_assoc])) }
-
-@[simp, to_additive] lemma quotient.smul_mk (H : subgroup α) (a x : α) :
-  (a • quotient_group.mk x : α ⧸ H) = quotient_group.mk (a * x) := rfl
-
-@[simp, to_additive] lemma quotient.smul_coe (H : subgroup α) (a x : α) :
-  (a • x : α ⧸ H) = ↑(a * x) := rfl
 
 @[to_additive] instance mul_left_cosets_comp_subtype_val (H I : subgroup α) :
   mul_action I (α ⧸ H) :=
 mul_action.comp_hom (α ⧸ H) (subgroup.subtype I)
 
-variables (α) {β} (x : β)
+variables (α) {β} [mul_action α β] (x : β)
 
 /-- The canonical map from the quotient of the stabilizer to the set. -/
 @[to_additive "The canonical map from the quotient of the stabilizer to the set. "]
@@ -435,7 +500,7 @@ by rw [← fintype.card_prod, ← fintype.card_sigma,
 { exists_smul_eq := begin
     rintros ⟨x⟩ ⟨y⟩,
     refine ⟨y * x⁻¹, quotient_group.eq.mpr _⟩,
-    simp only [H.one_mem, mul_left_inv, inv_mul_cancel_right],
+    simp only [smul_eq_mul, H.one_mem, mul_left_inv, inv_mul_cancel_right],
   end }
 
 end mul_action
@@ -506,7 +571,7 @@ begin
   refine le_antisymm (λ g hg, equiv.perm.ext (λ q, quotient_group.induction_on q
     (λ g', (mul_action.quotient.smul_mk H g g').trans (quotient_group.eq.mpr _))))
     (subgroup.normal_le_normal_core.mpr (λ g hg, _)),
-  { rw [mul_inv_rev, ←inv_inv g', inv_inv],
+  { rw [smul_eq_mul, mul_inv_rev, ←inv_inv g', inv_inv],
     exact H.normal_core.inv_mem hg g'⁻¹ },
   { rw [←H.inv_mem_iff, ←mul_one g⁻¹, ←quotient_group.eq, ←mul_one g],
     exact (mul_action.quotient.smul_mk H g 1).symm.trans (equiv.perm.ext_iff.mp hg (1 : G)) },

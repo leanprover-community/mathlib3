@@ -192,9 +192,7 @@ instance is_solvable_bot : is_solvable R ↥(⊥ : lie_ideal R L) :=
 instance is_solvable_add {I J : lie_ideal R L} [hI : is_solvable R I] [hJ : is_solvable R J] :
   is_solvable R ↥(I + J) :=
 begin
-  tactic.unfreeze_local_instances,
-  obtain ⟨k, hk⟩ := hI,
-  obtain ⟨l, hl⟩ := hJ,
+  obtain ⟨k, hk⟩ := id hI, obtain ⟨l, hl⟩ := id hJ,
   exact ⟨⟨k+l, lie_ideal.derived_series_add_eq_bot hk hl⟩⟩,
 end
 
@@ -209,7 +207,7 @@ open lie_algebra
 lemma injective.lie_algebra_is_solvable [h₁ : is_solvable R L] (h₂ : injective f) :
   is_solvable R L' :=
 begin
-  tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
+  obtain ⟨k, hk⟩ := id h₁,
   use k,
   apply lie_ideal.bot_of_map_eq_bot h₂, rw [eq_bot_iff, ← hk],
   apply lie_ideal.derived_series_map_le,
@@ -218,7 +216,7 @@ end
 lemma surjective.lie_algebra_is_solvable [h₁ : is_solvable R L'] (h₂ : surjective f) :
   is_solvable R L :=
 begin
-  tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
+  obtain ⟨k, hk⟩ := id h₁,
   use k,
   rw [← lie_ideal.derived_series_map_eq k h₂, hk],
   simp only [lie_ideal.map_eq_bot_iff, bot_le],
@@ -249,7 +247,7 @@ variables (R L)
 instance of_abelian_is_solvable [is_lie_abelian L] : is_solvable R L :=
 begin
   use 1,
-  rw [← abelian_iff_derived_one_eq_bot, lie_abelian_iff_equiv_lie_abelian lie_ideal.top_equiv_self],
+  rw [← abelian_iff_derived_one_eq_bot, lie_abelian_iff_equiv_lie_abelian lie_ideal.top_equiv],
   apply_instance,
 end
 
@@ -336,7 +334,7 @@ begin
   let s := {k | derived_series_of_ideal R L k I = ⊥}, change Inf s = 0 ↔ _,
   have hne : s ≠ ∅,
   { rw set.ne_empty_iff_nonempty,
-    tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := hI, use k,
+    obtain ⟨k, hk⟩ := id hI, use k,
     rw [derived_series_def, lie_ideal.derived_series_eq_bot_iff] at hk, exact hk, },
   simp [hne],
 end

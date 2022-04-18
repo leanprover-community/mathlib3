@@ -79,17 +79,16 @@ le_principal_iff.mp $ show f.lift g ≤ 𝓟 s,
 
 lemma lift_le {f : filter α} {g : set α → filter β} {h : filter β} {s : set α}
   (hs : s ∈ f) (hg : g s ≤ h) : f.lift g ≤ h :=
-infi_le_of_le s $ infi_le_of_le hs $ hg
+infi₂_le_of_le s hs hg
 
 lemma le_lift {f : filter α} {g : set α → filter β} {h : filter β}
   (hh : ∀s∈f, h ≤ g s) : h ≤ f.lift g :=
-le_infi $ assume s, le_infi $ assume hs, hh s hs
+le_infi₂ hh
 
 lemma lift_mono (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) : f₁.lift g₁ ≤ f₂.lift g₂ :=
-infi_le_infi $ assume s, infi_le_infi2 $ assume hs, ⟨hf hs, hg s⟩
+infi_mono $ λ s, infi_mono' $ λ hs, ⟨hf hs, hg s⟩
 
-lemma lift_mono' (hg : ∀s∈f, g₁ s ≤ g₂ s) : f.lift g₁ ≤ f.lift g₂ :=
-infi_le_infi $ assume s, infi_le_infi $ assume hs, hg s hs
+lemma lift_mono' (hg : ∀s ∈ f, g₁ s ≤ g₂ s) : f.lift g₁ ≤ f.lift g₂ := infi₂_mono hg
 
 lemma tendsto_lift {m : γ → β} {l : filter γ} :
   tendsto m l (f.lift g) ↔ ∀ s ∈ f, tendsto m l (g s) :=
@@ -121,12 +120,12 @@ le_antisymm
 lemma map_lift_eq2 {g : set β → filter γ} {m : α → β} (hg : monotone g) :
   (map m f).lift g = f.lift (g ∘ image m) :=
 le_antisymm
-  (infi_le_infi2 $ assume s, ⟨image m s,
-    infi_le_infi2 $ assume hs, ⟨
+  (infi_mono' $ assume s, ⟨image m s,
+    infi_mono' $ assume hs, ⟨
       f.sets_of_superset hs $ assume a h, mem_image_of_mem _ h,
-      le_refl _⟩⟩)
-  (infi_le_infi2 $ assume t, ⟨preimage m t,
-    infi_le_infi2 $ assume ht, ⟨ht,
+      le_rfl⟩⟩)
+  (infi_mono' $ assume t, ⟨preimage m t,
+    infi_mono' $ assume ht, ⟨ht,
       hg $ assume x, assume h : x ∈ m '' preimage m t,
         let ⟨y, hy, h_eq⟩ := h in
         show x ∈ t, from h_eq ▸ hy⟩⟩)
@@ -196,7 +195,7 @@ le_antisymm
 lemma lift_infi {f : ι → filter α} {g : set α → filter β}
   [hι : nonempty ι] (hg : ∀{s t}, g s ⊓ g t = g (s ∩ t)) : (infi f).lift g = (⨅i, (f i).lift g) :=
 le_antisymm
-  (le_infi $ assume i, lift_mono (infi_le _ _) (le_refl _))
+  (le_infi $ assume i, lift_mono (infi_le _ _) le_rfl)
   (assume s,
     have g_mono : monotone g,
       from assume s t h, le_of_inf_eq $ eq.trans hg $ congr_arg g $ inter_eq_self_of_subset_left h,
@@ -225,7 +224,7 @@ lift_top _
 
 lemma mem_lift' {t : set α} (ht : t ∈ f) : h t ∈ (f.lift' h) :=
 le_principal_iff.mp $ show f.lift' h ≤ 𝓟 (h t),
-  from infi_le_of_le t $ infi_le_of_le ht $ le_refl _
+  from infi_le_of_le t $ infi_le_of_le ht $ le_rfl
 
 lemma tendsto_lift' {m : γ → β} {l : filter γ} :
   tendsto m l (f.lift' h) ↔ ∀ s ∈ f, ∀ᶠ a in l, m a ∈ h s :=
@@ -255,7 +254,7 @@ lemma lift'_mono (hf : f₁ ≤ f₂) (hh : h₁ ≤ h₂) : f₁.lift' h₁ ≤
 lift_mono hf $ assume s, principal_mono.mpr $ hh s
 
 lemma lift'_mono' (hh : ∀s∈f, h₁ s ⊆ h₂ s) : f.lift' h₁ ≤ f.lift' h₂ :=
-infi_le_infi $ assume s, infi_le_infi $ assume hs, principal_mono.mpr $ hh s hs
+infi₂_mono $ λ s hs, principal_mono.mpr $ hh s hs
 
 lemma lift'_cong (hh : ∀s∈f, h₁ s = h₂ s) : f.lift' h₁ = f.lift' h₂ :=
 le_antisymm (lift'_mono' $ assume s hs, le_of_eq $ hh s hs)
@@ -347,7 +346,7 @@ le_infi $ assume s, le_infi $ assume hs,
 lemma lift_infi' {f : ι → filter α} {g : set α → filter β}
   [nonempty ι] (hf : directed (≥) f) (hg : monotone g) : (infi f).lift g = (⨅i, (f i).lift g) :=
 le_antisymm
-  (le_infi $ assume i, lift_mono (infi_le _ _) (le_refl _))
+  (le_infi $ assume i, lift_mono (infi_le _ _) le_rfl)
   (assume s,
   begin
     rw mem_lift_sets hg,

@@ -9,6 +9,7 @@ import ring_theory.int.basic
 import tactic.basic
 import tactic.ring_exp
 import number_theory.divisors
+import data.nat.factorization
 
 /-!
 # p-adic norm
@@ -33,7 +34,7 @@ by taking `[fact (prime p)]` as a type class argument.
 
 ## References
 
-* [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
+* [F. Q. Gouvêa, *p-adic numbers*][gouvea1997]
 * [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
 * <https://en.wikipedia.org/wiki/P-adic_number>
 
@@ -211,9 +212,8 @@ protected lemma defn {q : ℚ} {n d : ℤ} (hqz : q ≠ 0) (qdf : q = n /. d) :
     ⟨ne.symm $ ne_of_lt p_prime.1.one_lt, λ hn, by simp * at *⟩) -
   (multiplicity (p : ℤ) d).get (finite_int_iff.2 ⟨ne.symm $ ne_of_lt p_prime.1.one_lt,
     λ hd, by simp * at *⟩) :=
-have hn : n ≠ 0, from rat.mk_num_ne_zero_of_ne_zero hqz qdf,
 have hd : d ≠ 0, from rat.mk_denom_ne_zero_of_ne_zero hqz qdf,
-let ⟨c, hc1, hc2⟩ := rat.num_denom_mk hn hd qdf in
+let ⟨c, hc1, hc2⟩ := rat.num_denom_mk hd qdf in
 by rw [padic_val_rat, dif_pos];
   simp [hc1, hc2, multiplicity.mul' (nat.prime_iff_prime_int.1 p_prime.1),
     (ne.symm (ne_of_lt p_prime.1.one_lt)), hqz]
@@ -245,10 +245,14 @@ by induction k; simp [*, padic_val_rat.mul _ hq (pow_ne_zero _ hq),
 /--
 A rewrite lemma for `padic_val_rat p (q⁻¹)` with condition `q ≠ 0`.
 -/
-protected lemma inv {q : ℚ} (hq : q ≠ 0) :
+protected lemma inv (q : ℚ) :
   padic_val_rat p (q⁻¹) = -padic_val_rat p q :=
-by rw [eq_neg_iff_add_eq_zero, ← padic_val_rat.mul p (inv_ne_zero hq) hq,
-    inv_mul_cancel hq, padic_val_rat.one]
+begin
+  by_cases hq : q = 0,
+  { simp [hq], },
+  { rw [eq_neg_iff_add_eq_zero, ← padic_val_rat.mul p (inv_ne_zero hq) hq,
+      inv_mul_cancel hq, padic_val_rat.one] },
+end
 
 /--
 A rewrite lemma for `padic_val_rat p (q / r)` with conditions `q ≠ 0`, `r ≠ 0`.
@@ -256,7 +260,7 @@ A rewrite lemma for `padic_val_rat p (q / r)` with conditions `q ≠ 0`, `r ≠ 
 protected lemma div {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) :
   padic_val_rat p (q / r) = padic_val_rat p q - padic_val_rat p r :=
 by rw [div_eq_mul_inv, padic_val_rat.mul p hq (inv_ne_zero hr),
-    padic_val_rat.inv p hr, sub_eq_add_neg]
+    padic_val_rat.inv p r, sub_eq_add_neg]
 
 /--
 A condition for `padic_val_rat p (n₁ / d₁) ≤ padic_val_rat p (n₂ / d₂),
@@ -441,12 +445,12 @@ end
 lemma pow_succ_padic_val_nat_not_dvd {p n : ℕ} [hp : fact (nat.prime p)] (hn : 0 < n) :
   ¬ p ^ (padic_val_nat p n + 1) ∣ n :=
 begin
-  { rw multiplicity.pow_dvd_iff_le_multiplicity,
-    rw padic_val_nat_def (ne_of_gt hn),
-    { rw [nat.cast_add, enat.coe_get],
-      simp only [nat.cast_one, not_le],
-      apply enat.lt_add_one (ne_top_iff_finite.2 (finite_nat_iff.2 ⟨hp.elim.ne_one, hn⟩)) },
-    { apply_instance } }
+  rw multiplicity.pow_dvd_iff_le_multiplicity,
+  rw padic_val_nat_def (ne_of_gt hn),
+  { rw [nat.cast_add, enat.coe_get],
+    simp only [nat.cast_one, not_le],
+    apply enat.lt_add_one (ne_top_iff_finite.2 (finite_nat_iff.2 ⟨hp.elim.ne_one, hn⟩)) },
+  { apply_instance }
 end
 
 lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime]
@@ -472,30 +476,12 @@ protected lemma padic_val_nat.div' {p : ℕ} [p_prime : fact p.prime] :
       { exact hc } },
   end
 
-lemma padic_val_nat_eq_factors_count (p : ℕ) [hp : fact p.prime] :
-  ∀ (n : ℕ), padic_val_nat p n = (factors n).count p
-| 0 := by simp
-| 1 := by simp
-| (m + 2) :=
-let n := m + 2 in
-let q := min_fac n in
-have hq : fact q.prime := ⟨min_fac_prime (show m + 2 ≠ 1, by linarith)⟩,
-have wf : n / q < n := nat.div_lt_self (nat.succ_pos _) hq.1.one_lt,
+lemma padic_val_nat_eq_factorization (p n : ℕ) [hp : fact p.prime] :
+  padic_val_nat p n = n.factorization p :=
 begin
-  rw factors_add_two,
-  show padic_val_nat p n = list.count p (q :: (factors (n / q))),
-  rw [list.count_cons', ← padic_val_nat_eq_factors_count],
-  split_ifs with h,
-  have p_dvd_n : p ∣ n,
-  { have: q ∣ n := nat.min_fac_dvd n,
-    cc },
-  { rw [←h, padic_val_nat.div],
-    { have: 1 ≤ padic_val_nat p n := one_le_padic_val_nat_of_dvd (by linarith) p_dvd_n,
-      exact (tsub_eq_iff_eq_add_of_le this).mp rfl, },
-    { exact p_dvd_n, }, },
-  { suffices : p.coprime q,
-    { rw [padic_val_nat.div' this (min_fac_dvd n), add_zero], },
-    rwa nat.coprime_primes hp.1 hq.1, },
+  by_cases hn : n = 0, { subst hn, simp },
+  rw @padic_val_nat_def p _ n hn,
+  simp [@multiplicity_eq_factorization n p hp.elim hn],
 end
 
 open_locale big_operators
@@ -503,31 +489,20 @@ open_locale big_operators
 lemma prod_pow_prime_padic_val_nat (n : nat) (hn : n ≠ 0) (m : nat) (pr : n < m) :
   ∏ p in finset.filter nat.prime (finset.range m), p ^ (padic_val_nat p n) = n :=
 begin
-  rw ← pos_iff_ne_zero at hn,
-  have H : (factors n : multiset ℕ).prod = n,
-  { rw [multiset.coe_prod, prod_factors hn], },
-  rw finset.prod_multiset_count at H,
-  conv_rhs { rw ← H, },
-  refine finset.prod_bij_ne_one (λ p hp hp', p) _ _ _ _,
-  { rintro p hp hpn,
-    rw [finset.mem_filter, finset.mem_range] at hp,
-    rw [multiset.mem_to_finset, multiset.mem_coe, mem_factors_iff_dvd hn hp.2],
-    contrapose! hpn,
-    haveI Hp : fact p.prime := ⟨hp.2⟩,
-    rw [padic_val_nat_of_not_dvd hpn, pow_zero], },
-  { intros, assumption },
-  { intros p hp hpn,
-    rw [multiset.mem_to_finset, multiset.mem_coe] at hp,
-    haveI Hp : fact p.prime := ⟨prime_of_mem_factors hp⟩,
-    simp only [exists_prop, ne.def, finset.mem_filter, finset.mem_range],
-    refine ⟨p, ⟨_, Hp.1⟩, ⟨_, rfl⟩⟩,
-    { rw mem_factors_iff_dvd hn Hp.1 at hp, exact lt_of_le_of_lt (le_of_dvd hn hp) pr },
-    { rw padic_val_nat_eq_factors_count,
-      simpa [ne.def, multiset.coe_count] using hpn } },
-  { intros p hp hpn,
-    rw [finset.mem_filter, finset.mem_range] at hp,
-    haveI Hp : fact p.prime := ⟨hp.2⟩,
-    rw [padic_val_nat_eq_factors_count, multiset.coe_count] }
+  nth_rewrite_rhs 0 ←factorization_prod_pow_eq_self hn,
+  rw eq_comm,
+  apply finset.prod_subset_one_on_sdiff,
+  { exact λ p hp, finset.mem_filter.mpr
+      ⟨finset.mem_range.mpr (gt_of_gt_of_ge pr (le_of_mem_factorization hp)),
+       prime_of_mem_factorization hp⟩ },
+  { intros p hp,
+    cases finset.mem_sdiff.mp hp with hp1 hp2,
+    haveI := fact_iff.mpr (finset.mem_filter.mp hp1).2,
+    rw padic_val_nat_eq_factorization p n,
+    simp [finsupp.not_mem_support_iff.mp hp2] },
+  { intros p hp,
+    haveI := fact_iff.mpr (prime_of_mem_factorization hp),
+    simp [padic_val_nat_eq_factorization] }
 end
 
 lemma range_pow_padic_val_nat_subset_divisors {n : ℕ} (p : ℕ) [fact p.prime] (hn : n ≠ 0) :

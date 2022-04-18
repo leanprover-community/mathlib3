@@ -72,6 +72,16 @@ begin
     exact ⟨t ×ˢ t', filter.prod_mem_prod ht ht', hsub⟩ },
 end
 
+lemma map_prod_eq_map₂' {f : filter α} {g : filter β} (m : α × β → γ) :
+  filter.map m (f ×ᶠ g) = map₂ (λ a b, m (a, b)) f g :=
+begin
+  have heq := map_prod_eq_map₂ (curry m),
+  unfold curry at heq,
+  have : m = (λ (p : α × β), m (p.fst, p.snd)), by {ext; simp},
+  rw ← this at heq,
+  exact heq,
+end
+
 -- lemma image2_mem_map₂_iff (hm : injective2 m) : image2 m s t ∈ map₂ m f g ↔ s ∈ f ∧ t ∈ g :=
 -- ⟨by { rintro ⟨u, v, hu, hv, h⟩, rw image2_subset_image2_iff hm at h,
 --   exact ⟨mem_of_superset hu h.1, mem_of_superset hv h.2⟩ }, λ h, image2_mem_map₂ h.1 h.2⟩

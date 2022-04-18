@@ -228,13 +228,13 @@ def cofork.π (t : cofork f g) := t.ι.app one
 
 @[simp] lemma cofork.app_one_eq_π (t : cofork f g) : t.ι.app one = t.π := rfl
 
-@[simp, reassoc] lemma fork.app_one_eq_ι_comp_left (s : fork f g) : s.π.app one = s.ι ≫ f :=
+@[simp] lemma fork.app_one_eq_ι_comp_left (s : fork f g) : s.π.app one = s.ι ≫ f :=
 by rw [←s.app_zero_eq_ι, ←s.w left, parallel_pair_map_left]
 
 @[reassoc] lemma fork.app_one_eq_ι_comp_right (s : fork f g) : s.π.app one = s.ι ≫ g :=
 by rw [←s.app_zero_eq_ι, ←s.w right, parallel_pair_map_right]
 
-@[simp, reassoc] lemma cofork.app_zero_eq_comp_π_left (s : cofork f g) : s.ι.app zero = f ≫ s.π :=
+@[simp] lemma cofork.app_zero_eq_comp_π_left (s : cofork f g) : s.ι.app zero = f ≫ s.π :=
 by rw [←s.app_one_eq_π, ←s.w left, parallel_pair_map_left]
 
 @[reassoc] lemma cofork.app_zero_eq_comp_π_right (s : cofork f g) : s.ι.app zero = g ≫ s.π :=

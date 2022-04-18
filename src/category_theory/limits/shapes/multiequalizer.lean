@@ -268,13 +268,16 @@ def ι (a : I.L) : K.X ⟶ I.left a := K.π.app (walking_multicospan.left _)
 
 @[simp] lemma app_left_eq_ι (a) : K.π.app (walking_multicospan.left a) = K.ι a := rfl
 
-@[simp, reassoc] lemma app_right_eq_ι_comp_fst (b) :
+@[simp] lemma app_right_eq_ι_comp_fst (b) :
   K.π.app (walking_multicospan.right b) = K.ι (I.fst_to b) ≫ I.fst b :=
 by { rw ← K.w (walking_multicospan.hom.fst b), refl }
 
 @[reassoc] lemma app_right_eq_ι_comp_snd (b) :
   K.π.app (walking_multicospan.right b) =  K.ι (I.snd_to b) ≫ I.snd b :=
 by { rw ← K.w (walking_multicospan.hom.snd b), refl }
+
+@[simp, reassoc] lemma hom_comp_ι (K₁ K₂ : multifork I) (f : K₁ ⟶ K₂) (j : I.L) :
+  f.hom ≫ K₂.ι j = K₁.ι j := f.w (walking_multicospan.left j)
 
 /-- Construct a multifork using a collection `ι` of morphisms. -/
 @[simps]
@@ -378,9 +381,6 @@ def of_pi_fork (c : fork I.fst_pi_map I.snd_pi_map) : multifork I :=
 @[simp] lemma of_pi_fork_π_app_right (c : fork I.fst_pi_map I.snd_pi_map) (a) :
   (of_pi_fork I c).π.app (walking_multicospan.right a) = c.ι ≫ I.fst_pi_map ≫ pi.π _ _ := rfl
 
-@[simp, reassoc] lemma hom_comp_ι (K₁ K₂ : multifork I) (f : K₁ ⟶ K₂) (j : I.L) :
-  f.hom ≫ K₂.ι j = K₁.ι j := f.w (walking_multicospan.left j)
-
 end multifork
 
 namespace multicospan_index
@@ -426,7 +426,7 @@ K.ι.app (walking_multispan.right _)
 
 @[simp] lemma π_eq_app_right (b) : K.ι.app (walking_multispan.right _) = K.π b := rfl
 
-@[simp, reassoc] lemma fst_app_right (a) :
+@[simp] lemma fst_app_right (a) :
   K.ι.app (walking_multispan.left a) = I.fst a ≫ K.π _ :=
 by { rw ← K.w (walking_multispan.hom.fst a), refl }
 

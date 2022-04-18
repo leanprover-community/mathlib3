@@ -388,7 +388,7 @@ begin
   { simp },
   simp_rw [prod_cons, forall_mem_cons] at ⊢ hl₁,
   split,
-  { exact le_mul_of_one_le_right' _ (one_le_prod_of_one_le hl₁.2) },
+  { exact le_mul_of_one_le_right' (one_le_prod_of_one_le hl₁.2) },
   { exact λ x H, le_mul_of_one_le_of_le hl₁.1 (l_ih hl₁.right x H) },
 end
 

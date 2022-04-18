@@ -40,7 +40,7 @@ theorem pow_le_one' {a : M} (H : a ≤ 1) (n : ℕ) : a ^ n ≤ 1 :=
 @[to_additive nsmul_le_nsmul]
 theorem pow_le_pow' {a : M} {n m : ℕ} (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
 let ⟨k, hk⟩ := nat.le.dest h in
-calc a ^ n ≤ a ^ n * a ^ k : le_mul_of_one_le_right' _ (one_le_pow_of_one_le' ha _)
+calc a ^ n ≤ a ^ n * a ^ k : le_mul_of_one_le_right' (one_le_pow_of_one_le' ha _)
        ... = a ^ m         : by rw [← hk, pow_add]
 
 @[to_additive nsmul_le_nsmul_of_nonpos]

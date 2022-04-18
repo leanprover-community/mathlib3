@@ -634,20 +634,20 @@ end has_mul
 variable [mul_one_class α]
 
 @[to_additive]
-lemma min_le_mul_of_one_le_right [covariant_class α α (*) (≤)] (a : α) {b : α} (hb : 1 ≤ b) :
+lemma min_le_mul_of_one_le_right [covariant_class α α (*) (≤)] {a b : α} (hb : 1 ≤ b) :
   min a b ≤ a * b :=
-min_le_iff.2 $ or.inl $ le_mul_of_one_le_right' a hb
+min_le_iff.2 $ or.inl $ le_mul_of_one_le_right' hb
 
 @[to_additive]
-lemma min_le_mul_of_one_le_left [covariant_class α α (function.swap (*)) (≤)] {a : α} (b : α)
+lemma min_le_mul_of_one_le_left [covariant_class α α (function.swap (*)) (≤)] {a b : α}
   (ha : 1 ≤ a) : min a b ≤ a * b :=
-min_le_iff.2 $ or.inr $ le_mul_of_one_le_left' b ha
+min_le_iff.2 $ or.inr $ le_mul_of_one_le_left' ha
 
 @[to_additive]
 lemma max_le_mul_of_one_le [covariant_class α α (*) (≤)]
   [covariant_class α α (function.swap (*)) (≤)] {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) :
   max a b ≤ a * b :=
-max_le_iff.2 ⟨le_mul_of_one_le_right' a hb, le_mul_of_one_le_left' b ha⟩
+max_le_iff.2 ⟨le_mul_of_one_le_right' hb, le_mul_of_one_le_left' ha⟩
 
 end covariant_class_mul_le
 

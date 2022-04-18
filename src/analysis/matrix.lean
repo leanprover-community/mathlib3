@@ -74,6 +74,8 @@ end normed_space
 
 section frobenius
 
+open_locale matrix big_operators
+
 instance frobenius_semi_normed_group [semi_normed_group α] :
   semi_normed_group (matrix m n α) :=
 (by apply_instance : semi_normed_group (pi_Lp 2 (λ i : m, pi_Lp 2 (λ j : n, α))))
@@ -86,15 +88,20 @@ instance frobenius_normed_space [normed_field R] [semi_normed_group α] [normed_
   normed_space R (matrix m n α) :=
 (by apply_instance : normed_space R (pi_Lp 2 (λ i : m, pi_Lp 2 (λ j : n, α))))
 
-open_locale matrix big_operators
+lemma frobenius_nnorm_def [semi_normed_group α] (A : matrix m n α) :
+  ∥A∥₊ = (∑ i j, ∥A i j∥₊^ (2 : ℝ)) ^ (1/2 : ℝ) :=
+by simp_rw [pi_Lp.nnorm_eq, ←nnreal.rpow_mul, div_mul_cancel (1 : ℝ) two_ne_zero, nnreal.rpow_one]
+
+lemma frobenius_norm_def [semi_normed_group α] (A : matrix m n α) :
+  ∥A∥ = (∑ i j, ∥A i j∥ ^ (2 : ℝ)) ^ (1/2 : ℝ) :=
+(congr_arg coe (frobenius_nnorm_def A)).trans $ by simp [nnreal.coe_sum]
 
 lemma frobenius_nnorm_mul [is_R_or_C α] (A : matrix l m α) (B : matrix m n α) :
   ∥A ⬝ B∥₊ ≤ ∥A∥₊ * ∥B∥₊ :=
 begin
-  simp_rw pi_Lp.nnorm_eq,
+  simp_rw [frobenius_nnorm_def],
   rw [←nnreal.mul_rpow],
-  simp_rw [←nnreal.rpow_mul, div_mul_cancel (1 : ℝ) two_ne_zero, nnreal.rpow_one,
-    matrix.mul_apply],
+  simp_rw [matrix.mul_apply],
   rw @finset.sum_comm _ n m,
   rw [finset.sum_mul_sum, finset.sum_product],
   refine nnreal.rpow_le_rpow _ one_half_pos.le,

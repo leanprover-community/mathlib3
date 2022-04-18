@@ -174,9 +174,9 @@ theorem numeric_add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeri
    { show xL ix + ⟨yl, yr, yL, yR⟩ < xR jx + ⟨yl, yr, yL, yR⟩,
      exact add_lt_add_right (ox.1 ix jx), },
    { show xL ix + ⟨yl, yr, yL, yR⟩ < ⟨xl, xr, xL, xR⟩ + yR jy,
-     exact left.add_lt_add oy (oy.move_right jy) (ox.move_left_lt _) (oy.lt_move_right _), },
+     exact add_lt_add oy (oy.move_right jy) (ox.move_left_lt _) (oy.lt_move_right _), },
    { --  show ⟨xl, xr, xL, xR⟩ + yL iy < xR jx + ⟨yl, yr, yL, yR⟩, -- fails?
-     exact left.add_lt_add (oy.move_left iy) oy (ox.lt_move_right _) (oy.move_left_lt _), },
+     exact add_lt_add (oy.move_left iy) oy (ox.lt_move_right _) (oy.move_left_lt _), },
    { --  show ⟨xl, xr, xL, xR⟩ + yL iy < ⟨xl, xr, xL, xR⟩ + yR jy, -- fails?
      exact @add_lt_add_left ⟨xl, xr, xL, xR⟩ _ _ (oy.1 iy jy), }
  end,

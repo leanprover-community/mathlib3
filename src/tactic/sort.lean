@@ -19,9 +19,11 @@ meta def get_summands : expr → list expr
 
 section with_cmp_fn
 
-/--  Given compare function `cmp_fn : expr → expr → bool` and an expression `e`, in an additive
-commutative semigroup, `sorted_sum_with_cmp cmp_fn e` returns an ordered sum of its terms, where
-the order is determined using `cmp_fn`. -/
+/--  Let `cmp_fn : expr → expr → bool` be a "compare" function and let `e` be an expression.
+`sorted_sum_with_cmp cmp_fn e` returns an ordered sum of the terms of `e`, where
+the order is determined using `cmp_fn`.
+
+We use this function for expressions in an additive commutative semigroup. -/
 meta def sorted_sum_with_cmp_fn (hyp : option name) (cmp_fn : expr → expr → bool) (e : expr) :
   tactic unit :=
 match (get_summands e).qsort cmp_fn with
@@ -37,9 +39,9 @@ match (get_summands e).qsort cmp_fn with
       fail format!"Failed to prove:\n {e_eq_fmt}",
   h ← get_local n,
   match hyp with
-  | some hyp := do
-    hyp ← get_local hyp,
-    rewrite_hyp h hyp,
+  | some loc := do
+    hp ← get_local loc,
+    rewrite_hyp h hp,
     tactic.clear h
   | none     := do
     rewrite_target h,
@@ -72,12 +74,17 @@ meta def monomial_weight : expr → option ℕ
   | _ := none
   end
 
+/--  The function we use to compare two `expr`:
+* all non-monomials are compared alphabetically;
+* all non-monomials are smaller than all monomials;
+* bigger monomials have higher exponent.
+-/
 meta def compare_fn (eₗ eᵣ : expr) : bool :=
 match (monomial_weight eₗ, monomial_weight eᵣ) with
+| (none, none)     := eₗ.to_string ≤ eᵣ.to_string -- this solution forces an unique ordering
+| (_, none)        := false
+| (none, _)        := true
 | (some l, some r) := l ≤ r
-| (none, some _)   := true
-| (some _, none)   := false
-| _                := eₗ.to_string ≤ eᵣ.to_string -- this solution forces an unique ordering
 end
 
 -- /--  If we have an expression involving monomials, `sum_sorted_monomials` returns an ordered sum

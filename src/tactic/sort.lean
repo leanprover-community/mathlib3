@@ -27,9 +27,9 @@ We use this function for expressions in an additive commutative semigroup. -/
 meta def sorted_sum_with_cmp_fn (hyp : option name) (cmp_fn : expr → expr → bool) (e : expr) :
   tactic unit :=
 match (get_summands e).qsort cmp_fn with
-| ei::es := do
-  el' ← es.mfoldl (λ e1 e2, mk_app `has_add.add [e1, e2]) ei,
-  e_eq ← mk_app `eq [e, el'],
+| eₕ::es := do
+  e' ← es.mfoldl (λ eₗ eᵣ, mk_app `has_add.add [eₗ, eᵣ]) eₕ,
+  e_eq ← mk_app `eq [e, e'],
   n ← get_unused_name,
   assert n e_eq,
   e_eq_fmt ← pp e_eq,
@@ -40,8 +40,7 @@ match (get_summands e).qsort cmp_fn with
   h ← get_local n,
   match hyp with
   | some loc := do
-    hp ← get_local loc,
-    rewrite_hyp h hp,
+    get_local loc >>= rewrite_hyp h,
     tactic.clear h
   | none     := do
     rewrite_target h,
@@ -50,34 +49,27 @@ match (get_summands e).qsort cmp_fn with
 | [] := skip
 end
 
--- inductive sort_side | lhs | rhs | both
+/-- Partially traverses an expression in search for a sum of terms in order to actually sort them -/
+meta def recurse_on_expr (hyp : option name) (cmp_fn : expr → expr → bool) : expr → tactic unit
+| e@`(%%_ + %%_)     := sorted_sum_with_cmp_fn hyp cmp_fn e
+| (expr.lam _ _ _ e) := recurse_on_expr e
+| (expr.pi  _ _ _ e) := recurse_on_expr e
+| e                  := e.get_app_args.mmap' recurse_on_expr
 
-/-- If the target is an equality, `sort_summands` sorts the summands on either side of the equality.
--/
-meta def sort_summands (hyp : option name) (cmp_fn : expr → expr → bool) : tactic unit :=
-do
-  t ← match hyp with
-  | some hyp := do
-    hyp ← get_local hyp,
-    infer_type hyp
-  | none     := target
-  end,
-  match t.is_eq with
-  | none          := fail "The goal is not an equality"
-  | some (el, er) := do
-    sorted_sum_with_cmp_fn hyp cmp_fn el,
-    sorted_sum_with_cmp_fn hyp cmp_fn er
-  end
+/-- Calls `recurse_on_expr` with the right expression, depending on the tactic location -/
+meta def sort_summands (cmp_fn : expr → expr → bool) : option name → tactic unit
+| (some hyp) := get_local hyp >>= infer_type >>= recurse_on_expr hyp cmp_fn
+| none       := target >>= recurse_on_expr none cmp_fn
 
 end with_cmp_fn
 
 /--  The order on `polynomial.monomial n r`, where monomials are compared by their "exponent" `n`.
 If the expression is not a monomial, then the weight is `⊥`. -/
-meta def monomial_weight : expr → option ℕ
-| a := match a.app_fn with
-  | `(coe_fn $ polynomial.monomial %%n) := n.to_nat
-  | _ := none
-  end
+meta def monomial_weight (e : expr) : option ℕ :=
+match e.app_fn with
+| `(coe_fn $ polynomial.monomial %%n) := n.to_nat
+| _ := none
+end
 
 /--  The function we use to compare two `expr`:
 * all non-monomials are compared alphabetically;
@@ -98,32 +90,25 @@ end
 -- meta def sum_sorted_monomials (e : expr) : tactic unit :=
 -- sorted_sum_with_cmp_fn compare_fn e
 
--- /--  If the target is an equality involving monomials,
--- then  `sort_monomials_lhs` sorts the summands on the lhs. -/
--- meta def sort_monomials_lhs : tactic unit :=
--- sort_summands sort_side.lhs compare_fn
-
--- /-- If the target is an equality involving monomials,
--- then  `sort_monomials_rhs` sorts the summands on the rhs. -/
--- meta def sort_monomials_rhs : tactic unit :=
--- sort_summands sort_side.rhs compare_fn
-
-private meta def sort_monomials_core (allow_failure : bool) (hyp : option name) : tactic unit :=
-if allow_failure then sort_summands hyp compare_fn <|> skip else sort_summands hyp compare_fn
+meta def sort_monomials_core (allow_failure : bool) (hyp : option name) : tactic unit :=
+if allow_failure then sort_summands compare_fn hyp <|> skip
+else sort_summands compare_fn hyp
 
 /-- If the target is an equality involving monomials,
 then  `sort_monomials` sorts the summands on either side of the equality. -/
-meta def sort_monomials (locat : parse location) : tactic unit :=
-match locat with
-| loc.wildcard := do
-  sort_monomials_core tt none,
-  ctx ← local_context,
-  ctx.mmap (λ e, sort_monomials_core tt (expr.local_pp_name e)),
-  skip
-| loc.ns names := do
-  names.mmap $ sort_monomials_core ff,
-  skip
-end
+meta def sort_monomials (l : parse pexpr_list_or_texpr?) (locat : parse location) : tactic unit :=
+do
+  l : list expr ← (l.get_or_else []).mmap to_expr,
+  match locat with
+  | loc.wildcard := do
+    sort_monomials_core tt none,
+    ctx ← local_context,
+    ctx.mmap (λ e, sort_monomials_core tt (expr.local_pp_name e)),
+    skip
+  | loc.ns names := do
+    names.mmap $ sort_monomials_core ff,
+    skip
+  end
 
 end tactic.interactive
 
@@ -165,4 +150,21 @@ end
 --   sort_monomials,
 --   sort_monomials,
 --   -- (monomial 0) s + ((monomial 1) u + ((monomial 2) t + ((monomial 5) 1 + (monomial 8) 1))) = 0
+-- end
+
+-- example :
+--   ((monomial 1) u + 5 * X + (g + (monomial 5) 1) + ((monomial 0) s + (monomial 2) t + f) +
+--   (monomial 8) 1).nat_degree =
+--     ((3 * X + (monomial 8) 1 + (monomial 6) (t + 1)) + f + h + ((monomial 0) s +
+--   (monomial 1) u) + (monomial 5) 1).nat_degree :=
+-- begin
+--   sort_monomials,
+-- end
+
+-- example :
+--   15 + 5 =
+--     ((3 * X + (monomial 8) 1 + (monomial 6) (t + 1)) + f + h + ((monomial 0) s +
+--   (monomial 1) u) + (monomial 5) 1).nat_degree :=
+-- begin
+--   sort_monomials,
 -- end

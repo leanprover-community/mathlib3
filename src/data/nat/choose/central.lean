@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Stevens, Thomas Browning
 -/
 
+import data.nat.prime
 import data.nat.choose.basic
 import data.nat.choose.sum
 import data.nat.multiplicity
@@ -149,12 +150,6 @@ begin
   exact le_trans (padic_val_nat_central_binom_le hp) log_bound,
 end
 
-lemma prime_le_three_is_two : ∀ {p : ℕ} (hp : prime p) (p_small : p < 3), p = 2
-| 0 prime _ := by { exfalso, exact not_prime_zero prime}
-| 1 prime _ := by { exfalso, exact not_prime_one prime }
-| 2 _ _ := rfl
-| (n + 3) _ big := by linarith
-
 /--
 Sufficiently large primes less than `n` do not appear in the factorisation of `central_binom n`.
 -/
@@ -175,7 +170,7 @@ begin
   have three_lt_p : 3 ≤ p,
   { rcases le_or_lt 3 p with H|H,
     { exact H, },
-    { linarith [prime_le_three_is_two hp H], }, },
+    { linarith [not_prime_one], }, },
   have p_pos : 0 < p := nat.prime.pos hp,
 
   apply finset.filter_false_of_mem,

@@ -254,9 +254,9 @@ lemma _root_.covby.succ_eq (h : a ⋖ b) : succ a = b :=
 
 lemma le_succ_iff_eq_or_le : a ≤ succ b ↔ a = succ b ∨ a ≤ b :=
 begin
-  by_cases is_max b,
-  { rw [h.succ_eq, or_iff_right_of_imp le_of_eq] },
-  { rw [←lt_succ_iff_of_not_is_max h, le_iff_eq_or_lt] }
+  by_cases hb : is_max b,
+  { rw [hb.succ_eq, or_iff_right_of_imp le_of_eq] },
+  { rw [←lt_succ_iff_of_not_is_max hb, le_iff_eq_or_lt] }
 end
 
 lemma lt_succ_iff_eq_or_lt_of_not_is_max (hb : ¬ is_max b) : a < succ b ↔ a = b ∨ a < b :=
@@ -455,9 +455,9 @@ lemma _root_.covby.pred_eq {a b : α} (h : a ⋖ b) : pred b = a :=
 
 lemma pred_le_iff_eq_or_le : pred a ≤ b ↔ b = pred a ∨ a ≤ b :=
 begin
-  by_cases is_min a,
-  { rw [h.pred_eq, or_iff_right_of_imp ge_of_eq] },
-  { rw [←pred_lt_iff_of_not_is_min h, le_iff_eq_or_lt, eq_comm] }
+  by_cases ha : is_min a,
+  { rw [ha.pred_eq, or_iff_right_of_imp ge_of_eq] },
+  { rw [←pred_lt_iff_of_not_is_min ha, le_iff_eq_or_lt, eq_comm] }
 end
 
 lemma pred_lt_iff_eq_or_lt_of_not_is_min (ha : ¬ is_min a) : pred a < b ↔ a = b ∨ a < b :=

@@ -31,6 +31,8 @@ period, periodic, periodicity, antiperiodic
 
 variables {α β γ : Type*} {f g : α → β} {c c₁ c₂ x : α}
 
+open_locale big_operators
+
 namespace function
 
 /-! ### Periodicity -/
@@ -64,6 +66,23 @@ by simp * at *
 lemma periodic.div [has_add α] [has_div β]
   (hf : periodic f c) (hg : periodic g c) :
   periodic (f / g) c :=
+by simp * at *
+
+@[to_additive]
+lemma periodic.prod [has_add α] [comm_monoid β] {ι : Type*} {f : ι → α → β} {s : finset ι}
+  (hf : ∀ i, periodic (f i) c) :
+  periodic (∏ i in s, f i) c :=
+begin
+  classical,
+  induction s using finset.induction with i s hi ih,
+  { simp, },
+  { rw finset.prod_insert hi,
+    exact (hf i).mul ih, },
+end
+
+@[to_additive]
+lemma periodic.smul [has_add α] [has_scalar γ β] (h : periodic f c) (a : γ) :
+  periodic (a • f) c :=
 by simp * at *
 
 lemma periodic.const_smul [add_monoid α] [group γ] [distrib_mul_action γ α]
@@ -390,6 +409,11 @@ lemma antiperiodic.neg_eq [add_group α] [add_group β]
   (h : antiperiodic f c) :
   f (-c) = -f 0 :=
 by simpa only [zero_add] using h.neg 0
+
+lemma antiperiodic.smul [has_add α] [monoid γ] [add_group β] [distrib_mul_action γ β]
+  (h : antiperiodic f c) (a : γ) :
+  antiperiodic (a • f) c :=
+by simp * at *
 
 lemma antiperiodic.const_smul [add_monoid α] [has_neg β] [group γ] [distrib_mul_action γ α]
   (h : antiperiodic f c) (a : γ) :

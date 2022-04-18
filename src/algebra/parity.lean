@@ -69,6 +69,9 @@ lemma is_square.map [mul_one_class α] [mul_one_class β] [monoid_hom_class F α
   is_square m → is_square (f m) :=
 by { rintro ⟨m, rfl⟩, exact ⟨f m, by simp⟩ }
 
+@[simp]
+lemma is_square_zero [mul_zero_class α] : is_square (0 : α) := ⟨0, (mul_zero _).symm⟩
+
 section monoid
 variables [monoid α]
 
@@ -81,9 +84,6 @@ lemma even.neg_pow : even n → ∀ a : α, (-a) ^ n = a ^ n :=
 by { rintro ⟨c, rfl⟩ a, simp_rw [←two_mul, pow_mul, neg_sq] }
 
 lemma even.neg_one_pow (h : even n) : (-1 : α) ^ n = 1 := by rw [h.neg_pow, one_pow]
-
-@[simp]
-lemma is_square_zero [mul_zero_class α] : is_square (0 : α) := ⟨0, (mul_zero _).symm⟩
 
 end monoid
 
@@ -99,8 +99,11 @@ begin
   refine ⟨m * n, mul_mul_mul_comm m m n n⟩,
 end
 
-@[simp]
-lemma irreducible.not_square [comm_monoid α] {x : α} (h : irreducible x) :
+-- @[simp]
+-- TODO (khw): This an the following commented out @[simp]s appear because they
+-- _should_ be simp lemmas but break the simp engine when included. Thus, we
+-- comment them out for a later day
+lemma irreducible.not_square {x : α} (h : irreducible x) :
   ¬is_square x :=
 begin
   rintros ⟨y, hy⟩,
@@ -109,8 +112,8 @@ begin
   exact h.not_unit (hu.mul hu),
 end
 
-@[simp]
-lemma is_square.not_irreducible [comm_monoid α] {x : α} (h : is_square x) : ¬irreducible x :=
+-- @[simp]
+lemma is_square.not_irreducible {x : α} (h : is_square x) : ¬irreducible x :=
 λ h', h'.not_square h
 
 end comm_monoid
@@ -118,13 +121,11 @@ end comm_monoid
 section cancel_comm_monoid_with_zero
 variable [cancel_comm_monoid_with_zero α]
 
-@[simp]
+-- @[simp]
 lemma prime.not_square {x : α} (h : prime x) :
   ¬is_square x := h.irreducible.not_square
 
 -- @[simp]
--- NOTE (khw): Including this as a `simp` lemma creates a loop as can be seen by looking at
--- `data.nat.prime` after uncommenting this `@[simp]`
 lemma is_square.not_prime {x : α} (h : is_square x) : ¬prime x :=
 λ h', h'.not_square h
 

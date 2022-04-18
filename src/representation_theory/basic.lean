@@ -30,7 +30,7 @@ together with a `distrib_mul_action G V` instance and a `smul_comm_class G k V` 
 
 open monoid_algebra
 open linear_map
-open distrib_mul_action
+open distrib_mul_action (to_module_End)
 
 namespace representation
 

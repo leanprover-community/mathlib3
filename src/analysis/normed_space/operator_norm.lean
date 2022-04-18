@@ -394,6 +394,13 @@ lemma op_norm_smul_le {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F
 instance to_semi_normed_group : semi_normed_group (E →SL[σ₁₂] F) :=
 semi_normed_group.of_core _ ⟨op_norm_zero, λ x y, op_norm_add_le x y, op_norm_neg⟩
 
+lemma nnnorm_def (f : E →SL[σ₁₂] F) : ∥f∥₊ = Inf {c | ∀ x, ∥f x∥₊ ≤ c * ∥x∥₊} :=
+begin
+  ext,
+  rw [nnreal.coe_Inf, coe_nnnorm],
+  dsimp,
+end
+
 instance to_normed_space {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F]
   [smul_comm_class 𝕜₂ 𝕜' F] : normed_space 𝕜' (E →SL[σ₁₂] F) :=
 ⟨op_norm_smul_le⟩

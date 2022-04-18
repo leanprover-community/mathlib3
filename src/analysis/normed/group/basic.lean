@@ -772,7 +772,7 @@ lemma pi_norm_lt_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (
   (hr : 0 < r) {x : Πi, π i} : ∥x∥ < r ↔ ∀i, ∥x i∥ < r :=
 by simp only [← dist_zero_right, dist_pi_lt_iff hr, pi.zero_apply]
 
-lemma pi_nnorm_lt_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] {r : ℝ≥0}
+lemma pi_nnnorm_lt_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] {r : ℝ≥0}
   (hr : 0 < r) {x : Πi, π i} : ∥x∥₊ < r ↔ ∀i, ∥x i∥₊ < r :=
 pi_norm_lt_iff hr
 
@@ -780,7 +780,7 @@ lemma norm_le_pi_norm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group 
   (i : ι) : ∥x i∥ ≤ ∥x∥ :=
 (pi_norm_le_iff (norm_nonneg x)).1 le_rfl i
 
-lemma nnorm_le_pi_nnorm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] (x : Πi, π i)
+lemma nnnorm_le_pi_nnnorm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] (x : Πi, π i)
   (i : ι) : ∥x i∥₊ ≤ ∥x∥₊ :=
 norm_le_pi_norm x i
 

@@ -52,7 +52,7 @@ instance comm_monoid [∀ i, comm_monoid $ f i] : comm_monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), npow := monoid.npow };
 tactic.pi_instance_derive_field
 
-@[to_additive]
+@[to_additive pi.sub_neg_monoid]
 instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
   div_inv_monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,

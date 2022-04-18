@@ -82,6 +82,10 @@ variables {G : Type*}
    to the additive one.
 -/
 
+mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `field_simp` to
+reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
+division-free."
+
 section has_mul
 variables [has_mul G]
 
@@ -629,6 +633,12 @@ class group (G : Type u) extends monoid G, has_inv G, has_div G :=
 (mul_left_inv (a : G) : a⁻¹ * a = 1)
 (div := λ a b, a * b⁻¹)
 (div_eq_mul_inv : ∀ a b : G, a / b = a * b⁻¹ . try_refl_tac)
+(zpow : ℤ → G → G := zpow_rec)
+(zpow_zero' : ∀ (a : G), zpow 0 a = 1 . try_refl_tac)
+(zpow_succ' :
+  ∀ (n : ℕ) (a : G), zpow (int.of_nat n.succ) a = a * zpow (int.of_nat n) a . try_refl_tac)
+(zpow_neg' :
+  ∀ (n : ℕ) (a : G), zpow (-[1+ n]) a = (zpow n.succ a)⁻¹ . try_refl_tac)
 
 /-- An `add_group` is an `add_monoid` with a unary `-` satisfying `-a + a = 0`.
 
@@ -640,6 +650,12 @@ class add_group (G : Type u) extends add_monoid G, has_neg G, has_sub G :=
 (add_left_neg (a : G) : -a + a = 0)
 (sub := λ a b, a + -b)
 (sub_eq_add_neg : ∀ a b : G, a - b = a + -b . try_refl_tac)
+(zsmul : ℤ → G → G := zsmul_rec)
+(zsmul_zero' : ∀ (a : G), zsmul 0 a = 0 . try_refl_tac)
+(zsmul_succ' :
+  ∀ (n : ℕ) (a : G), zsmul (int.of_nat n.succ) a = a + zsmul (int.of_nat n) a . try_refl_tac)
+(zsmul_neg' :
+  ∀ (n : ℕ) (a : G), zsmul (-[1+ n]) a = - (zsmul n.succ a) . try_refl_tac)
 
 attribute [to_additive] group
 
@@ -695,7 +711,7 @@ begin
   rintros ⟨⟩ ⟨⟩ h,
   replace h := div_inv_monoid.mk.inj h,
   dsimp at h,
-  rcases h with ⟨rfl, rfl, rfl, rfl, rfl, -⟩,
+  rcases h with ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩,
   refl
 end
 

@@ -633,24 +633,17 @@ multiplication/division!) of a `set`. -/
 @[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (set α) ℤ :=
 ⟨λ s n, zpow_rec n s⟩
 
-/-TODO: The below instances are duplicate because there is no typeclass greater than
-`div_inv_monoid` and `has_involutive_inv` but smaller than `group` and `group_with_zero`. -/
-
-/-- `s / t = s * t⁻¹` for all `s t : set α` if `a / b = a * b⁻¹` for all `a b : α`. -/
-@[to_additive "`s - t = s + -t` for all `s t : set α` if `a - b = a + -b` for all `a b : α`."]
-protected def div_inv_monoid [group α] : div_inv_monoid (set α) :=
-{ div_eq_mul_inv := λ s t,
+/-- `set α` is a division-inversion monoid under pointwise if `α` is. -/
+@[to_additive set.sub_neg_monoid "`set α` is a subtraction-negation monoid under pointwise if `α`
+is."]
+protected def div_inv_monoid [div_inv_monoid α] : div_inv_monoid (set α) :=
+{ inv_mul_rev := λ s t, by { simp_rw ←image_inv, exact image_image2_antidistrib inv_mul_rev },
+  div_eq_mul_inv := λ s t,
     by { rw [←image_id (s / t), ←image_inv], exact image_image2_distrib_right div_eq_mul_inv },
-  ..set.monoid, ..set.has_inv, ..set.has_div }
-
-/-- `s / t = s * t⁻¹` for all `s t : set α` if `a / b = a * b⁻¹` for all `a b : α`. -/
-protected def div_inv_monoid' [group_with_zero α] : div_inv_monoid (set α) :=
-{ div_eq_mul_inv := λ s t,
-    by { rw [←image_id (s / t), ←image_inv], exact image_image2_distrib_right div_eq_mul_inv },
-  ..set.monoid, ..set.has_inv, ..set.has_div }
+  ..set.monoid, ..set.has_involutive_inv, ..set.has_div }
 
 localized "attribute [instance] set.has_nsmul set.has_npow set.has_zsmul set.has_zpow
-  set.div_inv_monoid set.div_inv_monoid' set.sub_neg_add_monoid" in pointwise
+  set.div_inv_monoid set.sub_neg_monoid" in pointwise
 
 end div
 

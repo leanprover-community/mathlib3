@@ -192,7 +192,7 @@ end has_involutive_inv
 section div_inv_monoid
 variables [div_inv_monoid G] {a b c : G}
 
-@[to_additive]
+@[to_additive, field_simps] -- The atttributes are out of order on purpose
 lemma inv_eq_one_div (x : G) :
   x⁻¹ = 1 / x :=
 by rw [div_eq_mul_inv, one_mul]
@@ -206,7 +206,7 @@ by rw [div_eq_mul_inv, one_mul, div_eq_mul_inv]
 lemma mul_div_assoc (a b c : G) : a * b / c = a * (b / c) :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc _ _ _]
 
-@[to_additive]
+@[to_additive, field_simps] -- The atttributes are out of order on purpose
 lemma mul_div_assoc' (a b c : G) : a * (b / c) = (a * b) / c :=
 (mul_div_assoc _ _ _).symm
 
@@ -216,8 +216,6 @@ lemma mul_div_assoc' (a b c : G) : a * (b / c) = (a * b) / c :=
 @[to_additive]
 lemma mul_div (a b c : G) : a * (b / c) = a * b / c :=
 by simp only [mul_assoc, div_eq_mul_inv]
-
-@[simp, to_additive] lemma div_inv (a b : G) : a / b⁻¹ = a * b := by rw [div_eq_mul_inv, inv_inv]
 
 @[simp, to_additive] lemma inv_div (a b : G) : (a / b)⁻¹ = b / a :=
 by simp_rw [div_eq_mul_inv, inv_mul_rev, inv_inv]
@@ -239,6 +237,26 @@ theorem inv_ne_one : a⁻¹ ≠ 1 ↔ a ≠ 1 := not_congr inv_eq_one
 @[to_additive]
 lemma div_div_assoc_swap : a / (b / c) = a * c / b :=
 by simp only [mul_assoc, inv_mul_rev, inv_inv, div_eq_mul_inv]
+
+lemma div_eq_mul_one_div (a b : G) : a / b = a * (1 / b) :=
+by rw [div_eq_mul_inv, one_div]
+
+lemma one_div_one : 1 / 1 = (1:G) := div_one _
+
+lemma one_div_mul_one_div_rev (a b : G) : (1 / a) * (1 / b) =  1 / (b * a) :=
+by simp_rw [one_div, inv_mul_rev]
+
+lemma inv_div_left (a b : G) : a⁻¹ / b = (b * a)⁻¹ := by rw [inv_mul_rev, div_eq_mul_inv]
+
+@[simp] lemma one_div_div (a b : G) : 1 / (a / b) = b / a := by rw [one_div, inv_div]
+
+lemma one_div_one_div (a : G) : 1 / (1 / a) = a := by rw [one_div_div, div_one]
+
+@[field_simps] lemma div_div_eq_mul_div (a b c : G) : a / (b / c) = (a * c) / b :=
+by rw [div_eq_mul_one_div, one_div_div, ←mul_div_assoc]
+
+lemma eq_of_one_div_eq_one_div {a b : G} (h : 1 / a = 1 / b) : a = b :=
+by rw [←one_div_one_div a, h, one_div_one_div]
 
 end div_inv_monoid
 
@@ -368,7 +386,7 @@ by rw [div_eq_mul_inv, inv_inv]
 
 @[to_additive]
 lemma div_mul_eq_div_div_swap (a b c : G) : a / (b * c) = a / c / b :=
-by simp only [mul_assoc, inv_mul_rev , div_eq_mul_inv]
+by simp only [mul_assoc, inv_mul_rev, div_eq_mul_inv]
 
 @[simp, to_additive]
 lemma mul_div_mul_right_eq_div (a b c : G) : (a * c) / (b * c) = a / b :=

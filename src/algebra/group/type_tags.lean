@@ -227,21 +227,31 @@ rfl
   (x - y).to_mul = x.to_mul / y.to_mul :=
 rfl
 
+instance [has_involutive_inv α] : has_involutive_neg (additive α) :=
+{ neg_neg := @inv_inv _ _,
+  ..additive.has_neg }
+
+instance [has_involutive_neg α] : has_involutive_inv (multiplicative α) :=
+{ inv_inv := @neg_neg _ _,
+  ..multiplicative.has_inv }
+
 instance [div_inv_monoid α] : sub_neg_monoid (additive α) :=
-{ sub_eq_add_neg := @div_eq_mul_inv α _,
+{ neg_add_rev := @inv_mul_rev _ _,
+  sub_eq_add_neg := @div_eq_mul_inv α _,
   zsmul := @div_inv_monoid.zpow α _,
   zsmul_zero' := div_inv_monoid.zpow_zero',
   zsmul_succ' := div_inv_monoid.zpow_succ',
   zsmul_neg' := div_inv_monoid.zpow_neg',
-  .. additive.has_neg, .. additive.has_sub, .. additive.add_monoid }
+  .. additive.has_involutive_neg, .. additive.has_sub, .. additive.add_monoid }
 
 instance [sub_neg_monoid α] : div_inv_monoid (multiplicative α) :=
-{ div_eq_mul_inv := @sub_eq_add_neg α _,
+{ inv_mul_rev := @neg_add_rev _ _,
+  div_eq_mul_inv := @sub_eq_add_neg α _,
   zpow := @sub_neg_monoid.zsmul α _,
   zpow_zero' := sub_neg_monoid.zsmul_zero',
   zpow_succ' := sub_neg_monoid.zsmul_succ',
   zpow_neg' := sub_neg_monoid.zsmul_neg',
-  .. multiplicative.has_inv, .. multiplicative.has_div, .. multiplicative.monoid }
+  .. multiplicative.has_involutive_inv, .. multiplicative.has_div, .. multiplicative.monoid }
 
 instance [group α] : add_group (additive α) :=
 { add_left_neg := @mul_left_inv α _,

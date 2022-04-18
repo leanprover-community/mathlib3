@@ -193,7 +193,7 @@ protected def div_inv_monoid [div_inv_monoid M₂]
   zpow_neg' := λ n x, hf $ by erw [zpow, zpow_neg_succ_of_nat, inv, zpow, zpow_coe_nat],
   inv_inv := λ x, hf $ by erw [inv, inv, inv_inv],
   inv_mul_rev := λ x y, hf $ by erw [inv, mul, inv_mul_rev, mul, inv, inv],
-   div_eq_mul_inv := λ x y, hf $ by erw [div, mul, inv, div_eq_mul_inv],
+  div_eq_mul_inv := λ x y, hf $ by erw [div, mul, inv, div_eq_mul_inv],
   .. hf.monoid f one mul npow, .. ‹has_inv M₁›, .. ‹has_div M₁› }
 
 /-- A type endowed with `1`, `*` and `⁻¹` is a group,

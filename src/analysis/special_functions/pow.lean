@@ -521,7 +521,7 @@ rpow_int_cast x n
 lemma rpow_neg_one (x : ℝ) : x ^ (-1 : ℝ) = x⁻¹ :=
 begin
   suffices H : x ^ ((-1 : ℤ) : ℝ) = x⁻¹, by exact_mod_cast H,
-  simp only [rpow_int_cast, zpow_one, zpow_neg₀],
+  simp only [rpow_int_cast, zpow_one, zpow_neg],
 end
 
 lemma mul_rpow {x y z : ℝ} (h : 0 ≤ x) (h₁ : 0 ≤ y) : (x*y)^z = x^z * y^z :=

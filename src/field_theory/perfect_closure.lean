@@ -361,7 +361,7 @@ variables [field K] (p : ℕ) [fact p.prime] [char_p K p]
 
 instance : has_inv (perfect_closure K p) :=
 ⟨quot.lift (λ x:ℕ×K, quot.mk (r K p) (x.1, x.2⁻¹)) (λ x y (H : r K p x y), match x, y, H with
-| _, _, r.intro n x := quot.sound $ by { simp only [frobenius_def], rw ← inv_pow₀, apply r.intro }
+| _, _, r.intro n x := quot.sound $ by { simp only [frobenius_def], rw ← inv_pow, apply r.intro }
 end)⟩
 
 instance : field (perfect_closure K p) :=

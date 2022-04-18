@@ -302,6 +302,13 @@ instance [has_inv α] : has_inv (with_zero α) := ⟨λ a, option.map has_inv.in
 @[simp] lemma inv_zero [has_inv α] :
   (0 : with_zero α)⁻¹ = 0 := rfl
 
+instance [has_involutive_inv α] : has_involutive_inv (with_zero α) :=
+{ inv_inv := λ a, match a with
+    | none   := rfl
+    | some a := congr_arg some $ inv_inv _
+    end,
+  ..with_zero.has_inv }
+
 instance [has_div α] : has_div (with_zero α) :=
 ⟨λ o₁ o₂, o₁.bind (λ a, option.map (λ b, a / b) o₂)⟩
 
@@ -319,7 +326,13 @@ instance [has_one α] [has_pow α ℤ] : has_pow (with_zero α) ℤ :=
   ↑(a ^ n : α) = (↑a ^ n : with_zero α) := rfl
 
 instance [div_inv_monoid α] : div_inv_monoid (with_zero α) :=
-{ div_eq_mul_inv := λ a b, match a, b with
+{ inv_mul_rev := λ a b, match a, b with
+    | none,   none   := rfl
+    | none,   some b := rfl
+    | some a, none   := rfl
+    | some a, some b := congr_arg some $ inv_mul_rev _ _
+    end,
+  div_eq_mul_inv := λ a b, match a, b with
     | none,   _      := rfl
     | some a, none   := rfl
     | some a, some b := congr_arg some (div_eq_mul_inv _ _)
@@ -338,7 +351,7 @@ instance [div_inv_monoid α] : div_inv_monoid (with_zero α) :=
     | some x := congr_arg some $ div_inv_monoid.zpow_neg' _ _
     end,
   .. with_zero.has_div,
-  .. with_zero.has_inv,
+  .. with_zero.has_involutive_inv,
   .. with_zero.monoid_with_zero, }
 
 

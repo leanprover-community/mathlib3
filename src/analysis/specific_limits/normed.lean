@@ -52,7 +52,7 @@ lemma tendsto_norm_zpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] 
 begin
   rcases neg_surjective m with ⟨m, rfl⟩,
   rw neg_lt_zero at hm, lift m to ℕ using hm.le, rw int.coe_nat_pos at hm,
-  simp only [norm_pow, zpow_neg₀, zpow_coe_nat, ← inv_pow₀],
+  simp only [norm_pow, zpow_neg, zpow_coe_nat, ← inv_pow],
   exact (tendsto_pow_at_top hm).comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
 end
 

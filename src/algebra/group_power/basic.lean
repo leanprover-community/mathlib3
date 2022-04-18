@@ -191,6 +191,51 @@ theorem zpow_neg_one (x : G) : x ^ (-1:ℤ) = x⁻¹ :=
 theorem zpow_neg_coe_of_pos (a : G) : ∀ {n : ℕ}, 0 < n → a ^ -(n:ℤ) = (a ^ n)⁻¹
 | (n+1) _ := zpow_neg_succ_of_nat _ _
 
+@[simp, to_additive] lemma inv_pow (a : G) (n : ℕ) : (a⁻¹)^n = (a^n)⁻¹ :=
+begin
+  induction n with n ih,
+  { rw [pow_zero, pow_zero, inv_one] },
+  { rw [pow_succ', pow_succ, ih, inv_mul_rev] }
+end
+
+-- the attributes are intentionally out of order. `smul_zero` proves `zsmul_zero`.
+@[to_additive zsmul_zero, simp]
+lemma one_zpow : ∀ (n : ℤ), (1 : G) ^ n = 1
+| (n : ℕ) := by rw [zpow_coe_nat, one_pow]
+| -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, inv_one]
+
+@[simp, to_additive neg_zsmul]
+lemma zpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
+| (n+1:ℕ) := div_inv_monoid.zpow_neg' _ _
+| 0       := by { change a ^ (0 : ℤ) = (a ^ (0 : ℤ))⁻¹, simp }
+| -[1+ n] := by { rw [zpow_neg_succ_of_nat, inv_inv, ← zpow_coe_nat], refl }
+
+@[to_additive neg_one_zsmul_add]
+lemma mul_zpow_neg_one (a b : G) : (a * b) ^ (-(1:ℤ)) = b ^ (-(1:ℤ)) * a ^ (-(1:ℤ)) :=
+by simp_rw [zpow_neg_one, inv_mul_rev]
+
+lemma zpow_mul₀ (a : G) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
+| (m : ℕ) (n : ℕ) := by { rw [zpow_coe_nat, zpow_coe_nat, ← pow_mul, ← zpow_coe_nat], refl }
+| (m : ℕ) -[1+ n] := by { rw [zpow_coe_nat, zpow_neg_succ_of_nat, ← pow_mul, coe_nat_mul_neg_succ,
+    zpow_neg, inv_inj, ← zpow_coe_nat], refl }
+| -[1+ m] (n : ℕ) := by { rw [zpow_coe_nat, zpow_neg_succ_of_nat, ← inv_pow, ← pow_mul,
+    neg_succ_mul_coe_nat, zpow_neg, inv_pow, inv_inj, ← zpow_coe_nat], refl }
+| -[1+ m] -[1+ n] := by { rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, neg_succ_mul_neg_succ,
+    inv_pow, inv_inv, ← pow_mul, ← zpow_coe_nat], refl }
+
+lemma zpow_mul₀' (a : G) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m := by rw [mul_comm, zpow_mul₀]
+
+@[to_additive zsmul_neg]
+lemma inv_zpow (a : G) : ∀ n : ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
+| (n : ℕ) := by rw [zpow_coe_nat, zpow_coe_nat, inv_pow]
+| -[1+ n] := by rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, inv_pow]
+
+@[simp] lemma inv_zpow' (a : G) (n : ℤ) : a⁻¹ ^ n = a ^ (-n) :=
+by { rw [inv_zpow, ← zpow_neg_one, ← zpow_mul₀], simp }
+
+lemma one_div_pow (a : G) (n : ℕ) : (1 / a) ^ n = 1 / a ^ n := by simp_rw [one_div, inv_pow]
+lemma one_div_zpow (a : G) (n : ℤ) :  (1 / a) ^ n = 1 / a ^ n := by simp_rw [one_div, inv_zpow]
+
 end div_inv_monoid
 
 section group
@@ -199,13 +244,6 @@ variables [group G] [group H] [add_group A] [add_group B]
 open int
 
 section nat
-
-@[simp, to_additive] theorem inv_pow (a : G) (n : ℕ) : (a⁻¹)^n = (a^n)⁻¹ :=
-begin
-  induction n with n ih,
-  { rw [pow_zero, pow_zero, inv_one] },
-  { rw [pow_succ', pow_succ, ih, inv_mul_rev] }
-end
 
 @[to_additive] -- rename to sub_nsmul?
 theorem pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a^(m - n) = a^m * (a^n)⁻¹ :=
@@ -222,27 +260,6 @@ theorem inv_pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a⁻¹^(m - n) = (a^m)�
 by rw [pow_sub a⁻¹ h, inv_pow, inv_pow, inv_inv]
 
 end nat
-
--- the attributes are intentionally out of order. `smul_zero` proves `zsmul_zero`.
-@[to_additive zsmul_zero, simp]
-theorem one_zpow : ∀ (n : ℤ), (1 : G) ^ n = 1
-| (n : ℕ) := by rw [zpow_coe_nat, one_pow]
-| -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, inv_one]
-
-@[simp, to_additive neg_zsmul]
-theorem zpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
-| (n+1:ℕ) := div_inv_monoid.zpow_neg' _ _
-| 0       := by { change a ^ (0 : ℤ) = (a ^ (0 : ℤ))⁻¹, simp }
-| -[1+ n] := by { rw [zpow_neg_succ_of_nat, inv_inv, ← zpow_coe_nat], refl }
-
-@[to_additive neg_one_zsmul_add] lemma mul_zpow_neg_one (a b : G) :
-  (a*b)^(-(1:ℤ)) = b^(-(1:ℤ))*a^(-(1:ℤ)) :=
-by simp only [inv_mul_rev, zpow_one, zpow_neg]
-
-@[to_additive zsmul_neg]
-theorem inv_zpow (a : G) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
-| (n : ℕ) := by rw [zpow_coe_nat, zpow_coe_nat, inv_pow]
-| -[1+ n] := by rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, inv_pow]
 
 @[to_additive add_commute.zsmul_add]
 theorem commute.mul_zpow {a b : G} (h : commute a b) : ∀ n : ℤ, (a * b) ^ n = a ^ n * b ^ n

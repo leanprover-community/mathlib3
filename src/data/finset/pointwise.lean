@@ -447,19 +447,15 @@ coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 /- TODO: The below instances are duplicate because there is no typeclass greater than
 `div_inv_monoid` and `has_involutive_inv` but smaller than `group` and `group_with_zero`. -/
 
-/-- `finset α` is a `div_inv_monoid` under pointwise operations if `α` is. -/
-@[to_additive "`finset α` is an `sub_neg_add_monoid` under pointwise operations if `α` is."]
-protected def div_inv_monoid [group α] : div_inv_monoid (finset α) :=
+/-- `finset α` is a division-inversion monoid under pointwise operations if `α` is. -/
+@[to_additive finset.sub_neg_monoid "`finset α` is a subtraction-negation monoid under pointwise
+operations if `α` is."]
+protected def div_inv_monoid [div_inv_monoid α] : div_inv_monoid (finset α) :=
 coe_injective.div_inv_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
-
-/-- `finset α` is a `div_inv_monoid` under pointwise operations if `α` is. -/
-protected def div_inv_monoid' [group_with_zero α] : div_inv_monoid (finset α) :=
-coe_injective.div_inv_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow'
 
 localized "attribute [instance] finset.mul_one_class finset.add_zero_class finset.semigroup
   finset.add_semigroup finset.monoid finset.add_monoid finset.comm_monoid finset.add_comm_monoid
-  finset.div_inv_monoid finset.sub_neg_add_monoid finset.div_inv_monoid'"
-  in pointwise
+  finset.div_inv_monoid finset.sub_neg_monoid" in pointwise
 
 end instances
 

@@ -255,6 +255,11 @@ by simp_rw [←relindex_top_right, relindex_inf_le]
 @[to_additive] lemma index_ne_zero_of_fintype [hH : fintype (G ⧸ H)] : H.index ≠ 0 :=
 by { rw index_eq_card, exact fintype.card_ne_zero }
 
+/-- Finite index implies finite quotient. -/
+@[to_additive "Finite index implies finite quotient."]
+noncomputable def fintype_of_index_ne_zero (hH : H.index ≠ 0) : fintype (G ⧸ H) :=
+(cardinal.lt_omega_iff_fintype.mp (lt_of_not_ge (mt cardinal.to_nat_apply_of_omega_le hH))).some
+
 @[to_additive one_lt_index_of_ne_top]
 lemma one_lt_index_of_ne_top [fintype (G ⧸ H)] (hH : H ≠ ⊤) : 1 < H.index :=
 nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨index_ne_zero_of_fintype, mt index_eq_one.mp hH⟩

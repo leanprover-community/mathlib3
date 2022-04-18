@@ -6,6 +6,7 @@ Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 import data.fin.vec_notation
 import data.fin.tuple.basic
 import logic.encodable.basic
+import logic.small
 import set_theory.cardinal
 import category_theory.concrete_category.bundled
 
@@ -42,7 +43,7 @@ For the Flypitch project:
 the continuum hypothesis*][flypitch_itp]
 
 -/
-universes u v u' v' w
+universes u v u' v' w w'
 
 open_locale cardinal
 open cardinal
@@ -74,7 +75,7 @@ protected def mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) : language :=
 ⟨sequence₂ c f₁ f₂, sequence₂ pempty r₁ r₂⟩
 
 /-- The empty language has no symbols. -/
-protected def empty : language := ⟨λ _, pempty, λ _, pempty⟩
+protected def empty : language := ⟨λ _, empty, λ _, empty⟩
 
 instance : inhabited language := ⟨language.empty⟩
 
@@ -124,11 +125,11 @@ instance [L.is_relational] {n : ℕ} : is_empty (L.functions n) := is_relational
 
 instance [L.is_algebraic] {n : ℕ} : is_empty (L.relations n) := is_algebraic.empty_relations n
 
-instance is_relational_of_empty_functions {symb : ℕ → Type*} : is_relational ⟨λ _, pempty, symb⟩ :=
-⟨λ _, pempty.is_empty⟩
+instance is_relational_of_empty_functions {symb : ℕ → Type*} : is_relational ⟨λ _, empty, symb⟩ :=
+⟨λ _, empty.is_empty⟩
 
-instance is_algebraic_of_empty_relations {symb : ℕ → Type*}  : is_algebraic ⟨symb, λ _, pempty⟩ :=
-⟨λ _, pempty.is_empty⟩
+instance is_algebraic_of_empty_relations {symb : ℕ → Type*}  : is_algebraic ⟨symb, λ _, empty⟩ :=
+⟨λ _, empty.is_empty⟩
 
 instance is_relational_empty : is_relational language.empty :=
 language.is_relational_of_empty_functions
@@ -172,7 +173,7 @@ instance countable_empty : language.empty.countable :=
 ⟨begin
   rw [card_eq_card_functions_add_card_relations, add_le_omega, lift_le_omega, lift_le_omega,
     ← cardinal.encodable_iff, ← cardinal.encodable_iff],
-  exact ⟨⟨encodable.sigma⟩, ⟨encodable.sigma⟩⟩,
+  exact ⟨⟨sigma.encodable⟩, ⟨sigma.encodable⟩⟩,
 end⟩
 
 @[priority 100] instance countable.countable_functions [L.countable] :
@@ -197,11 +198,11 @@ variables (L) (M : Type w)
   language. Each function of arity `n` is interpreted as a function sending tuples of length `n`
   (modeled as `(fin n → M)`) to `M`, and a relation of arity `n` is a function from tuples of length
   `n` to `Prop`. -/
-class Structure :=
+@[ext] class Structure :=
 (fun_map : ∀{n}, L.functions n → (fin n → M) → M)
 (rel_map : ∀{n}, L.relations n → (fin n → M) → Prop)
 
-variables (N : Type*) [L.Structure M] [L.Structure N]
+variables (N : Type w') [L.Structure M] [L.Structure N]
 
 open Structure
 
@@ -391,6 +392,12 @@ lemma comp_assoc (f : M →[L] N) (g : N →[L] P) (h : P →[L] Q) :
 
 end hom
 
+/-- Any element of a `hom_class` can be realized as a first_order homomorphism. -/
+def hom_class.to_hom {F M N} [L.Structure M] [L.Structure N]
+  [fun_like F M (λ _, N)] [hom_class L F M N] :
+  F → (M →[L] N) :=
+λ φ, ⟨φ, λ _, hom_class.map_fun φ, λ _, hom_class.map_rel φ⟩
+
 namespace embedding
 
 instance embedding_like : embedding_like (M ↪[L] N) M N :=
@@ -422,8 +429,7 @@ hom_class.map_constants φ c
 strong_hom_class.map_rel φ r x
 
 /-- A first-order embedding is also a first-order homomorphism. -/
-def to_hom (f : M ↪[L] N) : M →[L] N :=
-{ to_fun := f }
+def to_hom : (M ↪[L] N) → M →[L] N := hom_class.to_hom
 
 @[simp]
 lemma coe_to_hom {f : M ↪[L] N} : (f.to_hom : M → N) = f := rfl
@@ -490,6 +496,13 @@ by { ext, simp only [coe_to_hom, comp_apply, hom.comp_apply] }
 
 end embedding
 
+/-- Any element of an injective `strong_hom_class` can be realized as a first_order embedding. -/
+def strong_hom_class.to_embedding {F M N} [L.Structure M] [L.Structure N]
+  [embedding_like F M N] [strong_hom_class L F M N] :
+  F → (M ↪[L] N) :=
+λ φ, ⟨⟨φ, embedding_like.injective φ⟩,
+  λ _, strong_hom_class.map_fun φ, λ _, strong_hom_class.map_rel φ⟩
+
 namespace equiv
 
 instance : equiv_like (M ≃[L] N) M N :=
@@ -545,13 +558,10 @@ hom_class.map_constants φ c
 strong_hom_class.map_rel φ r x
 
 /-- A first-order equivalence is also a first-order embedding. -/
-def to_embedding (f : M ≃[L] N) : M ↪[L] N :=
-{ to_fun := f,
-  inj' := f.to_equiv.injective }
+def to_embedding : (M ≃[L] N) → M ↪[L] N := strong_hom_class.to_embedding
 
 /-- A first-order equivalence is also a first-order homomorphism. -/
-def to_hom (f : M ≃[L] N) : M →[L] N :=
-{ to_fun := f }
+def to_hom : (M ≃[L] N) → M →[L] N := hom_class.to_hom
 
 @[simp] lemma to_embedding_to_hom (f : M ≃[L] N) : f.to_embedding.to_hom = f.to_hom := rfl
 
@@ -602,6 +612,13 @@ lemma comp_assoc (f : M ≃[L] N) (g : N ≃[L] P) (h : P ≃[L] Q) :
 
 end equiv
 
+/-- Any element of a bijective `strong_hom_class` can be realized as a first_order isomorphism. -/
+def strong_hom_class.to_equiv {F M N} [L.Structure M] [L.Structure N]
+  [equiv_like F M N] [strong_hom_class L F M N] :
+  F → (M ≃[L] N) :=
+λ φ, ⟨⟨φ, equiv_like.inv φ, equiv_like.left_inv φ, equiv_like.right_inv φ⟩,
+  λ _, hom_class.map_fun φ, λ _, strong_hom_class.map_rel φ⟩
+
 section sum_Structure
 variables (L₁ L₂ : language) (S : Type*) [L₁.Structure S] [L₂.Structure S]
 
@@ -626,5 +643,68 @@ variables {L₁ L₂ S}
 
 end sum_Structure
 
+section empty
+section
+variables [language.empty.Structure M] [language.empty.Structure N]
+
+@[simp] lemma empty.nonempty_embedding_iff :
+  nonempty (M ↪[language.empty] N) ↔ cardinal.lift.{w'} (# M) ≤ cardinal.lift.{w} (# N) :=
+trans ⟨nonempty.map (λ f, f.to_embedding), nonempty.map (λ f, {to_embedding := f})⟩
+  cardinal.lift_mk_le'.symm
+
+@[simp] lemma empty.nonempty_equiv_iff :
+  nonempty (M ≃[language.empty] N) ↔ cardinal.lift.{w'} (# M) = cardinal.lift.{w} (# N) :=
+trans ⟨nonempty.map (λ f, f.to_equiv), nonempty.map (λ f, {to_equiv := f})⟩
+  cardinal.lift_mk_eq'.symm
+
+end
+
+instance empty_Structure : language.empty.Structure M :=
+⟨λ _, empty.elim, λ _, empty.elim⟩
+
+instance : unique (language.empty.Structure M) :=
+⟨⟨language.empty_Structure⟩, λ a, begin
+  ext n f,
+  { exact empty.elim f },
+  { exact subsingleton.elim _ _ },
+end⟩
+
+@[priority 100] instance strong_hom_class_empty {F M N} [fun_like F M (λ _, N)] :
+  strong_hom_class language.empty F M N :=
+⟨λ _ _ f, empty.elim f, λ _ _ r, empty.elim r⟩
+
+/-- Makes a `language.empty.hom` out of any function. -/
+@[simps] def _root_.function.empty_hom (f : M → N) : (M →[language.empty] N) :=
+{ to_fun := f }
+
+/-- Makes a `language.empty.embedding` out of any function. -/
+@[simps] def _root_.embedding.empty (f : M ↪ N) : (M ↪[language.empty] N) :=
+{ to_embedding := f }
+
+/-- Makes a `language.empty.equiv` out of any function. -/
+@[simps] def _root_.equiv.empty (f : M ≃ N) : (M ≃[language.empty] N) :=
+{ to_equiv := f }
+
+end empty
+
 end language
 end first_order
+
+namespace equiv
+open first_order first_order.language first_order.language.Structure
+open_locale first_order
+
+variables {L : language} {M : Type*} {N : Type*} [L.Structure M]
+
+/-- A structure induced by a bijection. -/
+@[simps] def induced_Structure (e : M ≃ N) : L.Structure N :=
+⟨λ n f x, e (fun_map f (e.symm ∘ x)), λ n r x, rel_map r (e.symm ∘ x)⟩
+
+/-- A bijection as a first-order isomorphism with the induced structure on the codomain. -/
+@[simps] def induced_Structure_equiv (e : M ≃ N) :
+  @language.equiv L M N _ (induced_Structure e) :=
+{ map_fun' := λ n f x, by simp [← function.comp.assoc e.symm e x],
+  map_rel' := λ n r x, by simp [← function.comp.assoc e.symm e x],
+  .. e }
+
+end equiv

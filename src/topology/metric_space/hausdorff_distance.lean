@@ -448,6 +448,12 @@ disjoint_left.2 $ λ y hy, not_mem_of_dist_lt_inf_dist $
   calc dist x y = dist y x : dist_comm _ _
   ... < inf_dist x s : hy
 
+lemma ball_inf_dist_subset_compl : ball x (inf_dist x s) ⊆ sᶜ :=
+disjoint_iff_subset_compl_right.1 disjoint_ball_inf_dist
+
+lemma ball_inf_dist_compl_subset : ball x (inf_dist x sᶜ) ⊆ s :=
+ball_inf_dist_subset_compl.trans (compl_compl s).subset
+
 lemma disjoint_closed_ball_of_lt_inf_dist {r : ℝ} (h : r < inf_dist x s) :
   disjoint (closed_ball x r) s :=
 disjoint_ball_inf_dist.mono_left $ closed_ball_subset_ball h

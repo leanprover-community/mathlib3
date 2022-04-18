@@ -668,6 +668,15 @@ ring_hom.map_finsupp_prod _ f g
 
 end is_R_or_C
 
+namespace polynomial
+
+open_locale polynomial
+
+lemma of_real_eval (p : ℝ[X]) (x : ℝ) : (p.eval x : K) = aeval ↑x p :=
+(@aeval_algebra_map_apply ℝ K _ _ _ x p).symm
+
+end polynomial
+
 namespace finite_dimensional
 
 open_locale classical

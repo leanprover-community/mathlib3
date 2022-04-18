@@ -57,7 +57,7 @@ begin
     exact F⟮α.val⟯.zero_mem },
   { obtain ⟨n, hn⟩ := set.mem_range.mp (hα (units.mk0 x hx)),
     rw (show x = α^n, by { norm_cast, rw [hn, units.coe_mk0] }),
-    exact pow_mem F⟮↑α⟯ (mem_adjoin_simple_self F ↑α) n, },
+    exact zpow_mem (mem_adjoin_simple_self F ↑α) n, },
 end
 
 /-- Primitive element theorem for finite dimensional extension of a finite field. -/
@@ -165,7 +165,11 @@ end
 end primitive_element_inf
 
 variables (F E : Type*) [field F] [field E]
-variables [algebra F E] [finite_dimensional F E] [is_separable F E]
+variables [algebra F E] [finite_dimensional F E]
+
+section separable_assumption
+
+variable [is_separable F E]
 
 /-- Primitive element theorem: a finite separable field extension `E` of `F` has a
   primitive element, i.e. there is an `α ∈ E` such that `F⟮α⟯ = (⊤ : subalgebra F E)`.-/
@@ -195,17 +199,62 @@ let α := (exists_primitive_element F E).some,
 have e : F⟮α⟯ = ⊤ := (exists_primitive_element F E).some_spec,
 pb.map ((intermediate_field.equiv_of_eq e).trans intermediate_field.top_equiv)
 
-/-- If `E / F` is a finite separable extension, then there are finitely many
-embeddings from `E` into `K` that fix `F`, corresponding to the number of
-conjugate roots of the primitive element generating `F`. -/
-instance {K : Type*} [field K] [algebra F K] : fintype (E →ₐ[F] K) :=
-power_basis.alg_hom.fintype (power_basis_of_finite_of_separable F E)
+end separable_assumption
+
+/-- A technical finiteness result. -/
+noncomputable def fintype.subtype_prod {E : Type*} {X : set E} (hX : X.finite) {L : Type*}
+  (F : E → multiset L) : fintype (Π x : X, {l : L // l ∈ F x}) :=
+by { classical, letI : fintype X := set.finite.fintype hX, exact pi.fintype}
+
+variables (K : Type*) [field K] [algebra F K]
+
+variables (E F)
+
+/-- Function from Hom_K(E,L) to pi type Π (x : basis), roots of min poly of x -/
+def roots_of_min_poly_pi_type (φ : E →ₐ[F] K)
+  (x : set.range (finite_dimensional.fin_basis F E : _ → E)) :
+  {l : K // l ∈ (((minpoly F x.1).map (algebra_map F K)).roots : multiset K)} :=
+⟨φ x, begin
+  rw [polynomial.mem_roots_map (minpoly.ne_zero_of_finite_field_extension F x.val),
+    ← polynomial.alg_hom_eval₂_algebra_map, ← φ.map_zero],
+  exact congr_arg φ (minpoly.aeval F (x : E)),
+end⟩
+
+lemma aux_inj_roots_of_min_poly : function.injective (roots_of_min_poly_pi_type F E K) :=
+begin
+  intros f g h,
+  suffices : (f : E →ₗ[F] K) = g,
+  { rw linear_map.ext_iff at this,
+    ext x, exact this x },
+  rw function.funext_iff at h,
+  apply linear_map.ext_on (finite_dimensional.fin_basis F E).span_eq,
+  rintro e he,
+  have := (h ⟨e, he⟩),
+  apply_fun subtype.val at this,
+  exact this,
+end
+
+/-- Given field extensions `E/F` and `K/F`, with `E/F` finite, there are finitely many `F`-algebra
+  homomorphisms `E →ₐ[K] K`. -/
+noncomputable instance : fintype (E →ₐ[F] K) :=
+let n := finite_dimensional.finrank F E in
+begin
+  let B : basis (fin n) F E := finite_dimensional.fin_basis F E,
+  let X := set.range (B : fin n → E),
+  have hX : X.finite := set.finite_range ⇑B,
+  refine @fintype.of_injective _ _
+    (fintype.subtype_prod hX (λ e, ((minpoly F e).map (algebra_map F K)).roots)) _
+    (aux_inj_roots_of_min_poly F E K),
+end
 
 end field
 
 @[simp] lemma alg_hom.card (F E K : Type*) [field F] [field E] [field K] [is_alg_closed K]
   [algebra F E] [finite_dimensional F E] [is_separable F E] [algebra F K] :
   fintype.card (E →ₐ[F] K) = finrank F E :=
-(alg_hom.card_of_power_basis (field.power_basis_of_finite_of_separable F E)
+begin
+  convert (alg_hom.card_of_power_basis (field.power_basis_of_finite_of_separable F E)
     (is_separable.separable _ _) (is_alg_closed.splits_codomain _)).trans
-  (power_basis.finrank _).symm
+    (power_basis.finrank _).symm,
+  apply_instance,
+end

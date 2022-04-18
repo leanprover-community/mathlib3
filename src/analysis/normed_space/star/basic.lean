@@ -46,6 +46,8 @@ variables {𝕜 E α : Type*}
 section normed_star_group
 variables [semi_normed_group E] [star_add_monoid E] [normed_star_group E]
 
+@[simp] lemma nnorm_star (x : E) : ∥star x∥₊ = ∥x∥₊ := subtype.ext norm_star
+
 /-- The `star` map in a normed star group is a normed group homomorphism. -/
 def star_normed_group_hom : normed_group_hom E E :=
 { bound' := ⟨1, λ v, le_trans (norm_star.le) (one_mul _).symm.le⟩,

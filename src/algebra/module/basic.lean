@@ -72,6 +72,10 @@ instance add_comm_monoid.nat_module : module ℕ M :=
   add_smul := λ r s x, add_nsmul x r s }
 
 theorem add_smul : (r + s) • x = r • x + s • x := module.add_smul r s x
+
+lemma convex.combo_self {a b : R} (h : a + b = 1) (x : M) : a • x + b • x = x :=
+by rw [←add_smul, h, one_smul]
+
 variables (R)
 
 theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
@@ -80,7 +84,7 @@ theorem two_smul' : (2 : R) • x = bit0 x := two_smul R x
 
 @[simp] lemma inv_of_two_smul_add_inv_of_two_smul [invertible (2 : R)] (x : M) :
   (⅟2 : R) • x + (⅟2 : R) • x = x :=
-by rw [←add_smul, inv_of_two_add_inv_of_two, one_smul]
+convex.combo_self inv_of_two_add_inv_of_two _
 
 /-- Pullback a `module` structure along an injective additive monoid homomorphism.
 See note [reducible non-instances]. -/
@@ -331,15 +335,6 @@ instance add_comm_monoid.nat_is_scalar_tower :
     (by simp only [zero_smul])
     (λ n ih, by simp only [nat.succ_eq_add_one, add_smul, one_smul, ih]) }
 
-instance add_comm_monoid.nat_smul_comm_class : smul_comm_class ℕ R M :=
-{ smul_comm := λ n r m, nat.rec_on n
-    (by simp only [zero_smul, smul_zero])
-    (λ n ih, by simp only [nat.succ_eq_add_one, add_smul, one_smul, ←ih, smul_add]) }
-
--- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
-instance add_comm_monoid.nat_smul_comm_class' : smul_comm_class R ℕ M :=
-smul_comm_class.symm _ _ _
-
 end add_comm_monoid
 
 section add_comm_group
@@ -369,29 +364,21 @@ def add_comm_group.int_module.unique : unique (module ℤ M) :=
 
 end add_comm_group
 
-namespace add_monoid_hom
-
-lemma map_nat_module_smul [add_monoid M] [add_monoid M₂]
-  (f : M →+ M₂) (x : ℕ) (a : M) : f (x • a) = x • f a :=
-f.map_nsmul a x
-
-lemma map_int_module_smul [add_group M] [add_group M₂]
-  (f : M →+ M₂) (x : ℤ) (a : M) : f (x • a) = x • f a :=
-f.map_zsmul a x
-
-lemma map_int_cast_smul [add_comm_group M] [add_comm_group M₂]
-  (f : M →+ M₂) (R S : Type*) [ring R] [ring S] [module R M] [module S M₂]
+lemma map_int_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
+  [add_monoid_hom_class F M M₂] (f : F) (R S : Type*) [ring R] [ring S] [module R M] [module S M₂]
   (x : ℤ) (a : M) : f ((x : R) • a) = (x : S) • f a :=
-by simp only [←zsmul_eq_smul_cast, f.map_zsmul]
+by simp only [←zsmul_eq_smul_cast, map_zsmul]
 
-lemma map_nat_cast_smul [add_comm_monoid M] [add_comm_monoid M₂] (f : M →+ M₂)
+lemma map_nat_cast_smul [add_comm_monoid M] [add_comm_monoid M₂] {F : Type*}
+  [add_monoid_hom_class F M M₂] (f : F)
   (R S : Type*) [semiring R] [semiring S] [module R M] [module S M₂] (x : ℕ) (a : M) :
   f ((x : R) • a) = (x : S) • f a :=
-by simp only [←nsmul_eq_smul_cast, f.map_nsmul]
+by simp only [←nsmul_eq_smul_cast, map_nsmul]
 
-lemma map_inv_int_cast_smul {E F : Type*} [add_comm_group E] [add_comm_group F] (f : E →+ F)
-  (R S : Type*) [division_ring R] [division_ring S] [module R E] [module S F]
-  (n : ℤ) (x : E) :
+lemma map_inv_int_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
+  [add_monoid_hom_class F M M₂] (f : F)
+  (R S : Type*) [division_ring R] [division_ring S] [module R M] [module S M₂]
+  (n : ℤ) (x : M) :
   f ((n⁻¹ : R) • x) = (n⁻¹ : S) • f x :=
 begin
   by_cases hR : (n : R) = 0; by_cases hS : (n : S) = 0,
@@ -403,75 +390,79 @@ begin
   { rw [← inv_smul_smul₀ hS (f _), ← map_int_cast_smul f R S, smul_inv_smul₀ hR] }
 end
 
-lemma map_inv_nat_cast_smul {E F : Type*} [add_comm_group E] [add_comm_group F] (f : E →+ F)
-  (R S : Type*) [division_ring R] [division_ring S] [module R E] [module S F]
-  (n : ℕ) (x : E) :
+lemma map_inv_nat_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
+  [add_monoid_hom_class F M M₂] (f : F)
+  (R S : Type*) [division_ring R] [division_ring S] [module R M] [module S M₂]
+  (n : ℕ) (x : M) :
   f ((n⁻¹ : R) • x) = (n⁻¹ : S) • f x :=
-f.map_inv_int_cast_smul R S n x
+map_inv_int_cast_smul f R S n x
 
-lemma map_rat_cast_smul {E F : Type*} [add_comm_group E] [add_comm_group F] (f : E →+ F)
-  (R S : Type*) [division_ring R] [division_ring S] [module R E] [module S F]
-  (c : ℚ) (x : E) :
+lemma map_rat_cast_smul [add_comm_group M] [add_comm_group M₂] {F : Type*}
+  [add_monoid_hom_class F M M₂] (f : F)
+  (R S : Type*) [division_ring R] [division_ring S] [module R M] [module S M₂]
+  (c : ℚ) (x : M) :
   f ((c : R) • x) = (c : S) • f x :=
 by rw [rat.cast_def, rat.cast_def, div_eq_mul_inv, div_eq_mul_inv, mul_smul, mul_smul,
   map_int_cast_smul f R S, map_inv_nat_cast_smul f R S]
 
-lemma map_rat_module_smul {E : Type*} [add_comm_group E] [module ℚ E]
-  {F : Type*} [add_comm_group F] [module ℚ F] (f : E →+ F) (c : ℚ) (x : E) :
+lemma map_rat_smul [add_comm_group M] [add_comm_group M₂] [module ℚ M] [module ℚ M₂] {F : Type*}
+  [add_monoid_hom_class F M M₂] (f : F) (c : ℚ) (x : M) :
   f (c • x) = c • f x :=
-rat.cast_id c ▸ f.map_rat_cast_smul ℚ ℚ c x
-
-end add_monoid_hom
+rat.cast_id c ▸ map_rat_cast_smul f ℚ ℚ c x
 
 /-- There can be at most one `module ℚ E` structure on an additive commutative group. This is not
 an instance because `simp` becomes very slow if we have many `subsingleton` instances,
 see [gh-6025]. -/
 lemma subsingleton_rat_module (E : Type*) [add_comm_group E] : subsingleton (module ℚ E) :=
 ⟨λ P Q, module.ext' P Q $ λ r x,
-  @add_monoid_hom.map_rat_module_smul E ‹_› P E ‹_› Q (add_monoid_hom.id _) r x⟩
+  @map_rat_smul _ _ _ _ P Q _ _ (add_monoid_hom.id E) r x⟩
 
 /-- If `E` is a vector space over two division rings `R` and `S`, then scalar multiplications
 agree on inverses of integer numbers in `R` and `S`. -/
 lemma inv_int_cast_smul_eq {E : Type*} (R S : Type*) [add_comm_group E] [division_ring R]
   [division_ring S] [module R E] [module S E] (n : ℤ) (x : E) :
   (n⁻¹ : R) • x = (n⁻¹ : S) • x :=
-(add_monoid_hom.id E).map_inv_int_cast_smul R S n x
+map_inv_int_cast_smul (add_monoid_hom.id E) R S n x
 
 /-- If `E` is a vector space over two division rings `R` and `S`, then scalar multiplications
 agree on inverses of natural numbers in `R` and `S`. -/
 lemma inv_nat_cast_smul_eq {E : Type*} (R S : Type*) [add_comm_group E] [division_ring R]
   [division_ring S] [module R E] [module S E] (n : ℕ) (x : E) :
   (n⁻¹ : R) • x = (n⁻¹ : S) • x :=
-(add_monoid_hom.id E).map_inv_nat_cast_smul R S n x
+map_inv_nat_cast_smul (add_monoid_hom.id E) R S n x
+
+/-- If `E` is a vector space over a division rings `R` and has a monoid action by `α`, then that
+action commutes by scalar multiplication of inverses of integers in `R` -/
+lemma inv_int_cast_smul_comm {α E : Type*} (R : Type*) [add_comm_group E] [division_ring R]
+  [monoid α] [module R E] [distrib_mul_action α E] (n : ℤ) (s : α) (x : E) :
+  (n⁻¹ : R) • s • x = s • (n⁻¹ : R) • x :=
+(map_inv_int_cast_smul (distrib_mul_action.to_add_monoid_hom E s) R R n x).symm
+
+/-- If `E` is a vector space over a division rings `R` and has a monoid action by `α`, then that
+action commutes by scalar multiplication of inverses of natural numbers in `R`. -/
+lemma inv_nat_cast_smul_comm {α E : Type*} (R : Type*) [add_comm_group E] [division_ring R]
+  [monoid α] [module R E] [distrib_mul_action α E] (n : ℕ) (s : α) (x : E) :
+  (n⁻¹ : R) • s • x = s • (n⁻¹ : R) • x :=
+(map_inv_nat_cast_smul (distrib_mul_action.to_add_monoid_hom E s) R R n x).symm
 
 /-- If `E` is a vector space over two division rings `R` and `S`, then scalar multiplications
 agree on rational numbers in `R` and `S`. -/
 lemma rat_cast_smul_eq {E : Type*} (R S : Type*) [add_comm_group E] [division_ring R]
   [division_ring S] [module R E] [module S E] (r : ℚ) (x : E) :
   (r : R) • x = (r : S) • x :=
-(add_monoid_hom.id E).map_rat_cast_smul R S r x
+map_rat_cast_smul (add_monoid_hom.id E) R S r x
 
 instance add_comm_group.int_is_scalar_tower {R : Type u} {M : Type v} [ring R] [add_comm_group M]
   [module R M]: is_scalar_tower ℤ R M :=
-{ smul_assoc := λ n x y, ((smul_add_hom R M).flip y).map_int_module_smul n x }
-
-instance add_comm_group.int_smul_comm_class {S : Type u} {M : Type v} [semiring S]
-  [add_comm_group M] [module S M] :
-  smul_comm_class ℤ S M :=
-{ smul_comm := λ n x y, ((smul_add_hom S M x).map_zsmul y n).symm }
-
--- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
-instance add_comm_group.int_smul_comm_class' {S : Type u} {M : Type v} [semiring S]
-  [add_comm_group M] [module S M] : smul_comm_class S ℤ M :=
-smul_comm_class.symm _ _ _
+{ smul_assoc := λ n x y, ((smul_add_hom R M).flip y).map_zsmul x n }
 
 instance is_scalar_tower.rat {R : Type u} {M : Type v} [ring R] [add_comm_group M]
   [module R M] [module ℚ R] [module ℚ M] : is_scalar_tower ℚ R M :=
-{ smul_assoc := λ r x y, ((smul_add_hom R M).flip y).map_rat_module_smul r x }
+{ smul_assoc := λ r x y, map_rat_smul ((smul_add_hom R M).flip y) r x }
 
 instance smul_comm_class.rat {R : Type u} {M : Type v} [semiring R] [add_comm_group M]
   [module R M] [module ℚ M] : smul_comm_class ℚ R M :=
-{ smul_comm := λ r x y, ((smul_add_hom R M x).map_rat_module_smul r y).symm }
+{ smul_comm := λ r x y, (map_rat_smul (smul_add_hom R M x) r y).symm }
 
 instance smul_comm_class.rat' {R : Type u} {M : Type v} [semiring R] [add_comm_group M]
   [module R M] [module ℚ M] : smul_comm_class R ℚ M :=

@@ -307,11 +307,19 @@ lemma map_div [group G] [group H] [monoid_hom_class F G H]
   (f : F) (x y : G) : f (x / y) = f x / f y :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul_inv]
 
-@[simp, to_additive] theorem map_pow [monoid G] [monoid H] [monoid_hom_class F G H]
+-- to_additive puts the arguments in the wrong order, so generate an auxiliary lemma, then
+-- swap its arguments.
+@[to_additive map_nsmul.aux, simp] theorem map_pow [monoid G] [monoid H] [monoid_hom_class F G H]
   (f : F) (a : G) :
   ∀ (n : ℕ), f (a ^ n) = (f a) ^ n
 | 0     := by rw [pow_zero, pow_zero, map_one]
 | (n+1) := by rw [pow_succ, pow_succ, map_mul, map_pow]
+
+@[simp] theorem map_nsmul [add_monoid G] [add_monoid H] [add_monoid_hom_class F G H]
+  (f : F) (n : ℕ) (a : G) : f (n • a) = n • (f a) :=
+map_nsmul.aux f a n
+
+attribute [to_additive_reorder 8, to_additive] map_pow
 
 @[to_additive]
 theorem map_zpow' [div_inv_monoid G] [div_inv_monoid H] [monoid_hom_class F G H]
@@ -320,11 +328,20 @@ theorem map_zpow' [div_inv_monoid G] [div_inv_monoid H] [monoid_hom_class F G H]
 | (n : ℕ) := by rw [zpow_coe_nat, map_pow, zpow_coe_nat]
 | -[1+n]  := by rw [zpow_neg_succ_of_nat, hf, map_pow, ← zpow_neg_succ_of_nat]
 
+-- to_additive puts the arguments in the wrong order, so generate an auxiliary lemma, then
+-- swap its arguments.
 /-- Group homomorphisms preserve integer power. -/
-@[simp, to_additive "Additive group homomorphisms preserve integer scaling."]
+@[to_additive map_zsmul.aux, simp]
 theorem map_zpow [group G] [group H] [monoid_hom_class F G H] (f : F) (g : G) (n : ℤ) :
   f (g ^ n) = (f g) ^ n :=
 map_zpow' f (map_inv f) g n
+
+/-- Additive group homomorphisms preserve integer scaling. -/
+theorem map_zsmul [add_group G] [add_group H] [add_monoid_hom_class F G H] (f : F) (n : ℤ) (g : G) :
+  f (n • g) = n • f g :=
+map_zsmul.aux f g n
+
+attribute [to_additive_reorder 8, to_additive] map_zpow
 
 end mul_one
 

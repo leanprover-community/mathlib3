@@ -424,7 +424,7 @@ begin
   rw [sup_eq_mul_pos_div, div_eq_mul_inv, inv_inv, ← pow_two, inv_mul_eq_iff_eq_mul,
     ← pow_two, pos_of_one_le],
   rw pow_two,
-  apply one_le_mul h h,
+  apply one_le_mul' h h,
 end
 
 /-- The unary operation of taking the absolute value is idempotent. -/

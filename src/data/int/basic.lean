@@ -129,6 +129,8 @@ theorem coe_nat_lt {m n : ℕ} : (↑m : ℤ) < ↑n ↔ m < n := coe_nat_lt_coe
 @[simp, norm_cast]
 theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n := int.coe_nat_eq_coe_nat_iff m n
 
+lemma coe_nat_strict_mono : strict_mono (coe : ℕ → ℤ) := λ _ _, int.coe_nat_lt.2
+
 @[simp] theorem coe_nat_pos {n : ℕ} : (0 : ℤ) < n ↔ 0 < n :=
 by rw [← int.coe_nat_zero, coe_nat_lt]
 

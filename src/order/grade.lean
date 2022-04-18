@@ -32,6 +32,18 @@ Visually, `grade ℕ a` is the height of `a` in the Hasse diagram of `α`.
 * `max_grade`: The maximum grade in a `grade_max_order`.
 * `order_embedding.grade`: The grade of an element in a linear order as an order embedding.
 
+## How to grade your order
+
+Here are the translations between common references and our `grade_order`:
+* [Stanley][stanley2012] defines a graded order of rank `n` as an order where all maximal chains
+  have "length" `n` (so the number of elements of a chain is `n + 1`). This corresponds to
+  `grade_bounded_order (fin (n + 1)) α`.
+* [Engel][engel1997]'s ranked orders are somewhere between `grade_order ℕ α` and
+  `grade_min_order ℕ α`, in that he requires `∃ a, is_min a ∧ grade ℕ a + 0` rather than
+  `∀ a, is_min a → grade ℕ a = 0`. He defines a graded order as an order where all minimal elements
+  have grade `0` and all maximal elements have the same grade. This is roughly a less bundled
+  version of `grade_bounded_order (fin n) α`, assuming we discard orders with infinite chains.
+
 ## Implementation notes
 
 One possible definition of graded orders is as the bounded orders whose flags (maximal chains)
@@ -51,66 +63,6 @@ set_option old_structure_cmd true
 open finset nat order_dual
 
 variables {𝕆 α β : Type*}
-
-section
-variables {a b : Prop}
-
-lemma iff.not_left (h : a ↔ ¬ b) : ¬ a ↔ b := h.not.trans not_not
-lemma iff.not_right (h : ¬ a ↔ b) : a ↔ ¬ b := not_not.symm.trans h.not
-
-end
-
-section
-variables [preorder 𝕆] [preorder α] {f : α → 𝕆} {a : α}
-
-lemma strict_mono.is_max_of_apply (hf : strict_mono f) (ha : is_max (f a)) : is_max a :=
-by { by_contra, obtain ⟨b, hb⟩ := not_is_max_iff.1 h, exact (hf hb).not_is_max ha }
-
-lemma strict_mono.is_min_of_apply (hf : strict_mono f) (ha : is_min (f a)) : is_min a :=
-by { by_contra, obtain ⟨b, hb⟩ := not_is_min_iff.1 h, exact (hf hb).not_is_min ha }
-
-lemma strict_anti.is_max_of_apply (hf : strict_anti f) (ha : is_min (f a)) : is_max a :=
-by { by_contra, obtain ⟨b, hb⟩ := not_is_max_iff.1 h, exact (hf hb).not_is_min ha }
-
-lemma strict_anti.is_min_of_apply (hf : strict_anti f) (ha : is_max (f a)) : is_min a :=
-by { by_contra, obtain ⟨b, hb⟩ := not_is_min_iff.1 h, exact (hf hb).not_is_max ha }
-
-end
-
-section order_top
-variables [partial_order α] [preorder 𝕆] [order_top α] {f : α → 𝕆} {a : α}
-
-@[simp] lemma not_lt_top_iff : ¬ a < ⊤ ↔ a = ⊤ := lt_top_iff_ne_top.not_left
-
-lemma strict_mono.apply_eq_top_iff (hf : strict_mono f) : f a = f ⊤ ↔ a = ⊤ :=
-⟨λ h, not_lt_top_iff.1 $ λ ha, (hf ha).ne h, congr_arg _⟩
-
-lemma strict_anti.apply_eq_top_iff (hf : strict_anti f) : f a = f ⊤ ↔ a = ⊤ :=
-⟨λ h, not_lt_top_iff.1 $ λ ha, (hf ha).ne' h, congr_arg _⟩
-
-end order_top
-
-section order_bot
-variables [partial_order α] [preorder 𝕆] [order_bot α] {f : α → 𝕆} {a : α}
-
-@[simp] lemma not_bot_lt_iff : ¬ ⊥ < a ↔ a = ⊥ := bot_lt_iff_ne_bot.not_left
-
-lemma strict_mono.apply_eq_bot_iff (hf : strict_mono f) : f a = f ⊥ ↔ a = ⊥ :=
-⟨λ h, not_bot_lt_iff.1 $ λ ha, (hf ha).ne' h, congr_arg _⟩
-
-lemma strict_anti.apply_eq_bot_iff (hf : strict_anti f) : f a = f ⊥ ↔ a = ⊥ :=
-⟨λ h, not_bot_lt_iff.1 $ λ ha, (hf ha).ne h, congr_arg _⟩
-
-end order_bot
-
-lemma fin.coe_strict_mono {n : ℕ} : strict_mono (coe : fin n → ℕ) := λ _ _, id
-lemma nat.cast_strict_mono [ordered_semiring α] [nontrivial α] : strict_mono (coe : ℕ → α) :=
-λ _ _, nat.cast_lt.2
-lemma int.coe_nat_strict_mono : strict_mono (coe : ℕ → ℤ) := λ _ _, int.coe_nat_lt.2
-
-/-- A strictly monotone function from a linear order as an order embedding. -/
-protected def strict_mono.order_embedding [linear_order α] [preorder β] (f : α → β)
-  (hf : strict_mono f) : α ↪o β := ⟨⟨f, hf.injective⟩, λ _ _, hf.le_iff_le⟩
 
 /-- An `𝕆`-graded order is an order `α` equipped with a strictly monotone function `grade 𝕆 : α → 𝕆`
 which preserves order covering (`covby`). -/

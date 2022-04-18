@@ -397,8 +397,11 @@ semi_normed_group.of_core _ ⟨op_norm_zero, λ x y, op_norm_add_le x y, op_norm
 lemma nnnorm_def (f : E →SL[σ₁₂] F) : ∥f∥₊ = Inf {c | ∀ x, ∥f x∥₊ ≤ c * ∥x∥₊} :=
 begin
   ext,
-  rw [nnreal.coe_Inf, coe_nnnorm],
-  dsimp,
+  rw [nnreal.coe_Inf, coe_nnnorm, norm_def, subtype.coe_image],
+  simp_rw [← nnreal.coe_le_coe, nnreal.coe_mul, coe_nnnorm],
+  -- `mem_set_of_eq` doesn't work here.
+  dunfold set.has_mem has_mem.mem set.mem set_of,
+  simp_rw [subtype.coe_mk, exists_prop],
 end
 
 instance to_normed_space {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F]

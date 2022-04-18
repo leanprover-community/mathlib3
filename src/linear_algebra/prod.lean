@@ -459,12 +459,12 @@ begin
   split,
   { intros h,
     split,
-    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨hx, (zero_mem _)⟩, },
-    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨zero_mem _, hx⟩, }, },
+    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨hx, zero_mem p₂⟩, },
+    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨zero_mem p₁, hx⟩, }, },
   { rintros ⟨hH, hK⟩ ⟨x1, x2⟩ ⟨h1, h2⟩,
     have h1' : (linear_map.inl R _ _) x1 ∈ q, { apply hH, simpa using h1, },
     have h2' : (linear_map.inr R _ _) x2 ∈ q, { apply hK, simpa using h2, },
-    simpa using add_mem _ h1' h2', }
+    simpa using add_mem h1' h2', }
 end
 
 lemma prod_eq_bot_iff {p₁ : submodule R M} {p₂ : submodule R M₂} :

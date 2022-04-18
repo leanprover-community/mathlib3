@@ -236,6 +236,12 @@ def adjoin_comm_semiring_of_comm {s : set A} (hcomm : ∀ (a ∈ s) (b ∈ s), a
   end,
   ..(adjoin R s).to_semiring }
 
+lemma adjoin_singleton_one : adjoin R ({1} : set A) = ⊥ :=
+eq_bot_iff.2 $ adjoin_le $ set.singleton_subset_iff.2 $ set_like.mem_coe.2 $ one_mem _
+
+lemma self_mem_adjoin_singleton (x : A) : x ∈ adjoin R ({x} : set A) :=
+algebra.subset_adjoin (set.mem_singleton_iff.mpr rfl)
+
 end semiring
 
 section comm_semiring
@@ -252,9 +258,6 @@ le_antisymm
   (closure_le.2 $ set.union_subset
     (set.range_subset_iff.2 $ λ x, adjoin_mono (set.subset_union_left _ _) x.2)
     (set.subset.trans (set.subset_union_right _ _) subset_adjoin))
-
-lemma adjoin_singleton_one : adjoin R ({1} : set A) = ⊥ :=
-eq_bot_iff.2 $ adjoin_le $ set.singleton_subset_iff.2 $ set_like.mem_coe.2 $ one_mem _
 
 theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t)).to_submodule =
   (adjoin R s).to_submodule * (adjoin R t).to_submodule :=

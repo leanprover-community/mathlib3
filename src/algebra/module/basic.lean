@@ -72,6 +72,10 @@ instance add_comm_monoid.nat_module : module ℕ M :=
   add_smul := λ r s x, add_nsmul x r s }
 
 theorem add_smul : (r + s) • x = r • x + s • x := module.add_smul r s x
+
+lemma convex.combo_self {a b : R} (h : a + b = 1) (x : M) : a • x + b • x = x :=
+by rw [←add_smul, h, one_smul]
+
 variables (R)
 
 theorem two_smul : (2 : R) • x = x + x := by rw [bit0, add_smul, one_smul]
@@ -80,7 +84,7 @@ theorem two_smul' : (2 : R) • x = bit0 x := two_smul R x
 
 @[simp] lemma inv_of_two_smul_add_inv_of_two_smul [invertible (2 : R)] (x : M) :
   (⅟2 : R) • x + (⅟2 : R) • x = x :=
-by rw [←add_smul, inv_of_two_add_inv_of_two, one_smul]
+convex.combo_self inv_of_two_add_inv_of_two _
 
 /-- Pullback a `module` structure along an injective additive monoid homomorphism.
 See note [reducible non-instances]. -/

@@ -11,14 +11,12 @@ import topology.algebra.module.weak_dual
 /-!
 # Weak convergence of (finite) measures
 
-This file will define the topology of weak convergence of finite measures and probability measures
+This defines the topology of weak convergence of finite measures and probability measures
 on topological spaces. The topology of weak convergence is the coarsest topology w.r.t. which
 for every bounded continuous `ℝ≥0`-valued function `f`, the integration of `f` against the
 measure is continuous.
 
 TODOs:
-* Define the topologies (the current version only defines the types) via
-  `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)`.
 * Prove that an equivalent definition of the topologies is obtained requiring continuity of
   integration of bounded continuous `ℝ`-valued functions instead.
 * Include the portmanteau theorem on characterizations of weak convergence of (Borel) probability
@@ -27,20 +25,21 @@ TODOs:
 ## Main definitions
 
 The main definitions are the
- * types `finite_measure α` and `probability_measure α`;
+ * types `finite_measure α` and `probability_measure α` with topologies of weak convergence;
  * `to_weak_dual_bcnn : finite_measure α → (weak_dual ℝ≥0 (α →ᵇ ℝ≥0))`
    allowing to interpret a finite measure as a continuous linear functional on the space of
-   bounded continuous nonnegative functions on `α`. This will be used for the definition of the
+   bounded continuous nonnegative functions on `α`. This is used for the definition of the
    topology of weak convergence.
-
-TODO:
-* Define the topologies on the above types.
 
 ## Main results
 
  * Finite measures `μ` on `α` give rise to continuous linear functionals on the space of
    bounded continuous nonnegative functions on `α` via integration:
    `to_weak_dual_bcnn : finite_measure α → (weak_dual ℝ≥0 (α →ᵇ ℝ≥0))`.
+ * `tendsto_iff_forall_lintegral_tendsto`: Convergence of finite measures and probability measures
+   is characterized by the convergence of integrals of all bounded continuous (nonnegative)
+   functions. This essentially shows that the given definition of topology corresponds to the
+   common textbook definition of weak convergence of measures.
 
 TODO:
 * Portmanteau theorem.
@@ -279,12 +278,18 @@ end
 
 /-- Finite measures yield elements of the `weak_dual` of bounded continuous nonnegative
 functions via `finite_measure.test_against_nn`, i.e., integration. -/
-@[simps apply] def to_weak_dual_bcnn (μ : finite_measure α) :
+def to_weak_dual_bcnn (μ : finite_measure α) :
   weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
 { to_fun := λ f, μ.test_against_nn f,
   map_add' := test_against_nn_add μ,
   map_smul' := test_against_nn_smul μ,
   cont := μ.test_against_nn_lipschitz.continuous, }
+
+@[simp] lemma coe_to_weak_dual_bcnn (μ : finite_measure α) :
+  ⇑μ.to_weak_dual_bcnn = μ.test_against_nn := rfl
+
+@[simp] lemma to_weak_dual_bcnn_apply (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
+  μ.to_weak_dual_bcnn f = (∫⁻ x, f x ∂(μ : measure α)).to_nnreal := rfl
 
 /-- The topology of weak convergence on `finite_measures α` is inherited (induced) from the weak-*
 topology on `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)` via the function `finite_measures.to_weak_dual_bcnn`. -/
@@ -320,8 +325,8 @@ theorem tendsto_iff_forall_lintegral_tendsto {γ : Type*} {F : filter γ}
     tendsto (λ i, (∫⁻ x, (f x) ∂(μs(i) : measure α))) F (𝓝 ((∫⁻ x, (f x) ∂(μ : measure α)))) :=
 begin
   rw tendsto_iff_forall_test_against_nn_tendsto,
-  simp_rw [to_weak_dual_bcnn_apply _ _,
-           ←test_against_nn_coe_eq, ennreal.tendsto_coe],
+  simp_rw [to_weak_dual_bcnn_apply _ _, ←test_against_nn_coe_eq,
+           ennreal.tendsto_coe, ennreal.to_nnreal_coe],
 end
 
 end finite_measure
@@ -396,8 +401,14 @@ continuous_induced_dom
 
 /-- Probability measures yield elements of the `weak_dual` of bounded continuous nonnegative
 functions via `finite_measure.test_against_nn`, i.e., integration. -/
-@[simps apply] def to_weak_dual_bcnn : probability_measure α → weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
+def to_weak_dual_bcnn : probability_measure α → weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
 finite_measure.to_weak_dual_bcnn ∘ to_finite_measure
+
+@[simp] lemma coe_to_weak_dual_bcnn (μ : probability_measure α) :
+  ⇑μ.to_weak_dual_bcnn = μ.to_finite_measure.test_against_nn := rfl
+
+@[simp] lemma to_weak_dual_bcnn_apply (μ : probability_measure α) (f : α →ᵇ ℝ≥0) :
+  μ.to_weak_dual_bcnn f = (∫⁻ x, f x ∂(μ : measure α)).to_nnreal := rfl
 
 lemma to_weak_dual_bcnn_continuous :
   continuous (λ (μ : probability_measure α), μ.to_weak_dual_bcnn) :=

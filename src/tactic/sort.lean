@@ -113,7 +113,7 @@ if allow_failure then sort_summands hyp compare_fn <|> skip else sort_summands h
 
 /-- If the target is an equality involving monomials,
 then  `sort_monomials` sorts the summands on either side of the equality. -/
-meta def sort_monomials (locat : parse location) : itactic :=
+meta def sort_monomials (locat : parse location) : tactic unit :=
 match locat with
 | loc.wildcard := do
   sort_monomials_core tt none,

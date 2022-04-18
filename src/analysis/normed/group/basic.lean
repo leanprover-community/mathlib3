@@ -846,6 +846,9 @@ continuous_subtype_mk _ continuous_norm
 lemma lipschitz_with_one_norm : lipschitz_with 1 (norm : E → ℝ) :=
 by simpa only [dist_zero_left] using lipschitz_with.dist_right (0 : E)
 
+lemma lipschitz_with_one_nnnorm : lipschitz_with 1 (has_nnnorm.nnnorm : E → ℝ≥0) :=
+lipschitz_with_one_norm
+
 lemma uniform_continuous_norm : uniform_continuous (norm : E → ℝ) :=
 lipschitz_with_one_norm.uniform_continuous
 

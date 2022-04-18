@@ -794,16 +794,7 @@ lemma bdd_above_range_norm_comp : bdd_above $ set.range $ norm ∘ f :=
 (real.bounded_iff_bdd_below_bdd_above.mp $ @bounded_range _ _ _ _ f.norm_comp).2
 
 lemma norm_eq_supr_norm : ∥f∥ = ⨆ x : α, ∥f x∥ :=
-begin
-  casesI is_empty_or_nonempty α with hα _,
-  { suffices : range (norm ∘ f) = ∅, { rw [f.norm_eq_zero_of_empty, supr, this, real.Sup_empty], },
-    simp only [hα, range_eq_empty, not_nonempty_iff], },
-  { rw [norm_eq_of_nonempty, supr,
-      ← cInf_upper_bounds_eq_cSup f.bdd_above_range_norm_comp (range_nonempty _)],
-    congr,
-    ext,
-    simp only [forall_apply_eq_imp_iff', mem_range, exists_imp_distrib], },
-end
+by simp_rw [norm_def, dist_eq_supr, coe_zero, pi.zero_apply, dist_zero_right]
 
 /-- The pointwise opposite of a bounded continuous function is again bounded continuous. -/
 instance : has_neg (α →ᵇ β) :=
@@ -849,6 +840,23 @@ instance : normed_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
 
 lemma nnnorm_def : ∥f∥₊ = nndist f 0 := rfl
+
+lemma nnnorm_coe_le_nnnorm (x : α) : ∥f x∥₊ ≤ ∥f∥₊ := norm_coe_le_norm _ _
+
+lemma nndist_le_two_nnnorm (x y : α) : nndist (f x) (f y) ≤ 2 * ∥f∥₊ := dist_le_two_norm _ _ _
+
+/-- The nnnorm of a function is controlled by the supremum of the pointwise nnnorms -/
+lemma nnnorm_le (C : ℝ≥0) : ∥f∥₊ ≤ C ↔ ∀x:α, ∥f x∥₊ ≤ C :=
+norm_le C.prop
+
+lemma nnnorm_const_le (b : β) : ∥const α b∥₊ ≤ ∥b∥₊ :=
+norm_const_le _
+
+@[simp] lemma nnnorm_const_eq [h : nonempty α] (b : β) : ∥const α b∥₊ = ∥b∥₊ :=
+subtype.ext $ norm_const_eq _
+
+lemma nnnorm_eq_supr_nnnorm : ∥f∥₊ = ⨆ x : α, ∥f x∥₊ :=
+subtype.ext $ (norm_eq_supr_norm f).trans $ by simp_rw [nnreal.coe_supr, coe_nnnorm]
 
 lemma abs_diff_coe_le_dist : ∥f x - g x∥ ≤ dist f g :=
 by { rw dist_eq_norm, exact (f - g).norm_coe_le_norm x }

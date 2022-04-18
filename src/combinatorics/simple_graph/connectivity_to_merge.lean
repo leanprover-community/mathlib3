@@ -246,14 +246,13 @@ begin
   let pwv := (c.take_until v hv).drop_until w hw,
   let pvu := c.drop_until v hv,
   have : c = (puw.append pwv).append pvu := by simp,
-  -- There are two walks from v to w
+  -- We have two walks from v to w
   --      pvu     puw
   --   v ----> u ----> w
   --   |               ^
   --    `-------------'
   --      pwv.reverse
-  -- so they both contain the edge ⟦(v, w)⟧, but that's a contradiction
-  -- since c is a trail.
+  -- so they both contain the edge ⟦(v, w)⟧, but that's a contradiction since c is a trail.
   have hbq := hb (pvu.append puw),
   have hpq' := hb pwv.reverse,
   rw [walk.edges_reverse, list.mem_reverse] at hpq',
@@ -310,88 +309,71 @@ begin
       apply list.mem_cons_self } },
 end
 
-lemma unique_path_if_is_acyclic (h : G.is_acyclic) {v w : V} (p q : G.path v w) : p = q :=
+lemma unique_path_of_is_acyclic (h : G.is_acyclic) {v w : V} (p q : G.path v w) : p = q :=
 begin
   obtain ⟨p, hp⟩ := p,
   obtain ⟨q, hq⟩ := q,
   simp only,
-  induction p generalizing q,
-  { by_cases hnq : q = walk.nil,
-    { subst q },
-    { exfalso,
-      cases q,
-      exact (hnq rfl).elim,
-      simpa [walk.is_path_def] using hq } },
+  induction p with u pu pv pw ph p ih generalizing q,
+  { cases q,
+    { refl },
+    { simpa [walk.is_path_def] using hq, } },
   { rw is_acyclic_iff_all_bridges at h,
-    specialize h p_h,
+    specialize h ph,
     rw is_bridge_iff_walks_contain at h,
-    specialize h (q.append p_p.reverse),
-    simp at h,
+    specialize h (q.append p.reverse),
+    simp only [walk.edges_append, walk.edges_reverse, list.mem_append, list.mem_reverse] at h,
     cases h,
     { cases q,
-      { exfalso,
-        simpa [walk.is_path_def] using hp },
+      { simpa [walk.is_path_def] using hp },
       { rw walk.cons_is_path_iff at hp hq,
         simp only [walk.edges_cons, list.mem_cons_iff, sym2.eq_iff] at h,
-        cases h,
-        { obtain ⟨h,rfl⟩|⟨rfl,rfl⟩ := h,
-          { congr,
-            exact p_ih hp.1 _ hq.1 },
-          { exfalso,
-            apply hq.2,
-            simp } },
-        { exact (hq.2 (walk.mem_support_of_mem_edges q_p h)).elim, } } },
+        obtain (⟨h,rfl⟩ | ⟨rfl,rfl⟩) | h := h,
+        { rw [ih hp.1 _ hq.1] },
+        { simpa using hq },
+        { exact absurd (walk.mem_support_of_mem_edges _ h) hq.2 } } },
     { rw walk.cons_is_path_iff at hp,
-      exact (hp.2 (walk.mem_support_of_mem_edges _ h)).elim } }
+      exact absurd (walk.mem_support_of_mem_edges _ h) hp.2 } }
 end
 
-lemma is_acyclic_if_unique_path (h : ∀ (v w : V) (p q : G.path v w), p = q) : G.is_acyclic :=
+lemma is_acyclic_of_unique_path (h : ∀ (v w : V) (p q : G.path v w), p = q) : G.is_acyclic :=
 begin
   intros v c hc,
-  simp [walk.is_cycle_def] at hc,
+  simp only [walk.is_cycle_def, ne.def] at hc,
   cases c,
-  { exact (hc.2.1 rfl).elim },
-  { simp [walk.cons_is_trail_iff] at hc,
-    have hp : c_p.is_path,
-    { cases_matching* [_ ∧ _],
-      simp only [walk.is_path_def],
-      assumption },
-    specialize h _ _ ⟨c_p, hp⟩ (path.singleton (G.symm c_h)),
-    simp [path.singleton] at h,
-    subst c_p,
-    simpa [walk.edges, -quotient.eq, sym2.eq_swap] using hc },
+  { exact absurd rfl hc.2.1 },
+  { simp only [walk.cons_is_trail_iff, not_false_iff, walk.support_cons,
+      list.tail_cons, true_and] at hc,
+    specialize h _ _ ⟨c_p, by simp only [walk.is_path_def, hc.2]⟩ (path.singleton (G.symm c_h)),
+    simp only [path.singleton] at h,
+    simpa [-quotient.eq, sym2.eq_swap, h] using hc },
 end
 
 lemma is_acyclic_iff : G.is_acyclic ↔ ∀ (v w : V) (p q : G.path v w), p = q :=
-⟨by apply unique_path_if_is_acyclic, by apply is_acyclic_if_unique_path⟩
+⟨unique_path_of_is_acyclic _, is_acyclic_of_unique_path _⟩
 
 lemma is_tree_iff : G.is_tree ↔ nonempty V ∧ ∀ (v w : V), ∃!(p : G.walk v w), p.is_path :=
 begin
   classical,
   simp only [is_tree, is_acyclic_iff],
   split,
-  { intro h,
-    haveI : nonempty V := h.1.2,
-    refine ⟨infer_instance, _⟩,
+  { rintro ⟨hc, hu⟩,
+    refine ⟨hc.nonempty, _⟩,
     intros v w,
-    cases h with hc hu,
     let q := (hc.1 v w).some.to_path,
     use q,
     simp only [true_and, path.path_is_path],
     intros p hp,
     specialize hu v w ⟨p, hp⟩ q,
-    rw ←hu,
-    refl },
-  { intro h,
-    split,
-    { split,
-      intros v w,
-      obtain ⟨p, hp⟩ := h.2 v w,
-      use p,
-      simp [h]},
+    simp only [←hu, path.coe_mk], },
+  { rintro ⟨hV, h⟩,
+    refine ⟨⟨_, _⟩, _⟩,
+    { intros v w,
+      obtain ⟨p, hp⟩ := h v w,
+      use p, },
+    { assumption },
     { rintros v w ⟨p, hp⟩ ⟨q, hq⟩,
-      simp only,
-      exact unique_of_exists_unique (h.2 v w) hp hq } },
+      simp only [unique_of_exists_unique (h v w) hp hq] } },
 end
 
 /-- Get the unique path between two vertices in the tree. -/

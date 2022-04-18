@@ -360,7 +360,7 @@ end
 
 /-- If `1 < |z|`, then `|S•z| < 1` -/
 lemma norm_sq_S_smul_lt_one {z : ℍ} (h: 1 < norm_sq z) : norm_sq ↑(S • z) < 1 :=
-by { rw ← inv_lt_inv z.norm_sq_pos zero_lt_one at h, simpa [S] using h }
+by simpa [S] using (inv_lt_inv z.norm_sq_pos zero_lt_one).mpr h
 
 /-- Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`  -/
 lemma exists_smul_mem_fundamental_domain (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟 :=

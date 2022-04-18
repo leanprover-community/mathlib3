@@ -1616,8 +1616,8 @@ calc (∑' i : s, 1 : ℝ≥0∞) = ∑' i, indicator s 1 i : tsum_subtype s 1
 lemma count_apply (hs : measurable_set s) : count s = ∑' i : s, 1 :=
 by simp only [count, sum_apply, hs, dirac_apply', ← tsum_subtype s 1, pi.one_apply]
 
-@[simp] lemma count_empty : measure.count (∅ : set α) = 0 :=
-by rw [measure.count_apply measurable_set.empty, tsum_empty]
+@[simp] lemma count_empty : count (∅ : set α) = 0 :=
+by rw [count_apply measurable_set.empty, tsum_empty]
 
 @[simp] lemma count_apply_finset [measurable_singleton_class α] (s : finset α) :
   count (↑s : set α) = s.card :=
@@ -1655,30 +1655,27 @@ calc count s < ∞ ↔ count s ≠ ∞ : lt_top_iff_ne_top
              ... ↔ ¬s.infinite : not_congr count_apply_eq_top
              ... ↔ s.finite    : not_not
 
-lemma empty_of_count_eq_zero (hsc : measure.count s = 0) :
-  s = ∅ :=
+lemma empty_of_count_eq_zero (hsc : count s = 0) : s = ∅ :=
 begin
   have hs : s.finite,
-  { rw [← measure.count_apply_lt_top, hsc],
+  { rw [← count_apply_lt_top, hsc],
     exact with_top.zero_lt_top },
-  rw measure.count_apply_finite _ hs at hsc,
+  rw count_apply_finite _ hs at hsc,
   simpa using hsc,
 end
 
-@[simp] lemma count_eq_zero_iff :
-  measure.count s = 0 ↔ s = ∅ :=
-⟨measure.empty_of_count_eq_zero, λ h, h.symm ▸ measure.count_empty⟩
+@[simp] lemma count_eq_zero_iff : count s = 0 ↔ s = ∅ :=
+⟨empty_of_count_eq_zero, λ h, h.symm ▸ count_empty⟩
 
-lemma count_neq_zero  (hs' : s.nonempty) :
-  measure.count s ≠ 0:=
+lemma count_neq_zero  (hs' : s.nonempty) : count s ≠ 0:=
 begin
-  rw [ne.def, measure.count_eq_zero_iff],
+  rw [ne.def, count_eq_zero_iff],
   exact hs'.ne_empty,
 end
 
-lemma count_singleton (a : α) : measure.count ({a} : set α) = 1 :=
+lemma count_singleton (a : α) : count ({a} : set α) = 1 :=
 begin
-  rw [measure.count_apply_finite ({a} : set α) (set.finite_singleton _), set.finite.to_finset],
+  rw [count_apply_finite ({a} : set α) (set.finite_singleton _), set.finite.to_finset],
   simp,
 end
 

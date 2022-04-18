@@ -63,6 +63,27 @@ end walk
 namespace walk
 variables {G}
 
+@[simp] lemma is_cycle.not_of_nil {u : V} : ¬ (nil : G.walk u u).is_cycle :=
+by simp [is_cycle_def]
+
+lemma right_mem_support_of_mem_edges {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges) :
+  u ∈ p.support :=
+by { rw sym2.eq_swap at he, exact p.mem_support_of_mem_edges he }
+
+@[simp]
+lemma _root_.simple_graph.path.is_trail {u v : V} (p : G.path u v) : (p : G.walk u v).is_trail :=
+p.property.to_trail
+
+@[simp]
+lemma _root_.simple_graph.path.nodup_support {u v : V} (p : G.path u v) :
+  (p : G.walk u v).support.nodup :=
+(is_path_def _).mp p.property
+
+lemma _root_.simple_graph.path.cons_is_cycle {u v : V} (p : G.path v u) (h : G.adj u v)
+  (he : ¬ ⟦(u, v)⟧ ∈ (p : G.walk v u).edges):
+  (walk.cons h ↑p).is_cycle :=
+by simp [is_cycle_def, cons_is_trail_iff, he]
+
 /-- Given a walk that avoids a set of edges, produce a walk in the graph
 with those edges deleted. -/
 def to_delete_edges (s : set (sym2 V)) :
@@ -202,63 +223,43 @@ begin
     specialize hpe (p'.map (hom.map_spanning_subgraphs (G.delete_edges_le _))),
     simp only [set_coe.exists, walk.edges_map, list.mem_map] at hpe,
     obtain ⟨z, he, hd⟩ := hpe,
-    simp [hom.map_spanning_subgraphs, rel_hom.coe_fn_mk] at hd,
+    simp only [hom.map_spanning_subgraphs, rel_hom.coe_fn_mk, sym2.map_id', id.def] at hd,
     simpa [hd] using p'.edges_subset_edge_set he }
 end
 
+
+
 lemma is_bridge_iff_no_cycle_contains.aux1 [decidable_eq V]
   {u v w : V}
-  (c : G.walk u u)
-  (he : ⟦(v, w)⟧ ∈ c.edges)
   (hb : ∀ (p : G.walk v w), ⟦(v, w)⟧ ∈ p.edges)
+  (c : G.walk u u)
   (hc : c.is_trail)
-  (hv : v ∈ c.support)
-  (hw : w ∈ (c.take_until v hv).support) :
+  (he : ⟦(v, w)⟧ ∈ c.edges)
+  (hw : w ∈ (c.take_until v (c.mem_support_of_mem_edges he)).support) :
   false :=
 begin
-  let p1 := c.take_until v hv,
-  let p2 := c.drop_until v hv,
-  let p11 := p1.take_until w hw,
-  let p12 := p1.drop_until w hw,
-  have : (p11.append p12).append p2 = c := by simp,
-  let q := p2.append p11,
-  have hbq := hb (p2.append p11),
-  have hpq' := hb p12.reverse,
-  have this' : multiset.count ⟦(v, w)⟧ (p2.edges + p11.edges + p12.edges) = 1,
-  { convert_to multiset.count ⟦(v, w)⟧ c.edges = _,
-    congr,
-    rw ←this,
-    simp_rw [walk.edges_append, ←multiset.coe_add],
-    rw [add_assoc ↑p11.edges, add_comm ↑p12.edges, ←add_assoc],
-    congr' 1,
-    rw add_comm,
-    exact hc.count_edges_eq_one he },
-  have this'' : multiset.count ⟦(v, w)⟧ (p2.append p11).edges
-                  + multiset.count ⟦(v, w)⟧ p12.edges = 1,
-  { convert this',
-    rw walk.edges_append,
-    symmetry,
-    apply multiset.count_add },
-  have hA : multiset.count ⟦(v, w)⟧ (p2.append p11).edges = 1,
-  { apply walk.is_trail.count_edges_eq_one,
-    have hr := hc.rotate hv,
-    have : c.rotate hv = (p2.append p11).append p12,
-    { simp [walk.rotate],
-      rw ←walk.append_assoc,
-      congr' 1,
-      simp },
-    rw this at hr,
-    apply walk.is_trail.of_append_left hr,
-    assumption },
-  have hB : multiset.count ⟦(v, w)⟧ p12.edges = 1,
-  { apply walk.is_trail.count_edges_eq_one,
-    apply walk.is_trail.of_append_right,
-    apply walk.is_trail.of_append_left,
-    rw this,
-    exact hc,
-    simpa using hpq' },
-  rw [hA, hB] at this'',
-  simpa using this'',
+  have hv := c.mem_support_of_mem_edges he,
+  -- decompose c into
+  --      puw     pwv     pvu
+  --   u ----> w ----> v ----> u
+  let puw := (c.take_until v hv).take_until w hw,
+  let pwv := (c.take_until v hv).drop_until w hw,
+  let pvu := c.drop_until v hv,
+  have : c = (puw.append pwv).append pvu := by simp,
+  -- There are two walks from v to w
+  --      pvu     puw
+  --   v ----> u ----> w
+  --   |               ^
+  --    `-------------'
+  --      pwv.reverse
+  -- so they both contain the edge ⟦(v, w)⟧, but that's a contradiction
+  -- since c is a trail.
+  have hbq := hb (pvu.append puw),
+  have hpq' := hb pwv.reverse,
+  rw [walk.edges_reverse, list.mem_reverse] at hpq',
+  rw [walk.is_trail_def, this, walk.edges_append, walk.edges_append,
+      list.nodup_append_comm, ← list.append_assoc, ← walk.edges_append] at hc,
+  exact list.disjoint_of_nodup_append hc hbq hpq',
 end
 
 lemma is_bridge_iff_no_cycle_contains {v w : V} (h : G.adj v w) :
@@ -268,49 +269,29 @@ begin
   split,
   { intros hb u c hc he,
     rw is_bridge_iff_walks_contain at hb,
-    have hv : v ∈ c.support := walk.mem_support_of_mem_edges c he,
-    have hwc : w ∈ c.support := walk.mem_support_of_mem_edges c
-                                (by { rw sym2.eq_swap, exact he }),
-    let p1 := c.take_until v hv,
-    let p2 := c.drop_until v hv,
-    by_cases hw : w ∈ p1.support,
-    { exact is_bridge_iff_no_cycle_contains.aux1 G c he hb hc.to_trail hv hw },
-    { have hw' : w ∈ p2.support,
-      { have : c = p1.append p2 := by simp,
-        rw [this, walk.mem_support_append_iff] at hwc,
-        cases hwc,
-        { exact (hw hwc).elim },
-        { exact hwc } },
-      apply is_bridge_iff_no_cycle_contains.aux1 G (p2.append p1)
-        (by { rw [walk.edges_append, list.mem_append, or_comm,
-                  ←list.mem_append, ←walk.edges_append, walk.take_spec,
-                  sym2.eq_swap],
-              exact he })
-        _ (hc.to_trail.rotate hv),
-      swap,
-      { rw walk.mem_support_append_iff,
-        exact or.inl hw' },
-      { simp },
+    have hvc : v ∈ c.support := walk.mem_support_of_mem_edges c he,
+    have hwc : w ∈ c.support := walk.right_mem_support_of_mem_edges c he,
+    let puv := c.take_until v hvc,
+    let pvu := c.drop_until v hvc,
+    obtain (hw | hw') : w ∈ puv.support ∨ w ∈ pvu.support,
+    { rwa [← walk.mem_support_append_iff, walk.take_spec] },
+    { exact is_bridge_iff_no_cycle_contains.aux1 G hb c hc.to_trail he hw },
+    { have hb' : ∀ (p : G.walk w v), ⟦(w, v)⟧ ∈ p.edges,
       { intro p,
-        specialize hb p.reverse,
-        rw sym2.eq_swap,
-        simpa using hb } } },
-  { intro hc,
-    rw is_bridge_iff_walks_contain,
-    intro p,
+        simpa [sym2.eq_swap] using hb p.reverse, },
+      apply is_bridge_iff_no_cycle_contains.aux1 G hb' (pvu.append puv)
+        (hc.to_trail.rotate hvc) _ (walk.start_mem_support _),
+      rwa [walk.edges_append, list.mem_append, or_comm, ← list.mem_append,
+           ← walk.edges_append, walk.take_spec, sym2.eq_swap], } },
+  { rw is_bridge_iff_walks_contain,
+    intros hc p,
     by_contra hne,
-    specialize hc (walk.cons (G.symm h) p.to_path) _,
-    { simp [walk.is_cycle_def, walk.cons_is_trail_iff],
-      split,
-      { intro h,
-        apply hne,
-        rw sym2.eq_swap at h,
-        exact walk.edges_to_path_subset _ h },
-      { exact p.to_path.property.2 } },
-    simp [-quotient.eq] at hc,
-    push_neg at hc,
-    apply hc.1,
-    rw sym2.eq_swap },
+    apply hc (walk.cons h.symm p.to_path),
+    { apply path.cons_is_cycle,
+      rw sym2.eq_swap,
+      intro h,
+      exact absurd (walk.edges_to_path_subset p h) hne, },
+    simp only [sym2.eq_swap, walk.edges_cons, list.mem_cons_iff, eq_self_iff_true, true_or], },
 end
 
 lemma is_acyclic_iff_all_bridges : G.is_acyclic ↔ ∀ {v w : V}, G.adj v w → G.is_bridge v w :=
@@ -321,7 +302,7 @@ begin
     intros u p hp,
     exact absurd hp (ha _ p), },
   { rintros hb v (_ | ⟨_, _, _, ha, p⟩) hp,
-    { simpa [walk.is_cycle_def] using hp },
+    { exact hp.not_of_nil },
     { specialize hb ha,
       rw is_bridge_iff_no_cycle_contains _ ha at hb,
       apply hb _ hp,

@@ -342,18 +342,16 @@ begin
               { rw eq_on, intros x hx, rcases hx with ⟨y, rfl⟩,
                 rw [ function.comp_apply, ← function.comp_apply ext₁ e₁, ← hext₁],
                 rw [← function.comp_apply ext₂ e₂, ← hext₂], refl, },
-              have c: continuous (ext₂ ∘ ext₁), { exact continuous.comp c_ext₂ c_ext₁, },
-              have inverses : ext₂ ∘ ext₁ = id := continuous.ext_on d₁ c continuous_id e,
-              intro x, apply congr_fun inverses,
+              apply congr_fun (continuous.ext_on d₁ (continuous.comp c_ext₂ c_ext₁)
+                continuous_id e),
             end,
             right_inv := begin
               have e: eq_on (ext₁ ∘ ext₂) id (range e₂),
               { rw eq_on, intros x hx, rcases hx with ⟨y, rfl⟩,
                 rw [ function.comp_apply, ← function.comp_apply ext₂ e₂, ← hext₂],
                 rw [← function.comp_apply ext₁ e₁, ← hext₁], refl, },
-              have c: continuous (ext₁ ∘ ext₂), { exact continuous.comp c_ext₁ c_ext₂, },
-              have inverses : ext₁ ∘ ext₂ = id := continuous.ext_on d₂ c continuous_id e,
-              intro x, apply congr_fun inverses,
+              apply congr_fun (continuous.ext_on d₂ (continuous.comp c_ext₁ c_ext₂)
+                continuous_id e),
             end, } },
 end
 

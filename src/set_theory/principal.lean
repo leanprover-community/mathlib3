@@ -290,7 +290,7 @@ begin
     exact principal_add_of_le_one ho₁ },
   { refine λ a b hao hbo, lt_of_le_of_lt _ (ho (max_lt hao hbo) ho₂),
     rw mul_two,
-    exact left.add_le_add (le_max_left a b) (le_max_right a b) }
+    exact add_le_add (le_max_left a b) (le_max_right a b) }
 end
 
 theorem principal_mul_is_limit {o : ordinal.{u}} (ho₂ : 2 < o) (ho : principal (*) o) :

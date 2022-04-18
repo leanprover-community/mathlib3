@@ -288,14 +288,17 @@ protected lemma map_eq_one_iff : f x = 1 ↔ x = 1 := mul_equiv_class.map_eq_one
 lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := mul_equiv_class.map_ne_one_iff f
 
 /-- Produce a ring isomorphism from a bijective ring homomorphism. -/
-noncomputable def of_bijective (f : R →+* S) (hf : function.bijective f) : R ≃+* S :=
-{ .. equiv.of_bijective f hf, .. f }
+noncomputable def of_bijective [non_unital_ring_hom_class F R S] (f : F)
+  (hf : function.bijective f) : R ≃+* S :=
+{ map_mul' := map_mul f,
+  map_add' := map_add f,
+  .. equiv.of_bijective f hf,}
 
-@[simp] lemma coe_of_bijective (f : R →+* S) (hf : function.bijective f) :
-  (of_bijective f hf : R → S) = f := rfl
+@[simp] lemma coe_of_bijective [non_unital_ring_hom_class F R S] (f : F)
+  (hf : function.bijective f) : (of_bijective f hf : R → S) = f := rfl
 
-lemma of_bijective_apply (f : R →+* S) (hf : function.bijective f) (x : R) :
-  of_bijective f hf x = f x := rfl
+lemma of_bijective_apply [non_unital_ring_hom_class F R S] (f : F)
+  (hf : function.bijective f) (x : R) : of_bijective f hf x = f x := rfl
 
 /-- A family of ring isomorphisms `Π j, (R j ≃+* S j)` generates a
 ring isomorphisms between `Π j, R j` and `Π j, S j`.
@@ -305,25 +308,39 @@ This is the `ring_equiv` version of `equiv.Pi_congr_right`, and the dependent ve
 -/
 @[simps apply]
 def Pi_congr_right {ι : Type*} {R S : ι → Type*}
-  [Π i, semiring (R i)] [Π i, semiring (S i)]
+  [Π i, non_unital_non_assoc_semiring (R i)] [Π i, non_unital_non_assoc_semiring (S i)]
   (e : Π i, R i ≃+* S i) : (Π i, R i) ≃+* Π i, S i :=
 { to_fun := λ x j, e j (x j),
   inv_fun := λ x j, (e j).symm (x j),
   .. @mul_equiv.Pi_congr_right ι R S _ _ (λ i, (e i).to_mul_equiv),
   .. @add_equiv.Pi_congr_right ι R S _ _ (λ i, (e i).to_add_equiv) }
 
+/- Why does this break the next lemma?
+
+def Pi_congr_right' {ι : Type*} {R S F : ι → Type*}
+  [Π i, non_unital_non_assoc_semiring (R i)] [Π i, non_unital_non_assoc_semiring (S i)]
+  [Π i, ring_equiv_class (F i) (R i) (S i)]
+  (e : Π i, F i) : (Π i, R i) ≃+* Π i, S i :=
+{ to_fun := λ x j, e j (x j),
+  inv_fun := λ x j, equiv_like.inv (e j) (x j),
+  .. @mul_equiv.Pi_congr_right ι R S _ _ (λ i, (e i)),
+  .. @add_equiv.Pi_congr_right ι R S _ _ (λ i, (e i)) }
+
+-/
+
 @[simp]
-lemma Pi_congr_right_refl {ι : Type*} {R : ι → Type*} [Π i, semiring (R i)] :
+lemma Pi_congr_right_refl {ι : Type*} {R : ι → Type*} [Π i, non_unital_non_assoc_semiring (R i)] :
   Pi_congr_right (λ i, ring_equiv.refl (R i)) = ring_equiv.refl _ := rfl
 
 @[simp]
 lemma Pi_congr_right_symm {ι : Type*} {R S : ι → Type*}
-  [Π i, semiring (R i)] [Π i, semiring (S i)]
+  [Π i, non_unital_non_assoc_semiring (R i)] [Π i, non_unital_non_assoc_semiring (S i)]
   (e : Π i, R i ≃+* S i) : (Pi_congr_right e).symm = (Pi_congr_right $ λ i, (e i).symm) := rfl
 
 @[simp]
 lemma Pi_congr_right_trans {ι : Type*} {R S T : ι → Type*}
-  [Π i, semiring (R i)] [Π i, semiring (S i)] [Π i, semiring (T i)]
+  [Π i, non_unital_non_assoc_semiring (R i)] [Π i, non_unital_non_assoc_semiring (S i)]
+  [Π i, non_unital_non_assoc_semiring (T i)]
   (e : Π i, R i ≃+* S i) (f : Π i, S i ≃+* T i) :
   (Pi_congr_right e).trans (Pi_congr_right f) = (Pi_congr_right $ λ i, (e i).trans (f i)) := rfl
 
@@ -340,6 +357,38 @@ protected lemma map_sub : f (x - y) = f x - f y := map_sub f x y
 @[simp] lemma map_neg_one : f (-1) = -1 := f.map_one ▸ f.map_neg 1
 
 end
+
+section non_unital_semiring_hom
+
+variables [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
+  [non_unital_non_assoc_semiring S']
+
+/-- Reinterpret a ring equivalence as a non-unital ring homomorphism. -/
+def to_non_unital_ring_hom (e : R ≃+* S) : R →ₙ+* S :=
+{ .. e.to_mul_equiv.to_mul_hom, .. e.to_add_equiv.to_add_monoid_hom }
+
+lemma to_non_unital_ring_hom_injective :
+  function.injective (to_non_unital_ring_hom : (R ≃+* S) → R →ₙ+* S) :=
+λ f g h, ring_equiv.ext (non_unital_ring_hom.ext_iff.1 h)
+
+instance has_coe_to_non_unital_ring_hom : has_coe (R ≃+* S) (R →ₙ+* S) :=
+⟨ring_equiv.to_non_unital_ring_hom⟩
+
+lemma to_non_unital_ring_hom_eq_coe (f : R ≃+* S) : f.to_non_unital_ring_hom = ↑f := rfl
+
+@[simp, norm_cast] lemma coe_to_non_unital_ring_hom (f : R ≃+* S) : ⇑(f : R →ₙ+* S) = f := rfl
+
+lemma coe_non_unital_ring_hom_inj_iff {R S : Type*}
+  [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
+  (f g : R ≃+* S) :
+  f = g ↔ (f : R →ₙ+* S) = g :=
+⟨congr_arg _, λ h, ext $ non_unital_ring_hom.ext_iff.mp h⟩
+
+@[simp]
+lemma to_non_unital_ring_hom_refl :
+  (ring_equiv.refl R).to_non_unital_ring_hom = non_unital_ring_hom.id R := rfl
+
+end non_unital_semiring_hom
 
 section semiring_hom
 
@@ -362,6 +411,11 @@ lemma coe_ring_hom_inj_iff {R S : Type*} [non_assoc_semiring R] [non_assoc_semir
   (f g : R ≃+* S) :
   f = g ↔ (f : R →+* S) = g :=
 ⟨congr_arg _, λ h, ext $ ring_hom.ext_iff.mp h⟩
+
+/-- The two paths coercion can take to a `non_unital_ring_hom` are equivalent -/
+@[simp, norm_cast] lemma to_non_unital_ring_hom_commutes (f : R ≃+* S) :
+  ((f : R →+* S) : R →ₙ+* S) = (f : R →ₙ+* S) :=
+rfl
 
 /-- Reinterpret a ring equivalence as a monoid homomorphism. -/
 abbreviation to_monoid_hom (e : R ≃+* S) : R →* S := e.to_ring_hom.to_monoid_hom
@@ -420,31 +474,27 @@ by { ext, simp }
 /--
 Construct an equivalence of rings from homomorphisms in both directions, which are inverses.
 -/
-def of_hom_inv (hom : R →+* S) (inv : S →+* R)
-  (hom_inv_id : inv.comp hom = ring_hom.id R) (inv_hom_id : hom.comp inv = ring_hom.id S) :
+@[simps]
+def of_hom_inv {R S F G : Type*} [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
+  [non_unital_ring_hom_class F R S] [non_unital_ring_hom_class G S R] (hom : F) (inv : G)
+  (hom_inv_id : inv ∘ hom = id) (inv_hom_id : hom ∘ inv = id) :
   R ≃+* S :=
-{ inv_fun := inv,
-  left_inv := λ x, ring_hom.congr_fun hom_inv_id x,
-  right_inv := λ x, ring_hom.congr_fun inv_hom_id x,
-  ..hom }
-
-@[simp]
-lemma of_hom_inv_apply (hom : R →+* S) (inv : S →+* R) (hom_inv_id inv_hom_id) (r : R) :
-  (of_hom_inv hom inv hom_inv_id inv_hom_id) r = hom r := rfl
-
-@[simp]
-lemma of_hom_inv_symm_apply (hom : R →+* S) (inv : S →+* R) (hom_inv_id inv_hom_id) (s : S) :
-  (of_hom_inv hom inv hom_inv_id inv_hom_id).symm s = inv s := rfl
+{ to_fun := hom,
+  inv_fun := inv,
+  left_inv := λ x, congr_fun hom_inv_id x,
+  right_inv := λ x, congr_fun inv_hom_id x,
+  map_mul' := map_mul hom,
+  map_add' := map_add hom, }
 
 end semiring_hom
 
 section big_operators
 
 lemma map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
-  f l.prod = (l.map f).prod := f.to_ring_hom.map_list_prod l
+  f l.prod = (l.map f).prod := map_list_prod f l
 
 lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (l : list R) :
-  f l.sum = (l.map f).sum := f.to_ring_hom.map_list_sum l
+  f l.sum = (l.map f).sum := map_list_sum f l
 
 /-- An isomorphism into the opposite ring acts on the product by acting on the reversed elements -/
 lemma unop_map_list_prod [semiring R] [semiring S] (f : R ≃+* Sᵐᵒᵖ) (l : list R) :

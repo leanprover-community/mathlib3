@@ -8,7 +8,7 @@ import linear_algebra.special_linear_group
 import analysis.complex.basic
 import group_theory.group_action.defs
 import linear_algebra.general_linear_group
-
+import geometry.manifold.mfderiv
 
 /-!
 # The upper half plane and its automorphisms
@@ -231,5 +231,33 @@ variable (Γ : subgroup (special_linear_group (fin 2) ℤ))
 begin
 simp [coe_GL_pos_neg],
 end
+
+section upper_half_plane_manifold
+
+open_locale topological_space manifold
+
+/--The upper half space as a subset of `ℂ` which is convenient sometimes.-/
+def upper_half_space := {z : ℂ | 0 <  z.im}
+
+lemma hcoe : upper_half_space = (coe: upper_half_plane → ℂ) '' (set.univ : set upper_half_plane) :=
+begin
+simp,
+refl,
+end
+
+lemma upper_half_plane_is_open: is_open upper_half_space  :=
+begin
+  have : upper_half_space = complex.im⁻¹' set.Ioi 0 :=
+    set.ext (λ z, iff.intro (λ hz, set.mem_preimage.mp hz) $ λ hz, hz),
+  exact is_open.preimage complex.continuous_im is_open_Ioi,
+end
+
+local notation `ℍ'`:=(⟨upper_half_space , upper_half_plane_is_open⟩: topological_space.opens ℂ)
+
+instance : charted_space ℂ ℂ := infer_instance
+
+instance : charted_space ℂ ℍ' := infer_instance
+
+end upper_half_plane_manifold
 
 end upper_half_plane

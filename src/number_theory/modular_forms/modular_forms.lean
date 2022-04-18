@@ -1,28 +1,21 @@
 import algebra.module.submodule
-import number_theory.modular_forms.holomorphic_functions
 import analysis.complex.upper_half_plane
 import linear_algebra.general_linear_group
 import linear_algebra.special_linear_group
 import algebra.direct_sum.ring
 import number_theory.modular
 import geometry.manifold.mfderiv
-import number_theory.modular_forms.upper_half_plane_manifold
 universes u v
 
 open complex
 
-open_locale topological_space manifold
+open_locale topological_space manifold upper_half_plane
 
 
 noncomputable theory
 
-local notation `ℍ'`:=(⟨upper_half_space , upper_half_plane_is_open⟩: open_subs)
-
-local notation `ℍ`:=upper_half_plane
-
-instance : charted_space ℂ ℂ := infer_instance
-
-instance : charted_space ℂ ℍ' := infer_instance
+local notation `ℍ'`:=(⟨upper_half_plane.upper_half_space ,
+ upper_half_plane.upper_half_plane_is_open⟩: topological_space.opens ℂ)
 
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 
@@ -31,23 +24,6 @@ local notation `GL(` n `, ` R `)`⁺:= matrix.GL_pos (fin n) R
 local notation `SL(` n `, ` R `)`:= matrix.special_linear_group (fin n) R
 
 variable (M : GL(2, ℝ)⁺)
-
-lemma auxmf2 (a b c : ℂ) : b⁻¹*c⁻¹*a=(b*c)⁻¹*a:=
-begin
-field_simp,
-end
-
-lemma aux1 (a b c d e: ℂ) (k : ℤ) : (e^k)⁻¹*a^(k-1) * (b^k)⁻¹ * c^(k -1) * d =
-( (b * e)^ k)⁻¹ * (c * a)^(k-1) * d:=
-begin
-have : (b^k)⁻¹ * ((e)^ k)⁻¹ * (c)^(k-1) * (a)^(k-1) * d = ( (b * e)^ k)⁻¹ * (c * a)^(k-1) * d ,
- by  {ring_exp, rw ← mul_assoc,
- have:  (b * e)^ k = b^k * e^k, by {exact mul_zpow₀ b e k,},
- simp_rw [mul_zpow₀],
- simp_rw [mul_inv₀],ring,},
-rw ←this,
-ring,
-end
 
 def slash_k : ℤ → GL(2, ℝ)⁺ → (ℍ → ℂ) → (ℍ → ℂ) := λ k γ f,
   (λ (x : ℍ), f (γ • x) * ( ((↑ₘ γ).det ) : ℝ)^(k-1) * (((↑ₘ γ 1 0 : ℝ) * x +(↑ₘ γ 1 1 : ℝ))^k)⁻¹)
@@ -75,8 +51,19 @@ begin
   have e3: (A * B) • x = A • B • x , by {convert e2,} ,
   rw e3,
   ring_nf,
+  have aux1  : ∀  (a b c d e: ℂ) (k : ℤ), (e^k)⁻¹*a^(k-1) * (b^k)⁻¹ * c^(k -1) * d =
+  ( (b * e)^ k)⁻¹ * (c * a)^(k-1) * d, by
+  {intros a b c d e k,
+  have : (b^k)⁻¹ * ((e)^ k)⁻¹ * (c)^(k-1) * (a)^(k-1) * d = ( (b * e)^ k)⁻¹ * (c * a)^(k-1) * d ,
+  by  {ring_exp,
+  rw ← mul_assoc,
+  have :  (b * e)^ k = b^k * e^k, by {exact mul_zpow₀ b e k,},
+  simp_rw [mul_zpow₀, mul_inv₀],
+  ring,},
+  rw ←this,
+  ring,},
   simp_rw aux1,
-end
+  end
 
 lemma slash_k_add (k : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) : (f + g) ∣[k] A = (f ∣[k] A) + (g ∣[k] A) :=
 begin
@@ -116,7 +103,7 @@ begin
   simp only [slash_k, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, coe_coe],
   rw pi.mul_apply,
   simp_rw ← mul_assoc,
-  have h1: ((A.1.det)^(k1+k2-1) : ℂ)= (A.1.det) * (A.1.det)^(k1-1) * (A.1.det)^(k2-1),
+  have h1 : ((A.1.det)^(k1+k2-1) : ℂ)= (A.1.det) * (A.1.det)^(k1-1) * (A.1.det)^(k2-1),
   by {simp only [mul_assoc, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, coe_coe],
   rw [←zpow_add₀, ←zpow_one_add₀],
   ring_exp,
@@ -137,8 +124,6 @@ begin
   rw h2,
   ring,
 end
-
-
 
 /--The  space of functions that are modular-/
 def weakly_modular_submodule (k : ℤ)  (Γ : subgroup SL(2,ℤ)): submodule ℂ (ℍ  → ℂ) := {
@@ -161,8 +146,7 @@ def weakly_modular_submodule (k : ℤ)  (Γ : subgroup SL(2,ℤ)): submodule ℂ
   have hff:= hf γ,
   have : (c • f)  ∣[k] γ = c • (f  ∣[k] γ ),
   by {apply smul_slash_k},
-  rw ←  coe_coe at *,
-  rw ←  coe_coe at *,
+  rw [←coe_coe, ←coe_coe] at *,
   rw hff at this,
   apply this,}}
 
@@ -510,12 +494,11 @@ end
 
   /-- The zero modular form is a modular form-/
 lemma zero_mod_form :  (is_modular_form_of_lvl_and_weight Γ   (k : ℤ) ) (zero_form ):=
-{ hol :=  by { have := zero_hol ℍ', apply holo_to_mdiff,simp_rw zero_form, apply this,},
+{ hol :=  by {apply mdifferentiable_zero},
   transf := (weakly_modular_submodule k Γ).zero_mem',
   infinity := by {simp only [bound_mem, ge_iff_le],
   intro A,
-  use (1: ℝ ),
-  use (0: ℝ ),
+  refine ⟨1, 0 ,_⟩,
   intros x  h1,
   rw zero_form,
   simp only [coe_coe],
@@ -555,7 +538,7 @@ end
 
 /-- The zero modular form is a cusp form-/
 lemma zero_cusp_form :  (is_cusp_form_of_lvl_and_weight Γ k)  (zero_form ) :=
-  { hol := by { rw mdiff_iff_holo, exact zero_hol ℍ', },
+  { hol := by {apply mdifferentiable_zero,},
   transf := (weakly_modular_submodule k Γ).zero_mem',
   infinity := by {simp only [zero_at_inf_mem, gt_iff_lt, ge_iff_le],
   intros A ε he,
@@ -579,13 +562,7 @@ def space_of_mod_forms_of_level_and_weight (Γ : subgroup SL(2,ℤ)) (k : ℤ): 
   add_mem' :=by {simp only [set.mem_set_of_eq], intros a b ha hb,
   simp only [mod_mem, pi.add_apply, ge_iff_le, subtype.forall, upper_half_plane.coe_im],
   split,
-  apply holo_to_mdiff,
-  have haa:= ha.hol,
-  have hbb:= hb.hol,
-  simp_rw mdiff_iff_holo at *,
-  apply add_hol,
-  apply haa,
-  apply hbb,
+  apply mdifferentiable_add _ _ ha.hol hb.hol,
   split,
   apply (weakly_modular_submodule  k Γ).add_mem' ha.transf hb.transf,
   intro A,
@@ -595,10 +572,7 @@ def space_of_mod_forms_of_level_and_weight (Γ : subgroup SL(2,ℤ)) (k : ℤ): 
   smul_mem' := by {intros c f hf,  simp at *,
   simp only [mod_mem, complex.abs_mul, ge_iff_le, subtype.forall, smul_sim, upper_half_plane.coe_im],
   split,
-  rw mdiff_iff_holo,
-  apply smul_hol,
-  simp [hf.hol],
-  exact (mdiff_to_holo _ hf.hol),
+  apply mdifferentiable_smul _ _ hf.hol,
   split,
   apply (weakly_modular_submodule  k Γ).smul_mem',
   apply hf.transf,
@@ -616,11 +590,7 @@ def space_of_cusp_forms_of_level_and_weight (Γ : subgroup SL(2,ℤ)) (k : ℤ):
   add_mem' :=by {simp only [set.mem_set_of_eq], intros a b ha hb,
   simp only [cusp_mem, pi.add_apply, ge_iff_le, subtype.forall, upper_half_plane.coe_im],
   split,
-  rw mdiff_iff_holo,
-  apply add_hol,
-  simp only,
-  apply (mdiff_to_holo _ ha.hol),
-  apply  (mdiff_to_holo _ hb.hol),
+  apply mdifferentiable_add _ _ ha.hol hb.hol,
   split,
   apply (weakly_modular_submodule  k Γ).add_mem' ha.transf hb.transf,
   intro A,
@@ -630,10 +600,7 @@ def space_of_cusp_forms_of_level_and_weight (Γ : subgroup SL(2,ℤ)) (k : ℤ):
   smul_mem' := by {intros c f hf,  simp at *,
   simp only [cusp_mem, complex.abs_mul, ge_iff_le, subtype.forall, smul_sim, upper_half_plane.coe_im],
   split,
-  rw mdiff_iff_holo,
-  apply smul_hol,
-  simp [hf.hol],
-  exact (mdiff_to_holo _ hf.hol),
+  apply mdifferentiable_smul _ _ hf.hol,
   split,
   apply (weakly_modular_submodule  k Γ).smul_mem',
   apply hf.transf,
@@ -652,10 +619,7 @@ begin
   cases hf,
   cases hg,
   split,
-  rw mdiff_iff_holo,  -- Holomorphic
-  apply mul_hol,
-  apply (mdiff_to_holo _ hf_hol),
-  apply (mdiff_to_holo _ hg_hol),
+  apply mdifferentiable_mul _ _ hf_hol hg_hol,
   apply mul_modular,   -- Weakly modular
   exact hf_transf,
   exact hg_transf,

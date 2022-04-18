@@ -11,7 +11,7 @@ import topology.algebra.module.weak_dual
 /-!
 # Weak convergence of (finite) measures
 
-This defines the topology of weak convergence of finite measures and probability measures
+This file defines the topology of weak convergence of finite measures and probability measures
 on topological spaces. The topology of weak convergence is the coarsest topology w.r.t. which
 for every bounded continuous `ℝ≥0`-valued function `f`, the integration of `f` against the
 measure is continuous.

@@ -436,6 +436,9 @@ rfl
 @[simp] lemma mk'_eq_coe (l : list α) : quotient.mk' l = (l : cycle α) :=
 rfl
 
+lemma coe_cons_eq_coe_append (l : list α) (a : α) : (↑(a :: l) : cycle α) = ↑(l ++ [a]) :=
+quot.sound ⟨1, by rw [rotate_cons_succ, rotate_zero]⟩
+
 /-- The unique empty cycle. -/
 def nil : cycle α := ↑([] : list α)
 
@@ -664,6 +667,9 @@ fintype.subtype (((finset.univ : finset {s : cycle α // s.nodup}).map
 def to_finset (s : cycle α) : finset α :=
 s.to_multiset.to_finset
 
+@[simp] lemma coe_to_finset (l : list α) : (l : cycle α).to_finset = l.to_finset :=
+rfl
+
 @[simp] lemma nil_to_finset : (@nil α).to_finset = ∅ :=
 rfl
 
@@ -715,5 +721,108 @@ underlying element. This representation also supports cycles that can contain du
 -/
 instance [has_repr α] : has_repr (cycle α) :=
 ⟨λ s, "c[" ++ string.intercalate ", " ((s.map repr).lists.sort (≤)).head ++ "]"⟩
+
+/-- `chain R s` means that `R` holds between adjacent elements of `s`.
+
+`chain R ([a, b, c] : cycle α) ↔ R a b ∧ R b c ∧ R c a` -/
+def chain (r : α → α → Prop) (c : cycle α) : Prop :=
+quotient.lift_on' c (λ l, match l with
+  | [] := true
+  | (a :: m) := chain r a (m ++ [a]) end) $
+λ a b hab, propext $ begin
+  cases a with a l;
+  cases b with b m,
+  { refl },
+  { have := is_rotated_nil_iff'.1 hab,
+    contradiction },
+  { have := is_rotated_nil_iff.1 hab,
+    contradiction },
+  { unfold chain._match_1,
+    cases hab with n hn,
+    induction n with d hd generalizing a b l m,
+    { simp only [rotate_zero] at hn,
+      rw [hn.1, hn.2] },
+    { cases l with c s,
+      { simp only [rotate_singleton] at hn,
+        rw [hn.1, hn.2] },
+      { rw [nat.succ_eq_one_add, ←rotate_rotate, rotate_cons_succ, rotate_zero, cons_append] at hn,
+        rw [←hd c _ _ _ hn],
+        simp [and.comm] } } }
+end
+
+@[simp] lemma chain.nil (r : α → α → Prop) : cycle.chain r (@nil α) :=
+by trivial
+
+@[simp] lemma chain_coe_cons (r : α → α → Prop) (a : α) (l : list α) :
+  chain r (a :: l) ↔ list.chain r a (l ++ [a]) :=
+iff.rfl
+
+@[simp] lemma chain_singleton (r : α → α → Prop) (a : α) : chain r [a] ↔ r a a :=
+by rw [chain_coe_cons, nil_append, chain_singleton]
+
+lemma chain_ne_nil (r : α → α → Prop) {l : list α} :
+  Π hl : l ≠ [], chain r l ↔ list.chain r (last l hl) l :=
+begin
+  apply l.reverse_rec_on,
+  exact λ hm, hm.irrefl.elim,
+  intros m a H _,
+  rw [←coe_cons_eq_coe_append, chain_coe_cons, last_append_singleton]
+end
+
+lemma chain_map {β : Type*} {r : α → α → Prop} (f : β → α) {s : cycle β} :
+  chain r (s.map f) ↔ chain (λ a b, r (f a) (f b)) s :=
+quotient.induction_on' s $ λ l, begin
+  cases l with a l,
+  refl,
+  convert list.chain_map f,
+  rw map_append f l [a],
+  refl
+end
+
+variables {r : α → α → Prop} {s : cycle α}
+
+theorem chain_of_pairwise : (∀ (a ∈ s) (b ∈ s), r a b) → chain r s :=
+begin
+  induction s using cycle.induction_on with a l _,
+  exact λ _, cycle.chain.nil r,
+  intro hs,
+  have Ha : a ∈ ((a :: l) : cycle α) := by simp,
+  have Hl : ∀ {b} (hb : b ∈ l), b ∈ ((a :: l) : cycle α) := λ b hb, by simp [hb],
+  rw cycle.chain_coe_cons,
+  apply chain_of_pairwise,
+  rw pairwise_cons,
+  refine ⟨λ b hb, _, pairwise_append.2 ⟨pairwise_of_forall_mem_list
+    (λ b hb c hc, hs b (Hl hb) c (Hl hc)), pairwise_singleton r a, λ b hb c hc, _⟩⟩,
+  { rw mem_append at hb,
+    cases hb,
+    { exact hs a Ha b (Hl hb) },
+    { rw mem_singleton at hb,
+      rw hb,
+      exact hs a Ha a Ha } },
+  { rw mem_singleton at hc,
+    rw hc,
+    exact hs b (Hl hb) a Ha }
+end
+
+theorem chain_iff_pairwise (hr : transitive r) : chain r s ↔ ∀ (a ∈ s) (b ∈ s), r a b :=
+⟨begin
+  induction s using cycle.induction_on with a l _,
+  exact λ _ b hb, hb.elim,
+  intros hs b hb c hc,
+  rw [cycle.chain_coe_cons, chain_iff_pairwise hr] at hs,
+  simp only [pairwise_append, pairwise_cons, mem_append, mem_singleton, list.not_mem_nil,
+    forall_false_left, implies_true_iff, pairwise.nil, forall_eq, true_and] at hs,
+  simp only [mem_coe_iff, mem_cons_iff] at hb hc,
+  rcases hb with rfl | hb;
+  rcases hc with rfl | hc,
+  { exact hs.1 c (or.inr rfl) },
+  { exact hs.1 c (or.inl hc) },
+  { exact hs.2.2 b hb },
+  { exact hr (hs.2.2 b hb) (hs.1 c (or.inl hc)) }
+end, cycle.chain_of_pairwise⟩
+
+theorem forall_eq_of_chain (hr : transitive r) (hr' : anti_symmetric r)
+  (hs : chain r s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) : a = b :=
+by { rw chain_iff_pairwise hr at hs, exact hr' (hs a ha b hb) (hs b hb a ha) }
 
 end cycle

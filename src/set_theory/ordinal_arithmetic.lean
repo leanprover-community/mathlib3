@@ -390,6 +390,9 @@ theorem is_normal.strict_mono {f} (H : is_normal f) : strict_mono f :=
   (λ b l IH h, lt_of_lt_of_le (H.1 a)
     ((H.2 _ l _).1 le_rfl _ (l.2 _ h)))
 
+theorem is_normal.monotone {f} (H : is_normal f) : monotone f :=
+H.strict_mono.monotone
+
 theorem is_normal_iff_strict_mono_limit (f : ordinal → ordinal) :
   is_normal f ↔ (strict_mono f ∧ ∀ o, is_limit o → ∀ a, (∀ b < o, f b ≤ a) → f o ≤ a) :=
 ⟨λ hf, ⟨hf.strict_mono, λ a ha c, (hf.2 a ha c).2⟩, λ ⟨hs, hl⟩, ⟨λ a, hs (ordinal.lt_succ_self a),
@@ -2567,7 +2570,7 @@ theorem nfp_add_eq_mul_omega {a b} (hba : b ≤ a * omega) :
 begin
   apply le_antisymm ((add_is_normal a).nfp_le_fp hba _),
   { rw ←nfp_add_zero,
-    exact monotone.nfp (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
+    exact monotone.nfp (add_is_normal a).monotone (ordinal.zero_le b) },
   { rw [←mul_one_add, one_add_omega] }
 end
 
@@ -2577,7 +2580,7 @@ begin
   { rw [←nfp_add_zero a, ←deriv_zero],
     cases (add_is_normal a).apply_eq_self_iff_deriv.1 h with c hc,
     rw ←hc,
-    exact (deriv_is_normal _).strict_mono.monotone (ordinal.zero_le _) },
+    exact (deriv_is_normal _).monotone (ordinal.zero_le _) },
   { have := ordinal.add_sub_cancel_of_le h,
     nth_rewrite 0 ←this,
     rwa [←add_assoc, ←mul_one_add, one_add_omega] }
@@ -2645,7 +2648,7 @@ begin
   { apply (mul_is_normal ha).nfp_le_fp hba,
     rw [←opow_one_add, one_add_omega] },
   rw ←nfp_mul_one ha,
-  exact monotone.nfp (mul_is_normal ha).strict_mono.monotone (one_le_iff_pos.2 hb)
+  exact monotone.nfp (mul_is_normal ha).monotone (one_le_iff_pos.2 hb)
 end
 
 theorem eq_zero_or_opow_omega_le_of_mul_eq_right {a b : ordinal} (hab : a * b = b) :

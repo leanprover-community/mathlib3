@@ -20,6 +20,8 @@ of a matrix.
 
 noncomputable theory
 
+open_locale nnreal
+
 namespace matrix
 
 variables {R m n α : Type*} [fintype m] [fintype n]
@@ -39,13 +41,25 @@ lemma norm_le_iff {r : ℝ} (hr : 0 ≤ r) {A : matrix m n α} :
   ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
 by simp [pi_norm_le_iff hr]
 
+lemma nnnorm_le_iff {r : ℝ≥0} {A : matrix m n α} :
+  ∥A∥₊ ≤ r ↔ ∀ i j, ∥A i j∥₊ ≤ r :=
+by simp [pi_nnnorm_le_iff]
+
 lemma norm_lt_iff {r : ℝ} (hr : 0 < r) {A : matrix m n α} :
   ∥A∥ < r ↔ ∀ i j, ∥A i j∥ < r :=
 by simp [pi_norm_lt_iff hr]
 
+lemma nnnorm_lt_iff {r : ℝ≥0} (hr : 0 < r) {A : matrix m n α} :
+  ∥A∥₊ < r ↔ ∀ i j, ∥A i j∥₊ < r :=
+by simp [pi_nnnorm_lt_iff hr]
+
 lemma norm_entry_le_entrywise_sup_norm (A : matrix m n α) {i : m} {j : n} :
   ∥A i j∥ ≤ ∥A∥ :=
 (norm_le_pi_norm (A i) j).trans (norm_le_pi_norm A i)
+
+lemma nnnorm_entry_le_entrywise_sup_nnorm (A : matrix m n α) {i : m} {j : n} :
+  ∥A i j∥₊ ≤ ∥A∥₊ :=
+(nnnorm_le_pi_nnnorm (A i) j).trans (nnnorm_le_pi_nnnorm A i)
 
 end semi_normed_group
 
@@ -54,7 +68,6 @@ declared as an instance because there are several natural choices for defining t
 matrix. -/
 protected def normed_group [normed_group α] : normed_group (matrix m n α) :=
 pi.normed_group
-
 
 section normed_space
 local attribute [instance] matrix.semi_normed_group

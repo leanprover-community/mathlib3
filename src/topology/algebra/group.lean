@@ -940,10 +940,12 @@ local attribute [instance] topological_group.regular_space
 @[to_additive]
 lemma topological_group.t2_space [t1_space G] : t2_space G := regular_space.t2_space G
 
-variables {G}
+variables {G} (S : subgroup G) [subgroup.normal S] [hS : is_closed (S : set G)]
+
+include hS
 
 @[to_additive]
-lemma subgroup.t1_quotient_of_is_closed (S : subgroup G) [S.normal] (hS : is_closed (S : set G)) :
+instance subgroup.t1_quotient_of_is_closed :
   t1_space (G ⧸ S) :=
 begin
   rw ← quotient_group.ker_mk S at hS,
@@ -951,15 +953,14 @@ begin
 end
 
 @[to_additive]
-lemma subgroup.regular_quotient_of_is_closed (S : subgroup G) [S.normal]
-  (hS : is_closed (S : set G)) :
+instance subgroup.regular_quotient_of_is_closed :
   regular_space (G ⧸ S) :=
-@topological_group.regular_space (G ⧸ S) _ _ _ (S.t1_quotient_of_is_closed hS)
+infer_instance
 
 @[to_additive]
-lemma subgroup.t2_quotient_of_is_closed (S : subgroup G) [S.normal] (hS : is_closed (S : set G)) :
+instance subgroup.t2_quotient_of_is_closed :
   t2_space (G ⧸ S) :=
-@regular_space.t2_space (G ⧸ S) _ (S.regular_quotient_of_is_closed hS)
+infer_instance
 
 end
 

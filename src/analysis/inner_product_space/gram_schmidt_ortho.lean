@@ -98,8 +98,6 @@ end
 
 open submodule set order
 
-#check nat.Ico_succ_right_eq_insert_Ico
-
 /-- Gram-Schmidt process preserves span -/
 lemma span_gram_schmidt (f : ℕ → E) (c : ℕ) :
   span 𝕜 (gram_schmidt 𝕜 f '' Iic c) = span 𝕜 (f '' Iic c) :=

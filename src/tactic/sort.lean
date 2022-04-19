@@ -18,15 +18,15 @@ meta def get_summands : expr → list expr
 | a            := [a]
 
 section with_rel
-
+#check nontriviality
 /--  We sort the elements of the list `l`, making sure that the elements of `t` appear at the
-beginning of the list, in *reversed* order.
+end of the list.
 
-Use as `t.rev_top_sort l rel`.
+Use as `l.sort_with_top t rel`.
  -/
-def list.rev_top_sort {N : Type*} [decidable_eq N] (t l : list N) (rel : N → N → bool) :
+def _root_.list.sort_with_top {N : Type*} [decidable_eq N] (l t : list N) (rel : N → N → bool) :
   list N :=
-let tl := t.dedup.filter (∈ l) in tl.reverse ++ (l.filter (∉ tl)).qsort rel
+let tl := t.dedup.filter (∈ l) in (l.filter (∉ tl)).qsort rel ++ tl
 
 /--  Let `rel : expr → expr → bool` be a relation, `t` a list of expressions and `e` an expression.
 `sorted_sum_with_rel rel t e` returns an ordered sum of the terms of `e`, where the order is
@@ -36,7 +36,7 @@ last in the sum.
 We use this function for expressions in an additive commutative semigroup. -/
 meta def sorted_sum_with_rel
   (hyp : option name) (rel : expr → expr → bool) (t : list expr) (e : expr) : tactic unit :=
-match (get_summands e).qsort rel with
+match (get_summands e).sort_with_top t rel with
 | eₕ::es := do
   e' ← es.mfoldl (λ eₗ eᵣ, mk_app `has_add.add [eₗ, eᵣ]) eₕ,
   e_eq ← mk_app `eq [e, e'],
@@ -134,9 +134,9 @@ example
 begin
   -- `convert hp using 1, ac_refl,` works and takes 6s,
   -- `sort_monomials at ⊢ hp, assumption` takes under 300ms
-  sort_monomials [g] at ⊢ hp,
-  sort_monomials g,
-  sort_monomials at hp, -- does nothing more
+  sort_monomials [(g : R[X]), (5 * X : R[X])] at ⊢ hp,
+  sort_monomials [(5 * X : R[X]), monomial 2 t],
+  sort_monomials at ⊢ hp,
   assumption,
 end
 

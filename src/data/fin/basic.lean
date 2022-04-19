@@ -193,8 +193,6 @@ iff.rfl
 @[norm_cast, simp] lemma coe_fin_le {n : ℕ} {a b : fin n} : (a : ℕ) ≤ (b : ℕ) ↔ a ≤ b :=
 iff.rfl
 
-lemma coe_strict_mono : strict_mono (coe : fin n → ℕ) := λ _ _, id
-
 instance {n : ℕ} : linear_order (fin n) :=
 { le := (≤), lt := (<),
   decidable_le := fin.decidable_le,
@@ -203,6 +201,8 @@ instance {n : ℕ} : linear_order (fin n) :=
  ..linear_order.lift (coe : fin n → ℕ) (@fin.eq_of_veq _) }
 
 instance {n : ℕ}  : partial_order (fin n) := linear_order.to_partial_order (fin n)
+
+lemma coe_strict_mono : strict_mono (coe : fin n → ℕ) := λ _ _, id
 
 /-- The inclusion map `fin n → ℕ` is a relation embedding. -/
 def coe_embedding (n) : (fin n) ↪o ℕ :=

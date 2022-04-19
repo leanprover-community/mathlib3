@@ -290,4 +290,118 @@ begin
   refine λ y, ⟨measurable_mul_const y⁻¹, (map_mul_right_eq_self μ y⁻¹).absolutely_continuous⟩
 end
 
+--todo
+section mul
+
+variables [group G] {A : set G}
+variables {f : G → E}
+
+section has_measurable_mul
+variables [has_measurable_mul G]
+
+@[to_additive]
+lemma integral_div_right_eq_self
+  (f : G → E) (μ : measure G) [is_mul_right_invariant μ] (x' : G) :
+  ∫ x, f (x / x') ∂μ = ∫ x, f x ∂μ :=
+by simp_rw [div_eq_mul_inv, integral_mul_right_eq_self f x'⁻¹]
+
+end has_measurable_mul
+
+section
+
+variables [has_measurable_mul₂ G] [has_measurable_inv G]
+variables (μ) [sigma_finite μ]
+
+lemma quasi_measure_preserving.prod_of_right {α β γ} [measurable_space α] [measurable_space β]
+  [measurable_space γ] {f : α × β → γ} {μ : measure α} {ν : measure β} {τ : measure γ}
+  (hf : measurable f) [sigma_finite ν]
+  (h2f : ∀ᵐ x ∂μ, quasi_measure_preserving (λ y, f (x, y)) ν τ) :
+  quasi_measure_preserving f (μ.prod ν) τ :=
+begin
+  refine ⟨hf, _⟩,
+  refine absolutely_continuous.mk (λ s hs h2s, _),
+  simp_rw [map_apply hf hs, prod_apply (hf hs), preimage_preimage,
+    lintegral_congr_ae (h2f.mono (λ x hx, hx.preimage_null h2s)), lintegral_zero],
+end
+
+lemma quasi_measure_preserving.prod_of_left {α β γ} [measurable_space α] [measurable_space β]
+  [measurable_space γ] {f : α × β → γ} {μ : measure α} {ν : measure β} {τ : measure γ}
+  (hf : measurable f) [sigma_finite μ] [sigma_finite ν]
+  (h2f : ∀ᵐ y ∂ν, quasi_measure_preserving (λ x, f (x, y)) μ τ) :
+  quasi_measure_preserving f (μ.prod ν) τ :=
+begin
+  refine ⟨hf, _⟩,
+  refine absolutely_continuous.mk (λ s hs h2s, _),
+  simp_rw [map_apply hf hs, prod_apply_symm (hf hs), preimage_preimage,
+    lintegral_congr_ae (h2f.mono (λ x hx, hx.preimage_null h2s)), lintegral_zero],
+end
+
+@[to_additive]
+lemma quasi_measure_preserving_div [is_mul_right_invariant μ] :
+  quasi_measure_preserving (λ (p : G × G), p.1 / p.2) (μ.prod μ) μ :=
+begin
+  refine quasi_measure_preserving.prod_of_left measurable_div _,
+  simp_rw [div_eq_mul_inv],
+  refine eventually_of_forall
+    (λ y, ⟨measurable_mul_const y⁻¹, (map_mul_right_eq_self μ y⁻¹).absolutely_continuous⟩)
+end
+
+variables [is_mul_left_invariant μ]
+
+@[to_additive]
+lemma map_inv_absolutely_continuous : map has_inv.inv μ ≪ μ :=
+(quasi_measure_preserving_inv μ).absolutely_continuous
+
+@[to_additive]
+lemma absolutely_continuous_map_inv : μ ≪ map has_inv.inv μ :=
+begin
+  refine absolutely_continuous.mk (λ s hs, _),
+  rw [map_apply measurable_inv hs, measure_inv_null], exact id
+end
+
+@[to_additive] lemma quasi_measure_preserving_mul_right (g : G) :
+  quasi_measure_preserving (λ h : G, h * g) μ μ :=
+begin
+  refine ⟨measurable_mul_const g, absolutely_continuous.mk $ λ s hs, _⟩,
+  rw [map_apply (measurable_mul_const g) hs, measure_mul_right_null], exact id,
+end
+
+@[to_additive]
+lemma map_mul_right_absolutely_continuous (g : G) : map (* g) μ ≪ μ :=
+(quasi_measure_preserving_mul_right μ g).absolutely_continuous
+
+@[to_additive]
+lemma absolutely_continuous_map_mul_right (g : G) : μ ≪ map (* g) μ :=
+begin
+  refine absolutely_continuous.mk (λ s hs, _),
+  rw [map_apply (measurable_mul_const g) hs, measure_mul_right_null], exact id
+end
+
+@[to_additive] lemma quasi_measure_preserving_div_left (g : G) :
+  quasi_measure_preserving (λ h : G, g / h) μ μ :=
+begin
+  refine ⟨measurable_const.div measurable_id, _⟩,
+  simp_rw [div_eq_mul_inv],
+  rw [← map_map (measurable_const_mul g) measurable_inv],
+  refine ((map_inv_absolutely_continuous μ).map $ measurable_const_mul g).trans _,
+  rw [map_mul_left_eq_self],
+end
+
+@[to_additive]
+lemma map_div_left_absolutely_continuous (g : G) : map (λ h, g / h) μ ≪ μ :=
+(quasi_measure_preserving_div_left μ g).absolutely_continuous
+
+@[to_additive]
+lemma absolutely_continuous_map_div_left (g : G) : μ ≪ map (λ h, g / h) μ :=
+begin
+  simp_rw [div_eq_mul_inv],
+  rw [← map_map (measurable_const_mul g) measurable_inv],
+  conv_lhs { rw [← map_mul_left_eq_self μ g] },
+  exact (absolutely_continuous_map_inv μ).map (measurable_const_mul g)
+end
+
+end
+
+end mul
+
 end measure_theory

@@ -182,10 +182,8 @@ instance : metric_space (α →ᵇ β) :=
 
 lemma nndist_eq : nndist f g = Inf {C | ∀ x : α, nndist (f x) (g x) ≤ C} :=
 subtype.ext $ dist_eq.trans $ begin
-  rw [nnreal.coe_Inf, subtype.coe_image],
-  refine congr_arg Inf _,
-  dunfold has_mem.mem set.mem set_of, -- `simp_rw mem_set_of_eq` doesn't work
-  simp_rw [←nnreal.coe_le_coe, subtype.coe_mk, exists_prop, coe_nndist],
+  rw [nnreal.coe_Inf, nnreal.coe_image],
+  simp_rw [mem_set_of_eq, ←nnreal.coe_le_coe, subtype.coe_mk, exists_prop, coe_nndist],
 end
 
 lemma nndist_set_exists : ∃ C, ∀ x : α, nndist (f x) (g x) ≤ C :=

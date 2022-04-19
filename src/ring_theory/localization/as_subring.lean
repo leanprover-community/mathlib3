@@ -117,6 +117,9 @@ end
 Given a domain `A` with fraction field `K`, and a submonoid `S` of `A` which
 contains no zero divisor, this is the localization of `A` at `S`, considered as
 a subalgebra of `K` over `A`.
+
+The carrier of this subalgebra is defined as the set of all `x : K` of the form
+`algebra_map A K a * (algebra_map A K s)⁻¹` where `a s : A` and `s ∈ S`.
 -/
 noncomputable
 def of_field : _root_.subalgebra A K :=

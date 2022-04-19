@@ -1,6 +1,11 @@
 import .all
 run_cmd tactic.skip
 
+-- algebra/big_operators/fin.lean
+apply_nolint fin.prod_univ_cast_succ to_additive_doc
+apply_nolint fin.prod_univ_succ to_additive_doc
+apply_nolint fin.prod_univ_succ_above to_additive_doc
+
 -- algebra/category/Group/limits.lean
 apply_nolint CommGroup.category_theory.forget₂.category_theory.creates_limit to_additive_doc
 apply_nolint CommGroup.forget_preserves_limits to_additive_doc
@@ -213,10 +218,7 @@ apply_nolint locally_finite.realizer doc_blame has_inhabited_instance
 apply_nolint finset.noncomm_prod_union_of_disjoint to_additive_doc
 
 -- data/fintype/card.lean
-apply_nolint fin.prod_univ_cast_succ to_additive_doc
 apply_nolint fin.prod_univ_eq_prod_range to_additive_doc
-apply_nolint fin.prod_univ_succ to_additive_doc
-apply_nolint fin.prod_univ_succ_above to_additive_doc
 
 -- data/fp/basic.lean
 apply_nolint fp.div_nat_lt_two_pow doc_blame unused_arguments
@@ -520,11 +522,6 @@ apply_nolint affine_subspace.to_add_torsor fails_quickly
 -- linear_algebra/pi.lean
 apply_nolint function.has_scalar to_additive_doc
 apply_nolint function.smul_comm_class to_additive_doc
-
--- logic/equiv/list.lean
-apply_nolint encodable.fintype_arrow doc_blame
-apply_nolint encodable.fintype_pi doc_blame
-apply_nolint encodable.trunc_encodable_of_fintype doc_blame
 
 -- logic/relator.lean
 apply_nolint relator.bi_total doc_blame

@@ -23,7 +23,7 @@ construction/theorem that is easier to define/prove on binary products than on f
 * Then we can use the equivalence `list.tprod.pi_equiv_tprod` below (or enhanced versions of it,
   like a `measurable_equiv` for product measures) to get the construction on `Π i : ι, α i`, at
   least when assuming `[fintype ι] [encodable ι]` (using `encodable.sorted_univ`).
-  Using `local attribute [instance] fintype.encodable` we can get rid of the argument
+  Using `local attribute [instance] fintype.to_encodable` we can get rid of the argument
   `[encodable ι]`.
 
 ## Main definitions

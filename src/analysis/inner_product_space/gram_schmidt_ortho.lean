@@ -18,16 +18,16 @@ and outputs a set of orthogonal vectors which have the same span.
 
 - `gram_schmidt` : Gram-Schmidt process
 - `gram_schmidt_orthogonal` :
-  the proof that `gram_schmidt` produces an orthogonal system of vectors
+  `gram_schmidt` produces an orthogonal system of vectors.
 - `span_gram_schmidt` :
-  Gram-Schmidt process preserves span of vectors
+  Gram-Schmidt process preserves span of vectors.
 - `gram_schmidt_ne_zero` :
-  If the input of first n + 1 vectors of gram_schmidt are linearly independent
-  , then output of first n + 1 vectors are non-zero
+  If the input of the first `n + 1` vectors of gram_schmidt are linearly independent
+  , then the output of the first `n + 1` vectors are non-zero.
 - `gram_schmidt_normed` :
-  Normalized "Gram-Schmidt" (i.e each vector in this system has unit length)
+  the normalized "Gram-Schmidt" (i.e each vector in this system has unit length.)
 - `gram_schmidt_orthornormal` :
-  the proof that `gram_schmidt_normed` produces an orthornormal system of vectors
+  `gram_schmidt_normed` produces an orthornormal system of vectors.
 
 ## TODO
   Construct a version with an orthonormal basis from the Gram-Schmidt process.
@@ -39,7 +39,8 @@ variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
-/-- Gram-Schmidt process -/
+/-- Gram-Schmidt process takes a set of vectors as input
+and outputs a set of orthogonal vectors which have the same span. -/
 noncomputable def gram_schmidt (f : ℕ → E) : ℕ → E
 | n := f n - ∑ i : fin n, orthogonal_projection (𝕜 ∙ gram_schmidt i) (f n)
 using_well_founded {dec_tac := `[exact i.prop]}
@@ -64,9 +65,9 @@ by simp only [gram_schmidt_def, sub_add_cancel]
   gram_schmidt 𝕜 f 0 = f 0 :=
 by simp only [gram_schmidt, fintype.univ_of_is_empty, finset.sum_empty, sub_zero]
 
-/-- **Gram-Schmidt Orthogonalisation**
+/-- **Gram-Schmidt Orthogonalisation**:
 Gram-Schmidt process produces an orthogonal system of vectors. -/
-theorem gram_schmidt_orthogonal (f : ℕ → E) (a b : ℕ) (h₀ : a ≠ b) :
+theorem gram_schmidt_orthogonal (f : ℕ → E) {a b : ℕ} (h₀ : a ≠ b) :
   ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f b⟫ = 0 :=
 begin
   suffices : ∀ a b : ℕ, a < b → ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f b⟫ = 0,
@@ -93,9 +94,14 @@ begin
   { exact ih i hi a hia₂, },
 end
 
+/-- This is another version of `gram_schmidt_orthogonal` using `pairwise` instead. -/
+theorem gram_schmidt_pairwise_orthogonal (f : ℕ → E) :
+  pairwise (λ a b, ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f b⟫ = 0) :=
+@gram_schmidt_orthogonal 𝕜 _ _ _ f
+
 open submodule set order
 
-/-- Gram-Schmidt process preserves span -/
+/-- Gram-Schmidt process preserves span. -/
 lemma span_gram_schmidt (f : ℕ → E) (c : ℕ) :
   span 𝕜 (gram_schmidt 𝕜 f '' Iic c) = span 𝕜 (f '' Iic c) :=
 begin
@@ -124,8 +130,8 @@ begin
 end
 
 
-/-- If the input of first n + 1 vectors of gram_schmidt are linearly independent
-,then output of first n + 1 vectors are non-zero -/
+/-- If the input of the first `n + 1` vectors of `gram_schmidt` are linearly independent,
+then the output of the first `n + 1` vectors are non-zero. -/
 lemma gram_schmidt_ne_zero (f : ℕ → E) (n : ℕ)
   (h₀ : linear_independent 𝕜 (f ∘ (coe : fin n.succ → ℕ))) :
     gram_schmidt 𝕜 f n ≠ 0 :=
@@ -162,13 +168,13 @@ begin
       exact (λ a ha, by linarith), }, },
 end
 
-/-- If the input of gram_schmidt is linearly independent, then output is non-zero -/
+/-- If the input of `gram_schmidt` is linearly independent, then the output is non-zero. -/
 lemma gram_schmidt_ne_zero' (f : ℕ → E) (h₀ : linear_independent 𝕜 f) (n : ℕ) :
   gram_schmidt 𝕜 f n ≠ 0 :=
 gram_schmidt_ne_zero 𝕜 f n (linear_independent.comp h₀ _ (fin.coe_injective))
 
 /-- Normalized Gram-Schmidt process
-(i.e each vector in 'gram_schmidt_normed` has unit length) -/
+(i.e each vector in `gram_schmidt_normed` has unit length.) -/
 noncomputable def gram_schmidt_normed (f : ℕ → E) (n : ℕ) : E :=
 (∥gram_schmidt 𝕜 f n∥ : 𝕜)⁻¹ • (gram_schmidt 𝕜 f n)
 
@@ -184,8 +190,8 @@ lemma gram_schmidt_normed_unit_length' (f : ℕ → E) (n : ℕ)
 by simp only [gram_schmidt_ne_zero' 𝕜 f h₀,
   gram_schmidt_normed, norm_smul_inv_norm, ne.def, not_false_iff]
 
-/-- **Gram-Schmidt Orthonormalization**
-Normalized Gram-Schmidt process produces an orthornormal system of vectors. -/
+/-- **Gram-Schmidt Orthonormalization**:
+`gram_schmidt_normed` produces an orthornormal system of vectors. -/
 theorem gram_schmidt_orthonormal (f : ℕ → E) (h₀ : linear_independent 𝕜 f) :
   orthonormal 𝕜 (gram_schmidt_normed 𝕜 f) :=
 begin

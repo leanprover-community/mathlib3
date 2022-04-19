@@ -73,7 +73,7 @@ local attribute [ext] tensor_product.ext
 
 /-- If `M` is free, the natural linear map $M^* ⊗ N → Hom(M, N)$ is an equivalence. This function
 provides this equivalence in return for a basis of `M`. -/
-
+@[simps]
 noncomputable def dual_tensor_hom_equiv_of_basis
   {ι : Type*} [decidable_eq ι] [fintype ι] (b : basis ι R M) :
   (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=

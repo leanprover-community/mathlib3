@@ -64,7 +64,7 @@ noncomputable def is_torsion.group [monoid G] (tG : is_torsion G) : group G :=
 
 section group
 
-variables [group G] {N : subgroup G}
+variables [group G] {N : subgroup G} {GmodN : Type*} [group GmodN]
 
 /-- Subgroups of torsion groups are torsion groups. -/
 @[to_additive "Subgroups of additive torsion groups are additive torsion groups."]
@@ -79,13 +79,16 @@ lemma is_torsion.quotient_group [N.normal] (tG : is_torsion G) : is_torsion (G �
 /-- Torsion groups are closed under extensions. -/
 @[to_additive add_is_torsion.extension_closed
   "Additive torsion groups are closed under extensions."]
-lemma is_torsion.extension_closed (tN : is_torsion N) [N.normal] (tGN : is_torsion (G ⧸ N)) :
-is_torsion G := λ g, begin
-  obtain ⟨ngn, ngnpos, hngn⟩ := (is_of_fin_order_iff_pow_eq_one _).mp (tGN g),
-  lift g ^ ngn to N using (quotient_group.eq_one_iff _).mp hngn with gn,
+lemma is_torsion.extension_closed
+  {f : G →* GmodN} {hN : N = f.ker} (tGmodN : is_torsion GmodN) (tN : is_torsion N) :
+  is_torsion G :=
+λ g, (is_of_fin_order_iff_pow_eq_one _).mpr $ begin
+  obtain ⟨ngn, ngnpos, hngn⟩ := (is_of_fin_order_iff_pow_eq_one _).mp (tGmodN $ f g),
+  have hmem := f.mem_ker.mpr ((f.map_pow g ngn).trans hngn),
+  lift g ^ ngn to N using hN.symm ▸ hmem with gn,
   obtain ⟨nn, nnpos, hnn⟩ := (is_of_fin_order_iff_pow_eq_one _).mp (tN gn),
-  exact ((is_of_fin_order_iff_pow_eq_one _).mpr
-    ⟨ngn * nn, mul_pos ngnpos nnpos, by rw [pow_mul, ←h, ←subgroup.coe_pow, hnn, subgroup.coe_one]⟩)
+  exact ⟨ngn * nn, mul_pos ngnpos nnpos, by rw [pow_mul, ←h, ←subgroup.coe_pow,
+                                                hnn, subgroup.coe_one]⟩
 end
 
 /-- An iff version of `is_torsion.quotient_group`. -/

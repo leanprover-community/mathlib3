@@ -68,7 +68,7 @@ section
 variables (R M : Type*) [ring R] [add_comm_group M] [module R M]
 /--The span of `x` in `M` is isomorphic to `R` quotiented by the torsion ideal of `x`.-/
 noncomputable def quot_torsion_of_equiv_span_singleton (x : M) :
-(R ⧸ torsion_of R M x) ≃ₗ[R] (R ∙ x) :=
+  (R ⧸ torsion_of R M x) ≃ₗ[R] (R ∙ x) :=
 (linear_map.to_span_singleton R M x).quot_ker_equiv_range.trans $
 linear_equiv.of_eq _ _ (linear_map.span_singleton_eq_range R M x).symm
 
@@ -162,10 +162,11 @@ open_locale big_operators
 open dfinsupp
 variables {ι : Type*} {p : ι → R} {S : finset ι} (hp : pairwise (is_coprime on λ s : S, p s))
 include hp
+
 lemma supr_torsion_by_eq_torsion_by_prod :
   (⨆ i : S, torsion_by R M (p i)) = torsion_by R M (∏ i in S, p i) :=
 begin
-  cases S.eq_empty_or_nonempty,
+  cases S.eq_empty_or_nonempty with h h,
   { rw [h, finset.prod_empty, torsion_by_one],
     convert supr_of_empty _, exact subtype.is_empty_false },
   apply le_antisymm,
@@ -185,6 +186,7 @@ begin
     have : ∑ i : S, _ = _ := S.sum_finset_coe (λ i, f i * ∏ j in S \ {i}, p j),
     rw [← finset.sum_smul, this, hf, one_smul] }
 end
+
 lemma torsion_by_independent : complete_lattice.independent (λ i : S, torsion_by R M (p i)) :=
 λ i, begin
   classical,
@@ -220,6 +222,7 @@ section
 open_locale big_operators
 variables {ι : Type*} {p : ι → R} {S : finset ι} (hp : pairwise (is_coprime on λ s : S, p s))
 include hp
+
 /--If the `p i` are pairwise coprime, a `∏ i, p i`-torsion module is the internal direct sum of
 its `p i`-torsion submodules.-/
 lemma torsion_is_internal [decidable_eq ι] (hM : torsion_by R M (∏ i in S, p i) = ⊤) :
@@ -282,7 +285,7 @@ torsion module. -/
 lemma torsion_is_torsion : module.is_torsion R (torsion R M) := torsion'_is_torsion' R⁰
 
 lemma is_torsion'_powers_iff (p : R) :
-is_torsion' M (submonoid.powers p) ↔ ∀ x : M, ∃ n : ℕ, p ^ n • x = 0 :=
+  is_torsion' M (submonoid.powers p) ↔ ∀ x : M, ∃ n : ℕ, p ^ n • x = 0 :=
 ⟨λ h x, let ⟨⟨a, ⟨n, rfl⟩⟩, hx⟩ := @h x in ⟨n, hx⟩,
 λ h x, let ⟨n, hn⟩ := h x in ⟨⟨_, ⟨n, rfl⟩⟩, hn⟩⟩
 

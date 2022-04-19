@@ -463,7 +463,7 @@ quotient.induction_on' s $ λ l, by { apply list.rec_on l; simp, assumption' }
 
 /-- For `x : α`, `s : cycle α`, `x ∈ s` indicates that `x` occurs at least once in `s`. -/
 def mem (a : α) (s : cycle α) : Prop :=
-quot.lift_on s (λ l, a ∈ l) (λ l₁ l₂ (e : l₁ ~r l₂), propext $ e.mem_iff)
+quot.lift_on s (λ l, a ∈ l) (λ l₁ l₂ e, propext $ e.mem_iff)
 
 instance : has_mem α (cycle α) := ⟨mem⟩
 
@@ -481,7 +481,7 @@ quotient.rec_on_subsingleton' s (λ l, list.decidable_mem x l)
 
 /-- Reverse a `s : cycle α` by reversing the underlying `list`. -/
 def reverse (s : cycle α) : cycle α :=
-quot.map reverse (λ l₁ l₂ (e : l₁ ~r l₂), e.reverse) s
+quot.map reverse (λ l₁ l₂, is_rotated.reverse) s
 
 @[simp] lemma reverse_coe (l : list α) : (l : cycle α).reverse = l.reverse :=
 rfl
@@ -497,7 +497,7 @@ rfl
 
 /-- The length of the `s : cycle α`, which is the number of elements, counting duplicates. -/
 def length (s : cycle α) : ℕ :=
-quot.lift_on s length (λ l₁ l₂ (e : l₁ ~r l₂), e.perm.length_eq)
+quot.lift_on s length (λ l₁ l₂ e, e.perm.length_eq)
 
 @[simp] lemma length_coe (l : list α) : length (l : cycle α) = l.length :=
 rfl
@@ -564,7 +564,7 @@ end
 
 /-- The `s : cycle α` contains no duplicates. -/
 def nodup (s : cycle α) : Prop :=
-quot.lift_on s nodup (λ l₁ l₂ (e : l₁ ~r l₂), propext $ e.nodup_iff)
+quot.lift_on s nodup (λ l₁ l₂ e, propext $ e.nodup_iff)
 
 @[simp] lemma nodup_nil : nodup (@nil α) :=
 nodup_nil

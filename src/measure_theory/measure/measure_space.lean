@@ -1987,6 +1987,49 @@ lemma self_mem_ae_restrict {s} (hs : measurable_set s) : s ∈ (μ.restrict s).a
 by simp only [ae_restrict_eq hs, exists_prop, mem_principal, mem_inf_iff];
   exact ⟨_, univ_mem, s, subset.rfl, (univ_inter s).symm⟩
 
+/-- If two measurable sets are ae_eq then any proposition that is almost everywhere true on one
+is almost everywhere true on the other -/
+lemma restrict_eq_of_ae_eq_of_restrict_eq {s t} (hs : measurable_set s) (ht : measurable_set t)
+  (hst : s =ᵐ[μ] t) {p : α → Prop} :
+  (∀ᵐ (x : α) ∂μ.restrict s, p x) → (∀ᵐ (x : α) ∂μ.restrict t, p x) :=
+begin
+  rw [ae_restrict_iff' hs, ae_restrict_iff' ht, ae_iff, ae_iff],
+  simp only [not_forall, exists_prop],
+  intros h,
+  have aa : {a : α | a ∈ s ∧ ¬p a} ∪ {a : α | a ∈ t ∧ ¬p a} =
+    {a : α | a ∈ s ∧ ¬p a} ∪ {a : α | a ∈ (t \ s) ∧ ¬p a},
+  { ext,
+    simp only [mem_union_eq, mem_set_of_eq, mem_diff],
+    conv
+    { congr, congr, rw and_comm, skip, rw and_comm, skip, congr, rw and_comm, skip, rw and_comm, },
+    rw [←and_or_distrib_left, ←and_or_distrib_left, and.congr_right_iff],
+    intros hf,
+    rw [←mem_union, ←mem_diff, ←mem_union],
+    conv { to_rhs, rw union_comm, rw diff_union_self, rw union_comm, }, },
+  have bb : {a : α | a ∈ t ∧ ¬p a} ⊆ {a : α | a ∈ s ∧ ¬p a} ∪ {a : α | a ∈ t ∧ ¬p a}, simp,
+  have cc : μ ({a : α | a ∈ s ∧ ¬p a} ∪ {a : α | a ∈ t ∧ ¬p a}) = 0,
+  { rw aa,
+    have : μ ({a : α | a ∈ s ∧ ¬p a} ∪ {a : α | a ∈ (t \ s) ∧ ¬p a}) ≤
+      μ {a : α | a ∈ s ∧ ¬p a} + μ {a : α | a ∈ (t \ s) ∧ ¬p a},
+    { exact measure_union_le _ _, },
+    have dd : {a : α | a ∈ (t \ s) ∧ ¬p a} ⊆ t \ s,
+    { rw subset_def,
+      simp only [mem_diff, mem_set_of_eq, and_imp],
+      exact λ _ ht hs _, ⟨ht, hs⟩, },
+    rw ae_eq_set at hst,
+    rw [h, measure_mono_null dd hst.right, zero_add, nonpos_iff_eq_zero] at this,
+    exact this, },
+  exact measure_mono_null bb cc,
+end
+
+/-- If two measurable sets are ae_eq then any proposition that is almost everywhere true on one
+is almost everywhere true on the other -/
+lemma restrict_eq_iff_of_ae_eq {s t} (hs : measurable_set s) (ht : measurable_set t)
+  (hst : s =ᵐ[μ] t) {p : α → Prop} :
+  (∀ᵐ (x : α) ∂μ.restrict s, p x) ↔ (∀ᵐ (x : α) ∂μ.restrict t, p x) :=
+⟨restrict_eq_of_ae_eq_of_restrict_eq hs ht hst, restrict_eq_of_ae_eq_of_restrict_eq ht hs hst.symm⟩
+
+
 /-- A version of the **Borel-Cantelli lemma**: if `pᵢ` is a sequence of predicates such that
 `∑ μ {x | pᵢ x}` is finite, then the measure of `x` such that `pᵢ x` holds frequently as `i → ∞` (or
 equivalently, `pᵢ x` holds for infinitely many `i`) is equal to zero. -/

@@ -1552,6 +1552,18 @@ begin
     simp [abs_lt, sub_lt_iff_lt_add, add_comm ε a, add_comm x ε] }
 end
 
+lemma eventually_le_nhds (a b : α) (hab : a < b) : ∀ᶠ (x : α) in (nhds a), x ≤ b :=
+eventually_iff.mpr (mem_nhds_iff.mpr ⟨Iio b, Iio_subset_Iic_self, is_open_Iio, hab⟩)
+
+lemma eventually_lt_nhds (a b : α) (hab : a < b) : ∀ᶠ (x : α) in (nhds a), x < b :=
+eventually_iff.mpr (mem_nhds_iff.mpr ⟨Iio b, rfl.subset, is_open_Iio, hab⟩)
+
+lemma eventually_ge_nhds (a b : α) (hab : b < a) : ∀ᶠ (x : α) in (nhds a), b ≤ x :=
+eventually_iff.mpr (mem_nhds_iff.mpr ⟨Ioi b, Ioi_subset_Ici_self, is_open_Ioi, hab⟩)
+
+lemma eventually_gt_nhds (a b : α) (hab : b < a) : ∀ᶠ (x : α) in (nhds a), b < x :=
+eventually_iff.mpr (mem_nhds_iff.mpr ⟨Ioi b, rfl.subset, is_open_Ioi, hab⟩)
+
 variable (α)
 
 lemma nhds_basis_zero_abs_sub_lt [no_min_order α] [no_max_order α] :

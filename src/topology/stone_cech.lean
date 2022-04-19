@@ -247,6 +247,7 @@ dense_range_pure.quotient
 section extension
 
 variables {γ : Type u} [topological_space γ] [t2_space γ] [compact_space γ]
+variables {γ' : Type u} [topological_space γ'] [t2_space γ']
 variables {f : α → γ} (hf : continuous f)
 
 local attribute [elab_with_expected_type] quotient.lift
@@ -261,6 +262,15 @@ ultrafilter_extend_extends f
 
 lemma continuous_stone_cech_extend : continuous (stone_cech_extend hf) :=
 continuous_quot_lift _ (continuous_ultrafilter_extend f)
+
+lemma stone_cech_hom_ext {g₁ g₂ : stone_cech α → γ'}
+  (h₁ : continuous g₁) (h₂ : continuous g₂)
+  (h : g₁ ∘ stone_cech_unit = g₂ ∘ stone_cech_unit) : g₁ = g₂ :=
+begin
+  apply continuous.ext_on dense_range_stone_cech_unit h₁ h₂,
+  rintros x ⟨x, rfl⟩,
+  apply (congr_fun h x)
+end
 
 end extension
 

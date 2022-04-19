@@ -157,46 +157,52 @@ variables [linear_order α] [topological_space α] [order_closed_topology α]
   [opens_measurable_space α] {a b : ι → α} {A B : α}
   (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B))
 
+/-- If two measurable sets are `ae_eq`, then an `ae_cover` of one is an `ae_cover` of the other -/
 lemma ae_cover_restrict_of_ae_eq {φ : ι → set α} {s t : set α} (hs : measurable_set s)
   (ht : measurable_set t) (hst : s =ᵐ[μ] t) :
   ae_cover (μ.restrict s) l φ ↔ ae_cover (μ.restrict t) l φ :=
-⟨restrict_eq_of_ae_eq_of_restrict_eq hs ht hst, restrict_eq_of_ae_eq_of_restrict_eq ht hs hst.symm⟩
+⟨
+  λ h, ⟨restrict_eq_of_ae_eq_of_restrict_eq hs ht hst h.ae_eventually_mem, h.measurable⟩,
+  λ h, ⟨restrict_eq_of_ae_eq_of_restrict_eq ht hs hst.symm h.ae_eventually_mem, h.measurable⟩,
+⟩
 
 lemma ae_cover_Ioo_of_Icc :
   ae_cover (μ.restrict $ Ioo A B) l (λ i, Icc (a i) (b i)) :=
 { ae_eventually_mem := (ae_restrict_iff' measurable_set_Ioo).mpr (
-      ae_of_all μ (λ x hx,
-      (ha.eventually $ eventually_le_nhds A x hx.left).mp $
-      (hb.eventually $eventually_ge_nhds B x hx.right).mono $
-      λ i hbi hai, ⟨hai, hbi⟩)),
+    ae_of_all μ (λ x hx,
+    (ha.eventually $ eventually_le_nhds A x hx.left).mp $
+    (hb.eventually $eventually_ge_nhds B x hx.right).mono $
+    λ i hbi hai, ⟨hai, hbi⟩)),
   measurable := λ i, measurable_set_Icc, }
 
 lemma ae_cover_Ioo_of_Ico :
   ae_cover (μ.restrict $ Ioo A B) l (λ i, Ico (a i) (b i)) :=
 { ae_eventually_mem := (ae_restrict_iff' measurable_set_Ioo).mpr (
-      ae_of_all μ (λ x hx,
-      (ha.eventually $ eventually_le_nhds A x hx.left).mp $
-      (hb.eventually $ eventually_gt_nhds B x hx.right).mono $
-      λ i hbi hai, ⟨hai, hbi⟩)),
+    ae_of_all μ (λ x hx,
+    (ha.eventually $ eventually_le_nhds A x hx.left).mp $
+    (hb.eventually $ eventually_gt_nhds B x hx.right).mono $
+    λ i hbi hai, ⟨hai, hbi⟩)),
   measurable := λ i, measurable_set_Ico, }
 
 lemma ae_cover_Ioo_of_Ioc :
   ae_cover (μ.restrict $ Ioo A B) l (λ i, Ioc (a i) (b i)) :=
 { ae_eventually_mem := (ae_restrict_iff' measurable_set_Ioo).mpr (
-      ae_of_all μ (λ x hx,
-      (ha.eventually $ eventually_lt_nhds A x hx.left).mp $
-      (hb.eventually $ eventually_ge_nhds B x hx.right).mono $
-      λ i hbi hai, ⟨hai, hbi⟩)),
+    ae_of_all μ (λ x hx,
+    (ha.eventually $ eventually_lt_nhds A x hx.left).mp $
+    (hb.eventually $ eventually_ge_nhds B x hx.right).mono $
+    λ i hbi hai, ⟨hai, hbi⟩)),
   measurable := λ i, measurable_set_Ioc, }
 
 lemma ae_cover_Ioo_of_Ioo :
   ae_cover (μ.restrict $ Ioo A B) l (λ i, Ioo (a i) (b i)) :=
 { ae_eventually_mem := (ae_restrict_iff' measurable_set_Ioo).mpr (
-      ae_of_all μ (λ x hx,
-      (ha.eventually $ eventually_lt_nhds A x hx.left).mp $
-      (hb.eventually $ eventually_gt_nhds B x hx.right).mono $
-      λ i hbi hai, ⟨hai, hbi⟩)),
+    ae_of_all μ (λ x hx,
+    (ha.eventually $ eventually_lt_nhds A x hx.left).mp $
+    (hb.eventually $ eventually_gt_nhds B x hx.right).mono $
+    λ i hbi hai, ⟨hai, hbi⟩)),
   measurable := λ i, measurable_set_Ioo, }
+
+variables [has_no_atoms μ]
 
 lemma ae_cover_Ioc_of_Icc :
   ae_cover (μ.restrict $ Ioc A B) l (λ i, Icc (a i) (b i)) :=

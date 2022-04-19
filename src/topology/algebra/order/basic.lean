@@ -1445,6 +1445,18 @@ begin
     exact ⟨l, la, subset.trans Ioc_subset_Icc_self as⟩ }
 end
 
+lemma eventually_le_nhds (a b : α) (hab : a < b) : ∀ᶠ (x : α) in (nhds a), x ≤ b :=
+eventually_iff.mpr (mem_nhds_iff.mpr ⟨Iio b, Iio_subset_Iic_self, is_open_Iio, hab⟩)
+
+lemma eventually_lt_nhds (a b : α) (hab : a < b) : ∀ᶠ (x : α) in (nhds a), x < b :=
+eventually_iff.mpr (mem_nhds_iff.mpr ⟨Iio b, rfl.subset, is_open_Iio, hab⟩)
+
+lemma eventually_ge_nhds (a b : α) (hab : b < a) : ∀ᶠ (x : α) in (nhds a), b ≤ x :=
+eventually_iff.mpr (mem_nhds_iff.mpr ⟨Ioi b, Ioi_subset_Ici_self, is_open_Ioi, hab⟩)
+
+lemma eventually_gt_nhds (a b : α) (hab : b < a) : ∀ᶠ (x : α) in (nhds a), b < x :=
+eventually_iff.mpr (mem_nhds_iff.mpr ⟨Ioi b, rfl.subset, is_open_Ioi, hab⟩)
+
 end linear_order
 
 section linear_ordered_add_comm_group
@@ -1551,18 +1563,6 @@ begin
     change |x - a| < ε ↔ a - ε < x ∧ x < a + ε,
     simp [abs_lt, sub_lt_iff_lt_add, add_comm ε a, add_comm x ε] }
 end
-
-lemma eventually_le_nhds (a b : α) (hab : a < b) : ∀ᶠ (x : α) in (nhds a), x ≤ b :=
-eventually_iff.mpr (mem_nhds_iff.mpr ⟨Iio b, Iio_subset_Iic_self, is_open_Iio, hab⟩)
-
-lemma eventually_lt_nhds (a b : α) (hab : a < b) : ∀ᶠ (x : α) in (nhds a), x < b :=
-eventually_iff.mpr (mem_nhds_iff.mpr ⟨Iio b, rfl.subset, is_open_Iio, hab⟩)
-
-lemma eventually_ge_nhds (a b : α) (hab : b < a) : ∀ᶠ (x : α) in (nhds a), b ≤ x :=
-eventually_iff.mpr (mem_nhds_iff.mpr ⟨Ioi b, Ioi_subset_Ici_self, is_open_Ioi, hab⟩)
-
-lemma eventually_gt_nhds (a b : α) (hab : b < a) : ∀ᶠ (x : α) in (nhds a), b < x :=
-eventually_iff.mpr (mem_nhds_iff.mpr ⟨Ioi b, rfl.subset, is_open_Ioi, hab⟩)
 
 variable (α)
 

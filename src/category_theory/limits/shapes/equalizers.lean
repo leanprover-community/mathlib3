@@ -613,7 +613,7 @@ end
 section
 variables {f g}
 /-- The equalizer morphism in any limit cone is a monomorphism. -/
-lemma mono_of_is_limit_parallel_pair {c : fork f g} (i : is_limit c) : mono (fork.ι c) :=
+lemma mono_of_is_limit_fork {c : fork f g} (i : is_limit c) : mono (fork.ι c) :=
 { right_cancellation := λ Z h k w, fork.is_limit.hom_ext i w }
 
 end
@@ -756,8 +756,7 @@ section
 variables {f g}
 
 /-- The coequalizer morphism in any colimit cocone is an epimorphism. -/
-lemma epi_of_is_colimit_parallel_pair {c : cofork f g} (i : is_colimit c) :
-  epi c.π :=
+lemma epi_of_is_colimit_cofork {c : cofork f g} (i : is_colimit c) : epi c.π :=
 { left_cancellation := λ Z h k w, cofork.is_colimit.hom_ext i w }
 
 end
@@ -947,8 +946,8 @@ def split_mono_of_idempotent_of_is_limit_fork {X : C} {f : X ⟶ X} (hf : f ≫ 
 { retraction := i.lift (fork.of_ι f (by simp [hf])),
   id' :=
   begin
-    letI := mono_of_is_limit_parallel_pair i,
-    rw [←cancel_mono_id c.ι, category.assoc, fork.is_limit.lift_of_ι_ι, ←c.condition],
+    letI := mono_of_is_limit_fork i,
+    rw [←cancel_mono_id c.ι, category.assoc, fork.is_limit.lift_comp_ι, fork.ι_of_ι, ←c.condition],
     exact category.comp_id c.ι
   end }
 
@@ -1018,8 +1017,9 @@ def split_epi_of_idempotent_of_is_colimit_cofork {X : C} {f : X ⟶ X} (hf : f �
 { section_ := i.desc (cofork.of_π f (by simp [hf])),
   id' :=
   begin
-    letI := epi_of_is_colimit_parallel_pair i,
-    rw [← cancel_epi_id c.π, ← category.assoc, cofork.is_colimit.π_desc_of_π, ← c.condition],
+    letI := epi_of_is_colimit_cofork i,
+    rw [← cancel_epi_id c.π, ← category.assoc, cofork.is_colimit.π_comp_desc, 
+      cofork.π_of_π, ← c.condition],
     exact category.id_comp _,
   end }
 

@@ -96,7 +96,9 @@ begin
   { exact hc i hi a i hia₂ le_rfl, },
 end
 
-open submodule set
+open submodule set order
+
+#check nat.Ico_succ_right_eq_insert_Ico
 
 /-- Gram-Schmidt process preserves span -/
 lemma span_gram_schmidt (f : ℕ → E) (c : ℕ) :
@@ -110,20 +112,22 @@ begin
     refine subset_span _,
     simp only [mem_image, mem_Iic],
     refine ⟨b, by linarith, by refl⟩, },
-  simp only [Iic_succ, span_insert, image_insert_eq, hc],
+  rw [← nat.succ_eq_succ, Iic_succ],
+  simp only [span_insert, image_insert_eq, hc],
   apply le_antisymm,
-  { simp only [gram_schmidt_def 𝕜 f c.succ, orthogonal_projection_singleton,
+  { simp only [nat.succ_eq_succ,gram_schmidt_def 𝕜 f c.succ, orthogonal_projection_singleton,
       sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
-    apply sub_mem _ _ _,
+    apply submodule.sub_mem _ _ _,
     { exact mem_sup_left (mem_span_singleton_self (f c.succ)), },
-    { exact sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b hb))), }, },
-  { rw gram_schmidt_def' 𝕜 f c.succ,
+    { exact submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b hb))), }, },
+  { rw [nat.succ_eq_succ, gram_schmidt_def' 𝕜 f c.succ],
     simp only [orthogonal_projection_singleton,
       sup_le_iff, span_singleton_le_iff_mem, le_sup_right, and_true],
-    apply add_mem _ _ _,
+    apply submodule.add_mem _ _ _,
     { exact mem_sup_left (mem_span_singleton_self (gram_schmidt 𝕜 f c.succ)), },
-    { exact sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b hb))), }, },
+    { exact submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b hb))), }, },
 end
+
 
 /-- If the input of first n + 1 vectors of gram_schmidt are linearly independent
 ,then output of first n + 1 vectors are non-zero -/
@@ -141,9 +145,9 @@ begin
     simp only [nat.succ_eq_add_one, h₁, orthogonal_projection_singleton, zero_add] at h₂,
     have h₃ : f (n + 1) ∈ span 𝕜 (f '' Iic n),
     { rw [h₂, ← span_gram_schmidt 𝕜 f n],
-      apply sum_mem _ _,
+      apply submodule.sum_mem _ _,
       simp_intros a ha only [finset.mem_range],
-      apply smul_mem _ _ _,
+      apply submodule.smul_mem _ _ _,
       refine subset_span _,
       simp only [mem_image, mem_Iic],
       exact ⟨a, by linarith, by refl⟩, },

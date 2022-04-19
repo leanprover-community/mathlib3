@@ -95,81 +95,139 @@ variables [has_coequalizers C]
 variables [∀ X : C, preserves_colimits (tensor_left X)]
 variables [∀ X : C, preserves_colimits (tensor_right X)]
 
+namespace tensor_Bimod
+variables {R S T : Mon_ C} (P : Bimod R S) (Q : Bimod S T)
+
+noncomputable
+def X : C := coequalizer (P.act_right ⊗ 𝟙 Q.X) ((α_ _ _ _).hom ≫ (𝟙 P.X ⊗ Q.act_left))
+
+noncomputable
+def act_left : R.X ⊗ X P Q ⟶ X P Q :=
+begin
+  refine (preserves_coequalizer.iso (tensor_left R.X) _ _).inv ≫ _,
+  apply colim_map,
+  fapply parallel_pair_hom,
+  dsimp,
+  refine (𝟙 _ ⊗ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv ≫ (P.act_left ⊗ 𝟙 S.X ⊗ 𝟙 Q.X) ≫ (α_ _ _ _).inv,
+  refine (α_ _ _ _).inv ≫ (P.act_left ⊗ 𝟙 Q.X),
+  { dsimp,
+    slice_lhs 1 2 { rw associator_inv_naturality },
+    slice_rhs 3 4 { rw associator_inv_naturality },
+    slice_rhs 4 5 { rw [←tensor_comp,
+                        middle_assoc,
+                        ←category.id_comp (𝟙 Q.X ≫ 𝟙 Q.X), tensor_comp, tensor_comp] },
+    coherence, },
+  { dsimp,
+    simp,
+    slice_lhs 2 3 { rw associator_inv_naturality },
+    simp, },
+end
+
+noncomputable
+def act_right : X P Q ⊗ T.X ⟶ X P Q :=
+begin
+  refine (preserves_coequalizer.iso (tensor_right T.X) _ _).inv ≫ _,
+  apply colim_map,
+  fapply parallel_pair_hom,
+  dsimp,
+  refine (α_ _ _ _).hom ≫ (α_ _ _ _).hom ≫ (𝟙 P.X ⊗ 𝟙 S.X ⊗ Q.act_right) ≫ (α_ _ _ _).inv,
+  refine (α_ _ _ _).hom ≫ (𝟙 P.X ⊗ Q.act_right),
+  { dsimp,
+    simp,
+    slice_lhs 1 2 { rw associator_naturality },
+    slice_rhs 3 4 { rw associator_inv_naturality },
+    simp, },
+  { dsimp,
+    simp,
+    slice_lhs 2 3 { rw associator_naturality },
+    slice_lhs 3 4 { rw [←tensor_comp,
+                        middle_assoc,
+                        ←category.id_comp (𝟙 P.X ≫ 𝟙 P.X), tensor_comp, tensor_comp]},
+    coherence, },
+end
+
+def one_act_left' : (R.one ⊗ 𝟙 _) ≫ act_left P Q = (λ_ _).hom :=
+begin
+  dunfold X act_left,
+  refine (cancel_epi (preserves_coequalizer.iso (tensor_left (𝟙_ C)) _ _).hom).1 _,
+  ext,
+  erw ι_comp_coequalizer_comparison_assoc,
+  erw ι_comp_coequalizer_comparison_assoc,
+  dsimp, simp, dsimp,
+  slice_lhs 1 1 { rw ←tensor_id_comp_id_tensor },
+  slice_lhs 2 2 { rw [←tensor_left_map, ←ι_comp_coequalizer_comparison] },
+  slice_lhs 3 3 { rw [←preserves_coequalizer.iso_hom] },
+  slice_lhs 3 4 { rw iso.hom_inv_id },
+  simp,
+  slice_lhs 1 2 { rw [←tensor_id, associator_inv_naturality] },
+  slice_lhs 2 3 { rw [←tensor_comp, one_act_left], simp },
+  slice_rhs 1 2 { rw left_unitor_naturality },
+  dsimp, coherence,
+end
+
+def act_right_one' : (𝟙 _ ⊗ T.one) ≫ act_right P Q = (ρ_ _).hom :=
+begin
+  dunfold X act_right,
+  refine (cancel_epi (preserves_coequalizer.iso (tensor_right (𝟙_ C)) _ _).hom).1 _,
+  ext,
+  erw ι_comp_coequalizer_comparison_assoc,
+  erw ι_comp_coequalizer_comparison_assoc,
+  dsimp, simp,
+  slice_lhs 1 1 { rw ←id_tensor_comp_tensor_id, },
+  slice_lhs 2 2 { rw [←tensor_right_map, ←ι_comp_coequalizer_comparison] },
+  slice_lhs 3 3 { rw [←preserves_coequalizer.iso_hom] },
+  slice_lhs 3 4 { rw iso.hom_inv_id },
+  simp,
+  slice_lhs 1 2 { rw [←tensor_id, associator_naturality] },
+  slice_lhs 2 3 { rw [←tensor_comp, act_right_one], simp },
+  slice_rhs 1 2 { rw right_unitor_naturality },
+  dsimp, coherence,
+end
+
+def left_assoc' :
+  (R.mul ⊗ 𝟙 _) ≫ act_left P Q = (α_ R.X R.X _).hom ≫ (𝟙 R.X ⊗ act_left P Q) ≫ act_left P Q :=
+begin
+  dunfold X act_left,
+  refine (cancel_epi (preserves_coequalizer.iso (tensor_left (R.X ⊗ R.X)) _ _).hom).1 _,
+  ext,
+  erw ι_comp_coequalizer_comparison_assoc,
+  erw ι_comp_coequalizer_comparison_assoc,
+  dsimp, simp,
+  slice_lhs 1 1 { rw ←tensor_id_comp_id_tensor },
+  slice_lhs 2 2 { rw [←tensor_left_map, ←ι_comp_coequalizer_comparison] },
+  slice_lhs 3 3 { rw [←preserves_coequalizer.iso_hom] },
+  slice_lhs 3 4 { rw iso.hom_inv_id },
+  simp,
+  slice_rhs 1 2 { rw [←tensor_id, associator_naturality] },
+  simp,
+  slice_rhs 2 3 { rw [←tensor_comp,
+                      ←(tensor_left_map R.X _ _ (coequalizer.π (P.act_right ⊗ 𝟙 Q.X) ((α_ P.X S.X Q.X).hom ≫ (𝟙 P.X ⊗ Q.act_left)))),
+                      ←ι_comp_coequalizer_comparison,
+                      ←preserves_coequalizer.iso_hom] },
+  slice_rhs 2 3 { rw iso.hom_inv_id },
+  simp,
+  slice_rhs 2 3 { rw [←tensor_comp], simp },
+  slice_rhs 4 5 { rw [←(tensor_left_map R.X _ _ (coequalizer.π (P.act_right ⊗ 𝟙 Q.X) ((α_ P.X S.X Q.X).hom ≫ (𝟙 P.X ⊗ Q.act_left)))),
+                      ←ι_comp_coequalizer_comparison,
+                      ←preserves_coequalizer.iso_hom]},
+  slice_rhs 5 6 { rw iso.hom_inv_id },
+  simp,
+  slice_lhs 1 2 { rw [←tensor_id, associator_inv_naturality] },
+  slice_lhs 2 3 { rw [←tensor_comp, left_assoc], simp },
+  slice_rhs 3 4 { rw associator_inv_naturality },
+  coherence,
+end
+
+end tensor_Bimod
+
 noncomputable
 def tensor_Bimod {X Y Z : Mon_ C} (M : Bimod X Y) (N : Bimod Y Z) : Bimod X Z :=
-{ X := coequalizer (M.act_right ⊗ 𝟙 N.X) ((α_ _ _ _).hom ≫ (𝟙 M.X ⊗ N.act_left)),
-  act_left := begin
-    refine (preserves_coequalizer.iso (tensor_left X.X) _ _).inv ≫ _,
-    apply colim_map,
-    fapply parallel_pair_hom,
-    dsimp,
-    refine (𝟙 _ ⊗ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv ≫ (M.act_left ⊗ 𝟙 Y.X ⊗ 𝟙 N.X) ≫ (α_ _ _ _).inv,
-    refine (α_ _ _ _).inv ≫ (M.act_left ⊗ 𝟙 N.X),
-    { dsimp,
-      slice_lhs 1 2 { rw associator_inv_naturality },
-      slice_rhs 3 4 { rw associator_inv_naturality },
-      slice_rhs 4 5 { rw [←tensor_comp,
-                          middle_assoc,
-                          ←category.id_comp (𝟙 N.X ≫ 𝟙 N.X), tensor_comp, tensor_comp] },
-      coherence, },
-    { dsimp,
-      simp,
-      slice_lhs 2 3 { rw associator_inv_naturality },
-      simp, },
-  end,
-  act_right := begin
-    refine (preserves_coequalizer.iso (tensor_right Z.X) _ _).inv ≫ _,
-    apply colim_map,
-    fapply parallel_pair_hom,
-    dsimp,
-    refine (α_ _ _ _).hom ≫ (α_ _ _ _).hom ≫ (𝟙 M.X ⊗ 𝟙 Y.X ⊗ N.act_right) ≫ (α_ _ _ _).inv,
-    refine (α_ _ _ _).hom ≫ (𝟙 M.X ⊗ N.act_right),
-    { dsimp,
-      simp,
-      slice_lhs 1 2 { rw associator_naturality },
-      slice_rhs 3 4 { rw associator_inv_naturality },
-      simp, },
-    { dsimp,
-      simp,
-      slice_lhs 2 3 { rw associator_naturality },
-      slice_lhs 3 4 { rw [←tensor_comp,
-                          middle_assoc,
-                          ←category.id_comp (𝟙 M.X ≫ 𝟙 M.X), tensor_comp, tensor_comp]},
-      coherence, },
-  end,
-  one_act_left' := begin
-    refine (cancel_epi (preserves_coequalizer.iso (tensor_left (𝟙_ C)) _ _).hom).1 _,
-    ext,
-    erw ι_comp_coequalizer_comparison_assoc,
-    erw ι_comp_coequalizer_comparison_assoc,
-    dsimp, simp, dsimp,
-    slice_lhs 1 1 { rw ←tensor_id_comp_id_tensor, },
-    slice_lhs 2 2 { rw [←tensor_left_map, ←ι_comp_coequalizer_comparison] },
-    slice_lhs 3 3 { rw [←preserves_coequalizer.iso_hom] },
-    slice_lhs 3 4 { rw iso.hom_inv_id },
-    simp,
-    slice_lhs 1 2 { rw [←tensor_id, associator_inv_naturality] },
-    slice_lhs 2 3 { rw [←tensor_comp, one_act_left], simp },
-    slice_rhs 1 2 { rw left_unitor_naturality },
-    dsimp, coherence,
-  end,
-  act_right_one' := begin
-    refine (cancel_epi (preserves_coequalizer.iso (tensor_right (𝟙_ C)) _ _).hom).1 _,
-    ext,
-    erw ι_comp_coequalizer_comparison_assoc,
-    erw ι_comp_coequalizer_comparison_assoc,
-    dsimp, simp,
-    slice_lhs 1 1 { rw ←id_tensor_comp_tensor_id, },
-    slice_lhs 2 2 { rw [←tensor_right_map, ←ι_comp_coequalizer_comparison] },
-    slice_lhs 3 3 { rw [←preserves_coequalizer.iso_hom] },
-    slice_lhs 3 4 { rw iso.hom_inv_id },
-    simp,
-    slice_lhs 1 2 { rw [←tensor_id, associator_naturality] },
-    slice_lhs 2 3 { rw [←tensor_comp, act_right_one], simp },
-    slice_rhs 1 2 { rw right_unitor_naturality },
-    dsimp, coherence,
-  end,
-  left_assoc' := sorry,
+{ X := tensor_Bimod.X M N,
+  act_left := tensor_Bimod.act_left M N,
+  act_right := tensor_Bimod.act_right M N,
+  one_act_left' := tensor_Bimod.one_act_left' M N,
+  act_right_one' := tensor_Bimod.act_right_one' M N,
+  left_assoc' := tensor_Bimod.left_assoc' M N,
   right_assoc' := sorry,
   middle_assoc' := sorry, }
 

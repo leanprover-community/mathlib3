@@ -86,15 +86,6 @@ fun_map_eq_coe_constants
 lemma realize_con {A : set M} {a : A} {v : α → M} :
   (L.con a).term.realize v = a := rfl
 
-lemma realize_of_eq_of_uses_var {t : L.term α} {v v' : α → M} (h : ∀ a, t.uses_var a → v a = v' a) :
-  t.realize v = t.realize v' :=
-begin
-  induction t with _ _ _ _ ih,
-  { rw [realize, realize, h _ (var_uses_var _)] },
-  { rw [realize, realize],
-    exact congr rfl (funext (λ i, ih _ (λ a ha, h _ (func_uses_var ha)))) }
-end
-
 end term
 
 namespace Lhom

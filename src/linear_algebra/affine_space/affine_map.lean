@@ -589,9 +589,13 @@ by { ext p, simp [homothety_apply] }
 
 @[simp] lemma homothety_apply_same (c : P1) (r : k) : homothety c r c = c := line_map_same_apply c r
 
+lemma homothety_mul_apply (c : P1) (r₁ r₂ : k) (p : P1) :
+  homothety c (r₁ * r₂) p = homothety c r₁ (homothety c r₂ p) :=
+by simp [homothety_apply, mul_smul]
+
 lemma homothety_mul (c : P1) (r₁ r₂ : k) :
   homothety c (r₁ * r₂) = (homothety c r₁).comp (homothety c r₂) :=
-by { ext p, simp [homothety_apply, mul_smul] }
+ext $ homothety_mul_apply c r₁ r₂
 
 @[simp] lemma homothety_zero (c : P1) : homothety c (0:k) = const k P1 c :=
 by { ext p, simp [homothety_apply] }

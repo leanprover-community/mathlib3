@@ -329,7 +329,8 @@ local attribute [simp] one_mem inv_mem mul_mem is_normal_subgroup.normal
 lemma preimage {f : G → H} (hf : is_group_hom f) {s : set H} (hs : is_subgroup s) :
   is_subgroup (f ⁻¹' s) :=
 by { refine {..};
-     simp [hs.one_mem, hs.mul_mem, hs.inv_mem, hf.map_mul, hf.map_one, hf.map_inv, @inv_mem H _ s]
+     simp [hs.one_mem, hs.mul_mem, hs.inv_mem, hf.map_mul, hf.map_one, hf.map_inv,
+           inv_mem_class.inv_mem]
      {contextual := tt} }
 
 @[to_additive]
@@ -423,7 +424,7 @@ theorem subset_closure {s : set G} : s ⊆ closure s := λ a, mem_closure
 
 @[to_additive]
 theorem closure_subset {s t : set G} (ht : is_subgroup t) (h : s ⊆ t) : closure s ⊆ t :=
-assume a ha, by induction ha; simp [h _, *, ht.one_mem, ht.mul_mem, inv_mem_iff]
+assume a ha, by induction ha; simp [h _, *, ht.one_mem, ht.mul_mem, is_subgroup.inv_mem_iff]
 
 @[to_additive]
 lemma closure_subset_iff {s t : set G} (ht : is_subgroup t) : closure s ⊆ t ↔ s ⊆ t :=

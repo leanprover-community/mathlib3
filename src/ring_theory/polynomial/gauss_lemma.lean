@@ -53,7 +53,7 @@ lemma is_primitive.irreducible_of_irreducible_map_of_injective (h_irr : irreduci
 begin
   refine ⟨λ h, h_irr.not_unit (is_unit.map (map_ring_hom φ) h), _⟩,
   intros a b h,
-  rcases h_irr.is_unit_or_is_unit (by rw [h, map_mul]) with hu | hu,
+  rcases h_irr.is_unit_or_is_unit (by rw [h, polynomial.map_mul]) with hu | hu,
   { left,
     rwa (hf.is_primitive_of_dvd (dvd.intro _ h.symm)).is_unit_iff_is_unit_map_of_injective hinj },
   right,
@@ -106,7 +106,7 @@ begin
   rw [ne.def, ← C_eq_zero] at hcd0,
   have h1 : C c * C d * p = integer_normalization R⁰ a * integer_normalization R⁰ b,
   { apply map_injective (algebra_map R K) (is_fraction_ring.injective _ _) _,
-    rw [map_mul, map_mul, map_mul, hc, hd, map_C, map_C, hab],
+    rw [polynomial.map_mul, polynomial.map_mul, polynomial.map_mul, hc, hd, map_C, map_C, hab],
     ring },
   obtain ⟨u, hu⟩ : associated (c * d) (content (integer_normalization R⁰ a) *
             content (integer_normalization R⁰ b)),
@@ -143,7 +143,7 @@ begin
   have h : p ∣ q * C s,
   { use (integer_normalization R⁰ r),
     apply map_injective (algebra_map R K) (is_fraction_ring.injective _ _),
-    rw [map_mul, map_mul, hs, hr, mul_assoc, mul_comm r],
+    rw [polynomial.map_mul, polynomial.map_mul, hs, hr, mul_assoc, mul_comm r],
     simp },
   rw [← hp.dvd_prim_part_iff_dvd, prim_part_mul, hq.prim_part_eq,
       associated.dvd_iff_dvd_right] at h,
@@ -163,7 +163,7 @@ variables (K)
 lemma is_primitive.dvd_iff_fraction_map_dvd_fraction_map {p q : R[X]}
   (hp : p.is_primitive) (hq : q.is_primitive) :
   (p ∣ q) ↔ (p.map (algebra_map R K) ∣ q.map (algebra_map R K)) :=
-⟨λ ⟨a,b⟩, ⟨a.map (algebra_map R K), b.symm ▸ map_mul (algebra_map R K)⟩,
+⟨λ ⟨a,b⟩, ⟨a.map (algebra_map R K), b.symm ▸ polynomial.map_mul (algebra_map R K)⟩,
   λ h, hp.dvd_of_fraction_map_dvd_fraction_map hq h⟩
 
 end fraction_map

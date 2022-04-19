@@ -205,7 +205,7 @@ lemma compact_space.uniform_continuous_of_continuous [compact_space α] [separat
 calc
 map (prod.map f f) (𝓤 α) = map (prod.map f f) (⨆ x, 𝓝 (x, x))  : by rw compact_space_uniformity
                      ... =  ⨆ x, map (prod.map f f) (𝓝 (x, x)) : by rw map_supr
-                     ... ≤ ⨆ x, 𝓝 (f x, f x)     : supr_le_supr (λ x, (h.prod_map h).continuous_at)
+                     ... ≤ ⨆ x, 𝓝 (f x, f x)     : supr_mono (λ x, (h.prod_map h).continuous_at)
                      ... ≤ ⨆ y, 𝓝 (y, y)         : supr_comp_le (λ y, 𝓝 (y, y)) f
                      ... ≤ 𝓤 β                   : supr_nhds_le_uniformity
 

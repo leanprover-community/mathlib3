@@ -96,9 +96,9 @@ protected lemma ge [preorder α] {x y : α} (h : x = y) : y ≤ x := h.symm.le
 
 lemma trans_le [preorder α] {x y z : α} (h1 : x = y) (h2 : y ≤ z) : x ≤ z := h1.le.trans h2
 
-lemma not_lt [partial_order α] {x y : α} (h : x = y) : ¬(x < y) := λ h', h'.ne h
+lemma not_lt [preorder α] {x y : α} (h : x = y) : ¬(x < y) := λ h', h'.ne h
 
-lemma not_gt [partial_order α] {x y : α} (h : x = y) : ¬(y < x) := h.symm.not_lt
+lemma not_gt [preorder α] {x y : α} (h : x = y) : ¬(y < x) := h.symm.not_lt
 
 end eq
 
@@ -205,7 +205,7 @@ lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a <
 ⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩
 
 -- See Note [decidable namespace]
-protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [@decidable_rel α (≤)]
+protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [decidable_eq α]
   {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
 ⟨λ h, decidable.by_cases le_of_eq (le_of_lt ∘ h.mp), λ h, ⟨lt_of_le_of_ne h, ne_of_lt⟩⟩
 
@@ -467,35 +467,53 @@ function `f : α → β`. See note [reducible non-instances]. -/
   decidable_eq := λ x y, decidable_of_iff _ inj.eq_iff,
   .. partial_order.lift f inj }
 
-instance subtype.preorder {α} [preorder α] (p : α → Prop) : preorder (subtype p) :=
-preorder.lift (coe : subtype p → α)
+/-! ### Subtype of an order -/
 
-@[simp] lemma subtype.mk_le_mk {α} [preorder α] {p : α → Prop} {x y : α} {hx : p x} {hy : p y} :
+namespace subtype
+
+instance [has_le α] {p : α → Prop} : has_le (subtype p) := ⟨λ x y, (x : α) ≤ y⟩
+instance [has_lt α] {p : α → Prop} : has_lt (subtype p) := ⟨λ x y, (x : α) < y⟩
+
+@[simp] lemma mk_le_mk [has_le α] {p : α → Prop} {x y : α} {hx : p x} {hy : p y} :
   (⟨x, hx⟩ : subtype p) ≤ ⟨y, hy⟩ ↔ x ≤ y :=
 iff.rfl
 
-@[simp] lemma subtype.mk_lt_mk {α} [preorder α] {p : α → Prop} {x y : α} {hx : p x} {hy : p y} :
+@[simp] lemma mk_lt_mk [has_lt α] {p : α → Prop} {x y : α} {hx : p x} {hy : p y} :
   (⟨x, hx⟩ : subtype p) < ⟨y, hy⟩ ↔ x < y :=
 iff.rfl
 
-@[simp, norm_cast] lemma subtype.coe_le_coe {α} [preorder α] {p : α → Prop} {x y : subtype p} :
-  (x : α) ≤ y ↔ x ≤ y :=
-iff.rfl
+@[simp, norm_cast]
+lemma coe_le_coe [has_le α] {p : α → Prop} {x y : subtype p} : (x : α) ≤ y ↔ x ≤ y := iff.rfl
 
-@[simp, norm_cast] lemma subtype.coe_lt_coe {α} [preorder α] {p : α → Prop} {x y : subtype p} :
-  (x : α) < y ↔ x < y :=
-iff.rfl
+@[simp, norm_cast]
+lemma coe_lt_coe [has_lt α] {p : α → Prop} {x y : subtype p} : (x : α) < y ↔ x < y := iff.rfl
 
-instance subtype.partial_order {α} [partial_order α] (p : α → Prop) :
+instance [preorder α] (p : α → Prop) : preorder (subtype p) := preorder.lift (coe : subtype p → α)
+
+instance partial_order [partial_order α] (p : α → Prop) :
   partial_order (subtype p) :=
 partial_order.lift coe subtype.coe_injective
 
-/-- A subtype of a linear order is a linear order. We explicitly give the proof of decidable
-  equality as the existing instance, in order to not have two instances of decidable equality that
-  are not definitionally equal. -/
-instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
+instance decidable_le [preorder α] [@decidable_rel α (≤)] {p : α → Prop} :
+  @decidable_rel (subtype p) (≤) :=
+λ a b, decidable_of_iff _ subtype.coe_le_coe
+
+instance decidable_lt [preorder α] [@decidable_rel α (<)] {p : α → Prop} :
+  @decidable_rel (subtype p) (<) :=
+λ a b, decidable_of_iff _ subtype.coe_lt_coe
+
+/-- A subtype of a linear order is a linear order. We explicitly give the proofs of decidable
+equality and decidable order in order to ensure the decidability instances are all definitionally
+equal. -/
+instance [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
 { decidable_eq := subtype.decidable_eq,
+  decidable_le := subtype.decidable_le,
+  decidable_lt := subtype.decidable_lt,
+  max_def := by { ext a b, convert rfl },
+  min_def := by { ext a b, convert rfl },
   .. linear_order.lift coe subtype.coe_injective }
+
+end subtype
 
 /-!
 ### Pointwise order on `α × β`

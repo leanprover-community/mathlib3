@@ -6,6 +6,7 @@ Authors: Aaron Anderson
 import ring_theory.unique_factorization_domain
 import ring_theory.int.basic
 import number_theory.divisors
+import algebra.is_prime_pow
 
 /-!
 # Squarefree elements of monoids
@@ -49,6 +50,13 @@ begin
   exact ⟨0, by simp⟩,
 end
 
+lemma squarefree.ne_zero [monoid_with_zero R] [nontrivial R] {m : R}
+  (hm : squarefree (m : R)) : m ≠ 0 :=
+begin
+  rintro rfl,
+  exact not_squarefree_zero hm,
+end
+
 @[simp]
 lemma irreducible.squarefree [comm_monoid R] {x : R} (h : irreducible x) :
   squarefree x :=
@@ -64,6 +72,12 @@ end
 lemma prime.squarefree [cancel_comm_monoid_with_zero R] {x : R} (h : prime x) :
   squarefree x :=
 h.irreducible.squarefree
+
+lemma squarefree.of_mul_left [comm_monoid R] {m n : R} (hmn : squarefree (m * n)) : squarefree m :=
+(λ p hp, hmn p (dvd_mul_of_dvd_left hp n))
+
+lemma squarefree.of_mul_right [comm_monoid R] {m n : R} (hmn : squarefree (m * n)) : squarefree n :=
+(λ p hp, hmn p (dvd_mul_of_dvd_right hp m))
 
 lemma squarefree_of_dvd_of_squarefree [comm_monoid R]
   {x y : R} (hdvd : x ∣ y) (hsq : squarefree y) :
@@ -349,7 +363,7 @@ lemma divisors_filter_squarefree {n : ℕ} (h0 : n ≠ 0) :
     (unique_factorization_monoid.normalized_factors n).to_finset.powerset.val.map
       (λ x, x.val.prod) :=
 begin
-  rw multiset.nodup_ext (finset.nodup _) (multiset.nodup_map_on _ (finset.nodup _)),
+  rw (finset.nodup _).ext ((finset.nodup _).map_on _),
   { intro a,
     simp only [multiset.mem_filter, id.def, multiset.mem_map, finset.filter_val, ← finset.mem_def,
       mem_divisors],
@@ -449,6 +463,17 @@ lemma squarefree_iff_prime_sq_not_dvd (n : ℕ) :
   squarefree n ↔ ∀ x : ℕ, x.prime → ¬ x * x ∣ n :=
 squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
   ⟨2, (irreducible_iff_nat_prime _).2 prime_two⟩
+
+/-- `squarefree` is multiplicative. Note that the → direction does not require `hmn`
+and generalizes to arbitrary commutative monoids. See `squarefree.of_mul_left` and
+`squarefree.of_mul_right` above for auxiliary lemmas. -/
+lemma squarefree_mul {m n : ℕ} (hmn : m.coprime n) :
+  squarefree (m * n) ↔ squarefree m ∧ squarefree n :=
+begin
+  simp only [squarefree_iff_prime_squarefree, ←sq, ←forall_and_distrib],
+  refine ball_congr (λ p hp, _),
+  simp only [hmn.is_prime_pow_dvd_mul (hp.is_prime_pow.pow two_ne_zero), not_or_distrib],
+end
 
 end nat
 

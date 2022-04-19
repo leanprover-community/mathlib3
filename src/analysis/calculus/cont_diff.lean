@@ -80,7 +80,7 @@ can not happen over reals, thanks to partition of unity, but the behavior over a
 not so clear, and we want a definition for general fields). Also, there are locality
 problems for the order parameter: one could image a function which, for each `n`, has a nice
 sequence of derivatives up to order `n`, but they do not coincide for varying `n` and can therefore
-not be  glued to give rise to an infinite sequence of derivatives. This would give a function
+not be glued to give rise to an infinite sequence of derivatives. This would give a function
 which is `C^n` for all `n`, but not `C^∞`. We solve this issue by putting locality conditions
 in space and order in our definition of `cont_diff_within_at` and `cont_diff_on`.
 The resulting definition is slightly more complicated to work with (in fact not so much), but it
@@ -1390,6 +1390,25 @@ begin
   { ext x m,
     rw [iterated_fderiv_succ_apply_left, iterated_fderiv_within_succ_apply_left, IH,
         fderiv_within_univ] }
+end
+
+/-- In an open set, the iterated derivative within this set coincides with the global iterated
+derivative. -/
+lemma iterated_fderiv_within_of_is_open (n : ℕ) (hs : is_open s) :
+  eq_on (iterated_fderiv_within 𝕜 n f s) (iterated_fderiv 𝕜 n f) s :=
+begin
+  induction n with n IH,
+  { assume x hx,
+    ext1 m,
+    simp only [iterated_fderiv_within_zero_apply, iterated_fderiv_zero_apply] },
+  { assume x hx,
+    rw [iterated_fderiv_succ_eq_comp_left, iterated_fderiv_within_succ_eq_comp_left],
+    dsimp,
+    congr' 1,
+    rw fderiv_within_of_open hs hx,
+    apply filter.eventually_eq.fderiv_eq,
+    filter_upwards [hs.mem_nhds hx],
+    exact IH }
 end
 
 lemma ftaylor_series_within_univ :
@@ -2784,7 +2803,7 @@ begin
   rcases metric.mem_nhds_within_iff.mp hst with ⟨ε, ε0, hε⟩,
   replace hp : has_ftaylor_series_up_to_on 1 f p (metric.ball x ε ∩ insert x s) := hp.mono hε,
   clear hst hε t,
-  rw [← insert_eq_of_mem (metric.mem_ball_self ε0), ← insert_inter] at hp,
+  rw [← insert_eq_of_mem (metric.mem_ball_self ε0), ← insert_inter_distrib] at hp,
   rcases hp.exists_lipschitz_on_with ((convex_ball _ _).inter hs) with ⟨K, t, hst, hft⟩,
   rw [inter_comm, ← nhds_within_restrict' _ (metric.ball_mem_nhds _ ε0)] at hst,
   exact ⟨K, t, hst, hft⟩

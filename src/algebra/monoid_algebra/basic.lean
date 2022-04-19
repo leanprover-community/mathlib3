@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury G. Kudryashov, Scott Morrison
 -/
 import algebra.big_operators.finsupp
+import algebra.hom.non_unital_alg
 import linear_algebra.finsupp
-import algebra.non_unital_alg_hom
 
 /-!
 # Monoid algebras
@@ -336,13 +336,19 @@ subset.trans support_sum $ bUnion_mono $ assume a₁ _,
 
 section
 
+/-- Like `finsupp.map_domain_zero`, but for the `1` we define in this file -/
+@[simp] lemma map_domain_one {α : Type*} {β : Type*} {α₂ : Type*}
+  [semiring β] [has_one α] [has_one α₂] {F : Type*} [one_hom_class F α α₂] (f : F) :
+  (map_domain f (1 : monoid_algebra β α) : monoid_algebra β α₂) = (1 : monoid_algebra β α₂) :=
+by simp_rw [one_def, map_domain_single, map_one]
+
 /-- Like `finsupp.map_domain_add`, but for the convolutive multiplication we define in this file -/
 lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*} [semiring β] [has_mul α] [has_mul α₂]
-  {x y : monoid_algebra β α} (f : mul_hom α α₂) :
+  {F : Type*} [mul_hom_class F α α₂] (f : F) (x y : monoid_algebra β α) :
   (map_domain f (x * y : monoid_algebra β α) : monoid_algebra β α₂) =
     (map_domain f x * map_domain f y : monoid_algebra β α₂) :=
 begin
-  simp_rw [mul_def, map_domain_sum, map_domain_single, f.map_mul],
+  simp_rw [mul_def, map_domain_sum, map_domain_single, map_mul],
   rw finsupp.sum_map_domain_index,
   { congr,
     ext a b,
@@ -367,6 +373,9 @@ variables (k G)
   .. of_magma k G }
 
 end
+
+lemma smul_of [mul_one_class G] (g : G) (r : k) :
+  r • (of k G g) = single g r := by simp
 
 lemma of_injective [mul_one_class G] [nontrivial k] : function.injective (of k G) :=
 λ a b h, by simpa using (single_eq_single_iff _ _ _ _).mp h
@@ -813,6 +822,28 @@ by simp
 
 end opposite
 
+section submodule
+
+variables {k G} [comm_semiring k] [monoid G]
+variables {V : Type*} [add_comm_monoid V]
+variables [module k V] [module (monoid_algebra k G) V] [is_scalar_tower k (monoid_algebra k G) V]
+
+/-- A submodule over `k` which is stable under scalar multiplication by elements of `G` is a
+submodule over `monoid_algebra k G`  -/
+def submodule_of_smul_mem (W : submodule k V) (h : ∀ (g : G) (v : V), v ∈ W → (of k G g) • v ∈ W) :
+  submodule (monoid_algebra k G) V :=
+{ carrier := W,
+  zero_mem' := W.zero_mem',
+  add_mem' := W.add_mem',
+  smul_mem' := begin
+    intros f v hv,
+    rw [←finsupp.sum_single f, finsupp.sum, finset.sum_smul],
+    simp_rw [←smul_of, smul_assoc],
+    exact submodule.sum_smul_mem W _ (λ g _, h g v hv)
+  end  }
+
+end submodule
+
 end monoid_algebra
 
 /-! ### Additive monoids -/
@@ -1073,14 +1104,20 @@ lemma single_pow [add_monoid G] {a : G} {b : k} :
 | (n+1) :=
 by rw [pow_succ, pow_succ, single_pow n, single_mul_single, add_comm, add_nsmul, one_nsmul]
 
+/-- Like `finsupp.map_domain_zero`, but for the `1` we define in this file -/
+@[simp] lemma map_domain_one {α : Type*} {β : Type*} {α₂ : Type*}
+  [semiring β] [has_zero α] [has_zero α₂] {F : Type*} [zero_hom_class F α α₂] (f : F) :
+  (map_domain f (1 : add_monoid_algebra β α) : add_monoid_algebra β α₂) =
+    (1 : add_monoid_algebra β α₂) :=
+by simp_rw [one_def, map_domain_single, map_zero]
+
 /-- Like `finsupp.map_domain_add`, but for the convolutive multiplication we define in this file -/
-lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*}
-  [semiring β] [has_add α] [has_add α₂]
-  {x y : add_monoid_algebra β α} (f : add_hom α α₂) :
+lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*} [semiring β] [has_add α] [has_add α₂]
+  {F : Type*} [add_hom_class F α α₂] (f : F) (x y : add_monoid_algebra β α) :
   (map_domain f (x * y : add_monoid_algebra β α) : add_monoid_algebra β α₂) =
     (map_domain f x * map_domain f y : add_monoid_algebra β α₂) :=
 begin
-  simp_rw [mul_def, map_domain_sum, map_domain_single, f.map_add],
+  simp_rw [mul_def, map_domain_sum, map_domain_single, map_add],
   rw finsupp.sum_map_domain_index,
   { congr,
     ext a b,
@@ -1225,7 +1262,7 @@ protected def add_monoid_algebra.to_multiplicative [semiring k] [has_add G] :
   map_mul' := λ x y, begin
     repeat {rw equiv_map_domain_eq_map_domain},
     dsimp [multiplicative.of_add],
-    convert monoid_algebra.map_domain_mul (mul_hom.id (multiplicative G)),
+    convert monoid_algebra.map_domain_mul (mul_hom.id (multiplicative G)) _ _,
   end,
   ..finsupp.dom_congr multiplicative.of_add }
 
@@ -1236,7 +1273,7 @@ protected def monoid_algebra.to_additive [semiring k] [has_mul G] :
   map_mul' := λ x y, begin
     repeat {rw equiv_map_domain_eq_map_domain},
     dsimp [additive.of_mul],
-    convert monoid_algebra.map_domain_mul (mul_hom.id G),
+    convert monoid_algebra.map_domain_mul (mul_hom.id G) _ _,
   end,
   ..finsupp.dom_congr additive.of_mul }
 

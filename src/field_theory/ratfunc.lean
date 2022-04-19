@@ -933,29 +933,43 @@ end
 normalized such that the denominator is monic. -/
 def num (x : ratfunc K) : K[X] := x.num_denom.1
 
-@[simp] lemma num_div (p : K[X]) {q : K[X]} (hq : q ≠ 0) :
+private lemma num_div' (p : K[X]) {q : K[X]} (hq : q ≠ 0) :
   num (algebra_map _ _ p / algebra_map _ _ q) =
     polynomial.C ((q / gcd p q).leading_coeff⁻¹) * (p / gcd p q) :=
 by rw [num, num_denom_div _ hq]
 
 @[simp] lemma num_zero : num (0 : ratfunc K) = 0 :=
-by { convert num_div (0 : K[X]) one_ne_zero; simp }
+by { convert num_div' (0 : K[X]) one_ne_zero; simp }
+
+@[simp] lemma num_div (p q : K[X]) :
+  num (algebra_map _ _ p / algebra_map _ _ q) =
+    polynomial.C ((q / gcd p q).leading_coeff⁻¹) * (p / gcd p q) :=
+begin
+  by_cases hq : q = 0,
+  { simp [hq] },
+  { exact num_div' p hq, },
+end
 
 @[simp] lemma num_one : num (1 : ratfunc K) = 1 :=
-by { convert num_div (1 : K[X]) one_ne_zero; simp }
+by { convert num_div (1 : K[X]) 1; simp }
 
 @[simp] lemma num_algebra_map (p : K[X]) :
   num (algebra_map _ _ p) = p :=
-by { convert num_div p one_ne_zero; simp }
+by { convert num_div p 1; simp }
 
-@[simp] lemma num_div_dvd (p : K[X]) {q : K[X]} (hq : q ≠ 0) :
+lemma num_div_dvd (p : K[X]) {q : K[X]} (hq : q ≠ 0) :
   num (algebra_map _ _ p / algebra_map _ _ q) ∣ p :=
 begin
-  rw [num_div _ hq, C_mul_dvd],
+  rw [num_div _ q, C_mul_dvd],
   { exact euclidean_domain.div_dvd_of_dvd (gcd_dvd_left p q) },
   { simpa only [ne.def, inv_eq_zero, polynomial.leading_coeff_eq_zero]
       using right_div_gcd_ne_zero hq },
 end
+
+/-- A version of `num_div_dvd` with the LHS in simp normal form -/
+@[simp] lemma num_div_dvd' (p : K[X]) {q : K[X]} (hq : q ≠ 0) :
+  C ((q / gcd p q).leading_coeff)⁻¹ * (p / gcd p q) ∣ p :=
+by simpa using num_div_dvd p hq
 
 /-- `ratfunc.denom` is the denominator of a rational function,
 normalized such that it is monic. -/
@@ -1000,7 +1014,7 @@ end
   algebra_map _ _ (num x) / algebra_map _ _ (denom x) = x :=
 x.induction_on (λ p q hq, begin
   have q_div_ne_zero := right_div_gcd_ne_zero hq,
-  rw [num_div p hq, denom_div p hq, ring_hom.map_mul, ring_hom.map_mul,
+  rw [num_div p q, denom_div p hq, ring_hom.map_mul, ring_hom.map_mul,
     mul_div_mul_left, div_eq_div_iff, ← ring_hom.map_mul, ← ring_hom.map_mul, mul_comm _ q,
     ← euclidean_domain.mul_div_assoc, ← euclidean_domain.mul_div_assoc, mul_comm],
   { apply gcd_dvd_right },
@@ -1333,9 +1347,11 @@ begin
   rw mul_assoc
 end
 
-lemma int_degree_add_le {x y : ratfunc K} (hx : x ≠ 0) (hy : y ≠ 0) (hxy : x + y ≠ 0) :
+lemma int_degree_add_le {x y : ratfunc K} (hy : y ≠ 0) (hxy : x + y ≠ 0) :
   int_degree (x + y) ≤ max (int_degree x) (int_degree y) :=
 begin
+  by_cases hx : x = 0,
+  { simp [hx] at *, },
   rw [int_degree_add hxy,
     ← nat_degree_num_mul_right_sub_nat_degree_denom_mul_left_eq_int_degree hx y.denom_ne_zero,
     mul_comm y.denom,

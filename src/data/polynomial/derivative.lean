@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import algebra.iterate_hom
+import algebra.hom.iterate
 import data.polynomial.eval
 
 /-!
@@ -82,6 +82,9 @@ by convert derivative_C_mul_X_pow (1 : R) n; simp
 @[simp] lemma derivative_C {a : R} : derivative (C a) = 0 :=
 by simp [derivative_apply]
 
+lemma derivative_of_nat_degree_zero {p : R[X]} (hp : p.nat_degree = 0) : p.derivative = 0 :=
+by rw [eq_C_of_nat_degree_eq_zero hp, derivative_C]
+
 @[simp] lemma derivative_X : derivative (X : R[X]) = 1 :=
 (derivative_monomial _ _).trans $ by simp
 
@@ -140,19 +143,22 @@ theorem degree_derivative_lt {p : R[X]} (hp : p ≠ 0) : p.derivative.degree < p
 theorem degree_derivative_le {p : R[X]} : p.derivative.degree ≤ p.degree :=
 if H : p = 0 then le_of_eq $ by rw [H, derivative_zero] else (degree_derivative_lt H).le
 
-theorem nat_degree_derivative_lt {p : R[X]} (hp : p.derivative ≠ 0) :
+theorem nat_degree_derivative_lt {p : R[X]} (hp : p.nat_degree ≠ 0) :
   p.derivative.nat_degree < p.nat_degree :=
-have hp1 : p ≠ 0, from λ h, hp $ by rw [h, derivative_zero],
-with_bot.some_lt_some.1 $
 begin
-  rw [nat_degree, option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp, nat_degree,
-    option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp1],
-  exact degree_derivative_lt hp1
+  cases eq_or_ne p.derivative 0 with hp' hp',
+  { rw [hp', polynomial.nat_degree_zero],
+    exact hp.bot_lt },
+  { rw nat_degree_lt_nat_degree_iff hp',
+    exact degree_derivative_lt (λ h, hp (h.symm ▸ nat_degree_zero)) }
 end
 
-theorem nat_degree_derivative_le (p : R[X]) : p.derivative.nat_degree ≤ p.nat_degree :=
-let _ := classical.prop_decidable in by exactI
-if h : p.derivative = 0 then h.symm ▸ zero_le _ else (nat_degree_derivative_lt h).le
+lemma nat_degree_derivative_le (p : R[X]) : p.derivative.nat_degree ≤ p.nat_degree - 1 :=
+begin
+  by_cases p0 : p.nat_degree = 0,
+  { simp [p0, derivative_of_nat_degree_zero] },
+  { exact nat.le_pred_of_lt (nat_degree_derivative_lt p0) }
+end
 
 @[simp] lemma derivative_cast_nat {n : ℕ} : derivative (n : R[X]) = 0 :=
 begin
@@ -167,8 +173,8 @@ begin
   subst h,
   obtain ⟨t, rfl⟩ := nat.exists_eq_succ_of_ne_zero (pos_of_gt hx).ne',
   rw [function.iterate_succ_apply],
-  by_cases hp : p.derivative = 0,
-  { rw [hp, iterate_derivative_zero] },
+  by_cases hp : p.nat_degree = 0,
+  { rw [derivative_of_nat_degree_zero hp, iterate_derivative_zero] },
   have := nat_degree_derivative_lt hp,
   exact ih _ this (this.trans_le $ nat.le_of_lt_succ hx) rfl
 end
@@ -255,13 +261,14 @@ end
 theorem derivative_map [comm_semiring S] (p : R[X]) (f : R →+* S) :
   (p.map f).derivative = p.derivative.map f :=
 polynomial.induction_on p
-  (λ r, by rw [map_C, derivative_C, derivative_C, map_zero])
-  (λ p q ihp ihq, by rw [map_add, derivative_add, ihp, ihq, derivative_add, map_add])
-  (λ n r ih, by rw [map_mul, map_C, polynomial.map_pow, map_X, derivative_mul, derivative_pow_succ,
-                    derivative_C, zero_mul, zero_add, derivative_X, mul_one, derivative_mul,
-                    derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
-                    map_mul, map_C, map_mul, polynomial.map_pow, map_add,
-                    polynomial.map_nat_cast, map_one, map_X])
+  (λ r, by rw [map_C, derivative_C, derivative_C, polynomial.map_zero])
+  (λ p q ihp ihq, by rw [polynomial.map_add, derivative_add, ihp, ihq, derivative_add,
+                         polynomial.map_add])
+  (λ n r ih, by rw [polynomial.map_mul, polynomial.map_C, polynomial.map_pow, polynomial.map_X,
+    derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
+    derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
+    polynomial.map_mul, polynomial.map_C, polynomial.map_mul, polynomial.map_pow,
+    polynomial.map_add, polynomial.map_nat_cast, polynomial.map_one, polynomial.map_X])
 
 @[simp]
 theorem iterate_derivative_map [comm_semiring S] (p : R[X]) (f : R →+* S) (k : ℕ):
@@ -353,8 +360,8 @@ end
 
 end comm_ring
 
-section is_domain
-variables [ring R] [is_domain R]
+section no_zero_divisors
+variables [ring R] [no_zero_divisors R]
 
 lemma mem_support_derivative [char_zero R] (p : R[X]) (n : ℕ) :
   n ∈ (derivative p).support ↔ n + 1 ∈ p.support :=
@@ -382,7 +389,7 @@ begin
     exact hp }
 end
 
-end is_domain
+end no_zero_divisors
 
 end derivative
 end polynomial

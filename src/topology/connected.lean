@@ -216,7 +216,7 @@ theorem is_connected.Union_of_refl_trans_gen {ι : Type*} [nonempty ι] {s : ι 
   is_preconnected.Union_of_refl_trans_gen (λ i, (H i).is_preconnected) K⟩
 
 section succ_order
-open succ_order
+open order
 
 variables [linear_order β] [succ_order β] [is_succ_archimedean β]
 
@@ -640,6 +640,9 @@ class connected_space (α : Type u) [topological_space α] extends preconnected_
 
 attribute [instance, priority 50] connected_space.to_nonempty -- see Note [lower instance priority]
 
+lemma is_connected_univ [connected_space α] : is_connected (univ : set α) :=
+⟨univ_nonempty, is_preconnected_univ⟩
+
 lemma is_preconnected_range [topological_space β] [preconnected_space α] {f : α → β}
   (h : continuous f) : is_preconnected (range f) :=
 @image_univ _ _ f ▸ is_preconnected_univ.image _ h.continuous_on
@@ -724,6 +727,14 @@ by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
 lemma eq_univ_of_nonempty_clopen [preconnected_space α] {s : set α}
   (h : s.nonempty) (h' : is_clopen s) : s = univ :=
 by { rw is_clopen_iff at h', exact h'.resolve_left h.ne_empty }
+
+lemma frontier_eq_empty_iff [preconnected_space α] {s : set α} :
+  frontier s = ∅ ↔ s = ∅ ∨ s = univ :=
+is_clopen_iff_frontier_eq_empty.symm.trans is_clopen_iff
+
+lemma nonempty_frontier_iff [preconnected_space α] {s : set α} :
+  (frontier s).nonempty ↔ s.nonempty ∧ s ≠ univ :=
+by simp only [← ne_empty_iff_nonempty, ne.def, frontier_eq_empty_iff, not_or_distrib]
 
 lemma subtype.preconnected_space {s : set α} (h : is_preconnected s) :
   preconnected_space s :=

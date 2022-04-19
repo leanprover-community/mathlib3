@@ -25,7 +25,7 @@ open_locale nat
 universes uu vv
 
 namespace list
-variables {α : Type uu} {β : Type vv}
+variables {α : Type uu} {β : Type vv} {l₁ l₂ : list α}
 
 /-- `perm l₁ l₂` or `l₁ ~ l₂` asserts that `l₁` and `l₂` are permutations
   of each other. This is defined by induction using pairwise swaps. -/
@@ -442,7 +442,7 @@ depend on the order of elements-/
 lemma perm.prod_eq' [monoid α] {l₁ l₂ : list α} (h : l₁ ~ l₂)
   (hc : l₁.pairwise (λ x y, x * y = y * x)) :
   l₁.prod = l₂.prod :=
-h.foldl_eq' (forall_of_forall_of_pairwise (λ x y h z, (h z).symm) (λ x hx z, rfl) $
+h.foldl_eq' (pairwise.forall_of_forall (λ x y h z, (h z).symm) (λ x hx z, rfl) $
   hc.imp $ λ x y h z, by simp only [mul_assoc, h]) _
 
 variable [comm_monoid α]
@@ -517,6 +517,10 @@ theorem subperm_cons (a : α) {l₁ l₂ : list α} : a::l₁ <+~ a::l₂ ↔ l�
   { exact ⟨u, p.cons_inv, s'⟩ }
 end, λ ⟨l, p, s⟩, ⟨a::l, p.cons a, s.cons2 _ _ _⟩⟩
 
+alias subperm_cons ↔ list.subperm.of_cons list.subperm.cons
+
+attribute [protected] subperm.cons
+
 theorem cons_subperm_of_mem {a : α} {l₁ l₂ : list α} (d₁ : nodup l₁) (h₁ : a ∉ l₁) (h₂ : a ∈ l₂)
  (s : l₁ <+~ l₂) : a :: l₁ <+~ l₂ :=
 begin
@@ -533,7 +537,7 @@ begin
     have am : a ∈ r₂ := h₂.resolve_left (λ e, h₁ $ e.symm ▸ bm),
     rcases mem_split bm with ⟨t₁, t₂, rfl⟩,
     have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp,
-    rcases ih am (nodup_of_sublist st d₁)
+    rcases ih am (d₁.sublist st)
       (mt (λ x, st.subset x) h₁)
       (perm.cons_inv $ p.trans perm_middle) with ⟨t, p', s'⟩,
     exact ⟨b::t, (p'.cons b).trans $ (swap _ _ _).trans (perm_middle.symm.cons a), s'.cons2 _ _ _⟩ }
@@ -562,8 +566,7 @@ theorem subperm.exists_of_length_lt {l₁ l₂ : list α} :
         (λ a s, (swap _ _ _).subperm_right.1 $ (subperm_cons _).2 s) }
   end
 
-theorem subperm_of_subset_nodup
-  {l₁ l₂ : list α} (d : nodup l₁) (H : l₁ ⊆ l₂) : l₁ <+~ l₂ :=
+protected lemma nodup.subperm (d : nodup l₁) (H : l₁ ⊆ l₂) : l₁ <+~ l₂ :=
 begin
   induction d with a l₁' h d IH,
   { exact ⟨nil, perm.nil, nil_sublist _⟩ },
@@ -574,9 +577,7 @@ end
 
 theorem perm_ext {l₁ l₂ : list α} (d₁ : nodup l₁) (d₂ : nodup l₂) :
   l₁ ~ l₂ ↔ ∀a, a ∈ l₁ ↔ a ∈ l₂ :=
-⟨λ p a, p.mem_iff, λ H, subperm.antisymm
-  (subperm_of_subset_nodup d₁ (λ a, (H a).1))
-  (subperm_of_subset_nodup d₂ (λ a, (H a).2))⟩
+⟨λ p a, p.mem_iff, λ H, (d₁.subperm $ λ a, (H a).1).antisymm $ d₂.subperm $ λ a, (H a).2⟩
 
 theorem nodup.sublist_ext {l₁ l₂ l : list α} (d : nodup l)
   (s₁ : l₁ <+ l) (s₂ : l₂ <+ l) : l₁ ~ l₂ ↔ l₁ = l₂ :=

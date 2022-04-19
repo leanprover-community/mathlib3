@@ -7,6 +7,7 @@ import ring_theory.power_series.basic
 import combinatorics.partition
 import data.nat.parity
 import data.finset.nat_antidiagonal
+import data.fin.tuple.nat_antidiagonal
 import tactic.interval_cases
 import tactic.apply_fun
 
@@ -84,8 +85,8 @@ def partial_distinct_gf (m : ℕ) [comm_semiring α] :=
 /--
 Functions defined only on `s`, which sum to `n`. In other words, a partition of `n` indexed by `s`.
 Every function in here is finitely supported, and the support is a subset of `s`.
-This should be thought of as a generalisation of `finset.nat.antidiagonal`, where
-`antidiagonal n` is the same thing as `cut s n` if `s` has two elements.
+This should be thought of as a generalisation of `finset.nat.antidiagonal_tuple` where
+`antidiagonal_tuple k n` is the same thing as `cut (s : finset.univ (fin k)) n`.
 -/
 def cut {ι : Type*} (s : finset ι) (n : ℕ) : finset (ι → ℕ) :=
 finset.filter (λ f, s.sum f = n) ((s.pi (λ _, range (n+1))).map
@@ -119,6 +120,10 @@ begin
            ←equiv.eq_symm_apply],
   simp [mem_cut, add_comm],
 end
+
+lemma cut_univ_fin_eq_antidiagonal_tuple (n : ℕ) (k : ℕ) :
+  cut univ n = nat.antidiagonal_tuple k n :=
+by { ext, simp [nat.mem_antidiagonal_tuple, mem_cut] }
 
 /-- There is only one `cut` of 0. -/
 @[simp]
@@ -412,6 +417,7 @@ begin
     rw nat.div_lt_iff_lt_mul _ _ zero_lt_two,
     exact lt_of_le_of_lt hin h },
   { rintro ⟨a, -, rfl⟩,
+    rw even_iff_two_dvd,
     apply nat.two_not_dvd_two_mul_add_one },
 end
 

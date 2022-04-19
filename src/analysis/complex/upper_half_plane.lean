@@ -110,9 +110,9 @@ lemma norm_sq_denom_ne_zero (g :  GL(2, ℝ)⁺) (z : ℍ) : complex.norm_sq (de
 ne_of_gt (norm_sq_denom_pos g z)
 
 /-- Fractional linear transformation, also known as the Moebius transformation -/
-def smul_aux' (g :  GL(2, ℝ)⁺) (z : ℍ) : ℂ := num g z / denom g z
+def smul_aux' (g : GL(2, ℝ)⁺) (z : ℍ) : ℂ := num g z / denom g z
 
-lemma smul_aux'_im (g :  GL(2, ℝ)⁺) (z : ℍ) :
+lemma smul_aux'_im (g : GL(2, ℝ)⁺) (z : ℍ) :
   (smul_aux' g z).im = ((det ↑ₘg) * z.im) / (denom g z).norm_sq :=
 begin
   rw [smul_aux', complex.div_im],
@@ -121,7 +121,7 @@ begin
   { simp only [denom_ne_zero g z, monoid_with_zero_hom.map_eq_zero, ne.def, not_false_iff], },
   field_simp [smul_aux'],
   ring_nf,
-  have:= matrix.det_fin_two(g : GL (fin 2) ℝ),
+  have := matrix.det_fin_two (g : GL (fin 2) ℝ),
   simp at this,
   rw this,
   ring,
@@ -132,13 +132,13 @@ end
 def smul_aux (g :  GL(2, ℝ)⁺) (z : ℍ) : ℍ :=
   ⟨smul_aux' g z,
     by { rw smul_aux'_im,
-    simp,
-    have h1:= div_pos z.im_pos (complex.norm_sq_pos.mpr (denom_ne_zero g z)),
-    have h2:=g.property,
+    simp only [denom, coe_coe],
+    have h1 := div_pos z.im_pos (complex.norm_sq_pos.mpr (denom_ne_zero g z)),
+    have h2 :=g.property,
     simp at *,
-    have:= mul_pos h2 h1,
+    have := mul_pos h2 h1,
     convert this,
-    simp [coe_fn_coe_base'],
+    simp only,
     ring, }⟩
 
 lemma denom_cocycle (x y : GL(2, ℝ)⁺) (z : ℍ) :
@@ -146,7 +146,9 @@ lemma denom_cocycle (x y : GL(2, ℝ)⁺) (z : ℍ) :
 begin
   change _ = (_ * (_ / _) + _) * _,
   field_simp [denom_ne_zero, -denom, -num],
-  simp [coe_fn_coe_base', matrix.mul, dot_product, fin.sum_univ_succ],
+  simp only [matrix.mul, dot_product, fin.sum_univ_succ, denom, num, coe_coe, subgroup.coe_mul,
+  general_linear_group.coe_mul,fintype.univ_of_subsingleton, fin.mk_eq_subtype_mk, fin.mk_zero,
+  finset.sum_singleton, fin.succ_zero_eq_one,complex.of_real_add, complex.of_real_mul],
   ring
 end
 
@@ -157,7 +159,9 @@ begin
   change _ / _ = (_ * (_ / _) + _)  * _,
   rw denom_cocycle,
   field_simp [denom_ne_zero, -denom, -num],
-  simp [coe_fn_coe_base',matrix.mul, dot_product, fin.sum_univ_succ],
+  simp only [matrix.mul, dot_product, fin.sum_univ_succ, num, denom, coe_coe, subgroup.coe_mul,
+  general_linear_group.coe_mul, fintype.univ_of_subsingleton, fin.mk_eq_subtype_mk, fin.mk_zero,
+  finset.sum_singleton, fin.succ_zero_eq_one,complex.of_real_add, complex.of_real_mul],
   ring
 end
 
@@ -211,8 +215,7 @@ end modular_scalar_towers
 lemma im_smul (g : GL(2, ℝ)⁺) (z : ℍ) : (g • z).im = (num g z / denom g z).im := rfl
 
 lemma im_smul_eq_div_norm_sq (g : GL(2, ℝ)⁺) (z : ℍ) :
-  (g • z).im = (det ↑ₘg * z.im) / (complex.norm_sq (denom g z)) :=
-smul_aux'_im g z
+  (g • z).im = (det ↑ₘg * z.im) / (complex.norm_sq (denom g z)) := smul_aux'_im g z
 
 @[simp] lemma neg_smul (g :  GL(2, ℝ)⁺) (z : ℍ) : -g • z = g • z :=
 begin
@@ -221,17 +224,13 @@ begin
   field_simp [denom_ne_zero, -denom, -num],
   simp [coe_GL_pos_neg, coe_fn_coe_base'],
   ring_nf,
-  end
-
-variable (Γ : subgroup (special_linear_group (fin 2) ℤ))
+end
 
 @[simp]lemma sl_moeb (A: SL(2,ℤ)) (z : ℍ) : A • z = (A : (GL(2, ℝ)⁺)) • z := rfl
-@[simp]lemma subgroup_moeb (A: Γ) (z : ℍ) : A • z = (A : (GL(2, ℝ)⁺)) • z := rfl
-@[simp]lemma subgroup_to_sl_moeb (A: Γ) (z : ℍ) : A • z = (A : SL(2,ℤ)) • z := rfl
 
 @[simp] lemma SL_neg_smul (g : SL(2,ℤ)) (z : ℍ) : -g • z = g • z :=
 begin
-simp [coe_GL_pos_neg],
+simp only [coe_GL_pos_neg, sl_moeb, coe_coe, coe_int_neg, neg_smul],
 end
 
 end upper_half_plane

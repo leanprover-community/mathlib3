@@ -1049,7 +1049,7 @@ begin
   (hlim.mono sphere_subset_closed_ball),
   rw differentiable_within_at,
   have hf := unif_lim_of_diff_is_cts F f z R  hdiff hlim,
-  have HF := circle_integral_differentiable_on R r hR hr hr' z f (hf.mono sphere_subset_closed_ball),
+  have HF :=circle_integral_differentiable_on R r hR hr hr' z f (hf.mono sphere_subset_closed_ball),
   clear hf F_cts hdiff,
   rw differentiable_on at HF,
   have HF2 := HF x,

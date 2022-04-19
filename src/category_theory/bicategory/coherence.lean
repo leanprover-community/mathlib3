@@ -58,8 +58,6 @@ bicategory.
 -/
 def inclusion_path (a b : B) : discrete (path.{v+1} a b) ⥤ hom a b :=
 discrete.functor inclusion_path_aux
--- { obj := begin intros p, apply inclusion_path_aux, exact discrete.functor, end,
---   map := λ f g η, eq_to_hom (congr_arg inclusion_path_aux (discrete.eq_of_hom η)) }
 
 /--
 The inclusion from the locally discrete bicategory on the path category into the free bicategory
@@ -72,10 +70,6 @@ def preinclusion (B : Type u) [quiver.{v+1} B] :
   map   := λ a b, (inclusion_path a b).obj,
   map₂  := λ a b, (inclusion_path a b).map }
 
-    --rcases η with ⟨⟨⟨⟩⟩⟩,
-    --exact (inclusion_path a.as b.as).map (locally_discrete.eq_of_hom \eta), end ,}
-  --(inclusion_path a b).map }
-
 @[simp]
 lemma preinclusion_obj (a : B) :
   (preinclusion B).obj a = a :=
@@ -85,9 +79,8 @@ rfl
 lemma preinclusion_map₂ {a b : B} (f g : discrete (path.{v+1} a b)) (η : f ⟶ g) :
   (preinclusion B).map₂ η = eq_to_hom (congr_arg _ (discrete.ext _ _ (discrete.eq_of_hom η))) :=
 begin
-  have : f = g := discrete.ext _ _ (discrete.eq_of_hom η),
-  subst this,
   rcases η with ⟨⟨⟩⟩,
+  cases discrete.ext _ _ η,
   exact (inclusion_path a b).map_id _
 end
 
@@ -129,7 +122,7 @@ fully-normalized 1-morphism.
 -/
 @[simp]
 def normalize_iso {a : B} : ∀ {b c : B} (p : path a b) (f : hom b c),
-  (preinclusion B).map ⟨p⟩ ≫ f ≅ (preinclusion B).map ⟨(normalize_aux p f)⟩
+  (preinclusion B).map ⟨p⟩ ≫ f ≅ (preinclusion B).map ⟨normalize_aux p f⟩
 | _ _ p (hom.of f)      := iso.refl _
 | _ _ p (hom.id b)      := ρ_ _
 | _ _ p (hom.comp f g)  := (α_ _ _ _).symm ≪≫
@@ -156,7 +149,8 @@ end
 /-- The 2-isomorphism `normalize_iso p f` is natural in `f`. -/
 lemma normalize_naturality {a b c : B} (p : path a b) {f g : hom b c} (η : f ⟶ g) :
   (preinclusion B).map ⟨p⟩ ◁ η ≫ (normalize_iso p g).hom =
-    (normalize_iso p f).hom ≫ (preinclusion B).map₂ (eq_to_hom (discrete.ext _ _ (normalize_aux_congr p η))) :=
+    (normalize_iso p f).hom ≫
+      (preinclusion B).map₂ (eq_to_hom (discrete.ext _ _ (normalize_aux_congr p η))) :=
 begin
   rcases η, induction η,
   case id : { simp },

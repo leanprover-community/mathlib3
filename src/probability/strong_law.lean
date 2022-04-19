@@ -341,6 +341,21 @@ lemma integral_truncation_eq_interval_integral_of_nonneg (hf : ae_strongly_measu
   ∫ x, truncation f A x ∂μ = ∫ y in 0..A, y ∂(measure.map f μ) :=
 by simpa using moment_truncation_eq_interval_integral_of_nonneg hf one_ne_zero h'f
 
+lemma integral_truncation_le_integral_of_nonneg
+  (hf : integrable f μ) (h'f : 0 ≤ f) {A : ℝ} :
+  ∫ x, truncation f A x ∂μ ≤ ∫ x, f x ∂μ :=
+begin
+  apply integral_mono_of_nonneg (eventually_of_forall (λ x, _)) hf (eventually_of_forall (λ x, _)),
+  { simp only [truncation, indicator, pi.zero_apply, set.mem_Ioc, id.def, function.comp_app],
+    split_ifs,
+    { exact h'f x },
+    { exact le_rfl } },
+  { simp only [truncation, indicator, set.mem_Ioc, id.def, function.comp_app],
+    split_ifs,
+    { exact le_rfl },
+    { exact h'f x } }
+end
+
 /-- If a function is integrable, then the integral of its truncated versions converges to the
 integral of the whole function. -/
 lemma tendsto_integral_truncation {f : α → ℝ} (hf : integrable f μ) :
@@ -512,7 +527,132 @@ begin
   end
 end
 
+
+lemma of_real_integral_on_one_of_measure_ne_top {α : Type*} {m : measurable_space α} (μ : measure α)
+  {s : set α} (hs : μ s ≠ ∞) :
+  ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
+calc
+ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ)
+= ennreal.of_real (∫ x in s, ∥(1 : ℝ)∥ ∂μ) : by simp only [cstar_ring.norm_one]
+... = ∫⁻ x in s, 1 ∂μ :
+begin
+  rw of_real_integral_norm_eq_lintegral_nnnorm,
+  { simp only [nnnorm_one, ennreal.coe_one] },
+  { rw integrable_const_iff,
+    simp only [hs.lt_top, one_ne_zero, measure.restrict_apply, measurable_set.univ, set.univ_inter,
+      false_or], }
+end
+... = μ s :
+  by simp only [lintegral_one, measure.restrict_apply, measurable_set.univ, set.univ_inter]
+
+lemma of_real_integral_on_one {α : Type*} {m : measurable_space α} (μ : measure α)
+  [is_finite_measure μ] (s : set α) :
+  ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
+of_real_integral_on_one_of_measure_ne_top μ (measure_ne_top μ s)
+
 variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)]
+
+lemma glouk {X : Ω → ℝ} (hint : integrable X) (h''i : 0 ≤ X) {K : ℕ} {N : ℕ} (hKN : K ≤ N) :
+  ∑ j in range K, ℙ {ω | X ω ∈ set.Ioc (j : ℝ) N} ≤ ennreal.of_real (1 + 𝔼[X]) :=
+begin
+  let ρ : measure ℝ := measure.map X ℙ,
+  letI : is_finite_measure ρ,
+  { apply_instance,
+  },
+end
+
+#exit
+
+  have A : ∑ j in range K, ∫ x in j..N, (1 : ℝ) ∂ρ ≤ 1 + 𝔼[X], from calc
+  ∑ j in range K, ∫ x in j..N, (1 : ℝ) ∂ρ
+      = ∑ j in range K, ∑ i in Ico j N, ∫ x in i..(i+1 : ℕ), (1 : ℝ) ∂ρ :
+    begin
+      apply sum_congr rfl (λ j hj, _),
+      rw interval_integral.sum_integral_adjacent_intervals_Ico ((mem_range.1 hj).le.trans hKN),
+      assume k hk,
+      exact continuous_const.interval_integrable _ _,
+    end
+  ... = ∑ i in range N, ∑ j in range (min (i+1) K), ∫ x in i..(i+1 : ℕ), (1 : ℝ) ∂ρ :
+    begin
+      simp_rw [sum_sigma'],
+      refine sum_bij' (λ (p : (Σ (i : ℕ), ℕ)) hp, (⟨p.2, p.1⟩ : (Σ (i : ℕ), ℕ))) _ (λ a ha, rfl)
+        (λ (p : (Σ (i : ℕ), ℕ)) hp, (⟨p.2, p.1⟩ : (Σ (i : ℕ), ℕ))) _ _ _,
+      { rintros ⟨i, j⟩ hij,
+        simp only [mem_sigma, mem_range, mem_Ico] at hij,
+        simp only [hij, nat.lt_succ_iff.2 hij.2.1, mem_sigma, mem_range, lt_min_iff, and_self] },
+      { rintros ⟨i, j⟩ hij,
+        simp only [mem_sigma, mem_range, lt_min_iff] at hij,
+        simp only [hij, nat.lt_succ_iff.1 hij.2.1, mem_sigma, mem_range, mem_Ico, and_self] },
+      { rintros ⟨i, j⟩ hij, refl },
+      { rintros ⟨i, j⟩ hij, refl },
+    end
+  ... ≤ ∑ i in range N, (i + 1) * ∫ x in i..(i+1 : ℕ), (1 : ℝ) ∂ρ :
+    begin
+      apply sum_le_sum (λ i hi, _),
+      simp only [nat.cast_add, nat.cast_one, sum_const, card_range, nsmul_eq_mul, nat.cast_min],
+      refine mul_le_mul_of_nonneg_right (min_le_left _ _) _,
+      apply interval_integral.integral_nonneg,
+      { simp only [le_add_iff_nonneg_right, zero_le_one] },
+      { simp only [zero_le_one, implies_true_iff], }
+    end
+  ... ≤ ∑ i in range N, ∫ x in i..(i+1 : ℕ), (x + 1) ∂ρ :
+    begin
+      apply sum_le_sum (λ i hi, _),
+      have I : (i : ℝ) ≤ (i + 1 : ℕ),
+        by simp only [nat.cast_add, nat.cast_one, le_add_iff_nonneg_right, zero_le_one],
+      simp_rw [interval_integral.integral_of_le I, ← integral_mul_left],
+      apply set_integral_mono_on,
+      { exact continuous_const.integrable_on_Ioc },
+      { exact (continuous_id.add continuous_const).integrable_on_Ioc },
+      { exact measurable_set_Ioc },
+      { assume x hx,
+        simp only [nat.cast_add, nat.cast_one, set.mem_Ioc] at hx,
+        simp [hx.1.le] }
+    end
+  ... = ∫ x in 0..N, x + 1 ∂ρ :
+    begin
+      rw interval_integral.sum_integral_adjacent_intervals (λ k hk, _),
+      { refl },
+      { exact (continuous_id.add continuous_const).interval_integrable _ _ }
+    end
+  ... = ∫ x in 0..N, x ∂ρ + ∫ x in 0..N, 1 ∂ρ :
+    begin
+      rw interval_integral.integral_add,
+      { exact continuous_id.interval_integrable _ _ },
+      { exact continuous_const.interval_integrable _ _ },
+    end
+  ... = 𝔼[truncation X N] + ∫ x in 0..N, 1 ∂ρ :
+    by rw integral_truncation_eq_interval_integral_of_nonneg hint.1 h''i
+  ... ≤ 𝔼[X] + ∫ x in 0..N, 1 ∂ρ :
+    add_le_add_right (integral_truncation_le_integral_of_nonneg hint h''i) _
+  ... ≤ 1 + 𝔼[X] :
+    begin
+      rw interval_integral.integral_of_le,
+      simp,
+    end
+end
+
+#exit
+
+  have B : ∀ a b, ℙ {ω | X ω ∈ set.Ioc a b} = ennreal.of_real (∫ x in set.Ioc a b, (1 : ℝ) ∂ρ),
+  { assume a b,
+    rw of_real_integral_on_one ρ _,
+    rw measure.map_apply_of_ae_measurable hint.ae_measurable measurable_set_Ioc,
+    refl },
+  calc ∑ j in range K, ℙ {ω | X ω ∈ set.Ioc (j : ℝ) N}
+      = ∑ j in range K, ennreal.of_real (∫ x in set.Ioc (j : ℝ) N, (1 : ℝ) ∂ρ) :
+    by simp_rw B
+  ... = ennreal.of_real (∑ j in range K, ∫ x in set.Ioc (j : ℝ) N, (1 : ℝ) ∂ρ) :
+    begin
+      rw ennreal.of_real_sum_of_nonneg,
+      simp only [integral_const, algebra.id.smul_eq_mul, mul_one, ennreal.to_real_nonneg,
+        implies_true_iff],
+    end
+  ... ≤ ennreal.of_real (1 + 𝔼[X]) : ennreal.of_real_le_of_real A
+end
+
+
+#exit
 
 lemma sum_variance_truncation_le
   {X : Ω → ℝ} (hint : integrable X) (h''i : 0 ≤ X) (K : ℕ) :

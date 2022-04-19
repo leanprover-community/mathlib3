@@ -2077,6 +2077,10 @@ instance restrict.is_finite_measure (μ : measure α) [hs : fact (μ s < ∞)] :
 lemma measure_lt_top (μ : measure α) [is_finite_measure μ] (s : set α) : μ s < ∞ :=
 (measure_mono (subset_univ s)).trans_lt is_finite_measure.measure_univ_lt_top
 
+instance is_finite_measure_restrict (μ : measure α) (s : set α) [h : is_finite_measure μ] :
+  is_finite_measure (μ.restrict s) :=
+⟨by simp [measure_lt_top μ s]⟩
+
 lemma measure_ne_top (μ : measure α) [is_finite_measure μ] (s : set α) : μ s ≠ ∞ :=
 ne_of_lt (measure_lt_top μ s)
 
@@ -2222,6 +2226,10 @@ begin
   { rwa [ne, measure_univ_eq_zero] },
   { exact measure_ne_top _ _ }
 end
+
+lemma is_probability_measure_map [is_probability_measure μ] {f : α → β} (hf : ae_measurable f μ) :
+  is_probability_measure (map f μ) :=
+⟨by simp [map_apply_of_ae_measurable, hf]⟩
 
 end is_probability_measure
 

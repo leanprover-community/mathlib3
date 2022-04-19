@@ -81,11 +81,7 @@ lemma f_aux_deriv (n : ℕ) (x : ℝ) (hx : x ≠ 0) :
   has_deriv_at (λx, (P_aux n).eval x * exp (-x⁻¹) / x^(2 * n))
     ((P_aux (n+1)).eval x * exp (-x⁻¹) / x^(2 * (n + 1))) x :=
 begin
-  have A : ∀k:ℕ, 2 * (k + 1) - 1 = 2 * k + 1,
-  { assume k,
-    rw tsub_eq_iff_eq_add_of_le,
-    { ring },
-    { simp [mul_add] } },
+  have A : ∀ k : ℕ, 2 * (k + 1) - 1 = 2 * k + 1 := λ k, rfl,
   convert (((P_aux n).has_deriv_at x).mul
                (((has_deriv_at_exp _).comp x (has_deriv_at_inv hx).neg))).div
             (has_deriv_at_pow (2 * n) x) (pow_ne_zero _ hx) using 1,
@@ -234,6 +230,12 @@ lemma one_of_one_le (h : 1 ≤ x) : smooth_transition x = 1 :=
 lemma zero_of_nonpos (h : x ≤ 0) : smooth_transition x = 0 :=
 by rw [smooth_transition, zero_of_nonpos h, zero_div]
 
+@[simp] protected lemma zero : smooth_transition 0 = 0 :=
+zero_of_nonpos le_rfl
+
+@[simp] protected lemma one : smooth_transition 1 = 1 :=
+one_of_one_le le_rfl
+
 lemma le_one (x : ℝ) : smooth_transition x ≤ 1 :=
 (div_le_one (pos_denom x)).2 $ le_add_of_nonneg_right (nonneg _)
 
@@ -254,6 +256,9 @@ exp_neg_inv_glue.cont_diff.div
 
 protected lemma cont_diff_at {x n} : cont_diff_at ℝ n smooth_transition x :=
 smooth_transition.cont_diff.cont_diff_at
+
+protected lemma continuous : continuous smooth_transition :=
+(@smooth_transition.cont_diff 0).continuous
 
 end smooth_transition
 
@@ -400,7 +405,7 @@ by rw [euclidean.ball_eq_preimage, ← f.to_cont_diff_bump_of_inner.support_eq,
   ← support_comp_eq_preimage, coe_eq_comp]
 
 lemma tsupport_eq : tsupport f = euclidean.closed_ball c f.R :=
-by rw [tsupport, f.support_eq, euclidean.closure_ball _ f.R_pos]
+by rw [tsupport, f.support_eq, euclidean.closure_ball _ f.R_pos.ne']
 
 protected lemma has_compact_support : has_compact_support f :=
 by simp_rw [has_compact_support, f.tsupport_eq, euclidean.is_compact_closed_ball]

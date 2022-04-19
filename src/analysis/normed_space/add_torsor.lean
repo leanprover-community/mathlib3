@@ -6,6 +6,7 @@ Authors: Joseph Myers, Yury Kudryashov
 import analysis.normed_space.basic
 import analysis.normed.group.add_torsor
 import linear_algebra.affine_space.midpoint
+import linear_algebra.affine_space.affine_subspace
 import topology.instances.real_vector_space
 
 /-!
@@ -21,13 +22,22 @@ open filter
 variables {α V P : Type*} [semi_normed_group V] [pseudo_metric_space P] [normed_add_torsor V P]
 variables {W Q : Type*} [normed_group W] [metric_space Q] [normed_add_torsor W Q]
 
-include V
-
 section normed_space
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 V]
 
 open affine_map
+
+lemma affine_subspace.is_closed_direction_iff [normed_space 𝕜 W] (s : affine_subspace 𝕜 Q) :
+  is_closed (s.direction : set W) ↔ is_closed (s : set Q) :=
+begin
+  rcases s.eq_bot_or_nonempty with rfl|⟨x, hx⟩, { simp [is_closed_singleton] },
+  rw [← (isometric.vadd_const x).to_homeomorph.symm.is_closed_image,
+    affine_subspace.coe_direction_eq_vsub_set_right hx],
+  refl
+end
+
+include V
 
 @[simp] lemma dist_center_homothety (p₁ p₂ : P) (c : 𝕜) :
   dist p₁ (homothety p₁ c p₂) = ∥c∥ * dist p₁ p₂ :=
@@ -49,6 +59,15 @@ lemma lipschitz_with_line_map (p₁ p₂ : P) :
   lipschitz_with (nndist p₁ p₂) (line_map p₁ p₂ : 𝕜 → P) :=
 lipschitz_with.of_dist_le_mul $ λ c₁ c₂,
   ((dist_line_map_line_map p₁ p₂ c₁ c₂).trans (mul_comm _ _)).le
+
+omit V
+
+lemma antilipschitz_with_line_map [normed_space 𝕜 W] {p₁ p₂ : Q} (h : p₁ ≠ p₂) :
+  antilipschitz_with (nndist p₁ p₂)⁻¹ (line_map p₁ p₂ : 𝕜 → Q) :=
+antilipschitz_with.of_le_mul_dist $ λ c₁ c₂, by rw [dist_line_map_line_map, nnreal.coe_inv,
+  ← dist_nndist, mul_left_comm, inv_mul_cancel (dist_ne_zero.2 h), mul_one]
+
+include V
 
 @[simp] lemma dist_line_map_left (p₁ p₂ : P) (c : 𝕜) :
   dist (line_map p₁ p₂ c) p₁ = ∥c∥ * dist p₁ p₂ :=
@@ -109,7 +128,7 @@ lemma dist_midpoint_midpoint_le (p₁ p₂ p₃ p₄ : V) :
   dist (midpoint ℝ p₁ p₂) (midpoint ℝ p₃ p₄) ≤ (dist p₁ p₃ + dist p₂ p₄) / 2 :=
 by simpa using dist_midpoint_midpoint_le' p₁ p₂ p₃ p₄
 
-include W
+include V W
 
 /-- A continuous map between two normed affine spaces is an affine map provided that
 it sends midpoints to midpoints. -/

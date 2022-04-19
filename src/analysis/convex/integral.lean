@@ -39,9 +39,7 @@ open_locale topological_space big_operators ennreal convex
 
 variables {α E F : Type*} {m0 : measurable_space α}
   [normed_group E] [normed_space ℝ E] [complete_space E]
-  [topological_space.second_countable_topology E] [measurable_space E] [borel_space E]
   [normed_group F] [normed_space ℝ F] [complete_space F]
-  [topological_space.second_countable_topology F] [measurable_space F] [borel_space F]
   {μ : measure α} {s : set E}
 
 /-!
@@ -55,13 +53,19 @@ lemma convex.integral_mem [is_probability_measure μ] {s : set E} (hs : convex �
   (hsc : is_closed s) {f : α → E} (hf : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) :
   ∫ x, f x ∂μ ∈ s :=
 begin
-  obtain ⟨y₀, h₀⟩ : s.nonempty,
-  { rcases hf.exists with ⟨x₀, h₀⟩, exact ⟨f x₀, h₀⟩ },
-  rcases hfi.ae_measurable with ⟨g, hgm, hfg⟩,
+  borelize E,
+  rcases hfi.ae_strongly_measurable with ⟨g, hgm, hfg⟩,
+  haveI : separable_space (range g ∩ s : set E) :=
+    (hgm.is_separable_range.mono (inter_subset_left _ _)).separable_space,
+  obtain ⟨y₀, h₀⟩ : (range g ∩ s).nonempty,
+  { rcases (hf.and hfg).exists with ⟨x₀, h₀⟩,
+    exact ⟨f x₀, by simp only [h₀.2, mem_range_self], h₀.1⟩ },
   rw [integral_congr_ae hfg], rw [integrable_congr hfg] at hfi,
-  have hg : ∀ᵐ x ∂μ, g x ∈ closure s,
-    from (hfg.rw (λ x y, y ∈ s) hf).mono (λ x hx, subset_closure hx),
-  set G : ℕ → simple_func α E := simple_func.approx_on _ hgm s y₀ h₀,
+  have hg : ∀ᵐ x ∂μ, g x ∈ closure (range g ∩ s),
+  { filter_upwards [hfg.rw (λ x y, y ∈ s) hf] with x hx,
+    apply subset_closure,
+    exact ⟨mem_range_self _, hx⟩ },
+  set G : ℕ → simple_func α E := simple_func.approx_on _ hgm.measurable (range g ∩ s) y₀ h₀,
   have : tendsto (λ n, (G n).integral μ) at_top (𝓝 $ ∫ x, g x ∂μ),
     from tendsto_integral_approx_on_of_measurable hfi _ hg _ (integrable_const _),
   refine hsc.mem_of_tendsto this (eventually_of_forall $ λ n, hs.sum_mem _ _ _),
@@ -70,7 +74,9 @@ begin
       ennreal.one_to_real],
     exact λ _ _, measure_ne_top _ _ },
   { simp only [simple_func.mem_range, forall_range_iff],
-    exact λ x, simple_func.approx_on_mem hgm _ _ _ },
+    assume x,
+    apply inter_subset_right (range g),
+    exact simple_func.approx_on_mem hgm.measurable _ _ _ },
 end
 
 /-- If `μ` is a non-zero finite measure on `α`, `s` is a convex closed set in `E`, and `f` is an
@@ -250,7 +256,7 @@ begin
   by_cases h0' : μ (to_measurable μ t)ᶜ = 0,
   { rw ← ae_eq_univ at h0',
     rwa [restrict_congr_set h0', restrict_univ] at ht },
-  exact hs.open_segment_subset_interior_left ht
+  exact hs.open_segment_interior_self_subset_interior ht
     (hs.set_average_mem hsc h0' (measure_ne_top _ _) (ae_restrict_of_ae hfs) hfi.integrable_on)
     (average_mem_open_segment_compl_self (measurable_set_to_measurable μ t).null_measurable_set
       h0 h0' hfi)

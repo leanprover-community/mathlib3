@@ -9,7 +9,7 @@ import analysis.normed_space.ordered
 /-!
 # Asymptotic equivalence
 
-In this file, we define the relation `is_equivalent u v l`, which means that `u-v` is little o of
+In this file, we define the relation `is_equivalent l u v`, which means that `u-v` is little o of
 `v` along the filter `l`.
 
 Unlike `is_[oO]` relations, this one requires `u` and `v` to have the same codomain `β`. While the
@@ -18,7 +18,7 @@ definition only requires `β` to be a `normed_group`, most interesting propertie
 
 ## Notations
 
-We introduce the notation `u ~[l] v := is_equivalent u v l`, which you can use by opening the
+We introduce the notation `u ~[l] v := is_equivalent l u v`, which you can use by opening the
 `asymptotics` locale.
 
 ## Main results
@@ -47,6 +47,11 @@ If `β` is a `normed_linear_ordered_field` :
 - If `u ~[l] v`, we have `tendsto u l at_top ↔ tendsto v l at_top`
   (see `is_equivalent.tendsto_at_top_iff`)
 
+## Implementation Notes
+
+Note that `is_equivalent` takes the parameters `(l : filter α) (u v : α → β)` in that order.
+This is to enable `calc` support, as `calc` requires that the last two explicit arguments are `u v`.
+
 -/
 
 namespace asymptotics
@@ -60,9 +65,9 @@ variables {α β : Type*} [normed_group β]
 
 /-- Two functions `u` and `v` are said to be asymptotically equivalent along a filter `l` when
     `u x - v x = o(v x)` as x converges along `l`. -/
-def is_equivalent (u v : α → β) (l : filter α) := is_o (u - v) v l
+def is_equivalent (l : filter α) (u v : α → β) := is_o (u - v) v l
 
-localized "notation u ` ~[`:50 l:50 `] `:0 v:50 := asymptotics.is_equivalent u v l" in asymptotics
+localized "notation u ` ~[`:50 l:50 `] `:0 v:50 := asymptotics.is_equivalent l u v" in asymptotics
 
 variables {u v w : α → β} {l : filter α}
 
@@ -87,7 +92,8 @@ end
 @[symm] lemma is_equivalent.symm (h : u ~[l] v) : v ~[l] u :=
 (h.is_o.trans_is_O h.is_O_symm).symm
 
-@[trans] lemma is_equivalent.trans (huv : u ~[l] v) (hvw : v ~[l] w) : u ~[l] w :=
+@[trans] lemma is_equivalent.trans {l : filter α} {u v w : α → β}
+  (huv : u ~[l] v) (hvw : v ~[l] w) : u ~[l] w :=
 (huv.is_o.trans_is_O hvw.is_O).triangle hvw.is_o
 
 lemma is_equivalent.congr_left {u v w : α → β} {l : filter α} (huv : u ~[l] v)

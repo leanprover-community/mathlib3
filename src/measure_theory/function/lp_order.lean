@@ -31,8 +31,7 @@ namespace measure_theory
 namespace Lp
 
 section order
-variables [normed_lattice_add_comm_group E] [measurable_space E] [borel_space E]
-  [second_countable_topology E]
+variables [normed_lattice_add_comm_group E]
 
 lemma coe_fn_le (f g : Lp E p μ) : f ≤ᵐ[μ] g ↔ f ≤ g :=
 by rw [← subtype.coe_le_coe, ← ae_eq_fun.coe_fn_le, ← coe_fn_coe_base, ← coe_fn_coe_base]

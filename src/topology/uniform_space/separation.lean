@@ -444,11 +444,10 @@ lemma _root_.is_separated.eq_of_uniform_continuous {f : α → β} {x y : α} {s
 def separation_quotient (α : Type*) [uniform_space α] := quotient (separation_setoid α)
 
 namespace separation_quotient
-instance : uniform_space (separation_quotient α) := by dunfold separation_quotient ; apply_instance
-instance : separated_space (separation_quotient α) :=
-  by dunfold separation_quotient ; apply_instance
+instance : uniform_space (separation_quotient α) := separation_setoid.uniform_space
+instance : separated_space (separation_quotient α) := uniform_space.separated_separation
 instance [inhabited α] : inhabited (separation_quotient α) :=
-by unfold separation_quotient; apply_instance
+quotient.inhabited (separation_setoid α)
 
 /-- Factoring functions to a separated space through the separation quotient. -/
 def lift [separated_space β] (f : α → β) : (separation_quotient α → β) :=

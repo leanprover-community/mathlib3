@@ -162,7 +162,7 @@ begin
     { apply eq_zero_of_neg_eq,
       specialize h n,
       split_ifs at h;
-      simp [neg_one_pow_of_odd h_odd, factorial_ne_zero, *] at * },
+      simp [h_odd.neg_one_pow, factorial_ne_zero, *] at * },
     { simpa using h 1 } },
   have h : B * (exp ℚ - 1) = X * exp ℚ,
   { simpa [bernoulli'_power_series] using bernoulli'_power_series_mul_exp_sub_one ℚ },

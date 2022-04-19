@@ -120,15 +120,15 @@ begin
   congr, exacts [h_mul, h₁, hpow, h_inv, hdiv, hzpow]
 end
 
-@[ext, to_additive subtraction_monoid]
+@[to_additive subtraction_monoid.to_sub_neg_monoid_injective]
+lemma division_monoid.to_div_inv_monoid_injective {M : Type u} :
+  function.injective (@division_monoid.to_div_inv_monoid M) :=
+by { rintro ⟨⟩ ⟨⟩ h, congr'; injection h }
+
+@[ext, to_additive subtraction_monoid.ext]
 lemma division_monoid.ext ⦃g₁ g₂ : division_monoid G⦄ (h_mul : g₁.mul = g₂.mul)
-  (h_inv : m₁.inv = m₂.inv) : g₁ = g₂ :=
-begin
-  set f := @monoid_hom.mk' G G (by letI := g₁; apply_instance) g₂ id
-    (λ a b, congr_fun (congr_fun h_mul a) b),
-  exact group.to_div_inv_monoid_injective (div_inv_monoid.ext h_mul
-    (funext $ @monoid_hom.map_inv G G g₁ g₂ f))
-end
+  (h_inv : g₁.inv = g₂.inv) : g₁ = g₂ :=
+division_monoid.to_div_inv_monoid_injective $ div_inv_monoid.ext h_mul h_inv
 
 @[ext, to_additive]
 lemma group.ext {G : Type*} ⦃g₁ g₂ : group G⦄ (h_mul : g₁.mul = g₂.mul) : g₁ = g₂ :=

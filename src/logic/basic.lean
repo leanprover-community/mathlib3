@@ -442,6 +442,12 @@ by simp only [and.left_comm, and.comm]
 lemma and_and_and_comm (a b c d : Prop) : (a ∧ b) ∧ c ∧ d ↔ (a ∧ c) ∧ b ∧ d :=
 by rw [←and_assoc, @and.right_comm a, and_assoc]
 
+lemma and_and_distrib_left (a b c : Prop) : a ∧ (b ∧ c) ↔ (a ∧ b) ∧ (a ∧ c) :=
+by rw [and_and_and_comm, and_self]
+
+lemma and_and_distrib_right (a b c : Prop) : (a ∧ b) ∧ c ↔ (a ∧ c) ∧ (b ∧ c) :=
+by rw [and_and_and_comm, and_self]
+
 lemma and_rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a := by simp only [and.left_comm, and.comm]
 lemma and.rotate : a ∧ b ∧ c → b ∧ c ∧ a := and_rotate.1
 
@@ -492,6 +498,12 @@ theorem or.right_comm : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ b := by rw [or_assoc, 
 
 lemma or_or_or_comm (a b c d : Prop) : (a ∨ b) ∨ c ∨ d ↔ (a ∨ c) ∨ b ∨ d :=
 by rw [←or_assoc, @or.right_comm a, or_assoc]
+
+lemma or_or_distrib_left (a b c : Prop) : a ∨ (b ∨ c) ↔ (a ∨ b) ∨ (a ∨ c) :=
+by rw [or_or_or_comm, or_self]
+
+lemma or_or_distrib_right (a b c : Prop) : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ (b ∨ c) :=
+by rw [or_or_or_comm, or_self]
 
 lemma or_rotate : a ∨ b ∨ c ↔ b ∨ c ∨ a := by simp only [or.left_comm, or.comm]
 lemma or.rotate : a ∨ b ∨ c → b ∨ c ∨ a := or_rotate.1

@@ -2013,6 +2013,9 @@ begin
   exact this.comp x hf (subset_univ _),
 end
 
+lemma cont_diff.comp_cont_diff_at {g : F → G} {f : E → F} (x : E)
+  (hg : cont_diff 𝕜 n g) (hf : cont_diff_at 𝕜 n f x) : cont_diff_at 𝕜 n (g ∘ f) x :=
+hg.comp_cont_diff_within_at hf
 
 /-!
 ### Smoothness of projections

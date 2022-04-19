@@ -49,14 +49,15 @@ match (get_summands e).qsort rel with
 | [] := skip
 end
 
-/-- Partially traverses an expression in search for a sum of terms in order to actually sort them -/
+/-- Partially traverses an expression in search for a sum of terms.
+When `recurse_on_expr` finds a sum, it sorts it using `sorted_sum_with_rel`. -/
 meta def recurse_on_expr (hyp : option name) (rel : expr → expr → bool) : expr → tactic unit
 | e@`(%%_ + %%_)     := sorted_sum_with_rel hyp rel e
 | (expr.lam _ _ _ e) := recurse_on_expr e
 | (expr.pi  _ _ _ e) := recurse_on_expr e
 | e                  := e.get_app_args.mmap' recurse_on_expr
 
-/-- Calls `recurse_on_expr` with the right expression, depending on the tactic location -/
+/-- Calls `recurse_on_expr` with the right expression, depending on the tactic location. -/
 meta def sort_summands (rel : expr → expr → bool) : option name → tactic unit
 | (some hyp) := get_local hyp >>= infer_type >>= recurse_on_expr hyp rel
 | none       := target >>= recurse_on_expr none rel

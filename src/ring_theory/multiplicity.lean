@@ -289,6 +289,13 @@ part.ext' (by simp only [multiplicity, enat.find, dvd_neg])
     eq.symm (unique ((dvd_neg _ _).2 (pow_multiplicity_dvd _))
       (mt (dvd_neg _ _).1 (is_greatest' _ (lt_succ_self _))))))
 
+theorem int.nat_abs (a : ℕ) (b : ℤ) : multiplicity a b.nat_abs = multiplicity (a : ℤ) b :=
+begin
+  cases int.nat_abs_eq b with h h; conv_rhs { rw h },
+  { rw [int.coe_nat_multiplicity], },
+  { rw [multiplicity.neg, int.coe_nat_multiplicity], },
+end
+
 lemma multiplicity_add_of_gt {p a b : α} (h : multiplicity p b < multiplicity p a) :
   multiplicity p (a + b) = multiplicity p b :=
 begin

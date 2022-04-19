@@ -108,7 +108,8 @@ theorem separable.of_pow {f : R[X]} (hf : ¬is_unit f) {n : ℕ} (hn : n ≠ 0)
 
 theorem separable.map {p : R[X]} (h : p.separable) {f : R →+* S} : (p.map f).separable :=
 let ⟨a, b, H⟩ := h in ⟨a.map f, b.map f,
-by rw [derivative_map, ← map_mul, ← map_mul, ← map_add, H, map_one]⟩
+by rw [derivative_map, ← polynomial.map_mul, ← polynomial.map_mul, ← polynomial.map_add, H,
+       polynomial.map_one]⟩
 
 variables (R) (p q : ℕ)
 
@@ -307,7 +308,7 @@ include hp
 theorem expand_char (f : R[X]) : map (frobenius R p) (expand R p f) = f ^ p :=
 begin
   refine f.induction_on' (λ a b ha hb, _) (λ n a, _),
-  { rw [alg_hom.map_add, map_add, ha, hb, add_pow_char], },
+  { rw [alg_hom.map_add, polynomial.map_add, ha, hb, add_pow_char], },
   { rw [expand_monomial, map_monomial, monomial_eq_C_mul_X, monomial_eq_C_mul_X,
         mul_pow, ← C.map_pow, frobenius_def],
     ring_exp }

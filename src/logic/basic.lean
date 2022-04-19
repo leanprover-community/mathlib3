@@ -294,8 +294,6 @@ def not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
 @[reducible] theorem not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
 
-lemma iff.not (h : a ↔ b) : ¬ a ↔ ¬ b := not_congr h
-
 theorem not_not_of_not_imp : ¬(a → b) → ¬¬a :=
 mt not.elim
 
@@ -398,6 +396,10 @@ theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
 
 theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
 imp.swap
+
+lemma iff.not (h : a ↔ b) : ¬ a ↔ ¬ b := not_congr h
+lemma iff.not_left (h : a ↔ ¬ b) : ¬ a ↔ b := h.not.trans not_not
+lemma iff.not_right (h : ¬ a ↔ b) : a ↔ ¬ b := not_not.symm.trans h.not
 
 /-! ### Declarations about `xor` -/
 

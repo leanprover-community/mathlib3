@@ -107,12 +107,12 @@ begin
   { cases hl with hpos hnonneg,
     rw ←not_lt at hnonneg,
     have hneg := lt_of_lt_of_equiv hpos (neg_equiv_self G),
-    rw [lt_iff_neg_gt, neg_neg, neg_zero] at hneg,
+    rw [lt_iff_neg_gt, neg_neg, pgame.neg_zero] at hneg,
     contradiction },
   { cases hr with hnonpos hneg,
     rw ←not_lt at hnonpos,
     have hpos := lt_of_equiv_of_lt (neg_equiv_self G).symm hneg,
-    rw [lt_iff_neg_gt, neg_neg, neg_zero] at hpos,
+    rw [lt_iff_neg_gt, neg_neg, pgame.neg_zero] at hpos,
     contradiction },
   { left, assumption },
   { right, assumption }
@@ -152,7 +152,7 @@ lemma le_zero_iff {G : pgame} [G.impartial] : G ≤ 0 ↔ 0 ≤ G :=
 by rw [le_zero_iff_zero_le_neg, le_congr (equiv_refl 0) (neg_equiv_self G)]
 
 lemma lt_zero_iff {G : pgame} [G.impartial] : G < 0 ↔ 0 < G :=
-by rw [lt_iff_neg_gt, neg_zero, lt_congr (equiv_refl 0) (neg_equiv_self G)]
+by rw [lt_iff_neg_gt, pgame.neg_zero, lt_congr (equiv_refl 0) (neg_equiv_self G)]
 
 lemma first_loses_symm (G : pgame) [G.impartial] : G.first_loses ↔ G ≤ 0 :=
 ⟨and.left, λ h, ⟨h, le_zero_iff.1 h⟩⟩

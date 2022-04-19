@@ -26,6 +26,8 @@ variables [comm_ring K] [algebra A K] [is_fraction_ring A K]
 lemma map_is_unit_of_le (hS : S ≤ A⁰) (s : S) : is_unit (algebra_map A K s) :=
 by apply is_localization.map_units K (⟨s.1, hS s.2⟩ : A⁰)
 
+/-- The canonical map from a localization of `A` at `S` to the fraction ring
+  of `A`, given that `S ≤ A⁰`. -/
 noncomputable
 def map_to_fraction_ring (B : Type*) [comm_ring B] [algebra A B]
   [is_localization S B] (hS : S ≤ A⁰) :
@@ -42,10 +44,11 @@ lemma map_to_fraction_ring_apply {B : Type*} [comm_ring B] [algebra A B]
 lemma mem_range_map_to_fraction_ring_iff (B : Type*) [comm_ring B] [algebra A B]
   [is_localization S B] (hS : S ≤ A⁰) (x : K) :
   x ∈ (map_to_fraction_ring K S B hS).range ↔
-  ∃ (a : A) (s : S), x = is_localization.mk' K a ⟨s, hS s.2⟩ :=
+  ∃ (a s : A) (hs : s ∈ S), x = is_localization.mk' K a ⟨s, hS hs⟩ :=
 ⟨ by { rintro ⟨x,rfl⟩, obtain ⟨a,s,rfl⟩ := is_localization.mk'_surjective S x,
-    use [a, s], apply is_localization.lift_mk' },
-  by { rintro ⟨a,s,rfl⟩, use is_localization.mk' _ a s, apply is_localization.lift_mk' } ⟩
+    use [a, s, s.2], apply is_localization.lift_mk' },
+  by { rintro ⟨a,s,hs,rfl⟩, use is_localization.mk' _ a ⟨s,hs⟩,
+    apply is_localization.lift_mk' } ⟩
 
 instance is_localization_range_map_to_fraction_ring (B : Type*) [comm_ring B] [algebra A B]
   [is_localization S B] (hS : S ≤ A⁰) :
@@ -60,15 +63,24 @@ begin
     λ h, congr_arg _ (is_fraction_ring.injective A K h)⟩,
 end
 
+instance is_fraction_ring_range_map_to_fraction_ring
+  (B : Type*) [comm_ring B] [algebra A B]
+  [is_localization S B] (hS : S ≤ A⁰) :
+  is_fraction_ring (map_to_fraction_ring K S B hS).range K :=
+is_fraction_ring.is_fraction_ring_of_is_localization S _ _ hS
+
 /--
-Given a domain `A` with fraction field `K`, and a submonoid `S` of `A` which
+Given a commutative ring `A` with fraction ring `K`, and a submonoid `S` of `A` which
 contains no zero divisor, this is the localization of `A` at `S`, considered as
 a subalgebra of `K` over `A`.
+
+The carrier of this subalgebra is defined as the set of all `x : K` of the form
+`is_localization.mk' K a ⟨s, _⟩`, where `s ∈ S`.
 -/
 noncomputable
 def subalgebra (hS : S ≤ A⁰) : subalgebra A K :=
 (map_to_fraction_ring K S (localization S) hS).range.copy
-{ x | ∃ (a : A) (s : S), x = is_localization.mk' K a ⟨s, hS s.2⟩ } $
+{ x | ∃ (a s : A) (hs : s ∈ S), x = is_localization.mk' K a ⟨s, hS hs⟩ } $
 by { ext, exact (mem_range_map_to_fraction_ring_iff _ _ _ _ _).symm }
 
 namespace subalgebra
@@ -95,12 +107,17 @@ begin
   rw mem_range_map_to_fraction_ring_iff,
   unfold is_localization.mk' submonoid.localization_map.mk', simp_rw units.coe_inv',
   split,
-  { rintro ⟨a,⟨s,hs⟩,h⟩, refine ⟨a,s,hs,_⟩, convert h,
+  { rintro ⟨a,s,hs,h⟩, refine ⟨a,s,hs,_⟩, convert h,
     dsimp [is_unit.lift_right, monoid_hom.mrestrict], simp },
-  { rintro ⟨a,s,hs,h⟩, refine ⟨a,⟨s,hs⟩, _⟩, convert h,
+  { rintro ⟨a,s,hs,h⟩, refine ⟨a,s,hs,_⟩, convert h,
     dsimp [is_unit.lift_right, monoid_hom.mrestrict], simp }
 end
 
+/--
+Given a domain `A` with fraction field `K`, and a submonoid `S` of `A` which
+contains no zero divisor, this is the localization of `A` at `S`, considered as
+a subalgebra of `K` over `A`.
+-/
 noncomputable
 def of_field : _root_.subalgebra A K :=
 (map_to_fraction_ring K S (localization S) hS).range.copy

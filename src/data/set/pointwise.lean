@@ -1044,7 +1044,7 @@ instance set_semiring.semiring [monoid α] : semiring (set_semiring α) :=
 
 instance set_semiring.non_unital_comm_semiring [comm_semigroup α] :
   non_unital_comm_semiring (set_semiring α) :=
-{ ..set.comm_semigroup, ..set_semiring.non_unital_semiring }
+{ ..set_semiring.non_unital_semiring, ..set.comm_semigroup }
 
 instance set_semiring.comm_semiring [comm_monoid α] : comm_semiring (set_semiring α) :=
 { ..set.comm_monoid, ..set_semiring.semiring }

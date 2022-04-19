@@ -440,7 +440,7 @@ lemma coe_cons_eq_coe_append (l : list α) (a : α) : (↑(a :: l) : cycle α) =
 quot.sound ⟨1, by rw [rotate_cons_succ, rotate_zero]⟩
 
 /-- The unique empty cycle. -/
-def nil : cycle α := ↑([] : list α)
+def nil : cycle α := ([] : list α)
 
 @[simp] lemma coe_nil : ↑([] : list α) = @nil α :=
 rfl
@@ -448,6 +448,7 @@ rfl
 @[simp] lemma coe_eq_nil (l : list α) : (l : cycle α) = nil ↔ l = [] :=
 coe_eq_coe.trans is_rotated_nil_iff
 
+/-- For consistency with `list.has_emptyc`. -/
 instance : has_emptyc (cycle α) := ⟨nil⟩
 
 @[simp] lemma empty_eq : ∅ = @nil α :=
@@ -620,7 +621,7 @@ rfl
 rfl
 
 @[simp] lemma map_eq_nil {β : Type*} (f : α → β) (s : cycle α) : map f s = nil ↔ s = nil :=
-quotient.induction_on' s $ λ l, by simp
+quotient.induction_on' s (by simp)
 
 /-- The `multiset` of lists that can make the cycle. -/
 def lists (s : cycle α) : multiset (list α) :=

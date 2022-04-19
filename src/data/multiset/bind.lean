@@ -131,6 +131,14 @@ multiset.induction_on m (by simp) ( by simp)
 lemma count_bind [decidable_eq α] {m : multiset β} {f : β → multiset α} {a : α} :
   count a (bind m f) = sum (m.map $ λ b, count a $ f b) := count_sum
 
+lemma le_bind {α β : Type*} {f : α → multiset β} (S : multiset α) {x : α} (hx : x ∈ S) :
+  f x ≤ S.bind f :=
+begin
+  classical,
+  rw le_iff_count, intro a,
+  rw count_bind, apply le_sum_of_mem,
+  rw mem_map, exact ⟨x, hx, rfl⟩
+end
 end bind
 
 /-! ### Product of two multisets -/

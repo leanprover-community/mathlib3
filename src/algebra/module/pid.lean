@@ -39,39 +39,6 @@ Finitely generated module, principal ideal domain, classification
 universes u v
 open_locale big_operators
 
-namespace associates
-theorem finset_prod_mk {α β : Type*} [comm_monoid α] {p : finset β} {f : β → α} :
-  ∏ i in p, associates.mk (f i) = associates.mk (∏ i in p, f i) :=
-by rw [finset.prod_eq_multiset_prod, ← multiset.map_map, prod_mk, ← finset.prod_eq_multiset_prod]
-end associates
-
-namespace multiset
-lemma le_bind {α β : Type*} {f : α → multiset β} (S : multiset α) {x : α} (hx : x ∈ S) :
-  f x ≤ S.bind f :=
-begin
-  classical,
-  rw le_iff_count, intro a,
-  rw count_bind, apply le_sum_of_mem,
-  rw mem_map, exact ⟨x, hx, rfl⟩
-end
-end multiset
-
-namespace set
-lemma insert_image_compl_eq_range {A B : Type*} (f : A → B) (x : A) :
-  insert (f x) (f '' {x}ᶜ) = range f :=
-begin
-  ext y, rw [mem_range, mem_insert_iff, mem_image],
-  split,
-  { rintro (h | ⟨x', hx', h⟩),
-    { exact ⟨x, h.symm⟩ },
-    { exact ⟨x', h⟩ } },
-  { rintro ⟨x', h⟩,
-    by_cases hx : x' = x,
-    { left, rw [← h, hx] },
-    { right, refine ⟨_, _, h⟩, rw mem_compl_singleton_iff, exact hx } }
-end
-end set
-
 section split_exact
 open linear_map
 variables  {R A M B : Type*} [semiring R] [add_comm_monoid A] [module R A]
@@ -321,3 +288,4 @@ begin
 end
 
 end pid
+#lint

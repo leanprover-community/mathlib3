@@ -1831,6 +1831,20 @@ instance [nonempty ι] (f : ι → α) : nonempty (range f) := (range_nonempty f
   (f '' s) ∪ (f '' sᶜ) = range f :=
 by rw [← image_union, ← image_univ, ← union_compl_self]
 
+lemma insert_image_compl_eq_range (f : α → β) (x : α) :
+  insert (f x) (f '' {x}ᶜ) = range f :=
+begin
+  ext y, rw [mem_range, mem_insert_iff, mem_image],
+  split,
+  { rintro (h | ⟨x', hx', h⟩),
+    { exact ⟨x, h.symm⟩ },
+    { exact ⟨x', h⟩ } },
+  { rintro ⟨x', h⟩,
+    by_cases hx : x' = x,
+    { left, rw [← h, hx] },
+    { right, refine ⟨_, _, h⟩, rw mem_compl_singleton_iff, exact hx } }
+end
+
 theorem image_preimage_eq_inter_range {f : α → β} {t : set β} :
   f '' (f ⁻¹' t) = t ∩ range f :=
 ext $ assume x, ⟨assume ⟨x, hx, heq⟩, heq ▸ ⟨hx, mem_range_self _⟩,

@@ -104,15 +104,15 @@ begin
     exact term.encoding.encode_injective }
 end
 
-theorem card_le : # (L.term α) ≤ # (α ⊕ Σ i, L.functions i) + ω :=
+theorem card_le : # (L.term α) ≤ max (#(α ⊕ Σ i, L.functions i)) ω :=
 begin
   have h := (mk_le_of_injective list_encode_injective),
   refine h.trans _,
   casesI fintype_or_infinite (α ⊕ Σ i, L.functions i) with ft inf,
   { haveI := fintype.to_encodable (α ⊕ Σ i, L.functions i),
-    exact le_add_left mk_le_omega },
-  { rw mk_list_eq_mk,
-    exact le_self_add }
+    exact le_max_iff.2 (or.intro_right _ mk_le_omega) },
+  { rw [mk_list_eq_mk, le_max_iff],
+    exact or.intro_left _ le_rfl }
 end
 
 instance [encodable α] [encodable ((Σ i, L.functions i))] [inhabited (L.term α)] :
@@ -124,7 +124,7 @@ lemma card_le_omega [h1 : nonempty (encodable α)] [h2 : L.countable_functions] 
   # (L.term α) ≤ ω :=
 begin
   refine (card_le.trans _),
-  rw [add_le_omega, mk_sum, add_le_omega, lift_le_omega, lift_le_omega, ← encodable_iff],
+  rw [max_le_iff, mk_sum, add_le_omega, lift_le_omega, lift_le_omega, ← encodable_iff],
   exact ⟨⟨h1, L.card_functions_le_omega⟩, refl _⟩,
 end
 

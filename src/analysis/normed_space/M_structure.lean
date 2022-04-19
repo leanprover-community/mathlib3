@@ -63,7 +63,7 @@ lemma projection_def {P : M} (h : is_projection P) : P^2 = P := by exact h
 namespace is_projection
 
 lemma mul_of_commute {P Q : M} (h : commute P Q) (h₁ : is_projection P) (h₂ : is_projection Q) :
-  is_projection (P*Q)  :=
+  is_projection (P * Q)  :=
 begin
   rw is_projection at h₁,
   rw is_projection at h₂,
@@ -74,18 +74,18 @@ end
 
 variables {R : Type*} [ring R]
 
-lemma complement {P: R} (h: is_projection P) : is_projection (1-P) :=
+lemma complement {P : R} (h : is_projection P) : is_projection (1 - P) :=
 begin
   rw [is_projection, sq] at h,
   rw [is_projection, sq, mul_sub_left_distrib, mul_one, sub_mul, one_mul, h, sub_self, sub_zero],
 end
 
 
-lemma complement_iff {P: R} : is_projection P ↔ is_projection (1-P) :=
+lemma complement_iff {P : R} : is_projection P ↔ is_projection (1 - P) :=
 ⟨ is_projection.complement , λ h, sub_sub_cancel 1 P ▸ h.complement⟩
 
 instance : has_compl (subtype (is_projection  : R → Prop)) :=
-⟨λ P, ⟨1-P, P.prop.complement⟩⟩
+⟨λ P, ⟨1 - P, P.prop.complement⟩⟩
 
 end is_projection
 
@@ -99,7 +99,7 @@ $$
 ∥x∥ = ∥P x∥ + ∥(1-P) x∥.
 $$
 -/
-def is_Lprojection (P : X →L[𝕜] X) : Prop := is_projection P ∧ ∀ (x : X), ∥x∥ = ∥P x∥ + ∥(1-P) x∥
+def is_Lprojection (P : X →L[𝕜] X) : Prop := is_projection P ∧ ∀ (x : X), ∥x∥ = ∥P x∥ + ∥(1 - P) x∥
 
 /--
 A projection on a normed space `X` is said to be an M-projection if, for all `x` in `X`,
@@ -107,44 +107,44 @@ $$
 ∥x∥ = max(∥P x∥, ∥(1-P) x∥).
 $$
 -/
-def is_Mprojection (P: X →L[𝕜] X) : Prop :=
-  is_projection P ∧ ∀ (x : X), ∥x∥ = (max ∥P x∥  ∥(1-P) x∥)
+def is_Mprojection (P : X →L[𝕜] X) : Prop :=
+  is_projection P ∧ ∀ (x : X), ∥x∥ = (max ∥P x∥  ∥(1 - P) x∥)
 
 namespace is_Lprojection
 
-lemma Lcomplement {P: X →L[𝕜] X} (h: is_Lprojection P) :  is_Lprojection (1-P) :=
+lemma Lcomplement {P : X →L[𝕜] X} (h: is_Lprojection P) :  is_Lprojection (1 - P) :=
 ⟨is_projection.complement_iff.mp h.1, λ x, by { rw [add_comm, sub_sub_cancel], exact h.2 x }⟩
 
-lemma Lcomplement_iff (P: X →L[𝕜] X) : is_Lprojection P ↔ is_Lprojection (1-P) :=
+lemma Lcomplement_iff (P : X →L[𝕜] X) : is_Lprojection P ↔ is_Lprojection (1 - P) :=
 ⟨Lcomplement, λ h, sub_sub_cancel 1 P ▸ Lcomplement h⟩
 
-lemma commute {P Q: X →L[𝕜] X} (h₁: is_Lprojection P) (h₂ : is_Lprojection Q) : commute P Q :=
+lemma commute {P Q : X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) : commute P Q :=
 begin
   have PR_eq_RPR : ∀ R : (X →L[𝕜] X), is_Lprojection R →  (P * R = R * P * R) :=λ R h₃,
   begin
     ext,
     rw ← norm_sub_eq_zero_iff,
     have e1 : ∥R x∥ ≥ ∥R x∥ + 2 • ∥ (P * R) x - (R * P * R) x∥ :=
-    calc ∥R x∥ = ∥R (P (R x))∥ + ∥(1-R) (P (R x))∥ + (∥(R * R) x - R (P (R x))∥
+    calc ∥R x∥ = ∥R (P (R x))∥ + ∥(1 - R) (P (R x))∥ + (∥(R * R) x - R (P (R x))∥
       + ∥(1-R) ((1 - P) (R x))∥) :
       by rw [h₁.right, h₃.right, h₃.right ((1 - P) (R x)), continuous_linear_map.sub_apply 1 P,
         continuous_linear_map.one_apply, map_sub, continuous_linear_map.coe_mul]
     ... = ∥R (P (R x))∥ + ∥(1-R) (P (R x))∥ + (∥R x - R (P (R x))∥
-      + ∥((1-R) * R) x - (1-R) (P (R x))∥) : by rw [← sq, projection_def h₃.left,
+      + ∥((1 - R) * R) x - (1-R) (P (R x))∥) : by rw [← sq, projection_def h₃.left,
         continuous_linear_map.sub_apply 1 P, continuous_linear_map.one_apply,
         map_sub,continuous_linear_map.coe_mul]
-    ... = ∥R (P (R x))∥ + ∥(1-R) (P (R x))∥ + (∥R x - R (P (R x))∥ + ∥(1-R) (P (R x))∥) :
+    ... = ∥R (P (R x))∥ + ∥(1 - R) (P (R x))∥ + (∥R x - R (P (R x))∥ + ∥(1 - R) (P (R x))∥) :
       by rw [sub_mul, ← sq, projection_def h₃.left, one_mul, sub_self,
         continuous_linear_map.zero_apply, zero_sub, norm_neg]
-    ... = ∥R (P (R x))∥ + ∥R x - R (P (R x))∥ + 2•∥(1-R) (P (R x))∥  : by abel
+    ... = ∥R (P (R x))∥ + ∥R x - R (P (R x))∥ + 2•∥(1 - R) (P (R x))∥  : by abel
     ... ≥ ∥R x∥ + 2 • ∥ (P * R) x - (R * P * R) x∥ :
-      by exact add_le_add_right (norm_le_insert' (R x) (R (P (R x)))) (2•∥(1-R) (P (R x))∥),
+      by exact add_le_add_right (norm_le_insert' (R x) (R (P (R x)))) (2•∥(1 - R) (P (R x))∥),
     rw ge at e1,
     nth_rewrite_rhs 0 ← add_zero (∥R x∥) at e1,
     rw [add_le_add_iff_left, two_smul,  ← two_mul]  at e1,
     rw le_antisymm_iff,
     refine ⟨_, norm_nonneg _⟩,
-    rwa [←mul_zero (2:ℝ), mul_le_mul_left (show (0:ℝ) < 2, by norm_num)] at e1
+    rwa [←mul_zero (2 : ℝ), mul_le_mul_left (show (0 : ℝ) < 2, by norm_num)] at e1
   end,
   have QP_eq_QPQ : Q * P = Q * P * Q :=
   begin
@@ -157,7 +157,7 @@ begin
 end
 
 lemma mul {P Q : X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) :
-  is_Lprojection (P*Q) :=
+  is_Lprojection (P * Q) :=
 begin
   refine ⟨is_projection.mul_of_commute (commute h₁ h₂) h₁.left h₂.left, _⟩,
   intro x,
@@ -176,19 +176,19 @@ begin
       continuous_linear_map.coe_mul] }
 end
 
-lemma join {P Q: X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) :
+lemma join {P Q : X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) :
   is_Lprojection (P + Q - P * Q) :=
 begin
-  have e1:  1 - (1 - P) * (1 - Q) = P + Q - P * Q := by noncomm_ring,
+  have e1: 1 - (1 - P) * (1 - Q) = P + Q - P * Q := by noncomm_ring,
   rw [← e1, ← is_Lprojection.Lcomplement_iff],
   exact is_Lprojection.mul (is_Lprojection.Lcomplement h₁) (is_Lprojection.Lcomplement h₂)
 end
 
 instance : has_compl { f : X →L[𝕜] X // is_Lprojection f } :=
-⟨λ P, ⟨1-P, P.prop.Lcomplement⟩⟩
+⟨λ P, ⟨1 - P, P.prop.Lcomplement⟩⟩
 
 @[simp] lemma coe_compl (P : {P : X →L[𝕜] X // is_Lprojection P}) :
-  ↑(Pᶜ) = (1:X →L[𝕜] X) - ↑P := rfl
+  ↑(Pᶜ) = (1 : X →L[𝕜] X) - ↑P := rfl
 
 instance : has_inf {P : X →L[𝕜] X // is_Lprojection P} :=
 ⟨λ P Q, ⟨P * Q, P.prop.mul Q.prop⟩ ⟩
@@ -200,16 +200,16 @@ instance : has_sup {P : X →L[𝕜] X // is_Lprojection P} :=
 ⟨λ P Q, ⟨P + Q - P * Q, P.prop.join Q.prop⟩ ⟩
 
 @[simp] lemma coe_sup (P Q : {P : X →L[𝕜] X // is_Lprojection P}) :
-  ↑(P ⊔ Q) = ((↑P:X →L[𝕜] X) + ↑Q - ↑P * ↑Q) := rfl
+  ↑(P ⊔ Q) = ((↑P : X →L[𝕜] X) + ↑Q - ↑P * ↑Q) := rfl
 
 instance : has_sdiff {P : X →L[𝕜] X // is_Lprojection P} :=
 ⟨λ P Q, ⟨P * (1-Q), by exact is_Lprojection.mul P.prop (is_Lprojection.Lcomplement Q.prop) ⟩⟩
 
 @[simp] lemma coe_sdiff (P Q : {P : X →L[𝕜] X // is_Lprojection P}) :
-  ↑(P \ Q) = (↑P:X →L[𝕜] X) * (1-↑Q) := rfl
+  ↑(P \ Q) = (↑P : X →L[𝕜] X) * (1 - ↑Q) := rfl
 
 instance : partial_order {P : X →L[𝕜] X // is_Lprojection P} :=
-{ le := λ P Q, (↑P:X →L[𝕜] X) = ↑(P ⊓ Q),
+{ le := λ P Q, (↑P : X →L[𝕜] X) = ↑(P ⊓ Q),
   le_refl := λ P, by simpa only [coe_inf, ←sq] using (projection_def P.prop.left).symm,
   le_trans := λ P Q R h₁ h₂, by { simp only [coe_inf] at ⊢ h₁ h₂, rw [h₁, mul_assoc, ←h₂] },
   le_antisymm := λ P Q h₁ h₂, subtype.eq (by convert (commute P.prop Q.prop).eq) }
@@ -232,25 +232,25 @@ rfl
 
 instance : bounded_order {P : X →L[𝕜] X // is_Lprojection P} :=
 { top := 1,
-  le_top := λ P, (by rw mul_one : (↑P:X →L[𝕜] X) = ↑P * 1),
+  le_top := λ P, (by rw mul_one : (↑P: X  →L[𝕜] X) = ↑P * 1),
   bot := 0,
   bot_le := λ P, show 0 ≤ P, from zero_mul P, }
 
-@[simp] lemma coe_bot : ↑(bounded_order.bot : {P : X →L[𝕜] X // is_Lprojection P}) = (0: X →L[𝕜] X)
+@[simp] lemma coe_bot : ↑(bounded_order.bot : {P : X →L[𝕜] X // is_Lprojection P}) = (0 : X →L[𝕜] X)
   := rfl
 
-@[simp] lemma coe_top : ↑(bounded_order.top : {P : X →L[𝕜] X // is_Lprojection P}) = (1: X →L[𝕜] X)
+@[simp] lemma coe_top : ↑(bounded_order.top : {P : X →L[𝕜] X // is_Lprojection P}) = (1 : X →L[𝕜] X)
   := rfl
 
 lemma compl_mul_left {P : {P : X →L[𝕜] X // is_Lprojection P}} {Q: X →L[𝕜] X} :
   Q - ↑P * Q = ↑Pᶜ * Q := by rw [coe_compl, sub_mul, one_mul]
 
 lemma compl_orthog {P : {P : X →L[𝕜] X // is_Lprojection P}} :
-  (↑P: X →L[𝕜] X) * (↑ Pᶜ) = 0 :=
+  (↑P : X →L[𝕜] X) * (↑Pᶜ) = 0 :=
 by rw [coe_compl, mul_sub, ← sq, mul_one, projection_def P.prop.left, sub_self]
 
 lemma distrib_lattice_lemma {P Q R : {P : X →L[𝕜] X // is_Lprojection P}} :
-  ((↑P:X →L[𝕜] X) + ↑Pᶜ * R) * (↑P + ↑Q * ↑R * ↑Pᶜ) = (↑P + ↑Q * ↑R * ↑Pᶜ) :=
+  ((↑P : X →L[𝕜] X) + ↑Pᶜ * R) * (↑P + ↑Q * ↑R * ↑Pᶜ) = (↑P + ↑Q * ↑R * ↑Pᶜ) :=
 by rw [add_mul, mul_add, mul_add, mul_assoc ↑Pᶜ ↑R (↑Q * ↑R * ↑Pᶜ), ← mul_assoc ↑R (↑Q*↑R)  ↑Pᶜ,
     ← coe_inf Q, commute.eq (commute Pᶜ.prop R.prop), commute.eq (commute (Q⊓R).prop Pᶜ.prop),
     commute.eq (commute R.prop (Q⊓R).prop), coe_inf Q, mul_assoc ↑Q, ← mul_assoc, mul_assoc ↑R,

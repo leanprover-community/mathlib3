@@ -5,7 +5,7 @@ Authors: Arthur Paulino, Damiano Testa
 -/
 import data.polynomial.degree.definitions
 
-/-!  # A tactic for sorting sums  -/
+/-!  # A tactic for sorting sums -/
 
 namespace tactic.interactive
 
@@ -18,7 +18,7 @@ meta def get_summands : expr → list expr
 | a            := [a]
 
 section with_rel
-#check nontriviality
+
 /--  We sort the elements of the list `l`, making sure that the elements of `t` appear at the
 end of the list.
 
@@ -134,9 +134,17 @@ example
 begin
   -- `convert hp using 1, ac_refl,` works and takes 6s,
   -- `sort_monomials at ⊢ hp, assumption` takes under 300ms
-  sort_monomials [(g : R[X]), (5 * X : R[X])] at ⊢ hp,
-  sort_monomials [(5 * X : R[X]), monomial 2 t],
+  sort_monomials [g, (5 * X : R[X]), g, 3, f] at ⊢ hp,
+  sort_monomials [(5 * X : R[X]), monomial 2 t, monomial 0 s],
   sort_monomials at ⊢ hp,
+  assumption,
+end
+
+example (hp : f = g) :
+  7 + f + (monomial 3 r + 42) + h = monomial 3 r + h + g + 7 + 42 :=
+begin
+  sort_monomials [f, g],
+  congr,
   assumption,
 end
 

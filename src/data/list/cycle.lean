@@ -600,8 +600,14 @@ quotient.lift_on' s (λ l, (l : multiset α)) (λ l₁ l₂ (h : l₁ ~r l₂), 
 @[simp] lemma coe_to_multiset (l : list α) : (l : cycle α).to_multiset = l :=
 rfl
 
-@[simp] lemma nil_to_multiset : nil.to_multiset = (∅ : multiset α) :=
+@[simp] lemma nil_to_multiset : nil.to_multiset = (0 : multiset α) :=
 rfl
+
+@[simp] lemma card_to_multiset (s : cycle α) : s.to_multiset.card = s.length :=
+quotient.induction_on' s (by simp)
+
+@[simp] lemma to_multiset_eq_nil {s : cycle α} : s.to_multiset = 0 ↔ s = cycle.nil :=
+quotient.induction_on' s (by simp)
 
 /-- The lift of `list.map`. -/
 def map {β : Type*} (f : α → β) : cycle α → cycle β :=
@@ -672,6 +678,9 @@ rfl
 
 @[simp] lemma nil_to_finset : (@nil α).to_finset = ∅ :=
 rfl
+
+@[simp] lemma to_finset_eq_nil {s : cycle α} : s.to_finset = ∅ ↔ s = cycle.nil :=
+quotient.induction_on' s (by simp)
 
 /-- Given a `s : cycle α` such that `nodup s`, retrieve the next element after `x ∈ s`. -/
 def next : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=

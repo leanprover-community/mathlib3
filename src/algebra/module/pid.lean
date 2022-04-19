@@ -39,11 +39,13 @@ Finitely generated module, principal ideal domain, classification
 universes u v
 open_locale big_operators
 
-section split_exact
+section split_exact --where to move ??
 open add_monoid_hom
 variables  {R A M B : Type*} [semiring R] [add_comm_group A] [module R A]
   [add_comm_group B] [module R B] [add_comm_group M] [module R M]
 
+/--The isomorphism `A × B ≃+ M` coming from a split exact sequence `0 → A → M → B → 0` of abelian
+groups.-/
 noncomputable def equiv_prod_of_split_exact (j : A →+ M) (g : M →+ B) (f : B →+ M)
   (hj : function.injective j) (exac : j.range = g.ker) (h : g.comp f = add_monoid_hom.id B) :
   (A × B) ≃+ M :=
@@ -64,6 +66,8 @@ begin
     rw [(this x).some_spec, sub_add_cancel] }
 end
 
+/--The isomorphism `A × B ≃ₗ[R] M` coming from a split exact sequence `0 → A → M → B → 0` of
+modules.-/
 noncomputable def lequiv_prod_of_split_exact (j : A →ₗ[R] M) (g : M →ₗ[R] B) (f : B →ₗ[R] M)
   (hj : function.injective j) (exac : j.range = g.ker) (h : g.comp f = linear_map.id) :
   (A × B) ≃ₗ[R] M :=
@@ -75,18 +79,6 @@ begin
   { ext x, exact congr_arg (λ f : B →ₗ[R] B, f x) h }
 end
 end split_exact
-
-namespace submodule
-variables {R M R₂ M₂ : Type*} [ring R] [add_comm_group M] [module R M]
-  [ring R₂] [add_comm_group M₂] [module R₂ M₂] {τ₁₂ : R →+* R₂}
-
-def liftq_span_singleton (x : M) (f : M →ₛₗ[τ₁₂] M₂) (h : f x = 0) : (M ⧸ R ∙ x) →ₛₗ[τ₁₂] M₂ :=
-(R ∙ x).liftq f $ by rw [span_singleton_le_iff_mem, linear_map.mem_ker, h]
-
-@[simp] lemma liftq_span_singleton_apply (x : M) (f : M →ₛₗ[τ₁₂] M₂) (h : f x = 0) (y : M) :
-liftq_span_singleton x f h (quotient.mk y) = f y := rfl
-
-end submodule
 
 variables {R : Type u} [comm_ring R] [is_domain R] [is_principal_ideal_ring R]
 variables {M : Type v} [add_comm_group M] [module R M]

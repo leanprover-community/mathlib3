@@ -232,6 +232,14 @@ def liftq (f : M →ₛₗ[τ₁₂] M₂) (h : p ≤ f.ker) : M ⧸ p →ₛₗ
 @[simp] theorem liftq_mkq (f : M →ₛₗ[τ₁₂] M₂) (h) : (p.liftq f h).comp p.mkq = f :=
 by ext; refl
 
+/--Special case of `liftq` when `p` is the span of `x`. In this case, the condition on `f` simply
+becomes vanishing at `x`.-/
+def liftq_span_singleton (x : M) (f : M →ₛₗ[τ₁₂] M₂) (h : f x = 0) : (M ⧸ R ∙ x) →ₛₗ[τ₁₂] M₂ :=
+(R ∙ x).liftq f $ by rw [span_singleton_le_iff_mem, linear_map.mem_ker, h]
+
+@[simp] lemma liftq_span_singleton_apply (x : M) (f : M →ₛₗ[τ₁₂] M₂) (h : f x = 0) (y : M) :
+liftq_span_singleton x f h (quotient.mk y) = f y := rfl
+
 @[simp] theorem range_mkq : p.mkq.range = ⊤ :=
 eq_top_iff'.2 $ by rintro ⟨x⟩; exact ⟨x, rfl⟩
 

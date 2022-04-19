@@ -62,22 +62,16 @@ namespace subalgebra
 
 instance is_localization_subalgebra :
   is_localization S (subalgebra K S hS) :=
-is_localization.is_localization_of_alg_equiv S $
-show localization S ≃ₐ[A] subalgebra K S hS, from
-alg_equiv.of_bijective
-(alg_hom.comp (subalgebra.equiv_of_eq _ _ $ subalgebra.copy_eq _ _ _).symm.to_alg_hom
-  (map_to_fraction_ring K S (localization S) hS).range_restrict)
-sorry
-
-/-
-is_localization.is_localization_of_alg_equiv S
-{ commutes' := λ x, by { ext, apply is_localization.lift_eq } .. ring_equiv.of_bijective _
-  ⟨ begin
-      refine λ a b h, (is_localization.lift_injective_iff _).2 (λ a b, _) (subtype.ext_iff.1 h),
-      exact ⟨ λ h, congr_arg _ (is_localization.injective _ hS h),
-              λ h, congr_arg _ (is_fraction_ring.injective A K h) ⟩,
-    end, ring_hom.range_restrict_surjective _ ⟩ }
--/
+begin
+  dunfold localization.subalgebra, rw subalgebra.copy_eq,
+  exact is_localization.is_localization_of_alg_equiv S
+  { commutes' := λ x, by { ext, apply is_localization.lift_eq } .. ring_equiv.of_bijective _
+    ⟨ begin
+        refine λ a b h, (is_localization.lift_injective_iff _).2 (λ a b, _) (subtype.ext_iff.1 h),
+        exact ⟨ λ h, congr_arg _ (is_localization.injective _ hS h),
+                λ h, congr_arg _ (is_fraction_ring.injective A K h) ⟩,
+      end, ring_hom.range_restrict_surjective _ ⟩ },
+end
 
 instance is_fraction_ring : is_fraction_ring (subalgebra K S hS) K :=
 is_fraction_ring.is_fraction_ring_of_is_localization S _ _ hS

@@ -26,15 +26,16 @@ Use as `t.rev_top_sort l rel`.
  -/
 def list.rev_top_sort {N : Type*} [decidable_eq N] (t l : list N) (rel : N → N → bool) :
   list N :=
-let tl := t.dedup.filter (∈ l) in tl.reverse ++ (l.filter (∈ tl)).qsort rel
+let tl := t.dedup.filter (∈ l) in tl.reverse ++ (l.filter (∉ tl)).qsort rel
 
-/--  Let `rel : expr → expr → bool` be a relation and let `e` be an expression.
-`sorted_sum_with_rel rel e` returns an ordered sum of the terms of `e`, where the order is
-determined using the relation `rel`.
+/--  Let `rel : expr → expr → bool` be a relation, `t` a list of expressions and `e` an expression.
+`sorted_sum_with_rel rel t e` returns an ordered sum of the terms of `e`, where the order is
+determined using the relation `rel`, except that the elements from the list `t` appear reversed and
+last in the sum.
 
 We use this function for expressions in an additive commutative semigroup. -/
-meta def sorted_sum_with_rel (hyp : option name) (rel : expr → expr → bool) (e : expr) :
-  tactic unit :=
+meta def sorted_sum_with_rel
+  (hyp : option name) (rel : expr → expr → bool) (t : list expr) (e : expr) : tactic unit :=
 match (get_summands e).qsort rel with
 | eₕ::es := do
   e' ← es.mfoldl (λ eₗ eᵣ, mk_app `has_add.add [eₗ, eᵣ]) eₕ,
@@ -60,16 +61,17 @@ end
 
 /-- Partially traverses an expression in search for a sum of terms.
 When `recurse_on_expr` finds a sum, it sorts it using `sorted_sum_with_rel`. -/
-meta def recurse_on_expr (hyp : option name) (rel : expr → expr → bool) : expr → tactic unit
-| e@`(%%_ + %%_)     := sorted_sum_with_rel hyp rel e
+meta def recurse_on_expr (t : list expr) (hyp : option name) (rel : expr → expr → bool) :
+  expr → tactic unit
+| e@`(%%_ + %%_)     := sorted_sum_with_rel hyp rel t e
 | (expr.lam _ _ _ e) := recurse_on_expr e
 | (expr.pi  _ _ _ e) := recurse_on_expr e
 | e                  := e.get_app_args.mmap' recurse_on_expr
 
 /-- Calls `recurse_on_expr` with the right expression, depending on the tactic location. -/
-meta def sort_summands (rel : expr → expr → bool) : option name → tactic unit
-| (some hyp) := get_local hyp >>= infer_type >>= recurse_on_expr hyp rel
-| none       := target >>= recurse_on_expr none rel
+meta def sort_summands (rel : expr → expr → bool) (t : list expr) : option name → tactic unit
+| (some hyp) := get_local hyp >>= infer_type >>= recurse_on_expr t hyp rel
+| none       := target >>= recurse_on_expr t none rel
 
 end with_rel
 
@@ -94,9 +96,10 @@ match (monomial_weight eₗ, monomial_weight eᵣ) with
 | (some l, some r) := l ≤ r
 end
 
-meta def sort_monomials_core (allow_failure : bool) (hyp : option name) : tactic unit :=
-if allow_failure then sort_summands compare_fn hyp <|> skip
-else sort_summands compare_fn hyp
+meta def sort_monomials_core (allow_failure : bool) (t : list expr) (hyp : option name) :
+  tactic unit :=
+if allow_failure then sort_summands compare_fn t hyp <|> skip
+else sort_summands compare_fn t hyp
 
 /-- If the target is an equality involving monomials,
 then  `sort_monomials` sorts the summands on either side of the equality. -/
@@ -105,12 +108,12 @@ do
   l : list expr ← (l.get_or_else []).mmap to_expr,
   match locat with
   | loc.wildcard := do
-    sort_monomials_core tt none,
+    sort_monomials_core tt l none,
     ctx ← local_context,
-    ctx.mmap (λ e, sort_monomials_core tt (expr.local_pp_name e)),
+    ctx.mmap (λ e, sort_monomials_core tt l (expr.local_pp_name e)),
     skip
   | loc.ns names := do
-    names.mmap $ sort_monomials_core ff,
+    names.mmap $ sort_monomials_core ff l,
     skip
   end
 
@@ -131,8 +134,8 @@ example
 begin
   -- `convert hp using 1, ac_refl,` works and takes 6s,
   -- `sort_monomials at ⊢ hp, assumption` takes under 300ms
-  sort_monomials,
-  sort_monomials at ⊢ hp,
+  sort_monomials [g] at ⊢ hp,
+  sort_monomials g,
   sort_monomials at hp, -- does nothing more
   assumption,
 end

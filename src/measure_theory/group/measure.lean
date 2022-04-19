@@ -3,6 +3,7 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
+import dynamics.ergodic.measure_preserving
 import measure_theory.measure.regular
 import measure_theory.group.measurable_equiv
 import measure_theory.measure.open_pos
@@ -34,12 +35,12 @@ namespace measure
 /-- A measure `μ` on a measurable additive group is left invariant
   if the measure of left translations of a set are equal to the measure of the set itself. -/
 class is_add_left_invariant [has_add G] (μ : measure G) : Prop :=
-( map_add_left_eq_self : ∀ g : G, map ((+) g) μ = μ)
+(map_add_left_eq_self : ∀ g : G, map ((+) g) μ = μ)
 
 /-- A measure `μ` on a measurable group is left invariant
   if the measure of left translations of a set are equal to the measure of the set itself. -/
 @[to_additive] class is_mul_left_invariant [has_mul G] (μ : measure G) : Prop :=
-( map_mul_left_eq_self : ∀ g : G, map ((*) g) μ = μ)
+(map_mul_left_eq_self : ∀ g : G, map ((*) g) μ = μ)
 
 /-- A measure `μ` on a measurable additive group is right invariant
   if the measure of right translations of a set are equal to the measure of the set itself. -/
@@ -66,9 +67,31 @@ is_mul_left_invariant.map_mul_left_eq_self g
 lemma map_mul_right_eq_self (μ : measure G) [is_mul_right_invariant μ] (g : G) : map (* g) μ = μ :=
 is_mul_right_invariant.map_mul_right_eq_self g
 
-/-- An alternative way to prove that `μ` is left invariant under multiplication. -/
 @[to_additive]
-lemma forall_measure_preimage_mul_iff [has_measurable_mul G] (μ : measure G) :
+instance [is_mul_left_invariant μ] (c : ℝ≥0∞) : is_mul_left_invariant (c • μ) :=
+⟨λ g, by rw [map_smul, map_mul_left_eq_self]⟩
+
+@[to_additive]
+instance [is_mul_right_invariant μ] (c : ℝ≥0∞) : is_mul_right_invariant (c • μ) :=
+⟨λ g, by rw [map_smul, map_mul_right_eq_self]⟩
+
+section has_measurable_mul
+
+variables  [has_measurable_mul G]
+
+@[to_additive]
+lemma measure_preserving_mul_left (μ : measure G) [is_mul_left_invariant μ] (g : G) :
+  measure_preserving ((*) g) μ μ :=
+⟨measurable_const_mul g, map_mul_left_eq_self μ g⟩
+
+@[to_additive]
+lemma measure_preserving_mul_right (μ : measure G) [is_mul_right_invariant μ] (g : G) :
+  measure_preserving (* g) μ μ :=
+⟨measurable_mul_const g, map_mul_right_eq_self μ g⟩
+
+/-- An alternative way to prove that `μ` is left invariant under multiplication. -/
+@[to_additive /-" An alternative way to prove that `μ` is left invariant under addition. "-/]
+lemma forall_measure_preimage_mul_iff (μ : measure G) :
   (∀ (g : G) (A : set G), measurable_set A → μ ((λ h, g * h) ⁻¹' A) = μ A) ↔
   is_mul_left_invariant μ :=
 begin
@@ -79,9 +102,9 @@ begin
   exact ⟨λ h, ⟨h⟩, λ h, h.1⟩
 end
 
-/-- An alternative way to prove that `μ` is left invariant under multiplication. -/
-@[to_additive]
-lemma forall_measure_preimage_mul_right_iff [has_measurable_mul G] (μ : measure G) :
+/-- An alternative way to prove that `μ` is right invariant under multiplication. -/
+@[to_additive /-" An alternative way to prove that `μ` is right invariant under addition. "-/]
+lemma forall_measure_preimage_mul_right_iff (μ : measure G) :
   (∀ (g : G) (A : set G), measurable_set A → μ ((λ h, h * g) ⁻¹' A) = μ A) ↔
   is_mul_right_invariant μ :=
 begin
@@ -92,13 +115,7 @@ begin
   exact ⟨λ h, ⟨h⟩, λ h, h.1⟩
 end
 
-@[to_additive]
-instance [is_mul_left_invariant μ] (c : ℝ≥0∞) : is_mul_left_invariant (c • μ) :=
-⟨λ g, by rw [map_smul, map_mul_left_eq_self]⟩
-
-@[to_additive]
-instance [is_mul_right_invariant μ] (c : ℝ≥0∞) : is_mul_right_invariant (c • μ) :=
-⟨λ g, by rw [map_smul, map_mul_right_eq_self]⟩
+end has_measurable_mul
 
 end mul
 
@@ -129,6 +146,21 @@ lemma measure_preimage_mul_right (μ : measure G) [is_mul_right_invariant μ] (g
 calc μ ((λ h, h * g) ⁻¹' A) = map (λ h, h * g) μ A :
   ((measurable_equiv.mul_right g).map_apply A).symm
 ... = μ A : by rw map_mul_right_eq_self μ g
+
+@[to_additive]
+lemma map_mul_left_ae (μ : measure G) [is_mul_left_invariant μ] (x : G) :
+  filter.map (λ h, x * h) μ.ae = μ.ae :=
+((measurable_equiv.mul_left x).map_ae μ).trans $ congr_arg ae $ map_mul_left_eq_self μ x
+
+@[to_additive]
+lemma map_mul_right_ae (μ : measure G) [is_mul_right_invariant μ] (x : G) :
+  filter.map (λ h, h * x) μ.ae = μ.ae :=
+((measurable_equiv.mul_right x).map_ae μ).trans $ congr_arg ae $ map_mul_right_eq_self μ x
+
+@[to_additive]
+lemma map_div_right_ae (μ : measure G) [is_mul_right_invariant μ] (x : G) :
+  filter.map (λ t, t / x) μ.ae = μ.ae :=
+((measurable_equiv.div_right x).map_ae μ).trans $ congr_arg ae $ map_div_right_eq_self μ x
 
 end group
 
@@ -229,6 +261,11 @@ begin
   conv_rhs { rw [← map_inv_eq_self μ, ← map_mul_left_eq_self μ g] },
   exact (map_map measurable_inv (measurable_const_mul g)).symm
 end
+
+@[to_additive]
+lemma map_div_left_ae (μ : measure G) [is_mul_left_invariant μ] [is_inv_invariant μ] (x : G) :
+  filter.map (λ t, x / t) μ.ae = μ.ae :=
+((measurable_equiv.div_left x).map_ae μ).trans $ congr_arg ae $ map_div_left_eq_self μ x
 
 end mul_inv
 

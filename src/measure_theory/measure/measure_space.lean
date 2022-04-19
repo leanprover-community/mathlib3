@@ -1731,6 +1731,10 @@ protected lemma id {m0 : measurable_space α} (μ : measure α) : quasi_measure_
 
 variables {μa μa' : measure α} {μb μb' : measure β} {μc : measure γ} {f : α → β}
 
+protected lemma _root_.measurable.quasi_measure_preserving {m0 : measurable_space α}
+  (hf : measurable f) (μ : measure α) : quasi_measure_preserving f μ (μ.map f) :=
+⟨hf, absolutely_continuous.rfl⟩
+
 lemma mono_left (h : quasi_measure_preserving f μa μb)
   (ha : μa' ≪ μa) : quasi_measure_preserving f μa' μb :=
 ⟨h.1, (ha.map h.1).trans h.2⟩
@@ -3018,6 +3022,9 @@ by rw [← (map_measurable_equiv_injective e).eq_iff, map_map_symm, eq_comm]
 
 lemma restrict_map (e : α ≃ᵐ β) (s : set β) : (μ.map e).restrict s = (μ.restrict $ e ⁻¹' s).map e :=
 e.measurable_embedding.restrict_map _ _
+
+lemma map_ae (f : α ≃ᵐ β) (μ : measure α) : filter.map f μ.ae = (map f μ).ae :=
+by { ext s, simp_rw [mem_map, mem_ae_iff, ← preimage_compl, f.map_apply] }
 
 end measurable_equiv
 

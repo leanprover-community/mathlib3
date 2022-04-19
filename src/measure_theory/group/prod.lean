@@ -33,7 +33,7 @@ The proof in [Halmos] seems to contain an omission in §60 Th. A, see
 -/
 
 noncomputable theory
-open set (hiding prod_eq) function measure_theory
+open set (hiding prod_eq) function measure_theory filter (hiding map)
 open_locale classical ennreal pointwise measure_theory
 
 variables (G : Type*) [measurable_space G]
@@ -278,6 +278,16 @@ begin
   ext1 F hF,
   rw [smul_apply, smul_eq_mul, mul_comm, ← mul_div_assoc, mul_comm,
     measure_mul_measure_eq μ ν hE hF h2E h3E, mul_div_assoc, ennreal.mul_div_cancel' h2E h3E]
+end
+
+@[to_additive]
+lemma quasi_measure_preserving_div [is_mul_right_invariant μ] :
+  quasi_measure_preserving (λ (p : G × G), p.1 / p.2) (μ.prod μ) μ :=
+begin
+  refine quasi_measure_preserving.prod_of_left measurable_div _,
+  simp_rw [div_eq_mul_inv],
+  apply eventually_of_forall,
+  refine λ y, ⟨measurable_mul_const y⁻¹, (map_mul_right_eq_self μ y⁻¹).absolutely_continuous⟩
 end
 
 end measure_theory

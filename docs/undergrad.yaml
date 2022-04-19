@@ -124,7 +124,7 @@ Group Theory:
 Ring Theory:
   Fundamentals:
     ring: 'ring'
-    subrings: 'is_subring'
+    subrings: 'subring'
     ring morphisms: 'ring_hom'
     ring structure $\Z$: 'int.comm_ring'
     product of rings: 'pi.ring'

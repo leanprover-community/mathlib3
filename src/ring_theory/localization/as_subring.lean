@@ -89,7 +89,7 @@ section field
 variables [field K] [algebra A K] [is_fraction_ring A K]
 namespace subalgebra
 
-lemma mem_iff_of_field (B : Type*) [comm_ring B] [algebra A B] [is_localization S B] (x : K) :
+lemma mem_range_map_to_fraction_ring_iff_of_field (B : Type*) [comm_ring B] [algebra A B] [is_localization S B] (x : K) :
   x ∈ (map_to_fraction_ring K S B hS).range ↔
     ∃ (a s : A) (hs : s ∈ S), x = algebra_map A K a * (algebra_map A K s)⁻¹ :=
 begin
@@ -99,6 +99,12 @@ begin
   { rintro ⟨a,s,rfl⟩, use [a,s,s.2], rw is_unit.coe_lift_right, refl },
   { rintro ⟨a,s,hs,rfl⟩, use [a,s,hs], rw is_unit.coe_lift_right, refl },
 end
+
+noncomputable
+def subalgebra_of_field : _root_.subalgebra A K :=
+(map_to_fraction_ring K S (localization S) hS).range.copy
+{ x | ∃ (a s : A) (hs : s ∈ S), x = algebra_map A K a * (algebra_map A K s)⁻¹ } $
+by { ext, exact (mem_range_map_to_fraction_ring_iff_of_field _ _ _ _ _).symm }
 
 end subalgebra
 end field

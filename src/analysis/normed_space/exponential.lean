@@ -65,7 +65,7 @@ open_locale nat topological_space big_operators ennreal
 
 section topological_algebra
 
-variables (𝕂 𝔸 : Type*) [field 𝕂] [ring 𝔸] [algebra 𝕂 𝔸] [topological_space 𝔸]
+variables (𝕂 𝔸 𝔹 : Type*) [field 𝕂] [ring 𝔸] [algebra 𝕂 𝔸] [topological_space 𝔸]
   [topological_ring 𝔸] [has_continuous_const_smul 𝕂 𝔸]
 
 /-- `exp_series 𝕂 𝔸` is the `formal_multilinear_series` whose `n`-th term is the map
@@ -77,7 +77,7 @@ def exp_series : formal_multilinear_series 𝕂 𝔸 𝔸 :=
 It is defined as the sum of the `formal_multilinear_series` `exp_series 𝕂 𝔸`. -/
 noncomputable def exp (x : 𝔸) : 𝔸 := (exp_series 𝕂 𝔸).sum x
 
-variables {𝕂 𝔸}
+variables {𝕂 𝔸 𝔹}
 
 lemma exp_series_apply_eq (x : 𝔸) (n : ℕ) : exp_series 𝕂 𝔸 n (λ _, x) = (1 / n! : 𝕂) • x^n :=
 by simp [exp_series]
@@ -258,18 +258,23 @@ lemma inv_of_exp_of_mem_ball [char_zero 𝕂] {x : 𝔸}
   ⅟(exp 𝕂 𝔸 x) = exp 𝕂 𝔸 (-x) :=
 by { letI := invertible_exp_of_mem_ball hx, convert (rfl : ⅟(exp 𝕂 𝔸 x) = _) }
 
+/-- Any continuous ring homomorphism commutes with `exp`. -/
+lemma map_exp_of_mem_ball {F} [ring_hom_class F 𝔸 𝔹] (f : F) (hf : continuous f) (x : 𝔸)
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  f (exp 𝕂 𝔸 x) = exp 𝕂 𝔹 (f x) :=
+begin
+  rw [exp_eq_tsum, exp_eq_tsum],
+  refine ((exp_series_summable_of_mem_ball' _ hx).has_sum.map f hf).tsum_eq.symm.trans _,
+  dsimp only [function.comp],
+  simp_rw [one_div, map_inv_nat_cast_smul f 𝕂 𝕂, map_pow],
+end
+
 end complete_algebra
 
 lemma algebra_map_exp_comm_of_mem_ball [complete_space 𝕂] (x : 𝕂)
   (hx : x ∈ emetric.ball (0 : 𝕂) (exp_series 𝕂 𝕂).radius) :
   algebra_map 𝕂 𝔸 (exp 𝕂 𝕂 x) = exp 𝕂 𝔸 (algebra_map 𝕂 𝔸 x) :=
-begin
-  convert (algebra_map_clm 𝕂 𝔸).map_tsum (exp_series_field_summable_of_mem_ball x hx),
-  { exact congr_fun exp_eq_tsum_field x },
-  { convert congr_fun (exp_eq_tsum : exp 𝕂 𝔸 = _) (algebra_map 𝕂 𝔸 x),
-    simp_rw [←map_pow, ←algebra_map_clm_coe, ←(algebra_map_clm 𝕂 𝔸).map_smul, smul_eq_mul,
-      mul_comm, ←div_eq_mul_one_div], }
-end
+map_exp_of_mem_ball _ (algebra_map_clm _ _).continuous _ hx
 
 end any_field_any_algebra
 
@@ -307,7 +312,8 @@ section is_R_or_C
 
 section any_algebra
 
-variables (𝕂 𝔸 : Type*) [is_R_or_C 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables (𝕂 𝔸 𝔹 : Type*) [is_R_or_C 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables [normed_ring 𝔹] [normed_algebra 𝕂 𝔹]
 
 /-- In a normed algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, the series defining the exponential map
 has an infinite radius of convergence. -/
@@ -329,7 +335,7 @@ begin
   exact with_top.zero_lt_top
 end
 
-variables {𝕂 𝔸}
+variables {𝕂 𝔸 𝔹}
 
 section complete_algebra
 
@@ -443,11 +449,38 @@ begin
   { rw [succ_nsmul, pow_succ, exp_add_of_commute ((commute.refl x).smul_right n), ih] }
 end
 
+variables (𝕂)
+
+/-- Any continuous ring homomorphism commutes with `exp`. -/
+lemma map_exp {F} [ring_hom_class F 𝔸 𝔹] (f : F) (hf : continuous f) (x : 𝔸)  :
+  f (exp 𝕂 𝔸 x) = exp 𝕂 𝔹 (f x) :=
+map_exp_of_mem_ball f hf x $ (exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _
+
+lemma exp_smul {G} [monoid G] [mul_semiring_action G 𝔸] [has_continuous_const_smul G 𝔸]
+  (g : G) (x : 𝔸) :
+  exp 𝕂 𝔸 (g • x) = g • exp 𝕂 𝔸 x :=
+(map_exp 𝕂 (mul_semiring_action.to_ring_hom G 𝔸 g) (continuous_const_smul _) x).symm
+
+lemma exp_units_conj (y : 𝔸ˣ) (x : 𝔸)  :
+  exp 𝕂 𝔸 (y * x * ↑(y⁻¹)) = y * exp 𝕂 𝔸 x * ↑(y⁻¹) :=
+exp_smul _ (conj_act.to_conj_act y) x
+
+lemma exp_units_conj' (y : 𝔸ˣ) (x : 𝔸)  :
+  exp 𝕂 𝔸 (↑(y⁻¹) * x * y) = ↑(y⁻¹) * exp 𝕂 𝔸 x * y :=
+exp_units_conj _ _ _
+
+@[simp] lemma prod.fst_exp [complete_space 𝔹] (x : 𝔸 × 𝔹) : (exp 𝕂 (𝔸 × 𝔹) x).fst = exp 𝕂 𝔸 x.fst :=
+map_exp _ (ring_hom.fst 𝔸 𝔹) continuous_fst x
+
+@[simp] lemma prod.snd_exp [complete_space 𝔹] (x : 𝔸 × 𝔹) : (exp 𝕂 (𝔸 × 𝔹) x).snd = exp 𝕂 𝔹 x.snd :=
+map_exp _ (ring_hom.snd 𝔸 𝔹) continuous_snd x
+
 end complete_algebra
 
 lemma algebra_map_exp_comm (x : 𝕂) :
   algebra_map 𝕂 𝔸 (exp 𝕂 𝕂 x) = exp 𝕂 𝔸 (algebra_map 𝕂 𝔸 x) :=
-algebra_map_exp_comm_of_mem_ball x (by simp [exp_series_radius_eq_top])
+algebra_map_exp_comm_of_mem_ball x $
+  (exp_series_radius_eq_top 𝕂 𝕂).symm ▸ edist_lt_top _ _
 
 end any_algebra
 
@@ -465,6 +498,14 @@ begin
   { rw [zpow_coe_nat, coe_nat_zsmul, exp_nsmul] },
   { rw [zpow_neg₀, zpow_coe_nat, neg_smul, exp_neg, coe_nat_zsmul, exp_nsmul] },
 end
+
+lemma exp_conj (y : 𝔸) (x : 𝔸) (hy : y ≠ 0) :
+  exp 𝕂 𝔸 (y * x * y⁻¹) = y * exp 𝕂 𝔸 x * y⁻¹ :=
+exp_units_conj _ (units.mk0 y hy) x
+
+lemma exp_conj' (y : 𝔸) (x : 𝔸)  (hy : y ≠ 0) :
+  exp 𝕂 𝔸 (y⁻¹ * x * y) = y⁻¹ * exp 𝕂 𝔸 x * y :=
+exp_units_conj' _ (units.mk0 y hy) x
 
 end division_algebra
 

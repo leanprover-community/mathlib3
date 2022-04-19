@@ -299,20 +299,21 @@ lemma map_div [field k] (f : R →+* k) :
   (p / q).map f = p.map f / q.map f :=
 if hq0 : q = 0 then by simp [hq0]
 else
-by rw [div_def, div_def, map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
+by rw [div_def, div_def, polynomial.map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
   simp [f.map_inv, coeff_map f]
 
 lemma map_mod [field k] (f : R →+* k) :
   (p % q).map f = p.map f % q.map f :=
 if hq0 : q = 0 then by simp [hq0]
 else by rw [mod_def, mod_def, leading_coeff_map f, ← f.map_inv, ← map_C f,
-  ← map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
+  ← polynomial.map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
 
 section
 open euclidean_domain
 theorem gcd_map [field k] (f : R →+* k) :
   gcd (p.map f) (q.map f) = (gcd p q).map f :=
-gcd.induction p q (λ x, by simp_rw [map_zero, euclidean_domain.gcd_zero_left]) $ λ x y hx ih,
+gcd.induction p q (λ x, by simp_rw [polynomial.map_zero, euclidean_domain.gcd_zero_left]) $
+                    λ x y hx ih,
 by rw [gcd_val, ← map_mod, ih, ← gcd_val]
 end
 
@@ -442,11 +443,11 @@ by simp [comm_group_with_zero.coe_norm_unit _ this]
 lemma normalize_monic (h : monic p) : normalize p = p := by simp [h]
 
 theorem map_dvd_map' [field k] (f : R →+* k) {x y : R[X]} : x.map f ∣ y.map f ↔ x ∣ y :=
-if H : x = 0 then by rw [H, map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
+if H : x = 0 then by rw [H, polynomial.map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
 else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff R[X],
     normalize_apply, normalize_apply,
     coe_norm_unit_of_ne_zero H, coe_norm_unit_of_ne_zero (mt (map_eq_zero f).1 H),
-    leading_coeff_map, ← f.map_inv, ← map_C, ← map_mul,
+    leading_coeff_map, ← f.map_inv, ← map_C, ← polynomial.map_mul,
     map_dvd_map _ f.injective (monic_mul_leading_coeff_inv H)]
 
 lemma degree_normalize : degree (normalize p) = degree p := by simp

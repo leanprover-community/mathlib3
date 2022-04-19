@@ -387,7 +387,7 @@ protected lemma local_ring {A B : Type*} [comm_ring A] [local_ring A] [comm_ring
   local_ring B :=
 begin
   haveI := e.symm.to_equiv.nontrivial,
-  refine @local_of_surjective A B _ _ _ _ e e.to_equiv.surjective,
+  refine @local_ring.of_surjective A B _ _ _ _ e e.to_equiv.surjective,
 end
 
 end ring_equiv

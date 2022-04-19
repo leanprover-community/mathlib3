@@ -64,7 +64,7 @@ lemma prod_list_swap_mem_alternating_group_iff_even_length {l : list (perm α)}
   l.prod ∈ alternating_group α ↔ even l.length :=
 begin
   rw [mem_alternating_group, sign_prod_list_swap hl, ← units.coe_eq_one, units.coe_pow,
-    units.coe_neg_one, nat.neg_one_pow_eq_one_iff_even],
+    units.coe_neg_one, neg_one_pow_eq_one_iff_even],
   dec_trivial
 end
 
@@ -267,7 +267,7 @@ begin
   norm_num at ha,
   rw [pow_add, pow_mul, int.units_pow_two,one_mul,
       units.ext_iff, units.coe_one, units.coe_pow, units.coe_neg_one,
-      nat.neg_one_pow_eq_one_iff_even _] at ha,
+      neg_one_pow_eq_one_iff_even _] at ha,
   swap, { dec_trivial },
   rw [is_conj_iff_cycle_type_eq, h2],
   interval_cases multiset.card g.cycle_type,

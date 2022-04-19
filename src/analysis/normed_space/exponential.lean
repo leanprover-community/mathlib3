@@ -7,6 +7,7 @@ import analysis.specific_limits.basic
 import analysis.analytic.basic
 import analysis.complex.basic
 import data.nat.choose.cast
+import data.finset.noncomm_prod
 
 /-!
 # Exponential in a Banach algebra
@@ -31,6 +32,8 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
 - `exp_add_of_mem_ball` : if `𝕂` has characteristic zero and `𝔸` is commutative, then given two
   elements `x` and `y` in the disk of convergence, we have
   `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
+- `exp_neg_of_mem_ball` : if `𝕂` has characteristic zero and `𝔸` is a division ring, then given an
+  element `x` in the disk of convergence, we have `exp 𝕂 𝔸 (-x) = (exp 𝕂 𝔸 x)⁻¹`.
 
 ### `𝕂 = ℝ` or `𝕂 = ℂ`
 
@@ -40,6 +43,13 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
   `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
 - `exp_add` : if `𝔸` is commutative, then we have `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
   for any `x` and `y`
+- `exp_neg` : if `𝔸` is a division ring, then we have `exp 𝕂 𝔸 (-x) = (exp 𝕂 𝔸 x)⁻¹`.
+- `exp_sum_of_commute` : the analogous result to `exp_add_of_commute` for `finset.sum`.
+- `exp_sum` : the analogous result to `exp_add` for `finset.sum`.
+- `exp_nsmul` : repeated addition in the domain corresponds to repeated multiplication in the
+  codomain.
+- `exp_zsmul` : repeated addition in the domain corresponds to repeated multiplication in the
+  codomain.
 
 ### Other useful compatibility results
 
@@ -95,7 +105,7 @@ funext exp_series_sum_eq
 lemma exp_eq_tsum_field : exp 𝕂 𝕂 = (λ x : 𝕂, ∑' (n : ℕ), x^n / n!) :=
 funext exp_series_sum_eq_field
 
-lemma exp_zero : exp 𝕂 𝔸 0 = 1 :=
+@[simp] lemma exp_zero : exp 𝕂 𝔸 0 = 1 :=
 begin
   suffices : (λ x : 𝔸, ∑' (n : ℕ), (1 / n! : 𝕂) • x^n) 0 = ∑' (n : ℕ), if n = 0 then 1 else 0,
   { have key : ∀ n ∉ ({0} : finset ℕ), (if n = 0 then (1 : 𝔸) else 0) = 0,
@@ -208,6 +218,34 @@ begin
   field_simp [this]
 end
 
+/-- `exp 𝕂 𝔸 x` has explicit two-sided inverse `exp 𝕂 𝔸 (-x)`. -/
+noncomputable def invertible_exp_of_mem_ball [char_zero 𝕂] {x : 𝔸}
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) : invertible (exp 𝕂 𝔸 x) :=
+{ inv_of := exp 𝕂 𝔸 (-x),
+  inv_of_mul_self := begin
+    have hnx : -x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius,
+    { rw [emetric.mem_ball, ←neg_zero, edist_neg_neg],
+      exact hx },
+    rw [←exp_add_of_commute_of_mem_ball (commute.neg_left $ commute.refl x) hnx hx, neg_add_self,
+      exp_zero],
+  end,
+  mul_inv_of_self := begin
+    have hnx : -x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius,
+    { rw [emetric.mem_ball, ←neg_zero, edist_neg_neg],
+      exact hx },
+    rw [←exp_add_of_commute_of_mem_ball (commute.neg_right $ commute.refl x) hx hnx, add_neg_self,
+      exp_zero],
+  end }
+
+lemma is_unit_exp_of_mem_ball [char_zero 𝕂] {x : 𝔸}
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) : is_unit (exp 𝕂 𝔸 x) :=
+@is_unit_of_invertible _ _ _ (invertible_exp_of_mem_ball hx)
+
+lemma inv_of_exp_of_mem_ball [char_zero 𝕂] {x : 𝔸}
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) [invertible (exp 𝕂 𝔸 x)] :
+  ⅟(exp 𝕂 𝔸 x) = exp 𝕂 𝔸 (-x) :=
+by { letI := invertible_exp_of_mem_ball hx, convert (rfl : ⅟(exp 𝕂 𝔸 x) = _) }
+
 end complete_algebra
 
 lemma algebra_map_exp_comm_of_mem_ball [complete_space 𝕂] (x : 𝕂)
@@ -222,6 +260,21 @@ begin
 end
 
 end any_field_any_algebra
+
+section any_field_division_algebra
+
+variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_division_ring 𝔸] [normed_algebra 𝕂 𝔸]
+
+lemma exp_neg_of_mem_ball [char_zero 𝕂] [complete_space 𝔸] {x : 𝔸}
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  exp 𝕂 𝔸 (-x) = (exp 𝕂 𝔸 x)⁻¹ :=
+begin
+  letI := invertible_exp_of_mem_ball hx,
+  exact inv_of_eq_inv (exp 𝕂 𝔸 x),
+end
+
+end any_field_division_algebra
+
 
 section any_field_comm_algebra
 
@@ -319,21 +372,89 @@ lemma exp_analytic (x : 𝔸) :
   analytic_at 𝕂 (exp 𝕂 𝔸) x :=
 analytic_at_exp_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
-end complete_algebra
-
 /-- In a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, if `x` and `y` commute, then
 `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`. -/
-lemma exp_add_of_commute [complete_space 𝔸]
+lemma exp_add_of_commute
   {x y : 𝔸} (hxy : commute x y) :
   exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
 exp_add_of_commute_of_mem_ball hxy ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
   ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
+
+section
+variables (𝕂)
+
+/-- `exp 𝕂 𝔸 x` has explicit two-sided inverse `exp 𝕂 𝔸 (-x)`. -/
+noncomputable def invertible_exp (x : 𝔸) : invertible (exp 𝕂 𝔸 x) :=
+invertible_exp_of_mem_ball $ (exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _
+
+lemma is_unit_exp (x : 𝔸) : is_unit (exp 𝕂 𝔸 x) :=
+is_unit_exp_of_mem_ball $ (exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _
+
+lemma inv_of_exp (x : 𝔸) [invertible (exp 𝕂 𝔸 x)] :
+  ⅟(exp 𝕂 𝔸 x) = exp 𝕂 𝔸 (-x) :=
+inv_of_exp_of_mem_ball $ (exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _
+
+lemma ring.inverse_exp (x : 𝔸) : ring.inverse (exp 𝕂 𝔸 x) = exp 𝕂 𝔸 (-x) :=
+begin
+  letI := invertible_exp 𝕂 x,
+  exact ring.inverse_invertible _,
+end
+
+lemma commute.exp {x y : 𝔸} (h : commute x y) :
+  commute (exp 𝕂 𝔸 x) (exp 𝕂 𝔸 y) :=
+(exp_add_of_commute h).symm.trans $ (congr_arg _ $ add_comm _ _).trans (exp_add_of_commute h.symm)
+
+end
+
+/-- In a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, if a family of elements `f i` mutually
+commute then `exp 𝕂 𝔸 (∑ i, f i) = ∏ i, exp 𝕂 𝔸 (f i)`. -/
+lemma exp_sum_of_commute {ι} (s : finset ι) (f : ι → 𝔸)
+  (h : ∀ (i ∈ s) (j ∈ s), commute (f i) (f j)) :
+  exp 𝕂 𝔸 (∑ i in s, f i) = s.noncomm_prod (λ i, exp 𝕂 𝔸 (f i))
+    (λ i hi j hj, (h i hi j hj).exp 𝕂) :=
+begin
+  classical,
+  induction s using finset.induction_on with a s ha ih,
+  { simp },
+  rw [finset.noncomm_prod_insert_of_not_mem _ _ _ _ ha, finset.sum_insert ha,
+      exp_add_of_commute, ih],
+  refine commute.sum_right _ _ _ _,
+  intros i hi,
+  exact h _ (finset.mem_insert_self _ _) _ (finset.mem_insert_of_mem hi),
+end
+
+lemma exp_nsmul (n : ℕ) (x : 𝔸) :
+  exp 𝕂 𝔸 (n • x) = exp 𝕂 𝔸 x ^ n :=
+begin
+  induction n with n ih,
+  { rw [zero_smul, pow_zero, exp_zero], },
+  { rw [succ_nsmul, pow_succ, exp_add_of_commute ((commute.refl x).smul_right n), ih] }
+end
+
+end complete_algebra
 
 lemma algebra_map_exp_comm (x : 𝕂) :
   algebra_map 𝕂 𝔸 (exp 𝕂 𝕂 x) = exp 𝕂 𝔸 (algebra_map 𝕂 𝔸 x) :=
 algebra_map_exp_comm_of_mem_ball x (by simp [exp_series_radius_eq_top])
 
 end any_algebra
+
+section division_algebra
+
+variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_division_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables [complete_space 𝔸]
+
+lemma exp_neg (x : 𝔸) : exp 𝕂 𝔸 (-x) = (exp 𝕂 𝔸 x)⁻¹ :=
+exp_neg_of_mem_ball $ (exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _
+
+lemma exp_zsmul (z : ℤ) (x : 𝔸) : exp 𝕂 𝔸 (z • x) = (exp 𝕂 𝔸 x) ^ z :=
+begin
+  obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,
+  { rw [zpow_coe_nat, coe_nat_zsmul, exp_nsmul] },
+  { rw [zpow_neg₀, zpow_coe_nat, neg_smul, exp_neg, coe_nat_zsmul, exp_nsmul] },
+end
+
+end division_algebra
 
 section comm_algebra
 
@@ -344,6 +465,14 @@ variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_comm_ring 𝔸] [normed_a
 lemma exp_add {x y : 𝔸} : exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
 exp_add_of_mem_ball ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
   ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
+
+/-- A version of `exp_sum_of_commute` for a commutative Banach-algebra. -/
+lemma exp_sum {ι} (s : finset ι) (f : ι → 𝔸) :
+  exp 𝕂 𝔸 (∑ i in s, f i) = ∏ i in s, exp 𝕂 𝔸 (f i) :=
+begin
+  rw [exp_sum_of_commute, finset.noncomm_prod_eq_prod],
+  exact λ i hi j hj, commute.all _ _,
+end
 
 end comm_algebra
 

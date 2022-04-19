@@ -531,14 +531,7 @@ Theory.model.realize_of_mem φ h
 @[simp] lemma Lhom.on_Theory_model [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
   (T : L.Theory) :
   M ⊨ φ.on_Theory T ↔ M ⊨ T :=
-begin
-  split; introI,
-  { exact ⟨λ ψ hψ, (φ.realize_on_sentence M _).1
-      ((φ.on_Theory T).realize_sentence_of_mem (set.mem_image_of_mem φ.on_sentence hψ))⟩ },
-  { refine ⟨λ ψ hψ, _⟩,
-    obtain ⟨ψ₀, hψ₀, rfl⟩ := Lhom.mem_on_Theory.1 hψ,
-    exact (φ.realize_on_sentence M _).2 (T.realize_sentence_of_mem hψ₀) },
-end
+by simp [Theory.model_iff, Lhom.on_Theory]
 
 variables {M} {T}
 

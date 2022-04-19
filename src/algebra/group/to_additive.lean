@@ -553,15 +553,9 @@ protected meta def attr : user_attribute unit value_type :=
       match val.doc with
       | some doc := add_doc_string tgt doc
       | none := do
-        alias_opt ← tactic.alias.get_alias_target src,
-        match alias_opt with
-        | some alias_name := match dict.find alias_name with
-          | some add_alias_name :=
-            add_doc_string tgt ("**Alias** of `" ++ to_string add_alias_name ++ "`.")
-          | none := skip
-          end
-        | none := skip
-        end
+        some alias_name ← tactic.alias.get_alias_target src | skip,
+        some add_alias_name ← pure (dict.find alias_name) | skip,
+        add_doc_string tgt ("**Alias** of `" ++ to_string add_alias_name ++ "`.")
       end }
 
 add_tactic_doc

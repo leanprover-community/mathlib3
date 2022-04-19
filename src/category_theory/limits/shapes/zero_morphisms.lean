@@ -213,7 +213,7 @@ variables {D}
   {X Y : C} (f : X ⟶ Y) : F.map f = 0 :=
 (hF.obj _).eq_of_src _ _
 
-@[simp] lemma _root_.category_theory.functor.zero_obj [has_zero_object D] [has_zero_morphisms D]
+@[simp] lemma _root_.category_theory.functor.zero_obj [has_zero_object D]
   (X : C) : is_zero ((0 : C ⥤ D).obj X) :=
 (is_zero_zero _).obj _
 
@@ -371,7 +371,7 @@ def is_iso_zero_self_equiv_iso_zero (X : C) : is_iso (0 : X ⟶ X) ≃ (X ≅ 0)
 end is_iso
 
 /-- If there are zero morphisms, any initial object is a zero object. -/
-def has_zero_object_of_has_initial_object
+lemma has_zero_object_of_has_initial_object
   [has_zero_morphisms C] [has_initial C] : has_zero_object C :=
 begin
   refine ⟨⟨⊥_ C, λ X, ⟨⟨⟨0⟩, by tidy⟩⟩, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩⟩⟩,
@@ -382,7 +382,7 @@ begin
 end
 
 /-- If there are zero morphisms, any terminal object is a zero object. -/
-def has_zero_object_of_has_terminal_object
+lemma has_zero_object_of_has_terminal_object
   [has_zero_morphisms C] [has_terminal C] : has_zero_object C :=
 begin
   refine ⟨⟨⊤_ C, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨0⟩, by tidy⟩⟩⟩⟩,

@@ -210,8 +210,8 @@ instance : has_zero_morphisms (homological_complex V c) :=
 
 open_locale zero_object
 
-noncomputable
-def zero [has_zero_object V] : homological_complex V c :=
+/-- The zero complex -/
+noncomputable def zero [has_zero_object V] : homological_complex V c :=
 { X := λ i, 0, d := λ i j, 0 }
 
 lemma is_zero_zero [has_zero_object V] : is_zero (zero : homological_complex V c) :=

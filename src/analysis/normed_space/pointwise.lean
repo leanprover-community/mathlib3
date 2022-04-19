@@ -16,6 +16,84 @@ Notably, we express arbitrary balls as rescaling of other balls, and we show tha
 multiplication of bounded sets remain bounded.
 -/
 
+section move
+section
+variables {ι' : Sort*} {ι α : Type*} [complete_lattice α]
+
+open set
+
+lemma supr_Union (s : ι' → set ι) (f : ι → α) : (⨆ i ∈ (⋃ j, s j), f i) = ⨆ j (i ∈ s j), f i :=
+by { rw supr_comm, simp_rw [mem_Union, supr_exists] }
+
+lemma infi_Union (s : ι' → set ι) (f : ι → α) : (⨅ i ∈ (⋃ j, s j), f i) = ⨅ j (i ∈ s j), f i :=
+by { rw infi_comm, simp_rw [mem_Union, infi_exists] }
+
+end
+
+namespace ennreal
+open_locale ennreal
+variables {a b c : ℝ≥0∞} {p q : ℝ}
+
+protected lemma eq_sub_of_add_eq (hb : b ≠ ∞) : a + b = c → a = c - b :=
+(cancel_of_ne hb).eq_tsub_of_add_eq
+
+lemma le_sub_of_add_le_left (ha : a ≠ ∞) : a + b ≤ c → b ≤ c - a :=
+(cancel_of_ne ha).le_tsub_of_add_le_left
+
+lemma le_sub_of_add_le_right (hb : b ≠ ∞) : a + b ≤ c → a ≤ c - b :=
+(cancel_of_ne hb).le_tsub_of_add_le_right
+
+lemma of_real_sub (p : ℝ) (hq : 0 ≤ q) :
+  ennreal.of_real (p - q) = ennreal.of_real p - ennreal.of_real q :=
+begin
+  obtain h | h := le_total p q,
+  { rw [of_real_of_nonpos (sub_nonpos_of_le h), tsub_eq_zero_of_le (of_real_le_of_real h)] },
+  refine ennreal.eq_sub_of_add_eq of_real_ne_top _,
+  rw [←of_real_add (sub_nonneg_of_le h) hq, sub_add_cancel],
+end
+
+end ennreal
+
+open ennreal
+
+@[simp] lemma edist_lt_of_real {α : Type*} [pseudo_metric_space α] {x y : α} {r : ℝ} :
+  edist x y < ennreal.of_real r ↔ dist x y < r :=
+begin
+  obtain h | h := le_total r 0,
+  { rw of_real_of_nonpos h,
+    exact iff_of_false not_lt_zero (h.trans dist_nonneg).not_lt },
+  { rw [of_real_eq_coe_nnreal h, edist_lt_coe, ←dist_lt_coe, subtype.coe_mk] }
+end
+
+namespace metric
+variables {α : Type*} [pseudo_emetric_space α] {s t : set α} {δ : ℝ}
+
+open emetric set
+
+@[simp] lemma thickening_closure : thickening δ (closure s) = thickening δ s :=
+by simp_rw [thickening, inf_edist_closure]
+
+variables {ι : Sort*}
+
+@[simp] lemma inf_edist_Union (f : ι → set α) (x : α) :
+  inf_edist x (⋃ i, f i) = ⨅ i, inf_edist x (f i) :=
+infi_Union f _
+
+@[simp] lemma thickening_union (δ : ℝ) (s t : set α) :
+  thickening δ (s ∪ t) = thickening δ s ∪ thickening δ t :=
+by simp_rw [thickening, inf_edist_union, inf_eq_min, min_lt_iff, set_of_or]
+
+@[simp] lemma cthickening_union (δ : ℝ) (s t : set α) :
+  cthickening δ (s ∪ t) = cthickening δ s ∪ cthickening δ t :=
+by simp_rw [cthickening, inf_edist_union, inf_eq_min, min_le_iff, set_of_or]
+
+@[simp] lemma thickening_Union (δ : ℝ) (f : ι → set α) :
+  thickening δ (⋃ i, f i) = ⋃ i, thickening δ (f i) :=
+by simp_rw [thickening, inf_edist_Union, infi_lt_iff, set_of_exists]
+
+end metric
+end move
+
 open metric set
 open_locale pointwise topological_space
 
@@ -193,6 +271,58 @@ begin
   exact h ⟨hxz, hzy⟩,
 end
 
+open emetric ennreal
+
+@[simp] lemma inf_edist_thickening (hδ : 0 < δ) (s : set E) (x : E) :
+  inf_edist x (thickening δ s) = inf_edist x s - ennreal.of_real δ :=
+begin
+  obtain hs | hs := lt_or_le (inf_edist x s) (ennreal.of_real δ),
+  { rw [inf_edist_zero_of_mem, tsub_eq_zero_of_le hs.le], exact hs },
+  refine (tsub_le_iff_right.2 inf_edist_le_inf_edist_thickening_add).antisymm' _,
+  refine le_sub_of_add_le_right of_real_ne_top _,
+  refine le_inf_edist.2 (λ z hz, le_of_forall_lt' $ λ r h, _),
+  cases r,
+  { exact add_lt_top.2 ⟨lt_top_iff_ne_top.2 $ inf_edist_ne_top ⟨z, self_subset_thickening hδ _ hz⟩,
+      of_real_lt_top⟩ },
+  have hr : 0 < ↑r - δ,
+  { refine sub_pos_of_lt _,
+    have := hs.trans_lt ((inf_edist_le_edist_of_mem hz).trans_lt h),
+    rw [of_real_eq_coe_nnreal hδ.le, some_eq_coe] at this,
+    exact_mod_cast this },
+  rw [some_eq_coe, edist_lt_coe, ←dist_lt_coe, ←add_sub_cancel'_right δ (↑r)] at h,
+  obtain ⟨y, hxy, hyz⟩ := exists_dist_lt_lt hr hδ h,
+  refine (ennreal.add_lt_add_right of_real_ne_top $ inf_edist_lt_iff.2
+    ⟨_, (mem_thickening_iff _ _).2 ⟨_, hz, hyz⟩, edist_lt_of_real.2 hxy⟩).trans_le _,
+  rw [←of_real_add hr.le hδ.le, sub_add_cancel, of_real_coe_nnreal],
+  exact le_rfl,
+end
+
+@[simp] lemma inf_edist_cthickening (δ : ℝ) (s : set E) (x : E) :
+  inf_edist x (cthickening δ s) = inf_edist x s - ennreal.of_real δ :=
+begin
+  obtain hδ | hδ := le_total δ 0,
+  { rw [cthickening_of_nonpos hδ, inf_edist_closure, of_real_of_nonpos hδ, tsub_zero] },
+  obtain hs | hs := le_or_lt (inf_edist x s) (ennreal.of_real δ),
+  { rw [inf_edist_zero_of_mem (mem_cthickening_iff.2 hs), tsub_eq_zero_of_le hs] },
+  refine (tsub_le_iff_right.2 inf_edist_le_inf_edist_cthickening_add).antisymm' _,
+  refine le_sub_of_add_le_right of_real_ne_top _,
+  refine le_inf_edist.2 (λ z hz, le_of_forall_lt' $ λ r h, _),
+  cases r,
+  { exact add_lt_top.2 ⟨lt_top_iff_ne_top.2 $ inf_edist_ne_top ⟨z, self_subset_cthickening _ hz⟩,
+      of_real_lt_top⟩ },
+  have hr : 0 < ↑r - δ,
+  { refine sub_pos_of_lt _,
+    have := hs.trans ((inf_edist_le_edist_of_mem hz).trans_lt h),
+    rw [of_real_eq_coe_nnreal hδ, some_eq_coe] at this,
+    exact_mod_cast this },
+  rw [some_eq_coe, edist_lt_coe, ←dist_lt_coe, ←add_sub_cancel'_right δ (↑r)] at h,
+  obtain ⟨y, hxy, hyz⟩ := exists_dist_lt_le hr hδ h,
+  refine (ennreal.add_lt_add_right of_real_ne_top $ inf_edist_lt_iff.2
+    ⟨_, mem_cthickening_of_dist_le _ _ _ _ hz hyz, edist_lt_of_real.2 hxy⟩).trans_le _,
+  rw [←of_real_add hr.le hδ, sub_add_cancel, of_real_coe_nnreal],
+  exact le_rfl,
+end
+
 @[simp] lemma thickening_thickening (hε : 0 < ε) (hδ : 0 < δ) (s : set E) :
   thickening ε (thickening δ s) = thickening (ε + δ) s :=
 (thickening_thickening_subset _ _ _).antisymm $ λ x, begin
@@ -216,17 +346,15 @@ end
 @[simp] lemma cthickening_thickening (hε : 0 ≤ ε) (hδ : 0 < δ) (s : set E) :
   cthickening ε (thickening δ s) = cthickening (ε + δ) s :=
 (cthickening_thickening_subset hε _ _).antisymm $ λ x, begin
-  simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ.le],
-  refine λ h, le_of_forall_lt' (λ r hr, _),
-  sorry --done
+  simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ.le, inf_edist_thickening hδ],
+  exact tsub_le_iff_right.2,
 end
 
 @[simp] lemma cthickening_cthickening (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (s : set E) :
   cthickening ε (cthickening δ s) = cthickening (ε + δ) s :=
 (cthickening_cthickening_subset hε hδ _).antisymm $ λ x, begin
-  simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ],
-  refine λ h, le_of_forall_lt' (λ r hr, _),
-  sorry --done
+  simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ, inf_edist_cthickening],
+  exact tsub_le_iff_right.2,
 end
 
 end semi_normed_group

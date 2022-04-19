@@ -1,7 +1,40 @@
+/-
+Copyright (c) 2022 Pierre-Alexandre Bazin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Pierre-Alexandre Bazin
+-/
 import ring_theory.principal_ideal_domain
 import algebra.direct_sum.module
 import ring_theory.finiteness
 import algebra.module.torsion
+
+/-!
+# Classification of finitely generated modules over a PID
+
+## Main statements
+
+* `equiv_direct_sum_of_is_torsion` : A finitely generated torsion module over a PID is isomorphic
+  to a direct sum of some `R ⧸ R ∙ (p i ^ e i)` where the `p i ^ e i` are prime powers.
+
+## Notation
+
+* `R` is a PID and `M` is a (finitely generated for main statements) torsion module over R.
+* `p` is an irreducible element of `R` or a tuple of these.
+
+## Implementation details
+
+We first prove (`is_internal_prime_power_torsion`) a finitely generated torsion module is the
+internal direct sum of its `p i ^ e i`-torsion submodules for some (finitely many) prime powers
+`p i ^ e i`.
+
+Then we treat the case of a `p ^ ∞`-torsion module (that is, a module where all elements are
+cancelled by scalar multiplication by some power of `p`) and apply it to the `p i ^ e i`-torsion
+submodules (that are `p i ^ ∞`-torsion) to get the final result.
+
+## Tags
+
+Finitely generated module, principal ideal domain, classification
+-/
 
 universes u v
 open_locale big_operators
@@ -44,7 +77,7 @@ open linear_map
 variables  {R A M B : Type*} [semiring R] [add_comm_monoid A] [module R A]
   [add_comm_group B] [module R B] [add_comm_group M] [module R M]
 
-noncomputable lemma equiv_prod_of_split_exact (j : A →ₗ[R] M) (g : M →ₗ[R] B) (f : B →ₗ[R] M)
+noncomputable def equiv_prod_of_split_exact (j : A →ₗ[R] M) (g : M →ₗ[R] B) (f : B →ₗ[R] M)
   (hj : function.injective j) (exac : j.range = g.ker) (h : g.comp f = linear_map.id) :
   (A × B) ≃ₗ[R] M :=
 begin
@@ -86,17 +119,18 @@ variables {R : Type u} [comm_ring R] [is_domain R] [is_principal_ideal_ring R]
 variables {M : Type v} [add_comm_group M] [module R M]
 section
 open dfinsupp
---variables [decidable_eq R] [decidable_eq (associates R)]
 
+@[priority 100]
 noncomputable instance inst [decidable_eq R] [decidable_eq (associates R)] :
 gcd_monoid R := unique_factorization_monoid.to_gcd_monoid _
 
-lemma coprime_of_irreducible_pow [decidable_eq R] [decidable_eq (associates R)]
+lemma coprime_of_irreducible_pow
   {ι : Type*} [fintype ι] (p : ι → R) (irred : ∀ i, irreducible (p i))
   (assoc : ∀ i j, associated (p i) (p j) → i = j) (e : ι → ℕ) :
   pairwise (is_coprime on λ i, p i ^ e i) :=
-λ i j h, ((irred i).coprime_iff_not_dvd.mpr
-  (λ h', h (assoc _ _ ((irred i).associated_of_dvd (irred j) h')))).pow_left.pow_right
+by { classical,
+exact λ i j h, ((irred i).coprime_iff_not_dvd.mpr
+  (λ h', h (assoc _ _ ((irred i).associated_of_dvd (irred j) h')))).pow_left.pow_right }
 
 open finset multiset
 
@@ -108,7 +142,6 @@ begin
   let P : multiset (associates R) :=
     S.val.bind (λ s, map associates.mk $
       principal_ideal_ring.factors ↑(classical.some $ @hM s)),
-  haveI : decidable_eq R, classical, apply_instance,
   haveI : decidable_eq (associates R), classical, apply_instance,
   let ι := P.to_finset,
   let p : _ → R := λ i, classical.some $ associates.mk_surjective i,
@@ -138,9 +171,10 @@ end
 
 section p_torsion
 variables {p : R} (hp : irreducible p) (hM : module.is_torsion' M (submonoid.powers p))
-[decidable_eq M]
+variables [dec : Π x : M, decidable (x = 0)]
 
 open ideal submodule.is_principal
+include dec
 def p_order (x : M) := nat.find $ (is_torsion'_powers_iff p).mp hM x
 @[simp] lemma pow_p_order_smul (x : M) : p ^ p_order hM x • x = 0 :=
 nat.find_spec $ (is_torsion'_powers_iff p).mp hM x
@@ -216,19 +250,20 @@ begin
 end
 
 open finset multiset
+omit dec
 
-theorem torsion_by_prime_power_decomposition
-  (d : ℕ) (s : fin d → M) (hs : span R (set.range s) = ⊤) :
-  ∃ (k : fin d → ℕ), nonempty $ M ≃ₗ[R] ⨁ (i : fin d), R ⧸ R ∙ (p ^ (k i : ℕ)) :=
+theorem torsion_by_prime_power_decomposition [h' : module.finite R M] :
+  ∃ (d : ℕ) (k : fin d → ℕ), nonempty $ M ≃ₗ[R] ⨁ (i : fin d), R ⧸ R ∙ (p ^ (k i : ℕ)) :=
 begin
+  obtain ⟨d, s, hs⟩ := @module.finite.exists_fin _ _ _ _ _ h', use d, clear h',
   unfreezingI { induction d with d IH generalizing M },
   { use λ i, fin_zero_elim i,
     rw [set.range_eq_empty, submodule.span_empty] at hs,
     haveI : unique M := ⟨⟨0⟩, λ x, by { rw [← mem_bot _, hs], trivial }⟩,
     exact ⟨0⟩ },
-  { obtain ⟨j, hj⟩ := exists_is_torsion_by hp hM d.succ d.succ_ne_zero s hs,
+  { haveI : Π x : M, decidable (x = 0), classical, apply_instance,
+    obtain ⟨j, hj⟩ := exists_is_torsion_by hp hM d.succ d.succ_ne_zero s hs,
     let s' : fin d → M ⧸ R ∙ s j := mk ∘ s ∘ j.succ_above,
-    haveI : decidable_eq (M ⧸ R ∙ s j) := by { classical, apply_instance },
     obtain ⟨k, ⟨f⟩⟩ := IH _ s' _; clear IH,
     { have : ∀ i : fin d, ∃ x : M, p ^ k i • x = 0 ∧ f (mk x) = direct_sum.lof R _ _ i 1,
       { intro i,
@@ -263,21 +298,21 @@ begin
 end
 end p_torsion
 
+/--A finitely generated torsion module over a PID is isomorphic to a direct sum of some
+  `R ⧸ R ∙ (p i ^ e i)` where the `p i ^ e i` are prime powers.-/
 theorem equiv_direct_sum_of_is_torsion [h' : module.finite R M] (hM : module.is_torsion R M) :
-  ∃ (ι : Type u) [fintype ι] (a : ι → R), nonempty $ M ≃ₗ[R] ⨁ (i : ι), R ⧸ R ∙ a i :=
+  ∃ (ι : Type u) [fintype ι] (p : ι → R) [∀ i, irreducible (p i)] (e : ι → ℕ),
+  nonempty $ M ≃ₗ[R] ⨁ (i : ι), R ⧸ R ∙ (p i ^ e i) :=
 begin
   obtain ⟨I, fI, _, p, hp, e, h⟩ := is_internal_prime_power_torsion hM, haveI := fI,
   have : ∀ i, ∃ (d : ℕ) (k : fin d → ℕ),
     nonempty $ torsion_by R M (p i ^ e i) ≃ₗ[R] ⨁ j, R ⧸ R ∙ (p i ^ k j),
-  { intro i,
-    obtain ⟨d, s, hs⟩ := module.finite.exists_fin,
-    obtain ⟨k, h⟩ := torsion_by_prime_power_decomposition (hp i) _ d s hs, exact ⟨d, k, h⟩,
-    { rw is_torsion'_powers_iff, exact λ x, ⟨e i, smul_torsion_by _ _⟩ },
-    { classical, apply_instance },
-    { haveI := is_noetherian_of_fg_of_noetherian' (module.finite_def.mp h'),
-      haveI := is_noetherian_submodule' (torsion_by R M $ p i ^ e i),
-      apply_instance } },
-  refine ⟨Σ i, fin (this i).some, infer_instance, λ ⟨i, j⟩, p i ^ (this i).some_spec.some j,
+  { haveI := is_noetherian_of_fg_of_noetherian' (module.finite_def.mp h'),
+    haveI := λ i, is_noetherian_submodule' (torsion_by R M $ p i ^ e i),
+    exact λ i, torsion_by_prime_power_decomposition (hp i)
+      ((is_torsion'_powers_iff $ p i).mpr $ λ x, ⟨e i, smul_torsion_by _ _⟩) },
+  refine ⟨Σ i, fin (this i).some, infer_instance,
+    λ ⟨i, j⟩, p i, λ ⟨i, j⟩, hp i, λ ⟨i, j⟩, (this i).some_spec.some j,
     ⟨(linear_equiv.of_bijective _ h.1 h.2).symm.trans $
       (dfinsupp.map_range.linear_equiv $ λ i, (this i).some_spec.some_spec.some).trans $
       (direct_sum.sigma_lcurry_equiv R).symm.trans

@@ -79,12 +79,12 @@ variables [group G] {N : subgroup G}
 /-- Subgroups of torsion groups are torsion groups. -/
 @[to_additive "Subgroups of additive torsion groups are additive torsion groups."]
 lemma is_torsion.subgroup (tG : is_torsion G) (H : subgroup G) : is_torsion H :=
-λ h, (is_of_fin_order_iff_coe _ h).mpr $ tG h
+λ h, (is_of_fin_order_iff_coe H.to_submonoid h).mpr $ tG h
 
 /-- Quotient groups of torsion groups are torsion groups. -/
 @[to_additive "Quotient groups of additive torsion groups are additive torsion groups."]
 lemma is_torsion.quotient_group [nN : N.normal] (tG : is_torsion G) : is_torsion (G ⧸ N) :=
-λ h, quotient_group.induction_on' h $ λ g, (tG g).quotient N
+λ h, quotient_group.induction_on' h $ λ g, (quotient_group.mk' N).is_of_fin_order $ tG g
 
 /-- If a group exponent exists, the group is torsion. -/
 @[to_additive exponent_exists.is_add_torsion
@@ -224,7 +224,8 @@ end
 /-- Subgroups of torsion-free groups are torsion-free. -/
 @[to_additive "Subgroups of additive torsion-free groups are additively torsion-free."]
 lemma is_torsion_free.subgroup (tG : is_torsion_free G) (H : subgroup G) : is_torsion_free H :=
-λ h hne, (is_of_fin_order_iff_coe _ h).not.mpr $ tG h (by norm_cast; simp [hne, not_false_iff])
+λ h hne, (is_of_fin_order_iff_coe H.to_submonoid h).not.mpr $
+  tG h $ by norm_cast; simp [hne, not_false_iff]
 
 /-- Direct products of torsion free groups are torsion free. -/
 @[to_additive add_monoid.is_torsion_free.prod

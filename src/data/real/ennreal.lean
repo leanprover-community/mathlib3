@@ -761,18 +761,20 @@ ennreal.sub_eq_of_eq_add hb hc.symm
 @[simp] protected lemma add_sub_cancel_left (ha : a ≠ ∞) : a + b - a = b :=
 (cancel_of_ne ha).add_tsub_cancel_left
 
-protected lemma lt_add_of_sub_lt_left (hb : a ≠ ∞ ∨ b ≠ ∞) : a - b < c → a < b + c :=
+protected lemma lt_add_of_sub_lt_left (h : a ≠ ∞ ∨ b ≠ ∞) : a - b < c → a < b + c :=
 begin
   obtain rfl | hb := eq_or_ne b ∞,
-  { rw [add_top, lt_top_iff_ne_top], exact ht.resolve_right (not_not.2 rfl) },
-  { exact (cancel_of_ne hb).lt_add_of_tsub_lt_right h }
+  { rw [top_add, lt_top_iff_ne_top],
+    exact λ _, h.resolve_right (not_not.2 rfl) },
+  { exact (cancel_of_ne hb).lt_add_of_tsub_lt_left }
 end
 
-protected lemma lt_add_of_sub_lt_right (hc : a ≠ ∞ ∨ c ≠ ∞) : a - c < b → a < b + c :=
+protected lemma lt_add_of_sub_lt_right (h : a ≠ ∞ ∨ c ≠ ∞) : a - c < b → a < b + c :=
 begin
   obtain rfl | hc := eq_or_ne c ∞,
-  { rw [add_top, lt_top_iff_ne_top], exact ht.resolve_right (not_not.2 rfl) },
-  { exact (cancel_of_ne hc).lt_add_of_tsub_lt_right h }
+  { rw [add_top, lt_top_iff_ne_top],
+    exact λ _, h.resolve_right (not_not.2 rfl) },
+  { exact (cancel_of_ne hc).lt_add_of_tsub_lt_right }
 end
 
 protected lemma sub_lt_of_lt_add (hac : c ≤ a) (h : a < b + c) : a - c < b :=
@@ -784,14 +786,14 @@ protected lemma sub_lt_of_lt_add (hac : c ≤ a) (h : a < b + c) : a - c < b :=
 protected lemma sub_lt_iff_lt_right (hb : b ≠ ∞) (hab : b ≤ a) : a - b < c ↔ a < c + b :=
 (cancel_of_ne hb).tsub_lt_iff_right hab
 
-protected lemma sub_lt_self (hat : a ≠ ∞) (ha0 : a ≠ 0) (hb : b ≠ 0) : a - b < a :=
-(cancel_of_ne hat).tsub_lt_self (pos_iff_ne_zero.2 ha0) (pos_iff_ne_zero.2 hb)
+protected lemma sub_lt_self (ha : a ≠ ∞) (ha₀ : a ≠ 0) (hb : b ≠ 0) : a - b < a :=
+(cancel_of_ne ha).tsub_lt_self (pos_iff_ne_zero.2 ha₀) (pos_iff_ne_zero.2 hb)
 
 protected lemma sub_lt_self_iff (ha : a ≠ ∞) : a - b < a ↔ 0 < a ∧ 0 < b :=
-(cancel_of_ne hat).tsub_lt_self_iff
+(cancel_of_ne ha).tsub_lt_self_iff
 
 lemma sub_lt_of_sub_lt (h₂ : c ≤ a) (h₃ : a ≠ ∞ ∨ b ≠ ∞) (h₁ : a - b < c) : a - c < b :=
-ennreal.sub_lt_of_lt_add h₂ (add_comm c b ▸ ennreal.lt_add_of_sub_lt h₃ h₁)
+ennreal.sub_lt_of_lt_add h₂ (add_comm c b ▸ ennreal.lt_add_of_sub_lt_right h₃ h₁)
 
 lemma sub_sub_cancel (h : a ≠ ∞) (h2 : b ≤ a) : a - (a - b) = b :=
 (cancel_of_ne $ sub_ne_top h).tsub_tsub_cancel_of_le h2

@@ -354,13 +354,16 @@ begin
   { simp [sup_eq_max, max_eq_left h, max_eq_left (mul_le_mul_of_nonneg_left h (zero_le a))] },
 end
 
+lemma sup_mul (a b c : ℝ≥0) : (a ⊔ b) * c = (a * c) ⊔ (b * c) :=
+by simpa only [mul_comm] using mul_sup c a b
+
 lemma mul_finset_sup {α} {f : α → ℝ≥0} {s : finset α} (r : ℝ≥0) :
   r * s.sup f = s.sup (λa, r * f a) :=
-begin
-  refine s.induction_on _ _,
-  { simp [bot_eq_zero] },
-  { assume a s has ih, simp [has, ih, mul_sup], }
-end
+(finset.comp_sup_eq_sup_comp _ (nnreal.mul_sup r) (mul_zero r))
+
+lemma finset_sup_mul {α} {f : α → ℝ≥0} {s : finset α} (r : ℝ≥0) :
+  s.sup f * r = s.sup (λa, f a * r) :=
+(finset.comp_sup_eq_sup_comp (* r) (λ x y, nnreal.sup_mul x y r) (zero_mul r))
 
 lemma finset_sup_div {α} {f : α → ℝ≥0} {s : finset α} (r : ℝ≥0) :
   s.sup f / r = s.sup (λ a, f a / r) :=

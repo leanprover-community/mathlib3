@@ -87,17 +87,17 @@ end
 lemma denom_ne_zero (g : GL(2, ℝ)⁺) (z : ℍ) : denom g z ≠ 0 :=
 begin
   intro H,
-  have DET:= (mem_GL_pos _).1 g.property,
-  have hz:=z.property,
+  have DET := (mem_GL_pos _).1 g.property,
+  have hz := z.property,
   simp only [subtype.val_eq_coe, general_linear_group.coe_det_apply] at DET,
   have H1 : (↑ₘg 1 0 : ℝ) = 0 ∨ z.im = 0, by simpa using congr_arg complex.im H,
   cases H1,
-  {simp [H1, complex.of_real_zero, denom, coe_fn_eq_coe, zero_mul, zero_add,
+  {simp only [H1, complex.of_real_zero, denom, coe_fn_eq_coe, zero_mul, zero_add,
     complex.of_real_eq_zero] at H,
-  have:= matrix.det_fin_two g,
-  simp  [coe_fn_coe_base', subtype.val_eq_coe, coe_im, general_linear_group.coe_fn_eq_coe] at *,
+  have := matrix.det_fin_two g,
+  simp [coe_fn_coe_base', subtype.val_eq_coe, coe_im, general_linear_group.coe_fn_eq_coe] at *,
   rw this at DET,
-  simp  [H, H1, mul_zero, sub_zero, lt_self_iff_false] at DET,
+  simp only [H, H1, mul_zero, sub_zero, lt_self_iff_false] at DET,
   exact DET,},
   change z.im > 0 at hz,
   linarith,
@@ -121,9 +121,9 @@ begin
   { simp only [denom_ne_zero g z, monoid_with_zero_hom.map_eq_zero, ne.def, not_false_iff], },
   field_simp [smul_aux'],
   ring_nf,
-  have := matrix.det_fin_two (g : GL (fin 2) ℝ),
-  simp at this,
-  rw this,
+  have det := matrix.det_fin_two (g : GL (fin 2) ℝ),
+  simp at det,
+  rw det,
   ring,
   exact real.comm_ring,
 end
@@ -135,10 +135,10 @@ def smul_aux (g :  GL(2, ℝ)⁺) (z : ℍ) : ℍ :=
     simp only [denom, coe_coe],
     have h1 := div_pos z.im_pos (complex.norm_sq_pos.mpr (denom_ne_zero g z)),
     have h2 :=g.property,
-    simp at *,
+    simp only [denom, coe_coe, subtype.val_eq_coe, mem_GL_pos,
+    general_linear_group.coe_det_apply] at *,
     have := mul_pos h2 h1,
     convert this,
-    simp only,
     ring, }⟩
 
 lemma denom_cocycle (x y : GL(2, ℝ)⁺) (z : ℍ) :
@@ -199,7 +199,7 @@ instance subgroup_on_GL_pos : is_scalar_tower Γ (GL(2, ℝ)⁺) ℍ :=
  {smul_assoc :=
   by {intros s g z, rw subgroup_on_GL_pos_smul_apply, simp only [coe_coe], apply mul_smul',},}
 
-instance subgroup_SL : has_scalar Γ SL(2,ℤ) :=⟨λ s g, s * g⟩
+instance subgroup_SL : has_scalar Γ SL(2,ℤ) := ⟨λ s g, s * g⟩
 
 lemma subgroup_on_SL_apply (s : Γ) (g : SL(2,ℤ) ) (z : ℍ) :
   (s • g) • z = ( (s : SL(2, ℤ)) * g) • z := rfl
@@ -211,7 +211,6 @@ end modular_scalar_towers
 
 @[simp] lemma coe_smul (g : GL(2, ℝ)⁺) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
 @[simp] lemma re_smul (g : GL(2, ℝ)⁺) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
-
 lemma im_smul (g : GL(2, ℝ)⁺) (z : ℍ) : (g • z).im = (num g z / denom g z).im := rfl
 
 lemma im_smul_eq_div_norm_sq (g : GL(2, ℝ)⁺) (z : ℍ) :

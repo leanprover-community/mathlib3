@@ -5,7 +5,33 @@ Authors: Arthur Paulino, Damiano Testa
 -/
 import data.polynomial.degree.definitions
 
-/-!  # A tactic for sorting sums -/
+/-!  # `sort_summands`, a tactic for sorting sums
+
+Calling `sort_summands` will recursively look inside the goal for expressions involving a sum.
+Whenever it finds one, it will sort its terms following a heuristic.  Right now, the heuristic
+is somewhat crude: if an individual summand is of the exact form `monomial n r`, with `n` a numeral,
+then `monomial n r` will in the last segment and this segment is sorted by increasing value of `n`.
+The remaining terms appear at the beginning of the sum and are sorted alphabetically.
+
+To allow for more flexibility, `sort_summands` takes an optional argument that can be either a
+single term or a list of terms.  Calling `sort_summands f` or `sort_summands [f,.., g]` performs the
+sorting, except that the explicitly given terms appear last in the final sum (repetitions and
+inexistent terms are ignored).
+
+Finally, `sort_summands` can also be targeted to a hypothesis.  If `hp` is in the local context,
+`sort_summands [f, g] at hp` performs the rearranging at `hp`.
+
+
+##  Future work
+* Improve sorting heuristic?
+* Allow the option of not changing the given order, except for the explicitly listed terms?
+  E.g. `sort_summands only [f, g]`, extracts `f` and `g`, placing them last, but leaving the rest
+  unchanged (except for the parenthesis, which will be straightened).
+* Allow for pattern-matching in the list of terms?
+* Allow custom ordering?  E.g. `sort_summands using my_rel`, where `my_rel : N → N → Prop` is a
+  relation on a type (with `+`), and, if `sort_summands` encounters a sum of terms of type `N`,
+  then it will ask the user to prove the required sorting.
+ -/
 
 namespace tactic.interactive
 
@@ -141,11 +167,11 @@ begin
 end
 
 example (hp : f = g) :
-  7 + f + (monomial 3 r + 42) + h = monomial 3 r + h + g + 7 + 42 :=
+  7 + f + (monomial 3 r + 42) + X ^ 5 * h = monomial 3 r + h * X ^ 5 + g + 7 + 42 :=
 begin
   sort_summands [f, g],
-  congr,
-  assumption,
+  congr' 3, -- takes care of using assumption `hp`
+  exact X_pow_mul,
 end
 
 -- example {R : Type*} [semiring R] (f g : R[X]) {r s t u : R} (r0 : t ≠ 0) :

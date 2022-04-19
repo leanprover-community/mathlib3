@@ -88,10 +88,8 @@ lemma mem_range_map_to_fraction_ring_iff_of_field (B : Type*) [comm_ring B] [alg
     ∃ (a s : A) (hs : s ∈ S), x = algebra_map A K a * (algebra_map A K s)⁻¹ :=
 begin
   rw mem_range_map_to_fraction_ring_iff,
-  unfold is_localization.mk' submonoid.localization_map.mk',
-  simp_rw units.coe_inv', split,
-  { rintro ⟨a,s,rfl⟩, use [a,s,s.2], rw is_unit.coe_lift_right, refl },
-  { rintro ⟨a,s,hs,rfl⟩, use [a,s,hs], rw is_unit.coe_lift_right, refl },
+  unfold is_localization.mk' submonoid.localization_map.mk', simp_rw units.coe_inv',
+  exact ⟨ λ ⟨a,s,he⟩, ⟨a,s,s.2,he⟩,  λ ⟨a,s,hs,he⟩, ⟨a,⟨s,hs⟩,he⟩ ⟩,
 end
 
 noncomputable

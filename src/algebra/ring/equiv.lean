@@ -228,11 +228,11 @@ protected def op {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
 @[simp] protected def unop {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
   (αᵐᵒᵖ ≃+* βᵐᵒᵖ) ≃ (α ≃+* β) := ring_equiv.op.symm
 
-section comm_semiring
+section non_unital_comm_semiring
 
-variables (R) [comm_semiring R]
+variables (R) [non_unital_comm_semiring R]
 
-/-- A commutative ring is isomorphic to its opposite. -/
+/-- A non-unital commutative ring is isomorphic to its opposite. -/
 def to_opposite : R ≃+* Rᵐᵒᵖ :=
 { map_add' := λ x y, rfl,
   map_mul' := λ x y, mul_comm (op y) (op x),
@@ -244,7 +244,7 @@ lemma to_opposite_apply (r : R) : to_opposite R r = op r := rfl
 @[simp]
 lemma to_opposite_symm_apply (r : Rᵐᵒᵖ) : (to_opposite R).symm r = unop r := rfl
 
-end comm_semiring
+end non_unital_comm_semiring
 
 end opposite
 

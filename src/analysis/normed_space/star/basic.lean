@@ -38,7 +38,6 @@ local postfix `⋆`:std.prec.max_plus := star
 class normed_star_group (E : Type*) [semi_normed_group E] [star_add_monoid E] : Prop :=
 (norm_star : ∀ {x : E}, ∥x⋆∥ = ∥x∥)
 
-
 export normed_star_group (norm_star)
 attribute [simp] norm_star
 

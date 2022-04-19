@@ -154,7 +154,7 @@ the isomorphism `End(M) ≃ M* ⊗ M`-/
 theorem trace_eq_contract' :
   (linear_map.trace R M) =
   (contract_left R M) ∘ₗ (dual_tensor_hom_equiv).symm.to_linear_map :=
-  trace_eq_contract_of_basis' R (module.free.choose_basis R M)
+trace_eq_contract_of_basis' R (module.free.choose_basis R M)
 
 /-- The trace of the identity endomorphism is the dimension of the free module -/
 @[simp] theorem trace_one : trace R M 1 = (finrank R M : R) :=

@@ -104,6 +104,14 @@ right_comm has_mul.mul mul_comm mul_assoc
 theorem mul_mul_mul_comm (a b c d : G) : (a * b) * (c * d) = (a * c) * (b * d) :=
 by simp only [mul_left_comm, mul_assoc]
 
+@[to_additive]
+lemma mul_rotate (a b c : G) : a * b * c = b * c * a :=
+by simp only [mul_left_comm, mul_comm]
+
+@[to_additive]
+lemma mul_rotate' (a b c : G) : a * (b * c) = b * (c * a) :=
+by simp only [mul_left_comm, mul_comm]
+
 end comm_semigroup
 
 local attribute [simp] mul_assoc sub_eq_add_neg

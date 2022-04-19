@@ -1012,7 +1012,7 @@ end
 lemma norm_inner_le_norm (x y : E) : ∥⟪x, y⟫∥ ≤ ∥x∥ * ∥y∥ :=
 (is_R_or_C.norm_eq_abs _).le.trans (abs_inner_le_norm x y)
 
-lemma nnorm_inner_le_nnorm (x y : E) : ∥⟪x, y⟫∥₊ ≤ ∥x∥₊ * ∥y∥₊ :=
+lemma nnnorm_inner_le_nnnorm (x y : E) : ∥⟪x, y⟫∥₊ ≤ ∥x∥₊ * ∥y∥₊ :=
 norm_inner_le_norm x y
 
 lemma re_inner_le_norm (x y : E) : re ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
@@ -1035,7 +1035,7 @@ begin
   simp only [re.map_add],
 end
 
-lemma parallelogram_law_with_nnorm (x y : E) :
+lemma parallelogram_law_with_nnnorm (x y : E) :
   ∥x + y∥₊ * ∥x + y∥₊ + ∥x - y∥₊ * ∥x - y∥₊ = 2 * (∥x∥₊ * ∥x∥₊ + ∥y∥₊ * ∥y∥₊) :=
 subtype.ext $ parallelogram_law_with_norm x y
 

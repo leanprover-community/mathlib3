@@ -193,16 +193,6 @@ end
 @[simp] lemma realize_iff : (φ.iff ψ).realize v xs ↔ (φ.realize v xs ↔ ψ.realize v xs) :=
 by simp only [bounded_formula.iff, realize_inf, realize_imp, and_imp, ← iff_def]
 
-lemma realize_of_eq_of_uses_var {φ : L.bounded_formula α n} {v v' : α → M} {xs : fin n → M}
-  (h : ∀ a, t.uses_var a → v a = v' a) :
-  t.realize v = t.realize v' :=
-begin
-  induction t with _ _ _ _ ih,
-  { rw [realize, realize, h _ (var_uses_var _)] },
-  { rw [realize, realize],
-    exact congr rfl (funext (λ i, ih _ (λ a ha, h _ (func_uses_var ha)))) }
-end
-
 lemma realize_cast_le_of_eq {m n : ℕ} (h : m = n) {h' : m ≤ n} {φ : L.bounded_formula α m}
   {v : α → M} {xs : fin n → M} :
   (φ.cast_le h').realize v xs ↔ φ.realize v (xs ∘ fin.cast h) :=

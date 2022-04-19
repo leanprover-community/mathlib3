@@ -507,16 +507,16 @@ section big_operators
 protected lemma map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
   f l.prod = (l.map f).prod := map_list_prod f l
 
-protected lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (l : list R) :
-  f l.sum = (l.map f).sum := map_list_sum f l
+protected lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S)
+  (l : list R) : f l.sum = (l.map f).sum := map_list_sum f l
 
 /-- An isomorphism into the opposite ring acts on the product by acting on the reversed elements -/
 protected lemma unop_map_list_prod [semiring R] [semiring S] (f : R ≃+* Sᵐᵒᵖ) (l : list R) :
   mul_opposite.unop (f l.prod) = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
 unop_map_list_prod f l
 
-protected lemma map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S) (s : multiset R) :
-  f s.prod = (s.map f).prod := map_multiset_prod f s
+protected lemma map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S)
+  (s : multiset R) : f s.prod = (s.map f).prod := map_multiset_prod f s
 
 protected lemma map_multiset_sum [non_assoc_semiring R] [non_assoc_semiring S]
   (f : R ≃+* S) (s : multiset R) : f s.sum = (s.map f).sum := map_multiset_sum f s

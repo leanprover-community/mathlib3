@@ -1289,11 +1289,11 @@ lift_add_hom.to_equiv.apply_eq_iff_eq_symm_apply.2 rfl
   f.sum single = f :=
 add_monoid_hom.congr_fun lift_add_hom_single_add_hom f
 
-@[simp] lemma fintype_sum_single [add_comm_monoid M] [fintype α] (i : α) (m : M) :
+@[simp] lemma sum_univ_single [add_comm_monoid M] [fintype α] (i : α) (m : M) :
   ∑ (j : α), (single i m) j = m :=
 by simp [single]
 
-@[simp] lemma fintype_sum_single' [add_comm_monoid M] [fintype α] (i : α) (m : M) :
+@[simp] lemma sum_univ_single' [add_comm_monoid M] [fintype α] (i : α) (m : M) :
   ∑ (j : α), (single j m) i = m :=
 by simp [single]
 

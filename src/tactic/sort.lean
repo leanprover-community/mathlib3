@@ -19,6 +19,15 @@ meta def get_summands : expr → list expr
 
 section with_rel
 
+/--  We sort the elements of the list `l`, making sure that the elements of `t` appear at the
+beginning of the list, in *reversed* order.
+
+Use as `t.rev_top_sort l rel`.
+ -/
+def list.rev_top_sort {N : Type*} [decidable_eq N] (t l : list N) (rel : N → N → bool) :
+  list N :=
+let tl := t.dedup.filter (∈ l) in tl.reverse ++ (l.filter (∈ tl)).qsort rel
+
 /--  Let `rel : expr → expr → bool` be a relation and let `e` be an expression.
 `sorted_sum_with_rel rel e` returns an ordered sum of the terms of `e`, where the order is
 determined using the relation `rel`.

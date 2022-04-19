@@ -1273,13 +1273,12 @@ variable (𝕜)
 order `n`, which are continuous. Contrary to the case of definitions in domains (where derivatives
 might not be unique) we do not need to localize the definition in space or time.
 -/
-definition cont_diff (n : with_top ℕ) (f : E → F)  :=
+definition cont_diff (n : with_top ℕ) (f : E → F) :=
 ∃ p : E → formal_multilinear_series 𝕜 E F, has_ftaylor_series_up_to n f p
 
 variable {𝕜}
 
-theorem cont_diff_on_univ :
-  cont_diff_on 𝕜 n f univ ↔ cont_diff 𝕜 n f :=
+theorem cont_diff_on_univ : cont_diff_on 𝕜 n f univ ↔ cont_diff 𝕜 n f :=
 begin
   split,
   { assume H,
@@ -1290,39 +1289,31 @@ begin
     exact ⟨univ, filter.univ_sets _, p, (hp.has_ftaylor_series_up_to_on univ).of_le hm⟩ }
 end
 
-lemma cont_diff_iff_cont_diff_at :
-  cont_diff 𝕜 n f ↔ ∀ x, cont_diff_at 𝕜 n f x :=
+lemma cont_diff_iff_cont_diff_at : cont_diff 𝕜 n f ↔ ∀ x, cont_diff_at 𝕜 n f x :=
 by simp [← cont_diff_on_univ, cont_diff_on, cont_diff_at]
 
-lemma cont_diff.cont_diff_at (h : cont_diff 𝕜 n f) :
-  cont_diff_at 𝕜 n f x :=
+lemma cont_diff.cont_diff_at (h : cont_diff 𝕜 n f) : cont_diff_at 𝕜 n f x :=
 cont_diff_iff_cont_diff_at.1 h x
 
-lemma cont_diff.cont_diff_within_at (h : cont_diff 𝕜 n f) :
-  cont_diff_within_at 𝕜 n f s x :=
+lemma cont_diff.cont_diff_within_at (h : cont_diff 𝕜 n f) : cont_diff_within_at 𝕜 n f s x :=
 h.cont_diff_at.cont_diff_within_at
 
-lemma cont_diff_top :
-  cont_diff 𝕜 ∞ f ↔ ∀ (n : ℕ), cont_diff 𝕜 n f :=
+lemma cont_diff_top : cont_diff 𝕜 ∞ f ↔ ∀ (n : ℕ), cont_diff 𝕜 n f :=
 by simp [cont_diff_on_univ.symm, cont_diff_on_top]
 
-lemma cont_diff_all_iff_nat :
-  (∀ n, cont_diff 𝕜 n f) ↔ (∀ n : ℕ, cont_diff 𝕜 n f) :=
+lemma cont_diff_all_iff_nat : (∀ n, cont_diff 𝕜 n f) ↔ (∀ n : ℕ, cont_diff 𝕜 n f) :=
 by simp only [← cont_diff_on_univ, cont_diff_on_all_iff_nat]
 
-lemma cont_diff.cont_diff_on
-  (h : cont_diff 𝕜 n f) : cont_diff_on 𝕜 n f s :=
+lemma cont_diff.cont_diff_on (h : cont_diff 𝕜 n f) : cont_diff_on 𝕜 n f s :=
 (cont_diff_on_univ.2 h).mono (subset_univ _)
 
-@[simp] lemma cont_diff_zero :
-  cont_diff 𝕜 0 f ↔ continuous f :=
+@[simp] lemma cont_diff_zero : cont_diff 𝕜 0 f ↔ continuous f :=
 begin
   rw [← cont_diff_on_univ, continuous_iff_continuous_on_univ],
   exact cont_diff_on_zero
 end
 
-lemma cont_diff_at_zero :
-  cont_diff_at 𝕜 0 f x ↔ ∃ u ∈ 𝓝 x, continuous_on f u :=
+lemma cont_diff_at_zero : cont_diff_at 𝕜 0 f x ↔ ∃ u ∈ 𝓝 x, continuous_on f u :=
 by { rw ← cont_diff_within_at_univ, simp [cont_diff_within_at_zero, nhds_within_univ] }
 
 theorem cont_diff_at_one_iff : cont_diff_at 𝕜 1 f x ↔
@@ -1331,18 +1322,20 @@ by simp_rw [show (1 : with_top ℕ) = (0 + 1 : ℕ), from (zero_add 1).symm,
   cont_diff_at_succ_iff_has_fderiv_at, show ((0 : ℕ) : with_top ℕ) = 0, from rfl,
   cont_diff_at_zero, exists_mem_and_iff antitone_bforall antitone_continuous_on, and_comm]
 
-lemma cont_diff.of_le
-  (h : cont_diff 𝕜 n f) (hmn : m ≤ n) :
-  cont_diff 𝕜 m f :=
+lemma cont_diff.of_le (h : cont_diff 𝕜 n f) (hmn : m ≤ n) : cont_diff 𝕜 m f :=
 cont_diff_on_univ.1 $ (cont_diff_on_univ.2 h).of_le hmn
 
-lemma cont_diff.continuous
-  (h : cont_diff 𝕜 n f) : continuous f :=
+lemma cont_diff.of_succ {n : ℕ} (h : cont_diff 𝕜 (n + 1) f) : cont_diff 𝕜 n f :=
+h.of_le $ with_top.coe_le_coe.mpr le_self_add
+
+lemma cont_diff.one_of_succ {n : ℕ} (h : cont_diff 𝕜 (n + 1) f) : cont_diff 𝕜 1 f :=
+h.of_le $ with_top.coe_le_coe.mpr le_add_self
+
+lemma cont_diff.continuous (h : cont_diff 𝕜 n f) : continuous f :=
 cont_diff_zero.1 (h.of_le bot_le)
 
 /-- If a function is `C^n` with `n ≥ 1`, then it is differentiable. -/
-lemma cont_diff.differentiable
-  (h : cont_diff 𝕜 n f) (hn : 1 ≤ n) : differentiable 𝕜 f :=
+lemma cont_diff.differentiable (h : cont_diff 𝕜 n f) (hn : 1 ≤ n) : differentiable 𝕜 f :=
 differentiable_on_univ.1 $ (cont_diff_on_univ.2 h).differentiable_on hn
 
 
@@ -2116,17 +2109,18 @@ cont_diff_snd.cont_diff_within_at
 section n_ary
 
 variables {E₁ E₂ E₃ E₄ : Type*}
-variables [normed_space E₁] [normed_space E₂] [normed_space E₃] [normed_space E₄]
+variables [normed_group E₁] [normed_group E₂] [normed_group E₃] [normed_group E₄]
+variables [normed_space 𝕜 E₁] [normed_space 𝕜 E₂] [normed_space 𝕜 E₃] [normed_space 𝕜 E₄]
 
 lemma cont_diff.comp₂ {g : E₁ × E₂ → G} {f₁ : F → E₁} {f₂ : F → E₂}
   (hg : cont_diff 𝕜 n g) (hf₁ : cont_diff 𝕜 n f₁) (hf₂ : cont_diff 𝕜 n f₂) :
   cont_diff 𝕜 n (λ x, g (f₁ x, f₂ x)) :=
-hg.comp $ hf₁.prod_mk hf₂
+hg.comp $ hf₁.prod hf₂
 
 lemma cont_diff.comp₃ {g : E₁ × E₂ × E₃ → G} {f₁ : F → E₁} {f₂ : F → E₂} {f₃ : F → E₃}
   (hg : cont_diff 𝕜 n g) (hf₁ : cont_diff 𝕜 n f₁) (hf₂ : cont_diff 𝕜 n f₂)
   (hf₃ : cont_diff 𝕜 n f₃) : cont_diff 𝕜 n (λ x, g (f₁ x, f₂ x, f₃ x)) :=
-hg.comp₂ hf₁ $ hf₂.prod_mk hf₃
+hg.comp₂ hf₁ $ hf₂.prod hf₃
 
 end n_ary
 

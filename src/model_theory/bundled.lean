@@ -110,5 +110,9 @@ end Theory
 def elementary_substructure.to_Model {M : T.Model} (S : L.elementary_substructure M) : T.Model :=
 Theory.Model.of T S
 
+instance {M : T.Model} (S : L.elementary_substructure M) [h : small S] :
+  small (S.to_Model T) :=
+h
+
 end language
 end first_order

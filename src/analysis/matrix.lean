@@ -9,11 +9,21 @@ import analysis.normed_space.pi_Lp
 /-!
 # Matrices as a normed space
 
-In this file we provide the following non-instances on matrices, using the elementwise norm:
+In this file we provide the non-instances for norms on matrices:
 
-* `matrix.semi_normed_group`
-* `matrix.normed_group`
-* `matrix.normed_space`
+* the elementwise norm:
+  * `matrix.semi_normed_group`
+  * `matrix.normed_group`
+  * `matrix.normed_space`
+
+* The `L₀-L∞` norm:
+
+  * `matrix.l0_linf_semi_normed_group`
+  * `matrix.l0_linf_normed_group`
+  * `matrix.l0_linf_normed_space`
+  * `matrix.l0_linf_semi_normed_ring`
+  * `matrix.l0_linf_normed_ring`
+  * `matrix.l0_linf_normed_algebra`
 
 These are not declared as instances because there are several natural choices for defining the norm
 of a matrix.
@@ -96,17 +106,21 @@ end normed_space
 
 section l0_linf
 
-instance l0_linf_semi_normed_group [semi_normed_group α] :
+protected def l0_linf_semi_normed_group [semi_normed_group α] :
   semi_normed_group (matrix m n α) :=
 (by apply_instance : semi_normed_group (m → pi_Lp 1 (λ j : n, α)))
 
-instance l0_linf_normed_group [normed_group α] :
+protected def l0_linf_normed_group [normed_group α] :
   normed_group (matrix m n α) :=
 (by apply_instance : normed_group (m → pi_Lp 1 (λ j : n, α)))
 
-instance l0_linf_normed_space [normed_field R] [semi_normed_group α] [normed_space R α] :
+local attribute [instance] matrix.l0_linf_semi_normed_group matrix.l0_linf_normed_group
+
+protected def l0_linf_normed_space [normed_field R] [semi_normed_group α] [normed_space R α] :
   normed_space R (matrix m n α) :=
 (by apply_instance : normed_space R (m → pi_Lp 1 (λ j : n, α)))
+
+local attribute [instance] matrix.l0_linf_normed_space
 
 open_locale nnreal big_operators
 
@@ -123,10 +137,28 @@ subtype.ext $ l0_linf_norm_def A
 
 open_locale matrix
 
-lemma nnorm_mul_vec [semi_normed_ring α] (A : matrix l m α) (v : m → α) :
+@[simp]
+lemma l0_linf_nnnorm_diag [semi_normed_group α] [decidable_eq m] (v : m → α) :
+  ∥diagonal v∥₊ = ∥v∥₊ :=
+begin
+  rw l0_linf_nnnorm_def,
+  change _ = subtype.mk (coe _) _,
+  erw [subtype.eta],
+  congr' 1 with i : 1,
+  refine (finset.sum_eq_single_of_mem _ (finset.mem_univ i) $ λ j hj hij, _).trans _,
+  { rw [diagonal_apply_ne' hij, nnnorm_zero] },
+  { rw [diagonal_apply_eq] },
+end
+
+@[simp]
+lemma l0_linf_norm_diag [semi_normed_group α] [decidable_eq m] (v : m → α) :
+  ∥diagonal v∥ = ∥v∥ :=
+congr_arg coe $ l0_linf_nnnorm_diag v
+
+lemma l0_linf_nnnorm_mul_vec [semi_normed_ring α] (A : matrix l m α) (v : m → α) :
   ∥matrix.mul_vec A v∥₊ ≤ ∥A∥₊ * ∥v∥₊ :=
 begin
-  change subtype.mk (coe _) _ ≤ _ *  subtype.mk (coe _) _,
+  change subtype.mk (coe _) _ ≤ _ * subtype.mk (coe _) _,
   erw [subtype.eta, subtype.eta],
   simp_rw [l0_linf_nnnorm_def, matrix.mul_vec, matrix.dot_product],
   calc finset.univ.sup (λ b, ∥∑ i, A b i * v i∥₊)
@@ -138,14 +170,18 @@ begin
       finset.sum_le_sum $ λ j hj,
         mul_le_mul_of_nonneg_left (finset.le_sup hj) (nnreal.coe_nonneg _))
   ... = finset.univ.sup (λ i, ∑ j, ∥A i j∥₊) * finset.univ.sup (λ b, ∥v b∥₊) :
-    by rw finset_sup_mul,
+    by simp_rw [nnreal.finset_sup_mul, finset.sum_mul],
 end
+
+lemma l0_linf_norm_mul_vec [semi_normed_ring α] (A : matrix l m α) (v : m → α) :
+  ∥matrix.mul_vec A v∥ ≤ ∥A∥ * ∥v∥ :=
+l0_linf_nnnorm_mul_vec _ _
 
 lemma l0_linf_nnnorm_mul [semi_normed_ring α] (A : matrix l m α) (B : matrix m n α) :
   ∥A ⬝ B∥₊ ≤ ∥A∥₊ * ∥B∥₊ :=
 begin
   simp_rw [l0_linf_nnnorm_def, matrix.mul_apply],
-  transitivity finset.univ.sup (λ (i : l), ∑ (k : n), ∑ (j : m), ∥A i j∥₊ * ∥B j k∥₊),
+  transitivity finset.univ.sup (λ i, ∑ k j, ∥A i j∥₊ * ∥B j k∥₊),
   { refine finset.sup_mono_fun (λ x hx, finset.sum_le_sum (λ i hi, _)),
     apply (nnnorm_sum_le _ _).trans (finset.sum_le_sum (λ j hj, _)),
     exact nnnorm_mul_le _ _ },
@@ -154,68 +190,33 @@ begin
     (λ i hi, nnreal.zero_le_coe) (λ i hi, nnreal.zero_le_coe)),
   rw finset.sup_product_left,
   refine finset.sup_mono_fun (λ i hi, _),
+  dsimp,
+  rw ←nnreal.mul_finset_sup,
   simp_rw [ finset.sum_mul, ← finset.mul_sum],
-  casesI is_empty_or_nonempty m,
-  { simp },
-  inhabit m,
-  refine le_trans _ (finset.le_sup $ finset.mem_univ (_ : m)),
-  swap,
-
-  -- transitivity finset.univ.sup (λ (i : l), ∑ (x : m), ∥A i x∥₊ * ∑ (x_1 : n), ∥B x x_1∥₊),
-  -- refine (finset.sup_mul_le_mul_sup_of_nonneg _ _ _).trans _,
-  -- transitivity ∑ (i : n) (a : m), ∥A x a∥₊ * ∥B a i∥₊,
-  -- refine le_trans _ (finset.prod_sup_mul_le_mul_sup_of_nonneg finset.univ finset.univ
-  --   (λ i hi, nnreal.zero_le_coe) (λ i hi, nnreal.zero_le_coe)),
-  -- simp_rw [finset.sum_mul_sum, finset.sup_product_left, finset.sum_product_right],
-  -- refine finset.sup_mono_fun (λ x hx, _),
-  -- refine (finset.sum_le_sum (λ i hi, _)).trans _,
-  -- rotate 1,
-  -- { exact nnnorm_sum_le _ _ },
-  -- transitivity ∑ (i : n) (a : m), ∥A x a∥₊ * ∥B a i∥₊,
-  -- { refine finset.sum_le_sum (λ i hi, finset.sum_le_sum (λ j hj, nnnorm_mul_le _ _)) },
-  -- rw finset.sup_add
-  -- casesI is_empty_or_nonempty m,
-  -- { simp },
-  -- inhabit m,
-  -- refine le_trans _ (finset.le_sup $ finset.mem_univ (default : m)),
-  -- refine (finset.sum_le_sum (λ i hi, finset.sum_le_sum $ λ j hj, nnnorm_mul_le _ _)).trans _,
-  -- refine le_trans _ (finset.le_sup hx),
-  -- apply finset.le_sup
-  -- refine (λ x, ∑ j : m × n, ∥A x.1 j.1 * B x.2 j.2∥₊),
-  -- rotate 1,
-  -- refine finset.sum_le_sum (λ i hi, nnnorm_mul_le _ _),
-  -- rw [←finset.univ_product_univ, finset.sup_product_left],
-  -- refine
-  -- refine le_trans _ (nnnorm_mul_le _ _),
-  -- refine (finset.sup_mono_fun $ λ x hx, finset.sum_le_sum $ λ i hi, _).trans _,
-  -- rw finset.sup_mul_le_mul_sup_of_nonneg,
-  -- rw [←nnreal.mul_rpow],
-  -- simp_rw [matrix.mul_apply],
-  -- rw @finset.sum_comm _ n m,
-  -- rw [finset.sum_mul_sum, finset.sum_product],
-  -- refine nnreal.rpow_le_rpow _ one_half_pos.le,
-  -- refine finset.sum_le_sum (λ i hi, finset.sum_le_sum $ λ j hj, _),
-  -- rw [← nnreal.rpow_le_rpow_iff one_half_pos, ← nnreal.rpow_mul,
-  --   mul_div_cancel' (1 : ℝ) two_ne_zero, nnreal.rpow_one, nnreal.mul_rpow,
-  --     ←pi_Lp.nnorm_eq, ←pi_Lp.nnorm_eq],
-  -- dsimp,
-  -- let a : pi_Lp 2 _ := A i,
-  -- let a' : pi_Lp 2 _ := λ j, star (a j),
-  -- let b : pi_Lp 2 _ := λ k, B k j,
-  -- letI : inner_product_space α (pi_Lp 2 (λ i : m, α)) := pi_Lp.inner_product_space _,
-  -- change ∥∑ k, a k * b k∥₊ ≤ ∥a∥₊ * ∥b∥₊,
-  -- convert nnorm_inner_le_nnorm a' b using 2,
-  -- { simp,
-  --   simp_rw [star_ring_end_apply, star_star], },
-  -- simp [pi_Lp.nnorm_eq, a'],
-  -- simp_rw [star_ring_end_apply, nnorm_star],
+  apply finset.sum_le_sum (λ j hj, _),
+  refine mul_le_mul_of_nonneg_left _ (zero_le _),
+  apply finset.le_sup hj,
 end
 
--- /-- Matrices are a normed ring wrt the `L1-to-L∞` norm. -/
--- def matrix.normed_ring : normed_ring (matrix n n 𝕜) :=
--- { norm_mul := sorry,
---   .. matrix.ring,
---   .. matrix.normed_group' 𝕜 n n }
+/-- Matrices are a normed ring wrt the `L1-to-L∞` norm. -/
+protected def l0_linf_semi_normed_ring [semi_normed_ring α] [decidable_eq n] :
+  semi_normed_ring (matrix n n α) :=
+{ norm_mul := l0_linf_nnnorm_mul,
+  .. matrix.l0_linf_semi_normed_group,
+  .. matrix.ring }
+
+/-- Matrices are a normed ring wrt the `L1-to-L∞` norm. -/
+protected def l0_linf_normed_ring [normed_ring α] [decidable_eq n] :
+  normed_ring (matrix n n α) :=
+{ ..matrix.l0_linf_semi_normed_ring }
+
+local attribute [instance] matrix.l0_linf_semi_normed_ring matrix.l0_linf_normed_ring
+
+protected def l0_linf_normed_algebra [normed_field R] [semi_normed_ring α] [normed_algebra R α]
+  [decidable_eq n] [nonempty n] :
+  normed_algebra R (matrix n n α) :=
+{ norm_algebra_map_eq := λ r, by
+    rw [algebra_map_eq_diagonal, l0_linf_norm_diag, norm_algebra_map_eq (n → α) r] }
 
 end l0_linf
 

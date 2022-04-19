@@ -258,6 +258,21 @@ end comm_semiring
 
 end opposite
 
+section semiring
+
+variables [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (x y : R)
+
+/-- A ring isomorphism sends one to one. -/
+protected lemma map_one : f 1 = 1 := map_one f
+
+variable {x}
+
+protected lemma map_eq_one_iff : f x = 1 ↔ x = 1 := mul_equiv_class.map_eq_one_iff f
+
+lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := mul_equiv_class.map_ne_one_iff f
+
+end semiring
+
 section non_unital_semiring
 
 variables [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
@@ -271,21 +286,6 @@ variable {x}
 protected lemma map_eq_zero_iff : f x = 0 ↔ x = 0 := add_equiv_class.map_eq_zero_iff f
 
 lemma map_ne_zero_iff : f x ≠ 0 ↔ x ≠ 0 := add_equiv_class.map_ne_zero_iff f
-
-end non_unital_semiring
-
-section semiring
-
-variables [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (x y : R)
-
-/-- A ring isomorphism sends one to one. -/
-protected lemma map_one : f 1 = 1 := map_one f
-
-variable {x}
-
-protected lemma map_eq_one_iff : f x = 1 ↔ x = 1 := mul_equiv_class.map_eq_one_iff f
-
-lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := mul_equiv_class.map_ne_one_iff f
 
 /-- Produce a ring isomorphism from a bijective ring homomorphism. -/
 noncomputable def of_bijective [non_unital_ring_hom_class F R S] (f : F)
@@ -315,19 +315,6 @@ def Pi_congr_right {ι : Type*} {R S : ι → Type*}
   .. @mul_equiv.Pi_congr_right ι R S _ _ (λ i, (e i).to_mul_equiv),
   .. @add_equiv.Pi_congr_right ι R S _ _ (λ i, (e i).to_add_equiv) }
 
-/- Why does this break the next lemma?
-
-def Pi_congr_right' {ι : Type*} {R S F : ι → Type*}
-  [Π i, non_unital_non_assoc_semiring (R i)] [Π i, non_unital_non_assoc_semiring (S i)]
-  [Π i, ring_equiv_class (F i) (R i) (S i)]
-  (e : Π i, F i) : (Π i, R i) ≃+* Π i, S i :=
-{ to_fun := λ x j, e j (x j),
-  inv_fun := λ x j, equiv_like.inv (e j) (x j),
-  .. @mul_equiv.Pi_congr_right ι R S _ _ (λ i, (e i)),
-  .. @add_equiv.Pi_congr_right ι R S _ _ (λ i, (e i)) }
-
--/
-
 @[simp]
 lemma Pi_congr_right_refl {ι : Type*} {R : ι → Type*} [Π i, non_unital_non_assoc_semiring (R i)] :
   Pi_congr_right (λ i, ring_equiv.refl (R i)) = ring_equiv.refl _ := rfl
@@ -344,9 +331,9 @@ lemma Pi_congr_right_trans {ι : Type*} {R S T : ι → Type*}
   (e : Π i, R i ≃+* S i) (f : Π i, S i ≃+* T i) :
   (Pi_congr_right e).trans (Pi_congr_right f) = (Pi_congr_right $ λ i, (e i).trans (f i)) := rfl
 
-end semiring
+end non_unital_semiring
 
-section
+section ring
 
 variables [non_assoc_ring R] [non_assoc_ring S] (f : R ≃+* S) (x y : R)
 
@@ -356,7 +343,7 @@ protected lemma map_sub : f (x - y) = f x - f y := map_sub f x y
 
 @[simp] lemma map_neg_one : f (-1) = -1 := f.map_one ▸ f.map_neg 1
 
-end
+end ring
 
 section non_unital_semiring_hom
 
@@ -371,6 +358,9 @@ lemma to_non_unital_ring_hom_injective :
   function.injective (to_non_unital_ring_hom : (R ≃+* S) → R →ₙ+* S) :=
 λ f g h, ring_equiv.ext (non_unital_ring_hom.ext_iff.1 h)
 
+/- The instance priority is lowered here so that in the case when `R` and `S` are both unital, Lean
+will first find and use `ring_equiv.has_coe_to_ring_hom`. -/
+@[priority 900]
 instance has_coe_to_non_unital_ring_hom : has_coe (R ≃+* S) (R →ₙ+* S) :=
 ⟨ring_equiv.to_non_unital_ring_hom⟩
 
@@ -388,6 +378,30 @@ lemma coe_non_unital_ring_hom_inj_iff {R S : Type*}
 lemma to_non_unital_ring_hom_refl :
   (ring_equiv.refl R).to_non_unital_ring_hom = non_unital_ring_hom.id R := rfl
 
+@[simp]
+lemma to_non_unital_ring_hom_apply_symm_to_non_unital_ring_hom_apply (e : R ≃+* S) :
+  ∀ (y : S), e.to_non_unital_ring_hom (e.symm.to_non_unital_ring_hom y) = y :=
+e.to_equiv.apply_symm_apply
+
+@[simp]
+lemma symm_to_non_unital_ring_hom_apply_to_non_unital_ring_hom_apply (e : R ≃+* S) :
+  ∀ (x : R), e.symm.to_non_unital_ring_hom (e.to_non_unital_ring_hom x) = x :=
+equiv.symm_apply_apply (e.to_equiv)
+
+@[simp]
+lemma to_non_unital_ring_hom_trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
+  (e₁.trans e₂).to_non_unital_ring_hom = e₂.to_non_unital_ring_hom.comp e₁.to_non_unital_ring_hom :=
+rfl
+
+@[simp]
+lemma to_non_unital_ring_hom_comp_symm_to_non_unital_ring_hom (e : R ≃+* S) :
+  e.to_non_unital_ring_hom.comp e.symm.to_non_unital_ring_hom = non_unital_ring_hom.id _ :=
+by { ext, simp }
+
+@[simp]
+lemma symm_to_non_unital_ring_hom_comp_to_non_unital_ring_hom (e : R ≃+* S) :
+  e.symm.to_non_unital_ring_hom.comp e.to_non_unital_ring_hom = non_unital_ring_hom.id _ :=
+by { ext, simp }
 end non_unital_semiring_hom
 
 section semiring_hom
@@ -490,30 +504,30 @@ end semiring_hom
 
 section big_operators
 
-lemma map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
+protected lemma map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
   f l.prod = (l.map f).prod := map_list_prod f l
 
-lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (l : list R) :
+protected lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (l : list R) :
   f l.sum = (l.map f).sum := map_list_sum f l
 
 /-- An isomorphism into the opposite ring acts on the product by acting on the reversed elements -/
-lemma unop_map_list_prod [semiring R] [semiring S] (f : R ≃+* Sᵐᵒᵖ) (l : list R) :
+protected lemma unop_map_list_prod [semiring R] [semiring S] (f : R ≃+* Sᵐᵒᵖ) (l : list R) :
   mul_opposite.unop (f l.prod) = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
-f.to_ring_hom.unop_map_list_prod l
+unop_map_list_prod f l
 
-lemma map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S) (s : multiset R) :
-  f s.prod = (s.map f).prod := f.to_ring_hom.map_multiset_prod s
+protected lemma map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S) (s : multiset R) :
+  f s.prod = (s.map f).prod := map_multiset_prod f s
 
-lemma map_multiset_sum [non_assoc_semiring R] [non_assoc_semiring S]
-  (f : R ≃+* S) (s : multiset R) : f s.sum = (s.map f).sum := f.to_ring_hom.map_multiset_sum s
+protected lemma map_multiset_sum [non_assoc_semiring R] [non_assoc_semiring S]
+  (f : R ≃+* S) (s : multiset R) : f s.sum = (s.map f).sum := map_multiset_sum f s
 
-lemma map_prod {α : Type*} [comm_semiring R] [comm_semiring S] (g : R ≃+* S) (f : α → R)
+protected lemma map_prod {α : Type*} [comm_semiring R] [comm_semiring S] (g : R ≃+* S) (f : α → R)
   (s : finset α) : g (∏ x in s, f x) = ∏ x in s, g (f x) :=
-g.to_ring_hom.map_prod f s
+map_prod g f s
 
-lemma map_sum {α : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
+protected lemma map_sum {α : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
   (g : R ≃+* S) (f : α → R) (s : finset α) : g (∑ x in s, f x) = ∑ x in s, g (f x) :=
-g.to_ring_hom.map_sum f s
+map_sum g f s
 
 end big_operators
 
@@ -540,12 +554,21 @@ end ring_equiv
 
 namespace mul_equiv
 
-/-- Gives a `ring_equiv` from a `mul_equiv` preserving addition.-/
-def to_ring_equiv {R : Type*} {S : Type*} [has_add R] [has_add S] [has_mul R] [has_mul S]
-  (h : R ≃* S) (H : ∀ x y : R, h (x + y) = h x + h y) : R ≃+* S :=
-{..h.to_equiv, ..h, ..add_equiv.mk' h.to_equiv H }
+/-- Gives a `ring_equiv` from an element of a `mul_equiv_class` preserving addition.-/
+def to_ring_equiv {R S F : Type*} [has_add R] [has_add S] [has_mul R] [has_mul S]
+  [mul_equiv_class F R S] (f : F) (H : ∀ x y : R, f (x + y) = f x + f y) : R ≃+* S :=
+{ ..(f : R ≃* S).to_equiv, ..(f : R ≃* S), ..add_equiv.mk' (f : R ≃* S).to_equiv H }
 
 end mul_equiv
+
+namespace add_equiv
+
+/-- Gives a `ring_equiv` from an element of an `add_equiv_class` preserving addition.-/
+def to_ring_equiv {R S F : Type*} [has_add R] [has_add S] [has_mul R] [has_mul S]
+  [add_equiv_class F R S] (f : F) (H : ∀ x y : R, f (x * y) = f x * f y) : R ≃+* S :=
+{ ..(f : R ≃+ S).to_equiv, ..(f : R ≃+ S), ..mul_equiv.mk' (f : R ≃+ S).to_equiv H }
+
+end add_equiv
 
 namespace ring_equiv
 

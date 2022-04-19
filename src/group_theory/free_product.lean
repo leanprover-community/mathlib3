@@ -8,8 +8,7 @@ import group_theory.congruence
 import group_theory.is_free_group
 import group_theory.subgroup.pointwise
 import data.list.chain
-import set_theory.cardinal
-import set_theory.cardinal_ordinal
+import set_theory.cardinal.ordinal
 /-!
 # The free product of groups or monoids
 

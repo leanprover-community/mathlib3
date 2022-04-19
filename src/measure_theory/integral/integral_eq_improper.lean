@@ -157,6 +157,11 @@ variables [linear_order α] [topological_space α] [order_closed_topology α]
   [opens_measurable_space α] {a b : ι → α} {A B : α}
   (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B))
 
+lemma ae_cover_restrict_of_ae_eq {φ : ι → set α} {s t : set α} (hs : measurable_set s)
+  (ht : measurable_set t) (hst : s =ᵐ[μ] t) :
+  ae_cover (μ.restrict s) l φ ↔ ae_cover (μ.restrict t) l φ :=
+⟨restrict_eq_of_ae_eq_of_restrict_eq hs ht hst, restrict_eq_of_ae_eq_of_restrict_eq ht hs hst.symm⟩
+
 lemma ae_cover_Ioo_of_Icc :
   ae_cover (μ.restrict $ Ioo A B) l (λ i, Icc (a i) (b i)) :=
 { ae_eventually_mem := (ae_restrict_iff' measurable_set_Ioo).mpr (

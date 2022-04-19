@@ -51,7 +51,7 @@ artifact, really.
 noncomputable theory
 open_locale classical big_operators topological_space
 
-open filter (tendsto) metric
+open filter (tendsto) metric continuous_linear_map
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
           {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -228,6 +228,34 @@ end
 
 section bilinear_map
 
+namespace continuous_linear_map
+
+lemma map_add_left (f : E →L[𝕜] F →L[𝕜] G) {x x' : E} {y : F} : f (x + x') y = f x y + f x' y :=
+by rw [f.map_add, add_apply]
+
+lemma map_add_right (f : E →L[𝕜] F →L[𝕜] G) {x : E} {y y' : F} : f x (y + y') = f x y + f x y' :=
+(f x).map_add y y'
+
+lemma map_sub_left (f : E →L[𝕜] F →L[𝕜] G) {x x' : E} {y : F} : f (x - x') y = f x y - f x' y :=
+by rw [f.map_sub, sub_apply]
+
+lemma map_sub_right (f : E →L[𝕜] F →L[𝕜] G) {x : E} {y y' : F} : f x (y - y') = f x y - f x y' :=
+(f x).map_sub y y'
+
+lemma map_smul_left (f : E →L[𝕜] F →L[𝕜] G) {c : 𝕜} {x : E} {y : F} : f (c • x) y = c • f x y :=
+by rw [f.map_smul, smul_apply]
+
+lemma map_smul_right (f : E →L[𝕜] F →L[𝕜] G) {c : 𝕜} {x : E} {y : F} : f x (c • y) = c • f x y :=
+(f x).map_smul c y
+
+lemma map_zero_left (f : E →L[𝕜] F →L[𝕜] G) {y : F} : f 0 y = 0 :=
+by rw [f.map_zero, zero_apply]
+
+lemma map_zero_right (f : E →L[𝕜] F →L[𝕜] G) {x : E} : f x 0 = 0 :=
+(f x).map_zero
+
+end continuous_linear_map
+
 variable (𝕜)
 
 /-- A map `f : E × F → G` satisfies `is_bounded_bilinear_map 𝕜 f` if it is bilinear and
@@ -244,10 +272,10 @@ variable {f : E × F → G}
 
 lemma continuous_linear_map.is_bounded_bilinear_map (f : E →L[𝕜] F →L[𝕜] G) :
   is_bounded_bilinear_map 𝕜 (λ x : E × F, f x.1 x.2) :=
-{ add_left := λ x₁ x₂ y, by rw [f.map_add, continuous_linear_map.add_apply],
-  smul_left := λ c x y, by rw [f.map_smul _, continuous_linear_map.smul_apply],
-  add_right := λ x, (f x).map_add,
-  smul_right := λ c x y, (f x).map_smul c y,
+{ add_left := λ x₁ x₂ y, f.map_add_left,
+  smul_left := λ c x y, f.map_smul_left,
+  add_right := λ x y₁ y₂, f.map_add_right,
+  smul_right := λ c x y, f.map_smul_right,
   bound := ⟨max ∥f∥ 1, zero_lt_one.trans_le (le_max_right _ _),
     λ x y, (f.le_op_norm₂ x y).trans $
       by apply_rules [mul_le_mul_of_nonneg_right, norm_nonneg, le_max_left]⟩ }
@@ -278,6 +306,7 @@ calc f (x, y - z) = f (x, y + (-1 : 𝕜) • z) : by simp [sub_eq_add_neg]
 ... = f (x, y) + (-1 : 𝕜) • f (x, z) : by simp only [h.add_right, h.smul_right]
 ... = f (x, y) - f (x, z) : by simp [sub_eq_add_neg]
 
+/-- Useful to use together with `continuous.comp₂`. -/
 lemma is_bounded_bilinear_map.continuous (h : is_bounded_bilinear_map 𝕜 f) :
   continuous f :=
 begin
@@ -316,6 +345,11 @@ h.continuous.comp (continuous_id.prod_mk continuous_const)
 lemma is_bounded_bilinear_map.continuous_right (h : is_bounded_bilinear_map 𝕜 f) {e₁ : E} :
   continuous (λe₂, f (e₁, e₂)) :=
 h.continuous.comp (continuous_const.prod_mk continuous_id)
+
+/-- Useful to use together with `continuous.comp₂`. -/
+lemma continuous_linear_map.continuous₂ (f : E →L[𝕜] F →L[𝕜] G) :
+  continuous (function.uncurry (λ x y, f x y)) :=
+f.is_bounded_bilinear_map.continuous
 
 lemma is_bounded_bilinear_map.is_bounded_linear_map_left (h : is_bounded_bilinear_map 𝕜 f) (y : F) :
   is_bounded_linear_map 𝕜 (λ x, f (x, y)) :=

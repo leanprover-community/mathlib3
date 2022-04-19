@@ -29,13 +29,15 @@ Right now, it simply does a case-split: we compare two expressions alphabeticall
 both `monomial <deg> <coe>ff`, in which case, we place the term last and we use `<deg>` to further
 compare.
 
-* Add support for `neg` and additive groups?
-* Add optional different operations than `+`, most notably `*`?
+* Allow for pattern-matching in the list of terms?
+* Allow to pass `[f, -g, h, -i]` to mean that `f, h` come last and `g i` come first?
+  The `-` could be problematic if the expressions involve `neg`.
 * Improve sorting heuristic?
+* Add support for `neg` and additive groups?
 * Allow the option of not changing the given order, except for the explicitly listed terms?
   E.g. `sort_summands only [f, g]`, extracts `f` and `g`, placing them last, but leaving the rest
   unchanged (except for the parenthesis, which will be straightened).
-* Allow for pattern-matching in the list of terms?
+* Add optional different operations than `+`, most notably `*`?
 * Allow custom ordering?  E.g. `sort_summands using my_rel`, where `my_rel : N → N → Prop` is a
   relation on a type (with `+`), and, if `sort_summands` encounters a sum of terms of type `N`,
   then it will ask the user to prove the required sorting.

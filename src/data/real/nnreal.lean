@@ -352,21 +352,17 @@ iff.intro
 lemma bot_eq_zero : (⊥ : ℝ≥0) = 0 := rfl
 
 lemma mul_sup (a b c : ℝ≥0) : a * (b ⊔ c) = (a * b) ⊔ (a * c) :=
-begin
-  cases le_total b c with h h,
-  { simp [sup_eq_max, max_eq_right h, max_eq_right (mul_le_mul_of_nonneg_left h (zero_le a))] },
-  { simp [sup_eq_max, max_eq_left h, max_eq_left (mul_le_mul_of_nonneg_left h (zero_le a))] },
-end
+mul_max_of_nonneg _ _ $ zero_le a
 
 lemma sup_mul (a b c : ℝ≥0) : (a ⊔ b) * c = (a * c) ⊔ (b * c) :=
-by simpa only [mul_comm] using mul_sup c a b
+max_mul_of_nonneg _ _ $ zero_le c
 
-lemma mul_finset_sup {α} {f : α → ℝ≥0} {s : finset α} (r : ℝ≥0) :
-  r * s.sup f = s.sup (λa, r * f a) :=
+lemma mul_finset_sup {α} (r : ℝ≥0) (s : finset α) (f : α → ℝ≥0) :
+  r * s.sup f = s.sup (λ a, r * f a) :=
 (finset.comp_sup_eq_sup_comp _ (nnreal.mul_sup r) (mul_zero r))
 
-lemma finset_sup_mul {α} {f : α → ℝ≥0} {s : finset α} (r : ℝ≥0) :
-  s.sup f * r = s.sup (λa, f a * r) :=
+lemma finset_sup_mul {α} (s : finset α) (f : α → ℝ≥0) (r : ℝ≥0) :
+  s.sup f * r = s.sup (λ a, f a * r) :=
 (finset.comp_sup_eq_sup_comp (* r) (λ x y, nnreal.sup_mul x y r) (zero_mul r))
 
 lemma finset_sup_div {α} {f : α → ℝ≥0} {s : finset α} (r : ℝ≥0) :

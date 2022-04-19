@@ -44,9 +44,9 @@ variables {C} [category_struct.{v} C]
 
 @[priority 900]
 instance hom_small_category (X Y : locally_discrete C) : small_category (X ⟶ Y) :=
-{ hom  := λ X Y, ulift (plift (X = Y)),
-  id   := λ X, ulift.up (plift.up rfl),
-  comp := λ X Y Z g f, by { cases X, cases Y, cases Z, rcases f with ⟨⟨⟨⟩⟩⟩, exact g } }
+{ hom  := λ f g, ulift (plift (f = g)),
+  id   := λ f, ulift.up (plift.up rfl),
+  comp := λ f g h θ η, by { cases f, cases g, cases g, rcases θ with ⟨⟨⟨⟩⟩⟩, exact η } }
 
 /-- Extract the equation from a 2-morphism in a locally discrete 2-category. -/
 lemma eq_of_hom {X Y : locally_discrete C} {f g : X ⟶ Y} (η : f ⟶ g) : f = g := η.down.down
@@ -78,9 +78,12 @@ be promoted to an oplax functor from `locally_discrete I` to `B`.
 -/
 @[simps]
 def functor.to_oplax_functor (F : I ⥤ B) : oplax_functor (locally_discrete I) B :=
-{ map₂ := λ i j f g η, eq_to_hom (congr_arg _ (locally_discrete.eq_of_hom η)),
-  map_id := λ i, eq_to_hom (F.map_id i),
-  map_comp := λ i j k f g, eq_to_hom (F.map_comp f g),
+{ obj := λ X, F.obj X.as,
+  map := λ X Y f, F.map (eq_to_hom (eq_of_hom f)),
+  map₂ := λ i j f g η, eq_to_hom (congr_arg _ rfl),
+  map_id := λ i, eq_to_hom (F.map_id i.as),
+  map_comp := λ i j k f g,
+    eq_to_hom (by { cases i, cases j, cases k, convert F.map_comp _ _, simp, }),
   .. F }
 
 end category_theory

@@ -218,9 +218,6 @@ le_sub_iff_add_le
 ⟨λ a0, let ⟨hn, hp⟩ := abs_lt.mp a0 in (le_of_lt_add_one (by exact hp)).antisymm hn,
   λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
 
-lemma one_le_abs {z : ℤ} (h₀: z ≠ 0) : 1 ≤ |z| :=
-add_one_le_iff.mpr (abs_pos.mpr h₀)
-
 @[elab_as_eliminator] protected lemma induction_on {p : ℤ → Prop}
   (i : ℤ) (hz : p 0) (hp : ∀ i : ℕ, p i → p (i + 1)) (hn : ∀ i : ℕ, p (-i) → p (-i - 1)) : p i :=
 begin
@@ -1283,18 +1280,6 @@ begin
   rcases h with rfl | rfl,
   { exact is_unit_one },
   { exact is_unit_one.neg }
-end
-
-lemma eq_one_or_neg_one_of_mul_eq_one {z w : ℤ} (h : z * w = 1) : z = 1 ∨ z = -1 :=
-is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
-
-lemma eq_one_or_neg_one_of_mul_eq_one' {z w : ℤ} (h : z * w = 1) :
-  (z = 1 ∧ w = 1) ∨ (z = -1 ∧ w = -1) :=
-begin
-  have h' : w * z = 1 := (mul_comm z w) ▸ h,
-  rcases eq_one_or_neg_one_of_mul_eq_one h with rfl | rfl;
-  rcases eq_one_or_neg_one_of_mul_eq_one h' with rfl | rfl;
-  tauto,
 end
 
 theorem is_unit_iff_nat_abs_eq {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=

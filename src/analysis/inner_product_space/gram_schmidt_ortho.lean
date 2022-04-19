@@ -22,15 +22,15 @@ and outputs a set of orthogonal vectors which have the same span.
 - `span_gram_schmidt` :
   Gram-Schmidt process preserves span of vectors.
 - `gram_schmidt_ne_zero` :
-  If the input of the first `n + 1` vectors of gram_schmidt are linearly independent
-  , then the output of the first `n + 1` vectors are non-zero.
+  If the input of the first `n + 1` vectors of gram_schmidt are linearly independent,
+  then the output of the first `n + 1` vectors are non-zero.
 - `gram_schmidt_normed` :
   the normalized "Gram-Schmidt" (i.e each vector in this system has unit length.)
 - `gram_schmidt_orthornormal` :
   `gram_schmidt_normed` produces an orthornormal system of vectors.
 
 ## TODO
-  Construct a version with an orthonormal basis from the Gram-Schmidt process.
+  Construct a version with an orthonormal basis from Gram-Schmidt process.
 -/
 
 open_locale big_operators

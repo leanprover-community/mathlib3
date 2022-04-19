@@ -224,8 +224,6 @@ begin
 variable (Γ : subgroup (special_linear_group (fin 2) ℤ))
 
 @[simp]lemma sl_moeb (A: SL(2,ℤ)) (z : ℍ) : A • z = (A : (GL_pos (fin 2) ℝ)) • z := rfl
-@[simp]lemma subgroup_moeb (A: Γ) (z : ℍ) : A • z = (A : (GL_pos (fin 2) ℝ)) • z := rfl
-@[simp]lemma subgroup_to_sl_moeb (A: Γ) (z : ℍ) : A • z = (A : SL(2,ℤ)) • z := rfl
 
 @[simp] lemma SL_neg_smul (g : SL(2,ℤ)) (z : ℍ) : -g • z = g • z :=
 begin
@@ -238,12 +236,6 @@ open_locale topological_space manifold
 
 /--The upper half space as a subset of `ℂ` which is convenient sometimes.-/
 def upper_half_space := {z : ℂ | 0 <  z.im}
-
-lemma hcoe : upper_half_space = (coe: upper_half_plane → ℂ) '' (set.univ : set upper_half_plane) :=
-begin
-simp,
-refl,
-end
 
 lemma upper_half_plane_is_open: is_open upper_half_space  :=
 begin

@@ -6,6 +6,8 @@ Authors: Johan Commelin
 import category_theory.concrete_category.bundled_hom
 import algebra.punit_instances
 import order.hom.basic
+import category_theory.category.Cat
+import category_theory.category.preorder
 
 /-!
 # Category of preorders
@@ -59,3 +61,20 @@ equivalence.mk dual dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
 
 end Preorder
+
+/--
+The embedding of `Preorder` into `Cat`.
+-/
+@[simps]
+def Preorder_to_Cat : Preorder.{u} ⥤ Cat :=
+{ obj := λ X, Cat.of X.1,
+  map := λ X Y f, f.monotone.functor,
+  map_id' := λ X, begin apply category_theory.functor.ext, tidy end,
+  map_comp' := λ X Y Z f g, begin apply category_theory.functor.ext, tidy end }
+
+instance : faithful Preorder_to_Cat.{u} :=
+{ map_injective' := λ X Y f g h, begin ext x, exact functor.congr_obj h x end }
+
+instance : full Preorder_to_Cat.{u} :=
+{ preimage := λ X Y f, ⟨f.obj, f.monotone⟩,
+  witness' := λ X Y f, begin apply category_theory.functor.ext, tidy end }

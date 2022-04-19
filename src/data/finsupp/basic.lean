@@ -268,6 +268,9 @@ by rwa [single_eq_same, single_eq_same] at this
 lemma single_apply_eq_zero {a x : α} {b : M} : single a b x = 0 ↔ (x = a → b = 0) :=
 by simp [single_eq_indicator]
 
+lemma single_apply_ne_zero {a x : α} {b : M} : single a b x ≠ 0 ↔ (x = a ∧ b ≠ 0) :=
+by simp [single_apply_eq_zero]
+
 lemma mem_support_single (a a' : α) (b : M) :
   a ∈ (single a' b).support ↔ a = a' ∧ b ≠ 0 :=
 by simp [single_apply_eq_zero, not_or_distrib]
@@ -309,11 +312,7 @@ lemma single_left_inj (h : b ≠ 0) : single a b = single a' b ↔ a = a' :=
 
 lemma support_single_ne_bot (i : α) (h : b ≠ 0) :
   (single i b).support ≠ ⊥ :=
-begin
-  have : i ∈ (single i b).support := by simpa using h,
-  intro H,
-  simpa [H]
-end
+by simpa only [support_single_ne_zero h] using singleton_ne_empty _
 
 lemma support_single_disjoint [decidable_eq α] {b' : M} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
   disjoint (single i b).support (single j b').support ↔ i ≠ j :=
@@ -1941,6 +1940,14 @@ by rw subsingleton.elim D; refl
 
 lemma filter_eq_indicator : ⇑(f.filter p) = set.indicator {x | p x} f := rfl
 
+lemma filter_eq_zero_iff : f.filter p = 0 ↔ ∀ x, p x → f x = 0 :=
+by simp only [fun_like.ext_iff, filter_eq_indicator, zero_apply, set.indicator_apply_eq_zero,
+  set.mem_set_of_eq]
+
+lemma filter_eq_self_iff : f.filter p = f ↔ ∀ x, f x ≠ 0 → p x :=
+by simp only [fun_like.ext_iff, filter_eq_indicator, set.indicator_apply_eq_self, set.mem_set_of_eq,
+  not_imp_comm]
+
 @[simp] lemma filter_apply_pos {a : α} (h : p a) : f.filter p a = f a :=
 if_pos h
 
@@ -1953,13 +1960,28 @@ by rw subsingleton.elim D; refl
 lemma filter_zero : (0 : α →₀ M).filter p = 0 :=
 by rw [← support_eq_empty, support_filter, support_zero, finset.filter_empty]
 
-@[simp] lemma filter_single_of_pos
-  {a : α} {b : M} (h : p a) : (single a b).filter p = single a b :=
-coe_fn_injective $ by simp [filter_eq_indicator, set.subset_def, mem_support_single, h]
+@[simp] lemma filter_single_of_pos {a : α} {b : M} (h : p a) :
+  (single a b).filter p = single a b :=
+(filter_eq_self_iff _ _).2 $ λ x hx, (single_apply_ne_zero.1 hx).1.symm ▸ h
 
-@[simp] lemma filter_single_of_neg
-  {a : α} {b : M} (h : ¬ p a) : (single a b).filter p = 0 :=
-ext $ by simp [filter_eq_indicator, single_apply_eq_zero, @imp.swap (p _), h]
+@[simp] lemma filter_single_of_neg {a : α} {b : M} (h : ¬ p a) : (single a b).filter p = 0 :=
+(filter_eq_zero_iff _ _).2 $ λ x hpx, single_apply_eq_zero.2 $ λ hxa, absurd hpx (hxa.symm ▸ h)
+
+@[to_additive] lemma prod_filter_index [comm_monoid N] (g : α → M → N) :
+  (f.filter p).prod g = ∏ x in (f.filter p).support, g x (f x) :=
+begin
+  refine finset.prod_congr rfl (λ x hx, _),
+  rw [support_filter, finset.mem_filter] at hx,
+  rw [filter_apply_pos _ _ hx.2]
+end
+
+@[simp, to_additive] lemma prod_filter_mul_prod_filter_not [comm_monoid N] (g : α → M → N) :
+  (f.filter p).prod g * (f.filter (λ a, ¬ p a)).prod g = f.prod g :=
+by simp_rw [prod_filter_index, support_filter, prod_filter_mul_prod_filter_not, finsupp.prod]
+
+@[simp, to_additive] lemma prod_div_prod_filter [comm_group G] (g : α → M → G) :
+  f.prod g / (f.filter p).prod g = (f.filter (λ a, ¬p a)).prod g :=
+div_eq_of_eq_mul' (prod_filter_mul_prod_filter_not _ _ _).symm
 
 end has_zero
 

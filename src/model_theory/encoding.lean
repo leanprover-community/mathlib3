@@ -6,6 +6,7 @@ Authors: Aaron Anderson
 
 import model_theory.syntax
 import set_theory.cardinal_ordinal
+import computability.encoding
 
 /-! # Encodings and Cardinality of First-Order Syntax
 
@@ -18,7 +19,6 @@ import set_theory.cardinal_ordinal
 `# (α ⊕ Σ i, L.functions i) + ω`.
 
 ## TODO
-* Bundle `term.list_encode` and `term.list_decode` together with `computability.encoding`.
 * An encoding for formulas
 * `fin_encoding`s for terms and formulas, based on the `encoding`s
 * Computability facts about these `fin_encoding`s, to set up a computability approach to
@@ -35,19 +35,19 @@ variables {L : language.{u v}}
 variables {M : Type w} {N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
 variables {α : Type u'} {β : Type v'}
 open_locale first_order cardinal
-open list Structure cardinal fin
+open computability list Structure cardinal fin
 
 namespace term
 
 /-- Encodes a term as a list of variables and function symbols. -/
-def list_encode : L.term α → list (α ⊕ (Σ i, L.functions i))
+def list_encode : L.term α → list (α ⊕ Σ i, L.functions i)
 | (var i) := [sum.inl i]
 | (func f ts) := ((sum.inr (⟨_, f⟩ : Σ i, L.functions i)) ::
     ((list.fin_range _).bind (λ i, (ts i).list_encode)))
 
 /-- Decodes a list of variables and function symbols as a list of terms. -/
 def list_decode [inhabited (L.term α)] :
-  list (α ⊕ (Σ i, L.functions i)) → list (L.term α)
+  list (α ⊕ Σ i, L.functions i) → list (L.term α)
 | [] := []
 | ((sum.inl a) :: l) := var a :: list_decode l
 | ((sum.inr ⟨n, f⟩) :: l) := func f (λ i, ((list_decode l).nth i).iget) :: ((list_decode l).drop n)
@@ -55,7 +55,7 @@ def list_decode [inhabited (L.term α)] :
 @[simp] theorem list_decode_encode_list [inhabited (L.term α)] (l : list (L.term α)) :
   list_decode (l.bind list_encode) = l :=
 begin
-  suffices h : ∀ (t : L.term α) (l : list (α ⊕ (Σ i, L.functions i))),
+  suffices h : ∀ (t : L.term α) (l : list (α ⊕ Σ i, L.functions i)),
     list_decode (t.list_encode ++ l) = t :: list_decode l,
   { induction l with t l lih,
     { refl },
@@ -84,27 +84,33 @@ begin
         rw [length_map, length_fin_range] } } }
 end
 
+/-- An encoding of terms as lists. -/
+@[simps] protected def encoding [inhabited (L.term α)] : encoding (L.term α) :=
+{ Γ := α ⊕ Σ i, L.functions i,
+  encode := list_encode,
+  decode := λ l, (list_decode l).head',
+  decode_encode := λ t, begin
+    have h := list_decode_encode_list [t],
+    rw [bind_singleton] at h,
+    rw [h, head'],
+  end }
+
 lemma list_encode_injective :
-  function.injective (list_encode : L.term α → list (α ⊕ (Σ i, L.functions i))) :=
+  function.injective (list_encode : L.term α → list (α ⊕ Σ i, L.functions i)) :=
 begin
-  cases is_empty_or_nonempty (L.term α) with he hne,
+  casesI is_empty_or_nonempty (L.term α) with he hne,
   { exact he.elim },
-  { resetI,
-    inhabit (L.term α),
-    intros t1 t2 h,
-    have h' : (list_decode ([t1].bind (list_encode))) = (list_decode ([t2].bind (list_encode))),
-    { rw [bind_singleton, h, bind_singleton] },
-    rw [list_decode_encode_list, list_decode_encode_list] at h',
-    exact head_eq_of_cons_eq h' }
+  { inhabit (L.term α),
+    exact term.encoding.encode_injective }
 end
 
-theorem card_le : # (L.term α) ≤ # (α ⊕ (Σ i, L.functions i)) + ω :=
+theorem card_le : # (L.term α) ≤ # (α ⊕ Σ i, L.functions i) + ω :=
 begin
   have h := (mk_le_of_injective list_encode_injective),
   refine h.trans _,
-  casesI fintype_or_infinite (α ⊕ (Σ i, L.functions i)) with ft inf,
-  { haveI := fintype.encodable (α ⊕ (Σ i, L.functions i)),
-    exact le_add_left (encodable_iff.1 ⟨encodable.list⟩) },
+  casesI fintype_or_infinite (α ⊕ Σ i, L.functions i) with ft inf,
+  { haveI := fintype.to_encodable (α ⊕ Σ i, L.functions i),
+    exact le_add_left mk_le_omega },
   { rw mk_list_eq_mk,
     exact le_self_add }
 end

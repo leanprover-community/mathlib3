@@ -24,11 +24,11 @@ namespace polynomial
 open_locale polynomial
 open absolute_value real
 
-variables {Fq : Type*} [field Fq] [fintype Fq]
+variables {Fq : Type*} [fintype Fq]
 
-/-- If `A` is a family of enough low-degree polynomials over a finite field, there is a
+/-- If `A` is a family of enough low-degree polynomials over a finite semiring, there is a
 pair of equal elements in `A`. -/
-lemma exists_eq_polynomial {d : ℕ} {m : ℕ} (hm : fintype.card Fq ^ d ≤ m) (b : Fq[X])
+lemma exists_eq_polynomial [semiring Fq] {d : ℕ} {m : ℕ} (hm : fintype.card Fq ^ d ≤ m) (b : Fq[X])
   (hb : nat_degree b ≤ d) (A : fin m.succ → Fq[X]) (hA : ∀ i, degree (A i) < degree b) :
   ∃ i₀ i₁, i₀ ≠ i₁ ∧ A i₁ = A i₀ :=
 begin
@@ -53,10 +53,10 @@ begin
   exact lt_of_lt_of_le (coe_lt_degree.mp hbj) hb
 end
 
-/-- If `A` is a family of enough low-degree polynomials over a finite field,
+/-- If `A` is a family of enough low-degree polynomials over a finite ring,
 there is a pair of elements in `A` (with different indices but not necessarily
 distinct), such that their difference has small degree. -/
-lemma exists_approx_polynomial_aux {d : ℕ} {m : ℕ} (hm : fintype.card Fq ^ d ≤ m)
+lemma exists_approx_polynomial_aux [ring Fq] {d : ℕ} {m : ℕ} (hm : fintype.card Fq ^ d ≤ m)
   (b : Fq[X]) (A : fin m.succ → Fq[X]) (hA : ∀ i, degree (A i) < degree b) :
   ∃ i₀ i₁, i₀ ≠ i₁ ∧ degree (A i₁ - A i₀) < ↑(nat_degree b - d) :=
 begin
@@ -93,6 +93,8 @@ begin
   { rw [← nat.succ_sub hbj, nat.succ_sub_succ, tsub_tsub_cancel_of_le hbj.le] },
   convert congr_fun i_eq.symm ⟨nat_degree b - j.succ, hj⟩
 end
+
+variables [field Fq]
 
 /-- If `A` is a family of enough low-degree polynomials over a finite field,
 there is a pair of elements in `A` (with different indices but not necessarily

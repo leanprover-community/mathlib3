@@ -503,17 +503,15 @@ begin
       linarith, }, },
   intros hc,
   replace hc : 0 < c^4, { rw pow_bit0_pos_iff; trivial, },
-  have hgz : (c * z.im) ^ 4 / norm_sq (denom ↑g z) ^ 2 ≤ 1 :=
+  have h₁ := mul_lt_mul_of_pos_right (mul_lt_mul'' (three_lt_four_mul_im_sq_of_mem_fdo hg)
+      (three_lt_four_mul_im_sq_of_mem_fdo hz) (by linarith) (by linarith)) hc,
+  have h₂ : (c * z.im) ^ 4 / norm_sq (denom ↑g z) ^ 2 ≤ 1 :=
     div_le_one_of_le (pow_four_le_pow_two_of_pow_two_le
       (upper_half_plane.c_mul_im_sq_le_norm_sq_denom z g)) (sq_nonneg _),
-  calc 9 * c^4 < c^4 * z.im^2 * (g • z).im^2 * 16 : _
-           ... = c^4 * z.im^4 / (norm_sq (denom g z))^2 * 16 : _
+  let nsq := norm_sq (denom g z),
+  calc 9 * c^4 < c^4 * z.im^2 * (g • z).im^2 * 16 : by linarith
+           ... = c^4 * z.im^4 / nsq^2 * 16 : by { rw [im_smul_eq_div_norm_sq, div_pow], ring, }
            ... ≤ 16 : by { rw ← mul_pow, linarith, },
-  { have := mul_lt_mul_of_pos_right (mul_lt_mul'' (three_lt_four_mul_im_sq_of_mem_fdo hg)
-      (three_lt_four_mul_im_sq_of_mem_fdo hz) (by linarith) (by linarith)) hc,
-    linarith, },
-  { rw [im_smul_eq_div_norm_sq g z, div_pow],
-    ring, },
 end
 
 /-- If both `z` and `g•z` are in `𝒟ᵒ`, then `c` can't be `1`. -/

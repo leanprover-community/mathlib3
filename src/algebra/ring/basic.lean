@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, 
 Neil Strickland
 -/
 import algebra.divisibility
-import algebra.regular.basic
+import algebra.domain
 
 /-!
 # Properties and homomorphisms of semirings and rings
@@ -1184,38 +1184,19 @@ def no_zero_divisors.to_cancel_monoid_with_zero [ring α] [no_zero_divisors α] 
     @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
   .. (infer_instance : semiring α) }
 
-/-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
-  the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
+-- /-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
+--   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
 
-  This is implemented as a mixin for `ring α`.
-  To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
-@[protect_proj] class is_domain (α : Type u) [ring α]
-  extends no_zero_divisors α, nontrivial α : Prop
+--   This is implemented as a mixin for `ring α`.
+--   To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
+-- @[protect_proj] class is_domain (α : Type u) [ring α]
+--   extends no_zero_divisors α, nontrivial α : Prop
 
 section is_domain
-section ring
-
-variables [ring α] [is_domain α]
-
-@[priority 100] -- see Note [lower instance priority]
-instance is_domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
-no_zero_divisors.to_cancel_monoid_with_zero
-
-/-- Pullback an `is_domain` instance along an injective function. -/
-protected theorem function.injective.is_domain [ring β] (f : β →+* α) (hf : injective f) :
-  is_domain β :=
-{ .. pullback_nonzero f f.map_zero f.map_one,
-  .. hf.no_zero_divisors f f.map_zero f.map_mul }
-
-end ring
 
 section comm_ring
 
 variables [comm_ring α] [is_domain α]
-
-@[priority 100] -- see Note [lower instance priority]
-instance is_domain.to_cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero α :=
-{ ..comm_semiring.to_comm_monoid_with_zero, ..is_domain.to_cancel_monoid_with_zero }
 
 /--
 Makes a ring homomorphism from an additive group homomorphism from a commutative ring to an integral

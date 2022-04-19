@@ -202,5 +202,5 @@ begin
     simp only [gram_schmidt_normed, inner_smul_left, inner_smul_right, is_R_or_C.conj_inv,
       is_R_or_C.conj_of_real, mul_eq_zero, inv_eq_zero, is_R_or_C.of_real_eq_zero, norm_eq_zero],
     repeat { right },
-    exact gram_schmidt_orthogonal 𝕜 f i j hij, },
+    exact gram_schmidt_orthogonal 𝕜 f hij, },
 end

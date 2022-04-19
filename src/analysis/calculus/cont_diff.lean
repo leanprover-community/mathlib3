@@ -2020,26 +2020,49 @@ begin
   exact this.comp x hf (subset_univ _),
 end
 
-lemma cont_diff.comp_cont_diff_at
-  {g : F → G} {f : E → F} (x : E)
-  (hg : cont_diff 𝕜 n g)
-  (hf : cont_diff_at 𝕜 n f x) :
-  cont_diff_at 𝕜 n (g ∘ f) x :=
-hg.comp_cont_diff_within_at hf
+
+/-!
+### Smoothness of projections
+-/
 
 /-- The first projection in a product is `C^∞`. -/
 lemma cont_diff_fst : cont_diff 𝕜 n (prod.fst : E × F → E) :=
 is_bounded_linear_map.cont_diff is_bounded_linear_map.fst
 
+/-- Postcomposing `f` with `prod.fst` is `C^n` -/
+lemma cont_diff.fst {f : E → F × G} (hf : cont_diff 𝕜 n f) : cont_diff 𝕜 n (λ x, (f x).1) :=
+cont_diff_fst.comp hf
+
+/-- Precomposing `f` with `prod.fst` is `C^n` -/
+lemma cont_diff.fst' {f : E → G} (hf : cont_diff 𝕜 n f) : cont_diff 𝕜 n (λ x : E × F, f x.1) :=
+hf.comp cont_diff_fst
+
 /-- The first projection on a domain in a product is `C^∞`. -/
-lemma cont_diff_on_fst {s : set (E×F)} :
-  cont_diff_on 𝕜 n (prod.fst : E × F → E) s :=
+lemma cont_diff_on_fst {s : set (E × F)} : cont_diff_on 𝕜 n (prod.fst : E × F → E) s :=
 cont_diff.cont_diff_on cont_diff_fst
 
+lemma cont_diff_on.fst {f : E → F × G} {s : set E} (hf : cont_diff_on 𝕜 n f s) :
+  cont_diff_on 𝕜 n (λ x, (f x).1) s :=
+cont_diff_fst.comp_cont_diff_on hf
+
 /-- The first projection at a point in a product is `C^∞`. -/
-lemma cont_diff_at_fst {p : E × F} :
-  cont_diff_at 𝕜 n (prod.fst : E × F → E) p :=
+lemma cont_diff_at_fst {p : E × F} : cont_diff_at 𝕜 n (prod.fst : E × F → E) p :=
 cont_diff_fst.cont_diff_at
+
+/-- Postcomposing `f` with `prod.fst` is `C^n` at `(x, y)` -/
+lemma cont_diff_at.fst {f : E → F × G} {x : E} (hf : cont_diff_at 𝕜 n f x) :
+  cont_diff_at 𝕜 n (λ x, (f x).1) x :=
+cont_diff_at_fst.comp x hf
+
+/-- Precomposing `f` with `prod.fst` is `C^n` at `(x, y)` -/
+lemma cont_diff_at.fst' {f : E → G} {x : E} {y : F} (hf : cont_diff_at 𝕜 n f x) :
+  cont_diff_at 𝕜 n (λ x : E × F, f x.1) (x, y) :=
+cont_diff_at.comp (x, y) hf cont_diff_at_fst
+
+/-- Precomposing `f` with `prod.fst` is `C^n` at `x : E × F` -/
+lemma cont_diff_at.fst'' {f : E → G} {x : E × F} (hf : cont_diff_at 𝕜 n f x.1) :
+  cont_diff_at 𝕜 n (λ x : E × F, f x.1) x :=
+hf.comp x cont_diff_at_fst
 
 /-- The first projection within a domain at a point in a product is `C^∞`. -/
 lemma cont_diff_within_at_fst {s : set (E × F)} {p : E × F} :
@@ -2050,20 +2073,62 @@ cont_diff_fst.cont_diff_within_at
 lemma cont_diff_snd : cont_diff 𝕜 n (prod.snd : E × F → F) :=
 is_bounded_linear_map.cont_diff is_bounded_linear_map.snd
 
+/-- Postcomposing `f` with `prod.snd` is `C^n` -/
+lemma cont_diff.snd {f : E → F × G} (hf : cont_diff 𝕜 n f) : cont_diff 𝕜 n (λ x, (f x).2) :=
+cont_diff_snd.comp hf
+
+/-- Precomposing `f` with `prod.snd` is `C^n` -/
+lemma cont_diff.snd' {f : F → G} (hf : cont_diff 𝕜 n f) : cont_diff 𝕜 n (λ x : E × F, f x.2) :=
+hf.comp cont_diff_snd
+
 /-- The second projection on a domain in a product is `C^∞`. -/
-lemma cont_diff_on_snd {s : set (E×F)} :
-  cont_diff_on 𝕜 n (prod.snd : E × F → F) s :=
+lemma cont_diff_on_snd {s : set (E × F)} : cont_diff_on 𝕜 n (prod.snd : E × F → F) s :=
 cont_diff.cont_diff_on cont_diff_snd
 
+lemma cont_diff_on.snd {f : E → F × G} {s : set E} (hf : cont_diff_on 𝕜 n f s) :
+  cont_diff_on 𝕜 n (λ x, (f x).2) s :=
+cont_diff_snd.comp_cont_diff_on hf
+
 /-- The second projection at a point in a product is `C^∞`. -/
-lemma cont_diff_at_snd {p : E × F} :
-  cont_diff_at 𝕜 n (prod.snd : E × F → F) p :=
+lemma cont_diff_at_snd {p : E × F} : cont_diff_at 𝕜 n (prod.snd : E × F → F) p :=
 cont_diff_snd.cont_diff_at
+
+/-- Postcomposing `f` with `prod.snd` is `C^n` at `x` -/
+lemma cont_diff_at.snd {f : E → F × G} {x : E} (hf : cont_diff_at 𝕜 n f x) :
+  cont_diff_at 𝕜 n (λ x, (f x).2) x :=
+cont_diff_at_snd.comp x hf
+
+/-- Precomposing `f` with `prod.snd` is `C^n` at `(x, y)` -/
+lemma cont_diff_at.snd' {f : F → G} {x : E} {y : F} (hf : cont_diff_at 𝕜 n f y) :
+  cont_diff_at 𝕜 n (λ x : E × F, f x.2) (x, y) :=
+cont_diff_at.comp (x, y) hf cont_diff_at_snd
+
+/-- Precomposing `f` with `prod.snd` is `C^n` at `x : E × F` -/
+lemma cont_diff_at.snd'' {f : F → G} {x : E × F} (hf : cont_diff_at 𝕜 n f x.2) :
+  cont_diff_at 𝕜 n (λ x : E × F, f x.2) x :=
+hf.comp x cont_diff_at_snd
 
 /-- The second projection within a domain at a point in a product is `C^∞`. -/
 lemma cont_diff_within_at_snd {s : set (E × F)} {p : E × F} :
   cont_diff_within_at 𝕜 n (prod.snd : E × F → F) s p :=
 cont_diff_snd.cont_diff_within_at
+
+section n_ary
+
+variables {E₁ E₂ E₃ E₄ : Type*}
+variables [normed_space E₁] [normed_space E₂] [normed_space E₃] [normed_space E₄]
+
+lemma cont_diff.comp₂ {g : E₁ × E₂ → G} {f₁ : F → E₁} {f₂ : F → E₂}
+  (hg : cont_diff 𝕜 n g) (hf₁ : cont_diff 𝕜 n f₁) (hf₂ : cont_diff 𝕜 n f₂) :
+  cont_diff 𝕜 n (λ x, g (f₁ x, f₂ x)) :=
+hg.comp $ hf₁.prod_mk hf₂
+
+lemma cont_diff.comp₃ {g : E₁ × E₂ × E₃ → G} {f₁ : F → E₁} {f₂ : F → E₂} {f₃ : F → E₃}
+  (hg : cont_diff 𝕜 n g) (hf₁ : cont_diff 𝕜 n f₁) (hf₂ : cont_diff 𝕜 n f₂)
+  (hf₃ : cont_diff 𝕜 n f₃) : cont_diff 𝕜 n (λ x, g (f₁ x, f₂ x, f₃ x)) :=
+hg.comp₂ hf₁ $ hf₂.prod_mk hf₃
+
+end n_ary
 
 /--
 The natural equivalence `(E × F) × G ≃ E × (F × G)` is smooth.
@@ -2082,6 +2147,8 @@ Warning: see remarks attached to `cont_diff_prod_assoc`
 -/
 lemma cont_diff_prod_assoc_symm : cont_diff 𝕜 ⊤ $ (equiv.prod_assoc E F G).symm :=
 (linear_isometry_equiv.prod_assoc 𝕜 E F G).symm.cont_diff
+
+/-! ### Bundled derivatives -/
 
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/
 lemma cont_diff_on_fderiv_within_apply {m n : with_top  ℕ} {s : set E}
@@ -2121,7 +2188,7 @@ end
 
 section pi
 
-variables {ι : Type*} [fintype ι] {F' : ι → Type*} [Π i, normed_group (F' i)]
+variables {ι ι' : Type*} [fintype ι] [fintype ι'] {F' : ι → Type*} [Π i, normed_group (F' i)]
   [Π i, normed_space 𝕜 (F' i)] {φ : Π i, E → F' i}
   {p' : Π i, E → formal_multilinear_series 𝕜 E (F' i)}
   {Φ : E → Π i, F' i} {P' : E → formal_multilinear_series 𝕜 E (Π i, F' i)}
@@ -2178,6 +2245,15 @@ cont_diff_within_at_pi
 lemma cont_diff_pi :
   cont_diff 𝕜 n Φ ↔ ∀ i, cont_diff 𝕜 n (λ x, Φ x i) :=
 by simp only [← cont_diff_on_univ, cont_diff_on_pi]
+
+variables (𝕜 E)
+lemma cont_diff_apply (i : ι) : cont_diff 𝕜 n (λ (f : ι → E), f i) :=
+cont_diff_pi.mp cont_diff_id i
+
+lemma cont_diff_apply_apply (i : ι) (j : ι') : cont_diff 𝕜 n (λ (f : ι → ι' → E), f i j) :=
+cont_diff_pi.mp (cont_diff_apply 𝕜 (ι' → E) i) j
+
+variables {𝕜 E}
 
 end pi
 
@@ -2391,12 +2467,11 @@ lemma cont_diff_on.smul {s : set E} {f : E → 𝕜} {g : E → F}
   cont_diff_on 𝕜 n (λ x, f x • g x) s :=
 λ x hx, (hf x hx).smul (hg x hx)
 
-/-! ### Cartesian product of two functions-/
+/-! ### Cartesian product of two functions -/
 
 section prod_map
 variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 variables {F' : Type*} [normed_group F'] [normed_space 𝕜 F']
-
 
 /-- The product map of two `C^n` functions within a set at a point is `C^n`
 within the product set at the product point. -/
@@ -2451,6 +2526,12 @@ begin
   rw cont_diff_iff_cont_diff_at at *,
   exact λ ⟨x, y⟩, (hf x).prod_map (hg y)
 end
+
+lemma cont_diff_prod_mk_left (f₀ : F) : cont_diff 𝕜 n (λ e : E, (e, f₀)) :=
+cont_diff_id.prod cont_diff_const
+
+lemma cont_diff_prod_mk_right (e₀ : E) : cont_diff 𝕜 n (λ f : F, (e₀, f)) :=
+cont_diff_const.prod cont_diff_id
 
 end prod_map
 

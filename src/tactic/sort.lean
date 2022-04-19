@@ -29,6 +29,8 @@ Right now, it simply does a case-split: we compare two expressions alphabeticall
 both `monomial <deg> <coe>ff`, in which case, we place the term last and we use `<deg>` to further
 compare.
 
+* Add support for `neg` and additive groups?
+* Add optional different operations than `+`, most notably `*`?
 * Improve sorting heuristic?
 * Allow the option of not changing the given order, except for the explicitly listed terms?
   E.g. `sort_summands only [f, g]`, extracts `f` and `g`, placing them last, but leaving the rest
@@ -180,34 +182,3 @@ begin
   congr' 3, -- takes care of using assumption `hp`
   exact X_pow_mul,
 end
-
--- example {R : Type*} [semiring R] (f g : R[X]) {r s t u : R} (r0 : t ≠ 0) :
---   C u * X + (g + X ^ 5) + (C s + C t * X ^ 2 + f) + X ^ 8 = 0 :=
--- begin
---   try { unfold X },
---   try { rw ← C_1 },
---   repeat { rw ← monomial_zero_left },
---   repeat { rw monomial_pow },
---   repeat { rw monomial_mul_monomial },
---   try { simp only [zero_add, add_zero, mul_one, one_mul, one_pow] },
---   sort_summands,
---   sort_summands,
---   -- (monomial 0) s + ((monomial 1) u + ((monomial 2) t + ((monomial 5) 1 + (monomial 8) 1))) = 0
--- end
-
--- example :
---   ((monomial 1) u + 5 * X + (g + (monomial 5) 1) + ((monomial 0) s + (monomial 2) t + f) +
---   (monomial 8) 1).nat_degree =
---     ((3 * X + (monomial 8) 1 + (monomial 6) (t + 1)) + f + h + ((monomial 0) s +
---   (monomial 1) u) + (monomial 5) 1).nat_degree :=
--- begin
---   sort_summands,
--- end
-
--- example :
---   15 + 5 =
---     ((3 * X + (monomial 8) 1 + (monomial 6) (t + 1)) + f + h + ((monomial 0) s +
---   (monomial 1) u) + (monomial 5) 1).nat_degree :=
--- begin
---   sort_summands,
--- end

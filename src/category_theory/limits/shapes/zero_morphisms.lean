@@ -200,13 +200,6 @@ end has_zero_morphisms
 
 open_locale zero_object
 
-instance {B : Type*} [category B] : has_zero_object (B ⥤ C) :=
-(((category_theory.functor.const B).obj (0 : C)).is_zero $ λ X, is_zero_zero _).has_zero_object
-
-end has_zero_object
-
-open_locale zero_object
-
 variables {D}
 
 @[simp] lemma is_zero.map [has_zero_object D] [has_zero_morphisms D] {F : C ⥤ D} (hF : is_zero F)

@@ -128,6 +128,7 @@ match (monomial_weight eₗ, monomial_weight eᵣ) with
 | (some l, some r) := l ≤ r
 end
 
+/--  A version of `sort_summands_aux` that allows failure, if `allow_failure = tt`. -/
 meta def sort_summands_core (allow_failure : bool) (t : list expr) (hyp : option name) :
   tactic unit :=
 if allow_failure then sort_summands_aux compare_fn t hyp <|> skip

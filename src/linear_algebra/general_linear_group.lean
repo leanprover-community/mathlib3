@@ -151,7 +151,7 @@ each element. -/
 instance : has_neg (GL_pos n R) :=
 ⟨λ g, ⟨-g, begin
     rw [mem_GL_pos, general_linear_group.coe_det_apply, units.coe_neg, det_neg,
-      nat.neg_one_pow_of_even (fact.out (even (fintype.card n))), one_mul],
+      (fact.out $ even $ fintype.card n).neg_one_pow, one_mul],
     exact g.prop,
   end⟩⟩
 
@@ -190,10 +190,10 @@ lemma to_GL_pos_injective :
  from subtype.coe_injective).of_comp
 
 /-- Coercing a `special_linear_group` via `GL_pos` and `GL` is the same as coercing striaght to a
-matrix -/
+matrix. -/
 @[simp]
 lemma coe_GL_pos_coe_GL_coe_matrix (g : special_linear_group n R) :
-  (↑(↑(↑(g : special_linear_group n R) : GL_pos n R) : GL n R) : matrix n n R) = ↑g := rfl
+    (↑(↑(↑g : GL_pos n R) : GL n R) : matrix n n R) = ↑g := rfl
 
 @[simp] lemma coe_to_GL_pos_to_GL_det (g : special_linear_group n R) :
   ((g : GL_pos n R) : GL n R).det = 1 :=

@@ -301,7 +301,7 @@ begin
   haveI : nontrivial R := f.domain_nontrivial,
   have : map f p /ₘ map f q = map f (p /ₘ q) ∧ map f p %ₘ map f q = map f (p %ₘ q),
   { exact (div_mod_by_monic_unique ((p /ₘ q).map f) _ (hq.map f)
-      ⟨eq.symm $ by rw [← map_mul, ← map_add, mod_by_monic_add_div _ hq],
+      ⟨eq.symm $ by rw [← polynomial.map_mul, ← polynomial.map_add, mod_by_monic_add_div _ hq],
       calc _ ≤ degree (p %ₘ q) : degree_map_le _ _
       ... < degree q : degree_mod_by_monic_lt _ hq
       ... = _ : eq.symm $ degree_map_eq_of_leading_coeff_ne_zero _
@@ -343,8 +343,8 @@ theorem map_dvd_map [comm_ring S] (f : R →+* S) (hf : function.injective f) {x
 begin
   rw [← dvd_iff_mod_by_monic_eq_zero hx, ← dvd_iff_mod_by_monic_eq_zero (hx.map f),
     ← map_mod_by_monic f hx],
-  exact ⟨λ H, map_injective f hf $ by rw [H, map_zero],
-  λ H, by rw [H, map_zero]⟩
+  exact ⟨λ H, map_injective f hf $ by rw [H, polynomial.map_zero],
+  λ H, by rw [H, polynomial.map_zero]⟩
 end
 
 @[simp] lemma mod_by_monic_one (p : R[X]) : p %ₘ 1 = 0 :=
@@ -388,21 +388,6 @@ lemma eval₂_mod_by_monic_eq_self_of_root [comm_ring S] {f : R →+* S}
   {p q : R[X]} (hq : q.monic) {x : S} (hx : q.eval₂ f x = 0) :
   (p %ₘ q).eval₂ f x = p.eval₂ f x :=
 by rw [mod_by_monic_eq_sub_mul_div p hq, eval₂_sub, eval₂_mul, hx, zero_mul, sub_zero]
-
-lemma sum_fin [add_comm_monoid S] (f : ℕ → R → S) (hf : ∀ i, f i 0 = 0)
-  {n : ℕ} (hn : p.degree < n) :
-  ∑ (i : fin n), f i (p.coeff i) = p.sum f :=
-begin
-  by_cases hp : p = 0,
-  { rw [hp, sum_zero_index, finset.sum_eq_zero], intros i _, exact hf i },
-  rw [degree_eq_nat_degree hp, with_bot.coe_lt_coe] at hn,
-  calc  ∑ (i : fin n), f i (p.coeff i)
-      = ∑ i in finset.range n, f i (p.coeff i) : fin.sum_univ_eq_sum_range (λ i, f i (p.coeff i)) _
-  ... = ∑ i in p.support, f i (p.coeff i) : (finset.sum_subset
-    (supp_subset_range_nat_degree_succ.trans (finset.range_subset.mpr hn))
-    (λ i _ hi, show f i (p.coeff i) = 0, by rw [not_mem_support_iff.mp hi, hf])).symm
-  ... = p.sum f : p.sum_def _
-end
 
 lemma sum_mod_by_monic_coeff (hq : q.monic) {n : ℕ} (hn : q.degree ≤ n) :
   ∑ (i : fin n), monomial i ((p %ₘ q).coeff i) = p %ₘ q :=

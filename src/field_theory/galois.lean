@@ -8,6 +8,7 @@ import field_theory.normal
 import field_theory.primitive_element
 import field_theory.fixed
 import ring_theory.power_basis
+import group_theory.group_action.fixing_subgroup
 
 /-!
 # Galois Extensions
@@ -23,11 +24,12 @@ In this file we define Galois extensions as extensions which are both separable 
 
 ## Main results
 
-- `fixing_subgroup_of_fixed_field` : If `E/F` is finite dimensional (but not necessarily Galois)
-  then `fixing_subgroup (fixed_field H) = H`
-- `fixed_field_of_fixing_subgroup`: If `E/F` is finite dimensional and Galois
+- `intermediate_field.fixing_subgroup_fixed_field` : If `E/F` is finite dimensional (but not
+  necessarily Galois) then `fixing_subgroup (fixed_field H) = H`
+- `intermediate_field.fixed_field_fixing_subgroup`: If `E/F` is finite dimensional and Galois
   then `fixed_field (fixing_subgroup K) = K`
-Together, these two result prove the Galois correspondence
+
+Together, these two results prove the Galois correspondence.
 
 - `is_galois.tfae` : Equivalent characterizations of a Galois extension of finite degree
 -/
@@ -169,19 +171,6 @@ def fixed_points.intermediate_field (M : Type*) [monoid M] [mul_semiring_action 
 { carrier := mul_action.fixed_points M E,
   algebra_map_mem' := λ a g, by rw [algebra.algebra_map_eq_smul_one, smul_comm, smul_one],
   ..fixed_points.subfield M E }
-
-/-- The submonoid fixing a set under a `mul_action`. -/
-@[to_additive /-" The additive submonoid fixing a set under an `add_action`. "-/]
-def fixing_submonoid (M : Type*) {α} [monoid M] [mul_action M α] (s : set α) : submonoid M :=
-{ carrier := { ϕ : M | ∀ x : s, ϕ • (x : α) = x },
-  one_mem' := λ _, one_smul _ _,
-  mul_mem' := λ x y hx hy z, by rw [mul_smul, hy z, hx z], }
-
-/-- The subgroup fixing a set under a `mul_action`. -/
-@[to_additive /-" The additive subgroup fixing a set under an `add_action`. "-/]
-def fixing_subgroup (M : Type*) {α} [group M] [mul_action M α] (s : set α) : subgroup M :=
-{ inv_mem' := λ _ hx z, by rw [inv_smul_eq_iff, hx z],
-  ..fixing_submonoid M s, }
 
 namespace intermediate_field
 

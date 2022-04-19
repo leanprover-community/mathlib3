@@ -710,7 +710,7 @@ lemma neg_one_ne_one {n : ℕ} [fact (2 < n)] :
   (-1 : zmod n) ≠ 1 :=
 char_p.neg_one_ne_one (zmod n) n
 
-@[simp] lemma neg_eq_self_mod_two (a : zmod 2) : -a = a :=
+lemma neg_eq_self_mod_two (a : zmod 2) : -a = a :=
 by fin_cases a; ext; simp [fin.coe_neg, int.nat_mod]; norm_num
 
 @[simp] lemma nat_abs_mod_two (a : ℤ) : (a.nat_abs : zmod 2) = a :=

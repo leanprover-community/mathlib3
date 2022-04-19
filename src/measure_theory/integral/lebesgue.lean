@@ -1116,7 +1116,7 @@ begin
   rcases this with ⟨φ, hle : ∀ x, ↑(φ x) ≤ f x, b, hbφ, hb⟩,
   refine ⟨φ, hle, λ ψ hψ, _⟩,
   have : (map coe φ).lintegral μ ≠ ∞, from ne_top_of_le_ne_top h (le_supr₂ φ hle),
-  rw [← add_lt_add_iff_left this, ← add_lintegral, ← map_add @ennreal.coe_add],
+  rw [← ennreal.add_lt_add_iff_left this, ← add_lintegral, ← map_add @ennreal.coe_add],
   refine (hb _ (λ x, le_trans _ (max_le (hle x) (hψ x)))).trans_lt hbφ,
   norm_cast,
   simp only [add_apply, sub_apply, add_tsub_eq_max]
@@ -1948,11 +1948,14 @@ begin
 end
 
 lemma lintegral_map' {mβ : measurable_space β} {f : β → ℝ≥0∞} {g : α → β}
-  (hf : ae_measurable f (measure.map g μ)) (hg : measurable g) :
+  (hf : ae_measurable f (measure.map g μ)) (hg : ae_measurable g μ) :
   ∫⁻ a, f a ∂(measure.map g μ) = ∫⁻ a, f (g a) ∂μ :=
 calc ∫⁻ a, f a ∂(measure.map g μ) = ∫⁻ a, hf.mk f a ∂(measure.map g μ) :
   lintegral_congr_ae hf.ae_eq_mk
-... = ∫⁻ a, hf.mk f (g a) ∂μ : lintegral_map hf.measurable_mk hg
+... = ∫⁻ a, hf.mk f a ∂(measure.map (hg.mk g) μ) :
+  by { congr' 1, exact measure.map_congr hg.ae_eq_mk }
+... = ∫⁻ a, hf.mk f (hg.mk g a) ∂μ : lintegral_map hf.measurable_mk hg.measurable_mk
+... = ∫⁻ a, hf.mk f (g a) ∂μ : lintegral_congr_ae $ hg.ae_eq_mk.symm.fun_comp _
 ... = ∫⁻ a, f (g a) ∂μ : lintegral_congr_ae (ae_eq_comp hg hf.ae_eq_mk.symm)
 
 lemma lintegral_map_le {mβ : measurable_space β} (f : β → ℝ≥0∞) {g : α → β} (hg : measurable g) :

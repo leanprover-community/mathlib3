@@ -49,9 +49,8 @@ begin
   rw ord_connected_iff,
   intros x hx y hy hxy,
   rcases eq_or_lt_of_le hxy with rfl|hxy', { simpa },
-  have := hs x hx y hy hxy',
-  rw [← union_diff_cancel Ioo_subset_Icc_self],
-  simp [*, insert_subset]
+  rw [←Ioc_insert_left hxy, ←Ioo_insert_right hxy'],
+  exact insert_subset.2 ⟨hx, insert_subset.2 ⟨hy, hs x hx y hy hxy'⟩⟩,
 end
 
 protected lemma Icc_subset (s : set α) [hs : ord_connected s] {x y} (hx : x ∈ s) (hy : y ∈ s) :

@@ -535,6 +535,8 @@ inductive inv_ty (l r : Type u) : bool → Type u
 | right₁ : l → inv_ty ff → inv_ty tt
 | right₂ : r → inv_ty tt → inv_ty tt
 
+instance (l r : Type u) : inhabited (inv_ty l r ff) := ⟨inv_ty.zero⟩
+
 /-- Because the two halves of the definition of `inv` produce more elements
 of each side, we have to define the two families inductively.
 This is the function part, defined by recursion on `inv_ty`. -/

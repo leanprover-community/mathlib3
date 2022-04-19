@@ -320,7 +320,7 @@ lemma subset_of_eq [is_refl α (⊆)] : a = b → a ⊆ b := λ h, h ▸ subset_
 lemma superset_of_eq [is_refl α (⊆)] : a = b → b ⊆ a := λ h, h ▸ subset_rfl
 lemma ne_of_not_subset [is_refl α (⊆)] : ¬ a ⊆ b → a ≠ b := mt subset_of_eq
 lemma ne_of_not_superset [is_refl α (⊆)] : ¬ a ⊆ b → b ≠ a := mt superset_of_eq
-@[trans] lemma subset_trans [is_trans α (⊆)] (h : a ⊆ b) (h' : b ⊆ c) : a ⊆ c := trans h h'
+@[trans] lemma subset_trans [is_trans α (⊆)] {a b c : α} : a ⊆ b → b ⊆ c → a ⊆ c := trans
 
 lemma subset_antisymm [is_antisymm α (⊆)] (h : a ⊆ b) (h' : b ⊆ a) : a = b :=
 antisymm h h'
@@ -349,8 +349,7 @@ lemma ssubset_irrefl [is_irrefl α (⊂)] (a : α) : ¬ a ⊂ a := irrefl _
 lemma ssubset_irrfl [is_irrefl α (⊂)] {a : α} : ¬ a ⊂ a := irrefl _
 lemma ne_of_ssubset [is_irrefl α (⊂)] {a b : α} : a ⊂ b → a ≠ b := ne_of_irrefl
 lemma ne_of_ssuperset [is_irrefl α (⊂)] {a b : α} : a ⊂ b → b ≠ a := ne_of_irrefl'
-@[trans] lemma ssubset_trans [is_trans α (⊂)] {a b c : α} (h : a ⊂ b) (h' : b ⊂ c) : a ⊂ c :=
-trans h h'
+@[trans] lemma ssubset_trans [is_trans α (⊂)] {a b c : α} : a ⊂ b → b ⊂ c → a ⊂ c := trans
 lemma ssubset_asymm [is_asymm α (⊂)] {a b : α} (h : a ⊂ b) : ¬ b ⊂ a := asymm h
 
 alias ssubset_irrfl   ← has_ssubset.ssubset.false

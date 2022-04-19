@@ -137,6 +137,16 @@ lemma nnnorm_mul_le (a b : α) : ∥a * b∥₊ ≤ ∥a∥₊ * ∥b∥₊ :=
 by simpa only [←norm_to_nnreal, ←real.to_nnreal_mul (norm_nonneg _)]
   using real.to_nnreal_mono (norm_mul_le _ _)
 
+lemma filter.tendsto.zero_mul_is_bounded_under_le {f g : ι → α} {l : filter ι}
+  (hf : tendsto f l (𝓝 0)) (hg : is_bounded_under (≤) l (norm ∘ g)) :
+  tendsto (λ x, f x * g x) l (𝓝 0) :=
+hf.op_zero_is_bounded_under_le hg (*) norm_mul_le
+
+lemma filter.is_bounded_under_le.mul_tendsto_zero {f g : ι → α} {l : filter ι}
+  (hf : is_bounded_under (≤) l (norm ∘ f)) (hg : tendsto g l (𝓝 0)) :
+  tendsto (λ x, f x * g x) l (𝓝 0) :=
+hg.op_zero_is_bounded_under_le hf (flip (*)) (λ x y, ((norm_mul_le y x).trans_eq (mul_comm _ _)))
+
 /-- In a seminormed ring, the left-multiplication `add_monoid_hom` is bounded. -/
 lemma mul_left_bound (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_left x y∥ ≤ ∥x∥ * ∥y∥ :=
@@ -163,6 +173,19 @@ instance prod.non_unital_semi_normed_ring [non_unital_semi_normed_ring β] :
         ... = (max (∥x.1∥) (∥x.2∥)) * (max (∥y.1∥) (∥y.2∥)) : by simp [max_comm]
         ... = (∥x∥*∥y∥) : rfl,
   ..prod.semi_normed_group }
+
+/-- Non-unital seminormed ring structure on the product of finitely many non-unital seminormed
+rings, using the sup norm. -/
+instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
+  [Π i, non_unital_semi_normed_ring (π i)] :
+  non_unital_semi_normed_ring (Π i, π i) :=
+{ norm_mul := λ x y, nnreal.coe_mono $
+    calc  finset.univ.sup (λ i, ∥x i * y i∥₊)
+        ≤ finset.univ.sup ((λ i, ∥x i∥₊) * (λ i, ∥y i∥₊)) :
+            finset.sup_mono_fun $ λ b hb, norm_mul_le _ _
+    ... ≤ finset.univ.sup (λ i, ∥x i∥₊) * finset.univ.sup (λ i, ∥y i∥₊) :
+            finset.sup_mul_le_mul_sup_of_nonneg _ (λ i _, zero_le _) (λ i _, zero_le _),
+  ..pi.semi_normed_group }
 
 end non_unital_semi_normed_ring
 
@@ -246,6 +269,13 @@ instance prod.semi_normed_ring [semi_normed_ring β] :
 { ..prod.non_unital_semi_normed_ring,
   ..prod.semi_normed_group, }
 
+/-- Seminormed ring structure on the product of finitely many seminormed rings,
+  using the sup norm. -/
+instance pi.semi_normed_ring {π : ι → Type*} [fintype ι] [Π i, semi_normed_ring (π i)] :
+  semi_normed_ring (Π i, π i) :=
+{ ..pi.non_unital_semi_normed_ring,
+  ..pi.semi_normed_group, }
+
 end semi_normed_ring
 
 section non_unital_normed_ring
@@ -257,6 +287,12 @@ instance prod.non_unital_normed_ring [non_unital_normed_ring β] : non_unital_no
 { norm_mul := norm_mul_le,
   ..prod.semi_normed_group }
 
+/-- Normed ring structure on the product of finitely many non-unital normed rings, using the sup
+norm. -/
+instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι] [Π i, non_unital_normed_ring (π i)] :
+  non_unital_normed_ring (Π i, π i) :=
+{ norm_mul := norm_mul_le,
+  ..pi.normed_group }
 
 end non_unital_normed_ring
 
@@ -271,6 +307,12 @@ norm_pos_iff.mpr (units.ne_zero x)
 instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.semi_normed_group }
+
+/-- Normed ring structure on the product of finitely many normed rings, using the sup norm. -/
+instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π i)] :
+  normed_ring (Π i, π i) :=
+{ norm_mul := norm_mul_le,
+  ..pi.semi_normed_group }
 
 end normed_ring
 

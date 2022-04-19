@@ -338,7 +338,7 @@ section
 
 /-- Like `finsupp.map_domain_add`, but for the convolutive multiplication we define in this file -/
 lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*} [semiring β] [has_mul α] [has_mul α₂]
-  {x y : monoid_algebra β α} (f : mul_hom α α₂) :
+  {x y : monoid_algebra β α} (f : α →ₙ* α₂) :
   (map_domain f (x * y : monoid_algebra β α) : monoid_algebra β α₂) =
     (map_domain f x * map_domain f y : monoid_algebra β α₂) :=
 begin
@@ -356,7 +356,7 @@ end
 variables (k G)
 
 /-- The embedding of a magma into its magma algebra. -/
-@[simps] def of_magma [has_mul G] : mul_hom G (monoid_algebra k G) :=
+@[simps] def of_magma [has_mul G] : G →ₙ* (monoid_algebra k G) :=
 { to_fun   := λ a, single a 1,
   map_mul' := λ a b, by simp only [mul_def, mul_one, sum_single_index, single_eq_zero, mul_zero], }
 
@@ -504,7 +504,7 @@ non_unital_alg_hom_ext k $ mul_hom.congr_fun h
 /-- The functor `G ↦ monoid_algebra k G`, from the category of magmas to the category of non-unital,
 non-associative algebras over `k` is adjoint to the forgetful functor in the other direction. -/
 @[simps] def lift_magma [module k A] [is_scalar_tower k A A] [smul_comm_class k A A] :
-  mul_hom G A ≃ non_unital_alg_hom k (monoid_algebra k G) A :=
+  (G →ₙ* A) ≃ non_unital_alg_hom k (monoid_algebra k G) A :=
 { to_fun    := λ f,
     { to_fun    := λ a, a.sum (λ m t, t • f m),
       map_smul' :=  λ t' a,
@@ -1121,7 +1121,7 @@ section
 variables (k G)
 
 /-- The embedding of an additive magma into its additive magma algebra. -/
-@[simps] def of_magma [has_add G] : mul_hom (multiplicative G) (add_monoid_algebra k G) :=
+@[simps] def of_magma [has_add G] : (multiplicative G) →ₙ* (add_monoid_algebra k G) :=
 { to_fun   := λ a, single a 1,
   map_mul' := λ a b, by simpa only [mul_def, mul_one, sum_single_index, single_eq_zero, mul_zero], }
 
@@ -1309,11 +1309,11 @@ lemma non_unital_alg_hom_ext [distrib_mul_action k A]
 non-unital, non-associative algebras over `k` is adjoint to the forgetful functor in the other
 direction. -/
 @[simps] def lift_magma [module k A] [is_scalar_tower k A A] [smul_comm_class k A A] :
-  mul_hom (multiplicative G) A ≃ non_unital_alg_hom k (add_monoid_algebra k G) A :=
+  ((multiplicative G) →ₙ* A) ≃ non_unital_alg_hom k (add_monoid_algebra k G) A :=
 { to_fun := λ f, { to_fun := λ a, sum a (λ m t, t • f (multiplicative.of_add m)),
                    .. (monoid_algebra.lift_magma k f : _)},
   inv_fun := λ F, F.to_mul_hom.comp (of_magma k G),
-  .. (monoid_algebra.lift_magma k : mul_hom (multiplicative G) A ≃ non_unital_alg_hom k _ A) }
+  .. (monoid_algebra.lift_magma k : ((multiplicative G) →ₙ* A) ≃ non_unital_alg_hom k _ A) }
 
 end non_unital_non_assoc_algebra
 

@@ -86,6 +86,8 @@ rfl
 section
 open hom
 
+local attribute [tidy] discrete.discrete_cases
+
 /-- Auxiliary definition for `normalize`. Here we prove that objects that are related by
     associators and unitors map to the same normal form. -/
 @[simp] def normalize_map_aux : Π {X Y : F C},
@@ -185,15 +187,13 @@ begin
   apply quotient.induction_on f,
   intro f,
   ext n,
-  --cases n,
   induction f generalizing n,
   { simp only [mk_id, functor.map_id, category.id_comp, category.comp_id] },
   { dsimp,
     simp only [id_tensor_associator_inv_naturality_assoc, ←pentagon_inv_assoc,
       tensor_hom_inv_id_assoc, tensor_id, category.id_comp, discrete.functor_map_id, comp_tensor_id,
       iso.cancel_iso_inv_left, category.assoc],
-    dsimp, simp only [category.comp_id]
-     },
+    dsimp, simp only [category.comp_id], },
   { dsimp,
     simp only [discrete.functor_map_id, comp_tensor_id, category.assoc, pentagon_inv_assoc,
       ←associator_inv_naturality_assoc, tensor_id, iso.cancel_iso_inv_left],

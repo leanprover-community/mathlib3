@@ -69,7 +69,7 @@ meta def recurse_on_expr (t : list expr) (hyp : option name) (rel : expr → exp
 | e                  := e.get_app_args.mmap' recurse_on_expr
 
 /-- Calls `recurse_on_expr` with the right expression, depending on the tactic location. -/
-meta def sort_summands (rel : expr → expr → bool) (t : list expr) : option name → tactic unit
+meta def sort_summands_aux (rel : expr → expr → bool) (t : list expr) : option name → tactic unit
 | (some hyp) := get_local hyp >>= infer_type >>= recurse_on_expr t hyp rel
 | none       := target >>= recurse_on_expr t none rel
 
@@ -96,24 +96,24 @@ match (monomial_weight eₗ, monomial_weight eᵣ) with
 | (some l, some r) := l ≤ r
 end
 
-meta def sort_monomials_core (allow_failure : bool) (t : list expr) (hyp : option name) :
+meta def sort_summands_core (allow_failure : bool) (t : list expr) (hyp : option name) :
   tactic unit :=
-if allow_failure then sort_summands compare_fn t hyp <|> skip
-else sort_summands compare_fn t hyp
+if allow_failure then sort_summands_aux compare_fn t hyp <|> skip
+else sort_summands_aux compare_fn t hyp
 
-/-- If the target is an equality involving monomials,
-then  `sort_monomials` sorts the summands on either side of the equality. -/
-meta def sort_monomials (l : parse pexpr_list_or_texpr?) (locat : parse location) : tactic unit :=
+/-- If the target is an equality involving summands,
+then  `sort_summands` sorts the summands on either side of the equality. -/
+meta def sort_summands (l : parse pexpr_list_or_texpr?) (locat : parse location) : tactic unit :=
 do
   l : list expr ← (l.get_or_else []).mmap to_expr,
   match locat with
   | loc.wildcard := do
-    sort_monomials_core tt l none,
+    sort_summands_core tt l none,
     ctx ← local_context,
-    ctx.mmap (λ e, sort_monomials_core tt l (expr.local_pp_name e)),
+    ctx.mmap (λ e, sort_summands_core tt l (expr.local_pp_name e)),
     skip
   | loc.ns names := do
-    names.mmap $ sort_monomials_core ff l,
+    names.mmap $ sort_summands_core ff l,
     skip
   end
 
@@ -133,17 +133,17 @@ example
   (monomial 1) u) + (monomial 5) 1 :=
 begin
   -- `convert hp using 1, ac_refl,` works and takes 6s,
-  -- `sort_monomials at ⊢ hp, assumption` takes under 300ms
-  sort_monomials [g, (5 * X : R[X]), g, 3, f] at ⊢ hp,
-  sort_monomials [(5 * X : R[X]), monomial 2 t, monomial 0 s],
-  sort_monomials at ⊢ hp,
+  -- `sort_summands at ⊢ hp, assumption` takes under 300ms
+  sort_summands [g, (5 * X : R[X]), g, 3, f] at ⊢ hp,
+  sort_summands [(5 * X : R[X]), monomial 2 t, monomial 0 s],
+  sort_summands at ⊢ hp,
   assumption,
 end
 
 example (hp : f = g) :
   7 + f + (monomial 3 r + 42) + h = monomial 3 r + h + g + 7 + 42 :=
 begin
-  sort_monomials [f, g],
+  sort_summands [f, g],
   congr,
   assumption,
 end
@@ -157,8 +157,8 @@ end
 --   repeat { rw monomial_pow },
 --   repeat { rw monomial_mul_monomial },
 --   try { simp only [zero_add, add_zero, mul_one, one_mul, one_pow] },
---   sort_monomials,
---   sort_monomials,
+--   sort_summands,
+--   sort_summands,
 --   -- (monomial 0) s + ((monomial 1) u + ((monomial 2) t + ((monomial 5) 1 + (monomial 8) 1))) = 0
 -- end
 
@@ -168,7 +168,7 @@ end
 --     ((3 * X + (monomial 8) 1 + (monomial 6) (t + 1)) + f + h + ((monomial 0) s +
 --   (monomial 1) u) + (monomial 5) 1).nat_degree :=
 -- begin
---   sort_monomials,
+--   sort_summands,
 -- end
 
 -- example :
@@ -176,5 +176,5 @@ end
 --     ((3 * X + (monomial 8) 1 + (monomial 6) (t + 1)) + f + h + ((monomial 0) s +
 --   (monomial 1) u) + (monomial 5) 1).nat_degree :=
 -- begin
---   sort_monomials,
+--   sort_summands,
 -- end

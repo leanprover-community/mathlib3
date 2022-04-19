@@ -85,12 +85,6 @@ match (monomial_weight eₗ, monomial_weight eᵣ) with
 | (some l, some r) := l ≤ r
 end
 
--- /--  If we have an expression involving monomials, `sum_sorted_monomials` returns an ordered sum
--- of its terms.  Every summands that is not a monomial appears first, after that, monomials are
--- sorted by increasing size of exponent. -/
--- meta def sum_sorted_monomials (e : expr) : tactic unit :=
--- sorted_sum_with_rel compare_fn e
-
 meta def sort_monomials_core (allow_failure : bool) (hyp : option name) : tactic unit :=
 if allow_failure then sort_summands compare_fn hyp <|> skip
 else sort_summands compare_fn hyp
@@ -127,16 +121,11 @@ example
   (monomial 1) u) + (monomial 5) 1 :=
 begin
   -- `convert hp using 1, ac_refl,` works and takes 6s,
-  -- `sort_monomials at ⊢ up, assumption` takes under 300ms
+  -- `sort_monomials at ⊢ hp, assumption` takes under 300ms
   sort_monomials,
-  sort_monomials at hp,
-  sort_monomials at ⊢ hp, -- does nothing more
+  sort_monomials at ⊢ hp,
+  sort_monomials at hp, -- does nothing more
   assumption,
-  -- sort_monomials_lhs, -- LHS and RHS agree here
-  -- sort_monomials_rhs, -- Hmm, both sides change?
-  --                     -- Probably, due to the `rw` matching both sides of the equality
-  -- symmetry,
-  -- sort_monomials_lhs, -- Both sides change again.
 end
 
 -- example {R : Type*} [semiring R] (f g : R[X]) {r s t u : R} (r0 : t ≠ 0) :

@@ -76,10 +76,7 @@ begin
       exact this _ _ hb, }, },
   clear h₀ a b,
   intros a b h₀,
-  obtain ⟨c, hbc⟩ : ∃ c, b ≤ c := ⟨b, le_rfl⟩,
-  induction c using nat.strong_induction_on with c hc generalizing a b,
-  rcases hbc.lt_or_eq with (hbc | rfl),
-  { exact hc b hbc a b h₀ le_rfl, },
+  induction b using nat.strong_induction_on with b ih generalizing a,
   simp only [gram_schmidt_def 𝕜 f b, inner_sub_right, inner_sum,
     orthogonal_projection_singleton, inner_smul_right],
   rw finset.sum_eq_single_of_mem a (finset.mem_range.mpr h₀),
@@ -92,8 +89,8 @@ begin
   right,
   cases hia.lt_or_lt with hia₁ hia₂,
   { rw inner_eq_zero_sym,
-    exact hc a h₀ i a hia₁ le_rfl, },
-  { exact hc i hi a i hia₂ le_rfl, },
+    exact ih a h₀ i hia₁, },
+  { exact ih i hi a hia₂, },
 end
 
 open submodule set order

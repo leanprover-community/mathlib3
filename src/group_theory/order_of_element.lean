@@ -74,14 +74,14 @@ lemma is_of_fin_order_iff_coe {G : Type u} [group G] (H : subgroup G) (x : H) :
   is_of_fin_order x ↔ is_of_fin_order (x : G) :=
 by { rw [is_of_fin_order_iff_pow_eq_one, is_of_fin_order_iff_pow_eq_one], norm_cast }
 
-/-- Elements of finite order are of finite order in quotient groups.-/
-@[to_additive is_of_fin_add_order_iff_quotient]
-lemma is_of_fin_order.quotient
-  {G : Type u} [group G] (N : subgroup G) [N.normal] {x : G} (h : is_of_fin_order x) :
-  is_of_fin_order (x : G ⧸ N) := begin
+/-- The image of an element of finite order has finite order. -/
+@[to_additive "The image of an element of finite additive order has finite additive order."]
+lemma is_of_fin_order.hom
+  {G H : Type u} [group G] [group H] {f : G →* H} {x : G} (h : is_of_fin_order x) :
+  is_of_fin_order $ f x :=
+(is_of_fin_order_iff_pow_eq_one _).mpr $ begin
   rcases (is_of_fin_order_iff_pow_eq_one _).mp h with ⟨n, npos, hn⟩,
-  exact (is_of_fin_order_iff_pow_eq_one _).mpr
-    ⟨n, npos, (quotient_group.con N).eq.mpr $ hn ▸ (quotient_group.con N).eq.mp rfl⟩,
+  exact ⟨n, npos, by rw [←f.map_pow, hn, f.map_one]⟩,
 end
 
 /-- If a direct product has finite order then so does each component. -/

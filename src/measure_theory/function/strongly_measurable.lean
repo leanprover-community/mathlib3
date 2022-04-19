@@ -1506,7 +1506,6 @@ section continuous_linear_map_nondiscrete_normed_field
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
-variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
 lemma _root_.strongly_measurable.apply_continuous_linear_map
   {m : measurable_space α} {φ : α → F →L[𝕜] E} (hφ : strongly_measurable φ) (v : F) :

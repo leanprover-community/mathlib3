@@ -624,7 +624,8 @@ lemma prod_of_left {α β γ} [measurable_space α] [measurable_space β]
 begin
   rw [← prod_swap],
   convert (quasi_measure_preserving.prod_of_right (hf.comp measurable_swap) h2f).comp
-    ((measurable_swap.measure_preserving (ν.prod μ)).symm measurable_equiv.prod_comm).quasi_measure_preserving,
+    ((measurable_swap.measure_preserving (ν.prod μ)).symm measurable_equiv.prod_comm)
+    .quasi_measure_preserving,
   ext ⟨x, y⟩, refl,
 end
 

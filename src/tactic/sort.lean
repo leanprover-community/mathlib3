@@ -17,16 +17,16 @@ meta def get_summands : expr → list expr
 | `(%%a + %%b) := get_summands a ++ get_summands b
 | a            := [a]
 
-section with_cmp_fn
+section with_rel
 
-/--  Let `cmp_fn : expr → expr → bool` be a "compare" function and let `e` be an expression.
-`sorted_sum_with_cmp cmp_fn e` returns an ordered sum of the terms of `e`, where
-the order is determined using `cmp_fn`.
+/--  Let `rel : expr → expr → bool` be a relation and let `e` be an expression.
+`sorted_sum_with_rel rel e` returns an ordered sum of the terms of `e`, where the order is
+determined using the relation `rel`.
 
 We use this function for expressions in an additive commutative semigroup. -/
-meta def sorted_sum_with_cmp_fn (hyp : option name) (cmp_fn : expr → expr → bool) (e : expr) :
+meta def sorted_sum_with_rel (hyp : option name) (rel : expr → expr → bool) (e : expr) :
   tactic unit :=
-match (get_summands e).qsort cmp_fn with
+match (get_summands e).qsort rel with
 | eₕ::es := do
   e' ← es.mfoldl (λ eₗ eᵣ, mk_app `has_add.add [eₗ, eᵣ]) eₕ,
   e_eq ← mk_app `eq [e, e'],
@@ -50,18 +50,18 @@ match (get_summands e).qsort cmp_fn with
 end
 
 /-- Partially traverses an expression in search for a sum of terms in order to actually sort them -/
-meta def recurse_on_expr (hyp : option name) (cmp_fn : expr → expr → bool) : expr → tactic unit
-| e@`(%%_ + %%_)     := sorted_sum_with_cmp_fn hyp cmp_fn e
+meta def recurse_on_expr (hyp : option name) (rel : expr → expr → bool) : expr → tactic unit
+| e@`(%%_ + %%_)     := sorted_sum_with_rel hyp rel e
 | (expr.lam _ _ _ e) := recurse_on_expr e
 | (expr.pi  _ _ _ e) := recurse_on_expr e
 | e                  := e.get_app_args.mmap' recurse_on_expr
 
 /-- Calls `recurse_on_expr` with the right expression, depending on the tactic location -/
-meta def sort_summands (cmp_fn : expr → expr → bool) : option name → tactic unit
-| (some hyp) := get_local hyp >>= infer_type >>= recurse_on_expr hyp cmp_fn
-| none       := target >>= recurse_on_expr none cmp_fn
+meta def sort_summands (rel : expr → expr → bool) : option name → tactic unit
+| (some hyp) := get_local hyp >>= infer_type >>= recurse_on_expr hyp rel
+| none       := target >>= recurse_on_expr none rel
 
-end with_cmp_fn
+end with_rel
 
 /--  The order on `polynomial.monomial n r`, where monomials are compared by their "exponent" `n`.
 If the expression is not a monomial, then the weight is `⊥`. -/
@@ -88,7 +88,7 @@ end
 -- of its terms.  Every summands that is not a monomial appears first, after that, monomials are
 -- sorted by increasing size of exponent. -/
 -- meta def sum_sorted_monomials (e : expr) : tactic unit :=
--- sorted_sum_with_cmp_fn compare_fn e
+-- sorted_sum_with_rel compare_fn e
 
 meta def sort_monomials_core (allow_failure : bool) (hyp : option name) : tactic unit :=
 if allow_failure then sort_summands compare_fn hyp <|> skip

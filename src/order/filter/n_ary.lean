@@ -50,7 +50,7 @@ def map₂ (m : α → β → γ) (f : filter α) (g : filter β) : filter γ :=
 lemma image2_mem_map₂ (hs : s ∈ f) (ht : t ∈ g) : image2 m s t ∈ map₂ m f g :=
 ⟨_, _, hs, ht, subset.rfl⟩
 
-lemma map_prod_eq_map₂ {f : filter α} {g : filter β} (m : α → β → γ) :
+lemma map_prod_eq_map₂ (m : α → β → γ) (f : filter α) (g : filter β) :
   filter.map (λ p : α × β, m p.1 p.2) (f ×ᶠ g) = map₂ m f g :=
 begin
   ext s,
@@ -71,9 +71,9 @@ begin
     exact ⟨t ×ˢ t', filter.prod_mem_prod ht ht', hsub⟩ },
 end
 
-lemma map_prod_eq_map₂' {f : filter α} {g : filter β} (m : α × β → γ) :
+lemma map_prod_eq_map₂' (m : α × β → γ) (f : filter α) (g : filter β) :
   filter.map m (f ×ᶠ g) = map₂ (λ a b, m (a, b)) f g :=
-by { refine eq.trans _ (map_prod_eq_map₂ (curry m)), ext, simp }
+by { refine eq.trans _ (map_prod_eq_map₂ (curry m) f g), ext, simp }
 
 -- lemma image2_mem_map₂_iff (hm : injective2 m) : image2 m s t ∈ map₂ m f g ↔ s ∈ f ∧ t ∈ g :=
 -- ⟨by { rintro ⟨u, v, hu, hv, h⟩, rw image2_subset_image2_iff hm at h,

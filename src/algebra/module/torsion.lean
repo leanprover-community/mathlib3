@@ -281,11 +281,6 @@ torsion module. -/
 /-- The torsion submodule is always a torsion module. -/
 lemma torsion_is_torsion : module.is_torsion R (torsion R M) := torsion'_is_torsion' R⁰
 
-lemma is_torsion'_powers_iff (p : R) :
-is_torsion' M (submonoid.powers p) ↔ ∀ x : M, ∃ n : ℕ, p ^ n • x = 0 :=
-⟨λ h x, let ⟨⟨a, ⟨n, rfl⟩⟩, hx⟩ := @h x in ⟨n, hx⟩,
-λ h x, let ⟨n, hn⟩ := h x in ⟨⟨_, ⟨n, rfl⟩⟩, hn⟩⟩
-
 end torsion'
 
 section torsion
@@ -337,6 +332,45 @@ instance no_zero_smul_divisors [is_domain R] : no_zero_smul_divisors R (M ⧸ to
 no_zero_smul_divisors_iff_torsion_eq_bot.mpr torsion_eq_bot
 
 end quotient_torsion
+
+section p_torsion
+section
+variables [monoid R] [add_comm_monoid M] [distrib_mul_action R M]
+
+lemma is_torsion'_powers_iff (p : R) :
+  is_torsion' M (submonoid.powers p) ↔ ∀ x : M, ∃ n : ℕ, p ^ n • x = 0 :=
+⟨λ h x, let ⟨⟨a, ⟨n, rfl⟩⟩, hx⟩ := @h x in ⟨n, hx⟩,
+λ h x, let ⟨n, hn⟩ := h x in ⟨⟨_, ⟨n, rfl⟩⟩, hn⟩⟩
+
+/--In a `p ^ ∞`-torsion module (that is, a module where all elements are cancelled by scalar
+multiplication by some power of `p`), the smallest `n` such that `p ^ n • x = 0`.-/
+def p_order {p : R} (hM : is_torsion' M $ submonoid.powers p) (x : M)
+  [Π n : ℕ, decidable (p ^ n • x = 0)] :=
+nat.find $ (is_torsion'_powers_iff p).mp hM x
+@[simp] lemma pow_p_order_smul {p : R} (hM : is_torsion' M $ submonoid.powers p) (x : M)
+  [Π n : ℕ, decidable (p ^ n • x = 0)] : p ^ p_order hM x • x = 0 :=
+nat.find_spec $ (is_torsion'_powers_iff p).mp hM x
+
+end
+variables [comm_semiring R] [add_comm_monoid M] [module R M] [Π x : M, decidable (x = 0)]
+
+lemma exists_is_torsion_by {p : R} (hM : is_torsion' M $ submonoid.powers p)
+  (d : ℕ) (hd : d ≠ 0) (s : fin d → M) (hs : span R (set.range s) = ⊤) :
+  ∃ j : fin d, module.is_torsion_by R M (p ^ p_order hM (s j)) :=
+begin
+  let oj := list.argmax (λ i, p_order hM $ s i) (list.fin_range d),
+  have hoj : oj.is_some := (option.ne_none_iff_is_some.mp $
+    λ eq_none, hd $ list.fin_range_eq_nil.mp $ list.argmax_eq_none.mp eq_none),
+  use option.get hoj,
+  rw [is_torsion_by_iff_torsion_by_eq_top, eq_top_iff, ← hs, submodule.span_le,
+    set.range_subset_iff], intro i, change _ • _ = _,
+  have : p_order hM (s i) ≤ p_order hM (s $ option.get hoj) := by apply
+    list.le_argmax_of_mem (list.mem_fin_range i) (option.get_mem hoj),
+  rw [← nat.sub_add_cancel this, pow_add, mul_smul, pow_p_order_smul, smul_zero]
+end
+
+end p_torsion
+
 end submodule
 
 namespace ideal.quotient

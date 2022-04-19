@@ -40,29 +40,39 @@ universes u v
 open_locale big_operators
 
 section split_exact
-open linear_map
-variables  {R A M B : Type*} [semiring R] [add_comm_monoid A] [module R A]
+open add_monoid_hom
+variables  {R A M B : Type*} [semiring R] [add_comm_group A] [module R A]
   [add_comm_group B] [module R B] [add_comm_group M] [module R M]
 
-noncomputable def equiv_prod_of_split_exact (j : A →ₗ[R] M) (g : M →ₗ[R] B) (f : B →ₗ[R] M)
-  (hj : function.injective j) (exac : j.range = g.ker) (h : g.comp f = linear_map.id) :
-  (A × B) ≃ₗ[R] M :=
+noncomputable def equiv_prod_of_split_exact (j : A →+ M) (g : M →+ B) (f : B →+ M)
+  (hj : function.injective j) (exac : j.range = g.ker) (h : g.comp f = add_monoid_hom.id B) :
+  (A × B) ≃+ M :=
 begin
   have : ∀ x, ∃ a, j a = x - f (g x) := λ x, by
     rw [← mem_range, exac, mem_ker, map_sub, ← comp_apply g f, h, id_apply, sub_eq_zero],
-  refine equiv.to_linear_equiv ⟨_, pi.prod (λ x, (this x).some) g, λ x, _, λ x, _⟩
-    (j.coprod f).is_linear,
+  refine add_equiv.mk' ⟨_, pi.prod (λ x, (this x).some) g, λ x, _, λ x, _⟩ (j.coprod f).map_add,
   { obtain ⟨a, b⟩ := x, simp only [pi.prod, prod.mk.inj_iff],
     have gj : g (j a) = 0 := by { rw [← mem_ker, ← exac, mem_range], exact ⟨a, rfl⟩ },
     have gf : g (f b) = b := by rw [← comp_apply, h, id_apply],
     split,
     { apply hj, rw (this _).some_spec,
-      simp only [coe_comp, pi.add_apply, function.comp_app, fst_apply, snd_apply, map_add],
+      simp only [coe_comp, function.comp_app, coe_fst, coe_snd, map_add],
       rw [gj, gf, map_zero, zero_add, add_sub_cancel] },
-    { simp only [coe_comp, pi.add_apply, function.comp_app, fst_apply, snd_apply, map_add],
+    { simp only [coe_comp, function.comp_app, coe_fst, coe_snd, map_add],
       rw [gj, gf, zero_add] } },
-  { simp only [pi.prod, coe_comp, pi.add_apply, function.comp_app, fst_apply, snd_apply],
+  { simp only [pi.prod, coe_comp, function.comp_app, coe_fst, coe_snd],
     rw [(this x).some_spec, sub_add_cancel] }
+end
+
+noncomputable def lequiv_prod_of_split_exact (j : A →ₗ[R] M) (g : M →ₗ[R] B) (f : B →ₗ[R] M)
+  (hj : function.injective j) (exac : j.range = g.ker) (h : g.comp f = linear_map.id) :
+  (A × B) ≃ₗ[R] M :=
+begin
+  refine { ..j.coprod f, ..equiv_prod_of_split_exact ↑j ↑g ↑f _ _ _ },
+  { intros x y eq, exact hj eq },
+  { ext x, rw [mem_range, mem_ker], change (∃ w, j w = x) ↔ g x = 0,
+    rw [← linear_map.mem_range, exac, linear_map.mem_ker] },
+  { ext x, exact congr_arg (λ f : B →ₗ[R] B, f x) h }
 end
 end split_exact
 
@@ -78,21 +88,19 @@ liftq_span_singleton x f h (quotient.mk y) = f y := rfl
 
 end submodule
 
-section pid
+variables {R : Type u} [comm_ring R] [is_domain R] [is_principal_ideal_ring R]
+variables {M : Type v} [add_comm_group M] [module R M]
 open_locale direct_sum
 open submodule
 
-variables {R : Type u} [comm_ring R] [is_domain R] [is_principal_ideal_ring R]
-variables {M : Type v} [add_comm_group M] [module R M]
-section
+section internal
 open dfinsupp
 
 @[priority 100]
 noncomputable instance inst [decidable_eq R] [decidable_eq (associates R)] :
 gcd_monoid R := unique_factorization_monoid.to_gcd_monoid _
 
-lemma coprime_of_irreducible_pow
-  {ι : Type*} [fintype ι] (p : ι → R) (irred : ∀ i, irreducible (p i))
+lemma coprime_of_irreducible_pow {ι : Type*} (p : ι → R) (irred : ∀ i, irreducible (p i))
   (assoc : ∀ i j, associated (p i) (p j) → i = j) (e : ι → ℕ) :
   pairwise (is_coprime on λ i, p i ^ e i) :=
 by { classical,
@@ -134,7 +142,8 @@ begin
   change _ = P.prod, rw prod_multiset_count,
   congr', ext i, rw [associates.mk_pow, hp],
 end
-end
+
+end internal
 
 section p_torsion
 variables {p : R} (hp : irreducible p) (hM : module.is_torsion' M (submonoid.powers p))
@@ -142,12 +151,10 @@ variables [dec : Π x : M, decidable (x = 0)]
 
 open ideal submodule.is_principal
 include dec
-def p_order (x : M) := nat.find $ (is_torsion'_powers_iff p).mp hM x
-@[simp] lemma pow_p_order_smul (x : M) : p ^ p_order hM x • x = 0 :=
-nat.find_spec $ (is_torsion'_powers_iff p).mp hM x
 
 include hp hM
-lemma torsion_of_eq_span_pow_p_order (x : M) : torsion_of R M x = span {p ^ p_order hM x} :=
+lemma torsion_of_eq_span_pow_p_order (x : M) :
+  torsion_of R M x = span {p ^ p_order hM x} :=
 begin
   dunfold p_order,
   rw [← (torsion_of R M x).span_singleton_generator, ideal.span_singleton_eq_span_singleton,
@@ -184,20 +191,6 @@ begin
       pow_add, mul_smul, hM', smul_zero] }
 end
 
-lemma exists_is_torsion_by (d : ℕ) (hd : d ≠ 0) (s : fin d → M) (hs : span R (set.range s) = ⊤) :
-  ∃ j : fin d, module.is_torsion_by R M (p ^ p_order hM (s j)) :=
-begin
-  let oj := list.argmax (λ i, p_order hM $ s i) (list.fin_range d),
-  have hoj : oj.is_some := (option.ne_none_iff_is_some.mp $
-    λ eq_none, hd $ list.fin_range_eq_nil.mp $ list.argmax_eq_none.mp eq_none),
-  use option.get hoj,
-  rw [is_torsion_by_iff_torsion_by_eq_top, eq_top_iff, ← hs, submodule.span_le,
-    set.range_subset_iff], intro i, change _ • _ = _,
-  have : p_order hM (s i) ≤ p_order hM (s $ option.get hoj) := by apply
-    list.le_argmax_of_mem (list.mem_fin_range i) (option.get_mem hoj),
-  rw [← nat.sub_add_cancel this, pow_add, mul_smul, pow_p_order_smul, smul_zero]
-end
-
 open submodule.quotient
 
 lemma exists_smul_eq_zero_and_mk_eq {z : M} (hz : module.is_torsion_by R M (p ^ p_order hM z))
@@ -229,7 +222,7 @@ begin
     haveI : unique M := ⟨⟨0⟩, λ x, by { rw [← mem_bot _, hs], trivial }⟩,
     exact ⟨0⟩ },
   { haveI : Π x : M, decidable (x = 0), classical, apply_instance,
-    obtain ⟨j, hj⟩ := exists_is_torsion_by hp hM d.succ d.succ_ne_zero s hs,
+    obtain ⟨j, hj⟩ := exists_is_torsion_by hM d.succ d.succ_ne_zero s hs,
     let s' : fin d → M ⧸ R ∙ s j := mk ∘ s ∘ j.succ_above,
     obtain ⟨k, ⟨f⟩⟩ := IH _ s' _; clear IH,
     { have : ∀ i : fin d, ∃ x : M, p ^ k i • x = 0 ∧ f (mk x) = direct_sum.lof R _ _ i 1,
@@ -238,7 +231,7 @@ begin
         obtain ⟨x, h0, h1⟩ := exists_smul_eq_zero_and_mk_eq hp hM hj fi, refine ⟨x, h0, _⟩, rw h1,
         simp only [linear_map.coe_comp, f.symm.coe_to_linear_map, f.apply_symm_apply] },
       refine ⟨_, ⟨(((
-        equiv_prod_of_split_exact _ (f.to_linear_map.comp $ mkq _)
+        lequiv_prod_of_split_exact _ (f.to_linear_map.comp $ mkq _)
           (direct_sum.to_module _ _ _ $ λ i,
             liftq_span_singleton _ (linear_map.to_span_singleton _ _ _) (this i).some_spec.left)
           (R ∙ s j).injective_subtype _ _).symm.trans $
@@ -286,6 +279,3 @@ begin
       (dfinsupp.map_range.linear_equiv $ λ i, quot_equiv_of_eq _ _ _)⟩⟩,
   cases i with i j, simp only
 end
-
-end pid
-#lint

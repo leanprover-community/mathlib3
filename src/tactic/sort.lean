@@ -167,8 +167,8 @@ example
   (monomial 8) 1 = (3 * X + (monomial 8) 1 + (monomial 6) (t + 1)) + f + h + ((monomial 0) s +
   (monomial 1) u) + (monomial 5) 1 :=
 begin
-  -- `convert hp using 1, ac_refl,` works and takes 6s,
-  -- `sort_summands at ⊢ hp, assumption` takes under 300ms
+--  convert hp using 1, ac_refl, -- works and takes 8s
+--  sort_summands at ⊢ hp, assumption, --takes under 600ms
   sort_summands [g, (5 * X : R[X]), g, 3, f] at ⊢ hp,
   sort_summands [(5 * X : R[X]), monomial 2 t, monomial 0 s],
   sort_summands at ⊢ hp,

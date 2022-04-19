@@ -72,7 +72,8 @@ begin
       { induction (fin_range n) with i l' l'ih,
         { refl },
         { rw [cons_bind, append_assoc, ih, map_cons, l'ih, cons_append] } },
-      have h' : ∀ i, (list_decode ((fin_range n).bind (λ (i : fin n), (ts i).list_encode) ++ l)).nth ↑i = some (some (ts i)),
+      have h' : ∀ i, (list_decode ((fin_range n).bind (λ (i : fin n), (ts i).list_encode) ++ l)).nth
+        ↑i = some (some (ts i)),
       { intro i,
         rw [h, nth_append, nth_map],
         { simp only [option.map_eq_some', function.comp_app, nth_eq_some],

@@ -16,7 +16,7 @@ import computability.encoding
 
 ## Main Results
 * `first_order.language.term.card_le` shows that the number of terms in `L.term α` is at most
-`# (α ⊕ Σ i, L.functions i) + ω`.
+`max (# (α ⊕ Σ i, L.functions i)) ω`.
 
 ## TODO
 * An encoding for formulas

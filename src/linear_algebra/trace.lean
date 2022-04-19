@@ -145,7 +145,7 @@ variables [module.free R M] [module.finite R M] [nontrivial R]
 the isomorphism `End(M) ≃ M* ⊗ M`-/
 @[simp] theorem trace_eq_contract :
   (linear_map.trace R M) ∘ₗ (dual_tensor_hom R M M) = contract_left R M :=
-  trace_eq_contract_of_basis R (module.free.choose_basis R M)
+trace_eq_contract_of_basis R (module.free.choose_basis R M)
 
 open_locale classical
 

@@ -703,47 +703,42 @@ end
 @[mk_iff] class t2_space (α : Type u) [topological_space α] : Prop :=
 (t2 : ∀ x y, x ≠ y → ∃ u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
 
+/-- Two different points can be separated by open sets. -/
 lemma t2_separation [t2_space α] {x y : α} (h : x ≠ y) :
   ∃ u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
 t2_space.t2 x y h
 
+/-- A finite set can be separated by open sets. -/
 lemma t2_separation_finset [t2_space α] (s : finset α) :
   ∃ f : α → set α, set.pairwise_disjoint ↑s f ∧ ∀ x ∈ s, x ∈ f x ∧ is_open (f x) :=
 finset.induction_on s (by simp) begin
-  have t2_separation₂ : ∀ {x y}, x ≠ y → ∃ u : set α × set α, is_open u.1 ∧ is_open u.2 ∧
-    x ∈ u.1 ∧ y ∈ u.2 ∧ u.1 ∩ u.2 = ∅ := λ x y h, let ⟨u, v, H⟩ := t2_separation h in ⟨⟨u, v⟩, H⟩,
   rintros t s ht ⟨f, hf, hf'⟩,
-  have hty : ∀ y : s, t ≠ y.1 := by { rintros y rfl, exact ht y.2 },
-  refine ⟨λ x, if ht : t = x then ⋂ y : s, (classical.some (t2_separation₂ (hty y))).1
-    else f x ∩ (classical.some (t2_separation₂ ht)).2, _, _⟩,
+  have hty : ∀ y : s, t ≠ y := by { rintros y rfl, exact ht y.2 },
+  choose u v hu hv htu hxv huv using λ {x} (h : t ≠ x), t2_separation h,
+  refine ⟨λ x, if ht : t = x then ⋂ y : s, u (hty y) else f x ∩ v ht, _, _⟩,
   { rintros x hx₁ y hy₁ hxy a ⟨hx, hy⟩,
-    have hx₁ := finset.mem_insert.1 hx₁,
-    have hy₁ := finset.mem_insert.1 hy₁,
+    rw [finset.mem_coe, finset.mem_insert, eq_comm] at hx₁ hy₁,
     rcases eq_or_ne t x with rfl | hx₂;
     rcases eq_or_ne t y with rfl | hy₂,
     { exact hxy rfl },
     { simp_rw [dif_pos rfl, mem_Inter] at hx,
       simp_rw [dif_neg hy₂] at hy,
-      specialize hx ⟨y, hy₁.resolve_left hy₂.symm⟩,
-      have : a ∈ (classical.some (t2_separation₂ hy₂)).1 ∩ _ := ⟨hx, hy.2⟩,
-      rwa (classical.some_spec (t2_separation₂ hy₂)).2.2.2.2 at this },
+      rw [bot_eq_empty, ←huv hy₂],
+      exact ⟨hx ⟨y, hy₁.resolve_left hy₂⟩, hy.2⟩ },
     { simp_rw [dif_neg hx₂] at hx,
       simp_rw [dif_pos rfl, mem_Inter] at hy,
-      specialize hy ⟨x, hx₁.resolve_left hx₂.symm⟩,
-      have : a ∈ (classical.some (t2_separation₂ hx₂)).1 ∩ _ := ⟨hy, hx.2⟩,
-      rwa (classical.some_spec (t2_separation₂ hx₂)).2.2.2.2 at this },
+      rw [bot_eq_empty, ←huv hx₂],
+      exact ⟨hy ⟨x, hx₁.resolve_left hx₂⟩, hx.2⟩ },
     { simp_rw [dif_neg hx₂] at hx,
       simp_rw [dif_neg hy₂] at hy,
-      exact hf (hx₁.resolve_left hx₂.symm) (hy₁.resolve_left hy₂.symm) hxy ⟨hx.1, hy.1⟩ } },
+      exact hf (hx₁.resolve_left hx₂) (hy₁.resolve_left hy₂) hxy ⟨hx.1, hy.1⟩ } },
   { intros x hx,
     split_ifs with ht,
-    { have H := λ y, classical.some_spec (t2_separation₂ (hty y)),
-      refine ⟨mem_Inter.2 (λ y, _), is_open_Inter (λ y, (H y).1)⟩,
-      convert (H y).2.2.1,
-      exact ht.symm },
-    { have H := classical.some_spec (t2_separation₂ ht),
-      have hx := hf' x ((finset.mem_insert.1 hx).resolve_left (ne.symm ht)),
-      exact ⟨⟨hx.1, H.2.2.2.1⟩, is_open.inter hx.2 H.2.1⟩ } }
+    { refine ⟨mem_Inter.2 (λ y, _), is_open_Inter (λ y, hu (hty y))⟩,
+      rw ←ht,
+      exact htu (hty y) },
+    { have hx := hf' x ((finset.mem_insert.1 hx).resolve_left (ne.symm ht)),
+      exact ⟨⟨hx.1, hxv ht⟩, is_open.inter hx.2 (hv ht)⟩ } }
 end
 
 @[priority 100] -- see Note [lower instance priority]

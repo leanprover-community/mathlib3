@@ -73,10 +73,60 @@ namespace term
 
 open list
 
+/-- Indicates whether a variable is used in a given term. -/
+@[simp] def uses_var : L.term α → α → Prop
+| (var i) a := i = a
+| (func f ts) a := ∃ i, (ts i).uses_var a
+
+lemma var_uses_var (a : α) : (var a : L.term α).uses_var a :=
+by rw uses_var
+
+lemma func_uses_var {n : ℕ} {f : L.functions n} {a : α} {ts : fin n → L.term α} {i : fin n}
+  (h : (ts i).uses_var a) :
+  (func f ts).uses_var a :=
+⟨i, h⟩
+
+lemma finite_uses_var (t : L.term α) : {a | t.uses_var a}.finite :=
+begin
+  induction t with _ _ _ _ ih,
+  { simp only [uses_var, set.set_of_eq_eq_singleton', set.finite_singleton], },
+  { simp_rw [uses_var, set.set_of_exists],
+    exact set.finite_Union ih }
+end
+
+lemma finite_uses_var_left (t : L.term (α ⊕ β)) : {a | t.uses_var (sum.inl a)}.finite :=
+t.finite_uses_var.preimage (sum.inl_injective.inj_on _)
+
 /-- Relabels a term's variables along a particular function. -/
 @[simp] def relabel (g : α → β) : L.term α → L.term β
 | (var i) := var (g i)
 | (func f ts) := func f (λ i, (ts i).relabel)
+
+/-- Restricts a term to use only a set of the given variables. -/
+def restrict_var (s : set α) : Π (t : L.term α) (h : ∀ a, t.uses_var a → a ∈ s), L.term s
+| (var a) h := var ⟨a, h a rfl⟩
+| (func f ts) h := func f (λ i, (ts i).restrict_var (λ a ha, h a ⟨i, ha⟩))
+
+/-- A helper function for `restrict_var_left`. -/
+def restrict_var_left_aux (s : set α) :
+  (sum.inl '' s) ∪ (sum.inr '' (set.univ : set β)) → s ⊕ β
+| ⟨sum.inl x, h⟩ := sum.inl ⟨x, begin
+      simp only [set.image_univ, set.mem_union_eq, set.mem_image, exists_eq_right, set.mem_range,
+        exists_false, or_false] at h,
+      exact h,
+    end⟩
+| ⟨sum.inr x, h⟩ := sum.inr x
+
+/-- Restricts a term on `α ⊕ fin n` to use only a set of the free variables indexed by `α`. -/
+def restrict_var_left {n : ℕ} (s : set α) (t : L.term (α ⊕ fin n))
+  (h : ∀ a, t.uses_var (sum.inl a) → a ∈ s) :
+  L.term (s ⊕ fin n) :=
+(t.restrict_var (sum.inl '' s ∪ sum.inr '' set.univ) (begin
+  intro x,
+  cases x with a i,
+  { exact λ ha, set.mem_union_left _ (set.mem_image_of_mem _ (h a ha)) },
+  { exact λ _, set.mem_union_right _ (set.mem_image_of_mem _ (set.mem_univ _)) }
+end)).relabel (restrict_var_left_aux s)
 
 /-- Encodes a term as a list of variables and function symbols. -/
 def list_encode : L.term α → list (α ⊕ (Σ i, L.functions i))
@@ -281,6 +331,42 @@ instance : has_sup (L.bounded_formula α n) := ⟨λ f g, f.not.imp g⟩
 /-- The biimplication between two bounded formulas. -/
 protected def iff (φ ψ : L.bounded_formula α n) := φ.imp ψ ⊓ ψ.imp φ
 
+/-- Indicates whether a variable is used in a given formula. -/
+@[simp] def uses_free_var :
+  ∀ {n}, L.bounded_formula α n → α → Prop
+| n falsum a := false
+| n (equal t₁ t₂) a := t₁.uses_var (sum.inl a) ∨ t₂.uses_var (sum.inl a)
+| n (rel R ts) a := ∃ i, (ts i).uses_var (sum.inl a)
+| n (imp f₁ f₂) a := f₁.uses_free_var a ∨ f₂.uses_free_var a
+| n (all f) a := f.uses_free_var a
+
+lemma uses_free_var.imp_right {φ : L.bounded_formula α n} {a : α}
+  (h : φ.uses_free_var a) (ψ : L.bounded_formula α n) :
+  (φ.imp ψ).uses_free_var a :=
+or.intro_left _ h
+
+lemma uses_free_var.imp_left {ψ : L.bounded_formula α n} {a : α}
+  (h : ψ.uses_free_var a) (φ : L.bounded_formula α n) :
+  (φ.imp ψ).uses_free_var a :=
+or.intro_right _ h
+
+lemma uses_free_var.all {φ : L.bounded_formula α (n+1)} {a : α} (h : φ.uses_free_var a) :
+  φ.all.uses_free_var a :=
+h
+
+lemma finite_uses_free_var (φ : L.bounded_formula α n) : {a | φ.uses_free_var a}.finite :=
+begin
+  induction φ with _ _ t₁ t₂ _ _ _ ts _ _ _ ih1 ih2 _ _ ih,
+  { simp, },
+  { simp only [uses_free_var, set.set_of_or, set.finite_union],
+    exact ⟨t₁.finite_uses_var_left, t₂.finite_uses_var_left⟩, },
+  { simp only [set.set_of_exists, uses_free_var],
+    exact set.finite_Union (λ i, (ts i).finite_uses_var_left) },
+  { simp only [uses_free_var, set.set_of_or, set.finite_union],
+    exact ⟨ih1, ih2⟩ },
+  { exact ih }
+end
+
 /-- Casts `L.bounded_formula α m` as `L.bounded_formula α n`, where `m ≤ n`. -/
 def cast_le : ∀ {m n : ℕ} (h : m ≤ n), L.bounded_formula α m → L.bounded_formula α n
 | m n h falsum := falsum
@@ -316,6 +402,17 @@ def relabel (g : α → (β ⊕ fin n)) :
 | k (rel R ts) := R.bounded_formula (term.relabel (relabel_aux g k) ∘ ts)
 | k (imp f₁ f₂) := f₁.relabel.imp f₂.relabel
 | k (all f) := f.relabel.all
+
+/-- Restricts a bounded formula to only use a particular set of free variables. -/
+def restrict_free_var (s : set α) : Π {n : ℕ} (φ : L.bounded_formula α n)
+  (h : ∀ a, φ.uses_free_var a → a ∈ s), L.bounded_formula s n
+| n falsum h := falsum
+| n (equal t₁ t₂) h := equal (t₁.restrict_var_left s (λ a ha, h a (or.intro_left _ ha)))
+  (t₂.restrict_var_left s (λ a ha, h a (or.intro_right _ ha)))
+| n (rel R ts) h := rel R (λ i, (ts i).restrict_var_left s (λ a ha, h a ⟨i, ha⟩))
+| n (imp f₁ f₂) h := (f₁.restrict_free_var (λ a ha, h a (ha.imp_right _))).imp
+  (f₂.restrict_free_var (λ a ha, h a (ha.imp_left _)))
+| n (all f) h := (f.restrict_free_var (λ a ha, h a ha.all)).all
 
 /-- Places universal quantifiers on all extra variables of a bounded formula. -/
 def alls : ∀ {n}, L.bounded_formula α n → L.formula α

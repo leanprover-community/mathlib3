@@ -1091,15 +1091,14 @@ instance linear_ordered_ring.to_linear_ordered_semiring : linear_ordered_semirin
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_ring.is_domain : is_domain α :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero :=
-    begin
-      intros a b hab,
-      refine decidable.or_iff_not_and_not.2 (λ h, _), revert hab,
-      cases lt_or_gt_of_ne h.1 with ha ha; cases lt_or_gt_of_ne h.2 with hb hb,
-      exacts [(mul_pos_of_neg_of_neg ha hb).ne.symm, (mul_neg_of_neg_of_pos ha hb).ne,
-        (mul_neg_of_pos_of_neg ha hb).ne, (mul_pos ha hb).ne.symm]
-    end,
-  .. ‹linear_ordered_ring α› }
+is_domain.of_eq_zero_or_eq_zero_of_mul_eq_zero
+begin
+  intros a b hab,
+  refine decidable.or_iff_not_and_not.2 (λ h, _), revert hab,
+  cases lt_or_gt_of_ne h.1 with ha ha; cases lt_or_gt_of_ne h.2 with hb hb,
+  exacts [(mul_pos_of_neg_of_neg ha hb).ne.symm, (mul_neg_of_neg_of_pos ha hb).ne,
+    (mul_neg_of_pos_of_neg ha hb).ne, (mul_pos ha hb).ne.symm]
+end
 
 @[simp] lemma abs_one : |(1 : α)| = 1 := abs_of_pos zero_lt_one
 @[simp] lemma abs_two : |(2 : α)| = 2 := abs_of_pos zero_lt_two

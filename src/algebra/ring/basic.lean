@@ -1184,15 +1184,25 @@ def no_zero_divisors.to_cancel_monoid_with_zero [ring α] [no_zero_divisors α] 
     @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
   .. (infer_instance : semiring α) }
 
--- /-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
---   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
-
---   This is implemented as a mixin for `ring α`.
---   To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
--- @[protect_proj] class is_domain (α : Type u) [ring α]
---   extends no_zero_divisors α, nontrivial α : Prop
-
 section is_domain
+
+section ring
+
+variables [ring R]
+
+def is_domain.of_eq_zero_or_eq_zero_of_mul_eq_zero [nontrivial R]
+  (h : ∀ {a b : R}, a * b = 0 → a = 0 ∨ b = 0) : is_domain R :=
+⟨λ c hc, by fsplit; intros a b hab; rw [←sub_eq_zero] at hab ⊢;
+  simp only [←mul_sub, ←sub_mul] at hab;
+    [exact (h hab).resolve_left hc, exact (h hab).resolve_right hc]⟩
+
+def is_domain.of_no_zero_divisors [nontrivial R] [no_zero_divisors R] : is_domain R :=
+⟨λ c hc, by fsplit; intros a b hab; rw [←sub_eq_zero] at hab ⊢;
+  simp only [←mul_sub, ←sub_mul] at hab;
+    [ exact (eq_zero_or_eq_zero_of_mul_eq_zero hab).resolve_left hc,
+      exact (eq_zero_or_eq_zero_of_mul_eq_zero hab).resolve_right hc]⟩
+
+end ring
 
 section comm_ring
 

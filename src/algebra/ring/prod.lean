@@ -129,14 +129,14 @@ variables [non_assoc_semiring R'] [non_assoc_semiring S'] [non_assoc_semiring T]
 variables (f : R →+* R') (g : S →+* S')
 
 /-- `prod.map` as a `ring_hom`. -/
-def prod_map : R × S →* R' × S' := (f.comp (fst R S)).prod (g.comp (snd R S))
+def prod_map : R × S →+* R' × S' := (f.comp (fst R S)).prod (g.comp (snd R S))
 
 lemma prod_map_def : prod_map f g = (f.comp (fst R S)).prod (g.comp (snd R S)) := rfl
 
 @[simp]
 lemma coe_prod_map : ⇑(prod_map f g) = prod.map f g := rfl
 
-lemma prod_comp_prod_map (f : T →* R) (g : T →* S) (f' : R →* R') (g' : S →* S') :
+lemma prod_comp_prod_map (f : T →+* R) (g : T →+* S) (f' : R →+* R') (g' : S →+* S') :
   (f'.prod_map g').comp (f.prod g) = (f'.comp f).prod (g'.comp g) :=
 rfl
 

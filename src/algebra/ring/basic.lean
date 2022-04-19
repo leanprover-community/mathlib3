@@ -689,7 +689,7 @@ end mul_one_class
 section mul_zero_class
 variables [mul_zero_class α] [has_distrib_neg α]
 
-/-- Prefer `neg_zero` if `add_comm_group` is available. -/
+/-- Prefer `neg_zero` if `subtraction_monoid` is available. -/
 @[simp] lemma neg_zero' : (-0 : α) = 0 :=
 by rw [←zero_mul (0 : α), ←neg_mul, mul_zero, mul_zero]
 

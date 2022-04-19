@@ -343,6 +343,74 @@ def T' : SL(2,ℤ) := ⟨![![1, -1], ![0, 1]], by norm_num [matrix.det_fin_two]�
 /-- The matrix `S = [[0,-1],[1,0]]` as an element of `SL(2,ℤ)` -/
 def S : SL(2,ℤ) := ⟨![![0, -1], ![1, 0]], by norm_num [matrix.det_fin_two]⟩
 
+lemma coe_T : ↑ₘT = ![![1, 1], ![0, 1]] := rfl
+
+lemma coe_T_inv : ↑ₘ(T⁻¹) = ![![1, -1], ![0, 1]] :=
+begin
+  rw [coe_inv, coe_T, adjugate_fin_two],
+  simp,
+end
+
+/-- `coe_T_zpow` is the matrix `T` raised to the power `n : ℤ`. -/
+lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = ![![1, n], ![0,1]] :=
+begin
+  induction n using int.induction_on with n h n h,
+  { rw [zpow_zero, coe_one],  ext i j,
+    fin_cases i; fin_cases j; simp, },
+  { rw [zpow_add, zpow_one, coe_mul, h, coe_T], ext i j,
+    fin_cases i; fin_cases j; simp [matrix.mul, dot_product, fin.sum_univ_succ]; ring, },
+  { rw [zpow_sub, zpow_one, coe_mul, h, coe_T_inv], ext i j,
+    fin_cases i; fin_cases j; simp [matrix.mul, dot_product, fin.sum_univ_succ]; ring, },
+end
+
+/- If `c = 1`, then `g = [[1,a],[0,1]] * S * [[1,d],[0,1]]`. -/
+lemma g_eq_of_c_eq_one (g : SL(2,ℤ)) (hc : ↑ₘg 1 0 = 1) :
+  g = T^(↑ₘg 0 0) * S * T^(↑ₘg 1 1) :=
+begin
+  ext i j, fin_cases i; fin_cases j,
+  { simp [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ] },
+  { have g_det : (1:ℤ) = ↑ₘg 0 0 * ↑ₘg 1 1 - 1 * ↑ₘg 0 1,
+    { convert det_fin_two ↑ₘg using 1,
+      { rw g.det_coe },
+      rw hc,
+      ring },
+    simp [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ],
+    rw g_det,
+    simp, },
+  { simpa [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ] using hc },
+  { simp [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ], },
+end
+
+/-- If `c=1`, then `[[1,-a],[0,1]]*g = S * [[1,d],[0,1]]`. -/
+lemma coe_T_zpow_mul_g_eq_S_mul_coe_T_zpow_of_c_eq_one (g : SL(2,ℤ))
+  (hc : ↑ₘg 1 0 = 1) : T^(- ↑ₘg 0 0) * g = S * T^(↑ₘg 1 1) :=
+begin
+  rw g_eq_of_c_eq_one g hc,
+  ext i,
+  fin_cases i; fin_cases j,
+  { simp [coe_T_zpow, S, matrix.mul_apply, fin.sum_univ_succ], },
+  { simp [coe_T_zpow, S, matrix.mul_apply, fin.sum_univ_succ],
+    ring },
+  { simp [coe_T_zpow, S, matrix.mul_apply, fin.sum_univ_succ], },
+  { simp [coe_T_zpow, S, matrix.mul_apply, fin.sum_univ_succ], },
+end
+
+/-- If `1 < |z|`, then `|S•z| < 1` -/
+lemma norm_sq_S_smul_lt_one {z : ℍ} (h: 1 < norm_sq z) : norm_sq ↑(S • z) < 1 :=
+by simpa [S] using (inv_lt_inv z.norm_sq_pos zero_lt_one).mpr h
+
+/-- If `|z| < 1`, then applying `S` strictly decreases `im` -/
+lemma im_lt_im_S_smul {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=
+begin
+  have : z.im < z.im / norm_sq (z:ℂ),
+  { have imz : 0 < z.im := im_pos z,
+    apply (lt_div_iff z.norm_sq_pos).mpr,
+    nlinarith },
+  convert this,
+  simp only [im_smul_eq_div_norm_sq],
+  field_simp [norm_sq_denom_ne_zero, norm_sq_ne_zero, S]
+end
+
 /-- The standard (closed) fundamental domain of the action of `SL(2,ℤ)` on `ℍ` -/
 def fundamental_domain : set ℍ :=
 {z | 1 ≤ (z : ℂ).norm_sq ∧ |z.re| ≤ (1 : ℝ) / 2}
@@ -362,22 +430,6 @@ begin
   cases abs_cases z.re;
   nlinarith,
 end
-
-/-- If `|z| < 1`, then applying `S` strictly decreases `im` -/
-lemma im_lt_im_S_smul {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=
-begin
-  have : z.im < z.im / norm_sq (z:ℂ),
-  { have imz : 0 < z.im := im_pos z,
-    apply (lt_div_iff z.norm_sq_pos).mpr,
-    nlinarith },
-  convert this,
-  simp only [im_smul_eq_div_norm_sq],
-  field_simp [norm_sq_denom_ne_zero, norm_sq_ne_zero, S]
-end
-
-/-- If `1 < |z|`, then `|S•z| < 1` -/
-lemma norm_sq_S_smul_lt_one {z : ℍ} (h: 1 < norm_sq z) : norm_sq ↑(S • z) < 1 :=
-by simpa [S] using (inv_lt_inv z.norm_sq_pos zero_lt_one).mpr h
 
 /-- Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`  -/
 lemma exists_smul_mem_fundamental_domain (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟 :=
@@ -417,8 +469,24 @@ begin
       simp [T', sub_eq_add_neg] } }
 end
 
-lemma abs_c_le_one (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) :
-  |↑ₘg 1 0| ≤ 1 :=
+/-- If `z∈𝒟ᵒ`, and `n:ℤ`, then `|z+n|>1`. -/
+lemma move_by_T {z : ℍ} (hz : z ∈ 𝒟ᵒ) (n : ℤ) : 1 < norm_sq (((T^n) • z) : ℍ) :=
+begin
+  have hz₁ : 1 < z.re * z.re + z.im * z.im := hz.1,
+  have hz₂ : |2 * z.re| ≤ 1,
+  { rw [_root_.abs_mul, _root_.abs_two, ← le_div_iff' (@two_pos ℝ _ _)],
+    exact hz.2.le, },
+  have hzn := int.nneg_mul_add_sq_of_abs_le_one n (2*z.re) hz₂,
+  suffices : 1 < (z.re + ↑n) * (z.re + ↑n) + z.im * z.im, { simpa [coe_T_zpow, norm_sq], },
+  linarith,
+end
+
+section unique_representative
+
+variables {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ)
+include hz hg
+
+lemma abs_c_le_one : |↑ₘg 1 0| ≤ 1 :=
 begin
   let c' : ℤ := ↑ₘg 1 0,
   let c : ℝ := (c' : ℝ),
@@ -448,72 +516,8 @@ begin
     ring, },
 end
 
-lemma coe_T : ↑ₘT = ![![1, 1], ![0, 1]] := rfl
-
-lemma coe_T_inv : ↑ₘ(T⁻¹) = ![![1, -1], ![0, 1]] :=
-begin
-  rw [coe_inv, coe_T, adjugate_fin_two],
-  simp,
-end
-
-/-- `coe_T_zpow` is the matrix `T` raised to the power `n : ℤ`. -/
-lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = ![![1, n], ![0,1]] :=
-begin
-  induction n using int.induction_on with n h n h,
-  { rw [zpow_zero, coe_one],  ext i j,
-    fin_cases i; fin_cases j; simp, },
-  { rw [zpow_add, zpow_one, coe_mul, h, coe_T], ext i j,
-    fin_cases i; fin_cases j; simp [matrix.mul, dot_product, fin.sum_univ_succ]; ring, },
-  { rw [zpow_sub, zpow_one, coe_mul, h, coe_T_inv], ext i j,
-    fin_cases i; fin_cases j; simp [matrix.mul, dot_product, fin.sum_univ_succ]; ring, },
-end
-
-/- If `c = 1`, then `g = [[1,a],[0,1]] * S * [[1,d],[0,1]]`. -/
-lemma g_eq_of_c_eq_one (g : SL(2,ℤ)) (hc : ↑ₘg 1 0 = 1) :
-  g = T^(↑ₘg 0 0) * S * T^(↑ₘg 1 1) :=
-begin
-  ext i j, fin_cases i; fin_cases j,
-  { simp [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ] },
-  { have g_det : (1:ℤ) = ↑ₘg 0 0 * ↑ₘg 1 1 - 1 * ↑ₘg 0 1,
-    { convert det_fin_two ↑ₘg using 1,
-      { rw g.det_coe },
-      rw hc,
-      ring },
-    simp [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ],
-    rw g_det,
-    simp, },
-  { simpa [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ] using hc },
-  { simp [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ], },
-end
-
-/-- If `z∈𝒟ᵒ`, and `n:ℤ`, then `|z+n|>1`. -/
-lemma move_by_T {z : ℍ} (hz : z ∈ 𝒟ᵒ) (n : ℤ) : 1 < norm_sq (((T^n) • z) : ℍ) :=
-begin
-  have hz₁ : 1 < z.re * z.re + z.im * z.im := hz.1,
-  have hz₂ : |2 * z.re| ≤ 1,
-  { rw [_root_.abs_mul, _root_.abs_two, ← le_div_iff' (@two_pos ℝ _ _)],
-    exact hz.2.le, },
-  have hzn := int.nneg_mul_add_sq_of_abs_le_one n (2*z.re) hz₂,
-  suffices : 1 < (z.re + ↑n) * (z.re + ↑n) + z.im * z.im, { simpa [coe_T_zpow, norm_sq], },
-  linarith,
-end
-
-/-- If `c=1`, then `[[1,-a],[0,1]]*g = S * [[1,d],[0,1]]`. -/
-lemma coe_T_zpow_mul_g_eq_S_mul_coe_T_zpow_of_c_eq_one (g : SL(2,ℤ))
-  (hc : ↑ₘg 1 0 = 1) : T^(- ↑ₘg 0 0) * g = S * T^(↑ₘg 1 1) :=
-begin
-  rw g_eq_of_c_eq_one g hc,
-  ext i,
-  fin_cases i; fin_cases j,
-  { simp [coe_T_zpow, S, matrix.mul_apply, fin.sum_univ_succ], },
-  { simp [coe_T_zpow, S, matrix.mul_apply, fin.sum_univ_succ],
-    ring },
-  { simp [coe_T_zpow, S, matrix.mul_apply, fin.sum_univ_succ], },
-  { simp [coe_T_zpow, S, matrix.mul_apply, fin.sum_univ_succ], },
-end
-
 /-- If both `z` and `g•z` are in `𝒟ᵒ`, then `c` can't be `1`. -/
-lemma c_ne_one {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : ↑ₘg 1 0 ≠ 1 :=
+lemma c_ne_one : ↑ₘg 1 0 ≠ 1 :=
 begin
   by_contra hc,
   let z₁ := T^(↑ₘg 1 1) • z,
@@ -531,7 +535,7 @@ end
 
 /-- Second Main Fundamental Domain Lemma: If both `z` and `g•z` are in the open domain `𝒟ᵒ`, where
   `z:ℍ` and `g:SL(2,ℤ)`, then `z = g • z`. -/
-lemma fun_dom_lemma₂ (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z :=
+lemma eq_smul_self_of_mem_fdo_mem_fdo : z = g • z :=
 begin
 /-  The argument overview is: either `c=0`, in which case the action is translation, which must be
   by `0`, OR
@@ -594,7 +598,7 @@ begin
     exfalso,
     -- argue first that `c=± 1`
     -- then show this is impossible
-    rcases (int.abs_le_one_iff.mp $ abs_c_le_one z g hz hg) with hc | hc | hc,
+    rcases (int.abs_le_one_iff.mp $ abs_c_le_one hz hg) with hc | hc | hc,
     { contradiction, },
     { -- `c = 1`
       exact c_ne_one hz hg  hc, },
@@ -607,6 +611,8 @@ begin
         simp, },
       exact c_ne_one hz neg_g_𝒟 neg_c_one, }, },
 end
+
+end unique_representative
 
 end fundamental_domain
 

@@ -23,6 +23,12 @@ Finally, `sort_summands` can also be targeted to a hypothesis.  If `hp` is in th
 
 
 ##  Future work
+
+To add better heuristics, an easy approach is to change the definition of `compare_fn`.
+Right now, it simply does a case-split: we compare two expressions alphabetically, unless they are
+both `monomial <deg> <coe>ff`, in which case, we place the term last and we use `<deg>` to further
+compare.
+
 * Improve sorting heuristic?
 * Allow the option of not changing the given order, except for the explicitly listed terms?
   E.g. `sort_summands only [f, g]`, extracts `f` and `g`, placing them last, but leaving the rest

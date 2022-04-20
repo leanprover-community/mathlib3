@@ -130,35 +130,24 @@ def clique_finset (n : ℕ) : finset (finset α) := univ.filter $ G.is_n_clique 
 lemma mem_clique_finset_iff (s : finset α) : s ∈ G.clique_finset n ↔ G.is_n_clique n s :=
 mem_filter.trans $ and_iff_right $ mem_univ _
 
-lemma triple_mem_clique_finset_iff :
-  {a, b, c} ∈ G.clique_finset 3 ↔ G.adj a b ∧ G.adj a c ∧ G.adj b c :=
+lemma is_3_clique_triple_iff : G.is_n_clique 3 {a, b, c} ↔ G.adj a b ∧ G.adj a c ∧ G.adj b c :=
 begin
-  rw [mem_clique_finset_iff, is_n_clique_iff, is_clique_iff],
-  simp only [coe_insert, coe_singleton, set.pairwise_insert_of_symmetric G.symm,
-    set.pairwise_singleton, true_and, set.mem_insert_iff, set.mem_singleton_iff,
-    forall_eq_or_imp, forall_eq, ne.def],
-  split,
-  { rintro ⟨⟨hbc, hab, hac⟩, h⟩,
-    refine ⟨hab _, hac _, hbc _⟩;
-    { rintro rfl,
-      simp only [insert_idem, insert_singleton_comm, insert_singleton_self_eq] at h,
-      exact h.not_lt (nat.lt_succ_iff.2 $ card_insert_le _ _) } },
-  { rintro ⟨hab, hac, hbc⟩,
-    refine ⟨⟨λ _, hbc, λ _, hab, λ _, hac⟩, _⟩,
-    rw card_eq_three,
-    exact ⟨_, _, _, G.ne_of_adj hab, G.ne_of_adj hac, G.ne_of_adj hbc, rfl⟩ }
+  simp only [is_n_clique_iff, is_clique_iff, set.pairwise_insert_of_symmetric G.symm, coe_insert],
+  have : ¬ 1 + 1 = 3 := by norm_num,
+  by_cases hab : a = b; by_cases hbc : b = c; by_cases hac : a = c;
+  subst_vars; simp [G.ne_of_adj, and_rotate, *],
 end
 
-lemma mem_clique_finset_iff' :
-  s ∈ G.clique_finset 3 ↔ ∃ a b c, G.adj a b ∧ G.adj a c ∧ G.adj b c ∧ s = {a, b, c} :=
+lemma is_3_clique_iff :
+  G.is_n_clique 3 s ↔ ∃ a b c, G.adj a b ∧ G.adj a c ∧ G.adj b c ∧ s = {a, b, c} :=
 begin
   refine ⟨λ h, _, _⟩,
-  { obtain ⟨a, b, c, -, -, -, rfl⟩ := card_eq_three.1 ((G.mem_clique_finset_iff s).1 h).2,
+  { obtain ⟨a, b, c, -, -, -, rfl⟩ := card_eq_three.1 h.card_eq,
     refine ⟨a, b, c, _⟩,
-    rw triple_mem_clique_finset_iff at h,
+    rw is_3_clique_triple_iff at h,
     tauto },
   { rintro ⟨a, b, c, hab, hbc, hca, rfl⟩,
-    exact G.triple_mem_clique_finset_iff.2 ⟨hab, hbc, hca⟩ }
+    exact G.is_3_clique_triple_iff.2 ⟨hab, hbc, hca⟩ }
 end
 
 @[simp] lemma clique_finset_eq_empty_iff : G.clique_finset n = ∅ ↔ G.clique_free n :=

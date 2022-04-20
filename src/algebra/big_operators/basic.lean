@@ -1289,7 +1289,6 @@ begin
   rw [ mul_comm, mul_assoc, (finset.prod_erase_mul s f ha)],
 end
 
-
 lemma prod_dvd_prod_of_dvd {S : finset α} (g1 g2 : α → β) (h : ∀ a ∈ S, g1 a ∣ g2 a) :
   S.prod g1 ∣ S.prod g2 :=
 begin

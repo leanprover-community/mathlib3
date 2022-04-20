@@ -142,7 +142,7 @@ lemma one_le_norm_one (β) [normed_ring β] [nontrivial β] : 1 ≤ ∥(1 : β)�
   (by simpa only [mul_one] using norm_mul_le (1 : β) 1)
 
 lemma one_le_nnnorm_one (β) [normed_ring β] [nontrivial β] : 1 ≤ ∥(1 : β)∥₊ :=
-by simpa only [←norm_to_nnreal, real.to_nnreal_one] using real.to_nnreal_mono (one_le_norm_one β)
+one_le_norm_one β
 
 lemma filter.tendsto.zero_mul_is_bounded_under_le {f g : ι → α} {l : filter ι}
   (hf : tendsto f l (𝓝 0)) (hg : is_bounded_under (≤) l (norm ∘ g)) :

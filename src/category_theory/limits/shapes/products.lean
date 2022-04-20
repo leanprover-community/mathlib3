@@ -64,11 +64,28 @@ def cofan.mk {f : β → C} (P : C) (p : Π b, f b ⟶ P) : cofan f :=
 { X := P,
   ι := { app := λ X, p X.as } }
 
+/-- Get the `j`th map in the fan -/
+def fan.proj  {f : β → C} (p : fan f) (j : β) : p.X ⟶ f j := p.π.app (discrete.mk j)
+@[simp] lemma fan_mk_proj {f : β → C} (P : C) (p : Π b, P ⟶ f b) (j : β) :
+  (fan.mk P p).proj j = p j := rfl
+
 /-- An abbreviation for `has_limit (discrete.functor f)`. -/
 abbreviation has_product (f : β → C) := has_limit (discrete.functor f)
 
 /-- An abbreviation for `has_colimit (discrete.functor f)`. -/
 abbreviation has_coproduct (f : β → C) := has_colimit (discrete.functor f)
+
+/-- Make a fan `f` into a limit fan by providing `lift`, `fac`, and `uniq` --
+  just a convenience lemma to avoid having to go through `discrete` -/
+@[simps] def mk_fan_limit {f : β → C} (t : fan f)
+  (lift : Π s : fan f, s.X ⟶ t.X)
+  (fac : ∀ (s : fan f) (j : β), lift s ≫ (t.proj j) = s.proj j)
+  (uniq : ∀ (s : fan f) (m : s.X ⟶ t.X) (w : ∀ j : β, m ≫ t.proj j = s.proj j), m = lift s) :
+  is_limit t :=
+{ lift := lift,
+  fac' := λ s j, by convert fac s j.as; simp,
+  uniq' := λ s m w, uniq s m (λ j, w (discrete.mk j)), }
+
 
 section
 variables (C)
@@ -192,5 +209,13 @@ variables (C)
 abbreviation has_products := Π (J : Type v), has_limits_of_shape (discrete J) C
 /-- An abbreviation for `Π J, has_colimits_of_shape (discrete J) C` -/
 abbreviation has_coproducts := Π (J : Type v), has_colimits_of_shape (discrete J) C
+
+variable {C}
+lemma has_products_of_limit_fans (lf : ∀ {J : Type v} (f : J → C), fan f)
+  (lf_is_limit : ∀ {J : Type v} (f : J → C), is_limit (lf f)) : has_products C :=
+λ J, { has_limit := λ F, has_limit.mk
+  ⟨(cones.postcompose discrete.nat_iso_functor.inv).obj (lf (λ j, F.obj (discrete.mk j))),
+    (is_limit.postcompose_inv_equiv _ _).symm (lf_is_limit _)⟩ }
+
 
 end category_theory.limits

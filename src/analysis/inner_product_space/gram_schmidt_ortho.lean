@@ -66,7 +66,7 @@ by simp only [gram_schmidt_def, sub_add_cancel]
 by simp only [gram_schmidt, fintype.univ_of_is_empty, finset.sum_empty, sub_zero]
 
 /-- **Gram-Schmidt Orthogonalisation**:
-Gram-Schmidt process produces an orthogonal system of vectors. -/
+`gram_schmidt` produces an orthogonal system of vectors. -/
 theorem gram_schmidt_orthogonal (f : ℕ → E) {a b : ℕ} (h₀ : a ≠ b) :
   ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f b⟫ = 0 :=
 begin
@@ -101,7 +101,7 @@ theorem gram_schmidt_pairwise_orthogonal (f : ℕ → E) :
 
 open submodule set order
 
-/-- Gram-Schmidt process preserves span. -/
+/-- `gram_schmidt` preserves span of vectors. -/
 lemma span_gram_schmidt (f : ℕ → E) (c : ℕ) :
   span 𝕜 (gram_schmidt 𝕜 f '' Iic c) = span 𝕜 (f '' Iic c) :=
 begin

@@ -380,7 +380,7 @@ begin
       refine integral_divergence_of_has_fderiv_within_at_off_countable_of_equiv e _ _
         (λ _, f) (λ _, F') s hs a b hle (λ i, Hc) (λ x hx i, Hd x hx) _ _ _,
       { exact λ x y, (order_iso.fun_unique (fin 1) ℝ).symm.le_iff_le },
-      { exact (volume_preserving_fun_unique (fin 1) ℝ).symm },
+      { exact (volume_preserving_fun_unique (fin 1) ℝ).symm _ },
       { intro x, rw [fin.sum_univ_one, hF', e_symm, pi.single_eq_same, one_smul] },
       { rw [interval_integrable_iff_integrable_Ioc_of_le hle] at Hi,
         exact Hi.congr_set_ae Ioc_ae_eq_Icc.symm }
@@ -442,7 +442,7 @@ calc ∫ x in Icc a b, f' x (1, 0) + g' x (0, 1)
     refine integral_divergence_of_has_fderiv_within_at_off_countable_of_equiv e _ _
       ![f, g] ![f', g'] s hs a b hle _ (λ x hx, _) _ _ Hi,
     { exact λ x y, (order_iso.fin_two_arrow_iso ℝ).symm.le_iff_le },
-    { exact (volume_preserving_fin_two_arrow ℝ).symm },
+    { exact (volume_preserving_fin_two_arrow ℝ).symm _ },
     { exact fin.forall_fin_two.2 ⟨Hcf, Hcg⟩ },
     { rw [Icc_prod_eq, interior_prod_eq, interior_Icc, interior_Icc] at hx,
       exact fin.forall_fin_two.2 ⟨Hdf x hx, Hdg x hx⟩ },
@@ -453,7 +453,7 @@ calc ∫ x in Icc a b, f' x (1, 0) + g' x (0, 1)
   begin
     have : ∀ (a b : ℝ¹) (f : ℝ¹ → E), ∫ x in Icc a b, f x = ∫ x in Icc (a 0) (b 0), f (λ _, x),
     { intros a b f,
-      convert ((volume_preserving_fun_unique (fin 1) ℝ).symm.set_integral_preimage_emb
+      convert (((volume_preserving_fun_unique (fin 1) ℝ).symm _).set_integral_preimage_emb
         (measurable_equiv.measurable_embedding _) _ _).symm,
       exact ((order_iso.fun_unique (fin 1) ℝ).symm.preimage_Icc a b).symm },
     simp only [fin.sum_univ_two, this],

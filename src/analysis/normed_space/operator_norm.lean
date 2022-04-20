@@ -866,6 +866,7 @@ end
 
 variables {𝕜}
 
+/-- The norm of `lsmul` is at most 1 in any semi-normed group. -/
 lemma op_norm_lsmul_le : ∥(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] E →L[𝕜] E)∥ ≤ 1 :=
 begin
   refine continuous_linear_map.op_norm_le_bound _ zero_le_one (λ x, _),
@@ -874,6 +875,7 @@ begin
   simp_rw [lsmul_apply, norm_smul],
 end
 
+/-- The norm of `lsmul` equals 1 in any nontrivial normed group. -/
 lemma op_norm_lsmul [nontrivial M₁] : ∥(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] M₁ →L[𝕜] M₁)∥ = 1 :=
 begin
   refine continuous_linear_map.op_norm_eq_of_bounds zero_le_one (λ x, _) (λ N hN h, _),

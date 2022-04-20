@@ -187,9 +187,13 @@ meta def sort_summands_core
 if allow_failure then sort_summands_aux compare_fn ll hyp <|> skip
 else sort_summands_aux compare_fn ll hyp
 
+/-- `sort_summands_arg` is a single elementary argument that `sort_summands` takes for the
+variables to be sorted.  It is either a `pexpr`, or a `pexpr` preceded by a `←`. -/
 meta def sort_summands_arg (prec : nat) : lean.parser (bool × pexpr) :=
 prod.mk <$> (option.is_some <$> (tk "<-")?) <*> parser.pexpr prec
 
+/-- `sort_pexpr_list_or_texpr` is either a list of `sort_summands`, possible empty, or a single
+`sort_summand_arg`. -/
 meta def sort_pexpr_list_or_texpr := list_of (sort_summands_arg 0) <|>
     list.ret <$> (sort_summands_arg tac_rbp) <|>
     return []

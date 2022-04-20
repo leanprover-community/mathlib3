@@ -514,6 +514,12 @@ infix ` ⊨ `:51 := sentence.realize -- input using \|= or \vDash, but not using
   M ⊨ φ.on_sentence ψ ↔ M ⊨ ψ :=
 φ.realize_on_formula ψ
 
+variables (L)
+
+def complete_theory : L.Theory := { φ | M ⊨ φ }
+
+variables {L}
+
 /-- A model of a theory is a structure in which every sentence is realized as true. -/
 class Theory.model (T : L.Theory) : Prop :=
 (realize_of_mem : ∀ φ ∈ T, M ⊨ φ)
@@ -544,6 +550,13 @@ lemma Theory.model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
 lemma Theory.model_singleton_iff {φ : L.sentence} :
   M ⊨ ({φ} : L.Theory) ↔ M ⊨ φ :=
 by simp
+
+theorem Theory.model_iff_subset_complete_theory :
+  M ⊨ T ↔ T ⊆ L.complete_theory M :=
+T.model_iff
+
+instance model_complete_theory : M ⊨ L.complete_theory M :=
+Theory.model_iff_subset_complete_theory.2 (subset_refl _)
 
 namespace bounded_formula
 

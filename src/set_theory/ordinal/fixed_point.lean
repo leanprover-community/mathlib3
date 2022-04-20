@@ -364,7 +364,7 @@ by { rw ←sup_iterate_eq_nfp, exact sup_le_iff }
 theorem nfp_le {a b} : (∀ n, (f^[n]) a ≤ b) → nfp f a ≤ b :=
 nfp_le_iff.2
 
-theorem nfp_id : nfp id = id :=
+@[simp] theorem nfp_id : nfp id = id :=
 funext (λ a, begin
   simp_rw [←sup_iterate_eq_nfp, iterate_id],
   exact sup_const a

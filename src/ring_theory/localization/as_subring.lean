@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz, Junyan Xu
 -/
 import ring_theory.localization.localization_localization
-import tactic.field_simp
 
 /-!
 
@@ -33,13 +32,12 @@ def map_to_fraction_ring (B : Type*) [comm_ring B] [algebra A B]
   [is_localization S B] (hS : S ≤ A⁰) :
   B →ₐ[A] K :=
 { commutes' := λ a, by simp,
-  ..(is_localization.lift (map_is_unit_of_le K S hS)) }
+  ..is_localization.lift (map_is_unit_of_le K S hS) }
 
 @[simp]
 lemma map_to_fraction_ring_apply {B : Type*} [comm_ring B] [algebra A B]
   [is_localization S B] (hS : S ≤ A⁰) (b : B) :
-  map_to_fraction_ring K S B hS b =
-    is_localization.lift (map_is_unit_of_le K S hS) b := rfl
+  map_to_fraction_ring K S B hS b = is_localization.lift (map_is_unit_of_le K S hS) b := rfl
 
 lemma mem_range_map_to_fraction_ring_iff (B : Type*) [comm_ring B] [algebra A B]
   [is_localization S B] (hS : S ≤ A⁰) (x : K) :
@@ -56,11 +54,10 @@ instance is_localization_range_map_to_fraction_ring (B : Type*) [comm_ring B] [a
 is_localization.is_localization_of_alg_equiv S $ show B ≃ₐ[A] _, from alg_equiv.of_bijective
 (map_to_fraction_ring K S B hS).range_restrict
 begin
-  refine ⟨_, set.surjective_onto_range⟩,
-  intros a b h,
+  refine ⟨λ a b h, _, set.surjective_onto_range⟩,
   refine (is_localization.lift_injective_iff _).2 (λ a b, _) (subtype.ext_iff.1 h),
   exact ⟨λ h, congr_arg _ (is_localization.injective _ hS h),
-    λ h, congr_arg _ (is_fraction_ring.injective A K h)⟩,
+         λ h, congr_arg _ (is_fraction_ring.injective A K h)⟩,
 end
 
 instance is_fraction_ring_range_map_to_fraction_ring
@@ -106,11 +103,7 @@ lemma mem_range_map_to_fraction_ring_iff_of_field
 begin
   rw mem_range_map_to_fraction_ring_iff,
   unfold is_localization.mk' submonoid.localization_map.mk', simp_rw units.coe_inv',
-  split,
-  { rintro ⟨a,s,hs,h⟩, refine ⟨a,s,hs,_⟩, convert h,
-    dsimp [is_unit.lift_right, monoid_hom.mrestrict], simp },
-  { rintro ⟨a,s,hs,h⟩, refine ⟨a,s,hs,_⟩, convert h,
-    dsimp [is_unit.lift_right, monoid_hom.mrestrict], simp }
+  refl,
 end
 
 /--

@@ -980,15 +980,15 @@ end
 /-- The multivariate polynomial ring over an integral domain is an integral domain. -/
 instance {R : Type u} {σ : Type v} [comm_ring R] [is_domain R] :
   is_domain (mv_polynomial σ R) :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := mv_polynomial.eq_zero_or_eq_zero_of_mul_eq_zero,
-  exists_pair_ne := ⟨0, 1, λ H,
+@is_domain.of_eq_zero_or_eq_zero_of_mul_eq_zero (mv_polynomial σ R) _
+  ⟨⟨0, 1, λ H,
   begin
     have : eval₂ (ring_hom.id _) (λ s, (0:R)) (0 : mv_polynomial σ R) =
       eval₂ (ring_hom.id _) (λ s, (0:R)) (1 : mv_polynomial σ R),
     { congr, exact H },
     simpa,
-  end⟩,
-  .. (by apply_instance : comm_ring (mv_polynomial σ R)) }
+  end⟩⟩
+  mv_polynomial.eq_zero_or_eq_zero_of_mul_eq_zero
 
 lemma map_mv_polynomial_eq_eval₂ {S : Type*} [comm_ring S] [fintype σ]
   (ϕ : mv_polynomial σ R →+* S) (p : mv_polynomial σ R) :

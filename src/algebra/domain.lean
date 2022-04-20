@@ -22,21 +22,24 @@ lemma mul_right_cancel_of_ne_zero [has_mul R] [has_zero R] [is_domain R] {a b c 
 
 namespace is_domain
 
-@[priority 0] -- see Note [lower instance priority]
-instance to_no_zero_divisors [mul_zero_class R] [is_domain R] :
+-- @[priority 0] -- see Note [lower instance priority]
+-- instance
+def to_no_zero_divisors [mul_zero_class R] [is_domain R] :
   no_zero_divisors R :=
 ⟨λ a b h, or_iff_not_and_not.mpr $
   λ H, H.right $ mul_left_cancel_of_ne_zero H.left $ (mul_zero a).symm ▸ h⟩
 
-@[priority 0] -- see Note [lower instance priority]
-instance to_cancel_monoid_with_zero [monoid_with_zero R] [is_domain R] :
+-- @[priority 0] -- see Note [lower instance priority]
+-- instance
+def to_cancel_monoid_with_zero [monoid_with_zero R] [is_domain R] :
   cancel_monoid_with_zero R :=
 { mul_left_cancel_of_ne_zero := λ a b c, mul_left_cancel_of_ne_zero,
   mul_right_cancel_of_ne_zero := λ a b c, mul_right_cancel_of_ne_zero,
   .. (infer_instance : monoid_with_zero R) }
 
-@[priority 0] -- see Note [lower instance priority]
-instance to_cancel_comm_monoid_with_zero [comm_monoid_with_zero R] [is_domain R] :
+-- @[priority 0] -- see Note [lower instance priority]
+-- instance
+def to_cancel_comm_monoid_with_zero [comm_monoid_with_zero R] [is_domain R] :
   cancel_comm_monoid_with_zero R :=
 { .. (infer_instance : comm_monoid_with_zero R), .. is_domain.to_cancel_monoid_with_zero }
 

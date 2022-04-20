@@ -282,7 +282,7 @@ protected lemma dfun {ι : Type u} {α : ι → Type v} {β : ι → Type w}
 end constructions
 
 lemma l_comm_of_u_comm
-  {X : Type*} [preorder X] {Y : Type*} [partial_order Y]
+  {X : Type*} [preorder X] {Y : Type*} [preorder Y]
   {Z : Type*} [preorder Z] {W : Type*} [partial_order W]
   {lYX : X → Y} {uXY : Y → X} (hXY : galois_connection lYX uXY)
   {lWZ : Z → W} {uZW : W → Z} (hZW : galois_connection lWZ uZW)
@@ -293,7 +293,7 @@ lemma l_comm_of_u_comm
 
 lemma u_comm_of_l_comm
   {X : Type*} [partial_order X] {Y : Type*} [preorder Y]
-  {Z : Type*} [partial_order Z] {W : Type*} [preorder W]
+  {Z : Type*} [preorder Z] {W : Type*} [preorder W]
   {lYX : X → Y} {uXY : Y → X} (hXY : galois_connection lYX uXY)
   {lWZ : Z → W} {uZW : W → Z} (hZW : galois_connection lWZ uZW)
   {lWY : Y → W} {uYW : W → Y} (hWY : galois_connection lWY uYW)
@@ -302,8 +302,8 @@ lemma u_comm_of_l_comm
 (hXZ.compose hZW).u_unique (hXY.compose hWY) h
 
 lemma l_comm_iff_u_comm
-  {X : Type*} [partial_order X] {Y : Type*} [partial_order Y]
-  {Z : Type*} [partial_order Z] {W : Type*} [partial_order W]
+  {X : Type*} [partial_order X] {Y : Type*} [preorder Y]
+  {Z : Type*} [preorder Z] {W : Type*} [partial_order W]
   {lYX : X → Y} {uXY : Y → X} (hXY : galois_connection lYX uXY)
   {lWZ : Z → W} {uZW : W → Z} (hZW : galois_connection lWZ uZW)
   {lWY : Y → W} {uYW : W → Y} (hWY : galois_connection lWY uYW)
@@ -657,7 +657,7 @@ lemma l_le_l_iff [preorder α] [preorder β] (gi : galois_coinsertion l u) {a b}
   l a ≤ l b ↔ a ≤ b :=
 gi.dual.u_le_u_iff
 
-lemma strict_mono_l [partial_order α] [preorder β] (gi : galois_coinsertion l u) : strict_mono l :=
+lemma strict_mono_l [preorder α] [preorder β] (gi : galois_coinsertion l u) : strict_mono l :=
 λ a b h, gi.dual.strict_mono_u h
 
 lemma is_glb_of_l_image [preorder α] [preorder β] (gi : galois_coinsertion l u) {s : set α} {a : β}

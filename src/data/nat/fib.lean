@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Kevin Kappelmann. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kevin Kappelmann
+Authors: Kevin Kappelmann, Kyle Miller, Mario Carneiro
 -/
 import data.nat.gcd
 import logic.function.iterate
@@ -247,5 +247,111 @@ begin
                  ... = fib n + (∑ k in finset.range n, fib k) + 1 : by rw [ih, add_assoc]
                  ... = (∑ k in finset.range (n + 1), fib k) + 1   : by simp [finset.range_add_one] }
 end
-
 end nat
+
+namespace norm_num
+open tactic nat
+
+/-! ### `norm_num` plugin for `fib`
+
+The `norm_num` plugin uses a strategy parallel to that of `nat.fast_fib`, but it instead
+produces proofs of what `nat.fib` evaluates to.
+-/
+
+/-- Auxiliary definition for `prove_fib` plugin. -/
+def is_fib_aux (n a b : ℕ) := fib n = a ∧ fib (n + 1) = b
+
+lemma is_fib_aux_one : is_fib_aux 1 1 1 := ⟨fib_one, fib_two⟩
+
+lemma is_fib_aux_bit0 {n a b c a2 b2 a' b' : ℕ} (H : is_fib_aux n a b)
+  (h1 : a + c = bit0 b) (h2 : a * c = a')
+  (h3 : a * a = a2) (h4 : b * b = b2) (h5 : a2 + b2 = b') :
+  is_fib_aux (bit0 n) a' b' :=
+⟨by rw [fib_bit0, H.1, H.2, ← bit0_eq_two_mul,
+  show bit0 b-a=c, by rw [← h1, nat.add_sub_cancel_left], h2],
+ by rw [fib_bit0_succ, H.1, H.2, pow_two, pow_two, h3, h4, add_comm, h5]⟩
+
+lemma is_fib_aux_bit1 {n a b c a2 b2 a' b' : ℕ} (H : is_fib_aux n a b)
+  (h1 : a * a = a2) (h2 : b * b = b2) (h3 : a2 + b2 = a')
+  (h4 : bit0 a + b = c) (h5 : b * c = b') :
+  is_fib_aux (bit1 n) a' b' :=
+⟨by rw [fib_bit1, H.1, H.2, pow_two, pow_two, h1, h2, add_comm, h3],
+ by rw [fib_bit1_succ, H.1, H.2, ← bit0_eq_two_mul, h4, h5]⟩
+
+lemma is_fib_aux_bit0_done {n a b c a' : ℕ} (H : is_fib_aux n a b)
+  (h1 : a + c = bit0 b) (h2 : a * c = a') : fib (bit0 n) = a' :=
+(is_fib_aux_bit0 H h1 h2 rfl rfl rfl).1
+
+lemma is_fib_aux_bit1_done {n a b a2 b2 a' : ℕ} (H : is_fib_aux n a b)
+  (h1 : a * a = a2) (h2 : b * b = b2) (h3 : a2 + b2 = a') : fib (bit1 n) = a' :=
+(is_fib_aux_bit1 H h1 h2 h3 rfl rfl).1
+
+/-- `prove_fib_aux ic n` returns `(ic', a, b, ⊢ is_fib_aux n a b)`, where `n` is a numeral. -/
+meta def prove_fib_aux (ic : instance_cache) :
+  expr → tactic (instance_cache × expr × expr × expr)
+| e :=
+  match match_numeral e with
+  | match_numeral_result.one := pure (ic, `(1:ℕ), `(1:ℕ), `(is_fib_aux_one))
+  | match_numeral_result.bit0 e := do
+    (ic, a, b, H) ← prove_fib_aux e,
+    na ← a.to_nat, nb ← b.to_nat,
+    (ic, c) ← ic.of_nat (2*nb - na),
+    (ic, h1) ← prove_add_nat ic a c (`(bit0:ℕ→ℕ).mk_app [b]),
+    (ic, a', h2) ← prove_mul_nat ic a c,
+    (ic, a2, h3) ← prove_mul_nat ic a a,
+    (ic, b2, h4) ← prove_mul_nat ic b b,
+    (ic, b', h5) ← prove_add_nat' ic a2 b2,
+    pure (ic, a', b', `(@is_fib_aux_bit0).mk_app
+      [e, a, b, c, a2, b2, a', b', H, h1, h2, h3, h4, h5])
+  | match_numeral_result.bit1 e := do
+    (ic, a, b, H) ← prove_fib_aux e,
+    na ← a.to_nat, nb ← b.to_nat,
+    (ic, c) ← ic.of_nat (2*na + nb),
+    (ic, a2, h1) ← prove_mul_nat ic a a,
+    (ic, b2, h2) ← prove_mul_nat ic b b,
+    (ic, a', h3) ← prove_add_nat' ic a2 b2,
+    (ic, h4) ← prove_add_nat ic (`(bit0:ℕ→ℕ).mk_app [a]) b c,
+    (ic, b', h5) ← prove_mul_nat ic b c,
+    pure (ic, a', b', `(@is_fib_aux_bit1).mk_app
+      [e, a, b, c, a2, b2, a', b', H, h1, h2, h3, h4, h5])
+  | _ := failed
+  end
+
+/-- A `norm_num` plugin for `fib n` when `n` is a numeral.
+Uses the binary representation of `n` like `nat.fast_fib`. -/
+meta def prove_fib (ic : instance_cache) (e : expr) : tactic (instance_cache × expr × expr) :=
+match match_numeral e with
+| match_numeral_result.zero := pure (ic, `(0:ℕ), `(fib_zero))
+| match_numeral_result.one := pure (ic, `(1:ℕ), `(fib_one))
+| match_numeral_result.bit0 e := do
+  (ic, a, b, H) ← prove_fib_aux ic e,
+  na ← a.to_nat, nb ← b.to_nat,
+  (ic, c) ← ic.of_nat (2*nb - na),
+  (ic, h1) ← prove_add_nat ic a c (`(bit0:ℕ→ℕ).mk_app [b]),
+  (ic, a', h2) ← prove_mul_nat ic a c,
+  pure (ic, a', `(@is_fib_aux_bit0_done).mk_app [e, a, b, c, a', H, h1, h2])
+| match_numeral_result.bit1 e := do
+  (ic, a, b, H) ← prove_fib_aux ic e,
+  (ic, a2, h1) ← prove_mul_nat ic a a,
+  (ic, b2, h2) ← prove_mul_nat ic b b,
+  (ic, a', h3) ← prove_add_nat' ic a2 b2,
+  pure (ic, a', `(@is_fib_aux_bit1_done).mk_app [e, a, b, a2, b2, a', H, h1, h2, h3])
+| _ := failed
+end
+
+/-- A `norm_num` plugin for `fib n` when `n` is a numeral.
+Uses the binary representation of `n` like `nat.fast_fib`. -/
+@[norm_num] meta def eval_fib : expr → tactic (expr × expr)
+| `(fib %%en) := do
+    n ← en.to_nat,
+    match n with
+    | 0 := pure (`(0:ℕ), `(fib_zero))
+    | 1 := pure (`(1:ℕ), `(fib_one))
+    | 2 := pure (`(1:ℕ), `(fib_two))
+    | _ := do
+      c ← mk_instance_cache `(ℕ),
+      prod.snd <$> prove_fib c en
+    end
+| _ := failed
+
+end norm_num

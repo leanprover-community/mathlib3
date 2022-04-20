@@ -120,6 +120,9 @@ variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
 instance has_coe_to_general_linear_group : has_coe (special_linear_group n R) (GL n R) :=
 ⟨λ A, ⟨↑A, ↑(A⁻¹), congr_arg coe (mul_right_inv A), congr_arg coe (mul_left_inv A)⟩⟩
 
+@[simp] lemma coe_to_GL_det (g : special_linear_group n R) : (g : GL n R).det = 1 :=
+units.ext g.prop
+
 end special_linear_group
 
 section
@@ -148,7 +151,7 @@ each element. -/
 instance : has_neg (GL_pos n R) :=
 ⟨λ g, ⟨-g, begin
     rw [mem_GL_pos, general_linear_group.coe_det_apply, units.coe_neg, det_neg,
-      nat.neg_one_pow_of_even (fact.out (even (fintype.card n))), one_mul],
+      (fact.out $ even $ fintype.card n).neg_one_pow, one_mul],
     exact g.prop,
   end⟩⟩
 
@@ -186,11 +189,26 @@ lemma to_GL_pos_injective :
 (show function.injective ((coe : GL_pos n R → matrix n n R) ∘ to_GL_pos),
  from subtype.coe_injective).of_comp
 
+/-- Coercing a `special_linear_group` via `GL_pos` and `GL` is the same as coercing striaght to a
+matrix. -/
+@[simp]
+lemma coe_GL_pos_coe_GL_coe_matrix (g : special_linear_group n R) :
+    (↑(↑(↑g : GL_pos n R) : GL n R) : matrix n n R) = ↑g := rfl
+
+@[simp] lemma coe_to_GL_pos_to_GL_det (g : special_linear_group n R) :
+  ((g : GL_pos n R) : GL n R).det = 1 :=
+units.ext g.prop
+
+variable [fact (even (fintype.card n))]
+
+@[norm_cast] lemma coe_GL_pos_neg (g : special_linear_group n R) :
+  ↑(-g) = -(↑g : GL_pos n R) := subtype.ext $ units.ext rfl
+
 end special_linear_group
 
 section examples
 
-/-- The matrix [a, b; -b, a] (inspired by multiplication by a complex number); it is an element of
+/-- The matrix [a, -b; b, a] (inspired by multiplication by a complex number); it is an element of
 $GL_2(R)$ if `a ^ 2 + b ^ 2` is nonzero. -/
 @[simps coe {fully_applied := ff}]
 def plane_conformal_matrix {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :

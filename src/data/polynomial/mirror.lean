@@ -56,13 +56,10 @@ lemma mirror_nat_degree : p.mirror.nat_degree = p.nat_degree :=
 begin
   by_cases hp : p = 0,
   { rw [hp, mirror_zero] },
-  by_cases hR : nontrivial R,
-  { haveI := hR,
-    rw [mirror, nat_degree_mul', reverse_nat_degree, nat_degree_X_pow,
-        tsub_add_cancel_of_le p.nat_trailing_degree_le_nat_degree],
-    rwa [leading_coeff_X_pow, mul_one, reverse_leading_coeff, ne, trailing_coeff_eq_zero] },
-  { haveI := not_nontrivial_iff_subsingleton.mp hR,
-    exact congr_arg nat_degree (subsingleton.elim p.mirror p) },
+  nontriviality R,
+  rw [mirror, nat_degree_mul', reverse_nat_degree, nat_degree_X_pow,
+      tsub_add_cancel_of_le p.nat_trailing_degree_le_nat_degree],
+  rwa [leading_coeff_X_pow, mul_one, reverse_leading_coeff, ne, trailing_coeff_eq_zero]
 end
 
 lemma mirror_nat_trailing_degree : p.mirror.nat_trailing_degree = p.nat_trailing_degree :=
@@ -95,7 +92,7 @@ end
 --TODO: Extract `finset.sum_range_rev_at` lemma.
 lemma mirror_eval_one : p.mirror.eval 1 = p.eval 1 :=
 begin
-  simp_rw [eval_eq_finset_sum, one_pow, mul_one, mirror_nat_degree],
+  simp_rw [eval_eq_sum_range, one_pow, mul_one, mirror_nat_degree],
   refine finset.sum_bij_ne_zero _ _ _ _ _,
   { exact λ n hn hp, rev_at (p.nat_degree + p.nat_trailing_degree) n },
   { intros n hn hp,

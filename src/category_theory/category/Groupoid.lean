@@ -74,6 +74,9 @@ instance forget_to_Cat_faithful : faithful forget_to_Cat := { }
 which sometimes helps in applying simp lemmas -/
 lemma hom_to_functor {C D E : Groupoid.{v u}} (f : C ⟶ D) (g : D ⟶ E) : f ≫ g = f ⋙ g := rfl
 
+/-- Converts identity in the category of groupoids to the functor identity -/
+lemma id_to_functor {C : Groupoid.{v u}} : 𝟭 C = 𝟙 C := rfl
+
 section products
 
 /-- The cone for the product of a family of groupoids indexed by J is a limit cone -/

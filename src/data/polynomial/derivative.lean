@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import algebra.iterate_hom
+import algebra.hom.iterate
 import data.polynomial.eval
 
 /-!
@@ -82,6 +82,9 @@ by convert derivative_C_mul_X_pow (1 : R) n; simp
 @[simp] lemma derivative_C {a : R} : derivative (C a) = 0 :=
 by simp [derivative_apply]
 
+lemma derivative_of_nat_degree_zero {p : R[X]} (hp : p.nat_degree = 0) : p.derivative = 0 :=
+by rw [eq_C_of_nat_degree_eq_zero hp, derivative_C]
+
 @[simp] lemma derivative_X : derivative (X : R[X]) = 1 :=
 (derivative_monomial _ _).trans $ by simp
 
@@ -102,26 +105,6 @@ derivative.map_add f g
   derivative^[k] (f + g) = (derivative^[k] f) + (derivative^[k] g) :=
 derivative.to_add_monoid_hom.iterate_map_add _ _ _
 
-@[simp] lemma derivative_neg {R : Type*} [ring R] (f : R[X]) :
-  derivative (-f) = - derivative f :=
-linear_map.map_neg derivative f
-
-@[simp] lemma iterate_derivative_neg {R : Type*} [ring R] {f : R[X]} {k : ℕ} :
-  derivative^[k] (-f) = - (derivative^[k] f) :=
-(@derivative R _).to_add_monoid_hom.iterate_map_neg _ _
-
-@[simp] lemma derivative_sub {R : Type*} [ring R] {f g : R[X]} :
-  derivative (f - g) = derivative f - derivative g :=
-linear_map.map_sub derivative f g
-
-@[simp] lemma iterate_derivative_sub {R : Type*} [ring R] {k : ℕ} {f g : R[X]} :
-  derivative^[k] (f - g) = (derivative^[k] f) - (derivative^[k] g) :=
-begin
-  induction k with k ih generalizing f g,
-  { simp [nat.iterate], },
-  { simp [nat.iterate, ih], }
-end
-
 @[simp] lemma derivative_sum {s : finset ι} {f : ι → R[X]} :
   derivative (∑ b in s, f b) = ∑ b in s, derivative (f b) :=
 derivative.map_sum
@@ -137,7 +120,7 @@ begin
   { simp [ih], },
 end
 
-/-- We can't use `derivative_mul` here because
+/- We can't use `derivative_mul` here because
 we want to prove this statement also for noncommutative rings.-/
 @[simp]
 lemma derivative_C_mul (a : R) (p : R[X]) : derivative (C a * p) = C a * derivative p :=
@@ -147,6 +130,72 @@ by convert derivative_smul a p; apply C_mul'
 lemma iterate_derivative_C_mul (a : R) (p : R[X]) (k : ℕ) :
   derivative^[k] (C a * p) = C a * (derivative^[k] p) :=
 by convert iterate_derivative_smul a p k; apply C_mul'
+
+theorem of_mem_support_derivative {p : R[X]} {n : ℕ} (h : n ∈ p.derivative.support) :
+  n + 1 ∈ p.support :=
+mem_support_iff.2 $ λ (h1 : p.coeff (n+1) = 0), mem_support_iff.1 h $
+show p.derivative.coeff n = 0, by rw [coeff_derivative, h1, zero_mul]
+
+theorem degree_derivative_lt {p : R[X]} (hp : p ≠ 0) : p.derivative.degree < p.degree :=
+(finset.sup_lt_iff $ bot_lt_iff_ne_bot.2 $ mt degree_eq_bot.1 hp).2 $ λ n hp, lt_of_lt_of_le
+(with_bot.some_lt_some.2 n.lt_succ_self) $ finset.le_sup $ of_mem_support_derivative hp
+
+theorem degree_derivative_le {p : R[X]} : p.derivative.degree ≤ p.degree :=
+if H : p = 0 then le_of_eq $ by rw [H, derivative_zero] else (degree_derivative_lt H).le
+
+theorem nat_degree_derivative_lt {p : R[X]} (hp : p.nat_degree ≠ 0) :
+  p.derivative.nat_degree < p.nat_degree :=
+begin
+  cases eq_or_ne p.derivative 0 with hp' hp',
+  { rw [hp', polynomial.nat_degree_zero],
+    exact hp.bot_lt },
+  { rw nat_degree_lt_nat_degree_iff hp',
+    exact degree_derivative_lt (λ h, hp (h.symm ▸ nat_degree_zero)) }
+end
+
+lemma nat_degree_derivative_le (p : R[X]) : p.derivative.nat_degree ≤ p.nat_degree - 1 :=
+begin
+  by_cases p0 : p.nat_degree = 0,
+  { simp [p0, derivative_of_nat_degree_zero] },
+  { exact nat.le_pred_of_lt (nat_degree_derivative_lt p0) }
+end
+
+@[simp] lemma derivative_cast_nat {n : ℕ} : derivative (n : R[X]) = 0 :=
+begin
+  rw ← map_nat_cast C n,
+  exact derivative_C,
+end
+
+lemma iterate_derivative_eq_zero {p : R[X]} {x : ℕ} (hx : p.nat_degree < x) :
+  polynomial.derivative^[x] p = 0 :=
+begin
+  induction h : p.nat_degree using nat.strong_induction_on with _ ih generalizing p x,
+  subst h,
+  obtain ⟨t, rfl⟩ := nat.exists_eq_succ_of_ne_zero (pos_of_gt hx).ne',
+  rw [function.iterate_succ_apply],
+  by_cases hp : p.nat_degree = 0,
+  { rw [derivative_of_nat_degree_zero hp, iterate_derivative_zero] },
+  have := nat_degree_derivative_lt hp,
+  exact ih _ this (this.trans_le $ nat.le_of_lt_succ hx) rfl
+end
+
+theorem nat_degree_eq_zero_of_derivative_eq_zero [no_zero_divisors R] [char_zero R] {f : R[X]}
+  (h : f.derivative = 0) : f.nat_degree = 0 :=
+begin
+  rcases eq_or_ne f 0 with rfl | hf,
+  { exact nat_degree_zero },
+  rw nat_degree_eq_zero_iff_degree_le_zero,
+  by_contra' f_nat_degree_pos,
+  rw [←nat_degree_pos_iff_degree_pos] at f_nat_degree_pos,
+  let m := f.nat_degree - 1,
+  have hm : m + 1 = f.nat_degree := tsub_add_cancel_of_le f_nat_degree_pos,
+  have h2 := coeff_derivative f m,
+  rw polynomial.ext_iff at h,
+  rw [h m, coeff_zero, zero_eq_mul] at h2,
+  replace h2 := h2.resolve_right (λ h2, by norm_cast at h2),
+  rw [hm, ←leading_coeff, leading_coeff_eq_zero] at h2,
+  exact hf h2
+end
 
 end semiring
 
@@ -212,13 +261,14 @@ end
 theorem derivative_map [comm_semiring S] (p : R[X]) (f : R →+* S) :
   (p.map f).derivative = p.derivative.map f :=
 polynomial.induction_on p
-  (λ r, by rw [map_C, derivative_C, derivative_C, map_zero])
-  (λ p q ihp ihq, by rw [map_add, derivative_add, ihp, ihq, derivative_add, map_add])
-  (λ n r ih, by rw [map_mul, map_C, polynomial.map_pow, map_X, derivative_mul, derivative_pow_succ,
-                    derivative_C, zero_mul, zero_add, derivative_X, mul_one, derivative_mul,
-                    derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
-                    map_mul, map_C, map_mul, polynomial.map_pow, map_add,
-                    polynomial.map_nat_cast, map_one, map_X])
+  (λ r, by rw [map_C, derivative_C, derivative_C, polynomial.map_zero])
+  (λ p q ihp ihq, by rw [polynomial.map_add, derivative_add, ihp, ihq, derivative_add,
+                         polynomial.map_add])
+  (λ n r ih, by rw [polynomial.map_mul, polynomial.map_C, polynomial.map_pow, polynomial.map_X,
+    derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
+    derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
+    polynomial.map_mul, polynomial.map_C, polynomial.map_mul, polynomial.map_pow,
+    polynomial.map_add, polynomial.map_nat_cast, polynomial.map_one, polynomial.map_X])
 
 @[simp]
 theorem iterate_derivative_map [comm_semiring S] (p : R[X]) (f : R →+* S) (k : ℕ):
@@ -257,53 +307,32 @@ begin
   { simp [hij] }
 end
 
-theorem of_mem_support_derivative {p : R[X]} {n : ℕ} (h : n ∈ p.derivative.support) :
-  n + 1 ∈ p.support :=
-mem_support_iff.2 $ λ (h1 : p.coeff (n+1) = 0), mem_support_iff.1 h $
-show p.derivative.coeff n = 0, by rw [coeff_derivative, h1, zero_mul]
-
-theorem degree_derivative_lt {p : R[X]} (hp : p ≠ 0) : p.derivative.degree < p.degree :=
-(finset.sup_lt_iff $ bot_lt_iff_ne_bot.2 $ mt degree_eq_bot.1 hp).2 $ λ n hp, lt_of_lt_of_le
-(with_bot.some_lt_some.2 n.lt_succ_self) $ finset.le_sup $ of_mem_support_derivative hp
-
-theorem nat_degree_derivative_lt {p : R[X]} (hp : p.derivative ≠ 0) :
-  p.derivative.nat_degree < p.nat_degree :=
-have hp1 : p ≠ 0, from λ h, hp $ by rw [h, derivative_zero],
-with_bot.some_lt_some.1 $
-begin
-  rw [nat_degree, option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp, nat_degree,
-    option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp1],
-  exact degree_derivative_lt hp1
-end
-
-theorem degree_derivative_le {p : R[X]} : p.derivative.degree ≤ p.degree :=
-if H : p = 0 then le_of_eq $ by rw [H, derivative_zero] else le_of_lt $ degree_derivative_lt H
-
-/-- The formal derivative of polynomials, as linear homomorphism. -/
-def derivative_lhom (R : Type*) [comm_ring R] : R[X] →ₗ[R] R[X] :=
-{ to_fun    := derivative,
-  map_add'  := λ p q, derivative_add,
-  map_smul' := λ r p, derivative_smul r p }
-
-@[simp] lemma derivative_lhom_coe {R : Type*} [comm_ring R] :
-  (polynomial.derivative_lhom R : R[X] → R[X]) = polynomial.derivative :=
-rfl
-
-@[simp] lemma derivative_cast_nat {n : ℕ} : derivative (n : R[X]) = 0 :=
-begin
-  rw ← map_nat_cast C n,
-  exact derivative_C,
-end
-
 @[simp] lemma iterate_derivative_cast_nat_mul {n k : ℕ} {f : R[X]} :
   derivative^[k] (n * f) = n * (derivative^[k] f) :=
-begin
-  induction k with k ih generalizing f,
-  { simp [nat.iterate], },
-  { simp [nat.iterate, ih], }
-end
+by induction k with k ih generalizing f; simp*
 
 end comm_semiring
+
+section ring
+
+variables [ring R]
+
+@[simp] lemma derivative_neg (f : R[X]) : derivative (-f) = - derivative f :=
+linear_map.map_neg derivative f
+
+@[simp] lemma iterate_derivative_neg {f : R[X]} {k : ℕ} :
+  derivative^[k] (-f) = - (derivative^[k] f) :=
+(@derivative R _).to_add_monoid_hom.iterate_map_neg _ _
+
+@[simp] lemma derivative_sub {f g : R[X]} :
+  derivative (f - g) = derivative f - derivative g :=
+linear_map.map_sub derivative f g
+
+@[simp] lemma iterate_derivative_sub {k : ℕ} {f g : R[X]} :
+  derivative^[k] (f - g) = (derivative^[k] f) - (derivative^[k] g) :=
+by induction k with k ih generalizing f g; simp*
+
+end ring
 
 section comm_ring
 variables [comm_ring R]
@@ -331,8 +360,8 @@ end
 
 end comm_ring
 
-section is_domain
-variables [ring R] [is_domain R]
+section no_zero_divisors
+variables [ring R] [no_zero_divisors R]
 
 lemma mem_support_derivative [char_zero R] (p : R[X]) (n : ℕ) :
   n ∈ (derivative p).support ↔ n + 1 ∈ p.support :=
@@ -360,28 +389,7 @@ begin
     exact hp }
 end
 
-theorem nat_degree_eq_zero_of_derivative_eq_zero
-  [char_zero R] {f : R[X]} (h : f.derivative = 0) :
-  f.nat_degree = 0 :=
-begin
-  by_cases hf : f = 0,
-  { exact (congr_arg polynomial.nat_degree hf).trans rfl },
-  { rw nat_degree_eq_zero_iff_degree_le_zero,
-    by_contra absurd,
-    have f_nat_degree_pos : 0 < f.nat_degree,
-    { rwa [not_le, ←nat_degree_pos_iff_degree_pos] at absurd },
-    let m := f.nat_degree - 1,
-    have hm : m + 1 = f.nat_degree := tsub_add_cancel_of_le f_nat_degree_pos,
-    have h2 := coeff_derivative f m,
-    rw polynomial.ext_iff at h,
-    rw [h m, coeff_zero, zero_eq_mul] at h2,
-    cases h2,
-    { rw [hm, ←leading_coeff, leading_coeff_eq_zero] at h2,
-      exact hf h2, },
-    { norm_cast at h2 } }
-end
-
-end is_domain
+end no_zero_divisors
 
 end derivative
 end polynomial

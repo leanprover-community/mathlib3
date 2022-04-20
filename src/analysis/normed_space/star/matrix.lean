@@ -3,6 +3,7 @@ Copyright (c) 2022 Hans Parshall. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hans Parshall
 -/
+import analysis.matrix
 import analysis.normed_space.basic
 import data.complex.is_R_or_C
 import linear_algebra.unitary_group
@@ -15,10 +16,29 @@ This file collects facts about the unitary matrices over `𝕜` (either `ℝ` or
 
 open_locale big_operators matrix
 
-variables {𝕜 n : Type*} [is_R_or_C 𝕜]
-variables [fintype n] [decidable_eq n]
+variables {𝕜 n E : Type*}
+
+namespace matrix
+variables [fintype n] [semi_normed_group E] [star_add_monoid E] [normed_star_group E]
+
+local attribute [instance] matrix.semi_normed_group
+
+@[simp] lemma entrywise_sup_norm_star_eq_norm (M : matrix n n E) : ∥star M∥ = ∥M∥ :=
+begin
+  refine le_antisymm (by simp [matrix.norm_le_iff, M.norm_entry_le_entrywise_sup_norm]) _,
+  refine ((matrix.norm_le_iff (norm_nonneg _)).mpr (λ i j, _)).trans
+    (congr_arg _ M.star_eq_conj_transpose).ge,
+  exact (norm_star _).ge.trans Mᴴ.norm_entry_le_entrywise_sup_norm
+end
+
+@[priority 100] -- see Note [lower instance priority]
+instance to_normed_star_group : normed_star_group (matrix n n E) :=
+⟨matrix.entrywise_sup_norm_star_eq_norm⟩
+
+end matrix
 
 section entrywise_sup_norm
+variables [is_R_or_C 𝕜] [fintype n] [decidable_eq n]
 
 lemma entry_norm_bound_of_unitary {U : matrix n n 𝕜} (hU : U ∈ matrix.unitary_group n 𝕜) (i j : n):
   ∥U i j∥ ≤ 1 :=

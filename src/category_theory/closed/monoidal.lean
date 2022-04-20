@@ -23,6 +23,10 @@ namespace category_theory
 open category monoidal_category
 
 /-- An object `X` is (right) closed if `(X ⊗ -)` is a left adjoint. -/
+-- Note that this class carries a particular choice of right adjoint,
+-- (which is only unique up to isomorphism),
+-- not merely the existence of such, and
+-- so definitional properties of instances may be important.
 class closed {C : Type u} [category.{v} C] [monoidal_category.{v} C] (X : C) :=
 (is_adj : is_left_adjoint (tensor_left X))
 
@@ -71,12 +75,6 @@ variables [closed A]
 
 /--
 This is the internal hom `A ⟶[C] -`.
-Note that this is essentially an opaque definition,
-and so will not agree definitionally with any "native" internal hom the category has.
-
-TODO: we could introduce a `has_ihom` class
-that allows specifying a particular definition of the internal hom,
-and provide a low priority opaque instance.
 -/
 def ihom : C ⥤ C :=
 (@closed.is_adj _ _ _ A _).right
@@ -108,7 +106,7 @@ lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
   f ≫ (coev A).app Y = (coev A).app X ≫ (ihom A).map ((𝟙 A) ⊗ f) :=
 (coev A).naturality f
 
-notation A ` ⟶[C] `:20 B:19 := (ihom A).obj B
+notation A ` ⟶[`C`] ` B:10 := (@ihom C _ _ A _).obj B
 
 @[simp, reassoc] lemma ev_coev :
   ((𝟙 A) ⊗ ((coev A).app B)) ≫ (ev A).app (A ⊗ B) = 𝟙 (A ⊗ B) :=
@@ -131,15 +129,15 @@ variables {A}
 namespace monoidal_closed
 
 /-- Currying in a monoidal closed category. -/
-def curry : (A ⊗ Y ⟶ X) → (Y ⟶ A ⟶[C] X) :=
+def curry : (A ⊗ Y ⟶ X) → (Y ⟶ (A ⟶[C] X)) :=
 (ihom.adjunction A).hom_equiv _ _
 /-- Uncurrying in a monoidal closed category. -/
-def uncurry : (Y ⟶ A ⟶[C] X) → (A ⊗ Y ⟶ X) :=
+def uncurry : (Y ⟶ (A ⟶[C] X)) → (A ⊗ Y ⟶ X) :=
 ((ihom.adjunction A).hom_equiv _ _).symm
 
 @[simp] lemma hom_equiv_apply_eq (f : A ⊗ Y ⟶ X) :
   (ihom.adjunction A).hom_equiv _ _ f = curry f := rfl
-@[simp] lemma hom_equiv_symm_apply_eq (f : Y ⟶ A ⟶[C] X) :
+@[simp] lemma hom_equiv_symm_apply_eq (f : Y ⟶ (A ⟶[C] X)) :
   ((ihom.adjunction A).hom_equiv _ _).symm f = uncurry f := rfl
 
 @[reassoc]
@@ -153,12 +151,12 @@ lemma curry_natural_right (f : A ⊗ X ⟶ Y) (g : Y ⟶ Y') :
 adjunction.hom_equiv_naturality_right _ _ _
 
 @[reassoc]
-lemma uncurry_natural_right  (f : X ⟶ A ⟶[C] Y) (g : Y ⟶ Y') :
+lemma uncurry_natural_right  (f : X ⟶ (A ⟶[C] Y)) (g : Y ⟶ Y') :
   uncurry (f ≫ (ihom _).map g) = uncurry f ≫ g :=
 adjunction.hom_equiv_naturality_right_symm _ _ _
 
 @[reassoc]
-lemma uncurry_natural_left  (f : X ⟶ X') (g : X' ⟶ A ⟶[C] Y) :
+lemma uncurry_natural_left  (f : X ⟶ X') (g : X' ⟶ (A ⟶[C] Y)) :
   uncurry (f ≫ g) = ((𝟙 _) ⊗ f) ≫ uncurry g :=
 adjunction.hom_equiv_naturality_left_symm _ _ _
 
@@ -167,28 +165,28 @@ lemma uncurry_curry (f : A ⊗ X ⟶ Y) : uncurry (curry f) = f :=
 (closed.is_adj.adj.hom_equiv _ _).left_inv f
 
 @[simp]
-lemma curry_uncurry (f : X ⟶ A ⟶[C] Y) : curry (uncurry f) = f :=
+lemma curry_uncurry (f : X ⟶ (A ⟶[C] Y)) : curry (uncurry f) = f :=
 (closed.is_adj.adj.hom_equiv _ _).right_inv f
 
-lemma curry_eq_iff (f : A ⊗ Y ⟶ X) (g : Y ⟶ A ⟶[C] X) :
+lemma curry_eq_iff (f : A ⊗ Y ⟶ X) (g : Y ⟶ (A ⟶[C] X)) :
   curry f = g ↔ f = uncurry g :=
 adjunction.hom_equiv_apply_eq _ f g
 
-lemma eq_curry_iff (f : A ⊗ Y ⟶ X) (g : Y ⟶ A ⟶[C] X) :
+lemma eq_curry_iff (f : A ⊗ Y ⟶ X) (g : Y ⟶ (A ⟶[C] X)) :
   g = curry f ↔ uncurry g = f :=
 adjunction.eq_hom_equiv_apply _ f g
 
 -- I don't think these two should be simp.
-lemma uncurry_eq (g : Y ⟶ A ⟶[C] X) : uncurry g = ((𝟙 A) ⊗ g) ≫ (ihom.ev A).app X :=
+lemma uncurry_eq (g : Y ⟶ (A ⟶[C] X)) : uncurry g = ((𝟙 A) ⊗ g) ≫ (ihom.ev A).app X :=
 adjunction.hom_equiv_counit _
 
 lemma curry_eq (g : A ⊗ Y ⟶ X) : curry g = (ihom.coev A).app Y ≫ (ihom A).map g :=
 adjunction.hom_equiv_unit _
 
-lemma curry_injective : function.injective (curry : (A ⊗ Y ⟶ X) → (Y ⟶ A ⟶[C] X)) :=
+lemma curry_injective : function.injective (curry : (A ⊗ Y ⟶ X) → (Y ⟶ (A ⟶[C] X))) :=
 (closed.is_adj.adj.hom_equiv _ _).injective
 
-lemma uncurry_injective : function.injective (uncurry : (Y ⟶ A ⟶[C] X) → (A ⊗ Y ⟶ X)) :=
+lemma uncurry_injective : function.injective (uncurry : (Y ⟶ (A ⟶[C] X)) → (A ⊗ Y ⟶ X)) :=
 (closed.is_adj.adj.hom_equiv _ _).symm.injective
 
 variables (A X)

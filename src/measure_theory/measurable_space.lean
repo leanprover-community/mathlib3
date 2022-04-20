@@ -5,9 +5,9 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 
 import algebra.indicator_function
-import data.equiv.fin
 import data.tprod
 import group_theory.coset
+import logic.equiv.fin
 import measure_theory.measurable_space_def
 import measure_theory.tactic
 import order.filter.lift
@@ -448,7 +448,7 @@ begin
 end
 
 lemma measurable_of_restrict_of_restrict_compl {f : α → β} {s : set α}
-  (hs : measurable_set s) (h₁ : measurable (restrict f s)) (h₂ : measurable (restrict f sᶜ)) :
+  (hs : measurable_set s) (h₁ : measurable (s.restrict f)) (h₂ : measurable (sᶜ.restrict f)) :
   measurable f :=
 measurable_of_measurable_union_cover s sᶜ hs hs.compl (union_compl_self s).ge h₁ h₂
 
@@ -458,7 +458,7 @@ lemma measurable.dite [∀ x, decidable (x ∈ s)] {f : s → β} (hf : measurab
 measurable_of_restrict_of_restrict_compl hs (by simpa) (by simpa)
 
 lemma measurable_of_measurable_on_compl_finite [measurable_singleton_class α]
-  {f : α → β} (s : set α) (hs : finite s) (hf : measurable (set.restrict f sᶜ)) :
+  {f : α → β} (s : set α) (hs : finite s) (hf : measurable (sᶜ.restrict f)) :
   measurable f :=
 begin
   letI : fintype s := finite.fintype hs,
@@ -467,7 +467,7 @@ begin
 end
 
 lemma measurable_of_measurable_on_compl_singleton [measurable_singleton_class α]
-  {f : α → β} (a : α) (hf : measurable (set.restrict f {x | x ≠ a})) :
+  {f : α → β} (a : α) (hf : measurable ({x | x ≠ a}.restrict f)) :
   measurable f :=
 measurable_of_measurable_on_compl_finite {a} (finite_singleton a) hf
 
@@ -735,7 +735,7 @@ end
 
 section fintype
 
-local attribute [instance] fintype.encodable
+local attribute [instance] fintype.to_encodable
 
 lemma measurable_set.pi_fintype [fintype δ] {s : set δ} {t : Π i, set (π i)}
   (ht : ∀ i ∈ s, measurable_set (t i)) : measurable_set (pi s t) :=
@@ -1250,6 +1250,29 @@ def pi_measurable_equiv_tprod [decidable_eq δ']
 
 /-- The space `fin 2 → α` is measurably equivalent to `α × α`. -/
 @[simps {fully_applied := ff}] def fin_two_arrow : (fin 2 → α) ≃ᵐ α × α := pi_fin_two (λ _, α)
+
+/-- Measurable equivalence between `Π j : fin (n + 1), α j` and
+`α i × Π j : fin n, α (fin.succ_above i j)`. -/
+@[simps {fully_applied := ff}]
+def pi_fin_succ_above_equiv {n : ℕ} (α : fin (n + 1) → Type*) [Π i, measurable_space (α i)]
+  (i : fin (n + 1)) :
+  (Π j, α j) ≃ᵐ α i × (Π j, α (i.succ_above j)) :=
+{ to_equiv := pi_fin_succ_above_equiv α i,
+  measurable_to_fun := (measurable_pi_apply i).prod_mk $ measurable_pi_iff.2 $
+    λ j, measurable_pi_apply _,
+  measurable_inv_fun := by simp [measurable_pi_iff, i.forall_iff_succ_above, measurable_fst,
+    (measurable_pi_apply _).comp measurable_snd]  }
+
+variable (π)
+
+/-- Measurable equivalence between (dependent) functions on a type and pairs of functions on
+`{i // p i}` and `{i // ¬p i}`. See also `equiv.pi_equiv_pi_subtype_prod`. -/
+@[simps {fully_applied := ff}]
+def pi_equiv_pi_subtype_prod (p : δ' → Prop) [decidable_pred p] :
+  (Π i, π i) ≃ᵐ ((Π i : subtype p, π i) × (Π i : {i // ¬p i}, π i)) :=
+{ to_equiv := pi_equiv_pi_subtype_prod p π,
+  measurable_to_fun := measurable_pi_equiv_pi_subtype_prod π p,
+  measurable_inv_fun := measurable_pi_equiv_pi_subtype_prod_symm π p }
 
 end measurable_equiv
 

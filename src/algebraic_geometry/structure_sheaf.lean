@@ -257,13 +257,14 @@ The structure sheaf on $Spec R$, valued in `CommRing`.
 
 This is provided as a bundled `SheafedSpace` as `Spec.SheafedSpace R` later.
 -/
-def structure_sheaf : sheaf CommRing (prime_spectrum.Top R) :=
+def Spec.structure_sheaf : sheaf CommRing (prime_spectrum.Top R) :=
 ⟨structure_presheaf_in_CommRing R,
   -- We check the sheaf condition under `forget CommRing`.
   (is_sheaf_iff_is_sheaf_comp _ _).mpr
     (is_sheaf_of_iso (structure_presheaf_comp_forget R).symm
       (structure_sheaf_in_Type R).property)⟩
 
+open Spec (structure_sheaf)
 
 namespace structure_sheaf
 
@@ -856,9 +857,10 @@ instance to_basic_open_epi (r : R) : epi (to_open R (basic_open r)) :=
   swap 5, exact is_localization.to_basic_open R r, exact h }⟩
 
 @[elementwise] lemma to_global_factors : to_open R ⊤ =
-  (CommRing.of_hom (algebra_map R (localization.away (1 : R)))) ≫ (to_basic_open R (1 : R)) ≫
+  CommRing.of_hom (algebra_map R (localization.away (1 : R))) ≫ to_basic_open R (1 : R) ≫
   (structure_sheaf R).1.map (eq_to_hom (basic_open_one.symm)).op :=
 begin
+  rw ← category.assoc,
   change to_open R ⊤ = (to_basic_open R 1).comp _ ≫ _,
   unfold CommRing.of_hom,
   rw [localization_to_basic_open R, to_open_res],

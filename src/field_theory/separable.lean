@@ -108,7 +108,8 @@ theorem separable.of_pow {f : R[X]} (hf : ¬is_unit f) {n : ℕ} (hn : n ≠ 0)
 
 theorem separable.map {p : R[X]} (h : p.separable) {f : R →+* S} : (p.map f).separable :=
 let ⟨a, b, H⟩ := h in ⟨a.map f, b.map f,
-by rw [derivative_map, ← map_mul, ← map_mul, ← map_add, H, map_one]⟩
+by rw [derivative_map, ← polynomial.map_mul, ← polynomial.map_mul, ← polynomial.map_add, H,
+       polynomial.map_one]⟩
 
 variables (R) (p q : ℕ)
 
@@ -307,7 +308,7 @@ include hp
 theorem expand_char (f : R[X]) : map (frobenius R p) (expand R p f) = f ^ p :=
 begin
   refine f.induction_on' (λ a b ha hb, _) (λ n a, _),
-  { rw [alg_hom.map_add, map_add, ha, hb, add_pow_char], },
+  { rw [alg_hom.map_add, polynomial.map_add, ha, hb, add_pow_char], },
   { rw [expand_monomial, map_monomial, monomial_eq_C_mul_X, monomial_eq_C_mul_X,
         mul_pow, ← C.map_pow, frobenius_def],
     ring_exp }
@@ -467,10 +468,11 @@ variables {F : Type u} [field F] {K : Type v} [field K]
 theorem separable_iff_derivative_ne_zero {f : F[X]} (hf : irreducible f) :
   f.separable ↔ f.derivative ≠ 0 :=
 ⟨λ h1 h2, hf.not_unit $ is_coprime_zero_right.1 $ h2 ▸ h1,
-λ h, euclidean_domain.is_coprime_of_dvd (mt and.right h) $ λ g hg1 hg2 ⟨p, hg3⟩ hg4,
+  λ h, euclidean_domain.is_coprime_of_dvd (mt and.right h) $ λ g hg1 hg2 ⟨p, hg3⟩ hg4,
 let ⟨u, hu⟩ := (hf.is_unit_or_is_unit hg3).resolve_left hg1 in
-have f ∣ f.derivative, by { conv_lhs { rw [hg3, ← hu] }, rwa units.mul_right_dvd },
-not_lt_of_le (nat_degree_le_of_dvd this h) $ nat_degree_derivative_lt h⟩
+  have f ∣ f.derivative, by { conv_lhs { rw [hg3, ← hu] }, rwa units.mul_right_dvd },
+  not_lt_of_le (nat_degree_le_of_dvd this h) $
+  nat_degree_derivative_lt $ mt derivative_of_nat_degree_zero h⟩
 
 theorem separable_map (f : F →+* K) {p : F[X]} : (p.map f).separable ↔ p.separable :=
 by simp_rw [separable_def, derivative_map, is_coprime_map]

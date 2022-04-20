@@ -3,7 +3,7 @@ Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Adam Topaz
 -/
-import algebra.algebra.subalgebra
+import algebra.algebra.subalgebra.basic
 import algebra.monoid_algebra.basic
 
 /-!

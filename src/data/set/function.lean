@@ -32,7 +32,7 @@ import logic.function.conjugate
 -/
 universes u v w x y
 
-variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
+variables {α : Type u} {β : Type v} {π : α → Type v} {γ : Type w} {ι : Sort x}
 
 open function
 
@@ -42,49 +42,49 @@ namespace set
 
 /-- Restrict domain of a function `f` to a set `s`. Same as `subtype.restrict` but this version
 takes an argument `↥s` instead of `subtype s`. -/
-def restrict (f : α → β) (s : set α) : s → β := λ x, f x
+def restrict (s : set α) (f : Π a : α, π a) : Π a : s, π a := λ x, f x
 
 lemma restrict_eq (f : α → β) (s : set α) : s.restrict f = f ∘ coe := rfl
 
-@[simp] lemma restrict_apply (f : α → β) (s : set α) (x : s) : restrict f s x = f x := rfl
+@[simp] lemma restrict_apply (f : α → β) (s : set α) (x : s) : s.restrict f x = f x := rfl
 
-@[simp] lemma range_restrict (f : α → β) (s : set α) : set.range (restrict f s) = f '' s :=
+@[simp] lemma range_restrict (f : α → β) (s : set α) : set.range (s.restrict f) = f '' s :=
 (range_comp _ _).trans $ congr_arg (('') f) subtype.range_coe
 
 lemma image_restrict (f : α → β) (s t : set α) : s.restrict f '' (coe ⁻¹' t) = f '' (t ∩ s) :=
 by rw [restrict, image_comp, image_preimage_eq_inter_range, subtype.range_coe]
 
 @[simp] lemma restrict_dite {s : set α} [∀ x, decidable (x ∈ s)] (f : Π a ∈ s, β) (g : Π a ∉ s, β) :
-  restrict (λ a, if h : a ∈ s then f a h else g a h) s = λ a, f a a.2 :=
+  s.restrict (λ a, if h : a ∈ s then f a h else g a h) = λ a, f a a.2 :=
 funext $ λ a, dif_pos a.2
 
 @[simp] lemma restrict_dite_compl {s : set α} [∀ x, decidable (x ∈ s)] (f : Π a ∈ s, β)
   (g : Π a ∉ s, β) :
-  restrict (λ a, if h : a ∈ s then f a h else g a h) sᶜ = λ a, g a a.2 :=
+  sᶜ.restrict (λ a, if h : a ∈ s then f a h else g a h) = λ a, g a a.2 :=
 funext $ λ a, dif_neg a.2
 
 @[simp] lemma restrict_ite (f g : α → β) (s : set α) [∀ x, decidable (x ∈ s)] :
-  restrict (λ a, if a ∈ s then f a else g a) s = restrict f s :=
+  s.restrict (λ a, if a ∈ s then f a else g a) = s.restrict f :=
 restrict_dite _ _
 
 @[simp] lemma restrict_ite_compl (f g : α → β) (s : set α) [∀ x, decidable (x ∈ s)] :
-  restrict (λ a, if a ∈ s then f a else g a) sᶜ = restrict g sᶜ :=
+  sᶜ.restrict (λ a, if a ∈ s then f a else g a) = sᶜ.restrict g :=
 restrict_dite_compl _ _
 
 @[simp] lemma restrict_piecewise (f g : α → β) (s : set α) [∀ x, decidable (x ∈ s)] :
-  restrict (piecewise s f g) s = restrict f s :=
+  s.restrict (piecewise s f g) = s.restrict f :=
 restrict_ite _ _ _
 
 @[simp] lemma restrict_piecewise_compl (f g : α → β) (s : set α) [∀ x, decidable (x ∈ s)] :
-  restrict (piecewise s f g) sᶜ = restrict g sᶜ :=
+  sᶜ.restrict (piecewise s f g) = sᶜ.restrict g :=
 restrict_ite_compl _ _ _
 
 lemma restrict_extend_range (f : α → β) (g : α → γ) (g' : β → γ) :
-  restrict (extend f g g') (range f) = λ x, g x.coe_prop.some :=
+  (range f).restrict (extend f g g') = λ x, g x.coe_prop.some :=
 by convert restrict_dite _ _
 
 @[simp] lemma restrict_extend_compl_range (f : α → β) (g : α → γ) (g' : β → γ) :
-  restrict (extend f g g') (range f)ᶜ = g' ∘ coe :=
+  (range f)ᶜ.restrict (extend f g g')  = g' ∘ coe :=
 by convert restrict_dite_compl _ _
 
 lemma range_extend_subset (f : α → β) (g : α → γ) (g' : β → γ) :
@@ -380,7 +380,7 @@ theorem inj_on.comp (hg : inj_on g t) (hf: inj_on f s) (h : maps_to f s t) :
   inj_on (g ∘ f) s :=
 λ x hx y hy heq, hf hx hy $ hg (h hx) (h hy) heq
 
-lemma inj_on_iff_injective : inj_on f s ↔ injective (restrict f s) :=
+lemma inj_on_iff_injective : inj_on f s ↔ injective (s.restrict f) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
  λ H a as b bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
 
@@ -470,7 +470,7 @@ subset.trans hg $ subset.trans (image_subset g hf) $ (image_comp g f s) ▸ subs
 lemma surjective_iff_surj_on_univ : surjective f ↔ surj_on f univ univ :=
 by simp [surjective, surj_on, subset_def]
 
-lemma surj_on_iff_surjective : surj_on f s univ ↔ surjective (restrict f s) :=
+lemma surj_on_iff_surjective : surj_on f s univ ↔ surjective (s.restrict f) :=
 ⟨λ H b, let ⟨a, as, e⟩ := @H b trivial in ⟨⟨a, as⟩, e⟩,
  λ H b _, let ⟨⟨a, as⟩, e⟩ := H b in ⟨a, as, e⟩⟩
 

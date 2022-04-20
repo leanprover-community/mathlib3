@@ -731,8 +731,9 @@ instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] (X : ι → Type*)
       ext i x,
       revert x,
       refine monoid_hom.congr_fun _,
+      ext,
       -- ext does not pick up the right instance… a sign that the API design isn't great?
-      apply @is_freely_generated_by.ext_hom (G i) _ (X i) _ _ _ ,
+      -- apply @is_freely_generated_by.ext_hom (G i) _ (X i) _ _ _ ,
       simp,
     })
 }

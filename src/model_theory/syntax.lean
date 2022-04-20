@@ -354,7 +354,7 @@ def restrict_free_var : Π {n : ℕ} (φ : L.bounded_formula α n)
   (φ₂.restrict_free_var (f ∘ (set.inclusion (set.subset_union_right _ _))))
 | n (all φ) f := (φ.restrict_free_var f).all
 
-example [decidable_eq α] (φ : L.bounded_formula α n) : L.bounded_formula φ.free_var_set n :=
+example (φ : L.bounded_formula α n) : L.bounded_formula φ.free_var_set n :=
 φ.restrict_free_var id
 
 /-- Restricts a bounded formula to only use a particular set of free variables. -/

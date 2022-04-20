@@ -467,7 +467,7 @@ section coe
 realized as a non-unital algebra homomorphism. -/
 @[simps]
 def coe_non_unital_alg_hom (R A : Type*) [comm_semiring R] [non_unital_semiring A] [module R A] :
-  A →ₙₐ[R] (unitization R A) :=
+  A →ₙₐ[R] unitization R A :=
 { to_fun := coe,
   map_smul' := coe_smul R,
   map_zero' := coe_zero R,

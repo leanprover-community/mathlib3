@@ -201,7 +201,7 @@ begin
 end
 
 /-- The quotient map as a `non_unital_alg_hom`. -/
-def mk : (lib R X) →ₙₐ[R] (free_lie_algebra R X) :=
+def mk : lib R X →ₙₐ[R] free_lie_algebra R X :=
 { to_fun    := quot.mk (rel R X),
   map_smul' := λ t a, rfl,
   map_zero' := rfl,

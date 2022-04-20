@@ -674,7 +674,7 @@ fintype.subtype (((finset.univ : finset {s : cycle α // s.nodup}).map
 def to_finset (s : cycle α) : finset α :=
 s.to_multiset.to_finset
 
-@[simp] theorem to_finset_def (s : cycle α) : s.to_multiset.to_finset = s.to_finset :=
+@[simp] theorem to_finset_to_multiset (s : cycle α) : s.to_multiset.to_finset = s.to_finset :=
 rfl
 
 @[simp] lemma coe_to_finset (l : list α) : (l : cycle α).to_finset = l.to_finset :=

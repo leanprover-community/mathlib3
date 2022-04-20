@@ -6,7 +6,6 @@ open_locale polynomial
 
 variables {R : Type*} [semiring R] (f g h : R[X]) {r s t u : R}
 
-<<<<<<< HEAD
 example (s0 : s ≠ 0) (m n : ℕ) (mn : m < n) (m1 : 1 ≤ m) :
   (C r * X ^ m + (5 + C s * X ^ n) + m * X + 37 * X).nat_degree = n :=
 begin
@@ -27,8 +26,6 @@ begin
   { exact nat_degree_C_mul_X_pow_le _ _ }
 end
 
-=======
->>>>>>> 6716bee7a655bb7d0d689bc1b577a8f5a6803106
 example
   (hp : (monomial 1) u + (g + (monomial 5) 1) + 5 * X + ((monomial 0) s + (monomial 2) t + f) +
   (monomial 8) 1 = (3 * X + (monomial 8) 1 + (monomial 6) (t + 1)) + f + h + ((monomial 0) s +

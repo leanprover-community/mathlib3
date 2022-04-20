@@ -28,8 +28,6 @@ As in the [Metamath implementation](carneiro2015arithmetic), we rely on some opt
 [Shigenori Tochiori](tochiori_bertrand). In particular we use the fact that `(log x) / x` is
 decreasing for `e ≤ x`.
 
--- TODO edit 100.yml
-
 ## Proof Sketch
 
 Here is a description of how the proof works:
@@ -78,7 +76,7 @@ open nat
 private def α (n p : nat) [hp : fact p.prime] : nat :=
 padic_val_nat p (central_binom n)
 
-lemma claim_1
+lemma pow_α_le_two_mul
   (p : nat)
   [hp : fact p.prime]
   (n : nat)
@@ -106,7 +104,7 @@ begin
     linarith, }
 end
 
-lemma claim_4
+lemma multiplicity_implies_small
   (p : nat)
   [hp : fact p.prime]
   (n : nat)
@@ -138,10 +136,6 @@ begin
   ... ≤ 2 * (n % p ^ m) : hm.right
   ... ≤ 2 * n : nat.mul_le_mul_left _ (mod_le n _),
 end
-
-/-
-
--/
 
 lemma two_n_div_3_le_central_binom (n : ℕ) : 2 * n / 3 < central_binom n :=
 begin
@@ -479,7 +473,7 @@ begin
   simp only [hx.right, and_true, not_lt] at h2x,
   by_contradiction,
   have x_le_two_mul_n : x ≤ 2 * n, by
-    { apply (@claim_4 x ⟨hx.right⟩ n),
+    { apply (@multiplicity_implies_small x ⟨hx.right⟩ n),
       unfold α,
       by_contradiction h1,
       rw [not_lt, le_zero_iff] at h1,
@@ -546,7 +540,7 @@ nat.central_binom n
           refine finset.prod_le_prod'' _,
           intros i hyp,
           simp only [finset.mem_filter, finset.mem_range] at hyp,
-          exact @claim_1 i (fact_iff.2 hyp.1.2) n (by linarith),
+          exact @pow_α_le_two_mul i (fact_iff.2 hyp.1.2) n (by linarith),
         end
 ... = (2 * n) ^ (((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n))).card
       *

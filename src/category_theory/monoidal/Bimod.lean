@@ -252,6 +252,49 @@ begin
   coherence,
 end
 
+def middle_assoc' :
+  (act_left P Q ⊗ 𝟙 T.X) ≫ act_right P Q = (α_ R.X _ T.X).hom ≫ (𝟙 R.X ⊗ act_right P Q) ≫ act_left P Q :=
+begin
+  dunfold X act_left act_right,
+  refine (cancel_epi (preserves_coequalizer.iso (tensor_left R.X ⋙ tensor_right T.X) _ _).hom).1 _,
+  ext,
+  erw ι_comp_coequalizer_comparison_assoc,
+  erw ι_comp_coequalizer_comparison_assoc,
+  dsimp, simp,
+  slice_lhs 1 1 { rw [←(tensor_left_map _ _ _ (coequalizer.π _ _)),
+                      ←ι_comp_coequalizer_comparison,
+                      ←category.id_comp (𝟙 T.X),
+                      tensor_comp] },
+  slice_lhs 2 2 { rw [←preserves_coequalizer.iso_hom] },
+  slice_lhs 2 3 { rw [←tensor_comp, iso.hom_inv_id] },
+  simp,
+  slice_lhs 1 2 { rw [←tensor_comp], simp },
+  slice_lhs 3 3 { rw [←(tensor_right_map _ _ _ (coequalizer.π _ _)),
+                      ←ι_comp_coequalizer_comparison] },
+  slice_lhs 4 4 { rw [←preserves_coequalizer.iso_hom] },
+  slice_lhs 4 5 { rw iso.hom_inv_id },
+  simp,
+  slice_rhs 1 2 { rw associator_naturality },
+  slice_rhs 2 2 { rw [←(tensor_right_map _ _ _ (coequalizer.π _ _)),
+                      ←ι_comp_coequalizer_comparison,
+                      ←category.id_comp (𝟙 R.X),
+                      tensor_comp] },
+  slice_rhs 3 3 { rw [←preserves_coequalizer.iso_hom] },
+  slice_rhs 3 4 { rw [←tensor_comp, iso.hom_inv_id] },
+  simp,
+  slice_rhs 2 3 { rw [←tensor_comp], simp },
+  slice_rhs 4 4 { rw [←(tensor_left_map _ _ _ (coequalizer.π _ _)),
+                      ←ι_comp_coequalizer_comparison] },
+  slice_rhs 5 5 { rw [←preserves_coequalizer.iso_hom] },
+  slice_rhs 5 6 { rw iso.hom_inv_id },
+  simp,
+  slice_lhs 2 3 { rw associator_naturality },
+  simp,
+  slice_rhs 3 4 { rw associator_inv_naturality },
+  simp,
+  coherence,
+end
+
 end tensor_Bimod
 
 noncomputable
@@ -263,6 +306,6 @@ def tensor_Bimod {X Y Z : Mon_ C} (M : Bimod X Y) (N : Bimod Y Z) : Bimod X Z :=
   act_right_one' := tensor_Bimod.act_right_one' M N,
   left_assoc' := tensor_Bimod.left_assoc' M N,
   right_assoc' := tensor_Bimod.right_assoc' M N,
-  middle_assoc' := sorry, }
+  middle_assoc' := tensor_Bimod.middle_assoc' M N, }
 
 end Bimod

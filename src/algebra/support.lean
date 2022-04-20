@@ -170,21 +170,23 @@ begin
       using subset_trans (mul_support_mul f _) (union_subset (subset.refl _) hfn) }
 end
 
-@[simp, to_additive] lemma mul_support_inv [div_inv_monoid G] (f : α → G) :
-  mul_support (λ x, (f x)⁻¹) = mul_support f :=
-set.ext $ λ x, inv_ne_one
+section division_monoid
+variables [division_monoid G] (f g : α → G)
 
-@[simp, to_additive] lemma mul_support_inv' [div_inv_monoid G] (f : α → G) :
-  mul_support (f⁻¹) = mul_support f :=
-mul_support_inv f
+@[simp, to_additive]
+lemma mul_support_inv : mul_support (λ x, (f x)⁻¹) = mul_support f := ext $ λ x, inv_ne_one
 
-@[to_additive] lemma mul_support_mul_inv [div_inv_monoid G] (f g : α → G) :
+@[simp, to_additive] lemma mul_support_inv' : mul_support f⁻¹ = mul_support f := mul_support_inv f
+
+@[to_additive] lemma mul_support_mul_inv :
   mul_support (λ x, f x * (g x)⁻¹) ⊆ mul_support f ∪ mul_support g :=
 mul_support_binop_subset (λ a b, a * b⁻¹) (by simp) f g
 
-@[to_additive] lemma mul_support_div [div_inv_monoid G] (f g : α → G) :
+@[to_additive] lemma mul_support_div :
   mul_support (λ x, f x / g x) ⊆ mul_support f ∪ mul_support g :=
 mul_support_binop_subset (/) (by simp only [one_div, inv_one]) f g
+
+end division_monoid
 
 @[simp] lemma support_mul [mul_zero_class R] [no_zero_divisors R] (f g : α → R) :
   support (λ x, f x * g x) = support f ∩ support g :=

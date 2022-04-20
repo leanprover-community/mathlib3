@@ -249,7 +249,7 @@ let s := classical.some (classical.some_spec (is_localization.mk'_surjective
 
 variable (K)
 /-- The valuation of `k ∈ K` is independent on how we express `k` as a fraction. -/
-lemma int_valuation_div_eq_div {r r' : R} {s s' : non_zero_divisors R}
+lemma int_valuation_div_eq {r r' : R} {s s' : non_zero_divisors R}
   (h_mk : is_localization.mk' K r s = is_localization.mk' K r' s') :
   (v.int_valuation_def r)/(v.int_valuation_def s) =
   (v.int_valuation_def r')/(v.int_valuation_def s') :=
@@ -264,14 +264,14 @@ lemma valuation_of_mk' {r : R} {s : non_zero_divisors R} :
   v.valuation_def (is_localization.mk' K r s) = (v.int_valuation_def r)/(v.int_valuation_def s) :=
 begin
   rw valuation_def,
-  exact int_valuation_div_eq_div K v
+  exact int_valuation_div_eq K v
     (classical.some_spec (classical.some_spec (is_localization.mk'_surjective (non_zero_divisors R)
     (is_localization.mk' K r s)))),
 end
 
 variable {K}
 /-- The `v`-adic valuation on `K` extends the `v`-adic valuation on `R`. -/
-lemma valuation_of_algebra_map {r : R} :
+lemma valuation_of_algebra_map (r : R) :
   v.valuation_def (algebra_map R K r) = v.int_valuation_def r :=
 by rw [← is_localization.mk'_one K r, valuation_of_mk', submonoid.coe_one,
     int_valuation.map_one', div_one _]
@@ -285,14 +285,14 @@ lemma valuation_lt_one_iff_dvd (r : R) :
   v.valuation_def (algebra_map R K r) < 1 ↔ v.as_ideal ∣ ideal.span {r} :=
 by { rw valuation_of_algebra_map, exact v.int_valuation_lt_one_iff_dvd r }
 
-/-- The `v`-adic valuation of `0 : R` equals 0. -/
+/-- The `v`-adic valuation of `0 : K` equals 0. -/
 lemma valuation.map_zero' : v.valuation_def (0 : K) = 0 :=
 begin
   rw [← (algebra_map R K).map_zero, valuation_of_algebra_map v],
   exact v.int_valuation.map_zero',
 end
 
-/-- The `v`-adic valuation of `1 : R` equals 1. -/
+/-- The `v`-adic valuation of `1 : K` equals 1. -/
 lemma valuation.map_one' : v.valuation_def (1 : K) = 1 :=
 begin
   rw [← (algebra_map R K).map_one, valuation_of_algebra_map v],
@@ -305,7 +305,7 @@ lemma valuation.map_mul' (x y : K) :
 begin
   rw [valuation_def, valuation_def, valuation_def, div_mul_div_comm₀, ← int_valuation.map_mul',
     ← int_valuation.map_mul', ← submonoid.coe_mul],
-  apply int_valuation_div_eq_div K v,
+  apply int_valuation_div_eq K v,
   rw [(classical.some_spec (valuation_def._proof_2 (x * y))), is_fraction_ring.mk'_eq_div,
     (algebra_map R K).map_mul, submonoid.coe_mul, (algebra_map R K).map_mul, ← div_mul_div_comm₀,
     ← is_fraction_ring.mk'_eq_div, ← is_fraction_ring.mk'_eq_div,
@@ -333,8 +333,8 @@ begin
     { exact with_zero.zero_lt_coe _ },
     { exact non_zero_divisors.ne_zero
         (submonoid.mul_mem (non_zero_divisors R) sx.property sy.property), }},
-  rw [int_valuation_div_eq_div K v h_frac_x, int_valuation_div_eq_div K v h_frac_y,
-    int_valuation_div_eq_div K v h_frac_xy, le_max_iff, div_le_div_right₀ (ne_of_gt h_denom),
+  rw [int_valuation_div_eq K v h_frac_x, int_valuation_div_eq K v h_frac_y,
+    int_valuation_div_eq K v h_frac_xy, le_max_iff, div_le_div_right₀ (ne_of_gt h_denom),
     div_le_div_right₀ (ne_of_gt h_denom), ← le_max_iff],
   exact v.int_valuation.map_add_le_max' _ _,
 end
@@ -380,13 +380,14 @@ def v_valued_K : valued K (with_zero (multiplicative ℤ)) := ⟨v.valuation⟩
 
 lemma v_valued_K_def {x : K} : @valued.v K _ _ _ (v_valued_K v) (x) = v.valuation_def x := rfl
 
-/-- The topological space structure on `K` corresponding to the `v`-adic valuation. -/
+/-- The topological space structure on `K` corresponding to the `v`-adic valuation.
+  This cannot be made an instance since it depends on the choice of `v`. -/
 def v_valued_K_topological_space : topological_space K :=
-@valued.topological_space K _ _ _ (v_valued_K v)
+@valued.topological_space K _ _ _ v.v_valued_K
 
-lemma v_valued_K_topological_division_ring :
+def v_valued_K_topological_division_ring :
   @topological_division_ring K _ v.v_valued_K_topological_space :=
-@valued.topological_division_ring K _ _ _ (v_valued_K v)
+@valued.topological_division_ring K _ _ _ v.v_valued_K
 
 lemma v_valued_K_topological_ring : @topological_ring K  v.v_valued_K_topological_space _ :=
 infer_instance
@@ -410,6 +411,7 @@ lemma v_valued_K_separated_space : @separated_space K v.v_valued_K_uniform_space
 @valued_ring.separated K _ _ _ (v_valued_K v)
 
 variables (K)
+
 /-- The completion of `K` with respect to its `v`-adic valuation. -/
 def adic_completion := @uniform_space.completion K v.v_valued_K_uniform_space
 
@@ -452,6 +454,7 @@ instance adic_completion_uniform_add_group :
   v.adic_completion_topological_add_group
 
 instance : has_lift_t K (@uniform_space.completion K v.v_valued_K_uniform_space) := infer_instance
+
 instance adic_completion.has_lift_t : has_lift_t K (v.adic_completion K) :=
 uniform_space.completion.has_lift_t v
 

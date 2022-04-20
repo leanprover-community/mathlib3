@@ -190,7 +190,7 @@ section ordered_add_comm_group
 variables [ordered_comm_group α] {m n : ℤ} {a b : α}
 
 @[to_additive zsmul_pos]
-lemma one_lt_zpow (ha : 1 < a) {k : ℤ} (hk : (0:ℤ) < k) : 1 < a^k :=
+lemma one_lt_zpow' (ha : 1 < a) {k : ℤ} (hk : (0:ℤ) < k) : 1 < a^k :=
 begin
   lift k to ℕ using int.le_of_lt hk,
   rw zpow_coe_nat,
@@ -201,7 +201,7 @@ end
 lemma zpow_strict_mono_right (ha : 1 < a) : strict_mono (λ n : ℤ, a ^ n) :=
 λ n m h,
   calc a ^ n = a ^ n * 1 : (mul_one _).symm
-    ... < a ^ n * a ^ (m - n) : mul_lt_mul_left' (one_lt_zpow ha $ sub_pos_of_lt h) _
+    ... < a ^ n * a ^ (m - n) : mul_lt_mul_left' (one_lt_zpow' ha $ sub_pos_of_lt h) _
     ... = a ^ m : by { rw ←zpow_add, simp }
 
 @[to_additive zsmul_mono_left]
@@ -227,7 +227,7 @@ variables (α)
 
 @[to_additive zsmul_strict_mono_right]
 lemma zpow_strict_mono_left (hn : 0 < n) : strict_mono ((^ n) : α → α) :=
-λ a b hab, by { rw [←one_lt_div', ←div_zpow], exact one_lt_zpow (one_lt_div'.2 hab) hn }
+λ a b hab, by { rw [←one_lt_div', ←div_zpow], exact one_lt_zpow' (one_lt_div'.2 hab) hn }
 
 @[to_additive zsmul_mono_right]
 lemma zpow_mono_left (hn : 0 ≤ n) : monotone ((^ n) : α → α) :=

@@ -171,7 +171,7 @@ congr_arg coe $ l1_linf_nnnorm_diagonal v
 
 /-- The `L₁-L∞` norm preserves one on non-empty matrices. Note this is safe as an instance, as it
 carries no data. -/
-instance l1_linf_norm_one_class [normed_ring α] [decidable_eq n] [nonempty n] :
+instance l1_linf_norm_one_class [normed_ring α] [norm_one_class α] [decidable_eq n] [nonempty n] :
   norm_one_class (matrix n n α) :=
 { norm_one := (l1_linf_norm_diagonal _).trans norm_one }
 

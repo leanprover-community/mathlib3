@@ -149,7 +149,7 @@ match (get_summands e).sort_with_ends ll rel with
   reflexivity <|>
     `[{ simp only [add_comm, add_assoc, add_left_comm], done, }] <|>
     -- `[{ abel, done, }] <|> -- this works too. it's more robust but also a bit slower
-      fail format!"Failed to prove:\n {e_eq_fmt}",
+      fail format!"failed to prove:\n\n{e_eq_fmt}",
   h ← get_local n,
   match hyp with
   | some loc := do
@@ -165,8 +165,7 @@ end
 /-- Partially traverses an expression in search for a sum of terms.
 When `recurse_on_expr` finds a sum, it sorts it using `sorted_sum_with_rel`. -/
 meta def recurse_on_expr
-  (ll : list expr × list expr) (hyp : option name) (rel : expr → expr → bool) :
-  expr → tactic unit
+  (ll : list expr × list expr) (hyp : option name) (rel : expr → expr → bool) : expr → tactic unit
 | e@`(%%_ + %%_)     := sorted_sum_with_rel hyp rel ll e
 | (expr.lam _ _ _ e) := recurse_on_expr e
 | (expr.pi  _ _ _ e) := recurse_on_expr e
@@ -194,16 +193,15 @@ prod.mk <$> (option.is_some <$> (tk "<-")?) <*> parser.pexpr prec
 
 /-- `sort_pexpr_list_or_texpr` is either a list of `sort_summands`, possible empty, or a single
 `sort_summand_arg`. -/
-meta def sort_pexpr_list_or_texpr := list_of (sort_summands_arg 0) <|>
-    list.ret <$> (sort_summands_arg tac_rbp) <|>
-    return []
+meta def sort_pexpr_list_or_texpr : lean.parser (list (bool × pexpr)) :=
+list_of (sort_summands_arg 0) <|> list.ret <$> (sort_summands_arg tac_rbp) <|> return []
 
 /--
 Calling `sort_summands`, recursively looks inside the goal for expressions involving a sum.
 Whenever it finds one, it sorts its terms following a heuristic.  Right now, the heuristic
 is somewhat crude: if an individual summand is of the exact form `monomial n r`, with `n` a numeral,
 then `monomial n r` moves to the right of the sum and this segment is sorted by increasing value of
-`n`.  The remaining terms appear at the beginning of the sum and are sorted alphabetically.
+`n`. The remaining terms appear at the beginning of the sum and are sorted alphabetically.
 
 ```lean
 example {f g : R[X]} {a b : R} (h : f + g + monomial 5 a + monomial 7 b = 0) :
@@ -219,26 +217,26 @@ single term or a list of terms.  Calling `sort_summands f` or `sort_summands [f,
 sorting, except that the explicitly given terms appear last in the final sum (repetitions and
 inexistent terms are ignored).
 
-Finally, `sort_summands` can also be targeted to a hypothesis.  If `hp` is in the local context,
+Finally, `sort_summands` can also be target hypotheses. If `hp` is in the local context,
 `sort_summands [f, g] at hp` performs the rearranging at `hp`.
 -/
-meta def sort_summands (args : parse sort_pexpr_list_or_texpr)
- (locat : parse location)
-  : tactic unit :=
+meta def sort_summands (args : parse sort_pexpr_list_or_texpr) (locat : parse location) :
+  tactic unit :=
 do
   let ll := args.split_factors,
   il ← ll.1.mmap to_expr,
   fl ← ll.2.mmap to_expr,
+  let ll := (il, fl),
   match locat with
   | loc.wildcard := do
-    sort_summands_core tt (il,fl) none,
+    sort_summands_core tt ll none,
     ctx ← local_context,
-    ctx.mmap (λ e, sort_summands_core tt (il,fl) (expr.local_pp_name e)),
+    ctx.mmap (λ e, sort_summands_core tt ll (expr.local_pp_name e)),
     skip
   | loc.ns names := do
-    names.mmap $ sort_summands_core ff (il,fl),
+    names.mmap $ sort_summands_core ff ll,
     skip
-    end
+  end
 
 add_tactic_doc
 { name := "sort_summands",

@@ -207,9 +207,6 @@ lt_iff_lt_of_le_iff_le (sqrt_le_sqrt_iff hx)
 theorem sqrt_lt_sqrt_iff_of_pos (hy : 0 < y) : sqrt x < sqrt y ↔ x < y :=
 by rw [sqrt, sqrt, nnreal.coe_lt_coe, nnreal.sqrt_lt_sqrt_iff, to_nnreal_lt_to_nnreal_iff hy]
 
-lemma sqrt_lt (hy : 0 < y) : sqrt x < y ↔ x < y ^ 2 :=
-by rw [←sqrt_lt_sqrt_iff_of_pos (pow_pos hy _), sqrt_sq hy.le]
-
 theorem sqrt_le_sqrt (h : x ≤ y) : sqrt x ≤ sqrt y :=
 by { rw [sqrt, sqrt, nnreal.coe_le_coe, nnreal.sqrt_le_sqrt_iff], exact to_nnreal_le_to_nnreal h }
 
@@ -226,14 +223,18 @@ begin
   exact sqrt_le_left
 end
 
+lemma sqrt_lt (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x < y ↔ x < y ^ 2 :=
+by rw [←sqrt_lt_sqrt_iff hx, sqrt_sq hy]
+
+lemma sqrt_lt' (hy : 0 < y) : sqrt x < y ↔ x < y ^ 2 :=
+by rw [←sqrt_lt_sqrt_iff_of_pos (pow_pos hy _), sqrt_sq hy.le]
+
 /- note: if you want to conclude `x ≤ sqrt y`, then use `le_sqrt_of_sq_le`.
    if you have `x > 0`, consider using `le_sqrt'` -/
 theorem le_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
-by rw [mul_self_le_mul_self_iff hx (sqrt_nonneg _), sq, mul_self_sqrt hy]
+le_iff_le_iff_lt_iff_lt.2 $ sqrt_lt hy hx
 
-theorem le_sqrt' (hx : 0 < x) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
-by { rw [sqrt, ← nnreal.coe_mk x hx.le, nnreal.coe_le_coe, nnreal.le_sqrt_iff,
-  real.le_to_nnreal_iff_coe_le', sq, nnreal.coe_mul], exact mul_pos hx hx }
+lemma le_sqrt' (hx : 0 < x) : x ≤ sqrt y ↔ x ^ 2 ≤ y := le_iff_le_iff_lt_iff_lt.2 $ sqrt_lt' hx
 
 theorem abs_le_sqrt (h : x^2 ≤ y) : |x| ≤ sqrt y :=
 by rw ← sqrt_sq_eq_abs; exact sqrt_le_sqrt h

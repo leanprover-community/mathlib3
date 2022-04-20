@@ -104,11 +104,33 @@ alias le_of_eq        ← eq.le
 
 attribute [nolint decidable_classical] has_le.le.lt_or_eq_dec
 
-/-- A version of `le_refl` where the argument is implicit -/
-lemma le_rfl [preorder α] {x : α} : x ≤ x := le_refl x
+section
+variables [preorder α] {a b c : α}
 
-@[simp] lemma lt_self_iff_false [preorder α] (x : α) : x < x ↔ false :=
-⟨lt_irrefl x, false.elim⟩
+/-- A version of `le_refl` where the argument is implicit -/
+lemma le_rfl : a ≤ a := le_refl a
+
+@[simp] lemma lt_self_iff_false (x : α) : x < x ↔ false := ⟨lt_irrefl x, false.elim⟩
+
+lemma le_of_le_of_eq (hab : a ≤ b) (hbc : b = c) : a ≤ c := hab.trans hbc.le
+lemma le_of_eq_of_le (hab : a = b) (hbc : b ≤ c) : a ≤ c := hab.le.trans hbc
+lemma lt_of_lt_of_eq (hab : a < b) (hbc : b = c) : a < c := hab.trans_le hbc.le
+lemma lt_of_eq_of_lt (hab : a = b) (hbc : b < c) : a < c := hab.le.trans_lt hbc
+lemma le_of_le_of_eq' : b ≤ c → a = b → a ≤ c := flip le_of_eq_of_le
+lemma le_of_eq_of_le' : b = c → a ≤ b → a ≤ c := flip le_of_le_of_eq
+lemma lt_of_lt_of_eq' : b < c → a = b → a < c := flip lt_of_eq_of_lt
+lemma lt_of_eq_of_lt' : b = c → a < b → a < c := flip lt_of_lt_of_eq
+
+alias le_of_le_of_eq  ← has_le.le.trans_eq
+alias le_of_le_of_eq' ← has_le.le.trans_eq'
+alias lt_of_lt_of_eq  ← has_lt.lt.trans_eq
+alias lt_of_lt_of_eq' ← has_lt.lt.trans_eq'
+alias le_of_eq_of_le  ← eq.trans_le
+alias le_of_eq_of_le' ← eq.trans_ge
+alias lt_of_eq_of_lt  ← eq.trans_lt
+alias lt_of_eq_of_lt' ← eq.trans_gt
+
+end
 
 namespace eq
 variables [preorder α] {x y z : α}
@@ -116,9 +138,6 @@ variables [preorder α] {x y z : α}
 /-- If `x = y` then `y ≤ x`. Note: this lemma uses `y ≤ x` instead of `x ≥ y`, because `le` is used
 almost exclusively in mathlib. -/
 protected lemma ge (h : x = y) : y ≤ x := h.symm.le
-
-lemma trans_le (h₁ : x = y) (h₂ : y ≤ z) : x ≤ z := h₁.le.trans h₂
-lemma trans_ge (h₁ : y = z) (h₂ : x ≤ y) : x ≤ z := h₂.trans h₁.le
 
 lemma not_lt (h : x = y) : ¬ x < y := λ h', h'.ne h
 lemma not_gt (h : x = y) : ¬ y < x := h.symm.not_lt
@@ -129,8 +148,6 @@ namespace has_le.le
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma ge [has_le α] {x y : α} (h : x ≤ y) : y ≥ x := h
-
-lemma trans_eq [preorder α] {x y z : α} (h1 : x ≤ y) (h2 : y = z) : x ≤ z := h1.trans h2.le
 
 lemma lt_iff_ne [partial_order α] {x y : α} (h : x ≤ y) : x < y ↔ x ≠ y := ⟨λ h, h.ne, h.lt_of_ne⟩
 

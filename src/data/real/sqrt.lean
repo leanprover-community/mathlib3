@@ -207,7 +207,7 @@ lt_iff_lt_of_le_iff_le (sqrt_le_sqrt_iff hx)
 theorem sqrt_lt_sqrt_iff_of_pos (hy : 0 < y) : sqrt x < sqrt y ↔ x < y :=
 by rw [sqrt, sqrt, nnreal.coe_lt_coe, nnreal.sqrt_lt_sqrt_iff, to_nnreal_lt_to_nnreal_iff hy]
 
-lemma sqrt_lt_iff (hy : 0 < y) : sqrt x < y ↔ x < y ^ 2 :=
+lemma sqrt_lt (hy : 0 < y) : sqrt x < y ↔ x < y ^ 2 :=
 by rw [←sqrt_lt_sqrt_iff_of_pos (pow_pos hy _), sqrt_sq hy.le]
 
 theorem sqrt_le_sqrt (h : x ≤ y) : sqrt x ≤ sqrt y :=

@@ -156,7 +156,7 @@ begin
   dsimp, simp, dsimp,
   slice_lhs 1 1 { rw ←tensor_id_comp_id_tensor },
   slice_lhs 2 2 { rw [←tensor_left_map, ←ι_comp_coequalizer_comparison] },
-  slice_lhs 3 3 { rw [←preserves_coequalizer.iso_hom] },
+  slice_lhs 3 3 { rw ←preserves_coequalizer.iso_hom },
   slice_lhs 3 4 { rw iso.hom_inv_id },
   simp,
   slice_lhs 1 2 { rw [←tensor_id, associator_inv_naturality] },
@@ -175,7 +175,7 @@ begin
   dsimp, simp,
   slice_lhs 1 1 { rw ←id_tensor_comp_tensor_id, },
   slice_lhs 2 2 { rw [←tensor_right_map, ←ι_comp_coequalizer_comparison] },
-  slice_lhs 3 3 { rw [←preserves_coequalizer.iso_hom] },
+  slice_lhs 3 3 { rw ←preserves_coequalizer.iso_hom },
   slice_lhs 3 4 { rw iso.hom_inv_id },
   simp,
   slice_lhs 1 2 { rw [←tensor_id, associator_naturality] },
@@ -185,7 +185,8 @@ begin
 end
 
 def left_assoc' :
-  (R.mul ⊗ 𝟙 _) ≫ act_left P Q = (α_ R.X R.X _).hom ≫ (𝟙 R.X ⊗ act_left P Q) ≫ act_left P Q :=
+  (R.mul ⊗ 𝟙 _) ≫ act_left P Q =
+  (α_ R.X R.X _).hom ≫ (𝟙 R.X ⊗ act_left P Q) ≫ act_left P Q :=
 begin
   dunfold X act_left,
   refine (cancel_epi (preserves_coequalizer.iso (tensor_left (R.X ⊗ R.X)) _ _).hom).1 _,
@@ -195,7 +196,7 @@ begin
   dsimp, simp,
   slice_lhs 1 1 { rw ←tensor_id_comp_id_tensor },
   slice_lhs 2 2 { rw [←tensor_left_map, ←ι_comp_coequalizer_comparison] },
-  slice_lhs 3 3 { rw [←preserves_coequalizer.iso_hom] },
+  slice_lhs 3 3 { rw ←preserves_coequalizer.iso_hom },
   slice_lhs 3 4 { rw iso.hom_inv_id },
   simp,
   slice_rhs 1 2 { rw [←tensor_id, associator_naturality] },
@@ -206,7 +207,7 @@ begin
                       ←preserves_coequalizer.iso_hom] },
   slice_rhs 2 3 { rw iso.hom_inv_id },
   simp,
-  slice_rhs 2 3 { rw [←tensor_comp], simp },
+  slice_rhs 2 3 { rw ←tensor_comp, simp },
   slice_rhs 4 5 { rw [←(tensor_left_map _ _ _ (coequalizer.π _ _)),
                       ←ι_comp_coequalizer_comparison,
                       ←preserves_coequalizer.iso_hom] },
@@ -219,7 +220,8 @@ begin
 end
 
 def right_assoc' :
-  (𝟙 _ ⊗ T.mul) ≫ act_right P Q = (α_ _ T.X T.X).inv ≫ (act_right P Q ⊗ 𝟙 T.X) ≫ act_right P Q :=
+  (𝟙 _ ⊗ T.mul) ≫ act_right P Q =
+  (α_ _ T.X T.X).inv ≫ (act_right P Q ⊗ 𝟙 T.X) ≫ act_right P Q :=
 begin
   dunfold X act_right,
   refine (cancel_epi (preserves_coequalizer.iso (tensor_right (T.X ⊗ T.X)) _ _).hom).1 _,
@@ -229,7 +231,7 @@ begin
   dsimp, simp,
   slice_lhs 1 1 { rw ←id_tensor_comp_tensor_id },
   slice_lhs 2 2 { rw [←tensor_right_map, ←ι_comp_coequalizer_comparison] },
-  slice_lhs 3 3 { rw [←preserves_coequalizer.iso_hom] },
+  slice_lhs 3 3 { rw ←preserves_coequalizer.iso_hom },
   slice_lhs 3 4 { rw iso.hom_inv_id },
   simp,
   slice_rhs 1 2 { rw [←tensor_id, associator_inv_naturality] },
@@ -240,7 +242,7 @@ begin
                       ←preserves_coequalizer.iso_hom] },
   slice_rhs 2 3 { rw iso.hom_inv_id },
   simp,
-  slice_rhs 2 3 { rw [←tensor_comp], simp },
+  slice_rhs 2 3 { rw ←tensor_comp, simp },
   slice_rhs 4 5 { rw [←(tensor_right_map _ _ _ (coequalizer.π _ _)),
                       ←ι_comp_coequalizer_comparison,
                       ←preserves_coequalizer.iso_hom] },
@@ -253,7 +255,8 @@ begin
 end
 
 def middle_assoc' :
-  (act_left P Q ⊗ 𝟙 T.X) ≫ act_right P Q = (α_ R.X _ T.X).hom ≫ (𝟙 R.X ⊗ act_right P Q) ≫ act_left P Q :=
+  (act_left P Q ⊗ 𝟙 T.X) ≫ act_right P Q =
+  (α_ R.X _ T.X).hom ≫ (𝟙 R.X ⊗ act_right P Q) ≫ act_left P Q :=
 begin
   dunfold X act_left act_right,
   refine (cancel_epi (preserves_coequalizer.iso (tensor_left R.X ⋙ tensor_right T.X) _ _).hom).1 _,
@@ -265,13 +268,13 @@ begin
                       ←ι_comp_coequalizer_comparison,
                       ←category.id_comp (𝟙 T.X),
                       tensor_comp] },
-  slice_lhs 2 2 { rw [←preserves_coequalizer.iso_hom] },
+  slice_lhs 2 2 { rw ←preserves_coequalizer.iso_hom },
   slice_lhs 2 3 { rw [←tensor_comp, iso.hom_inv_id] },
   simp,
-  slice_lhs 1 2 { rw [←tensor_comp], simp },
+  slice_lhs 1 2 { rw ←tensor_comp, simp },
   slice_lhs 3 3 { rw [←(tensor_right_map _ _ _ (coequalizer.π _ _)),
                       ←ι_comp_coequalizer_comparison] },
-  slice_lhs 4 4 { rw [←preserves_coequalizer.iso_hom] },
+  slice_lhs 4 4 { rw ←preserves_coequalizer.iso_hom },
   slice_lhs 4 5 { rw iso.hom_inv_id },
   simp,
   slice_rhs 1 2 { rw associator_naturality },
@@ -279,13 +282,13 @@ begin
                       ←ι_comp_coequalizer_comparison,
                       ←category.id_comp (𝟙 R.X),
                       tensor_comp] },
-  slice_rhs 3 3 { rw [←preserves_coequalizer.iso_hom] },
+  slice_rhs 3 3 { rw ←preserves_coequalizer.iso_hom },
   slice_rhs 3 4 { rw [←tensor_comp, iso.hom_inv_id] },
   simp,
-  slice_rhs 2 3 { rw [←tensor_comp], simp },
+  slice_rhs 2 3 { rw ←tensor_comp, simp },
   slice_rhs 4 4 { rw [←(tensor_left_map _ _ _ (coequalizer.π _ _)),
                       ←ι_comp_coequalizer_comparison] },
-  slice_rhs 5 5 { rw [←preserves_coequalizer.iso_hom] },
+  slice_rhs 5 5 { rw ←preserves_coequalizer.iso_hom },
   slice_rhs 5 6 { rw iso.hom_inv_id },
   simp,
   slice_lhs 2 3 { rw associator_naturality },

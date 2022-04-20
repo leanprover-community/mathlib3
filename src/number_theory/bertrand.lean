@@ -267,12 +267,10 @@ end
 lemma inequality3' {x : ℝ} (n_large : 1024 < x) :
   sqrt 2 * sqrt x * log x / (x * log 4) = (sqrt 2 / log 4) * log x / sqrt x :=
 begin
-  have h : x ≠ 0,
+  have: x ≠ 0,
   { apply ne_of_gt,
     linarith, },
-  have h4 : 0 < x,
-    linarith,
-  have h2: log 4 * sqrt x ≠ 0, apply mul_ne_zero log_four_nonzero, exact sqrt_ne_zero'.mpr h4,
+  have: log 4 * sqrt x ≠ 0 := mul_ne_zero log_four_nonzero (sqrt_ne_zero'.mpr (by linarith)),
   field_simp,
   ring_nf,
   rw @sq_sqrt x (by linarith),
@@ -287,15 +285,14 @@ begin
   have y_pos : 0 < y := by linarith,
   have x_nonneg : 0 ≤ x := le_trans (le_of_lt (exp_pos 2)) hex,
   have y_nonneg : 0 ≤ y := by linarith,
-  conv_lhs { congr, rw ←sq_sqrt y_nonneg },
-  conv_rhs { congr, rw ←sq_sqrt x_nonneg },
+  conv_lhs { congr, rw ←sq_sqrt y_nonneg, },
+  conv_rhs { congr, rw ←sq_sqrt x_nonneg, },
   rw [←rpow_nat_cast, ←rpow_nat_cast, log_rpow (sqrt_pos.mpr y_pos), log_rpow (sqrt_pos.mpr x_pos)],
   simp only [nat.cast_bit0, nat.cast_one],
-  repeat { rw mul_div_assoc },
+  repeat { rw mul_div_assoc, },
   rw mul_le_mul_left two_pos,
   refine log_div_self_antitone_on _ _ (sqrt_le_sqrt hxy),
-  repeat {
-    simp only [set.mem_set_of_eq],
+  repeat { simp only [set.mem_set_of_eq],
     rw [le_sqrt (le_of_lt (exp_pos 1)), ←exp_nat_mul],
     norm_num, linarith, linarith, },
   exact real.nontrivial,
@@ -361,9 +358,7 @@ end
 
 lemma equality4 {x : ℝ} (n_large : 1024 < x) : 2 * x / 3 * log 4 / (x * log 4) = 2 / 3 :=
 begin
-  have h : x ≠ 0,
-  { apply ne_of_gt,
-    linarith, },
+  have: x ≠ 0 := ne_of_gt (by linarith),
   field_simp [log_four_nonzero],
   ring,
 end
@@ -670,8 +665,7 @@ lemma bertrand_initial (n : ℕ) (hn0 : 0 < n) (plist : list ℕ)
    (hn : n < (plist ++ [2]).head) :
   ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
 begin
-  tactic.unfreeze_local_instances,
-  induction plist,
+  unfreezingI { induction plist, },
   { simp * at *,
     interval_cases n,
     { use 2,

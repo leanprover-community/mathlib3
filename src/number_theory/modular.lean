@@ -32,7 +32,7 @@ Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`:
 `exists_smul_mem_fundamental_domain (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟`
 
 If both `z` and `γ • z` are in the open domain `𝒟ᵒ` then `z = γ • z`:
-`eq_smul_self_of_mem_fdo_mem_fdo (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z`
+`eq_smul_self_of_mem_fdo_mem_fdo {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z`
 
 # Discussion
 
@@ -461,11 +461,10 @@ end
 
 section unique_representative
 
-variables {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ)
-include hz hg
+variables {z : ℍ} {g : SL(2,ℤ)}
 
 /-- An auxiliary result en route to `c_eq_zero`. -/
-lemma abs_c_le_one : |↑ₘg 1 0| ≤ 1 :=
+lemma abs_c_le_one (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : |↑ₘg 1 0| ≤ 1 :=
 begin
   let c' : ℤ := ↑ₘg 1 0,
   let c : ℝ := (c' : ℝ),
@@ -493,7 +492,7 @@ begin
            ... ≤ 16 : by { rw ← mul_pow, linarith, },
 end
 
-lemma c_eq_zero : ↑ₘg 1 0 = 0 :=
+lemma c_eq_zero (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : ↑ₘg 1 0 = 0 :=
 begin
   have hp : ∀ {g' : SL(2, ℤ)} (hg' : g' • z ∈ 𝒟ᵒ), ↑ₘg' 1 0 ≠ 1,
   { intros,
@@ -518,7 +517,7 @@ end
 
 /-- Second Main Fundamental Domain Lemma: If both `z` and `g•z` are in the open domain `𝒟ᵒ`, where
   `z:ℍ` and `g:SL(2,ℤ)`, then `z = g • z`. -/
-lemma eq_smul_self_of_mem_fdo_mem_fdo : z = g • z :=
+lemma eq_smul_self_of_mem_fdo_mem_fdo (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z :=
 begin
   /-  The argument overview is: since `c=0`, the action is translation, which must be by `0`. -/
   have g_det : matrix.det ↑ₘg = (↑ₘg 0 0) * (↑ₘg 1 1) - (↑ₘg 1 0) * (↑ₘg 0 1),

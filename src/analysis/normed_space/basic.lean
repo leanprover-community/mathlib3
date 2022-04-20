@@ -352,6 +352,14 @@ normed_algebra.norm_algebra_map_le x
 lemma nnnorm_algebra_map_le (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥₊ ≤ ∥x∥₊ :=
 norm_algebra_map_le 𝕜' x
 
+section
+variables (𝕜)
+lemma norm_one_le : ∥(1 : 𝕜')∥ ≤ 1 :=
+calc ∥(1 : 𝕜')∥ = ∥algebra_map 𝕜 𝕜' 1∥ : by rw map_one
+            ... ≤ ∥(1 : 𝕜)∥ : norm_algebra_map_le _ _
+            ... = 1 : norm_one
+end
+
 @[priority 100]
 instance normed_algebra.to_normed_space : normed_space 𝕜 𝕜' :=
 { norm_smul_le := λ s x, calc
@@ -374,6 +382,18 @@ See `normed_space.to_module'` for a similar situation. -/
 @[priority 100]
 instance normed_algebra.to_normed_space' {𝕜'} [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] :
   normed_space 𝕜 𝕜' := by apply_instance
+
+/-- In a `normed_ring` that is a `normed_algebra` over a field, `∥1∥ = 1` iff `𝕜'` is nontrivial. -/
+lemma norm_one_class_iff_nontrivial {𝕜'} [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']:
+  norm_one_class 𝕜' ↔ nontrivial 𝕜' :=
+begin
+  split; introI i,
+  { exact norm_one_class.nontrivial 𝕜' },
+  { refine ⟨le_antisymm (norm_one_le 𝕜 𝕜') _⟩,
+    refine le_of_mul_le_mul_right _ (norm_pos_iff.mpr $ @one_ne_zero 𝕜' _ _),
+    refine eq.trans_le _ (norm_mul_le (1 : 𝕜') (1 : 𝕜')),
+    rw [one_mul, mul_one] }
+end
 
 @[simp] lemma norm_algebra_map_eq [norm_one_class 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥ :=
 by rw [algebra.algebra_map_eq_smul_one, norm_smul, norm_one, mul_one]

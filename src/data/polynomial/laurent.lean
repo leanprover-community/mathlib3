@@ -54,7 +54,7 @@ def polynomial.to_laurent [semiring R] :
   R[X] →+* R[T;T⁻¹] :=
 begin
   refine ring_hom.comp _ (to_finsupp_iso R).to_ring_hom,
-  exact (add_monoid_ring_hom_map R (nat.cast_add_monoid_hom ℤ)),
+  exact (map_domain_ring_hom R (nat.cast_add_monoid_hom ℤ)),
 end
 
 /--  The `R`-algebra map, taking a polynomial with coefficients in `R` to a Laurent polynomial
@@ -63,7 +63,7 @@ def polynomial.to_laurent_alg [comm_semiring R] :
   R[X] →ₐ[R] R[T;T⁻¹] :=
 begin
   refine alg_hom.comp _ (to_finsupp_iso_alg R).to_alg_hom,
-  exact (add_monoid_alg_hom_map R (nat.cast_add_monoid_hom ℤ)),
+  exact (add_monoid_alg_hom_map R R (nat.cast_add_monoid_hom ℤ)),
 end
 
 namespace laurent_polynomial

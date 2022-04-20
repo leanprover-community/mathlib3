@@ -584,9 +584,8 @@ noncomputable instance fractional_ideal.comm_group_with_zero :
   mul_inv_cancel := λ I, fractional_ideal.mul_inv_cancel,
   .. fractional_ideal.comm_semiring }
 
-noncomputable instance ideal.cancel_comm_monoid_with_zero :
-  cancel_comm_monoid_with_zero (ideal A) :=
-function.injective.cancel_comm_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
+instance ideal.id_domain : is_domain (ideal A) :=
+function.injective.is_domain' (coe_ideal_hom A⁰ (fraction_ring A))
   coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
   (ring_hom.map_pow _)
 
@@ -640,10 +639,9 @@ instance ideal.unique_factorization_monoid :
     exact ⟨x * y, ideal.mul_mem_mul x_mem y_mem,
            mt this.is_prime.mem_or_mem (not_or x_not_mem y_not_mem)⟩,
    end⟩,
-   prime.irreducible⟩,
-  .. ideal.wf_dvd_monoid }
+   prime.irreducible⟩ }
 
-noncomputable instance ideal.normalization_monoid : normalization_monoid (ideal A) :=
+instance ideal.normalization_monoid : normalization_monoid (ideal A) :=
 normalization_monoid_of_unique_units
 
 @[simp] lemma ideal.dvd_span_singleton {I : ideal A} {x : A} :

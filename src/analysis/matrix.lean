@@ -21,7 +21,9 @@ In this file we provide the non-instances for norms on matrices:
   * `matrix.l1_linf_semi_normed_group`
   * `matrix.l1_linf_normed_group`
   * `matrix.l1_linf_normed_space`
+  * `matrix.l1_linf_non_unital_semi_normed_ring`
   * `matrix.l1_linf_semi_normed_ring`
+  * `matrix.l1_linf_non_unital_normed_ring`
   * `matrix.l1_linf_normed_ring`
   * `matrix.l1_linf_normed_algebra`
 
@@ -32,18 +34,6 @@ of a matrix.
 noncomputable theory
 
 open_locale nnreal
-
-namespace finset
-
-lemma product_sup_mul_le_mul_sup_of_nonneg {ι κ α} [linear_ordered_semiring α] [order_bot α]
-  {a : ι → α} {b : κ → α} (s : finset ι) (t : finset κ)
-  (ha : ∀ i ∈ s, 0 ≤ a i) (hb : ∀ i ∈ t, 0 ≤ b i)  :
-  (s.product t).sup (λ p, a p.1 * b p.2) ≤ s.sup a * t.sup b :=
-finset.sup_le $ λ i hi,
-  let ⟨hs, ht⟩ := finset.mem_product.mp hi in
-    mul_le_mul (le_sup hs) (le_sup ht) (hb _ ht) ((ha _ hs).trans $ le_sup hs)
-
-end finset
 
 namespace matrix
 
@@ -179,35 +169,20 @@ lemma l1_linf_norm_diagonal [semi_normed_group α] [decidable_eq m] (v : m → �
   ∥diagonal v∥ = ∥v∥ :=
 congr_arg coe $ l1_linf_nnnorm_diagonal v
 
-lemma l1_linf_nnnorm_mul_vec [semi_normed_ring α] (A : matrix l m α) (v : m → α) :
-  ∥matrix.mul_vec A v∥₊ ≤ ∥A∥₊ * ∥v∥₊ :=
-begin
-  simp_rw [l1_linf_nnnorm_def, pi.nnnorm_def, matrix.mul_vec, matrix.dot_product],
-  calc finset.univ.sup (λ b, ∥∑ i, A b i * v i∥₊)
-    ≤ finset.univ.sup (λ b, ∑ i, ∥A b i∥₊ * ∥v i∥₊) :
-      finset.sup_mono_fun (λ i hi, (nnnorm_sum_le _ _).trans $
-        finset.sum_le_sum $ λ j hj, nnnorm_mul_le _ _)
-  ... ≤ finset.univ.sup (λ i, ∑ j, ∥A i j∥₊ * finset.univ.sup (λ b, ∥v b∥₊)) :
-    finset.sup_mono_fun (λ i hi,
-      finset.sum_le_sum $ λ j hj,
-        mul_le_mul_of_nonneg_left (finset.le_sup hj) (nnreal.coe_nonneg _))
-  ... = finset.univ.sup (λ i, ∑ j, ∥A i j∥₊) * finset.univ.sup (λ b, ∥v b∥₊) :
-    by simp_rw [nnreal.finset_sup_mul, finset.sum_mul],
-end
+/-- The `L₁-L∞` norm preserves one on non-empty matrices. Note this is safe as an instance, as it
+carries no data. -/
+instance l1_linf_norm_one_class [normed_ring α] [decidable_eq n] [nonempty n] :
+  norm_one_class (matrix n n α) :=
+{ norm_one := (l1_linf_norm_diagonal _).trans norm_one }
 
-lemma l1_linf_norm_mul_vec [semi_normed_ring α] (A : matrix l m α) (v : m → α) :
-  ∥matrix.mul_vec A v∥ ≤ ∥A∥ * ∥v∥ :=
-l1_linf_nnnorm_mul_vec _ _
-
-lemma l1_linf_nnnorm_mul [semi_normed_ring α] (A : matrix l m α) (B : matrix m n α) :
+lemma l1_linf_nnnorm_mul [non_unital_semi_normed_ring α] (A : matrix l m α) (B : matrix m n α) :
   ∥A ⬝ B∥₊ ≤ ∥A∥₊ * ∥B∥₊ :=
 begin
   simp_rw [l1_linf_nnnorm_def, matrix.mul_apply],
   calc finset.univ.sup (λ i, ∑ k, ∥∑ j, A i j * B j k∥₊)
       ≤ finset.univ.sup (λ i, ∑ k j, ∥A i j∥₊ * ∥B j k∥₊) :
-    finset.sup_mono_fun $ λ i hi, finset.sum_le_sum $ λ k hk, by
-        { apply (nnnorm_sum_le _ _).trans (finset.sum_le_sum (λ j hj, _)),
-          exact nnnorm_mul_le _ _ }
+    finset.sup_mono_fun $ λ i hi, finset.sum_le_sum $ λ k hk, nnnorm_sum_le_of_le _ $ λ j hj,
+      nnnorm_mul_le _ _
   ... = finset.univ.sup (λ i, ∑ j, (∥A i j∥₊ * ∑ k, ∥B j k∥₊)) :
     by simp_rw [@finset.sum_comm _ m n, finset.mul_sum]
   ... ≤ finset.univ.sup (λ i, ∑ j, ∥A i j∥₊ * finset.univ.sup (λ i, ∑ j, ∥B i j∥₊)) :
@@ -217,16 +192,44 @@ begin
     by simp_rw [←finset.sum_mul, ←nnreal.finset_sup_mul],
 end
 
-#check m
+lemma l1_linf_norm_mul [non_unital_semi_normed_ring α] (A : matrix l m α) (B : matrix m n α) :
+  ∥A ⬝ B∥ ≤ ∥A∥ * ∥B∥ :=
+l1_linf_nnnorm_mul _ _
+
+lemma l1_linf_nnnorm_mul_vec [non_unital_semi_normed_ring α] (A : matrix l m α) (v : m → α) :
+  ∥A.mul_vec v∥₊ ≤ ∥A∥₊ * ∥v∥₊ :=
+begin
+  rw [←l1_linf_nnnorm_col (A.mul_vec v), ←l1_linf_nnnorm_col v],
+  exact l1_linf_nnnorm_mul A (col v),
+end
+
+lemma l1_linf_norm_mul_vec [non_unital_semi_normed_ring α] (A : matrix l m α) (v : m → α) :
+  ∥matrix.mul_vec A v∥ ≤ ∥A∥ * ∥v∥ :=
+l1_linf_nnnorm_mul_vec _ _
+
+/-- Seminormed non-unital ring instance (using sup norm of L1 norm) for matrices over a semi normed
+non-unital ring. Not declared as an instance because there are several natural choices for defining
+the norm of a matrix. -/
+protected def l1_linf_non_unital_semi_normed_ring [non_unital_semi_normed_ring α] :
+  non_unital_semi_normed_ring (matrix n n α) :=
+{ norm_mul := l1_linf_norm_mul,
+  .. matrix.l1_linf_semi_normed_group,
+  .. matrix.non_unital_ring }
 
 /-- Seminormed ring instance (using sup norm of L1 norm) for matrices over a semi normed ring.  Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
 protected def l1_linf_semi_normed_ring [semi_normed_ring α] [decidable_eq n] :
   semi_normed_ring (matrix n n α) :=
-{ norm_mul := l1_linf_nnnorm_mul,
-  .. matrix.l1_linf_semi_normed_group,
+{ .. matrix.l1_linf_non_unital_semi_normed_ring,
   .. matrix.ring }
+
+/-- Normed non-unital ring instance (using sup norm of L1 norm) for matrices over a normed
+non-unital ring. Not declared as an instance because there are several natural choices for defining
+the norm of a matrix. -/
+protected def l1_linf_non_unital_normed_ring [normed_ring α] :
+  non_unital_normed_ring (matrix n n α) :=
+{ ..matrix.l1_linf_non_unital_semi_normed_ring }
 
 /-- Normed ring instance (using sup norm of L1 norm) for matrices over a normed ring.  Not
 declared as an instance because there are several natural choices for defining the norm of a

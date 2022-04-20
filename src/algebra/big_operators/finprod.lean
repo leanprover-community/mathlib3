@@ -442,7 +442,7 @@ by simp only [div_eq_mul_inv, finprod_mul_distrib hf ((mul_support_inv g).symm.r
 lemma finprod_div_distrib₀ {G : Type*} [comm_group_with_zero G] {f g : α → G}
   (hf : (mul_support f).finite) (hg : (mul_support g).finite) :
   ∏ᶠ i, f i / g i = (∏ᶠ i, f i) / ∏ᶠ i, g i :=
-by simp only [div_eq_mul_inv, finprod_mul_distrib hf ((mul_support_inv₀ g).symm.rec hg),
+by simp only [div_eq_mul_inv, finprod_mul_distrib hf ((mul_support_inv g).symm.rec hg),
               finprod_inv_distrib₀]
 
 /-- A more general version of `finprod_mem_mul_distrib` that only requires `s ∩ mul_support f` and

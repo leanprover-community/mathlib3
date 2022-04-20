@@ -322,7 +322,8 @@ include hS
 
 @[irreducible] noncomputable def lift : S →ₐ[R] M :=
 begin
-  letI : is_domain R := (no_zero_smul_divisors.algebra_map_injective R S).is_domain _,
+  letI : is_domain R :=
+    (no_zero_smul_divisors.algebra_map_injective R S).is_domain (algebra_map R S : R →*₀ S),
   have hfRfS : algebra.is_algebraic (fraction_ring R) (fraction_ring S),
     from λ x, (is_fraction_ring.is_algebraic_iff R (fraction_ring R) (fraction_ring S)).1
       ((is_fraction_ring.is_algebraic_iff' R S (fraction_ring S)).1 hS x),
@@ -428,8 +429,10 @@ noncomputable def equiv_of_equiv_aux (hSR : S ≃+* R) :
 begin
   letI : algebra R S := ring_hom.to_algebra hSR.symm.to_ring_hom,
   letI : algebra S R := ring_hom.to_algebra hSR.to_ring_hom,
-  letI : is_domain R := (no_zero_smul_divisors.algebra_map_injective R M).is_domain _,
-  letI : is_domain S := (no_zero_smul_divisors.algebra_map_injective S L).is_domain _,
+  letI : is_domain R :=
+    (no_zero_smul_divisors.algebra_map_injective R M).is_domain (algebra_map R M : R →*₀ M),
+  letI : is_domain S :=
+    (no_zero_smul_divisors.algebra_map_injective S L).is_domain (algebra_map S L : S →*₀ L),
   have : algebra.is_algebraic R S,
     from λ x, begin
       rw [← ring_equiv.symm_apply_apply hSR x],

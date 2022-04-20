@@ -251,7 +251,7 @@ e.surjective.nontrivial
 
 /-- Transfer `is_domain` across an `equiv` -/
 protected theorem is_domain [ring α] [ring β] [is_domain β] (e : α ≃+* β) : is_domain α :=
-function.injective.is_domain e.to_ring_hom e.injective
+function.injective.is_domain (e : α →*₀ β) e.injective
 
 /-- Transfer `division_ring` across an `equiv` -/
 protected def division_ring [division_ring β] : division_ring α :=

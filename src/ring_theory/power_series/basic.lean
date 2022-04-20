@@ -1448,9 +1448,9 @@ begin
   { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end
 
-instance : is_domain (power_series R) :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. power_series.nontrivial, }
+instance : no_zero_divisors (power_series R) := ⟨eq_zero_or_eq_zero_of_mul_eq_zero⟩
+
+instance : is_domain (power_series R) := is_domain.of_no_zero_divisors
 
 end domain
 

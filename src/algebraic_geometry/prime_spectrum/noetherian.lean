@@ -59,8 +59,6 @@ begin
   revert h_nzI,
   refine is_noetherian.induction (λ (M : ideal A) hgt, _) I,
   intro h_nzM,
-  have hA_nont : nontrivial A,
-  apply is_domain.to_nontrivial A,
   by_cases h_topM : M = ⊤,
   { rcases h_topM with rfl,
     obtain ⟨p_id, h_nzp, h_pp⟩ : ∃ (p : ideal A), p ≠ ⊥ ∧ p.is_prime,

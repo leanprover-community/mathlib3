@@ -313,8 +313,8 @@ begin
     padic_val_rat_le_padic_val_rat_iff p hqn hrn hqd hrd, ← multiplicity_le_multiplicity_iff] at h,
   calc _ ≤ min (multiplicity ↑p (q.num * ↑(r.denom) * ↑(q.denom)))
     (multiplicity ↑p (↑(q.denom) * r.num * ↑(q.denom))) : (le_min
-    (by rw [@multiplicity.mul _ _ _ _ (_ * _) _ (nat.prime_iff_prime_int.1 p_prime.1), add_comm])
-    (by rw [mul_assoc, @multiplicity.mul _ _ _ _ (q.denom : ℤ)
+    (by rw [@multiplicity.mul _ _ _ _ _ (_ * _) _ (nat.prime_iff_prime_int.1 p_prime.1), add_comm])
+    (by rw [mul_assoc, @multiplicity.mul _ _ _ _ _ (q.denom : ℤ)
         (_ * _) (nat.prime_iff_prime_int.1 p_prime.1)];
       exact add_le_add_left h _))
     ... ≤ _ : min_le_multiplicity_add

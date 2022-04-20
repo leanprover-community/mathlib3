@@ -1,16 +1,17 @@
 /-
-Copyright (c) 2022 Bhavik Mehta, Kexing Ying. All rights reserved.
+Copyright (c) 2022 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Kexing Ying
 -/
 import probability.cond_count
 
 /-!
-# Ballot Problem
+# Ballot cond_countlem
+
 This file proves Theorem 30 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 -/
 
-open finset
+open finset probability_theory
 
 /-- Every nonempty suffix has positive sum. -/
 def stays_positive (l : list ℤ) : Prop := ∀ l₂, l₂ ≠ [] → l₂ <:+ l → 0 < l₂.sum
@@ -52,16 +53,16 @@ begin
     { apply hl _ hl₁ hl₂ } }
 end
 
-lemma list.sum_pos : ∀ (l : list ℤ) (hl : ∀ x ∈ l, (0 : ℤ) < x) (hl₂ : l ≠ []), 0 < l.sum
-| [] _ h := (h rfl).elim
-| [b] h _ := by simpa using h
-| (a :: b :: l) hl₁ hl₂ :=
-begin
-  simp only [forall_eq_or_imp, list.mem_cons_iff _ a] at hl₁,
-  rw list.sum_cons,
-  apply add_pos_of_pos_of_nonneg hl₁.1,
-  apply le_of_lt ((b :: l).sum_pos hl₁.2 (l.cons_ne_nil b)),
-end
+-- lemma list.sum_pos : ∀ (l : list ℤ) (hl : ∀ x ∈ l, (0 : ℤ) < x) (hl₂ : l ≠ []), 0 < l.sum
+-- | [] _ h := (h rfl).elim
+-- | [b] h _ := by simpa using h
+-- | (a :: b :: l) hl₁ hl₂ :=
+-- begin
+--   simp only [forall_eq_or_imp, list.mem_cons_iff _ a] at hl₁,
+--   rw list.sum_cons,
+--   apply add_pos_of_pos_of_nonneg hl₁.1,
+--   apply le_of_lt ((b :: l).sum_pos hl₁.2 (l.cons_ne_nil b)),
+-- end
 
 /--
 `counted_sequence p q` is the (fin)set of lists of `ℤ` for which every element is `+1` or `-1`,
@@ -71,35 +72,38 @@ This represents vote sequences where candidate `+1` receives `p` votes and candi
 -/
 def counted_sequence : ℕ → ℕ → finset (list ℤ)
 | 0 q := {list.repeat (-1) q}
-| (p+1) 0 := {list.repeat 1 (p+1)}
-| (p+1) (q+1) :=
-      (counted_sequence p (q+1)).map ⟨list.cons 1, list.cons_injective⟩ ∪
-      (counted_sequence (p+1) q).map ⟨list.cons (-1), list.cons_injective⟩
+| (p + 1) 0 := {list.repeat 1 (p+1)}
+| (p + 1) (q + 1) :=
+    (counted_sequence p (q+1)).map ⟨list.cons 1, list.cons_injective⟩ ∪
+    (counted_sequence (p+1) q).map ⟨list.cons (-1), list.cons_injective⟩
 
 lemma counted_right_zero (p : ℕ) : counted_sequence p 0 = {list.repeat 1 p} :=
-by cases p; refl
+by { cases p; rw [counted_sequence]; refl }
 
 lemma counted_left_zero (q : ℕ) : counted_sequence 0 q = {list.repeat (-1) q} :=
-by cases q; refl
+by { cases q; rw [counted_sequence]; refl }
 
 lemma counted_succ_succ (p q : ℕ) : counted_sequence (p+1) (q+1) =
   (counted_sequence p (q+1)).map ⟨list.cons 1, list.cons_injective⟩ ∪
       (counted_sequence (p+1) q).map ⟨list.cons (-1), list.cons_injective⟩ :=
-rfl
+by { rw [counted_sequence] }
+
+lemma counted_succ_succ' (p q : ℕ) : (counted_sequence (p+1) (q+1) : set (list ℤ)) =
+  ↑((counted_sequence p (q+1)).map ⟨list.cons 1, list.cons_injective⟩) ∪
+      (counted_sequence (p+1) q).map ⟨list.cons (-1), list.cons_injective⟩ :=
+by { rw [counted_succ_succ, coe_union] }
 
 lemma sum_of_mem_counted_sequence :
   ∀ {p q : ℕ} {l : list ℤ} (hl : l ∈ counted_sequence p q), l.sum = p - q
 | 0 q l hl :=
   begin
     rw [counted_left_zero, mem_singleton] at hl,
-    subst hl,
-    simp,
+    simp [hl],
   end
 | p 0 l hl :=
   begin
     rw [counted_right_zero, mem_singleton] at hl,
-    subst hl,
-    simp
+    simp [hl],
   end
 | (p+1) (q+1) l hl :=
   begin
@@ -107,29 +111,25 @@ lemma sum_of_mem_counted_sequence :
     rcases hl with (⟨l, hl, rfl⟩ | ⟨l, hl, rfl⟩),
     { rw [list.sum_cons, sum_of_mem_counted_sequence hl],
       push_cast,
-      abel },
+      ring },
     { rw [list.sum_cons, sum_of_mem_counted_sequence hl],
       push_cast,
-      abel }
+      ring }
   end
 
 lemma mem_of_mem_counted_sequence :
   ∀ {p q : ℕ} {l} (hl : l ∈ counted_sequence p q) {x : ℤ} (hx : x ∈ l), x = 1 ∨ x = -1
 | 0 q l hl x hx :=
   begin
-    rw counted_left_zero at hl,
-    simp only [mem_singleton] at hl,
+    rw [counted_left_zero, mem_singleton] at hl,
     subst hl,
-    right,
-    apply list.eq_of_mem_repeat hx,
+    exact or.inr (list.eq_of_mem_repeat hx),
   end
 | p 0 l hl x hx :=
   begin
-    rw counted_right_zero at hl,
-    simp only [mem_singleton] at hl,
+    rw [counted_right_zero, mem_singleton] at hl,
     subst hl,
-    left,
-    apply list.eq_of_mem_repeat hx,
+    exact or.inl (list.eq_of_mem_repeat hx),
   end
 | (p+1) (q+1) l hl x hx :=
   begin
@@ -137,9 +137,9 @@ lemma mem_of_mem_counted_sequence :
     rcases hl with (⟨l, hl, rfl⟩ | ⟨l, hl, rfl⟩);
     rcases hx with (rfl | hx),
     { left, refl },
-    { apply mem_of_mem_counted_sequence hl hx },
+    { exact mem_of_mem_counted_sequence hl hx },
     { right, refl },
-    { apply mem_of_mem_counted_sequence hl hx },
+    { exact mem_of_mem_counted_sequence hl hx },
   end
 
 lemma length_of_mem_counted_sequence :
@@ -171,7 +171,18 @@ begin
   rintros _ _ _ rfl _ _ ⟨_, _⟩,
 end
 
-lemma card_counted_sequence : ∀ p q : ℕ, (counted_sequence p q).card = (p+q).choose p
+lemma disjoint_bits' (p q : ℕ) :
+  disjoint
+    ((counted_sequence p (q+1)).map ⟨list.cons 1, list.cons_injective⟩ : set (list ℤ))
+    ((counted_sequence (p+1) q).map ⟨list.cons (-1), list.cons_injective⟩) :=
+begin
+  rintro a ⟨ha₁, ha₂⟩,
+  rw [mem_coe] at ha₁ ha₂,
+  apply disjoint_bits p q,
+  simpa using (⟨ha₁, ha₂⟩ : _ ∧ _),
+end
+
+lemma card_counted_sequence : ∀ p q : ℕ, (counted_sequence p q).card = (p + q).choose p
 | p 0 := by simp [counted_right_zero]
 | 0 q := by simp [counted_left_zero]
 | (p+1) (q+1) :=
@@ -203,24 +214,32 @@ begin
 end
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ p, p.1 + p.2.1)⟩]}
 
+instance : measurable_space (list ℤ) := ⊤
+
+instance : measurable_singleton_class (list ℤ) :=
+{ measurable_set_singleton := λ s, trivial }
+
 lemma first_vote_pos :
-  ∀ p q, 0 < p + q  → Prob (counted_sequence p q) (λ l, l.head = 1) = p / (p + q)
-| (p+1) 0 h :=
+  ∀ p q, 0 < p + q →
+    cond_count (counted_sequence p q : set (list ℤ)) {l | l.head = 1} = p / (p + q)
+| (p + 1) 0 h :=
   begin
-    rw [counted_right_zero, Prob_singleton, list.repeat_succ, list.head_cons, if_pos rfl,
-      nat.cast_zero, add_zero, div_self],
-    exact nat.cast_add_one_ne_zero p,
+    rw [counted_right_zero, coe_singleton, cond_count_singleton],
+    simp [ennreal.div_self _ _],
   end
-| 0 (q+1) _ :=
+| 0 (q + 1) _ :=
   begin
-    rw [counted_left_zero, Prob_singleton, nat.cast_zero, zero_div, list.repeat_succ,
-      list.head_cons, if_neg (show ¬((-1 : ℤ) = 1), by norm_num)],
+    rw [counted_left_zero, coe_singleton, cond_count_singleton],
+    simpa,
   end
-| (p+1) (q+1) h :=
+| (p + 1) (q + 1) h :=
   begin
-    rw [counted_succ_succ, Prob_disjoint_union _ _ (disjoint_bits _ _), Prob, Prob,
-      ←counted_succ_succ, filter_true_of_mem, filter_false_of_mem, card_empty, nat.cast_zero,
-      zero_div, zero_mul, add_zero, card_map],
+    simp_rw [counted_succ_succ, coe_union],
+    rw [← cond_count_disjoint_union _ _ (disjoint_bits' _ _), ← counted_succ_succ'],
+    simp only [cond_count, cond_apply, coe_map, function.embedding.coe_fn_mk, measurable_space.measurable_set_top,
+  measure_theory.measure.count_apply_finset, nat.cast_add, nat.cast_one],
+  -- filter_true_of_mem, filter_false_of_mem, card_empty, nat.cast_zero,
+      -- zero_div, zero_mul, add_zero, card_map],
     { rw [div_self, one_mul, card_counted_sequence, card_counted_sequence],
       { rw [eq_div_iff, div_mul_eq_mul_div, div_eq_iff],
         { norm_cast,
@@ -249,9 +268,9 @@ lemma head_mem_of_nonempty {α : Type*} [inhabited α] :
 | (x :: l) _ := or.inl rfl
 
 lemma first_vote_neg (p q : ℕ) (h : 0 < p + q) :
-  Prob (counted_sequence p q) (λ l, ¬(l.head = 1)) = q / (p + q) :=
+  cond_count (counted_sequence p q) (λ l, ¬(l.head = 1)) = q / (p + q) :=
 begin
-  have := Prob_neg (λ (l : list ℤ), l.head = 1) (λ (l : list ℤ), ¬(l.head = 1))
+  have := cond_count_neg (λ (l : list ℤ), l.head = 1) (λ (l : list ℤ), ¬(l.head = 1))
             (counted_sequence p q) _ _,
   { rw [first_vote_pos _ _ h, ← eq_sub_iff_add_eq'] at this,
     rw this,
@@ -263,9 +282,9 @@ begin
     simp }
 end
 
-lemma ballot_same (p : ℕ) : Prob (counted_sequence (p+1) (p+1)) stays_positive = 0 :=
+lemma ballot_same (p : ℕ) : cond_count (counted_sequence (p+1) (p+1)) stays_positive = 0 :=
 begin
-  rw Prob_eq_zero_iff,
+  rw cond_count_eq_zero_iff,
   intros x hx t,
   apply ne_of_gt (t x _ _),
   { simpa using sum_of_mem_counted_sequence hx },
@@ -283,10 +302,10 @@ begin
   exact list.mem_append_right l₂ hx,
 end
 
-lemma ballot_edge (p : ℕ) : Prob (counted_sequence (p + 1) 0) stays_positive = 1 :=
+lemma ballot_edge (p : ℕ) : cond_count (counted_sequence (p + 1) 0) stays_positive = 1 :=
 begin
   rw [counted_right_zero],
-  apply Prob_eq_one_of,
+  apply cond_count_eq_one_of,
   { apply finset.singleton_nonempty },
   { intros l hl,
     rw mem_singleton at hl,
@@ -311,10 +330,10 @@ begin
 end
 
 lemma ballot_pos (p q : ℕ) :
-  Prob (filter (λ (l : list ℤ), l.head = 1) (counted_sequence (p + 1) (q + 1))) stays_positive =
-    Prob (counted_sequence p (q + 1)) stays_positive :=
+  cond_count (filter (λ (l : list ℤ), l.head = 1) (counted_sequence (p + 1) (q + 1))) stays_positive =
+    cond_count (counted_sequence p (q + 1)) stays_positive :=
 begin
-  rw [filter_pos_counted_succ_succ, Prob, Prob, card_map],
+  rw [filter_pos_counted_succ_succ, cond_count, cond_count, card_map],
   congr' 2,
   have : ((counted_sequence p (q + 1)).map
             ⟨list.cons 1, list.cons_injective⟩).filter stays_positive =
@@ -358,10 +377,10 @@ begin
 end
 
 lemma ballot_neg (p q : ℕ) (qp : q < p) :
-  Prob (filter (λ (l : list ℤ), ¬(l.head = 1)) (counted_sequence (p + 1) (q + 1))) stays_positive =
-    Prob (counted_sequence (p+1) q) stays_positive :=
+  cond_count (filter (λ (l : list ℤ), ¬(l.head = 1)) (counted_sequence (p + 1) (q + 1))) stays_positive =
+    cond_count (counted_sequence (p+1) q) stays_positive :=
 begin
-  rw [filter_neg_counted_succ_succ, Prob, Prob, card_map],
+  rw [filter_neg_counted_succ_succ, cond_count, cond_count, card_map],
   congr' 2,
   have : ((counted_sequence (p+1) q).map
             ⟨list.cons (-1), list.cons_injective⟩).filter stays_positive =
@@ -393,7 +412,7 @@ begin
 end
 
 theorem ballot :
-  ∀ q p, q < p → Prob (counted_sequence p q) stays_positive = (p - q) / (p + q) :=
+  ∀ q p, q < p → cond_count (counted_sequence p q) stays_positive = (p - q) / (p + q) :=
 begin
   apply diag_induction,
   { intro p,

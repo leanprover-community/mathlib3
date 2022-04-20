@@ -65,7 +65,7 @@ lemma cond_count_is_probability_measure {s : set α} (hs : s.finite) (hs' : s.no
     { exact (measure.count_apply_lt_top.2 hs).ne }
   end }
 
-lemma cond_prob_singleton (a : α) (t : set α) [decidable (a ∈ t)] :
+lemma cond_count_singleton (a : α) (t : set α) [decidable (a ∈ t)] :
   cond_count {a} t = if a ∈ t then 1 else 0 :=
 begin
   rw [cond_count, cond_apply _ (measurable_set_singleton a), measure.count_singleton,

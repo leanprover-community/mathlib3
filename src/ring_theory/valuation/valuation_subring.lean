@@ -17,6 +17,9 @@ The order structure on `valuation_subring K`.
 
 -/
 
+open_locale classical
+noncomputable theory
+
 variables (K : Type*) [field K]
 
 /-- A valuation subring of a field `K` is a subring `A` such that for every `x : K`,
@@ -42,6 +45,7 @@ lemma zero_mem : (0 : K) ∈ A := A.to_subring.zero_mem
 lemma one_mem : (1 : K) ∈ A := A.to_subring.one_mem
 lemma add_mem (x y : K) : x ∈ A → y ∈ A → x + y ∈ A := A.to_subring.add_mem
 lemma mul_mem (x y : K) : x ∈ A → y ∈ A → x * y ∈ A := A.to_subring.mul_mem
+lemma neg_mem (x : K) : x ∈ A → (-x) ∈ A := A.to_subring.neg_mem
 
 lemma mem_or_inv_mem (x : K) : x ∈ A ∨ x⁻¹ ∈ A := A.mem_or_inv_mem' _
 
@@ -99,6 +103,8 @@ def value_group := valuation_ring.value_group A K
 /-- Any valuation subring of `K` induces a natural valuation on `K`. -/
 def valuation : valuation K A.value_group := valuation_ring.valuation A K
 
+instance inhabited_value_group : inhabited A.value_group := ⟨A.valuation 0⟩
+
 lemma valuation_le_one (a : A) : A.valuation a ≤ 1 :=
 (valuation_ring.mem_integer_iff A K _).2 ⟨a,rfl⟩
 
@@ -148,6 +154,7 @@ def of_subring (R : subring K) (hR : ∀ x : K, x ∈ R ∨ x⁻¹ ∈ R) : valu
 lemma mem_of_subring (R : subring K) (hR : ∀ x : K, x ∈ R ∨ x⁻¹ ∈ R) (x : K) :
   x ∈ of_subring R hR ↔ x ∈ R := iff.refl _
 
+/-- An overring of a valuation ring is a valuation ring. -/
 def of_le (R : valuation_subring K) (S : subring K) (h : R.to_subring ≤ S) :
   valuation_subring K :=
 { mem_or_inv_mem' := λ x, (R.mem_or_inv_mem x).imp (@h x) (@h _), ..S}
@@ -165,9 +172,11 @@ instance : semilattice_sup (valuation_subring K) :=
 def inclusion (R S : valuation_subring K) (h : R ≤ S) : R →+* S :=
 subring.inclusion h
 
+/-- The canonical ring homomorphism from a valuation ring to its field of fractions. -/
 def subtype (R : valuation_subring K) : R →+* K :=
 subring.subtype R.to_subring
 
+/-- The canonical map on value groups induced by a coarsening of valuation rings. -/
 def map_of_le (R S : valuation_subring K) (h : R ≤ S) :
   R.value_group →*₀ S.value_group :=
 { to_fun := quotient.map' id $ λ x y ⟨u,hu⟩, ⟨units.map (R.inclusion S h).to_monoid_hom u, hu⟩,
@@ -188,20 +197,20 @@ lemma map_of_le_comp_valuation (R S : valuation_subring K) (h : R ≤ S) :
 lemma map_of_le_valuation_apply (R S : valuation_subring K) (h : R ≤ S) (x : K) :
   R.map_of_le S h (R.valuation x) = S.valuation x := rfl
 
+/-- The ideal corresponding to a coarsening of a valuation ring. -/
 def ideal_of_le (R S : valuation_subring K) (h : R ≤ S) : ideal R :=
 (local_ring.maximal_ideal S).comap (R.inclusion S h)
 
 instance prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
   (ideal_of_le R S h).is_prime := (local_ring.maximal_ideal S).comap_is_prime _
 
-noncomputable
+/-- The coarsening of a valuation ring associated to a prime ideal. -/
 def of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   valuation_subring K :=
 of_le A (localization.subalgebra.of_field K P.prime_compl $
   le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem).to_subring $
   λ a ha, subalgebra.algebra_map_mem _ (⟨a,ha⟩ : A)
 
-noncomputable
 instance of_prime_algebra (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   algebra A (A.of_prime P) := subalgebra.algebra _
 
@@ -264,7 +273,8 @@ lemma ideal_of_le_le_of_le (R S : valuation_subring K)
   apply not_le_of_lt ((valuation_lt_one_iff S _).1 hx) c,
 end
 
-@[simps] noncomputable
+/-- The equivalence between coarsenings of a valuation ring and its prime ideals.-/
+@[simps]
 def prime_spectrum_equiv :
   prime_spectrum A ≃ { S | A ≤ S } :=
 { to_fun := λ P, ⟨of_prime A P.as_ideal, le_of_prime _ _⟩,
@@ -272,7 +282,8 @@ def prime_spectrum_equiv :
   left_inv := λ P, by { ext1, simpa },
   right_inv := λ S, by { ext1, simp } }
 
-@[simps] noncomputable
+/-- An ordered variant of `prime_spectrum_equiv`. -/
+@[simps]
 def prime_spectrum_order_equiv :
   order_dual (prime_spectrum A) ≃o { S | A ≤ S } :=
 { map_rel_iff' := λ P Q,
@@ -284,9 +295,6 @@ def prime_spectrum_order_equiv :
       λ h, by { apply of_prime_le_of_le, exact h } ⟩,
   ..(prime_spectrum_equiv A) }
 
-open_locale classical
-
-noncomputable
 instance linear_order_overring : linear_order { S | A ≤ S } :=
 { le_total := let i : is_total (prime_spectrum A) (≤) := (subtype.rel_embedding _ _).is_total in
     by exactI (prime_spectrum_order_equiv A).symm.to_rel_embedding.is_total.total,

@@ -180,7 +180,7 @@ section ordered_add_comm_group
 variables [ordered_comm_group α] {m n : ℤ} {a b : α}
 
 @[to_additive zsmul_pos]
-lemma one_lt_zpow (ha : 1 < a) {k : ℤ} (hk : (0:ℤ) < k) : 1 < a^k :=
+lemma one_lt_zpow' (ha : 1 < a) {k : ℤ} (hk : (0:ℤ) < k) : 1 < a^k :=
 begin
   lift k to ℕ using int.le_of_lt hk,
   rw zpow_coe_nat,

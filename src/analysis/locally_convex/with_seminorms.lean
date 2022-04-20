@@ -172,6 +172,27 @@ protected def module_filter_basis : module_filter_basis 𝕜 E :=
   smul_left' := p.basis_sets_smul_left,
   smul_right' := p.basis_sets_smul_right }
 
+lemma filter_eq_infi (p : seminorm_family 𝕜 E ι) :
+  p.module_filter_basis.to_filter_basis.filter = ⨅ i, (𝓝 0).comap (p i) :=
+begin
+  refine le_antisymm (le_infi $ λ i, _) _,
+  { rw p.module_filter_basis.to_filter_basis.has_basis.le_basis_iff
+      (metric.nhds_basis_ball.comap _),
+    intros ε hε,
+    refine ⟨(p i).ball 0 ε, _, _⟩,
+    { convert p.basis_sets_mem {i} hε,
+      rw finset.sup_singleton },
+    { rw [id, (p i).ball_zero_eq_preimage_ball hε] } },
+  { rw p.module_filter_basis.to_filter_basis.has_basis.ge_iff,
+    rintros U (hU : U ∈ p.basis_sets),
+    rw p.basis_sets_iff at hU,
+    rcases hU with ⟨s, r, hr, rfl⟩,
+    rw [id, seminorm.ball_finset_sup_eq_Inter _ _ _ hr, s.Inter_mem_sets],
+    intros i hi,
+    refine filter.mem_infi_of_mem i ⟨metric.ball 0 r, metric.ball_mem_nhds 0 hr, _⟩,
+    rw [(p i).ball_zero_eq_preimage_ball hr] }
+end
+
 end seminorm_family
 
 end filter_basis
@@ -282,6 +303,17 @@ lemma seminorm_family.with_seminorms_of_has_basis (p : seminorm_family 𝕜 E ι
 p.with_seminorms_of_nhds $ filter.has_basis.eq_of_same_basis h
   p.add_group_filter_basis.to_filter_basis.has_basis
 
+lemma seminorm_family.with_seminorms_iff_nhds_eq_infi [topological_space E]
+  [topological_add_group E] [nonempty ι] (p : seminorm_family 𝕜 E ι) :
+  with_seminorms p ↔ (𝓝 0 : filter E) = ⨅ i, (𝓝 0).comap (p i) :=
+begin
+  rw ← p.filter_eq_infi,
+  split,
+  { intro h,
+    rw h.topology_eq_with_seminorms,
+    exact add_group_filter_basis.nhds_zero_eq _ },
+  { exact p.with_seminorms_of_nhds }
+end
 
 end topological_add_group
 

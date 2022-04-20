@@ -24,10 +24,10 @@ open_locale nnreal matrix
 
 namespace matrix
 
-variables {R m n α : Type*} [fintype m] [fintype n]
+variables {R m n α β : Type*} [fintype m] [fintype n]
 
 section semi_normed_group
-variables [semi_normed_group α]
+variables [semi_normed_group α] [semi_normed_group β]
 
 /-- Seminormed group instance (using sup norm of sup norm) for matrices over a seminormed group. Not
 declared as an instance because there are several natural choices for defining the norm of a
@@ -64,6 +64,13 @@ lemma nnnorm_entry_le_entrywise_sup_nnorm (A : matrix m n α) {i : m} {j : n} :
 @[simp] lemma nnnorm_transpose (A : matrix m n α) : ∥Aᵀ∥₊ = ∥A∥₊ :=
 by { simp_rw [pi.nnnorm_def], exact finset.sup_comm _ _ _ }
 @[simp] lemma norm_transpose (A : matrix m n α) : ∥Aᵀ∥ = ∥A∥ := congr_arg coe $ nnnorm_transpose A
+
+@[simp] lemma nnnorm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥₊ = ∥a∥₊) :
+  ∥A.map f∥₊ = ∥A∥₊ :=
+by simp_rw [pi.nnnorm_def, matrix.map, hf]
+@[simp] lemma norm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥ = ∥a∥) :
+  ∥A.map f∥ = ∥A∥ :=
+(congr_arg (coe : ℝ≥0 → ℝ) $ nnnorm_map_eq A f $ λ a, subtype.ext $ hf a : _)
 
 @[simp] lemma nnnorm_col (v : m → α) : ∥col v∥₊ = ∥v∥₊ := by simp [pi.nnnorm_def]
 @[simp] lemma norm_col (v : m → α) : ∥col v∥ = ∥v∥ := congr_arg coe $ nnnorm_col v

@@ -24,11 +24,7 @@ variables [fintype m] [fintype n] [semi_normed_group E] [star_add_monoid E] [nor
 local attribute [instance] matrix.semi_normed_group
 
 @[simp] lemma norm_conj_transpose (M : matrix m n E) : ∥Mᴴ∥ = ∥M∥ :=
-begin
-  refine le_antisymm (by simp [matrix.norm_le_iff, M.norm_entry_le_entrywise_sup_norm]) _,
-  refine ((matrix.norm_le_iff (norm_nonneg _)).mpr (λ i j, _)),
-  exact (norm_star _).ge.trans Mᴴ.norm_entry_le_entrywise_sup_norm
-end
+(norm_map_eq _ _ norm_star).trans M.norm_transpose
 
 @[simp] lemma nnnorm_conj_transpose (M : matrix m n E) : ∥Mᴴ∥₊ = ∥M∥₊ :=
 subtype.ext M.norm_conj_transpose

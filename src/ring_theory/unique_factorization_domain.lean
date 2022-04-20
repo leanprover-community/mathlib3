@@ -435,6 +435,18 @@ variables [unique_factorization_monoid α]
 noncomputable def normalized_factors (a : α) : multiset α :=
 multiset.map normalize $ factors a
 
+/-- An arbitrary choice of factors of `x : M` is exactly the (unique) normalized set of factors,
+if `M` has a trivial group of units. -/
+@[simp] lemma factors_eq_normalized_factors {M : Type*} [cancel_comm_monoid_with_zero M]
+  [decidable_eq M] [unique_factorization_monoid M] [unique (Mˣ)] (x : M) :
+  factors x = normalized_factors x :=
+begin
+  unfold normalized_factors,
+  convert (multiset.map_id (factors x)).symm,
+  ext p,
+  exact normalize_eq p
+end
+
 theorem normalized_factors_prod {a : α} (ane0 : a ≠ 0) : associated (normalized_factors a).prod a :=
 begin
   rw [normalized_factors, factors, dif_neg ane0],

@@ -256,6 +256,8 @@ instance division_monoid [division_monoid α] : division_monoid (filter α) :=
   div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
   ..filter.monoid, ..filter.has_involutive_inv, ..filter.has_div }
 
+-- `filter α` is not a group because `s / s ≠ 1` in general
+
 /-! ### Scalar addition/multiplication of filters -/
 
 section smul

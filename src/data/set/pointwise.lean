@@ -634,6 +634,8 @@ protected def division_monoid [division_monoid α] : division_monoid (set α) :=
     by { rw [←image_id (s / t), ←image_inv], exact image_image2_distrib_right div_eq_mul_inv },
   ..set.monoid, ..set.has_involutive_inv, ..set.has_div }
 
+-- `set α` is not a group because `s / s ≠ 1` in general
+
 localized "attribute [instance] set.has_nsmul set.has_npow set.has_zsmul set.has_zpow
   set.division_monoid set.subtraction_monoid" in pointwise
 

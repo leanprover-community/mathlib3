@@ -406,15 +406,8 @@ begin
   { rw [npow_rec, pow_succ, coe_mul, ih] }
 end
 
-/- TODO: The below lemmas are duplicate because there is no typeclass greater than
-`div_inv_monoid` and `has_involutive_inv` but smaller than `group` and `group_with_zero`. -/
-
-@[simp, to_additive] lemma coe_zpow [group α] (s : finset α) : ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
-| (int.of_nat n) := coe_pow _ _
-| (int.neg_succ_of_nat n) :=
-  by { refine (coe_inv _).trans _, convert congr_arg has_inv.inv (coe_pow _ _) }
-
-@[simp] lemma coe_zpow' [group_with_zero α] (s : finset α) : ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
+@[simp, to_additive] lemma coe_zpow [division_monoid α] (s : finset α) :
+  ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
 | (int.of_nat n) := coe_pow _ _
 | (int.neg_succ_of_nat n) :=
   by { refine (coe_inv _).trans _, convert congr_arg has_inv.inv (coe_pow _ _) }
@@ -444,14 +437,13 @@ coe_injective.monoid _ coe_one coe_mul coe_pow
 protected def comm_monoid [comm_monoid α] : comm_monoid (finset α) :=
 coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 
-/- TODO: The below instances are duplicate because there is no typeclass greater than
-`div_inv_monoid` and `has_involutive_inv` but smaller than `group` and `group_with_zero`. -/
-
 /-- `finset α` is a division monoid under pointwise operations if `α` is. -/
 @[to_additive subtraction_monoid "`finset α` is a subtraction monoid under pointwise operations if
 `α` is."]
 protected def division_monoid [division_monoid α] : division_monoid (finset α) :=
 coe_injective.division_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
+
+-- `finset α` is not a group because `s / s ≠ 1` in general
 
 localized "attribute [instance] finset.mul_one_class finset.add_zero_class finset.semigroup
   finset.add_semigroup finset.monoid finset.add_monoid finset.comm_monoid finset.add_comm_monoid

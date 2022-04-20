@@ -56,7 +56,7 @@ lemma zpow_apply_comm {α : Type*} (σ : perm α) (m n : ℤ) {x : α} :
   (σ ^ m) ((σ ^ n) x) = (σ ^ n) ((σ ^ m) x) :=
 by rw [←equiv.perm.mul_apply, ←equiv.perm.mul_apply, zpow_mul_comm]
 
-@[simp] lemma iterate_eq_pow (f : perm α) : Π n, f^[n] = ⇑(f ^ n)
+@[simp] lemma iterate_eq_pow (f : perm α) : ∀ n, f^[n] = ⇑(f ^ n)
 | 0       := rfl
 | (n + 1) := by { rw [function.iterate_succ, pow_add, iterate_eq_pow], refl }
 

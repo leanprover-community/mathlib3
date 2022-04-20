@@ -174,6 +174,19 @@ instance prod.non_unital_semi_normed_ring [non_unital_semi_normed_ring β] :
         ... = (∥x∥*∥y∥) : rfl,
   ..prod.semi_normed_group }
 
+/-- Non-unital seminormed ring structure on the product of finitely many non-unital seminormed
+rings, using the sup norm. -/
+instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
+  [Π i, non_unital_semi_normed_ring (π i)] :
+  non_unital_semi_normed_ring (Π i, π i) :=
+{ norm_mul := λ x y, nnreal.coe_mono $
+    calc  finset.univ.sup (λ i, ∥x i * y i∥₊)
+        ≤ finset.univ.sup ((λ i, ∥x i∥₊) * (λ i, ∥y i∥₊)) :
+            finset.sup_mono_fun $ λ b hb, norm_mul_le _ _
+    ... ≤ finset.univ.sup (λ i, ∥x i∥₊) * finset.univ.sup (λ i, ∥y i∥₊) :
+            finset.sup_mul_le_mul_sup_of_nonneg _ (λ i _, zero_le _) (λ i _, zero_le _),
+  ..pi.semi_normed_group }
+
 end non_unital_semi_normed_ring
 
 section semi_normed_ring
@@ -205,9 +218,15 @@ lemma list.norm_prod_le' : ∀ {l : list α}, l ≠ [] → ∥l.prod∥ ≤ (l.m
     exact list.norm_prod_le' (list.cons_ne_nil b l)
   end
 
+lemma list.nnnorm_prod_le' {l : list α} (hl : l ≠ []) : ∥l.prod∥₊ ≤ (l.map nnnorm).prod :=
+(list.norm_prod_le' hl).trans_eq $ by simp [nnreal.coe_list_prod, list.map_map]
+
 lemma list.norm_prod_le [norm_one_class α] : ∀ l : list α, ∥l.prod∥ ≤ (l.map norm).prod
 | [] := by simp
 | (a::l) := list.norm_prod_le' (list.cons_ne_nil a l)
+
+lemma list.nnnorm_prod_le [norm_one_class α] (l : list α) : ∥l.prod∥₊ ≤ (l.map nnnorm).prod :=
+l.norm_prod_le.trans_eq $ by simp [nnreal.coe_list_prod, list.map_map]
 
 lemma finset.norm_prod_le' {α : Type*} [normed_comm_ring α] (s : finset ι) (hs : s.nonempty)
   (f : ι → α) :
@@ -218,6 +237,11 @@ begin
   simpa using list.norm_prod_le' this
 end
 
+lemma finset.nnnorm_prod_le' {α : Type*} [normed_comm_ring α] (s : finset ι) (hs : s.nonempty)
+  (f : ι → α) :
+  ∥∏ i in s, f i∥₊ ≤ ∏ i in s, ∥f i∥₊ :=
+(s.norm_prod_le' hs f).trans_eq $ by simp [nnreal.coe_prod]
+
 lemma finset.norm_prod_le {α : Type*} [normed_comm_ring α] [norm_one_class α] (s : finset ι)
   (f : ι → α) :
   ∥∏ i in s, f i∥ ≤ ∏ i in s, ∥f i∥ :=
@@ -225,6 +249,11 @@ begin
   rcases s with ⟨⟨l⟩, hl⟩,
   simpa using (l.map f).norm_prod_le
 end
+
+lemma finset.nnnorm_prod_le {α : Type*} [normed_comm_ring α] [norm_one_class α] (s : finset ι)
+  (f : ι → α) :
+  ∥∏ i in s, f i∥₊ ≤ ∏ i in s, ∥f i∥₊ :=
+(s.norm_prod_le f).trans_eq $ by simp [nnreal.coe_prod]
 
 /-- If `α` is a seminormed ring, then `∥a ^ n∥₊ ≤ ∥a∥₊ ^ n` for `n > 0`.
 See also `nnnorm_pow_le`. -/
@@ -256,6 +285,13 @@ instance prod.semi_normed_ring [semi_normed_ring β] :
 { ..prod.non_unital_semi_normed_ring,
   ..prod.semi_normed_group, }
 
+/-- Seminormed ring structure on the product of finitely many seminormed rings,
+  using the sup norm. -/
+instance pi.semi_normed_ring {π : ι → Type*} [fintype ι] [Π i, semi_normed_ring (π i)] :
+  semi_normed_ring (Π i, π i) :=
+{ ..pi.non_unital_semi_normed_ring,
+  ..pi.semi_normed_group, }
+
 end semi_normed_ring
 
 section non_unital_normed_ring
@@ -267,6 +303,12 @@ instance prod.non_unital_normed_ring [non_unital_normed_ring β] : non_unital_no
 { norm_mul := norm_mul_le,
   ..prod.semi_normed_group }
 
+/-- Normed ring structure on the product of finitely many non-unital normed rings, using the sup
+norm. -/
+instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι] [Π i, non_unital_normed_ring (π i)] :
+  non_unital_normed_ring (Π i, π i) :=
+{ norm_mul := norm_mul_le,
+  ..pi.normed_group }
 
 end non_unital_normed_ring
 
@@ -277,10 +319,19 @@ variables [normed_ring α]
 lemma units.norm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥ :=
 norm_pos_iff.mpr (units.ne_zero x)
 
+lemma units.nnorm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥₊ :=
+x.norm_pos
+
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
 instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.semi_normed_group }
+
+/-- Normed ring structure on the product of finitely many normed rings, using the sup norm. -/
+instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π i)] :
+  normed_ring (Π i, π i) :=
+{ norm_mul := norm_mul_le,
+  ..pi.semi_normed_group }
 
 end normed_ring
 

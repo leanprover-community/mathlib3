@@ -766,7 +766,7 @@ begin
   apply l.reverse_rec_on,
   exact λ hm, hm.irrefl.elim,
   intros m a H _,
-  rw [←coe_cons_eq_coe_append, chain_coe_cons, last_append]
+  rw [←coe_cons_eq_coe_append, chain_coe_cons, last_append_singleton]
 end
 
 lemma chain_map {β : Type*} {r : α → α → Prop} (f : β → α) {s : cycle β} :

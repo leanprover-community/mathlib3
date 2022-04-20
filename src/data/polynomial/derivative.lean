@@ -261,13 +261,14 @@ end
 theorem derivative_map [comm_semiring S] (p : R[X]) (f : R →+* S) :
   (p.map f).derivative = p.derivative.map f :=
 polynomial.induction_on p
-  (λ r, by rw [map_C, derivative_C, derivative_C, map_zero])
-  (λ p q ihp ihq, by rw [map_add, derivative_add, ihp, ihq, derivative_add, map_add])
-  (λ n r ih, by rw [map_mul, map_C, polynomial.map_pow, map_X, derivative_mul, derivative_pow_succ,
-                    derivative_C, zero_mul, zero_add, derivative_X, mul_one, derivative_mul,
-                    derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
-                    map_mul, map_C, map_mul, polynomial.map_pow, map_add,
-                    polynomial.map_nat_cast, map_one, map_X])
+  (λ r, by rw [map_C, derivative_C, derivative_C, polynomial.map_zero])
+  (λ p q ihp ihq, by rw [polynomial.map_add, derivative_add, ihp, ihq, derivative_add,
+                         polynomial.map_add])
+  (λ n r ih, by rw [polynomial.map_mul, polynomial.map_C, polynomial.map_pow, polynomial.map_X,
+    derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
+    derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
+    polynomial.map_mul, polynomial.map_C, polynomial.map_mul, polynomial.map_pow,
+    polynomial.map_add, polynomial.map_nat_cast, polynomial.map_one, polynomial.map_X])
 
 @[simp]
 theorem iterate_derivative_map [comm_semiring S] (p : R[X]) (f : R →+* S) (k : ℕ):
@@ -359,8 +360,8 @@ end
 
 end comm_ring
 
-section is_domain
-variables [ring R] [is_domain R]
+section no_zero_divisors
+variables [ring R] [no_zero_divisors R]
 
 lemma mem_support_derivative [char_zero R] (p : R[X]) (n : ℕ) :
   n ∈ (derivative p).support ↔ n + 1 ∈ p.support :=
@@ -388,7 +389,7 @@ begin
     exact hp }
 end
 
-end is_domain
+end no_zero_divisors
 
 end derivative
 end polynomial

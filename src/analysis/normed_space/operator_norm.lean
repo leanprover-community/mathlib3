@@ -1088,7 +1088,7 @@ f.bilinear_comp (fst _ _ _) (snd _ _ _) + f.flip.bilinear_comp (snd _ _ _) (fst 
 @[simp] lemma coe_deriv₂ (f : E →L[𝕜] Fₗ →L[𝕜] Gₗ) (p : E × Fₗ) :
   ⇑(f.deriv₂ p) = λ q : E × Fₗ, f p.1 q.2 + f q.1 p.2 := rfl
 
-lemma map_add₂ (f : E →L[𝕜] Fₗ →L[𝕜] Gₗ) (x x' : E) (y y' : Fₗ) :
+lemma map_add_add (f : E →L[𝕜] Fₗ →L[𝕜] Gₗ) (x x' : E) (y y' : Fₗ) :
   f (x + x') (y + y') = f x y + f.deriv₂ (x, y) (x', y') + f x' y' :=
 by simp only [map_add, add_apply, coe_deriv₂, add_assoc]
 

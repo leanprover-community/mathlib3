@@ -224,13 +224,14 @@ end
 
 instance : has_set_prod (set  ℂ) (set ℝ) (set (ℂ × ℝ )) := infer_instance
 
-lemma circle_integral_bounding_function_bound (R r : ℝ) (hR: 0 < R) (hr : r < R) (hr' : 0 ≤  r)  (z : ℂ) :
- ∃ (x :  ((closed_ball z r) ×ˢ (interval 0 (2*π)) : set (ℂ × ℝ)) ),
- ∀ (y :  ((closed_ball z r) ×ˢ (interval 0 (2*π)) : set (ℂ × ℝ)) ),
- complex.abs (circle_integral_bounding_function R  z  y) ≤
- complex.abs(circle_integral_bounding_function R z x) :=
+lemma circle_integral_bounding_function_bound (R r : ℝ) (hR: 0 < R) (hr : r < R) (hr' : 0 ≤  r)
+  (z : ℂ) :
+  ∃ (x :  ((closed_ball z r) ×ˢ (interval 0 (2*π)) : set (ℂ × ℝ)) ),
+  ∀ (y :  ((closed_ball z r) ×ˢ (interval 0 (2*π)) : set (ℂ × ℝ)) ),
+  complex.abs (circle_integral_bounding_function R  z  y) ≤
+  complex.abs(circle_integral_bounding_function R z x) :=
 begin
-have cts:= circle_integral_bounding_function_continuous_on R r hR hr z,
+  have cts:= circle_integral_bounding_function_continuous_on R r hR hr z,
   have comp : is_compact   ( ((closed_ball z r) ×ˢ (interval 0 (2*π))) : set (ℂ × ℝ)),
   by {apply_rules [is_compact.prod, proper_space.is_compact_closed_ball z r, is_compact_interval],},
   have none : (((closed_ball z r) ×ˢ (interval 0 (2*π))) : set (ℂ × ℝ)).nonempty ,
@@ -265,7 +266,7 @@ begin
   simp,
 end
 
-lemma bound3_cts (R : ℝ)  (hR: 0 < R) (z a: ℂ) (b : ℝ) (f : ℂ → ℂ)
+lemma bound3_cts (R : ℝ)  (hR: 0 < R) (z a : ℂ) (b : ℝ) (f : ℂ → ℂ)
   (hf : continuous_on f (sphere z R)) :
   continuous_on (λ (r : ℝ),
   (complex.abs ( circle_integral_bounding_function_rest R z b a)) *
@@ -570,35 +571,75 @@ begin
   apply hε,
 end
 
-lemma sum_ite_eq_extract {α : Type*} [decidable_eq α] (s : finset α) (b : s) (f : s → ℂ) :
-  ∑ n, f n = f b + ∑ n, ite (n = b) 0 (f n) :=
+lemma circle_integral_function_of_uniform_exists_bounding_function (R : ℝ) (hR: 0 < R)
+  (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (w : ball z R)
+  (F_cts : ∀ n, continuous_on (F n) (sphere z R))
+  (hlim : tendsto_uniformly_on F f filter.at_top (sphere z R) ):
+  ∃ (bound : ℝ → ℝ), ((∀ n, ∀ᵐ r ∂(volume.restrict (Ioc 0  (2*π))),
+  ∥(circle_integral_function R z (F n) w) r∥ ≤ bound r)
+  ∧ integrable bound (volume.restrict (Ioc 0 (2*π)))) :=
 begin
-  simp_rw ← tsum_fintype,
-  apply tsum_ite_eq_extract,
-  simp only at *,
-  apply (has_sum_fintype f).summable,
-end
-
-def circle_int_bound2 (R : ℝ) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (w : ball z R) (a : ℕ)
-  : ℝ → ℝ :=
-  λ θ, (∑ (i : finset.range (a+1) ),complex.abs ((circle_integral_function R z (F i) w) θ))  +
-  complex.abs ((circle_integral_function R z (λ x, 1) w) θ)  +
-  complex.abs ((circle_integral_function R z f w) θ)
-
-lemma circle_int_bound2_int (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (w : ball z R)
-  (a : ℕ) (F_cts : ∀ n, continuous_on (F n) (sphere z R)) (hf : continuous_on f (sphere z R)) :
-  integrable (circle_int_bound2 R F f z w a) (volume.restrict (Ioc 0  (2*π))) :=
-begin
- rw circle_int_bound2,
-  apply integrable.add,
-  apply  integrable.add,
-  apply integrable_finset_sum,
-  simp only [finset.mem_attach, forall_true_left, finset.univ_eq_attach],
-  intro i,
+  have f_cont: continuous_on f (sphere z R) ,
+  by {apply tendsto_uniformly_on.continuous_on hlim,
+  simp only [F_cts, eventually_at_top, implies_true_iff, exists_const],},
+  simp only [ metric.tendsto_uniformly_on_iff, gt_iff_lt, ge_iff_le, eventually_at_top] at hlim,
+  have hlimb:= hlim 1 (zero_lt_one),
+  obtain ⟨a, ha⟩ :=hlimb,
+  set bound : ℝ → ℝ := λ θ, (∑ i in finset.range (a+1) ,
+  complex.abs ((circle_integral_function R z (F i) w) θ))
+  + complex.abs ((circle_integral_function R z (λ x, 1) w) θ)  +
+  complex.abs ((circle_integral_function R z f  w) θ),
+  refine ⟨bound,_⟩,
+  split,
+  intro n,
+  rw  [ae_restrict_iff',eventually_iff_exists_mem] at *,
+  use ⊤,
+  simp only [true_and, and_imp, mem_Ioc,
+  top_eq_univ, univ_mem, mem_univ, forall_true_left, norm_eq_abs],
+  intros y hyl hyu,
+  by_cases (n ≤ a),
+  simp_rw bound,
+  have hnn : n ∈ finset.range(a+1), by {simp only [finset.mem_range],linarith},
+  have := finset.add_sum_erase (finset.range (a+1))
+  (λ i , complex.abs ((circle_integral_function R z (F i) w) y)) hnn,
+  simp only [and_imp, mem_Ioc, finset.mem_range, mem_sphere_iff_norm, norm_eq_abs] at *,
+  simp_rw [←this, add_assoc, le_add_iff_nonneg_right],
+  apply add_nonneg,
+  apply finset.sum_nonneg,
+  intros i hi,
+  simp only,
+  by_cases H : i = n,
+  simp only [H],
+  apply abs_nonneg,
+  apply abs_nonneg,
+  simp only [add_nonneg, abs_nonneg],
+  apply abs_aux ((circle_integral_function R z (F n) w) y) (bound y),
+  refine ⟨circle_integral_function R z f ↑w y,_⟩,
+  rw circle_integral_function_sub,
+  simp_rw bound,
+  simp only [add_le_add_iff_right, finset.univ_eq_attach],
+  have := circle_integral_function_sub_bound R hR ((F n) - f) z w 1,
+  simp only [not_le] at h,
+  have haan:= ha n h.le,
+  simp only [of_real_one, abs_one, pi.sub_apply] at this,
+  simp_rw dist_eq_norm at *,
+  simp only [norm_eq_abs] at haan,
+  have haf:  ∀ (x : sphere z R), abs (F n x - f x) ≤  1,
+  by {intro x, rw abs_sub_comm, apply (haan x.1 x.property).le,},
+  refine le_add_of_nonneg_of_le _ ((this haf) y),
+  apply finset.sum_nonneg,
+  intros i hi,
+  apply abs_nonneg,
+  simp only [measurable_set_Ioc],
+  simp_rw bound,
+  apply_rules [integrable.add, integrable.add,  integrable_finset_sum],
+  simp  [finset.mem_attach, forall_true_left, finset.univ_eq_attach],
+  intros i hi,
   apply circle_integral_function_int_abs R hR (F i) z (F_cts i),
   apply circle_integral_function_int_abs R hR _ z continuous_const.continuous_on,
-  apply circle_integral_function_int_abs R hR f z hf,
+  apply circle_integral_function_int_abs R hR f z f_cont,
 end
+
 
 lemma circle_int_uniform_lim_eq_lim_of_int (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ)
   (w : ball z R) (F_cts : ∀ n, continuous_on (F n) (sphere z R))
@@ -606,14 +647,10 @@ lemma circle_int_uniform_lim_eq_lim_of_int (R : ℝ) (hR: 0 < R) (F : ℕ → �
   tendsto (λn, ∫ (θ : ℝ) in 0..2 * π, (circle_integral_function R z (F n) w) θ)
   at_top (𝓝 $  ∫ (θ : ℝ) in 0..2 * π, (circle_integral_function R z f w) θ) :=
 begin
-have f_cont: continuous_on f (sphere z R) ,
-  by {apply tendsto_uniformly_on.continuous_on hlim, simp only [ge_iff_le, eventually_at_top],
-  use 1,
-  intros b hb, apply F_cts,},
   have F_measurable : ∀ n,
   ae_strongly_measurable (circle_integral_function R z (F n) w) (volume.restrict (Ioc 0  (2*π))),
   by {intro n, simp_rw _root_.ae_strongly_measurable_iff_ae_measurable,
-  have:= circle_integral_function_int R hR  (F n) z (F_cts n) w,
+  have := circle_integral_function_int R hR  (F n) z (F_cts n) w,
   apply this.ae_measurable, },
   have h_lim'' : ∀ (a : ℝ), tendsto (λ n, ((circle_integral_function R z (F n) w)) a)
   at_top (𝓝 (((circle_integral_function R  z f w)) a)),
@@ -622,66 +659,9 @@ have f_cont: continuous_on f (sphere z R) ,
   tendsto (λ n, ((circle_integral_function R z (F n)  w)) a)
   at_top (𝓝 (((circle_integral_function R z f w)) a)),
   by {simp only [h_lim'', eventually_true],},
-  rw metric.tendsto_uniformly_on_iff at hlim,
-  simp only [gt_iff_lt, ge_iff_le, eventually_at_top] at hlim,
-  have hlimb:= hlim 1 (zero_lt_one),
-  obtain ⟨ a, ha⟩ :=hlimb,
-  set bound : ℝ → ℝ :=λ θ, (∑ (i : finset.range (a+1) ),
-  complex.abs ((circle_integral_function R z (F i) w) θ))
-  + complex.abs ((circle_integral_function R z (λ x, 1) w) θ)  +
-  complex.abs ((circle_integral_function R z f  w) θ),
-  have h_bound : ∀ n, ∀ᵐ a ∂(volume.restrict (Ioc 0  (2*π))),
-  ∥(circle_integral_function R z (F n) w) a∥ ≤ bound a,
-  by {intro n,
-  rw  ae_restrict_iff' at *,
-  rw eventually_iff_exists_mem,
-  use ⊤,
-  simp only [true_and, and_imp, mem_Ioc,
-  top_eq_univ, univ_mem, mem_univ, forall_true_left, norm_eq_abs],
-  intros y hyl hyu,
-  by_cases (n ≤ a),
-  simp_rw bound,
-  have:= sum_ite_eq_extract (finset.range (a+1)) ⟨n, by {simp [h],linarith}⟩
-  (λ (i : finset.range (a+1) ),complex.abs ((circle_integral_function R z (F i) w) y)),
-  simp only [and_imp, mem_Ioc, add_zero,mem_closed_ball,int.coe_nat_add,ge_iff_le,int.coe_nat_one,
-  zero_add,finset.univ_eq_attach,finset.mem_range,subtype.coe_mk,zero_lt_one,neg_zero] at *,
-  norm_cast at *,
-  simp_rw [this, add_assoc, le_add_iff_nonneg_right],
-  apply add_nonneg,
-  apply finset.sum_nonneg,
-  intros i hi,
-  simp only,
-  rw ← dite_eq_ite,
-  by_cases H : i = ⟨n, by {simp only [finset.mem_range],linarith}⟩,
-  simp only [H, dite_eq_ite, if_true, eq_self_iff_true],
-  simp only [dif_neg H],
-  apply abs_nonneg,
-  simp only [add_nonneg, abs_nonneg],
-  simp only [not_le] at h,
-  apply abs_aux ((circle_integral_function R z (F n) w) y) (bound y),
-  use circle_integral_function R z f ↑w y,
-  rw circle_integral_function_sub,
-  simp_rw bound,
-  simp only [add_le_add_iff_right, finset.univ_eq_attach],
-  have := circle_integral_function_sub_bound R hR ((F n) - f) z w 1,
-  have haan:= ha n h.le,
-  simp only [of_real_one, abs_one, pi.sub_apply] at this,
-  simp_rw dist_eq_norm at *,
-  simp only [norm_eq_abs] at haan,
-  have haf:  ∀ (x : sphere z R), abs (F n x - f x) ≤  1,
-  by {intro x, rw abs_sub_comm, apply (haan x.1 x.property).le,},
-  have h5:= this haf,
-  have h6:= h5 y,
-  refine le_add_of_nonneg_of_le _ h6,
-  apply finset.sum_nonneg,
-  intros i hi,
-  apply abs_nonneg,
-  all_goals {simp only [measurable_set_Ioc]},},
-  have bound_integrable : integrable bound (volume.restrict (Ioc 0  (2*π))),
-  by {have := circle_int_bound2_int R hR F f z w a F_cts f_cont,
-  simp_rw bound,
-  rw circle_int_bound2 at this,
-  apply this,},
+  have hboundlem := circle_integral_function_of_uniform_exists_bounding_function R hR F f z w F_cts
+  hlim,
+  obtain ⟨bound, h_bound, bound_integrable⟩ := hboundlem,
   have := tendsto_integral_of_dominated_convergence bound F_measurable bound_integrable
   h_bound h_lim',
   have pi: 0 ≤ 2*π , by {apply real.two_pi_pos.le},
@@ -689,7 +669,7 @@ have f_cont: continuous_on f (sphere z R) ,
   apply this,
 end
 
-lemma Ineq1 (a b c d e f r: ℂ) (ε : ℝ) (hε: 0 < ε) (h1: abs (a- b) < 8⁻¹ * abs(r )* ε)
+lemma Ineq1 (a b c d e f r: ℂ) (ε : ℝ) (hε: 0 < ε) (h1 : abs (a- b) < 8⁻¹ * abs(r )* ε)
 (h2 : abs (c- d) < 8⁻¹ * abs(r) * ε ) (h3 : (abs r)⁻¹ * abs ((b- d)- (e-f)) < (2/3) * ε) :
 (abs r)⁻¹ * abs ((a-b) - (c-d) + (b-d) - (e-f) ) < ε :=
 begin

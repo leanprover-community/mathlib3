@@ -327,7 +327,7 @@ end comm_ring
 
 section cancel_comm_monoid_with_zero
 
-variables [cancel_comm_monoid_with_zero α]
+variables [comm_monoid_with_zero α] [is_domain α]
 
 lemma finite_mul_aux {p : α} (hp : prime p) : ∀ {n m : ℕ} {a b : α},
   ¬p ^ (n + 1) ∣ a → ¬p ^ (m + 1) ∣ b → ¬p ^ (n + m + 1) ∣ a * b

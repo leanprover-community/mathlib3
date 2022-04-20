@@ -44,7 +44,7 @@ end comm_monoid_with_zero
 
 section cancel_comm_monoid_with_zero
 
-variables {M : Type*} [cancel_comm_monoid_with_zero M] [unique (units M)]
+variables {M : Type*} [comm_monoid_with_zero M] [unique (units M)] [is_domain M] [unique (units M)]
 
 lemma mem_list_primes_of_dvd_prod {p : M} (hp : prime p) {L : list M} (hL : ∀ q ∈ L, prime q)
   (hpL : p ∣ L.prod) : p ∈ L :=

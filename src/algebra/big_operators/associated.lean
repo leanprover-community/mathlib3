@@ -49,7 +49,7 @@ hp.exists_mem_multiset_map_dvd
 
 end prime
 
-lemma exists_associated_mem_of_dvd_prod [cancel_comm_monoid_with_zero α] {p : α}
+lemma exists_associated_mem_of_dvd_prod [comm_monoid_with_zero α] [is_domain α] {p : α}
   (hp : prime p) {s : multiset α} : (∀ r ∈ s, prime r) → p ∣ s.prod → ∃ q ∈ s, p ~ᵤ q :=
 multiset.induction_on s (by simp [mt is_unit_iff_dvd_one.2 hp.not_unit])
   (λ a s ih hs hps, begin
@@ -65,7 +65,7 @@ multiset.induction_on s (by simp [mt is_unit_iff_dvd_one.2 hp.not_unit])
   end)
 
 lemma multiset.prod_primes_dvd
-  [cancel_comm_monoid_with_zero α] [Π a : α, decidable_pred (associated a)]
+  [comm_monoid_with_zero α] [Π a : α, decidable_pred (associated a)] [is_domain α] [Π a : α, decidable_pred (associated a)]
   {s : multiset α} (n : α) (h : ∀ a ∈ s, prime a) (div : ∀ a ∈ s, a ∣ n)
   (uniq : ∀ a, s.countp (associated a) ≤ 1) :
   s.prod ∣ n :=
@@ -91,7 +91,7 @@ begin
 end
 
 lemma finset.prod_primes_dvd
-  [cancel_comm_monoid_with_zero α] [unique αˣ]
+  [comm_monoid_with_zero α] [unique αˣ] [is_domain α] [unique αˣ]
   {s : finset α} (n : α) (h : ∀ a ∈ s, prime a) (div : ∀ a ∈ s, a ∣ n) :
   (∏ p in s, p) ∣ n :=
 begin
@@ -135,7 +135,7 @@ end comm_monoid
 
 section cancel_comm_monoid_with_zero
 
-variables [cancel_comm_monoid_with_zero α]
+variables [comm_monoid_with_zero α] [is_domain α]
 
 lemma exists_mem_multiset_le_of_prime {s : multiset (associates α)} {p : associates α}
   (hp : prime p) :
@@ -154,7 +154,7 @@ end associates
 
 namespace multiset
 
-lemma prod_ne_zero_of_prime [cancel_comm_monoid_with_zero α] [nontrivial α]
+lemma prod_ne_zero_of_prime [comm_monoid_with_zero α] [nontrivial α] [is_domain α] [nontrivial α]
  (s : multiset α) (h : ∀ x ∈ s, prime x) : s.prod ≠ 0 :=
 multiset.prod_ne_zero (λ h0, prime.ne_zero (h 0 h0) rfl)
 

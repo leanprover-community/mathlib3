@@ -200,7 +200,7 @@ end
 end ordered_cancel_comm_monoid
 
 section cancel_comm_monoid_with_zero
-variables [cancel_comm_monoid_with_zero α] [no_zero_divisors α] {s : set α} {a : α}
+variables [comm_monoid_with_zero α] [no_zero_divisors α] [is_domain α] [no_zero_divisors α] {s : set α} {a : α}
 
 lemma mul_salem_spencer.mul_left₀ (hs : mul_salem_spencer s) (ha : a ≠ 0) :
   mul_salem_spencer ((*) a '' s) :=

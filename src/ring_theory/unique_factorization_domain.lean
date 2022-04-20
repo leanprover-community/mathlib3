@@ -109,12 +109,12 @@ wf_dvd_monoid.induction_on_irreducible a
 
 end wf_dvd_monoid
 
-theorem wf_dvd_monoid.of_well_founded_associates [cancel_comm_monoid_with_zero α]
+theorem wf_dvd_monoid.of_well_founded_associates [comm_monoid_with_zero α] [is_domain α]
   (h : well_founded ((<) : associates α → associates α → Prop)) : wf_dvd_monoid α :=
 wf_dvd_monoid.of_wf_dvd_monoid_associates
   ⟨by { convert h, ext, exact associates.dvd_not_unit_iff_lt }⟩
 
-theorem wf_dvd_monoid.iff_well_founded_associates [cancel_comm_monoid_with_zero α] :
+theorem wf_dvd_monoid.iff_well_founded_associates [comm_monoid_with_zero α] [is_domain α] :
   wf_dvd_monoid α ↔ well_founded ((<) : associates α → associates α → Prop) :=
 ⟨by apply wf_dvd_monoid.well_founded_associates, wf_dvd_monoid.of_well_founded_associates⟩
 section prio
@@ -137,17 +137,17 @@ To define a UFD using the definition in terms of multisets
 of prime factors, use the definition `of_exists_prime_factors`
 
 -/
-class unique_factorization_monoid (α : Type*) [cancel_comm_monoid_with_zero α]
+class unique_factorization_monoid (α : Type*) [comm_monoid_with_zero α] [is_domain α]
   extends wf_dvd_monoid α : Prop :=
 (irreducible_iff_prime : ∀ {a : α}, irreducible a ↔ prime a)
 
 /-- Can't be an instance because it would cause a loop `ufm → wf_dvd_monoid → ufm → ...`. -/
-@[reducible] lemma ufm_of_gcd_of_wf_dvd_monoid [cancel_comm_monoid_with_zero α]
+@[reducible] lemma ufm_of_gcd_of_wf_dvd_monoid [comm_monoid_with_zero α] [is_domain α]
   [wf_dvd_monoid α] [gcd_monoid α] : unique_factorization_monoid α :=
 { irreducible_iff_prime := λ _, gcd_monoid.irreducible_iff_prime
   .. ‹wf_dvd_monoid α› }
 
-instance associates.ufm [cancel_comm_monoid_with_zero α]
+instance associates.ufm [comm_monoid_with_zero α] [is_domain α]
   [unique_factorization_monoid α] : unique_factorization_monoid (associates α) :=
 { irreducible_iff_prime := by { rw ← associates.irreducible_iff_prime_iff,
     apply unique_factorization_monoid.irreducible_iff_prime, }
@@ -156,7 +156,7 @@ instance associates.ufm [cancel_comm_monoid_with_zero α]
 end prio
 
 namespace unique_factorization_monoid
-variables [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α]
+variables [comm_monoid_with_zero α] [unique_factorization_monoid α] [is_domain α] [unique_factorization_monoid α]
 
 theorem exists_prime_factors (a : α) : a ≠ 0 →
   ∃ f : multiset α, (∀b ∈ f, prime b) ∧ f.prod ~ᵤ a :=
@@ -199,7 +199,7 @@ by haveI := classical.dec_eq α; exact
 
 end unique_factorization_monoid
 
-lemma prime_factors_unique [cancel_comm_monoid_with_zero α] : ∀ {f g : multiset α},
+lemma prime_factors_unique [comm_monoid_with_zero α] [is_domain α] : ∀ {f g : multiset α},
   (∀ x ∈ f, prime x) → (∀ x ∈ g, prime x) → f.prod ~ᵤ g.prod →
   multiset.rel associated f g :=
 by haveI := classical.dec_eq α; exact
@@ -226,7 +226,7 @@ by haveI := classical.dec_eq α; exact
 
 /-- If an irreducible has a prime factorization,
   then it is an associate of one of its prime factors. -/
-lemma prime_factors_irreducible [cancel_comm_monoid_with_zero α] {a : α} {f : multiset α}
+lemma prime_factors_irreducible [comm_monoid_with_zero α] [is_domain α] {a : α} {f : multiset α}
   (ha : irreducible a) (pfa : (∀b ∈ f, prime b) ∧ f.prod ~ᵤ a) :
   ∃ p, a ~ᵤ p ∧ f = {p} :=
 begin
@@ -251,7 +251,7 @@ end
 
 section exists_prime_factors
 
-variables [cancel_comm_monoid_with_zero α]
+variables [comm_monoid_with_zero α] [is_domain α]
 variables (pf : ∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, prime b) ∧ f.prod ~ᵤ a)
 
 include pf
@@ -308,14 +308,14 @@ theorem unique_factorization_monoid.of_exists_prime_factors :
 
 end exists_prime_factors
 
-theorem unique_factorization_monoid.iff_exists_prime_factors [cancel_comm_monoid_with_zero α] :
+theorem unique_factorization_monoid.iff_exists_prime_factors [comm_monoid_with_zero α] [is_domain α] :
   unique_factorization_monoid α ↔
     (∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, prime b) ∧ f.prod ~ᵤ a) :=
 ⟨λ h, @unique_factorization_monoid.exists_prime_factors _ _ h,
   unique_factorization_monoid.of_exists_prime_factors⟩
 
 section
-variables {β : Type*} [cancel_comm_monoid_with_zero α] [cancel_comm_monoid_with_zero β]
+variables {β : Type*} [comm_monoid_with_zero α] [cancel_comm_monoid_with_zero β] [is_domain α] [cancel_comm_monoid_with_zero β]
 
 lemma mul_equiv.unique_factorization_monoid (e : α ≃* β)
   (hα : unique_factorization_monoid α) : unique_factorization_monoid β :=
@@ -334,7 +334,7 @@ lemma mul_equiv.unique_factorization_monoid_iff (e : α ≃* β) :
 
 end
 
-theorem irreducible_iff_prime_of_exists_unique_irreducible_factors [cancel_comm_monoid_with_zero α]
+theorem irreducible_iff_prime_of_exists_unique_irreducible_factors [comm_monoid_with_zero α] [is_domain α]
   (eif : ∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, irreducible b) ∧ f.prod ~ᵤ a)
   (uif : ∀ (f g : multiset α),
   (∀ x ∈ f, irreducible x) → (∀ x ∈ g, irreducible x) → f.prod ~ᵤ g.prod →
@@ -377,7 +377,7 @@ theorem irreducible_iff_prime_of_exists_unique_irreducible_factors [cancel_comm_
         end⟩, prime.irreducible⟩
 
 theorem unique_factorization_monoid.of_exists_unique_irreducible_factors
-  [cancel_comm_monoid_with_zero α]
+  [comm_monoid_with_zero α] [is_domain α]
   (eif : ∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, irreducible b) ∧ f.prod ~ᵤ a)
   (uif : ∀ (f g : multiset α),
   (∀ x ∈ f, irreducible x) → (∀ x ∈ g, irreducible x) → f.prod ~ᵤ g.prod →
@@ -388,7 +388,7 @@ unique_factorization_monoid.of_exists_prime_factors (by
     simp_rw irreducible_iff_prime_of_exists_unique_irreducible_factors eif uif })
 
 namespace unique_factorization_monoid
-variables [cancel_comm_monoid_with_zero α] [decidable_eq α]
+variables [comm_monoid_with_zero α] [decidable_eq α] [is_domain α] [decidable_eq α]
 variables [unique_factorization_monoid α]
 /-- Noncomputably determines the multiset of prime factors. -/
 noncomputable def factors (a : α) : multiset α := if h : a = 0 then 0 else
@@ -428,7 +428,7 @@ multiset.exists_mem_of_rel_of_mem this (by simp)
 end unique_factorization_monoid
 
 namespace unique_factorization_monoid
-variables [cancel_comm_monoid_with_zero α] [decidable_eq α] [normalization_monoid α]
+variables [comm_monoid_with_zero α] [decidable_eq α] [normalization_monoid α] [is_domain α] [decidable_eq α] [normalization_monoid α]
 variables [unique_factorization_monoid α]
 
 /-- Noncomputably determines the multiset of prime factors. -/
@@ -437,7 +437,7 @@ multiset.map normalize $ factors a
 
 /-- An arbitrary choice of factors of `x : M` is exactly the (unique) normalized set of factors,
 if `M` has a trivial group of units. -/
-@[simp] lemma factors_eq_normalized_factors {M : Type*} [cancel_comm_monoid_with_zero M]
+@[simp] lemma factors_eq_normalized_factors {M : Type*} [comm_monoid_with_zero M] [is_domain M]
   [decidable_eq M] [unique_factorization_monoid M] [unique (Mˣ)] (x : M) :
   factors x = normalized_factors x :=
 begin
@@ -601,7 +601,7 @@ open_locale classical
 open multiset associates
 noncomputable theory
 
-variables [cancel_comm_monoid_with_zero α] [nontrivial α] [unique_factorization_monoid α]
+variables [comm_monoid_with_zero α] [nontrivial α] [unique_factorization_monoid α] [is_domain α] [nontrivial α] [unique_factorization_monoid α]
 
 /-- Noncomputably defines a `normalization_monoid` structure on a `unique_factorization_monoid`. -/
 protected def normalization_monoid : normalization_monoid α :=
@@ -633,7 +633,7 @@ end unique_factorization_monoid
 
 namespace unique_factorization_monoid
 
-variables {R : Type*} [cancel_comm_monoid_with_zero R] [unique_factorization_monoid R]
+variables {R : Type*} [comm_monoid_with_zero R] [unique_factorization_monoid R] [is_domain R] [unique_factorization_monoid R]
 
 lemma no_factors_of_no_prime_factors {a b : R} (ha : a ≠ 0)
   (h : (∀ {d}, d ∣ a → d ∣ b → ¬ prime d)) : ∀ {d}, d ∣ a → d ∣ b → is_unit d :=
@@ -774,7 +774,7 @@ end unique_factorization_monoid
 
 namespace associates
 open unique_factorization_monoid associated multiset
-variables [cancel_comm_monoid_with_zero α]
+variables [comm_monoid_with_zero α] [is_domain α]
 
 /-- `factor_set α` representation elements of unique factorization domain as multisets.
 `multiset α` produced by `normalized_factors` are only unique up to associated elements, while the
@@ -783,7 +783,7 @@ gives us a representation of each element as a unique multisets (or the added �
 complete lattice struture. Infimum is the greatest common divisor and supremum is the least common
 multiple.
 -/
-@[reducible] def {u} factor_set (α : Type u) [cancel_comm_monoid_with_zero α] :
+@[reducible] def {u} factor_set (α : Type u) [comm_monoid_with_zero α] [is_domain α] :
   Type u :=
 with_top (multiset { a : associates α // irreducible a })
 
@@ -1480,7 +1480,7 @@ by rw [←quot_mk_eq_mk, quot.out_eq]
 
 /-- `to_gcd_monoid` constructs a GCD monoid out of a unique factorization domain. -/
 noncomputable def unique_factorization_monoid.to_gcd_monoid
-  (α : Type*) [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α]
+  (α : Type*) [comm_monoid_with_zero α] [unique_factorization_monoid α] [is_domain α] [unique_factorization_monoid α]
   [decidable_eq (associates α)] [decidable_eq α] : gcd_monoid α :=
 { gcd := λa b, quot.out (associates.mk a ⊓ associates.mk b : associates α),
   lcm := λa b, quot.out (associates.mk a ⊔ associates.mk b : associates α),
@@ -1509,7 +1509,7 @@ noncomputable def unique_factorization_monoid.to_gcd_monoid
 /-- `to_normalized_gcd_monoid` constructs a GCD monoid out of a normalization on a
   unique factorization domain. -/
 noncomputable def unique_factorization_monoid.to_normalized_gcd_monoid
-  (α : Type*) [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α]
+  (α : Type*) [comm_monoid_with_zero α] [unique_factorization_monoid α] [is_domain α] [unique_factorization_monoid α]
   [normalization_monoid α] [decidable_eq (associates α)] [decidable_eq α] :
   normalized_gcd_monoid α :=
 { gcd := λa b, (associates.mk a ⊓ associates.mk b).out,
@@ -1533,7 +1533,7 @@ namespace unique_factorization_monoid
 
 /-- If `y` is a nonzero element of a unique factorization monoid with finitely
 many units (e.g. `ℤ`, `ideal (ring_of_integers K)`), it has finitely many divisors. -/
-noncomputable def fintype_subtype_dvd {M : Type*} [cancel_comm_monoid_with_zero M]
+noncomputable def fintype_subtype_dvd {M : Type*} [comm_monoid_with_zero M] [is_domain M]
   [unique_factorization_monoid M] [fintype Mˣ]
   (y : M) (hy : y ≠ 0) :
   fintype {x // x ∣ y} :=
@@ -1572,7 +1572,7 @@ end
 end unique_factorization_monoid
 
 section finsupp
-variables [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α]
+variables [comm_monoid_with_zero α] [unique_factorization_monoid α] [is_domain α] [unique_factorization_monoid α]
 variables [normalization_monoid α] [decidable_eq α]
 
 open unique_factorization_monoid

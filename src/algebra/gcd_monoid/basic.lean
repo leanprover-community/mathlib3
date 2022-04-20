@@ -69,7 +69,7 @@ variables {α : Type*}
 /-- Normalization monoid: multiplying with `norm_unit` gives a normal form for associated
 elements. -/
 @[protect_proj] class normalization_monoid (α : Type*)
-  [cancel_comm_monoid_with_zero α] :=
+  [comm_monoid_with_zero α] [is_domain α] :=
 (norm_unit : α → αˣ)
 (norm_unit_zero      : norm_unit 0 = 1)
 (norm_unit_mul       : ∀{a b}, a ≠ 0 → b ≠ 0 → norm_unit (a * b) = norm_unit a * norm_unit b)
@@ -80,7 +80,7 @@ export normalization_monoid (norm_unit norm_unit_zero norm_unit_mul norm_unit_co
 attribute [simp] norm_unit_coe_units norm_unit_zero norm_unit_mul
 
 section normalization_monoid
-variables [cancel_comm_monoid_with_zero α] [normalization_monoid α]
+variables [comm_monoid_with_zero α] [normalization_monoid α] [is_domain α] [normalization_monoid α]
 
 @[simp] theorem norm_unit_one : norm_unit (1:α) = 1 :=
 norm_unit_coe_units 1
@@ -162,7 +162,7 @@ units.mul_right_dvd
 end normalization_monoid
 
 namespace associates
-variables [cancel_comm_monoid_with_zero α] [normalization_monoid α]
+variables [comm_monoid_with_zero α] [normalization_monoid α] [is_domain α] [normalization_monoid α]
 
 local attribute [instance] associated.setoid
 
@@ -206,7 +206,7 @@ end associates
 `lcm` (least common multiple) operations, determined up to a unit. The type class focuses on `gcd`
 and we derive the corresponding `lcm` facts from `gcd`.
 -/
-@[protect_proj] class gcd_monoid (α : Type*) [cancel_comm_monoid_with_zero α] :=
+@[protect_proj] class gcd_monoid (α : Type*) [comm_monoid_with_zero α] [is_domain α] :=
 (gcd : α → α → α)
 (lcm : α → α → α)
 (gcd_dvd_left   : ∀a b, gcd a b ∣ a)
@@ -222,7 +222,7 @@ and we derive the corresponding `lcm` facts from `gcd`.
 supremum, `1` is bottom, and `0` is top. The type class focuses on `gcd` and we derive the
 corresponding `lcm` facts from `gcd`.
 -/
-class normalized_gcd_monoid (α : Type*) [cancel_comm_monoid_with_zero α]
+class normalized_gcd_monoid (α : Type*) [comm_monoid_with_zero α] [is_domain α]
   extends normalization_monoid α, gcd_monoid α :=
 (normalize_gcd : ∀a b, normalize (gcd a b) = gcd a b)
 (normalize_lcm : ∀a b, normalize (lcm a b) = lcm a b)
@@ -233,7 +233,7 @@ export gcd_monoid (gcd lcm gcd_dvd_left gcd_dvd_right dvd_gcd  lcm_zero_left lcm
 attribute [simp] lcm_zero_left lcm_zero_right
 
 section gcd_monoid
-variables [cancel_comm_monoid_with_zero α]
+variables [comm_monoid_with_zero α] [is_domain α]
 
 @[simp] theorem normalize_gcd [normalized_gcd_monoid α] : ∀a b:α, normalize (gcd a b) = gcd a b :=
 normalized_gcd_monoid.normalize_gcd
@@ -524,7 +524,7 @@ theorem exists_eq_pow_of_mul_eq_pow [gcd_monoid α] [unique αˣ] {a b c : α}
   (h : a * b = c ^ k) : ∃ (d : α), a = d ^ k :=
 let ⟨d, hd⟩ := exists_associated_pow_of_mul_eq_pow hab h in ⟨d, (associated_iff_eq.mp hd).symm⟩
 
-lemma gcd_greatest {α : Type*} [cancel_comm_monoid_with_zero α] [normalized_gcd_monoid α]
+lemma gcd_greatest {α : Type*} [comm_monoid_with_zero α] [normalized_gcd_monoid α] [is_domain α] [normalized_gcd_monoid α]
   {a b d : α} (hda : d ∣ a) (hdb : d ∣ b)
   (hd : ∀ e : α, e ∣ a → e ∣ b → e ∣ d) : gcd_monoid.gcd a b = normalize d :=
 begin
@@ -532,7 +532,7 @@ begin
   exact gcd_eq_normalize h (gcd_monoid.dvd_gcd hda hdb),
 end
 
-lemma gcd_greatest_associated {α : Type*} [cancel_comm_monoid_with_zero α] [gcd_monoid α]
+lemma gcd_greatest_associated {α : Type*} [comm_monoid_with_zero α] [gcd_monoid α] [is_domain α] [gcd_monoid α]
   {a b d : α} (hda : d ∣ a) (hdb : d ∣ b)
   (hd : ∀ e : α, e ∣ a → e ∣ b → e ∣ d) : associated d (gcd_monoid.gcd a b) :=
 begin
@@ -718,7 +718,7 @@ end gcd_monoid
 
 section unique_unit
 
-variables [cancel_comm_monoid_with_zero α] [unique αˣ]
+variables [comm_monoid_with_zero α] [unique αˣ] [is_domain α] [unique αˣ]
 
 @[priority 100] -- see Note [lower instance priority]
 instance normalization_monoid_of_unique_units : normalization_monoid α :=
@@ -772,7 +772,7 @@ noncomputable theory
 
 open associates
 
-variables [cancel_comm_monoid_with_zero α]
+variables [comm_monoid_with_zero α] [is_domain α]
 
 private lemma map_mk_unit_aux [decidable_eq α] {f : associates α →* α}
   (hinv : function.right_inverse f associates.mk) (a : α) :

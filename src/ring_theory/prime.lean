@@ -12,7 +12,7 @@ This file contains lemmas about prime elements of commutative rings.
 
 section cancel_comm_monoid_with_zero
 
-variables {R : Type*} [cancel_comm_monoid_with_zero R]
+variables {R : Type*} [comm_monoid_with_zero R] [is_domain R]
 open finset
 
 open_locale big_operators

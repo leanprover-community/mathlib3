@@ -32,7 +32,7 @@ and the set of factors of `a`.
 -/
 
 
-variables {M : Type*} [cancel_comm_monoid_with_zero M]
+variables {M : Type*} [comm_monoid_with_zero M] [is_domain M]
 
 open unique_factorization_monoid multiplicity irreducible
 
@@ -195,7 +195,7 @@ lemma is_prime_pow_of_has_chain {q : associates M} {n : ℕ} (hn : n ≠ 0)
 
 end divisor_chain
 
-variables {N : Type*} [cancel_comm_monoid_with_zero N] [unique_factorization_monoid N]
+variables {N : Type*} [comm_monoid_with_zero N] [unique_factorization_monoid N] [is_domain N] [unique_factorization_monoid N]
   [decidable_eq (associates M)] [unique_factorization_monoid M]
 
 open divisor_chain

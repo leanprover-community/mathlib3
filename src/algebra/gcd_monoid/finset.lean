@@ -31,7 +31,7 @@ variables {α β γ : Type*}
 namespace finset
 open multiset
 
-variables [cancel_comm_monoid_with_zero α] [normalized_gcd_monoid α]
+variables [comm_monoid_with_zero α] [normalized_gcd_monoid α] [is_domain α] [normalized_gcd_monoid α]
 
 /-! ### lcm -/
 section lcm

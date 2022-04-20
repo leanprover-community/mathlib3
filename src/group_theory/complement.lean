@@ -315,6 +315,14 @@ subtype.ext_iff.mp $ @unique_of_exists_unique ↥(f • T) (λ s, (↑s)⁻¹ * 
   ⟨f • to_fun T.2 g, set.smul_mem_smul_set (subtype.coe_prop _)⟩ (to_fun (f • T).2 (f • g))
   (quotient_action.inv_mul_mem f (inv_to_fun_mul_mem T.2 g)) (inv_to_fun_mul_mem (f • T).2 (f • g))
 
+@[to_additive] lemma smul_to_equiv (f : F) (T : left_transversals (H : set G)) (q : G ⧸ H) :
+  f • (to_equiv T.2 q : G) = to_equiv (f • T).2 (f • q) :=
+quotient.induction_on' q (λ g, smul_to_fun f T g)
+
+@[to_additive] lemma smul_apply_eq_smul_apply_inv_smul (f : F) (T : left_transversals (H : set G))
+  (q : G ⧸ H) : (to_equiv (f • T).2 q : G) = f • (to_equiv T.2 (f⁻¹ • q) : G) :=
+by rw [smul_to_equiv, smul_inv_smul]
+
 end action
 
 @[to_additive] instance : inhabited (left_transversals (H : set G)) :=
@@ -372,5 +380,19 @@ lemma is_complement'_of_coprime [fintype G] [fintype H] [fintype K]
   (h2 : nat.coprime (fintype.card H) (fintype.card K)) :
   is_complement' H K :=
 is_complement'_of_card_mul_and_disjoint h1 (disjoint_iff.mpr (inf_eq_bot_of_coprime h2))
+
+lemma is_complement'_stabilizer {α : Type*} [mul_action G α] (a : α)
+  (h1 : ∀ (h : H), h • a = a → h = 1) (h2 : ∀ g : G, ∃ h : H, h • (g • a) = a) :
+  is_complement' H (mul_action.stabilizer G a) :=
+begin
+  refine is_complement_iff_exists_unique.mpr (λ g, _),
+  obtain ⟨h, hh⟩ := h2 g,
+  have hh' : (↑h * g) • a = a := by rwa [mul_smul],
+  refine ⟨⟨h⁻¹, h * g, hh'⟩, inv_mul_cancel_left h g, _⟩,
+  rintros ⟨h', g, hg : g • a = a⟩ rfl,
+  specialize h1 (h * h') (by rwa [mul_smul, smul_def h', ←hg, ←mul_smul, hg]),
+  refine prod.ext (eq_inv_of_eq_inv (eq_inv_of_mul_eq_one h1)) (subtype.ext _),
+  rwa [subtype.ext_iff, coe_one, coe_mul, ←self_eq_mul_left, mul_assoc ↑h ↑h' g] at h1,
+end
 
 end subgroup

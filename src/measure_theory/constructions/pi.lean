@@ -587,7 +587,7 @@ lemma measure_preserving_pi_equiv_pi_subtype_prod {ι : Type u} {α : ι → Typ
     ((measure.pi $ λ i : subtype p, μ i).prod (measure.pi $ λ i, μ i)) :=
 begin
   set e := (measurable_equiv.pi_equiv_pi_subtype_prod α p).symm,
-  suffices : measure_preserving e _ _, from this.symm,
+  refine measure_preserving.symm e _,
   refine ⟨e.measurable, (pi_eq $ λ s hs, _).symm⟩,
   have : e ⁻¹' (pi univ s) =
     (pi univ (λ i : {i // p i}, s i)) ×ˢ (pi univ (λ i : {i // ¬p i}, s i)),
@@ -609,7 +609,7 @@ lemma measure_preserving_pi_fin_succ_above_equiv {n : ℕ} {α : fin (n + 1) →
     ((μ i).prod $ measure.pi $ λ j, μ (i.succ_above j)) :=
 begin
   set e := (measurable_equiv.pi_fin_succ_above_equiv α i).symm,
-  suffices : measure_preserving e _ _, from this.symm,
+  refine measure_preserving.symm e _,
   refine ⟨e.measurable, (pi_eq $ λ s hs, _).symm⟩,
   rw [e.map_apply, i.prod_univ_succ_above _, ← pi_pi, ← prod_prod],
   congr' 1 with ⟨x, f⟩,
@@ -631,7 +631,7 @@ begin
     rw [pi_premeasure, fintype.prod_unique, to_outer_measure_apply, e.symm.map_apply],
     congr' 1, exact e.to_equiv.image_eq_preimage s },
   simp only [measure.pi, outer_measure.pi, this, bounded_by_measure, to_outer_measure_to_measure],
-  exact ((measurable_equiv.fun_unique α β).symm.measurable.measure_preserving _).symm
+  exact (e.symm.measurable.measure_preserving _).symm e.symm
 end
 
 lemma volume_preserving_fun_unique (α : Type u) (β : Type v) [unique α] [measure_space β] :

@@ -145,6 +145,16 @@ begin
 end
 
 @[to_additive]
+lemma integrable_comp_div_left (f : G → F)
+  [is_inv_invariant μ] [is_mul_left_invariant μ] (g : G) :
+  integrable (λ t, f (g / t)) μ ↔ integrable f μ :=
+begin
+  refine ⟨λ h, _, λ h, h.comp_div_left g⟩,
+  convert h.comp_inv.comp_mul_left g⁻¹,
+  simp_rw [div_inv_eq_mul, mul_inv_cancel_left]
+end
+
+@[to_additive]
 lemma integral_div_left_eq_self (f : G → E) (μ : measure G) [is_inv_invariant μ]
   [is_mul_left_invariant μ] (x' : G) : ∫ x, f (x' / x) ∂μ = ∫ x, f x ∂μ :=
 by simp_rw [div_eq_mul_inv, integral_inv_eq_self (λ x, f (x' * x)) μ,

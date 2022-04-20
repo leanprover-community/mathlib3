@@ -1279,16 +1279,6 @@ begin
   exact (prod_erase_mul _ _ hb).symm,
 end
 
-@[to_additive]
-lemma prod_update_eq [decidable_eq α]
- (s : finset α) {a : α} (b : β) (ha : a ∈ s)  (f : α → β) :
-  f a * (∏ n in s, (function.update f a b) n)  = b * ∏ n in s, (f n):=
-begin
-  simp only [function.update_apply, finset.prod_ite, finset.filter_ne', finset.filter_eq', ha,
-  if_true, finset.prod_const,finset.card_singleton, pow_one],
-  rw [ mul_comm, mul_assoc, (finset.prod_erase_mul s f ha)],
-end
-
 lemma prod_dvd_prod_of_dvd {S : finset α} (g1 g2 : α → β) (h : ∀ a ∈ S, g1 a ∣ g2 a) :
   S.prod g1 ∣ S.prod g2 :=
 begin

@@ -2188,6 +2188,18 @@ lemma is_compact.bdd_above {α : Type u} [topological_space α] [linear_order α
   [order_closed_topology α] : Π [nonempty α] {s : set α}, is_compact s → bdd_above s :=
 @is_compact.bdd_below (order_dual α) _ _ _
 
+/-- A continuous function is bounded below on a compact set. -/
+lemma is_compact.bdd_below_image {α : Type u} [topological_space α] [linear_order α]
+  [order_closed_topology α] [nonempty α] [topological_space γ] {f : γ → α} {K : set γ}
+  (hK : is_compact K) (hf : continuous_on f K) : bdd_below (f '' K) :=
+(hK.image_of_continuous_on hf).bdd_below
+
+/-- A continuous function is bounded above on a compact set. -/
+lemma is_compact.bdd_above_image {α : Type u} [topological_space α] [linear_order α]
+  [order_closed_topology α] [nonempty α] [topological_space γ] {f : γ → α} {K : set γ}
+  (hK : is_compact K) (hf : continuous_on f K) : bdd_above (f '' K) :=
+@is_compact.bdd_below_image _ (order_dual α) _ _ _ _ _ _ _ hK hf
+
 end order_topology
 
 section densely_ordered

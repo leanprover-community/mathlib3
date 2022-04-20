@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Stevens, Thomas Browning
 -/
 
+import data.nat.prime
 import data.nat.choose.basic
 import data.nat.choose.sum
 import data.nat.multiplicity
@@ -28,7 +29,7 @@ This file proves properties of the central binomial coefficients (that is, `nat.
 * `nat.multiplicity_central_binom_of_large_le_one`: sufficiently large primes appear at most once
   in the factorisation of the central binomial coefficient.
 * `nat.multiplicity_central_binom_of_large_eq_zero`: sufficiently large primes less than n do not
-appear in the factorisation of the central binomial coefficient.
+  appear in the factorisation of the central binomial coefficient.
 -/
 
 namespace nat
@@ -107,7 +108,12 @@ lemma four_pow_le_two_mul_self_mul_central_binom : ∀ (n : ℕ) (n_pos : 0 < n)
 calc 4 ^ n ≤ n * central_binom n : (four_pow_lt_mul_central_binom _ le_add_self).le
 ... ≤ 2 * n * central_binom n    : by { rw [mul_assoc], refine le_mul_of_pos_left zero_lt_two }
 
-lemma multiplicity_central_binom_le {p : ℕ} (hp : p.prime) {n : ℕ} :
+variables {p n : ℕ}
+
+/--
+A logarithmic upper bound on the multiplicity of a prime in the central binomial coefficient.
+-/
+lemma padic_val_nat_central_binom_le (hp : p.prime) :
   padic_val_nat p (central_binom n) ≤ log p (2 * n) :=
 begin
   rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_ne_zero n),
@@ -119,8 +125,11 @@ begin
       ... = (log p (2 * n) + 1) - 1                 : nat.card_Ico _ _,
 end
 
-lemma multiplicity_central_binom_of_large_le_one {p : nat} (hp : p.prime) {n : nat}
-  (p_large : 2 * n < p ^ 2) : (padic_val_nat p (central_binom n)) ≤ 1 :=
+/--
+Sufficiently large primes appear only to multiplicity 0 or 1 in the central binomial coefficient.
+-/
+lemma padic_val_nat_central_binom_of_large_le_one (hp : p.prime) (p_large : 2 * n < p ^ 2) :
+  (padic_val_nat p (central_binom n)) ≤ 1 :=
 begin
   have log_weak_bound : log p (2 * n) ≤ 2,
     { calc log p (2 * n) ≤ log p (p ^ 2) : log_le_log_of_le (le_of_lt p_large)
@@ -140,34 +149,28 @@ begin
         { rw log_eq_zero (or.inl h),
           exact zero_le 1, }, }, },
 
-  exact le_trans (multiplicity_central_binom_le hp) log_bound,
+  exact le_trans (padic_val_nat_central_binom_le hp) log_bound,
 end
 
-lemma prime_le_three_is_two : ∀ {p : ℕ} (hp : prime p) (p_small : p < 3), p = 2
-| 0 prime _ := by { exfalso, exact not_prime_zero prime}
-| 1 prime _ := by { exfalso, exact not_prime_one prime }
-| 2 _ _ := rfl
-| (n + 3) _ big := by linarith
-
-lemma multiplicity_central_binom_of_large_eq_zero
-  {p : nat} (hp : p.prime)
-  {n : nat} (n_big : 2 < n)
-  (p_le_n : p ≤ n) (big : 2 * n < 3 * p)
-  : padic_val_nat p (central_binom n) = 0 :=
+/--
+Sufficiently large primes less than `n` do not appear in the factorisation of `central_binom n`.
+-/
+lemma padic_val_nat_central_binom_of_large_eq_zero
+  (hp : p.prime) (n_big : 2 < n) (p_le_n : p ≤ n) (big : 2 * n < 3 * p) :
+  padic_val_nat p (central_binom n) = 0 :=
 begin
   rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_ne_zero n),
   unfold central_binom,
   have two_n_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
   simp only [
     nat.prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
-    two_n_sub, ←two_mul, finset.card_eq_zero, enat.get_coe', finset.filter_congr_decidable
-  ],
+    two_n_sub, ←two_mul, finset.card_eq_zero, enat.get_coe', finset.filter_congr_decidable],
   clear two_n_sub,
 
   have three_lt_p : 3 ≤ p,
   { rcases le_or_lt 3 p with H|H,
     { exact H, },
-    { linarith [prime_le_three_is_two hp H], }, },
+    { linarith [not_prime_one], }, },
   have p_pos : 0 < p := nat.prime.pos hp,
 
   apply finset.filter_false_of_mem,

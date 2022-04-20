@@ -47,27 +47,29 @@ by refine
   .. };
 intros; exact subsingleton.elim _ _
 
-instance : cancel_comm_monoid_with_zero punit :=
-by refine
-{ .. punit.comm_ring,
-  .. };
-intros; exact subsingleton.elim _ _
+-- instance : is_domain punit :=
+-- { exists_pair_ne := begin tidy, end,
+--   regular_of_ne_zero := by { intros, split; intros a b hab; exact subsingleton.elim _ _ } }
+-- by refine
+-- { .. punit.comm_ring,
+--   .. };
+--intros; exact subsingleton.elim _ _
 
-instance : normalized_gcd_monoid punit :=
-by refine
-{ gcd := λ _ _, star,
-  lcm := λ _ _, star,
-  norm_unit := λ x, 1,
-  gcd_dvd_left := λ _ _, ⟨star, subsingleton.elim _ _⟩,
-  gcd_dvd_right := λ _ _, ⟨star, subsingleton.elim _ _⟩,
-  dvd_gcd := λ _ _ _ _ _, ⟨star, subsingleton.elim _ _⟩,
-  gcd_mul_lcm := λ _ _, ⟨1, subsingleton.elim _ _⟩,
-  .. };
-intros; exact subsingleton.elim _ _
+-- instance : normalized_gcd_monoid punit :=
+-- by refine
+-- { gcd := λ _ _, star,
+--   lcm := λ _ _, star,
+--   norm_unit := λ x, 1,
+--   gcd_dvd_left := λ _ _, ⟨star, subsingleton.elim _ _⟩,
+--   gcd_dvd_right := λ _ _, ⟨star, subsingleton.elim _ _⟩,
+--   dvd_gcd := λ _ _ _ _ _, ⟨star, subsingleton.elim _ _⟩,
+--   gcd_mul_lcm := λ _ _, ⟨1, subsingleton.elim _ _⟩,
+--   .. };
+-- intros; exact subsingleton.elim _ _
 
-@[simp] lemma gcd_eq : gcd x y = star := rfl
-@[simp] lemma lcm_eq : lcm x y = star := rfl
-@[simp] lemma norm_unit_eq : norm_unit x = 1 := rfl
+-- @[simp] lemma gcd_eq : gcd x y = star := rfl
+-- @[simp] lemma lcm_eq : lcm x y = star := rfl
+-- @[simp] lemma norm_unit_eq : norm_unit x = 1 := rfl
 
 instance : complete_boolean_algebra punit :=
 by refine

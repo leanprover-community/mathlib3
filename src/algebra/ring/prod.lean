@@ -179,7 +179,7 @@ end ring_equiv
 lemma false_of_nontrivial_of_product_domain (R S : Type*) [ring R] [ring S]
   [is_domain (R × S)] [nontrivial R] [nontrivial S] : false :=
 begin
-  have := is_domain.eq_zero_or_eq_zero_of_mul_eq_zero
+  have := no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero
     (show ((0 : R), (1 : S)) * (1, 0) = 0, by simp),
   rw [prod.mk_eq_zero,prod.mk_eq_zero] at this,
   rcases this with (⟨_,h⟩|⟨h,_⟩),

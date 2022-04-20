@@ -150,9 +150,15 @@ instance [has_zero α] [has_mul α] [no_zero_divisors α] : no_zero_divisors α�
   ((@eq_zero_or_eq_zero_of_mul_eq_zero α _ _ _ _ _) $ op_injective H) }
 
 instance  [has_zero α] [has_mul α] [is_domain α] : is_domain αᵃᵒᵖ :=
-begin
-  sorry
-end
+{ regular_of_ne_zero := λ c hc,
+  begin
+    replace hc : unop c ≠ 0 :=  λ H, hc (congr_arg op H),
+    split,
+    { rintros a b (hab : op (unop c * unop a) = op (unop c * unop b)),
+      apply unop_injective ((mul_left_cancel_of_ne_zero hc) (op_injective hab)) },
+    { rintros a b (hab : op (unop a * unop c) = op (unop b * unop c)),
+      apply unop_injective (mul_right_cancel_of_ne_zero hc (op_injective hab)) }
+  end }
 
 instance [group_with_zero α] : group_with_zero αᵃᵒᵖ :=
 { mul_inv_cancel := λ x hx, unop_injective $ mul_inv_cancel $ unop_injective.ne hx,

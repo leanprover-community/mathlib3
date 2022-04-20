@@ -495,12 +495,19 @@ variables [has_add R] [has_add S] [has_mul R] [has_mul S]
 @[simp] theorem symm_trans_self (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S := ext e.4
 
 /-- If two rings are isomorphic, and the second is a domain, then so is the first. -/
+protected lemma is_no_zero_divisors
+  {A : Type*} (B : Type*) [ring A] [ring B] [no_zero_divisors B]
+  (e : A ≃+* B) : no_zero_divisors A :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y hxy,
+    have e x * e y = 0, by rw [← e.map_mul, hxy, e.map_zero],
+    by simpa using eq_zero_or_eq_zero_of_mul_eq_zero this }
+
+/-- If two rings are isomorphic, and the second is a domain, then so is the first. -/
 protected lemma is_domain
   {A : Type*} (B : Type*) [ring A] [ring B] [is_domain B]
   (e : A ≃+* B) : is_domain A :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y hxy,
-    have e x * e y = 0, by rw [← e.map_mul, hxy, e.map_zero],
-    by simpa using eq_zero_or_eq_zero_of_mul_eq_zero this,
-  exists_pair_ne := ⟨e.symm 0, e.symm 1, e.symm.injective.ne zero_ne_one⟩ }
+@is_domain.of_no_zero_divisors A _
+  (function.surjective.nontrivial e.surjective)
+  (e.is_no_zero_divisors B)
 
 end ring_equiv

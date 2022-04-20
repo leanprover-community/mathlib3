@@ -80,7 +80,7 @@ export normalization_monoid (norm_unit norm_unit_zero norm_unit_mul norm_unit_co
 attribute [simp] norm_unit_coe_units norm_unit_zero norm_unit_mul
 
 section normalization_monoid
-variables [comm_monoid_with_zero α] [normalization_monoid α] [is_domain α] [normalization_monoid α]
+variables [comm_monoid_with_zero α] [is_domain α] [normalization_monoid α]
 
 @[simp] theorem norm_unit_one : norm_unit (1:α) = 1 :=
 norm_unit_coe_units 1
@@ -162,7 +162,7 @@ units.mul_right_dvd
 end normalization_monoid
 
 namespace associates
-variables [comm_monoid_with_zero α] [normalization_monoid α] [is_domain α] [normalization_monoid α]
+variables [comm_monoid_with_zero α] [is_domain α] [normalization_monoid α]
 
 local attribute [instance] associated.setoid
 
@@ -524,7 +524,7 @@ theorem exists_eq_pow_of_mul_eq_pow [gcd_monoid α] [unique αˣ] {a b c : α}
   (h : a * b = c ^ k) : ∃ (d : α), a = d ^ k :=
 let ⟨d, hd⟩ := exists_associated_pow_of_mul_eq_pow hab h in ⟨d, (associated_iff_eq.mp hd).symm⟩
 
-lemma gcd_greatest {α : Type*} [comm_monoid_with_zero α] [normalized_gcd_monoid α] [is_domain α] [normalized_gcd_monoid α]
+lemma gcd_greatest {α : Type*} [comm_monoid_with_zero α] [is_domain α] [normalized_gcd_monoid α]
   {a b d : α} (hda : d ∣ a) (hdb : d ∣ b)
   (hd : ∀ e : α, e ∣ a → e ∣ b → e ∣ d) : gcd_monoid.gcd a b = normalize d :=
 begin
@@ -532,7 +532,7 @@ begin
   exact gcd_eq_normalize h (gcd_monoid.dvd_gcd hda hdb),
 end
 
-lemma gcd_greatest_associated {α : Type*} [comm_monoid_with_zero α] [gcd_monoid α] [is_domain α] [gcd_monoid α]
+lemma gcd_greatest_associated {α : Type*} [comm_monoid_with_zero α] [is_domain α] [gcd_monoid α]
   {a b d : α} (hda : d ∣ a) (hdb : d ∣ b)
   (hd : ∀ e : α, e ∣ a → e ∣ b → e ∣ d) : associated d (gcd_monoid.gcd a b) :=
 begin
@@ -847,7 +847,7 @@ noncomputable def normalized_gcd_monoid_of_gcd [normalization_monoid α] [decida
   normalize_lcm := λ a b, by
   { dsimp [normalize],
     split_ifs with a0,
-    { exact @normalize_zero α _ _ },
+    { exact @normalize_zero α _ _ _ },
     { have := (classical.some_spec (dvd_normalize_iff.2
                   ((gcd_dvd_left a b).trans (dvd.intro b rfl)))).symm,
       set l := classical.some (dvd_normalize_iff.2
@@ -858,7 +858,7 @@ noncomputable def normalized_gcd_monoid_of_gcd [normalization_monoid α] [decida
         { apply (a0 _).elim,
           rw [←zero_dvd_iff, ←ha],
           exact gcd_dvd_left _ _ },
-        { convert @normalize_zero α _ _ } },
+        { convert @normalize_zero α _ _ _ } },
       have h1 : gcd a b ≠ 0,
       { have hab : a * b ≠ 0 := mul_ne_zero a0 hb,
         contrapose! hab,

@@ -31,7 +31,7 @@ variables {α β γ : Type*}
 namespace finset
 open multiset
 
-variables [comm_monoid_with_zero α] [normalized_gcd_monoid α] [is_domain α] [normalized_gcd_monoid α]
+variables [comm_monoid_with_zero α] [is_domain α] [normalized_gcd_monoid α]
 
 /-! ### lcm -/
 section lcm
@@ -151,7 +151,7 @@ theorem gcd_image {g : γ → β} (s: finset γ) [decidable_eq β] [is_idempoten
   (s.image g).gcd f = s.gcd (f ∘ g) := by simp [gcd, fold_image_idem]
 
 theorem gcd_eq_gcd_image [decidable_eq α] [is_idempotent α gcd_monoid.gcd] :
-  s.gcd f = (s.image f).gcd id := (@gcd_image _ _ _ _ _ id _ _ _ _).symm
+  s.gcd f = (s.image f).gcd id := (@gcd_image _ _ _ _ _ _ id _ _ _ _).symm
 
 theorem gcd_eq_zero_iff : s.gcd f = 0 ↔ ∀ (x : β), x ∈ s → f x = 0 :=
 begin

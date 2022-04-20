@@ -386,7 +386,7 @@ end
 theorem dvd_dvd_iff_associated [monoid_with_zero α] [is_domain α] {a b : α} : a ∣ b ∧ b ∣ a ↔ a ~ᵤ b :=
 ⟨λ ⟨h1, h2⟩, associated_of_dvd_dvd h1 h2, associated.dvd_dvd⟩
 
-instance [monoid_with_zero α] [decidable_rel ((∣) : α → α → Prop)] [is_domain α] [decidable_rel ((∣) : α → α → Prop)] :
+instance [monoid_with_zero α] [is_domain α] [decidable_rel ((∣) : α → α → Prop)] :
   decidable_rel ((~ᵤ) : α → α → Prop) :=
 λ a b, decidable_of_iff _ dvd_dvd_iff_associated
 
@@ -496,7 +496,7 @@ theorem associated_eq_eq : (associated : α → α → Prop) = eq :=
 by { ext, rw associated_iff_eq }
 
 lemma prime_dvd_prime_iff_eq
-  {M : Type*} [comm_monoid_with_zero M] [unique Mˣ] [is_domain M] [unique Mˣ] {p q : M} (pp : prime p) (qp : prime q) :
+  {M : Type*} [comm_monoid_with_zero M] [is_domain M] [unique Mˣ] {p q : M} (pp : prime p) (qp : prime q) :
   p ∣ q ↔ p = q :=
 by rw [pp.dvd_prime_iff_associated qp, ←associated_eq_eq]
 

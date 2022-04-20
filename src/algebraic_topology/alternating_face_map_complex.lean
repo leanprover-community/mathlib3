@@ -4,13 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joël Riou, Adam Topaz, Johan Commelin
 -/
 
-import algebra.homology.homological_complex
-import algebraic_topology.simplicial_object
+import algebra.homology.additive
 import algebraic_topology.Moore_complex
-import category_theory.abelian.basic
-import algebra.big_operators.basic
-import tactic.ring_exp
-import data.fintype.card
+import algebra.big_operators.fin
 
 /-!
 
@@ -33,7 +29,7 @@ when `A` is an abelian category.
 -/
 
 open category_theory category_theory.limits category_theory.subobject
-open category_theory.preadditive
+open category_theory.preadditive category_theory.category
 open opposite
 
 open_locale big_operators
@@ -152,6 +148,31 @@ variables (C : Type*) [category C] [preadditive C]
 def alternating_face_map_complex : simplicial_object C ⥤ chain_complex C ℕ :=
 { obj := alternating_face_map_complex.obj,
   map := λ X Y f, alternating_face_map_complex.map f }
+
+variables {C}
+
+lemma map_alternating_face_map_complex {D : Type*} [category D] [preadditive D]
+  (F : C ⥤ D) [F.additive] :
+  alternating_face_map_complex C ⋙ F.map_homological_complex _ =
+  (simplicial_object.whiskering C D).obj F ⋙ alternating_face_map_complex D :=
+begin
+  apply category_theory.functor.ext,
+  { intros X Y f,
+    ext n,
+    simp only [functor.comp_map, alternating_face_map_complex.map,
+      alternating_face_map_complex_map, functor.map_homological_complex_map_f,
+      chain_complex.of_hom_f, simplicial_object.whiskering_obj_map_app,
+      homological_complex.comp_f, homological_complex.eq_to_hom_f,
+      eq_to_hom_refl, comp_id, id_comp], },
+  { intro X,
+    erw chain_complex.map_chain_complex_of,
+    congr,
+    ext n,
+    simp only [alternating_face_map_complex.obj_d, functor.map_sum],
+    congr,
+    ext,
+    apply functor.map_zsmul, },
+end
 
 /-!
 ## Construction of the natural inclusion of the normalized Moore complex

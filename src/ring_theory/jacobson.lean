@@ -244,8 +244,8 @@ begin
     { rw [ideal.jacobson, mem_Inf],
       intros J hJ,
       by_cases y ∈ J,
-      { exact J.smul_mem x h },
-      { exact (mul_comm y x) ▸ J.smul_mem y ((mem_Inf.1 hx) ⟨hJ.left, ⟨hJ.right, h⟩⟩) } },
+      { exact J.mul_mem_left x h },
+      { exact J.mul_mem_right y ((mem_Inf.1 hx) ⟨hJ.left, ⟨hJ.right, h⟩⟩) } },
     rw hP at hxy,
     cases hP'.mem_or_mem hxy with hxy hxy,
     { exact hxy },
@@ -409,8 +409,8 @@ begin
     change (polynomial.map ((quotient.mk I).comp C).range_restrict f).coeff n = 0 at hf,
     rw [coeff_map, subtype.ext_iff] at hf,
     rwa [mem_comap, ← quotient.eq_zero_iff_mem, ← ring_hom.comp_apply], },
-  haveI : (ideal.map (map_ring_hom i) I).is_prime :=
-    map_is_prime_of_surjective (map_surjective i hi) hi',
+  haveI := map_is_prime_of_surjective
+    (show function.surjective (map_ring_hom i), from map_surjective i hi) hi',
   suffices : (I.map (polynomial.map_ring_hom i)).jacobson = (I.map (polynomial.map_ring_hom i)),
   { replace this := congr_arg (comap (polynomial.map_ring_hom i)) this,
     rw [← map_jacobson_of_surjective _ hi',

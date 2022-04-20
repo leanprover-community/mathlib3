@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import set_theory.continuum
-import analysis.specific_limits
+import analysis.specific_limits.basic
 import data.rat.denumerable
 import data.set.intervals.image_preimage
 
@@ -213,7 +213,7 @@ begin
   replace h := sub_pos_of_lt h,
   have h2 : #(has_inv.inv '' Ioo 0 (b - a)) ≤ #(Ioo 0 (b - a)) := mk_image_le,
   refine le_trans _ h2,
-  rw [image_inv_Ioo_0_left h, mk_Ioi_real]
+  rw [image_inv, inv_Ioo_0_left h, mk_Ioi_real]
 end
 
 /-- The cardinality of the interval [a, b). -/

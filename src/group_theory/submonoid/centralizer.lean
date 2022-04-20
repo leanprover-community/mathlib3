@@ -120,7 +120,7 @@ def centralizer : submonoid M :=
   one_mem' := S.one_mem_centralizer,
   mul_mem' := λ a b, set.mul_mem_centralizer }
 
-@[to_additive] lemma coe_centralizer : ↑(centralizer S) = S.centralizer := rfl
+@[simp, norm_cast, to_additive] lemma coe_centralizer : ↑(centralizer S) = S.centralizer := rfl
 
 variables {S}
 
@@ -132,7 +132,7 @@ iff.rfl
 λ _, decidable_of_iff' _ mem_centralizer_iff
 
 @[to_additive]
-lemma centralizer_subset (h : S ⊆ T) : centralizer T ≤ centralizer S :=
+lemma centralizer_le (h : S ⊆ T) : centralizer T ≤ centralizer S :=
 set.centralizer_subset h
 
 variables (M)

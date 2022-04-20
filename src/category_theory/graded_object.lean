@@ -3,9 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.group.basic
+import data.int.basic
+import algebra.group_power.lemmas
 import category_theory.pi.basic
 import category_theory.shift
+import category_theory.concrete_category.basic
 
 /-!
 # The category of graded objects
@@ -100,8 +102,6 @@ def comap_equiv {β γ : Type w} (e : β ≃ γ) :
   functor_unit_iso_comp' := λ X, by { ext b, dsimp, simp, }, }  -- See note [dsimp, simp].
 
 end
-
-local attribute [reducible, instance] endofunctor_monoidal_category discrete.add_monoidal
 
 instance has_shift {β : Type*} [add_comm_group β] (s : β) :
   has_shift (graded_object_with_shift s C) ℤ :=

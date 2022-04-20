@@ -5,6 +5,8 @@ Authors: Jireh Loreaux
 -/
 import analysis.normed_space.star.basic
 import analysis.normed_space.spectrum
+import algebra.star.module
+import analysis.normed_space.star.exponential
 
 /-! # Spectral properties in C⋆-algebras
 In this file, we establish various propreties related to the spectrum of elements in C⋆-algebras.
@@ -42,9 +44,12 @@ end unitary_spectrum
 
 section complex_scalars
 
+open complex
+
 variables {A : Type*}
-[normed_ring A] [normed_algebra ℂ A] [star_ring A] [cstar_ring A] [complete_space A]
-[measurable_space A] [borel_space A] [topological_space.second_countable_topology A]
+[normed_ring A] [normed_algebra ℂ A] [complete_space A] [star_ring A] [cstar_ring A]
+
+local notation `↑ₐ` := algebra_map ℂ A
 
 lemma spectral_radius_eq_nnnorm_of_self_adjoint {a : A} (ha : a ∈ self_adjoint A) :
   spectral_radius ℂ a = ∥a∥₊ :=
@@ -76,5 +81,36 @@ begin
   convert tendsto_nhds_unique h₂ (pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a⋆ * a)),
   rw [spectral_radius_eq_nnnorm_of_self_adjoint ha, sq, nnnorm_star_mul_self, coe_mul],
 end
+
+/-- Any element of the spectrum of a selfadjoint is real. -/
+theorem self_adjoint.mem_spectrum_eq_re [star_module ℂ A] [nontrivial A] {a : A}
+  (ha : a ∈ self_adjoint A) {z : ℂ} (hz : z ∈ spectrum ℂ a) : z = z.re :=
+begin
+  let Iu := units.mk0 I I_ne_zero,
+  have : exp ℂ ℂ (I • z) ∈ spectrum ℂ (exp ℂ A (I • a)),
+    by simpa only [units.smul_def, units.coe_mk0]
+      using spectrum.exp_mem_exp (Iu • a) (smul_mem_smul_iff.mpr hz),
+  exact complex.ext (of_real_re _)
+    (by simpa only [←complex.exp_eq_exp_ℂ_ℂ, mem_sphere_zero_iff_norm, norm_eq_abs, abs_exp,
+      real.exp_eq_one_iff, smul_eq_mul, I_mul, neg_eq_zero]
+      using spectrum.subset_circle_of_unitary (self_adjoint.exp_i_smul_unitary ha) this),
+end
+
+/-- Any element of the spectrum of a selfadjoint is real. -/
+theorem self_adjoint.mem_spectrum_eq_re' [star_module ℂ A] [nontrivial A]
+  (a : self_adjoint A) {z : ℂ} (hz : z ∈ spectrum ℂ (a : A)) : z = z.re :=
+self_adjoint.mem_spectrum_eq_re a.property hz
+
+/-- The spectrum of a selfadjoint is real -/
+theorem self_adjoint.coe_re_map_spectrum [star_module ℂ A] [nontrivial A] {a : A}
+  (ha : a ∈ self_adjoint A) : spectrum ℂ a = (coe ∘ re '' (spectrum ℂ a) : set ℂ) :=
+le_antisymm (λ z hz, ⟨z, hz, (self_adjoint.mem_spectrum_eq_re ha hz).symm⟩) (λ z, by
+  { rintros ⟨z, hz, rfl⟩,
+    simpa only [(self_adjoint.mem_spectrum_eq_re ha hz).symm, function.comp_app] using hz })
+
+/-- The spectrum of a selfadjoint is real -/
+theorem self_adjoint.coe_re_map_spectrum' [star_module ℂ A] [nontrivial A] (a : self_adjoint A) :
+  spectrum ℂ (a : A) = (coe ∘ re '' (spectrum ℂ (a : A)) : set ℂ) :=
+self_adjoint.coe_re_map_spectrum a.property
 
 end complex_scalars

@@ -249,6 +249,12 @@ le_antisymm
 lemma sup_id_eq_Sup [complete_lattice α] (s : finset α) : s.sup id = Sup s :=
 by simp [Sup_eq_supr, sup_eq_supr]
 
+lemma sup_id_set_eq_sUnion (s : finset (set α)) : s.sup id = ⋃₀(↑s) :=
+sup_id_eq_Sup _
+
+@[simp] lemma sup_set_eq_bUnion (s : finset α) (f : α → set β) : s.sup f = ⋃ x ∈ s, f x :=
+sup_eq_supr _ _
+
 lemma sup_eq_Sup_image [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = Sup (f '' s) :=
 begin
   classical,
@@ -451,6 +457,12 @@ lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf 
 
 lemma inf_id_eq_Inf [complete_lattice α] (s : finset α) : s.inf id = Inf s :=
 @sup_id_eq_Sup (order_dual α) _ _
+
+lemma inf_id_set_eq_sInter (s : finset (set α)) : s.inf id = ⋂₀(↑s) :=
+inf_id_eq_Inf _
+
+@[simp] lemma inf_set_eq_bInter (s : finset α) (f : α → set β) : s.inf f = ⋂ x ∈ s, f x :=
+inf_eq_infi _ _
 
 lemma inf_eq_Inf_image [complete_lattice β] (s : finset α) (f : α → β) : s.inf f = Inf (f '' s) :=
 @sup_eq_Sup_image _ (order_dual β) _ _ _
@@ -1195,6 +1207,29 @@ infi_eq_infi_finset' s
 end set
 
 namespace finset
+
+/-! ### Interaction with ordered algebra structures -/
+
+lemma sup_mul_le_mul_sup_of_nonneg [linear_ordered_semiring α] [order_bot α]
+  {a b : ι → α} (s : finset ι) (ha : ∀ i ∈ s, 0 ≤ a i) (hb : ∀ i ∈ s, 0 ≤ b i)  :
+  s.sup (a * b) ≤ s.sup a * s.sup b :=
+finset.sup_le $ λ i hi, mul_le_mul (le_sup hi) (le_sup hi) (hb _ hi) ((ha _ hi).trans $ le_sup hi)
+
+lemma mul_inf_le_inf_mul_of_nonneg [linear_ordered_semiring α] [order_top α]
+  {a b : ι → α} (s : finset ι) (ha : ∀ i ∈ s, 0 ≤ a i) (hb : ∀ i ∈ s, 0 ≤ b i) :
+  s.inf a * s.inf b ≤ s.inf (a * b) :=
+finset.le_inf $ λ i hi, mul_le_mul (inf_le hi) (inf_le hi) (finset.le_inf hb) (ha i hi)
+
+lemma sup'_mul_le_mul_sup'_of_nonneg [linear_ordered_semiring α]
+  {a b : ι → α} (s : finset ι) (H : s.nonempty) (ha : ∀ i ∈ s, 0 ≤ a i) (hb : ∀ i ∈ s, 0 ≤ b i)  :
+  s.sup' H (a * b) ≤ s.sup' H a * s.sup' H b :=
+sup'_le _ _ $ λ i hi,
+  mul_le_mul (le_sup' _ hi) (le_sup' _ hi) (hb _ hi) ((ha _ hi).trans $ le_sup' _ hi)
+
+lemma inf'_mul_le_mul_inf'_of_nonneg [linear_ordered_semiring α]
+  {a b : ι → α} (s : finset ι) (H : s.nonempty) (ha : ∀ i ∈ s, 0 ≤ a i) (hb : ∀ i ∈ s, 0 ≤ b i)  :
+  s.inf' H a * s.inf' H b ≤ s.inf' H (a * b) :=
+le_inf' _ _ $ λ i hi, mul_le_mul (inf'_le _ hi) (inf'_le _ hi) (le_inf' _ _ hb) (ha _ hi)
 
 open function
 

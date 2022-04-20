@@ -125,7 +125,7 @@ or.elim (eq_top_or_eq_of_coatom_le ha le_sup_left) id
 
 end pairwise
 
-variables [partial_order α] {a : α}
+variables [preorder α] {a : α}
 
 @[simp]
 lemma is_coatom_dual_iff_is_atom [order_bot α] :
@@ -540,13 +540,13 @@ is_simple_order_iff_is_simple_order_order_dual.trans is_simple_order_iff_is_atom
 
 namespace set
 
-theorem is_simple_order_Iic_iff_is_atom [partial_order α] [bounded_order α] {a : α} :
+theorem is_simple_order_Iic_iff_is_atom [partial_order α] [order_bot α] {a : α} :
   is_simple_order (Iic a) ↔ is_atom a :=
 is_simple_order_iff_is_atom_top.trans $ and_congr (not_congr subtype.mk_eq_mk)
   ⟨λ h b ab, subtype.mk_eq_mk.1 (h ⟨b, le_of_lt ab⟩ ab),
     λ h ⟨b, hab⟩ hbotb, subtype.mk_eq_mk.2 (h b (subtype.mk_lt_mk.1 hbotb))⟩
 
-theorem is_simple_order_Ici_iff_is_coatom [partial_order α] [bounded_order α] {a : α} :
+theorem is_simple_order_Ici_iff_is_coatom [partial_order α] [order_top α] {a : α} :
   is_simple_order (Ici a) ↔ is_coatom a :=
 is_simple_order_iff_is_coatom_bot.trans $ and_congr (not_congr subtype.mk_eq_mk)
   ⟨λ h b ab, subtype.mk_eq_mk.1 (h ⟨b, le_of_lt ab⟩ ab),

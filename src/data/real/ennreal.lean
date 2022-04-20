@@ -84,15 +84,15 @@ def ennreal := with_top ℝ≥0
 localized "notation `ℝ≥0∞` := ennreal" in ennreal
 localized "notation `∞` := (⊤ : ennreal)" in ennreal
 
--- TODO: why are the two covariant instances necessary? why aren't they inferred?
-instance covariant_class_mul : covariant_class ℝ≥0∞ ℝ≥0∞ (*) (≤) :=
-canonically_ordered_comm_semiring.to_covariant_mul_le
-
-instance covariant_class_add : covariant_class ℝ≥0∞ ℝ≥0∞ (+) (≤) :=
-ordered_add_comm_monoid.to_covariant_class_left ℝ≥0∞
-
 namespace ennreal
 variables {a b c d : ℝ≥0∞} {r p q : ℝ≥0}
+
+-- TODO: why are the two covariant instances necessary? why aren't they inferred?
+instance covariant_class_mul_le : covariant_class ℝ≥0∞ ℝ≥0∞ (*) (≤) :=
+canonically_ordered_comm_semiring.to_covariant_mul_le
+
+instance covariant_class_add_le : covariant_class ℝ≥0∞ ℝ≥0∞ (+) (≤) :=
+ordered_add_comm_monoid.to_covariant_class_left ℝ≥0∞
 
 instance : inhabited ℝ≥0∞ := ⟨0⟩
 
@@ -246,7 +246,7 @@ def ne_top_equiv_nnreal : {a | a ≠ ∞} ≃ ℝ≥0 :=
   right_inv := λ x, to_nnreal_coe }
 
 lemma cinfi_ne_top [has_Inf α] (f : ℝ≥0∞ → α) : (⨅ x : {x // x ≠ ∞}, f x) = ⨅ x : ℝ≥0, f x :=
-eq.symm $ infi_congr _ ne_top_equiv_nnreal.symm.surjective $ λ x, rfl
+eq.symm $ ne_top_equiv_nnreal.symm.surjective.infi_congr _$ λ x, rfl
 
 lemma infi_ne_top [complete_lattice α] (f : ℝ≥0∞ → α) : (⨅ x ≠ ∞, f x) = ⨅ x : ℝ≥0, f x :=
 by rw [infi_subtype', cinfi_ne_top]
@@ -271,7 +271,7 @@ lemma supr_ennreal {α : Type*} [complete_lattice α] {f : ℝ≥0∞ → α} :
 @[simp] lemma top_add : ∞ + a = ∞ := top_add _
 
 /-- Coercion `ℝ≥0 → ℝ≥0∞` as a `ring_hom`. -/
-noncomputable def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
+def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
 ⟨coe, coe_one, λ _ _, coe_mul, coe_zero, λ _ _, coe_add⟩
 
 @[simp] lemma coe_of_nnreal_hom : ⇑of_nnreal_hom = coe := rfl
@@ -484,23 +484,30 @@ by simpa only [pos_iff_ne_zero] using ennreal.pow_pos
 
 @[simp] lemma not_lt_zero : ¬ a < 0 := by simp
 
-lemma add_lt_add_iff_left (ha : a ≠ ∞) : a + c < a + b ↔ c < b :=
-with_top.add_lt_add_iff_left ha
-
-lemma add_lt_add_left (ha : a ≠ ∞) (h : b < c) : a + b < a + c :=
-(add_lt_add_iff_left ha).2 h
-
-lemma add_lt_add_iff_right (ha : a ≠ ∞) : c + a < b + a ↔ c < b :=
-with_top.add_lt_add_iff_right ha
-
-lemma add_lt_add_right (ha : a ≠ ∞) (h : b < c) : b + a < c + a :=
-(add_lt_add_iff_right ha).2 h
+protected lemma le_of_add_le_add_left : a ≠ ∞ → a + b ≤ a + c → b ≤ c :=
+with_top.le_of_add_le_add_left
+protected lemma le_of_add_le_add_right : a ≠ ∞ → b + a ≤ c + a → b ≤ c :=
+with_top.le_of_add_le_add_right
+protected lemma add_lt_add_left : a ≠ ∞ → b < c → a + b < a + c := with_top.add_lt_add_left
+protected lemma add_lt_add_right : a ≠ ∞ → b < c → b + a < c + a := with_top.add_lt_add_right
+protected lemma add_le_add_iff_left : a ≠ ∞ → (a + b ≤ a + c ↔ b ≤ c) :=
+with_top.add_le_add_iff_left
+protected lemma add_le_add_iff_right : a ≠ ∞ → (b + a ≤ c + a ↔ b ≤ c) :=
+with_top.add_le_add_iff_right
+protected lemma add_lt_add_iff_left : a ≠ ∞ → (a + b < a + c ↔ b < c) :=
+with_top.add_lt_add_iff_left
+protected lemma add_lt_add_iff_right : a ≠ ∞ → (b + a < c + a ↔ b < c) :=
+with_top.add_lt_add_iff_right
+protected lemma add_lt_add_of_le_of_lt : a ≠ ∞ → a ≤ b → c < d → a + c < b + d :=
+with_top.add_lt_add_of_le_of_lt
+protected lemma add_lt_add_of_lt_of_le : c ≠ ∞ → a < b → c ≤ d → a + c < b + d :=
+with_top.add_lt_add_of_lt_of_le
 
 instance contravariant_class_add_lt : contravariant_class ℝ≥0∞ ℝ≥0∞ (+) (<) :=
 with_top.contravariant_class_add_lt
 
 lemma lt_add_right (ha : a ≠ ∞) (hb : b ≠ 0) : a < a + b :=
-by rwa [← pos_iff_ne_zero, ← add_lt_add_iff_left ha, add_zero] at hb
+by rwa [← pos_iff_ne_zero, ←ennreal.add_lt_add_iff_left ha, add_zero] at hb
 
 lemma le_of_forall_pos_le_add : ∀{a b : ℝ≥0∞}, (∀ε : ℝ≥0, 0 < ε → b < ∞ → a ≤ b + ε) → a ≤ b
 | a    none     h := le_top
@@ -613,21 +620,6 @@ lemma coe_mem_upper_bounds {s : set ℝ≥0} :
 by simp [upper_bounds, ball_image_iff, -mem_image, *] {contextual := tt}
 
 end complete_lattice
-
-/-- `le_of_add_le_add_left` is normally applicable to `ordered_cancel_add_comm_monoid`,
-but it holds in `ℝ≥0∞` with the additional assumption that `a ≠ ∞`. -/
-lemma le_of_add_le_add_left {a b c : ℝ≥0∞} (ha : a ≠ ∞) :
-  a + b ≤ a + c → b ≤ c :=
-begin
-  lift a to ℝ≥0 using ha,
-  cases b; cases c; simp [← ennreal.coe_add, ennreal.coe_le_coe]
-end
-
-/-- `le_of_add_le_add_right` is normally applicable to `ordered_cancel_add_comm_monoid`,
-but it holds in `ℝ≥0∞` with the additional assumption that `a ≠ ∞`. -/
-lemma le_of_add_le_add_right {a b c : ℝ≥0∞} : a ≠ ∞ →
-  b + a ≤ c + a → b ≤ c :=
-by simpa only [add_comm _ a] using le_of_add_le_add_left
 
 section mul
 

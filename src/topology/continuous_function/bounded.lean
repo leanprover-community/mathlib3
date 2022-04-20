@@ -180,6 +180,18 @@ instance : metric_space (α →ᵇ β) :=
     (dist_le (add_nonneg dist_nonneg' dist_nonneg')).2 $ λ x,
       le_trans (dist_triangle _ _ _) (add_le_add (dist_coe_le_dist _) (dist_coe_le_dist _)) }
 
+lemma nndist_eq : nndist f g = Inf {C | ∀ x : α, nndist (f x) (g x) ≤ C} :=
+subtype.ext $ dist_eq.trans $ begin
+  rw [nnreal.coe_Inf, nnreal.coe_image],
+  simp_rw [mem_set_of_eq, ←nnreal.coe_le_coe, subtype.coe_mk, exists_prop, coe_nndist],
+end
+
+lemma nndist_set_exists : ∃ C, ∀ x : α, nndist (f x) (g x) ≤ C :=
+subtype.exists.mpr $ dist_set_exists.imp $ λ a ⟨ha, h⟩, ⟨ha, h⟩
+
+lemma nndist_coe_le_nndist (x : α) : nndist (f x) (g x) ≤ nndist f g :=
+dist_coe_le_dist x
+
 /-- On an empty space, bounded continuous functions are at distance 0 -/
 lemma dist_zero_of_empty [is_empty α] : dist f g = 0 :=
 dist_eq_zero.2 (eq_of_empty f g)
@@ -190,6 +202,20 @@ begin
   refine (dist_le_iff_of_nonempty.mpr $ le_csupr _).antisymm (csupr_le dist_coe_le_dist),
   exact dist_set_exists.imp (λ C hC, forall_range_iff.2 hC.2)
 end
+
+lemma nndist_eq_supr : nndist f g = ⨆ x : α, nndist (f x) (g x) :=
+subtype.ext $ dist_eq_supr.trans $ by simp_rw [nnreal.coe_supr, coe_nndist]
+
+lemma tendsto_iff_tendsto_uniformly {ι : Type*} {F : ι → (α →ᵇ β)} {f : α →ᵇ β} {l : filter ι} :
+  tendsto F l (𝓝 f) ↔ tendsto_uniformly (λ i, F i) f l :=
+iff.intro
+  (λ h, tendsto_uniformly_iff.2
+    (λ ε ε0, (metric.tendsto_nhds.mp h ε ε0).mp (eventually_of_forall $
+    λ n hn x, lt_of_le_of_lt (dist_coe_le_dist x) (dist_comm (F n) f ▸ hn))))
+  (λ h, metric.tendsto_nhds.mpr $ λ ε ε_pos,
+    (h _ (dist_mem_uniformity $ half_pos ε_pos)).mp (eventually_of_forall $
+    λ n hn, lt_of_le_of_lt ((dist_le (half_pos ε_pos).le).mpr $
+    λ x, dist_comm (f x) (F n x) ▸ le_of_lt (hn x)) (half_lt_self ε_pos)))
 
 variables (α) {β}
 
@@ -214,7 +240,7 @@ lemma continuous_coe : continuous (λ (f : α →ᵇ β) x, f x) :=
 uniform_continuous.continuous uniform_continuous_coe
 
 /-- When `x` is fixed, `(f : α →ᵇ β) ↦ f x` is continuous -/
-@[continuity] theorem continuous_evalx {x : α} : continuous (λ f : α →ᵇ β, f x) :=
+@[continuity] theorem continuous_eval_const {x : α} : continuous (λ f : α →ᵇ β, f x) :=
 (continuous_apply x).comp continuous_coe
 
 /-- The evaluation map is continuous, as a joint function of `u` and `x` -/
@@ -766,16 +792,7 @@ lemma bdd_above_range_norm_comp : bdd_above $ set.range $ norm ∘ f :=
 (real.bounded_iff_bdd_below_bdd_above.mp $ @bounded_range _ _ _ _ f.norm_comp).2
 
 lemma norm_eq_supr_norm : ∥f∥ = ⨆ x : α, ∥f x∥ :=
-begin
-  casesI is_empty_or_nonempty α with hα _,
-  { suffices : range (norm ∘ f) = ∅, { rw [f.norm_eq_zero_of_empty, supr, this, real.Sup_empty], },
-    simp only [hα, range_eq_empty, not_nonempty_iff], },
-  { rw [norm_eq_of_nonempty, supr,
-      ← cInf_upper_bounds_eq_cSup f.bdd_above_range_norm_comp (range_nonempty _)],
-    congr,
-    ext,
-    simp only [forall_apply_eq_imp_iff', mem_range, exists_imp_distrib], },
-end
+by simp_rw [norm_def, dist_eq_supr, coe_zero, pi.zero_apply, dist_zero_right]
 
 /-- The pointwise opposite of a bounded continuous function is again bounded continuous. -/
 instance : has_neg (α →ᵇ β) :=
@@ -819,6 +836,25 @@ fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _
 
 instance : normed_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
+
+lemma nnnorm_def : ∥f∥₊ = nndist f 0 := rfl
+
+lemma nnnorm_coe_le_nnnorm (x : α) : ∥f x∥₊ ≤ ∥f∥₊ := norm_coe_le_norm _ _
+
+lemma nndist_le_two_nnnorm (x y : α) : nndist (f x) (f y) ≤ 2 * ∥f∥₊ := dist_le_two_norm _ _ _
+
+/-- The nnnorm of a function is controlled by the supremum of the pointwise nnnorms -/
+lemma nnnorm_le (C : ℝ≥0) : ∥f∥₊ ≤ C ↔ ∀x:α, ∥f x∥₊ ≤ C :=
+norm_le C.prop
+
+lemma nnnorm_const_le (b : β) : ∥const α b∥₊ ≤ ∥b∥₊ :=
+norm_const_le _
+
+@[simp] lemma nnnorm_const_eq [h : nonempty α] (b : β) : ∥const α b∥₊ = ∥b∥₊ :=
+subtype.ext $ norm_const_eq _
+
+lemma nnnorm_eq_supr_nnnorm : ∥f∥₊ = ⨆ x : α, ∥f x∥₊ :=
+subtype.ext $ (norm_eq_supr_norm f).trans $ by simp_rw [nnreal.coe_supr, coe_nnnorm]
 
 lemma abs_diff_coe_le_dist : ∥f x - g x∥ ≤ dist f g :=
 by { rw dist_eq_norm, exact (f - g).norm_coe_le_norm x }
@@ -983,15 +1019,31 @@ In this section, if `R` is a normed ring, then we show that the space of bounded
 continuous functions from `α` to `R` inherits a normed ring structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables [topological_space α] {R : Type*} [normed_ring R]
+variables [topological_space α] {R : Type*}
+
+section non_unital
+
+variables [non_unital_normed_ring R]
 
 instance : has_mul (α →ᵇ R) :=
 { mul := λ f g, of_normed_group (f * g) (f.continuous.mul g.continuous) (∥f∥ * ∥g∥) $ λ x,
-    le_trans (normed_ring.norm_mul (f x) (g x)) $
+    le_trans (non_unital_normed_ring.norm_mul (f x) (g x)) $
       mul_le_mul (f.norm_coe_le_norm x) (g.norm_coe_le_norm x) (norm_nonneg _) (norm_nonneg _) }
 
 @[simp] lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = f * g := rfl
 lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
+
+instance : non_unital_ring (α →ᵇ R) :=
+fun_like.coe_injective.non_unital_ring _ coe_zero coe_add coe_mul coe_neg coe_sub
+  (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
+
+instance : non_unital_normed_ring (α →ᵇ R) :=
+{ norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
+  .. bounded_continuous_function.normed_group }
+
+end non_unital
+
+variables [normed_ring R]
 
 @[simp] lemma coe_npow_rec (f : α →ᵇ R) : ∀ n, ⇑(npow_rec n f) = f ^ n
 | 0 := by rw [npow_rec, pow_zero, coe_one]
@@ -1012,8 +1064,7 @@ fun_like.coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
   (λ _ _, coe_pow _ _)
 
 instance : normed_ring (α →ᵇ R) :=
-{ norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
-  .. bounded_continuous_function.normed_group }
+{ ..bounded_continuous_function.non_unital_normed_ring }
 
 end normed_ring
 
@@ -1151,8 +1202,7 @@ instance `pi.has_star`. Upon inspecting the goal, one sees `⊢ ⇑(star f) = st
 @[simp] lemma star_apply (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
 
 instance : normed_star_group (α →ᵇ β) :=
-{ norm_star := λ f, by
-  { simp only [norm_eq], congr, ext, conv_lhs { find (∥_∥) { erw (@norm_star β _ _ _ (f x)) } } } }
+{ norm_star := λ f, by simp only [norm_eq, star_apply, norm_star] }
 
 instance : star_module 𝕜 (α →ᵇ β) :=
 { star_smul := λ k f, ext $ λ x, star_smul k (f x) }
@@ -1162,7 +1212,7 @@ end normed_group
 section cstar_ring
 
 variables [topological_space α]
-variables [normed_ring β] [star_ring β]
+variables [non_unital_normed_ring β] [star_ring β]
 
 instance [normed_star_group β] : star_ring (α →ᵇ β) :=
 { star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),

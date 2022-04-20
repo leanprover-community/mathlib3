@@ -68,7 +68,7 @@ begin
   { simp [list.dedup_eq_self.mpr hl] },
   { simpa using h1 },
   { simpa [hl] using h0 },
-  { simpa [list.dedup_eq_self.mpr hl] using list.forall_of_pairwise disjoint.symmetric h2 }
+  { simpa [list.dedup_eq_self.mpr hl] using h2.forall disjoint.symmetric }
 end
 
 lemma cycle_type_one : (1 : perm α).cycle_type = 0 :=
@@ -655,7 +655,7 @@ begin
   have h' : swap a b * swap c d = swap a b * swap a c * (swap c a * swap c d),
   { simp [swap_comm c a, mul_assoc] },
   rw h',
-  exact mul_mem _ (swap_mul_swap_same_mem_closure_three_cycles ab ac)
+  exact mul_mem (swap_mul_swap_same_mem_closure_three_cycles ab ac)
     (swap_mul_swap_same_mem_closure_three_cycles (ne.symm ac) cd),
 end
 

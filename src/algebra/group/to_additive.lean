@@ -217,6 +217,12 @@ meta def tr : bool → list string → list string
 | is_comm ("pow" :: s)                := add_comm_prefix is_comm "nsmul"     :: tr ff s
 | is_comm ("npow" :: s)               := add_comm_prefix is_comm "nsmul"     :: tr ff s
 | is_comm ("zpow" :: s)               := add_comm_prefix is_comm "zsmul"     :: tr ff s
+| is_comm ("is" :: "square" :: s)     := add_comm_prefix is_comm "even"      :: tr ff s
+| is_comm ("is" :: "regular" :: s)    := add_comm_prefix is_comm "is_add_regular"   :: tr ff s
+| is_comm ("is" :: "left" :: "regular" :: s)  :=
+  add_comm_prefix is_comm "is_add_left_regular"  :: tr ff s
+| is_comm ("is" :: "right" :: "regular" :: s) :=
+  add_comm_prefix is_comm "is_add_right_regular" :: tr ff s
 | is_comm ("monoid" :: s)      := ("add_" ++ add_comm_prefix is_comm "monoid")    :: tr ff s
 | is_comm ("submonoid" :: s)   := ("add_" ++ add_comm_prefix is_comm "submonoid") :: tr ff s
 | is_comm ("group" :: s)       := ("add_" ++ add_comm_prefix is_comm "group")     :: tr ff s
@@ -225,6 +231,8 @@ meta def tr : bool → list string → list string
 | is_comm ("magma" :: s)       := ("add_" ++ add_comm_prefix is_comm "magma")     :: tr ff s
 | is_comm ("haar" :: s)        := ("add_" ++ add_comm_prefix is_comm "haar")      :: tr ff s
 | is_comm ("prehaar" :: s)     := ("add_" ++ add_comm_prefix is_comm "prehaar")   :: tr ff s
+| is_comm ("unit" :: s)        := ("add_" ++ add_comm_prefix is_comm "unit")      :: tr ff s
+| is_comm ("units" :: s)       := ("add_" ++ add_comm_prefix is_comm "units")     :: tr ff s
 | is_comm ("comm" :: s)        := tr tt s
 | is_comm (x :: s)             := (add_comm_prefix is_comm x :: tr ff s)
 | tt []                        := ["comm"]
@@ -535,7 +543,7 @@ protected meta def attr : user_attribute unit value_type :=
       transform_decl_with_prefix_dict dict val.replace_all val.trace relevant ignore reorder src tgt
         [`reducible, `_refl_lemma, `simp, `norm_cast, `instance, `refl, `symm, `trans,
           `elab_as_eliminator, `no_rsimp, `continuity, `ext, `ematch, `measurability, `alias,
-          `_ext_core, `_ext_lemma_core, `nolint],
+          `_ext_core, `_ext_lemma_core, `nolint, `protected],
       mwhen (has_attribute' `simps src)
         (trace "Apply the simps attribute after the to_additive attribute"),
       mwhen (has_attribute' `mono src)
@@ -574,14 +582,14 @@ them has one -/
     dict ← to_additive.aux_attr.get_cache,
     match dict.find mul_name with
     | some add_name := do
-      mul_doc <- doc_string mul_name >> return tt <|> return ff,
-      add_doc <- doc_string add_name >> return tt <|> return ff,
-      match mul_doc, add_doc with
+      mul_doc ← try_core $ doc_string mul_name,
+      add_doc ← try_core $ doc_string add_name,
+      match mul_doc.is_some, add_doc.is_some with
       | tt, ff := return $ some $ "declaration has a docstring, but its additive version `" ++
-         add_name.to_string ++ "` does not. You might want to pass a string argument to " ++
-         "`to_additive`."
+          add_name.to_string ++ "` does not. You might want to pass a string argument to " ++
+          "`to_additive`."
       | ff, tt := return $ some $ "declaration has no docstring, but its additive version `" ++
-         add_name.to_string ++ "` does. You might want to add a doc string to the declaration."
+          add_name.to_string ++ "` does. You might want to add a doc string to the declaration."
       | _, _ := return none
       end
     | none := return none

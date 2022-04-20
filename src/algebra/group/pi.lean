@@ -58,6 +58,11 @@ instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
   npow := monoid.npow, zpow := λ z x i, (x i) ^ z }; tactic.pi_instance_derive_field
 
+@[to_additive pi.subtraction_monoid]
+instance division_monoid [Π i, division_monoid $ f i] : division_monoid (Π i, f i) :=
+by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
+  npow := monoid.npow, zpow := λ z x i, (x i) ^ z }; tactic.pi_instance_derive_field
+
 @[to_additive]
 instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,

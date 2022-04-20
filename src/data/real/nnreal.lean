@@ -548,9 +548,6 @@ by simp [pos_iff_ne_zero]
 lemma div_pos {r p : ℝ≥0} (hr : 0 < r) (hp : 0 < p) : 0 < r / p :=
 by simpa only [div_eq_mul_inv] using mul_pos hr (inv_pos.2 hp)
 
----TOODOO
-protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ inv_mul_rev _ _
-
 lemma div_self_le (r : ℝ≥0) : r / r ≤ 1 := div_self_le_one (r : ℝ)
 
 @[simp] lemma inv_le {r p : ℝ≥0} (h : r ≠ 0) : r⁻¹ ≤ p ↔ 1 ≤ r * p :=

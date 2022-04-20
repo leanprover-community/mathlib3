@@ -359,10 +359,10 @@ protected def div_inv_monoid [div_inv_monoid M₁]
   zpow_zero' := hf.forall.2 $ λ x, by erw [←zpow, zpow_zero, ←one],
   zpow_succ' := λ n, hf.forall.2 $ λ x, by
     erw [←zpow, ←zpow, zpow_of_nat, zpow_of_nat, pow_succ, ←mul],
-  zpow_neg' := λ n, hf.forall.2 $ λ x,
-    by erw [←zpow, ←zpow, zpow_neg_succ_of_nat, zpow_coe_nat, inv],
-  div_eq_mul_inv := hf.forall₂.2 $ λ x y, by erw [←inv, ←mul, ←div, div_eq_mul_inv],
-  .. hf.monoid f one mul npow, .. ‹has_div M₂›, .. ‹has_inv M₂›, }
+  zpow_neg' := λ n, hf.forall.2 $ λ x, by
+    erw [←zpow, ←zpow, zpow_neg_succ_of_nat, zpow_coe_nat, inv],
+  div_eq_mul_inv := hf.forall₂.2 $ λ x y, by erw [← inv, ← mul, ← div, div_eq_mul_inv],
+  .. hf.monoid f one mul npow, .. ‹has_div M₂›, .. ‹has_inv M₂› }
 
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `division_monoid`
 if it admits a surjective map that preserves `1`, `*`, `⁻¹`, and `/` to a `division_monoid`.

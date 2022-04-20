@@ -537,7 +537,8 @@ the `(/)` coming from `foo.has_div`.
 
 In the same way, adding a `zpow` field makes it possible to avoid definitional failures
 in diamonds. See the definition of `monoid` and Note [forgetful inheritance] for more
-explanations on this. -/
+explanations on this.
+-/
 @[protect_proj, ancestor monoid has_inv has_div]
 class div_inv_monoid (G : Type u) extends monoid G, has_inv G, has_div G :=
 (div := λ a b, a * b⁻¹)
@@ -549,8 +550,8 @@ class div_inv_monoid (G : Type u) extends monoid G, has_inv G, has_div G :=
 (zpow_neg' :
   ∀ (n : ℕ) (a : G), zpow (-[1+ n]) a = (zpow n.succ a)⁻¹ . try_refl_tac)
 
-/-- A `sub_neg_monoid` is an `add_monoid` with unary `-` and binary `-` operations satisfying
-`sub_eq_add_neg : ∀ a b, a - b = a + -b`.
+/-- A `sub_neg_monoid` is an `add_monoid` with unary `-` and binary `-` operations
+satisfying `sub_eq_add_neg : ∀ a b, a - b = a + -b`.
 
 The default for `sub` is such that `a - b = a + -b` holds by definition.
 
@@ -642,7 +643,7 @@ with a default so that `a / b = a * b⁻¹` holds by definition.
 -/
 @[protect_proj, ancestor div_inv_monoid]
 class group (G : Type u) extends div_inv_monoid G :=
-(mul_left_inv (a : G) : a⁻¹ * a = 1)
+(mul_left_inv : ∀ a : G, a⁻¹ * a = 1)
 
 /-- An `add_group` is an `add_monoid` with a unary `-` satisfying `-a + a = 0`.
 
@@ -656,11 +657,13 @@ class add_group (A : Type u) extends sub_neg_monoid A :=
 attribute [to_additive] group
 
 /-- Abbreviation for `@div_inv_monoid.to_monoid _ (@group.to_div_inv_monoid _ _)`.
+
 Useful because it corresponds to the fact that `Grp` is a subcategory of `Mon`.
 Not an instance since it duplicates `@div_inv_monoid.to_monoid _ (@group.to_div_inv_monoid _ _)`.
 See note [reducible non-instances]. -/
 @[reducible, to_additive
 "Abbreviation for `@sub_neg_monoid.to_add_monoid _ (@add_group.to_sub_neg_monoid _ _)`.
+
 Useful because it corresponds to the fact that `AddGroup` is a subcategory of `AddMon`.
 Not an instance since it duplicates
 `@sub_neg_monoid.to_add_monoid _ (@add_group.to_sub_neg_monoid _ _)`."]

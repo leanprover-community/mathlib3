@@ -1313,12 +1313,12 @@ end linear_ordered_add_comm_group
 
 namespace prod
 
-variables {H : Type*}
+variables {G H : Type*}
 
 @[to_additive]
-instance [ordered_comm_group α] [ordered_comm_group H] :
-  ordered_comm_group (α × H) :=
-{ .. prod.comm_group, .. prod.partial_order α H, .. prod.ordered_cancel_comm_monoid }
+instance [ordered_comm_group G] [ordered_comm_group H] :
+  ordered_comm_group (G × H) :=
+{ .. prod.comm_group, .. prod.partial_order G H, .. prod.ordered_cancel_comm_monoid }
 
 end prod
 

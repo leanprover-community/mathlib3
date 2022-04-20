@@ -114,17 +114,9 @@ The type is required to come with an “inverse” function, and the inverse of 
 Examples include division rings and the ordered monoids that are the
 target of valuations in general valuation theory.-/
 class group_with_zero (G₀ : Type u) extends
-  monoid_with_zero G₀, monoid G₀, has_div G₀, has_inv G₀, nontrivial G₀ :=
+  monoid_with_zero G₀, div_inv_monoid G₀, nontrivial G₀ :=
 (inv_zero : (0 : G₀)⁻¹ = 0)
 (mul_inv_cancel : ∀ a:G₀, a ≠ 0 → a * a⁻¹ = 1)
-(div := λ a b, a * b⁻¹)
-(div_eq_mul_inv : ∀ a b : G₀, a / b = a * b⁻¹ . try_refl_tac)
-(zpow : ℤ → G₀ → G₀ := zpow_rec)
-(zpow_zero' : ∀ (a : G₀), zpow 0 a = 1 . try_refl_tac)
-(zpow_succ' :
-  ∀ (n : ℕ) (a : G₀), zpow (int.of_nat n.succ) a = a * zpow (int.of_nat n) a . try_refl_tac)
-(zpow_neg' :
-  ∀ (n : ℕ) (a : G₀), zpow (-[1+ n]) a = (zpow n.succ a)⁻¹ . try_refl_tac)
 
 section group_with_zero
 variables [group_with_zero G₀]

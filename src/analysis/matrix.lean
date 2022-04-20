@@ -59,7 +59,7 @@ lemma norm_entry_le_entrywise_sup_norm (A : matrix m n α) {i : m} {j : n} :
   ∥A i j∥ ≤ ∥A∥ :=
 (norm_le_pi_norm (A i) j).trans (norm_le_pi_norm A i)
 
-lemma nnnorm_entry_le_entrywise_sup_nnorm (A : matrix m n α) {i : m} {j : n} :
+lemma nnnorm_entry_le_entrywise_sup_nnnorm (A : matrix m n α) {i : m} {j : n} :
   ∥A i j∥₊ ≤ ∥A∥₊ :=
 (nnnorm_le_pi_nnnorm (A i) j).trans (nnnorm_le_pi_nnnorm A i)
 
@@ -101,18 +101,18 @@ instance frobenius_normed_space [normed_field R] [semi_normed_group α] [normed_
   normed_space R (matrix m n α) :=
 (by apply_instance : normed_space R (pi_Lp 2 (λ i : m, pi_Lp 2 (λ j : n, α))))
 
-lemma frobenius_nnorm_def [semi_normed_group α] (A : matrix m n α) :
-  ∥A∥₊ = (∑ i j, ∥A i j∥₊^ (2 : ℝ)) ^ (1/2 : ℝ) :=
-by simp_rw [pi_Lp.nnorm_eq, ←nnreal.rpow_mul, div_mul_cancel (1 : ℝ) two_ne_zero, nnreal.rpow_one]
+lemma frobenius_nnnorm_def [semi_normed_group α] (A : matrix m n α) :
+  ∥A∥₊ = (∑ i j, ∥A i j∥₊ ^ (2 : ℝ)) ^ (1/2 : ℝ) :=
+by simp_rw [pi_Lp.nnnorm_eq, ←nnreal.rpow_mul, div_mul_cancel (1 : ℝ) two_ne_zero, nnreal.rpow_one]
 
 lemma frobenius_norm_def [semi_normed_group α] (A : matrix m n α) :
   ∥A∥ = (∑ i j, ∥A i j∥ ^ (2 : ℝ)) ^ (1/2 : ℝ) :=
-(congr_arg coe (frobenius_nnorm_def A)).trans $ by simp [nnreal.coe_sum]
+(congr_arg coe (frobenius_nnnorm_def A)).trans $ by simp [nnreal.coe_sum]
 
-lemma frobenius_nnorm_mul [is_R_or_C α] (A : matrix l m α) (B : matrix m n α) :
+lemma frobenius_nnnorm_mul [is_R_or_C α] (A : matrix l m α) (B : matrix m n α) :
   ∥A ⬝ B∥₊ ≤ ∥A∥₊ * ∥B∥₊ :=
 begin
-  simp_rw [frobenius_nnorm_def],
+  simp_rw [frobenius_nnnorm_def],
   rw [←nnreal.mul_rpow],
   simp_rw [matrix.mul_apply],
   rw @finset.sum_comm _ n m,
@@ -121,24 +121,23 @@ begin
   refine finset.sum_le_sum (λ i hi, finset.sum_le_sum $ λ j hj, _),
   rw [← nnreal.rpow_le_rpow_iff one_half_pos, ← nnreal.rpow_mul,
     mul_div_cancel' (1 : ℝ) two_ne_zero, nnreal.rpow_one, nnreal.mul_rpow,
-      ←pi_Lp.nnorm_eq, ←pi_Lp.nnorm_eq],
+      ←pi_Lp.nnnorm_eq, ←pi_Lp.nnnorm_eq],
   dsimp,
   let a : pi_Lp 2 _ := A i,
   let a' : pi_Lp 2 _ := λ j, star (a j),
   let b : pi_Lp 2 _ := λ k, B k j,
   letI : inner_product_space α (pi_Lp 2 (λ i : m, α)) := pi_Lp.inner_product_space _,
   change ∥∑ k, a k * b k∥₊ ≤ ∥a∥₊ * ∥b∥₊,
-  convert nnorm_inner_le_nnorm a' b using 2,
+  convert nnnorm_inner_le_nnnorm a' b using 2,
   { simp,
     simp_rw [star_ring_end_apply, star_star], },
-  simp [pi_Lp.nnorm_eq, a'],
-  simp_rw [star_ring_end_apply, nnorm_star],
+  simp [pi_Lp.nnnorm_eq, a'],
+  simp_rw [star_ring_end_apply, nnnorm_star],
 end
-
 
 lemma frobenius_norm_mul [is_R_or_C α] (A : matrix l m α) (B : matrix m n α) :
   ∥A ⬝ B∥ ≤ ∥A∥ * ∥B∥ :=
-frobenius_nnorm_mul A B
+frobenius_nnnorm_mul A B
 
 instance frobenius_normed_ring [is_R_or_C α] [decidable_eq m] : normed_ring (matrix m m α) :=
 { norm := has_norm.norm,

@@ -776,7 +776,7 @@ lemma _root_.continuous_on.prod_map_equivL {f : X → M₁ ≃L[𝕜] M₂} {g :
 variables {𝕜 E Fₗ Gₗ}
 
 section multiplication_linear
-variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
+variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] [norm_one_class 𝕜']
 
 /-- Left multiplication in a normed algebra as a linear isometry to the space of
 continuous linear maps. -/
@@ -785,8 +785,8 @@ def lmulₗᵢ : 𝕜' →ₗᵢ[𝕜] 𝕜' →L[𝕜] 𝕜' :=
     λ x y, by simpa using norm_mul_le x y,
   norm_map' := λ x, le_antisymm
     (op_norm_le_bound _ (norm_nonneg x) (norm_mul_le x))
-    (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'],
-          apply_instance }) }
+  (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [norm_one],
+        apply_instance }) }
 
 /-- Left multiplication in a normed algebra as a continuous bilinear map. -/
 def lmul : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' :=
@@ -807,7 +807,7 @@ def lmul_right : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜' := (lmul 𝕜 𝕜').fl
 @[simp] lemma op_norm_lmul_right_apply (x : 𝕜') : ∥lmul_right 𝕜 𝕜' x∥ = ∥x∥ :=
 le_antisymm
   (op_norm_le_bound _ (norm_nonneg x) (λ y, (norm_mul_le y x).trans_eq (mul_comm _ _)))
-  (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [normed_algebra.norm_one 𝕜 𝕜'],
+  (by { convert ratio_le_op_norm _ (1 : 𝕜'), simp [norm_one],
         apply_instance })
 
 /-- Right-multiplication in a normed algebra, considered as a linear isometry to the space of
@@ -1231,9 +1231,10 @@ instance to_normed_ring : normed_ring (E →L[𝕜] E) :=
 
 /-- For a nonzero normed space `E`, continuous linear endomorphisms form a normed algebra with
 respect to the operator norm. -/
-instance to_normed_algebra [nontrivial E] : normed_algebra 𝕜 (E →L[𝕜] E) :=
-{ norm_algebra_map_eq := λ c, show ∥c • id 𝕜 E∥ = ∥c∥,
-    by {rw [norm_smul, norm_id], simp},
+instance to_normed_algebra : normed_algebra 𝕜 (E →L[𝕜] E) :=
+{ norm_algebra_map_le := λ c, show ∥c • id 𝕜 E∥ ≤ ∥c∥,
+    by {rw [norm_smul],
+      exact (mul_le_mul_of_nonneg_left norm_id_le $ norm_nonneg _).trans_eq (mul_one _) },
   .. continuous_linear_map.algebra }
 
 variable {f}
@@ -1565,11 +1566,11 @@ continuous_linear_map.homothety_norm _ c.norm_smul_right_apply
 
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
-@[simp] lemma op_norm_lmul : ∥lmul 𝕜 𝕜'∥ = 1 :=
-by haveI := normed_algebra.nontrivial 𝕜 𝕜'; exact (lmulₗᵢ 𝕜 𝕜').norm_to_continuous_linear_map
+@[simp] lemma op_norm_lmul [norm_one_class 𝕜'] : ∥lmul 𝕜 𝕜'∥ = 1 :=
+by haveI := norm_one_class.nontrivial 𝕜'; exact (lmulₗᵢ 𝕜 𝕜').norm_to_continuous_linear_map
 
-@[simp] lemma op_norm_lmul_right : ∥lmul_right 𝕜 𝕜'∥ = 1 :=
-(op_norm_flip (@lmul 𝕜 _ 𝕜' _ _)).trans (op_norm_lmul _ _)
+@[simp] lemma op_norm_lmul_right [norm_one_class 𝕜'] : ∥lmul_right 𝕜 𝕜'∥ = 1 :=
+(op_norm_flip (@lmul 𝕜 _ 𝕜' _ _ _)).trans (op_norm_lmul _ _)
 
 end continuous_linear_map
 

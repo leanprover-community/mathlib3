@@ -1271,7 +1271,7 @@ by simp
 
 @[to_additive]
 lemma prod_ite_eq_extract  [decidable_eq α]
- (s : finset α) {b : α} (hb : b ∈ s) (f : α → β) :
+  (s : finset α) {b : α} (hb : b ∈ s) (f : α → β) :
   ∏ n in s, f n = f b * ∏ n in s, ite (n = b) 1 (f n) :=
 begin
   simp only [finset.prod_ite, finset.filter_ne', finset.prod_const_one, one_mul],

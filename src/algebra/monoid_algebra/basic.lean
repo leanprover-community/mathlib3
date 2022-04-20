@@ -1539,8 +1539,8 @@ def add_monoid_alg_hom_map (k A : Type*) [comm_semiring k] [semiring A] [algebra
   [add_monoid G] {H : Type*} [add_monoid H]
   (f : G →+ H) : add_monoid_algebra A G →ₐ[k] add_monoid_algebra A H :=
 lift_nc_alg_hom single_zero_alg_hom ((of A H).comp f.to_multiplicative) $
-λ a g, add_monoid_algebra.single_mul_single.trans (by {
-  simp only [zero_add, mul_one, single_one_right_add_hom_apply, single_zero_alg_hom_apply,
+λ a g, add_monoid_algebra.single_mul_single.trans (by
+{ simp only [zero_add, mul_one, single_one_right_add_hom_apply, single_zero_alg_hom_apply,
     ring_hom.to_fun_eq_coe, single_zero_ring_hom_apply, add_monoid_hom.to_fun_eq_coe,
     single_add_hom_apply, single_mul_single, add_zero, one_mul],
   refl })

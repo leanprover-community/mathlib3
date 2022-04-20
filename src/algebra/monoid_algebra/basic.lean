@@ -1532,7 +1532,7 @@ end
 @[simp]
 lemma map_domain_algebra_map (k A : Type*) {H F : Type*} [comm_semiring k] [semiring A]
   [algebra k A] [add_monoid G] [add_monoid H] [add_monoid_hom_class F G H] (f : F) (r : k) :
-  (map_domain_ring_hom A f).to_fun ((algebra_map k (add_monoid_algebra A G)) r) =
+  map_domain f (algebra_map k (add_monoid_algebra A G) r) =
     (algebra_map k (add_monoid_algebra A H)) r :=
 map_domain_single.trans (by simp)
 

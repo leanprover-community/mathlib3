@@ -684,9 +684,9 @@ protected theorem eq_zero_or_eq_zero_of_mul_eq_zero : Π {a b : ℤ√d}, a * b 
        x * x * z = d * -y * (x * w) : by simp [h1, mul_assoc, mul_left_comm]
              ... = d * y * y * z : by simp [h2, mul_assoc, mul_left_comm]
 
-instance : is_domain ℤ√d :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := @zsqrtd.eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. zsqrtd.comm_ring, .. zsqrtd.nontrivial }
+instance : no_zero_divisors ℤ√d := ⟨@zsqrtd.eq_zero_or_eq_zero_of_mul_eq_zero⟩
+
+instance : is_domain ℤ√d := is_domain.of_no_zero_divisors
 
 protected theorem mul_pos (a b : ℤ√d) (a0 : 0 < a) (b0 : 0 < b) : 0 < a * b := λab,
 or.elim (eq_zero_or_eq_zero_of_mul_eq_zero

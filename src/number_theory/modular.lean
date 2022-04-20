@@ -32,7 +32,7 @@ Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`:
 `exists_smul_mem_fundamental_domain (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟`
 
 If both `z` and `γ • z` are in the open domain `𝒟ᵒ` then `z = γ • z`:
-`fun_dom_lemma₂ (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z`
+`eq_smul_self_of_mem_fdo_mem_fdo (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z`
 
 # Discussion
 
@@ -338,30 +338,24 @@ end
 /-- The matrix `T = [[1,1],[0,1]]` as an element of `SL(2,ℤ)` -/
 def T : SL(2,ℤ) := ⟨![![1, 1], ![0, 1]], by norm_num [matrix.det_fin_two]⟩
 
-/-- The matrix `T' (= T⁻¹) = [[1,-1],[0,1]]` as an element of `SL(2,ℤ)` -/
-def T' : SL(2,ℤ) := ⟨![![1, -1], ![0, 1]], by norm_num [matrix.det_fin_two]⟩
-
 /-- The matrix `S = [[0,-1],[1,0]]` as an element of `SL(2,ℤ)` -/
 def S : SL(2,ℤ) := ⟨![![0, -1], ![1, 0]], by norm_num [matrix.det_fin_two]⟩
 
 lemma coe_T : ↑ₘT = ![![1, 1], ![0, 1]] := rfl
 
-lemma coe_T_inv : ↑ₘ(T⁻¹) = ![![1, -1], ![0, 1]] :=
-begin
-  rw [coe_inv, coe_T, adjugate_fin_two],
-  simp,
-end
+lemma coe_T_inv : ↑ₘ(T⁻¹) = ![![1, -1], ![0, 1]] := by simp [coe_inv, coe_T, adjugate_fin_two]
 
-/-- `coe_T_zpow` is the matrix `T` raised to the power `n : ℤ`. -/
 lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = ![![1, n], ![0,1]] :=
 begin
   induction n using int.induction_on with n h n h,
-  { rw [zpow_zero, coe_one],  ext i j,
-    fin_cases i; fin_cases j; simp, },
-  { rw [zpow_add, zpow_one, coe_mul, h, coe_T], ext i j,
-    fin_cases i; fin_cases j; simp [matrix.mul, dot_product, fin.sum_univ_succ]; ring, },
-  { rw [zpow_sub, zpow_one, coe_mul, h, coe_T_inv], ext i j,
-    fin_cases i; fin_cases j; simp [matrix.mul, dot_product, fin.sum_univ_succ]; ring, },
+  { ext i j, fin_cases i; fin_cases j;
+    simp, },
+  { rw [zpow_add, zpow_one, coe_mul, h, coe_T],
+    ext i j, fin_cases i; fin_cases j;
+    simp [matrix.mul_apply, fin.sum_univ_succ, add_comm (1 : ℤ)], },
+  { rw [zpow_sub, zpow_one, coe_mul, h, coe_T_inv],
+    ext i j, fin_cases i; fin_cases j;
+    simp [matrix.mul_apply, fin.sum_univ_succ, neg_add_eq_sub (1 : ℤ)], },
 end
 
 /- If `c = 1`, then `g = [[1,a],[0,1]] * S * [[1,d],[0,1]]`. -/
@@ -420,7 +414,7 @@ def fundamental_domain : set ℍ :=
 def fundamental_domain_open : set ℍ :=
 {z | 1 < (z : ℂ).norm_sq ∧ |z.re| < (1 : ℝ) / 2}
 
-localized "notation `𝒟` := modular_group.fundamental_domain" in modular
+localized "notation `𝒟` := fundamental_domain" in modular
 
 localized "notation `𝒟ᵒ` := fundamental_domain_open" in modular
 
@@ -430,6 +424,14 @@ begin
   exact h.2,
 end
 
+lemma three_lt_four_mul_im_sq_of_mem_fdo {z : ℍ} (h : z ∈ 𝒟ᵒ) : 3 < 4 * z.im^2 :=
+begin
+  have : 1 < z.re * z.re + z.im * z.im := by simpa [complex.norm_sq_apply] using h.1,
+  have := h.2,
+  cases abs_cases z.re;
+  nlinarith,
+end
+
 /-- If `z∈𝒟ᵒ`, and `n:ℤ`, then `|z+n|>1`. -/
 lemma one_lt_norm_sq_T_zpow_smul {z : ℍ} (hz : z ∈ 𝒟ᵒ) (n : ℤ) : 1 < norm_sq (((T^n) • z) : ℍ) :=
 begin
@@ -437,14 +439,6 @@ begin
   have hzn := int.nneg_mul_add_sq_of_abs_le_one n _ (abs_two_mul_re_lt_one_of_mem_fdo hz).le,
   have : 1 < (z.re + ↑n) * (z.re + ↑n) + z.im * z.im, { linarith, },
   simpa [coe_T_zpow, norm_sq],
-end
-
-lemma three_lt_four_mul_im_sq_of_mem_fdo {z : ℍ} (h : z ∈ 𝒟ᵒ) : 3 < 4 * z.im^2 :=
-begin
-  have : 1 < z.re * z.re + z.im * z.im := by simpa [complex.norm_sq_apply] using h.1,
-  have := h.2,
-  cases abs_cases z.re;
-  nlinarith,
 end
 
 /-- Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`  -/
@@ -477,12 +471,12 @@ begin
       convert this,
       simp [T] },
     { contrapose! hg',
-      refine ⟨T' * g, by simp [T', matrix.mul, matrix.dot_product, fin.sum_univ_succ], _⟩,
+      refine ⟨T⁻¹ * g, by simp [coe_T_inv, matrix.mul, matrix.dot_product, fin.sum_univ_succ], _⟩,
       rw mul_action.mul_smul,
       have : |(g • z).re - 1| < |(g • z).re| :=
         by cases abs_cases ((g • z).re - 1); cases abs_cases (g • z).re; linarith,
       convert this,
-      simp [T', sub_eq_add_neg] } }
+      simp [coe_T_inv, sub_eq_add_neg] } }
 end
 
 section unique_representative

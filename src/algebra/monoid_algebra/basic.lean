@@ -695,10 +695,12 @@ lemma lift_unique (F : monoid_algebra k G →ₐ[k] A) (f : monoid_algebra k G) 
 by conv_lhs { rw lift_unique' F, simp [lift_apply] }
 
 /--  A multiplicative homomorphism `f : G →* H` between two monoids induces a `k`-algebra
-homomorphism `monoid_hom_alg_hom_map f : monoid_algebra k G →ₐ[k] monoid_algebra k H`. -/
-def monoid_hom_alg_hom_map (k : Type*) [comm_semiring k] {H : Type*} [monoid H] (f : G →* H) :
-  monoid_algebra k G →ₐ[k] monoid_algebra k H :=
-lift _ _ (monoid_algebra k H) ((of k H).comp f)
+homomorphism `monoid_alg_hom_map k A f : monoid_algebra k G →ₐ[k] monoid_algebra k H`. -/
+def monoid_alg_hom_map (k A : Type*) [comm_semiring k] [semiring A] [algebra k A] {H : Type*}
+  [monoid H] (f : G →* H) :
+  monoid_algebra A G →ₐ[k] monoid_algebra A H :=
+lift_nc_alg_hom single_one_alg_hom ((of A H).comp f) $
+λ a g, single_mul_single.trans (by simp)
 
 end lift
 
@@ -1532,20 +1534,28 @@ finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
 end
 
 /--  An additive homomorphism `f : G →+ H` induces a `k`-algebra homomorphism
-`add_monoid_alg_hom_map f : add_monoid_algebra k G →ₐ[k] add_monoid_algebra k H`. -/
+`add_monoid_alg_hom_map k A f : add_monoid_algebra A G →ₐ[k] add_monoid_algebra A H`. -/
 def add_monoid_alg_hom_map (k A : Type*) [comm_semiring k] [semiring A] [algebra k A]
   [add_monoid G] {H : Type*} [add_monoid H]
-  (f : G →+ H) : add_monoid_algebra k G →ₐ[k] add_monoid_algebra A H :=
-lift k G (add_monoid_algebra A H) ((of A H).comp f.to_multiplicative)
+  (f : G →+ H) : add_monoid_algebra A G →ₐ[k] add_monoid_algebra A H :=
+lift_nc_alg_hom single_zero_alg_hom ((of A H).comp f.to_multiplicative) $
+λ a g, add_monoid_algebra.single_mul_single.trans (by {
+  simp only [zero_add, mul_one, single_one_right_add_hom_apply, single_zero_alg_hom_apply,
+    ring_hom.to_fun_eq_coe, single_zero_ring_hom_apply, add_monoid_hom.to_fun_eq_coe,
+    single_add_hom_apply, single_mul_single, add_zero, one_mul],
+  refl })
 
 @[simp]
-lemma add_monoid_alg_hom_map_single (k A : Type*) [comm_semiring k] [semiring A] [algebra k A]
-  [add_monoid G] {H : Type*}
-  [add_monoid H] (f : G →+ H) (n : G) (r : k) :
-  add_monoid_alg_hom_map k A f (single n r) = single (f n) (algebra_map k A r) :=
+lemma add_monoid_alg_hom_map_single (k : Type*) {A : Type*} [comm_semiring k] [semiring A]
+  [algebra k A] [add_monoid G] {H : Type*} [add_monoid H] (f : G →+ H) (n : G) (r : A) :
+  add_monoid_alg_hom_map k A f (single n r) = single (f n) r :=
 begin
+  simp [add_monoid_alg_hom_map],
+  convert single_one_right_add_hom_apply k f n,
+  simp,
   simp only [add_monoid_alg_hom_map, single_one_right_add_hom_apply, lift_single, smul_single,
-    ← algebra.algebra_map_eq_smul_one],
+    ← algebra.algebra_map_eq_smul_one, lift_nc_alg_hom, lift_nc_ring_hom],
+  dsimp,
   refl,
 end
 

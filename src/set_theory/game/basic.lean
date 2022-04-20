@@ -3,7 +3,7 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison, Apurva Nakade
 -/
-import set_theory.pgame
+import set_theory.game.pgame
 import tactic.abel
 
 /-!
@@ -534,6 +534,8 @@ inductive inv_ty (l r : Type u) : bool → Type u
 | left₂ : l → inv_ty tt → inv_ty ff
 | right₁ : l → inv_ty ff → inv_ty tt
 | right₂ : r → inv_ty tt → inv_ty tt
+
+instance (l r : Type u) : inhabited (inv_ty l r ff) := ⟨inv_ty.zero⟩
 
 /-- Because the two halves of the definition of `inv` produce more elements
 of each side, we have to define the two families inductively.

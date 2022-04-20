@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Johan Commelin
 -/
 
-import topology.sets.opens
+import topology.category.Top
 import ring_theory.graded_algebra.homogeneous_ideal
 
 /-!
@@ -30,11 +30,14 @@ It is naturally endowed with a topology: the Zariski topology.
 * `projective_spectrum.vanishing_ideal t`: The vanishing ideal of a subset `t` of
   `projective_spectrum 𝒜` is the intersection of points in `t` (viewed as relevant homogeneous prime
   ideals).
+* `projective_spectrum.Top`: the topological space of `projective_spectrum 𝒜` endowed with the
+  Zariski topology
+
 -/
 
 noncomputable theory
 open_locale direct_sum big_operators pointwise
-open direct_sum set_like
+open direct_sum set_like Top topological_space category_theory opposite
 
 variables {R A: Type*}
 variables [comm_semiring R] [comm_ring A] [algebra R A]
@@ -301,6 +304,11 @@ topological_space.of_closed (set.range (projective_spectrum.zero_locus 𝒜))
     exact ⟨_, zero_locus_Union 𝒜 _⟩
   end
   (by { rintros _ ⟨s, rfl⟩ _ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus 𝒜 s t).symm⟩ })
+
+/--
+The underlying topology of `Proj` is the projective spectrum of graded ring `A`.
+-/
+def Top : Top := Top.of (projective_spectrum 𝒜)
 
 lemma is_open_iff (U : set (projective_spectrum 𝒜)) :
   is_open U ↔ ∃ s, Uᶜ = zero_locus 𝒜 s :=

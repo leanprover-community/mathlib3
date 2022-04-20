@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 import linear_algebra.finsupp
 import linear_algebra.prod
 import logic.equiv.fin
-import set_theory.cardinal
+import set_theory.cardinal.basic
 
 /-!
 

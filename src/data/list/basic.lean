@@ -679,13 +679,21 @@ end
   ∀ (h : l ≠ nil), last (a :: l) (cons_ne_nil a l) = last l h :=
 by {induction l; intros, contradiction, reflexivity}
 
-@[simp] theorem last_append {a : α} (l : list α) :
+@[simp] theorem last_append_singleton {a : α} (l : list α) :
   last (l ++ [a]) (append_ne_nil_of_ne_nil_right l _ (cons_ne_nil a _)) = a :=
 by induction l;
   [refl, simp only [cons_append, last_cons (λ H, cons_ne_nil _ _ (append_eq_nil.1 H).2), *]]
 
+theorem last_append (l₁ l₂ : list α) (h : l₂ ≠ []) :
+  last (l₁ ++ l₂) (append_ne_nil_of_ne_nil_right l₁ l₂ h) = last l₂ h :=
+begin
+  induction l₁ with _ _ ih,
+  { simp },
+  { simp only [cons_append], rw list.last_cons, exact ih },
+end
+
 theorem last_concat {a : α} (l : list α) : last (concat l a) (concat_ne_nil a l) = a :=
-by simp only [concat_eq_append, last_append]
+by simp only [concat_eq_append, last_append_singleton]
 
 @[simp] theorem last_singleton (a : α) : last [a] (cons_ne_nil a []) = a := rfl
 

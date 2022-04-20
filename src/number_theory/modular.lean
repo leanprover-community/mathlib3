@@ -341,6 +341,8 @@ def T : SL(2,ℤ) := ⟨![![1, 1], ![0, 1]], by norm_num [matrix.det_fin_two]⟩
 /-- The matrix `S = [[0,-1],[1,0]]` as an element of `SL(2,ℤ)` -/
 def S : SL(2,ℤ) := ⟨![![0, -1], ![1, 0]], by norm_num [matrix.det_fin_two]⟩
 
+lemma coe_S : ↑ₘS = ![![0, -1], ![1, 0]] := rfl
+
 lemma coe_T : ↑ₘT = ![![1, 1], ![0, 1]] := rfl
 
 lemma coe_T_inv : ↑ₘ(T⁻¹) = ![![1, -1], ![0, 1]] := by simp [coe_inv, coe_T, adjugate_fin_two]
@@ -358,41 +360,19 @@ begin
     simp [matrix.mul_apply, fin.sum_univ_succ, neg_add_eq_sub (1 : ℤ)], },
 end
 
-/- If `c = 1`, then `g = [[1,a],[0,1]] * S * [[1,d],[0,1]]`. -/
-lemma g_eq_of_c_eq_one (g : SL(2,ℤ)) (hc : ↑ₘg 1 0 = 1) :
+/- If `c = 1`, then `g` factorises into a product terms involving only `T` and `S`. -/
+lemma g_eq_of_c_eq_one {g : SL(2,ℤ)} (hc : ↑ₘg 1 0 = 1) :
   g = T^(↑ₘg 0 0) * S * T^(↑ₘg 1 1) :=
 begin
-  ext i j, fin_cases i; fin_cases j,
-  { simp [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ] },
-  { have g_det : (1:ℤ) = ↑ₘg 0 0 * ↑ₘg 1 1 - 1 * ↑ₘg 0 1,
-    { convert det_fin_two ↑ₘg using 1,
-      { rw g.det_coe },
-      rw hc,
-      ring },
-    simp [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ],
-    rw g_det,
-    simp, },
-  { simpa [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ] using hc },
-  { simp [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ], },
-end
-
-/-- If `c=1`, then `[[1,-a],[0,1]]*g = S * [[1,d],[0,1]]`. -/
-lemma T_zpow_mul_eq_S_mul_T_zpow_of_c_eq_one {g : SL(2,ℤ)} (hc : ↑ₘg 1 0 = 1) :
-  T^(- ↑ₘg 0 0) * g = S * T^(↑ₘg 1 1) :=
-begin
-  rw g_eq_of_c_eq_one g hc,
-  ext i,
-  fin_cases i; fin_cases j,
-  { simp [coe_T_zpow, S, matrix.mul_apply, fin.sum_univ_succ], },
-  { simp [coe_T_zpow, S, matrix.mul_apply, fin.sum_univ_succ],
-    ring },
-  { simp [coe_T_zpow, S, matrix.mul_apply, fin.sum_univ_succ], },
-  { simp [coe_T_zpow, S, matrix.mul_apply, fin.sum_univ_succ], },
+  have hg := g.det_coe.symm,
+  replace hg : ↑ₘg 0 1 = ↑ₘg 0 0 * ↑ₘg 1 1 - 1, { rw [det_fin_two, hc] at hg, linarith, },
+  ext i j, fin_cases i; fin_cases j;
+  simp [coe_S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ, hg, hc],
 end
 
 /-- If `1 < |z|`, then `|S•z| < 1` -/
 lemma norm_sq_S_smul_lt_one {z : ℍ} (h: 1 < norm_sq z) : norm_sq ↑(S • z) < 1 :=
-by simpa [S] using (inv_lt_inv z.norm_sq_pos zero_lt_one).mpr h
+by simpa [coe_S] using (inv_lt_inv z.norm_sq_pos zero_lt_one).mpr h
 
 /-- If `|z| < 1`, then applying `S` strictly decreases `im` -/
 lemma im_lt_im_S_smul {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=
@@ -520,9 +500,9 @@ begin
     by_contra hc,
     let a := ↑ₘg' 0 0,
     let d := ↑ₘg' 1 1,
+    have had : T^(-a) * g' = S * T^d, { rw g_eq_of_c_eq_one hc, group, },
     let w := T^(-a) • (g' • z),
-    have h₁ : w = S • (T^d • z),
-    { simp only [w, ← mul_smul, T_zpow_mul_eq_S_mul_T_zpow_of_c_eq_one hc], },
+    have h₁ : w = S • (T^d • z), { simp only [w, ← mul_smul, had], },
     replace h₁ : norm_sq w < 1 := h₁.symm ▸ norm_sq_S_smul_lt_one (one_lt_norm_sq_T_zpow_smul hz d),
     have h₂ : 1 < norm_sq w := one_lt_norm_sq_T_zpow_smul hg' (-a),
     linarith, },

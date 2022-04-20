@@ -31,6 +31,7 @@ variable (M : GL(2, ℝ)⁺)
 
 def slash_k : ℤ → GL(2, ℝ)⁺ → (ℍ → ℂ) → (ℍ → ℂ) := λ k γ f,
   (λ (x : ℍ), f (γ • x) * ( ((↑ₘ γ).det ) : ℝ)^(k-1) * (((↑ₘ γ 1 0 : ℝ) * x +(↑ₘ γ 1 1 : ℝ))^k)⁻¹)
+
 namespace modular_forms
 
 variables (Γ : subgroup SL(2,ℤ)) (C : GL(2, ℝ)⁺) (k: ℤ) (f : (ℍ → ℂ))

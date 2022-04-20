@@ -470,7 +470,7 @@ end
 section norm_one_class
 variables [norm_one_class 𝕜] (p : seminorm 𝕜 E)
 
-lemma ball_zero_eq_preimage_ball {r : ℝ} (hr : 0 < r) :
+lemma ball_zero_eq_preimage_ball {r : ℝ} :
   p.ball 0 r = p ⁻¹' (metric.ball 0 r) :=
 begin
   ext x,

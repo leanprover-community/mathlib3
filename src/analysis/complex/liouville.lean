@@ -53,8 +53,8 @@ lemma norm_deriv_le_aux [complete_space F] {c : ℂ} {R C : ℝ} {f : ℂ → F}
   ∥deriv f c∥ ≤ C / R :=
 begin
   have : ∀ z ∈ sphere c R, ∥(z - c) ^ (-2 : ℤ) • f z∥ ≤ C / (R * R),
-    from λ z (hz : abs (z - c) = R), by simpa [norm_smul, hz, zpow_two, ← div_eq_inv_mul]
-      using (div_le_div_right (mul_pos hR hR)).2 (hC z hz),
+    from λ z (hz : abs (z - c) = R), by simpa [-inv_mul_rev, norm_smul, hz, zpow_two,
+      ←div_eq_inv_mul] using (div_le_div_right (mul_pos hR hR)).2 (hC z hz),
   calc ∥deriv f c∥ = ∥(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) ^ (-2 : ℤ) • f z∥ :
     congr_arg norm (deriv_eq_smul_circle_integral hR hf)
   ... ≤ R * (C / (R * R)) :

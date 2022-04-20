@@ -191,7 +191,7 @@ meta def split_sort_args
     list.ret <$> (sort_summands_arg tac_rbp) <|>
     return [])) : tactic unit :=
 trace $ list.split_factors args
-#exit
+
 /--
 Calling `sort_summands`, recursively looks inside the goal for expressions involving a sum.
 Whenever it finds one, it sorts its terms following a heuristic.  Right now, the heuristic
@@ -216,24 +216,24 @@ inexistent terms are ignored).
 Finally, `sort_summands` can also be targeted to a hypothesis.  If `hp` is in the local context,
 `sort_summands [f, g] at hp` performs the rearranging at `hp`.
 -/
-meta def sort_summands (args : parse (
-    list_of (sort_summands_arg 0) <|>
-    list.ret <$> (sort_summands_arg tac_rbp) <|>
-    return []))
- (l : parse pexpr_list_or_texpr?)
- (locat : parse location) : tactic unit :=
+meta def sort_summands (args : parse sort_pexpr_list_or_texpr)
+ --(l : parse pexpr_list_or_texpr?)
+ (locat : parse location)
+  : tactic unit :=
 do
-  l : list expr × list expr ← (split_sort_args args),--(l.get_or_else []).mmap to_expr,
+  let ll := args.split_factors,
+  il ← ll.1.mmap to_expr,
+  fl ← ll.2.mmap to_expr,
   match locat with
   | loc.wildcard := do
-    sort_summands_core tt l none,
+    sort_summands_core tt (il,fl) none,
     ctx ← local_context,
-    ctx.mmap (λ e, sort_summands_core tt l (expr.local_pp_name e)),
+    ctx.mmap (λ e, sort_summands_core tt (il,fl) (expr.local_pp_name e)),
     skip
   | loc.ns names := do
-    names.mmap $ sort_summands_core ff l,
+    names.mmap $ sort_summands_core ff (il,fl),
     skip
-  end
+    end
 
 add_tactic_doc
 { name := "sort_summands",

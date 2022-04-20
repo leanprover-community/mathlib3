@@ -336,13 +336,19 @@ subset.trans support_sum $ bUnion_mono $ assume a₁ _,
 
 section
 
+/-- Like `finsupp.map_domain_zero`, but for the `1` we define in this file -/
+@[simp] lemma map_domain_one {α : Type*} {β : Type*} {α₂ : Type*}
+  [semiring β] [has_one α] [has_one α₂] {F : Type*} [one_hom_class F α α₂] (f : F) :
+  (map_domain f (1 : monoid_algebra β α) : monoid_algebra β α₂) = (1 : monoid_algebra β α₂) :=
+by simp_rw [one_def, map_domain_single, map_one]
+
 /-- Like `finsupp.map_domain_add`, but for the convolutive multiplication we define in this file -/
 lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*} [semiring β] [has_mul α] [has_mul α₂]
-  {x y : monoid_algebra β α} (f : mul_hom α α₂) :
+  {F : Type*} [mul_hom_class F α α₂] (f : F) (x y : monoid_algebra β α) :
   (map_domain f (x * y : monoid_algebra β α) : monoid_algebra β α₂) =
     (map_domain f x * map_domain f y : monoid_algebra β α₂) :=
 begin
-  simp_rw [mul_def, map_domain_sum, map_domain_single, f.map_mul],
+  simp_rw [mul_def, map_domain_sum, map_domain_single, map_mul],
   rw finsupp.sum_map_domain_index,
   { congr,
     ext a b,
@@ -356,7 +362,7 @@ end
 variables (k G)
 
 /-- The embedding of a magma into its magma algebra. -/
-@[simps] def of_magma [has_mul G] : mul_hom G (monoid_algebra k G) :=
+@[simps] def of_magma [has_mul G] : G →ₙ* (monoid_algebra k G) :=
 { to_fun   := λ a, single a 1,
   map_mul' := λ a b, by simp only [mul_def, mul_one, sum_single_index, single_eq_zero, mul_zero], }
 
@@ -504,7 +510,7 @@ non_unital_alg_hom_ext k $ mul_hom.congr_fun h
 /-- The functor `G ↦ monoid_algebra k G`, from the category of magmas to the category of non-unital,
 non-associative algebras over `k` is adjoint to the forgetful functor in the other direction. -/
 @[simps] def lift_magma [module k A] [is_scalar_tower k A A] [smul_comm_class k A A] :
-  mul_hom G A ≃ non_unital_alg_hom k (monoid_algebra k G) A :=
+  (G →ₙ* A) ≃ non_unital_alg_hom k (monoid_algebra k G) A :=
 { to_fun    := λ f,
     { to_fun    := λ a, a.sum (λ m t, t • f m),
       map_smul' :=  λ t' a,
@@ -1098,14 +1104,20 @@ lemma single_pow [add_monoid G] {a : G} {b : k} :
 | (n+1) :=
 by rw [pow_succ, pow_succ, single_pow n, single_mul_single, add_comm, add_nsmul, one_nsmul]
 
+/-- Like `finsupp.map_domain_zero`, but for the `1` we define in this file -/
+@[simp] lemma map_domain_one {α : Type*} {β : Type*} {α₂ : Type*}
+  [semiring β] [has_zero α] [has_zero α₂] {F : Type*} [zero_hom_class F α α₂] (f : F) :
+  (map_domain f (1 : add_monoid_algebra β α) : add_monoid_algebra β α₂) =
+    (1 : add_monoid_algebra β α₂) :=
+by simp_rw [one_def, map_domain_single, map_zero]
+
 /-- Like `finsupp.map_domain_add`, but for the convolutive multiplication we define in this file -/
-lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*}
-  [semiring β] [has_add α] [has_add α₂]
-  {x y : add_monoid_algebra β α} (f : add_hom α α₂) :
+lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*} [semiring β] [has_add α] [has_add α₂]
+  {F : Type*} [add_hom_class F α α₂] (f : F) (x y : add_monoid_algebra β α) :
   (map_domain f (x * y : add_monoid_algebra β α) : add_monoid_algebra β α₂) =
     (map_domain f x * map_domain f y : add_monoid_algebra β α₂) :=
 begin
-  simp_rw [mul_def, map_domain_sum, map_domain_single, f.map_add],
+  simp_rw [mul_def, map_domain_sum, map_domain_single, map_add],
   rw finsupp.sum_map_domain_index,
   { congr,
     ext a b,
@@ -1121,7 +1133,7 @@ section
 variables (k G)
 
 /-- The embedding of an additive magma into its additive magma algebra. -/
-@[simps] def of_magma [has_add G] : mul_hom (multiplicative G) (add_monoid_algebra k G) :=
+@[simps] def of_magma [has_add G] : multiplicative G →ₙ* add_monoid_algebra k G :=
 { to_fun   := λ a, single a 1,
   map_mul' := λ a b, by simpa only [mul_def, mul_one, sum_single_index, single_eq_zero, mul_zero], }
 
@@ -1250,7 +1262,7 @@ protected def add_monoid_algebra.to_multiplicative [semiring k] [has_add G] :
   map_mul' := λ x y, begin
     repeat {rw equiv_map_domain_eq_map_domain},
     dsimp [multiplicative.of_add],
-    convert monoid_algebra.map_domain_mul (mul_hom.id (multiplicative G)),
+    convert monoid_algebra.map_domain_mul (mul_hom.id (multiplicative G)) _ _,
   end,
   ..finsupp.dom_congr multiplicative.of_add }
 
@@ -1261,7 +1273,7 @@ protected def monoid_algebra.to_additive [semiring k] [has_mul G] :
   map_mul' := λ x y, begin
     repeat {rw equiv_map_domain_eq_map_domain},
     dsimp [additive.of_mul],
-    convert monoid_algebra.map_domain_mul (mul_hom.id G),
+    convert monoid_algebra.map_domain_mul (mul_hom.id G) _ _,
   end,
   ..finsupp.dom_congr additive.of_mul }
 
@@ -1309,11 +1321,11 @@ lemma non_unital_alg_hom_ext [distrib_mul_action k A]
 non-unital, non-associative algebras over `k` is adjoint to the forgetful functor in the other
 direction. -/
 @[simps] def lift_magma [module k A] [is_scalar_tower k A A] [smul_comm_class k A A] :
-  mul_hom (multiplicative G) A ≃ non_unital_alg_hom k (add_monoid_algebra k G) A :=
+  (multiplicative G →ₙ* A) ≃ non_unital_alg_hom k (add_monoid_algebra k G) A :=
 { to_fun := λ f, { to_fun := λ a, sum a (λ m t, t • f (multiplicative.of_add m)),
                    .. (monoid_algebra.lift_magma k f : _)},
   inv_fun := λ F, F.to_mul_hom.comp (of_magma k G),
-  .. (monoid_algebra.lift_magma k : mul_hom (multiplicative G) A ≃ non_unital_alg_hom k _ A) }
+  .. (monoid_algebra.lift_magma k : (multiplicative G →ₙ* A) ≃ non_unital_alg_hom k _ A) }
 
 end non_unital_non_assoc_algebra
 

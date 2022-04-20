@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
-import category_theory.limits.shapes.zero
+import category_theory.limits.shapes.zero_morphisms
 import category_theory.limits.shapes.kernels
 import category_theory.abelian.basic
 
@@ -117,7 +117,7 @@ begin
 end
 
 lemma cokernel_zero_of_nonzero_to_simple
-  {X Y : C} [simple Y] {f : X ⟶ Y} [has_cokernel f] (w : f ≠ 0) :
+  {X Y : C} [simple Y] {f : X ⟶ Y} (w : f ≠ 0) :
   cokernel.π f = 0 :=
 begin
   classical,

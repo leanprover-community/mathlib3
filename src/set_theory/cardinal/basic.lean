@@ -618,10 +618,8 @@ theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f
 
 lemma mk_le_mk_mul_of_mk_preimage_le {c : cardinal} (f : α → β) (hf : ∀ b : β, #(f ⁻¹' {b}) ≤ c) :
   #α ≤ #β * c :=
-calc #α = #Σ b, f⁻¹' {b} : mk_congr (equiv.sigma_preimage_equiv f).symm
-... = sum (λ b, #(f ⁻¹' {b})) : mk_sigma (λ b, f ⁻¹' {b})
-... ≤ sum (λ b : β, c) : sum_le_sum (λ b, #(f ⁻¹' {b})) (λ b, c) hf
-... = #β * c : sum_const' β c
+by simpa only [←mk_congr (@equiv.sigma_preimage_equiv α β f), mk_sigma, ←sum_const']
+  using sum_le_sum _ _ hf
 
 /-- The range of an indexed cardinal function, whose outputs live in a higher universe than the
     inputs, is always bounded above. -/
@@ -950,6 +948,9 @@ lt_omega.trans ⟨λ ⟨n, e⟩, begin
   cases quotient.exact e with f,
   exact ⟨fintype.of_equiv _ f.symm⟩
 end, λ ⟨_⟩, by exactI ⟨_, mk_fintype _⟩⟩
+
+theorem lt_omega_of_fintype (α : Type u) [fintype α] : #α < ω :=
+lt_omega_iff_fintype.2 ⟨infer_instance⟩
 
 theorem lt_omega_iff_finite {α} {S : set α} : #S < ω ↔ finite S :=
 lt_omega_iff_fintype.trans finite_def.symm

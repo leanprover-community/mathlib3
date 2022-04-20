@@ -516,7 +516,10 @@ protected theorem nonneg_total : Π (a : ℤ√d), nonneg a ∨ nonneg (-a)
 | ⟨-[1+ x], (y+1:ℕ)⟩ := nat.le_total
 
 protected theorem le_total (a b : ℤ√d) : a ≤ b ∨ b ≤ a :=
-let t := nonneg_total (b - a) in by rw [show -(b-a) = a-b, from neg_sub b a] at t; exact t
+begin
+  have t := (b - a).nonneg_total,
+  rwa neg_sub at t,
+end
 
 instance : preorder ℤ√d :=
 { le               := (≤),

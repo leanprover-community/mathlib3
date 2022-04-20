@@ -445,13 +445,15 @@ instance adic_completion_topological_add_group :
   v.adic_completion_topological_space v.adic_completion_topological_ring
 
 instance adic_completion_uniform_space : uniform_space (v.adic_completion K) :=
-@topological_add_group.to_uniform_space (v.adic_completion K) _
-  v.adic_completion_topological_space v.adic_completion_topological_add_group
+@uniform_space.completion.uniform_space K v.v_valued_K_uniform_space
 
 instance adic_completion_uniform_add_group :
   @uniform_add_group (v.adic_completion K) v.adic_completion_uniform_space _ :=
-@topological_add_group_is_uniform (v.adic_completion K) _ v.adic_completion_topological_space
-  v.adic_completion_topological_add_group
+@uniform_space.completion.uniform_add_group K v.v_valued_K_uniform_space _
+  v.v_valued_K_uniform_add_group
+
+instance adic_completion_complete_space : complete_space (v.adic_completion K) :=
+@uniform_space.completion.complete_space K v.v_valued_K_uniform_space
 
 instance : has_lift_t K (@uniform_space.completion K v.v_valued_K_uniform_space) := infer_instance
 

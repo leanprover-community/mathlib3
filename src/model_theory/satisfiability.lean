@@ -62,14 +62,6 @@ lemma is_satisfiable.is_finitely_satisfiable (h : T.is_satisfiable) :
   T.is_finitely_satisfiable :=
 λ _, h.mono
 
-variables (L)
-
-lemma complete_theory.is_satisfiable (M : Type w) [nonempty M] [L.Structure M] :
-  (L.complete_theory M).is_satisfiable :=
-model.is_satisfiable M
-
-variables {L}
-
 /-- The Compactness Theorem of first-order logic: A theory is satisfiable if and only if it is
 finitely satisfiable. -/
 theorem is_satisfiable_iff_is_finitely_satisfiable {T : L.Theory} :
@@ -193,6 +185,16 @@ begin
 end
 
 end Theory
+
+namespace complete_theory
+
+variables (L) (M : Type w) [nonempty M] [L.Structure M]
+
+lemma complete_theory.is_satisfiable :
+  (L.complete_theory M).is_satisfiable :=
+Theory.model.is_satisfiable M
+
+end complete_theory
 
 namespace bounded_formula
 variables (φ ψ : L.bounded_formula α n)

@@ -210,12 +210,9 @@ lemma log_four_nonzero : log 4 ≠ 0 := by linarith [log_four_pos]
 
 lemma log_1024_div_log_4 : log 1024 / log 4 = 5 :=
 begin
-  rw div_eq_iff,
-  have h : (1024 : ℝ) = 4 ^ (5 : ℝ), norm_num,
-  rw h,
-  rw log_rpow,
+  have h : (1024 : ℝ) = 4 ^ (5 : ℝ) := by norm_num,
+  rw [div_eq_iff log_four_nonzero, h, log_rpow],
   linarith,
-  exact log_four_nonzero,
 end
 
 lemma inequality1 {x : ℝ} (n_large : 1024 < x) : log (x) / (x * log 4) ≤ 1/30 :=
@@ -237,12 +234,10 @@ begin
             exact le_of_lt n_large,
             exact log_four_pos,
           end
+  ... = log 1024 / log 4 / 1024 : by ring_nf
   ... ≤ 1 / 30 :
           begin
-            rw div_div_eq_div_mul,
-            rw mul_comm,
-            rw <-div_div_eq_div_mul,
-            rw log_1024_div_log_4,
+            simp only [log_1024_div_log_4, one_div],
             norm_num,
           end,
 end
@@ -250,36 +245,23 @@ end
 lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) :=
 calc
 (4 : ℝ)
-    = 2 ^ (2 : ℕ) : by {norm_num,}
+    = 2 ^ (2 : ℕ) : by norm_num
 ... = 2 ^ (2 : ℝ) : by {rw <-rpow_nat_cast, congr, exact nat.cast_two,}
 
 
 lemma inequality2 {x : ℝ} (n_large : 1024 < x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.04 :=
 begin
-  rw div_le_iff,
-  rw <-mul_assoc,
-  rw four_eq_two_rpow_two,
-  rw log_rpow,
-  rw <-mul_assoc,
-  rw mul_le_mul_right,
-  rw <-le_div_iff,
-  rw mul_comm _ x,
-  rw mul_assoc,
-  rw mul_comm x,
-  rw mul_div_assoc,
+  have x_pos : 0 < x := by linarith,
+  rw div_le_iff (mul_pos x_pos (log_pos one_lt_four)),
+  rw [←mul_assoc, four_eq_two_rpow_two, log_rpow two_pos, ←mul_assoc,
+    mul_le_mul_right (log_pos one_lt_two)],
+  rw [←le_div_iff (sqrt_pos.mpr x_pos), mul_comm _ x, mul_assoc, mul_comm x, mul_div_assoc],
   rw div_sqrt,
-  rw mul_comm,
-  rw <-div_le_iff,
-  rw le_sqrt,
-  rw div_pow,
-  rw sq_sqrt,
-  field_simp,
-  repeat {apply mul_pos},
-  repeat {apply log_pos},
-  repeat {apply div_nonneg},
-  repeat {norm_num,},
-  repeat {linarith,},
-  apply sqrt_nonneg,
+  rw [mul_comm, ←div_le_iff],
+  { rw [le_sqrt _ (le_of_lt x_pos), div_pow, sq_sqrt (le_of_lt two_pos)],
+    { ring_nf, linarith, },
+    { rw div_nonneg_iff, simp only [sqrt_nonneg 2, one_div], norm_num, }, },
+  { norm_num, },
 end
 
 lemma inequality3' {x : ℝ} (n_large : 1024 < x) :
@@ -293,58 +275,30 @@ begin
   have h2: log 4 * sqrt x ≠ 0, apply mul_ne_zero log_four_nonzero, exact sqrt_ne_zero'.mpr h4,
   field_simp,
   ring_nf,
-  apply eq.symm,
-  rw @sq_sqrt x,
+  rw @sq_sqrt x (by linarith),
   field_simp [log_four_nonzero],
-  ring,
-  linarith,
+  ring_nf,
 end
 
 lemma log_div_sqrt_decreasing {x y : ℝ} (hex : exp 2 ≤ x) (hxy : x ≤ y) :
   log y / sqrt y ≤ log x / sqrt x :=
 begin
-  have hltx : 0 < x, exact lt_of_lt_of_le ( (exp_pos 2)) hex,
-  have hlty : 0 < y, linarith,
-  have hx : 0 ≤ x, exact le_trans (le_of_lt (exp_pos 2)) hex,
-  have hy : 0 ≤ y, linarith,
-  conv_lhs
-  begin
-    congr,
-    rw <-sq_sqrt hy,
-  end,
-  conv_rhs
-  begin
-    congr,
-    rw <-sq_sqrt hx,
-  end,
-  rw <-rpow_nat_cast,
-  rw <-rpow_nat_cast,
-  rw log_rpow,
-  rw log_rpow,
-  rw mul_div_assoc,
-  rw mul_div_assoc,
-  rw mul_le_mul_left,
-  apply log_div_self_antitone_on,
-  simp only [set.mem_set_of_eq],
-  rw le_sqrt,
-  rw <-exp_nat_mul,
-  simp [hex],
-  swap 3,
-  simp only [set.mem_set_of_eq],
-  rw le_sqrt,
-  rw <-exp_nat_mul,
-  simp only [mul_one, nat.cast_bit0, nat.cast_one],
-  exact le_trans hex hxy,
-  exact le_of_lt (exp_pos 1),
-  exact hy,
-  exact le_of_lt (exp_pos 1),
-  exact hx,
-  exact sqrt_le_sqrt hxy,
-  norm_num,
-
-  exact sqrt_pos.mpr hltx,
-  rw sqrt_pos,
-  exact hlty,
+  have x_pos : 0 < x := lt_of_lt_of_le (exp_pos 2) hex,
+  have y_pos : 0 < y := by linarith,
+  have x_nonneg : 0 ≤ x := le_trans (le_of_lt (exp_pos 2)) hex,
+  have y_nonneg : 0 ≤ y := by linarith,
+  conv_lhs { congr, rw ←sq_sqrt y_nonneg },
+  conv_rhs { congr, rw ←sq_sqrt x_nonneg },
+  rw [←rpow_nat_cast, ←rpow_nat_cast, log_rpow (sqrt_pos.mpr y_pos), log_rpow (sqrt_pos.mpr x_pos)],
+  simp only [nat.cast_bit0, nat.cast_one],
+  repeat { rw mul_div_assoc },
+  rw mul_le_mul_left two_pos,
+  refine log_div_self_antitone_on _ _ (sqrt_le_sqrt hxy),
+  repeat {
+    simp only [set.mem_set_of_eq],
+    rw [le_sqrt (le_of_lt (exp_pos 1)), ←exp_nat_mul],
+    norm_num, linarith, linarith, },
+  exact real.nontrivial,
 end
 
 lemma inequality3 {x : ℝ} (n_large : 1024 < x) : sqrt 2 * sqrt x * log x / (x * log 4) ≤ 1/4 :=
@@ -502,7 +456,7 @@ begin
           begin
             apply real_bertrand_inequality,
             rw <-@nat.cast_lt ℝ at n_large,
-            have h : (1024) < (n : ℝ), {convert n_large, simp},
+            have h : 1024 < (n : ℝ), {convert n_large, simp},
             linarith,
           end,
 end
@@ -546,7 +500,7 @@ begin
     { by_contradiction neg_n_le_x,
       simp only [not_lt] at neg_n_le_x,
       rw [nat.add_one, nat.succ_le_iff, nat.div_lt_iff_lt_mul', mul_comm x] at h2x,
-      have claim := @nat.multiplicity_central_binom_of_large_eq_zero x hx.right n (by linarith)
+      have claim := @nat.padic_val_nat_central_binom_of_large_eq_zero _ n hx.right (by linarith)
                       (by linarith) h2x,
       rw [claim, pow_zero] at h,
       simp only [eq_self_iff_true, not_true] at h,
@@ -654,7 +608,7 @@ nat.central_binom n
               rw i_zero at i_facts,
               exfalso,
               exact nat.not_prime_zero i_facts.2, }, },
-          { apply @nat.multiplicity_central_binom_of_large_le_one i i_facts.2 n,
+          { apply @nat.padic_val_nat_central_binom_of_large_le_one i n i_facts.2,
             exact (@nat.sqrt_lt' (2 * n) i).1 sqrt_two_n_lt_i, }, },
       end
 ... ≤ (2 * n) ^ (nat.sqrt (2 * n))
@@ -677,7 +631,7 @@ nat.central_binom n
       (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
           p) : by simp only [pow_one]
 ... = (2 * n) ^ (nat.sqrt (2 * n))
-      *
+        *
       (primorial (2 * n / 3)) : by unfold primorial
 ... ≤ (2 * n) ^ (nat.sqrt (2 * n))
         *

@@ -190,7 +190,7 @@ namespace complete_theory
 
 variables (L) (M : Type w) [nonempty M] [L.Structure M]
 
-lemma complete_theory.is_satisfiable :
+lemma is_satisfiable :
   (L.complete_theory M).is_satisfiable :=
 Theory.model.is_satisfiable M
 

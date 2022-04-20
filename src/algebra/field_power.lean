@@ -180,8 +180,7 @@ begin
   rcases h₁.lt_or_lt with H|H,
   { apply (zpow_strict_mono (one_lt_inv h₀ H)).injective,
     show x⁻¹ ^ m = x⁻¹ ^ n,
-    rw [← zpow_neg_one, ← zpow_mul₀, ← zpow_mul₀, mul_comm _ m, mul_comm _ n, zpow_mul₀, zpow_mul₀,
-      h], },
+    rw [←zpow_neg_one, ←zpow_mul, ←zpow_mul, mul_comm _ m, mul_comm _ n, zpow_mul, zpow_mul, h] },
   { exact (zpow_strict_mono H).injective h, },
 end
 

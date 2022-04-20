@@ -122,6 +122,11 @@ instance non_unital_normed_ring.to_normed_group [β : non_unital_normed_ring α]
 instance non_unital_semi_normed_ring.to_semi_normed_group [β : non_unital_semi_normed_ring α] :
   semi_normed_group α := { ..β }
 
+lemma norm_one_class.nontrivial (α : Type*) [semi_normed_group α] [has_one α] [norm_one_class α] :
+  nontrivial α :=
+nontrivial_of_ne 0 1 $ ne_of_apply_ne norm $
+  ne_of_eq_of_ne norm_zero (ne_of_eq_of_ne norm_one one_ne_zero).symm
+
 instance prod.norm_one_class [semi_normed_group α] [has_one α] [norm_one_class α]
   [semi_normed_group β] [has_one β] [norm_one_class β] :
   norm_one_class (α × β) :=

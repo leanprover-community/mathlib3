@@ -414,14 +414,17 @@ by simpa using (norm_algebra_map_eq 𝕜' (1:𝕜))
 lemma normed_algebra.norm_one_class : norm_one_class 𝕜' :=
 ⟨normed_algebra.norm_one 𝕜 𝕜'⟩
 
-lemma normed_algebra.zero_ne_one : (0:𝕜') ≠ 1 :=
+lemma normed_algebra.nontrivial : nontrivial 𝕜' :=
 begin
-  refine (ne_zero_of_norm_ne_zero _).symm,
-  rw normed_algebra.norm_one 𝕜 𝕜', norm_num,
+  haveI := normed_algebra.norm_one_class 𝕜 𝕜',
+  exact norm_one_class.nontrivial _
 end
 
-lemma normed_algebra.nontrivial : nontrivial 𝕜' :=
-⟨⟨0, 1, normed_algebra.zero_ne_one 𝕜 𝕜'⟩⟩
+lemma normed_algebra.zero_ne_one : (0:𝕜') ≠ 1 :=
+begin
+  haveI := normed_algebra.nontrivial 𝕜 𝕜',
+  exact zero_ne_one,
+end
 
 /-- Any normed characteristic-zero division ring that is a normed_algebra over the reals is also a
 normed algebra over the rationals.

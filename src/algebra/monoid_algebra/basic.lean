@@ -1545,7 +1545,7 @@ lemma add_monoid_alg_hom_map_single (k A : Type*) [comm_semiring k] [semiring A]
   add_monoid_alg_hom_map k A f (single n r) = single (f n) (algebra_map k A r) :=
 begin
   simp only [add_monoid_alg_hom_map, single_one_right_add_hom_apply, lift_single, smul_single,
-    ←algebra.algebra_map_eq_smul_one],
+    ← algebra.algebra_map_eq_smul_one],
   refl,
 end
 

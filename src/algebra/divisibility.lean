@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, 
 Neil Strickland, Aaron Anderson
 -/
 
-import algebra.group_with_zero.basic
+import algebra.domain
 
 /-!
 # Divisibility
@@ -162,15 +162,15 @@ dvd.elim h (assume c, assume H' : a = 0 * c, eq.trans H' (zero_mul c))
 
 end semigroup_with_zero
 
-/-- Given two elements `b`, `c` of a `cancel_monoid_with_zero` and a nonzero element `a`,
+/-- Given two elements `b`, `c` of a `domain` and a nonzero element `a`,
  `a*b` divides `a*c` iff `b` divides `c`. -/
-theorem mul_dvd_mul_iff_left [cancel_monoid_with_zero α] {a b c : α}
+theorem mul_dvd_mul_iff_left [monoid_with_zero α] [is_domain α] {a b c : α}
   (ha : a ≠ 0) : a * b ∣ a * c ↔ b ∣ c :=
 exists_congr $ λ d, by rw [mul_assoc, mul_right_inj' ha]
 
-/-- Given two elements `a`, `b` of a commutative `cancel_monoid_with_zero` and a nonzero
+/-- Given two elements `a`, `b` of a commutative `domain` and a nonzero
   element `c`, `a*c` divides `b*c` iff `a` divides `b`. -/
-theorem mul_dvd_mul_iff_right [cancel_comm_monoid_with_zero α] {a b c : α} (hc : c ≠ 0) :
+theorem mul_dvd_mul_iff_right [comm_monoid_with_zero α] [is_domain α] {a b c : α} (hc : c ≠ 0) :
   a * c ∣ b * c ↔ a ∣ b :=
 exists_congr $ λ d, by rw [mul_right_comm, mul_left_inj' hc]
 
@@ -300,7 +300,7 @@ end
 
 end comm_monoid_with_zero
 
-lemma dvd_and_not_dvd_iff [cancel_comm_monoid_with_zero α] {x y : α} :
+lemma dvd_and_not_dvd_iff [comm_monoid_with_zero α] [is_domain α] {x y : α} :
   x ∣ y ∧ ¬y ∣ x ↔ dvd_not_unit x y :=
 ⟨λ ⟨⟨d, hd⟩, hyx⟩, ⟨λ hx0, by simpa [hx0] using hyx, ⟨d,
     mt is_unit_iff_dvd_one.1 (λ ⟨e, he⟩, hyx ⟨e, by rw [hd, mul_assoc, ← he, mul_one]⟩), hd⟩⟩,

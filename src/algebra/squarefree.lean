@@ -69,7 +69,7 @@ begin
 end
 
 @[simp]
-lemma prime.squarefree [cancel_comm_monoid_with_zero R] {x : R} (h : prime x) :
+lemma prime.squarefree [comm_monoid_with_zero R] [is_domain R] {x : R} (h : prime x) :
   squarefree x :=
 h.irreducible.squarefree
 
@@ -104,7 +104,7 @@ end comm_monoid
 
 section cancel_comm_monoid_with_zero
 
-variables [cancel_comm_monoid_with_zero R] [wf_dvd_monoid R]
+variables [comm_monoid_with_zero R] [is_domain R] [wf_dvd_monoid R]
 
 lemma finite_prime_left {a b : R} (ha : prime a) (hb : b ≠ 0) :
   multiplicity.finite a b :=
@@ -168,7 +168,7 @@ end
 end irreducible
 
 namespace unique_factorization_monoid
-variables [cancel_comm_monoid_with_zero R] [nontrivial R] [unique_factorization_monoid R]
+variables [comm_monoid_with_zero R] [is_domain R] [unique_factorization_monoid R]
 variables [normalization_monoid R]
 
 lemma squarefree_iff_nodup_normalized_factors [decidable_eq R] {x : R} (x0 : x ≠ 0) :

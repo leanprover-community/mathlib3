@@ -72,40 +72,40 @@ instance monoid_with_zero.to_semigroup_with_zero (M₀ : Type*) [monoid_with_zer
   semigroup_with_zero M₀ :=
 { ..‹monoid_with_zero M₀› }
 
-/-- A type `M` is a `cancel_monoid_with_zero` if it is a monoid with zero element, `0` is left
-and right absorbing, and left/right multiplication by a non-zero element is injective. -/
-@[protect_proj] class cancel_monoid_with_zero (M₀ : Type*) extends monoid_with_zero M₀ :=
-(mul_left_cancel_of_ne_zero : ∀ {a b c : M₀}, a ≠ 0 → a * b = a * c → b = c)
-(mul_right_cancel_of_ne_zero : ∀ {a b c : M₀}, b ≠ 0 → a * b = c * b → a = c)
+-- /-- A type `M` is a `cancel_monoid_with_zero` if it is a monoid with zero element, `0` is left
+-- and right absorbing, and left/right multiplication by a non-zero element is injective. -/
+-- @[protect_proj] class cancel_monoid_with_zero (M₀ : Type*) extends monoid_with_zero M₀ :=
+-- (mul_left_cancel_of_ne_zero : ∀ {a b c : M₀}, a ≠ 0 → a * b = a * c → b = c)
+-- (mul_right_cancel_of_ne_zero : ∀ {a b c : M₀}, b ≠ 0 → a * b = c * b → a = c)
 
-section cancel_monoid_with_zero
+-- section cancel_monoid_with_zero
 
-variables [cancel_monoid_with_zero M₀] {a b c : M₀}
+-- variables [cancel_monoid_with_zero M₀] {a b c : M₀}
 
-lemma mul_left_cancel₀ (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
-cancel_monoid_with_zero.mul_left_cancel_of_ne_zero ha h
+-- lemma mul_left_cancel₀ (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
+-- cancel_monoid_with_zero.mul_left_cancel_of_ne_zero ha h
 
-lemma mul_right_cancel₀ (hb : b ≠ 0) (h : a * b = c * b) : a = c :=
-cancel_monoid_with_zero.mul_right_cancel_of_ne_zero hb h
+-- lemma mul_right_cancel₀ (hb : b ≠ 0) (h : a * b = c * b) : a = c :=
+-- cancel_monoid_with_zero.mul_right_cancel_of_ne_zero hb h
 
-lemma mul_right_injective₀ (ha : a ≠ 0) : function.injective ((*) a) :=
-λ b c, mul_left_cancel₀ ha
+-- lemma mul_right_injective₀ (ha : a ≠ 0) : function.injective ((*) a) :=
+-- λ b c, mul_left_cancel₀ ha
 
-lemma mul_left_injective₀ (hb : b ≠ 0) : function.injective (λ a, a * b) :=
-λ a c, mul_right_cancel₀ hb
+-- lemma mul_left_injective₀ (hb : b ≠ 0) : function.injective (λ a, a * b) :=
+-- λ a c, mul_right_cancel₀ hb
 
-end cancel_monoid_with_zero
+-- end cancel_monoid_with_zero
 
 /-- A type `M` is a commutative “monoid with zero” if it is a commutative monoid with zero
 element, and `0` is left and right absorbing. -/
 @[protect_proj]
 class comm_monoid_with_zero (M₀ : Type*) extends comm_monoid M₀, monoid_with_zero M₀.
 
-/-- A type `M` is a `cancel_comm_monoid_with_zero` if it is a commutative monoid with zero element,
- `0` is left and right absorbing,
-  and left/right multiplication by a non-zero element is injective. -/
-@[protect_proj] class cancel_comm_monoid_with_zero (M₀ : Type*) extends
-  comm_monoid_with_zero M₀, cancel_monoid_with_zero M₀.
+-- /-- A type `M` is a `cancel_comm_monoid_with_zero` if it is a commutative monoid with zero element,
+--  `0` is left and right absorbing,
+--   and left/right multiplication by a non-zero element is injective. -/
+-- @[protect_proj] class cancel_comm_monoid_with_zero (M₀ : Type*) extends
+--   comm_monoid_with_zero M₀, cancel_monoid_with_zero M₀.
 
 /-- A type `G₀` is a “group with zero” if it is a monoid with zero element (distinct from `1`)
 such that every nonzero element is invertible.

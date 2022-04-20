@@ -342,17 +342,3 @@ lemma is_regular_of_cancel_monoid (g : R) : is_regular g :=
 ⟨mul_right_injective g, mul_left_injective g⟩
 
 end cancel_monoid
-
-section cancel_monoid_with_zero
-
-variables  [cancel_monoid_with_zero R]
-
-/--  Non-zero elements of an integral domain are regular. -/
-lemma is_regular_of_ne_zero (a0 : a ≠ 0) : is_regular a :=
-⟨λ b c, (mul_right_inj' a0).mp, λ b c, (mul_left_inj' a0).mp⟩
-
-/-- In a non-trivial integral domain, an element is regular iff it is non-zero. -/
-lemma is_regular_iff_ne_zero [nontrivial R] : is_regular a ↔ a ≠ 0 :=
-⟨is_regular.ne_zero, is_regular_of_ne_zero⟩
-
-end cancel_monoid_with_zero

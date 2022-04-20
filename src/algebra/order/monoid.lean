@@ -687,7 +687,8 @@ instance [h : mul_zero_class α] : mul_zero_class (order_dual α) := h
 instance [h : mul_zero_one_class α] : mul_zero_one_class (order_dual α) := h
 instance [h : monoid_with_zero α] : monoid_with_zero (order_dual α) := h
 instance [h : comm_monoid_with_zero α] : comm_monoid_with_zero (order_dual α) := h
-instance [h : cancel_comm_monoid_with_zero α] : cancel_comm_monoid_with_zero (order_dual α) := h
+instance [has_mul α] [has_zero α] [h : is_domain α] : is_domain (order_dual α) :=
+by { convert h, ext, refl }
 
 @[to_additive]
 instance contravariant_class_mul_le [has_le α] [has_mul α] [c : contravariant_class α α (*) (≤)] :

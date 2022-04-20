@@ -432,74 +432,7 @@ variable (M₀)
 
 end monoid_with_zero
 
-section cancel_monoid_with_zero
 
-variables [cancel_monoid_with_zero M₀] {a b c : M₀}
-
-@[priority 10] -- see Note [lower instance priority]
-instance cancel_monoid_with_zero.to_no_zero_divisors : no_zero_divisors M₀ :=
-⟨λ a b ab0, by { by_cases a = 0, { left, exact h }, right,
-  apply cancel_monoid_with_zero.mul_left_cancel_of_ne_zero h, rw [ab0, mul_zero], }⟩
-
-lemma mul_left_inj' (hc : c ≠ 0) : a * c = b * c ↔ a = b := ⟨mul_right_cancel₀ hc, λ h, h ▸ rfl⟩
-
-lemma mul_right_inj' (ha : a ≠ 0) : a * b = a * c ↔ b = c := ⟨mul_left_cancel₀ ha, λ h, h ▸ rfl⟩
-
-@[simp] lemma mul_eq_mul_right_iff : a * c = b * c ↔ a = b ∨ c = 0 :=
-by by_cases hc : c = 0; [simp [hc], simp [mul_left_inj', hc]]
-
-@[simp] lemma mul_eq_mul_left_iff : a * b = a * c ↔ b = c ∨ a = 0 :=
-by by_cases ha : a = 0; [simp [ha], simp [mul_right_inj', ha]]
-
-lemma mul_right_eq_self₀ : a * b = a ↔ b = 1 ∨ a = 0 :=
-calc a * b = a ↔ a * b = a * 1 : by rw mul_one
-     ...       ↔ b = 1 ∨ a = 0 : mul_eq_mul_left_iff
-
-lemma mul_left_eq_self₀ : a * b = b ↔ a = 1 ∨ b = 0 :=
-calc a * b = b ↔ a * b = 1 * b : by rw one_mul
-     ...       ↔ a = 1 ∨ b = 0 : mul_eq_mul_right_iff
-
-/-- Pullback a `monoid_with_zero` class along an injective function.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def function.injective.cancel_monoid_with_zero [has_zero M₀'] [has_mul M₀'] [has_one M₀']
-  [has_pow M₀' ℕ] (f : M₀' → M₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
-  cancel_monoid_with_zero M₀' :=
-{ mul_left_cancel_of_ne_zero := λ x y z hx H, hf $ mul_left_cancel₀ ((hf.ne_iff' zero).2 hx) $
-    by erw [← mul, ← mul, H]; refl,
-  mul_right_cancel_of_ne_zero := λ x y z hx H, hf $ mul_right_cancel₀ ((hf.ne_iff' zero).2 hx) $
-    by erw [← mul, ← mul, H]; refl,
-  .. hf.monoid f one mul npow, .. hf.mul_zero_class f zero mul }
-
-/-- An element of a `cancel_monoid_with_zero` fixed by right multiplication by an element other
-than one must be zero. -/
-theorem eq_zero_of_mul_eq_self_right (h₁ : b ≠ 1) (h₂ : a * b = a) : a = 0 :=
-classical.by_contradiction $ λ ha, h₁ $ mul_left_cancel₀ ha $ h₂.symm ▸ (mul_one a).symm
-
-/-- An element of a `cancel_monoid_with_zero` fixed by left multiplication by an element other
-than one must be zero. -/
-theorem eq_zero_of_mul_eq_self_left (h₁ : b ≠ 1) (h₂ : b * a = a) : a = 0 :=
-classical.by_contradiction $ λ ha, h₁ $ mul_right_cancel₀ ha $ h₂.symm ▸ (one_mul a).symm
-
-end cancel_monoid_with_zero
-
-section cancel_comm_monoid_with_zero
-
-variables [cancel_comm_monoid_with_zero M₀] {a b c : M₀}
-
-/-- Pullback a `cancel_comm_monoid_with_zero` class along an injective function.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def function.injective.cancel_comm_monoid_with_zero
-  [has_zero M₀'] [has_mul M₀'] [has_one M₀'] [has_pow M₀' ℕ]
-  (f : M₀' → M₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
-  cancel_comm_monoid_with_zero M₀' :=
-{ .. hf.comm_monoid_with_zero f zero one mul npow,
-  .. hf.cancel_monoid_with_zero f zero one mul npow }
-
-end cancel_comm_monoid_with_zero
 
 section group_with_zero
 variables [group_with_zero G₀] {a b c g h x : G₀}
@@ -736,14 +669,6 @@ instance group_with_zero.no_zero_divisors : no_zero_divisors G₀ :=
     end,
   .. (‹_› : group_with_zero G₀) }
 
-@[priority 10] -- see Note [lower instance priority]
-instance group_with_zero.cancel_monoid_with_zero : cancel_monoid_with_zero G₀ :=
-{ mul_left_cancel_of_ne_zero := λ x y z hx h,
-    by rw [← inv_mul_cancel_left₀ hx y, h, inv_mul_cancel_left₀ hx z],
-  mul_right_cancel_of_ne_zero := λ x y z hy h,
-    by rw [← mul_inv_cancel_right₀ hy x, h, mul_inv_cancel_right₀ hy z],
-  .. (‹_› : group_with_zero G₀) }
-
 -- Can't be put next to the other `mk0` lemmas becuase it depends on the
 -- `no_zero_divisors` instance, which depends on `mk0`.
 @[simp] lemma units.mk0_mul (x y : G₀) (hxy) :
@@ -937,10 +862,6 @@ end group_with_zero
 section comm_group_with_zero -- comm
 variables [comm_group_with_zero G₀] {a b c : G₀}
 
-@[priority 10] -- see Note [lower instance priority]
-instance comm_group_with_zero.cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero G₀ :=
-{ ..group_with_zero.cancel_monoid_with_zero, ..comm_group_with_zero.to_comm_monoid_with_zero G₀ }
-
 /-- Pullback a `comm_group_with_zero` class along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
@@ -1044,12 +965,12 @@ by rw [← mul_div_assoc, mul_comm, mul_div_assoc]
 lemma div_right_comm (a : G₀) : (a / b) / c = (a / c) / b :=
 by rw [div_div_eq_div_mul, div_div_eq_div_mul, mul_comm]
 
-@[field_simps] lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
-calc a / b = c / d ↔ a / b * (b * d) = c / d * (b * d) :
-by rw [mul_left_inj' (mul_ne_zero hb hd)]
-               ... ↔ a * d = c * b :
-by rw [← mul_assoc, div_mul_cancel _ hb,
-      ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
+-- @[field_simps] lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
+-- calc a / b = c / d ↔ a / b * (b * d) = c / d * (b * d) :
+-- by rw [mul_left_inj' (mul_ne_zero hb hd)]
+--                ... ↔ a * d = c * b :
+-- by rw [← mul_assoc, div_mul_cancel _ hb,
+--       ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
 
 lemma div_div_cancel' (ha : a ≠ 0) : a / (a / b) = b :=
 by rw [div_eq_mul_inv, inv_div, mul_div_cancel' _ ha]

@@ -33,9 +33,9 @@ section
 open finset polynomial function
 open_locale big_operators nat
 
-section cancel_monoid_with_zero
+section monoid_with_zero
 -- There doesn't seem to be a better home for these right now
-variables {M : Type*} [cancel_monoid_with_zero M] [fintype M]
+variables {M : Type*} [monoid_with_zero M] [is_domain M] [fintype M]
 
 lemma mul_right_bijective_of_fintype₀ {a : M} (ha : a ≠ 0) : bijective (λ b, a * b) :=
 fintype.injective_iff_bijective.1 $ mul_right_injective₀ ha
@@ -44,16 +44,17 @@ lemma mul_left_bijective_of_fintype₀ {a : M} (ha : a ≠ 0) : bijective (λ b,
 fintype.injective_iff_bijective.1 $ mul_left_injective₀ ha
 
 /-- Every finite nontrivial cancel_monoid_with_zero is a group_with_zero. -/
-def fintype.group_with_zero_of_cancel (M : Type*) [cancel_monoid_with_zero M] [decidable_eq M]
-  [fintype M] [nontrivial M] : group_with_zero M :=
+def fintype.group_with_zero_of_cancel (M : Type*)
+  [monoid_with_zero M] [is_domain M] [decidable_eq M] [fintype M] :
+  group_with_zero M :=
 { inv := λ a, if h : a = 0 then 0 else fintype.bij_inv (mul_right_bijective_of_fintype₀ h) 1,
   mul_inv_cancel := λ a ha,
     by { simp [has_inv.inv, dif_neg ha], exact fintype.right_inverse_bij_inv _ _ },
   inv_zero := by { simp [has_inv.inv, dif_pos rfl] },
   ..‹nontrivial M›,
-  ..‹cancel_monoid_with_zero M› }
+  ..‹monoid_with_zero M› }
 
-end cancel_monoid_with_zero
+end monoid_with_zero
 
 variables {R : Type*} {G : Type*}
 

@@ -1172,18 +1172,6 @@ lemma is_regular_iff_ne_zero' [nontrivial α] [ring α] [no_zero_divisors α] {k
   is_regular k ↔ k ≠ 0 :=
 ⟨λ h, by { rintro rfl, exact not_not.mpr h.left not_is_left_regular_zero }, is_regular_of_ne_zero'⟩
 
-/-- A ring with no zero divisors is a cancel_monoid_with_zero.
-
-Note this is not an instance as it forms a typeclass loop. -/
-@[reducible]
-def no_zero_divisors.to_cancel_monoid_with_zero [ring α] [no_zero_divisors α] :
-  cancel_monoid_with_zero α :=
-{ mul_left_cancel_of_ne_zero := λ a b c ha,
-    @is_regular.left _ _ _ (is_regular_of_ne_zero' ha) _ _,
-  mul_right_cancel_of_ne_zero := λ a b c hb,
-    @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
-  .. (infer_instance : semiring α) }
-
 section is_domain
 
 section ring
@@ -1202,19 +1190,11 @@ def is_domain.of_no_zero_divisors [nontrivial R] [no_zero_divisors R] : is_domai
     [ exact (eq_zero_or_eq_zero_of_mul_eq_zero hab).resolve_left hc,
       exact (eq_zero_or_eq_zero_of_mul_eq_zero hab).resolve_right hc]⟩
 
-@[priority 100]
-instance cancel_monoid_with_zero_of_integral_domain [is_domain R] : cancel_monoid_with_zero R :=
-is_domain.to_cancel_monoid_with_zero
-
 end ring
 
 section comm_ring
 
 variables [comm_ring α] [is_domain α]
-
-@[priority 100]
-instance cancel_comm_monoid_with_zero_of_integral_domain : cancel_comm_monoid_with_zero α :=
-is_domain.to_cancel_comm_monoid_with_zero
 
 /--
 Makes a ring homomorphism from an additive group homomorphism from a commutative ring to an integral

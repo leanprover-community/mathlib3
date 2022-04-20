@@ -125,8 +125,3 @@ example [monoid α] : monoid.to_mul_action αᵐᵒᵖ = mul_opposite.mul_action
 @[to_additive] instance left_cancel_monoid.to_has_faithful_opposite_scalar [left_cancel_monoid α] :
   has_faithful_scalar αᵐᵒᵖ α :=
 ⟨λ x y h, unop_injective $ mul_left_cancel (h 1)⟩
-
-/-- `monoid.to_opposite_mul_action` is faithful on nontrivial cancellative monoids with zero. -/
-instance cancel_monoid_with_zero.to_has_faithful_opposite_scalar
-  [cancel_monoid_with_zero α] [nontrivial α] : has_faithful_scalar αᵐᵒᵖ α :=
-⟨λ x y h, unop_injective $ mul_left_cancel₀ one_ne_zero (h 1)⟩

@@ -129,7 +129,6 @@ begin
     { exact submodule.sum_mem _ (λ b hb, mem_sup_right (smul_mem _ _ (h₀ b hb))), }, },
 end
 
-
 /-- If the input of the first `n + 1` vectors of `gram_schmidt` are linearly independent,
 then the output of the first `n + 1` vectors are non-zero. -/
 lemma gram_schmidt_ne_zero (f : ℕ → E) (n : ℕ)

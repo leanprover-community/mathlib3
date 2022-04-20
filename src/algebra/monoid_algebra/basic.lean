@@ -1545,20 +1545,6 @@ lift_nc_alg_hom single_zero_alg_hom ((of A H).comp f.to_multiplicative) $
     single_add_hom_apply, single_mul_single, add_zero, one_mul],
   refl })
 
-@[simp]
-lemma add_monoid_alg_hom_map_single (k : Type*) {A : Type*} [comm_semiring k] [semiring A]
-  [algebra k A] [add_monoid G] {H : Type*} [add_monoid H] (f : G →+ H) (n : G) (r : A) :
-  add_monoid_alg_hom_map k A f (single n r) = single (f n) r :=
-begin
-  simp [add_monoid_alg_hom_map],
-  convert single_one_right_add_hom_apply k f n,
-  simp,
-  simp only [add_monoid_alg_hom_map, single_one_right_add_hom_apply, lift_single, smul_single,
-    ← algebra.algebra_map_eq_smul_one, lift_nc_alg_hom, lift_nc_ring_hom],
-  dsimp,
-  refl,
-end
-
 end add_monoid_algebra
 
 variables [comm_semiring R] (k G)

@@ -755,11 +755,11 @@ protected lemma sub_eq_of_eq_add_rev (hb : b ≠ ∞) : a = b + c → a - b = c 
 lemma sub_eq_of_add_eq (hb : b ≠ ∞) (hc : a + b = c) : c - b = a :=
 ennreal.sub_eq_of_eq_add hb hc.symm
 
-@[simp] protected lemma add_sub_cancel_right (hb : b ≠ ∞) : a + b - b = a :=
-(cancel_of_ne hb).add_tsub_cancel_right
-
 @[simp] protected lemma add_sub_cancel_left (ha : a ≠ ∞) : a + b - a = b :=
 (cancel_of_ne ha).add_tsub_cancel_left
+
+@[simp] protected lemma add_sub_cancel_right (hb : b ≠ ∞) : a + b - b = a :=
+(cancel_of_ne hb).add_tsub_cancel_right
 
 protected lemma lt_add_of_sub_lt_left (h : a ≠ ∞ ∨ b ≠ ∞) : a - b < c → a < b + c :=
 begin
@@ -779,9 +779,6 @@ end
 
 protected lemma sub_lt_of_lt_add (hac : c ≤ a) (h : a < b + c) : a - c < b :=
 ((cancel_of_lt' $ hac.trans_lt h).tsub_lt_iff_right hac).mpr h
-
-@[simp] lemma add_sub_self (hb : b ≠ ∞) : a + b - b = a := (cancel_of_ne hb).add_tsub_cancel_right
-@[simp] lemma add_sub_self' (ha : a ≠ ∞) : a + b - a = b := (cancel_of_ne ha).add_tsub_cancel_left
 
 protected lemma sub_lt_iff_lt_right (hb : b ≠ ∞) (hab : b ≤ a) : a - b < c ↔ a < c + b :=
 (cancel_of_ne hb).tsub_lt_iff_right hab

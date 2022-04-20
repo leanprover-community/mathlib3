@@ -207,6 +207,9 @@ lt_iff_lt_of_le_iff_le (sqrt_le_sqrt_iff hx)
 theorem sqrt_lt_sqrt_iff_of_pos (hy : 0 < y) : sqrt x < sqrt y ↔ x < y :=
 by rw [sqrt, sqrt, nnreal.coe_lt_coe, nnreal.sqrt_lt_sqrt_iff, to_nnreal_lt_to_nnreal_iff hy]
 
+lemma sqrt_lt_iff (hy : 0 < y) : sqrt x < y ↔ x < y ^ 2 :=
+by rw [←sqrt_lt_sqrt_iff_of_pos (pow_pos hy _), sqrt_sq hy.le]
+
 theorem sqrt_le_sqrt (h : x ≤ y) : sqrt x ≤ sqrt y :=
 by { rw [sqrt, sqrt, nnreal.coe_le_coe, nnreal.sqrt_le_sqrt_iff], exact to_nnreal_le_to_nnreal h }
 
@@ -293,16 +296,10 @@ by rw [←div_sqrt, one_div_div, div_sqrt]
 theorem sqrt_div_self : sqrt x / x = (sqrt x)⁻¹ :=
 by rw [sqrt_div_self', one_div]
 
-theorem lt_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x < sqrt y ↔ x ^ 2 < y :=
-by rw [mul_self_lt_mul_self_iff hx (sqrt_nonneg y), sq, mul_self_sqrt hy]
+lemma lt_sqrt (hx : 0 ≤ x) : x < sqrt y ↔ x ^ 2 < y :=
+by rw [←sqrt_lt_sqrt_iff (sq_nonneg _), sqrt_sq hx]
 
-theorem sq_lt : x^2 < y ↔ -sqrt y < x ∧ x < sqrt y :=
-begin
-  split,
-  { simpa only [← sqrt_lt_sqrt_iff (sq_nonneg x), sqrt_sq_eq_abs] using abs_lt.mp },
-  { rw [← abs_lt, ← sq_abs],
-    exact λ h, (lt_sqrt (abs_nonneg x) (sqrt_pos.mp (lt_of_le_of_lt (abs_nonneg x) h)).le).mp h },
-end
+lemma sq_lt : x^2 < y ↔ -sqrt y < x ∧ x < sqrt y := by rw [←abs_lt, ←sq_abs, lt_sqrt (abs_nonneg _)]
 
 theorem neg_sqrt_lt_of_sq_lt (h : x^2 < y) : -sqrt y < x := (sq_lt.mp h).1
 

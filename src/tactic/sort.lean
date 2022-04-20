@@ -141,7 +141,22 @@ if allow_failure then sort_summands_aux compare_fn t hyp <|> skip
 else sort_summands_aux compare_fn t hyp
 
 /-- If the target is an equality involving summands,
-then  `sort_summands` sorts the summands on either side of the equality. -/
+then  `sort_summands` sorts the summands on either side of the equality.
+
+Calling `sort_summands` will recursively look inside the goal for expressions involving a sum.
+Whenever it finds one, it will sort its terms following a heuristic.  Right now, the heuristic
+is somewhat crude: if an individual summand is of the exact form `monomial n r`, with `n` a numeral,
+then `monomial n r` will in the last segment and this segment is sorted by increasing value of `n`.
+The remaining terms appear at the beginning of the sum and are sorted alphabetically.
+
+To allow for more flexibility, `sort_summands` takes an optional argument that can be either a
+single term or a list of terms.  Calling `sort_summands f` or `sort_summands [f,.., g]` performs the
+sorting, except that the explicitly given terms appear last in the final sum (repetitions and
+inexistent terms are ignored).
+
+Finally, `sort_summands` can also be targeted to a hypothesis.  If `hp` is in the local context,
+`sort_summands [f, g] at hp` performs the rearranging at `hp`.
+-/
 meta def sort_summands (l : parse pexpr_list_or_texpr?) (locat : parse location) : tactic unit :=
 do
   l : list expr ← (l.get_or_else []).mmap to_expr,

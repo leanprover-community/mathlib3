@@ -189,7 +189,7 @@ begin
         rw [le_max_iff,
         with_zero.coe_le_coe, multiplicative.of_add_le, with_zero.coe_le_coe,
         multiplicative.of_add_le, ← le_max_iff],
-        exact ratfunc.int_degree_add_le hx hy hxy }}}
+        exact ratfunc.int_degree_add_le hy hxy }}}
 end
 
 @[simp] lemma infty_valuation_of_nonzero {x : ratfunc Fq} (hx : x ≠ 0) :
@@ -277,7 +277,7 @@ instance valued_Fqt_infty : valued (Fqt_infty Fq) (with_zero (multiplicative ℤ
 lemma valued_Fqt_infty.def {x : Fqt_infty Fq} :
   valued.v (x) = @valued.extension (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq) x := rfl
 
-instance Fqt_infty.topologal_space : topological_space (Fqt_infty Fq) :=
+instance Fqt_infty.topological_space : topological_space (Fqt_infty Fq) :=
 valued.topological_space (with_zero (multiplicative ℤ))
 
 instance Fqt_infty.topological_division_ring : topological_division_ring (Fqt_infty Fq) :=

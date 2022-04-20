@@ -45,7 +45,39 @@ compare.
 * Add more tests.
 -/
 
-namespace tactic.interactive
+/--  We sort the elements of the list `l`, making sure that the elements of `t` appear at the
+end of the list.
+
+Use as `l.sort_with_top t rel`.
+ -/
+def list.sort_with_top {N : Type*} [decidable_eq N] (l t : list N) (rel : N → N → bool) :
+  list N :=
+let tl := t.dedup.filter (∈ l) in (l.filter (∉ tl)).qsort rel ++ tl
+
+namespace tactic
+
+/--  The order on `polynomial.monomial n r`, where monomials are compared by their "exponent" `n`.
+If the expression is not a monomial, then the weight is `⊥`. -/
+meta def monomial_weight (e : expr) : option ℕ :=
+match e.app_fn with
+| `(coe_fn $ polynomial.monomial %%n) := n.to_nat
+| _ := none
+end
+
+/--  The function we use to compare two `expr`:
+* all non-monomials are compared alphabetically;
+* all non-monomials are smaller than all monomials;
+* bigger monomials have higher exponent.
+-/
+meta def compare_fn (eₗ eᵣ : expr) : bool :=
+match (monomial_weight eₗ, monomial_weight eᵣ) with
+| (none, none)     := eₗ.to_string ≤ eᵣ.to_string -- this solution forces an unique ordering
+| (_, none)        := false
+| (none, _)        := true
+| (some l, some r) := l ≤ r
+end
+
+namespace interactive
 
 open tactic
 setup_tactic_parser
@@ -56,15 +88,6 @@ meta def get_summands : expr → list expr
 | a            := [a]
 
 section with_rel
-
-/--  We sort the elements of the list `l`, making sure that the elements of `t` appear at the
-end of the list.
-
-Use as `l.sort_with_top t rel`.
- -/
-def _root_.list.sort_with_top {N : Type*} [decidable_eq N] (l t : list N) (rel : N → N → bool) :
-  list N :=
-let tl := t.dedup.filter (∈ l) in (l.filter (∉ tl)).qsort rel ++ tl
 
 /--  Let `rel : expr → expr → bool` be a relation, `t` a list of expressions and `e` an expression.
 `sorted_sum_with_rel rel t e` returns an ordered sum of the terms of `e`, where the order is
@@ -113,27 +136,6 @@ meta def sort_summands_aux (rel : expr → expr → bool) (t : list expr) : opti
 
 end with_rel
 
-/--  The order on `polynomial.monomial n r`, where monomials are compared by their "exponent" `n`.
-If the expression is not a monomial, then the weight is `⊥`. -/
-meta def monomial_weight (e : expr) : option ℕ :=
-match e.app_fn with
-| `(coe_fn $ polynomial.monomial %%n) := n.to_nat
-| _ := none
-end
-
-/--  The function we use to compare two `expr`:
-* all non-monomials are compared alphabetically;
-* all non-monomials are smaller than all monomials;
-* bigger monomials have higher exponent.
--/
-meta def compare_fn (eₗ eᵣ : expr) : bool :=
-match (monomial_weight eₗ, monomial_weight eᵣ) with
-| (none, none)     := eₗ.to_string ≤ eᵣ.to_string -- this solution forces an unique ordering
-| (_, none)        := false
-| (none, _)        := true
-| (some l, some r) := l ≤ r
-end
-
 /--  A version of `sort_summands_aux` that allows failure, if `allow_failure = tt`. -/
 meta def sort_summands_core (allow_failure : bool) (t : list expr) (hyp : option name) :
   tactic unit :=
@@ -176,4 +178,7 @@ add_tactic_doc
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.sort_summands],
   tags := ["arithmetic"] }
-end tactic.interactive
+
+end interactive
+
+end tactic

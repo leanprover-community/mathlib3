@@ -352,7 +352,7 @@ end
 theorem iterate_le_nfp (f a n) : f^[n] a ≤ nfp f a :=
 by { rw ←sup_iterate_eq_nfp, exact le_sup _ n }
 
-theorem self_le_nfp (f a) : a ≤ nfp f a :=
+theorem le_nfp (f a) : a ≤ nfp f a :=
 iterate_le_nfp f a 0
 
 theorem lt_nfp {a b} : a < nfp f b ↔ ∃ n, a < (f^[n]) b :=
@@ -589,7 +589,7 @@ begin
       with d hd,
     rw hd,
     apply mul_le_mul_left',
-    have := self_le_nfp (has_mul.mul a) (a ^ omega * b + c),
+    have := le_nfp (has_mul.mul a) (a ^ omega * b + c),
     rw hd at this,
     have := (add_lt_add_left hc (a ^ omega * b)).trans_le this,
     rw [add_zero, mul_lt_mul_iff_left (opow_pos omega ha)] at this,

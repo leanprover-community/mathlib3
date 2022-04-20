@@ -109,7 +109,7 @@ end
 
 theorem unbounded_principal (op : ordinal → ordinal → ordinal) :
   set.unbounded (<) {o | principal op o} :=
-λ o, ⟨_, principal_nfp_blsub₂ op o, (self_le_nfp _ o).not_lt⟩
+λ o, ⟨_, principal_nfp_blsub₂ op o, (le_nfp _ o).not_lt⟩
 
 /-! #### Additive principal ordinals -/
 

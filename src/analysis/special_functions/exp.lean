@@ -207,7 +207,7 @@ begin
   { intros b' c' h,
     convert (tendsto_mul_exp_add_div_pow_at_top b' c' n h).inv_tendsto_at_top ,
     ext x,
-    simpa only [pi.inv_apply] using inv_div.symm },
+    simpa only [pi.inv_apply] using (inv_div _ _).symm },
   cases lt_or_gt_of_ne hb,
   { exact H b c h },
   { convert (H (-b) (-c) (neg_pos.mpr h)).neg,

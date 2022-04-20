@@ -727,15 +727,7 @@ instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] (X : ι → Type*)
       (is_freely_generated_by.lift.to_fun (λ (x : X i), free_group.of (⟨i, x⟩ : Σ i, X i))
         : G i →* (free_group (Σ i, X i)))))
     (by {ext, simp,})
-    (by {
-      ext i x,
-      revert x,
-      refine monoid_hom.congr_fun _,
-      ext,
-      -- ext does not pick up the right instance… a sign that the API design isn't great?
-      -- apply @is_freely_generated_by.ext_hom (G i) _ (X i) _ _ _ ,
-      simp,
-    })
+    (by {ext, simp, })
 }
 
 /-- A free group is a free product of copies of the free_group over one generator. -/

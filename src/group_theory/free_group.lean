@@ -878,6 +878,7 @@ namespace is_freely_generated_by
 
 variables {G : Type*} [group G] {X : Type} [is_freely_generated_by G X]
 
+@[elab_simple]
 def of : X → G := is_freely_generated_by.mul_equiv.to_fun ∘ free_group.of
 
 variables {H : Type*} [group H]

@@ -508,6 +508,9 @@ lemma div_mul_div_comm (a b c d : G) : a / b * (c / d) = a * c / (b * d) :=
 by simp
 
 @[to_additive]
+lemma div_div_div_comm (a b c d : G) : (a / b) / (c / d) = (a / c) / (b / d) := by simp
+
+@[to_additive]
 lemma div_mul_eq_div_div (a b c : G) : a / (b * c) = a / b / c :=
 by simp
 

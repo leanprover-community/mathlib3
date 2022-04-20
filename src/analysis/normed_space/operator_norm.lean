@@ -844,6 +844,7 @@ section smul_linear
 
 variables (𝕜) (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
   [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
+  [normed_space 𝕜' M₁] [is_scalar_tower 𝕜 𝕜' M₁]
 
 /-- Scalar multiplication as a continuous bilinear map. -/
 def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
@@ -862,6 +863,31 @@ begin
     rw [to_span_singleton_apply, norm_smul, mul_comm] at h,
     exact (mul_le_mul_right (by simp)).mp h, },
 end
+
+variables {𝕜}
+
+lemma op_norm_lsmul_le : ∥(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] E →L[𝕜] E)∥ ≤ 1 :=
+begin
+  refine continuous_linear_map.op_norm_le_bound _ zero_le_one (λ x, _),
+  simp_rw [one_mul],
+  refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg x) (λ y, _),
+  simp_rw [lsmul_apply, norm_smul],
+end
+
+lemma op_norm_lsmul [nontrivial M₁] : ∥(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] M₁ →L[𝕜] M₁)∥ = 1 :=
+begin
+  refine continuous_linear_map.op_norm_eq_of_bounds zero_le_one (λ x, _) (λ N hN h, _),
+  { simp_rw [one_mul],
+    refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg x) (λ y, _),
+    simp_rw [lsmul_apply, norm_smul] },
+  obtain ⟨y, hy⟩ := exists_ne (0 : M₁),
+  have := le_of_op_norm_le _ (h 1) y,
+  simp_rw [lsmul_apply, one_smul, norm_one, mul_one] at this,
+  refine le_of_mul_le_mul_right _ (norm_pos_iff.mpr hy),
+  simp_rw [one_mul, this]
+end
+
+lemma op_norm_lmul : ∥(lmul 𝕜 𝕜' : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜')∥ = 1 := op_norm_lsmul
 
 end smul_linear
 

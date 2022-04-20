@@ -54,6 +54,27 @@ def list.sort_with_top {N : Type*} [decidable_eq N] (l t : list N) (rel : N → 
   list N :=
 let tl := t.dedup.filter (∈ l) in (l.filter (∉ tl)).qsort rel ++ tl
 
+/--  Mimics closely `list.partition`, except that it uses the first factor as the partitioning
+condition and passes on the second factors to the partitions. -/
+def list.split_factors {α : Type*} (l : list (bool × α)) : list α × list α :=
+(l.partition (λ i : bool × α, i.1)).map (list.map (λ i, i.2)) (list.map (λ i, i.2))
+
+
+/--  Let `ll = (il,fl)` be a pair of `list N`.  We sort the elements of the list `l : list N`,
+using a relation `rel : N → N → bool`, overriding it as needed to make sure that the elements of
+the list `il` are initial and the elements of `fl` are final in the sorted list.
+
+Use as `l.sort_with_ends ll rel`.
+ -/
+def list.sort_with_ends {N : Type*} [decidable_eq N] (l : list N) (ll : list N × list N)
+  (rel : N → N → bool) :
+  list N :=
+-- the list of initial elements
+let il := ll.1.dedup.filter (∈ l) in
+-- the list of final elements
+let fl := (ll.2.dedup.filter (∈ l)).filter (∉ il) in
+il ++ ((l.filter (∉ il ++ fl)).qsort rel) ++ fl
+
 namespace tactic
 
 /--  The order on `polynomial.monomial n r`, where monomials are compared by their "exponent" `n`.

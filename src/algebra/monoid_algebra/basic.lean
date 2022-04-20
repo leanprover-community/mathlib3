@@ -555,6 +555,7 @@ by { ext, rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
 
 /--  A multiplicative homomorphism `f : G →* H` between two monoids induces a ring
 homomorphism `monoid_ring_hom_map f : monoid_algebra k G →+* monoid_algebra k H`. -/
+@[simps]
 def monoid_ring_hom_map (k : Type*) {H F : Type*} [semiring k] [monoid G] [monoid H]
   [monoid_hom_class F G H] (f : F) :
   monoid_algebra k G →+* monoid_algebra k H :=
@@ -1241,7 +1242,8 @@ end
 --  mathematical definition, but is harder to use.
 /--  An additive homomorphism `f : G →+ H` induces a ring homomorphism
 `add_monoid_ring_hom_map f : add_monoid_algebra k G →+* add_monoid_algebra k H`. -/
-def add_monoid_ring_hom_map (k : Type*) [semiring k] {H F : Type*} [add_monoid G] [add_monoid H]
+@[simps]
+def map_domain_ring_hom (k : Type*) [semiring k] {H F : Type*} [add_monoid G] [add_monoid H]
   [add_monoid_hom_class F G H] (f : F) :
   add_monoid_algebra k G →+* add_monoid_algebra k H :=
 { map_one' := map_domain_one f,

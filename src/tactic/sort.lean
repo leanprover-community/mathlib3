@@ -42,7 +42,7 @@ compare.
 * Allow custom ordering?  E.g. `sort_summands using my_rel`, where `my_rel : N → N → Prop` is a
   relation on a type (with `+`), and, if `sort_summands` encounters a sum of terms of type `N`,
   then it will ask the user to prove the required sorting.
- -/
+-/
 
 namespace tactic.interactive
 

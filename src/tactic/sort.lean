@@ -198,13 +198,6 @@ meta def sort_pexpr_list_or_texpr := list_of (sort_summands_arg 0) <|>
     list.ret <$> (sort_summands_arg tac_rbp) <|>
     return []
 
-meta def split_sort_args
-  (args : parse (
-    list_of (sort_summands_arg 0) <|>
-    list.ret <$> (sort_summands_arg tac_rbp) <|>
-    return [])) : tactic unit :=
-trace $ list.split_factors args
-
 /--
 Calling `sort_summands`, recursively looks inside the goal for expressions involving a sum.
 Whenever it finds one, it sorts its terms following a heuristic.  Right now, the heuristic

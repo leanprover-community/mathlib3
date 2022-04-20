@@ -45,7 +45,7 @@ noncomputable def gram_schmidt (f : ℕ → E) : ℕ → E
 | n := f n - ∑ i : fin n, orthogonal_projection (𝕜 ∙ gram_schmidt i) (f n)
 using_well_founded {dec_tac := `[exact i.prop]}
 
-/-- 'gram_schmidt_def' turns the sum over `fin n` into a sum over `ℕ`. -/
+/-- `gram_schmidt_def` turns the sum over `fin n` into a sum over `ℕ`. -/
 lemma gram_schmidt_def (f : ℕ → E) (n : ℕ) :
   gram_schmidt 𝕜 f n = f n - ∑ i in finset.range n,
     orthogonal_projection (𝕜 ∙ gram_schmidt 𝕜 f i) (f n) :=

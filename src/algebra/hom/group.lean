@@ -32,6 +32,7 @@ building blocks for other homomorphisms:
 * `→+`: Bundled `add_monoid` homs. Also use for `add_group` homs.
 * `→*`: Bundled `monoid` homs. Also use for `group` homs.
 * `→*₀`: Bundled `monoid_with_zero` homs. Also use for `group_with_zero` homs.
+* `→ₙ*`: Bundled `semigroup` homs.
 
 ## Implementation notes
 
@@ -207,7 +208,9 @@ section mul
 
 variables [has_mul M] [has_mul N]
 
-/-- `M →ₙ* N` is the type of functions `M → N` that preserve multiplication.
+/-- `M →ₙ* N` is the type of functions `M → N` that preserve multiplication. The `ₙ` in the notation
+stands for "non-unital" because it is intended to match the notation for `non_unital_alg_hom` and
+`non_unital_ring_hom`, so a `mul_hom` is a non-unital monoid hom.
 
 When possible, instead of parametrizing results over `(f : M →ₙ* N)`,
 you should parametrize over `(F : Type*) [mul_hom_class F M N] (f : F)`.

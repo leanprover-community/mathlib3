@@ -229,6 +229,9 @@ end
 theorem ord_aleph_is_limit (o : ordinal) : is_limit (aleph o).ord :=
 ord_is_limit $ omega_le_aleph _
 
+instance (o : ordinal) : no_max_order (aleph o).ord.out.α :=
+ordinal.out_no_max_of_succ_lt (ord_aleph_is_limit o).2
+
 theorem exists_aleph {c : cardinal} : ω ≤ c ↔ ∃ o, c = aleph o :=
 ⟨λ h, ⟨aleph_idx c - ordinal.omega,
   by rw [aleph, ordinal.add_sub_cancel_of_le, aleph'_aleph_idx];
@@ -665,7 +668,7 @@ mk_le_omega.antisymm (omega_le_mk _)
 theorem mk_list_eq_max_mk_omega (α : Type u) [nonempty α] : #(list α) = max (#α) ω :=
 begin
   casesI fintype_or_infinite α,
-  { haveI : encodable α := fintype.encodable α,
+  { haveI : encodable α := fintype.to_encodable α,
     rw [mk_list_eq_omega, eq_comm, max_eq_right],
     exact mk_le_omega },
   { rw [mk_list_eq_mk, eq_comm, max_eq_left],
@@ -675,7 +678,7 @@ end
 theorem mk_list_le_max (α : Type u) : #(list α) ≤ max ω (#α) :=
 begin
   casesI fintype_or_infinite α,
-  { haveI := fintype.encodable α,
+  { haveI := fintype.to_encodable α,
     exact mk_le_omega.trans (le_max_left _ _) },
   { rw mk_list_eq_mk,
     apply le_max_right }

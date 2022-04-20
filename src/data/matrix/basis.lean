@@ -46,8 +46,8 @@ begin
   split_ifs with h; simp [h],
 end
 
-lemma matrix_eq_sum_std_basis (x : matrix n m α) [fintype n] [fintype m] :
-  x = ∑ (i : n) (j : m), std_basis_matrix i j (x i j) :=
+lemma matrix_eq_sum_std_basis [fintype m] [fintype n] (x : matrix m n α) :
+  x = ∑ (i : m) (j : n), std_basis_matrix i j (x i j) :=
 begin
   ext, symmetry,
   iterate 2 { rw finset.sum_apply },
@@ -62,7 +62,7 @@ end
 
 -- TODO: add `std_basis_vec`
 lemma std_basis_eq_basis_mul_basis (i : m) (j : n) :
-std_basis_matrix i j 1 = vec_mul_vec (λ i', ite (i = i') 1 0) (λ j', ite (j = j') 1 0) :=
+  std_basis_matrix i j 1 = vec_mul_vec (λ i', ite (i = i') 1 0) (λ j', ite (j = j') 1 0) :=
 begin
   ext,
   norm_num [std_basis_matrix, vec_mul_vec],

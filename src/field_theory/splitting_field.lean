@@ -111,9 +111,9 @@ else or.inr $ λ p hp hpf, ((principal_ideal_ring.irreducible_iff_prime.1 hp).2.
 lemma splits_of_splits_mul {f g : K[X]} (hfg : f * g ≠ 0) (h : splits i (f * g)) :
   splits i f ∧ splits i g :=
 ⟨or.inr $ λ g hgi hg, or.resolve_left h hfg hgi
-   (by rw map_mul; exact hg.trans (dvd_mul_right _ _)),
+   (by rw polynomial.map_mul; exact hg.trans (dvd_mul_right _ _)),
  or.inr $ λ g hgi hg, or.resolve_left h hfg hgi
-   (by rw map_mul; exact hg.trans (dvd_mul_left _ _))⟩
+   (by rw polynomial.map_mul; exact hg.trans (dvd_mul_left _ _))⟩
 
 lemma splits_of_splits_of_dvd {f g : K[X]} (hf0 : f ≠ 0) (hf : splits i f) (hgf : g ∣ f) :
   splits i g :=
@@ -233,7 +233,7 @@ classical.some_spec $ exists_root_of_splits i hf hfd
 
 theorem roots_map {f : K[X]} (hf : f.splits $ ring_hom.id K) :
   (f.map i).roots = (f.roots).map i :=
-if hf0 : f = 0 then by rw [hf0, map_zero, roots_zero, roots_zero, multiset.map_zero] else
+if hf0 : f = 0 then by rw [hf0, polynomial.map_zero, roots_zero, roots_zero, multiset.map_zero] else
 have hmf0 : f.map i ≠ 0 := map_ne_zero hf0,
 let ⟨m, hm⟩ := exists_multiset_of_splits _ hf in
 have h1 : (0 : K[X]) ∉ m.map (λ r, X - C r),
@@ -241,9 +241,10 @@ have h1 : (0 : K[X]) ∉ m.map (λ r, X - C r),
 have h2 : (0 : L[X]) ∉ m.map (λ r, X - C (i r)),
   from zero_nmem_multiset_map_X_sub_C _ _,
 begin
-  rw map_id at hm, rw hm at hf0 hmf0 ⊢, rw map_mul at hmf0 ⊢,
+  rw map_id at hm, rw hm at hf0 hmf0 ⊢, rw polynomial.map_mul at hmf0 ⊢,
   rw [roots_mul hf0, roots_mul hmf0, map_C, roots_C, zero_add, roots_C, zero_add,
-      polynomial.map_multiset_prod, multiset.map_map], simp_rw [(∘), map_sub, map_X, map_C],
+      polynomial.map_multiset_prod, multiset.map_map],
+  simp_rw [(∘), polynomial.map_sub, map_X, map_C],
   rw [roots_multiset_prod _ h2, multiset.bind_map,
       roots_multiset_prod _ h1, multiset.bind_map],
   simp_rw roots_X_sub_C,
@@ -255,7 +256,7 @@ lemma eq_prod_roots_of_splits {p : K[X]} {i : K →+* L}
   p.map i = C (i p.leading_coeff) * ((p.map i).roots.map (λ a, X - C a)).prod :=
 begin
   by_cases p_eq_zero : p = 0,
-  { rw [p_eq_zero, map_zero, leading_coeff_zero, i.map_zero, C.map_zero, zero_mul] },
+  { rw [p_eq_zero, polynomial.map_zero, leading_coeff_zero, i.map_zero, C.map_zero, zero_mul] },
 
   obtain ⟨s, hs⟩ := exists_multiset_of_splits i hsplit,
   have map_ne_zero : p.map i ≠ 0 := map_ne_zero (p_eq_zero),
@@ -299,7 +300,7 @@ lemma nat_degree_eq_card_roots {p : K[X]} {i : K →+* L}
   (hsplit : splits i p) : p.nat_degree = (p.map i).roots.card :=
 begin
   by_cases p_eq_zero : p = 0,
-  { rw [p_eq_zero, nat_degree_zero, map_zero, roots_zero, multiset.card_zero] },
+  { rw [p_eq_zero, nat_degree_zero, polynomial.map_zero, roots_zero, multiset.card_zero] },
   have map_ne_zero : p.map i ≠ 0 := map_ne_zero (p_eq_zero),
   rw eq_prod_roots_of_splits hsplit at map_ne_zero,
 
@@ -408,14 +409,14 @@ lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq {K : Type*} [comm_ring K] 
 begin
   apply map_injective _ (is_fraction_ring.injective K (fraction_ring K)),
   rw polynomial.map_multiset_prod,
-  simp only [map_C, function.comp_app, map_X, multiset.map_map, map_sub],
+  simp only [map_C, function.comp_app, map_X, multiset.map_map, polynomial.map_sub],
   have : p.roots.map (algebra_map K (fraction_ring K)) =
     (map (algebra_map K (fraction_ring K)) p).roots :=
     roots_map_of_injective_card_eq_total_degree
       (is_fraction_ring.injective K (fraction_ring K)) hroots,
   rw ← prod_multiset_X_sub_C_of_monic_of_roots_card_eq_of_field
     (hmonic.map (algebra_map K (fraction_ring K))),
-  { simp only [map_C, function.comp_app, map_X, map_sub],
+  { simp only [map_C, function.comp_app, map_X, polynomial.map_sub],
     congr' 1,
     rw ← this,
     simp, },
@@ -458,8 +459,8 @@ begin
   have hcoeff : p.leading_coeff ≠ 0,
   { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
   apply map_injective _ (is_fraction_ring.injective K (fraction_ring K)),
-  rw [map_mul, polynomial.map_multiset_prod],
-  simp only [map_C, function.comp_app, map_X, multiset.map_map, map_sub],
+  rw [polynomial.map_mul, polynomial.map_multiset_prod],
+  simp only [map_C, function.comp_app, map_X, multiset.map_map, polynomial.map_sub],
   have h : p.roots.map (algebra_map K (fraction_ring K)) =
     (map (algebra_map K (fraction_ring K)) p).roots :=
     roots_map_of_injective_card_eq_total_degree
@@ -469,7 +470,7 @@ begin
   { rw [nat_degree_map_eq_of_injective (is_fraction_ring.injective K (fraction_ring K)), ← h],
     simp only [←hroots, multiset.card_map], },
   rw [← C_leading_coeff_mul_prod_multiset_X_sub_C_of_field this],
-  simp only [map_C, function.comp_app, map_X, map_sub],
+  simp only [map_C, function.comp_app, map_X, polynomial.map_sub],
   have w : (algebra_map K (fraction_ring K)) p.leading_coeff ≠ 0,
   { intro hn,
     apply hcoeff,
@@ -770,9 +771,10 @@ nat.rec_on n (λ K _ f hf, by exactI algebra.eq_top_iff.2 (λ x, subalgebra.rang
 have hndf : f.nat_degree ≠ 0, by { intro h, rw h at hfn, cases hfn },
 have hfn0 : f ≠ 0, by { intro h, rw h at hndf, exact hndf rfl },
 have hmf0 : map (algebra_map K (splitting_field_aux n.succ f hfn)) f ≠ 0 := map_ne_zero hfn0,
-by { rw [algebra_map_succ, ← map_map, ← X_sub_C_mul_remove_factor _ hndf, map_mul] at hmf0 ⊢,
-rw [roots_mul hmf0, map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add, finset.coe_union,
-    multiset.to_finset_singleton, finset.coe_singleton,
+by { rw [algebra_map_succ, ← map_map, ← X_sub_C_mul_remove_factor _ hndf,
+         polynomial.map_mul] at hmf0 ⊢,
+rw [roots_mul hmf0, polynomial.map_sub, map_X, map_C, roots_X_sub_C, multiset.to_finset_add,
+    finset.coe_union, multiset.to_finset_singleton, finset.coe_singleton,
     algebra.adjoin_union_eq_adjoin_adjoin, ← set.image_singleton,
     algebra.adjoin_algebra_map K (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
@@ -886,7 +888,7 @@ theorem mul (f g : F[X]) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_field F K f
 ⟨(is_scalar_tower.algebra_map_eq F K L).symm ▸ splits_mul _
   (splits_comp_of_splits _ _ (splits K f))
   ((splits_map_iff _ _).1 (splits L $ g.map $ algebra_map F K)),
- by rw [map_mul, roots_mul (mul_ne_zero (map_ne_zero hf : f.map (algebra_map F L) ≠ 0)
+ by rw [polynomial.map_mul, roots_mul (mul_ne_zero (map_ne_zero hf : f.map (algebra_map F L) ≠ 0)
         (map_ne_zero hg)), multiset.to_finset_add, finset.coe_union,
       algebra.adjoin_union_eq_adjoin_adjoin,
       is_scalar_tower.algebra_map_eq F K L, ← map_map,
@@ -915,7 +917,7 @@ theorem finite_dimensional (f : K[X]) [is_splitting_field K L f] : finite_dimens
 ⟨@algebra.top_to_submodule K L _ _ _ ▸ adjoin_roots L f ▸
   fg_adjoin_of_finite (set.finite_mem_finset _) (λ y hy,
   if hf : f = 0
-  then by { rw [hf, map_zero, roots_zero] at hy, cases hy }
+  then by { rw [hf, polynomial.map_zero, roots_zero] at hy, cases hy }
   else is_algebraic_iff_is_integral.1 ⟨f, hf, (eval₂_eq_eval_map _).trans $
     (mem_roots $ by exact map_ne_zero hf).1 (multiset.mem_to_finset.mp hy)⟩)⟩
 

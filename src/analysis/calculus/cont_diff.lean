@@ -2803,7 +2803,7 @@ begin
   rcases metric.mem_nhds_within_iff.mp hst with ⟨ε, ε0, hε⟩,
   replace hp : has_ftaylor_series_up_to_on 1 f p (metric.ball x ε ∩ insert x s) := hp.mono hε,
   clear hst hε t,
-  rw [← insert_eq_of_mem (metric.mem_ball_self ε0), ← insert_inter] at hp,
+  rw [← insert_eq_of_mem (metric.mem_ball_self ε0), ← insert_inter_distrib] at hp,
   rcases hp.exists_lipschitz_on_with ((convex_ball _ _).inter hs) with ⟨K, t, hst, hft⟩,
   rw [inter_comm, ← nhds_within_restrict' _ (metric.ball_mem_nhds _ ε0)] at hst,
   exact ⟨K, t, hst, hft⟩

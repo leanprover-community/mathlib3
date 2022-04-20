@@ -6,7 +6,8 @@ Authors: Arthur Paulino, Damiano Testa
 import tactic.core
 import data.polynomial.basic
 
-/-!  # `sort_summands`, a tactic for sorting sums
+/-!
+# `sort_summands`: a tactic for sorting sums
 
 Calling `sort_summands` will recursively look inside the goal for expressions involving a sum.
 Whenever it finds one, it will sort its terms following a heuristic.  Right now, the heuristic

@@ -537,8 +537,8 @@ end
 
 @[to_additive] lemma is_open.closure_mul {U : set G} (hU : is_open U) (s : set G) :
   closure s * U = s * U :=
-by rw [← inv_inv (closure s * U), set.inv_mul_rev, inv_closure, hU.inv.mul_closure,
-  set.inv_mul_rev, inv_inv, inv_inv]
+by rw [← inv_inv (closure s * U), inv_mul_rev, inv_closure, hU.inv.mul_closure, inv_mul_rev,
+  inv_inv, inv_inv]
 
 namespace subgroup
 

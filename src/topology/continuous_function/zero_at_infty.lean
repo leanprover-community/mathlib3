@@ -438,7 +438,7 @@ instance : star_add_monoid C₀(α, β) :=
   star_add := λ f g, ext $ λ x, star_add (f x) (g x) }
 
 instance : normed_star_group C₀(α, β) :=
-{ norm_star := λ f, @norm_star _ _ _ _ f.to_bcf }
+{ norm_star := λ f, (norm_star f.to_bcf : _) }
 
 end star
 

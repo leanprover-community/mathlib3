@@ -183,6 +183,7 @@ variables [has_involutive_inv α] {f : filter α} {s : set α}
 
 @[to_additive] lemma inv_mem_inv (hs : s ∈ f) : s⁻¹ ∈ f⁻¹ := by rwa [mem_inv, inv_preimage, inv_inv]
 
+@[to_additive]
 instance : has_involutive_inv (filter α) :=
 { inv_inv := λ f, map_map.trans $ by rw [inv_involutive.comp_self, map_id],
   ..filter.has_inv }
@@ -247,13 +248,13 @@ lemma tendsto.div_div [monoid_hom_class F α β] (m : F) {f₁ g₁ : filter α}
 
 end group
 
-/-- `filter α` is a division-inversion monoid under pointwise operations if `α` is. -/
-@[to_additive filter.sub_neg_monoid "`filter α` is a subtraction-negation monoid under pointwise
+/-- `filter α` is a division monoid under pointwise operations if `α` is. -/
+@[to_additive subtraction_monoid "`filter α` is a subtraction monoid under pointwise
 operations if `α` is."]
-instance div_inv_monoid [div_inv_monoid α] : div_inv_monoid (filter α) :=
+instance division_monoid [division_monoid α] : division_monoid (filter α) :=
 { inv_mul_rev := λ s t, map_map₂_antidistrib inv_mul_rev,
   div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
-  ..filter.monoid, ..filter.has_inv, ..filter.has_div }
+  ..filter.monoid, ..filter.has_involutive_inv, ..filter.has_div }
 
 /-! ### Scalar addition/multiplication of filters -/
 

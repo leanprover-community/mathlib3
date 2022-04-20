@@ -512,13 +512,6 @@ open mul_opposite
 lemma image_op_inv : op '' s⁻¹ = (op '' s)⁻¹ := by simp_rw [←image_inv, image_comm op_inv]
 
 end has_involutive_inv
-
-@[to_additive] protected lemma inv_mul_rev [group α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
-by { simp_rw ←image_inv, exact image_image2_antidistrib inv_mul_rev }
--- TOODOO
-protected lemma inv_mul_rev [group_with_zero α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
-by { simp_rw ←image_inv, exact image_image2_antidistrib inv_mul_rev }
-
 end inv
 
 open_locale pointwise
@@ -633,17 +626,16 @@ multiplication/division!) of a `set`. -/
 @[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (set α) ℤ :=
 ⟨λ s n, zpow_rec n s⟩
 
-/-- `set α` is a division-inversion monoid under pointwise if `α` is. -/
-@[to_additive set.sub_neg_monoid "`set α` is a subtraction-negation monoid under pointwise if `α`
-is."]
-protected def div_inv_monoid [div_inv_monoid α] : div_inv_monoid (set α) :=
+/-- `set α` is a division monoid under pointwise if `α` is. -/
+@[to_additive subtraction_monoid "`set α` is a subtraction monoid under pointwise if `α` is."]
+protected def division_monoid [division_monoid α] : division_monoid (set α) :=
 { inv_mul_rev := λ s t, by { simp_rw ←image_inv, exact image_image2_antidistrib inv_mul_rev },
   div_eq_mul_inv := λ s t,
     by { rw [←image_id (s / t), ←image_inv], exact image_image2_distrib_right div_eq_mul_inv },
   ..set.monoid, ..set.has_involutive_inv, ..set.has_div }
 
 localized "attribute [instance] set.has_nsmul set.has_npow set.has_zsmul set.has_zpow
-  set.div_inv_monoid set.sub_neg_monoid" in pointwise
+  set.division_monoid set.subtraction_monoid" in pointwise
 
 end div
 

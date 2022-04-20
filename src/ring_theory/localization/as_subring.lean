@@ -78,7 +78,7 @@ noncomputable
 def subalgebra (hS : S ≤ A⁰) : subalgebra A K :=
 (map_to_fraction_ring K S (localization S) hS).range.copy
 { x | ∃ (a s : A) (hs : s ∈ S), x = is_localization.mk' K a ⟨s, hS hs⟩ } $
-by { ext, exact (mem_range_map_to_fraction_ring_iff _ _ _ _ _).symm }
+by { ext, symmetry, apply mem_range_map_to_fraction_ring_iff }
 
 namespace subalgebra
 
@@ -117,7 +117,7 @@ noncomputable
 def of_field : _root_.subalgebra A K :=
 (map_to_fraction_ring K S (localization S) hS).range.copy
 { x | ∃ (a s : A) (hs : s ∈ S), x = algebra_map A K a * (algebra_map A K s)⁻¹ } $
-by { ext, exact (mem_range_map_to_fraction_ring_iff_of_field _ _ _ _ _).symm }
+by { ext, symmetry, apply mem_range_map_to_fraction_ring_iff_of_field }
 
 instance is_localization_of_field :
   is_localization S (subalgebra.of_field K S hS) :=

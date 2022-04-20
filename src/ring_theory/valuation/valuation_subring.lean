@@ -194,35 +194,34 @@ def ideal_of_le (R S : valuation_subring K) (h : R ≤ S) : ideal R :=
 instance prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
   (ideal_of_le R S h).is_prime := (local_ring.maximal_ideal S).comap_is_prime _
 
+noncomputable
 def of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   valuation_subring K :=
-of_le A (localization.subalgebra K P.prime_compl $
+of_le A (localization.subalgebra.of_field K P.prime_compl $
   le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem).to_subring $
-  λ a ha, ⟨algebra_map A _ ⟨a,ha⟩, is_localization.lift_eq _ _⟩
+  λ a ha, subalgebra.algebra_map_mem _ (⟨a,ha⟩ : A)
 
+noncomputable
 instance of_prime_algebra (A : valuation_subring K) (P : ideal A) [P.is_prime] :
-  algebra A (A.of_prime P) :=
-show algebra A (localization.subalgebra _ _ _), by apply_instance
+  algebra A (A.of_prime P) := subalgebra.algebra _
 
 instance of_prime_scalar_tower (A : valuation_subring K) (P : ideal A) [P.is_prime] :
-  is_scalar_tower A (A.of_prime P) K :=
-show is_scalar_tower A (localization.subalgebra _ _ _) K, by apply_instance
+  is_scalar_tower A (A.of_prime P) K := is_scalar_tower.subalgebra' A K K _
 
 instance of_prime_localization (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   is_localization.at_prime (A.of_prime P) P :=
-show is_localization P.prime_compl (localization.subalgebra _ _ _), by apply_instance
+by apply localization.subalgebra.is_localization_of_field K
 
 lemma le_of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   A ≤ of_prime A P :=
-λ a ha, ⟨algebra_map A _ ⟨a,ha⟩, is_localization.lift_eq _ _⟩
+λ a ha, subalgebra.algebra_map_mem _ (⟨a,ha⟩ : A)
 
 lemma of_prime_valuation_eq_one_iff_mem_prime_compl
   (A : valuation_subring K)
   (P : ideal A) [P.is_prime] (x : A) :
   (of_prime A P).valuation x = 1 ↔ x ∈ P.prime_compl :=
 begin
-  rw [← is_localization.at_prime.is_unit_to_map_iff (A.of_prime P) P x, valuation_eq_one_iff],
-  exact iff.rfl,
+  rw [← is_localization.at_prime.is_unit_to_map_iff (A.of_prime P) P x, valuation_eq_one_iff], refl,
 end
 
 @[simp]
@@ -235,8 +234,7 @@ lemma of_prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
   of_prime R (ideal_of_le R S h) = S :=
 begin
   ext x, split,
-  { erw localization.subalgebra.mem_iff_of_field,
-    rintro ⟨a,r,hr,rfl⟩, apply mul_mem, { exact h a.2 },
+  { rintro ⟨a,r,hr,rfl⟩, apply mul_mem, { exact h a.2 },
     { rw [← valuation_le_one_iff, valuation.map_inv, ← inv_one, inv_le_inv₀],
       { exact not_lt.1 ((not_iff_not.2 $ valuation_lt_one_iff S _).1 hr) },
       { intro hh, erw [valuation.zero_iff, subring.coe_eq_zero_iff] at hh,
@@ -245,8 +243,7 @@ begin
   { intro hx, by_cases hr : x ∈ R, { exact R.le_of_prime _ hr },
     have : x ≠ 0 := λ h, hr (by { rw h, exact R.zero_mem }),
     replace hr := (R.mem_or_inv_mem x).resolve_left hr,
-    { erw localization.subalgebra.mem_iff_of_field,
-      use [1, x⁻¹, hr], split,
+    { use [1, x⁻¹, hr], split,
       { change (⟨x⁻¹, h hr⟩ : S) ∉ nonunits S,
         erw [mem_nonunits_iff, not_not],
         apply is_unit_of_mul_eq_one _ (⟨x,hx⟩ : S),
@@ -256,10 +253,7 @@ end
 
 lemma of_prime_le_of_le (P Q : ideal A) [P.is_prime] [Q.is_prime]
   (h : P ≤ Q) : of_prime A Q ≤ of_prime A P :=
-λ x, begin
-  iterate 2 { erw localization.subalgebra.mem_iff_of_field },
-  exact λ ⟨a, s, hs, he⟩, ⟨a, s, λ c, hs (h c), he⟩,
-end
+λ x ⟨a, s, hs, he⟩, ⟨a, s, λ c, hs (h c), he⟩
 
 lemma ideal_of_le_le_of_le (R S : valuation_subring K)
   (hR : A ≤ R) (hS : A ≤ S) (h : R ≤ S) :
@@ -270,7 +264,7 @@ lemma ideal_of_le_le_of_le (R S : valuation_subring K)
   apply not_le_of_lt ((valuation_lt_one_iff S _).1 hx) c,
 end
 
-@[simps]
+@[simps] noncomputable
 def prime_spectrum_equiv :
   prime_spectrum A ≃ { S | A ≤ S } :=
 { to_fun := λ P, ⟨of_prime A P.as_ideal, le_of_prime _ _⟩,
@@ -278,7 +272,7 @@ def prime_spectrum_equiv :
   left_inv := λ P, by { ext1, simpa },
   right_inv := λ S, by { ext1, simp } }
 
-@[simps]
+@[simps] noncomputable
 def prime_spectrum_order_equiv :
   order_dual (prime_spectrum A) ≃o { S | A ≤ S } :=
 { map_rel_iff' := λ P Q,

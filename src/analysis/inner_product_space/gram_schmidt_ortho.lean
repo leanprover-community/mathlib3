@@ -16,7 +16,7 @@ and outputs a set of orthogonal vectors which have the same span.
 
 ## Main results
 
-- `gram_schmidt` : Gram-Schmidt process
+- `gram_schmidt` : the Gram-Schmidt process
 - `gram_schmidt_orthogonal` :
   `gram_schmidt` produces an orthogonal system of vectors.
 - `span_gram_schmidt` :
@@ -25,7 +25,7 @@ and outputs a set of orthogonal vectors which have the same span.
   If the input of the first `n + 1` vectors of `gram_schmidt` are linearly independent,
   then the output of the first `n + 1` vectors are non-zero.
 - `gram_schmidt_normed` :
-  the normalized "Gram-Schmidt" (i.e each vector in this system has unit length.)
+  the normalized `gram_schmidt` (i.e each vector in `gram_schmidt_normed` has unit length.)
 - `gram_schmidt_orthornormal` :
   `gram_schmidt_normed` produces an orthornormal system of vectors.
 
@@ -39,7 +39,7 @@ variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
-/-- Gram-Schmidt process takes a set of vectors as input
+/-- The Gram-Schmidt process takes a set of vectors as input
 and outputs a set of orthogonal vectors which have the same span. -/
 noncomputable def gram_schmidt (f : ℕ → E) : ℕ → E
 | n := f n - ∑ i : fin n, orthogonal_projection (𝕜 ∙ gram_schmidt i) (f n)
@@ -173,7 +173,7 @@ lemma gram_schmidt_ne_zero' (f : ℕ → E) (h₀ : linear_independent 𝕜 f) (
   gram_schmidt 𝕜 f n ≠ 0 :=
 gram_schmidt_ne_zero 𝕜 f n (linear_independent.comp h₀ _ (fin.coe_injective))
 
-/-- Normalized Gram-Schmidt process
+/-- the normalized `gram_schmidt`
 (i.e each vector in `gram_schmidt_normed` has unit length.) -/
 noncomputable def gram_schmidt_normed (f : ℕ → E) (n : ℕ) : E :=
 (∥gram_schmidt 𝕜 f n∥ : 𝕜)⁻¹ • (gram_schmidt 𝕜 f n)

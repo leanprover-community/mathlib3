@@ -385,7 +385,7 @@ lemma v_valued_K_def {x : K} : @valued.v K _ _ _ (v_valued_K v) (x) = v.valuatio
 def v_valued_K_topological_space : topological_space K :=
 @valued.topological_space K _ _ _ v.v_valued_K
 
-def v_valued_K_topological_division_ring :
+lemma v_valued_K_topological_division_ring :
   @topological_division_ring K _ v.v_valued_K_topological_space :=
 @valued.topological_division_ring K _ _ _ v.v_valued_K
 

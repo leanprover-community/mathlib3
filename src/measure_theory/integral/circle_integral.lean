@@ -463,7 +463,7 @@ calc ∥cauchy_power_series f c R n∥
 ... ≤ (2 * π)⁻¹ * (∫ θ : ℝ in 0..2*π, ∥f (circle_map c R θ)∥) * |R|⁻¹ ^ n :
   begin
     rcases eq_or_ne R 0 with rfl|hR,
-    { cases n; simp [real.two_pi_pos] },
+    { cases n; simp [-inv_mul_rev, real.two_pi_pos] },
     { rw [mul_inv_cancel_left₀, mul_assoc, mul_comm (|R|⁻¹ ^ n)],
       rwa [ne.def, _root_.abs_eq_zero] }
   end

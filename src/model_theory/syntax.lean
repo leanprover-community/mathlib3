@@ -354,6 +354,9 @@ def restrict_free_var : Π {n : ℕ} (φ : L.bounded_formula α n)
   (φ₂.restrict_free_var (f ∘ (set.inclusion (set.subset_union_right _ _))))
 | n (all φ) f := (φ.restrict_free_var f).all
 
+example [decidable_eq α] (φ : L.bounded_formula α n) : L.bounded_formula φ.free_var_set n :=
+φ.restrict_free_var id
+
 /-- Restricts a bounded formula to only use a particular set of free variables. -/
 def restrict_free_var' [decidable_eq α] : Π {n : ℕ} (φ : L.bounded_formula α n)
   (f : φ.free_var_finset → β), L.bounded_formula β n
@@ -367,6 +370,9 @@ def restrict_free_var' [decidable_eq α] : Π {n : ℕ} (φ : L.bounded_formula 
   (φ₁.restrict_free_var' (f ∘ (set.inclusion (finset.subset_union_left _ _)))).imp
   (φ₂.restrict_free_var' (f ∘ (set.inclusion (finset.subset_union_right _ _))))
 | n (all φ) f := (φ.restrict_free_var' f).all
+
+example [decidable_eq α] (φ : L.bounded_formula α n) : L.bounded_formula φ.free_var_finset n :=
+φ.restrict_free_var' id
 
 /-- Places universal quantifiers on all extra variables of a bounded formula. -/
 def alls : ∀ {n}, L.bounded_formula α n → L.formula α

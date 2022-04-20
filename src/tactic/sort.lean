@@ -9,11 +9,20 @@ import data.polynomial.basic
 /-!
 # `sort_summands`: a tactic for sorting sums
 
-Calling `sort_summands` will recursively look inside the goal for expressions involving a sum.
-Whenever it finds one, it will sort its terms following a heuristic.  Right now, the heuristic
+Calling `sort_summands`, recursively looks inside the goal for expressions involving a sum.
+Whenever it finds one, it sorts its terms following a heuristic.  Right now, the heuristic
 is somewhat crude: if an individual summand is of the exact form `monomial n r`, with `n` a numeral,
-then `monomial n r` will in the last segment and this segment is sorted by increasing value of `n`.
-The remaining terms appear at the beginning of the sum and are sorted alphabetically.
+then `monomial n r` moves to the right of the sum and this segment is sorted by increasing value of
+`n`.  The remaining terms appear at the beginning of the sum and are sorted alphabetically.
+
+```lean
+example {f g : R[X]} {a b : R} (h : f + g + monomial 5 a + monomial 7 b = 0) :
+  (f + monomial 5 a) + (monomial 7 b + g) = 0 :=
+begin
+  sort_summands,
+  assumption,
+end
+```
 
 To allow for more flexibility, `sort_summands` takes an optional argument that can be either a
 single term or a list of terms.  Calling `sort_summands f` or `sort_summands [f,.., g]` performs the
@@ -21,14 +30,14 @@ sorting, except that the explicitly given terms appear last in the final sum (re
 inexistent terms are ignored).
 
 Finally, `sort_summands` can also be targeted to a hypothesis.  If `hp` is in the local context,
-`sort_summands [f, g] at hp` performs the rearranging at `hp`.
+then `sort_summands [f, g] at hp` performs the rearranging at `hp`.
 
 
 ##  Future work
 
 To add better heuristics, an easy approach is to change the definition of `compare_fn`.
 Right now, it simply does a case-split: we compare two expressions alphabetically, unless they are
-both `monomial <deg> <coe>ff`, in which case, we place the term last and we use `<deg>` to further
+both `monomial <deg> <coeff>`, in which case, we place the term last and we use `<deg>` to further
 compare.
 
 * Allow for pattern-matching in the list of terms?
@@ -110,15 +119,18 @@ meta def get_summands : expr → list expr
 
 section with_rel
 
-/--  Let `rel : expr → expr → bool` be a relation, `t` a list of expressions and `e` an expression.
+/--  Let `rel : expr → expr → bool` be a relation, `ll = (il,fl)` a pair of lists of expressions
+and `e` an expression.
 `sorted_sum_with_rel rel t e` returns an ordered sum of the terms of `e`, where the order is
-determined using the relation `rel`, except that the elements from the list `t` appear reversed and
-last in the sum.
+determined using the relation `rel`, except that the elements from the list `il`
+appear first and the elements of the list `fl` appear last (duplicates are ignored, overlaps
+between `il` and `fl` are removed from `fl`).
 
 We use this function for expressions in an additive commutative semigroup. -/
 meta def sorted_sum_with_rel
-  (hyp : option name) (rel : expr → expr → bool) (t : list expr) (e : expr) : tactic unit :=
-match (get_summands e).sort_with_top t rel with
+  (hyp : option name) (rel : expr → expr → bool) (ll : list expr × list expr) (e : expr) :
+  tactic unit :=
+match (get_summands e).sort_with_ends ll rel with
 | eₕ::es := do
   e' ← es.mfoldl (λ eₗ eᵣ, mk_app `has_add.add [eₗ, eᵣ]) eₕ,
   e_eq ← mk_app `eq [e, e'],
@@ -143,34 +155,58 @@ end
 
 /-- Partially traverses an expression in search for a sum of terms.
 When `recurse_on_expr` finds a sum, it sorts it using `sorted_sum_with_rel`. -/
-meta def recurse_on_expr (t : list expr) (hyp : option name) (rel : expr → expr → bool) :
+meta def recurse_on_expr
+  (ll : list expr × list expr) (hyp : option name) (rel : expr → expr → bool) :
   expr → tactic unit
-| e@`(%%_ + %%_)     := sorted_sum_with_rel hyp rel t e
+| e@`(%%_ + %%_)     := sorted_sum_with_rel hyp rel ll e
 | (expr.lam _ _ _ e) := recurse_on_expr e
 | (expr.pi  _ _ _ e) := recurse_on_expr e
 | e                  := e.get_app_args.mmap' recurse_on_expr
 
 /-- Calls `recurse_on_expr` with the right expression, depending on the tactic location. -/
-meta def sort_summands_aux (rel : expr → expr → bool) (t : list expr) : option name → tactic unit
-| (some hyp) := get_local hyp >>= infer_type >>= recurse_on_expr t hyp rel
-| none       := target >>= recurse_on_expr t none rel
+meta def sort_summands_aux (rel : expr → expr → bool) (ll : list expr × list expr) :
+  option name → tactic unit
+| (some hyp) := get_local hyp >>= infer_type >>= recurse_on_expr ll hyp rel
+| none       := target >>= recurse_on_expr ll none rel
 
 end with_rel
 
 /--  A version of `sort_summands_aux` that allows failure, if `allow_failure = tt`. -/
-meta def sort_summands_core (allow_failure : bool) (t : list expr) (hyp : option name) :
+meta def sort_summands_core
+  (allow_failure : bool) (ll : list expr × list expr) (hyp : option name) :
   tactic unit :=
-if allow_failure then sort_summands_aux compare_fn t hyp <|> skip
-else sort_summands_aux compare_fn t hyp
+if allow_failure then sort_summands_aux compare_fn ll hyp <|> skip
+else sort_summands_aux compare_fn ll hyp
 
-/-- If the target is an equality involving summands,
-then  `sort_summands` sorts the summands on either side of the equality.
+meta def sort_summands_arg (prec : nat) : lean.parser (bool × pexpr) :=
+prod.mk <$> (option.is_some <$> (tk "<-")?) <*> parser.pexpr prec
 
-Calling `sort_summands` will recursively look inside the goal for expressions involving a sum.
-Whenever it finds one, it will sort its terms following a heuristic.  Right now, the heuristic
+meta def sort_pexpr_list_or_texpr := list_of (sort_summands_arg 0) <|>
+    list.ret <$> (sort_summands_arg tac_rbp) <|>
+    return []
+
+meta def split_sort_args
+  (args : parse (
+    list_of (sort_summands_arg 0) <|>
+    list.ret <$> (sort_summands_arg tac_rbp) <|>
+    return [])) : tactic unit :=
+trace $ list.split_factors args
+#exit
+/--
+Calling `sort_summands`, recursively looks inside the goal for expressions involving a sum.
+Whenever it finds one, it sorts its terms following a heuristic.  Right now, the heuristic
 is somewhat crude: if an individual summand is of the exact form `monomial n r`, with `n` a numeral,
-then `monomial n r` will in the last segment and this segment is sorted by increasing value of `n`.
-The remaining terms appear at the beginning of the sum and are sorted alphabetically.
+then `monomial n r` moves to the right of the sum and this segment is sorted by increasing value of
+`n`.  The remaining terms appear at the beginning of the sum and are sorted alphabetically.
+
+```lean
+example {f g : R[X]} {a b : R} (h : f + g + monomial 5 a + monomial 7 b = 0) :
+  (f + monomial 5 a) + (monomial 7 b + g) = 0 :=
+begin
+  sort_summands,
+  assumption,
+end
+```
 
 To allow for more flexibility, `sort_summands` takes an optional argument that can be either a
 single term or a list of terms.  Calling `sort_summands f` or `sort_summands [f,.., g]` performs the
@@ -180,9 +216,14 @@ inexistent terms are ignored).
 Finally, `sort_summands` can also be targeted to a hypothesis.  If `hp` is in the local context,
 `sort_summands [f, g] at hp` performs the rearranging at `hp`.
 -/
-meta def sort_summands (l : parse pexpr_list_or_texpr?) (locat : parse location) : tactic unit :=
+meta def sort_summands (args : parse (
+    list_of (sort_summands_arg 0) <|>
+    list.ret <$> (sort_summands_arg tac_rbp) <|>
+    return []))
+ (l : parse pexpr_list_or_texpr?)
+ (locat : parse location) : tactic unit :=
 do
-  l : list expr ← (l.get_or_else []).mmap to_expr,
+  l : list expr × list expr ← (split_sort_args args),--(l.get_or_else []).mmap to_expr,
   match locat with
   | loc.wildcard := do
     sort_summands_core tt l none,

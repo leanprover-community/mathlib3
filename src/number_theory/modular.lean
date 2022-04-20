@@ -61,7 +61,7 @@ we state lemmas in this file without spurious `coe_fn` terms. -/
 local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
 local attribute [-instance] matrix.general_linear_group.has_coe_to_fun
 
-open complex (hiding abs_one abs_two abs_mul)
+open complex (hiding abs_one abs_two abs_mul abs_add)
 open matrix (hiding mul_smul) matrix.special_linear_group upper_half_plane
 noncomputable theory
 
@@ -360,6 +360,26 @@ begin
     simp [matrix.mul_apply, fin.sum_univ_succ, neg_add_eq_sub (1 : ℤ)], },
 end
 
+@[simp] lemma coe_T_zpow_smul_eq {z : ℍ} {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
+by simp [coe_T_zpow]
+
+/-- If instead we had `g` and `T` of type `PSL(2, ℤ)`, then we could simply state `g = T^n`. -/
+lemma exists_eq_T_zpow_of_c_eq_zero {g : SL(2, ℤ)} (hc : ↑ₘg 1 0 = 0) :
+  ∃ (n : ℤ), ∀ (z : ℍ), g • z = T^n • z :=
+begin
+  have had := g.det_coe,
+  replace had : ↑ₘg 0 0 * ↑ₘg 1 1 = 1, { rw [det_fin_two, hc] at had, linarith, },
+  rcases int.eq_one_or_neg_one_of_mul_eq_one' had with ⟨ha, hd⟩ | ⟨ha, hd⟩,
+  { use ↑ₘg 0 1,
+    suffices : g = T^(↑ₘg 0 1), { intros z, conv_lhs { rw this, }, },
+    ext i j, fin_cases i; fin_cases j;
+    simp [ha, hc, hd, coe_T_zpow], },
+  { use -↑ₘg 0 1,
+    suffices : g = -T^(-↑ₘg 0 1), { intros z, conv_lhs { rw [this, neg_smul], }, },
+    ext i j, fin_cases i; fin_cases j;
+    simp [ha, hc, hd, coe_T_zpow], },
+end
+
 /- If `c = 1`, then `g` factorises into a product terms involving only `T` and `S`. -/
 lemma g_eq_of_c_eq_one {g : SL(2,ℤ)} (hc : ↑ₘg 1 0 = 1) :
   g = T^(↑ₘg 0 0) * S * T^(↑ₘg 1 1) :=
@@ -421,6 +441,19 @@ begin
   simpa [coe_T_zpow, norm_sq],
 end
 
+lemma eq_zero_of_mem_fdo_of_T_zpow_mem_fdo {z : ℍ} {n : ℤ} (hz : z ∈ 𝒟ᵒ) (hg : (T^n) • z ∈ 𝒟ᵒ) :
+  n = 0 :=
+begin
+  suffices : |(n : ℝ)| < 1,
+  { rwa [← int.cast_abs, ← int.cast_one, int.cast_lt, int.abs_lt_one_iff] at this, },
+  have h₁ := hz.2,
+  have h₂ := hg.2,
+  rw [← coe_re, coe_T_zpow_smul_eq, add_re, int_cast_re, coe_re] at h₂,
+  calc |(n : ℝ)| ≤ |z.re| + |z.re + (n : ℝ)| : abs_add' (n : ℝ) z.re
+             ... < 1/2 + 1/2 : add_lt_add h₁ h₂
+             ... = 1 : add_halves 1,
+end
+
 /-- Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`  -/
 lemma exists_smul_mem_fundamental_domain (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟 :=
 begin
@@ -463,7 +496,7 @@ section unique_representative
 
 variables {z : ℍ} {g : SL(2,ℤ)}
 
-/-- An auxiliary result en route to `c_eq_zero`. -/
+/-- An auxiliary result en route to `modular_group.c_eq_zero`. -/
 lemma abs_c_le_one (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : |↑ₘg 1 0| ≤ 1 :=
 begin
   let c' : ℤ := ↑ₘg 1 0,
@@ -492,6 +525,7 @@ begin
            ... ≤ 16 : by { rw ← mul_pow, linarith, },
 end
 
+/-- An auxiliary result en route to `modular_group.eq_smul_self_of_mem_fdo_mem_fdo` -/
 lemma c_eq_zero (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : ↑ₘg 1 0 = 0 :=
 begin
   have hp : ∀ {g' : SL(2, ℤ)} (hg' : g' • z ∈ 𝒟ᵒ), ↑ₘg' 1 0 ≠ 1,
@@ -515,64 +549,13 @@ begin
   tauto,
 end
 
-/-- Second Main Fundamental Domain Lemma: If both `z` and `g•z` are in the open domain `𝒟ᵒ`, where
-  `z:ℍ` and `g:SL(2,ℤ)`, then `z = g • z`. -/
+/-- Second Main Fundamental Domain Lemma: if both `z` and `g • z` are in the open domain `𝒟ᵒ`,
+where `z : ℍ` and `g : SL(2,ℤ)`, then `z = g • z`. -/
 lemma eq_smul_self_of_mem_fdo_mem_fdo (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z :=
 begin
-  /-  The argument overview is: since `c=0`, the action is translation, which must be by `0`. -/
-  have g_det : matrix.det ↑ₘg = (↑ₘg 0 0) * (↑ₘg 1 1) - (↑ₘg 1 0) * (↑ₘg 0 1),
-  { convert det_fin_two ↑ₘg using 1,
-    ring, },
-  have h := c_eq_zero hz hg,
-  have := g_det,
-  rw h at this,
-  simp only [det_coe, zero_mul, sub_zero] at this,
-  have := int.eq_one_or_neg_one_of_mul_eq_one' (this.symm),
-  have gzIs : ∀ (gg : SL(2,ℤ)), ↑ₘgg 1 0 = 0 → ↑ₘgg 0 0 = 1 → ↑ₘgg 1 1 = 1 →
-    ↑(gg • z : ℍ) = (z : ℂ) + ↑ₘgg 0 1,
-  { intros gg h₀ h₁ h₂,
-    simp [h₀, h₁, h₂], },
-  have gIsId : ∀ (gg : SL(2,ℤ)), gg • z ∈ 𝒟ᵒ → ↑ₘgg 1 0 = 0 → ↑ₘgg 0 0 = 1 → ↑ₘgg 1 1 = 1
-    → gg = 1,
-  { intros gg hh h₀ h₁ h₂,
-    ext i,
-    fin_cases i; fin_cases j,
-    simp only [h₁, coe_one, one_apply_eq],
-    { simp only [nat.one_ne_zero, coe_one, fin.zero_eq_one_iff, ne.def, not_false_iff,
-        one_apply_ne],
-      by_contra hhh,
-      have reZ : |z.re| < 1/2,
-      { exact_mod_cast hz.2, },
-      have reGz : |((gg • z):ℍ ).re| < 1/2,
-      { exact_mod_cast hh.2, },
-      have reZpN : |z.re + ↑ₘgg 0 1| < 1/2,
-      { convert reGz using 2,
-        rw (by simp : z.re + ↑ₘgg 0 1 = ((z:ℂ )+ ↑ₘgg 0 1).re),
-        apply congr_arg complex.re,
-        exact_mod_cast (gzIs gg h₀ h₁ h₂).symm, },
-      have move_by_large : ∀ x y : ℝ, |x| < 1/2 → |x+y|<1/2 → 1 ≤ |y| → false := λ x y hx hxy hy,
-        by cases abs_cases x; cases abs_cases y; cases abs_cases (x+y); linarith,
-      refine move_by_large _ _ reZ reZpN _,
-      exact_mod_cast  int.one_le_abs hhh, },
-    simp only [h₀, nat.one_ne_zero, coe_one, fin.one_eq_zero_iff, ne.def, not_false_iff,
-      one_apply_ne],
-    simp only [h₂, coe_one, one_apply_eq], },
-  have zIsGz : ∀ (gg : SL(2,ℤ)), ↑ₘgg 1 0 = 0 → ↑ₘgg 0 0 = 1 → ↑ₘgg 1 1 = 1 → gg • z ∈ 𝒟ᵒ
-    → z = gg • z,
-  { intros gg h₀ h₁ h₂ hh,
-    have := gIsId gg hh h₀ h₁ h₂,
-    rw this,
-    simp, },
-  cases this,
-  { -- case `a = d = 1`
-    exact zIsGz g h this_1.1 this_1.2 hg, },
-  { -- case `a = d = -1`
-    rw ← neg_smul,
-    apply zIsGz; simp,
-    exact_mod_cast h,
-    simp only [this_1, neg_neg],
-    simp only [this_1, neg_neg],
-    exact hg, },
+  obtain ⟨n, hn⟩ := exists_eq_T_zpow_of_c_eq_zero (c_eq_zero hz hg),
+  rw hn at hg ⊢,
+  simp [eq_zero_of_mem_fdo_of_T_zpow_mem_fdo hz hg],
 end
 
 end unique_representative

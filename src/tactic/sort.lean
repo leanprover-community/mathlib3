@@ -156,4 +156,9 @@ do
     skip
   end
 
+add_tactic_doc
+{ name := "sort_summands",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.sort_summands],
+  tags := ["arithmetic"] }
 end tactic.interactive

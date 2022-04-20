@@ -618,6 +618,10 @@ lemma nnnorm_sum_le (s : finset ι) (f : ι → E) :
   ∥∑ a in s, f a∥₊ ≤ ∑ a in s, ∥f a∥₊ :=
 s.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le f
 
+lemma nnnorm_sum_le_of_le (s : finset ι) {f : ι → E} {n : ι → ℝ≥0} (h : ∀ b ∈ s, ∥f b∥₊ ≤ n b) :
+  ∥∑ b in s, f b∥₊ ≤ ∑ b in s, n b :=
+(norm_sum_le_of_le s h).trans_eq nnreal.coe_sum.symm
+
 lemma add_monoid_hom.lipschitz_of_bound_nnnorm (f : E →+ F) (C : ℝ≥0) (h : ∀ x, ∥f x∥₊ ≤ C * ∥x∥₊) :
   lipschitz_with C f :=
 @real.to_nnreal_coe C ▸ f.lipschitz_of_bound C h

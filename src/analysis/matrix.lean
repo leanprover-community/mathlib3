@@ -16,14 +16,14 @@ In this file we provide the non-instances for norms on matrices:
   * `matrix.normed_group`
   * `matrix.normed_space`
 
-* The `L₀-L∞` norm:
+* The `L₁-L∞` norm:
 
-  * `matrix.l0_linf_semi_normed_group`
-  * `matrix.l0_linf_normed_group`
-  * `matrix.l0_linf_normed_space`
-  * `matrix.l0_linf_semi_normed_ring`
-  * `matrix.l0_linf_normed_ring`
-  * `matrix.l0_linf_normed_algebra`
+  * `matrix.l1_linf_semi_normed_group`
+  * `matrix.l1_linf_normed_group`
+  * `matrix.l1_linf_normed_space`
+  * `matrix.l1_linf_semi_normed_ring`
+  * `matrix.l1_linf_normed_ring`
+  * `matrix.l1_linf_normed_algebra`
 
 These are not declared as instances because there are several natural choices for defining the norm
 of a matrix.
@@ -105,72 +105,69 @@ pi.normed_space
 
 end normed_space
 
-section l0_linf
+section l1_linf
 
 /-- Seminormed group instance (using sup norm of L1 norm) for matrices over a seminormed group. Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
-protected def l0_linf_semi_normed_group [semi_normed_group α] :
+protected def l1_linf_semi_normed_group [semi_normed_group α] :
   semi_normed_group (matrix m n α) :=
 (by apply_instance : semi_normed_group (m → pi_Lp 1 (λ j : n, α)))
 
 /-- Normed group instance (using sup norm of L1 norm) for matrices over a normed ring.  Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
-protected def l0_linf_normed_group [normed_group α] :
+protected def l1_linf_normed_group [normed_group α] :
   normed_group (matrix m n α) :=
 (by apply_instance : normed_group (m → pi_Lp 1 (λ j : n, α)))
 
-local attribute [instance] matrix.l0_linf_semi_normed_group matrix.l0_linf_normed_group
+local attribute [instance] matrix.l1_linf_semi_normed_group matrix.l1_linf_normed_group
 
 /-- Normed space instance (using sup norm of L1 norm) for matrices over a normed space.  Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
-protected def l0_linf_normed_space [normed_field R] [semi_normed_group α] [normed_space R α] :
+protected def l1_linf_normed_space [normed_field R] [semi_normed_group α] [normed_space R α] :
   normed_space R (matrix m n α) :=
 (by apply_instance : normed_space R (m → pi_Lp 1 (λ j : n, α)))
 
-local attribute [instance] matrix.l0_linf_normed_space
+local attribute [instance] matrix.l1_linf_normed_space
 
 open_locale nnreal big_operators
 
-lemma l0_linf_norm_def [semi_normed_group α] (A : matrix m n α) :
+lemma l1_linf_norm_def [semi_normed_group α] (A : matrix m n α) :
   ∥A∥ = ((finset.univ : finset m).sup (λ i : m, ∑ j : n, ∥A i j∥₊) : ℝ≥0) :=
-begin
-  dunfold has_norm.norm,
-  simp_rw [pi_Lp.nnnorm_eq, div_one, nnreal.rpow_one],
-end
+by simp_rw [pi.norm_def, pi_Lp.nnnorm_eq, div_one, nnreal.rpow_one]
 
-lemma l0_linf_nnnorm_def [semi_normed_group α] (A : matrix m n α) :
+lemma l1_linf_nnnorm_def [semi_normed_group α] (A : matrix m n α) :
   ∥A∥₊ = (finset.univ : finset m).sup (λ i : m, ∑ j : n, ∥A i j∥₊) :=
-subtype.ext $ l0_linf_norm_def A
+subtype.ext $ l1_linf_norm_def A
 
 open_locale matrix
 
-@[simp] lemma l0_linf_nnnorm_col [semi_normed_group α] (v : m → α) :
+@[simp] lemma l1_linf_nnnorm_col [semi_normed_group α] (v : m → α) :
   ∥col v∥₊ = ∥v∥₊ :=
 begin
-  rw [l0_linf_nnnorm_def, pi.nnnorm_def],
+  rw [l1_linf_nnnorm_def, pi.nnnorm_def],
   simp,
 end
 
-@[simp] lemma l0_linf_norm_col [semi_normed_group α] (v : m → α) :
+@[simp] lemma l1_linf_norm_col [semi_normed_group α] (v : m → α) :
   ∥col v∥ = ∥v∥ :=
-congr_arg coe $ l0_linf_nnnorm_col v
+congr_arg coe $ l1_linf_nnnorm_col v
 
-@[simp] lemma l0_linf_nnnorm_row [semi_normed_group α] (v : n → α) :
+@[simp] lemma l1_linf_nnnorm_row [semi_normed_group α] (v : n → α) :
   ∥row v∥₊ = ∑ i, ∥v i∥₊ :=
-by simp [l0_linf_nnnorm_def]
+by simp [l1_linf_nnnorm_def]
 
-@[simp] lemma l0_linf_norm_row [semi_normed_group α] (v : n → α) :
+@[simp] lemma l1_linf_norm_row [semi_normed_group α] (v : n → α) :
   ∥row v∥ = ∑ i, ∥v i∥ :=
-(congr_arg coe $ l0_linf_nnnorm_row v).trans $ by simp [nnreal.coe_sum]
+(congr_arg coe $ l1_linf_nnnorm_row v).trans $ by simp [nnreal.coe_sum]
 
 @[simp]
-lemma l0_linf_nnnorm_diagonal [semi_normed_group α] [decidable_eq m] (v : m → α) :
+lemma l1_linf_nnnorm_diagonal [semi_normed_group α] [decidable_eq m] (v : m → α) :
   ∥diagonal v∥₊ = ∥v∥₊ :=
 begin
-  rw [l0_linf_nnnorm_def, pi.nnnorm_def],
+  rw [l1_linf_nnnorm_def, pi.nnnorm_def],
   congr' 1 with i : 1,
   refine (finset.sum_eq_single_of_mem _ (finset.mem_univ i) $ λ j hj hij, _).trans _,
   { rw [diagonal_apply_ne' hij, nnnorm_zero] },
@@ -178,14 +175,14 @@ begin
 end
 
 @[simp]
-lemma l0_linf_norm_diagonal [semi_normed_group α] [decidable_eq m] (v : m → α) :
+lemma l1_linf_norm_diagonal [semi_normed_group α] [decidable_eq m] (v : m → α) :
   ∥diagonal v∥ = ∥v∥ :=
-congr_arg coe $ l0_linf_nnnorm_diagonal v
+congr_arg coe $ l1_linf_nnnorm_diagonal v
 
-lemma l0_linf_nnnorm_mul_vec [semi_normed_ring α] (A : matrix l m α) (v : m → α) :
+lemma l1_linf_nnnorm_mul_vec [semi_normed_ring α] (A : matrix l m α) (v : m → α) :
   ∥matrix.mul_vec A v∥₊ ≤ ∥A∥₊ * ∥v∥₊ :=
 begin
-  simp_rw [l0_linf_nnnorm_def, pi.nnnorm_def, matrix.mul_vec, matrix.dot_product],
+  simp_rw [l1_linf_nnnorm_def, pi.nnnorm_def, matrix.mul_vec, matrix.dot_product],
   calc finset.univ.sup (λ b, ∥∑ i, A b i * v i∥₊)
     ≤ finset.univ.sup (λ b, ∑ i, ∥A b i∥₊ * ∥v i∥₊) :
       finset.sup_mono_fun (λ i hi, (nnnorm_sum_le _ _).trans $
@@ -198,58 +195,57 @@ begin
     by simp_rw [nnreal.finset_sup_mul, finset.sum_mul],
 end
 
-lemma l0_linf_norm_mul_vec [semi_normed_ring α] (A : matrix l m α) (v : m → α) :
+lemma l1_linf_norm_mul_vec [semi_normed_ring α] (A : matrix l m α) (v : m → α) :
   ∥matrix.mul_vec A v∥ ≤ ∥A∥ * ∥v∥ :=
-l0_linf_nnnorm_mul_vec _ _
+l1_linf_nnnorm_mul_vec _ _
 
-lemma l0_linf_nnnorm_mul [semi_normed_ring α] (A : matrix l m α) (B : matrix m n α) :
+lemma l1_linf_nnnorm_mul [semi_normed_ring α] (A : matrix l m α) (B : matrix m n α) :
   ∥A ⬝ B∥₊ ≤ ∥A∥₊ * ∥B∥₊ :=
 begin
-  simp_rw [l0_linf_nnnorm_def, matrix.mul_apply],
-  transitivity finset.univ.sup (λ i, ∑ k j, ∥A i j∥₊ * ∥B j k∥₊),
-  { refine finset.sup_mono_fun (λ x hx, finset.sum_le_sum (λ i hi, _)),
-    apply (nnnorm_sum_le _ _).trans (finset.sum_le_sum (λ j hj, _)),
-    exact nnnorm_mul_le _ _ },
-  simp_rw [@finset.sum_comm _ m n],
-  refine le_trans _ (finset.product_sup_mul_le_mul_sup_of_nonneg finset.univ finset.univ
-    (λ i hi, nnreal.zero_le_coe) (λ i hi, nnreal.zero_le_coe)),
-  rw finset.sup_product_left,
-  refine finset.sup_mono_fun (λ i hi, _),
-  dsimp,
-  rw ←nnreal.mul_finset_sup,
-  simp_rw [ finset.sum_mul, ← finset.mul_sum],
-  apply finset.sum_le_sum (λ j hj, _),
-  refine mul_le_mul_of_nonneg_left _ (zero_le _),
-  apply finset.le_sup hj,
+  simp_rw [l1_linf_nnnorm_def, matrix.mul_apply],
+  calc finset.univ.sup (λ i, ∑ k, ∥∑ j, A i j * B j k∥₊)
+      ≤ finset.univ.sup (λ i, ∑ k j, ∥A i j∥₊ * ∥B j k∥₊) :
+    finset.sup_mono_fun $ λ i hi, finset.sum_le_sum $ λ k hk, by
+        { apply (nnnorm_sum_le _ _).trans (finset.sum_le_sum (λ j hj, _)),
+          exact nnnorm_mul_le _ _ }
+  ... = finset.univ.sup (λ i, ∑ j, (∥A i j∥₊ * ∑ k, ∥B j k∥₊)) :
+    by simp_rw [@finset.sum_comm _ m n, finset.mul_sum]
+  ... ≤ finset.univ.sup (λ i, ∑ j, ∥A i j∥₊ * finset.univ.sup (λ i, ∑ j, ∥B i j∥₊)) :
+    finset.sup_mono_fun $ λ i hi, finset.sum_le_sum $ λ j hj,
+      mul_le_mul_of_nonneg_left (finset.le_sup hj) (zero_le _)
+  ... ≤ finset.univ.sup (λ i, ∑ j, ∥A i j∥₊) * finset.univ.sup (λ i, ∑ j, ∥B i j∥₊) :
+    by simp_rw [←finset.sum_mul, ←nnreal.finset_sup_mul],
 end
+
+#check m
 
 /-- Seminormed ring instance (using sup norm of L1 norm) for matrices over a semi normed ring.  Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
-protected def l0_linf_semi_normed_ring [semi_normed_ring α] [decidable_eq n] :
+protected def l1_linf_semi_normed_ring [semi_normed_ring α] [decidable_eq n] :
   semi_normed_ring (matrix n n α) :=
-{ norm_mul := l0_linf_nnnorm_mul,
-  .. matrix.l0_linf_semi_normed_group,
+{ norm_mul := l1_linf_nnnorm_mul,
+  .. matrix.l1_linf_semi_normed_group,
   .. matrix.ring }
 
 /-- Normed ring instance (using sup norm of L1 norm) for matrices over a normed ring.  Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
-protected def l0_linf_normed_ring [normed_ring α] [decidable_eq n] :
+protected def l1_linf_normed_ring [normed_ring α] [decidable_eq n] :
   normed_ring (matrix n n α) :=
-{ ..matrix.l0_linf_semi_normed_ring }
+{ ..matrix.l1_linf_semi_normed_ring }
 
-local attribute [instance] matrix.l0_linf_semi_normed_ring matrix.l0_linf_normed_ring
+local attribute [instance] matrix.l1_linf_semi_normed_ring matrix.l1_linf_normed_ring
 
 /-- Normed algebra instance (using sup norm of L1 norm) for matrices over a normed algebra. Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
-protected def l0_linf_normed_algebra [normed_field R] [semi_normed_ring α] [normed_algebra R α]
+protected def l1_linf_normed_algebra [normed_field R] [semi_normed_ring α] [normed_algebra R α]
   [decidable_eq n] [nonempty n] :
   normed_algebra R (matrix n n α) :=
 { norm_algebra_map_eq := λ r, by
-    rw [algebra_map_eq_diagonal, l0_linf_norm_diagonal, norm_algebra_map_eq (n → α) r] }
+    rw [algebra_map_eq_diagonal, l1_linf_norm_diagonal, norm_algebra_map_eq (n → α) r] }
 
-end l0_linf
+end l1_linf
 
 end matrix

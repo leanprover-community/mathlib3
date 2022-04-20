@@ -876,7 +876,7 @@ begin
 end
 
 /-- The norm of `lsmul` equals 1 in any nontrivial normed group. -/
-lemma op_norm_lsmul [nontrivial M₁] : ∥(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] M₁ →L[𝕜] M₁)∥ = 1 :=
+@[simp] lemma op_norm_lsmul [nontrivial M₁] : ∥(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] M₁ →L[𝕜] M₁)∥ = 1 :=
 begin
   refine continuous_linear_map.op_norm_eq_of_bounds zero_le_one (λ x, _) (λ N hN h, _),
   { simp_rw [one_mul],
@@ -888,8 +888,6 @@ begin
   refine le_of_mul_le_mul_right _ (norm_pos_iff.mpr hy),
   simp_rw [one_mul, this]
 end
-
-lemma op_norm_lmul : ∥(lmul 𝕜 𝕜' : 𝕜' →L[𝕜] 𝕜' →L[𝕜] 𝕜')∥ = 1 := op_norm_lsmul
 
 end smul_linear
 

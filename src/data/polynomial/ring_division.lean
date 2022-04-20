@@ -157,9 +157,7 @@ end no_zero_divisors
 section ring
 variables [ring R] [is_domain R] {p q : R[X]}
 
-instance : is_domain R[X] :=
-{ ..polynomial.no_zero_divisors,
-  ..polynomial.nontrivial, }
+instance : is_domain R[X] := is_domain.of_no_zero_divisors
 
 lemma nat_trailing_degree_mul (hp : p ≠ 0) (hq : q ≠ 0) :
   (p * q).nat_trailing_degree = p.nat_trailing_degree + q.nat_trailing_degree :=

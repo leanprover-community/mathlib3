@@ -270,7 +270,7 @@ begin
   apply factors_unique (irreducible_of_normalized_factor) _,
   { rw [multiset.coe_prod, nat.prod_factors n.succ_ne_zero],
     apply normalized_factors_prod (nat.succ_ne_zero _) },
-  { apply_instance },
+  repeat { apply_instance },
   { intros x hx,
     rw [nat.irreducible_iff_prime, ← nat.prime_iff],
     exact nat.prime_of_mem_factors hx }

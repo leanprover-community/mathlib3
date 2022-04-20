@@ -255,8 +255,7 @@ mem_submonoid_of_factors_subset_of_units_subset (s.comap f.to_monoid_hom) ha h h
 /-- A principal ideal domain has unique factorization -/
 @[priority 100] -- see Note [lower instance priority]
 instance to_unique_factorization_monoid : unique_factorization_monoid R :=
-{ irreducible_iff_prime := λ _, principal_ideal_ring.irreducible_iff_prime
-  .. (is_noetherian_ring.wf_dvd_monoid : wf_dvd_monoid R) }
+{ irreducible_iff_prime := λ _, principal_ideal_ring.irreducible_iff_prime }
 
 end
 

@@ -28,6 +28,11 @@ lemma mul_left_cancel₀ (hc : c ≠ 0) (h : c * a = c * b) : a = b :=
 lemma mul_right_cancel₀ (hc : c ≠ 0) (h : a * c = b * c) : a = b :=
 (is_domain.regular_of_ne_zero hc).right h
 
+lemma mul_left_injective₀ (hc : c ≠ 0) : function.injective ((*) c) :=
+λ a b, mul_left_cancel₀ hc
+
+lemma mul_right_injective₀ (hc : c ≠ 0) : function.injective (* c) :=
+λ a b, mul_right_cancel₀ hc
 
 end
 

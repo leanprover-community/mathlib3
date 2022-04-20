@@ -786,7 +786,7 @@ by simp_rw [forall_associated, irreducible_mk, prime_mk]
 end comm_monoid_with_zero
 
 section cancel_comm_monoid_with_zero
-variable [comm_monoid_with_zero α] [is_domain α]
+variables [comm_monoid_with_zero α] [is_domain α]
 
 instance : partial_order (associates α) :=
 { le_antisymm := λ a' b', quotient.induction_on₂ a' b' (λ a b hab hba,
@@ -838,14 +838,13 @@ match h m d dvd_rfl with
   or.inl $ bot_unique $ associates.le_of_mul_le_mul_left d m 1 ‹d ≠ 0› this
 end
 
-instance : cancel_comm_monoid_with_zero (associates α) :=
-{ mul_left_cancel_of_ne_zero := eq_of_mul_eq_mul_left,
-  mul_right_cancel_of_ne_zero := eq_of_mul_eq_mul_right,
-  .. (infer_instance : comm_monoid_with_zero (associates α)) }
+instance : is_domain (associates α) :=
+{ regular_of_ne_zero := λ c hc,
+  ⟨λ a b, eq_of_mul_eq_mul_left _ _ _ hc, λ a b, eq_of_mul_eq_mul_right _ _ _ hc⟩ }
 
 instance : canonically_ordered_monoid (associates α) :=
 { le_iff_exists_mul := λ a b, iff.rfl,
-  ..associates.cancel_comm_monoid_with_zero,
+  ..associates.is_domain,
   ..associates.bounded_order,
   ..associates.ordered_comm_monoid}
 

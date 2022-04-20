@@ -105,7 +105,7 @@ subtype.coe_injective.comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, r
 /-- A subring of a domain is a domain. -/
 @[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
 instance {R} [ring R] [is_domain R] [set_like S R] [subring_class S R] : is_domain s :=
-{ .. subsemiring_class.nontrivial s, .. subsemiring_class.no_zero_divisors s }
+is_domain.of_no_zero_divisors
 
 /-- A subring of an `ordered_ring` is an `ordered_ring`. -/
 @[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
@@ -378,7 +378,7 @@ s.to_subsemiring.no_zero_divisors
 
 /-- A subring of a domain is a domain. -/
 instance {R} [ring R] [is_domain R] (s : subring R) : is_domain s :=
-{ .. s.nontrivial, .. s.no_zero_divisors, .. s.to_ring }
+is_domain.of_no_zero_divisors
 
 /-- A subring of an `ordered_ring` is an `ordered_ring`. -/
 instance to_ordered_ring {R} [ordered_ring R] (s : subring R) : ordered_ring s :=

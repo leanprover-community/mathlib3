@@ -141,19 +141,19 @@ lemma lmul_left_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
   function.injective (lmul_left R x) :=
 by { letI : nontrivial A := { exists_pair_ne := ⟨x, 0, hx⟩ },
      letI : is_domain A := is_domain.of_no_zero_divisors,
-     exact mul_right_injective₀ hx }
+     exact mul_left_injective₀ hx }
 
 lemma lmul_right_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
   function.injective (lmul_right R x) :=
 by { letI : nontrivial A := { exists_pair_ne := ⟨x, 0, hx⟩ },
      letI : is_domain A := is_domain.of_no_zero_divisors,
-     exact mul_left_injective₀ hx }
+     exact mul_right_injective₀ hx }
 
 lemma lmul_injective [no_zero_divisors A] {x : A} (hx : x ≠ 0) :
   function.injective (lmul R A x) :=
 by { letI : nontrivial A := { exists_pair_ne := ⟨x, 0, hx⟩ },
      letI : is_domain A := is_domain.of_no_zero_divisors,
-     exact mul_right_injective₀ hx }
+     exact mul_left_injective₀ hx }
 
 end
 

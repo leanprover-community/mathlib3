@@ -1190,6 +1190,10 @@ def is_domain.of_no_zero_divisors [nontrivial R] [no_zero_divisors R] : is_domai
     [ exact (eq_zero_or_eq_zero_of_mul_eq_zero hab).resolve_left hc,
       exact (eq_zero_or_eq_zero_of_mul_eq_zero hab).resolve_right hc]⟩
 
+def nontrivial_and_no_zero_divisors_iff_is_domain :
+  nontrivial R ∧ no_zero_divisors R ↔ is_domain R :=
+⟨λ ⟨h₁, h₂⟩, @is_domain.of_no_zero_divisors _ _ h₁ h₂, by { introsI, split; apply_instance }⟩
+
 end ring
 
 section comm_ring

@@ -418,7 +418,7 @@ end
 lemma prod_cyclotomic_eq_geom_sum {n : ℕ} (h : 0 < n) (R) [comm_ring R] [is_domain R] :
   ∏ i in n.divisors \ {1}, cyclotomic i R = geom_sum X n :=
 begin
-  apply_fun (* cyclotomic 1 R) using mul_left_injective₀ (cyclotomic_ne_zero 1 R),
+  apply_fun (* cyclotomic 1 R) using mul_right_injective₀ (cyclotomic_ne_zero 1 R),
   have : ∏ i in {1}, cyclotomic i R = cyclotomic 1 R := finset.prod_singleton,
   simp_rw [←this, finset.prod_sdiff $ show {1} ⊆ n.divisors, by simp [h.ne'], this, cyclotomic_one,
            geom_sum_mul, prod_cyclotomic_eq_X_pow_sub_one h]
@@ -964,7 +964,7 @@ begin
   suffices : cyclotomic (n * p) (zmod p) = (cyclotomic n (zmod p)) ^ (p - 1),
   { rw [← map_cyclotomic _ (algebra_map (zmod p) R), ← map_cyclotomic _ (algebra_map (zmod p) R),
       this, polynomial.map_pow] },
-  apply mul_right_injective₀ (cyclotomic_ne_zero n $ zmod p),
+  apply mul_left_injective₀ (cyclotomic_ne_zero n $ zmod p),
   rw [←pow_succ, tsub_add_cancel_of_le hp.out.one_lt.le, mul_comm, ← zmod.expand_card],
   nth_rewrite 2 [← map_cyclotomic_int],
   rw [← map_expand, cyclotomic_expand_eq_cyclotomic_mul hp.out hn, polynomial.map_mul,

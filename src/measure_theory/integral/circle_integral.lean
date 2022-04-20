@@ -87,8 +87,8 @@ lemma periodic_circle_map (c : ℂ) (R : ℝ) : periodic (circle_map c R) (2 * �
 lemma set.countable.preimage_circle_map {s : set ℂ} (hs : s.countable) (c : ℂ)
   {R : ℝ} (hR : R ≠ 0) : (circle_map c R ⁻¹' s).countable :=
 show (coe ⁻¹' ((* I) ⁻¹' (exp ⁻¹' ((*) R ⁻¹' ((+) c ⁻¹' s))))).countable,
-  from (((hs.preimage (add_right_injective _)).preimage $ mul_right_injective₀ $ of_real_ne_zero.2
-    hR).preimage_cexp.preimage $ mul_left_injective₀ I_ne_zero).preimage of_real_injective
+  from (((hs.preimage (add_right_injective _)).preimage $ mul_left_injective₀ $ of_real_ne_zero.2
+    hR).preimage_cexp.preimage $ mul_right_injective₀ I_ne_zero).preimage of_real_injective
 
 @[simp] lemma circle_map_sub_center (c : ℂ) (R : ℝ) (θ : ℝ) :
   circle_map c R θ - c = circle_map 0 R θ :=

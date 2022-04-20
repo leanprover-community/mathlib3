@@ -130,17 +130,23 @@ begin
 end
 
 instance is_domain (I : ideal R) [hI : I.is_prime] : is_domain (R ⧸ I) :=
+@is_domain.of_no_zero_divisors (R ⧸ I) _ (quotient.nontrivial hI.1)
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,
     quotient.induction_on₂' a b $ λ a b hab,
       (hI.mem_or_mem (eq_zero_iff_mem.1 hab)).elim
         (or.inl ∘ eq_zero_iff_mem.2)
-        (or.inr ∘ eq_zero_iff_mem.2),
-  .. quotient.nontrivial hI.1 }
+        (or.inr ∘ eq_zero_iff_mem.2) }
 
 lemma is_domain_iff_prime (I : ideal R) : is_domain (R ⧸ I) ↔ I.is_prime :=
-⟨ λ ⟨h1, h2⟩, ⟨zero_ne_one_iff.1 $ @zero_ne_one _ _ ⟨h2⟩, λ x y h,
-    by { simp only [←eq_zero_iff_mem, (mk I).map_mul] at ⊢ h, exact h1 h}⟩,
-  λ h, by { resetI, apply_instance }⟩
+begin
+  split,
+  rw [←nontrivial_and_no_zero_divisors_iff_is_domain],
+  rintros ⟨h1, h2⟩, resetI,
+  exact ⟨zero_ne_one_iff.1 $ zero_ne_one,
+    λ x y h, by { simp only [←eq_zero_iff_mem, (mk I).map_mul] at ⊢ h,
+     exact eq_zero_or_eq_zero_of_mul_eq_zero h}⟩,
+  exact (λ h, by { resetI, apply_instance })
+end
 
 lemma exists_inv {I : ideal R} [hI : I.is_maximal] :
   ∀ {a : (R ⧸ I)}, a ≠ 0 → ∃ b : (R ⧸ I), a * b = 1 :=

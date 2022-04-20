@@ -52,7 +52,7 @@ algebra structures, this is the same as a not-necessarily-unital morphism of alg
 structure non_unital_alg_hom [monoid R]
   [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
   [non_unital_non_assoc_semiring B] [distrib_mul_action R B]
-  extends A →+[R] B, mul_hom A B
+  extends A →+[R] B, A →ₙ* B
 
 infixr ` →ₙₐ `:25 := non_unital_alg_hom _
 notation A ` →ₙₐ[`:25 R `] ` B := non_unital_alg_hom R A B
@@ -97,7 +97,7 @@ by { ext, refl, }
 instance : has_coe (A →ₙₐ[R] B) (A →+[R] B) :=
 ⟨to_distrib_mul_action_hom⟩
 
-instance : has_coe (A →ₙₐ[R] B) (mul_hom A B) := ⟨to_mul_hom⟩
+instance : has_coe (A →ₙₐ[R] B) (A →ₙ* B) := ⟨to_mul_hom⟩
 
 @[simp] lemma to_distrib_mul_action_hom_eq_coe (f : A →ₙₐ[R] B) :
   f.to_distrib_mul_action_hom = ↑f :=
@@ -111,7 +111,7 @@ rfl
 rfl
 
 @[simp, norm_cast] lemma coe_to_mul_hom (f : A →ₙₐ[R] B) :
-  ((f : mul_hom A B) : A → B) = f :=
+  ((f : A →ₙ* B) : A → B) = f :=
 rfl
 
 lemma to_distrib_mul_action_hom_injective {f g : A →ₙₐ[R] B}
@@ -119,7 +119,7 @@ lemma to_distrib_mul_action_hom_injective {f g : A →ₙₐ[R] B}
 by { ext a, exact distrib_mul_action_hom.congr_fun h a, }
 
 lemma to_mul_hom_injective {f g : A →ₙₐ[R] B}
-  (h : (f : mul_hom A B) = (g : mul_hom A B)) : f = g :=
+  (h : (f : A →ₙ* B) = (g : A →ₙ* B)) : f = g :=
 by { ext a, exact mul_hom.congr_fun h a, }
 
 @[norm_cast] lemma coe_distrib_mul_action_hom_mk (f : A →ₙₐ[R] B) (h₁ h₂ h₃ h₄) :
@@ -128,7 +128,7 @@ by { ext a, exact mul_hom.congr_fun h a, }
 by { ext, refl, }
 
 @[norm_cast] lemma coe_mul_hom_mk (f : A →ₙₐ[R] B) (h₁ h₂ h₃ h₄) :
-  ((⟨f, h₁, h₂, h₃, h₄⟩ : A →ₙₐ[R] B) : mul_hom A B) = ⟨f, h₄⟩ :=
+  ((⟨f, h₁, h₂, h₃, h₄⟩ : A →ₙₐ[R] B) : A →ₙ* B) = ⟨f, h₄⟩ :=
 by { ext, refl, }
 
 @[simp] lemma map_smul (f : A →ₙₐ[R] B) (c : R) (x : A) :
@@ -166,7 +166,7 @@ instance : inhabited (A →ₙₐ[R] B) := ⟨0⟩
 
 /-- The composition of morphisms is a morphism. -/
 def comp (f : B →ₙₐ[R] C) (g : A →ₙₐ[R] B) : A →ₙₐ[R] C :=
-{ .. (f : mul_hom B C).comp (g : mul_hom A B),
+{ .. (f : B →ₙ* C).comp (g : A →ₙ* B),
   .. (f : B →+[R] C).comp (g : A →+[R] B) }
 
 @[simp, norm_cast] lemma coe_comp (f : B →ₙₐ[R] C) (g : A →ₙₐ[R] B) :
@@ -181,7 +181,7 @@ rfl
 def inverse (f : A →ₙₐ[R] B) (g : B → A)
   (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) :
   B →ₙₐ[R] A :=
-{ .. (f : mul_hom A B).inverse g h₁ h₂,
+{ .. (f : A →ₙ* B).inverse g h₁ h₂,
   .. (f : A →+[R] B).inverse g h₁ h₂ }
 
 @[simp] lemma coe_inverse (f : A →ₙₐ[R] B) (g : B → A)

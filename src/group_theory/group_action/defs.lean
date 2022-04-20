@@ -44,7 +44,7 @@ More sophisticated lemmas belong in `group_theory.group_action`.
 group action
 -/
 
-variables {M N G A B α β γ : Type*}
+variables {M N G A B α β γ δ : Type*}
 
 open function (injective surjective)
 
@@ -289,6 +289,11 @@ lemma mul_smul_comm [has_mul β] [has_scalar α β] [smul_comm_class α β β] (
 lemma smul_mul_assoc [has_mul β] [has_scalar α β] [is_scalar_tower α β β] (r : α) (x y : β)  :
   (r • x) * y = r • (x * y) :=
 smul_assoc r x y
+
+lemma smul_smul_smul_comm [has_scalar α β] [has_scalar α γ] [has_scalar β δ] [has_scalar α δ]
+  [has_scalar γ δ] [is_scalar_tower α β δ] [is_scalar_tower α γ δ] [smul_comm_class β γ δ]
+  (a : α) (b : β) (c : γ) (d : δ) : (a • b) • (c • d) = (a • c) • b • d :=
+by { rw [smul_assoc, smul_assoc, smul_comm b], apply_instance }
 
 variables [has_scalar M α]
 

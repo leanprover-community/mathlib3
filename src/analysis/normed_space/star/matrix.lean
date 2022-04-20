@@ -28,7 +28,7 @@ begin
   refine le_antisymm (by simp [matrix.norm_le_iff, M.norm_entry_le_entrywise_sup_norm]) _,
   refine ((matrix.norm_le_iff (norm_nonneg _)).mpr (λ i j, _)).trans
     (congr_arg _ M.star_eq_conj_transpose).ge,
-  exact (normed_star_group.norm_star).symm.le.trans Mᴴ.norm_entry_le_entrywise_sup_norm
+  exact (norm_star _).ge.trans Mᴴ.norm_entry_le_entrywise_sup_norm
 end
 
 @[priority 100] -- see Note [lower instance priority]

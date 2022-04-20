@@ -10,17 +10,26 @@ import data.polynomial.basic
 # `sort_summands`: a tactic for sorting sums
 
 Calling `sort_summands`, recursively looks inside the goal for expressions involving a sum.
-Whenever it finds one, it sorts its terms following a heuristic.  Right now, the heuristic
+Whenever it finds one, it sorts its terms, removing all parentheses.
+
+`sort_summands` allows the use control over which summands should appear first and which ones
+should appear last in the rearranged expression.  Here is an example.
+
+
+Right now, the heuristic
 is somewhat crude: if an individual summand is of the exact form `monomial n r`, with `n` a numeral,
 then `monomial n r` moves to the right of the sum and this segment is sorted by increasing value of
 `n`.  The remaining terms appear at the beginning of the sum and are sorted alphabetically.
 
 ```lean
-example {f g : R[X]} {a b : R} (h : f + g + monomial 5 a + monomial 7 b = 0) :
-  (f + monomial 5 a) + (monomial 7 b + g) = 0 :=
+example (hp : f = g) :
+  7 + f + (C r * X ^ 3 + 42) + X ^ 5 * h = C r * X ^ 3 + h * X ^ 5 + g + 7 + 42 :=
 begin
-  sort_summands,
-  assumption,
+  -- we move `f, g` to the right of their respective sides, so `congr` helps us remove the
+  -- repeated term
+  sort_summands [f, g],
+  congr' 2, -- takes care of using assumption `hp`
+  exact X_pow_mul,
 end
 ```
 
@@ -191,7 +200,7 @@ meta def split_sort_args
     list.ret <$> (sort_summands_arg tac_rbp) <|>
     return [])) : tactic unit :=
 trace $ list.split_factors args
-#exit
+
 /--
 Calling `sort_summands`, recursively looks inside the goal for expressions involving a sum.
 Whenever it finds one, it sorts its terms following a heuristic.  Right now, the heuristic
@@ -216,24 +225,23 @@ inexistent terms are ignored).
 Finally, `sort_summands` can also be targeted to a hypothesis.  If `hp` is in the local context,
 `sort_summands [f, g] at hp` performs the rearranging at `hp`.
 -/
-meta def sort_summands (args : parse (
-    list_of (sort_summands_arg 0) <|>
-    list.ret <$> (sort_summands_arg tac_rbp) <|>
-    return []))
- (l : parse pexpr_list_or_texpr?)
- (locat : parse location) : tactic unit :=
+meta def sort_summands (args : parse sort_pexpr_list_or_texpr)
+ (locat : parse location)
+  : tactic unit :=
 do
-  l : list expr × list expr ← (split_sort_args args),--(l.get_or_else []).mmap to_expr,
+  let ll := args.split_factors,
+  il ← ll.1.mmap to_expr,
+  fl ← ll.2.mmap to_expr,
   match locat with
   | loc.wildcard := do
-    sort_summands_core tt l none,
+    sort_summands_core tt (il,fl) none,
     ctx ← local_context,
-    ctx.mmap (λ e, sort_summands_core tt l (expr.local_pp_name e)),
+    ctx.mmap (λ e, sort_summands_core tt (il,fl) (expr.local_pp_name e)),
     skip
   | loc.ns names := do
-    names.mmap $ sort_summands_core ff l,
+    names.mmap $ sort_summands_core ff (il,fl),
     skip
-  end
+    end
 
 add_tactic_doc
 { name := "sort_summands",

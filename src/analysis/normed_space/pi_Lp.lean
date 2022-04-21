@@ -83,6 +83,9 @@ to compare the `L^p` and `L^∞` distances through it. -/
 protected def equiv : pi_Lp p α ≃ Π (i : ι), α i :=
 equiv.refl _
 
+@[simp] lemma equiv_apply (x : pi_Lp p α) (i : ι) : pi_Lp.equiv p α x i = x i := rfl
+@[simp] lemma equiv_symm_apply (x : Π i, α i) (i : ι) : (pi_Lp.equiv p α).symm x i = x i := rfl
+
 section
 /-!
 ### The uniformity on finite `L^p` products is the product uniformity
@@ -317,9 +320,28 @@ for Pi types will not trigger. -/
 variables {𝕜 p α}
 [∀i, semi_normed_group (β i)] [∀i, normed_space 𝕜 (β i)] (c : 𝕜) (x y : pi_Lp p β) (i : ι)
 
+@[simp] lemma zero_apply : (0 : pi_Lp p β) i = 0 := rfl
 @[simp] lemma add_apply : (x + y) i = x i + y i := rfl
 @[simp] lemma sub_apply : (x - y) i = x i - y i := rfl
 @[simp] lemma smul_apply : (c • x) i = c • x i := rfl
 @[simp] lemma neg_apply : (-x) i = - (x i) := rfl
+
+@[simp] lemma equiv_zero : pi_Lp.equiv p β 0 = 0 := rfl
+@[simp] lemma equiv_symm_zero : (pi_Lp.equiv p β).symm 0 = 0 := rfl
+
+@[simp] lemma equiv_add (x y : pi_Lp p β) :
+  pi_Lp.equiv p β (x + y) = pi_Lp.equiv p β x + pi_Lp.equiv p β y := rfl
+@[simp] lemma equiv_symm_add (x y : Π i, β i) :
+  (pi_Lp.equiv p β).symm (x + y) = (pi_Lp.equiv p β).symm x + (pi_Lp.equiv p β).symm y := rfl
+
+@[simp] lemma equiv_sub (x y : pi_Lp p β) :
+  pi_Lp.equiv p β (x - y) = pi_Lp.equiv p β x - pi_Lp.equiv p β y := rfl
+@[simp] lemma equiv_symm_sub (x y : Π i, β i) :
+  (pi_Lp.equiv p β).symm (x - y) = (pi_Lp.equiv p β).symm x - (pi_Lp.equiv p β).symm y := rfl
+
+@[simp] lemma equiv_neg (x : pi_Lp p β) :
+  pi_Lp.equiv p β (-x) = -pi_Lp.equiv p β x := rfl
+@[simp] lemma equiv_symm_neg (x : Π i, β i) :
+  (pi_Lp.equiv p β).symm (-x) = -(pi_Lp.equiv p β).symm x := rfl
 
 end pi_Lp

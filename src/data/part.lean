@@ -200,6 +200,14 @@ dif_neg id
   get_or_else (some a) d = a :=
 dif_pos trivial
 
+lemma get_or_else_of_dom (a : part α) (h : a.dom) [decidable a.dom] (d : α) :
+  get_or_else a d = a.get h :=
+begin
+  rw ←get_or_else_some (a.get h) d,
+  congr,
+  simp,
+end
+
 @[simp] theorem mem_to_option {o : part α} [decidable o.dom] {a : α} :
   a ∈ to_option o ↔ a ∈ o :=
 begin

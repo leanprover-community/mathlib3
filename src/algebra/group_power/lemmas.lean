@@ -110,9 +110,8 @@ by cases n; simp
 @[to_additive add_one_zsmul]
 lemma zpow_add_one (a : G) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
 | (of_nat n) := by simp [← int.coe_nat_succ, pow_succ']
-| -[1+0]     := by simp [int.neg_succ_of_nat_eq]
-| -[1+(n+1)] := by rw [int.neg_succ_of_nat_eq, zpow_neg, neg_add, neg_add_cancel_right, zpow_neg,
-  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev,
+| -[1+n] := by rw [int.neg_succ_of_nat_eq, zpow_neg, neg_add, neg_add_cancel_right, zpow_neg,
+  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ n, mul_inv_rev,
   inv_mul_cancel_right]
 
 @[to_additive zsmul_sub_one]

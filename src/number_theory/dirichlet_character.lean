@@ -53,6 +53,7 @@ begin
   { simp only [pi.zero_apply], },
   { contrapose hx, rw not_not at *, cases hx with a ha, rw ←ha, apply units.is_unit, },
 end
+
 /-- The Dirichlet character on ℤ/nℤ →* R determined by χ, 0 on non-units. -/
 noncomputable abbreviation asso_dirichlet_character {R : Type*} [monoid_with_zero R] {n : ℕ}
   (χ : dirichlet_character R n) : zmod n →* R :=
@@ -111,6 +112,10 @@ namespace dirichlet_character
 variables {R : Type*} [comm_monoid_with_zero R] {n : ℕ} (χ : dirichlet_character R n)
 --commutativity is needed to define mul, not before that
 
+lemma asso_dirichlet_character_eval_sub (x : zmod n) :
+  asso_dirichlet_character χ (n - x) = asso_dirichlet_character χ (-x) :=
+by { congr, simp, }
+
 lemma is_periodic (m : ℕ) (hm : n ∣ m) (a : ℤ) :
   asso_dirichlet_character χ (a + m) = asso_dirichlet_character χ a :=
 begin
@@ -138,8 +143,29 @@ begin
   congr,
 end
 
-/-lemma change_level_asso_dirichlet_character_eq {m : ℕ} (hm : n ∣ m) (a : units (zmod m)) :
-  asso_dirichlet_character (χ.change_level hm) a = asso_dirichlet_character χ a := sorry -/
+lemma change_level_asso_dirichlet_character_eq {m : ℕ} (hm : n ∣ m) (a : units (zmod m)) :
+  asso_dirichlet_character (χ.change_level hm) a = asso_dirichlet_character χ a :=
+begin
+  rw asso_dirichlet_character_eq_char' _,
+  swap, { apply (units.is_unit a), },
+  { rw asso_dirichlet_character_eq_char' _,
+    swap, { change is_unit ((a : zmod m) : zmod n),
+      rw ←zmod.cast_hom_apply (a : zmod m),
+      swap 3, { apply zmod.char_p _, },
+      swap, { assumption, },
+      rw [←ring_hom.coe_monoid_hom, ←units.coe_map _ _],
+      apply units.is_unit, },
+    { rw [units.eq_iff, change_level],
+      simp only [function.comp_app, monoid_hom.coe_comp, coe_coe], congr,
+      rw [←units.eq_iff, units.coe_map, is_unit.unit_spec _, is_unit.unit_spec _], refl, }, },
+end
+
+lemma change_level_asso_dirichlet_character_eq' {m : ℕ} (hm : n ∣ m) {a : zmod m}
+  (ha : is_unit a) : asso_dirichlet_character (χ.change_level hm) a =
+  asso_dirichlet_character χ a :=
+begin
+  rw [←is_unit.unit_spec ha, change_level_asso_dirichlet_character_eq], congr,
+end
 
 /-- χ₀ of level d factors through χ of level n if d ∣ n and χ₀ = χ ∘ (zmod n → zmod d). -/
 structure factors_through (d : ℕ) : Prop :=
@@ -236,12 +262,12 @@ end
 lemma conductor_eq_one_iff (hn : 0 < n) : χ = 1 ↔ χ.conductor = 1 :=
 ⟨λ h, by { rw h, rw conductor_one hn, }, λ h, by {rw χ.conductor_eq_one h,}⟩
 
-lemma asso_dirichlet_character_eval_add_conductor (m k : ℕ) :
+/-lemma asso_dirichlet_character_eval_add_conductor (m k : ℕ) :
   asso_dirichlet_character χ (m + k * χ.conductor : zmod n) = asso_dirichlet_character χ m :=
 begin
   by_cases is_unit (m : zmod n),
   { rw asso_dirichlet_character_eq_char' χ h, },
-end
+end -/
 
 /-- A character is primitive if its level is equal to its conductor. -/
 def is_primitive : Prop := χ.conductor = n
@@ -395,13 +421,22 @@ begin
   (mem_conductor_set_eq_conductor _ (mem_conductor _)),
 end
 
+lemma asso_primitive_character_one (hn : 0 < n) :
+  (1 : dirichlet_character R n).asso_primitive_character = 1 :=
+begin
+  rw conductor_eq_one_iff _ _,
+  { convert (1 : dirichlet_character R n).asso_primitive_character_is_primitive,
+    rw conductor_one hn, },
+  { rw conductor_one hn, apply nat.one_pos, },
+end
+
 /-def primitive_dirichlet_character_n (S : Type*) [comm_monoid_with_zero S] (m : ℕ) :
 set (dirichlet_character S m) := { χ : dirichlet_character S m | χ.is_primitive}-/
 
 --def primitive_dirichlet_character := ⋃ n : ℕ, (primitive_dirichlet_character_n R n)
 --def primitive_dirichlet_character : set.range (λ n : ℕ, primitive_dirichlet_character_n R n)
 
-lemma asso_dir_char_mul (ψ : dirichlet_character R n) :
+lemma asso_dirichlet_character_mul (ψ : dirichlet_character R n) :
   asso_dirichlet_character (χ * ψ) = (asso_dirichlet_character χ) * (asso_dirichlet_character ψ) :=
 begin
   ext,
@@ -486,13 +521,13 @@ abbreviation zmod_to_dirichlet_character {m : ℕ} (χ : mul_hom (zmod m) R) : d
   (ψ : dirichlet_character S n) :
   ∑ i in finset.range (conductor ψ).succ, asso_dirichlet_character ψ i = 0 := sorry -/
 
-variables {S : Type*} [comm_ring S] [no_zero_divisors S] {m : ℕ} (ψ : dirichlet_character S m)
+variables {S : Type*} [comm_ring S] {m : ℕ} (ψ : dirichlet_character S m)
 
 def is_odd : Prop := ψ (-1) = -1
 
 def is_even : Prop := ψ (-1) = 1
 
-lemma is_odd_or_is_even : ψ.is_odd ∨ ψ.is_even :=
+lemma is_odd_or_is_even [no_zero_divisors S] : ψ.is_odd ∨ ψ.is_even :=
 begin
   suffices : (ψ (-1))^2 = 1,
   { rw ←units.eq_iff at this,
@@ -508,5 +543,37 @@ begin
     simp only [units.coe_one, units.coe_neg_one, nat.neg_one_sq, units.coe_pow], },
 end
 -- can conditions on S be relaxed? comm needed for sq_sub_sq, and no_divisors needed for mul_eq_zero
+
+lemma asso_odd_dirichlet_character_eval_neg_one (hψ : ψ.is_odd) :
+  asso_dirichlet_character ψ (-1) = -1 :=
+begin
+  rw is_odd at hψ,
+  convert asso_dirichlet_character_eq_char _ (-1),
+  rw hψ, simp,
+end
+
+lemma asso_even_dirichlet_character_eval_neg_one (hψ : ψ.is_even) :
+  asso_dirichlet_character ψ (-1) = 1 :=
+begin
+  rw is_even at hψ,
+  convert asso_dirichlet_character_eq_char _ (-1),
+  rw hψ, simp,
+end
+
+lemma asso_odd_dirichlet_character_eval_sub (x : zmod m) (hψ : ψ.is_odd) :
+  asso_dirichlet_character ψ (m - x) = -(asso_dirichlet_character ψ x) :=
+begin
+  rw [asso_dirichlet_character_eval_sub, ←neg_one_mul, monoid_hom.map_mul,
+    asso_odd_dirichlet_character_eval_neg_one _ hψ],
+  simp,
+end
+
+lemma asso_even_dirichlet_character_eval_sub (x : zmod m) (hψ : ψ.is_even) :
+  asso_dirichlet_character ψ (m - x) = asso_dirichlet_character ψ x :=
+begin
+  rw [asso_dirichlet_character_eval_sub, ←neg_one_mul, monoid_hom.map_mul,
+    asso_even_dirichlet_character_eval_neg_one _ hψ],
+  simp,
+end
 
 end dirichlet_character

@@ -626,7 +626,7 @@ add_equiv.of_bijective
     end)⟩)
   begin
     split,
-    { rw add_monoid_hom.injective_iff,
+    { rw injective_iff_map_eq_zero,
       intros i hi,
       rw subtype.ext_iff at hi,
       have := (h.zpow_eq_one_iff_dvd _).mp hi,

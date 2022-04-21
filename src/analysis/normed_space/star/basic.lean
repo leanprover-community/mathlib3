@@ -36,7 +36,7 @@ local postfix `⋆`:std.prec.max_plus := star
 
 /-- A normed star group is a normed group with a compatible `star` which is isometric. -/
 class normed_star_group (E : Type*) [semi_normed_group E] [star_add_monoid E] : Prop :=
-(norm_star : ∀ {x : E}, ∥x⋆∥ = ∥x∥)
+(norm_star : ∀ x : E, ∥x⋆∥ = ∥x∥)
 
 export normed_star_group (norm_star)
 attribute [simp] norm_star
@@ -46,16 +46,16 @@ variables {𝕜 E α : Type*}
 section normed_star_group
 variables [semi_normed_group E] [star_add_monoid E] [normed_star_group E]
 
-@[simp] lemma nnnorm_star (x : E) : ∥star x∥₊ = ∥x∥₊ := subtype.ext norm_star
+@[simp] lemma nnnorm_star (x : E) : ∥star x∥₊ = ∥x∥₊ := subtype.ext $ norm_star _
 
 /-- The `star` map in a normed star group is a normed group homomorphism. -/
 def star_normed_group_hom : normed_group_hom E E :=
-{ bound' := ⟨1, λ v, le_trans (norm_star.le) (one_mul _).symm.le⟩,
+{ bound' := ⟨1, λ v, le_trans (norm_star _).le (one_mul _).symm.le⟩,
   .. star_add_equiv }
 
 /-- The `star` map in a normed star group is an isometry -/
 lemma star_isometry : isometry (star : E → E) :=
-star_add_equiv.to_add_monoid_hom.isometry_of_norm (λ _, norm_star)
+star_add_equiv.to_add_monoid_hom.isometry_of_norm norm_star
 
 lemma continuous_star : continuous (star : E → E) := star_isometry.continuous
 
@@ -92,7 +92,7 @@ end normed_star_group
 
 instance ring_hom_isometric.star_ring_end [normed_comm_ring E] [star_ring E]
   [normed_star_group E] : ring_hom_isometric (star_ring_end E) :=
-⟨λ _, norm_star⟩
+⟨norm_star⟩
 
 /-- A C*-ring is a normed star ring that satifies the stronger condition `∥x⋆ * x∥ = ∥x∥^2`
 for every `x`. -/
@@ -179,7 +179,7 @@ norm_coe_unitary_mul ⟨U, hU⟩ A
 calc _ = ∥((U : E)⋆ * A⋆)⋆∥ : by simp only [star_star, star_mul]
   ...  = ∥(U : E)⋆ * A⋆∥    : by rw [norm_star]
   ...  = ∥A⋆∥               : norm_mem_unitary_mul (star A) (unitary.star_mem U.prop)
-  ...  = ∥A∥                : norm_star
+  ...  = ∥A∥                : norm_star _
 
 lemma norm_mul_mem_unitary (A : E) {U : E} (hU : U ∈ unitary E) : ∥A * U∥ = ∥A∥ :=
 norm_mul_coe_unitary A ⟨U, hU⟩
@@ -210,7 +210,7 @@ variables (𝕜)
 /-- `star` bundled as a linear isometric equivalence -/
 def starₗᵢ : E ≃ₗᵢ⋆[𝕜] E :=
 { map_smul' := star_smul,
-  norm_map' := λ x, norm_star,
+  norm_map' := norm_star,
   .. star_add_equiv }
 
 variables {𝕜}

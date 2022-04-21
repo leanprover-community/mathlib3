@@ -516,7 +516,10 @@ protected theorem nonneg_total : Π (a : ℤ√d), nonneg a ∨ nonneg (-a)
 | ⟨-[1+ x], (y+1:ℕ)⟩ := nat.le_total
 
 protected theorem le_total (a b : ℤ√d) : a ≤ b ∨ b ≤ a :=
-let t := nonneg_total (b - a) in by rw [show -(b-a) = a-b, from neg_sub b a] at t; exact t
+begin
+  have t := (b - a).nonneg_total,
+  rwa neg_sub at t,
+end
 
 instance : preorder ℤ√d :=
 { le               := (≤),
@@ -757,7 +760,7 @@ def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
 `ℤ` into `R` is injective). -/
 lemma lift_injective [char_zero R] {d : ℤ} (r : {r : R // r * r = ↑d}) (hd : ∀ n : ℤ, d ≠ n*n) :
   function.injective (lift r) :=
-(lift r).injective_iff.mpr $ λ a ha,
+(injective_iff_map_eq_zero (lift r)).mpr $ λ a ha,
 begin
   have h_inj : function.injective (coe : ℤ → R) := int.cast_injective,
   suffices : lift r a.norm = 0,

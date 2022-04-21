@@ -199,9 +199,9 @@ end Theory
 
 namespace complete_theory
 
-variables (L) (M : Type w) [nonempty M] [L.Structure M]
+variables (L) (M : Type w) [L.Structure M]
 
-lemma is_satisfiable : (L.complete_theory M).is_satisfiable :=
+lemma is_satisfiable [nonempty M] : (L.complete_theory M).is_satisfiable :=
 Theory.model.is_satisfiable M
 
 lemma mem_or_not_mem (φ : L.sentence) :
@@ -215,7 +215,7 @@ begin
     exact h }
 end
 
-lemma is_complete : (L.complete_theory M).is_complete :=
+lemma is_complete [nonempty M] : (L.complete_theory M).is_complete :=
 ⟨is_satisfiable L M,
   λ φ, ((mem_or_not_mem L M φ).imp Theory.models_sentence_of_mem Theory.models_sentence_of_mem)⟩
 
@@ -337,3 +337,4 @@ lemma induction_on_exists_not {P : Π {m}, L.bounded_formula α m → Prop} (φ 
 end bounded_formula
 end language
 end first_order
+#lint

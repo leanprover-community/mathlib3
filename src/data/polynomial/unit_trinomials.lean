@@ -7,27 +7,6 @@ Authors: Thomas Browning
 import analysis.complex.polynomial
 import data.polynomial.mirror
 
-/-!
-# "Mirror" of a univariate polynomial
-
-In this file we define `polynomial.mirror`, a variant of `polynomial.reverse`. The difference
-between `reverse` and `mirror` is that `reverse` will decrease the degree if the polynomial is
-divisible by `X`. We also define `polynomial.norm2`, which is the sum of the squares of the
-coefficients of a polynomial. It is also a coefficient of `p * p.mirror`.
-
-## Main definitions
-
-- `polynomial.mirror`
-- `polynomial.norm2`
-
-## Main results
-
-- `polynomial.mirror_mul_of_domain`: `mirror` preserves multiplication.
-- `polynomial.irreducible_of_mirror`: an irreducibility criterion involving `mirror`
-- `polynomial.norm2_eq_mul_reverse_coeff`: `norm2` is a coefficient of `p * p.mirror`
-
--/
-
 namespace polynomial
 open_locale polynomial
 
@@ -35,14 +14,14 @@ section
 
 variables {R : Type*} [comm_ring R] [is_domain R] (p : R[X])
 
-lemma mul_mirror_nat_degree : nat_degree (p * mirror p) = 2 * nat_degree p :=
+lemma nat_degree_mul_mirror : nat_degree (p * mirror p) = 2 * nat_degree p :=
 begin
   by_cases hp : p = 0,
   { rw [hp, zero_mul, nat_degree_zero, mul_zero] },
   { rw [nat_degree_mul hp (mt p.mirror_eq_zero.mp hp), mirror_nat_degree, two_mul] },
 end
 
-lemma mul_mirror_nat_trailing_degree :
+lemma nat_trailing_degree_mul_mirror :
   nat_trailing_degree (p * mirror p) = 2 * nat_trailing_degree p :=
 begin
   by_cases hp : p = 0,
@@ -51,9 +30,15 @@ begin
         mirror_nat_trailing_degree, two_mul] },
 end
 
-/-- A unit trinomial is a trinomial whose three nonzero coeffients are units. -/
-def is_unit_trinomial := ∃ {k m n : ℕ} (hkm : k < m) (hmn : m < n) {u v w : R}
-  (hu : is_unit u) (hv : is_unit v) (hw : is_unit w), p = C u * X ^ k + C v * X ^ m + C w * X ^ n
+lemma coeff_mul_mirror :
+  coeff (p * mirror p) (nat_degree p + nat_trailing_degree p) = p.sum (λ n, (^ 2)) :=
+begin
+  rw [coeff_mul, finset.nat.sum_antidiagonal_eq_sum_range_succ_mk],
+  refine (finset.sum_congr rfl (λ n hn, _)).trans (p.sum_eq_of_subset (λ n, (^ 2))
+    (λ n, zero_pow zero_lt_two) _ (λ n hn, finset.mem_range_succ_iff.mpr
+    ((le_nat_degree_of_mem_supp n hn).trans (nat.le_add_right _ _)))).symm,
+  rw [coeff_mirror, ←rev_at_le (finset.mem_range_succ_iff.mp hn), rev_at_invol, ←sq],
+end
 
 lemma unit_trinomial_nat_degree {k m n : ℕ} (hkm : k < m) (hmn : m < n) {u v w : R}
   (hu : is_unit u) (hv : is_unit v) (hw : is_unit w) :
@@ -96,6 +81,10 @@ begin
       add_comm, add_assoc, add_right_inj, add_comm],
 end
 
+/-- A unit trinomial is a trinomial whose three nonzero coeffients are units. -/
+def is_unit_trinomial := ∃ {k m n : ℕ} (hkm : k < m) (hmn : m < n) {u v w : R}
+  (hu : is_unit u) (hv : is_unit v) (hw : is_unit w), p = C u * X ^ k + C v * X ^ m + C w * X ^ n
+
 variables {p}
 
 lemma is_unit_trinomial.not_is_unit (hp : is_unit_trinomial p) : ¬ is_unit p :=
@@ -110,27 +99,34 @@ end
 variables {p : ℤ[X]}
 
 lemma is_unit_trinomial_iff : is_unit_trinomial p ↔ coeff (p * mirror p)
-  ((nat_trailing_degree (p * mirror p) + nat_degree (p * mirror p)) / 2) = 3 :=
+  ((nat_degree (p * mirror p) + nat_trailing_degree (p * mirror p)) / 2) = 3 :=
 begin
-  rw [mul_mirror_nat_degree, mul_mirror_nat_trailing_degree, ←mul_add,
-      nat.mul_div_right _ zero_lt_two],
+  rw [nat_degree_mul_mirror, nat_trailing_degree_mul_mirror, ←mul_add,
+      nat.mul_div_right _ zero_lt_two, coeff_mul_mirror],
   split,
   { rintros ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩,
-    rw [unit_trinomial_nat_degree hkm hmn hu hv hw,
-        unit_trinomial_nat_trailing_degree hkm hmn hu hv hw,
-        unit_trinomial_mirror hkm hmn hu hv hw],
-    simp_rw [mul_add, add_mul, coeff_add, mul_assoc, coeff_C_mul, mul_comm, ←mul_assoc, mul_comm,
-      coeff_mul_C, ←pow_add, coeff_X_pow, add_left_inj, add_right_inj],
-    rw [if_neg (hkm.trans hmn).ne, if_neg (hkm.trans hmn).ne'],
     sorry },
-  { sorry },
+  { intro hp,
+    sorry },
 end
 
 lemma is_unit_trinomial.irreducible1 (hp : is_unit_trinomial p)
   (h : ∀ q : ℤ[X], q ∣ p → q ∣ mirror p → is_unit q) :
   irreducible p :=
 begin
-  refine irreducible_of_mirror hp.not_is_unit (λ q hq, _) h,
+  refine irreducible_of_mirror hp.not_is_unit (λ q hpq, _) h,
+  have key : is_unit_trinomial q := by rwa [is_unit_trinomial_iff, ←hpq, ←is_unit_trinomial_iff],
+  /-
+  * Use `nat_degree_mul_mirror` and `nat_trailing_degree_mul_mirror` to show that `p` and `q`
+    have the same `nat_degree` and `nat_trailing_degree`.
+  * WLOG mirror to make middle degrees match (both ≤ half)
+  * WLOG negate to make leading coefficients match (both +1)
+
+
+  -/
+
+
+
   -- this is a big result!
   sorry
 end
@@ -159,6 +155,8 @@ begin
     rw [hg', aeval_mul, hz, zero_mul] },
 end
 
+-- figure out what the most "user-friendly" statement is (it's probably not the one below)
+
 lemma is_unit_trinomial.irreducible3 (hp : is_unit_trinomial p)
   (hp1 : ¬ X ∣ p) (hp2 : ¬ X ^ 2 + X + 1 ∣ p) (hp3 : ¬ X ^ 2 - X + 1 ∣ p) : irreducible p :=
 begin
@@ -174,6 +172,9 @@ begin
     rw [C_neg, neg_mul, neg_mul, C_1, one_mul, one_mul, one_mul, pow_zero, pow_one],
     sorry },
   refine hp.irreducible3 _ _ _,
+  { sorry },
+  { sorry },
+  { sorry },
 end
 
 end polynomial

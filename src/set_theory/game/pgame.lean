@@ -1079,6 +1079,7 @@ theorem injective_to_pgame : function.injective to_pgame :=
 begin
   intros a b h,
   rw [to_pgame_def, to_pgame_def, pgame.ext] at h,
+  exact ordinal.injective_out h.1,
 end
 
 /-- The order embedding version of `to_pgame`. -/

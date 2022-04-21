@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import algebra.group.inj_surj
-import algebra.group_with_zero.defs
+import algebra.regular.basic
 import algebra.hom.units
 import logic.nontrivial
 
@@ -432,7 +432,116 @@ variable (M₀)
 
 end monoid_with_zero
 
+/-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
+  the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
 
+  This is implemented as a mixin for `ring α`.
+  To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
+class is_domain (M₀ : Type*) [has_mul M₀] [has_zero M₀] extends nontrivial M₀ : Prop :=
+(regular_of_ne_zero : ∀ {c : M₀}, c ≠ 0 → is_regular c)
+
+section is_domain
+
+section
+
+variables [has_mul M₀] [has_zero M₀] [is_domain M₀] {a b c : M₀}
+
+lemma mul_left_cancel₀ (hc : c ≠ 0) (h : c * a = c * b) : a = b :=
+(is_domain.regular_of_ne_zero hc).left h
+
+lemma mul_right_cancel₀ (hc : c ≠ 0) (h : a * c = b * c) : a = b :=
+(is_domain.regular_of_ne_zero hc).right h
+
+lemma mul_left_injective₀ (hc : c ≠ 0) : function.injective ((*) c) :=
+λ a b, mul_left_cancel₀ hc
+
+lemma mul_right_injective₀ (hc : c ≠ 0) : function.injective (* c) :=
+λ a b, mul_right_cancel₀ hc
+
+lemma mul_left_inj' (hc : c ≠ 0) : a * c = b * c ↔ a = b := ⟨mul_right_cancel₀ hc, λ h, h ▸ rfl⟩
+
+lemma mul_right_inj' (ha : a ≠ 0) : a * b = a * c ↔ b = c := ⟨mul_left_cancel₀ ha, λ h, h ▸ rfl⟩
+
+end
+
+@[priority 10] -- see Note [lower instance priority]
+instance is_domain.to_no_zero_divisors [mul_zero_class M₀] [is_domain M₀] :
+  no_zero_divisors M₀ :=
+⟨λ a b h, or_iff_not_and_not.mpr $
+  λ H, H.right $ mul_left_cancel₀ H.left $ (mul_zero a).symm ▸ h⟩
+
+/-- Pullback an `is_domain` instance along an injective function. -/
+protected theorem function.injective.is_domain
+  [mul_zero_one_class M₀'] [mul_zero_one_class M₀] [is_domain M₀]
+  (f : M₀' →*₀ M₀) (hf : function.injective f) :
+  is_domain M₀' :=
+{ regular_of_ne_zero := λ x h,
+  { left := λ y z (H : x * y = x * z),
+      have f x * f y = f x * f z, by simp_rw [←map_mul, H],
+      hf $ (mul_left_cancel₀ $ (function.injective.ne_iff' hf f.map_zero).mpr h) this,
+    right := λ y z (H : y * x = z * x),
+      have f y * f x = f z * f x, by simp_rw [←map_mul, H],
+      hf $ (mul_right_cancel₀ $ (function.injective.ne_iff' hf f.map_zero).mpr h) this }
+  .. pullback_nonzero f f.map_zero f.map_one }
+
+/-- Pullback a `is_domain` instance along an injective function. -/
+protected def function.injective.is_domain'
+  [has_zero M₀'] [has_mul M₀'] [has_one M₀'] [has_pow M₀' ℕ] [monoid_with_zero M₀] [is_domain M₀]
+  (f : M₀' → M₀) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
+  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
+  is_domain M₀' :=
+{ regular_of_ne_zero := λ c hc,
+  { left := λ a b (H : c * a = c * b), hf $ mul_left_cancel₀ ((hf.ne_iff' zero).2 hc) $
+    by erw [← mul, ← mul, H]; refl,
+    right := λ a b (H : a * c = b * c), hf $ mul_right_cancel₀ ((hf.ne_iff' zero).2 hc) $
+    by erw [← mul, ← mul, H]; refl },
+  exists_pair_ne := by
+  { refine ⟨0, 1, _⟩,
+    apply hf.ne_iff.1,
+    rw [zero, one],
+    exact zero_ne_one } }
+
+section mul_zero_class
+
+variables [mul_zero_class M₀] [is_domain M₀] {a b c : M₀}
+
+/-- In a non-trivial integral domain, an element is regular iff it is non-zero. -/
+lemma is_regular_iff_ne_zero : is_regular a ↔ a ≠ 0 :=
+⟨is_regular.ne_zero, is_domain.regular_of_ne_zero⟩
+
+@[simp] lemma mul_eq_mul_right_iff : a * c = b * c ↔ a = b ∨ c = 0 :=
+by by_cases hc : c = 0; [simp [hc], simp [mul_left_inj', hc]]
+
+@[simp] lemma mul_eq_mul_left_iff : a * b = a * c ↔ b = c ∨ a = 0 :=
+by by_cases ha : a = 0; [simp [ha], simp [mul_right_inj', ha]]
+
+end mul_zero_class
+
+section monoid_with_zero
+
+variables [monoid_with_zero M₀] [is_domain M₀] {a b c : M₀}
+
+lemma mul_right_eq_self₀ : a * b = a ↔ b = 1 ∨ a = 0 :=
+calc a * b = a ↔ a * b = a * 1 : by rw mul_one
+     ...       ↔ b = 1 ∨ a = 0 : mul_eq_mul_left_iff
+
+lemma mul_left_eq_self₀ : a * b = b ↔ a = 1 ∨ b = 0 :=
+calc a * b = b ↔ a * b = 1 * b : by rw one_mul
+     ...       ↔ a = 1 ∨ b = 0 : mul_eq_mul_right_iff
+
+/-- An element of a cancellative *monoid_with_zero` fixed by right multiplication by an element
+other than one must be zero. -/
+theorem eq_zero_of_mul_eq_self_right (h₁ : b ≠ 1) (h₂ : a * b = a) : a = 0 :=
+classical.by_contradiction $ λ ha, h₁ $ mul_left_cancel₀ ha $ h₂.symm ▸ (mul_one a).symm
+
+/-- An element of a cancellative `monoid_with_zero` fixed by left multiplication by an element
+other than one must be zero. -/
+theorem eq_zero_of_mul_eq_self_left (h₁ : b ≠ 1) (h₂ : b * a = a) : a = 0 :=
+classical.by_contradiction $ λ ha, h₁ $ mul_right_cancel₀ ha $ h₂.symm ▸ (one_mul a).symm
+
+end monoid_with_zero
+
+end is_domain
 
 section group_with_zero
 variables [group_with_zero G₀] {a b c g h x : G₀}
@@ -512,6 +621,15 @@ calc a⁻¹ * (a * b) = (a⁻¹ * a) * b : (mul_assoc _ _ _).symm
 @[simp] lemma inv_one : 1⁻¹ = (1:G₀) :=
 calc 1⁻¹ = 1 * 1⁻¹ : by rw [one_mul]
      ... = (1:G₀)  : by simp
+
+@[priority 10] -- see Note [lower instance priority]
+instance group_with_zero.is_domain : is_domain G₀ :=
+{ regular_of_ne_zero := λ c hc,
+  { left := λ a b (h : c * a = c * b),
+    by rw [← inv_mul_cancel_left₀ hc a, h, inv_mul_cancel_left₀ hc b],
+    right := λ a b (h : a * c = b * c),
+    by rw [← mul_inv_cancel_right₀ hc a, h, mul_inv_cancel_right₀ hc b] },
+  .. (infer_instance : nontrivial G₀) }
 
 @[priority 100]
 instance group_with_zero.to_has_involutive_inv : has_involutive_inv G₀ :=
@@ -659,15 +777,6 @@ lemma is_unit.mk0 (x : G₀) (hx : x ≠ 0) : is_unit x := (units.mk0 x hx).is_u
 
 lemma is_unit_iff_ne_zero {x : G₀} : is_unit x ↔ x ≠ 0 :=
 units.exists_iff_ne_zero
-
-@[priority 10] -- see Note [lower instance priority]
-instance group_with_zero.no_zero_divisors : no_zero_divisors G₀ :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
-    begin
-      contrapose! h,
-      exact ((units.mk0 a h.1) * (units.mk0 b h.2)).ne_zero
-    end,
-  .. (‹_› : group_with_zero G₀) }
 
 -- Can't be put next to the other `mk0` lemmas becuase it depends on the
 -- `no_zero_divisors` instance, which depends on `mk0`.
@@ -965,12 +1074,12 @@ by rw [← mul_div_assoc, mul_comm, mul_div_assoc]
 lemma div_right_comm (a : G₀) : (a / b) / c = (a / c) / b :=
 by rw [div_div_eq_div_mul, div_div_eq_div_mul, mul_comm]
 
--- @[field_simps] lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
--- calc a / b = c / d ↔ a / b * (b * d) = c / d * (b * d) :
--- by rw [mul_left_inj' (mul_ne_zero hb hd)]
---                ... ↔ a * d = c * b :
--- by rw [← mul_assoc, div_mul_cancel _ hb,
---       ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
+@[field_simps] lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
+calc a / b = c / d ↔ a / b * (b * d) = c / d * (b * d) :
+by rw [mul_left_inj' (mul_ne_zero hb hd)]
+               ... ↔ a * d = c * b :
+by rw [← mul_assoc, div_mul_cancel _ hb,
+      ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
 
 lemma div_div_cancel' (ha : a ≠ 0) : a / (a / b) = b :=
 by rw [div_eq_mul_inv, inv_div, mul_div_cancel' _ ha]

@@ -72,11 +72,6 @@ instance monoid_with_zero.to_semigroup_with_zero (M₀ : Type*) [monoid_with_zer
   semigroup_with_zero M₀ :=
 { ..‹monoid_with_zero M₀› }
 
-section is_domain
-
-
-end is_domain
-
 /-- A type `M` is a commutative “monoid with zero” if it is a commutative monoid with zero
 element, and `0` is left and right absorbing. -/
 @[protect_proj]

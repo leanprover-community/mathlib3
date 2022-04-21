@@ -74,18 +74,27 @@ We use the following type variables in this file:
 * `E'` : a family of normed vector spaces over `𝕜` indexed by `i' : ι'`;
 * `Ei` : a family of normed vector spaces over `𝕜` indexed by `i : fin (nat.succ n)`;
 * `G`, `G'` : normed vector spaces over `𝕜`.
+
+An `ₛ` suffix indicates the space is only semi-normed.
 -/
 
 universes u v v' wE wE₁ wE' wEi wG wG'
 variables {𝕜 : Type u} {ι : Type v} {ι' : Type v'} {n : ℕ}
   {E : ι → Type wE} {E₁ : ι → Type wE₁} {E' : ι' → Type wE'} {Ei : fin n.succ → Type wEi}
+  {Eₛ : ι → Type wE} {E₁ₛ : ι → Type wE₁} {E'ₛ : ι' → Type wE'} {Eiₛ : fin n.succ → Type wEi}
   {G : Type wG} {G' : Type wG'}
+  {Gₛ : Type wG} {G'ₛ : Type wG'}
   [decidable_eq ι] [fintype ι] [decidable_eq ι'] [fintype ι'] [nondiscrete_normed_field 𝕜]
   [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
   [Π i, normed_group (E₁ i)] [Π i, normed_space 𝕜 (E₁ i)]
   [Π i, normed_group (E' i)] [Π i, normed_space 𝕜 (E' i)]
   [Π i, normed_group (Ei i)] [Π i, normed_space 𝕜 (Ei i)]
+  [Π i, semi_normed_group (Eₛ i)] [Π i, normed_space 𝕜 (Eₛ i)]
+  [Π i, semi_normed_group (E₁ₛ i)] [Π i, normed_space 𝕜 (E₁ₛ i)]
+  [Π i, semi_normed_group (E'ₛ i)] [Π i, normed_space 𝕜 (E'ₛ i)]
+  [Π i, semi_normed_group (Eiₛ i)] [Π i, normed_space 𝕜 (Eiₛ i)]
   [normed_group G] [normed_space 𝕜 G] [normed_group G'] [normed_space 𝕜 G']
+  [semi_normed_group Gₛ] [normed_space 𝕜 Gₛ] [semi_normed_group G'ₛ] [normed_space 𝕜 G'ₛ]
 
 /-!
 ### Continuity properties of multilinear maps
@@ -140,8 +149,8 @@ using the multilinearity. Here, we give a precise but hard to use version. See
 `∥f m - f m'∥ ≤
   C * ∥m 1 - m' 1∥ * max ∥m 2∥ ∥m' 2∥ * max ∥m 3∥ ∥m' 3∥ * ... * max ∥m n∥ ∥m' n∥ + ...`,
 where the other terms in the sum are the same products where `1` is replaced by any `i`. -/
-lemma norm_image_sub_le_of_bound' {C : ℝ} (hC : 0 ≤ C)
-  (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (m₁ m₂ : Πi, E i) :
+lemma norm_image_sub_le_of_bound' (f : multilinear_map 𝕜 Eₛ Gₛ) {C : ℝ} (hC : 0 ≤ C)
+  (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (m₁ m₂ : Πi, Eₛ i) :
   ∥f m₁ - f m₂∥ ≤
   C * ∑ i, ∏ j, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥ :=
 begin
@@ -181,8 +190,8 @@ end
 using the multilinearity. Here, we give a usable but not very precise version. See
 `norm_image_sub_le_of_bound'` for a more precise but less usable version. The bound is
 `∥f m - f m'∥ ≤ C * card ι * ∥m - m'∥ * (max ∥m∥ ∥m'∥) ^ (card ι - 1)`. -/
-lemma norm_image_sub_le_of_bound {C : ℝ} (hC : 0 ≤ C)
-  (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (m₁ m₂ : Πi, E i) :
+lemma norm_image_sub_le_of_bound (f : multilinear_map 𝕜 Eₛ Gₛ) {C : ℝ} (hC : 0 ≤ C)
+  (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (m₁ m₂ : Πi, Eₛ i) :
   ∥f m₁ - f m₂∥ ≤ C * (fintype.card ι) * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) * ∥m₁ - m₂∥ :=
 begin
   have A : ∀ (i : ι), ∏ j, (if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)
@@ -196,7 +205,7 @@ begin
         { assume j hj,
           by_cases h : j = i,
           { rw h, simp, exact norm_le_pi_norm (m₁ - m₂) i },
-          { simp [h, max_le_max, norm_le_pi_norm (_ : Π i, E i)] } }
+          { simp [h, max_le_max, norm_le_pi_norm (_ : Π i, Eₛ i)] } }
       end
     ... = ∥m₁ - m₂∥ * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) :
       by { rw prod_update_of_mem (finset.mem_univ _), simp [card_univ_diff] } },
@@ -212,7 +221,7 @@ end
 
 /-- If a multilinear map satisfies an inequality `∥f m∥ ≤ C * ∏ i, ∥m i∥`, then it is
 continuous. -/
-theorem continuous_of_bound (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :
+theorem continuous_of_bound (f : multilinear_map 𝕜 Eₛ Gₛ) (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :
   continuous f :=
 begin
   let D := max C 1,
@@ -237,22 +246,35 @@ begin
         norm_nonneg, nat.cast_nonneg, pow_le_pow_of_le_left]
 end
 
-/-- Constructing a continuous multilinear map from a multilinear map satisfying a boundedness
-condition. -/
-def mk_continuous (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :
-  continuous_multilinear_map 𝕜 E G :=
+/-- A version of `multilinear_map.mk_continuous` for seminormed spaces. Note that
+`multilinear_map.mk_continuous` is identical, but doesn't elaborate well. -/
+def mk_continuousₛ (f : multilinear_map 𝕜 Eₛ Gₛ) (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :
+  continuous_multilinear_map 𝕜 Eₛ Gₛ :=
 { cont := f.continuous_of_bound C H, ..f }
 
-@[simp] lemma coe_mk_continuous (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :
+@[simp] lemma coe_mk_continuousₛ (f : multilinear_map 𝕜 Eₛ Gₛ) (C : ℝ)
+  (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :
+  ⇑(f.mk_continuousₛ C H) = f :=
+rfl
+
+/-- Constructing a continuous multilinear map from a multilinear map satisfying a boundedness
+condition. Note that this is just a copy of `multilinear_map.mk_continuousₛ` that the elaborator
+is happier with. -/
+def mk_continuous (f : multilinear_map 𝕜 E G) (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :
+  continuous_multilinear_map 𝕜 E G :=
+@mk_continuousₛ _ _ E _ _ _ _ _ _ _ _ f C H
+
+@[simp] lemma coe_mk_continuous (f : multilinear_map 𝕜 E G) (C : ℝ)
+  (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :
   ⇑(f.mk_continuous C H) = f :=
 rfl
 
 /-- Given a multilinear map in `n` variables, if one restricts it to `k` variables putting `z` on
 the other coordinates, then the resulting restricted function satisfies an inequality
 `∥f.restr v∥ ≤ C * ∥z∥^(n-k) * Π ∥v i∥` if the original function satisfies `∥f v∥ ≤ C * Π ∥v i∥`. -/
-lemma restr_norm_le {k n : ℕ} (f : (multilinear_map 𝕜 (λ i : fin n, G) G' : _))
-  (s : finset (fin n)) (hk : s.card = k) (z : G) {C : ℝ}
-  (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (v : fin k → G) :
+lemma restr_norm_le {k n : ℕ} (f : (multilinear_map 𝕜 (λ i : fin n, Gₛ) G'ₛ : _))
+  (s : finset (fin n)) (hk : s.card = k) (z : Gₛ) {C : ℝ}
+  (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (v : fin k → Gₛ) :
   ∥f.restr s hk z v∥ ≤ C * ∥z∥ ^ (n - k) * ∏ i, ∥v i∥ :=
 begin
   rw [mul_right_comm, mul_assoc],
@@ -502,14 +524,16 @@ where the other terms in the sum are the same products where `1` is replaced by 
 lemma norm_image_sub_le' (m₁ m₂ : Πi, E i) :
   ∥f m₁ - f m₂∥ ≤
   ∥f∥ * ∑ i, ∏ j, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥ :=
-f.to_multilinear_map.norm_image_sub_le_of_bound' (norm_nonneg _) f.le_op_norm _ _
+@multilinear_map.norm_image_sub_le_of_bound' _ _ E _ _ _ _ _ _ _ _
+  f.to_multilinear_map _ (norm_nonneg _) f.le_op_norm _ _
 
 /-- The difference `f m₁ - f m₂` is controlled in terms of `∥f∥` and `∥m₁ - m₂∥`, less precise
 version. For a more precise but less usable version, see `norm_image_sub_le'`.
 The bound is `∥f m - f m'∥ ≤ ∥f∥ * card ι * ∥m - m'∥ * (max ∥m∥ ∥m'∥) ^ (card ι - 1)`.-/
 lemma norm_image_sub_le (m₁ m₂ : Πi, E i) :
   ∥f m₁ - f m₂∥ ≤ ∥f∥ * (fintype.card ι) * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) * ∥m₁ - m₂∥ :=
-f.to_multilinear_map.norm_image_sub_le_of_bound (norm_nonneg _) f.le_op_norm _ _
+@multilinear_map.norm_image_sub_le_of_bound _ _ E _ _ _ _ _ _ _ _
+  f.to_multilinear_map _ (norm_nonneg _) f.le_op_norm _ _
 
 /-- Applying a multilinear map to a vector is continuous in both coordinates. -/
 lemma continuous_eval :

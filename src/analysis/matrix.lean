@@ -33,11 +33,16 @@ of a matrix.
 
 noncomputable theory
 
-open_locale nnreal matrix
+open_locale big_operators nnreal matrix
 
 namespace matrix
 
 variables {R l m n α β : Type*} [fintype l] [fintype m] [fintype n]
+
+
+/-! ### The elementwise supremum ($L_\infty-L_\infty$) norm -/
+
+section linf_linf
 
 section semi_normed_group
 variables [semi_normed_group α] [semi_normed_group β]
@@ -133,6 +138,12 @@ pi.normed_space
 
 end normed_space
 
+end linf_linf
+
+/-! ### The $$L_1-L_\infty$$ norm
+
+This section defines the matrix norm $\|A\| = \operatorname{sup}_i (\sum_j \|A_{ij}\|)$.
+-/
 section l1_linf
 
 /-- Seminormed group instance (using sup norm of L1 norm) for matrices over a seminormed group. Not
@@ -160,39 +171,38 @@ protected def l1_linf_normed_space [normed_field R] [semi_normed_group α] [norm
 
 local attribute [instance] matrix.l1_linf_normed_space
 
-open_locale nnreal big_operators
+section semi_normed_group
+variables [semi_normed_group α]
 
-lemma l1_linf_norm_def [semi_normed_group α] (A : matrix m n α) :
+lemma l1_linf_norm_def (A : matrix m n α) :
   ∥A∥ = ((finset.univ : finset m).sup (λ i : m, ∑ j : n, ∥A i j∥₊) : ℝ≥0) :=
 by simp_rw [pi.norm_def, pi_Lp.nnnorm_eq, div_one, nnreal.rpow_one]
 
-lemma l1_linf_nnnorm_def [semi_normed_group α] (A : matrix m n α) :
+lemma l1_linf_nnnorm_def (A : matrix m n α) :
   ∥A∥₊ = (finset.univ : finset m).sup (λ i : m, ∑ j : n, ∥A i j∥₊) :=
 subtype.ext $ l1_linf_norm_def A
 
-open_locale matrix
-
-@[simp] lemma l1_linf_nnnorm_col [semi_normed_group α] (v : m → α) :
+@[simp] lemma l1_linf_nnnorm_col (v : m → α) :
   ∥col v∥₊ = ∥v∥₊ :=
 begin
   rw [l1_linf_nnnorm_def, pi.nnnorm_def],
   simp,
 end
 
-@[simp] lemma l1_linf_norm_col [semi_normed_group α] (v : m → α) :
+@[simp] lemma l1_linf_norm_col (v : m → α) :
   ∥col v∥ = ∥v∥ :=
 congr_arg coe $ l1_linf_nnnorm_col v
 
-@[simp] lemma l1_linf_nnnorm_row [semi_normed_group α] (v : n → α) :
+@[simp] lemma l1_linf_nnnorm_row (v : n → α) :
   ∥row v∥₊ = ∑ i, ∥v i∥₊ :=
 by simp [l1_linf_nnnorm_def]
 
-@[simp] lemma l1_linf_norm_row [semi_normed_group α] (v : n → α) :
+@[simp] lemma l1_linf_norm_row (v : n → α) :
   ∥row v∥ = ∑ i, ∥v i∥ :=
 (congr_arg coe $ l1_linf_nnnorm_row v).trans $ by simp [nnreal.coe_sum]
 
 @[simp]
-lemma l1_linf_nnnorm_diagonal [semi_normed_group α] [decidable_eq m] (v : m → α) :
+lemma l1_linf_nnnorm_diagonal [decidable_eq m] (v : m → α) :
   ∥diagonal v∥₊ = ∥v∥₊ :=
 begin
   rw [l1_linf_nnnorm_def, pi.nnnorm_def],
@@ -203,18 +213,16 @@ begin
 end
 
 @[simp]
-lemma l1_linf_norm_diagonal [semi_normed_group α] [decidable_eq m] (v : m → α) :
+lemma l1_linf_norm_diagonal [decidable_eq m] (v : m → α) :
   ∥diagonal v∥ = ∥v∥ :=
 congr_arg coe $ l1_linf_nnnorm_diagonal v
 
-/-- The `L₁-L∞` norm preserves one on non-empty matrices. Note this is safe as an instance, as it
-carries no data. -/
-instance l1_linf_norm_one_class [normed_ring α] [norm_one_class α] [decidable_eq n] [nonempty n] :
-  norm_one_class (matrix n n α) :=
-{ norm_one := (l1_linf_norm_diagonal _).trans norm_one }
+end semi_normed_group
 
-lemma l1_linf_nnnorm_mul [non_unital_semi_normed_ring α] (A : matrix l m α) (B : matrix m n α) :
-  ∥A ⬝ B∥₊ ≤ ∥A∥₊ * ∥B∥₊ :=
+section non_unital_semi_normed_ring
+variables [non_unital_semi_normed_ring α]
+
+lemma l1_linf_nnnorm_mul (A : matrix l m α) (B : matrix m n α) : ∥A ⬝ B∥₊ ≤ ∥A∥₊ * ∥B∥₊ :=
 begin
   simp_rw [l1_linf_nnnorm_def, matrix.mul_apply],
   calc finset.univ.sup (λ i, ∑ k, ∥∑ j, A i j * B j k∥₊)
@@ -230,29 +238,33 @@ begin
     by simp_rw [←finset.sum_mul, ←nnreal.finset_sup_mul],
 end
 
-lemma l1_linf_norm_mul [non_unital_semi_normed_ring α] (A : matrix l m α) (B : matrix m n α) :
-  ∥A ⬝ B∥ ≤ ∥A∥ * ∥B∥ :=
+lemma l1_linf_norm_mul (A : matrix l m α) (B : matrix m n α) : ∥A ⬝ B∥ ≤ ∥A∥ * ∥B∥ :=
 l1_linf_nnnorm_mul _ _
 
-lemma l1_linf_nnnorm_mul_vec [non_unital_semi_normed_ring α] (A : matrix l m α) (v : m → α) :
-  ∥A.mul_vec v∥₊ ≤ ∥A∥₊ * ∥v∥₊ :=
+lemma l1_linf_nnnorm_mul_vec (A : matrix l m α) (v : m → α) : ∥A.mul_vec v∥₊ ≤ ∥A∥₊ * ∥v∥₊ :=
 begin
   rw [←l1_linf_nnnorm_col (A.mul_vec v), ←l1_linf_nnnorm_col v],
   exact l1_linf_nnnorm_mul A (col v),
 end
 
-lemma l1_linf_norm_mul_vec [non_unital_semi_normed_ring α] (A : matrix l m α) (v : m → α) :
-  ∥matrix.mul_vec A v∥ ≤ ∥A∥ * ∥v∥ :=
+lemma l1_linf_norm_mul_vec (A : matrix l m α) (v : m → α) : ∥matrix.mul_vec A v∥ ≤ ∥A∥ * ∥v∥ :=
 l1_linf_nnnorm_mul_vec _ _
 
 /-- Seminormed non-unital ring instance (using sup norm of L1 norm) for matrices over a semi normed
 non-unital ring. Not declared as an instance because there are several natural choices for defining
 the norm of a matrix. -/
-protected def l1_linf_non_unital_semi_normed_ring [non_unital_semi_normed_ring α] :
-  non_unital_semi_normed_ring (matrix n n α) :=
+protected def l1_linf_non_unital_semi_normed_ring : non_unital_semi_normed_ring (matrix n n α) :=
 { norm_mul := l1_linf_norm_mul,
   .. matrix.l1_linf_semi_normed_group,
   .. matrix.non_unital_ring }
+
+end non_unital_semi_normed_ring
+
+/-- The `L₁-L∞` norm preserves one on non-empty matrices. Note this is safe as an instance, as it
+carries no data. -/
+instance l1_linf_norm_one_class [semi_normed_ring α] [norm_one_class α] [decidable_eq n]
+  [nonempty n] : norm_one_class (matrix n n α) :=
+{ norm_one := (l1_linf_norm_diagonal _).trans norm_one }
 
 /-- Seminormed ring instance (using sup norm of L1 norm) for matrices over a semi normed ring.  Not
 declared as an instance because there are several natural choices for defining the norm of a
@@ -265,7 +277,7 @@ protected def l1_linf_semi_normed_ring [semi_normed_ring α] [decidable_eq n] :
 /-- Normed non-unital ring instance (using sup norm of L1 norm) for matrices over a normed
 non-unital ring. Not declared as an instance because there are several natural choices for defining
 the norm of a matrix. -/
-protected def l1_linf_non_unital_normed_ring [normed_ring α] :
+protected def l1_linf_non_unital_normed_ring [non_unital_normed_ring α] :
   non_unital_normed_ring (matrix n n α) :=
 { ..matrix.l1_linf_non_unital_semi_normed_ring }
 

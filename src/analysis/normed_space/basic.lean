@@ -338,34 +338,16 @@ end normed_space_nondiscrete
 
 section normed_algebra
 
-/-- A normed algebra `𝕜'` over `𝕜` is an algebra endowed with a norm for which the
-embedding of `𝕜` in `𝕜'` is an isometry. -/
+/-- A normed algebra `𝕜'` over `𝕜` is normed module that is also an algebra. -/
 class normed_algebra (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [semi_normed_ring 𝕜']
   extends algebra 𝕜 𝕜' :=
-(norm_algebra_map_le : ∀ x, ∥algebra_map 𝕜 𝕜' x∥ ≤ ∥x∥)
+(norm_smul_le : ∀ (r : 𝕜) (x : 𝕜'), ∥r • x∥ ≤ ∥r∥ * ∥x∥)
 
 variables {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜] [semi_normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
-lemma norm_algebra_map_le (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥ ≤ ∥x∥ :=
-normed_algebra.norm_algebra_map_le x
-
-lemma nnnorm_algebra_map_le (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥₊ ≤ ∥x∥₊ :=
-norm_algebra_map_le 𝕜' x
-
-section
-variables (𝕜)
-lemma norm_one_le : ∥(1 : 𝕜')∥ ≤ 1 :=
-calc ∥(1 : 𝕜')∥ = ∥algebra_map 𝕜 𝕜' 1∥ : by rw map_one
-            ... ≤ ∥(1 : 𝕜)∥ : norm_algebra_map_le _ _
-            ... = 1 : norm_one
-end
-
 @[priority 100]
 instance normed_algebra.to_normed_space : normed_space 𝕜 𝕜' :=
-{ norm_smul_le := λ s x, calc
-    ∥s • x∥ = ∥((algebra_map 𝕜 𝕜') s) * x∥ : by rw algebra.smul_def
-    ... ≤ ∥algebra_map 𝕜 𝕜' s∥ * ∥x∥ : semi_normed_ring.norm_mul _ _
-    ... ≤ ∥s∥ * ∥x∥ : mul_le_mul_of_nonneg_right (norm_algebra_map_le _ _) (norm_nonneg x) }
+{ norm_smul_le := normed_algebra.norm_smul_le }
 
 /-- While this may appear identical to `normed_algebra.to_normed_space`, it contains an implicit
 argument involving `normed_ring.to_semi_normed_ring` that typeclass inference has trouble inferring.
@@ -383,23 +365,20 @@ See `normed_space.to_module'` for a similar situation. -/
 instance normed_algebra.to_normed_space' {𝕜'} [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] :
   normed_space 𝕜 𝕜' := by apply_instance
 
-/-- In a `normed_ring` that is a `normed_algebra` over a field, `∥1∥ = 1` iff `𝕜'` is nontrivial. -/
-lemma norm_one_class_iff_nontrivial {𝕜'} [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']:
-  norm_one_class 𝕜' ↔ nontrivial 𝕜' :=
+lemma norm_algebra_map (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥ * ∥(1 : 𝕜')∥ :=
 begin
-  split; introI i,
-  { exact norm_one_class.nontrivial 𝕜' },
-  { refine ⟨le_antisymm (norm_one_le 𝕜 𝕜') _⟩,
-    refine le_of_mul_le_mul_right _ (norm_pos_iff.mpr $ @one_ne_zero 𝕜' _ _),
-    refine eq.trans_le _ (norm_mul_le (1 : 𝕜') (1 : 𝕜')),
-    rw [one_mul, mul_one] }
+  rw algebra.algebra_map_eq_smul_one,
+  exact norm_smul _ _,
 end
 
-@[simp] lemma norm_algebra_map_eq [norm_one_class 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥ :=
-by rw [algebra.algebra_map_eq_smul_one, norm_smul, norm_one, mul_one]
+lemma nnnorm_algebra_map (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥₊ = ∥x∥₊ * ∥(1 : 𝕜')∥₊ :=
+subtype.ext $ norm_algebra_map 𝕜' x
 
-@[simp] lemma nnorm_algebra_map_eq [norm_one_class 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥₊ = ∥x∥₊ :=
-subtype.ext $ norm_algebra_map_eq _ _
+@[simp] lemma norm_algebra_map' [norm_one_class 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥ :=
+by rw [norm_algebra_map, norm_one, mul_one]
+
+@[simp] lemma nnorm_algebra_map' [norm_one_class 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥₊ = ∥x∥₊ :=
+subtype.ext $ norm_algebra_map' _ _
 
 variables (𝕜 𝕜')
 
@@ -407,7 +386,7 @@ variables (𝕜 𝕜')
 lemma algebra_map_isometry [norm_one_class 𝕜'] : isometry (algebra_map 𝕜 𝕜') :=
 begin
   refine isometry_emetric_iff_metric.2 (λx y, _),
-  rw [dist_eq_norm, dist_eq_norm, ← ring_hom.map_sub, norm_algebra_map_eq],
+  rw [dist_eq_norm, dist_eq_norm, ← ring_hom.map_sub, norm_algebra_map'],
 end
 
 /-- The inclusion of the base field in a normed algebra as a continuous linear map. -/
@@ -417,9 +396,10 @@ def algebra_map_clm : 𝕜 →L[𝕜] 𝕜' :=
   map_add' := (algebra_map 𝕜 𝕜').map_add,
   map_smul' := λ r x, by rw [algebra.id.smul_eq_mul, map_mul, ring_hom.id_apply, algebra.smul_def],
   cont :=
-    have lipschitz_with 1 (algebra_map 𝕜 𝕜') := lipschitz_with.of_edist_le $ λ x y, begin
-      rw [edist_eq_coe_nnnorm_sub, edist_eq_coe_nnnorm_sub, ←map_sub, ennreal.coe_le_coe],
-      exact nnnorm_algebra_map_le _ _,
+    have lipschitz_with ∥(1 : 𝕜')∥₊ (algebra_map 𝕜 𝕜') := λ x y, begin
+      rw [edist_eq_coe_nnnorm_sub, edist_eq_coe_nnnorm_sub, ←map_sub, ←ennreal.coe_mul,
+        ennreal.coe_le_coe, mul_comm],
+      exact (nnnorm_algebra_map _ _).le,
     end, this.continuous }
 
 lemma algebra_map_clm_coe [semi_normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] :
@@ -429,7 +409,7 @@ lemma algebra_map_clm_to_linear_map [semi_normed_ring 𝕜'] [normed_algebra �
   (algebra_map_clm 𝕜 𝕜').to_linear_map = algebra.linear_map 𝕜 𝕜' := rfl
 
 instance normed_algebra.id : normed_algebra 𝕜 𝕜 :=
-{ norm_algebra_map_le := λ _, le_rfl,
+{ .. normed_field.to_normed_space,
   .. algebra.id 𝕜}
 
 /-- Any normed characteristic-zero division ring that is a normed_algebra over the reals is also a
@@ -439,24 +419,20 @@ Phrased another way, if `𝕜` is a normed algebra over the reals, then `algebra
 norm. -/
 instance normed_algebra_rat {𝕜} [normed_division_ring 𝕜] [char_zero 𝕜] [normed_algebra ℝ 𝕜] :
   normed_algebra ℚ 𝕜 :=
-{ norm_algebra_map_le := λ q,
-    by simpa only [ring_hom.map_rat_algebra_map] using norm_algebra_map_le 𝕜 (algebra_map _ ℝ q) }
+{ norm_smul_le := λ q x,
+    by rw [←smul_one_smul ℝ q x, rat.smul_one_eq_coe, norm_smul, rat.norm_cast_real], }
 
 /-- The product of two normed algebras is a normed algebra, with the sup norm. -/
 instance prod.normed_algebra {E F : Type*} [semi_normed_ring E] [semi_normed_ring F]
   [normed_algebra 𝕜 E] [normed_algebra 𝕜 F] :
   normed_algebra 𝕜 (E × F) :=
-{ norm_algebra_map_le := λ x, max_le (norm_algebra_map_le _ _) (norm_algebra_map_le _ _) }
+{ ..prod.normed_space }
 
 /-- The product of finitely many normed algebras is a normed algebra, with the sup norm. -/
 instance pi.normed_algebra {E : ι → Type*} [fintype ι]
   [Π i, semi_normed_ring (E i)] [Π i, normed_algebra 𝕜 (E i)] :
   normed_algebra 𝕜 (Π i, E i) :=
-{ norm_algebra_map_le := λ x, begin
-    rw [←coe_nnnorm, ←coe_nnnorm, nnreal.coe_le_coe],
-    refine (subtype.eta _ _).trans_le _,
-    exact finset.sup_le (λ i hi, nnnorm_algebra_map_le _ _),
-  end,
+{ .. pi.normed_space,
   .. pi.algebra _ E }
 
 end normed_algebra

@@ -66,7 +66,7 @@ noncomputable instance : normed_division_ring ℍ :=
                            exact real.sqrt_mul norm_sq_nonneg _ } }
 
 noncomputable instance : normed_algebra ℝ ℍ :=
-{ norm_algebra_map_le := λ a, (norm_coe a).le,
+{ norm_smul_le := λ a x, (norm_smul a x).le,
   to_algebra := quaternion.algebra }
 
 instance : has_coe ℂ ℍ := ⟨λ z, ⟨z.re, z.im, 0, 0⟩⟩

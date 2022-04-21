@@ -259,7 +259,7 @@ section
 variables {𝕜 : Type*} {γ : Type*} [normed_field 𝕜] [normed_ring γ] [normed_algebra 𝕜 γ]
 
 instance : normed_algebra 𝕜 C(α, γ) :=
-{ norm_algebra_map_le := λ c, (norm_algebra_map_le (α →ᵇ γ) c : _), }
+{ ..continuous_map.normed_space }
 
 end
 

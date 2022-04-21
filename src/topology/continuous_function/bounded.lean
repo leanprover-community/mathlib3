@@ -1120,9 +1120,7 @@ instance : algebra 𝕜 (α →ᵇ γ) :=
 by { rw algebra.algebra_map_eq_smul_one, refl, }
 
 instance : normed_algebra 𝕜 (α →ᵇ γ) :=
-{ norm_algebra_map_le := λ c,
-  calc ∥algebra_map 𝕜 (α →ᵇ γ) c∥ ≤ ∥(algebra_map 𝕜 γ) c∥ : norm_const_le _
-                              ... ≤ ∥c∥ : norm_algebra_map_le _ _ }
+{ ..bounded_continuous_function.normed_space }
 
 /-!
 ### Structure as normed module over scalar functions

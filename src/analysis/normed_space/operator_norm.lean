@@ -422,6 +422,12 @@ instance to_semi_normed_ring : semi_normed_ring (E →L[𝕜] E) :=
 { norm_mul := λ f g, op_norm_comp_le f g,
   .. continuous_linear_map.to_semi_normed_group }
 
+/-- For a normed space `E`, continuous linear endomorphisms form a normed algebra with
+respect to the operator norm. -/
+instance to_normed_algebra : normed_algebra 𝕜 (E →L[𝕜] E) :=
+{ .. continuous_linear_map.to_normed_space,
+  .. continuous_linear_map.algebra }
+
 theorem le_op_nnnorm : ∥f x∥₊ ≤ ∥f∥₊ * ∥x∥₊ := f.le_op_norm x
 
 /-- continuous linear maps are Lipschitz continuous. -/
@@ -1235,14 +1241,6 @@ normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 instance to_normed_ring : normed_ring (E →L[𝕜] E) :=
 { norm_mul := op_norm_comp_le,
   .. continuous_linear_map.to_normed_group }
-
-/-- For a nonzero normed space `E`, continuous linear endomorphisms form a normed algebra with
-respect to the operator norm. -/
-instance to_normed_algebra : normed_algebra 𝕜 (E →L[𝕜] E) :=
-{ norm_algebra_map_le := λ c, show ∥c • id 𝕜 E∥ ≤ ∥c∥,
-    by {rw [norm_smul],
-      exact (mul_le_mul_of_nonneg_left norm_id_le $ norm_nonneg _).trans_eq (mul_one _) },
-  .. continuous_linear_map.algebra }
 
 variable {f}
 

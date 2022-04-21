@@ -18,9 +18,10 @@ This file defines torsion groups, i.e. groups where all elements have finite ord
 
 * `monoid.is_torsion` a predicate asserting `G` is torsion, i.e. that all
   elements are of finite order.
-* `add_monoid.is_torsion` the additive version of `monoid.is_torsion`.
 * `comm_group.torsion G`, the torsion subgroup of an abelian group `G`
 * `comm_monoid.torsion G`, the above stated for commutative monoids
+* `monoid.is_torsion_free`, asserting no nontrivial elements have finite order in `G`
+* `add_monoid.is_torsion` and `add_monoid.is_torsion_free` the additive versions of the above
 
 ## Implementation
 
@@ -30,11 +31,14 @@ the group theory library.
 
 ## Tags
 
-periodic group, torsion subgroup, torsion abelian group
+periodic group, aperiodic group, torsion subgroup, torsion abelian group
 
 ## Future work
 
-* torsion-free groups
+* generalize to π-torsion(-free) groups for a set of primes π
+* free, free solvable and free abelian groups are torsion free
+* complete direct and free products of torsion free groups are torsion free
+* groups which are residually finite p-groups with respect to 2 distinct primes are torsion free
 -/
 
 variables {G H : Type*}
@@ -46,6 +50,12 @@ variables (G) [monoid G]
 /-- A predicate on a monoid saying that all elements are of finite order. -/
 @[to_additive "A predicate on an additive monoid saying that all elements are of finite order."]
 def is_torsion := ∀ g : G, is_of_fin_order g
+
+/-- A monoid is not a torsion monoid if it has an element of infinite order. -/
+@[simp, to_additive
+  "An additive monoid is not a torsion monoid if it has an element of infinite order."]
+lemma not_is_torsion_iff : ¬ is_torsion G ↔ ∃ g : G, ¬is_of_fin_order g :=
+by rw [is_torsion, not_forall]
 
 end monoid
 
@@ -217,5 +227,82 @@ def torsion : subgroup G := { comm_monoid.torsion G with inv_mem' := λ x, is_of
 @[to_additive add_torsion_eq_add_torsion_submonoid
   "The additive torsion submonoid of an abelian group equals the torsion subgroup as a submonoid."]
 lemma torsion_eq_torsion_submonoid : comm_monoid.torsion G = (torsion G).to_submonoid := rfl
+
+end comm_group
+
+namespace monoid
+
+variables (G) [monoid G]
+
+/-- A predicate on a monoid saying that only 1 is of finite order. -/
+@[to_additive "A predicate on an additive monoid saying that only 0 is of finite order."]
+def is_torsion_free := ∀ g : G, g ≠ 1 → ¬is_of_fin_order g
+
+/-- A nontrivial monoid is not torsion-free if any nontrivial element has finite order. -/
+@[simp, to_additive
+  "An additive monoid is not torsion free if any nontrivial element has finite order."]
+lemma not_is_torsion_free_iff : ¬ (is_torsion_free G) ↔ ∃ g : G, g ≠ 1 ∧ is_of_fin_order g :=
+by simp_rw [is_torsion_free, ne.def, not_forall, not_not, exists_prop]
+
+end monoid
+
+section group
+
+open monoid
+
+variables [group G]
+
+/-- A nontrivial torsion group is not torsion-free. -/
+@[to_additive add_monoid.is_torsion.not_torsion_free
+  "A nontrivial additive torsion group is not torsion-free."]
+lemma is_torsion.not_torsion_free [hN : nontrivial G] : is_torsion G → ¬is_torsion_free G :=
+λ tG, (not_is_torsion_free_iff _).mpr $ begin
+  obtain ⟨x, hx⟩ := (nontrivial_iff_exists_ne (1 : G)).mp hN,
+  exact ⟨x, hx, tG x⟩,
+end
+
+/-- A nontrivial torsion-free group is not torsion. -/
+@[to_additive add_monoid.is_torsion_free.not_torsion
+  "A nontrivial torsion-free additive group is not torsion."]
+lemma is_torsion_free.not_torsion [hN : nontrivial G] : is_torsion_free G → ¬is_torsion G :=
+λ tfG, (not_is_torsion_iff _).mpr $ begin
+  obtain ⟨x, hx⟩ := (nontrivial_iff_exists_ne (1 : G)).mp hN,
+  exact ⟨x, (tfG x) hx⟩,
+end
+
+/-- Subgroups of torsion-free groups are torsion-free. -/
+@[to_additive "Subgroups of additive torsion-free groups are additively torsion-free."]
+lemma is_torsion_free.subgroup (tG : is_torsion_free G) (H : subgroup G) : is_torsion_free H :=
+λ h hne, (is_of_fin_order_iff_coe H.to_submonoid h).not.mpr $
+  tG h $ by norm_cast; simp [hne, not_false_iff]
+
+/-- Direct products of torsion free groups are torsion free. -/
+@[to_additive add_monoid.is_torsion_free.prod
+  "Direct products of additive torsion free groups are torsion free."]
+lemma is_torsion_free.prod
+  {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)] (tfGs : ∀ i, is_torsion_free (Gs i)) :
+is_torsion_free $ Π i, Gs i :=
+λ w hne h, hne $ funext $ λ i, not_not.mp $ mt (tfGs i (w i)) $ not_not.mpr $ h.apply i
+
+end group
+
+section comm_group
+
+open monoid (is_torsion_free)
+
+variables (G) [comm_group G]
+
+/-- Quotienting a group by its torsion subgroup yields a torsion free group. -/
+@[to_additive add_is_torsion_free.quotient_torsion
+  "Quotienting a group by its additive torsion subgroup yields an additive torsion free group."]
+lemma is_torsion_free.quotient_torsion : is_torsion_free $ G ⧸ (torsion G) :=
+λ g hne hfin, hne $ begin
+  induction g using quotient_group.induction_on',
+  obtain ⟨m, mpos, hm⟩ := (is_of_fin_order_iff_pow_eq_one _).mp hfin,
+  obtain ⟨n, npos, hn⟩ :=
+    (is_of_fin_order_iff_pow_eq_one _).mp ((quotient_group.eq_one_iff _).mp hm),
+  exact (quotient_group.eq_one_iff g).mpr
+    ((is_of_fin_order_iff_pow_eq_one _).mpr ⟨m * n, mul_pos mpos npos, (pow_mul g m n).symm ▸ hn⟩),
+end
 
 end comm_group

@@ -400,6 +400,9 @@ have t : 1^2 ≤ x^2 ↔ |1| ≤ |x| := ⟨abs_le_abs_of_sq_le_sq, sq_le_sq⟩, 
 @[simp] lemma one_lt_sq_iff_one_lt_abs (x : R) : 1 < x^2 ↔ 1 < |x| :=
 have t : 1^2 < x^2 ↔ |1| < |x| := ⟨abs_lt_abs_of_sq_lt_sq, sq_lt_sq⟩, by simpa using t
 
+lemma pow_four_le_pow_two_of_pow_two_le {x y : R} (h : x^2 ≤ y) : x^4 ≤ y^2 :=
+(pow_mul x 2 2).symm ▸ pow_le_pow_of_le_left (sq_nonneg x) h 2
+
 end linear_ordered_ring
 
 section linear_ordered_comm_ring

@@ -204,42 +204,42 @@ variables (M N) [has_mul M] [has_mul N] [has_mul P]
 /-- Given magmas `M`, `N`, the natural projection homomorphism from `M × N` to `M`.-/
 @[to_additive "Given additive magmas `A`, `B`, the natural projection homomorphism
 from `A × B` to `A`"]
-def fst : mul_hom (M × N) M := ⟨prod.fst, λ _ _, rfl⟩
+def fst : (M × N) →ₙ* M := ⟨prod.fst, λ _ _, rfl⟩
 
 /-- Given magmas `M`, `N`, the natural projection homomorphism from `M × N` to `N`.-/
 @[to_additive "Given additive magmas `A`, `B`, the natural projection homomorphism
 from `A × B` to `B`"]
-def snd : mul_hom (M × N) N := ⟨prod.snd, λ _ _, rfl⟩
+def snd : (M × N) →ₙ* N := ⟨prod.snd, λ _ _, rfl⟩
 
 variables {M N}
 
 @[simp, to_additive] lemma coe_fst : ⇑(fst M N) = prod.fst := rfl
 @[simp, to_additive] lemma coe_snd : ⇑(snd M N) = prod.snd := rfl
 
-/-- Combine two `monoid_hom`s `f : mul_hom M N`, `g : mul_hom M P` into
-`f.prod g : mul_hom M (N × P)` given by `(f.prod g) x = (f x, g x)`. -/
+/-- Combine two `monoid_hom`s `f : M →ₙ* N`, `g : M →ₙ* P` into
+`f.prod g : M →ₙ* (N × P)` given by `(f.prod g) x = (f x, g x)`. -/
 @[to_additive prod "Combine two `add_monoid_hom`s `f : add_hom M N`, `g : add_hom M P` into
 `f.prod g : add_hom M (N × P)` given by `(f.prod g) x = (f x, g x)`"]
-protected def prod (f : mul_hom M N) (g : mul_hom M P) : mul_hom M (N × P) :=
+protected def prod (f : M →ₙ* N) (g : M →ₙ* P) : M →ₙ* (N × P) :=
 { to_fun := pi.prod f g,
   map_mul' := λ x y, prod.ext (f.map_mul x y) (g.map_mul x y) }
 
 @[to_additive coe_prod]
-lemma coe_prod (f : mul_hom M N) (g : mul_hom M P) : ⇑(f.prod g) = pi.prod f g := rfl
+lemma coe_prod (f : M →ₙ* N) (g : M →ₙ* P) : ⇑(f.prod g) = pi.prod f g := rfl
 
 @[simp, to_additive prod_apply]
-lemma prod_apply (f : mul_hom M N) (g : mul_hom M P) (x) : f.prod g x = (f x, g x) := rfl
+lemma prod_apply (f : M →ₙ* N) (g : M →ₙ* P) (x) : f.prod g x = (f x, g x) := rfl
 
 @[simp, to_additive fst_comp_prod]
-lemma fst_comp_prod (f : mul_hom M N) (g : mul_hom M P) : (fst N P).comp (f.prod g) = f :=
+lemma fst_comp_prod (f : M →ₙ* N) (g : M →ₙ* P) : (fst N P).comp (f.prod g) = f :=
 ext $ λ x, rfl
 
 @[simp, to_additive snd_comp_prod]
-lemma snd_comp_prod (f : mul_hom M N) (g : mul_hom M P) : (snd N P).comp (f.prod g) = g :=
+lemma snd_comp_prod (f : M →ₙ* N) (g : M →ₙ* P) : (snd N P).comp (f.prod g) = g :=
 ext $ λ x, rfl
 
 @[simp, to_additive prod_unique]
-lemma prod_unique (f : mul_hom M (N × P)) :
+lemma prod_unique (f : M →ₙ* (N × P)) :
   ((fst N P).comp f).prod ((snd N P).comp f) = f :=
 ext $ λ x, by simp only [prod_apply, coe_fst, coe_snd, comp_apply, prod.mk.eta]
 
@@ -248,11 +248,11 @@ end prod
 section prod_map
 
 variables {M' : Type*} {N' : Type*} [has_mul M] [has_mul N] [has_mul M'] [has_mul N'] [has_mul P]
-  (f : mul_hom M M') (g : mul_hom N N')
+  (f : M →ₙ* M') (g : N →ₙ* N')
 
 /-- `prod.map` as a `monoid_hom`. -/
 @[to_additive prod_map "`prod.map` as an `add_monoid_hom`"]
-def prod_map : mul_hom (M × N) (M' × N') := (f.comp (fst M N)).prod (g.comp (snd M N))
+def prod_map : (M × N) →ₙ* (M' × N') := (f.comp (fst M N)).prod (g.comp (snd M N))
 
 @[to_additive prod_map_def]
 lemma prod_map_def : prod_map f g = (f.comp (fst M N)).prod (g.comp (snd M N)) := rfl
@@ -261,8 +261,8 @@ lemma prod_map_def : prod_map f g = (f.comp (fst M N)).prod (g.comp (snd M N)) :
 lemma coe_prod_map : ⇑(prod_map f g) = prod.map f g := rfl
 
 @[to_additive prod_comp_prod_map]
-lemma prod_comp_prod_map (f : mul_hom P M) (g : mul_hom P N)
-  (f' : mul_hom M M') (g' : mul_hom N N') :
+lemma prod_comp_prod_map (f : P →ₙ* M) (g : P →ₙ* N)
+  (f' : M →ₙ* M') (g' : N →ₙ* N') :
   (f'.prod_map g').comp (f.prod g) = (f'.comp f).prod (g'.comp g) :=
 rfl
 
@@ -270,20 +270,20 @@ end prod_map
 
 section coprod
 
-variables [has_mul M] [has_mul N] [comm_semigroup P] (f : mul_hom M P) (g : mul_hom N P)
+variables [has_mul M] [has_mul N] [comm_semigroup P] (f : M →ₙ* P) (g : N →ₙ* P)
 
 /-- Coproduct of two `mul_hom`s with the same codomain:
 `f.coprod g (p : M × N) = f p.1 * g p.2`. -/
 @[to_additive "Coproduct of two `add_hom`s with the same codomain:
 `f.coprod g (p : M × N) = f p.1 + g p.2`."]
-def coprod : mul_hom (M × N) P := f.comp (fst M N) * g.comp (snd M N)
+def coprod : (M × N) →ₙ* P := f.comp (fst M N) * g.comp (snd M N)
 
 @[simp, to_additive]
 lemma coprod_apply (p : M × N) : f.coprod g p = f p.1 * g p.2 := rfl
 
 @[to_additive]
 lemma comp_coprod {Q : Type*} [comm_semigroup Q]
-  (h : mul_hom P Q) (f : mul_hom M P) (g : mul_hom N P) :
+  (h : P →ₙ* Q) (f : M →ₙ* P) (g : N →ₙ* P) :
   h.comp (f.coprod g) = (h.comp f).coprod (h.comp g) :=
 ext $ λ x, by simp
 
@@ -485,7 +485,7 @@ variables {α : Type*}
 
 /-- Multiplication as a multiplicative homomorphism. -/
 @[to_additive "Addition as an additive homomorphism.", simps]
-def mul_mul_hom [comm_semigroup α] : mul_hom (α × α) α :=
+def mul_mul_hom [comm_semigroup α] : (α × α) →ₙ* α :=
 { to_fun := λ a, a.1 * a.2,
   map_mul' := λ a b, mul_mul_mul_comm _ _ _ _ }
 

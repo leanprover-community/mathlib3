@@ -940,6 +940,9 @@ lemma div_mul_div_comm₀ (a b c d : G₀) :
       (a / b) * (c / d) = (a * c) / (b * d) :=
 by simp [div_eq_mul_inv, mul_inv₀]
 
+lemma div_div_div_comm₀ (a b c d : G₀) : (a / b) / (c / d) = (a / c) / (b / d) :=
+by simp_rw [div_eq_mul_inv, mul_inv₀, inv_inv, mul_mul_mul_comm]
+
 lemma mul_div_mul_left (a b : G₀) {c : G₀} (hc : c ≠ 0) :
       (c * a) / (c * b) = a / b :=
 by rw [mul_comm c, mul_comm c, mul_div_mul_right _ _ hc]

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Violeta Hernández Palacios
 -/
 import measure_theory.measurable_space_def
-import set_theory.continuum
-import set_theory.cofinality
+import set_theory.cardinal.cofinality
+import set_theory.cardinal.continuum
 
 /-!
 # Cardinal of sigma-algebras

@@ -131,7 +131,7 @@ end pi
 namespace mul_hom
 
 @[to_additive] lemma coe_mul {M N} {mM : has_mul M} {mN : comm_semigroup N}
-  (f g : mul_hom M N) :
+  (f g : M →ₙ* N) :
   (f * g : M → N) = λ x, f x * g x := rfl
 
 end mul_hom
@@ -224,7 +224,7 @@ lemma monoid_hom.single_apply [Π i, mul_one_class $ f i] (i : I) (x : f i) :
 into a dependent family of `mul_zero_class`es, as functions supported at a point.
 
 This is the `mul_hom` version of `pi.single`. -/
-@[simps] def mul_hom.single [Π i, mul_zero_class $ f i] (i : I) : mul_hom (f i) (Π i, f i) :=
+@[simps] def mul_hom.single [Π i, mul_zero_class $ f i] (i : I) : (f i) →ₙ* (Π i, f i) :=
 { to_fun := single i,
   map_mul' := pi.single_op₂ (λ _, (*)) (λ _, zero_mul _) _, }
 

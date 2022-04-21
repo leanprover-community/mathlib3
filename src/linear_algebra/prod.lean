@@ -44,7 +44,7 @@ variables [add_comm_monoid M]
 variables [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
 variables [add_comm_monoid N₁] [add_comm_monoid N₂] [add_comm_monoid N₃]
 variables [module R M] [module R M₁] [module R M₂] [module R M₃] [module R M₄]
-variables  [module R N₁] [module R N₂] [module R N₃]
+variables [module R N₁] [module R N₂] [module R N₃]
 variables (f : M →ₗ[R] M₂)
 
 section

@@ -59,7 +59,6 @@ condition and passes on the second factors to the partitions. -/
 def list.split_factors {α : Type*} (l : list (bool × α)) : list α × list α :=
 (l.partition (λ i : bool × α, i.1)).map (list.map (λ i, i.2)) (list.map (λ i, i.2))
 
-
 /--  Let `ll = (il,fl)` be a pair of `list N`.  We move the elements of the list `l : list N`,
 using a relation `rel : N → N → bool`, overriding it as needed to make sure that the elements of
 the list `il` are initial and the elements of `fl` are final in the sorted list.
@@ -70,10 +69,10 @@ def list.sort_with_ends {N : Type*} [decidable_eq N] (l : list N) (ll : list N �
   (rel : N → N → bool) :
   list N :=
 -- the list of initial elements
-let il := ll.1.dedup.filter (∈ l) in
+let il := ll.1.filter (∈ l) in
 -- the list of final elements
-let fl := (ll.2.dedup.filter (∈ l)).filter (∉ il) in
-il ++ ((l.filter (∉ il ++ fl)).qsort rel) ++ fl
+let fl := ll.2.filter (∈ l) in
+il ++ ((l.diff (il ++ fl)).qsort rel) ++ fl
 
 namespace tactic.interactive
 open tactic
@@ -90,8 +89,10 @@ section with_rel
 and `e` an expression.
 `sorted_sum_with_rel rel t e` returns an ordered sum of the terms of `e`, where the order is
 determined using the relation `rel`, except that the elements from the list `il`
-appear first and the elements of the list `fl` appear last (duplicates are ignored, overlaps
-between `il` and `fl` are removed from `fl`).
+appear first and the elements of the list `fl` appear last.  Duplicates and overlaps between `il`
+and `fl` are *maintained*, since the same term may appear multiple times in the expression.
+The only pre-processing that we do to the lists is that we ignore inputs that do not appear in the
+initial list `ll`).
 
 We use this function for expressions in an additive commutative semigroup. -/
 meta def sorted_sum_with_rel

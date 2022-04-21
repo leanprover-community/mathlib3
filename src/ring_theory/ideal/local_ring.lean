@@ -156,6 +156,17 @@ lemma is_unit_one_sub_self_of_mem_nonunits (a : R) (h : a ∈ nonunits R) :
   is_unit (1 - a) :=
 or_iff_not_imp_left.1 (is_unit_or_is_unit_one_sub_self a) h
 
+lemma of_surjective' [comm_ring S] [nontrivial S] (f : R →+* S) (hf : function.surjective f) :
+  local_ring S :=
+of_is_unit_or_is_unit_one_sub_self
+begin
+  intros b,
+  obtain ⟨a, rfl⟩ := hf b,
+  apply (is_unit_or_is_unit_one_sub_self a).imp f.is_unit_map _,
+  rw [← f.map_one, ← f.map_sub],
+  apply f.is_unit_map,
+end
+
 end local_ring
 
 end comm_ring

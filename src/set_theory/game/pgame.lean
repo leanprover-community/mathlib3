@@ -350,6 +350,22 @@ theorem lt_mk_of_le {x : pgame} {yl yr : Type*} {yL : yl → pgame} {yR i} :
   (x ≤ yL i) → x < ⟨yl, yr, yL, yR⟩ :=
 by { cases x, rw mk_lt_mk, exact λ h, or.inl ⟨_, h⟩ }
 
+theorem move_left_lt_of_le {x y : pgame} {i} :
+  x ≤ y → x.move_left i < y :=
+by { cases x, exact lt_of_le_mk }
+
+theorem lt_move_right_of_le {x y : pgame} {i} :
+  x ≤ y → x < y.move_right i :=
+by { cases y, exact lt_of_mk_le }
+
+theorem move_right_lt_of_le {x y : pgame} {i} :
+  x.move_right i ≤ y → x < y :=
+by { cases x, rw move_right_mk, exact mk_lt_of_le }
+
+theorem lt_of_le_move_left {x y : pgame} {i} :
+  x ≤ y.move_left i → x < y :=
+by { cases y, rw move_left_mk, exact lt_mk_of_le }
+
 theorem not_le_lt {x y : pgame} :
   (¬ x ≤ y ↔ y < x) ∧ (¬ x < y ↔ y ≤ x) :=
 begin
@@ -1066,30 +1082,46 @@ end pgame
 namespace ordinal
 
 /-- Converts an ordinal into the corresponding pre-game. -/
-noncomputable def to_pgame : Π o : ordinal.{u}, pgame.{u}
+noncomputable! def to_pgame : Π o : ordinal.{u}, pgame.{u}
 | o := ⟨o.out.α, pempty, λ x, let hwf := ordinal.typein_lt_self x in
-        to_pgame (ordinal.typein (<) x), pempty.elim⟩
+        to_pgame (typein (<) x), pempty.elim⟩
 using_well_founded { dec_tac := tactic.assumption }
 
 theorem to_pgame_def (o : ordinal) :
   o.to_pgame = ⟨o.out.α, pempty, λ x, (typein (<) x).to_pgame, pempty.elim⟩ :=
-by rw ordinal.to_pgame
+by rw to_pgame
+
+@[simp] theorem to_pgame_left_moves (o : ordinal) : o.to_pgame.left_moves = o.out.α :=
+by rw [to_pgame, pgame.left_moves]
+
+@[simp] theorem to_pgame_right_moves (o : ordinal) : o.to_pgame.right_moves = pempty :=
+by rw [to_pgame, pgame.right_moves]
+
+/-- Converts an ordinal less than `o` for a move for the `pgame` corresponding to `o`. -/
+noncomputable def to_left_moves {o a : ordinal} (h : a < o) : o.to_pgame.left_moves :=
+cast (to_pgame_left_moves o).symm (enum (<) a (by rwa type_lt))
+
+theorem to_pgame_move_left' {o : ordinal} :
+  o.to_pgame.move_left == (λ x, (typein ((<) : o.out.α → o.out.α → Prop) x).to_pgame) :=
+by { rw to_pgame, refl }
+
+theorem hfun_apply {α β γ : Type*} {f : α → γ} {g : β → γ} (h₁ : α = β) (h₂ : f == g) (x : α) :
+  g (cast h₁ x) = f x :=
+by { subst h₁, rw eq_of_heq h₂, refl }
+
+@[simp] theorem to_pgame_move_left {o a : ordinal.{u}} (h : a < o) :
+  o.to_pgame.move_left (to_left_moves h) = a.to_pgame :=
+by simp_rw [to_left_moves, hfun_apply _ to_pgame_move_left'.symm, typein_enum]
 
 theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
 begin
-  rw [←typein_enum (<) (by rwa type_lt)],
-  apply @pgame.lt_of_le_mk b.out.α _ (λ x, (typein (<) x).to_pgame),
-  rw to_pgame_def
+  apply @pgame.lt_of_le_move_left _ _ (to_left_moves h),
+  rw to_pgame_move_left,
 end
 
 theorem to_pgame_le {a b : ordinal} (h : a ≤ b) : a.to_pgame ≤ b.to_pgame :=
 begin
-  rcases eq_or_lt_of_le h with rfl | h,
-  {
-    refl,
-  },{
-    apply pgame.lt_of_le_of_lt,
-  }
+  rw pgame.le_def,
 end
 
 theorem injective_to_pgame : function.injective ordinal.to_pgame :=

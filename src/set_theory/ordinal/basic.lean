@@ -512,13 +512,6 @@ begin
   refl
 end
 
-theorem injective_out : injective (@quotient.out _ ordinal.is_equivalent) :=
-λ a b h, begin
-  apply_fun (λ o, type o.r) at h,
-  change type (<) = type (<) at h,
-  rwa [type_lt, type_lt] at h
-end
-
 @[elab_as_eliminator] theorem induction_on {C : ordinal → Prop}
   (o : ordinal) (H : ∀ α r [is_well_order α r], by exactI C (type r)) : C o :=
 quot.induction_on o $ λ ⟨α, r, wo⟩, @H α r wo

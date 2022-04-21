@@ -120,9 +120,6 @@ protected lemma eq : #α = #β ↔ nonempty (α ≃ β) := quotient.eq
 def out_mk_equiv {α : Type v} : (#α).out ≃ α :=
 nonempty.some $ cardinal.eq.mp (by simp)
 
-theorem injective_out : injective (@quotient.out _ cardinal.is_equivalent) :=
-λ a b h, by { apply_fun mk at h, rwa [mk_out, mk_out] at h }
-
 lemma mk_congr (e : α ≃ β) : # α = # β := quot.sound ⟨e⟩
 
 alias mk_congr ← equiv.cardinal_eq

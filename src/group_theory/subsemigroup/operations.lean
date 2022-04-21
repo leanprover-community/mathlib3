@@ -626,11 +626,11 @@ variables [has_mul M] [has_mul N] [has_mul P] (S : subsemigroup M)
 
 @[simp, to_additive]
 lemma mrange_fst [nonempty N] : (fst M N).mrange = ⊤ :=
-(fst M N).mrange_top_of_surjective $ @prod.fst_surjective _ _ _
+(fst M N).mrange_top_of_surjective $ prod.fst_surjective
 
 @[simp, to_additive]
 lemma mrange_snd [nonempty M] : (snd M N).mrange = ⊤ :=
-(snd M N).mrange_top_of_surjective $ @prod.snd_surjective _ _ _
+(snd M N).mrange_top_of_surjective $ prod.snd_surjective
 
 /-- The semigroup hom associated to an inclusion of subsemigroups. -/
 @[to_additive "The `add_semigroup` hom associated to an inclusion of subsemigroups."]

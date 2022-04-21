@@ -135,3 +135,128 @@ begin
   { exact hs₁.symm },
   { exact λ x hx, finset.mem_range.1 (hs₀ hx) }
 end
+
+meta def tactic.roth_auto_step : tactic unit :=
+do t ← tactic.target,
+   match t with
+   | `(roth_aux 0 _ _ _) := `[refine roth_aux_zero _ _ _]
+   | `(roth_aux _ _ _ _) := tactic.refine ``(roth_aux_succ _ _)
+   | _ := tactic.fail "no"
+   end
+
+meta def tactic.interactive.roth_start : tactic unit :=
+`[refine roth_aux_out _] >> tactic.roth_auto_step
+
+meta def tactic.interactive.roth_leaf : tactic unit :=
+do t ← tactic.target,
+  match t with
+  | `(roth_aux₂ _ _ _ _) := `[refine roth_aux₂_left _]
+  | `(roth_aux₁ _ _ _ _) :=
+      `[exact roth_aux₁_left dec_trivial] <|> tactic.trace "Try this: roth_node"
+  | _ := tactic.fail "goal isn't a roth proof"
+  end
+
+meta def tactic.interactive.roth_node : tactic unit :=
+do t ← tactic.target,
+  match t with
+  | `(roth_aux₂ _ _ _ _) := `[refine roth_aux₂_right _] >> tactic.roth_auto_step
+  | `(roth_aux₁ _ _ _ _) := `[refine roth_aux₁_right _] >> tactic.roth_auto_step
+  | _ := tactic.fail "goal isn't a roth proof"
+  end
+
+example : roth_number_nat 3 ≤ 2 → roth_number_nat 4 ≤ 3 → roth_number_nat 8 ≤ 4 →
+  roth_number_nat 10 ≤ 5 :=
+begin
+  intros h₃ h₄ h₈,
+  roth_start,
+  { roth_node,
+    { roth_leaf,
+      sorry },
+    roth_node,
+    { roth_leaf,
+      sorry },
+    roth_node,
+    { roth_node,
+      { roth_node,
+        { roth_leaf,
+          sorry },
+        roth_node,
+        { roth_leaf,
+          sorry },
+        roth_node,
+        { roth_node,
+          { roth_leaf,
+            sorry },
+          roth_leaf },
+        roth_leaf },
+      roth_node,
+      { roth_node,
+        { roth_leaf,
+          sorry },
+        { roth_leaf } },
+      roth_node,
+      { roth_node,
+        { roth_node,
+          { roth_leaf,
+            sorry },
+          roth_leaf },
+        roth_leaf },
+      roth_leaf },
+    roth_leaf },
+  roth_node,
+  { roth_leaf,
+    sorry },
+  roth_node,
+  { roth_node,
+    { roth_node,
+      { roth_node,
+        { roth_leaf,
+          sorry },
+        roth_node,
+        { roth_leaf,
+          sorry },
+        roth_node,
+        { roth_node,
+          { roth_leaf,
+            sorry },
+          roth_node,
+          { roth_node },
+          roth_leaf },
+        roth_leaf },
+      roth_node,
+      { roth_node,
+        { roth_leaf,
+          sorry },
+        roth_node,
+        { roth_node,
+          { roth_leaf,
+            sorry },
+          roth_leaf },
+        roth_leaf },
+      roth_node,
+      { roth_node,
+        { roth_node,
+          { roth_leaf,
+            sorry },
+          roth_leaf },
+        roth_leaf },
+      roth_leaf },
+    roth_node,
+    { roth_node,
+      { roth_node,
+        { roth_leaf,
+          sorry },
+        roth_leaf },
+      roth_leaf },
+    roth_node,
+    { roth_node,
+      { roth_node,
+        { roth_node,
+          { roth_leaf,
+            sorry },
+          roth_leaf },
+        roth_leaf },
+      roth_leaf },
+    roth_leaf },
+  roth_leaf,
+end

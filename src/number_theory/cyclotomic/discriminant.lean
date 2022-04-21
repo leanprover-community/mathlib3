@@ -9,7 +9,7 @@ import ring_theory.discriminant
 
 /-!
 # Discriminant of cyclotomic fields
-We compute the discriminant of a `p`-th cyclotomic extension.
+We compute the discriminant of a `p ^ n`-th cyclotomic extension.
 
 ## Main results
 * `is_cyclotomic_extension.discr_odd_prime` : if `p` is an odd prime such that

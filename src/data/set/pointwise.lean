@@ -122,7 +122,7 @@ lemma mul_mem_mul (ha : a ∈ s) (hb : b ∈ t) : a * b ∈ s * t := mem_image2_
 lemma mul_subset_mul (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ * s₂ ⊆ t₁ * t₂ := image2_subset h₁ h₂
 
 @[to_additive add_image_prod]
-lemma image_mul_prod : (λ x : α × α, x.fst * x.snd) '' (s ×ˢ t) = s * t := image_prod _
+lemma image_mul_prod : (λ x : α × α, x.fst * x.snd) '' s ×ˢ t = s * t := image_prod _
 
 @[simp, to_additive] lemma empty_mul : ∅ * s = ∅ := image2_empty_left
 @[simp, to_additive] lemma mul_empty : s * ∅ = ∅ := image2_empty_right
@@ -551,7 +551,7 @@ lemma div_mem_div (ha : a ∈ s) (hb : b ∈ t) : a / b ∈ s / t := mem_image2_
 lemma div_subset_div (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ / s₂ ⊆ t₁ / t₂ := image2_subset h₁ h₂
 
 @[to_additive add_image_prod]
-lemma image_div_prod : (λ x : α × α, x.fst / x.snd) '' (s ×ˢ t) = s / t := image_prod _
+lemma image_div_prod : (λ x : α × α, x.fst / x.snd) '' s ×ˢ t = s / t := image_prod _
 
 @[simp, to_additive] lemma empty_div : ∅ / s = ∅ := image2_empty_left
 @[simp, to_additive] lemma div_empty : s / ∅ = ∅ := image2_empty_right
@@ -683,7 +683,7 @@ variables {ι : Sort*} {κ : ι → Sort*} [has_scalar α β] {s s₁ s₂ : set
 lemma image2_smul : image2 has_scalar.smul s t = s • t := rfl
 
 @[to_additive add_image_prod]
-lemma image_smul_prod : (λ x : α × β, x.fst • x.snd) '' (s ×ˢ t) = s • t := image_prod _
+lemma image_smul_prod : (λ x : α × β, x.fst • x.snd) '' s ×ˢ t = s • t := image_prod _
 
 @[to_additive]
 lemma mem_smul : b ∈ s • t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x • y = b := iff.rfl
@@ -912,7 +912,7 @@ instance has_vsub : has_vsub (set α) (set β) := ⟨image2 (-ᵥ)⟩
 
 @[simp] lemma image2_vsub : (image2 has_vsub.vsub s t : set α) = s -ᵥ t := rfl
 
-lemma image_vsub_prod : (λ x : β × β, x.fst -ᵥ x.snd) '' (s ×ˢ t) = s -ᵥ t := image_prod _
+lemma image_vsub_prod : (λ x : β × β, x.fst -ᵥ x.snd) '' s ×ˢ t = s -ᵥ t := image_prod _
 
 lemma mem_vsub : a ∈ s -ᵥ t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x -ᵥ y = a := iff.rfl
 

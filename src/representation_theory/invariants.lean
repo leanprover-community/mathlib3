@@ -99,7 +99,8 @@ noncomputable def average_map : V →ₗ[k] V := as_algebra_hom ρ (average k G)
 The `average_map` sends elements of `V` to the subspace of invariants.
 -/
 theorem average_map_invariant (v : V) : average_map ρ v ∈ invariants ρ :=
-λ g, by rw [average_map, ←as_algebra_hom_single, ←linear_map.mul_apply, ←map_mul (as_algebra_hom ρ), mul_average_left]
+λ g, by rw [average_map, ←as_algebra_hom_single, ←linear_map.mul_apply, ←map_mul (as_algebra_hom ρ),
+            mul_average_left]
 
 /--
 The `average_map` acts as the identity on the subspace of invariants.

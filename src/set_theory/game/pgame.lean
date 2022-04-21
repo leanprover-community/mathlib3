@@ -3,9 +3,8 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
-import data.fin.basic
-import data.nat.cast
-import logic.embedding
+
+import set_theory.ordinal.basic
 
 /-!
 # Combinatorial (pre-)games.
@@ -117,6 +116,11 @@ inductive pgame : Type (u+1)
 | mk : ∀ α β : Type u, (α → pgame) → (β → pgame) → pgame
 
 namespace pgame
+
+@[ext] theorem ext {α β γ δ : Type u}
+  {p : α → pgame} {q : β → pgame} {r : γ → pgame} {s : δ → pgame} :
+  mk α β p q = mk γ δ r s ↔ α = γ ∧ β = δ ∧ p == r ∧ q == s :=
+⟨by { rintro ⟨h⟩, simp }, by { rintro ⟨rfl, rfl, rfl, rfl⟩, refl }⟩
 
 /--
 Construct a pre-game from list of pre-games describing the available moves for Left and Right.
@@ -1057,3 +1061,29 @@ begin
 end
 
 end pgame
+
+namespace ordinal
+
+/-- Converts an ordinal into the corresponding pre-game. -/
+noncomputable def to_pgame : Π o : ordinal.{u}, pgame.{u}
+| o := ⟨o.out.α, pempty, λ x, let hwf := ordinal.typein_lt_self x in
+        to_pgame (ordinal.typein (<) x), pempty.elim⟩
+using_well_founded { dec_tac := tactic.assumption }
+
+theorem to_pgame_def (o : ordinal) :
+  o.to_pgame = ⟨o.out.α, pempty, λ x, (ordinal.typein (<) x).to_pgame, pempty.elim⟩ :=
+by rw ordinal.to_pgame
+
+theorem injective_to_pgame : function.injective to_pgame :=
+begin
+  intros a b h,
+  rw [to_pgame_def, to_pgame_def, pgame.ext] at h,
+end
+
+/-- The order embedding version of `to_pgame`. -/
+def to_pgame_embedding : ordinal.{u} ↪o pgame.{u} :=
+{ to_fun := to_pgame,
+  inj' := _,
+  map_rel_iff' := _ }
+
+end ordinal

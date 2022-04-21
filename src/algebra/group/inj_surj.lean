@@ -170,19 +170,17 @@ protected def cancel_comm_monoid [cancel_comm_monoid M₂] (f : M₁ → M₂) (
   cancel_comm_monoid M₁ :=
 { .. hf.left_cancel_semigroup f mul, .. hf.comm_monoid f one mul npow }
 
-variables [has_inv M₁]
-
 /-- A type has an involutive inversion if it admits a surjective map that preserves `⁻¹` to a type
 which has an involutive inversion. -/
 @[reducible, to_additive "A type has an involutive negation if it admits a surjective map that
 preserves `⁻¹` to a type which has an involutive inversion."] --See note [reducible non-instances]
-protected def has_involutive_inv [has_involutive_inv M₂]
+protected def has_involutive_inv {M₁ : Type*} [has_inv M₁][has_involutive_inv M₂]
   (f : M₁ → M₂) (hf : injective f) (inv : ∀ x, f x⁻¹ = (f x)⁻¹) :
   has_involutive_inv M₁ :=
 { inv := has_inv.inv,
   inv_inv := λ x, hf $ by rw [inv, inv, inv_inv] }
 
-variables [has_div M₁] [has_pow M₁ ℤ]
+variables [has_inv M₁] [has_div M₁] [has_pow M₁ ℤ]
 
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `div_inv_monoid`
 if it admits an injective map that preserves `1`, `*`, `⁻¹`, and `/` to a `div_inv_monoid`.
@@ -328,19 +326,17 @@ protected def comm_monoid [comm_monoid M₁] (f : M₁ → M₂) (hf : surjectiv
   comm_monoid M₂ :=
 { .. hf.comm_semigroup f mul, .. hf.monoid f one mul npow }
 
-variables [has_inv M₂]
-
 /-- A type has an involutive inversion if it admits a surjective map that preserves `⁻¹` to a type
 which has an involutive inversion. -/
 @[reducible, to_additive "A type has an involutive negation if it admits a surjective map that
 preserves `⁻¹` to a type which has an involutive inversion."] --See note [reducible non-instances]
-protected def has_involutive_inv [has_involutive_inv M₁]
+protected def has_involutive_inv {M₂ : Type*} [has_inv M₂] [has_involutive_inv M₁]
   (f : M₁ → M₂) (hf : surjective f) (inv : ∀ x, f x⁻¹ = (f x)⁻¹) :
   has_involutive_inv M₂ :=
 { inv := has_inv.inv,
   inv_inv := hf.forall.2 $ λ x, by erw [←inv, ←inv, inv_inv] }
 
-variables [has_div M₂] [has_pow M₂ ℤ]
+variables [has_inv M₂] [has_div M₂] [has_pow M₂ ℤ]
 
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `div_inv_monoid`
 if it admits a surjective map that preserves `1`, `*`, `⁻¹`, and `/` to a `div_inv_monoid`.

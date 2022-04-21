@@ -387,7 +387,7 @@ end subsemigroup
 
 namespace mul_mem_class
 
-variables {A : Type*} [set_like A M] [hA : mul_mem_class A M] (S' : A)
+variables {A : Type*} [has_mul M] [set_like A M] [hA : mul_mem_class A M] (S' : A)
 include hA
 
 /-- A submagma of a magma inherits a multiplication. -/
@@ -430,6 +430,8 @@ def subtype : S' →ₙ* M := ⟨coe, λ _ _, rfl⟩
 end mul_mem_class
 
 namespace subsemigroup
+
+variables [has_mul M] [has_mul N] [has_mul P] (S : subsemigroup M)
 
 /-- A submagma of a magma inherits a multiplication. -/
 @[to_additive "An additive submagma of an additive magma inherits an addition."]

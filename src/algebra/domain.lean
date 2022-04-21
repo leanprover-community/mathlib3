@@ -44,20 +44,6 @@ instance to_no_zero_divisors [mul_zero_class M] [is_domain M] :
 ⟨λ a b h, or_iff_not_and_not.mpr $
   λ H, H.right $ mul_left_cancel_of_ne_zero H.left $ (mul_zero a).symm ▸ h⟩
 
--- -- @[priority 0] -- see Note [lower instance priority]
--- -- instance
--- def to_cancel_monoid_with_zero [monoid_with_zero M] [is_domain M] :
---   cancel_monoid_with_zero M :=
--- { mul_left_cancel_of_ne_zero := λ a b c, mul_left_cancel_of_ne_zero,
---   mul_right_cancel_of_ne_zero := λ a b c, mul_right_cancel_of_ne_zero,
---   .. (infer_instance : monoid_with_zero M) }
-
--- -- @[priority 0] -- see Note [lower instance priority]
--- -- instance
--- def to_cancel_comm_monoid_with_zero [comm_monoid_with_zero M] [is_domain M] :
---   cancel_comm_monoid_with_zero M :=
--- { .. (infer_instance : comm_monoid_with_zero M), .. is_domain.to_cancel_monoid_with_zero }
-
 end is_domain
 
 /-- Pullback an `is_domain` instance along an injective function. -/
@@ -122,13 +108,13 @@ lemma mul_left_eq_self₀ : a * b = b ↔ a = 1 ∨ b = 0 :=
 calc a * b = b ↔ a * b = 1 * b : by rw one_mul
      ...       ↔ a = 1 ∨ b = 0 : mul_eq_mul_right_iff
 
-/-- An element of a `cancel_monoid_with_zero` fixed by right multiplication by an element other
-than one must be zero. -/
+/-- An element of a cancellative *monoid_with_zero` fixed by right multiplication by an element
+other than one must be zero. -/
 theorem eq_zero_of_mul_eq_self_right (h₁ : b ≠ 1) (h₂ : a * b = a) : a = 0 :=
 classical.by_contradiction $ λ ha, h₁ $ mul_left_cancel₀ ha $ h₂.symm ▸ (mul_one a).symm
 
-/-- An element of a `cancel_monoid_with_zero` fixed by left multiplication by an element other
-than one must be zero. -/
+/-- An element of a cancellative `monoid_with_zero` fixed by left multiplication by an element
+other than one must be zero. -/
 theorem eq_zero_of_mul_eq_self_left (h₁ : b ≠ 1) (h₂ : b * a = a) : a = 0 :=
 classical.by_contradiction $ λ ha, h₁ $ mul_right_cancel₀ ha $ h₂.symm ▸ (one_mul a).symm
 
@@ -138,7 +124,7 @@ section group_with_zero
 variables [group_with_zero M]
 
 @[priority 10] -- see Note [lower instance priority]
-instance group_with_zero.cancel_monoid_with_zero : is_domain M :=
+instance group_with_zero.is_domain : is_domain M :=
 { regular_of_ne_zero := λ c hc,
   { left := λ a b (h : c * a = c * b),
     by rw [← inv_mul_cancel_left₀ hc a, h, inv_mul_cancel_left₀ hc b],
@@ -158,8 +144,3 @@ by rw [← mul_assoc, div_mul_cancel _ hb,
       ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
 
 end
-
-/-
-\[cancel_monoid_with_zero (.+)\]
-[monoid_with_zero $1] [is_domain $1]
--/

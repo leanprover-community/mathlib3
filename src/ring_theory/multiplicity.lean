@@ -325,7 +325,7 @@ end
 
 end comm_ring
 
-section cancel_comm_monoid_with_zero
+section comm_monoid_with_zero
 
 variables [comm_monoid_with_zero α] [is_domain α]
 
@@ -460,7 +460,7 @@ lemma multiplicity_pow_self_of_prime {p : α} (hp : prime p) (n : ℕ) :
 multiplicity_pow_self hp.ne_zero hp.not_unit n
 
 
-end cancel_comm_monoid_with_zero
+end comm_monoid_with_zero
 
 section valuation
 

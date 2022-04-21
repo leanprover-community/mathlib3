@@ -43,7 +43,7 @@ fintype.injective_iff_bijective.1 $ mul_left_injective₀ ha
 lemma mul_right_bijective_of_fintype₀ {a : M} (ha : a ≠ 0) : bijective (λ b, b * a) :=
 fintype.injective_iff_bijective.1 $ mul_right_injective₀ ha
 
-/-- Every finite nontrivial cancel_monoid_with_zero is a group_with_zero. -/
+/-- Every finite nontrivial cancellative `monoid_with_zero` is a `group_with_zero`. -/
 def fintype.group_with_zero_of_cancel (M : Type*)
   [monoid_with_zero M] [is_domain M] [decidable_eq M] [fintype M] :
   group_with_zero M :=

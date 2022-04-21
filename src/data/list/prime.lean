@@ -40,11 +40,9 @@ lemma prime.not_dvd_prod {p : M} {L : list M} (pp : prime p) (hL : ∀ a ∈ L, 
   ¬ p ∣ L.prod :=
 mt (prime.dvd_prod_iff pp).mp $ not_bex.mpr hL
 
-end comm_monoid_with_zero
+section is_domain
 
-section cancel_comm_monoid_with_zero
-
-variables {M : Type*} [comm_monoid_with_zero M] [is_domain M] [unique (units M)]
+variables [is_domain M] [unique (units M)]
 
 lemma mem_list_primes_of_dvd_prod {p : M} (hp : prime p) {L : list M} (hL : ∀ q ∈ L, prime q)
   (hpL : p ∣ L.prod) : p ∈ L :=
@@ -76,4 +74,6 @@ lemma perm_of_prod_eq_prod : ∀ {l₁ l₂ : list M}, l₁.prod = l₂.prod →
     exact perm.trans ((perm_of_prod_eq_prod hl hl₁' hl₂').cons _) hb.symm
   end
 
-end cancel_comm_monoid_with_zero
+end is_domain
+
+end comm_monoid_with_zero

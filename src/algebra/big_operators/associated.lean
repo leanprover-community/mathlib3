@@ -133,7 +133,7 @@ end
 
 end comm_monoid
 
-section cancel_comm_monoid_with_zero
+section is_domain
 
 variables [comm_monoid_with_zero α] [is_domain α]
 
@@ -148,7 +148,7 @@ assume a s ih h,
   | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
   end
 
-end cancel_comm_monoid_with_zero
+end is_domain
 
 end associates
 

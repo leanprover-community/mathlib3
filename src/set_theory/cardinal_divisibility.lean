@@ -16,7 +16,7 @@ divisible as natural numbers. If `b` is greater than `ω`, then `a ∣ b` iff `a
 shows that all infinite cardinals are prime; recall that `a * b = max a b` if `ω ≤ a * b`; therefore
 `a ∣ b * c = a ∣ max b c` and therefore clearly either `a ∣ b` or `a ∣ c`. Note furthermore that
 no infinite cardinal is irreducible (`cardinal.not_irreducible_of_omega_le`), showing that the
-cardinal numbers do not form a `comm_cancel_monoid_with_zero`.
+cardinal numbers do not form a cancellative `comm_monoid_with_zero`.
 
 ## Main results
 

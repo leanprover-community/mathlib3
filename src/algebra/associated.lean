@@ -783,10 +783,8 @@ theorem irreducible_iff_prime_iff :
   (∀ a : α, irreducible a ↔ prime a) ↔ (∀ a : (associates α), irreducible a ↔ prime a) :=
 by simp_rw [forall_associated, irreducible_mk, prime_mk]
 
-end comm_monoid_with_zero
-
-section cancel_comm_monoid_with_zero
-variables [comm_monoid_with_zero α] [is_domain α]
+section is_domain
+variables [is_domain α]
 
 instance : partial_order (associates α) :=
 { le_antisymm := λ a' b', quotient.induction_on₂ a' b' (λ a b hab hba,
@@ -855,7 +853,9 @@ dvd_and_not_dvd_iff.symm
 lemma le_one_iff {p : associates α} : p ≤ 1 ↔ p = 1 :=
 by rw [← associates.bot_eq_one, le_bot_iff]
 
-end cancel_comm_monoid_with_zero
+end is_domain
+
+end comm_monoid_with_zero
 
 end associates
 
@@ -888,9 +888,7 @@ begin
   rw [← mul_assoc, ← hx.right, mul_assoc, units.mul_inv, mul_one]
 end
 
-end comm_monoid_with_zero
-
-section cancel_comm_monoid_with_zero
+section is_domain
 
 lemma is_unit_of_associated_mul [comm_monoid_with_zero α] [is_domain α]
   {p b : α} (h : associated (p * b) p) (hp : p ≠ 0) : is_unit b :=
@@ -956,4 +954,6 @@ begin
     exact ⟨i, hi.trans n.le_succ, hq⟩ }
 end
 
-end cancel_comm_monoid_with_zero
+end is_domain
+
+end comm_monoid_with_zero

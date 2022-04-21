@@ -10,7 +10,7 @@ import algebra.group_power.lemmas
 /-!
 # Monoids with normalization functions, `gcd`, and `lcm`
 
-This file defines extra structures on `cancel_comm_monoid_with_zero`s, including `is_domain`s.
+This file defines extra structures on `comm_monoid_with_zero`s.
 
 ## Main Definitions
 
@@ -202,7 +202,7 @@ function.left_inverse.injective mk_out
 
 end associates
 
-/-- GCD monoid: a `cancel_comm_monoid_with_zero` with `gcd` (greatest common divisor) and
+/-- GCD monoid: a cancellative `comm_monoid_with_zero` with `gcd` (greatest common divisor) and
 `lcm` (least common multiple) operations, determined up to a unit. The type class focuses on `gcd`
 and we derive the corresponding `lcm` facts from `gcd`.
 -/
@@ -216,7 +216,7 @@ and we derive the corresponding `lcm` facts from `gcd`.
 (lcm_zero_left  : ∀a, lcm 0 a = 0)
 (lcm_zero_right : ∀a, lcm a 0 = 0)
 
-/-- Normalized GCD monoid: a `cancel_comm_monoid_with_zero` with normalization and `gcd`
+/-- Normalized GCD monoid: a cancellative `comm_monoid_with_zero` with normalization and `gcd`
 (greatest common divisor) and `lcm` (least common multiple) operations. In this setting `gcd` and
 `lcm` form a bounded lattice on the associated elements where `gcd` is the infimum, `lcm` is the
 supremum, `1` is bottom, and `0` is top. The type class focuses on `gcd` and we derive the

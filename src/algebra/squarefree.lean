@@ -102,7 +102,7 @@ end
 
 end comm_monoid
 
-section cancel_comm_monoid_with_zero
+section is_domain
 
 variables [comm_monoid_with_zero R] [is_domain R] [wf_dvd_monoid R]
 
@@ -123,7 +123,7 @@ begin
       .resolve_right ha.not_unit) }
 end
 
-end cancel_comm_monoid_with_zero
+end is_domain
 
 end multiplicity
 

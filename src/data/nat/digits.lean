@@ -602,7 +602,7 @@ begin
   replace h : even dig.length := by rwa list.length_map,
   refine eleven_dvd_iff.2 ⟨0, (_ : dig.alternating_sum = 0)⟩,
   have := dig.alternating_sum_reverse,
-  rw [(p.map _).reverse_eq, pow_succ, neg_one_pow_of_even h, mul_one, neg_one_zsmul] at this,
+  rw [(p.map _).reverse_eq, pow_succ, h.neg_one_pow, mul_one, neg_one_zsmul] at this,
   exact eq_zero_of_neg_eq this.symm,
 end
 

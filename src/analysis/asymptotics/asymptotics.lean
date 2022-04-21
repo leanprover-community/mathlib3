@@ -1200,7 +1200,7 @@ iff.intro is_o.tendsto_div_nhds_zero $ λ h,
 theorem is_o_iff_tendsto {f g : α → 𝕜} {l : filter α}
     (hgf : ∀ x, g x = 0 → f x = 0) :
   is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
-⟨λ h, h.tendsto_div_nhds_zero, (is_o_iff_tendsto' (eventually_of_forall hgf)).2⟩
+is_o_iff_tendsto' (eventually_of_forall hgf)
 
 alias is_o_iff_tendsto' ↔ _ asymptotics.is_o_of_tendsto'
 alias is_o_iff_tendsto ↔ _ asymptotics.is_o_of_tendsto
@@ -1237,6 +1237,15 @@ by simp [function.const, this]
 @[simp] lemma is_o_pure {x} : is_o f' g' (pure x) ↔ f' x = 0 :=
 calc is_o f' g' (pure x) ↔ is_o (λ y : α, f' x) (λ _, g' x) (pure x) : is_o_congr rfl rfl
                      ... ↔ f' x = 0                                  : is_o_const_const_iff
+
+lemma is_o_const_id_comap_norm_at_top (c : F') : is_o (λ x : E', c) id (comap norm at_top) :=
+is_o_const_left.2 $ or.inr tendsto_comap
+
+lemma is_o_const_id_at_top (c : E') : is_o (λ x : ℝ, c) id at_top :=
+is_o_const_left.2 $ or.inr tendsto_abs_at_top_at_top
+
+lemma is_o_const_id_at_bot (c : E') : is_o (λ x : ℝ, c) id at_bot :=
+is_o_const_left.2 $ or.inr tendsto_abs_at_bot_at_top
 
 /-!
 ### Eventually (u / v) * v = u

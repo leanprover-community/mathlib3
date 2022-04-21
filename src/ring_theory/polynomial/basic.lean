@@ -77,7 +77,7 @@ theorem mem_degree_lt {n : ℕ} {f : R[X]} :
   f ∈ degree_lt R n ↔ degree f < n :=
 by { simp_rw [degree_lt, submodule.mem_infi, linear_map.mem_ker, degree,
     finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff, with_bot.some_eq_coe,
-    with_bot.coe_lt_coe, lt_iff_not_ge', ne, not_imp_not], refl }
+    with_bot.coe_lt_coe, lt_iff_not_le, ne, not_imp_not], refl }
 
 @[mono] theorem degree_lt_mono {m n : ℕ} (H : m ≤ n) :
   degree_lt R m ≤ degree_lt R n :=

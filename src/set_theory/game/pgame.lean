@@ -1072,20 +1072,39 @@ noncomputable def to_pgame : Π o : ordinal.{u}, pgame.{u}
 using_well_founded { dec_tac := tactic.assumption }
 
 theorem to_pgame_def (o : ordinal) :
-  o.to_pgame = ⟨o.out.α, pempty, λ x, (ordinal.typein (<) x).to_pgame, pempty.elim⟩ :=
+  o.to_pgame = ⟨o.out.α, pempty, λ x, (typein (<) x).to_pgame, pempty.elim⟩ :=
 by rw ordinal.to_pgame
 
-theorem injective_to_pgame : function.injective to_pgame :=
+theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
 begin
-  intros a b h,
-  rw [to_pgame_def, to_pgame_def, pgame.ext] at h,
-  exact ordinal.injective_out h.1,
+  rw [←typein_enum (<) (by rwa type_lt)],
+  apply @pgame.lt_of_le_mk b.out.α _ (λ x, (typein (<) x).to_pgame),
+  rw to_pgame_def
+end
+
+theorem to_pgame_le {a b : ordinal} (h : a ≤ b) : a.to_pgame ≤ b.to_pgame :=
+begin
+  rcases eq_or_lt_of_le h with rfl | h,
+  {
+    refl,
+  },{
+    apply pgame.lt_of_le_of_lt,
+  }
+end
+
+theorem injective_to_pgame : function.injective ordinal.to_pgame :=
+λ a b h, begin
+  by_contra hne,
+  cases lt_or_gt_of_ne hne with hlt hlt;
+  { have := to_pgame_lt hlt,
+    rw h at this,
+    exact pgame.lt_irrefl _ this }
 end
 
 /-- The order embedding version of `to_pgame`. -/
 def to_pgame_embedding : ordinal.{u} ↪o pgame.{u} :=
-{ to_fun := to_pgame,
-  inj' := _,
+{ to_fun := ordinal.to_pgame,
+  inj' := injective_to_pgame,
   map_rel_iff' := _ }
 
 end ordinal

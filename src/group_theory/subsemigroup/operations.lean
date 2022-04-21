@@ -404,17 +404,13 @@ instance has_mul : has_mul S' := ⟨λ a b, ⟨a.1 * b.1, mul_mem a.2 b.2⟩⟩
 omit hA
 
 /-- A subsemigroup of a semigroup inherits a semigroup structure. -/
-@[to_additive "An `add_subsemigroup` of an `add_semigroup` inherits an `add_semigroup`
-structure.",
-priority 75] -- Prefer subclasses of `semigroup` over subclasses of `mul_mem_class`.
+@[to_additive "An `add_subsemigroup` of an `add_semigroup` inherits an `add_semigroup` structure."]
 instance to_semigroup {M : Type*} [semigroup M] {A : Type*} [set_like A M] [mul_mem_class A M]
   (S : A) : semigroup S :=
 subtype.coe_injective.semigroup coe (λ _ _, rfl)
 
 /-- A subsemigroup of a `comm_semigroup` is a `comm_semigroup`. -/
-@[to_additive "An `add_subsemigroup` of an `add_comm_semigroup` is
-an `add_comm_semigroup`.",
-priority 75] -- Prefer subclasses of `semigroup` over subclasses of `mul_mem_class`.
+@[to_additive "An `add_subsemigroup` of an `add_comm_semigroup` is an `add_comm_semigroup`."]
 instance to_comm_semigroup {M} [comm_semigroup M] {A : Type*} [set_like A M] [mul_mem_class A M]
   (S : A) : comm_semigroup S :=
 subtype.coe_injective.comm_semigroup coe (λ _ _, rfl)
@@ -433,35 +429,6 @@ namespace subsemigroup
 
 variables [has_mul M] [has_mul N] [has_mul P] (S : subsemigroup M)
 
-/-- A submagma of a magma inherits a multiplication. -/
-@[to_additive "An additive submagma of an additive magma inherits an addition."]
-instance has_mul : has_mul S := ⟨λ a b, ⟨a.1 * b.1, S.mul_mem a.2 b.2⟩⟩
-
-@[simp, norm_cast, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
-
-@[simp, to_additive] lemma mk_mul_mk (x y : M) (hx : x ∈ S) (hy : y ∈ S) :
-  (⟨x, hx⟩ : S) * ⟨y, hy⟩ = ⟨x * y, S.mul_mem hx hy⟩ := rfl
-
-@[to_additive] lemma mul_def (x y : S) : x * y = ⟨x * y, S.mul_mem x.2 y.2⟩ := rfl
-
-/-- A subsemigroup of a semigroup inherits a semigroup structure. -/
-@[to_additive "An `add_subsemigroup` of an `add_semigroup` inherits an `add_semigroup`
-structure."]
-instance to_semigroup {M : Type*} [semigroup M] (S : subsemigroup M) : semigroup S :=
-subtype.coe_injective.semigroup coe (λ _ _, rfl)
-
-/-- A subsemigroup of a `comm_semigroup` is a `comm_semigroup`. -/
-@[to_additive "An `add_subsemigroup` of an `add_comm_semigroup` is
-an `add_comm_semigroup`."]
-instance to_comm_semigroup {M} [comm_semigroup M] (S : subsemigroup M) : comm_semigroup S :=
-subtype.coe_injective.comm_semigroup coe (λ _ _, rfl)
-
-/-- The natural semigroup hom from a subsemigroup of semigroup `M` to `M`. -/
-@[to_additive "The natural semigroup hom from an `add_subsemigroup` of `add_semigroup` `M` to `M`."]
-def subtype : S →ₙ* M := ⟨coe, λ _ _, rfl⟩
-
-@[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
-
 /-- The top subsemigroup is isomorphic to the semigroup. -/
 @[to_additive "The top additive subsemigroup is isomorphic to the additive semigroup.", simps]
 def top_equiv : (⊤ : subsemigroup M) ≃* M :=
@@ -472,7 +439,7 @@ def top_equiv : (⊤ : subsemigroup M) ≃* M :=
   map_mul'  := λ _ _, rfl }
 
 @[simp, to_additive] lemma top_equiv_to_mul_hom :
-  (top_equiv : _ ≃* M).to_mul_hom = (⊤ : subsemigroup M).subtype :=
+  (top_equiv : _ ≃* M).to_mul_hom = mul_mem_class.subtype (⊤ : subsemigroup M) :=
 rfl
 
 /-- A subsemigroup is isomorphic to its image under an injective function -/
@@ -630,7 +597,7 @@ le_antisymm
 /-- Restriction of a semigroup hom to a subsemigroup of the domain. -/
 @[to_additive "Restriction of an add_semigroup hom to an `add_subsemigroup` of the domain."]
 def srestrict {N : Type*} [has_mul N] (f : M →ₙ* N) (S : subsemigroup M) : S →ₙ* N :=
-f.comp S.subtype
+f.comp (mul_mem_class.subtype S)
 
 @[simp, to_additive]
 lemma srestrict_apply {N : Type*} [has_mul N] (f : M →ₙ* N) (x : S) : f.srestrict S x = f x :=
@@ -708,10 +675,10 @@ by simp only [eq_top_iff, le_prod_iff, ← (gc_map_comap _).le_iff_le, ← srang
 /-- The semigroup hom associated to an inclusion of subsemigroups. -/
 @[to_additive "The `add_semigroup` hom associated to an inclusion of subsemigroups."]
 def inclusion {S T : subsemigroup M} (h : S ≤ T) : S →ₙ* T :=
-S.subtype.cod_srestrict _ (λ x, h x.2)
+(mul_mem_class.subtype S).cod_srestrict _ (λ x, h x.2)
 
 @[simp, to_additive]
-lemma range_subtype (s : subsemigroup M) : s.subtype.srange = s :=
+lemma range_subtype (s : subsemigroup M) : (mul_mem_class.subtype s).srange = s :=
 set_like.coe_injective $ (coe_srange _).trans $ subtype.range_coe
 
 @[to_additive] lemma eq_top_iff' : S = ⊤ ↔ ∀ x : M, x ∈ S :=
@@ -742,7 +709,7 @@ equivalence between `M` and `f.srange`.
 This is a bidirectional version of `add_hom.srange_restrict`. "-/, simps {simp_rhs := tt}]
 def of_left_inverse' (f : M →ₙ* N) {g : N → M} (h : function.left_inverse g f) : M ≃* f.srange :=
 { to_fun := f.srange_restrict,
-  inv_fun := g ∘ f.srange.subtype,
+  inv_fun := g ∘ (mul_mem_class.subtype f.srange),
   left_inv := h,
   right_inv := λ x, subtype.ext $
     let ⟨x', hx'⟩ := mul_hom.mem_srange.mp x.prop in

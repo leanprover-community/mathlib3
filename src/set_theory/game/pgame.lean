@@ -928,7 +928,7 @@ end
 using_well_founded { dec_tac := pgame_wf_tac }
 
 instance covariant_class_swap_add_le : covariant_class pgame pgame (swap (+)) (≤) :=
-⟨λ x y z, pgame.add_le_add_right⟩
+⟨λ x y z, add_le_add_right⟩
 
 instance covariant_class_add_le : covariant_class pgame pgame (+) (≤) :=
 ⟨λ x y z h, calc x + y ≤ y + x : add_comm_le
@@ -990,18 +990,18 @@ theorem add_right_neg_equiv {x : pgame} : x + (-x) ≈ 0 :=
 
 instance covariant_class_swap_add_lt : covariant_class pgame pgame (swap (+)) (<) :=
 ⟨λ x y z h, suffices z + x ≤ y + x → z ≤ y, by { rw ←not_le at ⊢ h, exact mt this h }, λ w,
-  calc z ≤ z + 0          : (add_zero_relabelling _).symm.le
-     ... ≤ z + (x + -x)   : add_le_add_left zero_le_add_right_neg _
-     ... ≤ z + x + -x     : (add_assoc_relabelling _ _ _).symm.le
-     ... ≤ y + x + -x     : add_le_add_right w _
-     ... ≤ y + (x + -x)   : (add_assoc_relabelling _ _ _).le
-     ... ≤ y + 0          : add_le_add_left add_right_neg_le_zero _
-     ... ≤ y              : (add_zero_relabelling _).le⟩
+  calc z ≤ z + 0        : (add_zero_relabelling _).symm.le
+     ... ≤ z + (x + -x) : add_le_add_left zero_le_add_right_neg _
+     ... ≤ z + x + -x   : (add_assoc_relabelling _ _ _).symm.le
+     ... ≤ y + x + -x   : add_le_add_right w _
+     ... ≤ y + (x + -x) : (add_assoc_relabelling _ _ _).le
+     ... ≤ y + 0        : add_le_add_left add_right_neg_le_zero _
+     ... ≤ y            : (add_zero_relabelling _).le⟩
 
 instance covariant_class_add_lt : covariant_class pgame pgame (+) (<) :=
 ⟨λ x y z h, calc x + y ≤ y + x : add_comm_le
-     ... < z + x   : add_lt_add_right h _
-     ... ≤ x + z   : add_comm_le⟩
+                   ... < z + x   : add_lt_add_right h _
+                   ... ≤ x + z   : add_comm_le⟩
 
 theorem le_iff_sub_nonneg {x y : pgame} : x ≤ y ↔ 0 ≤ y - x :=
 ⟨λ h, le_trans zero_le_add_right_neg (add_le_add_right h _),

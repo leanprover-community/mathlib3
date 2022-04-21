@@ -233,7 +233,7 @@ instance is_absolute_value : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
 
 variables {p}
 
-instance : nontrivial ℤ_[p] := ⟨⟨⟨0, 1, padic_int.zero_ne_one⟩⟩
+instance : nontrivial ℤ_[p] := ⟨⟨0, 1, padic_int.zero_ne_one⟩⟩
 
 instance : no_zero_divisors ℤ_[p] := ⟨padic_int.eq_zero_or_eq_zero_of_mul_eq_zero⟩
 

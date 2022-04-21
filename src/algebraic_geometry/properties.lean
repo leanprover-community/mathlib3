@@ -274,8 +274,10 @@ end
 lemma is_integral_of_is_irreducible_is_reduced [is_reduced X] [H : irreducible_space X.carrier] :
   is_integral X :=
 begin
-  split, refine λ U hU, ⟨λ a b e, _,
-    (@@LocallyRingedSpace.component_nontrivial X.to_LocallyRingedSpace U hU).1⟩,
+  split, refine (λ U hU, _),
+  haveI := (@@LocallyRingedSpace.component_nontrivial X.to_LocallyRingedSpace U hU),
+  apply is_domain.of_eq_zero_or_eq_zero_of_mul_eq_zero,
+  intros a b e,
   simp_rw [← basic_open_eq_bot_iff, ← opens.not_nonempty_iff_eq_bot],
   by_contra' h,
   obtain ⟨_, ⟨x, hx₁, rfl⟩, ⟨x, hx₂, e'⟩⟩ := @@nonempty_preirreducible_inter _ H.1

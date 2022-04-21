@@ -64,8 +64,6 @@ instance division_ring.to_group_with_zero :
 { .. ‹division_ring K›,
   .. (infer_instance : semiring K) }
 
-attribute [field_simps] inv_eq_one_div
-
 local attribute [simp]
   division_def mul_comm mul_assoc
   mul_left_comm mul_inv_cancel inv_mul_cancel

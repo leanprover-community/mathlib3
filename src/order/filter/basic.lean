@@ -1622,19 +1622,19 @@ theorem preimage_mem_comap (ht : t ∈ g) : m ⁻¹' t ∈ comap m g :=
 lemma comap_id : comap id f = f :=
 le_antisymm (λ s, preimage_mem_comap) (λ s ⟨t, ht, hst⟩, mem_of_superset ht hst)
 
-lemma comap_const_of_not_mem {x : α} {f : filter α} {V : set α} (hV : V ∈ f) (hx : x ∉ V) :
-  comap (λ y : α, x) f = ⊥ :=
+lemma comap_const_of_not_mem {x : β} (ht : t ∈ g) (hx : x ∉ t) :
+  comap (λ y : α, x) g = ⊥ :=
 begin
   ext W,
-  suffices : ∃ t ∈ f, (λ (y : α), x) ⁻¹' t ⊆ W, by simpa,
-  use [V, hV],
+  suffices : ∃ t ∈ g, (λ (y : α), x) ⁻¹' t ⊆ W, by simpa,
+  use [t, ht],
   simp [preimage_const_of_not_mem hx],
 end
 
-lemma comap_const_of_mem {x : α} {f : filter α} (h : ∀ V ∈ f, x ∈ V) : comap (λ y : α, x) f = ⊤ :=
+lemma comap_const_of_mem {x : β} (h : ∀ t ∈ g, x ∈ t) : comap (λ y : α, x) g = ⊤ :=
 begin
   ext W,
-  suffices : (∃ (t : set α), t ∈ f ∧ (λ (y : α), x) ⁻¹' t ⊆ W) ↔ W = univ,
+  suffices : (∃ (t : set β), t ∈ g ∧ (λ (y : α), x) ⁻¹' t ⊆ W) ↔ W = univ,
   by simpa,
   split,
   { rintro ⟨V, V_in, hW⟩,
@@ -1644,7 +1644,7 @@ begin
     simp [univ_mem] },
 end
 
-lemma map_const [ne_bot f] {c : α} : f.map (λ x, c) = pure c :=
+lemma map_const [ne_bot f] {c : β} : f.map (λ x, c) = pure c :=
 by { ext s, by_cases h : c ∈ s; simp [h] }
 
 lemma comap_comap {m : γ → β} {n : β → α} : comap m (comap n f) = comap (n ∘ m) f :=

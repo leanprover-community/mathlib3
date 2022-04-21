@@ -179,12 +179,12 @@ do
   let ll := (il, fl),
   match locat with
   | loc.wildcard := do
-    move_add_core tt rel  ll none,
+    move_add_core tt rel ll none,
     ctx ← local_context,
-    ctx.mmap (λ e, move_add_core tt rel  ll (expr.local_pp_name e)),
+    ctx.mmap (λ e, move_add_core tt rel ll (expr.local_pp_name e)),
     skip
   | loc.ns names := do
-    names.mmap $ move_add_core ff rel  ll,
+    names.mmap $ move_add_core ff rel ll,
     skip
   end
 

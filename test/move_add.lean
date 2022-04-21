@@ -35,3 +35,9 @@ begin
   congr' 4, -- takes care of using assumption `hp`
   exact X_pow_mul,
 end
+
+example {a b c : ℕ} : a + b + a + b + c = b + a + b + a + c :=
+begin
+  move_add [a, ← a],
+  refl,
+end

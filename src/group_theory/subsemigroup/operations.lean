@@ -45,10 +45,10 @@ In this file we define various operations on `subsemigroup`s and `mul_hom`s.
 
 ### Operations on `mul_hom`s
 
-* `mul_hom.mrange`: range of a semigroup homomorphism as a subsemigroup of the codomain;
-* `mul_hom.mrestrict`: restrict a semigroup homomorphism to a subsemigroup;
-* `mul_hom.cod_mrestrict`: restrict the codomain of a semigroup homomorphism to a subsemigroup;
-* `mul_hom.mrange_restrict`: restrict a semigroup homomorphism to its range;
+* `mul_hom.srange`: range of a semigroup homomorphism as a subsemigroup of the codomain;
+* `mul_hom.srestrict`: restrict a semigroup homomorphism to a subsemigroup;
+* `mul_hom.cod_srestrict`: restrict the codomain of a semigroup homomorphism to a subsemigroup;
+* `mul_hom.srange_restrict`: restrict a semigroup homomorphism to its range;
 
 ### Implementation notes
 
@@ -581,35 +581,35 @@ variables [has_mul M] [has_mul N] [has_mul P] (S : subsemigroup M)
 
 /-- The range of a semigroup homomorphism is a subsemigroup. See Note [range copy pattern]. -/
 @[to_additive "The range of an `add_hom` is an `add_subsemigroup`."]
-def mrange (f : M →ₙ* N) : subsemigroup N :=
+def srange (f : M →ₙ* N) : subsemigroup N :=
 ((⊤ : subsemigroup M).map f).copy (set.range f) set.image_univ.symm
 
 @[simp, to_additive]
-lemma coe_mrange (f : M →ₙ* N) :
-  (f.mrange : set N) = set.range f :=
+lemma coe_srange (f : M →ₙ* N) :
+  (f.srange : set N) = set.range f :=
 rfl
 
-@[simp, to_additive] lemma mem_mrange {f : M →ₙ* N} {y : N} :
-  y ∈ f.mrange ↔ ∃ x, f x = y :=
+@[simp, to_additive] lemma mem_srange {f : M →ₙ* N} {y : N} :
+  y ∈ f.srange ↔ ∃ x, f x = y :=
 iff.rfl
 
-@[to_additive] lemma mrange_eq_map (f : M →ₙ* N) : f.mrange = (⊤ : subsemigroup M).map f :=
+@[to_additive] lemma srange_eq_map (f : M →ₙ* N) : f.srange = (⊤ : subsemigroup M).map f :=
 copy_eq _
 
 @[to_additive]
-lemma map_mrange (g : N →ₙ* P) (f : M →ₙ* N) : f.mrange.map g = (g.comp f).mrange :=
-by simpa only [mrange_eq_map] using (⊤ : subsemigroup M).map_map g f
+lemma map_srange (g : N →ₙ* P) (f : M →ₙ* N) : f.srange.map g = (g.comp f).srange :=
+by simpa only [srange_eq_map] using (⊤ : subsemigroup M).map_map g f
 
 @[to_additive]
-lemma mrange_top_iff_surjective {N} [has_mul N] {f : M →ₙ* N} :
-  f.mrange = (⊤ : subsemigroup N) ↔ function.surjective f :=
-set_like.ext'_iff.trans $ iff.trans (by rw [coe_mrange, coe_top]) set.range_iff_surjective
+lemma srange_top_iff_surjective {N} [has_mul N] {f : M →ₙ* N} :
+  f.srange = (⊤ : subsemigroup N) ↔ function.surjective f :=
+set_like.ext'_iff.trans $ iff.trans (by rw [coe_srange, coe_top]) set.range_iff_surjective
 
 /-- The range of a surjective semigroup hom is the whole of the codomain. -/
 @[to_additive "The range of a surjective `add_semigroup` hom is the whole of the codomain."]
-lemma mrange_top_of_surjective {N} [has_mul N] (f : M →ₙ* N) (hf : function.surjective f) :
-  f.mrange = (⊤ : subsemigroup N) :=
-mrange_top_iff_surjective.2 hf
+lemma srange_top_of_surjective {N} [has_mul N] (f : M →ₙ* N) (hf : function.surjective f) :
+  f.srange = (⊤ : subsemigroup N) :=
+srange_top_iff_surjective.2 hf
 
 @[to_additive]
 lemma mclosure_preimage_le (f : M →ₙ* N) (s : set N) :
@@ -629,32 +629,32 @@ le_antisymm
 
 /-- Restriction of a semigroup hom to a subsemigroup of the domain. -/
 @[to_additive "Restriction of an add_semigroup hom to an `add_subsemigroup` of the domain."]
-def mrestrict {N : Type*} [has_mul N] (f : M →ₙ* N) (S : subsemigroup M) : S →ₙ* N :=
+def srestrict {N : Type*} [has_mul N] (f : M →ₙ* N) (S : subsemigroup M) : S →ₙ* N :=
 f.comp S.subtype
 
 @[simp, to_additive]
-lemma mrestrict_apply {N : Type*} [has_mul N] (f : M →ₙ* N) (x : S) : f.mrestrict S x = f x :=
+lemma srestrict_apply {N : Type*} [has_mul N] (f : M →ₙ* N) (x : S) : f.srestrict S x = f x :=
 rfl
 
 /-- Restriction of a semigroup hom to a subsemigroup of the codomain. -/
 @[to_additive "Restriction of an `add_semigroup` hom to an `add_subsemigroup` of the
 codomain.", simps]
-def cod_mrestrict (f : M →ₙ* N) (S : subsemigroup N) (h : ∀ x, f x ∈ S) : M →ₙ* S :=
+def cod_srestrict (f : M →ₙ* N) (S : subsemigroup N) (h : ∀ x, f x ∈ S) : M →ₙ* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
   map_mul' := λ x y, subtype.eq (map_mul f x y) }
 
 /-- Restriction of a semigroup hom to its range interpreted as a subsemigroup. -/
 @[to_additive "Restriction of an `add_semigroup` hom to its range interpreted as a subsemigroup."]
-def mrange_restrict {N} [has_mul N] (f : M →ₙ* N) : M →ₙ* f.mrange :=
-f.cod_mrestrict f.mrange $ λ x, ⟨x, rfl⟩
+def srange_restrict {N} [has_mul N] (f : M →ₙ* N) : M →ₙ* f.srange :=
+f.cod_srestrict f.srange $ λ x, ⟨x, rfl⟩
 
 @[simp, to_additive]
-lemma coe_mrange_restrict {N} [has_mul N] (f : M →ₙ* N) (x : M) :
-  (f.mrange_restrict x : N) = f x :=
+lemma coe_srange_restrict {N} [has_mul N] (f : M →ₙ* N) (x : M) :
+  (f.srange_restrict x : N) = f x :=
 rfl
 
 @[to_additive]
-lemma mrange_restrict_surjective (f : M →ₙ* N) : function.surjective f.mrange_restrict :=
+lemma srange_restrict_surjective (f : M →ₙ* N) : function.surjective f.srange_restrict :=
 λ ⟨_, ⟨x, rfl⟩⟩, ⟨x, rfl⟩
 
 @[to_additive]
@@ -692,27 +692,27 @@ open mul_hom
 variables [has_mul M] [has_mul N] [has_mul P] (S : subsemigroup M)
 
 @[simp, to_additive]
-lemma mrange_fst [nonempty N] : (fst M N).mrange = ⊤ :=
-(fst M N).mrange_top_of_surjective $ prod.fst_surjective
+lemma srange_fst [nonempty N] : (fst M N).srange = ⊤ :=
+(fst M N).srange_top_of_surjective $ prod.fst_surjective
 
 @[simp, to_additive]
-lemma mrange_snd [nonempty M] : (snd M N).mrange = ⊤ :=
-(snd M N).mrange_top_of_surjective $ prod.snd_surjective
+lemma srange_snd [nonempty M] : (snd M N).srange = ⊤ :=
+(snd M N).srange_top_of_surjective $ prod.snd_surjective
 
 @[to_additive]
 lemma prod_eq_top_iff [nonempty M] [nonempty N] {s : subsemigroup M} {t : subsemigroup N} :
   s.prod t = ⊤ ↔ s = ⊤ ∧ t = ⊤ :=
-by simp only [eq_top_iff, le_prod_iff, ← (gc_map_comap _).le_iff_le, ← mrange_eq_map,
-  mrange_fst, mrange_snd]
+by simp only [eq_top_iff, le_prod_iff, ← (gc_map_comap _).le_iff_le, ← srange_eq_map,
+  srange_fst, srange_snd]
 
 /-- The semigroup hom associated to an inclusion of subsemigroups. -/
 @[to_additive "The `add_semigroup` hom associated to an inclusion of subsemigroups."]
 def inclusion {S T : subsemigroup M} (h : S ≤ T) : S →ₙ* T :=
-S.subtype.cod_mrestrict _ (λ x, h x.2)
+S.subtype.cod_srestrict _ (λ x, h x.2)
 
 @[simp, to_additive]
-lemma range_subtype (s : subsemigroup M) : s.subtype.mrange = s :=
-set_like.coe_injective $ (coe_mrange _).trans $ subtype.range_coe
+lemma range_subtype (s : subsemigroup M) : s.subtype.srange = s :=
+set_like.coe_injective $ (coe_srange _).trans $ subtype.range_coe
 
 @[to_additive] lemma eq_top_iff' : S = ⊤ ↔ ∀ x : M, x ∈ S :=
 eq_top_iff.trans ⟨λ h m, h $ mem_top m, λ h m _, h m⟩
@@ -730,24 +730,24 @@ subsemigroups of an additive semigroup are equal."]
 def subsemigroup_congr (h : S = T) : S ≃* T :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
 
--- this name is primed so that the version to `f.range` instead of `f.mrange` can be unprimed.
+-- this name is primed so that the version to `f.range` instead of `f.srange` can be unprimed.
 /-- A semigroup homomorphism `f : M →ₙ* N` with a left-inverse `g : N → M` defines a multiplicative
-equivalence between `M` and `f.mrange`.
+equivalence between `M` and `f.srange`.
 
-This is a bidirectional version of `mul_hom.mrange_restrict`. -/
+This is a bidirectional version of `mul_hom.srange_restrict`. -/
 @[to_additive /-"
 An additive semigroup homomorphism `f : M →+ N` with a left-inverse `g : N → M` defines an additive
-equivalence between `M` and `f.mrange`.
+equivalence between `M` and `f.srange`.
 
-This is a bidirectional version of `add_hom.mrange_restrict`. "-/, simps {simp_rhs := tt}]
-def of_left_inverse' (f : M →ₙ* N) {g : N → M} (h : function.left_inverse g f) : M ≃* f.mrange :=
-{ to_fun := f.mrange_restrict,
-  inv_fun := g ∘ f.mrange.subtype,
+This is a bidirectional version of `add_hom.srange_restrict`. "-/, simps {simp_rhs := tt}]
+def of_left_inverse' (f : M →ₙ* N) {g : N → M} (h : function.left_inverse g f) : M ≃* f.srange :=
+{ to_fun := f.srange_restrict,
+  inv_fun := g ∘ f.srange.subtype,
   left_inv := h,
   right_inv := λ x, subtype.ext $
-    let ⟨x', hx'⟩ := mul_hom.mem_mrange.mp x.prop in
+    let ⟨x', hx'⟩ := mul_hom.mem_srange.mp x.prop in
     show f (g x) = x, by rw [←hx', h x'],
-  .. f.mrange_restrict }
+  .. f.srange_restrict }
 
 /-- A `mul_equiv` `φ` between two semigroups `M` and `N` induces a `mul_equiv` between
 a subsemigroup `S ≤ M` and the subsemigroup `φ(S) ≤ N`.

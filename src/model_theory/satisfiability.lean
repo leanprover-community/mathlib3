@@ -16,12 +16,16 @@ This file deals with the satisfiability of first-order theories, as well as equi
 model.
 * `first_order.language.Theory.is_finitely_satisfiable`: `T.is_finitely_satisfiable` indicates that
 every finite subset of `T` is satisfiable.
+* `first_order.language.Theory.is_complete`: `T.is_complete` indicates that `T` is satisfiable and
+models each sentence or its negation.
 * `first_order.language.Theory.semantically_equivalent`: `T.semantically_equivalent φ ψ` indicates
 that `φ` and `ψ` are equivalent formulas or sentences in models of `T`.
 
 ## Main Results
 * The Compactness Theorem, `first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable`,
 shows that a theory is satisfiable iff it is finitely satisfiable.
+* `first_order.language.complete_theory.is_complete`: The complete theory of a structure is
+complete.
 
 ## Implementation Details
 * Satisfiability of an `L.Theory` `T` is defined in the minimal universe containing all the symbols

@@ -137,7 +137,8 @@ end
 /-- If `p` is a prime and `is_cyclotomic_extension {p ^ (k + 1)} K L`, then the discriminant of
 `hζ.power_basis K` is `(-1) ^ ((p ^ (k + 1).totient) / 2) * p ^ (p ^ k * ((p - 1) * (k + 1) - 1))`
 if `irreducible (cyclotomic (p ^ (k + 1)) K))`, `irreducible (cyclotomic p K)`. Beware that the
-formula uses `1 / 2 = 0` and it is used only to have a uniform result. -/
+formula uses `1 / 2 = 0` and it is used only to have a uniform result. See also
+`discr_prime_pow_eq_unit_mul_pow`. -/
 lemma discr_prime_pow [is_cyclotomic_extension {p ^ (k + 1)} K L] [hp : fact (p : ℕ).prime]
   [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ ↑(p ^ (k + 1)))
   (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))
@@ -170,6 +171,22 @@ begin
     { simp },
     { apply_instance } },
   { exact discr_prime_pow_ne_two hζ hirr hirr₁ hk }
+end
+
+/-- If `p` is a prime and `is_cyclotomic_extension {p ^ (k + 1)} K L`, then there are `u : ℤˣ` and
+`n : ℕ` such that the discriminant of `hζ.power_basis K` is `u * p ^ n`. Often this is enough and
+less cumbersome to use than the previous lemmas. -/
+lemma discr_prime_pow_eq_unit_mul_pow [is_cyclotomic_extension {p ^ (k + 1)} K L]
+  [hp : fact (p : ℕ).prime] [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ ↑(p ^ (k + 1)))
+  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))
+  (hirr₁ : irreducible (cyclotomic (p : ℕ) K)) :
+  ∃ (u : ℤˣ) (n : ℕ), discr K (hζ.power_basis K).basis = u * p ^ n :=
+begin
+  rw [discr_prime_pow hζ hirr hirr₁],
+  by_cases heven : even (((p ^ (k + 1) : ℕ).totient) / 2),
+  { exact ⟨1, (p : ℕ) ^ k * ((p - 1) * (k + 1) - 1), by simp [heven.neg_one_pow]⟩ },
+  { exact ⟨-1, (p : ℕ) ^ k * ((p - 1) * (k + 1) - 1),
+    by simp [(odd_iff_not_even.2 heven).neg_one_pow]⟩ }
 end
 
 /-- If `p` is an odd prime and `is_cyclotomic_extension {p} K L`, then

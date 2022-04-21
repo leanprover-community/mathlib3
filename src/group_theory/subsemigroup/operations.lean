@@ -70,7 +70,7 @@ section
 
 variables [has_mul M]
 
-/-- subsemigroups of magma `M` are isomorphic to additive subsemigroups of `additive M`. -/
+/-- Subsemigroups of semigroup `M` are isomorphic to additive subsemigroups of `additive M`. -/
 @[simps]
 def subsemigroup.to_add_subsemigroup : subsemigroup M ≃o add_subsemigroup (additive M) :=
 { to_fun := λ S,
@@ -83,8 +83,8 @@ def subsemigroup.to_add_subsemigroup : subsemigroup M ≃o add_subsemigroup (add
   right_inv := λ x, by cases x; refl,
   map_rel_iff' := λ a b, iff.rfl, }
 
-/-- Additive subsemigroups of an additive magma `additive M` are isomorphic to
-subsemigroups of `M`. -/
+/-- Additive subsemigroups of an additive semigroup `additive M` are isomorphic to subsemigroups
+of `M`. -/
 abbreviation add_subsemigroup.to_subsemigroup' : add_subsemigroup (additive M) ≃o subsemigroup M :=
 subsemigroup.to_add_subsemigroup.symm
 
@@ -109,7 +109,7 @@ section
 
 variables {A : Type*} [has_add A]
 
-/-- Additive subsemigroups of an additive magma `A` are isomorphic to
+/-- Additive subsemigroups of an additive semigroup `A` are isomorphic to
 multiplicative subsemigroups of `multiplicative A`. -/
 @[simps]
 def add_subsemigroup.to_subsemigroup : add_subsemigroup A ≃o subsemigroup (multiplicative A) :=
@@ -123,7 +123,8 @@ def add_subsemigroup.to_subsemigroup : add_subsemigroup A ≃o subsemigroup (mul
   right_inv := λ x, by cases x; refl,
   map_rel_iff' := λ a b, iff.rfl, }
 
-/-- subsemigroups of a magma `multiplicative A` are isomorphic to additive subsemigroups of `A`. -/
+/-- Subsemigroups of a semigroup `multiplicative A` are isomorphic to additive subsemigroups
+of `A`. -/
 abbreviation subsemigroup.to_add_subsemigroup' :
   subsemigroup (multiplicative A) ≃o add_subsemigroup A :=
 add_subsemigroup.to_subsemigroup.symm
@@ -156,8 +157,8 @@ open set
 
 variables [has_mul M] [has_mul N] [has_mul P] (S : subsemigroup M)
 
-/-- The preimage of a subsemigroup along a mul homomorphism is a subsemigroup. -/
-@[to_additive "The preimage of an `add_subsemigroup` along an add homomorphism is an
+/-- The preimage of a subsemigroup along a semigroup homomorphism is a subsemigroup. -/
+@[to_additive "The preimage of an `add_subsemigroup` along an `add_semigroup` homomorphism is an
 `add_subsemigroup`."]
 def comap (f : M →ₙ* N) (S : subsemigroup N) : subsemigroup M :=
 { carrier := (f ⁻¹' S),
@@ -179,8 +180,8 @@ rfl
 lemma comap_id (S : subsemigroup P) : S.comap (mul_hom.id _) = S :=
 ext (by simp)
 
-/-- The image of a subsemigroup along a mul homomorphism is a subsemigroup. -/
-@[to_additive "The image of an `add_subsemigroup` along an add homomorphism is
+/-- The image of a subsemigroup along a semigroup homomorphism is a subsemigroup. -/
+@[to_additive "The image of an `add_subsemigroup` along an `add_semigroup` homomorphism is
 an `add_subsemigroup`."]
 def map (f : M →ₙ* N) (S : subsemigroup M) : subsemigroup N :=
 { carrier := (f '' S),
@@ -382,8 +383,8 @@ lemma comap_strict_mono_of_surjective : strict_mono (comap f) :=
 
 end galois_insertion
 
-/-- A subsemigroup of a magma inherits a multiplication. -/
-@[to_additive "An `add_subsemigroup` of an additive magma inherits an addition."]
+/-- A submagma of a magma inherits a multiplication. -/
+@[to_additive "An additive submagma of an additive magma inherits an addition."]
 instance has_mul : has_mul S := ⟨λ a b, ⟨a.1 * b.1, S.mul_mem a.2 b.2⟩⟩
 
 @[simp, norm_cast, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
@@ -394,7 +395,7 @@ instance has_mul : has_mul S := ⟨λ a b, ⟨a.1 * b.1, S.mul_mem a.2 b.2⟩⟩
 @[to_additive] lemma mul_def (x y : S) : x * y = ⟨x * y, S.mul_mem x.2 y.2⟩ := rfl
 
 /-- A subsemigroup of a semigroup inherits a semigroup structure. -/
-@[to_additive "An `add_subsemigroup` of an semigroup inherits an additive semigroup
+@[to_additive "An `add_subsemigroup` of an `add_semigroup` inherits an `add_semigroup`
 structure."]
 instance to_semigroup {M : Type*} [semigroup M] (S : subsemigroup M) : semigroup S :=
 subtype.coe_injective.semigroup coe (λ _ _, rfl)
@@ -429,10 +430,10 @@ eq_top_iff.2 $ λ x, subtype.rec_on x $ λ x hx _, begin
   { exact subsemigroup.mul_mem _ },
 end
 
-/-- Given `subsemigroup`s `s`, `t` of magma `M`, `N` respectively, `s × t` as a subsemigroup
+/-- Given `subsemigroup`s `s`, `t` of semigroups `M`, `N` respectively, `s × t` as a subsemigroup
 of `M × N`. -/
-@[to_additive prod "Given `add_subsemigroup`s `s`, `t` of additive magmas `A`, `B`
-respectively, `s × t` as an `add_subsemigroup` of `A × B`."]
+@[to_additive prod "Given `add_subsemigroup`s `s`, `t` of `add_semigroup`s `A`, `B` respectively,
+`s × t` as an `add_subsemigroup` of `A × B`."]
 def prod (s : subsemigroup M) (t : subsemigroup N) : subsemigroup (M × N) :=
 { carrier := (s : set M) ×ˢ (t : set N),
   mul_mem' := λ p q hp hq, ⟨s.mul_mem hp.1 hq.1, t.mul_mem hp.2 hq.2⟩ }
@@ -468,9 +469,9 @@ lemma top_prod_top : (⊤ : subsemigroup M).prod (⊤ : subsemigroup N) = ⊤ :=
 @[to_additive] lemma bot_prod_bot : (⊥ : subsemigroup M).prod (⊥ : subsemigroup N) = ⊥ :=
 set_like.coe_injective $ by simp [coe_prod, prod.one_eq_mk]
 
-/-- The product of subsemigroups is isomorphic to their product as monoids. -/
+/-- The product of subsemigroups is isomorphic to their product as semigroups. -/
 @[to_additive prod_equiv "The product of additive subsemigroups is isomorphic to their product
-as additive monoids"]
+as additive semigroups"]
 def prod_equiv (s : subsemigroup M) (t : subsemigroup N) : s.prod t ≃* s × t :=
 { map_mul' := λ x y, rfl, .. equiv.set.prod ↑s ↑t }
 
@@ -515,7 +516,7 @@ open subsemigroup
 
 variables [has_mul M] [has_mul N] [has_mul P] (S : subsemigroup M)
 
-/-- The range of a mul homomorphism is a subsemigroup. See Note [range copy pattern]. -/
+/-- The range of a semigroup homomorphism is a subsemigroup. See Note [range copy pattern]. -/
 @[to_additive "The range of an `add_hom` is an `add_subsemigroup`."]
 def mrange (f : M →ₙ* N) : subsemigroup N :=
 ((⊤ : subsemigroup M).map f).copy (set.range f) set.image_univ.symm
@@ -649,9 +650,10 @@ namespace mul_equiv
 
 variables [has_mul M] [has_mul N] {S T : subsemigroup M}
 
-/-- Makes the identity isomorphism from a proof that two subsemigroups of a magma are equal. -/
+/-- Makes the identity isomorphism from a proof that two subsemigroups of a multiplicative
+    semigroup are equal. -/
 @[to_additive "Makes the identity additive isomorphism from a proof two
-subsemigroups of an additive magma are equal."]
+subsemigroups of an additive semigroup are equal."]
 def subsemigroup_congr (h : S = T) : S ≃* T :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
 
@@ -661,7 +663,7 @@ equivalence between `M` and `f.mrange`.
 
 This is a bidirectional version of `mul_hom.mrange_restrict`. -/
 @[to_additive /-"
-An additive homomorphism `f : M →+ N` with a left-inverse `g : N → M` defines an additive
+An additive semigroup homomorphism `f : M →+ N` with a left-inverse `g : N → M` defines an additive
 equivalence between `M` and `f.mrange`.
 
 This is a bidirectional version of `add_hom.mrange_restrict`. "-/, simps {simp_rhs := tt}]
@@ -674,12 +676,12 @@ def of_left_inverse' (f : M →ₙ* N) {g : N → M} (h : function.left_inverse 
     show f (g x) = x, by rw [←hx', h x'],
   .. f.mrange_restrict }
 
-/-- A `mul_equiv` `φ` between two magmas `M` and `N` induces a `mul_equiv` between
+/-- A `mul_equiv` `φ` between two semigroups `M` and `N` induces a `mul_equiv` between
 a subsemigroup `S ≤ M` and the subsemigroup `φ(S) ≤ N`.
 See `mul_hom.subsemigroup_map` for a variant for `mul_hom`s. -/
-@[to_additive "An `add_equiv` `φ` between two additive magmas `M` and `N` induces an `add_equiv`
-between a subsemigroup `S ≤ M` and the subsemigroup `φ(S) ≤ N`. See
-`add_mul_hom.add_subsemigroup_map` for a variant for `add_mul_hom`s.", simps]
+@[to_additive "An `add_equiv` `φ` between two additive semigroups `M` and `N` induces an `add_equiv`
+between a subsemigroup `S ≤ M` and the subsemigroup `φ(S) ≤ N`. See `add_hom.add_subsemigroup_map`
+for a variant for `add_hom`s.", simps]
 def subsemigroup_map (e : M ≃* N) (S : subsemigroup M) : S ≃* S.map e.to_mul_hom :=
 { to_fun := λ x, ⟨e x, _⟩,
   inv_fun := λ x, ⟨e.symm x, _⟩, -- we restate this for `simps` to avoid `⇑e.symm.to_equiv x`

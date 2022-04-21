@@ -75,11 +75,11 @@ variables {α β : Type u}
   Quotienting by this equivalence relation gives the cardinal numbers.
 -/
 instance cardinal.is_equivalent : setoid (Type u) :=
-{ r := λα β, nonempty (α ≃ β),
-  iseqv := ⟨λα,
+{ r := λ α β, nonempty (α ≃ β),
+  iseqv := ⟨λ α,
     ⟨equiv.refl α⟩,
-    λα β ⟨e⟩, ⟨e.symm⟩,
-    λα β γ ⟨e₁⟩ ⟨e₂⟩, ⟨e₁.trans e₂⟩⟩ }
+    λ α β ⟨e⟩, ⟨e.symm⟩,
+    λ α β γ ⟨e₁⟩ ⟨e₂⟩, ⟨e₁.trans e₂⟩⟩ }
 
 /-- `cardinal.{u}` is the type of cardinal numbers in `Type u`,
   defined as the quotient of `Type u` by existence of an equivalence
@@ -119,6 +119,9 @@ protected lemma eq : #α = #β ↔ nonempty (α ≃ β) := quotient.eq
 /-- The representative of the cardinal of a type is equivalent ot the original type. -/
 def out_mk_equiv {α : Type v} : (#α).out ≃ α :=
 nonempty.some $ cardinal.eq.mp (by simp)
+
+theorem injective_out : injective (@quotient.out _ cardinal.is_equivalent) :=
+λ a b h, by { apply_fun mk at h, rwa [mk_out, mk_out] at h }
 
 lemma mk_congr (e : α ≃ β) : # α = # β := quot.sound ⟨e⟩
 

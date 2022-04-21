@@ -125,6 +125,8 @@ end
 
 end topological_algebra
 
+section normed
+
 section any_field_any_algebra
 
 variables {𝕂 𝔸 𝔹 : Type*} [nondiscrete_normed_field 𝕂]
@@ -531,6 +533,8 @@ end
 end comm_algebra
 
 end is_R_or_C
+
+end normed
 
 section scalar_tower
 

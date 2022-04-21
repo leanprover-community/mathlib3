@@ -167,26 +167,39 @@ begin
       minpoly.eq_X_sub_C_of_algebra_map_inj _ (algebra_map K L).injective, nat_degree_X_sub_C],
     simp only [discr, trace_matrix, matrix.det_unique, fin.default_eq_zero, fin.coe_zero, pow_zero,
       trace_form_apply, mul_one],
-    rw [← ring_hom.map_one (algebra_map K L), trace_algebra_map, finrank _ hirr, hp, hk],
+    rw [← (algebra_map K L).map_one, trace_algebra_map, finrank _ hirr, hp, hk],
     { simp },
     { apply_instance } },
   { exact discr_prime_pow_ne_two hζ hirr hirr₁ hk }
 end
 
-/-- If `p` is a prime and `is_cyclotomic_extension {p ^ (k + 1)} K L`, then there are `u : ℤˣ` and
+/-- If `p` is a prime and `is_cyclotomic_extension {p ^ k} K L`, then there are `u : ℤˣ` and
 `n : ℕ` such that the discriminant of `hζ.power_basis K` is `u * p ^ n`. Often this is enough and
 less cumbersome to use than the previous lemmas. -/
-lemma discr_prime_pow_eq_unit_mul_pow [is_cyclotomic_extension {p ^ (k + 1)} K L]
-  [hp : fact (p : ℕ).prime] [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ ↑(p ^ (k + 1)))
-  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))
+lemma discr_prime_pow_eq_unit_mul_pow [is_cyclotomic_extension {p ^ k} K L]
+  [hp : fact (p : ℕ).prime] [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ ↑(p ^ k))
+  (hirr : irreducible (cyclotomic (↑(p ^ k) : ℕ) K))
   (hirr₁ : irreducible (cyclotomic (p : ℕ) K)) :
   ∃ (u : ℤˣ) (n : ℕ), discr K (hζ.power_basis K).basis = u * p ^ n :=
 begin
-  rw [discr_prime_pow hζ hirr hirr₁],
-  by_cases heven : even (((p ^ (k + 1) : ℕ).totient) / 2),
-  { exact ⟨1, (p : ℕ) ^ k * ((p - 1) * (k + 1) - 1), by simp [heven.neg_one_pow]⟩ },
-  { exact ⟨-1, (p : ℕ) ^ k * ((p - 1) * (k + 1) - 1),
-    by simp [(odd_iff_not_even.2 heven).neg_one_pow]⟩ }
+  unfreezingI {
+    cases k,
+    { haveI : ne_zero ((↑(p ^ 0) : ℕ) : K) := ⟨by simp⟩,
+      refine ⟨1, 0, _⟩,
+      simp only [pow_zero, pnat.one_coe, one_right_iff] at hζ,
+      simp only [coe_basis, pow_zero, power_basis_gen, coe_coe, units.coe_one, int.cast_one,
+        mul_one],
+      rw [power_basis_dim, hζ, ← (algebra_map K L).map_one, minpoly.eq_X_sub_C, nat_degree_X_sub_C],
+      simp only [discr, trace_matrix, map_one, one_pow, matrix.det_unique, trace_form_apply,
+        mul_one],
+      rw [← (algebra_map K L).map_one, trace_algebra_map, finrank _ hirr],
+      { simp },
+      { apply_instance } },
+    { rw [discr_prime_pow hζ hirr hirr₁],
+      by_cases heven : even (((p ^ (k + 1) : ℕ).totient) / 2),
+      { exact ⟨1, (p : ℕ) ^ k * ((p - 1) * (k + 1) - 1), by simp [heven.neg_one_pow]⟩ },
+      { exact ⟨-1, (p : ℕ) ^ k * ((p - 1) * (k + 1) - 1),
+          by simp [(odd_iff_not_even.2 heven).neg_one_pow]⟩ } } },
 end
 
 /-- If `p` is an odd prime and `is_cyclotomic_extension {p} K L`, then

@@ -129,7 +129,7 @@ of_compl_not_mem_iff (map m f) $ λ s, @compl_not_mem_iff _ f (m ⁻¹' s)
   s ∈ map m f ↔ m ⁻¹' s ∈ f := iff.rfl
 
 lemma map_map {X Y Z: Type*} (m : X → Y) (n : Y → Z) (f : ultrafilter X) :
-  (f.map m).map n = f.map(n ∘ m) :=
+  (f.map m).map n = f.map (n ∘ m) :=
 begin
   ext,
   split,

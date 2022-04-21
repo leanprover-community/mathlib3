@@ -433,7 +433,7 @@ variables {M₀ : Type*} [comm_monoid_with_zero M₀]
 lemma zero [nontrivial M₀] : is_primitive_root (0 : M₀) 0 :=
 ⟨pow_zero 0, λ l hl, by simpa [zero_pow_eq, show ∀ p, ¬p → false ↔ p, from @not_not] using hl⟩
 
-lemma ne_zero' [nontrivial M₀] {ζ : M₀} (h : is_primitive_root ζ k) : k ≠ 0 → ζ ≠ 0 :=
+protected lemma ne_zero [nontrivial M₀] {ζ : M₀} (h : is_primitive_root ζ k) : k ≠ 0 → ζ ≠ 0 :=
 mt $ λ hn, h.unique (hn.symm ▸ is_primitive_root.zero)
 
 end comm_monoid_with_zero

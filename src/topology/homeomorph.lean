@@ -178,17 +178,17 @@ protected lemma compact_space [compact_space α] (h : α ≃ₜ β) : compact_sp
 { compact_univ := by { rw [← image_univ_of_surjective h.surjective, h.compact_image],
     apply compact_space.compact_univ } }
 
+protected lemma t0_space [t0_space α] (h : α ≃ₜ β) : t0_space β :=
+h.symm.embedding.t0_space
+
+protected lemma t1_space [t1_space α] (h : α ≃ₜ β) : t1_space β :=
+h.symm.embedding.t1_space
+
 protected lemma t2_space [t2_space α] (h : α ≃ₜ β) : t2_space β :=
-{ t2 :=
-  begin
-    intros x y hxy,
-    obtain ⟨u, v, hu, hv, hxu, hyv, huv⟩ := t2_separation (h.symm.injective.ne hxy),
-    refine ⟨h.symm ⁻¹' u, h.symm ⁻¹' v,
-      h.symm.continuous.is_open_preimage _ hu,
-      h.symm.continuous.is_open_preimage _ hv,
-      hxu, hyv, _⟩,
-    rw [← preimage_inter, huv, preimage_empty],
-  end }
+h.symm.embedding.t2_space
+
+protected lemma regular_space [regular_space α] (h : α ≃ₜ β) : regular_space β :=
+h.symm.embedding.regular_space
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := h.surjective.dense_range,
@@ -215,6 +215,9 @@ open_embedding_of_embedding_open h.embedding h.is_open_map
 
 protected lemma closed_embedding (h : α ≃ₜ β) : closed_embedding h :=
 closed_embedding_of_embedding_closed h.embedding h.is_closed_map
+
+protected lemma normal_space [normal_space α] (h : α ≃ₜ β) : normal_space β :=
+h.symm.closed_embedding.normal_space
 
 lemma preimage_closure (h : α ≃ₜ β) (s : set β) : h ⁻¹' (closure s) = closure (h ⁻¹' s) :=
 h.is_open_map.preimage_closure_eq_closure_preimage h.continuous _

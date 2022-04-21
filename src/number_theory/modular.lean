@@ -13,24 +13,24 @@ import analysis.matrix
 
 We define the action of `SL(2,ℤ)` on `ℍ` (via restriction of the `SL(2,ℝ)` action in
 `analysis.complex.upper_half_plane`). We then define the standard fundamental domain
-(`modular_group.fundamental_domain`, `𝒟`) for this action and show
-(`modular_group.exists_smul_mem_fundamental_domain`) that any point in `ℍ` can be
+(`modular_group.fd`, `𝒟`) for this action and show
+(`modular_group.exists_smul_mem_fd`) that any point in `ℍ` can be
 moved inside `𝒟`.
 
 ## Main definitions
 
 The standard (closed) fundamental domain of the action of `SL(2,ℤ)` on `ℍ`, denoted `𝒟`:
-`fundamental_domain := {z | 1 ≤ (z : ℂ).norm_sq ∧ |z.re| ≤ (1 : ℝ) / 2}`
+`fd := {z | 1 ≤ (z : ℂ).norm_sq ∧ |z.re| ≤ (1 : ℝ) / 2}`
 
 The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ`, denoted `𝒟ᵒ`:
-`fundamental_domain_open := {z | 1 < (z : ℂ).norm_sq ∧ |z.re| < (1 : ℝ) / 2}`
+`fdo := {z | 1 < (z : ℂ).norm_sq ∧ |z.re| < (1 : ℝ) / 2}`
 
 These notations are localized in the `modular` locale and can be enabled via `open_locale modular`.
 
 ## Main results
 
 Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`:
-`exists_smul_mem_fundamental_domain (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟`
+`exists_smul_mem_fd (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟`
 
 If both `z` and `γ • z` are in the open domain `𝒟ᵒ` then `z = γ • z`:
 `eq_smul_self_of_mem_fdo_mem_fdo {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z`
@@ -411,16 +411,16 @@ begin
 end
 
 /-- The standard (closed) fundamental domain of the action of `SL(2,ℤ)` on `ℍ`. -/
-def fundamental_domain : set ℍ :=
+def fd : set ℍ :=
 {z | 1 ≤ (z : ℂ).norm_sq ∧ |z.re| ≤ (1 : ℝ) / 2}
 
 /-- The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ`. -/
-def fundamental_domain_open : set ℍ :=
+def fdo : set ℍ :=
 {z | 1 < (z : ℂ).norm_sq ∧ |z.re| < (1 : ℝ) / 2}
 
-localized "notation `𝒟` := modular_group.fundamental_domain" in modular
+localized "notation `𝒟` := modular_group.fd" in modular
 
-localized "notation `𝒟ᵒ` := modular_group.fundamental_domain_open" in modular
+localized "notation `𝒟ᵒ` := modular_group.fdo" in modular
 
 lemma abs_two_mul_re_lt_one_of_mem_fdo (h : z ∈ 𝒟ᵒ) : |2 * z.re| < 1 :=
 begin
@@ -458,7 +458,7 @@ begin
 end
 
 /-- Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`  -/
-lemma exists_smul_mem_fundamental_domain (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟 :=
+lemma exists_smul_mem_fd (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟 :=
 begin
   -- obtain a g₀ which maximizes im (g • z),
   obtain ⟨g₀, hg₀⟩ := exists_max_im z,

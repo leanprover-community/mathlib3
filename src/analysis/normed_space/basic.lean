@@ -402,10 +402,10 @@ def algebra_map_clm : 𝕜 →L[𝕜] 𝕜' :=
       exact (nnnorm_algebra_map _ _).le,
     end, this.continuous }
 
-lemma algebra_map_clm_coe [semi_normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] :
+lemma algebra_map_clm_coe :
   (algebra_map_clm 𝕜 𝕜' : 𝕜 → 𝕜') = (algebra_map 𝕜 𝕜' : 𝕜 → 𝕜') := rfl
 
-lemma algebra_map_clm_to_linear_map [semi_normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] :
+lemma algebra_map_clm_to_linear_map :
   (algebra_map_clm 𝕜 𝕜').to_linear_map = algebra.linear_map 𝕜 𝕜' := rfl
 
 instance normed_algebra.id : normed_algebra 𝕜 𝕜 :=

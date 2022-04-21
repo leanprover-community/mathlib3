@@ -84,10 +84,10 @@ grades. -/
 class grade_bounded_order (𝕆 α : Type*) [preorder 𝕆] [preorder α]
   extends grade_min_order 𝕆 α, grade_max_order 𝕆 α
 
-section preorder
+section preorder -- grading
 variables [preorder 𝕆]
 
-section preorder
+section preorder -- graded order
 variables [preorder α]
 
 section grade_order
@@ -95,7 +95,7 @@ variables (𝕆) [grade_order 𝕆 α] {a b : α}
 
 /-- The grade of an element in a graded order. Morally, this is the number of elements you need to
 go down by to get to `⊥`. -/
-def grade (a : α) : 𝕆 := grade_order.grade a
+def grade : α → 𝕆 := grade_order.grade
 
 protected lemma covby.grade (h : a ⋖ b) : grade 𝕆 a ⋖ grade 𝕆 b := grade_order.covby_grade h
 
@@ -132,12 +132,12 @@ variables {𝕆}
 ⟨grade_strict_mono.is_max_of_apply, is_max.grade _⟩
 
 end grade_max_order
-end preorder
+end preorder -- graded order
 
 lemma grade_mono [partial_order α] [grade_order 𝕆 α] : monotone (grade 𝕆 : α → 𝕆) :=
 grade_strict_mono.monotone
 
-section linear_order
+section linear_order -- graded order
 variables [linear_order α] [grade_order 𝕆 α] {a b : α}
 
 lemma grade_injective : function.injective (grade 𝕆 : α → 𝕆) := grade_strict_mono.injective
@@ -149,8 +149,8 @@ lemma grade_ne_grade_iff : grade 𝕆 a ≠ grade 𝕆 b ↔ a ≠ b := grade_in
 lemma grade_covby_grade_iff : grade 𝕆 a ⋖ grade 𝕆 b ↔ a ⋖ b :=
 (covby_iff_lt_covby_grade.trans $ and_iff_right_of_imp $ λ h, grade_lt_grade_iff.1 h.1).symm
 
-end linear_order
-end preorder
+end linear_order -- graded order
+end preorder -- grading
 
 section partial_order
 variables [partial_order 𝕆] [preorder α]

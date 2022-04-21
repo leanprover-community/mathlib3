@@ -694,6 +694,16 @@ lemma lift_unique (F : monoid_algebra k G →ₐ[k] A) (f : monoid_algebra k G) 
   F f = f.sum (λ a b, b • F (single a 1)) :=
 by conv_lhs { rw lift_unique' F, simp [lift_apply] }
 
+/-- If `f : G → H` is a homomorphism between two magmas, then
+`finsupp.map_domain f` is a non-unital algebra homomorphism between their magma algebras. -/
+@[simps]
+def map_domain_non_unital_alg_hom (k A : Type*) [comm_semiring k] [semiring A] [algebra k A]
+  {G H F : Type*} [has_mul G] [has_mul H] [mul_hom_class F G H] (f : F) :
+  monoid_algebra A G →ₙₐ[k] monoid_algebra A H :=
+{ map_mul' := λ x y, map_domain_mul f x y,
+  map_smul' := λ r x, map_domain_smul r x,
+  ..(finsupp.map_domain.add_monoid_hom f : monoid_algebra A G →+ monoid_algebra A H) }
+
 lemma map_domain_algebra_map (k A : Type*) {H F : Type*} [comm_semiring k] [semiring A]
   [algebra k A] [monoid H] [monoid_hom_class F G H] (f : F) (r : k) :
   map_domain f (algebra_map k (monoid_algebra A G) r) =

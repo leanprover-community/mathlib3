@@ -6,6 +6,7 @@ Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 import algebra.direct_sum.module
 import analysis.complex.basic
 import analysis.normed_space.bounded_linear_maps
+import analysis.convex.strict_convex_space
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 
@@ -268,8 +269,8 @@ begin
                   : inner_self_nonneg
       ... = re ⟪x, x⟫ - re ⟪T • y, x⟫ - re ⟪x, T • y⟫ + re ⟪T • y, T • y⟫
                   : by simp only [inner_sub_sub_self, inner_smul_left, inner_smul_right, h₁, h₂,
-                      neg_mul_eq_neg_mul_symm, add_monoid_hom.map_add, mul_re,
-                      conj_im, add_monoid_hom.map_sub, mul_neg_eq_neg_mul_symm, conj_re, neg_neg]
+                      neg_mul, add_monoid_hom.map_add, mul_re,
+                      conj_im, add_monoid_hom.map_sub, mul_neg, conj_re, neg_neg]
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
@@ -627,8 +628,8 @@ begin
                   : inner_self_nonneg
       ... = re ⟪x, x⟫ - re ⟪T • y, x⟫ - re ⟪x, T • y⟫ + re ⟪T • y, T • y⟫
                   : by simp only [inner_sub_sub_self, inner_smul_left, inner_smul_right, h₁, h₂,
-                      neg_mul_eq_neg_mul_symm, add_monoid_hom.map_add, conj_im,
-                      add_monoid_hom.map_sub, mul_neg_eq_neg_mul_symm, conj_re, neg_neg, mul_re]
+                      neg_mul, add_monoid_hom.map_add, conj_im,
+                      add_monoid_hom.map_sub, mul_neg, conj_re, neg_neg, mul_re]
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp only [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
@@ -886,7 +887,7 @@ containing it. -/
 lemma exists_maximal_orthonormal {s : set E} (hs : orthonormal 𝕜 (coe : s → E)) :
   ∃ w ⊇ s, orthonormal 𝕜 (coe : w → E) ∧ ∀ u ⊇ w, orthonormal 𝕜 (coe : u → E) → u = w :=
 begin
-  rcases zorn.zorn_subset_nonempty {b | orthonormal 𝕜 (coe : b → E)} _ _ hs  with ⟨b, bi, sb, h⟩,
+  obtain ⟨b, bi, sb, h⟩ := zorn_subset_nonempty {b | orthonormal 𝕜 (coe : b → E)} _ _ hs,
   { refine ⟨b, sb, bi, _⟩,
     exact λ u hus hu, h u hu hus },
   { refine λ c hc cc c0, ⟨⋃₀ c, _, _⟩,
@@ -1011,6 +1012,9 @@ end
 lemma norm_inner_le_norm (x y : E) : ∥⟪x, y⟫∥ ≤ ∥x∥ * ∥y∥ :=
 (is_R_or_C.norm_eq_abs _).le.trans (abs_inner_le_norm x y)
 
+lemma nnnorm_inner_le_nnnorm (x y : E) : ∥⟪x, y⟫∥₊ ≤ ∥x∥₊ * ∥y∥₊ :=
+norm_inner_le_norm x y
+
 lemma re_inner_le_norm (x y : E) : re ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
 le_trans (re_le_abs (inner x y)) (abs_inner_le_norm x y)
 
@@ -1023,18 +1027,19 @@ lemma real_inner_le_norm (x y : F) : ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
 le_trans (le_abs_self _) (abs_real_inner_le_norm _ _)
 
 include 𝕜
-lemma parallelogram_law_with_norm {x y : E} :
+lemma parallelogram_law_with_norm (x y : E) :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
 begin
   simp only [← inner_self_eq_norm_mul_norm],
   rw [← re.map_add, parallelogram_law, two_mul, two_mul],
   simp only [re.map_add],
 end
-omit 𝕜
 
-lemma parallelogram_law_with_norm_real {x y : F} :
-  ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
-by { have h := @parallelogram_law_with_norm ℝ F _ _ x y, simpa using h }
+lemma parallelogram_law_with_nnnorm (x y : E) :
+  ∥x + y∥₊ * ∥x + y∥₊ + ∥x - y∥₊ * ∥x - y∥₊ = 2 * (∥x∥₊ * ∥x∥₊ + ∥y∥₊ * ∥y∥₊) :=
+subtype.ext $ parallelogram_law_with_norm x y
+
+omit 𝕜
 
 /-- Polarization identity: The real part of the  inner product, in terms of the norm. -/
 lemma re_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two (x y : E) :
@@ -1065,6 +1070,55 @@ begin
   push_cast,
   simp only [sq, ← mul_div_right_comm, ← add_div]
 end
+
+section complex
+
+variables {V : Type*}
+[inner_product_space ℂ V]
+
+/--
+A complex polarization identity, with a linear map
+-/
+lemma inner_map_polarization (T : V →ₗ[ℂ] V) (x y : V):
+  ⟪ T y, x ⟫_ℂ = (⟪T (x + y) , x + y⟫_ℂ - ⟪T (x - y) , x - y⟫_ℂ +
+    complex.I * ⟪T (x + complex.I • y) , x + complex.I • y⟫_ℂ -
+    complex.I * ⟪T (x - complex.I • y), x - complex.I • y ⟫_ℂ) / 4 :=
+begin
+  simp only [map_add, map_sub, inner_add_left, inner_add_right, linear_map.map_smul,
+             inner_smul_left, inner_smul_right, complex.conj_I, ←pow_two, complex.I_sq,
+             inner_sub_left, inner_sub_right, mul_add, ←mul_assoc, mul_neg, neg_neg,
+             sub_neg_eq_add, one_mul, neg_one_mul, mul_sub, sub_sub],
+  ring,
+end
+
+lemma inner_map_polarization' (T : V →ₗ[ℂ] V) (x y : V):
+  ⟪ T x, y ⟫_ℂ = (⟪T (x + y) , x + y⟫_ℂ - ⟪T (x - y) , x - y⟫_ℂ -
+    complex.I * ⟪T (x + complex.I • y) , x + complex.I • y⟫_ℂ +
+    complex.I * ⟪T (x - complex.I • y), x - complex.I • y ⟫_ℂ) / 4 :=
+begin
+  simp only [map_add, map_sub, inner_add_left, inner_add_right, linear_map.map_smul,
+             inner_smul_left, inner_smul_right, complex.conj_I, ←pow_two, complex.I_sq,
+             inner_sub_left, inner_sub_right, mul_add, ←mul_assoc, mul_neg, neg_neg,
+             sub_neg_eq_add, one_mul, neg_one_mul, mul_sub, sub_sub],
+  ring,
+end
+
+/--
+If `⟪T x, x⟫_ℂ = 0` for all x, then T = 0.
+-/
+lemma inner_map_self_eq_zero (T : V →ₗ[ℂ] V) :
+  (∀ (x : V), ⟪T x, x⟫_ℂ = 0) ↔ T = 0 :=
+begin
+  split,
+  { intro hT,
+    ext x,
+    simp only [linear_map.zero_apply, ← inner_self_eq_zero, inner_map_polarization, hT],
+    norm_num },
+  { rintro rfl x,
+    simp only [linear_map.zero_apply, inner_zero_left] }
+end
+
+end complex
 
 section
 
@@ -1115,6 +1169,12 @@ end
 lemma orthonormal.comp_linear_isometry_equiv {v : ι → E} (hv : orthonormal 𝕜 v) (f : E ≃ₗᵢ[𝕜] E') :
   orthonormal 𝕜 (f ∘ v) :=
 hv.comp_linear_isometry f.to_linear_isometry
+
+/-- A linear isometric equivalence, applied with `basis.map`, preserves the property of being
+orthonormal. --/
+lemma orthonormal.map_linear_isometry_equiv {v : basis ι 𝕜 E} (hv : orthonormal 𝕜 v)
+  (f : E ≃ₗᵢ[𝕜] E') : orthonormal 𝕜 (v.map f.to_linear_equiv) :=
+hv.comp_linear_isometry_equiv f
 
 /-- A linear map that sends an orthonormal basis to orthonormal vectors is a linear isometry. -/
 def linear_map.isometry_of_orthonormal (f : E →ₗ[𝕜] E') {v : basis ι 𝕜 E} (hv : orthonormal 𝕜 v)
@@ -1331,7 +1391,7 @@ lemma real_inner_div_norm_mul_norm_eq_neg_one_of_ne_zero_of_neg_mul
   {x : F} {r : ℝ} (hx : x ≠ 0) (hr : r < 0) : ⟪x, r • x⟫_ℝ / (∥x∥ * ∥r • x∥) = -1 :=
 begin
   rw [real_inner_smul_self_right, norm_smul, real.norm_eq_abs, ←mul_assoc ∥x∥, mul_comm _ (absR r),
-      mul_assoc, abs_of_neg hr, ←neg_mul_eq_neg_mul, div_neg_eq_neg_div, div_self],
+      mul_assoc, abs_of_neg hr, neg_mul, div_neg_eq_neg_div, div_self],
   exact mul_ne_zero (ne_of_lt hr)
     (λ h, hx (norm_eq_zero.1 (eq_zero_of_mul_self_eq_zero h)))
 end
@@ -1422,8 +1482,7 @@ begin
       rwa [is_R_or_C.abs_div, abs_of_real, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm,
           div_eq_one_iff_eq hxy0] at h } },
   rw [h₁, abs_inner_div_norm_mul_norm_eq_one_iff x y],
-  have : x ≠ 0 := λ h, (hx0' $ norm_eq_zero.mpr h),
-  simp [this]
+  simp [hx0]
 end
 
 /-- The inner product of two vectors, divided by the product of their
@@ -1514,6 +1573,19 @@ of the equality case for Cauchy-Schwarz.
 Compare `abs_inner_eq_norm_iff`, which takes the weaker hypothesis `abs ⟪x, y⟫ = ∥x∥ * ∥y∥`. -/
 lemma inner_eq_norm_mul_iff_real {x y : F} : ⟪x, y⟫_ℝ = ∥x∥ * ∥y∥ ↔ ∥y∥ • x = ∥x∥ • y :=
 inner_eq_norm_mul_iff
+
+/-- An inner product space is strictly convex. We do not register this as an instance for an inner
+space over `𝕜`, `is_R_or_C 𝕜`, because there is no order of the typeclass argument that does not
+lead to a search of `[is_scalar_tower ℝ ?m E]` with unknown `?m`. -/
+instance inner_product_space.strict_convex_space : strict_convex_space ℝ F :=
+begin
+  refine strict_convex_space.of_norm_add (λ x y h, _),
+  rw [same_ray_iff_norm_smul_eq, eq_comm, ← inner_eq_norm_mul_iff_real,
+    real_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two, h,
+    add_mul_self_eq, sub_sub, add_sub_add_right_eq_sub, add_sub_cancel', mul_assoc,
+    mul_div_cancel_left],
+  exact _root_.two_ne_zero
+end
 
 /-- If the inner product of two unit vectors is `1`, then the two vectors are equal. One form of
 the equality case for Cauchy-Schwarz. -/
@@ -2258,5 +2330,32 @@ lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_ad
   {V : submodule 𝕜 E} (hV : ∀ v ∈ V, T v ∈ V) :
   is_self_adjoint (T.restrict hV) :=
 λ v w, hT v w
+
+section complex
+
+variables {V : Type*}
+  [inner_product_space ℂ V]
+
+/-- A linear operator on a complex inner product space is self-adjoint precisely when
+`⟪T v, v⟫_ℂ` is real for all v.-/
+lemma is_self_adjoint_iff_inner_map_self_real (T : V →ₗ[ℂ] V):
+  is_self_adjoint T ↔ ∀ (v : V), conj ⟪T v, v⟫_ℂ = ⟪T v, v⟫_ℂ :=
+begin
+  split,
+  { intros hT v,
+    apply is_self_adjoint.conj_inner_sym hT },
+  { intros h x y,
+    nth_rewrite 1 ← inner_conj_sym,
+    nth_rewrite 1 inner_map_polarization,
+    simp only [star_ring_end_apply, star_div', star_sub, star_add, star_mul],
+    simp only [← star_ring_end_apply],
+    rw [h (x + y), h (x - y), h (x + complex.I • y), h (x - complex.I • y)],
+    simp only [complex.conj_I],
+    rw inner_map_polarization',
+    norm_num,
+    ring },
+end
+
+end complex
 
 end inner_product_space

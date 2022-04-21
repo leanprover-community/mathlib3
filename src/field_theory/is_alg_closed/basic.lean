@@ -3,7 +3,11 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
+
 import field_theory.splitting_field
+import field_theory.perfect_closure
+import field_theory.separable
+
 /-!
 # Algebraically Closed Field
 
@@ -32,7 +36,7 @@ algebraic closure, algebraically closed
 -/
 universes u v w
 
-open_locale classical big_operators
+open_locale classical big_operators polynomial
 open polynomial
 
 variables (k : Type u) [field k]
@@ -43,14 +47,14 @@ To show `polynomial.splits p f` for an arbitrary ring homomorphism `f`,
 see `is_alg_closed.splits_codomain` and `is_alg_closed.splits_domain`.
 -/
 class is_alg_closed : Prop :=
-(splits : ∀ p : polynomial k, p.splits $ ring_hom.id k)
+(splits : ∀ p : k[X], p.splits $ ring_hom.id k)
 
 /-- Every polynomial splits in the field extension `f : K →+* k` if `k` is algebraically closed.
 
 See also `is_alg_closed.splits_domain` for the case where `K` is algebraically closed.
 -/
 theorem is_alg_closed.splits_codomain {k K : Type*} [field k] [is_alg_closed k] [field K]
-  {f : K →+* k} (p : polynomial K) : p.splits f :=
+  {f : K →+* k} (p : K[X]) : p.splits f :=
 by { convert is_alg_closed.splits (p.map f), simp [splits_map_iff] }
 
 /-- Every polynomial splits in the field extension `f : K →+* k` if `K` is algebraically closed.
@@ -58,14 +62,14 @@ by { convert is_alg_closed.splits (p.map f), simp [splits_map_iff] }
 See also `is_alg_closed.splits_codomain` for the case where `k` is algebraically closed.
 -/
 theorem is_alg_closed.splits_domain {k K : Type*} [field k] [is_alg_closed k] [field K]
-  {f : k →+* K} (p : polynomial k) : p.splits f :=
+  {f : k →+* K} (p : k[X]) : p.splits f :=
 polynomial.splits_of_splits_id _ $ is_alg_closed.splits _
 
 namespace is_alg_closed
 
 variables {k}
 
-theorem exists_root [is_alg_closed k] (p : polynomial k) (hp : p.degree ≠ 0) : ∃ x, is_root p x :=
+theorem exists_root [is_alg_closed k] (p : k[X]) (hp : p.degree ≠ 0) : ∃ x, is_root p x :=
 exists_root_of_splits _ (is_alg_closed.splits p) hp
 
 lemma exists_pow_nat_eq [is_alg_closed k] (x : k) {n : ℕ} (hn : 0 < n) : ∃ z, z ^ n = x :=
@@ -84,7 +88,7 @@ begin
   exact ⟨z, sq z⟩
 end
 
-lemma roots_eq_zero_iff [is_alg_closed k] {p : polynomial k} :
+lemma roots_eq_zero_iff [is_alg_closed k] {p : k[X]} :
   p.roots = 0 ↔ p = polynomial.C (p.coeff 0) :=
 begin
   refine ⟨λ h, _, λ hp, by rw [hp, roots_C]⟩,
@@ -96,26 +100,26 @@ begin
 end
 
 theorem exists_eval₂_eq_zero_of_injective {R : Type*} [ring R] [is_alg_closed k] (f : R →+* k)
-  (hf : function.injective f) (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
+  (hf : function.injective f) (p : R[X]) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
 let ⟨x, hx⟩ := exists_root (p.map f) (by rwa [degree_map_eq_of_injective hf]) in
 ⟨x, by rwa [eval₂_eq_eval_map, ← is_root]⟩
 
 theorem exists_eval₂_eq_zero {R : Type*} [field R] [is_alg_closed k] (f : R →+* k)
-  (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
+  (p : R[X]) (hp : p.degree ≠ 0) : ∃ x, p.eval₂ f x = 0 :=
 exists_eval₂_eq_zero_of_injective f f.injective p hp
 
 variables (k)
 
 theorem exists_aeval_eq_zero_of_injective {R : Type*} [comm_ring R] [is_alg_closed k] [algebra R k]
-  (hinj : function.injective (algebra_map R k)) (p : polynomial R) (hp : p.degree ≠ 0) :
+  (hinj : function.injective (algebra_map R k)) (p : R[X]) (hp : p.degree ≠ 0) :
   ∃ x : k, aeval x p = 0 :=
 exists_eval₂_eq_zero_of_injective (algebra_map R k) hinj p hp
 
 theorem exists_aeval_eq_zero {R : Type*} [field R] [is_alg_closed k] [algebra R k]
-  (p : polynomial R) (hp : p.degree ≠ 0) : ∃ x : k, aeval x p = 0 :=
+  (p : R[X]) (hp : p.degree ≠ 0) : ∃ x : k, aeval x p = 0 :=
 exists_eval₂_eq_zero (algebra_map R k) p hp
 
-theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → ∃ x, p.eval x = 0) :
+theorem of_exists_root (H : ∀ p : k[X], p.monic → irreducible p → ∃ x, p.eval x = 0) :
   is_alg_closed k :=
 ⟨λ p, or.inr $ λ q hq hqp,
  have irreducible (q * C (leading_coeff q)⁻¹),
@@ -124,7 +128,7 @@ theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → 
  let ⟨x, hx⟩ := H (q * C (leading_coeff q)⁻¹) (monic_mul_leading_coeff_inv hq.ne_zero) this in
  degree_mul_leading_coeff_inv q hq.ne_zero ▸ degree_eq_one_of_irreducible_of_root this hx⟩
 
-lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : polynomial k}
+lemma degree_eq_one_of_irreducible [is_alg_closed k] {p : k[X]}
   (hp : irreducible p) :
   p.degree = 1 :=
 degree_eq_one_of_irreducible_of_splits hp (is_alg_closed.splits_codomain _)
@@ -175,7 +179,7 @@ variables {K : Type u} {L : Type v} {M : Type w} [field K] [field L] [algebra K 
 
 variables (K L M)
 include hL
-open zorn subalgebra alg_hom function
+open subalgebra alg_hom function
 
 /-- This structure is used to prove the existence of a homomorphism from any algebraic extension
 into an algebraic closure -/
@@ -211,7 +215,7 @@ instance : preorder (subfield_with_hom K L M hL) :=
 open lattice
 
 lemma maximal_subfield_with_hom_chain_bounded (c : set (subfield_with_hom K L M hL))
-  (hc : chain (≤) c) :
+  (hc : is_chain (≤) c) :
   ∃ ub : subfield_with_hom K L M hL, ∀ N, N ∈ c → N ≤ ub :=
 if hcn : c.nonempty then
 let ub : subfield_with_hom K L M hL :=
@@ -242,7 +246,7 @@ variables (hL M)
 
 lemma exists_maximal_subfield_with_hom : ∃ E : subfield_with_hom K L M hL,
   ∀ N, E ≤ N → N ≤ E :=
-zorn.exists_maximal_of_chains_bounded
+exists_maximal_of_chains_bounded
   maximal_subfield_with_hom_chain_bounded (λ _ _ _, le_trans)
 
 /-- The maximal `subfield_with_hom`. We later prove that this is equal to `⊤`. -/
@@ -261,7 +265,7 @@ begin
   intros x _,
   let p := minpoly K x,
   let N : subalgebra K L := (maximal_subfield_with_hom M hL).carrier,
-  letI : field N := is_field.to_field _ (subalgebra.is_field_of_algebraic N hL),
+  letI : field N := (subalgebra.is_field_of_algebraic N hL).to_field,
   letI : algebra N M := (maximal_subfield_with_hom M hL).emb.to_ring_hom.to_algebra,
   cases is_alg_closed.exists_aeval_eq_zero M (minpoly N x)
     (ne_of_gt (minpoly.degree_pos
@@ -325,6 +329,29 @@ begin
   let f : fraction_ring S →ₐ[fraction_ring R] M :=
     lift_aux (fraction_ring R) (fraction_ring S) M hfRfS,
   exact (f.restrict_scalars R).comp ((algebra.of_id S (fraction_ring S)).restrict_scalars R),
+end
+
+omit hS
+@[priority 100]
+noncomputable instance perfect_ring (p : ℕ) [fact p.prime] [char_p k p]
+  [is_alg_closed k] : perfect_ring k p :=
+perfect_ring.of_surjective k p $ λ x, is_alg_closed.exists_pow_nat_eq _ $ fact.out _
+
+/-- Algebraically closed fields are infinite since `Xⁿ⁺¹ - 1` is separable when `#K = n` -/
+@[priority 500]
+instance {K : Type*} [field K] [is_alg_closed K] : infinite K :=
+begin
+  apply infinite.mk,
+  introsI hfin,
+  set n := fintype.card K with hn,
+  set f := (X : K[X]) ^ (n + 1) - 1 with hf,
+  have hfsep : separable f := separable_X_pow_sub_C 1 (by simp) one_ne_zero,
+  apply nat.not_succ_le_self (fintype.card K),
+  have hroot : n.succ = fintype.card (f.root_set K),
+  { erw [card_root_set_eq_nat_degree hfsep (is_alg_closed.splits_domain _),
+         nat_degree_X_pow_sub_C] },
+  rw hroot,
+  exact fintype.card_le_of_injective coe subtype.coe_injective,
 end
 
 end is_alg_closed

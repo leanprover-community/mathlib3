@@ -44,7 +44,9 @@ which are lattices with only two elements, and related ideas.
   connection between atoms, coatoms, and simple lattices
   * `is_compl.is_atom_iff_is_coatom` and `is_compl.is_coatom_if_is_atom`: In a modular
   bounded lattice, a complement of an atom is a coatom and vice versa.
-  * ``is_atomic_iff_is_coatomic`: A modular complemented lattice is atomic iff it is coatomic.
+  * `is_atomic_iff_is_coatomic`: A modular complemented lattice is atomic iff it is coatomic.
+  * `fintype.to_is_atomic`, `fintype.to_is_coatomic`: Finite partial orders with bottom resp. top
+    are atomic resp. coatomic.
 
 -/
 
@@ -69,11 +71,11 @@ lemma is_atom.Iic (ha : is_atom a) (hax : a ≤ x) : is_atom (⟨a, hax⟩ : set
 lemma is_atom.of_is_atom_coe_Iic {a : set.Iic x} (ha : is_atom a) : is_atom (a : α) :=
 ⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, hba.le.trans a.prop⟩ hba)⟩
 
-@[simp] lemma bot_covers_iff : ⊥ ⋖ a ↔ is_atom a :=
+@[simp] lemma bot_covby_iff : ⊥ ⋖ a ↔ is_atom a :=
 ⟨λ h, ⟨h.lt.ne', λ b hba, not_not.1 $ λ hb, h.2 (ne.bot_lt hb) hba⟩,
   λ h, ⟨h.1.bot_lt, λ b hb hba, hb.ne' $ h.2 _ hba⟩⟩
 
-alias bot_covers_iff ↔ covers.is_atom is_atom.bot_covers
+alias bot_covby_iff ↔ covby.is_atom is_atom.bot_covby
 
 end is_atom
 
@@ -95,11 +97,11 @@ lemma is_coatom.of_is_coatom_coe_Ici {a : set.Ici x} (ha : is_coatom a) :
   is_coatom (a : α) :=
 ⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, le_trans a.prop hba.le⟩ hba)⟩
 
-@[simp] lemma covers_top_iff : a ⋖ ⊤ ↔ is_coatom a :=
+@[simp] lemma covby_top_iff : a ⋖ ⊤ ↔ is_coatom a :=
 ⟨λ h, ⟨h.ne, λ b hab, not_not.1 $ λ hb, h.2 hab $ ne.lt_top hb⟩,
   λ h, ⟨h.1.lt_top, λ b hab hb, hb.ne $ h.2 _ hab⟩⟩
 
-alias covers_top_iff ↔ covers.is_coatom is_coatom.covers_top
+alias covby_top_iff ↔ covby.is_coatom is_coatom.covby_top
 
 end is_coatom
 
@@ -123,7 +125,7 @@ or.elim (eq_top_or_eq_of_coatom_le ha le_sup_left) id
 
 end pairwise
 
-variables [partial_order α] {a : α}
+variables [preorder α] {a : α}
 
 @[simp]
 lemma is_coatom_dual_iff_is_atom [order_bot α] :
@@ -344,7 +346,7 @@ protected def is_simple_order.linear_order [decidable_eq α] : linear_order α :
 
 @[simp] lemma is_coatom_bot : is_coatom (⊥ : α) := is_atom_dual_iff_is_coatom.1 is_atom_top
 
-lemma bot_covers_top : (⊥ : α) ⋖ ⊤ := is_atom_top.bot_covers
+lemma bot_covby_top : (⊥ : α) ⋖ ⊤ := is_atom_top.bot_covby
 
 end is_simple_order
 
@@ -538,13 +540,13 @@ is_simple_order_iff_is_simple_order_order_dual.trans is_simple_order_iff_is_atom
 
 namespace set
 
-theorem is_simple_order_Iic_iff_is_atom [partial_order α] [bounded_order α] {a : α} :
+theorem is_simple_order_Iic_iff_is_atom [partial_order α] [order_bot α] {a : α} :
   is_simple_order (Iic a) ↔ is_atom a :=
 is_simple_order_iff_is_atom_top.trans $ and_congr (not_congr subtype.mk_eq_mk)
   ⟨λ h b ab, subtype.mk_eq_mk.1 (h ⟨b, le_of_lt ab⟩ ab),
     λ h ⟨b, hab⟩ hbotb, subtype.mk_eq_mk.2 (h b (subtype.mk_lt_mk.1 hbotb))⟩
 
-theorem is_simple_order_Ici_iff_is_coatom [partial_order α] [bounded_order α] {a : α} :
+theorem is_simple_order_Ici_iff_is_coatom [partial_order α] [order_top α] {a : α} :
   is_simple_order (Ici a) ↔ is_coatom a :=
 is_simple_order_iff_is_coatom_bot.trans $ and_congr (not_congr subtype.mk_eq_mk)
   ⟨λ h b ab, subtype.mk_eq_mk.1 (h ⟨b, le_of_lt ab⟩ ab),
@@ -646,3 +648,25 @@ theorem is_atomic_iff_is_coatomic : is_atomic α ↔ is_coatomic α :=
   λ h, @is_atomic_of_is_coatomic_of_is_complemented_of_is_modular _ _ _ _ _ h⟩
 
 end is_modular_lattice
+
+section fintype
+
+open finset
+
+@[priority 100]  -- see Note [lower instance priority]
+instance fintype.to_is_coatomic [partial_order α] [order_top α] [fintype α] : is_coatomic α :=
+begin
+  refine is_coatomic.mk (λ b, or_iff_not_imp_left.2 (λ ht, _)),
+  obtain ⟨c, hc, hmax⟩ := set.finite.exists_maximal_wrt id { x : α | b ≤ x ∧ x ≠ ⊤ }
+    (set.finite.of_fintype _) ⟨b, le_rfl, ht⟩,
+  refine ⟨c, ⟨hc.2, λ y hcy, _⟩, hc.1⟩,
+  by_contra hyt,
+  obtain rfl : c = y := hmax y ⟨hc.1.trans hcy.le, hyt⟩ hcy.le,
+  exact (lt_self_iff_false _).mp hcy
+end
+
+@[priority 100]  -- see Note [lower instance priority]
+instance fintype.to_is_atomic [partial_order α] [order_bot α] [fintype α] : is_atomic α :=
+is_coatomic_dual_iff_is_atomic.mp fintype.to_is_coatomic
+
+end fintype

@@ -110,10 +110,9 @@ is_cau_series_of_abv_le_cau 0 (λ n h, le_rfl)
 end no_archimedean
 
 section
-variables {α : Type*} {β : Type*} [ring β]
-  [linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
+variables {α : Type*} [linear_ordered_field α] [archimedean α]
 
-lemma is_cau_geo_series {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
+lemma is_cau_geo_series {β : Type*} [ring β] [nontrivial β] {abv : β → α} [is_absolute_value abv]
    (x : β) (hx1 : abv x < 1) : is_cau_seq abv (λ n, ∑ m in range n, x ^ m) :=
 have hx1' : abv x ≠ 1 := λ h, by simpa [h, lt_irrefl] using hx1,
 is_cau_series_of_abv_cau
@@ -145,6 +144,8 @@ lemma is_cau_geo_series_const (a : α) {x : α} (hx1 : |x| < 1) :
 have is_cau_seq abs (λ m, a * ∑ n in range m, x ^ n) :=
   (cau_seq.const abs a * ⟨_, is_cau_geo_series x hx1⟩).2,
 by simpa only [mul_sum]
+
+variables {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv]
 
 lemma series_ratio_test {f : ℕ → β} (n : ℕ) (r : α)
   (hr0 : 0 ≤ r) (hr1 : r < 1) (h : ∀ m, n ≤ m → abv (f m.succ) ≤ r * abv (f m)) :
@@ -197,25 +198,13 @@ by rw [sum_sigma', sum_sigma']; exact sum_bij
     mem_range.2 (nat.lt_succ_of_le (nat.le_add_left _ _))⟩,
   sigma.mk.inj_iff.2 ⟨rfl, heq_of_eq (add_tsub_cancel_right _ _).symm⟩⟩⟩)
 
--- TODO move to src/algebra/big_operators/basic.lean, rewrite with comm_group, and make to_additive
-lemma sum_range_sub_sum_range {α : Type*} [add_comm_group α] {f : ℕ → α}
-  {n m : ℕ} (hnm : n ≤ m) : ∑ k in range m, f k - ∑ k in range n, f k =
-  ∑ k in (range m).filter (λ k, n ≤ k), f k :=
-begin
-  rw [← sum_sdiff (@filter_subset _ (λ k, n ≤ k) _ (range m)),
-    sub_eq_iff_eq_add, ← eq_sub_iff_add_eq, add_sub_cancel'],
-  refine finset.sum_congr
-    (finset.ext $ λ a, ⟨λ h, by simp at *; tauto,
-    λ h, have ham : a < m := lt_of_lt_of_le (mem_range.1 h) hnm,
-      by simp * at *⟩)
-    (λ _ _, rfl),
-end
-
 end
 
 section no_archimedean
-variables {α : Type*} {β : Type*} [ring β]
-  [linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
+variables {α : Type*} {β : Type*} [linear_ordered_field α] {abv : β → α}
+
+section
+variables [semiring β] [is_absolute_value abv]
 
 lemma abv_sum_le_sum_abv {γ : Type*} (f : γ → β) (s : finset γ) :
   abv (∑ k in s, f k) ≤ ∑ k in s, abv (f k) :=
@@ -223,6 +212,11 @@ by haveI := classical.dec_eq γ; exact
 finset.induction_on s (by simp [abv_zero abv])
   (λ a s has ih, by rw [sum_insert has, sum_insert has];
     exact le_trans (abv_add abv _ _) (add_le_add_left ih _))
+
+end
+
+section
+variables [ring β] [is_absolute_value abv]
 
 lemma cauchy_product {a b : ℕ → β}
   (ha : is_cau_seq abs (λ m, ∑ n in range m, abv (a n)))
@@ -306,6 +300,8 @@ begin
           (hM _ (le_trans (nat.le_succ_of_le (le_max_right _ _)) (le_of_lt hNMK)) _
             (nat.le_succ_of_le (le_max_right _ _))))
 end⟩
+
+end
 
 end no_archimedean
 
@@ -465,7 +461,7 @@ lemma exp_int_mul (z : ℂ) (n : ℤ) : complex.exp (n * z) = (complex.exp z) ^ 
 begin
   cases n,
   { apply complex.exp_nat_mul },
-  { simpa [complex.exp_neg, add_comm, ← neg_mul_eq_neg_mul_symm]
+  { simpa [complex.exp_neg, add_comm, ← neg_mul]
       using complex.exp_nat_mul (-z) (1 + n) },
 end
 
@@ -674,7 +670,7 @@ by rw ← cosh_mul_I; ring_nf; simp
 
 lemma sin_mul_I : sin (x * I) = sinh x * I :=
 have h : I * sin (x * I) = -sinh x := by { rw [mul_comm, ← sinh_mul_I], ring_nf, simp },
-by simpa only [neg_mul_eq_neg_mul_symm, div_I, neg_neg]
+by simpa only [neg_mul, div_I, neg_neg]
   using cancel_factors.cancel_factors_eq_div h I_ne_zero
 
 lemma tan_mul_I : tan (x * I) = tanh x * I :=
@@ -752,7 +748,7 @@ end
 lemma sin_conj : sin (conj x) = conj (sin x) :=
 by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
        ← conj_neg_I, ← ring_hom.map_mul, ← ring_hom.map_mul, sinh_conj,
-       mul_neg_eq_neg_mul_symm, sinh_neg, sinh_mul_I, mul_neg_eq_neg_mul_symm]
+       mul_neg, sinh_neg, sinh_mul_I, mul_neg]
 
 @[simp] lemma of_real_sin_of_real_re (x : ℝ) : ((sin x).re : ℂ) = sin x :=
 eq_conj_iff_re.1 $ by rw [← sin_conj, conj_of_real]
@@ -767,7 +763,7 @@ lemma sin_of_real_re (x : ℝ) : (sin x).re = real.sin x := rfl
 
 lemma cos_conj : cos (conj x) = conj (cos x) :=
 by rw [← cosh_mul_I, ← conj_neg_I, ← ring_hom.map_mul, ← cosh_mul_I,
-       cosh_conj, mul_neg_eq_neg_mul_symm, cosh_neg]
+       cosh_conj, mul_neg, cosh_neg]
 
 @[simp] lemma of_real_cos_of_real_re (x : ℝ) : ((cos x).re : ℂ) = cos x :=
 eq_conj_iff_re.1 $ by rw [← cos_conj, conj_of_real]
@@ -807,7 +803,7 @@ lemma cos_add_sin_I : cos x + sin x * I = exp (x * I) :=
 by rw [← cosh_add_sinh, sinh_mul_I, cosh_mul_I]
 
 lemma cos_sub_sin_I : cos x - sin x * I = exp (-x * I) :=
-by rw [← neg_mul_eq_neg_mul, ← cosh_sub_sinh, sinh_mul_I, cosh_mul_I]
+by rw [neg_mul, ← cosh_sub_sinh, sinh_mul_I, cosh_mul_I]
 
 @[simp] lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
 eq.trans
@@ -945,6 +941,9 @@ by rw [← of_real_inj]; simp [sin, sin_add]
 @[simp] lemma cos_neg : cos (-x) = cos x :=
 by simp [cos, exp_neg]
 
+@[simp] lemma cos_abs : cos (|x|) = cos x :=
+by cases le_total x 0; simp only [*, _root_.abs_of_nonneg, abs_of_nonpos, cos_neg]
+
 lemma cos_add : cos (x + y) = cos x * cos y - sin x * sin y :=
 by rw ← of_real_inj; simp [cos, cos_add]
 
@@ -966,7 +965,7 @@ end
 theorem cos_sub_cos : cos x - cos y = -2 * sin((x + y)/2) * sin((x - y)/2) :=
 begin
   rw ← of_real_inj,
-  simp only [cos, neg_mul_eq_neg_mul_symm, of_real_sin, of_real_sub, of_real_add,
+  simp only [cos, neg_mul, of_real_sin, of_real_sub, of_real_add,
     of_real_cos_of_real_re, of_real_div, of_real_mul, of_real_one, of_real_neg, of_real_bit0],
   convert cos_sub_cos _ _,
   ring,

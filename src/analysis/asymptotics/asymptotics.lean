@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Yury Kudryashov
 -/
 import analysis.normed_space.basic
+import topology.algebra.order.liminf_limsup
 import topology.local_homeomorph
-import topology.algebra.ordered.liminf_limsup
 
 /-!
 # Asymptotics
@@ -386,6 +386,8 @@ variables (c f g)
 
 end bot
 
+@[simp] theorem is_O_with_pure {x} : is_O_with c f g (pure x) ↔ ∥f x∥ ≤ c * ∥g x∥ := is_O_with_iff
+
 theorem is_O_with.join (h : is_O_with c f g l) (h' : is_O_with c f g l') :
   is_O_with c f g (l ⊔ l') :=
 is_O_with.of_bound $ mem_sup.2 ⟨h.bound, h'.bound⟩
@@ -743,6 +745,18 @@ theorem is_O_const_const (c : E) {c' : F'} (hc' : c' ≠ 0) (l : filter α) :
   is_O (λ x : α, c) (λ x, c') l :=
 (is_O_with_const_const c hc' l).is_O
 
+@[simp] theorem is_O_const_const_iff {c : E'} {c' : F'} (l : filter α) [l.ne_bot] :
+  is_O (λ x : α, c) (λ x, c') l ↔ (c' = 0 → c = 0) :=
+begin
+  rcases eq_or_ne c' 0 with rfl|hc',
+  { simp },
+  { simp [hc', is_O_const_const _ hc'] }
+end
+
+@[simp] lemma is_O_pure {x} : is_O f' g' (pure x) ↔ (g' x = 0 → f' x = 0) :=
+calc is_O f' g' (pure x) ↔ is_O (λ y : α, f' x) (λ _, g' x) (pure x) : is_O_congr rfl rfl
+                     ... ↔ g' x = 0 → f' x = 0                       : is_O_const_const_iff _
+
 end zero_const
 
 @[simp] lemma is_O_with_top : is_O_with c f g ⊤ ↔ ∀ x, ∥f x∥ ≤ c * ∥g x∥ := by rw is_O_with; refl
@@ -795,15 +809,6 @@ begin
   clear hc c,
   simp only [is_o, is_O_with, norm_one, mul_one, metric.nhds_basis_closed_ball.tendsto_right_iff,
     metric.mem_closed_ball, dist_zero_right]
-end
-
-theorem is_o_const_const_iff [ne_bot l] {d : E'} {c : F'} (hc : c ≠ 0) :
-  is_o (λ x, d) (λ x, c) l ↔ d = 0 :=
-begin
-  rw is_o_const_iff hc,
-  refine ⟨λ h, tendsto_nhds_unique tendsto_const_nhds h, _⟩,
-  rintros rfl,
-  exact tendsto_const_nhds,
 end
 
 lemma is_o_id_const {c : F'} (hc : c ≠ 0) :
@@ -875,7 +880,7 @@ theorem is_O_with_self_const_mul' (u : Rˣ) (f : α → R) (l : filter α) :
 theorem is_O_with_self_const_mul (c : 𝕜) (hc : c ≠ 0) (f : α → 𝕜) (l : filter α) :
   is_O_with ∥c∥⁻¹ f (λ x, c * f x) l :=
 (is_O_with_self_const_mul' (units.mk0 c hc) f l).congr_const $
-  normed_field.norm_inv c
+  norm_inv c
 
 theorem is_O_self_const_mul' {c : R} (hc : is_unit c) (f : α → R) (l : filter α) :
   is_O f (λ x, c * f x) l :=
@@ -971,8 +976,7 @@ begin
   filter_upwards [h₁, h₂] with _ hx₁ hx₂,
   apply le_trans (norm_mul_le _ _),
   convert mul_le_mul hx₁ hx₂ (norm_nonneg _) (le_trans (norm_nonneg _) hx₁) using 1,
-  rw normed_field.norm_mul,
-  ac_refl
+  rw [norm_mul, mul_mul_mul_comm]
 end
 
 theorem is_O.mul {f₁ f₂ : α → R} {g₁ g₂ : α → 𝕜}
@@ -1037,7 +1041,7 @@ begin
   { refine (h₀ $ norm_le_zero_iff.1 _).elim,
     exact hle.trans (mul_nonpos_of_nonpos_of_nonneg hc $ norm_nonneg _) },
   { replace hle := inv_le_inv_of_le (norm_pos_iff.2 h₀) hle,
-    simpa only [normed_field.norm_inv, mul_inv₀, ← div_eq_inv_mul, div_le_iff hc] using hle }
+    simpa only [norm_inv, mul_inv₀, ← div_eq_inv_mul, div_le_iff hc] using hle }
 end
 
 theorem is_O.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : is_O f g l)
@@ -1177,7 +1181,7 @@ have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : 𝕜)) l,
 
 theorem is_o.tendsto_inv_smul_nhds_zero [normed_space 𝕜 E'] {f : α → E'} {g : α → 𝕜} {l : filter α}
   (h : is_o f g l) : tendsto (λ x, (g x)⁻¹ • f x) l (𝓝 0) :=
-by simpa only [div_eq_inv_mul, ← normed_field.norm_inv, ← norm_smul,
+by simpa only [div_eq_inv_mul, ← norm_inv, ← norm_smul,
   ← tendsto_zero_iff_norm_tendsto_zero] using h.norm_norm.tendsto_div_nhds_zero
 
 theorem is_o_iff_tendsto' {f g : α → 𝕜} {l : filter α}
@@ -1190,7 +1194,7 @@ iff.intro is_o.tendsto_div_nhds_zero $ λ h,
 theorem is_o_iff_tendsto {f g : α → 𝕜} {l : filter α}
     (hgf : ∀ x, g x = 0 → f x = 0) :
   is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
-⟨λ h, h.tendsto_div_nhds_zero, (is_o_iff_tendsto' (eventually_of_forall hgf)).2⟩
+is_o_iff_tendsto' (eventually_of_forall hgf)
 
 alias is_o_iff_tendsto' ↔ _ asymptotics.is_o_of_tendsto'
 alias is_o_iff_tendsto ↔ _ asymptotics.is_o_of_tendsto
@@ -1207,7 +1211,7 @@ begin
   { suffices : is_o (λ _, 1 : α → ℝ) g l,
       from (is_O_const_const c (@one_ne_zero ℝ _ _) _).trans_is_o this,
     refine is_o_iff.2 (λ ε ε0, (tendsto_at_top.1 h ε⁻¹).mono (λ x hx, _)),
-    rwa [norm_one, ← inv_inv₀ ε, ← div_eq_inv_mul, one_le_div (inv_pos.2 ε0)] }
+    rwa [norm_one, ← inv_inv ε, ← div_eq_inv_mul, one_le_div (inv_pos.2 ε0)] }
 end
 
 @[simp] lemma is_o_const_left {c : E'} :
@@ -1217,6 +1221,25 @@ begin
   { simp only [is_o_zero, eq_self_iff_true, true_or] },
   { simp only [hc, false_or, is_o_const_left_of_ne hc] }
 end
+
+@[simp] theorem is_o_const_const_iff [ne_bot l] {d : E'} {c : F'} :
+  is_o (λ x, d) (λ x, c) l ↔ d = 0 :=
+have ¬tendsto (function.const α ∥c∥) l at_top,
+  from not_tendsto_at_top_of_tendsto_nhds tendsto_const_nhds,
+by simp [function.const, this]
+
+@[simp] lemma is_o_pure {x} : is_o f' g' (pure x) ↔ f' x = 0 :=
+calc is_o f' g' (pure x) ↔ is_o (λ y : α, f' x) (λ _, g' x) (pure x) : is_o_congr rfl rfl
+                     ... ↔ f' x = 0                                  : is_o_const_const_iff
+
+lemma is_o_const_id_comap_norm_at_top (c : F') : is_o (λ x : E', c) id (comap norm at_top) :=
+is_o_const_left.2 $ or.inr tendsto_comap
+
+lemma is_o_const_id_at_top (c : E') : is_o (λ x : ℝ, c) id at_top :=
+is_o_const_left.2 $ or.inr tendsto_abs_at_top_at_top
+
+lemma is_o_const_id_at_bot (c : E') : is_o (λ x : ℝ, c) id at_bot :=
+is_o_const_left.2 $ or.inr tendsto_abs_at_bot_at_top
 
 /-!
 ### Eventually (u / v) * v = u
@@ -1257,7 +1280,7 @@ lemma is_O_with_of_eq_mul (φ : α → 𝕜) (hφ : ∀ᶠ x in l, ∥φ x∥ �
 begin
   unfold is_O_with,
   refine h.symm.rw (λ x a, ∥a∥ ≤ c * ∥v x∥) (hφ.mono $ λ x hx, _),
-  simp only [normed_field.norm_mul, pi.mul_apply],
+  simp only [norm_mul, pi.mul_apply],
   exact mul_le_mul_of_nonneg_right hx (norm_nonneg _)
 end
 
@@ -1313,7 +1336,7 @@ theorem div_is_bounded_under_of_is_O {α : Type*} {l : filter α}
 begin
   obtain ⟨c, hc⟩ := is_O_iff.mp h,
   refine ⟨max c 0, eventually_map.2 (filter.mem_of_superset hc (λ x hx, _))⟩,
-  simp only [mem_set_of_eq, normed_field.norm_div] at ⊢ hx,
+  simp only [mem_set_of_eq, norm_div] at ⊢ hx,
   by_cases hgx : g x = 0,
   { rw [hgx, norm_zero, div_zero, le_max_iff],
     exact or.inr le_rfl },
@@ -1327,7 +1350,7 @@ begin
   refine ⟨div_is_bounded_under_of_is_O, λ h, _⟩,
   obtain ⟨c, hc⟩ := h,
   rw filter.eventually_iff at hgf hc,
-  simp only [mem_set_of_eq, mem_map, normed_field.norm_div] at hc,
+  simp only [mem_set_of_eq, mem_map, norm_div] at hc,
   refine is_O_iff.2 ⟨c, filter.eventually_of_mem (inter_mem hgf hc) (λ x hx, _)⟩,
   by_cases hgx : g x = 0,
   { simp [hx.1 hgx, hgx] },
@@ -1338,7 +1361,7 @@ theorem is_O_of_div_tendsto_nhds {α : Type*} {l : filter α}
   {f g : α → 𝕜} (hgf : ∀ᶠ x in l, g x = 0 → f x = 0)
   (c : 𝕜) (H : filter.tendsto (f / g) l (𝓝 c)) :
   is_O f g l :=
-(is_O_iff_div_is_bounded_under hgf).2 $ is_bounded_under_of_tendsto H
+(is_O_iff_div_is_bounded_under hgf).2 $ H.norm.is_bounded_under_le
 
 lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_group E] [normed_field 𝕜] {u : α → E}
   {v : α → 𝕜} {l : filter α} {y : 𝕜} (huv : is_o u v l) (hv : tendsto v l (𝓝 y)) :

@@ -3,7 +3,7 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
-import data.equiv.list
+import logic.equiv.list
 
 /-!
 # W types
@@ -60,7 +60,7 @@ def of_sigma : (Σ a : α, β a → W_type β) → W_type β
 variable (β)
 
 /-- The canonical bijection with the sigma type, showing that `W_type` is a fixed point of
-  the polynomial `Σ a : α, β a → W_type β`.  -/
+  the polynomial functor `X ↦ Σ a : α, β a → X`. -/
 @[simps] def equiv_sigma : W_type β ≃ Σ a : α, β a → W_type β :=
 { to_fun := to_sigma,
   inv_fun := of_sigma,
@@ -116,8 +116,6 @@ lemma depth_lt_depth_mk (a : α) (f : β a → W_type β) (i : β a) :
   depth (f i) < depth ⟨a, f⟩ :=
 nat.lt_succ_of_le (finset.le_sup (finset.mem_univ i))
 
-end W_type
-
 /-
 Show that W types are encodable when `α` is an encodable fintype and for every `a : α`, `β a` is
 encodable.
@@ -127,13 +125,11 @@ induction on `n` that these are all encodable. These auxiliary constructions are
 and of themselves, so we mark them as `private`.
 -/
 
-namespace encodable
-
 @[reducible] private def W_type' {α : Type*} (β : α → Type*)
     [Π a : α, fintype (β a)] [Π a : α, encodable (β a)] (n : ℕ) :=
 { t : W_type β // t.depth ≤ n}
 
-variables {α : Type*} {β : α → Type*} [Π a : α, fintype (β a)] [Π a : α, encodable (β a)]
+variables [Π a : α, encodable (β a)]
 
 private def encodable_zero : encodable (W_type' β 0) :=
 let f    : W_type' β 0 → empty := λ ⟨x, h⟩, false.elim $ not_lt_of_ge h (W_type.depth_pos _),
@@ -176,4 +172,4 @@ begin
   exact encodable.of_left_inverse f finv this
 end
 
-end encodable
+end W_type

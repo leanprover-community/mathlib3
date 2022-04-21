@@ -64,8 +64,8 @@ meta def allowed_head_symbols : expr → list name
 
 -- These allow `library_search` to search for lemmas of type `¬ a = b` when proving `a ≠ b`
 --   and vice-versa.
-| `(_ ≠ _) := [`false]
-| `(¬ _ = _) := [`ne]
+| `(_ ≠ _) := [`false, `ne]
+| `(¬ _ = _) := [`ne, `false]
 
 -- And then the generic cases:
 | (expr.pi _ _ _ t) := allowed_head_symbols t

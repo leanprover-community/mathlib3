@@ -45,25 +45,30 @@ lemma antidiagonal_succ {n : ℕ} :
 begin
   apply eq_of_veq,
   rw [insert_val_of_not_mem, map_val],
-  {apply multiset.nat.antidiagonal_succ},
+  { apply multiset.nat.antidiagonal_succ },
   { intro con, rcases mem_map.1 con with ⟨⟨a,b⟩, ⟨h1, h2⟩⟩,
     simp only [prod.mk.inj_iff, function.embedding.coe_prod_map, prod.map_mk] at h2,
     apply nat.succ_ne_zero a h2.1, }
 end
 
+lemma antidiagonal_succ' {n : ℕ} :
+  antidiagonal (n + 1) = insert (n + 1, 0) ((antidiagonal n).map
+  (function.embedding.prod_map (function.embedding.refl _) ⟨nat.succ, nat.succ_injective⟩)) :=
+begin
+  apply eq_of_veq,
+  rw [insert_val_of_not_mem, map_val],
+  { apply multiset.nat.antidiagonal_succ' },
+  { simp },
+end
+
+lemma antidiagonal_succ_succ' {n : ℕ} :
+  antidiagonal (n + 2) = insert (0, n + 2) (insert (n + 2, 0) ((antidiagonal n).map
+  (function.embedding.prod_map ⟨nat.succ, nat.succ_injective⟩ ⟨nat.succ, nat.succ_injective⟩))) :=
+by { rw [antidiagonal_succ, antidiagonal_succ', map_insert, map_map], refl }
+
 lemma map_swap_antidiagonal {n : ℕ} :
   (antidiagonal n).map ⟨prod.swap, prod.swap_right_inverse.injective⟩ = antidiagonal n :=
-begin
-  ext,
-  simp only [exists_prop, mem_map, mem_antidiagonal, prod.exists],
-  rw add_comm,
-  split,
-  { rintro ⟨b, c, ⟨rfl, rfl⟩⟩,
-    simp },
-  { rintro rfl,
-    use [a.snd, a.fst],
-    simp }
-end
+eq_of_veq $ by simp [antidiagonal, multiset.nat.map_swap_antidiagonal]
 
 /-- A point in the antidiagonal is determined by its first co-ordinate. -/
 lemma antidiagonal_congr {n : ℕ} {p q : ℕ × ℕ} (hp : p ∈ antidiagonal n)

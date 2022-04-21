@@ -41,8 +41,7 @@ by simp only [pi, tendsto_infi, tendsto_comap_iff]
 
 lemma le_pi {g : filter (Π i, α i)} : g ≤ pi f ↔ ∀ i, tendsto (eval i) g (f i) := tendsto_pi
 
-@[mono] lemma pi_mono (h : ∀ i, f₁ i ≤ f₂ i) : pi f₁ ≤ pi f₂ :=
-infi_le_infi $ λ i, comap_mono $ h i
+@[mono] lemma pi_mono (h : ∀ i, f₁ i ≤ f₂ i) : pi f₁ ≤ pi f₂ := infi_mono $ λ i, comap_mono $ h i
 
 lemma mem_pi_of_mem (i : ι) {s : set (α i)} (hs : s ∈ f i) :
   eval i ⁻¹' s ∈ pi f :=
@@ -86,6 +85,17 @@ end
 @[simp] lemma pi_mem_pi_iff [∀ i, ne_bot (f i)] {I : set ι} (hI : finite I) :
   I.pi s ∈ pi f ↔ ∀ i ∈ I, s i ∈ f i :=
 ⟨λ h i hi, mem_of_pi_mem_pi h hi, pi_mem_pi hI⟩
+
+lemma has_basis_pi {ι' : ι → Type} {s : Π i, ι' i → set (α i)} {p : Π i, ι' i → Prop}
+  (h : ∀ i, (f i).has_basis (p i) (s i)) :
+  (pi f).has_basis (λ If : set ι × Π i, ι' i, finite If.1 ∧ ∀ i ∈ If.1, p i (If.2 i))
+    (λ If : set ι × Π i, ι' i, If.1.pi (λ i, s i $ If.2 i)) :=
+begin
+  have : (pi f).has_basis _ _ := has_basis_infi (λ i, (h i).comap (eval i : (Π j, α j) → α i)),
+  convert this,
+  ext,
+  simp
+end
 
 @[simp] lemma pi_inf_principal_univ_pi_eq_bot :
   pi f ⊓ 𝓟 (set.pi univ s) = ⊥ ↔ ∃ i, f i ⊓ 𝓟 (s i) = ⊥ :=
@@ -168,7 +178,7 @@ Coprod_ne_bot_iff.2 ⟨i, h⟩
 (H (classical.arbitrary ι)).Coprod
 
 @[mono] lemma Coprod_mono (hf : ∀ i, f₁ i ≤ f₂ i) : filter.Coprod f₁ ≤ filter.Coprod f₂ :=
-supr_le_supr $ λ i, comap_mono (hf i)
+supr_mono $ λ i, comap_mono (hf i)
 
 variables {β : ι → Type*} {m : Π i, α i → β i}
 

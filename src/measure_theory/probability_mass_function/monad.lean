@@ -44,7 +44,7 @@ section measure
 
 variable (s : set α)
 
-lemma to_outer_measure_pure_apply : (pure a).to_outer_measure s = if a ∈ s then 1 else 0 :=
+@[simp] lemma to_outer_measure_pure_apply : (pure a).to_outer_measure s = if a ∈ s then 1 else 0 :=
 begin
   refine (to_outer_measure_apply' (pure a) s).trans _,
   split_ifs with ha ha,
@@ -55,7 +55,7 @@ begin
 end
 
 /-- The measure of a set under `pure a` is `1` for sets containing `a` and `0` otherwise -/
-lemma to_measure_pure_apply [measurable_space α] (hs : measurable_set s) :
+@[simp] lemma to_measure_pure_apply [measurable_space α] (hs : measurable_set s) :
   (pure a).to_measure s = if a ∈ s then 1 else 0 :=
 (to_measure_apply_eq_to_outer_measure_apply (pure a) s hs).trans (to_outer_measure_pure_apply a s)
 
@@ -130,7 +130,7 @@ section measure
 
 variable (s : set β)
 
-lemma to_outer_measure_bind_apply :
+@[simp] lemma to_outer_measure_bind_apply :
   (p.bind f).to_outer_measure s = ∑' (a : α), (p a : ℝ≥0∞) * (f a).to_outer_measure s :=
 calc (p.bind f).to_outer_measure s
   = ∑' (b : β), if b ∈ s then (↑(∑' (a : α), p a * f a b) : ℝ≥0∞) else 0 :
@@ -151,7 +151,7 @@ calc (p.bind f).to_outer_measure s
 
 /-- The measure of a set under `p.bind f` is the sum over `a : α`
   of the probability of `a` under `p` times the measure of the set under `f a` -/
-lemma to_measure_bind_apply [measurable_space β] (hs : measurable_set s) :
+@[simp] lemma to_measure_bind_apply [measurable_space β] (hs : measurable_set s) :
   (p.bind f).to_measure s = ∑' (a : α), (p a : ℝ≥0∞) * (f a).to_measure s :=
 (to_measure_apply_eq_to_outer_measure_apply (p.bind f) s hs).trans
   ((to_outer_measure_bind_apply p f s).trans (tsum_congr (λ a, congr_arg (λ x, p a * x)
@@ -286,7 +286,7 @@ section measure
 
 variable (s : set β)
 
-lemma to_outer_measure_bind_on_support_apply :
+@[simp] lemma to_outer_measure_bind_on_support_apply :
   (p.bind_on_support f).to_outer_measure s =
     ∑' (a : α), (p a : ℝ≥0) * if h : p a = 0 then 0 else (f a h).to_outer_measure s :=
 let g : α → β → ℝ≥0 := λ a b, if h : p a = 0 then 0 else f a h b in
@@ -315,7 +315,7 @@ calc (p.bind_on_support f).to_outer_measure s
 /-- The measure of a set under `p.bind_on_support f` is the sum over `a : α`
   of the probability of `a` under `p` times the measure of the set under `f a _`.
   The additional if statement is needed since `f` is only a partial function -/
-lemma to_measure_bind_on_support_apply [measurable_space β] (hs : measurable_set s) :
+@[simp] lemma to_measure_bind_on_support_apply [measurable_space β] (hs : measurable_set s) :
   (p.bind_on_support f).to_measure s =
     ∑' (a : α), (p a : ℝ≥0∞) * if h : p a = 0 then 0 else (f a h).to_measure s :=
 (to_measure_apply_eq_to_outer_measure_apply (p.bind_on_support f) s hs).trans

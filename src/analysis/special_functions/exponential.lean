@@ -164,8 +164,6 @@ section is_R_or_C_comm_algebra
 variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸]
   [complete_space 𝔸]
 
-local attribute [instance] char_zero_R_or_C
-
 /-- The exponential map in a commutative Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ` has strict
 Fréchet-derivative `exp 𝕂 𝔸 x • 1 : 𝔸 →L[𝕂] 𝔸` at any point `x`. -/
 lemma has_strict_fderiv_at_exp {x : 𝔸} :
@@ -183,8 +181,6 @@ end is_R_or_C_comm_algebra
 section deriv_R_or_C
 
 variables {𝕂 : Type*} [is_R_or_C 𝕂]
-
-local attribute [instance] char_zero_R_or_C
 
 /-- The exponential map in `𝕂 = ℝ` or `𝕂 = ℂ` has strict derivative `exp 𝕂 𝕂 x` at any point
 `x`. -/

@@ -25,7 +25,8 @@ open function
 class has_set_prod (α β : Type*) (γ : out_param Type*) :=
 (prod : α → β → γ)
 
-infix ` ×ˢ `:72 := has_set_prod.prod
+/- This notation binds more strongly than (pre)images, unions and intersections. -/
+infixr ` ×ˢ `:82 := has_set_prod.prod
 
 namespace set
 
@@ -52,7 +53,7 @@ lemma mk_mem_prod (ha : a ∈ s) (hb : b ∈ t) : (a, b) ∈ s ×ˢ t := ⟨ha, 
 lemma prod_mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ ×ˢ t₁ ⊆ s₂ ×ˢ t₂ :=
 λ x ⟨h₁, h₂⟩, ⟨hs h₁, ht h₂⟩
 
-lemma prod_subset_iff {P : set (α × β)} : (s ×ˢ t ⊆ P) ↔ ∀ (x ∈ s) (y ∈ t), (x, y) ∈ P :=
+lemma prod_subset_iff {P : set (α × β)} : s ×ˢ t ⊆ P ↔ ∀ (x ∈ s) (y ∈ t), (x, y) ∈ P :=
 ⟨λ h _ hx _ hy, h (mk_mem_prod hx hy), λ h ⟨_, _⟩ hp, h _ hp.1 _ hp.2⟩
 
 lemma forall_prod_set {p : α × β → Prop} : (∀ x ∈ s ×ˢ t, p x) ↔ ∀ (x ∈ s) (y ∈ t), p (x, y) :=
@@ -95,57 +96,57 @@ lemma prod_insert : s ×ˢ (insert b t) = ((λa, (a, b)) '' s) ∪ s ×ˢ t :=
 by { ext ⟨x, y⟩, simp [image, iff_def, or_imp_distrib, imp.swap] {contextual := tt} }
 
 lemma prod_preimage_eq {f : γ → α} {g : δ → β} :
-  (f ⁻¹' s) ×ˢ (g ⁻¹' t) = (λ p : γ × δ, (f p.1, g p.2)) ⁻¹' (s ×ˢ t) := rfl
+  (f ⁻¹' s) ×ˢ (g ⁻¹' t) = (λ p : γ × δ, (f p.1, g p.2)) ⁻¹' s ×ˢ t := rfl
 
 lemma prod_preimage_left {f : γ → α} :
-  (f ⁻¹' s) ×ˢ t = (λ p : γ × β, (f p.1, p.2)) ⁻¹' (s ×ˢ t) := rfl
+  (f ⁻¹' s) ×ˢ t = (λ p : γ × β, (f p.1, p.2)) ⁻¹' s ×ˢ t := rfl
 
 lemma prod_preimage_right {g : δ → β} :
-  s ×ˢ (g ⁻¹' t) = (λ p : α × δ, (p.1, g p.2)) ⁻¹' (s ×ˢ t) := rfl
+  s ×ˢ (g ⁻¹' t) = (λ p : α × δ, (p.1, g p.2)) ⁻¹' s ×ˢ t := rfl
 
 lemma preimage_prod_map_prod (f : α → β) (g : γ → δ) (s : set β) (t : set δ) :
-  prod.map f g ⁻¹' (s ×ˢ t) = (f ⁻¹' s) ×ˢ (g ⁻¹' t) :=
+  prod.map f g ⁻¹' s ×ˢ t = (f ⁻¹' s) ×ˢ (g ⁻¹' t) :=
 rfl
 
 lemma mk_preimage_prod (f : γ → α) (g : γ → β) :
-  (λ x, (f x, g x)) ⁻¹' (s ×ˢ t) = f ⁻¹' s ∩ g ⁻¹' t := rfl
+  (λ x, (f x, g x)) ⁻¹' s ×ˢ t = f ⁻¹' s ∩ g ⁻¹' t := rfl
 
-@[simp] lemma mk_preimage_prod_left (hb : b ∈ t) : (λ a, (a, b)) ⁻¹' (s ×ˢ t) = s :=
+@[simp] lemma mk_preimage_prod_left (hb : b ∈ t) : (λ a, (a, b)) ⁻¹' s ×ˢ t = s :=
 by { ext a, simp [hb] }
 
-@[simp] lemma mk_preimage_prod_right (ha : a ∈ s) : prod.mk a ⁻¹' (s ×ˢ t) = t :=
+@[simp] lemma mk_preimage_prod_right (ha : a ∈ s) : prod.mk a ⁻¹' s ×ˢ t = t :=
 by { ext b, simp [ha] }
 
-@[simp] lemma mk_preimage_prod_left_eq_empty (hb : b ∉ t) : (λ a, (a, b)) ⁻¹' (s ×ˢ t) = ∅ :=
+@[simp] lemma mk_preimage_prod_left_eq_empty (hb : b ∉ t) : (λ a, (a, b)) ⁻¹' s ×ˢ t = ∅ :=
 by { ext a, simp [hb] }
 
-@[simp] lemma mk_preimage_prod_right_eq_empty (ha : a ∉ s) : prod.mk a ⁻¹' (s ×ˢ t) = ∅ :=
+@[simp] lemma mk_preimage_prod_right_eq_empty (ha : a ∉ s) : prod.mk a ⁻¹' s ×ˢ t = ∅ :=
 by { ext b, simp [ha] }
 
 lemma mk_preimage_prod_left_eq_if [decidable_pred (∈ t)] :
-  (λ a, (a, b)) ⁻¹' (s ×ˢ t) = if b ∈ t then s else ∅ :=
+  (λ a, (a, b)) ⁻¹' s ×ˢ t = if b ∈ t then s else ∅ :=
 by split_ifs; simp [h]
 
 lemma mk_preimage_prod_right_eq_if [decidable_pred (∈ s)] :
-  prod.mk a ⁻¹' (s ×ˢ t) = if a ∈ s then t else ∅ :=
+  prod.mk a ⁻¹' s ×ˢ t = if a ∈ s then t else ∅ :=
 by split_ifs; simp [h]
 
 lemma mk_preimage_prod_left_fn_eq_if [decidable_pred (∈ t)] (f : γ → α) :
-  (λ a, (f a, b)) ⁻¹' (s ×ˢ t) = if b ∈ t then f ⁻¹' s else ∅ :=
+  (λ a, (f a, b)) ⁻¹' s ×ˢ t = if b ∈ t then f ⁻¹' s else ∅ :=
 by rw [← mk_preimage_prod_left_eq_if, prod_preimage_left, preimage_preimage]
 
 lemma mk_preimage_prod_right_fn_eq_if [decidable_pred (∈ s)] (g : δ → β) :
-  (λ b, (a, g b)) ⁻¹' (s ×ˢ t) = if a ∈ s then g ⁻¹' t else ∅ :=
+  (λ b, (a, g b)) ⁻¹' s ×ˢ t = if a ∈ s then g ⁻¹' t else ∅ :=
 by rw [← mk_preimage_prod_right_eq_if, prod_preimage_right, preimage_preimage]
 
-lemma preimage_swap_prod {s : set α} {t : set β} : prod.swap ⁻¹' (t ×ˢ s) = s ×ˢ t :=
+lemma preimage_swap_prod {s : set α} {t : set β} : prod.swap ⁻¹' t ×ˢ s = s ×ˢ t :=
 by { ext ⟨x, y⟩, simp [and_comm] }
 
-lemma image_swap_prod : prod.swap '' (t ×ˢ s) = s ×ˢ t :=
+lemma image_swap_prod : prod.swap '' t ×ˢ s = s ×ˢ t :=
 by rw [image_swap_eq_preimage_swap, preimage_swap_prod]
 
 lemma prod_image_image_eq {m₁ : α → γ} {m₂ : β → δ} :
-  (m₁ '' s) ×ˢ (m₂ '' t) = image (λ p : α × β, (m₁ p.1, m₂ p.2)) (s ×ˢ t) :=
+  (m₁ '' s) ×ˢ (m₂ '' t) = (λ p : α × β, (m₁ p.1, m₂ p.2)) '' s ×ˢ t :=
 ext $ by simp [-exists_and_distrib_right, exists_and_distrib_right.symm, and.left_comm,
   and.assoc, and.comm]
 
@@ -179,29 +180,35 @@ lemma nonempty.snd : (s ×ˢ t : set _).nonempty → t.nonempty := λ ⟨x, hx�
 lemma prod_nonempty_iff : (s ×ˢ t : set _).nonempty ↔ s.nonempty ∧ t.nonempty :=
 ⟨λ h, ⟨h.fst, h.snd⟩, λ h, h.1.prod h.2⟩
 
-lemma prod_eq_empty_iff : s ×ˢ t = ∅ ↔ (s = ∅ ∨ t = ∅) :=
+lemma prod_eq_empty_iff : s ×ˢ t = ∅ ↔ s = ∅ ∨ t = ∅ :=
 by simp only [not_nonempty_iff_eq_empty.symm, prod_nonempty_iff, not_and_distrib]
 
 lemma prod_sub_preimage_iff {W : set γ} {f : α × β → γ} :
   s ×ˢ t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=
 by simp [subset_def]
 
-lemma fst_image_prod_subset (s : set α) (t : set β) : prod.fst '' (s ×ˢ t) ⊆ s :=
+lemma image_prod_mk_subset_prod_left (hb : b ∈ t) : (λ a, (a, b)) '' s ⊆ s ×ˢ t :=
+by { rintro _ ⟨a, ha, rfl⟩, exact ⟨ha, hb⟩ }
+
+lemma image_prod_mk_subset_prod_right (ha : a ∈ s) : prod.mk a '' t ⊆ s ×ˢ t :=
+by { rintro _ ⟨b, hb, rfl⟩, exact ⟨ha, hb⟩ }
+
+lemma fst_image_prod_subset (s : set α) (t : set β) : prod.fst '' s ×ˢ t ⊆ s :=
 λ _ h, let ⟨_, ⟨h₂, _⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
 
 lemma prod_subset_preimage_fst (s : set α) (t : set β) : s ×ˢ t ⊆ prod.fst ⁻¹' s :=
 image_subset_iff.1 (fst_image_prod_subset s t)
 
-lemma fst_image_prod (s : set β) {t : set α} (ht : t.nonempty) : prod.fst '' (s ×ˢ t) = s :=
+lemma fst_image_prod (s : set β) {t : set α} (ht : t.nonempty) : prod.fst '' s ×ˢ t = s :=
 (fst_image_prod_subset _ _).antisymm $ λ y hy, let ⟨x, hx⟩ := ht in ⟨(y, x), ⟨hy, hx⟩, rfl⟩
 
-lemma snd_image_prod_subset (s : set α) (t : set β) : prod.snd '' (s ×ˢ t) ⊆ t :=
+lemma snd_image_prod_subset (s : set α) (t : set β) : prod.snd '' s ×ˢ t ⊆ t :=
 λ _ h, let ⟨_, ⟨_, h₂⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
 
 lemma prod_subset_preimage_snd (s : set α) (t : set β) : s ×ˢ t ⊆ prod.snd ⁻¹' t :=
 image_subset_iff.1 (snd_image_prod_subset s t)
 
-lemma snd_image_prod {s : set α} (hs : s.nonempty) (t : set β) : prod.snd '' (s ×ˢ t) = t :=
+lemma snd_image_prod {s : set α} (hs : s.nonempty) (t : set β) : prod.snd '' s ×ˢ t = t :=
 (snd_image_prod_subset _ _).antisymm $ λ y y_in, let ⟨x, x_in⟩ := hs in ⟨(x, y), ⟨x_in, y_in⟩, rfl⟩
 
 lemma prod_diff_prod : s ×ˢ t \ s₁ ×ˢ t₁ = s ×ˢ (t \ t₁) ∪ (s \ s₁) ×ˢ t :=
@@ -224,7 +231,18 @@ begin
     exact prod_mono H.1 H.2 }
 end
 
-@[simp] lemma image_prod (f : α → β → γ) : (λ x : α × β, f x.1 x.2) '' (s ×ˢ t) = image2 f s t :=
+@[simp] lemma prod_eq_iff_eq (ht : t.nonempty) : s ×ˢ t = s₁ ×ˢ t ↔ s = s₁ :=
+begin
+  obtain ⟨b, hb⟩ := ht,
+  split,
+  { simp only [set.ext_iff],
+    intros h a,
+    simpa [hb, set.mem_prod] using h (a, b) },
+  { rintros rfl,
+    refl },
+end
+
+@[simp] lemma image_prod (f : α → β → γ) : (λ x : α × β, f x.1 x.2) '' s ×ˢ t = image2 f s t :=
 set.ext $ λ a,
 ⟨ by { rintro ⟨_, _, rfl⟩, exact ⟨_, _, (mem_prod.mp ‹_›).1, (mem_prod.mp ‹_›).2, rfl⟩ },
   by { rintro ⟨_, _, _, _, rfl⟩, exact ⟨(_, _), mem_prod.mpr ⟨‹_›, ‹_›⟩, rfl⟩ }⟩

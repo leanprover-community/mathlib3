@@ -51,8 +51,11 @@ begin
   exact eq_of_heq (this a)
 end
 
-lemma funext_iff {β : α → Sort*} {f₁ f₂ : Π (x : α), β x} : f₁ = f₂ ↔ (∀a, f₁ a = f₂ a) :=
+lemma funext_iff {β : α → Sort*} {f₁ f₂ : Π (x : α), β x} : f₁ = f₂ ↔ (∀ a, f₁ a = f₂ a) :=
 iff.intro (assume h a, h ▸ rfl) funext
+
+lemma ne_iff {β : α → Sort*} {f₁ f₂ : Π a, β a} : f₁ ≠ f₂ ↔ ∃ a, f₁ a ≠ f₂ a :=
+funext_iff.not.trans not_forall
 
 protected lemma bijective.injective {f : α → β} (hf : bijective f) : injective f := hf.1
 protected lemma bijective.surjective {f : α → β} (hf : bijective f) : surjective f := hf.2
@@ -212,6 +215,23 @@ theorem cantor_injective {α : Type*} (f : (set α) → α) :
   ¬ function.injective f | i :=
 cantor_surjective (λ a b, ∀ U, a = f U → U b) $
 right_inverse.surjective (λ U, funext $ λ a, propext ⟨λ h, h U rfl, λ h' U' e, i e ▸ h'⟩)
+
+/-- There is no surjection from `α : Type u` into `Type u`. This theorem
+  demonstrates why `Type : Type` would be inconsistent in Lean. -/
+theorem not_surjective_Type {α : Type u} (f : α → Type (max u v)) :
+  ¬ surjective f :=
+begin
+  intro hf,
+  let T : Type (max u v) := sigma f,
+  cases hf (set T) with U hU,
+  let g : set T → T := λ s, ⟨U, cast hU.symm s⟩,
+  have hg : injective g,
+  { intros s t h,
+    suffices : cast hU (g s).2 = cast hU (g t).2,
+    { simp only [cast_cast, cast_eq] at this, assumption },
+    { congr, assumption } },
+  exact cantor_injective g hg
+end
 
 /-- `g` is a partial inverse to `f` (an injective but not necessarily
   surjective function) if `g y = some x` implies `f x = y`, and `g y = none`
@@ -657,20 +677,34 @@ end involutive
 /-- The property of a binary function `f : α → β → γ` being injective.
 Mathematically this should be thought of as the corresponding function `α × β → γ` being injective.
 -/
-@[reducible] def injective2 {α β γ} (f : α → β → γ) : Prop :=
+def injective2 {α β γ} (f : α → β → γ) : Prop :=
 ∀ ⦃a₁ a₂ b₁ b₂⦄, f a₁ b₁ = f a₂ b₂ → a₁ = a₂ ∧ b₁ = b₂
 
 namespace injective2
-variables {α β γ : Type*} (f : α → β → γ)
+variables {α β γ : Sort*} {f : α → β → γ}
 
-protected lemma left (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ (h : f a₁ b₁ = f a₂ b₂) : a₁ = a₂ :=
-(hf h).1
+/-- A binary injective function is injective when only the left argument varies. -/
+protected lemma left (hf : injective2 f) (b : β) : function.injective (λ a, f a b) :=
+λ a₁ a₂ h, (hf h).left
 
-protected lemma right (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ (h : f a₁ b₁ = f a₂ b₂) : b₁ = b₂ :=
-(hf h).2
+/-- A binary injective function is injective when only the right argument varies. -/
+protected lemma right (hf : injective2 f) (a : α) : function.injective (f a) :=
+λ a₁ a₂ h, (hf h).right
 
-lemma eq_iff (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ : f a₁ b₁ = f a₂ b₂ ↔ a₁ = a₂ ∧ b₁ = b₂ :=
-⟨λ h, hf h, λ⟨h1, h2⟩, congr_arg2 f h1 h2⟩
+protected lemma uncurry {α β γ : Type*} {f : α → β → γ} (hf : injective2 f) :
+  function.injective (uncurry f) :=
+λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ h, and.elim (hf h) (congr_arg2 _)
+
+/-- As a map from the left argument to a unary function, `f` is injective. -/
+lemma left' (hf : injective2 f) [nonempty β] : function.injective f :=
+λ a₁ a₂ h, let ⟨b⟩ := ‹nonempty β› in hf.left b $ (congr_fun h b : _)
+
+/-- As a map from the right argument to a unary function, `f` is injective. -/
+lemma right' (hf : injective2 f) [nonempty α] : function.injective (λ b a, f a b) :=
+λ b₁ b₂ h, let ⟨a⟩ := ‹nonempty α› in hf.right a $ (congr_fun h a : _)
+
+lemma eq_iff (hf : injective2 f) {a₁ a₂ b₁ b₂} : f a₁ b₁ = f a₂ b₂ ↔ a₁ = a₂ ∧ b₁ = b₂ :=
+⟨λ h, hf h, and.rec $ congr_arg2 f⟩
 
 end injective2
 

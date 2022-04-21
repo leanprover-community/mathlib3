@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.arrow
+import category_theory.balanced
 
 /-!
 # Strong epimorphisms
@@ -20,6 +21,8 @@ Besides the definition, we show that
 * if `f ≫ g` is a strong epimorphism, then so is `g`,
 * if `f` is both a strong epimorphism and a monomorphism, then it is an isomorphism
 
+We also define classes `strong_mono_category` and `strong_epi_category` for categories in which
+every monomorphism or epimorphism is strong, and deduce that these categories are balanced.
 
 ## TODO
 
@@ -129,5 +132,42 @@ lemma is_iso_of_mono_of_strong_epi (f : P ⟶ Q) [mono f] [strong_epi f] : is_is
 /-- A strong monomorphism that is an epimorphism is an isomorphism. -/
 lemma is_iso_of_epi_of_strong_mono (f : P ⟶ Q) [epi f] [strong_mono f] : is_iso f :=
 ⟨⟨arrow.lift $ arrow.hom_mk' $ show 𝟙 P ≫ f = f ≫ 𝟙 Q, by simp, by tidy⟩⟩
+
+section
+variables (C)
+
+/-- A strong epi category is a category in which every epimorphism is strong. -/
+class strong_epi_category : Prop :=
+(strong_epi_of_epi : ∀ {X Y : C} (f : X ⟶ Y) [epi f], strong_epi f)
+
+/-- A strong mono category is a category in which every monomorphism is strong. -/
+class strong_mono_category : Prop :=
+(strong_mono_of_mono : ∀ {X Y : C} (f : X ⟶ Y) [mono f], strong_mono f)
+
+end
+
+lemma strong_epi_of_epi [strong_epi_category C] (f : P ⟶ Q) [epi f] : strong_epi f :=
+strong_epi_category.strong_epi_of_epi _
+
+lemma strong_mono_of_mono [strong_mono_category C] (f : P ⟶ Q) [mono f] : strong_mono f :=
+strong_mono_category.strong_mono_of_mono _
+
+section
+local attribute [instance] strong_epi_of_epi
+
+@[priority 100]
+instance balanced_of_strong_epi_category [strong_epi_category C] : balanced C :=
+{ is_iso_of_mono_of_epi := λ _ _ _ _ _, by exactI is_iso_of_mono_of_strong_epi _ }
+
+end
+
+section
+local attribute [instance] strong_mono_of_mono
+
+@[priority 100]
+instance balanced_of_strong_mono_category [strong_mono_category C] : balanced C :=
+{ is_iso_of_mono_of_epi := λ _ _ _ _ _, by exactI is_iso_of_epi_of_strong_mono _ }
+
+end
 
 end category_theory

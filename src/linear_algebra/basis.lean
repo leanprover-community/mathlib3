@@ -744,6 +744,10 @@ by simp [basis.equiv_fun, finsupp.total_apply, finsupp.sum_fintype]
 @[simp]
 lemma basis.equiv_fun_apply (u : M) : b.equiv_fun u = b.repr u := rfl
 
+@[simp] lemma basis.map_equiv_fun (f : M ≃ₗ[R] M') :
+  (b.map f).equiv_fun = f.symm.trans b.equiv_fun :=
+rfl
+
 lemma basis.sum_equiv_fun (u : M) : ∑ i, b.equiv_fun u i • b i = u :=
 begin
   conv_rhs { rw ← b.total_repr u },
@@ -769,6 +773,15 @@ basis.of_repr $ e.trans $ linear_equiv.symm $ finsupp.linear_equiv_fun_on_fintyp
   (basis.of_equiv_fun e : ι → M) = λ i, e.symm (function.update 0 i 1) :=
 funext $ λ i, e.injective $ funext $ λ j,
   by simp [basis.of_equiv_fun, ←finsupp.single_eq_pi_single, finsupp.single_eq_update]
+
+@[simp] lemma basis.of_equiv_fun_equiv_fun
+  (v : basis ι R M) : basis.of_equiv_fun v.equiv_fun = v :=
+begin
+  ext j,
+  simp only [basis.equiv_fun_symm_apply, basis.coe_of_equiv_fun],
+  simp_rw [function.update_apply, ite_smul],
+  simp only [finset.mem_univ, if_true, pi.zero_apply, one_smul, finset.sum_ite_eq', zero_smul],
+end
 
 variables (S : Type*) [semiring S] [module S M']
 variables [smul_comm_class R S M']

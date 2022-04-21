@@ -19,7 +19,7 @@ a tower of algebraic field extensions is algebraic.
 
 universes u v w
 
-open_locale classical
+open_locale classical polynomial
 open polynomial
 
 section
@@ -27,10 +27,13 @@ variables (R : Type u) {A : Type v} [comm_ring R] [ring A] [algebra R A]
 
 /-- An element of an R-algebra is algebraic over R if it is the root of a nonzero polynomial. -/
 def is_algebraic (x : A) : Prop :=
-∃ p : polynomial R, p ≠ 0 ∧ aeval x p = 0
+∃ p : R[X], p ≠ 0 ∧ aeval x p = 0
 
 /-- An element of an R-algebra is transcendental over R if it is not algebraic over R. -/
 def transcendental (x : A) : Prop := ¬ is_algebraic R x
+
+lemma is_transcendental_of_subsingleton [subsingleton R] (x : A) : transcendental R x :=
+λ ⟨p, h, _⟩, h $ subsingleton.elim p 0
 
 variables {R}
 
@@ -44,17 +47,15 @@ def algebra.is_algebraic : Prop := ∀ x : A, is_algebraic R x
 
 variables {R A}
 
-/-- A subalgebra is algebraic if and only if it is algebraic an algebra. -/
+/-- A subalgebra is algebraic if and only if it is algebraic as an algebra. -/
 lemma subalgebra.is_algebraic_iff (S : subalgebra R A) :
-  S.is_algebraic ↔ @algebra.is_algebraic R S _ _ (S.algebra) :=
+  S.is_algebraic ↔ @algebra.is_algebraic R S _ _ S.algebra :=
 begin
   delta algebra.is_algebraic subalgebra.is_algebraic,
-  rw [subtype.forall'],
-  apply forall_congr, rintro ⟨x, hx⟩,
-  apply exists_congr, intro p,
-  apply and_congr iff.rfl,
-  have h : function.injective (S.val) := subtype.val_injective,
-  conv_rhs { rw [← h.eq_iff, alg_hom.map_zero], },
+  rw subtype.forall',
+  refine forall_congr (λ x, exists_congr (λ p, and_congr iff.rfl _)),
+  have h : function.injective S.val := subtype.val_injective,
+  conv_rhs { rw [← h.eq_iff, alg_hom.map_zero] },
   rw [← aeval_alg_hom_apply, S.val_apply]
 end
 
@@ -66,8 +67,8 @@ begin
 end
 
 lemma is_algebraic_iff_not_injective {x : A} : is_algebraic R x ↔
-  ¬ function.injective (polynomial.aeval x : polynomial R →ₐ[R] A) :=
-by simp only [is_algebraic, alg_hom.injective_iff, not_forall, and.comm, exists_prop]
+  ¬ function.injective (polynomial.aeval x : R[X] →ₐ[R] A) :=
+by simp only [is_algebraic, injective_iff_map_eq_zero, not_forall, and.comm, exists_prop]
 
 end
 
@@ -77,23 +78,34 @@ variables [comm_ring S] [ring A] [algebra R A] [algebra R S] [algebra S A]
 variables [is_scalar_tower R S A]
 
 /-- An integral element of an algebra is algebraic.-/
-lemma is_integral.is_algebraic [nontrivial R] {x : A} (h : is_integral R x) :
-  is_algebraic R x :=
-by { rcases h with ⟨p, hp, hpx⟩, exact ⟨p, hp.ne_zero, hpx⟩ }
+lemma is_integral.is_algebraic [nontrivial R] {x : A} : is_integral R x → is_algebraic R x :=
+λ ⟨p, hp, hpx⟩, ⟨p, hp.ne_zero, hpx⟩
 
 variables {R}
 
-/-- An element of `R` is algebraic, when viewed as an element of the `R`-algebra `A`. -/
-lemma is_algebraic_algebra_map [nontrivial R] (a : R) : is_algebraic R (algebra_map R A a) :=
-⟨X - C a, X_sub_C_ne_zero a, by simp only [aeval_C, aeval_X, alg_hom.map_sub, sub_self]⟩
+lemma is_algebraic_zero [nontrivial R] : is_algebraic R (0 : A) :=
+⟨_, X_ne_zero, aeval_X 0⟩
 
-lemma is_algebraic_algebra_map_of_is_algebraic {a : S} (h : is_algebraic R a) :
-  is_algebraic R (algebra_map S A a) :=
-begin
-  obtain ⟨f, hf₁, hf₂⟩ := h,
-  use [f, hf₁],
-  rw [← is_scalar_tower.algebra_map_aeval R S A, hf₂, ring_hom.map_zero]
-end
+/-- An element of `R` is algebraic, when viewed as an element of the `R`-algebra `A`. -/
+lemma is_algebraic_algebra_map [nontrivial R] (x : R) : is_algebraic R (algebra_map R A x) :=
+⟨_, X_sub_C_ne_zero x, by rw [_root_.map_sub, aeval_X, aeval_C, sub_self]⟩
+
+lemma is_algebraic_one [nontrivial R] : is_algebraic R (1 : A) :=
+by { rw ←_root_.map_one _, exact is_algebraic_algebra_map 1 }
+
+lemma is_algebraic_nat [nontrivial R] (n : ℕ) : is_algebraic R (n : A) :=
+by { rw ←map_nat_cast _, exact is_algebraic_algebra_map n }
+
+lemma is_algebraic_int [nontrivial R] (n : ℤ) : is_algebraic R (n : A) :=
+by { rw ←ring_hom.map_int_cast (algebra_map R A), exact is_algebraic_algebra_map n }
+
+lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [char_zero R]
+  [algebra R A] (n : ℚ) : is_algebraic R (n : A) :=
+by { rw ←ring_hom.map_rat_cast (algebra_map R A), exact is_algebraic_algebra_map n }
+
+lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :
+  is_algebraic R a → is_algebraic R (algebra_map S A a) :=
+λ ⟨f, hf₁, hf₂⟩, ⟨f, hf₁, by rw [← is_scalar_tower.algebra_map_aeval R S A, hf₂, ring_hom.map_zero]⟩
 
 end zero_ne_one
 
@@ -198,30 +210,30 @@ lemma is_integral_closure.exists_smul_eq_mul {L : Type*} [field L]
 begin
   obtain ⟨c, d, d_ne, hx⟩ := exists_integral_multiple
     (h (algebra_map _ L a / algebra_map _ L b))
-    ((ring_hom.injective_iff _).mp inj),
+    ((injective_iff_map_eq_zero _).mp inj),
   refine ⟨is_integral_closure.mk' S (c : L) c.2, d, d_ne,
     is_integral_closure.algebra_map_injective S R L _⟩,
   simp only [algebra.smul_def, ring_hom.map_mul, is_integral_closure.algebra_map_mk', ← hx,
     ← is_scalar_tower.algebra_map_apply],
   rw [← mul_assoc _ (_ / _), mul_div_cancel' (algebra_map S L a), mul_comm],
-  exact mt ((ring_hom.injective_iff _).mp (is_integral_closure.algebra_map_injective S R L) _) hb
+  exact mt ((injective_iff_map_eq_zero _).mp (is_integral_closure.algebra_map_injective S R L) _) hb
 end
 
 section field
 
 variables {K L : Type*} [field K] [field L] [algebra K L] (A : subalgebra K L)
 
-lemma inv_eq_of_aeval_div_X_ne_zero {x : L} {p : polynomial K}
+lemma inv_eq_of_aeval_div_X_ne_zero {x : L} {p : K[X]}
   (aeval_ne : aeval x (div_X p) ≠ 0) :
   x⁻¹ = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)) :=
 begin
-  rw [inv_eq_iff, inv_div, div_eq_iff, sub_eq_iff_eq_add, mul_comm],
+  rw [inv_eq_iff_inv_eq, inv_div, div_eq_iff, sub_eq_iff_eq_add, mul_comm],
   conv_lhs { rw ← div_X_mul_X_add p },
   rw [alg_hom.map_add, alg_hom.map_mul, aeval_X, aeval_C],
   exact aeval_ne
 end
 
-lemma inv_eq_of_root_of_coeff_zero_ne_zero {x : L} {p : polynomial K}
+lemma inv_eq_of_root_of_coeff_zero_ne_zero {x : L} {p : K[X]}
   (aeval_eq : aeval x p = 0) (coeff_zero_ne : p.coeff 0 ≠ 0) :
   x⁻¹ = - (aeval x (div_X p) / algebra_map _ _ (p.coeff 0)) :=
 begin
@@ -233,7 +245,7 @@ begin
   rw [alg_hom.map_add, alg_hom.map_mul, h, zero_mul, zero_add, aeval_C]
 end
 
-lemma subalgebra.inv_mem_of_root_of_coeff_zero_ne_zero {x : A} {p : polynomial K}
+lemma subalgebra.inv_mem_of_root_of_coeff_zero_ne_zero {x : A} {p : K[X]}
   (aeval_eq : aeval x p = 0) (coeff_zero_ne : p.coeff 0 ≠ 0) : (x⁻¹ : L) ∈ A :=
 begin
   have : (x⁻¹ : L) = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)),
@@ -279,29 +291,38 @@ section pi
 
 variables (R' : Type u) (S' : Type v) (T' : Type w)
 
-instance polynomial.has_scalar_pi [semiring R'] [has_scalar R' S'] :
-  has_scalar (polynomial R') (R' → S') :=
+/-- This is not an instance as it forms a diamond with `pi.has_scalar`.
+
+See the `instance_diamonds` test for details. -/
+def polynomial.has_scalar_pi [semiring R'] [has_scalar R' S'] :
+  has_scalar (R'[X]) (R' → S') :=
 ⟨λ p f x, eval x p • f x⟩
 
-noncomputable instance polynomial.has_scalar_pi' [comm_semiring R'] [semiring S'] [algebra R' S']
+/-- This is not an instance as it forms a diamond with `pi.has_scalar`.
+
+See the `instance_diamonds` test for details. -/
+noncomputable def polynomial.has_scalar_pi' [comm_semiring R'] [semiring S'] [algebra R' S']
   [has_scalar S' T'] :
-  has_scalar (polynomial R') (S' → T') :=
+  has_scalar (R'[X]) (S' → T') :=
 ⟨λ p f x, aeval x p • f x⟩
 
 variables {R} {S}
 
+local attribute [instance] polynomial.has_scalar_pi polynomial.has_scalar_pi'
+
 @[simp] lemma polynomial_smul_apply [semiring R'] [has_scalar R' S']
-  (p : polynomial R') (f : R' → S') (x : R') :
+  (p : R'[X]) (f : R' → S') (x : R') :
   (p • f) x = eval x p • f x := rfl
 
 @[simp] lemma polynomial_smul_apply' [comm_semiring R'] [semiring S'] [algebra R' S']
-  [has_scalar S' T'] (p : polynomial R') (f : S' → T') (x : S') :
+  [has_scalar S' T'] (p : R'[X]) (f : S' → T') (x : S') :
   (p • f) x = aeval x p • f x := rfl
 
 variables [comm_semiring R'] [comm_semiring S'] [comm_semiring T'] [algebra R' S'] [algebra S' T']
 
-noncomputable instance polynomial.algebra_pi :
-  algebra (polynomial R') (S' → T') :=
+/-- This is not an instance for the same reasons as `polynomial.has_scalar_pi'`. -/
+noncomputable def polynomial.algebra_pi :
+  algebra (R'[X]) (S' → T') :=
 { to_fun := λ p z, algebra_map S' T' (aeval z p),
   map_one' := funext $ λ z, by simp,
   map_mul' := λ f g, funext $ λ z, by simp,
@@ -311,11 +332,13 @@ noncomputable instance polynomial.algebra_pi :
   smul_def' := λ p f, funext $ λ z, by simp [algebra.algebra_map_eq_smul_one],
   ..polynomial.has_scalar_pi' R' S' T' }
 
+local attribute [instance] polynomial.algebra_pi
+
 @[simp] lemma polynomial.algebra_map_pi_eq_aeval :
-  (algebra_map (polynomial R') (S' → T') : polynomial R' → (S' → T')) =
+  (algebra_map (R'[X]) (S' → T') : R'[X] → (S' → T')) =
     λ p z, algebra_map _ _ (aeval z p) := rfl
 
 @[simp] lemma polynomial.algebra_map_pi_self_eq_eval :
-  (algebra_map (polynomial R') (R' → R') : polynomial R' → (R' → R')) = λ p z, eval z p := rfl
+  (algebra_map (R'[X]) (R' → R') : R'[X] → (R' → R')) = λ p z, eval z p := rfl
 
 end pi

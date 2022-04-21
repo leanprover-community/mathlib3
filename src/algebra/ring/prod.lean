@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Chris Hughes, Mario Carneiro, Yury Kudryashov
 -/
 import algebra.group.prod
 import algebra.ring.basic
-import data.equiv.ring
+import algebra.ring.equiv
 
 /-!
 # Semiring, ring etc structures on `R × S`
@@ -56,6 +56,14 @@ instance [comm_semiring R] [comm_semiring S] : comm_semiring (R × S) :=
 instance [non_unital_non_assoc_ring R] [non_unital_non_assoc_ring S] :
   non_unital_non_assoc_ring (R × S) :=
 { .. prod.add_comm_group, .. prod.non_unital_non_assoc_semiring }
+
+instance [non_unital_ring R] [non_unital_ring S] :
+  non_unital_ring (R × S) :=
+{ .. prod.add_comm_group, .. prod.non_unital_semiring }
+
+instance [non_assoc_ring R] [non_assoc_ring S] :
+  non_assoc_ring (R × S) :=
+{ .. prod.add_comm_group, .. prod.non_assoc_semiring }
 
 /-- Product of two rings is a ring. -/
 instance [ring R] [ring S] : ring (R × S) :=
@@ -112,14 +120,14 @@ variables [non_assoc_semiring R'] [non_assoc_semiring S'] [non_assoc_semiring T]
 variables (f : R →+* R') (g : S →+* S')
 
 /-- `prod.map` as a `ring_hom`. -/
-def prod_map : R × S →* R' × S' := (f.comp (fst R S)).prod (g.comp (snd R S))
+def prod_map : R × S →+* R' × S' := (f.comp (fst R S)).prod (g.comp (snd R S))
 
 lemma prod_map_def : prod_map f g = (f.comp (fst R S)).prod (g.comp (snd R S)) := rfl
 
 @[simp]
 lemma coe_prod_map : ⇑(prod_map f g) = prod.map f g := rfl
 
-lemma prod_comp_prod_map (f : T →* R) (g : T →* S) (f' : R →* R') (g' : S →* S') :
+lemma prod_comp_prod_map (f : T →+* R) (g : T →+* S) (f' : R →+* R') (g' : S →+* S') :
   (f'.prod_map g').comp (f.prod g) = (f'.comp f).prod (g'.comp g) :=
 rfl
 

@@ -35,6 +35,8 @@ attribute [protected] Pointed.X
 /-- Turns a point into a pointed type. -/
 def of {X : Type*} (point : X) : Pointed := ⟨X, point⟩
 
+@[simp] lemma coe_of {X : Type*} (point : X) : ↥(of point) = X := rfl
+
 alias of ← prod.Pointed
 
 instance : inhabited Pointed := ⟨of ((), ())⟩
@@ -69,9 +71,16 @@ instance concrete_category : concrete_category Pointed :=
 { forget := { obj := Pointed.X, map := @hom.to_fun },
   forget_faithful := ⟨@hom.ext⟩ }
 
+/-- Constructs a isomorphism between pointed types from an equivalence that preserves the point
+between them. -/
+@[simps] def iso.mk {α β : Pointed} (e : α ≃ β) (he : e α.point = β.point) : α ≅ β :=
+{ hom := ⟨e, he⟩,
+  inv := ⟨e.symm, e.symm_apply_eq.2 he.symm⟩,
+  hom_inv_id' := Pointed.hom.ext _ _ e.symm_comp_self,
+  inv_hom_id' := Pointed.hom.ext _ _ e.self_comp_symm }
+
 end Pointed
 
---TODO: This is actually an equivalence
 /-- `option` as a functor from types to pointed types. This is the free functor. -/
 @[simps] def Type_to_Pointed : Type.{u} ⥤ Pointed.{u} :=
 { obj := λ X, ⟨option X, none⟩,

@@ -5,8 +5,8 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
 import data.mv_polynomial.rename
-import data.equiv.fin
 import data.polynomial.algebra_map
+import logic.equiv.fin
 
 /-!
 # Equivalences between polynomial rings
@@ -39,7 +39,7 @@ equivalence, isomorphism, morphism, ring hom, hom
 
 noncomputable theory
 
-open_locale classical big_operators
+open_locale classical big_operators polynomial
 
 open set function finsupp add_monoid_algebra
 
@@ -58,14 +58,14 @@ The ring isomorphism between multivariable polynomials in a single variable and
 polynomials over the ground ring.
 -/
 @[simps]
-def punit_alg_equiv : mv_polynomial punit R ≃ₐ[R] polynomial R :=
+def punit_alg_equiv : mv_polynomial punit R ≃ₐ[R] R[X] :=
 { to_fun    := eval₂ polynomial.C (λu:punit, polynomial.X),
   inv_fun   := polynomial.eval₂ mv_polynomial.C (X punit.star),
   left_inv  :=
     begin
-      let f : polynomial R →+* mv_polynomial punit R :=
+      let f : R[X] →+* mv_polynomial punit R :=
         (polynomial.eval₂_ring_hom mv_polynomial.C (X punit.star)),
-      let g : mv_polynomial punit R →+* polynomial R :=
+      let g : mv_polynomial punit R →+* R[X] :=
         (eval₂_hom polynomial.C (λu:punit, polynomial.X)),
       show ∀ p, f.comp g p = p,
       apply is_id,
@@ -270,7 +270,7 @@ end
 The algebra isomorphism between multivariable polynomials in `option S₁` and
 multivariable polynomials with coefficients in polynomials.
 -/
-def option_equiv_right : mv_polynomial (option S₁) R ≃ₐ[R] mv_polynomial S₁ (polynomial R) :=
+def option_equiv_right : mv_polynomial (option S₁) R ≃ₐ[R] mv_polynomial S₁ R[X] :=
 alg_equiv.of_alg_hom
   (mv_polynomial.aeval (λ o, o.elim (C polynomial.X) X))
   (mv_polynomial.aeval_tower (polynomial.aeval (X none)) (λ i, X (option.some i)))
@@ -293,8 +293,8 @@ lemma fin_succ_equiv_eq (n : ℕ) :
 begin
   ext : 2,
   { simp only [fin_succ_equiv, option_equiv_left_apply, aeval_C, alg_equiv.coe_trans,
-      alg_equiv.coe_alg_hom, coe_eval₂_hom, alg_hom.coe_to_ring_hom, comp_app, rename_equiv_apply,
-      eval₂_C, ring_hom.coe_comp, coe_coe, rename_C],
+      ring_hom.coe_coe, coe_eval₂_hom, comp_app, rename_equiv_apply, eval₂_C, ring_hom.coe_comp,
+      rename_C],
     refl },
   { intro i,
     refine fin.cases _ _ i;

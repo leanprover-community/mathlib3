@@ -52,6 +52,7 @@ open_locale classical big_operators
 /-- Nonnegative real numbers. -/
 @[derive [
   ordered_semiring, comm_monoid_with_zero, -- to ensure these instance are computable
+  floor_semiring,
   semilattice_inf, densely_ordered, order_bot,
   canonically_linear_ordered_add_monoid, linear_ordered_comm_group_with_zero, archimedean,
   linear_ordered_semiring, ordered_comm_semiring, canonically_ordered_comm_semiring,
@@ -282,6 +283,10 @@ example : canonically_ordered_comm_semiring ℝ≥0 := by apply_instance
 example : densely_ordered ℝ≥0 := by apply_instance
 example : no_max_order ℝ≥0 := by apply_instance
 
+-- note we need the `@` to make the `has_mem.mem` have a sensible type
+lemma coe_image {s : set ℝ≥0} : coe '' s = {x : ℝ | ∃ h : 0 ≤ x, @has_mem.mem (ℝ≥0) _ _ ⟨x, h⟩ s} :=
+subtype.coe_image
+
 lemma bdd_above_coe {s : set ℝ≥0} : bdd_above ((coe : ℝ≥0 → ℝ) '' s) ↔ bdd_above s :=
 iff.intro
   (assume ⟨b, hb⟩, ⟨real.to_nnreal b, assume ⟨y, hy⟩ hys, show y ≤ max b 0, from
@@ -294,13 +299,19 @@ lemma bdd_below_coe (s : set ℝ≥0) : bdd_below ((coe : ℝ≥0 → ℝ) '' s)
 noncomputable instance : conditionally_complete_linear_order_bot ℝ≥0 :=
 nonneg.conditionally_complete_linear_order_bot real.Sup_empty.le
 
-lemma coe_Sup (s : set ℝ≥0) : (↑(Sup s) : ℝ) = Sup ((coe : ℝ≥0 → ℝ) '' s) :=
+@[norm_cast] lemma coe_Sup (s : set ℝ≥0) : (↑(Sup s) : ℝ) = Sup ((coe : ℝ≥0 → ℝ) '' s) :=
 eq.symm $ @subset_Sup_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
   real.Sup_nonneg _ $ λ y ⟨x, _, hy⟩, hy ▸ x.2
 
-lemma coe_Inf (s : set ℝ≥0) : (↑(Inf s) : ℝ) = Inf ((coe : ℝ≥0 → ℝ) '' s) :=
+@[norm_cast] lemma coe_supr {ι : Sort*} (s : ι → ℝ≥0) : (↑(⨆ i, s i) : ℝ) = ⨆ i, (s i) :=
+by rw [supr, supr, coe_Sup, set.range_comp]
+
+@[norm_cast] lemma coe_Inf (s : set ℝ≥0) : (↑(Inf s) : ℝ) = Inf ((coe : ℝ≥0 → ℝ) '' s) :=
 eq.symm $ @subset_Inf_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
   real.Inf_nonneg _ $ λ y ⟨x, _, hy⟩, hy ▸ x.2
+
+@[norm_cast] lemma coe_infi {ι : Sort*} (s : ι → ℝ≥0) : (↑(⨅ i, s i) : ℝ) = ⨅ i, (s i) :=
+by rw [infi, infi, coe_Inf, set.range_comp]
 
 example : archimedean ℝ≥0 := by apply_instance
 
@@ -341,19 +352,18 @@ iff.intro
 lemma bot_eq_zero : (⊥ : ℝ≥0) = 0 := rfl
 
 lemma mul_sup (a b c : ℝ≥0) : a * (b ⊔ c) = (a * b) ⊔ (a * c) :=
-begin
-  cases le_total b c with h h,
-  { simp [sup_eq_max, max_eq_right h, max_eq_right (mul_le_mul_of_nonneg_left h (zero_le a))] },
-  { simp [sup_eq_max, max_eq_left h, max_eq_left (mul_le_mul_of_nonneg_left h (zero_le a))] },
-end
+mul_max_of_nonneg _ _ $ zero_le a
 
-lemma mul_finset_sup {α} {f : α → ℝ≥0} {s : finset α} (r : ℝ≥0) :
-  r * s.sup f = s.sup (λa, r * f a) :=
-begin
-  refine s.induction_on _ _,
-  { simp [bot_eq_zero] },
-  { assume a s has ih, simp [has, ih, mul_sup], }
-end
+lemma sup_mul (a b c : ℝ≥0) : (a ⊔ b) * c = (a * c) ⊔ (b * c) :=
+max_mul_of_nonneg _ _ $ zero_le c
+
+lemma mul_finset_sup {α} (r : ℝ≥0) (s : finset α) (f : α → ℝ≥0) :
+  r * s.sup f = s.sup (λ a, r * f a) :=
+(finset.comp_sup_eq_sup_comp _ (nnreal.mul_sup r) (mul_zero r))
+
+lemma finset_sup_mul {α} (s : finset α) (f : α → ℝ≥0) (r : ℝ≥0) :
+  s.sup f * r = s.sup (λ a, f a * r) :=
+(finset.comp_sup_eq_sup_comp (* r) (λ x y, nnreal.sup_mul x y r) (zero_mul r))
 
 lemma finset_sup_div {α} {f : α → ℝ≥0} {s : finset α} (r : ℝ≥0) :
   s.sup f / r = s.sup (λ a, f a / r) :=
@@ -626,7 +636,7 @@ lemma le_of_forall_lt_one_mul_le {x y : ℝ≥0} (h : ∀a<1, a * x ≤ y) : x �
 le_of_forall_ge_of_dense $ assume a ha,
   have hx : x ≠ 0 := pos_iff_ne_zero.1 (lt_of_le_of_lt (zero_le _) ha),
   have hx' : x⁻¹ ≠ 0, by rwa [(≠), inv_eq_zero],
-  have a * x⁻¹ < 1, by rwa [← lt_inv_iff_mul_lt hx', inv_inv₀],
+  have a * x⁻¹ < 1, by rwa [← lt_inv_iff_mul_lt hx', inv_inv],
   have (a * x⁻¹) * x ≤ y, from h _ this,
   by rwa [mul_assoc, inv_mul_cancel hx, mul_one] at this
 
@@ -693,7 +703,7 @@ lemma inv_lt_one {x : ℝ≥0} (hx : 1 < x) : x⁻¹ < 1 :=
 lemma zpow_pos {x : ℝ≥0} (hx : x ≠ 0) (n : ℤ) : 0 < x ^ n :=
 begin
   cases n,
-  { exact pow_pos hx.bot_lt _ },
+  { simp [pow_pos hx.bot_lt _] },
   { simp [pow_pos hx.bot_lt _] }
 end
 

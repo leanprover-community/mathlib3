@@ -3,9 +3,9 @@ Copyright (c) 2020 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-import topology.unit_interval
-import topology.algebra.ordered.proj_Icc
+import topology.algebra.order.proj_Icc
 import topology.continuous_function.basic
+import topology.unit_interval
 
 /-!
 # Path connectedness

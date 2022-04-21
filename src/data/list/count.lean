@@ -50,6 +50,9 @@ by simp only [countp_eq_length_filter, filter_append, length_append]
 lemma countp_pos {l} : 0 < countp p l ↔ ∃ a ∈ l, p a :=
 by simp only [countp_eq_length_filter, length_pos_iff_exists_mem, mem_filter, exists_prop]
 
+lemma countp_eq_length {l} : countp p l = l.length ↔ ∀ a ∈ l, p a :=
+by rw [countp_eq_length_filter, filter_length_eq_length]
+
 lemma length_filter_lt_length_iff_exists (l) : length (filter p l) < length l ↔ ∃ x ∈ l, ¬p x :=
 by rw [length_eq_countp_add_countp p l, ← countp_pos, countp_eq_length_filter, lt_add_iff_pos_right]
 
@@ -122,6 +125,9 @@ decidable.by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
 lemma not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a ∉ l :=
 λ h', (count_pos.2 h').ne' h
 
+lemma count_eq_length {a : α} {l} : count a l = l.length ↔ ∀ b ∈ l, a = b :=
+by rw [count, countp_eq_length]
+
 @[simp] lemma count_repeat (a : α) (n : ℕ) : count a (repeat a n) = n :=
 by rw [count, countp_eq_length_filter, filter_eq_self.2, length_repeat];
    exact λ b m, (eq_of_mem_repeat m).symm
@@ -157,10 +163,7 @@ end
 begin
   induction l with y l IH generalizing x,
   { simp },
-  { rw map_cons,
-    by_cases h : x = y,
-    { simpa [h] using IH _ },
-    { simpa [h, hf.ne h] using IH _ } }
+  { simp [map_cons, count_cons', IH, hf.eq_iff] }
 end
 
 lemma count_le_count_map [decidable_eq β] (l : list α) (f : α → β) (x : α) :

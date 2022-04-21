@@ -154,7 +154,7 @@ lemma torsion_by_le_torsion_by_of_dvd (a b : R) (dvd : a ∣ b) :
   rw [h, mul_comm, mul_smul, hx, smul_zero]
 end
 
-lemma torsion_by_one : torsion_by R M 1 = ⊥ :=
+@[simp] lemma torsion_by_one : torsion_by R M 1 = ⊥ :=
 eq_bot_iff.mpr (λ _ h, by { rw [mem_torsion_by_iff, one_smul] at h, exact h })
 
 section coprime
@@ -208,8 +208,7 @@ lemma torsion_by_independent : complete_lattice.independent (λ i : S, torsion_b
       { rw finset.mem_sdiff, refine ⟨j.2, λ hj', ji _⟩, ext, rw ← finset.mem_singleton, exact hj' },
       rw [finset.prod_eq_prod_diff_singleton_mul hj', ← mul_assoc, mul_smul],
       have : (⨆ (H : ¬j = i), torsion_by R M (p j)) ≤ torsion_by R M (p j) := supr_const_le,
-      have : (f j : M) ∈ torsion_by R M (p j) := this (coe_mem _),
-      have : _ • _ = _ := this,
+      have : _ • _ = _ := this (coe_mem _),
       rw [this, smul_zero] } }
 end
 end coprime

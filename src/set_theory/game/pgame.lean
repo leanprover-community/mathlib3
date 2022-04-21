@@ -878,7 +878,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 theorem add_assoc_equiv {x y z : pgame} : (x + y) + z ≈ x + (y + z) :=
 (add_assoc_relabelling x y z).equiv
 
-protected lemma add_le_add_right : Π {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
+private lemma add_le_add_right : Π {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
 begin
   intros h,
@@ -989,12 +989,11 @@ theorem add_right_neg_equiv {x : pgame} : x + (-x) ≈ 0 :=
 ⟨add_right_neg_le_zero, zero_le_add_right_neg⟩
 
 instance covariant_class_swap_add_lt : covariant_class pgame pgame (swap (+)) (<) :=
-⟨λ x y z h, suffices z + x ≤ y + x → z ≤ y, by { rw ←not_le at ⊢ h, exact mt this h },
-  assume w,
-  calc z ≤ z + 0            : (add_zero_relabelling _).symm.le
+⟨λ x y z h, suffices z + x ≤ y + x → z ≤ y, by { rw ←not_le at ⊢ h, exact mt this h }, λ w,
+  calc z ≤ z + 0          : (add_zero_relabelling _).symm.le
      ... ≤ z + (x + -x)   : add_le_add_left zero_le_add_right_neg _
-     ... ≤ (z + x) + (-x) : (add_assoc_relabelling _ _ _).symm.le
-     ... ≤ (y + x) + (-x) : add_le_add_right w _
+     ... ≤ z + x + -x     : (add_assoc_relabelling _ _ _).symm.le
+     ... ≤ y + x + -x     : add_le_add_right w _
      ... ≤ y + (x + -x)   : (add_assoc_relabelling _ _ _).le
      ... ≤ y + 0          : add_le_add_left add_right_neg_le_zero _
      ... ≤ y              : (add_zero_relabelling _).le⟩
@@ -1008,7 +1007,7 @@ theorem le_iff_sub_nonneg {x y : pgame} : x ≤ y ↔ 0 ≤ y - x :=
 ⟨λ h, le_trans zero_le_add_right_neg (add_le_add_right h _),
  λ h,
   calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
-     ... ≤ (y - x) + x : add_le_add_right h _
+     ... ≤ y - x + x : add_le_add_right h _
      ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
      ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero) _
      ... ≤ y : (add_zero_relabelling y).le⟩
@@ -1016,7 +1015,7 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
 ⟨λ h, lt_of_le_of_lt zero_le_add_right_neg (add_lt_add_right h _),
  λ h,
   calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
-     ... < (y - x) + x : add_lt_add_right h _
+     ... < y - x + x : add_lt_add_right h _
      ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
      ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero) _
      ... ≤ y : (add_zero_relabelling y).le⟩

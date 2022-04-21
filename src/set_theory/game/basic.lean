@@ -148,10 +148,10 @@ instance : add_comm_group game :=
   ..game.add_group }
 
 instance covariant_class_add_le : covariant_class game game (+) (≤) :=
-⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left pgame _ _ _ _ _ h a end⟩
+⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a end⟩
 
 instance covariant_class_swap_add_le : covariant_class game game (swap (+)) (≤) :=
-⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_right pgame _ _ _ _ _ h _ end⟩
+⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_right _ _ _ _ b c h a end⟩
 
 -- While it is very tempting to define a `partial_order` on games, and prove
 -- that games form an `ordered_add_comm_group`, it is a bit dangerous.

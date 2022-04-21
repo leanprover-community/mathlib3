@@ -113,6 +113,15 @@ lemma has_deriv_within_at.cexp_real (h : has_deriv_within_at f f' s x) :
   has_deriv_within_at (λ x, exp (f x)) (exp (f x) * f') s x :=
 (has_strict_fderiv_at_exp_real (f x)).has_fderiv_at.comp_has_deriv_within_at x h
 
+lemma deriv_within_cexp_real (hf : differentiable_within_at ℝ f s x)
+  (hxs : unique_diff_within_at ℝ s x) :
+  deriv_within (λx, complex.exp (f x)) s x = complex.exp (f x) * (deriv_within f s x) :=
+hf.has_deriv_within_at.cexp_real.deriv_within hxs
+
+@[simp] lemma deriv_cexp_real (hc : differentiable_at ℝ f x) :
+  deriv (λx, complex.exp (f x)) x = complex.exp (f x) * (deriv f x) :=
+hc.has_deriv_at.cexp_real.deriv
+
 end
 
 section

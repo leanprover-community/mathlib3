@@ -148,7 +148,7 @@ tensor product `V ⊗[k] W`.
 def tprod : representation k G (V ⊗[k] W) :=
 { to_fun := λ g, tensor_product.map (ρV g) (ρW g),
   map_one' := by simp only [map_one, tensor_product.map_one],
-  map_mul' := λ g h, by simp only [map_mul, mul_eq_comp, tensor_product.map_comp] }
+  map_mul' := λ g h, by simp only [map_mul, tensor_product.map_mul] }
 
 notation ρV ` ⊗ ` ρW := tprod ρV ρW
 

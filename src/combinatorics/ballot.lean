@@ -54,19 +54,19 @@ begin
 end
 
 @[elab_as_eliminator]
-lemma diag_induction (P : ℕ → ℕ → Prop) (ha : ∀ a, P (a + 1) (a + 1)) (hb : ∀ p, P 0 (p+1))
+lemma diag_induction (P : ℕ → ℕ → Prop) (ha : ∀ a, P (a + 1) (a + 1)) (hb : ∀ p, P 0 (p + 1))
   (hd : ∀ a b, a < b → P (a + 1) b → P a (b + 1) → P (a + 1) (b + 1)) :
   ∀ q p, q < p → P q p
-| 0 (p+1) h := hb _
-| (q+1) (p+1) h :=
+| 0 (p + 1) h := hb _
+| (q + 1) (p + 1) h :=
 begin
   apply hd _ _ ((add_lt_add_iff_right _).1 h),
   { have : q + 1 = p ∨ q + 1 < p,
     { rwa [← le_iff_eq_or_lt, ← nat.lt_succ_iff] },
     rcases this with rfl | _,
     { exact ha _ },
-    apply diag_induction (q+1) p this },
-  apply diag_induction q (p+1),
+    apply diag_induction (q + 1) p this },
+  apply diag_induction q (p + 1),
   apply lt_of_le_of_lt (nat.le_succ _) h,
 end
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ p, p.1 + p.2.1)⟩] }
@@ -185,8 +185,8 @@ lemma length_of_mem_counted_sequence :
 
 lemma disjoint_bits (p q : ℕ) :
   disjoint
-    ((counted_sequence p (q+1)).image (list.cons 1))
-    ((counted_sequence (p+1) q).image (list.cons (-1))) :=
+    ((counted_sequence p (q + 1)).image (list.cons 1))
+    ((counted_sequence (p + 1) q).image (list.cons (-1))) :=
 begin
   simp_rw [disjoint_left, mem_image, not_exists, exists_imp_distrib],
   rintros _ _ ⟨_, rfl⟩ _ ⟨_, _, _⟩,

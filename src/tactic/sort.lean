@@ -132,7 +132,6 @@ meta def sorted_sum_with_rel
   tactic unit :=
 match (get_summands e).sort_with_ends ll rel with
 | eₕ::es := do
-  trace (eₕ::es),
   e' ← es.mfoldl (λ eₗ eᵣ, mk_app `has_add.add [eₗ, eᵣ]) eₕ,
   e_eq ← mk_app `eq [e, e'],
   n ← get_unused_name,
@@ -219,7 +218,6 @@ do
   il ← ll.1.mmap to_expr,
   fl ← ll.2.mmap to_expr,
   let ll := (il, fl),
-  trace ll,
   match locat with
   | loc.wildcard := do
     sort_summands_core tt ll none,

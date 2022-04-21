@@ -255,7 +255,7 @@ theorem nfp_bfamily_fp {i hi} (H : is_normal (f i hi)) (a) :
   f i hi (nfp_bfamily o f a) = nfp_bfamily o f a :=
 by { rw ←family_of_bfamily_enum o f, apply nfp_family_fp, rw family_of_bfamily_enum, exact H }
 
-theorem le_nfp_bfamily (ho : o ≠ 0) (H : ∀ i hi, is_normal (f i hi)) {a b} :
+theorem apply_le_nfp_bfamily (ho : o ≠ 0) (H : ∀ i hi, is_normal (f i hi)) {a b} :
   (∀ i hi, f i hi b ≤ nfp_bfamily o f a) ↔ b ≤ nfp_bfamily o f a :=
 begin
   refine ⟨λ h, _, λ h i hi, _⟩,
@@ -390,7 +390,7 @@ nfp_family_le_fp (λ _, H) ab (λ _, h)
 theorem is_normal.nfp_fp {f} (H : is_normal f) : ∀ a, f (nfp f a) = nfp f a :=
 @nfp_family_fp unit (λ _, f) unit.star H
 
-theorem is_normal.le_nfp {f} (H : is_normal f) {a b} :
+theorem is_normal.apply_le_nfp {f} (H : is_normal f) {a b} :
   f b ≤ nfp f a ↔ b ≤ nfp f a :=
 ⟨le_trans (H.self_le _), λ h, by simpa only [H.nfp_fp] using H.le_iff.2 h⟩
 

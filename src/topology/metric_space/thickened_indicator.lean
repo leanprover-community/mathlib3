@@ -66,7 +66,8 @@ lemma thickened_indicator_aux_one (δ : ℝ) (E : set α) {x : α} (x_in_E : x �
   thickened_indicator_aux δ E x = 1 :=
 by simp [thickened_indicator_aux, inf_edist_zero_of_mem x_in_E, tsub_zero]
 
-lemma thickened_indicator_aux_one_of_mem_closure (δ : ℝ) (E : set α) {x : α} (x_mem : x ∈ closure E) :
+lemma thickened_indicator_aux_one_of_mem_closure
+  (δ : ℝ) (E : set α) {x : α} (x_mem : x ∈ closure E) :
   thickened_indicator_aux δ E x = 1 :=
 by rw [←thickened_indicator_aux_closure_eq, thickened_indicator_aux_one δ (closure E) x_mem]
 
@@ -175,7 +176,8 @@ end
 lemma thickened_indicator_one_of_mem_closure
   {δ : ℝ} (δ_pos : 0 < δ) (E : set α) {x : α} (x_mem : x ∈ closure E) :
   thickened_indicator δ_pos E x = 1 :=
-by rw [thickened_indicator_apply, thickened_indicator_aux_one_of_mem_closure δ E x_mem, one_to_nnreal]
+by rw [thickened_indicator_apply,
+       thickened_indicator_aux_one_of_mem_closure δ E x_mem, one_to_nnreal]
 
 lemma thickened_indicator_one {δ : ℝ} (δ_pos : 0 < δ) (E : set α) {x : α} (x_in_E : x ∈ E) :
   thickened_indicator δ_pos E x = 1 :=
@@ -191,7 +193,8 @@ lemma thickened_indicator_mono {δ₁ δ₂ : ℝ}
   ⇑(thickened_indicator δ₁_pos E) ≤ thickened_indicator δ₂_pos E :=
 begin
   intro x,
-  apply (to_nnreal_le_to_nnreal thickened_indicator_aux_lt_top.ne thickened_indicator_aux_lt_top.ne).mpr,
+  apply (to_nnreal_le_to_nnreal thickened_indicator_aux_lt_top.ne
+         thickened_indicator_aux_lt_top.ne).mpr,
   apply thickened_indicator_aux_mono hle,
 end
 
@@ -199,8 +202,8 @@ lemma thickened_indicator_subset {δ : ℝ} (δ_pos : 0 < δ) {E₁ E₂ : set �
   ⇑(thickened_indicator δ_pos E₁) ≤ thickened_indicator δ_pos E₂ :=
 begin
   intro x,
-  exact (to_nnreal_le_to_nnreal thickened_indicator_aux_lt_top.ne thickened_indicator_aux_lt_top.ne).mpr
-        (thickened_indicator_aux_subset δ subset x),
+  exact (to_nnreal_le_to_nnreal thickened_indicator_aux_lt_top.ne
+         thickened_indicator_aux_lt_top.ne).mpr (thickened_indicator_aux_subset δ subset x),
 end
 
 lemma thickened_indicator_tendsto_indicator_closure

@@ -206,6 +206,9 @@ def mkq : M →ₗ[R] M ⧸ p :=
 
 @[simp] theorem mkq_apply (x : M) : p.mkq x = quotient.mk x := rfl
 
+lemma mkq_surjective (A : submodule R M) : function.surjective A.mkq :=
+by rintro ⟨x⟩; exact ⟨x, rfl⟩
+
 end
 
 variables {R₂ M₂ : Type*} [ring R₂] [add_comm_group M₂] [module R₂ M₂] {τ₁₂ : R →+* R₂}

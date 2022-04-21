@@ -3,10 +3,9 @@ Copyright (c) 2022 Pierre-Alexandre Bazin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Pierre-Alexandre Bazin
 -/
-import ring_theory.principal_ideal_domain
-import algebra.direct_sum.module
-import ring_theory.finiteness
 import algebra.module.torsion
+import linear_algebra.free_module.pid
+import algebra.module.projective
 
 /-!
 # Classification of finitely generated modules over a PID
@@ -15,6 +14,9 @@ import algebra.module.torsion
 
 * `equiv_direct_sum_of_is_torsion` : A finitely generated torsion module over a PID is isomorphic
   to a direct sum of some `R ⧸ R ∙ (p i ^ e i)` where the `p i ^ e i` are prime powers.
+* `equiv_free_prod_direct_sum` : A finitely generated module over a PID is isomorphic to the
+  product of a free module (its torsion free part) and a direct sum of the form above (its torsion
+  submodule).
 
 ## Notation
 
@@ -29,7 +31,10 @@ internal direct sum of its `p i ^ e i`-torsion submodules for some (finitely man
 
 Then we treat the case of a `p ^ ∞`-torsion module (that is, a module where all elements are
 cancelled by scalar multiplication by some power of `p`) and apply it to the `p i ^ e i`-torsion
-submodules (that are `p i ^ ∞`-torsion) to get the final result.
+submodules (that are `p i ^ ∞`-torsion) to get the result for torsion modules.
+
+Then we get the general result using that a torsion free module is free (which has been proved at
+`module.free_of_finite_type_torsion_free'` at `linear_algebra/free_module/pid.lean`.)
 
 ## Tags
 
@@ -253,7 +258,7 @@ end p_torsion
 /--A finitely generated torsion module over a PID is isomorphic to a direct sum of some
   `R ⧸ R ∙ (p i ^ e i)` where the `p i ^ e i` are prime powers.-/
 theorem equiv_direct_sum_of_is_torsion [h' : module.finite R M] (hM : module.is_torsion R M) :
-  ∃ (ι : Type u) [fintype ι] (p : ι → R) [∀ i, irreducible (p i)] (e : ι → ℕ),
+  ∃ (ι : Type u) [fintype ι] (p : ι → R) [∀ i, irreducible $ p i] (e : ι → ℕ),
   nonempty $ M ≃ₗ[R] ⨁ (i : ι), R ⧸ R ∙ (p i ^ e i) :=
 begin
   obtain ⟨I, fI, _, p, hp, e, h⟩ := is_internal_prime_power_torsion hM, haveI := fI,
@@ -270,4 +275,26 @@ begin
       (direct_sum.sigma_lcurry_equiv R).symm.trans
       (dfinsupp.map_range.linear_equiv $ λ i, quot_equiv_of_eq _ _ _)⟩⟩,
   cases i with i j, simp only
+end
+
+variables {N : Type (max u v)} [add_comm_group N] [module R N]
+
+/--**Classification theorem of finitely generated modules over a PID** : A finitely generated
+  module over a PID is isomorphic to the product of a free module and a direct sum of some
+  `R ⧸ R ∙ (p i ^ e i)` where the `p i ^ e i` are prime powers.-/
+theorem equiv_free_prod_direct_sum [h' : module.finite R N] :
+  ∃ (n : ℕ) (ι : Type u) [fintype ι] (p : ι → R) [∀ i, irreducible $ p i] (e : ι → ℕ),
+  nonempty $ N ≃ₗ[R] (fin n →₀ R) × ⨁ (i : ι), R ⧸ R ∙ (p i ^ e i) :=
+begin
+  haveI := is_noetherian_of_fg_of_noetherian' (module.finite_def.mp h'),
+  haveI := is_noetherian_submodule' (torsion R N),
+  haveI := module.finite.of_surjective _ (torsion R N).mkq_surjective,
+  obtain ⟨I, fI, p, hp, e, ⟨h⟩⟩ := equiv_direct_sum_of_is_torsion (@torsion_is_torsion R N _ _ _),
+  obtain ⟨n, ⟨g⟩⟩ := @module.free_of_finite_type_torsion_free' R _ _ _ (N ⧸ torsion R N) _ _ _ _,
+  haveI : module.projective R (N ⧸ torsion R N) := module.projective_of_basis ⟨g⟩,
+  obtain ⟨f, hf⟩ := module.projective_lifting_property _ linear_map.id (torsion R N).mkq_surjective,
+  refine ⟨n, I, fI, p, hp, e,
+    ⟨(lequiv_prod_of_split_exact _ _ _ (torsion R N).injective_subtype _ hf).symm.trans $
+      (h.prod g).trans $ linear_equiv.prod_comm R _ _⟩⟩,
+  rw [range_subtype, ker_mkq]
 end

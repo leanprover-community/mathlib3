@@ -9,6 +9,7 @@ import topology.algebra.order.compact
 import topology.metric_space.emetric_space
 import topology.bornology.basic
 import topology.uniform_space.complete_separated
+import tactic.swap_var
 
 /-!
 # Metric spaces
@@ -1366,13 +1367,12 @@ lemma nnreal.dist_eq (a b : ℝ≥0) : dist a b = |(a:ℝ) - b| := rfl
 lemma nnreal.nndist_eq (a b : ℝ≥0) :
   nndist a b = max (a - b) (b - a) :=
 begin
-  wlog h : a ≤ b,
+  cases le_total a b; [skip, { swap_var a b, rwa [nndist_comm, max_comm] }];
   { apply nnreal.coe_eq.1,
     rw [tsub_eq_zero_iff_le.2 h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
       nnreal.coe_sub h, abs_eq_max_neg, neg_sub],
     apply max_eq_right,
-    linarith [nnreal.coe_le_coe.2 h] },
-  rwa [nndist_comm, max_comm]
+    linarith [nnreal.coe_le_coe.2 h] }
 end
 
 @[simp] lemma nnreal.nndist_zero_eq_val (z : ℝ≥0) : nndist 0 z = z :=

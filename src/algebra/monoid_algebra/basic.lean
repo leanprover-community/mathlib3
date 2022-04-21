@@ -1552,6 +1552,16 @@ lemma map_domain_algebra_map {A H F : Type*} [comm_semiring k] [semiring A]
     algebra_map k (add_monoid_algebra A H) r :=
 by simp only [function.comp_app, map_domain_single, add_monoid_algebra.coe_algebra_map, map_zero]
 
+/-- If `f : G → H` is a homomorphism between two additive magmas, then
+`finsupp.map_domain f` is a non-unital algebra homomorphism between their add magma algebras. -/
+@[simps]
+def map_domain_non_unital_alg_hom (k A : Type*) [comm_semiring k] [semiring A] [algebra k A]
+  {G H F : Type*} [has_add G] [has_add H] [add_hom_class F G H] (f : F) :
+  add_monoid_algebra A G →ₙₐ[k] add_monoid_algebra A H :=
+{ map_mul' := λ x y, map_domain_mul f x y,
+  map_smul' := λ r x, map_domain_smul r x,
+  ..(finsupp.map_domain.add_monoid_hom f : monoid_algebra A G →+ monoid_algebra A H) }
+
 /-- If `f : G → H` is an additive homomorphism between two additive monoids, then
 `finsupp.map_domain f` is an algebra homomorphism between their add monoid algebras. -/
 @[simps] def map_domain_alg_hom (k A : Type*) [comm_semiring k] [semiring A] [algebra k A]

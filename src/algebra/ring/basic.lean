@@ -326,20 +326,20 @@ lemma mul_right_apply {R : Type*} [non_unital_non_assoc_semiring R] (a r : R) :
 
 end add_monoid_hom
 
-/-- Bundled non-unital semiring homomorphisms; use this for bundled non-unital ring
+/-- Bundled non-unital semiring homomorphisms `R →ₙ+* S`; use this for bundled non-unital ring
 homomorphisms too.
 
-When possible, instead of parametrizing results over `(f : α →ₙ+* β)`,
-you should parametrize over `(F : Type*) [non_unital_ring_hom_class F α β] (f : F)`.
+When possible, instead of parametrizing results over `(f : R →ₙ+* S)`,
+you should parametrize over `(F : Type*) [non_unital_ring_hom_class F R S] (f : F)`.
 
 When you extend this structure, make sure to extend `non_unital_ring_hom_class`. -/
-structure non_unital_ring_hom (α : Type*) (β : Type*) [non_unital_non_assoc_semiring α]
-  [non_unital_non_assoc_semiring β] extends mul_hom α β, α →+ β
+structure non_unital_ring_hom (R : Type*) (S : Type*) [non_unital_non_assoc_semiring R]
+  [non_unital_non_assoc_semiring S] extends mul_hom R S, R →+ S
 
 infixr ` →ₙ+* `:25 := non_unital_ring_hom
 
 /-- Reinterpret a non-unital ring homomorphism `f : R →ₙ+* S` as a semigroup
-homomorphism `mul_hom R S`. The `simp`-normal form is `(f : mul_hom R S)`. -/
+homomorphism `R →ₙ* S`. The `simp`-normal form is `(f : R →ₙ* S)`. -/
 add_decl_doc non_unital_ring_hom.to_mul_hom
 
 /-- Reinterpret a non-unital ring homomorphism `f : R →ₙ+* S` as an additive

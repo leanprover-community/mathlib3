@@ -412,6 +412,19 @@ def subtype : S →ₙ* M := ⟨coe, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
 
+/-- The top subsemigroup is isomorphic to the semigroup. -/
+@[to_additive "The top additive subsemigroup is isomorphic to the additive semigroup.", simps]
+def top_equiv : (⊤ : subsemigroup M) ≃* M :=
+{ to_fun    := λ x, x,
+  inv_fun   := λ x, ⟨x, mem_top x⟩,
+  left_inv  := λ x, x.eta _,
+  right_inv := λ _, rfl,
+  map_mul'  := λ _ _, rfl }
+
+@[simp, to_additive] lemma top_equiv_to_mul_hom :
+  (top_equiv : _ ≃* M).to_mul_hom = (⊤ : subsemigroup M).subtype :=
+rfl
+
 /-- A subsemigroup is isomorphic to its image under an injective function -/
 @[to_additive "An additive subsemigroup is isomorphic to its image under an injective function"]
 noncomputable def equiv_map_of_injective

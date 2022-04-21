@@ -86,7 +86,7 @@ weak-star, weak dual
 -/
 
 noncomputable theory
-open filter metric set
+open filter function metric set
 open_locale topological_space filter
 
 /-!
@@ -109,24 +109,20 @@ namespace dual
 mapping). It is a linear equivalence. -/
 def to_weak_dual : dual 𝕜 E ≃ₗ[𝕜] weak_dual 𝕜 E := linear_equiv.refl 𝕜 (E →L[𝕜] 𝕜)
 
+@[simp] lemma coe_to_weak_dual (x' : dual 𝕜 E) : ⇑(x'.to_weak_dual) = x' := rfl
+
 @[simp] lemma to_weak_dual_eq_iff (x' y' : dual 𝕜 E) :
   x'.to_weak_dual = y'.to_weak_dual ↔ x' = y' :=
 to_weak_dual.injective.eq_iff
 
-@[simp] lemma _root_.weak_dual.to_normed_dual_eq_iff (x' y' : weak_dual 𝕜 E) :
-  x'.to_normed_dual = y'.to_normed_dual ↔ x' = y' :=
-weak_dual.to_normed_dual.injective.eq_iff
-
 theorem to_weak_dual_continuous : continuous (λ (x' : dual 𝕜 E), x'.to_weak_dual) :=
-weak_dual.continuous_of_continuous_eval 𝕜 E $ λ z, (inclusion_in_double_dual 𝕜 E z).continuous
+continuous_of_continuous_eval _ $ λ z, (inclusion_in_double_dual 𝕜 E z).continuous
 
 /-- For a normed space `E`, according to `to_weak_dual_continuous` the "identity mapping"
 `dual 𝕜 E → weak_dual 𝕜 E` is continuous. This definition implements it as a continuous linear
 map. -/
 def continuous_linear_map_to_weak_dual : dual 𝕜 E →L[𝕜] weak_dual 𝕜 E :=
 { cont := to_weak_dual_continuous, .. to_weak_dual, }
-
-@[simp] lemma coe_to_weak_dual (x' : dual 𝕜 E) : (x'.to_weak_dual : E → 𝕜) = x' := rfl
 
 /-- The weak-star topology is coarser than the dual-norm topology. -/
 theorem dual_norm_topology_le_weak_dual_topology :
@@ -164,7 +160,7 @@ variables (𝕜)
 
 /-- The polar set `polar 𝕜 s` of `s : set E` seen as a subset of the dual of `E` with the
 weak-star topology is `weak_dual.polar 𝕜 s`. -/
-def polar (s : set E) : set (weak_dual 𝕜 E) := to_normed_dual ⁻¹' (polar 𝕜 s)
+def polar (s : set E) : set (weak_dual 𝕜 E) := to_normed_dual ⁻¹' polar 𝕜 s
 
 lemma polar_def (s : set E) : polar 𝕜 s = {f : weak_dual 𝕜 E | ∀ x ∈ s, ∥f x∥ ≤ 1} := rfl
 
@@ -173,7 +169,7 @@ is used, i.e., when `polar 𝕜 s` is interpreted as a subset of `weak_dual 𝕜
 lemma is_closed_polar (s : set E) : is_closed (polar 𝕜 s) :=
 begin
   simp only [polar_def, set_of_forall],
-  exact is_closed_bInter (λ x hx, is_closed_Iic.preimage (eval_continuous _ _ _).norm)
+  exact is_closed_bInter (λ x hx, is_closed_Iic.preimage (eval_continuous _ _).norm)
 end
 
 variable {𝕜}
@@ -182,13 +178,13 @@ variable {𝕜}
 closed sets to closed sets. -/
 lemma is_closed_image_coe_bounded_closed {s : set (weak_dual 𝕜 E)}
   (hb : bounded (dual.to_weak_dual ⁻¹' s)) (hc : is_closed s) :
-  is_closed ((coe_fn : weak_dual 𝕜 E → (E → 𝕜)) '' s) :=
+  is_closed ((coe_fn : weak_dual 𝕜 E → E → 𝕜) '' s) :=
 continuous_linear_map.is_closed_image_coe_bounded_weak_closed hb (is_closed_induced_iff'.1 hc)
 
 lemma is_compact_of_bounded_closed [proper_space 𝕜] {s : set (weak_dual 𝕜 E)}
   (hb : bounded (dual.to_weak_dual ⁻¹' s)) (hc : is_closed s) :
   is_compact s :=
-(coe_fn_embedding 𝕜 E).is_compact_iff_is_compact_image.mpr $
+(embedding.is_compact_iff_is_compact_image fun_like.coe_injective.embedding_induced).mpr $
   continuous_linear_map.is_compact_image_coe_bounded_of_closed_image hb $
   is_closed_image_coe_bounded_closed hb hc
 
@@ -197,13 +193,13 @@ variable (𝕜)
 /-- The image under `coe_fn : weak_dual 𝕜 E → (E → 𝕜)` of a polar `weak_dual.polar 𝕜 s` of a
 neighborhood `s` of the origin is a closed set. -/
 lemma is_closed_image_polar {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  is_closed ((λ (f : weak_dual 𝕜 E) (x : E), f x) '' (polar 𝕜 s)) :=
+  is_closed ((coe_fn : weak_dual 𝕜 E → E → 𝕜) '' polar 𝕜 s) :=
 is_closed_image_coe_bounded_closed (bounded_polar_of_mem_nhds_zero 𝕜 s_nhd) (is_closed_polar _ _)
 
 /-- The image under `coe_fn : normed_space.dual 𝕜 E → (E → 𝕜)` of a polar `polar 𝕜 s` of a
 neighborhood `s` of the origin is a closed set. -/
 lemma _root_.normed_space.is_closed_image_polar {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  is_closed ((λ (f : dual 𝕜 E) (x : E), f x) '' (_root_.polar 𝕜 s)) :=
+  is_closed ((coe_fn : weak_dual 𝕜 E → E → 𝕜) '' polar 𝕜 s) :=
 is_closed_image_polar 𝕜 s_nhd
 
 /-- The **Banach-Alaoglu theorem**: the polar set of a neighborhood `s` of the origin in a

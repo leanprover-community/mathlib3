@@ -180,8 +180,12 @@ weak_bilin (top_dual_pairing 𝕜 E)
 
 instance : inhabited (weak_dual 𝕜 E) := continuous_linear_map.inhabited
 
-instance add_monoid_hom_class_weak_dual : add_monoid_hom_class (weak_dual 𝕜 E) E 𝕜 :=
+instance weak_dual.add_monoid_hom_class : add_monoid_hom_class (weak_dual 𝕜 E) E 𝕜 :=
 continuous_linear_map.add_monoid_hom_class
+
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+instance : has_coe_to_fun (weak_dual 𝕜 E) (λ _, E → 𝕜) := fun_like.has_coe_to_fun
 
 /-- If a monoid `M` distributively continuously acts on `𝕜` and this action commutes with
 multiplication on `𝕜`, then it acts on `weak_dual 𝕜 E`. -/

@@ -6,9 +6,26 @@ Authors: Bhavik Mehta, Kexing Ying
 import probability.cond_count
 
 /-!
-# Ballot cond_countlem
+# Ballot problem
 
 This file proves Theorem 30 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
+
+The ballot problem asks, if in an election, candidate A recieves `p` votes whereas candidate B
+recieves `q` votes where `p > q`, what is the probability that candidate A is strictly ahead
+throughout the count. The probability of this is `(p - q) / (p + q)`.
+
+## Main definitions
+
+* `counted_sequence`: given natural numbers `p` and `q`, `counted_sequence p q` is the set of
+  all lists containing `p` of `1`s and `q` of `-1`s representing the votes of candidate A and B
+  respectively.
+* `stays_positive`: is the set of lists of integers which has positive sum. Thus, the intersection
+  of this with `counted_sequence` is the set of lists where candidate A is strictly ahead.
+
+## Main result
+
+* `ballot`: the ballot problem.
+
 -/
 
 open set probability_theory measure_theory
@@ -39,6 +56,33 @@ end measure
 
 end measure_theory
 
+namespace ennreal
+
+open_locale ennreal
+
+lemma mul_div_assoc {a b c : ℝ≥0∞} : a * b / c = a * (b / c) :=
+begin
+  rw [div_eq_mul_inv,  mul_assoc, ← div_eq_mul_inv],
+end
+
+lemma eq_div_iff {a b c : ℝ≥0∞} (ha : a ≠ 0) (ha' : a ≠ ⊤) :
+  b = c / a ↔ a * b = c :=
+⟨λ h, by rw [h, mul_div_cancel' ha ha'],
+ λ h, by rw [← h, mul_div_assoc, mul_div_cancel' ha ha']⟩
+
+lemma div_eq_div_iff
+  {a b c d : ℝ≥0∞} (ha : a ≠ 0) (ha' : a ≠ ⊤) (hb : b ≠ 0) (hb' : b ≠ ⊤) :
+  c / b = d / a ↔ a * c = b * d :=
+begin
+  rw eq_div_iff ha ha',
+  conv_rhs { rw eq_comm },
+  rw [← eq_div_iff hb hb', mul_div_assoc, eq_comm],
+end
+
+end ennreal
+
+namespace list
+
 lemma mem_of_mem_suffix {α : Type*} {l₁ l₂ : list α} {x : α} (hx : x ∈ l₁) (hl : l₁ <:+ l₂) :
   x ∈ l₂ :=
 begin
@@ -46,22 +90,7 @@ begin
   exact list.mem_append_right l₂ hx,
 end
 
-lemma sublist_cons {α : Type*} (x : α) (l₁ l₂ : list α) :
-  l₁ <:+ x :: l₂ ↔ l₁ = x :: l₂ ∨ l₁ <:+ l₂ :=
-begin
-  split,
-  { rintro ⟨l₃, hl₃⟩,
-    cases l₃ with hd tl,
-    { simp only [list.nil_append] at hl₃,
-      left,
-      apply hl₃ },
-    { simp only [list.cons_append] at hl₃,
-      right,
-      exact ⟨_, hl₃.2⟩ } },
-  { rintro (rfl | hl₁),
-    { exact (x :: l₂).suffix_refl },
-    { apply hl₁.trans (list.suffix_cons _ _) } }
-end
+end list
 
 /-- Every nonempty suffix has positive sum. -/
 def stays_positive : set (list ℤ) := {l | ∀ l₂, l₂ ≠ [] → l₂ <:+ l → 0 < l₂.sum}
@@ -76,7 +105,7 @@ begin
   { intros hl l₁ hl₁ hl₂,
     apply hl l₁ hl₁ (hl₂.trans (list.suffix_cons _ _)) },
   { intros hl l₁ hl₁ hl₂,
-    rw sublist_cons at hl₂,
+    rw list.suffix_cons_iff at hl₂,
     rcases hl₂ with (rfl | hl₂),
     { rw list.sum_cons,
       apply add_pos_of_pos_of_nonneg hx,
@@ -85,17 +114,6 @@ begin
       { apply le_of_lt (hl (hd :: tl) (list.cons_ne_nil hd tl) (hd :: tl).suffix_refl) } },
     { apply hl _ hl₁ hl₂ } }
 end
-
--- lemma list.sum_pos : ∀ (l : list ℤ) (hl : ∀ x ∈ l, (0 : ℤ) < x) (hl₂ : l ≠ []), 0 < l.sum
--- | [] _ h := (h rfl).elim
--- | [b] h _ := by simpa using h
--- | (a :: b :: l) hl₁ hl₂ :=
--- begin
---   simp only [forall_eq_or_imp, list.mem_cons_iff _ a] at hl₁,
---   rw list.sum_cons,
---   apply add_pos_of_pos_of_nonneg hl₁.1,
---   apply le_of_lt ((b :: l).sum_pos hl₁.2 (l.cons_ne_nil b)),
--- end
 
 @[elab_as_eliminator]
 lemma diag_induction (P : ℕ → ℕ → Prop) (ha : ∀ a, P (a + 1) (a + 1)) (hb : ∀ p, P 0 (p+1))
@@ -116,14 +134,14 @@ end
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ p, p.1 + p.2.1)⟩] }
 
 /--
-`counted_sequence p q` is the (fin)set of lists of `ℤ` for which every element is `+1` or `-1`,
+`counted_sequence p q` is the set of lists of `ℤ` for which every element is `+1` or `-1`,
 there are `p` lots of `+1` and `q` lots of `-1`.
 This represents vote sequences where candidate `+1` receives `p` votes and candidate `-1` receives
 `q` votes.
 -/
 def counted_sequence : ℕ → ℕ → set (list ℤ)
 | 0 q := {list.repeat (-1) q}
-| (p + 1) 0 := {list.repeat 1 (p+1)}
+| (p + 1) 0 := {list.repeat 1 (p + 1)}
 | (p + 1) (q + 1) :=
     (counted_sequence p (q + 1)).image (list.cons 1) ∪
     (counted_sequence (p + 1) q).image (list.cons (-1))
@@ -263,25 +281,6 @@ lemma count_counted_sequence : ∀ p q : ℕ, count (counted_sequence p q) = (p 
     all_goals { try { apply_instance } },
   end
 
-lemma ennreal.mul_div_assoc {a b c : ennreal} : a * b / c = a * (b / c) :=
-begin
-  rw [div_eq_mul_inv,  mul_assoc, ← div_eq_mul_inv],
-end
-
-lemma ennreal.eq_div_iff {a b c : ennreal} (ha : a ≠ 0) (ha' : a ≠ ⊤) :
-  b = c / a ↔ a * b = c :=
-⟨λ h, by rw [h, ennreal.mul_div_cancel' ha ha'],
- λ h, by rw [← h, ennreal.mul_div_assoc, ennreal.mul_div_cancel' ha ha']⟩
-
-lemma ennreal.div_eq_div_iff
-  {a b c d : ennreal} (ha : a ≠ 0) (ha' : a ≠ ⊤) (hb : b ≠ 0) (hb' : b ≠ ⊤) :
-  c / b = d / a ↔ a * c = b * d :=
-begin
-  rw ennreal.eq_div_iff ha ha',
-  conv_rhs { rw eq_comm },
-  rw [← ennreal.eq_div_iff hb hb', ennreal.mul_div_assoc, eq_comm],
-end
-
 lemma first_vote_pos :
   ∀ p q, 0 < p + q →
     cond_count (counted_sequence p q : set (list ℤ)) {l | l.head = 1} = p / (p + q)
@@ -365,7 +364,7 @@ begin
     rw mem_singleton_iff at hl,
     subst hl,
     refine λ l hl₁ hl₂, list.sum_pos _ (λ x hx, _) hl₁,
-    rw list.eq_of_mem_repeat (mem_of_mem_suffix hx hl₂),
+    rw list.eq_of_mem_repeat (list.mem_of_mem_suffix hx hl₂),
     norm_num },
 end
 
@@ -443,7 +442,7 @@ begin
     { simp only [and_imp, exists_imp_distrib],
       rintro l hl₁ hl₂ rfl,
       refine ⟨⟨l, hl₁, rfl⟩, λ l₁ hl₃ hl₄, _⟩,
-      rw sublist_cons at hl₄,
+      rw list.suffix_cons_iff at hl₄,
       rcases hl₄ with (rfl | hl₄),
       { simp [list.sum_cons, sum_of_mem_counted_sequence hl₁, sub_eq_add_neg, ← add_assoc, qp] },
       exact hl₂ _ hl₃ hl₄ } },
@@ -492,6 +491,7 @@ begin
       simp [ne.def, ennreal.div_eq_top] } }
 end
 
+/-- The ballot problem. -/
 theorem ballot :
   ∀ q p, q < p → cond_count (counted_sequence p q) stays_positive = (p - q) / (p + q) :=
 begin

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert A. Spencer, Markus Himmel
 -/
 import algebra.category.Group.basic
-import category_theory.concrete_category
 import category_theory.limits.shapes.kernels
 import category_theory.linear
 import linear_algebra.basic
@@ -70,13 +69,15 @@ attribute [instance] Module.is_add_comm_group Module.is_module
 
 namespace Module
 
-instance : has_coe_to_sort (Module.{v} R) :=
-{ S := Type v, coe := Module.carrier }
+instance : has_coe_to_sort (Module.{v} R) (Type v) := ⟨Module.carrier⟩
 
 instance Module_category : category (Module.{v} R) :=
 { hom   := λ M N, M →ₗ[R] N,
   id    := λ M, 1,
-  comp  := λ A B C f g, g.comp f }
+  comp  := λ A B C f g, g.comp f,
+  id_comp' := λ X Y f, linear_map.id_comp _,
+  comp_id' := λ X Y f, linear_map.comp_id _,
+  assoc' := λ W X Y Z f g h, linear_map.comp_assoc _ _ _ }
 
 instance Module_concrete_category : concrete_category.{v} (Module.{v} R) :=
 { forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
@@ -87,8 +88,33 @@ instance has_forget_to_AddCommGroup : has_forget₂ (Module R) AddCommGroup :=
   { obj := λ M, AddCommGroup.of M,
     map := λ M₁ M₂ f, linear_map.to_add_monoid_hom f } }
 
+-- TODO: instantiate `linear_map_class` once that gets defined
+instance (M N : Module R) : add_monoid_hom_class (M ⟶ N) M N :=
+{ coe := λ f, f,
+  .. linear_map.add_monoid_hom_class }
+
 /-- The object in the category of R-modules associated to an R-module -/
 def of (X : Type v) [add_comm_group X] [module R X] : Module R := ⟨X⟩
+
+@[simp] lemma forget₂_obj (X : Module R) :
+  (forget₂ (Module R) AddCommGroup).obj X = AddCommGroup.of X :=
+rfl
+
+@[simp] lemma forget₂_obj_Module_of (X : Type v) [add_comm_group X] [module R X] :
+  (forget₂ (Module R) AddCommGroup).obj (of R X) = AddCommGroup.of X :=
+rfl
+
+@[simp] lemma forget₂_map (X Y : Module R) (f : X ⟶ Y) :
+  (forget₂ (Module R) AddCommGroup).map f = linear_map.to_add_monoid_hom f :=
+rfl
+
+/-- Typecheck a `linear_map` as a morphism in `Module R`. -/
+def of_hom {R : Type u} [ring R] {X Y : Type v} [add_comm_group X] [module R X] [add_comm_group Y]
+  [module R Y] (f : X →ₗ[R] Y) : of R X ⟶ of R Y := f
+
+@[simp] lemma of_hom_apply {R : Type u} [ring R]
+  {X Y : Type v} [add_comm_group X] [module R X] [add_comm_group Y] [module R Y] (f : X →ₗ[R] Y)
+  (x : X) : of_hom f x = f x := rfl
 
 instance : has_zero (Module R) := ⟨of R punit⟩
 instance : inhabited (Module R) := ⟨0⟩

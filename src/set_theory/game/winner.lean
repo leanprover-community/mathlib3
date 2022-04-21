@@ -3,7 +3,7 @@ Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
-import set_theory.pgame
+import set_theory.game.pgame
 
 /-!
 # Basic definitions about who has a winning stratergy
@@ -74,7 +74,7 @@ lemma not_first_wins_of_first_loses {G : pgame} : G.first_loses → ¬G.first_wi
 begin
   rw first_loses_is_zero,
   rintros h ⟨h₀, -⟩,
-  exact lt_irrefl 0 (lt_of_lt_of_equiv h₀ h)
+  exact pgame.lt_irrefl 0 (lt_of_lt_of_equiv h₀ h)
 end
 
 lemma not_first_loses_of_first_wins {G : pgame} : G.first_wins → ¬G.first_loses :=

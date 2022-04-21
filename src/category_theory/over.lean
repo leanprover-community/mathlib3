@@ -5,7 +5,7 @@ Authors: Johan Commelin, Bhavik Mehta
 -/
 import category_theory.structured_arrow
 import category_theory.punit
-import category_theory.reflects_isomorphisms
+import category_theory.functor.reflects_isomorphisms
 import category_theory.epi_mono
 
 /-!
@@ -37,9 +37,9 @@ See https://stacks.math.columbia.edu/tag/001G.
 def over (X : T) := costructured_arrow (𝟭 T) X
 
 -- Satisfying the inhabited linter
-instance over.inhabited [inhabited T] : inhabited (over (default T)) :=
+instance over.inhabited [inhabited T] : inhabited (over (default : T)) :=
 { default :=
-  { left := default T,
+  { left := default,
     hom := 𝟙 _ } }
 
 namespace over
@@ -104,6 +104,10 @@ end
 
 @[simp] lemma forget_obj {U : over X} : (forget X).obj U = U.left := rfl
 @[simp] lemma forget_map {U V : over X} {f : U ⟶ V} : (forget X).map f = f.left := rfl
+
+/-- The natural cocone over the forgetful functor `over X ⥤ T` with cocone point `X`. -/
+@[simps] def forget_cocone (X : T) : limits.cocone (forget X) :=
+{ X := X, ι := { app := comma.hom } }
 
 /--
 A morphism `f : X ⟶ Y` induces a functor `over X ⥤ over Y` in the obvious way.
@@ -231,9 +235,9 @@ end over
 def under (X : T) := structured_arrow X (𝟭 T)
 
 -- Satisfying the inhabited linter
-instance under.inhabited [inhabited T] : inhabited (under (default T)) :=
+instance under.inhabited [inhabited T] : inhabited (under (default : T)) :=
 { default :=
-  { right := default T,
+  { right := default,
     hom := 𝟙 _ } }
 
 namespace under
@@ -290,6 +294,10 @@ end
 @[simp] lemma forget_obj {U : under X} : (forget X).obj U = U.right := rfl
 @[simp] lemma forget_map {U V : under X} {f : U ⟶ V} : (forget X).map f = f.right := rfl
 
+/-- The natural cone over the forgetful functor `under X ⥤ T` with cone point `X`. -/
+@[simps] def forget_cone (X : T) : limits.cone (forget X) :=
+{ X := X, π := { app := comma.hom } }
+
 /-- A morphism `X ⟶ Y` induces a functor `under Y ⥤ under X` in the obvious way. -/
 def map {Y : T} (f : X ⟶ Y) : under Y ⥤ under X := comma.map_left _ $ discrete.nat_trans (λ _, f)
 
@@ -308,6 +316,13 @@ def map_comp {Y Z : T} (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map g ⋙
 nat_iso.of_components (λ X, iso_mk (iso.refl _) (by tidy)) (by tidy)
 
 end
+
+instance forget_reflects_iso : reflects_isomorphisms (forget X) :=
+{ reflects := λ Y Z f t, by exactI
+  ⟨⟨under.hom_mk (inv ((under.forget X).map f)) ((is_iso.comp_inv_eq _).2 (under.w f).symm),
+    by tidy⟩⟩ }
+
+instance forget_faithful : faithful (forget X) := {}.
 
 section
 variables {D : Type u₂} [category.{v₂} D]

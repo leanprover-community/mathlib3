@@ -1,24 +1,14 @@
 /-
 Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Markus Himmel
+Authors: Markus Himmel, Scott Morrison
 -/
 import category_theory.abelian.exact
-import category_theory.types
+import category_theory.preadditive.projective_resolution
 
 /-!
-# Projective objects and categories with enough projectives
+# Abelian categories with enough projectives have projective resolutions
 
-An object `P` is called projective if every morphism out of `P` factors through every epimorphism.
-
-A category `C` has enough projectives if every object admits an epimorphism from some
-projective object.
-
-`projective.over X` picks an arbitrary such projective object,
-and `projective.π X : projective.over X ⟶ X` is the corresponding epimorphism.
-
-Given a morphism `f : X ⟶ Y`, `projective.left f` is a projective object over `kernel f`,
-and `projective.d f : projective.left f ⟶ X` is the morphism `π (kernel f) ≫ kernel.ι f`.
 When `C` is abelian `projective.d f` and `f` are exact.
 Hence, starting from an epimorphism `P ⟶ X`, where `P` is projective,
 we can apply `projective.d` repeatedly to obtain a projective resolution of `X`.
@@ -32,130 +22,13 @@ open category_theory.limits
 universes v u
 
 namespace category_theory
+
+open category_theory.projective
+
 variables {C : Type u} [category.{v} C]
 
-/--
-An object `P` is called projective if every morphism out of `P` factors through every epimorphism.
--/
-class projective (P : C) : Prop :=
-(factors : ∀ {E X : C} (f : P ⟶ X) (e : E ⟶ X) [epi e], ∃ f', f' ≫ e = f)
-
 section
-
-/--
-A projective presentation of an object `X` consists of an epimorphism `f : P ⟶ X`
-from some projective object `P`.
--/
-@[nolint has_inhabited_instance]
-structure projective_presentation (X : C) :=
-(P : C)
-(projective : projective P . tactic.apply_instance)
-(f : P ⟶ X)
-(epi : epi f . tactic.apply_instance)
-
-variables (C)
-
-/-- A category "has enough projectives" if for every object `X` there is a projective object `P` and
-    an epimorphism `P ↠ X`. -/
-class enough_projectives : Prop :=
-(presentation : ∀ (X : C), nonempty (projective_presentation X))
-
-end
-
-namespace projective
-
-/--
-An arbitrarily chosen factorisation of a morphism out of a projective object through an epimorphism.
--/
-def factor_thru {P X E : C} [projective P] (f : P ⟶ X) (e : E ⟶ X) [epi e] : P ⟶ E :=
-(projective.factors f e).some
-
-@[simp] lemma factor_thru_comp {P X E : C} [projective P] (f : P ⟶ X) (e : E ⟶ X) [epi e] :
-  factor_thru f e ≫ e = f :=
-(projective.factors f e).some_spec
-
-lemma of_iso {P Q : C} (i : P ≅ Q) (hP : projective P) : projective Q :=
-begin
-  fsplit,
-  introsI E X f e e_epi,
-  obtain ⟨f', hf'⟩ := projective.factors (i.hom ≫ f) e,
-  exact ⟨i.inv ≫ f', by simp [hf']⟩
-end
-
-lemma iso_iff {P Q : C} (i : P ≅ Q) : projective P ↔ projective Q :=
-⟨of_iso i, of_iso i.symm⟩
-
-/-- The axiom of choice says that every type is a projective object in `Type`. -/
-instance (X : Type u) : projective X :=
-{ factors := λ E X' f e epi,
-  ⟨λ x, ((epi_iff_surjective _).mp epi (f x)).some,
-  by { ext x, exact ((epi_iff_surjective _).mp epi (f x)).some_spec, }⟩ }
-
-instance Type_enough_projectives : enough_projectives (Type u) :=
-{ presentation := λ X, ⟨{ P := X, f := 𝟙 X, }⟩, }
-
-instance {P Q : C} [has_binary_coproduct P Q] [projective P] [projective Q] :
-  projective (P ⨿ Q) :=
-{ factors := λ E X' f e epi, by exactI
-  ⟨coprod.desc (factor_thru (coprod.inl ≫ f) e) (factor_thru (coprod.inr ≫ f) e), by tidy⟩, }
-
-instance {β : Type v} (g : β → C) [has_coproduct g] [∀ b, projective (g b)] :
-  projective (∐ g) :=
-{ factors := λ E X' f e epi, by exactI
-  ⟨sigma.desc (λ b, factor_thru (sigma.ι g b ≫ f) e), by tidy⟩, }
-
-instance {P Q : C} [has_zero_morphisms C] [has_binary_biproduct P Q]
-  [projective P] [projective Q] :
-  projective (P ⊞ Q) :=
-{ factors := λ E X' f e epi, by exactI
-  ⟨biprod.desc (factor_thru (biprod.inl ≫ f) e) (factor_thru (biprod.inr ≫ f) e), by tidy⟩, }
-
-instance {β : Type v} [decidable_eq β] (g : β → C) [has_zero_morphisms C] [has_biproduct g]
-  [∀ b, projective (g b)] : projective (⨁ g) :=
-{ factors := λ E X' f e epi, by exactI
-  ⟨biproduct.desc (λ b, factor_thru (biproduct.ι g b ≫ f) e), by tidy⟩, }
-
-section enough_projectives
-variables [enough_projectives C]
-
-/--
-`projective.over X` provides an arbitrarily chosen projective object equipped with
-an epimorphism `projective.π : projective.over X ⟶ X`.
--/
-def over (X : C) : C :=
-(enough_projectives.presentation X).some.P
-
-instance projective_over (X : C) : projective (over X) :=
-(enough_projectives.presentation X).some.projective
-
-/--
-The epimorphism `projective.π : projective.over X ⟶ X`
-from the arbitrarily chosen projective object over `X`.
--/
-def π (X : C) : over X ⟶ X :=
-(enough_projectives.presentation X).some.f
-
-instance (X : C) : epi (π X) :=
-(enough_projectives.presentation X).some.epi
-
-section
-variables [has_zero_morphisms C] {X Y : C} (f : X ⟶ Y) [has_kernel f]
-
-/-- When `C` has enough projectives, the object `projective.left f` is
-the arbitrarily chosen projective object over `kernel f`. -/
-@[derive projective]
-def left : C := over (kernel f)
-
-/-- When `C` has enough projectives,
-`projective.d f : projective.left f ⟶ X` is the composition
-`π (kernel f) ≫ kernel.ι f`.
--/
-abbreviation d : left f ⟶ X :=
-π (kernel f) ≫ kernel.ι f
-
-end
-
-variables [abelian C]
+variables [enough_projectives C] [abelian C]
 
 /--
 When `C` is abelian, `projective.d f` and `f` are exact.
@@ -164,8 +37,50 @@ lemma exact_d_f {X Y : C} (f : X ⟶ Y) : exact (d f) f :=
 (abelian.exact_iff _ _).2 $
   ⟨by simp, zero_of_epi_comp (π _) $ by rw [←category.assoc, cokernel.condition]⟩
 
-end enough_projectives
+end
 
-end projective
+namespace ProjectiveResolution
+
+/-!
+Our goal is to define `ProjectiveResolution.of Z : ProjectiveResolution Z`.
+The `0`-th object in this resolution will just be `projective.over Z`,
+i.e. an arbitrarily chosen projective object with a map to `Z`.
+After that, we build the `n+1`-st object as `projective.syzygies`
+applied to the previously constructed morphism,
+and the map to the `n`-th object as `projective.d`.
+-/
+
+variables [abelian C] [enough_projectives C]
+
+/-- Auxiliary definition for `ProjectiveResolution.of`. -/
+@[simps]
+def of_complex (Z : C) : chain_complex C ℕ :=
+chain_complex.mk'
+  (projective.over Z) (projective.syzygies (projective.π Z)) (projective.d (projective.π Z))
+  (λ ⟨X, Y, f⟩, ⟨projective.syzygies f, projective.d f, (exact_d_f f).w⟩)
+
+/--
+In any abelian category with enough projectives,
+`ProjectiveResolution.of Z` constructs a projective resolution of the object `Z`.
+-/
+@[irreducible] def of (Z : C) : ProjectiveResolution Z :=
+{ complex := of_complex Z,
+  π := chain_complex.mk_hom _ _ (projective.π Z) 0
+    (by { simp, exact (exact_d_f (projective.π Z)).w.symm, })
+    (λ n _, ⟨0, by ext⟩),
+  projective := by { rintros (_|_|_|n); apply projective.projective_over, },
+  exact₀ := by simpa using exact_d_f (projective.π Z),
+  exact := by { rintros (_|n); { simp, apply exact_d_f, }, },
+  epi := projective.π_epi Z, }
+
+@[priority 100]
+instance (Z : C) : has_projective_resolution Z :=
+{ out := ⟨of Z⟩ }
+
+@[priority 100]
+instance : has_projective_resolutions C :=
+{ out := λ Z, by apply_instance }
+
+end ProjectiveResolution
 
 end category_theory

@@ -3,7 +3,33 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import logic.is_empty
 import tactic.basic
+import logic.relator
+
+/-!
+# Option of a type
+
+This file develops the basic theory of option types.
+
+If `α` is a type, then `option α` can be understood as the type with one more element than `α`.
+`option α` has terms `some a`, where `a : α`, and `none`, which is the added element.
+This is useful in multiple ways:
+* It is the prototype of addition of terms to a type. See for example `with_bot α` which uses
+  `none` as an element smaller than all others.
+* It can be used to define failsafe partial functions, which return `some the_result_we_expect`
+  if we can find `the_result_we_expect`, and `none` if there is no meaningful result. This forces
+  any subsequent use of the partial function to explicitly deal with the exceptions that make it
+  return `none`.
+* `option` is a monad. We love monads.
+
+`part` is an alternative to `option` that can be seen as the type of `true`/`false` values
+along with a term `a : α` if the value is `true`.
+
+## Implementation notes
+
+`option` is currently defined in core Lean, but this will change in Lean 4.
+-/
 
 namespace option
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -35,16 +61,24 @@ theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → o
 
 @[simp] lemma get_or_else_some (x y : α) : option.get_or_else (some x) y = x := rfl
 
+@[simp] lemma get_or_else_none (x : α) : option.get_or_else none x = x := rfl
+
 @[simp] lemma get_or_else_coe (x y : α) : option.get_or_else ↑x y = x := rfl
 
 lemma get_or_else_of_ne_none {x : option α} (hx : x ≠ none) (y : α) : some (x.get_or_else y) = x :=
 by cases x; [contradiction, rw get_or_else_some]
 
+@[simp] lemma coe_get {o : option α} (h : o.is_some) : ((option.get h : α) : option α) = o :=
+option.some_get h
+
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 
+theorem eq_of_mem_of_mem {a : α} {o1 o2 : option α} (h1 : a ∈ o1) (h2 : a ∈ o2) : o1 = o2 :=
+h1.trans h2.symm
+
 theorem mem.left_unique : relator.left_unique ((∈) : α → option α → Prop) :=
-⟨λ a o b, mem_unique⟩
+λ a o b, mem_unique
 
 theorem some_injective (α : Type*) : function.injective (@some α) :=
 λ _ _, some_inj.mp
@@ -121,9 +155,13 @@ theorem map_none {α β} {f : α → β} : f <$> none = none := rfl
 
 theorem map_some {α β} {a : α} {f : α → β} : f <$> some a = some (f a) := rfl
 
+theorem map_coe {α β} {a : α} {f : α → β} : f <$> (a : option α) = ↑(f a) := rfl
+
 @[simp] theorem map_none' {f : α → β} : option.map f none = none := rfl
 
 @[simp] theorem map_some' {a : α} {f : α → β} : option.map f (some a) = some (f a) := rfl
+
+@[simp] theorem map_coe' {a : α} {f : α → β} : option.map f (a : option α) = ↑(f a) := rfl
 
 theorem map_eq_some {α β} {x : option α} {f : α → β} {b : β} :
   f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
@@ -348,9 +386,11 @@ theorem iget_of_mem [inhabited α] {a : α} : ∀ {o : option α}, a ∈ o → o
   guard p a = some b ↔ a = b ∧ p a :=
 by by_cases p a; simp [option.guard, h]; intro; contradiction
 
-@[simp] theorem guard_eq_some' {p : Prop} [decidable p] :
-  ∀ u, _root_.guard p = some u ↔ p
-| () := by by_cases p; simp [guard, h, pure]; intro; contradiction
+@[simp] theorem guard_eq_some' {p : Prop} [decidable p] (u) : _root_.guard p = some u ↔ p :=
+begin
+  cases u,
+  by_cases p; simp [_root_.guard, h]; refl <|> contradiction,
+end
 
 theorem lift_or_get_choice {f : α → α → α} (h : ∀ a b, f a b = a ∨ f a b = b) :
   ∀ o₁ o₂, lift_or_get f o₁ o₂ = o₁ ∨ lift_or_get f o₁ o₂ = o₂
@@ -368,7 +408,7 @@ by cases a; refl
 @[simp] lemma lift_or_get_some_some {f} {a b : α} :
   lift_or_get f (some a) (some b) = f a b := rfl
 
-/-- given an element of `a : option α`, a default element `b : β` and a function `α → β`, apply this
+/-- Given an element of `a : option α`, a default element `b : β` and a function `α → β`, apply this
 function to `a` if it comes from `α`, and return `b` otherwise. -/
 def cases_on' : option α → β → (α → β) → β
 | none     n s := n
@@ -383,6 +423,34 @@ def cases_on' : option α → β → (α → β) → β
 @[simp] lemma cases_on'_none_coe (f : option α → β) (o : option α) :
   cases_on' o (f none) (f ∘ coe) = f o :=
 by cases o; refl
+
+@[simp] lemma get_or_else_map (f : α → β) (x : α) (o : option α) :
+  get_or_else (o.map f) (f x) = f (get_or_else o x) :=
+by cases o; refl
+
+lemma orelse_eq_some (o o' : option α) (x : α) :
+  (o <|> o') = some x ↔ o = some x ∨ (o = none ∧ o' = some x) :=
+begin
+  cases o,
+  { simp only [true_and, false_or, eq_self_iff_true, none_orelse] },
+  { simp only [some_orelse, or_false, false_and] }
+end
+
+lemma orelse_eq_some' (o o' : option α) (x : α) :
+  o.orelse o' = some x ↔ o = some x ∨ (o = none ∧ o' = some x) :=
+option.orelse_eq_some o o' x
+
+@[simp] lemma orelse_eq_none (o o' : option α) :
+  (o <|> o') = none ↔ (o = none ∧ o' = none) :=
+begin
+  cases o,
+  { simp only [true_and, none_orelse, eq_self_iff_true] },
+  { simp only [some_orelse, false_and], }
+end
+
+@[simp] lemma orelse_eq_none' (o o' : option α) :
+  o.orelse o' = none ↔ (o = none ∧ o' = none) :=
+option.orelse_eq_none o o'
 
 section
 open_locale classical
@@ -401,23 +469,25 @@ begin
   congr,
 end
 
-lemma choice_eq_none {α : Type*} (h : α → false) : choice α = none :=
-begin
-  dsimp [choice],
-  rw dif_neg (not_nonempty_iff_imp_false.mpr h),
-end
+lemma choice_eq_none (α : Type*) [is_empty α] : choice α = none :=
+dif_neg (not_nonempty_iff_imp_false.mpr is_empty_elim)
 
 lemma choice_is_some_iff_nonempty {α : Type*} : (choice α).is_some ↔ nonempty α :=
 begin
   fsplit,
   { intro h, exact ⟨option.get h⟩, },
-  { rintro ⟨a⟩,
-    dsimp [choice],
-    rw dif_pos,
-    fsplit,
-    exact ⟨a⟩, },
+  { intro h,
+    dsimp only [choice],
+    rw dif_pos h,
+    exact is_some_some },
 end
 
 end
+
+@[simp] lemma to_list_some (a : α) : (a : option α).to_list = [a] :=
+rfl
+
+@[simp] lemma to_list_none (α : Type*) : (none : option α).to_list = [] :=
+rfl
 
 end option

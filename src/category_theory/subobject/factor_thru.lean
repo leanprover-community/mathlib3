@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Scott Morrison
 -/
 import category_theory.subobject.basic
+import category_theory.preadditive
 
 /-!
 # Factoring through subobjects
@@ -30,7 +31,7 @@ namespace mono_over
 `P.factors f` expresses that there exists a factorisation of `f` through `P`.
 Given `h : P.factors f`, you can recover the morphism as `P.factor_thru f h`.
 -/
-def factors {X Y : C} (P : mono_over Y) (f : X ⟶ Y) : Prop := ∃ g : X ⟶ P.val.left, g ≫ P.arrow = f
+def factors {X Y : C} (P : mono_over Y) (f : X ⟶ Y) : Prop := ∃ g : X ⟶ (P : C), g ≫ P.arrow = f
 
 lemma factors_congr {X : C} {f g : mono_over X} {Y : C} (h : Y ⟶ X) (e : f ≅ g) :
   f.factors h ↔ g.factors h :=
@@ -39,7 +40,7 @@ lemma factors_congr {X : C} {f g : mono_over X} {Y : C} (h : Y ⟶ X) (e : f ≅
 
 /-- `P.factor_thru f h` provides a factorisation of `f : X ⟶ Y` through some `P : mono_over Y`,
 given the evidence `h : P.factors f` that such a factorisation exists. -/
-def factor_thru {X Y : C} (P : mono_over Y) (f : X ⟶ Y) (h : factors P f) : X ⟶ P.val.left :=
+def factor_thru {X Y : C} (P : mono_over Y) (f : X ⟶ Y) (h : factors P f) : X ⟶ (P : C) :=
 classical.some h
 
 end mono_over
@@ -123,7 +124,6 @@ begin
     ext, simp, },
 end
 
-@[simp]
 lemma factor_thru_right {X Y Z : C} {P : subobject Z} (f : X ⟶ Y) (g : Y ⟶ Z) (h : P.factors g) :
   f ≫ P.factor_thru g h = P.factor_thru (f ≫ g) (factors_of_factors_right f h) :=
 begin
@@ -138,11 +138,11 @@ lemma factor_thru_zero
 by simp
 
 -- `h` is an explicit argument here so we can use
--- `rw ←factor_thru_le h`, obtaining a subgoal `P.factors f`.
-@[simp]
-lemma factor_thru_comp_of_le
+-- `rw factor_thru_le h`, obtaining a subgoal `P.factors f`.
+-- (While the reverse direction looks plausible as a simp lemma, it seems to be unproductive.)
+lemma factor_thru_of_le
   {Y Z : C} {P Q : subobject Y} {f : Z ⟶ Y} (h : P ≤ Q) (w : P.factors f) :
-  P.factor_thru f w ≫ of_le P Q h = Q.factor_thru f (factors_of_le f h w) :=
+  Q.factor_thru f (factors_of_le f h w) = P.factor_thru f w ≫ of_le P Q h :=
 by { ext, simp, }
 
 section preadditive

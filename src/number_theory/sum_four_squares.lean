@@ -34,7 +34,8 @@ have hxsuby : even (x - y), by simpa [sq] with parity_simps,
 (mul_right_inj' (show (2*2 : ℤ) ≠ 0, from dec_trivial)).1 $
 calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
 ... = (2 * ((x - y) / 2))^2 + (2 * ((x + y) / 2))^2 :
-  by rw [int.mul_div_cancel' hxsuby, int.mul_div_cancel' hxaddy]
+  by { rw even_iff_two_dvd at hxsuby hxaddy,
+    rw [int.mul_div_cancel' hxsuby, int.mul_div_cancel' hxaddy] }
 ... = 2 * 2 * (((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2) :
   by simp [mul_add, pow_succ, mul_comm, mul_assoc, mul_left_comm]
 
@@ -60,7 +61,7 @@ have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_left
           (add_le_add
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _)
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _))
-          (le_refl _)
+          le_rfl
       ... < (p / 2) ^ 2 + (p / 2)^ 2 + (p % 2)^2 + ((2 * (p / 2)^2 + (4 * (p / 2) * (p % 2)))) :
         by rw [hp1, one_pow, mul_one];
           exact (lt_add_iff_pos_right _).2
@@ -99,7 +100,7 @@ let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
       ← int.sq_add_sq_of_two_mul_sq_add_sq hy.symm,
       ← mul_right_inj' (show (2 : ℤ) ≠ 0, from dec_trivial), ← h, mul_add, ← hx, ← hy],
     have : ∑ x, f (σ x)^2 = ∑ x, f x^2,
-    { conv_rhs { rw ← σ.sum_comp } },
+    { conv_rhs { rw ←equiv.sum_comp σ } },
     have fin4univ : (univ : finset (fin 4)).1 = 0 ::ₘ 1 ::ₘ 2 ::ₘ 3 ::ₘ 0, from dec_trivial,
     simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f, add_assoc]
   end⟩
@@ -160,16 +161,16 @@ m.mod_two_eq_zero_or_one.elim
         have hwxyz0 : (w.nat_abs^2 + x.nat_abs^2 + y.nat_abs^2 + z.nat_abs^2 : ℕ) = 0,
           by { rw [← int.coe_nat_eq_zero, ← hnat_abs], rwa [hn0, mul_zero] at hn },
         have habcd0 : (m : ℤ) ∣ a ∧ (m : ℤ) ∣ b ∧ (m : ℤ) ∣ c ∧ (m : ℤ) ∣ d,
-          by simpa [@add_eq_zero_iff_eq_zero_of_nonneg ℤ _ _ _ (sq_nonneg _)
-              (sq_nonneg _),
-            sq, w, x, y, z, (char_p.int_cast_eq_zero_iff _ m _), and.assoc] using hwxyz0,
+          by simpa [add_eq_zero_iff' (sq_nonneg (_ : ℤ)) (sq_nonneg _),
+            pow_two, w, x, y, z, (char_p.int_cast_eq_zero_iff _ m _), and.assoc] using hwxyz0,
         let ⟨ma, hma⟩ := habcd0.1,     ⟨mb, hmb⟩ := habcd0.2.1,
             ⟨mc, hmc⟩ := habcd0.2.2.1, ⟨md, hmd⟩ := habcd0.2.2.2 in
         have hmdvdp : m ∣ p,
           from int.coe_nat_dvd.1 ⟨ma^2 + mb^2 + mc^2 + md^2,
             (mul_right_inj' (show (m : ℤ) ≠ 0, from int.coe_nat_ne_zero_iff_pos.2 hm0.1)).1 $
               by { rw [← habcd, hma, hmb, hmc, hmd], ring }⟩,
-        (hp.1.2 _ hmdvdp).elim hm1 (λ hmeqp, by simpa [lt_irrefl, hmeqp] using hmp)),
+        (hp.1.eq_one_or_self_of_dvd _ hmdvdp).elim hm1
+        (λ hmeqp, by simpa [lt_irrefl, hmeqp] using hmp)),
       have hawbxcydz : ((m : ℕ) : ℤ) ∣ a * w + b * x + c * y + d * z,
         from (char_p.int_cast_eq_zero_iff (zmod m) m _).1 $ by { rw [← hwxyz0], simp, ring },
       have haxbwczdy : ((m : ℕ) : ℤ) ∣ a * x - b * w - c * z + d * y,
@@ -198,6 +199,7 @@ m.mod_two_eq_zero_or_one.elim
           ... = _ : by { rw [hn, habcd, int.nat_abs_of_nonneg hn_nonneg], dsimp [m], ring },
       false.elim $ nat.find_min hm hnm ⟨lt_trans hnm hmp, hn0, s, t, u, v, hstuv⟩)
 
+/-- **Four squares theorem** -/
 lemma sum_four_squares : ∀ n : ℕ, ∃ a b c d : ℕ, a^2 + b^2 + c^2 + d^2 = n
 | 0 := ⟨0, 0, 0, 0, rfl⟩
 | 1 := ⟨1, 0, 0, 0, rfl⟩

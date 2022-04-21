@@ -3,10 +3,11 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import analysis.specific_limits
+import algebra.hom.iterate
+import analysis.specific_limits.basic
 import order.iterate
 import order.semiconj_Sup
-import algebra.iterate_hom
+import topology.algebra.order.monotone_continuity
 
 /-!
 # Translation number of a monotone real map that commutes with `x ↦ x + 1`
@@ -114,7 +115,7 @@ Here are some short-term goals.
 circle homeomorphism, rotation number
 -/
 
-open filter set function (hiding commute)
+open filter set function (hiding commute) int
 open_locale topological_space classical
 
 /-!
@@ -129,7 +130,7 @@ structure circle_deg1_lift : Type :=
 
 namespace circle_deg1_lift
 
-instance : has_coe_to_fun circle_deg1_lift := ⟨λ _, ℝ → ℝ, circle_deg1_lift.to_fun⟩
+instance : has_coe_to_fun circle_deg1_lift (λ _, ℝ → ℝ) := ⟨circle_deg1_lift.to_fun⟩
 
 @[simp] lemma coe_mk (f h₁ h₂) : ⇑(mk f h₁ h₂) = f := rfl
 
@@ -173,21 +174,21 @@ lemma mul_apply (x) : (f * g) x = f (g x) := rfl
 
 @[simp] lemma coe_one : ⇑(1 : circle_deg1_lift) = id := rfl
 
-instance units_has_coe_to_fun : has_coe_to_fun (units circle_deg1_lift) :=
-⟨λ _, ℝ → ℝ, λ f, ⇑(f : circle_deg1_lift)⟩
+instance units_has_coe_to_fun : has_coe_to_fun (circle_deg1_liftˣ) (λ _, ℝ → ℝ) :=
+⟨λ f, ⇑(f : circle_deg1_lift)⟩
 
-@[simp, norm_cast] lemma units_coe (f : units circle_deg1_lift) : ⇑(f : circle_deg1_lift) = f := rfl
+@[simp, norm_cast] lemma units_coe (f : circle_deg1_liftˣ) : ⇑(f : circle_deg1_lift) = f := rfl
 
-@[simp] lemma units_inv_apply_apply (f : units circle_deg1_lift) (x : ℝ) :
-  (f⁻¹ : units circle_deg1_lift) (f x) = x :=
+@[simp] lemma units_inv_apply_apply (f : circle_deg1_liftˣ) (x : ℝ) :
+  (f⁻¹ : circle_deg1_liftˣ) (f x) = x :=
 by simp only [← units_coe, ← mul_apply, f.inv_mul, coe_one, id]
 
-@[simp] lemma units_apply_inv_apply (f : units circle_deg1_lift) (x : ℝ) :
-  f ((f⁻¹ : units circle_deg1_lift) x) = x :=
+@[simp] lemma units_apply_inv_apply (f : circle_deg1_liftˣ) (x : ℝ) :
+  f ((f⁻¹ : circle_deg1_liftˣ) x) = x :=
 by simp only [← units_coe, ← mul_apply, f.mul_inv, coe_one, id]
 
 /-- If a lift of a circle map is bijective, then it is an order automorphism of the line. -/
-def to_order_iso : units circle_deg1_lift →* ℝ ≃o ℝ :=
+def to_order_iso : circle_deg1_liftˣ →* ℝ ≃o ℝ :=
 { to_fun := λ f,
     { to_fun := f,
       inv_fun := ⇑(f⁻¹),
@@ -197,13 +198,13 @@ def to_order_iso : units circle_deg1_lift →* ℝ ≃o ℝ :=
   map_one' := rfl,
   map_mul' := λ f g, rfl }
 
-@[simp] lemma coe_to_order_iso (f : units circle_deg1_lift) : ⇑(to_order_iso f) = f := rfl
+@[simp] lemma coe_to_order_iso (f : circle_deg1_liftˣ) : ⇑(to_order_iso f) = f := rfl
 
-@[simp] lemma coe_to_order_iso_symm (f : units circle_deg1_lift) :
-  ⇑(to_order_iso f).symm = (f⁻¹ : units circle_deg1_lift) := rfl
+@[simp] lemma coe_to_order_iso_symm (f : circle_deg1_liftˣ) :
+  ⇑(to_order_iso f).symm = (f⁻¹ : circle_deg1_liftˣ) := rfl
 
-@[simp] lemma coe_to_order_iso_inv (f : units circle_deg1_lift) :
-  ⇑(to_order_iso f)⁻¹ = (f⁻¹ : units circle_deg1_lift) := rfl
+@[simp] lemma coe_to_order_iso_inv (f : circle_deg1_liftˣ) :
+  ⇑(to_order_iso f)⁻¹ = (f⁻¹ : circle_deg1_liftˣ) := rfl
 
 lemma is_unit_iff_bijective {f : circle_deg1_lift} : is_unit f ↔ bijective f :=
 ⟨λ ⟨u, h⟩, h ▸ (to_order_iso u).bijective, λ h, units.is_unit
@@ -233,9 +234,9 @@ ext_iff
 -/
 
 /-- The map `y ↦ x + y` as a `circle_deg1_lift`. More precisely, we define a homomorphism from
-`multiplicative ℝ` to `units circle_deg1_lift`, so the translation by `x` is
+`multiplicative ℝ` to `circle_deg1_liftˣ`, so the translation by `x` is
 `translation (multiplicative.of_add x)`. -/
-def translate : multiplicative ℝ →* units circle_deg1_lift :=
+def translate : multiplicative ℝ →* circle_deg1_liftˣ :=
 by refine (units.map _).comp to_units.to_monoid_hom; exact
 { to_fun := λ x, ⟨λ y, x.to_add + y, λ y₁ y₂ h, add_le_add_left h _, λ y, (add_assoc _ _ _).symm⟩,
   map_one' := ext $ zero_add,
@@ -246,13 +247,13 @@ by refine (units.map _).comp to_units.to_monoid_hom; exact
 @[simp]
 lemma translate_inv_apply (x y : ℝ) : (translate $ multiplicative.of_add x)⁻¹ y = -x + y := rfl
 
-@[simp] lemma translate_gpow (x : ℝ) (n : ℤ) :
+@[simp] lemma translate_zpow (x : ℝ) (n : ℤ) :
   (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ ↑n * x) :=
-by simp only [← gsmul_eq_mul, of_add_gsmul, monoid_hom.map_gpow]
+by simp only [← zsmul_eq_mul, of_add_zsmul, monoid_hom.map_zpow]
 
 @[simp] lemma translate_pow (x : ℝ) (n : ℕ) :
   (translate (multiplicative.of_add x))^n = translate (multiplicative.of_add $ ↑n * x) :=
-translate_gpow x n
+translate_zpow x n
 
 @[simp] lemma translate_iterate (x : ℝ) (n : ℕ) :
   (translate (multiplicative.of_add x))^[n] = translate (multiplicative.of_add $ ↑n * x) :=
@@ -311,7 +312,7 @@ by rw [← f.map_add_int, zero_add]
 
 @[simp] lemma map_fract_sub_fract_eq (x : ℝ) :
   f (fract x) - fract x = f x - x :=
-by conv_rhs { rw [← fract_add_floor x, f.map_add_int, add_sub_comm, sub_self, add_zero] }
+by rw [int.fract, f.map_sub_int, sub_sub_sub_cancel_right]
 
 /-!
 ### Pointwise order on circle maps
@@ -412,7 +413,8 @@ lemma dist_map_zero_lt_of_semiconj {f g₁ g₂ : circle_deg1_lift} (h : functio
   dist (g₁ 0) (g₂ 0) < 2 :=
 calc dist (g₁ 0) (g₂ 0) ≤ dist (g₁ 0) (f (g₁ 0) - f 0) + dist _ (g₂ 0) : dist_triangle _ _ _
 ... = dist (f 0 + g₁ 0) (f (g₁ 0)) + dist (g₂ 0 + f 0) (g₂ (f 0)) :
-  by simp only [h.eq, real.dist_eq, sub_sub, add_comm (f 0), sub_sub_assoc_swap, abs_sub (g₂ (f 0))]
+  by simp only [h.eq, real.dist_eq, sub_sub, add_comm (f 0), sub_sub_assoc_swap, abs_sub_comm
+    (g₂ (f 0))]
 ... < 2 : add_lt_add (f.dist_map_map_zero_lt g₁) (g₂.dist_map_map_zero_lt f)
 
 lemma dist_map_zero_lt_of_semiconj_by {f g₁ g₂ : circle_deg1_lift} (h : semiconj_by f g₁ g₂) :
@@ -595,7 +597,7 @@ begin
   exact le_of_lt ((f^n).dist_map_map_zero_lt (g^n))
 end
 
-@[simp] lemma translation_number_units_inv (f : units circle_deg1_lift) :
+@[simp] lemma translation_number_units_inv (f : circle_deg1_liftˣ) :
   τ ↑(f⁻¹) = -τ f :=
 eq_neg_iff_add_eq_zero.2 $
   by simp [← translation_number_mul_of_commute (commute.refl _).units_inv_left]
@@ -606,16 +608,16 @@ eq_neg_iff_add_eq_zero.2 $
 | (n+1) := by rw [pow_succ', translation_number_mul_of_commute (commute.pow_self f n),
   translation_number_pow n, nat.cast_add_one, add_mul, one_mul]
 
-@[simp] lemma translation_number_gpow (f : units circle_deg1_lift) :
+@[simp] lemma translation_number_zpow (f : circle_deg1_liftˣ) :
   ∀ n : ℤ, τ (f ^ n : units _) = n * τ f
 | (n : ℕ) := by simp [translation_number_pow f n]
 | -[1+n] := by { simp,  ring }
 
-@[simp] lemma translation_number_conj_eq (f : units circle_deg1_lift) (g : circle_deg1_lift) :
+@[simp] lemma translation_number_conj_eq (f : circle_deg1_liftˣ) (g : circle_deg1_lift) :
   τ (↑f * g * ↑(f⁻¹)) = τ g :=
 (translation_number_eq_of_semiconj_by (f.mk_semiconj_by g)).symm
 
-@[simp] lemma translation_number_conj_eq' (f : units circle_deg1_lift) (g : circle_deg1_lift) :
+@[simp] lemma translation_number_conj_eq' (f : circle_deg1_liftˣ) (g : circle_deg1_lift) :
   τ (↑(f⁻¹) * g * f) = τ g :=
 translation_number_conj_eq f⁻¹ g
 
@@ -746,7 +748,7 @@ lemma translation_number_lt_of_forall_lt_add (hf : continuous f) {z : ℝ}
   (hz : ∀ x, f x < x + z) : τ f < z :=
 begin
   obtain ⟨x, xmem, hx⟩ : ∃ x ∈ Icc (0:ℝ) 1, ∀ y ∈ Icc (0:ℝ) 1, f y - y ≤ f x - x,
-    from compact_Icc.exists_forall_ge (nonempty_Icc.2 zero_le_one)
+    from is_compact_Icc.exists_forall_ge (nonempty_Icc.2 zero_le_one)
       (hf.sub continuous_id).continuous_on,
   refine lt_of_le_of_lt _ (sub_lt_iff_lt_add'.2 $ hz x),
   apply translation_number_le_of_le_add,
@@ -758,7 +760,7 @@ lemma lt_translation_number_of_forall_add_lt (hf : continuous f) {z : ℝ}
   (hz : ∀ x, x + z < f x) : z < τ f :=
 begin
   obtain ⟨x, xmem, hx⟩ : ∃ x ∈ Icc (0:ℝ) 1, ∀ y ∈ Icc (0:ℝ) 1, f x - x ≤ f y - y,
-    from compact_Icc.exists_forall_le (nonempty_Icc.2 zero_le_one)
+    from is_compact_Icc.exists_forall_le (nonempty_Icc.2 zero_le_one)
       (hf.sub continuous_id).continuous_on,
   refine lt_of_lt_of_le (lt_sub_iff_add_lt'.2 $ hz x) _,
   apply le_translation_number_of_add_le,
@@ -772,12 +774,10 @@ lemma exists_eq_add_translation_number (hf : continuous f) :
   ∃ x, f x = x + τ f :=
 begin
   obtain ⟨a, ha⟩ : ∃ x, f x ≤ x + f.translation_number,
-  { by_contradiction H,
-    push_neg at H,
+  { by_contra' H,
     exact lt_irrefl _ (f.lt_translation_number_of_forall_add_lt hf H) },
   obtain ⟨b, hb⟩ : ∃ x, x + τ f ≤ f x,
-  { by_contradiction H,
-    push_neg at H,
+  { by_contra' H,
     exact lt_irrefl _ (f.translation_number_lt_of_forall_lt_add hf H) },
   exact intermediate_value_univ₂ hf (continuous_id.add continuous_const) ha hb
 end
@@ -839,7 +839,7 @@ begin
   -- Now we apply `cSup_div_semiconj` and go back to `f₁` and `f₂`.
   refine ⟨⟨_, λ x y hxy, _, λ x, _⟩, cSup_div_semiconj F₂ F₁ (λ x, _)⟩;
     simp only [hF₁, hF₂, ← monoid_hom.map_inv, coe_mk],
-  { refine csupr_le_csupr (this y) (λ g, _),
+  { refine csupr_mono (this y) (λ g, _),
     exact mono _ (mono _ hxy) },
   { simp only [map_add_one],
     exact (map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const)
@@ -848,14 +848,14 @@ begin
 end
 
 /-- If two lifts of circle homeomorphisms have the same translation number, then they are
-semiconjugate by a `circle_deg1_lift`. This version uses arguments `f₁ f₂ : units circle_deg1_lift`
+semiconjugate by a `circle_deg1_lift`. This version uses arguments `f₁ f₂ : circle_deg1_liftˣ`
 to assume that `f₁` and `f₂` are homeomorphisms. -/
-lemma units_semiconj_of_translation_number_eq {f₁ f₂ : units circle_deg1_lift}
+lemma units_semiconj_of_translation_number_eq {f₁ f₂ : circle_deg1_liftˣ}
   (h : τ f₁ = τ f₂) :
   ∃ F : circle_deg1_lift, semiconj F f₁ f₂ :=
 begin
-  have : ∀ n : multiplicative ℤ, τ ((units.coe_hom _).comp (gpowers_hom _ f₁) n) =
-    τ ((units.coe_hom _).comp (gpowers_hom _ f₂) n),
+  have : ∀ n : multiplicative ℤ, τ ((units.coe_hom _).comp (zpowers_hom _ f₁) n) =
+    τ ((units.coe_hom _).comp (zpowers_hom _ f₂) n),
   { intro n, simp [h] },
   exact (semiconj_of_group_action_of_forall_translation_number_eq _ _ this).imp
     (λ F hF, hF (multiplicative.of_add 1))

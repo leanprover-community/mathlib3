@@ -81,17 +81,17 @@ def kernel_subobject_iso :
   (kernel_subobject f : C) ≅ kernel f :=
 subobject.underlying_iso (kernel.ι f)
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow :
   (kernel_subobject_iso f).hom ≫ kernel.ι f = (kernel_subobject f).arrow :=
 by simp [kernel_subobject_iso]
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow' :
   (kernel_subobject_iso f).inv ≫ (kernel_subobject f).arrow = kernel.ι f :=
 by simp [kernel_subobject_iso]
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma kernel_subobject_arrow_comp :
   (kernel_subobject f).arrow ≫ f = 0 :=
 by { rw [←kernel_subobject_arrow], simp only [category.assoc, kernel.condition, comp_zero], }
@@ -105,6 +105,46 @@ lemma kernel_subobject_factors_iff {W : C} (h : W ⟶ X) :
 ⟨λ w, by rw [←subobject.factor_thru_arrow _ _ w, category.assoc,
   kernel_subobject_arrow_comp, comp_zero],
 kernel_subobject_factors f h⟩
+
+/-- A factorisation of `h : W ⟶ X` through `kernel_subobject f`, assuming `h ≫ f = 0`. -/
+def factor_thru_kernel_subobject {W : C} (h : W ⟶ X) (w : h ≫ f = 0) :
+  W ⟶ kernel_subobject f :=
+(kernel_subobject f).factor_thru h (kernel_subobject_factors f h w)
+
+@[simp] lemma factor_thru_kernel_subobject_comp_arrow {W : C} (h : W ⟶ X) (w : h ≫ f = 0) :
+  factor_thru_kernel_subobject f h w ≫ (kernel_subobject f).arrow = h :=
+by { dsimp [factor_thru_kernel_subobject], simp, }
+
+@[simp] lemma factor_thru_kernel_subobject_comp_kernel_subobject_iso {W : C} (h : W ⟶ X)
+  (w : h ≫ f = 0) :
+  factor_thru_kernel_subobject f h w ≫ (kernel_subobject_iso f).hom = kernel.lift f h w :=
+(cancel_mono (kernel.ι f)).1 $ by simp
+
+section
+variables {f} {X' Y' : C} {f' : X' ⟶ Y'} [has_kernel f']
+
+/-- A commuting square induces a morphism between the kernel subobjects. -/
+def kernel_subobject_map (sq : arrow.mk f ⟶ arrow.mk f') :
+  (kernel_subobject f : C) ⟶ (kernel_subobject f' : C) :=
+subobject.factor_thru _
+  ((kernel_subobject f).arrow ≫ sq.left)
+  (kernel_subobject_factors _ _ (by simp [sq.w]))
+
+@[simp, reassoc, elementwise]
+lemma kernel_subobject_map_arrow (sq : arrow.mk f ⟶ arrow.mk f') :
+  kernel_subobject_map sq ≫ (kernel_subobject f').arrow =
+    (kernel_subobject f).arrow ≫ sq.left :=
+by simp [kernel_subobject_map]
+
+@[simp] lemma kernel_subobject_map_id : kernel_subobject_map (𝟙 (arrow.mk f)) = 𝟙 _ :=
+by { ext, simp, dsimp, simp, } -- See library note [dsimp, simp].
+
+@[simp] lemma kernel_subobject_map_comp {X'' Y'' : C} {f'' : X'' ⟶ Y''} [has_kernel f'']
+  (sq : arrow.mk f ⟶ arrow.mk f') (sq' : arrow.mk f' ⟶ arrow.mk f'') :
+  kernel_subobject_map (sq ≫ sq') = kernel_subobject_map sq ≫ kernel_subobject_map sq' :=
+by { ext, simp, }
+
+end
 
 @[simp]
 lemma kernel_subobject_zero {A B : C} : kernel_subobject (0 : A ⟶ B) = ⊤ :=
@@ -154,6 +194,15 @@ le_antisymm
   (le_kernel_subobject _ _ ((cancel_mono h).mp (by simp)))
   (kernel_subobject_comp_le f h)
 
+instance kernel_subobject_comp_mono_is_iso
+  (f : X ⟶ Y) [has_kernel f] {Z : C} (h : Y ⟶ Z) [mono h] :
+  is_iso (subobject.of_le _ _ (kernel_subobject_comp_le f h)) :=
+begin
+  rw of_le_mk_le_mk_of_comm (kernel_comp_mono f h).inv,
+  { apply_instance, },
+  { simp, },
+end
+
 end kernel
 
 section image
@@ -183,10 +232,18 @@ by simp [image_subobject_iso]
 def factor_thru_image_subobject : X ⟶ image_subobject f :=
 factor_thru_image f ≫ (image_subobject_iso f).inv
 
-@[simp, reassoc]
+instance [has_equalizers C] : epi (factor_thru_image_subobject f) :=
+by { dsimp [factor_thru_image_subobject], apply epi_comp, }
+
+@[simp, reassoc, elementwise]
 lemma image_subobject_arrow_comp :
   factor_thru_image_subobject f ≫ (image_subobject f).arrow = f :=
 by simp [factor_thru_image_subobject, image_subobject_arrow]
+
+lemma image_subobject_arrow_comp_eq_zero
+  [has_zero_morphisms C] {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [has_image f]
+  [epi (factor_thru_image_subobject f)] (h : f ≫ g = 0) : (image_subobject f).arrow ≫ g = 0 :=
+zero_of_epi_comp (factor_thru_image_subobject f) $ by simp [h]
 
 lemma image_subobject_factors_comp_self {W : C} (k : W ⟶ X)  :
   (image_subobject f).factors (k ≫ f) :=
@@ -202,22 +259,49 @@ lemma factor_thru_image_subobject_comp_self_assoc {W W' : C} (k : W ⟶ W') (k' 
   (image_subobject f).factor_thru (k ≫ k' ≫ f) h = k ≫ k' ≫ factor_thru_image_subobject f :=
 by { ext, simp, }
 
-@[simp]
-lemma image_subobject_zero_arrow [has_zero_morphisms C] [has_zero_object C] :
-  (image_subobject (0 : X ⟶ Y)).arrow = 0 :=
-by { rw ←image_subobject_arrow, simp, }
-
-@[simp]
-lemma image_subobject_zero [has_zero_morphisms C] [has_zero_object C]{A B : C} :
-  image_subobject (0 : A ⟶ B) = ⊥ :=
-subobject.eq_of_comm
-  (image_subobject_iso _ ≪≫ image_zero ≪≫ subobject.bot_coe_iso_zero.symm) (by simp)
-
 /-- The image of `h ≫ f` is always a smaller subobject than the image of `f`. -/
 lemma image_subobject_comp_le
   {X' : C} (h : X' ⟶ X) (f : X ⟶ Y) [has_image f] [has_image (h ≫ f)] :
   image_subobject (h ≫ f) ≤ image_subobject f :=
 subobject.mk_le_mk_of_comm (image.pre_comp h f) (by simp)
+
+section
+open_locale zero_object
+variables [has_zero_morphisms C] [has_zero_object C]
+
+@[simp]
+lemma image_subobject_zero_arrow :
+  (image_subobject (0 : X ⟶ Y)).arrow = 0 :=
+by { rw ←image_subobject_arrow, simp, }
+
+@[simp]
+lemma image_subobject_zero {A B : C} :
+  image_subobject (0 : A ⟶ B) = ⊥ :=
+subobject.eq_of_comm
+  (image_subobject_iso _ ≪≫ image_zero ≪≫ subobject.bot_coe_iso_zero.symm) (by simp)
+
+end
+
+section
+variables [has_equalizers C]
+local attribute [instance] epi_comp
+
+/--
+The morphism `image_subobject (h ≫ f) ⟶ image_subobject f`
+is an epimorphism when `h` is an epimorphism.
+In general this does not imply that `image_subobject (h ≫ f) = image_subobject f`,
+although it will when the ambient category is abelian.
+ -/
+instance image_subobject_comp_le_epi_of_epi
+  {X' : C} (h : X' ⟶ X) [epi h] (f : X ⟶ Y) [has_image f] [has_image (h ≫ f)] :
+  epi (subobject.of_le _ _ (image_subobject_comp_le h f)) :=
+begin
+  rw of_le_mk_le_mk_of_comm (image.pre_comp h f),
+  { apply_instance, },
+  { simp, },
+end
+
+end
 
 section
 variables [has_equalizers C]

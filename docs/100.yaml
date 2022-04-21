@@ -54,17 +54,18 @@
     - interval_integral.integral_eq_sub_of_has_deriv_right_of_le
   author : Yury G. Kudryashov (first) and Benjamin Davidson (second)
 16:
-  title  : Insolvability of General Higher Degree Equations
+  title  : Insolvability of General Higher Degree Equations (Abel-Ruffini Theorem)
+  author: Thomas Browning
+  links :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/16_abel_ruffini.lean
 17:
-  title  : De Moivre’s Theorem
+  title  : De Moivre’s Formula
   decl   : complex.cos_add_sin_mul_I_pow
   author : Abhimanyu Pallavi Sudhir
 18:
   title  : Liouville’s Theorem and the Construction of Transcendental Numbers
   author : Jujian Zhang
-  links  :
-    result: https://github.com/jjaassoonn/transcendental/blob/master/src/liouville_theorem.lean
-    website: https://jjaassoonn.github.io/transcendental/
+  decl   :  liouville.transcendental
 19:
   title  : Four Squares Theorem
   decl   : nat.sum_four_squares
@@ -84,7 +85,7 @@
   decl   : pythagorean_triple.classification
   author : Paul van Wamelen
 24:
-  title  : The Undecidability of the Continuum Hypothesis
+  title  : The Independence of the Continuum Hypothesis
   author : Jesse Michael Han and Floris van Doorn
   links  :
     result: https://github.com/flypitch/flypitch/blob/master/src/summary.lean
@@ -113,7 +114,6 @@
   author : Bhavik Mehta
   links  :
     result: https://github.com/b-mehta/combinatorics/blob/extras/src/inf_ramsey.lean
-
 32:
   title  : The Four Color Problem
 33:
@@ -128,6 +128,9 @@
   title  : Brouwer Fixed Point Theorem
 37:
   title  : The Solution of a Cubic
+  author : Jeoff Lee
+  links  :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/37_solution_of_cubic.lean
 38:
   title  : Arithmetic Mean/Geometric Mean
   decl   : real.geom_mean_le_arith_mean_weighted
@@ -154,6 +157,9 @@
   author : Chris Hughes
 45:
   title  : The Partition Theorem
+  author : Bhavik Mehta, Aaron Anderson
+  links:
+    mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/45_partition.lean
 46:
   title  : The Solution of the General Quartic Equation
 47:
@@ -162,12 +168,12 @@
   title  : Dirichlet’s Theorem
 49:
   title  : The Cayley-Hamilton Theorem
-  decl   : aeval_self_char_poly
+  decl   : matrix.aeval_self_charpoly
   author : Scott Morrison
 50:
   title  : The Number of Platonic Solids
 51:
-  title  : Wilson’s Theorem
+  title  : Wilson’s Lemma
   decl   : zmod.wilsons_lemma
   author : Chris Hughes
 52:
@@ -274,11 +280,15 @@
   author : Yury G. Kudryashov
 76:
   title  : Fourier Series
+  decls   :
+    - fourier_series_repr
+    - has_sum_fourier_series
+  author : Heather Macbeth
 77:
   title  : Sum of kth powers
   decls  :
     - sum_range_pow
-    - sum_range_pow'
+    - sum_Ico_pow
   author : mathlib (Moritz Firsching, Fabian Kruse, Ashvni Narayanan)
 78:
   title  : The Cauchy-Schwarz Inequality
@@ -302,6 +312,9 @@
   note   : "it also has a generalized version, by showing that every Euclidean domain is a unique factorization domain, and showing that the integers form a Euclidean domain."
 81:
   title  : Divergence of the Prime Reciprocal Series
+  links  :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/81_sum_of_prime_reciprocals_diverges.lean
+  author : Manuel Candales
 82:
   title  : Dissection of Cubes (J.E. Littlewood’s ‘elegant’ proof)
   links :
@@ -327,6 +340,10 @@
   title  : Desargues’s Theorem
 88:
   title  : Derangements Formula
+  decls  :
+    - card_derangements_eq_num_derangements
+    - num_derangements_sum
+  author : Henry Swanson
 89:
   title  : The Factor and Remainder Theorems
   decls  :
@@ -343,12 +360,18 @@
   title  : Pick’s Theorem
 93:
   title  : The Birthday Problem
+  decl   : fintype.card_embedding_eq
+  links  :
+    mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/93_birthday_problem.lean
+  author : Eric Rodriguez
 94:
   title  : The Law of Cosines
   decl   : euclidean_geometry.dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle
   author : Joseph Myers
 95:
   title  : Ptolemy’s Theorem
+  decl   : euclidean_geometry.mul_dist_add_mul_dist_eq_mul_dist_of_cospherical
+  author : Manuel Candales
 96:
   title  : Principle of Inclusion/Exclusion
   links  :

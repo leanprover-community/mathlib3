@@ -3,11 +3,10 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.pi
 import data.prod
 import data.subtype
-import logic.unique
 import logic.function.basic
+import logic.unique
 
 /-!
 # Nontrivial types
@@ -34,7 +33,8 @@ lemma nontrivial_iff : nontrivial α ↔ ∃ (x y : α), x ≠ y :=
 lemma exists_pair_ne (α : Type*) [nontrivial α] : ∃ (x y : α), x ≠ y :=
 nontrivial.exists_pair_ne
 
-lemma exists_ne [nontrivial α] (x : α) : ∃ y, y ≠ x :=
+-- See Note [decidable namespace]
+protected lemma decidable.exists_ne [nontrivial α] [decidable_eq α] (x : α) : ∃ y, y ≠ x :=
 begin
   rcases exists_pair_ne α with ⟨y, y', h⟩,
   by_cases hx : x = y,
@@ -42,6 +42,9 @@ begin
     exact ⟨y', h.symm⟩ },
   { exact ⟨y, ne.symm hx⟩ }
 end
+
+lemma exists_ne [nontrivial α] (x : α) : ∃ y, y ≠ x :=
+by classical; exact decidable.exists_ne x
 
 -- `x` and `y` are explicit here, as they are often needed to guide typechecking of `h`.
 lemma nontrivial_of_ne (x y : α) (h : x ≠ y) : nontrivial α :=
@@ -51,6 +54,16 @@ lemma nontrivial_of_ne (x y : α) (h : x ≠ y) : nontrivial α :=
 lemma nontrivial_of_lt [preorder α] (x y : α) (h : x < y) : nontrivial α :=
 ⟨⟨x, y, ne_of_lt h⟩⟩
 
+lemma exists_pair_lt (α : Type*) [nontrivial α] [linear_order α] : ∃ (x y : α), x < y :=
+begin
+  rcases exists_pair_ne α with ⟨x, y, hxy⟩,
+  cases lt_or_gt_of_ne hxy;
+  exact ⟨_, _, h⟩
+end
+
+lemma nontrivial_iff_lt [linear_order α] : nontrivial α ↔ ∃ (x y : α), x < y :=
+⟨λ h, @exists_pair_lt α h _, λ ⟨x, y, h⟩, nontrivial_of_lt x y h⟩
+
 lemma nontrivial_iff_exists_ne (x : α) : nontrivial α ↔ ∃ y, y ≠ x :=
 ⟨λ h, @exists_ne α h x, λ ⟨y, hy⟩, nontrivial_of_ne _ _ hy⟩
 
@@ -58,20 +71,30 @@ lemma subtype.nontrivial_iff_exists_ne (p : α → Prop) (x : subtype p) :
   nontrivial (subtype p) ↔ ∃ (y : α) (hy : p y), y ≠ x :=
 by simp only [nontrivial_iff_exists_ne x, subtype.exists, ne.def, subtype.ext_iff, subtype.coe_mk]
 
-@[priority 100] -- see Note [lower instance priority]
+instance : nontrivial Prop := ⟨⟨true, false, true_ne_false⟩⟩
+
+/--
+See Note [lower instance priority]
+
+Note that since this and `nonempty_of_inhabited` are the most "obvious" way to find a nonempty
+instance if no direct instance can be found, we give this a higher priority than the usual `100`.
+-/
+@[priority 500]
 instance nontrivial.to_nonempty [nontrivial α] : nonempty α :=
 let ⟨x, _⟩ := exists_pair_ne α in ⟨x⟩
+
+attribute [instance, priority 500] nonempty_of_inhabited
 
 /-- An inhabited type is either nontrivial, or has a unique element. -/
 noncomputable def nontrivial_psum_unique (α : Type*) [inhabited α] :
   psum (nontrivial α) (unique α) :=
 if h : nontrivial α then psum.inl h else psum.inr
-{ default := default α,
+{ default := default,
   uniq := λ (x : α),
   begin
-    change x = default α,
+    change x = default,
     contrapose! h,
-    use [x, default α]
+    use [x, default]
   end }
 
 lemma subsingleton_iff : subsingleton α ↔ ∀ (x y : α), x = y :=
@@ -91,7 +114,7 @@ lemma false_of_nontrivial_of_subsingleton (α : Type*) [nontrivial α] [subsingl
 let ⟨x, y, h⟩ := exists_pair_ne α in h $ subsingleton.elim x y
 
 instance option.nontrivial [nonempty α] : nontrivial (option α) :=
-by { inhabit α, use [none, some (default α)] }
+by { inhabit α, use [none, some default] }
 
 /-- Pushforward a `nontrivial` instance along an injective function. -/
 protected lemma function.injective.nontrivial [nontrivial α]
@@ -137,13 +160,12 @@ by classical; exact
 (function.update_injective (λ i, classical.choice (inst i)) i').nontrivial
 
 /--
-As a convenience, provide an instance automatically if `(f (default I))` is nontrivial.
+As a convenience, provide an instance automatically if `(f default)` is nontrivial.
 
 If a different index has the non-trivial type, then use `haveI := nontrivial_at that_index`.
 -/
-instance nontrivial [inhabited I] [inst : Π i, nonempty (f i)] [nontrivial (f (default I))] :
-  nontrivial (Π i : I, f i) :=
-nontrivial_at (default I)
+instance nontrivial [inhabited I] [inst : Π i, nonempty (f i)] [nontrivial (f default)] :
+  nontrivial (Π i : I, f i) := nontrivial_at default
 
 end pi
 

@@ -3,10 +3,11 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kevin Buzzard
 -/
-import data.rat
-import data.fintype.card
 import algebra.big_operators.nat_antidiagonal
+import algebra.geom_sum
+import data.fintype.card
 import ring_theory.power_series.well_known
+import tactic.field_simp
 
 /-!
 # Bernoulli numbers
@@ -74,7 +75,7 @@ by { rw [bernoulli'_def', ← fin.sum_univ_eq_sum_range], refl }
 lemma bernoulli'_spec (n : ℕ) :
   ∑ k in range n.succ, (n.choose (n - k) : ℚ) / (n - k + 1) * bernoulli' k = 1 :=
 begin
-  rw [sum_range_succ_comm, bernoulli'_def n, nat.sub_self],
+  rw [sum_range_succ_comm, bernoulli'_def n, tsub_self],
   conv in (n.choose (_ - _)) { rw choose_symm (mem_range.1 H).le },
   simp only [one_mul, cast_one, sub_self, sub_add_cancel, choose_zero_right, zero_add, div_one],
 end
@@ -84,7 +85,7 @@ lemma bernoulli'_spec' (n : ℕ) :
 begin
   refine ((sum_antidiagonal_eq_sum_range_succ_mk _ n).trans _).trans (bernoulli'_spec n),
   refine sum_congr rfl (λ x hx, _),
-  simp only [nat.add_sub_cancel', mem_range_succ_iff.mp hx, cast_sub],
+  simp only [add_tsub_cancel_of_le, mem_range_succ_iff.mp hx, cast_sub],
 end
 
 /-! ### Examples -/
@@ -121,7 +122,7 @@ begin
   congr',
   have : ((n - k : ℕ) : ℚ) + 1 ≠ 0 := by apply_mod_cast succ_ne_zero,
   field_simp [← cast_sub (mem_range.1 hk).le, mul_comm],
-  rw_mod_cast [nat.sub_add_eq_add_sub (mem_range.1 hk).le, choose_mul_succ_eq],
+  rw_mod_cast [tsub_add_eq_add_tsub (mem_range.1 hk).le, choose_mul_succ_eq],
 end
 
 /-- The exponential generating function for the Bernoulli numbers `bernoulli' n`. -/
@@ -161,11 +162,11 @@ begin
     { apply eq_zero_of_neg_eq,
       specialize h n,
       split_ifs at h;
-      simp [neg_one_pow_of_odd h_odd, factorial_ne_zero, *] at * },
+      simp [h_odd.neg_one_pow, factorial_ne_zero, *] at * },
     { simpa using h 1 } },
   have h : B * (exp ℚ - 1) = X * exp ℚ,
   { simpa [bernoulli'_power_series] using bernoulli'_power_series_mul_exp_sub_one ℚ },
-  rw [sub_mul, h, mul_sub X, sub_right_inj, ← neg_sub, ← neg_mul_eq_mul_neg, neg_eq_iff_neg_eq],
+  rw [sub_mul, h, mul_sub X, sub_right_inj, ← neg_sub, mul_neg, neg_eq_iff_neg_eq],
   suffices : eval_neg_hom (B * (exp ℚ - 1)) * exp ℚ = eval_neg_hom (X * exp ℚ) * exp ℚ,
   { simpa [mul_assoc, sub_mul, mul_comm (eval_neg_hom (exp ℚ)), exp_mul_exp_neg_eq_one, eq_comm] },
   congr',
@@ -201,7 +202,7 @@ begin
   have f := sum_bernoulli' n.succ.succ,
   simp_rw [sum_range_succ', bernoulli'_one, choose_one_right, cast_succ, ← eq_sub_iff_add_eq] at f,
   convert f,
-  { ext x, rw bernoulli_eq_bernoulli'_of_ne_one (succ_ne_zero x ∘ succ.inj) },
+  { funext x, rw bernoulli_eq_bernoulli'_of_ne_one (succ_ne_zero x ∘ succ.inj) },
   { simp only [one_div, mul_one, bernoulli'_zero, cast_one, choose_zero_right, add_sub_cancel],
     ring },
 end
@@ -240,8 +241,8 @@ begin
   cases n, { simp },
   simp only [bernoulli_power_series, coeff_mul, coeff_X, sum_antidiagonal_succ', one_div, coeff_mk,
     coeff_one, coeff_exp, linear_map.map_sub, factorial, if_pos, cast_succ, cast_one, cast_mul,
-    sub_zero, ring_hom.map_one, add_eq_zero_iff, if_false, inv_one, zero_add, one_ne_zero, mul_zero,
-    and_false, sub_self, ← ring_hom.map_mul, ← ring_hom.map_sum],
+    sub_zero, ring_hom.map_one, add_eq_zero_iff, if_false, _root_.inv_one, zero_add, one_ne_zero,
+    mul_zero, and_false, sub_self, ← ring_hom.map_mul, ← ring_hom.map_sum],
   suffices : ∑ x in antidiagonal n, bernoulli x.1 / x.1! * ((x.2 + 1) * x.2!)⁻¹
            = if n.succ = 1 then 1 else 0, { split_ifs; simp [h, this] },
   cases n, { simp },
@@ -261,7 +262,8 @@ end
 
 section faulhaber
 
-/-- Faulhaber's theorem relating the sum of of p-th powers to the Bernoulli numbers.
+/-- **Faulhaber's theorem** relating the **sum of of p-th powers** to the Bernoulli numbers:
+$$\sum_{k=0}^{n-1} k^p = \sum_{i=0}^p B_i\binom{p+1}{i}\frac{n^{p+1-i}}{p+1}.$$
 See https://proofwiki.org/wiki/Faulhaber%27s_Formula and [orosi2018faulhaber] for
 the proof provided here. -/
 theorem sum_range_pow (n p : ℕ) :
@@ -273,19 +275,19 @@ begin
   have h_cauchy : mk (λ p, bernoulli p / p!) * mk (λ q, coeff ℚ (q + 1) (exp ℚ ^ n))
                 = mk (λ p, ∑ i in range (p + 1),
                       bernoulli i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1)!),
-  { ext q,
+  { ext q : 1,
     let f := λ a b, bernoulli a / a! * coeff ℚ (b + 1) (exp ℚ ^ n),
     -- key step: use `power_series.coeff_mul` and then rewrite sums
     simp only [coeff_mul, coeff_mk, cast_mul, sum_antidiagonal_eq_sum_range_succ f],
     apply sum_congr rfl,
     simp_intros m h only [finset.mem_range],
     simp only [f, exp_pow_eq_rescale_exp, rescale, one_div, coeff_mk, ring_hom.coe_mk, coeff_exp,
-              ring_hom.id_apply, cast_mul, rat.algebra_map_rat_rat],
+              ring_hom.id_apply, cast_mul, algebra_map_rat_rat],
     -- manipulate factorials and binomial coefficients
     rw [choose_eq_factorial_div_factorial h.le, eq_comm, div_eq_iff (hne q.succ), succ_eq_add_one,
         mul_assoc _ _ ↑q.succ!, mul_comm _ ↑q.succ!, ← mul_assoc, div_mul_eq_mul_div,
         mul_comm (↑n ^ (q - m + 1)), ← mul_assoc _ _ (↑n ^ (q - m + 1)), ← one_div, mul_one_div,
-        div_div_eq_div_mul, ← nat.sub_add_comm (le_of_lt_succ h), cast_dvd, cast_mul],
+        div_div_eq_div_mul, tsub_add_eq_add_tsub (le_of_lt_succ h), cast_dvd, cast_mul],
     { ring },
     { exact factorial_mul_factorial_dvd_factorial h.le },
     { simp [hne] } },
@@ -317,9 +319,10 @@ begin
   field_simp [mul_right_comm _ ↑p!, ← mul_assoc _ _ ↑p!, cast_add_one_ne_zero, hne],
 end
 
-/-- Alternate form of Faulhaber's theorem, relating the sum of p-th powers to the Bernoulli numbers.
+/-- Alternate form of **Faulhaber's theorem**, relating the sum of p-th powers to the Bernoulli
+numbers: $$\sum_{k=1}^{n} k^p = \sum_{i=0}^p (-1)^iB_i\binom{p+1}{i}\frac{n^{p+1-i}}{p+1}.$$
 Deduced from `sum_range_pow`. -/
-theorem sum_range_pow' (n p : ℕ) :
+theorem sum_Ico_pow (n p : ℕ) :
   ∑ k in Ico 1 (n + 1), (k : ℚ) ^ p =
     ∑ i in range (p + 1), bernoulli' i * (p + 1).choose i * n ^ (p + 1 - i) / (p + 1) :=
 begin
@@ -329,12 +332,12 @@ begin
   let f' := λ i, bernoulli' i * p.succ.succ.choose i * n ^ (p.succ.succ - i) / p.succ.succ,
   suffices : ∑ k in Ico 1 n.succ, ↑k ^ p.succ = ∑ i in range p.succ.succ, f' i, { convert this },
   -- prove some algebraic facts that will make things easier for us later on
-  have hle := le_add_left 1 n,
+  have hle := nat.le_add_left 1 n,
   have hne : (p + 1 + 1 : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero p.succ,
   have h1 : ∀ r : ℚ, r * (p + 1 + 1) * n ^ p.succ / (p + 1 + 1 : ℚ) = r * n ^ p.succ :=
     λ r, by rw [mul_div_right_comm, mul_div_cancel _ hne],
   have h2 : f 1 + n ^ p.succ = 1 / 2 * n ^ p.succ,
-  { simp_rw [f, bernoulli_one, choose_one_right, succ_sub_succ_eq_sub, cast_succ, nat.sub_zero, h1],
+  { simp_rw [f, bernoulli_one, choose_one_right, succ_sub_succ_eq_sub, cast_succ, tsub_zero, h1],
     ring },
   have : ∑ i in range p, bernoulli (i + 2) * (p + 2).choose (i + 2) * n ^ (p - i) / ↑(p + 2)
        = ∑ i in range p, bernoulli' (i + 2) * (p + 2).choose (i + 2) * n ^ (p - i) / ↑(p + 2) :=

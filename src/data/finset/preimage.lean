@@ -82,6 +82,21 @@ lemma image_preimage_of_bij [decidable_eq β] (f : α → β) (s : finset β)
   image f (preimage s f hf.inj_on) = s :=
 finset.coe_inj.1 $ by simpa using hf.image_eq
 
+lemma preimage_subset {f : α ↪ β} {s : finset β} {t : finset α} (hs : s ⊆ t.map f) :
+  s.preimage f (f.injective.inj_on _) ⊆ t :=
+λ x hx, (mem_map' f).1 (hs (mem_preimage.1 hx))
+
+lemma subset_map_iff {f : α ↪ β} {s : finset β} {t : finset α} :
+  s ⊆ t.map f ↔ ∃ u ⊆ t, s = u.map f :=
+begin
+  classical,
+  refine ⟨λ h, ⟨_, preimage_subset h, _⟩, _⟩,
+  { rw [map_eq_image, image_preimage, filter_true_of_mem (λ x hx, _)],
+    exact coe_map_subset_range _ _ (h hx) },
+  { rintro ⟨u, hut, rfl⟩,
+    exact map_subset_map.2 hut }
+end
+
 lemma sigma_preimage_mk {β : α → Type*} [decidable_eq α] (s : finset (Σ a, β a)) (t : finset α) :
   t.sigma (λ a, s.preimage (sigma.mk a) $ sigma_mk_injective.inj_on _) = s.filter (λ a, a.1 ∈ t) :=
 by { ext x, simp [and_comm] }

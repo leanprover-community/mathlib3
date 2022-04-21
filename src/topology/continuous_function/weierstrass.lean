@@ -3,10 +3,8 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.algebra.subalgebra
-import topology.algebra.polynomial
-import topology.continuous_function.bounded
 import analysis.special_functions.bernstein
+import topology.algebra.algebra
 
 /-!
 # The Weierstrass approximation theorem for continuous functions on `[a,b]`
@@ -46,7 +44,7 @@ begin
 end
 
 /--
-The Weierstrass approximation theorem:
+The **Weierstrass Approximation Theorem**:
 polynomials functions on `[a, b] ⊆ ℝ` are dense in `C([a,b],ℝ)`
 
 (While we could deduce this as an application of the Stone-Weierstrass theorem,
@@ -122,7 +120,7 @@ can be approximated to within any `ε > 0` on `[a,b]` by some polynomial.
 -/
 theorem exists_polynomial_near_of_continuous_on
   (a b : ℝ) (f : ℝ → ℝ) (c : continuous_on f (set.Icc a b)) (ε : ℝ) (pos : 0 < ε) :
-  ∃ (p : polynomial ℝ), ∀ x ∈ set.Icc a b, abs (p.eval x - f x) < ε :=
+  ∃ (p : polynomial ℝ), ∀ x ∈ set.Icc a b, |p.eval x - f x| < ε :=
 begin
   let f' : C(set.Icc a b, ℝ) := ⟨λ x, f x, continuous_on_iff_continuous_restrict.mp c⟩,
   obtain ⟨p, b⟩ := exists_polynomial_near_continuous_map a b f' ε pos,

@@ -53,8 +53,8 @@ end
 lemma ne_zero_of_prime_mersenne (k : ℕ) (pr : (mersenne (k + 1)).prime) :
   k ≠ 0 :=
 begin
-  rintro rfl,
-  simpa [mersenne, not_prime_one] using pr,
+  intro H,
+  simpa [H, mersenne, not_prime_one] using pr,
 end
 
 theorem even_two_pow_mul_mersenne_of_prime (k : ℕ) (pr : (mersenne (k + 1)).prime) :
@@ -76,7 +76,7 @@ begin
   rw [pow_succ', mul_assoc, ← hm],
 end
 
-/-- Euler's theorem that even perfect numbers can be factored as a
+/-- **Perfect Number Theorem**: Euler's theorem that even perfect numbers can be factored as a
   power of two times a Mersenne prime. -/
 theorem eq_two_pow_mul_prime_mersenne_of_even_perfect {n : ℕ} (ev : even n) (perf : perfect n) :
   ∃ (k : ℕ), prime (mersenne (k + 1)) ∧ n = 2 ^ k * mersenne (k + 1) :=
@@ -84,13 +84,14 @@ begin
   have hpos := perf.2,
   rcases eq_two_pow_mul_odd hpos with ⟨k, m, rfl, hm⟩,
   use k,
+  rw even_iff_two_dvd at hm,
   rw [perfect_iff_sum_divisors_eq_two_mul hpos, ← sigma_one_apply,
     is_multiplicative_sigma.map_mul_of_coprime (nat.prime_two.coprime_pow_of_not_dvd hm).symm,
     sigma_two_pow_eq_mersenne_succ, ← mul_assoc, ← pow_succ] at perf,
   rcases nat.coprime.dvd_of_dvd_mul_left
     (nat.prime_two.coprime_pow_of_not_dvd (odd_mersenne_succ _)) (dvd.intro _ perf) with ⟨j, rfl⟩,
   rw [← mul_assoc, mul_comm _ (mersenne _), mul_assoc] at perf,
-  have h := mul_left_cancel' (ne_of_gt (mersenne_pos (nat.succ_pos _))) perf,
+  have h := mul_left_cancel₀ (ne_of_gt (mersenne_pos (nat.succ_pos _))) perf,
   rw [sigma_one_apply, sum_divisors_eq_sum_proper_divisors_add_self, ← succ_mersenne, add_mul,
     one_mul, add_comm] at h,
   have hj := add_left_cancel h,
@@ -100,13 +101,13 @@ begin
     simp [h_1, j1] },
   { have jcon := eq.trans hj.symm h_1,
     rw [← one_mul j, ← mul_assoc, mul_one] at jcon,
-    have jcon2 := mul_right_cancel' _ jcon,
+    have jcon2 := mul_right_cancel₀ _ jcon,
     { exfalso,
       cases k,
       { apply hm,
         rw [← jcon2, pow_zero, one_mul, one_mul] at ev,
         rw [← jcon2, one_mul],
-        exact ev },
+        exact even_iff_two_dvd.mp ev },
       apply ne_of_lt _ jcon2,
       rw [mersenne, ← nat.pred_eq_sub_one, lt_pred_iff, ← pow_one (nat.succ 1)],
       apply pow_lt_pow (nat.lt_succ_self 1) (nat.succ_lt_succ (nat.succ_pos k)) },

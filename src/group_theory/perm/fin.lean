@@ -3,9 +3,10 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import data.equiv.fin
-import data.equiv.fintype
+import group_theory.perm.cycle_type
 import group_theory.perm.option
+import logic.equiv.fin
+import logic.equiv.fintype
 
 /-!
 # Permutations of `fin n`
@@ -95,6 +96,49 @@ begin
   { rw fin_rotate_succ, simp [ih, pow_succ] },
 end
 
+@[simp] lemma support_fin_rotate {n : ℕ} : support (fin_rotate (n + 2)) = finset.univ :=
+by { ext, simp }
+
+lemma support_fin_rotate_of_le {n : ℕ} (h : 2 ≤ n) :
+  support (fin_rotate n) = finset.univ :=
+begin
+  obtain ⟨m, rfl⟩ := exists_add_of_le h,
+  rw [add_comm, support_fin_rotate],
+end
+
+lemma is_cycle_fin_rotate {n : ℕ} : is_cycle (fin_rotate (n + 2)) :=
+begin
+  refine ⟨0, dec_trivial, λ x hx', ⟨x, _⟩⟩,
+  clear hx',
+  cases x with x hx,
+  rw [coe_coe, zpow_coe_nat, fin.ext_iff, fin.coe_mk],
+  induction x with x ih, { refl },
+  rw [pow_succ, perm.mul_apply, coe_fin_rotate_of_ne_last, ih (lt_trans x.lt_succ_self hx)],
+  rw [ne.def, fin.ext_iff, ih (lt_trans x.lt_succ_self hx), fin.coe_last],
+  exact ne_of_lt (nat.lt_of_succ_lt_succ hx),
+end
+
+lemma is_cycle_fin_rotate_of_le {n : ℕ} (h : 2 ≤ n) :
+  is_cycle (fin_rotate n) :=
+begin
+  obtain ⟨m, rfl⟩ := exists_add_of_le h,
+  rw [add_comm],
+  exact is_cycle_fin_rotate
+end
+
+@[simp] lemma cycle_type_fin_rotate {n : ℕ} : cycle_type (fin_rotate (n + 2)) = {n + 2} :=
+begin
+  rw [is_cycle_fin_rotate.cycle_type, support_fin_rotate, ← fintype.card, fintype.card_fin],
+  refl,
+end
+
+lemma cycle_type_fin_rotate_of_le {n : ℕ} (h : 2 ≤ n) :
+  cycle_type (fin_rotate n) = {n} :=
+begin
+  obtain ⟨m, rfl⟩ := exists_add_of_le h,
+  rw [add_comm, cycle_type_fin_rotate]
+end
+
 namespace fin
 
 /-- `fin.cycle_range i` is the cycle `(0 1 2 ... i)` leaving `(i+1 ... (n-1))` unchanged. -/
@@ -108,7 +152,7 @@ lemma cycle_range_of_gt {n : ℕ} {i j : fin n.succ} (h : i < j) :
 begin
   rw [cycle_range, of_left_inverse'_eq_of_injective,
       ←function.embedding.to_equiv_range_eq_of_injective,
-      ←via_embedding, via_embedding_apply_not_mem_range],
+      ←via_fintype_embedding, via_fintype_embedding_apply_not_mem_range],
   simpa
 end
 
@@ -125,7 +169,7 @@ begin
   ext,
   rw [this, cycle_range, of_left_inverse'_eq_of_injective,
       ←function.embedding.to_equiv_range_eq_of_injective,
-      ←via_embedding, via_embedding_apply_image, rel_embedding.coe_fn_to_embedding,
+      ←via_fintype_embedding, via_fintype_embedding_apply_image, rel_embedding.coe_fn_to_embedding,
       coe_cast_le, coe_fin_rotate],
   simp only [fin.ext_iff, coe_last, coe_mk, coe_zero, fin.eta, apply_ite coe, cast_le_mk],
   split_ifs with heq,
@@ -225,6 +269,31 @@ i.cycle_range.injective (by simp)
 @[simp] lemma cycle_range_symm_succ {n : ℕ} (i : fin (n + 1)) (j : fin n) :
   i.cycle_range.symm j.succ = i.succ_above j :=
 i.cycle_range.injective (by simp)
+
+lemma is_cycle_cycle_range {n : ℕ} {i : fin (n + 1)} (h0 : i ≠ 0) : is_cycle (cycle_range i) :=
+begin
+  cases i with i hi,
+  cases i,
+  { exact (h0 rfl).elim },
+  exact is_cycle_fin_rotate.extend_domain _,
+end
+
+@[simp] lemma cycle_type_cycle_range {n : ℕ} {i : fin (n + 1)} (h0 : i ≠ 0) :
+  cycle_type (cycle_range i) = {i + 1} :=
+begin
+  cases i with i hi,
+  cases i,
+  { exact (h0 rfl).elim },
+  rw [cycle_range, cycle_type_extend_domain],
+  exact cycle_type_fin_rotate,
+end
+
+lemma is_three_cycle_cycle_range_two {n : ℕ} :
+  is_three_cycle (cycle_range 2 : perm (fin (n + 3))) :=
+begin
+  rw [is_three_cycle, cycle_type_cycle_range];
+  dec_trivial
+end
 
 end fin
 

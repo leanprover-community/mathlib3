@@ -2,20 +2,35 @@
 Copyright (c) 2019 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Scott Morrison
+-/
+import category_theory.adjunction.basic
+import category_theory.opposites
+import category_theory.groupoid
 
-Facts about epimorphisms and monomorphisms.
+/-!
+# Facts about epimorphisms and monomorphisms.
 
 The definitions of `epi` and `mono` are in `category_theory.category`,
 since they are used by some lemmas for `iso`, which is used everywhere.
 -/
-import category_theory.adjunction.basic
-import category_theory.opposites
 
 universes v₁ v₂ u₁ u₂
 
 namespace category_theory
 
 variables {C : Type u₁} [category.{v₁} C]
+
+instance unop_mono_of_epi {A B : Cᵒᵖ} (f : A ⟶ B) [epi f] : mono f.unop :=
+⟨λ Z g h eq, quiver.hom.op_inj ((cancel_epi f).1 (quiver.hom.unop_inj eq))⟩
+
+instance unop_epi_of_mono {A B : Cᵒᵖ} (f : A ⟶ B) [mono f] : epi f.unop :=
+⟨λ Z g h eq, quiver.hom.op_inj ((cancel_mono f).1 (quiver.hom.unop_inj eq))⟩
+
+instance op_mono_of_epi {A B : C} (f : A ⟶ B) [epi f] : mono f.op :=
+⟨λ Z g h eq, quiver.hom.unop_inj ((cancel_epi f).1 (quiver.hom.op_inj eq))⟩
+
+instance op_epi_of_mono {A B : C} (f : A ⟶ B) [mono f] : epi f.op :=
+⟨λ Z g h eq, quiver.hom.unop_inj ((cancel_mono f).1 (quiver.hom.op_inj eq))⟩
 
 section
 variables {D : Type u₂} [category.{v₂} D]
@@ -141,17 +156,42 @@ lemma is_iso.of_epi_section {X Y : C} {f : X ⟶ Y} [split_epi f] [epi $ section
   : is_iso f :=
 ⟨⟨section_ f, ⟨(cancel_epi_id $ section_ f).mp (by simp), by simp⟩⟩⟩
 
-instance unop_mono_of_epi {A B : Cᵒᵖ} (f : A ⟶ B) [epi f] : mono f.unop :=
-⟨λ Z g h eq, quiver.hom.op_inj ((cancel_epi f).1 (quiver.hom.unop_inj eq))⟩
+/-- A category where every morphism has a `trunc` retraction is computably a groupoid. -/
+-- FIXME this has unnecessarily become noncomputable!
+noncomputable
+def groupoid.of_trunc_split_mono
+  (all_split_mono : ∀ {X Y : C} (f : X ⟶ Y), trunc (split_mono f)) :
+  groupoid.{v₁} C :=
+begin
+  apply groupoid.of_is_iso,
+  intros X Y f,
+  trunc_cases all_split_mono f,
+  trunc_cases all_split_mono (retraction f),
+  apply is_iso.of_mono_retraction,
+end
 
-instance unop_epi_of_mono {A B : Cᵒᵖ} (f : A ⟶ B) [mono f] : epi f.unop :=
-⟨λ Z g h eq, quiver.hom.op_inj ((cancel_mono f).1 (quiver.hom.unop_inj eq))⟩
+section
+variables (C)
 
-instance op_mono_of_epi {A B : C} (f : A ⟶ B) [epi f] : mono f.op :=
-⟨λ Z g h eq, quiver.hom.unop_inj ((cancel_epi f).1 (quiver.hom.op_inj eq))⟩
+/-- A split mono category is a category in which every monomorphism is split. -/
+class split_mono_category :=
+(split_mono_of_mono : ∀ {X Y : C} (f : X ⟶ Y) [mono f], split_mono f)
 
-instance op_epi_of_mono {A B : C} (f : A ⟶ B) [mono f] : epi f.op :=
-⟨λ Z g h eq, quiver.hom.unop_inj ((cancel_mono f).1 (quiver.hom.op_inj eq))⟩
+/-- A split epi category is a category in which every epimorphism is split. -/
+class split_epi_category :=
+(split_epi_of_epi : ∀ {X Y : C} (f : X ⟶ Y) [epi f], split_epi f)
+
+end
+
+/-- In a category in which every monomorphism is split, every monomorphism splits. This is not an
+    instance because it would create an instance loop. -/
+def split_mono_of_mono [split_mono_category C] {X Y : C} (f : X ⟶ Y) [mono f] : split_mono f :=
+split_mono_category.split_mono_of_mono _
+
+/-- In a category in which every epimorphism is split, every epimorphism splits. This is not an
+    instance because it would create an instance loop. -/
+def split_epi_of_epi [split_epi_category C] {X Y : C} (f : X ⟶ Y) [epi f] : split_epi f :=
+split_epi_category.split_epi_of_epi _
 
 section
 variables {D : Type u₂} [category.{v₂} D]

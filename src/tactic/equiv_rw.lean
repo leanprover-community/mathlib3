@@ -3,9 +3,12 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.simp_result
+import logic.equiv.basic
 import tactic.clear
-import control.equiv_functor.instances
+import tactic.simp_result
+import tactic.apply
+import control.equiv_functor.instances -- these make equiv_rw more powerful!
+import logic.equiv.functor              -- so do these!
 
 /-!
 # The `equiv_rw` tactic transports goals or hypotheses along equivalences.
@@ -238,34 +241,71 @@ do
 end tactic
 
 namespace tactic.interactive
-open lean.parser
-open interactive interactive.types
-open tactic
 
-local postfix `?`:9001 := optional
+open tactic
+setup_tactic_parser
+
+/-- Auxiliary function to call `equiv_rw_hyp` on a `list pexpr` recursively. -/
+meta def equiv_rw_hyp_aux (hyp : name) (cfg : equiv_rw_cfg) (permissive : bool := ff) :
+  list expr → itactic
+| []       := skip
+| (e :: t) := do
+  if permissive then equiv_rw_hyp hyp e cfg <|> skip
+  else equiv_rw_hyp hyp e cfg,
+  equiv_rw_hyp_aux t
+
+/-- Auxiliary function to call `equiv_rw_target` on a `list pexpr` recursively. -/
+meta def equiv_rw_target_aux (cfg : equiv_rw_cfg) (permissive : bool) :
+  list expr → itactic
+| []       := skip
+| (e :: t) := do
+  if permissive then equiv_rw_target e cfg <|> skip
+  else equiv_rw_target e cfg,
+  equiv_rw_target_aux t
 
 /--
-`equiv_rw e at h`, where `h : α` is a hypothesis, and `e : α ≃ β`,
-will attempt to transport `h` along `e`, producing a new hypothesis `h : β`,
-with all occurrences of `h` in other hypotheses and the goal replaced with `e.symm h`.
+`equiv_rw e at h₁ h₂ ⋯`, where each `hᵢ : α` is a hypothesis, and `e : α ≃ β`,
+will attempt to transport each `hᵢ` along `e`, producing a new hypothesis `hᵢ : β`,
+with all occurrences of `hᵢ` in other hypotheses and the goal replaced with `e.symm hᵢ`.
 
 `equiv_rw e` will attempt to transport the goal along an equivalence `e : α ≃ β`.
 In its minimal form it replaces the goal `⊢ α` with `⊢ β` by calling `apply e.inv_fun`.
 
-`equiv_rw` will also try rewriting under (equiv_)functors, so can turn
+`equiv_rw [e₁, e₂, ⋯] at h₁ h₂ ⋯` is equivalent to
+`{ equiv_rw [e₁, e₂, ⋯] at h₁, equiv_rw [e₁, e₂, ⋯] at h₂, ⋯ }`.
+
+`equiv_rw [e₁, e₂, ⋯] at *` will attempt to apply `equiv_rw [e₁, e₂, ⋯]` on the goal
+and on each expression available in the local context (except on the `eᵢ`s themselves),
+failing silently when it can't. Failing on a rewrite for a certain `eᵢ` at a certain
+hypothesis `h` doesn't stop `equiv_rw` from trying the other equivalences on the list
+at `h`. This only happens for the wildcard location.
+
+`equiv_rw` will also try rewriting under (equiv_)functors, so it can turn
 a hypothesis `h : list α` into `h : list β` or
 a goal `⊢ unique α` into `⊢ unique β`.
 
 The maximum search depth for rewriting in subexpressions is controlled by
 `equiv_rw e {max_depth := n}`.
 -/
-meta def equiv_rw (e : parse texpr) (loc : parse $ (tk "at" *> ident)?) (cfg : equiv_rw_cfg := {}) :
-  itactic :=
-do e ← to_expr e,
-   match loc with
-   | (some hyp) := equiv_rw_hyp hyp e cfg
-   | none := equiv_rw_target e cfg
-   end
+meta def equiv_rw
+  (l : parse pexpr_list_or_texpr)
+  (locat : parse location)
+  (cfg : equiv_rw_cfg := {}) : itactic := do
+es ← l.mmap (λ e, to_expr e),
+match locat with
+| loc.wildcard := do
+  equiv_rw_target_aux cfg tt es,
+  ctx ← local_context,
+  ctx.mmap (λ e, if e ∈ es then skip else equiv_rw_hyp_aux e.local_pp_name cfg tt es),
+  skip
+| loc.ns names := do
+  names.mmap
+    (λ hyp', match hyp' with
+    | some hyp := equiv_rw_hyp_aux hyp cfg ff es
+    | none     := equiv_rw_target_aux cfg ff es
+    end),
+  skip
+end
 
 add_tactic_doc
 { name        := "equiv_rw",

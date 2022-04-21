@@ -33,18 +33,17 @@ It contains theorems relating these to each other, as well as to `submodule.prod
 universes u v w x y z u' v' w' y'
 variables {R : Type u} {K : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}
 variables {M₃ : Type y} {V₃ : Type y'} {M₄ : Type z} {ι : Type x}
-variables {M₁ N₁ N₂ N₃ : Type*}
+variables {M₅ M₆ : Type*}
 
 section prod
 
 namespace linear_map
 
 variables (S : Type*) [semiring R] [semiring S]
-variables [add_comm_monoid M]
-variables [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
-variables [add_comm_monoid N₁] [add_comm_monoid N₂] [add_comm_monoid N₃]
-variables [module R M] [module R M₁] [module R M₂] [module R M₃] [module R M₄]
-variables  [module R N₁] [module R N₂] [module R N₃]
+variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
+variables [add_comm_monoid M₅] [add_comm_monoid M₆]
+variables [module R M] [module R M₂] [module R M₃] [module R M₄]
+variables [module R M₅] [module R M₆]
 variables (f : M →ₗ[R] M₂)
 
 section
@@ -238,22 +237,20 @@ begin
 end
 
 @[simp]
-lemma prod_map_id : linear_map.prod_map (id : M₁ →ₗ[R] M₁) (id : N₁ →ₗ[R] N₁) = id :=
+lemma prod_map_id : (id : M →ₗ[R] M).prod_map  (id : M₂ →ₗ[R] M₂) = id :=
 linear_map.ext $ λ _, prod.mk.eta
 
 @[simp]
-lemma prod_map_one : linear_map.prod_map (1 : M₁ →ₗ[R] M₁) (1 : N₁ →ₗ[R] N₁) = 1 :=
+lemma prod_map_one : (1 : M →ₗ[R] M).prod_map  (1 : M₂ →ₗ[R] M₂) = 1 :=
 linear_map.ext $ λ _, prod.mk.eta
 
 lemma prod_map_comp
-  (f₁₂ : M₁ →ₗ[R] M₂) (f₂₃ : M₂ →ₗ[R] M₃) (g₁₂ : N₁ →ₗ[R] N₂) (g₂₃ : N₂ →ₗ[R] N₃) :
-  linear_map.prod_map f₂₃ g₂₃ ∘ₗ linear_map.prod_map f₁₂ g₁₂ =
-  linear_map.prod_map (f₂₃ ∘ₗ f₁₂) (g₂₃ ∘ₗ g₁₂) := rfl
+  (f₁₂ : M →ₗ[R] M₂) (f₂₃ : M₂ →ₗ[R] M₃) (g₁₂ : M₄ →ₗ[R] M₅) (g₂₃ : M₅ →ₗ[R] M₆) :
+  f₂₃.prod_map  g₂₃ ∘ₗ f₁₂.prod_map  g₁₂ = (f₂₃ ∘ₗ f₁₂).prod_map  (g₂₃ ∘ₗ g₁₂) := rfl
 
 lemma prod_map_mul
-  (f₁₂ : M₁ →ₗ[R] M₁) (f₂₃ : M₁ →ₗ[R] M₁) (g₁₂ : N₁ →ₗ[R] N₁) (g₂₃ : N₁ →ₗ[R] N₁) :
-  linear_map.prod_map f₂₃ g₂₃ * linear_map.prod_map f₁₂ g₁₂ =
-  linear_map.prod_map (f₂₃ * f₁₂) (g₂₃ * g₁₂) := rfl
+  (f₁₂ : M →ₗ[R] M) (f₂₃ : M →ₗ[R] M) (g₁₂ : M₂ →ₗ[R] M₂) (g₂₃ : M₂ →ₗ[R] M₂) :
+  f₂₃.prod_map  g₂₃ * f₁₂.prod_map  g₁₂ = (f₂₃ * f₁₂).prod_map  (g₂₃ * g₁₂) := rfl
 
 section map_mul
 

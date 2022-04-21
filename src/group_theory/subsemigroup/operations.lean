@@ -636,6 +636,12 @@ lemma mrange_fst [nonempty N] : (fst M N).mrange = ⊤ :=
 lemma mrange_snd [nonempty M] : (snd M N).mrange = ⊤ :=
 (snd M N).mrange_top_of_surjective $ prod.snd_surjective
 
+@[to_additive]
+lemma prod_eq_top_iff [nonempty M] [nonempty N] {s : subsemigroup M} {t : subsemigroup N} :
+  s.prod t = ⊤ ↔ s = ⊤ ∧ t = ⊤ :=
+by simp only [eq_top_iff, le_prod_iff, ← (gc_map_comap _).le_iff_le, ← mrange_eq_map,
+  mrange_fst, mrange_snd]
+
 /-- The semigroup hom associated to an inclusion of subsemigroups. -/
 @[to_additive "The `add_semigroup` hom associated to an inclusion of subsemigroups."]
 def inclusion {S T : subsemigroup M} (h : S ≤ T) : S →ₙ* T :=

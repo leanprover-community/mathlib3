@@ -3,10 +3,10 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
-import category_theory.const
+import category_theory.functor.const
 import category_theory.discrete_category
 import category_theory.yoneda
-import category_theory.reflects_isomorphisms
+import category_theory.functor.reflects_isomorphisms
 
 -- morphism levels before object levels. See note [category_theory universes].
 universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄

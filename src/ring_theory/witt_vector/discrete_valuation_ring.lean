@@ -94,7 +94,7 @@ begin
   have hp : ¬ is_unit (p : 𝕎 k),
   { intro hp,
     simpa only [constant_coeff_apply, coeff_p_zero, not_is_unit_zero]
-      using constant_coeff.is_unit_map hp, },
+      using (constant_coeff : witt_vector p k →+* _).is_unit_map hp, },
   refine ⟨hp, λ a b hab, _⟩,
   obtain ⟨ha0, hb0⟩ : a ≠ 0 ∧ b ≠ 0,
   { rw ← mul_ne_zero_iff, intro h, rw h at hab, exact p_nonzero p k hab },
@@ -147,7 +147,17 @@ begin
   exact ⟨m, mk_unit hb₀, h₂⟩,
 end
 
-instance : discrete_valuation_ring (𝕎 k) :=
+/-
+Note: The following lemma should be an instance, but it seems to cause some
+exponential blowups in certain typeclass resolution problems.
+See the following Lean4 issue as well as the zulip discussion linked there:
+https://github.com/leanprover/lean4/issues/1102
+-/
+
+/--
+The ring of Witt Vectors of a perfect field of positive characteristic is a DVR.
+-/
+lemma discrete_valuation_ring : discrete_valuation_ring (𝕎 k) :=
 discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization
 begin
   refine ⟨p, irreducible p, λ x hx, _⟩,

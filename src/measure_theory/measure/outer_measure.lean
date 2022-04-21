@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import analysis.specific_limits
+import analysis.specific_limits.basic
 import measure_theory.pi_system
 import data.fin.vec_notation
 import topology.algebra.infinite_sum
@@ -81,6 +81,10 @@ theorem mono' (m : outer_measure α) {s₁ s₂}
 
 theorem mono_null (m : outer_measure α) {s t} (h : s ⊆ t) (ht : m t = 0) : m s = 0 :=
 nonpos_iff_eq_zero.mp $ ht ▸ m.mono' h
+
+lemma pos_of_subset_ne_zero (m : outer_measure α) {a b : set α} (hs : a ⊆ b) (hnz : m a ≠ 0) :
+  0 < m b :=
+(lt_of_lt_of_le (pos_iff_ne_zero.mpr hnz) (m.mono hs))
 
 protected theorem Union (m : outer_measure α)
   {β} [encodable β] (s : β → set α) :
@@ -266,12 +270,9 @@ instance [monoid R] [mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ�
   mul_action R (outer_measure α) :=
 injective.mul_action _ coe_fn_injective coe_smul
 
--- there is no `function.injective.add_comm_monoid_smul` so we do this in two steps
 instance add_comm_monoid : add_comm_monoid (outer_measure α) :=
-{ ..injective.add_monoid_smul (show outer_measure α → set α → ℝ≥0∞, from coe_fn)
-    coe_fn_injective rfl (λ _ _, rfl) (λ _ _, rfl),
-  ..injective.add_comm_semigroup (show outer_measure α → set α → ℝ≥0∞, from coe_fn)
-    coe_fn_injective (λ _ _, rfl) }
+injective.add_comm_monoid (show outer_measure α → set α → ℝ≥0∞, from coe_fn)
+    coe_fn_injective rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- `coe_fn` as an `add_monoid_hom`. -/
 @[simps] def coe_fn_add_monoid_hom : outer_measure α →+ (set α → ℝ≥0∞) :=
@@ -306,16 +307,16 @@ section supremum
 instance : has_Sup (outer_measure α) :=
 ⟨λms,
 { measure_of := λs, ⨆ m ∈ ms, (m : outer_measure α) s,
-  empty      := nonpos_iff_eq_zero.1 $ bsupr_le $ λ m h, le_of_eq m.empty,
-  mono       := assume s₁ s₂ hs, bsupr_le_bsupr $ assume m hm, m.mono hs,
-  Union_nat  := assume f, bsupr_le $ assume m hm,
+  empty      := nonpos_iff_eq_zero.1 $ supr₂_le $ λ m h, le_of_eq m.empty,
+  mono       := assume s₁ s₂ hs, supr₂_mono $ assume m hm, m.mono hs,
+  Union_nat  := assume f, supr₂_le $ assume m hm,
     calc m (⋃i, f i) ≤ ∑' (i : ℕ), m (f i) : m.Union_nat _
       ... ≤ ∑'i, (⨆ m ∈ ms, (m : outer_measure α) (f i)) :
-        ennreal.tsum_le_tsum $ assume i, le_bsupr m hm }⟩
+        ennreal.tsum_le_tsum $ λ i, le_supr₂ m hm }⟩
 
 instance : complete_lattice (outer_measure α) :=
 { .. outer_measure.order_bot, .. complete_lattice_of_Sup (outer_measure α)
-    (λ ms, ⟨λ m hm s, le_bsupr m hm, λ m hm s, bsupr_le (λ m' hm', hm hm' s)⟩) }
+    (λ ms, ⟨λ m hm s, le_supr₂ m hm, λ m hm s, supr₂_le (λ m' hm', hm hm' s)⟩) }
 
 @[simp] theorem Sup_apply (ms : set (outer_measure α)) (s : set α) :
   (Sup ms) s = ⨆ m ∈ ms, (m : outer_measure α) s := rfl
@@ -485,7 +486,7 @@ ext $ λ s, by rw [comap_apply, map_apply, hf.preimage_image]
 
 @[simp] theorem top_apply {s : set α} (h : s.nonempty) : (⊤ : outer_measure α) s = ∞ :=
 let ⟨a, as⟩ := h in
-top_unique $ le_trans (by simp [smul_dirac_apply, as]) (le_bsupr (∞ • dirac a) trivial)
+top_unique $ le_trans (by simp [smul_dirac_apply, as]) (le_supr₂ (∞ • dirac a) trivial)
 
 theorem top_apply' (s : set α) : (⊤ : outer_measure α) s = ⨅ (h : s = ∅), 0 :=
 s.eq_empty_or_nonempty.elim (λ h, by simp [h]) (λ h, by simp [h, h.ne_empty])
@@ -516,8 +517,8 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
   empty      := le_antisymm
     (infi_le_of_le (λ_, ∅) $ infi_le_of_le (empty_subset _) $ by simp [m_empty])
     (zero_le _),
-  mono       := assume s₁ s₂ hs, infi_le_infi $ assume f,
-    infi_le_infi2 $ assume hb, ⟨subset.trans hs hb, le_rfl⟩,
+  mono       := assume s₁ s₂ hs, infi_mono $ assume f,
+    infi_mono' $ assume hb, ⟨hs.trans hb, le_rfl⟩,
   Union_nat := assume s, ennreal.le_of_forall_pos_le_add $ begin
     assume ε hε (hb : ∑'i, μ (s i) < ∞),
     rcases ennreal.exists_pos_sum_of_encodable (ennreal.coe_pos.2 hε).ne' ℕ with ⟨ε', hε', hl⟩,
@@ -609,8 +610,8 @@ begin
   refine le_antisymm (le_of_function.2 $ λ s, _) (λ s, _),
   { rw comap_apply, apply of_function_le },
   { rw [comap_apply, of_function_apply, of_function_apply],
-    refine infi_le_infi2 (λ t, ⟨λ k, f ⁻¹' (t k), _⟩),
-    refine infi_le_infi2 (λ ht, _),
+    refine infi_mono' (λ t, ⟨λ k, f ⁻¹' (t k), _⟩),
+    refine infi_mono' (λ ht, _),
     rw [set.image_subset_iff, preimage_Union] at ht,
     refine ⟨ht, ennreal.tsum_le_tsum $ λ n, _⟩,
     cases h,
@@ -914,9 +915,9 @@ lemma Inf_eq_bounded_by_Inf_gen (m : set (outer_measure α)) :
   Inf m = outer_measure.bounded_by (Inf_gen m) :=
 begin
   refine le_antisymm _ _,
-  { refine (le_bounded_by.2 $ λ s, _), refine le_binfi _,
-    intros μ hμ, refine (show Inf m ≤ μ, from Inf_le hμ) s },
-  { refine le_Inf _, intros μ hμ t, refine le_trans (bounded_by_le t) (binfi_le μ hμ) }
+  { refine (le_bounded_by.2 $ λ s, le_infi₂ $ λ μ hμ, _),
+    exact (show Inf m ≤ μ, from Inf_le hμ) s },
+  { refine le_Inf _, intros μ hμ t, refine le_trans (bounded_by_le t) (infi₂_le μ hμ) }
 end
 
 lemma supr_Inf_gen_nonempty {m : set (outer_measure α)} (h : m.nonempty) (t : set α) :
@@ -987,7 +988,7 @@ begin
   simp only [comap_apply, infi_apply' _ hs, infi_apply' _ (hs.image _),
     le_infi_iff, set.image_subset_iff, preimage_Union],
   refine λ t ht, infi_le_of_le _ (infi_le_of_le ht $ ennreal.tsum_le_tsum $ λ k, _),
-  exact infi_le_infi (λ i, (m i).mono (image_preimage_subset _ _))
+  exact infi_mono (λ i, (m i).mono (image_preimage_subset _ _))
 end
 
 lemma map_infi {ι β} {f : α → β} (hf : injective f) (m : ι → outer_measure α) :
@@ -1006,7 +1007,7 @@ begin
   { rw [← Union_union, set.union_comm, ← inter_subset, ← image_Union,
       ← image_preimage_eq_inter_range],
     exact image_subset _ ht },
-  { refine ennreal.tsum_le_tsum (λ n, infi_le_infi (λ i, (m i).mono _)),
+  { refine ennreal.tsum_le_tsum (λ n, infi_mono $ λ i, (m i).mono _),
     simp }
 end
 
@@ -1190,7 +1191,7 @@ lemma induced_outer_measure_preimage (f : α ≃ α) (Pm : ∀ (s : set α), P (
   {A : set α} : induced_outer_measure m P0 m0 (f ⁻¹' A) = induced_outer_measure m P0 m0 A :=
 begin
   simp only [induced_outer_measure_eq_infi _ msU m_mono], symmetry,
-  refine infi_congr (preimage f) f.injective.preimage_surjective _, intro s,
+  refine f.injective.preimage_surjective.infi_congr (preimage f) (λ s, _),
   refine infi_congr_Prop (Pm s) _, intro hs,
   refine infi_congr_Prop f.surjective.preimage_subset_preimage_iff _,
   intro h2s, exact mm s hs
@@ -1292,7 +1293,7 @@ theorem trim_congr {m₁ m₂ : outer_measure α}
 by { unfold trim, congr, funext s hs, exact H hs }
 
 @[mono] theorem trim_mono : monotone (trim : outer_measure α → outer_measure α) :=
-λ m₁ m₂ H s, binfi_le_binfi $ λ f hs, ennreal.tsum_le_tsum $ λ b, infi_le_infi $ λ hf, H _
+λ m₁ m₂ H s, infi₂_mono $ λ f hs, ennreal.tsum_le_tsum $ λ b, infi_mono $ λ hf, H _
 
 theorem le_trim_iff {m₁ m₂ : outer_measure α} :
   m₁ ≤ m₂.trim ↔ ∀ s, measurable_set s → m₁ s ≤ m₂ s :=

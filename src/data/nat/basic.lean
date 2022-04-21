@@ -378,6 +378,17 @@ lemma two_lt_of_ne : ∀ {n}, n ≠ 0 → n ≠ 1 → n ≠ 2 → 2 < n
 | 2 _ _ h := (h rfl).elim
 | (n+3) _ _ _ := dec_trivial
 
+theorem forall_lt_succ {P : ℕ → Prop} {n : ℕ} : (∀ m < n.succ, P m) ↔ (∀ m < n, P m) ∧ P n :=
+⟨λ H, ⟨λ m hm, H m (lt_succ_iff.2 hm.le), H n (lt_succ_self n)⟩, begin
+  rintro ⟨H, hn⟩ m hm,
+  rcases eq_or_lt_of_le (lt_succ_iff.1 hm) with rfl | hmn,
+  { exact hn },
+  { exact H m hmn }
+end⟩
+
+theorem exists_lt_succ {P : ℕ → Prop} {n : ℕ} : (∃ m < n.succ, P m) ↔ (∃ m < n, P m) ∨ P n :=
+by { rw ←not_iff_not, push_neg, exact forall_lt_succ }
+
 /-! ### `add` -/
 
 -- Sometimes a bare `nat.add` or similar appears as a consequence of unfolding
@@ -424,11 +435,9 @@ iff.intro
 
 lemma add_eq_one_iff : ∀ {a b : ℕ}, a + b = 1 ↔ (a = 0 ∧ b = 1) ∨ (a = 1 ∧ b = 0)
 | 0     0     := dec_trivial
-| 0     1     := dec_trivial
 | 1     0     := dec_trivial
-| 1     1     := dec_trivial
 | (a+2) _     := by rw add_right_comm; exact dec_trivial
-| _     (b+2) := by rw [← add_assoc]; simp only [nat.succ_inj', nat.succ_ne_zero]; simp
+| _     (b+1) := by rw [← add_assoc]; simp only [nat.succ_inj', nat.succ_ne_zero]; simp
 
 theorem le_add_one_iff {i j : ℕ} : i ≤ j + 1 ↔ (i ≤ j ∨ i = j + 1) :=
 ⟨λ h,
@@ -800,6 +809,12 @@ le_div_iff_mul_le x y k0
 theorem div_lt_iff_lt_mul' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x / k < y ↔ x < y * k :=
 lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le' k0
 
+lemma one_le_div_iff {a b : ℕ} (hb : 0 < b) : 1 ≤ a / b ↔ b ≤ a :=
+by rw [le_div_iff_mul_le _ _ hb, one_mul]
+
+lemma div_lt_one_iff {a b : ℕ} (hb : 0 < b) : a / b < 1 ↔ a < b :=
+lt_iff_lt_of_le_iff_le $ one_le_div_iff hb
+
 protected theorem div_le_div_right {n m : ℕ} (h : n ≤ m) {k : ℕ} : n / k ≤ m / k :=
 (nat.eq_zero_or_pos k).elim (λ k0, by simp [k0]) $ λ hk,
 (le_div_iff_mul_le' hk).2 $ le_trans (nat.div_mul_le_self _ _) h
@@ -1110,7 +1125,7 @@ show ∃ d, b = c * a * d, from ⟨d, by cc⟩
 @[simp] lemma dvd_div_iff {a b c : ℕ} (hbc : c ∣ b) : a ∣ b / c ↔ c * a ∣ b :=
 ⟨λ h, mul_dvd_of_dvd_div hbc h, λ h, dvd_div_of_mul_dvd h⟩
 
-lemma div_mul_div {a b c d : ℕ} (hab : b ∣ a) (hcd : d ∣ c) :
+lemma div_mul_div_comm {a b c d : ℕ} (hab : b ∣ a) (hcd : d ∣ c) :
       (a / b) * (c / d) = (a * c) / (b * d) :=
 have exi1 : ∃ x, a = b * x, from hab,
 have exi2 : ∃ y, c = d * y, from hcd,

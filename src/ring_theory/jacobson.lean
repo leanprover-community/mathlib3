@@ -244,8 +244,8 @@ begin
     { rw [ideal.jacobson, mem_Inf],
       intros J hJ,
       by_cases y ∈ J,
-      { exact J.smul_mem x h },
-      { exact (mul_comm y x) ▸ J.smul_mem y ((mem_Inf.1 hx) ⟨hJ.left, ⟨hJ.right, h⟩⟩) } },
+      { exact J.mul_mem_left x h },
+      { exact J.mul_mem_right y ((mem_Inf.1 hx) ⟨hJ.left, ⟨hJ.right, h⟩⟩) } },
     rw hP at hxy,
     cases hP'.mem_or_mem hxy with hxy hxy,
     { exact hxy },
@@ -409,8 +409,8 @@ begin
     change (polynomial.map ((quotient.mk I).comp C).range_restrict f).coeff n = 0 at hf,
     rw [coeff_map, subtype.ext_iff] at hf,
     rwa [mem_comap, ← quotient.eq_zero_iff_mem, ← ring_hom.comp_apply], },
-  haveI : (ideal.map (map_ring_hom i) I).is_prime :=
-    map_is_prime_of_surjective (map_surjective i hi) hi',
+  haveI := map_is_prime_of_surjective
+    (show function.surjective (map_ring_hom i), from map_surjective i hi) hi',
   suffices : (I.map (polynomial.map_ring_hom i)).jacobson = (I.map (polynomial.map_ring_hom i)),
   { replace this := congr_arg (comap (polynomial.map_ring_hom i)) this,
     rw [← map_jacobson_of_surjective _ hi',
@@ -454,7 +454,7 @@ begin
   rw ← bot_quotient_is_maximal_iff,
   have hp0 : ((m : R[X]).map (quotient.mk (P.comap C : ideal R))).leading_coeff ≠ 0 :=
     λ hp0', this $ map_injective (quotient.mk (P.comap C : ideal R))
-      ((quotient.mk (P.comap C : ideal R)).injective_iff.2 (λ x hx,
+      ((injective_iff_map_eq_zero (quotient.mk (P.comap C : ideal R))).2 (λ x hx,
       by rwa [quotient.eq_zero_iff_mem, (by rwa eq_bot_iff : (P.comap C : ideal R) = ⊥)] at hx))
       (by simpa only [leading_coeff_eq_zero, polynomial.map_zero] using hp0'),
   have hM : (0 : R ⧸ P.comap C) ∉ M := λ ⟨n, hn⟩, hp0 (pow_eq_zero hn),
@@ -477,7 +477,7 @@ begin
   rw (map_bot.symm : (⊥ : ideal (localization M')) =
                      map (algebra_map (R[X] ⧸ P) (localization M')) ⊥),
   let bot_maximal := ((bot_quotient_is_maximal_iff _).mpr hP),
-  refine map.is_maximal (algebra_map _ _) (localization_map_bijective_of_field hM' _) bot_maximal,
+  refine map.is_maximal (algebra_map _ _) (is_field.localization_map_bijective hM' _) bot_maximal,
   rwa [← quotient.maximal_ideal_iff_is_field_quotient, ← bot_quotient_is_maximal_iff],
 end
 
@@ -504,9 +504,8 @@ begin
     refine ring_hom.is_integral_trans (algebra_map (R ⧸ P') (localization M))
       (is_localization.map _ _ M.le_comap_map) _ _,
     { exact (algebra_map (R ⧸ P') (localization M)).is_integral_of_surjective
-        (localization_map_bijective_of_field hM
-          ((quotient.maximal_ideal_iff_is_field_quotient _).mp
-          (is_maximal_comap_C_of_is_maximal P hP'))).2 },
+      (is_field.localization_map_bijective hM ((quotient.maximal_ideal_iff_is_field_quotient _).mp
+                                               (is_maximal_comap_C_of_is_maximal P hP'))).2 },
     { -- `convert` here is faster than `exact`, and this proof is near the time limit.
       convert is_integral_is_localization_polynomial_quotient P pX hpX } }
 end

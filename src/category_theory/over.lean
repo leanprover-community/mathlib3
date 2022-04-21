@@ -5,7 +5,7 @@ Authors: Johan Commelin, Bhavik Mehta
 -/
 import category_theory.structured_arrow
 import category_theory.punit
-import category_theory.reflects_isomorphisms
+import category_theory.functor.reflects_isomorphisms
 import category_theory.epi_mono
 
 /-!

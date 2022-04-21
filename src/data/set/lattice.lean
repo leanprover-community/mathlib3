@@ -153,6 +153,10 @@ theorem antitone_set_of [preorder α] {p : α → β → Prop}
   (hp : ∀ b, antitone (λ a, p a b)) : antitone (λ a, {b | p a b}) :=
 λ a a' h b, hp b h
 
+/-- Quantifying over a set is antitone in the set -/
+lemma antitone_bforall {P : α → Prop} : antitone (λ s : set α, ∀ x ∈ s, P x) :=
+λ s t hst h x hx, h x $ hst hx
+
 section galois_connection
 variables {f : α → β}
 
@@ -248,50 +252,47 @@ by simp_rw Union_subset_iff
   s ⊆ (⋂ i j, t i j) ↔ ∀ i j, s ⊆ t i j :=
 by simp_rw subset_Inter_iff
 
-theorem subset_Union : ∀ (s : ι → set β) (i : ι), s i ⊆ (⋃ i, s i) := le_supr
+lemma subset_Union : ∀ (s : ι → set β) (i : ι), s i ⊆ ⋃ i, s i := le_supr
+lemma Inter_subset : ∀ (s : ι → set β) (i : ι), (⋂ i, s i) ⊆ s i := infi_le
 
 lemma subset_Union₂ {s : Π i, κ i → set α} (i : ι) (j : κ i) : s i j ⊆ ⋃ i j, s i j :=
-show s i j ≤ ⨆ i j, s i j,
-  from le_supr_of_le i $ le_supr _ j
+@le_supr₂ (set α) _ _ _ _ i j
+
+lemma Inter₂_subset {s : Π i, κ i → set α} (i : ι) (j : κ i) : (⋂ i j, s i j) ⊆ s i j :=
+@infi₂_le (set α) _ _ _ _ i j
 
 /-- This rather trivial consequence of `subset_Union`is convenient with `apply`, and has `i`
 explicit for this purpose. -/
 lemma subset_Union_of_subset {s : set α} {t : ι → set α} (i : ι) (h : s ⊆ t i) : s ⊆ ⋃ i, t i :=
-h.trans (subset_Union t i)
-
-theorem Inter_subset : ∀ (s : ι → set β) (i : ι), (⋂ i, s i) ⊆ s i := infi_le
-
-lemma Inter₂_subset {s : Π i, κ i → set α} (i : ι) (j : κ i) : (⋂ i j, s i j) ⊆ s i j :=
-show (⨅ i j, s i j) ≤ s i j,
-  from infi_le_of_le i $ infi_le _ j
+@le_supr_of_le (set α) _ _ _ _ i h
 
 /-- This rather trivial consequence of `Inter_subset`is convenient with `apply`, and has `i`
 explicit for this purpose. -/
 lemma Inter_subset_of_subset {s : ι → set α} {t : set α} (i : ι) (h : s i ⊆ t) : (⋂ i, s i) ⊆ t :=
-set.subset.trans (set.Inter_subset s i) h
+@infi_le_of_le (set α) _ _ _ _ i h
 
 lemma Union_mono {s t : ι → set α} (h : ∀ i, s i ⊆ t i) : (⋃ i, s i) ⊆ ⋃ i, t i :=
-@supr_le_supr (set α) ι _ s t h
+@supr_mono (set α) _ _ s t h
 
 lemma Union₂_mono {s t : Π i, κ i → set α} (h : ∀ i j, s i j ⊆ t i j) :
   (⋃ i j, s i j) ⊆ ⋃ i j, t i j :=
-Union_mono $ λ i, Union_mono $ h i
+@supr₂_mono (set α) _ _ _ s t h
 
 lemma Inter_mono {s t : ι → set α} (h : ∀ i, s i ⊆ t i) : (⋂ i, s i) ⊆ ⋂ i, t i :=
-@infi_le_infi (set α) ι _ s t h
+@infi_mono (set α) _ _ s t h
 
 lemma Inter₂_mono {s t : Π i, κ i → set α} (h : ∀ i j, s i j ⊆ t i j) :
   (⋂ i j, s i j) ⊆ ⋂ i j, t i j :=
-Inter_mono $ λ i, Inter_mono $ h i
+@infi₂_mono (set α) _ _ _ s t h
 
 lemma Union_mono' {s : ι → set α} {t : ι₂ → set α} (h : ∀ i, ∃ j, s i ⊆ t j) :
   (⋃ i, s i) ⊆ ⋃ i, t i :=
-@supr_le_supr2 (set α) ι ι₂ _ s t h
+@supr_mono' (set α) _ _ _ s t h
 
 lemma Union₂_mono' {s : Π i, κ i → set α} {t : Π i', κ' i' → set α}
   (h : ∀ i j, ∃ i' j', s i j ⊆ t i' j') :
   (⋃ i j, s i j) ⊆ ⋃ i' j', t i' j' :=
-Union₂_subset_iff.2 $ λ i j, let ⟨i', j', hst⟩ := h i j in hst.trans $ subset_Union₂ _ _
+@supr₂_mono' (set α) _ _ _ _ _ s t h
 
 lemma Inter_mono' {s : ι → set α} {t : ι' → set α} (h : ∀ j, ∃ i, s i ⊆ t j) :
   (⋂ i, s i) ⊆ (⋂ j, t j) :=
@@ -303,10 +304,10 @@ lemma Inter₂_mono' {s : Π i, κ i → set α} {t : Π i', κ' i' → set α}
 subset_Inter₂_iff.2 $ λ i' j', let ⟨i, j, hst⟩ := h i' j' in (Inter₂_subset _ _).trans hst
 
 lemma Union₂_subset_Union (κ : ι → Sort*) (s : ι → set α) : (⋃ i (j : κ i), s i) ⊆ ⋃ i, s i :=
-Union_mono $ λ i, Union_subset $ λ h, by refl
+Union_mono $ λ i, Union_subset $ λ h, subset.rfl
 
 lemma Inter_subset_Inter₂ (κ : ι → Sort*) (s : ι → set α) : (⋂ i, s i) ⊆ ⋂ i (j : κ i), s i :=
-Inter_mono $ λ i, subset_Inter $ λ h, by refl
+Inter_mono $ λ i, subset_Inter $ λ h, subset.rfl
 
 lemma Union_set_of (P : ι → α → Prop) : (⋃ i, {x : α | P i x}) = {x : α | ∃ i, P i x} :=
 by { ext, exact mem_Union }
@@ -316,11 +317,11 @@ by { ext, exact mem_Inter }
 
 lemma Union_congr_of_surjective {f : ι → set α} {g : ι₂ → set α} (h : ι → ι₂)
   (h1 : surjective h) (h2 : ∀ x, g (h x) = f x) : (⋃ x, f x) = ⋃ y, g y :=
-supr_congr h h1 h2
+h1.supr_congr h h2
 
 lemma Inter_congr_of_surjective {f : ι → set α} {g : ι₂ → set α} (h : ι → ι₂)
   (h1 : surjective h) (h2 : ∀ x, g (h x) = f x) : (⋂ x, f x) = ⋂ y, g y :=
-infi_congr h h1 h2
+h1.infi_congr h h2
 
 theorem Union_const [nonempty ι] (s : set β) : (⋃ i : ι, s) = s := supr_const
 
@@ -610,21 +611,16 @@ lemma bInter_mono {s s' : set α} {t t' : α → set β} (hs : s ⊆ s') (h : �
   (⋂ x ∈ s', t x) ⊆ (⋂ x ∈ s, t' x) :=
 (bInter_subset_bInter_left hs).trans $ Inter₂_mono h
 
---TODO: Rename `infi_congr` to `infi_congr_of_surjective` and write the real `infi_congr`
-lemma Inter_congr {s t : ι → set α} (h : ∀ i, s i = t i) : (⋂ i, s i) = ⋂ i, t i :=
-by { congr, ext1 i, exact h i }
-
-lemma Inter₂_congr {s t : Π i, κ i → set α} (h : ∀ i j, s i j = t i j) :
-  (⋂ i j, s i j) = ⋂ i j, t i j :=
-Inter_congr $ λ i, Inter_congr $ h i
-
---TODO: Rename `infi_congr` to `infi_congr_of_surjective` and write the real `infi_congr`
-lemma Union_congr {s t : ι → set α} (h : ∀ i, s i = t i) : (⋃ i, s i) = ⋃ i, t i :=
-by { congr, ext1 i, exact h i }
+lemma Union_congr {s t : ι → set α} (h : ∀ i, s i = t i) : (⋃ i, s i) = ⋃ i, t i := supr_congr h
+lemma Inter_congr {s t : ι → set α} (h : ∀ i, s i = t i) : (⋂ i, s i) = ⋂ i, t i := infi_congr h
 
 lemma Union₂_congr {s t : Π i, κ i → set α} (h : ∀ i j, s i j = t i j) :
   (⋃ i j, s i j) = ⋃ i j, t i j :=
 Union_congr $ λ i, Union_congr $ h i
+
+lemma Inter₂_congr {s t : Π i, κ i → set α} (h : ∀ i j, s i j = t i j) :
+  (⋂ i j, s i j) = ⋂ i j, t i j :=
+Inter_congr $ λ i, Inter_congr $ h i
 
 theorem bUnion_eq_Union (s : set α) (t : Π x ∈ s, set β) :
   (⋃ x ∈ s, t x ‹_›) = (⋃ x : s, t x x.2) :=
@@ -896,7 +892,7 @@ lemma sUnion_mono {s t : set (set α)} (h : s ⊆ t) : (⋃₀ s) ⊆ (⋃₀ t)
 sUnion_subset $ λ t' ht', subset_sUnion_of_mem $ h ht'
 
 lemma Union_subset_Union_const {s : set α} (h : ι → ι₂) : (⋃ i : ι, s) ⊆ (⋃ j : ι₂, s) :=
-@supr_le_supr_const (set α) ι ι₂ _ s h
+@supr_const_mono (set α) ι ι₂ _ s h
 
 @[simp] lemma Union_singleton_eq_range {α β : Type*} (f : α → β) :
   (⋃ (x : α), {f x}) = range f :=
@@ -1219,7 +1215,7 @@ by simp_rw preimage_Union
 
 @[simp] theorem preimage_sUnion {f : α → β} {s : set (set β)} :
   f ⁻¹' (⋃₀ s) = (⋃ t ∈ s, f ⁻¹' t) :=
-set.ext $ by simp [preimage]
+by rw [sUnion_eq_bUnion, preimage_Union₂]
 
 lemma preimage_Inter {f : α → β} {s : ι → set β} : f ⁻¹' (⋂ i, s i) = (⋂ i, f ⁻¹' s i) :=
 by ext; simp
@@ -1227,6 +1223,9 @@ by ext; simp
 lemma preimage_Inter₂ {f : α → β} {s : Π i, κ i → set β} :
   f ⁻¹' (⋂ i j, s i j) = ⋂ i j, f ⁻¹' s i j :=
 by simp_rw preimage_Inter
+
+@[simp] lemma preimage_sInter {f : α → β} {s : set (set β)} : f ⁻¹' (⋂₀ s) = ⋂ t ∈ s, f ⁻¹' t :=
+by rw [sInter_eq_bInter, preimage_Inter₂]
 
 @[simp] lemma bUnion_preimage_singleton (f : α → β) (s : set β) : (⋃ y ∈ s, f ⁻¹' {y}) = f ⁻¹' s :=
 by rw [← preimage_Union₂, bUnion_of_singleton]
@@ -1588,6 +1587,25 @@ end
 end set
 
 end disjoint
+
+/-! ### Intervals -/
+
+namespace set
+variables [complete_lattice α]
+
+lemma Ici_supr (f : ι → α) : Ici (⨆ i, f i) = ⋂ i, Ici (f i) :=
+ext $ λ _, by simp only [mem_Ici, supr_le_iff, mem_Inter]
+
+lemma Iic_infi (f : ι → α) : Iic (⨅ i, f i) = ⋂ i, Iic (f i) :=
+ext $ λ _, by simp only [mem_Iic, le_infi_iff, mem_Inter]
+
+lemma Ici_supr₂ (f : Π i, κ i → α) : Ici (⨆ i j, f i j) = ⋂ i j, Ici (f i j) := by simp_rw Ici_supr
+lemma Iic_infi₂ (f : Π i, κ i → α) : Iic (⨅ i j, f i j) = ⋂ i j, Iic (f i j) := by simp_rw Iic_infi
+
+lemma Ici_Sup (s : set α) : Ici (Sup s) = ⋂ a ∈ s, Ici a := by rw [Sup_eq_supr, Ici_supr₂]
+lemma Iic_Inf (s : set α) : Iic (Inf s) = ⋂ a ∈ s, Iic a := by rw [Inf_eq_infi, Iic_infi₂]
+
+end set
 
 namespace set
 variables (t : α → set β)

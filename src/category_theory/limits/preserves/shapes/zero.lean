@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.limits.preserves.shapes.terminal
-import category_theory.limits.shapes.zero
+import category_theory.limits.shapes.zero_morphisms
 
 /-!
 # Preservation of zero objects and zero morphisms
@@ -43,6 +43,14 @@ class preserves_zero_morphisms (F : C ⥤ D) : Prop :=
 protected lemma map_zero (F : C ⥤ D) [preserves_zero_morphisms F] (X Y : C) :
   F.map (0 : X ⟶ Y) = 0 :=
 preserves_zero_morphisms.map_zero' _ _
+
+lemma zero_of_map_zero (F : C ⥤ D) [preserves_zero_morphisms F] [faithful F] {X Y : C}
+  (f : X ⟶ Y) (h : F.map f = 0) : f = 0 :=
+F.map_injective $ h.trans $ eq.symm $ F.map_zero _ _
+
+lemma map_eq_zero_iff (F : C ⥤ D) [preserves_zero_morphisms F] [faithful F] {X Y : C} {f : X ⟶ Y} :
+  F.map f = 0 ↔ f = 0 :=
+⟨F.zero_of_map_zero _, by { rintro rfl, exact F.map_zero _ _ }⟩
 
 @[priority 100]
 instance preserves_zero_morphisms_of_is_left_adjoint (F : C ⥤ D) [is_left_adjoint F] :

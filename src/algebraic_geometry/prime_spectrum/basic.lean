@@ -9,7 +9,7 @@ import ring_theory.nilpotent
 import ring_theory.localization.away
 import ring_theory.ideal.prod
 import ring_theory.ideal.over
-import topology.opens
+import topology.sets.opens
 import topology.sober
 
 /-!
@@ -417,7 +417,7 @@ begin
       (is_closed_singleton_iff_is_maximal _).1 (t1_space.t1 ⟨⊥, hbot⟩)) (not_not.2 rfl)) },
   { refine ⟨λ x, (is_closed_singleton_iff_is_maximal x).2 _⟩,
     by_cases hx : x.as_ideal = ⊥,
-    { exact hx.symm ▸ @ideal.bot_is_maximal R (@field.to_division_ring _ $ is_field.to_field R h) },
+    { exact hx.symm ▸ @ideal.bot_is_maximal R (@field.to_division_ring _ h.to_field) },
     { exact absurd h (ring.not_is_field_iff_exists_prime.2 ⟨x.as_ideal, ⟨hx, x.2⟩⟩) } }
 end
 
@@ -718,8 +718,6 @@ section order
 
 We endow `prime_spectrum R` with a partial order,
 where `x ≤ y` if and only if `y ∈ closure {x}`.
-
-TODO: maybe define sober topological spaces, and generalise this instance to those
 -/
 
 instance : partial_order (prime_spectrum R) :=
@@ -752,13 +750,14 @@ end order
 the localization of `x`. -/
 def localization_map_of_specializes {x y : prime_spectrum R} (h : x ⤳ y) :
   localization.at_prime y.as_ideal →+* localization.at_prime x.as_ideal :=
-@is_localization.lift _ _ _ _ _ _ _ _ localization.is_localization (algebra_map R _)
-begin
-  rintro ⟨a, ha⟩,
-  rw [← prime_spectrum.le_iff_specializes, ← as_ideal_le_as_ideal, ← set_like.coe_subset_coe,
-    ← set.compl_subset_compl] at h,
-  exact (is_localization.map_units _ ⟨a, (show a ∈ x.as_ideal.prime_compl, from h ha)⟩ : _)
-end
+@is_localization.lift _ _ _ _ _ _ _ _
+  localization.is_localization (algebra_map R (localization.at_prime x.as_ideal))
+  begin
+    rintro ⟨a, ha⟩,
+    rw [← prime_spectrum.le_iff_specializes, ← as_ideal_le_as_ideal, ← set_like.coe_subset_coe,
+      ← set.compl_subset_compl] at h,
+    exact (is_localization.map_units _ ⟨a, (show a ∈ x.as_ideal.prime_compl, from h ha)⟩ : _)
+  end
 
 end prime_spectrum
 

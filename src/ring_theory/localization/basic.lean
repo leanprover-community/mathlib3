@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
 import algebra.algebra.basic
-import data.equiv.ring
+import algebra.ring.equiv
 import group_theory.monoid_localization
 import ring_theory.ideal.basic
 import ring_theory.non_zero_divisors
@@ -258,6 +258,10 @@ fintype.of_surjective (function.uncurry $ is_localization.mk' S)
 omit M
 
 variables {M S}
+
+/-- Localizing at a submonoid with 0 inside it leads to the trivial ring. -/
+def unique_of_zero_mem (h : (0 : R) ∈ M) : unique S :=
+unique_of_zero_eq_one $ by simpa using is_localization.map_units S ⟨0, h⟩
 
 lemma mk'_eq_iff_eq {x₁ x₂} {y₁ y₂ : M} :
   mk' S x₁ y₁ = mk' S x₂ y₂ ↔ algebra_map R S (x₁ * y₂) = algebra_map R S (x₂ * y₁) :=
@@ -802,6 +806,13 @@ instance : comm_ring (localization M) :=
   right_distrib  := λ m n k, localization.induction_on₃ m n k (by tac),
    ..localization.comm_monoid M }
 
+lemma sub_mk (a c) (b d) : (mk a b : localization M) - mk c d = mk (d * a - b * c) (b * d) :=
+calc  mk a b - mk c d
+    = mk a b + (- mk c d) : sub_eq_add_neg _ _
+... = mk a b + (mk (-c) d) : by rw neg_mk
+... = mk (b * (-c) + d * a) (b * d) : add_mk _ _ _ _
+... = mk (d * a - b * c) (b * d) : by congr'; ring
+
 instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
   distrib_mul_action S (localization M) :=
 { smul_zero := λ s, by simp only [←localization.mk_zero 1, localization.smul_mk, smul_zero],
@@ -864,6 +875,15 @@ by rw [mk_eq_monoid_of_mk'_apply, mk', to_localization_map_eq_monoid_of]
 @[simp] lemma mk_eq_mk' : (mk : R → M → localization M) = is_localization.mk' (localization M) :=
 mk_eq_monoid_of_mk'
 
+lemma mk_algebra_map {A : Type*} [comm_semiring A] [algebra A R] (m : A) :
+  mk (algebra_map A R m) 1 = algebra_map A (localization M) m :=
+by rw [mk_eq_mk', mk'_eq_iff_eq_mul, submonoid.coe_one, map_one, mul_one]; refl
+
+lemma mk_int_cast (m : ℤ) : (mk m 1 : localization M) = m :=
+by simpa using @mk_algebra_map R _ M ℤ _ _ m
+
+lemma mk_nat_cast (m : ℕ) : (mk m 1 : localization M) = m := mk_int_cast m
+
 variables [is_localization M S]
 
 section
@@ -919,7 +939,7 @@ end
 protected lemma injective (hM : M ≤ non_zero_divisors R) :
   injective (algebra_map R S) :=
 begin
-  rw ring_hom.injective_iff (algebra_map R S),
+  rw injective_iff_map_eq_zero (algebra_map R S),
   intros a ha,
   rwa to_map_eq_zero_iff S hM at ha
 end
@@ -986,18 +1006,26 @@ end is_localization
 open is_localization
 
 /-- If `R` is a field, then localizing at a submonoid not containing `0` adds no new elements. -/
-lemma localization_map_bijective_of_field
+lemma is_field.localization_map_bijective
   {R Rₘ : Type*} [comm_ring R] [comm_ring Rₘ]
   {M : submonoid R} (hM : (0 : R) ∉ M) (hR : is_field R)
   [algebra R Rₘ] [is_localization M Rₘ] : function.bijective (algebra_map R Rₘ) :=
 begin
-  letI := hR.to_field R,
+  letI := hR.to_field,
   replace hM := le_non_zero_divisors_of_no_zero_divisors hM,
   refine ⟨is_localization.injective _ hM, λ x, _⟩,
   obtain ⟨r, ⟨m, hm⟩, rfl⟩ := mk'_surjective M x,
   obtain ⟨n, hn⟩ := hR.mul_inv_cancel (non_zero_divisors.ne_zero $ hM hm),
-  exact ⟨r * n, by erw [eq_mk'_iff_mul_eq, ← ring_hom.map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
+  exact ⟨r * n, by erw [eq_mk'_iff_mul_eq, ←map_mul, mul_assoc, mul_comm n, hn, mul_one]⟩
 end
+
+/-- If `R` is a field, then localizing at a submonoid not containing `0` adds no new elements. -/
+lemma field.localization_map_bijective
+  {K Kₘ : Type*} [field K] [comm_ring Kₘ] {M : submonoid K} (hM : (0 : K) ∉ M)
+  [algebra K Kₘ] [is_localization M Kₘ] : function.bijective (algebra_map K Kₘ) :=
+(field.to_is_field K).localization_map_bijective hM
+-- this looks weird due to the `letI` inside the above lemma, but trying to do it the other
+-- way round causes issues with defeq of instances, so this is actually easier.
 
 section algebra
 

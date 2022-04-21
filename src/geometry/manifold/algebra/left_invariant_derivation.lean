@@ -112,8 +112,16 @@ instance : has_sub (left_invariant_derivation I G) :=
 @[simp, norm_cast] lemma lift_zero :
   (↑(0 : left_invariant_derivation I G) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = 0 := rfl
 
+instance has_nat_scalar : has_scalar ℕ (left_invariant_derivation I G) :=
+{ smul := λ r X, ⟨r • X, λ g, by simp only [derivation.smul_apply, smul_eq_mul,
+            mul_eq_mul_left_iff, linear_map.map_smul_of_tower, left_invariant']⟩ }
+
+instance has_int_scalar : has_scalar ℤ (left_invariant_derivation I G) :=
+{ smul := λ r X, ⟨r • X, λ g, by simp only [derivation.smul_apply, smul_eq_mul,
+            mul_eq_mul_left_iff, linear_map.map_smul_of_tower, left_invariant']⟩ }
+
 instance : add_comm_group (left_invariant_derivation I G) :=
-coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
+coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 instance : has_scalar 𝕜 (left_invariant_derivation I G) :=
 { smul := λ r X, ⟨r • X, λ g, by simp only [derivation.smul_apply, smul_eq_mul,

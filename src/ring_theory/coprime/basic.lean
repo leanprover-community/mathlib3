@@ -5,6 +5,7 @@ Authors: Kenny Lau, Ken Lee, Chris Hughes
 -/
 import tactic.ring
 import algebra.ring.basic
+import group_theory.group_action.units
 
 /-!
 # Coprime elements of a ring
@@ -161,6 +162,45 @@ lemma is_coprime.of_mul_add_right_right (h : is_coprime x (z * x + y)) : is_copr
 by { rw add_comm at h, exact h.of_add_mul_right_right }
 
 end comm_semiring
+
+section scalar_tower
+variables {R G : Type*} [comm_semiring R] [group G] [mul_action G R] [smul_comm_class G R R]
+  [is_scalar_tower G R R] (x : G) (y z : R)
+
+lemma is_coprime_group_smul_left : is_coprime (x • y) z ↔ is_coprime y z :=
+⟨λ ⟨a, b, h⟩, ⟨x • a, b, by rwa [smul_mul_assoc, ←mul_smul_comm]⟩,
+  λ ⟨a, b, h⟩, ⟨x⁻¹ • a, b, by rwa [smul_mul_smul, inv_mul_self, one_smul]⟩⟩
+
+lemma is_coprime_group_smul_right : is_coprime y (x • z) ↔ is_coprime y z :=
+is_coprime_comm.trans $ (is_coprime_group_smul_left x z y).trans is_coprime_comm
+
+lemma is_coprime_group_smul : is_coprime (x • y) (x • z) ↔ is_coprime y z :=
+(is_coprime_group_smul_left x y (x • z)).trans (is_coprime_group_smul_right x y z)
+
+end scalar_tower
+
+section comm_semiring_unit
+variables {R : Type*} [comm_semiring R] {x : R} (hu : is_unit x) (y z : R)
+
+lemma is_coprime_mul_unit_left_left : is_coprime (x * y) z ↔ is_coprime y z :=
+let ⟨u, hu⟩ := hu in hu ▸ is_coprime_group_smul_left u y z
+
+lemma is_coprime_mul_unit_left_right : is_coprime y (x * z) ↔ is_coprime y z :=
+let ⟨u, hu⟩ := hu in hu ▸ is_coprime_group_smul_right u y z
+
+lemma is_coprime_mul_unit_left : is_coprime (x * y) (x * z) ↔ is_coprime y z :=
+(is_coprime_mul_unit_left_left hu y (x * z)).trans (is_coprime_mul_unit_left_right hu y z)
+
+lemma is_coprime_mul_unit_right_left : is_coprime (y * x) z ↔ is_coprime y z :=
+mul_comm x y ▸ is_coprime_mul_unit_left_left hu y z
+
+lemma is_coprime_mul_unit_right_right : is_coprime y (z * x) ↔ is_coprime y z :=
+mul_comm x z ▸ is_coprime_mul_unit_left_right hu y z
+
+lemma is_coprime_mul_unit_right : is_coprime (y * x) (z * x) ↔ is_coprime y z :=
+(is_coprime_mul_unit_right_left hu y (z * x)).trans (is_coprime_mul_unit_right_right hu y z)
+
+end comm_semiring_unit
 
 namespace is_coprime
 

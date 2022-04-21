@@ -7,6 +7,7 @@ import algebra.order.invertible
 import algebra.order.module
 import linear_algebra.affine_space.midpoint
 import linear_algebra.affine_space.affine_subspace
+import linear_algebra.ray
 
 /-!
 # Convex sets and functions in vector spaces
@@ -58,6 +59,15 @@ def open_segment (x y : E) : set E :=
 
 localized "notation `[` x ` -[` 𝕜 `] ` y `]` := segment 𝕜 x y" in convex
 
+lemma segment_eq_image₂ (x y : E) :
+  [x -[𝕜] y] = (λ p : 𝕜 × 𝕜, p.1 • x + p.2 • y) '' {p | 0 ≤ p.1 ∧ 0 ≤ p.2 ∧ p.1 + p.2 = 1} :=
+by simp only [segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
+
+lemma open_segment_eq_image₂ (x y : E) :
+  open_segment 𝕜 x y =
+    (λ p : 𝕜 × 𝕜, p.1 • x + p.2 • y) '' {p | 0 < p.1 ∧ 0 < p.2 ∧ p.1 + p.2 = 1} :=
+by simp only [open_segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
+
 lemma segment_symm (x y : E) : [x -[𝕜] y] = [y -[𝕜] x] :=
 set.ext $ λ z,
 ⟨λ ⟨a, b, ha, hb, hab, H⟩, ⟨b, a, hb, ha, (add_comm _ _).trans hab, (add_comm _ _).trans H⟩,
@@ -101,7 +111,7 @@ end mul_action_with_zero
 section module
 variables (𝕜) [module 𝕜 E]
 
-lemma segment_same (x : E) : [x -[𝕜] x] = {x} :=
+@[simp] lemma segment_same (x : E) : [x -[𝕜] x] = {x} :=
 set.ext $ λ z, ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
   by simpa only [(add_smul _ _ _).symm, mem_singleton_iff, hab, one_smul, eq_comm] using hz,
   λ h, mem_singleton_iff.1 h ▸ left_mem_segment 𝕜 z z⟩
@@ -134,9 +144,6 @@ begin
   { exact hy },
   exact h (mem_open_segment_of_ne_left_right 𝕜 hxz hyz hz),
 end
-
-lemma convex.combo_self {a b : 𝕜} (h : a + b = 1) (x : E) : a • x + b • x = x :=
-by rw [←add_smul, h, one_smul]
 
 end module
 end ordered_semiring
@@ -176,15 +183,6 @@ set.ext $ λ z,
   ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
     ⟨b, ⟨hb, hab ▸ lt_add_of_pos_left _ ha⟩, hab ▸ hz ▸ by simp only [add_sub_cancel]⟩,
     λ ⟨θ, ⟨hθ₀, hθ₁⟩, hz⟩, ⟨1 - θ, θ, sub_pos.2 hθ₁, hθ₀, sub_add_cancel _ _, hz⟩⟩
-
-lemma segment_eq_image₂ (x y : E) :
-  [x -[𝕜] y] = (λ p : 𝕜 × 𝕜, p.1 • x + p.2 • y) '' {p | 0 ≤ p.1 ∧ 0 ≤ p.2 ∧ p.1 + p.2 = 1} :=
-by simp only [segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
-
-lemma open_segment_eq_image₂ (x y : E) :
-  open_segment 𝕜 x y =
-    (λ p : 𝕜 × 𝕜, p.1 • x + p.2 • y) '' {p | 0 < p.1 ∧ 0 < p.2 ∧ p.1 + p.2 = 1} :=
-by simp only [open_segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
 
 lemma segment_eq_image' (x y : E) :
   [x -[𝕜] y] = (λ (θ : 𝕜), x + θ • (y - x)) '' Icc (0 : 𝕜) 1 :=
@@ -242,6 +240,15 @@ open_segment_translate_preimage 𝕜 a b c ▸ image_preimage_eq _ $ add_left_su
 end add_comm_group
 end ordered_ring
 
+lemma same_ray_of_mem_segment [ordered_comm_ring 𝕜] [add_comm_group E] [module 𝕜 E]
+  {x y z : E} (h : x ∈ [y -[𝕜] z]) : same_ray 𝕜 (x - y) (z - x) :=
+begin
+  rw segment_eq_image' at h,
+  rcases h with ⟨θ, ⟨hθ₀, hθ₁⟩, rfl⟩,
+  simpa only [add_sub_cancel', ← sub_sub, sub_smul, one_smul]
+    using (same_ray_nonneg_smul_left (z - y) hθ₀).nonneg_smul_right (sub_nonneg.2 hθ₁)
+end
+
 section linear_ordered_ring
 variables [linear_ordered_ring 𝕜]
 
@@ -269,6 +276,22 @@ begin
   rw midpoint_add_sub
 end
 
+@[simp] lemma left_mem_open_segment_iff [densely_ordered 𝕜] [no_zero_smul_divisors 𝕜 E] {x y : E} :
+  x ∈ open_segment 𝕜 x y ↔ x = y :=
+begin
+  split,
+  { rintro ⟨a, b, ha, hb, hab, hx⟩,
+    refine smul_right_injective _ hb.ne' ((add_right_inj (a • x)).1 _),
+    rw [hx, ←add_smul, hab, one_smul] },
+  { rintro rfl,
+    rw open_segment_same,
+    exact mem_singleton _ }
+end
+
+@[simp] lemma right_mem_open_segment_iff [densely_ordered 𝕜] [no_zero_smul_divisors 𝕜 E] {x y : E} :
+  y ∈ open_segment 𝕜 x y ↔ x = y :=
+by rw [open_segment_symm, left_mem_open_segment_iff, eq_comm]
+
 end add_comm_group
 end linear_ordered_ring
 
@@ -277,6 +300,17 @@ variables [linear_ordered_field 𝕜]
 
 section add_comm_group
 variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
+
+lemma mem_segment_iff_same_ray {x y z : E} :
+  x ∈ [y -[𝕜] z] ↔ same_ray 𝕜 (x - y) (z - x) :=
+begin
+  refine ⟨same_ray_of_mem_segment, λ h, _⟩,
+  rcases h.exists_eq_smul_add with ⟨a, b, ha, hb, hab, hxy, hzx⟩,
+  rw [add_comm, sub_add_sub_cancel] at hxy hzx,
+  rw [← mem_segment_translate _ (-x), neg_add_self],
+  refine ⟨b, a, hb, ha, add_comm a b ▸ hab, _⟩,
+  rw [← sub_eq_neg_add, ← neg_sub, hxy, ← sub_eq_neg_add, hzx, smul_neg, smul_comm, neg_add_self]
+end
 
 lemma mem_segment_iff_div {x y z : E} : x ∈ [y -[𝕜] z] ↔
   ∃ a b : 𝕜, 0 ≤ a ∧ 0 ≤ b ∧ 0 < a + b ∧ (a / (a + b)) • y + (b / (a + b)) • z = x :=
@@ -302,22 +336,6 @@ begin
     refine ⟨a / (a + b), b / (a + b), div_pos ha hab, div_pos hb hab, _, rfl⟩,
     rw [← add_div, div_self hab.ne'] }
 end
-
-@[simp] lemma left_mem_open_segment_iff [no_zero_smul_divisors 𝕜 E] {x y : E} :
-  x ∈ open_segment 𝕜 x y ↔ x = y :=
-begin
-  split,
-  { rintro ⟨a, b, ha, hb, hab, hx⟩,
-    refine smul_right_injective _ hb.ne' ((add_right_inj (a • x)).1 _),
-    rw [hx, ←add_smul, hab, one_smul] },
-  { rintro rfl,
-    rw open_segment_same,
-    exact mem_singleton _ }
-end
-
-@[simp] lemma right_mem_open_segment_iff {x y : E} :
-  y ∈ open_segment 𝕜 x y ↔ x = y :=
-by rw [open_segment_symm, left_mem_open_segment_iff, eq_comm]
 
 end add_comm_group
 end linear_ordered_field
@@ -1013,11 +1031,11 @@ Relates `convex` and `ord_connected`.
 section
 
 lemma set.ord_connected.convex_of_chain [ordered_semiring 𝕜] [ordered_add_comm_monoid E]
-  [module 𝕜 E] [ordered_smul 𝕜 E] {s : set E} (hs : s.ord_connected) (h : zorn.chain (≤) s) :
+  [module 𝕜 E] [ordered_smul 𝕜 E] {s : set E} (hs : s.ord_connected) (h : is_chain (≤) s) :
   convex 𝕜 s :=
 begin
   refine convex_iff_segment_subset.mpr (λ x y hx hy, _),
-  obtain hxy | hyx := h.total_of_refl hx hy,
+  obtain hxy | hyx := h.total hx hy,
   { exact (segment_subset_Icc hxy).trans (hs.out hx hy) },
   { rw segment_symm,
     exact (segment_subset_Icc hyx).trans (hs.out hy hx) }
@@ -1026,7 +1044,7 @@ end
 lemma set.ord_connected.convex [ordered_semiring 𝕜] [linear_ordered_add_comm_monoid E] [module 𝕜 E]
   [ordered_smul 𝕜 E] {s : set E} (hs : s.ord_connected) :
   convex 𝕜 s :=
-hs.convex_of_chain (zorn.chain_of_trichotomous s)
+hs.convex_of_chain $ is_chain_of_trichotomous s
 
 lemma convex_iff_ord_connected [linear_ordered_field 𝕜] {s : set 𝕜} :
   convex 𝕜 s ↔ s.ord_connected :=
@@ -1046,7 +1064,7 @@ open submodule
 
 lemma submodule.convex [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] (K : submodule 𝕜 E) :
   convex 𝕜 (↑K : set E) :=
-by { repeat {intro}, refine add_mem _ (smul_mem _ _ _) (smul_mem _ _ _); assumption }
+by { repeat {intro}, refine add_mem (smul_mem _ _ _) (smul_mem _ _ _); assumption }
 
 lemma subspace.convex [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] (K : subspace 𝕜 E) :
   convex 𝕜 (↑K : set E) :=

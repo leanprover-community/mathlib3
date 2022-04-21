@@ -76,22 +76,40 @@ by rw [dist_comm, dist_self_conj]
 @[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := abs_of_real _
 
 @[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = |(r : ℝ)| :=
-suffices ∥((r : ℝ) : ℂ)∥ = |r|, by simpa,
-by rw [norm_real, real.norm_eq_abs]
+by { rw ← of_real_rat_cast, exact norm_real _ }
 
 @[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := abs_of_nat _
 
 @[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = |n| :=
-suffices ∥((n : ℝ) : ℂ)∥ = |n|, by simpa,
-by rw [norm_real, real.norm_eq_abs]
+by simp [← rat.cast_coe_int] {single_pass := tt}
 
 lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
-by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
+by simp [hn]
 
 @[continuity] lemma continuous_abs : continuous abs := continuous_norm
 
 @[continuity] lemma continuous_norm_sq : continuous norm_sq :=
 by simpa [← norm_sq_eq_abs] using continuous_abs.pow 2
+
+@[simp, norm_cast] lemma nnnorm_real (r : ℝ) : ∥(r : ℂ)∥₊ = ∥r∥₊ :=
+subtype.ext $ norm_real r
+
+@[simp, norm_cast] lemma nnnorm_nat (n : ℕ) : ∥(n : ℂ)∥₊ = n :=
+subtype.ext $ by simp
+
+@[simp, norm_cast] lemma nnnorm_int (n : ℤ) : ∥(n : ℂ)∥₊ = ∥n∥₊ :=
+subtype.ext $ by simp only [coe_nnnorm, norm_int, int.norm_eq_abs]
+
+lemma nnnorm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (hn : n ≠ 0) :
+  ∥ζ∥₊ = 1 :=
+begin
+  refine (@pow_left_inj nnreal _ _ _ _ zero_le' zero_le' hn.bot_lt).mp _,
+  rw [←nnnorm_pow, h, nnnorm_one, one_pow],
+end
+
+lemma norm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (hn : n ≠ 0) :
+  ∥ζ∥ = 1 :=
+congr_arg coe (nnnorm_eq_one_of_pow_eq_one h hn)
 
 /-- The `abs` function on `ℂ` is proper. -/
 lemma tendsto_abs_cocompact_at_top : filter.tendsto abs (filter.cocompact ℂ) filter.at_top :=
@@ -119,6 +137,8 @@ le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _) $
 calc 1 = ∥re_clm 1∥ : by simp
    ... ≤ ∥re_clm∥ : unit_le_op_norm _ _ (by simp)
 
+@[simp] lemma re_clm_nnnorm : ∥re_clm∥₊ = 1 := subtype.ext re_clm_norm
+
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
 def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simp [real.norm_eq_abs, abs_im_le_abs])
 
@@ -132,6 +152,8 @@ def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simp [real.nor
 le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _) $
 calc 1 = ∥im_clm I∥ : by simp
    ... ≤ ∥im_clm∥ : unit_le_op_norm _ _ (by simp)
+
+@[simp] lemma im_clm_nnnorm : ∥im_clm∥₊ = 1 := subtype.ext im_clm_norm
 
 lemma restrict_scalars_one_smul_right' {E : Type*} [normed_group E] [normed_space ℂ E] (x : E) :
   continuous_linear_map.restrict_scalars ℝ ((1 : ℂ →L[ℂ] ℂ).smul_right x : ℂ →L[ℂ] E) =
@@ -154,8 +176,14 @@ lemma isometry_conj : isometry (conj : ℂ → ℂ) := conj_lie.isometry
 @[simp] lemma dist_conj_conj (z w : ℂ) : dist (conj z) (conj w) = dist z w :=
 isometry_conj.dist_eq z w
 
+@[simp] lemma nndist_conj_conj (z w : ℂ) : nndist (conj z) (conj w) = nndist z w :=
+isometry_conj.nndist_eq z w
+
 lemma dist_conj_comm (z w : ℂ) : dist (conj z) w = dist z (conj w) :=
 by rw [← dist_conj_conj, conj_conj]
+
+lemma nndist_conj_comm (z w : ℂ) : nndist (conj z) w = nndist z (conj w) :=
+subtype.ext $ dist_conj_comm _ _
 
 /-- The determinant of `conj_lie`, as a linear map. -/
 @[simp] lemma det_conj_lie : (conj_lie.to_linear_equiv : ℂ →ₗ[ℝ] ℂ).det = -1 :=
@@ -177,6 +205,8 @@ def conj_cle : ℂ ≃L[ℝ] ℂ := conj_lie
 @[simp] lemma conj_cle_norm : ∥(conj_cle : ℂ →L[ℝ] ℂ)∥ = 1 :=
 conj_lie.to_linear_isometry.norm_to_continuous_linear_map
 
+@[simp] lemma conj_cle_nnorm : ∥(conj_cle : ℂ →L[ℝ] ℂ)∥₊ = 1 := subtype.ext conj_cle_norm
+
 /-- Linear isometry version of the canonical embedding of `ℝ` in `ℂ`. -/
 def of_real_li : ℝ →ₗᵢ[ℝ] ℂ := ⟨of_real_am.to_linear_map, norm_real⟩
 
@@ -192,6 +222,8 @@ def of_real_clm : ℝ →L[ℝ] ℂ := of_real_li.to_continuous_linear_map
 @[simp] lemma of_real_clm_apply (x : ℝ) : of_real_clm x = x := rfl
 
 @[simp] lemma of_real_clm_norm : ∥of_real_clm∥ = 1 := of_real_li.norm_to_continuous_linear_map
+
+@[simp] lemma of_real_clm_nnnorm : ∥of_real_clm∥₊ = 1 := subtype.ext $ of_real_clm_norm
 
 noncomputable instance : is_R_or_C ℂ :=
 { re := ⟨complex.re, complex.zero_re, complex.add_re⟩,

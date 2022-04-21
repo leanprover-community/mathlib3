@@ -3,9 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
-import data.finset.preimage
+import algebra.hom.group_action
 import algebra.indicator_function
-import algebra.group_action_hom
+import data.finset.preimage
 
 /-!
 # Type of functions with finite support
@@ -268,6 +268,9 @@ by rwa [single_eq_same, single_eq_same] at this
 lemma single_apply_eq_zero {a x : α} {b : M} : single a b x = 0 ↔ (x = a → b = 0) :=
 by simp [single_eq_indicator]
 
+lemma single_apply_ne_zero {a x : α} {b : M} : single a b x ≠ 0 ↔ (x = a ∧ b ≠ 0) :=
+by simp [single_apply_eq_zero]
+
 lemma mem_support_single (a a' : α) (b : M) :
   a ∈ (single a' b).support ↔ a = a' ∧ b ≠ 0 :=
 by simp [single_apply_eq_zero, not_or_distrib]
@@ -309,11 +312,7 @@ lemma single_left_inj (h : b ≠ 0) : single a b = single a' b ↔ a = a' :=
 
 lemma support_single_ne_bot (i : α) (h : b ≠ 0) :
   (single i b).support ≠ ⊥ :=
-begin
-  have : i ∈ (single i b).support := by simpa using h,
-  intro H,
-  simpa [H]
-end
+by simpa only [support_single_ne_zero h] using singleton_ne_empty _
 
 lemma support_single_disjoint [decidable_eq α] {b' : M} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
   disjoint (single i b).support (single j b').support ↔ i ≠ j :=
@@ -522,6 +521,15 @@ support_on_finset_subset
 @[simp] lemma map_range_single {f : M → N} {hf : f 0 = 0} {a : α} {b : M} :
   map_range f hf (single a b) = single a (f b) :=
 ext $ λ a', show f (ite _ _ _) = ite _ _ _, by split_ifs; [refl, exact hf]
+
+lemma support_map_range_of_injective
+  {e : M → N} (he0 : e 0 = 0) (f : ι →₀ M) (he : function.injective e) :
+  (finsupp.map_range e he0 f).support = f.support :=
+begin
+  ext,
+  simp only [finsupp.mem_support_iff, ne.def, finsupp.map_range_apply],
+  exact he.ne_iff' he0,
+end
 
 end map_range
 
@@ -819,9 +827,9 @@ begin
 end
 
 @[to_additive]
-lemma _root_.submonoid.finsupp_prod_mem (S : submonoid N) (f : α →₀ M) (g : α → M → N)
-  (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
-S.prod_mem $ λ i hi, h _ (finsupp.mem_support_iff.mp hi)
+lemma _root_.submonoid_class.finsupp_prod_mem {S : Type*} [set_like S N] [submonoid_class S N]
+  (s : S) (f : α →₀ M) (g : α → M → N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ s) : f.prod g ∈ s :=
+prod_mem $ λ i hi, h _ (finsupp.mem_support_iff.mp hi)
 
 @[to_additive]
 lemma prod_congr {f : α →₀ M} {g1 g2 : α → M → N}
@@ -867,10 +875,7 @@ begin
 end
 
 instance : add_zero_class (α →₀ M) :=
-{ zero      := 0,
-  add       := (+),
-  zero_add  := assume ⟨s, f, hf⟩, ext $ assume a, zero_add _,
-  add_zero  := assume ⟨s, f, hf⟩, ext $ assume a, add_zero _ }
+fun_like.coe_injective.add_zero_class _ coe_zero coe_add
 
 /-- `finsupp.single` as an `add_monoid_hom`.
 
@@ -1032,37 +1037,45 @@ section add_monoid
 
 variables [add_monoid M]
 
+/-- Note the general `finsupp.has_scalar` instance doesn't apply as `ℕ` is not distributive
+unless `β i`'s addition is commutative. -/
+instance has_nat_scalar : has_scalar ℕ (α →₀ M) :=
+⟨λ n v, v.map_range ((•) n) (nsmul_zero _)⟩
+
 instance : add_monoid (α →₀ M) :=
-{ add_monoid .
-  zero      := 0,
-  add       := (+),
-  add_assoc := assume ⟨s, f, hf⟩ ⟨t, g, hg⟩ ⟨u, h, hh⟩, ext $ assume a, add_assoc _ _ _,
-  nsmul := λ n v, v.map_range ((•) n) (nsmul_zero _),
-  nsmul_zero' := λ v, by { ext i, simp },
-  nsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_one_add, add_nsmul] },
-  .. finsupp.add_zero_class }
+fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, rfl)
 
 end add_monoid
 
 end finsupp
 
 @[to_additive]
-lemma mul_equiv.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
+lemma map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P] {H : Type*}
+  [monoid_hom_class H N P] (h : H) (f : α →₀ M) (g : α → M → N) :
+  h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+map_prod h _ _
+
+/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
+@[to_additive "Deprecated, use `_root_.map_finsupp_sum` instead."]
+protected lemma mul_equiv.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
   (h : N ≃* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-h.map_prod _ _
+map_finsupp_prod h f g
 
-@[to_additive]
-lemma monoid_hom.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
+/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
+@[to_additive "Deprecated, use `_root_.map_finsupp_sum` instead."]
+protected lemma monoid_hom.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
   (h : N →* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-h.map_prod _ _
+map_finsupp_prod h f g
 
-lemma ring_hom.map_finsupp_sum [has_zero M] [semiring R] [semiring S]
+/-- Deprecated, use `_root_.map_finsupp_sum` instead. -/
+protected lemma ring_hom.map_finsupp_sum [has_zero M] [semiring R] [semiring S]
   (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
-h.map_sum _ _
+map_finsupp_sum h f g
 
-lemma ring_hom.map_finsupp_prod [has_zero M] [comm_semiring R] [comm_semiring S]
+/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
+protected lemma ring_hom.map_finsupp_prod [has_zero M] [comm_semiring R] [comm_semiring S]
   (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-h.map_prod _ _
+map_finsupp_prod h f g
 
 @[to_additive]
 lemma monoid_hom.coe_finsupp_prod [has_zero β] [monoid N] [comm_monoid P]
@@ -1079,26 +1092,28 @@ monoid_hom.finset_prod_apply _ _ _
 namespace finsupp
 
 instance [add_comm_monoid M] : add_comm_monoid (α →₀ M) :=
-{ add_comm := assume ⟨s, f, _⟩ ⟨t, g, _⟩, ext $ assume a, add_comm _ _,
-  .. finsupp.add_monoid }
+fun_like.coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, rfl)
+
+instance [add_group G] : has_neg (α →₀ G) := ⟨map_range (has_neg.neg) neg_zero⟩
+
+@[simp] lemma coe_neg [add_group G] (g : α →₀ G) : ⇑(-g) = -g := rfl
+lemma neg_apply [add_group G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
 
 instance [add_group G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_zero _)⟩
 
+@[simp] lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
+lemma sub_apply [add_group G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
+
+/-- Note the general `finsupp.has_scalar` instance doesn't apply as `ℤ` is not distributive
+unless `β i`'s addition is commutative. -/
+instance has_int_scalar [add_group G] : has_scalar ℤ (α →₀ G) :=
+⟨λ n v, v.map_range ((•) n) (zsmul_zero _)⟩
+
 instance [add_group G] : add_group (α →₀ G) :=
-{ neg            := map_range (has_neg.neg) neg_zero,
-  sub            := has_sub.sub,
-  sub_eq_add_neg := λ x y, ext (λ i, sub_eq_add_neg _ _),
-  add_left_neg   := assume ⟨s, f, _⟩, ext $ assume x, add_left_neg _,
-  zsmul := λ n v, v.map_range ((•) n) (zsmul_zero _),
-  zsmul_zero' := λ v, by { ext i, simp },
-  zsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_one_add, add_zsmul] },
-  zsmul_neg' := λ n v, by { ext i, simp only [nat.succ_eq_add_one, map_range_apply,
-    zsmul_neg_succ_of_nat, int.coe_nat_succ, neg_inj,
-    add_zsmul, add_nsmul, one_zsmul, coe_nat_zsmul, one_nsmul] },
-  .. finsupp.add_monoid }
+fun_like.coe_injective.add_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_comm_group G] : add_comm_group (α →₀ G) :=
-{ add_comm := add_comm, ..finsupp.add_group }
+fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 lemma single_multiset_sum [add_comm_monoid M] (s : multiset M) (a : α) :
   single a s.sum = (s.map (single a)).sum :=
@@ -1123,12 +1138,6 @@ lemma prod_neg_index [add_group G] [comm_monoid M] {g : α →₀ G} {h : α →
   (h0 : ∀a, h a 0 = 1) :
   (-g).prod h = g.prod (λa b, h a (- b)) :=
 prod_map_range_index h0
-
-@[simp] lemma coe_neg [add_group G] (g : α →₀ G) : ⇑(-g) = -g := rfl
-lemma neg_apply [add_group G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
-
-@[simp] lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
-lemma sub_apply [add_group G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
 @[simp] lemma support_neg [add_group G] (f : α →₀ G) : support (-f) = support f :=
 finset.subset.antisymm
@@ -1204,7 +1213,7 @@ finset.prod_mul_distrib
 @[simp, to_additive]
 lemma prod_inv [has_zero M] [comm_group G] {f : α →₀ M}
   {h : α → M → G} : f.prod (λa b, (h a b)⁻¹) = (f.prod h)⁻¹ :=
-(((monoid_hom.id G)⁻¹).map_prod _ _).symm
+(map_prod ((monoid_hom.id G)⁻¹) _ _).symm
 
 @[simp] lemma sum_sub [has_zero M] [add_comm_group G] {f : α →₀ M}
   {h₁ h₂ : α → M → G} :
@@ -1287,6 +1296,14 @@ lift_add_hom.to_equiv.apply_eq_iff_eq_symm_apply.2 rfl
 @[simp] lemma sum_single [add_comm_monoid M] (f : α →₀ M) :
   f.sum single = f :=
 add_monoid_hom.congr_fun lift_add_hom_single_add_hom f
+
+@[simp] lemma sum_univ_single [add_comm_monoid M] [fintype α] (i : α) (m : M) :
+  ∑ (j : α), (single i m) j = m :=
+by simp [single]
+
+@[simp] lemma sum_univ_single' [add_comm_monoid M] [fintype α] (i : α) (m : M) :
+  ∑ (j : α), (single j m) i = m :=
+by simp [single]
 
 @[simp] lemma lift_add_hom_apply_single [add_comm_monoid M] [add_comm_monoid N]
   (f : α → M →+ N) (a : α) (b : M) :
@@ -1931,6 +1948,14 @@ by rw subsingleton.elim D; refl
 
 lemma filter_eq_indicator : ⇑(f.filter p) = set.indicator {x | p x} f := rfl
 
+lemma filter_eq_zero_iff : f.filter p = 0 ↔ ∀ x, p x → f x = 0 :=
+by simp only [fun_like.ext_iff, filter_eq_indicator, zero_apply, set.indicator_apply_eq_zero,
+  set.mem_set_of_eq]
+
+lemma filter_eq_self_iff : f.filter p = f ↔ ∀ x, f x ≠ 0 → p x :=
+by simp only [fun_like.ext_iff, filter_eq_indicator, set.indicator_apply_eq_self, set.mem_set_of_eq,
+  not_imp_comm]
+
 @[simp] lemma filter_apply_pos {a : α} (h : p a) : f.filter p a = f a :=
 if_pos h
 
@@ -1943,13 +1968,28 @@ by rw subsingleton.elim D; refl
 lemma filter_zero : (0 : α →₀ M).filter p = 0 :=
 by rw [← support_eq_empty, support_filter, support_zero, finset.filter_empty]
 
-@[simp] lemma filter_single_of_pos
-  {a : α} {b : M} (h : p a) : (single a b).filter p = single a b :=
-coe_fn_injective $ by simp [filter_eq_indicator, set.subset_def, mem_support_single, h]
+@[simp] lemma filter_single_of_pos {a : α} {b : M} (h : p a) :
+  (single a b).filter p = single a b :=
+(filter_eq_self_iff _ _).2 $ λ x hx, (single_apply_ne_zero.1 hx).1.symm ▸ h
 
-@[simp] lemma filter_single_of_neg
-  {a : α} {b : M} (h : ¬ p a) : (single a b).filter p = 0 :=
-ext $ by simp [filter_eq_indicator, single_apply_eq_zero, @imp.swap (p _), h]
+@[simp] lemma filter_single_of_neg {a : α} {b : M} (h : ¬ p a) : (single a b).filter p = 0 :=
+(filter_eq_zero_iff _ _).2 $ λ x hpx, single_apply_eq_zero.2 $ λ hxa, absurd hpx (hxa.symm ▸ h)
+
+@[to_additive] lemma prod_filter_index [comm_monoid N] (g : α → M → N) :
+  (f.filter p).prod g = ∏ x in (f.filter p).support, g x (f x) :=
+begin
+  refine finset.prod_congr rfl (λ x hx, _),
+  rw [support_filter, finset.mem_filter] at hx,
+  rw [filter_apply_pos _ _ hx.2]
+end
+
+@[simp, to_additive] lemma prod_filter_mul_prod_filter_not [comm_monoid N] (g : α → M → N) :
+  (f.filter p).prod g * (f.filter (λ a, ¬ p a)).prod g = f.prod g :=
+by simp_rw [prod_filter_index, support_filter, prod_filter_mul_prod_filter_not, finsupp.prod]
+
+@[simp, to_additive] lemma prod_div_prod_filter [comm_group G] (g : α → M → G) :
+  f.prod g / (f.filter p).prod g = (f.filter (λ a, ¬p a)).prod g :=
+div_eq_of_eq_mul' (prod_filter_mul_prod_filter_not _ _ _).symm
 
 end has_zero
 
@@ -2292,6 +2332,15 @@ lemma sum_finsupp_add_equiv_prod_finsupp_symm_inr {α β : Type*}
 rfl
 
 end sum
+
+section
+variables [has_zero M] [monoid_with_zero R] [mul_action_with_zero R M]
+
+@[simp] lemma single_smul (a b : α) (f : α → M) (r : R) :
+  (single a r b) • (f a) = single a (r • f b) b :=
+by by_cases a = b; simp [h]
+
+end
 
 section
 variables [monoid G] [mul_action G α] [add_comm_monoid M]

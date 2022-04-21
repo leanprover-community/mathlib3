@@ -355,7 +355,7 @@ instance (α : Type*) [h : nonempty α] : nonempty (order_dual α) := h
 instance (α : Type*) [h : subsingleton α] : subsingleton (order_dual α) := h
 instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λ x y : α, y ≤ x⟩
 instance (α : Type*) [has_lt α] : has_lt (order_dual α) := ⟨λ x y : α, y < x⟩
-instance (α : Type*) [has_zero α] : has_zero (order_dual α) := ⟨(0 : α)⟩
+instance (α : Type*) [h : has_zero α] : has_zero (order_dual α) := h
 
 -- `dual_le` and `dual_lt` should not be simp lemmas:
 -- they cause a loop since `α` and `order_dual α` are definitionally equal

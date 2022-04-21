@@ -199,8 +199,8 @@ end
 
 end ordered_cancel_comm_monoid
 
-section cancel_comm_monoid_with_zero
-variables [comm_monoid_with_zero α] [no_zero_divisors α] [is_domain α] [no_zero_divisors α] {s : set α} {a : α}
+section is_domain
+variables [comm_monoid_with_zero α] [is_domain α] {s : set α} {a : α}
 
 lemma mul_salem_spencer.mul_left₀ (hs : mul_salem_spencer s) (ha : a ≠ 0) :
   mul_salem_spencer ((*) a '' s) :=
@@ -232,7 +232,7 @@ lemma mul_salem_spencer_mul_right_iff₀ (ha : a ≠ 0) :
   by rw [mul_mul_mul_comm, h, mul_mul_mul_comm]),
   λ hs, hs.mul_right₀ ha⟩
 
-end cancel_comm_monoid_with_zero
+end is_domain
 
 section nat
 

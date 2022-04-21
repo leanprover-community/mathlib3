@@ -718,7 +718,7 @@ end gcd_monoid
 
 section unique_unit
 
-variables [comm_monoid_with_zero α] [unique αˣ] [is_domain α] [unique αˣ]
+variables [comm_monoid_with_zero α] [is_domain α] [unique αˣ]
 
 @[priority 100] -- see Note [lower instance priority]
 instance normalization_monoid_of_unique_units : normalization_monoid α :=

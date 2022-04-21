@@ -40,12 +40,6 @@ open function
 
 variables {M₀ G₀ M₀' G₀' : Type*}
 
-mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `field_simp` to
-reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
-division-free."
-
-attribute [field_simps] mul_div_assoc'
-
 section
 
 section mul_zero_class

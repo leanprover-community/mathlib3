@@ -6,8 +6,8 @@ Authors: Pim Spelier, Daan van Gent
 
 import data.fintype.basic
 import data.num.lemmas
+import set_theory.cardinal.ordinal
 import tactic.derive_fintype
-import set_theory.cardinal_ordinal
 
 /-!
 # Encodings

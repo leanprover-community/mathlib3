@@ -19,8 +19,9 @@ throughout the count. The probability of this is `(p - q) / (p + q)`.
 * `counted_sequence`: given natural numbers `p` and `q`, `counted_sequence p q` is the set of
   all lists containing `p` of `1`s and `q` of `-1`s representing the votes of candidate A and B
   respectively.
-* `stays_positive`: is the set of lists of integers which has positive sum. Thus, the intersection
-  of this with `counted_sequence` is the set of lists where candidate A is strictly ahead.
+* `stays_positive`: is the set of lists of integers which suffix has positive sum. In particular,
+  the intersection of this set with `counted_sequence` is the set of lists where candidate A is
+  strictly ahead.
 
 ## Main result
 
@@ -30,7 +31,7 @@ throughout the count. The probability of this is `(p - q) / (p + q)`.
 
 open set probability_theory measure_theory
 
-/-- Every nonempty suffix has positive sum. -/
+/-- The set of nonempty lists of integers which suffix has positive sum. -/
 def stays_positive : set (list ℤ) := {l | ∀ l₂, l₂ ≠ [] → l₂ <:+ l → 0 < l₂.sum}
 
 @[simp] lemma stays_positive_nil : [] ∈ stays_positive :=

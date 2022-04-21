@@ -337,4 +337,3 @@ lemma induction_on_exists_not {P : Π {m}, L.bounded_formula α m → Prop} (φ 
 end bounded_formula
 end language
 end first_order
-#lint

@@ -87,11 +87,11 @@ lemma has_deriv_within_at.cexp (hf : has_deriv_within_at f f' s x) :
 
 lemma deriv_within_cexp (hf : differentiable_within_at ℂ f s x)
   (hxs : unique_diff_within_at ℂ s x) :
-  deriv_within (λx, complex.exp (f x)) s x = complex.exp (f x) * (deriv_within f s x) :=
+  deriv_within (λ x, complex.exp (f x)) s x = complex.exp (f x) * deriv_within f s x :=
 hf.has_deriv_within_at.cexp.deriv_within hxs
 
 @[simp] lemma deriv_cexp (hc : differentiable_at ℂ f x) :
-  deriv (λx, complex.exp (f x)) x = complex.exp (f x) * (deriv f x) :=
+  deriv (λ x, complex.exp (f x)) x = complex.exp (f x) * deriv f x :=
 hc.has_deriv_at.cexp.deriv
 
 end
@@ -115,11 +115,11 @@ lemma has_deriv_within_at.cexp_real (h : has_deriv_within_at f f' s x) :
 
 lemma deriv_within_cexp_real (hf : differentiable_within_at ℝ f s x)
   (hxs : unique_diff_within_at ℝ s x) :
-  deriv_within (λx, complex.exp (f x)) s x = complex.exp (f x) * (deriv_within f s x) :=
+  deriv_within (λ x, complex.exp (f x)) s x = complex.exp (f x) * deriv_within f s x :=
 hf.has_deriv_within_at.cexp_real.deriv_within hxs
 
 @[simp] lemma deriv_cexp_real (hc : differentiable_at ℝ f x) :
-  deriv (λx, complex.exp (f x)) x = complex.exp (f x) * (deriv f x) :=
+  deriv (λ x, complex.exp (f x)) x = complex.exp (f x) * deriv f x :=
 hc.has_deriv_at.cexp_real.deriv
 
 end

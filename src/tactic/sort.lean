@@ -28,7 +28,7 @@ begin
   -- we move `f, g` to the right of their respective sides, so `congr` helps us remove the
   -- repeated term
   sort_summands [f, g],
-  congr' 2, -- takes care of using assumption `hp`
+  congr' 2, -- also takes care of using assumption `hp`
   exact X_pow_mul,
 end
 ```
@@ -62,15 +62,6 @@ compare.
   then it will ask the user to prove the required sorting.
 * Add more tests.
 -/
-
-/--  We sort the elements of the list `l`, making sure that the elements of `t` appear at the
-end of the list.
-
-Use as `l.sort_with_top t rel`.
- -/
-def list.sort_with_top {N : Type*} [decidable_eq N] (l t : list N) (rel : N → N → bool) :
-  list N :=
-let tl := t.dedup.filter (∈ l) in (l.filter (∉ tl)).qsort rel ++ tl
 
 /--  Mimics closely `list.partition`, except that it uses the first factor as the partitioning
 condition and passes on the second factors to the partitions. -/
@@ -141,6 +132,7 @@ meta def sorted_sum_with_rel
   tactic unit :=
 match (get_summands e).sort_with_ends ll rel with
 | eₕ::es := do
+  trace (eₕ::es),
   e' ← es.mfoldl (λ eₗ eᵣ, mk_app `has_add.add [eₗ, eᵣ]) eₕ,
   e_eq ← mk_app `eq [e, e'],
   n ← get_unused_name,
@@ -227,6 +219,7 @@ do
   il ← ll.1.mmap to_expr,
   fl ← ll.2.mmap to_expr,
   let ll := (il, fl),
+  trace ll,
   match locat with
   | loc.wildcard := do
     sort_summands_core tt ll none,

@@ -190,10 +190,12 @@ lemma units.mk0_prod {β α : Type} [_inst_1 : comm_group_with_zero β] (s : fin
   units.mk0 (∏ b in s, f b) h = ∏ b in s.attach, units.mk0 (f b) (λ hh, h (prod_eq_zero b.2 hh)) :=
 by { classical, induction s using finset.induction_on; simp* }
 
+-- #13586
 lemma cyclotomic.eval_apply {C R : Type*} (q : R) (n : ℕ) [ring C] [ring R] (f : R →+* C) :
   eval (f q) (cyclotomic n C) = f (eval q (cyclotomic n R)) :=
 by rw [← map_cyclotomic n f, eval_map, eval₂_at_apply]
 
+-- #13587
 lemma _root_.is_primitive_root.ne_zero {M} [comm_monoid_with_zero M] [nontrivial M] {ζ : M} {n : ℕ}
   (h : is_primitive_root ζ n) : n ≠ 0 → ζ ≠ 0 :=
 mt $ λ hn, h.unique (hn.symm ▸ is_primitive_root.zero)

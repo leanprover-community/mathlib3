@@ -196,15 +196,15 @@ lemma equiv.summable_iff_of_support {g : γ → α} (e : support f ≃ support g
 exists_congr $ λ _, e.has_sum_iff_of_support he
 
 protected lemma has_sum.map [add_comm_monoid γ] [topological_space γ] (hf : has_sum f a)
-  (g : α →+ γ) (hg : continuous g) :
+  {G} [add_monoid_hom_class G α γ] (g : G) (hg : continuous g) :
   has_sum (g ∘ f) (g a) :=
 have g ∘ (λs:finset β, ∑ b in s, f b) = (λs:finset β, ∑ b in s, g (f b)),
-  from funext $ g.map_sum _,
+  from funext $ map_sum g _,
 show tendsto (λs:finset β, ∑ b in s, g (f b)) at_top (𝓝 (g a)),
   from this ▸ (hg.tendsto a).comp hf
 
 protected lemma summable.map [add_comm_monoid γ] [topological_space γ] (hf : summable f)
-  (g : α →+ γ) (hg : continuous g) :
+  {G} [add_monoid_hom_class G α γ] (g : G) (hg : continuous g) :
   summable (g ∘ f) :=
 (hf.has_sum.map g hg).summable
 
@@ -224,11 +224,11 @@ begin
   exact hf.has_sum
 end
 
-lemma equiv.summable_iff_of_has_sum_iff {α' : Type*} [add_comm_monoid α']
-  [topological_space α'] (e : α' ≃ α) {f : β → α} {g : γ → α'}
+lemma function.surjective.summable_iff_of_has_sum_iff {α' : Type*} [add_comm_monoid α']
+  [topological_space α'] {e : α' → α} (hes : function.surjective e) {f : β → α} {g : γ → α'}
   (he : ∀ {a}, has_sum f (e a) ↔ has_sum g a) :
   summable f ↔ summable g :=
-⟨λ ⟨a, ha⟩, ⟨e.symm a, he.1 $ by rwa [e.apply_symm_apply]⟩, λ ⟨a, ha⟩, ⟨e a, he.2 ha⟩⟩
+hes.exists.trans $ exists_congr $ @he
 
 variable [has_continuous_add α]
 
@@ -394,20 +394,21 @@ lemma tsum_dite_left (P : Prop) [decidable P] (x : β → P → α) :
   ∑' (b : β), (if h : P then x b h else 0) = if h : P then (∑' (b : β), x b h) else 0 :=
 by by_cases hP : P; simp [hP]
 
-lemma equiv.tsum_eq_tsum_of_has_sum_iff_has_sum {α' : Type*} [add_comm_monoid α']
-  [topological_space α'] (e : α' ≃ α) (h0 : e 0 = 0) {f : β → α} {g : γ → α'}
+lemma function.surjective.tsum_eq_tsum_of_has_sum_iff_has_sum {α' : Type*} [add_comm_monoid α']
+  [topological_space α'] {e : α' → α} (hes : function.surjective e) (h0 : e 0 = 0)
+  {f : β → α} {g : γ → α'}
   (h : ∀ {a}, has_sum f (e a) ↔ has_sum g a) :
   ∑' b, f b = e (∑' c, g c) :=
 by_cases
   (assume : summable g, (h.mpr this.has_sum).tsum_eq)
   (assume hg : ¬ summable g,
-    have hf : ¬ summable f, from mt (e.summable_iff_of_has_sum_iff @h).1 hg,
+    have hf : ¬ summable f, from mt (hes.summable_iff_of_has_sum_iff @h).1 hg,
     by simp [tsum, hf, hg, h0])
 
 lemma tsum_eq_tsum_of_has_sum_iff_has_sum {f : β → α} {g : γ → α}
   (h : ∀{a}, has_sum f a ↔ has_sum g a) :
   ∑'b, f b = ∑'c, g c :=
-(equiv.refl α).tsum_eq_tsum_of_has_sum_iff_has_sum rfl @h
+surjective_id.tsum_eq_tsum_of_has_sum_iff_has_sum rfl @h
 
 lemma equiv.tsum_eq (j : γ ≃ β) (f : β → α) : ∑'c, f (j c) = ∑'b, f b :=
 tsum_eq_tsum_of_has_sum_iff_has_sum $ λ a, j.has_sum_iff
@@ -699,7 +700,7 @@ begin
 end
 
 lemma summable_nat_add_iff {f : ℕ → α} (k : ℕ) : summable (λ n, f (n + k)) ↔ summable f :=
-iff.symm $ (equiv.add_right (∑ i in range k, f i)).summable_iff_of_has_sum_iff $
+iff.symm $ (equiv.add_right (∑ i in range k, f i)).surjective.summable_iff_of_has_sum_iff $
   λ a, (has_sum_nat_add_iff k).symm
 
 lemma has_sum_nat_add_iff' {f : ℕ → α} (k : ℕ) {a : α} :

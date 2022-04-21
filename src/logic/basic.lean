@@ -209,7 +209,15 @@ library_note "fact non-instances"
 lemma fact.elim {p : Prop} (h : fact p) : p := h.1
 lemma fact_iff {p : Prop} : fact p ↔ p := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
+/-- Swaps two pairs of arguments to a function. -/
+@[reducible] def function.swap₂ {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  {φ : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Sort*} (f : Π i₁ j₁ i₂ j₂, φ i₁ j₁ i₂ j₂) :
+  Π i₂ j₂ i₁ j₁, φ i₁ j₁ i₂ j₂ :=
+λ i₂ j₂ i₁ j₁, f i₁ j₁ i₂ j₂
+
 end miscellany
+
+open function
 
 /-!
 ### Declarations about propositional connectives
@@ -285,8 +293,6 @@ the arguments flipped, but it is in the `not` namespace so that projection notat
 def not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
 @[reducible] theorem not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
-
-lemma iff.not (h : a ↔ b) : ¬ a ↔ ¬ b := not_congr h
 
 theorem not_not_of_not_imp : ¬(a → b) → ¬¬a :=
 mt not.elim
@@ -391,6 +397,10 @@ theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
 theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
 imp.swap
 
+lemma iff.not (h : a ↔ b) : ¬ a ↔ ¬ b := not_congr h
+lemma iff.not_left (h : a ↔ ¬ b) : ¬ a ↔ b := h.not.trans not_not
+lemma iff.not_right (h : ¬ a ↔ b) : a ↔ ¬ b := not_not.symm.trans h.not
+
 /-! ### Declarations about `xor` -/
 
 @[simp] theorem xor_true : xor true = not := funext $ λ a, by simp [xor]
@@ -431,6 +441,12 @@ by simp only [and.left_comm, and.comm]
 
 lemma and_and_and_comm (a b c d : Prop) : (a ∧ b) ∧ c ∧ d ↔ (a ∧ c) ∧ b ∧ d :=
 by rw [←and_assoc, @and.right_comm a, and_assoc]
+
+lemma and_and_distrib_left (a b c : Prop) : a ∧ (b ∧ c) ↔ (a ∧ b) ∧ (a ∧ c) :=
+by rw [and_and_and_comm, and_self]
+
+lemma and_and_distrib_right (a b c : Prop) : (a ∧ b) ∧ c ↔ (a ∧ c) ∧ (b ∧ c) :=
+by rw [and_and_and_comm, and_self]
 
 lemma and_rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a := by simp only [and.left_comm, and.comm]
 lemma and.rotate : a ∧ b ∧ c → b ∧ c ∧ a := and_rotate.1
@@ -482,6 +498,12 @@ theorem or.right_comm : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ b := by rw [or_assoc, 
 
 lemma or_or_or_comm (a b c d : Prop) : (a ∨ b) ∨ c ∨ d ↔ (a ∨ c) ∨ b ∨ d :=
 by rw [←or_assoc, @or.right_comm a, or_assoc]
+
+lemma or_or_distrib_left (a b c : Prop) : a ∨ (b ∨ c) ↔ (a ∨ b) ∨ (a ∨ c) :=
+by rw [or_or_or_comm, or_self]
+
+lemma or_or_distrib_right (a b c : Prop) : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ (b ∨ c) :=
+by rw [or_or_or_comm, or_self]
 
 lemma or_rotate : a ∨ b ∨ c ↔ b ∨ c ∨ a := by simp only [or.left_comm, or.comm]
 lemma or.rotate : a ∨ b ∨ c → b ∨ c ∨ a := or_rotate.1
@@ -947,6 +969,11 @@ exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨swap, swap⟩
+
+lemma forall₂_swap {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  {p : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Prop} :
+  (∀ i₁ j₁ i₂ j₂, p i₁ j₁ i₂ j₂) ↔ ∀ i₂ j₂ i₁ j₁, p i₁ j₁ i₂ j₂ :=
+⟨swap₂, swap₂⟩
 
 /-- We intentionally restrict the type of `α` in this lemma so that this is a safer to use in simp
 than `forall_swap`. -/

@@ -693,6 +693,25 @@ begin
     exact ⟨⟨i, i⟩, ⟨hi, hi⟩, h⟩ },
 end
 
+lemma has_antitone_basis.prod {f : filter α} {g : filter β}
+  {s : ℕ → set α} {t : ℕ → set β} (hf : has_antitone_basis f s) (hg : has_antitone_basis g t) :
+  has_antitone_basis (f ×ᶠ g) (λ n, s n ×ˢ t n) :=
+begin
+  have h : has_basis (f ×ᶠ g) _ _ := has_basis.prod' hf.to_has_basis hg.to_has_basis _,
+  swap,
+  { intros i j,
+    simp only [true_and, forall_true_left],
+    exact ⟨max i j, hf.antitone (le_max_left _ _), hg.antitone (le_max_right _ _)⟩, },
+  refine ⟨h, λ n m hn_le_m, set.prod_mono _ _⟩,
+  exacts [hf.antitone hn_le_m, hg.antitone hn_le_m]
+end
+
+lemma has_basis.coprod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} {pb : ι' → Prop}
+  {sb : ι' → set β} (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
+  (la.coprod lb).has_basis (λ i : ι × ι', pa i.1 ∧ pb i.2)
+    (λ i, prod.fst ⁻¹' sa i.1 ∪ prod.snd ⁻¹' sb i.2) :=
+(hla.comap prod.fst).sup (hlb.comap prod.snd)
+
 end two_types
 
 open equiv
@@ -887,5 +906,15 @@ by { rw ← principal_singleton, exact is_countably_generated_principal _, }
 
 @[instance] lemma is_countably_generated_top : is_countably_generated (⊤ : filter α) :=
 @principal_univ α ▸ is_countably_generated_principal _
+
+instance is_countably_generated.prod {f : filter α} {g : filter β}
+  [hf : f.is_countably_generated] [hg : g.is_countably_generated] :
+  is_countably_generated (f ×ᶠ g) :=
+begin
+  simp_rw is_countably_generated_iff_exists_antitone_basis at hf hg ⊢,
+  rcases hf with ⟨s, hs⟩,
+  rcases hg with ⟨t, ht⟩,
+  refine ⟨_, hs.prod ht⟩,
+end
 
 end filter

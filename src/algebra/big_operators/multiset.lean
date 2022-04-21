@@ -58,6 +58,10 @@ lemma prod_cons (a : α) (s) : prod (a ::ₘ s) = a * prod s := foldr_cons _ _ _
 lemma prod_singleton (a : α) : prod {a} = a :=
 by simp only [mul_one, prod_cons, singleton_eq_cons, eq_self_iff_true, prod_zero]
 
+@[to_additive]
+lemma prod_pair (a b : α) : ({a, b} : multiset α).prod = a * b :=
+by rw [insert_eq_cons, prod_cons, prod_singleton]
+
 @[simp, to_additive]
 lemma prod_add (s t : multiset α) : prod (s + t) = prod s * prod t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, by simp
@@ -233,7 +237,7 @@ by { convert (m.map f).prod_hom (zpow_group_hom₀ _ : α →* α), rw map_map, 
 
 end comm_group_with_zero
 
-section semiring
+section non_unital_non_assoc_semiring
 variables [non_unital_non_assoc_semiring α] {a : α} {s : multiset ι} {f : ι → α}
 
 lemma _root_.commute.multiset_sum_right (s : multiset α) (a : α) (h : ∀ b ∈ s, commute a b) :
@@ -254,17 +258,17 @@ multiset.induction_on s (by simp) (λ i s ih, by simp [ih, mul_add])
 lemma sum_map_mul_right : sum (s.map (λ i, f i * a)) = sum (s.map f) * a :=
 multiset.induction_on s (by simp) (λ a s ih, by simp [ih, add_mul])
 
-end semiring
+end non_unital_non_assoc_semiring
 
-section comm_semiring
-variables [comm_semiring α]
+section semiring
+variables [semiring α]
 
 lemma dvd_sum {a : α} {s : multiset α} : (∀ x ∈ s, a ∣ x) → a ∣ s.sum :=
 multiset.induction_on s (λ _, dvd_zero _)
   (λ x s ih h, by { rw sum_cons, exact dvd_add
     (h _ (mem_cons_self _ _)) (ih $ λ y hy, h _ $ mem_cons.2 $ or.inr hy) })
 
-end comm_semiring
+end semiring
 
 /-! ### Order -/
 

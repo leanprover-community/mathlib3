@@ -111,9 +111,8 @@ theorem inv_zpow₀ (a : G₀) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 
 lemma zpow_add_one₀ {a : G₀} (ha : a ≠ 0) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
 | (n : ℕ)    := by simp [← int.coe_nat_succ, pow_succ']
-| -[1+0]     := by simp [int.neg_succ_of_nat_eq, ha]
-| -[1+(n+1)] := by rw [int.neg_succ_of_nat_eq, zpow_neg₀, neg_add, neg_add_cancel_right, zpow_neg₀,
-  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev₀, mul_assoc,
+| -[1+n] := by rw [int.neg_succ_of_nat_eq, zpow_neg₀, neg_add, neg_add_cancel_right, zpow_neg₀,
+  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ n, mul_inv_rev₀, mul_assoc,
   inv_mul_cancel ha, mul_one]
 
 lemma zpow_sub_one₀ {a : G₀} (ha : a ≠ 0) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
@@ -216,6 +215,14 @@ by rw [zpow_bit1₀, (commute.refl a).mul_zpow₀]
 
 lemma zpow_eq_zero {x : G₀} {n : ℤ} (h : x ^ n = 0) : x = 0 :=
 classical.by_contradiction $ λ hx, zpow_ne_zero_of_ne_zero hx n h
+
+lemma zpow_eq_zero_iff {a : G₀} {n : ℤ} (hn : 0 < n) :
+  a ^ n = 0 ↔ a = 0 :=
+begin
+  refine ⟨zpow_eq_zero, _⟩,
+  rintros rfl,
+  exact zero_zpow _ hn.ne'
+end
 
 lemma zpow_ne_zero {x : G₀} (n : ℤ) : x ≠ 0 → x ^ n ≠ 0 :=
 mt zpow_eq_zero

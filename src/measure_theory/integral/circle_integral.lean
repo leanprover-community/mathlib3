@@ -130,7 +130,7 @@ mt circle_map_eq_center_iff.1 hR
 lemma has_deriv_at_circle_map (c : ℂ) (R : ℝ) (θ : ℝ) :
   has_deriv_at (circle_map c R) (circle_map 0 R θ * I) θ :=
 by simpa only [mul_assoc, one_mul, of_real_clm_apply, circle_map, of_real_one, zero_add]
- using ((of_real_clm.has_deriv_at.mul_const I).cexp_real.const_mul (R : ℂ)).const_add c
+ using ((of_real_clm.has_deriv_at.mul_const I).cexp.const_mul (R : ℂ)).const_add c
 
 /- TODO: prove `cont_diff ℝ (circle_map c R)`. This needs a version of `cont_diff.mul`
 for multiplication in a normed algebra over the base field. -/

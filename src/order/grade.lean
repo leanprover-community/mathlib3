@@ -62,7 +62,7 @@ set_option old_structure_cmd true
 
 open finset nat order_dual
 
-variables {𝕆 α β : Type*}
+variables {𝕆 ℙ α β : Type*}
 
 /-- An `𝕆`-graded order is an order `α` equipped with a strictly monotone function `grade 𝕆 : α → 𝕆`
 which preserves order covering (`covby`). -/
@@ -165,7 +165,7 @@ end partial_order
 
 /-! ### Instances -/
 
-variables [preorder 𝕆] [preorder α] [preorder β]
+variables [preorder 𝕆] [preorder ℙ] [preorder α] [preorder β]
 
 instance preorder.to_grade_bounded_order : grade_bounded_order α α :=
 { grade := id,
@@ -199,40 +199,89 @@ instance [grade_bounded_order 𝕆 α] : grade_bounded_order (order_dual 𝕆) (
 @[simp] lemma grade_of_dual [grade_order 𝕆 α] (a : order_dual α) :
   grade 𝕆 (of_dual a) = of_dual (grade (order_dual 𝕆) a) := rfl
 
+/-! #### Lifting a graded order -/
+
+/-- Lifts a graded order along a strictly monotone function. -/
+@[reducible] -- See note [reducible non-instances]
+def grade_order.lift_left [grade_order 𝕆 α] (f : 𝕆 → ℙ) (hf : strict_mono f)
+  (hcovby : ∀ a b, a ⋖ b → f a ⋖ f b) : grade_order ℙ α :=
+{ grade := f ∘ grade 𝕆,
+  grade_strict_mono := hf.comp grade_strict_mono,
+  covby_grade := λ a b h, hcovby _ _ $ h.grade _ }
+
+/-- Lifts a graded order along a strictly monotone function. -/
+@[reducible] -- See note [reducible non-instances]
+def grade_min_order.lift_left [grade_min_order 𝕆 α] (f : 𝕆 → ℙ) (hf : strict_mono f)
+  (hcovby : ∀ a b, a ⋖ b → f a ⋖ f b) (hmin : ∀ a, is_min a → is_min (f a)) :
+  grade_min_order ℙ α :=
+{ is_min_grade := λ a ha, hmin _ $ ha.grade _,
+  ..grade_order.lift_left f hf hcovby }
+
+/-- Lifts a graded order along a strictly monotone function. -/
+@[reducible] -- See note [reducible non-instances]
+def grade_max_order.lift_left [grade_max_order 𝕆 α] (f : 𝕆 → ℙ) (hf : strict_mono f)
+  (hcovby : ∀ a b, a ⋖ b → f a ⋖ f b) (hmax : ∀ a, is_max a → is_max (f a)) :
+  grade_max_order ℙ α :=
+{ is_max_grade := λ a ha, hmax _ $ ha.grade _,
+  ..grade_order.lift_left f hf hcovby }
+
+/-- Lifts a graded order along a strictly monotone function. -/
+@[reducible] -- See note [reducible non-instances]
+def grade_bounded_order.lift_left [grade_bounded_order 𝕆 α] (f : 𝕆 → ℙ) (hf : strict_mono f)
+  (hcovby : ∀ a b, a ⋖ b → f a ⋖ f b) (hmin : ∀ a, is_min a → is_min (f a))
+  (hmax : ∀ a, is_max a → is_max (f a)) :
+  grade_bounded_order ℙ α :=
+{ ..grade_min_order.lift_left f hf hcovby hmin, ..grade_max_order.lift_left f hf hcovby hmax }
+
+/-- Lifts a graded order along a strictly monotone function. -/
+@[reducible] -- See note [reducible non-instances]
+def grade_order.lift_right [grade_order 𝕆 β] (f : α → β) (hf : strict_mono f)
+  (hcovby : ∀ a b, a ⋖ b → f a ⋖ f b) : grade_order 𝕆 α :=
+{ grade := grade 𝕆 ∘ f,
+  grade_strict_mono := grade_strict_mono.comp hf,
+  covby_grade := λ a b h, (hcovby _ _ h).grade _ }
+
+/-- Lifts a graded order along a strictly monotone function. -/
+@[reducible] -- See note [reducible non-instances]
+def grade_min_order.lift_right [grade_min_order 𝕆 β] (f : α → β) (hf : strict_mono f)
+  (hcovby : ∀ a b, a ⋖ b → f a ⋖ f b) (hmin : ∀ a, is_min a → is_min (f a)) :
+  grade_min_order 𝕆 α :=
+{ is_min_grade := λ a ha, (hmin _ ha).grade _,
+  ..grade_order.lift_right f hf hcovby }
+
+/-- Lifts a graded order along a strictly monotone function. -/
+@[reducible] -- See note [reducible non-instances]
+def grade_max_order.lift_right [grade_max_order 𝕆 β] (f : α → β) (hf : strict_mono f)
+  (hcovby : ∀ a b, a ⋖ b → f a ⋖ f b) (hmax : ∀ a, is_max a → is_max (f a)) :
+  grade_max_order 𝕆 α :=
+{ is_max_grade := λ a ha, (hmax _ ha).grade _,
+  ..grade_order.lift_right f hf hcovby }
+
+/-- Lifts a graded order along a strictly monotone function. -/
+@[reducible] -- See note [reducible non-instances]
+def grade_bounded_order.lift_right [grade_bounded_order 𝕆 β] (f : α → β) (hf : strict_mono f)
+  (hcovby : ∀ a b, a ⋖ b → f a ⋖ f b) (hmin : ∀ a, is_min a → is_min (f a))
+  (hmax : ∀ a, is_max a → is_max (f a)) : grade_bounded_order 𝕆 α :=
+{ ..grade_min_order.lift_right f hf hcovby hmin, ..grade_max_order.lift_right f hf hcovby hmax }
+
 /-! #### `fin n`-graded to `ℕ`-graded to `ℤ`-graded -/
 
 /-- A `fin n`-graded order is also `ℕ`-graded. We do not mark this an instance because `n` is not
 inferrable. -/
 @[reducible] -- See note [reducible non-instances]
-def grade_order.fin_to_nat {n : ℕ} [grade_order (fin n) α] : grade_order ℕ α :=
-{ grade := coe ∘ grade (fin n),
-  grade_strict_mono := fin.coe_strict_mono.comp grade_strict_mono,
-  covby_grade := λ a b h, (h.grade $ fin n).coe_fin }
+def grade_order.fin_to_nat (n : ℕ) [grade_order (fin n) α] : grade_order ℕ α :=
+grade_order.lift_left (_ : fin n → ℕ) fin.coe_strict_mono $ λ _ _, covby.coe_fin
 
 /-- A `fin n`-graded order is also `ℕ`-graded. We do not mark this an instance because `n` is not
 inferrable. -/
 @[reducible] -- See note [reducible non-instances]
-def grade_min_order.fin_to_nat {n : ℕ} [grade_min_order (fin n) α] : grade_min_order ℕ α :=
-{ grade := coe ∘ grade (fin n),
-  is_min_grade := λ a h, begin
+def grade_min_order.fin_to_nat (n : ℕ) [grade_min_order (fin n) α] : grade_min_order ℕ α :=
+grade_min_order.lift_left (_ : fin n → ℕ) fin.coe_strict_mono (λ _ _, covby.coe_fin) $ λ a h, begin
     unfreezingI { cases n },
     { exact (@fin.elim0 (λ _, false) $ grade (fin 0) a).elim },
-    dsimp,
-    rw [(h.grade _).eq_bot, fin.bot_eq_zero],
+    rw [h.eq_bot, fin.bot_eq_zero],
     exact is_min_bot,
-  end,
-  ..grade_order.fin_to_nat }
+  end
 
 instance grade_order.nat_to_int [grade_order ℕ α] : grade_order ℤ α :=
-{ grade := coe ∘ grade ℕ,
-  grade_strict_mono := int.coe_nat_strict_mono.comp grade_strict_mono,
-  covby_grade := λ a b h, (h.grade _).cast_int }
-
-/-! #### Lifting a graded order -/
-
-/-- Lifts a graded order along an order embedding. -/
-def grade_order.lift [grade_order 𝕆 β] {f : α ↪o β} (hf : (set.range f).ord_connected) :
-  grade_order 𝕆 α :=
-{ grade := λ a, grade 𝕆 (f a),
-  grade_strict_mono := grade_strict_mono.comp f.strict_mono,
-  covby_grade := λ a b hab, (hf.image_covby_image_iff.2 hab).grade _ }
+grade_order.lift_left _ int.coe_nat_strict_mono $ λ _ _, covby.cast_int

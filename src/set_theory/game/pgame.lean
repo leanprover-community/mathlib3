@@ -86,6 +86,7 @@ equivalence relations at the level of pregames, we introduce the notion of a `re
 game, and show, for example, that there is a relabelling between `x + (y + z)` and `(x + y) + z`.
 
 ## Future work
+
 * The theory of dominated and reversible positions, and unique normal form for short games.
 * Analysis of basic domineering positions.
 * Hex.

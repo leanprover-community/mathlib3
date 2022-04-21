@@ -176,8 +176,8 @@ begin
   rw [ennreal.mul_inv_cancel, ennreal.mul_inv_cancel, one_mul, one_mul, ← add_mul,
     ← measure_union, set.union_inter_distrib_right, mul_comm],
   exacts [hst.mono inf_le_left inf_le_left, (ht.inter_of_left _).measurable_set,
-    measure.count_neq_zero ht', (measure.count_apply_lt_top.2 ht).ne,
-    measure.count_neq_zero hs', (measure.count_apply_lt_top.2 hs).ne],
+    measure.count_ne_zero ht', (measure.count_apply_lt_top.2 ht).ne,
+    measure.count_ne_zero hs', (measure.count_apply_lt_top.2 hs).ne],
 end
 
 /-- A version of the law of total probability for counting probabilites. -/

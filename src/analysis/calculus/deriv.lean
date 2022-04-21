@@ -1113,12 +1113,12 @@ theorem has_deriv_at_filter.comp_has_fderiv_at_filter {f : E → 𝕜'} {f' : E 
   {L'' : filter E} (hh₂ : has_deriv_at_filter h₂ h₂' (f x) L')
   (hf : has_fderiv_at_filter f f' x L'') (hL : tendsto f L'' L') :
   has_fderiv_at_filter (h₂ ∘ f) (h₂' • f') x L'' :=
-by { convert (hh₂.restrict_scalars 𝕜).comp x hf hL, ext x, simp [mul_comm] }
+by convert (hh₂.restrict_scalars 𝕜).comp x hf hL; ext x; simp [mul_comm]
 
 theorem has_strict_deriv_at.comp_has_strict_fderiv_at {f : E → 𝕜'} {f' : E →L[𝕜] 𝕜'} (x)
   (hh : has_strict_deriv_at h₂ h₂' (f x)) (hf : has_strict_fderiv_at f f' x) :
   has_strict_fderiv_at (h₂ ∘ f) (h₂' • f') x :=
-by { rw has_strict_deriv_at at hh, convert (hh.restrict_scalars 𝕜).comp x hf, ext x, simp [mul_comm] }
+by rw has_strict_deriv_at at hh; convert (hh.restrict_scalars 𝕜).comp x hf; ext x; simp [mul_comm]
 
 theorem has_deriv_at.comp_has_fderiv_at {f : E → 𝕜'} {f' : E →L[𝕜] 𝕜'} (x)
   (hh : has_deriv_at h₂ h₂' (f x)) (hf : has_fderiv_at f f' x) :

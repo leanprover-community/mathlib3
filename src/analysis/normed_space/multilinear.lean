@@ -221,8 +221,8 @@ end
 
 /-- If a multilinear map satisfies an inequality `∥f m∥ ≤ C * ∏ i, ∥m i∥`, then it is
 continuous. -/
-theorem continuous_of_bound (f : multilinear_map 𝕜 Eₛ Gₛ) (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :
-  continuous f :=
+theorem continuous_of_bound
+  (f : multilinear_map 𝕜 Eₛ Gₛ) (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) : continuous f :=
 begin
   let D := max C 1,
   have D_pos : 0 ≤ D := le_trans zero_le_one (le_max_right _ _),
@@ -447,8 +447,8 @@ le_antisymm
     (f.op_norm_le_bound (norm_nonneg _) $ λ m, (le_max_left _ _).trans ((f.prod g).le_op_norm _))
     (g.op_norm_le_bound (norm_nonneg _) $ λ m, (le_max_right _ _).trans ((f.prod g).le_op_norm _))
 
-lemma norm_pi {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', semi_normed_group (E' i')]
-  [Π i', normed_space 𝕜 (E' i')] (f : Π i', continuous_multilinear_map 𝕜 E (E' i')) :
+lemma norm_pi {ι' : Type v'} [fintype ι'] {E'ₛ : ι' → Type wE'} [Π i', semi_normed_group (E'ₛ i')]
+  [Π i', normed_space 𝕜 (E'ₛ i')] (f : Π i', continuous_multilinear_map 𝕜 E (E'ₛ i')) :
   ∥pi f∥ = ∥f∥ :=
 begin
   apply le_antisymm,
@@ -481,11 +481,12 @@ def prodL :
   norm_map' := λ f, op_norm_prod f.1 f.2 }
 
 /-- `continuous_multilinear_map.pi` as a `linear_isometry_equiv`. -/
-def piₗᵢ {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', semi_normed_group (E' i')]
-  [Π i', normed_space 𝕜 (E' i')] :
+def piₗᵢ {ι' : Type v'} [fintype ι'] {E'ₛ : ι' → Type wE'} [Π i', semi_normed_group (E'ₛ i')]
+  [Π i', normed_space 𝕜 (E'ₛ i')] :
   @linear_isometry_equiv 𝕜 𝕜 _ _ (ring_hom.id 𝕜) _ _ _
-    (Π i', continuous_multilinear_map 𝕜 E (E' i')) (continuous_multilinear_map 𝕜 E (Π i, E' i)) _ _
-      (@pi.module ι' _ 𝕜 _ _ (λ i', infer_instance)) _ :=
+    (Π i', continuous_multilinear_map 𝕜 E (E'ₛ i'))
+      (continuous_multilinear_map 𝕜 E (Π i, E'ₛ i)) _ _
+        (@pi.module ι' _ 𝕜 _ _ (λ i', infer_instance)) _ :=
 { to_linear_equiv :=
   -- note: `pi_linear_equiv` does not unify correctly here, presumably due to issues with dependent
   -- typeclass arguments.

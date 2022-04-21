@@ -33,18 +33,21 @@ homomorphisms `G →* (V →ₗ[k] V)`.
 open monoid_algebra (lift) (of)
 open linear_map
 
-namespace representation
-
 section
 variables (k G V : Type*) [comm_semiring k] [monoid G] [add_comm_monoid V] [module k V]
 
 /--
 A representation of `G` on the `k`-module `V` is an homomorphism `G →* (V →ₗ[k] V)`.
 -/
-@[nolint dup_namespace]
 abbreviation representation := G →* (V →ₗ[k] V)
 
-variables {k G}
+end
+
+namespace representation
+
+section trivial
+
+variables {k G V : Type*} [comm_semiring k] [monoid G] [add_comm_monoid V] [module k V]
 
 /--
 The trivial representation of `G` on the one-dimensional module `k`.
@@ -54,7 +57,7 @@ def trivial : representation k G k := 1
 @[simp]
 lemma trivial_def (g : G) (v : k) : trivial g v = v := rfl
 
-end
+end trivial
 
 section monoid_algebra
 

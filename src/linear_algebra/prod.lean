@@ -237,20 +237,24 @@ begin
 end
 
 @[simp]
-lemma prod_map_id : (id : M →ₗ[R] M).prod_map  (id : M₂ →ₗ[R] M₂) = id :=
+lemma prod_map_id : (id : M →ₗ[R] M).prod_map (id : M₂ →ₗ[R] M₂) = id :=
 linear_map.ext $ λ _, prod.mk.eta
 
 @[simp]
-lemma prod_map_one : (1 : M →ₗ[R] M).prod_map  (1 : M₂ →ₗ[R] M₂) = 1 :=
+lemma prod_map_one : (1 : M →ₗ[R] M).prod_map (1 : M₂ →ₗ[R] M₂) = 1 :=
 linear_map.ext $ λ _, prod.mk.eta
 
-lemma prod_map_comp
-  (f₁₂ : M →ₗ[R] M₂) (f₂₃ : M₂ →ₗ[R] M₃) (g₁₂ : M₄ →ₗ[R] M₅) (g₂₃ : M₅ →ₗ[R] M₆) :
-  f₂₃.prod_map  g₂₃ ∘ₗ f₁₂.prod_map  g₁₂ = (f₂₃ ∘ₗ f₁₂).prod_map  (g₂₃ ∘ₗ g₁₂) := rfl
+lemma prod_map_comp (f₁₂ : M →ₗ[R] M₂) (f₂₃ : M₂ →ₗ[R] M₃) (g₁₂ : M₄ →ₗ[R] M₅) (g₂₃ : M₅ →ₗ[R] M₆) :
+  f₂₃.prod_map g₂₃ ∘ₗ f₁₂.prod_map g₁₂ = (f₂₃ ∘ₗ f₁₂).prod_map (g₂₃ ∘ₗ g₁₂) := rfl
 
-lemma prod_map_mul
-  (f₁₂ : M →ₗ[R] M) (f₂₃ : M →ₗ[R] M) (g₁₂ : M₂ →ₗ[R] M₂) (g₂₃ : M₂ →ₗ[R] M₂) :
-  f₂₃.prod_map  g₂₃ * f₁₂.prod_map  g₁₂ = (f₂₃ * f₁₂).prod_map  (g₂₃ * g₁₂) := rfl
+lemma prod_map_mul (f₁₂ : M →ₗ[R] M) (f₂₃ : M →ₗ[R] M) (g₁₂ : M₂ →ₗ[R] M₂) (g₂₃ : M₂ →ₗ[R] M₂) :
+  f₂₃.prod_map g₂₃ * f₁₂.prod_map g₁₂ = (f₂₃ * f₁₂).prod_map (g₂₃ * g₁₂) := rfl
+
+@[simps]
+def prod_map_monoid_hom : (M →ₗ[R] M) × (M₂ →ₗ[R] M₂) →* ((M × M₂) →ₗ[R] (M × M₂)) :=
+{ to_fun := λ f, prod_map f.1 f.2,
+  map_one' := prod_map_one,
+  map_mul' := λ _ _, prod_map_mul _ _ _ _ }
 
 section map_mul
 

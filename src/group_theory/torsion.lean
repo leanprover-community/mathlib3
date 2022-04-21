@@ -72,9 +72,9 @@ lemma is_torsion.subgroup (tG : is_torsion G) (H : subgroup G) : is_torsion H :=
 λ h, (is_of_fin_order_iff_coe H.to_submonoid h).mpr $ tG h
 
 /-- The image of a surjective torsion group homomorphism is torsion. -/
-@[to_additive add_is_torsion.of_surj_hom
+@[to_additive add_is_torsion.of_surjective
   "The image of a surjective additive torsion group homomorphism is torsion."]
-lemma is_torsion.of_surj_hom {f : G →* H} (hf : function.surjective f) (tG : is_torsion G) :
+lemma is_torsion.of_surjective {f : G →* H} (hf : function.surjective f) (tG : is_torsion G) :
   is_torsion H :=
 λ h, begin
   obtain ⟨g, hg⟩ := hf h,
@@ -99,11 +99,11 @@ end
 
 /-- The image of a quotient is torsion iff the group is torsion. -/
 @[to_additive add_is_torsion.quotient_iff
-  "The image of a quotient is torsion iff the group is torsion."]
+  "The image of a quotient is additively torsion iff the group is torsion."]
 lemma is_torsion.quotient_iff
   {f : G →* H} (hf : function.surjective f) (hN : N = f.ker) (tN : is_torsion N) :
   is_torsion H ↔ is_torsion G :=
-⟨λ tH, is_torsion.extension_closed hN tH tN, λ tG, is_torsion.of_surj_hom hf tG⟩
+⟨λ tH, is_torsion.extension_closed hN tH tN, λ tG, is_torsion.of_surjective hf tG⟩
 
 /-- If a group exponent exists, the group is torsion. -/
 @[to_additive exponent_exists.is_add_torsion
@@ -132,20 +132,20 @@ end group
 section module
 
 -- A (semi/)ring of scalars and a commutative monoid of elements
-variables (Fq R : Type*) [add_comm_monoid R]
+variables (R M : Type*) [add_comm_monoid M]
 
 namespace add_monoid
 
 /-- A module whose scalars are additively torsion is additively torsion. -/
-lemma is_torsion.module_of_torsion [semiring Fq] [module Fq R] (tFq : is_torsion Fq) :
-is_torsion R := λ f, (is_of_fin_add_order_iff_nsmul_eq_zero _).mpr $ begin
-  obtain ⟨n, npos, hn⟩ := (is_of_fin_add_order_iff_nsmul_eq_zero _).mp (tFq 1),
-  exact ⟨n, npos, by simp only [nsmul_eq_smul_cast Fq _ f, ←nsmul_one, hn, zero_smul]⟩,
+lemma is_torsion.module_of_torsion [semiring R] [module R M] (tR : is_torsion R) :
+is_torsion M := λ f, (is_of_fin_add_order_iff_nsmul_eq_zero _).mpr $ begin
+  obtain ⟨n, npos, hn⟩ := (is_of_fin_add_order_iff_nsmul_eq_zero _).mp (tR 1),
+  exact ⟨n, npos, by simp only [nsmul_eq_smul_cast R _ f, ←nsmul_one, hn, zero_smul]⟩,
 end
 
 /-- A module with a finite ring of scalars is additively torsion. -/
-lemma is_torsion.module_of_fintype [ring Fq] [fintype Fq] [module Fq R] : is_torsion R :=
-(is_add_torsion_of_fintype : is_torsion Fq).module_of_torsion _ _
+lemma is_torsion.module_of_fintype [ring R] [fintype R] [module R M] : is_torsion M :=
+(is_add_torsion_of_fintype : is_torsion R).module_of_torsion _ _
 
 end add_monoid
 

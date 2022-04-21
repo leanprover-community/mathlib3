@@ -299,32 +299,27 @@ lemma foo {a b c : ℝ} (hb : b ≠ 0) (hc : c ≠ 0) : a / (b * c) = (a / b) / 
 by field_simp
 
 lemma log_four : log 4 = 2 * log 2 :=
-begin
-  calc log 4 = log (2 ^ (2 : ℝ)) : by norm_num
-    ... = 2 * log 2 : by rw log_rpow two_pos
-end
+calc log 4 = log (2 ^ (2 : ℝ)) : by norm_num
+  ... = 2 * log 2 : by rw log_rpow two_pos
 
 lemma sqrt_361 : sqrt 361 = 19 :=
-begin
-  calc sqrt 361 = sqrt (19 ^ 2) : by norm_num
-    ... = 19 : sqrt_sq (by norm_num)
-end
+calc sqrt 361 = sqrt (19 ^ 2) : by norm_num
+  ... = 19 : sqrt_sq (by norm_num)
 
 lemma log_722 : log 722 = log 2 + 2 * log 19 :=
-begin
-  calc log 722 = log (2 * 19 ^ (2 : ℝ)) : by norm_num
-    ... = log 2 + log (19 ^ (2 : ℝ)) : log_mul (by norm_num) (by norm_num)
-    ... = log 2 + 2 * log 19 : by rw @log_rpow 19 (by norm_num)
-end
+calc log 722 = log (2 * 19 ^ (2 : ℝ)) : by norm_num
+  ... = log 2 + log (19 ^ (2 : ℝ)) : log_mul (by norm_num) (by norm_num)
+  ... = log 2 + 2 * log 19 : by rw @log_rpow 19 (by norm_num)
 
 lemma inequality : log 521284 / log 2 ≤ 19 :=
 begin
-  suffices: log 521284 ≤ 19 * log 2, by rwa div_le_iff (log_pos one_lt_two),
+  rw div_le_iff (log_pos one_lt_two),
   calc log 521284
         ≤ log (2 ^ (19 : ℝ)) : (@log_le_log 521284 _ (by norm_num) (by norm_num)).2 (by norm_num)
     ... = 19 * log 2 : @log_rpow 2 two_pos 19,
 end
 
+-- This is best possible: it's false for x = 721.
 lemma inequality3 {x : ℝ} (n_large : 722 ≤ x) : sqrt 2 * sqrt x * log x / (x * log 4) ≤ 1/4 :=
 begin
   have x_pos : 0 < x := by linarith,
@@ -414,8 +409,8 @@ end real_inequalities
 /--
 The inequality which contradicts Bertrand's postulate, for large enough `n`.
 -/
-lemma bertrand_inequality {n : ℕ} (n_large : 722 ≤ n)
-  : n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) ≤ 4 ^ n :=
+lemma bertrand_inequality {n : ℕ} (n_large : 722 ≤ n) :
+  n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) ≤ 4 ^ n :=
 begin
   rw <-@nat.cast_le ℝ,
   have fact1 : 0 < (n : ℝ),

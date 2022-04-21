@@ -427,7 +427,7 @@ lemma _root_.is_square.of_coprime_of_mul_right {m n : ℕ} (hmn : m.coprime n) :
   is_square (m * n) → is_square n :=
 begin
   rw mul_comm,
-  exact _root_.is_square.of_coprime_of_mul_left hmn.symm,
+  exact is_square.of_coprime_of_mul_left hmn.symm,
 end
 
 /-- The property of being a square is multiplicative. The ← direction can be generalized

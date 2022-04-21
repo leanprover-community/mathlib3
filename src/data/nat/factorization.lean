@@ -52,9 +52,11 @@ def factorization (n : ℕ) : ℕ →₀ ℕ :=
       intro a,
       rw list.mem_to_finset,
       by_cases hn0 : n = 0,
-      { sorry, },
+      { simp [hn0], },
       rw mem_factors hn0,
       simp only [ne.def, ite_eq_right_iff, exists_prop],
+      simp,
+      intro pa,
       sorry,
     end }
 

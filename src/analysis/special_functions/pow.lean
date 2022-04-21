@@ -603,7 +603,7 @@ begin
 end
 
 @[simp] lemma rpow_lt_rpow_left_iff (hx : 1 < x) : x ^ y < x ^ z ↔ y < z :=
-by rw [lt_iff_not_ge', rpow_le_rpow_left_iff hx, lt_iff_not_ge']
+by rw [lt_iff_not_le, rpow_le_rpow_left_iff hx, lt_iff_not_le]
 
 lemma rpow_lt_rpow_of_exponent_gt (hx0 : 0 < x) (hx1 : x < 1) (hyz : z < y) :
   x^y < x^z :=
@@ -628,7 +628,7 @@ end
 
 @[simp] lemma rpow_lt_rpow_left_iff_of_base_lt_one (hx0 : 0 < x) (hx1 : x < 1) :
   x ^ y < x ^ z ↔ z < y :=
-by rw [lt_iff_not_ge', rpow_le_rpow_left_iff_of_base_lt_one hx0 hx1, lt_iff_not_ge']
+by rw [lt_iff_not_le, rpow_le_rpow_left_iff_of_base_lt_one hx0 hx1, lt_iff_not_le]
 
 lemma rpow_lt_one {x z : ℝ} (hx1 : 0 ≤ x) (hx2 : x < 1) (hz : 0 < z) : x^z < 1 :=
 by { rw ← one_rpow z, exact rpow_lt_rpow hx1 hx2 hz }

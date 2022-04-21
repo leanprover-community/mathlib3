@@ -632,10 +632,10 @@ protected def sentence.card_ge (n) : L.sentence :=
   (λ (ij : _ × _), ∼ ((& ij.1).bd_equal (& ij.2)))).foldr (⊓) ⊤).exs
 
 /-- A theory indicating that a structure is infinite. -/
-protected def Theory.infinite : L.Theory := set.range (sentence.card_ge L)
+def infinite_theory : L.Theory := set.range (sentence.card_ge L)
 
 /-- A theory that indicates a structure is nonempty. -/
-protected def Theory.nonempty : L.Theory := {sentence.card_ge L 1}
+def nonempty_theory : L.Theory := {sentence.card_ge L 1}
 
 end cardinality
 

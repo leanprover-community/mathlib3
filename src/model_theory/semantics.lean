@@ -694,17 +694,21 @@ begin
     simp [ij] }
 end
 
-@[simp] lemma Theory.model_infinite : M ⊨ (Theory.infinite L) ↔ infinite M :=
-by simp [Theory.infinite, infinite_iff, omega_le]
+@[simp] lemma model_infinite_theory_iff : M ⊨ L.infinite_theory ↔ infinite M :=
+by simp [infinite_theory, infinite_iff, omega_le]
 
-@[simp] lemma Theory.model_nonempty_iff :
-  M ⊨ (Theory.nonempty L) ↔ nonempty M :=
-by simp only [Theory.nonempty, Theory.model_iff, set.mem_singleton_iff, forall_eq,
+instance model_infinite_theory [h : infinite M] :
+  M ⊨ L.infinite_theory :=
+L.model_infinite_theory_iff.2 h
+
+@[simp] lemma model_nonempty_theory_iff :
+  M ⊨ L.nonempty_theory ↔ nonempty M :=
+by simp only [nonempty_theory, Theory.model_iff, set.mem_singleton_iff, forall_eq,
     sentence.realize_card_ge, nat.cast_one, one_le_iff_ne_zero, mk_ne_zero_iff]
 
-instance Theory.model_nonempty [h : nonempty M] :
-  M ⊨ (Theory.nonempty L) :=
-(Theory.model_nonempty_iff L).2 h
+instance model_nonempty [h : nonempty M] :
+  M ⊨ L.nonempty_theory :=
+L.model_nonempty_theory_iff.2 h
 
 end cardinality
 

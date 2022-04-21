@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
+import group_theory.group_action.conj_act
 import group_theory.quotient_group
 import order.filter.pointwise
 import topology.algebra.monoid
@@ -341,11 +342,15 @@ class topological_group (G : Type*) [topological_space G] [group G]
 
 section conj
 
+instance conj_act.units_has_continuous_const_smul {M} [monoid M] [topological_space M]
+  [has_continuous_mul M] :
+  has_continuous_const_smul (conj_act Mˣ) M :=
+⟨λ m, (continuous_const.mul continuous_id).mul continuous_const⟩
+
 /-- we slightly weaken the type class assumptions here so that it will also apply to `ennreal`, but
 we nevertheless leave it in the `topological_group` namespace. -/
 
-variables [topological_space G] [has_inv G] [has_mul G]
-[has_continuous_mul G]
+variables [topological_space G] [has_inv G] [has_mul G] [has_continuous_mul G]
 
 /-- Conjugation is jointly continuous on `G × G` when both `mul` and `inv` are continuous. -/
 @[to_additive "Conjugation is jointly continuous on `G × G` when both `mul` and `inv` are

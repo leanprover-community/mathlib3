@@ -344,7 +344,7 @@ you should parametrize over `(F : Type*) [non_unital_ring_hom_class F R S] (f : 
 
 When you extend this structure, make sure to extend `non_unital_ring_hom_class`. -/
 structure non_unital_ring_hom (R : Type*) (S : Type*) [non_unital_non_assoc_semiring R]
-  [non_unital_non_assoc_semiring S] extends mul_hom R S, R →+ S
+  [non_unital_non_assoc_semiring S] extends R →ₙ* S, R →+ S
 
 infixr ` →ₙ+* `:25 := non_unital_ring_hom
 
@@ -406,7 +406,7 @@ instance : has_coe_to_fun (α →ₙ+* β) (λ _, α → β) := ⟨non_unital_ri
 @[simp] lemma coe_to_mul_hom (f : α →ₙ+* β) : ⇑f.to_mul_hom = f := rfl
 
 @[simp] lemma coe_mul_hom_mk (f : α → β) (h₁ h₂ h₃) :
-  ((⟨f, h₁, h₂, h₃⟩ : α →ₙ+* β) : mul_hom α β) = ⟨f, h₁⟩ :=
+  ((⟨f, h₁, h₂, h₃⟩ : α →ₙ+* β) : α →ₙ* β) = ⟨f, h₁⟩ :=
 rfl
 
 @[simp] lemma coe_to_add_monoid_hom (f : α →ₙ+* β) : ⇑f.to_add_monoid_hom = f := rfl
@@ -441,7 +441,7 @@ ext $ λ _, rfl
 theorem coe_add_monoid_hom_injective : function.injective (coe : (α →ₙ+* β) → (α →+ β)) :=
 λ f g h, ext (λ x, add_monoid_hom.congr_fun h x)
 
-theorem coe_mul_hom_injective : function.injective (coe : (α →ₙ+* β) → (mul_hom α β)) :=
+theorem coe_mul_hom_injective : function.injective (coe : (α →ₙ+* β) → (α →ₙ* β)) :=
 λ f g h, ext (λ x, mul_hom.congr_fun h x)
 
 end
@@ -469,7 +469,7 @@ omit rβ
 @[simp] lemma id_apply (x : α) : non_unital_ring_hom.id α x = x := rfl
 @[simp] lemma coe_add_monoid_hom_id :
   (non_unital_ring_hom.id α : α →+ α) = add_monoid_hom.id α := rfl
-@[simp] lemma coe_mul_hom_id : (non_unital_ring_hom.id α : mul_hom α α) = mul_hom.id α := rfl
+@[simp] lemma coe_mul_hom_id : (non_unital_ring_hom.id α : α →ₙ* α) = mul_hom.id α := rfl
 
 variable {rγ : non_unital_non_assoc_semiring γ}
 include rβ rγ
@@ -488,7 +488,7 @@ lemma comp_assoc {δ} {rδ : non_unital_non_assoc_semiring δ} (f : α →ₙ+* 
 @[simp] lemma coe_comp_add_monoid_hom (g : β →ₙ+* γ) (f : α →ₙ+* β) :
   (g.comp f : α →+ γ) = (g : β →+ γ).comp f := rfl
 @[simp] lemma coe_comp_mul_hom (g : β →ₙ+* γ) (f : α →ₙ+* β) :
-  (g.comp f : mul_hom α γ) = (g : mul_hom β γ).comp f := rfl
+  (g.comp f : α →ₙ* γ) = (g : β →ₙ* γ).comp f := rfl
 
 @[simp] lemma comp_zero (g : β →ₙ+* γ) : g.comp (0 : α →ₙ+* β) = 0 := by { ext, simp }
 @[simp] lemma zero_comp (f : α →ₙ+* β) : (0 : β →ₙ+* γ).comp f = 0 := by { ext, refl }

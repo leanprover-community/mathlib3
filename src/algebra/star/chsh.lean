@@ -100,7 +100,6 @@ lemma CHSH_id [comm_ring R] {A₀ A₁ B₀ B₁ : R}
 begin
   rw ← sub_eq_zero,
   repeat
-  --  Does this count as non-terminal `simp`?
   { ring_nf,
     simp only [A₁_inv, B₁_inv, sub_eq_add_neg, add_mul, mul_add, sub_mul, mul_sub, add_assoc,
       neg_add, neg_sub, sub_add, sub_sub, neg_mul, ←sq, A₀_inv, B₀_inv, ←sq, ←mul_assoc, one_mul,

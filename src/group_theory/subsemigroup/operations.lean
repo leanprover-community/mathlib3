@@ -4,12 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
-
 import group_theory.subsemigroup.basic
-import data.equiv.mul_add
-import algebra.group.prod
-import algebra.group.inj_surj
-import group_theory.group_action.defs
 
 /-!
 # Operations on `subsemigroup`s

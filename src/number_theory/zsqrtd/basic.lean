@@ -688,7 +688,6 @@ protected theorem eq_zero_or_eq_zero_of_mul_eq_zero : Π {a b : ℤ√d}, a * b 
              ... = d * y * y * z : by simp [h2, mul_assoc, mul_left_comm]
 
 instance : no_zero_divisors ℤ√d := ⟨@zsqrtd.eq_zero_or_eq_zero_of_mul_eq_zero⟩
-
 instance : is_domain ℤ√d := is_domain.of_no_zero_divisors
 
 protected theorem mul_pos (a b : ℤ√d) (a0 : 0 < a) (b0 : 0 < b) : 0 < a * b := λab,

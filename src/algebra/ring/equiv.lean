@@ -506,8 +506,6 @@ protected lemma is_no_zero_divisors
 protected lemma is_domain
   {A : Type*} (B : Type*) [ring A] [ring B] [is_domain B]
   (e : A ≃+* B) : is_domain A :=
-@is_domain.of_no_zero_divisors A _
-  (function.surjective.nontrivial e.surjective)
-  (e.is_no_zero_divisors B)
+is_domain_iff_nontrivial_and_no_zero_divisors.2 ⟨e.surjective.nontrivial, e.is_no_zero_divisors B⟩
 
 end ring_equiv

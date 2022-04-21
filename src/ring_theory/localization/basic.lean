@@ -976,21 +976,21 @@ See note [reducible non-instances]. -/
 theorem is_domain_of_le_non_zero_divisors
   [algebra A S] {M : submonoid A} [is_localization M S]
   (hM : M ≤ non_zero_divisors A) : is_domain S :=
-@is_domain.of_eq_zero_or_eq_zero_of_mul_eq_zero S _
-  ⟨⟨(algebra_map A S) 0, (algebra_map A S) 1, λ h, zero_ne_one (is_localization.injective S hM h)⟩⟩
-  begin
-    intros z w h,
-    cases surj M z with x hx,
-    cases surj M w with y hy,
-    have : z * w * algebra_map A S y.2 * algebra_map A S x.2 =
-      algebra_map A S x.1 * algebra_map A S y.1,
-    by rw [mul_assoc z, hy, ←hx]; ac_refl,
-    rw [h, zero_mul, zero_mul, ← (algebra_map A S).map_mul] at this,
-    cases eq_zero_or_eq_zero_of_mul_eq_zero ((to_map_eq_zero_iff S hM).mp this.symm) with H H,
-    { exact or.inl (eq_zero_of_fst_eq_zero hx H) },
-    { exact or.inr (eq_zero_of_fst_eq_zero hy H) },
-  end
-
+is_domain_iff_nontrivial_and_no_zero_divisors.2 $ and.intro
+  ⟨⟨algebra_map A S 0, algebra_map A S 1, λ h, zero_ne_one (is_localization.injective S hM h)⟩⟩
+  { eq_zero_or_eq_zero_of_mul_eq_zero :=
+      begin
+        intros z w h,
+        cases surj M z with x hx,
+        cases surj M w with y hy,
+        have : z * w * algebra_map A S y.2 * algebra_map A S x.2 =
+          algebra_map A S x.1 * algebra_map A S y.1,
+        by rw [mul_assoc z, hy, ←hx]; ac_refl,
+        rw [h, zero_mul, zero_mul, ← (algebra_map A S).map_mul] at this,
+        cases eq_zero_or_eq_zero_of_mul_eq_zero ((to_map_eq_zero_iff S hM).mp this.symm) with H H,
+        { exact or.inl (eq_zero_of_fst_eq_zero hx H) },
+        { exact or.inr (eq_zero_of_fst_eq_zero hy H) },
+      end }
 
 variables {A}
 

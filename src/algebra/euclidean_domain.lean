@@ -343,10 +343,14 @@ by { have := @xgcd_aux_P _ _ _ a b a b 1 0 0 1
 rwa [xgcd_aux_val, xgcd_val] at this }
 
 @[priority 70] -- see Note [lower instance priority]
-instance (R : Type*) [e : euclidean_domain R] : is_domain R :=
-by { haveI := classical.dec_eq R, apply is_domain.of_eq_zero_or_eq_zero_of_mul_eq_zero, exact
-λ a b h, (or_iff_not_and_not.2 $ λ h0,
-      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div]) }
+instance (R : Type*) [e : euclidean_domain R] : no_zero_divisors R :=
+by { haveI := classical.dec_eq R, exact
+{ eq_zero_or_eq_zero_of_mul_eq_zero :=
+    λ a b h, (or_iff_not_and_not.2 $ λ h0,
+      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div]) } }
+
+@[priority 70] -- see Note [lower instance priority]
+instance (R : Type*) [e : euclidean_domain R] : is_domain R := is_domain.of_no_zero_divisors
 
 end gcd
 

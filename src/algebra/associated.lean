@@ -838,12 +838,10 @@ match h m d dvd_rfl with
 end
 
 instance : is_domain (associates α) :=
-{ is_regular_of_ne_zero := λ c hc,
-  ⟨λ a b, eq_of_mul_eq_mul_left _ _ _ hc, λ a b, eq_of_mul_eq_mul_right _ _ _ hc⟩ }
+⟨λ c hc, ⟨λ a b, eq_of_mul_eq_mul_left _ _ _ hc, λ a b, eq_of_mul_eq_mul_right _ _ _ hc⟩⟩
 
 instance : canonically_ordered_monoid (associates α) :=
 { le_iff_exists_mul := λ a b, iff.rfl,
-  ..associates.is_domain,
   ..associates.bounded_order,
   ..associates.ordered_comm_monoid}
 

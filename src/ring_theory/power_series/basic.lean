@@ -1449,7 +1449,6 @@ begin
 end
 
 instance : no_zero_divisors (power_series R) := ⟨eq_zero_or_eq_zero_of_mul_eq_zero⟩
-
 instance : is_domain (power_series R) := is_domain.of_no_zero_divisors
 
 end domain

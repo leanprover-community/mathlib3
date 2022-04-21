@@ -77,9 +77,9 @@ instance [has_mul α] [has_zero α] [is_domain α] : is_domain αᵐᵒᵖ :=
     replace hc : unop c ≠ 0 :=  λ H, hc (congr_arg op H),
     split,
     { rintros a b (hab : op (unop a * unop c) = op (unop b * unop c)),
-      apply unop_injective (mul_right_cancel₀ hc (op_injective hab)) },
+      exact unop_injective (mul_right_cancel₀ hc (op_injective hab)) },
     { rintros a b (hab : op (unop c * unop a) = op (unop c * unop b)),
-      apply unop_injective (mul_left_cancel₀ hc (op_injective hab)) }
+      exact unop_injective (mul_left_cancel₀ hc (op_injective hab)) }
   end }
 
 instance [group_with_zero α] : group_with_zero αᵐᵒᵖ :=
@@ -155,9 +155,9 @@ instance  [has_zero α] [has_mul α] [is_domain α] : is_domain αᵃᵒᵖ :=
     replace hc : unop c ≠ 0 :=  λ H, hc (congr_arg op H),
     split,
     { rintros a b (hab : op (unop c * unop a) = op (unop c * unop b)),
-      apply unop_injective ((mul_left_cancel₀ hc) (op_injective hab)) },
+      exact unop_injective ((mul_left_cancel₀ hc) (op_injective hab)) },
     { rintros a b (hab : op (unop a * unop c) = op (unop b * unop c)),
-      apply unop_injective (mul_right_cancel₀ hc (op_injective hab)) }
+      exact unop_injective (mul_right_cancel₀ hc (op_injective hab)) }
   end }
 
 instance [group_with_zero α] : group_with_zero αᵃᵒᵖ :=

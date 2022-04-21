@@ -184,15 +184,11 @@ begin
     exact nat.pow_right_injective hp.two_le hxy }
 end
 
-open_locale complex_conjugate nnreal
-
+-- #13582
 lemma units.mk0_prod {β α : Type} [_inst_1 : comm_group_with_zero β] (s : finset α)
   (f : α → β) (h) :
   units.mk0 (∏ b in s, f b) h = ∏ b in s.attach, units.mk0 (f b) (λ hh, h (prod_eq_zero b.2 hh)) :=
-begin
-  classical,
-  induction s using finset.induction_on with x si hsi hi; simp*
-end
+by { classical, induction s using finset.induction_on; simp* }
 
 lemma cyclotomic.eval_apply {C R : Type*} (q : R) (n : ℕ) [ring C] [ring R] (f : R →+* C) :
   eval (f q) (cyclotomic n C) = f (eval q (cyclotomic n R)) :=
@@ -201,63 +197,6 @@ by rw [← map_cyclotomic n f, eval_map, eval₂_at_apply]
 lemma _root_.is_primitive_root.ne_zero {M} [comm_monoid_with_zero M] [nontrivial M] {ζ : M} {n : ℕ}
   (h : is_primitive_root ζ n) : n ≠ 0 → ζ ≠ 0 :=
 mt $ λ hn, h.unique (hn.symm ▸ is_primitive_root.zero)
-
-lemma _root_.is_primitive_root.arg {n : ℕ} {ζ : ℂ} (h : is_primitive_root ζ n) (hn : n ≠ 0) :
-  ∃ i : ℤ, ζ.arg = i / n * (2 * real.pi) ∧ is_coprime i n ∧ i.nat_abs < n :=
-begin
-  rw complex.is_primitive_root_iff _ _ hn at h,
-  obtain ⟨i, h, hin, rfl⟩ := h,
-  rw [mul_comm, ←mul_assoc, complex.exp_mul_I],
-  refine ⟨if i * 2 ≤ n then i else i - n, _, _, _⟩,
-  work_on_goal 2
-  { replace hin := nat.is_coprime_iff_coprime.mpr hin,
-    split_ifs with _,
-    { exact hin },
-    { convert hin.add_mul_left_left (-1),
-      rw [mul_neg_one, sub_eq_add_neg] } },
-  work_on_goal 2
-  { split_ifs with h₂,
-    { exact_mod_cast h },
-    suffices : (i - n : ℤ).nat_abs = n - i,
-    { rw this,
-      apply tsub_lt_self hn.bot_lt,
-      contrapose! h₂,
-      rw [nat.eq_zero_of_le_zero h₂, zero_mul],
-      exact zero_le _ },
-    rw [←int.nat_abs_neg, neg_sub, int.nat_abs_eq_iff],
-    exact or.inl (int.coe_nat_sub h.le).symm },
-  split_ifs with h₂,
-  { convert complex.arg_cos_add_sin_mul_I _,
-    { push_cast },
-    { push_cast },
-    field_simp [hn],
-    refine ⟨(neg_lt_neg real.pi_pos).trans_le _, _⟩,
-    { rw neg_zero,
-      exact mul_nonneg (mul_nonneg (cast_nonneg _) $ by simp [real.pi_pos.le]) (by simp) },
-    rw [←mul_rotate', mul_div_assoc],
-    rw ←mul_one n at h₂,
-    exact mul_le_of_le_one_right real.pi_pos.le
-      ((div_le_iff' $ by exact_mod_cast (pos_of_gt h)).mpr $ by exact_mod_cast h₂) },
-  rw [←complex.cos_sub_two_pi, ←complex.sin_sub_two_pi],
-  convert complex.arg_cos_add_sin_mul_I _,
-  { push_cast,
-    rw [←sub_one_mul, sub_div, div_self],
-    exact_mod_cast hn },
-  { push_cast,
-    rw [←sub_one_mul, sub_div, div_self],
-    exact_mod_cast hn },
-  field_simp [hn],
-  refine ⟨_, le_trans _ real.pi_pos.le⟩,
-  work_on_goal 2
-  { rw [mul_div_assoc],
-    exact mul_nonpos_of_nonpos_of_nonneg (sub_nonpos.mpr $ by exact_mod_cast h.le)
-      (div_nonneg (by simp [real.pi_pos.le]) $ by simp) },
-  rw [←mul_rotate', mul_div_assoc, neg_lt, ←mul_neg, mul_lt_iff_lt_one_right real.pi_pos,
-      ←neg_div, ←neg_mul, neg_sub, div_lt_iff, one_mul, sub_mul, sub_lt, ←mul_sub_one],
-  norm_num,
-  exact_mod_cast not_le.mp h₂,
-  { exact (cast_pos.mpr hn.bot_lt) }
-end
 
 lemma sub_one_pow_totient_lt_cyclotomic_eval (n : ℕ) (q : ℝ) (hn' : 2 ≤ n) (hq' : 1 < q) :
   (q - 1) ^ totient n < (cyclotomic n ℝ).eval q :=

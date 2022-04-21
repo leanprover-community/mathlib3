@@ -250,6 +250,7 @@ lemma prod_map_comp (f₁₂ : M →ₗ[R] M₂) (f₂₃ : M₂ →ₗ[R] M₃)
 lemma prod_map_mul (f₁₂ : M →ₗ[R] M) (f₂₃ : M →ₗ[R] M) (g₁₂ : M₂ →ₗ[R] M₂) (g₂₃ : M₂ →ₗ[R] M₂) :
   f₂₃.prod_map g₂₃ * f₁₂.prod_map g₁₂ = (f₂₃ * f₁₂).prod_map (g₂₃ * g₁₂) := rfl
 
+/-- `linear_map.prod_map` as a `monoid_hom` -/
 @[simps]
 def prod_map_monoid_hom : (M →ₗ[R] M) × (M₂ →ₗ[R] M₂) →* ((M × M₂) →ₗ[R] (M × M₂)) :=
 { to_fun := λ f, prod_map f.1 f.2,

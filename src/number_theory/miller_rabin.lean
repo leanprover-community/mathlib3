@@ -359,17 +359,28 @@ lemma one_or_coprime_factorization_or_prime_power (n : ℕ) (h : 0 < n) :
   (∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1) ∨
   (∃ (p k : ℕ), 1 ≤ k ∧ p.prime ∧ p^k = n) :=
 begin
-  have stuff := coprime_factorization_or_prime_power n h,
-  cases stuff with one two,
-  cases one with roo too,
+  by_cases is_one : n = 1,
+  left,
+  exact is_one,
+  rcases coprime_factorization_or_prime_power n h with ⟨n0, n1, h01⟩,
+  -- cases one with roo too,
   right,
   left,
-  exact one,
+  use n0,
+  use n1,
+  exact h01,
   right,
   right,
-  sorry,
-  -- This is a slight modification of the lemma coprime_factorization_or_prime_power above.
-  -- TODO(Sean): Try to prove this using coprime_factorization_or_prime_power (no other lemmas from this file should be needed) (first do a have statement to get the coprime_factorization_or_prime_power result into the hypotheses here)
+  rcases h_1 with ⟨p, k, hpk⟩,
+  use p,
+  use k,
+  split,
+  by_contra hk,
+  simp at hk,
+  rw hk at *,
+  clear hk,
+  simp at *,
+  work_on_goal 1 { cases hpk, induction hpk_right, simp at *, assumption }, assumption,
 end
 
 -- noncomputable instance subgroup_fintype {G : Type} [fintype G] [group G] {H : subgroup G} : fintype H := subgroup.fintype H
@@ -462,23 +473,23 @@ def finset_units (n : ℕ) [hn_pos : fact (0 < n)] : finset (zmod n) :=
 (finset.univ : finset (zmod n)).filter is_unit
 
 
--- finite subgroup
+-- -- finite subgroup
 
--- the cardinality of a subgroup is the cardinality of its carrier
-lemma card_subgroup_eq_card_carrier {G : Type} [group G] [fintype G] {H : subgroup G} :
-  fintype.card H = finset.card (H.carrier : finset G) :=
-begin
+-- -- the cardinality of a subgroup is the cardinality of its carrier
+-- lemma card_subgroup_eq_card_carrier {G : Type} [group G] [fintype G] {H : subgroup G} :
+--   fintype.card H = finset.card (H.carrier : finset G) :=
+-- begin
 
-end
+-- end
 
-lemma foocard (n e : ℕ) [fact (0 < n)] :
-  (fintype.card (↥(pow_alt_subgroup n e)) : ℕ)
-  = finset.card ((finset.univ : finset ((zmod n)ˣ)).filter (λ (a : (zmod n)ˣ), a^e = 1 ∨ a^e = -1))
-  :=
-begin
-  rw fintype.card,
-  -- simp,
-end
+-- lemma foocard (n e : ℕ) [fact (0 < n)] :
+--   (fintype.card (↥(pow_alt_subgroup n e)) : ℕ)
+--   = finset.card ((finset.univ : finset ((zmod n)ˣ)).filter (λ (a : (zmod n)ˣ), a^e = 1 ∨ a^e = -1))
+--   :=
+-- begin
+--   rw fintype.card,
+--   -- simp,
+-- end
 
 
 lemma unlikely_strong_probable_prime_of_coprime_mul (n : ℕ) [hn_pos : fact (0 < n)]

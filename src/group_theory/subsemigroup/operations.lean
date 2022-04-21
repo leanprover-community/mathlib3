@@ -159,19 +159,19 @@ variables [has_mul M] [has_mul N] [has_mul P] (S : subsemigroup M)
 /-- The preimage of a subsemigroup along a mul homomorphism is a subsemigroup. -/
 @[to_additive "The preimage of an `add_subsemigroup` along an add homomorphism is an
 `add_subsemigroup`."]
-def comap (f : mul_hom M N) (S : subsemigroup N) : subsemigroup M :=
+def comap (f : M →ₙ* N) (S : subsemigroup N) : subsemigroup M :=
 { carrier := (f ⁻¹' S),
   mul_mem' := λ a b ha hb,
     show f (a * b) ∈ S, by rw f.map_mul; exact S.mul_mem ha hb }
 
 @[simp, to_additive]
-lemma coe_comap (S : subsemigroup N) (f : mul_hom M N) : (S.comap f : set M) = f ⁻¹' S := rfl
+lemma coe_comap (S : subsemigroup N) (f : M →ₙ* N) : (S.comap f : set M) = f ⁻¹' S := rfl
 
 @[simp, to_additive]
-lemma mem_comap {S : subsemigroup N} {f : mul_hom M N} {x : M} : x ∈ S.comap f ↔ f x ∈ S := iff.rfl
+lemma mem_comap {S : subsemigroup N} {f : M →ₙ* N} {x : M} : x ∈ S.comap f ↔ f x ∈ S := iff.rfl
 
 @[to_additive]
-lemma comap_comap (S : subsemigroup P) (g : mul_hom N P) (f : mul_hom M N) :
+lemma comap_comap (S : subsemigroup P) (g : N →ₙ* P) (f : M →ₙ* N) :
   (S.comap g).comap f = S.comap (g.comp f) :=
 rfl
 
@@ -182,102 +182,101 @@ ext (by simp)
 /-- The image of a subsemigroup along a mul homomorphism is a subsemigroup. -/
 @[to_additive "The image of an `add_subsemigroup` along an add homomorphism is
 an `add_subsemigroup`."]
-def map (f : mul_hom M N) (S : subsemigroup M) : subsemigroup N :=
+def map (f : M →ₙ* N) (S : subsemigroup M) : subsemigroup N :=
 { carrier := (f '' S),
   mul_mem' := begin rintros _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩, exact ⟨x * y, S.mul_mem hx hy,
     by rw f.map_mul; refl⟩ end }
 
 @[simp, to_additive]
-lemma coe_map (f : mul_hom M N) (S : subsemigroup M) :
+lemma coe_map (f : M →ₙ* N) (S : subsemigroup M) :
   (S.map f : set N) = f '' S := rfl
 
 @[simp, to_additive]
-lemma mem_map {f : mul_hom M N} {S : subsemigroup M} {y : N} :
+lemma mem_map {f : M →ₙ* N} {S : subsemigroup M} {y : N} :
   y ∈ S.map f ↔ ∃ x ∈ S, f x = y :=
 mem_image_iff_bex
 
 @[to_additive]
-lemma mem_map_of_mem (f : mul_hom M N) {S : subsemigroup M} {x : M} (hx : x ∈ S) : f x ∈ S.map f :=
+lemma mem_map_of_mem (f : M →ₙ* N) {S : subsemigroup M} {x : M} (hx : x ∈ S) : f x ∈ S.map f :=
 mem_image_of_mem f hx
 
 @[to_additive]
-lemma apply_coe_mem_map (f : mul_hom M N) (S : subsemigroup M) (x : S) : f x ∈ S.map f :=
+lemma apply_coe_mem_map (f : M →ₙ* N) (S : subsemigroup M) (x : S) : f x ∈ S.map f :=
 mem_map_of_mem f x.prop
 
 @[to_additive]
-lemma map_map (g : mul_hom N P) (f : mul_hom M N) : (S.map f).map g = S.map (g.comp f) :=
+lemma map_map (g : N →ₙ* P) (f : M →ₙ* N) : (S.map f).map g = S.map (g.comp f) :=
 set_like.coe_injective $ image_image _ _ _
 
 @[to_additive]
-lemma mem_map_iff_mem {f : mul_hom M N} (hf : function.injective f) {S : subsemigroup M} {x : M} :
+lemma mem_map_iff_mem {f : M →ₙ* N} (hf : function.injective f) {S : subsemigroup M} {x : M} :
   f x ∈ S.map f ↔ x ∈ S :=
 hf.mem_set_image
 
 @[to_additive]
-lemma map_le_iff_le_comap {f : mul_hom M N} {S : subsemigroup M} {T : subsemigroup N} :
+lemma map_le_iff_le_comap {f : M →ₙ* N} {S : subsemigroup M} {T : subsemigroup N} :
   S.map f ≤ T ↔ S ≤ T.comap f :=
 image_subset_iff
 
 @[to_additive]
-lemma gc_map_comap (f : mul_hom M N) : galois_connection (map f) (comap f) :=
+lemma gc_map_comap (f : M →ₙ* N) : galois_connection (map f) (comap f) :=
 λ S T, map_le_iff_le_comap
 
 @[to_additive]
-lemma map_le_of_le_comap {T : subsemigroup N} {f : mul_hom M N} : S ≤ T.comap f → S.map f ≤ T :=
+lemma map_le_of_le_comap {T : subsemigroup N} {f : M →ₙ* N} : S ≤ T.comap f → S.map f ≤ T :=
 (gc_map_comap f).l_le
 
 @[to_additive]
-lemma le_comap_of_map_le {T : subsemigroup N} {f : mul_hom M N} : S.map f ≤ T → S ≤ T.comap f :=
+lemma le_comap_of_map_le {T : subsemigroup N} {f : M →ₙ* N} : S.map f ≤ T → S ≤ T.comap f :=
 (gc_map_comap f).le_u
 
 @[to_additive]
-lemma le_comap_map {f : mul_hom M N} : S ≤ (S.map f).comap f :=
+lemma le_comap_map {f : M →ₙ* N} : S ≤ (S.map f).comap f :=
 (gc_map_comap f).le_u_l _
 
 @[to_additive]
-lemma map_comap_le {S : subsemigroup N} {f : mul_hom M N} : (S.comap f).map f ≤ S :=
+lemma map_comap_le {S : subsemigroup N} {f : M →ₙ* N} : (S.comap f).map f ≤ S :=
 (gc_map_comap f).l_u_le _
 
 @[to_additive]
-lemma monotone_map {f : mul_hom M N} : monotone (map f) :=
+lemma monotone_map {f : M →ₙ* N} : monotone (map f) :=
 (gc_map_comap f).monotone_l
 
 @[to_additive]
-lemma monotone_comap {f : mul_hom M N} : monotone (comap f) :=
+lemma monotone_comap {f : M →ₙ* N} : monotone (comap f) :=
 (gc_map_comap f).monotone_u
 
 @[simp, to_additive]
-lemma map_comap_map {f : mul_hom M N} : ((S.map f).comap f).map f = S.map f :=
+lemma map_comap_map {f : M →ₙ* N} : ((S.map f).comap f).map f = S.map f :=
 (gc_map_comap f).l_u_l_eq_l _
 
 @[simp, to_additive]
-lemma comap_map_comap {S : subsemigroup N} {f : mul_hom M N} :
+lemma comap_map_comap {S : subsemigroup N} {f : M →ₙ* N} :
   ((S.comap f).map f).comap f = S.comap f :=
 (gc_map_comap f).u_l_u_eq_u _
 
 @[to_additive]
-lemma map_sup (S T : subsemigroup M) (f : mul_hom M N) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
+lemma map_sup (S T : subsemigroup M) (f : M →ₙ* N) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
 (gc_map_comap f).l_sup
 
 @[to_additive]
-lemma map_supr {ι : Sort*} (f : mul_hom M N) (s : ι → subsemigroup M) :
+lemma map_supr {ι : Sort*} (f : M →ₙ* N) (s : ι → subsemigroup M) :
   (supr s).map f = ⨆ i, (s i).map f :=
 (gc_map_comap f).l_supr
 
 @[to_additive]
-lemma comap_inf (S T : subsemigroup N) (f : mul_hom M N) :
-  (S ⊓ T).comap f = S.comap f ⊓ T.comap f :=
+lemma comap_inf (S T : subsemigroup N) (f : M →ₙ* N) : (S ⊓ T).comap f = S.comap f ⊓ T.comap f :=
 (gc_map_comap f).u_inf
 
 @[to_additive]
-lemma comap_infi {ι : Sort*} (f : mul_hom M N) (s : ι → subsemigroup N) :
+lemma comap_infi {ι : Sort*} (f : M →ₙ* N) (s : ι → subsemigroup N) :
   (infi s).comap f = ⨅ i, (s i).comap f :=
 (gc_map_comap f).u_infi
 
-@[simp, to_additive] lemma map_bot (f : mul_hom M N) : (⊥ : subsemigroup M).map f = ⊥ :=
+@[simp, to_additive] lemma map_bot (f : M →ₙ* N) : (⊥ : subsemigroup M).map f = ⊥ :=
 (gc_map_comap f).l_bot
 
-@[simp, to_additive] lemma comap_top (f : mul_hom M N) : (⊤ : subsemigroup N).comap f = ⊤ :=
+@[simp, to_additive] lemma comap_top (f : M →ₙ* N) : (⊤ : subsemigroup N).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
 @[simp, to_additive] lemma map_id (S : subsemigroup M) : S.map (mul_hom.id M) = S :=
@@ -285,7 +284,7 @@ ext (λ x, ⟨λ ⟨_, h, rfl⟩, h, λ h, ⟨_, h, rfl⟩⟩)
 
 section galois_coinsertion
 
-variables {ι : Type*} {f : mul_hom M N} (hf : function.injective f)
+variables {ι : Type*} {f : M →ₙ* N} (hf : function.injective f)
 
 include hf
 
@@ -335,7 +334,7 @@ end galois_coinsertion
 
 section galois_insertion
 
-variables {ι : Type*} {f : mul_hom M N} (hf : function.surjective f)
+variables {ι : Type*} {f : M →ₙ* N} (hf : function.surjective f)
 
 include hf
 
@@ -406,20 +405,20 @@ an `add_comm_semigroup`."]
 instance to_comm_semigroup {M} [comm_semigroup M] (S : subsemigroup M) : comm_semigroup S :=
 subtype.coe_injective.comm_semigroup coe (λ _ _, rfl)
 
-/-- The natural mul hom from a subsemigroup of magma `M` to `M`. -/
-@[to_additive "The natural add hom from an `add_subsemigroup` of additive magma `M` to `M`."]
-def subtype : mul_hom S M := ⟨coe, λ _ _, rfl⟩
+/-- The natural semigroup hom from a subsemigroup of semigroup `M` to `M`. -/
+@[to_additive "The natural semigroup hom from an `add_subsemigroup` of `add_semigroup` `M` to `M`."]
+def subtype : S →ₙ* M := ⟨coe, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
 
 /-- A subsemigroup is isomorphic to its image under an injective function -/
 @[to_additive "An additive subsemigroup is isomorphic to its image under an injective function"]
 noncomputable def equiv_map_of_injective
-  (f : mul_hom M N) (hf : function.injective f) : S ≃* S.map f :=
-{ map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f S hf }
+  (f : M →ₙ* N) (hf : function.injective f) : S ≃* S.map f :=
+{ map_mul' := λ _ _, subtype.ext (map_mul f _ _), ..equiv.set.image f S hf }
 
 @[simp, to_additive] lemma coe_equiv_map_of_injective_apply
-  (f : mul_hom M N) (hf : function.injective f) (x : S) :
+  (f : M →ₙ* N) (hf : function.injective f) (x : S) :
   (equiv_map_of_injective S f hf x : N) = f x := rfl
 
 @[simp, to_additive]
@@ -518,87 +517,88 @@ variables [has_mul M] [has_mul N] [has_mul P] (S : subsemigroup M)
 
 /-- The range of a mul homomorphism is a subsemigroup. See Note [range copy pattern]. -/
 @[to_additive "The range of an `add_hom` is an `add_subsemigroup`."]
-def mrange (f : mul_hom M N) : subsemigroup N :=
+def mrange (f : M →ₙ* N) : subsemigroup N :=
 ((⊤ : subsemigroup M).map f).copy (set.range f) set.image_univ.symm
 
 @[simp, to_additive]
-lemma coe_mrange (f : mul_hom M N) :
+lemma coe_mrange (f : M →ₙ* N) :
   (f.mrange : set N) = set.range f :=
 rfl
 
-@[simp, to_additive] lemma mem_mrange {f : mul_hom M N} {y : N} :
+@[simp, to_additive] lemma mem_mrange {f : M →ₙ* N} {y : N} :
   y ∈ f.mrange ↔ ∃ x, f x = y :=
 iff.rfl
 
-@[to_additive] lemma mrange_eq_map (f : mul_hom M N) : f.mrange = (⊤ : subsemigroup M).map f :=
+@[to_additive] lemma mrange_eq_map (f : M →ₙ* N) : f.mrange = (⊤ : subsemigroup M).map f :=
 copy_eq _
 
 @[to_additive]
-lemma map_mrange (g : mul_hom N P) (f : mul_hom M N) : f.mrange.map g = (g.comp f).mrange :=
+lemma map_mrange (g : N →ₙ* P) (f : M →ₙ* N) : f.mrange.map g = (g.comp f).mrange :=
 by simpa only [mrange_eq_map] using (⊤ : subsemigroup M).map_map g f
 
 @[to_additive]
-lemma mrange_top_iff_surjective {N} [has_mul N] {f : mul_hom M N} :
+lemma mrange_top_iff_surjective {N} [has_mul N] {f : M →ₙ* N} :
   f.mrange = (⊤ : subsemigroup N) ↔ function.surjective f :=
 set_like.ext'_iff.trans $ iff.trans (by rw [coe_mrange, coe_top]) set.range_iff_surjective
 
-/-- The range of a surjective monoid hom is the whole of the codomain. -/
-@[to_additive "The range of a surjective `add_monoid` hom is the whole of the codomain."]
-lemma mrange_top_of_surjective {N} [has_mul N] (f : mul_hom M N) (hf : function.surjective f) :
+/-- The range of a surjective semigroup hom is the whole of the codomain. -/
+@[to_additive "The range of a surjective `add_semigroup` hom is the whole of the codomain."]
+lemma mrange_top_of_surjective {N} [has_mul N] (f : M →ₙ* N) (hf : function.surjective f) :
   f.mrange = (⊤ : subsemigroup N) :=
 mrange_top_iff_surjective.2 hf
 
 @[to_additive]
-lemma mclosure_preimage_le (f : mul_hom M N) (s : set N) :
+lemma mclosure_preimage_le (f : M →ₙ* N) (s : set N) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
 closure_le.2 $ λ x hx, set_like.mem_coe.2 $ mem_comap.2 $ subset_closure hx
 
-/-- The image under a mul hom of the subsemigroup generated by a set equals the
-    subsemigroup generated by the image of the set. -/
-@[to_additive "The image under an add hom of the `add_subsemigroup` generated by a set equals
-the `add_subsemigroup` generated by the image of the set."]
-lemma map_mclosure (f : mul_hom M N) (s : set M) :
+/-- The image under a semigroup hom of the subsemigroup generated by a set equals the subsemigroup
+generated by the image of the set. -/
+@[to_additive "The image under an `add_semigroup` hom of the `add_subsemigroup` generated by a set
+equals the `add_subsemigroup` generated by the image of the set."]
+lemma map_mclosure (f : M →ₙ* N) (s : set M) :
   (closure s).map f = closure (f '' s) :=
 le_antisymm
   (map_le_iff_le_comap.2 $ le_trans (closure_mono $ set.subset_preimage_image _ _)
     (mclosure_preimage_le _ _))
   (closure_le.2 $ set.image_subset _ subset_closure)
 
-/-- Restriction of a mul hom to a subsemigroup of the domain. -/
-@[to_additive "Restriction of an add hom to an `add_subsemigroup` of the domain."]
-def mrestrict {N : Type*} [has_mul N] (f : mul_hom M N) (S : subsemigroup M) : mul_hom S N :=
+/-- Restriction of a semigroup hom to a subsemigroup of the domain. -/
+@[to_additive "Restriction of an add_semigroup hom to an `add_subsemigroup` of the domain."]
+def mrestrict {N : Type*} [has_mul N] (f : M →ₙ* N) (S : subsemigroup M) : S →ₙ* N :=
 f.comp S.subtype
 
 @[simp, to_additive]
-lemma mrestrict_apply {N : Type*} [has_mul N] (f : mul_hom M N) (x : S) : f.mrestrict S x = f x :=
+lemma mrestrict_apply {N : Type*} [has_mul N] (f : M →ₙ* N) (x : S) : f.mrestrict S x = f x :=
 rfl
 
-/-- Restriction of a mul hom to a subsemigroup of the codomain. -/
-@[to_additive "Restriction of an add hom to an `add_subsemigroup` of the codomain.", simps]
-def cod_mrestrict (f : mul_hom M N) (S : subsemigroup N) (h : ∀ x, f x ∈ S) : mul_hom M S :=
+/-- Restriction of a semigroup hom to a subsemigroup of the codomain. -/
+@[to_additive "Restriction of an `add_semigroup` hom to an `add_subsemigroup` of the
+codomain.", simps]
+def cod_mrestrict (f : M →ₙ* N) (S : subsemigroup N) (h : ∀ x, f x ∈ S) : M →ₙ* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
 
-/-- Restriction of a mul hom to its range interpreted as a subsemigroup. -/
-@[to_additive "Restriction of an add hom to its range interpreted as a subsemigroup."]
-def mrange_restrict {N} [has_mul N] (f : mul_hom M N) : mul_hom M f.mrange :=
+/-- Restriction of a semigroup hom to its range interpreted as a subsemigroup. -/
+@[to_additive "Restriction of an `add_semigroup` hom to its range interpreted as a subsemigroup."]
+def mrange_restrict {N} [has_mul N] (f : M →ₙ* N) : M →ₙ* f.mrange :=
 f.cod_mrestrict f.mrange $ λ x, ⟨x, rfl⟩
 
 @[simp, to_additive]
-lemma coe_mrange_restrict {N} [has_mul N] (f : mul_hom M N) (x : M) :
+lemma coe_mrange_restrict {N} [has_mul N] (f : M →ₙ* N) (x : M) :
   (f.mrange_restrict x : N) = f x :=
 rfl
 
 @[to_additive]
 lemma prod_map_comap_prod' {M' : Type*} {N' : Type*} [has_mul M'] [has_mul N']
-  (f : mul_hom M N) (g : mul_hom M' N') (S : subsemigroup N) (S' : subsemigroup N') :
+  (f : M →ₙ* N) (g : M' →ₙ* N') (S : subsemigroup N) (S' : subsemigroup N') :
   (S.prod S').comap (prod_map f g) = (S.comap f).prod (S'.comap g) :=
 set_like.coe_injective $ set.preimage_prod_map_prod f g _ _
 
 /-- The `mul_hom` from the preimage of a subsemigroup to itself. -/
-@[to_additive "the `add__hom` from the preimage of an additive subsemigroup to itself.", simps]
-def subsemigroup_comap (f : mul_hom M N) (N' : subsemigroup N) :
-  mul_hom (N'.comap f) N' :=
+@[to_additive "the `add_hom` from the preimage of an additive subsemigroup to itself.", simps]
+def subsemigroup_comap (f : M →ₙ* N) (N' : subsemigroup N) :
+  N'.comap f →ₙ* N' :=
 { to_fun := λ x, ⟨f x, x.prop⟩,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }
 
@@ -606,13 +606,13 @@ def subsemigroup_comap (f : mul_hom M N) (N' : subsemigroup N) :
 See `mul_equiv.subsemigroup_map` for a variant for `mul_equiv`s. -/
 @[to_additive "the `add_hom` from an additive subsemigroup to its image. See
 `add_equiv.add_subsemigroup_map` for a variant for `add_equiv`s.", simps]
-def subsemigroup_map (f : mul_hom M N) (M' : subsemigroup M) :
-  mul_hom M' (M'.map f) :=
+def subsemigroup_map (f : M →ₙ* N) (M' : subsemigroup M) :
+  M' →ₙ* M'.map f :=
 { to_fun := λ x, ⟨f x, ⟨x, x.prop, rfl⟩⟩,
   map_mul' := λ x y, subtype.eq $ f.map_mul x y }
 
 @[to_additive]
-lemma subsemigroup_map_surjective (f : mul_hom M N) (M' : subsemigroup M) :
+lemma subsemigroup_map_surjective (f : M →ₙ* N) (M' : subsemigroup M) :
   function.surjective (f.subsemigroup_map M') :=
 by { rintro ⟨_, x, hx, rfl⟩, exact ⟨⟨x, hx⟩, rfl⟩ }
 
@@ -631,9 +631,9 @@ lemma mrange_fst [nonempty N] : (fst M N).mrange = ⊤ :=
 lemma mrange_snd [nonempty M] : (snd M N).mrange = ⊤ :=
 (snd M N).mrange_top_of_surjective $ @prod.snd_surjective _ _ _
 
-/-- The mul hom associated to an inclusion of subsemigroups. -/
-@[to_additive "The add hom associated to an inclusion of additive subsemigroups."]
-def inclusion {S T : subsemigroup M} (h : S ≤ T) : mul_hom S T :=
+/-- The semigroup hom associated to an inclusion of subsemigroups. -/
+@[to_additive "The `add_semigroup` hom associated to an inclusion of subsemigroups."]
+def inclusion {S T : subsemigroup M} (h : S ≤ T) : S →ₙ* T :=
 S.subtype.cod_mrestrict _ (λ x, h x.2)
 
 @[simp, to_additive]
@@ -656,7 +656,7 @@ def subsemigroup_congr (h : S = T) : S ≃* T :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
 
 -- this name is primed so that the version to `f.range` instead of `f.mrange` can be unprimed.
-/-- A mul homomorphism `f : mul_hom M N` with a left-inverse `g : N → M` defines a multiplicative
+/-- A semigroup homomorphism `f : M →ₙ* N` with a left-inverse `g : N → M` defines a multiplicative
 equivalence between `M` and `f.mrange`.
 
 This is a bidirectional version of `mul_hom.mrange_restrict`. -/
@@ -664,9 +664,8 @@ This is a bidirectional version of `mul_hom.mrange_restrict`. -/
 An additive homomorphism `f : M →+ N` with a left-inverse `g : N → M` defines an additive
 equivalence between `M` and `f.mrange`.
 
-This is a bidirectional version of `add_mul_hom.mrange_restrict`. "-/, simps {simp_rhs := tt}]
-def of_left_inverse'' (f : mul_hom M N) {g : N → M} (h : function.left_inverse g f) :
-  M ≃* f.mrange :=
+This is a bidirectional version of `add_hom.mrange_restrict`. "-/, simps {simp_rhs := tt}]
+def of_left_inverse' (f : M →ₙ* N) {g : N → M} (h : function.left_inverse g f) : M ≃* f.mrange :=
 { to_fun := f.mrange_restrict,
   inv_fun := g ∘ f.mrange.subtype,
   left_inv := h,

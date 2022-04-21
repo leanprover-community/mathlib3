@@ -179,6 +179,11 @@ by simp [pairwise_insert_of_symmetric hr]
 lemma pairwise_univ : (univ : set α).pairwise r ↔ pairwise r :=
 by simp only [set.pairwise, pairwise, mem_univ, forall_const]
 
+@[simp] lemma pairwise_bot_iff : s.pairwise (⊥ : α → α → Prop) ↔ (s : set α).subsingleton :=
+⟨λ h a ha b hb, h.eq ha hb id, λ h, h.pairwise _⟩
+
+alias pairwise_bot_iff ↔ set.pairwise.subsingleton _
+
 lemma pairwise.on_injective (hs : s.pairwise r) (hf : function.injective f)
   (hfs : ∀ x, f x ∈ s) :
   pairwise (r on f) :=

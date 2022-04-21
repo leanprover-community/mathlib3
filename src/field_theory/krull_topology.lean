@@ -413,8 +413,8 @@ end
 /-- The function `function_of_ultrafilter h_int f` is actually a `K`-algebra homomorphism,
   and here we define the corresponding term of `L →ₐ[K] L`.-/
 noncomputable def alg_hom_of_ultrafilter {K L : Type*} [field K] [field L] [algebra K L]
-(h_int : algebra.is_integral K L) (f : ultrafilter (L ≃ₐ[K] L)) :
-(L →ₐ[K] L) :=
+  (h_int : algebra.is_integral K L) (f : ultrafilter (L ≃ₐ[K] L)) :
+  (L →ₐ[K] L) :=
 { to_fun := function_of_ultrafilter h_int f,
   map_one' :=
   begin

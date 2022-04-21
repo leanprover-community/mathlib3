@@ -246,8 +246,8 @@ begin
         norm_nonneg, nat.cast_nonneg, pow_le_pow_of_le_left]
 end
 
-/-- A version of `multilinear_map.mk_continuous` for seminormed spaces. Note that
-`multilinear_map.mk_continuous` is identical, but doesn't elaborate well. -/
+/-- A version of `multilinear_map.mk_continuous` for when the domain consists of seminormed spaces.
+Note that `multilinear_map.mk_continuous` is identical, but doesn't elaborate well. -/
 def mk_continuousₛ (f : multilinear_map 𝕜 Eₛ Gₛ) (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :
   continuous_multilinear_map 𝕜 Eₛ Gₛ :=
 { cont := f.continuous_of_bound C H, ..f }
@@ -936,7 +936,7 @@ begin
   exact mk_continuous_norm_le _ (le_max_right _ _) _
 end
 
-lemma mk_continuous_multilinear_norm_le (f : multilinear_map 𝕜 E (multilinear_map 𝕜 E' G)) {C : ℝ}
+lemma mk_continuous_multilinear_norm_le (f : multilinear_map 𝕜 E (multilinear_map 𝕜 E' Gₛ)) {C : ℝ}
   (hC : 0 ≤ C) (H : ∀ m₁ m₂, ∥f m₁ m₂∥ ≤ C * (∏ i, ∥m₁ i∥) * ∏ i, ∥m₂ i∥) :
   ∥mk_continuous_multilinear f C H∥ ≤ C :=
 (mk_continuous_multilinear_norm_le' f C H).trans_eq (max_eq_left hC)
@@ -1285,7 +1285,7 @@ lemma continuous_multilinear_map.uncurry0_curry0 (f : G [×0]→L[𝕜] G'ₛ) :
   continuous_multilinear_map.curry0 𝕜 G (f.uncurry0) = f :=
 by simp
 
-variables (𝕜 G)
+variables (𝕜 G Gₛ)
 @[simp] lemma continuous_multilinear_map.curry0_uncurry0 (x : G'ₛ) :
   (continuous_multilinear_map.curry0 𝕜 G x).uncurry0 = x := rfl
 
@@ -1297,7 +1297,7 @@ begin
   { simpa using (continuous_multilinear_map.curry0 𝕜 G x).le_op_norm 0 }
 end
 
-variables {𝕜 G}
+variables {𝕜 G Gₛ}
 @[simp] lemma continuous_multilinear_map.fin0_apply_norm (f : G [×0]→L[𝕜] G'ₛ) {x : fin 0 → G} :
   ∥f x∥ = ∥f∥ :=
 begin
@@ -1448,7 +1448,8 @@ values in the space of continuous multilinear maps of `l` variables. -/
 def curry_fin_finset {k l n : ℕ} {s : finset (fin n)}
   (hk : s.card = k) (hl : sᶜ.card = l) :
   (G [×n]→L[𝕜] G'ₛ) ≃ₗᵢ[𝕜] (G [×k]→L[𝕜] G [×l]→L[𝕜] G'ₛ) :=
-(dom_dom_congr 𝕜 G G'ₛ (fin_sum_equiv_of_finset hk hl).symm).trans
+linear_isometry_equiv.trans
+  (dom_dom_congr 𝕜 G G'ₛ (fin_sum_equiv_of_finset hk hl).symm)
   (curry_sum_equiv 𝕜 (fin k) (fin l) G G'ₛ)
 
 variables {𝕜 G G' Gₛ G'ₛ}

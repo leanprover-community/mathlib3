@@ -15,6 +15,9 @@ import data.fintype.basic
 
 -- TODO add reference to [this](https://kconrad.math.uconn.edu/blurbs/ugradnumthy/millerrabin.pdf)
 
+
+-- open_locale classical
+
 def two_power_part (n : ℕ) := 2 ^ (padic_val_nat 2 n)
 
 def odd_part (n : ℕ) := n / two_power_part n
@@ -369,10 +372,46 @@ begin
   -- TODO(Sean): Try to prove this using coprime_factorization_or_prime_power (no other lemmas from this file should be needed) (first do a have statement to get the coprime_factorization_or_prime_power result into the hypotheses here)
 end
 
-instance subgroup_fintype {G : Type} [fintype G] [group G] {H : subgroup G} : fintype H :=
+-- noncomputable instance subgroup_fintype {G : Type} [fintype G] [group G] {H : subgroup G} : fintype H := subgroup.fintype H
+-- begin
+--   -- library_search
+--   tidy,
+--   sorry,
+-- end
+
+-- lemma card_finite_subgroup_eq_card_carrier {α : Type} [fintype α] [group α] (s : finset α)
+--   (hmul : ∀ a b ∈ s, a * b ∈ s) (hid : (1 : α) ∈ s)
+--   (hinv : ∀ a ∈ s, a⁻¹ ∈ s)  :
+--   finset.card s = fintype.card (subgroup.mk (s : set α) (by tidy) (by tidy) (by tidy)) :=
+-- begin
+--   -- simp, -- fails
+--   -- rw subgroup.card_coe_sort, -- doesn't exist
+--   tidy,
+--   rw ← subgroup.mem_carrier,
+--   sorry,
+-- end
+
+-- Version of Lagrange's theorem using the formalism of a closed subset
+lemma card_closed_subset_dvd_card {α : Type} [fintype α] [group α] (s : finset α)
+  (closed_under_mul : ∀ a b ∈ s, a * b ∈ s) (closed_under_inv : ∀ a ∈ s, a⁻¹ ∈ s)
+  (id_mem : (1 : α) ∈ s)  :
+  finset.card s ∣ fintype.card α :=
 begin
-  -- library_search
-  sorry,
+  let s_subgroup : subgroup α := subgroup.mk (s : set α) _ _ _,
+  classical,
+  have : s.card = fintype.card s_subgroup,
+  { unfold_coes,
+    simp only [subgroup.mem_mk, finset.mem_coe] at *,
+    rw fintype.card_subtype,
+    congr,
+    ext,
+    simp_rw [finset.mem_filter, finset.mem_univ, true_and],
+   },
+  rw this,
+  convert subgroup.card_subgroup_dvd_card s_subgroup,
+  { intros a b ha hb, simp only [finset.mem_coe] at *, solve_by_elim, },
+  { assumption, },
+  { assumption, },
 end
 
 lemma card_le_half_of_proper_subgroup {G : Type} [fintype G] [group G] {H : subgroup G} -- [fintype H]

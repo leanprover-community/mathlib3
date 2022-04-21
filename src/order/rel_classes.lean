@@ -97,6 +97,8 @@ begin
   exact trans h₁ h₃, rw ←h₃, exact h₁, exfalso, exact h₂ h₃
 end
 
+lemma transitive_of_trans (r : α → α → Prop) [is_trans α r] : transitive r := λ _ _ _, trans
+
 /-- Construct a partial order from a `is_strict_order` relation.
 
 See note [reducible non-instances]. -/
@@ -450,6 +452,11 @@ instance [linear_order α] : is_strict_total_order' α (<) := {}
 instance [linear_order α] : is_order_connected α (<) := by apply_instance
 instance [linear_order α] : is_incomp_trans α (<) := by apply_instance
 instance [linear_order α] : is_strict_weak_order α (<) := by apply_instance
+
+lemma transitive_le [preorder α] : transitive (@has_le.le α _) := transitive_of_trans _
+lemma transitive_lt [preorder α] : transitive (@has_lt.lt α _) := transitive_of_trans _
+lemma transitive_ge [preorder α] : transitive (@ge α _) := transitive_of_trans _
+lemma transitive_gt [preorder α] : transitive (@gt α _) := transitive_of_trans _
 
 instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total (order_dual α) (≤) :=
 @is_total.swap α _ _

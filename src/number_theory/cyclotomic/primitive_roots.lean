@@ -202,7 +202,7 @@ begin
     rw [← hζ.power_basis_gen K, power_basis.norm_gen_eq_coeff_zero_minpoly, hζ.power_basis_gen K,
       ← hζ.minpoly_eq_cyclotomic_of_irreducible hirr, cyclotomic_coeff_zero _ h1, mul_one,
       hζ.power_basis_dim K, ← hζ.minpoly_eq_cyclotomic_of_irreducible hirr, nat_degree_cyclotomic],
-    exact neg_one_pow_of_even (totient_even (lt_of_le_of_ne h1 (λ h, hn (pnat.coe_inj.1 h.symm)))) }
+    exact (totient_even $ h1.lt_of_ne hn.symm).neg_one_pow }
 end
 
 /-- If `K` is linearly ordered, the norm of a primitive root is `1` if `n` is odd. -/
@@ -250,7 +250,7 @@ begin
   conv_lhs { congr, skip, funext,
     rw [← neg_sub, alg_hom.map_neg, alg_hom.map_sub, alg_hom.map_one, neg_eq_neg_one_mul] },
   rw [prod_mul_distrib, prod_const, card_univ, alg_hom.card, is_cyclotomic_extension.finrank L hirr,
-      neg_one_pow_of_even (totient_even h), one_mul],
+    (totient_even h).neg_one_pow, one_mul],
   have : finset.univ.prod (λ (σ : L →ₐ[K] E), 1 - σ ζ) = eval 1 (cyclotomic' n E),
   { rw [cyclotomic', eval_prod, ← @finset.prod_attach E E, ← univ_eq_attach],
     refine fintype.prod_equiv (hζ.embeddings_equiv_primitive_roots E hirr) _ _ (λ σ, _),
@@ -437,6 +437,42 @@ begin
   replace hζ : is_primitive_root ζ (2 ^ k : ℕ+) := by simp [hζ],
   obtain ⟨k₁, hk₁⟩ := exists_eq_succ_of_ne_zero ((lt_of_lt_of_le zero_lt_two hk).ne.symm),
   simpa [hk₁] using sub_one_norm_eq_eval_cyclotomic hζ this hirr,
+end
+
+/-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` and
+`irreducible (cyclotomic (p ^ (k - s + 1)) K))` (in particular for `K = ℚ`) and `p` is a prime,
+then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)` if `1 ≤ k`. -/
+lemma pow_sub_one_norm_prime_pow_of_one_le [hne : ne_zero ((p : ℕ) : K)] {k s : ℕ}
+  (hζ : is_primitive_root ζ ↑(p ^ (k + 1))) [hpri : fact (p : ℕ).prime]
+  [hcycl : is_cyclotomic_extension {p ^ (k + 1)} K L]
+  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))
+  (hirr₁ : irreducible (cyclotomic (↑(p ^ (k - s + 1)) : ℕ) K)) (hs : s ≤ k)
+  (hk : 1 ≤ k) : norm K (ζ ^ ((p : ℕ) ^ s) - 1) = p ^ ((p : ℕ) ^ s) :=
+begin
+  by_cases htwo : p ^ (k - s + 1) = 2,
+  { have hp : p = 2,
+    { rw [← pnat.coe_inj, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe, ← pow_one 2] at htwo,
+      replace htwo := eq_of_prime_pow_eq (prime_iff.1 hpri.out) (prime_iff.1 nat.prime_two)
+        (succ_pos _) htwo,
+      rwa [show 2 = ((2 : ℕ+) : ℕ), by simp, pnat.coe_inj] at htwo },
+    replace hs : s = k,
+    { rw [hp, ← pnat.coe_inj, pnat.pow_coe, pnat.coe_bit0, pnat.one_coe] at htwo,
+      nth_rewrite 1 [← pow_one 2] at htwo,
+      replace htwo := nat.pow_right_injective rfl.le htwo,
+      rw [add_left_eq_self, nat.sub_eq_zero_iff_le] at htwo,
+      refine le_antisymm hs htwo },
+    haveI : ne_zero (2 : K),
+    { refine ⟨λ h, _⟩,
+      rw [hp, pnat.coe_bit0, one_coe, cast_bit0, cast_one, h] at hne,
+      simpa using hne.out },
+    simp only [hs, hp, pnat.coe_bit0, one_coe, coe_coe, cast_bit0, cast_one,
+      pow_coe] at ⊢ hζ hirr hcycl,
+    haveI := hcycl,
+    obtain ⟨k₁, hk₁⟩ := nat.exists_eq_succ_of_ne_zero (one_le_iff_ne_zero.1 hk),
+    rw [hζ.pow_sub_one_norm_two hirr],
+    rw [hk₁, pow_succ, pow_mul, neg_eq_neg_one_mul, mul_pow, neg_one_sq, one_mul, ← pow_mul,
+      ← pow_succ] },
+  { exact hζ.pow_sub_one_norm_prime_pow_ne_two hirr hirr₁ hs htwo }
 end
 
 end is_primitive_root

@@ -1424,7 +1424,7 @@ instance : has_norm (Lp E p μ) := { norm := λ f, ennreal.to_real (snorm f p μ
 
 instance : has_dist (Lp E p μ) := { dist := λ f g, ∥f - g∥}
 
-instance : has_edist (Lp E p μ) := { edist := λ f g, ennreal.of_real (dist f g) }
+instance : has_edist (Lp E p μ) := { edist := λ f g, snorm (f - g) p μ }
 
 lemma norm_def (f : Lp E p μ) : ∥f∥ = ennreal.to_real (snorm f p μ) := rfl
 
@@ -1440,10 +1440,7 @@ begin
 end
 
 lemma edist_def (f g : Lp E p μ) : edist f g = snorm (f - g) p μ :=
-begin
-  simp_rw [edist, dist, norm_def, ennreal.of_real_to_real (snorm_ne_top _)],
-  exact snorm_congr_ae (coe_fn_sub _ _)
-end
+rfl
 
 @[simp] lemma edist_to_Lp_to_Lp (f g : α → E) (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
   edist (hf.to_Lp f) (hg.to_Lp g) = snorm (f - g) p μ :=
@@ -1540,19 +1537,28 @@ begin
 end
 
 instance [hp : fact (1 ≤ p)] : normed_group (Lp E p μ) :=
-normed_group.of_core _
-{ norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp.1),
-  triangle := begin
-    assume f g,
-    simp only [norm_def],
-    rw ← ennreal.to_real_add (snorm_ne_top f) (snorm_ne_top g),
-    suffices h_snorm : snorm ⇑(f + g) p μ ≤ snorm ⇑f p μ + snorm ⇑g p μ,
-    { rwa ennreal.to_real_le_to_real (snorm_ne_top (f + g)),
-      exact ennreal.add_ne_top.mpr ⟨snorm_ne_top f, snorm_ne_top g⟩, },
-    rw [snorm_congr_ae (coe_fn_add _ _)],
-    exact snorm_add_le (Lp.ae_strongly_measurable f) (Lp.ae_strongly_measurable g) hp.1,
-  end,
-  norm_neg := by simp }
+{ edist := edist,
+  edist_dist := λ f g, by
+    rw [edist_def, dist_def, ←snorm_congr_ae (coe_fn_sub _ _),
+      ennreal.of_real_to_real (snorm_ne_top (f - g))],
+  .. normed_group.of_core (Lp E p μ)
+    { norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp.1),
+      triangle := begin
+        assume f g,
+        simp only [norm_def],
+        rw ← ennreal.to_real_add (snorm_ne_top f) (snorm_ne_top g),
+        suffices h_snorm : snorm ⇑(f + g) p μ ≤ snorm ⇑f p μ + snorm ⇑g p μ,
+        { rwa ennreal.to_real_le_to_real (snorm_ne_top (f + g)),
+          exact ennreal.add_ne_top.mpr ⟨snorm_ne_top f, snorm_ne_top g⟩, },
+        rw [snorm_congr_ae (coe_fn_add _ _)],
+        exact snorm_add_le (Lp.ae_strongly_measurable f) (Lp.ae_strongly_measurable g) hp.1,
+      end,
+      norm_neg := by simp } }
+
+-- check no diamond is created
+example [fact (1 ≤ p)] :
+  pseudo_emetric_space.to_has_edist = (Lp.has_edist : has_edist (Lp E p μ)) :=
+rfl
 
 section normed_space
 

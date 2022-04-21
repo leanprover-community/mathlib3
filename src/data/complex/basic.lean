@@ -511,8 +511,8 @@ lemma im_le_abs (z : ℂ) : z.im ≤ abs z :=
 (abs_le.1 (abs_im_le_abs _)).2
 
 @[simp] lemma abs_re_lt_abs {z : ℂ} : |z.re| < abs z ↔ z.im ≠ 0 :=
-by rw [abs, real.lt_sqrt (_root_.abs_nonneg _) (norm_sq_nonneg z), norm_sq_apply,
-  _root_.sq_abs, ← sq, lt_add_iff_pos_right, mul_self_pos]
+by rw [abs, real.lt_sqrt (_root_.abs_nonneg _), norm_sq_apply, _root_.sq_abs, ← sq,
+  lt_add_iff_pos_right, mul_self_pos]
 
 @[simp] lemma abs_im_lt_abs {z : ℂ} : |z.im| < abs z ↔ z.re ≠ 0 :=
 by simpa using @abs_re_lt_abs (z * I)

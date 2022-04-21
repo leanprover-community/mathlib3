@@ -467,19 +467,15 @@ variable {rγ : non_unital_non_assoc_semiring γ}
 include rβ rγ
 
 /-- Composition of non-unital ring homomorphisms is a non-unital ring homomorphism. -/
-def comp (hnp : β →ₙ+* γ) (hmn : α →ₙ+* β) : α →ₙ+* γ :=
-{ to_fun := hnp ∘ hmn,
-  map_zero' := by simp,
-  map_add' := λ x y, by simp,
-  map_mul' := λ x y, by simp}
+def comp (g : β →ₙ+* γ) (f : α →ₙ+* β) : α →ₙ+* γ :=
+{ ..g.to_mul_hom.comp f.to_mul_hom, ..g.to_add_monoid_hom.comp f.to_add_monoid_hom }
 
 /-- Composition of non-unital ring homomorphisms is associative. -/
 lemma comp_assoc {δ} {rδ : non_unital_non_assoc_semiring δ} (f : α →ₙ+* β) (g : β →ₙ+* γ)
   (h : γ →ₙ+* δ) : (h.comp g).comp f = h.comp (g.comp f) := rfl
 
-@[simp] lemma coe_comp (g : β →ₙ+* γ) (f : α →ₙ+* β) : (g.comp f : α → γ) = g ∘ f := rfl
-@[simp] lemma comp_apply (hnp : β →ₙ+* γ) (hmn : α →ₙ+* β) (x : α) : (hnp.comp hmn : α → γ) x =
-  (hnp (hmn x)) := rfl
+@[simp] lemma coe_comp (g : β →ₙ+* γ) (f : α →ₙ+* β) : ⇑(g.comp f) = g ∘ f := rfl
+@[simp] lemma comp_apply (g : β →ₙ+* γ) (f : α →ₙ+* β) (x : α) : g.comp f x = g (f x) := rfl
 
 @[simp] lemma coe_comp_add_monoid_hom (g : β →ₙ+* γ) (f : α →ₙ+* β) :
   (g.comp f : α →+ γ) = (g : β →+ γ).comp f := rfl
@@ -518,11 +514,11 @@ include rβ rγ
 
 lemma cancel_right {g₁ g₂ : β →ₙ+* γ} {f : α →ₙ+* β} (hf : surjective f) :
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
-⟨λ h, non_unital_ring_hom.ext $ hf.forall.2 (ext_iff.1 h), λ h, h ▸ rfl⟩
+⟨λ h, ext $ hf.forall.2 (ext_iff.1 h), λ h, h ▸ rfl⟩
 
 lemma cancel_left {g : β →ₙ+* γ} {f₁ f₂ : α →ₙ+* β} (hg : injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
-⟨λ h, non_unital_ring_hom.ext $ λ x, hg $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
+⟨λ h, ext $ λ x, hg $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
 
 omit rα rβ rγ
 

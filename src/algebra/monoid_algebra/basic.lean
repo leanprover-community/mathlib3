@@ -553,8 +553,8 @@ by { ext, rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
   map_mul' := λ x y, by rw [single_add_hom, single_mul_single, one_mul],
   ..finsupp.single_add_hom 1}
 
-/--  A multiplicative homomorphism `f : G →* H` between two monoids induces a ring
-homomorphism `map_domain_ring_hom k f : monoid_algebra k G →+* monoid_algebra k H`. -/
+/-- If `f : G → H` is a multiplicative homomorphism between two monoids, then
+`finsupp.map_domain f` is a ring homomorphism between their monoid algebras. -/
 @[simps]
 def map_domain_ring_hom (k : Type*) {H F : Type*} [semiring k] [monoid G] [monoid H]
   [monoid_hom_class F G H] (f : F) :
@@ -700,8 +700,8 @@ lemma map_domain_algebra_map (k A : Type*) {H F : Type*} [comm_semiring k] [semi
     algebra_map k (monoid_algebra A H) r :=
 by simp only [coe_algebra_map, map_domain_single, map_one]
 
-/--  A multiplicative homomorphism `f : G →* H` between two monoids induces a `k`-algebra
-homomorphism `map_domain_alg_hom k A f : monoid_algebra k G →ₐ[k] monoid_algebra k H`. -/
+/-- If `f : G → H` is a multiplicative homomorphism between two monoids, then
+`finsupp.map_domain f` is an algebra homomorphism between their monoid algebras. -/
 @[simps]
 def map_domain_alg_hom (k A : Type*) [comm_semiring k] [semiring A] [algebra k A] {H F : Type*}
   [monoid H] [monoid_hom_class F G H] (f : F) :
@@ -1247,8 +1247,8 @@ begin
     simp only [mul_one, to_add_of_add, smul_single', of_apply] },
 end
 
-/--  An additive homomorphism `f : G →+ H` induces a ring homomorphism
-`map_domain_ring_hom k f : add_monoid_algebra k G →+* add_monoid_algebra k H`. -/
+/-- If `f : G → H` is an additive homomorphism between two monoids, then
+`finsupp.map_domain f` is a ring homomorphism between their monoid algebras. -/
 @[simps]
 def map_domain_ring_hom (k : Type*) [semiring k] {H F : Type*} [add_monoid G] [add_monoid H]
   [add_monoid_hom_class F G H] (f : F) :
@@ -1542,8 +1542,8 @@ lemma map_domain_algebra_map {A H F : Type*} [comm_semiring k] [semiring A]
     algebra_map k (add_monoid_algebra A H) r :=
 by simp only [function.comp_app, map_domain_single, add_monoid_algebra.coe_algebra_map, map_zero]
 
-/--  An additive homomorphism `f : G →+ H` induces a `k`-algebra homomorphism
-`map_domain_alg_hom k A f : add_monoid_algebra A G →ₐ[k] add_monoid_algebra A H`. -/
+/-- If `f : G → H` is an additive homomorphism between two monoids, then
+`finsupp.map_domain f` is an algebra homomorphism between their monoid algebras. -/
 @[simps] def map_domain_alg_hom (k A : Type*) [comm_semiring k] [semiring A] [algebra k A]
   [add_monoid G] {H F : Type*} [add_monoid H] [add_monoid_hom_class F G H] (f : F) :
   add_monoid_algebra A G →ₐ[k] add_monoid_algebra A H :=

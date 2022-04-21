@@ -225,29 +225,35 @@ hs.compact_convex_hull.is_closed
 
 open affine_map
 
+/-- If we dilate the interior of a convex set about a point in its interior by a scale `t > 1`, the
+the result includes the closure of the original set.
+
+TODO Generalise this from convex sets to sets that are balanced / star-shaped about `x`. -/
+lemma convex.closure_subset_image_homothety_interior_of_one_lt {s : set E} (hs : convex ℝ s)
+  {x : E} (hx : x ∈ interior s) (t : ℝ) (ht : 1 < t) :
+  closure s ⊆ homothety x t '' interior s :=
+begin
+  intros y hy,
+  have hne : t ≠ 0, from (one_pos.trans ht).ne',
+  refine ⟨homothety x t⁻¹ y, hs.open_segment_interior_closure_subset_interior hx hy _,
+    (affine_equiv.homothety_units_mul_hom x (units.mk0 t hne)).apply_symm_apply y⟩,
+  rw [open_segment_eq_image_line_map, ← inv_one, ← inv_Ioi (@one_pos ℝ _ _), ← image_inv,
+    image_image, homothety_eq_line_map],
+  exact mem_image_of_mem _ ht
+end
+
 /-- If we dilate a convex set about a point in its interior by a scale `t > 1`, the interior of
-the result contains the closure of the original set.
+the result includes the closure of the original set.
 
 TODO Generalise this from convex sets to sets that are balanced / star-shaped about `x`. -/
 lemma convex.closure_subset_interior_image_homothety_of_one_lt {s : set E} (hs : convex ℝ s)
   {x : E} (hx : x ∈ interior s) (t : ℝ) (ht : 1 < t) :
   closure s ⊆ interior (homothety x t '' s) :=
-begin
-  intros y hy,
-  have ht' : 0 < t, from one_pos.trans ht,
-  obtain ⟨z, rfl⟩ : ∃ z, homothety x t z = y,
-    from (affine_equiv.homothety_units_mul_hom x (units.mk0 t ht'.ne')).surjective y,
-  suffices : z ∈ interior s,
-    from (homothety_is_open_map x t ht'.ne').image_interior_subset _ (mem_image_of_mem _ this),
-  refine hs.open_segment_interior_closure_subset_interior hx hy _,
-  rw [open_segment_eq_image_line_map, ← inv_one, ← inv_Ioi (@one_pos ℝ _ _), ← image_inv,
-    image_image],
-  use [t, ht],
-  simp [← homothety_eq_line_map, ← homothety_mul_apply, ht'.ne']
-end
+(hs.closure_subset_image_homothety_interior_of_one_lt hx t ht).trans $
+  (homothety_is_open_map x t (one_pos.trans ht).ne').image_interior_subset _
 
 /-- If we dilate a convex set about a point in its interior by a scale `t > 1`, the interior of
-the result contains the closure of the original set.
+the result includes the closure of the original set.
 
 TODO Generalise this from convex sets to sets that are balanced / star-shaped about `x`. -/
 lemma convex.subset_interior_image_homothety_of_one_lt {s : set E} (hs : convex ℝ s)

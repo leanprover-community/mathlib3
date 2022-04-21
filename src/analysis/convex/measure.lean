@@ -58,15 +58,14 @@ begin
   suffices : μ (closure s) ≤ μ (interior s),
   { rwa [frontier, measure_diff interior_subset_closure is_open_interior.measurable_set hb,
       tsub_eq_zero_iff_le] },
-  /- Due to `convex.closure_subset_interior_image_homothety_of_one_lt`, for any `r > 1` we have
+  /- Due to `convex.closure_subset_image_homothety_interior_of_one_lt`, for any `r > 1` we have
   `closure s ⊆ homothety x r '' interior s`, hence `μ (closure s) ≤ r ^ d * μ (interior s)`,
   where `d = finrank ℝ E`. -/
   set d : ℕ := finite_dimensional.finrank ℝ E,
   have : ∀ r : ℝ≥0, 1 < r → μ (closure s) ≤ ↑(r ^ d) * μ (interior s),
   { intros r hr,
-    refine (measure_mono $ hs.closure_subset_interior_image_homothety_of_one_lt hx r hr).trans_eq _,
-    rw [interior_image_homothety (zero_lt_one.trans hr : 0 < (r : ℝ)).ne',
-      add_haar_image_homothety, ← nnreal.coe_pow, nnreal.abs_eq, ennreal.of_real_coe_nnreal] },
+    refine (measure_mono $ hs.closure_subset_image_homothety_interior_of_one_lt hx r hr).trans_eq _,
+    rw [add_haar_image_homothety, ← nnreal.coe_pow, nnreal.abs_eq, ennreal.of_real_coe_nnreal] },
   have : ∀ᶠ r in 𝓝[>] (1 : ℝ≥0), μ (closure s) ≤ ↑(r ^ d) * μ (interior s),
     from mem_of_superset self_mem_nhds_within this,
   /- Taking the limit as `r → 1`, we get `μ (closure s) ≤ μ (interior s)`. -/

@@ -39,27 +39,6 @@ end
 
 include V
 
-lemma continuous_uncurry_homothety :
-  continuous (λ p : P × 𝕜 × P, homothety p.1 p.2.1 p.2.2) :=
-(continuous_snd.fst.smul (continuous_snd.snd.vsub continuous_fst)).vadd continuous_fst
-
-lemma continuous.homothety {X : Type*} [topological_space X] {p₁ p₂ : X → P} {c : X → 𝕜}
-  (h₁ : continuous p₁) (h₂ : continuous c) (h₃ : continuous p₂) :
-  continuous (λ x, homothety (p₁ x) (c x) (p₂ x)) :=
-continuous_uncurry_homothety.comp (h₁.prod_mk (h₂.prod_mk h₃))
-
-lemma continuous.line_map {X : Type*} [topological_space X] {p₁ p₂ : X → P} {c : X → 𝕜}
-  (h₁ : continuous p₁) (h₂ : continuous p₂) (h₃ : continuous c) :
-  continuous (λ x, line_map (p₁ x) (p₂ x) (c x)) :=
-h₁.homothety h₃ h₂
-
-lemma interior_image_homothety {c : 𝕜} (hc : c ≠ 0) (x : P) (s : set P) :
-  interior (homothety x c '' s) = homothety x c '' interior s :=
-eq.symm $ homeomorph.image_interior
-  ⟨(affine_equiv.homothety_units_mul_hom x (units.mk0 c hc)).to_equiv,
-    continuous_const.homothety continuous_const continuous_id,
-    continuous_const.homothety continuous_const continuous_id⟩ s
-
 @[simp] lemma dist_center_homothety (p₁ p₂ : P) (c : 𝕜) :
   dist p₁ (homothety p₁ c p₂) = ∥c∥ * dist p₁ p₂ :=
 by simp [homothety_def, norm_smul, ← dist_eq_norm_vsub, dist_comm]

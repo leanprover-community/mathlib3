@@ -433,7 +433,7 @@ set_option old_structure_cmd false
 /-- A domain is a nontrivial monoid whose non-zero elements are regular, i.e. satisfying
   the condition `a * c = b * c ↔ a = b` and `c * a = c * b ↔ a = b` for any non-zero element `c`.
 
-  This is implemented as a mixin for `hasmul` and `has_zero`.
+  This is implemented as a mixin for `has_mul` and `has_zero`.
   To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
 class is_domain (M₀ : Type*) [has_mul M₀] [has_zero M₀] extends nontrivial M₀ : Prop :=
 (is_regular_of_ne_zero : ∀ {c : M₀}, c ≠ 0 → is_regular c)

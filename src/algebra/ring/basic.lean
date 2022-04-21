@@ -38,6 +38,9 @@ ring_hom, nonzero, domain, is_domain
 * To avoid repeating lemmas for `units`, this introduces a `has_distrib_neg` typeclass
   which both `R` and `units R` satisfy.
 
+* `is_domain` is implemented as a mixin for `has_mul` and `has_zero`. To obtain an integral
+  domain use `[comm_ring α] [is_domain α]`.
+
 ## Tags
 
 `ring_hom`, `semiring_hom`, `semiring`, `comm_semiring`, `ring`, `comm_ring`, `domain`,

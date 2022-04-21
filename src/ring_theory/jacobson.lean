@@ -454,7 +454,7 @@ begin
   rw ← bot_quotient_is_maximal_iff,
   have hp0 : ((m : R[X]).map (quotient.mk (P.comap C : ideal R))).leading_coeff ≠ 0 :=
     λ hp0', this $ map_injective (quotient.mk (P.comap C : ideal R))
-      ((quotient.mk (P.comap C : ideal R)).injective_iff.2 (λ x hx,
+      ((injective_iff_map_eq_zero (quotient.mk (P.comap C : ideal R))).2 (λ x hx,
       by rwa [quotient.eq_zero_iff_mem, (by rwa eq_bot_iff : (P.comap C : ideal R) = ⊥)] at hx))
       (by simpa only [leading_coeff_eq_zero, polynomial.map_zero] using hp0'),
   have hM : (0 : R ⧸ P.comap C) ∉ M := λ ⟨n, hn⟩, hp0 (pow_eq_zero hn),

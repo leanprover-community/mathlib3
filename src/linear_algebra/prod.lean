@@ -234,6 +234,19 @@ begin
   rw [←prod_map_comap_prod, submodule.prod_bot],
 end
 
+variables {M₁ N₁ N₂ N₃ : Type*}
+variables [add_comm_monoid M₁] [add_comm_monoid N₁] [add_comm_monoid N₂] [add_comm_monoid N₃]
+variables [module R M₁] [module R N₁] [module R N₂] [module R N₃]
+variables (f₁₂ : M₁ →ₗ[R] M₂) (f₂₃ : M₂ →ₗ[R] M₃)
+variables (g₁₂ : N₁ →ₗ[R] N₂) (g₂₃ : N₂ →ₗ[R] N₃)
+
+@[simp]
+lemma prod_map_one : linear_map.prod_map (1 : M₁ →ₗ[R] M₁) (1 : N₁ →ₗ[R] N₁) = 1 :=
+by {ext, repeat {simp only [coe_comp, function.comp_app, prod_map_apply, one_apply]}}
+
+lemma prod_map_comp : linear_map.prod_map f₂₃ g₂₃ ∘ₗ linear_map.prod_map f₁₂ g₁₂ =
+                     linear_map.prod_map (f₂₃ ∘ₗ f₁₂) (g₂₃ ∘ₗ g₁₂) := by refl
+
 section map_mul
 
 variables {A : Type*} [non_unital_non_assoc_semiring A] [module R A]

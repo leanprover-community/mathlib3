@@ -275,7 +275,7 @@ lemma is_integral_of_is_irreducible_is_reduced [is_reduced X] [H : irreducible_s
   is_integral X :=
 begin
   split, refine (λ U hU, _),
-  haveI := (@@LocallyRingedSpace.component_nontrivial X.to_LocallyRingedSpace U hU),
+  haveI := @@LocallyRingedSpace.component_nontrivial X.to_LocallyRingedSpace U hU,
   apply is_domain.of_eq_zero_or_eq_zero_of_mul_eq_zero,
   intros a b e,
   simp_rw [← basic_open_eq_bot_iff, ← opens.not_nonempty_iff_eq_bot],

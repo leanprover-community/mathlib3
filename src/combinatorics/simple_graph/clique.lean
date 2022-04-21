@@ -23,6 +23,7 @@ adjacent.
 
 * Clique numbers
 * Going back and forth between cliques and complete subgraphs or embeddings of complete graphs.
+* Do we need `clique_set`, a version of `clique_finset` for infinite graphs?
 -/
 
 open finset fintype
@@ -88,6 +89,28 @@ begin
   exact card_le_one.symm,
 end
 
+variables [decidable_eq α] {a b c : α}
+
+lemma is_3_clique_triple_iff : G.is_n_clique 3 {a, b, c} ↔ G.adj a b ∧ G.adj a c ∧ G.adj b c :=
+begin
+  simp only [is_n_clique_iff, is_clique_iff, set.pairwise_insert_of_symmetric G.symm, coe_insert],
+  have : ¬ 1 + 1 = 3 := by norm_num,
+  by_cases hab : a = b; by_cases hbc : b = c; by_cases hac : a = c;
+  subst_vars; simp [G.ne_of_adj, and_rotate, *],
+end
+
+lemma is_3_clique_iff :
+  G.is_n_clique 3 s ↔ ∃ a b c, G.adj a b ∧ G.adj a c ∧ G.adj b c ∧ s = {a, b, c} :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { obtain ⟨a, b, c, -, -, -, rfl⟩ := card_eq_three.1 h.card_eq,
+    refine ⟨a, b, c, _⟩,
+    rw is_3_clique_triple_iff at h,
+    tauto },
+  { rintro ⟨a, b, c, hab, hbc, hca, rfl⟩,
+    exact is_3_clique_triple_iff.2 ⟨hab, hbc, hca⟩ }
+end
+
 end n_clique
 
 /-! ### Graphs without cliques -/
@@ -129,26 +152,6 @@ def clique_finset (n : ℕ) : finset (finset α) := univ.filter $ G.is_n_clique 
 
 lemma mem_clique_finset_iff (s : finset α) : s ∈ G.clique_finset n ↔ G.is_n_clique n s :=
 mem_filter.trans $ and_iff_right $ mem_univ _
-
-lemma is_3_clique_triple_iff : G.is_n_clique 3 {a, b, c} ↔ G.adj a b ∧ G.adj a c ∧ G.adj b c :=
-begin
-  simp only [is_n_clique_iff, is_clique_iff, set.pairwise_insert_of_symmetric G.symm, coe_insert],
-  have : ¬ 1 + 1 = 3 := by norm_num,
-  by_cases hab : a = b; by_cases hbc : b = c; by_cases hac : a = c;
-  subst_vars; simp [G.ne_of_adj, and_rotate, *],
-end
-
-lemma is_3_clique_iff :
-  G.is_n_clique 3 s ↔ ∃ a b c, G.adj a b ∧ G.adj a c ∧ G.adj b c ∧ s = {a, b, c} :=
-begin
-  refine ⟨λ h, _, _⟩,
-  { obtain ⟨a, b, c, -, -, -, rfl⟩ := card_eq_three.1 h.card_eq,
-    refine ⟨a, b, c, _⟩,
-    rw is_3_clique_triple_iff at h,
-    tauto },
-  { rintro ⟨a, b, c, hab, hbc, hca, rfl⟩,
-    exact G.is_3_clique_triple_iff.2 ⟨hab, hbc, hca⟩ }
-end
 
 @[simp] lemma clique_finset_eq_empty_iff : G.clique_finset n = ∅ ↔ G.clique_free n :=
 by simp_rw [clique_free, eq_empty_iff_forall_not_mem, mem_clique_finset_iff]

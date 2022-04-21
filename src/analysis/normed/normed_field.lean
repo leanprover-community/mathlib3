@@ -127,6 +127,11 @@ instance prod.norm_one_class [semi_normed_group α] [has_one α] [norm_one_class
   norm_one_class (α × β) :=
 ⟨by simp [prod.norm_def]⟩
 
+instance pi.norm_one_class {ι : Type*} {α : ι → Type*} [nonempty ι] [fintype ι]
+  [Π i, semi_normed_group (α i)] [Π i, has_one (α i)] [∀ i, norm_one_class (α i)] :
+  norm_one_class (Π i, α i) :=
+⟨by simp [pi.norm_def, finset.sup_const finset.univ_nonempty]⟩
+
 section non_unital_semi_normed_ring
 variables [non_unital_semi_normed_ring α]
 

@@ -186,35 +186,6 @@ end
 
 open_locale complex_conjugate nnreal
 
-section is_R_or_C
-open is_R_or_C
-
-lemma eq_neg_iff {R : Type*} [ring R] [invertible (2 : R)] (x : R) :
-  x = -x ↔ x = 0 :=
-begin
-  have : is_unit (⅟ (2:R)) := is_unit_of_invertible _,
-  rw [eq_neg_iff_add_eq_zero, ← two_mul, ← this.mul_right_inj, inv_of_mul_self_assoc, mul_zero],
-end
-
-lemma conj_eq_neg_iff {K : Type*} [is_R_or_C K] (z : K) :
-  conj z = -z ↔ re z = 0 :=
-begin
-  rw [← re_add_im z, ring_hom.map_add, ring_hom.map_mul, conj_of_real, conj_of_real, conj_I,
-      neg_add, re_add_im, mul_neg, add_left_inj, eq_neg_iff, of_real_eq_zero],
-end
-end is_R_or_C
-
-@[simp]
-lemma conj_exp_primitive_root (n : ℕ) : conj (complex.exp (2 * ↑real.pi * complex.I / ↑n)) =
-                                        complex.exp (- (2 * ↑real.pi * complex.I / ↑n)) :=
-begin
-  rw ← complex.exp_conj,
-  congr,
-  simp only [div_eq_mul_inv, is_R_or_C.re_to_complex, complex.mul_re, complex.bit0_im, complex.I_re,
-             complex.one_im, bit0_zero, complex.of_real_im, mul_zero, sub_zero, conj_eq_neg_iff,
-             complex.mul_im, zero_mul, add_zero, complex.inv_im, complex.nat_cast_im, neg_zero],
-end
-
 lemma units.mk0_prod {β α : Type} [_inst_1 : comm_group_with_zero β] (s : finset α)
   (f : α → β) (h) :
   units.mk0 (∏ b in s, f b) h = ∏ b in s.attach, units.mk0 (f b) (λ hh, h (prod_eq_zero b.2 hh)) :=

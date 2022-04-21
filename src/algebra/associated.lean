@@ -860,26 +860,27 @@ end comm_monoid_with_zero
 end associates
 
 section comm_monoid_with_zero
+variables [comm_monoid_with_zero α]
 
-lemma dvd_not_unit.is_unit_of_irreducible_right [comm_monoid_with_zero α] {p q : α}
+lemma dvd_not_unit.is_unit_of_irreducible_right {p q : α}
   (h : dvd_not_unit p q) (hq : irreducible q) : is_unit p :=
 begin
   obtain ⟨hp', x, hx, hx'⟩ := h,
   exact or.resolve_right ((irreducible_iff.1 hq).right p x hx') hx
 end
 
-lemma not_irreducible_of_not_unit_dvd_not_unit [comm_monoid_with_zero α] {p q : α}
+lemma not_irreducible_of_not_unit_dvd_not_unit {p q : α}
   (hp : ¬is_unit p) (h : dvd_not_unit p q) : ¬ irreducible q :=
 mt h.is_unit_of_irreducible_right hp
 
-lemma dvd_not_unit.not_unit [comm_monoid_with_zero α] {p q : α}
+lemma dvd_not_unit.not_unit {p q : α}
   (hp : dvd_not_unit p q) : ¬ is_unit q :=
 begin
   obtain ⟨-, x, hx, rfl⟩ := hp,
   exact λ hc, hx (is_unit_iff_dvd_one.mpr (dvd_of_mul_left_dvd (is_unit_iff_dvd_one.mp hc))),
 end
 
-lemma dvd_not_unit_of_dvd_not_unit_associated [comm_monoid_with_zero α]
+lemma dvd_not_unit_of_dvd_not_unit_associated
   [nontrivial α] {p q r : α} (h : dvd_not_unit p q) (h' : associated q r) : dvd_not_unit p r :=
 begin
   obtain ⟨u, rfl⟩ := associated.symm h',
@@ -889,8 +890,9 @@ begin
 end
 
 section is_domain
+variables [is_domain α]
 
-lemma is_unit_of_associated_mul [comm_monoid_with_zero α] [is_domain α]
+lemma is_unit_of_associated_mul
   {p b : α} (h : associated (p * b) p) (hp : p ≠ 0) : is_unit b :=
 begin
   cases h with a ha,
@@ -898,7 +900,7 @@ begin
   rwa [← mul_assoc, mul_one],
 end
 
-lemma associates.is_atom_iff [comm_monoid_with_zero α] [is_domain α] {p : associates α} (h₁ : p ≠ 0) :
+lemma associates.is_atom_iff {p : associates α} (h₁ : p ≠ 0) :
   is_atom p ↔ irreducible p :=
 ⟨λ hp, ⟨by simpa only [associates.is_unit_iff_eq_one] using hp.1,
         λ a b h, (eq_bot_or_eq_of_le_atom hp ⟨_, h⟩).cases_on
@@ -911,7 +913,7 @@ lemma associates.is_atom_iff [comm_monoid_with_zero α] [is_domain α] {p : asso
           (λ ha, absurd (show p ∣ b, from ⟨(ha.unit⁻¹ : units _), by simp [hab]; rw mul_assoc;
             rw is_unit.mul_coe_inv ha; rw mul_one⟩) hb)⟩⟩
 
-lemma dvd_not_unit.not_associated [comm_monoid_with_zero α] [is_domain α] {p q : α}
+lemma dvd_not_unit.not_associated {p q : α}
   (h : dvd_not_unit p q) : ¬ associated p q :=
 begin
   rintro ⟨a, rfl⟩,
@@ -920,7 +922,7 @@ begin
   exact hx a.is_unit,
 end
 
-lemma dvd_not_unit.ne [comm_monoid_with_zero α] [is_domain α] {p q : α}
+lemma dvd_not_unit.ne {p q : α}
   (h : dvd_not_unit p q) : p ≠ q :=
 begin
   by_contra hcontra,
@@ -930,7 +932,7 @@ begin
   exact hx' is_unit_one,
 end
 
-lemma pow_injective_of_not_unit [comm_monoid_with_zero α] [is_domain α] {q : α}
+lemma pow_injective_of_not_unit {q : α}
   (hq : ¬ is_unit q) (hq' : q ≠ 0): function.injective (λ (n : ℕ), q^n) :=
 begin
   refine injective_of_lt_imp_ne (λ n m h, dvd_not_unit.ne ⟨pow_ne_zero n hq', q^(m - n), _, _⟩),
@@ -938,7 +940,7 @@ begin
   { exact (pow_mul_pow_sub q h.le).symm  }
 end
 
-lemma dvd_prime_pow [comm_monoid_with_zero α] [is_domain α] {p q : α} (hp : prime p) (n : ℕ) :
+lemma dvd_prime_pow {p q : α} (hp : prime p) (n : ℕ) :
   q ∣ p^n ↔ ∃ i ≤ n, associated q (p ^ i) :=
 begin
   induction n with n ih generalizing q,

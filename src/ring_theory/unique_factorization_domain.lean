@@ -307,7 +307,8 @@ theorem unique_factorization_monoid.of_exists_prime_factors :
 
 end exists_prime_factors
 
-theorem unique_factorization_monoid.iff_exists_prime_factors [comm_monoid_with_zero α] [is_domain α] :
+theorem unique_factorization_monoid.iff_exists_prime_factors
+  [comm_monoid_with_zero α] [is_domain α] :
   unique_factorization_monoid α ↔
     (∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, prime b) ∧ f.prod ~ᵤ a) :=
 ⟨λ h, @unique_factorization_monoid.exists_prime_factors _ _ _ h,
@@ -334,7 +335,8 @@ lemma mul_equiv.unique_factorization_monoid_iff (e : α ≃* β) :
 
 end
 
-theorem irreducible_iff_prime_of_exists_unique_irreducible_factors [comm_monoid_with_zero α] [is_domain α]
+theorem irreducible_iff_prime_of_exists_unique_irreducible_factors
+  [comm_monoid_with_zero α] [is_domain α]
   (eif : ∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, irreducible b) ∧ f.prod ~ᵤ a)
   (uif : ∀ (f g : multiset α),
   (∀ x ∈ f, irreducible x) → (∀ x ∈ g, irreducible x) → f.prod ~ᵤ g.prod →

@@ -57,6 +57,16 @@ open function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
+section preorder
+variables [preorder α] {a b c : α}
+
+lemma le_trans' : b ≤ c → a ≤ b → a ≤ c := flip le_trans
+lemma lt_trans' : b < c → a < b → a < c := flip lt_trans
+lemma lt_of_le_of_lt' : b ≤ c → a < b → a < c := flip lt_of_lt_of_le
+lemma lt_of_lt_of_le' : b < c → a ≤ b → a < c := flip lt_of_le_of_lt
+
+end preorder
+
 section partial_order
 variables [partial_order α] {a b : α}
 

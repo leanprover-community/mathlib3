@@ -591,6 +591,10 @@ lemma coe_mrange_restrict {N} [has_mul N] (f : M →ₙ* N) (x : M) :
 rfl
 
 @[to_additive]
+lemma mrange_restrict_surjective (f : M →ₙ* N) : function.surjective f.mrange_restrict :=
+λ ⟨_, ⟨x, rfl⟩⟩, ⟨x, rfl⟩
+
+@[to_additive]
 lemma prod_map_comap_prod' {M' : Type*} {N' : Type*} [has_mul M'] [has_mul N']
   (f : M →ₙ* N) (g : M' →ₙ* N') (S : subsemigroup N) (S' : subsemigroup N') :
   (S.prod S').comap (prod_map f g) = (S.comap f).prod (S'.comap g) :=

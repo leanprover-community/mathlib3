@@ -103,6 +103,14 @@ lemma models_sentence_iff {φ : L.sentence} :
   T ⊨ φ ↔ ∀ (M : Model.{u v (max u v)} T), M ⊨ φ :=
 models_formula_iff.trans (forall_congr (λ M, unique.forall_iff))
 
+lemma models_sentence_of_mem {φ : L.sentence} (h : φ ∈ T) :
+  T ⊨ φ :=
+models_sentence_iff.2 (λ _, realize_sentence_of_mem T h)
+
+/-- A theory is complete when it is satisfiable and models each sentence or its negation. -/
+def is_complete (T : L.Theory) : Prop :=
+T.is_satisfiable ∧ ∀ (φ : L.sentence), (T ⊨ φ) ∨ (T ⊨ φ.not)
+
 /-- Two (bounded) formulas are semantically equivalent over a theory `T` when they have the same
 interpretation in every model of `T`. (This is also known as logical equivalence, which also has a
 proof-theoretic definition.) -/
@@ -190,9 +198,23 @@ namespace complete_theory
 
 variables (L) (M : Type w) [nonempty M] [L.Structure M]
 
-lemma is_satisfiable :
-  (L.complete_theory M).is_satisfiable :=
+lemma is_satisfiable : (L.complete_theory M).is_satisfiable :=
 Theory.model.is_satisfiable M
+
+lemma mem_or_not_mem (φ : L.sentence) :
+  φ ∈ (L.complete_theory M) ∨ (formula.not φ) ∈ (L.complete_theory M) :=
+begin
+  by_cases h : M ⊨ φ,
+  { exact or.intro_left _ h },
+  { right,
+    rw [complete_theory, set.mem_set_of_eq, sentence.realize, formula.realize_not,
+      ← sentence.realize],
+    exact h }
+end
+
+lemma is_complete : (L.complete_theory M).is_complete :=
+⟨is_satisfiable L M,
+  λ φ, ((mem_or_not_mem L M φ).imp Theory.models_sentence_of_mem Theory.models_sentence_of_mem)⟩
 
 end complete_theory
 

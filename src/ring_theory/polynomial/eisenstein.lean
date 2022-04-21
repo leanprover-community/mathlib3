@@ -428,7 +428,7 @@ begin
     { have : function.injective (algebra_map R L),
       { rw [algebra_map_eq R K L],
         exact (algebra_map K L).injective.comp (is_fraction_ring.injective R K) },      exfalso,
-      exact hp.ne_zero ((ring_hom.injective_iff _).1 this _ H) },
+      exact hp.ne_zero ((injective_iff_map_eq_zero _).1 this _ H) },
     { rw [H₁],
       exact subalgebra.zero_mem _ } },
 

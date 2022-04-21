@@ -441,6 +441,42 @@ begin
   simpa [hk₁] using sub_one_norm_eq_eval_cyclotomic hζ this hirr,
 end
 
+/-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` and
+`irreducible (cyclotomic (p ^ (k - s + 1)) K))` (in particular for `K = ℚ`) and `p` is a prime,
+then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)` if `1 ≤ k`. -/
+lemma pow_sub_one_norm_prime_pow_of_one_le [hne : ne_zero ((p : ℕ) : K)] {k s : ℕ}
+  (hζ : is_primitive_root ζ ↑(p ^ (k + 1))) [hpri : fact (p : ℕ).prime]
+  [hcycl : is_cyclotomic_extension {p ^ (k + 1)} K L]
+  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))
+  (hirr₁ : irreducible (cyclotomic (↑(p ^ (k - s + 1)) : ℕ) K)) (hs : s ≤ k)
+  (hk : 1 ≤ k) : norm K (ζ ^ ((p : ℕ) ^ s) - 1) = p ^ ((p : ℕ) ^ s) :=
+begin
+  by_cases htwo : p ^ (k - s + 1) = 2,
+  { have hp : p = 2,
+    { rw [← pnat.coe_inj, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe, ← pow_one 2] at htwo,
+      replace htwo := eq_of_prime_pow_eq (prime_iff.1 hpri.out) (prime_iff.1 nat.prime_two)
+        (succ_pos _) htwo,
+      rwa [show 2 = ((2 : ℕ+) : ℕ), by simp, pnat.coe_inj] at htwo },
+    replace hs : s = k,
+    { rw [hp, ← pnat.coe_inj, pnat.pow_coe, pnat.coe_bit0, pnat.one_coe] at htwo,
+      nth_rewrite 1 [← pow_one 2] at htwo,
+      replace htwo := nat.pow_right_injective rfl.le htwo,
+      rw [add_left_eq_self, nat.sub_eq_zero_iff_le] at htwo,
+      refine le_antisymm hs htwo },
+    haveI : ne_zero (2 : K),
+    { refine ⟨λ h, _⟩,
+      rw [hp, pnat.coe_bit0, one_coe, cast_bit0, cast_one, h] at hne,
+      simpa using hne.out },
+    simp only [hs, hp, pnat.coe_bit0, one_coe, coe_coe, cast_bit0, cast_one,
+      pow_coe] at ⊢ hζ hirr hcycl,
+    haveI := hcycl,
+    obtain ⟨k₁, hk₁⟩ := nat.exists_eq_succ_of_ne_zero (one_le_iff_ne_zero.1 hk),
+    rw [hζ.pow_sub_one_norm_two hirr],
+    rw [hk₁, pow_succ, pow_mul, neg_eq_neg_one_mul, mul_pow, neg_one_sq, one_mul, ← pow_mul,
+      ← pow_succ] },
+  { exact hζ.pow_sub_one_norm_prime_pow_ne_two hirr hirr₁ hs htwo }
+end
+
 end is_primitive_root
 
 namespace is_cyclotomic_extension

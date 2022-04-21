@@ -7,12 +7,6 @@ Authors: Riccardo Brasca
 import number_theory.cyclotomic.discriminant
 import ring_theory.polynomial.eisenstein
 
-universes u
-
-open algebra is_cyclotomic_extension polynomial
-
-open_locale cyclotomic
-
 /-!
 # Ring of integers of `p`-th power cyclotomic fields
 We compute the discriminant of a `p ^ n`-th cyclotomic extension of `ℚ`.
@@ -24,6 +18,12 @@ We compute the discriminant of a `p ^ n`-th cyclotomic extension of `ℚ`.
 * `is_cyclotomic_extension.rat.cyclotomic_ring_is_integral_closure_of_prime_pow`: the integral
   closure of `ℤ` inside `cyclotomic_field (p ^ (k + 1)) ℚ` is `cyclotomic_ring (p ^ (k + 1)) ℤ ℚ`.
 -/
+
+universes u
+
+open algebra is_cyclotomic_extension polynomial
+
+open_locale cyclotomic
 
 namespace is_cyclotomic_extension.rat
 

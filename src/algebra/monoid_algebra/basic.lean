@@ -1529,16 +1529,15 @@ finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
 
 end
 
-@[simp]
 lemma map_domain_algebra_map (k A : Type*) {H F : Type*} [comm_semiring k] [semiring A]
   [algebra k A] [add_monoid G] [add_monoid H] [add_monoid_hom_class F G H] (f : F) (r : k) :
   map_domain f (algebra_map k (add_monoid_algebra A G) r) =
     (algebra_map k (add_monoid_algebra A H)) r :=
-map_domain_single.trans (by simp)
+by simp only [function.comp_app, map_domain_single, add_monoid_algebra.coe_algebra_map, map_zero]
 
 /--  An additive homomorphism `f : G →+ H` induces a `k`-algebra homomorphism
 `map_domain_alg_hom k A f : add_monoid_algebra A G →ₐ[k] add_monoid_algebra A H`. -/
-def map_domain_alg_hom (k A : Type*) [comm_semiring k] [semiring A] [algebra k A]
+@[simps] def map_domain_alg_hom (k A : Type*) [comm_semiring k] [semiring A] [algebra k A]
   [add_monoid G] {H F : Type*} [add_monoid H] [add_monoid_hom_class F G H] (f : F) :
   add_monoid_algebra A G →ₐ[k] add_monoid_algebra A H :=
 { commutes' := λ r, map_domain_algebra_map k A f r,

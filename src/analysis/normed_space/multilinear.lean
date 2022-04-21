@@ -447,7 +447,7 @@ le_antisymm
     (f.op_norm_le_bound (norm_nonneg _) $ λ m, (le_max_left _ _).trans ((f.prod g).le_op_norm _))
     (g.op_norm_le_bound (norm_nonneg _) $ λ m, (le_max_right _ _).trans ((f.prod g).le_op_norm _))
 
-lemma norm_pi {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', normed_group (E' i')]
+lemma norm_pi {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', semi_normed_group (E' i')]
   [Π i', normed_space 𝕜 (E' i')] (f : Π i', continuous_multilinear_map 𝕜 E (E' i')) :
   ∥pi f∥ = ∥f∥ :=
 begin
@@ -481,7 +481,7 @@ def prodL :
   norm_map' := λ f, op_norm_prod f.1 f.2 }
 
 /-- `continuous_multilinear_map.pi` as a `linear_isometry_equiv`. -/
-def piₗᵢ {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', normed_group (E' i')]
+def piₗᵢ {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', semi_normed_group (E' i')]
   [Π i', normed_space 𝕜 (E' i')] :
   @linear_isometry_equiv 𝕜 𝕜 _ _ (ring_hom.id 𝕜) _ _ _
     (Π i', continuous_multilinear_map 𝕜 E (E' i')) (continuous_multilinear_map 𝕜 E (Π i, E' i)) _ _
@@ -1172,7 +1172,7 @@ end
   (f : continuous_multilinear_map 𝕜 Ei Gₛ) : f.curry_right.uncurry_right = f :=
 by { ext m, simp }
 
-variables (𝕜 Ei Gₛ)
+variables (𝕜 Ei G Gₛ)
 
 /--
 The space of continuous multilinear maps on `Π(i : fin (n+1)), Ei i` is canonically isomorphic to

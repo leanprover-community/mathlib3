@@ -389,9 +389,8 @@ begin
 end
 
 lemma adj_finset_finite_dimensional {K L : Type*} [field K] [field L] [algebra K L]
-(S : finset L)
-(h_int : ∀ (x : L), x ∈ S → is_integral K x) :
-finite_dimensional K (intermediate_field.adjoin K (coe S : set L)) :=
+  (S : finset L) (h_int : ∀ (x : L), x ∈ S → is_integral K x) :
+  finite_dimensional K (intermediate_field.adjoin K (coe S : set L)) :=
 begin
   refine intermediate_field.induction_on_adjoin_finset (S) (λ (E : intermediate_field K L),
   finite_dimensional K E) _ _,

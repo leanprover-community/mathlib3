@@ -30,57 +30,6 @@ throughout the count. The probability of this is `(p - q) / (p + q)`.
 
 open set probability_theory measure_theory
 
-namespace measure_theory
-
-namespace measure
-
-variables {α β : Type*} [measurable_space α] [measurable_singleton_class α]
-  [measurable_space β] [measurable_singleton_class β]
-
-lemma count_injective_image
-  {f : β → α} (hf : function.injective f) (s : set β) :
-  count (f '' s) = count s :=
-begin
-  classical,
-  by_cases hs : s.finite,
-  { rw [count_apply_finite _ hs, ← finset.card_image_eq_iff_inj_on.2 (hf.inj_on _),
-      count_apply_finite _ ((finite_image_iff $ hf.inj_on _).2 hs)],
-    congr,
-    ext, simp },
-  rw count_apply_infinite hs,
-  rw ← (finite_image_iff $ hf.inj_on _) at hs,
-  rw count_apply_infinite hs,
-end
-
-end measure
-
-end measure_theory
-
-namespace ennreal
-
-open_locale ennreal
-
-lemma mul_div_assoc {a b c : ℝ≥0∞} : a * b / c = a * (b / c) :=
-begin
-  rw [div_eq_mul_inv,  mul_assoc, ← div_eq_mul_inv],
-end
-
-lemma eq_div_iff {a b c : ℝ≥0∞} (ha : a ≠ 0) (ha' : a ≠ ⊤) :
-  b = c / a ↔ a * b = c :=
-⟨λ h, by rw [h, mul_div_cancel' ha ha'],
- λ h, by rw [← h, mul_div_assoc, mul_div_cancel' ha ha']⟩
-
-lemma div_eq_div_iff
-  {a b c d : ℝ≥0∞} (ha : a ≠ 0) (ha' : a ≠ ⊤) (hb : b ≠ 0) (hb' : b ≠ ⊤) :
-  c / b = d / a ↔ a * c = b * d :=
-begin
-  rw eq_div_iff ha ha',
-  conv_rhs { rw eq_comm },
-  rw [← eq_div_iff hb hb', mul_div_assoc, eq_comm],
-end
-
-end ennreal
-
 namespace list
 
 lemma mem_of_mem_suffix {α : Type*} {l₁ l₂ : list α} {x : α} (hx : x ∈ l₁) (hl : l₁ <:+ l₂) :

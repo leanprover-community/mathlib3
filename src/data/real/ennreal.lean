@@ -1212,6 +1212,24 @@ begin
   rw mul_div_cancel' h0 hI, exact le_refl b
 end
 
+lemma mul_div_assoc : a * b / c = a * (b / c) :=
+begin
+  rw [div_eq_mul_inv,  mul_assoc, ← div_eq_mul_inv],
+end
+
+lemma eq_div_iff (ha : a ≠ 0) (ha' : a ≠ ∞) :
+  b = c / a ↔ a * b = c :=
+⟨λ h, by rw [h, mul_div_cancel' ha ha'],
+ λ h, by rw [← h, mul_div_assoc, mul_div_cancel' ha ha']⟩
+
+lemma div_eq_div_iff (ha : a ≠ 0) (ha' : a ≠ ∞) (hb : b ≠ 0) (hb' : b ≠ ∞) :
+  c / b = d / a ↔ a * c = b * d :=
+begin
+  rw eq_div_iff ha ha',
+  conv_rhs { rw eq_comm },
+  rw [← eq_div_iff hb hb', mul_div_assoc, eq_comm],
+end
+
 lemma inv_two_add_inv_two : (2:ℝ≥0∞)⁻¹ + 2⁻¹ = 1 :=
 by rw [← two_mul, ← div_eq_mul_inv, div_self two_ne_zero two_ne_top]
 

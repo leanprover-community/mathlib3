@@ -1679,6 +1679,20 @@ begin
   simp,
 end
 
+lemma count_injective_image [measurable_singleton_class β]
+  {f : β → α} (hf : function.injective f) (s : set β) :
+  count (f '' s) = count s :=
+begin
+  by_cases hs : s.finite,
+  { rw [count_apply_finite _ hs, ← finset.card_image_eq_iff_inj_on.2 (hf.inj_on _),
+      count_apply_finite _ ((finite_image_iff $ hf.inj_on _).2 hs)],
+    congr,
+    ext, simp },
+  rw count_apply_infinite hs,
+  rw ← (finite_image_iff $ hf.inj_on _) at hs,
+  rw count_apply_infinite hs,
+end
+
 end count
 
 /-! ### Absolute continuity -/

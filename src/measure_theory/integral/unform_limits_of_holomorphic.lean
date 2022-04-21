@@ -8,6 +8,12 @@ import analysis.analytic.basic
 import analysis.calculus.parametric_interval_integral
 import data.complex.basic
 
+/-!
+# Uniform limits of holomorphic functions
+
+This contains the proof that a uniform limit of holomorphic functions is holomorphic
+-/
+
 open topological_space set measure_theory interval_integral metric filter function complex
 open_locale interval real nnreal ennreal topological_space big_operators
 
@@ -646,9 +652,9 @@ begin
   apply this,
 end
 
-lemma Ineq1 (a b c d e f r : ℂ) (ε : ℝ) (hε : 0 < ε) (h1 : abs (a- b) < 8⁻¹ * abs(r )* ε)
-(h2 : abs (c- d) < 8⁻¹ * abs(r) * ε ) (h3 : (abs r)⁻¹ * abs ((b- d)- (e-f)) < (2/3) * ε) :
-(abs r)⁻¹ * abs ((a-b) - (c-d) + (b-d) - (e-f) ) < ε :=
+lemma Ineq1 (a b c d e f r : ℂ) (ε : ℝ) (hε : 0 < ε) (h1 : abs (a - b) < 8⁻¹ * abs(r )* ε)
+(h2 : abs (c - d) < 8⁻¹ * abs(r) * ε ) (h3 : (abs r)⁻¹ * abs ((b - d)- (e - f)) < (2/3) * ε) :
+(abs r)⁻¹ * abs ((a - b) - (c - d) + (b - d) - (e - f) ) < ε :=
 begin
   have h4 : abs (((a-b) - (c-d)) + (b-d) - (e-f) ) ≤ abs ((a-b) - (c-d)) + abs ((b-d) - (e-f)),
   by {set x : ℂ := (a-b) - (c-d),
@@ -657,14 +663,14 @@ begin
   convert this,
   simp_rw y,
   ring_nf,},
-  have h5 : abs (a - b - (c - d)) ≤ abs (a -b)+ abs (c-d),
+  have h5 : abs (a - b - (c - d)) ≤ abs (a - b)+ abs (c - d),
   by {have := complex.abs_sub_le (a-b) 0 (c-d),
   simp only [zero_sub, sub_zero, neg_sub] at this,
   have hcd :abs (c-d)= abs (d-c), by {apply complex.abs_sub_comm,},
   rw hcd,
   apply this,},
   have h6 : (abs r)⁻¹ * abs (((a-b) - (c-d)) + (b-d) - (e-f) ) ≤
-  (abs r)⁻¹ *abs (a -b)+ (abs r)⁻¹* abs (c-d)+  (abs r)⁻¹ * abs ((b-d) - (e-f)),
+  (abs r)⁻¹ * abs (a -b) + (abs r)⁻¹ * abs (c-d) + (abs r)⁻¹ * abs ((b-d) - (e-f)),
   by {ring_nf, apply mul_mono_nonneg, rw inv_nonneg, apply abs_nonneg,
   apply le_trans h4, simp_rw ← add_assoc, simp only [h5, add_le_add_iff_right],},
   have hr : 0 < abs r,
@@ -672,31 +678,28 @@ begin
   simp only [abs_pos, not_not] at h,
   rw h at h1,
   simp only [zero_mul, abs_zero, mul_zero] at h1,
-  have := (abs_nonneg (a-b)),
-  linarith,},
-  have h11: (abs(r))⁻¹* abs (a-b) < (8⁻¹*ε ),
+  linarith [ (abs_nonneg (a-b)), h1],},
+  have h11 : (abs(r))⁻¹ * abs (a-b) < (8⁻¹*ε ),
   by {have := (inv_mul_lt_iff' hr).mpr,
   apply this, have e1 : 8⁻¹* (abs r) *ε = 8⁻¹* ε* (abs r),
   by {ring_nf,},
   rw ← e1,
   apply h1,},
-  have h22 : (abs(r))⁻¹* abs (c-d) < (8⁻¹*ε), by {
-  have := (inv_mul_lt_iff' hr).mpr,
+  have h22 : (abs(r))⁻¹* abs (c-d) < (8⁻¹*ε),
+  by {have := (inv_mul_lt_iff' hr).mpr,
   apply this,
-  have e1 : 8⁻¹* (abs r) *ε = 8⁻¹* ε* (abs r),
+  have e1 : 8⁻¹* (abs r) * ε = 8⁻¹ * ε * (abs r),
   by {ring_nf,},
   rw ← e1,
   apply h2,},
-  have h7 :=  add_lt_add (add_lt_add h11 h22) h3,
-  have h8 := lt_of_le_of_lt h6  h7,
-  apply lt_trans h8,
+  apply lt_trans (lt_of_le_of_lt h6  (add_lt_add (add_lt_add h11 h22) h3)),
   ring_exp,
   linarith,
 end
 
 lemma Ineq2 (a b c d r : ℂ) (ε : ℝ) (hε : 0 < ε )
  (h : ∃ (x y : ℂ), abs ( a- y) < 8⁻¹ * abs(r) * ε ∧ abs (b -x) < 8⁻¹ * abs(r) * ε ∧
- (abs r)⁻¹ * abs ((y -x)- (c -d) ) < 8⁻¹ * ε) :
+ (abs r)⁻¹ * abs ((y -x) - (c -d)) < 8⁻¹ * ε) :
  (abs r)⁻¹ * abs ((a-b )- (c-d)) < (2/3) * ε :=
 begin
   obtain ⟨x, y , h1,h2, h3⟩:= h,
@@ -705,25 +708,23 @@ begin
   simp only [abs_pos, not_not] at h,
   rw h at h1,
   simp only [zero_mul, abs_zero, mul_zero] at h1,
-  have := abs_nonneg (a-y),
-  linarith, },
+  linarith [abs_nonneg (a-y),h1] },
   have h33 : (abs r)⁻¹ * abs ((c -d) - (y -x)) < 8⁻¹*ε,
   by {have : abs ((c -d) - (y -x)) = abs ((y -x)- (c -d) ),
   by  { rw abs_sub_comm,},
   rw this,
   apply h3,},
-  have h5 : abs ((a-b )- (c-d)) = abs (( (a-y) -(b-x) )- ((c-d)-(y-x))) ,
+  have h5 : abs ((a - b)- (c - d)) = abs (((a - y) - (b - x))- ((c - d) - (y - x))) ,
   by {ring_nf,},
   rw h5,
-  have h6 : (abs r)⁻¹ *abs (( (a-y) -(b-x) )- ((c-d)-(y-x))) ≤ (abs r)⁻¹ * abs (a-y) +
-  (abs r)⁻¹ * abs(b-x)+ (abs r)⁻¹ * abs ((c-d) -(y-x)),
+  have h6 : (abs r)⁻¹ * abs (((a - y) -(b - x))- ((c - d)-(y - x))) ≤ (abs r)⁻¹ * abs (a - y) +
+  (abs r)⁻¹ * abs(b - x) + (abs r)⁻¹ * abs ((c - d) - (y - x)),
   by {ring_nf,
-  apply mul_mono_nonneg,
-  rw inv_nonneg,
-  apply abs_nonneg,
-  have h4 : abs (((a-y) - (b-x)) + -((c-d) - (y-x)) ) ≤ abs ((a-y) - (b-x)) + abs ((c-d) - (y-x)),
-  by {set X : ℂ := (a-y) - (b-x),
-  set Y : ℂ :=-((c-d) - (y-x)),
+  refine mul_mono_nonneg (inv_nonneg.2 (abs_nonneg _)) _,
+  have h4 : abs (((a - y) - (b - x)) + -((c - d) - (y - x)) ) ≤ abs ((a - y) - (b - x)) +
+  abs ((c - d) - (y - x)),
+  by {set X : ℂ := (a - y) - (b - x),
+  set Y : ℂ :=-((c - d) - (y - x)),
   have := complex.abs_add X Y,
   have ho : abs (c - d - (y - x)) = abs Y, by {simp_rw Y, rw abs_neg,},
   rw ho,
@@ -735,34 +736,30 @@ begin
   rw hcd,
   apply this,},
   apply le_trans h4,
-  simp_rw ← add_assoc,
-  simp only [h44, add_le_add_iff_right],},
-  have h11 : (abs r)⁻¹ * abs ( a- y) < 8⁻¹*ε, by {
-  have :=  (inv_mul_lt_iff' hr).mpr,
+  simp only [← add_assoc, h44, add_le_add_iff_right],},
+  have h11 : (abs r)⁻¹ * abs ( a- y) < 8⁻¹*ε,
+  by {have :=  (inv_mul_lt_iff' hr).mpr,
   apply this,
-  have e1 : 8⁻¹* (abs r) *ε = 8⁻¹* ε* (abs r),
-  by {ring_nf,},
+  have e1 : 8⁻¹ * (abs r) * ε = 8⁻¹ * ε * (abs r), by {ring_nf,},
   rw ← e1,
   apply h1,},
-  have h22 : (abs r)⁻¹ * abs ( b- x) < 8⁻¹*ε, by {
-  have := (inv_mul_lt_iff' hr).mpr,
+  have h22 : (abs r)⁻¹ * abs ( b- x) < 8⁻¹*ε,
+  by {have := (inv_mul_lt_iff' hr).mpr,
   apply this,
-  have e1: 8⁻¹* (abs r) *ε = 8⁻¹* ε* (abs r),
+  have e1 : 8⁻¹ * (abs r) *ε = 8⁻¹* ε* (abs r),
   by {ring_nf,},
   rw ← e1,
   apply h2,},
-  have h7 := add_lt_add (add_lt_add h11 h22) h33,
-  have h8 := lt_of_le_of_lt h6  h7,
-  apply lt_trans h8,
+  apply lt_trans (lt_of_le_of_lt h6  ( add_lt_add (add_lt_add h11 h22) h33)),
   field_simp,
   linarith,
 end
 
 lemma Ineq3 (a b c d e f r : ℂ) (ε : ℝ) (hε : 0 < ε) (h1 : abs (a- b) < 8⁻¹ * abs(r) * ε)
-  (h2 : abs (c- d) < 8⁻¹ * abs(r) * ε )
-  (h : ∃ (x y : ℂ), abs ( b- y) < 8⁻¹ * abs(r) * ε ∧ abs (d-x) < 8⁻¹ * abs(r) * ε ∧
-  (abs r)⁻¹ * abs ((y -x)- (e -f) ) < 8⁻¹ * ε) :
-  (abs r)⁻¹ * abs ((a-b) - (c-d) + (b-d) - (e-f) ) < ε :=
+  (h2 : abs (c - d) < 8⁻¹ * abs(r) * ε )
+  (h : ∃ (x y : ℂ), abs (b - y) < 8⁻¹ * abs(r) * ε ∧ abs (d - x) < 8⁻¹ * abs(r) * ε ∧
+  (abs r)⁻¹ * abs ((y - x)- (e - f)) < 8⁻¹ * ε) :
+  (abs r)⁻¹ * abs ((a - b) - (c - d) + (b - d) - (e - f)) < ε :=
 begin
   apply (Ineq1 _ _ _ _ _ _ _ _ hε h1 h2),
   apply Ineq2 _ _ _ _ _ _ hε h,
@@ -776,10 +773,7 @@ begin
   have F_cts : ∀ n, continuous_on (F n) (closed_ball z R),
   by {intro n, apply (hdiff n).continuous_on,},
   apply tendsto_uniformly_on.continuous_on hlim,
-  simp only [ge_iff_le, eventually_at_top],
-  use 1,
-  intros b hb,
-  apply F_cts,
+  simp only [F_cts, eventually_at_top, implies_true_iff, exists_const],
 end
 
 lemma circle_integral_unif_of_diff_has_fderiv (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (R r : ℝ)
@@ -817,7 +811,7 @@ begin
   clear hU hS1,
   intros y hy,
   simp_rw U at hy,
-  let t := abs (y -x),
+  let t := abs (y - x),
   by_cases ht : t ≠ 0,
   simp only [mem_ball, mem_inter_eq, inf_eq_inter] at hy,
   simp_rw [real.norm_eq_abs, abs_abs],
@@ -839,8 +833,8 @@ begin
   set A' : ℕ := max a a',
   simp only [mem_ball, abs_eq_zero, ne.def, subtype.coe_mk] at *,
   set A : ℕ := max A' a'',
-  have haA: a ≤ A, by {simp only [le_refl, true_or, le_max_iff],},
-  have ha'A: a' ≤ A, by {simp only [le_refl, true_or, or_true, le_max_iff],},
+  have haA : a ≤ A, by {simp only [le_refl, true_or, le_max_iff],},
+  have ha'A : a' ≤ A, by {simp only [le_refl, true_or, or_true, le_max_iff],},
   have ha''A : a'' ≤ A, by {simp only [le_refl, or_true, le_max_iff],},
   have HH : ∀ (y : ℂ), f y - f x - (D y - D x) =
   (f y - F A y) - ((f x)- (F A x)) + ((F A y)- (F A x)) - (D y - D x),
@@ -850,24 +844,16 @@ begin
   clear keyb keyy keyy2 HH hε h8 h8',
   refine ⟨(circle_integral_form R  z f x), (circle_integral_form R z f y),_⟩,
   simp_rw circle_intgral_form_eq_int,
-  have hyy := mem_ball.2 hy.2,
-  have hxz := mem_ball.2 hx,
-  split,
-  have := F_alt A ⟨y,hyy⟩,
+  refine ⟨by {have := F_alt A ⟨y,(mem_ball.2 hy.2)⟩,
   simp only [subtype.coe_mk] at this,
-  rw this,
-  simp_rw circle_intgral_form_eq_int,
-  apply ha'' A ha''A,
-  split,
-  have := F_alt A ⟨x,hxz⟩,
+  rw [this, circle_intgral_form_eq_int],
+  apply ha'' A ha''A},
+  by {have := F_alt A ⟨x,(mem_ball.2 hx)⟩,
   simp only [subtype.coe_mk] at this,
-  rw this,
-  simp_rw circle_intgral_form_eq_int,
-  apply ha' A ha'A,
-  simp_rw [real.norm_eq_abs, abs_abs] at HS1,
-  simp_rw circle_intgral_form_eq_int at HS1,
-  apply HS1,
-  apply hy.1,
+  rw [this, circle_intgral_form_eq_int],
+  apply ha' A ha'A},
+  by {simp_rw [real.norm_eq_abs, abs_abs, circle_intgral_form_eq_int ] at HS1,
+  apply HS1 _ hy.1}⟩,
   simp only [abs_eq_zero, not_not] at ht,
   rw ht,
   simp only [norm_zero, zero_mul, abs_zero, inv_zero],

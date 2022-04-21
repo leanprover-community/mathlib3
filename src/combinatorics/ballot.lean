@@ -11,7 +11,7 @@ import probability.cond_count
 This file proves Theorem 30 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 -/
 
-open finset probability_theory
+open set probability_theory measure_theory measure_theory.measure
 
 /-- Every nonempty suffix has positive sum. -/
 def stays_positive (l : list ℤ) : Prop := ∀ l₂, l₂ ≠ [] → l₂ <:+ l → 0 < l₂.sum
@@ -64,50 +64,71 @@ end
 --   apply le_of_lt ((b :: l).sum_pos hl₁.2 (l.cons_ne_nil b)),
 -- end
 
+@[elab_as_eliminator]
+lemma diag_induction (P : ℕ → ℕ → Prop) (ha : ∀ a, P (a+1) (a+1)) (hb : ∀ p, P 0 (p+1))
+  (hd : ∀ a b, a < b → P (a+1) b → P a (b+1) → P (a+1) (b+1)) :
+  ∀ q p, q < p → P q p
+| 0 (p+1) h := hb _
+| (q+1) (p+1) h :=
+begin
+  apply hd _ _ ((add_lt_add_iff_right _).1 h),
+  { have : q + 1 = p ∨ q + 1 < p,
+    { rwa [← le_iff_eq_or_lt, ← nat.lt_succ_iff] },
+    rcases this with rfl | _,
+    { exact ha _ },
+    apply diag_induction (q+1) p this },
+  apply diag_induction q (p+1),
+  apply lt_of_le_of_lt (nat.le_succ _) h,
+end
+using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ p, p.1 + p.2.1)⟩] }
+
 /--
 `counted_sequence p q` is the (fin)set of lists of `ℤ` for which every element is `+1` or `-1`,
 there are `p` lots of `+1` and `q` lots of `-1`.
 This represents vote sequences where candidate `+1` receives `p` votes and candidate `-1` receives
 `q` votes.
 -/
-def counted_sequence : ℕ → ℕ → finset (list ℤ)
+def counted_sequence : ℕ → ℕ → set (list ℤ)
 | 0 q := {list.repeat (-1) q}
 | (p + 1) 0 := {list.repeat 1 (p+1)}
 | (p + 1) (q + 1) :=
-    (counted_sequence p (q+1)).map ⟨list.cons 1, list.cons_injective⟩ ∪
-    (counted_sequence (p+1) q).map ⟨list.cons (-1), list.cons_injective⟩
+    (counted_sequence p (q + 1)).image (list.cons 1) ∪
+    (counted_sequence (p + 1) q).image (list.cons (-1))
 
-lemma counted_right_zero (p : ℕ) : counted_sequence p 0 = {list.repeat 1 p} :=
+@[simp] lemma counted_right_zero (p : ℕ) : counted_sequence p 0 = {list.repeat 1 p} :=
 by { cases p; rw [counted_sequence]; refl }
 
-lemma counted_left_zero (q : ℕ) : counted_sequence 0 q = {list.repeat (-1) q} :=
+@[simp] lemma counted_left_zero (q : ℕ) : counted_sequence 0 q = {list.repeat (-1) q} :=
 by { cases q; rw [counted_sequence]; refl }
 
 lemma counted_succ_succ (p q : ℕ) : counted_sequence (p+1) (q+1) =
-  (counted_sequence p (q+1)).map ⟨list.cons 1, list.cons_injective⟩ ∪
-      (counted_sequence (p+1) q).map ⟨list.cons (-1), list.cons_injective⟩ :=
+  (counted_sequence p (q+1)).image (list.cons 1) ∪
+      (counted_sequence (p+1) q).image (list.cons (-1)) :=
 by { rw [counted_sequence] }
 
-lemma counted_succ_succ' (p q : ℕ) : (counted_sequence (p+1) (q+1) : set (list ℤ)) =
-  ↑((counted_sequence p (q+1)).map ⟨list.cons 1, list.cons_injective⟩) ∪
-      (counted_sequence (p+1) q).map ⟨list.cons (-1), list.cons_injective⟩ :=
-by { rw [counted_succ_succ, coe_union] }
+lemma counted_sequence_finite : ∀ (p q : ℕ), (counted_sequence p q).finite
+| 0 q := by { rw counted_sequence, exact set.finite_singleton _}
+| (p + 1) 0 := by { rw counted_sequence, exact set.finite_singleton _}
+| (p + 1) (q + 1) := by {
+  rw [counted_sequence, set.finite_union, set.finite_image_iff (list.cons_injective.inj_on _),
+    set.finite_image_iff (list.cons_injective.inj_on _)],
+  exact ⟨counted_sequence_finite _ _, counted_sequence_finite _ _⟩ }
 
 lemma sum_of_mem_counted_sequence :
   ∀ {p q : ℕ} {l : list ℤ} (hl : l ∈ counted_sequence p q), l.sum = p - q
 | 0 q l hl :=
   begin
-    rw [counted_left_zero, mem_singleton] at hl,
+    rw [counted_left_zero, mem_singleton_iff] at hl,
     simp [hl],
   end
 | p 0 l hl :=
   begin
-    rw [counted_right_zero, mem_singleton] at hl,
+    rw [counted_right_zero, mem_singleton_iff] at hl,
     simp [hl],
   end
 | (p+1) (q+1) l hl :=
   begin
-    simp only [counted_succ_succ, mem_union, function.embedding.coe_fn_mk, mem_map] at hl,
+    simp only [counted_succ_succ, mem_union, mem_image] at hl,
     rcases hl with (⟨l, hl, rfl⟩ | ⟨l, hl, rfl⟩),
     { rw [list.sum_cons, sum_of_mem_counted_sequence hl],
       push_cast,
@@ -121,19 +142,19 @@ lemma mem_of_mem_counted_sequence :
   ∀ {p q : ℕ} {l} (hl : l ∈ counted_sequence p q) {x : ℤ} (hx : x ∈ l), x = 1 ∨ x = -1
 | 0 q l hl x hx :=
   begin
-    rw [counted_left_zero, mem_singleton] at hl,
+    rw [counted_left_zero, mem_singleton_iff] at hl,
     subst hl,
     exact or.inr (list.eq_of_mem_repeat hx),
   end
 | p 0 l hl x hx :=
   begin
-    rw [counted_right_zero, mem_singleton] at hl,
+    rw [counted_right_zero, mem_singleton_iff] at hl,
     subst hl,
     exact or.inl (list.eq_of_mem_repeat hx),
   end
 | (p+1) (q+1) l hl x hx :=
   begin
-    simp only [counted_succ_succ, mem_union, function.embedding.coe_fn_mk, mem_map] at hl,
+    simp only [counted_succ_succ, mem_union, mem_image] at hl,
     rcases hl with (⟨l, hl, rfl⟩ | ⟨l, hl, rfl⟩);
     rcases hx with (rfl | hx),
     { left, refl },
@@ -146,17 +167,17 @@ lemma length_of_mem_counted_sequence :
   ∀ {p q : ℕ} {l : list ℤ} (hl : l ∈ counted_sequence p q), l.length = p + q
 | 0 q l hl :=
   begin
-    rw [counted_left_zero, mem_singleton] at hl,
+    rw [counted_left_zero, mem_singleton_iff] at hl,
     simp [hl],
   end
 | p 0 l hl :=
   begin
-    rw [counted_right_zero, mem_singleton] at hl,
+    rw [counted_right_zero, mem_singleton_iff] at hl,
     simp [hl],
   end
 | (p+1) (q+1) l hl :=
   begin
-    simp only [counted_succ_succ, mem_union, function.embedding.coe_fn_mk, mem_map] at hl,
+    simp only [counted_succ_succ, mem_union, mem_image] at hl,
     rcases hl with (⟨l, hl, rfl⟩ | ⟨l, hl, rfl⟩),
     { rw [list.length_cons, length_of_mem_counted_sequence hl, add_right_comm] },
     { rw [list.length_cons, length_of_mem_counted_sequence hl, ←add_assoc] }
@@ -164,30 +185,29 @@ lemma length_of_mem_counted_sequence :
 
 lemma disjoint_bits (p q : ℕ) :
   disjoint
-    ((counted_sequence p (q+1)).map ⟨list.cons 1, list.cons_injective⟩)
-    ((counted_sequence (p+1) q).map ⟨list.cons (-1), list.cons_injective⟩) :=
+    ((counted_sequence p (q+1)).image (list.cons 1))
+    ((counted_sequence (p+1) q).image (list.cons (-1))) :=
 begin
-  simp_rw [disjoint_left, mem_map, not_exists, function.embedding.coe_fn_mk, exists_imp_distrib],
-  rintros _ _ _ rfl _ _ ⟨_, _⟩,
+  simp_rw [disjoint_left, mem_image, not_exists, exists_imp_distrib],
+  rintros _ _ ⟨_, rfl⟩ _ ⟨_, _, _⟩,
 end
 
-lemma disjoint_bits' (p q : ℕ) :
-  disjoint
-    ((counted_sequence p (q+1)).map ⟨list.cons 1, list.cons_injective⟩ : set (list ℤ))
-    ((counted_sequence (p+1) q).map ⟨list.cons (-1), list.cons_injective⟩) :=
-begin
-  rintro a ⟨ha₁, ha₂⟩,
-  rw [mem_coe] at ha₁ ha₂,
-  apply disjoint_bits p q,
-  simpa using (⟨ha₁, ha₂⟩ : _ ∧ _),
-end
+def measureable_space_list_int : measurable_space (list ℤ) := ⊤
 
-lemma card_counted_sequence : ∀ p q : ℕ, (counted_sequence p q).card = (p + q).choose p
-| p 0 := by simp [counted_right_zero]
-| 0 q := by simp [counted_left_zero]
-| (p+1) (q+1) :=
+local attribute [instance] measureable_space_list_int
+
+def measurable_singleton_class_list_int : measurable_singleton_class (list ℤ) :=
+{ measurable_set_singleton := λ s, trivial }
+
+local attribute [instance] measurable_singleton_class_list_int
+
+#check finset.card_map
+lemma count_counted_sequence : ∀ p q : ℕ, count (counted_sequence p q) = (p + q).choose p
+| p 0 := by simp [counted_right_zero, count_singleton]
+| 0 q := by simp [counted_left_zero, count_singleton]
+| (p + 1) (q + 1) :=
   begin
-    rw [counted_succ_succ, card_union_eq, card_map, card_map, card_counted_sequence,
+    rw [counted_succ_succ, measure_union, card_map, card_map, card_counted_sequence,
         card_counted_sequence, add_assoc, add_comm 1 q, ← nat.choose_succ_succ, nat.succ_eq_add_one,
         add_right_comm],
     simp_rw [disjoint_left, mem_map, not_exists, function.embedding.coe_fn_mk, exists_imp_distrib],
@@ -195,29 +215,6 @@ lemma card_counted_sequence : ∀ p q : ℕ, (counted_sequence p q).card = (p + 
   end
 
 open_locale classical
-
-@[elab_as_eliminator]
-lemma diag_induction (P : ℕ → ℕ → Prop) (ha : ∀ a, P (a+1) (a+1)) (hb : ∀ p, P 0 (p+1))
-  (hd : ∀ a b, a < b → P (a+1) b → P a (b+1) → P (a+1) (b+1)) :
-  ∀ q p, q < p → P q p
-| 0 (p+1) h := hb _
-| (q+1) (p+1) h :=
-begin
-  apply hd _ _ ((add_lt_add_iff_right _).1 h),
-    have : q + 1 = p ∨ q + 1 < p,
-      rwa [← le_iff_eq_or_lt, ← nat.lt_succ_iff],
-    rcases this with rfl | _,
-      apply ha,
-    apply diag_induction (q+1) p this,
-  apply diag_induction q (p+1),
-  apply lt_of_le_of_lt (nat.le_succ _) h,
-end
-using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ p, p.1 + p.2.1)⟩]}
-
-instance : measurable_space (list ℤ) := ⊤
-
-instance : measurable_singleton_class (list ℤ) :=
-{ measurable_set_singleton := λ s, trivial }
 
 lemma first_vote_pos :
   ∀ p q, 0 < p + q →

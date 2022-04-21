@@ -31,12 +31,26 @@ and the set of factors of `a`.
 
 -/
 
-
-variables {M : Type*} [comm_monoid_with_zero M] [is_domain M]
-
 open unique_factorization_monoid multiplicity irreducible
 
 namespace divisor_chain
+
+variables {M : Type*} [comm_monoid_with_zero M]
+
+lemma card_subset_divisors_le_length_of_chain {q : associates M}
+  {n : ℕ} {c : fin (n + 1) → associates M} (h₂ : ∀ {r}, r ≤ q ↔ ∃ i, r = c i)
+  {m : finset (associates M)} (hm : ∀ r, r ∈ m → r ≤ q) : m.card ≤ n + 1 :=
+begin
+  classical,
+  have mem_image : ∀ (r : associates M), r ≤ q → r ∈ finset.univ.image c,
+  { intros r hr,
+    obtain ⟨i, hi⟩ := h₂.1 hr,
+    exact finset.mem_image.2 ⟨i, finset.mem_univ _, hi.symm⟩ },
+  rw ←finset.card_fin (n + 1),
+  exact (finset.card_le_of_subset $ λ x hx, mem_image x $ hm x hx).trans finset.card_image_le,
+end
+
+variables [is_domain M]
 
 lemma exists_chain_of_prime_pow {p : associates M} {n : ℕ} (hn : n ≠ 0) (hp : prime p) :
   ∃ c : fin (n + 1) → associates M,
@@ -105,19 +119,6 @@ begin
   { simpa [← fin.succ_zero_eq_one, fin.succ_lt_succ_iff] using hi },
   { refine associates.dvd_not_unit_iff_lt.2 (h₁ _),
     simpa only [fin.coe_eq_cast_succ] using fin.lt_succ }
-end
-
-lemma card_subset_divisors_le_length_of_chain {q : associates M}
-  {n : ℕ} {c : fin (n + 1) → associates M} (h₂ : ∀ {r}, r ≤ q ↔ ∃ i, r = c i)
-  {m : finset (associates M)} (hm : ∀ r, r ∈ m → r ≤ q) : m.card ≤ n + 1 :=
-begin
-  classical,
-  have mem_image : ∀ (r : associates M), r ≤ q → r ∈ finset.univ.image c,
-  { intros r hr,
-    obtain ⟨i, hi⟩ := h₂.1 hr,
-    exact finset.mem_image.2 ⟨i, finset.mem_univ _, hi.symm⟩ },
-  rw ←finset.card_fin (n + 1),
-  exact (finset.card_le_of_subset $ λ x hx, mem_image x $ hm x hx).trans finset.card_image_le,
 end
 
 variables [unique_factorization_monoid M]
@@ -195,8 +196,9 @@ lemma is_prime_pow_of_has_chain {q : associates M} {n : ℕ} (hn : n ≠ 0)
 
 end divisor_chain
 
+variables {M : Type*} [comm_monoid_with_zero M] [is_domain M] [unique_factorization_monoid M]
+                      [decidable_eq (associates M)]
 variables {N : Type*} [comm_monoid_with_zero N] [is_domain N] [unique_factorization_monoid N]
-  [decidable_eq (associates M)] [unique_factorization_monoid M]
 
 open divisor_chain
 

@@ -131,11 +131,12 @@ begin
   exact mul_mono (le_refl p.prod) one_le
 end
 
+
 end comm_monoid
 
-section is_domain
+section comm_monoid_with_zero
 
-variables [comm_monoid_with_zero α] [is_domain α]
+variables [comm_monoid_with_zero α]
 
 lemma exists_mem_multiset_le_of_prime {s : multiset (associates α)} {p : associates α}
   (hp : prime p) :
@@ -148,7 +149,7 @@ assume a s ih h,
   | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
   end
 
-end is_domain
+end comm_monoid_with_zero
 
 end associates
 

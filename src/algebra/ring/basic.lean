@@ -1167,10 +1167,10 @@ section ring
 
 variables [ring R]
 
-def is_domain.of_no_zero_divisors [nontrivial R] [no_zero_divisors R] : is_domain R :=
+lemma is_domain.of_no_zero_divisors [nontrivial R] [no_zero_divisors R] : is_domain R :=
 ⟨λ c, is_regular_iff_ne_zero'.2⟩
 
-def is_domain.of_eq_zero_or_eq_zero_of_mul_eq_zero [nontrivial R]
+lemma is_domain.of_eq_zero_or_eq_zero_of_mul_eq_zero [nontrivial R]
   (h : ∀ {a b : R}, a * b = 0 → a = 0 ∨ b = 0) : is_domain R :=
 by { haveI : no_zero_divisors R, from ⟨λ a b, h⟩, exact is_domain.of_no_zero_divisors }
 

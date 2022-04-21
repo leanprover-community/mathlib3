@@ -231,20 +231,6 @@ lemma _root_.is_primitive_root.ne_zero {M} [comm_monoid_with_zero M] [nontrivial
   (h : is_primitive_root ζ n) : n ≠ 0 → ζ ≠ 0 :=
 mt $ λ hn, h.unique (hn.symm ▸ is_primitive_root.zero)
 
-lemma _root_.mul_rotate  {S} [comm_semigroup S] (a b c : S) : a * b * c = b * c * a :=
-by simp only [mul_left_comm, mul_comm]
-lemma _root_.mul_rotate' {S} [comm_semigroup S] (a b c : S) : a * (b * c) = b * (c * a) :=
-by simp only [mul_left_comm, mul_comm]
-
-lemma _root_.add_one_mul {R} [non_assoc_semiring R] (a b : R) : a * b + b = (a + 1) * b :=
-by rw [add_mul, one_mul]
-lemma _root_.sub_one_mul {R} [non_assoc_ring R] (a b : R) : a * b - b = (a - 1) * b :=
-by rw [sub_mul, one_mul]
-lemma _root_.mul_add_one {R} [non_assoc_semiring R] (a b : R) : a * b + a = a * (b + 1) :=
-by rw [mul_add, mul_one]
-lemma _root_.mul_sub_one {R} [non_assoc_ring R] (a b : R) : a * b - a = a * (b - 1) :=
-by rw [mul_sub, mul_one]
-
 lemma _root_.is_primitive_root.arg {n : ℕ} {ζ : ℂ} (h : is_primitive_root ζ n) (hn : n ≠ 0) :
   ∃ i : ℤ, ζ.arg = i / n * (2 * real.pi) ∧ is_coprime i n ∧ i.nat_abs < n :=
 begin
@@ -284,10 +270,10 @@ begin
   rw [←complex.cos_sub_two_pi, ←complex.sin_sub_two_pi],
   convert complex.arg_cos_add_sin_mul_I _,
   { push_cast,
-    rw [sub_one_mul, sub_div, div_self],
+    rw [←sub_one_mul, sub_div, div_self],
     exact_mod_cast hn },
   { push_cast,
-    rw [sub_one_mul, sub_div, div_self],
+    rw [←sub_one_mul, sub_div, div_self],
     exact_mod_cast hn },
   field_simp [hn],
   refine ⟨_, le_trans _ real.pi_pos.le⟩,
@@ -296,36 +282,10 @@ begin
     exact mul_nonpos_of_nonpos_of_nonneg (sub_nonpos.mpr $ by exact_mod_cast h.le)
       (div_nonneg (by simp [real.pi_pos.le]) $ by simp) },
   rw [←mul_rotate', mul_div_assoc, neg_lt, ←mul_neg, mul_lt_iff_lt_one_right real.pi_pos,
-      ←neg_div, ←neg_mul, neg_sub, div_lt_iff, one_mul, sub_mul, sub_lt, mul_sub_one],
+      ←neg_div, ←neg_mul, neg_sub, div_lt_iff, one_mul, sub_mul, sub_lt, ←mul_sub_one],
   norm_num,
   exact_mod_cast not_le.mp h₂,
-  exact (cast_pos.mpr hn.bot_lt),
-end
-
-.
-
-lemma _root_.is_primitive_root.arg_ext {n m : ℕ} {ζ μ : ℂ} (hζ : is_primitive_root ζ n)
-  (hμ : is_primitive_root μ m) (hn : n ≠ 0) (hm : m ≠ 0) (h : ζ.arg = μ.arg) : ζ = μ :=
-complex.ext_abs_arg ((hζ.nnnorm_eq_one hn).trans (hμ.nnnorm_eq_one hm).symm) h
-
-lemma _root_.is_primitive_root.arg_eq_zero_iff {n : ℕ} {ζ : ℂ} (hζ : is_primitive_root ζ n)
-  (hn : n ≠ 0) : ζ.arg = 0 ↔ ζ = 1 :=
-⟨λ h, hζ.arg_ext is_primitive_root.one hn one_ne_zero (h.trans complex.arg_one.symm),
- λ h, h.symm ▸ complex.arg_one⟩
-
-lemma _root_.is_primitive_root.arg_eq_pi_iff {n : ℕ} {ζ : ℂ} (hζ : is_primitive_root ζ n)
-  (hn : n ≠ 0) : ζ.arg = real.pi ↔ ζ = -1 :=
-⟨λ h, hζ.arg_ext (is_primitive_root.neg_one 0 two_ne_zero.symm) hn two_ne_zero
-      (h.trans complex.arg_neg_one.symm), λ h, h.symm ▸ complex.arg_neg_one⟩
-
-lemma _root_.complex.arg_eq_zero_iff {z : ℂ} : z.arg = 0 ↔ 0 ≤ z.re ∧ z.im = 0 :=
-begin
-  refine ⟨λ h, _, _⟩,
-  { rw [← complex.abs_mul_cos_add_sin_mul_I z, h],
-    simp [complex.abs_nonneg] },
-  { cases z with x y,
-    rintro ⟨h, rfl : y = 0⟩,
-    exact complex.arg_of_real_of_nonneg h }
+  { exact (cast_pos.mpr hn.bot_lt) }
 end
 
 lemma sub_one_pow_totient_lt_cyclotomic_eval (n : ℕ) (q : ℝ) (hn' : 2 ≤ n) (hq' : 1 < q) :
@@ -338,13 +298,13 @@ begin
     rw mem_primitive_roots hn at hζ',
     convert norm_sub_norm_le (↑q) ζ',
     { rw [complex.norm_real, real.norm_of_nonneg hq.le], },
-    { rw [hζ'.nnnorm_eq_one hn.ne'], }, },
+    { sorry }, },
   let ζ := complex.exp (2 * ↑real.pi * complex.I / ↑n),
   have hζ : is_primitive_root ζ n := complex.is_primitive_root_exp n hn.ne',
   have hex : ∃ ζ' ∈ primitive_roots n ℂ, q - 1 < ∥↑q - ζ'∥,
   { refine ⟨ζ, (mem_primitive_roots hn).mpr hζ, _⟩,
     suffices : ¬ same_ray ℝ (q : ℂ) ζ,
-    { convert lt_norm_sub_of_not_same_ray this;
+    { convert lt_norm_sub_of_not_same_ray this; sorry;
       simp [real.norm_of_nonneg hq.le, hζ.nnnorm_eq_one hn.ne'] },
     rw complex.same_ray_iff,
     push_neg,
@@ -391,14 +351,15 @@ begin
     rw mem_primitive_roots hn at hζ',
     convert norm_sub_le (↑q) ζ',
     { rw [complex.norm_real, real.norm_of_nonneg (zero_le_one.trans_lt hq').le], },
-    { rw [hζ'.nnnorm_eq_one hn.ne'], }, },
+    { sorry }, },
   let ζ := complex.exp (2 * ↑real.pi * complex.I / ↑n),
   have hζ : is_primitive_root ζ n := complex.is_primitive_root_exp n hn.ne',
   have hex : ∃ ζ' ∈ primitive_roots n ℂ, ∥↑q - ζ'∥ < q + 1,
   { refine ⟨ζ, (mem_primitive_roots hn).mpr hζ, _⟩,
     suffices : ¬ same_ray ℝ (q : ℂ) (-ζ),
     { convert norm_add_lt_of_not_same_ray this;
-      simp [real.norm_of_nonneg hq.le, hζ.nnnorm_eq_one hn.ne', -complex.norm_eq_abs] },
+      sorry,
+      /-simp [real.norm_of_nonneg hq.le, hζ.nnnorm_eq_one hn.ne', -complex.norm_eq_abs]-/ },
     rw complex.same_ray_iff,
     push_neg,
     refine ⟨by exact_mod_cast hq.ne', neg_ne_zero.mpr $ hζ.ne_zero hn.ne', _⟩,

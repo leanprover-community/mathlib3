@@ -77,9 +77,6 @@ lemma ne.lt_of_le' : b ≠ a → a ≤ b → a < b := flip lt_of_le_of_ne'
 
 end partial_order
 
-lemma lt_of_le_of_ne' [partial_order α] {a b : α} : a ≤ b → b ≠ a → a < b :=
-λ h h', lt_of_le_of_ne h h'.symm
-
 attribute [simp] le_refl
 attribute [ext] has_le
 

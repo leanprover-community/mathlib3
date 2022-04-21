@@ -506,7 +506,7 @@ def comp_add_monoid_hom [add_monoid δ] [has_continuous_add δ] (g : β →co γ
 
 /-- Composition as a semigroup homomorphism. -/
 def comp_mul_hom [mul_zero_class δ] [has_continuous_mul δ]
-  (g : β →co γ) : mul_hom C₀(γ, δ) C₀(β, δ) :=
+  (g : β →co γ) : C₀(γ, δ) →ₙ* C₀(β, δ) :=
 { to_fun := λ f, f.comp g,
   map_mul' := λ f₁ f₂, rfl }
 
@@ -521,7 +521,7 @@ def comp_linear_map [add_comm_monoid δ] [has_continuous_add δ] {R : Type*}
 /-- Composition as a non-unital algebra homomorphism. -/
 def comp_non_unital_alg_hom {R : Type*} [semiring R] [non_unital_non_assoc_semiring δ]
   [topological_semiring δ] [module R δ] [has_continuous_const_smul R δ] (g : β →co γ) :
-  non_unital_alg_hom R C₀(γ, δ) C₀(β, δ) :=
+  C₀(γ, δ) →ₙₐ[R] C₀(β, δ) :=
 { to_fun := λ f, f.comp g,
   map_smul' := λ r f, rfl,
   map_zero' := rfl,

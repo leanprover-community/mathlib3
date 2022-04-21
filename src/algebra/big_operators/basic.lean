@@ -343,6 +343,25 @@ begin
     cases H }
 end
 
+@[simp, to_additive]
+lemma prod_on_sum [fintype α] [fintype γ] [decidable_eq (α ⊕ γ)] (f : α ⊕ γ → β) :
+  ∏ (x : α ⊕ γ), f x  =
+    (∏ (x : α), f (sum.inl x)) * (∏ (x : γ), f (sum.inr x)) :=
+begin
+  convert prod_sum_elim univ univ (λ x, f (sum.inl x))(λ x, f (sum.inr x)),
+  { ext a,
+    split,
+    { intro x,
+      cases a,
+      { simp only [mem_union, mem_map, mem_univ, function.embedding.inl_apply, or_false,
+          exists_true_left, exists_apply_eq_apply, function.embedding.inr_apply, exists_false], },
+      { simp only [mem_union, mem_map, mem_univ, function.embedding.inl_apply, false_or,
+          exists_true_left, exists_false, function.embedding.inr_apply,
+          exists_apply_eq_apply], }, },
+    { simp only [mem_univ, implies_true_iff], }, },
+  { simp only [sum.elim_comp_inl_inr], },
+end
+
 @[to_additive]
 lemma prod_bUnion [decidable_eq α] {s : finset γ} {t : γ → finset α}
   (hs : set.pairwise_disjoint ↑s t) :

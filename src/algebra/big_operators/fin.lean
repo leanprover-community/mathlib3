@@ -6,6 +6,7 @@ Authors: Yury Kudryashov, Anne Baanen
 import algebra.big_operators.basic
 import data.fintype.fin
 import data.fintype.card
+import logic.equiv.fin
 /-!
 # Big operators and `fin`
 
@@ -124,27 +125,10 @@ lemma prod_univ_add {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin (a+b) → M
   ∏ (i : fin (a+b)), f i =
   (∏ (i : fin a), f (cast_add b i)) * ∏ (i : fin b), f (nat_add a i) :=
 begin
-  revert f a,
-  induction b with b hb,
-  { intros a f,
-    simp only [prod_univ_zero, mul_one],
-    congr,
-    ext i,
-    congr,
-    ext,
-    refl, },
-  { intros a f,
-    have eq : (a+1)+b=(a+b).succ := by simpa only [add_assoc, add_comm 1],
-    rw [prod_univ_succ, ← mul_assoc, ← prod_congr' f eq,
-      hb (λ (i : fin((a+1)+b)), f (cast eq i))],
-    congr,
-    { rw prod_univ_cast_succ,
-      congr, },
-    { ext,
-      simp only,
-      congr,
-      ext,
-      simp only [coe_cast, coe_nat_add, coe_succ, add_assoc, add_comm 1], }, }
+  rw fintype.prod_equiv fin_sum_fin_equiv.symm f (λ i, f (fin_sum_fin_equiv.to_fun i)), swap,
+  { intro x,
+    simp only [equiv.to_fun_as_coe, equiv.apply_symm_apply], },
+  apply prod_on_sum,
 end
 
 @[to_additive]

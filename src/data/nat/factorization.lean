@@ -439,8 +439,7 @@ lemma is_square_mul {m n : ℕ} (hmn : m.coprime n) :
 begin
   refine ⟨_, λ ⟨hm, hn⟩, hm.mul_is_square hn⟩,
   intros hsquare,
-  exact ⟨_root_.is_square.of_coprime_of_mul_left hmn hsquare,
-    _root_.is_square.of_coprime_of_mul_right hmn hsquare⟩,
+  exact ⟨hsquare.of_coprime_of_mul_left hmn, hsquare.of_coprime_of_mul_right hmn⟩,
 end
 
 lemma square_prime_pow_iff_pow_even {p i : ℕ} (hp : p.prime) : (is_square (p ^ i) ↔ even i) :=

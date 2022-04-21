@@ -13,10 +13,10 @@ We compute the discriminant of a `p ^ n`-th cyclotomic extension of `ℚ`.
 
 ## Main results
 * `is_cyclotomic_extension.rat.is_integral_closure_adjoing_singleton_of_prime_pow`: if `K` is a
-  `p ^ (k + 1)`-th cyclotomic extension of `ℚ`, then `(adjoin ℤ {ζ})` is the integral closure of
+  `p ^ k`-th cyclotomic extension of `ℚ`, then `(adjoin ℤ {ζ})` is the integral closure of
   `ℤ` in `K`.
 * `is_cyclotomic_extension.rat.cyclotomic_ring_is_integral_closure_of_prime_pow`: the integral
-  closure of `ℤ` inside `cyclotomic_field (p ^ (k + 1)) ℚ` is `cyclotomic_ring (p ^ (k + 1)) ℤ ℚ`.
+  closure of `ℤ` inside `cyclotomic_field (p ^ k) ℚ` is `cyclotomic_ring (p ^ k) ℤ ℚ`.
 -/
 
 universes u
@@ -61,27 +61,27 @@ begin
   exact hζ.discr_zeta_eq_discr_zeta_sub_one.symm
 end
 
-/-- If `p` is a prime and `is_cyclotomic_extension {p ^ (k + 1)} K L`, then there are `u : ℤˣ` and
+/-- If `p` is a prime and `is_cyclotomic_extension {p ^ k} K L`, then there are `u : ℤˣ` and
 `n : ℕ` such that the discriminant of the power basis given by `ζ - 1` is `u * p ^ n`. Often this is
 enough and less cumbersome to use than the previous lemmas. -/
-lemma discr_prime_pow_eq_unit_mul_pow' [is_cyclotomic_extension {p ^ (k + 1)} ℚ K]
-  (hζ : is_primitive_root ζ ↑(p ^ (k + 1))) :
+lemma discr_prime_pow_eq_unit_mul_pow' [is_cyclotomic_extension {p ^ k} ℚ K]
+  (hζ : is_primitive_root ζ ↑(p ^ k)) :
   ∃ (u : ℤˣ) (n : ℕ), discr ℚ (hζ.sub_one_power_basis ℚ).basis = u * p ^ n :=
 begin
   rw [hζ.discr_zeta_eq_discr_zeta_sub_one.symm],
-  exact discr_prime_pow_eq_unit_mul_pow hζ (cyclotomic.irreducible_rat (p ^ (k + 1)).pos)
+  exact discr_prime_pow_eq_unit_mul_pow hζ (cyclotomic.irreducible_rat (p ^ k).pos)
     (cyclotomic.irreducible_rat p.pos)
 end
 
-/-- If `K` is a `p ^ (k + 1)`-th cyclotomic extension of `ℚ`, then `(adjoin ℤ {ζ})` is the
+/-- If `K` is a `p ^ k`-th cyclotomic extension of `ℚ`, then `(adjoin ℤ {ζ})` is the
 integral closure of `ℤ` in `K`. -/
 lemma is_integral_closure_adjoing_singleton_of_prime_pow
-  [is_cyclotomic_extension {p ^ (k + 1)} ℚ K] (hζ : is_primitive_root ζ ↑(p ^ (k + 1))) :
+  [hcycl : is_cyclotomic_extension {p ^ k} ℚ K] (hζ : is_primitive_root ζ ↑(p ^ k)) :
   is_integral_closure (adjoin ℤ ({ζ} : set K)) ℤ K :=
 begin
   refine ⟨subtype.val_injective, λ x, ⟨λ h, ⟨⟨x, _⟩, rfl⟩, _⟩⟩,
   { let B := hζ.sub_one_power_basis ℚ,
-    have hint : is_integral ℤ B.gen :=  is_integral_sub (hζ.is_integral (p ^ (k + 1)).pos)
+    have hint : is_integral ℤ B.gen :=  is_integral_sub (hζ.is_integral (p ^ k).pos)
       is_integral_one,
     have H := discr_mul_is_integral_mem_adjoin ℚ hint h,
     obtain ⟨u, n, hun⟩ := discr_prime_pow_eq_unit_mul_pow' hζ,
@@ -90,23 +90,34 @@ begin
     rw [← smul_assoc, ← smul_mul_assoc, units.inv_eq_coe_inv, coe_coe, zsmul_eq_mul,
       ← int.cast_mul, units.inv_mul, int.cast_one, one_mul,
       show (p : ℚ) ^ n • x = ((p : ℕ) : ℤ) ^ n • x, by simp [smul_def]] at H,
-    have hmin : (minpoly ℤ B.gen).is_eisenstein_at (submodule.span ℤ {((p : ℕ) : ℤ)}),
-    { have h₁ := minpoly.gcd_domain_eq_field_fractions ℚ hint,
-      have h₂ := hζ.minpoly_sub_one_eq_cyclotomic_comp
-        (cyclotomic.irreducible_rat (p ^ (k + 1)).pos),
-      rw [is_primitive_root.sub_one_power_basis_gen] at h₁,
-      rw [h₁, ← map_cyclotomic_int, show int.cast_ring_hom ℚ = algebra_map ℤ ℚ, by refl,
-        show ((X + 1)) = map (algebra_map ℤ ℚ) (X + 1), by simp, ← map_comp] at h₂,
-      rw [is_primitive_root.sub_one_power_basis_gen, map_injective (algebra_map ℤ ℚ)
-        ((algebra_map ℤ ℚ).injective_int) h₂],
-      exact cyclotomic_prime_pow_comp_X_add_one_is_eisenstein_at _ _ },
-    refine adjoin_le _ (mem_adjoin_of_smul_prime_pow_smul_of_minpoly_is_eiseinstein_at
-      (nat.prime_iff_prime_int.1 hp.out) hint h H hmin),
-    simp only [set.singleton_subset_iff, set_like.mem_coe],
-    exact subalgebra.sub_mem _ (self_mem_adjoin_singleton ℤ _) (subalgebra.one_mem _) },
+    unfreezingI { cases k,
+    { haveI : is_cyclotomic_extension {1} ℚ K := by simpa using hcycl,
+      have : x ∈ (⊥ : subalgebra ℚ K),
+      { rw [singleton_one ℚ K],
+        exact mem_top },
+      obtain ⟨y, hy⟩ := mem_bot.1 this,
+      rw [← hy] at h,
+      replace h := (is_integral_algebra_map_iff (algebra_map ℚ K).injective).1 h,
+      obtain ⟨z, hz⟩ := is_integrally_closed.is_integral_iff.1 h,
+      rw [← hy, ← hz, ← is_scalar_tower.algebra_map_apply],
+      exact subalgebra.algebra_map_mem  _ _ },
+    { have hmin : (minpoly ℤ B.gen).is_eisenstein_at (submodule.span ℤ {((p : ℕ) : ℤ)}),
+      { have h₁ := minpoly.gcd_domain_eq_field_fractions ℚ hint,
+        have h₂ := hζ.minpoly_sub_one_eq_cyclotomic_comp
+          (cyclotomic.irreducible_rat (p ^ _).pos),
+        rw [is_primitive_root.sub_one_power_basis_gen] at h₁,
+        rw [h₁, ← map_cyclotomic_int, show int.cast_ring_hom ℚ = algebra_map ℤ ℚ, by refl,
+          show ((X + 1)) = map (algebra_map ℤ ℚ) (X + 1), by simp, ← map_comp] at h₂,
+        rw [is_primitive_root.sub_one_power_basis_gen, map_injective (algebra_map ℤ ℚ)
+          ((algebra_map ℤ ℚ).injective_int) h₂],
+        exact cyclotomic_prime_pow_comp_X_add_one_is_eisenstein_at _ _ },
+      refine adjoin_le _ (mem_adjoin_of_smul_prime_pow_smul_of_minpoly_is_eiseinstein_at
+        (nat.prime_iff_prime_int.1 hp.out) hint h H hmin),
+      simp only [set.singleton_subset_iff, set_like.mem_coe],
+      exact subalgebra.sub_mem _ (self_mem_adjoin_singleton ℤ _) (subalgebra.one_mem _) } } },
   { rintro ⟨y, rfl⟩,
     exact is_integral.algebra_map (le_integral_closure_iff_is_integral.1
-      (adjoin_le_integral_closure (hζ.is_integral (p ^ (k + 1)).pos)) _) },
+      (adjoin_le_integral_closure (hζ.is_integral (p ^ k).pos)) _) },
 end
 
 local attribute [-instance] cyclotomic_field.algebra

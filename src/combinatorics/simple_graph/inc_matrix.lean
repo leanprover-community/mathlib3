@@ -31,9 +31,9 @@ then defining the oriented incidence matrix `oriented_inc_matrix` based on that.
 * `simple_graph.inc_matrix_transpose_mul_diag`: The diagonal entries of the product of the
   transpose of `G.inc_matrix R` and `G.inc_matrix R` are `2` or `0` depending on whether or
   not the unordered pair is an edge of `G`.
-* `oriented_inc_matrix_elem_squared`: The square of each element from `N(o)` is equal to the
-corresponding element from `M`.
-* `vec_mul_oriented_inc_matrix`: `(xᵀ ⬝ N(o)) e = x o.head(e) - x o.tail(e)`.
+* `oriented_inc_matrix_elem_squared`: The square of each element from `oriented_inc_matrix` is equal
+  to the corresponding element from `inc_matrix`.
+* `vec_mul_oriented_inc_matrix`: `(xᵀ ⬝ oriented_inc_matrix) e = x o.head e - x o.tail e`.
 
 ## Implementation notes
 
@@ -57,6 +57,14 @@ noncomputable theory
 
 open finset matrix simple_graph sym2
 open_locale big_operators matrix
+
+section
+variables {α : Type*}  {p q : Prop} [decidable p] [decidable q] {a b c : α}
+
+lemma ite_assoc : ite p a (ite q b c) = ite (p ∨ q) (ite p a b) c := by split_ifs; tauto
+lemma ite_assoc' : ite p (ite q a b) c = ite (p ∧ q) a (ite p b c) := by split_ifs; tauto
+
+end
 
 namespace simple_graph
 variables (R : Type*) {α : Type*} (G : simple_graph α)
@@ -217,15 +225,15 @@ noncomputable instance (G : simple_graph α) : inhabited (orientation G) :=
 
 variables {o : orientation G}
 
-lemma head_tail (o : orientation G) (i : α) (e : G.edge_set) :
-  i = o.head e ∨ i = o.tail e ∨ (i ≠ o.head e ∧ i ≠ o.tail e) :=
-by tauto
+-- lemma head_tail (o : orientation G) (i : α) (e : G.edge_set) :
+--   i = o.head e ∨ i = o.tail e ∨ (i ≠ o.head e ∧ i ≠ o.tail e) :=
+-- by tauto
 
 lemma edge_not_incident {i j : α} {e : G.edge_set}
   (H_e : ¬↑e = ⟦(i, j)⟧) (H_adj : G.adj i j) : ↑e ∉ G.incidence_set i ∨ ↑e ∉ G.incidence_set j :=
 by { by_contra' h, exact H_e (G.incidence_set_inter_incidence_set_subset (G.ne_of_adj H_adj) h) }
 
-lemma head_ne_tail {e : G.edge_set} : o.head(e) ≠ o.tail(e) :=
+lemma head_ne_tail {e : G.edge_set} : o.head e ≠ o.tail e :=
 begin
   apply G.ne_of_adj,
   rw [←G.mem_edge_set, ←o.consistent e],
@@ -262,16 +270,12 @@ variables (R) [decidable_eq α] [ring R] {o : orientation G}
 /-- An oriented incidence matrix is defined with respect to the orientation of the edges and is
 defined to be `1` for entries (`i`,`e`) where `i` is the head of `e`, `-1` where `i` is the tail of
 `e`, and `0` otherwise. -/
-def oriented_inc_matrix (o : orientation G) : matrix α G.edge_set R :=
-λ i e, if i = o.head e then (1 : R) else (if i = o.tail e then -1 else 0)
-
-@[simp]
-lemma oriented_inc_matrix_apply {i : α} {e : G.edge_set} :
-  G.oriented_inc_matrix R o i e = ite (i = o.head e) (1 : R) (ite (i = o.tail e) (-1) 0) := rfl
+@[simp] def oriented_inc_matrix (o : orientation G) : matrix α G.edge_set R :=
+λ i e, if i = o.head e then (1 : R) else if i = o.tail e then -1 else 0
 
 lemma oriented_inc_matrix_head {i : α} {e : G.edge_set} (H_head : i = o.head e) :
   G.oriented_inc_matrix R o i e = 1 :=
-by simp only [H_head, if_true, eq_self_iff_true, oriented_inc_matrix_apply]
+by simp only [H_head, if_true, eq_self_iff_true, oriented_inc_matrix]
 
 lemma oriented_inc_matrix_tail {i : α} {e : G.edge_set} (H_tail : i = o.tail e) :
   G.oriented_inc_matrix R o i e = -1 :=
@@ -280,13 +284,9 @@ by simp only [H_tail, oriented_inc_matrix, G.head_ne_tail.symm, if_false, if_tru
 lemma oriented_inc_matrix_apply_eq_zero_iff {i : α} {e : G.edge_set} [char_zero R] :
   G.oriented_inc_matrix R o i e = 0 ↔ i ≠ o.head e ∧ i ≠ o.tail e :=
 begin
-  obtain H_head | H_tail | ⟨H_not_head, H_not_tail⟩ := G.head_tail o i e,
-  { simp only [oriented_inc_matrix, H_head, if_true, eq_self_iff_true, not_true,
-               ne.def, one_ne_zero, false_and] },
-  { simp only [H_tail, oriented_inc_matrix_tail, eq_self_iff_true, not_true,
-                 ne.def, neg_eq_zero, one_ne_zero, and_false] },
-  { simp only [H_not_head, H_not_tail, eq_self_iff_true, if_false, ne.def,
-                 not_false_iff, and_self, oriented_inc_matrix_apply] }
+  unfold oriented_inc_matrix,
+  rw ite_assoc,
+  exact (ne.ite_eq_right_iff $ by split_ifs; simp).trans not_or_distrib,
 end
 
 lemma oriented_inc_matrix_apply_eq_zero_iff' {i : α} {e : G.edge_set} [char_zero R] :
@@ -297,19 +297,19 @@ lemma oriented_inc_matrix_non_zero {i : α} {e : G.edge_set} [char_zero R] :
   ¬ G.oriented_inc_matrix R o i e = 0 ↔ i = o.head e ∨ i = o.tail e :=
 by rw [←not_iff_not, not_not, oriented_inc_matrix_apply_eq_zero_iff, ←not_or_distrib]
 
-/-- The square of each element from `N(o)` is equal to the corresponding element from `M`. -/
+/-- The square of each element from `oriented_inc_matrix` is equal to the corresponding element from
+`inc_matrix`. -/
 lemma oriented_inc_matrix_elem_squared {i : α} {e : G.edge_set} [char_zero R] :
   G.oriented_inc_matrix R o i e * G.oriented_inc_matrix R o i e = G.inc_matrix R i e :=
 begin
-  obtain H_head | H_tail | H_not := G.head_tail o i e,
-  { rw [G.oriented_inc_matrix_head R H_head, H_head, mul_one, eq_comm, inc_matrix_apply_eq_one_iff],
+  unfold oriented_inc_matrix,
+  split_ifs with head tail,
+  { rw [head, mul_one, eq_comm, inc_matrix_apply_eq_one_iff],
     exact G.incidence_set_orientation_head },
-  { rw [G.oriented_inc_matrix_tail R H_tail, H_tail, ←sq, neg_one_sq, eq_comm,
-      inc_matrix_apply_eq_one_iff],
+  { rw [tail, ←sq, neg_one_sq, eq_comm, inc_matrix_apply_eq_one_iff],
     exact G.incidence_set_orientation_tail },
-  { rw [(G.oriented_inc_matrix_apply_eq_zero_iff R).mpr H_not, mul_zero, eq_comm,
-        inc_matrix_apply_eq_zero_iff],
-    exact G.not_inc_set_orientation.mp ⟨H_not.1, H_not.2⟩ }
+  { rw [mul_zero, eq_comm, inc_matrix_apply_eq_zero_iff],
+    exact G.not_inc_set_orientation.mp ⟨head, tail⟩ }
 end
 
 lemma oriented_inc_matrix_mul_of_adj {i j : α} {e : G.edge_set} (H_adj : G.adj i j) [char_zero R]:
@@ -347,7 +347,7 @@ end
 
 variables [fintype α]
 
-/-- `(xᵀ ⬝ N(o)) e = x o.head(e) - x o.tail(e)`. -/
+/-- `(xᵀ ⬝ oriented_inc_matrix) e = x o.head e - x o.tail e`. -/
 lemma vec_mul_oriented_inc_matrix {o : orientation G} (x : α → R) (e : G.edge_set) :
   vec_mul x (G.oriented_inc_matrix R o) e = x (o.head e) - x (o.tail e) :=
 begin

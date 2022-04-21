@@ -123,7 +123,7 @@ theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m
 by rw [mul_comm n m, mul_comm k m] at H; exact nat.eq_of_mul_eq_mul_left Hm H
 
 instance nat.is_domain : is_domain ℕ :=
-{ regular_of_ne_zero := λ _ h1,
+{ is_regular_of_ne_zero := λ _ h1,
   { left  := λ _ _ h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
     right := λ _ _ h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2 } }
 

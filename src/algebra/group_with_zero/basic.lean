@@ -430,23 +430,25 @@ section is_domain
 
 set_option old_structure_cmd false
 
-/-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
-  the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
+/-- A domain is a nontrivial monoid whose non-zero elements are regular, i.e. satisfying
+  the condition `a * c = b * c ↔ a = b` and `c * a = c * b ↔ a = b` for any non-zero element `c`.
 
-  This is implemented as a mixin for `ring α`.
+  This is implemented as a mixin for `hasmul` and `has_zero`.
   To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
 class is_domain (M₀ : Type*) [has_mul M₀] [has_zero M₀] extends nontrivial M₀ : Prop :=
-(regular_of_ne_zero : ∀ {c : M₀}, c ≠ 0 → is_regular c)
+(is_regular_of_ne_zero : ∀ {c : M₀}, c ≠ 0 → is_regular c)
 
 section
 
 variables [has_mul M₀] [has_zero M₀] [is_domain M₀] {a b c : M₀}
 
+lemma is_regular_of_ne_zero (hc : c ≠ 0) : is_regular c := is_domain.is_regular_of_ne_zero hc
+
 lemma mul_left_cancel₀ (hc : c ≠ 0) (h : c * a = c * b) : a = b :=
-(is_domain.regular_of_ne_zero hc).left h
+(is_domain.is_regular_of_ne_zero hc).left h
 
 lemma mul_right_cancel₀ (hc : c ≠ 0) (h : a * c = b * c) : a = b :=
-(is_domain.regular_of_ne_zero hc).right h
+(is_domain.is_regular_of_ne_zero hc).right h
 
 lemma mul_left_injective₀ (hc : c ≠ 0) : function.injective ((*) c) :=
 λ a b, mul_left_cancel₀ hc
@@ -471,7 +473,7 @@ protected theorem function.injective.is_domain
   [mul_zero_one_class M₀'] [mul_zero_one_class M₀] [is_domain M₀]
   (f : M₀' →*₀ M₀) (hf : function.injective f) :
   is_domain M₀' :=
-{ regular_of_ne_zero := λ x h,
+{ is_regular_of_ne_zero := λ x h,
   { left := λ y z (H : x * y = x * z),
       have f x * f y = f x * f z, by simp_rw [←map_mul, H],
       hf $ (mul_left_cancel₀ $ (function.injective.ne_iff' hf f.map_zero).mpr h) this,
@@ -486,7 +488,7 @@ protected def function.injective.is_domain'
   (f : M₀' → M₀) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   is_domain M₀' :=
-{ regular_of_ne_zero := λ c hc,
+{ is_regular_of_ne_zero := λ c hc,
   { left := λ a b (H : c * a = c * b), hf $ mul_left_cancel₀ ((hf.ne_iff' zero).2 hc) $
     by erw [← mul, ← mul, H]; refl,
     right := λ a b (H : a * c = b * c), hf $ mul_right_cancel₀ ((hf.ne_iff' zero).2 hc) $
@@ -503,7 +505,7 @@ variables [mul_zero_class M₀] [is_domain M₀] {a b c : M₀}
 
 /-- In a non-trivial integral domain, an element is regular iff it is non-zero. -/
 lemma is_regular_iff_ne_zero : is_regular a ↔ a ≠ 0 :=
-⟨is_regular.ne_zero, is_domain.regular_of_ne_zero⟩
+⟨is_regular.ne_zero, is_domain.is_regular_of_ne_zero⟩
 
 @[simp] lemma mul_eq_mul_right_iff : a * c = b * c ↔ a = b ∨ c = 0 :=
 by by_cases hc : c = 0; [simp [hc], simp [mul_left_inj', hc]]
@@ -620,7 +622,7 @@ calc 1⁻¹ = 1 * 1⁻¹ : by rw [one_mul]
 
 @[priority 10] -- see Note [lower instance priority]
 instance group_with_zero.is_domain : is_domain G₀ :=
-{ regular_of_ne_zero := λ c hc,
+{ is_regular_of_ne_zero := λ c hc,
   { left := λ a b (h : c * a = c * b),
     by rw [← inv_mul_cancel_left₀ hc a, h, inv_mul_cancel_left₀ hc b],
     right := λ a b (h : a * c = b * c),

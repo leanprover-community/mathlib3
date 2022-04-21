@@ -1167,21 +1167,16 @@ section ring
 
 variables [ring R]
 
+def is_domain.of_no_zero_divisors [nontrivial R] [no_zero_divisors R] : is_domain R :=
+⟨λ c, is_regular_iff_ne_zero'.2⟩
+
 def is_domain.of_eq_zero_or_eq_zero_of_mul_eq_zero [nontrivial R]
   (h : ∀ {a b : R}, a * b = 0 → a = 0 ∨ b = 0) : is_domain R :=
-⟨λ c hc, by fsplit; intros a b hab; rw [←sub_eq_zero] at hab ⊢;
-  simp only [←mul_sub, ←sub_mul] at hab;
-    [exact (h hab).resolve_left hc, exact (h hab).resolve_right hc]⟩
+by { haveI : no_zero_divisors R, from ⟨λ a b, h⟩, exact is_domain.of_no_zero_divisors }
 
-def is_domain.of_no_zero_divisors [nontrivial R] [no_zero_divisors R] : is_domain R :=
-⟨λ c hc, by fsplit; intros a b hab; rw [←sub_eq_zero] at hab ⊢;
-  simp only [←mul_sub, ←sub_mul] at hab;
-    [ exact (eq_zero_or_eq_zero_of_mul_eq_zero hab).resolve_left hc,
-      exact (eq_zero_or_eq_zero_of_mul_eq_zero hab).resolve_right hc]⟩
-
-def nontrivial_and_no_zero_divisors_iff_is_domain :
-  nontrivial R ∧ no_zero_divisors R ↔ is_domain R :=
-⟨λ ⟨h₁, h₂⟩, @is_domain.of_no_zero_divisors _ _ h₁ h₂, by { introsI, split; apply_instance }⟩
+lemma is_domain_iff_nontrivial_and_no_zero_divisors :
+  is_domain R ↔ nontrivial R ∧ no_zero_divisors R :=
+⟨by { introsI, split; apply_instance }, by { rintros ⟨_, _⟩, exactI is_domain.of_no_zero_divisors }⟩
 
 end ring
 

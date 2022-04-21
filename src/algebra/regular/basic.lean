@@ -17,7 +17,7 @@ analogues add-left-regular, add-right-regular and add-regular elements.
 
 By definition, a regular element in a commutative ring is a non-zero divisor.
 Lemma `is_regular_of_ne_zero` implies that every non-zero element of an integral domain is regular.
-Since it assumes that the ring is a `cancel_monoid_with_zero` it applies also, for instance, to `ℕ`.
+Since `is_domain` is defined as a condition on monoids, it applies also, for instance, to `ℕ`.
 
 The lemmas in Section `mul_zero_class` show that the `0` element is (left/right-)regular if and
 only if the `mul_zero_class` is trivial.  This is useful when figuring out stopping conditions for

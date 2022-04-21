@@ -72,7 +72,7 @@ instance [has_zero α] [has_mul α] [no_zero_divisors α] : no_zero_divisors α�
       (λ hy, or.inr $ unop_injective $ hy) (λ hx, or.inl $ unop_injective $ hx), }
 
 instance [has_mul α] [has_zero α] [is_domain α] : is_domain αᵐᵒᵖ :=
-{ regular_of_ne_zero := λ c (hc : op (unop c) ≠ op (0 : α)),
+{ is_regular_of_ne_zero := λ c (hc : op (unop c) ≠ op (0 : α)),
   begin
     replace hc : unop c ≠ 0 :=  λ H, hc (congr_arg op H),
     split,
@@ -150,7 +150,7 @@ instance [has_zero α] [has_mul α] [no_zero_divisors α] : no_zero_divisors α�
   ((@eq_zero_or_eq_zero_of_mul_eq_zero α _ _ _ _ _) $ op_injective H) }
 
 instance  [has_zero α] [has_mul α] [is_domain α] : is_domain αᵃᵒᵖ :=
-{ regular_of_ne_zero := λ c hc,
+{ is_regular_of_ne_zero := λ c hc,
   begin
     replace hc : unop c ≠ 0 :=  λ H, hc (congr_arg op H),
     split,

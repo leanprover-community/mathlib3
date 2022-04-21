@@ -140,7 +140,7 @@ instance is_domain (I : ideal R) [hI : I.is_prime] : is_domain (R ⧸ I) :=
 lemma is_domain_iff_prime (I : ideal R) : is_domain (R ⧸ I) ↔ I.is_prime :=
 begin
   split,
-  rw [←nontrivial_and_no_zero_divisors_iff_is_domain],
+  rw [is_domain_iff_nontrivial_and_no_zero_divisors],
   rintros ⟨h1, h2⟩, resetI,
   exact ⟨zero_ne_one_iff.1 $ zero_ne_one,
     λ x y h, by { simp only [←eq_zero_iff_mem, (mk I).map_mul] at ⊢ h,

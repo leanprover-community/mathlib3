@@ -377,7 +377,7 @@ subtype.ext $ norm_algebra_map 𝕜' x
 @[simp] lemma norm_algebra_map' [norm_one_class 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥ :=
 by rw [norm_algebra_map, norm_one, mul_one]
 
-@[simp] lemma nnorm_algebra_map' [norm_one_class 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥₊ = ∥x∥₊ :=
+@[simp] lemma nnnorm_algebra_map' [norm_one_class 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥₊ = ∥x∥₊ :=
 subtype.ext $ norm_algebra_map' _ _
 
 variables (𝕜 𝕜')

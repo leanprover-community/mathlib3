@@ -57,7 +57,7 @@ instance : norm_one_class ℍ :=
 @[simp, norm_cast] lemma norm_coe (a : ℝ) : ∥(a : ℍ)∥ = ∥a∥ :=
 by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sq_eq_abs, real.norm_eq_abs]
 
-@[simp, norm_cast] lemma nnorm_coe (a : ℝ) : ∥(a : ℍ)∥₊ = ∥a∥₊ :=
+@[simp, norm_cast] lemma nnnorm_coe (a : ℝ) : ∥(a : ℍ)∥₊ = ∥a∥₊ :=
 subtype.ext $ norm_coe a
 
 noncomputable instance : normed_division_ring ℍ :=

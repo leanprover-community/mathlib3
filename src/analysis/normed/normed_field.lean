@@ -330,7 +330,7 @@ variables [normed_ring α]
 lemma units.norm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥ :=
 norm_pos_iff.mpr (units.ne_zero x)
 
-lemma units.nnorm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥₊ :=
+lemma units.nnnorm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥₊ :=
 x.norm_pos
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/

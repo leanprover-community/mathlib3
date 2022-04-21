@@ -87,6 +87,7 @@ equivalence relations at the level of pregames, we introduce the notion of a `re
 game, and show, for example, that there is a relabelling between `x + (y + z)` and `(x + y) + z`.
 
 ## Future work
+
 * The theory of dominated and reversible positions, and unique normal form for short games.
 * Analysis of basic domineering positions.
 * Hex.
@@ -117,6 +118,11 @@ inductive pgame : Type (u+1)
 | mk : ∀ α β : Type u, (α → pgame) → (β → pgame) → pgame
 
 namespace pgame
+
+@[ext] theorem ext {α β γ δ : Type u}
+  {p : α → pgame} {q : β → pgame} {r : γ → pgame} {s : δ → pgame} :
+  mk α β p q = mk γ δ r s ↔ α = γ ∧ β = δ ∧ p == r ∧ q == s :=
+⟨by { rintro ⟨h⟩, simp }, by { rintro ⟨rfl, rfl, rfl, rfl⟩, refl }⟩
 
 /--
 Construct a pre-game from list of pre-games describing the available moves for Left and Right.

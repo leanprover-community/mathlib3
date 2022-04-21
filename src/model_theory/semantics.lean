@@ -176,6 +176,15 @@ by simp [has_top.top]
 @[simp] lemma realize_inf : (φ ⊓ ψ).realize v xs ↔ (φ.realize v xs ∧ ψ.realize v xs) :=
 by simp [has_inf.inf, realize]
 
+@[simp] lemma realize_foldr_inf (l : list (L.bounded_formula α n))
+  (v : α → M) (xs : fin n → M) :
+  (l.foldr (⊓) ⊤).realize v xs ↔ ∀ φ ∈ l, bounded_formula.realize φ v xs :=
+begin
+  induction l with φ l ih,
+  { simp },
+  { simp [ih] }
+end
+
 @[simp] lemma realize_imp : (φ.imp ψ).realize v xs ↔ (φ.realize v xs → ψ.realize v xs) :=
 by simp only [realize]
 
@@ -205,6 +214,20 @@ end
 begin
   simp only [realize, has_sup.sup, realize_not, eq_iff_iff],
   tauto,
+end
+
+@[simp] lemma realize_foldr_sup (l : list (L.bounded_formula α n))
+  (v : α → M) (xs : fin n → M) :
+  (l.foldr (⊔) ⊥).realize v xs ↔ ∃ φ ∈ l, bounded_formula.realize φ v xs :=
+begin
+  induction l with φ l ih,
+  { simp },
+  { simp only [ih, list.foldr_cons, realize_sup, exists_prop, list.mem_cons_iff],
+    refine ⟨λ h, or.elim h (λ h, ⟨φ, or.intro_left _ rfl, h⟩)
+      (Exists.imp (λ φ, and.imp_left (or.intro_right _))), _⟩,
+    rintro ⟨ψ, (rfl | h1), h2⟩,
+    { exact or.intro_left _ h2 },
+    { exact or.intro_right _ ⟨ψ, h1, h2⟩ } }
 end
 
 @[simp] lemma realize_all : (all θ).realize v xs ↔ ∀ (a : M), (θ.realize v (fin.snoc xs a)) :=
@@ -648,23 +671,42 @@ forall_congr (λ _, forall_congr (λ _, realize_sup.trans (or_congr realize_rel�
 
 end relations
 
-section nonempty
+section cardinality
 
 variable (L)
 
-@[simp] lemma sentence.realize_nonempty :
-  M ⊨ (sentence.nonempty L) ↔ nonempty M :=
-bounded_formula.realize_ex.trans (trans (exists_congr eq_self_iff_true) exists_true_iff_nonempty)
+@[simp] lemma sentence.realize_card_ge (n) : M ⊨ (sentence.card_ge L n) ↔ ↑n ≤ (# M) :=
+begin
+  rw [← lift_mk_fin, ← lift_le, lift_lift, lift_mk_le, sentence.card_ge, sentence.realize,
+    bounded_formula.realize_exs],
+  simp_rw [bounded_formula.realize_foldr_inf],
+  simp only [function.comp_app, list.mem_map, prod.exists, ne.def, list.mem_product,
+    list.mem_fin_range, forall_exists_index, and_imp, list.mem_filter, true_and],
+  refine ⟨_, λ xs, ⟨xs.some, _⟩⟩,
+  { rintro ⟨xs, h⟩,
+    refine ⟨⟨xs, λ i j ij, _⟩⟩,
+    contrapose! ij,
+    have hij := h _ i j ij rfl,
+    simp only [bounded_formula.realize_not, term.realize, bounded_formula.realize_bd_equal,
+      sum.elim_inr] at hij,
+    exact hij },
+  { rintro _ i j ij rfl,
+    simp [ij] }
+end
+
+@[simp] lemma Theory.model_infinite : M ⊨ (Theory.infinite L) ↔ infinite M :=
+by simp [Theory.infinite, infinite_iff, omega_le]
 
 @[simp] lemma Theory.model_nonempty_iff :
   M ⊨ (Theory.nonempty L) ↔ nonempty M :=
-Theory.model_singleton_iff.trans (sentence.realize_nonempty L)
+by simp only [Theory.nonempty, Theory.model_iff, set.mem_singleton_iff, forall_eq,
+    sentence.realize_card_ge, nat.cast_one, one_le_iff_ne_zero, mk_ne_zero_iff]
 
 instance Theory.model_nonempty [h : nonempty M] :
   M ⊨ (Theory.nonempty L) :=
 (Theory.model_nonempty_iff L).2 h
 
-end nonempty
+end cardinality
 
 end language
 end first_order

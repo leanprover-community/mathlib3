@@ -3,6 +3,7 @@ Copyright (c) 2021 Aaron Anderson, Jesse Michael Han, Floris van Doorn. All righ
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
+import data.list.prod_sigma
 import logic.equiv.fin
 import model_theory.language_map
 
@@ -621,17 +622,22 @@ protected def total : L.sentence :=
 
 end relations
 
-section nonempty
+section cardinality
 
 variable (L)
 
-/-- A sentence that indicates a structure is nonempty. -/
-protected def sentence.nonempty : L.sentence := ∃' (&0 =' &0)
+/-- A sentence indicating that a structure has `n` distinct elements. -/
+protected def sentence.card_ge (n) : L.sentence :=
+(((((list.fin_range n).product (list.fin_range n)).filter (λ ij : _ × _, ij.1 ≠ ij.2)).map
+  (λ (ij : _ × _), ∼ ((& ij.1).bd_equal (& ij.2)))).foldr (⊓) ⊤).exs
+
+/-- A theory indicating that a structure is infinite. -/
+protected def Theory.infinite : L.Theory := set.range (sentence.card_ge L)
 
 /-- A theory that indicates a structure is nonempty. -/
-protected def Theory.nonempty : L.Theory := {sentence.nonempty L}
+protected def Theory.nonempty : L.Theory := {sentence.card_ge L 1}
 
-end nonempty
+end cardinality
 
 end language
 end first_order

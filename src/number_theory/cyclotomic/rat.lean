@@ -14,12 +14,15 @@ open algebra is_cyclotomic_extension polynomial
 open_locale cyclotomic
 
 /-!
-# Ring of integers of cyclotomic fields
+# Ring of integers of `p`-th power cyclotomic fields
 We compute the discriminant of a `p ^ n`-th cyclotomic extension of `ℚ`.
 
 ## Main results
-* `is_cyclotomic_extension.discr_odd_prime` :
-
+* `is_cyclotomic_extension.rat.is_integral_closure_adjoing_singleton_of_prime_pow`: if `K` is a
+  `p ^ (k + 1)`-th cyclotomic extension of `ℚ`, then `(adjoin ℤ {ζ})` is the integral closure of
+  `ℤ` in `K`.
+* `is_cyclotomic_extension.rat.cyclotomic_ring_is_integral_closure_of_prime_pow`: the integral
+  closure of `ℤ` inside `cyclotomic_field (p ^ (k + 1)) ℚ` is `cyclotomic_ring (p ^ (k + 1)) ℤ ℚ`.
 -/
 
 namespace is_cyclotomic_extension.rat
@@ -36,6 +39,14 @@ lemma discr_prime_pow_ne_two' [is_cyclotomic_extension {p ^ (k + 1)} ℚ K]
 begin
   rw [← discr_prime_pow_ne_two hζ (cyclotomic.irreducible_rat (p ^ (k + 1)).pos)
     (cyclotomic.irreducible_rat p.pos) hk],
+  exact hζ.discr_zeta_eq_discr_zeta_sub_one.symm
+end
+
+lemma discr_odd_prime' [is_cyclotomic_extension {p} ℚ K] (hζ : is_primitive_root ζ p)
+  (hodd : p ≠ 2) :
+  discr ℚ (hζ.sub_one_power_basis ℚ).basis = (-1) ^ (((p : ℕ) - 1) / 2) * p ^ ((p : ℕ) - 2) :=
+begin
+  rw [← discr_odd_prime hζ (cyclotomic.irreducible_rat hp.out.pos) hodd],
   exact hζ.discr_zeta_eq_discr_zeta_sub_one.symm
 end
 
@@ -62,20 +73,14 @@ begin
     (cyclotomic.irreducible_rat p.pos)
 end
 
-lemma discr_odd_prime' [is_cyclotomic_extension {p} ℚ K] (hζ : is_primitive_root ζ p)
-  (hodd : p ≠ 2) :
-  discr ℚ (hζ.sub_one_power_basis ℚ).basis = (-1) ^ (((p : ℕ) - 1) / 2) * p ^ ((p : ℕ) - 2) :=
+/-- If `K` is a `p ^ (k + 1)`-th cyclotomic extension of `ℚ`, then `(adjoin ℤ {ζ})` is the
+integral closure of `ℤ` in `K`. -/
+lemma is_integral_closure_adjoing_singleton_of_prime_pow
+  [is_cyclotomic_extension {p ^ (k + 1)} ℚ K] (hζ : is_primitive_root ζ ↑(p ^ (k + 1))) :
+  is_integral_closure (adjoin ℤ ({ζ} : set K)) ℤ K :=
 begin
-  rw [← discr_odd_prime hζ (cyclotomic.irreducible_rat hp.out.pos) hodd],
-  exact hζ.discr_zeta_eq_discr_zeta_sub_one.symm
-end
-
-lemma is_integral_closure_adjoing_singleton [is_cyclotomic_extension {p ^ (k + 1)} ℚ K] :
-  is_integral_closure (adjoin ℤ ({zeta (p ^ (k + 1)) ℚ K} : set K)) ℤ K :=
-begin
-  have hζ := zeta_primitive_root (p ^ (k + 1)) ℚ K,
   refine ⟨subtype.val_injective, λ x, ⟨λ h, ⟨⟨x, _⟩, rfl⟩, _⟩⟩,
-  { let B := (zeta_primitive_root (p ^ (k + 1)) ℚ K).sub_one_power_basis ℚ,
+  { let B := hζ.sub_one_power_basis ℚ,
     have hint : is_integral ℤ B.gen :=  is_integral_sub (hζ.is_integral (p ^ (k + 1)).pos)
       is_integral_one,
     have H := discr_mul_is_integral_mem_adjoin ℚ hint h,
@@ -98,10 +103,39 @@ begin
     refine adjoin_le _ (mem_adjoin_of_smul_prime_pow_smul_of_minpoly_is_eiseinstein_at
       (nat.prime_iff_prime_int.1 hp.out) hint h H hmin),
     simp only [set.singleton_subset_iff, set_like.mem_coe],
-    exact subalgebra.sub_mem _ (self_mem_adjoin_singleton ℤ _) (subalgebra.one_mem _), },
+    exact subalgebra.sub_mem _ (self_mem_adjoin_singleton ℤ _) (subalgebra.one_mem _) },
   { rintro ⟨y, rfl⟩,
     exact is_integral.algebra_map (le_integral_closure_iff_is_integral.1
       (adjoin_le_integral_closure (hζ.is_integral (p ^ (k + 1)).pos)) _) },
+end
+
+local attribute [-instance] cyclotomic_field.algebra
+
+/-- The integral closure of `ℤ` inside `cyclotomic_field (p ^ (k + 1)) ℚ` is
+`cyclotomic_ring (p ^ (k + 1)) ℤ ℚ`. -/
+lemma cyclotomic_ring_is_integral_closure_of_prime_pow :
+  is_integral_closure (cyclotomic_ring (p ^ (k + 1)) ℤ ℚ) ℤ (cyclotomic_field (p ^ (k + 1)) ℚ) :=
+begin
+  haveI : is_cyclotomic_extension {p ^ (k + 1)} ℚ (cyclotomic_field (p ^ (k + 1)) ℚ),
+  { convert cyclotomic_field.is_cyclotomic_extension (p ^ (k + 1)) _,
+    { apply subsingleton.elim (algebra_rat) _,
+      exact algebra_rat_subsingleton },
+    { exact ne_zero.char_zero } },
+  have hζ := zeta_primitive_root (p ^ (k + 1)) ℚ (cyclotomic_field (p ^ (k + 1)) ℚ),
+  refine ⟨is_fraction_ring.injective _ _, λ x, ⟨λ h, ⟨⟨x, _⟩, rfl⟩, _⟩⟩,
+  { have := (is_integral_closure_adjoing_singleton_of_prime_pow hζ).is_integral_iff,
+    obtain ⟨y, rfl ⟩ := this.1 h,
+    convert adjoin_mono _ y.2,
+    { simp only [eq_iff_true_of_subsingleton] },
+    { simp only [eq_iff_true_of_subsingleton] },
+    { simp only [pnat.pow_coe, set.singleton_subset_iff, set.mem_set_of_eq],
+      exact hζ.pow_eq_one } },
+  { haveI : is_cyclotomic_extension {p ^ (k + 1)} ℤ (cyclotomic_ring (p ^ (k + 1)) ℤ ℚ),
+    { convert cyclotomic_ring.is_cyclotomic_extension _ ℤ ℚ,
+      { exact subsingleton.elim (algebra_int _) _ },
+      { exact ne_zero.char_zero } },
+    rintro ⟨y, rfl⟩,
+    exact is_integral.algebra_map ((is_cyclotomic_extension.integral {p ^ (k + 1)} ℤ _) _) }
 end
 
 end is_cyclotomic_extension.rat

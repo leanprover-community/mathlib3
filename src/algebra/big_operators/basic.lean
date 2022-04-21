@@ -349,7 +349,7 @@ lemma prod_on_sum [fintype α] [fintype γ] (f : α ⊕ γ → β) :
     (∏ (x : α), f (sum.inl x)) * (∏ (x : γ), f (sum.inr x)) :=
 begin
   haveI := classical.dec_eq (α ⊕ γ),
-  convert prod_sum_elim univ univ (λ x, f (sum.inl x))(λ x, f (sum.inr x)),
+  convert prod_sum_elim univ univ (λ x, f (sum.inl x)) (λ x, f (sum.inr x)),
   { ext a,
     split,
     { intro x,

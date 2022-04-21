@@ -39,5 +39,4 @@ end
 example {a b c : ℕ} : a + b + a + b + c = b + a + b + a + c :=
 begin
   move_add [a, ← a],
-  refl,
 end

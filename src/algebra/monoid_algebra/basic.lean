@@ -697,7 +697,7 @@ by conv_lhs { rw lift_unique' F, simp [lift_apply] }
 lemma map_domain_algebra_map (k A : Type*) {H F : Type*} [comm_semiring k] [semiring A]
   [algebra k A] [monoid H] [monoid_hom_class F G H] (f : F) (r : k) :
   map_domain f (algebra_map k (monoid_algebra A G) r) =
-    (algebra_map k (monoid_algebra A H)) r :=
+    algebra_map k (monoid_algebra A H) r :=
 by simp only [coe_algebra_map, map_domain_single, map_one]
 
 /--  A multiplicative homomorphism `f : G →* H` between two monoids induces a `k`-algebra
@@ -1538,7 +1538,7 @@ end
 lemma map_domain_algebra_map {A H F : Type*} [comm_semiring k] [semiring A]
   [algebra k A] [add_monoid G] [add_monoid H] [add_monoid_hom_class F G H] (f : F) (r : k) :
   map_domain f (algebra_map k (add_monoid_algebra A G) r) =
-    (algebra_map k (add_monoid_algebra A H)) r :=
+    algebra_map k (add_monoid_algebra A H) r :=
 by simp only [function.comp_app, map_domain_single, add_monoid_algebra.coe_algebra_map, map_zero]
 
 /--  An additive homomorphism `f : G →+ H` induces a `k`-algebra homomorphism

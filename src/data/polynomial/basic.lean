@@ -230,12 +230,6 @@ def to_finsupp_iso : R[X] ≃+* add_monoid_algebra R ℕ :=
 
 end add_monoid_algebra
 
-/-- Ring isomorphism between `R[X]ᵐᵒᵖ` and `Rᵐᵒᵖ[X]` sending each coefficient of a polynomial
-to the corresponding element of the opposite ring. -/
-@[simps]
-def op_ring_equiv : R[X]ᵐᵒᵖ ≃+* Rᵐᵒᵖ[X] :=
-((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm
-
 variable {R}
 
 lemma of_finsupp_sum {ι : Type*} (s : finset ι) (f : ι → add_monoid_algebra R ℕ) :
@@ -402,8 +396,26 @@ begin
     rw [mul_assoc, X_mul, ←mul_assoc, ih, mul_assoc, ←pow_succ'], }
 end
 
+/-- Prefer putting constants to the left of `X`.
+
+This lemma is the loop-avoiding `simp` version of `polynomial.X_mul`. -/
+@[simp] lemma X_mul_C (r : R) : X * C r = C r * X :=
+X_mul
+
+/-- Prefer putting constants to the left of `X ^ n`.
+
+This lemma is the loop-avoiding `simp` version of `X_pow_mul`. -/
+@[simp] lemma X_pow_mul_C (r : R) (n : ℕ) : X^n * C r = C r * X^n :=
+X_pow_mul
+
 lemma X_pow_mul_assoc {n : ℕ} : (p * X^n) * q = (p * q) * X^n :=
 by rw [mul_assoc, X_pow_mul, ←mul_assoc]
+
+/-- Prefer putting constants to the left of `X ^ n`.
+
+This lemma is the loop-avoiding `simp` version of `X_pow_mul_assoc`. -/
+@[simp] lemma X_pow_mul_assoc_C {n : ℕ} (r : R) : (p * X^n) * C r = p * C r * X^n :=
+X_pow_mul_assoc
 
 lemma commute_X (p : R[X]) : commute X p := X_mul
 

@@ -211,6 +211,12 @@ lemma is_closed.is_closed_le [topological_space β] {f g : β → α} {s : set �
   is_closed {x ∈ s | f x ≤ g x} :=
 (hf.prod hg).preimage_closed_of_closed hs order_closed_topology.is_closed_le'
 
+lemma le_on_closure [topological_space β] {f g : β → α} {s : set β} (h : ∀ x ∈ s, f x ≤ g x)
+  (hf : continuous_on f (closure s)) (hg : continuous_on g (closure s)) ⦃x⦄ (hx : x ∈ closure s) :
+  f x ≤ g x :=
+have s ⊆ {y ∈ closure s | f y ≤ g y}, from λ y hy, ⟨subset_closure hy, h y hy⟩,
+(closure_minimal this (is_closed_closure.is_closed_le hf hg) hx).2
+
 lemma is_closed.epigraph [topological_space β] {f : β → α} {s : set β}
   (hs : is_closed s) (hf : continuous_on f s) :
   is_closed {p : β × α | p.1 ∈ s ∧ f p.1 ≤ p.2} :=
@@ -1893,7 +1899,8 @@ end linear_ordered_field
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
 (image_eq_preimage_of_inverse neg_neg neg_neg).symm
 
-lemma filter.map_neg [add_group α] : map (has_neg.neg : α → α) = comap (has_neg.neg : α → α) :=
+lemma filter.map_neg_eq_comap_neg [add_group α] :
+  map (has_neg.neg : α → α) = comap (has_neg.neg : α → α) :=
 funext $ assume f, map_eq_comap_of_inverse (funext neg_neg) (funext neg_neg)
 
 section order_topology
@@ -2180,6 +2187,18 @@ end
 lemma is_compact.bdd_above {α : Type u} [topological_space α] [linear_order α]
   [order_closed_topology α] : Π [nonempty α] {s : set α}, is_compact s → bdd_above s :=
 @is_compact.bdd_below (order_dual α) _ _ _
+
+/-- A continuous function is bounded below on a compact set. -/
+lemma is_compact.bdd_below_image {α : Type u} [topological_space α] [linear_order α]
+  [order_closed_topology α] [nonempty α] [topological_space γ] {f : γ → α} {K : set γ}
+  (hK : is_compact K) (hf : continuous_on f K) : bdd_below (f '' K) :=
+(hK.image_of_continuous_on hf).bdd_below
+
+/-- A continuous function is bounded above on a compact set. -/
+lemma is_compact.bdd_above_image {α : Type u} [topological_space α] [linear_order α]
+  [order_closed_topology α] [nonempty α] [topological_space γ] {f : γ → α} {K : set γ}
+  (hK : is_compact K) (hf : continuous_on f K) : bdd_above (f '' K) :=
+@is_compact.bdd_below_image _ (order_dual α) _ _ _ _ _ _ _ hK hf
 
 end order_topology
 

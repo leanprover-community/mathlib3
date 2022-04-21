@@ -290,9 +290,14 @@ begin
     lt_self_iff_false] at hp
 end
 
-lemma dvd_iff_prime_pow_dvd_dvd {n d : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
+lemma dvd_iff_prime_pow_dvd_dvd (n d : ℕ) :
   d ∣ n ↔ ∀ p k : ℕ, prime p → p ^ k ∣ d → p ^ k ∣ n :=
 begin
+  rcases eq_or_ne n 0 with rfl | hn, { simp },
+  rcases eq_or_ne d 0 with rfl | hd,
+  { simp only [zero_dvd_iff, hn, false_iff, not_forall],
+    refine ⟨2, n, prime_two, ⟨dvd_zero _, _⟩⟩,
+    apply mt (le_of_dvd hn.bot_lt) (not_le.mpr (lt_two_pow n)) },
   refine ⟨λ h p k _ hpkd, dvd_trans hpkd h, _⟩,
   rw [←factorization_le_iff_dvd hd hn, finsupp.le_def],
   intros h p,

@@ -177,8 +177,11 @@ funext (assume x, propext (h x))
 theorem ext_iff {s t : set α} : s = t ↔ ∀ x, x ∈ s ↔ x ∈ t :=
 ⟨λ h x, by rw h, ext⟩
 
-@[trans] theorem mem_of_mem_of_subset {x : α} {s t : set α}
-  (hx : x ∈ s) (h : s ⊆ t) : x ∈ t := h hx
+@[trans] theorem mem_of_mem_of_subset {x : α} {s t : set α} (hx : x ∈ s) (h : s ⊆ t) : x ∈ t := h hx
+
+lemma forall_in_swap {p : α → β → Prop} :
+  (∀ (a ∈ s) b, p a b) ↔ ∀ b (a ∈ s), p a b :=
+by tauto
 
 /-! ### Lemmas about `mem` and `set_of` -/
 
@@ -224,8 +227,7 @@ lemma ssubset_def : s ⊂ t = (s ⊆ t ∧ ¬ t ⊆ s) := rfl
 @[refl] theorem subset.refl (a : set α) : a ⊆ a := assume x, id
 theorem subset.rfl {s : set α} : s ⊆ s := subset.refl s
 
-@[trans] theorem subset.trans {a b c : set α} (ab : a ⊆ b) (bc : b ⊆ c) : a ⊆ c :=
-assume x h, bc (ab h)
+@[trans] theorem subset.trans {a b c : set α} (ab : a ⊆ b) (bc : b ⊆ c) : a ⊆ c := λ x h, bc $ ab h
 
 @[trans] theorem mem_of_eq_of_mem {x y : α} {s : set α} (hx : x = y) (h : y ∈ s) : x ∈ s :=
 hx.symm ▸ h
@@ -370,6 +372,8 @@ theorem subset_empty_iff {s : set α} : s ⊆ ∅ ↔ s = ∅ :=
 (subset.antisymm_iff.trans $ and_iff_left (empty_subset _)).symm
 
 theorem eq_empty_iff_forall_not_mem {s : set α} : s = ∅ ↔ ∀ x, x ∉ s := subset_empty_iff.symm
+
+lemma eq_empty_of_forall_not_mem (h : ∀ x, x ∉ s) : s = ∅ := subset_empty_iff.1 h
 
 theorem eq_empty_of_subset_empty {s : set α} : s ⊆ ∅ → s = ∅ := subset_empty_iff.1
 
@@ -687,8 +691,11 @@ theorem insert_nonempty (a : α) (s : set α) : (insert a s).nonempty := ⟨a, m
 
 instance (a : α) (s : set α) : nonempty (insert a s : set α) := (insert_nonempty a s).to_subtype
 
-lemma insert_inter (x : α) (s t : set α) : insert x (s ∩ t) = insert x s ∩ insert x t :=
+lemma insert_inter_distrib (a : α) (s t : set α) : insert a (s ∩ t) = insert a s ∩ insert a t :=
 ext $ λ y, or_and_distrib_left
+
+lemma insert_union_distrib (a : α) (s t : set α) : insert a (s ∪ t) = insert a s ∪ insert a t :=
+ext $ λ _, or_or_distrib_left _ _ _
 
 lemma insert_inj (ha : a ∉ s) : insert a s = insert b s ↔ a = b :=
 ⟨λ h, eq_of_not_mem_of_mem_insert (h.subst $ mem_insert a s) ha, congr_arg _⟩
@@ -1070,17 +1077,17 @@ begin
   exact h,
 end
 
-lemma insert_inter_of_mem {s₁ s₂ : set α} {a : α} (h : a ∈ s₂) :
-  insert a s₁ ∩ s₂ = insert a (s₁ ∩ s₂) :=
-by simp [set.insert_inter, h]
+lemma inter_insert_of_mem (h : a ∈ s) : s ∩ insert a t = insert a (s ∩ t) :=
+by rw [insert_inter_distrib, insert_eq_of_mem h]
 
-lemma insert_inter_of_not_mem {s₁ s₂ : set α} {a : α} (h : a ∉ s₂) :
-  insert a s₁ ∩ s₂ = s₁ ∩ s₂ :=
-begin
-  ext x,
-  simp only [mem_inter_iff, mem_insert_iff, mem_inter_eq, and.congr_left_iff, or_iff_right_iff_imp],
-  cc,
-end
+lemma insert_inter_of_mem (h : a ∈ t) : insert a s ∩ t = insert a (s ∩ t) :=
+by rw [insert_inter_distrib, insert_eq_of_mem h]
+
+lemma inter_insert_of_not_mem (h : a ∉ s) : s ∩ insert a t = s ∩ t :=
+ext $ λ x, and_congr_right $ λ hx, or_iff_right $ ne_of_mem_of_not_mem hx h
+
+lemma insert_inter_of_not_mem (h : a ∉ t) : insert a s ∩ t = s ∩ t :=
+ext $ λ x, and_congr_left $ λ hx, or_iff_right $ ne_of_mem_of_not_mem hx h
 
 @[simp] theorem union_diff_self {s t : set α} : s ∪ (t \ s) = s ∪ t :=
 sup_sdiff_self_right
@@ -1588,6 +1595,19 @@ funext $ λ p, rfl
 lemma surjective_onto_image {f : α → β} {s : set α} :
   surjective (image_factorization f s) :=
 λ ⟨_, ⟨a, ha, rfl⟩⟩, ⟨⟨a, ha⟩, rfl⟩
+
+/-- If the only elements outside `s` are those left fixed by `σ`, then mapping by `σ` has no effect.
+-/
+lemma image_perm {s : set α} {σ : equiv.perm α} (hs : {a : α | σ a ≠ a} ⊆ s) : σ '' s = s :=
+begin
+  ext i,
+  obtain hi | hi := eq_or_ne (σ i) i,
+  { refine ⟨_, λ h, ⟨i, h, hi⟩⟩,
+    rintro ⟨j, hj, h⟩,
+    rwa σ.injective (hi.trans h.symm) },
+  { refine iff_of_true ⟨σ.symm i, hs $ λ h, hi _, σ.apply_symm_apply _⟩ (hs hi),
+    convert congr_arg σ h; exact (σ.apply_symm_apply _).symm }
+end
 
 end image
 

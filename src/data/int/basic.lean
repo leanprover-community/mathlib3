@@ -214,9 +214,12 @@ sub_lt_iff_lt_add.trans lt_add_one_iff
 theorem le_sub_one_iff {a b : ℤ} : a ≤ b - 1 ↔ a < b :=
 le_sub_iff_add_le
 
-@[simp] lemma eq_zero_iff_abs_lt_one {a : ℤ} : |a| < 1 ↔ a = 0 :=
+@[simp] lemma abs_lt_one_iff {a : ℤ} : |a| < 1 ↔ a = 0 :=
 ⟨λ a0, let ⟨hn, hp⟩ := abs_lt.mp a0 in (le_of_lt_add_one (by exact hp)).antisymm hn,
   λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
+
+lemma abs_le_one_iff {a : ℤ} : |a| ≤ 1 ↔ a = 0 ∨ a = 1 ∨ a = -1 :=
+by rw [le_iff_lt_or_eq, abs_lt_one_iff, abs_eq (@zero_le_one ℤ _)]
 
 @[elab_as_eliminator] protected lemma induction_on {p : ℤ → Prop}
   (i : ℤ) (hz : p 0) (hp : ∀ i : ℕ, p i → p (i + 1)) (hn : ∀ i : ℕ, p (-i) → p (-i - 1)) : p i :=
@@ -251,6 +254,33 @@ begin
       rw [neg_succ_of_nat_eq, ←of_nat_eq_coe, of_nat_zero, zero_add, neg_add_eq_sub] },
     { convert Hp _ (le_of_lt (add_lt_of_neg_of_le (neg_succ_lt_zero _) le_rfl)) ih using 1,
       rw [neg_succ_of_nat_coe', nat.succ_eq_add_one, ←neg_succ_of_nat_coe, sub_add_eq_add_sub] } }
+end
+
+/-- See `int.induction_on'` for an induction in both directions. -/
+protected lemma le_induction {P : ℤ → Prop} {m : ℤ} (h0 : P m)
+  (h1 : ∀ (n : ℤ), m ≤ n → P n → P (n + 1)) (n : ℤ) :
+  m ≤ n → P n :=
+begin
+  apply int.induction_on' n m,
+  { intro _, exact h0, },
+  { intros k hle hi _, exact h1 k hle (hi hle), },
+  { intros _ hle _ hle',
+    exfalso,
+    exact lt_irrefl k (le_sub_one_iff.mp (hle.trans hle')), },
+end
+
+/-- See `int.induction_on'` for an induction in both directions. -/
+protected lemma le_induction_down {P : ℤ → Prop} {m : ℤ} (h0 : P m)
+  (h1 : ∀ (n : ℤ), n ≤ m → P n → P (n - 1)) (n : ℤ) :
+  n ≤ m → P n :=
+begin
+  apply int.induction_on' n m,
+  { intro _, exact h0, },
+  { intros _ hle _ hle',
+    exfalso,
+    exact lt_irrefl k (add_one_le_iff.mp (hle'.trans hle)), },
+  { intros k hle hi _,
+    exact h1 k hle (hi hle), },
 end
 
 /-! ### nat abs -/
@@ -403,21 +433,18 @@ match b, eq_succ_of_zero_lt H with ._, ⟨n, rfl⟩ := rfl end
 -- Will be generalized to Euclidean domains.
 local attribute [simp]
 protected theorem zero_div : ∀ (b : ℤ), 0 / b = 0
-| 0       := show of_nat _ = _, by simp
-| (n+1:ℕ) := show of_nat _ = _, by simp
+| (n:ℕ) := show of_nat _ = _, by simp
 | -[1+ n] := show -of_nat _ = _, by simp
 
 local attribute [simp] -- Will be generalized to Euclidean domains.
 protected theorem div_zero : ∀ (a : ℤ), a / 0 = 0
-| 0       := show of_nat _ = _, by simp
-| (n+1:ℕ) := show of_nat _ = _, by simp
+| (n:ℕ) := show of_nat _ = _, by simp
 | -[1+ n] := rfl
 
 @[simp] protected theorem div_neg : ∀ (a b : ℤ), a / -b = -(a / b)
 | (m : ℕ) 0       := show of_nat (m / 0) = -(m / 0 : ℕ), by rw nat.div_zero; refl
 | (m : ℕ) (n+1:ℕ) := rfl
-| 0       -[1+ n] := by simp
-| (m+1:ℕ) -[1+ n] := (neg_neg _).symm
+| (m : ℕ) -[1+ n] := (neg_neg _).symm
 | -[1+ m] 0       := rfl
 | -[1+ m] (n+1:ℕ) := rfl
 | -[1+ m] -[1+ n] := rfl
@@ -443,8 +470,7 @@ match a, b, eq_neg_succ_of_lt_zero Ha, eq_succ_of_zero_lt Hb with
 end
 
 @[simp] protected theorem div_one : ∀ (a : ℤ), a / 1 = a
-| 0       := show of_nat _ = _, by simp
-| (n+1:ℕ) := congr_arg of_nat (nat.div_one _)
+| (n:ℕ) := congr_arg of_nat (nat.div_one _)
 | -[1+ n] := congr_arg neg_succ_of_nat (nat.div_one _)
 
 theorem div_eq_zero_of_lt {a b : ℤ} (H1 : 0 ≤ a) (H2 : a < b) : a / b = 0 :=
@@ -585,10 +611,8 @@ begin
 end
 
 theorem mod_add_div : ∀ (a b : ℤ), a % b + b * (a / b) = a
-| (m : ℕ) 0       := congr_arg of_nat (nat.mod_add_div _ _)
-| (m : ℕ) (n+1:ℕ) := congr_arg of_nat (nat.mod_add_div _ _)
-| 0       -[1+ n] := by simp
-| (m+1:ℕ) -[1+ n] := show (_ + -(n+1) * -((m + 1) / (n + 1) : ℕ) : ℤ) = _,
+| (m : ℕ) (n : ℕ) := congr_arg of_nat (nat.mod_add_div _ _)
+| (m : ℕ) -[1+ n] := show (_ + -(n+1) * -((m) / (n + 1) : ℕ) : ℤ) = _,
   by rw [neg_mul_neg]; exact congr_arg of_nat (nat.mod_add_div _ _)
 | -[1+ m] 0       := by rw [mod_zero, int.div_zero]; refl
 | -[1+ m] (n+1:ℕ) := mod_add_div_aux m n.succ
@@ -1525,7 +1549,7 @@ begin
   by_cases hm : m = 0, { subst m, exact zero_dvd_iff.mp h1, },
   rcases h1 with ⟨d, rfl⟩,
   apply mul_eq_zero_of_right,
-  rw [←eq_zero_iff_abs_lt_one, ←mul_lt_iff_lt_one_right (abs_pos.mpr hm), ←abs_mul],
+  rw [←abs_lt_one_iff, ←mul_lt_iff_lt_one_right (abs_pos.mpr hm), ←abs_mul],
   exact lt_of_lt_of_le h2 (le_abs_self m),
 end
 

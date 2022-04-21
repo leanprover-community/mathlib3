@@ -192,7 +192,7 @@ image2_Inter₂_subset_right _ _ _
 which preserves multiplication. -/
 @[to_additive "Under `[has_add A]`, the `singleton` map from `A` to `set A` as an `add_hom`,
 that is, a map which preserves addition.", simps]
-def singleton_mul_hom : mul_hom α (set α) :=
+def singleton_mul_hom : α →ₙ* (set α) :=
 { to_fun := singleton,
   map_mul' := λ a b, singleton_mul_singleton.symm }
 
@@ -1283,7 +1283,7 @@ begin
   { exact ⟨0, by simpa using one_mem _⟩ },
   { rintro x y ⟨nx, hx⟩ ⟨ny, hy⟩,
     use nx + ny,
-    convert mul_mem _ hx hy,
+    convert mul_mem hx hy,
     rw [pow_add, smul_mul_assoc, mul_smul, mul_comm, ← smul_mul_assoc, mul_comm] }
 end
 

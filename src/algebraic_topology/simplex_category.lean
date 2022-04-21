@@ -184,7 +184,8 @@ begin
         else k.cast_lt (by { cases j, cases k, simp only [len_mk], linarith })).cast_succ < i)
           (ite (j.cast_succ < k) (k - 1) k) (ite (j.cast_succ < k) (k - 1) k + 1),
   { dsimp [δ, σ, fin.succ_above, fin.pred_above],
-    simpa [fin.pred_above] with push_cast },
+    simp [fin.pred_above] with push_cast,
+    convert rfl },
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,

@@ -3,7 +3,6 @@ Copyright (c) 2020 Patrick Stevens. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Stevens, Bolton Bailey
 -/
-
 import data.nat.multiplicity
 import data.nat.choose.central
 import number_theory.padics.padic_norm
@@ -76,13 +75,8 @@ open nat
 private def α (n p : nat) [hp : fact p.prime] : nat :=
 padic_val_nat p (central_binom n)
 
-lemma pow_α_le_two_mul
-  (p : nat)
-  [hp : fact p.prime]
-  (n : nat)
-  (n_big : 3 ≤ n)
-  : p ^ (α n p) ≤ 2 * n
-  :=
+lemma pow_α_le_two_mul (p : nat) [hp : fact p.prime] (n : nat) (n_big : 3 ≤ n) :
+  p ^ (α n p) ≤ 2 * n :=
 begin
   unfold α,
   rw @padic_val_nat_def p hp (central_binom n) (central_binom_ne_zero n),
@@ -104,13 +98,8 @@ begin
     linarith, }
 end
 
-lemma multiplicity_implies_small
-  (p : nat)
-  [hp : fact p.prime]
-  (n : nat)
-  (multiplicity_pos : 0 < α n p)
-  : p ≤ 2 * n
-  :=
+lemma multiplicity_implies_small (p : nat) [hp : fact p.prime] (n : nat)
+  (multiplicity_pos : 0 < α n p) : p ≤ 2 * n :=
 begin
   unfold α at multiplicity_pos,
   rw central_binom_eq_two_mul_choose at multiplicity_pos,
@@ -150,9 +139,9 @@ begin
 end
 
 lemma central_binom_factorization (n : ℕ) :
-      ∏ p in finset.filter nat.prime (finset.range (central_binom n + 1)),
-        p ^ (padic_val_nat p (central_binom n))
-      = central_binom n :=
+  ∏ p in finset.filter nat.prime (finset.range (central_binom n + 1)),
+    p ^ (padic_val_nat p (central_binom n))
+  = central_binom n :=
   prod_pow_prime_padic_val_nat _ (central_binom_ne_zero n) _ (lt_add_one _)
 
 lemma intervening_sqrt {a n : ℕ} (small : (sqrt n) ^ 2 ≤ a ^ 2) (big : a ^ 2 ≤ n)
@@ -209,15 +198,23 @@ begin
   linarith,
 end
 
-lemma inequality1 {x : ℝ} (n_large : 1024 < x) : log (x) / (x * log 4) ≤ 1/30 :=
+lemma blah (a b c : ℝ) (ha : a ≠ 0) : (a * b) / (a * c) = b / c :=
 begin
-  have h4 : 0 < x,
-    linarith only [n_large],
+  by_cases c = 0,
+  { subst h, simp, },
+  { field_simp,
+    ring, }
+end
+
+-- This is best possible; it is false for x = 99.
+lemma inequality1 {x : ℝ} (n_large : 100 ≤ x) : log x / (x * log 4) ≤ 1/30 :=
+begin
+  have h4 : 0 < x := by linarith only [n_large],
   have x_ne_zero := ne_of_gt h4,
   calc
   log x / (x * log 4)
       = (log x / x) / log 4 : by field_simp
-  ... ≤ log 1024 / 1024 / log 4 :
+  ... ≤ log 100 / 100 / log 4 :
           begin
             rw div_le_div_right,
             apply log_div_self_antitone_on,
@@ -225,25 +222,33 @@ begin
             linarith only [exp_one_lt_d9],
             simp only [set.mem_set_of_eq],
             linarith only [exp_one_lt_d9, n_large],
-            exact le_of_lt n_large,
+            exact n_large,
             exact log_four_pos,
           end
-  ... = log 1024 / log 4 / 1024 : by ring_nf
+  ... = log 100 / log 4 / 100 : by ring_nf
+  ... = log (10 ^ (2 : ℝ)) / log (2 ^ (2 : ℝ)) / 100 : by norm_num
+  ... = (2 * log 10) / log (2 ^ (2 : ℝ)) / 100 : by rw @log_rpow 10 (by norm_num) 2
+  ... = ((2 * log 10) / (2 * log 2)) / 100 : by rw @log_rpow 2 (by norm_num) 2
+  ... = (log 10 / log 2) / 100 : by rw blah 2 (log 10) (log 2) (by norm_num)
   ... ≤ 1 / 30 :
           begin
-            simp only [log_1024_div_log_4, one_div],
-            norm_num,
+            have thousand_pos : 0 < (1000 : ℝ) := by norm_num,
+            cancel_denoms,
+            rw mul_div,
+            have log_2_pos : 0 < log 2 := log_pos (by norm_num),
+            rw div_le_iff log_2_pos,
+            calc 3 * log 10 = log (10 ^ 3) : eq.symm (log_rpow (by norm_num) 3)
+              ... = log 1000 : by norm_num
+              ... ≤ log 1024 : (log_le_log thousand_pos (by norm_num)).2 (by norm_num)
+              ... = log (2 ^ (10 : ℝ)) : by norm_num
+              ... = 10 * log 2 : log_rpow (by norm_num) 10
           end,
 end
 
-lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) :=
-calc
-(4 : ℝ)
-    = 2 ^ (2 : ℕ) : by norm_num
-... = 2 ^ (2 : ℝ) : by {rw <-rpow_nat_cast, congr, exact nat.cast_two,}
+lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num
 
-
-lemma inequality2 {x : ℝ} (n_large : 1024 < x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.04 :=
+-- This is best possible: it is false for x = 312.
+lemma inequality2 {x : ℝ} (n_large : 313 ≤ x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.04 :=
 begin
   have x_pos : 0 < x := by linarith,
   rw div_le_iff (mul_pos x_pos (log_pos one_lt_four)),
@@ -258,13 +263,11 @@ begin
   { norm_num, },
 end
 
-lemma inequality3' {x : ℝ} (n_large : 1024 < x) :
+lemma inequality3' {x : ℝ} (x_pos : 0 < x) :
   sqrt 2 * sqrt x * log x / (x * log 4) = (sqrt 2 / log 4) * log x / sqrt x :=
 begin
-  have: x ≠ 0,
-  { apply ne_of_gt,
-    linarith, },
-  have: log 4 * sqrt x ≠ 0 := mul_ne_zero log_four_nonzero (sqrt_ne_zero'.mpr (by linarith)),
+  have: x ≠ 0 := by linarith,
+  have: log 4 * sqrt x ≠ 0 := mul_ne_zero log_four_nonzero (sqrt_ne_zero'.mpr x_pos),
   field_simp,
   ring_nf,
   rw @sq_sqrt x (by linarith),
@@ -285,74 +288,93 @@ begin
   simp only [nat.cast_bit0, nat.cast_one],
   repeat { rw mul_div_assoc, },
   rw mul_le_mul_left two_pos,
-  refine log_div_self_antitone_on _ _ (sqrt_le_sqrt hxy),
-  repeat { simp only [set.mem_set_of_eq],
-    rw [le_sqrt (le_of_lt (exp_pos 1)), ←exp_nat_mul],
-    norm_num, linarith, linarith, },
+  { refine log_div_self_antitone_on _ _ (sqrt_le_sqrt hxy),
+    repeat { simp only [set.mem_set_of_eq],
+      rw [le_sqrt (le_of_lt (exp_pos 1)), ←exp_nat_mul],
+      norm_num, linarith, linarith, }, },
   exact real.nontrivial,
 end
 
-lemma inequality3 {x : ℝ} (n_large : 1024 < x) : sqrt 2 * sqrt x * log x / (x * log 4) ≤ 1/4 :=
+lemma foo {a b c : ℝ} (hb : b ≠ 0) (hc : c ≠ 0) : a / (b * c) = (a / b) / c :=
+by field_simp
+
+lemma log_four : log 4 = 2 * log 2 :=
 begin
-  rw [inequality3' n_large],
-  -- Get the log x in the second term to be 2 log sqrt x. and split the 1/x i n that term to
-  calc
-  sqrt 2 / log 4 * log x / sqrt x
-       = sqrt 2 / log 4 * (log x / sqrt x) : by rw mul_div_assoc
-  ...  ≤ sqrt 2 / log 4 * (log 1024 / sqrt 1024) :
+  calc log 4 = log (2 ^ (2 : ℝ)) : by norm_num
+    ... = 2 * log 2 : by rw log_rpow two_pos
+end
+
+lemma sqrt_361 : sqrt 361 = 19 :=
+begin
+  calc sqrt 361 = sqrt (19 ^ 2) : by norm_num
+    ... = 19 : sqrt_sq (by norm_num)
+end
+
+lemma log_722 : log 722 = log 2 + 2 * log 19 :=
+begin
+  calc log 722 = log (2 * 19 ^ (2 : ℝ)) : by norm_num
+    ... = log 2 + log (19 ^ (2 : ℝ)) : log_mul (by norm_num) (by norm_num)
+    ... = log 2 + 2 * log 19 : by rw @log_rpow 19 (by norm_num)
+end
+
+lemma inequality : log 521284 / log 2 ≤ 19 :=
+begin
+  suffices: log 521284 ≤ 19 * log 2, by rwa div_le_iff (log_pos one_lt_two),
+  calc log 521284
+        ≤ log (2 ^ (19 : ℝ)) : (@log_le_log 521284 _ (by norm_num) (by norm_num)).2 (by norm_num)
+    ... = 19 * log 2 : @log_rpow 2 two_pos 19,
+end
+
+lemma inequality3 {x : ℝ} (n_large : 722 ≤ x) : sqrt 2 * sqrt x * log x / (x * log 4) ≤ 1/4 :=
+begin
+  have x_pos : 0 < x := by linarith,
+  rw [inequality3' x_pos],
+  have bound : log x / sqrt x ≤ log 722 / sqrt 722,
+    { refine log_div_sqrt_decreasing _ n_large,
+      calc exp 2 = (exp 1) ^ 2 : by rw [←exp_nat_mul 1 2]; simp
+        ... ≤ 2.7182818286 ^ 2 :
+            pow_le_pow_of_le_left (le_of_lt (exp_pos 1)) (le_of_lt exp_one_lt_d9) _
+        ... = 7.38905609969695977796 : by norm_num
+        ... ≤ 722 : by linarith, },
+  calc sqrt 2 / log 4 * log x / sqrt x
+      = sqrt 2 / log 4 * (log x / sqrt x) : by rw mul_div_assoc
+  ... ≤ sqrt 2 / log 4 * (log 722 / sqrt 722) :
           begin
             rw mul_le_mul_left,
-            have n_larger := le_of_lt n_large,
-            apply log_div_sqrt_decreasing,
-            calc
-            exp 2 = (exp 1) ^ 2 :
-              begin
-                rw <-exp_nat_mul,
-                simp,
-              end
-            ... ≤ 2.7182818286 ^ 2 :
-              begin
-                apply pow_le_pow_of_le_left,
-                apply le_of_lt,
-                exact exp_pos 1,
-                apply le_of_lt,
-                exact exp_one_lt_d9,
-              end
-            ... ≤ 1024 : by norm_num,
-            exact n_larger,
-            apply div_pos,
-            rw sqrt_pos,
-            linarith,
-            exact log_four_pos,
+            { exact bound, },
+            { exact div_pos (sqrt_pos.2 two_pos) log_four_pos, },
           end
-  ...  = log 1024 / log 4 * sqrt 2 / sqrt 1024 :
-          begin
-            ring,
-          end
-  ...  = 5 * sqrt 2 / sqrt 1024 :
-          begin
-            congr,
-            rw log_1024_div_log_4,
-          end
+  ... = log 722 / log 4 * sqrt 2 / sqrt 722 : by ring
   ... ≤ 1 / 4 :
           begin
-            rw mul_div_assoc,
-            rw <-sqrt_div,
-            rw mul_comm,
-            rw <-le_div_iff,
-            rw sqrt_le_iff,
-            split,
+            rw [mul_div_assoc, ←sqrt_div zero_le_two],
             norm_num,
-            norm_num,
-            linarith,
-            linarith,
+            field_simp [sqrt_361],
+            cancel_denoms,
+            rw foo,
+            { cancel_denoms,
+              rw mul_div,
+              rw log_722,
+              rw log_four,
+              have nineteen_pos : (0 : ℝ) < 19 := by norm_num,
+              calc 4 * (log 2 + 2 * log 19) / (2 * log 2)
+                    = 2 * (2 * (log 2 + 2 * log 19)) / (2 * log 2) : by ring
+                ... = 2 * (log 2 + 2 * log 19) / log 2 : blah _ _ _ (by norm_num)
+                ... = (2 * log 2 + 4 * log 19) / log 2 : by ring
+                ... = (log 4 + 4 * log 19) / log 2 : by rw log_four
+                ... = (log 4 + log (19 ^ (4 : ℝ))) / log 2 : by rw log_rpow nineteen_pos 4
+                ... = (log 4 + log 130321) / log 2 : by norm_num
+                ... = log (4 * 130321) / log 2 : by rw @log_mul 4 130321 (by norm_num) (by norm_num)
+                ... = log 521284 / log 2 : by norm_num
+                ... ≤ 19 : inequality, },
+            { norm_num, },
+            { norm_num, },
           end,
 
 end
 
-lemma equality4 {x : ℝ} (n_large : 1024 < x) : 2 * x / 3 * log 4 / (x * log 4) = 2 / 3 :=
+lemma equality4 {x : ℝ} (n_large : x ≠ 0) : 2 * x / 3 * log 4 / (x * log 4) = 2 / 3 :=
 begin
-  have: x ≠ 0 := ne_of_gt (by linarith),
   field_simp [log_four_nonzero],
   ring,
 end
@@ -360,23 +382,31 @@ end
 /--
 A reified version of the `bertrand_inequality` below.
 -/
-lemma real_bertrand_inequality {x : ℝ} (n_large : (1024 : ℝ) < x)
+lemma real_bertrand_inequality {x : ℝ} (n_large : (722 : ℝ) ≤ x)
   : x * (2 * x) ^ (sqrt (2 * x)) * 4 ^ (2 * x / 3) < 4 ^ x :=
 begin
-  apply (log_lt_log_iff _ _).1,
+  have four_pow_pos : ∀ (k : ℝ), (0 : ℝ) < 4 ^ k,
+    { intros k,
+      apply rpow_pos_of_pos four_pos, },
+  have v : 0 < (2 * x) ^ (sqrt (2 * x)) := rpow_pos_of_pos (by linarith) _,
+  apply (log_lt_log_iff _ (four_pow_pos x)).1,
+  swap,
+  { exact mul_pos (mul_pos (by linarith) v) (four_pow_pos _), },
+  -- Goal structure gets a bit odd here because there are so many little conditions...
   rw [log_mul, log_mul, log_rpow, log_rpow, log_rpow, log_mul],
-  rw <-div_lt_one,
-  simp only [add_div, mul_add, add_mul, add_div, <-add_assoc],
-  simp only [zero_le_one, sqrt_mul, zero_le_bit0],
-  { rw [equality4 n_large],
-    linarith only [inequality1 n_large, inequality2 n_large, inequality3 n_large], },
+  -- Discharge most of the side goals
+  repeat { linarith, },
+  { rw <-div_lt_one,
+   simp only [add_div, mul_add, add_mul, add_div, ←add_assoc],
+   simp only [zero_le_one, sqrt_mul, zero_le_bit0],
+   { rw [@equality4 x (by linarith)],
+     have x_100 : 100 ≤ x := by linarith,
+     have x_313 : 313 ≤ x := by linarith,
+     linarith only [inequality1 x_100, inequality2 x_313, inequality3 n_large], },
+     exact mul_pos (by linarith) log_four_pos, },
   repeat {apply ne_of_gt},
-  repeat {apply mul_pos},
-  repeat {apply rpow_pos_of_pos},
-  repeat {norm_num,},
-  repeat {linarith,},
-  apply log_pos,
-  norm_num,
+  { apply mul_pos _ v, linarith, },
+  { exact four_pow_pos _, },
 end
 
 end real_inequalities
@@ -384,7 +414,7 @@ end real_inequalities
 /--
 The inequality which contradicts Bertrand's postulate, for large enough `n`.
 -/
-lemma bertrand_inequality {n : ℕ} (n_large : 1024 < n)
+lemma bertrand_inequality {n : ℕ} (n_large : 722 ≤ n)
   : n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) ≤ 4 ^ n :=
 begin
   rw <-@nat.cast_le ℝ,
@@ -404,8 +434,8 @@ begin
             rw mul_le_mul_right,
             rw mul_le_mul_left,
             apply real.rpow_le_rpow_of_exponent_le,
-            rw <-@nat.cast_lt ℝ at n_large,
-            have h : (1024) < (n : ℝ), {convert n_large, simp},
+            rw <-@nat.cast_le ℝ at n_large,
+            have h : 722 ≤ (n : ℝ), {convert n_large, simp},
             linarith,
             rw real.le_sqrt,
             rw <-nat.cast_pow,
@@ -444,8 +474,8 @@ begin
   ... < 4 ^ (n : ℝ) :
           begin
             apply real_bertrand_inequality,
-            rw <-@nat.cast_lt ℝ at n_large,
-            have h : 1024 < (n : ℝ), {convert n_large, simp},
+            rw <-@nat.cast_le ℝ at n_large,
+            have h : 722 ≤ (n : ℝ), {convert n_large, simp},
             linarith,
           end,
 end
@@ -454,7 +484,7 @@ end
 A lemma that tells us that, in the case where Bertrand's postulate does not hold, the prime
 factorization of the central binomial coefficent only has factors at most `2 * n / 3 + 1`.
 -/
-lemma central_binom_factorization_small (n : nat) (n_big : 1024 < n)
+lemma central_binom_factorization_small (n : nat) (n_large : 2 < n)
   (no_prime: ¬∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n) :
   ∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
     p ^ (padic_val_nat p (nat.central_binom n))
@@ -506,7 +536,7 @@ The bound splits the prime factors of `central_binom n` into those
 3. Between `2 * n / 3` and `n`, which do not exist.
 4. Above `n`, which do not exist in the case where Bertrand's postulate is false.
 -/
-lemma bertrand_central_binomial_upper_bound (n : ℕ) (n_big : 1024 < n)
+lemma bertrand_central_binom_le (n : ℕ) (n_big : 2 < n)
   (no_prime : ¬∃ (p : ℕ), nat.prime p ∧ n < p ∧ p ≤ 2 * n) :
   nat.central_binom n
     ≤ (2 * n) ^ (nat.sqrt (2 * n))
@@ -515,7 +545,8 @@ calc
 nat.central_binom n
     = (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
           p ^ (padic_val_nat p (nat.central_binom n))) :
-          by rw [(central_binom_factorization_small n n_big no_prime), central_binom_factorization]
+          by rw [(central_binom_factorization_small n (by linarith) no_prime),
+                  central_binom_factorization]
 ... = (∏ p in (finset.range (2 * n / 3 + 1)).filter nat.prime,
           if p ≤ nat.sqrt (2 * n)
           then p ^ (padic_val_nat p (nat.central_binom n))
@@ -629,7 +660,7 @@ nat.central_binom n
 /--
 Proves that Bertrand's postulate holds for all sufficiently large `n`.
 -/
-lemma bertrand_eventually (n : nat) (n_big : 1024 < n) : ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
+lemma bertrand_eventually (n : nat) (n_big : 722 ≤ n) : ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
 begin
   -- Assume there is no prime in the range
   by_contradiction no_prime,
@@ -642,7 +673,7 @@ begin
     4 ^ n
         < n * nat.central_binom n : nat.four_pow_lt_mul_central_binom n (by linarith)
     ... ≤ n * ((2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3)) :
-            nat.mul_le_mul_of_nonneg_left (bertrand_central_binomial_upper_bound n n_big no_prime)
+          nat.mul_le_mul_of_nonneg_left (bertrand_central_binom_le n (by linarith) no_prime)
     ... = n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) : by ring,
   exact not_le_of_lt false_inequality (bertrand_inequality n_big),
 end
@@ -698,7 +729,7 @@ it, but no more than twice as large.
 theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p ≤ 2 * n :=
 begin
   -- Split into cases whether `n` is large or small
-  cases lt_or_le 1024 n,
+  cases lt_or_le 721 n,
   -- If `n` is large, apply the theorem derived from the inequalities on the central binomial
   -- coefficient.
   { exact bertrand_eventually n h },

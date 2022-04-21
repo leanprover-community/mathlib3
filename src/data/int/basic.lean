@@ -285,6 +285,8 @@ end
 
 /-! ### nat abs -/
 
+variables {a b : ℤ} {n : ℕ}
+
 attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
 
 theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
@@ -354,6 +356,9 @@ begin
   rw [← abs_eq_iff_mul_self_eq, abs_eq_nat_abs, abs_eq_nat_abs],
   exact int.coe_nat_inj'.symm
 end
+
+lemma eq_nat_abs_iff_mul_eq_zero : a.nat_abs = n ↔ (a - n) * (a + n) = 0 :=
+by rw [nat_abs_eq_iff, mul_eq_zero, sub_eq_zero, add_eq_zero_iff_eq_neg]
 
 lemma nat_abs_lt_iff_mul_self_lt {a b : ℤ} : a.nat_abs < b.nat_abs ↔ a * a < b * b :=
 begin

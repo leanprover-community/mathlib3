@@ -269,7 +269,7 @@ instance decidable_eq_one_hom_fintype [decidable_eq β] [fintype α] [has_one α
 
 @[to_additive]
 instance decidable_eq_mul_hom_fintype [decidable_eq β] [fintype α] [has_mul α] [has_mul β]:
-  decidable_eq (mul_hom α β) :=
+  decidable_eq (α →ₙ* β) :=
 λ a b, decidable_of_iff ((a : α → β) = b) (injective.eq_iff mul_hom.coe_inj)
 
 @[to_additive]

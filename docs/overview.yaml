@@ -51,7 +51,7 @@ General algebra:
     ring: 'ring'
     ring morphism: 'ring_hom'
     the category of rings: 'Ring'
-    subring: 'is_subring'
+    subring: 'subring'
     localization: 'localization'
     local ring: 'local_ring'
     noetherian ring: 'is_noetherian_ring'

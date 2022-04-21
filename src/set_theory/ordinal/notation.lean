@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
-import set_theory.principal
+import set_theory.ordinal.principal
 
 /-!
 # Ordinal notation

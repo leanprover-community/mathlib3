@@ -1,4 +1,4 @@
-import tactic.move_all
+import tactic.move_add
 import data.polynomial.degree
 
 open polynomial tactic interactive

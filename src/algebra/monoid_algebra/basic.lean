@@ -694,13 +694,20 @@ lemma lift_unique (F : monoid_algebra k G →ₐ[k] A) (f : monoid_algebra k G) 
   F f = f.sum (λ a b, b • F (single a 1)) :=
 by conv_lhs { rw lift_unique' F, simp [lift_apply] }
 
+lemma map_domain_algebra_map (k A : Type*) {H F : Type*} [comm_semiring k] [semiring A]
+  [algebra k A] [monoid H] [monoid_hom_class F G H] (f : F) (r : k) :
+  (map_domain_ring_hom A f).to_fun ((algebra_map k (monoid_algebra A G)) r) =
+    (algebra_map k (monoid_algebra A H)) r :=
+by simp only [coe_algebra_map, ring_hom.to_fun_eq_coe, map_domain_ring_hom_apply,
+    add_monoid_hom.to_fun_eq_coe, map_domain.add_monoid_hom_apply, map_domain_single, map_one]
+
 /--  A multiplicative homomorphism `f : G →* H` between two monoids induces a `k`-algebra
 homomorphism `map_domain_alg_hom k A f : monoid_algebra k G →ₐ[k] monoid_algebra k H`. -/
-def map_domain_alg_hom (k A : Type*) [comm_semiring k] [semiring A] [algebra k A] {H : Type*}
-  [monoid H] (f : G →* H) :
+def map_domain_alg_hom (k A : Type*) [comm_semiring k] [semiring A] [algebra k A] {H F : Type*}
+  [monoid H] [monoid_hom_class F G H] (f : F) :
   monoid_algebra A G →ₐ[k] monoid_algebra A H :=
-lift_nc_alg_hom single_one_alg_hom ((of A H).comp f) $
-λ a g, single_mul_single.trans (by simp)
+{ commutes' := map_domain_algebra_map k A f,
+  ..map_domain_ring_hom A f}
 
 end lift
 
@@ -1529,7 +1536,7 @@ finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
 
 end
 
-lemma map_domain_algebra_map (k A : Type*) {H F : Type*} [comm_semiring k] [semiring A]
+lemma map_domain_algebra_map {A H F : Type*} [comm_semiring k] [semiring A]
   [algebra k A] [add_monoid G] [add_monoid H] [add_monoid_hom_class F G H] (f : F) (r : k) :
   map_domain f (algebra_map k (add_monoid_algebra A G) r) =
     (algebra_map k (add_monoid_algebra A H)) r :=
@@ -1540,7 +1547,7 @@ by simp only [function.comp_app, map_domain_single, add_monoid_algebra.coe_algeb
 @[simps] def map_domain_alg_hom (k A : Type*) [comm_semiring k] [semiring A] [algebra k A]
   [add_monoid G] {H F : Type*} [add_monoid H] [add_monoid_hom_class F G H] (f : F) :
   add_monoid_algebra A G →ₐ[k] add_monoid_algebra A H :=
-{ commutes' := λ r, map_domain_algebra_map k A f r,
+{ commutes' := map_domain_algebra_map f,
   ..map_domain_ring_hom A f}
 
 end add_monoid_algebra

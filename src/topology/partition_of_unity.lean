@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import algebra.big_operators.finprod
-import topology.urysohns_lemma
+import set_theory.ordinal.basic
+import topology.continuous_function.algebra
 import topology.paracompact
 import topology.shrinking_lemma
-import topology.continuous_function.algebra
-import set_theory.ordinal
+import topology.urysohns_lemma
 
 /-!
 # Continuous partition of unity

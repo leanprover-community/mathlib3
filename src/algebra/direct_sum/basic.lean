@@ -6,7 +6,6 @@ Authors: Kenny Lau
 import data.dfinsupp.basic
 import group_theory.submonoid.operations
 import group_theory.subgroup.basic
-
 /-!
 # Direct sum
 
@@ -179,6 +178,9 @@ variables {β}
 
 omit dec_ι
 
+/-- A direct sum over an empty type is trivial. -/
+instance [is_empty ι] : unique (⨁ i, β i) := dfinsupp.unique
+
 /-- The natural equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
 protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique ι] :
   (⨁ (_ : ι), M) ≃+ M :=
@@ -190,6 +192,57 @@ protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique 
     (λ x y ihx ihy, by rw [add_monoid_hom.map_add, add_monoid_hom.map_add, ihx, ihy]),
   right_inv := λ x, to_add_monoid_of _ _ _,
   ..direct_sum.to_add_monoid (λ _, add_monoid_hom.id M) }
+
+section congr_left
+variables {κ : Type*}
+
+/--Reindexing terms of a direct sum.-/
+def equiv_congr_left (h : ι ≃ κ) : (⨁ i, β i) ≃+ ⨁ k, β (h.symm k) :=
+{ map_add' := dfinsupp.comap_domain'_add _ _,
+  ..dfinsupp.equiv_congr_left h }
+
+@[simp] lemma equiv_congr_left_apply (h : ι ≃ κ) (f : ⨁ i, β i) (k : κ) :
+  equiv_congr_left h f k = f (h.symm k) := dfinsupp.comap_domain'_apply _ _ _ _
+
+end congr_left
+
+section option
+variables {α : option ι → Type w} [Π i, add_comm_monoid (α i)]
+include dec_ι
+
+/--Isomorphism obtained by separating the term of index `none` of a direct sum over `option ι`.-/
+@[simps] noncomputable def add_equiv_prod_direct_sum : (⨁ i, α i) ≃+ α none × ⨁ i, α (some i) :=
+{ map_add' := dfinsupp.equiv_prod_dfinsupp_add, ..dfinsupp.equiv_prod_dfinsupp }
+
+end option
+
+section sigma
+variables {α : ι → Type u} {δ : Π i, α i → Type w} [Π i j, add_comm_monoid (δ i j)]
+
+/--The natural map between `⨁ (i : Σ i, α i), δ i.1 i.2` and `⨁ i (j : α i), δ i j`.-/
+noncomputable def sigma_curry : (⨁ (i : Σ i, _), δ i.1 i.2) →+ ⨁ i j, δ i j :=
+{ to_fun := @dfinsupp.sigma_curry _ _ δ _,
+  map_zero' := dfinsupp.sigma_curry_zero,
+  map_add' := λ f g, dfinsupp.sigma_curry_add f g }
+
+@[simp] lemma sigma_curry_apply (f : ⨁ (i : Σ i, _), δ i.1 i.2) (i : ι) (j : α i) :
+  sigma_curry f i j = f ⟨i, j⟩ := dfinsupp.sigma_curry_apply f i j
+
+/--The natural map between `⨁ i (j : α i), δ i j` and `Π₀ (i : Σ i, α i), δ i.1 i.2`, inverse of
+`curry`.-/
+noncomputable def sigma_uncurry : (⨁ i j, δ i j) →+ ⨁ (i : Σ i, _), δ i.1 i.2 :=
+{ to_fun := dfinsupp.sigma_uncurry,
+  map_zero' := dfinsupp.sigma_uncurry_zero,
+  map_add' := dfinsupp.sigma_uncurry_add }
+
+@[simp] lemma sigma_uncurry_apply (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
+  sigma_uncurry f ⟨i, j⟩ = f i j := dfinsupp.sigma_uncurry_apply f i j
+
+/--The natural map between `⨁ (i : Σ i, α i), δ i.1 i.2` and `⨁ i (j : α i), δ i j`.-/
+noncomputable def sigma_curry_equiv : (⨁ (i : Σ i, _), δ i.1 i.2) ≃+ ⨁ i j, δ i j :=
+{ ..sigma_curry, ..dfinsupp.sigma_curry_equiv }
+
+end sigma
 
 /-- The canonical embedding from `⨁ i, A i` to `M` where `A` is a collection of `add_submonoid M`
 indexed by `ι`-/

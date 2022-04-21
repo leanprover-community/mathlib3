@@ -3,11 +3,12 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
-import set_theory.cardinal_ordinal
+import set_theory.cardinal.ordinal
+
 /-!
 # Cofinality
 
-This file contains the definition of cofinality of a ordinal number and regular cardinals
+This file contains the definition of cofinality of an ordinal number and regular cardinals
 
 ## Main Definitions
 
@@ -92,6 +93,8 @@ theorem rel_iso.cof {α : Type u} {β : Type v} {r s}
   cardinal.lift.{(max u v)} (order.cof s) :=
 le_antisymm (rel_iso.cof.aux f) (rel_iso.cof.aux f.symm)
 
+/-- Cofinality of a strict order `≺`. This is the smallest cardinality of a set `S : set α` such
+that `∀ a, ∃ b ∈ S, ¬ b ≺ a`. -/
 def strict_order.cof (r : α → α → Prop) [h : is_irrefl α r] : cardinal :=
 @order.cof α (λ x y, ¬ r y x) ⟨h.1⟩
 
@@ -405,19 +408,105 @@ induction_on a $ λ α r _, induction_on b $ λ β s _ b0, begin
         by injection h with h; congr; injection h } }
 end
 
-@[simp] theorem cof_cof (o : ordinal) : cof (cof o).ord= cof o :=
-le_antisymm (le_trans (cof_le_card _) (by simp)) $
-induction_on o $ λ α r _, by exactI
-let ⟨S, hS, e₁⟩ := ord_cof_eq r,
-    ⟨T, hT, e₂⟩ := cof_eq (subrel r S) in begin
-  rw e₁ at e₂, rw ← e₂,
-  refine le_trans (cof_type_le {a | ∃ h, (subtype.mk a h : S) ∈ T} (λ a, _)) ⟨⟨_, _⟩⟩,
-  { rcases hS a with ⟨b, bS, br⟩,
-    rcases hT ⟨b, bS⟩ with ⟨⟨c, cS⟩, cT, cs⟩,
-    exact ⟨c, ⟨cS, cT⟩, is_order_connected.neg_trans cs br⟩ },
-  { exact λ ⟨a, h⟩, ⟨⟨a, h.fst⟩, h.snd⟩ },
-  { exact λ ⟨a, ha⟩ ⟨b, hb⟩ h,
-      by injection h with h; congr; injection h },
+/-- A fundamental sequence for `a` is an increasing sequence of length `o = cof a` that converges at
+    `a`. We provide `o` explicitly in order to avoid type rewrites. -/
+def is_fundamental_sequence (a o : ordinal.{u}) (f : Π b < o, ordinal.{u}) : Prop :=
+o ≤ a.cof.ord ∧ (∀ {i j} (hi hj), i < j → f i hi < f j hj) ∧ blsub.{u u} o f = a
+
+section fundamental_sequence
+variables {a o : ordinal.{u}} {f : Π b < o, ordinal.{u}} (hf : is_fundamental_sequence a o f)
+
+theorem is_fundamental_sequence.cof_eq : a.cof.ord = o :=
+hf.1.antisymm' (by { rw ←hf.2.2, exact (ord_le_ord.2 (cof_blsub_le f)).trans (ord_card_le o) })
+
+theorem is_fundamental_sequence.strict_mono :
+  ∀ {i j : ordinal} (hi : i < o) (hj : j < o), i < j → f i hi < f j hj :=
+hf.2.1
+
+theorem is_fundamental_sequence.blsub_eq : blsub.{u u} o f = a :=
+hf.2.2
+
+theorem is_fundamental_sequence_id_of_le_cof (h : o ≤ o.cof.ord) :
+  is_fundamental_sequence o o (λ a _, a) :=
+⟨h, λ _ _ _ _, id, blsub_id o⟩
+
+theorem is_fundamental_sequence_zero {f : Π b < (0 : ordinal), ordinal} :
+  is_fundamental_sequence 0 0 f :=
+⟨by rw [cof_zero, ord_zero], λ i j hi, (ordinal.not_lt_zero i hi).elim, blsub_zero rfl f⟩
+
+theorem is_fundamental_sequence_succ : is_fundamental_sequence o.succ 1 (λ _ _, o) :=
+begin
+  refine ⟨_, λ i j hi hj h, _, blsub_const ordinal.one_ne_zero o⟩,
+  { rw [cof_succ, ord_one] },
+  { rw lt_one_iff_zero at hi hj,
+    rw [hi, hj] at h,
+    exact h.false.elim }
+end
+
+include hf
+theorem is_fundamental_sequence.monotone {i j : ordinal} (hi : i < o) (hj : j < o) (hij : i ≤ j) :
+  f i hi ≤ f j hj :=
+begin
+  rcases lt_or_eq_of_le hij with hij | rfl,
+  { exact le_of_lt (hf.2.1 hi hj hij) },
+  { refl }
+end
+
+end fundamental_sequence
+
+theorem is_fundamental_sequence.trans {a o o' : ordinal.{u}} {f : Π b < o, ordinal.{u}}
+  (hf : is_fundamental_sequence a o f) {g : Π b < o', ordinal.{u}}
+  (hg : is_fundamental_sequence o o' g) :
+  is_fundamental_sequence a o' (λ i hi, f (g i hi) (by { rw ←hg.2.2, apply lt_blsub })) :=
+begin
+  refine ⟨_, λ i j _ _ h, hf.2.1 _ _ (hg.2.1 _ _ h), _⟩,
+  { rw hf.cof_eq,
+    exact hg.1.trans (ord_cof_le o) },
+  { rw @blsub_comp.{u u u} o _ f (@is_fundamental_sequence.monotone _ _ f hf),
+    exact hf.2.2 }
+end
+
+/-- Every ordinal has a fundamental sequence. -/
+theorem exists_fundamental_sequence (a : ordinal.{u}) :
+  ∃ f, is_fundamental_sequence a a.cof.ord f :=
+begin
+  suffices : ∃ o f, is_fundamental_sequence a o f,
+  { rcases this with ⟨o, f, hf⟩,
+    convert exists.intro f hf;
+    rw hf.cof_eq },
+  rcases exists_lsub_cof a with ⟨ι, f, hf, hι⟩,
+  rcases ord_eq ι with ⟨r, wo, hr⟩,
+  haveI := wo,
+  let r' := subrel r {i | ∀ j, r j i → f j < f i},
+  let hrr' : r' ↪r r := subrel.rel_embedding _ _,
+  haveI := hrr'.is_well_order,
+  refine ⟨_, _, (type_le'.2 ⟨hrr'⟩).trans _, λ i j _ h _, (enum r' j h).prop _ _,
+    le_antisymm (blsub_le (λ i hi, lsub_le_iff.1 hf.le _)) _⟩,
+  { rw [←hι, hr] },
+  { change r (hrr'.1 _ ) (hrr'.1 _ ),
+    rwa [hrr'.2, @enum_lt_enum _ r'] },
+  { rw [←hf, lsub_le_iff],
+    intro i,
+    suffices : ∃ i' hi', f i ≤ bfamily_of_family' r' (λ i, f i) i' hi',
+    { rcases this with ⟨i', hi', hfg⟩,
+      exact hfg.trans_lt (lt_blsub _ _ _) },
+    by_cases h : ∀ j, r j i → f j < f i,
+    { refine ⟨typein r' ⟨i, h⟩, typein_lt_type _ _, _⟩,
+      rw bfamily_of_family'_typein,
+      refl },
+    { push_neg at h,
+      cases wo.wf.min_mem _ h with hji hij,
+      refine ⟨typein r' ⟨_, λ k hkj, lt_of_lt_of_le _ hij⟩, typein_lt_type _ _, _⟩,
+      { by_contra' H,
+        exact (wo.wf.not_lt_min _ h ⟨is_trans.trans _ _ _ hkj hji, H⟩) hkj },
+      { rwa bfamily_of_family'_typein } } }
+end
+
+@[simp] theorem cof_cof (a : ordinal.{u}) : cof (cof a).ord = cof a :=
+begin
+  cases exists_fundamental_sequence a with f hf,
+  cases exists_fundamental_sequence a.cof.ord with g hg,
+  exact ord_injective ((hf.trans hg).cof_eq.symm)
 end
 
 theorem omega_le_cof {o} : ω ≤ cof o ↔ is_limit o :=
@@ -577,13 +666,13 @@ omega_pos.trans_le H.1
 lemma is_regular.ord_pos {c : cardinal} (H : c.is_regular) : 0 < c.ord :=
 by { rw cardinal.lt_ord, exact H.pos }
 
-theorem cof_is_regular {o : ordinal} (h : o.is_limit) : is_regular o.cof :=
+theorem is_regular_cof {o : ordinal} (h : o.is_limit) : is_regular o.cof :=
 ⟨omega_le_cof.2 h, cof_cof _⟩
 
-theorem omega_is_regular : is_regular ω :=
+theorem is_regular_omega : is_regular ω :=
 ⟨le_rfl, by simp⟩
 
-theorem succ_is_regular {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) :=
+theorem is_regular_succ {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) :=
 ⟨le_trans h (le_of_lt $ lt_succ_self _), begin
   refine le_antisymm (cof_ord_le _) (succ_le.2 _),
   cases quotient.exists_rep (succ c) with α αe, simp at αe,
@@ -606,13 +695,13 @@ theorem succ_is_regular {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) 
 end⟩
 
 theorem is_regular_aleph_one : is_regular (aleph 1) :=
-by { rw ← succ_omega, exact succ_is_regular le_rfl }
+by { rw ← succ_omega, exact is_regular_succ le_rfl }
 
-theorem aleph'_succ_is_regular {o : ordinal} (h : ordinal.omega ≤ o) : is_regular (aleph' o.succ) :=
-by { rw aleph'_succ, exact succ_is_regular (omega_le_aleph'.2 h) }
+theorem is_regular_aleph'_succ {o : ordinal} (h : ordinal.omega ≤ o) : is_regular (aleph' o.succ) :=
+by { rw aleph'_succ, exact is_regular_succ (omega_le_aleph'.2 h) }
 
-theorem aleph_succ_is_regular {o : ordinal} : is_regular (aleph o.succ) :=
-by { rw aleph_succ, exact succ_is_regular (omega_le_aleph o) }
+theorem is_regular_aleph_succ (o : ordinal) : is_regular (aleph o.succ) :=
+by { rw aleph_succ, exact is_regular_succ (omega_le_aleph o) }
 
 /--
 A function whose codomain's cardinality is infinite but strictly smaller than its domain's
@@ -625,7 +714,7 @@ begin
   simp_rw [← succ_le],
   exact ordinal.infinite_pigeonhole_card f (#α).succ (succ_le.mpr w)
     (w'.trans (lt_succ_self _).le)
-    ((lt_succ_self _).trans_le (succ_is_regular w').2.ge),
+    ((lt_succ_self _).trans_le (is_regular_succ w').2.ge),
 end
 
 /--

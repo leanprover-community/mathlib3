@@ -23,15 +23,6 @@ quadratic character
 
 section general
 
-/-- Create a decidability instance for `is_square` on finite monoids. -/
-instance {M : Type*} [fintype M] [monoid M] [decidable_eq M] :
-  decidable_pred (is_square : M → Prop) :=
-λ a, decidable_of_iff' _ (is_square_iff_exists_sq a)
-
-/-- `0` is always a square (in a monoid with zero). -/
-lemma is_square_zero (M : Type*) [monoid_with_zero M] : is_square (0 : M) :=
-by { use 0, simp only [mul_zero] }
-
 /-- If `ring_char R = 2`, where `R` is a finite reduced commutative ring,
 then every `a : R` is a square. -/
 lemma is_square_of_char_two' {R : Type*} [fintype R] [comm_ring R] [is_reduced R] [char_p R 2]
@@ -156,22 +147,25 @@ We define the quadratic character of a finite field `F` with values in ℤ.
 
 section define
 
-/-- Define the quadratic character of a finite field `F` with values in ℤ.
-It takes the value zero at zero; for non-zero argument `a : F`, it is `1`
+/-- Define the quadratic character with values in ℤ on a monoid with zero `α`.
+It takes the value zero at zero; for non-zero argument `a : α`, it is `1`
 if `a` is a square, otherwise it is `-1`.
+
+This only deserves the name "character" when it is multiplicative,
+e.g., when `α` is a finite field. See `quadratic_char_mul`.
 -/
-def quadratic_char (F : Type*) [field F] [fintype F] [decidable_eq F] (a : F) : ℤ :=
-begin
-  exact if a = 0 then 0 else if is_square a then 1 else -1
-end
+def quadratic_char (α : Type*) [monoid_with_zero α] [decidable_eq α]
+  [decidable_pred (is_square : α → Prop)] (a : α) : ℤ :=
+if a = 0 then 0 else if is_square a then 1 else -1
 
 end define
 
 /-!
 ### Basic properties of the quadratic character
 
-We prove some properties of the quadratic character. The interesting case
-is when the characteristic of the finite field `F` is odd.
+We prove some properties of the quadratic character.
+We work with a finite field `F` here.
+The interesting case is when the characteristic of `F` is odd.
 -/
 
 section quadratic_char
@@ -255,8 +249,10 @@ begin
 end
 
 /-- The quadratic character is a homomorphism of monoids with zero. -/
-def quadratic_char_hom : F →*₀ ℤ :=
-{ to_fun := quadratic_char F, map_zero' := quadratic_char_zero, map_one' := quadratic_char_one,
+@[simps] def quadratic_char_hom : F →*₀ ℤ :=
+{ to_fun := quadratic_char F,
+  map_zero' := quadratic_char_zero,
+  map_one' := quadratic_char_one,
   map_mul' := quadratic_char_mul }
 
 /-- The square of the quadratic character on nonzero arguments is `1`. -/
@@ -298,42 +294,38 @@ end
 
 end quadratic_char
 
+end char
+
 /-!
-### The quadratic chacter mod p
+### Quadratic characters mod 4 and 8
 
-We define the quadratic character on `zmod p` as a special case of `quadratic_char`.
-
-We also define the primitive quadratic characters `χ₄`on `zmod 4`
+We define the primitive quadratic characters `χ₄`on `zmod 4`
 and `χ₈`, `χ₈'` on `zmod 8`.
 -/
 
+namespace zmod
+
 section quad_char_mod_p
-
-/-- Define the quadratic character mod `p`, for a prime `p`. -/
-def zmod.quadratic_char (p : ℕ) [fact p.prime] : (zmod p) → ℤ := quadratic_char (zmod p)
-
-/-- The quadratic character mod `p` is a homomorphism of monoids with zero. -/
-def zmod.quadratic_char_hom (p : ℕ) [fact p.prime] : (zmod p) →*₀ ℤ :=
-@quadratic_char_hom (zmod p) _ _ _
 
 /-- Define the nontrivial quadratic character on `zmod 4`, `χ₄`.
 It corresponds to the extension `ℚ(√-1)/ℚ`. -/
-def χ₄ : (zmod 4) →*₀ ℤ :=
+
+@[simps] def χ₄ : (zmod 4) →*₀ ℤ :=
 { to_fun := (![0,1,0,-1] : (zmod 4 → ℤ)),
   map_zero' := rfl, map_one' := rfl, map_mul' := by dec_trivial }
 
 /-- Define the first primitive quadratic character on `zmod 8`, `χ₈`.
 It corresponds to the extension `ℚ(√2)/ℚ`. -/
-def χ₈ : (zmod 8) →*₀ ℤ :=
+@[simps] def χ₈ : (zmod 8) →*₀ ℤ :=
 { to_fun := (![0,1,0,-1,0,-1,0,1] : (zmod 8 → ℤ)),
   map_zero' := rfl, map_one' := rfl, map_mul' := by dec_trivial }
 
 /-- Define the second primitive quadratic character on `zmod 8`, `χ₈'`.
 It corresponds to the extension `ℚ(√-2)/ℚ`. -/
-def χ₈' : (zmod 8) →*₀ ℤ :=
+@[simps] def χ₈' : (zmod 8) →*₀ ℤ :=
 { to_fun := (![0,1,0,1,0,-1,0,-1] : (zmod 8 → ℤ)),
   map_zero' := rfl, map_one' := rfl, map_mul' := by dec_trivial }
 
 end quad_char_mod_p
 
-end char
+end zmod

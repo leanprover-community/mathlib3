@@ -342,7 +342,7 @@ lemma alg_hom_of_finite_dimensional_of_ultrafilter_functor {K L : Type*} [field 
     have h_pF_pE_res : res ∘ p_F = p_E := rfl,
     have h_maps_commute : ((f.map p_F).map res : filter (E →ₐ[K] L)) = f.map p_E,
     { rw [ultrafilter.map_map, h_pF_pE_res] },
-    have hEf  := alg_hom_of_finite_dimensional_of_ultrafilter_spec hE f,
+    have hEf := alg_hom_of_finite_dimensional_of_ultrafilter_spec hE f,
     rw [← σ_E_def, ← p_E_def] at hEf,
     have hFf := alg_hom_of_finite_dimensional_of_ultrafilter_spec hF f,
     rw [← σ_F_def, ← p_F_def] at hFf,

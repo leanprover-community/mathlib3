@@ -162,13 +162,13 @@ dvd.elim h (assume c, assume H' : a = 0 * c, eq.trans H' (zero_mul c))
 
 end semigroup_with_zero
 
-/-- Given two elements `b`, `c` of a domain and a nonzero element `a`,
+/-- Given two elements `b`, `c` of a cancellative `monoid_with_zero` and a nonzero element `a`,
  `a*b` divides `a*c` iff `b` divides `c`. -/
 theorem mul_dvd_mul_iff_left [monoid_with_zero α] [is_domain α] {a b c : α}
   (ha : a ≠ 0) : a * b ∣ a * c ↔ b ∣ c :=
 exists_congr $ λ d, by rw [mul_assoc, mul_right_inj' ha]
 
-/-- Given two elements `a`, `b` of a commutative domain and a nonzero
+/-- Given two elements `a`, `b` of a cancellative `comm_monoid_with_zero` and a nonzero
   element `c`, `a*c` divides `b*c` iff `a` divides `b`. -/
 theorem mul_dvd_mul_iff_right [comm_monoid_with_zero α] [is_domain α] {a b c : α} (hc : c ≠ 0) :
   a * c ∣ b * c ↔ a ∣ b :=

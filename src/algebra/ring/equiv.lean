@@ -494,7 +494,7 @@ variables [has_add R] [has_add S] [has_mul R] [has_mul S]
 @[simp] theorem self_trans_symm (e : R ≃+* S) : e.trans e.symm = ring_equiv.refl R := ext e.3
 @[simp] theorem symm_trans_self (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S := ext e.4
 
-/-- If two rings are isomorphic, and the second is a domain, then so is the first. -/
+/-- If two rings are isomorphic, and the second is a `no_zero_divisors`, then so is the first. -/
 protected lemma is_no_zero_divisors
   {A : Type*} (B : Type*) [ring A] [ring B] [no_zero_divisors B]
   (e : A ≃+* B) : no_zero_divisors A :=

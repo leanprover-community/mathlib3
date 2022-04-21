@@ -432,6 +432,10 @@ variable (M₀)
 
 end monoid_with_zero
 
+section is_domain
+
+set_option old_structure_cmd false
+
 /-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
 
@@ -439,8 +443,6 @@ end monoid_with_zero
   To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
 class is_domain (M₀ : Type*) [has_mul M₀] [has_zero M₀] extends nontrivial M₀ : Prop :=
 (regular_of_ne_zero : ∀ {c : M₀}, c ≠ 0 → is_regular c)
-
-section is_domain
 
 section
 
@@ -628,8 +630,7 @@ instance group_with_zero.is_domain : is_domain G₀ :=
   { left := λ a b (h : c * a = c * b),
     by rw [← inv_mul_cancel_left₀ hc a, h, inv_mul_cancel_left₀ hc b],
     right := λ a b (h : a * c = b * c),
-    by rw [← mul_inv_cancel_right₀ hc a, h, mul_inv_cancel_right₀ hc b] },
-  .. (infer_instance : nontrivial G₀) }
+    by rw [← mul_inv_cancel_right₀ hc a, h, mul_inv_cancel_right₀ hc b] } }
 
 @[priority 100]
 instance group_with_zero.to_has_involutive_inv : has_involutive_inv G₀ :=

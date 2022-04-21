@@ -329,8 +329,8 @@ lemma alg_hom_of_finite_dimensional_of_ultrafilter_functor {K L : Type*} [field 
   (hEF : E ≤ F) : alg_hom_of_finite_dimensional_of_ultrafilter hE f =
   (alg_hom_of_finite_dimensional_of_ultrafilter hF f).comp (subalgebra.inclusion hEF) :=
   begin
-    set p_E :=  (λ σ : L ≃ₐ[K] L, σ.to_alg_hom.comp (intermediate_field.val E)) with p_E_def,
-    set p_F :=  (λ σ : L ≃ₐ[K] L, σ.to_alg_hom.comp (intermediate_field.val F)) with p_F_def,
+    set p_E := (λ σ : L ≃ₐ[K] L, σ.to_alg_hom.comp (intermediate_field.val E)) with p_E_def,
+    set p_F := (λ σ : L ≃ₐ[K] L, σ.to_alg_hom.comp (intermediate_field.val F)) with p_F_def,
     set σ_E := alg_hom_of_finite_dimensional_of_ultrafilter hE f with σ_E_def,
     set σ_F := alg_hom_of_finite_dimensional_of_ultrafilter hF f with σ_F_def,
     have hσ_E := alg_hom_of_finite_dimensional_of_ultrafilter_spec hE f,

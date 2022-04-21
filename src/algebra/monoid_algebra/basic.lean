@@ -1325,7 +1325,7 @@ direction. -/
 { to_fun := λ f, { to_fun := λ a, sum a (λ m t, t • f (multiplicative.of_add m)),
                    .. (monoid_algebra.lift_magma k f : _)},
   inv_fun := λ F, F.to_mul_hom.comp (of_magma k G),
-  .. (monoid_algebra.lift_magma k : (multiplicative G →ₙ* A) ≃ (_ →ₙₐ[k] A))) }
+  .. (monoid_algebra.lift_magma k : (multiplicative G →ₙ* A) ≃ (_ →ₙₐ[k] A)) }
 
 end non_unital_non_assoc_algebra
 

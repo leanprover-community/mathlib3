@@ -10,8 +10,8 @@ import data.set_like.basic
 /-!
 # Subsemigroups: definition and `complete_lattice` structure
 
-This file defines bundled multiplicative and additive subsemigrousp. We also define
-a `complete_lattice` structure on `subsemigroups`s,
+This file defines bundled multiplicative and additive subsemigroups. We also define
+a `complete_lattice` structure on `subsemigroup`s,
 and define the closure of a set as the minimal subsemigroup that includes this set.
 
 ## Main definitions

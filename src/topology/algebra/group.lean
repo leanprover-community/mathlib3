@@ -935,26 +935,21 @@ lemma topological_group.regular_space [t1_space G] : regular_space G :=
    contradiction
  end⟩
 
-local attribute [instance] topological_group.regular_space
-
 @[to_additive]
-lemma topological_group.t2_space [t1_space G] : t2_space G := regular_space.t2_space G
+lemma topological_group.t2_space [t1_space G] : t2_space G :=
+@regular_space.t2_space G _ (topological_group.regular_space G)
 
 variables {G} (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)]
 
 @[to_additive]
-instance subgroup.t1_quotient_of_is_closed :
-  t1_space (G ⧸ S) :=
+instance subgroup.regular_quotient_of_is_closed
+  (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)] : regular_space (G ⧸ S) :=
 begin
+  suffices : t1_space (G ⧸ S), { exact @topological_group.regular_space _ _ _ _ this, },
   have hS : is_closed (S : set G) := infer_instance,
   rw ← quotient_group.ker_mk S at hS,
-  exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS)
+  exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS),
 end
-
-@[to_additive]
-instance subgroup.regular_quotient_of_is_closed :
-  regular_space (G ⧸ S) :=
-infer_instance
 
 end
 

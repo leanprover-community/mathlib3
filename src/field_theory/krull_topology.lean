@@ -366,9 +366,9 @@ noncomputable def function_of_ultrafilter {K L : Type*} [field K] [field L] [alg
 
 
 lemma function_of_ultrafilter_spec {K L : Type*} [field K] [field L] [algebra K L]
-(h_int : algebra.is_integral K L) (f : ultrafilter (L ≃ₐ[K] L)) {E : intermediate_field K L}
-(hE : finite_dimensional K E) (x : E) :
-(function_of_ultrafilter h_int f) x = (alg_hom_of_finite_dimensional_of_ultrafilter hE f) x :=
+  (h_int : algebra.is_integral K L) (f : ultrafilter (L ≃ₐ[K] L)) {E : intermediate_field K L}
+  (hE : finite_dimensional K E) (x : E) :
+  (function_of_ultrafilter h_int f) x = (alg_hom_of_finite_dimensional_of_ultrafilter hE f) x :=
 begin
    have h_le : intermediate_field.adjoin K {(x : L)} ≤ E,
    { apply intermediate_field.gc.l_le,

@@ -702,6 +702,7 @@ by simp only [coe_algebra_map, map_domain_single, map_one]
 
 /--  A multiplicative homomorphism `f : G →* H` between two monoids induces a `k`-algebra
 homomorphism `map_domain_alg_hom k A f : monoid_algebra k G →ₐ[k] monoid_algebra k H`. -/
+@[simps]
 def map_domain_alg_hom (k A : Type*) [comm_semiring k] [semiring A] [algebra k A] {H F : Type*}
   [monoid H] [monoid_hom_class F G H] (f : F) :
   monoid_algebra A G →ₐ[k] monoid_algebra A H :=

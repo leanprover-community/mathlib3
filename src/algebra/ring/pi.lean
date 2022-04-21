@@ -100,7 +100,7 @@ section ring_hom
 universes u v
 variable {I : Type u}
 
-/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
+/-- Evaluation of functions into an indexed collection of rings at a point is a ring
 homomorphism. This is `function.eval` as a `ring_hom`. -/
 @[simps]
 def pi.eval_ring_hom (f : I → Type v) [Π i, non_assoc_semiring (f i)] (i : I) :

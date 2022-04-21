@@ -649,10 +649,12 @@ variable [comm_ring R]
 
 /-- Multivariate formal power series over a local ring form a local ring. -/
 instance [local_ring R] : local_ring (mv_power_series σ R) :=
-{ is_local := by { intro φ, rcases local_ring.is_local (constant_coeff σ R φ) with ⟨u,h⟩|⟨u,h⟩;
+local_ring.of_is_unit_or_is_unit_one_sub_self $ by
+{ intro φ,
+  rcases local_ring.is_unit_or_is_unit_one_sub_self (constant_coeff σ R φ) with ⟨u,h⟩|⟨u,h⟩;
     [left, right];
     { refine is_unit_of_mul_eq_one _ _ (mul_inv_of_unit _ u _),
-      simpa using h.symm } } }
+      simpa using h.symm } }
 
 -- TODO(jmc): once adic topology lands, show that this is complete
 

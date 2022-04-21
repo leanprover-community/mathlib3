@@ -3,12 +3,12 @@ Copyright (c) 2021 Aaron Anderson, Jesse Michael Han, Floris van Doorn. All righ
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
-import data.fin.vec_notation
+import category_theory.concrete_category.bundled
 import data.fin.tuple.basic
+import data.fin.vec_notation
 import logic.encodable.basic
 import logic.small
-import set_theory.cardinal
-import category_theory.concrete_category.bundled
+import set_theory.cardinal.basic
 
 
 /-!
@@ -173,7 +173,7 @@ instance countable_empty : language.empty.countable :=
 ⟨begin
   rw [card_eq_card_functions_add_card_relations, add_le_omega, lift_le_omega, lift_le_omega,
     ← cardinal.encodable_iff, ← cardinal.encodable_iff],
-  exact ⟨⟨encodable.sigma⟩, ⟨encodable.sigma⟩⟩,
+  exact ⟨⟨sigma.encodable⟩, ⟨sigma.encodable⟩⟩,
 end⟩
 
 @[priority 100] instance countable.countable_functions [L.countable] :

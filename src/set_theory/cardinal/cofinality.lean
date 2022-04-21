@@ -3,11 +3,12 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
-import set_theory.cardinal_ordinal
+import set_theory.cardinal.ordinal
+
 /-!
 # Cofinality
 
-This file contains the definition of cofinality of a ordinal number and regular cardinals
+This file contains the definition of cofinality of an ordinal number and regular cardinals
 
 ## Main Definitions
 

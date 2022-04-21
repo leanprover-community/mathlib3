@@ -695,8 +695,8 @@ lemma lift_unique (F : monoid_algebra k G →ₐ[k] A) (f : monoid_algebra k G) 
 by conv_lhs { rw lift_unique' F, simp [lift_apply] }
 
 /--  A multiplicative homomorphism `f : G →* H` between two monoids induces a `k`-algebra
-homomorphism `monoid_alg_hom_map k A f : monoid_algebra k G →ₐ[k] monoid_algebra k H`. -/
-def monoid_alg_hom_map (k A : Type*) [comm_semiring k] [semiring A] [algebra k A] {H : Type*}
+homomorphism `map_domain_alg_hom k A f : monoid_algebra k G →ₐ[k] monoid_algebra k H`. -/
+def map_domain_alg_hom (k A : Type*) [comm_semiring k] [semiring A] [algebra k A] {H : Type*}
   [monoid H] (f : G →* H) :
   monoid_algebra A G →ₐ[k] monoid_algebra A H :=
 lift_nc_alg_hom single_one_alg_hom ((of A H).comp f) $

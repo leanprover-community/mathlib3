@@ -551,4 +551,37 @@ protected lemma mk'_eq_mk (x : α) : quotient.mk' x = ⟦x⟧ := rfl
 
 end
 
+instance (f : α → Prop) (h : ∀ a b, @setoid.r α s₁ a  b → f a = f b) [hf : decidable_pred f]
+ (q : quotient s₁) :
+  decidable_pred (quotient.lift f h) :=
+λ q, quotient.rec_on_subsingleton' q hf
+
+instance (f : α → β → Prop)
+  (h : ∀ a₁ a₂ b₁ b₂, @setoid.r α s₁ a₁ b₁ → @setoid.r β s₂ a₂ b₂ → f a₁ a₂ = f b₁ b₂)
+  [hf : Π a, decidable_pred (f a)] (q₁ : quotient s₁) :
+  decidable_pred (quotient.lift₂ f h q₁) :=
+λ q₂, quotient.rec_on_subsingleton₂' q₁ q₂ hf
+
+instance (q : quotient s₁) (f : α → Prop) (h : ∀ a b, @setoid.r α s₁ a  b → f a = f b)
+  [hf : decidable_pred f] :
+  decidable (quotient.lift_on q f h) :=
+quotient.lift.decidable_pred _ _ q _
+
+instance (q₁ : quotient s₁) (q₂ : quotient s₂) (f : α → β → Prop)
+  (h : ∀ a₁ a₂ b₁ b₂, @setoid.r α s₁ a₁ b₁ → @setoid.r β s₂ a₂ b₂ → f a₁ a₂ = f b₁ b₂)
+  [hf : Π a, decidable_pred (f a)] :
+  decidable (quotient.lift_on₂ q₁ q₂ f h) :=
+quotient.lift₂.decidable_pred _ _ _ _
+
+instance (q : quotient s₁) (f : α → Prop) (h : ∀ a b, @setoid.r α s₁ a  b → f a = f b)
+  [hf : decidable_pred f] :
+  decidable (quotient.lift_on' q f h) :=
+quotient.lift.decidable_pred _ _ q _
+
+instance (q₁ : quotient s₁) (q₂ : quotient s₂) (f : α → β → Prop)
+  (h : ∀ a₁ a₂ b₁ b₂, @setoid.r α s₁ a₁ b₁ → @setoid.r β s₂ a₂ b₂ → f a₁ a₂ = f b₁ b₂)
+  [hf : Π a, decidable_pred (f a)] :
+  decidable (quotient.lift_on₂' q₁ q₂ f h) :=
+quotient.lift₂.decidable_pred _ _ _ _
+
 end quotient

@@ -183,29 +183,24 @@ by rw [← cast_zero, cast_lt]
 
 section linear_ordered_ring
 
-variables [linear_ordered_ring α]
+variables [linear_ordered_ring α] {a b : ℤ} (n : ℤ)
 
-@[simp, norm_cast] theorem cast_min {a b : ℤ} :
-  (↑(min a b) : α) = min a b :=
+@[simp, norm_cast] theorem cast_min : (↑(min a b) : α) = min a b :=
 monotone.map_min cast_mono
 
-@[simp, norm_cast] theorem cast_max {a b : ℤ} :
-  (↑(max a b) : α) = max a b :=
+@[simp, norm_cast] theorem cast_max : (↑(max a b) : α) = max a b :=
 monotone.map_max cast_mono
 
-@[simp, norm_cast] theorem cast_abs {q : ℤ} :
-  ((|q| : ℤ) : α) = |q| :=
+@[simp, norm_cast] theorem cast_abs : ((|a| : ℤ) : α) = |a| :=
 by simp [abs_eq_max_neg]
 
-lemma cast_one_le_of_pos {n : ℤ} (hn : 0 < n) :
-  (1 : α) ≤ n :=
-by exact_mod_cast int.add_one_le_of_lt hn
+lemma cast_one_le_of_pos (h : 0 < a) : (1 : α) ≤ a :=
+by exact_mod_cast int.add_one_le_of_lt h
 
-lemma cast_le_neg_one_of_neg {n : ℤ} (hn : n < 0) :
-  (n : α) ≤ -1 :=
-by exact_mod_cast int.le_sub_one_of_lt hn
+lemma cast_le_neg_one_of_neg (h : a < 0) : (a : α) ≤ -1 :=
+by exact_mod_cast int.le_sub_one_of_lt h
 
-lemma nneg_mul_add_sq_of_abs_le_one (n : ℤ) (x : α) (hx : |x| ≤ 1) :
+lemma nneg_mul_add_sq_of_abs_le_one {x : α} (hx : |x| ≤ 1) :
   (0 : α) ≤ n * x + n * n :=
 begin
   have hnx : 0 < n → 0 ≤ x + n := λ hn, by
@@ -221,10 +216,12 @@ begin
   { exact or.inl ⟨by exact_mod_cast h.le, hnx h⟩, },
 end
 
-lemma cast_nat_abs : ∀ (n : ℤ), (n.nat_abs : α) = |n|
-| (n : ℕ) := by simp only [int.nat_abs_of_nat, int.cast_coe_nat, nat.abs_cast]
-| -[1+n]  := by simp only [int.nat_abs, int.cast_neg_succ_of_nat, abs_neg,
-                           ← nat.cast_succ, nat.abs_cast]
+lemma cast_nat_abs : (n.nat_abs : α) = |n| :=
+begin
+  cases n,
+  { simp, },
+  { simp only [int.nat_abs, int.cast_neg_succ_of_nat, abs_neg, ← nat.cast_succ, nat.abs_cast], },
+end
 
 end linear_ordered_ring
 

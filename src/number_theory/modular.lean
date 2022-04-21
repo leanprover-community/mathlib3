@@ -19,12 +19,13 @@ moved inside `𝒟`.
 
 ## Main definitions
 
-The standard (closed) fundamental domain of the action of `SL(2,ℤ)` on `ℍ`:
+The standard (closed) fundamental domain of the action of `SL(2,ℤ)` on `ℍ`, denoted `𝒟`:
 `fundamental_domain := {z | 1 ≤ (z : ℂ).norm_sq ∧ |z.re| ≤ (1 : ℝ) / 2}`
 
-The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ`:
+The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ`, denoted `𝒟ᵒ`:
 `fundamental_domain_open := {z | 1 < (z : ℂ).norm_sq ∧ |z.re| < (1 : ℝ) / 2}`
 
+These notations are localized in the `modular` locale and can be enabled via `open_locale modular`.
 
 ## Main results
 
@@ -75,6 +76,8 @@ local attribute [instance] fintype.card_fin_even
 
 namespace modular_group
 
+variables (g : SL(2, ℤ)) (z : ℍ)
+
 section upper_half_plane_action
 
 /-- For a subring `R` of `ℝ`, the action of `SL(2, R)` on the upper half-plane, as a restriction of
@@ -82,22 +85,26 @@ the `SL(2, ℝ)`-action defined by `upper_half_plane.mul_action`. -/
 instance {R : Type*} [comm_ring R] [algebra R ℝ] : mul_action SL(2, R) ℍ :=
 mul_action.comp_hom ℍ (map (algebra_map R ℝ))
 
-lemma coe_smul (g : SL(2, ℤ)) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
-lemma re_smul (g : SL(2, ℤ)) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
-@[simp] lemma smul_coe (g : SL(2, ℤ)) (z : ℍ) : (g : SL(2,ℝ)) • z = g • z := rfl
+lemma coe_smul : ↑(g • z) = num g z / denom g z := rfl
 
-@[simp] lemma neg_smul (g : SL(2, ℤ)) (z : ℍ) : -g • z = g • z :=
+lemma re_smul : (g • z).re = (num g z / denom g z).re := rfl
+
+@[simp] lemma smul_coe : (g : SL(2,ℝ)) • z = g • z := rfl
+
+@[simp] lemma neg_smul : -g • z = g • z :=
 show ↑(-g) • _ = _, by simp [neg_smul g z]
 
-lemma im_smul (g : SL(2, ℤ)) (z : ℍ) : (g • z).im = (num g z / denom g z).im := rfl
+lemma im_smul : (g • z).im = (num g z / denom g z).im := rfl
 
-lemma im_smul_eq_div_norm_sq (g : SL(2, ℤ)) (z : ℍ) :
+lemma im_smul_eq_div_norm_sq :
   (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
 im_smul_eq_div_norm_sq g z
 
-@[simp] lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 := by simp
+@[simp] lemma denom_apply : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 := by simp
 
 end upper_half_plane_action
+
+variables {g}
 
 section bottom_row
 
@@ -135,7 +142,7 @@ local attribute [simp] coe_smul
 
 /-- The function `(c,d) → |cz+d|^2` is proper, that is, preimages of bounded-above sets are finite.
 -/
-lemma tendsto_norm_sq_coprime_pair (z : ℍ) :
+lemma tendsto_norm_sq_coprime_pair :
   filter.tendsto (λ p : fin 2 → ℤ, ((p 0 : ℂ) * z + p 1).norm_sq)
   cofinite at_top :=
 begin
@@ -193,10 +200,6 @@ def lc_row0 (p : fin 2 → ℤ) : (matrix (fin 2) (fin 2) ℝ) →ₗ[ℝ] ℝ :
 @[simp] lemma lc_row0_apply (p : fin 2 → ℤ) (g : matrix (fin 2) (fin 2) ℝ) :
   lc_row0 p g = p 0 * g 0 0 + p 1 * g 0 1 :=
 rfl
-
-lemma lc_row0_apply' (a b : ℝ) (c d : ℤ) (v : fin 2 → ℝ) :
-  lc_row0 ![c, d] ![![a, b], v] = c * a + d * b :=
-by simp
 
 /-- Linear map sending the matrix [a, b; c, d] to the matrix [ac₀ + bd₀, - ad₀ + bc₀; c, d], for
 some fixed `(c₀, d₀)`. -/
@@ -259,8 +262,7 @@ end
   `g • z = (a c + b d) / (c^2 + d^2) + (d z - c) / ((c^2 + d^2) (c z + d))`
 
   which does not need to be decomposed depending on whether `c = 0`. -/
-lemma smul_eq_lc_row0_add {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) (z : ℍ) {g : SL(2,ℤ)}
-  (hg : ↑ₘg 1 = p) :
+lemma smul_eq_lc_row0_add {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) (hg : ↑ₘg 1 = p) :
   ↑(g • z) = ((lc_row0 p ↑(g : SL(2, ℝ))) : ℂ) / (p 0 ^ 2 + p 1 ^ 2)
     + ((p 1 : ℂ) * z - p 0) / ((p 0 ^ 2 + p 1 ^ 2) * (p 0 * z + p 1)) :=
 begin
@@ -275,7 +277,7 @@ begin
   ring,
 end
 
-lemma tendsto_abs_re_smul (z:ℍ) {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) :
+lemma tendsto_abs_re_smul {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) :
   tendsto (λ g : {g : SL(2, ℤ) // ↑ₘg 1 = p}, |((g : SL(2, ℤ)) • z).re|)
     cofinite at_top :=
 begin
@@ -291,7 +293,7 @@ begin
   ext g,
   change ((g : SL(2, ℤ)) • z).re = (lc_row0 p ↑(↑g : SL(2, ℝ))) / (p 0 ^ 2 + p 1 ^ 2)
   + (((p 1:ℂ )* z - p 0) / ((p 0 ^ 2 + p 1 ^ 2) * (p 0 * z + p 1))).re,
-  exact_mod_cast (congr_arg complex.re (smul_eq_lc_row0_add hp z g.2))
+  exact_mod_cast (congr_arg complex.re (smul_eq_lc_row0_add z hp g.2))
 end
 
 end tendsto_lemmas
@@ -301,7 +303,7 @@ section fundamental_domain
 local attribute [simp] coe_smul re_smul
 
 /-- For `z : ℍ`, there is a `g : SL(2,ℤ)` maximizing `(g•z).im` -/
-lemma exists_max_im (z : ℍ) :
+lemma exists_max_im :
   ∃ g : SL(2, ℤ), ∀ g' : SL(2, ℤ), (g' • z).im ≤ (g • z).im :=
 begin
   classical,
@@ -320,7 +322,7 @@ end
 
 /-- Given `z : ℍ` and a bottom row `(c,d)`, among the `g : SL(2,ℤ)` with this bottom row, minimize
   `|(g•z).re|`.  -/
-lemma exists_row_one_eq_and_min_re (z:ℍ) {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
+lemma exists_row_one_eq_and_min_re {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
   ∃ g : SL(2,ℤ), ↑ₘg 1 = cd ∧ (∀ g' : SL(2,ℤ), ↑ₘg 1 = ↑ₘg' 1 →
   |(g • z).re| ≤ |(g' • z).re|) :=
 begin
@@ -360,11 +362,13 @@ begin
     simp [matrix.mul_apply, fin.sum_univ_succ, neg_add_eq_sub (1 : ℤ)], },
 end
 
-@[simp] lemma coe_T_zpow_smul_eq {z : ℍ} {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
+variables {z}
+
+@[simp] lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
 by simp [coe_T_zpow]
 
-/-- If instead we had `g` and `T` of type `PSL(2, ℤ)`, then we could simply state `g = T^n`. -/
-lemma exists_eq_T_zpow_of_c_eq_zero {g : SL(2, ℤ)} (hc : ↑ₘg 1 0 = 0) :
+-- If instead we had `g` and `T` of type `PSL(2, ℤ)`, then we could simply state `g = T^n`.
+lemma exists_eq_T_zpow_of_c_eq_zero (hc : ↑ₘg 1 0 = 0) :
   ∃ (n : ℤ), ∀ (z : ℍ), g • z = T^n • z :=
 begin
   have had := g.det_coe,
@@ -381,7 +385,7 @@ begin
 end
 
 /- If `c = 1`, then `g` factorises into a product terms involving only `T` and `S`. -/
-lemma g_eq_of_c_eq_one {g : SL(2,ℤ)} (hc : ↑ₘg 1 0 = 1) :
+lemma g_eq_of_c_eq_one (hc : ↑ₘg 1 0 = 1) :
   g = T^(↑ₘg 0 0) * S * T^(↑ₘg 1 1) :=
 begin
   have hg := g.det_coe.symm,
@@ -390,12 +394,12 @@ begin
   simp [coe_S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ, hg, hc],
 end
 
-/-- If `1 < |z|`, then `|S•z| < 1` -/
-lemma norm_sq_S_smul_lt_one {z : ℍ} (h: 1 < norm_sq z) : norm_sq ↑(S • z) < 1 :=
+/-- If `1 < |z|`, then `|S • z| < 1`. -/
+lemma norm_sq_S_smul_lt_one (h: 1 < norm_sq z) : norm_sq ↑(S • z) < 1 :=
 by simpa [coe_S] using (inv_lt_inv z.norm_sq_pos zero_lt_one).mpr h
 
-/-- If `|z| < 1`, then applying `S` strictly decreases `im` -/
-lemma im_lt_im_S_smul {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=
+/-- If `|z| < 1`, then applying `S` strictly decreases `im`. -/
+lemma im_lt_im_S_smul (h: norm_sq z < 1) : z.im < (S • z).im :=
 begin
   have : z.im < z.im / norm_sq (z:ℂ),
   { have imz : 0 < z.im := im_pos z,
@@ -406,25 +410,25 @@ begin
   field_simp [norm_sq_denom_ne_zero, norm_sq_ne_zero, S]
 end
 
-/-- The standard (closed) fundamental domain of the action of `SL(2,ℤ)` on `ℍ` -/
+/-- The standard (closed) fundamental domain of the action of `SL(2,ℤ)` on `ℍ`. -/
 def fundamental_domain : set ℍ :=
 {z | 1 ≤ (z : ℂ).norm_sq ∧ |z.re| ≤ (1 : ℝ) / 2}
 
-/-- The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ` -/
+/-- The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ`. -/
 def fundamental_domain_open : set ℍ :=
 {z | 1 < (z : ℂ).norm_sq ∧ |z.re| < (1 : ℝ) / 2}
 
-localized "notation `𝒟` := fundamental_domain" in modular
+localized "notation `𝒟` := modular_group.fundamental_domain" in modular
 
-localized "notation `𝒟ᵒ` := fundamental_domain_open" in modular
+localized "notation `𝒟ᵒ` := modular_group.fundamental_domain_open" in modular
 
-lemma abs_two_mul_re_lt_one_of_mem_fdo {z : ℍ} (h : z ∈ 𝒟ᵒ) : |2 * z.re| < 1 :=
+lemma abs_two_mul_re_lt_one_of_mem_fdo (h : z ∈ 𝒟ᵒ) : |2 * z.re| < 1 :=
 begin
   rw [abs_mul, abs_two, ← lt_div_iff' (@two_pos ℝ _ _)],
   exact h.2,
 end
 
-lemma three_lt_four_mul_im_sq_of_mem_fdo {z : ℍ} (h : z ∈ 𝒟ᵒ) : 3 < 4 * z.im^2 :=
+lemma three_lt_four_mul_im_sq_of_mem_fdo (h : z ∈ 𝒟ᵒ) : 3 < 4 * z.im^2 :=
 begin
   have : 1 < z.re * z.re + z.im * z.im := by simpa [complex.norm_sq_apply] using h.1,
   have := h.2,
@@ -432,17 +436,16 @@ begin
   nlinarith,
 end
 
-/-- If `z∈𝒟ᵒ`, and `n:ℤ`, then `|z+n|>1`. -/
-lemma one_lt_norm_sq_T_zpow_smul {z : ℍ} (hz : z ∈ 𝒟ᵒ) (n : ℤ) : 1 < norm_sq (((T^n) • z) : ℍ) :=
+/-- If `z ∈ 𝒟ᵒ`, and `n : ℤ`, then `|z + n| > 1`. -/
+lemma one_lt_norm_sq_T_zpow_smul (hz : z ∈ 𝒟ᵒ) (n : ℤ) : 1 < norm_sq (((T^n) • z) : ℍ) :=
 begin
   have hz₁ : 1 < z.re * z.re + z.im * z.im := hz.1,
-  have hzn := int.nneg_mul_add_sq_of_abs_le_one n _ (abs_two_mul_re_lt_one_of_mem_fdo hz).le,
+  have hzn := int.nneg_mul_add_sq_of_abs_le_one n (abs_two_mul_re_lt_one_of_mem_fdo hz).le,
   have : 1 < (z.re + ↑n) * (z.re + ↑n) + z.im * z.im, { linarith, },
   simpa [coe_T_zpow, norm_sq],
 end
 
-lemma eq_zero_of_mem_fdo_of_T_zpow_mem_fdo {z : ℍ} {n : ℤ} (hz : z ∈ 𝒟ᵒ) (hg : (T^n) • z ∈ 𝒟ᵒ) :
-  n = 0 :=
+lemma eq_zero_of_mem_fdo_of_T_zpow_mem_fdo {n : ℤ} (hz : z ∈ 𝒟ᵒ) (hg : (T^n) • z ∈ 𝒟ᵒ) : n = 0 :=
 begin
   suffices : |(n : ℝ)| < 1,
   { rwa [← int.cast_abs, ← int.cast_one, int.cast_lt, int.abs_lt_one_iff] at this, },
@@ -494,7 +497,7 @@ end
 
 section unique_representative
 
-variables {z : ℍ} {g : SL(2,ℤ)}
+variables {z}
 
 /-- An auxiliary result en route to `modular_group.c_eq_zero`. -/
 lemma abs_c_le_one (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : |↑ₘg 1 0| ≤ 1 :=
@@ -525,7 +528,7 @@ begin
            ... ≤ 16 : by { rw ← mul_pow, linarith, },
 end
 
-/-- An auxiliary result en route to `modular_group.eq_smul_self_of_mem_fdo_mem_fdo` -/
+/-- An auxiliary result en route to `modular_group.eq_smul_self_of_mem_fdo_mem_fdo`. -/
 lemma c_eq_zero (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : ↑ₘg 1 0 = 0 :=
 begin
   have hp : ∀ {g' : SL(2, ℤ)} (hg' : g' • z ∈ 𝒟ᵒ), ↑ₘg' 1 0 ≠ 1,

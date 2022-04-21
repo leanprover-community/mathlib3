@@ -6,6 +6,7 @@ Authors: Yakov Pechersky
 import data.string.basic
 import data.buffer.basic
 import data.nat.digits
+import data.buffer.parser
 
 /-!
 # Parsers

@@ -104,6 +104,14 @@ right_comm has_mul.mul mul_comm mul_assoc
 theorem mul_mul_mul_comm (a b c d : G) : (a * b) * (c * d) = (a * c) * (b * d) :=
 by simp only [mul_left_comm, mul_assoc]
 
+@[to_additive]
+lemma mul_rotate (a b c : G) : a * b * c = b * c * a :=
+by simp only [mul_left_comm, mul_comm]
+
+@[to_additive]
+lemma mul_rotate' (a b c : G) : a * (b * c) = b * (c * a) :=
+by simp only [mul_left_comm, mul_comm]
+
 end comm_semigroup
 
 local attribute [simp] mul_assoc sub_eq_add_neg
@@ -185,7 +193,7 @@ section div_inv_monoid
 
 variables {G : Type u} [div_inv_monoid G]
 
-@[to_additive]
+@[to_additive, field_simps] -- The attributes are out of order on purpose
 lemma inv_eq_one_div (x : G) :
   x⁻¹ = 1 / x :=
 by rw [div_eq_mul_inv, one_mul]
@@ -199,12 +207,16 @@ by rw [div_eq_mul_inv, one_mul, div_eq_mul_inv]
 lemma mul_div_assoc (a b c : G) : a * b / c = a * (b / c) :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_assoc _ _ _]
 
-@[to_additive]
+@[to_additive, field_simps] -- The attributes are out of order on purpose
 lemma mul_div_assoc' (a b c : G) : a * (b / c) = (a * b) / c :=
 (mul_div_assoc _ _ _).symm
 
 @[simp, to_additive] lemma one_div (a : G) : 1 / a = a⁻¹ :=
 (inv_eq_one_div a).symm
+
+@[to_additive]
+lemma mul_div (a b c : G) : a * (b / c) = a * b / c :=
+by simp only [mul_assoc, div_eq_mul_inv]
 
 end div_inv_monoid
 
@@ -220,7 +232,7 @@ lemma one_inv : 1⁻¹ = (1 : G) :=
 inv_eq_of_mul_eq_one (one_mul 1)
 
 @[to_additive]
-theorem left_inverse_inv (G) [group G] :
+theorem left_inverse_inv (G) [has_involutive_inv G] :
   function.left_inverse (λ a : G, a⁻¹) (λ a, a⁻¹) :=
 inv_inv
 
@@ -366,12 +378,6 @@ mt eq_of_div_eq_one' h
 lemma div_inv_eq_mul (a b : G) : a / (b⁻¹) = a * b :=
 by rw [div_eq_mul_inv, inv_inv]
 
-local attribute [simp] mul_assoc
-
-@[to_additive]
-lemma mul_div (a b c : G) : a * (b / c) = a * b / c :=
-by simp only [mul_assoc, div_eq_mul_inv]
-
 @[to_additive]
 lemma div_mul_eq_div_div_swap (a b c : G) : a / (b * c) = a / c / b :=
 by simp only [mul_assoc, mul_inv_rev , div_eq_mul_inv]
@@ -467,10 +473,23 @@ theorem left_inverse_inv_mul_mul_right (c : G) :
   function.left_inverse (λ x, c⁻¹ * x) (λ x, c * x) :=
 assume x, inv_mul_cancel_left c x
 
+@[to_additive]
+lemma exists_npow_eq_one_of_zpow_eq_one {n : ℤ} (hn : n ≠ 0) {x : G} (h : x ^ n = 1) :
+  ∃ n : ℕ, 0 < n ∧ x ^ n = 1 :=
+begin
+  cases n with n n,
+  { rw zpow_of_nat at h,
+    refine ⟨n, nat.pos_of_ne_zero (λ n0, hn _), h⟩, rw n0, refl },
+  { rw [zpow_neg_succ_of_nat, inv_eq_one] at h,
+    refine ⟨n + 1, n.succ_pos, h⟩ }
+end
+
 end group
 
 section comm_group
-variables {G : Type u} [comm_group G]
+variables {G : Type u} [comm_group G] {a b c d : G}
+
+local attribute [simp] mul_assoc mul_comm mul_left_comm div_eq_mul_inv
 
 @[to_additive neg_add]
 lemma mul_inv (a b : G) : (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
@@ -481,13 +500,15 @@ lemma div_eq_of_eq_mul' {a b c : G} (h : a = b * c) : a / b = c :=
 by rw [h, div_eq_mul_inv, mul_comm, inv_mul_cancel_left]
 
 @[to_additive]
+lemma mul_div_left_comm {x y z : G} : x * (y / z) = y * (x / z) :=
+by simp_rw [div_eq_mul_inv, mul_left_comm]
+
+@[to_additive]
 lemma div_mul_div_comm (a b c d : G) : a / b * (c / d) = a * c / (b * d) :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_assoc,
-  mul_left_cancel_iff, mul_comm, mul_assoc]
+by simp
 
-variables {a b c d : G}
-
-local attribute [simp] mul_assoc mul_comm mul_left_comm div_eq_mul_inv
+@[to_additive]
+lemma div_div_div_comm (a b c d : G) : (a / b) / (c / d) = (a / c) / (b / d) := by simp
 
 @[to_additive]
 lemma div_mul_eq_div_div (a b c : G) : a / (b * c) = a / b / c :=

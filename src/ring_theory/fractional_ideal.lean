@@ -768,25 +768,22 @@ begin
 end
 
 @[simp] lemma map_eq_zero_iff [nontrivial R] : I.map h = 0 ↔ I = 0 :=
-⟨imp_of_not_imp_not _ _ (map_ne_zero _),
- λ hI, hI.symm ▸ map_zero h⟩
+⟨imp_of_not_imp_not _ _ (map_ne_zero _), λ hI, hI.symm ▸ map_zero h⟩
 
-lemma coe_ideal_injective :
-  function.injective (coe : ideal R → fractional_ideal R⁰ K) :=
+lemma coe_ideal_injective : function.injective (coe : ideal R → fractional_ideal R⁰ K) :=
 injective_of_le_imp_le _ (λ _ _, (coe_ideal_le_coe_ideal _).mp)
 
-@[simp]
-lemma coe_ideal_eq_zero_iff
-  {I : ideal R} : (I : fractional_ideal R⁰ K) = 0 ↔ I = ⊥ :=
-by { rw ← coe_to_fractional_ideal_bot, exact coe_ideal_injective.eq_iff }
+@[simp] lemma coe_ideal_eq_zero_iff {I : ideal R} : (I : fractional_ideal R⁰ K) = 0 ↔ I = ⊥ :=
+coe_ideal_injective.eq_iff
 
-lemma coe_ideal_ne_zero_iff
-  {I : ideal R} : (I : fractional_ideal R⁰ K) ≠ 0 ↔ I ≠ ⊥ :=
+lemma coe_ideal_ne_zero_iff {I : ideal R} : (I : fractional_ideal R⁰ K) ≠ 0 ↔ I ≠ ⊥ :=
 not_iff_not.mpr coe_ideal_eq_zero_iff
 
-lemma coe_ideal_ne_zero
-  {I : ideal R} (hI : I ≠ ⊥) : (I : fractional_ideal R⁰ K) ≠ 0 :=
+lemma coe_ideal_ne_zero {I : ideal R} (hI : I ≠ ⊥) : (I : fractional_ideal R⁰ K) ≠ 0 :=
 coe_ideal_ne_zero_iff.mpr hI
+
+@[simp] lemma coe_ideal_eq_one_iff {I : ideal R} : (I : fractional_ideal R⁰ K) = 1 ↔ I = 1 :=
+by simpa only [ideal.one_eq_top] using coe_ideal_injective.eq_iff
 
 end is_fraction_ring
 
@@ -834,7 +831,7 @@ lemma _root_.is_fractional.div_of_nonzero {I J : submodule R₁ K} :
     have : algebra_map R₁ K aJ * y = 0,
     { rw [← algebra.smul_def, ←hy', y'_eq_zero, ring_hom.map_zero] },
     have y_zero := (mul_eq_zero.mp this).resolve_left
-      (mt ((algebra_map R₁ K).injective_iff.1 (is_fraction_ring.injective _ _) _)
+      (mt ((injective_iff_map_eq_zero (algebra_map R₁ K)).1 (is_fraction_ring.injective _ _) _)
           (mem_non_zero_divisors_iff_ne_zero.mp haJ)),
     apply not_mem_zero,
     simpa only using (mem_zero_iff R₁⁰).mpr y_zero, },
@@ -981,7 +978,7 @@ end
 
 lemma eq_zero_or_one_of_is_field (hF : is_field R₁) (I : fractional_ideal R₁⁰ K) : I = 0 ∨ I = 1 :=
 begin
-  letI : field R₁ := hF.to_field R₁,
+  letI : field R₁ := hF.to_field,
   -- TODO can this be less ugly?
   exact @eq_zero_or_one R₁ K _ _ _ (by { unfreezingI {cases _inst_4}, convert _inst_9 }) I
 end
@@ -1310,7 +1307,8 @@ begin
   { rw [hx, ring_hom.map_zero, _root_.inv_zero, span_singleton_zero, zero_mul],
     exact is_noetherian_zero },
   have h_gx : algebra_map R₁ K x ≠ 0,
-    from mt ((algebra_map R₁ K).injective_iff.mp (is_fraction_ring.injective _ _) x) hx,
+  from mt ((injective_iff_map_eq_zero (algebra_map R₁ K)).mp
+    (is_fraction_ring.injective _ _) x) hx,
   have h_spanx : span_singleton R₁⁰ (algebra_map R₁ K x) ≠ 0,
     from span_singleton_ne_zero_iff.mpr h_gx,
 

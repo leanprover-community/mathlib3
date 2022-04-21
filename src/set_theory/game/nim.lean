@@ -5,7 +5,7 @@ Authors: Fox Thomson, Markus Himmel
 -/
 import data.nat.bitwise
 import set_theory.game.impartial
-import set_theory.ordinal_arithmetic
+import set_theory.ordinal.arithmetic
 
 /-!
 # Nim and the Sprague-Grundy theorem
@@ -122,24 +122,14 @@ lemma equiv_iff_eq (O₁ O₂ : ordinal) : nim O₁ ≈ nim O₂ ↔ O₁ = O₂
 
 end nim
 
-/-- This definition will be used in the proof of the Sprague-Grundy theorem. It takes a function
-  from some type to ordinals and returns a nonempty set of ordinals with empty intersection with
-  the image of the function. It is guaranteed that the smallest ordinal not in the image will be
-  in the set, i.e. we can use this to find the mex. -/
-def nonmoves {α : Type u} (M : α → ordinal.{u}) : set ordinal.{u} :=
-(set.range M)ᶜ
-
-lemma nonmoves_nonempty {α : Type u} (M : α → ordinal.{u}) : set.nonempty (nonmoves M) :=
-⟨_, ordinal.lsub_nmem_range.{u u} M⟩
-
 /-- The Grundy value of an impartial game, the ordinal which corresponds to the game of nim that the
  game is equivalent to -/
 noncomputable def grundy_value : Π (G : pgame.{u}) [G.impartial], ordinal.{u}
-| G := λ hG, by exactI Inf (nonmoves (λ i, grundy_value (G.move_left i)))
+| G := λ hG, by exactI ordinal.mex.{u u} (λ i, grundy_value (G.move_left i))
 using_well_founded { dec_tac := pgame_wf_tac }
 
 lemma grundy_value_def (G : pgame) [G.impartial] :
-  grundy_value G = Inf (nonmoves (λ i, (grundy_value (G.move_left i)))) :=
+  grundy_value G = ordinal.mex.{u u} (λ i, grundy_value (G.move_left i)) :=
 by rw grundy_value
 
 /-- The Sprague-Grundy theorem which states that every impartial game is equivalent to a game of
@@ -158,12 +148,9 @@ begin
     rw nim.sum_first_wins_iff_neq,
     intro heq,
     rw [eq_comm, grundy_value_def G] at heq,
-    have h := Inf_mem (nonmoves_nonempty _),
+    have h := ordinal.ne_mex _,
     rw heq at h,
-    have hcontra : ∃ (i' : G.left_moves),
-      (λ (i'' : G.left_moves), grundy_value (G.move_left i'')) i' = grundy_value (G.move_left i₁) :=
-      ⟨i₁, rfl⟩,
-    contradiction },
+    exact (h i₁).irrefl },
   { rw [add_move_left_inr, ←impartial.good_left_move_iff_first_wins],
     revert i₂,
     rw nim.nim_def,
@@ -175,7 +162,7 @@ begin
       rw grundy_value_def,
       intros i₂,
       have hnotin : _ ∉ _ := λ hin, (le_not_le_of_lt (ordinal.typein_lt_self i₂)).2 (cInf_le' hin),
-      simpa [nonmoves] using hnotin },
+      simpa using hnotin},
 
     cases h' with i hi,
     use (left_moves_add _ _).symm (sum.inl i),
@@ -204,7 +191,7 @@ by rw [(equiv_iff_grundy_value_eq 0 (nim 0)).1 (equiv_symm nim.zero_first_loses)
 lemma equiv_zero_iff_grundy_value (G : pgame) [G.impartial] : G ≈ 0 ↔ grundy_value G = 0 :=
 by rw [equiv_iff_grundy_value_eq, grundy_value_zero]
 
-lemma grundy_value_nim_add_nim (n m : ℕ) : grundy_value (nim n + nim m) = nat.lxor n m :=
+lemma grundy_value_nim_add_nim (n m : ℕ) : grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=
 begin
   induction n using nat.strong_induction_on with n hn generalizing m,
   induction m using nat.strong_induction_on with m hm,
@@ -215,10 +202,9 @@ begin
   -- h₀: `n xor m` is not a reachable grundy number.
   -- h₁: every Grundy number strictly smaller than `n xor m` is reachable.
 
-  have h₀ : (nat.lxor n m : ordinal) ∈ nonmoves (λ i, grundy_value ((nim n + nim m).move_left i)),
+  have h₀ : ∀ i, grundy_value ((nim n + nim m).move_left i) ≠ (nat.lxor n m : ordinal),
   { -- To show that `n xor m` is unreachable, we show that every move produces a Grundy number
     -- different from `n xor m`.
-    rw [nonmoves, set.mem_compl_eq, set.mem_range, not_exists],
     equiv_rw left_moves_add _ _,
 
     -- The move operates either on the left pile or on the right pile.
@@ -243,14 +229,14 @@ begin
       exact hk.ne (nat.lxor_left_inj h) } },
 
   have h₁ : ∀ (u : ordinal), u < nat.lxor n m →
-    u ∉ nonmoves (λ i, grundy_value ((nim n + nim m).move_left i)),
+    u ∈ set.range (λ i, grundy_value ((nim n + nim m).move_left i)),
   { -- Take any natural number `u` less than `n xor m`.
     intros ou hu,
     obtain ⟨u, rfl⟩ := ordinal.lt_omega.1 (lt_trans hu (ordinal.nat_lt_omega _)),
     replace hu := ordinal.nat_cast_lt.1 hu,
 
     -- Our goal is to produce a move that gives the Grundy value `u`.
-    rw [nonmoves, set.mem_compl_eq, set.mem_range, not_not],
+    rw set.mem_range,
 
     -- By a lemma about xor, either `u xor m < n` or `u xor n < m`.
     have : nat.lxor u (nat.lxor n m) ≠ 0,
@@ -270,9 +256,9 @@ begin
       rw [hm _ h, nat.lxor_comm, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] } },
 
   -- We are done!
-  apply (cInf_le' h₀).antisymm,
+  apply (ordinal.mex_le_of_ne.{u u} h₀).antisymm,
   contrapose! h₁,
-  exact ⟨_, ⟨h₁, Inf_mem (nonmoves_nonempty _)⟩⟩
+  exact ⟨_, ⟨h₁, ordinal.mex_not_mem_range _⟩⟩,
 end
 
 lemma nim_add_nim_equiv {n m : ℕ} : nim n + nim m ≈ nim (nat.lxor n m) :=

@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen, Scott Morrison
 -/
 import linear_algebra.dfinsupp
-import linear_algebra.std_basis
-import linear_algebra.isomorphisms
-import set_theory.cofinality
 import linear_algebra.invariant_basis_number
+import linear_algebra.isomorphisms
+import linear_algebra.std_basis
+import set_theory.cardinal.cofinality
 
 /-!
 # Dimension of modules and vector spaces
@@ -138,7 +138,7 @@ theorem dim_le {n : ℕ}
   (H : ∀ s : finset M, linear_independent R (λ i : s, (i : M)) → s.card ≤ n) :
   module.rank R M ≤ n :=
 begin
-  apply cardinal.sup_le.mpr,
+  apply cardinal.sup_le,
   rintro ⟨s, li⟩,
   exact linear_independent_bounded_of_finset_linear_independent_bounded H _ li,
 end
@@ -267,7 +267,7 @@ variables (R M)
 @[simp] lemma dim_punit : module.rank R punit = 0 :=
 begin
   apply le_bot_iff.mp,
-  apply cardinal.sup_le.mpr,
+  apply cardinal.sup_le,
   rintro ⟨s, li⟩,
   apply le_bot_iff.mpr,
   apply cardinal.mk_emptyc_iff.mpr,
@@ -792,7 +792,7 @@ begin
     apply cardinal.le_sup,
     exact ⟨set.range v, by { convert v.reindex_range.linear_independent, ext, simp }⟩,
     exact (cardinal.mk_range_eq v v.injective).ge, },
-  { apply cardinal.sup_le.mpr,
+  { apply cardinal.sup_le,
     rintro ⟨s, li⟩,
     apply linear_independent_le_basis v _ li, },
 end
@@ -1310,7 +1310,7 @@ begin
       have h0 : r' ≠ 0,
       { rintro rfl,
         simpa using hw0 },
-      rwa span_singleton_smul_eq _ h0 },
+      rwa span_singleton_smul_eq (is_unit.mk0 _ h0) _ },
     { push_neg at hw,
       rw ←submodule.eq_bot_iff at hw,
       simp [hw] } }

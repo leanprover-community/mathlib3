@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
+import algebra.hom.group_action
 import group_theory.group_action.defs
 import group_theory.group_action.group
 import group_theory.quotient_group
@@ -11,6 +12,18 @@ import data.fintype.card
 
 /-!
 # Basic properties of group actions
+
+This file primarily concerns itself with orbits, stabilizers, and other objects defined in terms of
+actions. Despite this file being called `basic`, low-level helper lemmas for algebraic manipulation
+of `•` belong elsewhere.
+
+## Main definitions
+
+* `mul_action.orbit`
+* `mul_action.fixed_points`
+* `mul_action.fixed_by`
+* `mul_action.stabilizer`
+
 -/
 
 universes u v w
@@ -103,6 +116,20 @@ def stabilizer.submonoid (b : β) : submonoid α :=
   orbit α x = set.univ :=
 (surjective_smul α x).range_eq
 
+variables {α} {β}
+
+@[to_additive] lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}
+  [fintype (orbit α a)] : a ∈ fixed_points α β ↔ fintype.card (orbit α a) = 1 :=
+begin
+  rw [fintype.card_eq_one_iff, mem_fixed_points],
+  split,
+  { exact λ h, ⟨⟨a, mem_orbit_self _⟩, λ ⟨b, ⟨x, hx⟩⟩, subtype.eq $ by simp [h x, hx.symm]⟩ },
+  { assume h x,
+    rcases h with ⟨⟨z, hz⟩, hz₁⟩,
+    calc x • a = z : subtype.mk.inj (hz₁ ⟨x • a, mem_orbit _ _⟩)
+      ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
+end
+
 end mul_action
 
 namespace mul_action
@@ -141,18 +168,6 @@ instance (x : β) : is_pretransitive α (orbit α x) :=
 @[to_additive] lemma orbit_eq_iff {a b : β} :
    orbit α a = orbit α b ↔ a ∈ orbit α b:=
 ⟨λ h, h ▸ mem_orbit_self _, λ ⟨c, hc⟩, hc ▸ orbit_smul _ _⟩
-
-@[to_additive] lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}
-  [fintype (orbit α a)] : a ∈ fixed_points α β ↔ fintype.card (orbit α a) = 1 :=
-begin
-  rw [fintype.card_eq_one_iff, mem_fixed_points],
-  split,
-  { exact λ h, ⟨⟨a, mem_orbit_self _⟩, λ ⟨b, ⟨x, hx⟩⟩, subtype.eq $ by simp [h x, hx.symm]⟩ },
-  { assume h x,
-    rcases h with ⟨⟨z, hz⟩, hz₁⟩,
-    calc x • a = z : subtype.mk.inj (hz₁ ⟨x • a, mem_orbit _ _⟩)
-      ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
-end
 
 variables (α) {β}
 
@@ -290,36 +305,61 @@ end add_action
 
 namespace mul_action
 
-variables [group α] [mul_action α β]
+variables [group α]
+
+section quotient_action
+
+open subgroup mul_opposite
+
+variables (β) [monoid β] [mul_action β α] (H : subgroup α)
+
+/-- A typeclass for when a `mul_action β α` descends to the quotient `α ⧸ H`. -/
+class quotient_action : Prop :=
+(inv_mul_mem : ∀ (b : β) {a a' : α}, a⁻¹ * a' ∈ H → (b • a)⁻¹ * (b • a') ∈ H)
+
+/-- A typeclass for when an `add_action β α` descends to the quotient `α ⧸ H`. -/
+class _root_.add_action.quotient_action {α : Type*} (β : Type*) [add_group α] [add_monoid β]
+  [add_action β α] (H : add_subgroup α) : Prop :=
+(inv_mul_mem : ∀ (b : β) {a a' : α}, -a + a' ∈ H → -(b +ᵥ a) + (b +ᵥ a') ∈ H)
+
+attribute [to_additive add_action.quotient_action] mul_action.quotient_action
+
+@[to_additive] instance left_quotient_action : quotient_action α H :=
+⟨λ _ _ _ _, by rwa [smul_eq_mul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]⟩
+
+@[to_additive] instance right_quotient_action : quotient_action H.normalizer.opposite H :=
+⟨λ b c _ _, by rwa [smul_def, smul_def, smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev, ←mul_assoc,
+  mem_normalizer_iff'.mp b.prop, mul_assoc, mul_inv_cancel_left]⟩
+
+@[to_additive] instance quotient [quotient_action β H] : mul_action β (α ⧸ H) :=
+{ smul := λ b, quotient.map' ((•) b) (λ a a' h, quotient_action.inv_mul_mem b h),
+  one_smul := λ q, quotient.induction_on' q (λ a, congr_arg quotient.mk' (one_smul β a)),
+  mul_smul := λ b b' q, quotient.induction_on' q (λ a, congr_arg quotient.mk' (mul_smul b b' a)) }
+
+variables {β}
+
+@[simp, to_additive] lemma quotient.smul_mk [quotient_action β H] (a : β) (x : α) :
+  (a • quotient_group.mk x : α ⧸ H) = quotient_group.mk (a • x) := rfl
+
+@[simp, to_additive] lemma quotient.smul_coe [quotient_action β H] (a : β) (x : α) :
+  (a • x : α ⧸ H) = ↑(a • x) := rfl
+
+end quotient_action
 
 open quotient_group
 
-/-- Action on left cosets. -/
-@[to_additive "Action on left cosets."]
-def mul_left_cosets (H : subgroup α)
-  (x : α) (y : α ⧸ H) : α ⧸ H :=
-quotient.lift_on' y (λ y, quotient_group.mk ((x : α) * y))
-  (λ a b (hab : _ ∈ H), quotient_group.eq.2
-    (by rwa [mul_inv_rev, ← mul_assoc, mul_assoc (a⁻¹), inv_mul_self, mul_one]))
+/-- The canonical map to the left cosets. -/
+def _root_.mul_action_hom.to_quotient (H : subgroup α) : α →[α] α ⧸ H :=
+⟨coe, quotient.smul_coe H⟩
 
-@[to_additive] instance quotient (H : subgroup α) : mul_action α (α ⧸ H) :=
-{ smul := mul_left_cosets H,
-  one_smul := λ a, quotient.induction_on' a (λ a, quotient_group.eq.2
-    (by simp [subgroup.one_mem])),
-  mul_smul := λ x y a, quotient.induction_on' a (λ a, quotient_group.eq.2
-    (by simp [mul_inv_rev, subgroup.one_mem, mul_assoc])) }
-
-@[simp, to_additive] lemma quotient.smul_mk (H : subgroup α) (a x : α) :
-  (a • quotient_group.mk x : α ⧸ H) = quotient_group.mk (a * x) := rfl
-
-@[simp, to_additive] lemma quotient.smul_coe (H : subgroup α) (a x : α) :
-  (a • x : α ⧸ H) = ↑(a * x) := rfl
+@[simp] lemma _root_.mul_action_hom.to_quotient_apply (H : subgroup α) (g : α) :
+  mul_action_hom.to_quotient H g = g := rfl
 
 @[to_additive] instance mul_left_cosets_comp_subtype_val (H I : subgroup α) :
   mul_action I (α ⧸ H) :=
 mul_action.comp_hom (α ⧸ H) (subgroup.subtype I)
 
-variables (α) {β} (x : β)
+variables (α) {β} [mul_action α β] (x : β)
 
 /-- The canonical map from the quotient of the stabilizer to the set. -/
 @[to_additive "The canonical map from the quotient of the stabilizer to the set. "]
@@ -480,65 +520,22 @@ by rw [← fintype.card_prod, ← fintype.card_sigma,
 { exists_smul_eq := begin
     rintros ⟨x⟩ ⟨y⟩,
     refine ⟨y * x⁻¹, quotient_group.eq.mpr _⟩,
-    simp only [H.one_mem, mul_left_inv, inv_mul_cancel_right],
+    simp only [smul_eq_mul, H.one_mem, mul_left_inv, inv_mul_cancel_right],
   end }
 
 end mul_action
 
-section
-variables [monoid α] [add_monoid β] [distrib_mul_action α β]
-
-lemma list.smul_sum {r : α} {l : list β} :
-  r • l.sum = (l.map ((•) r)).sum :=
-(distrib_mul_action.to_add_monoid_hom β r).map_list_sum l
-
 /-- `smul` by a `k : M` over a ring is injective, if `k` is not a zero divisor.
 The general theory of such `k` is elaborated by `is_smul_regular`.
 The typeclass that restricts all terms of `M` to have this property is `no_zero_smul_divisors`. -/
-lemma smul_cancel_of_non_zero_divisor {M R : Type*} [monoid M] [ring R] [distrib_mul_action M R]
+lemma smul_cancel_of_non_zero_divisor {M R : Type*}
+  [monoid M] [non_unital_non_assoc_ring R] [distrib_mul_action M R]
   (k : M) (h : ∀ (x : R), k • x = 0 → x = 0) {a b : R} (h' : k • a = k • b) :
   a = b :=
 begin
   rw ←sub_eq_zero,
   refine h _ _,
   rw [smul_sub, h', sub_self]
-end
-
-end
-
-section
-variables [monoid α] [monoid β] [mul_distrib_mul_action α β]
-
-lemma list.smul_prod {r : α} {l : list β} :
-  r • l.prod = (l.map ((•) r)).prod :=
-(mul_distrib_mul_action.to_monoid_hom β r).map_list_prod l
-
-end
-
-section
-variables [monoid α] [add_comm_monoid β] [distrib_mul_action α β]
-
-lemma multiset.smul_sum {r : α} {s : multiset β} :
-  r • s.sum = (s.map ((•) r)).sum :=
-(distrib_mul_action.to_add_monoid_hom β r).map_multiset_sum s
-
-lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
-  r • ∑ x in s, f x = ∑ x in s, r • f x :=
-(distrib_mul_action.to_add_monoid_hom β r).map_sum f s
-
-end
-
-section
-variables [monoid α] [comm_monoid β] [mul_distrib_mul_action α β]
-
-lemma multiset.smul_prod {r : α} {s : multiset β} :
-  r • s.prod = (s.map ((•) r)).prod :=
-(mul_distrib_mul_action.to_monoid_hom β r).map_multiset_prod s
-
-lemma finset.smul_prod {r : α} {f : γ → β} {s : finset γ} :
-  r • ∏ x in s, f x = ∏ x in s, r • f x :=
-(mul_distrib_mul_action.to_monoid_hom β r).map_prod f s
-
 end
 
 namespace subgroup
@@ -551,7 +548,7 @@ begin
   refine le_antisymm (λ g hg, equiv.perm.ext (λ q, quotient_group.induction_on q
     (λ g', (mul_action.quotient.smul_mk H g g').trans (quotient_group.eq.mpr _))))
     (subgroup.normal_le_normal_core.mpr (λ g hg, _)),
-  { rw [mul_inv_rev, ←inv_inv g', inv_inv],
+  { rw [smul_eq_mul, mul_inv_rev, ←inv_inv g', inv_inv],
     exact H.normal_core.inv_mem hg g'⁻¹ },
   { rw [←H.inv_mem_iff, ←mul_one g⁻¹, ←quotient_group.eq, ←mul_one g],
     exact (mul_action.quotient.smul_mk H g 1).symm.trans (equiv.perm.ext_iff.mp hg (1 : G)) },

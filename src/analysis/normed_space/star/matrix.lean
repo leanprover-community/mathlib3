@@ -3,6 +3,7 @@ Copyright (c) 2022 Hans Parshall. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hans Parshall
 -/
+import analysis.matrix
 import analysis.normed_space.basic
 import data.complex.is_R_or_C
 import linear_algebra.unitary_group
@@ -15,10 +16,26 @@ This file collects facts about the unitary matrices over `𝕜` (either `ℝ` or
 
 open_locale big_operators matrix
 
-variables {𝕜 n : Type*} [is_R_or_C 𝕜]
-variables [fintype n] [decidable_eq n]
+variables {𝕜 m n E : Type*}
+
+namespace matrix
+variables [fintype m] [fintype n] [semi_normed_group E] [star_add_monoid E] [normed_star_group E]
+
+local attribute [instance] matrix.semi_normed_group
+
+@[simp] lemma norm_conj_transpose (M : matrix m n E) : ∥Mᴴ∥ = ∥M∥ :=
+(norm_map_eq _ _ norm_star).trans M.norm_transpose
+
+@[simp] lemma nnnorm_conj_transpose (M : matrix m n E) : ∥Mᴴ∥₊ = ∥M∥₊ :=
+subtype.ext M.norm_conj_transpose
+
+instance : normed_star_group (matrix n n E) :=
+⟨matrix.norm_conj_transpose⟩
+
+end matrix
 
 section entrywise_sup_norm
+variables [is_R_or_C 𝕜] [fintype n] [decidable_eq n]
 
 lemma entry_norm_bound_of_unitary {U : matrix n n 𝕜} (hU : U ∈ matrix.unitary_group n 𝕜) (i j : n):
   ∥U i j∥ ≤ 1 :=

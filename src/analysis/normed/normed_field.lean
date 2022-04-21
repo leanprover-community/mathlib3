@@ -57,6 +57,18 @@ class normed_ring (α : Type*) extends has_norm α, ring α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul : ∀ a b, norm (a * b) ≤ norm a * norm b)
 
+/-- A normed division ring is a division ring endowed with a seminorm which satisfies the equality
+`∥x y∥ = ∥x∥ ∥y∥`. -/
+class normed_division_ring (α : Type*) extends has_norm α, division_ring α, metric_space α :=
+(dist_eq : ∀ x y, dist x y = norm (x - y))
+(norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
+
+/-- A normed division ring is a normed ring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance normed_division_ring.to_normed_ring [β : normed_division_ring α] : normed_ring α :=
+{ norm_mul := λ a b, (normed_division_ring.norm_mul' a b).le,
+  ..β }
+
 /-- A normed ring is a seminormed ring. -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_ring.to_semi_normed_ring [β : normed_ring α] : semi_normed_ring α :=
@@ -115,6 +127,11 @@ instance prod.norm_one_class [semi_normed_group α] [has_one α] [norm_one_class
   norm_one_class (α × β) :=
 ⟨by simp [prod.norm_def]⟩
 
+instance pi.norm_one_class {ι : Type*} {α : ι → Type*} [nonempty ι] [fintype ι]
+  [Π i, semi_normed_group (α i)] [Π i, has_one (α i)] [∀ i, norm_one_class (α i)] :
+  norm_one_class (Π i, α i) :=
+⟨by simp [pi.norm_def, finset.sup_const finset.univ_nonempty]⟩
+
 section non_unital_semi_normed_ring
 variables [non_unital_semi_normed_ring α]
 
@@ -124,6 +141,23 @@ non_unital_semi_normed_ring.norm_mul _ _
 lemma nnnorm_mul_le (a b : α) : ∥a * b∥₊ ≤ ∥a∥₊ * ∥b∥₊ :=
 by simpa only [←norm_to_nnreal, ←real.to_nnreal_mul (norm_nonneg _)]
   using real.to_nnreal_mono (norm_mul_le _ _)
+
+lemma one_le_norm_one (β) [normed_ring β] [nontrivial β] : 1 ≤ ∥(1 : β)∥ :=
+(le_mul_iff_one_le_left $ norm_pos_iff.mpr (one_ne_zero : (1 : β) ≠ 0)).mp
+  (by simpa only [mul_one] using norm_mul_le (1 : β) 1)
+
+lemma one_le_nnnorm_one (β) [normed_ring β] [nontrivial β] : 1 ≤ ∥(1 : β)∥₊ :=
+one_le_norm_one β
+
+lemma filter.tendsto.zero_mul_is_bounded_under_le {f g : ι → α} {l : filter ι}
+  (hf : tendsto f l (𝓝 0)) (hg : is_bounded_under (≤) l (norm ∘ g)) :
+  tendsto (λ x, f x * g x) l (𝓝 0) :=
+hf.op_zero_is_bounded_under_le hg (*) norm_mul_le
+
+lemma filter.is_bounded_under_le.mul_tendsto_zero {f g : ι → α} {l : filter ι}
+  (hf : is_bounded_under (≤) l (norm ∘ f)) (hg : tendsto g l (𝓝 0)) :
+  tendsto (λ x, f x * g x) l (𝓝 0) :=
+hg.op_zero_is_bounded_under_le hf (flip (*)) (λ x y, ((norm_mul_le y x).trans_eq (mul_comm _ _)))
 
 /-- In a seminormed ring, the left-multiplication `add_monoid_hom` is bounded. -/
 lemma mul_left_bound (x : α) :
@@ -152,24 +186,18 @@ instance prod.non_unital_semi_normed_ring [non_unital_semi_normed_ring β] :
         ... = (∥x∥*∥y∥) : rfl,
   ..prod.semi_normed_group }
 
-/-- Seminormed group instance (using sup norm of sup norm) for matrices over a seminormed ring. Not
-declared as an instance because there are several natural choices for defining the norm of a
-matrix. -/
-def matrix.semi_normed_group {n m : Type*} [fintype n] [fintype m] :
-  semi_normed_group (matrix n m α) :=
-pi.semi_normed_group
-
-local attribute [instance] matrix.semi_normed_group
-
-lemma norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 ≤ r)
-  {A : matrix n m α} :
-  ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
-by simp [pi_norm_le_iff hr]
-
-lemma norm_matrix_lt_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 < r)
-  {A : matrix n m α} :
-  ∥A∥ < r ↔ ∀ i j, ∥A i j∥ < r :=
-by simp [pi_norm_lt_iff hr]
+/-- Non-unital seminormed ring structure on the product of finitely many non-unital seminormed
+rings, using the sup norm. -/
+instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
+  [Π i, non_unital_semi_normed_ring (π i)] :
+  non_unital_semi_normed_ring (Π i, π i) :=
+{ norm_mul := λ x y, nnreal.coe_mono $
+    calc  finset.univ.sup (λ i, ∥x i * y i∥₊)
+        ≤ finset.univ.sup ((λ i, ∥x i∥₊) * (λ i, ∥y i∥₊)) :
+            finset.sup_mono_fun $ λ b hb, norm_mul_le _ _
+    ... ≤ finset.univ.sup (λ i, ∥x i∥₊) * finset.univ.sup (λ i, ∥y i∥₊) :
+            finset.sup_mul_le_mul_sup_of_nonneg _ (λ i _, zero_le _) (λ i _, zero_le _),
+  ..pi.semi_normed_group }
 
 end non_unital_semi_normed_ring
 
@@ -202,9 +230,15 @@ lemma list.norm_prod_le' : ∀ {l : list α}, l ≠ [] → ∥l.prod∥ ≤ (l.m
     exact list.norm_prod_le' (list.cons_ne_nil b l)
   end
 
+lemma list.nnnorm_prod_le' {l : list α} (hl : l ≠ []) : ∥l.prod∥₊ ≤ (l.map nnnorm).prod :=
+(list.norm_prod_le' hl).trans_eq $ by simp [nnreal.coe_list_prod, list.map_map]
+
 lemma list.norm_prod_le [norm_one_class α] : ∀ l : list α, ∥l.prod∥ ≤ (l.map norm).prod
 | [] := by simp
 | (a::l) := list.norm_prod_le' (list.cons_ne_nil a l)
+
+lemma list.nnnorm_prod_le [norm_one_class α] (l : list α) : ∥l.prod∥₊ ≤ (l.map nnnorm).prod :=
+l.norm_prod_le.trans_eq $ by simp [nnreal.coe_list_prod, list.map_map]
 
 lemma finset.norm_prod_le' {α : Type*} [normed_comm_ring α] (s : finset ι) (hs : s.nonempty)
   (f : ι → α) :
@@ -215,6 +249,11 @@ begin
   simpa using list.norm_prod_le' this
 end
 
+lemma finset.nnnorm_prod_le' {α : Type*} [normed_comm_ring α] (s : finset ι) (hs : s.nonempty)
+  (f : ι → α) :
+  ∥∏ i in s, f i∥₊ ≤ ∏ i in s, ∥f i∥₊ :=
+(s.norm_prod_le' hs f).trans_eq $ by simp [nnreal.coe_prod]
+
 lemma finset.norm_prod_le {α : Type*} [normed_comm_ring α] [norm_one_class α] (s : finset ι)
   (f : ι → α) :
   ∥∏ i in s, f i∥ ≤ ∏ i in s, ∥f i∥ :=
@@ -222,6 +261,11 @@ begin
   rcases s with ⟨⟨l⟩, hl⟩,
   simpa using (l.map f).norm_prod_le
 end
+
+lemma finset.nnnorm_prod_le {α : Type*} [normed_comm_ring α] [norm_one_class α] (s : finset ι)
+  (f : ι → α) :
+  ∥∏ i in s, f i∥₊ ≤ ∏ i in s, ∥f i∥₊ :=
+(s.norm_prod_le f).trans_eq $ by simp [nnreal.coe_prod]
 
 /-- If `α` is a seminormed ring, then `∥a ^ n∥₊ ≤ ∥a∥₊ ^ n` for `n > 0`.
 See also `nnnorm_pow_le`. -/
@@ -253,6 +297,13 @@ instance prod.semi_normed_ring [semi_normed_ring β] :
 { ..prod.non_unital_semi_normed_ring,
   ..prod.semi_normed_group, }
 
+/-- Seminormed ring structure on the product of finitely many seminormed rings,
+  using the sup norm. -/
+instance pi.semi_normed_ring {π : ι → Type*} [fintype ι] [Π i, semi_normed_ring (π i)] :
+  semi_normed_ring (Π i, π i) :=
+{ ..pi.non_unital_semi_normed_ring,
+  ..pi.semi_normed_group, }
+
 end semi_normed_ring
 
 section non_unital_normed_ring
@@ -264,11 +315,12 @@ instance prod.non_unital_normed_ring [non_unital_normed_ring β] : non_unital_no
 { norm_mul := norm_mul_le,
   ..prod.semi_normed_group }
 
-/-- Normed group instance (using sup norm of sup norm) for matrices over a normed ring.  Not
-declared as an instance because there are several natural choices for defining the norm of a
-matrix. -/
-def matrix.normed_group {n m : Type*} [fintype n] [fintype m] : normed_group (matrix n m α) :=
-pi.normed_group
+/-- Normed ring structure on the product of finitely many non-unital normed rings, using the sup
+norm. -/
+instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι] [Π i, non_unital_normed_ring (π i)] :
+  non_unital_normed_ring (Π i, π i) :=
+{ norm_mul := norm_mul_le,
+  ..pi.normed_group }
 
 end non_unital_normed_ring
 
@@ -279,15 +331,24 @@ variables [normed_ring α]
 lemma units.norm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥ :=
 norm_pos_iff.mpr (units.ne_zero x)
 
+lemma units.nnorm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥₊ :=
+x.norm_pos
+
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
 instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.semi_normed_group }
 
+/-- Normed ring structure on the product of finitely many normed rings, using the sup norm. -/
+instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π i)] :
+  normed_ring (Π i, π i) :=
+{ norm_mul := norm_mul_le,
+  ..pi.semi_normed_group }
+
 end normed_ring
 
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_ring_top_monoid [semi_normed_ring α] : has_continuous_mul α :=
+instance semi_normed_ring_top_monoid [non_unital_semi_normed_ring α] : has_continuous_mul α :=
 ⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     begin
       have : ∀ e : α × α, ∥e.1 * e.2 - x.1 * x.2∥ ≤ ∥e.1∥ * ∥e.2 - x.2∥ + ∥e.1 - x.1∥ * ∥x.2∥,
@@ -306,32 +367,17 @@ instance semi_normed_ring_top_monoid [semi_normed_ring α] : has_continuous_mul 
 
 /-- A seminormed ring is a topological ring. -/
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_top_ring [semi_normed_ring α] : topological_ring α := { }
+instance semi_normed_top_ring [non_unital_semi_normed_ring α] : topological_ring α := { }
 
-/-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
-class normed_field (α : Type*) extends has_norm α, field α, metric_space α :=
-(dist_eq : ∀ x y, dist x y = norm (x - y))
-(norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
+section normed_division_ring
 
-/-- A nondiscrete normed field is a normed field in which there is an element of norm different from
-`0` and `1`. This makes it possible to bring any element arbitrarily close to `0` by multiplication
-by the powers of any element, and thus to relate algebra and topology. -/
-class nondiscrete_normed_field (α : Type*) extends normed_field α :=
-(non_trivial : ∃x:α, 1<∥x∥)
-
-section normed_field
-
-variables [normed_field α]
+variables [normed_division_ring α]
 
 @[simp] lemma norm_mul (a b : α) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
-normed_field.norm_mul' a b
-
-@[priority 100] -- see Note [lower instance priority]
-instance normed_field.to_normed_comm_ring : normed_comm_ring α :=
-{ norm_mul := λ a b, (norm_mul a b).le, ..‹normed_field α› }
+normed_division_ring.norm_mul' a b
 
 @[priority 900]
-instance normed_field.to_norm_one_class : norm_one_class α :=
+instance normed_division_ring.to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
 
@@ -352,13 +398,11 @@ nnreal.eq $ norm_mul a b
 @[simp] lemma nnnorm_pow (a : α) (n : ℕ) : ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
 (nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_pow a n
 
-@[simp] lemma norm_prod (s : finset β) (f : β → α) :
-  ∥∏ b in s, f b∥ = ∏ b in s, ∥f b∥ :=
-(norm_hom.to_monoid_hom : α →* ℝ).map_prod f s
+protected lemma list.norm_prod (l : list α) : ∥l.prod∥ = (l.map norm).prod :=
+(norm_hom.to_monoid_hom : α →* ℝ).map_list_prod _
 
-@[simp] lemma nnnorm_prod (s : finset β) (f : β → α) :
-  ∥∏ b in s, f b∥₊ = ∏ b in s, ∥f b∥₊ :=
-(nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_prod f s
+protected lemma list.nnnorm_prod (l : list α) : ∥l.prod∥₊ = (l.map nnnorm).prod :=
+(nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_list_prod _
 
 @[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ := (norm_hom : α →*₀ ℝ).map_div a b
 
@@ -375,7 +419,7 @@ nnreal.eq $ by simp
 (nnnorm_hom : α →*₀ ℝ≥0).map_zpow
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_field.has_continuous_inv₀ : has_continuous_inv₀ α :=
+instance normed_division_ring.to_has_continuous_inv₀ : has_continuous_inv₀ α :=
 begin
   refine ⟨λ r r0, tendsto_iff_norm_tendsto_zero.2 _⟩,
   have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
@@ -383,13 +427,49 @@ begin
   have : ∀ᶠ e in 𝓝 r, ∥e⁻¹ - r⁻¹∥ ≤ ∥r - e∥ / ∥r∥ / ε,
   { filter_upwards [(is_open_lt continuous_const continuous_norm).eventually_mem εr] with e he,
     have e0 : e ≠ 0 := norm_pos_iff.1 (ε0.trans he),
-    calc ∥e⁻¹ - r⁻¹∥ = ∥r - e∥ / ∥r∥ / ∥e∥ : by field_simp [mul_comm]
+    calc ∥e⁻¹ - r⁻¹∥ = ∥r∥⁻¹ * ∥r - e∥ * ∥e∥⁻¹ : by
+      { rw [←norm_inv, ←norm_inv, ←norm_mul, ←norm_mul, mul_sub, sub_mul, mul_assoc _ e,
+          inv_mul_cancel r0, mul_inv_cancel e0, one_mul, mul_one] }
+    ...              = ∥r - e∥ / ∥r∥ / ∥e∥ : by field_simp [mul_comm]
     ... ≤ ∥r - e∥ / ∥r∥ / ε :
       div_le_div_of_le_left (div_nonneg (norm_nonneg _) (norm_nonneg _)) ε0 he.le },
   refine squeeze_zero' (eventually_of_forall $ λ _, norm_nonneg _) this _,
   refine (continuous_const.sub continuous_id).norm.div_const.div_const.tendsto' _ _ _,
-  simp
+  simp,
 end
+
+end normed_division_ring
+
+/-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
+class normed_field (α : Type*) extends has_norm α, field α, metric_space α :=
+(dist_eq : ∀ x y, dist x y = norm (x - y))
+(norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
+
+/-- A nondiscrete normed field is a normed field in which there is an element of norm different from
+`0` and `1`. This makes it possible to bring any element arbitrarily close to `0` by multiplication
+by the powers of any element, and thus to relate algebra and topology. -/
+class nondiscrete_normed_field (α : Type*) extends normed_field α :=
+(non_trivial : ∃ x : α, 1 < ∥x∥)
+
+section normed_field
+
+variables [normed_field α]
+
+@[priority 100] -- see Note [lower instance priority]
+instance normed_field.to_normed_division_ring : normed_division_ring α :=
+{ ..‹normed_field α› }
+
+@[priority 100] -- see Note [lower instance priority]
+instance normed_field.to_normed_comm_ring : normed_comm_ring α :=
+{ norm_mul := λ a b, (norm_mul a b).le, ..‹normed_field α› }
+
+@[simp] lemma norm_prod (s : finset β) (f : β → α) :
+  ∥∏ b in s, f b∥ = ∏ b in s, ∥f b∥ :=
+(norm_hom.to_monoid_hom : α →* ℝ).map_prod f s
+
+@[simp] lemma nnnorm_prod (s : finset β) (f : β → α) :
+  ∥∏ b in s, f b∥₊ = ∏ b in s, ∥f b∥₊ :=
+(nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_prod f s
 
 end normed_field
 
@@ -535,6 +615,13 @@ nnreal.eq $ calc ((n.nat_abs : ℝ≥0) : ℝ)
                = (n.nat_abs : ℤ) : by simp only [int.cast_coe_nat, nnreal.coe_nat_cast]
            ... = |n|           : by simp only [← int.abs_eq_nat_abs, int.cast_abs]
            ... = ∥n∥              : rfl
+
+lemma int.abs_le_floor_nnreal_iff (z : ℤ) (c : ℝ≥0) : |z| ≤ ⌊c⌋₊ ↔ ∥z∥₊ ≤ c :=
+begin
+  rw [int.abs_eq_nat_abs, int.coe_nat_le, nat.le_floor_iff (zero_le c)],
+  congr',
+  exact nnreal.coe_nat_abs z,
+end
 
 instance : norm_one_class ℤ :=
 ⟨by simp [← int.norm_cast_real]⟩

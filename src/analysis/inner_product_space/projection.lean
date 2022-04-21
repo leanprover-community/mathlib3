@@ -123,7 +123,7 @@ begin
         have eq₂ : u + u - (wq + wp) = a + b, show u + u - (wq + wp) = (u - wq) + (u - wp), abel,
         rw [eq₁, eq₂],
       end
-      ... = 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) : parallelogram_law_with_norm,
+      ... = 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) : parallelogram_law_with_norm _ _,
     have eq : δ ≤ ∥u - half • (wq + wp)∥,
     { rw smul_add,
       apply δ_le', apply h₂,
@@ -550,7 +550,7 @@ lemma orthogonal_projection_singleton {v : E} (w : E) :
   (orthogonal_projection (𝕜 ∙ v) w : E) = (⟪v, w⟫ / ∥v∥ ^ 2) • v :=
 begin
   by_cases hv : v = 0,
-  { rw [hv, eq_orthogonal_projection_of_eq_submodule submodule.span_zero_singleton],
+  { rw [hv, eq_orthogonal_projection_of_eq_submodule (submodule.span_zero_singleton 𝕜)],
     { simp },
     { apply_instance } },
   have hv' : ∥v∥ ≠ 0 := ne_of_gt (norm_pos_iff.mpr hv),
@@ -1175,7 +1175,7 @@ lemma std_orthonormal_basis_orthonormal :
 (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some_spec.2
 
 instance : fintype (orthonormal_basis_index 𝕜 E) :=
-@is_noetherian.fintype_basis_index _ _ _ _ _ _ _
+@is_noetherian.fintype_basis_index _ _ _ _ _ _
   (is_noetherian.iff_fg.2 infer_instance) (std_orthonormal_basis 𝕜 E)
 
 variables {𝕜 E}

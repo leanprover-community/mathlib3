@@ -124,12 +124,7 @@ theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_e
 
 instance : has_mul ℕ+ := ⟨λ m n, ⟨m.1 * n.1, mul_pos m.2 n.2⟩⟩
 instance : has_one ℕ+ := ⟨succ_pnat 0⟩
-instance : has_pow ℕ+ ℕ := ⟨λ m n, ⟨m ^ n, begin
-  induction n with n ih,
-  { simp },
-  { rw pow_succ,
-    exact mul_pos m.prop ih}
-end⟩⟩
+instance : has_pow ℕ+ ℕ := ⟨λ x n, ⟨x ^ n, pow_pos x.2 n⟩⟩
 
 instance : comm_monoid ℕ+ := coe_injective.comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
@@ -229,11 +224,10 @@ instance : has_sub ℕ+ := ⟨λ a b, to_pnat' (a - b : ℕ)⟩
 
 theorem sub_coe (a b : ℕ+) : ((a - b : ℕ+) : ℕ) = ite (b < a) (a - b : ℕ) 1 :=
 begin
-  change ((to_pnat' ((a : ℕ) - (b :  ℕ)) : ℕ)) =
-    ite ((a : ℕ) > (b : ℕ)) ((a : ℕ) - (b : ℕ)) 1,
+  change (to_pnat' _ : ℕ) = ite _ _ _,
   split_ifs with h,
   { exact to_pnat'_coe (tsub_pos_of_lt h) },
-  { rw [tsub_eq_zero_iff_le.mpr (le_of_not_gt h)], refl }
+  { rw tsub_eq_zero_iff_le.mpr (le_of_not_gt h : (a : ℕ) ≤ b), refl }
 end
 
 theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=

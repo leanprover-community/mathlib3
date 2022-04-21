@@ -71,6 +71,9 @@ distrib.right_distrib a b c
 
 alias right_distrib ← add_mul
 
+lemma distrib_three_right [distrib R] (a b c d : R) : (a + b + c) * d = a * d + b * d + c * d :=
+by simp [right_distrib]
+
 /-- Pullback a `distrib` instance along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
@@ -217,20 +220,39 @@ protected def function.surjective.semiring
 
 end injective_surjective_maps
 
+section non_unital_semiring
+variables [non_unital_semiring α]
+
+theorem dvd_add {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
+dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
+
+end non_unital_semiring
+
+section non_assoc_semiring
+variables [non_assoc_semiring α]
+
+lemma add_one_mul (a b : α) : (a + 1) * b = a * b + b :=
+by rw [add_mul, one_mul]
+lemma mul_add_one (a b : α) : a * (b + 1) = a * b + a :=
+by rw [mul_add, mul_one]
+lemma one_add_mul (a b : α) : (1 + a) * b = b + a * b :=
+by rw [add_mul, one_mul]
+lemma mul_one_add (a b : α) : a * (1 + b) = a + a * b :=
+by rw [mul_add, mul_one]
+
+theorem two_mul (n : α) : 2 * n = n + n :=
+eq.trans (right_distrib 1 1 n) (by simp)
+
+theorem mul_two (n : α) : n * 2 = n + n :=
+(left_distrib n 1 1).trans (by simp)
+
+end non_assoc_semiring
+
 section semiring
 variables [semiring α]
 
 lemma one_add_one_eq_two : 1 + 1 = (2 : α) :=
 by unfold bit0
-
-theorem two_mul (n : α) : 2 * n = n + n :=
-eq.trans (right_distrib 1 1 n) (by simp)
-
-lemma distrib_three_right (a b c d : α) : (a + b + c) * d = a * d + b * d + c * d :=
-by simp [right_distrib]
-
-theorem mul_two (n : α) : n * 2 = n + n :=
-(left_distrib n 1 1).trans (by simp)
 
 theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
 (two_mul _).symm
@@ -253,11 +275,11 @@ by split_ifs; refl
 -- `mul_ite` and `ite_mul`.
 attribute [simp] mul_ite ite_mul
 
-@[simp] lemma mul_boole {α} [non_assoc_semiring α] (P : Prop) [decidable P] (a : α) :
+@[simp] lemma mul_boole {α} [mul_zero_one_class α] (P : Prop) [decidable P] (a : α) :
   a * (if P then 1 else 0) = if P then a else 0 :=
 by simp
 
-@[simp] lemma boole_mul {α} [non_assoc_semiring α] (P : Prop) [decidable P] (a : α) :
+@[simp] lemma boole_mul {α} [mul_zero_one_class α] (P : Prop) [decidable P] (a : α) :
   (if P then 1 else 0) * a = if P then a else 0 :=
 by simp
 
@@ -269,30 +291,10 @@ lemma ite_mul_zero_right {α : Type*} [mul_zero_class α] (P : Prop) [decidable 
   ite P (a * b) 0 = a * ite P b 0 :=
 by { by_cases h : P; simp [h], }
 
-/-- An element `a` of a semiring is even if there exists `k` such `a = 2*k`. -/
-def even (a : α) : Prop := ∃ k, a = 2*k
-
-lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
-
-@[simp] lemma range_two_mul (α : Type*) [semiring α] :
-  set.range (λ x : α, 2 * x) = {a | even a} :=
-by { ext x, simp [even, eq_comm] }
-
-@[simp] lemma even_bit0 (a : α) : even (bit0 a) :=
-⟨a, by rw [bit0, two_mul]⟩
-
-/-- An element `a` of a semiring is odd if there exists `k` such `a = 2*k + 1`. -/
-def odd (a : α) : Prop := ∃ k, a = 2*k + 1
-
-@[simp] lemma odd_bit1 (a : α) : odd (bit1 a) :=
-⟨a, by rw [bit1, bit0, two_mul]⟩
-
-@[simp] lemma range_two_mul_add_one (α : Type*) [semiring α] :
-  set.range (λ x : α, 2 * x + 1) = {a | odd a} :=
-by { ext x, simp [odd, eq_comm] }
-
-theorem dvd_add {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
-dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
+lemma ite_and_mul_zero {α : Type*} [mul_zero_class α]
+  (P Q : Prop) [decidable P] [decidable Q] (a b : α) :
+  ite (P ∧ Q) (a * b) 0 = ite P a 0 * ite Q b 0 :=
+by simp only [←ite_and, ite_mul, mul_ite, mul_zero, zero_mul, and_comm]
 
 end semiring
 
@@ -597,8 +599,7 @@ variables [semiring α] {a : α}
 
 @[simp] theorem two_dvd_bit0 : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
 
-lemma ring_hom.map_dvd [semiring β] (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
-f.to_monoid_hom.map_dvd
+lemma ring_hom.map_dvd [semiring β] (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b := map_dvd f
 
 end semiring
 
@@ -693,6 +694,15 @@ lemma mul_neg_one (a : α) : a * -1 = -a := by simp
 lemma neg_one_mul (a : α) : -1 * a = -a := by simp
 
 end mul_one_class
+
+section mul_zero_class
+variables [mul_zero_class α] [has_distrib_neg α]
+
+/-- Prefer `neg_zero` if `add_comm_group` is available. -/
+@[simp] lemma neg_zero' : (-0 : α) = 0 :=
+by rw [←zero_mul (0 : α), ←neg_mul, mul_zero, mul_zero]
+
+end mul_zero_class
 
 section group
 variables [group α] [has_distrib_neg α]
@@ -854,6 +864,15 @@ protected def function.surjective.non_assoc_ring
 { .. hf.add_comm_group f zero add neg sub nsmul gsmul, .. hf.mul_zero_class f zero mul,
   .. hf.distrib f add mul, .. hf.mul_one_class f one mul }
 
+lemma sub_one_mul (a b : α) : (a - 1) * b = a * b - b :=
+by rw [sub_mul, one_mul]
+lemma mul_sub_one (a b : α) : a * (b - 1) = a * b - a :=
+by rw [mul_sub, mul_one]
+lemma one_sub_mul (a b : α) : (1 - a) * b = b - a * b :=
+by rw [sub_mul, one_mul]
+lemma mul_one_sub (a b : α) : a * (1 - b) = a - a * b :=
+by rw [mul_sub, mul_one]
+
 end non_assoc_ring
 
 /-- A ring is a type with the following structures: additive commutative group (`add_comm_group`),
@@ -966,16 +985,6 @@ map_neg f x
 protected theorem map_sub {α β} [non_assoc_ring α] [non_assoc_ring β] (f : α →+* β) (x y : α) :
   f (x - y) = (f x) - (f y) := map_sub f x y
 
-/-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff {α β} [non_assoc_ring α] [non_assoc_semiring β] (f : α →+* β) :
-  function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
-(f : α →+ β).injective_iff
-
-/-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff' {α β} [non_assoc_ring α] [non_assoc_semiring β] (f : α →+* β) :
-  function.injective f ↔ (∀ a, f a = 0 ↔ a = 0) :=
-(f : α →+ β).injective_iff'
-
 /-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/
 def mk' {γ} [non_assoc_semiring α] [non_assoc_ring γ] (f : α →* γ)
   (map_add : ∀ a b : α, f (a + b) = f a + f b) :
@@ -1060,20 +1069,6 @@ begin
     exact eq_add_of_sub_eq rfl }
 end
 
-@[simp] theorem even_neg (a : α) : even (-a) ↔ even a :=
-dvd_neg _ _
-
-lemma odd.neg {a : α} (hp : odd a) : odd (-a) :=
-begin
-  obtain ⟨k, hk⟩ := hp,
-  use -(k + 1),
-  rw [mul_neg, mul_add, neg_add, add_assoc, two_mul (1 : α), neg_add,
-    neg_add_cancel_right, ←neg_add, hk],
-end
-
-@[simp] lemma odd_neg (a : α) : odd (-a) ↔ odd a :=
-⟨λ h, neg_neg a ▸ h.neg, odd.neg⟩
-
 end ring
 
 section comm_ring
@@ -1140,24 +1135,19 @@ lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 
 /-- Left `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
 The typeclass that restricts all terms of `α` to have this property is `no_zero_divisors`. -/
-lemma is_left_regular_of_non_zero_divisor [ring α] (k : α)
+lemma is_left_regular_of_non_zero_divisor [non_unital_non_assoc_ring α] (k : α)
   (h : ∀ (x : α), k * x = 0 → x = 0) : is_left_regular k :=
 begin
-  intros x y h',
-  rw ←sub_eq_zero,
-  refine h _ _,
+  refine λ x y (h' : k * x = k * y), sub_eq_zero.mp (h _ _),
   rw [mul_sub, sub_eq_zero, h']
 end
 
 /-- Right `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
 The typeclass that restricts all terms of `α` to have this property is `no_zero_divisors`. -/
-lemma is_right_regular_of_non_zero_divisor [ring α] (k : α)
+lemma is_right_regular_of_non_zero_divisor [non_unital_non_assoc_ring α] (k : α)
   (h : ∀ (x : α), x * k = 0 → x = 0) : is_right_regular k :=
 begin
-  intros x y h',
-  simp only at h',
-  rw ←sub_eq_zero,
-  refine h _ _,
+  refine λ x y (h' : x * k = y * k), sub_eq_zero.mp (h _ _),
   rw [sub_mul, sub_eq_zero, h']
 end
 
@@ -1167,6 +1157,10 @@ lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k �
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left hk),
  is_right_regular_of_non_zero_divisor k
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
+
+lemma is_regular_iff_ne_zero' [nontrivial α] [ring α] [no_zero_divisors α] {k : α} :
+  is_regular k ↔ k ≠ 0 :=
+⟨λ h, by { rintro rfl, exact not_not.mpr h.left not_is_left_regular_zero }, is_regular_of_ne_zero'⟩
 
 /-- A ring with no zero divisors is a cancel_monoid_with_zero.
 
@@ -1318,10 +1312,10 @@ h.add_right h
 lemma bit0_left [distrib R] {x y : R} (h : commute x y) : commute (bit0 x) y :=
 h.add_left h
 
-lemma bit1_right [semiring R] {x y : R} (h : commute x y) : commute x (bit1 y) :=
+lemma bit1_right [non_assoc_semiring R] {x y : R} (h : commute x y) : commute x (bit1 y) :=
 h.bit0_right.add_right (commute.one_right x)
 
-lemma bit1_left [semiring R] {x y : R} (h : commute x y) : commute (bit1 x) y :=
+lemma bit1_left [non_assoc_semiring R] {x y : R} (h : commute x y) : commute (bit1 x) y :=
 h.bit0_left.add_left (commute.one_left y)
 
 /-- Representation of a difference of two squares of commuting elements as a product. -/

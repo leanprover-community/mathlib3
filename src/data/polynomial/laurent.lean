@@ -63,7 +63,7 @@ def polynomial.to_laurent_alg [comm_semiring R] :
   R[X] →ₐ[R] R[T;T⁻¹] :=
 begin
   refine alg_hom.comp _ (to_finsupp_iso_alg R).to_alg_hom,
-  exact (add_monoid_alg_hom_map R R (nat.cast_add_monoid_hom ℤ)),
+  exact (map_domain_alg_hom R R (nat.cast_add_monoid_hom ℤ)),
 end
 
 namespace laurent_polynomial

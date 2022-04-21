@@ -1241,7 +1241,7 @@ begin
 end
 
 /--  An additive homomorphism `f : G →+ H` induces a ring homomorphism
-`map_domain_ring_hom f : add_monoid_algebra k G →+* add_monoid_algebra k H`. -/
+`map_domain_ring_hom k f : add_monoid_algebra k G →+* add_monoid_algebra k H`. -/
 @[simps]
 def map_domain_ring_hom (k : Type*) [semiring k] {H F : Type*} [add_monoid G] [add_monoid H]
   [add_monoid_hom_class F G H] (f : F) :

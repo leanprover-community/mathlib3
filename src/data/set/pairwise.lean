@@ -179,6 +179,11 @@ by simp [pairwise_insert_of_symmetric hr]
 lemma pairwise_univ : (univ : set α).pairwise r ↔ pairwise r :=
 by simp only [set.pairwise, pairwise, mem_univ, forall_const]
 
+@[simp] lemma pairwise_bot_iff : s.pairwise (⊥ : α → α → Prop) ↔ (s : set α).subsingleton :=
+⟨λ h a ha b hb, h.eq ha hb id, λ h, h.pairwise _⟩
+
+alias pairwise_bot_iff ↔ set.pairwise.subsingleton _
+
 lemma pairwise.on_injective (hs : s.pairwise r) (hf : function.injective f)
   (hfs : ∀ x, f x ∈ s) :
   pairwise (r on f) :=
@@ -333,7 +338,7 @@ begin
   obtain ⟨d, hd, hb⟩ := hb,
   obtain hcd | hcd := eq_or_ne (g c) (g d),
   { exact hg d hd (hcd.subst ha) hb hab },
-  { exact (hs hc hd (ne_of_apply_ne _ hcd)).mono (le_bsupr a ha) (le_bsupr b hb) }
+  { exact (hs hc hd $ ne_of_apply_ne _ hcd).mono (le_supr₂ a ha) (le_supr₂ b hb) }
 end
 
 end complete_lattice

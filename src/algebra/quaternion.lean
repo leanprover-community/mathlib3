@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import algebra.algebra.basic
-import algebra.ring.equiv
-import algebra.ring.opposite
+import set_theory.cardinal.ordinal
 import tactic.ring_exp
 
 /-!
@@ -56,6 +55,14 @@ mk {} :: (re : R) (im_i : R) (im_j : R) (im_k : R)
 localized "notation `ℍ[` R`,` a`,` b `]` := quaternion_algebra R a b" in quaternion
 
 namespace quaternion_algebra
+
+/-- The equivalence between a quaternion algebra over R and R × R × R × R. -/
+@[simps]
+def equiv_prod {R : Type*} (c₁ c₂ : R) : ℍ[R, c₁, c₂] ≃ R × R × R × R :=
+{ to_fun := λ a, ⟨a.1, a.2, a.3, a.4⟩,
+  inv_fun := λ a, ⟨a.1, a.2.1, a.2.2.1, a.2.2.2⟩,
+  left_inv := λ ⟨a₁, a₂, a₃, a₄⟩, rfl,
+  right_inv := λ ⟨a₁, a₂, a₃, a₄⟩, rfl }
 
 @[simp] lemma mk.eta {R : Type*} {c₁ c₂} : ∀ a : ℍ[R, c₁, c₂], mk a.1 a.2 a.3 a.4 = a
 | ⟨a₁, a₂, a₃, a₄⟩ := rfl
@@ -318,6 +325,10 @@ def quaternion (R : Type*) [has_one R] [has_neg R] := quaternion_algebra R (-1) 
 
 localized "notation `ℍ[` R `]` := quaternion R" in quaternion
 
+/-- The equivalence between the quaternions over R and R × R × R × R. -/
+def quaternion.equiv_prod (R : Type*) [has_one R] [has_neg R] : ℍ[R] ≃ R × R × R × R :=
+quaternion_algebra.equiv_prod _ _
+
 namespace quaternion
 
 variables {R : Type*} [comm_ring R] (r x y z : R) (a b c : ℍ[R])
@@ -573,3 +584,53 @@ monoid_with_zero_hom.map_div norm_sq a b
 end field
 
 end quaternion
+
+namespace cardinal
+
+open_locale cardinal quaternion
+
+section quaternion_algebra
+
+variables {R : Type*} (c₁ c₂ : R)
+
+private theorem pow_four [infinite R] : #R ^ 4 = #R :=
+power_nat_eq (omega_le_mk R) $ by simp
+
+/-- The cardinality of a quaternion algebra, as a type. -/
+lemma mk_quaternion_algebra : #ℍ[R, c₁, c₂] = #R ^ 4 :=
+by { rw mk_congr (quaternion_algebra.equiv_prod c₁ c₂), simp only [mk_prod, lift_id], ring }
+
+@[simp] lemma mk_quaternion_algebra_of_infinite [infinite R] : #ℍ[R, c₁, c₂] = #R :=
+by rw [mk_quaternion_algebra, pow_four]
+
+/-- The cardinality of a quaternion algebra, as a set. -/
+lemma mk_univ_quaternion_algebra : #(set.univ : set ℍ[R, c₁, c₂]) = #R ^ 4 :=
+by rw [mk_univ, mk_quaternion_algebra]
+
+@[simp] lemma mk_univ_quaternion_algebra_of_infinite [infinite R] :
+  #(set.univ : set ℍ[R, c₁, c₂]) = #R :=
+by rw [mk_univ_quaternion_algebra, pow_four]
+
+end quaternion_algebra
+
+section quaternion
+
+variables (R : Type*) [has_one R] [has_neg R]
+
+/-- The cardinality of the quaternions, as a type. -/
+@[simp] lemma mk_quaternion : #ℍ[R] = #R ^ 4 :=
+mk_quaternion_algebra _ _
+
+@[simp] lemma mk_quaternion_of_infinite [infinite R] : #ℍ[R] = #R :=
+by rw [mk_quaternion, pow_four]
+
+/-- The cardinality of the quaternions, as a set. -/
+@[simp] lemma mk_univ_quaternion : #(set.univ : set ℍ[R]) = #R ^ 4 :=
+mk_univ_quaternion_algebra _ _
+
+@[simp] lemma mk_univ_quaternion_of_infinite [infinite R] : #(set.univ : set ℍ[R]) = #R :=
+by rw [mk_univ_quaternion, pow_four]
+
+end quaternion
+
+end cardinal

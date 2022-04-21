@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Violeta Hernández Palacios
 -/
-import set_theory.ordinal
+import set_theory.ordinal.basic
 import tactic.by_contra
 
 /-!
@@ -389,6 +389,9 @@ theorem is_normal.strict_mono {f} (H : is_normal f) : strict_mono f :=
     (λ e, e ▸ H.1 _))
   (λ b l IH h, lt_of_lt_of_le (H.1 a)
     ((H.2 _ l _).1 le_rfl _ (l.2 _ h)))
+
+theorem is_normal.monotone {f} (H : is_normal f) : monotone f :=
+H.strict_mono.monotone
 
 theorem is_normal_iff_strict_mono_limit (f : ordinal → ordinal) :
   is_normal f ↔ (strict_mono f ∧ ∀ o, is_limit o → ∀ a, (∀ b < o, f b ≤ a) → f o ≤ a) :=
@@ -2111,7 +2114,7 @@ by rw [CNF_rec, dif_neg o0]
     base-`b` expansion of `o`.
 
     `CNF b (b ^ u₁ * v₁ + b ^ u₂ * v₂) = [(u₁, v₁), (u₂, v₂)]` -/
-def CNF (b := omega) (o : ordinal) : list (ordinal × ordinal) :=
+def CNF (b o : ordinal) : list (ordinal × ordinal) :=
 if b0 : b = 0 then [] else
 CNF_rec b0 [] (λ o o0 IH, (log b o, o / b ^ log b o) :: IH) o
 
@@ -2125,8 +2128,7 @@ theorem CNF_ne_zero {b o : ordinal} (b0 : b ≠ 0) (o0 : o ≠ 0) :
   CNF b o = (log b o, o / b ^ log b o) :: CNF b (o % b ^ log b o) :=
 by unfold CNF; rw [dif_neg b0, dif_neg b0, CNF_rec_ne_zero b0 o0]
 
-@[simp] theorem one_CNF {o : ordinal} (o0 : o ≠ 0) :
-  CNF 1 o = [(0, o)] :=
+@[simp] theorem one_CNF {o : ordinal} (o0 : o ≠ 0) : CNF 1 o = [(0, o)] :=
 by rw [CNF_ne_zero ordinal.one_ne_zero o0, log_not_one_lt (lt_irrefl _), opow_zero, mod_one,
        CNF_zero, div_one]
 
@@ -2135,8 +2137,10 @@ theorem CNF_foldr {b : ordinal} (b0 : b ≠ 0) (o) :
 CNF_rec b0 (by rw CNF_zero; refl)
   (λ o o0 IH, by rw [CNF_ne_zero b0 o0, list.foldr_cons, IH, div_add_mod]) o
 
-private theorem CNF_pairwise_aux (b := omega) (o) :
-  (∀ p ∈ CNF b o, prod.fst p ≤ log b o) ∧ (CNF b o).pairwise (λ p q, q.1 < p.1) :=
+/-- This theorem exists to factor out commonalities between the proofs of `ordinal.CNF_pairwise` and
+`ordinal.CNF_fst_le_log`. -/
+private theorem CNF_pairwise_aux (b o : ordinal.{u}) :
+  (∀ p : ordinal × ordinal, p ∈ CNF b o → p.1 ≤ log b o) ∧ (CNF b o).pairwise (λ p q, q.1 < p.1) :=
 begin
   by_cases b0 : b = 0,
   { simp only [b0, zero_CNF, list.pairwise.nil, and_true], exact λ _, false.elim },
@@ -2158,27 +2162,41 @@ begin
       list.pairwise_singleton] }
 end
 
-theorem CNF_pairwise (b := omega) (o) : (CNF b o).pairwise (λ p q, prod.fst q < p.1) :=
+theorem CNF_pairwise (b o : ordinal.{u}) :
+  (CNF b o).pairwise (λ p q : ordinal × ordinal, q.1 < p.1) :=
 (CNF_pairwise_aux _ _).2
 
-theorem CNF_fst_le_log (b := omega) (o) : ∀ p ∈ CNF b o, prod.fst p ≤ log b o :=
+theorem CNF_fst_le_log {b o : ordinal.{u}} :
+  ∀ {p : ordinal × ordinal}, p ∈ CNF b o → p.1 ≤ log b o :=
 (CNF_pairwise_aux _ _).1
 
-theorem CNF_fst_le (b := omega) (o) (p ∈ CNF b o) : prod.fst p ≤ o :=
-le_trans (CNF_fst_le_log _ _ p H) (log_le_self _ _)
+theorem CNF_fst_le {b o : ordinal.{u}} {p : ordinal × ordinal} (hp : p ∈ CNF b o) : p.1 ≤ o :=
+(CNF_fst_le_log hp).trans (log_le_self _ _)
 
-theorem CNF_snd_lt {b : ordinal} (b1 : 1 < b) (o) : ∀ p ∈ CNF b o, prod.snd p < b :=
+/-- This theorem exists to factor out commonalities between the proofs of `ordinal.CNF_snd_lt` and
+`ordinal.CNF_lt_snd`. -/
+private theorem CNF_snd_lt_aux {b o : ordinal.{u}} (b1 : 1 < b) :
+  ∀ {p : ordinal × ordinal}, p ∈ CNF b o → p.2 < b ∧ 0 < p.2 :=
 begin
-  have b0 := ne_of_gt (lt_trans zero_lt_one b1),
-  refine CNF_rec b0 (λ _, by rw [CNF_zero]; exact false.elim) _ o,
-  intros o o0 IH,
-  simp only [CNF_ne_zero b0 o0, list.mem_cons_iff, forall_eq_or_imp, iff_true_intro IH, and_true],
-  rw [div_lt (opow_ne_zero _ b0), ← opow_succ],
-  exact lt_opow_succ_log b1 _,
+  have b0 := (zero_lt_one.trans b1).ne',
+  refine CNF_rec b0 (λ _, by { rw CNF_zero, exact false.elim }) (λ o o0 IH, _) o,
+  simp only [CNF_ne_zero b0 o0, list.mem_cons_iff, forall_eq_or_imp, iff_true_intro @IH, and_true],
+  nth_rewrite 1 ←succ_le,
+  rw [div_lt (opow_ne_zero _ b0), ←opow_succ, le_div (opow_ne_zero _ b0), succ_zero, mul_one],
+  refine ⟨lt_opow_succ_log b1 _, opow_log_le _ _⟩,
+  rwa ordinal.pos_iff_ne_zero
 end
 
-theorem CNF_sorted (b := omega) (o) : ((CNF b o).map prod.fst).sorted (>) :=
-by rw [list.sorted, list.pairwise_map]; exact CNF_pairwise b o
+theorem CNF_snd_lt {b o : ordinal.{u}} (b1 : 1 < b) {p : ordinal × ordinal} (hp : p ∈ CNF b o) :
+  p.2 < b :=
+(CNF_snd_lt_aux b1 hp).1
+
+theorem CNF_lt_snd {b o : ordinal.{u}} (b1 : 1 < b) {p : ordinal × ordinal} (hp : p ∈ CNF b o) :
+  0 < p.2 :=
+(CNF_snd_lt_aux b1 hp).2
+
+theorem CNF_sorted (b o : ordinal) : ((CNF b o).map prod.fst).sorted (>) :=
+by { rw [list.sorted, list.pairwise_map], exact CNF_pairwise b o }
 
 /-! ### Casting naturals into ordinals, compatibility with operations -/
 
@@ -2552,7 +2570,7 @@ theorem nfp_add_eq_mul_omega {a b} (hba : b ≤ a * omega) :
 begin
   apply le_antisymm ((add_is_normal a).nfp_le_fp hba _),
   { rw ←nfp_add_zero,
-    exact monotone.nfp (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
+    exact monotone.nfp (add_is_normal a).monotone (ordinal.zero_le b) },
   { rw [←mul_one_add, one_add_omega] }
 end
 
@@ -2562,7 +2580,7 @@ begin
   { rw [←nfp_add_zero a, ←deriv_zero],
     cases (add_is_normal a).apply_eq_self_iff_deriv.1 h with c hc,
     rw ←hc,
-    exact (deriv_is_normal _).strict_mono.monotone (ordinal.zero_le _) },
+    exact (deriv_is_normal _).monotone (ordinal.zero_le _) },
   { have := ordinal.add_sub_cancel_of_le h,
     nth_rewrite 0 ←this,
     rwa [←add_assoc, ←mul_one_add, one_add_omega] }
@@ -2630,7 +2648,7 @@ begin
   { apply (mul_is_normal ha).nfp_le_fp hba,
     rw [←opow_one_add, one_add_omega] },
   rw ←nfp_mul_one ha,
-  exact monotone.nfp (mul_is_normal ha).strict_mono.monotone (one_le_iff_pos.2 hb)
+  exact monotone.nfp (mul_is_normal ha).monotone (one_le_iff_pos.2 hb)
 end
 
 theorem eq_zero_or_opow_omega_le_of_mul_eq_right {a b : ordinal} (hab : a * b = b) :

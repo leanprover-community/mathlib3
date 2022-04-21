@@ -6,7 +6,7 @@ Authors: Joël Riou, Adam Topaz, Johan Commelin
 
 import algebra.homology.additive
 import algebraic_topology.Moore_complex
-import data.fintype.card
+import algebra.big_operators.fin
 
 /-!
 
@@ -36,8 +36,6 @@ open_locale big_operators
 open_locale simplicial
 
 noncomputable theory
-
-universe v
 
 namespace algebraic_topology
 
@@ -143,7 +141,7 @@ chain_complex.of_hom _ _ _ _ _ _
 
 end alternating_face_map_complex
 
-variables (C : Type*) [category.{v} C] [preadditive C]
+variables (C : Type*) [category C] [preadditive C]
 
 /-- The alternating face map complex, as a functor -/
 @[simps]
@@ -153,7 +151,7 @@ def alternating_face_map_complex : simplicial_object C ⥤ chain_complex C ℕ :
 
 variables {C}
 
-lemma map_alternating_face_map_complex {D : Type*} [category.{v} D] [preadditive D]
+lemma map_alternating_face_map_complex {D : Type*} [category D] [preadditive D]
   (F : C ⥤ D) [F.additive] :
   alternating_face_map_complex C ⋙ F.map_homological_complex _ =
   (simplicial_object.whiskering C D).obj F ⋙ alternating_face_map_complex D :=

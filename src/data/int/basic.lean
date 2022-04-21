@@ -1295,11 +1295,20 @@ by rw [is_unit_iff_nat_abs_eq, abs_eq_nat_abs, ←int.coe_nat_one, coe_nat_inj']
 lemma of_nat_is_unit {n : ℕ} : is_unit (n : ℤ) ↔ is_unit n :=
 by rw [nat.is_unit_iff, is_unit_iff_nat_abs_eq, nat_abs_of_nat]
 
-lemma units_inv_eq_self (u : ℤˣ) : u⁻¹ = u :=
-(units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+lemma is_unit_mul_self {a : ℤ} (ha : is_unit a) : a * a = 1 :=
+(is_unit_eq_one_or ha).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+
+lemma is_unit_sq {a : ℤ} (ha : is_unit a) : a ^ 2 = 1 :=
+by rw [sq, is_unit_mul_self ha]
+
+@[simp] lemma units_sq (u : ℤˣ) : u ^ 2 = 1 :=
+by rw [units.ext_iff, units.coe_pow, units.coe_one, is_unit_sq u.is_unit]
 
 @[simp] lemma units_mul_self (u : ℤˣ) : u * u = 1 :=
-(units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+by rw [←sq, units_sq]
+
+@[simp] lemma units_inv_eq_self (u : ℤˣ) : u⁻¹ = u :=
+by rw [inv_eq_iff_mul_eq_one, units_mul_self]
 
 -- `units.coe_mul` is a "wrong turn" for the simplifier, this undoes it and simplifies further
 @[simp] lemma units_coe_mul_self (u : ℤˣ) : (u * u : ℤ) = 1 :=

@@ -586,8 +586,8 @@ noncomputable instance fractional_ideal.comm_group_with_zero :
   .. fractional_ideal.comm_semiring }
 
 instance ideal.is_domain : is_domain (ideal A) :=
-function.injective.is_domain' (coe_ideal_hom A⁰ (fraction_ring A))
-  coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
+coe_ideal_injective.is_domain
+  (coe_ideal_hom A⁰ (fraction_ring A) : ideal A →*₀ fractional_ideal A⁰ (fraction_ring A))
 
 /-- For ideals in a Dedekind domain, to divide is to contain. -/
 lemma ideal.dvd_iff_le {I J : ideal A} : (I ∣ J) ↔ J ≤ I :=

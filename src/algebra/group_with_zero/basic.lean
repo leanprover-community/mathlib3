@@ -482,23 +482,6 @@ protected theorem function.injective.is_domain
       hf $ (mul_right_cancel₀ $ (function.injective.ne_iff' hf f.map_zero).mpr h) this }
   .. pullback_nonzero f f.map_zero f.map_one }
 
-/-- Pullback a `is_domain` instance along an injective function. -/
-protected lemma function.injective.is_domain'
-  [has_zero M₀'] [has_mul M₀'] [has_one M₀'] [mul_zero_one_class M₀] [is_domain M₀]
-  (f : M₀' → M₀) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) :
-  is_domain M₀' :=
-{ is_regular_of_ne_zero := λ c hc,
-  { left := λ a b (H : c * a = c * b), hf $ mul_left_cancel₀ ((hf.ne_iff' zero).2 hc) $
-    by erw [← mul, ← mul, H]; refl,
-    right := λ a b (H : a * c = b * c), hf $ mul_right_cancel₀ ((hf.ne_iff' zero).2 hc) $
-    by erw [← mul, ← mul, H]; refl },
-  exists_pair_ne := by
-  { refine ⟨0, 1, _⟩,
-    apply hf.ne_iff.1,
-    rw [zero, one],
-    exact zero_ne_one } }
-
 section mul_zero_class
 
 variables [mul_zero_class M₀] [is_domain M₀] {a b c : M₀}

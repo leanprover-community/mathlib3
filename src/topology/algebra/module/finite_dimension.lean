@@ -90,7 +90,7 @@ begin
     -- Let `ε > 0`. Since `𝕜` is nondiscrete, we have `0 < ∥ξ₀∥ < ε` for some `ξ₀ : 𝕜`.
     intros ε hε,
     rcases normed_field.exists_norm_lt 𝕜 hε with ⟨ξ₀, hξ₀, hξ₀ε⟩,
-    -- Since `ξ₉ ≠ 0` and `𝓣` is T2, we know that `{ξ₀}ᶜ` is a `𝓣`-neighborhood of 0.
+    -- Since `ξ₀ ≠ 0` and `𝓣` is T2, we know that `{ξ₀}ᶜ` is a `𝓣`-neighborhood of 0.
     have : {ξ₀}ᶜ ∈ @nhds 𝕜 t 0 :=
       is_open.mem_nhds is_open_compl_singleton (ne.symm $ norm_ne_zero_iff.mp hξ₀.ne.symm),
     -- Thus, its balanced core `𝓑` is too. Let's show that the closed ball of radius `ε` contains
@@ -183,7 +183,7 @@ variables [complete_space 𝕜]
 This is the key fact wich makes all linear maps from a T2 finite dimensional TVS over such a field
 continuous (see `linear_map.continuous_of_finite_dimensional`), which in turn implies that all
 norm are equivalent in finite dimension. -/
-lemma continuous_equiv_fun_basis' [ht2 : t2_space E] {ι : Type v} [fintype ι] (ξ : basis ι 𝕜 E) :
+lemma continuous_equiv_fun_basis [ht2 : t2_space E] {ι : Type v} [fintype ι] (ξ : basis ι 𝕜 E) :
   continuous ξ.equiv_fun :=
 begin
   letI : uniform_space E := topological_add_group.to_uniform_space E,
@@ -240,7 +240,7 @@ begin
   -- argue that all linear maps there are continuous.
   let b := basis.of_vector_space 𝕜 E,
   have A : continuous b.equiv_fun :=
-    continuous_equiv_fun_basis' b,
+    continuous_equiv_fun_basis b,
   have B : continuous (f.comp (b.equiv_fun.symm : (basis.of_vector_space_index 𝕜 E → 𝕜) →ₗ[𝕜] E)) :=
     linear_map.continuous_on_pi _,
   have : continuous ((f.comp (b.equiv_fun.symm : (basis.of_vector_space_index 𝕜 E → 𝕜) →ₗ[𝕜] E))

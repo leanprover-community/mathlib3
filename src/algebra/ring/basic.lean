@@ -440,17 +440,15 @@ end
 protected def id (α : Type*) [non_unital_non_assoc_semiring α] : α →ₙ+* α :=
 by refine {to_fun := id, ..}; intros; refl
 
-/-- The zero non-unital ring homomorphism between non-unital semirings.  -/
-protected def zero (α : Type*) (β : Type*) [non_unital_non_assoc_semiring α]
-  [non_unital_non_assoc_semiring β] : α →ₙ+* β :=
-{ to_fun := function.const α 0,
-  map_mul' := λ x y, (mul_zero (0 : β)).symm,
-  map_zero' := rfl,
-  map_add' := λ x y, (add_zero (0 : β)).symm }
-
 include rα rβ
 
-instance : has_zero (α →ₙ+* β) := ⟨non_unital_ring_hom.zero α β⟩
+instance : has_zero (α →ₙ+* β) :=
+has_zero.mk
+  { to_fun := function.const α 0,
+    map_mul' := λ x y, (mul_zero (0 : β)).symm,
+    map_zero' := rfl,
+    map_add' := λ x y, (add_zero (0 : β)).symm }
+
 instance : inhabited (α →ₙ+* β) := ⟨0⟩
 
 @[simp] lemma coe_zero : ⇑(0 : α →ₙ+* β) = function.const α 0 := rfl

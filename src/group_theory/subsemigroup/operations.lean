@@ -383,6 +383,54 @@ lemma comap_strict_mono_of_surjective : strict_mono (comap f) :=
 
 end galois_insertion
 
+end subsemigroup
+
+namespace mul_mem_class
+
+variables {A : Type*} [set_like A M] [hA : mul_mem_class A M] (S' : A)
+include hA
+
+/-- A submagma of a magma inherits a multiplication. -/
+@[to_additive "An additive submagma of an additive magma inherits an addition."]
+instance has_mul : has_mul S' := ⟨λ a b, ⟨a.1 * b.1, mul_mem a.2 b.2⟩⟩
+
+@[simp, norm_cast, to_additive] lemma coe_mul (x y : S') : (↑(x * y) : M) = ↑x * ↑y := rfl
+
+@[simp, to_additive] lemma mk_mul_mk (x y : M) (hx : x ∈ S') (hy : y ∈ S') :
+  (⟨x, hx⟩ : S') * ⟨y, hy⟩ = ⟨x * y, mul_mem hx hy⟩ := rfl
+
+@[to_additive] lemma mul_def (x y : S') : x * y = ⟨x * y, mul_mem x.2 y.2⟩ := rfl
+
+omit hA
+
+/-- A subsemigroup of a semigroup inherits a semigroup structure. -/
+@[to_additive "An `add_subsemigroup` of an `add_semigroup` inherits an `add_semigroup`
+structure.",
+priority 75] -- Prefer subclasses of `semigroup` over subclasses of `mul_mem_class`.
+instance to_semigroup {M : Type*} [semigroup M] {A : Type*} [set_like A M] [mul_mem_class A M]
+  (S : A) : semigroup S :=
+subtype.coe_injective.semigroup coe (λ _ _, rfl)
+
+/-- A subsemigroup of a `comm_semigroup` is a `comm_semigroup`. -/
+@[to_additive "An `add_subsemigroup` of an `add_comm_semigroup` is
+an `add_comm_semigroup`.",
+priority 75] -- Prefer subclasses of `semigroup` over subclasses of `mul_mem_class`.
+instance to_comm_semigroup {M} [comm_semigroup M] {A : Type*} [set_like A M] [mul_mem_class A M]
+  (S : A) : comm_semigroup S :=
+subtype.coe_injective.comm_semigroup coe (λ _ _, rfl)
+
+include hA
+
+/-- The natural semigroup hom from a subsemigroup of semigroup `M` to `M`. -/
+@[to_additive "The natural semigroup hom from an `add_subsemigroup` of `add_semigroup` `M` to `M`."]
+def subtype : S' →ₙ* M := ⟨coe, λ _ _, rfl⟩
+
+@[simp, to_additive] theorem coe_subtype : (mul_mem_class.subtype S' : S' → M) = coe := rfl
+
+end mul_mem_class
+
+namespace subsemigroup
+
 /-- A submagma of a magma inherits a multiplication. -/
 @[to_additive "An additive submagma of an additive magma inherits an addition."]
 instance has_mul : has_mul S := ⟨λ a b, ⟨a.1 * b.1, S.mul_mem a.2 b.2⟩⟩

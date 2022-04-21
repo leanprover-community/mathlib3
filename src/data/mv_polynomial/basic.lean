@@ -401,6 +401,10 @@ lemma support_add : (p + q).support ⊆ p.support ∪ q.support := finsupp.suppo
 lemma support_X [nontrivial R] : (X n : mv_polynomial σ R).support = {single n 1} :=
 by rw [X, support_monomial, if_neg]; exact one_ne_zero
 
+lemma support_X_pow [nontrivial R] (s : σ) (n : ℕ) :
+  (X s ^ n : mv_polynomial σ R).support = {finsupp.single s n} :=
+by rw [X_pow_eq_monomial, support_monomial, if_neg (@one_ne_zero R _ _)]
+
 @[simp] lemma support_zero : (0 : mv_polynomial σ R).support = ∅ := rfl
 
 lemma support_sum {α : Type*} {s : finset α} {f : α → mv_polynomial σ R} :

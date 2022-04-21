@@ -30,17 +30,6 @@ throughout the count. The probability of this is `(p - q) / (p + q)`.
 
 open set probability_theory measure_theory
 
-namespace list
-
-lemma mem_of_mem_suffix {α : Type*} {l₁ l₂ : list α} {x : α} (hx : x ∈ l₁) (hl : l₁ <:+ l₂) :
-  x ∈ l₂ :=
-begin
-  rcases hl with ⟨l₂, rfl⟩,
-  exact list.mem_append_right l₂ hx,
-end
-
-end list
-
 /-- Every nonempty suffix has positive sum. -/
 def stays_positive : set (list ℤ) := {l | ∀ l₂, l₂ ≠ [] → l₂ <:+ l → 0 < l₂.sum}
 

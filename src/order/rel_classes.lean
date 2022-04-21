@@ -20,6 +20,8 @@ variables {α : Type u} {β : Type v} {r : α → α → Prop} {s : β → β �
 
 open function
 
+lemma of_eq [is_refl α r] : ∀ {a b}, a = b → r a b | _ _ ⟨h⟩ := refl _
+
 lemma comm [is_symm α r] {a b : α} : r a b ↔ r b a := ⟨symm, symm⟩
 lemma antisymm' [is_antisymm α r] {a b : α} : r a b → r b a → b = a := λ h h', antisymm h' h
 

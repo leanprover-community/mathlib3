@@ -126,7 +126,7 @@ begin
       rw irreducible_iff_uniformizer at hQ2,
       exact hQ2.symm } },
   { rintro ⟨RPID, Punique⟩,
-    haveI : local_ring R := local_of_unique_nonzero_prime R Punique,
+    haveI : local_ring R := local_ring.of_unique_nonzero_prime Punique,
     refine {not_a_field' := _},
     rcases Punique with ⟨P, ⟨hP1, hP2⟩, hP3⟩,
     have hPM : P ≤ maximal_ideal R := le_maximal_ideal (hP2.1),

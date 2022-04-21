@@ -1588,6 +1588,25 @@ end set
 
 end disjoint
 
+/-! ### Intervals -/
+
+namespace set
+variables [complete_lattice α]
+
+lemma Ici_supr (f : ι → α) : Ici (⨆ i, f i) = ⋂ i, Ici (f i) :=
+ext $ λ _, by simp only [mem_Ici, supr_le_iff, mem_Inter]
+
+lemma Iic_infi (f : ι → α) : Iic (⨅ i, f i) = ⋂ i, Iic (f i) :=
+ext $ λ _, by simp only [mem_Iic, le_infi_iff, mem_Inter]
+
+lemma Ici_supr₂ (f : Π i, κ i → α) : Ici (⨆ i j, f i j) = ⋂ i j, Ici (f i j) := by simp_rw Ici_supr
+lemma Iic_infi₂ (f : Π i, κ i → α) : Iic (⨅ i j, f i j) = ⋂ i j, Iic (f i j) := by simp_rw Iic_infi
+
+lemma Ici_Sup (s : set α) : Ici (Sup s) = ⋂ a ∈ s, Ici a := by rw [Sup_eq_supr, Ici_supr₂]
+lemma Iic_Inf (s : set α) : Iic (Inf s) = ⋂ a ∈ s, Iic a := by rw [Inf_eq_infi, Iic_infi₂]
+
+end set
+
 namespace set
 variables (t : α → set β)
 

@@ -57,8 +57,25 @@ open function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
-lemma ge_antisymm [partial_order α] {a b : α} (hab : a ≤ b) (hba : b ≤ a) : b = a :=
-le_antisymm hba hab
+section preorder
+variables [preorder α] {a b c : α}
+
+lemma le_trans' : b ≤ c → a ≤ b → a ≤ c := flip le_trans
+lemma lt_trans' : b < c → a < b → a < c := flip lt_trans
+lemma lt_of_le_of_lt' : b ≤ c → a < b → a < c := flip lt_of_lt_of_le
+lemma lt_of_lt_of_le' : b < c → a ≤ b → a < c := flip lt_of_le_of_lt
+
+end preorder
+
+section partial_order
+variables [partial_order α] {a b : α}
+
+lemma ge_antisymm : a ≤ b → b ≤ a → b = a := flip le_antisymm
+lemma lt_of_le_of_ne' : a ≤ b → b ≠ a → a < b := λ h₁ h₂, lt_of_le_of_ne h₁ h₂.symm
+lemma ne.lt_of_le : a ≠ b → a ≤ b → a < b := flip lt_of_le_of_ne
+lemma ne.lt_of_le' : b ≠ a → a ≤ b → a < b := flip lt_of_le_of_ne'
+
+end partial_order
 
 lemma lt_of_le_of_ne' [partial_order α] {a b : α} : a ≤ b → b ≠ a → a < b :=
 λ h h', lt_of_le_of_ne h h'.symm
@@ -67,7 +84,9 @@ attribute [simp] le_refl
 attribute [ext] has_le
 
 alias le_trans        ← has_le.le.trans
+alias le_trans'       ← has_le.le.trans'
 alias lt_of_le_of_lt  ← has_le.le.trans_lt
+alias lt_of_le_of_lt' ← has_le.le.trans_lt'
 alias le_antisymm     ← has_le.le.antisymm
 alias ge_antisymm     ← has_le.le.antisymm'
 alias lt_of_le_of_ne  ← has_le.le.lt_of_ne
@@ -78,7 +97,9 @@ alias decidable.lt_or_eq_of_le ← has_le.le.lt_or_eq_dec
 
 alias le_of_lt        ← has_lt.lt.le
 alias lt_trans        ← has_lt.lt.trans
+alias lt_trans'       ← has_lt.lt.trans'
 alias lt_of_lt_of_le  ← has_lt.lt.trans_le
+alias lt_of_lt_of_le' ← has_lt.lt.trans_le'
 alias ne_of_lt        ← has_lt.lt.ne
 alias lt_asymm        ← has_lt.lt.asymm has_lt.lt.not_lt
 
@@ -86,23 +107,43 @@ alias le_of_eq        ← eq.le
 
 attribute [nolint decidable_classical] has_le.le.lt_or_eq_dec
 
-/-- A version of `le_refl` where the argument is implicit -/
-lemma le_rfl [preorder α] {x : α} : x ≤ x := le_refl x
+section
+variables [preorder α] {a b c : α}
 
-@[simp] lemma lt_self_iff_false [preorder α] (x : α) : x < x ↔ false :=
-⟨lt_irrefl x, false.elim⟩
+/-- A version of `le_refl` where the argument is implicit -/
+lemma le_rfl : a ≤ a := le_refl a
+
+@[simp] lemma lt_self_iff_false (x : α) : x < x ↔ false := ⟨lt_irrefl x, false.elim⟩
+
+lemma le_of_le_of_eq (hab : a ≤ b) (hbc : b = c) : a ≤ c := hab.trans hbc.le
+lemma le_of_eq_of_le (hab : a = b) (hbc : b ≤ c) : a ≤ c := hab.le.trans hbc
+lemma lt_of_lt_of_eq (hab : a < b) (hbc : b = c) : a < c := hab.trans_le hbc.le
+lemma lt_of_eq_of_lt (hab : a = b) (hbc : b < c) : a < c := hab.le.trans_lt hbc
+lemma le_of_le_of_eq' : b ≤ c → a = b → a ≤ c := flip le_of_eq_of_le
+lemma le_of_eq_of_le' : b = c → a ≤ b → a ≤ c := flip le_of_le_of_eq
+lemma lt_of_lt_of_eq' : b < c → a = b → a < c := flip lt_of_eq_of_lt
+lemma lt_of_eq_of_lt' : b = c → a < b → a < c := flip lt_of_lt_of_eq
+
+alias le_of_le_of_eq  ← has_le.le.trans_eq
+alias le_of_le_of_eq' ← has_le.le.trans_eq'
+alias lt_of_lt_of_eq  ← has_lt.lt.trans_eq
+alias lt_of_lt_of_eq' ← has_lt.lt.trans_eq'
+alias le_of_eq_of_le  ← eq.trans_le
+alias le_of_eq_of_le' ← eq.trans_ge
+alias lt_of_eq_of_lt  ← eq.trans_lt
+alias lt_of_eq_of_lt' ← eq.trans_gt
+
+end
 
 namespace eq
+variables [preorder α] {x y z : α}
 
 /-- If `x = y` then `y ≤ x`. Note: this lemma uses `y ≤ x` instead of `x ≥ y`, because `le` is used
 almost exclusively in mathlib. -/
-protected lemma ge [preorder α] {x y : α} (h : x = y) : y ≤ x := h.symm.le
+protected lemma ge (h : x = y) : y ≤ x := h.symm.le
 
-lemma trans_le [preorder α] {x y z : α} (h1 : x = y) (h2 : y ≤ z) : x ≤ z := h1.le.trans h2
-
-lemma not_lt [partial_order α] {x y : α} (h : x = y) : ¬(x < y) := λ h', h'.ne h
-
-lemma not_gt [partial_order α] {x y : α} (h : x = y) : ¬(y < x) := h.symm.not_lt
+lemma not_lt (h : x = y) : ¬ x < y := λ h', h'.ne h
+lemma not_gt (h : x = y) : ¬ y < x := h.symm.not_lt
 
 end eq
 
@@ -110,8 +151,6 @@ namespace has_le.le
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma ge [has_le α] {x y : α} (h : x ≤ y) : y ≥ x := h
-
-lemma trans_eq [preorder α] {x y z : α} (h1 : x ≤ y) (h2 : y = z) : x ≤ z := h1.trans h2.le
 
 lemma lt_iff_ne [partial_order α] {x y : α} (h : x ≤ y) : x < y ↔ x ≠ y := ⟨λ h, h.ne, h.lt_of_ne⟩
 
@@ -152,9 +191,9 @@ protected lemma gt.lt [has_lt α] {x y : α} (h : x > y) : y < x := h
 theorem ge_of_eq [preorder α] {a b : α} (h : a = b) : a ≥ b := h.ge
 
 @[simp, nolint ge_or_gt] -- see Note [nolint_ge]
-lemma ge_iff_le [preorder α] {a b : α} : a ≥ b ↔ b ≤ a := iff.rfl
+lemma ge_iff_le [has_le α] {a b : α} : a ≥ b ↔ b ≤ a := iff.rfl
 @[simp, nolint ge_or_gt] -- see Note [nolint_ge]
-lemma gt_iff_lt [preorder α] {a b : α} : a > b ↔ b < a := iff.rfl
+lemma gt_iff_lt [has_lt α] {a b : α} : a > b ↔ b < a := iff.rfl
 
 lemma not_le_of_lt [preorder α] {a b : α} (h : a < b) : ¬ b ≤ a := (le_not_le_of_lt h).right
 
@@ -209,8 +248,8 @@ lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a <
 ⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩
 
 -- See Note [decidable namespace]
-protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [@decidable_rel α (≤)]
-  {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
+protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [decidable_eq α] {a b : α} :
+  (a ≠ b ↔ a < b) ↔ a ≤ b :=
 ⟨λ h, decidable.by_cases le_of_eq (le_of_lt ∘ h.mp), λ h, ⟨lt_of_le_of_ne h, ne_of_lt⟩⟩
 
 @[simp] lemma ne_iff_lt_iff_le [partial_order α] {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
@@ -219,7 +258,7 @@ by haveI := classical.dec; exact decidable.ne_iff_lt_iff_le
 lemma lt_of_not_le [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 ((le_total _ _).resolve_right h).lt_of_not_le h
 
-lemma lt_iff_not_le [linear_order α] {x y : α} : x < y ↔ ¬ y ≤ x := ⟨not_le_of_gt, lt_of_not_le⟩
+lemma lt_iff_not_le [linear_order α] {x y : α} : x < y ↔ ¬ y ≤ x := ⟨not_le_of_lt, lt_of_not_le⟩
 
 lemma ne.lt_or_lt [linear_order α] {x y : α} (h : x ≠ y) : x < y ∨ y < x := lt_or_gt_of_ne h
 

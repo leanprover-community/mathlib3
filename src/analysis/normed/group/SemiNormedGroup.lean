@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Riccardo Brasca
 -/
 import analysis.normed.group.hom
-import category_theory.limits.shapes.zero
+import category_theory.limits.shapes.zero_morphisms
+import category_theory.concrete_category.bundled_hom
 
 /-!
 # The category of seminormed groups

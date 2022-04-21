@@ -230,6 +230,12 @@ lemma one_of_one_le (h : 1 ≤ x) : smooth_transition x = 1 :=
 lemma zero_of_nonpos (h : x ≤ 0) : smooth_transition x = 0 :=
 by rw [smooth_transition, zero_of_nonpos h, zero_div]
 
+@[simp] protected lemma zero : smooth_transition 0 = 0 :=
+zero_of_nonpos le_rfl
+
+@[simp] protected lemma one : smooth_transition 1 = 1 :=
+one_of_one_le le_rfl
+
 lemma le_one (x : ℝ) : smooth_transition x ≤ 1 :=
 (div_le_one (pos_denom x)).2 $ le_add_of_nonneg_right (nonneg _)
 
@@ -250,6 +256,9 @@ exp_neg_inv_glue.cont_diff.div
 
 protected lemma cont_diff_at {x n} : cont_diff_at ℝ n smooth_transition x :=
 smooth_transition.cont_diff.cont_diff_at
+
+protected lemma continuous : continuous smooth_transition :=
+(@smooth_transition.cont_diff 0).continuous
 
 end smooth_transition
 

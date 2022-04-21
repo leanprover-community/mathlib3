@@ -185,9 +185,16 @@ by tauto
 
 /-! ### Lemmas about `mem` and `set_of` -/
 
-@[simp] theorem mem_set_of_eq {a : α} {p : α → Prop} : a ∈ {a | p a} = p a := rfl
+@[simp] theorem mem_set_of_eq {a : α} {p : α → Prop} : a ∈ {x | p x} = p a := rfl
 
-theorem nmem_set_of_eq {a : α} {P : α → Prop} : a ∉ {a : α | P a} = ¬ P a := rfl
+lemma mem_set_of {a : α} {p : α → Prop} : a ∈ {x | p x} ↔ p a := iff.rfl
+
+/-- If `h : a ∈ {x | p x}` then `h.out : p x`. These are definitionally equal, but this can
+nevertheless be useful for various reasons, e.g. to apply further projection notation or in an
+argument to `simp`. -/
+lemma has_mem.mem.out {p : α → Prop} {a : α} (h : a ∈ {x | p x}) : p a := h
+
+theorem nmem_set_of_eq {a : α} {p : α → Prop} : a ∉ {x | p x} = ¬ p a := rfl
 
 @[simp] theorem set_of_mem_eq {s : set α} : {x | x ∈ s} = s := rfl
 
@@ -695,8 +702,11 @@ theorem insert_nonempty (a : α) (s : set α) : (insert a s).nonempty := ⟨a, m
 
 instance (a : α) (s : set α) : nonempty (insert a s : set α) := (insert_nonempty a s).to_subtype
 
-lemma insert_inter (x : α) (s t : set α) : insert x (s ∩ t) = insert x s ∩ insert x t :=
+lemma insert_inter_distrib (a : α) (s t : set α) : insert a (s ∩ t) = insert a s ∩ insert a t :=
 ext $ λ y, or_and_distrib_left
+
+lemma insert_union_distrib (a : α) (s t : set α) : insert a (s ∪ t) = insert a s ∪ insert a t :=
+ext $ λ _, or_or_distrib_left _ _ _
 
 lemma insert_inj (ha : a ∉ s) : insert a s = insert b s ↔ a = b :=
 ⟨λ h, eq_of_not_mem_of_mem_insert (h.subst $ mem_insert a s) ha, congr_arg _⟩
@@ -1078,17 +1088,17 @@ begin
   exact h,
 end
 
-lemma insert_inter_of_mem {s₁ s₂ : set α} {a : α} (h : a ∈ s₂) :
-  insert a s₁ ∩ s₂ = insert a (s₁ ∩ s₂) :=
-by simp [set.insert_inter, h]
+lemma inter_insert_of_mem (h : a ∈ s) : s ∩ insert a t = insert a (s ∩ t) :=
+by rw [insert_inter_distrib, insert_eq_of_mem h]
 
-lemma insert_inter_of_not_mem {s₁ s₂ : set α} {a : α} (h : a ∉ s₂) :
-  insert a s₁ ∩ s₂ = s₁ ∩ s₂ :=
-begin
-  ext x,
-  simp only [mem_inter_iff, mem_insert_iff, mem_inter_eq, and.congr_left_iff, or_iff_right_iff_imp],
-  cc,
-end
+lemma insert_inter_of_mem (h : a ∈ t) : insert a s ∩ t = insert a (s ∩ t) :=
+by rw [insert_inter_distrib, insert_eq_of_mem h]
+
+lemma inter_insert_of_not_mem (h : a ∉ s) : s ∩ insert a t = s ∩ t :=
+ext $ λ x, and_congr_right $ λ hx, or_iff_right $ ne_of_mem_of_not_mem hx h
+
+lemma insert_inter_of_not_mem (h : a ∉ t) : insert a s ∩ t = s ∩ t :=
+ext $ λ x, and_congr_left $ λ hx, or_iff_right $ ne_of_mem_of_not_mem hx h
 
 @[simp] theorem union_diff_self {s t : set α} : s ∪ (t \ s) = s ∪ t :=
 sup_sdiff_self_right

@@ -389,7 +389,7 @@ by rw [edist_dist, ennreal.to_real_of_real (dist_nonneg)]
 namespace metric
 
 /- instantiate pseudometric space as a topology -/
-variables {x y z : α} {ε ε₁ ε₂ : ℝ} {s : set α}
+variables {x y z : α} {δ ε ε₁ ε₂ : ℝ} {s : set α}
 
 /-- `ball x ε` is the set of all points `y` with `dist y x < ε` -/
 def ball (x : α) (ε : ℝ) : set α := {y | dist y x < ε}
@@ -466,31 +466,18 @@ assume y (hy : _ < _), le_of_lt hy
 theorem sphere_subset_closed_ball : sphere x ε ⊆ closed_ball x ε :=
 λ y, le_of_eq
 
-lemma closed_ball_disjoint_ball (x y : α) (rx ry : ℝ) (h : rx + ry ≤ dist x y) :
-  disjoint (closed_ball x rx) (ball y ry) :=
-begin
-  rw disjoint_left,
-  intros a ax ay,
-  apply lt_irrefl (dist x y),
-  calc dist x y ≤ dist a x + dist a y : dist_triangle_left _ _ _
-  ... < rx + ry : add_lt_add_of_le_of_lt (mem_closed_ball.1 ax) (mem_ball.1 ay)
-  ... ≤ dist x y : h
-end
+lemma closed_ball_disjoint_ball (h : δ + ε ≤ dist x y) : disjoint (closed_ball x δ) (ball y ε) :=
+λ a ha, (h.trans $ dist_triangle_left _ _ _).not_lt $ add_lt_add_of_le_of_lt ha.1 ha.2
 
-lemma ball_disjoint_ball (x y : α) (rx ry : ℝ) (h : rx + ry ≤ dist x y) :
-  disjoint (ball x rx) (ball y ry) :=
-(closed_ball_disjoint_ball x y rx ry h).mono_left ball_subset_closed_ball
+lemma ball_disjoint_closed_ball (h : δ + ε ≤ dist x y) : disjoint (ball x δ) (closed_ball y ε) :=
+(closed_ball_disjoint_ball $ by rwa [add_comm, dist_comm]).symm
 
-lemma closed_ball_disjoint_closed_ball {x y : α} {rx ry : ℝ} (h : rx + ry < dist x y) :
-  disjoint (closed_ball x rx) (closed_ball y ry) :=
-begin
-  rw disjoint_left,
-  intros a ax ay,
-  apply lt_irrefl (dist x y),
-  calc dist x y ≤ dist a x + dist a y : dist_triangle_left _ _ _
-  ... ≤ rx + ry : add_le_add ax ay
-  ... < dist x y : h
-end
+lemma ball_disjoint_ball (h : δ + ε ≤ dist x y) : disjoint (ball x δ) (ball y ε) :=
+(closed_ball_disjoint_ball h).mono_left ball_subset_closed_ball
+
+lemma closed_ball_disjoint_closed_ball (h : δ + ε < dist x y) :
+  disjoint (closed_ball x δ) (closed_ball y ε) :=
+λ a ha, h.not_le $ (dist_triangle_left _ _ _).trans $ add_le_add ha.1 ha.2
 
 theorem sphere_disjoint_ball : disjoint (sphere x ε) (ball x ε) :=
 λ y ⟨hy₁, hy₂⟩, absurd hy₁ $ ne_of_lt hy₂
@@ -1590,7 +1577,7 @@ lemma _root_.topological_space.is_separable.separable_space {s : set α} (hs : i
 begin
   classical,
   rcases eq_empty_or_nonempty s with rfl|⟨⟨x₀, x₀s⟩⟩,
-  { haveI : encodable (∅ : set α) := fintype.encodable ↥∅, exact encodable.separable_space },
+  { haveI : encodable (∅ : set α) := fintype.to_encodable ↥∅, exact encodable.to_separable_space },
   rcases hs with ⟨c, hc, h'c⟩,
   haveI : encodable c := hc.to_encodable,
   obtain ⟨u, -, u_pos, u_lim⟩ : ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧

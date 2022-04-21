@@ -6,8 +6,8 @@ Authors: Pim Spelier, Daan van Gent
 
 import data.fintype.basic
 import data.num.lemmas
+import set_theory.cardinal.ordinal
 import tactic.derive_fintype
-import set_theory.cardinal_ordinal
 
 /-!
 # Encodings
@@ -207,7 +207,7 @@ end
 lemma fin_encoding.card_le_omega {α : Type u} (e : fin_encoding α) :
   (# α) ≤ ω :=
 begin
-  haveI : encodable e.Γ := fintype.encodable _,
+  haveI : encodable e.Γ := fintype.to_encodable _,
   exact e.to_encoding.card_le_omega,
 end
 

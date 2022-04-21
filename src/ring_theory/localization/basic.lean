@@ -5,7 +5,7 @@ Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baan
 -/
 import algebra.algebra.basic
 import algebra.ring.equiv
-import group_theory.monoid_localization
+import group_theory.monoid_localization.basic
 import ring_theory.ideal.basic
 import ring_theory.non_zero_divisors
 import tactic.ring_exp

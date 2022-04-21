@@ -521,7 +521,7 @@ def comp_linear_map [add_comm_monoid δ] [has_continuous_add δ] {R : Type*}
 /-- Composition as a non-unital algebra homomorphism. -/
 def comp_non_unital_alg_hom {R : Type*} [semiring R] [non_unital_non_assoc_semiring δ]
   [topological_semiring δ] [module R δ] [has_continuous_const_smul R δ] (g : β →co γ) :
-  non_unital_alg_hom R C₀(γ, δ) C₀(β, δ) :=
+  C₀(γ, δ) →ₙₐ[R] C₀(β, δ) :=
 { to_fun := λ f, f.comp g,
   map_smul' := λ r f, rfl,
   map_zero' := rfl,

@@ -378,7 +378,7 @@ variable {K}
 /-- `K` as a valued field with the `v`-adic valuation. -/
 def adic_valued : valued K (with_zero (multiplicative ℤ)) := ⟨v.valuation⟩
 
-lemma adic_valued_def {x : K} : @valued.v K _ _ _ v.adic_valued (x) = v.valuation_def x := rfl
+lemma adic_valued_def {x : K} : (v.adic_valued.v : _) x = v.valuation_def x := rfl
 
 /-- The topological space structure on `K` corresponding to the `v`-adic valuation.
   This cannot be made an instance since it depends on the choice of `v`. -/
@@ -387,7 +387,7 @@ def adic_valued_topological_space : topological_space K :=
 
 lemma adic_valued_topological_division_ring :
   @topological_division_ring K _ v.adic_valued_topological_space :=
-@valued.topological_division_ring K _ _ _ v.adic_valued
+infer_instance
 
 lemma adic_valued_topological_ring : @topological_ring K  v.adic_valued_topological_space _ :=
 infer_instance
@@ -428,12 +428,12 @@ instance valued_adic_completion : valued (v.adic_completion K) (with_zero (multi
 lemma valued_adic_completion_def {x : v.adic_completion K} :
   valued.v (x) = @valued.extension K _ _ _ (adic_valued v)  x := rfl
 
-instance adic_completion_topological_space : topological_space (v.adic_completion K) :=
-@valued.topological_space (v.adic_completion K) _ _ _ v.valued_adic_completion
-
 instance adic_completion_topological_division_ring :
-  @topological_division_ring (v.adic_completion K) _ v.adic_completion_topological_space :=
+  topological_division_ring (v.adic_completion K) :=
 @valued.topological_division_ring (v.adic_completion K) _ _ _ v.valued_adic_completion
+
+instance adic_completion_topological_space : topological_space (v.adic_completion K) :=
+infer_instance
 
 instance adic_completion_uniform_space : uniform_space (v.adic_completion K) :=
 @uniform_space.completion.uniform_space K v.adic_valued_uniform_space

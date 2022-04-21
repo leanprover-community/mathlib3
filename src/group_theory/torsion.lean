@@ -37,7 +37,7 @@ periodic group, torsion subgroup, torsion abelian group
 * torsion-free groups
 -/
 
-variable {G : Type*}
+variables {G H : Type*}
 
 namespace monoid
 
@@ -64,24 +64,52 @@ noncomputable def is_torsion.group [monoid G] (tG : is_torsion G) : group G :=
 
 section group
 
-variables [group G] {N : subgroup G}
+variables [group G] {N : subgroup G} [group H]
 
 /-- Subgroups of torsion groups are torsion groups. -/
 @[to_additive "Subgroups of additive torsion groups are additive torsion groups."]
 lemma is_torsion.subgroup (tG : is_torsion G) (H : subgroup G) : is_torsion H :=
-λ h, (is_of_fin_order_iff_coe _ h).mpr $ tG h
+λ h, (is_of_fin_order_iff_coe H.to_submonoid h).mpr $ tG h
 
-/-- Quotient groups of torsion groups are torsion groups. -/
-@[to_additive "Quotient groups of additive torsion groups are additive torsion groups."]
-lemma is_torsion.quotient_group [nN : N.normal] (tG : is_torsion G) : is_torsion (G ⧸ N) :=
-λ h, quotient_group.induction_on' h $ λ g, (tG g).quotient N g
+/-- The image of a surjective torsion group homomorphism is torsion. -/
+@[to_additive add_is_torsion.of_surjective
+  "The image of a surjective additive torsion group homomorphism is torsion."]
+lemma is_torsion.of_surjective {f : G →* H} (hf : function.surjective f) (tG : is_torsion G) :
+  is_torsion H :=
+λ h, begin
+  obtain ⟨g, hg⟩ := hf h,
+  rw ←hg,
+  exact f.is_of_fin_order (tG g),
+end
+
+/-- Torsion groups are closed under extensions. -/
+@[to_additive add_is_torsion.extension_closed
+  "Additive torsion groups are closed under extensions."]
+lemma is_torsion.extension_closed
+  {f : G →* H} (hN : N = f.ker) (tH : is_torsion H) (tN : is_torsion N) :
+  is_torsion G :=
+λ g, (is_of_fin_order_iff_pow_eq_one _).mpr $ begin
+  obtain ⟨ngn, ngnpos, hngn⟩ := (is_of_fin_order_iff_pow_eq_one _).mp (tH $ f g),
+  have hmem := f.mem_ker.mpr ((f.map_pow g ngn).trans hngn),
+  lift g ^ ngn to N using hN.symm ▸ hmem with gn,
+  obtain ⟨nn, nnpos, hnn⟩ := (is_of_fin_order_iff_pow_eq_one _).mp (tN gn),
+  exact ⟨ngn * nn, mul_pos ngnpos nnpos, by rw [pow_mul, ←h, ←subgroup.coe_pow,
+                                                hnn, subgroup.coe_one]⟩
+end
+
+/-- The image of a quotient is torsion iff the group is torsion. -/
+@[to_additive add_is_torsion.quotient_iff
+  "The image of a quotient is additively torsion iff the group is torsion."]
+lemma is_torsion.quotient_iff
+  {f : G →* H} (hf : function.surjective f) (hN : N = f.ker) (tN : is_torsion N) :
+  is_torsion H ↔ is_torsion G :=
+⟨λ tH, is_torsion.extension_closed hN tH tN, λ tG, is_torsion.of_surjective hf tG⟩
 
 /-- If a group exponent exists, the group is torsion. -/
 @[to_additive exponent_exists.is_add_torsion
   "If a group exponent exists, the group is additively torsion."]
-lemma exponent_exists.is_torsion (h : exponent_exists G) : is_torsion G := begin
+lemma exponent_exists.is_torsion (h : exponent_exists G) : is_torsion G := λ g, begin
   obtain ⟨n, npos, hn⟩ := h,
-  intro g,
   exact (is_of_fin_order_iff_pow_eq_one g).mpr ⟨n, npos, hn g⟩,
 end
 
@@ -101,6 +129,27 @@ exponent_exists.is_torsion $ exponent_exists_iff_ne_zero.mpr exponent_ne_zero_of
 
 end group
 
+section module
+
+-- A (semi/)ring of scalars and a commutative monoid of elements
+variables (R M : Type*) [add_comm_monoid M]
+
+namespace add_monoid
+
+/-- A module whose scalars are additively torsion is additively torsion. -/
+lemma is_torsion.module_of_torsion [semiring R] [module R M] (tR : is_torsion R) :
+is_torsion M := λ f, (is_of_fin_add_order_iff_nsmul_eq_zero _).mpr $ begin
+  obtain ⟨n, npos, hn⟩ := (is_of_fin_add_order_iff_nsmul_eq_zero _).mp (tR 1),
+  exact ⟨n, npos, by simp only [nsmul_eq_smul_cast R _ f, ←nsmul_one, hn, zero_smul]⟩,
+end
+
+/-- A module with a finite ring of scalars is additively torsion. -/
+lemma is_torsion.module_of_fintype [ring R] [fintype R] [module R M] : is_torsion M :=
+(is_add_torsion_of_fintype : is_torsion R).module_of_torsion _ _
+
+end add_monoid
+
+end module
 
 section comm_monoid
 

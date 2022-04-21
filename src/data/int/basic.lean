@@ -214,9 +214,12 @@ sub_lt_iff_lt_add.trans lt_add_one_iff
 theorem le_sub_one_iff {a b : ℤ} : a ≤ b - 1 ↔ a < b :=
 le_sub_iff_add_le
 
-@[simp] lemma eq_zero_iff_abs_lt_one {a : ℤ} : |a| < 1 ↔ a = 0 :=
+@[simp] lemma abs_lt_one_iff {a : ℤ} : |a| < 1 ↔ a = 0 :=
 ⟨λ a0, let ⟨hn, hp⟩ := abs_lt.mp a0 in (le_of_lt_add_one (by exact hp)).antisymm hn,
   λ a0, (abs_eq_zero.mpr a0).le.trans_lt zero_lt_one⟩
+
+lemma abs_le_one_iff {a : ℤ} : |a| ≤ 1 ↔ a = 0 ∨ a = 1 ∨ a = -1 :=
+by rw [le_iff_lt_or_eq, abs_lt_one_iff, abs_eq (@zero_le_one ℤ _)]
 
 @[elab_as_eliminator] protected lemma induction_on {p : ℤ → Prop}
   (i : ℤ) (hz : p 0) (hp : ∀ i : ℕ, p i → p (i + 1)) (hn : ∀ i : ℕ, p (-i) → p (-i - 1)) : p i :=
@@ -281,6 +284,8 @@ begin
 end
 
 /-! ### nat abs -/
+
+variables {a b : ℤ} {n : ℕ}
 
 attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
 
@@ -351,6 +356,9 @@ begin
   rw [← abs_eq_iff_mul_self_eq, abs_eq_nat_abs, abs_eq_nat_abs],
   exact int.coe_nat_inj'.symm
 end
+
+lemma eq_nat_abs_iff_mul_eq_zero : a.nat_abs = n ↔ (a - n) * (a + n) = 0 :=
+by rw [nat_abs_eq_iff, mul_eq_zero, sub_eq_zero, add_eq_zero_iff_eq_neg]
 
 lemma nat_abs_lt_iff_mul_self_lt {a b : ℤ} : a.nat_abs < b.nat_abs ↔ a * a < b * b :=
 begin
@@ -1546,7 +1554,7 @@ begin
   by_cases hm : m = 0, { subst m, exact zero_dvd_iff.mp h1, },
   rcases h1 with ⟨d, rfl⟩,
   apply mul_eq_zero_of_right,
-  rw [←eq_zero_iff_abs_lt_one, ←mul_lt_iff_lt_one_right (abs_pos.mpr hm), ←abs_mul],
+  rw [←abs_lt_one_iff, ←mul_lt_iff_lt_one_right (abs_pos.mpr hm), ←abs_mul],
   exact lt_of_lt_of_le h2 (le_abs_self m),
 end
 

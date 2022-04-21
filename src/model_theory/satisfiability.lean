@@ -29,8 +29,7 @@ complete.
 
 ## Implementation Details
 * Satisfiability of an `L.Theory` `T` is defined in the minimal universe containing all the symbols
-of `L`. By Löwenheim-Skolem, this is equivalent to satisfiability in any universe, but this is not
-yet proven in mathlib.
+of `L`. By Löwenheim-Skolem, this is equivalent to satisfiability in any universe.
 
 -/
 

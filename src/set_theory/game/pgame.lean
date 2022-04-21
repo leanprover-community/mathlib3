@@ -347,6 +347,22 @@ theorem lt_mk_of_le {x : pgame} {yl yr : Type*} {yL : yl → pgame} {yR i} :
   (x ≤ yL i) → x < ⟨yl, yr, yL, yR⟩ :=
 by { cases x, rw mk_lt_mk, exact λ h, or.inl ⟨_, h⟩ }
 
+theorem move_left_lt_of_le {x y : pgame} {i} :
+  x ≤ y → x.move_left i < y :=
+by { cases x, exact lt_of_le_mk }
+
+theorem lt_move_right_of_le {x y : pgame} {i} :
+  x ≤ y → x < y.move_right i :=
+by { cases y, exact lt_of_mk_le }
+
+theorem move_right_lt_of_le {x y : pgame} {i} :
+  x.move_right i ≤ y → x < y :=
+by { cases x, rw move_right_mk, exact mk_lt_of_le }
+
+theorem lt_of_le_move_left {x y : pgame} {i} :
+  x ≤ y.move_left i → x < y :=
+by { cases y, rw move_left_mk, exact lt_mk_of_le }
+
 theorem not_le_lt {x y : pgame} :
   (¬ x ≤ y ↔ y < x) ∧ (¬ x < y ↔ y ≤ x) :=
 begin

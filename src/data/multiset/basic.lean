@@ -56,7 +56,7 @@ instance inhabited_multiset : inhabited (multiset α)  := ⟨0⟩
 @[simp] theorem coe_nil_eq_zero : (@nil α : multiset α) = 0 := rfl
 @[simp] theorem empty_eq_zero : (∅ : multiset α) = 0 := rfl
 
-theorem coe_eq_zero (l : list α) : (l : multiset α) = 0 ↔ l = [] :=
+@[simp] theorem coe_eq_zero (l : list α) : (l : multiset α) = 0 ↔ l = [] :=
 iff.trans coe_eq_coe perm_nil
 
 /-! ### `multiset.cons` -/

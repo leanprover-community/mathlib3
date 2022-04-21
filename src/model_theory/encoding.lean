@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 
-import model_theory.syntax
-import set_theory.cardinal_ordinal
 import computability.encoding
+import model_theory.syntax
+import set_theory.cardinal.ordinal
 
 /-! # Encodings and Cardinality of First-Order Syntax
 

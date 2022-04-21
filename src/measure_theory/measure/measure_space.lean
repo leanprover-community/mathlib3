@@ -1667,13 +1667,13 @@ end
 @[simp] lemma count_eq_zero_iff : count s = 0 ↔ s = ∅ :=
 ⟨empty_of_count_eq_zero, λ h, h.symm ▸ count_empty⟩
 
-lemma count_neq_zero  (hs' : s.nonempty) : count s ≠ 0:=
+lemma count_ne_zero (hs' : s.nonempty) : count s ≠ 0 :=
 begin
   rw [ne.def, count_eq_zero_iff],
   exact hs'.ne_empty,
 end
 
-lemma count_singleton (a : α) : count ({a} : set α) = 1 :=
+@[simp] lemma count_singleton (a : α) : count ({a} : set α) = 1 :=
 begin
   rw [count_apply_finite ({a} : set α) (set.finite_singleton _), set.finite.to_finset],
   simp,

@@ -28,15 +28,14 @@ namespace finset
 @[to_additive]
 theorem prod_range [comm_monoid β] {n : ℕ} (f : ℕ → β) :
   ∏ i in finset.range n, f i = ∏ i : fin n, f i :=
-begin
-  fapply @finset.prod_bij' _ _ _ _ _ _,
-  exact λ k w, ⟨k, (by simpa using w)⟩,
-  swap 3,
-  exact λ a m, a,
-  swap 3,
-  exact λ a m, by simpa using a.2,
-  all_goals { tidy, },
-end
+prod_bij'
+  (λ k w, ⟨k, mem_range.mp w⟩)
+  (λ a ha, mem_univ _)
+  (λ a ha, congr_arg _ (fin.coe_mk _).symm)
+  (λ a m, a)
+  (λ a m, mem_range.mpr a.prop)
+  (λ a ha, fin.coe_mk _)
+  (λ a ha, fin.eta _ _)
 
 end finset
 

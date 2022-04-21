@@ -1,9 +1,12 @@
 /-
 Copyright (c) 2020 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Oliver Nash
+Authors: Oliver Nash, Antoine Labelle
 -/
 import linear_algebra.dual
+import linear_algebra.matrix.to_lin
+import linear_algebra.tensor_product_basis
+import linear_algebra.free_module.finite.rank
 
 /-!
 # Contractions
@@ -17,15 +20,17 @@ some basic properties of these maps.
 contraction, dual module, tensor product
 -/
 
-universes u v
-
-
 section contraction
-open tensor_product
-open_locale tensor_product
 
-variables (R : Type u) (M N : Type v)
-variables [comm_ring R] [add_comm_group M] [add_comm_group N] [module R M] [module R N]
+open tensor_product linear_map matrix
+open_locale tensor_product big_operators
+
+variables (R M N : Type*) [add_comm_group M] [add_comm_group N]
+
+section comm_ring
+
+variables [comm_ring R] [module R M] [module R N]
+variables {ι : Type*} [decidable_eq ι] [fintype ι] (b : basis ι R M)
 
 /-- The natural left-handed pairing between a module and its dual. -/
 def contract_left : (module.dual R M) ⊗ M →ₗ[R] R := (uncurry _ _ _ _).to_fun linear_map.id
@@ -50,5 +55,58 @@ variables {R M N}
 @[simp] lemma dual_tensor_hom_apply (f : module.dual R M) (m : M) (n : N) :
   dual_tensor_hom R M N (f ⊗ₜ n) m = (f m) • n :=
 by { dunfold dual_tensor_hom, rw uncurry_apply, refl, }
+
+/-- As a matrix, `dual_tensor_hom` evaluated on a basis element of `M* ⊗ N` is a matrix with a
+single one and zeros elsewhere -/
+theorem to_matrix_dual_tensor_hom
+  {m : Type*} {n : Type*} [fintype m] [fintype n] [decidable_eq m] [decidable_eq n]
+  (bM : basis m R M) (bN : basis n R N) (j : m) (i : n) :
+    to_matrix bM bN (dual_tensor_hom R M N (bM.coord j ⊗ₜ bN i)) = std_basis_matrix i j 1 :=
+begin
+  ext i' j',
+  by_cases hij : (i = i' ∧ j = j');
+  simp [linear_map.to_matrix_apply, finsupp.single_eq_pi_single, hij],
+  rw [and_iff_not_or_not, not_not] at hij, cases hij; simp [hij],
+end
+
+local attribute [ext] tensor_product.ext
+
+/-- If `M` is free, the natural linear map $M^* ⊗ N → Hom(M, N)$ is an equivalence. This function
+provides this equivalence in return for a basis of `M`. -/
+@[simps]
+noncomputable def dual_tensor_hom_equiv_of_basis
+  {ι : Type*} [decidable_eq ι] [fintype ι] (b : basis ι R M) :
+  (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=
+linear_equiv.of_linear
+  (dual_tensor_hom R M N)
+  (∑ i, (tensor_product.mk R _ N (b.dual_basis i)) ∘ₗ linear_map.applyₗ (b i))
+  (begin
+    ext f m,
+    simp only [applyₗ_apply_apply, coe_fn_sum, dual_tensor_hom_apply, mk_apply, id_coe, id.def,
+      fintype.sum_apply, function.comp_app, basis.coe_dual_basis, coe_comp,
+      basis.coord_apply, ← f.map_smul, (dual_tensor_hom R M N).map_sum, ← f.map_sum, b.sum_repr],
+  end)
+  (begin
+    ext f m,
+    simp only [applyₗ_apply_apply, coe_fn_sum, dual_tensor_hom_apply, mk_apply, id_coe, id.def,
+      fintype.sum_apply, function.comp_app, basis.coe_dual_basis, coe_comp,
+      compr₂_apply, tmul_smul, smul_tmul', ← sum_tmul, basis.sum_dual_apply_smul_coord],
+end)
+
+@[simp] lemma dual_tensor_hom_equiv_of_basis_to_linear_map :
+  (dual_tensor_hom_equiv_of_basis b : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N).to_linear_map =
+  dual_tensor_hom R M N :=
+rfl
+
+variables [module.free R M] [module.finite R M] [nontrivial R]
+
+open_locale classical
+
+/-- If `M` is finite free, the natural map $M^* ⊗ N → Hom(M, N)$ is an
+equivalence. -/
+@[simp] noncomputable def dual_tensor_hom_equiv : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=
+dual_tensor_hom_equiv_of_basis (module.free.choose_basis R M)
+
+end comm_ring
 
 end contraction

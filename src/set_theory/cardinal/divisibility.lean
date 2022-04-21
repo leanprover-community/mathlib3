@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
 
-import set_theory.cardinal_ordinal
 import algebra.is_prime_pow
+import set_theory.cardinal.ordinal
 
 /-!
 # Cardinal Divisibility

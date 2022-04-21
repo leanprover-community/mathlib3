@@ -336,24 +336,24 @@ open subsemigroup
 
 /-- The subsemigroup of elements `x : M` such that `f x = g x` -/
 @[to_additive "The additive subsemigroup of elements `x : M` such that `f x = g x`"]
-def eq_mlocus (f g : mul_hom M N) : subsemigroup M :=
+def eq_mlocus (f g : M →ₙ* N) : subsemigroup M :=
 { carrier := {x | f x = g x},
   mul_mem' := λ x y (hx : _ = _) (hy : _ = _), by simp [*] }
 
 /-- If two mul homomorphisms are equal on a set, then they are equal on its subsemigroup closure. -/
 @[to_additive "If two add homomorphisms are equal on a set,
 then they are equal on its additive subsemigroup closure."]
-lemma eq_on_mclosure {f g : mul_hom M N} {s : set M} (h : set.eq_on f g s) :
+lemma eq_on_mclosure {f g : M →ₙ* N} {s : set M} (h : set.eq_on f g s) :
   set.eq_on f g (closure s) :=
 show closure s ≤ f.eq_mlocus g, from closure_le.2 h
 
 @[to_additive]
-lemma eq_of_eq_on_mtop {f g : mul_hom M N} (h : set.eq_on f g (⊤ : subsemigroup M)) :
+lemma eq_of_eq_on_mtop {f g : M →ₙ* N} (h : set.eq_on f g (⊤ : subsemigroup M)) :
   f = g :=
 ext $ λ x, h trivial
 
 @[to_additive]
-lemma eq_of_eq_on_mdense {s : set M} (hs : closure s = ⊤) {f g : mul_hom M N} (h : s.eq_on f g) :
+lemma eq_of_eq_on_mdense {s : set M} (hs : closure s = ⊤) {f g : M →ₙ* N} (h : s.eq_on f g) :
   f = g :=
 eq_of_eq_on_mtop $ hs ▸ eq_on_mclosure h
 
@@ -374,7 +374,7 @@ of `f (x * y) = f x * f y` only for `y ∈ s`. -/
 @[to_additive]
 def of_mdense {M N} [semigroup M] [semigroup N] {s : set M} (f : M → N) (hs : closure s = ⊤)
   (hmul : ∀ x (y ∈ s), f (x * y) = f x * f y) :
-  mul_hom M N :=
+  M →ₙ* N :=
 { to_fun := f,
   map_mul' := λ x y, dense_induction y hs (λ y hy x, hmul x y hy)
     (λ y₁ y₂ h₁ h₂ x, by simp only [← mul_assoc, h₁, h₂]) x }

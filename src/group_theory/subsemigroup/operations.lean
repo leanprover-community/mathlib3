@@ -161,8 +161,8 @@ variables [has_mul M] [has_mul N] [has_mul P] (S : subsemigroup M)
 `add_subsemigroup`."]
 def comap (f : M →ₙ* N) (S : subsemigroup N) : subsemigroup M :=
 { carrier := (f ⁻¹' S),
-  mul_mem' := λ a b ha hb,
-    show f (a * b) ∈ S, by rw f.map_mul; exact S.mul_mem ha hb }
+mul_mem' := λ a b ha hb,
+    show f (a * b) ∈ S, by rw map_mul; exact mul_mem ha hb }
 
 @[simp, to_additive]
 lemma coe_comap (S : subsemigroup N) (f : M →ₙ* N) : (S.comap f : set M) = f ⁻¹' S := rfl
@@ -184,8 +184,8 @@ ext (by simp)
 an `add_subsemigroup`."]
 def map (f : M →ₙ* N) (S : subsemigroup M) : subsemigroup N :=
 { carrier := (f '' S),
-  mul_mem' := begin rintros _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩, exact ⟨x * y, S.mul_mem hx hy,
-    by rw f.map_mul; refl⟩ end }
+  mul_mem' := begin rintros _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩,
+    exact ⟨x * y, @mul_mem (subsemigroup M) M _ _ _ _ _ _ hx hy, by rw map_mul; refl⟩ end }
 
 @[simp, to_additive]
 lemma coe_map (f : M →ₙ* N) (S : subsemigroup M) :
@@ -577,7 +577,7 @@ rfl
 codomain.", simps]
 def cod_mrestrict (f : M →ₙ* N) (S : subsemigroup N) (h : ∀ x, f x ∈ S) : M →ₙ* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
-  map_mul' := λ x y, subtype.eq (f.map_mul x y) }
+  map_mul' := λ x y, subtype.eq (map_mul f x y) }
 
 /-- Restriction of a semigroup hom to its range interpreted as a subsemigroup. -/
 @[to_additive "Restriction of an `add_semigroup` hom to its range interpreted as a subsemigroup."]
@@ -600,7 +600,7 @@ set_like.coe_injective $ set.preimage_prod_map_prod f g _ _
 def subsemigroup_comap (f : M →ₙ* N) (N' : subsemigroup N) :
   N'.comap f →ₙ* N' :=
 { to_fun := λ x, ⟨f x, x.prop⟩,
-  map_mul' := λ x y, subtype.eq (f.map_mul x y) }
+  map_mul' := λ x y, subtype.eq (@map_mul M N _ _ _ _ f x y) }
 
 /-- The `mul_hom` from a subsemigroup to its image.
 See `mul_equiv.subsemigroup_map` for a variant for `mul_equiv`s. -/
@@ -609,7 +609,7 @@ See `mul_equiv.subsemigroup_map` for a variant for `mul_equiv`s. -/
 def subsemigroup_map (f : M →ₙ* N) (M' : subsemigroup M) :
   M' →ₙ* M'.map f :=
 { to_fun := λ x, ⟨f x, ⟨x, x.prop, rfl⟩⟩,
-  map_mul' := λ x y, subtype.eq $ f.map_mul x y }
+  map_mul' := λ x y, subtype.eq $ @map_mul M N _ _ _ _ f x y }
 
 @[to_additive]
 lemma subsemigroup_map_surjective (f : M →ₙ* N) (M' : subsemigroup M) :

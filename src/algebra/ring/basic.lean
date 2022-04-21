@@ -6,6 +6,7 @@ Neil Strickland
 -/
 import algebra.divisibility
 import algebra.regular.basic
+import data.pi
 
 /-!
 # Properties and homomorphisms of semirings and rings
@@ -454,14 +455,14 @@ include rα rβ
 
 instance : has_zero (α →ₙ+* β) :=
 has_zero.mk
-  { to_fun := function.const α 0,
+  { to_fun := 0,
     map_mul' := λ x y, (mul_zero (0 : β)).symm,
     map_zero' := rfl,
     map_add' := λ x y, (add_zero (0 : β)).symm }
 
 instance : inhabited (α →ₙ+* β) := ⟨0⟩
 
-@[simp] lemma coe_zero : ⇑(0 : α →ₙ+* β) = function.const α 0 := rfl
+@[simp] lemma coe_zero : ⇑(0 : α →ₙ+* β) = 0 := rfl
 @[simp] lemma zero_apply (x : α) : (0 : α →ₙ+* β) x = 0 := rfl
 
 omit rβ

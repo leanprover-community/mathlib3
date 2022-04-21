@@ -20,41 +20,40 @@ In this file we define various operations on `subsemigroup`s and `mul_hom`s.
   convert between multiplicative and additive subsemigroups of `M`,
   `multiplicative M`, and `additive M`. These are stated as `order_iso`s.
 
-### (Commutative) monoid structure on a subsemigroup
+### (Commutative) semigroup structure on a subsemigroup
 
-* `subsemigroup.to_monoid`, `subsemigroup.to_comm_monoid`:
-  a subsemigroup inherits a (commutative) semigroup structure.
-
-### Group actions by subsemigroups
-
-* `subsemigroup.mul_action`, `subsemigroup.distrib_mul_action`:
-  a subsemigroup inherits (distributive) multiplicative actions.
+* `subsemigroup.to_semigroup`, `subsemigroup.to_comm_semigroup`: a subsemigroup inherits a
+  (commutative) semigroup structure.
 
 ### Operations on subsemigroups
 
-* `subsemigroup.comap`: preimage of a subsemigroup under a mul homomorphism as
-  a subsemigroup of the domain;
-* `subsemigroup.map`: image of a subsemigroup under a mul homomorphism as
-  a subsemigroup of the codomain;
+* `subsemigroup.comap`: preimage of a subsemigroup under a semigroup homomorphism as a subsemigroup
+  of the domain;
+* `subsemigroup.map`: image of a subsemigroup under a semigroup homomorphism as a subsemigroup of
+  the codomain;
 * `subsemigroup.prod`: product of two subsemigroups `s : subsemigroup M` and `t : subsemigroup N`
   as a subsemigroup of `M × N`;
 
-### Mul homomorphisms between subsemigroup
+### Semigroup homomorphisms between subsemigroups
 
-* `subsemigroup.subtype`: embedding of a subsemigroup into the ambient magma.
-* `subsemigroup.inclusion`: given two subsemigroups `S`, `T` such that `S ≤ T`, `S.inclusion T`
-  is the inclusion of `S` into `T` as a monoid homomorphism;
-* `mul_equiv.subsemigroup_congr`: converts a proof of `S = T` into a mul isomorphism between `S`
-  and `T`.
-* `subsemigroup.prod_equiv`: mul isomorphism between `s.prod t` and `s × t`;
+* `subsemigroup.subtype`: embedding of a subsemigroup into the ambient semigroup.
+* `subsemigroup.inclusion`: given two subsemigroups `S`, `T` such that `S ≤ T`, `S.inclusion T` is
+  the inclusion of `S` into `T` as a semigroup homomorphism;
+* `mul_equiv.subsemigroup_congr`: converts a proof of `S = T` into a semigroup isomorphism between
+  `S` and `T`.
+* `subsemigroup.prod_equiv`: semigroup isomorphism between `s.prod t` and `s × t`;
 
 ### Operations on `mul_hom`s
 
-* `mul_hom.mrange`: range of a monoid homomorphism as a subsemigroup of the codomain;
-* `mul_hom.mker`: kernel of a monoid homomorphism as a subsemigroup of the domain;
-* `mul_hom.mrestrict`: restrict a monoid homomorphism to a subsemigroup;
-* `mul_hom.cod_mrestrict`: restrict the codomain of a monoid homomorphism to a subsemigroup;
-* `mul_hom.mrange_restrict`: restrict a monoid homomorphism to its range;
+* `mul_hom.mrange`: range of a semigroup homomorphism as a subsemigroup of the codomain;
+* `mul_hom.mrestrict`: restrict a semigroup homomorphism to a subsemigroup;
+* `mul_hom.cod_mrestrict`: restrict the codomain of a semigroup homomorphism to a subsemigroup;
+* `mul_hom.mrange_restrict`: restrict a semigroup homomorphism to its range;
+
+### Implementation notes
+
+This file follows closely `group_theory/submonoid/operations.lean`, omitting only that which is
+necessary.
 
 ## Tags
 

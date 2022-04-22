@@ -199,17 +199,17 @@ end
 
 @[to_additive zsmul_strict_mono_left]
 lemma zpow_strict_mono_right (ha : 1 < a) : strict_mono (λ n : ℤ, a ^ n) :=
-λ n m h,
-  calc a ^ n = a ^ n * 1 : (mul_one _).symm
-    ... < a ^ n * a ^ (m - n) : mul_lt_mul_left' (one_lt_zpow' ha $ sub_pos_of_lt h) _
-    ... = a ^ m : by { rw ←zpow_add, simp }
+λ m n h,
+  calc a ^ m = a ^ m * 1 : (mul_one _).symm
+    ... < a ^ m * a ^ (n - m) : mul_lt_mul_left' (one_lt_zpow' ha $ sub_pos_of_lt h) _
+    ... = a ^ n : by { rw ←zpow_add, simp }
 
 @[to_additive zsmul_mono_left]
 lemma zpow_mono_right (ha : 1 ≤ a) : monotone (λ n : ℤ, a ^ n) :=
-λ n m h,
-  calc a ^ n = a ^ n * 1 : (mul_one _).symm
-    ... ≤ a ^ n * a ^ (m - n) : mul_le_mul_left' (one_le_zpow ha $ sub_nonneg_of_le h) _
-    ... = a ^ m : by { rw ←zpow_add, simp }
+λ m n h,
+  calc a ^ m = a ^ m * 1 : (mul_one _).symm
+    ... ≤ a ^ m * a ^ (n - m) : mul_le_mul_left' (one_le_zpow ha $ sub_nonneg_of_le h) _
+    ... = a ^ n : by { rw ←zpow_add, simp }
 
 @[to_additive]
 lemma zpow_le_zpow (ha : 1 ≤ a) (h : m ≤ n) : a ^ m ≤ a ^ n := zpow_mono_right ha h
@@ -250,6 +250,7 @@ variables [linear_ordered_comm_group α] {n : ℤ} {a b : α}
 lemma zpow_le_zpow_iff' (hn : 0 < n) {a b : α} : a ^ n ≤ b ^ n ↔ a ≤ b :=
 (zpow_strict_mono_left α hn).le_iff_le
 
+@[to_additive]
 lemma zpow_lt_zpow_iff' (hn : 0 < n) {a b : α} : a ^ n < b ^ n ↔ a < b :=
 (zpow_strict_mono_left α hn).lt_iff_lt
 

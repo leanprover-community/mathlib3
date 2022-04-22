@@ -743,37 +743,54 @@ by { cases a; cases b; simp [← with_top.coe_sub] }
 lemma sub_ne_top (ha : a ≠ ∞) : a - b ≠ ∞ :=
 mt sub_eq_top_iff.mp $ mt and.left ha
 
+protected lemma sub_eq_of_eq_add (hb : b ≠ ∞) : a = c + b → a - b = c :=
+(cancel_of_ne hb).tsub_eq_of_eq_add
+
+protected lemma eq_sub_of_add_eq (hc : c ≠ ∞) : a + c = b → a = b - c :=
+(cancel_of_ne hc).eq_tsub_of_add_eq
+
+protected lemma sub_eq_of_eq_add_rev (hb : b ≠ ∞) : a = b + c → a - b = c :=
+(cancel_of_ne hb).tsub_eq_of_eq_add_rev
+
+lemma sub_eq_of_add_eq (hb : b ≠ ∞) (hc : a + b = c) : c - b = a :=
+ennreal.sub_eq_of_eq_add hb hc.symm
+
+@[simp] protected lemma add_sub_cancel_left (ha : a ≠ ∞) : a + b - a = b :=
+(cancel_of_ne ha).add_tsub_cancel_left
+
+@[simp] protected lemma add_sub_cancel_right (hb : b ≠ ∞) : a + b - b = a :=
+(cancel_of_ne hb).add_tsub_cancel_right
+
+protected lemma lt_add_of_sub_lt_left (h : a ≠ ∞ ∨ b ≠ ∞) : a - b < c → a < b + c :=
+begin
+  obtain rfl | hb := eq_or_ne b ∞,
+  { rw [top_add, lt_top_iff_ne_top],
+    exact λ _, h.resolve_right (not_not.2 rfl) },
+  { exact (cancel_of_ne hb).lt_add_of_tsub_lt_left }
+end
+
+protected lemma lt_add_of_sub_lt_right (h : a ≠ ∞ ∨ c ≠ ∞) : a - c < b → a < b + c :=
+begin
+  obtain rfl | hc := eq_or_ne c ∞,
+  { rw [add_top, lt_top_iff_ne_top],
+    exact λ _, h.resolve_right (not_not.2 rfl) },
+  { exact (cancel_of_ne hc).lt_add_of_tsub_lt_right }
+end
+
 protected lemma sub_lt_of_lt_add (hac : c ≤ a) (h : a < b + c) : a - c < b :=
 ((cancel_of_lt' $ hac.trans_lt h).tsub_lt_iff_right hac).mpr h
 
-@[simp] lemma add_sub_self (hb : b ≠ ∞) : (a + b) - b = a :=
-(cancel_of_ne hb).add_tsub_cancel_right
-
-@[simp] lemma add_sub_self' (ha : a ≠ ∞) : (a + b) - a = b :=
-(cancel_of_ne ha).add_tsub_cancel_left
-
-lemma sub_eq_of_add_eq (hb : b ≠ ∞) (hc : a + b = c) : c - b = a :=
-(cancel_of_ne hb).tsub_eq_of_eq_add hc.symm
-
-protected lemma lt_add_of_sub_lt (ht : a ≠ ∞ ∨ b ≠ ∞) (h : a - b < c) : a < c + b :=
-begin
-  rcases eq_or_ne b ∞ with rfl|hb,
-  { rw [add_top, lt_top_iff_ne_top], exact ht.resolve_right (not_not.2 rfl) },
-  { exact (cancel_of_ne hb).lt_add_of_tsub_lt_right h }
-end
-
-protected lemma sub_lt_iff_lt_add (hb : b ≠ ∞) (hab : b ≤ a) : a - b < c ↔ a < c + b :=
+protected lemma sub_lt_iff_lt_right (hb : b ≠ ∞) (hab : b ≤ a) : a - b < c ↔ a < c + b :=
 (cancel_of_ne hb).tsub_lt_iff_right hab
 
-protected lemma sub_lt_self (hat : a ≠ ∞) (ha0 : a ≠ 0) (hb : b ≠ 0) : a - b < a :=
-begin
-  cases b, { simp [pos_iff_ne_zero, ha0] },
-  exact (cancel_of_ne hat).tsub_lt_self cancel_coe (pos_iff_ne_zero.mpr ha0)
-    (pos_iff_ne_zero.mpr hb)
-end
+protected lemma sub_lt_self (ha : a ≠ ∞) (ha₀ : a ≠ 0) (hb : b ≠ 0) : a - b < a :=
+(cancel_of_ne ha).tsub_lt_self (pos_iff_ne_zero.2 ha₀) (pos_iff_ne_zero.2 hb)
+
+protected lemma sub_lt_self_iff (ha : a ≠ ∞) : a - b < a ↔ 0 < a ∧ 0 < b :=
+(cancel_of_ne ha).tsub_lt_self_iff
 
 lemma sub_lt_of_sub_lt (h₂ : c ≤ a) (h₃ : a ≠ ∞ ∨ b ≠ ∞) (h₁ : a - b < c) : a - c < b :=
-ennreal.sub_lt_of_lt_add h₂ (add_comm c b ▸ ennreal.lt_add_of_sub_lt h₃ h₁)
+ennreal.sub_lt_of_lt_add h₂ (add_comm c b ▸ ennreal.lt_add_of_sub_lt_right h₃ h₁)
 
 lemma sub_sub_cancel (h : a ≠ ∞) (h2 : b ≤ a) : a - (a - b) = b :=
 (cancel_of_ne $ sub_ne_top h).tsub_tsub_cancel_of_le h2
@@ -1190,8 +1207,7 @@ le_of_forall_nnreal_lt $ λ r hr, (zero_le r).eq_or_lt.elim (λ h, h ▸ zero_le
 lemma eq_top_of_forall_nnreal_le {x : ℝ≥0∞} (h : ∀ r : ℝ≥0, ↑r ≤ x) : x = ∞ :=
 top_unique $ le_of_forall_nnreal_lt $ λ r hr, h r
 
-lemma add_div {a b c : ℝ≥0∞} : (a + b) / c = a / c + b / c :=
-right_distrib a b (c⁻¹)
+lemma add_div : (a + b) / c = a / c + b / c := right_distrib a b (c⁻¹)
 
 lemma div_add_div_same {a b c : ℝ≥0∞} : a / c + b / c = (a + b) / c :=
 eq.symm $ right_distrib a b (c⁻¹)

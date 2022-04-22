@@ -1,8 +1,9 @@
 /-
-Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
+Copyright (c) 2022 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
+import data.real.ennreal
 import topology.continuous_function.bounded
 
 /-!
@@ -18,12 +19,10 @@ open_locale classical nnreal ennreal topological_space bounded_continuous_functi
 
 open nnreal ennreal set metric emetric filter
 
+-- To be placed in the file `data/real/ennreal.lean`.
 lemma _root_.ennreal.div_le_div {a b c d : ℝ≥0∞} (hab : a ≤ b) (hdc : d ≤ c) :
   a / c ≤ b / d :=
-begin
-  rw [div_eq_mul_inv, div_eq_mul_inv],
-  apply ennreal.mul_le_mul hab (ennreal.inv_le_inv.mpr hdc),
-end
+div_eq_mul_inv b d ▸ div_eq_mul_inv a c ▸ ennreal.mul_le_mul hab (ennreal.inv_le_inv.mpr hdc)
 
 section thickened_indicator
 
@@ -45,7 +44,7 @@ begin
   let f := λ (x : α), (⟨1, (inf_edist x E) / (ennreal.of_real δ)⟩ : ℝ≥0 × ℝ≥0∞),
   let sub := λ (p : ℝ≥0 × ℝ≥0∞), ((p.1 : ℝ≥0∞) - p.2),
   rw (show (λ (x : α), ((1 : ℝ≥0∞)) - (inf_edist x E) / (ennreal.of_real δ)) = sub ∘ f, by refl),
-  apply continuous.comp (@ennreal.continuous_nnreal_sub 1),
+  apply (@ennreal.continuous_nnreal_sub 1).comp,
   apply (ennreal.continuous_div_const (ennreal.of_real δ) _).comp continuous_inf_edist,
   norm_num [δ_pos],
 end
@@ -85,19 +84,12 @@ end
 
 lemma thickened_indicator_aux_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
   thickened_indicator_aux δ₁ E ≤ thickened_indicator_aux δ₂ E :=
-begin
-  intro x,
-  apply tsub_le_tsub (@rfl ℝ≥0∞ 1).le,
-  exact ennreal.div_le_div rfl.le (of_real_le_of_real hle),
-end
+λ _, tsub_le_tsub (@rfl ℝ≥0∞ 1).le (ennreal.div_le_div rfl.le (of_real_le_of_real hle))
 
 lemma thickened_indicator_aux_subset (δ : ℝ) {E₁ E₂ : set α} (subset : E₁ ⊆ E₂) :
   thickened_indicator_aux δ E₁ ≤ thickened_indicator_aux δ E₂ :=
-begin
-  intro x,
-  apply tsub_le_tsub (@rfl ℝ≥0∞ 1).le,
-  exact ennreal.div_le_div (inf_edist_le_inf_edist_of_subset subset) rfl.le,
-end
+λ _, tsub_le_tsub (@rfl ℝ≥0∞ 1).le
+  (ennreal.div_le_div (inf_edist_le_inf_edist_of_subset subset) rfl.le)
 
 lemma thickened_indicator_aux_tendsto_indicator_closure
   {δseq : ℕ → ℝ} (δseq_lim : tendsto δseq at_top (𝓝 0)) (E : set α) :
@@ -145,9 +137,7 @@ See `thickened_indicator_aux` for the unbundled `ℝ≥0∞`-valued function. -/
     apply continuous_on.comp_continuous
             continuous_on_to_nnreal (continuous_thickened_indicator_aux δ_pos E),
     intro x,
-    rw mem_set_of_eq,
-    apply ne_of_lt,
-    exact lt_of_le_of_lt (@thickened_indicator_aux_le_one _ _ δ E x) one_lt_top,
+    exact (lt_of_le_of_lt (@thickened_indicator_aux_le_one _ _ δ E x) one_lt_top).ne,
   end,
   map_bounded' := begin
     use 2,
@@ -200,11 +190,8 @@ end
 
 lemma thickened_indicator_subset {δ : ℝ} (δ_pos : 0 < δ) {E₁ E₂ : set α} (subset : E₁ ⊆ E₂) :
   ⇑(thickened_indicator δ_pos E₁) ≤ thickened_indicator δ_pos E₂ :=
-begin
-  intro x,
-  exact (to_nnreal_le_to_nnreal thickened_indicator_aux_lt_top.ne
-         thickened_indicator_aux_lt_top.ne).mpr (thickened_indicator_aux_subset δ subset x),
-end
+λ x, (to_nnreal_le_to_nnreal thickened_indicator_aux_lt_top.ne
+      thickened_indicator_aux_lt_top.ne).mpr (thickened_indicator_aux_subset δ subset x)
 
 lemma thickened_indicator_tendsto_indicator_closure
   {δseq : ℕ → ℝ} (δseq_pos : ∀ n, 0 < δseq n) (δseq_lim : tendsto δseq at_top (𝓝 0)) (E : set α) :

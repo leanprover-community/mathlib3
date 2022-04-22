@@ -1524,8 +1524,6 @@ def comap (m : α → β) (f : filter β) : filter α :=
 
 variables {f : α → β} {l : filter β} {p : α → Prop} {s : set α}
 
-@[simp] lemma mem_comap : s ∈ comap f l ↔ ∃ t ∈ l, f ⁻¹' t ⊆ s := iff.rfl
-
 lemma mem_comap' : s ∈ comap f l ↔ {y | ∀ ⦃x⦄, f x = y → x ∈ s} ∈ l :=
 ⟨λ ⟨t, ht, hts⟩, mem_of_superset ht $ λ y hy x hx, hts $ mem_preimage.2 $ by rwa hx,
   λ h, ⟨_, h, λ x hx, hx rfl⟩⟩
@@ -1535,10 +1533,6 @@ mem_comap'
 
 @[simp] lemma frequently_comap : (∃ᶠ a in comap f l, p a) ↔ ∃ᶠ b in l, ∃ a, f a = b ∧ p a :=
 by simp only [filter.frequently, eventually_comap, not_exists, not_and]
-
-lemma eventually.comap {p : β → Prop} (hf : ∀ᶠ b in l, p b) (f : α → β) :
-  ∀ᶠ a in comap f l, p (f a) :=
-eventually_comap.mpr $ hf.mono $ λ y hy x hx, hx.symm ▸ hy
 
 lemma mem_comap_iff_compl : s ∈ comap f l ↔ (f '' sᶜ)ᶜ ∈ l :=
 by simp only [mem_comap', compl_def, mem_image, mem_set_of_eq, not_exists, not_and', not_not]
@@ -1628,10 +1622,17 @@ instance : alternative filter :=
 section map
 variables {f f₁ f₂ : filter α} {g g₁ g₂ : filter β} {m : α → β} {m' : β → γ} {s : set α} {t : set β}
 
-theorem preimage_mem_comap (ht : t ∈ g) : m ⁻¹' t ∈ comap m g := eventually.comap ht _
+@[simp] theorem mem_comap : s ∈ comap m g ↔ ∃ t ∈ g, m ⁻¹' t ⊆ s := iff.rfl
+
+theorem preimage_mem_comap (ht : t ∈ g) : m ⁻¹' t ∈ comap m g :=
+⟨t, ht, subset.rfl⟩
+
+lemma eventually.comap {p : β → Prop} (hf : ∀ᶠ b in g, p b) (f : α → β) :
+  ∀ᶠ a in comap f g, p (f a) :=
+preimage_mem_comap hf
 
 lemma comap_id : comap id f = f :=
-by { ext s, simp only [mem_comap', id, forall_eq, set_of_mem_eq] }
+le_antisymm (λ s, preimage_mem_comap) (λ s ⟨t, ht, hst⟩, mem_of_superset ht hst)
 
 lemma comap_const_of_not_mem {x : β} (ht : t ∈ g) (hx : x ∉ t) :
   comap (λ y : α, x) g = ⊥ :=
@@ -2744,8 +2745,12 @@ coprod_ne_bot_iff.2 (or.inr ⟨‹_›, ‹_›⟩)
 
 lemma principal_coprod_principal (s : set α) (t : set β) :
   (𝓟 s).coprod (𝓟 t) = 𝓟 (sᶜ ×ˢ tᶜ)ᶜ :=
-by rw [filter.coprod, comap_principal, comap_principal, sup_principal, set.prod_eq, compl_inter,
-  preimage_compl, preimage_compl, compl_compl, compl_compl]
+begin
+  rw [filter.coprod, comap_principal, comap_principal, sup_principal],
+  congr,
+  ext x,
+  simp ; tauto,
+end
 
 -- this inequality can be strict; see `map_const_principal_coprod_map_id_principal` and
 -- `map_prod_map_const_id_principal_coprod_principal` below.
@@ -2766,8 +2771,13 @@ example showing that the inequality in the lemma `map_prod_map_coprod_le` can be
 lemma map_const_principal_coprod_map_id_principal {α β ι : Type*} (a : α) (b : β) (i : ι) :
   (map (λ _ : α, b) (𝓟 {a})).coprod (map id (𝓟 {i}))
   = 𝓟 (({b} : set β) ×ˢ (univ : set ι) ∪ (univ : set β) ×ˢ ({i} : set ι)) :=
-by simp only [map_principal, filter.coprod, comap_principal, sup_principal, image_singleton,
-  image_id, prod_univ, univ_prod]
+begin
+  rw [map_principal, map_principal, principal_coprod_principal],
+  congr,
+  ext ⟨b', i'⟩,
+  simp,
+  tauto,
+end
 
 /-- Characterization of the `filter.map` of the coproduct of two principal filters `𝓟 {a}` and
 `𝓟 {i}`, under the `prod.map` of two functions, respectively the constant function `λ a, b` and the

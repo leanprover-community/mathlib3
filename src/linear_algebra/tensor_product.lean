@@ -991,5 +991,3 @@ by simp only [← coe_rtensor_hom, map_neg]
 end linear_map
 
 end ring
-
-#lint

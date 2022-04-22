@@ -900,9 +900,8 @@ private lemma add_le_add_right : Π {x y z : pgame.{u}} (h : x ≤ y), x + z ≤
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
 λ h, begin
   rw le_def,
-  refine ⟨λ i, _, λ j, _⟩,
+  refine ⟨λ i : xl ⊕ zl, _, λ j : yr ⊕ zr, _⟩,
   { -- if Left plays first
-    change xl ⊕ zl at i,
     cases i,
     { -- either they play in x
       rw le_def at h,
@@ -916,7 +915,6 @@ private lemma add_le_add_right : Π {x y z : pgame.{u}} (h : x ≤ y), x + z ≤
     { -- or play in z
       exact or.inl ⟨right_to_left_moves_add _ i, add_le_add_right h⟩ } },
   { -- if Right plays first
-    change yr ⊕ zr at j,
     cases j,
     { -- either they play in y
       rw le_def at h,

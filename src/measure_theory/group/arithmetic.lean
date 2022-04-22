@@ -159,7 +159,8 @@ end mul
 
 /-- A version of `measurable_div_const` that assumes `has_measurable_mul` instead of
   `has_measurable_div`. This can be nice to avoid unnecessary type-class assumptions. -/
-@[to_additive]
+@[to_additive /-" A version of `measurable_sub_const` that assumes `has_measurable_add` instead of
+  `has_measurable_sub`. This can be nice to avoid unnecessary type-class assumptions. "-/]
 lemma measurable_div_const' {G : Type*} [div_inv_monoid G] [measurable_space G]
   [has_measurable_mul G] (g : G) : measurable (λ h, h / g) :=
 by simp_rw [div_eq_mul_inv, measurable_mul_const]

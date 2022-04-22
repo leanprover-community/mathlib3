@@ -6,6 +6,7 @@ Authors: Yury Kudryashov, Anne Baanen
 import algebra.big_operators.basic
 import data.fintype.fin
 import data.fintype.card
+import logic.equiv.fin
 /-!
 # Big operators and `fin`
 
@@ -112,6 +113,29 @@ lemma prod_filter_succ_lt {M : Type*} [comm_monoid M] {n : ℕ} (j : fin n) (v :
   ∏ i in univ.filter (λ i, j.succ < i), v i =
     ∏ j in univ.filter (λ i, j < i), v j.succ :=
 by rw [univ_filter_succ_lt, finset.prod_map, rel_embedding.coe_fn_to_embedding, coe_succ_embedding]
+
+@[to_additive]
+lemma prod_congr' {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin b → M) (h : a = b) :
+  ∏ (i : fin a), f (cast h i) = ∏ (i : fin b), f i :=
+by { subst h, congr, ext, congr, ext, rw coe_cast, }
+
+@[to_additive]
+lemma prod_univ_add {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin (a+b) → M) :
+  ∏ (i : fin (a+b)), f i =
+  (∏ (i : fin a), f (cast_add b i)) * ∏ (i : fin b), f (nat_add a i) :=
+begin
+  rw fintype.prod_equiv fin_sum_fin_equiv.symm f (λ i, f (fin_sum_fin_equiv.to_fun i)), swap,
+  { intro x,
+    simp only [equiv.to_fun_as_coe, equiv.apply_symm_apply], },
+  apply prod_on_sum,
+end
+
+@[to_additive]
+lemma prod_trunc {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin (a+b) → M)
+  (hf : ∀ (j : fin b), f (nat_add a j) = 1) :
+  ∏ (i : fin (a+b)), f i =
+  ∏ (i : fin a), f (cast_le (nat.le.intro rfl) i) :=
+by simpa only [prod_univ_add, fintype.prod_eq_one _ hf, mul_one]
 
 end fin
 

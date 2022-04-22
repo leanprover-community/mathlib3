@@ -192,8 +192,8 @@ instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩�
 @[simp] lemma zero_left_moves : (0 : pgame).left_moves = pempty := rfl
 @[simp] lemma zero_right_moves : (0 : pgame).right_moves = pempty := rfl
 
-instance : is_empty (0 : pgame).left_moves := pempty.is_empty
-instance : is_empty (0 : pgame).right_moves := pempty.is_empty
+instance is_empty_zero_left_moves : is_empty (0 : pgame).left_moves := pempty.is_empty
+instance is_empty_zero_right_moves : is_empty (0 : pgame).right_moves := pempty.is_empty
 
 instance : inhabited pgame := ⟨0⟩
 
@@ -203,6 +203,8 @@ instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 @[simp] lemma one_left_moves : (1 : pgame).left_moves = punit := rfl
 @[simp] lemma one_move_left : (1 : pgame).move_left punit.star = 0 := rfl
 @[simp] lemma one_right_moves : (1 : pgame).right_moves = pempty := rfl
+
+instance is_empty_one_right_moves : is_empty (1 : pgame).right_moves := pempty.is_empty
 
 /-- Define simultaneously by mutual induction the `<=` and `<`
   relation on pre-games. The ZFC definition says that `x = {xL | xR}`

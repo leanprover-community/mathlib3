@@ -549,13 +549,9 @@ by simpa using nnreal.coe_le_coe.mpr (v.op_nnnorm_le ⟨M, hM⟩ hu)
 /-- A weaker version of `basis.op_nnnorm_le` that abstracts away the value of `C`. -/
 lemma basis.exists_op_nnnorm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :
   ∃ C > (0 : ℝ≥0), ∀ {u : E →L[𝕜] F} (M : ℝ≥0), (∀ i, ∥u (v i)∥₊ ≤ M) → ∥u∥₊ ≤ C*M :=
-begin
-  refine ⟨
-    max (fintype.card ι * ∥v.equiv_funL.to_continuous_linear_map∥₊) 1,
-    lt_of_lt_of_le (zero_lt_one) (le_max_right _ _),
-    λ u M hu, (v.op_nnnorm_le M hu).trans _⟩,
-  refine mul_le_mul_of_nonneg_right (le_max_left _ _) (zero_le _),
-end
+⟨ max (fintype.card ι * ∥v.equiv_funL.to_continuous_linear_map∥₊) 1,
+  zero_lt_one.trans_le (le_max_right _ _),
+  λ u M hu, (v.op_nnnorm_le M hu).trans $ mul_le_mul_of_nonneg_right (le_max_left _ _) (zero_le _)⟩
 
 /-- A weaker version of `basis.op_norm_le` that abstracts away the value of `C`. -/
 lemma basis.exists_op_norm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :

@@ -50,13 +50,14 @@ begin
   exact hζ.discr_zeta_eq_discr_zeta_sub_one.symm
 end
 
-/-- The discriminant of the power basis given by `ζ - 1`. Beware that this uses `1 / 2 = 0` -/
-lemma discr_prime_pow' [is_cyclotomic_extension {p ^ (k + 1)} ℚ K]
-  (hζ : is_primitive_root ζ ↑(p ^ (k + 1))) :
+/-- The discriminant of the power basis given by `ζ - 1`. Beware that this uses `1 / 2 = 0` and
+`0 - 1 = 0`. -/
+lemma discr_prime_pow' [is_cyclotomic_extension {p ^ k} ℚ K]
+  (hζ : is_primitive_root ζ ↑(p ^ k)) :
   discr ℚ (hζ.sub_one_power_basis ℚ).basis =
-  (-1) ^ (((p ^ (k + 1) : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ k * ((p - 1) * (k + 1) - 1)) :=
+  (-1) ^ (((p ^ k : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ (k - 1) * ((p - 1) * k - 1)) :=
 begin
-  rw [← discr_prime_pow hζ (cyclotomic.irreducible_rat (p ^ (k + 1)).pos)
+  rw [← discr_prime_pow hζ (cyclotomic.irreducible_rat (p ^ k).pos)
     (cyclotomic.irreducible_rat p.pos)],
   exact hζ.discr_zeta_eq_discr_zeta_sub_one.symm
 end

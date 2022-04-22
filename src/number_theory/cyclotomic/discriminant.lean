@@ -134,43 +134,55 @@ begin
   { apply_instance }
 end
 
-/-- If `p` is a prime and `is_cyclotomic_extension {p ^ (k + 1)} K L`, then the discriminant of
-`hζ.power_basis K` is `(-1) ^ ((p ^ (k + 1).totient) / 2) * p ^ (p ^ k * ((p - 1) * (k + 1) - 1))`
-if `irreducible (cyclotomic (p ^ (k + 1)) K))`, `irreducible (cyclotomic p K)`. Beware that the
-formula uses `1 / 2 = 0` and it is used only to have a uniform result. See also
+/-- If `p` is a prime and `is_cyclotomic_extension {p ^ k} K L`, then the discriminant of
+`hζ.power_basis K` is `(-1) ^ ((p ^ k.totient) / 2) * p ^ (p ^ (k - 1) * ((p - 1) * k - 1))`
+if `irreducible (cyclotomic (p ^ k) K))`, `irreducible (cyclotomic p K)`. Beware that the
+formula uses `1 / 2 = 0` and `0 - 1 = 0` and it is used only to have a uniform result. See also
 `discr_prime_pow_eq_unit_mul_pow`. -/
-lemma discr_prime_pow [is_cyclotomic_extension {p ^ (k + 1)} K L] [hp : fact (p : ℕ).prime]
-  [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ ↑(p ^ (k + 1)))
-  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))
+lemma discr_prime_pow [hcycl : is_cyclotomic_extension {p ^ k} K L] [hp : fact (p : ℕ).prime]
+  [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ ↑(p ^ k))
+  (hirr : irreducible (cyclotomic (↑(p ^ k) : ℕ) K))
   (hirr₁ : irreducible (cyclotomic (p : ℕ) K)) :
   discr K (hζ.power_basis K).basis =
-  (-1) ^ (((p ^ (k + 1) : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ k * ((p - 1) * (k + 1) - 1)) :=
+  (-1) ^ (((p ^ k : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ (k - 1) * ((p - 1) * k - 1)) :=
 begin
-  by_cases hk : p ^ (k + 1) = 2,
-  { haveI : ne_zero ((↑(p ^ (k + 1)) : ℕ) : K),
-    { refine ⟨λ hzero, _⟩,
-    rw [pnat.pow_coe] at hzero,
-    simpa [ne_zero.ne ((p : ℕ) : K)] using hzero },
-    have hp : p = 2,
-    { rw [← pnat.coe_inj, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe, ← pow_one 2] at hk,
+  unfreezingI { cases k,
+  { haveI : ne_zero ((↑(p ^ 0) : ℕ) : K) := ⟨by simp⟩,
+    simp only [coe_basis, pow_zero, power_basis_gen, totient_one, mul_zero, mul_one, show 1 / 2 = 0,
+      by refl, discr, trace_matrix],
+    have hζone : ζ = 1 := by simpa using hζ,
+    rw [hζ.power_basis_dim _, hζone, ← (algebra_map K L).map_one,
+      minpoly.eq_X_sub_C_of_algebra_map_inj _ (algebra_map K L).injective, nat_degree_X_sub_C],
+    simp only [trace_matrix, map_one, one_pow, matrix.det_unique, trace_form_apply, mul_one],
+    rw [← (algebra_map K L).map_one, trace_algebra_map, finrank _ hirr],
+    { simp },
+    { simpa using hcycl } },
+  { by_cases hk : p ^ (k + 1) = 2,
+    { haveI : ne_zero ((↑(p ^ (k + 1)) : ℕ) : K),
+      { refine ⟨λ hzero, _⟩,
+        rw [pnat.pow_coe] at hzero,
+        simpa [ne_zero.ne ((p : ℕ) : K)] using hzero },
+      have hp : p = 2,
+      { rw [← pnat.coe_inj, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe, ← pow_one 2] at hk,
       replace hk := eq_of_prime_pow_eq (prime_iff.1 hp.out) (prime_iff.1 nat.prime_two)
         (succ_pos _) hk,
       rwa [show 2 = ((2 : ℕ+) : ℕ), by simp, pnat.coe_inj] at hk },
-    rw [hp, ← pnat.coe_inj, pnat.pow_coe, pnat.coe_bit0, pnat.one_coe] at hk,
-    nth_rewrite 1 [← pow_one 2] at hk,
-    replace hk := nat.pow_right_injective rfl.le hk,
-    rw [add_left_eq_self] at hk,
-    simp only [hp, hk, pow_one, pnat.coe_bit0, pnat.one_coe] at hζ,
-    simp only [hp, hk, show 1 / 2 = 0, by refl, coe_basis, pow_one, power_basis_gen,
-      pnat.coe_bit0, pnat.one_coe, totient_two, pow_zero, mul_one, mul_zero],
-    rw [power_basis_dim, hζ.eq_neg_one_of_two_right, show (-1 : L) = algebra_map K L (-1), by simp,
-      minpoly.eq_X_sub_C_of_algebra_map_inj _ (algebra_map K L).injective, nat_degree_X_sub_C],
-    simp only [discr, trace_matrix, matrix.det_unique, fin.default_eq_zero, fin.coe_zero, pow_zero,
-      trace_form_apply, mul_one],
-    rw [← (algebra_map K L).map_one, trace_algebra_map, finrank _ hirr, hp, hk],
-    { simp },
-    { apply_instance } },
-  { exact discr_prime_pow_ne_two hζ hirr hirr₁ hk }
+      rw [hp, ← pnat.coe_inj, pnat.pow_coe, pnat.coe_bit0, pnat.one_coe] at hk,
+      nth_rewrite 1 [← pow_one 2] at hk,
+      replace hk := nat.pow_right_injective rfl.le hk,
+      rw [add_left_eq_self] at hk,
+      simp only [hp, hk, pow_one, pnat.coe_bit0, pnat.one_coe] at hζ,
+      simp only [hp, hk, show 1 / 2 = 0, by refl, coe_basis, pow_one, power_basis_gen,
+        pnat.coe_bit0, pnat.one_coe, totient_two, pow_zero, mul_one, mul_zero],
+      rw [power_basis_dim, hζ.eq_neg_one_of_two_right, show (-1 : L) = algebra_map K L (-1),
+        by simp, minpoly.eq_X_sub_C_of_algebra_map_inj _ (algebra_map K L).injective,
+        nat_degree_X_sub_C],
+      simp only [discr, trace_matrix, matrix.det_unique, fin.default_eq_zero, fin.coe_zero, pow_zero,
+        trace_form_apply, mul_one],
+      rw [← (algebra_map K L).map_one, trace_algebra_map, finrank _ hirr, hp, hk],
+      { simp },
+      { apply_instance } },
+    { exact discr_prime_pow_ne_two hζ hirr hirr₁ hk } } }
 end
 
 /-- If `p` is a prime and `is_cyclotomic_extension {p ^ k} K L`, then there are `u : ℤˣ` and

@@ -32,12 +32,13 @@ universes u v w
 
 open classical set function topological_space filter
 
+variables {ι : Sort*} {α : Type u} {β : Type v}
+
 namespace emetric
 
 section inf_edist
 
-variables {α : Type u} {β : Type v} [pseudo_emetric_space α] [pseudo_emetric_space β] {x y : α}
-{s t : set α} {Φ : α → β}
+variables [pseudo_emetric_space α] [pseudo_emetric_space β] {x y : α} {s t : set α} {Φ : α → β}
 
 /-! ### Distance of a point to a set as a function into `ℝ≥0∞`. -/
 
@@ -52,6 +53,10 @@ by simp only [inf_edist, le_infi_iff]
 /-- The edist to a union is the minimum of the edists -/
 @[simp] lemma inf_edist_union : inf_edist x (s ∪ t) = inf_edist x s ⊓ inf_edist x t :=
 infi_union
+
+@[simp] lemma inf_edist_Union (f : ι → set α) (x : α) :
+  inf_edist x (⋃ i, f i) = ⨅ i, inf_edist x (f i) :=
+infi_Union f _
 
 /-- The edist to a singleton is the edistance to the single point of this singleton -/
 @[simp] lemma inf_edist_singleton : inf_edist x {y} = edist x y :=
@@ -184,8 +189,7 @@ by rw Hausdorff_edist
 
 section Hausdorff_edist
 
-variables {α : Type u} {β : Type v} [pseudo_emetric_space α] [pseudo_emetric_space β]
-          {x y : α} {s t u : set α} {Φ : α → β}
+variables [pseudo_emetric_space α] [pseudo_emetric_space β] {x y : α} {s t u : set α} {Φ : α → β}
 
 /-- The Hausdorff edistance of a set to itself vanishes -/
 @[simp] lemma Hausdorff_edist_self : Hausdorff_edist s s = 0 :=
@@ -372,8 +376,7 @@ modulo some tedious rewriting of inequalities from one to the other. -/
 
 namespace metric
 section
-variables {α : Type u} {β : Type v} [pseudo_metric_space α] [pseudo_metric_space β]
-  {s t u : set α} {x y : α} {Φ : α → β}
+variables [pseudo_metric_space α] [pseudo_metric_space β] {s t u : set α} {x y : α} {Φ : α → β}
 open emetric
 
 /-! ### Distance of a point to a set as a function into `ℝ`. -/
@@ -789,13 +792,16 @@ end --section
 
 section thickening
 
-variables {α : Type u} [pseudo_emetric_space α] {δ : ℝ}
+variables [pseudo_emetric_space α] {δ : ℝ} {s : set α} {x : α}
 
 open emetric
 
 /-- The (open) `δ`-thickening `thickening δ E` of a subset `E` in a pseudo emetric space consists
 of those points that are at distance less than `δ` from some point of `E`. -/
 def thickening (δ : ℝ) (E : set α) : set α := {x : α | inf_edist x E < ennreal.of_real δ}
+
+lemma mem_thickening_iff_inf_edist_lt : x ∈ thickening δ s ↔ inf_edist x s < ennreal.of_real δ :=
+iff.rfl
 
 /-- The (open) thickening equals the preimage of an open interval under `inf_edist`. -/
 lemma thickening_eq_preimage_inf_edist (δ : ℝ) (E : set α) :
@@ -832,7 +838,7 @@ variables {X : Type u} [pseudo_metric_space X]
 
 /-- A point in a metric space belongs to the (open) `δ`-thickening of a subset `E` if and only if
 it is at distance less than `δ` from some point of `E`. -/
-lemma mem_thickening_iff {δ : ℝ} (E : set X) (x : X) :
+lemma mem_thickening_iff {E : set X} {x : X} :
   x ∈ thickening δ E ↔ (∃ z ∈ E, dist x z < δ) :=
 begin
   have key_iff : ∀ (z : X), edist x z < ennreal.of_real δ ↔ dist x z < δ,
@@ -853,7 +859,7 @@ by { ext, simp [mem_thickening_iff] }
 union of balls of radius `δ` centered at points of `E`. -/
 lemma thickening_eq_bUnion_ball {δ : ℝ} {E : set X} :
   thickening δ E = ⋃ x ∈ E, ball x δ :=
-by { ext x, rw mem_Union₂, exact mem_thickening_iff E x, }
+by { ext x, rw mem_Union₂, exact mem_thickening_iff }
 
 lemma bounded.thickening {δ : ℝ} {E : set X} (h : bounded E) :
   bounded (thickening δ E) :=
@@ -862,7 +868,7 @@ begin
   rcases h.subset_ball x with ⟨R, hR⟩,
   refine (bounded_iff_subset_ball x).2 ⟨R + δ, _⟩,
   assume y hy,
-  rcases (mem_thickening_iff _ _).1 hy with ⟨z, zE, hz⟩,
+  rcases mem_thickening_iff.1 hy with ⟨z, zE, hz⟩,
   calc dist y x ≤ dist z x + dist y z : by { rw add_comm, exact dist_triangle _ _ _ }
   ... ≤ R + δ : add_le_add (hR zE) hz.le
 end
@@ -871,7 +877,7 @@ end thickening --section
 
 section cthickening
 
-variables {α : Type*} [pseudo_emetric_space α] {δ ε : ℝ} {s : set α} {x : α}
+variables [pseudo_emetric_space α] {δ ε : ℝ} {s : set α} {x : α}
 
 open emetric
 
@@ -1002,6 +1008,24 @@ lemma self_subset_thickening {δ : ℝ} (δ_pos : 0 < δ) (E : set α) :
 lemma self_subset_cthickening {δ : ℝ} (E : set α) :
   E ⊆ cthickening δ E :=
 subset_closure.trans (closure_subset_cthickening δ E)
+
+@[simp] lemma thickening_union (δ : ℝ) (s t : set α) :
+  thickening δ (s ∪ t) = thickening δ s ∪ thickening δ t :=
+by simp_rw [thickening, inf_edist_union, inf_eq_min, min_lt_iff, set_of_or]
+
+@[simp] lemma cthickening_union (δ : ℝ) (s t : set α) :
+  cthickening δ (s ∪ t) = cthickening δ s ∪ cthickening δ t :=
+by simp_rw [cthickening, inf_edist_union, inf_eq_min, min_le_iff, set_of_or]
+
+@[simp] lemma thickening_Union (δ : ℝ) (f : ι → set α) :
+  thickening δ (⋃ i, f i) = ⋃ i, thickening δ (f i) :=
+by simp_rw [thickening, inf_edist_Union, infi_lt_iff, set_of_exists]
+
+@[simp] lemma thickening_closure : thickening δ (closure s) = thickening δ s :=
+by simp_rw [thickening, inf_edist_closure]
+
+@[simp] lemma cthickening_closure : cthickening δ (closure s) = cthickening δ s :=
+by simp_rw [cthickening, inf_edist_closure]
 
 lemma cthickening_eq_Inter_cthickening' {δ : ℝ}
   (s : set ℝ) (hsδ : s ⊆ Ioi δ) (hs : ∀ ε, δ < ε → (s ∩ (Ioc δ ε)).nonempty) (E : set α) :

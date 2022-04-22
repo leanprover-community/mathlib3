@@ -387,6 +387,49 @@ begin
   { simp only [H, true_or, ne.def, not_false_iff] }
 end
 
+lemma continuous_on_sub :
+  continuous_on (λ p : ℝ≥0∞ × ℝ≥0∞, p.fst - p.snd) { p : ℝ≥0∞ × ℝ≥0∞ | p ≠ ⟨∞, ∞⟩ } :=
+begin
+  rw continuous_on,
+  rintros ⟨x, y⟩ hp,
+  simp only [ne.def, set.mem_set_of_eq, prod.mk.inj_iff] at hp,
+  refine tendsto_nhds_within_of_tendsto_nhds (tendsto_sub (not_and_distrib.mp hp)),
+end
+
+lemma continuous_sub_left {a : ℝ≥0∞} (a_ne_top : a ≠ ⊤) :
+  continuous (λ x, a - x) :=
+begin
+  rw (show (λ x, a - x) = (λ p : ℝ≥0∞ × ℝ≥0∞, p.fst - p.snd) ∘ (λ x, ⟨a, x⟩), by refl),
+  apply continuous_on.comp_continuous continuous_on_sub (continuous.prod.mk a),
+  intro x,
+  simp only [a_ne_top, ne.def, mem_set_of_eq, prod.mk.inj_iff, false_and, not_false_iff],
+end
+
+lemma continuous_nnreal_sub {a : ℝ≥0} :
+  continuous (λ (x : ℝ≥0∞), (a : ℝ≥0∞) - x) :=
+continuous_sub_left coe_ne_top
+
+lemma continuous_on_sub_left (a : ℝ≥0∞) :
+  continuous_on (λ x, a - x) {x : ℝ≥0∞ | x ≠ ∞} :=
+begin
+  rw (show (λ x, a - x) = (λ p : ℝ≥0∞ × ℝ≥0∞, p.fst - p.snd) ∘ (λ x, ⟨a, x⟩), by refl),
+  apply continuous_on.comp continuous_on_sub (continuous.continuous_on (continuous.prod.mk a)),
+  rintros _ h (_|_),
+  exact h none_eq_top,
+end
+
+lemma continuous_sub_right (a : ℝ≥0∞) :
+  continuous (λ x : ℝ≥0∞, x - a) :=
+begin
+  by_cases a_infty : a = ∞,
+  { simp [a_infty, continuous_const], },
+  { rw (show (λ x, x - a) = (λ p : ℝ≥0∞ × ℝ≥0∞, p.fst - p.snd) ∘ (λ x, ⟨x, a⟩), by refl),
+    apply continuous_on.comp_continuous
+      continuous_on_sub (continuous_id'.prod_mk continuous_const),
+    intro x,
+    simp only [a_infty, ne.def, mem_set_of_eq, prod.mk.inj_iff, and_false, not_false_iff], },
+end
+
 protected lemma tendsto.pow {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} {n : ℕ}
   (hm : tendsto m f (𝓝 a)) :
   tendsto (λ x, (m x) ^ n) f (𝓝 (a ^ n)) :=
@@ -787,7 +830,7 @@ lemma tsum_sub {f : ℕ → ℝ≥0∞} {g : ℕ → ℝ≥0∞} (h₁ : ∑' i,
   ∑' i, (f i - g i) = (∑' i, f i) - (∑' i, g i) :=
 begin
   have h₃: ∑' i, (f i - g i) = ∑' i, (f i - g i + g i) - ∑' i, g i,
-  { rw [ennreal.tsum_add, add_sub_self h₁]},
+  { rw [ennreal.tsum_add, ennreal.add_sub_cancel_right h₁]},
   have h₄:(λ i, (f i - g i) + (g i)) = f,
   { ext n, rw tsub_add_cancel_of_le (h₂ n)},
   rw h₄ at h₃, apply h₃,

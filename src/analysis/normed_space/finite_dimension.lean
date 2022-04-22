@@ -7,7 +7,6 @@ import analysis.asymptotics.asymptotic_equivalent
 import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
 import analysis.normed_space.riesz_lemma
-import analysis.matrix
 import linear_algebra.matrix.to_lin
 import topology.algebra.matrix
 
@@ -273,20 +272,13 @@ lemma continuous_linear_map.continuous_det :
   continuous (λ (f : E →L[𝕜] E), f.det) :=
 begin
   change continuous (λ (f : E →L[𝕜] E), (f : E →ₗ[𝕜] E).det),
-  classical,
   by_cases h : ∃ (s : finset E), nonempty (basis ↥s 𝕜 E),
   { rcases h with ⟨s, ⟨b⟩⟩,
     haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finset_basis b,
-    letI : semi_normed_group (matrix s s 𝕜) := matrix.semi_normed_group,
-    letI : normed_space 𝕜 (matrix s s 𝕜) := matrix.normed_space,
     simp_rw linear_map.det_eq_det_to_matrix_of_finset b,
-    have A : continuous (λ (f : E →L[𝕜] E), linear_map.to_matrix b b f),
-    { change continuous ((linear_map.to_matrix b b).to_linear_map.comp
-        (continuous_linear_map.coe_lm 𝕜)),
-      exact linear_map.continuous_of_finite_dimensional _ },
-    convert A.matrix_det,
-    ext f,
-    congr },
+    refine continuous.matrix_det _,
+    exact ((linear_map.to_matrix b b).to_linear_map.comp
+        (continuous_linear_map.coe_lm 𝕜)).continuous_of_finite_dimensional },
   { unfold linear_map.det,
     simpa only [h, monoid_hom.one_apply, dif_neg, not_false_iff] using continuous_const }
 end

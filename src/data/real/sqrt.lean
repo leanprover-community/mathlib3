@@ -97,6 +97,7 @@ end nnreal
 namespace real
 
 /-- An auxiliary sequence of rational numbers that converges to `real.sqrt (mk f)`.
+This is Heron's method for computing square roots.
 Currently this sequence is not used in `mathlib`.  -/
 def sqrt_aux (f : cau_seq ℚ abs) : ℕ → ℚ
 | 0       := rat.mk_nat (f 0).num.to_nat.sqrt (f 0).denom.sqrt
@@ -106,6 +107,79 @@ theorem sqrt_aux_nonneg (f : cau_seq ℚ abs) : ∀ i : ℕ, 0 ≤ sqrt_aux f i
 | 0       := by rw [sqrt_aux, rat.mk_nat_eq, rat.mk_eq_div];
   apply div_nonneg; exact int.cast_nonneg.2 (int.of_nat_nonneg _)
 | (n + 1) := le_max_left _ _
+
+/-- A simplified version of Cauchy-Schwarz on a two-element set, which we prove separately to
+reduce the import graph. -/
+theorem rat.cauchy_schwarz (a b : ℚ) : 4 * a * b ≤ (a + b) ^ 2 :=
+begin
+  suffices pos: 0 ≤ (a + b) ^ 2 - 4 * a * b, exact sub_nonneg.mp pos,
+  calc 0 ≤ (a - b) ^ 2 : sq_nonneg (a - b)
+    ... = (a + b) ^ 2 - 4 * a * b : by ring,
+end
+
+lemma div_mul_eq {a c : ℚ} (c_nonzero : c ≠ 0) : a / c * c = a :=
+calc a / c * c = a * c / c : (mul_div_right_comm a c c).symm
+  ... = a * (c / c) : (mul_div a c c).symm
+  ... = a * 1 : by rw (div_self c_nonzero)
+  ... = a : mul_one a
+
+lemma thing3 {a : ℚ} (a_nonzero : a ≠ 0) : a ^ 2 / a = a :=
+calc a ^ 2 / a = (a * a) / a : by ring
+  ... = a * (a / a) : mul_div_assoc a a a
+  ... = a * 1 : by rw (div_self a_nonzero)
+  ... = a : mul_one a
+
+theorem ttt (a b : ℚ) (h : 0 ≤ a) (j : a + b ≤ 0) : b ≤ 0 :=
+calc b ≤ a + b : le_add_of_nonneg_left h
+  ... ≤ 0 : j
+
+theorem fooooo {a b : ℚ} (h1 : 0 < b) (h2 : a ≤ 0) : a * b ≤ 0 :=
+begin
+  by_cases a = 0,
+  { subst h, simp, },
+  { have a_neg : a < 0 := (ne.le_iff_lt h).mp h2,
+    exact le_of_lt (mul_neg_of_neg_of_pos a_neg h1), },
+end
+
+theorem uuu {a b : ℚ} (h : 0 < b) (j : a / b ≤ 0) : a ≤ 0 :=
+begin
+  calc a = a / b * b : (div_mul_eq (ne_of_gt h)).symm
+    ... ≤ 0 : fooooo h j
+end
+
+theorem sqrt_aux_overestimate (f : cau_seq ℚ abs) {i : ℕ} (i_pos : 0 < i) :
+  f i ≤ (sqrt_aux f i) ^ 2 ∨ sqrt_aux f i = 0 :=
+begin
+  cases i,
+  { linarith, },
+  { unfold sqrt_aux,
+    simp only [max_eq_left_iff],
+    cases lt_or_ge 0 ((sqrt_aux f i + f (i + 1) / sqrt_aux f i) / 2) with r s,
+    { left,
+      rw max_eq_right_of_lt r,
+      simp, norm_num, cancel_denoms,
+      by_cases nonzero : sqrt_aux f i = 0,
+      { rw nonzero at r, simp at r, cc, },
+      { refine (mul_le_mul_right ((sq_pos_iff (sqrt_aux f i)).2 nonzero)).mp _,
+        calc 4 * f (i + 1) * sqrt_aux f i ^ 2
+              ≤ (f (i + 1) + sqrt_aux f i ^ 2) ^ 2 : rat.cauchy_schwarz _ _
+          ... = (sqrt_aux f i ^ 2 + f (i + 1)) ^ 2 : by ring
+          ... = (sqrt_aux f i ^ 2 / sqrt_aux f i * sqrt_aux f i + f (i + 1)) ^ 2 : by rw div_mul_eq nonzero
+          ... = (sqrt_aux f i ^ 2 / sqrt_aux f i * sqrt_aux f i + f (i + 1) / sqrt_aux f i * sqrt_aux f i) ^ 2 : by rw @div_mul_eq (f (i + 1)) _ nonzero
+          ... = (sqrt_aux f i ^ 2 / sqrt_aux f i + f (i + 1) / sqrt_aux f i) ^ 2 * sqrt_aux f i ^ 2 : by ring
+          ... = (sqrt_aux f i + f (i + 1) / sqrt_aux f i) ^ 2 * sqrt_aux f i ^ 2 : by rw thing3 nonzero, }, },
+    { rw max_eq_left s,
+      simp only [zero_pow', ne.def, bit0_eq_zero, nat.one_ne_zero, not_false_iff],
+      simp only [ge_iff_le] at s,
+      cases lt_or_ge 0 (sqrt_aux f i),
+      { rw div_le_iff at s,
+        { simp at s,
+          have u : f (i + 1) / sqrt_aux f i ≤ 0 := ttt (sqrt_aux f i) (f (i + 1) / sqrt_aux f i) _ s,
+          { left, exact uuu h u, },
+          { exact sqrt_aux_nonneg f i, }, },
+        { norm_num, }, },
+      { right, exact s, }, }, },
+end
 
 /- TODO(Mario): finish the proof
 theorem sqrt_aux_converges (f : cau_seq ℚ abs) : ∃ h x, 0 ≤ x ∧ x * x = max 0 (mk f) ∧

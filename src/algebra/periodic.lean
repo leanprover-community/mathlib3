@@ -69,16 +69,29 @@ lemma periodic.div [has_add α] [has_div β]
 by simp * at *
 
 @[to_additive]
-lemma periodic.prod [has_add α] [comm_monoid β] {ι : Type*} {f : ι → α → β} {s : finset ι}
-  (hf : ∀ i, periodic (f i) c) :
-  periodic (∏ i in s, f i) c :=
+lemma _root_.list.periodic_prod [has_add α] [comm_monoid β]
+  (l : list (α → β)) (hl : ∀ f ∈ l, periodic f c) :
+  periodic l.prod c :=
 begin
-  classical,
-  induction s using finset.induction with i s hi ih,
+  induction l with g l ih hl,
   { simp, },
-  { rw finset.prod_insert hi,
-    exact (hf i).mul ih, },
+  { simp only [list.mem_cons_iff, forall_eq_or_imp] at hl,
+    obtain ⟨hg, hl⟩ := hl,
+    simp only [list.prod_cons],
+    exact hg.mul (ih hl), },
 end
+
+@[to_additive]
+lemma _root_.multiset.periodic_prod [has_add α] [comm_monoid β]
+  (s : multiset (α → β)) (hs : ∀ f ∈ s, periodic f c) :
+  periodic s.prod c :=
+s.prod_to_list ▸ s.to_list.periodic_prod $ λ f hf, hs f $ (multiset.mem_to_list f s).mp hf
+
+@[to_additive]
+lemma _root_.finset.periodic_prod [has_add α] [comm_monoid β]
+  {ι : Type*} {f : ι → α → β} (s : finset ι) (hs : ∀ i ∈ s, periodic (f i) c) :
+  periodic (∏ i in s, f i) c :=
+s.prod_to_list f ▸ (s.to_list.map f).periodic_prod (by simpa [-periodic])
 
 @[to_additive]
 lemma periodic.smul [has_add α] [has_scalar γ β] (h : periodic f c) (a : γ) :

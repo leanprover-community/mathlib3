@@ -52,12 +52,13 @@ funext $ λ x, (has_deriv_at_exp x).deriv
 lemma cont_diff_exp : ∀ {n}, cont_diff 𝕜 n exp :=
 begin
   refine cont_diff_all_iff_nat.2 (λ n, _),
-  apply @cont_diff.restrict_scalars 𝕜 _ _ _ _ _ _ _ _ ℂ,
-  induction n with n ihn,
-  { exact cont_diff_zero.2 continuous_exp },
-  { rw cont_diff_succ_iff_deriv,
-    use differentiable_exp,
-    rwa deriv_exp }
+  have : cont_diff ℂ ↑n exp,
+  { induction n with n ihn,
+    { exact cont_diff_zero.2 continuous_exp },
+    { rw cont_diff_succ_iff_deriv,
+      use differentiable_exp,
+      rwa deriv_exp }, },
+  exact this.restrict_scalars 𝕜
 end
 
 lemma has_strict_deriv_at_exp (x : ℂ) : has_strict_deriv_at exp (exp x) x :=

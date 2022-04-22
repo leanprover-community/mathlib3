@@ -3,13 +3,9 @@ Copyright (c) 2022 Grayson Burton, Yaël Dillies, Violeta Hernández Palacios. A
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Grayson Burton, Yaël Dillies, Violeta Hernández Palacios
 -/
-import algebra.big_operators.order
-import data.dfinsupp.order
-import data.finsupp.order
 import data.nat.interval
 import data.set.intervals.ord_connected
 import data.sigma.order
-import data.sum.order
 import order.grade
 import .mathlib
 
@@ -66,36 +62,23 @@ variables [order_bot α] [grade_min_order ℕ α] {a b : α}
 /-- The grade ℕ as an order homomorphism. -/
 def grade_order.order_hom : α →o ℕ := ⟨grade _, grade_mono⟩
 
-/-- A closed non-empty interval of a graded poset is a graded poset. -/
-def set.Icc.graded (h : a ≤ b) : grade_min_order ℕ (set.Icc a b) :=
+/-- A closed non-empty interval of a graded order is a graded order. -/
+def set.Icc.graded : grade_min_order ℕ (set.Icc a b) :=
 { grade := λ x, grade ℕ x.val - grade ℕ a,
-  grade_strict_mono := λ x y h,
-    nat.sub_mono_left_strict (grade_mono x.prop.left) (grade_strict_mono h),
+  grade_strict_mono := λ x y h, tsub_lt_tsub_right_of_le (grade_mono x.2.1) $ grade_strict_mono h,
   is_min_grade := λ c hc, begin
-    letI := set.Icc.order_bot h,
+    letI := set.Icc.order_bot (c.2.1.trans c.2.2),
     rw hc.eq_bot,
     convert is_min_bot,
     exact tsub_self _,
   end,
-  covby_grade := begin
-    rintro ⟨x, hx⟩ ⟨y, hy⟩ ⟨hxy, hcov⟩,
-    sorry
-    -- rw [←(covby.grade ⟨hxy, λ c ha hb, _⟩ : (grade ℕ x + 1 = grade ℕ y)), nat.sub_add_comm],
-    -- exact grade_mono hx.left,
-    -- simp at hcov, -- Todo(Vi): Remove this `simp`.
-    -- exact hcov _ (hx.1.trans ha.le) (hb.le.trans hy.2) ha hb,
+  covby_grade := λ x y hxy, begin
+    have : x.1 ⋖ y.1 := sorry,
+    exact (this.grade _).tsub_right (grade_mono x.2.1),
   end }
 
-/-- An element has grade `0` iff it is the bottom element. -/
-@[simp]
-lemma grade_eq_zero_iff (a : α) : grade ℕ a = 0 ↔ a = ⊥ :=
-begin
-  refine ⟨λ h, _, _⟩,
-  { by_contra ha,
-    exact (h.le.trans grade_bot.ge).not_lt (grade_strict_mono $ bot_lt_iff_ne_bot.2 ha) },
-  rintro rfl,
-  exact grade_bot
-end
+@[simp] lemma grade_eq_zero_iff (a : α) : grade ℕ a = 0 ↔ a = ⊥ :=
+by simp_rw [←bot_eq_zero, ←is_min_iff_eq_bot, is_min_grade_iff]
 
 end order_bot
 
@@ -134,11 +117,9 @@ private lemma grade_ioo_lin {a b : α} {m n r : ℕ} (ha : grade ℕ a = m) (hb 
   (hrl : m < r) (hrr : r < n) : ∃ (s ∈ set.Ioo m n) (c : α), grade ℕ c = s :=
 begin
   subst ha, subst hb,
-  sorry
-  -- obtain ⟨_, hac, hcb⟩ := exists_lt_lt_of_not_covby (grade_lt_grade_iff.1 (lt_trans hrl hrr))
-  --   (λ h, (λ ⟨_, hmn⟩, hmn hrl hrr : ¬ _ ⋖ _)
-  --   h.grade _),
-  -- exact ⟨_, ⟨grade_strict_mono hac, grade_strict_mono hcb⟩, _, rfl⟩
+  obtain ⟨_, hac, hcb⟩ := exists_lt_lt_of_not_covby (grade_lt_grade_iff.1 $ hrl.trans  hrr)
+    (λ h, (h.grade _).2 hrl hrr),
+  exact ⟨_, ⟨grade_strict_mono hac, grade_strict_mono hcb⟩, _, rfl⟩,
 end
 
 variables [locally_finite_order α]
@@ -184,7 +165,7 @@ end linear_order
 /-! #### `subsingleton` -/
 
 namespace subsingleton
-variables (α) [subsingleton α] [preorder α]
+variables [subsingleton α] [preorder α]
 
 /-- An order with one element is a graded order, aka a nullitope. -/
 def to_grade_min_order : grade_min_order ℕ α :=
@@ -192,8 +173,6 @@ def to_grade_min_order : grade_min_order ℕ α :=
   grade_strict_mono := subsingleton.strict_mono _,
   covby_grade := λ a b h, (h.1.ne $ subsingleton.elim _ _).elim,
   is_min_grade := λ _ _, is_min_bot }
-
-variables {α}
 
 protected lemma grade [grade_min_order ℕ α] (a : α) : grade ℕ a = 0 :=
 ((subsingleton.is_min _).grade _).eq_bot
@@ -233,85 +212,15 @@ by { convert grade_le_grade_top _, rw is_simple_order.grade_top }
 
 end is_simple_order
 
-/-! #### List -/
-
-namespace list
-
-lemma sublist_singleton : Π {l : list α} {a : α}, l <+ [a] → l = nil ∨ l = [a]
-| _ _ (sublist.cons  _ _  _ _ ) := by apply or.inl; rwa ←sublist_nil_iff_eq_nil
-| _ _ (sublist.cons2 a [] _ hl) := begin
-  rw sublist_nil_iff_eq_nil at hl,
-  rw hl,
-  exact or.inr rfl
-end
-
-lemma sublist.singleton_iff (l : list α) (a : α) : l <+ [a] ↔ l = nil ∨ l = [a] :=
-⟨sublist_singleton, begin
-  rintros (h | h),
-  all_goals { induction h },
-    { exact sublist.cons _ _ _ (sublist.refl _) },
-    { exact sublist.refl _ }
-end⟩
-
-end list
+/- We could put either the prefix, suffix, infix, sublist, subset order on `list` and show that it
+is graded by `list.length` -/
 
 /-! #### Multiset -/
 
 namespace multiset
 variables {s t : multiset α} {a : α}
 
-@[simp] lemma cons_zero (a : α) : a ::ₘ 0 = {a} := rfl
-
-lemma cons_lt_cons_iff : a ::ₘ s < a ::ₘ t ↔ s < t :=
-lt_iff_lt_of_le_iff_le' (cons_le_cons_iff _) (cons_le_cons_iff _)
-
-lemma cons_lt_cons (a : α) (h : s < t) : a ::ₘ s < a ::ₘ t := cons_lt_cons_iff.2 h
-
-lemma lt_singleton : s < {a} ↔ s = 0 :=
-begin
-  rcases s with ⟨s⟩,
-  change (↑s < ↑[a]) ↔ ↑s = _,
-  simp_rw [coe_eq_zero, lt_iff_cons_le, cons_coe, coe_le],
-  refine ⟨λ h, _, λ h, _⟩,
-  { rcases h with ⟨w, w', hw'w, hw'a⟩,
-    rw list.sublist.singleton_iff at hw'a,
-    obtain rfl | rfl := hw'a,
-    { rw list.nil_perm at hw'w, contradiction },
-    { rw [list.singleton_perm, list.cons.inj_eq] at hw'w,
-      rw hw'w.right } },
-  { use a,
-    induction h,
-    refl }
-end
-
-lemma covby_cons (m : multiset α) (a : α) : m ⋖ a ::ₘ m := ⟨lt_cons_self _ _, begin
-  simp_rw lt_iff_cons_le,
-  rintros m' ⟨b, hbm'⟩ ⟨c, hcm'⟩,
-  apply @irrefl _ (<) _ m,
-  have h := lt_of_le_of_lt hbm' (lt_cons_self _ c),
-  replace h := lt_of_lt_of_le h hcm',
-  clear hbm' hcm',
-  induction m using multiset.induction with d m hm,
-  { rw [cons_zero a, lt_singleton] at h,
-    exact (cons_ne_zero h).elim },
-  { simp_rw cons_swap _ d at h,
-    rw cons_lt_cons_iff at h ⊢,
-    exact hm h }
-end⟩
-
-lemma _root_.covby.exists_cons_multiset (h : s ⋖ t) : ∃ a, t = a ::ₘ s :=
-(lt_iff_cons_le.1 h.lt).imp $ λ a ha, ha.eq_of_not_gt $ h.2 $ lt_cons_self _ _
-
-lemma _root_.covby.card_multiset (h : s ⋖ t) : s.card ⋖ t.card :=
-begin
-  obtain ⟨a, rfl⟩ := h.exists_cons_multiset,
-  rw card_cons,
-  exact order.covby_succ _,
-end
-
-lemma card_strict_mono : strict_mono (card : multiset α → ℕ) := λ _ _, card_lt_of_lt
-
-instance (α : Type*) : grade_min_order ℕ (multiset α) :=
+instance : grade_min_order ℕ (multiset α) :=
 { grade := card,
   grade_strict_mono := card_strict_mono,
   covby_grade := λ s t, covby.card_multiset,
@@ -326,30 +235,15 @@ end multiset
 namespace finset
 variables {s t : finset α}
 
--- golf using `image_covby_iff`
-@[simp] lemma val_covby_iff : s.1 ⋖ t.1 ↔ s ⋖ t :=
-begin
-  split;
-  rintro ⟨hlt, no_intermediate⟩;
-  split;
-  simp at *;
-  rwa [←val_lt_iff] at *;
-  intros c hsc hct;
-  simp at *;
-  rw [←val_lt_iff] at *,
-  { apply @no_intermediate c.val; assumption },
-  { apply @no_intermediate ⟨c, multiset.nodup_of_le hct.1 t.nodup⟩;
-    rw ←val_lt_iff;
-    assumption }
-end
+instance grade_min_order_multiset : grade_min_order (multiset α) (finset α) :=
+{ grade := val,
+  grade_strict_mono := val_strict_mono,
+  covby_grade := λ _ _, covby.finset_val,
+  is_min_grade := λ s hs, by { rw hs.eq_empty, exact is_min_bot } }
 
-lemma _root_.covby.card_finset (h : s ⋖ t) : s.card ⋖ t.card := (val_covby_iff.2 h).card_multiset
+@[simp] lemma grade_multiset (s : finset α) : grade (multiset α) s = s.1 := rfl
 
-lemma _root_.is_min.eq_empty : is_min s → s = ∅ := is_min.eq_bot
-
-lemma card_strict_mono : strict_mono (card : finset α → ℕ) := λ _ _, card_lt_card
-
-instance (α : Type*) : grade_min_order ℕ (finset α) :=
+instance grade_min_order_nat : grade_min_order ℕ (finset α) :=
 { grade := card,
   grade_strict_mono := card_strict_mono,
   covby_grade := λ _ _, covby.card_finset,
@@ -364,13 +258,6 @@ end finset
 namespace finsupp
 variables [canonically_ordered_add_monoid α] [canonically_ordered_add_monoid β] {f g : ι →₀ α}
   {m : ι → α → β}
-
-lemma support_mono : monotone (support : (ι →₀ β) → finset ι) :=
-λ f g h i hi, by { rw [mem_support_iff, ←bot_eq_zero] at ⊢ hi, exact ne_bot_of_le_ne_bot hi (h i) }
-
-lemma sum_le_sum (h : f ≤ g) (hm : ∀ i, monotone (m i)) : f.sum m ≤ g.sum m :=
-(finset.sum_le_sum_of_subset_of_nonneg (support_mono h) $ λ _ _ _, zero_le _).trans $
-  sum_le_sum $ λ i _, hm i $ h i
 
 instance [grade_order ℕ β] : grade_order ℕ (α →₀ β) :=
 { grade := λ f, f.sum (λ _, grade ℕ),
@@ -398,15 +285,7 @@ variables [decidable_eq ι] [Π i, canonically_ordered_add_monoid (σ i)]
   [Π i (x : σ i), decidable (x ≠ 0)] [canonically_ordered_add_monoid α] {f g : Π₀ i, σ i}
   {m : Π i, σ i → α}
 
-lemma support_mono : monotone (support : (Π₀ i, σ i) → finset ι) :=
-λ f g h i hi, by { rw [mem_support_iff, ←bot_eq_zero] at ⊢ hi, exact ne_bot_of_le_ne_bot hi (h i) }
-
-lemma sum_le_sum (h : f ≤ g) (hm : ∀ i, monotone (m i)) : f.sum m ≤ g.sum m :=
-(finset.sum_le_sum_of_subset_of_nonneg (support_mono h) $ λ _ _ _, zero_le _).trans $
-  sum_le_sum $ λ i _, hm i $ h i
-
-instance [Π i, grade_order ℕ (σ i)] :
-  grade_order ℕ (Π₀ i, σ i) :=
+instance [Π i, grade_order ℕ (σ i)] : grade_order ℕ (Π₀ i, σ i) :=
 { grade := λ f, f.sum (λ _, grade ℕ),
   grade_strict_mono := λ a b, sorry,
   covby_grade := λ a b hab, begin
@@ -425,113 +304,9 @@ end dfinsupp
 
 /-! #### Product of two graded orders -/
 
-section
-variables [has_lt α] [comm_group α] [covariant_class α α (*) (<)] {a b c : α}
-
-@[to_additive] lemma covby.mul_left (h : b ⋖ c) (a : α) : a * b ⋖ a * c :=
-⟨mul_lt_mul_left' h.lt _, λ d hb hc,
-  h.2 (lt_div_iff_mul_lt.2 $ by rwa mul_comm) (_root_.div_lt_iff_lt_mul'.2 hc)⟩
-
-@[to_additive] lemma covby.mul_right (h : b ⋖ c) (a : α) : b * a ⋖ c * a :=
-⟨mul_lt_mul_right' h.lt _, λ d hb hc,
-  h.2 (lt_div_iff_mul_lt.2 hb) (_root_.div_lt_iff_lt_mul'.2 $ by rwa mul_comm)⟩
-
-end
-
-section
-variables [canonically_linear_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]
- [covariant_class α α (+) (<)] [contravariant_class α α (+) (≤)] {a b c : α}
-
-lemma covby.add_left' (h : b ⋖ c) (a : α) : a + b ⋖ a + c :=
-⟨add_lt_add_left h.lt _, λ d hb hc,
-  h.2 (lt_tsub_iff_left.2 hb) ((tsub_lt_iff_left $ le_self_add.trans hb.le).2 hc)⟩
-
-lemma covby.add_right' (h : b ⋖ c) (a : α) : b + a ⋖ c + a :=
-⟨add_lt_add_right h.lt _, λ d hb hc,
-  h.2 (lt_tsub_iff_right.2 hb) ((tsub_lt_iff_right $ le_add_self.trans hb.le).2 hc)⟩
-
-end
-
 namespace prod
 variables [partial_order α] [order_bot α] [partial_order β] [order_bot β] {a a' : α} {b b' : β}
   {x y : α × β}
-
-@[simp] lemma swap_le_swap_iff : x.swap ≤ y.swap ↔ x ≤ y := and_comm _ _
-
-@[simp] lemma swap_lt_swap_iff : x.swap < y.swap ↔ x < y :=
-lt_iff_lt_of_le_iff_le' swap_le_swap_iff swap_le_swap_iff
-
-@[simp] lemma swap_covby_swap_iff : x.swap ⋖ y.swap ↔ x ⋖ y :=
-apply_covby_apply_iff (order_iso.prod_comm : α × β ≃o β × α)
-
-lemma mk_le_mk_iff_left : (a, b) ≤ (a', b) ↔ a ≤ a' := and_iff_left le_rfl
-lemma mk_le_mk_iff_right : (a, b) ≤ (a, b') ↔ b ≤ b' := and_iff_right le_rfl
-
-lemma mk_lt_mk_iff_left : (a, b) < (a', b) ↔ a < a' :=
-lt_iff_lt_of_le_iff_le' mk_le_mk_iff_left mk_le_mk_iff_left
-
-lemma mk_lt_mk_iff_right : (a, b) < (a, b') ↔ b < b' :=
-lt_iff_lt_of_le_iff_le' mk_le_mk_iff_right mk_le_mk_iff_right
-
-lemma fst_eq_or_snd_eq_of_covby : (a, b) ⋖ (a', b') → a = a' ∨ b = b' :=
-begin
-  contrapose,
-  push_neg,
-  rintros ⟨ha, hb⟩ hcov,
-  have h₁ : (a, b) < (a', b)   := mk_lt_mk.mpr (or.inl ⟨ha.le_iff_lt.mp hcov.1.1.1, le_rfl⟩),
-  have h₂ : (a', b) < (a', b') := mk_lt_mk.mpr (or.inr ⟨le_rfl, hb.le_iff_lt.mp hcov.1.1.2⟩),
-  exact hcov.2 h₁ h₂
-end
-
-lemma mk_covby_mk_iff_left : (a, b) ⋖ (a', b) ↔ a ⋖ a' :=
-begin
-  split;
-  rintro ⟨hcov_left, hcov_right⟩;
-  split;
-  [ { skip },
-    { intros c hac hca',
-      apply @hcov_right (c, b) },
-    { skip },
-    { rintros ⟨c₁, c₂⟩ h h',
-      apply @hcov_right c₁;
-      have : c₂ = b := le_antisymm h'.1.2 h.1.2;
-      rw this at *, } ];
-  rw mk_lt_mk_iff_left at *;
-  assumption,
-end
-
-lemma mk_covby_mk_iff_right : (a, b) ⋖ (a, b') ↔ b ⋖ b' :=
-swap_covby_swap_iff.trans mk_covby_mk_iff_left
-
-lemma mk_covby_mk_iff : (a, b) ⋖ (a', b') ↔ a ⋖ a' ∧ b = b' ∨ a = a' ∧ b ⋖ b' :=
-begin
-  split,
-  { intro hcov,
-    cases fst_eq_or_snd_eq_of_covby hcov with heq heq;
-    rw [heq, eq_self_iff_true] at *,
-    { rw [mk_covby_mk_iff_right] at *,
-      tauto },
-    { rw mk_covby_mk_iff_left at *,
-      tauto } },
-  { intro h,
-    rcases h with ⟨acov, beq⟩ | ⟨aeq, bcov⟩,
-    { rw beq at *,
-      exact mk_covby_mk_iff_left.mpr acov },
-    { rw aeq at *,
-      exact mk_covby_mk_iff_right.mpr bcov } }
-end
-
-lemma _root_.is_min.prod_mk (ha : is_min a) (hb : is_min b) : is_min (a, b) :=
-λ c hc, ⟨ha hc.1, hb hc.2⟩
-
-lemma _root_.is_min.fst (hx : is_min x) : is_min x.1 :=
-λ c hc, (hx ((and_iff_left le_rfl).2 hc : (c, x.2) ≤ x)).1
-
-lemma _root_.is_min.snd (hx : is_min x) : is_min x.2 :=
-λ c hc, (hx ((and_iff_right le_rfl).2 hc : (x.1, c) ≤ x)).2
-
-lemma is_min_iff : is_min x ↔ is_min x.1 ∧ is_min x.2 :=
-⟨λ hx, ⟨hx.fst, hx.snd⟩, λ h, h.1.prod_mk h.2⟩
 
 instance [grade_order ℕ α] [grade_order ℕ β] : grade_order ℕ (α × β) :=
 { grade := λ a, grade ℕ a.1 + grade ℕ a.2,
@@ -579,8 +354,7 @@ instance [Π i, grade_min_order ℕ (σ i)] : grade_min_order ℕ (Π i, σ i) :
     change is_min (finset.sum _ _),
     rw sum_eq_zero (λ _ _, _),
     exact is_min_bot,
-    refine (is_min.grade _ _).eq_bot,
-    sorry
+    exact ((ha.apply' _).grade _).eq_bot,
   end
   ..pi.grade_order }
 
@@ -596,19 +370,33 @@ namespace sum
 variables [preorder 𝕆] [preorder α] [preorder β]
 
 instance [grade_order 𝕆 α] [grade_order 𝕆 β] : grade_order 𝕆 (α ⊕ β) :=
-{ grade := elim (grade 𝕆) (grade 𝕆),
-  grade_strict_mono := λ a b h, sorry,
+{ grade := sum.elim (grade 𝕆) (grade 𝕆),
+  grade_strict_mono := grade_strict_mono.sum_elim grade_strict_mono,
   covby_grade := sorry }
 
-instance [grade_min_order ℕ α] [grade_min_order ℕ β] : grade_min_order 𝕆 (α ⊕ₗ β) :=
-{ grade := λ a, a.elim (grade ℕ) (λ b, grade ℕ (⊤ : α) + grade ℕ b),
-  grade_strict_mono := λ a b h, sorry,
-  covby_grade := sorry }
+instance [grade_min_order 𝕆 α] [grade_min_order 𝕆 β] : grade_min_order 𝕆 (α ⊕ β) :=
+{ is_min_grade := λ x hx, begin
+    cases x,
+    { exact (is_min_inl_iff.1 hx).grade _ },
+    { exact (is_min_inr_iff.1 hx).grade _ }
+  end,
+  ..sum.grade_order }
 
-variables (a : α) (b : β) [grade_order ℕ α] [grade_order ℕ β]
+instance [grade_max_order 𝕆 α] [grade_max_order 𝕆 β] : grade_max_order 𝕆 (α ⊕ β) :=
+{ is_max_grade := λ x hx, begin
+    cases x,
+    { exact (is_max_inl_iff.1 hx).grade _ },
+    { exact (is_max_inr_iff.1 hx).grade _ }
+  end,
+  ..sum.grade_order }
 
-@[simp] lemma grade_inl : grade 𝕆 (sum.inl a : α ⊕ₗ β) = grade 𝕆 a := rfl
-@[simp] lemma grade_inr : grade 𝕆 (sum.inr b : α ⊕ₗ β) = grade 𝕆 b := rfl
+instance [grade_bounded_order 𝕆 α] [grade_bounded_order 𝕆 β] : grade_bounded_order 𝕆 (α ⊕ β) :=
+{ ..sum.grade_min_order, ..sum.grade_max_order }
+
+variables (a : α) (b : β) [grade_order 𝕆 α] [grade_order 𝕆 β]
+
+@[simp] lemma grade_inl : grade 𝕆 (sum.inl a : α ⊕ β) = grade 𝕆 a := rfl
+@[simp] lemma grade_inr : grade 𝕆 (sum.inr b : α ⊕ β) = grade 𝕆 b := rfl
 
 end sum
 
@@ -617,58 +405,55 @@ end sum
 namespace sum.lex
 variables [preorder α] [bounded_order α] [preorder β] [order_bot β]
 
-instance [grade_order ℕ α] [grade_order ℕ β] : grade_order ℕ (α ⊕ₗ β) :=
-{ grade := elim (grade ℕ) (λ b, grade ℕ (⊤ : α) + grade ℕ b),
+instance grade_order [grade_order ℕ α] [grade_order ℕ β] : grade_order ℕ (α ⊕ₗ β) :=
+{ grade := sum.elim (grade ℕ) (λ b, grade ℕ (⊤ : α) + grade ℕ b),
   grade_strict_mono := λ a b h, sorry,
   covby_grade := sorry }
 
-instance [grade_min_order ℕ α] [grade_min_order ℕ β] : grade_min_order ℕ (α ⊕ₗ β) :=
-{ grade := λ a, a.elim (grade ℕ) (λ b, grade ℕ (⊤ : α) + grade ℕ b),
-  grade_strict_mono := λ a b h, sorry,
-  covby_grade := sorry }
+instance grade_min_order [grade_min_order ℕ α] [grade_min_order ℕ β] : grade_min_order ℕ (α ⊕ₗ β) :=
+{ is_min_grade := sorry,
+  ..sum.lex.grade_order }
 
 variables (a : α) (b : β) [grade_order ℕ α] [grade_order ℕ β]
 
 @[simp] protected lemma grade_inlₗ : grade ℕ (sum.inlₗ a : α ⊕ₗ β) = grade ℕ a := rfl
-@[simp] protected lemma grade_inrₗ : grade ℕ (sum.inrₗ b : α ⊕ₗ β) = grade (⊤ : α) + grade ℕ b := rfl
+@[simp] protected lemma grade_inrₗ : grade ℕ (sum.inrₗ b : α ⊕ₗ β) = grade ℕ (⊤ : α) + grade ℕ b :=
+rfl
 
 end sum.lex
 
 /-! #### Finite lexicographical sum of graded orders -/
 
 namespace sigma.lex
-variables (ι σ) [fintype ι] [linear_order ι] [order_bot ι] [Π i, preorder (σ i)]
-  [Π i, order_bot (σ i)] [Π i, grade_order ℕ (σ i)]
+variables [fintype ι] [linear_order ι] [order_bot ι] [Π i, preorder (σ i)] [Π i, order_bot (σ i)]
 
 /-- The lexicographical grading on a sigma type. Turn this on by opening locale `lex`. -/
-instance grade_order : grade_order ℕ (Σ i, σ i) :=
+instance grade_order [Π i, grade_order ℕ (σ i)] : grade_order ℕ (Σₗ i, σ i) :=
 { grade := sorry,
-  grade_bot := sorry,
-  strict_mono := λ a b h, sorry,
+  grade_strict_mono := λ a b h, sorry,
   covby_grade := sorry }
 
-variables {ι σ}
+instance grade_min_order [Π i, grade_min_order ℕ (σ i)] : grade_min_order ℕ (Σₗ i, σ i) :=
+{ is_min_grade := sorry,
+  ..sigma.lex.grade_order }
 
---@[simp] protected lemma grade (f : Σ i, σ i) : grade f = sorry := rfl
+-- @[simp] protected lemma grade (f : Σ i, σ i) : grade f = sorry := rfl
 
 end sigma.lex
 
 namespace psigma.lex
-variables (ι σ) [fintype ι] [linear_order ι] [Π i, preorder (σ i)] [Π i, order_bot (σ i)]
+variables [fintype ι] [linear_order ι] [Π i, preorder (σ i)] [Π i, order_bot (σ i)]
   [Π i, grade_order ℕ (σ i)]
 
-open_locale lex
+-- /-- The lexicographical grading on a sigma type. Turn this on by opening locale `lex`. -/
+-- def grade_order : grade_order ℕ (Σₗ' i, σ i) :=
+-- { grade := sorry,
+--   grade_strict_mono := λ a b h, sorry,
+--   covby_grade := sorry }
 
-/-- The lexicographical grading on a sigma type. Turn this on by opening locale `lex`. -/
-def grade_order : grade_order ℕ (Σ' i, σ i) :=
-{ grade := sorry,
-  grade_bot := sorry,
-  strict_mono := λ a b h, sorry,
-  covby_grade := sorry }
-
---localized "attribute [instance] psigma.lex.grade_order" in lex
-
-variables {ι σ}
+-- instance grade_min_order [Π i, grade_min_order ℕ (σ i)] : grade_min_order ℕ (Σₗ' i, σ i) :=
+-- { is_min_grade := sorry,
+--   ..psigma.lex.grade_order }
 
 --@[simp] protected lemma grade (f : Σ' i, σ i) : grade f = sorry := rfl
 
@@ -677,48 +462,44 @@ end psigma.lex
 /-! #### `with_bot`, `with_top` -/
 
 namespace with_bot
-variables (α) [preorder α] [order_bot α] [grade_order ℕ α]
+variables [preorder α] [order_bot α] [grade_min_order ℕ α]
 
-instance : grade_order ℕ (with_bot α) :=
+instance : grade_min_order ℕ (with_bot α) :=
 { grade := @with_bot.rec_bot_coe α (λ _, ℕ) 0 (λ a, grade ℕ a + 1),
-  grade_bot := rfl,
-  strict_mono := λ x y h, begin
+  is_min_grade := sorry,
+  grade_strict_mono := λ x y h, begin
     cases x; cases y,
     { exact (h.ne rfl).elim },
     { exact nat.zero_lt_succ _ },
     { exact (not_lt_bot h).elim },
-    { exact nat.succ_lt_succ (grade_order.strict_mono (with_bot.some_lt_some.1 h)) }
+    { exact nat.succ_lt_succ (grade_strict_mono (with_bot.some_lt_some.1 h)) }
   end,
   covby_grade := λ x y h, begin
     sorry
   end }
 
-variables {α}
-
-@[simp] protected lemma grade_coe (a : α) : grade (a : with_bot α) = grade ℕ a + 1 := rfl
+@[simp] protected lemma grade_coe (a : α) : grade ℕ (a : with_bot α) = grade ℕ a + 1 := rfl
 
 end with_bot
 
 namespace with_top
-variables (α) [partial_order α] [bounded_order α] [grade_order ℕ α]
+variables [partial_order α] [bounded_order α] [grade_min_order ℕ α]
 
-instance : grade_order ℕ (with_top α) :=
-{ grade := @with_top.rec_top_coe α (λ _, ℕ) (grade (⊤ : α) + 1) grade,
-  grade_bot := grade_bot,
-  strict_mono := λ x y h, begin
+instance : grade_min_order ℕ (with_top α) :=
+{ grade := @with_top.rec_top_coe α (λ _, ℕ) (grade ℕ (⊤ : α) + 1) (grade ℕ),
+  is_min_grade := sorry,
+  grade_strict_mono := λ x y h, begin
     cases x; cases y,
     { exact (h.ne rfl).elim },
     { exact (not_le_of_lt h le_top).elim },
     { exact nat.lt_succ_of_le (grade_le_grade_top _) },
-    { exact grade_order.strict_mono (with_top.some_lt_some.1 h) }
+    { exact grade_strict_mono (with_top.some_lt_some.1 h) }
   end,
   covby_grade := λ x y h, begin
     sorry
   end }
 
-variables {α}
-
-@[simp] protected lemma grade_coe (a : α) : grade (a : with_top α) = grade ℕ a := rfl
-@[simp] protected lemma grade_top : grade (⊤ : with_top α) = grade (⊤ : α) + 1 := rfl
+@[simp] protected lemma grade_coe (a : α) : grade ℕ (a : with_top α) = grade ℕ a := rfl
+@[simp] protected lemma grade_top : grade ℕ (⊤ : with_top α) = grade ℕ (⊤ : α) + 1 := rfl
 
 end with_top

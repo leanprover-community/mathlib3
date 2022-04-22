@@ -21,11 +21,11 @@ class polytope_order (α : Type*) [partial_order α] [order_bot α] [locally_fin
 variables (α)
 
 /-- An order with one element is a diamond order, aka a nullitope. -/
-def unique.to_polytope_order [unique α] [partial_order α] [bounded_order α] [locally_finite_order α]
-  (n : ℕ) :
+def subsingleton.to_polytope_order [subsingleton α] [partial_order α] [bounded_order α]
+  [locally_finite_order α] (n : ℕ) :
   polytope_order α n :=
 { scon := by { apply graded.scon_of_grade_le_two, exact zero_le_two },
-  .. unique.to_diamond_order α }
+  .. subsingleton.to_diamond_order _ _ }
 
 /-- A simple order is a diamond order, aka a point. -/
 def is_simple_order.to_polytope_order [decidable_eq α] [partial_order α] [bounded_order α]
@@ -36,4 +36,4 @@ def is_simple_order.to_polytope_order [decidable_eq α] [partial_order α] [boun
     rw is_simple_order.grade_top,
     exact one_le_two,
   end,
-  .. is_simple_order.to_diamond_order α }
+  .. is_simple_order.to_diamond_order _ _ }

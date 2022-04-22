@@ -426,6 +426,9 @@ instance to_semi_normed_ring : semi_normed_ring (E →L[𝕜] E) :=
 
 theorem le_op_nnnorm : ∥f x∥₊ ≤ ∥f∥₊ * ∥x∥₊ := f.le_op_norm x
 
+theorem nndist_le_op_nnnorm (x y : E) : nndist (f x) (f y) ≤ ∥f∥₊ * nndist x y :=
+dist_le_op_norm f x y
+
 /-- continuous linear maps are Lipschitz continuous. -/
 theorem lipschitz : lipschitz_with ∥f∥₊ f :=
 (f : E →ₛₗ[σ₁₂] F).lipschitz_of_bound_nnnorm _ f.le_op_nnnorm

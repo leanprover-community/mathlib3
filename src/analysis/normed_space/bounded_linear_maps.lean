@@ -236,6 +236,9 @@ by rw [f.map_add, add_apply]
 lemma map_sub₂ (f : E →L[𝕜] F →L[𝕜] G) (x x' : E) (y : F) : f (x - x') y = f x y - f x' y :=
 by rw [f.map_sub, sub_apply]
 
+lemma map_sub₂ (f : E →L[𝕜] F →L[𝕜] G) (x : E) (y : F) : f (- x) y = - f x y :=
+by rw [f.map_neg, neg_apply]
+
 lemma map_smul₂ (f : E →L[𝕜] F →L[𝕜] G) (c : 𝕜) (x : E) (y : F) : f (c • x) y = c • f x y :=
 by rw [f.map_smul, smul_apply]
 

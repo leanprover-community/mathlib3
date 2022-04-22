@@ -659,6 +659,33 @@ begin
   { simp only [pow_succ', ih, map_mul], },
 end
 
+lemma map_add_left (f₁ f₂ : M →ₗ[R] P) (g : N →ₗ[R] Q) : map (f₁ + f₂) g = map f₁ g + map f₂ g :=
+by {ext, simp only [add_tmul, compr₂_apply, mk_apply, map_tmul, add_apply]}
+
+lemma map_add_right (f : M →ₗ[R] P) (g₁ g₂ : N →ₗ[R] Q) : map f (g₁ + g₂) = map f g₁ + map f g₂ :=
+by {ext, simp only [tmul_add, compr₂_apply, mk_apply, map_tmul, add_apply]}
+
+lemma map_smul_left (r : R) (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : map (r • f) g = r • map f g :=
+by {ext, simp only [smul_tmul, compr₂_apply, mk_apply, map_tmul, smul_apply, tmul_smul]}
+
+lemma map_smul_right (r : R) (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : map f (r • g) = r • map f g :=
+by {ext, simp only [smul_tmul, compr₂_apply, mk_apply, map_tmul, smul_apply, tmul_smul]}
+
+def map_bilinear : (M →ₗ[R] P) →ₗ[R] (N →ₗ[R] Q) →ₗ[R] (M ⊗[R] N →ₗ[R] P ⊗[R] Q) :=
+  linear_map.mk₂ R map map_add_left map_smul_left map_add_right map_smul_right
+
+@[simp]
+lemma map_bilinear_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : map_bilinear f g = map f g := rfl
+
+@[simp]
+def hom_tensor_hom_map : (M →ₗ[R] P) ⊗[R] (N →ₗ[R] Q) →ₗ[R] (M ⊗[R] N →ₗ[R] P ⊗[R] Q) :=
+  lift map_bilinear
+
+@[simp]
+lemma hom_tensor_hom_map_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
+  hom_tensor_hom_map (f ⊗ₜ g) = map f g :=
+by simp only [hom_tensor_hom_map, lift.tmul, map_bilinear_apply]
+
 end
 
 /-- If `M` and `P` are linearly equivalent and `N` and `Q` are linearly equivalent

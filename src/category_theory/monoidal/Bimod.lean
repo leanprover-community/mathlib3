@@ -300,6 +300,7 @@ end
 
 end tensor_Bimod
 
+@[simps]
 noncomputable
 def tensor_Bimod {X Y Z : Mon_ C} (M : Bimod X Y) (N : Bimod Y Z) : Bimod X Z :=
 { X := tensor_Bimod.X M N,
@@ -310,5 +311,56 @@ def tensor_Bimod {X Y Z : Mon_ C} (M : Bimod X Y) (N : Bimod Y Z) : Bimod X Z :=
   left_assoc' := tensor_Bimod.left_assoc' M N,
   right_assoc' := tensor_Bimod.right_assoc' M N,
   middle_assoc' := tensor_Bimod.middle_assoc' M N, }
+
+@[simps]
+noncomputable
+def tensor_hom {X Y Z : Mon_ C} {M₁ M₂ : Bimod X Y} {N₁ N₂ : Bimod Y Z}
+  (f : M₁ ⟶ M₂) (g : N₁ ⟶ N₂) : tensor_Bimod M₁ N₁ ⟶ tensor_Bimod M₂ N₂ :=
+{ hom := begin
+    refine colim_map (parallel_pair_hom _ _ _ _ ((f.hom ⊗ 𝟙 Y.X) ⊗ g.hom) (f.hom ⊗ g.hom) _ _),
+    { rw [←tensor_comp, ←tensor_comp, hom.right_act_hom], simp, },
+    { slice_lhs 2 3 { rw [←tensor_comp, hom.left_act_hom] },
+      slice_rhs 1 2 { rw associator_naturality },
+      slice_rhs 2 3 { rw ←tensor_comp},
+      simp },
+  end,
+  left_act_hom' := begin
+    dsimp, dunfold tensor_Bimod.act_left,
+    refine (cancel_epi (preserves_coequalizer.iso (tensor_left X.X) _ _).hom).1 _,
+    slice_lhs 1 2 { rw iso.hom_inv_id },
+    simp,
+    ext,
+    simp,
+    slice_rhs 1 2 { rw ←tensor_comp },
+    simp,
+    slice_rhs 2 2 { rw [←(tensor_left_map _ _ _ (coequalizer.π _ _)),
+                        ←ι_comp_coequalizer_comparison] },
+    slice_rhs 3 3 { rw ←preserves_coequalizer.iso_hom },
+    slice_rhs 3 4 { rw iso.hom_inv_id },
+    simp,
+    slice_rhs 1 2 { rw associator_inv_naturality },
+    slice_lhs 2 3 { rw [←tensor_comp, hom.left_act_hom] },
+    slice_rhs 2 3 { rw ←tensor_comp },
+    simp,
+  end,
+  right_act_hom' := begin
+    dsimp, dunfold tensor_Bimod.act_right,
+    refine (cancel_epi (preserves_coequalizer.iso (tensor_right Z.X) _ _).hom).1 _,
+    slice_lhs 1 2 { rw iso.hom_inv_id },
+    simp,
+    ext,
+    simp,
+    slice_rhs 1 2 { rw ←tensor_comp },
+    simp,
+    slice_rhs 2 2 { rw [←(tensor_right_map _ _ _ (coequalizer.π _ _)),
+                        ←ι_comp_coequalizer_comparison] },
+    slice_rhs 3 3 { rw ←preserves_coequalizer.iso_hom },
+    slice_rhs 3 4 { rw iso.hom_inv_id },
+    simp,
+    slice_rhs 1 2 { rw associator_naturality },
+    slice_lhs 2 3 { rw [←tensor_comp, hom.right_act_hom] },
+    slice_rhs 2 3 { rw ←tensor_comp },
+    simp,
+  end }
 
 end Bimod

@@ -23,7 +23,7 @@ is isometric, as expressed by the typeclass `[ring_hom_isometric σ]`.
 -/
 
 noncomputable theory
-open_locale classical nnreal topological_space big_operators
+open_locale classical nnreal topological_space
 
 -- the `ₗ` subscript variables are for special cases about linear (as opposed to semilinear) maps
 variables {𝕜 : Type*} {𝕜₂ : Type*} {𝕜₃ : Type*} {E : Type*} {F : Type*} {Fₗ : Type*} {G : Type*}
@@ -483,6 +483,9 @@ le_antisymm
   max_le
     (op_norm_le_bound _ (norm_nonneg _) $ λ x, (le_max_left _ _).trans ((f.prod g).le_op_norm x))
     (op_norm_le_bound _ (norm_nonneg _) $ λ x, (le_max_right _ _).trans ((f.prod g).le_op_norm x))
+
+@[simp] lemma op_nnnorm_prod (f : E →L[𝕜] Fₗ) (g : E →L[𝕜] Gₗ) : ∥f.prod g∥₊ = ∥(f, g)∥₊ :=
+subtype.ext $ op_norm_prod f g
 
 /-- `continuous_linear_map.prod` as a `linear_isometry_equiv`. -/
 def prodₗᵢ (R : Type*) [semiring R] [module R Fₗ] [module R Gₗ]

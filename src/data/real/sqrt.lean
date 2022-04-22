@@ -181,6 +181,83 @@ begin
       { right, exact s, }, }, },
 end
 
+lemma blaaaah {a b c : ℚ} (b_pos : 0 < b) (h : a ≤ b * c) : a / b ≤ c :=
+begin
+  sorry,
+end
+
+/-- The sqrt_aux corresponding to decreasing Cauchy sequences is decreasing. -/
+theorem sqrt_aux_decreasing (f : cau_seq ℚ abs) (f_decreasing : ∀ i, f (i + 1) ≤ f i)
+  {i : ℕ} (i_pos : 0 < i) (all_pos : ∀ j, 0 < sqrt_aux f j) : sqrt_aux f (i + 1) ≤ sqrt_aux f i :=
+begin
+  unfold sqrt_aux,
+  simp,
+  cases @sqrt_aux_overestimate f i i_pos,
+  { split,
+    { exact (le_of_lt (all_pos i)), },
+    { cancel_denoms,
+      rw two_mul,
+      simp,
+      refine blaaaah (all_pos i) _,
+      calc f (i + 1) ≤ f i : f_decreasing i
+        ... ≤ sqrt_aux f i ^ 2 : h
+        ... = sqrt_aux f i * sqrt_aux f i : sq _ }, },
+  { specialize all_pos i, linarith, },
+end
+
+theorem nat_gcd_eq_zero_iff (a b : ℕ) : a.gcd b = 0 ↔ a = 0 ∧ b = 0 :=
+begin
+  split,
+  { intros gcd_eq_zero,
+    induction a,
+    { simp at gcd_eq_zero,
+      exact ⟨rfl, gcd_eq_zero⟩, },
+    { exfalso,
+      rw nat.gcd_succ at gcd_eq_zero,
+      simp at gcd_eq_zero,
+      exact gcd_eq_zero, }, },
+  { rintros ⟨a_eq_zero, b_eq_zero⟩,
+    rw [a_eq_zero, b_eq_zero],
+    exact nat.gcd_zero_left _, },
+end
+
+/-- If f is positive, then sqrt_aux f is positive. -/
+theorem sqrt_aux_pos (f : cau_seq ℚ abs) (all_pos : ∀ j, 0 < f j) (i : ℕ) : 0 < sqrt_aux f i :=
+begin
+  induction i with i hyp,
+  { unfold sqrt_aux,
+    specialize all_pos 0,
+    rcases f 0,
+    intros pos2,
+    rw rat.lt_def,
+    simp,
+    rw rat.lt_def at pos2,
+    simp at pos2,
+    have sqrt_denom_pos : 0 < nat.sqrt denom := nat.sqrt_pos.mpr pos,
+    unfold rat.mk_nat, simp [ne_of_gt sqrt_denom_pos],
+    cases num,
+    { simp, simp at pos2,
+      have sqrt_num_pos : 0 < nat.sqrt num := nat.sqrt_pos.mpr pos2,
+      unfold rat.mk_pnat,
+      simp,
+      norm_cast,
+      apply nat.div_pos,
+      { exact (nat.sqrt denom).gcd_le_left sqrt_num_pos, },
+      { rcases @eq_zero_or_pos _ _ ((nat.sqrt num).gcd (nat.sqrt denom)),
+        { rw nat_gcd_eq_zero_iff at h,
+          rcases h with ⟨num_zero, denom_zero⟩,
+          rw [denom_zero] at sqrt_denom_pos,
+          linarith, },
+        { assumption, }, }, },
+    { simp at pos2, exfalso, exact pos2, }, },
+  { unfold sqrt_aux,
+    simp,
+    specialize all_pos (i + 1),
+    cancel_denoms,
+    calc 0 < sqrt_aux f i : hyp
+      ... < _ : lt_add_of_pos_right (sqrt_aux f i) (div_pos all_pos hyp), },
+end
+
 /- TODO(Mario): finish the proof
 theorem sqrt_aux_converges (f : cau_seq ℚ abs) : ∃ h x, 0 ≤ x ∧ x * x = max 0 (mk f) ∧
   mk ⟨sqrt_aux f, h⟩ = x :=

@@ -9,7 +9,7 @@ import ring_theory.polynomial.eisenstein
 
 /-!
 # Ring of integers of `p`-th power cyclotomic fields
-We compute the discriminant of a `p ^ n`-th cyclotomic extension of `ℚ`.
+We compute the ring of integers of a `p ^ n`-th cyclotomic extension of `ℚ`.
 
 ## Main results
 * `is_cyclotomic_extension.rat.is_integral_closure_adjoing_singleton_of_prime_pow`: if `K` is a

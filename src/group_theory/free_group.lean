@@ -31,7 +31,7 @@ functor from groups to types, see `algebra/category/Group/adjunctions`.
   is isomorphic to the integers.
 * The free group construction is an instance of a monad.
 * `is_free_group.of_unique_lift`: A group that satisfies the universal property of a free group
-   is a free group.
+  is a free group.
 
 ## Implementation details
 

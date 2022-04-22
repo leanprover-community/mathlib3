@@ -594,10 +594,9 @@ section
 variables (C)
 
 /-- A category with finite biproducts has a zero object. -/
-def has_zero_object_of_has_finite_biproducts [has_finite_biproducts C] : has_zero_object C :=
-{ zero := biproduct pempty.elim,
-  unique_to := λ X, ⟨⟨0⟩, by tidy⟩,
-  unique_from := λ X, ⟨⟨0⟩, by tidy⟩, }
+@[priority 100] -- see Note [lower instance priority]
+instance has_zero_object_of_has_finite_biproducts [has_finite_biproducts C] : has_zero_object C :=
+by { refine ⟨⟨biproduct pempty.elim, λ X, ⟨⟨⟨0⟩, _⟩⟩, λ X, ⟨⟨⟨0⟩, _⟩⟩⟩⟩, tidy, }
 
 end
 

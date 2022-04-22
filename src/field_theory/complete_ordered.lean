@@ -10,9 +10,9 @@ import analysis.special_functions.pow
 # Conditionally complete linear ordered fields
 
 This file shows that the reals are unique, or, more formally, given a type satisfying the common
-axioms of the reals (field, conditionally complete, linearly ordered) that there is an equivalence
+axioms of the reals (field, conditionally complete, linearly ordered) that there is an isomorphism
 preserving these properties to the reals. This is `induced_order_ring_iso`. Moreover this
-equivalence is unique.
+isomorphism is unique.
 
 We introduce definitions of conditionally complete linear ordered fields, and show all such are
 archimedean. We also construct the natural map from a `linear_ordered_field` to such a field.
@@ -21,13 +21,14 @@ archimedean. We also construct the natural map from a `linear_ordered_field` to 
 
 * `conditionally_complete_linear_ordered_field` : A field satisfying the standard axiomatization of
   the real numbers, being a Dedekind complete and linear ordered field.
-* `induced_map` : A (unique) map from any archimedean linear ordered field to a conditionally
+* `rat.induced_map` : A (unique) map from any archimedean linear ordered field to a conditionally
   complete linear ordered field
 
 ## Main results
 
-* `order_ring_hom_unique` : Uniqueness of `order_ring_hom`s from
-* `order_ring_iso_eq_induced_order_ring_iso` : Uniqueness of `order_ring_iso`s between two
+* `unique.order_ring_hom` : Uniqueness of `order_ring_hom`s from an archimedean linear ordered field
+  to a conditionally complete linear ordered field.
+* `unique.order_ring_iso` : Uniqueness of `order_ring_iso`s between two
   conditionally complete linearly ordered fields.
 
 ## References
@@ -86,8 +87,8 @@ lemma lt_of_mul_self_lt_mul_self [linear_ordered_semiring α] {a b : α} (hb : 0
   (h : a * a < b * b) : a < b :=
 by { simp_rw ←sq at h, exact lt_of_pow_lt_pow _ hb h }
 
-/-- There is at most ring homomorphism from a linear ordered field to an archimedean linear ordered
-field. -/
+/-- There is at most one ring homomorphism from a linear ordered field to an archimedean linear
+ordered field. -/
 instance [linear_ordered_field α] [linear_ordered_field β] [archimedean β] :
   subsingleton (α →+*o β) :=
 ⟨λ f g, begin
@@ -198,8 +199,8 @@ open_locale classical pointwise
 
 set_option old_structure_cmd true
 
-/-- A field which is both linearly ordered and conditionally complete with respect to the order,
-this is an axiomatization of the reals. -/
+/-- A field which is both linearly ordered and conditionally complete with respect to the order.
+This axiomatizes the reals. -/
 @[protect_proj, ancestor linear_ordered_field conditionally_complete_linear_order]
 class conditionally_complete_linear_ordered_field (α : Type*)
   extends linear_ordered_field α renaming max → sup min → inf, conditionally_complete_linear_order α

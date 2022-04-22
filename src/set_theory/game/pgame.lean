@@ -198,6 +198,12 @@ instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩�
 @[simp] lemma zero_left_moves : (0 : pgame).left_moves = pempty := rfl
 @[simp] lemma zero_right_moves : (0 : pgame).right_moves = pempty := rfl
 
+instance is_empty_zero_left_moves : is_empty (0 : pgame).left_moves :=
+by { rw zero_left_moves, apply_instance }
+
+instance is_empty_zero_right_moves : is_empty (0 : pgame).right_moves :=
+by { rw zero_right_moves, apply_instance }
+
 instance : inhabited pgame := ⟨0⟩
 
 /-- The pre-game `one` is defined by `1 = { 0 | }`. -/
@@ -206,6 +212,9 @@ instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 @[simp] lemma one_left_moves : (1 : pgame).left_moves = punit := rfl
 @[simp] lemma one_move_left : (1 : pgame).move_left punit.star = 0 := rfl
 @[simp] lemma one_right_moves : (1 : pgame).right_moves = pempty := rfl
+
+instance is_empty_one_right_moves : is_empty (1 : pgame).right_moves :=
+by { rw one_right_moves, apply_instance }
 
 /-- Define simultaneously by mutual induction the `<=` and `<`
   relation on pre-games. The ZFC definition says that `x = {xL | xR}`
@@ -1106,7 +1115,10 @@ by rw [to_pgame, pgame.left_moves]
 @[simp] theorem to_pgame_right_moves (o : ordinal) : o.to_pgame.right_moves = pempty :=
 by rw [to_pgame, pgame.right_moves]
 
-instance (o : ordinal) : is_empty o.to_pgame.right_moves :=
+instance is_empty_zero_to_pgame_left_moves : is_empty (0 : ordinal).to_pgame.left_moves :=
+by { rw to_pgame_left_moves, apply_instance }
+
+instance is_empty_zero_to_pgame_right_moves (o : ordinal) : is_empty o.to_pgame.right_moves :=
 by { rw to_pgame_right_moves, apply_instance }
 
 /-- Converts an ordinal less than `o` for a move for the `pgame` corresponding to `o`. -/
@@ -1124,6 +1136,22 @@ by { rw to_pgame, refl }
 @[simp] theorem to_pgame_move_left_to_left_moves {o a : ordinal.{u}} (h : a < o) :
   o.to_pgame.move_left (to_left_moves h) = a.to_pgame :=
 by simp [to_left_moves]
+
+noncomputable def relabelling_nat_to_pgame : Π n : ℕ, pgame.relabelling (n : ordinal).to_pgame n
+| 0 :=
+  ⟨(equiv.equiv_empty (ordinal.to_pgame 0).left_moves).trans
+    (equiv.equiv_empty (pgame.left_moves 0)).symm,
+  (equiv.equiv_empty (ordinal.to_pgame 0).right_moves).trans
+    (equiv.equiv_empty (pgame.right_moves 0)).symm,
+  is_empty.elim ordinal.is_empty_zero_to_pgame_left_moves,
+  is_empty.elim pgame.is_empty_zero_right_moves⟩
+| (n + 1) :=
+  ⟨begin
+    simp only [to_pgame_left_moves, nat.cast_succ],
+    rw pgame.add_left_moves,
+  end, sorry, sorry, sorry
+
+    ⟩
 
 theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
 @pgame.lt_of_le_move_left _ _ (to_left_moves h) (by rw to_pgame_move_left_to_left_moves)

@@ -1087,7 +1087,7 @@ noncomputable! def to_pgame : Π o : ordinal.{u}, pgame.{u}
         to_pgame (typein (<) x), pempty.elim⟩
 using_well_founded { dec_tac := tactic.assumption }
 
-theorem to_pgame.def (o : ordinal) :
+theorem to_pgame_def (o : ordinal) :
   o.to_pgame = ⟨o.out.α, pempty, λ x, (typein (<) x).to_pgame, pempty.elim⟩ :=
 by rw to_pgame
 

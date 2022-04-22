@@ -806,6 +806,19 @@ by simpa only [← dist_zero_right] using dist_pi_const a 0
   ∥(λ i : ι, a)∥₊ = ∥a∥₊ :=
 nnreal.eq $ pi_norm_const a
 
+/-- The $L^1$ norm is less than the $L^\infty$ norm scaled by the cardinality. -/
+lemma pi.sum_norm_apply_le_norm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)]
+  (x : Π i, π i) :
+  ∑ i, ∥x i∥ ≤ fintype.card ι • ∥x∥ :=
+calc ∑ i, ∥x i∥ ≤ ∑ i : ι, ∥x∥ : finset.sum_le_sum $ λ i hi, norm_le_pi_norm x i
+            ... = fintype.card ι • ∥x∥ : finset.sum_const _
+
+/-- The $L^1$ norm is less than the $L^\infty$ norm scaled by the cardinality. -/
+lemma pi.sum_nnnorm_apply_le_nnnorm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)]
+  (x : Π i, π i) :
+  ∑ i, ∥x i∥₊ ≤ fintype.card ι • ∥x∥₊ :=
+nnreal.coe_sum.trans_le $ pi.sum_norm_apply_le_norm x
+
 lemma tendsto_iff_norm_tendsto_zero {f : α → E} {a : filter α} {b : E} :
   tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥f e - b∥) a (𝓝 0) :=
 by { convert tendsto_iff_dist_tendsto_zero, simp [dist_eq_norm] }

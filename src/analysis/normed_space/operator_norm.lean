@@ -23,7 +23,7 @@ is isometric, as expressed by the typeclass `[ring_hom_isometric σ]`.
 -/
 
 noncomputable theory
-open_locale classical nnreal topological_space
+open_locale classical nnreal topological_space big_operators
 
 -- the `ₗ` subscript variables are for special cases about linear (as opposed to semilinear) maps
 variables {𝕜 : Type*} {𝕜₂ : Type*} {𝕜₃ : Type*} {E : Type*} {F : Type*} {Fₗ : Type*} {G : Type*}

@@ -506,29 +506,11 @@ v.constr_apply_fintype 𝕜 _ _
   (v.constrL f) (v i) = f i :=
 v.constr_basis 𝕜 _ _
 
-lemma continuous_linear_map.sum_norm_apply_apply_le_op_norm (φ : E →L[𝕜] ι → 𝕜) (e : E) :
-  ∑ i, ∥φ e i∥ ≤ fintype.card ι * ∥φ∥ * ∥e∥ :=
-calc ∑ i, ∥φ e i∥ ≤ ∑ i : ι, ∥φ e∥ : by { apply finset.sum_le_sum,
-                                           exact λ i hi, norm_le_pi_norm (φ e) i }
-  ... = ∥φ e∥ * fintype.card ι : by simpa only [mul_comm, finset.sum_const, nsmul_eq_mul]
-  ... ≤ ∥φ∥ * ∥e∥ * fintype.card ι : mul_le_mul_of_nonneg_right (φ.le_op_norm e)
-                                                                 (fintype.card ι).cast_nonneg
-  ... = fintype.card ι * ∥φ∥ * ∥e∥ : (mul_rotate _ _ _).symm
-
-lemma continuous_linear_map.sum_nnnorm_apply_apply_le_op_nnnorm (φ : E →L[𝕜] ι → 𝕜) (e : E) :
-  ∑ i, ∥φ e i∥₊ ≤ fintype.card ι * ∥φ∥₊ * ∥e∥₊ :=
-nnreal.coe_sum.trans_le $ (φ.sum_norm_apply_apply_le_op_norm e).trans_eq $
-  congr_arg (λ x, x * ∥φ∥ * ∥e∥) $ by rw nnreal.coe_nat_cast
-
 lemma basis.op_nnnorm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) {u : E →L[𝕜] F} (M : ℝ≥0)
   (hu : ∀ i, ∥u (v i)∥₊ ≤ M) :
-  ∥u∥₊ ≤ fintype.card ι * ∥v.equiv_funL.to_continuous_linear_map∥₊ * M :=
-begin
+  ∥u∥₊ ≤ fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥₊ * M :=
+u.op_nnnorm_le_bound _ $ λ e, begin
   set φ := v.equiv_funL.to_continuous_linear_map,
-  apply u.op_nnnorm_le_bound,
-  intros e,
-  have hC := φ.sum_nnnorm_apply_apply_le_op_nnnorm e,
-  set C : ℝ≥0 := fintype.card ι * ∥φ∥₊,
   calc
   ∥u e∥₊ = ∥u (∑ i, v.equiv_fun e i • v i)∥₊ :   by rw [v.sum_equiv_fun]
     ... = ∥∑ i, (v.equiv_fun e i) • (u $ v i)∥₊ : by simp [u.map_sum, linear_map.map_smul]
@@ -537,21 +519,25 @@ begin
     ... ≤ ∑ i, ∥v.equiv_fun e i∥₊ * M : finset.sum_le_sum (λ i hi,
                                                     mul_le_mul_of_nonneg_left (hu i) (zero_le _))
     ... = (∑ i, ∥v.equiv_fun e i∥₊) * M : finset.sum_mul.symm
-    ... ≤ C * ∥e∥₊ * M : mul_le_mul_of_nonneg_right hC (zero_le M)
-    ... = C * M * ∥e∥₊ : by ring,
+    ... ≤ fintype.card ι • (∥φ∥₊ * ∥e∥₊) * M :
+          (suffices _, from mul_le_mul_of_nonneg_right this (zero_le M),
+          calc  ∑ i, ∥v.equiv_fun e i∥₊
+              ≤ fintype.card ι • ∥φ e∥₊ : pi.sum_nnnorm_apply_le_nnnorm _
+          ... ≤ fintype.card ι • (∥φ∥₊ * ∥e∥₊) : nsmul_le_nsmul_of_le_right (φ.le_op_nnnorm e) _)
+    ... = fintype.card ι • ∥φ∥₊ * M * ∥e∥₊ : by simp only [smul_mul_assoc, mul_right_comm],
 end
 
 lemma basis.op_norm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) {u : E →L[𝕜] F} {M : ℝ}
   (hM : 0 ≤ M) (hu : ∀ i, ∥u (v i)∥ ≤ M) :
-  ∥u∥ ≤ fintype.card ι * ∥v.equiv_funL.to_continuous_linear_map∥ * M :=
+  ∥u∥ ≤ fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥ * M :=
 by simpa using nnreal.coe_le_coe.mpr (v.op_nnnorm_le ⟨M, hM⟩ hu)
 
 /-- A weaker version of `basis.op_nnnorm_le` that abstracts away the value of `C`. -/
 lemma basis.exists_op_nnnorm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :
   ∃ C > (0 : ℝ≥0), ∀ {u : E →L[𝕜] F} (M : ℝ≥0), (∀ i, ∥u (v i)∥₊ ≤ M) → ∥u∥₊ ≤ C*M :=
-⟨ max (fintype.card ι * ∥v.equiv_funL.to_continuous_linear_map∥₊) 1,
+⟨ max (fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥₊) 1,
   zero_lt_one.trans_le (le_max_right _ _),
-  λ u M hu, (v.op_nnnorm_le M hu).trans $ mul_le_mul_of_nonneg_right (le_max_left _ _) (zero_le _)⟩
+  λ u M hu, (v.op_nnnorm_le M hu).trans $ mul_le_mul_of_nonneg_right (le_max_left _ _) (zero_le M)⟩
 
 /-- A weaker version of `basis.op_norm_le` that abstracts away the value of `C`. -/
 lemma basis.exists_op_norm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :

@@ -949,7 +949,7 @@ theorem add_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w + y �
 theorem sub_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w - y ≈ x - z :=
 add_congr h₁ (neg_congr h₂)
 
-theorem add_left_neg_le_zero : Π (x : pgame), (-x) + x ≤ 0
+theorem add_left_neg_le_zero : Π {x : pgame}, (-x) + x ≤ 0
 | ⟨xl, xr, xL, xR⟩ :=
 begin
   rw le_def,
@@ -959,31 +959,33 @@ begin
   { -- If Left played in -x, Right responds with the same move in x.
     right,
     refine ⟨right_to_right_moves_add _ i, _⟩,
-    convert add_left_neg_le_zero (xR i),
+    convert @add_left_neg_le_zero (xR i),
     apply add_move_right_right },
   { -- If Left in x, Right responds with the same move in -x.
     right,
     dsimp,
     refine ⟨left_to_right_moves_add _ i, _⟩,
-    convert add_left_neg_le_zero (xL i),
+    convert @add_left_neg_le_zero (xL i),
     apply add_move_right_left }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-theorem zero_le_add_left_neg (x : pgame) : 0 ≤ (-x) + x :=
+theorem zero_le_add_left_neg {x : pgame} : 0 ≤ (-x) + x :=
 begin
   rw [le_iff_neg_ge, pgame.neg_zero],
-  exact le_trans neg_add_le (add_left_neg_le_zero _)
+  exact le_trans neg_add_le add_left_neg_le_zero
 end
 
-theorem add_left_neg_equiv (x : pgame) : (-x) + x ≈ 0 :=
-⟨add_left_neg_le_zero x, zero_le_add_left_neg x⟩
+theorem add_left_neg_equiv {x : pgame} : (-x) + x ≈ 0 :=
+⟨add_left_neg_le_zero, zero_le_add_left_neg⟩
 
 theorem add_right_neg_le_zero {x : pgame} : x + (-x) ≤ 0 :=
-le_trans add_comm_le (add_left_neg_le_zero x)
+calc x + (-x) ≤ (-x) + x : add_comm_le
+     ... ≤ 0 : add_left_neg_le_zero
 
 theorem zero_le_add_right_neg {x : pgame} : 0 ≤ x + (-x) :=
-le_trans (zero_le_add_left_neg x) add_comm_le
+calc 0 ≤ (-x) + x : zero_le_add_left_neg
+     ... ≤ x + (-x) : add_comm_le
 
 theorem add_right_neg_equiv {x : pgame} : x + (-x) ≈ 0 :=
 ⟨add_right_neg_le_zero, zero_le_add_right_neg⟩
@@ -1009,7 +1011,7 @@ theorem le_iff_sub_nonneg {x y : pgame} : x ≤ y ↔ 0 ≤ y - x :=
   calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
      ... ≤ y - x + x : add_le_add_right h _
      ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
-     ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
+     ... ≤ y + 0 : add_le_add_left add_left_neg_le_zero _
      ... ≤ y : (add_zero_relabelling y).le⟩
 theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
 ⟨λ h, lt_of_le_of_lt zero_le_add_right_neg (add_lt_add_right h _),
@@ -1017,7 +1019,7 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
   calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
      ... < y - x + x : add_lt_add_right h _
      ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
-     ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
+     ... ≤ y + 0 : add_le_add_left add_left_neg_le_zero _
      ... ≤ y : (add_zero_relabelling y).le⟩
 
 /-- The pre-game `star`, which is fuzzy/confused with zero. -/

@@ -21,7 +21,7 @@ prime p congruent to 3 mod 4, the largest power of p dividing them is even.
 open gaussian_int
 
 /-- **Fermat's theorem on the sum of two squares**. Every prime congruent to 1 mod 4 is the sum
-of two squares. Also known as Fermat's Christmas theorem. -/
+of two squares. Also known as **Fermat's Christmas theorem**. -/
 lemma nat.prime.sq_add_sq {p : ℕ} [fact p.prime] (hp : p % 4 = 1) :
   ∃ a b : ℕ, a ^ 2 + b ^ 2 = p :=
 sq_add_sq_of_nat_prime_of_not_irreducible p begin

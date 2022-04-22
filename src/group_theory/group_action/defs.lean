@@ -3,9 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Yury Kudryashov
 -/
-import algebra.group.defs
-import algebra.group.hom
 import algebra.group.type_tags
+import algebra.hom.group
 import algebra.opposites
 import logic.embedding
 
@@ -45,9 +44,9 @@ More sophisticated lemmas belong in `group_theory.group_action`.
 group action
 -/
 
-variables {M N G A B α β γ : Type*}
+variables {M N G A B α β γ δ : Type*}
 
-open function
+open function (injective surjective)
 
 /-!
 ### Faithful actions
@@ -76,12 +75,12 @@ instance has_mul.to_has_scalar (α : Type*) [has_mul α] : has_scalar α α := �
 @[simp, to_additive] lemma smul_eq_mul (α : Type*) [has_mul α] {a a' : α} : a • a' = a * a' := rfl
 
 /-- Type class for additive monoid actions. -/
-@[protect_proj] class add_action (G : Type*) (P : Type*) [add_monoid G] extends has_vadd G P :=
+@[ext, protect_proj] class add_action (G : Type*) (P : Type*) [add_monoid G] extends has_vadd G P :=
 (zero_vadd : ∀ p : P, (0 : G) +ᵥ p = p)
 (add_vadd : ∀ (g₁ g₂ : G) (p : P), (g₁ + g₂) +ᵥ p = g₁ +ᵥ (g₂ +ᵥ p))
 
 /-- Typeclass for multiplicative actions by monoids. This generalizes group actions. -/
-@[protect_proj, to_additive]
+@[ext, protect_proj, to_additive]
 class mul_action (α : Type*) (β : Type*) [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
@@ -276,6 +275,40 @@ by exact {smul_comm := λ _ n, @smul_comm _ _ _ _ _ _ _ (g n) }
 
 end has_scalar
 
+section
+
+/-- Note that the `smul_comm_class α β β` typeclass argument is usually satisfied by `algebra α β`.
+-/
+@[to_additive]
+lemma mul_smul_comm [has_mul β] [has_scalar α β] [smul_comm_class α β β] (s : α) (x y : β) :
+  x * (s • y) = s • (x * y) :=
+(smul_comm s x y).symm
+
+/-- Note that the `is_scalar_tower α β β` typeclass argument is usually satisfied by `algebra α β`.
+-/
+lemma smul_mul_assoc [has_mul β] [has_scalar α β] [is_scalar_tower α β β] (r : α) (x y : β)  :
+  (r • x) * y = r • (x * y) :=
+smul_assoc r x y
+
+lemma smul_smul_smul_comm [has_scalar α β] [has_scalar α γ] [has_scalar β δ] [has_scalar α δ]
+  [has_scalar γ δ] [is_scalar_tower α β δ] [is_scalar_tower α γ δ] [smul_comm_class β γ δ]
+  (a : α) (b : β) (c : γ) (d : δ) : (a • b) • (c • d) = (a • c) • b • d :=
+by { rw [smul_assoc, smul_assoc, smul_comm b], apply_instance }
+
+variables [has_scalar M α]
+
+lemma commute.smul_right [has_mul α] [smul_comm_class M α α] [is_scalar_tower M α α]
+  {a b : α} (h : commute a b) (r : M) :
+  commute a (r • b) :=
+(mul_smul_comm _ _ _).trans ((congr_arg _ h).trans $ (smul_mul_assoc _ _ _).symm)
+
+lemma commute.smul_left [has_mul α] [smul_comm_class M α α] [is_scalar_tower M α α]
+  {a b : α} (h : commute a b) (r : M) :
+  commute (r • a) b :=
+(h.symm.smul_right r).symm
+
+end
+
 section ite
 variables [has_scalar M α] (p : Prop) [decidable p]
 
@@ -295,6 +328,15 @@ variables [monoid M] [mul_action M α]
 
 variable (M)
 @[simp, to_additive] theorem one_smul (b : α) : (1 : M) • b = b := mul_action.one_smul _
+
+/-- `has_scalar` version of `one_mul_eq_id` -/
+@[to_additive]
+lemma one_smul_eq_id : ((•) (1 : M) : α → α) = id := funext $ one_smul _
+
+/-- `has_scalar` version of `comp_mul_left` -/
+@[to_additive]
+lemma comp_smul_left (a₁ a₂ : M) : (•) a₁ ∘ (•) a₂ = ((•) (a₁ * a₂) : α → α) :=
+funext $ λ _, (mul_smul _ _ _).symm
 
 variables {M}
 
@@ -355,19 +397,6 @@ instance is_scalar_tower.left : is_scalar_tower M M α :=
 
 variables {M}
 
-/-- Note that the `smul_comm_class α β β` typeclass argument is usually satisfied by `algebra α β`.
--/
-@[to_additive]
-lemma mul_smul_comm [has_mul β] [has_scalar α β] [smul_comm_class α β β] (s : α) (x y : β) :
-  x * (s • y) = s • (x * y) :=
-(smul_comm s x y).symm
-
-/-- Note that the `is_scalar_tower α β β` typeclass argument is usually satisfied by `algebra α β`.
--/
-lemma smul_mul_assoc [has_mul β] [has_scalar α β] [is_scalar_tower α β β] (r : α) (x y : β)  :
-  (r • x) * y = r • (x * y) :=
-smul_assoc r x y
-
 /-- Note that the `is_scalar_tower M α α` and `smul_comm_class M α α` typeclass arguments are
 usually satisfied by `algebra M α`. -/
 lemma smul_mul_smul [has_mul α] (r s : M) (x y : α)
@@ -426,8 +455,8 @@ by rw [smul_assoc, one_smul]
   (y : N) : (x • 1) * y = x • y :=
 smul_one_smul N x y
 
-@[simp, to_additive] lemma mul_smul_one {M N} [monoid N] [has_scalar M N] [smul_comm_class M N N]
-  (x : M) (y : N) :
+@[simp, to_additive] lemma mul_smul_one
+  {M N} [mul_one_class N] [has_scalar M N] [smul_comm_class M N N] (x : M) (y : N) :
   y * (x • 1) = x • y :=
 by rw [← smul_eq_mul, ← smul_comm, smul_eq_mul, mul_one]
 
@@ -443,7 +472,7 @@ lemma is_scalar_tower.of_smul_one_mul {M N} [monoid N] [has_scalar M N]
 end compatible_scalar
 
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
-class distrib_mul_action (M : Type*) (A : Type*) [monoid M] [add_monoid A]
+@[ext] class distrib_mul_action (M : Type*) (A : Type*) [monoid M] [add_monoid A]
   extends mul_action M A :=
 (smul_add : ∀(r : M) (x y : A), r • (x + y) = r • x + r • y)
 (smul_zero : ∀(r : M), r • (0 : A) = 0)
@@ -523,10 +552,24 @@ def distrib_mul_action.to_add_monoid_End : M →* add_monoid.End A :=
   map_one' := add_monoid_hom.ext $ one_smul M,
   map_mul' := λ x y, add_monoid_hom.ext $ mul_smul x y }
 
+instance add_monoid.nat_smul_comm_class : smul_comm_class ℕ M A :=
+{ smul_comm := λ n x y, ((distrib_mul_action.to_add_monoid_hom A x).map_nsmul y n).symm }
+
+-- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
+instance add_monoid.nat_smul_comm_class' : smul_comm_class M ℕ A :=
+smul_comm_class.symm _ _ _
+
 end
 
 section
 variables [monoid M] [add_group A] [distrib_mul_action M A]
+
+instance add_group.int_smul_comm_class : smul_comm_class ℤ M A :=
+{ smul_comm := λ n x y, ((distrib_mul_action.to_add_monoid_hom A x).map_zsmul y n).symm }
+
+-- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
+instance add_group.int_smul_comm_class' : smul_comm_class M ℤ A :=
+smul_comm_class.symm _ _ _
 
 @[simp] theorem smul_neg (r : M) (x : A) : r • (-x) = -(r • x) :=
 eq_neg_of_add_eq_zero $ by rw [← smul_add, neg_add_self, smul_zero]
@@ -538,7 +581,7 @@ end
 
 /-- Typeclass for multiplicative actions on multiplicative structures. This generalizes
 conjugation actions. -/
-class mul_distrib_mul_action (M : Type*) (A : Type*) [monoid M] [monoid A]
+@[ext] class mul_distrib_mul_action (M : Type*) (A : Type*) [monoid M] [monoid A]
   extends mul_action M A :=
 (smul_mul : ∀ (r : M) (x y : A), r • (x * y) = (r • x) * (r • y))
 (smul_one : ∀ (r : M), r • (1 : A) = 1)

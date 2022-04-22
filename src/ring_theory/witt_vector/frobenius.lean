@@ -7,6 +7,7 @@ Authors: Johan Commelin
 import data.nat.multiplicity
 import ring_theory.witt_vector.basic
 import ring_theory.witt_vector.is_poly
+import field_theory.perfect_closure
 
 
 /-!
@@ -315,6 +316,15 @@ end
 lemma frobenius_zmodp (x : 𝕎 (zmod p)) :
   (frobenius x) = x :=
 by simp only [ext_iff, coeff_frobenius_char_p, zmod.pow_card, eq_self_iff_true, forall_const]
+
+variables (p R)
+lemma frobenius_bijective [perfect_ring R p] :
+  function.bijective (@witt_vector.frobenius p R _ _) :=
+begin
+  rw witt_vector.frobenius_eq_map_frobenius,
+  exact ⟨witt_vector.map_injective _ (frobenius_equiv R p).injective,
+    witt_vector.map_surjective _ (frobenius_equiv R p).surjective⟩,
+end
 
 end char_p
 

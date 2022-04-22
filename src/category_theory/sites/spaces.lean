@@ -3,11 +3,10 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-
-import topology.opens
 import category_theory.sites.grothendieck
 import category_theory.sites.pretopology
 import category_theory.limits.lattice
+import topology.sets.opens
 
 /-!
 # Grothendieck topology on a topological space
@@ -23,7 +22,7 @@ site, Grothendieck topology, space
 
 ## References
 
-* [https://ncatlab.org/nlab/show/Grothendieck+topology][nlab]
+* [nLab, *Grothendieck topology*](https://ncatlab.org/nlab/show/Grothendieck+topology)
 * [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM92]
 
 ## Implementation notes
@@ -76,6 +75,21 @@ def pretopology : pretopology (opens T) :=
     exact ⟨_, _, ⟨_, g, f, hf, hg, rfl⟩, hV⟩,
   end }
 
+/-- The pretopology associated to a space is the largest pretopology that
+    generates the Grothendieck topology associated to the space. -/
+@[simp]
+lemma pretopology_of_grothendieck :
+  pretopology.of_grothendieck _ (opens.grothendieck_topology T) = opens.pretopology T :=
+begin
+  apply le_antisymm,
+  { intros X R hR x hx,
+    rcases hR x hx with ⟨U, f, ⟨V, g₁, g₂, hg₂, _⟩, hU⟩,
+    exact ⟨V, g₂, hg₂, g₁.le hU⟩ },
+  { intros X R hR x hx,
+    rcases hR x hx with ⟨U, f, hf, hU⟩,
+    exact ⟨U, f, sieve.le_generate R U hf, hU⟩ },
+end
+
 /--
 The pretopology associated to a space induces the Grothendieck topology associated to the space.
 -/
@@ -83,12 +97,8 @@ The pretopology associated to a space induces the Grothendieck topology associat
 lemma pretopology_to_grothendieck :
   pretopology.to_grothendieck _ (opens.pretopology T) = opens.grothendieck_topology T :=
 begin
-  apply le_antisymm,
-  { rintro X S ⟨R, hR, RS⟩ x hx,
-    rcases hR x hx with ⟨U, f, hf, hU⟩,
-    exact ⟨_, f, RS _ hf, hU⟩ },
-  { intros X S hS,
-    exact ⟨S, hS, le_refl _⟩ }
+  rw ← pretopology_of_grothendieck,
+  apply (pretopology.gi (opens T)).l_u_eq,
 end
 
 end opens

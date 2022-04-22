@@ -63,6 +63,14 @@ instance : can_lift ℂ ℝ :=
   coe := coe,
   prf := λ z hz, ⟨z.re, ext rfl hz.symm⟩ }
 
+/-- The product of a set on the real axis and a set on the imaginary axis of the complex plane,
+denoted by `s ×ℂ t`. -/
+def _root_.set.re_prod_im (s t : set ℝ) : set ℂ := re ⁻¹' s ∩ im ⁻¹' t
+
+infix ` ×ℂ `:72 := set.re_prod_im
+
+lemma mem_re_prod_im {z : ℂ} {s t : set ℝ} : z ∈ s ×ℂ t ↔ z.re ∈ s ∧ z.im ∈ t := iff.rfl
+
 instance : has_zero ℂ := ⟨(0 : ℝ)⟩
 instance : inhabited ℂ := ⟨0⟩
 
@@ -78,6 +86,9 @@ instance : has_one ℂ := ⟨(1 : ℝ)⟩
 @[simp] lemma one_re : (1 : ℂ).re = 1 := rfl
 @[simp] lemma one_im : (1 : ℂ).im = 0 := rfl
 @[simp, norm_cast] lemma of_real_one : ((1 : ℝ) : ℂ) = 1 := rfl
+
+@[simp] theorem of_real_eq_one {z : ℝ} : (z : ℂ) = 1 ↔ z = 1 := of_real_inj
+theorem of_real_ne_one {z : ℝ} : (z : ℂ) ≠ 1 ↔ z ≠ 1 := not_congr of_real_eq_one
 
 instance : has_add ℂ := ⟨λ z w, ⟨z.re + w.re, z.im + w.im⟩⟩
 
@@ -137,6 +148,11 @@ ext_iff.2 $ by simp
 @[simp] lemma re_add_im (z : ℂ) : (z.re : ℂ) + z.im * I = z :=
 ext_iff.2 $ by simp
 
+lemma mul_I_re (z : ℂ) : (z * I).re = -z.im := by simp
+lemma mul_I_im (z : ℂ) : (z * I).im = z.re := by simp
+lemma I_mul_re (z : ℂ) : (I * z).re = -z.im := by simp
+lemma I_mul_im (z : ℂ) : (I * z).im = z.re := by simp
+
 /-! ### Commutative ring instance and lemmas -/
 
 /- We use a nonstandard formula for the `ℕ` and `ℤ` actions to make sure there is no
@@ -186,7 +202,7 @@ by rw [pow_bit1', I_mul_I]
 /-! ### Complex conjugation -/
 
 /-- This defines the complex conjugate as the `star` operation of the `star_ring ℂ`. It
-is recommended to use the ring automorphism version `star_ring_aut`, available under the
+is recommended to use the ring endomorphism version `star_ring_end`, available under the
 notation `conj` in the locale `complex_conjugate`. -/
 instance : star_ring ℂ :=
 { star := λ z, ⟨z.re, -z.im⟩,
@@ -217,12 +233,14 @@ lemma eq_conj_iff_im {z : ℂ} : conj z = z ↔ z.im = 0 :=
 ⟨λ h, add_self_eq_zero.mp (neg_eq_iff_add_eq_zero.mp (congr_arg im h)),
   λ h, ext rfl (neg_eq_iff_add_eq_zero.mpr (add_self_eq_zero.mpr h))⟩
 
-@[simp] lemma star_def : (has_star.star : ℂ → ℂ) = conj := rfl
+-- `simp_nf` complains about this being provable by `is_R_or_C.star_def` even
+-- though it's not imported by this file.
+@[simp, nolint simp_nf] lemma star_def : (has_star.star : ℂ → ℂ) = conj := rfl
 
 /-! ### Norm squared -/
 
 /-- The norm squared function. -/
-@[pp_nodot] def norm_sq : monoid_with_zero_hom ℂ ℝ :=
+@[pp_nodot] def norm_sq : ℂ →*₀ ℝ :=
 { to_fun := λ z, z.re * z.re + z.im * z.im,
   map_zero' := by simp,
   map_one' := by simp,
@@ -301,7 +319,7 @@ ext_iff.2 $ by simp [two_mul, sub_eq_add_neg]
 lemma norm_sq_sub (z w : ℂ) : norm_sq (z - w) =
   norm_sq z + norm_sq w - 2 * (z * conj w).re :=
 by { rw [sub_eq_add_neg, norm_sq_add],
-     simp only [ring_equiv.map_neg, mul_neg_eq_neg_mul_symm, neg_re,
+     simp only [ring_hom.map_neg, mul_neg, neg_re,
                 tactic.ring.add_neg_eq_sub, norm_sq_neg] }
 
 /-! ### Inversion -/
@@ -341,6 +359,8 @@ lemma div_re (z w : ℂ) : (z / w).re = z.re * w.re / norm_sq w + z.im * w.im / 
 by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg]
 lemma div_im (z w : ℂ) : (z / w).im = z.im * w.re / norm_sq w - z.re * w.im / norm_sq w :=
 by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm]
+
+lemma conj_inv (x : ℂ) : conj (x⁻¹) = (conj x)⁻¹ := star_inv' _
 
 @[simp, norm_cast] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
 of_real.map_div r s
@@ -457,11 +477,22 @@ by simp [abs]
 @[simp] lemma abs_mul (z w : ℂ) : abs (z * w) = abs z * abs w :=
 by rw [abs, norm_sq_mul, real.sqrt_mul (norm_sq_nonneg _)]; refl
 
+/-- `complex.abs` as a `monoid_with_zero_hom`. -/
+@[simps] noncomputable def abs_hom : ℂ →*₀ ℝ :=
+{ to_fun := abs,
+  map_zero' := abs_zero,
+  map_one' := abs_one,
+  map_mul' := abs_mul }
+
+@[simp] lemma abs_prod {ι : Type*} (s : finset ι) (f : ι → ℂ) :
+  abs (s.prod f) = s.prod (λ i, abs (f i)) :=
+map_prod abs_hom _ _
+
 @[simp] lemma abs_pow (z : ℂ) (n : ℕ) : abs (z ^ n) = abs z ^ n :=
-monoid_hom.map_pow ⟨abs, abs_one, abs_mul⟩ z n
+map_pow abs_hom z n
 
 @[simp] lemma abs_zpow (z : ℂ) (n : ℤ) : abs (z ^ n) = abs z ^ n :=
-monoid_with_zero_hom.map_zpow ⟨abs, abs_zero, abs_one, abs_mul⟩ z n
+abs_hom.map_zpow z n
 
 lemma abs_re_le_abs (z : ℂ) : |z.re| ≤ abs z :=
 by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg z.re) (abs_nonneg _),
@@ -478,6 +509,13 @@ lemma re_le_abs (z : ℂ) : z.re ≤ abs z :=
 
 lemma im_le_abs (z : ℂ) : z.im ≤ abs z :=
 (abs_le.1 (abs_im_le_abs _)).2
+
+@[simp] lemma abs_re_lt_abs {z : ℂ} : |z.re| < abs z ↔ z.im ≠ 0 :=
+by rw [abs, real.lt_sqrt (_root_.abs_nonneg _), norm_sq_apply, _root_.sq_abs, ← sq,
+  lt_add_iff_pos_right, mul_self_pos]
+
+@[simp] lemma abs_im_lt_abs {z : ℂ} : |z.im| < abs z ↔ z.re ≠ 0 :=
+by simpa using @abs_re_lt_abs (z * I)
 
 /--
 The **triangle inequality** for complex numbers.
@@ -561,7 +599,11 @@ lemma lt_def {z w : ℂ} : z < w ↔ z.re < w.re ∧ z.im = w.im := iff.rfl
 lemma not_le_iff {z w : ℂ} : ¬(z ≤ w) ↔ w.re < z.re ∨ z.im ≠ w.im :=
 by rw [le_def, not_and_distrib, not_le]
 
+lemma not_lt_iff {z w : ℂ} : ¬(z < w) ↔ w.re ≤ z.re ∨ z.im ≠ w.im :=
+by rw [lt_def, not_and_distrib, not_lt]
+
 lemma not_le_zero_iff {z : ℂ} : ¬z ≤ 0 ↔ 0 < z.re ∨ z.im ≠ 0 := not_le_iff
+lemma not_lt_zero_iff {z : ℂ} : ¬z < 0 ↔ 0 ≤ z.re ∨ z.im ≠ 0 := not_lt_iff
 
 /--
 With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is an ordered ring.
@@ -637,7 +679,7 @@ theorem equiv_lim_aux (f : cau_seq ℂ abs) : f ≈ cau_seq.const abs (lim_aux f
   rwa add_halves at this,
 end
 
-noncomputable instance : cau_seq.is_complete ℂ abs :=
+instance : cau_seq.is_complete ℂ abs :=
 ⟨λ f, ⟨lim_aux f, equiv_lim_aux f⟩⟩
 
 open cau_seq
@@ -657,7 +699,7 @@ by rw [lim_eq_lim_im_add_lim_re]; simp
 
 lemma is_cau_seq_conj (f : cau_seq ℂ abs) : is_cau_seq abs (λ n, conj (f n)) :=
 λ ε ε0, let ⟨i, hi⟩ := f.2 ε ε0 in
-⟨i, λ j hj, by rw [← ring_equiv.map_sub, abs_conj]; exact hi j hj⟩
+⟨i, λ j hj, by rw [← ring_hom.map_sub, abs_conj]; exact hi j hj⟩
 
 /-- The complex conjugate of a complex Cauchy sequence, as a complex Cauchy sequence. -/
 noncomputable def cau_seq_conj (f : cau_seq ℂ abs) : cau_seq ℂ abs :=

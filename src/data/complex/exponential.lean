@@ -41,7 +41,7 @@ have h : ∃ l, ∀ n ≥ m, a - l • ε < f n :=
     (neg_le.2 $ (abs_neg (f n)) ▸ le_abs_self _)⟩,
 let l := nat.find h in
 have hl : ∀ (n : ℕ), n ≥ m → f n > a - l • ε := nat.find_spec h,
-have hl0 : l ≠ 0 := λ hl0, not_lt_of_ge (ham m (le_refl _))
+have hl0 : l ≠ 0 := λ hl0, not_lt_of_ge (ham m le_rfl)
   (lt_of_lt_of_le (by have := hl m (le_refl m); simpa [hl0] using this) (le_abs_self (f m))),
 begin
   cases not_forall.1
@@ -105,15 +105,14 @@ end
 
 lemma is_cau_series_of_abv_cau {f : ℕ → β} : is_cau_seq abs (λ m, ∑ n in range m, abv (f n))
   → is_cau_seq abv (λ m, ∑ n in range m, f n) :=
-is_cau_series_of_abv_le_cau 0 (λ n h, le_refl _)
+is_cau_series_of_abv_le_cau 0 (λ n h, le_rfl)
 
 end no_archimedean
 
 section
-variables {α : Type*} {β : Type*} [ring β]
-  [linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
+variables {α : Type*} [linear_ordered_field α] [archimedean α]
 
-lemma is_cau_geo_series {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
+lemma is_cau_geo_series {β : Type*} [ring β] [nontrivial β] {abv : β → α} [is_absolute_value abv]
    (x : β) (hx1 : abv x < 1) : is_cau_seq abv (λ n, ∑ m in range n, x ^ m) :=
 have hx1' : abv x ≠ 1 := λ h, by simpa [h, lt_irrefl] using hx1,
 is_cau_series_of_abv_cau
@@ -145,6 +144,8 @@ lemma is_cau_geo_series_const (a : α) {x : α} (hx1 : |x| < 1) :
 have is_cau_seq abs (λ m, a * ∑ n in range m, x ^ n) :=
   (cau_seq.const abs a * ⟨_, is_cau_geo_series x hx1⟩).2,
 by simpa only [mul_sum]
+
+variables {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv]
 
 lemma series_ratio_test {f : ℕ → β} (n : ℕ) (r : α)
   (hr0 : 0 ≤ r) (hr1 : r < 1) (h : ∀ m, n ≤ m → abv (f m.succ) ≤ r * abv (f m)) :
@@ -197,25 +198,13 @@ by rw [sum_sigma', sum_sigma']; exact sum_bij
     mem_range.2 (nat.lt_succ_of_le (nat.le_add_left _ _))⟩,
   sigma.mk.inj_iff.2 ⟨rfl, heq_of_eq (add_tsub_cancel_right _ _).symm⟩⟩⟩)
 
--- TODO move to src/algebra/big_operators/basic.lean, rewrite with comm_group, and make to_additive
-lemma sum_range_sub_sum_range {α : Type*} [add_comm_group α] {f : ℕ → α}
-  {n m : ℕ} (hnm : n ≤ m) : ∑ k in range m, f k - ∑ k in range n, f k =
-  ∑ k in (range m).filter (λ k, n ≤ k), f k :=
-begin
-  rw [← sum_sdiff (@filter_subset _ (λ k, n ≤ k) _ (range m)),
-    sub_eq_iff_eq_add, ← eq_sub_iff_add_eq, add_sub_cancel'],
-  refine finset.sum_congr
-    (finset.ext $ λ a, ⟨λ h, by simp at *; tauto,
-    λ h, have ham : a < m := lt_of_lt_of_le (mem_range.1 h) hnm,
-      by simp * at *⟩)
-    (λ _ _, rfl),
-end
-
 end
 
 section no_archimedean
-variables {α : Type*} {β : Type*} [ring β]
-  [linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
+variables {α : Type*} {β : Type*} [linear_ordered_field α] {abv : β → α}
+
+section
+variables [semiring β] [is_absolute_value abv]
 
 lemma abv_sum_le_sum_abv {γ : Type*} (f : γ → β) (s : finset γ) :
   abv (∑ k in s, f k) ≤ ∑ k in s, abv (f k) :=
@@ -223,6 +212,11 @@ by haveI := classical.dec_eq γ; exact
 finset.induction_on s (by simp [abv_zero abv])
   (λ a s has ih, by rw [sum_insert has, sum_insert has];
     exact le_trans (abv_add abv _ _) (add_le_add_left ih _))
+
+end
+
+section
+variables [ring β] [is_absolute_value abv]
 
 lemma cauchy_product {a b : ℕ → β}
   (ha : is_cau_seq abs (λ m, ∑ n in range m, abv (a n)))
@@ -306,6 +300,8 @@ begin
           (hM _ (le_trans (nat.le_succ_of_le (le_max_right _ _)) (le_of_lt hNMK)) _
             (nat.le_succ_of_le (le_max_right _ _))))
 end⟩
+
+end
 
 end no_archimedean
 
@@ -465,7 +461,7 @@ lemma exp_int_mul (z : ℂ) (n : ℤ) : complex.exp (n * z) = (complex.exp z) ^ 
 begin
   cases n,
   { apply complex.exp_nat_mul },
-  { simpa [complex.exp_neg, add_comm, ← neg_mul_eq_neg_mul_symm]
+  { simpa [complex.exp_neg, add_comm, ← neg_mul]
       using complex.exp_nat_mul (-z) (1 + n) },
 end
 
@@ -475,9 +471,9 @@ begin
   rw [← lim_conj],
   refine congr_arg lim (cau_seq.ext (λ _, _)),
   dsimp [exp', function.comp, cau_seq_conj],
-  rw star_ring_aut.map_sum,
+  rw (star_ring_end _).map_sum,
   refine sum_congr rfl (λ n hn, _),
-  rw [ring_equiv.map_div, ring_equiv.map_pow, ← of_real_nat_cast, conj_of_real]
+  rw [ring_hom.map_div, ring_hom.map_pow, ← of_real_nat_cast, conj_of_real]
 end
 
 @[simp] lemma of_real_exp_of_real_re (x : ℝ) : ((exp x).re : ℂ) = exp x :=
@@ -540,8 +536,8 @@ lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
 by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
 
 lemma sinh_conj : sinh (conj x) = conj (sinh x) :=
-by rw [sinh, ← ring_equiv.map_neg, exp_conj, exp_conj, ← ring_equiv.map_sub, sinh,
-  ring_equiv.map_div, conj_bit0, ring_equiv.map_one]
+by rw [sinh, ← ring_hom.map_neg, exp_conj, exp_conj, ← ring_hom.map_sub, sinh,
+  ring_hom.map_div, conj_bit0, ring_hom.map_one]
 
 @[simp] lemma of_real_sinh_of_real_re (x : ℝ) : ((sinh x).re : ℂ) = sinh x :=
 eq_conj_iff_re.1 $ by rw [← sinh_conj, conj_of_real]
@@ -556,8 +552,8 @@ lemma sinh_of_real_re (x : ℝ) : (sinh x).re = real.sinh x := rfl
 
 lemma cosh_conj : cosh (conj x) = conj (cosh x) :=
 begin
-  rw [cosh, ← ring_equiv.map_neg, exp_conj, exp_conj, ← ring_equiv.map_add, cosh,
-      ring_equiv.map_div, conj_bit0, ring_equiv.map_one]
+  rw [cosh, ← ring_hom.map_neg, exp_conj, exp_conj, ← ring_hom.map_add, cosh,
+      ring_hom.map_div, conj_bit0, ring_hom.map_one]
 end
 
 @[simp] lemma of_real_cosh_of_real_re (x : ℝ) : ((cosh x).re : ℂ) = cosh x :=
@@ -578,7 +574,7 @@ lemma tanh_eq_sinh_div_cosh : tanh x = sinh x / cosh x := rfl
 @[simp] lemma tanh_neg : tanh (-x) = -tanh x := by simp [tanh, neg_div]
 
 lemma tanh_conj : tanh (conj x) = conj (tanh x) :=
-by rw [tanh, sinh_conj, cosh_conj, ← ring_equiv.map_div, tanh]
+by rw [tanh, sinh_conj, cosh_conj, ← ring_hom.map_div, tanh]
 
 @[simp] lemma of_real_tanh_of_real_re (x : ℝ) : ((tanh x).re : ℂ) = tanh x :=
 eq_conj_iff_re.1 $ by rw [← tanh_conj, conj_of_real]
@@ -674,7 +670,7 @@ by rw ← cosh_mul_I; ring_nf; simp
 
 lemma sin_mul_I : sin (x * I) = sinh x * I :=
 have h : I * sin (x * I) = -sinh x := by { rw [mul_comm, ← sinh_mul_I], ring_nf, simp },
-by simpa only [neg_mul_eq_neg_mul_symm, div_I, neg_neg]
+by simpa only [neg_mul, div_I, neg_neg]
   using cancel_factors.cancel_factors_eq_div h I_ne_zero
 
 lemma tan_mul_I : tan (x * I) = tanh x * I :=
@@ -751,8 +747,8 @@ end
 
 lemma sin_conj : sin (conj x) = conj (sin x) :=
 by rw [← mul_left_inj' I_ne_zero, ← sinh_mul_I,
-       ← conj_neg_I, ← ring_equiv.map_mul, ← ring_equiv.map_mul, sinh_conj,
-       mul_neg_eq_neg_mul_symm, sinh_neg, sinh_mul_I, mul_neg_eq_neg_mul_symm]
+       ← conj_neg_I, ← ring_hom.map_mul, ← ring_hom.map_mul, sinh_conj,
+       mul_neg, sinh_neg, sinh_mul_I, mul_neg]
 
 @[simp] lemma of_real_sin_of_real_re (x : ℝ) : ((sin x).re : ℂ) = sin x :=
 eq_conj_iff_re.1 $ by rw [← sin_conj, conj_of_real]
@@ -766,8 +762,8 @@ by rw [← of_real_sin_of_real_re, of_real_im]
 lemma sin_of_real_re (x : ℝ) : (sin x).re = real.sin x := rfl
 
 lemma cos_conj : cos (conj x) = conj (cos x) :=
-by rw [← cosh_mul_I, ← conj_neg_I, ← ring_equiv.map_mul, ← cosh_mul_I,
-       cosh_conj, mul_neg_eq_neg_mul_symm, cosh_neg]
+by rw [← cosh_mul_I, ← conj_neg_I, ← ring_hom.map_mul, ← cosh_mul_I,
+       cosh_conj, mul_neg, cosh_neg]
 
 @[simp] lemma of_real_cos_of_real_re (x : ℝ) : ((cos x).re : ℂ) = cos x :=
 eq_conj_iff_re.1 $ by rw [← cos_conj, conj_of_real]
@@ -790,7 +786,7 @@ by rw [tan_eq_sin_div_cos, div_mul_cancel _ hx]
 @[simp] lemma tan_neg : tan (-x) = -tan x := by simp [tan, neg_div]
 
 lemma tan_conj : tan (conj x) = conj (tan x) :=
-by rw [tan, sin_conj, cos_conj, ← ring_equiv.map_div, tan]
+by rw [tan, sin_conj, cos_conj, ← ring_hom.map_div, tan]
 
 @[simp] lemma of_real_tan_of_real_re (x : ℝ) : ((tan x).re : ℂ) = tan x :=
 eq_conj_iff_re.1 $ by rw [← tan_conj, conj_of_real]
@@ -807,7 +803,7 @@ lemma cos_add_sin_I : cos x + sin x * I = exp (x * I) :=
 by rw [← cosh_add_sinh, sinh_mul_I, cosh_mul_I]
 
 lemma cos_sub_sin_I : cos x - sin x * I = exp (-x * I) :=
-by rw [← neg_mul_eq_neg_mul, ← cosh_sub_sinh, sinh_mul_I, cosh_mul_I]
+by rw [neg_mul, ← cosh_sub_sinh, sinh_mul_I, cosh_mul_I]
 
 @[simp] lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
 eq.trans
@@ -945,6 +941,9 @@ by rw [← of_real_inj]; simp [sin, sin_add]
 @[simp] lemma cos_neg : cos (-x) = cos x :=
 by simp [cos, exp_neg]
 
+@[simp] lemma cos_abs : cos (|x|) = cos x :=
+by cases le_total x 0; simp only [*, _root_.abs_of_nonneg, abs_of_nonpos, cos_neg]
+
 lemma cos_add : cos (x + y) = cos x * cos y - sin x * sin y :=
 by rw ← of_real_inj; simp [cos, cos_add]
 
@@ -966,7 +965,7 @@ end
 theorem cos_sub_cos : cos x - cos y = -2 * sin((x + y)/2) * sin((x - y)/2) :=
 begin
   rw ← of_real_inj,
-  simp only [cos, neg_mul_eq_neg_mul_symm, of_real_sin, of_real_sub, of_real_add,
+  simp only [cos, neg_mul, of_real_sin, of_real_sub, of_real_add,
     of_real_cos_of_real_re, of_real_div, of_real_mul, of_real_one, of_real_neg, of_real_bit0],
   convert cos_sub_cos _ _,
   ring,
@@ -1149,7 +1148,7 @@ calc x + 1 ≤ lim (⟨(λ n : ℕ, ((exp' x) n).re), is_cau_seq_re (exp' x)⟩ 
         rw [← tsub_add_cancel_of_le hj, sum_range_succ', sum_range_succ',
           add_re, add_re, h₁, h₂, add_assoc,
           ← coe_re_add_group_hom, (re_add_group_hom).map_sum, coe_re_add_group_hom ],
-        refine le_add_of_nonneg_of_le (sum_nonneg (λ m hm, _)) (le_refl _),
+        refine le_add_of_nonneg_of_le (sum_nonneg (λ m hm, _)) le_rfl,
         rw [← of_real_pow, ← of_real_nat_cast, ← of_real_div, of_real_re],
         exact div_nonneg (pow_nonneg hx _) (nat.cast_nonneg _),
       end⟩)
@@ -1302,7 +1301,7 @@ begin
   ... ≤ ∑ (i : ℕ) in range k, (abs x) ^ (n + i) / (n! * n.succ ^ i) : _
   ... = ∑ (i : ℕ) in range k, (abs x) ^ (n) / (n!) * ((abs x)^i / n.succ ^ i) : _
   ... ≤ abs x ^ n / (↑n!) * 2 : _,
-  { refine sum_le_sum (λ m hm, div_le_div (pow_nonneg (abs_nonneg x) (n + m)) (le_refl _) _ _),
+  { refine sum_le_sum (λ m hm, div_le_div (pow_nonneg (abs_nonneg x) (n + m)) le_rfl _ _),
     { exact_mod_cast mul_pos n.factorial_pos (pow_pos n.succ_pos _), },
     { exact_mod_cast (nat.factorial_mul_pow_le_factorial), }, },
   { refine finset.sum_congr rfl (λ _ _, _),

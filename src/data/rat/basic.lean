@@ -3,10 +3,10 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.equiv.encodable.basic
 import algebra.euclidean_domain
-import data.nat.gcd
 import data.int.cast
+import data.nat.gcd
+import logic.encodable.basic
 
 /-!
 # Basics for the Rational Numbers
@@ -126,13 +126,13 @@ int.dvd_nat_abs.1 $ int.coe_nat_dvd.2 $ nat.gcd_dvd_left (int.nat_abs a) b
 
 @[simp] theorem mk_eq_zero {a b : ℤ} (b0 : b ≠ 0) : a /. b = 0 ↔ a = 0 :=
 begin
-  constructor; intro h; [skip, {subst a, simp}],
+  refine ⟨λ h, _, by { rintro rfl, simp }⟩,
   have : ∀ {a b}, mk_pnat a b = 0 → a = 0,
-  { intros a b e, cases b with b h,
+  { rintro a ⟨b, h⟩ e,
     injection e with e,
     apply int.eq_mul_of_div_eq_right gcd_abs_dvd_left e },
-  cases b with b; simp [mk, mk_nat] at h,
-  { simp [mt (congr_arg int.of_nat) b0] at h,
+  cases b with b; simp only [mk, mk_nat, int.of_nat_eq_coe, dite_eq_left_iff] at h,
+  { simp only [mt (congr_arg int.of_nat) b0, not_false_iff, forall_true_left] at h,
     exact this h },
   { apply neg_injective, simp [this h] }
 end
@@ -307,7 +307,7 @@ begin
   show rat.mk' _ _ _ _ = _, rw num_denom',
   have d0 := ne_of_gt (int.coe_nat_lt.2 h₁),
   apply (mk_eq d0 b0).2, have h₁ := (mk_eq b0 d0).1 ha,
-  simp only [neg_mul_eq_neg_mul_symm, congr_arg has_neg.neg h₁]
+  simp only [neg_mul, congr_arg has_neg.neg h₁]
 end
 
 @[simp] lemma mk_neg_denom (n d : ℤ) : n /. -d = -n /. d :=
@@ -430,7 +430,7 @@ by { rw [← mk_one_one, mk_eq_zero one_ne_zero], exact one_ne_zero }
 
 protected theorem mul_inv_cancel : a ≠ 0 → a * a⁻¹ = 1 :=
 num_denom_cases_on' a $ λ n d h a0,
-have n0 : n ≠ 0, from mt (by intro e; subst e; simp) a0,
+have n0 : n ≠ 0, from mt (by { rintro rfl, simp }) a0,
 by simpa [h, n0, mul_comm] using @div_mk_div_cancel_left 1 1 _ n0
 
 protected theorem inv_mul_cancel (h : a ≠ 0) : a⁻¹ * a = 1 :=
@@ -549,8 +549,10 @@ else
          ... = (q.num /. q.denom) * (r.denom /. r.num) : by rw inv_def
          ... = (q.num * r.denom) /. (q.denom * r.num) : mul_def (by simpa using denom_ne_zero q) hr
 
-lemma num_denom_mk {q : ℚ} {n d : ℤ} (hn : n ≠ 0) (hd : d ≠ 0) (qdf : q = n /. d) :
+lemma num_denom_mk {q : ℚ} {n d : ℤ} (hd : d ≠ 0) (qdf : q = n /. d) :
       ∃ c : ℤ, n = c * q.num ∧ d = c * q.denom :=
+(eq_or_ne n 0).by_cases
+(λ hn, by simp [*] at *) $ λ hn,
 have hq : q ≠ 0, from
   assume : q = 0,
   hn $ (rat.mk_eq_zero hd).1 (by cc),
@@ -659,12 +661,11 @@ end
 theorem num_div_denom (r : ℚ) : (r.num / r.denom : ℚ) = r :=
 by rw [← int.cast_coe_nat, ← mk_eq_div, num_denom]
 
-lemma exists_eq_mul_div_num_and_eq_mul_div_denom {n d : ℤ} (n_ne_zero : n ≠ 0)
-  (d_ne_zero : d ≠ 0) :
+lemma exists_eq_mul_div_num_and_eq_mul_div_denom (n : ℤ) {d : ℤ} (d_ne_zero : d ≠ 0) :
   ∃ (c : ℤ), n = c * ((n : ℚ) / d).num ∧ (d : ℤ) = c * ((n : ℚ) / d).denom :=
 begin
   have : ((n : ℚ) / d) = rat.mk n d, by rw [←rat.mk_eq_div],
-  exact rat.num_denom_mk n_ne_zero d_ne_zero this
+  exact rat.num_denom_mk d_ne_zero this
 end
 
 theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=

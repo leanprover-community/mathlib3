@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import algebra.order.floor
-import topology.algebra.ordered.basic
+import topology.algebra.order.basic
 
 /-!
 # Topological facts about `int.floor`, `int.ceil` and `int.fract`
@@ -26,7 +26,7 @@ This file proves statements about limits and continuity of functions involving `
 open filter function int set
 open_locale topological_space
 
-variables {α : Type*} [linear_ordered_ring α] [floor_ring α]
+variables {α β γ : Type*} [linear_ordered_ring α] [floor_ring α]
 
 lemma tendsto_floor_at_top : tendsto (floor : α → ℤ) at_top at_top :=
 floor_mono.tendsto_at_top_at_top $ λ b, ⟨(b + 1 : ℤ), by { rw floor_coe, exact (lt_add_one _).le }⟩
@@ -73,7 +73,7 @@ begin
   norm_cast,
   convert ← floor_mono hx,
   rw floor_eq_iff,
-  exact ⟨le_refl _, lt_add_one _⟩
+  exact ⟨le_rfl, lt_add_one _⟩
 end
 
 lemma tendsto_ceil_left [order_closed_topology α] (n : ℤ) :
@@ -85,7 +85,7 @@ begin
   norm_cast,
   convert ← ceil_mono hx,
   rw ceil_eq_iff,
-  exact ⟨sub_one_lt _, le_refl _⟩
+  exact ⟨sub_one_lt _, le_rfl⟩
 end
 
 lemma tendsto_floor_left [order_closed_topology α] (n : ℤ) :
@@ -94,7 +94,7 @@ begin
   rw ← nhds_within_Ico_eq_nhds_within_Iio (sub_one_lt (n : α)),
   convert (tendsto_nhds_within_congr $ (λ x hx, (floor_eq_on_Ico' (n-1) x hx).symm))
     (tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ tendsto_const_nhds
-      (eventually_of_forall (λ _, mem_Iic.mpr $ le_refl _)));
+      (eventually_of_forall (λ _, mem_Iic.mpr $ le_rfl)));
   norm_cast <|> apply_instance,
   ring
 end
@@ -105,7 +105,7 @@ begin
   rw ← nhds_within_Ioc_eq_nhds_within_Ioi (lt_add_one (n : α)),
   convert (tendsto_nhds_within_congr $ (λ x hx, (ceil_eq_on_Ioc' (n+1) x hx).symm))
     (tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ tendsto_const_nhds
-      (eventually_of_forall (λ _, mem_Ici.mpr $ le_refl _)));
+      (eventually_of_forall (λ _, mem_Ici.mpr $ le_rfl)));
   norm_cast <|> apply_instance,
   ring
 end
@@ -154,8 +154,10 @@ tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
 
 local notation `I` := (Icc 0 1 : set α)
 
-lemma continuous_on.comp_fract' {β γ : Type*} [order_topology α]
-  [topological_add_group α] [topological_space β] [topological_space γ] {f : β → α → γ}
+variables [order_topology α] [topological_add_group α] [topological_space β] [topological_space γ]
+
+/-- Do not use this, use `continuous_on.comp_fract` instead. -/
+lemma continuous_on.comp_fract' {f : β → α → γ}
   (h : continuous_on (uncurry f) $ (univ : set β) ×ˢ I) (hf : ∀ s, f s 0 = f s 1) :
   continuous (λ st : β × α, f st.1 $ fract st.2) :=
 begin
@@ -198,23 +200,17 @@ begin
               (eventually_of_forall (λ x, ⟨fract_nonneg _, (fract_lt_one _).le⟩)) ) }
 end
 
-lemma continuous_on.comp_fract {β : Type*} [order_topology α]
-  [topological_add_group α] [topological_space β] {f : α → β}
-  (h : continuous_on f I) (hf : f 0 = f 1) : continuous (f ∘ fract) :=
-begin
-  let f' : unit → α → β := λ x y, f y,
-  have : continuous_on (uncurry f') ((univ : set unit) ×ˢ I),
-  { rintros ⟨s, t⟩ ⟨-, ht : t ∈ I⟩,
-    simp only [continuous_within_at, uncurry, nhds_within_prod_eq, nhds_within_univ, f'],
-    rw tendsto_prod_iff,
-    intros W hW,
-    specialize h t ht hW,
-    rw mem_map_iff_exists_image at h,
-    rcases h with ⟨V, hV, hVW⟩,
-    rw image_subset_iff at hVW,
-    use [univ, univ_mem, V, hV],
-    intros x y hx hy,
-    exact hVW hy },
-  have key : continuous (λ s, ⟨unit.star, s⟩ : α → unit × α) := by continuity,
-  exact (this.comp_fract' (λ s, hf)).comp key
-end
+lemma continuous_on.comp_fract
+  {s : β → α}
+  {f : β → α → γ}
+  (h : continuous_on (uncurry f) $ (univ : set β) ×ˢ (Icc 0 1 : set α))
+  (hs : continuous s)
+  (hf : ∀ s, f s 0 = f s 1) :
+  continuous (λ x : β, f x $ int.fract (s x)) :=
+(h.comp_fract' hf).comp (continuous_id.prod_mk hs)
+
+/-- A special case of `continuous_on.comp_fract`. -/
+lemma continuous_on.comp_fract'' {f : α → β} (h : continuous_on f I) (hf : f 0 = f 1) :
+  continuous (f ∘ fract) :=
+continuous_on.comp_fract (h.comp continuous_on_snd $ λ x hx, (mem_prod.mp hx).2)
+  continuous_id (λ _, hf)

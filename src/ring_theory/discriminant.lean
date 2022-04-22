@@ -6,6 +6,7 @@ Authors: Riccardo Brasca
 
 import ring_theory.trace
 import ring_theory.norm
+import number_theory.number_field
 
 /-!
 # Discriminant of a family of vectors
@@ -32,6 +33,12 @@ Given an `A`-algebra `B` and `b`, an `ι`-indexed family of elements of `B`, we 
   coefficient is `σⱼ (b i)`, where `σⱼ : L →ₐ[K] E` is the embedding in an algebraically closed
   field `E` corresponding to `j : ι` via a bijection `e : ι ≃ (L →ₐ[K] E)`.
 * `algebra.discr_of_power_basis_eq_prod` : the discriminant of a power basis.
+* `discr_is_integral` : if `K` and `L` are fields and `is_scalar_tower R K L`, is `b : ι → L`
+  satisfies ` ∀ i, is_integral R (b i)`, then `is_integral R (discr K b)`.
+* `discr_mul_is_integral_mem_adjoin` : let `K` be the fraction field of an integrally closed domain
+  `R` and let `L` be a finite separable extension of `K`. Let `B : power_basis K L` be such that
+  `is_integral R B.gen`. Then for all, `z : L` we have
+  `(discr K B.basis) • z ∈ adjoin R ({B.gen} : set L)`.
 
 ## Implementation details
 
@@ -43,7 +50,7 @@ universes u v w z
 
 open_locale matrix big_operators
 
-open matrix finite_dimensional fintype polynomial finset
+open matrix finite_dimensional fintype polynomial finset intermediate_field
 
 namespace algebra
 
@@ -61,9 +68,16 @@ def discr (A : Type u) {B : Type v} [comm_ring A] [comm_ring B] [algebra A B] [f
 lemma discr_def [decidable_eq ι] [fintype ι] (b : ι → B) :
   discr A b = (trace_matrix A b).det := by convert rfl
 
-variable [fintype ι]
+variables {ι' : Type*} [fintype ι'] [fintype ι]
 
 section basic
+
+@[simp] lemma discr_reindex (b : basis ι A B) (f : ι ≃ ι') :
+  discr A (b ∘ ⇑(f.symm)) = discr A b :=
+begin
+  classical,
+  rw [← basis.coe_reindex, discr_def, trace_matrix_reindex, det_reindex_self, ← discr_def]
+end
 
 /-- If `b` is not linear independent, then `algebra.discr A b = 0`. -/
 lemma discr_zero_of_not_linear_independent [is_domain A] {b : ι → B}
@@ -104,10 +118,10 @@ section field
 
 variables (K : Type u) {L : Type v} (E : Type z) [field K] [field L] [field E]
 variables [algebra K L] [algebra K E]
-variables [module.finite K L] [is_separable K L] [is_alg_closed E]
+variables [module.finite K L]  [is_alg_closed E]
 
 /-- Over a field, if `b` is a basis, then `algebra.discr K b ≠ 0`. -/
-lemma discr_not_zero_of_basis (b : basis ι K L) : discr K b ≠ 0 :=
+lemma discr_not_zero_of_basis [is_separable K L] (b : basis ι K L) : discr K b ≠ 0 :=
 begin
   by_cases h : nonempty ι,
   { classical,
@@ -121,20 +135,24 @@ begin
   simp [discr],
 end
 
+/-- Over a field, if `b` is a basis, then `algebra.discr K b` is a unit. -/
+lemma discr_is_unit_of_basis [is_separable K L] (b : basis ι K L) : is_unit (discr K b) :=
+is_unit.mk0 _ (discr_not_zero_of_basis _ _)
+
 variables (b : ι → L) (pb : power_basis K L)
 
 /-- If `L/K` is a field extension and `b : ι → L`, then `discr K b` is the square of the
 determinant of the matrix whose `(i, j)` coefficient is `σⱼ (b i)`, where `σⱼ : L →ₐ[K] E` is the
 embedding in an algebraically closed field `E` corresponding to `j : ι` via a bijection
 `e : ι ≃ (L →ₐ[K] E)`. -/
-lemma discr_eq_det_embeddings_matrix_reindex_pow_two [decidable_eq ι]
+lemma discr_eq_det_embeddings_matrix_reindex_pow_two [decidable_eq ι] [is_separable K L]
   (e : ι ≃ (L →ₐ[K] E)) : algebra_map K E (discr K b) =
   (embeddings_matrix_reindex K E b e).det ^ 2 :=
 by rw [discr_def, ring_hom.map_det, ring_hom.map_matrix_apply,
     trace_matrix_eq_embeddings_matrix_reindex_mul_trans, det_mul, det_transpose, pow_two]
 
 /-- The discriminant of a power basis. -/
-lemma discr_power_basis_eq_prod (e : fin pb.dim ≃ (L →ₐ[K] E)) :
+lemma discr_power_basis_eq_prod (e : fin pb.dim ≃ (L →ₐ[K] E)) [is_separable K L] :
   algebra_map K E (discr K pb.basis) =
   ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j), (e j pb.gen- (e i pb.gen)) ^ 2 :=
 begin
@@ -145,7 +163,7 @@ begin
 end
 
 /-- A variation of `of_power_basis_eq_prod`. -/
-lemma of_power_basis_eq_prod' (e : fin pb.dim ≃ (L →ₐ[K] E)) :
+lemma discr_power_basis_eq_prod' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discr K pb.basis) =
   ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j),
   -((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))) :=
@@ -158,12 +176,12 @@ end
 local notation `n` := finrank K L
 
 /-- A variation of `of_power_basis_eq_prod`. -/
-lemma of_power_basis_eq_prod'' (e : fin pb.dim ≃ (L →ₐ[K] E)) :
+lemma discr_power_basis_eq_prod'' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discr K pb.basis) =
   (-1) ^ (n * (n - 1) / 2) * ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j),
   ((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))) :=
 begin
-  rw [of_power_basis_eq_prod' _ _ _ e],
+  rw [discr_power_basis_eq_prod' _ _ _ e],
   simp_rw [λ i j, neg_eq_neg_one_mul ((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))),
     prod_mul_distrib],
   congr,
@@ -191,7 +209,7 @@ begin
 end
 
 /-- Formula for the discriminant of a power basis using the norm of the field extension. -/
-lemma of_power_basis_eq_norm : discr K pb.basis =
+lemma discr_power_basis_eq_norm [is_separable K L] : discr K pb.basis =
   (-1) ^ (n * (n - 1) / 2) * (norm K (aeval pb.gen (minpoly K pb.gen).derivative)) :=
 begin
   let E := algebraic_closure L,
@@ -210,17 +228,17 @@ begin
 
   apply (algebra_map K E).injective,
   rw [ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_neg, ring_hom.map_one,
-    of_power_basis_eq_prod'' _ _ _ e],
+    discr_power_basis_eq_prod'' _ _ _ e],
   congr,
   rw [norm_eq_prod_embeddings, fin.prod_filter_lt_mul_neg_eq_prod_off_diag],
   conv_rhs { congr, skip, funext,
     rw [← aeval_alg_hom_apply, aeval_root_derivative_of_splits (minpoly.monic
       (is_separable.is_integral K pb.gen)) (is_alg_closed.splits_codomain _) (hroots σ),
-      ← finset.prod_mk _ (multiset.nodup_erase_of_nodup _ hnodup)] },
+      ← finset.prod_mk _ (hnodup.erase _)] },
   rw [prod_sigma', prod_sigma'],
   refine prod_bij (λ i hi, ⟨e i.2, e i.1 pb.gen⟩) (λ i hi, _) (λ i hi, by simp at hi)
     (λ i j hi hj hij, _) (λ σ hσ, _),
-  { simp only [true_and, mem_mk, mem_univ, mem_sigma],
+  { simp only [true_and, finset.mem_mk, mem_univ, mem_sigma],
     rw [multiset.mem_erase_of_ne (λ h, _)],
     { exact hroots _ },
     { simp only [true_and, mem_filter, mem_univ, ne.def, mem_sigma] at hi,
@@ -231,7 +249,7 @@ begin
     have h := hij.2,
     rw [← power_basis.lift_equiv_apply_coe, ← power_basis.lift_equiv_apply_coe] at h,
     refine sigma.eq (equiv.injective e (equiv.injective _ (subtype.eq h))) (by simp [hij.1]) },
-  { simp only [true_and, mem_mk, mem_univ, mem_sigma] at hσ,
+  { simp only [true_and, finset.mem_mk, mem_univ, mem_sigma] at hσ,
     simp only [sigma.exists, true_and, exists_prop, mem_filter, mem_univ, ne.def, mem_sigma],
     refine ⟨e.symm (power_basis.lift pb σ.2 _), e.symm σ.1, ⟨λ h, _, sigma.eq _ _⟩⟩,
     { rw [aeval_def, eval₂_eq_eval_map, ← is_root.def, ← mem_roots],
@@ -240,9 +258,104 @@ begin
     { replace h := alg_hom.congr_fun (equiv.injective _ h) pb.gen,
       rw [power_basis.lift_gen] at h,
       rw [← h] at hσ,
-      refine multiset.mem_erase_of_nodup hnodup hσ, },
+      exact hnodup.not_mem_erase hσ },
     all_goals { simp } }
 end
+
+section integral
+
+variables {R : Type z} [comm_ring R] [algebra R K] [algebra R L] [is_scalar_tower R K L]
+
+local notation `is_integral` := _root_.is_integral
+
+/-- If `K` and `L` are fields and `is_scalar_tower R K L`, and `b : ι → L` satisfies
+` ∀ i, is_integral R (b i)`, then `is_integral R (discr K b)`. -/
+lemma discr_is_integral {b : ι → L} (h : ∀ i, is_integral R (b i)) :
+  is_integral R (discr K b) :=
+begin
+  classical,
+  rw [discr_def],
+  exact is_integral.det (λ i j, is_integral_trace (is_integral_mul (h i) (h j)))
+end
+
+/-- If `b` and `b'` are `ℚ`-bases of a number field `K` such that
+`∀ i j, is_integral ℤ (b.to_matrix b' i j)` and `∀ i j, is_integral ℤ (b'.to_matrix b i j)` then
+`discr ℚ b = discr ℚ b'`. -/
+lemma discr_eq_discr_of_to_matrix_coeff_is_integral [number_field K] {b : basis ι ℚ K}
+  {b' : basis ι' ℚ K} (h : ∀ i j, is_integral ℤ (b.to_matrix b' i j))
+  (h' : ∀ i j, is_integral ℤ (b'.to_matrix b i j)) :
+  discr ℚ b = discr ℚ b' :=
+begin
+  replace h' : ∀ i j, is_integral ℤ (b'.to_matrix ((b.reindex (b.index_equiv b'))) i j),
+  { intros i j,
+    convert h' i ((b.index_equiv b').symm j),
+    simpa },
+  classical,
+  rw [← (b.reindex (b.index_equiv b')).to_matrix_map_vec_mul b', discr_of_matrix_vec_mul,
+    ← one_mul (discr ℚ b), basis.coe_reindex, discr_reindex],
+  congr,
+  have hint : is_integral ℤ (((b.reindex (b.index_equiv b')).to_matrix b').det) :=
+    is_integral.det (λ i j, h _ _),
+  obtain ⟨r, hr⟩ := is_integrally_closed.is_integral_iff.1 hint,
+  have hunit : is_unit r,
+  { have : is_integral ℤ ((b'.to_matrix (b.reindex (b.index_equiv b'))).det) :=
+      is_integral.det (λ i j, h' _ _),
+    obtain ⟨r', hr'⟩ := is_integrally_closed.is_integral_iff.1 this,
+    refine is_unit_iff_exists_inv.2 ⟨r', _⟩,
+    suffices : algebra_map ℤ ℚ (r * r') = 1,
+    { rw [← ring_hom.map_one (algebra_map ℤ ℚ)] at this,
+      exact (is_fraction_ring.injective ℤ ℚ) this },
+    rw [ring_hom.map_mul, hr, hr', ← det_mul, basis.to_matrix_mul_to_matrix_flip, det_one] },
+  rw [← ring_hom.map_one (algebra_map ℤ ℚ), ← hr],
+  cases int.is_unit_iff.1 hunit with hp hm,
+  { simp [hp] },
+  { simp [hm] }
+end
+
+/-- Let `K` be the fraction field of an integrally closed domain `R` and let `L` be a finite
+separable extension of `K`. Let `B : power_basis K L` be such that `is_integral R B.gen`.
+Then for all, `z : L` that are integral over `R`, we have
+`(discr K B.basis) • z ∈ adjoin R ({B.gen} : set L)`. -/
+lemma discr_mul_is_integral_mem_adjoin [is_domain R] [is_separable K L] [is_integrally_closed R]
+  [is_fraction_ring R K] {B : power_basis K L} (hint : is_integral R B.gen) {z : L}
+  (hz : is_integral R z) : (discr K B.basis) • z ∈ adjoin R ({B.gen} : set L) :=
+begin
+  have hinv : is_unit (trace_matrix K B.basis).det :=
+    by simpa [← discr_def] using discr_is_unit_of_basis _ B.basis,
+
+  have H : (trace_matrix K B.basis).det • (trace_matrix K B.basis).mul_vec (B.basis.equiv_fun z) =
+    (trace_matrix K B.basis).det • (λ i, trace K L (z * B.basis i)),
+  { congr, exact trace_matrix_of_basis_mul_vec _ _ },
+  have cramer := mul_vec_cramer (trace_matrix K B.basis) (λ i, trace K L (z * B.basis i)),
+
+  suffices : ∀ i, ((trace_matrix K B.basis).det • (B.basis.equiv_fun z)) i ∈ (⊥ : subalgebra R K),
+  { rw [← B.basis.sum_repr z, finset.smul_sum],
+    refine subalgebra.sum_mem _ (λ i hi, _),
+    replace this := this i,
+    rw [← discr_def, pi.smul_apply, mem_bot] at this,
+    obtain ⟨r, hr⟩ := this,
+    rw [basis.equiv_fun_apply] at hr,
+    rw [← smul_assoc, ← hr, algebra_map_smul],
+    refine subalgebra.smul_mem _ _ _,
+    rw [B.basis_eq_pow i],
+    refine subalgebra.pow_mem _ (subset_adjoin (set.mem_singleton _)) _},
+  intro i,
+  rw [← H, ← mul_vec_smul] at cramer,
+  replace cramer := congr_arg (mul_vec (trace_matrix K B.basis)⁻¹) cramer,
+  rw [mul_vec_mul_vec, nonsing_inv_mul _ hinv, mul_vec_mul_vec, nonsing_inv_mul _ hinv,
+    one_mul_vec, one_mul_vec] at cramer,
+  rw [← congr_fun cramer i, cramer_apply, det_apply],
+  refine subalgebra.sum_mem _ (λ σ _, subalgebra.zsmul_mem _ (subalgebra.prod_mem _ (λ j _, _)) _),
+  by_cases hji : j = i,
+  { simp only [update_column_apply, hji, eq_self_iff_true, power_basis.coe_basis],
+    exact mem_bot.2 (is_integrally_closed.is_integral_iff.1 $ is_integral_trace $
+      is_integral_mul hz $ is_integral.pow hint _) },
+  { simp only [update_column_apply, hji, power_basis.coe_basis],
+    exact mem_bot.2 (is_integrally_closed.is_integral_iff.1 $ is_integral_trace
+      $ is_integral_mul (is_integral.pow hint _) (is_integral.pow hint _)) }
+end
+
+end integral
 
 end field
 

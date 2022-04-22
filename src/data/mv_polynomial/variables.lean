@@ -122,7 +122,7 @@ lemma degrees_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ R) :
   (∑ i in s, f i).degrees ≤ s.sup (λi, (f i).degrees) :=
 begin
   refine s.induction _ _,
-  { simp only [finset.sum_empty, finset.sup_empty, degrees_zero], exact le_refl _ },
+  { simp only [finset.sum_empty, finset.sup_empty, degrees_zero], exact le_rfl },
   { assume i s his ih,
     rw [finset.sup_insert, finset.sum_insert his],
     exact le_trans (degrees_add _ _) (sup_le_sup_left ih _) }
@@ -536,7 +536,7 @@ nat.eq_zero_of_le_zero $ finset.sup_le $ assume n hn,
   begin
     rw [finset.mem_singleton] at this,
     subst this,
-    exact le_refl _
+    exact le_rfl
   end
 
 @[simp] lemma total_degree_zero : (0 : mv_polynomial σ R).total_degree = 0 :=
@@ -597,7 +597,7 @@ finset.sup_le $ assume n hn,
   begin
     simp only [finset.mem_bUnion, finset.mem_singleton] at this,
     rcases this with ⟨a₁, h₁, a₂, h₂, rfl⟩,
-    rw [finsupp.sum_add_index],
+    rw [finsupp.sum_add_index'],
     { exact add_le_add (finset.le_sup h₁) (finset.le_sup h₂) },
     { assume a, refl },
     { assume a b₁ b₂, refl }
@@ -690,7 +690,7 @@ begin
   rw finset.mem_image at h',
   rcases h' with ⟨s, hs, rfl⟩,
   rw finsupp.sum_map_domain_index,
-  exact le_trans (le_refl _) (finset.le_sup hs),
+  exact le_trans le_rfl (finset.le_sup hs),
   exact assume _, rfl,
   exact assume _ _ _, rfl
 end
@@ -710,10 +710,10 @@ begin
   conv_lhs { rw p.as_sum },
   simp only [ring_hom.map_sum, eval₂_hom_monomial],
   by_cases h0 : constant_coeff p = 0,
-  work_on_goal 0
+  work_on_goal 1
   { rw [h0, f.map_zero, finset.sum_eq_zero],
     intros d hd },
-  work_on_goal 1
+  work_on_goal 2
   { rw [finset.sum_eq_single (0 : σ →₀ ℕ)],
     { rw [finsupp.prod_zero_index, mul_one],
       refl },

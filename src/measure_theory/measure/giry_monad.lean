@@ -45,12 +45,12 @@ instance : measurable_space (measure α) :=
 ⨆ (s : set α) (hs : measurable_set s), (borel ℝ≥0∞).comap (λμ, μ s)
 
 lemma measurable_coe {s : set α} (hs : measurable_set s) : measurable (λμ : measure α, μ s) :=
-measurable.of_comap_le $ le_supr_of_le s $ le_supr_of_le hs $ le_refl _
+measurable.of_comap_le $ le_supr_of_le s $ le_supr_of_le hs $ le_rfl
 
 lemma measurable_of_measurable_coe (f : β → measure α)
   (h : ∀(s : set α) (hs : measurable_set s), measurable (λb, f b s)) :
   measurable f :=
-measurable.of_le_map $ bsupr_le $ assume s hs, measurable_space.comap_le_iff_le_map.2 $
+measurable.of_le_map $ supr₂_le $ assume s hs, measurable_space.comap_le_iff_le_map.2 $
   by rw [measurable_space.map_comp]; exact h s hs
 
 lemma measurable_measure {μ : α → measure β} :
@@ -142,7 +142,7 @@ begin
     exact simple_func.measurable_set_preimage _ _ },
   { change monotone (λn μ, (simple_func.eapprox f n).lintegral μ),
     assume n m h μ,
-    refine simple_func.lintegral_mono _ (le_refl _),
+    refine simple_func.lintegral_mono _ le_rfl,
     apply simple_func.monotone_eapprox,
     assumption },
   congr, funext μ,

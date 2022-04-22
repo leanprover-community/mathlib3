@@ -27,7 +27,7 @@ variables {α : Type*} (r r₁ r₂ : α → α → Prop) (s t : set α) (a : α
 /-- Turns a set into an antichain by keeping only the "maximal" elements. -/
 def maximals : set α := {a ∈ s | ∀ ⦃b⦄, b ∈ s → r a b → a = b}
 
-/-- Turns a set into an antichain by keeping only the "maximal" elements. -/
+/-- Turns a set into an antichain by keeping only the "minimal" elements. -/
 def minimals : set α := {a ∈ s | ∀ ⦃b⦄, b ∈ s → r b a → a = b}
 
 lemma maximals_subset : maximals r s ⊆ s := sep_subset _ _
@@ -84,10 +84,10 @@ lemma inter_maximals_subset : s ∩ maximals r t ⊆ maximals r (s ∩ t) :=
 lemma inter_minimals_subset : s ∩ minimals r t ⊆ minimals r (s ∩ t) := inter_maximals_subset
 
 lemma _root_.is_antichain.maximals_eq (h : is_antichain r s) : maximals r s = s :=
-(maximals_subset _ _).antisymm $ λ a ha, ⟨ha, λ b, h.eq_of_related ha⟩
+(maximals_subset _ _).antisymm $ λ a ha, ⟨ha, λ b, h.eq ha⟩
 
 lemma _root_.is_antichain.minimals_eq (h : is_antichain r s) : minimals r s = s :=
-(minimals_subset _ _).antisymm $ λ a ha, ⟨ha, λ b, h.eq_of_related' ha⟩
+(minimals_subset _ _).antisymm $ λ a ha, ⟨ha, λ b, h.eq' ha⟩
 
 @[simp] lemma maximals_idem : maximals r (maximals r s) = maximals r s :=
 (maximals_antichain _ _).maximals_eq

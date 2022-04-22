@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Joey van Langen, Casper Putz
 -/
 
+import algebra.hom.iterate
 import data.int.modeq
-import algebra.iterate_hom
+import data.nat.choose.dvd
 import data.nat.choose.sum
 import group_theory.order_of_element
-import data.nat.choose.dvd
+import ring_theory.nilpotent
 /-!
 # Characteristic of semirings
 -/
@@ -17,7 +18,16 @@ universes u v
 
 variables (R : Type u)
 
-/-- The generator of the kernel of the unique homomorphism ℕ → R for a semiring R -/
+/-- The generator of the kernel of the unique homomorphism ℕ → R for a semiring R.
+
+*Warning*: for a semiring `R`, `char_p R 0` and `char_zero R` need not coincide.
+* `char_p R 0` asks that only `0 : ℕ` maps to `0 : R` under the map `ℕ → R`;
+* `char_zero R` requires an injection `ℕ ↪ R`.
+
+For instance, endowing `{0, 1}` with addition given by `max` (i.e. `1` is absorbing), shows that
+`char_zero {0, 1}` does not hold and yet `char_p {0, 1} 0` does.
+This example is formalized in `counterexamples/char_p_zero_ne_char_zero`.
+ -/
 class char_p [add_monoid R] [has_one R] (p : ℕ) : Prop :=
 (cast_eq_zero_iff [] : ∀ x:ℕ, (x:R) = 0 ↔ p ∣ x)
 
@@ -92,8 +102,8 @@ theorem spec : ∀ x:ℕ, (x:R) = 0 ↔ ring_char R ∣ x :=
 by letI := (classical.some_spec (char_p.exists_unique R)).1;
 unfold ring_char; exact char_p.cast_eq_zero_iff R (ring_char R)
 
-theorem eq {p : ℕ} (C : char_p R p) : p = ring_char R :=
-(classical.some_spec (char_p.exists_unique R)).2 p C
+theorem eq (p : ℕ) [C : char_p R p] : ring_char R = p :=
+((classical.some_spec (char_p.exists_unique R)).2 p C).symm
 
 instance char_p : char_p R (ring_char R) :=
 ⟨spec R⟩
@@ -104,13 +114,13 @@ theorem of_eq {p : ℕ} (h : ring_char R = p) : char_p R p :=
 char_p.congr (ring_char R) h
 
 theorem eq_iff {p : ℕ} : ring_char R = p ↔ char_p R p :=
-⟨of_eq, eq.symm ∘ eq R⟩
+⟨of_eq, @eq R _ p⟩
 
 theorem dvd {x : ℕ} (hx : (x : R) = 0) : ring_char R ∣ x :=
 (spec R x).1 hx
 
 @[simp]
-lemma eq_zero [char_zero R] : ring_char R = 0 := (eq R (char_p.of_char_zero R)).symm
+lemma eq_zero [char_zero R] : ring_char R = 0 := eq R 0
 
 end ring_char
 
@@ -309,27 +319,28 @@ end comm_ring
 
 end frobenius
 
-theorem frobenius_inj [comm_ring R] [no_zero_divisors R]
+theorem frobenius_inj [comm_ring R] [is_reduced R]
   (p : ℕ) [fact p.prime] [char_p R p] :
   function.injective (frobenius R p) :=
-λ x h H, by { rw ← sub_eq_zero at H ⊢, rw ← frobenius_sub at H, exact pow_eq_zero H }
+λ x h H, by { rw ← sub_eq_zero at H ⊢, rw ← frobenius_sub at H, exact is_reduced.eq_zero _ ⟨_,H⟩ }
 
 namespace char_p
 
 section
 variables [ring R]
 
-lemma char_p_to_char_zero [char_p R 0] : char_zero R :=
+lemma char_p_to_char_zero (R : Type*) [add_left_cancel_monoid R] [has_one R] [char_p R 0] :
+  char_zero R :=
 char_zero_of_inj_zero $
   λ n h0, eq_zero_of_zero_dvd ((cast_eq_zero_iff R 0 n).mp h0)
 
 lemma cast_eq_mod (p : ℕ) [char_p R p] (k : ℕ) : (k : R) = (k % p : ℕ) :=
 calc (k : R) = ↑(k % p + p * (k / p)) : by rw [nat.mod_add_div]
-         ... = ↑(k % p)               : by simp[cast_eq_zero]
+         ... = ↑(k % p)               : by simp [cast_eq_zero]
 
 theorem char_ne_zero_of_fintype (p : ℕ) [hc : char_p R p] [fintype R] : p ≠ 0 :=
 assume h : p = 0,
-have char_zero R := @char_p_to_char_zero R _ (h ▸ hc),
+have char_zero R := @char_p_to_char_zero R _ _ (h ▸ hc),
 absurd (@nat.cast_injective R _ _ this) (not_injective_infinite_fintype coe)
 
 end
@@ -420,6 +431,10 @@ by { intros h, apply @zero_ne_one R, symmetry, rw [←nat.cast_one, ring_char.sp
 lemma nontrivial_of_char_ne_one {v : ℕ} (hv : v ≠ 1) [hr : char_p R v] :
   nontrivial R :=
 ⟨⟨(1 : ℕ), 0, λ h, hv $ by rwa [char_p.cast_eq_zero_iff _ v, nat.dvd_one] at h; assumption ⟩⟩
+
+lemma ring_char_of_prime_eq_zero [nontrivial R] {p : ℕ}
+  (hprime : nat.prime p) (hp0 : (p : R) = 0) : ring_char R = p :=
+or.resolve_left ((nat.dvd_prime hprime).1 (ring_char.dvd hp0)) ring_char_ne_one
 
 end char_one
 

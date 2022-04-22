@@ -224,8 +224,7 @@ begin
   We argue from the start by contradiction, as this means that our inductive construction will
   never be stuck, so we won't have to consider this case separately.
   -/
-  by_contra h,
-  push_neg at h,
+  by_contra' h,
   -- We will formulate things in terms of the type of countable subsets of `α`, as this is more
   -- convenient to formalize the inductive construction.
   let A : set (set α) := {t | countable t},
@@ -417,7 +416,8 @@ begin
     simp [integral_indicator hs] },
   { change integrable (indicator s 1) μ,
     have : integrable (λ x, (1 : ℝ)) μ := integrable_const (1 : ℝ),
-    apply this.mono' (measurable.indicator (@measurable_const _ _ _ _ (1 : ℝ)) hs).ae_measurable,
+    apply this.mono'
+      (measurable.indicator (@measurable_const _ _ _ _ (1 : ℝ)) hs).ae_strongly_measurable,
     apply filter.eventually_of_forall,
     exact norm_indicator_le_one _ }
 end

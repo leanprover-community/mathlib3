@@ -70,7 +70,8 @@ instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_co
 { elim := λ a b c bc, ordered_comm_group.mul_le_mul_left b c bc a }
 
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
-@[to_additive]
+@[to_additive "The units of an ordered commutative additive monoid form an ordered commutative
+additive group."]
 instance units.ordered_comm_group [ordered_comm_monoid α] : ordered_comm_group αˣ :=
 { mul_le_mul_left := λ a b h c, (mul_le_mul_left' (h : (a : α) ≤ b) _ :  (c : α) * a ≤ c * b),
   .. units.partial_order,
@@ -92,6 +93,7 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
 
 @[to_additive] instance [h : has_inv α] : has_inv (order_dual α) := h
 @[to_additive] instance [h : has_div α] : has_div (order_dual α) := h
+@[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv (order_dual α) := h
 @[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid (order_dual α) := h
 @[to_additive] instance [h : group α] : group (order_dual α) := h
 @[to_additive] instance [h : comm_group α] : comm_group (order_dual α) := h
@@ -232,14 +234,14 @@ end typeclasses_right_le
 section typeclasses_right_lt
 variables [has_lt α] [covariant_class α α (swap (*)) (<)] {a b c : α}
 
-/--  Uses `right` co(ntra)variant. -/
-@[simp, to_additive right.neg_neg_iff]
+/-- Uses `right` co(ntra)variant. -/
+@[simp, to_additive right.neg_neg_iff "Uses `right` co(ntra)variant."]
 lemma right.inv_lt_one_iff :
   a⁻¹ < 1 ↔ 1 < a :=
 by rw [← mul_lt_mul_iff_right a, inv_mul_self, one_mul]
 
-/--  Uses `right` co(ntra)variant. -/
-@[simp, to_additive right.neg_pos_iff]
+/-- Uses `right` co(ntra)variant. -/
+@[simp, to_additive right.neg_pos_iff "Uses `right` co(ntra)variant."]
 lemma right.one_lt_inv_iff :
   1 < a⁻¹ ↔ a < 1 :=
 by rw [← mul_lt_mul_iff_right a, inv_mul_self, one_mul]
@@ -532,15 +534,17 @@ See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.ordered_add_comm_group
 "Pullback an `ordered_add_comm_group` under an injective map."]
 def function.injective.ordered_comm_group [ordered_comm_group α] {β : Type*}
-  [has_one β] [has_mul β] [has_inv β] [has_div β]
+  [has_one β] [has_mul β] [has_inv β] [has_div β] [has_pow β ℕ] [has_pow β ℤ]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
-  (div : ∀ x y, f (x / y) = f x / f y) :
+  (div : ∀ x y, f (x / y) = f x / f y)
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
   ordered_comm_group β :=
 { ..partial_order.lift f hf,
-  ..hf.ordered_comm_monoid f one mul,
-  ..hf.comm_group f one mul inv div }
+  ..hf.ordered_comm_monoid f one mul npow,
+  ..hf.comm_group f one mul inv div npow zpow }
 
 /-  Most of the lemmas that are primed in this section appear in ordered_field. -/
 /-  I (DT) did not try to minimise the assumptions. -/
@@ -911,14 +915,16 @@ See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.linear_ordered_add_comm_group
 "Pullback a `linear_ordered_add_comm_group` under an injective map."]
 def function.injective.linear_ordered_comm_group {β : Type*}
-  [has_one β] [has_mul β] [has_inv β] [has_div β]
+  [has_one β] [has_mul β] [has_inv β] [has_div β] [has_pow β ℕ] [has_pow β ℤ]
   (f : β → α) (hf : function.injective f) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y)
   (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
-  (div : ∀ x y, f (x / y) = f x / f y)  :
+  (div : ∀ x y, f (x / y) = f x / f y)
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
   linear_ordered_comm_group β :=
 { ..linear_order.lift f hf,
-  ..hf.ordered_comm_group f one mul inv div }
+  ..hf.ordered_comm_group f one mul inv div npow zpow }
 
 @[to_additive linear_ordered_add_comm_group.add_lt_add_left]
 lemma linear_ordered_comm_group.mul_lt_mul_left'
@@ -992,12 +998,11 @@ section covariant_add_le
 section has_neg
 
 /-- `abs a` is the absolute value of `a`. -/
-@[to_additive, priority 100] -- see Note [lower instance priority]
-instance has_inv_lattice_has_abs [has_inv α] [lattice α] : has_abs (α)  := ⟨λa, a ⊔ (a⁻¹)⟩
+@[to_additive "`abs a` is the absolute value of `a`",
+  priority 100] -- see Note [lower instance priority]
+instance has_inv.to_has_abs [has_inv α] [has_sup α] : has_abs α := ⟨λ a, a ⊔ a⁻¹⟩
 
-@[to_additive]
-lemma abs_eq_sup_inv [has_inv α] [lattice α] (a : α) : |a| = a ⊔ a⁻¹ :=
-rfl
+@[to_additive] lemma abs_eq_sup_inv [has_inv α] [has_sup α] (a : α) : |a| = a ⊔ a⁻¹ := rfl
 
 variables [has_neg α] [linear_order α] {a b: α}
 
@@ -1045,7 +1050,7 @@ end
 
 lemma abs_sub_comm (a b : α) : |a - b| = |b - a| :=
 calc  |a - b| = | - (b - a)| : congr_arg _ (neg_sub b a).symm
-              ... = |b - a|     : abs_neg (b - a)
+          ... = |b - a|      : abs_neg (b - a)
 
 variables [covariant_class α α (+) (≤)] {a b c : α}
 
@@ -1140,6 +1145,9 @@ lemma abs_add (a b : α) : |a + b| ≤ |a| + |b| :=
 abs_le.2 ⟨(neg_add (|a|) (|b|)).symm ▸
   add_le_add (neg_le.2 $ neg_le_abs_self _) (neg_le.2 $ neg_le_abs_self _),
   add_le_add (le_abs_self _) (le_abs_self _)⟩
+
+lemma abs_add' (a b : α) : |a| ≤ |b| + |b + a| :=
+by simpa using abs_add (-b) (b + a)
 
 theorem abs_sub (a b : α) :
   |a - b| ≤ |a| + |b| :=
@@ -1236,6 +1244,9 @@ instance with_top.linear_ordered_add_comm_group_with_top :
   end,
   .. with_top.linear_ordered_add_comm_monoid_with_top,
   .. option.nontrivial }
+
+@[simp, norm_cast]
+lemma with_top.coe_neg (a : α) : ((-a : α) : with_top α) = -a := rfl
 
 end linear_ordered_add_comm_group
 

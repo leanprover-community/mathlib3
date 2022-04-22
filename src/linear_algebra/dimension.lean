@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen, Scott Morrison
 -/
 import linear_algebra.dfinsupp
-import linear_algebra.std_basis
-import linear_algebra.isomorphisms
-import set_theory.cofinality
 import linear_algebra.invariant_basis_number
+import linear_algebra.isomorphisms
+import linear_algebra.std_basis
+import set_theory.cardinal.cofinality
 
 /-!
 # Dimension of modules and vector spaces
@@ -138,7 +138,7 @@ theorem dim_le {n : ℕ}
   (H : ∀ s : finset M, linear_independent R (λ i : s, (i : M)) → s.card ≤ n) :
   module.rank R M ≤ n :=
 begin
-  apply cardinal.sup_le.mpr,
+  apply cardinal.sup_le,
   rintro ⟨s, li⟩,
   exact linear_independent_bounded_of_finset_linear_independent_bounded H _ li,
 end
@@ -244,7 +244,7 @@ begin
     apply le_trans,
     swap,
     exact cardinal.le_sup _ ⟨range v, hv.coe_range⟩,
-    exact le_refl _, },
+    exact le_rfl, },
 end
 
 lemma cardinal_lift_le_dim_of_linear_independent'
@@ -267,7 +267,7 @@ variables (R M)
 @[simp] lemma dim_punit : module.rank R punit = 0 :=
 begin
   apply le_bot_iff.mp,
-  apply cardinal.sup_le.mpr,
+  apply cardinal.sup_le,
   rintro ⟨s, li⟩,
   apply le_bot_iff.mpr,
   apply cardinal.mk_emptyc_iff.mpr,
@@ -792,7 +792,7 @@ begin
     apply cardinal.le_sup,
     exact ⟨set.range v, by { convert v.reindex_range.linear_independent, ext, simp }⟩,
     exact (cardinal.mk_range_eq v v.injective).ge, },
-  { apply cardinal.sup_le.mpr,
+  { apply cardinal.sup_le,
     rintro ⟨s, li⟩,
     apply linear_independent_le_basis v _ li, },
 end
@@ -1067,10 +1067,7 @@ lemma dim_add_dim_split
   (eq₂ : ∀d e, db d = eb e → (∃c, cd c = d ∧ ce c = e)) :
   module.rank K V + module.rank K V₁ = module.rank K V₂ + module.rank K V₃ :=
 have hf : surjective (coprod db eb),
-begin
-  refine (range_eq_top.1 $ top_unique $ _),
-  rwa [← map_top, ← prod_top, map_coprod_prod, ←range_eq_map, ←range_eq_map]
-end,
+by rwa [←range_eq_top, range_coprod, eq_top_iff],
 begin
   conv {to_rhs, rw [← dim_prod, dim_eq_of_surjective _ hf] },
   congr' 1,
@@ -1078,7 +1075,7 @@ begin
   refine linear_equiv.of_bijective _ _ _,
   { refine cod_restrict _ (prod cd (- ce)) _,
     { assume c,
-      simp only [add_eq_zero_iff_eq_neg, linear_map.prod_apply, mem_ker,
+      simp only [add_eq_zero_iff_eq_neg, linear_map.prod_apply, mem_ker, pi.prod,
         coprod_apply, neg_neg, map_neg, neg_apply],
       exact linear_map.ext_iff.1 eq c } },
   { rw [← ker_eq_bot, ker_cod_restrict, ker_prod, hgd, bot_inf_eq] },
@@ -1087,7 +1084,7 @@ begin
     rintros ⟨d, e⟩,
     have h := eq₂ d (-e),
     simp only [add_eq_zero_iff_eq_neg, linear_map.prod_apply, mem_ker, set_like.mem_coe,
-      prod.mk.inj_iff, coprod_apply, map_neg, neg_apply, linear_map.mem_range] at ⊢ h,
+      prod.mk.inj_iff, coprod_apply, map_neg, neg_apply, linear_map.mem_range, pi.prod] at ⊢ h,
     assume hde,
     rcases h hde with ⟨c, h₁, h₂⟩,
     refine ⟨c, h₁, _⟩,
@@ -1102,14 +1099,13 @@ dim_add_dim_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (
     rw [← map_le_map_iff' (ker_subtype $ s ⊔ t), map_sup, map_top,
       ← linear_map.range_comp, ← linear_map.range_comp, subtype_comp_of_le, subtype_comp_of_le,
       range_subtype, range_subtype, range_subtype],
-    exact le_refl _
+    exact le_rfl
   end
   (ker_of_le _ _ _)
   begin ext ⟨x, hx⟩, refl end
   begin
     rintros ⟨b₁, hb₁⟩ ⟨b₂, hb₂⟩ eq,
-    have : b₁ = b₂ := congr_arg subtype.val eq,
-    subst this,
+    obtain rfl : b₁ = b₂ := congr_arg subtype.val eq,
     exact ⟨⟨b₁, hb₁, hb₂⟩, rfl, rfl⟩
   end
 
@@ -1313,7 +1309,7 @@ begin
       have h0 : r' ≠ 0,
       { rintro rfl,
         simpa using hw0 },
-      rwa span_singleton_smul_eq _ h0 },
+      rwa span_singleton_smul_eq (is_unit.mk0 _ h0) _ },
     { push_neg at hw,
       rw ←submodule.eq_bot_iff at hw,
       simp [hw] } }

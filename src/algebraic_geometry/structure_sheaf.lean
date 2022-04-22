@@ -7,7 +7,7 @@ import algebraic_geometry.prime_spectrum.basic
 import algebra.category.CommRing.colimits
 import algebra.category.CommRing.limits
 import topology.sheaves.local_predicate
-import ring_theory.localization
+import ring_theory.localization.at_prime
 import ring_theory.subring.basic
 
 /-!
@@ -190,7 +190,7 @@ def sections_subring (U : (opens (prime_spectrum.Top R))ᵒᵖ) :
     { exact nm, },
     { simp only [ring_hom.map_neg, pi.neg_apply],
       erw [←w],
-      simp only [neg_mul_eq_neg_mul_symm], }
+      simp only [neg_mul], }
   end,
   mul_mem' :=
   begin
@@ -257,13 +257,14 @@ The structure sheaf on $Spec R$, valued in `CommRing`.
 
 This is provided as a bundled `SheafedSpace` as `Spec.SheafedSpace R` later.
 -/
-def structure_sheaf : sheaf CommRing (prime_spectrum.Top R) :=
+def Spec.structure_sheaf : sheaf CommRing (prime_spectrum.Top R) :=
 ⟨structure_presheaf_in_CommRing R,
   -- We check the sheaf condition under `forget CommRing`.
   (is_sheaf_iff_is_sheaf_comp _ _).mpr
     (is_sheaf_of_iso (structure_presheaf_comp_forget R).symm
       (structure_sheaf_in_Type R).property)⟩
 
+open Spec (structure_sheaf)
 
 namespace structure_sheaf
 
@@ -776,7 +777,7 @@ begin
     intros x hx,
     erw topological_space.opens.mem_supr,
     have := ht_cover hx,
-    rw [← finset.set_bUnion_coe, set.mem_bUnion_iff] at this,
+    rw [← finset.set_bUnion_coe, set.mem_Union₂] at this,
     rcases this with ⟨i, i_mem, x_mem⟩,
     use [i, i_mem] },
 
@@ -856,9 +857,10 @@ instance to_basic_open_epi (r : R) : epi (to_open R (basic_open r)) :=
   swap 5, exact is_localization.to_basic_open R r, exact h }⟩
 
 @[elementwise] lemma to_global_factors : to_open R ⊤ =
-  (CommRing.of_hom (algebra_map R (localization.away (1 : R)))) ≫ (to_basic_open R (1 : R)) ≫
+  CommRing.of_hom (algebra_map R (localization.away (1 : R))) ≫ to_basic_open R (1 : R) ≫
   (structure_sheaf R).1.map (eq_to_hom (basic_open_one.symm)).op :=
 begin
+  rw ← category.assoc,
   change to_open R ⊤ = (to_basic_open R 1).comp _ ≫ _,
   unfold CommRing.of_hom,
   rw [localization_to_basic_open R, to_open_res],

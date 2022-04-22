@@ -143,6 +143,12 @@ le_trans h le_sup_left
 theorem le_sup_of_le_right (h : c ≤ b) : c ≤ a ⊔ b :=
 le_trans h le_sup_right
 
+theorem lt_sup_of_lt_left (h : c < a) : c < a ⊔ b :=
+h.trans_le le_sup_left
+
+theorem lt_sup_of_lt_right (h : c < b) : c < a ⊔ b :=
+h.trans_le le_sup_right
+
 theorem sup_le : a ≤ c → b ≤ c → a ⊔ b ≤ c :=
 semilattice_sup.sup_le a b c
 
@@ -172,10 +178,10 @@ theorem sup_le_sup (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊔ c ≤ b ⊔ d :=
 sup_le (le_sup_of_le_left h₁) (le_sup_of_le_right h₂)
 
 theorem sup_le_sup_left (h₁ : a ≤ b) (c) : c ⊔ a ≤ c ⊔ b :=
-sup_le_sup (le_refl _) h₁
+sup_le_sup le_rfl h₁
 
 theorem sup_le_sup_right (h₁ : a ≤ b) (c) : a ⊔ c ≤ b ⊔ c :=
-sup_le_sup h₁ (le_refl _)
+sup_le_sup h₁ le_rfl
 
 theorem le_of_sup_eq (h : a ⊔ b = b) : a ≤ b :=
 by { rw ← h, simp }
@@ -196,7 +202,7 @@ lemma sup_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : 
 ⟨λ h, (total_of (≤) c b).imp
   (λ bc, by rwa sup_eq_left.2 bc at h)
   (λ bc, by rwa sup_eq_right.2 bc at h),
- λ h, h.elim (λ h, h.trans_le le_sup_left) (λ h, h.trans_le le_sup_right)⟩
+ λ h, h.elim lt_sup_of_lt_left lt_sup_of_lt_right⟩
 
 @[simp] theorem sup_idem : a ⊔ a = a :=
 by apply le_antisymm; simp
@@ -236,6 +242,12 @@ by rw [sup_assoc, sup_assoc, @sup_comm _ _ b]
 
 lemma sup_sup_sup_comm (a b c d : α) : a ⊔ b ⊔ (c ⊔ d) = a ⊔ c ⊔ (b ⊔ d) :=
 by rw [sup_assoc, sup_left_comm b, ←sup_assoc]
+
+lemma sup_sup_distrib_left (a b c : α) : a ⊔ (b ⊔ c) = (a ⊔ b) ⊔ (a ⊔ c) :=
+by rw [sup_sup_sup_comm, sup_idem]
+
+lemma sup_sup_distrib_right (a b c : α) : (a ⊔ b) ⊔ c = (a ⊔ c) ⊔ (b ⊔ c) :=
+by rw [sup_sup_sup_comm, sup_idem]
 
 lemma forall_le_or_exists_lt_sup (a : α) : (∀b, b ≤ a) ∨ (∃b, a < b) :=
 suffices (∃b, ¬b ≤ a) → (∃b, a < b),
@@ -330,6 +342,12 @@ le_trans inf_le_left h
 theorem inf_le_of_right_le (h : b ≤ c) : a ⊓ b ≤ c :=
 le_trans inf_le_right h
 
+theorem inf_lt_of_left_lt (h : a < c) : a ⊓ b < c :=
+lt_of_le_of_lt inf_le_left h
+
+theorem inf_lt_of_right_lt (h : b < c) : a ⊓ b < c :=
+lt_of_le_of_lt inf_le_right h
+
 @[simp] theorem le_inf_iff : a ≤ b ⊓ c ↔ a ≤ b ∧ a ≤ c :=
 @sup_le_iff (order_dual α) _ _ _ _
 
@@ -355,10 +373,10 @@ theorem inf_le_inf (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊓ c ≤ b ⊓ d :=
 le_inf (inf_le_of_left_le h₁) (inf_le_of_right_le h₂)
 
 lemma inf_le_inf_right (a : α) {b c : α} (h : b ≤ c) : b ⊓ a ≤ c ⊓ a :=
-inf_le_inf h (le_refl _)
+inf_le_inf h le_rfl
 
 lemma inf_le_inf_left (a : α) {b c : α} (h : b ≤ c) : a ⊓ b ≤ a ⊓ c :=
-inf_le_inf (le_refl _) h
+inf_le_inf le_rfl h
 
 theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=
 by { rw ← h, simp }
@@ -404,6 +422,12 @@ lemma inf_right_comm (a b c : α) : a ⊓ b ⊓ c = a ⊓ c ⊓ b :=
 
 lemma inf_inf_inf_comm (a b c d : α) : a ⊓ b ⊓ (c ⊓ d) = a ⊓ c ⊓ (b ⊓ d) :=
 @sup_sup_sup_comm (order_dual α) _ _ _ _ _
+
+lemma inf_inf_distrib_left (a b c : α) : a ⊓ (b ⊓ c) = (a ⊓ b) ⊓ (a ⊓ c) :=
+@sup_sup_distrib_left (order_dual α) _ _ _ _
+
+lemma inf_inf_distrib_right (a b c : α) : (a ⊓ b) ⊓ c = (a ⊓ c) ⊓ (b ⊓ c) :=
+@sup_sup_distrib_right (order_dual α) _ _ _ _
 
 lemma forall_le_or_exists_lt_inf (a : α) : (∀b, a ≤ b) ∨ (∃b, b < a) :=
 @forall_le_or_exists_lt_sup (order_dual α) _ a
@@ -928,3 +952,6 @@ See note [reducible non-instances]. -/
   ..hf_inj.lattice f map_sup map_inf, }
 
 end lift
+
+--To avoid noncomputability poisoning from `bool.complete_boolean_algebra`
+instance : distrib_lattice bool := linear_order.to_distrib_lattice

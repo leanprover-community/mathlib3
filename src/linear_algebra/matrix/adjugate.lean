@@ -45,7 +45,7 @@ cramer, cramer's rule, adjugate
 namespace matrix
 universes u v
 variables {n : Type u} [decidable_eq n] [fintype n] {α : Type v} [comm_ring α]
-open_locale matrix big_operators
+open_locale matrix big_operators polynomial
 open equiv equiv.perm finset
 
 section cramer
@@ -345,8 +345,7 @@ adjugate_fin_two _
 lemma adjugate_conj_transpose [star_ring α] (A : matrix n n α) : A.adjugateᴴ = adjugate (Aᴴ) :=
 begin
   dsimp only [conj_transpose],
-  have : Aᵀ.adjugate.map star = adjugate (Aᵀ.map star) :=
-    ((star_ring_aut : α ≃+* α).to_ring_hom.map_adjugate Aᵀ),
+  have : Aᵀ.adjugate.map star = adjugate (Aᵀ.map star) := ((star_ring_end α).map_adjugate Aᵀ),
   rw [A.adjugate_transpose, this],
 end
 
@@ -383,9 +382,9 @@ Proof follows from "The trace Cayley-Hamilton theorem" by Darij Grinberg, Sectio
 -/
 lemma adjugate_mul_distrib (A B : matrix n n α) : adjugate (A ⬝ B) = adjugate B ⬝ adjugate A :=
 begin
-  let g : matrix n n α → matrix n n (polynomial α) :=
-    λ M, M.map polynomial.C + (polynomial.X : polynomial α) • 1,
-  let f' : matrix n n (polynomial α) →+* matrix n n α := (polynomial.eval_ring_hom 0).map_matrix,
+  let g : matrix n n α → matrix n n α[X] :=
+    λ M, M.map polynomial.C + (polynomial.X : α[X]) • 1,
+  let f' : matrix n n α[X] →+* matrix n n α := (polynomial.eval_ring_hom 0).map_matrix,
   have f'_inv : ∀ M, f' (g M) = M,
   { intro,
     ext,
@@ -439,11 +438,8 @@ begin
   let A' := mv_polynomial_X n n ℤ,
   suffices : adjugate (adjugate A') = det A' ^ (fintype.card n - 2) • A',
   { rw [←mv_polynomial_X_map_matrix_aeval ℤ A, ←alg_hom.map_adjugate, ←alg_hom.map_adjugate, this,
-      ←alg_hom.map_det, ← alg_hom.map_pow],
-    -- TODO: missing an `alg_hom.map_smul_of_tower` here.
-    ext i j,
-    dsimp [-mv_polynomial_X],
-    rw [←alg_hom.map_mul] },
+      ←alg_hom.map_det, ← alg_hom.map_pow, alg_hom.map_matrix_apply, alg_hom.map_matrix_apply,
+      matrix.map_smul' _ _ _ (_root_.map_mul _)] },
   have h_card' : fintype.card n - 2 + 1 = fintype.card n - 1,
   { simp [h_card] },
 

@@ -3,9 +3,7 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot
 -/
-import data.set.intervals.basic
-import data.equiv.mul_add
-import algebra.pointwise
+import data.set.pointwise
 
 /-!
 # (Pre)images of intervals
@@ -522,14 +520,16 @@ lemma image_mul_left_Ioo {a : k} (h : 0 < a) (b c : k) :
   ((*) a) '' Ioo b c = Ioo (a * b) (a * c) :=
 by { convert image_mul_right_Ioo b c h using 1; simp only [mul_comm _ a] }
 
-/-- The image under `inv` of `Ioo 0 a` is `Ioi a⁻¹`. -/
-lemma image_inv_Ioo_0_left {a : k} (ha : 0 < a) : has_inv.inv '' Ioo 0 a = Ioi a⁻¹ :=
+/-- The (pre)image under `inv` of `Ioo 0 a` is `Ioi a⁻¹`. -/
+lemma inv_Ioo_0_left {a : k} (ha : 0 < a) : (Ioo 0 a)⁻¹ = Ioi a⁻¹ :=
 begin
   ext x,
-  exact ⟨λ ⟨y, ⟨hy0, hya⟩, hyx⟩, hyx ▸ (inv_lt_inv ha hy0).2 hya, λ h, ⟨x⁻¹, ⟨inv_pos.2 (lt_trans
-    (inv_pos.2 ha) h), (inv_lt ha (lt_trans (inv_pos.2 ha) h)).1 h⟩, inv_inv₀ x⟩⟩,
+  exact ⟨λ h, inv_inv x ▸ (inv_lt_inv ha h.1).2 h.2, λ h, ⟨inv_pos.2 $ (inv_pos.2 ha).trans h,
+    inv_inv a ▸ (inv_lt_inv ((inv_pos.2 ha).trans h) (inv_pos.2 ha)).2 h⟩⟩,
 end
 
+lemma inv_Ioi {a : k} (ha : 0 < a) : (Ioi a)⁻¹ = Ioo 0 a⁻¹ :=
+by rw [inv_eq_iff_inv_eq, inv_Ioo_0_left (inv_pos.2 ha), inv_inv]
 
 /-!
 ### Images under `x ↦ a * x + b`

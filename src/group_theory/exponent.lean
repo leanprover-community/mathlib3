@@ -64,13 +64,17 @@ if h : exponent_exists G then nat.find h else 0
 variable {G}
 
 @[to_additive]
-lemma exponent_eq_zero_iff : exponent G = 0 ↔ ¬ exponent_exists G :=
+lemma exponent_exists_iff_ne_zero : exponent_exists G ↔ exponent G ≠ 0 :=
 begin
   rw [exponent],
   split_ifs,
   { simp [h, @not_lt_zero' ℕ] }, --if this isn't done this way, `to_additive` freaks
-  { tauto }
+  { tauto },
 end
+
+@[to_additive]
+lemma exponent_eq_zero_iff : exponent G = 0 ↔ ¬ exponent_exists G :=
+by simp only [exponent_exists_iff_ne_zero, not_not]
 
 @[to_additive]
 lemma exponent_eq_zero_of_order_zero {g : G} (hg : order_of g = 0) : exponent G = 0 :=
@@ -85,7 +89,7 @@ begin
   { simp_rw [exponent, dif_neg h, pow_zero] }
 end
 
-@[to_additive nsmul_eq_mod_exponent]
+@[to_additive]
 lemma pow_eq_mod_exponent {n : ℕ} (g : G): g ^ n = g ^ (n % exponent G) :=
 calc g ^ n = g ^ (n % exponent G + exponent G * (n / exponent G)) : by rw [nat.mod_add_div]
   ... = g ^ (n % exponent G) : by simp [pow_add, pow_mul, pow_exponent_eq_one]
@@ -134,7 +138,7 @@ order_of_dvd_of_pow_eq_one $ pow_exponent_eq_one g
 
 variable (G)
 
-@[to_additive exponent_dvd_of_forall_nsmul_eq_zero]
+@[to_additive]
 lemma exponent_dvd_of_forall_pow_eq_one (G) [monoid G] (n : ℕ) (hG : ∀ g : G, g ^ n = 1) :
   exponent G ∣ n :=
 begin
@@ -160,20 +164,22 @@ begin
 end
 
 @[to_additive exists_order_of_eq_pow_padic_val_nat_add_exponent]
-lemma _root_.nat.prime.exists_order_of_eq_pow_padic_val_nat_exponent {p : ℕ} (hp : p.prime) :
-  ∃ g : G, order_of g = p ^ padic_val_nat p (exponent G) :=
+lemma _root_.nat.prime.exists_order_of_eq_pow_factorization_exponent {p : ℕ} (hp : p.prime) :
+  ∃ g : G, order_of g = p ^ (exponent G).factorization p :=
 begin
   haveI := fact.mk hp,
-  rcases (padic_val_nat p $ exponent G).eq_zero_or_pos with h | h,
+  rcases eq_or_ne ((exponent G).factorization p) 0 with h | h,
   { refine ⟨1, by rw [h, pow_zero, order_of_one]⟩ },
-  have he : 0 < exponent G := ne.bot_lt (λ ht, by {rw ht at h, exact h.ne' (padic_val_nat_zero _)}),
+  have he : 0 < exponent G := ne.bot_lt (λ ht,
+    by {rw ht at h, apply h, rw [bot_eq_zero, nat.factorization_zero, finsupp.zero_apply] }),
+  rw ← finsupp.mem_support_iff at h,
   obtain ⟨g, hg⟩ : ∃ (g : G), g ^ (exponent G / p) ≠ 1,
   { suffices key : ¬ exponent G ∣ exponent G / p,
-    { by simpa using mt (exponent_dvd_of_forall_pow_eq_one G (exponent G / p)) key },
+    { simpa using mt (exponent_dvd_of_forall_pow_eq_one G (exponent G / p)) key },
     exact λ hd, hp.one_lt.not_le ((mul_le_iff_le_one_left he).mp $
-                nat.le_of_dvd he $ nat.mul_dvd_of_dvd_div (dvd_of_one_le_padic_val_nat h) hd) },
-  obtain ⟨k, hk : exponent G = p ^ _ * k⟩ := pow_padic_val_nat_dvd; try {apply_instance},
-  obtain ⟨t, ht⟩ := nat.exists_eq_succ_of_ne_zero h.ne',
+                nat.le_of_dvd he $ nat.mul_dvd_of_dvd_div (nat.dvd_of_mem_factorization h) hd) },
+  obtain ⟨k, hk : exponent G = p ^ _ * k⟩ := nat.pow_factorization_dvd _ _,
+  obtain ⟨t, ht⟩ := nat.exists_eq_succ_of_ne_zero (finsupp.mem_support_iff.mp h),
   refine ⟨g ^ k, _⟩,
   rw ht,
   apply order_of_eq_prime_pow,
@@ -255,28 +261,28 @@ begin
   rw list.subperm_ext_iff,
   by_contra' h,
   obtain ⟨p, hp, hpe⟩ := h,
-  haveI hp := fact.mk (nat.prime_of_mem_factors hp),
-  simp only [←padic_val_nat_eq_factors_count p] at hpe,
-  set k := padic_val_nat p (order_of t) with hk,
-  obtain ⟨g, hg⟩ := hp.1.exists_order_of_eq_pow_padic_val_nat_exponent G,
+  replace hp := nat.prime_of_mem_factors hp,
+  simp only [nat.factors_count_eq] at hpe,
+  set k := (order_of t).factorization p with hk,
+  obtain ⟨g, hg⟩ := hp.exists_order_of_eq_pow_factorization_exponent G,
   suffices : order_of t < order_of (t ^ (p ^ k) * g),
   { rw ht at this,
     exact this.not_le (le_cSup hfin.bdd_above $ set.mem_range_self _) },
-  have hpk  : p ^ k ∣ order_of t := pow_padic_val_nat_dvd,
+  have hpk  : p ^ k ∣ order_of t := nat.pow_factorization_dvd _ _,
   have hpk' : order_of (t ^ p ^ k) = order_of t / p ^ k,
-  { rw [order_of_pow' t (pow_ne_zero k hp.1.ne_zero), nat.gcd_eq_right hpk] },
+  { rw [order_of_pow' t (pow_ne_zero k hp.ne_zero), nat.gcd_eq_right hpk] },
   obtain ⟨a, ha⟩ := nat.exists_eq_add_of_lt hpe,
   have hcoprime : (order_of (t ^ p ^ k)).coprime (order_of g),
   { rw [hg, nat.coprime_pow_right_iff (pos_of_gt hpe), nat.coprime_comm],
-    apply or.resolve_right (nat.coprime_or_dvd_of_prime hp.1 _),
+    apply or.resolve_right (nat.coprime_or_dvd_of_prime hp _),
     nth_rewrite 0 ←pow_one p,
-    convert pow_succ_padic_val_nat_not_dvd (h $ t ^ p ^ k),
-    rw [hpk', padic_val_nat.div_pow hpk, hk, nat.sub_self],
-    apply_instance },
+    convert nat.pow_succ_factorization_not_dvd (h $ t ^ p ^ k).ne' hp,
+    rw [hpk', nat.factorization_div hpk],
+    simp [hp] },
   rw [(commute.all _ g).order_of_mul_eq_mul_order_of_of_coprime hcoprime, hpk', hg, ha, ←ht, ←hk,
       pow_add, pow_add, pow_one, ←mul_assoc, ←mul_assoc, nat.div_mul_cancel, mul_assoc,
       lt_mul_iff_one_lt_right $ h t, ←pow_succ'],
-  exact one_lt_pow hp.1.one_lt a.succ_ne_zero,
+  exact one_lt_pow hp.one_lt a.succ_ne_zero,
   exact hpk
 end
 

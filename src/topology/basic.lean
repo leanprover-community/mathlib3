@@ -26,7 +26,7 @@ partially defined functions.
 
 ## Notation
 
-* `𝓝 x`: the filter of neighborhoods of a point `x`;
+* `𝓝 x`: the filter `nhds x` of neighborhoods of a point `x`;
 * `𝓟 s`: the principal filter of a set `s`;
 * `𝓝[s] x`: the filter `nhds_within x s` of neighborhoods of a point `x` within a set `s`;
 * `𝓝[≤] x`: the filter `nhds_within x (set.Iic x)` of left-neighborhoods of `x`;
@@ -257,6 +257,10 @@ lemma subset_interior_iff_subset_of_open {s t : set α} (h₁ : is_open s) :
   s ⊆ interior t ↔ s ⊆ t :=
 ⟨assume h, subset.trans h interior_subset, assume h₂, interior_maximal h₂ h₁⟩
 
+lemma subset_interior_iff {s t : set α} : t ⊆ interior s ↔ ∃ U, is_open U ∧ t ⊆ U ∧ U ⊆ s :=
+⟨λ h, ⟨interior s, is_open_interior, h, interior_subset⟩,
+  λ ⟨U, hU, htU, hUs⟩, htU.trans (interior_maximal hUs hU)⟩
+
 @[mono] lemma interior_mono {s t : set α} (h : s ⊆ t) : interior s ⊆ interior t :=
 interior_maximal (subset.trans interior_subset h) is_open_interior
 
@@ -265,6 +269,9 @@ is_open_empty.interior_eq
 
 @[simp] lemma interior_univ : interior (univ : set α) = univ :=
 is_open_univ.interior_eq
+
+@[simp] lemma interior_eq_univ {s : set α} : interior s = univ ↔ s = univ :=
+⟨λ h, univ_subset_iff.mp $ h.symm.trans_le interior_subset, λ h, h.symm ▸ interior_univ⟩
 
 @[simp] lemma interior_interior {s : set α} : interior (interior s) = interior s :=
 is_open_interior.interior_eq
@@ -311,13 +318,13 @@ by rw ← subset_interior_iff_open; simp only [subset_def, mem_interior]
 lemma interior_Inter_subset (s : ι → set α) : interior (⋂ i, s i) ⊆ ⋂ i, interior (s i) :=
 subset_Inter $ λ i, interior_mono $ Inter_subset _ _
 
-lemma interior_bInter_subset (p : ι → Sort*) (s : Π i, p i → set α) :
-  interior (⋂ i (hi : p i), s i hi) ⊆ ⋂ i (hi : p i), interior (s i hi) :=
-(interior_Inter_subset _).trans $ Inter_subset_Inter $ λ i, interior_Inter_subset _
+lemma interior_Inter₂_subset (p : ι → Sort*) (s : Π i, p i → set α) :
+  interior (⋂ i j, s i j) ⊆ ⋂ i j, interior (s i j) :=
+(interior_Inter_subset _).trans $ Inter_mono $ λ i, interior_Inter_subset _
 
 lemma interior_sInter_subset (S : set (set α)) : interior (⋂₀ S) ⊆ ⋂ s ∈ S, interior s :=
 calc interior (⋂₀ S) = interior (⋂ s ∈ S, s) : by rw sInter_eq_bInter
-                 ... ⊆ ⋂ s ∈ S, interior s  : interior_bInter_subset _ _
+                 ... ⊆ ⋂ s ∈ S, interior s  : interior_Inter₂_subset _ _
 
 /-!
 ### Closure of a set
@@ -337,6 +344,15 @@ lemma not_mem_of_not_mem_closure {s : set α} {P : α} (hP : P ∉ closure s) : 
 
 lemma closure_minimal {s t : set α} (h₁ : s ⊆ t) (h₂ : is_closed t) : closure s ⊆ t :=
 sInter_subset_of_mem ⟨h₂, h₁⟩
+
+lemma disjoint.closure_left {s t : set α} (hd : disjoint s t) (ht : is_open t) :
+  disjoint (closure s) t :=
+disjoint_compl_left.mono_left $ closure_minimal (disjoint_iff_subset_compl_right.1 hd)
+  ht.is_closed_compl
+
+lemma disjoint.closure_right {s t : set α} (hd : disjoint s t) (hs : is_open s) :
+  disjoint s (closure t) :=
+(hd.symm.closure_left hs).symm
 
 lemma is_closed.closure_eq {s : set α} (h : is_closed s) : closure s = s :=
 subset.antisymm (closure_minimal (subset.refl s) h) subset_closure
@@ -398,7 +414,7 @@ subset.antisymm
     is_closed.union is_closed_closure is_closed_closure)
   ((monotone_closure α).le_map_sup s t)
 
-@[simp] lemma finset.closure_Union {ι : Type*} (s : finset ι) (f : ι → set α) :
+@[simp] lemma finset.closure_bUnion {ι : Type*} (s : finset ι) (f : ι → set α) :
   closure (⋃ i ∈ s, f i) = ⋃ i ∈ s, closure (f i) :=
 begin
   classical,
@@ -409,7 +425,7 @@ end
 
 @[simp] lemma closure_Union_of_fintype {ι : Type*} [fintype ι] (f : ι → set α) :
   closure (⋃ i, f i) = ⋃ i, closure (f i) :=
-by { convert finset.univ.closure_Union f; simp, }
+by { convert finset.univ.closure_bUnion f; simp, }
 
 lemma interior_subset_closure {s : set α} : interior s ⊆ closure s :=
 subset.trans interior_subset subset_closure
@@ -512,6 +528,15 @@ lemma frontier_eq_closure_inter_closure {s : set α} :
 by rw [closure_compl, frontier, diff_eq]
 
 lemma frontier_subset_closure {s : set α} : frontier s ⊆ closure s := diff_subset _ _
+
+lemma is_closed.frontier_subset (hs : is_closed s) : frontier s ⊆ s :=
+frontier_subset_closure.trans hs.closure_eq.subset
+
+lemma frontier_closure_subset {s : set α} : frontier (closure s) ⊆ frontier s :=
+diff_subset_diff closure_closure.subset $ interior_mono subset_closure
+
+lemma frontier_interior_subset {s : set α} : frontier (interior s) ⊆ frontier s :=
+diff_subset_diff (closure_mono interior_subset) interior_interior.symm.subset
 
 /-- The complement of a set has the same frontier as the original set. -/
 @[simp] lemma frontier_compl (s : set α) : frontier sᶜ = frontier s :=
@@ -631,7 +656,7 @@ lemma nhds_le_of_le {f a} {s : set α} (h : a ∈ s) (o : is_open s) (sf : 𝓟 
 by rw nhds_def; exact infi_le_of_le s (infi_le_of_le ⟨h, o⟩ sf)
 
 lemma mem_nhds_iff {a : α} {s : set α} :
-  s ∈ 𝓝 a ↔ ∃t⊆s, is_open t ∧ a ∈ t :=
+  s ∈ 𝓝 a ↔ ∃ t ⊆ s, is_open t ∧ a ∈ t :=
 (nhds_basis_opens a).mem_iff.trans
   ⟨λ ⟨t, ⟨hat, ht⟩, hts⟩, ⟨t, hts, ht, hat⟩, λ ⟨t, hts, ht, hat⟩, ⟨t, ⟨hat, ht⟩, hts⟩⟩
 
@@ -656,6 +681,9 @@ mem_of_mem_nhds h
 lemma is_open.mem_nhds {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
   s ∈ 𝓝 a :=
 mem_nhds_iff.2 ⟨s, subset.refl _, hs, ha⟩
+
+lemma is_open.mem_nhds_iff {a : α} {s : set α} (hs : is_open s) : s ∈ 𝓝 a ↔ a ∈ s :=
+⟨mem_of_mem_nhds, λ ha, mem_nhds_iff.2 ⟨s, subset.refl _, hs, ha⟩⟩
 
 lemma is_closed.compl_mem_nhds {a : α} {s : set α} (hs : is_closed s) (ha : a ∉ s) : sᶜ ∈ 𝓝 a :=
 hs.is_open_compl.mem_nhds (mem_compl ha)
@@ -684,14 +712,10 @@ lemma exists_open_set_nhds {s U : set α} (h : ∀ x ∈ s, U ∈ 𝓝 x) :
 begin
   have := λ x hx, (nhds_basis_opens x).mem_iff.1 (h x hx),
   choose! Z hZ hZ' using this,
-  refine ⟨⋃ x ∈ s, Z x, _, _, bUnion_subset hZ'⟩,
-  { intros x hx,
-    simp only [mem_Union],
-    exact ⟨x, hx, (hZ x hx).1⟩ },
-  { apply is_open_Union,
-    intros x,
-    by_cases hx : x ∈ s ; simp [hx],
-    exact (hZ x hx).2 }
+  refine ⟨⋃ x ∈ s, Z x, λ x hx, mem_bUnion hx (hZ x hx).1, is_open_Union _, Union₂_subset hZ'⟩,
+  intro x,
+  by_cases hx : x ∈ s ; simp [hx],
+  exact (hZ x hx).2,
 end
 
 /-- If `U` is a neighborhood of each point of a set `s` then it is a neighborhood of s:
@@ -1187,13 +1211,13 @@ begin
   filter_upwards [this],
   simp only [mem_inter_eq, mem_Inter],
   rintros b ⟨hbt, hn⟩ i hfb,
-  exact hn i ⟨b, hfb, hbt⟩ hfb
+  exact hn i ⟨b, hfb, hbt⟩ hfb,
 end
 
 lemma locally_finite.closure_Union {f : β → set α} (h : locally_finite f) :
   closure (⋃ i, f i) = ⋃ i, closure (f i) :=
 subset.antisymm
-  (closure_minimal (Union_subset_Union $ λ _, subset_closure) $
+  (closure_minimal (Union_mono $ λ _, subset_closure) $
     h.closure.is_closed_Union $ λ _, is_closed_closure)
   (Union_subset $ λ i, closure_mono $ subset_Union _ _)
 
@@ -1221,6 +1245,9 @@ lemma continuous_def {f : α → β} : continuous f ↔ (∀s, is_open s → is_
 lemma is_open.preimage {f : α → β} (hf : continuous f) {s : set β} (h : is_open s) :
   is_open (f ⁻¹' s) :=
 hf.is_open_preimage s h
+
+lemma continuous.congr {f g : α → β} (h : continuous f) (h' : ∀ x, f x = g x) : continuous g :=
+by { convert h, ext, rw h' }
 
 /-- A function between topological spaces is continuous at a point `x₀`
 if `f x` tends to `f x₀` when `x` tends to `x₀`. -/

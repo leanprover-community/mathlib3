@@ -5,7 +5,8 @@ Authors: Scott Morrison, Justus Springer
 -/
 import algebraic_geometry.locally_ringed_space
 import algebraic_geometry.structure_sheaf
-import data.equiv.transfer_instance
+import logic.equiv.transfer_instance
+import ring_theory.localization.localization_localization
 import topology.sheaves.sheaf_condition.sites
 import topology.sheaves.functors
 
@@ -37,7 +38,7 @@ universes u v
 namespace algebraic_geometry
 open opposite
 open category_theory
-open structure_sheaf
+open structure_sheaf Spec (structure_sheaf)
 
 /--
 The spectrum of a commutative ring, as a topological space.
@@ -227,6 +228,7 @@ structure_sheaf.to_open R ⊤
 instance is_iso_to_Spec_Γ (R : CommRing) : is_iso (to_Spec_Γ R) :=
 by { cases R, apply structure_sheaf.is_iso_to_global }
 
+@[reassoc]
 lemma Spec_Γ_naturality {R S : CommRing} (f : R ⟶ S) :
   f ≫ to_Spec_Γ S = to_Spec_Γ R ≫ Γ.map (Spec.to_LocallyRingedSpace.map f.op).op :=
 by { ext, symmetry, apply localization.local_ring_hom_to_map }

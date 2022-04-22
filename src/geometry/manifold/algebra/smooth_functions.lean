@@ -42,12 +42,12 @@ lemma coe_mul {G : Type*} [has_mul G] [topological_space G] [charted_space H' G]
 @[simp, to_additive] lemma mul_comp {G : Type*} [has_mul G] [topological_space G]
   [charted_space H' G] [has_smooth_mul I' G] (f g : C^∞⟮I'', N'; I', G⟯) (h : C^∞⟮I, N; I'', N'⟯) :
 (f * g).comp h = (f.comp h) * (g.comp h) :=
-by ext; simp only [times_cont_mdiff_map.comp_apply, coe_mul, pi.mul_apply]
+by ext; simp only [cont_mdiff_map.comp_apply, coe_mul, pi.mul_apply]
 
 @[to_additive]
 instance has_one {G : Type*} [monoid G] [topological_space G] [charted_space H' G] :
   has_one C^∞⟮I, N; I', G⟯ :=
-⟨times_cont_mdiff_map.const (1 : G)⟩
+⟨cont_mdiff_map.const (1 : G)⟩
 
 @[simp, to_additive]
 lemma coe_one {G : Type*} [monoid G] [topological_space G] [charted_space H' G] :
@@ -194,12 +194,7 @@ lemma coe_smul {V : Type*} [normed_group V] [normed_space 𝕜 V]
 
 instance module {V : Type*} [normed_group V] [normed_space 𝕜 V] :
   module 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
-module.of_core $
-{ smul     := (•),
-  smul_add := λ c f g, by ext x; exact smul_add c (f x) (g x),
-  add_smul := λ c₁ c₂ f, by ext x; exact add_smul c₁ c₂ (f x),
-  mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul c₁ c₂ (f x),
-  one_smul := λ f, by ext x; exact one_smul 𝕜 (f x), }
+function.injective.module 𝕜 coe_fn_add_monoid_hom cont_mdiff_map.coe_inj coe_smul
 
 /-- Coercion to a function as a `linear_map`. -/
 @[simps]
@@ -237,6 +232,12 @@ instance algebra : algebra 𝕜 C^∞⟮I, N; 𝓘(𝕜, A), A⟯ :=
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,
   ..smooth_map.semiring }
+
+/-- A special case of `pi.algebra` for non-dependent types. Lean get stuck on the definition
+below without this. -/
+instance _root_.function.algebra (I : Type*) {R : Type*} (A : Type*) {r : comm_semiring R}
+  [semiring A] [algebra R A] : algebra R (I → A) :=
+pi.algebra _ _
 
 /-- Coercion to a function as an `alg_hom`. -/
 @[simps]

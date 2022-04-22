@@ -71,8 +71,8 @@ def pi_Lp {ι : Type*} (p : ℝ) (α : ι → Type*) : Type* := Π (i : ι), α 
 instance {ι : Type*} (p : ℝ) (α : ι → Type*) [∀ i, inhabited (α i)] : inhabited (pi_Lp p α) :=
 ⟨λ i, default⟩
 
-lemma fact_one_le_one_real : fact ((1:ℝ) ≤ 1) := ⟨rfl.le⟩
-lemma fact_one_le_two_real : fact ((1:ℝ) ≤ 2) := ⟨one_le_two⟩
+instance fact_one_le_one_real : fact ((1:ℝ) ≤ 1) := ⟨rfl.le⟩
+instance fact_one_le_two_real : fact ((1:ℝ) ≤ 2) := ⟨one_le_two⟩
 
 namespace pi_Lp
 
@@ -285,6 +285,11 @@ lemma norm_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [∀i, semi_normed_group (β i)] (f : pi_Lp p β) :
   ∥f∥ = (∑ (i : ι), ∥f i∥ ^ p) ^ (1/p) := rfl
 
+lemma nnnorm_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
+  [∀i, semi_normed_group (β i)] (f : pi_Lp p β) :
+  ∥f∥₊ = (∑ (i : ι), ∥f i∥₊ ^ p) ^ (1/p) :=
+by { ext, simp [nnreal.coe_sum, norm_eq] }
+
 lemma norm_eq_of_nat {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [∀i, semi_normed_group (β i)] (n : ℕ) (h : p = n) (f : pi_Lp p β) :
   ∥f∥ = (∑ (i : ι), ∥f i∥ ^ n) ^ (1/(n : ℝ)) :=
@@ -293,9 +298,9 @@ include fact_one_le_p
 
 variables (𝕜 : Type*) [normed_field 𝕜]
 
-/-- The product of finitely many seminormed spaces is a seminormed space, with the `L^p` norm. -/
-instance semi_normed_space [∀i, semi_normed_group (β i)] [∀i, semi_normed_space 𝕜 (β i)] :
-  semi_normed_space 𝕜 (pi_Lp p β) :=
+/-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
+instance normed_space [∀i, semi_normed_group (β i)] [∀i, normed_space 𝕜 (β i)] :
+  normed_space 𝕜 (pi_Lp p β) :=
 { norm_smul_le :=
   begin
     assume c f,
@@ -307,15 +312,10 @@ instance semi_normed_space [∀i, semi_normed_group (β i)] [∀i, semi_normed_s
   end,
   .. pi.module ι β 𝕜 }
 
-/-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
-instance normed_space [∀i, normed_group (α i)] [∀i, normed_space 𝕜 (α i)] :
-  normed_space 𝕜 (pi_Lp p α) :=
-{ ..pi_Lp.semi_normed_space p α 𝕜 }
-
 /- Register simplification lemmas for the applications of `pi_Lp` elements, as the usual lemmas
 for Pi types will not trigger. -/
 variables {𝕜 p α}
-[∀i, semi_normed_group (β i)] [∀i, semi_normed_space 𝕜 (β i)] (c : 𝕜) (x y : pi_Lp p β) (i : ι)
+[∀i, semi_normed_group (β i)] [∀i, normed_space 𝕜 (β i)] (c : 𝕜) (x y : pi_Lp p β) (i : ι)
 
 @[simp] lemma add_apply : (x + y) i = x i + y i := rfl
 @[simp] lemma sub_apply : (x - y) i = x i - y i := rfl

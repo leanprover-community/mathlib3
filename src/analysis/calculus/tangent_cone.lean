@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.convex.basic
-import analysis.specific_limits
+import analysis.normed_space.basic
+import analysis.specific_limits.basic
 
 /-!
 # Tangent cone
@@ -152,8 +153,7 @@ begin
   choose d' hd' using this,
   refine ⟨c, λn, (d n, d' n), _, hc, _⟩,
   show ∀ᶠ n in at_top, (x, y) + (d n, d' n) ∈ s ×ˢ t,
-  { filter_upwards [hd],
-    assume n hn,
+  { filter_upwards [hd] with n hn,
     simp [hn, (hd' n).1] },
   { apply tendsto.prod_mk_nhds hy _,
     refine squeeze_zero_norm (λn, (hd' n).2.le) _,
@@ -174,8 +174,7 @@ begin
   choose d' hd' using this,
   refine ⟨c, λn, (d' n, d n), _, hc, _⟩,
   show ∀ᶠ n in at_top, (x, y) + (d' n, d n) ∈ s ×ˢ t,
-  { filter_upwards [hd],
-    assume n hn,
+  { filter_upwards [hd] with n hn,
     simp [hn, (hd' n).1] },
   { apply tendsto.prod_mk_nhds _ hy,
     refine squeeze_zero_norm (λn, (hd' n).2.le) _,

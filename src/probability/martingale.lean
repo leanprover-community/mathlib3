@@ -225,6 +225,7 @@ begin
   simpa,
 end
 
+/-- The converse of this lemma is `measure_theory.submartingale_of_set_integral_le`. -/
 lemma set_integral_le {f : ι → α → ℝ} (hf : submartingale f ℱ μ)
   {i j : ι} (hij : i ≤ j) {s : set α} (hs : measurable_set[ℱ i] s) :
   ∫ x in s, f i x ∂μ ≤ ∫ x in s, f j x ∂μ :=
@@ -242,6 +243,38 @@ lemma sub_martingale [preorder E] [covariant_class E E (+) (≤)]
 hf.sub_supermartingale hg.supermartingale
 
 end submartingale
+
+section
+
+lemma submartingale_of_set_integral_le [is_finite_measure μ]
+  {f : ι → α → ℝ} (hadp : adapted ℱ f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ i j : ι, i ≤ j → ∀ s : set α, measurable_set[ℱ i] s →
+    ∫ x in s, f i x ∂μ ≤ ∫ x in s, f j x ∂μ) :
+  submartingale f ℱ μ :=
+begin
+  refine ⟨hadp, λ i j hij, _, hint⟩,
+  -- need to show `f i ≤ᵐ[μ] μ[f j|_]`. This is equivalent to `f i ≤ᵐ[μ.trim _] μ[f j|_]`
+  -- since both sides are `ℱ i`-measurable
+  suffices : f i ≤ᵐ[μ.trim (ℱ.le i)] μ[f j| ℱ.le i],
+  { change ∀ᵐ x ∂μ, _,
+    change ∀ᵐ x ∂μ.trim _, _ at this,
+    rw [ae_iff] at this ⊢,
+    rwa trim_measurable_set_eq at this,
+    exact measurable_set.compl (@measurable_set_le _ _ _ _ _ (ℱ i) _ _ _ _ _ (hadp i).measurable
+      strongly_measurable_condexp.measurable) },
+  suffices : 0 ≤ᵐ[μ.trim (ℱ.le i)] μ[f j| ℱ.le i] - f i,
+  { filter_upwards [this] with x hx,
+    rwa ← sub_nonneg },
+  refine ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure
+    ((integrable_condexp.sub (hint i)).trim _ (strongly_measurable_condexp.sub $ hadp i))
+    (λ s hs, _),
+  specialize hf i j hij s hs,
+  rwa [← set_integral_trim _ (strongly_measurable_condexp.sub $ hadp i) hs,
+    integral_sub' integrable_condexp.integrable_on (hint i).integrable_on, sub_nonneg,
+    set_integral_condexp _ (hint j) hs],
+end
+
+end
 
 namespace supermartingale
 
@@ -352,6 +385,141 @@ begin
 end
 
 end submartingale
+
+-- We now prove the converse of the optional stopping theorem
+
+section indicator_stopping_time
+
+/-- Auxilliary definition for `submartingale_of_expected_stopped_value_mono`.  -/
+noncomputable def indicator_stopping_time (i j : ℕ) (s : set α) : α → ℕ :=
+s.indicator i + sᶜ.indicator j
+
+variables {i j n : ℕ} {s : set α}
+
+lemma indicator_stopping_time_range (i j : ℕ) (s : set α) (x : α) :
+  indicator_stopping_time i j s x = i ∨
+  indicator_stopping_time i j s x = j :=
+begin
+  rw [indicator_stopping_time, pi.add_apply],
+  by_cases x ∈ s,
+  { rw [set.indicator_of_mem h, set.indicator_of_not_mem (set.not_mem_compl_iff.2 h),
+      add_zero, pi.coe_nat, nat.cast_id],
+    exact or.inl rfl },
+  { rw [set.indicator_of_not_mem h, set.indicator_of_mem (set.mem_compl h),
+      zero_add, pi.coe_nat, nat.cast_id],
+    exact or.inr rfl }
+end
+
+lemma indicator_stopping_time_of_eq :
+  {x | indicator_stopping_time i i s x = i} = set.univ :=
+begin
+  rw [set.eq_univ_iff_forall, indicator_stopping_time],
+  simp,
+end
+
+lemma indicator_stopping_time_eq (hij : i ≠ j):
+  {x | indicator_stopping_time i j s x = i} = s :=
+begin
+  ext x,
+  refine ⟨λ (hx : _ + _ = _), _, λ hx, _⟩,
+  { by_contra hxs,
+    rw [set.indicator_of_not_mem hxs, set.indicator_of_mem (set.mem_compl hxs),
+      zero_add, pi.coe_nat, nat.cast_id] at hx,
+    exact hij hx.symm },
+  simp [indicator_stopping_time, set.indicator_of_mem hx,
+    set.indicator_of_not_mem (set.not_mem_compl_iff.2 hx)],
+end
+
+lemma indicator_stopping_time_eq' (hij : i ≠ j):
+  {x | indicator_stopping_time i j s x = j} = sᶜ :=
+begin
+  ext x,
+  refine ⟨λ (hx : _ + _ = _), _, λ hx, _⟩,
+  { by_contra hxs,
+    rw [set.mem_compl_eq, set.not_not_mem] at hxs,
+    rw [set.indicator_of_mem hxs, set.indicator_of_not_mem ((set.not_mem_compl_iff.2 hxs)),
+      add_zero, pi.coe_nat, nat.cast_id] at hx,
+    exact hij hx },
+  simp [indicator_stopping_time, set.indicator_of_not_mem hx,
+    set.indicator_of_mem (set.mem_compl hx)],
+end
+
+lemma indicator_stopping_time_eq_of_ne (hni : i ≠ n) (hnj : j ≠ n) :
+  {x | indicator_stopping_time i j s x = n} = ∅ :=
+begin
+  ext x,
+  simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+  obtain (hx | hx) := indicator_stopping_time_range i j s x;
+  rwa hx,
+end
+
+lemma is_stopping_time_indicator_stopping_time
+  (hij : i ≤ j) {s : set α} (hs : measurable_set[𝒢 i] s) :
+  is_stopping_time 𝒢 (indicator_stopping_time i j s) :=
+begin
+  refine is_stopping_time_of_measurable_set_eq (λ n, _),
+  by_cases hij' : i = j,
+  { by_cases hin : i = n,
+    { rw [← hin, ← hij', indicator_stopping_time_of_eq],
+      exact measurable_set.univ },
+    convert measurable_set.empty,
+    ext x,
+    simp only [indicator_stopping_time, ← hij', hin, pi.coe_nat, nat.cast_id,
+      set.indicator_self_add_compl, set.mem_empty_eq, iff_false],
+    exact dec_trivial },
+  by_cases hin : i = n,
+  { rwa [← hin, indicator_stopping_time_eq hij'] },
+  by_cases hjn : j = n,
+  { rw [← hjn, indicator_stopping_time_eq' hij'],
+    exact 𝒢.mono hij _ hs.compl },
+  rw indicator_stopping_time_eq_of_ne hin hjn,
+  exact @measurable_set.empty _ (𝒢 n)
+end
+
+lemma stopped_value_indicator_stopping_time {f : ℕ → α → ℝ} :
+  stopped_value f (indicator_stopping_time i j s) = s.indicator (f i) + sᶜ.indicator (f j) :=
+begin
+  ext x,
+  rw [stopped_value, indicator_stopping_time],
+  by_cases hx : x ∈ s,
+  { simp [set.indicator_of_mem hx, set.indicator_of_not_mem ((set.not_mem_compl_iff.2 hx))] },
+  { simp [set.indicator_of_not_mem hx, set.indicator_of_mem (set.mem_compl hx)] }
+end
+
+end indicator_stopping_time
+
+/-- The converse direction of the optional stopping theorem, i.e. an adapted integrable process `f`
+is a submartingale if for all bounded stopping times `τ` and `π` such that `τ ≤ π`, the
+stopped value of `f` at `τ` has expectation smaller than its stopped value at `π`. -/
+lemma submartingale_of_expected_stopped_value_mono [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ)
+  (hf : ∀ τ π : α → ℕ, is_stopping_time 𝒢 τ → is_stopping_time 𝒢 π → τ ≤ π → (∃ N, ∀ x, π x ≤ N) →
+    μ[stopped_value f τ] ≤ μ[stopped_value f π]) :
+  submartingale f 𝒢 μ :=
+begin
+  refine submartingale_of_set_integral_le hadp hint (λ i j hij s hs, _),
+  specialize hf (indicator_stopping_time i j s) _
+    (is_stopping_time_indicator_stopping_time hij hs)
+    (is_stopping_time_const j) _ ⟨j, λ x, le_rfl⟩,
+  { intro x,
+    obtain (hx | hx) := indicator_stopping_time_range i j s x;
+    rwa hx },
+  rwa [stopped_value_const, stopped_value_indicator_stopping_time,
+    integral_add' ((hint i).indicator (𝒢.le _ _ hs)) ((hint j).indicator (𝒢.le _ _ hs.compl)),
+    integral_indicator (𝒢.le _ _ hs), integral_indicator (𝒢.le _ _ hs.compl),
+    ← integral_add_compl (𝒢.le _ _ hs) (hint j), add_le_add_iff_right] at hf,
+end
+
+/-- **The optional stopping theorem** (fair game theorem): an adapted integrable process `f`
+is a submartingale if and only if for all bounded stopping times `τ` and `π` such that `τ ≤ π`, the
+stopped value of `f` at `τ` has expectation smaller than its stopped value at `π`. -/
+lemma submartingale_iff_expected_stopped_value_mono [is_finite_measure μ]
+  {f : ℕ → α → ℝ} (hadp : adapted 𝒢 f) (hint : ∀ i, integrable (f i) μ) :
+  submartingale f 𝒢 μ ↔
+  ∀ τ π : α → ℕ, is_stopping_time 𝒢 τ → is_stopping_time 𝒢 π → τ ≤ π → (∃ N, ∀ x, π x ≤ N) →
+    μ[stopped_value f τ] ≤ μ[stopped_value f π] :=
+⟨λ hf _ _ hτ hπ hle ⟨N, hN⟩, hf.expected_stopped_value_mono hτ hπ hle hN,
+ submartingale_of_expected_stopped_value_mono hadp hint⟩
 
 end nat
 

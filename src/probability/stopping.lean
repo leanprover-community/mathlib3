@@ -550,6 +550,38 @@ begin
   exact f.mono (sub_le_self j hi) _ (hτ (j - i)),
 end
 
+lemma add_const_nat
+  {f : filtration ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) {i : ℕ} :
+  is_stopping_time f (λ x, τ x + i) :=
+begin
+  refine is_stopping_time_of_measurable_set_eq (λ j, _),
+  by_cases hij : i ≤ j,
+  { simp_rw [eq_comm, ← nat.sub_eq_iff_eq_add hij, eq_comm],
+    exact f.mono (j.sub_le i) _ (hτ.measurable_set_eq (j - i)) },
+  { rw not_le at hij,
+    convert measurable_set.empty,
+    ext x,
+    simp only [set.mem_empty_eq, iff_false],
+    rintro (hx : τ x + i = j),
+    linarith },
+end
+
+-- generalize to certain encodable type?
+lemma add
+  {f : filtration ℕ m} {τ π : α → ℕ} (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
+  is_stopping_time f (τ + π) :=
+begin
+  intro i,
+  rw (_ : {x | (τ + π) x ≤ i} = ⋃ k ≤ i, {x | π x = k} ∩ {x | τ x + k ≤ i}),
+  { exact measurable_set.Union (λ k, measurable_set.Union_Prop
+      (λ hk, (hπ.measurable_set_eq_le hk).inter (hτ.add_const_nat i))) },
+  ext,
+  simp only [pi.add_apply, set.mem_set_of_eq, set.mem_Union, set.mem_inter_eq, exists_prop],
+  refine ⟨λ h, ⟨π x, by linarith, rfl, h⟩, _⟩,
+  rintro ⟨j, hj, rfl, h⟩,
+  assumption
+end
+
 section preorder
 
 variables [preorder ι] {f : filtration ι m}
@@ -666,6 +698,9 @@ section linear_order
 time `τ` is the map `x ↦ u (τ x) x`. -/
 def stopped_value (u : ι → α → β) (τ : α → ι) : α → β :=
 λ x, u (τ x) x
+
+lemma stopped_value_const (u : ι → α → β) (i : ι) : stopped_value u (λ x, i) = u i :=
+rfl
 
 variable [linear_order ι]
 

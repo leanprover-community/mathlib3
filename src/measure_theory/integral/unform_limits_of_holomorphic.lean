@@ -7,7 +7,7 @@ import analysis.complex.cauchy_integral
 import analysis.analytic.basic
 import analysis.calculus.parametric_interval_integral
 import data.complex.basic
-
+import tactic
 /-!
 # Uniform limits of holomorphic functions
 
@@ -593,8 +593,8 @@ begin
   simp only,
   by_cases H : i = n,
   simp only [H],
-  apply abs_nonneg,
-  apply abs_nonneg,
+  refine abs_nonneg _,
+  refine abs_nonneg _,
   simp only [add_nonneg, abs_nonneg],
   apply abs_aux ((circle_integral_function R z (F n) w) y) (bound y),
   refine ⟨circle_integral_function R z f ↑w y,_⟩,
@@ -652,25 +652,21 @@ begin
   apply this,
 end
 
-lemma Ineq1 (a b c d e f r : ℂ) (ε : ℝ) (hε : 0 < ε) (h1 : abs (a - b) < 8⁻¹ * abs(r )* ε)
-(h2 : abs (c - d) < 8⁻¹ * abs(r) * ε ) (h3 : (abs r)⁻¹ * abs ((b - d)- (e - f)) < (2/3) * ε) :
+lemma Ineq1 (a b c d e f r : ℂ) (ε : ℝ) (hε : 0 < ε) (h1 : abs (a - b) < 8⁻¹ * abs(r ) * ε)
+(h2 : abs (c - d) < 8⁻¹ * abs(r) * ε ) (h3 : (abs r)⁻¹ * abs ((b - d) - (e - f)) < (2/3) * ε) :
 (abs r)⁻¹ * abs ((a - b) - (c - d) + (b - d) - (e - f) ) < ε :=
 begin
-  have h4 : abs (((a-b) - (c-d)) + (b-d) - (e-f) ) ≤ abs ((a-b) - (c-d)) + abs ((b-d) - (e-f)),
-  by {set x : ℂ := (a-b) - (c-d),
-  set y : ℂ :=((b-d) - (e-f)),
-  have := abs_add x y,
-  convert this,
-  simp_rw y,
-  ring_nf,},
-  have h5 : abs (a - b - (c - d)) ≤ abs (a - b)+ abs (c - d),
-  by {have := complex.abs_sub_le (a-b) 0 (c-d),
+  have h4 : abs (((a - b) - (c - d)) + (b - d) - (e - f) ) ≤ abs ((a - b) - (c - d))
+  + abs ((b - d) - (e - f)),
+  by {convert ( abs_add ((a - b) - (c - d)) ((b - d) - (e - f))), ring_nf,},
+  have h5 : abs (a - b - (c - d)) ≤ abs (a - b) + abs (c - d),
+  by {have := complex.abs_sub_le (a - b) 0 (c - d),
   simp only [zero_sub, sub_zero, neg_sub] at this,
-  have hcd :abs (c-d)= abs (d-c), by {apply complex.abs_sub_comm,},
+  have hcd : abs (c - d) = abs (d - c), by {apply complex.abs_sub_comm,},
   rw hcd,
   apply this,},
-  have h6 : (abs r)⁻¹ * abs (((a-b) - (c-d)) + (b-d) - (e-f) ) ≤
-  (abs r)⁻¹ * abs (a -b) + (abs r)⁻¹ * abs (c-d) + (abs r)⁻¹ * abs ((b-d) - (e-f)),
+  have h6 : (abs r)⁻¹ * abs (((a - b) - (c - d)) + (b - d) - (e - f)) ≤
+  (abs r)⁻¹ * abs (a - b) + (abs r)⁻¹ * abs (c - d) + (abs r)⁻¹ * abs ((b - d) - (e - f)),
   by {ring_nf, apply mul_mono_nonneg, rw inv_nonneg, apply abs_nonneg,
   apply le_trans h4, simp_rw ← add_assoc, simp only [h5, add_le_add_iff_right],},
   have hr : 0 < abs r,
@@ -678,21 +674,11 @@ begin
   simp only [abs_pos, not_not] at h,
   rw h at h1,
   simp only [zero_mul, abs_zero, mul_zero] at h1,
-  linarith [ (abs_nonneg (a-b)), h1],},
-  have h11 : (abs(r))⁻¹ * abs (a-b) < (8⁻¹*ε ),
-  by {have := (inv_mul_lt_iff' hr).mpr,
-  apply this, have e1 : 8⁻¹* (abs r) *ε = 8⁻¹* ε* (abs r),
-  by {ring_nf,},
-  rw ← e1,
-  apply h1,},
-  have h22 : (abs(r))⁻¹* abs (c-d) < (8⁻¹*ε),
-  by {have := (inv_mul_lt_iff' hr).mpr,
-  apply this,
-  have e1 : 8⁻¹* (abs r) * ε = 8⁻¹ * ε * (abs r),
-  by {ring_nf,},
-  rw ← e1,
-  apply h2,},
-  apply lt_trans (lt_of_le_of_lt h6  (add_lt_add (add_lt_add h11 h22) h3)),
+  linarith [ (abs_nonneg (a - b)), h1],},
+  have e1 : 8⁻¹ * (abs r) * ε = 8⁻¹ * ε * (abs r), by {ring_nf,},
+  rw e1 at *,
+  apply lt_trans (lt_of_le_of_lt h6  (add_lt_add (add_lt_add ((inv_mul_lt_iff' hr).mpr h1)
+    ((inv_mul_lt_iff' hr).mpr h2)) h3)),
   ring_exp,
   linarith,
 end
@@ -702,7 +688,7 @@ lemma Ineq2 (a b c d r : ℂ) (ε : ℝ) (hε : 0 < ε )
  (abs r)⁻¹ * abs ((y -x) - (c -d)) < 8⁻¹ * ε) :
  (abs r)⁻¹ * abs ((a-b )- (c-d)) < (2/3) * ε :=
 begin
-  obtain ⟨x, y , h1,h2, h3⟩:= h,
+  obtain ⟨x, y, h1, h2, h3⟩:= h,
   have hr : 0 < abs r,
   by {by_contradiction h,
   simp only [abs_pos, not_not] at h,
@@ -714,7 +700,7 @@ begin
   by  { rw abs_sub_comm,},
   rw this,
   apply h3,},
-  have h5 : abs ((a - b)- (c - d)) = abs (((a - y) - (b - x))- ((c - d) - (y - x))) ,
+  have h5 : abs ((a - b) - (c - d)) = abs (((a - y) - (b - x))- ((c - d) - (y - x))),
   by {ring_nf,},
   rw h5,
   have h6 : (abs r)⁻¹ * abs (((a - y) -(b - x))- ((c - d)-(y - x))) ≤ (abs r)⁻¹ * abs (a - y) +
@@ -729,15 +715,15 @@ begin
   have ho : abs (c - d - (y - x)) = abs Y, by {simp_rw Y, rw abs_neg,},
   rw ho,
   convert this,},
-  have h44 : abs ((a-y) - (b-x)) ≤ abs (a-y) + abs (b-x),
+  have h44 : abs ((a - y) - (b - x)) ≤ abs (a - y) + abs (b - x),
   by {have := complex.abs_sub_le (a-y) 0 (b-x),
   simp only [zero_sub, sub_zero, neg_sub] at this,
-  have hcd : abs (b-x)= abs (x-b), by {apply complex.abs_sub_comm,},
+  have hcd : abs (b - x) = abs (x-b), by {apply complex.abs_sub_comm,},
   rw hcd,
   apply this,},
   apply le_trans h4,
   simp only [← add_assoc, h44, add_le_add_iff_right],},
-  have h11 : (abs r)⁻¹ * abs ( a- y) < 8⁻¹*ε,
+  have h11 : (abs r)⁻¹ * abs (a- y) < 8⁻¹*ε,
   by {have :=  (inv_mul_lt_iff' hr).mpr,
   apply this,
   have e1 : 8⁻¹ * (abs r) * ε = 8⁻¹ * ε * (abs r), by {ring_nf,},
@@ -746,7 +732,7 @@ begin
   have h22 : (abs r)⁻¹ * abs ( b- x) < 8⁻¹*ε,
   by {have := (inv_mul_lt_iff' hr).mpr,
   apply this,
-  have e1 : 8⁻¹ * (abs r) *ε = 8⁻¹* ε* (abs r),
+  have e1 : 8⁻¹ * (abs r) *ε = 8⁻¹ * ε * (abs r),
   by {ring_nf,},
   rw ← e1,
   apply h2,},

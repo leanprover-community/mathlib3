@@ -212,8 +212,14 @@ def uniform_space.regular_of_t2 [t2_space α] : regular_space α :=
     have closure e ∈ 𝓝 a, from (𝓝 a).sets_of_superset (mem_nhds_left a hd) subset_closure,
     have 𝓝 a ⊓ 𝓟 (closure e)ᶜ = ⊥,
       from (is_compl_principal (closure e)).inf_right_eq_bot_iff.2 (le_principal_iff.2 this),
-    ⟨(closure e)ᶜ, is_closed_closure.is_open_compl, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
-    ..t2_space.t1_space }
+    ⟨(closure e)ᶜ, is_closed_closure.is_open_compl, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩ }
+
+lemma regular_of_separated {α : Type u} [uniform_space α] (h : separated_space α) :
+  regular_space α :=
+begin
+  letI : t2_space α := t2_of_separated h,
+  exact uniform_space.regular_of_t2
+end
 
 lemma is_closed_of_spaced_out [t2_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
   {s : set α} (hs : s.pairwise (λ x y, (x, y) ∉ V₀)) : is_closed s :=

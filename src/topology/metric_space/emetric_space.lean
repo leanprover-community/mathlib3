@@ -869,16 +869,16 @@ end
 
 /-- An emetric space is separated -/
 @[priority 100] -- see Note [lower instance priority]
-instance to_separated : separated_space γ :=
-separated_def.2 $ λ x y h, eq_of_forall_edist_le $
+instance to_separated : t2_space γ :=
+t2_of_separated $ separated_def.2 $ λ x y h, eq_of_forall_edist_le $
 λ ε ε0, le_of_lt (h _ (edist_mem_uniformity ε0))
 
 /-- If a  `pseudo_emetric_space` is separated, then it is an `emetric_space`. -/
 def emetric_of_t2_pseudo_emetric_space {α : Type*} [pseudo_emetric_space α]
-  (h : separated_space α) : emetric_space α :=
+  [t2_space α] : emetric_space α :=
 { eq_of_edist_eq_zero := λ x y hdist,
   begin
-    refine separated_def.1 h x y (λ s hs, _),
+    refine separated_def.1 t2_uniform_separation x y (λ s hs, _),
     obtain ⟨ε, hε, H⟩ := mem_uniformity_edist.1 hs,
     exact H (show edist x y < ε, by rwa [hdist])
   end

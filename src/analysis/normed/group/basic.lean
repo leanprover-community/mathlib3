@@ -978,18 +978,18 @@ lemma semi_normed_group.mem_closure_iff {s : set E} {x : E} :
   x ∈ closure s ↔ ∀ ε > 0, ∃ y ∈ s, ∥x - y∥ < ε :=
 by simp [metric.mem_closure_iff, dist_eq_norm]
 
-lemma norm_le_zero_iff' [separated_space E] {g : E} :
+lemma norm_le_zero_iff' [t2_space E] {g : E} :
   ∥g∥ ≤ 0 ↔ g = 0 :=
 begin
-  letI : normed_group E := { to_metric_space := of_t2_pseudo_metric_space ‹_›,
+  letI : normed_group E := { to_metric_space := of_t2_pseudo_metric_space,
     .. ‹semi_normed_group E› },
   rw [← dist_zero_right], exact dist_le_zero
 end
 
-lemma norm_eq_zero_iff' [separated_space E] {g : E} : ∥g∥ = 0 ↔ g = 0 :=
+lemma norm_eq_zero_iff' [t2_space E] {g : E} : ∥g∥ = 0 ↔ g = 0 :=
 (norm_nonneg g).le_iff_eq.symm.trans norm_le_zero_iff'
 
-lemma norm_pos_iff' [separated_space E] {g : E} : 0 < ∥g∥ ↔ g ≠ 0 :=
+lemma norm_pos_iff' [t2_space E] {g : E} : 0 < ∥g∥ ↔ g ≠ 0 :=
 by rw [← not_le, norm_le_zero_iff']
 
 lemma cauchy_seq_sum_of_eventually_eq {u v : ℕ → E} {N : ℕ} (huv : ∀ n ≥ N, u n = v n)

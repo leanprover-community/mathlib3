@@ -139,8 +139,7 @@ protected lemma eq_of_dist_eq_zero (x y : completion α) (h : dist x y = 0) : x 
 begin
   /- This follows from the separation of `completion α` and from the description of
   entourages in terms of the distance. -/
-  have : separated_space (completion α) := by apply_instance,
-  refine separated_def.1 this x y (λs hs, _),
+  refine separated_def.1 t2_uniform_separation x y (λs hs, _),
   rcases (completion.mem_uniformity_dist s).1 hs with ⟨ε, εpos, hε⟩,
   rw ← h at εpos,
   exact hε εpos

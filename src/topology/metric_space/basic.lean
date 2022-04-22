@@ -2474,16 +2474,20 @@ begin
 end
 
 @[priority 100] -- see Note [lower instance priority]
-instance metric_space.to_separated : separated_space γ :=
-separated_def.2 $ λ x y h, eq_of_forall_dist_le $
+instance metric_space.t2_space : t2_space γ :=
+t2_of_separated $ separated_def.2 $ λ x y h, eq_of_forall_dist_le $
   λ ε ε0, le_of_lt (h _ (dist_mem_uniformity ε0))
+
+@[priority 100] -- see Note [lower instance priority]
+instance metric_space.regular_space : regular_space γ :=
+uniform_space.regular_of_t2
 
 /-- If a `pseudo_metric_space` is separated, then it is a `metric_space`. -/
 def of_t2_pseudo_metric_space {α : Type*} [pseudo_metric_space α]
-  (h : separated_space α) : metric_space α :=
+  [h : t2_space α] : metric_space α :=
 { eq_of_dist_eq_zero := λ x y hdist,
   begin
-    refine separated_def.1 h x y (λ s hs, _),
+    refine separated_def.1 t2_uniform_separation x y (λ s hs, _),
     obtain ⟨ε, hε, H⟩ := mem_uniformity_dist.1 hs,
     exact H (show dist x y < ε, by rwa [hdist])
   end

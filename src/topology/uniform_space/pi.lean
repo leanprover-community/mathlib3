@@ -54,11 +54,4 @@ instance Pi.complete [∀ i, complete_space (α i)] : complete_space (Π i, α i
   rwa [nhds_pi, le_pi],
 end⟩
 
-instance Pi.separated [∀ i, separated_space (α i)] : separated_space (Π i, α i) :=
-separated_def.2 $ assume x y H,
-begin
-  ext i,
-  apply eq_of_separated_of_uniform_continuous (Pi.uniform_continuous_proj α i),
-  apply H,
-end
 end

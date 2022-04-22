@@ -426,6 +426,23 @@ hf.2.1
 theorem is_fundamental_sequence.blsub_eq : blsub.{u u} o f = a :=
 hf.2.2
 
+theorem is_fundamental_sequence_id_of_le_cof (h : o ≤ o.cof.ord) :
+  is_fundamental_sequence o o (λ a _, a) :=
+⟨h, λ _ _ _ _, id, blsub_id o⟩
+
+theorem is_fundamental_sequence_zero {f : Π b < (0 : ordinal), ordinal} :
+  is_fundamental_sequence 0 0 f :=
+⟨by rw [cof_zero, ord_zero], λ i j hi, (ordinal.not_lt_zero i hi).elim, blsub_zero rfl f⟩
+
+theorem is_fundamental_sequence_succ : is_fundamental_sequence o.succ 1 (λ _ _, o) :=
+begin
+  refine ⟨_, λ i j hi hj h, _, blsub_const ordinal.one_ne_zero o⟩,
+  { rw [cof_succ, ord_one] },
+  { rw lt_one_iff_zero at hi hj,
+    rw [hi, hj] at h,
+    exact h.false.elim }
+end
+
 include hf
 theorem is_fundamental_sequence.monotone {i j : ordinal} (hi : i < o) (hj : j < o) (hij : i ≤ j) :
   f i hi ≤ f j hj :=

@@ -158,6 +158,12 @@ by rw [← dist_zero_left, ← dist_add_left g 0 h, add_zero]
 @[simp] theorem dist_self_add_left (g h : E) : dist (g + h) g = ∥h∥ :=
 by rw [dist_comm, dist_self_add_right]
 
+@[simp] theorem dist_self_sub_right (g h : E) : dist g (g - h) = ∥h∥ :=
+by rw [sub_eq_add_neg, dist_self_add_right, norm_neg]
+
+@[simp] theorem dist_self_sub_left (g h : E) : dist (g - h) g = ∥h∥ :=
+by rw [dist_comm, dist_self_sub_right]
+
 /-- **Triangle inequality** for the norm. -/
 lemma norm_add_le (g h : E) : ∥g + h∥ ≤ ∥g∥ + ∥h∥ :=
 by simpa [dist_eq_norm] using dist_triangle g 0 (-h)

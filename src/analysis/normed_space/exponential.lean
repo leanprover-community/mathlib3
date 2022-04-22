@@ -65,7 +65,7 @@ open_locale nat topological_space big_operators ennreal
 
 section topological_algebra
 
-variables (𝕂 𝔸 𝔹 : Type*) [field 𝕂] [ring 𝔸] [algebra 𝕂 𝔸] [topological_space 𝔸]
+variables (𝕂 𝔸 : Type*) [field 𝕂] [ring 𝔸] [algebra 𝕂 𝔸] [topological_space 𝔸]
   [topological_ring 𝔸] [has_continuous_const_smul 𝕂 𝔸]
 
 /-- `exp_series 𝕂 𝔸` is the `formal_multilinear_series` whose `n`-th term is the map
@@ -77,7 +77,7 @@ def exp_series : formal_multilinear_series 𝕂 𝔸 𝔸 :=
 It is defined as the sum of the `formal_multilinear_series` `exp_series 𝕂 𝔸`. -/
 noncomputable def exp (x : 𝔸) : 𝔸 := (exp_series 𝕂 𝔸).sum x
 
-variables {𝕂 𝔸 𝔹}
+variables {𝕂 𝔸}
 
 lemma exp_series_apply_eq (x : 𝔸) (n : ℕ) : exp_series 𝕂 𝔸 n (λ _, x) = (1 / n! : 𝕂) • x^n :=
 by simp [exp_series]
@@ -125,9 +125,12 @@ end
 
 end topological_algebra
 
+section normed
+
 section any_field_any_algebra
 
-variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables {𝕂 𝔸 𝔹 : Type*} [nondiscrete_normed_field 𝕂]
+variables [normed_ring 𝔸] [normed_ring 𝔹] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝔹]
 
 lemma norm_exp_series_summable_of_mem_ball (x : 𝔸)
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
@@ -530,6 +533,8 @@ end
 end comm_algebra
 
 end is_R_or_C
+
+end normed
 
 section scalar_tower
 

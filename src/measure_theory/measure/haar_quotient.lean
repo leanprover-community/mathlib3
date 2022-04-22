@@ -44,14 +44,54 @@ begin
   refine ⟨g₁, hg₁, h.ae_eq hg₁'⟩,
 end
 
+#check lintegral_tsum
+
+
+theorem measure_theory.integral_count {α : Type*}
+{β : Type*} {m : measurable_space α}
+  {μ : measure_theory.measure α} [encodable β] {E : Type*} [normed_group E] [normed_space ℝ E]
+  [measurable_space E] [borel_space E] [complete_space E]
+  {f : α → E} (hf : integrable f μ)  :
+∫ (a : α), f a ∂measure_theory.measure.count = ∑' (a : α), f a :=
+begin
+--  rw measure_theory.measure.count,
+  let P : (α → E) → Prop := λ f, ∫ (a : α), f a ∂measure_theory.measure.count = ∑' (a : α), f a ,
+  apply integrable.induction P, -- _ _ _ hf hf,
+  intros c s t hs,
+  { sorry, },
+  {
+    intros f g hfg hf hg Pf Pg,
+    dsimp [P],
+    sorry, },
+  { sorry, },
+  { sorry, },
+  exact hf,
+end
+
+#exit
 
 lemma measure_theory.integral_tsum {α : Type*} {β : Type*} {m : measurable_space α}
   {μ : measure_theory.measure α} [encodable β] {E : Type*} [normed_group E] [normed_space ℝ E]
   [measurable_space E] [borel_space E] [complete_space E]
   {f : β → α → E}
-  (hf : ∀ (i : β), ae_measurable (f i) μ) :
+  (hf : ∀ (i : β), measurable (f i)) -- (hf : ∀ (i : β), ae_measurable (f i) μ)
+  (hf' : summable (λ (i : β), ∫⁻ (a : α), ∥f i a∥₊ ∂μ))
+  --∑' (i : β), ∫⁻ (a : α), ↑∥f i a∥₊ ∂μ < ∞ )
+  -- F : α → ℝ≥0
+  -- hF : ∀ a, has_sum (λ i, ∥f i a ∥ ) (F a)
+  -- hF' : integralbe F ∂μ
+
+  -- ∀ a : α , summable (λ i, ∥f i a ∥ )
+  -- integrable (λ a, ∑' (i:β), ∥f i a ∥) ∂μ
+
+  --(hf' : ∫ (a : α), (∑' (i : β), ∣f i a|) ∂μ) < ∞
+  :
   ∫ (a : α), (∑' (i : β), f i a) ∂μ = ∑' (i : β), ∫ (a : α), f i a ∂μ :=
 begin
+  have : ∫⁻ (a : α), (∑' (i : β), ∥f i a∥₊ ) ∂μ = ∑' (i : β), ∫⁻ (a : α), ∥f i a∥₊ ∂μ,
+  { rw lintegral_tsum,
+    exact (λ i, measurable_coe_nnreal_ennreal.comp (measurable_nnnorm.comp (hf i))), },
+
   sorry,
 end
 
@@ -331,7 +371,7 @@ begin
     convert (@tsum_smul_const _ Γ.opposite _ _ _ _ _ _ _ (λ γ, f (γ⁻¹ • x)) _ (g x) _).symm using 1,
     exact f_summable x, },
   refine eq.trans _ (integral_congr_ae (filter.eventually_of_forall this)).symm,
-  rw measure_theory.integral_tsum,
+  rw measure_theory.integral_tsum, --- WILL NEED MORE ASSUMPTIONS TO BE SATISFIED HERE
   haveI := h𝓕.smul_invariant_measure_map,
   convert h𝓕.set_integral_eq_tsum (λ x, f x * g x) univ _,
   { simp, },

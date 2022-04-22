@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau, Joachim Breitner
+Authors: Kenny Lau, David Wärn, Eric Wieser, Joachim Breitner
 -/
 import data.fintype.basic
 import group_theory.subgroup.basic

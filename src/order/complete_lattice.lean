@@ -428,7 +428,7 @@ by { convert h1.supr_comp g, exact (funext h2).symm }
 @[congr] lemma supr_congr_Prop {p q : Prop} {f₁ : p → α} {f₂ : q → α} (pq : p ↔ q)
   (f : ∀ x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
 begin
-  have := propext pq, subst this,
+  obtain rfl := propext pq,
   congr' with x,
   apply f
 end

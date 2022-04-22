@@ -302,7 +302,6 @@ lemma to_order_ring_hom_injective : injective (to_order_ring_hom : (α ≃+*o β
 λ f g h, fun_like.coe_injective $ by convert fun_like.ext'_iff.1 h
 
 end non_assoc_semiring
-
 end order_ring_iso
 
 /-!

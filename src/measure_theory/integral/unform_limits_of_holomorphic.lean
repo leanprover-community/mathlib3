@@ -7,7 +7,6 @@ import analysis.complex.cauchy_integral
 import analysis.analytic.basic
 import analysis.calculus.parametric_interval_integral
 import data.complex.basic
-import tactic
 /-!
 # Uniform limits of holomorphic functions
 
@@ -25,6 +24,7 @@ variables {E : Type u} [normed_group E] [normed_space ℂ E] [measurable_space E
   [second_countable_topology E] [complete_space E]
 
 namespace complex
+
 
 def circle_integral_function (R : ℝ) (z : ℂ) (f : ℂ → E) (w : ℂ) : (ℝ → E) := λ θ,
  (2 * π * I : ℂ)⁻¹ • deriv (circle_map z R) θ • ((circle_map z R θ) - w)⁻¹ • f  (circle_map z R θ)
@@ -709,21 +709,20 @@ begin
   refine mul_mono_nonneg (inv_nonneg.2 (abs_nonneg _)) _,
   have h4 : abs (((a - y) - (b - x)) + -((c - d) - (y - x)) ) ≤ abs ((a - y) - (b - x)) +
   abs ((c - d) - (y - x)),
-  by {set X : ℂ := (a - y) - (b - x),
-  set Y : ℂ :=-((c - d) - (y - x)),
-  have := complex.abs_add X Y,
-  have ho : abs (c - d - (y - x)) = abs Y, by {simp_rw Y, rw abs_neg,},
+  by {
+  have := complex.abs_add ((a - y) - (b - x)) (-((c - d) - (y - x))),
+  have ho : abs (c - d - (y - x)) = abs (-((c - d) - (y - x))), by { rw abs_neg,},
   rw ho,
   convert this,},
   have h44 : abs ((a - y) - (b - x)) ≤ abs (a - y) + abs (b - x),
-  by {have := complex.abs_sub_le (a-y) 0 (b-x),
+  by {have := complex.abs_sub_le (a - y) 0 (b - x),
   simp only [zero_sub, sub_zero, neg_sub] at this,
-  have hcd : abs (b - x) = abs (x-b), by {apply complex.abs_sub_comm,},
+  have hcd : abs (b - x) = abs (x - b), by {apply complex.abs_sub_comm,},
   rw hcd,
   apply this,},
   apply le_trans h4,
   simp only [← add_assoc, h44, add_le_add_iff_right],},
-  have h11 : (abs r)⁻¹ * abs (a- y) < 8⁻¹*ε,
+  have h11 : (abs r)⁻¹ * abs (a - y) < 8⁻¹*ε,
   by {have :=  (inv_mul_lt_iff' hr).mpr,
   apply this,
   have e1 : 8⁻¹ * (abs r) * ε = 8⁻¹ * ε * (abs r), by {ring_nf,},

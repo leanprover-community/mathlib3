@@ -296,13 +296,13 @@ lemma convex_on_norm {s : set E} (hs : convex ℝ s) : convex_on ℝ s norm :=
 and `convex_on_norm`. -/
 lemma convex_on_univ_norm : convex_on ℝ univ (norm : E → ℝ) := convex_on_norm convex_univ
 
-lemma convex_on_dist (z : E) (s : set E) (hs : convex ℝ s) : convex_on ℝ s (λz', dist z' z) :=
+lemma convex_on_dist (z : E) {s : set E} (hs : convex ℝ s) : convex_on ℝ s (λz', dist z' z) :=
 by simpa [dist_eq_norm, preimage_preimage]
   using (convex_on_norm (hs.translate (-z))).comp_affine_map
     (affine_map.id ℝ E - affine_map.const ℝ E z)
 
 lemma convex_on_univ_dist (z : E) : convex_on ℝ univ (λz', dist z' z) :=
-convex_on_dist z univ convex_univ
+convex_on_dist z convex_univ
 
 lemma convex_ball (a : E) (r : ℝ) : convex ℝ (metric.ball a r) :=
 by simpa only [metric.ball, sep_univ] using (convex_on_univ_dist a).convex_lt r

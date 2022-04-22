@@ -402,6 +402,20 @@ begin
     exists_prop],
 end
 
+/-- If one controls the norm of every `A x`, then one controls the norm of `A`. -/
+lemma op_nnnorm_le_bound (f : E →SL[σ₁₂] F) (M : ℝ≥0) (hM : ∀ x, ∥f x∥₊ ≤ M * ∥x∥₊) :
+  ∥f∥₊ ≤ M :=
+op_norm_le_bound f (zero_le M) hM
+
+theorem op_nnnorm_le_of_lipschitz {f : E →SL[σ₁₂] F} {K : ℝ≥0} (hf : lipschitz_with K f) :
+  ∥f∥₊ ≤ K :=
+op_norm_le_of_lipschitz hf
+
+lemma op_nnnorm_eq_of_bounds {φ : E →SL[σ₁₂] F} (M : ℝ≥0)
+  (h_above : ∀ x, ∥φ x∥ ≤ M*∥x∥) (h_below : ∀ N, (∀ x, ∥φ x∥₊ ≤ N*∥x∥₊) → M ≤ N) :
+  ∥φ∥₊ = M :=
+subtype.ext $ op_norm_eq_of_bounds (zero_le M) h_above $ subtype.forall'.mpr h_below
+
 instance to_normed_space {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F]
   [smul_comm_class 𝕜₂ 𝕜' F] : normed_space 𝕜' (E →SL[σ₁₂] F) :=
 ⟨op_norm_smul_le⟩

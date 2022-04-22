@@ -37,6 +37,8 @@ open_locale complex_conjugate
 
 instance : has_norm ℂ := ⟨abs⟩
 
+@[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
+
 instance : normed_group ℂ :=
 normed_group.of_core ℂ
 { norm_eq_zero_iff := λ z, abs_eq_zero,
@@ -50,10 +52,14 @@ instance : normed_field ℂ :=
   .. complex.field }
 
 instance : nondiscrete_normed_field ℂ :=
-{ non_trivial := ⟨2, by simp [norm]; norm_num⟩ }
+{ non_trivial := ⟨2, by simp; norm_num⟩ }
 
 instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R ℂ :=
-{ norm_algebra_map_eq := λ x, (abs_of_real $ algebra_map R ℝ x).trans (norm_algebra_map_eq ℝ x),
+{ norm_smul_le := λ r x, begin
+    rw [norm_eq_abs, norm_eq_abs, ←algebra_map_smul ℝ r x, algebra.smul_def, abs_mul,
+      ←norm_algebra_map' ℝ r, coe_algebra_map, abs_of_real],
+    refl,
+  end,
   to_algebra := complex.algebra }
 
 /-- The module structure from `module.complex_to_real` is a normed space. -/
@@ -61,8 +67,6 @@ instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R 
 instance _root_.normed_space.complex_to_real {E : Type*} [normed_group E] [normed_space ℂ E] :
   normed_space ℝ E :=
 normed_space.restrict_scalars ℝ ℂ E
-
-@[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
 
 lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
 
@@ -137,6 +141,8 @@ le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _) $
 calc 1 = ∥re_clm 1∥ : by simp
    ... ≤ ∥re_clm∥ : unit_le_op_norm _ _ (by simp)
 
+@[simp] lemma re_clm_nnnorm : ∥re_clm∥₊ = 1 := subtype.ext re_clm_norm
+
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
 def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simp [real.norm_eq_abs, abs_im_le_abs])
 
@@ -150,6 +156,8 @@ def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simp [real.nor
 le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _) $
 calc 1 = ∥im_clm I∥ : by simp
    ... ≤ ∥im_clm∥ : unit_le_op_norm _ _ (by simp)
+
+@[simp] lemma im_clm_nnnorm : ∥im_clm∥₊ = 1 := subtype.ext im_clm_norm
 
 lemma restrict_scalars_one_smul_right' {E : Type*} [normed_group E] [normed_space ℂ E] (x : E) :
   continuous_linear_map.restrict_scalars ℝ ((1 : ℂ →L[ℂ] ℂ).smul_right x : ℂ →L[ℂ] E) =
@@ -172,8 +180,14 @@ lemma isometry_conj : isometry (conj : ℂ → ℂ) := conj_lie.isometry
 @[simp] lemma dist_conj_conj (z w : ℂ) : dist (conj z) (conj w) = dist z w :=
 isometry_conj.dist_eq z w
 
+@[simp] lemma nndist_conj_conj (z w : ℂ) : nndist (conj z) (conj w) = nndist z w :=
+isometry_conj.nndist_eq z w
+
 lemma dist_conj_comm (z w : ℂ) : dist (conj z) w = dist z (conj w) :=
 by rw [← dist_conj_conj, conj_conj]
+
+lemma nndist_conj_comm (z w : ℂ) : nndist (conj z) w = nndist z (conj w) :=
+subtype.ext $ dist_conj_comm _ _
 
 /-- The determinant of `conj_lie`, as a linear map. -/
 @[simp] lemma det_conj_lie : (conj_lie.to_linear_equiv : ℂ →ₗ[ℝ] ℂ).det = -1 :=
@@ -195,6 +209,8 @@ def conj_cle : ℂ ≃L[ℝ] ℂ := conj_lie
 @[simp] lemma conj_cle_norm : ∥(conj_cle : ℂ →L[ℝ] ℂ)∥ = 1 :=
 conj_lie.to_linear_isometry.norm_to_continuous_linear_map
 
+@[simp] lemma conj_cle_nnorm : ∥(conj_cle : ℂ →L[ℝ] ℂ)∥₊ = 1 := subtype.ext conj_cle_norm
+
 /-- Linear isometry version of the canonical embedding of `ℝ` in `ℂ`. -/
 def of_real_li : ℝ →ₗᵢ[ℝ] ℂ := ⟨of_real_am.to_linear_map, norm_real⟩
 
@@ -210,6 +226,8 @@ def of_real_clm : ℝ →L[ℝ] ℂ := of_real_li.to_continuous_linear_map
 @[simp] lemma of_real_clm_apply (x : ℝ) : of_real_clm x = x := rfl
 
 @[simp] lemma of_real_clm_norm : ∥of_real_clm∥ = 1 := of_real_li.norm_to_continuous_linear_map
+
+@[simp] lemma of_real_clm_nnnorm : ∥of_real_clm∥₊ = 1 := subtype.ext $ of_real_clm_norm
 
 noncomputable instance : is_R_or_C ℂ :=
 { re := ⟨complex.re, complex.zero_re, complex.add_re⟩,

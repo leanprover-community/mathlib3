@@ -1101,26 +1101,32 @@ by rw [to_pgame, pgame.left_moves]
 @[simp] theorem to_pgame_right_moves (o : ordinal) : o.to_pgame.right_moves = pempty :=
 by rw [to_pgame, pgame.right_moves]
 
-instance is_empty_zero_to_pgame_left_moves : is_empty (0 : ordinal).to_pgame.left_moves :=
+instance : is_empty (0 : ordinal).to_pgame.left_moves :=
 by { rw to_pgame_left_moves, apply_instance }
 
-instance is_empty_zero_to_pgame_right_moves (o : ordinal) : is_empty o.to_pgame.right_moves :=
+instance (o : ordinal) : is_empty o.to_pgame.right_moves :=
 by { rw to_pgame_right_moves, apply_instance }
 
-/-- Converts an ordinal less than `o` for a move for the `pgame` corresponding to `o`. -/
-noncomputable def to_left_moves {o a : ordinal} (h : a < o) : o.to_pgame.left_moves :=
-cast (to_pgame_left_moves o).symm (enum (<) a (by rwa type_lt))
+/-- Converts a member of `o.out.α` into a move for the `pgame` corresponding to `o`, and viceversa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_left_moves_to_pgame {o : ordinal} : o.out.α ≃ o.to_pgame.left_moves :=
+equiv.cast (to_pgame_left_moves o).symm
 
 theorem to_pgame_move_left_heq {o : ordinal} :
   o.to_pgame.move_left == λ x : o.out.α, (typein (<) x).to_pgame :=
 by { rw to_pgame, refl }
 
-@[simp] theorem to_pgame_move_left_eq {o : ordinal} (i : o.to_pgame.left_moves) :
-  o.to_pgame.move_left i = (typein (<) (cast o.to_pgame_left_moves i)).to_pgame :=
-(congr_fun_heq _ to_pgame_move_left_heq i).symm
+@[simp] theorem to_pgame_move_left {o : ordinal} (i : o.out.α) :
+  o.to_pgame.move_left (to_left_moves_to_pgame i) = (typein (<) i).to_pgame :=
+begin
+  --apply congr_fun_heq to_pgame_move_left_heq.symm,
+  sorry
+end
 
 @[simp] theorem to_pgame_move_left_to_left_moves {o a : ordinal.{u}} (h : a < o) :
-  o.to_pgame.move_left (to_left_moves h) = a.to_pgame :=
+  o.to_pgame.move_left (to_left_moves_to_pgame h) = a.to_pgame :=
 by simp [to_left_moves]
 
 theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=

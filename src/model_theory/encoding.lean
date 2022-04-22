@@ -157,7 +157,8 @@ def sigma_imp :
 @[simp] def list_decode :
   Π (l : list ((Σ k, L.term (α ⊕ fin k)) ⊕ (Σ n, L.relations n) ⊕ ℕ)),
     (Σ n, L.bounded_formula α n) ×
-    { l' : list ((Σ k, L.term (α ⊕ fin k)) ⊕ (Σ n, L.relations n) ⊕ ℕ) // l'.sizeof ≤ max 1 l.sizeof }
+    { l' : list ((Σ k, L.term (α ⊕ fin k)) ⊕ (Σ n, L.relations n) ⊕ ℕ)
+    // l'.sizeof ≤ max 1 l.sizeof }
 | ((sum.inr (sum.inr (n + 3))) :: l) := ⟨⟨n, falsum⟩, l, le_max_of_le_right le_add_self⟩
 | ((sum.inr (sum.inr 0)) :: (sum.inl ⟨n₁, t₁⟩) :: sum.inl ⟨n₂, t₂⟩ :: l) :=
     ⟨if h : n₁ = n₂ then ⟨n₁, equal t₁ (eq.mp (by rw h) t₂)⟩ else default, l, begin

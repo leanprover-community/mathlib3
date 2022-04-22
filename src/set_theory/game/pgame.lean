@@ -3,9 +3,8 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
-import data.fin.basic
-import data.nat.cast
-import logic.embedding
+
+import set_theory.ordinal.arithmetic
 
 /-!
 # Combinatorial (pre-)games.
@@ -192,6 +191,9 @@ instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩�
 
 @[simp] lemma zero_left_moves : (0 : pgame).left_moves = pempty := rfl
 @[simp] lemma zero_right_moves : (0 : pgame).right_moves = pempty := rfl
+
+instance : is_empty (0 : pgame).left_moves := pempty.is_empty
+instance : is_empty (0 : pgame).right_moves := pempty.is_empty
 
 instance : inhabited pgame := ⟨0⟩
 
@@ -1063,6 +1065,27 @@ begin
   use punit.star,
   split; rintro ⟨ ⟩,
   exact zero_lt_one,
+end
+
+/-- The birthday of a pre-game is inductively defined as the least strict upper bound of the
+birthdays of its left and right games. -/
+noncomputable def birthday : pgame.{u} → ordinal.{u}
+| ⟨xl, xr, xL, xR⟩ :=
+max (ordinal.lsub.{u u} $ λ i, birthday (xL i)) (ordinal.lsub.{u u} $ λ i, birthday (xR i))
+
+@[simp] theorem birthday_mk (xl xr xL xR) : birthday (mk xl xr xL xR) = max
+  (ordinal.lsub.{u u} (λ i, birthday (xL i)))
+  (ordinal.lsub.{u u} (λ i, birthday (xR i))) :=
+by rw birthday
+
+theorem birthday_def (x : pgame) : birthday x = max
+  (ordinal.lsub.{u u} (λ i, birthday (x.move_left i)))
+  (ordinal.lsub.{u u} (λ i, birthday (x.move_right i))) :=
+by { cases x, apply birthday_mk }
+
+@[simp] theorem birthday_zero : birthday 0 = 0 :=
+begin
+  rw birthday_def,rw ordinal.lsub_empty,
 end
 
 end pgame

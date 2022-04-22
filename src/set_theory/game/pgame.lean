@@ -970,8 +970,9 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-theorem zero_le_add_left_neg {x : pgame} : 0 ≤ (-x) + x :=
+theorem zero_le_add_left_neg : Π {x : pgame}, 0 ≤ (-x) + x :=
 begin
+  intro x,
   rw [le_iff_neg_ge, pgame.neg_zero],
   exact le_trans neg_add_le add_left_neg_le_zero
 end
@@ -1011,7 +1012,7 @@ theorem le_iff_sub_nonneg {x y : pgame} : x ≤ y ↔ 0 ≤ y - x :=
   calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
      ... ≤ y - x + x : add_le_add_right h _
      ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
-     ... ≤ y + 0 : add_le_add_left add_left_neg_le_zero _
+     ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero) _
      ... ≤ y : (add_zero_relabelling y).le⟩
 theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
 ⟨λ h, lt_of_le_of_lt zero_le_add_right_neg (add_lt_add_right h _),
@@ -1019,7 +1020,7 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
   calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
      ... < y - x + x : add_lt_add_right h _
      ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
-     ... ≤ y + 0 : add_le_add_left add_left_neg_le_zero _
+     ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero) _
      ... ≤ y : (add_zero_relabelling y).le⟩
 
 /-- The pre-game `star`, which is fuzzy/confused with zero. -/

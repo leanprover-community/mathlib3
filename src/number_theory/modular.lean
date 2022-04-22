@@ -69,7 +69,6 @@ noncomputable theory
 local notation `SL(` n `, ` R `)`:= special_linear_group (fin n) R
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) ℤ) _
 
-
 open_locale upper_half_plane complex_conjugate
 
 local attribute [instance] fintype.card_fin_even
@@ -86,14 +85,13 @@ the `SL(2, ℝ)`-action defined by `upper_half_plane.mul_action`. -/
 lemma im_smul_eq_div_norm_sq :
   (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
 begin
-simp only [im_smul_eq_div_norm_sq, sl_moeb, coe_coe, denom,
-  general_linear_group.coe_det_apply,coe_GL_pos_coe_GL_coe_matrix,
-  int.coe_cast_ring_hom],
-rw (g : SL(2,ℝ)).prop,
-simp,
+  simp only [im_smul_eq_div_norm_sq, sl_moeb, coe_coe, denom,
+    general_linear_group.coe_det_apply,coe_GL_pos_coe_GL_coe_matrix, int.coe_cast_ring_hom],
+  rw (g : SL(2,ℝ)).prop,
+  simp,
 end
 
-@[simp] lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 :=
+lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 :=
   by {simp,}
 
 end upper_half_plane_action
@@ -373,7 +371,7 @@ begin
     ext i j, fin_cases i; fin_cases j;
     simp [ha, hc, hd, coe_T_zpow], },
   { use -↑ₘg 0 1,
-    suffices : g = -T^(-↑ₘg 0 1), { intros z, conv_lhs { rw [this, neg_smul], }, },
+    suffices : g = -T^(-↑ₘg 0 1), { intros z, conv_lhs { rw [this, SL_neg_smul], }, },
     ext i j, fin_cases i; fin_cases j;
     simp [ha, hc, hd, coe_T_zpow], },
 end
@@ -539,7 +537,7 @@ begin
   have hn : ↑ₘg 1 0 ≠ -1,
   { intros hc,
     replace hc : ↑ₘ(-g) 1 0 = 1, { simp [eq_neg_of_eq_neg hc], },
-    replace hg : (-g) • z ∈ 𝒟ᵒ := (neg_smul g z).symm ▸ hg,
+    replace hg : (-g) • z ∈ 𝒟ᵒ := (SL_neg_smul g z).symm ▸ hg,
     exact hp hg hc, },
   specialize hp hg,
   rcases (int.abs_le_one_iff.mp $ abs_c_le_one hz hg);
@@ -552,7 +550,7 @@ lemma eq_smul_self_of_mem_fdo_mem_fdo (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ �
 begin
   obtain ⟨n, hn⟩ := exists_eq_T_zpow_of_c_eq_zero (c_eq_zero hz hg),
   rw hn at hg ⊢,
-  simp [eq_zero_of_mem_fdo_of_T_zpow_mem_fdo hz hg],
+  simp [eq_zero_of_mem_fdo_of_T_zpow_mem_fdo hz hg, one_smul],
 end
 
 end unique_representative

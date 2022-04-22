@@ -709,9 +709,9 @@ instance : has_add pgame.{u} := ⟨λ x y, begin
   have y := mk yl yr yL yR,
   refine ⟨xl ⊕ yl, xr ⊕ yr, sum.rec _ _, sum.rec _ _⟩,
   { exact λ i, IHxl i y },
-  { exact λ i, IHyl i },
+  { exact IHyl },
   { exact λ i, IHxr i y },
-  { exact λ i, IHyr i }
+  { exact IHyr }
 end⟩
 
 /-- `x + 0` has exactly the same moves as `x`. -/

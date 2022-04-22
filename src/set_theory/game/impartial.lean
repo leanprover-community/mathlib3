@@ -64,25 +64,20 @@ instance move_right_impartial {G : pgame} [h : G.impartial] (j : G.right_moves) 
   (G.move_right j).impartial :=
 (impartial_def.1 h).2.2 j
 
-instance move_left_impartial' {xl xr xL xR} [h : (pgame.mk xl xr xL xR).impartial] (i : xl) :
-  (xL i).impartial :=
-(impartial_def.1 h).2.1 i
-
-instance move_right_impartial' {xl xr xL xR} [h : (pgame.mk xl xr xL xR).impartial] (j : xr) :
-  (xR j).impartial :=
-(impartial_def.1 h).2.2 j
-
 instance impartial_add : ∀ (G H : pgame) [G.impartial] [H.impartial], (G + H).impartial
-| ⟨gl, gr, gL, gR⟩ ⟨hl, hr, hL, hR⟩ :=
+| G H :=
 begin
   introsI hG hH,
   rw impartial_def,
   refine ⟨equiv_trans (add_congr (neg_equiv_self _) (neg_equiv_self _))
-    (neg_add_relabelling _ _).equiv.symm, _, _⟩,
-  all_goals
-  { rintro (i | i),
+    (neg_add_relabelling _ _).equiv.symm, λ i, _, λ i, _⟩,
+  { rcases left_moves_add_cases i with ⟨j, rfl⟩ | ⟨j, rfl⟩,
     all_goals
-    { dsimp,
+    { simp only [add_move_left_left, add_move_left_right],
+      apply impartial_add } },
+  { rcases right_moves_add_cases i with ⟨j, rfl⟩ | ⟨j, rfl⟩,
+    all_goals
+    { simp only [add_move_right_left, add_move_right_right],
       apply impartial_add } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }

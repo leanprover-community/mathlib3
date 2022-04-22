@@ -772,6 +772,22 @@ def right_to_right_moves_add (x : pgame) {y : pgame} (i : y.right_moves) :
   (x + y).right_moves :=
 cast (right_moves_add x y).symm (sum.inr i)
 
+theorem left_moves_add_cases {x y : pgame} (i : (x + y).left_moves) :
+  (∃ j, i = left_to_left_moves_add y j) ∨ (∃ j, i = right_to_left_moves_add x j) :=
+begin
+  cases x, cases y, cases i,
+  { exact or.inl ⟨i, rfl⟩ },
+  { exact or.inr ⟨i, rfl⟩ }
+end
+
+theorem right_moves_add_cases {x y : pgame} (i : (x + y).right_moves) :
+  (∃ j, i = left_to_right_moves_add y j) ∨ (∃ j, i = right_to_right_moves_add x j) :=
+begin
+  cases x, cases y, cases i,
+  { exact or.inl ⟨i, rfl⟩ },
+  { exact or.inr ⟨i, rfl⟩ }
+end
+
 @[simp] lemma mk_add_move_left_inl {xl xr yl yr} {xL xR yL yR} {i} :
   (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inl i) =
     (mk xl xr xL xR).move_left i + (mk yl yr yL yR) :=

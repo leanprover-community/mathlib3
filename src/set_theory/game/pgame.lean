@@ -87,6 +87,7 @@ equivalence relations at the level of pregames, we introduce the notion of a `re
 game, and show, for example, that there is a relabelling between `x + (y + z)` and `(x + y) + z`.
 
 ## Future work
+
 * The theory of dominated and reversible positions, and unique normal form for short games.
 * Analysis of basic domineering positions.
 * Hex.
@@ -132,6 +133,7 @@ pgame.mk (fin L.length) (fin R.length) (λ i, L.nth_le i i.is_lt) (λ j, R.nth_l
 /-- The indexing type for allowable moves by Left. -/
 @[nolint has_inhabited_instance] def left_moves : pgame → Type u
 | (mk l _ _ _) := l
+
 /-- The indexing type for allowable moves by Right. -/
 @[nolint has_inhabited_instance] def right_moves : pgame → Type u
 | (mk _ r _ _) := r
@@ -139,6 +141,7 @@ pgame.mk (fin L.length) (fin R.length) (λ i, L.nth_le i i.is_lt) (λ j, R.nth_l
 /-- The new game after Left makes an allowed move. -/
 def move_left : Π (g : pgame), left_moves g → pgame
 | (mk l _ L _) i := L i
+
 /-- The new game after Right makes an allowed move. -/
 def move_right : Π (g : pgame), right_moves g → pgame
 | (mk _ r _ R) j := R j
@@ -174,6 +177,7 @@ instance : has_well_founded pgame :=
 lemma subsequent.left_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {i : xl} :
   subsequent (xL i) (mk xl xr xL xR) :=
 subsequent.left (mk xl xr xL xR) i
+
 /-- A move by Right produces a subsequent game. (For use in pgame_wf_tac.) -/
 lemma subsequent.right_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {j : xr} :
   subsequent (xR j) (mk xl xr xL xR) :=
@@ -565,6 +569,7 @@ pgame.mk xl' xr' (λ i, x.move_left (el.symm i)) (λ j, x.move_right (er.symm j)
   (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (i : xl') :
   move_left (relabel el er) i = x.move_left (el.symm i) :=
 rfl
+
 @[simp] lemma relabel_move_left {x : pgame} {xl' xr'}
   (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (i : x.left_moves) :
   move_left (relabel el er) (el i) = x.move_left i :=
@@ -574,6 +579,7 @@ by simp
   (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (j : xr') :
   move_right (relabel el er) j = x.move_right (er.symm j) :=
 rfl
+
 @[simp] lemma relabel_move_right {x : pgame} {xl' xr'}
   (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (j : x.right_moves) :
   move_right (relabel el er) (er j) = x.move_right j :=
@@ -622,15 +628,18 @@ begin
   induction x,
   exact (neg_neg _).symm
 end
+
 @[simp] lemma move_left_left_moves_neg_symm {x : pgame} (i : right_moves x) :
   move_left (-x) ((left_moves_neg x).symm i) = -(move_right x i) :=
 by { cases x, refl }
+
 @[simp] lemma move_left_right_moves_neg {x : pgame} (i : right_moves (-x)) :
   move_left x ((right_moves_neg x) i) = -(move_right (-x) i) :=
 begin
   induction x,
   exact (neg_neg _).symm
 end
+
 @[simp] lemma move_right_right_moves_neg_symm {x : pgame} (i : left_moves x) :
   move_right (-x) ((right_moves_neg x).symm i) = -(move_left x i) :=
 by { cases x, refl }
@@ -758,6 +767,7 @@ by { cases x, cases y, refl, }
   (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inl i) =
     (mk xl xr xL xR).move_left i + (mk yl yr yL yR) :=
 rfl
+
 @[simp] lemma add_move_left_inl {x y : pgame} {i} :
   (x + y).move_left ((@left_moves_add x y).symm (sum.inl i)) = x.move_left i + y :=
 by { cases x, cases y, refl, }
@@ -766,6 +776,7 @@ by { cases x, cases y, refl, }
   (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inl i) =
     (mk xl xr xL xR).move_right i + (mk yl yr yL yR) :=
 rfl
+
 @[simp] lemma add_move_right_inl {x y : pgame} {i} :
   (x + y).move_right ((@right_moves_add x y).symm (sum.inl i)) = x.move_right i + y :=
 by { cases x, cases y, refl, }
@@ -774,6 +785,7 @@ by { cases x, cases y, refl, }
   (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inr i) =
     (mk xl xr xL xR) + (mk yl yr yL yR).move_left i :=
 rfl
+
 @[simp] lemma add_move_left_inr {x y : pgame} {i : y.left_moves} :
   (x + y).move_left ((@left_moves_add x y).symm (sum.inr i)) = x + y.move_left i :=
 by { cases x, cases y, refl, }
@@ -782,6 +794,7 @@ by { cases x, cases y, refl, }
   (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inr i) =
     (mk xl xr xL xR) + (mk yl yr yL yR).move_right i :=
 rfl
+
 @[simp] lemma add_move_right_inr {x y : pgame} {i} :
   (x + y).move_right ((@right_moves_add x y).symm (sum.inr i)) = x + y.move_right i :=
 by { cases x, cases y, refl, }
@@ -1011,6 +1024,7 @@ theorem le_iff_sub_nonneg {x y : pgame} : x ≤ y ↔ 0 ≤ y - x :=
      ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
      ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero) _
      ... ≤ y : (add_zero_relabelling y).le⟩
+
 theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
 ⟨λ h, lt_of_le_of_lt zero_le_add_right_neg (add_lt_add_right h _),
  λ h,

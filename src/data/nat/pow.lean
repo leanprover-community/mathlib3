@@ -115,6 +115,12 @@ alias nat.sq_sub_sq ← nat.pow_two_sub_pow_two
 
 /-! ### `pow` and `mod` / `dvd` -/
 
+theorem pow_mod (a b n : ℕ) : a ^ b % n = (a % n) ^ b % n :=
+begin
+  induction b with b ih,
+  refl, simp [pow_succ, nat.mul_mod, ih],
+end
+
 theorem mod_pow_succ {b : ℕ} (w m : ℕ) :
   m % (b^succ w) = b * (m/b % b^w) + m % b :=
 begin

@@ -524,20 +524,15 @@ begin
   all_goals
   { set c := (⨆ (k : ℕ) (hk : k ≤ m + 1), f k a) with hc,
     set d := (f m.succ a ⊔ ⨆ (k : ℕ) (hk : k ≤ m), f k a) with hd,
-    suffices : c ≤ d ∧ d ≤ c,
-    { change c = d, -- removing this line breaks
-      exact le_antisymm this.1 this.2 },
-    rw [hc, hd],
+    rw [@le_antisymm_iff ℝ≥0∞, hc, hd], -- Specifying the type is weirdly necessary
     refine ⟨_, _⟩,
-    { refine bsupr_le (λ n hn, _),
+    { refine supr₂_le (λ n hn, _),
       rcases nat.of_le_succ hn with (h | h),
-      { exact le_sup_of_le_right (le_bsupr n h) },
+      { exact le_sup_of_le_right (le_supr₂ n h) },
       { exact h ▸ le_sup_left } },
-    { refine sup_le _ _,
-      { convert @le_bsupr _ _ _ (λ i, i ≤ m + 1) _ m.succ le_rfl, refl },
-      { refine bsupr_le (λ n hn, _),
-        have := (le_trans hn (nat.le_succ m)), -- replacing `this` below with the proof breaks
-        exact (le_bsupr n this) } } },
+    { refine sup_le _ (bsupr_mono $ λ n hn, hn.trans m.le_succ),
+      convert @le_supr₂ _ _ (λ i, i ≤ m + 1) _ _ m.succ le_rfl,
+      refl } }
 end
 
 lemma supr_mem_measurable_le
@@ -568,13 +563,7 @@ omit m
 
 lemma supr_monotone {α : Type*} (f : ℕ → α → ℝ≥0∞) :
   monotone (λ n x, ⨆ k (hk : k ≤ n), f k x) :=
-begin
-  intros n m hnm x,
-  simp only,
-  refine bsupr_le (λ k hk, _),
-  have : k ≤ m := le_trans hk hnm, -- replacing `this` below with the proof breaks
-  exact le_bsupr k this,
-end
+λ n m hnm x, bsupr_mono $ λ i, ge_trans hnm
 
 lemma supr_monotone' {α : Type*} (f : ℕ → α → ℝ≥0∞) (x : α) :
   monotone (λ n, ⨆ k (hk : k ≤ n), f k x) :=
@@ -582,7 +571,7 @@ lemma supr_monotone' {α : Type*} (f : ℕ → α → ℝ≥0∞) (x : α) :
 
 lemma supr_le_le {α : Type*} (f : ℕ → α → ℝ≥0∞) (n k : ℕ) (hk : k ≤ n) :
   f k ≤ λ x, ⨆ k (hk : k ≤ n), f k x :=
-λ x, le_bsupr k hk
+λ x, le_supr₂ k hk
 
 end supr_lemmas
 
@@ -966,7 +955,8 @@ lemma integrable_rn_deriv (s : signed_measure α) (μ : measure α) :
   integrable (rn_deriv s μ) μ :=
 begin
   refine integrable.sub _ _;
-  { split, measurability,
+  { split,
+    { apply measurable.ae_strongly_measurable, measurability },
     exact has_finite_integral_to_real_of_lintegral_ne_top
       (lintegral_rn_deriv_lt_top _ μ).ne }
 end

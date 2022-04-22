@@ -71,6 +71,11 @@ begin
   exact lt_mul_of_one_lt_right' _ (one_lt_pow' ha k.succ_ne_zero)
 end
 
+@[to_additive nsmul_strict_mono_right]
+lemma pow_strict_mono_left [covariant_class M M (*) (<)] {a : M} (ha : 1 < a) :
+  strict_mono ((^) a : ℕ → M) :=
+λ m n, pow_lt_pow' ha
+
 end preorder
 
 section linear_order
@@ -97,11 +102,19 @@ lt_iff_lt_of_le_iff_le (one_le_pow_iff hn)
 lemma pow_eq_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n = 1 ↔ x = 1 :=
 by simp only [le_antisymm_iff, pow_le_one_iff hn, one_le_pow_iff hn]
 
+variables [covariant_class M M (*) (<)] {a : M} {m n : ℕ}
+
+@[to_additive nsmul_le_nsmul_iff]
+lemma pow_le_pow_iff' (ha : 1 < a) : a ^ m ≤ a ^ n ↔ m ≤ n := (pow_strict_mono_left ha).le_iff_le
+
+@[to_additive nsmul_lt_nsmul_iff]
+lemma pow_lt_pow_iff' (ha : 1 < a) : a ^ m < a ^ n ↔ m < n := (pow_strict_mono_left ha).lt_iff_lt
+
 end linear_order
 
-section group
+section div_inv_monoid
 
-variables [group G] [preorder G] [covariant_class G G (*) (≤)]
+variables [div_inv_monoid G] [preorder G] [covariant_class G G (*) (≤)]
 
 @[to_additive zsmul_nonneg]
 theorem one_le_zpow {x : G} (H : 1 ≤ x) {n : ℤ} (hn : 0 ≤ n) :
@@ -112,7 +125,7 @@ begin
   apply one_le_pow_of_one_le' H,
 end
 
-end group
+end div_inv_monoid
 
 namespace canonically_ordered_comm_semiring
 

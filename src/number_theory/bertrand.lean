@@ -84,15 +84,12 @@ begin
     prime.multiplicity_choose hp.out
       (le_mul_of_pos_left zero_lt_two) (lt_add_one (p.log (2 * n)))],
   have r : 2 * n - n = n,
-    calc
-    2 * n - n
-        = n + n - n : congr_arg (flip (has_sub.sub) n) (two_mul n)
-    ... = n : nat.add_sub_cancel n n,
+  { calc 2 * n - n = n + n - n : congr_arg (flip (has_sub.sub) n) (two_mul n)
+      ... = n : nat.add_sub_cancel n n, },
   simp [r, ←two_mul],
   apply trans (pow_le_pow (trans one_le_two hp.out.two_le) _) (_ : p ^ p.log (2 * n) ≤ 2 * n),
-  { calc _
-        ≤ (finset.Ico 1 (log p (2 * n) + 1)).card : finset.card_filter_le _ _
-    ... = (p.log (2 * n) + 1) - 1                     : card_Ico _ _ },
+  { calc _ ≤ (finset.Ico 1 (log p (2 * n) + 1)).card : finset.card_filter_le _ _
+      ... = (p.log (2 * n) + 1) - 1                  : card_Ico _ _ },
   { apply pow_log_le_self,
     exact hp.out.one_lt,
     linarith, }
@@ -108,34 +105,27 @@ begin
               (lt_add_one (p.log (2 * n)))]
     at multiplicity_pos,
   have r : 2 * n - n = n,
-    calc
-    2 * n - n
-        = n + n - n : congr_arg (flip (has_sub.sub) n) (two_mul n)
-    ... = n         : nat.add_sub_cancel n n,
+  { calc 2 * n - n = n + n - n : congr_arg (flip (has_sub.sub) n) (two_mul n)
+      ... = n : nat.add_sub_cancel n n, },
   simp only [r, ←two_mul, gt_iff_lt, enat.get_coe', finset.filter_congr_decidable]
     at multiplicity_pos,
-  clear r,
   rw finset.card_pos at multiplicity_pos,
   cases multiplicity_pos with m hm,
   simp only [finset.mem_Ico, finset.mem_filter] at hm,
-  calc
-  p   = p ^ 1 : (pow_one _).symm
-  ... ≤ p ^ m : pow_le_pow_of_le_right
-                  (show 0 < p, from trans zero_lt_one hp.out.one_lt) hm.left.left
-  ... ≤ 2 * (n % p ^ m) : hm.right
-  ... ≤ 2 * n : nat.mul_le_mul_left _ (mod_le n _),
+  calc p = p ^ 1 : (pow_one _).symm
+    ... ≤ p ^ m : pow_le_pow_of_le_right (trans zero_lt_one hp.out.one_lt) hm.left.left
+    ... ≤ 2 * (n % p ^ m) : hm.right
+    ... ≤ 2 * n : nat.mul_le_mul_left _ (mod_le n _),
 end
 
 lemma two_n_div_3_le_central_binom (n : ℕ) : 2 * n / 3 < central_binom n :=
 begin
   cases n,
   { simp only [succ_pos', choose_self, nat.zero_div, mul_zero, central_binom_zero], },
-  calc
-  2 * (n + 1) / 3
-      < 2 * (n + 1)                           : nat.div_lt_self (by norm_num) (by norm_num)
-  ... = (2 * (n + 1)).choose(1)               : by norm_num
-  ... ≤ (2 * (n + 1)).choose(2 * (n + 1) / 2) : choose_le_middle 1 (2 * (n + 1))
-  ... = (2 * (n + 1)).choose(n + 1)           : by simp only [succ_pos', mul_div_right]
+  calc 2 * (n + 1) / 3 < 2 * (n + 1)            : nat.div_lt_self (by norm_num) (by norm_num)
+    ... = (2 * (n + 1)).choose(1)               : by norm_num
+    ... ≤ (2 * (n + 1)).choose(2 * (n + 1) / 2) : choose_le_middle 1 (2 * (n + 1))
+    ... = (2 * (n + 1)).choose(n + 1)           : by simp only [succ_pos', mul_div_right],
 end
 
 lemma central_binom_factorization (n : ℕ) :
@@ -149,34 +139,30 @@ lemma intervening_sqrt {a n : ℕ} (small : (sqrt n) ^ 2 ≤ a ^ 2) (big : a ^ 2
 begin
   rcases lt_trichotomy a (sqrt n) with H|rfl|H,
   { refine (lt_irrefl (a ^ 2) _).elim,
-    calc
-    _   = a * a            : sq _
-    ... < n.sqrt * n.sqrt  : mul_self_lt_mul_self H
-    ... = (sqrt n) ^ 2 : (sq _).symm
-    ... ≤ a ^ 2            : small, },
+    calc a ^ 2 = a * a      : sq _
+      ... < n.sqrt * n.sqrt : mul_self_lt_mul_self H
+      ... = (sqrt n) ^ 2    : (sq _).symm
+      ... ≤ a ^ 2           : small, },
   { refl, },
   { refine (lt_irrefl (a ^ 2) _).elim,
-    calc
-    _   ≤ n     : big
-    ... < a * a : sqrt_lt.1 H
-    ... = a ^ 2 : (sq _).symm, },
+    calc a ^ 2 ≤ n : big
+      ... < a * a : sqrt_lt.1 H
+      ... = a ^ 2 : (sq _).symm, },
 end
-
 
 lemma even_prime_is_two {p : ℕ} (pr: p.prime) (div: 2 ∣ p) : p = 2 :=
 ((prime_dvd_prime_iff_eq prime_two pr).mp div).symm
 
-lemma even_prime_is_small {a n : ℕ} (a_prime : nat.prime a) (n_big : 2 < n)
-(small : a ≤ sqrt(2 * n))
-: a ^ 2 < 2 * n :=
+lemma sq_prime_is_small {p n : ℕ} (hp : nat.prime p) (n_big : 2 < n) (small : p ≤ sqrt (2 * n)) :
+  p ^ 2 < 2 * n :=
 begin
-  cases lt_or_ge (a ^ 2) (2 * n),
+  cases lt_or_ge (p ^ 2) (2 * n),
   { exact h, },
-  { have small' : a^2 ≤ (2 * n), exact le_sqrt'.mp small,
-    have t : a * a = 2 * n := (sq _).symm.trans (small'.antisymm h),
-    have a_even : 2 ∣ a := (or_self _).mp ((prime.dvd_mul prime_two).mp ⟨n, t⟩),
-    have a_two : a = 2 := even_prime_is_two a_prime a_even,
-    rw [a_two, sq],
+  { have small' : p ^ 2 ≤ (2 * n) := le_sqrt'.mp small,
+    have t : p * p = 2 * n := (sq _).symm.trans (small'.antisymm h),
+    have p_even : 2 ∣ p := (or_self _).mp ((prime.dvd_mul prime_two).mp ⟨n, t⟩),
+    have p_two : p = 2 := even_prime_is_two hp p_even,
+    rw [p_two, sq],
     exact (mul_lt_mul_left zero_lt_two).mpr n_big },
 end
 
@@ -211,38 +197,35 @@ lemma inequality1 {x : ℝ} (n_large : 100 ≤ x) : log x / (x * log 4) ≤ 1/30
 begin
   have h4 : 0 < x := by linarith only [n_large],
   have x_ne_zero := ne_of_gt h4,
-  calc
-  log x / (x * log 4)
-      = (log x / x) / log 4 : by field_simp
-  ... ≤ log 100 / 100 / log 4 :
-          begin
-            rw div_le_div_right,
-            apply log_div_self_antitone_on,
-            simp only [set.mem_set_of_eq],
-            linarith only [exp_one_lt_d9],
-            simp only [set.mem_set_of_eq],
-            linarith only [exp_one_lt_d9, n_large],
-            exact n_large,
-            exact log_four_pos,
-          end
-  ... = log 100 / log 4 / 100 : by ring_nf
-  ... = log (10 ^ (2 : ℝ)) / log (2 ^ (2 : ℝ)) / 100 : by norm_num
-  ... = (2 * log 10) / log (2 ^ (2 : ℝ)) / 100 : by rw @log_rpow 10 (by norm_num) 2
-  ... = ((2 * log 10) / (2 * log 2)) / 100 : by rw @log_rpow 2 (by norm_num) 2
-  ... = (log 10 / log 2) / 100 : by rw mul_div_mul 2 (log 10) (log 2) (by norm_num)
-  ... ≤ 1 / 30 :
-          begin
-            have thousand_pos : 0 < (1000 : ℝ) := by norm_num,
-            cancel_denoms,
-            rw mul_div,
-            have log_2_pos : 0 < log 2 := log_pos (by norm_num),
-            rw div_le_iff log_2_pos,
-            calc 3 * log 10 = log (10 ^ 3) : eq.symm (log_rpow (by norm_num) 3)
-              ... = log 1000 : by norm_num
-              ... ≤ log 1024 : (log_le_log thousand_pos (by norm_num)).2 (by norm_num)
-              ... = log (2 ^ (10 : ℝ)) : by norm_num
-              ... = 10 * log 2 : log_rpow (by norm_num) 10
-          end,
+  calc log x / (x * log 4) = (log x / x) / log 4 : by field_simp
+    ... ≤ log 100 / 100 / log 4 :
+            begin
+              rw div_le_div_right log_four_pos,
+              apply log_div_self_antitone_on,
+              { simp only [set.mem_set_of_eq],
+                linarith only [exp_one_lt_d9], },
+              { simp only [set.mem_set_of_eq],
+                linarith only [exp_one_lt_d9, n_large], },
+              { exact n_large, },
+            end
+    ... = log 100 / log 4 / 100 : by ring_nf
+    ... = log (10 ^ (2 : ℝ)) / log (2 ^ (2 : ℝ)) / 100 : by norm_num
+    ... = (2 * log 10) / log (2 ^ (2 : ℝ)) / 100 : by rw @log_rpow 10 (by norm_num) 2
+    ... = ((2 * log 10) / (2 * log 2)) / 100 : by rw @log_rpow 2 (by norm_num) 2
+    ... = (log 10 / log 2) / 100 : by rw mul_div_mul 2 (log 10) (log 2) (by norm_num)
+    ... ≤ 1 / 30 :
+            begin
+              have thousand_pos : 0 < (1000 : ℝ) := by norm_num,
+              cancel_denoms,
+              rw mul_div,
+              have log_2_pos : 0 < log 2 := log_pos (by norm_num),
+              rw div_le_iff log_2_pos,
+              calc 3 * log 10 = log (10 ^ 3) : eq.symm (log_rpow (by norm_num) 3)
+                ... = log 1000 : by norm_num
+                ... ≤ log 1024 : (log_le_log thousand_pos (by norm_num)).2 (by norm_num)
+                ... = log (2 ^ (10 : ℝ)) : by norm_num
+                ... = 10 * log 2 : log_rpow (by norm_num) 10
+            end,
 end
 
 lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num
@@ -292,7 +275,7 @@ begin
     repeat { simp only [set.mem_set_of_eq],
       rw [le_sqrt (le_of_lt (exp_pos 1)), ←exp_nat_mul],
       norm_num, linarith, linarith, }, },
-  exact real.nontrivial,
+  { exact real.nontrivial, },
 end
 
 lemma real.div_mul_eq_div_div {a b c : ℝ} (hb : b ≠ 0) (hc : c ≠ 0) : a / (b * c) = (a / b) / c :=
@@ -306,10 +289,25 @@ lemma sqrt_361 : sqrt 361 = 19 :=
 calc sqrt 361 = sqrt (19 ^ 2) : by norm_num
   ... = 19 : sqrt_sq (by norm_num)
 
+open tactic.interactive
+meta def collapse_log : tactic unit :=
+do
+  tactic.repeat { tactic.interactive.rw [``(real.log_rpow), ``(real.log_mul)], }
+  --tactic.repeat tactic.norm_num,
+
 lemma log_722 : log 722 = log 2 + 2 * log 19 :=
-calc log 722 = log (2 * 19 ^ (2 : ℝ)) : by norm_num
-  ... = log 2 + log (19 ^ (2 : ℝ)) : log_mul (by norm_num) (by norm_num)
-  ... = log 2 + 2 * log 19 : by rw @log_rpow 19 (by norm_num)
+begin
+  repeat {
+    rw ←log_rpow,
+    rw ←log_mul,
+  },
+  repeat {
+    norm_num,
+  },
+end
+--calc log 722 = log (2 * 19 ^ (2 : ℝ)) : by norm_num
+--  ... = log 2 + log (19 ^ (2 : ℝ)) : log_mul (by norm_num) (by norm_num)
+--  ... = log 2 + 2 * log 19 : by rw @log_rpow 19 (by norm_num)
 
 lemma inequality : log 521284 / log 2 ≤ 19 :=
 begin
@@ -325,12 +323,12 @@ begin
   have x_pos : 0 < x := by linarith,
   rw [inequality3' x_pos],
   have bound : log x / sqrt x ≤ log 722 / sqrt 722,
-    { refine log_div_sqrt_decreasing _ n_large,
-      calc exp 2 = (exp 1) ^ 2 : by rw [←exp_nat_mul 1 2]; simp
-        ... ≤ 2.7182818286 ^ 2 :
-            pow_le_pow_of_le_left (le_of_lt (exp_pos 1)) (le_of_lt exp_one_lt_d9) _
-        ... = 7.38905609969695977796 : by norm_num
-        ... ≤ 722 : by linarith, },
+  { refine log_div_sqrt_decreasing _ n_large,
+    calc exp 2 = (exp 1) ^ 2 : by rw [←exp_nat_mul 1 2]; simp
+      ... ≤ 2.7182818286 ^ 2 :
+          pow_le_pow_of_le_left (le_of_lt (exp_pos 1)) (le_of_lt exp_one_lt_d9) _
+      ... = 7.38905609969695977796 : by norm_num
+      ... ≤ 722 : by linarith, },
   calc sqrt 2 / log 4 * log x / sqrt x
       = sqrt 2 / log 4 * (log x / sqrt x) : by rw mul_div_assoc
   ... ≤ sqrt 2 / log 4 * (log 722 / sqrt 722) :
@@ -382,8 +380,8 @@ lemma real_bertrand_inequality {x : ℝ} (n_large : (722 : ℝ) ≤ x)
   : x * (2 * x) ^ (sqrt (2 * x)) * 4 ^ (2 * x / 3) < 4 ^ x :=
 begin
   have four_pow_pos : ∀ (k : ℝ), (0 : ℝ) < 4 ^ k,
-    { intros k,
-      apply rpow_pos_of_pos four_pos, },
+  { intros k,
+    apply rpow_pos_of_pos four_pos, },
   have v : 0 < (2 * x) ^ (sqrt (2 * x)) := rpow_pos_of_pos (by linarith) _,
   apply (log_lt_log_iff _ (four_pow_pos x)).1,
   swap,
@@ -415,7 +413,7 @@ lemma bertrand_inequality {n : ℕ} (n_large : 722 ≤ n) :
 begin
   rw ←@nat.cast_le ℝ,
   have fact1 : 0 < (n : ℝ),
-    { rw ←nat.cast_zero, norm_num, linarith, },
+  { rw ←nat.cast_zero, norm_num, linarith, },
   have fact2 : 0 < 2 * (n : ℝ) := by linarith,
   simp only [nat.cast_bit0, nat.cast_add, nat.cast_one, nat.cast_mul, nat.cast_pow],
   simp only [←real.rpow_nat_cast],
@@ -427,7 +425,8 @@ begin
             rw [mul_le_mul_right, mul_le_mul_left fact1],
             { apply real.rpow_le_rpow_of_exponent_le,
               { rw ←@nat.cast_le ℝ at n_large,
-                have h : 722 ≤ (n : ℝ), {convert n_large, simp},
+                have h : 722 ≤ (n : ℝ),
+                { convert n_large, simp, },
                 linarith, },
               rw [real.le_sqrt (nat.cast_nonneg _) (le_of_lt fact2), ←nat.cast_pow],
               calc _ ≤ ↑(2 * n) : nat.cast_le.mpr (nat.sqrt_le' _)
@@ -480,15 +479,15 @@ begin
   intros hx h2x,
   simp only [hx.right, and_true, not_lt] at h2x,
   by_contradiction,
-  have x_le_two_mul_n : x ≤ 2 * n, by
-    { apply (@multiplicity_implies_small x ⟨hx.right⟩ n),
-      unfold α,
-      by_contradiction h1,
-      rw [not_lt, le_zero_iff] at h1,
-      rw h1 at h,
-      rw pow_zero at h,
-      simp only [eq_self_iff_true, not_true] at h,
-      exact h, },
+  have x_le_two_mul_n : x ≤ 2 * n,
+  { apply (@multiplicity_implies_small x ⟨hx.right⟩ n),
+    unfold α,
+    by_contradiction h1,
+    rw [not_lt, le_zero_iff] at h1,
+    rw h1 at h,
+    rw pow_zero at h,
+    simp only [eq_self_iff_true, not_true] at h,
+    exact h, },
   apply no_prime,
   use x,
   split,
@@ -565,7 +564,7 @@ nat.central_binom n
           simp only [and_imp, finset.mem_filter, finset.mem_range, and.congr_right_iff],
           intros h pa,
           split,
-          { exact even_prime_is_small pa (by linarith), },
+          { exact sq_prime_is_small pa (by linarith), },
           { rw nat.le_sqrt', exact le_of_lt, },
         end
 ... ≤ (2 * n) ^ (nat.sqrt (2 * n))
@@ -645,11 +644,8 @@ begin
   -- If not, then we have the above upper bound on the size of this central binomial coefficient.
   -- We now couple this bound with a lower bound on the central binomial coefficient, yielding an
   -- inequality which we have seen is false for large enough n.
-  have false_inequality
-    : 4 ^ n < n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3), by
-    calc
-    4 ^ n
-        < n * nat.central_binom n : nat.four_pow_lt_mul_central_binom n (by linarith)
+  have false_inequality : 4 ^ n < n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3),
+  calc 4 ^ n < n * nat.central_binom n : nat.four_pow_lt_mul_central_binom n (by linarith)
     ... ≤ n * ((2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3)) :
           nat.mul_le_mul_of_nonneg_left (bertrand_central_binom_le n (by linarith) no_prime)
     ... = n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) : by ring,
@@ -661,11 +657,10 @@ Proves that Bertrand's postulate holds over all positive naturals less than n by
 descending list of primes, each no more than twice the next, such that the list contains a witness
 for each number ≤ n.
 -/
-lemma bertrand_initial (n : ℕ) (hn0 : 0 < n) (plist : list ℕ)
-  (primeplist : ∀ p ∈ plist, nat.prime p)
-  (covering : ∀ a b, (a, b) ∈ list.zip plist (list.tail (plist ++ [2])) →
-        a ≤ 2 * b)
-   (hn : n < (plist ++ [2]).head) :
+lemma bertrand_initial (n : ℕ) (hn0 : 0 < n)
+  (plist : list ℕ) (prime_plist : ∀ p ∈ plist, nat.prime p)
+  (covering : ∀ a b, (a, b) ∈ list.zip plist (list.tail (plist ++ [2])) → a ≤ 2 * b)
+  (hn : n < (plist ++ [2]).head) :
   ∃ (p : ℕ), p.prime ∧ n < p ∧ p ≤ 2 * n :=
 begin
   unfreezingI { induction plist, },
@@ -676,9 +671,9 @@ begin
   { simp * at *,
     by_cases plist_hd ≤ 2 * n,
     { use plist_hd,
-      exact ⟨primeplist.left, hn, h⟩, },
+      exact ⟨prime_plist.left, hn, h⟩, },
     { apply plist_ih,
-      { exact primeplist.right, },
+      { exact prime_plist.right, },
       { intros a b hmem,
         apply covering,
         cases plist_tl,

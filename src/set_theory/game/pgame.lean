@@ -681,17 +681,13 @@ begin
       convert le_iff_neg_ge.1 h,
       rw move_left_neg } },
   { rcases h.right i with ⟨w, h⟩ | ⟨w, h⟩,
-    { refine or.inr ⟨to_left_moves_neg.symm w, _⟩,
-      convert le_iff_neg_ge.2 _,
-      convert h,
-      rw [move_right_neg_symm, neg_neg] },
+    { refine or.inr ⟨to_left_moves_neg.symm w, le_iff_neg_ge.2 _⟩,
+      rwa [move_right_neg_symm, neg_neg] },
     { exact or.inl ⟨w, le_iff_neg_ge.2 h⟩ } },
   { rcases h.left j with ⟨w, h⟩ | ⟨w, h⟩,
     { exact or.inr ⟨w, le_iff_neg_ge.2 h⟩ },
-    { refine or.inl ⟨to_right_moves_neg.symm w, _⟩,
-      convert le_iff_neg_ge.2 _,
-      convert h,
-      rw [move_left_neg_symm, neg_neg]} },
+    { refine or.inl ⟨to_right_moves_neg.symm w, le_iff_neg_ge.2 _⟩,
+      rwa [move_left_neg_symm, neg_neg] } },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

@@ -19,6 +19,7 @@ import set_theory.cardinal.ordinal
 `# (α ⊕ Σ i, L.functions i) + ω`.
 
 ## TODO
+* A bound on the cardinality of formulas.
 * `primcodable` instances for terms and formulas, based on the `encoding`s
 * Computability facts about term and formula operations, to set up a computability approach to
 incompleteness

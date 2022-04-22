@@ -707,13 +707,14 @@ instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] [hG : ∀ i, is_fr
 { generators := Σ i, is_free_group.generators (G i),
   mul_equiv :=
   monoid_hom.to_mul_equiv
-    (free_group.lift (λ (x : Σ i, is_free_group.generators (G i)), free_product.of (is_free_group.of x.2 : G x.1)))
+    (free_group.lift (λ (x : Σ i, is_free_group.generators (G i)),
+      free_product.of (is_free_group.of x.2 : G x.1)))
     (free_product.lift (λ (i : ι),
-      (is_free_group.lift.to_fun (λ (x : is_free_group.generators (G i)), free_group.of (⟨i, x⟩ : Σ i, is_free_group.generators (G i)))
+      (is_free_group.lift.to_fun (λ (x : is_free_group.generators (G i)),
+        free_group.of (⟨i, x⟩ : Σ i, is_free_group.generators (G i)))
         : G i →* (free_group (Σ i, is_free_group.generators (G i))))))
     (by {ext, simp, })
-   (by {ext, simp, })
-}
+   (by {ext, simp, }) }
 
 /-- A free group is a free product of copies of the free_group over one generator. -/
 

@@ -52,6 +52,9 @@ end order_dual
 
 lemma is_chain_singleton (r : α → α → Prop) (a : α) : is_chain r {a} := set.pairwise_singleton _ _
 
+lemma is_chain_pair (r : α → α → Prop) {a b : α} (h : r a b) : is_chain r {a, b} :=
+(is_chain_singleton _ _).insert $ λ _ hb _, or.inl $ (set.eq_of_mem_singleton hb).symm.rec_on ‹_›
+
 /-- A preorder is isomorphic to the section from bottom to top. -/
 def set.Icc.self_order_iso_bot_top (α : Type*) [preorder α] [order_bot α] [order_top α] :
   α ≃o set.Icc ⊥ (⊤ : α) :=

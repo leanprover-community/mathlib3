@@ -1085,9 +1085,30 @@ theorem birthday_def (x : pgame) : birthday x = max
   (ordinal.lsub.{u u} (λ i, birthday (x.move_right i))) :=
 by { cases x, apply birthday_mk }
 
-@[simp] theorem birthday_zero : birthday 0 = 0 :=
-begin
-  rw birthday_def,rw ordinal.lsub_empty,
+theorem birthday_congr : ∀ {x y : pgame.{u}}, relabelling x y → birthday x = birthday y
+| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ := begin
+  rw [birthday, birthday],
+  congr' 1,
+  all_goals
+  { apply ordinal.lsub_eq_of_range_eq.{u u u},
+    ext i,
+    split },
+  { rintro ⟨j, rfl⟩,
+    exact ⟨L j, (birthday_congr (hL j)).symm⟩ },
+  { rintro ⟨j, rfl⟩,
+    refine ⟨L.symm j, birthday_congr _⟩,
+    convert hL (L.symm j),
+    rw L.apply_symm_apply },
+  { rintro ⟨j, rfl⟩,
+    refine ⟨R j, (birthday_congr _).symm⟩,
+    convert hR (R j),
+    rw R.symm_apply_apply },
+  { rintro ⟨j, rfl⟩,
+    exact ⟨R.symm j, birthday_congr (hR j)⟩ }
 end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+@[simp] theorem birthday_zero : birthday 0 = 0 :=
+by rw [birthday_def, ordinal.lsub_empty, ordinal.lsub_empty, max_self]
 
 end pgame

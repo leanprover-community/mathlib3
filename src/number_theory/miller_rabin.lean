@@ -22,10 +22,7 @@ def two_power_part (n : ℕ) := 2 ^ (padic_val_nat 2 n)
 
 def odd_part (n : ℕ) := n / two_power_part n
 
-@[simp] lemma odd_part_zero : odd_part 0 = 0 :=
-begin
-  sorry,
-end
+@[simp] lemma odd_part_zero : odd_part 0 = 0 := rfl
 
 lemma two_power_part_mul_odd_part (n : ℕ) : (two_power_part n) * (odd_part n) = n :=
 begin
@@ -36,26 +33,48 @@ begin
   exact nat.mul_div_cancel' this,
 end
 
-lemma mul_two_power_part (n m : ℕ) :
+lemma mul_two_power_part (n m : ℕ) (hn0 : n ≠ 0) (hm0 : m ≠ 0) :
   two_power_part (n * m) = two_power_part(n) * two_power_part(m) :=
 begin
   simp_rw [two_power_part],
-  sorry,
+  rw ←pow_add,
+  congr,
+  haveI two_prime : fact (nat.prime 2), exact nat.fact_prime_two,
+  rw padic_val_nat.mul 2,
+  assumption,
+  assumption,
 end
 
 lemma mul_odd_part (n m : ℕ) : odd_part (n * m) = odd_part(n) * odd_part(m) :=
 begin
+  by_cases hn0 : n = 0,
+  simp [hn0],
+  by_cases hm0 : m = 0,
+  simp [hm0],
   have hnm := two_power_part_mul_odd_part (n * m),
   have hn := two_power_part_mul_odd_part (n),
   have hm := two_power_part_mul_odd_part (m),
-  have hnm' := mul_two_power_part n m,
+  have hnm' := mul_two_power_part n m hn0 hm0,
   have pos_two_power_part : 0 < two_power_part (n * m),
-  sorry,
+  unfold two_power_part,
+  apply pow_pos,
+  exact two_pos,
+  -- rw mul_cancel_lef,
   -- TODO(Sean): See if you can prove this. I've given a bunch of have statements for things I think are necessary.
-  have thing : n * m = two_power_part (n * m) * odd_part (n * m),
-  exact hnm.symm,
-  rw ← hn at thing,
-  sorry,
+  -- suff
+  suffices : two_power_part (n * m) * odd_part (n * m) = two_power_part (n * m) * (odd_part n * odd_part m),
+  {
+
+    simp [ne_zero_of_lt pos_two_power_part] at this,
+    exact this,
+    -- simp * at *
+  },
+  rw two_power_part_mul_odd_part,
+  rw hnm',
+  -- rw mul_assoc,
+  nth_rewrite 0 ←hn,
+  nth_rewrite 0 ←hm,
+  ring,
 end
 
 def strong_probable_prime (n : nat) (a : (zmod n)) : Prop :=
@@ -126,6 +145,24 @@ begin
   exact zmod.pow_card_sub_one_eq_one ha,
 end
 
+lemma nat.even_two_pow_iff (n : ℕ) : even (2 ^ n) ↔ 0 < n :=
+begin
+  split,
+  { intro hn,
+    by_contra,
+    simp only [not_lt, le_zero_iff] at h,
+    rw h at hn,
+    simp only [pow_zero, nat.not_even_one] at hn,
+    exact hn,
+  },
+  { intro hn,
+    rcases hn,
+    simp only [pow_one, even_two],
+    rw pow_succ,
+    apply even_two_mul,
+  }
+end
+
 lemma fermat_pseudoprime_of_strong_probable_prime (n : ℕ) (a : zmod n)
   (h : strong_probable_prime n a) : fermat_pseudoprime n a :=
 begin
@@ -139,9 +176,18 @@ begin
     rcases h with ⟨r, hrlt, hpow⟩,
     have h := congr_arg (^(2^(padic_val_nat 2 (n - 1) - r))) hpow,
     simp at h,
-    sorry, -- this one seems hard, I would skip it unless you're feeling very confident
+    rw ←pow_mul a at h,
+    rw mul_comm at h,
+    rw ←mul_assoc at h,
+    rw ←pow_add at h,
+    rw nat.sub_add_cancel (le_of_lt hrlt) at h,
+    rw ←two_power_part at h,
+    rw two_power_part_mul_odd_part at h,
+    rw h,
+    apply nat.neg_one_pow_o
+    rw nat.even_two_pow_iff,
+    exact tsub_pos_of_lt hrlt,
   },
-
 end
 
 lemma sub_one_dvd_pow_sub_one (p α : ℕ) (one_le_p : 1 ≤ p) : (p - 1) ∣ (p^α - 1) :=

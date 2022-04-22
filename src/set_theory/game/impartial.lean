@@ -71,13 +71,15 @@ begin
   rw impartial_def,
   refine ⟨equiv_trans (add_congr (neg_equiv_self _) (neg_equiv_self _))
     (neg_add_relabelling _ _).equiv.symm, λ i, _, λ i, _⟩,
-  { rcases left_moves_add_cases i with ⟨j, rfl⟩ | ⟨j, rfl⟩,
+  { rw ←to_left_moves_add.apply_symm_apply i,
+    cases to_left_moves_add.symm i,
     all_goals
-    { simp only [add_move_left_left, add_move_left_right],
+    { simp only [add_move_left_inl, add_move_left_inr],
       apply impartial_add } },
-  { rcases right_moves_add_cases i with ⟨j, rfl⟩ | ⟨j, rfl⟩,
+  { rw ←to_right_moves_add.apply_symm_apply i,
+    cases to_right_moves_add.symm i,
     all_goals
-    { simp only [add_move_right_left, add_move_right_right],
+    { simp only [add_move_right_inl, add_move_right_inr],
       apply impartial_add } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }

@@ -752,74 +752,46 @@ by { cases x, cases y, refl }
   (x + y).right_moves = (x.right_moves ⊕ y.right_moves) :=
 by { cases x, cases y, refl }
 
-/-- Converts a left move for `x` into a left move for `x + y`. -/
-def left_to_left_moves_add {x : pgame} (y : pgame) (i : x.left_moves) :
-  (x + y).left_moves :=
-cast (left_moves_add x y).symm (sum.inl i)
+/-- Converts a left move for `x` or `y` into a left move for `x + y` and viceversa. -/
+def to_left_moves_add {x y : pgame} :
+  x.left_moves ⊕ y.left_moves ≃ (x + y).left_moves :=
+equiv.cast (left_moves_add x y).symm
 
-/-- Converts a right move for `x` into a right move for `x + y`. -/
-def left_to_right_moves_add {x : pgame} (y : pgame) (i : x.right_moves) :
-  (x + y).right_moves :=
-cast (right_moves_add x y).symm (sum.inl i)
-
-/-- Converts a left move for `y` into a left move for `x + y`. -/
-def right_to_left_moves_add (x : pgame) {y : pgame} (i : y.left_moves) :
-  (x + y).left_moves :=
-cast (left_moves_add x y).symm (sum.inr i)
-
-/-- Converts a right move for `y` into a right move for `x + y`. -/
-def right_to_right_moves_add (x : pgame) {y : pgame} (i : y.right_moves) :
-  (x + y).right_moves :=
-cast (right_moves_add x y).symm (sum.inr i)
-
-/-- A left move of `x + y` is either a left move of `x` or a left move of `y`. -/
-theorem left_moves_add_cases {x y : pgame} (i : (x + y).left_moves) :
-  (∃ j, i = left_to_left_moves_add y j) ∨ (∃ j, i = right_to_left_moves_add x j) :=
-begin
-  cases x, cases y, cases i,
-  { exact or.inl ⟨i, rfl⟩ },
-  { exact or.inr ⟨i, rfl⟩ }
-end
-
-/-- A right move of `x + y` is either a right move of `x` or a right move of `y`. -/
-theorem right_moves_add_cases {x y : pgame} (i : (x + y).right_moves) :
-  (∃ j, i = left_to_right_moves_add y j) ∨ (∃ j, i = right_to_right_moves_add x j) :=
-begin
-  cases x, cases y, cases i,
-  { exact or.inl ⟨i, rfl⟩ },
-  { exact or.inr ⟨i, rfl⟩ }
-end
+/-- Converts a right move for `x` or `y` into a right move for `x + y` and viceversa. -/
+def to_right_moves_add {x y : pgame} :
+  x.right_moves ⊕ y.right_moves ≃ (x + y).right_moves :=
+equiv.cast (right_moves_add x y).symm
 
 @[simp] lemma mk_add_move_left_inl {xl xr yl yr} {xL xR yL yR} {i} :
   (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inl i) =
     (mk xl xr xL xR).move_left i + (mk yl yr yL yR) :=
 rfl
-@[simp] lemma add_move_left_left {x : pgame} (y : pgame) (i) :
-  (x + y).move_left (left_to_left_moves_add y i) = x.move_left i + y :=
+@[simp] lemma add_move_left_inl {x : pgame} (y : pgame) (i) :
+  (x + y).move_left (to_left_moves_add (sum.inl i)) = x.move_left i + y :=
 by { cases x, cases y, refl }
 
 @[simp] lemma mk_add_move_right_inl {xl xr yl yr} {xL xR yL yR} {i} :
   (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inl i) =
     (mk xl xr xL xR).move_right i + (mk yl yr yL yR) :=
 rfl
-@[simp] lemma add_move_right_left {x : pgame} (y : pgame) (i) :
-  (x + y).move_right (left_to_right_moves_add y i) = x.move_right i + y :=
+@[simp] lemma add_move_right_inl {x : pgame} (y : pgame) (i) :
+  (x + y).move_right (to_right_moves_add (sum.inl i)) = x.move_right i + y :=
 by { cases x, cases y, refl }
 
 @[simp] lemma mk_add_move_left_inr {xl xr yl yr} {xL xR yL yR} {i} :
   (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inr i) =
     (mk xl xr xL xR) + (mk yl yr yL yR).move_left i :=
 rfl
-@[simp] lemma add_move_left_right (x : pgame) {y : pgame} (i) :
-  (x + y).move_left (right_to_left_moves_add x i) = x + y.move_left i :=
+@[simp] lemma add_move_left_inr (x : pgame) {y : pgame} (i) :
+  (x + y).move_left (to_left_moves_add (sum.inr i)) = x + y.move_left i :=
 by { cases x, cases y, refl }
 
 @[simp] lemma mk_add_move_right_inr {xl xr yl yr} {xL xR yL yR} {i} :
   (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inr i) =
     (mk xl xr xL xR) + (mk yl yr yL yR).move_right i :=
 rfl
-@[simp] lemma add_move_right_right (x : pgame) {y : pgame} (i) :
-  (x + y).move_right (right_to_right_moves_add x i) = x + y.move_right i :=
+@[simp] lemma add_move_right_inr (x : pgame) {y : pgame} (i) :
+  (x + y).move_right (to_right_moves_add (sum.inr i)) = x + y.move_right i :=
 by { cases x, cases y, refl }
 
 /-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
@@ -926,12 +898,12 @@ private lemma add_le_add_right : Π {x y z : pgame.{u}} (h : x ≤ y), x + z ≤
       cases h,
       have t := h_left i,
       rcases t with ⟨i', ih⟩ | ⟨j, jh⟩,
-      { exact or.inl ⟨left_to_left_moves_add _ i', add_le_add_right ih⟩ },
-      { refine or.inr ⟨left_to_right_moves_add _ j, _⟩,
+      { exact or.inl ⟨to_left_moves_add (sum.inl i'), add_le_add_right ih⟩ },
+      { refine or.inr ⟨to_right_moves_add (sum.inl j), _⟩,
         convert add_le_add_right jh,
-        apply add_move_right_left } },
+        apply add_move_right_inl } },
     { -- or play in z
-      exact or.inl ⟨right_to_left_moves_add _ i, add_le_add_right h⟩ } },
+      exact or.inl ⟨@to_left_moves_add _ ⟨_, _, _, _⟩ (sum.inr i), add_le_add_right h⟩ } },
   { -- if Right plays first
     cases j,
     { -- either they play in y
@@ -939,12 +911,12 @@ private lemma add_le_add_right : Π {x y z : pgame.{u}} (h : x ≤ y), x + z ≤
       cases h,
       have t := h_right j,
       rcases t with ⟨i, ih⟩ | ⟨j', jh⟩,
-      { refine or.inl ⟨left_to_left_moves_add _ i, _⟩,
+      { refine or.inl ⟨to_left_moves_add (sum.inl i), _⟩,
         convert add_le_add_right ih,
-        apply add_move_left_left },
-      { exact or.inr ⟨left_to_right_moves_add _ j', add_le_add_right jh⟩ } },
+        apply add_move_left_inl },
+      { exact or.inr ⟨to_right_moves_add (sum.inl j'), add_le_add_right jh⟩ } },
     { -- or play in z
-      exact or.inr ⟨right_to_right_moves_add _ j, add_le_add_right h⟩ } }
+      exact or.inr ⟨@to_right_moves_add _ ⟨_, _, _, _⟩ (sum.inr j), add_le_add_right h⟩ } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -972,14 +944,14 @@ begin
   refine ⟨λ i : xr ⊕ xl, _, is_empty_elim⟩,
   cases i,
   { -- If Left played in -x, Right responds with the same move in x.
-    refine or.inr ⟨right_to_right_moves_add _ i, _⟩,
+    refine or.inr ⟨@to_right_moves_add _ ⟨_, _, _, _⟩ (sum.inr i), _⟩,
     convert @add_left_neg_le_zero (xR i),
-    apply add_move_right_right },
+    apply add_move_right_inr },
   { -- If Left in x, Right responds with the same move in -x.
     dsimp,
-    refine or.inr ⟨left_to_right_moves_add _ i, _⟩,
+    refine or.inr ⟨@to_right_moves_add ⟨_, _, _, _⟩ _ (sum.inl i), _⟩,
     convert @add_left_neg_le_zero (xL i),
-    apply add_move_right_left }
+    apply add_move_right_inl }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

@@ -699,7 +699,7 @@ rfl
   (order_iso_of_surjective f h_mono h_surj).symm (f a) = a :=
 (order_iso_of_surjective f h_mono h_surj).symm_apply_apply _
 
-@[simp] lemma order_iso_of_surjective_self_symm_apply (b : β) :
+lemma order_iso_of_surjective_self_symm_apply (b : β) :
   f ((order_iso_of_surjective f h_mono h_surj).symm b) = b :=
 (order_iso_of_surjective f h_mono h_surj).apply_symm_apply _
 

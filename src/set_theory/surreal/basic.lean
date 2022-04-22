@@ -141,23 +141,23 @@ begin
   rw lt_def_le at *,
   rcases hwx with ⟨ix, hix⟩|⟨jw, hjw⟩;
   rcases hyz with ⟨iz, hiz⟩|⟨jy, hjy⟩,
-  { refine or.inl ⟨left_to_left_moves_add z ix, _⟩,
-    rw add_move_left_left,
+  { refine or.inl ⟨to_left_moves_add (sum.inl ix), _⟩,
+    rw add_move_left_inl,
     calc w + y ≤ move_left x ix + y : add_le_add_right hix _
             ... ≤ move_left x ix + move_left z iz : add_le_add_left hiz _
             ... ≤ move_left x ix + z : add_le_add_left (oz.move_left_le iz) _ },
-  { refine or.inl ⟨left_to_left_moves_add z ix, _⟩,
-    rw add_move_left_left,
+  { refine or.inl ⟨to_left_moves_add (sum.inl ix), _⟩,
+    rw add_move_left_inl,
     calc w + y ≤ move_left x ix + y : add_le_add_right hix _
             ... ≤ move_left x ix + move_right y jy : add_le_add_left (oy.le_move_right jy) _
             ... ≤ move_left x ix + z : add_le_add_left hjy _ },
-  { refine or.inr ⟨left_to_right_moves_add y jw, _⟩,
-    rw add_move_right_left,
+  { refine or.inr ⟨to_right_moves_add (sum.inl jw), _⟩,
+    rw add_move_right_inl,
     calc move_right w jw + y ≤ x + y : add_le_add_right hjw _
             ... ≤ x + move_left z iz : add_le_add_left hiz _
             ... ≤ x + z : add_le_add_left (oz.move_left_le iz) _ },
-  { refine or.inr ⟨left_to_right_moves_add y jw, _⟩,
-    rw add_move_right_left,
+  { refine or.inr ⟨to_right_moves_add (sum.inl jw), _⟩,
+    rw add_move_right_inl,
     calc move_right w jw + y ≤ x + y : add_le_add_right hjw _
             ... ≤ x + move_right y jy : add_le_add_left (oy.le_move_right jy) _
             ... ≤ x + z : add_le_add_left hjy _ },

@@ -140,8 +140,8 @@ begin
   introI hG,
   rw [impartial.equiv_iff_sum_first_loses, ←impartial.no_good_left_moves_iff_first_loses],
   intro i,
-  rw ←to_left_moves_add.apply_symm_apply i,
-  cases to_left_moves_add.symm i with i₁ i₂,
+  equiv_rw (@to_left_moves_add G (nim (grundy_value G))).symm at i,
+  cases i with i₁ i₂,
   { rw add_move_left_inl,
     apply first_wins_of_equiv
      (add_congr (equiv_nim_grundy_value (G.move_left i₁)).symm (equiv_refl _)),

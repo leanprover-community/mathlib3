@@ -123,7 +123,7 @@ begin
         have eq₂ : u + u - (wq + wp) = a + b, show u + u - (wq + wp) = (u - wq) + (u - wp), abel,
         rw [eq₁, eq₂],
       end
-      ... = 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) : parallelogram_law_with_norm,
+      ... = 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) : parallelogram_law_with_norm _ _,
     have eq : δ ≤ ∥u - half • (wq + wp)∥,
     { rw smul_add,
       apply δ_le', apply h₂,

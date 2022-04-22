@@ -232,4 +232,13 @@ begin
 simp only [coe_GL_pos_neg, sl_moeb, coe_coe, coe_int_neg, neg_smul],
 end
 
+lemma c_mul_im_sq_le_norm_sq_denom (z : ℍ) (g : SL(2, ℝ)) :
+  ((↑ₘg 1 0 : ℝ) * (z.im))^2 ≤ complex.norm_sq (denom g z) :=
+begin
+  let c := (↑ₘg 1 0 : ℝ),
+  let d := (↑ₘg 1 1 : ℝ),
+  calc (c * z.im)^2 ≤ (c * z.im)^2 + (c * z.re + d)^2 : by nlinarith
+                ... = complex.norm_sq (denom g z) : by simp [complex.norm_sq]; ring,
+end
+
 end upper_half_plane

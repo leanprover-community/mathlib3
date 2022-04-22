@@ -3,8 +3,8 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import set_theory.game
 import data.fintype.basic
+import set_theory.game.basic
 
 /-!
 # Short games

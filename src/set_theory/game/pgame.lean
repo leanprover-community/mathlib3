@@ -120,11 +120,6 @@ inductive pgame : Type (u+1)
 
 namespace pgame
 
-@[ext] theorem ext {α β γ δ : Type u}
-  {p : α → pgame} {q : β → pgame} {r : γ → pgame} {s : δ → pgame} :
-  mk α β p q = mk γ δ r s ↔ α = γ ∧ β = δ ∧ p == r ∧ q == s :=
-⟨by { rintro ⟨h⟩, simp }, by { rintro ⟨rfl, rfl, rfl, rfl⟩, refl }⟩
-
 /--
 Construct a pre-game from list of pre-games describing the available moves for Left and Right.
 -/
@@ -198,12 +193,6 @@ instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩�
 @[simp] lemma zero_left_moves : (0 : pgame).left_moves = pempty := rfl
 @[simp] lemma zero_right_moves : (0 : pgame).right_moves = pempty := rfl
 
-instance is_empty_zero_left_moves : is_empty (0 : pgame).left_moves :=
-by { rw zero_left_moves, apply_instance }
-
-instance is_empty_zero_right_moves : is_empty (0 : pgame).right_moves :=
-by { rw zero_right_moves, apply_instance }
-
 instance : inhabited pgame := ⟨0⟩
 
 /-- The pre-game `one` is defined by `1 = { 0 | }`. -/
@@ -212,9 +201,6 @@ instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 @[simp] lemma one_left_moves : (1 : pgame).left_moves = punit := rfl
 @[simp] lemma one_move_left : (1 : pgame).move_left punit.star = 0 := rfl
 @[simp] lemma one_right_moves : (1 : pgame).right_moves = pempty := rfl
-
-instance is_empty_one_right_moves : is_empty (1 : pgame).right_moves :=
-by { rw one_right_moves, apply_instance }
 
 /-- Define simultaneously by mutual induction the `<=` and `<`
   relation on pre-games. The ZFC definition says that `x = {xL | xR}`
@@ -1143,13 +1129,11 @@ theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
 theorem to_pgame_le {a b : ordinal} (h : a ≤ b) : a.to_pgame ≤ b.to_pgame :=
 begin
   rw pgame.le_def,
-  refine ⟨λ i, or.inl _, is_empty_elim⟩,
-  have h' : typein (<) (cast a.to_pgame_left_moves i) < b := lt_of_lt_of_le begin
-    convert typein_lt_type (<) _,
-    rw type_lt
-  end h,
-  use to_left_moves h',
-  rw [to_pgame_move_left_eq, to_pgame_move_left_to_left_moves]
+  refine ⟨λ i, or.inl ⟨@to_left_moves b (typein (<) (cast a.to_pgame_left_moves i))
+    (lt_of_lt_of_le _ h), _⟩, is_empty_elim⟩,
+  { simp_rw ←type_lt a,
+    apply typein_lt_type },
+  { rw [to_pgame_move_left_eq, to_pgame_move_left_to_left_moves] }
 end
 
 @[simp] theorem to_pgame_lt_iff {a b : ordinal} : a.to_pgame < b.to_pgame ↔ a < b :=

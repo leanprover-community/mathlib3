@@ -190,7 +190,7 @@ begin
     exact filter_eq m_cobounded_sets }
 end
 
-variables [pseudo_metric_space α]
+variables [pseudo_metric_space α] {x y z : α}
 
 @[priority 100] -- see Note [lower instance priority]
 instance metric_space.to_uniform_space' : uniform_space α :=
@@ -365,6 +365,13 @@ iff.rfl
   dist x y ≤ c ↔ nndist x y ≤ c :=
 iff.rfl
 
+@[simp] lemma edist_lt_of_real {r : ℝ} : edist x y < ennreal.of_real r ↔ dist x y < r :=
+by rw [edist_dist, ennreal.of_real_lt_of_real_iff_of_nonneg dist_nonneg]
+
+@[simp] lemma edist_le_of_real {r : ℝ} (hr : 0 ≤ r) :
+  edist x y ≤ ennreal.of_real r ↔ dist x y ≤ r :=
+by rw [edist_dist, ennreal.of_real_le_of_real_iff hr]
+
 /--Express `nndist` in terms of `dist`-/
 lemma nndist_dist (x y : α) : nndist x y = real.to_nnreal (dist x y) :=
 by rw [dist_nndist, real.to_nnreal_coe]
@@ -389,7 +396,7 @@ by rw [edist_dist, ennreal.to_real_of_real (dist_nonneg)]
 namespace metric
 
 /- instantiate pseudometric space as a topology -/
-variables {x y z : α} {δ ε ε₁ ε₂ : ℝ} {s : set α}
+variables {δ ε ε₁ ε₂ : ℝ} {s : set α}
 
 /-- `ball x ε` is the set of all points `y` with `dist y x < ε` -/
 def ball (x : α) (ε : ℝ) : set α := {y | dist y x < ε}

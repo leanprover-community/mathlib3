@@ -927,10 +927,6 @@ lemma cthickening_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) 
   cthickening δ₁ E ⊆ cthickening δ₂ E :=
 preimage_mono (Iic_subset_Iic.mpr (ennreal.of_real_le_of_real hle))
 
-@[simp] lemma cthickening_closure : cthickening δ (closure s) = cthickening δ s :=
-by simp_rw [cthickening, inf_edist_closure]
-
-
 @[simp] lemma cthickening_singleton {α : Type*} [pseudo_metric_space α]
   (x : α) {δ : ℝ} (hδ : 0 ≤ δ) :
   cthickening δ ({x} : set α) = closed_ball x δ :=

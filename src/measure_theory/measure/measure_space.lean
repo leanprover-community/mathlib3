@@ -415,7 +415,7 @@ begin
     ← measure_diff (Inter_subset _ k) (measurable_set.Inter h) (this _ (Inter_subset _ k)),
     diff_Inter, measure_Union_eq_supr],
   { congr' 1,
-    refine le_antisymm (supr_le_supr2 $ λ i, _) (supr_le_supr $ λ i, _),
+    refine le_antisymm (supr_mono' $ λ i, _) (supr_mono $ λ i, _),
     { rcases hd i k with ⟨j, hji, hjk⟩,
       use j,
       rw [← measure_diff hjk (h _) (this _ hjk)],
@@ -1467,7 +1467,7 @@ by { ext1 s hs, simp only [sum_apply, finset_sum_apply, hs, tsum_fintype] }
 
 @[simp] lemma sum_coe_finset (s : finset ι) (μ : ι → measure α) :
   sum (λ i : s, μ i) = ∑ i in s, μ i :=
-by simpa only [sum_fintype] using @fintype.sum_finset_coe _ _ s μ _
+by rw [sum_fintype, finset.sum_coe_sort s μ]
 
 @[simp] lemma ae_sum_eq [encodable ι] (μ : ι → measure α) : (sum μ).ae = ⨆ i, (μ i).ae :=
 filter.ext $ λ s, ae_sum_iff.trans mem_supr.symm

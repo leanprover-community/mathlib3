@@ -10,6 +10,8 @@ import data.polynomial.lifts
 import data.mv_polynomial.variables
 import data.finsupp.fin
 import logic.equiv.fin
+import algebra.big_operators.fin
+
 
 /-!
 # Equivalences between polynomial rings

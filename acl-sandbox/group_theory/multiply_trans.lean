@@ -13,7 +13,7 @@ import .wielandt
 import .ad_to_ulift
 
 import group_theory.group_action.embedding
-import group_theory.specific_groups.alternating
+-- import group_theory.specific_groups.alternating
 
 -- import set_theory.cardinal
 
@@ -493,9 +493,11 @@ begin
 end
 -/
 
+/- Now in mathlib
 lemma mem_fixing_subgroup_iff (s : set α) (g : M) :
   g ∈ fixing_subgroup M s ↔ ∀ (y : α) (hy : y ∈ s), g • y = y :=
 ⟨λ hg y hy, hg ⟨y, hy⟩, λ h ⟨y, hy⟩, h y hy⟩
+-/
 
 def sub_mul_action_of_fixing_subgroup (s : set α) :
   sub_mul_action (fixing_subgroup M s) α := {
@@ -507,17 +509,18 @@ begin
   intros hx hcx, apply hx,
   rw [← one_smul M x, ← inv_mul_self ↑c, mul_smul],
   change (↑c)⁻¹ • c • x ∈ s,
-  rw (mem_fixing_subgroup_iff M α s c⁻¹).mp (set_like.coe_mem c⁻¹) _ hcx,
+  rw (mul_action.mem_fixing_subgroup_iff M α s c⁻¹).mp (set_like.coe_mem c⁻¹) _ hcx,
   exact hcx,
 end }
 
-
-
+/-
 def example' {s : set α} : mul_action (fixing_subgroup M s) α :=
 infer_instance
 
 #print example'
 #check example'
+
+-/
 
 /- {
 one_smul := λ b, {by infer_instance }
@@ -682,344 +685,4 @@ end
 end multiple_transitivity
 end mul_action
 
-section finite_groups
-
-open mul_action
-open_locale classical
-
-variables (α : Type*) [fintype α]
-
-lemma unnamed [fintype α] :
-  mul_action.is_multiply_pretransitive (equiv.perm α) α (fintype.card α):=
-begin
-  apply is_pretransitive.mk,
-  intros x y,
-  let x' := equiv.of_bijective x.to_fun _,
-  let y' := equiv.of_bijective y.to_fun _,
-  use x'.symm.trans y',
-  ext i,
-  simp only [function.embedding.smul_apply, equiv.perm.smul_def, equiv.coe_trans,
-    function.comp_app, equiv.of_bijective_apply, function.embedding.to_fun_eq_coe,
-    embedding_like.apply_eq_iff_eq],
-  exact x'.left_inv i,
-  all_goals { rw fintype.bijective_iff_injective_and_card, split },
-  any_goals { try {exact fintype.card_fin (fintype.card α) } },
-  exact embedding_like.injective y,
-  exact embedding_like.injective x,
-end
-
-lemma unnamed_iff {G : Type*} [G : subgroup (equiv.perm α)]
-  (hmt : is_multiply_pretransitive ↥G α (fintype.card α)) :
-  G = ⊤ :=
-begin
-  rw eq_top_iff, intros k _,
-  obtain ⟨x⟩ := gimme_some (le_of_eq (cardinal.mk_fintype α).symm),
-  let hmt_eq := hmt.exists_smul_eq,
-  obtain ⟨g, hg⟩ := hmt_eq x (k • x),
-  suffices : k = g, { rw this, exact set_like.coe_mem g },
-  apply equiv.perm.ext, intro a,
-  suffices : ∃ i, a = x i,
-  { obtain ⟨i, hi⟩ := this, rw hi,
-    have : (g • x) i = (k • x) i, { exact congr_fun (congr_arg coe_fn hg) i, },
-    simp only [function.embedding.smul_apply, equiv.perm.smul_def] at this,
-    rw ← this,
-    refl },
-  suffices : function.surjective x.to_fun,
-  { obtain ⟨i,hi⟩ := this a, exact ⟨i, hi.symm⟩ },
-  suffices : function.bijective x.to_fun, exact this.right,
-  rw fintype.bijective_iff_injective_and_card,
-  exact ⟨embedding_like.injective x, fintype.card_fin (fintype.card α)⟩
-end
-
-lemma unnamed' [fintype α] :
-  mul_action.is_multiply_pretransitive (alternating_group α) α (fintype.card α - 2) :=
-begin
-  cases lt_or_ge (fintype.card α) 2 with h2 h2,
-  { rw nat.sub_eq_zero_of_le (le_of_lt h2),
-    apply is_zero_pretransitive },
-  -- fintype.card α ≥ 2
-  obtain ⟨n,hn⟩ := nat.le.dest h2,
-  have hn' : fintype.card α - 2 = n := norm_num.sub_nat_pos (fintype.card α) 2 n hn,
-  rw add_comm at hn,
-  have hn_le : n ≤ fintype.card α, { rw ← hn, exact le_self_add },
-
-  apply is_pretransitive.mk,
-  rw hn',
-  intros x y,
-
-  obtain ⟨x', hx'⟩ :=
-    may_extend hn_le (le_of_eq (cardinal.mk_fintype α).symm) x,
-  obtain ⟨y', hy'⟩ :=
-    may_extend hn_le (le_of_eq (cardinal.mk_fintype α).symm) y,
-  let heq := (unnamed α).exists_smul_eq,
-  obtain ⟨g, hg⟩ := heq x' y',
-  cases int.units_eq_one_or g.sign with h h,
-  { use ⟨g, equiv.perm.mem_alternating_group.mpr h⟩,
-    ext i,
-    simp only [function.embedding.smul_apply],
-    rw [← hx', ← hy', ← hg],
-    refl },
-  { have hg'1 : n + 1 < fintype.card α,
-    { rw ← hn, exact nat.lt.base (n + 1) },
-    have hg'2 : n < fintype.card α,
-    { apply lt_trans _ hg'1, exact lt_add_one n },
-
-    let g' := equiv.swap (y'.to_fun ⟨n+1, hg'1⟩) (y'.to_fun ⟨n, hg'2⟩),
-
-    have hg' : g'.sign = -1,
-    { rw equiv.perm.is_swap.sign_eq,
-      unfold equiv.perm.is_swap,
-      use (y'.to_fun ⟨n+1, hg'1⟩), use (y'.to_fun ⟨n, hg'2⟩),
-      split,
-      { intro h,
-        let h' := function.embedding.injective y' h,
-        simp only [subtype.mk_eq_mk] at h',
-        exact nat.succ_ne_self _ h' },
-      refl },
-
-    use g' * g,
-    { rw equiv.perm.mem_alternating_group,
-      simp only [equiv.perm.sign_mul, h, hg'],
-      norm_num },
-    ext i, simp only [function.embedding.smul_apply],
-    rw [← hx', ← hy', ← hg],
-
-      simp only [function.embedding.trans_apply, rel_embedding.coe_fn_to_embedding,
-        function.embedding.smul_apply, equiv.perm.smul_def],
-
-    change (g' * g) • _ = _,
-    rw ← smul_smul,
-    simp,
-    change (equiv.swap (y'.to_fun ⟨n+1, hg'1⟩) (y'.to_fun ⟨n, hg'2⟩))  _ = _,
-
-    refine equiv.swap_apply_of_ne_of_ne _ _,
-    { rw ← hg,
-      intro h,
-      simp only [function.embedding.to_fun_eq_coe, function.embedding.smul_apply,
-        equiv.perm.smul_def, embedding_like.apply_eq_iff_eq] at h,
-      let h' := fin.veq_of_eq h,
-      simp only [fin.val_eq_coe, fin.coe_cast_le] at h',
-      let hi := i.prop,
-      rw h' at hi,
-      simpa only [add_lt_iff_neg_left, not_lt_zero'] using hi } ,
-    { rw ← hg,
-      intro h,
-      simp only [function.embedding.to_fun_eq_coe, function.embedding.smul_apply,
-        equiv.perm.smul_def, embedding_like.apply_eq_iff_eq] at h,
-      let h' := fin.veq_of_eq h,
-      simp only [fin.val_eq_coe, fin.coe_cast_le] at h',
-      let hi := i.prop,
-      rw h' at hi,
-      simpa only [lt_self_iff_false] using hi} }
-end
-
-end finite_groups
-
-section MultiplePrimitivity
-
-namespace mul_action
-
-variables (M α : Type*) [group M] [mul_action M α]
-
-def is_multiply_preprimitive (n : ℕ) :=
-  is_multiply_pretransitive M α n ∧
-  (∀ (s : set α) (hs : #s = ↑(n - 1)),
-    is_preprimitive (fixing_subgroup M s)
-      (sub_mul_action_of_fixing_subgroup M α s))
-
-/-- The fixator of a subset of cardinal d in a k-primitive action
-acts (k-d) primitively on the remaining -/
-lemma remaining_primitivity (d : ℕ) (s : set α) (hs : ↑d = #s)
-  (n : ℕ)
-  (h : is_multiply_preprimitive M α n) :
-  is_multiply_preprimitive (fixing_subgroup M s) (sub_mul_action_of_fixing_subgroup M α s) (n-d) :=
-sorry
-
-lemma is_multiply_preprimitive_of_higher {n : ℕ}
-  {m : ℕ} (hmn : m ≤ n) (hα : ↑n ≤ #α)
-  (hn : is_multiply_preprimitive M α n) :
-  is_multiply_preprimitive M α m :=
-begin
---  is_preprimitive (mul_action.stabilizer M a) (sub_mul_action_of_stabilizer M α a)
-  split,
-  apply is_multiply_pretransitive_of_higher M α hn.left hmn hα,
-  intros s hs,
-
-  sorry
-end
-
-theorem stabilizer.is_multiply_preprimitive'
-  (hα' : is_preprimitive M α)
-  {n : ℕ} (a : α) :
-  -- (hα0 : ↑n ≤ #α) /- (hα : card_ge α n.succ) -/  :
-  is_multiply_preprimitive M α n.succ ↔
-  is_multiply_preprimitive (stabilizer M a) (sub_mul_action_of_stabilizer M α a) n :=
-begin
-  split,
-  { intros h,
-    split,
-    rw ← stabilizer.is_multiply_pretransitive M α hα'.to_is_pretransitive,
-    exact h.left,
-    intros s hs,
-
-
-
-   sorry, },
-  sorry,
-
-end
-
-lemma is_multiply_preprimitive_of_higher  {n : ℕ}
-  (hn : is_multiply_preprimitive M α n) {m : ℕ} (hmn : m ≤ n)
-  (hα : ↑n ≤ #α) :
-  is_multiply_preprimitive M α m := sorry
-
-lemma is_preprimitive_iff_is_one_preprimitive :
-  is_preprimitive M α ↔ is_multiply_preprimitive M α 1 :=
-
-theorem is_multiply_preprimitive_of_fixator {n d : ℕ} {s : finset α} (hs : fintype.card s = d)
-  (hα : is_multiply_preprimitive M α n) : is_multiply_preprimitive (fixed_by M s)
-
-#exit
-
- /- -- Now useless
-    { obtain ⟨l', hl', hl'n, hl'e⟩ := list.extend_nodup n.succ hn.left [a] (list.nodup_singleton a) _,
-      rw list.length_singleton at hl'e,
-      swap,
-      { simp only [list.length_singleton], exact nat.succ_le_succ (zero_le n) },
-      unfold card_ge,
-      lift l'.drop 1 to list ↥(sub_mul_action_of_stabilizer M α a) with l hl_coe,
-      swap,
-      { intros x hx,
-        change x ∈ (sub_mul_action_of_stabilizer M α a).carrier,
-        rw sub_mul_action_of_stabilizer_def,
-        simp only [set.mem_compl_eq, set.mem_singleton_iff],
-        suffices : a ∉ list.drop 1 l',
-        { intro h, apply this, rw ← h, exact hx, },
-        rw ← list.singleton_disjoint,
-        apply list.disjoint_of_nodup_append,
-        rw [← hl'e,  list.take_append_drop],
-        exact hl'n },
-      use l,
-      split,
-      { rw [← list.length_map, hl_coe, list.length_drop, hl',
-          ← nat.pred_eq_sub_one, nat.pred_succ] },
-      { rw ← list.nodup_map_iff (subtype.coe_injective),
-        rw hl_coe,
-        rw ← list.take_append_drop 1 l' at hl'n,
-        exact (list.nodup_append.mp hl'n).2.1 } },
--/
-
-
-
-example {α : Type*} (s : finset α) (x : ↥s) : ↑x ∈ s :=
-finset.coe_mem x
-
-example {α : Type*} (l : list α) (x : ↥l.to_finset) : ↑x ∈ l :=
-list.mem_to_finset.mp (finset.coe_mem x)
-
-
-
-example {α : Type*} (n : ℕ) (l : list α) :
-  (list.take n l).length = min n l.length :=
-begin
-refine list.length_take n l,
-end
-
-
-example {α : Type*} (s : set α) (x y : list ↥s) :
-   x = y ↔ (list.map coe x : list α) = (list.map coe y) :=
-begin
-  split,
-  intro h, rw h,
-  intro h, exact  (list.map_injective_iff.mpr (subtype.coe_injective)) h,
-end
-
-
-
-example : ∀ {α β γ δ : Type*} (f : α ↪ β) (g : γ ↪ δ) (x : α ↪ γ) (y : β ↪ δ)
-  (h : f.trans y = x.trans g),
-  ∀ (a : α), g (x a) = y (f a) :=
-begin
-  intros α β γ δ f g x y h a,
-  simp only [← trans_apply],
-  rw h,
-end
-
-
-
-section test
-
-open nat
-
-variables (n : ℕ) (α : Type*) (s : set α) (x : fin n.succ ↪ ↥s)
-#check function.embedding.trans x (function.embedding.subtype s)
-#check (fin.cast_le (n.le_succ)).to_embedding.trans  x
-#check (fin.cast_le (nat.lt_succ_self n)).to_embedding
-
-example : n ≤ n.succ := nat.le_succ n
-def subype_compl (a : α) : set α := {a}ᶜ
-
-#check function.embedding.subtype s
-
-
-#check set.image
-#check set.image_injective
-
-lemma argh1 : ∀ (n : ℕ) (α : Type*) (x : fin n ↪ α) (s : set α) (h : ∀ (i : fin n), x i ∈ s),
-  ∃ (x' : fin n ↪ (subtype s)),
-  x'.trans (subtype s) = x :=
-begin
-  intros n α x a h,
-  use λ i, ⟨x i, h i⟩,
-  intros i j hij,
-  simpa only [embedding_like.apply_eq_iff_eq] using hij,
-  ext i,
-  dsimp only [embedding_like.apply_eq_iff_eq], refl,
-end
-
-
-  /-
-  function.embedding.trans (fin.cast_le (nat.lt_succ_self n)).to_embedding  x
-  = function.embedding.trans x' (subtype (({a} : set α)ᶜ)) :=
-  sorry
--/
-
-
-lemma argh : ∀ (n : ℕ) (α : Type*) (x : fin n.succ ↪ α) (a : α)
-  (h : ∀ i, x i ≠ a),
-  ∃ (x' : fin n ↪ ↥({a} : set α)ᶜ),
-  (fin.cast_le (nat.le_succ n)).to_embedding.trans  x
-  = x'.trans (function.embedding.subtype ({a} : set α)ᶜ) :=
-
-  sorry
-
-
-
-
-
-end test
-
-
-
-example : ∀ (α : Type*), (card_ge α 2) ↔ nontrivial α :=
-begin
-  intro α,
-  split,
-  { rintro ⟨x, hxl, hxn⟩,
-    apply nontrivial.mk,
-    let a := list.nth_le x 0 _ , let b := list.nth_le x 1 _,
-    use a, use b, intro hab,
-    rw list.nodup_iff_nth_le_inj at hxn,
-    have : ¬(0 = 1), exact zero_ne_one, apply this,
-    apply hxn 0 1 _ _ _,
-    any_goals { rw hxl, norm_num },
-    exact hab },
-  { rintro ⟨a, b, hab⟩,
-    unfold card_ge, use ([a, b]),
-    simp [hab] }
-end
-
-
-
-example (α β : Type*) (s : set β) (f : α ↪ ↥s) : α ↪ β := f.trans (subtype _)
+.

@@ -91,11 +91,9 @@ begin
   refine ⟨_, λ i, _, λ i, _⟩,
   { rw neg_neg,
     exact (neg_equiv_self G).symm },
-  { rcases left_moves_neg_eq_right_moves i with ⟨j, rfl⟩,
-    rw move_left_neg,
+  { rw [←to_left_moves_neg.apply_symm_apply i, move_left_neg],
     apply impartial_neg },
-  { rcases right_moves_neg_eq_left_moves i with ⟨j, rfl⟩,
-    rw move_right_neg,
+  { rw [←to_right_moves_neg.apply_symm_apply i, move_right_neg],
     apply impartial_neg }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
@@ -187,12 +185,12 @@ lemma no_good_right_moves_iff_first_loses (G : pgame) [G.impartial] :
 begin
   rw [first_loses_of_equiv_iff (neg_equiv_self G), ←no_good_left_moves_iff_first_loses],
   refine ⟨λ h i, _, λ h i, _⟩,
-  { rcases left_moves_neg_eq_right_moves i with ⟨j, rfl⟩,
-    rw [move_left_neg, ←first_wins_of_equiv_iff (neg_equiv_self (G.move_right j))],
-    exact h j },
-  { rcases right_moves_eq_left_moves_neg i with ⟨j, rfl⟩,
-    rw [move_right_neg_symm, ←first_wins_of_equiv_iff (neg_equiv_self ((-G).move_left j))],
-    exact h j }
+  { rw [←to_left_moves_neg.apply_symm_apply i, move_left_neg,
+      ←first_wins_of_equiv_iff (neg_equiv_self (G.move_right (to_left_moves_neg.symm i)))],
+    apply h },
+  { rw [←to_left_moves_neg.symm_apply_apply i, move_right_neg_symm,
+      ←first_wins_of_equiv_iff (neg_equiv_self ((-G).move_left (to_left_moves_neg i)))],
+    apply h }
 end
 
 lemma good_left_move_iff_first_wins (G : pgame) [G.impartial] :

@@ -752,12 +752,18 @@ by { cases x, cases y, refl }
   (x + y).right_moves = (x.right_moves ⊕ y.right_moves) :=
 by { cases x, cases y, refl }
 
-/-- Converts a left move for `x` or `y` into a left move for `x + y` and viceversa. -/
+/-- Converts a left move for `x` or `y` into a left move for `x + y` and viceversa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
 def to_left_moves_add {x y : pgame} :
   x.left_moves ⊕ y.left_moves ≃ (x + y).left_moves :=
 equiv.cast (left_moves_add x y).symm
 
-/-- Converts a right move for `x` or `y` into a right move for `x + y` and viceversa. -/
+/-- Converts a right move for `x` or `y` into a right move for `x + y` and viceversa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
 def to_right_moves_add {x y : pgame} :
   x.right_moves ⊕ y.right_moves ≃ (x + y).right_moves :=
 equiv.cast (right_moves_add x y).symm

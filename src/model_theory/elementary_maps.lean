@@ -156,6 +156,24 @@ lemma comp_assoc (f : M ↪ₑ[L] N) (g : N ↪ₑ[L] P) (h : P ↪ₑ[L] Q) :
 
 end elementary_embedding
 
+instance foo : (constants_on M).Structure M :=
+constants_on.Structure id
+
+instance bar : L[[M]].Structure M :=
+language.sum_Structure _ _ M
+
+variables (L) (M)
+def elementary_diagram : L[[M]].Theory := L[[M]].complete_theory M
+
+variables {L} {M}
+
+def foo_elementary_embedding (N : Type*) [L.Structure N] [L[[M]].Structure N]
+  [(Lhom_with_constants L M).is_expansion_on N] [N ⊨ L.elementary_diagram M] :
+  M ↪ₑ[L] N :=
+⟨(coe : L[[M]].constants → N) ∘ sum.inr, λ n φ x, begin
+  
+end⟩
+
 namespace embedding
 
 /-- The Tarski-Vaught test for elementarity of an embedding. -/

@@ -951,18 +951,15 @@ theorem add_left_neg_le_zero : Π {x : pgame}, (-x) + x ≤ 0
 | ⟨xl, xr, xL, xR⟩ :=
 begin
   rw le_def,
-  refine ⟨λ i, _, is_empty_elim⟩,
-  change xr ⊕ xl at i,
+  refine ⟨λ i : xr ⊕ xl, _, is_empty_elim⟩,
   cases i,
   { -- If Left played in -x, Right responds with the same move in x.
-    right,
-    refine ⟨right_to_right_moves_add _ i, _⟩,
+    refine or.inr ⟨right_to_right_moves_add _ i, _⟩,
     convert @add_left_neg_le_zero (xR i),
     apply add_move_right_right },
   { -- If Left in x, Right responds with the same move in -x.
-    right,
     dsimp,
-    refine ⟨left_to_right_moves_add _ i, _⟩,
+    refine or.inr ⟨left_to_right_moves_add _ i, _⟩,
     convert @add_left_neg_le_zero (xL i),
     apply add_move_right_left }
 end

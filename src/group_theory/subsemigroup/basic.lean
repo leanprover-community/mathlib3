@@ -56,15 +56,23 @@ variables [has_add A] {t : set A}
 class mul_mem_class (S : Type*) (M : out_param $ Type*) [has_mul M] [set_like S M] :=
 (mul_mem : ∀ {s : S} {a b : M}, a ∈ s → b ∈ s → a * b ∈ s)
 
-export mul_mem_class (mul_mem)
+lemma mul_mem_class.mul_mem_coe {S M : Type*} [has_mul M] [set_like S M] [mul_mem_class S M]
+  {s : S} {x y : M} : x ∈ (s : set M) → y ∈ (s : set M) → x * y ∈ (s : set M) :=
+mul_mem_class.mul_mem
+
+export mul_mem_class (mul_mem mul_mem_coe)
 
 /-- `add_mem_class S M` says `S` is a type of subsets `s ≤ M` that are closed under `(+)` -/
 class add_mem_class (S : Type*) (M : out_param $ Type*) [has_add M] [set_like S M] :=
 (add_mem : ∀ {s : S} {a b : M}, a ∈ s → b ∈ s → a + b ∈ s)
 
-export add_mem_class (add_mem)
+lemma add_mem_class.add_mem_coe {S M : Type*} [has_add M] [set_like S M] [add_mem_class S M]
+  {s : S} {x y : M} : x ∈ (s : set M) → y ∈ (s : set M) → x + y ∈ (s : set M) :=
+add_mem_class.add_mem
 
-attribute [to_additive] mul_mem_class
+export add_mem_class (add_mem add_mem_coe)
+
+attribute [to_additive] mul_mem_class mul_mem_coe
 
 /-- A subsemigroup of a magma `M` is a subset closed under multiplication. -/
 structure subsemigroup (M : Type*) [has_mul M] :=
@@ -130,10 +138,6 @@ set_like.coe_injective hs
 
 variable (S)
 
-/-- A subsemigroup is closed under multiplication. -/
-@[to_additive "An `add_subsemigroup` is closed under addition."]
-protected theorem mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := subsemigroup.mul_mem' S
-
 /-- The subsemigroup `M` of the magma `M`. -/
 @[to_additive "The additive subsemigroup `M` of the magma `M`."]
 instance : has_top (subsemigroup M) :=
@@ -162,8 +166,8 @@ instance : inhabited (subsemigroup M) := ⟨⊥⟩
 instance : has_inf (subsemigroup M) :=
 ⟨λ S₁ S₂,
   { carrier := S₁ ∩ S₂,
-    mul_mem' := λ _ _ ⟨hx, hx'⟩ ⟨hy, hy'⟩,
-      ⟨S₁.mul_mem hx hy, S₂.mul_mem hx' hy'⟩ }⟩
+    mul_mem' := λ x y ⟨hx, hx'⟩ ⟨hy, hy'⟩,
+      ⟨mul_mem_coe hx hy, mul_mem_coe hx' hy'⟩ }⟩
 
 @[simp, to_additive]
 lemma coe_inf (p p' : subsemigroup M) : ((p ⊓ p' : subsemigroup M) : set M) = p ∩ p' := rfl
@@ -176,7 +180,7 @@ instance : has_Inf (subsemigroup M) :=
 ⟨λ s,
 { carrier := ⋂ t ∈ s, ↑t,
   mul_mem' := λ x y hx hy, set.mem_bInter $ λ i h,
-    i.mul_mem (by apply set.mem_Inter₂.1 hx i h) (by apply set.mem_Inter₂.1 hy i h) }⟩
+    mul_mem_coe (by apply set.mem_Inter₂.1 hx i h) (by apply set.mem_Inter₂.1 hy i h) }⟩
 
 @[simp, norm_cast, to_additive]
 lemma coe_Inf (S : set (subsemigroup M)) : ((Inf S : subsemigroup M) : set M) = ⋂ s ∈ S, ↑s := rfl

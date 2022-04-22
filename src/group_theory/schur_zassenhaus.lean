@@ -42,10 +42,6 @@ instance : inhabited H.quotient_diff := quotient.inhabited _
 
 variables {H}
 
-instance tada [hH : H.normal] : quotient_action Gᵐᵒᵖ H :=
-⟨λ a b c h, by rwa [mul_opposite.smul_eq_mul_unop, mul_opposite.smul_eq_mul_unop,
-  mul_inv_rev, mul_assoc, hH.mem_comm_iff, mul_assoc, mul_inv_cancel_right]⟩
-
 lemma smul_diff_smul' [is_commutative H] [hH : H.normal] (g : Gᵐᵒᵖ) :
   diff (monoid_hom.id H) (g • α) (g • β) = ⟨g.unop⁻¹ * (diff (monoid_hom.id H) α β : H) * g.unop,
     hH.mem_comm ((congr_arg (∈ H) (mul_inv_cancel_left _ _)).mpr (set_like.coe_mem _))⟩ :=

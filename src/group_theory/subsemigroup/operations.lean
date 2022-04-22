@@ -707,7 +707,7 @@ An additive semigroup homomorphism `f : M →+ N` with a left-inverse `g : N →
 equivalence between `M` and `f.srange`.
 
 This is a bidirectional version of `add_hom.srange_restrict`. "-/, simps {simp_rhs := tt}]
-def of_left_inverse' (f : M →ₙ* N) {g : N → M} (h : function.left_inverse g f) : M ≃* f.srange :=
+def of_left_inverse (f : M →ₙ* N) {g : N → M} (h : function.left_inverse g f) : M ≃* f.srange :=
 { to_fun := f.srange_restrict,
   inv_fun := g ∘ (mul_mem_class.subtype f.srange),
   left_inv := h,

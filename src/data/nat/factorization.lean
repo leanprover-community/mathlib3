@@ -276,7 +276,7 @@ begin
       nat.div_mul_cancel h],
 end
 
-lemma dvd_iff_div_factorization_eq_tsub (d n : ℕ) (hd : d ≠ 0) (hdn : d ≤ n) :
+lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ n) :
   d ∣ n ↔ (n / d).factorization = n.factorization - d.factorization :=
 begin
   refine ⟨factorization_div, _⟩,

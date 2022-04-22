@@ -39,7 +39,7 @@ We also provide several lemmas that can be used as alternative constructors for 
   convex, then `E` is a strictly convex space;
 
 - `strict_convex_space.of_norm_add`: if `∥x + y∥ = ∥x∥ + ∥y∥` implies `same_ray ℝ x y` for all
-  `x y : E`, then `E` is a strictly convex space.
+  nonzero `x y : E`, then `E` is a strictly convex space.
 
 ## Implementation notes
 
@@ -85,8 +85,9 @@ lemma strict_convex_space.of_strict_convex_closed_unit_ball
 ⟨λ r hr, by simpa only [smul_closed_unit_ball_of_nonneg hr.le] using h.smul r⟩
 
 /-- If `∥x + y∥ = ∥x∥ + ∥y∥` implies that `x y : E` are in the same ray, then `E` is a strictly
-convex space. -/
-lemma strict_convex_space.of_norm_add (h : ∀ x y : E, ∥x + y∥ = ∥x∥ + ∥y∥ → same_ray ℝ x y) :
+convex space. See also a more -/
+lemma strict_convex_space.of_norm_add
+  (h : ∀ x y : E, x ≠ 0 → y ≠ 0 → ∥x + y∥ = ∥x∥ + ∥y∥ → same_ray ℝ x y) :
   strict_convex_space ℝ E :=
 begin
   refine strict_convex_space.of_strict_convex_closed_unit_ball ℝ (λ x hx y hy hne a b ha hb hab, _),
@@ -96,14 +97,15 @@ begin
   cases hx, { exact (convex_closed_ball _ _).combo_interior_self_mem_interior hx hy' ha hb.le hab },
   cases hy, { exact (convex_closed_ball _ _).combo_self_interior_mem_interior hx' hy ha.le hb hab },
   rw [interior_closed_ball (0 : E) one_ne_zero, mem_ball_zero_iff],
-  have hx₁ : ∥x∥ = 1, from mem_sphere_zero_iff_norm.1 hx,
-  have hy₁ : ∥y∥ = 1, from mem_sphere_zero_iff_norm.1 hy,
   have ha' : ∥a∥ = a, from real.norm_of_nonneg ha.le,
   have hb' : ∥b∥ = b, from real.norm_of_nonneg hb.le,
+  have hax : a • x ≠ 0, from smul_ne_zero.2 ⟨ha.ne', ne_of_mem_sphere hx one_ne_zero⟩,
+  have hby : b • y ≠ 0, from smul_ne_zero.2 ⟨hb.ne', ne_of_mem_sphere hy one_ne_zero⟩,
+  rw mem_sphere_zero_iff_norm at hx hy,
   calc ∥a • x + b • y∥ < ∥a • x∥ + ∥b • y∥ : (norm_add_le _ _).lt_of_ne (λ H, hne _)
-  ... = 1 : by simpa only [norm_smul, hx₁, hy₁, mul_one, ha', hb'],
-  simpa only [norm_smul, hx₁, hy₁, ha', hb', mul_one, smul_comm a, smul_right_inj ha.ne',
-    smul_right_inj hb.ne'] using (h _ _ H).norm_smul_eq.symm
+  ... = 1 : by simpa only [norm_smul, hx, hy, mul_one, ha', hb'],
+  simpa only [norm_smul, hx, hy, ha', hb', mul_one, smul_comm a, smul_right_inj ha.ne',
+    smul_right_inj hb.ne'] using (h _ _ hax hby H).norm_smul_eq.symm
 end
 
 variables [strict_convex_space ℝ E] {x y z : E} {a b r : ℝ}

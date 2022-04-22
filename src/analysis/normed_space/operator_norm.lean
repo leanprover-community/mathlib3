@@ -479,10 +479,6 @@ f.to_linear_map.to_add_monoid_hom.isometry_iff_norm
 
 variables [ring_hom_isometric σ₁₂] (f : E →SL[σ₁₂] F)
 
-/-- A continuous linear map is automatically uniformly continuous. -/
-protected theorem uniform_continuous : uniform_continuous f :=
-f.lipschitz.uniform_continuous
-
 @[simp, nontriviality] lemma op_norm_subsingleton [subsingleton E] : ∥f∥ = 0 :=
 begin
   refine le_antisymm _ (norm_nonneg _),
@@ -844,6 +840,7 @@ section smul_linear
 
 variables (𝕜) (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
   [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
+  [normed_space 𝕜' M₁] [is_scalar_tower 𝕜 𝕜' M₁]
 
 /-- Scalar multiplication as a continuous bilinear map. -/
 def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
@@ -861,6 +858,31 @@ begin
   { specialize h 1,
     rw [to_span_singleton_apply, norm_smul, mul_comm] at h,
     exact (mul_le_mul_right (by simp)).mp h, },
+end
+
+variables {𝕜}
+
+/-- The norm of `lsmul` is at most 1 in any semi-normed group. -/
+lemma op_norm_lsmul_le : ∥(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] E →L[𝕜] E)∥ ≤ 1 :=
+begin
+  refine continuous_linear_map.op_norm_le_bound _ zero_le_one (λ x, _),
+  simp_rw [one_mul],
+  refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg x) (λ y, _),
+  simp_rw [lsmul_apply, norm_smul],
+end
+
+/-- The norm of `lsmul` equals 1 in any nontrivial normed group. -/
+@[simp] lemma op_norm_lsmul [nontrivial M₁] : ∥(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] M₁ →L[𝕜] M₁)∥ = 1 :=
+begin
+  refine continuous_linear_map.op_norm_eq_of_bounds zero_le_one (λ x, _) (λ N hN h, _),
+  { simp_rw [one_mul],
+    refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg x) (λ y, _),
+    simp_rw [lsmul_apply, norm_smul] },
+  obtain ⟨y, hy⟩ := exists_ne (0 : M₁),
+  have := le_of_op_norm_le _ (h 1) y,
+  simp_rw [lsmul_apply, one_smul, norm_one, mul_one] at this,
+  refine le_of_mul_le_mul_right _ (norm_pos_iff.mpr hy),
+  simp_rw [one_mul, this]
 end
 
 end smul_linear
@@ -1164,10 +1186,11 @@ section
 variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
   [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜₃ G] [normed_space 𝕜 Fₗ] (c : 𝕜)
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃}
-  [ring_hom_isometric σ₁₂] (f g : E →SL[σ₁₂] F) (x y z : E)
+  (f g : E →SL[σ₁₂] F) (x y z : E)
 
-lemma linear_map.bound_of_shell (f : E →ₛₗ[σ₁₂] F) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜}
-  (hc : 1 < ∥c∥) (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) (x : E) :
+lemma linear_map.bound_of_shell [ring_hom_isometric σ₁₂] (f : E →ₛₗ[σ₁₂] F) {ε C : ℝ}
+  (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
+  (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) (x : E) :
   ∥f x∥ ≤ C * ∥x∥ :=
 begin
   by_cases hx : x = 0, { simp [hx] },
@@ -1200,7 +1223,7 @@ section op_norm
 open set real
 
 /-- An operator is zero iff its norm vanishes. -/
-theorem op_norm_zero_iff : ∥f∥ = 0 ↔ f = 0 :=
+theorem op_norm_zero_iff [ring_hom_isometric σ₁₂] : ∥f∥ = 0 ↔ f = 0 :=
 iff.intro
   (λ hn, continuous_linear_map.ext (λ x, norm_le_zero_iff.1
     (calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
@@ -1221,8 +1244,8 @@ instance norm_one_class [nontrivial E] : norm_one_class (E →L[𝕜] E) := ⟨n
 
 /-- Continuous linear maps themselves form a normed space with respect to
     the operator norm. -/
-instance to_normed_group : normed_group (E →SL[σ₁₂] F) :=
-normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
+instance to_normed_group [ring_hom_isometric σ₁₂] : normed_group (E →SL[σ₁₂] F) :=
+normed_group.of_core _ ⟨λ f, op_norm_zero_iff f, op_norm_add_le, op_norm_neg⟩
 
 /-- Continuous linear maps form a normed ring with respect to the operator norm. -/
 instance to_normed_ring : normed_ring (E →L[𝕜] E) :=
@@ -1238,7 +1261,8 @@ instance to_normed_algebra [nontrivial E] : normed_algebra 𝕜 (E →L[𝕜] E)
 
 variable {f}
 
-lemma homothety_norm [nontrivial E] (f : E →SL[σ₁₂] F) {a : ℝ} (hf : ∀x, ∥f x∥ = a * ∥x∥) :
+lemma homothety_norm [ring_hom_isometric σ₁₂] [nontrivial E] (f : E →SL[σ₁₂] F) {a : ℝ}
+  (hf : ∀x, ∥f x∥ = a * ∥x∥) :
   ∥f∥ = a :=
 begin
   obtain ⟨x, hx⟩ : ∃ (x : E), x ≠ 0 := exists_ne 0,
@@ -1296,7 +1320,7 @@ section completeness
 open_locale topological_space
 open filter
 
-variables {E' : Type*} [semi_normed_group E'] [normed_space 𝕜 E']
+variables {E' : Type*} [semi_normed_group E'] [normed_space 𝕜 E'] [ring_hom_isometric σ₁₂]
 
 /-- Construct a bundled continuous (semi)linear map from a map `f : E → F` and a proof of the fact
 that it belongs to the closure of the image of a bounded set `s : set (E →SL[σ₁₂] F)` under coercion
@@ -1417,7 +1441,7 @@ extend_unique _ _ _ _ _ (zero_comp _)
 end
 
 section
-variables {N : ℝ≥0} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥)
+variables {N : ℝ≥0} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥) [ring_hom_isometric σ₁₂]
 
 local notation `ψ` := f.extend e h_dense (uniform_embedding_of_bound _ h_e).to_uniform_inducing
 
@@ -1457,7 +1481,8 @@ end continuous_linear_map
 
 namespace linear_isometry
 
-@[simp] lemma norm_to_continuous_linear_map [nontrivial E] (f : E →ₛₗᵢ[σ₁₂] F) :
+@[simp] lemma norm_to_continuous_linear_map [nontrivial E] [ring_hom_isometric σ₁₂]
+  (f : E →ₛₗᵢ[σ₁₂] F) :
   ∥f.to_continuous_linear_map∥ = 1 :=
 f.to_continuous_linear_map.homothety_norm $ by simp
 
@@ -1466,7 +1491,8 @@ variables {σ₁₃ : 𝕜 →+* 𝕜₃} [ring_hom_comp_triple σ₁₂ σ₂�
 include σ₁₃
 /-- Postcomposition of a continuous linear map with a linear isometry preserves
 the operator norm. -/
-lemma norm_to_continuous_linear_map_comp (f : F →ₛₗᵢ[σ₂₃] G) {g : E →SL[σ₁₂] F} :
+lemma norm_to_continuous_linear_map_comp [ring_hom_isometric σ₁₂] (f : F →ₛₗᵢ[σ₂₃] G)
+  {g : E →SL[σ₁₂] F} :
   ∥f.to_continuous_linear_map.comp g∥ = ∥g∥ :=
 op_norm_ext (f.to_continuous_linear_map.comp g) g
   (λ x, by simp only [norm_map, coe_to_continuous_linear_map, coe_comp'])
@@ -1594,12 +1620,6 @@ protected lemma antilipschitz (e : E ≃SL[σ₁₂] F) :
   antilipschitz_with (nnnorm (e.symm : F →SL[σ₂₁] E)) e :=
 e.symm.lipschitz.to_right_inverse e.left_inv
 
-include σ₂₁
-/-- A continuous linear equiv is a uniform embedding. -/
-lemma uniform_embedding [ring_hom_isometric σ₁₂] (e : E ≃SL[σ₁₂] F) : uniform_embedding e :=
-e.antilipschitz.uniform_embedding e.lipschitz.uniform_continuous
-omit σ₂₁
-
 lemma one_le_norm_mul_norm_symm [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ₁₂] F) :
   1 ≤ ∥(e : E →SL[σ₁₂] F)∥ * ∥(e.symm : F →SL[σ₂₁] E)∥ :=
 begin
@@ -1675,21 +1695,6 @@ linear_equiv.coord_self 𝕜 E x h
 end
 
 end continuous_linear_equiv
-
-variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂]
-  [normed_space 𝕜 E] [normed_space 𝕜₂ F] {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜}
-  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₁]
-
-include σ₂₁
-lemma linear_equiv.uniform_embedding (e : E ≃ₛₗ[σ₁₂] F) (h₁ : continuous e)
-  (h₂ : continuous e.symm) : uniform_embedding e :=
-continuous_linear_equiv.uniform_embedding
-({ continuous_to_fun := h₁,
-  continuous_inv_fun := h₂,
-  .. e } : E ≃SL[σ₁₂] F)
-
-omit σ₂₁
 
 end normed
 

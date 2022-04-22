@@ -467,9 +467,9 @@ end Well_order
 isomorphism. -/
 instance ordinal.is_equivalent : setoid Well_order :=
 { r     := λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≃r s),
-  iseqv := ⟨λ⟨α, r, _⟩, ⟨rel_iso.refl _⟩,
-    λ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, ⟨e.symm⟩,
-    λ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨e₁⟩ ⟨e₂⟩, ⟨e₁.trans e₂⟩⟩ }
+  iseqv := ⟨λ ⟨α, r, _⟩, ⟨rel_iso.refl _⟩,
+    λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, ⟨e.symm⟩,
+    λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨e₁⟩ ⟨e₂⟩, ⟨e₁.trans e₂⟩⟩ }
 
 /-- `ordinal.{u}` is the type of well orders in `Type u`, up to order isomorphism. -/
 def ordinal : Type (u + 1) := quotient ordinal.is_equivalent
@@ -503,7 +503,7 @@ theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
   type r = type s ↔ nonempty (r ≃r s) := quotient.eq
 
-@[simp] lemma type_lt (o : ordinal) : type ((<) : o.out.α → o.out.α → Prop) = o :=
+@[simp] theorem type_lt (o : ordinal) : type ((<) : o.out.α → o.out.α → Prop) = o :=
 begin
   change type o.out.r = _,
   refine eq.trans _ (quotient.out_eq o),

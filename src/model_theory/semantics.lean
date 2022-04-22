@@ -27,8 +27,8 @@ sentence of `T` is realized in `M`. Also denoted `T ⊨ φ`.
 * `first_order.language.bounded_formula.realize_to_prenex` shows that the prenex normal form of a
 formula has the same realization as the original formula.
 * Several results in this file show that syntactic constructions such as `relabel`, `cast_le`,
-`lift_at`, `subst`, and the actions of language maps commute with realization of terms, formulas, sentences,
-and theories.
+`lift_at`, `subst`, and the actions of language maps commute with realization of terms, formulas,
+sentences, and theories.
 
 ## Implementation Notes
 * Formulas use a modified version of de Bruijn variables. Specifically, a `L.bounded_formula α n`

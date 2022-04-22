@@ -147,7 +147,7 @@ lemma discr_prime_pow_ne_two' [is_cyclotomic_extension {p ^ (k + 1)} K L] [hp : 
 by simpa [totient_prime_pow hp.out (succ_pos k)] using discr_prime_pow_ne_two hζ hirr hirr₁ hk
 
 /-- If `p` is a prime and `is_cyclotomic_extension {p ^ k} K L`, then the discriminant of
-`hζ.power_basis K` is `(-1) ^ ((p ^ k.totient) / 2) * p ^ (p ^ (k - 1) * ((p - 1) * k - 1))`
+`hζ.power_basis K` is `(-1) ^ ((p ^ k).totient / 2) * p ^ (p ^ (k - 1) * ((p - 1) * k - 1))`
 if `irreducible (cyclotomic (p ^ k) K))`, `irreducible (cyclotomic p K)`. Beware that the
 formula uses `1 / 2 = 0` and `0 - 1 = 0` and it is used only to have a uniform result. See also
 `discr_prime_pow_eq_unit_mul_pow`. -/

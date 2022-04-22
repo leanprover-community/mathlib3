@@ -56,7 +56,7 @@ rfl
 lemma symm_diff_eq_xor (p q : Prop) : p ∆ q = xor p q := rfl
 
 section generalized_boolean_algebra
-variables {α : Type*} [generalized_boolean_algebra α] (a b c : α)
+variables {α : Type*} [generalized_boolean_algebra α] (a b c d : α)
 
 lemma symm_diff_comm : a ∆ b = b ∆ a := by simp only [(∆), sup_comm]
 
@@ -153,6 +153,14 @@ lemma symm_diff_assoc : a ∆ b ∆ c = a ∆ (b ∆ c) :=
 by rw [symm_diff_symm_diff_left, symm_diff_symm_diff_right]
 
 instance symm_diff_is_assoc : is_associative α (∆) := ⟨symm_diff_assoc⟩
+
+lemma symm_diff_left_comm : a ∆ (b ∆ c) = b ∆ (a ∆ c) :=
+by simp_rw [←symm_diff_assoc, symm_diff_comm]
+
+lemma symm_diff_right_comm : a ∆ b ∆ c = a ∆ c ∆ b := by simp_rw [symm_diff_assoc, symm_diff_comm]
+
+lemma symm_diff_symm_diff_symm_diff_comm : (a ∆ b) ∆ (c ∆ d) = (a ∆ c) ∆ (b ∆ d) :=
+by simp_rw [symm_diff_assoc, symm_diff_left_comm]
 
 @[simp] lemma symm_diff_symm_diff_self : a ∆ (a ∆ b) = b := by simp [←symm_diff_assoc]
 

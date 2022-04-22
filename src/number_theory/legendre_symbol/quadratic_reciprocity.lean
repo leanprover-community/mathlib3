@@ -156,13 +156,14 @@ end
 
 /-- Gauss' lemma. The legendre symbol can be computed by considering the number of naturals less
   than `p/2` such that `(a * x) % p > p / 2` -/
-lemma gauss_lemma {a : ℤ} [fact (p % 2 = 1)] (ha0 : (a : zmod p) ≠ 0) :
+lemma gauss_lemma {a : ℤ} (hp : p ≠ 2) (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym p a = (-1) ^ ((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card :=
-have (legendre_sym p a : zmod p) = (((-1)^((Ico 1 (p / 2).succ).filter
-    (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card : ℤ) : zmod p),
-  by rw [legendre_sym_eq_pow, legendre_symbol.gauss_lemma_aux p ha0]; simp,
 begin
+  haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
+  have : (legendre_sym p a : zmod p) = (((-1)^((Ico 1 (p / 2).succ).filter
+    (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card : ℤ) : zmod p) :=
+    by { rw [legendre_sym_eq_pow, legendre_symbol.gauss_lemma_aux p ha0]; simp },
   cases legendre_sym_eq_one_or_neg_one p a ha0;
   cases neg_one_pow_eq_or ℤ ((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card;
@@ -178,26 +179,28 @@ begin
   { simp only [h, iff_false], tauto }
 end
 
-lemma eisenstein_lemma [fact (p % 2 = 1)] {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a : zmod p) ≠ 0) :
+lemma eisenstein_lemma (hp : p ≠ 2) {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym p a = (-1)^∑ x in Ico 1 (p / 2).succ, (x * a) / p :=
 begin
+  haveI hp' : fact (p % 2 = 1) := ⟨nat.prime.mod_two_eq_one_iff_ne_two.mpr hp⟩,
   have ha0' : ((a : ℤ) : zmod p) ≠ 0 := by { norm_cast, exact ha0 },
-  rw [neg_one_pow_eq_pow_mod_two, gauss_lemma p ha0', neg_one_pow_eq_pow_mod_two,
+  rw [neg_one_pow_eq_pow_mod_two, gauss_lemma p hp ha0', neg_one_pow_eq_pow_mod_two,
       (by norm_cast : ((a : ℤ) : zmod p) = (a : zmod p)),
       show _ = _, from legendre_symbol.eisenstein_lemma_aux p ha1 ha0]
 end
 
 /-- **Quadratic reciprocity theorem** -/
-theorem quadratic_reciprocity [hp1 : fact (p % 2 = 1)] [hq1 : fact (q % 2 = 1)] (hpq : p ≠ q) :
+theorem quadratic_reciprocity (hp1 : p ≠ 2) (hq1 : q ≠ 2) (hpq : p ≠ q) :
   legendre_sym q p * legendre_sym p q = (-1) ^ ((p / 2) * (q / 2)) :=
 have hpq0 : (p : zmod q) ≠ 0, from prime_ne_zero q p hpq.symm,
 have hqp0 : (q : zmod p) ≠ 0, from prime_ne_zero p q hpq,
-by rw [eisenstein_lemma q hp1.1 hpq0, eisenstein_lemma p hq1.1 hqp0,
+by rw [eisenstein_lemma q hq1 (nat.prime.mod_two_eq_one_iff_ne_two.mpr hp1) hpq0,
+       eisenstein_lemma p hp1 (nat.prime.mod_two_eq_one_iff_ne_two.mpr hq1) hqp0,
   ← pow_add, legendre_symbol.sum_mul_div_add_sum_mul_div_eq_mul q p hpq0, mul_comm]
 
-lemma legendre_sym_two [hp1 : fact (p % 2 = 1)] : legendre_sym p 2 = (-1) ^ (p / 4 + p / 2) :=
+lemma legendre_sym_two (hp2 : p ≠ 2) : legendre_sym p 2 = (-1) ^ (p / 4 + p / 2) :=
 begin
-  have hp2 : p ≠ 2, from mt (congr_arg (% 2)) (by simpa using hp1.1),
+  have hp1 := nat.prime.mod_two_eq_one_iff_ne_two.mpr hp2,
   have hp22 : p / 2 / 2 = _ := legendre_symbol.div_eq_filter_card (show 0 < 2, from dec_trivial)
     (nat.div_le_self (p / 2) 2),
   have hcard : (Ico 1 (p / 2).succ).card = p / 2, by simp,
@@ -205,7 +208,7 @@ begin
     from λ x hx, have h2xp : 2 * x < p,
         from calc 2 * x ≤ 2 * (p / 2) : mul_le_mul_of_nonneg_left
           (le_of_lt_succ $ (mem_Ico.mp hx).2) dec_trivial
-        ... < _ : by conv_rhs {rw [← div_add_mod p 2, hp1.1]}; exact lt_succ_self _,
+        ... < _ : by conv_rhs {rw [← div_add_mod p 2, hp1]}; exact lt_succ_self _,
       by rw [← nat.cast_two, ← nat.cast_mul, val_cast_of_lt h2xp],
   have hdisj : disjoint
       ((Ico 1 (p / 2).succ).filter (λ x, p / 2 < ((2 : ℕ) * x : zmod p).val))
@@ -222,7 +225,7 @@ begin
     end,
   have hp2' := prime_ne_zero p 2 hp2,
   rw (by norm_cast : ((2 : ℕ) : zmod p) = (2 : ℤ)) at *,
-  erw [gauss_lemma p hp2',
+  erw [gauss_lemma p hp2 hp2',
       neg_one_pow_eq_pow_mod_two, @neg_one_pow_eq_pow_mod_two _ _ (p / 4 + p / 2)],
   refine congr_arg2 _ rfl ((eq_iff_modeq_nat 2).1 _),
   rw [show 4 = 2 * 2, from rfl, ← nat.div_div_eq_div_mul, hp22, nat.cast_add,
@@ -230,25 +233,25 @@ begin
       ← nat.cast_add, ← card_disjoint_union hdisj, hunion, hcard]
 end
 
-lemma exists_sq_eq_two_iff [hp1 : fact (p % 2 = 1)] :
+lemma exists_sq_eq_two_iff (hp1 : p ≠ 2) :
   (∃ a : zmod p, a ^ 2 = 2) ↔ p % 8 = 1 ∨ p % 8 = 7 :=
 have hp2 : ((2 : ℤ) : zmod p) ≠ 0,
-  from prime_ne_zero p 2 (λ h, by simpa [h] using hp1.1),
+  from prime_ne_zero p 2 (λ h, by simpa [h] using hp1),
 have hpm4 : p % 4 = p % 8 % 4, from (nat.mod_mul_left_mod p 2 4).symm,
 have hpm2 : p % 2 = p % 8 % 2, from (nat.mod_mul_left_mod p 4 2).symm,
 begin
   rw [show (2 : zmod p) = (2 : ℤ), by simp, ← legendre_sym_eq_one_iff p hp2],
-  erw [legendre_sym_two p, neg_one_pow_eq_one_iff_even (show (-1 : ℤ) ≠ 1, from dec_trivial),
+  erw [legendre_sym_two p hp1, neg_one_pow_eq_one_iff_even (show (-1 : ℤ) ≠ 1, from dec_trivial),
     even_add, even_div, even_div],
   have := nat.mod_lt p (show 0 < 8, from dec_trivial),
-  resetI, rw fact_iff at hp1,
-  revert this hp1,
+  have hp := nat.prime.mod_two_eq_one_iff_ne_two.mpr hp1,
+  revert this hp,
   erw [hpm4, hpm2],
   generalize hm : p % 8 = m, unfreezingI {clear_dependent p},
   dec_trivial!,
 end
 
-lemma exists_sq_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) [hq1 : fact (q % 2 = 1)] :
+lemma exists_sq_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q ≠ 2) :
   (∃ a : zmod p, a ^ 2 = q) ↔ ∃ b : zmod q, b ^ 2 = p :=
 if hpq : p = q then by substI hpq else
 have h1 : ((p / 2) * (q / 2)) % 2 = 0,
@@ -256,10 +259,10 @@ have h1 : ((p / 2) * (q / 2)) % 2 = 0,
     (dvd_mul_of_dvd_left ((dvd_iff_mod_eq_zero _ _).2 $
     by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp1]; refl) _),
 begin
-  haveI hp_odd : fact (p % 2 = 1) := ⟨odd_of_mod_four_eq_one hp1⟩,
+  have hp_odd : p ≠ 2 := by { by_contra, simp [h] at hp1, norm_num at hp1, },
   have hpq0 : (p : zmod q) ≠ 0 := prime_ne_zero q p (ne.symm hpq),
   have hqp0 : (q : zmod p) ≠ 0 := prime_ne_zero p q hpq,
-  have := quadratic_reciprocity p q hpq,
+  have := quadratic_reciprocity p q hp_odd hq1 hpq,
   rw [neg_one_pow_eq_pow_mod_two, h1, legendre_sym, legendre_sym, int.cast_coe_nat,
     int.cast_coe_nat, if_neg hqp0, if_neg hpq0] at this,
   rw [euler_criterion q hpq0, euler_criterion p hqp0],
@@ -273,11 +276,11 @@ have h1 : ((p / 2) * (q / 2)) % 2 = 1,
     (by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hp3]; refl)
     (by rw [← mod_mul_right_div_self, show 2 * 2 = 4, from rfl, hq3]; refl),
 begin
-  haveI hp_odd : fact (p % 2 = 1) := ⟨odd_of_mod_four_eq_three hp3⟩,
-  haveI hq_odd : fact (q % 2 = 1) := ⟨odd_of_mod_four_eq_three hq3⟩,
+  have hp_odd : p ≠ 2 := by { by_contra, simp [h] at hp3, norm_num at hp3, },
+  have hq_odd : q ≠ 2 := by { by_contra, simp [h] at hq3, norm_num at hq3, },
   have hpq0 : (p : zmod q) ≠ 0 := prime_ne_zero q p (ne.symm hpq),
   have hqp0 : (q : zmod p) ≠ 0 := prime_ne_zero p q hpq,
-  have := quadratic_reciprocity p q hpq,
+  have := quadratic_reciprocity p q hp_odd hq_odd hpq,
   rw [neg_one_pow_eq_pow_mod_two, h1, legendre_sym, legendre_sym, int.cast_coe_nat,
     int.cast_coe_nat, if_neg hpq0, if_neg hqp0] at this,
   rw [euler_criterion q hpq0, euler_criterion p hqp0],

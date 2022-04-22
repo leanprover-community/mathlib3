@@ -226,14 +226,18 @@ begin
   exact sqrt_le_left
 end
 
+lemma sqrt_lt (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x < y ↔ x < y ^ 2 :=
+by rw [←sqrt_lt_sqrt_iff hx, sqrt_sq hy]
+
+lemma sqrt_lt' (hy : 0 < y) : sqrt x < y ↔ x < y ^ 2 :=
+by rw [←sqrt_lt_sqrt_iff_of_pos (pow_pos hy _), sqrt_sq hy.le]
+
 /- note: if you want to conclude `x ≤ sqrt y`, then use `le_sqrt_of_sq_le`.
    if you have `x > 0`, consider using `le_sqrt'` -/
 theorem le_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
-by rw [mul_self_le_mul_self_iff hx (sqrt_nonneg _), sq, mul_self_sqrt hy]
+le_iff_le_iff_lt_iff_lt.2 $ sqrt_lt hy hx
 
-theorem le_sqrt' (hx : 0 < x) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
-by { rw [sqrt, ← nnreal.coe_mk x hx.le, nnreal.coe_le_coe, nnreal.le_sqrt_iff,
-  real.le_to_nnreal_iff_coe_le', sq, nnreal.coe_mul], exact mul_pos hx hx }
+lemma le_sqrt' (hx : 0 < x) : x ≤ sqrt y ↔ x ^ 2 ≤ y := le_iff_le_iff_lt_iff_lt.2 $ sqrt_lt' hx
 
 theorem abs_le_sqrt (h : x^2 ≤ y) : |x| ≤ sqrt y :=
 by rw ← sqrt_sq_eq_abs; exact sqrt_le_sqrt h
@@ -299,13 +303,9 @@ by rw [sqrt_div_self', one_div]
 lemma lt_sqrt (hx : 0 ≤ x) : x < sqrt y ↔ x ^ 2 < y :=
 by rw [←sqrt_lt_sqrt_iff (sq_nonneg _), sqrt_sq hx]
 
-lemma sq_lt : x^2 < y ↔ -sqrt y < x ∧ x < sqrt y :=
-by rw [←abs_lt, ←sq_abs, lt_sqrt (abs_nonneg _)]
 
 theorem neg_sqrt_lt_of_sq_lt (h : x^2 < y) : -sqrt y < x := (sq_lt.mp h).1
-
 theorem lt_sqrt_of_sq_lt (h : x^2 < y) : x < sqrt y := (sq_lt.mp h).2
-
 /-- The natural square root is at most the real square root -/
 lemma nat_sqrt_le_real_sqrt {a : ℕ} : ↑(nat.sqrt a) ≤ real.sqrt ↑a :=
 begin

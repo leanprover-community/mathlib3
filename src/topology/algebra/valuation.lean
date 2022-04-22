@@ -16,31 +16,21 @@ The main definition is a `valued` type class which equips a ring with a valuatio
 values in a group with zero. Other instances are then deduced from this.
 -/
 
-open_locale classical topological_space
+open_locale classical topological_space uniformity
 open set valuation
 noncomputable theory
 
 universes v u
 
-/-- A valued ring is a ring that comes equipped with a distinguished valuation. The class `valued`
-is designed for the situation that there is a canonical valuation on the ring. It allows such a
-valuation to be registered as a typeclass; this is used for instance by `valued.topological_space`.
+variables {R : Type u} [ring R] {Γ₀ : Type v} [linear_ordered_comm_group_with_zero Γ₀]
 
-TODO: show that there always exists an equivalent valuation taking values in a type belonging to
-the same universe as the ring. -/
-class valued (R : Type u) [ring R] (Γ₀ : out_param (Type v))
-  [linear_ordered_comm_group_with_zero Γ₀] :=
-(v : valuation R Γ₀)
+namespace valuation
 
-namespace valued
-variables {R : Type u} [ring R] (Γ₀ : Type v) [linear_ordered_comm_group_with_zero Γ₀]
-  [hv : valued R Γ₀]
+variables (v : valuation R Γ₀)
 
-include hv
-
-/-- The basis of open subgroups for the topology on a valued ring.-/
+/-- The basis of open subgroups for the topology on a ring determined by a valuation. -/
 lemma subgroups_basis :
-  ring_subgroups_basis (λ γ : Γ₀ˣ, (valued.v.lt_add_subgroup γ : add_subgroup R)) :=
+  ring_subgroups_basis (λ γ : Γ₀ˣ, (v.lt_add_subgroup γ : add_subgroup R)) :=
 { inter := begin
     rintros γ₀ γ₁,
     use min γ₀ γ₁,
@@ -87,26 +77,86 @@ lemma subgroups_basis :
       simpa using mul_inv_lt_of_lt_mul₀ vy_lt }
   end }
 
-/-- The topological space structure on a valued ring.
+end valuation
 
-NOTE: The `dangerous_instance` linter does not check whether the metavariables only occur in
-arguments marked with `out_param`, so in this instance it gives a false positive. -/
-@[nolint dangerous_instance, priority 100]
-instance : topological_space R := (subgroups_basis Γ₀).topology
+/-- A valued ring is a ring that comes equipped with a distinguished valuation. The class `valued`
+is designed for the situation that there is a canonical valuation on the ring.
 
-variable {Γ₀}
+TODO: show that there always exists an equivalent valuation taking values in a type belonging to
+the same universe as the ring.
+
+See Note [forgetful inheritance] for why we extend `uniform_space`. -/
+class valued (R : Type u) [ring R] (Γ₀ : out_param (Type v))
+  [linear_ordered_comm_group_with_zero Γ₀] extends uniform_space R :=
+(v : valuation R Γ₀)
+(is_uniform_valuation : ∀ s, s ∈ 𝓤 R ↔ ∃ (γ : Γ₀ˣ), { p : R × R | v (p.2 - p.1) < γ } ⊆ s)
+
+/-- The `dangerous_instance` linter does not check whether the metavariables only occur in
+arguments marked with `out_param`, so in this instance it gives a false positive.-/
+attribute [nolint dangerous_instance] valued.to_uniform_space
+
+namespace valued
+
+/-- Alternative `valued` constructor for use when there is no preferred `uniform_space`
+structure. -/
+def mk' (v : valuation R Γ₀) : valued R Γ₀ :=
+{ v := v,
+  to_uniform_space := @topological_add_group.to_uniform_space R _ v.subgroups_basis.topology _,
+  is_uniform_valuation :=
+  begin
+    letI := @topological_add_group.to_uniform_space R _ v.subgroups_basis.topology _,
+    intros s,
+    suffices : (𝓤 R).has_basis (λ _, true) (λ (γ : Γ₀ˣ), { p : R × R | v (p.2 - p.1) < (γ : Γ₀) }),
+    { rw this.mem_iff,
+      exact exists_congr (λ γ, by simp), },
+    exact v.subgroups_basis.has_basis_nhds_zero.comap _,
+  end }
+
+variables (R Γ₀) [_i : valued R Γ₀]
+include _i
+
+lemma has_basis_uniformity :
+  (𝓤 R).has_basis (λ _, true) (λ (γ : Γ₀ˣ), { p : R × R | v (p.2 - p.1) < (γ : Γ₀) }) :=
+by simp [filter.has_basis_iff, is_uniform_valuation]
+
+lemma uniformity_eq :
+  𝓤 R = (@topological_add_group.to_uniform_space R _ v.subgroups_basis.topology _).uniformity :=
+(has_basis_uniformity R Γ₀).eq_of_same_basis $ v.subgroups_basis.has_basis_nhds_zero.comap _
+
+lemma to_uniform_space_eq :
+  to_uniform_space = @topological_add_group.to_uniform_space R _ v.subgroups_basis.topology _ :=
+uniform_space_eq (uniformity_eq R Γ₀)
+
+lemma to_topological_space_eq :
+  (by apply_instance : topological_space R) = v.subgroups_basis.topology :=
+begin
+  rw to_uniform_space_eq,
+  congr,
+end
+
+lemma has_basis_nhds_zero :
+  (𝓝 (0 : R)).has_basis (λ _, true) (λ (γ : Γ₀ˣ), { x | v x < (γ : Γ₀) }) :=
+begin
+  rw to_topological_space_eq,
+  exact v.subgroups_basis.has_basis_nhds_zero,
+end
+
+variables {R Γ₀}
 
 lemma mem_nhds {s : set R} {x : R} :
   (s ∈ 𝓝 x) ↔ ∃ (γ : Γ₀ˣ), {y | (v (y - x) : Γ₀) < γ } ⊆ s :=
-by simpa [((subgroups_basis Γ₀).has_basis_nhds x).mem_iff]
+begin
+  rw to_topological_space_eq,
+  simpa [(v.subgroups_basis.has_basis_nhds x).mem_iff],
+end
 
 lemma mem_nhds_zero {s : set R} :
   (s ∈ 𝓝 (0 : R)) ↔ ∃ γ : Γ₀ˣ, {x | v x < (γ : Γ₀) } ⊆ s :=
-by simp [valued.mem_nhds, sub_zero]
+by simp [mem_nhds, sub_zero]
 
 lemma loc_const {x : R} (h : (v x : Γ₀) ≠ 0) : {y : R | v y = v x} ∈ 𝓝 x :=
 begin
-  rw valued.mem_nhds,
+  rw mem_nhds,
   rcases units.exists_iff_ne_zero.mpr h with ⟨γ, hx⟩,
   use γ,
   rw hx,
@@ -114,27 +164,34 @@ begin
   exact valuation.map_eq_of_sub_lt _ y_in
 end
 
-/-- The uniform structure on a valued ring.
-
-NOTE: The `dangerous_instance` linter does not check whether the metavariables only occur in
-arguments marked with `out_param`, so in this instance it gives a false positive.-/
-@[nolint dangerous_instance, priority 100]
-instance uniform_space : uniform_space R := topological_add_group.to_uniform_space R
-
-/-- A valued ring is a uniform additive group.-/
 @[priority 100]
-instance uniform_add_group : uniform_add_group R := topological_add_group_is_uniform
+instance to_uniform_add_group : uniform_add_group R :=
+(to_uniform_space_eq R Γ₀).symm ▸ @topological_add_group_is_uniform _ _ v.subgroups_basis.topology _
+
+@[priority 100]
+instance : topological_ring R :=
+(to_uniform_space_eq R Γ₀).symm ▸ v.subgroups_basis.to_ring_filter_basis.is_topological_ring
 
 lemma cauchy_iff {F : filter R} :
   cauchy F ↔ F.ne_bot ∧ ∀ γ : Γ₀ˣ, ∃ M ∈ F, ∀ x y ∈ M, (v (y - x) : Γ₀) < γ :=
 begin
-  rw add_group_filter_basis.cauchy_iff,
+  rw [to_uniform_space_eq, add_group_filter_basis.cauchy_iff],
   apply and_congr iff.rfl,
-  simp_rw (subgroups_basis Γ₀).mem_add_group_filter_basis_iff,
+  simp_rw valued.v.subgroups_basis.mem_add_group_filter_basis_iff,
   split,
   { intros h γ,
-    exact h _ ((subgroups_basis Γ₀).mem_add_group_filter_basis _) },
+    exact h _ (valued.v.subgroups_basis.mem_add_group_filter_basis _) },
   { rintros h - ⟨γ, rfl⟩,
     exact h γ }
 end
+
+lemma separated_of_zero_sep
+  (H : ∀ x : R, x ≠ 0 → ∃ U ∈ 𝓝 (0 : R), x ∉ U) : separated_space R :=
+begin
+  -- TODO Tidy up this proof: looks like missing fact about uniform add group structure
+  rw to_uniform_space_eq,
+  convert topological_add_group.separated_of_zero_sep H,
+  rw to_topological_space_eq,
+end
+
 end valued

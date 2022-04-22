@@ -28,6 +28,19 @@ separated, so the map from `K` to `hat K` is injective.
 Then we extend the valuation given on `K` to a valuation on `hat K`.
 -/
 
+section move_to_correct_file
+
+open uniform_space
+open_locale topological_space
+
+-- Bourbaki GT III §3 no.4 Proposition 7 [I hope]
+lemma filter.has_basis.completion_nhds_zero {G ι : Type*}
+  [add_group G] [uniform_space G] [uniform_add_group G] {s : ι → set G} {p : ι → Prop}
+  (h : (𝓝 (0 : G)).has_basis p s) :
+  (𝓝 (0 : completion G)).has_basis p $ λ i, closure $ coe '' (s i) :=
+sorry
+
+end move_to_correct_file
 
 open filter set
 open_locale topological_space
@@ -104,7 +117,7 @@ instance valued.topological_division_ring [valued K Γ₀] : topological_divisio
 @[priority 100]
 instance valued_ring.separated [valued K Γ₀] : separated_space K :=
 begin
-  apply topological_add_group.separated_of_zero_sep,
+  apply valued.separated_of_zero_sep,
   intros x x_ne,
   refine ⟨{k | v k < v x}, _, λ h, lt_irrefl _ h⟩,
   rw valued.mem_nhds,
@@ -142,7 +155,7 @@ end valuation_topological_division_ring
 
 end division_ring
 
-section valuation_on_valued_field_completion
+namespace valued
 open uniform_space
 
 variables {K : Type*} [field K] {Γ₀ : Type*} [linear_ordered_comm_group_with_zero Γ₀]
@@ -150,13 +163,11 @@ variables {K : Type*} [field K] {Γ₀ : Type*} [linear_ordered_comm_group_with_
 
 include hv
 
-open valued uniform_space
-
 local notation `hat ` := completion
 
 /-- A valued field is completable. -/
 @[priority 100]
-instance valued.completable : completable_top_field K :=
+instance completable : completable_top_field K :=
 { nice := begin
     rintros F hF h0,
     have : ∃ (γ₀ : Γ₀ˣ) (M ∈ F), ∀ x ∈ M, (γ₀ : Γ₀) ≤ v x,
@@ -203,10 +214,10 @@ instance valued.completable : completable_top_field K :=
 local attribute [instance] linear_ordered_comm_group_with_zero.topological_space
 
 /-- The extension of the valuation of a valued field to the completion of the field. -/
-noncomputable def valued.extension : hat K → Γ₀ :=
+noncomputable def extension : hat K → Γ₀ :=
 completion.dense_inducing_coe.extend (v : K → Γ₀)
 
-lemma valued.continuous_extension : continuous (valued.extension : hat K → Γ₀) :=
+lemma continuous_extension : continuous (valued.extension : hat K → Γ₀) :=
  begin
   refine completion.dense_inducing_coe.continuous_extend _,
   intro x₀,
@@ -282,8 +293,8 @@ lemma valued.continuous_extension : continuous (valued.extension : hat K → Γ�
          ... = v z₀ : by rw [this, one_mul]  },
 end
 
-@[norm_cast]
-lemma valued.extension_extends (x : K) : (valued.extension (x : hat K) : Γ₀) = v x :=
+@[simp, norm_cast]
+lemma extension_extends (x : K) : extension (x : hat K) = v x :=
 begin
   haveI : t2_space Γ₀ := regular_space.t2_space _,
   refine completion.dense_inducing_coe.extend_eq_of_tendsto _,
@@ -292,7 +303,7 @@ begin
 end
 
 /-- the extension of a valuation on a division ring to its completion. -/
-noncomputable def valued.extension_valuation :
+noncomputable def extension_valuation :
   valuation (hat K) Γ₀ :=
 { to_fun := valued.extension,
   map_zero' := by { rw [← v.map_zero, ← valued.extension_extends (0 : K)], refl, },
@@ -324,4 +335,27 @@ noncomputable def valued.extension_valuation :
       exact v.map_add x y, },
   end }
 
-end valuation_on_valued_field_completion
+-- Bourbaki CA VI §5 no.3 Proposition 5 (d) [I hope]
+lemma closure_v_lt {γ : Γ₀ˣ} :
+  closure (coe '' { x : K | v x < (γ : Γ₀) }) = { x : hat K | extension_valuation x < (γ : Γ₀) } :=
+sorry
+
+noncomputable instance valued_completion : valued (hat K) Γ₀ :=
+{ v := valued.extension_valuation,
+  is_uniform_valuation := λ s,
+  begin
+    suffices : has_basis (𝓝 (0 : hat K)) (λ _, true) (λ (γ : Γ₀ˣ),
+      { x | valued.extension_valuation x < (γ : Γ₀) }),
+    { simp only [uniformity_eq_comap_nhds_zero, mem_comap],
+      split,
+      { rintros ⟨n, hn, hns⟩,
+        obtain ⟨γ, -, hγ⟩ := this.mem_iff.mp hn,
+        exact ⟨γ, subset.trans (preimage_mono hγ) hns⟩, },
+      { rintros ⟨γ, hγ⟩,
+        exact ⟨{ x | valued.extension_valuation x < (γ : Γ₀) },
+          this.mem_iff.mpr ⟨γ, trivial, subset.rfl⟩, subset.trans subset.rfl hγ⟩, }, },
+    simp_rw ← valued.closure_v_lt,
+    exact (valued.has_basis_nhds_zero K Γ₀).completion_nhds_zero,
+  end }
+
+end valued

@@ -83,9 +83,9 @@ begin
   { rintro ⟨y, rfl⟩,
     rw [← pow_two, ← pow_mul, hodd],
     apply_fun (@coe Fˣ F _),
-    push_cast,
-    exact finite_field.pow_card_sub_one_eq_one (y : F) (units.ne_zero y),
-    exact units.ext, },
+    { push_cast,
+      exact finite_field.pow_card_sub_one_eq_one (y : F) (units.ne_zero y), },
+    { exact units.ext, }, },
   { subst a, assume h,
     have key : 2 * (fintype.card F / 2) ∣ n * (fintype.card F / 2),
     { rw [← pow_mul] at h,
@@ -116,13 +116,11 @@ begin
   -- idea: the squaring map on `F` is not injetive, hence not surjective
   let sq : F → F := λ x, x^2,
   have h : ¬ function.injective sq,
-  begin
-    simp only [function.injective, not_forall, exists_prop],
+  { simp only [function.injective, not_forall, exists_prop],
     use [-1, 1],
     split,
     { simp only [sq, one_pow, neg_one_sq], },
-    { exact finite_field.neg_one_ne_one_of_char_ne_two hF, },
-  end,
+    { exact finite_field.neg_one_ne_one_of_char_ne_two hF, }, },
   have h₁ := mt (fintype.injective_iff_surjective.mpr) h, -- sq not surjective
   push_neg at h₁,
   cases h₁ with a h₁,
@@ -203,7 +201,7 @@ by simp only [quadratic_char, ha, pow_eq_zero_iff, nat.succ_pos', is_square_sq, 
 lemma quadratic_char_eq_one_of_char_two (hF : ring_char F = 2) {a : F} (ha : a ≠ 0) :
   quadratic_char F a = 1 :=
 begin
-  simp [quadratic_char, ha],
+  simp only [quadratic_char, ha, if_false, ite_eq_left_iff],
   intro h,
   exfalso,
   exact h (finite_field.is_square_of_char_two hF a),

@@ -1107,7 +1107,7 @@ by rw [to_pgame, pgame.left_moves]
 by rw [to_pgame, pgame.right_moves]
 
 instance (o : ordinal) : is_empty o.to_pgame.right_moves :=
-by { rw to_pgame_right_moves, exact pempty.is_empty }
+by { rw to_pgame_right_moves, apply_instance }
 
 /-- Converts an ordinal less than `o` for a move for the `pgame` corresponding to `o`. -/
 noncomputable def to_left_moves {o a : ordinal} (h : a < o) : o.to_pgame.left_moves :=

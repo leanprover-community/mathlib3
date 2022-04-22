@@ -1,8 +1,10 @@
 import order.zorn
+import combinatorics.simple_graph.basic
 
 namespace hypertope
 
 open zorn
+open simple_graph
 
 universes u v
 
@@ -42,20 +44,43 @@ def thin {X I} (H : incidence_geometry X I)
 (c : set X) (hc : chain H.r c) (hhc : ∃ i, (∀ j, (∃ x, x ∈ c ∧ H.type x = j) ↔ j ≠ i)) :=
 ∃ (a b : residue_type H.1 c), (a ≠ b) ∧ ∀ (z : residue_type H.1 c), (z.1 = a.1 ∨ z.1 = b.1)
 
-def connected {X I} (H : incidence_system X I) : Prop := 
-∀ (fm fn : set X), (flag H fm) → (flag H fn) → 
-∃ (m n : ℤ) (path : ℤ → set X),
-(path m = fm ∧ path n = fn ∧ ∀ (k : ℤ),
-(flag H (path k) ∧ ∀ (w x y z : X), (
-(w ∈ path k ∧ y ∈ path (k+1) ∧ w ≠ y ∧ H.type w = H.type y) ∧
-(x ∈ path k ∧ z ∈ path (k+1) ∧ x ≠ z ∧ H.type x = H.type z)
-)→ w = y))
+def adj_flags {X I} (H : incidence_system X I) (f g : set X) : Prop :=
+(flag H f) ∧ (flag H g) ∧
+∀ (w x y z : X), (
+(w ∈ f ∧ y ∈ g ∧ w ≠ y ∧ H.type w = H.type y) ∧
+(x ∈ f ∧ z ∈ g ∧ x ≠ z ∧ H.type x = H.type z))
+→ w = x
 
-/- How to refer to incidence system/geometry? -/
+def connected {X I} (H : incidence_system X I) : Prop := 
+∀ (fm fn : set X) (flag_m : flag H fm) (flag_n : flag H fn),
+∃ (m n : ℤ) (path : ℤ → set X),
+(path m = fm ∧ path n = fn ∧
+∀ (k : ℤ), adj_flags H (path k) (path (k+1)))
 
 structure hypertope (X : Type u) (I : Type v) extends incidence_geometry X I :=
 (thin : ∀ (c : set X) (hc : chain r c) (hhc : ∃ i, (∀ j, (∃ x, x ∈ c ∧ type x = j) ↔ j ≠ i)),
 ∃ (a b : residue_type to_incidence_system c), (a ≠ b) ∧ ∀ (z : residue_type to_incidence_system c), (z.1 = a.1 ∨ z.1 = b.1)) 
 (residually_connected : ∀ (c : set X) (hc : chain r c), connected (residue to_incidence_system c))
+
+def adj_graph {X I} (H : incidence_system X I) :=
+from_rel (adj_flags H)
+
+theorem choice_of_ne_sets {X} {f g : set X} (ne_fg : f ≠ g) 
+: ∃ (x : X), (f x ≠ g x) :=
+begin
+by_contradiction,
+have k := forall_not_of_not_exists h,
+apply ne_fg,
+apply funext,
+intro x,
+have x_in_symm_diff := k x,
+sorry,
+end
+
+def ne_adj_flags_type {X I} (H : incidence_system X I) 
+(f g : set X) (adj_fg : adj_flags H f g) (ne_fg : f ≠ g) : I :=
+begin
+sorry,
+end
 
 end hypertope

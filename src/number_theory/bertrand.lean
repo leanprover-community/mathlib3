@@ -198,7 +198,7 @@ begin
   linarith,
 end
 
-lemma blah (a b c : ℝ) (ha : a ≠ 0) : (a * b) / (a * c) = b / c :=
+lemma mul_div_mul (a b c : ℝ) (ha : a ≠ 0) : (a * b) / (a * c) = b / c :=
 begin
   by_cases c = 0,
   { subst h, simp, },
@@ -229,7 +229,7 @@ begin
   ... = log (10 ^ (2 : ℝ)) / log (2 ^ (2 : ℝ)) / 100 : by norm_num
   ... = (2 * log 10) / log (2 ^ (2 : ℝ)) / 100 : by rw @log_rpow 10 (by norm_num) 2
   ... = ((2 * log 10) / (2 * log 2)) / 100 : by rw @log_rpow 2 (by norm_num) 2
-  ... = (log 10 / log 2) / 100 : by rw blah 2 (log 10) (log 2) (by norm_num)
+  ... = (log 10 / log 2) / 100 : by rw mul_div_mul 2 (log 10) (log 2) (by norm_num)
   ... ≤ 1 / 30 :
           begin
             have thousand_pos : 0 < (1000 : ℝ) := by norm_num,
@@ -295,7 +295,7 @@ begin
   exact real.nontrivial,
 end
 
-lemma foo {a b c : ℝ} (hb : b ≠ 0) (hc : c ≠ 0) : a / (b * c) = (a / b) / c :=
+lemma real.div_mul_eq_div_div {a b c : ℝ} (hb : b ≠ 0) (hc : c ≠ 0) : a / (b * c) = (a / b) / c :=
 by field_simp
 
 lemma log_four : log 4 = 2 * log 2 :=
@@ -346,7 +346,7 @@ begin
             norm_num,
             field_simp [sqrt_361],
             cancel_denoms,
-            rw foo,
+            rw real.div_mul_eq_div_div,
             { cancel_denoms,
               rw mul_div,
               rw log_722,
@@ -354,7 +354,7 @@ begin
               have nineteen_pos : (0 : ℝ) < 19 := by norm_num,
               calc 4 * (log 2 + 2 * log 19) / (2 * log 2)
                     = 2 * (2 * (log 2 + 2 * log 19)) / (2 * log 2) : by ring
-                ... = 2 * (log 2 + 2 * log 19) / log 2 : blah _ _ _ (by norm_num)
+                ... = 2 * (log 2 + 2 * log 19) / log 2 : mul_div_mul _ _ _ (by norm_num)
                 ... = (2 * log 2 + 4 * log 19) / log 2 : by ring
                 ... = (log 4 + 4 * log 19) / log 2 : by rw log_four
                 ... = (log 4 + log (19 ^ (4 : ℝ))) / log 2 : by rw log_rpow nineteen_pos 4
@@ -376,6 +376,7 @@ end
 
 /--
 A reified version of the `bertrand_inequality` below.
+This is not best possible: it actually holds for 464 ≤ x.
 -/
 lemma real_bertrand_inequality {x : ℝ} (n_large : (722 : ℝ) ≤ x)
   : x * (2 * x) ^ (sqrt (2 * x)) * 4 ^ (2 * x / 3) < 4 ^ x :=
@@ -392,13 +393,13 @@ begin
   -- Discharge most of the side goals
   repeat { linarith, },
   { rw <-div_lt_one,
-   simp only [add_div, mul_add, add_mul, add_div, ←add_assoc],
-   simp only [zero_le_one, sqrt_mul, zero_le_bit0],
-   { rw [@equality4 x (by linarith)],
-     have x_100 : 100 ≤ x := by linarith,
-     have x_313 : 313 ≤ x := by linarith,
-     linarith only [inequality1 x_100, inequality2 x_313, inequality3 n_large], },
-     exact mul_pos (by linarith) log_four_pos, },
+    simp only [add_div, mul_add, add_mul, add_div, ←add_assoc],
+    simp only [zero_le_one, sqrt_mul, zero_le_bit0],
+    { rw [@equality4 x (by linarith)],
+      have x_100 : 100 ≤ x := by linarith,
+      have x_313 : 313 ≤ x := by linarith,
+      linarith only [inequality1 x_100, inequality2 x_313, inequality3 n_large], },
+      exact mul_pos (by linarith) log_four_pos, },
   repeat {apply ne_of_gt},
   { apply mul_pos _ v, linarith, },
   { exact four_pow_pos _, },
@@ -412,65 +413,47 @@ The inequality which contradicts Bertrand's postulate, for large enough `n`.
 lemma bertrand_inequality {n : ℕ} (n_large : 722 ≤ n) :
   n * (2 * n) ^ (nat.sqrt (2 * n)) * 4 ^ (2 * n / 3) ≤ 4 ^ n :=
 begin
-  rw <-@nat.cast_le ℝ,
+  rw ←@nat.cast_le ℝ,
   have fact1 : 0 < (n : ℝ),
-  { rw <-nat.cast_zero,
-    rw nat.cast_lt,
-    linarith, },
-  have fact2 : 0 < 2 * (n : ℝ),
-  { linarith, },
+    { rw ←nat.cast_zero, norm_num, linarith, },
+  have fact2 : 0 < 2 * (n : ℝ) := by linarith,
   simp only [nat.cast_bit0, nat.cast_add, nat.cast_one, nat.cast_mul, nat.cast_pow],
-  simp only [<-real.rpow_nat_cast],
+  simp only [←real.rpow_nat_cast],
   apply le_of_lt,
   calc
   (n : ℝ) * (2 * (n : ℝ)) ^ (nat.sqrt (2 * n) : ℝ) * 4 ^ (((2 * n / 3) : ℕ) : ℝ)
       ≤ (n : ℝ) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (((2 * n / 3) : ℕ) : ℝ) :
           begin
-            rw mul_le_mul_right,
-            rw mul_le_mul_left,
-            apply real.rpow_le_rpow_of_exponent_le,
-            rw <-@nat.cast_le ℝ at n_large,
-            have h : 722 ≤ (n : ℝ), {convert n_large, simp},
-            linarith,
-            rw real.le_sqrt,
-            rw <-nat.cast_pow,
-            conv
-            begin
-              to_rhs,
-              rw <-nat.cast_two,
-            end,
-            rw <-nat.cast_mul,
-            rw nat.cast_le,
-            exact (2 * n).sqrt_le',
-            exact (nat.sqrt (2 * n)).cast_nonneg,
-            rw <-nat.cast_two,
-            rw <-nat.cast_mul,
-            exact (2 * n).cast_nonneg,
-            exact fact1,
-            apply real.rpow_pos_of_pos,
-            norm_num,
+            rw [mul_le_mul_right, mul_le_mul_left fact1],
+            { apply real.rpow_le_rpow_of_exponent_le,
+              { rw ←@nat.cast_le ℝ at n_large,
+                have h : 722 ≤ (n : ℝ), {convert n_large, simp},
+                linarith, },
+              rw [real.le_sqrt (nat.cast_nonneg _) (le_of_lt fact2), ←nat.cast_pow],
+              calc _ ≤ ↑(2 * n) : nat.cast_le.mpr (nat.sqrt_le' _)
+                 ... = 2 * (n : ℝ) : by norm_num, },
+            { apply real.rpow_pos_of_pos,
+              norm_num, },
           end
   ... ≤ (n : ℝ) * (2 * n : ℝ) ^ (real.sqrt (2 * (n : ℝ))) * 4 ^ (2 * (n : ℝ) / 3) :
           begin
+            have one_le_four : 1 ≤ (4 : ℝ) := by norm_num,
             rw mul_le_mul_left,
-            apply real.rpow_le_rpow_of_exponent_le,
-            linarith,
-            apply trans nat.cast_div_le,
-            apply le_of_eq,
-            congr,
-            simp only [nat.cast_bit0, nat.cast_one, nat.cast_mul],
-            simp only [nat.cast_bit1, nat.cast_one],
-            exact is_trans.swap (λ (x y : ℝ), y ≤ x),
-            apply mul_pos,
-            exact fact1,
-            apply real.rpow_pos_of_pos,
-            exact fact2,
+            apply real.rpow_le_rpow_of_exponent_le one_le_four,
+            { apply trans nat.cast_div_le,
+              apply le_of_eq,
+              congr,
+              { simp only [nat.cast_bit0, nat.cast_one, nat.cast_mul], },
+              { simp only [nat.cast_bit1, nat.cast_one], },
+              { exact is_trans.swap (λ (x y : ℝ), y ≤ x), }, },
+            apply mul_pos fact1,
+            apply real.rpow_pos_of_pos fact2,
           end
   ... < 4 ^ (n : ℝ) :
           begin
             apply real_bertrand_inequality,
-            rw <-@nat.cast_le ℝ at n_large,
-            have h : 722 ≤ (n : ℝ), {convert n_large, simp},
+            rw ←@nat.cast_le ℝ at n_large,
+            have: 722 ≤ (n : ℝ), { convert n_large, norm_num, },
             linarith,
           end,
 end

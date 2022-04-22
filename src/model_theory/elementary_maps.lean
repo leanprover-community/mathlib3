@@ -171,7 +171,7 @@ def foo_elementary_embedding (N : Type*) [L.Structure N] [L[[M]].Structure N]
   [(Lhom_with_constants L M).is_expansion_on N] [N ⊨ L.elementary_diagram M] :
   M ↪ₑ[L] N :=
 ⟨(coe : L[[M]].constants → N) ∘ sum.inr, λ n φ x, begin
-  
+  have h := (bounded_formula.subst sorry),
 end⟩
 
 namespace embedding

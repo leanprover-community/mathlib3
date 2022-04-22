@@ -791,7 +791,7 @@ end algebra
 
 namespace module
 
-variables (R M N : Type*) [comm_semiring R]
+variables {R M N : Type*} [comm_semiring R]
 variables [add_comm_monoid M] [add_comm_monoid N]
 variables [module R M] [module R N]
 
@@ -809,7 +809,7 @@ begin
 end
 
 lemma End_tensor_End_alg_hom_apply (f : End R M) (g : End R N) :
-  End_tensor_End_alg_hom R M N (f ⊗ₜ[R] g) = tensor_product.map f g :=
+  End_tensor_End_alg_hom (f ⊗ₜ[R] g) = tensor_product.map f g :=
 by simp only [End_tensor_End_alg_hom,
   algebra.tensor_product.alg_hom_of_linear_map_tensor_product_apply, hom_tensor_hom_map_apply]
 

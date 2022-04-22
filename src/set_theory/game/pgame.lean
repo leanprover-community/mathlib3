@@ -700,8 +700,7 @@ begin
 end
 
 /-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
-def add (x y : pgame) : pgame :=
-begin
+instance : has_add pgame.{u} := ⟨λ x y, begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
   induction y with yl yr yL yR IHyl IHyr,
   have y := mk yl yr yL yR,
@@ -710,9 +709,7 @@ begin
   { exact λ i, IHyl i },
   { exact λ i, IHxr i y },
   { exact λ i, IHyr i }
-end
-
-instance : has_add pgame := ⟨add⟩
+end⟩
 
 /-- `x + 0` has exactly the same moves as `x`. -/
 def add_zero_relabelling : Π (x : pgame.{u}), relabelling (x + 0) x

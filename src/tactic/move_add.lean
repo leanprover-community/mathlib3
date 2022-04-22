@@ -188,8 +188,7 @@ do
     names.mmap $ move_add_core ff rel ll,
     assumption <|> try (tactic.reflexivity reducible)
   end
---  in `assumption`, there is a
-#check find_same_type
+
 /--
 Calling `move_add [a, ← b, c]`, recursively looks inside the goal for expressions involving a sum.
 Whenever `move_add` finds a sum, it lists all its summands, moves the terms `a, b, c` as specified,

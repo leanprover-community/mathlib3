@@ -296,10 +296,10 @@ lemma odd.pow_nonpos_iff (hn : odd n) : a ^ n ≤ 0 ↔ a ≤ 0 :=
 ⟨λ h, le_of_not_lt (λ ha, h.not_lt $ pow_pos ha _), hn.pow_nonpos⟩
 
 lemma odd.pow_pos_iff (hn : odd n) : 0 < a ^ n ↔ 0 < a :=
-⟨λ h, lt_of_not_ge' (λ ha, h.not_le $ hn.pow_nonpos ha), λ ha, pow_pos ha n⟩
+⟨λ h, lt_of_not_le (λ ha, h.not_le $ hn.pow_nonpos ha), λ ha, pow_pos ha n⟩
 
 lemma odd.pow_neg_iff (hn : odd n) : a ^ n < 0 ↔ a < 0 :=
-⟨λ h, lt_of_not_ge' (λ ha, h.not_le $ pow_nonneg ha _), hn.pow_neg⟩
+⟨λ h, lt_of_not_le (λ ha, h.not_le $ pow_nonneg ha _), hn.pow_neg⟩
 
 lemma even.pow_pos_iff (hn : even n) (h₀ : 0 < n) : 0 < a ^ n ↔ a ≠ 0 :=
 ⟨λ h ha, by { rw [ha, zero_pow h₀] at h, exact lt_irrefl 0 h }, hn.pow_pos⟩

@@ -252,6 +252,7 @@ begin
   exact is_open.preimage complex.continuous_im is_open_Ioi,
 end
 
+<<<<<<< HEAD
 local notation `ℍ'`:=(⟨upper_half_space , upper_half_plane_is_open⟩: topological_space.opens ℂ)
 
 instance : charted_space ℂ ℂ := infer_instance
@@ -259,5 +260,15 @@ instance : charted_space ℂ ℂ := infer_instance
 instance : charted_space ℂ ℍ' := infer_instance
 
 end upper_half_plane_manifold
+=======
+lemma c_mul_im_sq_le_norm_sq_denom (z : ℍ) (g : SL(2, ℝ)) :
+  ((↑ₘg 1 0 : ℝ) * (z.im))^2 ≤ complex.norm_sq (denom g z) :=
+begin
+  let c := (↑ₘg 1 0 : ℝ),
+  let d := (↑ₘg 1 1 : ℝ),
+  calc (c * z.im)^2 ≤ (c * z.im)^2 + (c * z.re + d)^2 : by nlinarith
+                ... = complex.norm_sq (denom g z) : by simp [complex.norm_sq]; ring,
+end
+>>>>>>> origin/master
 
 end upper_half_plane

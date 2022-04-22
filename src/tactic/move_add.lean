@@ -59,9 +59,10 @@ condition and passes on the second factors to the partitions. -/
 def list.split_factors {α : Type*} (l : list (bool × α)) : list α × list α :=
 (l.partition (λ i : bool × α, i.1)).map (list.map (λ i, i.2)) (list.map (λ i, i.2))
 
-/--  Let `ll = (il,fl)` be a pair of `list N`.  We move the elements of the list `l : list N`,
-using a relation `rel : N → N → bool`, overriding it as needed to make sure that the elements of
-the list `il` are initial and the elements of `fl` are final in the sorted list.
+/--  Let `ll = (il,fl)` be a pair of `list N` and let `l` be a further list of terms from `N`.
+We move the elements of the list `l : list N`, using a relation `rel : N → N → bool`, overriding
+it as needed to make sure that the elements of the list `il` are initial and the elements of `fl`
+are final in the sorted list.
 
 Use as `l.sort_with_ends ll rel`.
  -/
@@ -91,8 +92,8 @@ and `e` an expression.
 determined using the relation `rel`, except that the elements from the list `il`
 appear first and the elements of the list `fl` appear last.  Duplicates and overlaps between `il`
 and `fl` are *maintained*, since the same term may appear multiple times in the expression.
-The only pre-processing that we do to the lists is that we ignore inputs that do not appear in the
-initial list `ll`).
+The only pre-processing that we do to the lists is that we ignore terms of either one of the two
+lists in `ll` that do not appear in `get_summands e`.
 
 We use this function for expressions in an additive commutative semigroup. -/
 meta def sorted_sum_with_rel
@@ -150,7 +151,7 @@ variables to be moved.  It is either a `pexpr`, or a `pexpr` preceded by a `←`
 meta def move_add_arg (prec : nat) : lean.parser (bool × pexpr) :=
 prod.mk <$> (option.is_some <$> (tk "<-")?) <*> parser.pexpr prec
 
-/-- `move_pexpr_list_or_texpr` is either a list of `move_add`, possible empty, or a single
+/-- `move_pexpr_list_or_texpr` is either a list of `move_add_arg`, possibly empty, or a single
 `move_add_arg`. -/
 meta def move_pexpr_list_or_texpr : lean.parser (list (bool × pexpr)) :=
 list_of (move_add_arg 0) <|> list.ret <$> (move_add_arg tac_rbp) <|> return []
@@ -166,7 +167,7 @@ b + d + (sum of terms sorted using the given relation) + a + c.
 Note that the relation `rel` is a relation on `expr`s.  As such, it can only be used in
 `meta`-world.
 
-Finally, `move_add_with_rel` can also be target hypotheses. If `hp` is in the local context,
+Finally, `move_add_with_rel` can also target hypotheses. If `hp` is in the local context,
 `move_add_with_rel [← f, g] at hp` performs the rearranging at `hp`.
 -/
 meta def move_add_with_rel
@@ -181,7 +182,7 @@ do
   | loc.wildcard := do
     move_add_core tt rel ll none,
     ctx ← local_context,
-    ctx.mmap (λ e, move_add_core tt rel ll (expr.local_pp_name e)),
+    ctx.mmap (λ e, move_add_core tt rel ll e.local_pp_name),
     assumption <|> refl <|> skip
   | loc.ns names := do
     names.mmap $ move_add_core ff rel ll,
@@ -190,10 +191,10 @@ do
 
 /--
 Calling `move_add [a, ← b, c]`, recursively looks inside the goal for expressions involving a sum.
-Whenever `move_add` finds a sum, it moves the terms `a, b, c`, removing all parentheses.
-The terms preceded by a `←` get placed to the left, the ones without the arrow get placed to the
-right.  Unnamed terms stay in place.  Due to re-parenthesizing, doing `move_add` with no argument
-may change the goal.
+Whenever `move_add` finds a sum, it lists all its summands, moves the terms `a, b, c` as specified,
+and removes all parentheses.  The terms preceded by a `←` get placed to the left, the ones without
+the arrow get placed to the right.  Unnamed terms stay in place.  Due to re-parenthesizing, doing
+`move_add` with no argument may change the goal.
 
 Here is an example.
 
@@ -208,8 +209,8 @@ end
 The list of expressions that `move_add` takes is optional and a single expression can be passed
 without parentheses.  Thus `move_add ← f`, `move_add [← f]` and `move_add [←f]` all mean the same.
 
-Finally, `move_add` can also be targeted to a hypothesis.  If `hp` is in the local context,
-then `move_add [← f, g] at hp` performs the rearranging at `hp`. -/
+Finally, `move_add` can also be targeted to one or more hypothesis.  If `hp` is in the local
+context, then `move_add [← f, g] at hp` performs the rearranging at `hp`. -/
 meta def move_add (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
   tactic unit :=
 move_add_with_rel (λ e f, tt) args locat

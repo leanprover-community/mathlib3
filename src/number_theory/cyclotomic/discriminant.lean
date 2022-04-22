@@ -134,6 +134,18 @@ begin
   { apply_instance }
 end
 
+/-- If `p` is a prime and `is_cyclotomic_extension {p ^ (k + 1)} K L`, then the discriminant of
+`hζ.power_basis K` is `(-1) ^ (p ^ k * (p - 1)) / 2) * p ^ (p ^ k * ((p - 1) * (k + 1) - 1))`
+if `irreducible (cyclotomic (p ^ (k + 1)) K))`, `irreducible (cyclotomic p K)` and
+`p ^ (k + 1) ≠ 2`. -/
+lemma discr_prime_pow_ne_two' [is_cyclotomic_extension {p ^ (k + 1)} K L] [hp : fact (p : ℕ).prime]
+  [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ ↑(p ^ (k + 1)))
+  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))
+  (hirr₁ : irreducible (cyclotomic (p : ℕ) K)) (hk : p ^ (k + 1) ≠ 2) :
+  discr K (hζ.power_basis K).basis =
+  (-1) ^ (((p : ℕ) ^ k  * (p - 1)) / 2) * p ^ ((p : ℕ) ^ k * ((p - 1) * (k + 1) - 1)) :=
+by simpa [totient_prime_pow hp.out (succ_pos k)] using discr_prime_pow_ne_two hζ hirr hirr₁ hk
+
 /-- If `p` is a prime and `is_cyclotomic_extension {p ^ k} K L`, then the discriminant of
 `hζ.power_basis K` is `(-1) ^ ((p ^ k.totient) / 2) * p ^ (p ^ (k - 1) * ((p - 1) * k - 1))`
 if `irreducible (cyclotomic (p ^ k) K))`, `irreducible (cyclotomic p K)`. Beware that the

@@ -297,10 +297,8 @@ begin
   refine ⟨λ z, z < ((r - (a + 1): ℝ) : ereal), Iio_mem_nhds (bot_lt_coe _),
           λ z, z < ((a + 1 : ℝ) : ereal), Iio_mem_nhds (by simp [-coe_add, zero_lt_one]),
           λ x hx y hy, _⟩,
-  dsimp,
   convert add_lt_add hx hy,
-  dsimp,
-  ring,
+  rw sub_add_cancel,
 end
 
 lemma continuous_at_add_coe_bot (a : ℝ) :

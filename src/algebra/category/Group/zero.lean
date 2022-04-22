@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.Group.basic
-import category_theory.limits.shapes.zero
+import category_theory.limits.shapes.zero_morphisms
 
 /-!
 # The category of (commutative) (additive) groups has a zero object.
@@ -20,20 +20,32 @@ universe u
 
 namespace Group
 
+@[to_additive] lemma is_zero_of_subsingleton (G : Group) [subsingleton G] :
+  is_zero G :=
+begin
+  refine ⟨λ X, ⟨⟨⟨1⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨1⟩, λ f, _⟩⟩⟩,
+  { ext, have : x = 1 := subsingleton.elim _ _, rw [this, map_one, map_one], },
+  { ext, apply subsingleton.elim }
+end
+
 @[to_additive AddGroup.has_zero_object]
 instance : has_zero_object Group :=
-{ zero := 1,
-  unique_to := λ X, ⟨⟨1⟩, λ f, by { ext, cases x, erw monoid_hom.map_one, refl, }⟩,
-  unique_from := λ X, ⟨⟨1⟩, λ f, by ext⟩, }
+⟨⟨of punit, is_zero_of_subsingleton _⟩⟩
 
 end Group
 
 namespace CommGroup
 
+@[to_additive] lemma is_zero_of_subsingleton (G : CommGroup) [subsingleton G] :
+  is_zero G :=
+begin
+  refine ⟨λ X, ⟨⟨⟨1⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨1⟩, λ f, _⟩⟩⟩,
+  { ext, have : x = 1 := subsingleton.elim _ _, rw [this, map_one, map_one], },
+  { ext, apply subsingleton.elim }
+end
+
 @[to_additive AddCommGroup.has_zero_object]
 instance : has_zero_object CommGroup :=
-{ zero := 1,
-  unique_to := λ X, ⟨⟨1⟩, λ f, by { ext, cases x, erw monoid_hom.map_one, refl, }⟩,
-  unique_from := λ X, ⟨⟨1⟩, λ f, by ext⟩, }
+⟨⟨of punit, is_zero_of_subsingleton _⟩⟩
 
 end CommGroup

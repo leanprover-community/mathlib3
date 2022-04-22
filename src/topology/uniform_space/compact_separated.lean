@@ -52,8 +52,7 @@ begin
     cluster_point_of_compact F,
   have : cluster_pt (x, y) (𝓤 α) :=
     hx.of_inf_left,
-  have hxy : x = y := eq_of_uniformity_inf_nhds this,
-  subst hxy,
+  obtain rfl : x = y := eq_of_uniformity_inf_nhds this,
   have : cluster_pt (x, x) (𝓟 Vᶜ) :=
    hx.of_inf_right,
   have : (x, x) ∉ interior V,

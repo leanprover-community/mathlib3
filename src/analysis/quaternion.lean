@@ -57,13 +57,16 @@ instance : norm_one_class ℍ :=
 @[simp, norm_cast] lemma norm_coe (a : ℝ) : ∥(a : ℍ)∥ = ∥a∥ :=
 by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sq_eq_abs, real.norm_eq_abs]
 
+@[simp, norm_cast] lemma nnnorm_coe (a : ℝ) : ∥(a : ℍ)∥₊ = ∥a∥₊ :=
+subtype.ext $ norm_coe a
+
 noncomputable instance : normed_division_ring ℍ :=
 { dist_eq := λ _ _, rfl,
   norm_mul' := λ a b, by { simp only [norm_eq_sqrt_real_inner, inner_self, norm_sq.map_mul],
                            exact real.sqrt_mul norm_sq_nonneg _ } }
 
 noncomputable instance : normed_algebra ℝ ℍ :=
-{ norm_algebra_map_eq := norm_coe,
+{ norm_smul_le := λ a x, (norm_smul a x).le,
   to_algebra := quaternion.algebra }
 
 instance : has_coe ℂ ℍ := ⟨λ z, ⟨z.re, z.im, 0, 0⟩⟩

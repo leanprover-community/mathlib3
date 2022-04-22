@@ -15,25 +15,23 @@ In this file we construct the transfer homomorphism.
 
 ## Main definitions
 
-- `transfer ϕ : G →* A` for `ϕ : H →* A` from `H : subgroup G` to a commutative group `A`.
+- `diff ϕ S T` : The difference of two left transversals `S` and `T` under the homomorphism `ϕ`.
+- `transfer ϕ` : The transfer homomorphism induced by `ϕ`.
 -/
 
 open_locale big_operators
 
-open subgroup
-
-variables {G : Type*} [group G] {H : subgroup G}
-variables {A : Type*} [comm_group A] (ϕ : H →* A) (R S T : left_transversals (H : set G))
+variables {G : Type*} [group G] {H : subgroup G} {A : Type*} [comm_group A] (ϕ : H →* A)
 
 namespace subgroup
 
 namespace left_transversals
 
-open mul_action
+open finset mul_action
 
 open_locale pointwise
 
-variables [fintype (G ⧸ H)]
+variables (R S T : left_transversals (H : set G)) [fintype (G ⧸ H)]
 
 /-- The difference of two left transversals -/
 @[to_additive "The difference of two left transversals"]
@@ -42,8 +40,8 @@ let α := mem_left_transversals.to_equiv S.2, β := mem_left_transversals.to_equ
 ∏ q, ϕ ⟨(α q)⁻¹ * β q, quotient.exact' ((α.symm_apply_apply q).trans (β.symm_apply_apply q).symm)⟩
 
 @[to_additive] lemma diff_mul_diff : diff ϕ R S * diff ϕ S T = diff ϕ R T :=
-finset.prod_mul_distrib.symm.trans (finset.prod_congr rfl (λ q hq, (ϕ.map_mul _ _).symm.trans
-  (congr_arg ϕ (subtype.ext (by simp_rw [coe_mul, coe_mk, mul_assoc, mul_inv_cancel_left])))))
+prod_mul_distrib.symm.trans (prod_congr rfl (λ q hq, (ϕ.map_mul _ _).symm.trans (congr_arg ϕ
+  (by simp_rw [subtype.ext_iff, coe_mul, coe_mk, mul_assoc, mul_inv_cancel_left]))))
 
 @[to_additive] lemma diff_self : diff ϕ T T = 1 :=
 mul_right_eq_self.mp (diff_mul_diff ϕ T T T)
@@ -52,19 +50,9 @@ mul_right_eq_self.mp (diff_mul_diff ϕ T T T)
 inv_eq_of_mul_eq_one ((diff_mul_diff ϕ S T S).trans (diff_self ϕ S))
 
 @[to_additive] lemma smul_diff_smul (g : G) : diff ϕ (g • S) (g • T) = diff ϕ S T :=
-finset.prod_bij' (λ q _, g⁻¹ • q) (λ _ _, finset.mem_univ _) (λ _ _, congr_arg ϕ $ subtype.ext $ by
-  simp_rw [coe_mk, smul_apply_eq_smul_apply_inv_smul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left])
-  (λ q _, g • q) (λ _ _, finset.mem_univ _) (λ q _, smul_inv_smul g q) (λ q _, inv_smul_smul g q)
-
-lemma mem_normalizer_iff'' {G : Type*} [group G] {H : subgroup G} {g : G} :
-  g ∈ H.normalizer ↔ ∀ h : G, h ∈ H ↔ g⁻¹ * h * g ∈ H :=
-begin
-  refine mem_normalizer_iff'.trans ⟨λ h n, _, λ h n, _⟩,
-  { specialize h (g⁻¹ * n),
-    rwa [mul_inv_cancel_left, iff.comm] at h },
-  { specialize h (g * n),
-    rwa [inv_mul_cancel_left, iff.comm] at h },
-end
+prod_bij' (λ q _, g⁻¹ • q) (λ _ _, mem_univ _) (λ _ _, congr_arg ϕ (by simp_rw [coe_mk,
+  smul_apply_eq_smul_apply_inv_smul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]))
+  (λ q _, g • q) (λ _ _, mem_univ _) (λ q _, smul_inv_smul g q) (λ q _, inv_smul_smul g q)
 
 end left_transversals
 
@@ -74,17 +62,19 @@ namespace monoid_hom
 
 variables [fintype (G ⧸ H)]
 
-open subgroup.left_transversals
+open subgroup subgroup.left_transversals
 
 /-- Given `ϕ : H →* A` from `H : subgroup G` to a commutative group `A`,
-the transfer homomorphism is `transfer ϕ : H →* A`. -/
+the transfer homomorphism is `transfer ϕ : G →* A`. -/
 @[to_additive "Given `ϕ : H →+ A` from `H : add_subgroup G` to an additive commutative group `A`,
-the transfer homomorphism is `transfer ϕ : H →+ A`."]
+the transfer homomorphism is `transfer ϕ : G →+ A`."]
 noncomputable def transfer : G →* A :=
-let T : left_transversals (H : set G) := left_transversals.inhabited.default in
+let T : left_transversals (H : set G) := inhabited.default in
 { to_fun := λ g, diff ϕ T (g • T),
   map_one' := by rw [one_smul, diff_self],
   map_mul' := λ g h, by rw [mul_smul, ←diff_mul_diff, smul_diff_smul] }
+
+variables (T : left_transversals (H : set G))
 
 @[to_additive] lemma transfer_def (g : G) : transfer ϕ g = diff ϕ T (g • T) :=
 by rw [transfer, ←diff_mul_diff, ←smul_diff_smul, mul_comm, diff_mul_diff]; refl
@@ -124,9 +114,9 @@ hq' : ∃ k : ℕ, g ^ k • q' = q := by
   exact ⟨k, hk⟩ } in g ^ (nat.find hq') * q'.out'), mem_left_transversals_iff_bijective.mpr
 begin
   split,
-  { intros a b h, },
-  {  },
-  sorry
+  { intros a b h,
+    sorry },
+  { sorry },
 end⟩
 
 @[to_additive] lemma _root_.subgroup.pow_index_mem
@@ -161,7 +151,7 @@ end
   end }
 
 @[to_additive] noncomputable def transfer_pow' (h : (center G).index ≠ 0) : G →* H :=
-transfer_pow h
+sorry
 
 end explicit_computation
 

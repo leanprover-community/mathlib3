@@ -336,7 +336,7 @@ lemma map_injective_of_is_integral [is_integral X] {U V : opens X.carrier} (i : 
   [H : nonempty U] :
   function.injective (X.presheaf.map i.op) :=
 begin
-  rw ring_hom.injective_iff,
+  rw injective_iff_map_eq_zero,
   intros x hx,
   rw ← basic_open_eq_bot_iff at ⊢ hx,
   rw Scheme.basic_open_res at hx,

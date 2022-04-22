@@ -132,7 +132,7 @@ begin
     rw mem_smul_span_singleton at hy, rcases hy with ⟨d, hdi, rfl⟩,
     change _ • _ ∈ I • span R s,
     rw [mul_smul, ← hyz, smul_add, smul_smul, mul_comm, mul_smul],
-    exact add_mem _ (smul_mem _ _ hci) (smul_mem _ _ hz) }
+    exact add_mem (smul_mem _ _ hci) (smul_mem _ _ hz) }
 end
 
 theorem fg_bot : (⊥ : submodule R M).fg :=
@@ -545,7 +545,7 @@ begin
     (well_founded_submodule_gt R M)).elim' _),
   have f : ℕ ↪ s, from @infinite.nat_embedding s ⟨λ f, hf ⟨f⟩⟩,
   have : ∀ n, (coe ∘ f) '' {m | m ≤ n} ⊆ s,
-  { rintros n x ⟨y, hy₁, hy₂⟩, subst hy₂, exact (f y).2 },
+  { rintros n x ⟨y, hy₁, rfl⟩, exact (f y).2 },
   have : ∀ a b : ℕ, a ≤ b ↔
     span R ((coe ∘ f) '' {m | m ≤ a}) ≤ span R ((coe ∘ f) '' {m | m ≤ b}),
   { assume a b,

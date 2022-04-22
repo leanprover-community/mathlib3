@@ -35,8 +35,8 @@ variables {F α β A B M N P Q G H : Type*}
 
 /-- Makes a multiplicative inverse from a bijection which preserves multiplication. -/
 @[to_additive "Makes an additive inverse from a bijection which preserves addition."]
-def mul_hom.inverse [has_mul M] [has_mul N] (f : mul_hom M N) (g : N → M)
-  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) : mul_hom N M :=
+def mul_hom.inverse [has_mul M] [has_mul N] (f : M →ₙ* N) (g : N → M)
+  (h₁ : function.left_inverse g f) (h₂ : function.right_inverse g f) : N →ₙ* M :=
 { to_fun   := g,
   map_mul' := λ x y,
     calc g (x * y) = g (f (g x) * f (g y)) : by rw [h₂ x, h₂ y]
@@ -50,7 +50,7 @@ def monoid_hom.inverse {A B : Type*} [monoid A] [monoid B] (f : A →* B) (g : B
   B →* A :=
 { to_fun   := g,
   map_one' := by rw [← f.map_one, h₁],
-  .. (f : mul_hom A B).inverse g h₁ h₂, }
+  .. (f : A →ₙ* B).inverse g h₁ h₂, }
 
 set_option old_structure_cmd true
 
@@ -71,7 +71,7 @@ add_decl_doc add_equiv.to_add_hom
 
 /-- `mul_equiv α β` is the type of an equiv `α ≃ β` which preserves multiplication. -/
 @[ancestor equiv mul_hom, to_additive]
-structure mul_equiv (M N : Type*) [has_mul M] [has_mul N] extends M ≃ N, mul_hom M N
+structure mul_equiv (M N : Type*) [has_mul M] [has_mul N] extends M ≃ N, M →ₙ* N
 
 /-- The `equiv` underlying a `mul_equiv`. -/
 add_decl_doc mul_equiv.to_equiv

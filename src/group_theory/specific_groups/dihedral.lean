@@ -129,11 +129,9 @@ end
 
 @[simp] lemma r_one_pow_n : (r (1 : zmod n))^n = 1 :=
 begin
-  cases n,
-  { rw pow_zero },
-  { rw [r_one_pow, one_def],
-    congr' 1,
-    exact zmod.nat_cast_self _, }
+  rw [r_one_pow, one_def],
+  congr' 1,
+  exact zmod.nat_cast_self _,
 end
 
 @[simp] lemma sr_mul_self (i : zmod n) : sr i * sr i = 1 := by rw [sr_mul_sr, sub_self, one_def]

@@ -838,7 +838,7 @@ lemma tsum_sub {f : ℕ → ℝ≥0∞} {g : ℕ → ℝ≥0∞} (h₁ : ∑' i,
   ∑' i, (f i - g i) = (∑' i, f i) - (∑' i, g i) :=
 begin
   have h₃: ∑' i, (f i - g i) = ∑' i, (f i - g i + g i) - ∑' i, g i,
-  { rw [ennreal.tsum_add, add_sub_self h₁]},
+  { rw [ennreal.tsum_add, ennreal.add_sub_cancel_right h₁]},
   have h₄:(λ i, (f i - g i) + (g i)) = f,
   { ext n, rw tsub_add_cancel_of_le (h₂ n)},
   rw h₄ at h₃, apply h₃,

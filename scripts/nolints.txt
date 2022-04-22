@@ -28,10 +28,7 @@ apply_nolint one_hom.comp_assoc to_additive_doc
 
 -- algebra/order/group.lean
 apply_nolint inv_le_of_inv_le' to_additive_doc
-apply_nolint inv_le_one' to_additive_doc
 apply_nolint inv_lt_of_inv_lt' to_additive_doc
-apply_nolint inv_lt_one' to_additive_doc
-apply_nolint inv_lt_one_iff_one_lt to_additive_doc
 apply_nolint inv_mul_lt_of_lt_mul to_additive_doc
 apply_nolint inv_of_one_lt_inv to_additive_doc
 apply_nolint le_inv_mul_of_mul_le to_additive_doc
@@ -44,26 +41,17 @@ apply_nolint left.one_lt_inv_iff to_additive_doc
 apply_nolint lt_inv_mul_of_mul_lt to_additive_doc
 apply_nolint lt_inv_of_lt_inv to_additive_doc
 apply_nolint lt_mul_of_inv_mul_lt to_additive_doc
-apply_nolint lt_mul_of_inv_mul_lt_left to_additive_doc
 apply_nolint lt_of_inv_lt_inv to_additive_doc
 apply_nolint mul_le_of_le_inv_mul to_additive_doc
 apply_nolint mul_lt_of_lt_inv_mul to_additive_doc
-apply_nolint one_le_inv' to_additive_doc
 apply_nolint one_le_of_inv_le_one to_additive_doc
-apply_nolint one_lt_inv' to_additive_doc
 apply_nolint one_lt_inv_of_inv to_additive_doc
 apply_nolint one_lt_of_inv_lt_one to_additive_doc
-apply_nolint ordered_comm_group.le_of_mul_le_mul_left to_additive_doc
-apply_nolint ordered_comm_group.lt_of_mul_lt_mul_left to_additive_doc
-apply_nolint ordered_comm_group.mul_lt_mul_left' to_additive_doc
 apply_nolint right.inv_le_one_iff to_additive_doc
 apply_nolint right.one_le_inv_iff to_additive_doc
 
 -- algebra/order/lattice_group.lean
 apply_nolint lattice_ordered_comm_group.mabs_mul_le to_additive_doc
-
--- algebra/order/monoid_lemmas.lean
-apply_nolint mul_le_one' to_additive_doc
 
 -- category_theory/limits/filtered_colimit_commutes_finite_limit.lean
 apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_is_iso fails_quickly
@@ -492,7 +480,6 @@ apply_nolint submonoid.localization_map.lift_left_inverse to_additive_doc
 
 -- group_theory/order_of_element.lean
 apply_nolint image_range_order_of to_additive_doc
-apply_nolint is_of_fin_order.quotient to_additive_doc
 apply_nolint is_of_fin_order_iff_coe to_additive_doc
 apply_nolint order_of_eq_of_pow_and_pow_div_prime to_additive_doc
 apply_nolint pow_gcd_card_eq_one_iff to_additive_doc
@@ -606,9 +593,6 @@ apply_nolint tactic.coinductive_predicate doc_blame
 apply_nolint tactic.interactive.coinduction doc_blame
 apply_nolint tactic.mono doc_blame
 
--- number_theory/dioph.lean
-apply_nolint poly has_inhabited_instance
-
 -- order/filter/at_top_bot.lean
 apply_nolint filter.map_at_top_finset_prod_le_of_prod_eq to_additive_doc
 
@@ -620,10 +604,6 @@ apply_nolint witt_vector.comm_ring check_reducibility
 
 -- set_theory/lists.lean
 apply_nolint finsets doc_blame
-
--- set_theory/pgame.lean
-apply_nolint pgame.relabelling has_inhabited_instance
-apply_nolint pgame.restricted has_inhabited_instance
 
 -- set_theory/zfc.lean
 apply_nolint Set.map_definable_aux unused_arguments

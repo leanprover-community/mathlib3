@@ -51,7 +51,8 @@ variables {A : Type*}
 
 local notation `↑ₐ` := algebra_map ℂ A
 
-lemma spectral_radius_eq_nnnorm_of_self_adjoint {a : A} (ha : a ∈ self_adjoint A) :
+lemma spectral_radius_eq_nnnorm_of_self_adjoint [norm_one_class A] {a : A}
+  (ha : a ∈ self_adjoint A) :
   spectral_radius ℂ a = ∥a∥₊ :=
 begin
   have hconst : tendsto (λ n : ℕ, (∥a∥₊ : ℝ≥0∞)) at_top _ := tendsto_const_nhds,
@@ -64,7 +65,7 @@ begin
   simp,
 end
 
-lemma spectral_radius_eq_nnnorm_of_star_normal (a : A) [is_star_normal a] :
+lemma spectral_radius_eq_nnnorm_of_star_normal [norm_one_class A] (a : A) [is_star_normal a] :
   spectral_radius ℂ a = ∥a∥₊ :=
 begin
   refine (ennreal.pow_strict_mono (by linarith : 2 ≠ 0)).injective _,

@@ -772,6 +772,7 @@ def right_to_right_moves_add (x : pgame) {y : pgame} (i : y.right_moves) :
   (x + y).right_moves :=
 cast (right_moves_add x y).symm (sum.inr i)
 
+/-- A left move of `x + y` is either a left move of `x` or a left move of `y`. -/
 theorem left_moves_add_cases {x y : pgame} (i : (x + y).left_moves) :
   (∃ j, i = left_to_left_moves_add y j) ∨ (∃ j, i = right_to_left_moves_add x j) :=
 begin
@@ -780,6 +781,7 @@ begin
   { exact or.inr ⟨i, rfl⟩ }
 end
 
+/-- A right move of `x + y` is either a right move of `x` or a right move of `y`. -/
 theorem right_moves_add_cases {x y : pgame} (i : (x + y).right_moves) :
   (∃ j, i = left_to_right_moves_add y j) ∨ (∃ j, i = right_to_right_moves_add x j) :=
 begin

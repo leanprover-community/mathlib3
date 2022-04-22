@@ -301,7 +301,7 @@ declared as an instance because there are several natural choices for defining t
 matrix. -/
 local attribute [instance]
 protected def linfty_op_normed_algebra [normed_field R] [semi_normed_ring α] [normed_algebra R α]
-  [decidable_eq n] [nonempty n] :
+  [decidable_eq n] :
   normed_algebra R (matrix n n α) :=
 { ..matrix.linfty_op_normed_space }
 

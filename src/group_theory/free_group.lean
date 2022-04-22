@@ -876,9 +876,8 @@ instance free_group_is_freely_generated (X : Type*) : is_freely_generated_by (fr
 
 namespace is_freely_generated_by
 
-variables {G : Type*} [group G] {X : Type} [is_freely_generated_by G X]
+variables {G : Type*} [group G] {X : Type*} [is_freely_generated_by G X]
 
-@[elab_simple]
 def of : X → G := is_freely_generated_by.mul_equiv.to_fun ∘ free_group.of
 
 variables {H : Type*} [group H]
@@ -907,5 +906,17 @@ begin
   simp_rw function.funext_iff at this,
   exact this,
 end
+
+noncomputable
+theorem of_unique_lift {G : Type*} [group G] (X : Type*)
+  (of : X → G)
+  (h : ∀ (H : Type*) [group H] (f : X → H), ∃! F : G →* H, ∀ a, F (of a) = f a) :
+  is_freely_generated_by G X :=
+begin
+  sorry
+end
+
+def of_mul_equiv (h : G ≃* H) : is_freely_generated_by H X :=
+  { mul_equiv := is_freely_generated_by.mul_equiv.trans h }
 
 end is_freely_generated_by

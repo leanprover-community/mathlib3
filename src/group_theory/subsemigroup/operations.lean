@@ -391,12 +391,17 @@ variables {A : Type*} [has_mul M] [set_like A M] [hA : mul_mem_class A M] (S' : 
 include hA
 
 /-- A submagma of a magma inherits a multiplication. -/
-@[to_additive "An additive submagma of an additive magma inherits an addition."]
+@[to_additive "An additive submagma of an additive magma inherits an addition.",
+priority 900] -- lower priority so other instances are found first
 instance has_mul : has_mul S' := ⟨λ a b, ⟨a.1 * b.1, mul_mem a.2 b.2⟩⟩
 
-@[simp, norm_cast, to_additive] lemma coe_mul (x y : S') : (↑(x * y) : M) = ↑x * ↑y := rfl
+@[simp, norm_cast, to_additive, priority 900]
+-- lower priority so later simp lemmas are used first; to appease simp_nf
+lemma coe_mul (x y : S') : (↑(x * y) : M) = ↑x * ↑y := rfl
 
-@[simp, to_additive] lemma mk_mul_mk (x y : M) (hx : x ∈ S') (hy : y ∈ S') :
+@[simp, to_additive, priority 900]
+-- lower priority so later simp lemmas are used first; to appease simp_nf
+lemma mk_mul_mk (x y : M) (hx : x ∈ S') (hy : y ∈ S') :
   (⟨x, hx⟩ : S') * ⟨y, hy⟩ = ⟨x * y, mul_mem hx hy⟩ := rfl
 
 @[to_additive] lemma mul_def (x y : S') : x * y = ⟨x * y, mul_mem x.2 y.2⟩ := rfl

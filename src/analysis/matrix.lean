@@ -197,8 +197,7 @@ begin
   rw ←finset.sum_subset (finset.subset_univ s) (λ i hi his, _),
   { rw finset.sum_map,
     dsimp,
-    simp_rw diagonal_apply_eq,
-    refl },
+    simp_rw diagonal_apply_eq },
   { suffices : i.1 ≠ i.2,
     { rw [diagonal_apply_ne this, nnnorm_zero, nnreal.zero_rpow two_ne_zero], },
     intro h,
@@ -214,7 +213,7 @@ lemma frobenius_nnnorm_one [decidable_eq n] [semi_normed_group α] [has_one α] 
   ∥(1 : matrix n n α)∥₊ = nnreal.sqrt (fintype.card n) * ∥(1 : α)∥₊:=
 begin
   refine (frobenius_nnnorm_diagonal _).trans _,
-  simp_rw [pi_Lp.nnnorm_const, finset.sum_const, nsmul_eq_mul, nnreal.mul_rpow],
+  simp_rw [pi_Lp.nnnorm_equiv_const, nnreal.sqrt_eq_rpow],
 end
 
 section is_R_or_C
@@ -222,27 +221,19 @@ variables [is_R_or_C α]
 
 lemma frobenius_nnnorm_mul (A : matrix l m α) (B : matrix m n α) : ∥A ⬝ B∥₊ ≤ ∥A∥₊ * ∥B∥₊ :=
 begin
-  simp_rw [frobenius_nnnorm_def],
-  rw [←nnreal.mul_rpow],
-  simp_rw [matrix.mul_apply],
-  rw @finset.sum_comm _ n m,
-  rw [finset.sum_mul_sum, finset.sum_product],
+  simp_rw [frobenius_nnnorm_def, matrix.mul_apply],
+  rw [←nnreal.mul_rpow, @finset.sum_comm _ n m, finset.sum_mul_sum, finset.sum_product],
   refine nnreal.rpow_le_rpow _ one_half_pos.le,
   refine finset.sum_le_sum (λ i hi, finset.sum_le_sum $ λ j hj, _),
   rw [← nnreal.rpow_le_rpow_iff one_half_pos, ← nnreal.rpow_mul,
-    mul_div_cancel' (1 : ℝ) two_ne_zero, nnreal.rpow_one, nnreal.mul_rpow,
-      ←pi_Lp.nnnorm_eq, ←pi_Lp.nnnorm_eq],
-  dsimp,
-  let a : pi_Lp 2 _ := A i,
-  let a' : pi_Lp 2 _ := λ j, star (a j),
-  let b : pi_Lp 2 _ := λ k, B k j,
-  letI : inner_product_space α (pi_Lp 2 (λ i : m, α)) := pi_Lp.inner_product_space _,
-  change ∥∑ k, a k * b k∥₊ ≤ ∥a∥₊ * ∥b∥₊,
-  convert nnnorm_inner_le_nnnorm a' b using 2,
-  { simp,
-    simp_rw [star_ring_end_apply, star_star], },
-  simp [pi_Lp.nnnorm_eq, a'],
-  simp_rw [star_ring_end_apply, nnnorm_star],
+    mul_div_cancel' (1 : ℝ) two_ne_zero, nnreal.rpow_one, nnreal.mul_rpow],
+  dsimp only,
+  have := @nnnorm_inner_le_nnnorm α _ _ _
+    ((pi_Lp.equiv 2 (λ i, α)).symm (λ j, star (A i j)))
+    ((pi_Lp.equiv 2 (λ i, α)).symm (λ k, B k j)),
+  simpa only [pi_Lp.equiv_symm_apply, pi_Lp.inner_apply,
+      is_R_or_C.inner_apply, star_ring_end_apply, pi.nnnorm_def, pi_Lp.nnnorm_eq,
+      star_star, nnnorm_star] using this,
 end
 
 lemma frobenius_norm_mul (A : matrix l m α) (B : matrix m n α) : ∥A ⬝ B∥ ≤ ∥A∥ * ∥B∥ :=
@@ -256,6 +247,14 @@ def frobenius_normed_ring [decidable_eq m] : normed_ring (matrix m m α) :=
 { norm := has_norm.norm,
   norm_mul := frobenius_norm_mul,
   ..matrix.frobenius_semi_normed_group }
+
+/-- Normed algebra instance (using frobenius norm) for matrices over `ℝ` or `ℂ`.  Not
+declared as an instance because there are several natural choices for defining the norm of a
+matrix. -/
+local attribute [instance]
+def frobenius_normed_algebra [decidable_eq m] [normed_field R] [normed_algebra R α] :
+  normed_algebra R (matrix m m α) :=
+{ ..matrix.frobenius_normed_space }
 
 end is_R_or_C
 

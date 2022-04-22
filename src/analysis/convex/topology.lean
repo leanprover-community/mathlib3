@@ -314,7 +314,7 @@ by simpa only [metric.closed_ball, sep_univ] using (convex_on_univ_dist a).conve
 of `s` at distance at least `dist x y` from `y`. -/
 lemma convex_hull_exists_dist_ge {s : set E} {x : E} (hx : x ∈ convex_hull ℝ s) (y : E) :
   ∃ x' ∈ s, dist x y ≤ dist x' y :=
-(convex_on_dist y _ (convex_convex_hull ℝ _)).exists_ge_of_mem_convex_hull hx
+(convex_on_dist y (convex_convex_hull ℝ _)).exists_ge_of_mem_convex_hull hx
 
 /-- Given a point `x` in the convex hull of `s` and a point `y` in the convex hull of `t`,
 there exist points `x' ∈ s` and `y' ∈ t` at distance at least `dist x y`. -/

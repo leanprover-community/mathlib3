@@ -199,8 +199,8 @@ begin
             ... ≤ 2 * (p * (n / p)) + p : add_le_add_right ((mul_le_mul_left zero_lt_two).mpr
             $ ((le_mul_iff_one_le_right p_pos).mpr n_big)) _ },
 
-  { have : i = 0 := nat.le_zero_iff.mp (nat.le_of_lt_succ H),
-    rw [this, pow_zero, nat.mod_one, mul_zero],
+  { have i_zero: i = 0 := nat.le_zero_iff.mp (nat.le_of_lt_succ H),
+    rw [i_zero, pow_zero, nat.mod_one, mul_zero],
     exact zero_lt_one, },
 end
 

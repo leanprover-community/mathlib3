@@ -767,7 +767,7 @@ def right_to_left_moves_add (x : pgame) {y : pgame} (i : y.left_moves) :
   (x + y).left_moves :=
 cast (left_moves_add x y).symm (sum.inr i)
 
-/-- Converts a right move for `x` into a right move for `x + y`. -/
+/-- Converts a right move for `y` into a right move for `x + y`. -/
 def right_to_right_moves_add (x : pgame) {y : pgame} (i : y.right_moves) :
   (x + y).right_moves :=
 cast (right_moves_add x y).symm (sum.inr i)

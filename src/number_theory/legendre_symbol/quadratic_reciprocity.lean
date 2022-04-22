@@ -106,10 +106,10 @@ end
 
 lemma mod_four_ne_three_of_sq_eq_neg_sq {x y : zmod p} (hx : x ≠ 0) (hxy : x ^ 2 = - y ^ 2) :
   p % 4 ≠ 3 :=
-@mod_four_ne_three_of_sq_eq_neg_one p _ (y / x) begin
-  apply_fun (λ z, - (z / x ^ 2)) at hxy,
-  rw [neg_div, ←div_pow, ←div_pow, div_self hx, one_pow, neg_neg] at hxy,
-  exact hxy.symm
+begin
+  apply_fun (λ x, -x) at hxy,
+  rw neg_neg at hxy,
+  exact mod_four_ne_three_of_sq_eq_neg_sq' p hx hxy.symm
 end
 
 lemma pow_div_two_eq_neg_one_or_one {a : zmod p} (ha : a ≠ 0) :

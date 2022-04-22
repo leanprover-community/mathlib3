@@ -135,7 +135,7 @@ begin
 end
 
 /-- If `p` is a prime and `is_cyclotomic_extension {p ^ (k + 1)} K L`, then the discriminant of
-`hζ.power_basis K` is `(-1) ^ (p ^ k * (p - 1)) / 2) * p ^ (p ^ k * ((p - 1) * (k + 1) - 1))`
+`hζ.power_basis K` is `(-1) ^ (p ^ k * (p - 1) / 2) * p ^ (p ^ k * ((p - 1) * (k + 1) - 1))`
 if `irreducible (cyclotomic (p ^ (k + 1)) K))`, `irreducible (cyclotomic p K)` and
 `p ^ (k + 1) ≠ 2`. -/
 lemma discr_prime_pow_ne_two' [is_cyclotomic_extension {p ^ (k + 1)} K L] [hp : fact (p : ℕ).prime]

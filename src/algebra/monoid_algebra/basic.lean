@@ -362,7 +362,7 @@ end
 variables (k G)
 
 /-- The embedding of a magma into its magma algebra. -/
-@[simps] def of_magma [has_mul G] : mul_hom G (monoid_algebra k G) :=
+@[simps] def of_magma [has_mul G] : G →ₙ* (monoid_algebra k G) :=
 { to_fun   := λ a, single a 1,
   map_mul' := λ a b, by simp only [mul_def, mul_one, sum_single_index, single_eq_zero, mul_zero], }
 
@@ -495,7 +495,7 @@ variables {A : Type u₃} [non_unital_non_assoc_semiring A]
 /-- A non_unital `k`-algebra homomorphism from `monoid_algebra k G` is uniquely defined by its
 values on the functions `single a 1`. -/
 lemma non_unital_alg_hom_ext [distrib_mul_action k A]
-  {φ₁ φ₂ : non_unital_alg_hom k (monoid_algebra k G) A}
+  {φ₁ φ₂ : monoid_algebra k G →ₙₐ[k] A}
   (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
 non_unital_alg_hom.to_distrib_mul_action_hom_injective $
   finsupp.distrib_mul_action_hom_ext' $
@@ -503,14 +503,14 @@ non_unital_alg_hom.to_distrib_mul_action_hom_injective $
 
 /-- See note [partially-applied ext lemmas]. -/
 @[ext] lemma non_unital_alg_hom_ext' [distrib_mul_action k A]
-  {φ₁ φ₂ : non_unital_alg_hom k (monoid_algebra k G) A}
+  {φ₁ φ₂ : monoid_algebra k G →ₙₐ[k] A}
   (h : φ₁.to_mul_hom.comp (of_magma k G) = φ₂.to_mul_hom.comp (of_magma k G)) : φ₁ = φ₂ :=
 non_unital_alg_hom_ext k $ mul_hom.congr_fun h
 
 /-- The functor `G ↦ monoid_algebra k G`, from the category of magmas to the category of non-unital,
 non-associative algebras over `k` is adjoint to the forgetful functor in the other direction. -/
 @[simps] def lift_magma [module k A] [is_scalar_tower k A A] [smul_comm_class k A A] :
-  mul_hom G A ≃ non_unital_alg_hom k (monoid_algebra k G) A :=
+  (G →ₙ* A) ≃ (monoid_algebra k G →ₙₐ[k] A) :=
 { to_fun    := λ f,
     { to_fun    := λ a, a.sum (λ m t, t • f m),
       map_smul' :=  λ t' a,
@@ -548,14 +548,24 @@ lemma single_one_comm [comm_semiring k] [mul_one_class G] (r : k) (f : monoid_al
 by { ext, rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
 
 /-- `finsupp.single 1` as a `ring_hom` -/
-@[simps] def single_one_ring_hom [semiring k] [monoid G] : k →+* monoid_algebra k G :=
+@[simps] def single_one_ring_hom [semiring k] [mul_one_class G] : k →+* monoid_algebra k G :=
 { map_one' := rfl,
   map_mul' := λ x y, by rw [single_add_hom, single_mul_single, one_mul],
   ..finsupp.single_add_hom 1}
 
+/-- If `f : G → H` is a multiplicative homomorphism between two monoids, then
+`finsupp.map_domain f` is a ring homomorphism between their monoid algebras. -/
+@[simps]
+def map_domain_ring_hom (k : Type*) {H F : Type*} [semiring k] [monoid G] [monoid H]
+  [monoid_hom_class F G H] (f : F) :
+  monoid_algebra k G →+* monoid_algebra k H :=
+{ map_one' := map_domain_one f,
+  map_mul' := λ x y, map_domain_mul f x y,
+  ..(finsupp.map_domain.add_monoid_hom f : monoid_algebra k G →+ monoid_algebra k H) }
+
 /-- If two ring homomorphisms from `monoid_algebra k G` are equal on all `single a 1`
 and `single 1 b`, then they are equal. -/
-lemma ring_hom_ext {R} [semiring k] [monoid G] [semiring R]
+lemma ring_hom_ext {R} [semiring k] [mul_one_class G] [semiring R]
   {f g : monoid_algebra k G →+* R} (h₁ : ∀ b, f (single 1 b) = g (single 1 b))
   (h_of : ∀ a, f (single a 1) = g (single a 1)) : f = g :=
 ring_hom.coe_add_monoid_hom_injective $ add_hom_ext $ λ a b,
@@ -566,7 +576,7 @@ ring_hom.coe_add_monoid_hom_injective $ add_hom_ext $ λ a b,
 and `single 1 b`, then they are equal.
 
 See note [partially-applied ext lemmas]. -/
-@[ext] lemma ring_hom_ext' {R} [semiring k] [monoid G] [semiring R]
+@[ext] lemma ring_hom_ext' {R} [semiring k] [mul_one_class G] [semiring R]
   {f g : monoid_algebra k G →+* R} (h₁ : f.comp single_one_ring_hom = g.comp single_one_ring_hom)
   (h_of : (f : monoid_algebra k G →* R).comp (of k G) =
     (g : monoid_algebra k G →* R).comp (of k G)) :
@@ -683,6 +693,31 @@ its values on `F (single a 1)`. -/
 lemma lift_unique (F : monoid_algebra k G →ₐ[k] A) (f : monoid_algebra k G) :
   F f = f.sum (λ a b, b • F (single a 1)) :=
 by conv_lhs { rw lift_unique' F, simp [lift_apply] }
+
+/-- If `f : G → H` is a homomorphism between two magmas, then
+`finsupp.map_domain f` is a non-unital algebra homomorphism between their magma algebras. -/
+@[simps]
+def map_domain_non_unital_alg_hom (k A : Type*) [comm_semiring k] [semiring A] [algebra k A]
+  {G H F : Type*} [has_mul G] [has_mul H] [mul_hom_class F G H] (f : F) :
+  monoid_algebra A G →ₙₐ[k] monoid_algebra A H :=
+{ map_mul' := λ x y, map_domain_mul f x y,
+  map_smul' := λ r x, map_domain_smul r x,
+  ..(finsupp.map_domain.add_monoid_hom f : monoid_algebra A G →+ monoid_algebra A H) }
+
+lemma map_domain_algebra_map (k A : Type*) {H F : Type*} [comm_semiring k] [semiring A]
+  [algebra k A] [monoid H] [monoid_hom_class F G H] (f : F) (r : k) :
+  map_domain f (algebra_map k (monoid_algebra A G) r) =
+    algebra_map k (monoid_algebra A H) r :=
+by simp only [coe_algebra_map, map_domain_single, map_one]
+
+/-- If `f : G → H` is a multiplicative homomorphism between two monoids, then
+`finsupp.map_domain f` is an algebra homomorphism between their monoid algebras. -/
+@[simps]
+def map_domain_alg_hom (k A : Type*) [comm_semiring k] [semiring A] [algebra k A] {H F : Type*}
+  [monoid H] [monoid_hom_class F G H] (f : F) :
+  monoid_algebra A G →ₐ[k] monoid_algebra A H :=
+{ commutes' := map_domain_algebra_map k A f,
+  ..map_domain_ring_hom A f}
 
 end lift
 
@@ -1133,7 +1168,7 @@ section
 variables (k G)
 
 /-- The embedding of an additive magma into its additive magma algebra. -/
-@[simps] def of_magma [has_add G] : mul_hom (multiplicative G) (add_monoid_algebra k G) :=
+@[simps] def of_magma [has_add G] : multiplicative G →ₙ* add_monoid_algebra k G :=
 { to_fun   := λ a, single a 1,
   map_mul' := λ a b, by simpa only [mul_def, mul_one, sum_single_index, single_eq_zero, mul_zero], }
 
@@ -1211,8 +1246,6 @@ lemma lift_nc_smul {R : Type*} [add_zero_class G] [semiring R] (f : k →+* R)
   lift_nc (f : k →+ R) g (c • φ) = f c * lift_nc (f : k →+ R) g φ :=
 @monoid_algebra.lift_nc_smul k (multiplicative G) _ _ _ _ f g c φ
 
-variables {k G}
-
 lemma induction_on [add_monoid G] {p : add_monoid_algebra k G → Prop} (f : add_monoid_algebra k G)
   (hM : ∀ g, p (of k G (multiplicative.of_add g)))
   (hadd : ∀ f g : add_monoid_algebra k G, p f → p g → p (f + g))
@@ -1223,6 +1256,16 @@ begin
   { convert hsmul r (of k G (multiplicative.of_add g)) (hM g),
     simp only [mul_one, to_add_of_add, smul_single', of_apply] },
 end
+
+/-- If `f : G → H` is an additive homomorphism between two additive monoids, then
+`finsupp.map_domain f` is a ring homomorphism between their add monoid algebras. -/
+@[simps]
+def map_domain_ring_hom (k : Type*) [semiring k] {H F : Type*} [add_monoid G] [add_monoid H]
+  [add_monoid_hom_class F G H] (f : F) :
+  add_monoid_algebra k G →+* add_monoid_algebra k H :=
+{ map_one' := map_domain_one f,
+  map_mul' := λ x y, map_domain_mul f x y,
+  ..(finsupp.map_domain.add_monoid_hom f : monoid_algebra k G →+ monoid_algebra k H) }
 
 end misc_theorems
 
@@ -1307,13 +1350,13 @@ variables {A : Type u₃} [non_unital_non_assoc_semiring A]
 /-- A non_unital `k`-algebra homomorphism from `add_monoid_algebra k G` is uniquely defined by its
 values on the functions `single a 1`. -/
 lemma non_unital_alg_hom_ext [distrib_mul_action k A]
-  {φ₁ φ₂ : non_unital_alg_hom k (add_monoid_algebra k G) A}
+  {φ₁ φ₂ : add_monoid_algebra k G →ₙₐ[k] A}
   (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
 @monoid_algebra.non_unital_alg_hom_ext k (multiplicative G) _ _ _ _ _ φ₁ φ₂ h
 
 /-- See note [partially-applied ext lemmas]. -/
 @[ext] lemma non_unital_alg_hom_ext' [distrib_mul_action k A]
-  {φ₁ φ₂ : non_unital_alg_hom k (add_monoid_algebra k G) A}
+  {φ₁ φ₂ : add_monoid_algebra k G →ₙₐ[k] A}
   (h : φ₁.to_mul_hom.comp (of_magma k G) = φ₂.to_mul_hom.comp (of_magma k G)) : φ₁ = φ₂ :=
 @monoid_algebra.non_unital_alg_hom_ext' k (multiplicative G) _ _ _ _ _ φ₁ φ₂ h
 
@@ -1321,11 +1364,11 @@ lemma non_unital_alg_hom_ext [distrib_mul_action k A]
 non-unital, non-associative algebras over `k` is adjoint to the forgetful functor in the other
 direction. -/
 @[simps] def lift_magma [module k A] [is_scalar_tower k A A] [smul_comm_class k A A] :
-  mul_hom (multiplicative G) A ≃ non_unital_alg_hom k (add_monoid_algebra k G) A :=
+  (multiplicative G →ₙ* A) ≃ (add_monoid_algebra k G →ₙₐ[k] A) :=
 { to_fun := λ f, { to_fun := λ a, sum a (λ m t, t • f (multiplicative.of_add m)),
                    .. (monoid_algebra.lift_magma k f : _)},
   inv_fun := λ F, F.to_mul_hom.comp (of_magma k G),
-  .. (monoid_algebra.lift_magma k : mul_hom (multiplicative G) A ≃ non_unital_alg_hom k _ A) }
+  .. (monoid_algebra.lift_magma k : (multiplicative G →ₙ* A) ≃ (_ →ₙₐ[k] A)) }
 
 end non_unital_non_assoc_algebra
 
@@ -1502,6 +1545,30 @@ finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
   single_mul_single, sum_insert has, prod_insert has]
 
 end
+
+lemma map_domain_algebra_map {A H F : Type*} [comm_semiring k] [semiring A]
+  [algebra k A] [add_monoid G] [add_monoid H] [add_monoid_hom_class F G H] (f : F) (r : k) :
+  map_domain f (algebra_map k (add_monoid_algebra A G) r) =
+    algebra_map k (add_monoid_algebra A H) r :=
+by simp only [function.comp_app, map_domain_single, add_monoid_algebra.coe_algebra_map, map_zero]
+
+/-- If `f : G → H` is a homomorphism between two additive magmas, then `finsupp.map_domain f` is a
+non-unital algebra homomorphism between their additive magma algebras. -/
+@[simps]
+def map_domain_non_unital_alg_hom (k A : Type*) [comm_semiring k] [semiring A] [algebra k A]
+  {G H F : Type*} [has_add G] [has_add H] [add_hom_class F G H] (f : F) :
+  add_monoid_algebra A G →ₙₐ[k] add_monoid_algebra A H :=
+{ map_mul' := λ x y, map_domain_mul f x y,
+  map_smul' := λ r x, map_domain_smul r x,
+  ..(finsupp.map_domain.add_monoid_hom f : monoid_algebra A G →+ monoid_algebra A H) }
+
+/-- If `f : G → H` is an additive homomorphism between two additive monoids, then
+`finsupp.map_domain f` is an algebra homomorphism between their add monoid algebras. -/
+@[simps] def map_domain_alg_hom (k A : Type*) [comm_semiring k] [semiring A] [algebra k A]
+  [add_monoid G] {H F : Type*} [add_monoid H] [add_monoid_hom_class F G H] (f : F) :
+  add_monoid_algebra A G →ₐ[k] add_monoid_algebra A H :=
+{ commutes' := map_domain_algebra_map f,
+  ..map_domain_ring_hom A f}
 
 end add_monoid_algebra
 

@@ -618,6 +618,10 @@ lemma nnnorm_sum_le (s : finset ι) (f : ι → E) :
   ∥∑ a in s, f a∥₊ ≤ ∑ a in s, ∥f a∥₊ :=
 s.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le f
 
+lemma nnnorm_sum_le_of_le (s : finset ι) {f : ι → E} {n : ι → ℝ≥0} (h : ∀ b ∈ s, ∥f b∥₊ ≤ n b) :
+  ∥∑ b in s, f b∥₊ ≤ ∑ b in s, n b :=
+(norm_sum_le_of_le s h).trans_eq nnreal.coe_sum.symm
+
 lemma add_monoid_hom.lipschitz_of_bound_nnnorm (f : E →+ F) (C : ℝ≥0) (h : ∀ x, ∥f x∥₊ ≤ C * ∥x∥₊) :
   lipschitz_with C f :=
 @real.to_nnreal_coe C ▸ f.lipschitz_of_bound C h
@@ -760,10 +764,16 @@ max_le_iff
 using the sup norm. -/
 noncomputable instance pi.semi_normed_group {π : ι → Type*} [fintype ι]
   [Π i, semi_normed_group (π i)] : semi_normed_group (Π i, π i) :=
-{ norm := λf, ((finset.sup finset.univ (λ b, ∥f b∥₊) : ℝ≥0) : ℝ),
+{ norm := λ f, ↑(finset.univ.sup (λ b, ∥f b∥₊)),
   dist_eq := assume x y,
     congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
     show nndist (x a) (y a) = ∥x a - y a∥₊, from nndist_eq_nnnorm _ _ }
+
+lemma pi.norm_def {π : ι → Type*} [fintype ι] [Π i, semi_normed_group (π i)] (f : Π i, π i) :
+  ∥f∥ = ↑(finset.univ.sup (λ b, ∥f b∥₊)) := rfl
+
+lemma pi.nnnorm_def {π : ι → Type*} [fintype ι] [Π i, semi_normed_group (π i)] (f : Π i, π i) :
+  ∥f∥₊ = finset.univ.sup (λ b, ∥f b∥₊) := subtype.eta _ _
 
 /-- The seminorm of an element in a product space is `≤ r` if and only if the norm of each
 component is. -/

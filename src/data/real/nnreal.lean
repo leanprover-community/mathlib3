@@ -283,6 +283,10 @@ example : canonically_ordered_comm_semiring ℝ≥0 := by apply_instance
 example : densely_ordered ℝ≥0 := by apply_instance
 example : no_max_order ℝ≥0 := by apply_instance
 
+-- note we need the `@` to make the `has_mem.mem` have a sensible type
+lemma coe_image {s : set ℝ≥0} : coe '' s = {x : ℝ | ∃ h : 0 ≤ x, @has_mem.mem (ℝ≥0) _ _ ⟨x, h⟩ s} :=
+subtype.coe_image
+
 lemma bdd_above_coe {s : set ℝ≥0} : bdd_above ((coe : ℝ≥0 → ℝ) '' s) ↔ bdd_above s :=
 iff.intro
   (assume ⟨b, hb⟩, ⟨real.to_nnreal b, assume ⟨y, hy⟩ hys, show y ≤ max b 0, from
@@ -348,21 +352,17 @@ iff.intro
 lemma bot_eq_zero : (⊥ : ℝ≥0) = 0 := rfl
 
 lemma mul_sup (a b c : ℝ≥0) : a * (b ⊔ c) = (a * b) ⊔ (a * c) :=
-begin
-  cases le_total b c with h h,
-  { simp [sup_eq_max, max_eq_right h, max_eq_right (mul_le_mul_of_nonneg_left h (zero_le a))] },
-  { simp [sup_eq_max, max_eq_left h, max_eq_left (mul_le_mul_of_nonneg_left h (zero_le a))] },
-end
+mul_max_of_nonneg _ _ $ zero_le a
 
 lemma sup_mul (a b c : ℝ≥0) : (a ⊔ b) * c = (a * c) ⊔ (b * c) :=
-by simpa only [mul_comm] using mul_sup c a b
+max_mul_of_nonneg _ _ $ zero_le c
 
-lemma mul_finset_sup {α} {f : α → ℝ≥0} {s : finset α} (r : ℝ≥0) :
-  r * s.sup f = s.sup (λa, r * f a) :=
+lemma mul_finset_sup {α} (r : ℝ≥0) (s : finset α) (f : α → ℝ≥0) :
+  r * s.sup f = s.sup (λ a, r * f a) :=
 (finset.comp_sup_eq_sup_comp _ (nnreal.mul_sup r) (mul_zero r))
 
-lemma finset_sup_mul {α} {f : α → ℝ≥0} {s : finset α} (r : ℝ≥0) :
-  s.sup f * r = s.sup (λa, f a * r) :=
+lemma finset_sup_mul {α} (s : finset α) (f : α → ℝ≥0) (r : ℝ≥0) :
+  s.sup f * r = s.sup (λ a, f a * r) :=
 (finset.comp_sup_eq_sup_comp (* r) (λ x y, nnreal.sup_mul x y r) (zero_mul r))
 
 lemma finset_sup_div {α} {f : α → ℝ≥0} {s : finset α} (r : ℝ≥0) :

@@ -37,6 +37,8 @@ open_locale complex_conjugate
 
 instance : has_norm ℂ := ⟨abs⟩
 
+@[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
+
 instance : normed_group ℂ :=
 normed_group.of_core ℂ
 { norm_eq_zero_iff := λ z, abs_eq_zero,
@@ -50,10 +52,14 @@ instance : normed_field ℂ :=
   .. complex.field }
 
 instance : nondiscrete_normed_field ℂ :=
-{ non_trivial := ⟨2, by simp [norm]; norm_num⟩ }
+{ non_trivial := ⟨2, by simp; norm_num⟩ }
 
 instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R ℂ :=
-{ norm_algebra_map_eq := λ x, (abs_of_real $ algebra_map R ℝ x).trans (norm_algebra_map_eq ℝ x),
+{ norm_smul_le := λ r x, begin
+    rw [norm_eq_abs, norm_eq_abs, ←algebra_map_smul ℝ r x, algebra.smul_def, abs_mul,
+      ←norm_algebra_map' ℝ r, coe_algebra_map, abs_of_real],
+    refl,
+  end,
   to_algebra := complex.algebra }
 
 /-- The module structure from `module.complex_to_real` is a normed space. -/
@@ -61,8 +67,6 @@ instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R 
 instance _root_.normed_space.complex_to_real {E : Type*} [normed_group E] [normed_space ℂ E] :
   normed_space ℝ E :=
 normed_space.restrict_scalars ℝ ℂ E
-
-@[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
 
 lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
 

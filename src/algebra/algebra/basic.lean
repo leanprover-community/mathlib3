@@ -414,7 +414,7 @@ lemma of_algebra_map_injective
   [semiring A] [algebra R A] [no_zero_divisors A]
   (h : function.injective (algebra_map R A)) : no_zero_smul_divisors R A :=
 ⟨λ c x hcx, (mul_eq_zero.mp ((smul_def c x).symm.trans hcx)).imp_left
-  ((algebra_map R A).injective_iff.mp h _)⟩
+  ((injective_iff_map_eq_zero (algebra_map R A)).mp h _)⟩
 
 variables (R A)
 lemma algebra_map_injective [ring A] [nontrivial A]
@@ -743,11 +743,6 @@ variables [algebra R A] [algebra R B] (φ : A →ₐ[R] B)
 φ.to_ring_hom.map_div x y
 
 end division_ring
-
-theorem injective_iff {R A B : Type*} [comm_semiring R] [ring A] [semiring B]
-  [algebra R A] [algebra R B] (f : A →ₐ[R] B) :
-  function.injective f ↔ (∀ x, f x = 0 → x = 0) :=
-ring_hom.injective_iff (f : A →+* B)
 
 end alg_hom
 
@@ -1434,7 +1429,7 @@ begin
   { have : function.injective (algebra_map R A) :=
       no_zero_smul_divisors.iff_algebra_map_injective.1 infer_instance,
     left,
-    exact (ring_hom.injective_iff _).1 this _ H },
+    exact (injective_iff_map_eq_zero _).1 this _ H },
   { right,
     exact H }
 end

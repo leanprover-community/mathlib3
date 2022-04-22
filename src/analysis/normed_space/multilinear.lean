@@ -1274,7 +1274,7 @@ variables {𝕜 G}
 @[simp] lemma continuous_multilinear_map.fin0_apply_norm (f : G [×0]→L[𝕜] G') {x : fin 0 → G} :
   ∥f x∥ = ∥f∥ :=
 begin
-  have : x = 0 := subsingleton.elim _ _, subst this,
+  obtain rfl : x = 0 := subsingleton.elim _ _,
   refine le_antisymm (by simpa using f.le_op_norm 0) _,
   have : ∥continuous_multilinear_map.curry0 𝕜 G (f.uncurry0)∥ ≤ ∥f.uncurry0∥ :=
     continuous_multilinear_map.op_norm_le_bound _ (norm_nonneg _) (λm,

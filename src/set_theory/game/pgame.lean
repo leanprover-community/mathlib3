@@ -1137,22 +1137,6 @@ by { rw to_pgame, refl }
   o.to_pgame.move_left (to_left_moves h) = a.to_pgame :=
 by simp [to_left_moves]
 
-noncomputable def relabelling_nat_to_pgame : Π n : ℕ, pgame.relabelling (n : ordinal).to_pgame n
-| 0 :=
-  ⟨(equiv.equiv_empty (ordinal.to_pgame 0).left_moves).trans
-    (equiv.equiv_empty (pgame.left_moves 0)).symm,
-  (equiv.equiv_empty (ordinal.to_pgame 0).right_moves).trans
-    (equiv.equiv_empty (pgame.right_moves 0)).symm,
-  is_empty.elim ordinal.is_empty_zero_to_pgame_left_moves,
-  is_empty.elim pgame.is_empty_zero_right_moves⟩
-| (n + 1) :=
-  ⟨begin
-    simp only [to_pgame_left_moves, nat.cast_succ],
-    rw pgame.add_left_moves,
-  end, sorry, sorry, sorry
-
-    ⟩
-
 theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
 @pgame.lt_of_le_move_left _ _ (to_left_moves h) (by rw to_pgame_move_left_to_left_moves)
 
@@ -1188,5 +1172,8 @@ noncomputable def to_pgame_embedding : ordinal.{u} ↪o pgame.{u} :=
 { to_fun := ordinal.to_pgame,
   inj' := injective_to_pgame,
   map_rel_iff' := @to_pgame_le_iff }
+
+@[simp] theorem to_pgame_embedding_apply (x : ordinal) : to_pgame_embedding x = x.to_pgame :=
+rfl
 
 end ordinal

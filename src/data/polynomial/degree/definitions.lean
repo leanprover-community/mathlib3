@@ -154,10 +154,8 @@ with_bot.get_or_else_bot_le_iff
 lemma nat_degree_lt_iff_degree_lt (hp : p ≠ 0) :
   p.nat_degree < n ↔ p.degree < ↑n :=
 begin
-  simp only [lt_iff_le_and_ne, nat_degree_le_iff_degree_le, and.congr_right_iff],
-  intro h,
-  apply iff.not,
-  rw [degree_eq_nat_degree hp, with_bot.coe_eq_coe],
+  apply with_bot.get_or_else_bot_le_iff,
+  exact degree_eq_bot.not.mpr hp,
 end
 
 alias polynomial.nat_degree_le_iff_degree_le ↔ . .

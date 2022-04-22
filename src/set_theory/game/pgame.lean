@@ -613,30 +613,32 @@ by { cases x, refl }
 @[simp] theorem right_moves_neg (x : pgame) : (-x).right_moves = x.left_moves :=
 by { cases x, refl }
 
-/-- Turns a right move for `x` into a left move for `-x`. -/
-def to_left_moves_neg {x : pgame} (i : x.right_moves) : (-x).left_moves :=
-cast (left_moves_neg x).symm i
+/-- Turns a right move for `x` into a left move for `-x` and viceversa. -/
+def to_left_moves_neg {x : pgame} : x.right_moves ≃ (-x).left_moves :=
+equiv.cast (left_moves_neg x).symm
 
 /-- Turns a left move for `x` into a right move for `-x`. -/
-def to_right_moves_neg {x : pgame} (i : x.left_moves) : (-x).right_moves :=
-cast (right_moves_neg x).symm i
-
-/-- Turns a right move for `-x` into a left move for `x`. -/
-def neg_to_left_moves {x : pgame} (i : (-x).right_moves) : x.left_moves :=
-cast (right_moves_neg x) i
-
-/-- Turns a left move for `-x` into a right move for `x`. -/
-def neg_to_right_moves {x : pgame} (i : (-x).left_moves) : x.right_moves :=
-cast (left_moves_neg x) i
+def to_right_moves_neg {x : pgame} : x.left_moves ≃ (-x).right_moves :=
+equiv.cast (right_moves_neg x).symm
 
 /-- A left move of `-x` is a right move of `x`. -/
-theorem neg_left_moves_cases {x : pgame} (i : (-x).left_moves) :
+theorem left_moves_neg_eq_right_moves {x : pgame} (i : (-x).left_moves) :
   ∃ j : x.right_moves, i = to_left_moves_neg j :=
 by { cases x, exact ⟨i, rfl⟩ }
 
-/-- A left move of `-x` is a right move of `x`. -/
-theorem neg_right_moves_cases {x : pgame} (i : (-x).left_moves) :
-  ∃ j : x.right_moves, i = to_left_moves_neg j :=
+/-- A right move of `-x` is a left move of `x`. -/
+theorem right_moves_neg_eq_left_moves {x : pgame} (i : (-x).right_moves) :
+  ∃ j : x.left_moves, i = to_right_moves_neg j :=
+by { cases x, exact ⟨i, rfl⟩ }
+
+/-- A left move of `x` is a right move of `-x`. -/
+theorem left_moves_eq_right_moves_neg {x : pgame} (i : x.left_moves) :
+  ∃ j : (-x).right_moves, i = to_right_moves_neg.symm j :=
+by { cases x, exact ⟨i, rfl⟩ }
+
+/-- A right move of `x` is a left move of `-x`. -/
+theorem right_moves_eq_left_moves_neg {x : pgame} (i : x.right_moves) :
+  ∃ j : (-x).left_moves, i = to_left_moves_neg.symm j :=
 by { cases x, exact ⟨i, rfl⟩ }
 
 @[simp] lemma move_left_neg {x : pgame} (i : x.right_moves) :
@@ -647,12 +649,12 @@ by { cases x, refl }
   (-x).move_right (to_right_moves_neg i) = -(x.move_left i) :=
 by { cases x, refl }
 
-@[simp] lemma move_left_neg' {x : pgame} (i : (-x).right_moves) :
-  x.move_left (neg_to_left_moves i) = -((-x).move_right i) :=
+@[simp] lemma move_left_neg_symm {x : pgame} (i : (-x).right_moves) :
+  x.move_left (to_right_moves_neg.symm i) = -((-x).move_right i) :=
 by { cases x, exact (neg_neg _).symm }
 
-@[simp] lemma move_right_neg' {x : pgame} (i : (-x).left_moves) :
-  x.move_right (neg_to_right_moves i) = -((-x).move_left i) :=
+@[simp] lemma move_right_neg_symm {x : pgame} (i : (-x).left_moves) :
+  x.move_right (to_left_moves_neg.symm i) = -((-x).move_left i) :=
 by { cases x, exact (neg_neg _).symm }
 
 /-- If `x` has the same moves as `y`, then `-x` has the sames moves as `-y`. -/
@@ -679,17 +681,17 @@ begin
       convert le_iff_neg_ge.1 h,
       rw move_left_neg } },
   { rcases h.right i with ⟨w, h⟩ | ⟨w, h⟩,
-    { refine or.inr ⟨neg_to_right_moves w, _⟩,
+    { refine or.inr ⟨to_left_moves_neg.symm w, _⟩,
       convert le_iff_neg_ge.2 _,
       convert h,
-      rw [move_right_neg', neg_neg] },
+      rw [move_right_neg_symm, neg_neg] },
     { exact or.inl ⟨w, le_iff_neg_ge.2 h⟩ } },
   { rcases h.left j with ⟨w, h⟩ | ⟨w, h⟩,
     { exact or.inr ⟨w, le_iff_neg_ge.2 h⟩ },
-    { refine or.inl ⟨neg_to_left_moves w, _⟩,
+    { refine or.inl ⟨to_right_moves_neg.symm w, _⟩,
       convert le_iff_neg_ge.2 _,
       convert h,
-      rw [move_left_neg', neg_neg]} },
+      rw [move_left_neg_symm, neg_neg]} },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

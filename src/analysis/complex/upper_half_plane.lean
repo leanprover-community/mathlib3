@@ -32,6 +32,8 @@ local attribute [instance] fintype.card_fin_even
 
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 
+local notation `GL(` n `, ` R `)`⁺:= matrix.GL_pos (fin n) R
+
 /-- The open upper half plane -/
 @[derive [topological_space, λ α, has_coe α ℂ]]
 def upper_half_plane := {point : ℂ // 0 < point.im}
@@ -65,10 +67,10 @@ by { rw complex.norm_sq_pos, exact z.ne_zero }
 lemma norm_sq_ne_zero (z : ℍ) : complex.norm_sq (z : ℂ) ≠ 0 := (norm_sq_pos z).ne'
 
 /-- Numerator of the formula for a fractional linear transformation -/
-@[simp] def num (g : GL_pos (fin 2) ℝ) (z : ℍ) : ℂ := (↑ₘg 0 0 : ℝ) * z + (↑ₘg 0 1 : ℝ)
+@[simp] def num (g : GL(2, ℝ)⁺) (z : ℍ) : ℂ := (↑ₘg 0 0 : ℝ) * z + (↑ₘg 0 1 : ℝ)
 
 /-- Denominator of the formula for a fractional linear transformation -/
-@[simp] def denom (g :  GL_pos (fin 2) ℝ) (z : ℍ) : ℂ := (↑ₘg 1 0 : ℝ) * z + (↑ₘg 1 1 : ℝ)
+@[simp] def denom (g :  GL(2, ℝ)⁺) (z : ℍ) : ℂ := (↑ₘg 1 0 : ℝ) * z + (↑ₘg 1 1 : ℝ)
 
 lemma linear_ne_zero (cd : fin 2 → ℝ) (z : ℍ) (h : cd ≠ 0) : (cd 0 : ℂ) * z + cd 1 ≠ 0 :=
 begin
@@ -82,7 +84,7 @@ begin
   fin_cases i; assumption,
 end
 
-lemma denom_ne_zero (g : GL_pos (fin 2) ℝ) (z : ℍ) : denom g z ≠ 0 :=
+lemma denom_ne_zero (g : GL(2, ℝ)⁺) (z : ℍ) : denom g z ≠ 0 :=
 begin
   intro H,
   have DET:= (mem_GL_pos _).1 g.property,
@@ -101,16 +103,16 @@ begin
   linarith,
 end
 
-lemma norm_sq_denom_pos (g : GL_pos (fin 2) ℝ) (z : ℍ) : 0 < complex.norm_sq (denom g z) :=
+lemma norm_sq_denom_pos (g : GL(2, ℝ)⁺) (z : ℍ) : 0 < complex.norm_sq (denom g z) :=
 complex.norm_sq_pos.mpr (denom_ne_zero g z)
 
-lemma norm_sq_denom_ne_zero (g :  GL_pos (fin 2) ℝ) (z : ℍ) : complex.norm_sq (denom g z) ≠ 0 :=
+lemma norm_sq_denom_ne_zero (g :  GL(2, ℝ)⁺) (z : ℍ) : complex.norm_sq (denom g z) ≠ 0 :=
 ne_of_gt (norm_sq_denom_pos g z)
 
 /-- Fractional linear transformation, also known as the Moebius transformation -/
-def smul_aux' (g :  GL_pos (fin 2) ℝ) (z : ℍ) : ℂ := num g z / denom g z
+def smul_aux' (g :  GL(2, ℝ)⁺) (z : ℍ) : ℂ := num g z / denom g z
 
-lemma smul_aux'_im (g :  GL_pos (fin 2) ℝ) (z : ℍ) :
+lemma smul_aux'_im (g :  GL(2, ℝ)⁺) (z : ℍ) :
   (smul_aux' g z).im = ((det ↑ₘg) * z.im) / (denom g z).norm_sq :=
 begin
   rw [smul_aux', complex.div_im],
@@ -127,7 +129,7 @@ begin
 end
 
 /-- Fractional linear transformation,  also known as the Moebius transformation -/
-def smul_aux (g :  GL_pos (fin 2) ℝ) (z : ℍ) : ℍ :=
+def smul_aux (g :  GL(2, ℝ)⁺) (z : ℍ) : ℍ :=
   ⟨smul_aux' g z,
     by { rw smul_aux'_im,
     simp,
@@ -139,7 +141,7 @@ def smul_aux (g :  GL_pos (fin 2) ℝ) (z : ℍ) : ℍ :=
     simp [coe_fn_coe_base'],
     ring, }⟩
 
-lemma denom_cocycle (x y : GL_pos (fin 2) ℝ) (z : ℍ) :
+lemma denom_cocycle (x y : GL(2, ℝ)⁺) (z : ℍ) :
   denom (x * y) z = denom x (smul_aux y z) * denom y z :=
 begin
   change _ = (_ * (_ / _) + _) * _,
@@ -148,7 +150,7 @@ begin
   ring
 end
 
-lemma mul_smul' (x y :  GL_pos (fin 2) ℝ) (z : ℍ) :
+lemma mul_smul' (x y :  GL(2, ℝ)⁺) (z : ℍ) :
   smul_aux (x * y) z = smul_aux x (smul_aux y z) :=
 begin
   ext1,
@@ -160,7 +162,7 @@ begin
 end
 
 /-- The action of ` GL_pos 2 ℝ` on the upper half-plane by fractional linear transformations. -/
-instance : mul_action  (GL_pos (fin 2) ℝ) ℍ :=
+instance : mul_action  (GL(2, ℝ)⁺) ℍ :=
 { smul := smul_aux,
   one_smul := λ z, by { ext1, change _ / _ = _,
    simp [coe_fn_coe_base']  },
@@ -174,22 +176,22 @@ instance SL_action {R : Type*} [comm_ring R] [algebra R ℝ] : mul_action SL(2, 
  mul_action.comp_hom ℍ  (monoid_hom.comp (special_linear_group.to_GL_pos)
  (map (algebra_map R ℝ)) )
 
-instance : has_coe SL(2,ℤ) (GL_pos (fin 2) ℝ) := ⟨λ g , ((g : SL(2, ℝ)) : (GL_pos (fin 2) ℝ))⟩
+instance : has_coe SL(2,ℤ) (GL(2, ℝ)⁺) := ⟨λ g , ((g : SL(2, ℝ)) : (GL(2, ℝ)⁺))⟩
 
-instance SL_on_GL_pos : has_scalar SL(2,ℤ) (GL_pos (fin 2) ℝ) := ⟨λ s g, s * g⟩
+instance SL_on_GL_pos : has_scalar SL(2,ℤ) (GL(2, ℝ)⁺) := ⟨λ s g, s * g⟩
 
-lemma SL_on_GL_pos_smul_apply (s : SL(2,ℤ)) (g : (GL_pos (fin 2) ℝ) ) (z : ℍ) :
-  (s • g) • z = ( (s : GL_pos (fin 2) ℝ) * g) • z := rfl
+lemma SL_on_GL_pos_smul_apply (s : SL(2,ℤ)) (g : (GL(2, ℝ)⁺) ) (z : ℍ) :
+  (s • g) • z = ( (s : GL(2, ℝ)⁺) * g) • z := rfl
 
-instance SL_to_GL_tower : is_scalar_tower SL(2,ℤ) (GL_pos (fin 2) ℝ) ℍ :=
+instance SL_to_GL_tower : is_scalar_tower SL(2,ℤ) (GL(2, ℝ)⁺) ℍ :=
  {smul_assoc := by {intros s g z, rw SL_on_GL_pos_smul_apply, simp, apply mul_smul',},}
 
-instance subgroup_GL_pos : has_scalar Γ (GL_pos (fin 2) ℝ) := ⟨λ s g, s * g⟩
+instance subgroup_GL_pos : has_scalar Γ (GL(2, ℝ)⁺) := ⟨λ s g, s * g⟩
 
-lemma subgroup_on_GL_pos_smul_apply (s : Γ) (g : (GL_pos (fin 2) ℝ) ) (z : ℍ) :
-  (s • g) • z = ( (s : GL_pos (fin 2) ℝ) * g) • z := rfl
+lemma subgroup_on_GL_pos_smul_apply (s : Γ) (g : (GL(2, ℝ)⁺) ) (z : ℍ) :
+  (s • g) • z = ( (s : GL(2, ℝ)⁺) * g) • z := rfl
 
-instance subgroup_on_GL_pos : is_scalar_tower Γ (GL_pos (fin 2) ℝ) ℍ :=
+instance subgroup_on_GL_pos : is_scalar_tower Γ (GL(2, ℝ)⁺) ℍ :=
  {smul_assoc :=
   by {intros s g z, rw subgroup_on_GL_pos_smul_apply, simp only [coe_coe], apply mul_smul',},}
 
@@ -203,16 +205,16 @@ instance subgroup_to_SL_tower : is_scalar_tower Γ SL(2,ℤ) ℍ :=
 
 end modular_scalar_towers
 
-@[simp] lemma coe_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
-@[simp] lemma re_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
+@[simp] lemma coe_smul (g : GL(2, ℝ)⁺) (z : ℍ) : ↑(g • z) = num g z / denom g z := rfl
+@[simp] lemma re_smul (g : GL(2, ℝ)⁺) (z : ℍ) : (g • z).re = (num g z / denom g z).re := rfl
 
-lemma im_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : (g • z).im = (num g z / denom g z).im := rfl
+lemma im_smul (g : GL(2, ℝ)⁺) (z : ℍ) : (g • z).im = (num g z / denom g z).im := rfl
 
-lemma im_smul_eq_div_norm_sq (g : GL_pos (fin 2) ℝ) (z : ℍ) :
+lemma im_smul_eq_div_norm_sq (g : GL(2, ℝ)⁺) (z : ℍ) :
   (g • z).im = (det ↑ₘg * z.im) / (complex.norm_sq (denom g z)) :=
 smul_aux'_im g z
 
-@[simp] lemma neg_smul (g :  GL_pos (fin 2) ℝ) (z : ℍ) : -g • z = g • z :=
+@[simp] lemma neg_smul (g :  GL(2, ℝ)⁺) (z : ℍ) : -g • z = g • z :=
 begin
   ext1,
   change _ / _ = _ / _,
@@ -221,11 +223,11 @@ begin
   ring_nf,
   end
 
-variable (Γ : subgroup (special_linear_group (fin 2) ℤ))
+variable (Γ : subgroup SL(2,ℤ))
 
-@[simp]lemma sl_moeb (A: SL(2,ℤ)) (z : ℍ) : A • z = (A : (GL_pos (fin 2) ℝ)) • z := rfl
-@[simp]lemma subgroup_moeb (A: Γ) (z : ℍ) : A • z = (A : (GL_pos (fin 2) ℝ)) • z := rfl
-@[simp]lemma subgroup_to_sl_moeb (A: Γ) (z : ℍ) : A • z = (A : SL(2,ℤ)) • z := rfl
+@[simp]lemma sl_moeb (A: SL(2,ℤ)) (z : ℍ) : A • z = (A : (GL(2, ℝ)⁺)) • z := rfl
+lemma subgroup_moeb (A: Γ) (z : ℍ) : A • z = (A : (GL(2, ℝ)⁺)) • z := rfl
+@[simp]lemma subgroup_to_sl_moeb (A : Γ) (z : ℍ) : A • z = (A : SL(2,ℤ)) • z := rfl
 
 @[simp] lemma SL_neg_smul (g : SL(2,ℤ)) (z : ℍ) : -g • z = g • z :=
 begin
@@ -238,12 +240,6 @@ open_locale topological_space manifold
 
 /--The upper half space as a subset of `ℂ` which is convenient sometimes.-/
 def upper_half_space := {z : ℂ | 0 <  z.im}
-
-lemma hcoe : upper_half_space = (coe: upper_half_plane → ℂ) '' (set.univ : set upper_half_plane) :=
-begin
-simp,
-refl,
-end
 
 lemma upper_half_plane_is_open: is_open upper_half_space  :=
 begin

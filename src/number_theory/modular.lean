@@ -19,14 +19,6 @@ moved inside `𝒟`.
 
 ## Main definitions
 
-<<<<<<< HEAD
-The standard (closed) fundamental domain of the action of `SL(2,ℤ)` on `ℍ`:
-`fundamental_domain := {z | 1 ≤ (z : ℂ).norm_sq ∧ |z.re| ≤ (1 : ℝ) / 2}`
-
-The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ`:
-`fundamental_domain_open := {z | 1 < (z : ℂ).norm_sq ∧ |z.re| < (1 : ℝ) / 2}`
-
-=======
 The standard (closed) fundamental domain of the action of `SL(2,ℤ)` on `ℍ`, denoted `𝒟`:
 `fd := {z | 1 ≤ (z : ℂ).norm_sq ∧ |z.re| ≤ (1 : ℝ) / 2}`
 
@@ -34,22 +26,14 @@ The standard open fundamental domain of the action of `SL(2,ℤ)` on `ℍ`, deno
 `fdo := {z | 1 < (z : ℂ).norm_sq ∧ |z.re| < (1 : ℝ) / 2}`
 
 These notations are localized in the `modular` locale and can be enabled via `open_locale modular`.
->>>>>>> origin/master
 
 ## Main results
 
 Any `z : ℍ` can be moved to `𝒟` by an element of `SL(2,ℤ)`:
-<<<<<<< HEAD
-`exists_smul_mem_fundamental_domain (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟`
-
-If both `z` and `γ • z` are in the open domain `𝒟ᵒ` then `z = γ • z`:
-`fun_dom_lemma₂ (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z`
-=======
 `exists_smul_mem_fd (z : ℍ) : ∃ g : SL(2,ℤ), g • z ∈ 𝒟`
 
 If both `z` and `γ • z` are in the open domain `𝒟ᵒ` then `z = γ • z`:
 `eq_smul_self_of_mem_fdo_mem_fdo {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : z = g • z`
->>>>>>> origin/master
 
 # Discussion
 
@@ -98,22 +82,6 @@ section upper_half_plane_action
 
 /-- For a subring `R` of `ℝ`, the action of `SL(2, R)` on the upper half-plane, as a restriction of
 the `SL(2, ℝ)`-action defined by `upper_half_plane.mul_action`. -/
-<<<<<<< HEAD
-=======
-instance {R : Type*} [comm_ring R] [algebra R ℝ] : mul_action SL(2, R) ℍ :=
-mul_action.comp_hom ℍ (map (algebra_map R ℝ))
-
-lemma coe_smul : ↑(g • z) = num g z / denom g z := rfl
-
-lemma re_smul : (g • z).re = (num g z / denom g z).re := rfl
-
-@[simp] lemma smul_coe : (g : SL(2,ℝ)) • z = g • z := rfl
-
-@[simp] lemma neg_smul : -g • z = g • z :=
-show ↑(-g) • _ = _, by simp [neg_smul g z]
-
-lemma im_smul : (g • z).im = (num g z / denom g z).im := rfl
->>>>>>> origin/master
 
 lemma im_smul_eq_div_norm_sq :
   (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
@@ -125,12 +93,8 @@ rw (g : SL(2,ℝ)).prop,
 simp,
 end
 
-<<<<<<< HEAD
 @[simp] lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 :=
   by {simp,}
-=======
-@[simp] lemma denom_apply : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 := by simp
->>>>>>> origin/master
 
 end upper_half_plane_action
 

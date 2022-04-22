@@ -493,6 +493,10 @@ fintype.of_finset (s.to_finset.product t.to_finset) $ by simp
 lemma finite.prod {s : set α} {t : set β} : finite s → finite t → finite (s ×ˢ t)
 | ⟨hs⟩ ⟨ht⟩ := by exactI ⟨set.fintype_prod s t⟩
 
+lemma finite_prod {s : set (α × β)} : finite s ↔ finite (prod.fst '' s) ∧ finite (prod.snd '' s) :=
+⟨λ h, ⟨h.image _, h.image _⟩,
+  λ h, (h.1.prod h.2).subset $ λ x h, ⟨mem_image_of_mem _ h, mem_image_of_mem _ h⟩⟩
+
 /-- `image2 f s t` is finitype if `s` and `t` are. -/
 instance fintype_image2 [decidable_eq γ] (f : α → β → γ) (s : set α) (t : set β)
   [hs : fintype s] [ht : fintype t] : fintype (image2 f s t : set γ) :=
@@ -592,6 +596,10 @@ begin
   rw ← fintype.coe_pi_finset,
   exact (fintype.pi_finset t).finite_to_set,
 end
+
+lemma finite_pi {δ : Type*} [fintype δ] {κ : δ → Type*} {s : set (Π d, κ d)} :
+  finite s ↔ ∀ d, finite (eval d '' s) :=
+⟨λ h d, h.image _, λ h, (finite.pi h).subset $ subset_pi_eval_image _ _⟩
 
 /-- A finite union of finsets is finite. -/
 lemma union_finset_finite_of_range_finite (f : α → finset β) (h : (range f).finite) :

@@ -215,6 +215,11 @@ lemma fact_iff {p : Prop} : fact p ↔ p := ⟨λ h, h.1, λ h, ⟨h⟩⟩
   Π i₂ j₂ i₁ j₁, φ i₁ j₁ i₂ j₂ :=
 λ i₂ j₂ i₁ j₁, f i₁ j₁ i₂ j₂
 
+/-- If `h : α . tac_name` then `h.out : α`. These are definitionally equal, but this can
+nevertheless be useful for various reasons, e.g. to apply further projection notation or in an
+argument to `simp`. -/
+def auto_param.out {α : Sort*} {n : name} (x : auto_param α n) : α := x
+
 end miscellany
 
 open function

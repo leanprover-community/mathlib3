@@ -371,7 +371,7 @@ begin
     ext i j, fin_cases i; fin_cases j;
     simp [ha, hc, hd, coe_T_zpow], },
   { use -↑ₘg 0 1,
-    suffices : g = -T^(-↑ₘg 0 1), { intros z, conv_lhs { rw [this, neg_smul], }, },
+    suffices : g = -T^(-↑ₘg 0 1), { intros z, conv_lhs { rw [this, SL_neg_smul], }, },
     ext i j, fin_cases i; fin_cases j;
     simp [ha, hc, hd, coe_T_zpow], },
 end
@@ -537,7 +537,7 @@ begin
   have hn : ↑ₘg 1 0 ≠ -1,
   { intros hc,
     replace hc : ↑ₘ(-g) 1 0 = 1, { simp [eq_neg_of_eq_neg hc], },
-    replace hg : (-g) • z ∈ 𝒟ᵒ := (neg_smul g z).symm ▸ hg,
+    replace hg : (-g) • z ∈ 𝒟ᵒ := (SL_neg_smul g z).symm ▸ hg,
     exact hp hg hc, },
   specialize hp hg,
   rcases (int.abs_le_one_iff.mp $ abs_c_le_one hz hg);
@@ -550,7 +550,7 @@ lemma eq_smul_self_of_mem_fdo_mem_fdo (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ �
 begin
   obtain ⟨n, hn⟩ := exists_eq_T_zpow_of_c_eq_zero (c_eq_zero hz hg),
   rw hn at hg ⊢,
-  simp [eq_zero_of_mem_fdo_of_T_zpow_mem_fdo hz hg],
+  simp [eq_zero_of_mem_fdo_of_T_zpow_mem_fdo hz hg, one_smul],
 end
 
 end unique_representative

@@ -91,6 +91,44 @@ by rw [transfer, ←diff_mul_diff, ←smul_diff_smul, mul_comm, diff_mul_diff]; 
 
 section explicit_computation
 
+variables (H)
+
+lemma orbit_powers_eq_orbit_zpowers {α : Type*} [group α] (a : α) {β : Type*} [fintype β]
+  [mul_action α β] (b : β) : mul_action.orbit (submonoid.powers a) b = mul_action.orbit (zpowers a) b :=
+begin
+  sorry
+end
+
+open_locale classical
+
+noncomputable def key_function (g : G) : G ⧸ H → G :=
+λ q : G ⧸ H,
+let q' := (quotient.mk' q : quotient (mul_action.orbit_rel (zpowers g) (G ⧸ H))).out',
+hq : q ∈ mul_action.orbit (submonoid.powers g) q' := by
+{ rw [orbit_powers_eq_orbit_zpowers, ←mul_action.orbit_eq_iff, eq_comm, mul_action.orbit_eq_iff],
+  exact @quotient.mk_out' (G ⧸ H) (mul_action.orbit_rel (zpowers g) (G ⧸ H)) q },
+hq' : ∃ k : ℕ, g ^ k • q' = q := by
+{ have hq' := hq,
+  obtain ⟨⟨-, ⟨k, rfl⟩⟩, hk⟩ := hq',
+  exact ⟨k, hk⟩ } in g ^ (nat.find hq') * q'.out'
+
+def key_transversal (g : G) : left_transversals (H : set G) :=
+⟨set.range (λ q : G ⧸ H,
+let q' := (quotient.mk' q : quotient (mul_action.orbit_rel (zpowers g) (G ⧸ H))).out',
+hq : q ∈ mul_action.orbit (submonoid.powers g) q' := by
+{ rw [orbit_powers_eq_orbit_zpowers, ←mul_action.orbit_eq_iff, eq_comm, mul_action.orbit_eq_iff],
+  exact @quotient.mk_out' (G ⧸ H) (mul_action.orbit_rel (zpowers g) (G ⧸ H)) q },
+hq' : ∃ k : ℕ, g ^ k • q' = q := by
+{ have hq' := hq,
+  obtain ⟨⟨-, ⟨k, rfl⟩⟩, hk⟩ := hq',
+  exact ⟨k, hk⟩ } in g ^ (nat.find hq') * q'.out'), mem_left_transversals_iff_bijective.mpr
+begin
+  split,
+  { intros a b h, },
+  {  },
+  sorry
+end⟩
+
 @[to_additive] lemma _root_.subgroup.pow_index_mem
   {G : Type*} [group G] (H : subgroup G) [H.normal] (hH : H.index ≠ 0) (g : G) :
   g ^ H.index ∈ H :=

@@ -193,20 +193,20 @@ by { rintro _ ⟨a, ha, rfl⟩, exact ⟨ha, hb⟩ }
 lemma image_prod_mk_subset_prod_right (ha : a ∈ s) : prod.mk a '' t ⊆ s ×ˢ t :=
 by { rintro _ ⟨b, hb, rfl⟩, exact ⟨ha, hb⟩ }
 
-lemma prod_subset_preimage_fst (s : set α) (t : set β) : s ×ˢ t ⊆ prod.fst ⁻¹' s :=
-inter_subset_left _ _
-
 lemma fst_image_prod_subset (s : set α) (t : set β) : prod.fst '' s ×ˢ t ⊆ s :=
-image_subset_iff.2 $ prod_subset_preimage_fst s t
+λ _ h, let ⟨_, ⟨h₂, _⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
+
+lemma prod_subset_preimage_fst (s : set α) (t : set β) : s ×ˢ t ⊆ prod.fst ⁻¹' s :=
+image_subset_iff.1 (fst_image_prod_subset s t)
 
 lemma fst_image_prod (s : set β) {t : set α} (ht : t.nonempty) : prod.fst '' s ×ˢ t = s :=
 (fst_image_prod_subset _ _).antisymm $ λ y hy, let ⟨x, hx⟩ := ht in ⟨(y, x), ⟨hy, hx⟩, rfl⟩
 
-lemma prod_subset_preimage_snd (s : set α) (t : set β) : s ×ˢ t ⊆ prod.snd ⁻¹' t :=
-inter_subset_right _ _
-
 lemma snd_image_prod_subset (s : set α) (t : set β) : prod.snd '' s ×ˢ t ⊆ t :=
-image_subset_iff.2 $ prod_subset_preimage_snd s t
+λ _ h, let ⟨_, ⟨_, h₂⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
+
+lemma prod_subset_preimage_snd (s : set α) (t : set β) : s ×ˢ t ⊆ prod.snd ⁻¹' t :=
+image_subset_iff.1 (snd_image_prod_subset s t)
 
 lemma snd_image_prod {s : set α} (hs : s.nonempty) (t : set β) : prod.snd '' s ×ˢ t = t :=
 (snd_image_prod_subset _ _).antisymm $ λ y y_in, let ⟨x, x_in⟩ := hs in ⟨(x, y), ⟨x_in, y_in⟩, rfl⟩
@@ -382,19 +382,17 @@ lemma univ_pi_update_univ [decidable_eq ι] (i : ι) (s : set (α i)) :
   pi univ (update (λ j : ι, (univ : set (α j))) i s) = eval i ⁻¹' s :=
 by rw [univ_pi_update i (λ j, (univ : set (α j))) s (λ j t, t), pi_univ, inter_univ, preimage]
 
-lemma eval_image_pi_subset (hs : i ∈ s) : eval i '' s.pi t ⊆ t i :=
-image_subset_iff.2 $ λ f hf, hf i hs
-
-lemma eval_image_univ_pi_subset : eval i '' pi univ t ⊆ t i :=
-eval_image_pi_subset (mem_univ i)
-
 lemma eval_image_pi (hs : i ∈ s) (ht : (s.pi t).nonempty) : eval i '' s.pi t = t i :=
 begin
-  refine (eval_image_pi_subset hs).antisymm _,
   classical,
+  ext x,
   obtain ⟨f, hf⟩ := ht,
-  refine λ y hy, ⟨update f i y, λ j hj, _, update_same _ _ _⟩,
-  obtain rfl | hji := eq_or_ne j i; simp [*, hf _ hj]
+  refine ⟨_, λ hg, ⟨update f i x, λ j hj, _, by simp⟩⟩,
+  { rintro ⟨g, hg, rfl⟩,
+    exact hg i hs },
+  { obtain rfl | hji := eq_or_ne j i,
+    { simp [hg] },
+    { rw [mem_pi] at hf, simp [hji, hf _ hj] } }
 end
 
 @[simp] lemma eval_image_univ_pi (ht : (pi univ t).nonempty) :

@@ -1416,7 +1416,7 @@ theorem mem_compl_image (t : set α) (S : set (set α)) :
   t ∈ compl '' S ↔ tᶜ ∈ S :=
 begin
   suffices : ∀ x, xᶜ = t ↔ tᶜ = x, { simp [this] },
-  intro x, split; { intro e, subst e, simp }
+  intro x, split; { rintro rfl, simp }
 end
 
 /-- A variant of `image_id` -/

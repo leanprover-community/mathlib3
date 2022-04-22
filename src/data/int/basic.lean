@@ -298,9 +298,9 @@ theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :
 begin
   have : ∀ (a b : ℕ), nat_abs (sub_nat_nat a (nat.succ b)) ≤ nat.succ (a + b),
   { refine (λ a b : ℕ, sub_nat_nat_elim a b.succ
-      (λ m n i, n = b.succ → nat_abs i ≤ (m + b).succ) _ _ rfl);
-    intros i n e,
-    { subst e, rw [add_comm _ i, add_assoc],
+      (λ m n i, n = b.succ → nat_abs i ≤ (m + b).succ) _ (λ i n e, _) rfl),
+    { rintro i n rfl,
+      rw [add_comm _ i, add_assoc],
       exact nat.le_add_right i (b.succ + b).succ },
     { apply succ_le_succ,
       rw [← succ.inj e, ← add_assoc, add_comm],

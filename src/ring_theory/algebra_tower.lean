@@ -318,8 +318,7 @@ def alg_hom_equiv_sigma :
   right_inv :=
   begin
     rintros ⟨⟨f, _, _, _, _, _⟩, g, _, _, _, _, hg⟩,
-    have : f = λ x, g (algebra_map B C x) := by { ext, exact (hg x).symm },
-    subst this,
+    obtain rfl : f = λ x, g (algebra_map B C x) := by { ext, exact (hg x).symm },
     refl,
   end }
 

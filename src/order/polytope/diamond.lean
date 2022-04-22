@@ -20,10 +20,10 @@ orders. Preorders satisfying the usual diamond condition are `2`-diamond orders.
 /-- A diamond order is a graded order where every two elements whose grades differ by `2` have
 exactly `n` elements in between. -/
 class diamond_order (α : Type*) [preorder α] [order_bot α] [locally_finite_order α]
-  (n : out_param ℕ) extends grade_order α :=
+  (n : out_param ℕ) extends grade_order ℕ α :=
 (diamond {a b : α} (hab : a ≤ b) (h : grade b = grade a + 2) : (finset.Ioo a b).card = n)
 
-def diamond_of_linear [preorder α] [order_bot α] [linear_order α] [grade_order α]
+def diamond_of_linear [preorder α] [order_bot α] [linear_order α] [grade_order ℕ α]
   [locally_finite_order α] :
   diamond_order α 1 :=
 ⟨λ a b hab h, begin
@@ -69,7 +69,7 @@ instance order_dual.diamond_order [partial_order α] [bounded_order α] [locally
     rw [grade_of_dual, grade_of_dual, ←grade_top_dual, ←nat.sub_add_comm (grade_le_grade_top _), h,
       add_tsub_add_eq_tsub_right],
   end
-  .. order_dual.grade_order α }
+  .. order_dual.grade_order ℕ α }
 
 /-- An order with one element is a diamond order, aka a nullitope. -/
 def unique.to_diamond_order [unique α] [preorder α] [order_bot α] [locally_finite_order α] (n : ℕ) :
@@ -78,7 +78,7 @@ def unique.to_diamond_order [unique α] [preorder α] [order_bot α] [locally_fi
     rw [subsingleton.elim a b, self_eq_add_right] at h,
     exact (two_ne_zero h).elim,
   end,
-  .. unique.to_grade_order α }
+  .. unique.to_grade_order ℕ α }
 
 /-- A simple order is a diamond order, aka a point. -/
 def is_simple_order.to_diamond_order [decidable_eq α] [partial_order α] [bounded_order α]
@@ -86,11 +86,11 @@ def is_simple_order.to_diamond_order [decidable_eq α] [partial_order α] [bound
   diamond_order α n :=
 { diamond := λ a b hab h, begin
     change grade _ = grade _ + 2 at h,
-    haveI := is_simple_order.to_grade_order α,
+    haveI := is_simple_order.to_grade_order ℕ α,
     have := is_simple_order.grade_le_one b,
     sorry
     -- rw [is_simple_order.eq_bot_of_lt hab, is_simple_order.eq_top_of_lt hab, grade_bot,
     --   is_simple_order.grade_top, zero_add] at h,
     -- linarith,
   end,
-  .. is_simple_order.to_grade_order α }
+  .. is_simple_order.to_grade_order ℕ α }

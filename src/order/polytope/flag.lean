@@ -413,12 +413,12 @@ begin
   have hwi := h w,
   simp only [set.mem_Ioo, not_and, not_lt] at hwi,
   rcases lt_trichotomy x w with hxw | hxw | hxw,
-    { exact or.inl (lt_of_lt_of_le hzy (hwi hxw)) },
-    { induction hxw, exact or.inr hxz },
-    { exact or.inr (lt_trans hxw hxz) }
+  { exact or.inl (lt_of_lt_of_le hzy (hwi hxw)) },
+  { induction hxw, exact or.inr hxz },
+  { exact or.inr (lt_trans hxw hxz) }
 end
 
-instance [order_bot α] [grade_order α] (Φ : flag α) : grade_order Φ :=
+instance [order_bot α] [grade_order 𝕆 α] (Φ : flag α) : grade_order 𝕆 Φ :=
 { grade := λ a, grade a.val,
   grade_bot := grade_bot,
   strict_mono := λ _ _ h, grade_strict_mono h,
@@ -429,7 +429,7 @@ end flag
 
 namespace graded
 section partial_order
-variables [partial_order α] [bounded_order α] [grade_order α]
+variables [partial_order α] [bounded_order α] [grade_order 𝕆 α]
 (j : fin (grade (⊤ : α) + 1))
 
 /-- A graded partial order has an element of grade `j` when `j ≤ grade ⊤`. -/
@@ -444,7 +444,7 @@ noncomputable def idx : α :=
 classical.some (ex_of_grade j)
 
 /-- Like `idx`, but allows specifying the type explicitly. -/
-noncomputable abbreviation idx' (α : Type*) [partial_order α] [bounded_order α] [grade_order α]
+noncomputable abbreviation idx' (α : Type*) [partial_order α] [bounded_order α] [grade_order 𝕆 α]
   (j : fin (grade ⊤ + 1)) : α :=
 idx j
 
@@ -459,8 +459,8 @@ theorem grade_fin_idx : grade_fin (idx j) = j := subtype.ext $ grade_idx j
 end partial_order
 
 section order_iso
-variables [partial_order α] [bounded_order α] [grade_order α] [partial_order β]
-  [bounded_order β] [grade_order β]
+variables [partial_order α] [bounded_order α] [grade_order 𝕆 α] [partial_order β]
+  [bounded_order β] [grade_order 𝕆 β]
 
 -- Todo(Vi): Generalize! This doesn't actually require `order_top`.
 private lemma grade_le_of_order_iso {oiso : α ≃o β} {n : ℕ} :
@@ -537,7 +537,7 @@ theorem scon_order_iso_iff_scon (oiso : α ≃o β) :
 ⟨scon_order_iso_of_scon oiso.symm, scon_order_iso_of_scon oiso⟩
 
 /-- Strong connectedness implies total connectedness. -/
-theorem tcon_of_scon (α : Type*) [partial_order α] [bounded_order α] [grade_order α] :
+theorem tcon_of_scon (α : Type*) [partial_order α] [bounded_order α] [grade_order 𝕆 α] :
   strong_connected α → total_connected α :=
 λ h, (@tcon_order_iso_iff_tcon α (@set.Icc α _ ⊥ ⊤) _ _ _ _ (set.Icc.bounded_order bot_le)
   (set.Icc.graded bot_le) (set.Icc.self_order_iso_bot_top α)).2 (h bot_le)
@@ -545,7 +545,7 @@ theorem tcon_of_scon (α : Type*) [partial_order α] [bounded_order α] [grade_o
 end order_iso
 
 section linear_order
-variables [linear_order α] [bounded_order α] [grade_order α] (j : fin (grade (⊤ : α) + 1))
+variables [linear_order α] [bounded_order α] [grade_order 𝕆 α] (j : fin (grade (⊤ : α) + 1))
 
 /-- `idx j` is the unique element of grade `j` in the linear order. -/
 theorem grade_eq_iff_idx (a : α) : grade a = j ↔ a = graded.idx j :=
@@ -578,7 +578,7 @@ end
 end linear_order
 
 section partial_order
-variables [partial_order α] [bounded_order α] [grade_order α] [fintype α]
+variables [partial_order α] [bounded_order α] [grade_order 𝕆 α] [fintype α]
 
 /-- The cardinality of any flag is the grade of the top element. In other words, in a graded poset,
 all flags have the same cardinality. -/
@@ -601,7 +601,7 @@ end
 
 def foo [preorder α] [order_bot α] [Π Φ : flag α, fintype Φ]
   (hf : ∀ (Φ Ψ : flag α), fintype.card Φ = fintype.card Ψ) :
-  grade_order α :=
+  grade_order 𝕆 α :=
 sorry
 
 end graded
@@ -617,7 +617,7 @@ def adjacent [has_lt α] (Φ Ψ : flag α) : Prop := ∃! a, a ∈ Φ.val \ Ψ.v
 
 instance [has_lt α] : is_irrefl (flag α) adjacent := ⟨λ _ ⟨_, ⟨hl, hr⟩, _⟩, hr hl⟩
 
-variables [partial_order α] [bounded_order α] [grade_order α]
+variables [partial_order α] [bounded_order α] [grade_order 𝕆 α]
 
 /-- If the indices of two flags are equal, all elements of one are in the other. -/
 private lemma eq_of_eq_idx {Φ Ψ : flag α} :
@@ -706,7 +706,7 @@ def total_flag_connected (α : Type*) [preorder α] : Prop :=
 ∀ Φ Ψ : flag α, flag_connected Φ Ψ
 
 /-- Any graded poset of top grade less or equal to 1 has a single flag. -/
-lemma flag_eq_of_grade_le_two (α : Type*) [partial_order α] [bounded_order α] [grade_order α]
+lemma flag_eq_of_grade_le_two (α : Type*) [partial_order α] [bounded_order α] [grade_order 𝕆 α]
   (Φ Ψ : flag α) :
   grade (⊤ : α) ≤ 1 → Φ = Ψ :=
 begin
@@ -725,7 +725,7 @@ begin
 end
 
 /-- Any graded poset of top grade less or equal to 2 is totally flag-connected. -/
-theorem tfcon_of_grade_le_two (α : Type*) [partial_order α] [bounded_order α] [grade_order α] :
+theorem tfcon_of_grade_le_two (α : Type*) [partial_order α] [bounded_order α] [grade_order 𝕆 α] :
   grade (⊤ : α) ≤ 2 → total_flag_connected α :=
 begin
   intro h,
@@ -738,7 +738,7 @@ end
 
 /-- Two adjacent flags have a proper element in common, as long as their grade exceeds 2, and a few
 other simple conditions hold. -/
-private lemma proper_flag_intersect_of_grade [partial_order α] [bounded_order α] [grade_order α]
+private lemma proper_flag_intersect_of_grade [partial_order α] [bounded_order α] [grade_order 𝕆 α]
   {Φ Ψ : flag α} (hg : 2 < grade (⊤ : α)) {j : fin (grade ⊤ + 1)} (hΦΨ : flag.j_adjacent j Φ Ψ)
   (k ∈ set.Ioo 0 (grade (⊤ : α))) (hjk : j.val ≠ k) :
   ∃ c : proper α, c.val ∈ Φ.val ∩ Ψ.val :=
@@ -761,7 +761,7 @@ end
 
 /-- If two flags are flag-connected, then any two elements in these flags are connected, as long as
 the grade exceeds 2. -/
-lemma con_of_mem_fcon [partial_order α] [bounded_order α] [grade_order α]
+lemma con_of_mem_fcon [partial_order α] [bounded_order α] [grade_order 𝕆 α]
   {Φ Ψ : flag α} (hg : 2 < grade (⊤ : α)) (h : flag_connected Φ Ψ) {a b : proper α} :
   a.val ∈ Φ → b.val ∈ Ψ → connected a b :=
 begin
@@ -785,7 +785,7 @@ end
 
 /-- Total flag-connectedness implies total connectedness. Note that the converse is false: a
 counterexample is given by the hexagrammic antiprism (this proof hasn't been written down yet). -/
-theorem tcon_of_tfcon (α : Type*) [partial_order α] [bounded_order α] [grade_order α] :
+theorem tcon_of_tfcon (α : Type*) [partial_order α] [bounded_order α] [grade_order 𝕆 α] :
   total_flag_connected α → total_connected α :=
 begin
   intro h,
@@ -806,7 +806,7 @@ def strong_flag_connected (α : Type*) [preorder α] : Prop :=
 ∀ {x y : α}, section_total_flag_connected x y
 
 /-- Strong flag-connectedness implies total flag-connectedness. -/
-theorem tfcon_of_sfcon (α : Type*) [partial_order α] [order_top α] [order_bot α] [grade_order α] :
+theorem tfcon_of_sfcon (α : Type*) [partial_order α] [order_top α] [order_bot α] [grade_order 𝕆 α] :
   strong_flag_connected α → total_flag_connected α :=
 begin
   intros h Φ Ψ,
@@ -814,7 +814,7 @@ begin
 end
 
 /-- Strong flag connectedness implies strong connectedness. -/
-private lemma scon_of_sfcon (α : Type*) [partial_order α] [order_bot α] [grade_order α] :
+private lemma scon_of_sfcon (α : Type*) [partial_order α] [order_bot α] [grade_order 𝕆 α] :
   strong_flag_connected α → strong_connected α :=
 λ hsc _ _ hxy, @tcon_of_tfcon _ _ (set.Icc.bounded_order hxy) (set.Icc.graded hxy) hsc
 
@@ -826,7 +826,7 @@ private lemma super_duper_flag_lemma [partial_order α] [bounded_order α]
 sorry
 
 /-- Strong connectedness is equivalent to strong flag connectedness, up to a given top grade. -/
-private lemma scon_iff_sfcon_aux [partial_order α] [bounded_order α] [grade_order α] {n : ℕ} :
+private lemma scon_iff_sfcon_aux [partial_order α] [bounded_order α] [grade_order 𝕆 α] {n : ℕ} :
   grade (⊤ : α) ≤ n → strong_connected α → strong_flag_connected α :=
 begin
   /-
@@ -847,7 +847,7 @@ begin
 end
 
 /-- Strong connectedness is equivalent to strong flag-connectedness. -/
-theorem scon_iff_sfcon [partial_order α] [bounded_order α] [grade_order α] :
+theorem scon_iff_sfcon [partial_order α] [bounded_order α] [grade_order 𝕆 α] :
   strong_flag_connected α ↔ strong_connected α :=
 begin
   refine ⟨scon_of_sfcon _, λ h, _⟩,

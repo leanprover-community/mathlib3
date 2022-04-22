@@ -6,7 +6,7 @@ Authors: Yaël Dillies, Violeta Hernández Palacios, Grayson Burton, Vladimir Iv
 
 import order.atoms
 import order.locally_finite
-import order.zorn
+import order.chain
 
 /-!
 # To move
@@ -20,8 +20,10 @@ section order_dual
 open order_dual
 variables {a b : order_dual α}
 
-lemma has_le.le.of_dual [has_le α] (h : a ≤ b) : of_dual b ≤ of_dual a := h
-lemma has_lt.lt.of_dual [has_lt α] {a b : order_dual α} (h : a < b) : of_dual b < of_dual a := h
+@[simp] lemma to_dual_top [has_top α] : to_dual (⊤ : α) = ⊥ := rfl
+@[simp] lemma to_dual_bot [has_bot α] : to_dual (⊥ : α) = ⊤ := rfl
+@[simp] lemma of_dual_top [has_bot α] : of_dual (⊤ : order_dual α) = ⊥ := rfl
+@[simp] lemma of_dual_bot [has_top α] : of_dual (⊥ : order_dual α) = ⊤ := rfl
 
 variables [preorder α] [locally_finite_order α]
 
@@ -84,9 +86,7 @@ end
 
 end nat
 
-/-- Any singleton is a chain. -/
-lemma zorn.chain_singleton (r : α → α → Prop) (a : α) : zorn.chain r {a} :=
-set.pairwise_singleton _ _
+lemma is_chain_singleton (r : α → α → Prop) (a : α) : is_chain r {a} := set.pairwise_singleton _ _
 
 /-- A preorder is isomorphic to the section from bottom to top. -/
 def set.Icc.self_order_iso_bot_top (α : Type*) [preorder α] [order_bot α] [order_top α] :
@@ -108,16 +108,3 @@ begin
   rintro rfl,
   exact not_top_lt h,
 end
-
-lemma is_simple_order.eq_bot_of_lt {α : Type*} [preorder α] [bounded_order α] [is_simple_order α]
-  {a b : α} (h : a < b) :
-  a = ⊥ :=
-(is_simple_order.eq_bot_or_eq_top _).resolve_right $ ne_top_of_gt h
-
-lemma is_simple_order.eq_top_of_lt {α : Type*} [preorder α] [bounded_order α] [is_simple_order α]
-  {a b : α} (h : a < b) :
-  b = ⊤ :=
-(is_simple_order.eq_bot_or_eq_top _).resolve_left $ ne_bot_of_lt h
-
-lemma bot_lt_top {α : Type*} [partial_order α] [bounded_order α] [nontrivial α] : (⊥ : α) < ⊤ :=
-lt_top_iff_ne_top.2 bot_ne_top

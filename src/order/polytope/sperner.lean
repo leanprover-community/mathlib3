@@ -19,7 +19,7 @@ say that an order has the *Sperner property* if any antichain is less than some 
 
 ## Main declarations
 
-* `slice_order`: An order whose slices are finite
+* `slice_order`: An order whose slices are finite.
 * `slice α n`: The `n`-th slice of `α`. The finset of elements of grade `n`.
 * `whitney_number α n`: The number of elements of `α` of grade `n`, aka `n`-th Whitney number.
 * `is_sperner_order`: A Sperner order is an order in which every antichain is smaller than some
@@ -44,31 +44,31 @@ Here are some instances we could have:
 
 open finset
 
-variables {α β : Type*}
+variables {𝕆 α β : Type*}
 
 /-! ### Slice orders -/
 
 /-- A `slice_order` is an order whose "horizontal slices" (elements of a given grade) are finite.
 This is the most general structure in which we can define Whitney numbers. -/
-class slice_order (α : Type*) [preorder α] [order_bot α] [grade_order α] :=
+class slice_order (𝕆 α : Type*) [preorder α] [order_bot α] [grade_order 𝕆 α] :=
 (slice (n : ℕ) : finset α)
-(mem_slice (n : ℕ) (a : α) : a ∈ slice n ↔ grade a = n)
+(mem_slice (n : ℕ) (a : α) : a ∈ slice n ↔ grade 𝕆 a = n)
 
 section slice_order
 section preorder
 variables [preorder α]
 
 section order_bot
-variables (α) [order_bot α] [grade_order α] [slice_order α] (n : ℕ) {a : α}
+variables (α) [order_bot α] [grade_order 𝕆 α] [slice_order 𝕆 α] (n : ℕ) {a : α}
 
 /-- The `n`-th slice of `α` is the finset of element of `α` of grade `n`. -/
 def slice : finset α := slice_order.slice n
 
 variables {α n}
 
-@[simp] lemma mem_slice_iff : a ∈ slice α n ↔ grade a = n := slice_order.mem_slice _ _
+@[simp] lemma mem_slice_iff : a ∈ slice α n ↔ grade 𝕆 a = n := slice_order.mem_slice _ _
 
-lemma mem_slice_grade (a : α) : a ∈ slice α (grade a) := mem_slice_iff.2 rfl
+lemma mem_slice_grade (a : α) : a ∈ slice α (grade 𝕆 a) := mem_slice_iff.2 rfl
 
 /-- A constructor for a locally finite order from intervals that are "too big". -/
 @[reducible] -- See note [reducible non-instances]
@@ -97,9 +97,9 @@ lemma slice_nonempty [no_top_order α] : (slice α n).nonempty := sorry
 end order_bot
 
 section bounded_order
-variables [bounded_order α] [grade_order α] [slice_order α] {n : ℕ} {a : α}
+variables [bounded_order α] [grade_order 𝕆 α] [slice_order 𝕆 α] {n : ℕ} {a : α}
 
-lemma slice_nonempty_of_le (h : n ≤ grade (⊤ : α)) : (slice α n).nonempty := sorry
+lemma slice_nonempty_of_le (h : n ≤ grade 𝕆 (⊤ : α)) : (slice α n).nonempty := sorry
 
 end bounded_order
 end preorder
@@ -108,7 +108,7 @@ section partial_order
 variables [partial_order α]
 
 section order_bot
-variables (α) [order_bot α] [grade_order α] [slice_order α] (n : ℕ) {a : α}
+variables (α) [order_bot α] [grade_order 𝕆 α] [slice_order 𝕆 α] (n : ℕ) {a : α}
 
 lemma slice_zero : slice α 0 = {⊥} := sorry
 
@@ -134,7 +134,7 @@ locally_finite_order.of_decidable_le_lt
 end order_bot
 
 section bounded_order
-variables (α) [bounded_order α] [grade_order α] [slice_order α] (n : ℕ) {a : α}
+variables (α) [bounded_order α] [grade_order 𝕆 α] [slice_order 𝕆 α] (n : ℕ) {a : α}
 
 lemma slice_grade_top : slice α (grade (⊤ : α)) = {⊤} := sorry
 
@@ -149,7 +149,7 @@ section preorder
 variables [preorder α]
 
 section order_bot
-variables (α) [order_bot α] [grade_order α] [slice_order α] (n : ℕ) {a : α}
+variables (α) [order_bot α] [grade_order 𝕆 α] [slice_order 𝕆 α] (n : ℕ) {a : α}
 
 -- Is this worth a separate definition?
 /-- The `n`-th Whitney number of `α`is the number of element of `α` of grade `n`. -/
@@ -161,7 +161,7 @@ card_pos.2 $ slice_nonempty _ _
 end order_bot
 
 section bounded_order
-variables [bounded_order α] [grade_order α] [slice_order α] {n : ℕ} {a : α}
+variables [bounded_order α] [grade_order 𝕆 α] [slice_order 𝕆 α] {n : ℕ} {a : α}
 
 lemma whitney_number_pos_of_le (h : n ≤ grade (⊤ : α)) : 0 < whitney_number α n :=
 card_pos.2 $ slice_nonempty_of_le h
@@ -173,7 +173,7 @@ section partial_order
 variables [partial_order α]
 
 section order_bot
-variables (α) [order_bot α] [grade_order α] [slice_order α] (n : ℕ) {a : α}
+variables (α) [order_bot α] [grade_order 𝕆 α] [slice_order 𝕆 α] (n : ℕ) {a : α}
 
 lemma whitney_number_zero : whitney_number α 0 = 1 :=
 by rw [whitney_number, slice_zero, card_singleton]
@@ -181,7 +181,7 @@ by rw [whitney_number, slice_zero, card_singleton]
 end order_bot
 
 section bounded_order
-variables (α) [bounded_order α] [grade_order α] [slice_order α] (n : ℕ) {a : α}
+variables (α) [bounded_order α] [grade_order 𝕆 α] [slice_order 𝕆 α] (n : ℕ) {a : α}
 
 lemma whitney_number_grade_top : whitney_number α (grade (⊤ : α)) = 1 :=
 by rw [whitney_number, slice_grade_top, card_singleton]
@@ -194,14 +194,14 @@ end whitney
 
 /-- An order has the Sperner property if all antichains are smaller than some slice of the order.
 Sperner's theorem exactly claims that `finset α` has the Sperner property. -/
-class is_sperner_order (α : Type*) [preorder α] [order_bot α] [grade_order α] [slice_order α] :
+class is_sperner_order (α : Type*) [preorder α] [order_bot α] [grade_order 𝕆 α] [slice_order 𝕆 α] :
   Prop :=
 (exists_le_whitney (s : finset α) : is_antichain (≤) (s : set α) → ∃ n, s.card ≤ whitney_number α n)
 
 /-- An order has the strict Sperner property if all antichains are smaller than some slice of the
 order and all maximal antichains are the size of some Whitney number. -/
-class is_strict_sperner_order (α : Type*) [preorder α] [order_bot α] [grade_order α]
-  [slice_order α] extends is_sperner_order α : Prop :=
+class is_strict_sperner_order (α : Type*) [preorder α] [order_bot α] [grade_order 𝕆 α]
+  [slice_order 𝕆 α] extends is_sperner_order α : Prop :=
 (exists_eq_whitney (s : finset α) : is_antichain (≤) (s : set α) →
   (∀ t : finset α, is_antichain (≤) (t : set α) → s ⊆ t → s = t) → ∃ n, s.card = whitney_number α n)
 
@@ -210,8 +210,8 @@ class is_strict_sperner_order (α : Type*) [preorder α] [order_bot α] [grade_o
 /-! ### Product of two slice orders -/
 
 namespace prod
-variables [partial_order α] [partial_order β] [order_bot α] [order_bot β] [grade_order α]
-  [grade_order β] [slice_order α] [slice_order β] [decidable_eq (finset α × finset β)]
+variables [partial_order α] [partial_order β] [order_bot α] [order_bot β] [grade_order 𝕆 α]
+  [grade_order β] [slice_order 𝕆 α] [slice_order β] [decidable_eq (finset α × finset β)]
 
 instance : slice_order (α × β) :=
 { slice := λ n, begin
@@ -221,4 +221,3 @@ instance : slice_order (α × β) :=
   mem_slice := _ }
 
 end prod
-#lint

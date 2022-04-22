@@ -111,6 +111,10 @@ attribute [simp] norm_one
 @[simp] lemma nnnorm_one [semi_normed_group α] [has_one α] [norm_one_class α] : ∥(1 : α)∥₊ = 1 :=
 nnreal.eq norm_one
 
+lemma norm_one_class.nontrivial (α : Type*) [semi_normed_group α] [has_one α] [norm_one_class α] :
+  nontrivial α :=
+nontrivial_of_ne 0 1 $ ne_of_apply_ne norm $ by simp
+
 @[priority 100] -- see Note [lower instance priority]
 instance semi_normed_comm_ring.to_comm_ring [β : semi_normed_comm_ring α] : comm_ring α := { ..β }
 
@@ -331,7 +335,7 @@ variables [normed_ring α]
 lemma units.norm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥ :=
 norm_pos_iff.mpr (units.ne_zero x)
 
-lemma units.nnorm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥₊ :=
+lemma units.nnnorm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥₊ :=
 x.norm_pos
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/

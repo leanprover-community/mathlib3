@@ -347,7 +347,7 @@ theorem lt_mk_of_le {x : pgame} {yl yr : Type*} {yL : yl → pgame} {yR i} :
   (x ≤ yL i) → x < ⟨yl, yr, yL, yR⟩ :=
 by { cases x, rw mk_lt_mk, exact λ h, or.inl ⟨_, h⟩ }
 
-theorem not_le_lt {x y : pgame} :
+private theorem not_le_lt {x y : pgame} :
   (¬ x ≤ y ↔ y < x) ∧ (¬ x < y ↔ y ≤ x) :=
 begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
@@ -358,8 +358,8 @@ begin
     and_comm, or_comm, IHxl, IHxr, IHyl, IHyr, iff_self, and_self]
 end
 
-theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y < x := not_le_lt.1
-theorem not_lt {x y : pgame} : ¬ x < y ↔ y ≤ x := not_le_lt.2
+@[simp] theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y < x := not_le_lt.1
+@[simp] theorem not_lt {x y : pgame} : ¬ x < y ↔ y ≤ x := not_le_lt.2
 
 @[refl] protected theorem le_refl : ∀ x : pgame, x ≤ x
 | ⟨l, r, L, R⟩ := by rw mk_le_mk; exact

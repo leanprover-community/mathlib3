@@ -677,7 +677,6 @@ def map_bilinear : (M →ₗ[R] P) →ₗ[R] (N →ₗ[R] Q) →ₗ[R] (M ⊗[R]
 @[simp]
 lemma map_bilinear_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : map_bilinear f g = map f g := rfl
 
-@[simp]
 def hom_tensor_hom_map : (M →ₗ[R] P) ⊗[R] (N →ₗ[R] Q) →ₗ[R] (M ⊗[R] N →ₗ[R] P ⊗[R] Q) :=
   lift map_bilinear
 

@@ -153,15 +153,6 @@ def sigma_imp :
   (Σ n, L.bounded_formula α n) → (Σ n, L.bounded_formula α n) → (Σ n, L.bounded_formula α n)
 | ⟨m, φ⟩ ⟨n, ψ⟩ := if h : m = n then ⟨m, φ.imp (eq.mp (by rw h) ψ)⟩ else default
 
-lemma _root_.list.drop_sizeof_le [has_sizeof α] (l : list α) : ∀ (n : ℕ), (l.drop n).sizeof ≤ l.sizeof :=
-begin
-  induction l with _ _ lih; intro n,
-  { rw [drop_nil] },
-  { induction n with n nih,
-    { refl, },
-    { exact trans (lih _) le_add_self } }
-end
-
 /-- Decodes a list of symbols as a list of formulas. -/
 @[simp] def list_decode :
   Π (l : list ((Σ k, L.term (α ⊕ fin k)) ⊕ (Σ n, L.relations n) ⊕ ℕ)),

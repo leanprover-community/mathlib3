@@ -676,26 +676,47 @@ protected noncomputable def strict_mono_on.order_iso {α β} [linear_order α] [
 { to_equiv := hf.inj_on.bij_on_image.equiv _,
   map_rel_iff' := λ x y, hf.le_iff_le x.2 y.2 }
 
+namespace strict_mono
+
+variables {α β} [linear_order α] [preorder β]
+variables (f : α → β) (h_mono : strict_mono f) (h_surj : function.surjective f)
+
 /-- A strictly monotone function from a linear order is an order isomorphism between its domain and
 its range. -/
-protected noncomputable def strict_mono.order_iso {α β} [linear_order α] [preorder β] (f : α → β)
-  (h_mono : strict_mono f) : α ≃o set.range f :=
+@[simps] protected noncomputable def order_iso : α ≃o set.range f :=
 { to_equiv := equiv.of_injective f h_mono.injective,
   map_rel_iff' := λ a b, h_mono.le_iff_le }
 
 /-- A strictly monotone surjective function from a linear order is an order isomorphism. -/
-noncomputable def strict_mono.order_iso_of_surjective {α β} [linear_order α] [preorder β]
-  (f : α → β) (h_mono : strict_mono f) (h_surj : function.surjective f) : α ≃o β :=
+noncomputable def order_iso_of_surjective : α ≃o β :=
 (h_mono.order_iso f).trans $ (order_iso.set_congr _ _ h_surj.range_eq).trans order_iso.set.univ
 
+@[simp] lemma coe_order_iso_of_surjective :
+  (order_iso_of_surjective f h_mono h_surj : α → β) = f :=
+rfl
+
+@[simp] lemma order_iso_of_surjective_symm_apply_self (a : α) :
+  (order_iso_of_surjective f h_mono h_surj).symm (f a) = a :=
+by rw [← (strict_mono.order_iso_of_surjective f h_mono h_surj).to_equiv.apply_eq_iff_eq,
+  rel_iso.coe_fn_to_equiv, order_iso.apply_symm_apply, coe_order_iso_of_surjective]
+
+@[simp] lemma order_iso_of_surjective_self_symm_apply (b : β) :
+  f ((order_iso_of_surjective f h_mono h_surj).symm b) = b :=
+begin
+  obtain ⟨a, rfl⟩ := h_surj b,
+  simp,
+end
+
 /-- A strictly monotone function with a right inverse is an order isomorphism. -/
-def strict_mono.order_iso_of_right_inverse {α β} [linear_order α] [preorder β]
-  (f : α → β) (h_mono : strict_mono f) (g : β → α) (hg : function.right_inverse g f) : α ≃o β :=
+@[simps {fully_applied := false}] def order_iso_of_right_inverse
+  (g : β → α) (hg : function.right_inverse g f) : α ≃o β :=
 { to_fun := f,
   inv_fun := g,
   left_inv := λ x, h_mono.injective $ hg _,
   right_inv := hg,
   .. order_embedding.of_strict_mono f h_mono }
+
+end strict_mono
 
 /-- An order isomorphism is also an order isomorphism between dual orders. -/
 protected def order_iso.dual [has_le α] [has_le β] (f : α ≃o β) :

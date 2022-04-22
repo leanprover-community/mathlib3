@@ -506,8 +506,8 @@ def prod_dvd_and_dvd_of_dvd_prod {m n k : ℕ} (H : k ∣ m * n) :
 begin
 cases h0 : (gcd k m),
 case nat.zero
-{ have : k = 0 := eq_zero_of_gcd_eq_zero_left h0, subst this,
-  have : m = 0 := eq_zero_of_gcd_eq_zero_right h0, subst this,
+{ obtain rfl : k = 0 := eq_zero_of_gcd_eq_zero_left h0,
+  obtain rfl : m = 0 := eq_zero_of_gcd_eq_zero_right h0,
   exact ⟨⟨⟨0, dvd_refl 0⟩, ⟨n, dvd_refl n⟩⟩, (zero_mul n).symm⟩ },
 case nat.succ : tmp
 { have hpos : 0 < gcd k m := h0.symm ▸ nat.zero_lt_succ _; clear h0 tmp,

@@ -91,7 +91,7 @@ begin
   have : mv_polynomial σ k ⧸ vanishing_ideal {x} ≃+* k := ring_equiv.of_bijective
     (ideal.quotient.lift _ (eval x) (λ p h, (mem_vanishing_ideal_singleton_iff x p).mp h))
     begin
-      refine ⟨(ring_hom.injective_iff _).mpr (λ p hp, _), λ z,
+      refine ⟨(injective_iff_map_eq_zero _).mpr (λ p hp, _), λ z,
         ⟨(ideal.quotient.mk (vanishing_ideal {x} : ideal (mv_polynomial σ k))) (C z), by simp⟩⟩,
       obtain ⟨q, rfl⟩ := quotient.mk_surjective p,
       rwa [ideal.quotient.lift_mk, ← mem_vanishing_ideal_singleton_iff,

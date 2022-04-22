@@ -713,11 +713,45 @@ end
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/
 @[mk_iff] class t2_space (α : Type u) [topological_space α] : Prop :=
-(t2 : ∀x y, x ≠ y → ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
+(t2 : ∀ x y, x ≠ y → ∃ u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
 
+/-- Two different points can be separated by open sets. -/
 lemma t2_separation [t2_space α] {x y : α} (h : x ≠ y) :
-  ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
+  ∃ u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
 t2_space.t2 x y h
+
+/-- A finite set can be separated by open sets. -/
+lemma t2_separation_finset [t2_space α] (s : finset α) :
+  ∃ f : α → set α, set.pairwise_disjoint ↑s f ∧ ∀ x ∈ s, x ∈ f x ∧ is_open (f x) :=
+finset.induction_on s (by simp) begin
+  rintros t s ht ⟨f, hf, hf'⟩,
+  have hty : ∀ y : s, t ≠ y := by { rintros y rfl, exact ht y.2 },
+  choose u v hu hv htu hxv huv using λ {x} (h : t ≠ x), t2_separation h,
+  refine ⟨λ x, if ht : t = x then ⋂ y : s, u (hty y) else f x ∩ v ht, _, _⟩,
+  { rintros x hx₁ y hy₁ hxy a ⟨hx, hy⟩,
+    rw [finset.mem_coe, finset.mem_insert, eq_comm] at hx₁ hy₁,
+    rcases eq_or_ne t x with rfl | hx₂;
+    rcases eq_or_ne t y with rfl | hy₂,
+    { exact hxy rfl },
+    { simp_rw [dif_pos rfl, mem_Inter] at hx,
+      simp_rw [dif_neg hy₂] at hy,
+      rw [bot_eq_empty, ←huv hy₂],
+      exact ⟨hx ⟨y, hy₁.resolve_left hy₂⟩, hy.2⟩ },
+    { simp_rw [dif_neg hx₂] at hx,
+      simp_rw [dif_pos rfl, mem_Inter] at hy,
+      rw [bot_eq_empty, ←huv hx₂],
+      exact ⟨hy ⟨x, hx₁.resolve_left hx₂⟩, hx.2⟩ },
+    { simp_rw [dif_neg hx₂] at hx,
+      simp_rw [dif_neg hy₂] at hy,
+      exact hf (hx₁.resolve_left hx₂) (hy₁.resolve_left hy₂) hxy ⟨hx.1, hy.1⟩ } },
+  { intros x hx,
+    split_ifs with ht,
+    { refine ⟨mem_Inter.2 (λ y, _), is_open_Inter (λ y, hu (hty y))⟩,
+      rw ←ht,
+      exact htu (hty y) },
+    { have hx := hf' x ((finset.mem_insert.1 hx).resolve_left (ne.symm ht)),
+      exact ⟨⟨hx.1, hxv ht⟩, is_open.inter hx.2 (hv ht)⟩ } }
+end
 
 @[priority 100] -- see Note [lower instance priority]
 instance t2_space.t1_space [t2_space α] : t1_space α :=

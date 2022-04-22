@@ -1074,7 +1074,7 @@ end
 @[priority 100] -- See note [lower instance priority]
 instance inner_product_space.to_uniform_convex_space : uniform_convex_space F :=
 ⟨λ ε hε, begin
-  refine ⟨2 - sqrt (4 - ε^2), sub_pos_of_lt $ (sqrt_lt_iff zero_lt_two).2 _, λ x hx y hy hxy, _⟩,
+  refine ⟨2 - sqrt (4 - ε^2), sub_pos_of_lt $ (sqrt_lt zero_lt_two).2 _, λ x hx y hy hxy, _⟩,
   { norm_num,
     exact pow_pos hε _ },
   rw sub_sub_cancel,

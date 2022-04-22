@@ -207,9 +207,6 @@ lt_iff_lt_of_le_iff_le (sqrt_le_sqrt_iff hx)
 theorem sqrt_lt_sqrt_iff_of_pos (hy : 0 < y) : sqrt x < sqrt y ↔ x < y :=
 by rw [sqrt, sqrt, nnreal.coe_lt_coe, nnreal.sqrt_lt_sqrt_iff, to_nnreal_lt_to_nnreal_iff hy]
 
-lemma sqrt_lt_iff (hy : 0 < y) : sqrt x < y ↔ x < y ^ 2 :=
-by rw [←sqrt_lt_sqrt_iff_of_pos (pow_pos hy _), sqrt_sq hy.le]
-
 theorem sqrt_le_sqrt (h : x ≤ y) : sqrt x ≤ sqrt y :=
 by { rw [sqrt, sqrt, nnreal.coe_le_coe, nnreal.sqrt_le_sqrt_iff], exact to_nnreal_le_to_nnreal h }
 
@@ -303,9 +300,12 @@ by rw [sqrt_div_self', one_div]
 lemma lt_sqrt (hx : 0 ≤ x) : x < sqrt y ↔ x ^ 2 < y :=
 by rw [←sqrt_lt_sqrt_iff (sq_nonneg _), sqrt_sq hx]
 
+lemma sq_lt : x^2 < y ↔ -sqrt y < x ∧ x < sqrt y := by rw [←abs_lt, ←sq_abs, lt_sqrt (abs_nonneg _)]
 
 theorem neg_sqrt_lt_of_sq_lt (h : x^2 < y) : -sqrt y < x := (sq_lt.mp h).1
+
 theorem lt_sqrt_of_sq_lt (h : x^2 < y) : x < sqrt y := (sq_lt.mp h).2
+
 /-- The natural square root is at most the real square root -/
 lemma nat_sqrt_le_real_sqrt {a : ℕ} : ↑(nat.sqrt a) ≤ real.sqrt ↑a :=
 begin

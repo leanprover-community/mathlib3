@@ -101,12 +101,8 @@ by simpa [algebra.eq_top_iff, is_cyclotomic_extension_iff] using h
 
 /-- If `is_cyclotomic_extension {1} A B`, then `A = B`. -/
 lemma singleton_one [h : is_cyclotomic_extension {1} A B] : (⊥ : subalgebra A B) = ⊤ :=
-begin
-  rw [algebra.eq_top_iff],
-  rw [is_cyclotomic_extension_iff] at h,
-  intro x,
-  simpa [adjoin_singleton_one] using h.2 x,
-end
+algebra.eq_top_iff.2 (λ x, by simpa [adjoin_singleton_one]
+  using ((is_cyclotomic_extension_iff _ _ _).1 h).2 x)
 
 /-- Transitivity of cyclotomic extensions. -/
 lemma trans (C : Type w) [comm_ring C] [algebra A C] [algebra B C]

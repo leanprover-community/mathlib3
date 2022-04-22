@@ -99,10 +99,10 @@ lemma is_cobounded_def {s : set α} : is_cobounded s ↔ s ∈ cobounded α := i
 
 lemma is_bounded_def {s : set α} : is_bounded s ↔ sᶜ ∈ cobounded α := iff.rfl
 
-@[simp] lemma is_bounded_compl_iff {s : set α} : is_bounded sᶜ ↔ is_cobounded s :=
+@[simp] lemma is_bounded_compl_iff : is_bounded sᶜ ↔ is_cobounded s :=
 by rw [is_bounded_def, is_cobounded_def, compl_compl]
 
-@[simp] lemma is_cobounded_compl_iff {s : set α} : is_cobounded sᶜ ↔ is_bounded s := iff.rfl
+@[simp] lemma is_cobounded_compl_iff : is_cobounded sᶜ ↔ is_bounded s := iff.rfl
 
 alias is_bounded_compl_iff ↔ bornology.is_bounded.of_compl bornology.is_cobounded.compl
 alias is_cobounded_compl_iff ↔ bornology.is_cobounded.of_compl bornology.is_bounded.compl
@@ -202,6 +202,11 @@ by rw [← sUnion_range, is_bounded_sUnion (finite_range s), forall_range_iff]
 
 end bornology
 
+open bornology
+
+lemma set.finite.is_bounded [bornology α] {s : set α} (hs : s.finite) : is_bounded s :=
+bornology.le_cofinite α hs.compl_mem_cofinite
+
 instance : bornology punit := ⟨⊥, bot_le⟩
 
 /-- The cofinite filter as a bornology -/
@@ -209,6 +214,13 @@ instance : bornology punit := ⟨⊥, bot_le⟩
 { cobounded := cofinite,
   le_cofinite := le_rfl }
 
-/-- A **bounded space** is a `bornology α` such that `set.univ : set α` is bounded. -/
-class bounded_space extends bornology α :=
+/-- A space with a `bornology` is a **bounded space** if `set.univ : set α` is bounded. -/
+class bounded_space (α : Type*) [bornology α] : Prop :=
 (bounded_univ : bornology.is_bounded (univ : set α))
+
+lemma bornology.is_bounded.all [bornology α] [bounded_space α] (s : set α) :
+  is_bounded s :=
+bounded_space.bounded_univ.subset s.subset_univ
+
+lemma bornology.is_bounded_univ [bornology α] : is_bounded (univ : set α) ↔ bounded_space α :=
+⟨λ h, ⟨h⟩, λ h, h.1⟩

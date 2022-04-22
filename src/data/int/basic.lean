@@ -129,6 +129,8 @@ theorem coe_nat_lt {m n : ℕ} : (↑m : ℤ) < ↑n ↔ m < n := coe_nat_lt_coe
 @[simp, norm_cast]
 theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n := int.coe_nat_eq_coe_nat_iff m n
 
+lemma coe_nat_strict_mono : strict_mono (coe : ℕ → ℤ) := λ _ _, int.coe_nat_lt.2
+
 @[simp] theorem coe_nat_pos {n : ℕ} : (0 : ℤ) < n ↔ 0 < n :=
 by rw [← int.coe_nat_zero, coe_nat_lt]
 
@@ -221,6 +223,9 @@ le_sub_iff_add_le
 lemma abs_le_one_iff {a : ℤ} : |a| ≤ 1 ↔ a = 0 ∨ a = 1 ∨ a = -1 :=
 by rw [le_iff_lt_or_eq, abs_lt_one_iff, abs_eq (@zero_le_one ℤ _)]
 
+lemma one_le_abs {z : ℤ} (h₀: z ≠ 0) : 1 ≤ |z| :=
+add_one_le_iff.mpr (abs_pos.mpr h₀)
+
 @[elab_as_eliminator] protected lemma induction_on {p : ℤ → Prop}
   (i : ℤ) (hz : p 0) (hp : ∀ i : ℕ, p i → p (i + 1)) (hn : ∀ i : ℕ, p (-i) → p (-i - 1)) : p i :=
 begin
@@ -285,15 +290,17 @@ end
 
 /-! ### nat abs -/
 
+variables {a b : ℤ} {n : ℕ}
+
 attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
 
 theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
 begin
   have : ∀ (a b : ℕ), nat_abs (sub_nat_nat a (nat.succ b)) ≤ nat.succ (a + b),
   { refine (λ a b : ℕ, sub_nat_nat_elim a b.succ
-      (λ m n i, n = b.succ → nat_abs i ≤ (m + b).succ) _ _ rfl);
-    intros i n e,
-    { subst e, rw [add_comm _ i, add_assoc],
+      (λ m n i, n = b.succ → nat_abs i ≤ (m + b).succ) _ (λ i n e, _) rfl),
+    { rintro i n rfl,
+      rw [add_comm _ i, add_assoc],
       exact nat.le_add_right i (b.succ + b).succ },
     { apply succ_le_succ,
       rw [← succ.inj e, ← add_assoc, add_comm],
@@ -354,6 +361,9 @@ begin
   rw [← abs_eq_iff_mul_self_eq, abs_eq_nat_abs, abs_eq_nat_abs],
   exact int.coe_nat_inj'.symm
 end
+
+lemma eq_nat_abs_iff_mul_eq_zero : a.nat_abs = n ↔ (a - n) * (a + n) = 0 :=
+by rw [nat_abs_eq_iff, mul_eq_zero, sub_eq_zero, add_eq_zero_iff_eq_neg]
 
 lemma nat_abs_lt_iff_mul_self_lt {a b : ℤ} : a.nat_abs < b.nat_abs ↔ a * a < b * b :=
 begin
@@ -1283,6 +1293,18 @@ begin
   rcases h with rfl | rfl,
   { exact is_unit_one },
   { exact is_unit_one.neg }
+end
+
+lemma eq_one_or_neg_one_of_mul_eq_one {z w : ℤ} (h : z * w = 1) : z = 1 ∨ z = -1 :=
+is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
+
+lemma eq_one_or_neg_one_of_mul_eq_one' {z w : ℤ} (h : z * w = 1) :
+  (z = 1 ∧ w = 1) ∨ (z = -1 ∧ w = -1) :=
+begin
+  have h' : w * z = 1 := (mul_comm z w) ▸ h,
+  rcases eq_one_or_neg_one_of_mul_eq_one h with rfl | rfl;
+  rcases eq_one_or_neg_one_of_mul_eq_one h' with rfl | rfl;
+  tauto,
 end
 
 theorem is_unit_iff_nat_abs_eq {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=

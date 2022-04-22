@@ -557,7 +557,7 @@ begin
   { have := stationary_point_spec hne le_rfl (le_of_not_le hngen),
     rw ←this,
     apply hN,
-    exact le_rfl, assumption }
+    exact le_rfl, assumption },
 end
 
 protected lemma nonneg (q : ℚ_[p]) : 0 ≤ padic_norm_e q :=
@@ -817,7 +817,8 @@ end
 begin
   have p₀ : p ≠ 0 := hp.1.ne_zero,
   have p₁ : p ≠ 1 := hp.1.ne_one,
-  simp [p₀, p₁, norm, padic_norm, padic_val_rat, zpow_neg, padic.cast_eq_of_rat_of_nat],
+  simp [p₀, p₁, norm, padic_norm, padic_val_rat, padic_val_int, zpow_neg,
+    padic.cast_eq_of_rat_of_nat],
 end
 
 lemma norm_p_lt_one : ∥(p : ℚ_[p])∥ < 1 :=
@@ -865,13 +866,14 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
         from mt rat.zero_iff_num_zero.1 hnz,
       rw [padic_norm_e.eq_padic_norm],
       norm_cast,
-      rw [padic_norm.eq_zpow_of_nonzero p hnz', padic_val_rat_def p hnz'],
-      have h : (multiplicity p d).get _ = 0, by simp [multiplicity_eq_zero_of_not_dvd, hq],
-      simp only, norm_cast,
-      rw_mod_cast [h, sub_zero],
-      apply zpow_le_one_of_nonpos,
-      { exact_mod_cast le_of_lt hp.1.one_lt, },
-      { apply neg_nonpos_of_nonneg, norm_cast, simp, }
+      rw [padic_norm.eq_zpow_of_nonzero p hnz', padic_val_rat, neg_sub,
+        padic_val_nat.eq_zero_of_not_dvd hq],
+      norm_cast,
+      rw [zero_sub, zpow_neg₀, zpow_coe_nat],
+      apply inv_le_one,
+      { norm_cast,
+        apply one_le_pow,
+        exact hp.1.pos, },
     end
 
 theorem norm_int_le_one (z : ℤ) : ∥(z : ℚ_[p])∥ ≤ 1 :=
@@ -897,11 +899,9 @@ begin
       apply dvd_zero },
     { norm_cast at H ⊢,
       convert zpow_zero _,
-      simp only [neg_eq_zero],
-      rw padic_val_rat.padic_val_rat_of_int _ hp.1.ne_one H,
+      rw [neg_eq_zero, padic_val_rat.of_int],
       norm_cast,
-      rw [← enat.coe_inj, enat.coe_get, nat.cast_zero],
-      apply multiplicity.multiplicity_eq_zero_of_not_dvd h } },
+      apply padic_val_int.eq_zero_of_not_dvd h, } },
   { rintro ⟨x, rfl⟩,
     push_cast,
     rw padic_norm_e.mul,

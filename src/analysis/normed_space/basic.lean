@@ -422,6 +422,9 @@ instance normed_algebra_rat {𝕜} [normed_division_ring 𝕜] [char_zero 𝕜] 
 { norm_smul_le := λ q x,
     by rw [←smul_one_smul ℝ q x, rat.smul_one_eq_coe, norm_smul, rat.norm_cast_real], }
 
+instance punit.normed_algebra : normed_algebra 𝕜 punit :=
+{ norm_smul_le := λ q x, by simp only [punit.norm_eq_zero, mul_zero] }
+
 /-- The product of two normed algebras is a normed algebra, with the sup norm. -/
 instance prod.normed_algebra {E F : Type*} [semi_normed_ring E] [semi_normed_ring F]
   [normed_algebra 𝕜 E] [normed_algebra 𝕜 F] :

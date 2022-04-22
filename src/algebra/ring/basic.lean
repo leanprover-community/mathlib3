@@ -6,6 +6,7 @@ Neil Strickland
 -/
 import algebra.divisibility
 import algebra.regular.basic
+import data.pi
 
 /-!
 # Properties and homomorphisms of semirings and rings
@@ -23,7 +24,8 @@ ring_hom, nonzero, domain, is_domain
 
 ## Notations
 
-→+* for bundled ring homs (also use for semiring homs)
+* `→+*` for bundled ring homs (also use for semiring homs)
+* `→ₙ+*` for bundled non-unital ring homs (also use for non-unital semiring homs)
 
 ## Implementation notes
 
@@ -231,6 +233,15 @@ end non_unital_semiring
 section non_assoc_semiring
 variables [non_assoc_semiring α]
 
+lemma add_one_mul (a b : α) : (a + 1) * b = a * b + b :=
+by rw [add_mul, one_mul]
+lemma mul_add_one (a b : α) : a * (b + 1) = a * b + a :=
+by rw [mul_add, mul_one]
+lemma one_add_mul (a b : α) : (1 + a) * b = b + a * b :=
+by rw [add_mul, one_mul]
+lemma mul_one_add (a b : α) : a * (1 + b) = a + a * b :=
+by rw [mul_add, mul_one]
+
 theorem two_mul (n : α) : 2 * n = n + n :=
 eq.trans (right_distrib 1 1 n) (by simp)
 
@@ -326,6 +337,202 @@ lemma mul_right_apply {R : Type*} [non_unital_non_assoc_semiring R] (a r : R) :
 
 end add_monoid_hom
 
+/-- Bundled non-unital semiring homomorphisms `R →ₙ+* S`; use this for bundled non-unital ring
+homomorphisms too.
+
+When possible, instead of parametrizing results over `(f : R →ₙ+* S)`,
+you should parametrize over `(F : Type*) [non_unital_ring_hom_class F R S] (f : F)`.
+
+When you extend this structure, make sure to extend `non_unital_ring_hom_class`. -/
+structure non_unital_ring_hom (R : Type*) (S : Type*) [non_unital_non_assoc_semiring R]
+  [non_unital_non_assoc_semiring S] extends R →ₙ* S, R →+ S
+
+infixr ` →ₙ+* `:25 := non_unital_ring_hom
+
+/-- Reinterpret a non-unital ring homomorphism `f : R →ₙ+* S` as a semigroup
+homomorphism `R →ₙ* S`. The `simp`-normal form is `(f : R →ₙ* S)`. -/
+add_decl_doc non_unital_ring_hom.to_mul_hom
+
+/-- Reinterpret a non-unital ring homomorphism `f : R →ₙ+* S` as an additive
+monoid homomorphism `R →+ S`. The `simp`-normal form is `(f : R →+ S)`. -/
+add_decl_doc non_unital_ring_hom.to_add_monoid_hom
+
+section non_unital_ring_hom_class
+
+/-- `non_unital_ring_hom_class F R S` states that `F` is a type of non-unital (semi)ring
+homomorphisms. You should extend this class when you extend `non_unital_ring_hom`. -/
+class non_unital_ring_hom_class (F : Type*) (R S : out_param Type*)
+  [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
+  extends mul_hom_class F R S, add_monoid_hom_class F R S
+
+variables {F : Type*} [non_unital_non_assoc_semiring α] [non_unital_non_assoc_semiring β]
+  [non_unital_ring_hom_class F α β]
+
+instance : has_coe_t F (α →ₙ+* β) :=
+⟨λ f, { to_fun := f, map_zero' := map_zero f, map_mul' := map_mul f, map_add' := map_add f }⟩
+
+end non_unital_ring_hom_class
+
+namespace non_unital_ring_hom
+
+section coe
+
+/-!
+Throughout this section, some `semiring` arguments are specified with `{}` instead of `[]`.
+See note [implicit instance arguments].
+-/
+variables {rα : non_unital_non_assoc_semiring α} {rβ : non_unital_non_assoc_semiring β}
+
+include rα rβ
+
+instance : non_unital_ring_hom_class (α →ₙ+* β) α β :=
+{ coe := non_unital_ring_hom.to_fun,
+  coe_injective' := λ f g h, by cases f; cases g; congr',
+  map_add := non_unital_ring_hom.map_add',
+  map_zero := non_unital_ring_hom.map_zero',
+  map_mul := non_unital_ring_hom.map_mul' }
+
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly.
+-/
+instance : has_coe_to_fun (α →ₙ+* β) (λ _, α → β) := ⟨non_unital_ring_hom.to_fun⟩
+
+@[simp] lemma to_fun_eq_coe (f : α →ₙ+* β) : f.to_fun = f := rfl
+
+@[simp] lemma coe_mk (f : α → β) (h₁ h₂ h₃) : ⇑(⟨f, h₁, h₂, h₃⟩ : α →ₙ+* β) = f := rfl
+
+@[simp] lemma coe_coe {F : Type*} [non_unital_ring_hom_class F α β] (f : F) :
+  ((f : α →ₙ+* β) : α → β) = f := rfl
+
+@[simp] lemma coe_to_mul_hom (f : α →ₙ+* β) : ⇑f.to_mul_hom = f := rfl
+
+@[simp] lemma coe_mul_hom_mk (f : α → β) (h₁ h₂ h₃) :
+  ((⟨f, h₁, h₂, h₃⟩ : α →ₙ+* β) : α →ₙ* β) = ⟨f, h₁⟩ :=
+rfl
+
+@[simp] lemma coe_to_add_monoid_hom (f : α →ₙ+* β) : ⇑f.to_add_monoid_hom = f := rfl
+
+@[simp] lemma coe_add_monoid_hom_mk (f : α → β) (h₁ h₂ h₃) :
+  ((⟨f, h₁, h₂, h₃⟩ : α →ₙ+* β) : α →+ β) = ⟨f, h₂, h₃⟩ :=
+rfl
+
+/-- Copy of a `ring_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
+equalities. -/
+protected def copy (f : α →ₙ+* β) (f' : α → β) (h : f' = f) : α →ₙ+* β :=
+{ ..f.to_mul_hom.copy f' h, ..f.to_add_monoid_hom.copy f' h }
+
+end coe
+
+variables [rα : non_unital_non_assoc_semiring α] [rβ : non_unital_non_assoc_semiring β]
+
+section
+include rα rβ
+
+variables (f : α →ₙ+* β) {x y : α} {rα rβ}
+
+@[ext] theorem ext ⦃f g : α →ₙ+* β⦄ (h : ∀ x, f x = g x) : f = g :=
+fun_like.ext _ _ h
+
+theorem ext_iff {f g : α →ₙ+* β} : f = g ↔ ∀ x, f x = g x :=
+fun_like.ext_iff
+
+@[simp] lemma mk_coe (f : α →ₙ+* β) (h₁ h₂ h₃) : non_unital_ring_hom.mk f h₁ h₂ h₃ = f :=
+ext $ λ _, rfl
+
+theorem coe_add_monoid_hom_injective : function.injective (coe : (α →ₙ+* β) → (α →+ β)) :=
+λ f g h, ext (λ x, add_monoid_hom.congr_fun h x)
+
+theorem coe_mul_hom_injective : function.injective (coe : (α →ₙ+* β) → (α →ₙ* β)) :=
+λ f g h, ext (λ x, mul_hom.congr_fun h x)
+
+end
+
+/-- The identity non-unital ring homomorphism from a non-unital semiring to itself. -/
+protected def id (α : Type*) [non_unital_non_assoc_semiring α] : α →ₙ+* α :=
+by refine {to_fun := id, ..}; intros; refl
+
+include rα rβ
+
+instance : has_zero (α →ₙ+* β) :=
+has_zero.mk
+  { to_fun := 0,
+    map_mul' := λ x y, (mul_zero (0 : β)).symm,
+    map_zero' := rfl,
+    map_add' := λ x y, (add_zero (0 : β)).symm }
+
+instance : inhabited (α →ₙ+* β) := ⟨0⟩
+
+@[simp] lemma coe_zero : ⇑(0 : α →ₙ+* β) = 0 := rfl
+@[simp] lemma zero_apply (x : α) : (0 : α →ₙ+* β) x = 0 := rfl
+
+omit rβ
+
+@[simp] lemma id_apply (x : α) : non_unital_ring_hom.id α x = x := rfl
+@[simp] lemma coe_add_monoid_hom_id :
+  (non_unital_ring_hom.id α : α →+ α) = add_monoid_hom.id α := rfl
+@[simp] lemma coe_mul_hom_id : (non_unital_ring_hom.id α : α →ₙ* α) = mul_hom.id α := rfl
+
+variable {rγ : non_unital_non_assoc_semiring γ}
+include rβ rγ
+
+/-- Composition of non-unital ring homomorphisms is a non-unital ring homomorphism. -/
+def comp (g : β →ₙ+* γ) (f : α →ₙ+* β) : α →ₙ+* γ :=
+{ ..g.to_mul_hom.comp f.to_mul_hom, ..g.to_add_monoid_hom.comp f.to_add_monoid_hom }
+
+/-- Composition of non-unital ring homomorphisms is associative. -/
+lemma comp_assoc {δ} {rδ : non_unital_non_assoc_semiring δ} (f : α →ₙ+* β) (g : β →ₙ+* γ)
+  (h : γ →ₙ+* δ) : (h.comp g).comp f = h.comp (g.comp f) := rfl
+
+@[simp] lemma coe_comp (g : β →ₙ+* γ) (f : α →ₙ+* β) : ⇑(g.comp f) = g ∘ f := rfl
+@[simp] lemma comp_apply (g : β →ₙ+* γ) (f : α →ₙ+* β) (x : α) : g.comp f x = g (f x) := rfl
+
+@[simp] lemma coe_comp_add_monoid_hom (g : β →ₙ+* γ) (f : α →ₙ+* β) :
+  (g.comp f : α →+ γ) = (g : β →+ γ).comp f := rfl
+@[simp] lemma coe_comp_mul_hom (g : β →ₙ+* γ) (f : α →ₙ+* β) :
+  (g.comp f : α →ₙ* γ) = (g : β →ₙ* γ).comp f := rfl
+
+@[simp] lemma comp_zero (g : β →ₙ+* γ) : g.comp (0 : α →ₙ+* β) = 0 := by { ext, simp }
+@[simp] lemma zero_comp (f : α →ₙ+* β) : (0 : β →ₙ+* γ).comp f = 0 := by { ext, refl }
+
+omit rγ
+
+@[simp] lemma comp_id (f : α →ₙ+* β) : f.comp (non_unital_ring_hom.id α) = f := ext $ λ x, rfl
+@[simp] lemma id_comp (f : α →ₙ+* β) : (non_unital_ring_hom.id β).comp f = f := ext $ λ x, rfl
+
+omit rβ
+
+instance : monoid_with_zero (α →ₙ+* α) :=
+{ one := non_unital_ring_hom.id α,
+  mul := comp,
+  mul_one := comp_id,
+  one_mul := id_comp,
+  mul_assoc := λ f g h, comp_assoc _ _ _,
+  zero := 0,
+  mul_zero := comp_zero,
+  zero_mul := zero_comp }
+
+lemma one_def : (1 : α →ₙ+* α) = non_unital_ring_hom.id α := rfl
+
+@[simp] lemma coe_one : ⇑(1 : α →ₙ+* α) = id := rfl
+
+lemma mul_def (f g : α →ₙ+* α) : f * g = f.comp g := rfl
+
+@[simp] lemma coe_mul (f g : α →ₙ+* α) : ⇑(f * g) = f ∘ g := rfl
+
+include rβ rγ
+
+lemma cancel_right {g₁ g₂ : β →ₙ+* γ} {f : α →ₙ+* β} (hf : surjective f) :
+  g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
+⟨λ h, ext $ hf.forall.2 (ext_iff.1 h), λ h, h ▸ rfl⟩
+
+lemma cancel_left {g : β →ₙ+* γ} {f₁ f₂ : α →ₙ+* β} (hg : injective g) :
+  g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
+⟨λ h, ext $ λ x, hg $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
+
+omit rα rβ rγ
+
+end non_unital_ring_hom
+
 /-- Bundled semiring homomorphisms; use this for bundled ring homomorphisms too.
 
 This extends from both `monoid_hom` and `monoid_with_zero_hom` in order to put the fields in a
@@ -372,6 +579,10 @@ by simp [bit1]
 instance : has_coe_t F (α →+* β) :=
 ⟨λ f, { to_fun := f, map_zero' := map_zero f, map_one' := map_one f, map_mul' := map_mul f,
   map_add' := map_add f }⟩
+
+@[priority 100]
+instance ring_hom_class.to_non_unital_ring_hom_class : non_unital_ring_hom_class F α β :=
+{ .. ‹ring_hom_class F α β› }
 
 end ring_hom_class
 
@@ -855,6 +1066,15 @@ protected def function.surjective.non_assoc_ring
 { .. hf.add_comm_group f zero add neg sub nsmul gsmul, .. hf.mul_zero_class f zero mul,
   .. hf.distrib f add mul, .. hf.mul_one_class f one mul }
 
+lemma sub_one_mul (a b : α) : (a - 1) * b = a * b - b :=
+by rw [sub_mul, one_mul]
+lemma mul_sub_one (a b : α) : a * (b - 1) = a * b - a :=
+by rw [mul_sub, mul_one]
+lemma one_sub_mul (a b : α) : (1 - a) * b = b - a * b :=
+by rw [sub_mul, one_mul]
+lemma mul_one_sub (a b : α) : a * (1 - b) = a - a * b :=
+by rw [mul_sub, mul_one]
+
 end non_assoc_ring
 
 /-- A ring is a type with the following structures: additive commutative group (`add_comm_group`),
@@ -966,16 +1186,6 @@ map_neg f x
 /-- Ring homomorphisms preserve subtraction. -/
 protected theorem map_sub {α β} [non_assoc_ring α] [non_assoc_ring β] (f : α →+* β) (x y : α) :
   f (x - y) = (f x) - (f y) := map_sub f x y
-
-/-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff {α β} [non_assoc_ring α] [non_assoc_semiring β] (f : α →+* β) :
-  function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
-(f : α →+ β).injective_iff
-
-/-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff' {α β} [non_assoc_ring α] [non_assoc_semiring β] (f : α →+* β) :
-  function.injective f ↔ (∀ a, f a = 0 ↔ a = 0) :=
-(f : α →+ β).injective_iff'
 
 /-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/
 def mk' {γ} [non_assoc_semiring α] [non_assoc_ring γ] (f : α →* γ)

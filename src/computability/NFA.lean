@@ -17,6 +17,8 @@ Note that this definition allows for Automaton with infinite states, a `fintype`
 supplied for true NFA's.
 -/
 
+open set
+
 universes u v
 
 /-- An NFA is a set of states (`σ`), a transition function from state to state labelled by the
@@ -35,21 +37,34 @@ namespace NFA
 instance : inhabited (NFA α σ) := ⟨ NFA.mk (λ _ _, ∅) ∅ ∅ ⟩
 
 /-- `M.step_set S a` is the union of `M.step s a` for all `s ∈ S`. -/
-def step_set : set σ → α → set σ :=
-λ Ss a, Ss >>= (λ S, (M.step S a))
+def step_set (S : set σ) (a : α) : set σ := ⋃ s ∈ S, M.step s a
 
-lemma mem_step_set (s : σ) (S : set σ) (a : α) :
-  s ∈ M.step_set S a ↔ ∃ t ∈ S, s ∈ M.step t a :=
-by simp only [step_set, set.mem_Union, set.bind_def]
+lemma mem_step_set (s : σ) (S : set σ) (a : α) : s ∈ M.step_set S a ↔ ∃ t ∈ S, s ∈ M.step t a :=
+mem_Union₂
+
+@[simp] lemma step_set_empty (a : α) : M.step_set ∅ a = ∅ :=
+by simp_rw [step_set, Union_false, Union_empty]
 
 /-- `M.eval_from S x` computes all possible paths though `M` with input `x` starting at an element
   of `S`. -/
 def eval_from (start : set σ) : list α → set σ :=
 list.foldl M.step_set start
 
+@[simp] lemma eval_from_nil (S : set σ) : M.eval_from S [] = S := rfl
+@[simp] lemma eval_from_singleton (S : set σ) (a : α) : M.eval_from S [a] = M.step_set S a := rfl
+@[simp] lemma eval_from_append_singleton (S : set σ) (x : list α) (a : α) :
+  M.eval_from S (x ++ [a]) = M.step_set (M.eval_from S x) a :=
+by simp only [eval_from, list.foldl_append, list.foldl_cons, list.foldl_nil]
+
 /-- `M.eval x` computes all possible paths though `M` with input `x` starting at an element of
   `M.start`. -/
-def eval := M.eval_from M.start
+def eval : list α → set σ := M.eval_from M.start
+
+@[simp] lemma eval_nil : M.eval [] = M.start := rfl
+@[simp] lemma eval_singleton (a : α) : M.eval [a] = M.step_set M.start a := rfl
+@[simp] lemma eval_append_singleton (x : list α) (a : α) :
+  M.eval (x ++ [a]) = M.step_set (M.eval x) a :=
+eval_from_append_singleton _ _ _ _
 
 /-- `M.accepts` is the language of `x` such that there is an accept state in `M.eval x`. -/
 def accepts : language α :=

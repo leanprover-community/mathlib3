@@ -788,11 +788,11 @@ variables {β : Type*} {mβ : measurable_space β} {f : α → β} {g : β → E
 include mβ
 
 lemma snorm_ess_sup_map_measure
-  (hg : ae_strongly_measurable g (measure.map f μ)) (hf : measurable f) :
+  (hg : ae_strongly_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
   snorm_ess_sup g (measure.map f μ) = snorm_ess_sup (g ∘ f) μ :=
 ess_sup_map_measure hg.ennnorm hf
 
-lemma snorm_map_measure (hg : ae_strongly_measurable g (measure.map f μ)) (hf : measurable f) :
+lemma snorm_map_measure (hg : ae_strongly_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
   snorm g p (measure.map f μ) = snorm (g ∘ f) p μ :=
 begin
   by_cases hp_zero : p = 0,
@@ -804,9 +804,10 @@ begin
   rw lintegral_map' (hg.ennnorm.pow_const p.to_real) hf,
 end
 
-lemma mem_ℒp_map_measure_iff (hg : ae_strongly_measurable g (measure.map f μ)) (hf : measurable f) :
+lemma mem_ℒp_map_measure_iff
+  (hg : ae_strongly_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
   mem_ℒp g p (measure.map f μ) ↔ mem_ℒp (g ∘ f) p μ :=
-by simp [mem_ℒp, snorm_map_measure hg hf, hg.comp_measurable hf, hg]
+by simp [mem_ℒp, snorm_map_measure hg hf, hg.comp_ae_measurable hf, hg]
 
 lemma _root_.measurable_embedding.snorm_ess_sup_map_measure {g : β → F}
   (hf : measurable_embedding f) :
@@ -1248,6 +1249,25 @@ end
 
 end monotonicity
 
+lemma snorm_indicator_ge_of_bdd_below (hp : p ≠ 0) (hp' : p ≠ ∞)
+  {f : α → F} (C : ℝ≥0) {s : set α} (hs : measurable_set s)
+  (hf : ∀ᵐ x ∂μ, x ∈ s → C ≤ ∥s.indicator f x∥₊) :
+  C • μ s ^ (1 / p.to_real) ≤ snorm (s.indicator f) p μ :=
+begin
+  rw [ennreal.smul_def, smul_eq_mul, snorm_eq_lintegral_rpow_nnnorm hp hp',
+    ennreal.le_rpow_one_div_iff (ennreal.to_real_pos hp hp'),
+    ennreal.mul_rpow_of_nonneg _ _ ennreal.to_real_nonneg,
+    ← ennreal.rpow_mul, one_div_mul_cancel (ennreal.to_real_pos hp hp').ne.symm, ennreal.rpow_one,
+    ← set_lintegral_const, ← lintegral_indicator _ hs],
+  refine lintegral_mono_ae _,
+  filter_upwards [hf] with x hx,
+  rw nnnorm_indicator_eq_indicator_nnnorm,
+  by_cases hxs : x ∈ s,
+  { simp only [set.indicator_of_mem hxs] at ⊢ hx,
+    exact ennreal.rpow_le_rpow (ennreal.coe_le_coe.2 (hx hxs)) ennreal.to_real_nonneg },
+  { simp [set.indicator_of_not_mem hxs] },
+end
+
 section is_R_or_C
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {f : α → 𝕜}
 
@@ -1404,7 +1424,7 @@ instance : has_norm (Lp E p μ) := { norm := λ f, ennreal.to_real (snorm f p μ
 
 instance : has_dist (Lp E p μ) := { dist := λ f g, ∥f - g∥}
 
-instance : has_edist (Lp E p μ) := { edist := λ f g, ennreal.of_real (dist f g) }
+instance : has_edist (Lp E p μ) := { edist := λ f g, snorm (f - g) p μ }
 
 lemma norm_def (f : Lp E p μ) : ∥f∥ = ennreal.to_real (snorm f p μ) := rfl
 
@@ -1420,10 +1440,7 @@ begin
 end
 
 lemma edist_def (f g : Lp E p μ) : edist f g = snorm (f - g) p μ :=
-begin
-  simp_rw [edist, dist, norm_def, ennreal.of_real_to_real (snorm_ne_top _)],
-  exact snorm_congr_ae (coe_fn_sub _ _)
-end
+rfl
 
 @[simp] lemma edist_to_Lp_to_Lp (f g : α → E) (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
   edist (hf.to_Lp f) (hg.to_Lp g) = snorm (f - g) p μ :=
@@ -1520,19 +1537,28 @@ begin
 end
 
 instance [hp : fact (1 ≤ p)] : normed_group (Lp E p μ) :=
-normed_group.of_core _
-{ norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp.1),
-  triangle := begin
-    assume f g,
-    simp only [norm_def],
-    rw ← ennreal.to_real_add (snorm_ne_top f) (snorm_ne_top g),
-    suffices h_snorm : snorm ⇑(f + g) p μ ≤ snorm ⇑f p μ + snorm ⇑g p μ,
-    { rwa ennreal.to_real_le_to_real (snorm_ne_top (f + g)),
-      exact ennreal.add_ne_top.mpr ⟨snorm_ne_top f, snorm_ne_top g⟩, },
-    rw [snorm_congr_ae (coe_fn_add _ _)],
-    exact snorm_add_le (Lp.ae_strongly_measurable f) (Lp.ae_strongly_measurable g) hp.1,
-  end,
-  norm_neg := by simp }
+{ edist := edist,
+  edist_dist := λ f g, by
+    rw [edist_def, dist_def, ←snorm_congr_ae (coe_fn_sub _ _),
+      ennreal.of_real_to_real (snorm_ne_top (f - g))],
+  .. normed_group.of_core (Lp E p μ)
+    { norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp.1),
+      triangle := begin
+        assume f g,
+        simp only [norm_def],
+        rw ← ennreal.to_real_add (snorm_ne_top f) (snorm_ne_top g),
+        suffices h_snorm : snorm ⇑(f + g) p μ ≤ snorm ⇑f p μ + snorm ⇑g p μ,
+        { rwa ennreal.to_real_le_to_real (snorm_ne_top (f + g)),
+          exact ennreal.add_ne_top.mpr ⟨snorm_ne_top f, snorm_ne_top g⟩, },
+        rw [snorm_congr_ae (coe_fn_add _ _)],
+        exact snorm_add_le (Lp.ae_strongly_measurable f) (Lp.ae_strongly_measurable g) hp.1,
+      end,
+      norm_neg := by simp } }
+
+-- check no diamond is created
+example [fact (1 ≤ p)] :
+  pseudo_emetric_space.to_has_edist = (Lp.has_edist : has_edist (Lp E p μ)) :=
+rfl
 
 section normed_space
 

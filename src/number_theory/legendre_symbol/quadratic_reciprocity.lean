@@ -24,7 +24,7 @@ interpretations in terms of existence of square roots depending on the congruenc
 `exists_sq_eq_prime_iff_of_mod_four_eq_three`.
 
 Also proven are conditions for `-1` and `2` to be a square modulo a prime,
-`exists_sq_eq_neg_one_iff_mod_four_ne_three` and
+`exists_sq_eq_neg_one_iff` and
 `exists_sq_eq_two_iff`
 
 ## Implementation notes
@@ -72,7 +72,7 @@ begin
     refine ⟨units.mk0 y hy, _⟩, simp, }
 end
 
-lemma exists_sq_eq_neg_one_iff_mod_four_ne_three :
+lemma exists_sq_eq_neg_one_iff :
   (∃ y : zmod p, y ^ 2 = -1) ↔ p % 4 ≠ 3 :=
 begin
   cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
@@ -95,7 +95,7 @@ begin
 end
 
 lemma mod_four_ne_three_of_sq_eq_neg_one {y : zmod p} (hy : y ^ 2 = -1) : p % 4 ≠ 3 :=
-(exists_sq_eq_neg_one_iff_mod_four_ne_three p).1 ⟨y, hy⟩
+(exists_sq_eq_neg_one_iff p).1 ⟨y, hy⟩
 
 lemma mod_four_ne_three_of_sq_eq_neg_sq' {x y : zmod p} (hy : y ≠ 0) (hxy : x ^ 2 = - y ^ 2) :
   p % 4 ≠ 3 :=

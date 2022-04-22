@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel
+Authors: Sébastien Gouëzel, Yaël Dillies
 -/
 import analysis.normed.group.pointwise
 import analysis.normed.group.add_torsor
@@ -95,12 +95,103 @@ by rw [vadd_ball, vadd_eq_add, add_zero]
 lemma vadd_closed_ball_zero (x : E) (r : ℝ) : x +ᵥ closed_ball 0 r = closed_ball x r :=
 by rw [vadd_closed_ball, vadd_eq_add, add_zero]
 
-variables [normed_space ℝ E]
+variables [normed_space ℝ E] {x y z : E} {δ ε : ℝ}
 
 /-- In a real normed space, the image of the unit ball under scalar multiplication by a positive
 constant `r` is the ball of radius `r`. -/
 lemma smul_unit_ball_of_pos {r : ℝ} (hr : 0 < r) : r • ball 0 1 = ball (0 : E) r :=
 by rw [smul_unit_ball hr.ne', real.norm_of_nonneg hr.le]
+
+-- This is also true for `ℚ`-normed spaces
+lemma exists_dist_eq (x z : E) {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
+  ∃ y, dist x y = b * dist x z ∧ dist y z = a * dist x z :=
+begin
+  use a • x + b • z,
+  nth_rewrite 0 [←one_smul ℝ x],
+  nth_rewrite 3 [←one_smul ℝ z],
+  simp [dist_eq_norm, ←hab, add_smul, ←smul_sub, norm_smul_of_nonneg, ha, hb],
+end
+
+lemma exists_dist_le_le (hδ : 0 ≤ δ) (hε : 0 ≤ ε) (h : dist x z ≤ ε + δ) :
+  ∃ y, dist x y ≤ δ ∧ dist y z ≤ ε :=
+begin
+  obtain rfl | hε' := hε.eq_or_lt,
+  { exact ⟨z, by rwa zero_add at h, (dist_self _).le⟩ },
+  have hεδ := add_pos_of_pos_of_nonneg hε' hδ,
+  refine (exists_dist_eq x z (div_nonneg hε $ add_nonneg hε hδ) (div_nonneg hδ $ add_nonneg hε hδ) $
+    by rw [←add_div, div_self hεδ.ne']).imp (λ y hy, _),
+  rw [hy.1, hy.2, div_mul_comm', div_mul_comm' ε],
+  rw ←div_le_one hεδ at h,
+  exact ⟨mul_le_of_le_one_left hδ h, mul_le_of_le_one_left hε h⟩,
+end
+
+-- This is also true for `ℚ`-normed spaces
+lemma exists_dist_le_lt (hδ : 0 ≤ δ) (hε : 0 < ε) (h : dist x z < ε + δ) :
+  ∃ y, dist x y ≤ δ ∧ dist y z < ε :=
+begin
+  refine (exists_dist_eq x z (div_nonneg hε.le $ add_nonneg hε.le hδ) (div_nonneg hδ $ add_nonneg
+    hε.le hδ) $ by rw [←add_div, div_self (add_pos_of_pos_of_nonneg hε hδ).ne']).imp (λ y hy, _),
+  rw [hy.1, hy.2, div_mul_comm', div_mul_comm' ε],
+  rw ←div_lt_one (add_pos_of_pos_of_nonneg hε hδ) at h,
+  exact ⟨mul_le_of_le_one_left hδ h.le, mul_lt_of_lt_one_left hε h⟩,
+end
+
+-- This is also true for `ℚ`-normed spaces
+lemma exists_dist_lt_le (hδ : 0 < δ) (hε : 0 ≤ ε) (h : dist x z < ε + δ) :
+  ∃ y, dist x y < δ ∧ dist y z ≤ ε :=
+begin
+  obtain ⟨y, yz, xy⟩ := exists_dist_le_lt hε hδ
+    (show dist z x < δ + ε, by simpa only [dist_comm, add_comm] using h),
+  exact ⟨y, by simp [dist_comm x y, dist_comm y z, *]⟩,
+end
+
+-- This is also true for `ℚ`-normed spaces
+lemma exists_dist_lt_lt (hδ : 0 < δ) (hε : 0 < ε) (h : dist x z < ε + δ) :
+  ∃ y, dist x y < δ ∧ dist y z < ε :=
+begin
+  refine (exists_dist_eq x z (div_nonneg hε.le $ add_nonneg hε.le hδ.le) (div_nonneg hδ.le $
+    add_nonneg hε.le hδ.le) $ by rw [←add_div, div_self (add_pos hε hδ).ne']).imp (λ y hy, _),
+  rw [hy.1, hy.2, div_mul_comm', div_mul_comm' ε],
+  rw ←div_lt_one (add_pos hε hδ) at h,
+  exact ⟨mul_lt_of_lt_one_left hδ h, mul_lt_of_lt_one_left hε h⟩,
+end
+
+-- This is also true for `ℚ`-normed spaces
+lemma disjoint_ball_ball_iff (hδ : 0 < δ) (hε : 0 < ε) :
+  disjoint (ball x δ) (ball y ε) ↔ δ + ε ≤ dist x y :=
+begin
+  refine ⟨λ h, le_of_not_lt $ λ hxy, _, ball_disjoint_ball⟩,
+  rw add_comm at hxy,
+  obtain ⟨z, hxz, hzy⟩ := exists_dist_lt_lt hδ hε hxy,
+  rw dist_comm at hxz,
+  exact h ⟨hxz, hzy⟩,
+end
+
+-- This is also true for `ℚ`-normed spaces
+lemma disjoint_ball_closed_ball_iff (hδ : 0 < δ) (hε : 0 ≤ ε) :
+  disjoint (ball x δ) (closed_ball y ε) ↔ δ + ε ≤ dist x y :=
+begin
+  refine ⟨λ h, le_of_not_lt $ λ hxy, _, ball_disjoint_closed_ball⟩,
+  rw add_comm at hxy,
+  obtain ⟨z, hxz, hzy⟩ := exists_dist_lt_le hδ hε hxy,
+  rw dist_comm at hxz,
+  exact h ⟨hxz, hzy⟩,
+end
+
+-- This is also true for `ℚ`-normed spaces
+lemma disjoint_closed_ball_ball_iff (hδ : 0 ≤ δ) (hε : 0 < ε) :
+  disjoint (closed_ball x δ) (ball y ε) ↔ δ + ε ≤ dist x y :=
+by rw [disjoint.comm, disjoint_ball_closed_ball_iff hε hδ, add_comm, dist_comm]; apply_instance
+
+lemma disjoint_closed_ball_closed_ball_iff (hδ : 0 ≤ δ) (hε : 0 ≤ ε) :
+  disjoint (closed_ball x δ) (closed_ball y ε) ↔ δ + ε < dist x y :=
+begin
+  refine ⟨λ h, lt_of_not_ge $ λ hxy, _, closed_ball_disjoint_closed_ball⟩,
+  rw add_comm at hxy,
+  obtain ⟨z, hxz, hzy⟩ := exists_dist_le_le hδ hε hxy,
+  rw dist_comm at hxz,
+  exact h ⟨hxz, hzy⟩,
+end
 
 end semi_normed_group
 

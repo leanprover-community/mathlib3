@@ -52,8 +52,6 @@ instance : has_coe (lie_subalgebra R L) (submodule R L) := ⟨lie_subalgebra.to_
 
 namespace lie_subalgebra
 
-open neg_mem_class
-
 instance : set_like (lie_subalgebra R L) L :=
 { coe := λ L', L',
   coe_injective' := λ L' L'' h, by { rcases L' with ⟨⟨⟩⟩, rcases L'' with ⟨⟨⟩⟩, congr' } }
@@ -97,17 +95,11 @@ instance (L' : lie_subalgebra R L) : lie_algebra R L' :=
 
 variables {R L} (L' : lie_subalgebra R L)
 
-@[simp] lemma zero_mem : (0 : L) ∈ L' := (L' : submodule R L).zero_mem
+@[simp] protected lemma zero_mem : (0 : L) ∈ L' := zero_mem L'
+protected lemma add_mem {x y : L} : x ∈ L' → y ∈ L' → (x + y : L) ∈ L' := add_mem
+protected lemma sub_mem {x y : L} : x ∈ L' → y ∈ L' → (x - y : L) ∈ L' := sub_mem
 
 lemma smul_mem (t : R) {x : L} (h : x ∈ L') : t • x ∈ L' := (L' : submodule R L).smul_mem t h
-
-lemma add_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (x + y : L) ∈ L' :=
-(L' : submodule R L).add_mem hx hy
-
-lemma sub_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (x - y : L) ∈ L' :=
-(L' : submodule R L).sub_mem hx hy
-
-@[simp] lemma neg_mem_iff {x : L} : -x ∈ L' ↔ x ∈ L' := L'.to_submodule.neg_mem_iff
 
 lemma lie_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (⁅x, y⁆ : L) ∈ L' := L'.lie_mem' hx hy
 

@@ -697,15 +697,11 @@ rfl
 
 @[simp] lemma order_iso_of_surjective_symm_apply_self (a : α) :
   (order_iso_of_surjective f h_mono h_surj).symm (f a) = a :=
-by rw [← (strict_mono.order_iso_of_surjective f h_mono h_surj).to_equiv.apply_eq_iff_eq,
-  rel_iso.coe_fn_to_equiv, order_iso.apply_symm_apply, coe_order_iso_of_surjective]
+(order_iso_of_surjective f h_mono h_surj).symm_apply_apply _
 
 @[simp] lemma order_iso_of_surjective_self_symm_apply (b : β) :
   f ((order_iso_of_surjective f h_mono h_surj).symm b) = b :=
-begin
-  obtain ⟨a, rfl⟩ := h_surj b,
-  simp,
-end
+(order_iso_of_surjective f h_mono h_surj).apply_symm_apply _
 
 /-- A strictly monotone function with a right inverse is an order isomorphism. -/
 @[simps {fully_applied := false}] def order_iso_of_right_inverse

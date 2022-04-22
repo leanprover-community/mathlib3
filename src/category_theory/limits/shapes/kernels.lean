@@ -13,6 +13,7 @@ the equalizer of `f` and `0 : X ⟶ Y`. (Similarly the cokernel is the coequaliz
 
 The basic definitions are
 * `kernel : (X ⟶ Y) → C`
+
 * `kernel.ι : kernel f ⟶ X`
 * `kernel.condition : kernel.ι f ≫ f = 0` and
 * `kernel.lift (k : W ⟶ X) (h : k ≫ f = 0) : W ⟶ kernel f` (as well as the dual versions)
@@ -74,7 +75,7 @@ variables {f}
 by erw [fork.condition, has_zero_morphisms.comp_zero]
 
 @[simp] lemma kernel_fork.app_one (s : kernel_fork f) : s.π.app one = 0 :=
-by rw [←fork.app_zero_left, kernel_fork.condition]
+by simp [fork.app_one_eq_ι_comp_right]
 
 /-- A morphism `ι` satisfying `ι ≫ f = 0` determines a kernel fork over `f`. -/
 abbreviation kernel_fork.of_ι {Z : C} (ι : Z ⟶ X) (w : ι ≫ f = 0) : kernel_fork f :=
@@ -324,12 +325,12 @@ variables [has_zero_object C]
 open_locale zero_object
 
 /-- The morphism from the zero object determines a cone on a kernel diagram -/
-def kernel.zero_cone : cone (parallel_pair f 0) :=
+def kernel.zero_kernel_fork : kernel_fork f :=
 { X := 0,
   π := { app := λ j, 0 }}
 
 /-- The map from the zero object is a kernel of a monomorphism -/
-def kernel.is_limit_cone_zero_cone [mono f] : is_limit (kernel.zero_cone f) :=
+def kernel.is_limit_cone_zero_cone [mono f] : is_limit (kernel.zero_kernel_fork f) :=
 fork.is_limit.mk _ (λ s, 0)
   (λ s, by { erw zero_comp,
     convert (zero_of_comp_mono f _).symm,
@@ -364,7 +365,7 @@ def is_kernel.of_comp_iso {Z : C} (l : X ⟶ Z) (i : Z ≅ Y) (h : l ≫ i.hom =
 fork.is_limit.mk _
   (λ s, hs.lift $ kernel_fork.of_ι (fork.ι s) $ by simp [←h])
   (λ s, by simp)
-  (λ s m h, by { apply fork.is_limit.hom_ext hs, simpa using h walking_parallel_pair.zero })
+  (λ s m h, by { apply fork.is_limit.hom_ext hs, simpa using h })
 
 /-- If `i` is an isomorphism such that `l ≫ i.hom = f`, then the kernel of `f` is a kernel of `l`.-/
 def kernel.of_comp_iso [has_kernel f]
@@ -405,11 +406,11 @@ abbreviation cokernel_cofork := cofork f 0
 
 variables {f}
 
-@[simp, reassoc] lemma cokernel_cofork.condition (s : cokernel_cofork f) : f ≫ cofork.π s = 0 :=
+@[simp, reassoc] lemma cokernel_cofork.condition (s : cokernel_cofork f) : f ≫ s.π = 0 :=
 by rw [cofork.condition, zero_comp]
 
-@[simp] lemma cokernel_cofork.app_zero (s : cokernel_cofork f) : s.ι.app zero = 0 :=
-by rw [←cofork.left_app_one, cokernel_cofork.condition]
+@[simp] lemma cokernel_cofork.π_eq_zero (s : cokernel_cofork f) : s.ι.app zero = 0 :=
+by simp [cofork.app_zero_eq_comp_π_right]
 
 /-- A morphism `π` satisfying `f ≫ π = 0` determines a cokernel cofork on `f`. -/
 abbreviation cokernel_cofork.of_π {Z : C} (π : Y ⟶ Z) (w : f ≫ π = 0) : cokernel_cofork f :=
@@ -657,12 +658,13 @@ variables [has_zero_object C]
 open_locale zero_object
 
 /-- The morphism to the zero object determines a cocone on a cokernel diagram -/
-def cokernel.zero_cocone : cocone (parallel_pair f 0) :=
+def cokernel.zero_cokernel_cofork : cokernel_cofork f :=
 { X := 0,
   ι := { app := λ j, 0 } }
 
 /-- The morphism to the zero object is a cokernel of an epimorphism -/
-def cokernel.is_colimit_cocone_zero_cocone [epi f] : is_colimit (cokernel.zero_cocone f) :=
+def cokernel.is_colimit_cocone_zero_cocone [epi f] :
+  is_colimit (cokernel.zero_cokernel_cofork f) :=
 cofork.is_colimit.mk _ (λ s, 0)
   (λ s, by { erw zero_comp,
     convert (zero_of_epi_comp f _).symm,
@@ -763,7 +765,7 @@ def is_cokernel.of_iso_comp {Z : C} (l : Z ⟶ Y) (i : X ≅ Z) (h : i.hom ≫ l
 cofork.is_colimit.mk _
   (λ s, hs.desc $ cokernel_cofork.of_π (cofork.π s) $ by simp [←h])
   (λ s, by simp)
-  (λ s m h, by { apply cofork.is_colimit.hom_ext hs, simpa using h walking_parallel_pair.one })
+  (λ s m h, by { apply cofork.is_colimit.hom_ext hs, simpa using h })
 
 /-- If `i` is an isomorphism such that `i.hom ≫ l = f`, then the cokernel of `f` is a cokernel of
     `l`. -/

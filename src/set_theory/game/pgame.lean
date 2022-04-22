@@ -776,7 +776,7 @@ cast (right_moves_add x y).symm (sum.inr i)
   (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inl i) =
     (mk xl xr xL xR).move_left i + (mk yl yr yL yR) :=
 rfl
-@[simp] lemma add_move_left {x y : pgame} {i} :
+@[simp] lemma add_move_left_left {x : pgame} (y : pgame) (i) :
   (x + y).move_left (left_to_left_moves_add y i) = x.move_left i + y :=
 by { cases x, cases y, refl }
 
@@ -784,7 +784,7 @@ by { cases x, cases y, refl }
   (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inl i) =
     (mk xl xr xL xR).move_right i + (mk yl yr yL yR) :=
 rfl
-@[simp] lemma add_move_right {x y : pgame} {i} :
+@[simp] lemma add_move_right_left {x : pgame} (y : pgame) (i) :
   (x + y).move_right (left_to_right_moves_add y i) = x.move_right i + y :=
 by { cases x, cases y, refl }
 
@@ -792,16 +792,16 @@ by { cases x, cases y, refl }
   (mk xl xr xL xR + mk yl yr yL yR).move_left (sum.inr i) =
     (mk xl xr xL xR) + (mk yl yr yL yR).move_left i :=
 rfl
-@[simp] lemma add_move_left_inr {x y : pgame} {i : y.left_moves} :
-  (x + y).move_left (cast (left_moves_add x y).symm (sum.inr i)) = x + y.move_left i :=
+@[simp] lemma add_move_left_right (x : pgame) {y : pgame} (i) :
+  (x + y).move_left (right_to_left_moves_add x i) = x + y.move_left i :=
 by { cases x, cases y, refl }
 
 @[simp] lemma mk_add_move_right_inr {xl xr yl yr} {xL xR yL yR} {i} :
   (mk xl xr xL xR + mk yl yr yL yR).move_right (sum.inr i) =
     (mk xl xr xL xR) + (mk yl yr yL yR).move_right i :=
 rfl
-@[simp] lemma add_move_right_inr {x y : pgame} {i} :
-  (x + y).move_right (cast (right_moves_add x y).symm (sum.inr i)) = x + y.move_right i :=
+@[simp] lemma add_move_right_right (x : pgame) {y : pgame} (i) :
+  (x + y).move_right (right_to_right_moves_add x i) = x + y.move_right i :=
 by { cases x, cases y, refl }
 
 /-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
@@ -912,7 +912,7 @@ private lemma add_le_add_right : Π {x y z : pgame.{u}} (h : x ≤ y), x + z ≤
       { exact or.inl ⟨left_to_left_moves_add _ i', add_le_add_right ih⟩ },
       { refine or.inr ⟨left_to_right_moves_add _ j, _⟩,
         convert add_le_add_right jh,
-        exact add_move_right } },
+        apply add_move_right_left } },
     { -- or play in z
       exact or.inl ⟨right_to_left_moves_add _ i, add_le_add_right h⟩ } },
   { -- if Right plays first
@@ -925,7 +925,7 @@ private lemma add_le_add_right : Π {x y z : pgame.{u}} (h : x ≤ y), x + z ≤
       rcases t with ⟨i, ih⟩ | ⟨j', jh⟩,
       { refine or.inl ⟨left_to_left_moves_add _ i, _⟩,
         convert add_le_add_right ih,
-        exact add_move_left },
+        apply add_move_left_left },
       { exact or.inr ⟨left_to_right_moves_add _ j', add_le_add_right jh⟩ } },
     { -- or play in z
       exact or.inr ⟨right_to_right_moves_add _ j, add_le_add_right h⟩ } }
@@ -960,13 +960,13 @@ begin
     right,
     refine ⟨right_to_right_moves_add _ i, _⟩,
     convert add_left_neg_le_zero (xR i),
-    exact add_move_right_inr },
+    apply add_move_right_right },
   { -- If Left in x, Right responds with the same move in -x.
     right,
     dsimp,
     refine ⟨left_to_right_moves_add _ i, _⟩,
     convert add_left_neg_le_zero (xL i),
-    exact add_move_right }
+    apply add_move_right_left }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

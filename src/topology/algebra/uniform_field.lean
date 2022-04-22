@@ -42,7 +42,7 @@ variables (K : Type*) [field K]  [uniform_space K]
 local notation `hat` := completion
 
 @[priority 100]
-instance [separated_space K] : nontrivial (hat K) :=
+instance [t2_space K] : nontrivial (hat K) :=
 ⟨⟨0, 1, λ h, zero_ne_one $ (uniform_embedding_coe K).inj h⟩⟩
 
 /--
@@ -52,7 +52,7 @@ which does not have a cluster point at 0 is a Cauchy filter
 (with respect to the additive uniform structure). This ensures the completion is
 a field.
 -/
-class completable_top_field extends separated_space K : Prop :=
+class completable_top_field extends t2_space K : Prop :=
 (nice : ∀ F : filter K, cauchy F → 𝓝 0 ⊓ F = ⊥ → cauchy (map (λ x, x⁻¹) F))
 
 variables {K}

@@ -135,7 +135,7 @@ end
 
 /-- If the domain of a `uniform_inducing` map `f` is a `separated_space`, then `f` is injective,
 hence it is a `uniform_embedding`. -/
-protected theorem uniform_inducing.uniform_embedding [separated_space α] {f : α → β}
+protected theorem uniform_inducing.uniform_embedding [t2_space α] {f : α → β}
   (hf : uniform_inducing f) :
   uniform_embedding f :=
 ⟨hf, λ x y h, eq_of_uniformity_basis (hf.basis_uniformity (𝓤 β).basis_sets) $
@@ -162,7 +162,7 @@ lemma uniform_embedding_of_spaced_out {α} {f : α → β} {s : set (β × β)} 
   (hf : pairwise (λ x y, (f x, f y) ∉ s)) :
   @uniform_embedding α β ⊥ ‹_› f :=
 begin
-  letI : uniform_space α := ⊥, haveI : separated_space α := separated_iff_t2.2 infer_instance,
+  letI : uniform_space α := ⊥,
   exact uniform_inducing.uniform_embedding ⟨comap_uniformity_of_spaced_out hs hf⟩
 end
 
@@ -205,7 +205,7 @@ lemma uniform_embedding.dense_embedding {f : α → β} (h : uniform_embedding f
   induced := h.embedding.induced }
 
 lemma closed_embedding_of_spaced_out {α} [topological_space α] [discrete_topology α]
-  [separated_space β] {f : α → β} {s : set (β × β)} (hs : s ∈ 𝓤 β)
+  [t2_space β] {f : α → β} {s : set (β × β)} (hs : s ∈ 𝓤 β)
   (hf : pairwise (λ x y, (f x, f y) ∉ s)) :
   closed_embedding f :=
 begin
@@ -536,7 +536,7 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
 
 omit h_f
 
-variables [separated_space γ]
+variables [t2_space γ]
 
 lemma uniformly_extend_of_ind (b : β) : ψ (e b) = f b :=
 dense_inducing.extend_eq_at _ h_f.continuous.continuous_at

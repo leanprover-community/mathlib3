@@ -230,8 +230,8 @@ if uniform_continuous f then
 else
   λ x, f (classical.inhabited_of_nonempty $ nonempty_Cauchy_iff.1 ⟨x⟩).default
 
-section separated_space
-variables [separated_space β]
+section t2_space
+variables [t2_space β]
 
 lemma extend_pure_cauchy {f : α → β} (hf : uniform_continuous f) (a : α) :
   extend f (pure_cauchy a) = f a :=
@@ -240,7 +240,7 @@ begin
   exact uniformly_extend_of_ind uniform_inducing_pure_cauchy dense_range_pure_cauchy hf _
 end
 
-end separated_space
+end t2_space
 
 variables [_root_.complete_space β]
 
@@ -259,7 +259,7 @@ end extend
 end
 
 theorem Cauchy_eq {α : Type*} [inhabited α] [uniform_space α] [complete_space α]
-  [separated_space α] {f g : Cauchy α} :
+  [t2_space α] {f g : Cauchy α} :
   Lim f.1 = Lim g.1 ↔ (f, g) ∈ separation_rel (Cauchy α) :=
 begin
   split,
@@ -274,7 +274,7 @@ begin
     rw ← e at h₂,
     exact dt ⟨_, h₁, h₂⟩ },
   { intros H,
-    refine separated_def.1 (by apply_instance) _ _ (λ t tu, _),
+    refine separated_def.1 t2_uniform_separation _ _ (λ t tu, _),
     rcases mem_uniformity_is_closed tu with ⟨d, du, dc, dt⟩,
     refine H {p | (Lim p.1.1, Lim p.2.1) ∈ t}
       (Cauchy.mem_uniformity'.2 ⟨d, du, λ f g h, _⟩),
@@ -292,9 +292,9 @@ end
 section
 local attribute [instance] uniform_space.separation_setoid
 
-lemma separated_pure_cauchy_injective {α : Type*} [uniform_space α] [s : separated_space α] :
+lemma separated_pure_cauchy_injective {α : Type*} [uniform_space α] [t2_space α] :
   function.injective (λa:α, ⟦pure_cauchy a⟧) | a b h :=
-separated_def.1 s _ _ $ assume s hs,
+separated_def.1 t2_uniform_separation _ _ $ assume s hs,
 let ⟨t, ht, hts⟩ :=
   by rw [← (@uniform_embedding_pure_cauchy α _).comap_uniformity, filter.mem_comap] at hs;
     exact hs in
@@ -336,9 +336,9 @@ instance : uniform_space (completion α) := separation_setoid.uniform_space
 
 instance : complete_space (completion α) := uniform_space.complete_space_separation (Cauchy α)
 
-instance : separated_space (completion α) := uniform_space.separated_separation
+instance : t2_space (completion α) := uniform_space.t2_separation
 
-instance : regular_space (completion α) := separated_regular
+instance : regular_space (completion α) := uniform_space.regular_of_t2
 
 /-- Automatic coercion from `α` to its completion. Not always injective. -/
 instance : has_coe_t α (completion α) := ⟨quotient.mk ∘ pure_cauchy⟩ -- note [use has_coe_t]
@@ -390,11 +390,11 @@ cpkg.uniform_continuous_coe
 lemma continuous_coe : continuous (coe : α → completion α) :=
 cpkg.continuous_coe
 
-lemma uniform_embedding_coe [separated_space α] : uniform_embedding  (coe : α → completion α) :=
+lemma uniform_embedding_coe [t2_space α] : uniform_embedding  (coe : α → completion α) :=
 { comap_uniformity := comap_coe_eq_uniformity α,
   inj := separated_pure_cauchy_injective }
 
-lemma coe_injective [separated_space α] : function.injective (coe : α → completion α) :=
+lemma coe_injective [t2_space α] : function.injective (coe : α → completion α) :=
 uniform_embedding.inj (uniform_embedding_coe _)
 
 variable {α}
@@ -408,7 +408,7 @@ open topological_space
 instance separable_space_completion [separable_space α] : separable_space (completion α) :=
 completion.dense_inducing_coe.separable_space
 
-lemma dense_embedding_coe [separated_space α]: dense_embedding (coe : α → completion α) :=
+lemma dense_embedding_coe [t2_space α]: dense_embedding (coe : α → completion α) :=
 { inj := separated_pure_cauchy_injective,
   ..dense_inducing_coe }
 
@@ -473,11 +473,11 @@ cpkg.continuous_extend
 
 end complete_space
 
-@[simp] lemma extension_coe [separated_space β] (hf : uniform_continuous f) (a : α) :
+@[simp] lemma extension_coe [t2_space β] (hf : uniform_continuous f) (a : α) :
   (completion.extension f) a = f a :=
 cpkg.extend_coe hf a
 
-variables [separated_space β] [complete_space β]
+variables [t2_space β] [complete_space β]
 
 lemma extension_unique (hf : uniform_continuous f) {g : completion α → β}
   (hg : uniform_continuous g) (h : ∀ a : α, f a = g (a : completion α)) :
@@ -512,7 +512,7 @@ cpkg.map_unique cpkg hg h
 @[simp] lemma map_id : completion.map (@id α) = id :=
 cpkg.map_id
 
-lemma extension_map [complete_space γ] [separated_space γ] {f : β → γ} {g : α → β}
+lemma extension_map [complete_space γ] [t2_space γ] {f : β → γ} {g : α → β}
   (hf : uniform_continuous f) (hg : uniform_continuous g) :
   completion.extension f ∘ completion.map g = completion.extension (f ∘ g) :=
 completion.ext (continuous_extension.comp continuous_map) continuous_extension $
@@ -566,14 +566,14 @@ open function
 protected def extension₂ (f : α → β → γ) : completion α → completion β → γ :=
 cpkg.extend₂ cpkg f
 
-section separated_space
-variables [separated_space γ] {f}
+section t2_space
+variables [t2_space γ] {f}
 
 @[simp] lemma extension₂_coe_coe (hf : uniform_continuous₂ f) (a : α) (b : β) :
   completion.extension₂ f a b = f a b :=
 cpkg.extension₂_coe_coe cpkg hf a b
 
-end separated_space
+end t2_space
 
 variables [complete_space γ] (f)
 

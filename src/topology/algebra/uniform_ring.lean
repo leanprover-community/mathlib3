@@ -111,7 +111,7 @@ variables {β : Type u} [uniform_space β] [ring β] [uniform_add_group β] [top
           (f : α →+* β) (hf : continuous f)
 
 /-- The completion extension as a ring morphism. -/
-def extension_hom [complete_space β] [separated_space β] :
+def extension_hom [complete_space β] [t2_space β] :
   completion α →+* β :=
 have hf' : continuous (f : α →+ β), from hf, -- helping the elaborator
 have hf : uniform_continuous f, from uniform_continuous_add_monoid_hom_of_continuous hf',

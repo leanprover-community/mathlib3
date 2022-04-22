@@ -55,7 +55,7 @@ structure abstract_completion (α : Type u) [uniform_space α] :=
 (coe : α → space)
 (uniform_struct : uniform_space space)
 (complete : complete_space space)
-(separation : separated_space space)
+(separation : t2_space space)
 (uniform_inducing : uniform_inducing coe)
 (dense : dense_range coe)
 
@@ -129,7 +129,7 @@ end
 lemma continuous_extend : continuous (pkg.extend f) :=
 pkg.uniform_continuous_extend.continuous
 
-variables [separated_space β]
+variables [t2_space β]
 
 lemma extend_unique (hf : uniform_continuous f) {g : hatα → β} (hg : uniform_continuous g)
   (h : ∀ a : α, f a = g (ι a)) : pkg.extend f = g :=
@@ -183,7 +183,7 @@ pkg.map_unique pkg uniform_continuous_id (assume a, rfl)
 
 variables {γ : Type*} [uniform_space γ]
 
-lemma extend_map [complete_space γ] [separated_space γ] {f : β → γ} {g : α → β}
+lemma extend_map [complete_space γ] [t2_space γ] {f : β → γ} {g : α → β}
   (hf : uniform_continuous f) (hg : uniform_continuous g) :
   pkg'.extend f ∘ map g = pkg.extend (f ∘ g) :=
 pkg.funext (pkg'.continuous_extend.comp (pkg.continuous_map pkg' _)) pkg.continuous_extend $ λ a,
@@ -268,15 +268,15 @@ open function
 protected def extend₂ (f : α → β → γ) : hatα → hatβ → γ :=
 curry $ (pkg.prod pkg').extend (uncurry f)
 
-section separated_space
-variables [separated_space γ] {f : α → β → γ}
+section t2_space
+variables [t2_space γ] {f : α → β → γ}
 
 lemma extension₂_coe_coe (hf : uniform_continuous $ uncurry f) (a : α) (b : β) :
   pkg.extend₂ pkg' f (ι a) (ι' b) = f a b :=
 show (pkg.prod pkg').extend (uncurry f) ((pkg.prod pkg').coe (a, b)) = uncurry f (a, b),
   from (pkg.prod pkg').extend_coe hf _
 
-end separated_space
+end t2_space
 
 variables {f : α → β → γ}
 

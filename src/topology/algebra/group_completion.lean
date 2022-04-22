@@ -128,7 +128,7 @@ variables {α β : Type*} [uniform_space α] [add_group α] [uniform_add_group �
 open uniform_space uniform_space.completion
 
 /-- Extension to the completion of a continuous group hom. -/
-def add_monoid_hom.extension [complete_space β] [separated_space β] (f : α →+ β)
+def add_monoid_hom.extension [complete_space β] [t2_space β] (f : α →+ β)
   (hf : continuous f) : completion α →+ β :=
 have hf : uniform_continuous f, from uniform_continuous_add_monoid_hom_of_continuous hf,
 { to_fun := completion.extension f,
@@ -140,12 +140,12 @@ have hf : uniform_continuous f, from uniform_continuous_add_monoid_hom_of_contin
   (λ a b, by rw_mod_cast [extension_coe hf, extension_coe hf, extension_coe hf,
     f.map_add]) }
 
-lemma add_monoid_hom.extension_coe [complete_space β] [separated_space β] (f : α →+ β)
+lemma add_monoid_hom.extension_coe [complete_space β] [t2_space β] (f : α →+ β)
   (hf : continuous f) (a : α) : f.extension hf a = f a :=
 extension_coe (uniform_continuous_add_monoid_hom_of_continuous hf) a
 
 @[continuity]
-lemma add_monoid_hom.continuous_extension [complete_space β] [separated_space β] (f : α →+ β)
+lemma add_monoid_hom.continuous_extension [complete_space β] [t2_space β] (f : α →+ β)
   (hf : continuous f) : continuous (f.extension hf) :=
 continuous_extension
 

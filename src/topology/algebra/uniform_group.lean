@@ -377,9 +377,9 @@ local attribute [instance] topological_group_is_uniform
 open set
 
 @[to_additive] lemma topological_group.separated_iff_one_closed :
-  separated_space G ↔ is_closed ({1} : set G) :=
+  t2_space G ↔ is_closed ({1} : set G) :=
 begin
-  rw [separated_space_iff, ← closure_eq_iff_is_closed],
+  rw [← separated_iff_t2, separated_space_iff, ← closure_eq_iff_is_closed],
   split; intro h,
   { apply subset.antisymm,
     { intros x x_in,
@@ -396,7 +396,7 @@ begin
 end
 
 @[to_additive] lemma topological_group.separated_of_one_sep
-  (H : ∀ x : G, x ≠ 1 → ∃ U ∈ nhds (1 : G), x ∉ U) : separated_space G:=
+  (H : ∀ x : G, x ≠ 1 → ∃ U ∈ nhds (1 : G), x ∉ U) : t2_space G:=
 begin
   rw [topological_group.separated_iff_one_closed, ← is_open_compl_iff, is_open_iff_mem_nhds],
   intros x x_not,
@@ -457,7 +457,7 @@ variables [topological_space α] [add_comm_group α] [topological_add_group α]
 variables [topological_space β] [add_comm_group β] [topological_add_group β]
 variables [topological_space γ] [add_comm_group γ] [topological_add_group γ]
 variables [topological_space δ] [add_comm_group δ] [topological_add_group δ]
-variables [uniform_space G] [add_comm_group G] [uniform_add_group G] [separated_space G]
+variables [uniform_space G] [add_comm_group G] [uniform_add_group G] [t2_space G]
   [complete_space G]
 variables {e : β →+ α} (de : dense_inducing e)
 variables {f : δ →+ γ} (df : dense_inducing f)

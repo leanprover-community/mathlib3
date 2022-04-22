@@ -19,7 +19,7 @@ open_locale topological_space filter
 variables {α : Type*}
 
 /-In a separated space, a complete set is closed -/
-lemma is_complete.is_closed  [uniform_space α] [separated_space α] {s : set α} (h : is_complete s) :
+lemma is_complete.is_closed  [uniform_space α] [t2_space α] {s : set α} (h : is_complete s) :
   is_closed s :=
 is_closed_iff_cluster_pt.2 $ λ a ha, begin
   let f := 𝓝[s] a,
@@ -31,11 +31,14 @@ end
 namespace dense_inducing
 open filter
 variables [topological_space α] {β : Type*} [topological_space β]
-variables {γ : Type*} [uniform_space γ] [complete_space γ] [separated_space γ]
+variables {γ : Type*} [uniform_space γ] [complete_space γ] [t2_space γ]
 
 lemma continuous_extend_of_cauchy {e : α → β} {f : α → γ}
   (de : dense_inducing e) (h : ∀ b : β, cauchy (map f (comap e $ 𝓝 b))) :
   continuous (de.extend f) :=
-de.continuous_extend $ λ b, complete_space.complete (h b)
+begin
+  letI : regular_space γ := uniform_space.regular_of_t2,
+  exact de.continuous_extend (λ b, complete_space.complete (h b))
+end
 
 end dense_inducing

@@ -14,8 +14,8 @@ containing all powersets of members of `f`.
 `g` converges to `f.small_sets` if for all `s ∈ f`, eventually we have `g x ⊆ s`.
 
 An example usage is that if `f : ι → ℝ` is a family of nonnegative functions with integral 1, then
-saying that `f` tendsto `(𝓝 0).small_sets` is a way of saying that `f` tends to the Dirac delta
-distribution.
+saying that `λ i (support (f i))` tendsto `(𝓝 0).small_sets` is a way of saying that 
+`f` tends to the Dirac delta distribution.
 -/
 
 open_locale filter

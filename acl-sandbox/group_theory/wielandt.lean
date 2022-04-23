@@ -8,13 +8,15 @@ import tactic.lift
 
 import group_theory.group_action.basic
 import group_theory.group_action.sub_mul_action
-import .ad_sub_mul_actions
+import group_theory.group_action.fixing_subgroup
+
 import data.setoid.partition
 import order.rel_classes
 import algebra.big_operators.order
 import group_theory.subgroup.pointwise
 
-import .mathlib
+import .ad_mathlib
+import .ad_sub_mul_actions
 
 open_locale big_operators pointwise
 

@@ -1,5 +1,7 @@
 import data.finset.pointwise
 import group_theory.group_action.sub_mul_action
+import group_theory.group_action.fixing_subgroup
+
 import tactic
 
 -- import .mathlib
@@ -292,6 +294,87 @@ begin
   rw sub_mul_action_of_stabilizer_def at hx,
   simp at hx,
   exact hx
+end
+
+variables (M α : Type*) [group M] [mul_action M α]
+
+variable {α}
+def sub_mul_action_of_fixing_subgroup (s : set α) :
+  sub_mul_action (fixing_subgroup M s) α := {
+carrier := sᶜ,
+smul_mem' :=
+begin
+  intros c x,
+  simp only [set.mem_compl_iff],
+  intros hx hcx, apply hx,
+  rw [← one_smul M x, ← inv_mul_self ↑c, mul_smul],
+
+  change ↑(c⁻¹) • c • x ∈ s,
+  rw (mem_fixing_subgroup_iff M).mp (set_like.coe_mem c⁻¹) (c • x) hcx,
+  exact hcx,
+end }
+
+lemma sub_mul_action_of_fixing_subgroup_def {s : set α} :
+  (sub_mul_action_of_fixing_subgroup M s).carrier = sᶜ := rfl
+
+lemma sub_mul_action_of_fixing_subgroup_not_mem {s : set α}
+  (x : sub_mul_action_of_fixing_subgroup M s) :
+  ↑x ∉ s :=
+begin
+  suffices : ↑x ∈ (sub_mul_action_of_fixing_subgroup M s).carrier,
+  refine set.mem_compl this,
+  rw sub_mul_action.mem_carrier,
+  simp only [set_like.mem_coe, set_like.coe_mem]
+end
+
+lemma sub_mul_action_of_fixing_subgroup_of_fixing_subgroup_def (s t : set α) :
+  coe '' (sub_mul_action_of_fixing_subgroup
+    (fixing_subgroup M s)
+    (coe ⁻¹' t : set (sub_mul_action_of_fixing_subgroup M s))).carrier
+    = (sub_mul_action_of_fixing_subgroup M (s ∪ t)).carrier :=
+begin
+  ext x,
+  simp only [sub_mul_action_of_fixing_subgroup_def,
+    set.mem_compl_iff, set.mem_union_eq,
+    set.mem_image, set.mem_preimage],
+  split,
+  { rintro ⟨x, hx, rfl⟩,
+    exact not_or (sub_mul_action_of_fixing_subgroup_not_mem _ _) hx },
+  { intro hx,
+    have hx' : x ∈ (sub_mul_action_of_fixing_subgroup M s).carrier,
+    { rw sub_mul_action_of_fixing_subgroup_def,
+      refine set.mem_compl _,
+      exact mt (or.inl) hx },
+    use ⟨x, hx'⟩,
+    split,
+    { simp only [set.mem_preimage, subtype.coe_mk],
+      exact mt (or.inr) hx },
+    { simp only [subtype.coe_mk] } }
+end
+
+lemma sub_mul_action_of_fixing_subgroup_of_stabilizer_def (a : α) (s : set α) :
+  coe '' (sub_mul_action_of_fixing_subgroup
+    (stabilizer M a)
+    (coe ⁻¹' s : set (sub_mul_action_of_stabilizer M α a))).carrier
+    = (sub_mul_action_of_fixing_subgroup M (insert a s)).carrier :=
+begin
+  ext x,
+  simp only [sub_mul_action_of_fixing_subgroup_def,
+    set.mem_compl_iff, set.mem_insert_iff,
+    set.mem_preimage,
+    set.mem_image],
+  split,
+  { rintro ⟨x, hx, rfl⟩,
+    apply not_or _ hx,
+    { apply  sub_mul_action_of_stabilizer_neq } },
+  { intro hx,
+    have hx' : x ∈ (sub_mul_action_of_stabilizer M α a).carrier,
+    { rw sub_mul_action_of_stabilizer_def,
+      simp only [set.mem_compl_eq, set.mem_singleton_iff],
+      exact mt (or.inl) hx },
+    use ⟨x, hx'⟩,
+    simp only [subtype.coe_mk],
+    exact and.intro (mt (or.inr) hx) rfl }
 end
 
 end group

@@ -6,16 +6,18 @@ Authors: Antoine Chambert-Loir
 
 import tactic.lift
 
-import field_theory.galois
 
-import .ad_sub_mul_actions
-import .wielandt
-import .ad_to_ulift
+import set_theory.cardinal.basic
 
 import group_theory.group_action.embedding
+-- import group_theory.group_action.fixing_subgroup
+-- import field_theory.galois
+
 -- import group_theory.specific_groups.alternating
 
--- import set_theory.cardinal
+import .ad_to_ulift
+import .ad_sub_mul_actions
+import .wielandt
 
 
 -- import group_theory.subgroup.pointwise
@@ -177,14 +179,12 @@ begin
     rw dite_eq_iff,
     apply or.intro_left, use hi, refl },
   { ext ⟨j, hj⟩,
-    simp only [not_lt, le_add_iff_nonneg_right, zero_le', trans_apply,
-      rel_embedding.coe_fn_to_embedding, fin.nat_add_mk,
-      equiv.to_embedding_apply, rel_iso.coe_fn_to_equiv, fin.cast_mk,
-      function.embedding.coe_fn_mk, dif_neg, function.embedding.coe_subtype],
+    simp only [not_lt, le_add_iff_nonneg_right, zero_le, trans_apply,
+      rel_embedding.coe_fn_to_embedding, fin.nat_add_mk, equiv.to_embedding_apply,
+      rel_iso.coe_fn_to_equiv, fin.cast_mk, coe_fn_mk, dif_neg, function.embedding.coe_subtype],
     change ↑(z.to_fun _) = _,
     simp only [fin.cast_mk, add_tsub_cancel_left, fin.sub_nat_mk, to_fun_eq_coe]}
 end
-
 
 end Extensions
 
@@ -493,26 +493,6 @@ begin
 end
 -/
 
-/- Now in mathlib
-lemma mem_fixing_subgroup_iff (s : set α) (g : M) :
-  g ∈ fixing_subgroup M s ↔ ∀ (y : α) (hy : y ∈ s), g • y = y :=
-⟨λ hg y hy, hg ⟨y, hy⟩, λ h ⟨y, hy⟩, h y hy⟩
--/
-
-def sub_mul_action_of_fixing_subgroup (s : set α) :
-  sub_mul_action (fixing_subgroup M s) α := {
-carrier := sᶜ,
-smul_mem' :=
-begin
-  intros c x,
-  simp only [set.mem_compl_iff],
-  intros hx hcx, apply hx,
-  rw [← one_smul M x, ← inv_mul_self ↑c, mul_smul],
-  change (↑c)⁻¹ • c • x ∈ s,
-  rw (mul_action.mem_fixing_subgroup_iff M α s c⁻¹).mp (set_like.coe_mem c⁻¹) _ hcx,
-  exact hcx,
-end }
-
 /-
 def example' {s : set α} : mul_action (fixing_subgroup M s) α :=
 infer_instance
@@ -556,7 +536,7 @@ acts (k-d) transitively on the remaining -/
 lemma remaining_transitivity (d : ℕ) (s : set α) (hs : ↑d = #s)
   (n : ℕ) -- (hα : ↑n ≤ #α)
   (h : is_multiply_pretransitive M α n) :
-  is_multiply_pretransitive (fixing_subgroup M s) (sub_mul_action_of_fixing_subgroup M α s) (n-d) :=
+  is_multiply_pretransitive (fixing_subgroup M s) (sub_mul_action_of_fixing_subgroup M s) (n-d) :=
 begin
   cases le_total d n with hdn hnd,
   { apply is_pretransitive.mk,

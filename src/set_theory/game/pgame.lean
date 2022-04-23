@@ -1161,12 +1161,9 @@ theorem injective_to_pgame : function.injective ordinal.to_pgame :=
 end
 
 /-- The order embedding version of `to_pgame`. -/
-noncomputable def to_pgame_embedding : ordinal.{u} ↪o pgame.{u} :=
+@[simps] noncomputable def to_pgame_embedding : ordinal.{u} ↪o pgame.{u} :=
 { to_fun := ordinal.to_pgame,
   inj' := injective_to_pgame,
   map_rel_iff' := @to_pgame_le_iff }
-
-@[simp] theorem to_pgame_embedding_apply (x : ordinal) : to_pgame_embedding x = x.to_pgame :=
-rfl
 
 end ordinal

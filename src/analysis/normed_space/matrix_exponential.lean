@@ -91,7 +91,7 @@ begin
   letI : normed_algebra 𝕂 (matrix (n × m) (n × m) 𝔸) := matrix.linfty_op_normed_algebra,
   letI : complete_space (m → matrix n n 𝔸) := by apply_instance,
   refine (map_exp 𝕂 (block_diagonal_ring_hom n m 𝔸) _ v).symm,
-  sorry
+  exact continuous_id.block_diagonal,
 end
 
 end matrix

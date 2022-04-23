@@ -6,21 +6,26 @@ Authors: Eric Wieser
 
 import analysis.normed_space.exponential
 import analysis.matrix
+import topology.uniform_space.matrix
 
 /-!
-# Lemmas about the matrix Exponential
+# Lemmas about the matrix exponential
+
+In this file, we provide results about `exp` on `matrix`s over a normed algebra.
+
+This file exists because lemmas like `exp_add_of_commute` require a canonical norm on the type, but
+for matrices there are multiple sensible choices of norm, none of which are canonical. In this file,
+we copy across the lemmas about a `exp` and instantiate a non-canonical norm in the proof.
+
+* `matrix.exp_add_of_commute`
+* `matrix.exp_nsmul`
+
+After this, we prove some additional results about matrix operations:
+
+* `matrix.exp_diagonal`
+* `matrix.exp_block_diagonal`
+
 -/
-
--- from Heather
-section
-variables (𝕜 : Type*) [uniform_space 𝕜]
-variables (n : Type*) [fintype n] [decidable_eq n] (m : Type*) [fintype m] [decidable_eq m]
-
-instance : uniform_space (matrix n m 𝕜) := Pi.uniform_space (λ i, m → 𝕜)
-
-instance [complete_space 𝕜] : complete_space (matrix n m 𝕜) := Pi.complete (λ i, m → 𝕜)
-
-end
 
 namespace matrix
 

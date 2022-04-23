@@ -144,14 +144,9 @@ def move_right : Π (g : pgame), right_moves g → pgame
 | (mk _ r _ R) := R
 
 @[simp] lemma left_moves_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).left_moves = xl := rfl
-@[simp] lemma move_left_mk {xl xr xL xR i} : (⟨xl, xr, xL, xR⟩ : pgame).move_left i = xL i := rfl
+@[simp] lemma move_left_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_left = xL := rfl
 @[simp] lemma right_moves_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).right_moves = xr := rfl
-@[simp] lemma move_right_mk {xl xr xL xR j} : (⟨xl, xr, xL, xR⟩ : pgame).move_right j = xR j := rfl
-
-lemma move_left_heq {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_left == xL :=
-heq.rfl
-lemma move_right_heq {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_right == xR :=
-heq.rfl
+@[simp] lemma move_right_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_right = xR := rfl
 
 /-- `subsequent p q` says that `p` can be obtained by playing
   some nonempty sequence of moves from `q`. -/

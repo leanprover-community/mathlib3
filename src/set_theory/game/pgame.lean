@@ -1121,25 +1121,28 @@ by { rw to_pgame, refl }
 @[simp] theorem to_pgame_move_left {o : ordinal} (i : o.out.α) :
   o.to_pgame.move_left (to_left_moves_to_pgame i) = (typein (<) i).to_pgame :=
 begin
-  --apply congr_fun_heq to_pgame_move_left_heq.symm,
-  sorry
+  rw to_left_moves_to_pgame,
+  exact congr_fun_heq _ to_pgame_move_left_heq.symm i
 end
 
-@[simp] theorem to_pgame_move_left_to_left_moves {o a : ordinal.{u}} (h : a < o) :
-  o.to_pgame.move_left (to_left_moves_to_pgame h) = a.to_pgame :=
-by simp [to_left_moves]
-
 theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
-@pgame.lt_of_le_move_left _ _ (to_left_moves h) (by rw to_pgame_move_left_to_left_moves)
+begin
+  apply @pgame.lt_of_le_move_left _ _ (to_left_moves_to_pgame (enum (<) a _)),
+  { rw [to_pgame_move_left, typein_enum] },
+  { rwa type_lt }
+end
 
 theorem to_pgame_le {a b : ordinal} (h : a ≤ b) : a.to_pgame ≤ b.to_pgame :=
 begin
   rw pgame.le_def,
-  refine ⟨λ i, or.inl ⟨@to_left_moves b (typein (<) (cast a.to_pgame_left_moves i))
-    (lt_of_lt_of_le _ h), _⟩, is_empty_elim⟩,
-  { simp_rw ←type_lt a,
+  refine ⟨λ i, or.inl ⟨to_left_moves_to_pgame
+    (enum (<) (typein (<) (to_left_moves_to_pgame.symm i)) _), _⟩, is_empty_elim⟩,
+  { rw type_lt,
+    apply lt_of_lt_of_le _ h,
+    simp_rw ←type_lt a,
     apply typein_lt_type },
-  { rw [to_pgame_move_left_eq, to_pgame_move_left_to_left_moves] }
+  { rw [←to_left_moves_to_pgame.apply_symm_apply i, to_pgame_move_left],
+    simp }
 end
 
 @[simp] theorem to_pgame_lt_iff {a b : ordinal} : a.to_pgame < b.to_pgame ↔ a < b :=

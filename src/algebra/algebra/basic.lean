@@ -1384,6 +1384,12 @@ rfl
 
 end pi
 
+/-- A special case of `pi.algebra` for non-dependent types. Lean struggles to elaborate
+definitions elsewhere in the library without this, -/
+instance function.algebra {R : Type*} (I : Type*)  (A : Type*) [comm_semiring R]
+  [semiring A] [algebra R A] : algebra R (I → A) :=
+pi.algebra _ _
+
 namespace alg_equiv
 
 /-- A family of algebra equivalences `Π j, (A₁ j ≃ₐ A₂ j)` generates a

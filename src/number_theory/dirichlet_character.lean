@@ -290,16 +290,20 @@ begin
 end
 
 /-- If m = n are positive natural numbers, then zmod m ≃ zmod n. -/
-noncomputable def zmod.mul_equiv {a b : ℕ} [pos : fact (0 < b)] (h : a = b) : zmod a ≃* zmod b :=
+def zmod.mul_equiv {a b : ℕ} (h : a = b) : zmod a ≃* zmod b :=
 begin
-  haveI : char_p (zmod b) a, { rw h, exact zmod.char_p b, },
-  convert (zmod.ring_equiv (zmod b) (by { convert h.symm, rw zmod.card, })).to_mul_equiv,
+  rw h,
+/-  by_cases h' : b = 0,
+  { rw h' at h, rw h, rw h', }, rw h,
+  { haveI : fact (0 < b), { apply fact_iff.2 (nat.pos_of_ne_zero h'), },
+    haveI : char_p (zmod b) a, { rw h, exact zmod.char_p b, },
+    convert (zmod.ring_equiv (zmod b) (by { convert h.symm, rw zmod.card, })).to_mul_equiv, }, -/
 end
 
 /-- If m = n are positive natural numbers, then their Dirichlet character spaces are the same. -/
-noncomputable def equiv {a b : ℕ} [pos : fact (0 < b)] (h : a = b) :
-  dirichlet_character R a ≃* dirichlet_character R b :=
-mul_equiv.monoid_hom_congr (units.map_equiv (zmod.mul_equiv h)) (mul_equiv.refl _)
+def equiv {a b : ℕ} (h : a = b) :
+  dirichlet_character R a ≃* dirichlet_character R b := by { rw h, }
+--mul_equiv.monoid_hom_congr (units.map_equiv (zmod.mul_equiv h)) (mul_equiv.refl _)
 
 lemma conductor_eq_zero_iff_level_eq_zero : χ.conductor = 0 ↔ n = 0 :=
 ⟨λ h, by {rw ←zero_dvd_iff, convert χ.conductor_dvd, rw h, },

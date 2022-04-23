@@ -310,6 +310,21 @@ lemma map_eq_self (x : R) : algebra_map R R x = x := rfl
 
 end id
 
+section punit
+
+instance _root_.punit.algebra : algebra R punit :=
+{ to_fun := λ x, punit.star,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl,
+  map_zero' := rfl,
+  map_add' := λ _ _, rfl,
+  commutes' := λ _ _, rfl,
+  smul_def' := λ _ _, rfl }
+
+@[simp] lemma algebra_map_punit (r : R) : algebra_map R punit r = punit.star := rfl
+
+end punit
+
 section prod
 variables (R A B)
 

@@ -126,7 +126,7 @@ begin
         eq_self_iff_true], },
     { left, symmetry, simp only [sdiff_eq_self],
       intro a, simp only [and_imp, mem_inter, mem_singleton, not_mem_empty],
-      intros h₀ h₁, subst a, apply h h₀, } }
+      rintro h₀ rfl, apply h h₀, } }
 end
 
 instance finset.fin_enum [fin_enum α] : fin_enum (finset α) :=

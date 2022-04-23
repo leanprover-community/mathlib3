@@ -1076,23 +1076,18 @@ noncomputable def birthday : pgame.{u} → ordinal.{u}
 | ⟨xl, xr, xL, xR⟩ :=
     max (ordinal.lsub.{u u} $ λ i, birthday (xL i)) (ordinal.lsub.{u u} $ λ i, birthday (xR i))
 
-@[simp] theorem birthday_mk (xl xr xL xR) : birthday (mk xl xr xL xR) = max
-  (ordinal.lsub.{u u} (λ i, birthday (xL i)))
-  (ordinal.lsub.{u u} (λ i, birthday (xR i))) :=
-by rw birthday
-
 theorem birthday_def (x : pgame) : birthday x = max
   (ordinal.lsub.{u u} (λ i, birthday (x.move_left i)))
   (ordinal.lsub.{u u} (λ i, birthday (x.move_right i))) :=
-by { cases x, apply birthday_mk }
+by { cases x, rw birthday, refl }
 
 theorem left_move_birthday_lt {x : pgame} (i : x.left_moves) :
   (x.move_left i).birthday < x.birthday :=
-by { cases x, rw birthday_mk, exact lt_max_of_lt_left (ordinal.lt_lsub _ i) }
+by { cases x, rw birthday, exact lt_max_of_lt_left (ordinal.lt_lsub _ i) }
 
 theorem right_move_birthday_lt {x : pgame} (i : x.right_moves) :
   (x.move_right i).birthday < x.birthday :=
-by { cases x, rw birthday_mk, exact lt_max_of_lt_right (ordinal.lt_lsub _ i) }
+by { cases x, rw birthday, exact lt_max_of_lt_right (ordinal.lt_lsub _ i) }
 
 theorem lt_birthday_iff {x : pgame} {o : ordinal} : o < x.birthday ↔
   (∃ i : x.left_moves, o ≤ (x.move_left i).birthday) ∨

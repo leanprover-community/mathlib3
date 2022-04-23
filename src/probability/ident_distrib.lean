@@ -73,6 +73,11 @@ protected lemma comp {u : γ → δ} (h : ident_distrib f g μ ν) (hu : measura
   ident_distrib (u ∘ f) (u ∘ g) μ ν :=
 h.comp_of_ae_measurable hu.ae_measurable
 
+lemma measure_mem_eq (h : ident_distrib f g μ ν) {s : set γ} (hs : measurable_set s) :
+  μ (f ⁻¹' s) = ν (g ⁻¹' s) :=
+by rw [← measure.map_apply_of_ae_measurable h.ae_measurable hs,
+  ← measure.map_apply_of_ae_measurable h.symm.ae_measurable hs, h.map_eq]
+
 lemma ae_mem_snd (h : ident_distrib f g μ ν) {t : set γ}
   (tmeas : measurable_set t) (ht : ∀ᵐ x ∂μ, f x ∈ t) :
    ∀ᵐ x ∂ν, g x ∈ t :=
@@ -108,17 +113,9 @@ lemma ess_sup_eq [conditionally_complete_linear_order γ] [topological_space γ]
   [opens_measurable_space γ] [order_closed_topology γ] (h : ident_distrib f g μ ν) :
   ess_sup f μ = ess_sup g ν :=
 begin
-  have I : ∀ a, ν {x : β | a < g x} = μ {x : α | a < f x},
+  have I : ∀ a, μ {x : α | a < f x} = ν {x : β | a < g x},
   { assume a,
-    have A : ν {x : β | a < g x} = (measure.map g ν) {x | a < x},
-    { rw measure.map_apply_of_ae_measurable h.symm.ae_measurable,
-      refl,
-      exact measurable_set_Ioi },
-    have B : μ {x : α | a < f x} = (measure.map f μ) {x | a < x},
-    { rw measure.map_apply_of_ae_measurable h.ae_measurable,
-      refl,
-      exact measurable_set_Ioi },
-    rw [A, B, h.map_eq] },
+    exact h.measure_mem_eq measurable_set_Ioi, },
   simp_rw [ess_sup_eq_Inf, I],
 end
 

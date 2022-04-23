@@ -537,6 +537,10 @@ def sentence.realize (φ : L.sentence) : Prop :=
 
 infix ` ⊨ `:51 := sentence.realize -- input using \|= or \vDash, but not using \models
 
+@[simp] lemma sentence.realize_not {φ : L.sentence} :
+  M ⊨ φ.not ↔ ¬ M ⊨ φ :=
+iff.rfl
+
 @[simp] lemma Lhom.realize_on_sentence [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
   (ψ : L.sentence) :
   M ⊨ φ.on_sentence ψ ↔ M ⊨ ψ :=
@@ -585,6 +589,19 @@ T.model_iff
 
 instance model_complete_theory : M ⊨ L.complete_theory M :=
 Theory.model_iff_subset_complete_theory.2 (subset_refl _)
+
+variables (M N)
+
+theorem realize_iff_of_model_complete_theory [N ⊨ L.complete_theory M] (φ : L.sentence) :
+  N ⊨ φ ↔ M ⊨ φ :=
+begin
+  refine ⟨λ h, _, Theory.realize_sentence_of_mem (L.complete_theory M)⟩,
+  contrapose! h,
+  rw [← sentence.realize_not] at *,
+  exact Theory.realize_sentence_of_mem (L.complete_theory M) h,
+end
+
+variables {M N}
 
 namespace bounded_formula
 

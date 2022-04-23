@@ -886,7 +886,7 @@ variables (G : Type*) [group G] [is_free_group G]
 
 variable {G}
 
-/- The canoncial injection of G's generators into G -/
+/-- The canoncial injection of G's generators into G -/
 def of : generators G → G := is_free_group.mul_equiv.to_fun ∘ free_group.of
 
 @[simp] lemma of_eq_free_group_of {A : Type u} : (@of (free_group A) _ _ ) = free_group.of := rfl
@@ -915,8 +915,9 @@ lift.symm.injective (funext h)
 lemma unique_lift (f : generators G → H) : ∃! F : G →* H, ∀ a, F (of a) = f a :=
 by simpa [function.funext_iff] using (@lift G _ _ H _).symm.bijective.exists_unique f
 
+/-- If a group satisfies the universal property of a free group, then it is a free group. -/
 noncomputable
-theorem of_unique_lift {G : Type u} [group G] (X : Type u)
+def of_unique_lift {G : Type u} [group G] (X : Type u)
   (of : X → G)
   (h : ∀ {H : Type u} [group H] (f : X → H), by exactI ∃! F : G →* H, ∀ a, F (of a) = f a) :
   (is_free_group G : Type (u+1)) :=
@@ -945,6 +946,7 @@ theorem of_unique_lift {G : Type u} [group G] (X : Type u)
       free_group.lift.of, lift'_of],
   end }
 
+/-- Being a free group transports across group isomorphisms. -/
 def of_mul_equiv {H : Type*} [group H] (h : G ≃* H) : is_free_group H :=
   { generators := generators G, mul_equiv := is_free_group.mul_equiv.trans h }
 

@@ -5,7 +5,6 @@ Authors: Adam Topaz
 -/
 import ring_theory.localization.at_prime
 import ring_theory.valuation.basic
-import tactic.field_simp
 
 /-!
 
@@ -40,7 +39,7 @@ let f := is_localization.to_localization_map S B,
     { obtain ⟨a,s,rfl⟩ := f.mk'_surjective x,
       obtain ⟨b,t,rfl⟩ := f.mk'_surjective y,
       use [a * t, b * s, s * t], split;
-      { rw [f.mk'_eq_iff_eq, submonoid.coe_mul], ring } },
+      { rw [f.mk'_eq_iff_eq, submonoid.coe_mul], ring_nf } },
     convert_to f.lift h (f.mk' (a+b) s) ≤ max (f.lift h _) (f.lift h _),
     { refine congr_arg (f.lift h) (is_localization.eq_mk'_iff_mul_eq.2 _),
       rw [add_mul, map_add], iterate 2 { erw is_localization.mk'_spec } },

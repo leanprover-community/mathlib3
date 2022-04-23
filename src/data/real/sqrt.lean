@@ -117,34 +117,13 @@ begin
     ... = (a + b) ^ 2 - 4 * a * b : by ring,
 end
 
-lemma div_mul_eq {a c : ℚ} (c_nonzero : c ≠ 0) : a / c * c = a :=
-calc a / c * c = a * c / c : (mul_div_right_comm a c c).symm
-  ... = a * (c / c) : (mul_div a c c).symm
-  ... = a * 1 : by rw (div_self c_nonzero)
-  ... = a : mul_one a
-
-lemma thing3 {a : ℚ} (a_nonzero : a ≠ 0) : a ^ 2 / a = a :=
-calc a ^ 2 / a = (a * a) / a : by ring
-  ... = a * (a / a) : mul_div_assoc a a a
-  ... = a * 1 : by rw (div_self a_nonzero)
-  ... = a : mul_one a
-
-theorem ttt (a b : ℚ) (h : 0 ≤ a) (j : a + b ≤ 0) : b ≤ 0 :=
-calc b ≤ a + b : le_add_of_nonneg_left h
-  ... ≤ 0 : j
-
-theorem fooooo {a b : ℚ} (h1 : 0 < b) (h2 : a ≤ 0) : a * b ≤ 0 :=
-begin
-  by_cases a = 0,
-  { subst h, simp, },
-  { have a_neg : a < 0 := (ne.le_iff_lt h).mp h2,
-    exact le_of_lt (mul_neg_of_neg_of_pos a_neg h1), },
-end
+lemma sq_div_self {a : ℚ} (a_nonzero : a ≠ 0) : a ^ 2 / a = a :=
+by rw [pow_two, div_eq_iff a_nonzero]
 
 theorem uuu {a b : ℚ} (h : 0 < b) (j : a / b ≤ 0) : a ≤ 0 :=
 begin
-  calc a = a / b * b : (div_mul_eq (ne_of_gt h)).symm
-    ... ≤ 0 : fooooo h j
+  calc a = a / b * b : ((eq_div_iff (ne_of_gt h)).mp rfl).symm
+    ... ≤ 0 : by nlinarith
 end
 
 theorem sqrt_aux_overestimate (f : cau_seq ℚ abs) {i : ℕ} (i_pos : 0 < i) :
@@ -164,26 +143,21 @@ begin
         calc 4 * f (i + 1) * sqrt_aux f i ^ 2
               ≤ (f (i + 1) + sqrt_aux f i ^ 2) ^ 2 : rat.cauchy_schwarz _ _
           ... = (sqrt_aux f i ^ 2 + f (i + 1)) ^ 2 : by ring
-          ... = (sqrt_aux f i ^ 2 / sqrt_aux f i * sqrt_aux f i + f (i + 1)) ^ 2 : by rw div_mul_eq nonzero
-          ... = (sqrt_aux f i ^ 2 / sqrt_aux f i * sqrt_aux f i + f (i + 1) / sqrt_aux f i * sqrt_aux f i) ^ 2 : by rw @div_mul_eq (f (i + 1)) _ nonzero
+          ... = (sqrt_aux f i ^ 2 / sqrt_aux f i * sqrt_aux f i + f (i + 1)) ^ 2 : by rw (eq_div_iff nonzero).mp rfl
+          ... = (sqrt_aux f i ^ 2 / sqrt_aux f i * sqrt_aux f i + f (i + 1) / sqrt_aux f i * sqrt_aux f i) ^ 2 : by rw (@eq_div_iff _ _ (f (i + 1)) _ _ nonzero).mp rfl
           ... = (sqrt_aux f i ^ 2 / sqrt_aux f i + f (i + 1) / sqrt_aux f i) ^ 2 * sqrt_aux f i ^ 2 : by ring
-          ... = (sqrt_aux f i + f (i + 1) / sqrt_aux f i) ^ 2 * sqrt_aux f i ^ 2 : by rw thing3 nonzero, }, },
+          ... = (sqrt_aux f i + f (i + 1) / sqrt_aux f i) ^ 2 * sqrt_aux f i ^ 2 : by rw sq_div_self nonzero, }, },
     { rw max_eq_left s,
       simp only [zero_pow', ne.def, bit0_eq_zero, nat.one_ne_zero, not_false_iff],
       simp only [ge_iff_le] at s,
       cases lt_or_ge 0 (sqrt_aux f i),
       { rw div_le_iff at s,
         { simp at s,
-          have u : f (i + 1) / sqrt_aux f i ≤ 0 := ttt (sqrt_aux f i) (f (i + 1) / sqrt_aux f i) _ s,
+          have u : f (i + 1) / sqrt_aux f i ≤ 0 := le_of_add_le_of_nonneg_right s _,
           { left, exact uuu h u, },
           { exact sqrt_aux_nonneg f i, }, },
         { norm_num, }, },
       { right, exact s, }, }, },
-end
-
-lemma blaaaah {a b c : ℚ} (b_pos : 0 < b) (h : a ≤ b * c) : a / b ≤ c :=
-begin
-  sorry,
 end
 
 /-- The sqrt_aux corresponding to decreasing Cauchy sequences is decreasing. -/
@@ -198,27 +172,11 @@ begin
     { cancel_denoms,
       rw two_mul,
       simp,
-      refine blaaaah (all_pos i) _,
+      refine (div_le_iff' (all_pos i)).mpr _,
       calc f (i + 1) ≤ f i : f_decreasing i
         ... ≤ sqrt_aux f i ^ 2 : h
         ... = sqrt_aux f i * sqrt_aux f i : sq _ }, },
   { specialize all_pos i, linarith, },
-end
-
-theorem nat_gcd_eq_zero_iff (a b : ℕ) : a.gcd b = 0 ↔ a = 0 ∧ b = 0 :=
-begin
-  split,
-  { intros gcd_eq_zero,
-    induction a,
-    { simp at gcd_eq_zero,
-      exact ⟨rfl, gcd_eq_zero⟩, },
-    { exfalso,
-      rw nat.gcd_succ at gcd_eq_zero,
-      simp at gcd_eq_zero,
-      exact gcd_eq_zero, }, },
-  { rintros ⟨a_eq_zero, b_eq_zero⟩,
-    rw [a_eq_zero, b_eq_zero],
-    exact nat.gcd_zero_left _, },
 end
 
 /-- If f is positive, then sqrt_aux f is positive. -/
@@ -244,7 +202,7 @@ begin
       apply nat.div_pos,
       { exact (nat.sqrt denom).gcd_le_left sqrt_num_pos, },
       { rcases @eq_zero_or_pos _ _ ((nat.sqrt num).gcd (nat.sqrt denom)),
-        { rw nat_gcd_eq_zero_iff at h,
+        { rw nat.gcd_eq_zero_iff at h,
           rcases h with ⟨num_zero, denom_zero⟩,
           rw [denom_zero] at sqrt_denom_pos,
           linarith, },

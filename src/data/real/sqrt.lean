@@ -100,13 +100,53 @@ namespace real
 This is Heron's method for computing square roots.
 Currently this sequence is not used in `mathlib`.  -/
 def sqrt_aux (f : cau_seq ℚ abs) : ℕ → ℚ
-| 0       := rat.mk_nat (f 0).num.to_nat.sqrt (f 0).denom.sqrt
-| (n + 1) := let s := sqrt_aux n in max 0 $ (s + f (n+1) / s) / 2
+| 0       := 1
+| (n + 1) := let s := sqrt_aux n in (s + (max 0 (f (n+1))) / s) / 2
 
-theorem sqrt_aux_nonneg (f : cau_seq ℚ abs) : ∀ i : ℕ, 0 ≤ sqrt_aux f i
-| 0       := by rw [sqrt_aux, rat.mk_nat_eq, rat.mk_eq_div];
-  apply div_nonneg; exact int.cast_nonneg.2 (int.of_nat_nonneg _)
-| (n + 1) := le_max_left _ _
+theorem sqrt_aux_nonneg (f : cau_seq ℚ abs) (i : ℕ): 0 ≤ sqrt_aux f i :=
+begin
+  induction i with i hyp,
+  { unfold sqrt_aux, exact zero_le_one},
+  { unfold sqrt_aux,
+    simp, cancel_denoms,
+    have t : 0 ≤ max 0 (f (i + 1)) / sqrt_aux f i := div_nonneg (le_max_left 0 _) hyp,
+    exact add_nonneg hyp t, },
+end
+
+theorem sqrt_aux_ne_zero_step (f : cau_seq ℚ abs) (i : ℕ) (h : sqrt_aux f i ≠ 0) :
+  sqrt_aux f (i + 1) ≠ 0 :=
+begin
+  unfold sqrt_aux,
+  simp only [ne.def, div_eq_zero_iff, bit0_eq_zero, one_ne_zero, or_false],
+  apply ne_of_gt,
+  have t : 0 ≤ (max 0 (f (i + 1))) / sqrt_aux f i,
+  { rw div_nonneg_iff,
+    left,
+    exact ⟨le_max_left 0 _, sqrt_aux_nonneg f i⟩, },
+  have u : 0 < sqrt_aux f i := (ne.symm h).le_iff_lt.mp (sqrt_aux_nonneg f i),
+  exact lt_add_of_pos_of_le u t
+end
+
+@[simp]
+theorem sqrt_aux_eq_zero_iff_step (f : cau_seq ℚ abs) (i : ℕ) :
+  sqrt_aux f (i + 1) = 0 ↔ sqrt_aux f i = 0 :=
+begin
+  split,
+  { intros hyp,
+    { by_contradiction,
+      exact sqrt_aux_ne_zero_step f i h hyp, }, },
+  { intro prev_zero,
+    unfold sqrt_aux, rw [prev_zero], simp, },
+end
+
+@[simp]
+theorem sqrt_aux_eq_zero_iff (f : cau_seq ℚ abs) (i : ℕ) : sqrt_aux f i ≠ 0 :=
+begin
+  induction i with i hyp,
+  { unfold sqrt_aux,
+    norm_num, },
+  { simp [hyp], },
+end
 
 /-- A simplified version of Cauchy-Schwarz on a two-element set, which we prove separately to
 reduce the import graph. -/
@@ -120,145 +160,34 @@ end
 lemma sq_div_self {a : ℚ} (a_nonzero : a ≠ 0) : a ^ 2 / a = a :=
 by rw [pow_two, div_eq_iff a_nonzero]
 
-theorem uuu {a b : ℚ} (h : 0 < b) (j : a / b ≤ 0) : a ≤ 0 :=
-begin
-  calc a = a / b * b : ((eq_div_iff (ne_of_gt h)).mp rfl).symm
-    ... ≤ 0 : by nlinarith
-end
-
 theorem sqrt_aux_overestimate (f : cau_seq ℚ abs) {i : ℕ} (i_pos : 0 < i) :
-  f i ≤ (sqrt_aux f i) ^ 2 ∨ sqrt_aux f i = 0 :=
+  f i ≤ (sqrt_aux f i) ^ 2 :=
 begin
   cases i,
   { linarith, },
   { unfold sqrt_aux,
-    simp only [max_eq_left_iff],
-    cases lt_or_ge 0 ((sqrt_aux f i + f (i + 1) / sqrt_aux f i) / 2) with r s,
-    { left,
-      rw max_eq_right_of_lt r,
-      simp, norm_num, cancel_denoms,
-      by_cases nonzero : sqrt_aux f i = 0,
-      { rw nonzero at r, simp at r, cc, },
-      { refine (mul_le_mul_right ((sq_pos_iff (sqrt_aux f i)).2 nonzero)).mp _,
-        calc 4 * f (i + 1) * sqrt_aux f i ^ 2
-              ≤ (f (i + 1) + sqrt_aux f i ^ 2) ^ 2 : rat.cauchy_schwarz _ _
-          ... = (sqrt_aux f i ^ 2 + f (i + 1)) ^ 2 : by ring
-          ... = (sqrt_aux f i ^ 2 / sqrt_aux f i * sqrt_aux f i + f (i + 1)) ^ 2 : by rw (eq_div_iff nonzero).mp rfl
-          ... = (sqrt_aux f i ^ 2 / sqrt_aux f i * sqrt_aux f i + f (i + 1) / sqrt_aux f i * sqrt_aux f i) ^ 2 : by rw (@eq_div_iff _ _ (f (i + 1)) _ _ nonzero).mp rfl
-          ... = (sqrt_aux f i ^ 2 / sqrt_aux f i + f (i + 1) / sqrt_aux f i) ^ 2 * sqrt_aux f i ^ 2 : by ring
-          ... = (sqrt_aux f i + f (i + 1) / sqrt_aux f i) ^ 2 * sqrt_aux f i ^ 2 : by rw sq_div_self nonzero, }, },
-    { rw max_eq_left s,
-      simp only [zero_pow', ne.def, bit0_eq_zero, nat.one_ne_zero, not_false_iff],
-      simp only [ge_iff_le] at s,
-      cases lt_or_ge 0 (sqrt_aux f i),
-      { rw div_le_iff at s,
-        { simp at s,
-          have u : f (i + 1) / sqrt_aux f i ≤ 0 := le_of_add_le_of_nonneg_right s _,
-          { left, exact uuu h u, },
-          { exact sqrt_aux_nonneg f i, }, },
-        { norm_num, }, },
-      { right, exact s, }, }, },
-end
-
-theorem fooo (a : ℚ) {b : ℚ} (b_nonzero : b ≠ 0) : a / b * b = a :=
-(eq_div_iff b_nonzero).mp rfl
-
-theorem blah {a b : ℚ} (ha : a ≤ 0) (hb : 0 < b) : a / b ≤ 0 :=
-begin
-  rw div_nonpos_iff,
-  right, exact ⟨ha, le_of_lt hb⟩,
-end
-
-theorem sqrt_aux_zero_iff (f : cau_seq ℚ abs) (i : ℕ) :
-  sqrt_aux f (i + 1) = 0 ↔ sqrt_aux f i = 0 ∨ f (i + 1) ≤ - ((sqrt_aux f i) ^ 2) :=
-begin
-  split,
-  { intros sqrt_aux_zero,
-    unfold sqrt_aux at sqrt_aux_zero,
-    simp at sqrt_aux_zero,
-    rw div_le_iff at sqrt_aux_zero,
-    { simp at sqrt_aux_zero,
-      by_cases sqrt_aux f i = 0,
-      { left, assumption, },
-      { have sqrt_aux_pos : 0 < sqrt_aux f i := (ne.symm h).le_iff_lt.mp (sqrt_aux_nonneg f i),
-        have rewritten : sqrt_aux f i ^ 2 + f (i + 1) ≤ 0,
-        calc sqrt_aux f i ^ 2 + f (i + 1)
-          = (sqrt_aux f i * sqrt_aux f i + f (i + 1)) : by ring
-          ... = (sqrt_aux f i * sqrt_aux f i + f (i + 1) / sqrt_aux f i * sqrt_aux f i) : by rw fooo (f (i + 1)) h
-          ... = (sqrt_aux f i + f (i + 1) / sqrt_aux f i) * sqrt_aux f i : by ring
-          ... ≤ 0 * sqrt_aux f i : mul_mono_nonneg (sqrt_aux_nonneg f i) sqrt_aux_zero
-          ... = 0 : by ring,
-        right,
-        linarith, }, },
-    { exact two_pos, }, },
-  { rintro foo,
-    cases foo,
-    { unfold sqrt_aux, rw foo, simp, },
-    { unfold sqrt_aux, simp, cancel_denoms,
-      by_cases sqrt_aux f i = 0,
-      { rw h, simp, },
-      { have sqrt_aux_pos : 0 < sqrt_aux f i := (ne.symm h).le_iff_lt.mp (sqrt_aux_nonneg f i),
-        have thing : sqrt_aux f i * sqrt_aux f i + f (i + 1) ≤ 0 := by linarith,
-        calc sqrt_aux f i + f (i + 1) / sqrt_aux f i
-          = sqrt_aux f i * sqrt_aux f i / sqrt_aux f i + f (i + 1) / sqrt_aux f i : by simp
-          ... = (sqrt_aux f i * sqrt_aux f i + f (i + 1)) / sqrt_aux f i : div_add_div_same (sqrt_aux f i * sqrt_aux f i) _ (sqrt_aux f i)
-          ... ≤ 0 : blah thing sqrt_aux_pos, }, }, },
-end
-
-/-- The sqrt_aux corresponding to decreasing Cauchy sequences is decreasing. -/
-theorem sqrt_aux_decreasing (f : cau_seq ℚ abs) (f_decreasing : ∀ i, f (i + 1) ≤ f i)
-  {i : ℕ} (i_pos : 0 < i) (all_pos : ∀ j, 0 < sqrt_aux f j) : sqrt_aux f (i + 1) ≤ sqrt_aux f i :=
-begin
-  unfold sqrt_aux,
-  simp,
-  cases @sqrt_aux_overestimate f i i_pos,
-  { split,
-    { exact (le_of_lt (all_pos i)), },
-    { cancel_denoms,
-      rw two_mul,
-      simp,
-      refine (div_le_iff' (all_pos i)).mpr _,
-      calc f (i + 1) ≤ f i : f_decreasing i
-        ... ≤ sqrt_aux f i ^ 2 : h
-        ... = sqrt_aux f i * sqrt_aux f i : sq _ }, },
-  { specialize all_pos i, linarith, },
-end
-
-/-- If f is positive, then sqrt_aux f is positive. -/
-theorem sqrt_aux_pos (f : cau_seq ℚ abs) (all_pos : ∀ j, 0 < f j) (i : ℕ) : 0 < sqrt_aux f i :=
-begin
-  induction i with i hyp,
-  { unfold sqrt_aux,
-    specialize all_pos 0,
-    rcases f 0,
-    intros pos2,
-    rw rat.lt_def,
     simp,
-    rw rat.lt_def at pos2,
-    simp at pos2,
-    have sqrt_denom_pos : 0 < nat.sqrt denom := nat.sqrt_pos.mpr pos,
-    unfold rat.mk_nat, simp [ne_of_gt sqrt_denom_pos],
-    cases num,
-    { simp, simp at pos2,
-      have sqrt_num_pos : 0 < nat.sqrt num := nat.sqrt_pos.mpr pos2,
-      unfold rat.mk_pnat,
+    norm_num,
+    cases le_or_gt (f (i + 1)) 0,
+    { rw max_eq_left h,
       simp,
-      norm_cast,
-      apply nat.div_pos,
-      { exact (nat.sqrt denom).gcd_le_left sqrt_num_pos, },
-      { rcases @eq_zero_or_pos _ _ ((nat.sqrt num).gcd (nat.sqrt denom)),
-        { rw nat.gcd_eq_zero_iff at h,
-          rcases h with ⟨num_zero, denom_zero⟩,
-          rw [denom_zero] at sqrt_denom_pos,
-          linarith, },
-        { assumption, }, }, },
-    { simp at pos2, exfalso, exact pos2, }, },
-  { unfold sqrt_aux,
-    simp,
-    specialize all_pos (i + 1),
-    cancel_denoms,
-    calc 0 < sqrt_aux f i : hyp
-      ... < _ : lt_add_of_pos_right (sqrt_aux f i) (div_pos all_pos hyp), },
+      calc f (i + 1) ≤ 0 : h
+        ... ≤ sqrt_aux f i ^ 2 / 4 : div_nonneg (sq_nonneg _) (by norm_num), },
+    { rw max_eq_right_of_lt h,
+      by_cases sqrt_aux f i = 0,
+      { simp at h, exfalso, exact h, },
+      { cancel_denoms,
+        have u : _ := rat.cauchy_schwarz (sqrt_aux f i ^ 2) (f (i + 1)),
+        have v := by
+          calc 4 * f (i + 1) = 4 * f (i + 1) * 1 : by ring
+          ... = 4 * f (i + 1) * (sqrt_aux f i ^ 2 / sqrt_aux f i ^ 2) : by rw div_self (pow_ne_zero 2 h)
+          ... = (4 * sqrt_aux f i ^ 2 * f (i + 1)) / sqrt_aux f i ^ 2 : by ring,
+        rw v,
+        calc 4 * sqrt_aux f i ^ 2 * f (i + 1) / sqrt_aux f i ^ 2
+          ≤ (sqrt_aux f i ^ 2 + f (i + 1)) ^ 2 / sqrt_aux f i ^ 2 : div_le_div_of_le (sq_nonneg _) u
+          ... = ((sqrt_aux f i ^ 2 + f (i + 1)) / sqrt_aux f i) ^ 2 : by simp
+          ... = (sqrt_aux f i ^ 2 / sqrt_aux f i + f (i + 1) / sqrt_aux f i) ^ 2 : by ring
+          ... = (sqrt_aux f i + f (i + 1) / sqrt_aux f i) ^ 2 : by rw sq_div_self h, }, }, },
 end
 
 /- TODO(Mario): finish the proof

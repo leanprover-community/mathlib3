@@ -116,7 +116,7 @@ prime.pos (prime_of_mem_factorization hp)
 lemma le_of_mem_factorization {n p : ℕ} (h : p ∈ n.factorization.support) : p ≤ n :=
 le_of_mem_factors (factor_iff_mem_factorization.mp h)
 
-lemma factorization_eq_zero_of_non_prime (n p : ℕ) (hp : ¬p.prime) : n.factorization p = 0 :=
+lemma factorization_eq_zero_of_non_prime (n : ℕ) {p : ℕ} (hp : ¬p.prime) : n.factorization p = 0 :=
 not_mem_support_iff.1 (mt prime_of_mem_factorization hp)
 
 lemma prime.factorization_pos_of_dvd {n p : ℕ} (hp : p.prime) (hn : n ≠ 0) (h : p ∣ n) :
@@ -232,7 +232,7 @@ end
 
 lemma pow_factorization_dvd (n p : ℕ) : p ^ n.factorization p ∣ n :=
 begin
-  by_cases hp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n p hp] },
+  by_cases hp : p.prime, swap, { simp [factorization_eq_zero_of_non_prime n hp] },
   rw ←factors_count_eq,
   apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
   rw [hp.factors_pow, list.subperm_ext_iff],
@@ -302,7 +302,7 @@ begin
       nat.div_mul_cancel h],
 end
 
-lemma dvd_iff_div_factorization_eq_tsub (d n : ℕ) (hd : d ≠ 0) (hdn : d ≤ n) :
+lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ n) :
   d ∣ n ↔ (n / d).factorization = n.factorization - d.factorization :=
 begin
   refine ⟨factorization_div, _⟩,
@@ -327,7 +327,7 @@ begin
   refine ⟨λ h p k _ hpkd, dvd_trans hpkd h, _⟩,
   rw [←factorization_le_iff_dvd hd hn, finsupp.le_def],
   intros h p,
-  by_cases pp : prime p, swap, { simp [factorization_eq_zero_of_non_prime d p pp] },
+  by_cases pp : prime p, swap, { simp [factorization_eq_zero_of_non_prime d pp] },
   rw ←pp.pow_dvd_iff_le_factorization hn,
   exact h p _ pp (pow_factorization_dvd _ _)
 end

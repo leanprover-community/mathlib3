@@ -33,22 +33,18 @@ local attribute [instance] matrix.subsingleton_of_empty_left
 lemma exp_add_of_commute (A B : matrix m m 𝔸) (h : commute A B) :
   exp 𝕂 _ (A + B) = exp 𝕂 _ A * exp 𝕂 _ B :=
 begin
-  casesI is_empty_or_nonempty m,
-  { simp },
-  letI : semi_normed_ring (matrix m m 𝔸) := matrix.l0_linf_semi_normed_ring,
-  letI : normed_ring (matrix m m 𝔸) := matrix.l0_linf_normed_ring,
-  letI : normed_algebra 𝕂 (matrix m m 𝔸) := matrix.l0_linf_normed_algebra,
+  letI : semi_normed_ring (matrix m m 𝔸) := matrix.linfty_op_semi_normed_ring,
+  letI : normed_ring (matrix m m 𝔸) := matrix.linfty_op_normed_ring,
+  letI : normed_algebra 𝕂 (matrix m m 𝔸) := matrix.linfty_op_normed_algebra,
   exact exp_add_of_commute h,
 end
 
 lemma exp_nsmul (n : ℕ) (A : matrix m m 𝔸) :
   exp 𝕂 _ (n • A) = exp 𝕂 _ A ^ n :=
 begin
-  casesI is_empty_or_nonempty m,
-  { simp },
-  letI : semi_normed_ring (matrix m m 𝔸) := matrix.l0_linf_semi_normed_ring,
-  letI : normed_ring (matrix m m 𝔸) := matrix.l0_linf_normed_ring,
-  letI : normed_algebra 𝕂 (matrix m m 𝔸) := matrix.l0_linf_normed_algebra,
+  letI : semi_normed_ring (matrix m m 𝔸) := matrix.linfty_op_semi_normed_ring,
+  letI : normed_ring (matrix m m 𝔸) := matrix.linfty_op_normed_ring,
+  letI : normed_algebra 𝕂 (matrix m m 𝔸) := matrix.linfty_op_normed_algebra,
   exact exp_nsmul n A,
 end
 
@@ -63,15 +59,12 @@ instance _root_.why : algebra 𝕂 (m → 𝔸) := function.algebra _ _
 lemma exp_diagonal (v : m → 𝔸) :
   exp 𝕂 _ (diagonal v) = diagonal (exp 𝕂 (m → 𝔸) v) :=
 begin
-  casesI is_empty_or_nonempty m,
-  { simp },
-  letI : semi_normed_ring (matrix m m 𝔸) := matrix.l0_linf_semi_normed_ring,
-  letI : normed_ring (matrix m m 𝔸) := matrix.l0_linf_normed_ring,
-  letI : normed_algebra 𝕂 (matrix m m 𝔸) := matrix.l0_linf_normed_algebra,
-  simp_rw ←diagonal_ring_hom_apply,
-  -- timeout :(
-  -- have := map_exp 𝕂 (diagonal_ring_hom m 𝔸),
-  sorry
+  letI : semi_normed_ring (matrix m m 𝔸) := matrix.linfty_op_semi_normed_ring,
+  letI : normed_ring (matrix m m 𝔸) := matrix.linfty_op_normed_ring,
+  letI : normed_algebra 𝕂 (matrix m m 𝔸) := matrix.linfty_op_normed_algebra,
+  letI : normed_algebra 𝕂 (m → 𝔸) := pi.normed_algebra _,
+  refine (map_exp 𝕂 (diagonal_ring_hom m 𝔸) _ _).symm,
+  exact continuous_matrix.diagonal continuous_id,
 end
 
 instance : topological_ring (m → matrix n n 𝔸) :=
@@ -85,19 +78,15 @@ instance : has_continuous_const_smul 𝕂 (m → matrix n n 𝔸) :=
 lemma exp_block_diagonal (v : m → matrix n n 𝔸) :
   exp 𝕂 _ (block_diagonal v) = block_diagonal (exp 𝕂 (m → matrix n n 𝔸) v) :=
 begin
-  casesI is_empty_or_nonempty m,
-  { simp },
-  casesI is_empty_or_nonempty n,
-  { simp },
-  letI : semi_normed_ring (matrix n n 𝔸) := matrix.l0_linf_semi_normed_ring,
-  letI : normed_ring (matrix n n 𝔸) := matrix.l0_linf_normed_ring,
-  letI : normed_algebra 𝕂 (matrix n n 𝔸) := matrix.l0_linf_normed_algebra,
-  letI : semi_normed_ring (matrix (n × m) (n × m) 𝔸) := matrix.l0_linf_semi_normed_ring,
-  letI : normed_ring (matrix (n × m) (n × m) 𝔸) := matrix.l0_linf_normed_ring,
-  letI : normed_algebra 𝕂 (matrix (n × m) (n × m) 𝔸) := matrix.l0_linf_normed_algebra,
-  simp_rw ←block_diagonal_ring_hom_apply,
-  -- -- timeout :(
-  -- have := map_exp 𝕂 (block_diagonal_ring_hom n m 𝔸),
+  letI : semi_normed_ring (matrix n n 𝔸) := matrix.linfty_op_semi_normed_ring,
+  letI : normed_ring (matrix n n 𝔸) := matrix.linfty_op_normed_ring,
+  letI : normed_algebra 𝕂 (matrix n n 𝔸) := matrix.linfty_op_normed_algebra,
+  letI : semi_normed_ring (matrix (n × m) (n × m) 𝔸) := matrix.linfty_op_semi_normed_ring,
+  letI : normed_ring (matrix (n × m) (n × m) 𝔸) := matrix.linfty_op_normed_ring,
+  letI : normed_algebra 𝕂 (matrix (n × m) (n × m) 𝔸) := matrix.linfty_op_normed_algebra,
+  letI : complete_space (m → matrix n n 𝔸) := by apply_instance,
+  refine (map_exp 𝕂 (block_diagonal_ring_hom n m 𝔸) _ v).symm,
+  sorry
 end
 
 end matrix

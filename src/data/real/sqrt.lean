@@ -170,7 +170,7 @@ begin
 end
 
 theorem sqrt_aux_zero_iff (f : cau_seq ℚ abs) (i : ℕ) :
-  sqrt_aux f (i + 1) = 0 ↔ sqrt_aux f i = 0 ∨ f (i + 1) ≤ - (sqrt_aux f i) ^ 2 :=
+  sqrt_aux f (i + 1) = 0 ↔ sqrt_aux f i = 0 ∨ f (i + 1) ≤ - ((sqrt_aux f i) ^ 2) :=
 begin
   split,
   { intros sqrt_aux_zero,
@@ -201,8 +201,8 @@ begin
         have thing : sqrt_aux f i * sqrt_aux f i + f (i + 1) ≤ 0 := by linarith,
         calc sqrt_aux f i + f (i + 1) / sqrt_aux f i
           = sqrt_aux f i * sqrt_aux f i / sqrt_aux f i + f (i + 1) / sqrt_aux f i : by simp
-          ... = (sqrt_aux f i * sqrt_aux f i + f (i + 1)) / sqrt_aux f i : div_add_div_same (sqrt_aux f i * sqrt_aux f i) (⇑f (i + 1)) (sqrt_aux f i)
-          ... ≤ 0 : blah _ _, }, }, },
+          ... = (sqrt_aux f i * sqrt_aux f i + f (i + 1)) / sqrt_aux f i : div_add_div_same (sqrt_aux f i * sqrt_aux f i) _ (sqrt_aux f i)
+          ... ≤ 0 : blah thing sqrt_aux_pos, }, }, },
 end
 
 /-- The sqrt_aux corresponding to decreasing Cauchy sequences is decreasing. -/

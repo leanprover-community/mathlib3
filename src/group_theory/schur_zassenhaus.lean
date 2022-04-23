@@ -51,7 +51,7 @@ finset.prod_mul_distrib.symm.trans (finset.prod_congr rfl (λ x hx, subtype.ext
 mul_right_eq_self.mp (diff_mul_diff α α α)
 
 @[to_additive] lemma diff_inv [normal H]: (diff α β)⁻¹ = diff β α :=
-inv_eq_of_mul_eq_one ((diff_mul_diff α β α).trans (diff_self α))
+inv_eq_of_mul_eq_one_left $ (diff_mul_diff α β α).trans $ diff_self α
 
 lemma smul_diff_smul [hH : normal H] (g : G) :
   diff (g • α) (g • β) = ⟨g * diff α β * g⁻¹, hH.conj_mem (diff α β).1 (diff α β).2 g⟩ :=
@@ -65,7 +65,7 @@ begin
     (λ q _, subtype.ext _) (λ q _, ↑g * q) (λ _ _, finset.mem_univ _)
     (λ q _, mul_inv_cancel_left g q) (λ q _, inv_mul_cancel_left g q)) (ϕ.map_prod _ _).symm,
   change _ * _ = g * (_ * _) * g⁻¹,
-  simp_rw [smul_apply_eq_smul_apply_inv_smul, smul_eq_mul, inv_mul_rev, mul_assoc],
+  simp_rw [smul_apply_eq_smul_apply_inv_smul, smul_eq_mul, mul_inv_rev, mul_assoc],
   refl,
 end
 

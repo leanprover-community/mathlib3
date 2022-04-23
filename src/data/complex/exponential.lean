@@ -422,7 +422,7 @@ have hj : ∀ j : ℕ, ∑ m in range j, (x + y) ^ m / m! =
       have h₁ : (m.choose i : ℂ) ≠ 0 := nat.cast_ne_zero.2
         (pos_iff_ne_zero.1 (nat.choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
       have h₂ := nat.choose_mul_factorial_mul_factorial (nat.le_of_lt_succ $ finset.mem_range.1 hi),
-      rw [← h₂, nat.cast_mul, nat.cast_mul, mul_inv₀, mul_inv₀],
+      rw [← h₂, nat.cast_mul, nat.cast_mul, mul_inv, mul_inv],
       simp only [mul_left_comm (m.choose i : ℂ), mul_assoc, mul_left_comm (m.choose i : ℂ)⁻¹,
         mul_comm (m.choose i : ℂ)],
       rw inv_mul_cancel h₁,
@@ -1229,7 +1229,7 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
         (pow_pos (nat.cast_pos.2 (nat.succ_pos _)) _) },
   end
 ... = n!⁻¹ * ∑ m in range (j - n), n.succ⁻¹ ^ m :
-  by simp [mul_inv₀, mul_sum.symm, sum_mul.symm, -nat.factorial_succ, mul_comm, inv_pow]
+  by simp [mul_inv, mul_sum.symm, sum_mul.symm, -nat.factorial_succ, mul_comm, inv_pow]
 ... = (n.succ - n.succ * n.succ⁻¹ ^ (j - n)) / (n! * n) :
   have h₁ : (n.succ : α) ≠ 1, from @nat.cast_one α _ _ ▸ mt nat.cast_inj.1
         (mt nat.succ.inj (pos_iff_ne_zero.1 hn)),
@@ -1239,7 +1239,7 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
     (nat.cast_ne_zero.2 (pos_iff_ne_zero.1 hn)),
   have h₄ : (n.succ - 1 : α) = n, by simp,
   by rw [← geom_sum_def, geom_sum_inv h₁ h₂, eq_div_iff_mul_eq h₃,
-      mul_comm _ (n! * n : α), ← mul_assoc (n!⁻¹ : α), ← inv_mul_rev, h₄,
+      mul_comm _ (n! * n : α), ← mul_assoc (n!⁻¹ : α), ← mul_inv_rev, h₄,
       ← mul_assoc (n! * n : α), mul_comm (n : α) n!, mul_inv_cancel h₃];
     simp [mul_add, add_mul, mul_assoc, mul_comm]
 ... ≤ n.succ / (n! * n) :
@@ -1305,7 +1305,7 @@ begin
     { exact_mod_cast mul_pos n.factorial_pos (pow_pos n.succ_pos _), },
     { exact_mod_cast (nat.factorial_mul_pow_le_factorial), }, },
   { refine finset.sum_congr rfl (λ _ _, _),
-    simp only [pow_add, div_eq_inv_mul, mul_inv₀, mul_left_comm, mul_assoc], },
+    simp only [pow_add, div_eq_inv_mul, mul_inv, mul_left_comm, mul_assoc], },
   { rw [←mul_sum],
     apply mul_le_mul_of_nonneg_left,
     { simp_rw [←div_pow],
@@ -1373,7 +1373,7 @@ def exp_near (n : ℕ) (x r : ℝ) : ℝ := ∑ m in range n, x ^ m / m! + x ^ n
 
 @[simp] theorem exp_near_succ (n x r) : exp_near (n + 1) x r = exp_near n x (1 + x / (n+1) * r) :=
 by simp [exp_near, range_succ, mul_add, add_left_comm, add_assoc, pow_succ, div_eq_mul_inv,
-  mul_inv₀]; ac_refl
+  mul_inv]; ac_refl
 
 theorem exp_near_sub (n x r₁ r₂) : exp_near n x r₁ - exp_near n x r₂ = x ^ n / n! * (r₁ - r₂) :=
 by simp [exp_near, mul_sub]
@@ -1392,7 +1392,7 @@ begin
   refine (_root_.abs_sub_le _ _ _).trans ((add_le_add_right h _).trans _),
   subst e₁, rw [exp_near_succ, exp_near_sub, _root_.abs_mul],
   convert mul_le_mul_of_nonneg_left (le_sub_iff_add_le'.1 e) _,
-  { simp [mul_add, pow_succ', div_eq_mul_inv, _root_.abs_mul, _root_.abs_inv, ← pow_abs, mul_inv₀],
+  { simp [mul_add, pow_succ', div_eq_mul_inv, _root_.abs_mul, _root_.abs_inv, ← pow_abs, mul_inv],
     ac_refl },
   { simp [_root_.div_nonneg, _root_.abs_nonneg] }
 end

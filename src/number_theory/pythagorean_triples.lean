@@ -262,7 +262,7 @@ def circle_equiv_gen (hk : ∀ x : K, 1 + x^2 ≠ 0) :
   right_inv := λ ⟨⟨x, y⟩, hxy, hy⟩,
   begin
     change x ^ 2 + y ^ 2 = 1 at hxy,
-    have h2 : y + 1 ≠ 0, { apply mt eq_neg_of_add_eq_zero, exact hy },
+    have h2 : y + 1 ≠ 0 := mt eq_neg_of_add_eq_zero_left hy,
     have h3 : (y + 1) ^ 2 + x ^ 2 = 2 * (y + 1),
     { rw [(add_neg_eq_iff_eq_add.mpr hxy.symm).symm], ring },
     have h4 : (2 : K) ≠ 0, { convert hk 1, rw one_pow 2, refl },

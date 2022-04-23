@@ -40,7 +40,7 @@ section nat_pow
 begin
   induction n with n ih,
   { simp },
-  { rw [pow_succ A, mul_eq_mul, inv_mul_rev, ← ih, ← mul_eq_mul, ← pow_succ'] }
+  { rw [pow_succ A, mul_eq_mul, mul_inv_rev, ← ih, ← mul_eq_mul, ← pow_succ'] }
 end
 
 theorem pow_sub' (A : M) {m n : ℕ} (ha : is_unit A.det) (h : n ≤ m) :
@@ -148,7 +148,7 @@ lemma zpow_add_one {A : M} (h : is_unit A.det) : ∀ n : ℤ, A ^ (n + 1) = A ^ 
 | -((n : ℕ) + 1) :=
 calc  A ^ (-(n + 1) + 1 : ℤ)
     = (A ^ n)⁻¹ : by rw [neg_add, neg_add_cancel_right, zpow_neg h, zpow_coe_nat]
-... = (A ⬝ A ^ n)⁻¹ ⬝ A : by rw [inv_mul_rev, matrix.mul_assoc, nonsing_inv_mul _ h, matrix.mul_one]
+... = (A ⬝ A ^ n)⁻¹ ⬝ A : by rw [mul_inv_rev, matrix.mul_assoc, nonsing_inv_mul _ h, matrix.mul_one]
 ... = A ^ -(n + 1 : ℤ) * A :
       by rw [zpow_neg h, ← int.coe_nat_succ, zpow_coe_nat, pow_succ, mul_eq_mul, mul_eq_mul]
 
@@ -291,7 +291,7 @@ lemma commute.mul_zpow {A B : M} (h : commute A B) :
   ∀ (i : ℤ), (A * B) ^ i = (A ^ i) * (B ^ i)
 | (n : ℕ) := by simp [h.mul_pow n, -mul_eq_mul]
 | -[1+n]  := by rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, zpow_neg_succ_of_nat,
-                    mul_eq_mul (_⁻¹), ←inv_mul_rev, ←mul_eq_mul, h.mul_pow n.succ,
+                    mul_eq_mul (_⁻¹), ←mul_inv_rev, ←mul_eq_mul, h.mul_pow n.succ,
                     (h.pow_pow _ _).eq]
 
 theorem zpow_bit0' (A : M) (n : ℤ) : A ^ bit0 n = (A * A) ^ n :=

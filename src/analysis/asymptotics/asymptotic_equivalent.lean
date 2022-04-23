@@ -272,7 +272,7 @@ begin
   refine ⟨λ x, (φ x)⁻¹, tendsto.inv₀ hφ (by norm_num) , _⟩,
   convert h.inv,
   ext,
-  simp [mul_inv₀]
+  simp [mul_inv]
 end
 
 lemma is_equivalent.div (htu : t ~[l] u) (hvw : v ~[l] w) :

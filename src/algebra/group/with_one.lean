@@ -349,11 +349,17 @@ instance [div_inv_monoid α] : div_inv_monoid (with_zero α) :=
   .. with_zero.monoid_with_zero, }
 
 instance [division_monoid α] : division_monoid (with_zero α) :=
-{ inv_mul_rev := λ a b, match a, b with
+{ mul_inv_rev := λ a b, match a, b with
     | none,   none   := rfl
     | none,   some b := rfl
     | some a, none   := rfl
-    | some a, some b := congr_arg some $ inv_mul_rev _ _
+    | some a, some b := congr_arg some $ mul_inv_rev _ _
+    end,
+  inv_eq_of_mul := λ a b, match a, b with
+    | none,   none   := λ _, rfl
+    | none,   some b := by contradiction
+    | some a, none   := by contradiction
+    | some a, some b := λ h, congr_arg some $ inv_eq_of_mul_eq_one_left $ option.some_injective _ h
     end,
   .. with_zero.div_inv_monoid, .. with_zero.has_involutive_inv }
 

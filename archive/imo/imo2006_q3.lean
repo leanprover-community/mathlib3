@@ -65,7 +65,7 @@ lemma zero_lt_32 : (0 : ℝ) < 32 := by norm_num
 
 theorem subst_wlog {x y z s : ℝ} (hxy : 0 ≤ x * y) (hxyz : x + y + z = 0) :
   32 * |x * y * z * s| ≤ sqrt 2 * (x^2 + y^2 + z^2 + s^2)^2 :=
-have hz : (x + y)^2 = z^2 := neg_eq_of_add_eq_zero hxyz ▸ (neg_sq _).symm,
+have hz : (x + y)^2 = z^2 := neg_eq_of_add_eq_zero_left hxyz ▸ (neg_sq _).symm,
 have hs : 0 ≤ 2 * s ^ 2 := mul_nonneg zero_le_two (sq_nonneg s),
 have this : _ :=
   calc  (2 * s^2) * (16 * x^2 * y^2 * (x + y)^2)

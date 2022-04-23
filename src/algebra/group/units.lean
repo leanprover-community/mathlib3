@@ -186,13 +186,13 @@ by rw [mul_assoc, inv_mul, mul_one]
 @[to_additive] theorem mul_inv_eq_iff_eq_mul {a c : α} : a * ↑b⁻¹ = c ↔ a = c * b :=
 ⟨λ h, by rw [← h, inv_mul_cancel_right], λ h, by rw [h, mul_inv_cancel_right]⟩
 
-lemma inv_eq_of_mul_eq_one {u : αˣ} {a : α} (h : ↑u * a = 1) : ↑u⁻¹ = a :=
+lemma inv_eq_of_mul_eq_one_left {u : αˣ} {a : α} (h : ↑u * a = 1) : ↑u⁻¹ = a :=
 calc ↑u⁻¹ = ↑u⁻¹ * 1 : by rw mul_one
       ... = ↑u⁻¹ * ↑u * a : by rw [←h, ←mul_assoc]
       ... = a : by rw [u.inv_mul, one_mul]
 
 lemma inv_unique {u₁ u₂ : αˣ} (h : (↑u₁ : α) = ↑u₂) : (↑u₁⁻¹ : α) = ↑u₂⁻¹ :=
-inv_eq_of_mul_eq_one $ by rw [h, u₂.mul_inv]
+inv_eq_of_mul_eq_one_left $ by rw [h, u₂.mul_inv]
 
 end units
 
@@ -235,7 +235,7 @@ mul_assoc _ _ _
 units.mul_left_inj _
 
 theorem divp_divp_eq_divp_mul (x : α) (u₁ u₂ : αˣ) : (x /ₚ u₁) /ₚ u₂ = x /ₚ (u₂ * u₁) :=
-by simp only [divp, inv_mul_rev, units.coe_mul, mul_assoc]
+by simp only [divp, mul_inv_rev, units.coe_mul, mul_assoc]
 
 theorem divp_eq_iff_mul_eq {x : α} {u : αˣ} {y : α} : x /ₚ u = y ↔ y * u = x :=
 u.mul_left_inj.symm.trans $ by rw [divp_mul_cancel]; exact ⟨eq.symm, eq.symm⟩

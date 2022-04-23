@@ -244,7 +244,7 @@ is preserved under composition with a non-trivial swap, then `P` holds for all p
 lemma is_conj_swap {w x y z : α} (hwx : w ≠ x) (hyz : y ≠ z) : is_conj (swap w x) (swap y z) :=
 is_conj_iff.2 (have h : ∀ {y z : α}, y ≠ z → w ≠ z →
       (swap w y * swap x z) * swap w x * (swap w y * swap x z)⁻¹ = swap y z :=
-    λ y z hyz hwz, by rw [inv_mul_rev, swap_inv, swap_inv, mul_assoc (swap w y),
+    λ y z hyz hwz, by rw [mul_inv_rev, swap_inv, swap_inv, mul_assoc (swap w y),
       mul_assoc (swap w y), ← mul_assoc _ (swap x z), swap_mul_swap_mul_swap hwx hwz,
       ← mul_assoc, swap_mul_swap_mul_swap hwz.symm hyz.symm],
   if hwz : w = z

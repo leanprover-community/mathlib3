@@ -1012,7 +1012,7 @@ begin
   { simp only [h'b, ennreal.inv_zero, ennreal.coe_ne_top, with_top.mul_top, ne.def, not_false_iff,
                mul_zero, ennreal.coe_zero, ennreal.inv_eq_zero] },
   rw [← ennreal.coe_mul, ← ennreal.coe_inv, ← ennreal.coe_inv h'a, ← ennreal.coe_inv h'b,
-      ← ennreal.coe_mul, inv_mul_rev, mul_comm],
+      ← ennreal.coe_mul, mul_inv_rev, mul_comm],
   simp [h'a, h'b],
 end
 
@@ -1183,6 +1183,7 @@ end
 lemma inv_mul_cancel (h0 : a ≠ 0) (ht : a ≠ ∞) : a⁻¹ * a = 1 :=
 mul_comm a a⁻¹ ▸ mul_inv_cancel h0 ht
 
+-- TOODOO
 lemma eq_inv_of_mul_eq_one (h : a * b = 1) : a = b⁻¹ :=
 begin
   rcases eq_or_ne b ∞ with rfl|hb,

@@ -305,7 +305,7 @@ lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G}
   from λ _, ((mem_fixed_points' _).1 hx _),
   inv_mem_iff.1 (@mem_normalizer_fintype _ _ _ _inst_2 _ (λ n (hn : n ∈ H),
     have (n⁻¹ * x)⁻¹ * x ∈ H := quotient_group.eq.1 (ha (mem_orbit _ ⟨n⁻¹, H.inv_mem hn⟩)),
-    show _ ∈ H, by {rw [inv_mul_rev, inv_inv] at this, convert this, rw inv_inv}
+    show _ ∈ H, by {rw [mul_inv_rev, inv_inv] at this, convert this, rw inv_inv}
     )),
 λ (hx : ∀ (n : G), n ∈ H ↔ x * n * x⁻¹ ∈ H),
 (mem_fixed_points' _).2 $ λ y, quotient.induction_on' y $ λ y hy, quotient_group.eq.2
@@ -313,7 +313,7 @@ lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : subgroup G}
   have hb₂ : (b * x)⁻¹ * y ∈ H := quotient_group.eq.1 hb₂,
   inv_mem_iff.1 $ (hx _).2 $ (mul_mem_cancel_left (inv_mem hb₁)).1
   $ by rw hx at hb₂;
-    simpa [inv_mul_rev, mul_assoc] using hb₂)⟩
+    simpa [mul_inv_rev, mul_assoc] using hb₂)⟩
 
 def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : set G)] :
   mul_action.fixed_points H (G ⧸ H) ≃

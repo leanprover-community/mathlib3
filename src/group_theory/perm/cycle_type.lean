@@ -120,7 +120,7 @@ end
 lemma cycle_type_inv (σ : perm α) : σ⁻¹.cycle_type = σ.cycle_type :=
 cycle_induction_on (λ τ : perm α, τ⁻¹.cycle_type = τ.cycle_type) σ rfl
   (λ σ hσ, by rw [hσ.cycle_type, hσ.inv.cycle_type, support_inv])
-  (λ σ τ hστ hc hσ hτ, by rw [inv_mul_rev, hστ.cycle_type, ←hσ, ←hτ, add_comm,
+  (λ σ τ hστ hc hσ hτ, by rw [mul_inv_rev, hστ.cycle_type, ←hσ, ←hτ, add_comm,
     disjoint.cycle_type (λ x, or.imp (λ h : τ x = x, inv_eq_iff_eq.mpr h.symm)
     (λ h : σ x = x, inv_eq_iff_eq.mpr h.symm) (hστ x).symm)])
 
@@ -426,7 +426,7 @@ by appending the inverse of the product of `v`. -/
     by rw [mem_iff, vector.to_list_cons, list.prod_cons, inv_mul_self]⟩,
   inv_fun := λ v, v.1.tail,
   left_inv := λ v, v.tail_cons v.to_list.prod⁻¹,
-  right_inv := λ v, subtype.ext ((congr_arg2 vector.cons (eq_inv_of_mul_eq_one (by
+  right_inv := λ v, subtype.ext ((congr_arg2 vector.cons (eq_inv_of_mul_eq_one_left (by
   { rw [←list.prod_cons, ←vector.to_list_cons, v.1.cons_head_tail],
     exact v.2 })).symm rfl).trans v.1.cons_head_tail) }
 

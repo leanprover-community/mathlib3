@@ -900,7 +900,7 @@ variables [semiring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
 
 @[simp] lemma map_neg (m : Πi, M₁ i) (i : ι) (x : M₁ i) :
   f (update m i (-x)) = -f (update m i x) :=
-eq_neg_of_add_eq_zero $ by rw [←multilinear_map.map_add, add_left_neg,
+eq_neg_of_add_eq_zero_left $ by rw [←multilinear_map.map_add, add_left_neg,
   f.map_coord_zero i (update_same i 0 m)]
 
 @[simp] lemma map_sub (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :

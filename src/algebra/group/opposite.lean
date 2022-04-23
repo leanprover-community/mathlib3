@@ -108,7 +108,8 @@ We also generate additive structures on `αᵃᵒᵖ` using `to_additive`
 
 @[to_additive add_opposite.subtraction_monoid] instance [division_monoid α] :
   division_monoid αᵐᵒᵖ :=
-{ inv_mul_rev := λ a b, unop_injective $ inv_mul_rev _ _,
+{ mul_inv_rev := λ a b, unop_injective $ mul_inv_rev _ _,
+  inv_eq_of_mul := λ a b h, unop_injective $ inv_eq_of_mul_eq_one_right $ congr_arg unop h,
   .. mul_opposite.div_inv_monoid α, .. mul_opposite.has_involutive_inv α }
 
 @[to_additive] instance [group α] : group αᵐᵒᵖ :=
@@ -230,7 +231,7 @@ open mul_opposite
 @[to_additive "Negation on an additive group is an `add_equiv` to the opposite group. When `G`
 is commutative, there is `add_equiv.inv`.", simps { fully_applied := ff, simp_rhs := tt }]
 def mul_equiv.inv' (G : Type*) [group G] : G ≃* Gᵐᵒᵖ :=
-{ map_mul' := λ x y, unop_injective $ inv_mul_rev x y,
+{ map_mul' := λ x y, unop_injective $ mul_inv_rev x y,
   .. (equiv.inv G).trans op_equiv }
 
 /-- A monoid homomorphism `f : M →* N` such that `f x` commutes with `f y` for all `x, y` defines

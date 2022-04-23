@@ -298,7 +298,7 @@ by rw [← map_mul, h, map_one]
 @[simp, to_additive "Additive group homomorphisms preserve negation."]
 theorem map_inv [group G] [group H] [monoid_hom_class F G H]
   (f : F) (g : G) : f g⁻¹ = (f g)⁻¹ :=
-eq_inv_of_mul_eq_one $ map_mul_eq_one f $ inv_mul_self g
+eq_inv_of_mul_eq_one_left $ map_mul_eq_one f $ inv_mul_self g
 
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive "Additive group homomorphisms preserve subtraction."]

@@ -217,9 +217,9 @@ begin
   apply @h g₁⁻¹,
   split; simp only [set.mem_inv, set.mem_mul, exists_exists_and_eq_and, exists_and_distrib_left],
   { refine ⟨_, h2g₂, (g₁ * g₂)⁻¹, _, _⟩, simp only [inv_inv, h1g₂],
-    simp only [inv_mul_rev, mul_inv_cancel_left] },
+    simp only [mul_inv_rev, mul_inv_cancel_left] },
   { refine ⟨_, h2g₃, (g₁ * g₃)⁻¹, _, _⟩, simp only [inv_inv, h1g₃],
-    simp only [inv_mul_rev, mul_inv_cancel_left] }
+    simp only [mul_inv_rev, mul_inv_cancel_left] }
 end
 
 @[to_additive add_left_add_index_le]

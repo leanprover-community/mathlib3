@@ -200,7 +200,7 @@ begin
   intro g,
   conv_rhs { rw [← map_mul_left_eq_self μ g⁻¹] },
   simp_rw [measure.inv, map_map (measurable_mul_const g) measurable_inv,
-    map_map measurable_inv (measurable_const_mul g⁻¹), function.comp, inv_mul_rev, inv_inv]
+    map_map measurable_inv (measurable_const_mul g⁻¹), function.comp, mul_inv_rev, inv_inv]
 end
 
 @[to_additive]
@@ -210,7 +210,7 @@ begin
   intro g,
   conv_rhs { rw [← map_mul_right_eq_self μ g⁻¹] },
   simp_rw [measure.inv, map_map (measurable_const_mul g) measurable_inv,
-    map_map measurable_inv (measurable_mul_const g⁻¹), function.comp, inv_mul_rev, inv_inv]
+    map_map measurable_inv (measurable_mul_const g⁻¹), function.comp, mul_inv_rev, inv_inv]
 end
 
 @[to_additive]

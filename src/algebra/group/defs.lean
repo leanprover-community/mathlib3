@@ -471,11 +471,11 @@ class add_cancel_monoid (M : Type u)
 @[protect_proj, ancestor left_cancel_monoid right_cancel_monoid, to_additive add_cancel_monoid]
 class cancel_monoid (M : Type u) extends left_cancel_monoid M, right_cancel_monoid M
 
-/-- Commutative version of add_cancel_monoid. -/
+/-- Commutative version of `add_cancel_monoid`. -/
 @[protect_proj, ancestor add_left_cancel_monoid add_comm_monoid]
 class add_cancel_comm_monoid (M : Type u) extends add_left_cancel_monoid M, add_comm_monoid M
 
-/-- Commutative version of cancel_monoid. -/
+/-- Commutative version of `cancel_monoid`. -/
 @[protect_proj, ancestor left_cancel_monoid comm_monoid, to_additive add_cancel_comm_monoid]
 class cancel_comm_monoid (M : Type u) extends left_cancel_monoid M, comm_monoid M
 
@@ -624,6 +624,7 @@ end div_inv_monoid
 @[protect_proj, ancestor sub_neg_monoid has_involutive_neg]
 class subtraction_monoid (G : Type u) extends sub_neg_monoid G, has_involutive_neg G :=
 (neg_add_rev (a b : G) : -(a + b) = -b + -a)
+(neg_eq_of_add (a b : G) : a + b = 0 → -a = b)
 
 /-- A `division_monoid` is a `div_inv_monoid` with involutive inversion and such that
 `(a * b)⁻¹ = b⁻¹ * a⁻¹`.
@@ -631,10 +632,29 @@ class subtraction_monoid (G : Type u) extends sub_neg_monoid G, has_involutive_n
 This is the immediate common ancestor of `group` and `group_with_zero`. -/
 @[protect_proj, ancestor div_inv_monoid has_involutive_inv, to_additive subtraction_monoid]
 class division_monoid (G : Type u) extends div_inv_monoid G, has_involutive_inv G :=
-(inv_mul_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹)
+(mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹)
+(inv_eq_of_mul (a b : G) : a * b = 1 → a⁻¹ = b)
 
-@[simp, to_additive] lemma inv_mul_rev [division_monoid G] (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
-division_monoid.inv_mul_rev _ _
+section division_monoid
+variables [division_monoid G] {a b : G}
+
+@[simp, to_additive] lemma mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
+division_monoid.mul_inv_rev _ _
+
+@[simp, to_additive]
+lemma inv_eq_of_mul_eq_one_left : a * b = 1 → a⁻¹ = b := division_monoid.inv_eq_of_mul _ _
+
+end division_monoid
+
+/-- Commutative `subtraction_monoid`. -/
+@[protect_proj, ancestor subtraction_monoid add_comm_monoid]
+class subtraction_comm_monoid (G : Type u) extends subtraction_monoid G, add_comm_monoid G
+
+/-- Commutative `division_monoid`.
+
+This is the immediate common ancestor of `comm_group` and `comm_group_with_zero`. -/
+@[protect_proj, ancestor division_monoid comm_monoid, to_additive subtraction_comm_monoid]
+class division_comm_monoid (G : Type u) extends division_monoid G, comm_monoid G
 
 /-- A `group` is a `monoid` with an operation `⁻¹` satisfying `a⁻¹ * a = 1`.
 
@@ -679,13 +699,12 @@ group.mul_left_inv
 
 @[to_additive] lemma inv_mul_self (a : G) : a⁻¹ * a = 1 := mul_left_inv a
 
-@[simp, to_additive]
-lemma inv_eq_of_mul_eq_one (h : a * b = 1) : a⁻¹ = b :=
+@[to_additive] private lemma inv_eq_of_mul (h : a * b = 1) : a⁻¹ = b :=
 left_inv_eq_right_inv (inv_mul_self a) h
 
 @[simp, to_additive]
 lemma mul_right_inv (a : G) : a * a⁻¹ = 1 :=
-by rw [←mul_left_inv a⁻¹, inv_eq_of_mul_eq_one (mul_left_inv a)]
+by rw [←mul_left_inv a⁻¹, inv_eq_of_mul (mul_left_inv a)]
 
 @[to_additive] lemma mul_inv_self (a : G) : a * a⁻¹ = 1 := mul_right_inv a
 
@@ -703,9 +722,9 @@ by rw [mul_assoc, mul_left_inv, mul_one]
 
 @[priority 100, to_additive]
 instance group.to_division_monoid : division_monoid G :=
-{ inv_inv := λ a, inv_eq_of_mul_eq_one (mul_left_inv a),
-  inv_mul_rev := λ a b, inv_eq_of_mul_eq_one $
-    by rw [mul_assoc, mul_inv_cancel_left, mul_right_inv],
+{ inv_inv := λ a, inv_eq_of_mul (mul_left_inv a),
+  mul_inv_rev := λ a b, inv_eq_of_mul $ by rw [mul_assoc, mul_inv_cancel_left, mul_right_inv],
+  inv_eq_of_mul := λ _ _, inv_eq_of_mul,
   ..‹group G› }
 
 @[priority 100, to_additive]    -- see Note [lower instance priority]
@@ -755,5 +774,10 @@ variables [comm_group G]
 instance comm_group.to_cancel_comm_monoid : cancel_comm_monoid G :=
 { ..‹comm_group G›,
   ..group.to_cancel_monoid }
+
+@[priority 100, to_additive]    -- see Note [lower instance priority]
+instance comm_group.to_division_comm_monoid : division_comm_monoid G :=
+{ ..‹comm_group G›,
+  ..group.to_division_monoid }
 
 end comm_group

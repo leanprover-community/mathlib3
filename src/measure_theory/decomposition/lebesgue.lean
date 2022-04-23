@@ -1022,7 +1022,7 @@ begin
   ext i hi,
   rw [vector_measure.sub_apply, to_signed_measure_apply_measurable hi,
       to_signed_measure_apply_measurable hi, add_apply, add_apply,
-      ennreal.to_real_add, ennreal.to_real_add, add_sub_comm,
+      ennreal.to_real_add, ennreal.to_real_add, add_sub_add_comm,
       ← to_signed_measure_apply_measurable hi, ← to_signed_measure_apply_measurable hi,
       ← vector_measure.sub_apply, ← jordan_decomposition.to_signed_measure,
       to_signed_measure_to_jordan_decomposition, vector_measure.add_apply,

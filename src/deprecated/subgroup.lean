@@ -244,7 +244,7 @@ lemma normalizer_is_subgroup (s : set G) : is_subgroup (normalizer s) :=
 { one_mem := by simp [normalizer],
   mul_mem := λ a b (ha : ∀ n, n ∈ s ↔ a * n * a⁻¹ ∈ s)
     (hb : ∀ n, n ∈ s ↔ b * n * b⁻¹ ∈ s) n,
-    by rw [inv_mul_rev, ← mul_assoc, mul_assoc a, mul_assoc a, ← ha, ← hb],
+    by rw [mul_inv_rev, ← mul_assoc, mul_assoc a, mul_assoc a, ← ha, ← hb],
   inv_mem := λ a (ha : ∀ n, n ∈ s ↔ a * n * a⁻¹ ∈ s) n,
     by rw [ha (a⁻¹ * n * a⁻¹⁻¹)];
     simp [mul_assoc] }
@@ -274,7 +274,7 @@ variables [group G] [group H]
 lemma one_ker_inv {f : G → H} (hf : is_group_hom f) {a b : G} (h : f (a * b⁻¹) = 1) : f a = f b :=
 begin
   rw [hf.map_mul, hf.map_inv] at h,
-  rw [←inv_inv (f b), eq_inv_of_mul_eq_one h]
+  rw [←inv_inv (f b), eq_inv_of_mul_eq_one_left h]
 end
 
 @[to_additive]
@@ -282,7 +282,7 @@ lemma one_ker_inv' {f : G → H} (hf : is_group_hom f) {a b : G} (h : f (a⁻¹ 
 begin
   rw [hf.map_mul, hf.map_inv] at h,
   apply inv_injective,
-  rw eq_inv_of_mul_eq_one h
+  rw eq_inv_of_mul_eq_one_left h
 end
 
 @[to_additive]
@@ -352,7 +352,7 @@ begin
   intros a₁ a₂ hfa,
   simp [ext_iff, ker, is_subgroup.trivial] at h,
   have ha : a₁ * a₂⁻¹ = 1, by rw ←h; exact hf.inv_ker_one hfa,
-  rw [eq_inv_of_mul_eq_one ha, inv_inv a₂]
+  rw [eq_inv_of_mul_eq_one_left ha, inv_inv a₂]
 end
 
 @[to_additive]
@@ -449,7 +449,7 @@ in_closure.rec_on h
       hy2 ▸ or.imp id (by rw [inv_inv]; exact id) (HL1 _ $ list.mem_reverse.1 hy1).symm,
       HL2 ▸ list.rec_on L inv_one.symm (λ hd tl ih,
         by rw [list.reverse_cons, list.map_append, list.prod_append, ih, list.map_singleton,
-            list.prod_cons, list.prod_nil, mul_one, list.prod_cons, inv_mul_rev])⟩)
+            list.prod_cons, list.prod_nil, mul_one, list.prod_cons, mul_inv_rev])⟩)
   (λ x y hx hy ⟨L1, HL1, HL2⟩ ⟨L2, HL3, HL4⟩, ⟨L1 ++ L2, list.forall_mem_append.2 ⟨HL1, HL3⟩,
     by rw [list.prod_append, HL2, HL4]⟩)
 
@@ -491,7 +491,7 @@ set.subset.antisymm
         (λ hx, monoid.subset_closure $ or.inl hx))
       ((@inv_one G _).symm ▸ is_submonoid.one_mem (monoid.closure.is_submonoid _))
       (λ x y hx hy ihx ihy,
-        (inv_mul_rev x y).symm ▸ is_submonoid.mul_mem (monoid.closure.is_submonoid _) ihy ihx) }
+        (mul_inv_rev x y).symm ▸ is_submonoid.mul_mem (monoid.closure.is_submonoid _) ihy ihx) }
     (set.subset.trans (set.subset_union_left _ _) monoid.subset_closure))
   (monoid.closure_subset (closure.is_subgroup _).to_is_submonoid $ set.union_subset subset_closure $
     λ x hx, inv_inv x ▸ (is_subgroup.inv_mem (closure.is_subgroup _) $ subset_closure hx))

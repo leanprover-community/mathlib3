@@ -672,8 +672,8 @@ instance : linear_order ℤ√d :=
 
 protected theorem eq_zero_or_eq_zero_of_mul_eq_zero : Π {a b : ℤ√d}, a * b = 0 → a = 0 ∨ b = 0
 | ⟨x, y⟩ ⟨z, w⟩ h := by injection h with h1 h2; exact
-  have h1 : x*z = -(d*y*w), from eq_neg_of_add_eq_zero h1,
-  have h2 : x*w = -(y*z), from eq_neg_of_add_eq_zero h2,
+  have h1 : x*z = -(d*y*w), from eq_neg_of_add_eq_zero_left h1,
+  have h2 : x*w = -(y*z), from eq_neg_of_add_eq_zero_left h2,
   have fin : x*x = d*y*y → (⟨x, y⟩:ℤ√d) = 0, from
   λe, match x, y, divides_sq_eq_zero_z e with ._, ._, ⟨rfl, rfl⟩ := rfl end,
   if z0 : z = 0 then if w0 : w = 0 then

@@ -755,7 +755,7 @@ lemma integral_add_adjacent_intervals_cancel (hab : interval_integrable f μ a b
   ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ + ∫ x in c..a, f x ∂μ = 0 :=
 begin
   have hac := hab.trans hbc,
-  simp only [interval_integral, ← add_sub_comm, sub_eq_zero],
+  simp only [interval_integral, sub_add_sub_comm, sub_eq_zero],
   iterate 4 { rw ← integral_union },
   { suffices : Ioc a b ∪ Ioc b c ∪ Ioc c a = Ioc b a ∪ Ioc c b ∪ Ioc a c, by rw this,
     rw [Ioc_union_Ioc_union_Ioc_cycle, union_right_comm, Ioc_union_Ioc_union_Ioc_cycle,

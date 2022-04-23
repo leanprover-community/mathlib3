@@ -252,7 +252,7 @@ end group
 @[to_additive subtraction_monoid "`filter α` is a subtraction monoid under pointwise
 operations if `α` is."]
 instance division_monoid [division_monoid α] : division_monoid (filter α) :=
-{ inv_mul_rev := λ s t, map_map₂_antidistrib inv_mul_rev,
+{ mul_inv_rev := λ s t, map_map₂_antidistrib mul_inv_rev,
   div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
   ..filter.monoid, ..filter.has_involutive_inv, ..filter.has_div }
 

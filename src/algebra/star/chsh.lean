@@ -162,7 +162,7 @@ begin
 end
 
 lemma sqrt_two_inv_mul_self : √2⁻¹ * √2⁻¹ = (2⁻¹ : ℝ) :=
-by { rw [←mul_inv₀], norm_num, }
+by { rw [←mul_inv], norm_num, }
 
 end tsirelson_inequality
 open tsirelson_inequality

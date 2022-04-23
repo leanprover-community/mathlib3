@@ -320,9 +320,9 @@ lemma sup_div_inf_eq_abs_div [covariant_class α α (*) (≤)] (a b : α) :
 begin
   rw [sup_eq_mul_pos_div, inf_comm, inf_eq_div_pos_div, div_eq_mul_inv],
   nth_rewrite 1 div_eq_mul_inv,
-  rw [inv_mul_rev, inv_inv, mul_comm, ← mul_assoc, inv_mul_cancel_right, pos_eq_neg_inv (a / b)],
+  rw [mul_inv_rev, inv_inv, mul_comm, ← mul_assoc, inv_mul_cancel_right, pos_eq_neg_inv (a / b)],
   nth_rewrite 1 div_eq_mul_inv,
-  rw [inv_mul_rev, ← div_eq_mul_inv, inv_inv, ← pos_mul_neg],
+  rw [mul_inv_rev, ← div_eq_mul_inv, inv_inv, ← pos_mul_neg],
 end
 
 -- 2•(a ⊔ b) = a + b + |b - a|
@@ -337,7 +337,7 @@ by rw [← inf_mul_sup a b, ← sup_div_inf_eq_abs_div, div_eq_mul_inv, ← mul_
 lemma inf_sq_eq_mul_div_abs_div [covariant_class α α (*) (≤)] (a b : α) :
   (a ⊓ b)^2 = a * b / |b / a| :=
 by rw [← inf_mul_sup a b, ← sup_div_inf_eq_abs_div, div_eq_mul_inv, div_eq_mul_inv,
-    inv_mul_rev, inv_inv, mul_assoc, mul_inv_cancel_comm_assoc, ← pow_two]
+    mul_inv_rev, inv_inv, mul_assoc, mul_inv_cancel_comm_assoc, ← pow_two]
 
 /--
 Every lattice ordered commutative group is a distributive lattice
@@ -385,7 +385,7 @@ begin
   ... = (b ⊔ a ⊔ c) * ((b ⊔ a) ⊓ c) /(((b ⊓ a) ⊔ c) * (b ⊓ a ⊓ c)) : by rw div_mul_div_comm
   ... = (b ⊔ a) * c / ((b ⊓ a) * c) :
     by rw [mul_comm, inf_mul_sup, mul_comm (b ⊓ a ⊔ c), inf_mul_sup]
-  ... = (b ⊔ a) / (b ⊓ a) : by rw [div_eq_mul_inv, inv_mul_rev, mul_assoc, mul_inv_cancel_left,
+  ... = (b ⊔ a) / (b ⊓ a) : by rw [div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_inv_cancel_left,
       ← div_eq_mul_inv]
   ... = |a / b|           : by rw sup_div_inf_eq_abs_div
 end
@@ -491,7 +491,7 @@ begin
     { rw div_mul_cancel', },
     { rw div_mul_cancel', },
     { exact covariant_swap_mul_le_of_covariant_mul_le α, } },
-  { rw [div_eq_mul_inv, inv_mul_rev, inv_inv, mul_inv_le_iff_le_mul, ← abs_eq_sup_inv (a / b),
+  { rw [div_eq_mul_inv, mul_inv_rev, inv_inv, mul_inv_le_iff_le_mul, ← abs_eq_sup_inv (a / b),
       abs_inv_comm],
     convert  mabs_mul_le (b/a) a,
     { rw div_mul_cancel', },

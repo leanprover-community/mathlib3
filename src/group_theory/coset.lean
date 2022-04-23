@@ -337,7 +337,7 @@ variables {s}
 
 @[to_additive quotient_add_group.mk_mul_of_mem]
 lemma mk_mul_of_mem (g₁ g₂ : α) (hg₂ : g₂ ∈ s) : (mk (g₁ * g₂) : α ⧸ s) = mk g₁ :=
-by rwa [eq', inv_mul_rev, inv_mul_cancel_right, s.inv_mem_iff]
+by rwa [eq', mul_inv_rev, inv_mul_cancel_right, s.inv_mem_iff]
 
 @[to_additive]
 lemma eq_class_eq_left_coset (s : subgroup α) (g : α) :
@@ -410,10 +410,10 @@ def quotient_equiv_prod_of_le' (h_le : s ≤ t)
     a.map' (λ g : α, ⟨(f (quotient.mk' g))⁻¹ * g, quotient.exact' (hf g)⟩) (λ b c h, by
     { change ((f b)⁻¹ * b)⁻¹ * ((f c)⁻¹ * c) ∈ s,
       have key : f b = f c := congr_arg f (quotient.sound' (h_le h)),
-      rwa [key, inv_mul_rev, inv_inv, mul_assoc, mul_inv_cancel_left] })⟩,
+      rwa [key, mul_inv_rev, inv_inv, mul_assoc, mul_inv_cancel_left] })⟩,
   inv_fun := λ a, a.2.map' (λ b, f a.1 * b) (λ b c h, by
   { change (f a.1 * b)⁻¹ * (f a.1 * c) ∈ s,
-    rwa [inv_mul_rev, mul_assoc, inv_mul_cancel_left] }),
+    rwa [mul_inv_rev, mul_assoc, inv_mul_cancel_left] }),
   left_inv := by
   { refine quotient.ind' (λ a, _),
     simp_rw [quotient.map'_mk', id.def, set_like.coe_mk, mul_inv_cancel_left] },
@@ -496,7 +496,7 @@ have h : ∀ {x : α ⧸ s} {a : α}, x ∈ t → a ∈ s →
   (quotient.mk' (quotient.out' x * a) : α ⧸ s) = quotient.mk' (quotient.out' x) :=
     λ x a hx ha, quotient.sound' (show (quotient.out' x * a)⁻¹ * quotient.out' x ∈ s,
       from (s.inv_mem_iff).1 $
-        by rwa [inv_mul_rev, inv_inv, ← mul_assoc, inv_mul_self, one_mul]),
+        by rwa [mul_inv_rev, inv_inv, ← mul_assoc, inv_mul_self, one_mul]),
 { to_fun := λ ⟨a, ha⟩, ⟨⟨(quotient.out' (quotient.mk' a))⁻¹ * a,
     @quotient.exact' _ (left_rel s) _ _ $ (quotient.out_eq' _)⟩,
       ⟨quotient.mk' a, ha⟩⟩,

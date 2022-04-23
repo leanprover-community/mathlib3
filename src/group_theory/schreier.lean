@@ -53,7 +53,7 @@ begin
     rw [mul_right_inj, inv_inj, ←subtype.coe_mk r hr, ←subtype.ext_iff, subtype.coe_mk],
     apply (mem_right_transversals_iff_exists_unique_mul_inv_mem.mp hR (f (r * s⁻¹) * s)).unique
       (mul_inv_to_fun_mem hR (f (r * s⁻¹) * s)),
-    rw [mul_assoc, ←inv_inv s, ←inv_mul_rev, inv_inv],
+    rw [mul_assoc, ←inv_inv s, ←mul_inv_rev, inv_inv],
     exact to_fun_mul_inv_mem hR (r * s⁻¹) },
 end
 

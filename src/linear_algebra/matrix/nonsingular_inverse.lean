@@ -387,7 +387,7 @@ begin
   { simp [nonsing_inv_apply_not_is_unit _ h] }
 end
 
-lemma inv_mul_rev (A B : matrix n n α) : (A ⬝ B)⁻¹ = B⁻¹ ⬝ A⁻¹ :=
+lemma mul_inv_rev (A B : matrix n n α) : (A ⬝ B)⁻¹ = B⁻¹ ⬝ A⁻¹ :=
 begin
   simp only [inv_def],
   rw [matrix.smul_mul, matrix.mul_smul, smul_smul, det_mul, adjugate_mul_distrib,
@@ -398,7 +398,7 @@ end
 lemma list_prod_inv_reverse : ∀ l : list (matrix n n α), l.prod⁻¹ = (l.reverse.map has_inv.inv).prod
 | [] := by rw [list.reverse_nil, list.map_nil, list.prod_nil, inv_one]
 | (A :: Xs) := by rw [list.reverse_cons', list.map_concat, list.prod_concat, list.prod_cons,
-                      matrix.mul_eq_mul, matrix.mul_eq_mul, inv_mul_rev, list_prod_inv_reverse]
+                      matrix.mul_eq_mul, matrix.mul_eq_mul, mul_inv_rev, list_prod_inv_reverse]
 
 /-- One form of **Cramer's rule**. See `matrix.mul_vec_cramer` for a stronger form. -/
 @[simp] lemma det_smul_inv_mul_vec_eq_cramer (A : matrix n n α) (b : n → α) (h : is_unit A.det) :

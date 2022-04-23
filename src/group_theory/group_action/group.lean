@@ -243,7 +243,7 @@ section arrow
 def arrow_action {G A B : Type*} [division_monoid G] [mul_action G A] : mul_action G (A → B) :=
 { smul := λ g F a, F (g⁻¹ • a),
   one_smul := by { intro, simp only [inv_one, one_smul] },
-  mul_smul := by { intros, simp only [mul_smul, inv_mul_rev] } }
+  mul_smul := by { intros, simp only [mul_smul, mul_inv_rev] } }
 
 local attribute [instance] arrow_action
 

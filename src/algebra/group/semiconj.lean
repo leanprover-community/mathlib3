@@ -141,7 +141,7 @@ section division_monoid
 variables [division_monoid G] {a x y : G}
 
 @[simp, to_additive] lemma inv_inv_symm_iff : semiconj_by a⁻¹ x⁻¹ y⁻¹ ↔ semiconj_by a y x :=
-inv_involutive.injective.eq_iff.symm.trans $ by simp_rw [inv_mul_rev, inv_inv, eq_comm, semiconj_by]
+inv_involutive.injective.eq_iff.symm.trans $ by simp_rw [mul_inv_rev, inv_inv, eq_comm, semiconj_by]
 
 @[to_additive] lemma inv_inv_symm : semiconj_by a x y → semiconj_by a⁻¹ y⁻¹ x⁻¹ :=
 inv_inv_symm_iff.2

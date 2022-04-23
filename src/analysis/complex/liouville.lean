@@ -45,7 +45,7 @@ begin
   lift R to ℝ≥0 using hR.le,
   refine (hf.has_fpower_series_on_ball hR).has_fpower_series_at.deriv.trans _,
   simp only [cauchy_power_series_apply, one_div, zpow_neg, pow_one, smul_smul,
-    zpow_two, mul_inv₀]
+    zpow_two, mul_inv]
 end
 
 lemma norm_deriv_le_aux [complete_space F] {c : ℂ} {R C : ℝ} {f : ℂ → F} (hR : 0 < R)
@@ -53,7 +53,7 @@ lemma norm_deriv_le_aux [complete_space F] {c : ℂ} {R C : ℝ} {f : ℂ → F}
   ∥deriv f c∥ ≤ C / R :=
 begin
   have : ∀ z ∈ sphere c R, ∥(z - c) ^ (-2 : ℤ) • f z∥ ≤ C / (R * R),
-    from λ z (hz : abs (z - c) = R), by simpa [-inv_mul_rev, norm_smul, hz, zpow_two,
+    from λ z (hz : abs (z - c) = R), by simpa [-mul_inv_rev, norm_smul, hz, zpow_two,
       ←div_eq_inv_mul] using (div_le_div_right (mul_pos hR hR)).2 (hC z hz),
   calc ∥deriv f c∥ = ∥(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) ^ (-2 : ℤ) • f z∥ :
     congr_arg norm (deriv_eq_smul_circle_integral hR hf)

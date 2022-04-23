@@ -50,7 +50,7 @@ protected def has_inv : has_inv (submonoid G):=
   { carrier := (S : set G)⁻¹,
     one_mem' := show (1 : G)⁻¹ ∈ S, by { rw inv_one, exact S.one_mem },
     mul_mem' := λ a b (ha : a⁻¹ ∈ S) (hb : b⁻¹ ∈ S), show (a * b)⁻¹ ∈ S,
-      by { rw inv_mul_rev, exact S.mul_mem hb ha } } }
+      by { rw mul_inv_rev, exact S.mul_mem hb ha } } }
 
 localized "attribute [instance] submonoid.has_inv" in pointwise
 open_locale pointwise

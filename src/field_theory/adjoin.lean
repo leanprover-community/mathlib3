@@ -368,7 +368,7 @@ begin
   haveI := minpoly.irreducible hα,
   suffices : ϕ ⟨x, hx⟩ * (ϕ ⟨x, hx⟩)⁻¹ = 1,
   { convert subtype.mem (ϕ.symm (ϕ ⟨x, hx⟩)⁻¹),
-    refine (eq_inv_of_mul_right_eq_one _).symm,
+    refine inv_eq_of_mul_right_eq_one _,
     apply_fun ϕ.symm at this,
     rw [alg_equiv.map_one, alg_equiv.map_mul, alg_equiv.symm_apply_apply] at this,
     rw [←subsemiring.coe_one, ←this, subsemiring.coe_mul, subtype.coe_mk] },
@@ -824,7 +824,7 @@ begin
     { rw [←subtype.coe_mk x hx, hx', subalgebra.coe_zero, inv_zero],
       exact (S1 ⊔ S2).zero_mem },
     { obtain ⟨y, h⟩ := this.mul_inv_cancel hx',
-      exact (congr_arg (∈ S1 ⊔ S2) (eq_inv_of_mul_right_eq_one (subtype.ext_iff.mp h))).mp y.2 } },
+      exact (congr_arg (∈ S1 ⊔ S2) (eq_inv_of_mul_eq_one_right (subtype.ext_iff.mp h))).mp y.2 } },
   exact is_field_of_is_integral_of_is_field'
     (is_integral_sup.mpr ⟨algebra.is_integral_of_finite K E1, algebra.is_integral_of_finite K E2⟩)
     (field.to_is_field K),

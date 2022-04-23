@@ -177,7 +177,7 @@ lemma is_simple_group.comm_iff_is_solvable :
       exact mem_top _ } },
   { rw is_simple_group.derived_series_succ at hn,
     intros a b,
-    rw [← mul_inv_eq_one, inv_mul_rev, ← mul_assoc, ← mem_bot, ← hn, commutator_eq_closure],
+    rw [← mul_inv_eq_one, mul_inv_rev, ← mul_assoc, ← mem_bot, ← hn, commutator_eq_closure],
     exact subset_closure ⟨a, b, rfl⟩ }
 end⟩
 

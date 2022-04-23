@@ -137,7 +137,7 @@ begin
   rw [bernoulli'_power_series, coeff_mul, mul_comm X, sum_antidiagonal_succ'],
   suffices : ∑ p in antidiagonal n, (bernoulli' p.1 / p.1!) * ((p.2 + 1) * p.2!)⁻¹ = n!⁻¹,
   { simpa [ring_hom.map_sum] using congr_arg (algebra_map ℚ A) this },
-  apply eq_inv_of_mul_left_eq_one,
+  apply eq_inv_of_mul_eq_one_left,
   rw sum_mul,
   convert bernoulli'_spec' n using 1,
   apply sum_congr rfl,

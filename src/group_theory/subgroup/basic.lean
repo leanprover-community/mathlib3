@@ -143,7 +143,7 @@ include hSG
 ⟨λ h, inv_inv x ▸ inv_mem h, inv_mem⟩
 
 @[to_additive] lemma div_mem_comm_iff {a b : G} : a / b ∈ H ↔ b / a ∈ H :=
-by rw [← inv_mem_iff, div_eq_mul_inv, div_eq_mul_inv, inv_mul_rev, inv_inv]
+by rw [← inv_mem_iff, div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev, inv_inv]
 
 @[simp, to_additive]
 theorem inv_coe_set : (H : set G)⁻¹ = H :=
@@ -1933,7 +1933,7 @@ lemma normal_core_le (H : subgroup G) : H.normal_core ≤ H :=
 λ a h, by { rw [←mul_one a, ←inv_one, ←one_mul a], exact h 1 }
 
 instance normal_core_normal (H : subgroup G) : H.normal_core.normal :=
-⟨λ a h b c, by rw [mul_assoc, mul_assoc, ←inv_mul_rev, ←mul_assoc, ←mul_assoc]; exact h (c * b)⟩
+⟨λ a h b c, by rw [mul_assoc, mul_assoc, ←mul_inv_rev, ←mul_assoc, ←mul_assoc]; exact h (c * b)⟩
 
 lemma normal_le_normal_core {H : subgroup G} {N : subgroup G} [hN : N.normal] :
   N ≤ H.normal_core ↔ N ≤ H :=
@@ -2708,7 +2708,7 @@ lemma mem_sup : x ∈ s ⊔ t ↔ ∃ (y ∈ s) (z ∈ t), y * z = x :=
   { rintro _ _ ⟨y₁, hy₁, z₁, hz₁, rfl⟩ ⟨y₂, hy₂, z₂, hz₂, rfl⟩,
     exact ⟨_, mul_mem hy₁ hy₂, _, mul_mem hz₁ hz₂, by simp [mul_assoc]; cc⟩ },
   { rintro _ ⟨y, hy, z, hz, rfl⟩,
-    exact ⟨_, inv_mem hy, _, inv_mem hz, mul_comm z y ▸ (inv_mul_rev z y).symm⟩ }
+    exact ⟨_, inv_mem hy, _, inv_mem hz, mul_comm z y ▸ (mul_inv_rev z y).symm⟩ }
 end, by rintro ⟨y, hy, z, hz, rfl⟩; exact mul_mem_sup hy hz⟩
 
 @[to_additive]
@@ -2806,7 +2806,7 @@ private def mul_normal_aux (H N : subgroup G) [hN : N.normal] : subgroup G :=
     by simp [← ha, ← hb, mul_assoc]⟩,
   inv_mem' := λ x ⟨h, n, hh, hn, hx⟩,
     ⟨h⁻¹, h * n⁻¹ * h⁻¹, H.inv_mem hh, hN.conj_mem _ (N.inv_mem hn) h,
-    by rw [mul_assoc h, inv_mul_cancel_left, ← hx, inv_mul_rev]⟩ }
+    by rw [mul_assoc h, inv_mul_cancel_left, ← hx, mul_inv_rev]⟩ }
 
 /-- The carrier of `H ⊔ N` is just `↑H * ↑N` (pointwise set product) when `N` is normal. -/
 @[to_additive "The carrier of `H ⊔ N` is just `↑H + ↑N` (pointwise set addition)
@@ -2828,7 +2828,7 @@ private def normal_mul_aux (N H : subgroup G) [hN : N.normal] : subgroup G :=
   inv_mem' := λ x ⟨n, h, hn, hh, hx⟩,
     ⟨h⁻¹ * n⁻¹ * h, h⁻¹,
     by simpa using hN.conj_mem _ (N.inv_mem hn) h⁻¹, H.inv_mem hh,
-    by rw [mul_inv_cancel_right, ← inv_mul_rev, hx]⟩ }
+    by rw [mul_inv_cancel_right, ← mul_inv_rev, hx]⟩ }
 
 /-- The carrier of `N ⊔ H` is just `↑N * ↑H` (pointwise set product) when `N` is normal. -/
 @[to_additive "The carrier of `N ⊔ H` is just `↑N + ↑H` (pointwise set addition)

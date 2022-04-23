@@ -463,7 +463,7 @@ calc ∥cauchy_power_series f c R n∥
 ... ≤ (2 * π)⁻¹ * (∫ θ : ℝ in 0..2*π, ∥f (circle_map c R θ)∥) * |R|⁻¹ ^ n :
   begin
     rcases eq_or_ne R 0 with rfl|hR,
-    { cases n; simp [-inv_mul_rev, real.two_pi_pos] },
+    { cases n; simp [-mul_inv_rev, real.two_pi_pos] },
     { rw [mul_inv_cancel_left₀, mul_assoc, mul_comm (|R|⁻¹ ^ n)],
       rwa [ne.def, _root_.abs_eq_zero] }
   end
@@ -508,7 +508,7 @@ begin
     refine has_sum.smul_const _,
     have : ∥w / (circle_map c R θ - c)∥ < 1, by simpa [abs_of_pos hR] using hwR.2,
     convert (has_sum_geometric_of_norm_lt_1 this).mul_right _,
-    simp [← sub_sub, ← mul_inv₀, sub_mul, div_mul_cancel _ (circle_map_ne_center hR.ne')] }
+    simp [← sub_sub, ← mul_inv, sub_mul, div_mul_cancel _ (circle_map_ne_center hR.ne')] }
 end
 
 /-- For any circle integrable function `f`, the power series `cauchy_power_series f c R`, `R > 0`,

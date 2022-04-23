@@ -629,7 +629,7 @@ multiplication/division!) of a `set`. -/
 /-- `set α` is a division monoid under pointwise if `α` is. -/
 @[to_additive subtraction_monoid "`set α` is a subtraction monoid under pointwise if `α` is."]
 protected def division_monoid [division_monoid α] : division_monoid (set α) :=
-{ inv_mul_rev := λ s t, by { simp_rw ←image_inv, exact image_image2_antidistrib inv_mul_rev },
+{ mul_inv_rev := λ s t, by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev },
   div_eq_mul_inv := λ s t,
     by { rw [←image_id (s / t), ←image_inv], exact image_image2_distrib_right div_eq_mul_inv },
   ..set.monoid, ..set.has_involutive_inv, ..set.has_div }

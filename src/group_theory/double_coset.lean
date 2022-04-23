@@ -162,7 +162,7 @@ lemma doset_union_right_coset (H K : subgroup G) (a : G) :
   (⋃ (k : K), right_coset ↑H (a * k)) = doset a H K :=
 begin
   ext x,
-  simp only [mem_right_coset_iff, exists_prop, inv_mul_rev, set.mem_Union, mem_doset,
+  simp only [mem_right_coset_iff, exists_prop, mul_inv_rev, set.mem_Union, mem_doset,
   subgroup.mem_carrier, set_like.mem_coe],
   split,
   {rintro ⟨y, h_h⟩,
@@ -177,7 +177,7 @@ lemma doset_union_left_coset (H K : subgroup G) (a : G) :
   (⋃ (h : H), left_coset (h * a : G) K) = doset a H K :=
 begin
   ext x,
-  simp only [mem_left_coset_iff, inv_mul_rev, set.mem_Union, mem_doset],
+  simp only [mem_left_coset_iff, mul_inv_rev, set.mem_Union, mem_doset],
   split,
   { rintro ⟨y, h_h⟩,
     refine ⟨y, y.2, a⁻¹ * y⁻¹ * x, h_h, _⟩,

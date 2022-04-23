@@ -1312,7 +1312,7 @@ by rw [int_degree, ratfunc.num_algebra_map, ratfunc.denom_algebra_map, polynomia
 lemma int_degree_mul {x y : ratfunc K} (hx : x ≠ 0) (hy : y ≠ 0) :
   int_degree (x * y) = int_degree x + int_degree y :=
 begin
-  simp only [int_degree, add_sub, sub_add, sub_sub_assoc_swap, sub_sub, sub_eq_sub_iff_add_eq_add],
+  simp only [int_degree, add_sub, sub_add, sub_sub_eq_add_sub, sub_sub, sub_eq_sub_iff_add_eq_add],
   norm_cast,
   rw [← polynomial.nat_degree_mul x.denom_ne_zero y.denom_ne_zero,
         ← polynomial.nat_degree_mul (ratfunc.num_ne_zero (mul_ne_zero hx hy))

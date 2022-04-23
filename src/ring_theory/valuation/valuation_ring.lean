@@ -81,7 +81,7 @@ begin
   use b⁻¹,
   dsimp,
   rw [units.smul_def, units.smul_def, algebra.smul_def, algebra.smul_def,
-    mul_inv₀, ring_hom.map_units_inv],
+    mul_inv, ring_hom.map_units_inv],
 end
 
 variables [is_domain A] [valuation_ring A] [is_fraction_ring A K]

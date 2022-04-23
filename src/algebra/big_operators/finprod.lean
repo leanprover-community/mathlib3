@@ -244,7 +244,7 @@ end
 
 lemma finprod_inv_distrib₀ {G : Type*} [comm_group_with_zero G] (f : α → G) :
   ∏ᶠ x, (f x)⁻¹ = (∏ᶠ x, f x)⁻¹ :=
-((mul_equiv.inv₀ G).map_finprod f).symm
+((mul_equiv.inv G).map_finprod f).symm
 
 end sort
 
@@ -522,7 +522,7 @@ g.to_monoid_hom.map_finprod_mem f hs
 
 lemma finprod_mem_inv_distrib₀ {G : Type*} [comm_group_with_zero G] (f : α → G)
   (hs : s.finite) : ∏ᶠ x ∈ s, (f x)⁻¹ = (∏ᶠ x ∈ s, f x)⁻¹ :=
-((mul_equiv.inv₀ G).map_finprod_mem f hs).symm
+((mul_equiv.inv G).map_finprod_mem f hs).symm
 
 /-- Given a finite set `s`, the product of `f i / g i` over `i ∈ s` equals the product of `f i`
 over `i ∈ s` divided by the product of `g i` over `i ∈ s`. -/

@@ -252,11 +252,13 @@ instance [sub_neg_monoid α] : div_inv_monoid (multiplicative α) :=
   .. multiplicative.has_inv, .. multiplicative.has_div, .. multiplicative.monoid }
 
 instance [division_monoid α] : subtraction_monoid (additive α) :=
-{ neg_add_rev := @inv_mul_rev _ _,
+{ neg_add_rev := @mul_inv_rev _ _,
+  neg_eq_of_add := @inv_eq_of_mul_eq_one_left _ _,
   .. additive.sub_neg_monoid, .. additive.has_involutive_neg }
 
 instance [subtraction_monoid α] : division_monoid (multiplicative α) :=
-{ inv_mul_rev := @neg_add_rev _ _,
+{ mul_inv_rev := @neg_add_rev _ _,
+  inv_eq_of_mul := @neg_eq_of_add_eq_zero_left _ _,
   .. multiplicative.div_inv_monoid, .. multiplicative.has_involutive_inv }
 
 instance [group α] : add_group (additive α) :=

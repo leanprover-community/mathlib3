@@ -445,7 +445,7 @@ by { rw add_comm, exact f.map_swap_add v hij }
 
 lemma map_swap {i j : ι} (hij : i ≠ j) :
   g (v ∘ equiv.swap i j) = - g v  :=
-eq_neg_of_add_eq_zero (g.map_swap_add v hij)
+eq_neg_of_add_eq_zero_left (g.map_swap_add v hij)
 
 lemma map_perm [fintype ι] (v : ι → M) (σ : equiv.perm ι) :
   g (v ∘ σ) = σ.sign • g v :=
@@ -675,7 +675,7 @@ begin
     work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
     work_on_goal 2 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
     all_goals
-    { rw [smul_eq_mul, ←mul_swap_eq_swap_mul, inv_mul_rev, swap_inv, inv_mul_cancel_right] at hσ,
+    { rw [smul_eq_mul, ←mul_swap_eq_swap_mul, mul_inv_rev, swap_inv, inv_mul_cancel_right] at hσ,
       simpa using hσ, }, },
   case [sum.inr sum.inr : i' j', sum.inl sum.inl : i' j']
   { -- the term does not pair but is zero
@@ -802,7 +802,7 @@ begin
     (finset.eq_univ_iff_forall.mpr $ λ a, let ⟨a', ha'⟩ := mul_left_surjective σ a in
       finset.mem_image.mpr ⟨a', finset.mem_univ _, ha'⟩).symm,
   rw [this, finset.image_filter],
-  simp only [function.comp, inv_mul_rev, inv_mul_cancel_right, subgroup.inv_mem_iff],
+  simp only [function.comp, mul_inv_rev, inv_mul_cancel_right, subgroup.inv_mem_iff],
   simp only [monoid_hom.mem_range], -- needs to be separate from the above `simp only`
   rw [finset.filter_congr_decidable,
     finset.univ_filter_exists (perm.sum_congr_hom ιa ιb),

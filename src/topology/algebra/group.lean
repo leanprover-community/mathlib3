@@ -542,7 +542,7 @@ end
 
 @[to_additive] lemma is_open.closure_mul {U : set G} (hU : is_open U) (s : set G) :
   closure s * U = s * U :=
-by rw [← inv_inv (closure s * U), inv_mul_rev, inv_closure, hU.inv.mul_closure, inv_mul_rev,
+by rw [← inv_inv (closure s * U), mul_inv_rev, inv_closure, hU.inv.mul_closure, mul_inv_rev,
   inv_inv, inv_inv]
 
 namespace subgroup
@@ -1063,7 +1063,7 @@ begin
     simpa [mul_comm, mul_assoc, mul_left_comm] using h (v * x⁻¹) v_mem (w * y⁻¹) w_mem },
   { rintros ⟨a, c, ⟨b, hb, ba⟩, ⟨d, hd, dc⟩, ac⟩,
     refine ⟨b ∩ d, inter_mem hb hd, assume v, _⟩,
-    simp only [preimage_subset_iff, inv_mul_rev, mem_preimage] at *,
+    simp only [preimage_subset_iff, mul_inv_rev, mem_preimage] at *,
     rintros ⟨vb, vd⟩,
     refine ac ⟨v * y⁻¹, y, _, _, _⟩,
     { rw ← mul_assoc _ _ _ at vb, exact ba _ vb },

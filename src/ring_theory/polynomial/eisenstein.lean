@@ -93,7 +93,7 @@ begin
   rw [aeval_def, polynomial.eval₂_eq_eval_map, eval_eq_sum_range, range_add_one,
     sum_insert not_mem_range_self, sum_range, (hmo.map
     (algebra_map R S)).coeff_nat_degree, one_mul] at hx,
-  replace hx := eq_neg_of_add_eq_zero hx,
+  replace hx := eq_neg_of_add_eq_zero_left hx,
   have : ∀ n < f.nat_degree, p ∣ f.coeff n,
   { intros n hn,
     refine mem_span_singleton.1 (by simpa using hf.mem hn) },
@@ -137,7 +137,7 @@ begin
   { exact mul_mem_right (x ^ k) 𝓟 this },
   rw [is_root.def, eval_eq_sum_range, finset.range_add_one, finset.sum_insert
     finset.not_mem_range_self, finset.sum_range, hmo.coeff_nat_degree, one_mul] at hroot,
-  rw [eq_neg_of_add_eq_zero hroot, neg_mem_iff],
+  rw [eq_neg_of_add_eq_zero_left hroot, neg_mem_iff],
   refine submodule.sum_mem _ (λ i hi,  mul_mem_right _ _ (hf.mem (fin.is_lt i)))
 end
 

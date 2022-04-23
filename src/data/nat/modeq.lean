@@ -95,7 +95,7 @@ end
 
 protected theorem add (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a + c ≡ b + d [MOD n] :=
 begin
-  rw [modeq_iff_dvd, int.coe_nat_add, int.coe_nat_add, add_sub_comm],
+  rw [modeq_iff_dvd, int.coe_nat_add, int.coe_nat_add, add_sub_add_comm],
   exact dvd_add h₁.dvd h₂.dvd,
 end
 
@@ -109,7 +109,7 @@ protected theorem add_left_cancel (h₁ : a ≡ b [MOD n]) (h₂ : a + c ≡ b +
   c ≡ d [MOD n] :=
 begin
   simp only [modeq_iff_dvd, int.coe_nat_add] at *,
-  rw add_sub_comm at h₂,
+  rw add_sub_add_comm at h₂,
   convert _root_.dvd_sub h₂ h₁ using 1,
   rw add_sub_cancel',
 end

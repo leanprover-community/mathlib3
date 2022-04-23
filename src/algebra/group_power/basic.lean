@@ -198,7 +198,7 @@ variable [division_monoid G]
 
 @[simp, to_additive] lemma inv_pow (a : G) : ∀ n : ℕ, (a⁻¹)^n = (a^n)⁻¹
 | 0       := by rw [pow_zero, pow_zero, inv_one]
-| (n + 1) := by rw [pow_succ', pow_succ, inv_pow, inv_mul_rev]
+| (n + 1) := by rw [pow_succ', pow_succ, inv_pow, mul_inv_rev]
 
 -- the attributes are intentionally out of order. `smul_zero` proves `zsmul_zero`.
 @[to_additive zsmul_zero, simp]
@@ -214,7 +214,7 @@ lemma zpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 
 @[to_additive neg_one_zsmul_add]
 lemma mul_zpow_neg_one (a b : G) : (a * b) ^ (-(1:ℤ)) = b ^ (-(1:ℤ)) * a ^ (-(1:ℤ)) :=
-by simp_rw [zpow_neg_one, inv_mul_rev]
+by simp_rw [zpow_neg_one, mul_inv_rev]
 
 @[to_additive zsmul_neg]
 lemma inv_zpow (a : G) : ∀ n : ℤ, a⁻¹ ^ n = (a ^ n)⁻¹

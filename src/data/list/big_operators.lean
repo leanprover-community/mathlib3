@@ -300,7 +300,7 @@ end monoid_with_zero
 section group
 variables [group G]
 
-/-- This is the `list.prod` version of `inv_mul_rev` -/
+/-- This is the `list.prod` version of `mul_inv_rev` -/
 @[to_additive "This is the `list.sum` version of `add_neg_rev`"]
 lemma prod_inv_reverse : ∀ (L : list G), L.prod⁻¹ = (L.map (λ x, x⁻¹)).reverse.prod
 | [] := by simp

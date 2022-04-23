@@ -260,7 +260,7 @@ by rw [← zsmul_one, D.map_smul_of_tower n, map_one_eq_zero, smul_zero]
 lemma leibniz_of_mul_eq_one {a b : A} (h : a * b = 1) : D a = -a^2 • D b :=
 begin
   rw neg_smul,
-  refine eq_neg_of_add_eq_zero _,
+  refine eq_neg_of_add_eq_zero_left _,
   calc D a + a ^ 2 • D b = a • b • D a + a • a • D b : by simp only [smul_smul, h, one_smul, sq]
                      ... = a • D (a * b)             : by rw [leibniz, smul_add, add_comm]
                      ... = 0                         : by rw [h, map_one_eq_zero, smul_zero]
@@ -288,7 +288,7 @@ lemma neg_apply : (-D) a = -D a := rfl
 
 instance : has_sub (derivation R A M) :=
 ⟨λ D1 D2, mk' (D1 - D2 : A →ₗ[R] M) $ λ a b,
-  by simp only [linear_map.sub_apply, leibniz, coe_fn_coe, smul_sub, add_sub_comm]⟩
+  by simp only [linear_map.sub_apply, leibniz, coe_fn_coe, smul_sub, add_sub_add_comm]⟩
 
 @[simp] lemma coe_sub (D1 D2 : derivation R A M) : ⇑(D1 - D2) = D1 - D2 := rfl
 @[simp] lemma coe_sub_linear_map (D1 D2 : derivation R A M) : ↑(D1 - D2) = (D1 - D2 : A →ₗ[R] M) :=

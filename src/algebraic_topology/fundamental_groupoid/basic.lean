@@ -95,7 +95,7 @@ def refl_trans_symm (p : path x₀ x₁) : homotopy (path.refl x₀) (p.trans p.
     { rw [path.symm, path.extend, set.Icc_extend_of_mem],
       { congr' 1,
         ext,
-        norm_num [sub_sub_assoc_swap] },
+        norm_num [sub_sub_eq_add_sub] },
       { rw unit_interval.two_mul_sub_one_mem_iff,
         exact ⟨(not_le.1 h).le, unit_interval.le_one x⟩ } }
   end,

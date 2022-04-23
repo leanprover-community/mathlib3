@@ -208,7 +208,7 @@ protected def div_inv_monoid [div_inv_monoid M₂]
 if it admits an injective map that preserves `1`, `*`, `⁻¹`, and `/` to a `division_monoid`.
 See note [reducible non-instances]. -/
 @[reducible, to_additive subtraction_monoid
-"A type endowed with `0`, `+`, unary `-`, and binary `-` is a `sub_neg_monoid`
+"A type endowed with `0`, `+`, unary `-`, and binary `-` is a `subtraction_monoid`
 if it admits an injective map that preserves `0`, `+`, unary `-`, and binary `-` to
 a `sub_neg_monoid`.
 This version takes custom `nsmul` and `zsmul` as `[has_scalar ℕ M₁]` and
@@ -219,8 +219,8 @@ protected def division_monoid [division_monoid M₂]
   (div : ∀ x y, f (x / y) = f x / f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
   (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
   division_monoid M₁ :=
-{ inv_mul_rev := λ x y, hf $ by erw [inv, mul, inv_mul_rev, mul, inv, inv],
-  div_eq_mul_inv := λ x y, hf $ by erw [div, mul, inv, div_eq_mul_inv],
+{ mul_inv_rev := λ x y, hf $ by erw [inv, mul, mul_inv_rev, mul, inv, inv],
+  inv_eq_of_mul := λ x y h, hf $ by erw [inv, inv_eq_of_mul_eq_one_left (by erw [←mul, h, one])],
   .. hf.div_inv_monoid f one mul inv div npow zpow, .. hf.has_involutive_inv f inv  }
 
 /-- A type endowed with `1`, `*` and `⁻¹` is a group,
@@ -359,23 +359,6 @@ protected def div_inv_monoid [div_inv_monoid M₁]
     erw [←zpow, ←zpow, zpow_neg_succ_of_nat, zpow_coe_nat, inv],
   div_eq_mul_inv := hf.forall₂.2 $ λ x y, by erw [← inv, ← mul, ← div, div_eq_mul_inv],
   .. hf.monoid f one mul npow, .. ‹has_div M₂›, .. ‹has_inv M₂› }
-
-/-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `division_monoid`
-if it admits a surjective map that preserves `1`, `*`, `⁻¹`, and `/` to a `division_monoid`.
-See note [reducible non-instances]. -/
-@[reducible, to_additive subtraction_monoid
-"A type endowed with `0`, `+`, unary `-`, and binary `-` is a `sub_neg_monoid`
-if it admits a surjective map that preserves `0`, `+`, unary `-`, and binary `-` to
-a `sub_neg_monoid`."]
-protected def division_monoid [division_monoid M₁]
-  (f : M₁ → M₂) (hf : surjective f)
-  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹)
-  (div : ∀ x y, f (x / y) = f x / f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
-  division_monoid M₂ :=
-{ inv_mul_rev := hf.forall₂.2 $ λ x y,
-    by { erw [←mul, ←inv, ←inv,  inv_mul_rev, mul, inv, inv], refl },
-  .. hf.div_inv_monoid f one mul inv div npow zpow, .. hf.has_involutive_inv f inv }
 
 /-- A type endowed with `1`, `*` and `⁻¹` is a group,
 if it admits a surjective map that preserves `1`, `*` and `⁻¹` to a group.

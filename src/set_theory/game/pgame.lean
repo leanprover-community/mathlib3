@@ -193,8 +193,8 @@ instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩�
 @[simp] lemma zero_left_moves : (0 : pgame).left_moves = pempty := rfl
 @[simp] lemma zero_right_moves : (0 : pgame).right_moves = pempty := rfl
 
-instance : is_empty (0 : pgame).left_moves := pempty.is_empty
-instance : is_empty (0 : pgame).right_moves := pempty.is_empty
+instance is_empty_zero_left_moves : is_empty (0 : pgame).left_moves := pempty.is_empty
+instance is_empty_zero_right_moves : is_empty (0 : pgame).right_moves := pempty.is_empty
 
 instance : inhabited pgame := ⟨0⟩
 
@@ -204,6 +204,8 @@ instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 @[simp] lemma one_left_moves : (1 : pgame).left_moves = punit := rfl
 @[simp] lemma one_move_left : (1 : pgame).move_left punit.star = 0 := rfl
 @[simp] lemma one_right_moves : (1 : pgame).right_moves = pempty := rfl
+
+instance is_empty_one_right_moves : is_empty (1 : pgame).right_moves := pempty.is_empty
 
 /-- Define simultaneously by mutual induction the `<=` and `<`
   relation on pre-games. The ZFC definition says that `x = {xL | xR}`
@@ -349,6 +351,22 @@ by { cases y, rw mk_lt_mk, tauto }
 theorem lt_mk_of_le {x : pgame} {yl yr : Type*} {yL : yl → pgame} {yR i} :
   (x ≤ yL i) → x < ⟨yl, yr, yL, yR⟩ :=
 by { cases x, rw mk_lt_mk, exact λ h, or.inl ⟨_, h⟩ }
+
+theorem move_left_lt_of_le {x y : pgame} {i} :
+  x ≤ y → x.move_left i < y :=
+by { cases x, exact lt_of_le_mk }
+
+theorem lt_move_right_of_le {x y : pgame} {i} :
+  x ≤ y → x < y.move_right i :=
+by { cases y, exact lt_of_mk_le }
+
+theorem lt_of_move_right_le {x y : pgame} {i} :
+  x.move_right i ≤ y → x < y :=
+by { cases x, rw move_right_mk, exact mk_lt_of_le }
+
+theorem lt_of_le_move_left {x y : pgame} {i} :
+  x ≤ y.move_left i → x < y :=
+by { cases y, rw move_left_mk, exact lt_mk_of_le }
 
 private theorem not_le_lt {x y : pgame} :
   (¬ x ≤ y ↔ y < x) ∧ (¬ x < y ↔ y ≤ x) :=

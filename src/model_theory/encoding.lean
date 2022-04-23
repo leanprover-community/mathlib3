@@ -16,10 +16,12 @@ import set_theory.cardinal.ordinal
 
 ## Main Results
 * `first_order.language.term.card_le` shows that the number of terms in `L.term α` is at most
-`# (α ⊕ Σ i, L.functions i) + ω`.
+`max ω # (α ⊕ Σ i, L.functions i)`.
+* `first_order.language.bounded_formula.card_le` shows that the number of bounded formulas in
+`Σ n, L.bounded_formula α n` is at most
+`max ω (cardinal.lift.{max u v} (#α) + cardinal.lift.{u'} L.card)`.
 
 ## TODO
-* A bound on the cardinality of formulas.
 * `primcodable` instances for terms and formulas, based on the `encoding`s
 * Computability facts about term and formula operations, to set up a computability approach to
 incompleteness
@@ -106,6 +108,42 @@ term.encoding.encode_injective
 
 theorem card_le : # (L.term α) ≤ max ω (# (α ⊕ Σ i, L.functions i)) :=
 lift_le.1 (trans term.encoding.card_le_card_list (lift_le.2 (mk_list_le_max _)))
+
+theorem card_sigma : # (Σ n, (L.term (α ⊕ fin n))) = max ω (# (α ⊕ Σ i, L.functions i)) :=
+begin
+  rw mk_sigma,
+  refine le_antisymm _ _,
+  { refine (sum_le_sup_lift _).trans _,
+    rw [mk_nat, lift_omega, mul_eq_max_of_omega_le_left le_rfl, max_le_iff, cardinal.sup_le_iff],
+    { refine ⟨le_max_left _ _, λ i, card_le.trans _⟩,
+      rw max_le_iff,
+      refine ⟨le_max_left _ _, _⟩,
+      rw [← add_eq_max le_rfl, mk_sum, mk_sum, mk_sum, add_comm (cardinal.lift (#α)), lift_add,
+        add_assoc, lift_lift, lift_lift],
+      refine add_le_add_right _ _,
+      rw [lift_le_omega, ← encodable_iff],
+      exact ⟨infer_instance⟩ },
+    { rw [← one_le_iff_ne_zero],
+      refine trans _ (le_sup _ 1),
+      rw [one_le_iff_ne_zero, mk_ne_zero_iff],
+      exact ⟨var (sum.inr 0)⟩ } },
+  { rw [max_le_iff, ← mk_sigma, ← infinite_iff],
+    refine ⟨infinite.of_injective (λ i, ⟨i + 1, var (sum.inr i)⟩) (λ i j ij, _), _⟩,
+    { cases ij,
+      refl },
+    { rw [cardinal.le_def],
+      refine ⟨⟨sum.elim (λ i, ⟨0, var (sum.inl i)⟩)
+        (λ F, ⟨1, func F.2 (λ _, var (sum.inr 0))⟩), _⟩⟩,
+      { rintros (a | a) (b | b) h,
+        { simp only [sum.elim_inl, eq_self_iff_true, heq_iff_eq, true_and] at h,
+          rw h },
+        { simp only [sum.elim_inl, sum.elim_inr, nat.zero_ne_one, false_and] at h,
+          exact h.elim },
+        { simp only [sum.elim_inr, sum.elim_inl, nat.one_ne_zero, false_and] at h,
+          exact h.elim },
+        { simp only [sum.elim_inr, eq_self_iff_true, heq_iff_eq, true_and] at h,
+          rw sigma.ext_iff.2 ⟨h.1, h.2.1⟩, } } } }
+end
 
 instance [encodable α] [encodable ((Σ i, L.functions i))] :
   encodable (L.term α) :=
@@ -258,6 +296,18 @@ end
 lemma list_encode_sigma_injective :
   function.injective (λ (φ : Σ n, L.bounded_formula α n), φ.2.list_encode) :=
 bounded_formula.encoding.encode_injective
+
+theorem card_le : # (Σ n, L.bounded_formula α n) ≤
+  max ω (cardinal.lift.{max u v} (#α) + cardinal.lift.{u'} L.card) :=
+begin
+  refine lift_le.1 ((bounded_formula.encoding.card_le_card_list).trans _),
+  rw [encoding_Γ, mk_list_eq_max_mk_omega, lift_max',lift_omega, lift_max', lift_omega, max_le_iff],
+  refine ⟨_, le_max_left _ _⟩,
+  rw [mk_sum, term.card_sigma, mk_sum, ← add_eq_max le_rfl, mk_sum, mk_nat],
+  simp only [lift_add, lift_lift, lift_omega],
+  rw [← add_assoc, add_comm, ← add_assoc, ← add_assoc, omega_add_omega, add_assoc,
+    add_eq_max le_rfl, add_assoc, card, symbols, mk_sum, lift_add, lift_lift, lift_lift],
+end
 
 end bounded_formula
 

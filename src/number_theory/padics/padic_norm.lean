@@ -9,7 +9,7 @@ import ring_theory.int.basic
 import tactic.basic
 import tactic.ring_exp
 import number_theory.divisors
--- import data.nat.factorization
+import data.nat.factorization
 
 /-!
 # p-adic norm

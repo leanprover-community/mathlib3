@@ -1081,11 +1081,11 @@ theorem birthday_def (x : pgame) : birthday x = max
   (ordinal.lsub.{u u} (λ i, birthday (x.move_right i))) :=
 by { cases x, rw birthday, refl }
 
-theorem left_move_birthday_lt {x : pgame} (i : x.left_moves) :
+theorem birthday_move_left_lt {x : pgame} (i : x.left_moves) :
   (x.move_left i).birthday < x.birthday :=
 by { cases x, rw birthday, exact lt_max_of_lt_left (ordinal.lt_lsub _ i) }
 
-theorem right_move_birthday_lt {x : pgame} (i : x.right_moves) :
+theorem birthday_move_right_lt {x : pgame} (i : x.right_moves) :
   (x.move_right i).birthday < x.birthday :=
 by { cases x, rw birthday, exact lt_max_of_lt_right (ordinal.lt_lsub _ i) }
 
@@ -1102,8 +1102,8 @@ begin
     { right,
       rwa ordinal.lt_lsub_iff at h' } },
   { rintro (⟨i, hi⟩ | ⟨i, hi⟩),
-    { exact hi.trans_lt (left_move_birthday_lt i) },
-    { exact hi.trans_lt (right_move_birthday_lt i) } }
+    { exact hi.trans_lt (birthday_move_left_lt i) },
+    { exact hi.trans_lt (birthday_move_right_lt i) } }
 end
 
 theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, relabelling x y → birthday x = birthday y

@@ -12,21 +12,6 @@ open_locale polynomial
 
 open finset
 
-lemma int.is_unit_mul_self {a : ℤ} (ha : is_unit a) : a * a = 1 :=
-(int.is_unit_eq_one_or ha).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
-
-lemma int.is_unit_sq {a : ℤ} (ha : is_unit a) : a ^ 2 = 1 :=
-by rw [sq, int.is_unit_mul_self ha]
-
-@[simp] lemma int.units_sq (u : ℤˣ) : u ^ 2 = 1 :=
-by rw [units.ext_iff, units.coe_pow, units.coe_one, int.is_unit_sq u.is_unit]
-
-@[simp] lemma int.units_mul_self (u : ℤˣ) : u * u = 1 :=
-by rw [←sq, int.units_sq]
-
-lemma int.units_inv_eq_self (u : ℤˣ) : u⁻¹ = u :=
-by rw [inv_eq_iff_mul_eq_one, int.units_mul_self]
-
 section semiring
 
 variables {R : Type*} [semiring R] (p : R[X]) {k m n : ℕ} {u v w : R}

@@ -54,10 +54,40 @@ end quotient_action
 
 section equiv_stuff
 
+section lemmaa
+
+open function
+
+-- todo: move and golf the other iterate lemmas
+@[to_additive] lemma smul_iterate {G S : Type*} [monoid G] [mul_action G S] (x : G) (s : S) (n : ℕ) :
+  has_scalar.smul x^[n] s = (x ^ n) • s :=
+nat.rec_on n (by rw [iterate_zero, id.def, pow_zero, one_smul])
+  (λ n ih, by rw [iterate_succ', comp_app, ih, pow_succ, mul_smul])
+
+#print pow_injective_of_lt_order_of
+
+-- todo: use this to golf lemma in `order_of_element` (pow_injective_of_lt, or something like that?)
+lemma iterate_injective_of_lt_minimal_period {α : Type*} {f : α → α} {x : α}
+  {m n : ℕ} (hm : m < minimal_period f x) (hn : n < minimal_period f x)
+  (hf : (f^[m] x) = (f^[n] x)) :
+  m = n :=
+begin
+  wlog h_le : m ≤ n,
+  have : (f^[(minimal_period f x - n) + m] x) = x,
+  by rw [iterate_add_apply, hf, ←iterate_add_apply, nat.sub_add_cancel hn.le,
+    iterate_eq_mod_minimal_period, nat.mod_self, iterate_zero_apply],
+  have key := is_periodic_pt.minimal_period_le (nat.add_pos_left (nat.sub_pos_of_lt hn) m) this,
+  rw [←nat.sub_add_comm hn.le, le_tsub_iff_right, add_le_add_iff_left] at key,
+  exact le_antisymm h_le key,
+  refine hn.le.trans (nat.le_add_right _ _),
+end
+
+end lemmaa
+
 noncomputable def orbit_zpowers_equiv
   {α β : Type*} [group α] (a : α) [mul_action α β] (b : β) :
   mul_action.orbit (subgroup.zpowers a) b ≃ zmod (function.minimal_period ((•) a) b) :=
-equiv.symm (equiv.of_bijective (λ k, (⟨a, subgroup.mem_zpowers a⟩ : subgroup.zpowers a) ^ k.val •
+equiv.symm (equiv.of_bijective (λ k, (⟨a, subgroup.mem_zpowers a⟩ : subgroup.zpowers a) ^ (k : ℤ) •
   ⟨b, mul_action.mem_orbit_self b⟩) begin
   let a' : subgroup.zpowers a := ⟨a, subgroup.mem_zpowers a⟩,
   let b' : mul_action.orbit α b := ⟨b, mul_action.mem_orbit_self b⟩,
@@ -66,7 +96,9 @@ equiv.symm (equiv.of_bijective (λ k, (⟨a, subgroup.mem_zpowers a⟩ : subgrou
   -- ^ this stuff might not be necessary ^ --
   split,
   { intros k k' h,
-    replace h : a ^ k.val • b = a ^ k'.val • b := subtype.ext_iff.mp h,
+    replace h : a ^ (k : ℤ) • b = a ^ (k' : ℤ) • b := subtype.ext_iff.mp h,
+    rw [←smul_iterate, ←smul_iterate] at h,
+    refine iterate_injective_of_lt_minimal_period _ _ h,
     sorry },
   { rintros ⟨-, ⟨-, k, rfl⟩, rfl⟩,
     refine ⟨k, subtype.ext _⟩,
@@ -77,7 +109,7 @@ end)
 lemma orbit_zpowers_equiv_symm_apply {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
   (k : zmod (function.minimal_period ((•) a) b)) :
   (orbit_zpowers_equiv a b).symm k =
-  (⟨a, subgroup.mem_zpowers a⟩ : subgroup.zpowers a) ^ k.val • ⟨b, mul_action.mem_orbit_self b⟩ :=
+  (⟨a, subgroup.mem_zpowers a⟩ : subgroup.zpowers a) ^ (k : ℤ) • ⟨b, mul_action.mem_orbit_self b⟩ :=
 rfl
 
 universe u
@@ -91,7 +123,7 @@ noncomputable def key_equiv {G : Type u} [group G] (H : subgroup G) (g : G) :
 lemma key_equiv_symm_apply {G : Type u} [group G] (H : subgroup G) (g : G)
   (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
   (k : zmod (function.minimal_period ((•) g) q.out')) :
-  (key_equiv H g).symm ⟨q, k⟩ = g ^ k.val • q.out' :=
+  (key_equiv H g).symm ⟨q, k⟩ = g ^ (k : ℤ) • q.out' :=
 rfl
 
 end equiv_stuff
@@ -99,21 +131,21 @@ end equiv_stuff
 section transversal_stuff
 
 def key_transversal {G : Type*} [group G] (H : subgroup G) (g : G) : subgroup.left_transversals (H : set G) :=
-⟨set.range (λ q, g ^ (key_equiv H g q).2.val * (key_equiv H g q).1.out'.out'),
+⟨set.range (λ q, g ^ ((key_equiv H g q).2 : ℤ) * (key_equiv H g q).1.out'.out'),
   subgroup.range_mem_left_transversals (λ q, by rw [←smul_eq_mul, coe_smul_out',
     ←key_equiv_symm_apply, sigma.eta, equiv.symm_apply_apply])⟩
 
 lemma key_transversal_apply {G : Type*} [group G] (H : subgroup G) (g : G) (q : G ⧸ H) :
   ↑(subgroup.mem_left_transversals.to_equiv (key_transversal H g).2 q) =
-    g ^ (key_equiv H g q).2.val * (key_equiv H g q).1.out'.out' :=
+    g ^ ((key_equiv H g q).2 : ℤ) * (key_equiv H g q).1.out'.out' :=
 subgroup.mem_left_transversals.range_to_equiv_apply (λ q, by rw [←smul_eq_mul, coe_smul_out',
   ←key_equiv_symm_apply, sigma.eta, equiv.symm_apply_apply]) q
 
 lemma key_transversal_apply' {G : Type*} [group G] (H : subgroup G)
   (g : G) (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
   (k : zmod (function.minimal_period ((•) g) q.out')) :
-  ↑(subgroup.mem_left_transversals.to_equiv (key_transversal H g).2 (g ^ k.val • q.out')) =
-    g ^ k.val * q.out'.out' :=
+  ↑(subgroup.mem_left_transversals.to_equiv (key_transversal H g).2 (g ^ (k : ℤ) • q.out')) =
+    g ^ (k : ℤ) * q.out'.out' :=
 by rw [←key_equiv_symm_apply, key_transversal_apply, equiv.apply_symm_apply]
 
 lemma key_transversal_apply'' {G : Type*} [group G] (H : subgroup G)
@@ -121,7 +153,7 @@ lemma key_transversal_apply'' {G : Type*} [group G] (H : subgroup G)
   (k : zmod (function.minimal_period ((•) g) q.out')) :
   ↑(subgroup.mem_left_transversals.to_equiv (g • key_transversal H g).2 (g ^ k.val • q.out')) =
     if k = 0 then g ^ (function.minimal_period ((•) g) q.out') * q.out'.out'
-      else g ^ k.val * q.out'.out' :=
+      else g ^ (k : ℤ) * q.out'.out' :=
 begin
   rw subgroup.smul_apply_eq_smul_apply_inv_smul,
   rw key_transversal_apply,
@@ -246,11 +278,8 @@ noncomputable def transfer_pow (hH : H ≤ center G) [fintype (G ⧸ H)] : G →
 { to_fun := λ g, ⟨g ^ H.index, H.pow_index_mem_of_le_center hH g⟩,
   map_one' := subtype.ext (one_pow H.index),
   map_mul' := λ a b, begin
-    letI : is_commutative H := sorry,
-    let ϕ : G →* H := transfer (monoid_hom.id H),
-    let ψ : H →* G := H.subtype,
-    simp_rw ← show ∀ g : G, ϕ g = ⟨g ^ H.index, _⟩, from transfer_eq_pow (monoid_hom.id H) hH,
-    exact ϕ.map_mul a b,
+    letI : is_commutative H := ⟨⟨λ a b, subtype.ext (hH b.2 a)⟩⟩,
+    simp_rw [←show ∀ g, (_ : H) = ⟨_, _⟩, from transfer_eq_pow (id H) hH, map_mul],
   end }
 
 noncomputable def transfer_pow' (hH : H ≤ center G) (hH₀ : H.index ≠ 0) : G →* H :=

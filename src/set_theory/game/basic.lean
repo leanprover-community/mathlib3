@@ -219,25 +219,39 @@ end
 
 instance : has_mul pgame := ⟨mul⟩
 
-/-- An explicit description of the moves for Left in `x * y`. -/
-def left_moves_mul (x y : pgame) : (x * y).left_moves
-  ≃ x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves :=
-by { cases x, cases y, refl, }
+@[simp] theorem left_moves_mul (x y : pgame) : (x * y).left_moves
+  = (x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves) :=
+by { cases x, cases y, refl }
 
-/-- An explicit description of the moves for Right in `x * y`. -/
-def right_moves_mul (x y : pgame) : (x * y).right_moves
-  ≃ x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves :=
-by { cases x, cases y, refl, }
+@[simp] theorem right_moves_mul (x y : pgame) : (x * y).right_moves
+  = (x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves) :=
+by { cases x, cases y, refl }
+
+/-- Turns two left or right moves for `x` and `y` into a left move for `x * y` and vice versa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_left_moves_mul {x y : pgame} : x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves
+  ≃ (x * y).left_moves :=
+equiv.cast (left_moves_mul x y).symm
+
+/-- Turns a left and a right move for `x` and `y` into a right move for `x * y` and vice versa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_right_moves_mul {x y : pgame} : x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves
+  ≃ (x * y).right_moves :=
+equiv.cast (right_moves_mul x y).symm
 
 @[simp] lemma mk_mul_move_left_inl {xl xr yl yr} {xL xR yL yR} {i j} :
   (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inl (i, j))
   = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xL i * yL j :=
- rfl
+rfl
 
 @[simp] lemma mul_move_left_inl {x y : pgame} {i j} :
-   (x * y).move_left ((left_moves_mul x y).symm (sum.inl (i, j)))
+   (x * y).move_left (to_left_moves_mul (sum.inl (i, j)))
    = x.move_left i * y + x * y.move_left j - x.move_left i * y.move_left j :=
-by {cases x, cases y, refl}
+by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_left_inr {xl xr yl yr} {xL xR yL yR} {i j} :
   (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inr (i, j))
@@ -245,9 +259,9 @@ by {cases x, cases y, refl}
 rfl
 
 @[simp] lemma mul_move_left_inr {x y : pgame} {i j} :
-   (x * y).move_left ((left_moves_mul x y).symm (sum.inr (i, j)))
+   (x * y).move_left (to_left_moves_mul (sum.inr (i, j)))
    = x.move_right i * y + x * y.move_right j - x.move_right i * y.move_right j :=
-by {cases x, cases y, refl}
+by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_right_inl {xl xr yl yr} {xL xR yL yR} {i j} :
   (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inl (i, j))
@@ -255,9 +269,9 @@ by {cases x, cases y, refl}
 rfl
 
 @[simp] lemma mul_move_right_inl {x y : pgame} {i j} :
-   (x * y).move_right ((right_moves_mul x y).symm (sum.inl (i, j)))
+   (x * y).move_right (to_right_moves_mul (sum.inl (i, j)))
    = x.move_left i * y + x * y.move_right j - x.move_left i * y.move_right j :=
-by {cases x, cases y, refl}
+by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_right_inr {xl xr yl yr} {xL xR yL yR} {i j} :
   (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i,j))
@@ -265,9 +279,9 @@ by {cases x, cases y, refl}
 rfl
 
 @[simp] lemma mul_move_right_inr {x y : pgame} {i j} :
-   (x * y).move_right ((right_moves_mul x y).symm (sum.inr (i, j)))
+   (x * y).move_right (to_right_moves_mul (sum.inr (i, j)))
    = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
-by {cases x, cases y, refl}
+by { cases x, cases y, refl }
 
 theorem quot_mul_comm : Π (x y : pgame.{u}), ⟦x * y⟧ = ⟦y * x⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) :=

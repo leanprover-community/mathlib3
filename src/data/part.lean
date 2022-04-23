@@ -110,7 +110,7 @@ instance : inhabited (part α) := ⟨none⟩
   function returns `a`. -/
 def some (a : α) : part α := ⟨true, λ_, a⟩
 
-lemma some_dom (a : α) : (some a).dom := by split
+@[simp] lemma some_dom (a : α) : (some a).dom := trivial
 
 theorem mem_unique : ∀ {a b : α} {o : part α}, a ∈ o → b ∈ o → a = b
 | _ _ ⟨p, f⟩ ⟨h₁, rfl⟩ ⟨h₂, rfl⟩ := rfl

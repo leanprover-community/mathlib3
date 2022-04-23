@@ -1074,7 +1074,7 @@ birthdays of its left and right games. It may be thought as the "step" in which 
 constructed. -/
 noncomputable def birthday : pgame.{u} → ordinal.{u}
 | ⟨xl, xr, xL, xR⟩ :=
-max (ordinal.lsub.{u u} $ λ i, birthday (xL i)) (ordinal.lsub.{u u} $ λ i, birthday (xR i))
+    max (ordinal.lsub.{u u} $ λ i, birthday (xL i)) (ordinal.lsub.{u u} $ λ i, birthday (xR i))
 
 @[simp] theorem birthday_mk (xl xr xL xR) : birthday (mk xl xr xL xR) = max
   (ordinal.lsub.{u u} (λ i, birthday (xL i)))

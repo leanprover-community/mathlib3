@@ -1127,7 +1127,7 @@ by { rw to_pgame, refl }
   o.to_pgame.move_left (to_left_moves_to_pgame i) = (typein (<) i).to_pgame :=
 begin
   rw to_left_moves_to_pgame,
-  exact congr_fun_heq _ to_pgame_move_left_heq i
+  exact (congr_fun_heq _ to_pgame_move_left_heq.symm i).symm
 end
 
 theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=

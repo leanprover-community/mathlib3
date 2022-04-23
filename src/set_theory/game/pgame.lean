@@ -1073,10 +1073,20 @@ by { cases x, cases y, change (mul _ _).left_moves = _, rw mul, refl }
   (x * y).right_moves = ((x.left_moves × y.right_moves) ⊕ (x.right_moves × y.left_moves)) :=
 by { cases x, cases y, change (mul _ _).right_moves = _, rw mul, refl }
 
+/-- Turns two left moves or two right moves from `x` and `y` into a left move for `x * y`, and
+viceversa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
 def to_left_moves_mul {x y : pgame} :
   (x.left_moves × y.left_moves) ⊕ (x.right_moves × y.right_moves) ≃ (x * y).left_moves :=
 equiv.cast (left_moves_mul x y).symm
 
+/-- Turns one left and one right move from `x` and `y` into a right move for `x * y`, and
+viceversa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
 def to_right_moves_mul {x y : pgame} :
   (x.left_moves × y.right_moves) ⊕ (x.right_moves × y.left_moves) ≃ (x * y).right_moves :=
 equiv.cast (right_moves_mul x y).symm

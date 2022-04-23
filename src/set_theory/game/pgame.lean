@@ -1088,7 +1088,7 @@ namespace ordinal
 /-- Converts an ordinal into the corresponding pre-game. -/
 noncomputable! def to_pgame : Π o : ordinal.{u}, pgame.{u}
 | o := ⟨o.out.α, pempty, λ x, let hwf := ordinal.typein_lt_self x in
-        to_pgame (typein (<) x), pempty.elim⟩
+        (typein (<) x).to_pgame, pempty.elim⟩
 using_well_founded { dec_tac := tactic.assumption }
 
 theorem to_pgame_def (o : ordinal) :
@@ -1107,7 +1107,7 @@ by { rw to_pgame_left_moves, apply_instance }
 instance (o : ordinal) : is_empty o.to_pgame.right_moves :=
 by { rw to_pgame_right_moves, apply_instance }
 
-/-- Converts a member of `o.out.α` into a move for the `pgame` corresponding to `o`, and viceversa.
+/-- Converts a member of `o.out.α` into a move for the `pgame` corresponding to `o`, and vice versa.
 
 Even though these types are the same (not definitionally so), this is the preferred way to convert
 between them. -/

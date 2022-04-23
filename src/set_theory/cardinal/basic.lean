@@ -614,8 +614,13 @@ theorem sum_const' (ι : Type u) (a : cardinal.{u}) : sum (λ _:ι, a) = #ι * a
 
 @[simp] theorem sum_add_distrib {ι} (f g : ι → cardinal) :
   sum (f + g) = sum f + sum g :=
-by simpa only [mk_sigma, mk_sum, mk_out, lift_id] using
-  mk_congr (equiv.sigma_sum_distrib (quotient.out ∘ f) (quotient.out ∘ g))
+begin
+  revert g,
+  refine quotient.induction_on_pi f (λ f' g, quotient.induction_on_pi g
+    (λ g', trans _ (mk_congr (equiv.sigma_sum_distrib _ _)))),
+  simp only [mk_sigma, mk_sum, mk_out, lift_id],
+  refl,
+end
 
 theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=
 ⟨(embedding.refl _).sigma_map $ λ i, classical.choice $

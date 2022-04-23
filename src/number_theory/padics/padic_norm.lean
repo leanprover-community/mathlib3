@@ -532,24 +532,24 @@ end
 
 open_locale big_operators
 
--- lemma prod_pow_prime_padic_val_nat (n : nat) (hn : n ≠ 0) (m : nat) (pr : n < m) :
---   ∏ p in finset.filter nat.prime (finset.range m), p ^ (padic_val_nat p n) = n :=
--- begin
---   nth_rewrite_rhs 0 ←factorization_prod_pow_eq_self hn,
---   rw eq_comm,
---   apply finset.prod_subset_one_on_sdiff,
---   { exact λ p hp, finset.mem_filter.mpr
---       ⟨finset.mem_range.mpr (gt_of_gt_of_ge pr (le_of_mem_factorization hp)),
---        prime_of_mem_factorization hp⟩ },
---   { intros p hp,
---     cases finset.mem_sdiff.mp hp with hp1 hp2,
---     haveI := fact_iff.mpr (finset.mem_filter.mp hp1).2,
---     rw padic_val_nat_eq_factorization p n,
---     simp [finsupp.not_mem_support_iff.mp hp2] },
---   { intros p hp,
---     haveI := fact_iff.mpr (prime_of_mem_factorization hp),
---     simp [padic_val_nat_eq_factorization] }
--- end
+lemma prod_pow_prime_padic_val_nat (n : nat) (hn : n ≠ 0) (m : nat) (pr : n < m) :
+  ∏ p in finset.filter nat.prime (finset.range m), p ^ (padic_val_nat p n) = n :=
+begin
+  nth_rewrite_rhs 0 ←factorization_prod_pow_eq_self hn,
+  rw eq_comm,
+  apply finset.prod_subset_one_on_sdiff,
+  { exact λ p hp, finset.mem_filter.mpr
+      ⟨finset.mem_range.mpr (gt_of_gt_of_ge pr (le_of_mem_factorization hp)),
+       prime_of_mem_factorization hp⟩ },
+  { intros p hp,
+    cases finset.mem_sdiff.mp hp with hp1 hp2,
+    haveI := fact_iff.mpr (finset.mem_filter.mp hp1).2,
+    rw padic_val_nat_eq_factorization p n,
+    simp [finsupp.not_mem_support_iff.mp hp2] },
+  { intros p hp,
+    haveI := fact_iff.mpr (prime_of_mem_factorization hp),
+    simp [padic_val_nat_eq_factorization] }
+end
 
 lemma range_pow_padic_val_nat_subset_divisors {n : ℕ} (p : ℕ) [fact p.prime] (hn : n ≠ 0) :
   (finset.range (padic_val_nat p n + 1)).image (pow p) ⊆ n.divisors :=

@@ -31,7 +31,7 @@ section semiring
 
 variables {R : Type*} [semiring R] (p : R[X]) {k m n : ℕ} {u v w : R}
 
-lemma trinomial_support_le : (C u * X ^ k + C v * X ^ m + C w * X ^ n).support ⊆ {k, m, n} :=
+lemma trinomial_support_le : support (C u * X ^ k + C v * X ^ m + C w * X ^ n) ⊆ {k, m, n} :=
 support_add.trans (union_subset (support_add.trans (union_subset (support_C_mul_X_pow'.trans
   (singleton_subset_iff.mpr (mem_insert_self k {m, n}))) (support_C_mul_X_pow'.trans
   (singleton_subset_iff.mpr (mem_insert_of_mem (mem_insert_self m {n}))))))
@@ -54,7 +54,7 @@ by rw [coeff_add, coeff_add, coeff_C_mul_X_pow, coeff_C_mul_X_pow, coeff_C_mul_X
   if_neg (hkm.trans hmn).ne', if_neg hmn.ne', if_pos rfl, zero_add, zero_add]
 
 lemma trinomial_support_eq (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) (hv : v ≠ 0) (hw : w ≠ 0) :
-  (C u * X ^ k + C v * X ^ m + C w * X ^ n).support = {k, m, n} :=
+  support (C u * X ^ k + C v * X ^ m + C w * X ^ n) = {k, m, n} :=
 subset_antisymm trinomial_support_le (by
 { rw [insert_subset, mem_support_iff, trinomial_coeff_k hkm hmn, insert_subset, mem_support_iff,
     trinomial_coeff_m hkm hmn, singleton_subset_iff, mem_support_iff, trinomial_coeff_n hkm hmn],
@@ -86,6 +86,14 @@ begin
   { exact with_top.coe_le_coe.mpr (hkm.trans hmn).le },
 end
 
+lemma trinomial_leading_coeff (hkm : k < m) (hmn : m < n) (hw : w ≠ 0) :
+  leading_coeff (C u * X ^ k + C v * X ^ m + C w * X ^ n) = w :=
+by rw [leading_coeff, trinomial_nat_degree hkm hmn hw, trinomial_coeff_n hkm hmn]
+
+lemma trinomial_trailing_coeff (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) :
+  trailing_coeff (C u * X ^ k + C v * X ^ m + C w * X ^ n) = u :=
+by rw [trailing_coeff, trinomial_nat_trailing_degree hkm hmn hu, trinomial_coeff_k hkm hmn]
+
 lemma trinomial_mirror (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) (hw : w ≠ 0) :
   mirror (C u * X ^ k + C v * X ^ m + C w * X ^ n) =
     C w * X ^ k + C v * X ^ (n - m + k) + C u * X ^ n :=
@@ -95,9 +103,25 @@ by rw [mirror, trinomial_nat_trailing_degree hkm hmn hu, reverse, trinomial_nat_
   mul_assoc, mul_assoc, ←pow_add, ←pow_add, ←pow_add, nat.sub_add_cancel (hkm.trans hmn).le,
   nat.sub_self, zero_add, add_comm, add_assoc, add_comm (C u * X ^ n)]
 
-/-- A unit trinomial is a trinomial whose three nonzero coeffients are units. -/
+/-- A unit trinomial is a trinomial with unit coefficients. -/
 def is_unit_trinomial := ∃ {k m n : ℕ} (hkm : k < m) (hmn : m < n) {u v w : R}
   (hu : is_unit u) (hv : is_unit v) (hw : is_unit w), p = C u * X ^ k + C v * X ^ m + C w * X ^ n
+
+variable {p}
+
+lemma is_unit_trinomial.leading_coeff_is_unit [nontrivial R] (hp : is_unit_trinomial p) :
+  is_unit (leading_coeff p) :=
+begin
+  obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
+  rwa trinomial_leading_coeff hkm hmn hw.ne_zero,
+end
+
+lemma is_unit_trinomial.trailing_coeff_is_unit [nontrivial R] (hp : is_unit_trinomial p) :
+  is_unit (trailing_coeff p) :=
+begin
+  obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
+  rwa trinomial_trailing_coeff hkm hmn hu.ne_zero,
+end
 
 end semiring
 
@@ -154,13 +178,9 @@ begin
       sum_insert (mt mem_insert.mp (not_or hkm.ne (mt mem_singleton.mp (hkm.trans hmn).ne))),
       sum_insert (mt mem_singleton.mp hmn.ne), sum_singleton,
       trinomial_coeff_k hkm hmn, trinomial_coeff_m hkm hmn, trinomial_coeff_n hkm hmn],
-    simp only,
-    simp_rw [int.is_unit_sq hu, int.is_unit_sq hv, int.is_unit_sq hw],
-    refl },
+    simp only [*, int.is_unit_sq, bit0, bit1, add_assoc] },
   { sorry },
 end
-
-#print int.is_unit_eq_one_or
 
 lemma is_unit_trinomial.irreducible1 (hp : is_unit_trinomial p)
   (h : ∀ q : ℤ[X], q ∣ p → q ∣ mirror p → is_unit q) :
@@ -190,10 +210,10 @@ begin
   suffices : ¬ (0 < q.nat_degree),
   { rw [not_lt, nat.le_zero_iff] at this,
     rw [eq_C_of_nat_degree_eq_zero this, is_unit_C, ←this],
-    cases hq with h fgh,
-    apply @is_unit_of_mul_is_unit_left _ _ q.leading_coeff h.leading_coeff,
-    rw [←leading_coeff_mul, ←fgh],
-    sorry },
+    rcases hq with ⟨p, rfl⟩,
+    apply is_unit_of_mul_is_unit_left,
+    rw [←leading_coeff, ←leading_coeff_mul],
+    exact hp.leading_coeff_is_unit },
   intro hq'',
   have inj : function.injective (algebra_map ℤ ℂ) := (algebra_map ℤ ℂ).injective_int,
   rw [nat_degree_pos_iff_degree_pos, ←degree_map_eq_of_injective inj] at hq'',

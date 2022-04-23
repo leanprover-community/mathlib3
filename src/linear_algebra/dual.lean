@@ -797,8 +797,9 @@ def dual_tensor_dual_inv_of_basis (b : basis ι R M) (c : basis κ R N) :
     ∘ₗ applyₗ (c j) ∘ₗ applyₗ (b i) ∘ₗ (lcurry R M N R)
 
 @[simp]
-lemma dual_tensor_dual_inv_of_basis_apply (b : basis ι R M) (c : basis κ R N) (f : dual R (M ⊗[R] N)) :
-  dual_tensor_dual_inv_of_basis b c f = ∑ i j, (f (b i ⊗ₜ c j)) • (b.dual_basis i ⊗ₜ c.dual_basis j) :=
+lemma dual_tensor_dual_inv_of_basis_apply (b : basis ι R M) (c : basis κ R N)
+  (f : dual R (M ⊗[R] N)) : dual_tensor_dual_inv_of_basis b c f =
+  ∑ i j, (f (b i ⊗ₜ c j)) • (b.dual_basis i ⊗ₜ c.dual_basis j) :=
 by simp [dual_tensor_dual_inv_of_basis]
 
 /--
@@ -814,8 +815,8 @@ begin
   { ext f m n,
     have h : ∀ (r s : R), r • s = s • r := is_commutative.comm,
     simp only [compr₂_apply, mk_apply, comp_apply, id_apply, dual_tensor_dual_inv_of_basis_apply,
-      linear_map.map_sum, map_smul, sum_apply, smul_apply, dual_tensor_dual_map_apply,
-      h (f _) _, ← f.map_smul, ←f.map_sum, mul_smul_tmul, ←tmul_sum, ←sum_tmul, basis.coe_dual_basis,
+      linear_map.map_sum, map_smul, sum_apply, smul_apply, dual_tensor_dual_map_apply, h (f _) _,
+      ← f.map_smul, ←f.map_sum, mul_smul_tmul, ←tmul_sum, ←sum_tmul, basis.coe_dual_basis,
       basis.coord_apply, basis.sum_repr] },
   { ext f g,
     simp only [compr₂_apply, mk_apply, comp_apply, id_apply, dual_tensor_dual_inv_of_basis_apply,

@@ -1254,11 +1254,10 @@ Just like `split`, `fsplit` applies the constructor when the type of the target 
 an inductive data type with one constructor.
 However it does not reorder goals or invoke `auto_param` tactics.
 -/
--- FIXME check if we can remove `auto_param := ff`
 meta def fsplit : tactic unit :=
 do [c] ← target' >>= get_constructors_for |
      fail "fsplit tactic failed, target is not an inductive datatype with only one constructor",
-   mk_const c >>= λ e, apply e {new_goals := new_goals.all, auto_param := ff} >> skip
+   mk_const c >>= λ e, apply e {new_goals := new_goals.all} >> skip
 
 run_cmd add_interactive [`fsplit]
 

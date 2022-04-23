@@ -267,6 +267,9 @@ rfl
   x ⊗ₜ (r • y) = r • (x ⊗ₜ[R] y) :=
 (smul_tmul _ _ _).symm
 
+lemma mul_smul_tmul (r s : R) (m : M) (n : N) : (r * s) • (m ⊗ₜ[R] n) = (r • m) ⊗ₜ[R] (s • n) :=
+by simp only [tmul_smul, smul_tmul, mul_smul]
+
 instance left_module : module R'' (M ⊗[R] N) :=
 { smul := (•),
   add_smul := tensor_product.add_smul,

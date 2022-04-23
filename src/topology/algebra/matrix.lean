@@ -72,7 +72,7 @@ lemma continuous.matrix_row {A : X → n → R} (hA : continuous A) : continuous
 continuous_matrix $ λ i j, (continuous_apply _).comp hA
 
 @[continuity]
-lemma continuous_matrix.diagonal [has_zero R] [decidable_eq n] {A : X → n → R} (hA : continuous A) :
+lemma continuous.matrix_diagonal [has_zero R] [decidable_eq n] {A : X → n → R} (hA : continuous A) :
   continuous (λ x, diagonal (A x)) :=
 continuous_matrix $ λ i j, ((continuous_apply i).comp hA).if_const _ continuous_zero
 

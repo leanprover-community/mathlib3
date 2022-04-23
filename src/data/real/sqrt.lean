@@ -160,6 +160,51 @@ begin
       { right, exact s, }, }, },
 end
 
+theorem fooo (a : ℚ) {b : ℚ} (b_nonzero : b ≠ 0) : a / b * b = a :=
+(eq_div_iff b_nonzero).mp rfl
+
+theorem blah {a b : ℚ} (ha : a ≤ 0) (hb : 0 < b) : a / b ≤ 0 :=
+begin
+  rw div_nonpos_iff,
+  right, exact ⟨ha, le_of_lt hb⟩,
+end
+
+theorem sqrt_aux_zero_iff (f : cau_seq ℚ abs) (i : ℕ) :
+  sqrt_aux f (i + 1) = 0 ↔ sqrt_aux f i = 0 ∨ f (i + 1) ≤ - (sqrt_aux f i) ^ 2 :=
+begin
+  split,
+  { intros sqrt_aux_zero,
+    unfold sqrt_aux at sqrt_aux_zero,
+    simp at sqrt_aux_zero,
+    rw div_le_iff at sqrt_aux_zero,
+    { simp at sqrt_aux_zero,
+      by_cases sqrt_aux f i = 0,
+      { left, assumption, },
+      { have sqrt_aux_pos : 0 < sqrt_aux f i := (ne.symm h).le_iff_lt.mp (sqrt_aux_nonneg f i),
+        have rewritten : sqrt_aux f i ^ 2 + f (i + 1) ≤ 0,
+        calc sqrt_aux f i ^ 2 + f (i + 1)
+          = (sqrt_aux f i * sqrt_aux f i + f (i + 1)) : by ring
+          ... = (sqrt_aux f i * sqrt_aux f i + f (i + 1) / sqrt_aux f i * sqrt_aux f i) : by rw fooo (f (i + 1)) h
+          ... = (sqrt_aux f i + f (i + 1) / sqrt_aux f i) * sqrt_aux f i : by ring
+          ... ≤ 0 * sqrt_aux f i : mul_mono_nonneg (sqrt_aux_nonneg f i) sqrt_aux_zero
+          ... = 0 : by ring,
+        right,
+        linarith, }, },
+    { exact two_pos, }, },
+  { rintro foo,
+    cases foo,
+    { unfold sqrt_aux, rw foo, simp, },
+    { unfold sqrt_aux, simp, cancel_denoms,
+      by_cases sqrt_aux f i = 0,
+      { rw h, simp, },
+      { have sqrt_aux_pos : 0 < sqrt_aux f i := (ne.symm h).le_iff_lt.mp (sqrt_aux_nonneg f i),
+        have thing : sqrt_aux f i * sqrt_aux f i + f (i + 1) ≤ 0 := by linarith,
+        calc sqrt_aux f i + f (i + 1) / sqrt_aux f i
+          = sqrt_aux f i * sqrt_aux f i / sqrt_aux f i + f (i + 1) / sqrt_aux f i : by simp
+          ... = (sqrt_aux f i * sqrt_aux f i + f (i + 1)) / sqrt_aux f i : div_add_div_same (sqrt_aux f i * sqrt_aux f i) (⇑f (i + 1)) (sqrt_aux f i)
+          ... ≤ 0 : blah _ _, }, }, },
+end
+
 /-- The sqrt_aux corresponding to decreasing Cauchy sequences is decreasing. -/
 theorem sqrt_aux_decreasing (f : cau_seq ℚ abs) (f_decreasing : ∀ i, f (i + 1) ≤ f i)
   {i : ℕ} (i_pos : 0 < i) (all_pos : ∀ j, 0 < sqrt_aux f j) : sqrt_aux f (i + 1) ≤ sqrt_aux f i :=

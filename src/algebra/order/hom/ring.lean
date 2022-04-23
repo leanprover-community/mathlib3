@@ -278,8 +278,9 @@ ext e.left_inv
 @[simp] lemma symm_trans_self (e : α ≃+*o β) : e.symm.trans e = order_ring_iso.refl β :=
 ext e.right_inv
 
-lemma symm_injective : injective (order_ring_iso.symm : (α ≃+*o β) → β ≃+*o α) :=
-λ f g h, f.symm_symm.symm.trans $ (congr_arg order_ring_iso.symm h).trans g.symm_symm
+lemma symm_bijective : bijective (order_ring_iso.symm : (α ≃+*o β) → β ≃+*o α) :=
+⟨λ f g h, f.symm_symm.symm.trans $ (congr_arg order_ring_iso.symm h).trans g.symm_symm,
+  λ f, ⟨f.symm, f.symm_symm⟩⟩
 
 end has_le
 
@@ -312,9 +313,9 @@ ordered field. Reciprocally, such an ordered ring homomorphism exists when the c
 conditionally complete.
 -/
 
-/-- There is at most one ring homomorphism from a linear ordered field to an archimedean linear
-ordered field. -/
-instance [linear_ordered_field α] [linear_ordered_field β] [archimedean β] :
+/-- There is at most one ordered ring homomorphism from a linear ordered field to an archimedean
+linear ordered field. -/
+def order_ring_hom.subsingleton [linear_ordered_field α] [linear_ordered_field β] [archimedean β] :
   subsingleton (α →+*o β) :=
 ⟨λ f g, begin
   ext x,
@@ -328,12 +329,20 @@ instance [linear_ordered_field α] [linear_ordered_field β] [archimedean β] :
     (order_hom_class.mono f).reflect_lt hf).elim,
 end⟩
 
-instance order_ring_iso.subsingleton_right [linear_ordered_field α] [linear_ordered_field β]
+local attribute [instance] order_ring_hom.subsingleton
+
+/-- There is at most one ordered ring isomorphism between a linear ordered field and an archimedean
+linear ordered field. -/
+def order_ring_iso.subsingleton_right [linear_ordered_field α] [linear_ordered_field β]
   [archimedean β] :
   subsingleton (α ≃+*o β) :=
 order_ring_iso.to_order_ring_hom_injective.subsingleton
 
-instance order_ring_iso.subsingleton_left [linear_ordered_field α] [archimedean α]
+local attribute [instance] order_ring_iso.subsingleton_right
+
+/-- There is at most one ordered ring isomorphism between an archimedean linear ordered field and a
+linear ordered field. -/
+def order_ring_iso.subsingleton_left [linear_ordered_field α] [archimedean α]
   [linear_ordered_field β] :
   subsingleton (α ≃+*o β) :=
-order_ring_iso.symm_injective.subsingleton
+order_ring_iso.symm_bijective.injective.subsingleton

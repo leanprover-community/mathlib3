@@ -141,7 +141,7 @@ theorem eq_none_iff {o : part α} : o = none ↔ ∀ a, a ∉ o :=
 theorem eq_none_iff' {o : part α} : o = none ↔ ¬ o.dom :=
 ⟨λ e, e.symm ▸ id, λ h, eq_none_iff.2 (λ a h', h h'.fst)⟩
 
-lemma not_none_dom : ¬ (none : part α).dom := by rw ←eq_none_iff'
+@[simp] lemma not_none_dom : ¬ (none : part α).dom := id
 
 @[simp] lemma some_ne_none (x : α) : some x ≠ none :=
 by { intro h, change none.dom, rw [← h], trivial }

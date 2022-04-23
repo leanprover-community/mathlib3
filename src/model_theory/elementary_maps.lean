@@ -174,16 +174,13 @@ def foo_elementary_embedding (N : Type*) [L.Structure N] [L[[M]].Structure N]
   [(Lhom_with_constants L M).is_expansion_on N] [N ⊨ L.elementary_diagram M] :
   M ↪ₑ[L] N :=
 ⟨(coe : L[[M]].constants → N) ∘ sum.inr, λ n φ x, begin
-  transitivity N ⊨ (((L.Lhom_with_constants M).on_bounded_formula φ).subst
-    (constants.term ∘ sum.inr ∘ x)).alls,
+  refine trans _ ((realize_iff_of_model_complete_theory M N (((L.Lhom_with_constants
+    M).on_bounded_formula φ).subst (constants.term ∘ sum.inr ∘ x)).alls).trans _),
   { simp_rw [sentence.realize, bounded_formula.realize_alls, bounded_formula.realize_subst,
       Lhom.realize_on_bounded_formula, formula.realize, unique.forall_iff, realize_constants] },
-  rw realize_iff_of_model_complete_theory M N _,
-  /- transitivity M ⊨ (((L.Lhom_with_constants M).on_bounded_formula φ).subst
-    (constants.term ∘ sum.inr ∘ x)).alls, swap, -/
-  simp_rw [sentence.realize, bounded_formula.realize_alls, bounded_formula.realize_subst,
+  { simp_rw [sentence.realize, bounded_formula.realize_alls, bounded_formula.realize_subst,
     Lhom.realize_on_bounded_formula, formula.realize, unique.forall_iff],
-  refl
+    refl }
 end⟩
 
 namespace embedding

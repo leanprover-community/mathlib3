@@ -355,7 +355,7 @@ theorem lt_move_right_of_le {x y : pgame} {i} :
   x ≤ y → x < y.move_right i :=
 by { cases y, exact lt_of_mk_le }
 
-theorem move_right_lt_of_le {x y : pgame} {i} :
+theorem lt_of_move_right_le {x y : pgame} {i} :
   x.move_right i ≤ y → x < y :=
 by { cases x, rw move_right_mk, exact mk_lt_of_le }
 

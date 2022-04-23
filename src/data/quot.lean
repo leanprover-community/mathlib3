@@ -141,6 +141,28 @@ protected lemma induction_on₃
   (h : ∀ a b c, δ (quot.mk r a) (quot.mk s b) (quot.mk t c)) : δ q₁ q₂ q₃ :=
 quot.ind (λ a₁, quot.ind (λ a₂, quot.ind (λ a₃, h a₁ a₂ a₃) q₃) q₂) q₁
 
+instance (r : α → α → Prop) (f : α → Prop) (h : ∀ a b, r a b → f a = f b)
+  [hf : decidable_pred f] :
+  decidable_pred (quot.lift f h) :=
+λ q, quot.rec_on_subsingleton q hf
+
+instance (r : α → α → Prop) (s : β → β → Prop) (f : α → β → Prop)
+  (ha : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂) (hb : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b)
+  [hf : Π a, decidable_pred (f a)] (q₁ : quot r) :
+  decidable_pred (quot.lift₂ f ha hb q₁) :=
+λ q₂, quot.rec_on_subsingleton₂ q₁ q₂ hf
+
+instance (r : α → α → Prop) (q : quot r) (f : α → Prop) (h : ∀ a b, r a b → f a = f b)
+  [decidable_pred f] :
+  decidable (quot.lift_on q f h) :=
+quot.lift.decidable_pred _ _ _ _
+
+instance (r : α → α → Prop) (s : β → β → Prop) (q₁ : quot r) (q₂ : quot s) (f : α → β → Prop)
+  (ha : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂) (hb : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b)
+  [Π a, decidable_pred (f a)] :
+  decidable (quot.lift_on₂ q₁ q₂ f ha hb) :=
+quot.lift₂.decidable_pred _ _ _ _ _ _ _
+
 end quot
 
 namespace quotient
@@ -395,6 +417,8 @@ nonempty_of_exists q.exists_rep
 
 end trunc
 
+/-! ### `quotient` with implicit `setoid` -/
+
 namespace quotient
 variables {γ : Sort*} {φ : Sort*}
   {s₁ : setoid α} {s₂ : setoid β} {s₃ : setoid γ}
@@ -561,29 +585,7 @@ protected lemma mk'_eq_mk (x : α) : quotient.mk' x = ⟦x⟧ := rfl
 
 end
 
-/-! ### Decidability -/
-
-instance (r : α → α → Prop) (f : α → Prop) (h : ∀ a b, r a b → f a = f b)
-  [hf : decidable_pred f] :
-  decidable_pred (quot.lift f h) :=
-λ q, quot.rec_on_subsingleton q hf
-
-instance (r : α → α → Prop) (s : β → β → Prop) (f : α → β → Prop)
-  (ha : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂) (hb : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b)
-  [hf : Π a, decidable_pred (f a)] (q₁ : quot r) :
-  decidable_pred (quot.lift₂ f ha hb q₁) :=
-λ q₂, quot.rec_on_subsingleton₂ q₁ q₂ hf
-
-instance (r : α → α → Prop) (q : quot r) (f : α → Prop) (h : ∀ a b, r a b → f a = f b)
-  [decidable_pred f] :
-  decidable (quot.lift_on q f h) :=
-quot.lift.decidable_pred _ _ _ _
-
-instance (r : α → α → Prop) (s : β → β → Prop) (q₁ : quot r) (q₂ : quot s) (f : α → β → Prop)
-  (ha : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂) (hb : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b)
-  [Π a, decidable_pred (f a)] :
-  decidable (quot.lift_on₂ q₁ q₂ f ha hb) :=
-quot.lift₂.decidable_pred _ _ _ _ _ _ _
+/-! #### Decidability -/
 
 instance (f : α → Prop) (h : ∀ a b, @setoid.r α s₁ a b → f a = f b) [decidable_pred f] :
   decidable_pred (quotient.lift f h) :=

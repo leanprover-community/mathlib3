@@ -342,6 +342,8 @@ theorem has_ftaylor_series_up_to_on_succ_iff_right {n : ℕ} :
   ∧ has_ftaylor_series_up_to_on n
     (λ x, continuous_multilinear_curry_fin1 𝕜 E F (p x 1)) (λ x, (p x).shift) s :=
 begin
+  let cr :=
+    λ n, continuous_multilinear_curry_right_equiv' 𝕜 n E F,
   split,
   { assume H,
     refine ⟨H.zero_eq, H.fderiv_within 0 (with_top.coe_lt_coe.2 (nat.succ_pos n)), _⟩,
@@ -351,7 +353,7 @@ begin
       have A : (m.succ : with_top ℕ) < n.succ,
         by { rw with_top.coe_lt_coe at ⊢ hm, exact nat.lt_succ_iff.mpr hm },
       change has_fderiv_within_at
-        ((continuous_multilinear_curry_right_equiv' 𝕜 m E F).symm
+        ((cr m).symm
            ∘ (λ (y : E), p y m.succ))
         (p x m.succ.succ).curry_right.curry_left s x,
       rw linear_isometry_equiv.comp_has_fderiv_within_at_iff',
@@ -363,7 +365,7 @@ begin
     { assume m (hm : (m : with_top ℕ) ≤ n),
       have A : (m.succ : with_top ℕ) ≤ n.succ,
         by { rw with_top.coe_le_coe at ⊢ hm, exact nat.pred_le_iff.mp hm },
-      change continuous_on ((continuous_multilinear_curry_right_equiv' 𝕜 m E F).symm
+      change continuous_on ((cr m).symm
            ∘ (λ (y : E), p y m.succ)) s,
       rw linear_isometry_equiv.comp_continuous_on_iff,
       exact H.cont _ A } },
@@ -375,7 +377,7 @@ begin
       { exact Hfderiv_zero x hx },
       { have A : (m : with_top ℕ) < n,
           by { rw with_top.coe_lt_coe at hm ⊢, exact nat.lt_of_succ_lt_succ hm },
-        have : has_fderiv_within_at ((continuous_multilinear_curry_right_equiv' 𝕜 m E F).symm
+        have : has_fderiv_within_at ((cr m).symm
            ∘ (λ (y : E), p y m.succ)) ((p x).shift m.succ).curry_left s x :=
           Htaylor.fderiv_within _ A x hx,
         rw linear_isometry_equiv.comp_has_fderiv_within_at_iff' at this,
@@ -391,7 +393,7 @@ begin
         exact this.continuous_on },
       { have A : (m : with_top ℕ) ≤ n,
           by { rw with_top.coe_le_coe at hm ⊢, exact nat.lt_succ_iff.mp hm },
-        have : continuous_on ((continuous_multilinear_curry_right_equiv' 𝕜 m E F).symm
+        have : continuous_on ((cr m).symm
            ∘ (λ (y : E), p y m.succ)) s :=
         Htaylor.cont _ A,
         rwa linear_isometry_equiv.comp_continuous_on_iff at this } } }

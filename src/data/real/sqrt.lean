@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Floris van Doorn, Yury Kudryashov
 import topology.algebra.order.monotone_continuity
 import topology.instances.nnreal
 import tactic.norm_cast
+import tactic.ring_exp
 
 /-!
 # Square root of a real number
@@ -127,7 +128,6 @@ begin
   exact lt_add_of_pos_of_le u t
 end
 
-@[simp]
 theorem sqrt_aux_eq_zero_iff_step (f : cau_seq ℚ abs) (i : ℕ) :
   sqrt_aux f (i + 1) = 0 ↔ sqrt_aux f i = 0 :=
 begin
@@ -140,17 +140,67 @@ begin
 end
 
 @[simp]
-theorem sqrt_aux_eq_zero_iff (f : cau_seq ℚ abs) (i : ℕ) : sqrt_aux f i ≠ 0 :=
+theorem sqrt_aux_ne_zero (f : cau_seq ℚ abs) (i : ℕ) : sqrt_aux f i ≠ 0 :=
 begin
   induction i with i hyp,
   { unfold sqrt_aux,
     norm_num, },
-  { simp [hyp], },
+  { intros h, rw sqrt_aux_eq_zero_iff_step f i at h, exact hyp h, },
 end
 
-/-- A simplified version of Cauchy-Schwarz on a two-element set, which we prove separately to
+theorem sqrt_aux_pos (f : cau_seq ℚ abs) (i : ℕ) : 0 < sqrt_aux f i :=
+(sqrt_aux_ne_zero f i).symm.le_iff_lt.mp (sqrt_aux_nonneg f i)
+
+lemma foo (a : ℚ) {b: ℚ} (b_nonneg : b ≠ 0) : a * b / b = a :=
+begin
+  exact (div_eq_iff b_nonneg).mpr rfl
+end
+
+lemma bar (a b c : ℚ) (c_pos : 0 < c) (h : a ≤ b) : a / c ≤ b / c :=
+begin
+  exact (div_le_div_right c_pos).mpr h
+end
+
+theorem bound (q : ℚ) : 2 * q - q * q ≤ 1 :=
+begin
+  suffices pr : 0 ≤ q * q - 2 * q + 1,
+  { linarith, },
+  calc 0 ≤ (q - 1) ^ 2 : sq_nonneg _
+  ... = q * q - 2 * q + 1 : by ring,
+end
+
+/--
+If f > 1, and we pick `N` such that `f i` is always greater than 1 from `N` onwards,
+and at some point past `N` we find sqrt_aux gets above `1`, then it will stay above `1` forever.
+This theorem is the inductive step of that assertion.
+-/
+theorem sqrt_aux_ge_one_step (f : cau_seq ℚ abs) (i : ℕ) (f_large : 1 ≤ f (i + 1))
+  : 1 ≤ sqrt_aux f (i + 1) :=
+begin
+  unfold sqrt_aux, simp,
+  cancel_denoms,
+  have t : 0 ≤ f (i + 1) := by linarith,
+  rw max_eq_right t,
+  have pos: 0 < sqrt_aux f i := sqrt_aux_pos f i,
+  suffices pr : 2 * sqrt_aux f i ≤ sqrt_aux f i * sqrt_aux f i + f (i + 1),
+  { calc 2 = 2 * sqrt_aux f i / sqrt_aux f i : by rw foo 2 (sqrt_aux_ne_zero f i)
+    ... ≤ (sqrt_aux f i * sqrt_aux f i + f (i + 1)) / sqrt_aux f i : (div_le_div_right (sqrt_aux_pos f i)).2 pr
+    ... = (sqrt_aux f i * sqrt_aux f i / sqrt_aux f i + f (i + 1) / sqrt_aux f i) : by ring
+    ... = (sqrt_aux f i + f (i + 1) / sqrt_aux f i) : by rw foo (sqrt_aux f i) (sqrt_aux_ne_zero f i), },
+  suffices pr : 2 * sqrt_aux f i - sqrt_aux f i * sqrt_aux f i ≤ f (i + 1),
+  { linarith, },
+  calc 2 * sqrt_aux f i - sqrt_aux f i * sqrt_aux f i ≤ 1 : bound (sqrt_aux f i)
+    ... ≤ f (i + 1) : f_large,
+end
+
+theorem sqrt_aux_ge_one (f : cau_seq ℚ abs) (N : ℕ) (f_gt_1 : ∀ i ≥ N, 1 ≤ f i) :
+  ∀ (k ≥ N), 1 ≤ sqrt_aux f k
+| 0 pr := by unfold sqrt_aux
+| (k + 1) pr := sqrt_aux_ge_one_step f k (f_gt_1 (k + 1) pr)
+
+/-- A simplified version of the AM-GM inequality on a two-element set, which we prove separately to
 reduce the import graph. -/
-theorem rat.cauchy_schwarz (a b : ℚ) : 4 * a * b ≤ (a + b) ^ 2 :=
+theorem rat.am_gm (a b : ℚ) : 4 * a * b ≤ (a + b) ^ 2 :=
 begin
   suffices pos: 0 ≤ (a + b) ^ 2 - 4 * a * b, exact sub_nonneg.mp pos,
   calc 0 ≤ (a - b) ^ 2 : sq_nonneg (a - b)
@@ -174,21 +224,145 @@ begin
       calc f (i + 1) ≤ 0 : h
         ... ≤ sqrt_aux f i ^ 2 / 4 : div_nonneg (sq_nonneg _) (by norm_num), },
     { rw max_eq_right_of_lt h,
-      by_cases sqrt_aux f i = 0,
-      { simp at h, exfalso, exact h, },
       { cancel_denoms,
-        have u : _ := rat.cauchy_schwarz (sqrt_aux f i ^ 2) (f (i + 1)),
+        have u : _ := rat.am_gm (sqrt_aux f i ^ 2) (f (i + 1)),
         have v := by
           calc 4 * f (i + 1) = 4 * f (i + 1) * 1 : by ring
-          ... = 4 * f (i + 1) * (sqrt_aux f i ^ 2 / sqrt_aux f i ^ 2) : by rw div_self (pow_ne_zero 2 h)
+          ... = 4 * f (i + 1) * (sqrt_aux f i ^ 2 / sqrt_aux f i ^ 2) : by rw div_self (pow_ne_zero 2 (sqrt_aux_ne_zero f _))
           ... = (4 * sqrt_aux f i ^ 2 * f (i + 1)) / sqrt_aux f i ^ 2 : by ring,
         rw v,
         calc 4 * sqrt_aux f i ^ 2 * f (i + 1) / sqrt_aux f i ^ 2
           ≤ (sqrt_aux f i ^ 2 + f (i + 1)) ^ 2 / sqrt_aux f i ^ 2 : div_le_div_of_le (sq_nonneg _) u
           ... = ((sqrt_aux f i ^ 2 + f (i + 1)) / sqrt_aux f i) ^ 2 : by simp
           ... = (sqrt_aux f i ^ 2 / sqrt_aux f i + f (i + 1) / sqrt_aux f i) ^ 2 : by ring
-          ... = (sqrt_aux f i + f (i + 1) / sqrt_aux f i) ^ 2 : by rw sq_div_self h, }, }, },
+          ... = (sqrt_aux f i + f (i + 1) / sqrt_aux f i) ^ 2 : by rw sq_div_self (sqrt_aux_ne_zero f _), }, }, },
 end
+
+theorem sqrt_aux_overestimate' (f : cau_seq ℚ abs) {i : ℕ} (i_pos : 0 < i) :
+  0 ≤ (sqrt_aux f i) ^ 2 - f i :=
+sub_nonneg.mpr (sqrt_aux_overestimate f i_pos)
+
+lemma nonneg_three_add {a x y : ℚ} (h : 0 ≤ a) (t : 0 ≤ x) (u : 0 ≤ y) : 0 ≤ a + x + y :=
+by linarith
+
+lemma nonneg_three_mul {a x y : ℚ} (h : 0 ≤ a) (t : 0 ≤ x) (u : 0 ≤ y) : 0 ≤ a * x * y :=
+mul_nonneg (mul_nonneg h t) u
+
+-- With sqrt_aux_ge_one, we should be able to prove the following: if sqrt_aux gets within ε,
+-- then it stays within ε.
+-- In fact, convergence is quadratic.
+theorem converges_eventually_if_near_step (f : cau_seq ℚ abs) (N : ℕ) (f_gt_1 : ∀ i ≥ N, 1 ≤ f i)
+  (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
+  (k : ℕ) (k_large : N ≤ k) (k_pos : 0 < k) (converged : sqrt_aux f k ^ 2 - f k ≤ ε) :
+  sqrt_aux f (k + 1) ^ 2 - f (k + 1) ≤ ε ^ 2 :=
+begin
+  have t : 0 < f (k + 1) := by linarith [f_gt_1 (k + 1) (le_add_right k_large)],
+
+  have r : 1 ≤ sqrt_aux f k ^ 2 := one_le_pow_of_one_le (sqrt_aux_ge_one f N f_gt_1 k k_large) 2,
+  have g : 0 < (4 : ℚ) := by norm_num,
+  have ineq : 4 ≤ 4 * sqrt_aux f k ^ 2 := by simpa using mul_le_mul_of_nonneg_left r g.le,
+
+  unfold sqrt_aux,
+  let s := sqrt_aux f k,
+  rw max_eq_right_of_lt t,
+
+  have weaker : 0 < 4 * s ^ 2 := by linarith,
+
+  by_cases is_exact : s ^ 2 - f k = 0,
+  { have eq : f k = s ^ 2 := by linarith only [is_exact],
+    simp,
+    sorry, },
+
+  calc ((s + f (k + 1) / s) / 2) ^ 2 - f (k + 1)
+    = (4 * s ^ 2 * ((s + f (k + 1) / s) / 2) ^ 2 - 4 * s ^ 2 * f (k + 1)) / (4 * s ^ 2) :
+      begin
+        sorry
+      end
+    ... = (4 * s ^ 2 * ((s + f (k + 1) / s) / 2) ^ 2 - 4 * s ^ 2 * f (k + 1)) / (4 * s ^ 2) :
+      begin
+        sorry
+      end
+    ... = ((s ^ 2 - f k) ^ 2 + (f k - f (k + 1)) ^ 2 + 2 * (f k - f (k + 1)) * (s ^ 2 - f k)) / (4 * s ^ 2) :
+      begin
+       sorry
+      end
+    ... ≤ ((s ^ 2 - f k) ^ 2 + (f k - f (k + 1)) ^ 2 + 2 * (abs (f k - f (k + 1))) * (s ^ 2 - f k)) / (4 * s ^ 2) :
+      begin
+        refine bar _ _ _ weaker _,
+        have r : f k - f (k + 1) ≤ abs (f k - f (k + 1)) := le_abs_self _,
+        refine add_le_add rfl.le _,
+        { have greater : 0 < s ^ 2 - f k := (ne.symm is_exact).le_iff_lt.mp (sqrt_aux_overestimate' f k_pos),
+          refine (mul_le_mul_right greater).2 _,
+          linarith [r], },
+      end
+    ... ≤ _ / 4 : by begin
+      refine div_le_div_of_le_left _ g ineq,
+      refine nonneg_three_add (sq_nonneg _) (sq_nonneg _) _,
+      exact nonneg_three_mul (by norm_num) (abs_nonneg _) (sqrt_aux_overestimate' f k_pos),
+    end
+    ... ≤ (ε ^ 2 + (f k - f (k + 1)) ^ 2 + 2 * (abs (f k - f (k + 1))) * (s ^ 2 - f k)) / 4 :
+      begin
+        refine div_le_div_of_le (by norm_num) _,
+        refine add_le_add _ rfl.le,
+        refine add_le_add _ rfl.le,
+        refine sq_le_sq _,
+        rw abs_eq_self.mpr (sqrt_aux_overestimate' f k_pos),
+        rw abs_eq_self.mpr (le_of_lt ε_pos),
+        exact converged,
+      end
+    ... ≤ (ε ^ 2 + ε ^ 2 + 2 * (abs (f k - f (k + 1))) * (s ^ 2 - f k)) / 4 :
+      begin
+        refine div_le_div_of_le (by norm_num) _,
+        refine add_le_add _ rfl.le,
+        refine add_le_add rfl.le _,
+        refine sq_le_sq _,
+        rw abs_eq_self.mpr (le_of_lt ε_pos),
+        exact f_near k k_large (k + 1) (by linarith),
+      end
+    ... ≤ (ε ^ 2 + ε ^ 2 + 2 * ε * (s ^ 2 - f k)) / 4 :
+      begin
+        refine div_le_div_of_le (by norm_num) _,
+        refine add_le_add rfl.le _,
+        refine mul_le_mul_of_nonneg_right _ (sqrt_aux_overestimate' f k_pos),
+        refine mul_le_mul_of_nonneg_left _ (by norm_num),
+        exact f_near k k_large (k + 1) (by linarith),
+      end
+    ... ≤ (ε ^ 2 + ε ^ 2 + 2 * ε * ε) / 4 :
+      begin
+        refine div_le_div_of_le (by norm_num) _,
+        refine add_le_add rfl.le _,
+        refine mul_le_mul_of_nonneg_left _ (by linarith),
+        linarith [sqrt_aux_overestimate f k_pos],
+      end
+    ... = (ε ^ 2 * 4) / 4 : by ring
+    ... = ε ^ 2 : foo _ (ne_of_gt g)
+end
+
+theorem converges_eventually_if_near (f : cau_seq ℚ abs) (N : ℕ) (f_gt_1 : ∀ i ≥ N, 1 ≤ f i)
+  (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
+  (k : ℕ) (k_large : N ≤ k) (converged : sqrt_aux f k ^ 2 - f k ≤ ε) :
+  ∀ (j ≥ k), sqrt_aux f j ^ 2 - f j ≤ ε
+| 0 pr :=
+begin
+  simp at pr,
+  rw pr at k_large,
+  simp at k_large,
+  unfold sqrt_aux, simp,
+  rw k_large at f_gt_1,
+  specialize f_gt_1 0 rfl.ge,
+  linarith,
+end
+| (j + 1) pr :=
+begin
+  by_cases k = j + 1,
+  { rw h at converged,
+    exact converged, },
+  { have k_le_j : k ≤ j := nat.lt_succ_iff.mp ((ne.le_iff_lt h).mp pr),
+    have j_big : N ≤ j := by linarith,
+    refine converges_eventually_if_near_step f N f_gt_1 ε ε_pos f_near j j_big _,
+    exact converges_eventually_if_near j k_le_j, },
+end
+
 
 /- TODO(Mario): finish the proof
 theorem sqrt_aux_converges (f : cau_seq ℚ abs) : ∃ h x, 0 ≤ x ∧ x * x = max 0 (mk f) ∧

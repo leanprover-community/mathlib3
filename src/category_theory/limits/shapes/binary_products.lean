@@ -76,6 +76,9 @@ variables {C : Type u} [category.{v} C]
 /-- The function on the walking pair, sending the two points to `X` and `Y`. -/
 def pair_function (X Y : C) : walking_pair → C := λ j, walking_pair.cases_on j X Y
 
+@[simp] lemma pair_function_left (X Y : C) : pair_function X Y left = X := rfl
+@[simp] lemma pair_function_right (X Y : C) : pair_function X Y right = Y := rfl
+
 /-- The diagram on the walking pair, sending the two points to `X` and `Y`. -/
 def pair (X Y : C) : discrete walking_pair.{v} ⥤ C :=
 discrete.functor (pair_function X Y)

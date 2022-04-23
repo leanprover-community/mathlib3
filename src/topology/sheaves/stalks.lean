@@ -260,7 +260,7 @@ def stalk_pullback_iso (f : X ⟶ Y) (F : Y.presheaf C) (x : X) :
     delta stalk_pullback_hom stalk_pullback_inv stalk_functor presheaf.pullback stalk_pushforward,
     ext U j,
     induction U using opposite.rec,
-    cases U, cases j, cases j_right,
+    cases U, cases j, rcases j_right with ⟨⟨⟩⟩,
     erw [colimit.map_desc, colimit.map_desc, colimit.ι_desc_assoc,
       colimit.ι_desc_assoc, colimit.ι_desc, category.comp_id],
     simp only [cocone.whisker_ι, colimit.cocone_ι, open_nhds.inclusion_map_iso_inv,
@@ -276,7 +276,7 @@ def stalk_pullback_iso (f : X ⟶ Y) (F : Y.presheaf C) (x : X) :
     congr,
     simp only [category.assoc, costructured_arrow.map_mk],
     delta costructured_arrow.mk,
-    congr
+    congr,
   end }
 
 end stalk_pullback

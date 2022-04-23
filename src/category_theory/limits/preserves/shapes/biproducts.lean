@@ -141,16 +141,16 @@ class preserves_binary_biproducts (F : C ⥤ D) [preserves_zero_morphisms F] :=
 
 /-- A functor that preserves biproducts of a pair preserves binary biproducts. -/
 def preserves_binary_biproduct_of_preserves_biproduct (F : C ⥤ D) [preserves_zero_morphisms F]
-  (X Y : C) [preserves_biproduct (pair X Y).obj F] : preserves_binary_biproduct X Y F :=
+  (X Y : C) [preserves_biproduct (pair_function X Y) F] : preserves_binary_biproduct X Y F :=
 { preserves := λ b hb,
   { is_limit := is_limit.of_iso_limit
       ((is_limit.postcompose_hom_equiv (by exact diagram_iso_pair _) _).symm
         ((is_bilimit_of_preserves F (b.to_bicone_is_bilimit.symm hb)).is_limit)) $
-      cones.ext (iso.refl _) (λ j, by { cases j, tidy }),
+      cones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy, }),
     is_colimit := is_colimit.of_iso_colimit
       ((is_colimit.precompose_inv_equiv (by exact diagram_iso_pair _ ) _).symm
         ((is_bilimit_of_preserves F (b.to_bicone_is_bilimit.symm hb)).is_colimit)) $
-      cocones.ext (iso.refl _) (λ j, by { cases j, tidy }) } }
+      cocones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy, }) } }
 
 /-- A functor that preserves biproducts of a pair preserves binary biproducts. -/
 def preserves_binary_biproducts_of_preserves_biproducts (F : C ⥤ D)

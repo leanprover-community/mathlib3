@@ -97,7 +97,9 @@ begin
   simp_rw ← multicoequalizer.ι_sigma_π 𝖣 .diagram,
   rw ← (homeo_of_iso (multicoequalizer.iso_coequalizer 𝖣 .diagram).symm).is_open_preimage,
   rw [coequalizer_is_open_iff, colimit_is_open_iff],
-  refl
+  split,
+  { intros h j, exact h ⟨j⟩, },
+  { intros h j, cases j, exact h j, },
 end
 
 lemma ι_jointly_surjective (x : 𝖣 .glued) : ∃ i (y : D.U i), 𝖣 .ι i y = x :=

@@ -64,6 +64,8 @@ def cofan.mk {f : β → C} (P : C) (p : Π b, f b ⟶ P) : cofan f :=
 { X := P,
   ι := { app := λ X, p X.as } }
 
+-- FIXME dualize as needed below (and rename?)
+
 /-- Get the `j`th map in the fan -/
 def fan.proj  {f : β → C} (p : fan f) (j : β) : p.X ⟶ f j := p.π.app (discrete.mk j)
 @[simp] lemma fan_mk_proj {f : β → C} (P : C) (p : Π b, P ⟶ f b) (j : β) :
@@ -211,11 +213,11 @@ abbreviation has_products := Π (J : Type v), has_limits_of_shape (discrete J) C
 abbreviation has_coproducts := Π (J : Type v), has_colimits_of_shape (discrete J) C
 
 variable {C}
+
 lemma has_products_of_limit_fans (lf : ∀ {J : Type v} (f : J → C), fan f)
   (lf_is_limit : ∀ {J : Type v} (f : J → C), is_limit (lf f)) : has_products C :=
 λ J, { has_limit := λ F, has_limit.mk
   ⟨(cones.postcompose discrete.nat_iso_functor.inv).obj (lf (λ j, F.obj (discrete.mk j))),
     (is_limit.postcompose_inv_equiv _ _).symm (lf_is_limit _)⟩ }
-
 
 end category_theory.limits

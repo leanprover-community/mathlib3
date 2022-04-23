@@ -31,16 +31,17 @@ def is_product_of_is_terminal_is_pullback {W X Y Z : C} (f : X ⟶ Z) (g : Y ⟶
     (c.π.app ⟨walking_pair.left⟩) (c.π.app ⟨walking_pair.right⟩) (H₁.hom_ext _ _)),
   fac' := λ c j,
   begin
-    convert H₂.fac (pullback_cone.mk
-      (c.π.app ⟨walking_pair.left⟩) (c.π.app ⟨walking_pair.right⟩) (H₁.hom_ext _ _)) (some j.as) using 1,
-    cases j; refl
+    cases j,
+    convert H₂.fac (pullback_cone.mk (c.π.app ⟨walking_pair.left⟩)
+      (c.π.app ⟨walking_pair.right⟩) (H₁.hom_ext _ _)) (some j) using 1,
+    rcases j; refl,
   end,
   uniq' := λ c m hm,
   begin
     apply pullback_cone.is_limit.hom_ext H₂,
-    { exact (hm walking_pair.left).trans (H₂.fac (pullback_cone.mk (c.π.app ⟨walking_pair.left⟩)
+    { exact (hm ⟨walking_pair.left⟩).trans (H₂.fac (pullback_cone.mk (c.π.app ⟨walking_pair.left⟩)
         (c.π.app ⟨walking_pair.right⟩) (H₁.hom_ext _ _)) walking_cospan.left).symm },
-    { exact (hm walking_pair.right).trans (H₂.fac (pullback_cone.mk (c.π.app ⟨walking_pair.left⟩)
+    { exact (hm ⟨walking_pair.right⟩).trans (H₂.fac (pullback_cone.mk (c.π.app ⟨walking_pair.left⟩)
         (c.π.app ⟨walking_pair.right⟩) (H₁.hom_ext _ _)) walking_cospan.right).symm },
   end }
 
@@ -53,13 +54,13 @@ begin
   apply pullback_cone.is_limit_aux',
   intro s,
   use H₂.lift (binary_fan.mk s.fst s.snd),
-  use H₂.fac (binary_fan.mk s.fst s.snd) walking_pair.left,
-  use H₂.fac (binary_fan.mk s.fst s.snd) walking_pair.right,
+  use H₂.fac (binary_fan.mk s.fst s.snd) ⟨walking_pair.left⟩,
+  use H₂.fac (binary_fan.mk s.fst s.snd) ⟨walking_pair.right⟩,
   intros m h₁ h₂,
   apply H₂.hom_ext,
-  rintro ⟨⟩,
-  { exact h₁.trans (H₂.fac (binary_fan.mk s.fst s.snd) walking_pair.left).symm },
-  { exact h₂.trans (H₂.fac (binary_fan.mk s.fst s.snd) walking_pair.right).symm }
+  rintro ⟨⟨⟩⟩,
+  { exact h₁.trans (H₂.fac (binary_fan.mk s.fst s.snd) ⟨walking_pair.left⟩).symm },
+  { exact h₂.trans (H₂.fac (binary_fan.mk s.fst s.snd) ⟨walking_pair.right⟩).symm }
 end
 
 variable (C)
@@ -71,14 +72,16 @@ lemma has_binary_products_of_terminal_and_pullbacks
   has_binary_products C :=
 { has_limit := λ F, has_limit.mk
   { cone :=
-    { X := pullback (terminal.from (F.obj walking_pair.left))
-                    (terminal.from (F.obj walking_pair.right)),
-      π := discrete.nat_trans (λ x, walking_pair.cases_on x pullback.fst pullback.snd)},
+    { X := pullback (terminal.from (F.obj ⟨walking_pair.left⟩))
+                    (terminal.from (F.obj ⟨walking_pair.right⟩)),
+      π := discrete.nat_trans (λ x, discrete.cases_on x
+        (λ x, walking_pair.cases_on x pullback.fst pullback.snd)) },
     is_limit :=
-    { lift := λ c, pullback.lift ((c.π).app walking_pair.left)
-                                  ((c.π).app walking_pair.right)
+    { lift := λ c, pullback.lift ((c.π).app ⟨walking_pair.left⟩)
+                                  ((c.π).app ⟨walking_pair.right⟩)
                                   (subsingleton.elim _ _),
-      fac' := λ s c, walking_pair.cases_on c (limit.lift_π _ _) (limit.lift_π _ _),
+      fac' := λ s c, discrete.cases_on c
+        (λ c, walking_pair.cases_on c (limit.lift_π _ _) (limit.lift_π _ _)),
       uniq' := λ s m J,
                 begin
                   rw [←J, ←J],
@@ -95,20 +98,21 @@ def is_coproduct_of_is_initial_is_pushout {W X Y Z : C} (f : X ⟶ Z) (g : Y ⟶
   (H₂ : is_colimit (pushout_cocone.mk _ _ (show h ≫ f = k ≫ g, from H₁.hom_ext _ _))) :
   is_colimit (binary_cofan.mk f g) :=
 { desc := λ c, H₂.desc (pushout_cocone.mk
-    (c.ι.app walking_pair.left) (c.ι.app walking_pair.right) (H₁.hom_ext _ _)),
+    (c.ι.app ⟨walking_pair.left⟩) (c.ι.app ⟨walking_pair.right⟩) (H₁.hom_ext _ _)),
   fac' := λ c j,
   begin
-    convert H₂.fac (pushout_cocone.mk
-      (c.ι.app walking_pair.left) (c.ι.app walking_pair.right) (H₁.hom_ext _ _)) (some j) using 1,
+    cases j,
+    convert H₂.fac (pushout_cocone.mk (c.ι.app ⟨walking_pair.left⟩) (c.ι.app ⟨walking_pair.right⟩)
+      (H₁.hom_ext _ _)) (some j) using 1,
     cases j; refl
   end,
   uniq' := λ c m hm,
   begin
     apply pushout_cocone.is_colimit.hom_ext H₂,
-    { exact (hm walking_pair.left).trans (H₂.fac (pushout_cocone.mk (c.ι.app walking_pair.left)
-        (c.ι.app walking_pair.right) (H₁.hom_ext _ _)) walking_cospan.left).symm },
-    { exact (hm walking_pair.right).trans (H₂.fac (pushout_cocone.mk (c.ι.app walking_pair.left)
-        (c.ι.app walking_pair.right) (H₁.hom_ext _ _)) walking_cospan.right).symm },
+    { exact (hm ⟨walking_pair.left⟩).trans (H₂.fac (pushout_cocone.mk (c.ι.app ⟨walking_pair.left⟩)
+        (c.ι.app ⟨walking_pair.right⟩) (H₁.hom_ext _ _)) walking_cospan.left).symm },
+    { exact (hm ⟨walking_pair.right⟩).trans (H₂.fac (pushout_cocone.mk (c.ι.app ⟨walking_pair.left⟩)
+        (c.ι.app ⟨walking_pair.right⟩) (H₁.hom_ext _ _)) walking_cospan.right).symm },
   end }
 
 /-- The coproduct is the pushout under the initial object. -/
@@ -120,13 +124,13 @@ begin
   apply pullback_cone.is_limit_aux',
   intro s,
   use H₂.lift (binary_fan.mk s.fst s.snd),
-  use H₂.fac (binary_fan.mk s.fst s.snd) walking_pair.left,
-  use H₂.fac (binary_fan.mk s.fst s.snd) walking_pair.right,
+  use H₂.fac (binary_fan.mk s.fst s.snd) ⟨walking_pair.left⟩,
+  use H₂.fac (binary_fan.mk s.fst s.snd) ⟨walking_pair.right⟩,
   intros m h₁ h₂,
   apply H₂.hom_ext,
-  rintro ⟨⟩,
-  { exact h₁.trans (H₂.fac (binary_fan.mk s.fst s.snd) walking_pair.left).symm },
-  { exact h₂.trans (H₂.fac (binary_fan.mk s.fst s.snd) walking_pair.right).symm }
+  rintro ⟨⟨⟩⟩,
+  { exact h₁.trans (H₂.fac (binary_fan.mk s.fst s.snd) ⟨walking_pair.left⟩).symm },
+  { exact h₂.trans (H₂.fac (binary_fan.mk s.fst s.snd) ⟨walking_pair.right⟩).symm }
 end
 
 variable (C)
@@ -138,14 +142,16 @@ lemma has_binary_coproducts_of_initial_and_pushouts
   has_binary_coproducts C :=
 { has_colimit := λ F, has_colimit.mk
   { cocone :=
-    { X := pushout (initial.to (F.obj walking_pair.left))
-                    (initial.to (F.obj walking_pair.right)),
-      ι := discrete.nat_trans (λ x, walking_pair.cases_on x pushout.inl pushout.inr)},
+    { X := pushout (initial.to (F.obj ⟨walking_pair.left⟩))
+                    (initial.to (F.obj ⟨walking_pair.right⟩)),
+      ι := discrete.nat_trans (λ x, discrete.cases_on x
+        (λ x, walking_pair.cases_on x pushout.inl pushout.inr)) },
     is_colimit :=
-    { desc := λ c, pushout.desc (c.ι.app walking_pair.left)
-                                (c.ι.app walking_pair.right)
+    { desc := λ c, pushout.desc (c.ι.app ⟨walking_pair.left⟩)
+                                (c.ι.app ⟨walking_pair.right⟩)
                                 (subsingleton.elim _ _),
-      fac' := λ s c, walking_pair.cases_on c (colimit.ι_desc _ _) (colimit.ι_desc _ _),
+      fac' := λ s c, discrete.cases_on c
+        (λ c, walking_pair.cases_on c (colimit.ι_desc _ _) (colimit.ι_desc _ _)),
       uniq' := λ s m J,
                 begin
                   rw [←J, ←J],

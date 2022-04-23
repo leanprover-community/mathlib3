@@ -613,14 +613,14 @@ by { cases x, refl }
 @[simp] theorem right_moves_neg (x : pgame) : (-x).right_moves = x.left_moves :=
 by { cases x, refl }
 
-/-- Turns a right move for `x` into a left move for `-x` and viceversa.
+/-- Turns a right move for `x` into a left move for `-x` and vice versa.
 
 Even though these types are the same (not definitionally so), this is the preferred way to convert
 between them. -/
 def to_left_moves_neg {x : pgame} : x.right_moves ≃ (-x).left_moves :=
 equiv.cast (left_moves_neg x).symm
 
-/-- Turns a left move for `x` into a right move for `-x`.
+/-- Turns a left move for `x` into a right move for `-x` and vice versa.
 
 Even though these types are the same (not definitionally so), this is the preferred way to convert
 between them. -/

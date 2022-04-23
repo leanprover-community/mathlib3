@@ -959,8 +959,8 @@ protected def function.surjective.non_unital_non_assoc_ring
 instance non_unital_non_assoc_ring.to_has_distrib_neg : has_distrib_neg α :=
 { neg := has_neg.neg,
   neg_neg := neg_neg,
-  neg_mul := λ a b, (neg_eq_of_add_eq_zero_left $ by rw [← right_distrib, add_right_neg, zero_mul]).symm,
-  mul_neg := λ a b, (neg_eq_of_add_eq_zero_left $ by rw [← left_distrib, add_right_neg, mul_zero]).symm }
+  neg_mul := λ a b, eq_neg_of_add_eq_zero_right $ by rw [← right_distrib, add_right_neg, zero_mul],
+  mul_neg := λ a b, eq_neg_of_add_eq_zero_right $ by rw [← left_distrib, add_right_neg, mul_zero] }
 
 lemma mul_sub_left_distrib (a b c : α) : a * (b - c) = a * b - a * c :=
 by simpa only [sub_eq_add_neg, neg_mul_eq_mul_neg] using mul_add a b (-c)

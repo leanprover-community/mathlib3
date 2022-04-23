@@ -638,7 +638,7 @@ class division_monoid (G : Type u) extends div_inv_monoid G, has_involutive_inv 
 section division_monoid
 variables [division_monoid G] {a b : G}
 
-@[simp, to_additive] lemma mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
+@[simp, to_additive neg_add_rev] lemma mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
 division_monoid.mul_inv_rev _ _
 
 @[simp, to_additive]

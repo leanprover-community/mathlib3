@@ -1021,7 +1021,8 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
      ... ≤ y : (add_zero_relabelling y).le⟩
 
 /-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
-  `{xL * y + x * yL - xL * yL, xR * y + x * yR - xR * yR | xL * y + x * yR - xL * yR, xL * y + x * yR - xL * yR}`. -/
+  `{xL * y + x * yL - xL * yL, xR * y + x * yR - xR * yR |`
+  `xL * y + x * yR - xL * yR, xL * y + x * yR - xL * yR}`. -/
 def mul : pgame → pgame → pgame
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ :=
 begin
@@ -1042,20 +1043,20 @@ instance : has_mul pgame :=
 def mul₁ {xl xr yl yr : Type u} (xL : xl → pgame) (xR : xr → pgame) (yL : yl → pgame)
   (yR : yr → pgame) : (xl × yl) ⊕ (xr × yr) → pgame :=
 @sum.rec (xl × yl) (xr × yr) (λ _, pgame)
-  (λ i, (xL i.fst).mul (mk yl yr yL yR) + (mk xl xr xL xR).mul (yL i.snd) -
-    (xL i.fst).mul (yL i.snd))
-  (λ i, (xR i.fst).mul (mk yl yr yL yR) + (mk xl xr xL xR).mul (yR i.snd) -
-    (xR i.fst).mul (yR i.snd))
+  (λ i, (xL i.1) * (mk yl yr yL yR) + (mk xl xr xL xR) * (yL i.2) -
+    (xL i.1) * (yL i.2))
+  (λ i, (xR i.1) * (mk yl yr yL yR) + (mk xl xr xL xR) * (yR i.2) -
+    (xR i.1) * (yR i.2))
 
 /-- This auxiliary function is heterogeneously equal to
 `(⟨xl xr xL xR⟩ * ⟨yl yr yL yR⟩).move_right`. -/
 def mul₂ {xl xr yl yr : Type u} (xL : xl → pgame) (xR : xr → pgame) (yL : yl → pgame)
   (yR : yr → pgame) : (xl × yr) ⊕ (xr × yl) → pgame :=
 @sum.rec (xl × yr) (xr × yl) (λ _, pgame)
-  (λ i, (xL i.fst).mul (mk yl yr yL yR) + (mk xl xr xL xR).mul (yR i.snd) -
-    (xL i.fst).mul (yR i.snd))
-  (λ i, (xR i.fst).mul (mk yl yr yL yR) + (mk xl xr xL xR).mul (yL i.snd) -
-    (xR i.fst).mul (yL i.snd))
+  (λ i, (xL i.1) * (mk yl yr yL yR) + (mk xl xr xL xR) * (yR i.2) -
+    (xL i.1) * (yR i.2))
+  (λ i, (xR i.1) * (mk yl yr yL yR) + (mk xl xr xL xR) * (yL i.2) -
+    (xR i.1) * (yL i.2))
 
 theorem move_left_mul_heq {xl xr yl yr : Type u} {xL xR yL yR} :
   ((mk xl xr xL xR) * (mk yl yr yL yR)).move_left == mul₁ xL xR yL yR :=

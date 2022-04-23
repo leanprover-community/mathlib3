@@ -401,8 +401,13 @@ lemma op_norm_neg : ∥-f∥ = ∥f∥ := by { rw norm_def, apply congr_arg, ext
 
 /-- Continuous multilinear maps themselves form a semi normed space with respect to
     the operator norm. -/
-instance to_semi_normed_group : semi_normed_group (continuous_multilinear_map 𝕜 E Gₛ) :=
+instance semi_normed_group : semi_normed_group (continuous_multilinear_map 𝕜 E Gₛ) :=
 semi_normed_group.of_core _ ⟨op_norm_zero, op_norm_add_le, op_norm_neg⟩
+
+/-- An alias of `continuous_multilinear_map.semi_normed_group` with non-dependent types to help
+typeclass search. -/
+instance semi_normed_group' : semi_normed_group (continuous_multilinear_map 𝕜 (λ i : ι, G) G'ₛ) :=
+continuous_multilinear_map.semi_normed_group
 
 /-- Continuous multilinear maps themselves form a normed space with respect to
     the operator norm. -/
@@ -411,7 +416,7 @@ normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
 /-- An alias of `continuous_multilinear_map.normed_group` with non-dependent types to help typeclass
 search. -/
-instance normed_group' : normed_group (continuous_multilinear_map 𝕜 (λ i : ι, G) G'ₛ) :=
+instance normed_group' : normed_group (continuous_multilinear_map 𝕜 (λ i : ι, G) G') :=
 continuous_multilinear_map.normed_group
 
 instance normed_space : normed_space 𝕜' (continuous_multilinear_map 𝕜 E Gₛ) :=

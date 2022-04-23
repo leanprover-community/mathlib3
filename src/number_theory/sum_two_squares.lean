@@ -24,7 +24,8 @@ open gaussian_int
 of two squares. Also known as **Fermat's Christmas theorem**. -/
 lemma nat.prime.sq_add_sq {p : ℕ} [fact p.prime] (hp : p % 4 = 1) :
   ∃ a b : ℕ, a ^ 2 + b ^ 2 = p :=
-sq_add_sq_of_nat_prime_of_not_irreducible p begin
+begin
+  apply sq_add_sq_of_nat_prime_of_not_irreducible p,
   rw [principal_ideal_ring.irreducible_iff_prime, prime_iff_mod_four_eq_three_of_nat_prime p, hp],
   norm_num
 end

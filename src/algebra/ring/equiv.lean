@@ -258,21 +258,6 @@ end comm_semiring
 
 end opposite
 
-section semiring
-
-variables [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (x y : R)
-
-/-- A ring isomorphism sends one to one. -/
-protected lemma map_one : f 1 = 1 := map_one f
-
-variable {x}
-
-protected lemma map_eq_one_iff : f x = 1 ↔ x = 1 := mul_equiv_class.map_eq_one_iff f
-
-lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := mul_equiv_class.map_ne_one_iff f
-
-end semiring
-
 section non_unital_semiring
 
 variables [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
@@ -332,6 +317,21 @@ lemma Pi_congr_right_trans {ι : Type*} {R S T : ι → Type*}
   (Pi_congr_right e).trans (Pi_congr_right f) = (Pi_congr_right $ λ i, (e i).trans (f i)) := rfl
 
 end non_unital_semiring
+
+section semiring
+
+variables [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (x y : R)
+
+/-- A ring isomorphism sends one to one. -/
+protected lemma map_one : f 1 = 1 := map_one f
+
+variable {x}
+
+protected lemma map_eq_one_iff : f x = 1 ↔ x = 1 := mul_equiv_class.map_eq_one_iff f
+
+lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := mul_equiv_class.map_ne_one_iff f
+
+end semiring
 
 section ring
 

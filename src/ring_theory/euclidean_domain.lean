@@ -67,7 +67,8 @@ def gcd_monoid (R) [euclidean_domain R] : gcd_monoid R :=
   dvd_gcd := λ a b c, dvd_gcd,
   gcd_mul_lcm := λ a b, by rw euclidean_domain.gcd_mul_lcm,
   lcm_zero_left := lcm_zero_left,
-  lcm_zero_right := lcm_zero_right }
+  lcm_zero_right := lcm_zero_right,
+  to_is_domain' := euclidean_domain.to_is_domain }
 
 variables {α : Type*} [euclidean_domain α] [decidable_eq α]
 

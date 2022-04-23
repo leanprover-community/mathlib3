@@ -50,13 +50,17 @@ open ideal local_ring
 
 /-- An integral domain is a *discrete valuation ring* (DVR) if it's a local PID which
   is not a field. -/
-class discrete_valuation_ring (R : Type u) [comm_ring R] [is_domain R]
+class discrete_valuation_ring (R : Type u) [comm_ring R]
   extends is_principal_ideal_ring R, local_ring R : Prop :=
+(to_is_domain' : is_domain R . tactic.apply_instance)
 (not_a_field' : maximal_ideal R ≠ ⊥)
 
 namespace discrete_valuation_ring
 
-variables (R : Type u) [comm_ring R] [is_domain R] [discrete_valuation_ring R]
+variables (R : Type u) [comm_ring R] [discrete_valuation_ring R]
+
+restate_axiom discrete_valuation_ring.to_is_domain'
+attribute [instance, priority 100, reducible] discrete_valuation_ring.to_is_domain
 
 lemma not_a_field : maximal_ideal R ≠ ⊥ := not_a_field'
 
@@ -176,7 +180,6 @@ begin
     { rw [add_comm, pow_succ] at H0,
       exact (hϖ.not_unit (is_unit_of_mul_is_unit_left H0)).elim } }
 end
-
 variables [is_domain R]
 
 /-- An integral domain in which there is an irreducible element `p`
@@ -468,7 +471,7 @@ lemma add_val_add {a b : R} :
 
 end
 
-instance (R : Type*) [comm_ring R] [is_domain R] [discrete_valuation_ring R] :
+instance (R : Type*) [comm_ring R] [discrete_valuation_ring R] :
   is_Hausdorff (maximal_ideal R) R :=
 { haus' := λ x hx,
   begin

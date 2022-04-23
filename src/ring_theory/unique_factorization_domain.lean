@@ -137,8 +137,8 @@ To define a UFD using the definition in terms of multisets
 of prime factors, use the definition `of_exists_prime_factors`
 
 -/
-class unique_factorization_monoid (α : Type*) [comm_monoid_with_zero α] [is_domain α]
-  extends wf_dvd_monoid α : Prop :=
+class unique_factorization_monoid (α : Type*) [comm_monoid_with_zero α]
+  extends is_domain α, wf_dvd_monoid α : Prop :=
 (irreducible_iff_prime : ∀ {a : α}, irreducible a ↔ prime a)
 
 /-- Can't be an instance because it would cause a loop `ufm → wf_dvd_monoid → ufm → ...`. -/
@@ -147,7 +147,7 @@ class unique_factorization_monoid (α : Type*) [comm_monoid_with_zero α] [is_do
 { irreducible_iff_prime := λ _, gcd_monoid.irreducible_iff_prime
   .. ‹wf_dvd_monoid α› }
 
-instance associates.ufm [comm_monoid_with_zero α] [is_domain α]
+instance associates.ufm [comm_monoid_with_zero α]
   [unique_factorization_monoid α] : unique_factorization_monoid (associates α) :=
 { irreducible_iff_prime := by { rw ← associates.irreducible_iff_prime_iff,
     apply unique_factorization_monoid.irreducible_iff_prime, } }
@@ -155,7 +155,7 @@ instance associates.ufm [comm_monoid_with_zero α] [is_domain α]
 end prio
 
 namespace unique_factorization_monoid
-variables [comm_monoid_with_zero α] [is_domain α] [unique_factorization_monoid α]
+variables [comm_monoid_with_zero α] [unique_factorization_monoid α]
 
 theorem exists_prime_factors (a : α) : a ≠ 0 →
   ∃ f : multiset α, (∀b ∈ f, prime b) ∧ f.prod ~ᵤ a :=
@@ -311,7 +311,7 @@ theorem unique_factorization_monoid.iff_exists_prime_factors
   [comm_monoid_with_zero α] [is_domain α] :
   unique_factorization_monoid α ↔
     (∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, prime b) ∧ f.prod ~ᵤ a) :=
-⟨λ h, @unique_factorization_monoid.exists_prime_factors _ _ _ h,
+⟨λ h, @unique_factorization_monoid.exists_prime_factors _ _ h,
   unique_factorization_monoid.of_exists_prime_factors⟩
 
 section
@@ -390,7 +390,7 @@ unique_factorization_monoid.of_exists_prime_factors (by
     simp_rw irreducible_iff_prime_of_exists_unique_irreducible_factors eif uif })
 
 namespace unique_factorization_monoid
-variables [comm_monoid_with_zero α] [is_domain α] [decidable_eq α]
+variables [comm_monoid_with_zero α] [decidable_eq α]
 variables [unique_factorization_monoid α]
 /-- Noncomputably determines the multiset of prime factors. -/
 noncomputable def factors (a : α) : multiset α := if h : a = 0 then 0 else
@@ -430,7 +430,7 @@ multiset.exists_mem_of_rel_of_mem this (by simp)
 end unique_factorization_monoid
 
 namespace unique_factorization_monoid
-variables [comm_monoid_with_zero α] [is_domain α] [decidable_eq α] [normalization_monoid α]
+variables [comm_monoid_with_zero α] [decidable_eq α] [normalization_monoid α]
 variables [unique_factorization_monoid α]
 
 /-- Noncomputably determines the multiset of prime factors. -/

@@ -69,7 +69,7 @@ variables {α : Type*}
 /-- Normalization monoid: multiplying with `norm_unit` gives a normal form for associated
 elements. -/
 @[protect_proj] class normalization_monoid (α : Type*)
-  [comm_monoid_with_zero α] [is_domain α] :=
+  [comm_monoid_with_zero α] extends is_domain α :=
 (norm_unit : α → αˣ)
 (norm_unit_zero      : norm_unit 0 = 1)
 (norm_unit_mul       : ∀{a b}, a ≠ 0 → b ≠ 0 → norm_unit (a * b) = norm_unit a * norm_unit b)
@@ -80,7 +80,7 @@ export normalization_monoid (norm_unit norm_unit_zero norm_unit_mul norm_unit_co
 attribute [simp] norm_unit_coe_units norm_unit_zero norm_unit_mul
 
 section normalization_monoid
-variables [comm_monoid_with_zero α] [is_domain α] [normalization_monoid α]
+variables [comm_monoid_with_zero α] [normalization_monoid α]
 
 @[simp] theorem norm_unit_one : norm_unit (1:α) = 1 :=
 norm_unit_coe_units 1
@@ -162,7 +162,7 @@ units.mul_right_dvd
 end normalization_monoid
 
 namespace associates
-variables [comm_monoid_with_zero α] [is_domain α] [normalization_monoid α]
+variables [comm_monoid_with_zero α] [normalization_monoid α]
 
 local attribute [instance] associated.setoid
 
@@ -206,7 +206,8 @@ end associates
 `lcm` (least common multiple) operations, determined up to a unit. The type class focuses on `gcd`
 and we derive the corresponding `lcm` facts from `gcd`.
 -/
-@[protect_proj] class gcd_monoid (α : Type*) [comm_monoid_with_zero α] [is_domain α] :=
+@[protect_proj] class gcd_monoid (α : Type*) [comm_monoid_with_zero α] :=
+(to_is_domain' : is_domain α . tactic.apply_instance)
 (gcd : α → α → α)
 (lcm : α → α → α)
 (gcd_dvd_left   : ∀a b, gcd a b ∣ a)
@@ -216,13 +217,16 @@ and we derive the corresponding `lcm` facts from `gcd`.
 (lcm_zero_left  : ∀a, lcm 0 a = 0)
 (lcm_zero_right : ∀a, lcm a 0 = 0)
 
+restate_axiom gcd_monoid.to_is_domain'
+attribute [instance, priority 100, reducible] gcd_monoid.to_is_domain
+
 /-- Normalized GCD monoid: a cancellative `comm_monoid_with_zero` with normalization and `gcd`
 (greatest common divisor) and `lcm` (least common multiple) operations. In this setting `gcd` and
 `lcm` form a bounded lattice on the associated elements where `gcd` is the infimum, `lcm` is the
 supremum, `1` is bottom, and `0` is top. The type class focuses on `gcd` and we derive the
 corresponding `lcm` facts from `gcd`.
 -/
-class normalized_gcd_monoid (α : Type*) [comm_monoid_with_zero α] [is_domain α]
+class normalized_gcd_monoid (α : Type*) [comm_monoid_with_zero α]
   extends normalization_monoid α, gcd_monoid α :=
 (normalize_gcd : ∀a b, normalize (gcd a b) = gcd a b)
 (normalize_lcm : ∀a b, normalize (lcm a b) = lcm a b)
@@ -233,7 +237,7 @@ export gcd_monoid (gcd lcm gcd_dvd_left gcd_dvd_right dvd_gcd  lcm_zero_left lcm
 attribute [simp] lcm_zero_left lcm_zero_right
 
 section gcd_monoid
-variables [comm_monoid_with_zero α] [is_domain α]
+variables [comm_monoid_with_zero α]
 
 @[simp] theorem normalize_gcd [normalized_gcd_monoid α] : ∀a b:α, normalize (gcd a b) = gcd a b :=
 normalized_gcd_monoid.normalize_gcd
@@ -524,7 +528,7 @@ theorem exists_eq_pow_of_mul_eq_pow [gcd_monoid α] [unique αˣ] {a b c : α}
   (h : a * b = c ^ k) : ∃ (d : α), a = d ^ k :=
 let ⟨d, hd⟩ := exists_associated_pow_of_mul_eq_pow hab h in ⟨d, (associated_iff_eq.mp hd).symm⟩
 
-lemma gcd_greatest {α : Type*} [comm_monoid_with_zero α] [is_domain α] [normalized_gcd_monoid α]
+lemma gcd_greatest {α : Type*} [comm_monoid_with_zero α] [normalized_gcd_monoid α]
   {a b d : α} (hda : d ∣ a) (hdb : d ∣ b)
   (hd : ∀ e : α, e ∣ a → e ∣ b → e ∣ d) : gcd_monoid.gcd a b = normalize d :=
 begin
@@ -532,7 +536,7 @@ begin
   exact gcd_eq_normalize h (gcd_monoid.dvd_gcd hda hdb),
 end
 
-lemma gcd_greatest_associated {α : Type*} [comm_monoid_with_zero α] [is_domain α] [gcd_monoid α]
+lemma gcd_greatest_associated {α : Type*} [comm_monoid_with_zero α] [gcd_monoid α]
   {a b d : α} (hda : d ∣ a) (hdb : d ∣ b)
   (hd : ∀ e : α, e ∣ a → e ∣ b → e ∣ d) : associated d (gcd_monoid.gcd a b) :=
 begin
@@ -744,7 +748,7 @@ end unique_unit
 
 section is_domain
 
-variables [comm_ring α] [is_domain α] [normalized_gcd_monoid α]
+variables [comm_ring α] [normalized_gcd_monoid α]
 
 lemma gcd_eq_of_dvd_sub_right {a b c : α} (h : a ∣ b - c) : gcd a b = gcd a c :=
 begin
@@ -847,7 +851,7 @@ noncomputable def normalized_gcd_monoid_of_gcd [normalization_monoid α] [decida
   normalize_lcm := λ a b, by
   { dsimp [normalize],
     split_ifs with a0,
-    { exact @normalize_zero α _ _ _ },
+    { exact @normalize_zero α _ _ },
     { have := (classical.some_spec (dvd_normalize_iff.2
                   ((gcd_dvd_left a b).trans (dvd.intro b rfl)))).symm,
       set l := classical.some (dvd_normalize_iff.2
@@ -858,7 +862,7 @@ noncomputable def normalized_gcd_monoid_of_gcd [normalization_monoid α] [decida
         { apply (a0 _).elim,
           rw [←zero_dvd_iff, ←ha],
           exact gcd_dvd_left _ _ },
-        { convert @normalize_zero α _ _ _ } },
+        { convert @normalize_zero α _ _ } },
       have h1 : gcd a b ≠ 0,
       { have hab : a * b ≠ 0 := mul_ne_zero a0 hb,
         contrapose! hab,

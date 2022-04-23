@@ -28,7 +28,7 @@ universes u v w
 
 /-- An integral domain is called a `valuation ring` provided that for any pair
 of elements `a b : A`, either `a` divides `b` or vice versa. -/
-class valuation_ring (A : Type u) [comm_ring A] [is_domain A] : Prop :=
+class valuation_ring (A : Type u) [comm_ring A] extends is_domain A : Prop :=
 (cond [] : ∀ a b : A, ∃ c : A, a * c = b ∨ b * c = a)
 
 namespace valuation_ring
@@ -84,7 +84,7 @@ begin
     mul_inv₀, ring_hom.map_units_inv],
 end
 
-variables [is_domain A] [valuation_ring A] [is_fraction_ring A K]
+variables [valuation_ring A] [is_fraction_ring A K]
 
 protected lemma le_total (a b : value_group A K) : a ≤ b ∨ b ≤ a :=
 begin
@@ -232,7 +232,7 @@ end
 
 section
 
-variables (A : Type u) [comm_ring A] [is_domain A] [valuation_ring A]
+variables (A : Type u) [comm_ring A] [valuation_ring A]
 
 @[priority 100]
 instance : local_ring A :=
@@ -311,7 +311,7 @@ end
 
 section
 
-variables (A : Type u) [comm_ring A] [is_domain A] [discrete_valuation_ring A]
+variables (A : Type u) [comm_ring A] [discrete_valuation_ring A]
 
 /-- A DVR is a valuation ring. -/
 @[priority 100]

@@ -1111,7 +1111,7 @@ begin
     { exact hi.trans_lt (right_move_birthday_lt i) } }
 end
 
-theorem birthday_congr : ∀ {x y : pgame.{u}}, relabelling x y → birthday x = birthday y
+theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, relabelling x y → birthday x = birthday y
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ := begin
   rw [birthday, birthday],
   congr' 1,
@@ -1120,17 +1120,17 @@ theorem birthday_congr : ∀ {x y : pgame.{u}}, relabelling x y → birthday x =
     ext i,
     split },
   { rintro ⟨j, rfl⟩,
-    exact ⟨L j, (birthday_congr (hL j)).symm⟩ },
+    exact ⟨L j, (relabelling.birthday_congr (hL j)).symm⟩ },
   { rintro ⟨j, rfl⟩,
-    refine ⟨L.symm j, birthday_congr _⟩,
+    refine ⟨L.symm j, relabelling.birthday_congr _⟩,
     convert hL (L.symm j),
     rw L.apply_symm_apply },
   { rintro ⟨j, rfl⟩,
-    refine ⟨R j, (birthday_congr _).symm⟩,
+    refine ⟨R j, (relabelling.birthday_congr _).symm⟩,
     convert hR (R j),
     rw R.symm_apply_apply },
   { rintro ⟨j, rfl⟩,
-    exact ⟨R.symm j, birthday_congr (hR j)⟩ }
+    exact ⟨R.symm j, relabelling.birthday_congr (hR j)⟩ }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

@@ -138,10 +138,10 @@ pgame.mk (fin L.length) (fin R.length) (λ i, L.nth_le i i.is_lt) (λ j, R.nth_l
 
 /-- The new game after Left makes an allowed move. -/
 def move_left : Π (g : pgame), left_moves g → pgame
-| (mk l _ L _) i := L i
+| (mk l _ L _) := L
 /-- The new game after Right makes an allowed move. -/
 def move_right : Π (g : pgame), right_moves g → pgame
-| (mk _ r _ R) j := R j
+| (mk _ r _ R) := R
 
 @[simp] lemma left_moves_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).left_moves = xl := rfl
 @[simp] lemma move_left_mk {xl xr xL xR i} : (⟨xl, xr, xL, xR⟩ : pgame).move_left i = xL i := rfl
@@ -1019,6 +1019,99 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
      ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
      ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero) _
      ... ≤ y : (add_zero_relabelling y).le⟩
+
+/-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
+  `{xL * y + x * yL - xL * yL, xR * y + x * yR - xR * yR | xL * y + x * yR - xL * yR, xL * y + x * yR - xL * yR}`. -/
+def mul : pgame → pgame → pgame
+| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ :=
+begin
+  refine ⟨(xl × yl) ⊕ (xr × yr), (xl × yr) ⊕ (xr × yl),
+    sum.rec (λ i, _) (λ i, _), sum.rec (λ i, _) (λ i, _)⟩,
+  { exact mul (xL i.1) ⟨yl, yr, yL, yR⟩ + mul ⟨xl, xr, xL, xR⟩ (yL i.2) - mul (xL i.1) (yL i.2) },
+  { exact mul (xR i.1) ⟨yl, yr, yL, yR⟩ + mul ⟨xl, xr, xL, xR⟩ (yR i.2) - mul (xR i.1) (yR i.2) },
+  { exact mul (xL i.1) ⟨yl, yr, yL, yR⟩ + mul ⟨xl, xr, xL, xR⟩ (yR i.2) - mul (xL i.1) (yR i.2) },
+  { exact mul (xR i.1) ⟨yl, yr, yL, yR⟩ + mul ⟨xl, xr, xL, xR⟩ (yL i.2) - mul (xR i.1) (yL i.2) }
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+instance : has_mul pgame :=
+⟨mul⟩
+
+/-- This auxiliary function is heterogeneously equal to
+`(⟨xl xr xL xR⟩ * ⟨yl yr yL yR⟩).move_left`. -/
+def mul₁ {xl xr yl yr : Type u} (xL : xl → pgame) (xR : xr → pgame) (yL : yl → pgame)
+  (yR : yr → pgame) : (xl × yl) ⊕ (xr × yr) → pgame :=
+@sum.rec (xl × yl) (xr × yr) (λ _, pgame)
+  (λ i, (xL i.fst).mul (mk yl yr yL yR) + (mk xl xr xL xR).mul (yL i.snd) -
+    (xL i.fst).mul (yL i.snd))
+  (λ i, (xR i.fst).mul (mk yl yr yL yR) + (mk xl xr xL xR).mul (yR i.snd) -
+    (xR i.fst).mul (yR i.snd))
+
+/-- This auxiliary function is heterogeneously equal to
+`(⟨xl xr xL xR⟩ * ⟨yl yr yL yR⟩).move_right`. -/
+def mul₂ {xl xr yl yr : Type u} (xL : xl → pgame) (xR : xr → pgame) (yL : yl → pgame)
+  (yR : yr → pgame) : (xl × yr) ⊕ (xr × yl) → pgame :=
+@sum.rec (xl × yr) (xr × yl) (λ _, pgame)
+  (λ i, (xL i.fst).mul (mk yl yr yL yR) + (mk xl xr xL xR).mul (yR i.snd) -
+    (xL i.fst).mul (yR i.snd))
+  (λ i, (xR i.fst).mul (mk yl yr yL yR) + (mk xl xr xL xR).mul (yL i.snd) -
+    (xR i.fst).mul (yL i.snd))
+
+theorem move_left_mul_heq {xl xr yl yr : Type u} {xL xR yL yR} :
+  ((mk xl xr xL xR) * (mk yl yr yL yR)).move_left == mul₁ xL xR yL yR :=
+by { change (mul _ _).move_left == _, rw mul, refl }
+
+theorem move_right_mul_heq {xl xr yl yr : Type u} {xL xR yL yR} :
+  ((mk xl xr xL xR) * (mk yl yr yL yR)).move_right == mul₂ xL xR yL yR :=
+by { change (mul _ _).move_right == _, rw mul, refl }
+
+@[simp] theorem left_moves_mul (x y : pgame.{u}) :
+  (x * y).left_moves = ((x.left_moves × y.left_moves) ⊕ (x.right_moves × y.right_moves)) :=
+by { cases x, cases y, change (mul _ _).left_moves = _, rw mul, refl }
+
+@[simp] theorem right_moves_mul (x y : pgame.{u}) :
+  (x * y).right_moves = ((x.left_moves × y.right_moves) ⊕ (x.right_moves × y.left_moves)) :=
+by { cases x, cases y, change (mul _ _).right_moves = _, rw mul, refl }
+
+def to_left_moves_mul {x y : pgame} :
+  (x.left_moves × y.left_moves) ⊕ (x.right_moves × y.right_moves) ≃ (x * y).left_moves :=
+equiv.cast (left_moves_mul x y).symm
+
+def to_right_moves_mul {x y : pgame} :
+  (x.left_moves × y.right_moves) ⊕ (x.right_moves × y.left_moves) ≃ (x * y).right_moves :=
+equiv.cast (right_moves_mul x y).symm
+
+@[simp] theorem mul_move_left_inl {x y : pgame} (i : x.left_moves) (j : y.left_moves) :
+  (x * y).move_left (to_left_moves_mul (sum.inl ⟨i, j⟩)) =
+  (x.move_left i) * y + x * (y.move_left j) - (x.move_left i) * (y.move_left j) :=
+begin
+  cases x with xl xr xL xR, cases y with yl yr yL yR,
+  exact congr_fun_heq _ move_left_mul_heq.symm (sum.inl ⟨i, j⟩)
+end
+
+@[simp] theorem mul_move_left_inr {x y : pgame} (i : x.right_moves) (j : y.right_moves) :
+  (x * y).move_left (to_left_moves_mul (sum.inr ⟨i, j⟩)) =
+  (x.move_right i) * y + x * (y.move_right j) - (x.move_right i) * (y.move_right j) :=
+begin
+  cases x with xl xr xL xR, cases y with yl yr yL yR,
+  exact congr_fun_heq _ move_left_mul_heq.symm (sum.inr ⟨i, j⟩)
+end
+
+@[simp] theorem mul_move_right_inl {x y : pgame} (i : x.left_moves) (j : y.right_moves) :
+  (x * y).move_right (to_right_moves_mul (sum.inl ⟨i, j⟩)) =
+  (x.move_left i) * y + x * (y.move_right j) - (x.move_left i) * (y.move_right j) :=
+begin
+  cases x with xl xr xL xR, cases y with yl yr yL yR,
+  exact congr_fun_heq _ move_right_mul_heq.symm (sum.inl ⟨i, j⟩)
+end
+
+@[simp] theorem mul_move_right_inr {x y : pgame} (i : x.right_moves) (j : y.left_moves) :
+  (x * y).move_right (to_right_moves_mul (sum.inr ⟨i, j⟩)) =
+  (x.move_right i) * y + x * (y.move_left j) - (x.move_right i) * (y.move_left j) :=
+begin
+  cases x with xl xr xL xR, cases y with yl yr yL yR,
+  exact congr_fun_heq _ move_right_mul_heq.symm (sum.inr ⟨i, j⟩)
+end
 
 /-- The pre-game `star`, which is fuzzy/confused with zero. -/
 def star : pgame := pgame.of_lists [0] [0]

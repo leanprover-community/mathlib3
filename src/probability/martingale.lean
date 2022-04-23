@@ -401,7 +401,7 @@ lemma indicator_stopping_time_range (i j : ℕ) (s : set α) (x : α) :
   indicator_stopping_time i j s x = j :=
 begin
   classical,
-  rw [indicator_stopping_time, pi.add_apply, s.indicator_add_compl_eq_ite ↑i ↑j x,
+  rw [indicator_stopping_time, pi.add_apply, set.indicator_add_compl_eq_ite ↑i ↑j x,
     pi.coe_nat, nat.cast_id, pi.coe_nat, nat.cast_id],
   split_ifs,
   exacts [or.inl rfl, or.inr rfl]

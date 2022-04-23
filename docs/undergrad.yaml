@@ -71,7 +71,7 @@ Linear algebra:
     examples: ''
   Exponential:
     endomorphism exponential: ''
-    matrix exponential: 'matrix.exp_add'
+    matrix exponential: 'matrix.exp_add_of_commute'
 
 # 2.
 Group Theory:

@@ -27,15 +27,15 @@ Construct limit data for a binary product in `AddCommGroup`, using `AddCommGroup
 def binary_product_limit_cone (G H : AddCommGroup.{u}) : limits.limit_cone (pair G H) :=
 { cone :=
   { X := AddCommGroup.of (G × H),
-    π := { app := λ j, walking_pair.cases_on j (add_monoid_hom.fst G H) (add_monoid_hom.snd G H) }},
+    π := { app := λ j, discrete.cases_on j
+      (λ j, walking_pair.cases_on j (add_monoid_hom.fst G H) (add_monoid_hom.snd G H)),
+      naturality' := by rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟨⟩⟩⟩; refl, }},
   is_limit :=
-  { lift := λ s, add_monoid_hom.prod (s.π.app walking_pair.left) (s.π.app walking_pair.right),
-    fac' := begin rintros s (⟨⟩|⟨⟩); { ext x, simp, }, end,
-    uniq' := λ s m w,
-    begin
-      ext; [rw ← w walking_pair.left, rw ← w walking_pair.right]; refl,
+  { lift := λ s, add_monoid_hom.prod (s.π.app ⟨walking_pair.left⟩) (s.π.app ⟨walking_pair.right⟩),
+    fac' := by { rintros s (⟨⟩|⟨⟩); { ext x, simp, } },
+    uniq' := λ s m w, begin
+      ext; [rw ← w ⟨walking_pair.left⟩, rw ← w ⟨walking_pair.right⟩]; refl,
     end, } }
-
 
 instance has_binary_product (G H : AddCommGroup.{u}) : has_binary_product G H :=
 has_limit.mk (binary_product_limit_cone G H)
@@ -70,7 +70,8 @@ def lift (s : cone F) :
   map_zero' := by { ext, simp },
   map_add' := λ x y, by { ext, simp }, }
 
-@[simp] lemma lift_apply (s : cone F) (x : s.X) (j : J) : (lift F s) x j = s.π.app j x := rfl
+@[simp] lemma lift_apply (s : cone F) (x : s.X) (j : discrete J) : (lift F s) x j = s.π.app j x :=
+rfl
 
 /--
 Construct limit data for a product in `AddCommGroup`, using `AddCommGroup.of (Π j, F.obj j)`.

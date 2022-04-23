@@ -154,7 +154,7 @@ def preserves_binary_biproduct_of_preserves_biproduct (F : C ⥤ D) [preserves_z
 
 /-- A functor that preserves biproducts of a pair preserves binary biproducts. -/
 def preserves_binary_biproducts_of_preserves_biproducts (F : C ⥤ D)
-  [preserves_zero_morphisms F] [preserves_biproducts_of_shape (discrete walking_pair.{v}) F] :
+  [preserves_zero_morphisms F] [preserves_biproducts_of_shape walking_pair.{v} F] :
   preserves_binary_biproducts F :=
 { preserves := λ X Y, preserves_binary_biproduct_of_preserves_biproduct F X Y }
 
@@ -268,6 +268,8 @@ namespace limits
 section fintype
 variables {J : Type v} [decidable_eq J] [fintype J]
 
+local attribute [tidy] discrete.discrete_cases
+
 /-- A functor between preadditive categories that preserves (zero morphisms and) finite biproducts
     preserves finite products. -/
 def preserves_product_of_preserves_biproduct {f : J → C} [preserves_biproduct f F] :
@@ -349,7 +351,7 @@ def preserves_binary_product_of_preserves_binary_biproduct {X Y : C}
     ((is_limit.postcompose_inv_equiv (by exact diagram_iso_pair _) _).symm
       (is_binary_bilimit_of_preserves F
         (binary_bicone_is_bilimit_of_limit_cone_of_is_limit hc)).is_limit) $
-    cones.ext (iso.refl _) (λ j, by { cases j, tidy }) }
+    cones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy }) }
 
 section
 local attribute [instance] preserves_binary_product_of_preserves_binary_biproduct
@@ -369,7 +371,7 @@ def preserves_binary_biproduct_of_preserves_binary_product {X Y : C}
 { preserves := λ b hb, is_binary_bilimit_of_is_limit _ $
     is_limit.of_iso_limit ((is_limit.postcompose_hom_equiv (by exact diagram_iso_pair _)
       (F.map_cone b.to_cone)).symm (is_limit_of_preserves F hb.is_limit)) $
-        cones.ext (iso.refl _) (λ j, by { cases j, tidy }) }
+        cones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy }) }
 
 /-- A functor between preadditive categories that preserves (zero morphisms and) binary products
     preserves binary biproducts. -/
@@ -385,7 +387,7 @@ def preserves_binary_coproduct_of_preserves_binary_biproduct {X Y : C}
     ((is_colimit.precompose_hom_equiv (by exact diagram_iso_pair _) _).symm
       (is_binary_bilimit_of_preserves F
         (binary_bicone_is_bilimit_of_colimit_cocone_of_is_colimit hc)).is_colimit) $
-      cocones.ext (iso.refl _) (λ j, by { cases j, tidy }) }
+      cocones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy }) }
 
 section
 local attribute [instance] preserves_binary_coproduct_of_preserves_binary_biproduct
@@ -405,7 +407,7 @@ def preserves_binary_biproduct_of_preserves_binary_coproduct {X Y : C}
 { preserves := λ b hb, is_binary_bilimit_of_is_colimit _ $
     is_colimit.of_iso_colimit ((is_colimit.precompose_inv_equiv (by exact diagram_iso_pair _)
       (F.map_cocone b.to_cocone)).symm (is_colimit_of_preserves F hb.is_colimit)) $
-        cocones.ext (iso.refl _) (λ j, by { cases j, tidy }) }
+        cocones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy }) }
 
 /-- A functor between preadditive categories that preserves (zero morphisms and) binary coproducts
     preserves binary biproducts. -/

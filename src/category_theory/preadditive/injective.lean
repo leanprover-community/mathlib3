@@ -120,7 +120,7 @@ instance {β : Type v} (c : β → C) [has_product c] [∀ b, injective (c b)] :
 { factors := λ X Y g f mono, begin
   resetI,
   refine ⟨pi.lift (λ b, factor_thru (g ≫ (pi.π c _)) f), _⟩,
-  ext,
+  ext ⟨j⟩,
   simp only [category.assoc, limit.lift_π, fan.mk_π_app, comp_factor_thru],
 end }
 

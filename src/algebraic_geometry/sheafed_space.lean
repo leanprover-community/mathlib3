@@ -56,7 +56,7 @@ instance (X : SheafedSpace.{v} C) : topological_space X := X.carrier.str
 /-- The trivial `punit` valued sheaf on any topological space. -/
 def punit (X : Top) : SheafedSpace (discrete punit) :=
 { is_sheaf := presheaf.is_sheaf_punit _,
-  ..@PresheafedSpace.const (discrete punit) _ X punit.star }
+  ..@PresheafedSpace.const (discrete punit) _ X ⟨⟨⟩⟩ }
 
 instance : inhabited (SheafedSpace (discrete _root_.punit)) := ⟨punit (Top.of pempty)⟩
 

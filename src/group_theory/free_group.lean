@@ -933,18 +933,18 @@ def of_unique_lift {G : Type u} [group G] (X : Type u)
     by exactI congr_fun (lift'.symm_apply_apply f) a
   in
   monoid_hom.to_mul_equiv
-  (free_group.lift of)
-  (lift' free_group.of)
-  begin
-    apply free_group.ext_hom, intro x,
-    simp only [monoid_hom.coe_comp, function.comp_app, monoid_hom.id_apply, free_group.lift.of,
-      lift'_of],
-  end
-  begin
-    apply lift'.symm.injective, ext x,
-    simp only [equiv.coe_fn_symm_mk, monoid_hom.coe_comp, function.comp_app, monoid_hom.id_apply,
-      free_group.lift.of, lift'_of],
-  end }
+    (free_group.lift of)
+    (lift' free_group.of)
+    begin
+      apply free_group.ext_hom, intro x,
+      simp only [monoid_hom.coe_comp, function.comp_app, monoid_hom.id_apply, free_group.lift.of,
+        lift'_of],
+    end
+    begin
+      apply lift'.symm.injective, ext x,
+      simp only [equiv.coe_fn_symm_mk, monoid_hom.coe_comp, function.comp_app, monoid_hom.id_apply,
+        free_group.lift.of, lift'_of],
+    end }
 
 /-- Being a free group transports across group isomorphisms. -/
 def of_mul_equiv {H : Type*} [group H] (h : G ≃* H) : is_free_group H :=

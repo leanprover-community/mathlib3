@@ -975,7 +975,7 @@ end
 protected lemma injective (hM : M ≤ non_zero_divisors R) :
   injective (algebra_map R S) :=
 begin
-  rw ring_hom.injective_iff (algebra_map R S),
+  rw injective_iff_map_eq_zero (algebra_map R S),
   intros a ha,
   rwa to_map_eq_zero_iff S hM at ha
 end

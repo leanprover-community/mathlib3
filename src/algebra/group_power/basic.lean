@@ -385,10 +385,11 @@ by rw [pow_bit0', neg_mul_neg, pow_bit0']
 @[simp] theorem neg_pow_bit1 (a : R) (n : ℕ) : (- a) ^ (bit1 n) = - a ^ (bit1 n) :=
 by simp only [bit1, pow_succ, neg_pow_bit0, neg_mul_eq_neg_mul]
 
-@[simp] lemma neg_sq (a : R) : (-a)^2 = a^2 :=
-by simp [sq]
+@[simp] lemma neg_sq (a : R) : (-a) ^ 2 = a ^ 2 := by simp [sq]
+@[simp] lemma neg_one_sq : (-1 : R) ^ 2 = 1 := by rw [neg_sq, one_pow]
 
 alias neg_sq ← neg_pow_two
+alias neg_one_sq ← neg_one_pow_two
 
 end has_distrib_neg
 
@@ -451,7 +452,8 @@ lemma of_mul_zpow [div_inv_monoid G] (x : G) (n : ℤ) :
   additive.of_mul (x ^ n) = n • additive.of_mul x :=
 rfl
 
-@[simp] lemma semiconj_by.zpow_right [group G] {a x y : G} (h : semiconj_by a x y) :
+@[simp, to_additive]
+lemma semiconj_by.zpow_right [group G] {a x y : G} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (x^m) (y^m)
 | (n : ℕ) := by simp [zpow_coe_nat, h.pow_right n]
 | -[1+n] := by simp [(h.pow_right n.succ).inv_right]
@@ -460,18 +462,19 @@ namespace commute
 
 variables [group G] {a b : G}
 
-@[simp] lemma zpow_right (h : commute a b) (m : ℤ) : commute a (b^m) :=
-h.zpow_right m
+@[simp, to_additive] lemma zpow_right (h : commute a b) (m : ℤ) : commute a (b^m) := h.zpow_right m
 
-@[simp] lemma zpow_left (h : commute a b) (m : ℤ) : commute (a^m) b :=
+@[simp, to_additive] lemma zpow_left (h : commute a b) (m : ℤ) : commute (a^m) b :=
 (h.symm.zpow_right m).symm
 
+@[to_additive]
 lemma zpow_zpow (h : commute a b) (m n : ℤ) : commute (a^m) (b^n) := (h.zpow_left m).zpow_right n
 
 variables (a) (m n : ℤ)
 
-@[simp] theorem self_zpow : commute a (a ^ n) := (commute.refl a).zpow_right n
-@[simp] theorem zpow_self : commute (a ^ n) a := (commute.refl a).zpow_left n
-@[simp] theorem zpow_zpow_self : commute (a ^ m) (a ^ n) := (commute.refl a).zpow_zpow m n
+@[simp, to_additive] lemma self_zpow : commute a (a ^ n) := (commute.refl a).zpow_right n
+@[simp, to_additive] lemma zpow_self : commute (a ^ n) a := (commute.refl a).zpow_left n
+@[simp, to_additive] lemma zpow_zpow_self : commute (a ^ m) (a ^ n) :=
+(commute.refl a).zpow_zpow m n
 
 end commute

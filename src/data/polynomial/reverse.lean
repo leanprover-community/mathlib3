@@ -281,7 +281,7 @@ begin
   rw [nat_degree_mul' fg, reflect_mul  f g rfl.le rfl.le],
 end
 
-@[simp] lemma reverse_mul_of_domain {R : Type*} [ring R] [is_domain R] (f g : R[X]) :
+@[simp] lemma reverse_mul_of_domain {R : Type*} [ring R] [no_zero_divisors R] (f g : R[X]) :
   reverse (f * g) = reverse f * reverse g :=
 begin
   by_cases f0 : f=0,
@@ -291,7 +291,7 @@ begin
   simp [reverse_mul, *],
 end
 
-lemma trailing_coeff_mul {R : Type*} [ring R] [is_domain R] (p q : R[X]) :
+lemma trailing_coeff_mul {R : Type*} [ring R] [no_zero_divisors R] (p q : R[X]) :
   (p * q).trailing_coeff = p.trailing_coeff * q.trailing_coeff :=
 by rw [←reverse_leading_coeff, reverse_mul_of_domain, leading_coeff_mul,
   reverse_leading_coeff, reverse_leading_coeff]

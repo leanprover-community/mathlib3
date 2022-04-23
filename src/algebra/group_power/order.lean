@@ -71,6 +71,11 @@ begin
   exact lt_mul_of_one_lt_right' _ (one_lt_pow' ha k.succ_ne_zero)
 end
 
+@[to_additive nsmul_strict_mono_right]
+lemma pow_strict_mono_left [covariant_class M M (*) (<)] {a : M} (ha : 1 < a) :
+  strict_mono ((^) a : ℕ → M) :=
+λ m n, pow_lt_pow' ha
+
 end preorder
 
 section linear_order
@@ -96,6 +101,14 @@ lt_iff_lt_of_le_iff_le (one_le_pow_iff hn)
 @[to_additive]
 lemma pow_eq_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n = 1 ↔ x = 1 :=
 by simp only [le_antisymm_iff, pow_le_one_iff hn, one_le_pow_iff hn]
+
+variables [covariant_class M M (*) (<)] {a : M} {m n : ℕ}
+
+@[to_additive nsmul_le_nsmul_iff]
+lemma pow_le_pow_iff' (ha : 1 < a) : a ^ m ≤ a ^ n ↔ m ≤ n := (pow_strict_mono_left ha).le_iff_le
+
+@[to_additive nsmul_lt_nsmul_iff]
+lemma pow_lt_pow_iff' (ha : 1 < a) : a ^ m < a ^ n ↔ m < n := (pow_strict_mono_left ha).lt_iff_lt
 
 end linear_order
 
@@ -386,6 +399,9 @@ have t : 1^2 ≤ x^2 ↔ |1| ≤ |x| := ⟨abs_le_abs_of_sq_le_sq, sq_le_sq⟩, 
 
 @[simp] lemma one_lt_sq_iff_one_lt_abs (x : R) : 1 < x^2 ↔ 1 < |x| :=
 have t : 1^2 < x^2 ↔ |1| < |x| := ⟨abs_lt_abs_of_sq_lt_sq, sq_lt_sq⟩, by simpa using t
+
+lemma pow_four_le_pow_two_of_pow_two_le {x y : R} (h : x^2 ≤ y) : x^4 ≤ y^2 :=
+(pow_mul x 2 2).symm ▸ pow_le_pow_of_le_left (sq_nonneg x) h 2
 
 end linear_ordered_ring
 

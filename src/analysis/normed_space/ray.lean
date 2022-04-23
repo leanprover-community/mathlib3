@@ -58,15 +58,11 @@ variables {x y : F}
 lemma norm_inj_on_ray_left (hx : x ≠ 0) : {y | same_ray ℝ x y}.inj_on norm :=
 begin
   rintro y hy z hz h,
-  obtain rfl | hz' := eq_or_ne z 0,
-  { rwa [norm_zero, norm_eq_zero] at h },
-  have hy' : y ≠ 0,
-  { rwa [←norm_ne_zero_iff, ←h, norm_ne_zero_iff] at hz' },
-  obtain ⟨r, hr, rfl⟩ := hy.exists_pos_left hx hy',
-  obtain ⟨s, hs, rfl⟩ := hz.exists_pos_left hx hz',
-  simp_rw [norm_smul, mul_left_inj' (norm_ne_zero_iff.2 hx), norm_of_nonneg hr.le,
-    norm_of_nonneg hs.le] at h,
-  rw h,
+  rcases hy.exists_nonneg_left hx with ⟨r, hr, rfl⟩,
+  rcases hz.exists_nonneg_left hx with ⟨s, hs, rfl⟩,
+  rw [norm_smul, norm_smul, mul_left_inj' (norm_ne_zero_iff.2 hx), norm_of_nonneg hr,
+    norm_of_nonneg hs] at h,
+  rw h
 end
 
 lemma norm_inj_on_ray_right (hy : y ≠ 0) : {x | same_ray ℝ x y}.inj_on norm :=
@@ -80,12 +76,8 @@ lemma same_ray_iff_norm_smul_eq : same_ray ℝ x y ↔ ∥x∥ • y = ∥y∥ �
 vectors `∥x∥⁻¹ • x` and `∥y∥⁻¹ • y` are equal. -/
 lemma same_ray_iff_inv_norm_smul_eq_of_ne (hx : x ≠ 0) (hy : y ≠ 0) :
   same_ray ℝ x y ↔ ∥x∥⁻¹ • x = ∥y∥⁻¹ • y :=
-begin
-  have : ∥x∥⁻¹ * ∥y∥⁻¹ ≠ 0, by simp *,
-  rw [same_ray_iff_norm_smul_eq, ← smul_right_inj this]; try { apply_instance },
-  rw [smul_comm, mul_smul, mul_smul, smul_inv_smul₀, inv_smul_smul₀, eq_comm],
-  exacts [norm_ne_zero_iff.2 hy, norm_ne_zero_iff.2 hx]
-end
+by rw [inv_smul_eq_iff₀, smul_comm, eq_comm, inv_smul_eq_iff₀, same_ray_iff_norm_smul_eq];
+    rwa norm_ne_zero_iff
 
 alias same_ray_iff_inv_norm_smul_eq_of_ne ↔ same_ray.inv_norm_smul_eq _
 

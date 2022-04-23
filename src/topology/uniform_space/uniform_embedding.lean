@@ -90,6 +90,19 @@ by simp only [uniform_embedding_def, uniform_continuous_def]; exact
  λ ⟨I, H₁, H₂⟩, ⟨I, λ s, ⟨H₂ s,
    λ ⟨t, tu, h⟩, mem_of_superset (H₁ t tu) (λ ⟨a, b⟩, h a b)⟩⟩⟩
 
+lemma equiv.uniform_embedding {α β : Type*} [uniform_space α] [uniform_space β] (f : α ≃ β)
+  (h₁ : uniform_continuous f) (h₂ : uniform_continuous f.symm) : uniform_embedding f :=
+{ comap_uniformity :=
+  begin
+    refine le_antisymm _ _,
+    { change comap (f.prod_congr f) _ ≤ _,
+      rw ← map_equiv_symm (f.prod_congr f),
+      exact h₂ },
+    { rw ← map_le_iff_le_comap,
+      exact h₁ }
+  end,
+  inj := f.injective }
+
 theorem uniform_embedding_inl : uniform_embedding (sum.inl : α → α ⊕ β) :=
 begin
   apply uniform_embedding_def.2 ⟨sum.inl_injective, λ s, ⟨_, _⟩⟩,
@@ -512,9 +525,9 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
     from calc _ ⊆ preimage (λp:(β×β), (e p.1, e p.2)) (interior t) : preimage_mono hm
     ... ⊆ preimage (λp:(β×β), (e p.1, e p.2)) t : preimage_mono interior_subset
     ... ⊆ preimage (λp:(β×β), (f p.1, f p.2)) s : ts,
-  have f '' (e ⁻¹' m₁) ×ˢ f '' (e ⁻¹' m₂) ⊆ s,
+  have (f '' (e ⁻¹' m₁)) ×ˢ (f '' (e ⁻¹' m₂)) ⊆ s,
     from calc (f '' (e ⁻¹' m₁)) ×ˢ (f '' (e ⁻¹' m₂)) =
-      (λp:(β×β), (f p.1, f p.2)) '' (e ⁻¹' m₁ ×ˢ e ⁻¹' m₂) : prod_image_image_eq
+      (λp:(β×β), (f p.1, f p.2)) '' ((e ⁻¹' m₁) ×ˢ (e ⁻¹' m₂)) : prod_image_image_eq
     ... ⊆ (λp:(β×β), (f p.1, f p.2)) '' ((λp:(β×β), (f p.1, f p.2)) ⁻¹' s) : monotone_image this
     ... ⊆ s : image_preimage_subset _ _,
   have (a, b) ∈ s, from @this (a, b) ⟨ha₁, hb₁⟩,

@@ -1153,6 +1153,7 @@ begin
   exact mem_bUnion yE D2,
 end
 
+/-- For the equality, see `inf_edist_cthickening`. -/
 lemma inf_edist_le_inf_edist_cthickening_add :
   inf_edist x s ≤ inf_edist x (cthickening δ s) + ennreal.of_real δ :=
 begin
@@ -1164,11 +1165,13 @@ begin
     (tsub_add_cancel_of_le $ le_self_add.trans (lt_tsub_iff_left.1 hxy).le).le),
 end
 
+/-- For the equality, see `inf_edist_thickening`. -/
 lemma inf_edist_le_inf_edist_thickening_add :
   inf_edist x s ≤ inf_edist x (thickening δ s) + ennreal.of_real δ :=
 inf_edist_le_inf_edist_cthickening_add.trans $
   add_le_add_right (inf_edist_anti $ thickening_subset_cthickening _ _) _
 
+/-- For the equality, see `thickening_thickening`. -/
 @[simp] lemma thickening_thickening_subset (ε δ : ℝ) (s : set α) :
   thickening ε (thickening δ s) ⊆ thickening (ε + δ) s :=
 begin
@@ -1181,6 +1184,7 @@ begin
   exact λ ⟨y, ⟨z, hz, hy⟩, hx⟩, ⟨z, hz, (edist_triangle _ _ _).trans_lt $ ennreal.add_lt_add hx hy⟩,
 end
 
+/-- For the equality, see `thickening_cthickening`. -/
 @[simp] lemma thickening_cthickening_subset (ε : ℝ) (hδ : 0 ≤ δ) (s : set α) :
   thickening ε (cthickening δ s) ⊆ thickening (ε + δ) s :=
 begin
@@ -1194,6 +1198,7 @@ begin
     (ennreal.add_lt_add_of_lt_of_le (hy.trans_lt ennreal.of_real_lt_top).ne hxy hy),
 end
 
+/-- For the equality, see `cthickening_thickening`. -/
 @[simp] lemma cthickening_thickening_subset (hε : 0 ≤ ε) (δ : ℝ) (s : set α) :
   cthickening ε (thickening δ s) ⊆ cthickening (ε + δ) s :=
 begin
@@ -1204,6 +1209,7 @@ begin
   exact λ hx, inf_edist_le_inf_edist_thickening_add.trans (add_le_add_right hx _),
 end
 
+/-- For the equality, see `cthickening_cthickening`. -/
 @[simp] lemma cthickening_cthickening_subset (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (s : set α) :
   cthickening ε (cthickening δ s) ⊆ cthickening (ε + δ) s :=
 begin

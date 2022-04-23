@@ -1070,7 +1070,8 @@ begin
 end
 
 /-- The birthday of a pre-game is inductively defined as the least strict upper bound of the
-birthdays of its left and right games. -/
+birthdays of its left and right games. It may be thought as the "step" in which a certain game is
+constructed. -/
 noncomputable def birthday : pgame.{u} → ordinal.{u}
 | ⟨xl, xr, xL, xR⟩ :=
 max (ordinal.lsub.{u u} $ λ i, birthday (xL i)) (ordinal.lsub.{u u} $ λ i, birthday (xR i))
@@ -1084,6 +1085,31 @@ theorem birthday_def (x : pgame) : birthday x = max
   (ordinal.lsub.{u u} (λ i, birthday (x.move_left i)))
   (ordinal.lsub.{u u} (λ i, birthday (x.move_right i))) :=
 by { cases x, apply birthday_mk }
+
+theorem left_move_birthday_lt {x : pgame} (i : x.left_moves) :
+  (x.move_left i).birthday < x.birthday :=
+by { cases x, rw birthday_mk, exact lt_max_of_lt_left (ordinal.lt_lsub _ i) }
+
+theorem right_move_birthday_lt {x : pgame} (i : x.right_moves) :
+  (x.move_right i).birthday < x.birthday :=
+by { cases x, rw birthday_mk, exact lt_max_of_lt_right (ordinal.lt_lsub _ i) }
+
+theorem lt_birthday_iff {x : pgame} {o : ordinal} : o < x.birthday ↔
+  (∃ i : x.left_moves, o ≤ (x.move_left i).birthday) ∨
+  (∃ i : x.right_moves, o ≤ (x.move_right i).birthday) :=
+begin
+  split,
+  { rw birthday_def,
+    intro h,
+    cases lt_max_iff.1 h with h' h',
+    { left,
+      rwa ordinal.lt_lsub_iff at h' },
+    { right,
+      rwa ordinal.lt_lsub_iff at h' } },
+  { rintro (⟨i, hi⟩ | ⟨i, hi⟩),
+    { exact hi.trans_lt (left_move_birthday_lt i) },
+    { exact hi.trans_lt (right_move_birthday_lt i) } }
+end
 
 theorem birthday_congr : ∀ {x y : pgame.{u}}, relabelling x y → birthday x = birthday y
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ⟨L, R, hL, hR⟩ := begin

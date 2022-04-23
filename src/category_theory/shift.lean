@@ -37,7 +37,6 @@ universes v u
 variables (C : Type u) (A : Type*) [category.{v} C]
 
 local attribute [instance] endofunctor_monoidal_category
-local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal
 
 section eq_to_hom
 
@@ -92,6 +91,9 @@ structure shift_mk_core :=
   ε.hom.app ((F n).obj X) ≫ (μ n 0).hom.app X =
     eq_to_hom (by { dsimp, rw add_zero }) . obviously)
 
+section
+local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal
+
 /-- Constructs a `has_shift C A` instance from `shift_mk_core`. -/
 @[simps]
 def has_shift_mk (h : shift_mk_core C A) : has_shift C A :=
@@ -105,6 +107,8 @@ def has_shift_mk (h : shift_mk_core C A) : has_shift C A :=
     by { rintro ⟨X⟩, ext, dsimp, rw [functor.map_id, category.comp_id,
       ← category.assoc, h.right_unitality], simp },
  ..(discrete.functor h.F) }⟩
+
+end
 
 variables [has_shift C A]
 
@@ -132,14 +136,6 @@ notation X`⟦`n`⟧`:20 := (shift_functor _ n).obj X
 notation f`⟦`n`⟧'`:80 := (shift_functor _ n).map f
 
 end defs
-
-section examples
-variables [has_shift C ℤ]
-
-example {X Y : C} (f : X ⟶ Y) : X⟦(1 : ℤ)⟧ ⟶ Y⟦1⟧ := f⟦1⟧'
-example {X Y : C} (f : X ⟶ Y) : X⟦(-2 : ℤ)⟧ ⟶ Y⟦-2⟧ := f⟦-2⟧'
-
-end examples
 
 section add_monoid
 
@@ -281,9 +277,14 @@ lemma shift_equiv_triangle (n : A) (X : C) :
   (shift_shift_neg X n).inv⟦n⟧' ≫ (shift_neg_shift (X⟦n⟧) n).hom = 𝟙 (X⟦n⟧) :=
 (add_neg_equiv (shift_monoidal_functor C A) n).functor_unit_iso_comp X
 
+section
+local attribute [reducible] discrete.add_monoidal
+
 lemma shift_shift_neg_hom_shift (n : A) (X : C) :
   (shift_shift_neg X n).hom ⟦n⟧' = (shift_neg_shift (X⟦n⟧) n).hom :=
 by simp
+
+end
 
 lemma shift_shift_neg_inv_shift (n : A) (X : C) :
   (shift_shift_neg X n).inv ⟦n⟧' = (shift_neg_shift (X⟦n⟧) n).inv :=
@@ -344,6 +345,9 @@ end add_comm_monoid
 
 variables {D : Type*} [category D] [add_monoid A] [has_shift D A]
 variables (F : C ⥤ D) [full F] [faithful F]
+
+section
+local attribute [reducible] discrete.add_monoidal
 
 /-- Given a family of endomorphisms of `C` which are interwined by a fully faithful `F : C ⥤ D`
 with shift functors on `D`, we can promote that family to shift functors on `C`. -/
@@ -411,6 +415,8 @@ has_shift_mk C A
     dsimp at this,
     simp [this],
   end, }
+
+end
 
 /-- When we construct shifts on a subcategory from shifts on the ambient category,
 the inclusion functor intertwines the shifts. -/

@@ -234,27 +234,16 @@ lemma convex.closure_subset_interior_image_homothety_of_one_lt {s : set E} (hs :
   closure s ⊆ interior (homothety x t '' s) :=
 begin
   intros y hy,
-  let I := { z | ∃ (u : ℝ), u ∈ Ioc (0 : ℝ) 1 ∧ z = y + u • (x - y) },
-  have hI : I ⊆ interior s,
-  { rintros z ⟨u, hu, rfl⟩, exact hs.add_smul_sub_mem_interior' hy hx hu, },
-  let z := homothety x t⁻¹ y,
-  have hz₁ : z ∈ interior s,
-  { suffices : z ∈ I, { exact hI this, },
-    use 1 - t⁻¹,
-    split,
-    { simp only [mem_Ioc, sub_le_self_iff, inv_nonneg, sub_pos, inv_lt_one ht, true_and],
-      linarith, },
-    { simp only [z, homothety_apply, sub_smul, smul_sub, vsub_eq_sub, vadd_eq_add, one_smul],
-      abel, }, },
-  have ht' : t ≠ 0, { linarith, },
-  have hz₂ : y = homothety x t z, { simp [z, ht', homothety_apply, smul_smul], },
-  rw hz₂,
-  rw mem_interior at hz₁ ⊢,
-  obtain ⟨U, hU₁, hU₂, hU₃⟩ := hz₁,
-  exact ⟨homothety x t '' U,
-         image_subset ⇑(homothety x t) hU₁,
-         homothety_is_open_map x t ht' U hU₂,
-         mem_image_of_mem ⇑(homothety x t) hU₃⟩,
+  have ht' : 0 < t, from one_pos.trans ht,
+  obtain ⟨z, rfl⟩ : ∃ z, homothety x t z = y,
+    from (affine_equiv.homothety_units_mul_hom x (units.mk0 t ht'.ne')).surjective y,
+  suffices : z ∈ interior s,
+    from (homothety_is_open_map x t ht'.ne').image_interior_subset _ (mem_image_of_mem _ this),
+  refine hs.open_segment_interior_closure_subset_interior hx hy _,
+  rw [open_segment_eq_image_line_map, ← inv_one, ← inv_Ioi (@one_pos ℝ _ _), ← image_inv,
+    image_image],
+  use [t, ht],
+  simp [← homothety_eq_line_map, ← homothety_mul_apply, ht'.ne']
 end
 
 /-- If we dilate a convex set about a point in its interior by a scale `t > 1`, the interior of

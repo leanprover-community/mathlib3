@@ -583,7 +583,7 @@ begin
   refine ⟨this, (prod_eq $ λ s t hs ht, _).symm⟩,
   rw [map_apply this (hs.prod ht)],
   refine (prod_apply (this $ hs.prod ht)).trans _,
-  have : ∀ᵐ x ∂μa, μc ((λ y, (f x, g x y)) ⁻¹' (s ×ˢ t)) = indicator (f ⁻¹' s) (λ y, μd t) x,
+  have : ∀ᵐ x ∂μa, μc ((λ y, (f x, g x y)) ⁻¹' s ×ˢ t) = indicator (f ⁻¹' s) (λ y, μd t) x,
   { refine hg.mono (λ x hx, _), unfreezingI { subst hx },
     simp only [mk_preimage_prod_right_fn_eq_if, indicator_apply, mem_preimage],
     split_ifs,

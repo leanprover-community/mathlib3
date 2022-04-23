@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.images
 import category_theory.isomorphism_classes
+import category_theory.limits.shapes.zero_objects
 
 /-!
 # Zero morphisms and zero objects
@@ -26,6 +27,7 @@ zero object provides zero morphisms, as the unique morphisms factoring through t
 noncomputable theory
 
 universes v u
+universes v' u'
 
 open category_theory
 open category_theory.category
@@ -33,6 +35,7 @@ open category_theory.category
 namespace category_theory.limits
 
 variables (C : Type u) [category.{v} C]
+variables (D : Type u') [category.{v'} D]
 
 /-- A category "has zero morphisms" if there is a designated "zero morphism" in each morphism space,
 and compositions of zero morphisms with anything give the zero morphism. -/
@@ -119,8 +122,6 @@ lemma nonzero_image_of_nonzero {X Y : C} {f : X ⟶ Y} [has_image f] (w : f ≠ 
 end
 
 section
-universes v' u'
-variables (D : Type u') [category.{v'} D]
 
 variables [has_zero_morphisms D]
 
@@ -131,51 +132,24 @@ instance : has_zero_morphisms (C ⥤ D) :=
 
 end
 
-variables (C)
+/-- A category with a zero object has zero morphisms.
 
-/-- A category "has a zero object" if it has an object which is both initial and terminal. -/
-class has_zero_object :=
-(zero : C)
-(unique_to : Π X : C, unique (zero ⟶ X))
-(unique_from : Π X : C, unique (X ⟶ zero))
-
-instance has_zero_object_punit : has_zero_object (discrete punit) :=
-{ zero := ⟨⟨⟩⟩,
-  unique_to := by tidy,
-  unique_from := by tidy, }
-
-variables {C}
+    It is rarely a good idea to use this. Many categories that have a zero object have zero
+    morphisms for some other reason, for example from additivity. Library code that uses
+    `zero_morphisms_of_zero_object` will then be incompatible with these categories because
+    the `has_zero_morphisms` instances will not be definitionally equal. For this reason library
+    code should generally ask for an instance of `has_zero_morphisms` separately, even if it already
+    asks for an instance of `has_zero_objects`. -/
+def is_zero.has_zero_morphisms {O : C} (hO : is_zero O) : has_zero_morphisms C :=
+{ has_zero := λ X Y,
+  { zero := hO.from X ≫ hO.to Y },
+  zero_comp' := λ X Y Z f, by { rw category.assoc, congr, apply hO.eq_of_src, },
+  comp_zero' := λ X Y Z f, by { rw ←category.assoc, congr, apply hO.eq_of_tgt, }}
 
 namespace has_zero_object
 
 variables [has_zero_object C]
-
-/--
-Construct a `has_zero C` for a category with a zero object.
-This can not be a global instance as it will trigger for every `has_zero C` typeclass search.
--/
-protected def has_zero : has_zero C :=
-{ zero := has_zero_object.zero }
-
-localized "attribute [instance] category_theory.limits.has_zero_object.has_zero" in zero_object
-localized "attribute [instance] category_theory.limits.has_zero_object.unique_to" in zero_object
-localized "attribute [instance] category_theory.limits.has_zero_object.unique_from" in zero_object
-
-@[ext]
-lemma to_zero_ext {X : C} (f g : X ⟶ 0) : f = g :=
-by rw [(has_zero_object.unique_from X).uniq f, (has_zero_object.unique_from X).uniq g]
-
-@[ext]
-lemma from_zero_ext {X : C} (f g : 0 ⟶ X) : f = g :=
-by rw [(has_zero_object.unique_to X).uniq f, (has_zero_object.unique_to X).uniq g]
-
-instance (X : C) : subsingleton (X ≅ 0) := by tidy
-
-instance {X : C} (f : 0 ⟶ X) : mono f :=
-{ right_cancellation := λ Z g h w, by ext, }
-
-instance {X : C} (f : X ⟶ 0) : epi f :=
-{ left_cancellation := λ Z g h w, by ext, }
+open_locale zero_object
 
 /-- A category with a zero object has zero morphisms.
 
@@ -190,38 +164,6 @@ def zero_morphisms_of_zero_object : has_zero_morphisms C :=
   { zero := (default : X ⟶ 0) ≫ default },
   zero_comp' := λ X Y Z f, by { dunfold has_zero.zero, rw category.assoc, congr, },
   comp_zero' := λ X Y Z f, by { dunfold has_zero.zero, rw ←category.assoc, congr, }}
-
-/-- A zero object is in particular initial. -/
-def zero_is_initial : is_initial (0 : C) :=
-is_initial.of_unique 0
-/-- A zero object is in particular terminal. -/
-def zero_is_terminal : is_terminal (0 : C) :=
-is_terminal.of_unique 0
-
-/-- A zero object is in particular initial. -/
-@[priority 10]
-instance has_initial : has_initial C :=
-has_initial_of_unique 0
-/-- A zero object is in particular terminal. -/
-@[priority 10]
-instance has_terminal : has_terminal C :=
-has_terminal_of_unique 0
-
-/-- The (unique) isomorphism between any initial object and the zero object. -/
-def zero_iso_is_initial {X : C} (t : is_initial X) : 0 ≅ X :=
-zero_is_initial.unique_up_to_iso t
-
-/-- The (unique) isomorphism between any terminal object and the zero object. -/
-def zero_iso_is_terminal {X : C} (t : is_terminal X) : 0 ≅ X :=
-zero_is_terminal.unique_up_to_iso t
-
-/-- The (unique) isomorphism between the chosen initial object and the chosen zero object. -/
-def zero_iso_initial [has_initial C] : 0 ≅ ⊥_ C :=
-zero_is_initial.unique_up_to_iso initial_is_initial
-
-/-- The (unique) isomorphism between the chosen terminal object and the chosen zero object. -/
-def zero_iso_terminal [has_terminal C] : 0 ≅ ⊤_ C :=
-zero_is_terminal.unique_up_to_iso terminal_is_terminal
 
 section has_zero_morphisms
 variables [has_zero_morphisms C]
@@ -256,23 +198,28 @@ by ext
 
 end has_zero_morphisms
 
-@[priority 100]
-instance has_strict_initial : initial_mono_class C :=
-initial_mono_class.of_is_initial zero_is_initial (λ X, category_theory.mono _)
+open_locale zero_object
+
+instance {B : Type*} [category B] : has_zero_object (B ⥤ C) :=
+(((category_theory.functor.const B).obj (0 : C)).is_zero $ λ X, is_zero_zero _).has_zero_object
+
+end has_zero_object
 
 open_locale zero_object
 
-instance {B : Type*} [category B] [has_zero_morphisms C] : has_zero_object (B ⥤ C) :=
-{ zero := { obj := λ X, 0, map := λ X Y f, 0, },
-  unique_to := λ F, ⟨⟨{ app := λ X, 0, }⟩, by tidy⟩,
-  unique_from := λ F, ⟨⟨{ app := λ X, 0, }⟩, by tidy⟩ }
+variables {D}
 
-@[simp] lemma functor.zero_obj {B : Type*} [category B] [has_zero_morphisms C] (X : B) :
-  (0 : B ⥤ C).obj X = 0 := rfl
-@[simp] lemma functor.zero_map {B : Type*} [category B] [has_zero_morphisms C]
-  {X Y : B} (f : X ⟶ Y) : (0 : B ⥤ C).map f = 0 := rfl
+@[simp] lemma is_zero.map [has_zero_object D] [has_zero_morphisms D] {F : C ⥤ D} (hF : is_zero F)
+  {X Y : C} (f : X ⟶ Y) : F.map f = 0 :=
+(hF.obj _).eq_of_src _ _
 
-end has_zero_object
+@[simp] lemma _root_.category_theory.functor.zero_obj [has_zero_object D]
+  (X : C) : is_zero ((0 : C ⥤ D).obj X) :=
+(is_zero_zero _).obj _
+
+@[simp] lemma _root_.category_theory.zero_map [has_zero_object D] [has_zero_morphisms D]
+  {X Y : C} (f : X ⟶ Y) : (0 : C ⥤ D).map f = 0 :=
+(is_zero_zero _).map _
 
 section
 variables [has_zero_object C] [has_zero_morphisms C]
@@ -424,28 +371,26 @@ def is_iso_zero_self_equiv_iso_zero (X : C) : is_iso (0 : X ⟶ X) ≃ (X ≅ 0)
 end is_iso
 
 /-- If there are zero morphisms, any initial object is a zero object. -/
-def has_zero_object_of_has_initial_object
+lemma has_zero_object_of_has_initial_object
   [has_zero_morphisms C] [has_initial C] : has_zero_object C :=
-{ zero := ⊥_ C,
-  unique_to := λ X, ⟨⟨0⟩, by tidy⟩,
-  unique_from := λ X, ⟨⟨0⟩, λ f,
+begin
+  refine ⟨⟨⊥_ C, λ X, ⟨⟨⟨0⟩, by tidy⟩⟩, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩⟩⟩,
   calc
     f = f ≫ 𝟙 _ : (category.comp_id _).symm
     ... = f ≫ 0 : by congr
     ... = 0     : has_zero_morphisms.comp_zero _ _
-  ⟩ }
+end
 
 /-- If there are zero morphisms, any terminal object is a zero object. -/
-def has_zero_object_of_has_terminal_object
+lemma has_zero_object_of_has_terminal_object
   [has_zero_morphisms C] [has_terminal C] : has_zero_object C :=
-{ zero := ⊤_ C,
-  unique_from := λ X, ⟨⟨0⟩, by tidy⟩,
-  unique_to := λ X, ⟨⟨0⟩, λ f,
+begin
+  refine ⟨⟨⊤_ C, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨0⟩, by tidy⟩⟩⟩⟩,
   calc
     f = 𝟙 _ ≫ f : (category.id_comp _).symm
     ... = 0 ≫ f : by congr
     ... = 0     : zero_comp
-  ⟩ }
+end
 
 
 section image

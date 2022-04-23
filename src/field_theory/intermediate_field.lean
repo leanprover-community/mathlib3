@@ -310,7 +310,7 @@ lemma coe_is_integral_iff {R : Type*} [comm_ring R] [algebra R K] [algebra R L]
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { obtain ⟨P, hPmo, hProot⟩ := h,
-    refine ⟨P, hPmo, (ring_hom.injective_iff _).1 (algebra_map ↥S L).injective _ _⟩,
+    refine ⟨P, hPmo, (injective_iff_map_eq_zero _).1 (algebra_map ↥S L).injective _ _⟩,
     letI : is_scalar_tower R S L := is_scalar_tower.of_algebra_map_eq (congr_fun rfl),
     rwa [eval₂_eq_eval_map, ← eval₂_at_apply, eval₂_eq_eval_map, polynomial.map_map,
       ← is_scalar_tower.algebra_map_eq, ← eval₂_eq_eval_map] },

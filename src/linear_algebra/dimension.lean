@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen, Scott Morrison
 -/
 import linear_algebra.dfinsupp
-import linear_algebra.std_basis
-import linear_algebra.isomorphisms
-import set_theory.cofinality
 import linear_algebra.invariant_basis_number
+import linear_algebra.isomorphisms
+import linear_algebra.std_basis
+import set_theory.cardinal.cofinality
 
 /-!
 # Dimension of modules and vector spaces
@@ -1105,8 +1105,7 @@ dim_add_dim_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (
   begin ext ⟨x, hx⟩, refl end
   begin
     rintros ⟨b₁, hb₁⟩ ⟨b₂, hb₂⟩ eq,
-    have : b₁ = b₂ := congr_arg subtype.val eq,
-    subst this,
+    obtain rfl : b₁ = b₂ := congr_arg subtype.val eq,
     exact ⟨⟨b₁, hb₁, hb₂⟩, rfl, rfl⟩
   end
 

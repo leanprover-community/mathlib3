@@ -3,12 +3,12 @@ Copyright (c) 2021 Aaron Anderson, Jesse Michael Han, Floris van Doorn. All righ
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
-import data.fin.vec_notation
+import category_theory.concrete_category.bundled
 import data.fin.tuple.basic
+import data.fin.vec_notation
 import logic.encodable.basic
 import logic.small
-import set_theory.cardinal
-import category_theory.concrete_category.bundled
+import set_theory.cardinal.basic
 
 
 /-!

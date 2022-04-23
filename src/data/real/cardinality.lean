@@ -3,10 +3,10 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import set_theory.continuum
 import analysis.specific_limits.basic
 import data.rat.denumerable
 import data.set.intervals.image_preimage
+import set_theory.cardinal.continuum
 
 /-!
 # The cardinality of the reals

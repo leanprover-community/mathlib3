@@ -1198,6 +1198,7 @@ def sum_prod_distrib (α β γ : Sort*) : (α ⊕ β) × γ ≃ (α × γ) ⊕ (
  λ p, by rcases p with ⟨_ | _, _⟩; refl,
  λ s, by rcases s with ⟨_, _⟩ | ⟨_, _⟩; refl⟩
 
+
 @[simp] theorem sum_prod_distrib_apply_left {α β γ} (a : α) (c : γ) :
    sum_prod_distrib α β γ (sum.inl a, c) = sum.inl (a, c) := rfl
 @[simp] theorem sum_prod_distrib_apply_right {α β γ} (b : β) (c : γ) :
@@ -1213,6 +1214,12 @@ calc α × (β ⊕ γ) ≃ (β ⊕ γ) × α       : prod_comm _ _
    prod_sum_distrib α β γ (a, sum.inl b) = sum.inl (a, b) := rfl
 @[simp] theorem prod_sum_distrib_apply_right {α β γ} (a : α) (c : γ) :
    prod_sum_distrib α β γ (a, sum.inr c) = sum.inr (a, c) := rfl
+
+def sigma_sum_distrib {ι : Type*} (α β : ι → Type*) : (Σ i, α i ⊕ β i) ≃ (Σ i, α i) ⊕ Σ i, β i :=
+⟨λ p, sum.cases_on p.2 (λ x, sum.inl ⟨_, x⟩) (λ x, sum.inr ⟨_, x⟩),
+  sum.elim (sigma.map id (λ _, sum.inl)) (sigma.map id (λ _, sum.inr)),
+  λ p, by { rcases p with ⟨i, (a | b)⟩; refl },
+  λ p, by { rcases p with (⟨i, a⟩ | ⟨i, b⟩); refl }⟩
 
 /-- The product of an indexed sum of types (formally, a `sigma`-type `Σ i, α i`) by a type `β` is
 equivalent to the sum of products `Σ i, (α i × β)`. -/

@@ -40,27 +40,33 @@ end
 
 /-- If a monotone sequence `u` is such that `u n / n` tends to a limit `l` along subsequences with
 exponential growth arbitrarily close to `1`, then `u n / n` tends to `l`. -/
-lemma flouk (u : ℕ → ℝ) (l : ℝ) (hmono : monotone u)
+lemma tendsto_div_of_monotone_of_tendsto_div_subseq (u : ℕ → ℝ) (l : ℝ) (hmono : monotone u)
   (hlim : ∀ (a : ℝ), 1 < a → ∃ c : ℕ → ℕ, (∀ᶠ n in at_top, (c (n+1) : ℝ) ≤ a * c n) ∧
     tendsto c at_top at_top ∧ tendsto (λ n, u (c n) / (c n)) at_top (𝓝 l)) :
   tendsto (λ n, u n / n) at_top (𝓝 l) :=
 begin
+  /- To check the result up to some `ε > 0`, we use a sequence `c` for which the ratio
+  `c (N+1) / c N` is bounded by `1 + ε`. Sandwiching a given `n` between two consecutive values of
+  `c`, say `c N` and `c (N+1)`, one can then bound `u n / n` from above by `u (c N) / c (N - 1)`
+  and from below by `u (c (N - 1)) / c N` (using that `u` is monotone), which are both comparable
+  to the limit `l` up to `1 + ε`. -/
   have lnonneg : 0 ≤ l,
-  sorry { rcases hlim 2 one_lt_two with ⟨c, cgrowth, ctop, clim⟩,
+  { rcases hlim 2 one_lt_two with ⟨c, cgrowth, ctop, clim⟩,
     have : tendsto (λ n, u 0 / (c n)) at_top (𝓝 0) :=
       tendsto_const_nhds.div_at_top (tendsto_coe_nat_at_top_iff.2 ctop),
     apply le_of_tendsto_of_tendsto' this clim (λ n, _),
     simp_rw [div_eq_inv_mul],
-    apply mul_le_mul_of_nonneg_left (hmono (zero_le _)) (inv_nonneg.2 (nat.cast_nonneg _)) },
+    exact mul_le_mul_of_nonneg_left (hmono (zero_le _)) (inv_nonneg.2 (nat.cast_nonneg _)) },
   have A : ∀ (ε : ℝ), 0 < ε → ∀ᶠ n in at_top, u n - n * l ≤ (ε * (1 + ε + l)) * n,
-  sorry { assume ε εpos,
+  { assume ε εpos,
     rcases hlim (1 + ε) ((lt_add_iff_pos_right _).2 εpos) with ⟨c, cgrowth, ctop, clim⟩,
     have L : ∀ᶠ n in at_top, u (c n) - c n * l ≤ ε * c n,
     { rw [tendsto_sub_nhds_zero_iff, ← asymptotics.is_o_one_iff ℝ, asymptotics.is_o_iff] at clim,
       filter_upwards [clim εpos, ctop (Ioi_mem_at_top 0)] with n hn cnpos',
       have cnpos : 0 < c n := cnpos',
       calc u (c n) - c n * l
-      = (u (c n) / c n - l) * c n: by field_simp [cnpos.ne']
+      = (u (c n) / c n - l) * c n:
+        by simp only [cnpos.ne', ne.def, nat.cast_eq_zero, not_false_iff] with field_simps
       ... ≤ ε * c n :
         begin
           apply mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
@@ -73,7 +79,7 @@ begin
     filter_upwards [Ici_mem_at_top M] with n hn,
     have exN : ∃ N, n < c N,
     { rcases (tendsto_at_top.1 ctop (n+1)).exists with ⟨N, hN⟩,
-      exact ⟨N, by linarith⟩ },
+      exact ⟨N, by linarith only [hN]⟩ },
     let N := nat.find exN,
     have ncN : n < c N := nat.find_spec exN,
     have aN : a + 1 ≤ N,
@@ -88,11 +94,10 @@ begin
     { have : N - 1 < N := nat.pred_lt Npos.ne',
       simpa only [not_lt] using nat.find_min exN this },
     have IcN : (c N : ℝ) ≤ (1 + ε) * (c (N - 1)),
-    { have A : a ≤ N - 1, by linarith,
+    { have A : a ≤ N - 1, by linarith only [aN, Npos],
       have B : N - 1 + 1 = N := nat.succ_pred_eq_of_pos Npos,
       have := (ha _ A).1,
-      rw B at this,
-      linarith },
+      rwa B at this },
     calc u n - n * l ≤ u (c N) - c (N - 1) * l :
       begin
         apply sub_le_sub (hmono ncN.le),
@@ -105,7 +110,7 @@ begin
         { apply (ha _ _).2,
           exact le_trans (by simp only [le_add_iff_nonneg_right, zero_le']) aN },
         { apply mul_le_mul_of_nonneg_right _ lnonneg,
-          linarith },
+          linarith only [IcN] },
       end
     ... ≤ ε * ((1 + ε) * c (N-1)) + (ε * c (N - 1)) * l :
       add_le_add (mul_le_mul_of_nonneg_left IcN εpos.le) le_rfl
@@ -114,17 +119,18 @@ begin
       begin
         refine mul_le_mul_of_nonneg_left (nat.cast_le.2 cNn) _,
         apply mul_nonneg εpos.le,
-        linarith
+        linarith only [εpos, lnonneg]
       end },
   have B : ∀ (ε : ℝ), 0 < ε → ∀ᶠ (n : ℕ) in at_top, (n : ℝ) * l - u n ≤ (ε * (1 + l)) * n,
-  sorry { assume ε εpos,
+  { assume ε εpos,
     rcases hlim (1 + ε) ((lt_add_iff_pos_right _).2 εpos) with ⟨c, cgrowth, ctop, clim⟩,
     have L : ∀ᶠ (n : ℕ) in at_top, (c n : ℝ) * l - u (c n) ≤ ε * c n,
     { rw [tendsto_sub_nhds_zero_iff, ← asymptotics.is_o_one_iff ℝ, asymptotics.is_o_iff] at clim,
       filter_upwards [clim εpos, ctop (Ioi_mem_at_top 0)] with n hn cnpos',
       have cnpos : 0 < c n := cnpos',
       calc (c n : ℝ) * l - u (c n)
-      = -(u (c n) / c n - l) * c n: by field_simp [cnpos.ne']
+      = -(u (c n) / c n - l) * c n:
+        by simp only [cnpos.ne', ne.def, nat.cast_eq_zero, not_false_iff, neg_sub] with field_simps
       ... ≤ ε * c n :
         begin
           apply mul_le_mul_of_nonneg_right _ (nat.cast_nonneg _),
@@ -137,7 +143,7 @@ begin
     filter_upwards [Ici_mem_at_top M] with n hn,
     have exN : ∃ N, n < c N,
     { rcases (tendsto_at_top.1 ctop (n+1)).exists with ⟨N, hN⟩,
-      exact ⟨N, by linarith⟩ },
+      exact ⟨N, by linarith only [hN]⟩ },
     let N := nat.find exN,
     have ncN : n < c N := nat.find_spec exN,
     have aN : a + 1 ≤ N,
@@ -148,7 +154,7 @@ begin
         exact mem_range.2 h },
       exact lt_irrefl _ ((cNM.trans hn).trans_lt ncN) },
     have Npos : 0 < N := lt_of_lt_of_le (nat.succ_pos') aN,
-    have aN' : a ≤ N - 1 := by linarith,
+    have aN' : a ≤ N - 1 := by linarith only [aN, Npos],
     have cNn : c (N - 1) ≤ n,
     { have : N - 1 < N := nat.pred_lt Npos.ne',
       simpa only [not_lt] using nat.find_min exN this },
@@ -162,8 +168,7 @@ begin
         refine add_le_add (mul_le_mul_of_nonneg_right _ lnonneg) le_rfl,
         have B : N - 1 + 1 = N := nat.succ_pred_eq_of_pos Npos,
         have := (ha _ aN').1,
-        rw B at this,
-        linarith
+        rwa B at this,
       end
     ... = (c (N - 1) * l - u (c (N - 1))) + ε * c (N - 1) * l : by ring
     ... ≤ ε * c (N - 1) + ε * c (N - 1) * l :
@@ -175,10 +180,27 @@ begin
         exact mul_nonneg (εpos.le) (add_nonneg zero_le_one lnonneg),
       end },
   refine tendsto_order.2 ⟨λ d hd, _, λ d hd, _⟩,
-  {
-
-  },
-  sorry { obtain ⟨ε, hε, εpos⟩ : ∃ (ε : ℝ), l + ε * (1 + ε + l) < d ∧ 0 < ε,
+  { obtain ⟨ε, hε, εpos⟩ : ∃ (ε : ℝ), d + ε * (1 + l) < l ∧ 0 < ε,
+    { have L : tendsto (λ ε, d + (ε * (1 + l))) (𝓝[>] 0) (𝓝 (d + 0 * (1 + l))),
+      { apply tendsto.mono_left _ nhds_within_le_nhds,
+        exact tendsto_const_nhds.add (tendsto_id.mul tendsto_const_nhds) },
+      simp only [zero_mul, add_zero] at L,
+      exact (((tendsto_order.1 L).2 l hd).and (self_mem_nhds_within)).exists },
+    filter_upwards [B ε εpos, Ioi_mem_at_top 0] with n hn npos,
+    simp_rw [div_eq_inv_mul],
+    calc d < (n⁻¹ * n) * (l - ε * (1 + l)) :
+      begin
+        rw [inv_mul_cancel, one_mul],
+        { linarith only [hε] },
+        { exact nat.cast_ne_zero.2 (ne_of_gt npos) }
+      end
+    ... = n⁻¹ * (n * l - ε * (1 + l) * n) : by ring
+    ... ≤ n⁻¹ * u n :
+      begin
+        refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 (nat.cast_nonneg _)),
+        linarith only [hn],
+      end },
+  { obtain ⟨ε, hε, εpos⟩ : ∃ (ε : ℝ), l + ε * (1 + ε + l) < d ∧ 0 < ε,
     { have L : tendsto (λ ε, l + (ε * (1 + ε + l))) (𝓝[>] 0) (𝓝 (l + 0 * (1 + 0 + l))),
       { apply tendsto.mono_left _ nhds_within_le_nhds,
         exact tendsto_const_nhds.add
@@ -190,7 +212,7 @@ begin
     calc (n : ℝ)⁻¹ * u n ≤ (n : ℝ)⁻¹ * (n * l + ε * (1 + ε + l) * n) :
       begin
         refine mul_le_mul_of_nonneg_left _ (inv_nonneg.2 (nat.cast_nonneg _)),
-        linarith,
+        linarith only [hn],
       end
     ... = ((n : ℝ) ⁻¹ * n) * (l + ε * (1 + ε + l)) : by ring
     ... < d :
@@ -200,8 +222,6 @@ begin
       end }
 end
 
-
-#exit
 
 #check Ico_union_Ico_eq_Ico
 

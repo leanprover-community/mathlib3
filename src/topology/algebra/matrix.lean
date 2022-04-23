@@ -21,7 +21,8 @@ This file is a place to collect topological results about matrices.
 open matrix
 open_locale matrix
 
-variables {X α l m n p S R : Type*} [topological_space X] [topological_space R]
+variables {X α l m n p S R : Type*} {m' n' : l → Type*}
+variables [topological_space X] [topological_space R]
 
 instance : topological_space (matrix m n R) := Pi.topological_space
 
@@ -75,6 +76,25 @@ continuous_matrix $ λ i j, (continuous_apply _).comp hA
 lemma continuous_matrix.diagonal [has_zero R] [decidable_eq n] {A : X → n → R} (hA : continuous A) :
   continuous (λ x, diagonal (A x)) :=
 continuous_matrix $ λ i j, ((continuous_apply i).comp hA).if_const _ continuous_zero
+
+@[continuity]
+lemma continuous.matrix_block_diagonal [has_zero R] [decidable_eq p] {A : X → p → matrix m n R}
+  (hA : continuous A) :
+  continuous (λ x, block_diagonal (A x)) :=
+continuous_matrix $ λ ⟨i₁, i₂⟩ ⟨j₁, j₂⟩,
+  (((continuous_apply i₂).comp hA).matrix_elem i₁ j₁).if_const _ continuous_zero
+
+@[continuity]
+lemma continuous.matrix_block_diagonal' [has_zero R] [decidable_eq l]
+  {A : X → Π i, matrix (m' i) (n' i) R} (hA : continuous A) :
+  continuous (λ x, block_diagonal' (A x)) :=
+continuous_matrix $ λ ⟨i₁, i₂⟩ ⟨j₁, j₂⟩, begin
+  dsimp only [block_diagonal'],
+  split_ifs,
+  { subst h,
+    exact ((continuous_apply i₁).comp hA).matrix_elem i₂ j₂ },
+  { exact continuous_const },
+end
 
 @[continuity]
 lemma continuous.matrix_dot_product [fintype n] [has_mul R] [add_comm_monoid R]

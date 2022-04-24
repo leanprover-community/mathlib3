@@ -163,6 +163,52 @@ end
 
 variable {α}
 
+protected lemma uniform_continuous_comp_left [uniform_space γ] (f : β → γ)
+  (hf : uniform_continuous f) : @uniform_continuous _ _
+  (uniform_convergence.uniform_space α β) (uniform_convergence.uniform_space α γ) ((∘) f) :=
+begin
+  rw [uniform_continuous, (uniform_convergence.has_basis_uniformity α β).tendsto_iff
+      (uniform_convergence.has_basis_uniformity α γ)],
+  exact λ U hU, ⟨_, hf hU, λ uv, id⟩
+end
+
+protected lemma bar₁ [uniform_space γ] :
+  @uniform_continuous (α → β × γ) ((α → β) × (α → γ))
+    (@uniform_convergence.uniform_space _ _ prod.uniform_space)
+    (@prod.uniform_space _ _
+      (uniform_convergence.uniform_space _ _) (uniform_convergence.uniform_space _ _))
+    (equiv.arrow_prod_equiv_prod_arrow β γ α) :=
+begin
+  sorry
+end
+
+protected lemma foo₁ {β : ι → Type*} [Π i, uniform_space (β i)] :
+  @uniform_continuous (α → Π i, β i) (Π i, α → β i)
+    (@uniform_convergence.uniform_space _ _ (Pi.uniform_space _))
+    (@Pi.uniform_space _ (λ i, α → β i) (λ i, uniform_convergence.uniform_space α (β i)))
+    function.swap :=
+begin
+  letI : uniform_space (Π i, β i) := Pi.uniform_space _,
+  rw [uniform_continuous_pi],
+  exact λ i, uniform_convergence.uniform_continuous_comp_left (function.eval i)
+    (Pi.uniform_continuous_proj _ i),
+end
+
+protected lemma foo₂ {β : ι → Type*} [Π i, uniform_space (β i)] :
+  @uniform_continuous (Π i, α → β i) (α → Π i, β i)
+    (@Pi.uniform_space _ (λ i, α → β i) (λ i, uniform_convergence.uniform_space α (β i)))
+    (@uniform_convergence.uniform_space _ _ (Pi.uniform_space _))
+    function.swap :=
+begin
+  letI : uniform_space (Π i, β i) := Pi.uniform_space _,
+  rw [uniform_continuous, (uniform_convergence.has_basis_uniformity _ _).tendsto_right_iff],
+  intros U hU,
+  rw [Pi.uniformity],
+  sorry,
+  --exact λ i, uniform_convergence.uniform_continuous_comp_left (function.eval i)
+  --  (Pi.uniform_continuous_proj _ i),
+end
+
 end uniform_convergence
 
 namespace uniform_convergence_on

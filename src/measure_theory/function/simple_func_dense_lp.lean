@@ -432,7 +432,7 @@ end ⟩⟩
 
 local attribute [instance] simple_func.has_scalar
 
-/-- The right action, defined for simplicity to be equal to the left action. -/
+/-- The right action inherited from `measure_theory.Lp`. -/
 protected def has_op_scalar : has_scalar 𝕜ᵐᵒᵖ (Lp.simple_func E p μ) :=
 ⟨λk f, ⟨k • f, begin
   induction k using mul_opposite.rec,
@@ -455,7 +455,6 @@ protected def module : module 𝕜 (Lp.simple_func E p μ) :=
   add_smul  := λx y f, by { ext1, exact add_smul _ _ _ },
   zero_smul := λf, by { ext1, exact zero_smul _ _ } }
 
-/-- The right module, defined for simplicity to be equal to the left module. -/
 protected def op_module : module 𝕜ᵐᵒᵖ (Lp.simple_func E p μ) :=
 { one_smul  := λf, by { ext1, exact one_smul _ _ },
   mul_smul  := λx y f, by { ext1, exact mul_smul _ _ _ },

@@ -871,11 +871,12 @@ end free_group
 
 /-- `is_free_group G` means that `G` isomorphic to a free group. -/
 class is_free_group (G : Type u) [group G] :=
-  ( generators : Type u )
-  ( mul_equiv : free_group generators ≃* G )
+(generators : Type u)
+(mul_equiv : free_group generators ≃* G)
 
 instance (X : Type*) : is_free_group (free_group X) :=
-  { generators := X, mul_equiv := mul_equiv.refl _ }
+{ generators := X, 
+  mul_equiv := mul_equiv.refl _ }
 
 namespace is_free_group
 
@@ -897,7 +898,7 @@ variables {H : Type*} [group H]
 given by those generators. -/
 @[simps symm_apply]
 def lift : (generators G → H) ≃ (G →* H) :=
-  free_group.lift.trans
+free_group.lift.trans
   { to_fun := λ f, f.comp (@is_free_group.mul_equiv G _ _).symm.to_monoid_hom,
     inv_fun := λ f, f.comp (@is_free_group.mul_equiv G _ _).to_monoid_hom,
     left_inv := λ f, by { ext, simp, },
@@ -948,6 +949,6 @@ def of_unique_lift {G : Type u} [group G] (X : Type u)
 
 /-- Being a free group transports across group isomorphisms. -/
 def of_mul_equiv {H : Type*} [group H] (h : G ≃* H) : is_free_group H :=
-  { generators := generators G, mul_equiv := is_free_group.mul_equiv.trans h }
+{ generators := generators G, mul_equiv := is_free_group.mul_equiv.trans h }
 
 end is_free_group

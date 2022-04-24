@@ -71,10 +71,11 @@ is_refl.reflexive.ne_imp_iff
 
 protected lemma symmetric.iff (H : symmetric r) (x y : α) : r x y ↔ r y x := ⟨λ h, H h, λ h, H h⟩
 
-lemma symmetric.flip_eq (h : symmetric r) : flip r = r :=
-funext $ λ _, funext $ λ _, propext $ h.iff _ _
-
+lemma symmetric.flip_eq (h : symmetric r) : flip r = r := funext₂ $ λ _ _, propext $ h.iff _ _
 lemma symmetric.swap_eq : symmetric r → swap r = r := symmetric.flip_eq
+
+lemma flip_eq_iff : flip r = r ↔ symmetric r := ⟨λ h x y, (congr_fun₂ h _ _).mp, symmetric.flip_eq⟩
+lemma swap_eq_iff : swap r = r ↔ symmetric r := flip_eq_iff
 
 end ne_imp
 

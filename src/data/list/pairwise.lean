@@ -109,7 +109,7 @@ lemma pairwise.forall_of_forall_of_flip (h₁ : ∀ x ∈ l, R x x) (h₂ : l.pa
   ∀ ⦃x⦄, x ∈ l → ∀ ⦃y⦄, y ∈ l → R x y :=
 begin
   induction l with a l ih,
-  { exact λ x hx, hx.elim },
+  { exact forall_mem_nil _ },
   rw pairwise_cons at h₂ h₃,
   rintro x (rfl | hx) y (rfl | hy),
   { exact h₁ _ (l.mem_cons_self _) },

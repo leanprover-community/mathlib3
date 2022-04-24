@@ -8,6 +8,7 @@ import algebra.big_operators.nat_antidiagonal
 import logic.encodable.lattice
 import topology.algebra.mul_action
 import topology.algebra.order.monotone_convergence
+import topology.algebra.matrix
 import topology.instances.real
 
 /-!
@@ -1374,6 +1375,21 @@ lemma tsum_mul_tsum (hf : summable f) (hg : summable g)
 hf.has_sum.mul_eq hg.has_sum hfg.has_sum
 
 end tsum_mul_tsum
+
+namespace matrix
+variables {m n : Type*} [add_comm_monoid α] [topological_space α]
+
+open_locale matrix
+
+lemma _root_.has_sum.matrix_transpose
+  {f : β → matrix m n α} {a : matrix m n α} (hf : has_sum f a) : has_sum (λ b, (f b)ᵀ) aᵀ :=
+(hf.map (@matrix.transpose_add_equiv m n α _) continuous_id.matrix_transpose : _)
+
+lemma transpose_tsum [t2_space α] {f : β → matrix m n α} (hf : summable f) :
+  (∑'b, f b)ᵀ = ∑' b, (f b)ᵀ :=
+hf.has_sum.matrix_transpose.tsum_eq.symm
+
+end matrix
 
 section cauchy_product
 

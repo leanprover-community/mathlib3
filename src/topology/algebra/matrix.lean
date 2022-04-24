@@ -25,6 +25,8 @@ variables {X α l m n p S R : Type*} [topological_space X] [topological_space R]
 
 instance : topological_space (matrix m n R) := Pi.topological_space
 
+instance [t2_space R] : t2_space (matrix m n R) := Pi.t2_space
+
 instance [has_scalar α R] [has_continuous_const_smul α R] :
   has_continuous_const_smul α (matrix n n R) :=
 pi.has_continuous_const_smul

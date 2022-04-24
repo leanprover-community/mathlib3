@@ -387,11 +387,26 @@ end
 | ⟨l, r, L, R⟩ := by rw mk_le_mk; exact
 ⟨λ i, lt_mk_of_le (le_refl _), λ i, mk_lt_of_le (le_refl _)⟩
 
+protected theorem le_rfl {x : pgame} : x ≤ x :=
+pgame.le_refl x
+
 protected theorem lt_irrefl (x : pgame) : ¬ x < x :=
 not_lt.2 (pgame.le_refl _)
 
 protected theorem ne_of_lt : ∀ {x y : pgame}, x < y → x ≠ y
 | x _ h rfl := pgame.lt_irrefl x h
+
+theorem lt_mk {xl xr : Type u} {xL : xl → pgame} {xR : xr → pgame} (i) : xL i < mk xl xr xL xR :=
+lt_mk_of_le pgame.le_rfl
+
+theorem mk_lt {xl xr : Type u} {xL : xl → pgame} {xR : xr → pgame} (i) : mk xl xr xL xR < xR i :=
+mk_lt_of_le pgame.le_rfl
+
+theorem move_left_lt {x : pgame} (i) : x.move_left i < x :=
+move_left_lt_of_le pgame.le_rfl
+
+theorem lt_move_right {x : pgame} (i) : x < x.move_right i :=
+lt_move_right_of_le pgame.le_rfl
 
 theorem le_trans_aux
   {xl xr} {xL : xl → pgame} {xR : xr → pgame}

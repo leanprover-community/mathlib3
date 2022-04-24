@@ -267,12 +267,11 @@ end
 lemma iterate_injective_of_lt_minimal_period (hm : m < minimal_period f x)
   (hn : n < minimal_period f x) (hf : (f^[m] x) = (f^[n] x)) : m = n :=
 begin
-  wlog h_le : m ≤ n,
-  have : (f^[(minimal_period f x - n) + m] x) = x,
-  rw [iterate_add_apply, hf, ←iterate_add_apply, nat.sub_add_cancel hn.le, iterate_minimal_period],
-  have key := is_periodic_pt.minimal_period_le (nat.add_pos_left (nat.sub_pos_of_lt hn) m) this,
-  rw [←tsub_le_iff_right, tsub_le_tsub_iff_left hn.le] at key,
-  exact le_antisymm h_le key,
+  wlog h_le : n ≤ m,
+  rw [←h_le.le_iff_eq, ←tsub_le_tsub_iff_left hm.le, tsub_le_iff_right],
+  apply is_periodic_pt.minimal_period_le (nat.add_pos_left (tsub_pos_of_lt hm) n),
+  rw [is_periodic_pt, is_fixed_pt, iterate_add_apply, ←hf, ←iterate_add_apply,
+      nat.sub_add_cancel hm.le, iterate_minimal_period],
 end
 
 lemma minimal_period_id : minimal_period id x = 1 :=

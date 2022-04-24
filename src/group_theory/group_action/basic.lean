@@ -348,6 +348,14 @@ variables {β}
 @[simp, to_additive] lemma quotient.smul_coe [quotient_action β H] (a : β) (x : α) :
   (a • x : α ⧸ H) = ↑(a • x) := rfl
 
+@[simp, to_additive] lemma quotient.mk_smul_out' [quotient_action β H] (b : β) (q : α ⧸ H) :
+  quotient_group.mk (b • q.out') = b • q :=
+by rw [←quotient.smul_mk, quotient_group.out_eq']
+
+@[simp, to_additive] lemma quotient.coe_smul_out' [quotient_action β H] (b : β) (q : α ⧸ H) :
+  ↑(b • q.out') = b • q :=
+quotient.mk_smul_out' H b q
+
 end quotient_action
 
 open quotient_group

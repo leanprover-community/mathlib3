@@ -44,8 +44,8 @@ begin
   simp_rw [finpartition.is_equipartition.chunk_increment, apply_dite finpartition.parts,
     apply_dite card],
   rw [sum_dite, sum_const_nat, sum_const_nat, card_attach, card_attach], rotate,
-  { exact λ x hx, finpartition.equitabilise.parts_card (nat.div_pos hPα' hPpos) _ },
-  { exact λ x hx, finpartition.equitabilise.parts_card (nat.div_pos hPα' hPpos) _ },
+  { exact λ x hx, card_parts_equitabilise (nat.div_pos hPα' hPpos).ne' _ },
+  { exact λ x hx, card_parts_equitabilise (nat.div_pos hPα' hPpos).ne' _ },
   rw [nat.sub_add_cancel a_add_one_le_four_pow_parts_card, nat.sub_add_cancel ((nat.le_succ _).trans
     a_add_one_le_four_pow_parts_card), ←add_mul],
   congr,

@@ -3,8 +3,9 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import combinatorics.szemeredi.behrend
-import combinatorics.szemeredi.triangle
+import .behrend
+import .mathlib
+import .triangle
 
 /-!
 # The Ruzsa-Szemerédi problem
@@ -23,7 +24,7 @@ variables {α : Type*} [fintype α] [decidable_eq α]
 
 /-- A Ruzsa-Szemerédi graph is a graph such that each edge belongs to at most one triangle. -/
 def ruzsa_szemeredi (G : simple_graph α) [G.decidable] : Prop :=
-(G.triangle_finset : set (finset α)).pairwise $ λ x y, (x ∩ y).card ≤ 1
+(G.clique_finset 3 : set (finset α)).pairwise $ λ x y, (x ∩ y).card ≤ 1
 
 /-- Whether a given graph is Ruzsa-Szemerédi is decidable. -/
 instance (G : simple_graph α) [G.decidable] : decidable (ruzsa_szemeredi G) :=
@@ -42,12 +43,12 @@ variables {s : set α} {a b c : s}
 
 /-- The edges of the Ruzsa-Szemerédi graph. -/
 inductive edges (s : set α) : vertices s → vertices s → Prop
-| lm {a b : s} : ↑b ∈ (a : α) • s            → edges (inl a) (inm b)
-| ml {a b : s} : ↑b ∈ (a : α) • s            → edges (inm b) (inl a)
-| mr {b c : s} : ↑c ∈ (b : α) • s            → edges (inm b) (inr c)
-| rm {b c : s} : ↑c ∈ (b : α) • s            → edges (inr c) (inm b)
-| rl {c a : s} : ↑c ∈ (a : α) • s.image (^2) → edges (inr c) (inl a)
-| lr {c a : s} : ↑c ∈ (a : α) • s.image (^2) → edges (inl a) (inr c)
+| lm {a b : s} : ↑b ∈ (a : α) • s            → edges (in₀ a) (in₁ b)
+| ml {a b : s} : ↑b ∈ (a : α) • s            → edges (in₁ b) (in₀ a)
+| mr {b c : s} : ↑c ∈ (b : α) • s            → edges (in₁ b) (in₂ c)
+| rm {b c : s} : ↑c ∈ (b : α) • s            → edges (in₂ c) (in₁ b)
+| rl {c a : s} : ↑c ∈ (a : α) • s.image (^2) → edges (in₂ c) (in₀ a)
+| lr {c a : s} : ↑c ∈ (a : α) • s.image (^2) → edges (in₀ a) (in₂ c)
 
 open edges
 
@@ -61,13 +62,13 @@ lemma edges_symm : symmetric (edges s)
 
 lemma edges_irrefl : ∀ x : vertices s, ¬ edges s x x.
 
-@[simp] lemma edges_inl_inm_iff : edges s (inl a) (inm b) ↔ ↑b ∈ (a : α) • s :=
+@[simp] lemma edges_inl_inm_iff : edges s (in₀ a) (in₁ b) ↔ ↑b ∈ (a : α) • s :=
 ⟨by { rintro ⟨⟩, assumption }, lm⟩
 
-@[simp] lemma edges_inm_inr_iff : edges s (inm b) (inr c) ↔ ↑c ∈ (b : α) • s :=
+@[simp] lemma edges_inm_inr_iff : edges s (in₁ b) (in₂ c) ↔ ↑c ∈ (b : α) • s :=
 ⟨by { rintro ⟨⟩, assumption }, mr⟩
 
-@[simp] lemma edges_inr_inl_iff : edges s (inr c) (inl a) ↔ ↑c ∈ (a : α) • s.image (^2) :=
+@[simp] lemma edges_inr_inl_iff : edges s (in₂ c) (in₀ a) ↔ ↑c ∈ (a : α) • s.image (^2) :=
 ⟨by { rintro ⟨⟩, assumption }, rl⟩
 
 /-- The Ruzsa-Szemerédi graph. -/
@@ -84,10 +85,10 @@ meta def sets_simp : tactic unit :=
 
 lemma graph_triple :
   ∀ x y z, (graph s).adj x y → (graph s).adj y z → (graph s).adj z x →
-    ∃ a b c, ({inl a, inm b, inr c} : finset (vertices s)) = {x, y, z} ∧
-      (graph s).adj (inl a) (inm b) ∧
-      (graph s).adj (inm b) (inr c) ∧
-      (graph s).adj (inr c) (inl a)
+    ∃ a b c, ({in₀ a, in₁ b, in₂ c} : finset (vertices s)) = {x, y, z} ∧
+      (graph s).adj (in₀ a) (in₁ b) ∧
+      (graph s).adj (in₁ b) (in₂ c) ∧
+      (graph s).adj (in₂ c) (in₀ a)
 | _ _ _ (lm h₁) (mr h₂) (rl h₃) := ⟨_, _, _, by sets_simp, lm h₁, mr h₂, rl h₃⟩
 | _ _ _ (ml h₁) (lr h₂) (rm h₃) := ⟨_, _, _, by sets_simp, lm h₁, mr h₃, rl h₂⟩
 | _ _ _ (mr h₁) (rl h₂) (lm h₃) := ⟨_, _, _, by sets_simp, lm h₃, mr h₁, rl h₂⟩
@@ -96,7 +97,7 @@ lemma graph_triple :
 | _ _ _ (lr h₁) (rm h₂) (ml h₃) := ⟨_, _, _, by sets_simp, lm h₃, mr h₂, rl h₁⟩
 
 lemma triangle_iff {a b c : s} :
-  (graph s).adj (inl a) (inm b) ∧ (graph s).adj (inm b) (inr c) ∧ (graph s).adj (inr c) (inl a) ↔
+  (graph s).adj (in₀ a) (in₁ b) ∧ (graph s).adj (in₁ b) (in₂ c) ∧ (graph s).adj (in₂ c) (in₀ a) ↔
     (a : α) * c = b * b  :=
 begin
   split,
@@ -114,7 +115,7 @@ protected lemma _root_.mul_salem_spencer.ruzsa_szemeredi {s : finset α}
   ruzsa_szemeredi (graph (s : set α)) :=
 begin
   rintro t ht u hu htu,
-  rw [←nat.lt_succ_iff, lt_iff_not_ge'],
+  rw [←nat.lt_succ_iff, lt_iff_not_le],
   rintro h,
   obtain ⟨v, hvtu, hv⟩ := exists_smaller_set _ _ h,
   obtain ⟨a, b, hab, rfl⟩ := card_eq_two.1 hv,

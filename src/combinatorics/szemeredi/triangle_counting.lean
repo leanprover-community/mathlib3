@@ -21,6 +21,7 @@ variables {α : Type*} (G : simple_graph α)
 
 namespace simple_graph
 
+/-- The pairs of vertices whose density is big. -/
 noncomputable def bad_vertices (ε : ℝ) (X Y : finset α) :=
 X.filter (λ x, ((Y.filter (G.adj x)).card : ℝ) < (G.edge_density X Y - ε) * Y.card)
 
@@ -184,7 +185,7 @@ lemma triangle_counting2 {X Y Z : finset α} {ε : ℝ}
   (dXY : 2 * ε ≤ G.edge_density X Y) (uXY : G.is_uniform ε X Y) (hXY : disjoint X Y)
   (dXZ : 2 * ε ≤ G.edge_density X Z) (uXZ : G.is_uniform ε X Z) (hXZ : disjoint X Z)
   (dYZ : 2 * ε ≤ G.edge_density Y Z) (uYZ : G.is_uniform ε Y Z) (hYZ : disjoint Y Z) :
-  (1 - 2 * ε) * ε^3 * X.card * Y.card * Z.card ≤ G.triangle_finset.card :=
+  (1 - 2 * ε) * ε^3 * X.card * Y.card * Z.card ≤ (G.clique_finset 3).card :=
 begin
   cases le_or_lt ε 0 with hε₀ hε₀,
   { apply le_trans _ (nat.cast_nonneg _),
@@ -202,7 +203,7 @@ begin
   { rintro ⟨x, y, z⟩,
     simp only [and_imp, mem_filter, mem_product],
     intros hx hy hz xy xz yz,
-    rw mem_triangle_finset'',
+    rw [mem_clique_finset_iff, is_3_clique_triple_iff],
     exact ⟨xy, xz, yz⟩ },
   rintro ⟨x₁, y₁, z₁⟩ h₁ ⟨x₂, y₂, z₂⟩ h₂ t,
   simp only [mem_filter, mem_product] at h₁ h₂,
@@ -227,53 +228,46 @@ variables {G}
 lemma reduced_graph_le {ε : ℝ} {P : finpartition univ} : reduced_graph G ε P ≤ G := λ x y, and.left
 
 lemma triangle_free_far_of_disjoint_triangles_aux
-  (tris : finset (finset α)) (htris : tris ⊆ G.triangle_finset)
+  (tris : finset (finset α)) (htris : tris ⊆ G.clique_finset 3)
   (pd : (tris : set (finset α)).pairwise (λ x y, (x ∩ y).card ≤ 1)) :
-  ∀ (G' ≤ G), G'.no_triangles → tris.card ≤ G.edge_finset.card - G'.edge_finset.card :=
+  ∀ (G' ≤ G), G'.clique_free 3 → tris.card ≤ G.edge_finset.card - G'.edge_finset.card :=
 begin
-  intros G' hG hG',
-  rw [←card_sdiff (edge_finset_mono hG), ←card_attach],
-  by_contra,
-  push_neg at h,
+  intros G' hGG' hG',
+  rw [←card_sdiff (edge_finset_mono hGG'), ←card_attach],
+  by_contra' hG,
   have : ∀ t ∈ tris, ∃ x y ∈ t, x ≠ y ∧ ⟦(x, y)⟧ ∈ G.edge_finset \ G'.edge_finset,
   { intros t ht,
-    by_contra i,
-    suffices : t ∈ G'.triangle_finset,
-    { rw ←triangle_finset_empty_iff at hG',
-      simpa [hG'] using this },
-    simp only [not_exists, exists_prop, not_and, mem_sdiff, not_not, mem_edge_finset,
-      exists_and_distrib_left, ne.def, mem_edge_set] at i,
-    obtain ⟨x, y, z, xy, xz, yz, rfl⟩ := (mem_triangle_finset''' _).1 (htris ht),
-    rw mem_triangle_finset'',
-    refine ⟨i _ _ _ (G.ne_of_adj xy) xy _, i _ _ _ (G.ne_of_adj xz) xz _,
-      i _ _ _ (G.ne_of_adj yz) yz _⟩;
-    simp },
+    by_contra' h,
+    refine hG' t _,
+    simp only [not_and, mem_sdiff, not_not, mem_edge_finset, mem_edge_set] at h,
+    obtain ⟨x, y, z, xy, xz, yz, rfl⟩ :=
+      is_3_clique_iff.1 ((G.mem_clique_finset_iff _).1 $ htris ht),
+    rw is_3_clique_triple_iff,
+    refine ⟨h _ _ _ _ xy.ne xy, h _ _ _ _ xz.ne xz, h _ _ _ _ yz.ne yz⟩; simp },
   choose fx hfx fy hfy hfne fmem using this,
   let f : {x // x ∈ tris} → sym2 α := λ t, ⟦(fx _ t.2, fy _ t.2)⟧,
   have hf : ∀ x ∈ tris.attach, f x ∈ G.edge_finset \ G'.edge_finset := λ x hx, fmem _ _,
   obtain ⟨⟨t₁, ht₁⟩, -, ⟨t₂, ht₂⟩, -, tne, t : ⟦_⟧ = ⟦_⟧⟩ :=
-    exists_ne_map_eq_of_card_lt_of_maps_to h hf,
-  have : t₁ ≠ t₂,
-  { simpa using tne },
+    exists_ne_map_eq_of_card_lt_of_maps_to hG hf,
   dsimp at t,
-  have i := pd ht₁ ht₂ this,
+  have i := pd ht₁ ht₂ (subtype.val_injective.ne tne),
   simp only [finset.card_le_one_iff, mem_inter, and_imp] at i,
   rw sym2.eq_iff at t,
   cases t,
-  { exact hfne _ _ (i (hfx t₁ ht₁) (t.1.symm ▸ hfx t₂ ht₂) (hfy t₁ ht₁) (t.2.symm ▸ hfy t₂ ht₂)) },
-  { exact hfne _ _ (i (hfx t₁ ht₁) (t.1.symm ▸ hfy t₂ ht₂) (hfy t₁ ht₁) (t.2.symm ▸ hfx t₂ ht₂)) }
+  { exact hfne _ _ (i (hfx t₁ ht₁) (t.1.symm ▸ hfx t₂ ht₂) (hfy t₁ ht₁) $ t.2.symm ▸ hfy t₂ ht₂) },
+  { exact hfne _ _ (i (hfx t₁ ht₁) (t.1.symm ▸ hfy t₂ ht₂) (hfy t₁ ht₁) $ t.2.symm ▸ hfx t₂ ht₂) }
 end
 
 lemma triangle_free_far_of_disjoint_triangles {ε : ℝ}
-  (tris : finset (finset α)) (htris : tris ⊆ G.triangle_finset)
+  (tris : finset (finset α)) (htris : tris ⊆ G.clique_finset 3)
   (pd : (tris : set (finset α)).pairwise (λ x y, (x ∩ y).card ≤ 1))
-  (tris_big : ε * card α ^ 2 ≤ tris.card) :
+  (tris_big : ε * (card α ^ 2 : ℕ) ≤ tris.card) :
   G.triangle_free_far ε :=
 begin
   intros G' hG hG',
   rw ←nat.cast_sub (card_le_of_subset (edge_finset_mono hG)),
-  apply tris_big.trans
-    (nat.cast_le.2 (triangle_free_far_of_disjoint_triangles_aux tris htris pd G' hG hG')),
+  exact tris_big.trans
+    (nat.cast_le.2 $ triangle_free_far_of_disjoint_triangles_aux tris htris pd G' hG hG'),
 end
 
 lemma reduced_double_edges {ε : ℝ} {P : finpartition univ} :
@@ -369,17 +363,6 @@ begin
   apply nat.pow_le_pow_of_le_left,
   rw [mul_add, mul_one],
   exact add_le_add_right (nat.mul_div_le _ _) _,
-end
-
-lemma triangle_free_far.not_no_triangles [nonempty α] {ε : ℝ} (hG : G.triangle_free_far ε)
-  (hε : 0 < ε) : ¬ G.no_triangles :=
-λ hG', hε.ne' (eps_eq_zero_of_no_triangles G hε.le hG hG')
-
-lemma triangle_free_far.triangle_finset_card_pos {ε : ℝ} [nonempty α] (hG : G.triangle_free_far ε)
-  (hε : 0 < ε) : 0 < G.triangle_finset.card :=
-begin
-  rw [finset.card_pos, nonempty_iff_ne_empty, ne.def, triangle_finset_empty_iff],
-  apply hG.not_no_triangles hε,
 end
 
 lemma sum_irreg_pairs_le_of_uniform [nonempty α] {ε : ℝ} (hε : 0 < ε) (P : finpartition univ)

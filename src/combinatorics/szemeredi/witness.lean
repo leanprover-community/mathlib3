@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simple_graph.regularity.uniform
-import set_theory.ordinal
+import set_theory.ordinal.basic
 
 /-!
 # Witnesses of non uniformity

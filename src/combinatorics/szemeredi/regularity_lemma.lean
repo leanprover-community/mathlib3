@@ -32,7 +32,8 @@ begin
   let t := initial_bound ε l,
   have htα : t ≤ (univ : finset α).card :=
     (initial_bound_le_bound _ _).trans (by rwa finset.card_univ),
-  obtain ⟨dum, hdum₁, hdum₂⟩ := dummy_equipartition (univ : finset α) (initial_bound_pos _ _) htα,
+  obtain ⟨dum, hdum₁, hdum₂⟩ := exists_equipartition_card_eq (univ : finset α)
+    (initial_bound_pos _ _).ne' htα,
   obtain hε₁ | hε₁ := le_total 1 ε,
   { exact ⟨dum, hdum₁, (le_initial_bound ε l).trans hdum₂.ge,
       hdum₂.le.trans (initial_bound_le_bound ε l), (dum.is_uniform_one G).mono hε₁⟩ },

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import combinatorics.simple_graph.regularity.bound
-import .finpartitions
+import .atomise
+import .equitabilise
 import .prereqs
 import .witness
 
@@ -84,8 +85,8 @@ begin
   intros B hB,
   rw [finpartition.is_equipartition.chunk_increment],
   split_ifs with h₁,
-  { convert almost_in_atoms_of_mem_parts_equitabilise (card_aux₁ h₁) hB },
-  { convert almost_in_atoms_of_mem_parts_equitabilise (card_aux₂ hP hU h₁) hB }
+  { convert card_parts_equitabilise_subset_le (card_aux₁ h₁) hB },
+  { convert card_parts_equitabilise_subset_le (card_aux₂ hP hU h₁) hB }
 end
 
 lemma one_sub_eps_mul_card_witness_le_card_star (hV : V ∈ P.parts) (hUV : U ≠ V)
@@ -146,14 +147,13 @@ variables {hP G ε U hU V}
 
 /-! # chunk_increment -/
 
-lemma card_chunk_increment (m_pos : 0 < m) :
-  (hP.chunk_increment G ε hU).parts.card = 4^P.parts.card :=
+lemma card_chunk_increment (hm : m ≠ 0) : (hP.chunk_increment G ε hU).parts.card = 4^P.parts.card :=
 begin
   rw finpartition.is_equipartition.chunk_increment,
   split_ifs,
-  { rw [equitabilise.parts_card m_pos, nat.sub_add_cancel],
+  { rw [card_parts_equitabilise hm, nat.sub_add_cancel],
     exact le_of_lt a_add_one_le_four_pow_parts_card },
-  { rw [equitabilise.parts_card m_pos, nat.sub_add_cancel a_add_one_le_four_pow_parts_card] }
+  { rw [card_parts_equitabilise hm, nat.sub_add_cancel a_add_one_le_four_pow_parts_card] }
 end
 
 lemma card_eq_of_mem_parts_chunk_increment {A : finset α}
@@ -349,11 +349,11 @@ begin
   have : ↑(G.edge_density U V) - ε ^ 5 / 50 ≤
     (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
       G.edge_density ab.1 ab.2) / (16 ^ P.parts.card),
-  { apply (le_trans _ (density_sub_eps_le_sum_density_div_card hPα hPε
+  { apply (le_trans _ $ density_sub_eps_le_sum_density_div_card hPα hPε
       (set.subset.refl (hP.chunk_increment G ε hU).parts)
-      (set.subset.refl (hP.chunk_increment G ε hV).parts))).trans _,
+      (set.subset.refl (hP.chunk_increment G ε hV).parts)).trans _,
     { rw [bUnion_parts, bUnion_parts] },
-    { rw [card_chunk_increment (m_pos hPα), card_chunk_increment (m_pos hPα), ←nat.cast_mul,
+    { rw [card_chunk_increment (m_pos hPα).ne', card_chunk_increment (m_pos hPα).ne', ←nat.cast_mul,
         ←mul_pow, nat.cast_pow],
       norm_cast } },
   apply le_trans _ (pow_le_pow_of_le_left hGε this 2),
@@ -374,8 +374,8 @@ lemma sq_density_sub_eps_le_sum_sq_density_div_card [nonempty α]
 begin
   apply (sq_density_sub_eps_le_sum_sq_density_div_card_aux hPα hPε hU hV).trans,
   convert chebyshev _ _;
-  rw [card_product, nat.cast_mul, card_chunk_increment (m_pos hPα),
-    card_chunk_increment (m_pos hPα), ←nat.cast_mul, ←mul_pow];
+  rw [card_product, nat.cast_mul, card_chunk_increment (m_pos hPα).ne',
+    card_chunk_increment (m_pos hPα).ne', ←nat.cast_mul, ←mul_pow];
   norm_cast,
 end
 
@@ -442,7 +442,7 @@ begin
         ←div_mul_eq_mul_div_comm],
       refine mul_le_of_le_one_right (div_nonneg (nat.cast_nonneg _) four_pow_pos.le) _,
       rw mul_div_assoc',
-      apply m_bound (m_coe_pos hPα),
+      exact m_bound (m_coe_pos hPα),
     end
 end
 
@@ -473,7 +473,7 @@ begin
   { have := average_density_near_total_density hPα hPε hε₁
       (subset.refl (hP.chunk_increment G ε hU).parts)
       (subset.refl (hP.chunk_increment G ε hV).parts),
-    simp_rw [←sup_eq_bUnion, sup_parts, card_chunk_increment (m_pos hPα), nat.cast_pow] at this,
+    simp_rw [←sup_eq_bUnion, sup_parts, card_chunk_increment (m_pos hPα).ne', nat.cast_pow] at this,
     norm_num at this,
     exact this },
   have hε : 0 < ε := eps_pos hPε,
@@ -521,7 +521,7 @@ calc
             norm_num,
             exact pow_nonneg (eps_pos hPε).le _ },
           { norm_num,
-            exact pow_nonneg (eps_pos hPε).le _ },
+            exact pow_nonneg (eps_pos hPε).le _ }
         end
   ... ≤ (∑ ab in (hP.chunk_increment G ε hU).parts.product (hP.chunk_increment G ε hV).parts,
           G.edge_density ab.1 ab.2^2)/16^P.parts.card :
@@ -532,16 +532,16 @@ calc
       have hε : 0 ≤ ε := (eps_pos hPε).le,
       have h₁ : 0 ≤ 3/4 * ε := by linarith,
       have := lemma_B_ineq t (λ x, G.edge_density x.1 x.2) (G.edge_density U V^2 - ε^5/25) h₁ _ _,
-      { simp_rw [card_product, card_chunk_increment (m_pos hPα), ←mul_pow, nat.cast_pow, mul_pow,
-          div_pow, ←mul_assoc] at this,
+      { simp_rw [card_product, card_chunk_increment (m_pos hPα).ne', ←mul_pow, nat.cast_pow,
+          mul_pow, div_pow, ←mul_assoc] at this,
         norm_num at this,
         exact this },
-      { simp_rw [card_product, card_chunk_increment (m_pos hPα), ←mul_pow],
+      { simp_rw [card_product, card_chunk_increment (m_pos hPα).ne', ←mul_pow],
         norm_num,
         exact stuff hPα hPε hε₁ h_diff hUV },
       { rw card_product,
         apply (sq_density_sub_eps_le_sum_sq_density_div_card_aux hPα hPε hU hV).trans,
-        rw [card_chunk_increment (m_pos hPα), card_chunk_increment (m_pos hPα), ←mul_pow],
+        rw [card_chunk_increment (m_pos hPα).ne', card_chunk_increment (m_pos hPα).ne', ←mul_pow],
         norm_num,
         exact hP }
     end

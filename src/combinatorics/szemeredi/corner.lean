@@ -5,6 +5,7 @@ Authors: Bhavik Mehta
 -/
 import .triangle_removal
 import combinatorics.additive.salem_spencer
+import combinatorics.pigeonhole
 
 /-!
 # The corners theorem and Roth's theorem
@@ -12,8 +13,8 @@ import combinatorics.additive.salem_spencer
 This file proves the corners theorem and Roth's theorem.
 -/
 
+open finset function simple_graph sum₃
 open_locale classical
-open finset function
 
 variables {N : ℕ}
 
@@ -31,37 +32,27 @@ def is_anticorner (s : finset (ℕ × ℕ)) : ℕ → ℕ → ℕ → Prop :=
 namespace corners
 
 /-- The type of vertices of the corners graph. -/
-inductive vertices (N : ℕ)
-| horiz : fin N → vertices
-| vert : fin N → vertices
-| diag : fin (2 * N) → vertices
+def vertices (N : ℕ) : Type := sum₃ (fin N) (fin N) (fin (2 * N))
 
-open vertices
+instance (N : ℕ) : inhabited (vertices (N + 1)) :=  sum₃.inhabited _ _ _
 
-instance (N : ℕ) : inhabited (vertices (N + 1)) := ⟨vert default⟩
-
-instance : fintype (vertices N) :=
-fintype.of_equiv (fin N ⊕ fin N ⊕ fin (2 * N))
-{ to_fun := sum.elim horiz (sum.elim vert diag),
-  inv_fun := λ i, vertices.rec_on i sum.inl (sum.inr ∘ sum.inl) (sum.inr ∘ sum.inr),
-  left_inv := λ i, by { rcases i with (_ | _ | _); refl },
-  right_inv := λ i, by { rcases i with (_ | _ | _); refl } }
+instance : fintype (vertices N) := sum₃.fintype _ _ _
 
 @[simp] lemma card_vertices : fintype.card (vertices N) = 4 * N :=
 by { simp only [fintype.of_equiv_card, fintype.card_fin, fintype.card_sum], ring }
 
 /-- The edges of the corners graph. -/
 inductive edges (s : finset (ℕ × ℕ)) : vertices N → vertices N → Prop
-| hv {h v : fin N} : ((h : ℕ), (v : ℕ)) ∈ s → edges (horiz h) (vert v)
-| vh {h v : fin N} : ((h : ℕ), (v : ℕ)) ∈ s → edges (vert v) (horiz h)
+| hv {h v : fin N} : ((h : ℕ), (v : ℕ)) ∈ s → edges (in₀ h) (in₁ v)
+| vh {h v : fin N} : ((h : ℕ), (v : ℕ)) ∈ s → edges (in₁ v) (in₀ h)
 | hd {h : fin N} {k : fin (2 * N)} :
-    (h : ℕ) ≤ k → ((h : ℕ), (k : ℕ) - h) ∈ s → edges (horiz h) (diag k)
+    (h : ℕ) ≤ k → ((h : ℕ), (k : ℕ) - h) ∈ s → edges (in₀ h) (in₂ k)
 | dh {h : fin N} {k : fin (2 * N)} :
-    (h : ℕ) ≤ k → ((h : ℕ), (k : ℕ) - h) ∈ s → edges (diag k) (horiz h)
+    (h : ℕ) ≤ k → ((h : ℕ), (k : ℕ) - h) ∈ s → edges (in₂ k) (in₀ h)
 | vd {v : fin N} {k : fin (2 * N)} :
-    (v : ℕ) ≤ k → ((k : ℕ) - v, (v : ℕ)) ∈ s → edges (vert v) (diag k)
+    (v : ℕ) ≤ k → ((k : ℕ) - v, (v : ℕ)) ∈ s → edges (in₁ v) (in₂ k)
 | dv {v : fin N} {k : fin (2 * N)} :
-    (v : ℕ) ≤ k → ((k : ℕ) - v, (v : ℕ)) ∈ s → edges (diag k) (vert v)
+    (v : ℕ) ≤ k → ((k : ℕ) - v, (v : ℕ)) ∈ s → edges (in₂ k) (in₁ v)
 
 variables {s : finset (ℕ × ℕ)}
 
@@ -83,16 +74,16 @@ lemma edges_irrefl : ∀ (x : vertices N), ¬ edges s x x.
 def graph (N : ℕ) (s : finset (ℕ × ℕ)) : simple_graph (vertices N) :=
 { adj := edges s, symm := edges_symm, loopless := edges_irrefl }
 
-@[simp] lemma edges_horiz_vert {h v : fin N} :
-  (graph _ s).adj (horiz h) (vert v) ↔ ((h : ℕ), (v : ℕ)) ∈ s :=
+@[simp] lemma edges_in₀_vert {h v : fin N} :
+  (graph _ s).adj (in₀ h) (in₁ v) ↔ ((h : ℕ), (v : ℕ)) ∈ s :=
 ⟨by { rintro ⟨⟩, assumption }, edges.hv⟩
 
-@[simp] lemma edges_horiz_diag {h : fin N} {k} :
-  (graph _ s).adj (horiz h) (diag k) ↔ (h : ℕ) ≤ k ∧ ((h : ℕ), (k : ℕ) - h) ∈ s :=
+@[simp] lemma edges_in₀_diag {h : fin N} {k} :
+  (graph _ s).adj (in₀ h) (in₂ k) ↔ (h : ℕ) ≤ k ∧ ((h : ℕ), (k : ℕ) - h) ∈ s :=
 ⟨by { rintro ⟨⟩, tauto }, λ i, edges.hd i.1 i.2⟩
 
 @[simp] lemma edges_vert_diag {v : fin N} {k} :
-  (graph _ s).adj (vert v) (diag k) ↔ (v : ℕ) ≤ k ∧ ((k : ℕ) - v, (v : ℕ)) ∈ s :=
+  (graph _ s).adj (in₁ v) (in₂ k) ↔ (v : ℕ) ≤ k ∧ ((k : ℕ) - v, (v : ℕ)) ∈ s :=
 ⟨by { rintro ⟨⟩, tauto }, λ i, edges.vd i.1 i.2⟩
 
 /-- Throwaway tactic. -/
@@ -101,9 +92,9 @@ meta def sets_simp : tactic unit :=
 
 lemma graph_triple {s : finset (ℕ × ℕ)} {N : ℕ} :
   ∀ x y z, (graph N s).adj x y → (graph N s).adj x z → (graph N s).adj y z →
-    ∃ h v {k : fin (2 * N)}, {horiz h, vert v, diag k} = ({x, y, z} : finset (vertices N)) ∧
-      (graph _ s).adj (horiz h) (vert v) ∧ (graph _ s).adj (horiz h) (diag k) ∧
-        (graph _ s).adj (vert v) (diag k)
+    ∃ h v {k : fin (2 * N)}, {in₀ h, in₁ v, in₂ k} = ({x, y, z} : finset (vertices N)) ∧
+      (graph _ s).adj (in₀ h) (in₁ v) ∧ (graph _ s).adj (in₀ h) (in₂ k) ∧
+        (graph _ s).adj (in₁ v) (in₂ k)
 | _ _ _ h₁@(hv _) h₂@(hd _ _) h₃ := ⟨_, _, _, rfl, h₁, h₂, h₃⟩
 | _ _ _ (vh h₁) (vd h₂ i₂) (hd h₃ i₃) := ⟨_, _, _, by sets_simp, hv h₁, hd h₃ i₃, vd h₂ i₂⟩
 | _ _ _ (hd h₁ i₁) (hv h₂) (dv h₃ i₃) := ⟨_, _, _, by sets_simp, hv h₂, hd h₁ i₁, vd h₃ i₃⟩
@@ -115,7 +106,7 @@ end edges
 
 /-- Maps an horizontal, a vertical and a diagonal line to their three points of intersection. -/
 noncomputable def triangle_map : fin N × fin N × fin (2 * N) → finset (vertices N) :=
-λ hvk, {horiz hvk.1, vert hvk.2.1, diag hvk.2.2}
+λ hvk, {in₀ hvk.1, in₁ hvk.2.1, in₂ hvk.2.2}
 
 /-- State whether an horizontal, a vertical and a diagonal line meet within `s`. -/
 @[derive decidable_pred]
@@ -125,32 +116,32 @@ def explicit_triangles (s : finset (ℕ × ℕ)) (N : ℕ) : fin N × fin N × f
     ((i.2.1 : ℕ) ≤ i.2.2 ∧ (↑i.2.2 - ↑i.2.1, ↑i.2.1) ∈ s)
 
 lemma triangle_map_mem (x : fin N × fin N × fin (2 * N)) (hx : explicit_triangles s N x) :
-  triangle_map x ∈ (graph N s).triangle_finset :=
-by simpa [simple_graph.mem_triangle_finset'', explicit_triangles, triangle_map] using hx
+  triangle_map x ∈ (graph N s).clique_finset 3 :=
+by simpa [mem_clique_finset_iff, is_3_clique_triple_iff, explicit_triangles, triangle_map] using hx
 
 lemma triangle_map_injective : injective (triangle_map : _ → finset (vertices N)) :=
 begin
   rintro ⟨h₁, v₁, k₁⟩ ⟨h₂, v₂, k₂⟩,
   simpa only [triangle_map, finset.subset.antisymm_iff, subset_iff, mem_insert, mem_singleton,
-    forall_eq_or_imp, forall_eq, prod.mk.inj_iff, or_false, false_or] using and.left,
+    forall_eq_or_imp, forall_eq, prod.mk.inj_iff, or_false, false_or, in₀.inj_eq, in₁.inj_eq,
+    in₂.inj_eq] using and.left,
 end
 
-lemma triangle_map_surj {t} (ht : t ∈ (graph N s).triangle_finset) :
+lemma triangle_map_surj {t} (ht : (graph N s).is_n_clique 3 t) :
   ∃ a, explicit_triangles s N a ∧ triangle_map a = t :=
 begin
-  rw simple_graph.mem_triangle_finset''' at ht,
-  obtain ⟨x, y, z, xy, xz, yz, rfl⟩ := ht,
+  obtain ⟨x, y, z, xy, xz, yz, rfl⟩ := is_3_clique_iff.1 ht,
   obtain ⟨h, v, k, i₀, i₁, i₂, i₃⟩ := graph_triple _ _ _ xy xz yz,
   exact ⟨⟨h, v, k⟩, ⟨by simpa using i₁, by simpa using i₂, by simpa using i₃⟩, i₀⟩,
 end
 
 lemma card_triangles_graph {s : finset (ℕ × ℕ)} {N : ℕ} :
-  (graph N s).triangle_finset.card = (univ.filter (explicit_triangles s N)).card :=
+  ((graph N s).clique_finset 3).card = (univ.filter $ explicit_triangles s N).card :=
 begin
-  refine (card_congr (λ a _, triangle_map a) (λ t ht, _) (λ x y _ _, _) (λ t ht, _)).symm,
-  { apply triangle_map_mem _ (mem_filter.1 ht).2 },
+  refine (card_congr (λ a _, triangle_map a) (λ t ht, triangle_map_mem _ (mem_filter.1 ht).2)
+    (λ x y _ _, _) (λ t ht, _)).symm,
   { apply triangle_map_injective },
-  obtain ⟨_, ht', rfl⟩ := triangle_map_surj ht,
+  obtain ⟨_, ht', rfl⟩ := triangle_map_surj ((mem_clique_finset_iff _ _).1 ht),
   exact ⟨w, by simpa using ht', rfl⟩,
 end
 
@@ -191,7 +182,7 @@ end
 lemma trivial_triangles_graph {s : finset (ℕ × ℕ)} {n : ℕ}
   (cs : ∀ (x y h : ℕ), is_corner s x y h → h = 0)
   (as : ∀ (x y h : ℕ), is_anticorner s x y h → h = 0) :
-  (graph n s).triangle_finset.card ≤ n^2 :=
+  ((graph n s).clique_finset 3).card ≤ n^2 :=
 begin
   have : ((range n).product (range n)).card = n^2,
   { simp [sq] },
@@ -262,7 +253,7 @@ begin
     rw finset.card_le_one,
     simp only [and_imp, mem_insert, mem_inter, mem_singleton, true_and, forall_eq_or_imp, and_true,
       false_or, forall_eq, implies_true_iff, eq_self_iff_true, subtype.mk_eq_mk, or_false,
-      forall_and_distrib, and_assoc, @imp.swap (_ + _ = _)],
+      forall_and_distrib, and_assoc, @imp.swap (_ + _ = _), in₀.inj_eq, in₁.inj_eq, in₂.inj_eq],
     refine ⟨_, _, _, _, _, _⟩;
     { intros i₁ i₂,
       apply q,
@@ -344,7 +335,7 @@ begin
     simp only [mem_range, mem_product] at i,
     simp only [mem_product, mem_range, two_mul],
     exact ⟨add_lt_add i.1.1 i.2.1, add_lt_add i.1.2 i.2.2⟩ },
-  refine exists_le_card_fiber_of_mul_le_card_of_maps_to' this _ _,
+  refine exists_le_card_fiber_of_nsmul_le_card_of_maps_to this _ _,
   { simp [hn.ne'] },
   { simp only [card_product, card_range, nsmul_eq_mul, nat.cast_pow, nat.cast_two,
       nat.cast_mul, ←sq],

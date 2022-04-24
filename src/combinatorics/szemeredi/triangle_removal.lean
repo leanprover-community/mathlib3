@@ -12,7 +12,7 @@ import .triangle_counting
 In this file, we prove the triangle removal lemma.
 -/
 
-open finset fintype szemeredi_regularity
+open finset fintype nat szemeredi_regularity
 open_locale classical
 
 variables {α : Type*} [fintype α] {G : simple_graph α}
@@ -48,8 +48,7 @@ begin
 end
 
 lemma card_bound [nonempty α] {ε : ℝ} {X : finset α} {P : finpartition (univ : finset α)}
-  (hP₁ : P.is_equipartition) (hP₃ : P.parts.card ≤ bound (ε / 8) ⌈4/ε⌉₊)
-  (hX : X ∈ P.parts) :
+  (hP₁ : P.is_equipartition) (hP₃ : P.parts.card ≤ bound (ε / 8) ⌈4/ε⌉₊) (hX : X ∈ P.parts) :
   (card α : ℝ) / (2 * bound (ε / 8) ⌈4/ε⌉₊) ≤ X.card :=
 begin
   refine le_trans _ (nat.cast_le.2 (hP₁.average_le_card_part hX)),
@@ -62,27 +61,16 @@ begin
   refine mul_pos zero_lt_two (nat.cast_pos.2 $ bound_pos _ _),
 end
 
-lemma triangle_removal_aux [nonempty α] {ε : ℝ}
-  (hε : 0 < ε) (hε₁ : ε ≤ 1)
-  {P : finpartition univ}
-  (hP₁ : P.is_equipartition)
-  (hP₃ : P.parts.card ≤ bound (ε / 8) ⌈4/ε⌉₊)
-  {t : finset α} (ht : t ∈ (G.reduced_graph ε P).triangle_finset) :
-  triangle_removal_bound ε * ↑(card α) ^ 3 ≤ ↑(G.triangle_finset.card) :=
+lemma triangle_removal_aux [nonempty α] {ε : ℝ} (hε : 0 < ε) (hε₁ : ε ≤ 1) {P : finpartition univ}
+  (hP₁ : P.is_equipartition) (hP₃ : P.parts.card ≤ bound (ε / 8) ⌈4/ε⌉₊)
+  {t : finset α} (ht : t ∈ (G.reduced_graph ε P).clique_finset 3) :
+  triangle_removal_bound ε * ↑(card α) ^ 3 ≤ (G.clique_finset 3).card :=
 begin
-  rw [mem_triangle_finset, card_eq_three] at ht,
-  obtain ⟨⟨x, y, z, xy, xz, yz, rfl⟩, ht⟩ := ht,
-  simp only [coe_insert, coe_singleton] at ht,
-  have hx : x ∈ ({x,y,z} : set α) := or.inl rfl,
-  have hy : y ∈ ({x,y,z} : set α) := or.inr (or.inl rfl),
-  have hz : z ∈ ({x,y,z} : set α) := or.inr (or.inr rfl),
-  have hxy : (G.reduced_graph ε P).adj x y := ht hx hy xy,
-  have hxz : (G.reduced_graph ε P).adj x z := ht hx hz xz,
-  have hyz : (G.reduced_graph ε P).adj y z := ht hy hz yz,
-  obtain ⟨xy, X, hX, Y, hY, xX, yY, nXY, uXY, dXY⟩ := hxy,
-  obtain ⟨xz, X', hX', Z, hZ, xX', zZ, nXZ, uXZ, dXZ⟩ := hxz,
+  rw [mem_clique_finset_iff, is_3_clique_iff] at ht,
+  obtain ⟨x, y, z, ⟨xy, X, hX, Y, hY, xX, yY, nXY, uXY, dXY⟩,
+                ⟨xz, X', hX', Z, hZ, xX', zZ, nXZ, uXZ, dXZ⟩,
+                ⟨yz, Y', hY', Z', hZ', yY', zZ', nYZ, uYZ, dYZ⟩, rfl⟩ := ht,
   cases P.disjoint.elim hX hX' (not_disjoint_iff.2 ⟨x, xX, xX'⟩),
-  obtain ⟨yz, Y', hY', Z', hZ', yY', zZ', nYZ, uYZ, dYZ⟩ := hyz,
   cases P.disjoint.elim hY hY' (not_disjoint_iff.2 ⟨y, yY, yY'⟩),
   cases P.disjoint.elim hZ hZ' (not_disjoint_iff.2 ⟨z, zZ, zZ'⟩),
   have dXY := P.disjoint hX hY nXY,
@@ -113,7 +101,7 @@ end
 
 lemma reduced_edges_card_aux [nonempty α] {ε : ℝ} {P : finpartition (univ : finset α)} (hε : 0 < ε)
   (hP : P.is_equipartition) (hPε : P.is_uniform G (ε/8)) (hP' : 4 / ε ≤ P.parts.card) :
-  2 * (G.edge_finset.card - (reduced_graph G ε P).edge_finset.card : ℝ) < 2 * ε * (card α)^2 :=
+  2 * (G.edge_finset.card - (reduced_graph G ε P).edge_finset.card : ℝ) < 2 * ε * (card α ^2 : ℕ) :=
 begin
   have i : univ.filter (λ (xy : α × α), (G.reduced_graph ε P).adj xy.1 xy.2) ⊆
     univ.filter (λ (xy : α × α), G.adj xy.1 xy.2),
@@ -141,7 +129,7 @@ begin
 end
 
 lemma triangle_removal_2 {ε : ℝ} (hε : 0 < ε) (hε₁ : ε ≤ 1) (hG : G.triangle_free_far ε) :
-  triangle_removal_bound ε * (card α)^3 ≤ G.triangle_finset.card :=
+  triangle_removal_bound ε * (card α)^3 ≤ (G.clique_finset 3).card :=
 begin
   let l : ℕ := nat.ceil (4/ε),
   have hl : 4/ε ≤ l := nat.le_ceil (4/ε),
@@ -155,22 +143,21 @@ begin
     refine (mul_le_mul_of_nonneg_left this.le (triangle_removal_bound_pos hε hε₁).le).trans _,
     apply (triangle_removal_bound_mul_cube_lt hε).le.trans,
     simp only [nat.one_le_cast],
-    apply hG.triangle_finset_card_pos hε },
+    exact (hG.clique_finset_nonempty hε).card_pos },
   obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := szemeredi_regularity G l hε' hl',
   have : 4/ε ≤ P.parts.card := hl.trans (nat.cast_le.2 hP₂),
   have k := reduced_edges_card_aux hε hP₁ hP₄ this,
   rw mul_assoc at k,
   replace k := lt_of_mul_lt_mul_left k zero_le_two,
-  obtain ⟨t, ht⟩ := has_triangle_of_few_edges_removed G reduced_graph_le hG k,
+  obtain ⟨t, ht⟩ := hG.clique_finset_nonempty' reduced_graph_le k,
   apply triangle_removal_aux hε hε₁ hP₁ hP₃ ht,
 end
 
 /-- If there are not too many triangles, then you can remove some edges to remove all triangles. -/
 lemma triangle_removal {ε : ℝ} (hε : 0 < ε) (hε₁ : ε ≤ 1)
-  (hG : (G.triangle_finset.card : ℝ) < triangle_removal_bound ε * (card α)^3) :
-  ∃ (G' ≤ G),
-    (G.edge_finset.card - G'.edge_finset.card : ℝ) < ε * (card α)^2
-      ∧ G'.no_triangles :=
+  (hG : ((G.clique_finset 3).card : ℝ) < triangle_removal_bound ε * (card α)^3) :
+  ∃ G' ≤ G,
+    (G.edge_finset.card - G'.edge_finset.card : ℝ) < ε * (card α^2 : ℕ) ∧ G'.clique_free 3 :=
 begin
   by_contra,
   push_neg at h,

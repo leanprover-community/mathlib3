@@ -20,7 +20,7 @@ open_locale big_operators polynomial
 namespace polynomial
 universes u v w z
 variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {A' B' : Type*} {a b : R} {n : ℕ}
-variables [comm_semiring A'] [comm_semiring B']
+variables [comm_semiring A'] [semiring B']
 
 section comm_semiring
 variables [comm_semiring R] {p q r : R[X]}
@@ -105,7 +105,7 @@ end⟩⟩
 
 @[simp]
 lemma alg_hom_eval₂_algebra_map
-  {R A B : Type*} [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B]
+  {R A B : Type*} [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
   (p : R[X]) (f : A →ₐ[R] B) (a : A) :
   f (eval₂ (algebra_map R A) a p) = eval₂ (algebra_map R B) (f a) p :=
 begin
@@ -115,7 +115,7 @@ begin
 end
 
 @[simp]
-lemma eval₂_algebra_map_X {R A : Type*} [comm_ring R] [ring A] [algebra R A]
+lemma eval₂_algebra_map_X {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   (p : R[X]) (f : R[X] →ₐ[R] A) :
   eval₂ (algebra_map R A) (f X) p = f p :=
 begin

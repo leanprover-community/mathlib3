@@ -342,11 +342,11 @@ attribute [to_additive add_action.quotient_action] mul_action.quotient_action
 
 variables {β}
 
-@[simp, to_additive] lemma quotient.smul_mk [quotient_action β H] (a : β) (x : α) :
-  (a • quotient_group.mk x : α ⧸ H) = quotient_group.mk (a • x) := rfl
+@[simp, to_additive] lemma quotient.smul_mk [quotient_action β H] (b : β) (a : α) :
+  (b • quotient_group.mk a : α ⧸ H) = quotient_group.mk (b • a) := rfl
 
-@[simp, to_additive] lemma quotient.smul_coe [quotient_action β H] (a : β) (x : α) :
-  (a • x : α ⧸ H) = ↑(a • x) := rfl
+@[simp, to_additive] lemma quotient.smul_coe [quotient_action β H] (b : β) (a : α) :
+  (b • a : α ⧸ H) = ↑(b • a) := rfl
 
 @[simp, to_additive] lemma quotient.mk_smul_out' [quotient_action β H] (b : β) (q : α ⧸ H) :
   quotient_group.mk (b • q.out') = b • q :=

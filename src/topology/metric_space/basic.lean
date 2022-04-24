@@ -1636,17 +1636,11 @@ begin
   the uniformity is the same as the product uniformity, but we register nevertheless a nice formula
   for the distance -/
   refine pseudo_emetric_space.to_pseudo_metric_space_of_dist
-    (λf g, ((sup univ (λb, nndist (f b) (g b)) : ℝ≥0) : ℝ)) _ _,
-  show ∀ (x y : Π (b : β), π b), edist x y ≠ ⊤,
-  { assume x y,
-    rw ← lt_top_iff_ne_top,
-    have : (⊥ : ℝ≥0∞) < ⊤ := ennreal.coe_lt_top,
-    simp [edist_pi_def, finset.sup_lt_iff this, edist_lt_top] },
-  show ∀ (x y : Π (b : β), π b), ↑(sup univ (λ (b : β), nndist (x b) (y b))) =
-    ennreal.to_real (sup univ (λ (b : β), edist (x b) (y b))),
-  { assume x y,
-    simp only [edist_nndist],
-    norm_cast }
+    (λf g, ((sup univ (λb, nndist (f b) (g b)) : ℝ≥0) : ℝ)) (λ f g, _) (λ f g, _),
+  show edist f g ≠ ⊤,
+    from ne_of_lt ((finset.sup_lt_iff bot_lt_top).2 $ λ b hb, edist_lt_top _ _),
+  show ↑(sup univ (λ b, nndist (f b) (g b))) = (sup univ (λ b, edist (f b) (g b))).to_real,
+    by simp only [edist_nndist, ← ennreal.coe_finset_sup, ennreal.coe_to_real]
 end
 
 lemma nndist_pi_def (f g : Πb, π b) : nndist f g = sup univ (λb, nndist (f b) (g b)) :=

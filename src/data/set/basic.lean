@@ -853,6 +853,8 @@ ssubset_singleton_iff.1 hs
 
 /-! ### Lemmas about complement -/
 
+lemma compl_def (s : set α) : sᶜ = {x | x ∉ s} := rfl
+
 theorem mem_compl {s : set α} {x : α} (h : x ∉ s) : x ∈ sᶜ := h
 
 lemma compl_set_of {α} (p : α → Prop) : {a | p a}ᶜ = { a | ¬ p a } := rfl

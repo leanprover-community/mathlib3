@@ -12,7 +12,7 @@ This file allows to blow partitions up into parts of controlled size. Given a pa
 `a b m : ℕ`, we want to find a partition `Q` with `a` parts of size `m` and `b` parts of size
 `m + 1` such that all parts of `P` are "as close as possible" to unions of parts of `Q`. By
 "as close as possible", we mean that each part of `P` can be written as the union of some parts of
-`Q` along with at most `m` vertices.
+`Q` along with at most `m` other elements.
 
 ## Main declarations
 

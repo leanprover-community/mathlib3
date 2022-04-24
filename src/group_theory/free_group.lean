@@ -887,7 +887,7 @@ variables (G : Type*) [group G] [is_free_group G]
 
 variable {G}
 
-/-- The canoncial injection of G's generators into G -/
+/-- The canonical injection of G's generators into G -/
 def of : generators G → G := is_free_group.mul_equiv.to_fun ∘ free_group.of
 
 @[simp] lemma of_eq_free_group_of {A : Type u} : (@of (free_group A) _ _ ) = free_group.of := rfl

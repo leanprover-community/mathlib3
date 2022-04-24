@@ -1381,13 +1381,25 @@ variables {m n : Type*} [add_comm_monoid α] [topological_space α]
 
 open_locale matrix
 
-lemma _root_.has_sum.matrix_transpose
-  {f : β → matrix m n α} {a : matrix m n α} (hf : has_sum f a) : has_sum (λ b, (f b)ᵀ) aᵀ :=
+lemma _root_.has_sum.matrix_transpose {f : β → matrix m n α} {a : matrix m n α} (hf : has_sum f a) :
+  has_sum (λ b, (f b)ᵀ) aᵀ :=
 (hf.map (@matrix.transpose_add_equiv m n α _) continuous_id.matrix_transpose : _)
 
-lemma transpose_tsum [t2_space α] {f : β → matrix m n α} (hf : summable f) :
-  (∑'b, f b)ᵀ = ∑' b, (f b)ᵀ :=
-hf.has_sum.matrix_transpose.tsum_eq.symm
+lemma _root_.summable.matrix_transpose  {f : β → matrix m n α} (hf : summable f) :
+  summable (λ b, (f b)ᵀ) :=
+hf.has_sum.matrix_transpose.summable
+
+@[simp] lemma _root_.summable_matrix_transpose {f : β → matrix m n α} :
+  summable (λ b, (f b)ᵀ) ↔ summable f :=
+⟨λ h, by simpa only [transpose_transpose] using h.matrix_transpose, summable.matrix_transpose⟩
+
+lemma transpose_tsum [t2_space α] {f : β → matrix m n α} : (∑'b, f b)ᵀ = ∑' b, (f b)ᵀ :=
+begin
+  by_cases hf : summable f,
+  { exact hf.has_sum.matrix_transpose.tsum_eq.symm },
+  { have hft := summable_matrix_transpose.not.mpr hf,
+    rw [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable hft, transpose_zero] },
+end
 
 end matrix
 

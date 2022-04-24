@@ -55,12 +55,12 @@ lemma clique_free.not_triangle_free_far (hG : G.clique_free 3) (hε : 0 < ε) :
   ¬ G.triangle_free_far ε :=
 λ h, (h.nonpos hG).not_lt hε
 
-lemma triangle_free_far.not_triangle_free (hG : G.triangle_free_far ε) (hε : 0 < ε) :
+lemma triangle_free_far.not_clique_free (hG : G.triangle_free_far ε) (hε : 0 < ε) :
   ¬ G.clique_free 3 :=
 λ h, (hG.nonpos h).not_lt hε
 
 lemma triangle_free_far.clique_finset_nonempty (hG : G.triangle_free_far ε) (hε : 0 < ε) :
   (G.clique_finset 3).nonempty :=
-nonempty_of_ne_empty $ G.clique_finset_eq_empty_iff.not.2 $ hG.not_triangle_free hε
+nonempty_of_ne_empty $ G.clique_finset_eq_empty_iff.not.2 $ hG.not_clique_free hε
 
 end simple_graph

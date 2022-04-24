@@ -121,7 +121,9 @@ variables {m n : ℕ}
 /-- `G.clique_free n` means that `G` has no `n`-cliques. -/
 def clique_free (n : ℕ) : Prop := ∀ t, ¬ G.is_n_clique n t
 
-variables {G H}
+variables {G H} {s : finset α}
+
+lemma is_n_clique.not_clique_free (hG : G.is_n_clique n s) : ¬ G.clique_free n := λ h, h _ hG
 
 lemma clique_free_bot (h : 2 ≤ n) : (⊥ : simple_graph α).clique_free n :=
 begin

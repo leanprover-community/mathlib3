@@ -7,6 +7,7 @@ import topology.algebra.order.monotone_continuity
 import topology.instances.nnreal
 import tactic.norm_cast
 import tactic.ring_exp
+import data.nat.basic
 
 /-!
 # Square root of a real number
@@ -292,9 +293,80 @@ begin
   exact (one_le_div h2).mpr h
 end
 
--- With sqrt_aux_ge_one, we should be able to prove the following: if sqrt_aux gets within ε,
--- then it stays within ε.
--- In fact, convergence is much faster.
+theorem converges_le_zero_step (f : cau_seq ℚ abs) (N : ℕ) (f_le_0 : ∀ i ≥ N, f i ≤ 0)
+  (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
+  (k : ℕ) (k_large : k ≥ N) : sqrt_aux f (k + 1) = sqrt_aux f k / 2 :=
+begin
+  unfold sqrt_aux,
+  have r : f (k + 1) ≤ 0 := f_le_0 (k + 1) (le_add_right k_large),
+  rw max_eq_left r,
+  simp,
+end
+
+lemma pow_sub_one_eq_pow_div (b : ℚ) (b_ne_zero : b ≠ 0) (a : ℕ) (a_big : a ≠ 0): b ^ (a - 1) = b ^ a / b :=
+begin
+  refine ((div_eq_iff b_ne_zero).2 _).symm,
+  have r : 1 ≤ a := nat.one_le_iff_ne_zero.mpr a_big,
+  have t : a = a - 1 + 1 := by rw tsub_add_cancel_of_le r,
+  rw t, ring_exp,
+end
+
+lemma eee (a b c : ℚ) (c_nonzero : c ≠ 0) : a / (b / c) = a / b * c :=
+begin
+  by_cases b = 0,
+  { rw h, simp, },
+  rw div_eq_iff (div_ne_zero h c_nonzero),
+  rw [mul_assoc, mul_div_cancel' b c_nonzero],
+  exact (div_eq_iff h).mp rfl,
+end
+
+lemma converges_le_zero' (f : cau_seq ℚ abs) (N : ℕ) (f_le_0 : ∀ i ≥ N, f i ≤ 0)
+  (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε) :
+  ∀ k ≥ N, sqrt_aux f k = sqrt_aux f N / (2 ^ (k - N))
+| 0 pr :=
+begin
+  simp only [ge_iff_le, le_zero_iff] at pr,
+  rw pr,
+  simp,
+end
+| (k + 1) pr :=
+begin
+  by_cases k_eq : k + 1 = N,
+  { rw k_eq, simp, },
+  have v : k ≥ N,
+  { cases lt_or_ge k N with h,
+    { exfalso, refine k_eq _,
+      linarith, },
+    { exact h, },
+   },
+  rw converges_le_zero_step f N f_le_0 ε ε_pos f_near k v,
+  rw converges_le_zero' k v,
+  have two_ne_zero : (2 : ℚ) ≠ 0 := two_ne_zero,
+  rw div_eq_iff two_ne_zero,
+  have r : k - N = k + 1 - N - 1,
+  calc k - N = k - N + 1 - 1 : eq_tsub_of_add_eq rfl
+    ... = k + 1 - N - 1 : sorry,
+  calc sqrt_aux f N / 2 ^ (k - N)
+        = sqrt_aux f N / 2 ^ (k + 1 - N - 1) : by rw r
+    ... = sqrt_aux f N / (2 ^ (k + 1 - N) / 2) : by rw pow_sub_one_eq_pow_div 2 (by norm_num) (k + 1 - N) (by linarith)
+    ... = sqrt_aux f N / (2 ^ (k + 1 - N)) * 2 : by rw eee (sqrt_aux f N) _ 2 (by norm_num)
+end
+
+theorem cau_seq_le_zero (f : cau_seq ℚ abs) (f_nonpos : f ≤ 0) : is_cau_seq abs (sqrt_aux f) :=
+begin
+  sorry,
+end
+
+theorem sqrt_aux_cau (f : cau_seq ℚ abs) : is_cau_seq abs (sqrt_aux f) :=
+begin
+  by_cases f ≤ 0,
+  { exact cau_seq_le_zero f h, },
+  { sorry, },
+end
+
+-- This bound is not obviously possible to improve without further assumptions, but it's also
+-- not obviously useful.
+-- We later prove a refinement that is extremely useful.
 theorem converges_eventually_if_near_step (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
   (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
   (k : ℕ) (k_large : N ≤ k) (δ : ℚ) (δ_pos : 0 < δ) (converged : sqrt_aux f k ^ 2 - f k ≤ δ) :
@@ -347,7 +419,7 @@ begin
       end
     ... ≤ ((s ^ 2 - f k) ^ 2 + (f k - f (k + 1)) ^ 2 + 2 * (abs (f k - f (k + 1))) * (s ^ 2 - f k)) / (4 * s ^ 2) :
       begin
-        refine bar _ _ _ weaker _,
+        refine div_le_div_right' _ _ _ weaker _,
         have r : f k - f (k + 1) ≤ abs (f k - f (k + 1)) := le_abs_self _,
         refine add_le_add rfl.le _,
         by_cases is_exact : s ^ 2 - f k = 0,
@@ -399,12 +471,29 @@ begin
     ... = (δ + ε) ^ 2 / (4 * s ^ 2) : by ring
 end
 
+theorem further_refinement (f : cau_seq ℚ abs)
+  (ε : ℚ) (ε_pos : 0 < ε)
+  (k : ℕ) (δ : ℚ) (δ_pos : 0 < δ) (f_pos : f k ≥ 0) (converged : sqrt_aux f k ^ 2 - f k = δ) :
+  (δ + ε) ^ 2 / (4 * sqrt_aux f k ^ 2) ≤ δ / 2 :=
+begin
+  have r : 0 < 4 * sqrt_aux f k ^ 2 := sorry,
+  have u : δ ≤ sqrt_aux f k ^ 2 := sorry,
+  rw div_le_iff r,
+  ring_nf,
+  rw ←div_le_iff δ_pos,
+  calc ((δ + 2 * ε) * δ + ε ^ 2) / δ ≤ 2 * δ : sorry
+  ... ≤ 2 * sqrt_aux f k ^ 2 : by linarith,
+end
+
 lemma eek (a b : ℚ) : a + b / a = (a ^ 2 + b) / a :=
 begin
   ring_nf,
   rw [sq a, ←mul_assoc],
   simp,
 end
+
+theorem sq_zero_iff (a : ℚ) : a ^ 2 = 0 ↔ a = 0 :=
+⟨pow_eq_zero, (λ _, by simpa only [pow_eq_zero_iff, nat.succ_pos'])⟩
 
 theorem eventually_gets_near (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
   (ε : ℚ) (ε_pos : 0 < ε) (ε_small : ε < 1) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε) :
@@ -449,7 +538,7 @@ begin
       ... = ((f N ^ 2 + 2 * f N * f (N + 1) + f (N + 1) ^ 2) - 4 * f (N + 1) * f N) / (f N * 4) : by rw add_sq (f N) (f (N + 1))
       ... = ((f N ^ 2 - 2 * f N * f (N + 1) + f (N + 1) ^ 2)) / (f N * 4) : by ring
       ... = (((f N - f (N + 1)) ^ 2)) / (f N * 4) : by rw sub_sq (f N) (f (N + 1))
-      ... ≤ ε ^ 2 / (f N * 4) : bar _ _ _ gg g
+      ... ≤ ε ^ 2 / (f N * 4) : div_le_div_right' _ _ _ gg g
       ... ≤ _ : sorry
    },
   have δ_pos : 0 < sqrt_aux f N ^ 2 - f N := (ne.symm δ_pos).le_iff_lt.mp (sqrt_aux_overestimate' f _),

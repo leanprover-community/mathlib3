@@ -178,7 +178,7 @@ begin
   have : degree (p %ₘ f) ≤ degree f := degree_mod_by_monic_le p hfm,
   generalize_hyp : p %ₘ f = q at this ⊢,
   rw [← sum_C_mul_X_eq q, aeval_def, eval₂_sum, sum_def],
-  refine sum_mem _ (λ k hkq, _),
+  refine sum_mem (λ k hkq, _),
   rw [eval₂_mul, eval₂_C, eval₂_pow, eval₂_X, ← algebra.smul_def],
   refine smul_mem _ _ (subset_span _),
   rw finset.mem_coe, refine finset.mem_image.2 ⟨_, _, rfl⟩,
@@ -228,7 +228,7 @@ begin
     subring.closure ↑(lx.frange ∪ finset.bUnion finset.univ (finsupp.frange ∘ ly)),
   -- It suffices to prove that `x` is integral over `S₀`.
   refine is_integral_of_subring S₀ _,
-  letI : comm_ring S₀ := subring.to_comm_ring S₀,
+  letI : comm_ring S₀ := subring_class.to_comm_ring S₀,
   letI : algebra S₀ A := algebra.of_subring S₀,
   -- Claim: the `S₀`-module span (in `A`) of the set `y ∪ {1}` is closed under
   -- multiplication (indeed, this is the motivation for the definition of `S₀`).
@@ -837,7 +837,7 @@ begin
   -- `q(a) = 0`, because multiplying everything with `a_inv^n` gives `p(a_inv) = 0`.
   -- TODO: this could be a lemma for `polynomial.reverse`.
   have hq : ∑ (i : ℕ) in finset.range (p.nat_degree + 1), (p.coeff i) * a ^ (p.nat_degree - i) = 0,
-  { apply (algebra_map R S).injective_iff.mp hRS,
+  { apply (injective_iff_map_eq_zero (algebra_map R S)).mp hRS,
     have a_inv_ne_zero : a_inv ≠ 0 := right_ne_zero_of_mul (mt ha_inv.symm.trans one_ne_zero),
     refine (mul_eq_zero.mp _).resolve_right (pow_ne_zero p.nat_degree a_inv_ne_zero),
     rw [eval₂_eq_sum_range] at hp,

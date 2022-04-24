@@ -48,7 +48,7 @@ begin
   refine (is_limit.postcompose_hom_equiv _ _).symm.trans (is_limit.equiv_iso_limit _),
   refine parallel_pair.ext (iso.refl _) (iso.refl _) _ _; simp,
   refine fork.ext (iso.refl _) _,
-  simp,
+  simp [fork.ι]
 end
 
 /--
@@ -74,6 +74,9 @@ def is_limit_of_has_kernel_of_preserves_limit [preserves_limit (parallel_pair f 
     (by simp only [←G.map_comp, equalizer.condition, comp_zero, functor.map_zero])
       : fork (G.map f) 0) :=
 is_limit_fork_map_of_is_limit' G (kernel.condition f) (kernel_is_kernel f)
+
+instance [preserves_limit (parallel_pair f 0) G] : has_kernel (G.map f) :=
+{ exists_limit := ⟨⟨_, is_limit_of_has_kernel_of_preserves_limit G f⟩⟩, }
 
 variables [has_kernel (G.map f)]
 
@@ -134,7 +137,10 @@ begin
   refine (is_colimit.precompose_hom_equiv _ _).symm.trans (is_colimit.equiv_iso_colimit _),
   refine parallel_pair.ext (iso.refl _) (iso.refl _) _ _; simp,
   refine cofork.ext (iso.refl _) _,
-  simp, dsimp, simp,
+  simp only [cofork.π, iso.refl_hom, id_comp, cocones.precompose_obj_ι,
+    nat_trans.comp_app, parallel_pair.ext_hom_app, functor.map_cocone_ι_app,
+    cofork.of_π_ι_app],
+  apply category.comp_id
 end
 
 /--
@@ -160,6 +166,9 @@ def is_colimit_of_has_cokernel_of_preserves_colimit [preserves_colimit (parallel
     (by simp only [←G.map_comp, coequalizer.condition, zero_comp, functor.map_zero])
       : cofork (G.map f) 0) :=
 is_colimit_cofork_map_of_is_colimit' G (cokernel.condition f) (cokernel_is_cokernel f)
+
+instance [preserves_colimit (parallel_pair f 0) G] : has_cokernel (G.map f) :=
+{ exists_colimit := ⟨⟨_, is_colimit_of_has_cokernel_of_preserves_colimit G f⟩⟩, }
 
 variables [has_cokernel (G.map f)]
 

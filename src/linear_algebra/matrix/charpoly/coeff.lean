@@ -120,7 +120,6 @@ end
 theorem trace_eq_neg_charpoly_coeff [nonempty n] (M : matrix n n R) :
   (trace n R R) M = -M.charpoly.coeff (fintype.card n - 1) :=
 begin
-  nontriviality,
   rw charpoly_coeff_eq_prod_coeff_of_le, swap, refl,
   rw [fintype.card, prod_X_sub_C_coeff_card_pred univ (λ i : n, M i i)], simp,
   rw [← fintype.card, fintype.card_pos_iff], apply_instance,
@@ -209,12 +208,16 @@ end
   (M ^ p).charpoly = M.charpoly :=
 by { have h := finite_field.matrix.charpoly_pow_card M, rwa zmod.card at h, }
 
-lemma finite_field.trace_pow_card {K : Type*} [field K] [fintype K] [nonempty n]
+lemma finite_field.trace_pow_card {K : Type*} [field K] [fintype K]
   (M : matrix n n K) : trace n K K (M ^ (fintype.card K)) = (trace n K K M) ^ (fintype.card K) :=
-by rw [matrix.trace_eq_neg_charpoly_coeff, matrix.trace_eq_neg_charpoly_coeff,
+begin
+  casesI is_empty_or_nonempty n,
+  { simp [zero_pow fintype.card_pos], },
+  rw [matrix.trace_eq_neg_charpoly_coeff, matrix.trace_eq_neg_charpoly_coeff,
        finite_field.matrix.charpoly_pow_card, finite_field.pow_card]
+end
 
-lemma zmod.trace_pow_card {p:ℕ} [fact p.prime] [nonempty n] (M : matrix n n (zmod p)) :
+lemma zmod.trace_pow_card {p:ℕ} [fact p.prime] (M : matrix n n (zmod p)) :
   trace n (zmod p) (zmod p) (M ^ p) = (trace n (zmod p) (zmod p) M)^p :=
 by { have h := finite_field.trace_pow_card M, rwa zmod.card at h, }
 
@@ -256,7 +259,7 @@ lemma charpoly_left_mul_matrix {K S : Type*} [field K] [comm_ring S] [algebra K 
 begin
   apply minpoly.unique,
   { apply matrix.charpoly_monic },
-  { apply (left_mul_matrix _).injective_iff.mp (left_mul_matrix_injective h.basis),
+  { apply (injective_iff_map_eq_zero (left_mul_matrix _)).mp (left_mul_matrix_injective h.basis),
     rw [← polynomial.aeval_alg_hom_apply, aeval_self_charpoly] },
   { intros q q_monic root_q,
     rw [matrix.charpoly_degree_eq_dim, fintype.card_fin, degree_eq_nat_degree q_monic.ne_zero],

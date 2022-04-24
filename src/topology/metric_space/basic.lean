@@ -7,6 +7,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 import data.int.interval
 import topology.algebra.order.compact
 import topology.metric_space.emetric_space
+import topology.bornology.basic
 import topology.uniform_space.complete_separated
 
 /-!
@@ -84,6 +85,45 @@ def uniform_space_of_dist
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) : uniform_space α :=
 uniform_space.of_core (uniform_space.core_of_dist dist dist_self dist_comm dist_triangle)
 
+/-- This is an internal lemma used to construct a bornology from a metric in `bornology.of_dist`. -/
+private lemma bounded_iff_aux {α : Type*} (dist : α → α → ℝ)
+  (dist_comm : ∀ x y : α, dist x y = dist y x)
+  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
+  (s : set α) (a : α) :
+  (∃ c, ∀ ⦃x y⦄, x ∈ s → y ∈ s → dist x y ≤ c) ↔ (∃ r, ∀ ⦃x⦄, x ∈ s → dist x a ≤ r) :=
+begin
+  split; rintro ⟨C, hC⟩,
+  { rcases s.eq_empty_or_nonempty with rfl | ⟨x, hx⟩,
+    { exact ⟨0, by simp⟩ },
+    { exact ⟨C + dist x a, λ y hy,
+             (dist_triangle y x a).trans (add_le_add_right (hC hy hx) _)⟩ } },
+  { exact ⟨C + C, λ x y hx hy,
+           (dist_triangle x a y).trans (add_le_add (hC hx) (by {rw dist_comm, exact hC hy}))⟩ }
+end
+
+/-- Construct a bornology from a distance function and metric space axioms. -/
+def bornology.of_dist {α : Type*} (dist : α → α → ℝ)
+  (dist_self : ∀ x : α, dist x x = 0)
+  (dist_comm : ∀ x y : α, dist x y = dist y x)
+  (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) :
+  bornology α :=
+bornology.of_bounded
+  { s : set α | ∃ C, ∀ ⦃x y⦄, x ∈ s → y ∈ s → dist x y ≤ C }
+  ⟨0, λ x y hx, hx.elim⟩
+  (λ s ⟨c, hc⟩ t h, ⟨c, λ x y hx hy, hc (h hx) (h hy)⟩)
+  (λ s hs t ht,
+    begin
+      rcases s.eq_empty_or_nonempty with rfl | ⟨z, hz⟩,
+      { exact (empty_union t).symm ▸ ht },
+      { simp only [λ u, bounded_iff_aux dist dist_comm dist_triangle u z] at hs ht ⊢,
+        rcases ⟨hs, ht⟩ with ⟨⟨r₁, hr₁⟩, ⟨r₂, hr₂⟩⟩,
+        exact ⟨max r₁ r₂, λ x hx, or.elim hx
+          (λ hx', (hr₁ hx').trans (le_max_left _ _))
+          (λ hx', (hr₂ hx').trans (le_max_right _ _))⟩ }
+    end)
+  (λ z, ⟨0, λ x y hx hy,
+    by { rw [eq_of_mem_singleton hx, eq_of_mem_singleton hy], exact (dist_self z).le }⟩)
+
 /-- The distance function (given an ambient metric space on `α`), which returns
   a nonnegative real number `dist x y` given `x y : α`. -/
 @[ext] class has_dist (α : Type*) := (dist : α → α → ℝ)
@@ -126,6 +166,9 @@ class pseudo_metric_space (α : Type u) extends has_dist α : Type u :=
   edist x y = ennreal.of_real (dist x y) . pseudo_metric_space.edist_dist_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
+(to_bornology : bornology α := bornology.of_dist dist dist_self dist_comm dist_triangle)
+(cobounded_sets : (bornology.cobounded α).sets =
+  { s | ∃ C, ∀ ⦃x y⦄, x ∈ sᶜ → y ∈ sᶜ → dist x y ≤ C } . control_laws_tac)
 
 /-- Two pseudo metric space structures with the same distance function coincide. -/
 @[ext] lemma pseudo_metric_space.ext {α : Type*} {m m' : pseudo_metric_space α}
@@ -140,7 +183,11 @@ begin
     simp [m_edist_dist, m'_edist_dist] },
   { dsimp at m_uniformity_dist m'_uniformity_dist,
     rw ← m'_uniformity_dist at m_uniformity_dist,
-    exact uniform_space_eq m_uniformity_dist }
+    exact uniform_space_eq m_uniformity_dist },
+  { ext1,
+    dsimp at m_cobounded_sets m'_cobounded_sets,
+    rw ← m'_cobounded_sets at m_cobounded_sets,
+    exact filter_eq m_cobounded_sets }
 end
 
 variables [pseudo_metric_space α]
@@ -185,7 +232,9 @@ pseudo_metric_space α :=
     { apply_instance }
     end,
     ..uniform_space.core_of_dist dist dist_self dist_comm dist_triangle },
-  uniformity_dist := rfl }
+  uniformity_dist := rfl,
+  to_bornology := bornology.of_dist dist dist_self dist_comm dist_triangle,
+  cobounded_sets := rfl }
 
 @[simp] theorem dist_self (x : α) : dist x x = 0 := pseudo_metric_space.dist_self x
 
@@ -340,7 +389,7 @@ by rw [edist_dist, ennreal.to_real_of_real (dist_nonneg)]
 namespace metric
 
 /- instantiate pseudometric space as a topology -/
-variables {x y z : α} {ε ε₁ ε₂ : ℝ} {s : set α}
+variables {x y z : α} {δ ε ε₁ ε₂ : ℝ} {s : set α}
 
 /-- `ball x ε` is the set of all points `y` with `dist y x < ε` -/
 def ball (x : α) (ε : ℝ) : set α := {y | dist y x < ε}
@@ -417,31 +466,18 @@ assume y (hy : _ < _), le_of_lt hy
 theorem sphere_subset_closed_ball : sphere x ε ⊆ closed_ball x ε :=
 λ y, le_of_eq
 
-lemma closed_ball_disjoint_ball (x y : α) (rx ry : ℝ) (h : rx + ry ≤ dist x y) :
-  disjoint (closed_ball x rx) (ball y ry) :=
-begin
-  rw disjoint_left,
-  intros a ax ay,
-  apply lt_irrefl (dist x y),
-  calc dist x y ≤ dist a x + dist a y : dist_triangle_left _ _ _
-  ... < rx + ry : add_lt_add_of_le_of_lt (mem_closed_ball.1 ax) (mem_ball.1 ay)
-  ... ≤ dist x y : h
-end
+lemma closed_ball_disjoint_ball (h : δ + ε ≤ dist x y) : disjoint (closed_ball x δ) (ball y ε) :=
+λ a ha, (h.trans $ dist_triangle_left _ _ _).not_lt $ add_lt_add_of_le_of_lt ha.1 ha.2
 
-lemma ball_disjoint_ball (x y : α) (rx ry : ℝ) (h : rx + ry ≤ dist x y) :
-  disjoint (ball x rx) (ball y ry) :=
-(closed_ball_disjoint_ball x y rx ry h).mono_left ball_subset_closed_ball
+lemma ball_disjoint_closed_ball (h : δ + ε ≤ dist x y) : disjoint (ball x δ) (closed_ball y ε) :=
+(closed_ball_disjoint_ball $ by rwa [add_comm, dist_comm]).symm
 
-lemma closed_ball_disjoint_closed_ball {x y : α} {rx ry : ℝ} (h : rx + ry < dist x y) :
-  disjoint (closed_ball x rx) (closed_ball y ry) :=
-begin
-  rw disjoint_left,
-  intros a ax ay,
-  apply lt_irrefl (dist x y),
-  calc dist x y ≤ dist a x + dist a y : dist_triangle_left _ _ _
-  ... ≤ rx + ry : add_le_add ax ay
-  ... < dist x y : h
-end
+lemma ball_disjoint_ball (h : δ + ε ≤ dist x y) : disjoint (ball x δ) (ball y ε) :=
+(closed_ball_disjoint_ball h).mono_left ball_subset_closed_ball
+
+lemma closed_ball_disjoint_closed_ball (h : δ + ε < dist x y) :
+  disjoint (closed_ball x δ) (closed_ball y ε) :=
+λ a ha, h.not_le $ (dist_triangle_left _ _ _).trans $ add_le_add ha.1 ha.2
 
 theorem sphere_disjoint_ball : disjoint (sphere x ε) (ball x ε) :=
 λ y ⟨hy₁, hy₂⟩, absurd hy₁ $ ne_of_lt hy₂
@@ -1355,8 +1391,9 @@ end
 end nnreal
 
 section prod
+variables [pseudo_metric_space β]
 
-noncomputable instance prod.pseudo_metric_space_max [pseudo_metric_space β] :
+noncomputable instance prod.pseudo_metric_space_max :
   pseudo_metric_space (α × β) :=
 { dist := λ x y, max (dist x.1 y.1) (dist x.2 y.2),
   dist_self := λ x, by simp,
@@ -1378,14 +1415,22 @@ noncomputable instance prod.pseudo_metric_space_max [pseudo_metric_space β] :
   end,
   to_uniform_space := prod.uniform_space }
 
-lemma prod.dist_eq [pseudo_metric_space β] {x y : α × β} :
+lemma prod.dist_eq {x y : α × β} :
   dist x y = max (dist x.1 y.1) (dist x.2 y.2) := rfl
 
-theorem ball_prod_same [pseudo_metric_space β] (x : α) (y : β) (r : ℝ) :
+@[simp]
+lemma dist_prod_same_left {x : α} {y₁ y₂ : β} : dist (x, y₁) (x, y₂) = dist y₁ y₂ :=
+by simp [prod.dist_eq, dist_nonneg]
+
+@[simp]
+lemma dist_prod_same_right {x₁ x₂ : α} {y : β} : dist (x₁, y) (x₂, y) = dist x₁ x₂ :=
+by simp [prod.dist_eq, dist_nonneg]
+
+theorem ball_prod_same (x : α) (y : β) (r : ℝ) :
   ball x r ×ˢ ball y r = ball (x, y) r :=
 ext $ λ z, by simp [prod.dist_eq]
 
-theorem closed_ball_prod_same [pseudo_metric_space β] (x : α) (y : β) (r : ℝ) :
+theorem closed_ball_prod_same (x : α) (y : β) (r : ℝ) :
   closed_ball x r ×ˢ closed_ball y r = closed_ball (x, y) r :=
 ext $ λ z, by simp [prod.dist_eq]
 
@@ -1532,7 +1577,7 @@ lemma _root_.topological_space.is_separable.separable_space {s : set α} (hs : i
 begin
   classical,
   rcases eq_empty_or_nonempty s with rfl|⟨⟨x₀, x₀s⟩⟩,
-  { haveI : encodable (∅ : set α) := fintype.encodable ↥∅, exact encodable.separable_space },
+  { haveI : encodable (∅ : set α) := fintype.to_encodable ↥∅, exact encodable.to_separable_space },
   rcases hs with ⟨c, hc, h'c⟩,
   haveI : encodable c := hc.to_encodable,
   obtain ⟨u, -, u_pos, u_lim⟩ : ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧
@@ -1980,6 +2025,19 @@ lemma bounded_bUnion {I : set β} {s : β → set α} (H : finite I) :
   bounded (⋃i∈I, s i) ↔ ∀i ∈ I, bounded (s i) :=
 finite.induction_on H (by simp) $ λ x I _ _ IH,
 by simp [or_imp_distrib, forall_and_distrib, IH]
+
+protected lemma bounded.prod [pseudo_metric_space β] {s : set α} {t : set β}
+  (hs : bounded s) (ht : bounded t) : bounded (s ×ˢ t) :=
+begin
+  refine bounded_iff_mem_bounded.mpr (λ x hx, _),
+  rcases hs.subset_ball x.1 with ⟨rs, hrs⟩,
+  rcases ht.subset_ball x.2 with ⟨rt, hrt⟩,
+  suffices : s ×ˢ t ⊆ closed_ball x (max rs rt),
+    from bounded_closed_ball.mono this,
+  rw [← @prod.mk.eta _ _ x, ← closed_ball_prod_same],
+  exact prod_mono (hrs.trans $ closed_ball_subset_closed_ball $ le_max_left _ _)
+    (hrt.trans $ closed_ball_subset_closed_ball $ le_max_right _ _)
+end
 
 /-- A totally bounded set is bounded -/
 lemma _root_.totally_bounded.bounded {s : set α} (h : totally_bounded s) : bounded s :=

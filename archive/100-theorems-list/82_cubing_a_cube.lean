@@ -7,7 +7,8 @@ import data.fin.tuple
 import data.real.basic
 import data.set.intervals
 import data.set.pairwise
-import set_theory.cardinal
+import set_theory.cardinal.basic
+
 /-!
 Proof that a cube (in dimension n ≥ 3) cannot be cubed:
 There does not exist a partition of a cube into finitely many smaller cubes (at least two)
@@ -509,7 +510,7 @@ omit h
 /-- The infinite sequence of cubes contradicts the finiteness of the family. -/
 theorem not_correct : ¬correct cs :=
 begin
-  intro h, apply not_le_of_lt (lt_omega_iff_fintype.mpr ⟨_inst_1⟩),
+  intro h, apply (lt_omega_of_fintype ι).not_le,
   rw [omega, lift_id], fapply mk_le_of_injective, exact λ n, (sequence_of_cubes h n).1,
   intros n m hnm, apply strict_mono.injective (strict_mono_sequence_of_cubes h),
   dsimp only [decreasing_sequence], rw hnm

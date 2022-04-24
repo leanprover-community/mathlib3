@@ -204,6 +204,192 @@ def diagram_iso_span (F : walking_span ⥤ C) :
   F ≅ span (F.map fst) (F.map snd) :=
 nat_iso.of_components (λ j, eq_to_iso (by tidy)) (by tidy)
 
+variables {D : Type*} [category.{v} D]
+
+/-- A functor applied to a cospan is a cospan. -/
+def cospan_comp_iso (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
+  cospan f g ⋙ F ≅ cospan (F.map f) (F.map g) :=
+nat_iso.of_components (by rintros (⟨⟩|⟨⟨⟩⟩); exact iso.refl _)
+  (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp, })
+
+section
+variables (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+
+@[simp] lemma cospan_comp_iso_app_left :
+(cospan_comp_iso F f g).app walking_cospan.left = iso.refl _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_app_right :
+  (cospan_comp_iso F f g).app walking_cospan.right = iso.refl _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_app_one :
+  (cospan_comp_iso F f g).app walking_cospan.one = iso.refl _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_hom_app_left :
+  (cospan_comp_iso F f g).hom.app walking_cospan.left = 𝟙 _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_hom_app_right :
+  (cospan_comp_iso F f g).hom.app walking_cospan.right = 𝟙 _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_hom_app_one :
+  (cospan_comp_iso F f g).hom.app walking_cospan.one = 𝟙 _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_inv_app_left :
+  (cospan_comp_iso F f g).inv.app walking_cospan.left = 𝟙 _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_inv_app_right :
+  (cospan_comp_iso F f g).inv.app walking_cospan.right = 𝟙 _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_inv_app_one :
+  (cospan_comp_iso F f g).inv.app walking_cospan.one = 𝟙 _ :=
+rfl
+
+end
+
+/-- A functor applied to a span is a span. -/
+def span_comp_iso (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
+  span f g ⋙ F ≅ span (F.map f) (F.map g) :=
+nat_iso.of_components (by rintros (⟨⟩|⟨⟨⟩⟩); exact iso.refl _)
+  (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp, })
+
+section
+variables (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
+
+@[simp] lemma span_comp_iso_app_left : (span_comp_iso F f g).app walking_span.left = iso.refl _ :=
+rfl
+
+@[simp] lemma span_comp_iso_app_right : (span_comp_iso F f g).app walking_span.right = iso.refl _ :=
+rfl
+
+@[simp] lemma span_comp_iso_app_zero : (span_comp_iso F f g).app walking_span.zero = iso.refl _ :=
+rfl
+
+@[simp] lemma span_comp_iso_hom_app_left : (span_comp_iso F f g).hom.app walking_span.left = 𝟙 _ :=
+rfl
+
+@[simp] lemma span_comp_iso_hom_app_right :
+  (span_comp_iso F f g).hom.app walking_span.right = 𝟙 _ :=
+rfl
+
+@[simp] lemma span_comp_iso_hom_app_zero : (span_comp_iso F f g).hom.app walking_span.zero = 𝟙 _ :=
+rfl
+
+@[simp] lemma span_comp_iso_inv_app_left : (span_comp_iso F f g).inv.app walking_span.left = 𝟙 _ :=
+rfl
+
+@[simp] lemma span_comp_iso_inv_app_right :
+  (span_comp_iso F f g).inv.app walking_span.right = 𝟙 _ :=
+rfl
+
+@[simp] lemma span_comp_iso_inv_app_zero : (span_comp_iso F f g).inv.app walking_span.zero = 𝟙 _ :=
+rfl
+
+end
+
+section
+variables {X Y Z X' Y' Z' : C} (iX : X ≅ X') (iY : Y ≅ Y') (iZ : Z ≅ Z')
+
+section
+variables {f : X ⟶ Z} {g : Y ⟶ Z} {f' : X' ⟶ Z'} {g' : Y' ⟶ Z'}
+
+/-- Construct an isomorphism of cospans from components. -/
+def cospan_ext (wf : iX.hom ≫ f' = f ≫ iZ.hom) (wg : iY.hom ≫ g' = g ≫ iZ.hom) :
+  cospan f g ≅ cospan f' g' :=
+nat_iso.of_components (by { rintros (⟨⟩|⟨⟨⟩⟩), exacts [iZ, iX, iY], })
+  (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp [wf, wg], })
+
+variables (wf : iX.hom ≫ f' = f ≫ iZ.hom) (wg : iY.hom ≫ g' = g ≫ iZ.hom)
+
+@[simp] lemma cospan_ext_app_left : (cospan_ext iX iY iZ wf wg).app walking_cospan.left = iX :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_app_right : (cospan_ext iX iY iZ wf wg).app walking_cospan.right = iY :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_app_one : (cospan_ext iX iY iZ wf wg).app walking_cospan.one = iZ :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_hom_app_left :
+  (cospan_ext iX iY iZ wf wg).hom.app walking_cospan.left = iX.hom :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_hom_app_right :
+  (cospan_ext iX iY iZ wf wg).hom.app walking_cospan.right = iY.hom :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_hom_app_one :
+  (cospan_ext iX iY iZ wf wg).hom.app walking_cospan.one = iZ.hom :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_inv_app_left :
+  (cospan_ext iX iY iZ wf wg).inv.app walking_cospan.left = iX.inv :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_inv_app_right :
+  (cospan_ext iX iY iZ wf wg).inv.app walking_cospan.right = iY.inv :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_inv_app_one :
+  (cospan_ext iX iY iZ wf wg).inv.app walking_cospan.one = iZ.inv :=
+by { dsimp [cospan_ext], simp, }
+
+end
+
+section
+variables {f : X ⟶ Y} {g : X ⟶ Z} {f' : X' ⟶ Y'} {g' : X' ⟶ Z'}
+
+/-- Construct an isomorphism of spans from components. -/
+def span_ext (wf : iX.hom ≫ f' = f ≫ iY.hom) (wg : iX.hom ≫ g' = g ≫ iZ.hom) :
+  span f g ≅ span f' g' :=
+nat_iso.of_components (by { rintros (⟨⟩|⟨⟨⟩⟩), exacts [iX, iY, iZ], })
+  (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp [wf, wg], })
+
+variables (wf : iX.hom ≫ f' = f ≫ iY.hom) (wg : iX.hom ≫ g' = g ≫ iZ.hom)
+
+@[simp] lemma span_ext_app_left : (span_ext iX iY iZ wf wg).app walking_span.left = iY :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_app_right : (span_ext iX iY iZ wf wg).app walking_span.right = iZ :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_app_one : (span_ext iX iY iZ wf wg).app walking_span.zero = iX :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_hom_app_left :
+  (span_ext iX iY iZ wf wg).hom.app walking_span.left = iY.hom :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_hom_app_right :
+  (span_ext iX iY iZ wf wg).hom.app walking_span.right = iZ.hom :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_hom_app_zero :
+  (span_ext iX iY iZ wf wg).hom.app walking_span.zero = iX.hom :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_inv_app_left :
+  (span_ext iX iY iZ wf wg).inv.app walking_span.left = iY.inv :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_inv_app_right :
+  (span_ext iX iY iZ wf wg).inv.app walking_span.right = iZ.inv :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_inv_app_zero :
+  (span_ext iX iY iZ wf wg).inv.app walking_span.zero = iX.inv :=
+by { dsimp [span_ext], simp, }
+
+end
+
+end
+
 variables {W X Y Z : C}
 
 /-- A pullback cone is just a cone on the cospan formed by two morphisms `f : X ⟶ Z` and
@@ -886,7 +1072,7 @@ end
 
 section
 
-variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
+variables (G : C ⥤ D)
 
 /--
 The comparison morphism for the pullback of `f,g`.
@@ -1086,7 +1272,7 @@ end
 variables (i : Z ⟶ W) [mono i]
 
 instance has_pullback_of_right_factors_mono (f : X ⟶ Z) : has_pullback i (f ≫ i) :=
-by { nth_rewrite 0 ← category.id_comp i, apply_instance }
+by { conv { congr, rw ←category.id_comp i, }, apply_instance }
 
 instance pullback_snd_iso_of_right_factors_mono (f : X ⟶ Z) :
   is_iso (pullback.snd : pullback i (f ≫ i) ⟶ _) :=
@@ -1148,7 +1334,7 @@ end
 variables (i : Z ⟶ W) [mono i]
 
 instance has_pullback_of_left_factors_mono (f : X ⟶ Z) : has_pullback (f ≫ i) i :=
-by { nth_rewrite 1 ← category.id_comp i, apply_instance }
+by { conv { congr, skip, rw ←category.id_comp i, }, apply_instance }
 
 instance pullback_snd_iso_of_left_factors_mono (f : X ⟶ Z) :
   is_iso (pullback.fst : pullback (f ≫ i) i ⟶ _) :=
@@ -1221,7 +1407,7 @@ end
 variables (h : W ⟶ X) [epi h]
 
 instance has_pushout_of_right_factors_epi (f : X ⟶ Y) : has_pushout h (h ≫ f) :=
-by { nth_rewrite 0 ← category.comp_id h, apply_instance }
+by { conv { congr, rw ←category.comp_id h, }, apply_instance }
 
 instance pushout_inr_iso_of_right_factors_epi (f : X ⟶ Y) :
   is_iso (pushout.inr : _ ⟶ pushout h (h ≫ f)) :=
@@ -1283,7 +1469,7 @@ end
 variables (h : W ⟶ X) [epi h]
 
 instance has_pushout_of_left_factors_epi (f : X ⟶ Y) : has_pushout (h ≫ f) h :=
-by { nth_rewrite 1 ← category.comp_id h, apply_instance }
+by { conv { congr, skip, rw ←category.comp_id h, }, apply_instance }
 
 instance pushout_inl_iso_of_left_factors_epi (f : X ⟶ Y) :
   is_iso (pushout.inl : _ ⟶ pushout (h ≫ f) h) :=

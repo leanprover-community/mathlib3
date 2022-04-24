@@ -1624,14 +1624,17 @@ instance : alternative filter :=
 section map
 variables {f f₁ f₂ : filter α} {g g₁ g₂ : filter β} {m : α → β} {m' : β → γ} {s : set α} {t : set β}
 
-theorem preimage_mem_comap (ht : t ∈ g) : m ⁻¹' t ∈ comap m g := eventually.comap ht _
+@[simp] theorem mem_comap : s ∈ comap m g ↔ ∃ t ∈ g, m ⁻¹' t ⊆ s := iff.rfl
+
+theorem preimage_mem_comap (ht : t ∈ g) : m ⁻¹' t ∈ comap m g :=
+⟨t, ht, subset.rfl⟩
 
 lemma eventually.comap {p : β → Prop} (hf : ∀ᶠ b in g, p b) (f : α → β) :
   ∀ᶠ a in comap f g, p (f a) :=
 preimage_mem_comap hf
 
 lemma comap_id : comap id f = f :=
-by { ext s, simp only [mem_comap', id, forall_eq, set_of_mem_eq] }
+le_antisymm (λ s, preimage_mem_comap) (λ s ⟨t, ht, hst⟩, mem_of_superset ht hst)
 
 lemma comap_const_of_not_mem {x : β} (ht : t ∈ g) (hx : x ∉ t) :
   comap (λ y : α, x) g = ⊥ :=
@@ -2752,8 +2755,12 @@ coprod_ne_bot_iff.2 (or.inr ⟨‹_›, ‹_›⟩)
 
 lemma principal_coprod_principal (s : set α) (t : set β) :
   (𝓟 s).coprod (𝓟 t) = 𝓟 (sᶜ ×ˢ tᶜ)ᶜ :=
-by rw [filter.coprod, comap_principal, comap_principal, sup_principal, set.prod_eq, compl_inter,
-  preimage_compl, preimage_compl, compl_compl, compl_compl]
+begin
+  rw [filter.coprod, comap_principal, comap_principal, sup_principal],
+  congr,
+  ext x,
+  simp ; tauto,
+end
 
 -- this inequality can be strict; see `map_const_principal_coprod_map_id_principal` and
 -- `map_prod_map_const_id_principal_coprod_principal` below.
@@ -2774,8 +2781,13 @@ example showing that the inequality in the lemma `map_prod_map_coprod_le` can be
 lemma map_const_principal_coprod_map_id_principal {α β ι : Type*} (a : α) (b : β) (i : ι) :
   (map (λ _ : α, b) (𝓟 {a})).coprod (map id (𝓟 {i}))
   = 𝓟 (({b} : set β) ×ˢ (univ : set ι) ∪ (univ : set β) ×ˢ ({i} : set ι)) :=
-by simp only [map_principal, filter.coprod, comap_principal, sup_principal, image_singleton,
-  image_id, prod_univ, univ_prod]
+begin
+  rw [map_principal, map_principal, principal_coprod_principal],
+  congr,
+  ext ⟨b', i'⟩,
+  simp,
+  tauto,
+end
 
 /-- Characterization of the `filter.map` of the coproduct of two principal filters `𝓟 {a}` and
 `𝓟 {i}`, under the `prod.map` of two functions, respectively the constant function `λ a, b` and the

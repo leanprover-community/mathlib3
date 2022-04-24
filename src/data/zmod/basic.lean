@@ -443,7 +443,7 @@ begin
   rw [←zmod.int_coe_eq_int_coe_iff', int.cast_coe_nat, zmod.nat_cast_val, zmod.cast_id],
 end
 
-lemma val_neg_one (n : ℕ) : (-1 : zmod n.succ).val = n :=
+@[simp] lemma val_neg_one (n : ℕ) : (-1 : zmod n.succ).val = n :=
 begin
   rw [val, fin.coe_neg],
   cases n,
@@ -456,9 +456,7 @@ lemma coe_neg_one {R : Type*} [ring R] (n : ℕ) : ↑(-1 : zmod n) = (n - 1 : R
 begin
   cases n,
   { rw [int.cast_neg, int.cast_one, nat.cast_zero, zero_sub] },
-  { transitivity ((-1 : zmod n.succ).val : R),
-    { rw [nat_cast_val] },
-    { rw [val_neg_one, nat.cast_succ, add_sub_cancel] } },
+  { rw [←nat_cast_val, val_neg_one, nat.cast_succ, add_sub_cancel] },
 end
 
 lemma nat_coe_zmod_eq_iff (p : ℕ) (n : ℕ) (z : zmod p) [fact (0 < p)] :

@@ -5,7 +5,7 @@ Authors: David Wärn, Joachim Breitner
 -/
 import algebra.free_monoid
 import group_theory.congruence
-import group_theory.free_group
+import group_theory.is_free_group
 import group_theory.subgroup.pointwise
 import data.list.chain
 import set_theory.cardinal

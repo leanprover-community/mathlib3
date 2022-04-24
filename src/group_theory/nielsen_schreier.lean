@@ -6,7 +6,7 @@ Authors: David Wärn
 import category_theory.action
 import combinatorics.quiver.arborescence
 import combinatorics.quiver.connected_component
-import group_theory.free_group
+import group_theory.is_free_group
 /-!
 # The Nielsen-Schreier theorem
 

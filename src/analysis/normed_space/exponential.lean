@@ -127,6 +127,10 @@ end
   exp 𝕂 𝔸ᵐᵒᵖ (mul_opposite.op x) = mul_opposite.op (exp 𝕂 𝔸 x) :=
 by simp_rw [exp, exp_series_sum_eq, ←mul_opposite.op_pow, ←mul_opposite.op_smul, tsum_op]
 
+@[simp] lemma exp_unop [t2_space 𝔸] (x : 𝔸ᵐᵒᵖ) :
+  exp 𝕂 𝔸 (mul_opposite.unop x) = mul_opposite.unop (exp 𝕂 𝔸ᵐᵒᵖ x) :=
+by simp_rw [exp, exp_series_sum_eq, ←mul_opposite.unop_pow, ←mul_opposite.unop_smul, tsum_unop]
+
 end topological_algebra
 
 section normed

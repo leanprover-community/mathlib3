@@ -460,7 +460,15 @@ begin
   by_cases h : summable f,
   { exact h.has_sum.op.tsum_eq, },
   { have ho := summable_op.not.mpr h,
-    rw [tsum_eq_zero_of_not_summable h, tsum_eq_zero_of_not_summable ho, mul_opposite.op_zero], },
+    rw [tsum_eq_zero_of_not_summable h, tsum_eq_zero_of_not_summable ho, mul_opposite.op_zero] },
+end
+
+lemma tsum_unop {f : β → αᵐᵒᵖ} : ∑' x, mul_opposite.unop (f x) = mul_opposite.unop (∑' x, f x) :=
+begin
+  by_cases h : summable f,
+  { exact h.has_sum.unop.tsum_eq, },
+  { have ho := summable_unop.not.mpr h,
+    rw [tsum_eq_zero_of_not_summable h, tsum_eq_zero_of_not_summable ho, mul_opposite.unop_zero] },
 end
 
 section has_continuous_add

@@ -3,6 +3,7 @@ Copyright (c) 2021 Alex Kontorovich, Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth
 -/
+import topology.algebra.constructions
 import topology.homeomorph
 import group_theory.group_action.basic
 /-!
@@ -98,6 +99,10 @@ lemma continuous.const_smul (hg : continuous g) (c : M) :
 instance has_continuous_const_smul.op [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α] :
   has_continuous_const_smul Mᵐᵒᵖ α :=
 ⟨ mul_opposite.rec $ λ c, by simpa only [op_smul_eq_smul] using continuous_const_smul c ⟩
+
+instance mul_opposite.has_continuous_const_smul :
+  has_continuous_const_smul M αᵐᵒᵖ :=
+⟨λ c, mul_opposite.continuous_op.comp $ mul_opposite.continuous_unop.const_smul c⟩
 
 @[to_additive]
 instance [has_scalar M β] [has_continuous_const_smul M β] :

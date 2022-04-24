@@ -110,6 +110,10 @@ instance has_continuous_smul.op [has_scalar Mᵐᵒᵖ X] [is_central_scalar M X
   from this.comp (mul_opposite.continuous_unop.prod_map continuous_id),
   by simpa only [op_smul_eq_smul] using (continuous_smul : continuous (λ p : M × X, _)) ⟩
 
+instance mul_opposite.has_continuous_smul : has_continuous_smul M Xᵐᵒᵖ :=
+⟨mul_opposite.continuous_op.comp $ continuous_smul.comp $
+  continuous_id.prod_map mul_opposite.continuous_unop⟩
+
 end has_scalar
 
 section monoid

@@ -710,7 +710,7 @@ instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] [hG : ∀ i, is_fr
     (free_group.lift (λ (x : Σ i, is_free_group.generators (G i)),
       free_product.of (is_free_group.of x.2 : G x.1)))
     (free_product.lift (λ (i : ι),
-      (is_free_group.lift.to_fun (λ (x : is_free_group.generators (G i)),
+      (is_free_group.lift (λ (x : is_free_group.generators (G i)),
         free_group.of (⟨i, x⟩ : Σ i, is_free_group.generators (G i)))
         : G i →* (free_group (Σ i, is_free_group.generators (G i))))))
     (by {ext, simp, })

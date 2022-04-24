@@ -102,7 +102,7 @@ lemma is_square_iff (hF : ring_char F ≠ 2) {a : F} (ha : a ≠ 0) :
   is_square a ↔ a ^ (fintype.card F / 2) = 1 :=
 begin
   apply (iff_congr _ (by simp [units.ext_iff])).mp
-        (finite_field.unit_is_sqare_iff hF (units.mk0 a ha)),
+        (finite_field.unit_is_square_iff hF (units.mk0 a ha)),
   simp only [is_square, units.ext_iff, units.coe_mk0, units.coe_mul],
   split, { rintro ⟨y, hy⟩, exact ⟨y, hy⟩ },
   { rintro ⟨y, rfl⟩,

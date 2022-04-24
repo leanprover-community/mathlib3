@@ -333,9 +333,7 @@ by_contradiction $ assume ne : n ≠ m,
 @[to_additive nsmul_injective_of_lt_add_order_of]
 lemma pow_injective_of_lt_order_of
   (hn : n < order_of x) (hm : m < order_of x) (eq : x ^ n = x ^ m) : n = m :=
-(le_total n m).elim
-  (assume h, pow_injective_aux x h hm eq)
-  (assume h, (pow_injective_aux x h hn eq.symm).symm)
+iterate_injective_of_lt_minimal_period hn hm (by simpa only [mul_left_iterate, mul_one])
 
 @[to_additive mem_multiples_iff_mem_range_add_order_of']
 lemma mem_powers_iff_mem_range_order_of' [decidable_eq G] (hx : 0 < order_of x) :

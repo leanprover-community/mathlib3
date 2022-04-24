@@ -98,3 +98,83 @@ begin
 end
 
 end normed_linear_ordered_field
+
+section real
+
+open_locale big_operators
+open finset
+
+lemma asymptotics.is_o.sum_range {α : Type*} [normed_group α]
+  {f : ℕ → α} {g : ℕ → ℝ} (h : is_o f g at_top)
+  (hg : 0 ≤ g) (h'g : tendsto (λ n, ∑ i in range n, g i) at_top at_top) :
+  is_o (λ n, ∑ i in range n, f i) (λ n, ∑ i in range n, g i) at_top :=
+begin
+  have A : ∀ i, ∥g i∥ = g i := λ i, real.norm_of_nonneg (hg i),
+  have B : ∀ n, ∥∑ i in range n, g i∥ = ∑ i in range n, g i,
+  { assume n,
+    rw [real.norm_eq_abs, abs_sum_of_nonneg'],
+    exact hg },
+  apply is_o_iff.2 (λ ε εpos, _),
+  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (b : ℕ), N ≤ b → ∥f b∥ ≤ ε / 2 * g b,
+    by simpa only [A, eventually_at_top] using is_o_iff.mp h (half_pos εpos),
+  have : is_o (λ (n : ℕ), ∑ i in range N, f i) (λ (n : ℕ), ∑ i in range n, g i) at_top,
+  { apply is_o_const_left.2,
+    exact or.inr (h'g.congr (λ n, (B n).symm)) },
+  filter_upwards [is_o_iff.1 this (half_pos εpos), Ici_mem_at_top N] with n hn Nn,
+  calc ∥∑ i in range n, f i∥
+  = ∥∑ i in range N, f i + ∑ i in Ico N n, f i∥ :
+    by rw sum_range_add_sum_Ico _ Nn
+  ... ≤ ∥∑ i in range N, f i∥ + ∥∑ i in Ico N n, f i∥ :
+    norm_add_le _ _
+  ... ≤ ∥∑ i in range N, f i∥ + ∑ i in Ico N n, (ε / 2) * g i :
+    add_le_add le_rfl (norm_sum_le_of_le _ (λ i hi, hN _ (mem_Ico.1 hi).1))
+  ... ≤ ∥∑ i in range N, f i∥ + ∑ i in range n, (ε / 2) * g i :
+    begin
+      refine add_le_add le_rfl _,
+      apply sum_le_sum_of_subset_of_nonneg,
+      { rw range_eq_Ico,
+        exact Ico_subset_Ico (zero_le _) le_rfl },
+      { assume i hi hident,
+        exact mul_nonneg (half_pos εpos).le (hg i) }
+    end
+  ... ≤ (ε / 2) * ∥∑ i in range n, g i∥ + (ε / 2) * (∑ i in range n, g i) :
+    begin
+      rw ← mul_sum,
+      exact add_le_add hn (mul_le_mul_of_nonneg_left le_rfl (half_pos εpos).le),
+    end
+  ... = ε * ∥(∑ i in range n, g i)∥ : by { simp [B], ring }
+end
+
+lemma asymptotics.is_o_sum_range_of_tendsto_zero {α : Type*} [normed_group α]
+  {f : ℕ → α} (h : tendsto f at_top (𝓝 0)) :
+  is_o (λ n, ∑ i in range n, f i) (λ n, (n : ℝ)) at_top :=
+begin
+  have := ((is_o_one_iff ℝ).2 h).sum_range (λ i, zero_le_one),
+  simp only [sum_const, card_range, nat.smul_one_eq_coe] at this,
+  exact this tendsto_coe_nat_at_top_at_top
+end
+
+/-- The Cesaro average of a converging sequence converges to the same limit. -/
+lemma filter.tendsto.cesaro_smul {E : Type*} [normed_group E] [normed_space ℝ E]
+  {u : ℕ → E} {l : E} (h : tendsto u at_top (𝓝 l)) :
+  tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) • (∑ i in range n, u i)) at_top (𝓝 l) :=
+begin
+  rw [← normed_group.tendsto_sub_nhds_zero_iff, ← is_o_one_iff ℝ],
+  have := asymptotics.is_o_sum_range_of_tendsto_zero (normed_group.tendsto_sub_nhds_zero_iff.2 h),
+  apply ((is_O_refl (λ (n : ℕ), (n : ℝ) ⁻¹) at_top).smul_is_o this).congr' _ _,
+  { filter_upwards [Ici_mem_at_top 1] with n npos,
+    have nposℝ : (0 : ℝ) < n := nat.cast_pos.2 npos,
+    simp only [smul_sub, sum_sub_distrib, sum_const, card_range, sub_right_inj],
+    rw [nsmul_eq_smul_cast ℝ, smul_smul, inv_mul_cancel nposℝ.ne', one_smul] },
+  { filter_upwards [Ici_mem_at_top 1] with n npos,
+    have nposℝ : (0 : ℝ) < n := nat.cast_pos.2 npos,
+    rw [algebra.id.smul_eq_mul, inv_mul_cancel nposℝ.ne'] }
+end
+
+/-- The Cesaro average of a converging sequence converges to the same limit. -/
+lemma filter.tendsto.cesaro
+  {u : ℕ → ℝ} {l : ℝ} (h : tendsto u at_top (𝓝 l)) :
+  tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) * (∑ i in range n, u i)) at_top (𝓝 l) :=
+h.cesaro_smul
+
+end real

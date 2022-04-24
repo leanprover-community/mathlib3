@@ -229,3 +229,60 @@ by simp [← nnreal.summable_coe]
 
 lemma nnreal.summable_one_div_rpow {p : ℝ} : summable (λ n, 1 / n ^ p : ℕ → ℝ≥0) ↔ 1 < p :=
 by simp
+
+section
+
+variables {α : Type*} [linear_ordered_field α]
+
+lemma sum_Ioc_div_sq_le_sub {k n : ℕ} (hk : k ≠ 0) (h : k ≤ n) :
+  ∑ i in Ioc k n, (1 : α) / i ^ 2 ≤ 1 / k - 1 / n :=
+begin
+  refine nat.le_induction _ _ n h,
+  { simp only [Ioc_self, sum_empty, sub_self] },
+  assume n hn IH,
+  rw [sum_Ioc_succ_top hn],
+  apply (add_le_add IH le_rfl).trans,
+  simp only [sub_eq_add_neg, add_assoc, nat.cast_add, nat.cast_one, le_add_neg_iff_add_le,
+    add_le_iff_nonpos_right, neg_add_le_iff_le_add, add_zero],
+  have A : 0 < (n : α), by simpa using hk.bot_lt.trans_le hn,
+  have B : 0 < (n : α) + 1, by linarith,
+  field_simp [B.ne'],
+  rw [div_le_div_iff _ A, ← sub_nonneg],
+  { ring_nf, exact B.le },
+  { nlinarith },
+end
+
+lemma sum_Ioo_div_sq_le (k n : ℕ) :
+  ∑ i in Ioo k n, (1 : α) / i ^ 2 ≤ 2 / (k + 1) :=
+calc
+∑ i in Ioo k n, (1 : α) / i ^ 2 ≤ ∑ i in Ioc k (max (k+1) n), 1 / i ^ 2 :
+begin
+  apply sum_le_sum_of_subset_of_nonneg,
+  { assume x hx,
+    simp only [mem_Ioo] at hx,
+    simp only [hx, hx.2.le, mem_Ioc, le_max_iff, or_true, and_self] },
+  { assume i hi hident,
+    exact div_nonneg zero_le_one (sq_nonneg _), }
+end
+... ≤ 1 / (k + 1) ^ 2 + ∑ i in Ioc k.succ (max (k + 1) n), 1 / i ^ 2 :
+begin
+  rw [← nat.Icc_succ_left, ← nat.Ico_succ_right, sum_eq_sum_Ico_succ_bot],
+  swap, { exact nat.succ_lt_succ ((nat.lt_succ_self k).trans_le (le_max_left _ _)) },
+  rw [nat.Ico_succ_right, nat.Icc_succ_left, nat.cast_succ],
+end
+... ≤ 1 / (k + 1) ^ 2 + 1 / (k + 1) :
+begin
+  refine add_le_add le_rfl ((sum_Ioc_div_sq_le_sub _ (le_max_left _ _)).trans _),
+  { simp only [ne.def, nat.succ_ne_zero, not_false_iff] },
+  { simp only [nat.cast_succ, one_div, sub_le_self_iff, inv_nonneg, nat.cast_nonneg] }
+end
+... ≤ 1 / (k + 1) + 1 / (k + 1) :
+begin
+  have A : (1 : α) ≤ k + 1, by simp only [le_add_iff_nonneg_left, nat.cast_nonneg],
+  apply add_le_add_right,
+  refine div_le_div zero_le_one le_rfl (zero_lt_one.trans_le A) _,
+  simpa using pow_le_pow A one_le_two,
+end
+... = 2 / (k + 1) : by ring
+
+end

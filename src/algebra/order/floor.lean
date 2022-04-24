@@ -127,6 +127,12 @@ begin
   { exact le_floor_iff ha }
 end
 
+@[simp] lemma one_le_floor_iff (x : α) : 1 ≤ ⌊x⌋₊ ↔ 1 ≤ x :=
+begin
+  convert le_floor_iff' one_ne_zero,
+  simp only [nat.cast_one]
+end
+
 lemma floor_lt' (hn : n ≠ 0) : ⌊a⌋₊ < n ↔ a < n := lt_iff_lt_of_le_iff_le $ le_floor_iff' hn
 
 lemma floor_pos : 0 < ⌊a⌋₊ ↔ 1 ≤ a :=

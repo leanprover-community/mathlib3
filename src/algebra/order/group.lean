@@ -1019,6 +1019,8 @@ lemma le_abs_self (a : α) : a ≤ |a| := le_max_left _ _
 
 lemma neg_le_abs_self (a : α) : -a ≤ |a| := le_max_right _ _
 
+lemma neg_abs_le_neg (a : ℝ) : -|a| ≤ -a := by simp [le_abs_self]
+
 lemma lt_abs : a < |b| ↔ a < b ∨ a < -b := lt_max_iff
 
 theorem abs_le_abs (h₀ : a ≤ b) (h₁ : -a ≤ b) : |a| ≤ |b| :=

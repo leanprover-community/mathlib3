@@ -831,13 +831,12 @@ mem_ℒp_one_iff_integrable.1 $ mem_ℒ1_to_real_of_lintegral_ne_top hfm hfi
 section pos_part
 /-! ### Lemmas used for defining the positive part of a `L¹` function -/
 
-lemma integrable.max_zero {f : α → ℝ} (hf : integrable f μ) : integrable (λ a, max (f a) 0) μ :=
+lemma integrable.pos_part {f : α → ℝ} (hf : integrable f μ) : integrable (λ a, max (f a) 0) μ :=
 ⟨(hf.ae_strongly_measurable.ae_measurable.max ae_measurable_const).ae_strongly_measurable,
   hf.has_finite_integral.max_zero⟩
 
-lemma integrable.min_zero {f : α → ℝ} (hf : integrable f μ) : integrable (λ a, min (f a) 0) μ :=
-⟨(hf.ae_strongly_measurable.ae_measurable.min ae_measurable_const).ae_strongly_measurable,
-  hf.has_finite_integral.min_zero⟩
+lemma integrable.neg_part {f : α → ℝ} (hf : integrable f μ) : integrable (λ a, max (-f a) 0) μ :=
+hf.neg.pos_part
 
 end pos_part
 

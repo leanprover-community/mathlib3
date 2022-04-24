@@ -2107,6 +2107,14 @@ section pos_part
 lemma lipschitz_with_pos_part : lipschitz_with 1 (λ (x : ℝ), max x 0) :=
 lipschitz_with.of_dist_le_mul $ λ x y, by simp [dist, abs_max_sub_max_le_abs]
 
+lemma _root_.measure_theory.mem_ℒp.pos_part {f : α → ℝ} (hf : mem_ℒp f p μ) :
+  mem_ℒp (λ x, max (f x) 0) p μ :=
+lipschitz_with_pos_part.comp_mem_ℒp  (max_eq_right le_rfl) hf
+
+lemma _root_.measure_theory.mem_ℒp.neg_part {f : α → ℝ} (hf : mem_ℒp f p μ) :
+  mem_ℒp (λ x, max (-f x) 0) p μ :=
+lipschitz_with_pos_part.comp_mem_ℒp (max_eq_right le_rfl) hf.neg
+
 /-- Positive part of a function in `L^p`. -/
 def pos_part (f : Lp ℝ p μ) : Lp ℝ p μ :=
 lipschitz_with_pos_part.comp_Lp (max_eq_right le_rfl) f

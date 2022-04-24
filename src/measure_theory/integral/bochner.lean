@@ -570,8 +570,8 @@ begin
     have := (to_simple_func f).pos_part_sub_neg_part,
     conv_lhs {rw ← this},
     refl, },
-  { exact (simple_func.integrable f).max_zero.congr ae_eq₁ },
-  { exact (simple_func.integrable f).neg.max_zero.congr ae_eq₂ }
+  { exact (simple_func.integrable f).pos_part.congr ae_eq₁ },
+  { exact (simple_func.integrable f).neg_part.congr ae_eq₂ }
 end
 
 end pos_part

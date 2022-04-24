@@ -89,7 +89,7 @@ end
 
 section
 
-variables [field k] [module k V]
+variables [division_ring k] [module k V]
 variables {k}
 
 /-- The `vector_span` of a finite subset of an affinely independent

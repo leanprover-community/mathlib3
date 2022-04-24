@@ -46,7 +46,7 @@ begin
   by_cases hc : p = 2,
   { substI hc,
     simp only [eq_iff_true_of_subsingleton, exists_const], },
-  { have h₀ := finite_field.unit_is_sqare_iff (by rwa ring_char_zmod_n) x,
+  { have h₀ := finite_field.unit_is_square_iff (by rwa ring_char_zmod_n) x,
     have hs : (∃ y : (zmod p)ˣ, y ^ 2 = x) ↔ is_square(x) :=
     by { rw is_square_iff_exists_sq x,
          simp_rw eq_comm, },

@@ -72,7 +72,7 @@ end
 
 /-- A unit `a` of a finite field `F` of odd characteristic is a square
 if and only if `a ^ (#F / 2) = 1`. -/
-lemma unit_is_sqare_iff (hF : ring_char F ≠ 2) (a : Fˣ) :
+lemma unit_is_square_iff (hF : ring_char F ≠ 2) (a : Fˣ) :
   is_square a ↔ a ^ (fintype.card F / 2) = 1 :=
 begin
   classical,

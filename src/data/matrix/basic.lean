@@ -261,7 +261,7 @@ variables {n α R}
   (diagonal d).map f = diagonal (λ m, f (d m)) :=
 by { ext, simp only [diagonal, map_apply], split_ifs; simp [h], }
 
-@[simp] lemma diagonal_conj_transpose [semiring α] [star_ring α] (v : n → α) :
+@[simp] lemma diagonal_conj_transpose [add_monoid α] [star_add_monoid α] (v : n → α) :
   (diagonal v)ᴴ = diagonal (star v) :=
 begin
   rw [conj_transpose, diagonal_transpose, diagonal_map (star_zero _)],
@@ -300,7 +300,7 @@ section numeral
 @[simp] lemma bit0_apply [has_add α] (M : matrix m m α) (i : m) (j : m) :
   (bit0 M) i j = bit0 (M i j) := rfl
 
-variables [add_monoid α] [has_one α]
+variables [add_zero_class α] [has_one α]
 
 lemma bit1_apply (M : matrix n n α) (i : n) (j : n) :
   (bit1 M) i j = if i = j then bit1 (M i j) else bit0 (M i j) :=
@@ -506,6 +506,19 @@ theorem diagonal_mul_diagonal' [fintype n] [decidable_eq n] (d₁ d₂ : n → �
   diagonal d₁ * diagonal d₂ = diagonal (λ i, d₁ i * d₂ i) :=
 diagonal_mul_diagonal _ _
 
+lemma smul_eq_diagonal_mul [fintype m] [decidable_eq m] (M : matrix m n α) (a : α) :
+  a • M = diagonal (λ _, a) ⬝ M :=
+by { ext, simp }
+
+@[simp] lemma smul_mul [fintype n] [monoid R] [distrib_mul_action R α] [is_scalar_tower R α α]
+  (a : R) (M : matrix m n α) (N : matrix n l α) :
+  (a • M) ⬝ N = a • M ⬝ N :=
+by { ext, apply smul_dot_product }
+
+@[simp] lemma mul_smul [fintype n] [monoid R] [distrib_mul_action R α] [smul_comm_class R α α]
+  (M : matrix m n α) (a : R) (N : matrix n l α) : M ⬝ (a • N) = a • M ⬝ N :=
+by { ext, apply dot_product_smul }
+
 /-- Left multiplication by a matrix, as an `add_monoid_hom` from matrices to matrices. -/
 @[simps] def add_monoid_hom_mul_left [fintype m] (M : matrix l m α) :
   matrix m n α →+ matrix l n α :=
@@ -620,23 +633,10 @@ instance [fintype n] [decidable_eq n] [ring α] : ring (matrix n n α) :=
 section semiring
 variables [semiring α]
 
-lemma smul_eq_diagonal_mul [fintype m] [decidable_eq m] (M : matrix m n α) (a : α) :
-  a • M = diagonal (λ _, a) ⬝ M :=
-by { ext, simp }
-
-@[simp] lemma smul_mul [fintype n] [monoid R] [distrib_mul_action R α] [is_scalar_tower R α α]
-  (a : R) (M : matrix m n α) (N : matrix n l α) :
-  (a • M) ⬝ N = a • M ⬝ N :=
-by { ext, apply smul_dot_product }
-
 /-- This instance enables use with `smul_mul_assoc`. -/
 instance semiring.is_scalar_tower [fintype n] [monoid R] [distrib_mul_action R α]
   [is_scalar_tower R α α] : is_scalar_tower R (matrix n n α) (matrix n n α) :=
 ⟨λ r m n, matrix.smul_mul r m n⟩
-
-@[simp] lemma mul_smul [fintype n] [monoid R] [distrib_mul_action R α] [smul_comm_class R α α]
-  (M : matrix m n α) (a : R) (N : matrix n l α) : M ⬝ (a • N) = a • M ⬝ N :=
-by { ext, apply dot_product_smul }
 
 /-- This instance enables use with `mul_smul_comm`. -/
 instance semiring.smul_comm_class [fintype n] [monoid R] [distrib_mul_action R α]
@@ -979,6 +979,10 @@ namespace matrix
 def vec_mul_vec [has_mul α] (w : m → α) (v : n → α) : matrix m n α
 | x y := w x * v y
 
+lemma vec_mul_vec_eq [has_mul α] [add_comm_monoid α] (w : m → α) (v : n → α) :
+  vec_mul_vec w v = (col w) ⬝ (row v) :=
+by { ext i j, simp only [vec_mul_vec, mul_apply, fintype.univ_punit, finset.sum_singleton], refl }
+
 section non_unital_non_assoc_semiring
 variables [non_unital_non_assoc_semiring α]
 
@@ -1027,10 +1031,6 @@ by { ext, simp [mul_vec] }
 @[simp] lemma vec_mul_zero [fintype m] (v : m → α) : vec_mul v (0 : matrix m n α) = 0 :=
 by { ext, simp [vec_mul] }
 
-lemma vec_mul_vec_eq (w : m → α) (v : n → α) :
-  vec_mul_vec w v = (col w) ⬝ (row v) :=
-by { ext i j, simp [vec_mul_vec, mul_apply], refl }
-
 lemma smul_mul_vec_assoc [fintype n] [monoid R] [distrib_mul_action R α] [is_scalar_tower R α α]
   (a : R) (A : matrix m n α) (b : n → α) :
   (a • A).mul_vec b = a • (A.mul_vec b) :=
@@ -1052,13 +1052,13 @@ lemma add_vec_mul [fintype m] (A : matrix m n α) (x y : m → α) :
   vec_mul (x + y) A = vec_mul x A + vec_mul y A :=
 by { ext, apply add_dot_product }
 
-lemma vec_mul_smul [fintype m] [comm_semiring R] [semiring S] [algebra R S]
-  (M : matrix m n S) (b : R) (v : m → S)  :
+lemma vec_mul_smul [fintype n] [comm_semiring R] [semiring S] [distrib_mul_action R S]
+  [is_scalar_tower R S S] (M : matrix n m S) (b : R) (v : n → S)  :
   M.vec_mul (b • v) = b • M.vec_mul v :=
 by { ext i, simp only [vec_mul, dot_product, finset.smul_sum, pi.smul_apply, smul_mul_assoc] }
 
-lemma mul_vec_smul [fintype n] [comm_semiring R] [semiring S] [algebra R S]
-  (M : matrix m n S) (b : R) (v : n → S)  :
+lemma mul_vec_smul [fintype n] [comm_semiring R] [semiring S] [distrib_mul_action R S]
+  [smul_comm_class R S S] (M : matrix m n S) (b : R) (v : n → S)  :
   M.mul_vec (b • v) = b • M.mul_vec v :=
 by { ext i, simp only [mul_vec, dot_product, finset.smul_sum, pi.smul_apply, mul_smul_comm] }
 
@@ -1229,30 +1229,34 @@ open_locale matrix
 
 @[simp] lemma conj_transpose_conj_transpose [has_involutive_star α] (M : matrix m n α) :
   Mᴴᴴ = M :=
-by ext; simp
+matrix.ext $ by simp
 
-@[simp] lemma conj_transpose_zero [semiring α] [star_ring α] : (0 : matrix m n α)ᴴ = 0 :=
-by ext i j; simp
+@[simp] lemma conj_transpose_zero [semiring α] [star_add_monoid α] : (0 : matrix m n α)ᴴ = 0 :=
+matrix.ext $ by simp
 
 @[simp] lemma conj_transpose_one [decidable_eq n] [semiring α] [star_ring α]:
   (1 : matrix n n α)ᴴ = 1 :=
 by simp [conj_transpose]
 
 @[simp] lemma conj_transpose_add [add_monoid α] [star_add_monoid α] (M N : matrix m n α) :
-  (M + N)ᴴ = Mᴴ + Nᴴ  := by ext i j; simp
+  (M + N)ᴴ = Mᴴ + Nᴴ :=
+matrix.ext $ by simp
 
 @[simp] lemma conj_transpose_sub [add_group α] [star_add_monoid α] (M N : matrix m n α) :
-  (M - N)ᴴ = Mᴴ - Nᴴ  := by ext i j; simp
+  (M - N)ᴴ = Mᴴ - Nᴴ :=
+matrix.ext $ by simp
 
-@[simp] lemma conj_transpose_smul [comm_monoid α] [star_semigroup α] (c : α) (M : matrix m n α) :
+@[simp] lemma conj_transpose_smul [comm_semigroup α] [star_semigroup α] (c : α) (M : matrix m n α) :
   (c • M)ᴴ = (star c) • Mᴴ :=
-by ext i j; simp [mul_comm]
+matrix.ext $ by simp
 
-@[simp] lemma conj_transpose_mul [fintype n] [semiring α] [star_ring α]
-  (M : matrix m n α) (N : matrix n l α) : (M ⬝ N)ᴴ = Nᴴ ⬝ Mᴴ  := by ext i j; simp [mul_apply]
+@[simp] lemma conj_transpose_mul [fintype n] [non_unital_semiring α] [star_ring α]
+  (M : matrix m n α) (N : matrix n l α) : (M ⬝ N)ᴴ = Nᴴ ⬝ Mᴴ :=
+matrix.ext $ by simp [mul_apply]
 
-@[simp] lemma conj_transpose_neg [non_unital_ring α] [star_ring α] (M : matrix m n α) :
-  (- M)ᴴ = - Mᴴ  := by ext i j; simp
+@[simp] lemma conj_transpose_neg [add_group α] [star_add_monoid α] (M : matrix m n α) :
+  (- M)ᴴ = - Mᴴ :=
+matrix.ext $ by simp
 
 /-- `matrix.conj_transpose` as an `add_equiv` -/
 @[simps apply]
@@ -1363,12 +1367,10 @@ lemma minor_neg [has_neg α] (A : matrix m n α) :
 lemma minor_sub [has_sub α] (A B : matrix m n α) :
   ((A - B).minor : (l → m) → (o → n) → matrix l o α) = A.minor - B.minor := rfl
 
-@[simp]
-lemma minor_zero [has_zero α] :
+@[simp] lemma minor_zero [has_zero α] :
   ((0 : matrix m n α).minor : (l → m) → (o → n) → matrix l o α) = 0 := rfl
 
-lemma minor_smul {R : Type*} [semiring R] [add_comm_monoid α] [module R α] (r : R)
-  (A : matrix m n α) :
+lemma minor_smul {R : Type*} [has_scalar R α] (r : R) (A : matrix m n α) :
   ((r • A : matrix m n α).minor : (l → m) → (o → n) → matrix l o α) = r • A.minor := rfl
 
 lemma minor_map (f : α → β) (e₁ : l → m) (e₂ : o → n) (A : matrix m n α) :
@@ -1391,7 +1393,7 @@ lemma minor_one [has_zero α] [has_one α] [decidable_eq m] [decidable_eq l] (e 
   (1 : matrix m m α).minor e e = 1 :=
 minor_diagonal _ e he
 
-lemma minor_mul [fintype n] [fintype o] [semiring α] {p q : Type*}
+lemma minor_mul [fintype n] [fintype o] [has_mul α] [add_comm_monoid α] {p q : Type*}
   (M : matrix m n α) (N : matrix n p α)
   (e₁ : l → m) (e₂ : o → n) (e₃ : q → p) (he₂ : function.bijective e₂) :
   (M ⬝ N).minor e₁ e₃ = (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) :=
@@ -1562,13 +1564,13 @@ lemma conj_transpose_col [has_star α] (v : m → α) : (col v)ᴴ = row (star v
 @[simp]
 lemma conj_transpose_row [has_star α] (v : m → α) : (row v)ᴴ = col (star v) := by { ext, refl }
 
-lemma row_vec_mul [fintype m] [semiring α] (M : matrix m n α) (v : m → α) :
+lemma row_vec_mul [fintype m] [non_unital_non_assoc_semiring α] (M : matrix m n α) (v : m → α) :
   matrix.row (matrix.vec_mul v M) = matrix.row v ⬝ M := by {ext, refl}
-lemma col_vec_mul [fintype m] [semiring α] (M : matrix m n α) (v : m → α) :
+lemma col_vec_mul [fintype m] [non_unital_non_assoc_semiring α] (M : matrix m n α) (v : m → α) :
   matrix.col (matrix.vec_mul v M) = (matrix.row v ⬝ M)ᵀ := by {ext, refl}
-lemma col_mul_vec [fintype n] [semiring α] (M : matrix m n α) (v : n → α) :
+lemma col_mul_vec [fintype n] [non_unital_non_assoc_semiring α] (M : matrix m n α) (v : n → α) :
   matrix.col (matrix.mul_vec M v) = M ⬝ matrix.col v := by {ext, refl}
-lemma row_mul_vec [fintype n] [semiring α] (M : matrix m n α) (v : n → α) :
+lemma row_mul_vec [fintype n] [non_unital_non_assoc_semiring α] (M : matrix m n α) (v : n → α) :
   matrix.row (matrix.mul_vec M v) = (M ⬝ matrix.col v)ᵀ := by {ext, refl}
 
 @[simp]
@@ -1695,22 +1697,22 @@ end update
 end matrix
 
 namespace ring_hom
-variables [fintype n] [semiring α] [semiring β]
+variables [fintype n] [non_assoc_semiring α] [non_assoc_semiring β]
 
 lemma map_matrix_mul (M : matrix m n α) (N : matrix n o α) (i : m) (j : o) (f : α →+* β) :
   f (matrix.mul M N i j) = matrix.mul (λ i j, f (M i j)) (λ i j, f (N i j)) i j :=
 by simp [matrix.mul_apply, ring_hom.map_sum]
 
-lemma map_dot_product [semiring R] [semiring S] (f : R →+* S) (v w : n → R) :
+lemma map_dot_product [non_assoc_semiring R] [non_assoc_semiring S] (f : R →+* S) (v w : n → R) :
   f (v ⬝ᵥ w) = (f ∘ v) ⬝ᵥ (f ∘ w) :=
 by simp only [matrix.dot_product, f.map_sum, f.map_mul]
 
-lemma map_vec_mul [semiring R] [semiring S]
+lemma map_vec_mul [non_assoc_semiring R] [non_assoc_semiring S]
   (f : R →+* S) (M : matrix n m R) (v : n → R) (i : m) :
   f (M.vec_mul v i) = ((M.map f).vec_mul (f ∘ v) i) :=
 by simp only [matrix.vec_mul, matrix.map_apply, ring_hom.map_dot_product]
 
-lemma map_mul_vec [semiring R] [semiring S]
+lemma map_mul_vec [non_assoc_semiring R] [non_assoc_semiring S]
   (f : R →+* S) (M : matrix m n R) (v : n → R) (i : m) :
   f (M.mul_vec v i) = ((M.map f).mul_vec (f ∘ v) i) :=
 by simp only [matrix.mul_vec, matrix.map_apply, ring_hom.map_dot_product]

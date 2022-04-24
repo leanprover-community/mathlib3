@@ -35,6 +35,11 @@ lemma left_unitor_tensor (X Y : C) :
 by coherence
 
 @[reassoc]
+lemma left_unitor_tensor_inv (X Y : C) :
+  (λ_ (X ⊗ Y)).inv = ((λ_ X).inv ⊗ (𝟙 Y)) ≫ (α_ (𝟙_ C) X Y).hom :=
+by coherence
+
+@[reassoc]
 lemma id_tensor_right_unitor_inv (X Y : C) : 𝟙 X ⊗ (ρ_ Y).inv = (ρ_ _).inv ≫ (α_ _ _ _).hom :=
 by coherence
 

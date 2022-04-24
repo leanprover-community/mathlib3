@@ -412,8 +412,6 @@ begin
                       tensor_comp, tensor_comp] },
 end
 
-set_option class.instance_max_depth 64
-
 lemma tensor_associativity (X₁ X₂ Y₁ Y₂ Z₁ Z₂ : C) :
     (tensor_μ C (X₁, X₂) (Y₁, Y₂) ⊗ 𝟙 (Z₁ ⊗ Z₂)) ≫
     tensor_μ C (X₁ ⊗ Y₁, X₂ ⊗ Y₂) (Z₁, Z₂) ≫

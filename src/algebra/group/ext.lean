@@ -120,16 +120,6 @@ begin
   congr, exacts [h_mul, h₁, hpow, h_inv, hdiv, hzpow]
 end
 
-@[to_additive subtraction_monoid.to_sub_neg_monoid_injective]
-lemma division_monoid.to_div_inv_monoid_injective {M : Type u} :
-  function.injective (@division_monoid.to_div_inv_monoid M) :=
-by { rintro ⟨⟩ ⟨⟩ h, congr'; injection h }
-
-@[ext, to_additive subtraction_monoid.ext]
-lemma division_monoid.ext ⦃g₁ g₂ : division_monoid G⦄ (h_mul : g₁.mul = g₂.mul)
-  (h_inv : g₁.inv = g₂.inv) : g₁ = g₂ :=
-division_monoid.to_div_inv_monoid_injective $ div_inv_monoid.ext h_mul h_inv
-
 @[ext, to_additive]
 lemma group.ext {G : Type*} ⦃g₁ g₂ : group G⦄ (h_mul : g₁.mul = g₂.mul) : g₁ = g₂ :=
 begin

@@ -66,7 +66,7 @@ by { rw to_left_moves_to_pgame, exact congr_fun_heq _ to_pgame_move_left_heq i }
 
 theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
 begin
-  apply @pgame.lt_of_le_move_left _ _ (to_left_moves_to_pgame (enum (<) a _)),
+  convert pgame.move_left_lt (to_left_moves_to_pgame (enum (<) a _)),
   { rw [to_pgame_move_left, typein_enum] },
   { rwa type_lt }
 end

@@ -3,7 +3,7 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
-import set_theory.game.pgame
+import set_theory.game.basic
 
 /-!
 # Surreal numbers
@@ -97,6 +97,10 @@ don't on all pre-games). -/
 theorem lt_iff_le_not_le {x y : pgame} (ox : numeric x) (oy : numeric y) :
   x < y ↔ x ≤ y ∧ ¬ y ≤ x :=
 ⟨λ h, ⟨le_of_lt ox oy h, not_le.2 h⟩, λ h, not_le.1 h.2⟩
+
+theorem lt_or_equiv_or_gt {x y : pgame} (ox : numeric x) (oy : numeric y) :
+  x < y ∨ x ≈ y ∨ y < x :=
+sorry
 
 theorem numeric_zero : numeric 0 :=
 ⟨by rintros ⟨⟩ ⟨⟩, ⟨by rintros ⟨⟩, by rintros ⟨⟩⟩⟩
@@ -338,6 +342,66 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
     or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
+
+/-- This is the induction needed to prove that the product of two numeric games is numeric. It's a
+simplification of Conway's original argument.
+-/
+theorem magic_theorem : ∀ (g x₁ x₂ y : pgame), g = x₁ + x₂ + y + y →
+  numeric x₁ → numeric x₂ → numeric y →
+  (x₁ = x₂ → numeric (x₁ * y)) ∧
+  (x₁ ≈ x₂ → x₁ * y ≈ x₂ * y) ∧
+  (x₁ < x₂ →
+    (∀ i, y.move_left i * x₂ + y * x₁ < y.move_left i * x₁ + y * x₂) ∧
+    ∀ j, y * x₂ + y.move_right j * x₁ < y * x₁ + y.move_right j * x₂)
+| (pgame.mk gl gr gL gR) x₁ x₂ y hg ox₁ ox₂ oy := begin
+  refine ⟨_, _, _⟩, {
+    rintro rfl,
+    rw numeric_def,
+    split,
+    { cases x₁ with xl xr xL xR,
+      cases y with yl yr yL yR,
+      rintro (⟨ix, iy⟩ | ⟨ix, iy⟩) (⟨ix', jy⟩ | ⟨ix', jy⟩),
+      { dsimp,
+        rcases lt_or_equiv_or_gt (ox₁.move_left ix) (ox₁.move_left ix') with h|h|h,
+        { dsimp at h,
+
+          -- xL ix * y - xL ix * yL jy < xL ix' * y - xL ix' * yL jy
+          have H₁ := ((magic_theorem sorry (xL ix) (xL ix') (pgame.mk yl yr yL yR) sorry sorry sorry
+            sorry).2.2 h).1 iy,
+          dsimp at H₁,
+
+          -- x * yL iy - xL ix' * yL iy < x * yR jy - xL ix' * yR jy
+          have H₂ := ((magic_theorem sorry (yL iy) (yR jy) (pgame.mk xl xr xL xR) sorry sorry sorry
+            sorry).2.2 sorry).1 ix',
+          dsimp at H₂,
+
+          -- compose both inequalities
+          sorry },
+        { dsimp at h,
+
+          have H := (magic_theorem sorry (xL ix) (xL ix') (pgame.mk yl yr yL yR) sorry sorry sorry
+            sorry).2.1 h,
+
+          -- congr
+          sorry },
+        { -- analogous to first case
+          sorry } },
+
+      -- three more analogous cases!
+      sorry, sorry, sorry },
+    { -- almost immediate
+      sorry } },
+  {
+    intro e,
+    sorry
+  },
+  {
+    sorry
+  }
+end
+
+theorem numeric_mul {x y : pgame} (ox : x.numeric) (oy : y.numeric) : (x * y).numeric :=
+(magic_theorem _ x x y rfl ox ox oy).1 rfl
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 

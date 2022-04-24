@@ -80,8 +80,7 @@ lift.symm.injective (funext h)
 group extends in a unique way to a homomorphism from `G`.
 
 Note that since `is_free_group.lift` is expressed as a bijection, it already
-expresses the universal property.
- -/
+expresses the universal property.  -/
 lemma unique_lift (f : generators G → H) : ∃! F : G →* H, ∀ a, F (of a) = f a :=
 by simpa [function.funext_iff] using (@lift G _ _ H _).symm.bijective.exists_unique f
 
@@ -89,9 +88,8 @@ by simpa [function.funext_iff] using (@lift G _ _ H _).symm.bijective.exists_uni
 the universal property is expressed as in `is_free_group.lift` and its properties. -/
 def of_lift {G : Type u} [group G] (X : Type u)
   (of : X → G)
-  (lift :         ∀ {H : Type u} [group H], by exactI (X → H) ≃ (G →* H))
-  (lift_of :      ∀ {H : Type u} [group H], by exactI ∀ (f : X → H) a, lift f (of a) = f a)
-  (lift_symm_of : ∀ {H : Type u} [group H], by exactI ∀ (f : G →* H) a, lift.symm f a = f (of a)) :
+  (lift : ∀ {H : Type u} [group H], by exactI (X → H) ≃ (G →* H))
+  (lift_of : ∀ {H : Type u} [group H], by exactI ∀ (f : X → H) a, lift f (of a) = f a) :
   (is_free_group G : Type (u+1)) :=
 { generators := X,
   mul_equiv := monoid_hom.to_mul_equiv
@@ -103,6 +101,8 @@ def of_lift {G : Type u} [group G] (X : Type u)
         lift_of],
     end
     begin
+      let lift_symm_of : ∀ {H : Type u} [group H], by exactI ∀ (f : G →* H) a,
+        lift.symm f a = f (of a) := by introsI H _ f a; simp [← lift_of (lift.symm f)],
       apply lift.symm.injective, ext x,
       simp only [equiv.coe_fn_symm_mk, monoid_hom.coe_comp, function.comp_app, monoid_hom.id_apply,
         free_group.lift.of, lift_of, lift_symm_of],
@@ -122,10 +122,7 @@ let lift {H : Type u} [group H] : by exactI (X → H) ≃ (G →* H) := by exact
     right_inv := λ F, ((classical.some_spec (h (F ∘ of))).right F (λ _, rfl)).symm } in
 let lift_of {H : Type u} [group H] (f : X → H) (a : X) : by exactI lift f (of a) = f a :=
   by exactI congr_fun (lift.symm_apply_apply f) a in
-let lift_symm_of {H : Type u} [group H]: by exactI ∀ (f : G →* H) (a : X), lift.symm f a = f (of a)
-  := (λ f a, rfl) in
-of_lift X of @lift @lift_of @lift_symm_of
-
+of_lift X of @lift @lift_of
 
 /-- Being a free group transports across group isomorphisms. -/
 def of_mul_equiv {H : Type*} [group H] (h : G ≃* H) : is_free_group H :=

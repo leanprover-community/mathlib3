@@ -24,15 +24,14 @@ open_locale big_operators classical affine
 
 section affine_space'
 
-variables (k : Type*) {V : Type*} {P : Type*} [add_comm_group V]
-          [affine_space V P]
+variables (k : Type*) {V : Type*} {P : Type*}
 variables {ι : Type*}
 include V
 
 open affine_subspace finite_dimensional module
 
 section
-variables [division_ring k] [module k V]
+variables [division_ring k] [add_comm_group V] [module k V] [affine_space V P]
 
 /-- The `vector_span` of a finite set is finite-dimensional. -/
 lemma finite_dimensional_vector_span_of_finite {s : set P} (h : set.finite s) :

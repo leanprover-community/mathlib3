@@ -8,6 +8,8 @@ import probability.ident_distrib
 import measure_theory.function.l2_space
 import measure_theory.integral.interval_integral
 import analysis.specific_limits.floor_pow
+import analysis.p_series
+import analysis.asymptotics.specific_asymptotics
 
 /-!
 # The strong law of large numbers
@@ -539,7 +541,7 @@ begin
             not_false_iff, div_zero, zero_mul],
           simp only [nat.cast_zero, truncation_zero, variance_zero, mul_zero] },
         apply mul_le_mul_of_nonneg_right _ (variance_nonneg _ _),
-        convert aux_sum_horrible2 N (nat.cast_pos.2 hj) c_one,
+        convert sum_div_nat_floor_pow_sq_le_div_sq N (nat.cast_pos.2 hj) c_one,
         { simp only [nat.cast_lt] },
         { simp only [one_div] }
       end
@@ -617,7 +619,7 @@ begin
   { convert (tendsto_integral_truncation hint).comp tendsto_coe_nat_at_top_at_top,
     ext i,
     exact (hident i).truncation.integral_eq },
-  convert asymptotics.is_o_sum_range_of_tendsto_zero (tendsto_sub_nhds_zero_iff.2 A),
+  convert asymptotics.is_o_sum_range_of_tendsto_zero (normed_group.tendsto_sub_nhds_zero_iff.2 A),
   ext1 n,
   simp only [sum_sub_distrib, sum_const, card_range, nsmul_eq_mul, sum_apply, sub_left_inj],
   rw integral_finset_sum _ (λ i hi, _),
@@ -632,7 +634,7 @@ lemma strong_law_aux4 {c : ℝ} (c_one : 1 < c) :
 begin
   filter_upwards [strong_law_aux2 X hint hindep hident hnonneg c_one] with ω hω,
   have A : tendsto (λ (n : ℕ), ⌊c ^ n⌋₊) at_top at_top :=
-    nat.tendsto_floor_at_top.comp (tendsto_pow_at_top_at_top_of_one_lt c_one),
+    tendsto_nat_floor_at_top.comp (tendsto_pow_at_top_at_top_of_one_lt c_one),
   convert hω.add ((strong_law_aux3 X hint hident).comp_tendsto A),
   ext1 n,
   simp,
@@ -676,11 +678,11 @@ begin
     simp only [nat.one_le_cast, nat.one_le_floor_iff, one_le_pow_of_one_le c_one.le n] },
   filter_upwards [strong_law_aux4 X hint hindep hident hnonneg c_one,
     strong_law_aux5 X hint hident hnonneg] with ω hω h'ω,
-  rw [← tendsto_sub_nhds_zero_iff, ← asymptotics.is_o_one_iff ℝ],
+  rw [← normed_group.tendsto_sub_nhds_zero_iff, ← asymptotics.is_o_one_iff ℝ],
   have L : asymptotics.is_o (λ (n : ℕ), ∑ i in range ⌊c^n⌋₊, X i ω - ⌊c^n⌋₊ * 𝔼[X 0])
     (λ (n : ℕ), (⌊c^n⌋₊ : ℝ)) at_top,
   { have A : tendsto (λ (n : ℕ), ⌊c ^ n⌋₊) at_top at_top :=
-      nat.tendsto_floor_at_top.comp (tendsto_pow_at_top_at_top_of_one_lt c_one),
+      tendsto_nat_floor_at_top.comp (tendsto_pow_at_top_at_top_of_one_lt c_one),
     convert hω.sub (h'ω.comp_tendsto A),
     ext1 n,
     simp only [sub_sub_sub_cancel_left] },

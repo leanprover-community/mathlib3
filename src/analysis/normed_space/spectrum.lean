@@ -65,17 +65,17 @@ local notation `↑ₐ` := algebra_map 𝕜 A
 
 lemma mem_resolvent_set_of_spectral_radius_lt {a : A} {k : 𝕜} (h : spectral_radius 𝕜 a < ∥k∥₊) :
   k ∈ ρ a :=
-not_not.mp (λ hn, (lt_self_iff_false _).mp (lt_of_le_of_lt (le_bsupr k hn) h))
+not_not.mp $ λ hn, h.not_le $ le_supr₂ k hn
 
 variable [complete_space A]
 
 lemma is_open_resolvent_set (a : A) : is_open (ρ a) :=
-units.is_open.preimage ((algebra_map_isometry 𝕜 A).continuous.sub continuous_const)
+units.is_open.preimage ((algebra_map_clm 𝕜 A).continuous.sub continuous_const)
 
 lemma is_closed (a : A) : is_closed (σ a) :=
 (is_open_resolvent_set a).is_closed_compl
 
-lemma mem_resolvent_of_norm_lt {a : A} {k : 𝕜} (h : ∥a∥ < ∥k∥) :
+lemma mem_resolvent_of_norm_lt [norm_one_class A] {a : A} {k : 𝕜} (h : ∥a∥ < ∥k∥) :
   k ∈ ρ a :=
 begin
   rw [resolvent_set, set.mem_set_of_eq, algebra.algebra_map_eq_smul_one],
@@ -85,31 +85,31 @@ begin
   simpa [ku, sub_eq_add_neg, algebra.algebra_map_eq_smul_one] using (ku.add (-a) hku).is_unit,
 end
 
-lemma norm_le_norm_of_mem {a : A} {k : 𝕜} (hk : k ∈ σ a) :
+lemma norm_le_norm_of_mem [norm_one_class A] {a : A} {k : 𝕜} (hk : k ∈ σ a) :
   ∥k∥ ≤ ∥a∥ :=
 le_of_not_lt $ mt mem_resolvent_of_norm_lt hk
 
-lemma subset_closed_ball_norm (a : A) :
+lemma subset_closed_ball_norm [norm_one_class A] (a : A) :
   σ a ⊆ metric.closed_ball (0 : 𝕜) (∥a∥) :=
 λ k hk, by simp [norm_le_norm_of_mem hk]
 
-lemma is_bounded (a : A) : metric.bounded (σ a) :=
+lemma is_bounded [norm_one_class A] (a : A) : metric.bounded (σ a) :=
 (metric.bounded_iff_subset_ball 0).mpr ⟨∥a∥, subset_closed_ball_norm a⟩
 
-theorem is_compact [proper_space 𝕜] (a : A) : is_compact (σ a) :=
+theorem is_compact [norm_one_class A] [proper_space 𝕜] (a : A) : is_compact (σ a) :=
 metric.is_compact_of_is_closed_bounded (is_closed a) (is_bounded a)
 
-theorem spectral_radius_le_nnnorm (a : A) :
+theorem spectral_radius_le_nnnorm [norm_one_class A] (a : A) :
   spectral_radius 𝕜 a ≤ ∥a∥₊ :=
-by { refine bsupr_le (λ k hk, _), exact_mod_cast norm_le_norm_of_mem hk }
+by { refine supr₂_le (λ k hk, _), exact_mod_cast norm_le_norm_of_mem hk }
 
 open ennreal polynomial
 
 variable (𝕜)
-theorem spectral_radius_le_pow_nnnorm_pow_one_div (a : A) (n : ℕ) :
+theorem spectral_radius_le_pow_nnnorm_pow_one_div [norm_one_class A] (a : A) (n : ℕ) :
   spectral_radius 𝕜 a ≤ ∥a ^ (n + 1)∥₊ ^ (1 / (n + 1) : ℝ) :=
 begin
-  refine bsupr_le (λ k hk, _),
+  refine supr₂_le (λ k hk, _),
   /- apply easy direction of the spectral mapping theorem for polynomials -/
   have pow_mem : k ^ (n + 1) ∈ σ (a ^ (n + 1)),
     by simpa only [one_mul, algebra.algebra_map_eq_smul_one, one_smul, aeval_monomial, one_mul,
@@ -282,13 +282,13 @@ end
 
 /-- **Gelfand's formula**: Given an element `a : A` of a complex Banach algebra, the
 `spectral_radius` of `a` is the limit of the sequence `∥a ^ n∥₊ ^ (1 / n)` -/
-theorem pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a : A) :
+theorem pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius [norm_one_class A] (a : A) :
   tendsto (λ n : ℕ, ((∥a ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞)) at_top (𝓝 (spectral_radius ℂ a)) :=
 begin
   refine tendsto_of_le_liminf_of_limsup_le _ _ (by apply_auto_param) (by apply_auto_param),
   { rw [←liminf_nat_add _ 1, liminf_eq_supr_infi_of_nat],
     refine le_trans _ (le_supr _ 0),
-    exact le_binfi (λ i hi, spectral_radius_le_pow_nnnorm_pow_one_div ℂ a i) },
+    exact le_infi₂ (λ i hi, spectral_radius_le_pow_nnnorm_pow_one_div ℂ a i) },
   { exact limsup_pow_nnnorm_pow_one_div_le_spectral_radius a },
 end
 
@@ -296,7 +296,7 @@ end
 instead of `nnnorm`. -/
 /-- **Gelfand's formula**: Given an element `a : A` of a complex Banach algebra, the
 `spectral_radius` of `a` is the limit of the sequence `∥a ^ n∥₊ ^ (1 / n)` -/
-theorem pow_norm_pow_one_div_tendsto_nhds_spectral_radius (a : A) :
+theorem pow_norm_pow_one_div_tendsto_nhds_spectral_radius [norm_one_class A] (a : A) :
   tendsto (λ n : ℕ,  ennreal.of_real (∥a ^ n∥ ^ (1 / n : ℝ))) at_top (𝓝 (spectral_radius ℂ a)) :=
 begin
   convert pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius a,
@@ -414,11 +414,12 @@ local notation `↑ₐ` := algebra_map 𝕜 A
 
 /-- An algebra homomorphism into the base field, as a continuous linear map (since it is
 automatically bounded). -/
-@[simps] def to_continuous_linear_map (φ : A →ₐ[𝕜] 𝕜) : A →L[𝕜] 𝕜 :=
+@[simps] def to_continuous_linear_map [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) : A →L[𝕜] 𝕜 :=
 φ.to_linear_map.mk_continuous_of_exists_bound $
   ⟨1, λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (φ.apply_mem_spectrum _)⟩
 
-lemma continuous (φ : A →ₐ[𝕜] 𝕜) : continuous φ := φ.to_continuous_linear_map.continuous
+lemma continuous [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) : continuous φ :=
+φ.to_continuous_linear_map.continuous
 
 end normed_field
 

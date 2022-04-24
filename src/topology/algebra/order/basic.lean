@@ -211,6 +211,12 @@ lemma is_closed.is_closed_le [topological_space β] {f g : β → α} {s : set �
   is_closed {x ∈ s | f x ≤ g x} :=
 (hf.prod hg).preimage_closed_of_closed hs order_closed_topology.is_closed_le'
 
+lemma le_on_closure [topological_space β] {f g : β → α} {s : set β} (h : ∀ x ∈ s, f x ≤ g x)
+  (hf : continuous_on f (closure s)) (hg : continuous_on g (closure s)) ⦃x⦄ (hx : x ∈ closure s) :
+  f x ≤ g x :=
+have s ⊆ {y ∈ closure s | f y ≤ g y}, from λ y hy, ⟨subset_closure hy, h y hy⟩,
+(closure_minimal this (is_closed_closure.is_closed_le hf hg) hx).2
+
 lemma is_closed.epigraph [topological_space β] {f : β → α} {s : set β}
   (hs : is_closed s) (hf : continuous_on f s) :
   is_closed {p : β × α | p.1 ∈ s ∧ f p.1 ≤ p.2} :=
@@ -553,6 +559,22 @@ lemma continuous.if_le [topological_space γ] [Π x, decidable (f x ≤ g x)] {f
   continuous (λ x, if f x ≤ g x then f' x else g' x) :=
 continuous_if_le hf hg hf'.continuous_on hg'.continuous_on hfg
 
+lemma tendsto.eventually_lt {l : filter γ} {f g : γ → α} {y z : α}
+  (hf : tendsto f l (𝓝 y)) (hg : tendsto g l (𝓝 z)) (hyz : y < z) : ∀ᶠ x in l, f x < g x :=
+begin
+  by_cases h : y ⋖ z,
+  { filter_upwards [hf (Iio_mem_nhds hyz), hg (Ioi_mem_nhds hyz)],
+    rw [h.Iio_eq],
+    exact λ x hfx hgx, lt_of_le_of_lt hfx hgx },
+  { obtain ⟨w, hyw, hwz⟩ := (not_covby_iff hyz).mp h,
+    filter_upwards [hf (Iio_mem_nhds hyw), hg (Ioi_mem_nhds hwz)],
+    exact λ x, lt_trans },
+end
+
+lemma continuous_at.eventually_lt {x₀ : β} (hf : continuous_at f x₀)
+  (hg : continuous_at g x₀) (hfg : f x₀ < g x₀) : ∀ᶠ x in 𝓝 x₀, f x < g x :=
+tendsto.eventually_lt hf hg hfg
+
 @[continuity] lemma continuous.min (hf : continuous f) (hg : continuous g) :
   continuous (λb, min (f b) (g b)) :=
 by { simp only [min_def], exact hf.if_le hg hf hg (λ x, id) }
@@ -682,8 +704,8 @@ lemma nhds_eq_order (a : α) :
 by rw [t.topology_eq_generate_intervals, nhds_generate_from];
 from le_antisymm
   (le_inf
-    (le_binfi $ assume b hb, infi_le_of_le {c : α | b < c} $ infi_le _ ⟨hb, b, or.inl rfl⟩)
-    (le_binfi $ assume b hb, infi_le_of_le {c : α | c < b} $ infi_le _ ⟨hb, b, or.inr rfl⟩))
+    (le_infi₂ $ assume b hb, infi_le_of_le {c : α | b < c} $ infi_le _ ⟨hb, b, or.inl rfl⟩)
+    (le_infi₂ $ assume b hb, infi_le_of_le {c : α | c < b} $ infi_le _ ⟨hb, b, or.inr rfl⟩))
   (le_infi $ assume s, le_infi $ assume ⟨ha, b, hs⟩,
     match s, ha, hs with
     | _, h, (or.inl rfl) := inf_le_of_left_le $ infi_le_of_le b $ infi_le _ h
@@ -1893,7 +1915,8 @@ end linear_ordered_field
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
 (image_eq_preimage_of_inverse neg_neg neg_neg).symm
 
-lemma filter.map_neg [add_group α] : map (has_neg.neg : α → α) = comap (has_neg.neg : α → α) :=
+lemma filter.map_neg_eq_comap_neg [add_group α] :
+  map (has_neg.neg : α → α) = comap (has_neg.neg : α → α) :=
 funext $ assume f, map_eq_comap_of_inverse (funext neg_neg) (funext neg_neg)
 
 section order_topology
@@ -2180,6 +2203,18 @@ end
 lemma is_compact.bdd_above {α : Type u} [topological_space α] [linear_order α]
   [order_closed_topology α] : Π [nonempty α] {s : set α}, is_compact s → bdd_above s :=
 @is_compact.bdd_below (order_dual α) _ _ _
+
+/-- A continuous function is bounded below on a compact set. -/
+lemma is_compact.bdd_below_image {α : Type u} [topological_space α] [linear_order α]
+  [order_closed_topology α] [nonempty α] [topological_space γ] {f : γ → α} {K : set γ}
+  (hK : is_compact K) (hf : continuous_on f K) : bdd_below (f '' K) :=
+(hK.image_of_continuous_on hf).bdd_below
+
+/-- A continuous function is bounded above on a compact set. -/
+lemma is_compact.bdd_above_image {α : Type u} [topological_space α] [linear_order α]
+  [order_closed_topology α] [nonempty α] [topological_space γ] {f : γ → α} {K : set γ}
+  (hK : is_compact K) (hf : continuous_on f K) : bdd_above (f '' K) :=
+@is_compact.bdd_below_image _ (order_dual α) _ _ _ _ _ _ _ hK hf
 
 end order_topology
 

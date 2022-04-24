@@ -269,7 +269,7 @@ instance decidable_eq_one_hom_fintype [decidable_eq β] [fintype α] [has_one α
 
 @[to_additive]
 instance decidable_eq_mul_hom_fintype [decidable_eq β] [fintype α] [has_mul α] [has_mul β]:
-  decidable_eq (mul_hom α β) :=
+  decidable_eq (α →ₙ* β) :=
 λ a b, decidable_of_iff ((a : α → β) = b) (injective.eq_iff mul_hom.coe_inj)
 
 @[to_additive]
@@ -840,6 +840,14 @@ lemma univ_option (α : Type*) [fintype α] : (univ : finset (option α)) = inse
 @[simp] theorem fintype.card_option {α : Type*} [fintype α] :
   fintype.card (option α) = fintype.card α + 1 :=
 (finset.card_cons _).trans $ congr_arg2 _ (card_map _) rfl
+
+/-- If `option α` is a `fintype` then so is `α` -/
+def fintype_of_option {α : Type*} [fintype (option α)] : fintype α :=
+⟨finset.erase_none (fintype.elems (option α)), λ x, mem_erase_none.mpr (fintype.complete (some x))⟩
+
+/-- A type is a `fintype` if its successor (using `option`) is a `fintype`. -/
+def fintype_of_option_equiv [fintype α] (f : α ≃ option β) : fintype β :=
+by { haveI := fintype.of_equiv _ f, exact fintype_of_option }
 
 instance {α : Type*} (β : α → Type*)
   [fintype α] [∀ a, fintype (β a)] : fintype (sigma β) :=

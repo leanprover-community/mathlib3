@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
+import group_theory.group_action.conj_act
 import group_theory.quotient_group
 import order.filter.pointwise
 import topology.algebra.monoid
@@ -11,7 +12,7 @@ import topology.sets.compacts
 import topology.algebra.constructions
 
 /-!
-# Theory of topological groups
+# Topological groups
 
 This file defines the following typeclasses:
 
@@ -330,18 +331,26 @@ class topological_add_group (G : Type u) [topological_space G] [add_group G]
   extends has_continuous_add G, has_continuous_neg G : Prop
 
 /-- A topological group is a group in which the multiplication and inversion operations are
-continuous. -/
+continuous.
+
+When you declare an instance that does not already have a `uniform_space` instance,
+you should also provide an instance of `uniform_space` and `uniform_group` using
+`topological_group.to_uniform_space` and `topological_group_is_uniform`. -/
 @[to_additive]
 class topological_group (G : Type*) [topological_space G] [group G]
   extends has_continuous_mul G, has_continuous_inv G : Prop
 
 section conj
 
+instance conj_act.units_has_continuous_const_smul {M} [monoid M] [topological_space M]
+  [has_continuous_mul M] :
+  has_continuous_const_smul (conj_act Mˣ) M :=
+⟨λ m, (continuous_const.mul continuous_id).mul continuous_const⟩
+
 /-- we slightly weaken the type class assumptions here so that it will also apply to `ennreal`, but
 we nevertheless leave it in the `topological_group` namespace. -/
 
-variables [topological_space G] [has_inv G] [has_mul G]
-[has_continuous_mul G]
+variables [topological_space G] [has_inv G] [has_mul G] [has_continuous_mul G]
 
 /-- Conjugation is jointly continuous on `G × G` when both `mul` and `inv` are continuous. -/
 @[to_additive "Conjugation is jointly continuous on `G × G` when both `mul` and `inv` are
@@ -515,6 +524,27 @@ lemma is_open.inv {s : set G} (hs : is_open s) : is_open s⁻¹ := hs.preimage c
 @[to_additive]
 lemma is_closed.inv {s : set G} (hs : is_closed s) : is_closed s⁻¹ := hs.preimage continuous_inv
 
+@[to_additive]
+lemma inv_closure (s : set G) : (closure s)⁻¹ = closure s⁻¹ :=
+(homeomorph.inv G).preimage_closure s
+
+@[to_additive] lemma is_open.mul_closure {U : set G} (hU : is_open U) (s : set G) :
+  U * closure s = U * s :=
+begin
+  refine subset.antisymm _ (mul_subset_mul subset.rfl subset_closure),
+  rintro _ ⟨a, b, ha, hb, rfl⟩,
+  rw mem_closure_iff at hb,
+  have hbU : b ∈ U⁻¹ * {a * b},
+    from ⟨a⁻¹, a * b, set.inv_mem_inv.2 ha, rfl, inv_mul_cancel_left _ _⟩,
+  rcases hb _ hU.inv.mul_right hbU with ⟨_, ⟨c, d, hc, (rfl : d = _), rfl⟩, hcs⟩,
+  exact ⟨c⁻¹, _, hc, hcs, inv_mul_cancel_left _ _⟩
+end
+
+@[to_additive] lemma is_open.closure_mul {U : set G} (hU : is_open U) (s : set G) :
+  closure s * U = s * U :=
+by rw [← inv_inv (closure s * U), set.mul_inv_rev, inv_closure, hU.inv.mul_closure,
+  set.mul_inv_rev, inv_inv, inv_inv]
+
 namespace subgroup
 
 @[to_additive] instance (S : subgroup G) :
@@ -528,17 +558,13 @@ namespace subgroup
 
 end subgroup
 
-@[to_additive]
-lemma inv_closure (s : set G) : (closure s)⁻¹ = closure s⁻¹ :=
-(homeomorph.inv G).preimage_closure s
-
 /-- The (topological-space) closure of a subgroup of a space `M` with `has_continuous_mul` is
 itself a subgroup. -/
 @[to_additive "The (topological-space) closure of an additive subgroup of a space `M` with
 `has_continuous_add` is itself an additive subgroup."]
 def subgroup.topological_closure (s : subgroup G) : subgroup G :=
 { carrier := closure (s : set G),
-  inv_mem' := λ g m, by simpa [←mem_inv, inv_closure] using m,
+  inv_mem' := λ g m, by simpa [←set.mem_inv, inv_closure] using m,
   ..s.to_submonoid.topological_closure }
 
 @[simp, to_additive] lemma subgroup.topological_closure_coe {s : subgroup G} :
@@ -914,10 +940,21 @@ lemma topological_group.regular_space [t1_space G] : regular_space G :=
    contradiction
  end⟩
 
-local attribute [instance] topological_group.regular_space
+@[to_additive]
+lemma topological_group.t2_space [t1_space G] : t2_space G :=
+@regular_space.t2_space G _ (topological_group.regular_space G)
+
+variables {G} (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)]
 
 @[to_additive]
-lemma topological_group.t2_space [t1_space G] : t2_space G := regular_space.t2_space G
+instance subgroup.regular_quotient_of_is_closed
+  (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)] : regular_space (G ⧸ S) :=
+begin
+  suffices : t1_space (G ⧸ S), { exact @topological_group.regular_space _ _ _ _ this, },
+  have hS : is_closed (S : set G) := infer_instance,
+  rw ← quotient_group.ker_mk S at hS,
+  exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS),
+end
 
 end
 
@@ -1048,7 +1085,7 @@ end
 /-- On a topological group, `𝓝 : G → filter G` can be promoted to a `mul_hom`. -/
 @[to_additive "On an additive topological group, `𝓝 : G → filter G` can be promoted to an
 `add_hom`.", simps]
-def nhds_mul_hom : mul_hom G (filter G) :=
+def nhds_mul_hom : G →ₙ* (filter G) :=
 { to_fun := 𝓝,
   map_mul' := λ_ _, nhds_mul _ _ }
 

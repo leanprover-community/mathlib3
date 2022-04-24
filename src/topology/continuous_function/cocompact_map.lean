@@ -19,7 +19,7 @@ open filter set
 /-! ### Cocompact continuous maps -/
 
 /-- A *cocompact continuous map* is a continuous function between topological spaces which
-tends to the cocompact filter along the cocompact filter. Functions for which preimgaes of compact
+tends to the cocompact filter along the cocompact filter. Functions for which preimages of compact
 sets are compact always satisfy this property, and the converse holds for cocompact continuous maps
 when the codomain is Hausdorff (see `cocompact_map.tendsto_of_forall_preimage` and
 `cocompact_map.compact_preimage`) -/
@@ -43,6 +43,8 @@ instance : has_coe_t F (cocompact_map α β) := ⟨λ f, ⟨f, cocompact_tendsto
 
 end cocompact_map_class
 
+export cocompact_map_class (cocompact_tendsto)
+
 namespace cocompact_map
 
 section basics
@@ -54,8 +56,6 @@ instance : cocompact_map_class (cocompact_map α β) α β :=
   coe_injective' := λ f g h, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
   map_continuous := λ f, f.continuous_to_fun,
   cocompact_tendsto := λ f, f.cocompact_tendsto' }
-
-export cocompact_map_class (cocompact_tendsto)
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/

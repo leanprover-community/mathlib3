@@ -91,11 +91,11 @@ has_limit.mk { cone := fork.of_ι pullback.fst huu,
   is_limit := fork.is_limit.mk _
   (λ s, pullback.lift (fork.ι s) (fork.ι s) $ prod.hom_ext
     (by simp only [prod.lift_fst, category.assoc])
-    (by simp only [fork.app_zero_right, fork.app_zero_left, prod.lift_snd, category.assoc]))
+    (by simp only [prod.comp_lift, fork.condition]))
   (λ s, by simp only [fork.ι_of_ι, pullback.lift_fst])
   (λ s m h, pullback.hom_ext
-    (by simpa only [pullback.lift_fst] using h walking_parallel_pair.zero)
-    (by simpa only [huv.symm, pullback.lift_fst] using h walking_parallel_pair.zero)) }
+    (by simpa only [pullback.lift_fst] using h)
+    (by simpa only [huv.symm, pullback.lift_fst] using h)) }
 
 end
 
@@ -213,11 +213,11 @@ has_colimit.mk { cocone := cofork.of_π pushout.inl huu,
   is_colimit := cofork.is_colimit.mk _
   (λ s, pushout.desc (cofork.π s) (cofork.π s) $ coprod.hom_ext
     (by simp only [coprod.inl_desc_assoc])
-    (by simp only [cofork.right_app_one, coprod.inr_desc_assoc, cofork.left_app_one]))
+    (by simp only [coprod.desc_comp, cofork.condition]))
   (λ s, by simp only [pushout.inl_desc, cofork.π_of_π])
   (λ s m h, pushout.hom_ext
-    (by simpa only [pushout.inl_desc] using h walking_parallel_pair.one)
-    (by simpa only [huv.symm, pushout.inl_desc] using h walking_parallel_pair.one)) }
+    (by simpa only [pushout.inl_desc] using h)
+    (by simpa only [huv.symm, pushout.inl_desc] using h)) }
 
 end
 

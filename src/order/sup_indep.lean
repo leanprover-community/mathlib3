@@ -256,16 +256,16 @@ lemma independent.pairwise_disjoint : pairwise (disjoint on t) :=
 lemma independent.mono {ι : Type*} {α : Type*} [complete_lattice α]
   {s t : ι → α} (hs : independent s) (hst : t ≤ s) :
   independent t :=
-λ i, (hs i).mono (hst i) (supr_le_supr $ λ j, supr_le_supr $ λ _, hst j)
+λ i, (hs i).mono (hst i) $ supr₂_mono $ λ j _, hst j
 
 /-- Composing an independent indexed family with an injective function on the index results in
 another indepedendent indexed family. -/
 lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
   {s : ι → α} (hs : independent s) (f : ι' → ι) (hf : function.injective f) :
   independent (s ∘ f) :=
-λ i, (hs (f i)).mono_right begin
-  refine (supr_le_supr $ λ i, _).trans (supr_comp_le _ f),
-  exact supr_le_supr_const hf.ne,
+λ i, (hs (f i)).mono_right $ begin
+  refine (supr_mono $ λ i, _).trans (supr_comp_le _ f),
+  exact supr_const_mono hf.ne,
 end
 
 lemma independent_pair {i j : ι} (hij : i ≠ j) (huniv : ∀ k, k = i ∨ k = j):
@@ -287,7 +287,7 @@ another indepedendent indexed family. -/
 lemma independent.map_order_iso {ι : Sort*} {α β : Type*}
   [complete_lattice α] [complete_lattice β] (f : α ≃o β) {a : ι → α} (ha : independent a) :
   independent (f ∘ a) :=
-λ i, ((ha i).map_order_iso f).mono_right (f.monotone.le_map_supr2 _)
+λ i, ((ha i).map_order_iso f).mono_right (f.monotone.le_map_supr₂ _)
 
 @[simp] lemma independent_map_order_iso_iff {ι : Sort*} {α β : Type*}
   [complete_lattice α] [complete_lattice β] (f : α ≃o β) {a : ι → α} :
@@ -301,7 +301,7 @@ subset of the rest. -/
 lemma independent.disjoint_bsupr {ι : Type*} {α : Type*} [complete_lattice α]
   {t : ι → α} (ht : independent t) {x : ι} {y : set ι} (hx : x ∉ y) :
   disjoint (t x) (⨆ i ∈ y, t i) :=
-disjoint.mono_right (bsupr_le_bsupr' $ λ i hi, (ne_of_mem_of_not_mem hi hx : _)) (ht x)
+disjoint.mono_right (bsupr_mono $ λ i hi, (ne_of_mem_of_not_mem hi hx : _)) (ht x)
 
 end complete_lattice
 

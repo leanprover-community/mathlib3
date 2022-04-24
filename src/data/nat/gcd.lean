@@ -435,7 +435,7 @@ theorem coprime.pow_right {m k : ℕ} (n : ℕ) (H1 : coprime k m) : coprime k (
 theorem coprime.pow {k l : ℕ} (m n : ℕ) (H1 : coprime k l) : coprime (k ^ m) (l ^ n) :=
 (H1.pow_left _).pow_right _
 
-lemma coprime_pow_left_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
+@[simp] lemma coprime_pow_left_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
   nat.coprime (a ^ n) b ↔ nat.coprime a b :=
 begin
   obtain ⟨n, rfl⟩ := exists_eq_succ_of_ne_zero hn.ne',
@@ -443,7 +443,7 @@ begin
   exact ⟨and.left, λ hab, ⟨hab, hab.pow_left _⟩⟩
 end
 
-lemma coprime_pow_right_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
+@[simp] lemma coprime_pow_right_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
   nat.coprime a (b ^ n) ↔ nat.coprime a b :=
 by rw [nat.coprime_comm, coprime_pow_left_iff hn, nat.coprime_comm]
 
@@ -466,6 +466,15 @@ by simp [coprime]
 
 @[simp] theorem coprime_self (n : ℕ) : coprime n n ↔ n = 1 :=
 by simp [coprime]
+
+lemma gcd_mul_of_coprime_of_dvd {a b c : ℕ} (hac : coprime a c) (b_dvd_c : b ∣ c) :
+  gcd (a * b) c = b :=
+begin
+  rcases exists_eq_mul_left_of_dvd b_dvd_c with ⟨d, rfl⟩,
+  rw [gcd_mul_right],
+  convert one_mul b,
+  exact coprime.coprime_mul_right_right hac,
+end
 
 section big_operators
 
@@ -497,8 +506,8 @@ def prod_dvd_and_dvd_of_dvd_prod {m n k : ℕ} (H : k ∣ m * n) :
 begin
 cases h0 : (gcd k m),
 case nat.zero
-{ have : k = 0 := eq_zero_of_gcd_eq_zero_left h0, subst this,
-  have : m = 0 := eq_zero_of_gcd_eq_zero_right h0, subst this,
+{ obtain rfl : k = 0 := eq_zero_of_gcd_eq_zero_left h0,
+  obtain rfl : m = 0 := eq_zero_of_gcd_eq_zero_right h0,
   exact ⟨⟨⟨0, dvd_refl 0⟩, ⟨n, dvd_refl n⟩⟩, (zero_mul n).symm⟩ },
 case nat.succ : tmp
 { have hpos : 0 < gcd k m := h0.symm ▸ nat.zero_lt_succ _; clear h0 tmp,

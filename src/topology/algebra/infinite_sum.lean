@@ -230,6 +230,33 @@ lemma function.surjective.summable_iff_of_has_sum_iff {α' : Type*} [add_comm_mo
   summable f ↔ summable g :=
 hes.exists.trans $ exists_congr $ @he
 
+open mul_opposite
+
+lemma has_sum.op (hf : has_sum f a) : has_sum (λ a, op (f a)) (op a) :=
+(hf.map (@op_add_equiv α _) continuous_op : _)
+
+lemma summable.op (hf : summable f) : summable (op ∘ f) := hf.has_sum.op.summable
+
+lemma has_sum.unop {f : β → αᵐᵒᵖ} {a : αᵐᵒᵖ} (hf : has_sum f a) :
+  has_sum (λ a, unop (f a)) (unop a) :=
+(hf.map (@op_add_equiv α _).symm continuous_unop : _)
+
+lemma summable.unop {f : β → αᵐᵒᵖ} (hf : summable f) : summable (unop ∘ f) :=
+hf.has_sum.unop.summable
+
+@[simp] lemma has_sum_op : has_sum (λ a, op (f a)) (op a) ↔ has_sum f a :=
+⟨has_sum.unop, has_sum.op⟩
+
+@[simp] lemma has_sum_unop {f : β → αᵐᵒᵖ} {a : αᵐᵒᵖ} :
+  has_sum (λ a, unop (f a)) (unop a) ↔ has_sum f a :=
+⟨has_sum.op, has_sum.unop⟩
+
+@[simp] lemma summable_op : summable (λ a, op (f a)) ↔ summable f :=
+⟨summable.unop, summable.op⟩
+
+@[simp] lemma summable_unop {f : β → αᵐᵒᵖ} : summable (λ a, unop (f a)) ↔ summable f :=
+⟨summable.op, summable.unop⟩
+
 variable [has_continuous_add α]
 
 lemma has_sum.add (hf : has_sum f a) (hg : has_sum g b) : has_sum (λb, f b + g b) (a + b) :=
@@ -427,6 +454,14 @@ tsum_eq_tsum_of_has_sum_iff_has_sum $ λ _, has_sum_iff_has_sum_of_ne_zero_bij i
 lemma tsum_subtype (s : set β) (f : β → α) :
   ∑' x:s, f x = ∑' x, s.indicator f x :=
 tsum_eq_tsum_of_has_sum_iff_has_sum $ λ _, has_sum_subtype_iff_indicator
+
+lemma tsum_op : ∑' x, mul_opposite.op (f x) = mul_opposite.op (∑' x, f x) :=
+begin
+  by_cases h : summable f,
+  { exact h.has_sum.op.tsum_eq, },
+  { have ho := summable_op.not.mpr h,
+    rw [tsum_eq_zero_of_not_summable h, tsum_eq_zero_of_not_summable ho, mul_opposite.op_zero], },
+end
 
 section has_continuous_add
 variable [has_continuous_add α]

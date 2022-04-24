@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Damiano Testa
 -/
 import tactic.core
+import algebra.group.basic
 
 /-!
 # `move_add`: a tactic for moving summands
@@ -17,8 +18,6 @@ This is especially important if there are multiple matches for the typed terms i
 expressions.
 
 ### Warning:
-* The tactic uses lemmas from `algebra.group.basic`, thus it will not work unless this file is
-  imported
 * The tactic will discard user-provided terms that do not unify with something in the expression.
   This means that the tactic will not give an error if it finds no match of the provided terms.
   The reason for this choice is that we want a single call of `move_add` to move terms across
@@ -46,7 +45,7 @@ end
 ```
 
 The list of expressions that `move_add` takes is optional and a single expression can be passed
-without parentheses.  Thus `move_add ← f` and `move_add [← f]` mean the same.
+without brackets.  Thus `move_add ← f` and `move_add [← f]` mean the same.
 
 Finally, `move_add` can also be targeted to one or several hypothesis.  If `hp₁, hp₂` are in the
 local context, then `move_add [f, ← g] at hp₁ hp₂` performs the rearranging at `hp₁` and `hp₂`.

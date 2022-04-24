@@ -10,8 +10,9 @@ import set_theory.game.pgame
 /-!
 # Birthdays of games
 
-We define the birthday of a pre-game recursively, as the least ordinal larger than the birthdays of
-its left and right games. We prove the basic properties about these.
+The birthday of a game is an ordinal that represents at which "step" the game was constructed. We
+define it recursively as the least ordinal larger than the birthdays of its left and right games. We
+prove the basic properties about these.
 
 # Main declarations
 

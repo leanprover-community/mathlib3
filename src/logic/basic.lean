@@ -875,8 +875,8 @@ lemma heq_of_cast_eq :
   ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : cast e a = a'), a == a'
 | α ._ a a' rfl h := eq.rec_on h (heq.refl _)
 
-lemma congr_fun_heq {α β γ : Sort*} {f : α → γ} {g : β → γ} (h₁ : α = β) (h₂ : f == g) (x : α) :
-  f x = g (cast h₁ x) :=
+lemma congr_fun_heq {α β γ : Sort*} {f : α → γ} {g : β → γ} (h₁ : α = β) (h₂ : f == g) (x : β) :
+  f (cast h₁.symm x) = g x :=
 by { subst h₁, rw [eq_of_heq h₂, cast_eq] }
 
 lemma cast_eq_iff_heq {α β : Sort*} {a : α} {a' : β} {e : α = β} : cast e a = a' ↔ a == a' :=

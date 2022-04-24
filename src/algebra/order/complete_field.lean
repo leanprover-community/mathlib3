@@ -19,10 +19,10 @@ archimedean. We also construct the natural map from a `linear_ordered_field` to 
 
 ## Main definitions
 
-* `conditionally_complete_linear_ordered_field` : A field satisfying the standard axiomatization of
+* `conditionally_complete_linear_ordered_field`: A field satisfying the standard axiomatization of
   the real numbers, being a Dedekind complete and linear ordered field.
-* `rat.induced_map` : A (unique) map from any archimedean linear ordered field to a conditionally
-  complete linear ordered field
+* `rat.induced_map`: A (unique) map from any archimedean linear ordered field to a conditionally
+  complete linear ordered field. Various bundlings are available.
 
 ## Main results
 
@@ -107,25 +107,6 @@ instance [linear_ordered_field α] [linear_ordered_field β] [archimedean β] :
   subsingleton (α ≃+*o β) :=
 order_ring_iso.to_order_ring_hom_injective.subsingleton
 
-section
-variables [linear_ordered_field α] [archimedean α] {x y : α}
-
-lemma le_of_forall_rat_lt_imp_le (h : ∀ q : ℚ, (q : α) < x → (q : α) ≤ y) : x ≤ y :=
-le_of_not_lt $ λ hyx, let ⟨q, hy, hx⟩ := exists_rat_btwn hyx in hy.not_le $ h _ hx
-
-lemma le_of_forall_lt_rat_imp_le (h : ∀ q : ℚ, y < q → x ≤ q) : x ≤ y :=
-le_of_not_lt $ λ hyx, let ⟨q, hy, hx⟩ := exists_rat_btwn hyx in hx.not_le $ h _ hy
-
-lemma eq_of_forall_rat_lt_iff_lt (h : ∀ q : ℚ, (q : α) < x ↔ (q : α) < y) : x = y :=
-(le_of_forall_rat_lt_imp_le $ λ q hq, ((h q).1 hq).le).antisymm $ le_of_forall_rat_lt_imp_le $
-  λ q hq, ((h q).2 hq).le
-
-lemma eq_of_forall_lt_rat_iff_lt (h : ∀ q : ℚ, x < q ↔ y < q) : x = y :=
-(le_of_forall_lt_rat_imp_le $ λ q hq, ((h q).2 hq).le).antisymm $ le_of_forall_lt_rat_imp_le $
-  λ q hq, ((h q).1 hq).le
-
-end
-
 noncomputable theory
 open real
 
@@ -165,29 +146,6 @@ begin
     exact hy₂ }
 end
 
-variables (α β) [division_ring α] [char_zero α] [division_ring β] [char_zero β]
-
-/-- The natural equiv between the rationals and the rationals as a set inside any characteristic 0
-  division ring. -/
-def range_coe_equiv_rat : range (coe : ℚ → α) ≃ ℚ :=
-(equiv.of_injective coe rat.cast_injective).symm
-
-@[simp] lemma range_coe_equiv_rat_symm_apply (q : ℚ) :
-  (range_coe_equiv_rat α).symm q = ⟨q, mem_range_self _⟩ := rfl
-
-@[simp] lemma range_coe_equiv_rat_coe (q : ℚ) : range_coe_equiv_rat α ⟨q, mem_range_self _⟩ = q :=
-(equiv.apply_eq_iff_eq_symm_apply _).2 rfl
-
-/-- The natural equiv between the rationals as a set inside any pair of characteristic 0
-  division rings -/
-def range_rat_equiv : range (coe : ℚ → α) ≃ range (coe : ℚ → β) :=
-(range_coe_equiv_rat α).trans (range_coe_equiv_rat β).symm
-
-@[simp] lemma range_rat_equiv_apply_coe (q : ℚ):
-  range_rat_equiv α β ⟨q, mem_range_self q⟩ = ⟨q, mem_range_self q⟩ :=
-by simp only [range_rat_equiv, equiv.coe_trans, comp_app, range_coe_equiv_rat_coe,
-  range_coe_equiv_rat_symm_apply]
-
 end move
 
 variables {F α β γ : Type*}
@@ -212,16 +170,12 @@ instance conditionally_complete_linear_ordered_field.to_archimedean
 archimedean_iff_nat_lt.mpr
   begin
     by_contra' h,
-    have : ∀ b, b ∈ set.range (coe : ℕ → α) → b ≤ Sup (set.range (coe : ℕ → α)) - 1,
+    have : ∀ b, b ∈ range (coe : ℕ → α) → b ≤ Sup (range (coe : ℕ → α)) - 1,
     { obtain ⟨x, h⟩ := h,
-      have : bdd_above (set.range (coe : ℕ → α)),
-      { use x,
-        rintro _ ⟨n, rfl⟩,
-        exact h n },
       rintro b ⟨n, rfl⟩,
       rw le_sub_iff_add_le,
-      exact le_cSup this ⟨n + 1, nat.cast_succ n⟩ },
-    replace := cSup_le (set.range_nonempty (coe : ℕ → α)) this,
+      exact le_cSup ⟨x, forall_range_iff.2 h⟩ ⟨n + 1, nat.cast_succ n⟩ },
+    replace := cSup_le (range_nonempty (coe : ℕ → α)) this,
     linarith,
   end
 
@@ -240,91 +194,67 @@ the rationals. Hence we define `rat.cut_map β : α → set β` which sends `a :
 -/
 
 section cut_map
-variables (β) [linear_ordered_field α] [linear_ordered_field β] {a : α} {b : β} {q : ℚ}
+variables [linear_ordered_field α]
+
+section division_ring
+variables (β) [division_ring β] {a a₁ a₂ : α} {b : β} {q : ℚ}
 
 /-- The lower cut of rationals inside a linear ordered field that are less than a given element of
 another linear ordered field. -/
-def cut_map (a : α) : set β := subtype.val ∘ range_rat_equiv α β '' {t | ↑t < a}
+def cut_map (a : α) : set β := (coe : ℚ → β) '' {t | ↑t < a}
 
-lemma cut_map_mono {x y : α} (h : x ≤ y) : cut_map β x ⊆ cut_map β y :=
-image_subset _ $ λ t,  h.trans_lt'
+lemma cut_map_mono (h : a₁ ≤ a₂) : cut_map β a₁ ⊆ cut_map β a₂ := image_subset _ $ λ _, h.trans_lt'
 
 variables {β}
 
-@[simp] lemma mem_cut_map_iff : b ∈ cut_map β a ↔ ∃ q : ℚ, (q : β) = b ∧ (q : α) < a :=
-begin
-  rw cut_map,
-  split,
-  { rintro ⟨⟨_, q, rfl⟩, hq, rfl⟩,
-    exact ⟨q, congr_arg coe (range_coe_equiv_rat_coe _ _).symm, hq⟩ },
-  { rintro ⟨q, rfl, hq⟩,
-    exact ⟨⟨q, mem_range_self _⟩, hq, congr_arg coe $ range_coe_equiv_rat_coe _ _⟩ }
-end
+@[simp] lemma mem_cut_map_iff : b ∈ cut_map β a ↔ ∃ q : ℚ, (q : α) < a ∧ (q : β) = b := iff.rfl
 
-@[simp] lemma coe_mem_cut_map_iff : (q : β) ∈ cut_map β a ↔ (q : α) < a :=
-mem_cut_map_iff.trans ⟨λ ⟨r, h, hr⟩, by rwa ←rat.cast_injective h, λ h, ⟨q, rfl, h⟩⟩
-
-lemma cut_map_coe (q : ℚ) :
-  cut_map β (q : α) = subtype.val '' {t : set.range (coe : ℚ → β) | (t : β) < q} :=
-begin
-  ext x,
-  simp only [mem_cut_map_iff, mem_range, rat.cast_lt, exists_prop, mem_image, subtype.exists,
-    exists_and_distrib_right, exists_eq_right],
-  split,
-  { rintro ⟨r, rfl, hr⟩,
-    exact ⟨⟨r, rfl⟩, rat.cast_lt.mpr hr⟩ },
-  { rintro ⟨⟨r, rfl⟩, hq⟩,
-    exact ⟨r, rfl, rat.cast_lt.mp hq⟩ }
-end
+@[simp] lemma coe_mem_cut_map_iff [char_zero β] : (q : β) ∈ cut_map β a ↔ (q : α) < a :=
+rat.cast_injective.mem_set_image
 
 lemma cut_map_self (a : α) : cut_map α a = Iio a ∩ range (coe : ℚ → α) :=
 begin
-  ext y,
-  simp only [mem_cut_map_iff, mem_inter_eq, mem_Iio, mem_range],
+  ext,
   split,
-  { rintro ⟨q, rfl, h⟩,
+  { rintro ⟨q, h, rfl⟩,
     exact ⟨h, q, rfl⟩ },
   { rintro ⟨h, q, rfl⟩,
-    exact ⟨q, rfl, h⟩ }
+    exact ⟨q, h, rfl⟩ }
 end
 
-variables (β) [archimedean α]
+end division_ring
 
-lemma cut_map_nonempty (a : α) : (cut_map β a).nonempty :=
-let ⟨q, hq⟩ := exists_rat_lt a in nonempty.image _ ⟨⟨q, mem_range_self _⟩, hq⟩
+variables (β) [linear_ordered_field β] {a a₁ a₂ : α} {b : β} {q : ℚ}
+
+lemma cut_map_coe (q : ℚ) : cut_map β (q : α) = coe '' {r : ℚ | (r : β) < q} :=
+by simp_rw [cut_map, rat.cast_lt]
+
+variables [archimedean α]
+
+lemma cut_map_nonempty (a : α) : (cut_map β a).nonempty :=  nonempty.image _ $ exists_rat_lt a
 
 lemma cut_map_bdd_above (a : α) : bdd_above (cut_map β a) :=
 begin
   obtain ⟨q, hq⟩ := exists_rat_gt a,
   use q,
-  simp_rw [mem_upper_bounds, mem_cut_map_iff],
-  rintro _ ⟨r, rfl, hr⟩,
-  exact_mod_cast hr.le.trans hq.le,
-end
-
-lemma cut_map_strict_mono {a b : α} (hab : a < b) : cut_map β a ⊂ cut_map β b :=
-begin
-  refine (cut_map_mono β hab.le).ssubset_of_ne _,
-  obtain ⟨q, ha, hb⟩ := exists_rat_btwn hab,
-  exact ((coe_mem_cut_map_iff.mpr hb).ne_of_not_mem' $ λ h, lt_irrefl a $ ha.trans $
-    coe_mem_cut_map_iff.1 h).symm,
+  rintro _ ⟨r, hr, rfl⟩,
+  exact_mod_cast (hq.trans' hr).le,
 end
 
 lemma cut_map_add (a b : α) : cut_map β (a + b) = cut_map β a + cut_map β b :=
 begin
   ext,
-  refine ⟨λ h, _, _⟩,
-  { obtain ⟨q, rfl, hq⟩ := mem_cut_map_iff.1 h,
-    rw ← sub_lt_iff_lt_add at hq,
+  split,
+  { rintro ⟨q, hq, rfl⟩,
+    rw [mem_set_of_eq, ←sub_lt_iff_lt_add] at hq,
     obtain ⟨q₁, hq₁q, hq₁ab⟩ := exists_rat_btwn hq,
     refine ⟨q₁, q - q₁, _, _, add_sub_cancel'_right _ _⟩; try {norm_cast};
     rwa coe_mem_cut_map_iff,
     push_cast,
     exact sub_lt.mp hq₁q },
-  { simp_rw [mem_add, mem_cut_map_iff],
-    rintro ⟨_, _, ⟨qa, rfl, ha⟩, ⟨qb, rfl, hb⟩, rfl⟩,
-    refine ⟨qa + qb, by norm_cast, _⟩,
-    push_cast,
+  { rintro ⟨_, _, ⟨qa, ha, rfl⟩, ⟨qb, hb, rfl⟩, rfl⟩,
+    refine ⟨qa + qb, _, by norm_cast⟩,
+    rw [mem_set_of_eq, cast_add],
     exact add_lt_add ha hb }
 end
 
@@ -358,7 +288,7 @@ begin
     exact le_of_lt h },
   { obtain ⟨q', hwq, hq⟩ := exists_rat_btwn h,
     rw cut_map_coe,
-    exact ⟨q', ⟨⟨_, mem_range_self _⟩, hq, rfl⟩, hwq⟩ }
+    exact ⟨q', ⟨_, hq, rfl⟩, hwq⟩ }
 end
 
 @[simp] lemma induced_map_zero : induced_map α β 0 = 0 := by exact_mod_cast induced_map_rat α β 0
@@ -371,25 +301,17 @@ lemma induced_map_nonneg (ha : 0 ≤ a) : 0 ≤ induced_map α β a :=
 
 lemma coe_lt_induced_map_iff : (q : β) < induced_map α β a ↔ (q : α) < a :=
 begin
-  refine ⟨λ h, _, _⟩,
+  refine ⟨λ h, _, λ hq, _⟩,
   { rw ←induced_map_rat α at h,
     exact (induced_map_mono α β).reflect_lt h },
-  { rintro hq,
-    obtain ⟨q', hq, hqa⟩ := exists_rat_btwn hq,
+  { obtain ⟨q', hq, hqa⟩ := exists_rat_btwn hq,
     apply lt_cSup_of_lt (cut_map_bdd_above β a) (coe_mem_cut_map_iff.mpr hqa),
     exact_mod_cast hq }
 end
 
-lemma lt_induced_map_iff : b < induced_map α β a ↔ ∃ (q : ℚ) (h : b < q), (q : α) < a :=
-begin
-  refine ⟨λ h, _, _⟩,
-  { obtain ⟨q, hqt, hqi⟩ := exists_rat_btwn h,
-    rw coe_lt_induced_map_iff at hqi,
-    refine ⟨q, hqt, hqi⟩ },
-  { rintro ⟨q, hqt, hqx⟩,
-    refine hqt.trans _,
-    rwa coe_lt_induced_map_iff }
-end
+lemma lt_induced_map_iff : b < induced_map α β a ↔ ∃ q : ℚ, b < q ∧ (q : α) < a :=
+⟨λ h, (exists_rat_btwn h).imp $ λ q, and.imp_right coe_lt_induced_map_iff.1,
+  λ ⟨q, hbq, hqa⟩, hbq.trans $ by rwa coe_lt_induced_map_iff⟩
 
 @[simp] lemma induced_map_self (b : β) : induced_map β β b = b :=
 eq_of_forall_rat_lt_iff_lt $ λ q, coe_lt_induced_map_iff
@@ -417,8 +339,7 @@ variables {α β}
 lemma le_induced_map_mul_self_of_mem_cut_map (ha : 0 < a) (b : β) (hb : b ∈ cut_map β (a * a)) :
   b ≤ induced_map α β a * induced_map α β a :=
 begin
-  rw mem_cut_map_iff at hb,
-  obtain ⟨q, rfl, hb⟩ := hb,
+  obtain ⟨q, hb, rfl⟩ := hb,
   obtain ⟨q', hq', hqq', hqa⟩ := exists_rat_sq_btwn hb (mul_self_pos.2 ha.ne'),
   transitivity (q' : β)^2,
   exact_mod_cast hqq'.le,

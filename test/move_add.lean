@@ -31,7 +31,11 @@ example (hp : f = g) :
 begin
   -- we move `f, g` to the right of their respective sides, so `congr` helps us remove the
   -- repeated term
-  move_add [← C r * X ^ 3, (7 : R[X]), (42 : R[X]), f, g],
+  move_add [← C r * X ^ 3, (7 : R[X]), (42 : R[X]), f],
+  move_add g,
+  -- I would like the single call `move_add [← C r * X ^ 3, (7 : R[X]), (42 : R[X]), f, g]` to work
+  -- right now it does not, since `f` and `g` appear in different subexpressions and the process
+  -- fails on both branches.
   congr' 4, -- takes care of using assumption `hp`
   exact X_pow_mul,
 end

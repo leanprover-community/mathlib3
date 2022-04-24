@@ -22,7 +22,7 @@ expressions.
 * The tactic will discard user-provided terms that do not unify with something in the expression.
   This means that the tactic will not give an error if it finds no match of the provided terms.
   The reason for this choice is that we want a single call of `move_add` to move terms across
-  different sums in the same expression.  Here is an exmaple.
+  different sums in the same expression.  Here is an example.
 
 ```lean
 import tactic.move_add
@@ -37,7 +37,7 @@ end
 
 example {a b c d : ℕ} (h : c = d) : c + b * c + a * c = a * d + d + b * d :=
 begin
-  move_add [_ * c, ← _ * c], -- Goal: `a * c + c + b * c = b * d + a * d + d`
+  move_add [_ * c, ← _ * c], -- Goal: `a * c + c + b * c = a * d + d + b * d`
   -- the first `_ * c` unifies with `b * c` and moves it to the right
   -- the second `_ * c` unifies with `a * c` and moves it to the left
   congr;

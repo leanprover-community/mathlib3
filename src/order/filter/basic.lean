@@ -119,6 +119,8 @@ by simp only [filter_eq_iff, ext_iff, filter.mem_sets]
 protected lemma ext : (∀ s, s ∈ f ↔ s ∈ g) → f = g :=
 filter.ext_iff.2
 
+/-- An extensionality lemma that is useful for filters with good lemmas about `sᶜ ∈ f` (e.g.,
+`filter.comap`, `filter.coprod`, `filter.Coprod`, `filter.cofinite`). -/
 protected lemma coext (h : ∀ s, sᶜ ∈ f ↔ sᶜ ∈ g) : f = g :=
 filter.ext $ compl_surjective.forall.2 h
 
@@ -1524,8 +1526,6 @@ def comap (m : α → β) (f : filter β) : filter α :=
 
 variables {f : α → β} {l : filter β} {p : α → Prop} {s : set α}
 
-@[simp] lemma mem_comap : s ∈ comap f l ↔ ∃ t ∈ l, f ⁻¹' t ⊆ s := iff.rfl
-
 lemma mem_comap' : s ∈ comap f l ↔ {y | ∀ ⦃x⦄, f x = y → x ∈ s} ∈ l :=
 ⟨λ ⟨t, ht, hts⟩, mem_of_superset ht $ λ y hy x hx, hts $ mem_preimage.2 $ by rwa hx,
   λ h, ⟨_, h, λ x hx, hx rfl⟩⟩
@@ -1536,14 +1536,10 @@ mem_comap'
 @[simp] lemma frequently_comap : (∃ᶠ a in comap f l, p a) ↔ ∃ᶠ b in l, ∃ a, f a = b ∧ p a :=
 by simp only [filter.frequently, eventually_comap, not_exists, not_and]
 
-lemma eventually.comap {p : β → Prop} (hf : ∀ᶠ b in l, p b) (f : α → β) :
-  ∀ᶠ a in comap f l, p (f a) :=
-eventually_comap.mpr $ hf.mono $ λ y hy x hx, hx.symm ▸ hy
-
 lemma mem_comap_iff_compl : s ∈ comap f l ↔ (f '' sᶜ)ᶜ ∈ l :=
 by simp only [mem_comap', compl_def, mem_image, mem_set_of_eq, not_exists, not_and', not_not]
 
-@[simp] lemma compl_mem_comap : sᶜ ∈ comap f l ↔ (f '' s)ᶜ ∈ l :=
+lemma compl_mem_comap : sᶜ ∈ comap f l ↔ (f '' s)ᶜ ∈ l :=
 by rw [mem_comap_iff_compl, compl_compl]
 
 end comap
@@ -1629,6 +1625,10 @@ section map
 variables {f f₁ f₂ : filter α} {g g₁ g₂ : filter β} {m : α → β} {m' : β → γ} {s : set α} {t : set β}
 
 theorem preimage_mem_comap (ht : t ∈ g) : m ⁻¹' t ∈ comap m g := eventually.comap ht _
+
+lemma eventually.comap {p : β → Prop} (hf : ∀ᶠ b in g, p b) (f : α → β) :
+  ∀ᶠ a in comap f g, p (f a) :=
+preimage_mem_comap hf
 
 lemma comap_id : comap id f = f :=
 by { ext s, simp only [mem_comap', id, forall_eq, set_of_mem_eq] }
@@ -2728,6 +2728,14 @@ by simp [filter.coprod]
 lemma compl_mem_coprod {s : set (α × β)} {la : filter α} {lb : filter β} :
   sᶜ ∈ la.coprod lb ↔ (prod.fst '' s)ᶜ ∈ la ∧ (prod.snd '' s)ᶜ ∈ lb :=
 by simp only [filter.coprod, mem_sup, compl_mem_comap]
+
+@[simp] lemma bot_coprod (l : filter β) : (⊥ : filter α).coprod l = comap prod.snd l :=
+by simp [filter.coprod]
+
+@[simp] lemma coprod_bot (l : filter α) : l.coprod (⊥ : filter β) = comap prod.fst l :=
+by simp [filter.coprod]
+
+lemma bot_coprod_bot : (⊥ : filter α).coprod (⊥ : filter β) = ⊥ := by simp
 
 @[mono] lemma coprod_mono {f₁ f₂ : filter α} {g₁ g₂ : filter β} (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) :
   f₁.coprod g₁ ≤ f₂.coprod g₂ :=

@@ -91,12 +91,14 @@ le_cofinite_iff_eventually_ne.mpr $ λ x,
 
 /-- The coproduct of the cofinite filters on two types is the cofinite filter on their product. -/
 lemma coprod_cofinite : (cofinite : filter α).coprod (cofinite : filter β) = cofinite :=
-filter.coext $ λ s, by simp only [compl_mem_coprod, mem_cofinite, compl_compl, finite_prod]
+filter.coext $ λ s, by simp only [compl_mem_coprod, mem_cofinite, compl_compl,
+  finite_image_fst_and_snd_iff]
 
 /-- Finite product of finite sets is finite -/
 lemma Coprod_cofinite {α : ι → Type*} [fintype ι] :
   filter.Coprod (λ i, (cofinite : filter (α i))) = cofinite :=
-filter.coext $ λ s, by simp only [compl_mem_Coprod, mem_cofinite, compl_compl, finite_pi]
+filter.coext $ λ s, by simp only [compl_mem_Coprod, mem_cofinite, compl_compl,
+  forall_finite_image_eval_iff]
 
 end filter
 

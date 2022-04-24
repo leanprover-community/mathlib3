@@ -226,9 +226,23 @@ instance : bornology punit := ⟨⊥, bot_le⟩
 class bounded_space (α : Type*) [bornology α] : Prop :=
 (bounded_univ : bornology.is_bounded (univ : set α))
 
-lemma bornology.is_bounded.all [bornology α] [bounded_space α] (s : set α) :
-  is_bounded s :=
-bounded_space.bounded_univ.subset s.subset_univ
+namespace bornology
 
-lemma bornology.is_bounded_univ [bornology α] : is_bounded (univ : set α) ↔ bounded_space α :=
+variables [bornology α]
+
+lemma is_bounded_univ : is_bounded (univ : set α) ↔ bounded_space α :=
 ⟨λ h, ⟨h⟩, λ h, h.1⟩
+
+lemma cobounded_eq_bot_iff : cobounded α = ⊥ ↔ bounded_space α :=
+by rw [← is_bounded_univ, is_bounded_def, compl_univ, empty_mem_iff_bot]
+
+variables [bounded_space α]
+
+lemma is_bounded.all (s : set α) : is_bounded s := bounded_space.bounded_univ.subset s.subset_univ
+lemma is_cobounded.all (s : set α) : is_cobounded s := compl_compl s ▸ is_bounded.all sᶜ
+
+variable (α)
+
+@[simp] lemma cobounded_eq_bot : cobounded α = ⊥ := cobounded_eq_bot_iff.2 ‹_›
+
+end bornology

@@ -68,7 +68,7 @@ end
 lemma spectral_radius_eq_nnnorm_of_star_normal [norm_one_class A] (a : A) [is_star_normal a] :
   spectral_radius ℂ a = ∥a∥₊ :=
 begin
-  refine (ennreal.pow_strict_mono (by linarith : 2 ≠ 0)).injective _,
+  refine (ennreal.pow_strict_mono two_ne_zero).injective _,
   have ha : a⋆ * a ∈ self_adjoint A,
     from self_adjoint.mem_iff.mpr (by simpa only [star_star] using (star_mul a⋆ a)),
   have heq : (λ n : ℕ, ((∥(a⋆ * a) ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞))

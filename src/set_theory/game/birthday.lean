@@ -13,6 +13,10 @@ import set_theory.game.pgame
 We define the birthday of a pre-game recursively, as the least ordinal larger than the birthdays of
 its left and right games. We prove the basic properties about these.
 
+# Main declarations
+
+- `pgame.birthday`: The birthday of a pre-game.
+
 # Todo
 
 - Define the birthdays of `game`s and `surreal`s.
@@ -20,6 +24,8 @@ its left and right games. We prove the basic properties about these.
 -/
 
 universe u
+
+namespace pgame
 
 /-- The birthday of a pre-game is inductively defined as the least strict upper bound of the
 birthdays of its left and right games. It may be thought as the "step" in which a certain game is
@@ -83,3 +89,5 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 @[simp] theorem birthday_zero : birthday 0 = 0 :=
 by rw [birthday_def, ordinal.lsub_empty, ordinal.lsub_empty, max_self]
+
+end pgame

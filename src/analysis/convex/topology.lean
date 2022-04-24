@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov
 -/
 import analysis.convex.jensen
+import analysis.convex.strict
 import analysis.normed_space.finite_dimension
 import analysis.normed_space.ray
 import topology.path_connected
@@ -77,12 +78,12 @@ end std_simplex
 
 section has_continuous_const_smul
 
-variables [add_comm_group E] [module ℝ E] [topological_space E]
-  [topological_add_group E] [has_continuous_const_smul ℝ E]
+variables {𝕜 : Type*} [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
+  [topological_add_group E] [has_continuous_const_smul 𝕜 E]
 
 /-- If `s` is a convex set, then `a • interior s + b • closure s ⊆ interior s` for all `0 < a`,
 `0 ≤ b`, `a + b = 1`. See also `convex.combo_interior_self_subset_interior` for a weaker version. -/
-lemma convex.combo_interior_closure_subset_interior {s : set E} (hs : convex ℝ s) {a b : ℝ}
+lemma convex.combo_interior_closure_subset_interior {s : set E} (hs : convex 𝕜 s) {a b : 𝕜}
   (ha : 0 < a) (hb : 0 ≤ b) (hab : a + b = 1) :
   a • interior s + b • closure s ⊆ interior s :=
 interior_smul₀ ha.ne' s ▸
@@ -94,7 +95,7 @@ interior_smul₀ ha.ne' s ▸
 
 /-- If `s` is a convex set, then `a • interior s + b • s ⊆ interior s` for all `0 < a`, `0 ≤ b`,
 `a + b = 1`. See also `convex.combo_interior_closure_subset_interior` for a stronger version. -/
-lemma convex.combo_interior_self_subset_interior {s : set E} (hs : convex ℝ s) {a b : ℝ}
+lemma convex.combo_interior_self_subset_interior {s : set E} (hs : convex 𝕜 s) {a b : 𝕜}
   (ha : 0 < a) (hb : 0 ≤ b) (hab : a + b = 1) :
   a • interior s + b • s ⊆ interior s :=
 calc a • interior s + b • s ⊆ a • interior s + b • closure s :
@@ -103,96 +104,96 @@ calc a • interior s + b • s ⊆ a • interior s + b • closure s :
 
 /-- If `s` is a convex set, then `a • closure s + b • interior s ⊆ interior s` for all `0 ≤ a`,
 `0 < b`, `a + b = 1`. See also `convex.combo_self_interior_subset_interior` for a weaker version. -/
-lemma convex.combo_closure_interior_subset_interior {s : set E} (hs : convex ℝ s) {a b : ℝ}
+lemma convex.combo_closure_interior_subset_interior {s : set E} (hs : convex 𝕜 s) {a b : 𝕜}
   (ha : 0 ≤ a) (hb : 0 < b) (hab : a + b = 1) :
   a • closure s + b • interior s ⊆ interior s :=
 by { rw add_comm, exact hs.combo_interior_closure_subset_interior hb ha (add_comm a b ▸ hab) }
 
 /-- If `s` is a convex set, then `a • s + b • interior s ⊆ interior s` for all `0 ≤ a`, `0 < b`,
 `a + b = 1`. See also `convex.combo_closure_interior_subset_interior` for a stronger version. -/
-lemma convex.combo_self_interior_subset_interior {s : set E} (hs : convex ℝ s) {a b : ℝ}
+lemma convex.combo_self_interior_subset_interior {s : set E} (hs : convex 𝕜 s) {a b : 𝕜}
   (ha : 0 ≤ a) (hb : 0 < b) (hab : a + b = 1) :
   a • s + b • interior s ⊆ interior s :=
 by { rw add_comm, exact hs.combo_interior_self_subset_interior hb ha (add_comm a b ▸ hab) }
 
-lemma convex.combo_interior_closure_mem_interior {s : set E} (hs : convex ℝ s) {x y : E}
-  (hx : x ∈ interior s) (hy : y ∈ closure s) {a b : ℝ} (ha : 0 < a) (hb : 0 ≤ b) (hab : a + b = 1) :
+lemma convex.combo_interior_closure_mem_interior {s : set E} (hs : convex 𝕜 s) {x y : E}
+  (hx : x ∈ interior s) (hy : y ∈ closure s) {a b : 𝕜} (ha : 0 < a) (hb : 0 ≤ b) (hab : a + b = 1) :
   a • x + b • y ∈ interior s :=
 hs.combo_interior_closure_subset_interior ha hb hab $
   add_mem_add (smul_mem_smul_set hx) (smul_mem_smul_set hy)
 
-lemma convex.combo_interior_self_mem_interior {s : set E} (hs : convex ℝ s) {x y : E}
-  (hx : x ∈ interior s) (hy : y ∈ s) {a b : ℝ} (ha : 0 < a) (hb : 0 ≤ b) (hab : a + b = 1) :
+lemma convex.combo_interior_self_mem_interior {s : set E} (hs : convex 𝕜 s) {x y : E}
+  (hx : x ∈ interior s) (hy : y ∈ s) {a b : 𝕜} (ha : 0 < a) (hb : 0 ≤ b) (hab : a + b = 1) :
   a • x + b • y ∈ interior s :=
 hs.combo_interior_closure_mem_interior hx (subset_closure hy) ha hb hab
 
-lemma convex.combo_closure_interior_mem_interior {s : set E} (hs : convex ℝ s) {x y : E}
-  (hx : x ∈ closure s) (hy : y ∈ interior s) {a b : ℝ} (ha : 0 ≤ a) (hb : 0 < b) (hab : a + b = 1) :
+lemma convex.combo_closure_interior_mem_interior {s : set E} (hs : convex 𝕜 s) {x y : E}
+  (hx : x ∈ closure s) (hy : y ∈ interior s) {a b : 𝕜} (ha : 0 ≤ a) (hb : 0 < b) (hab : a + b = 1) :
   a • x + b • y ∈ interior s :=
 hs.combo_closure_interior_subset_interior ha hb hab $
   add_mem_add (smul_mem_smul_set hx) (smul_mem_smul_set hy)
 
-lemma convex.combo_self_interior_mem_interior {s : set E} (hs : convex ℝ s) {x y : E}
-  (hx : x ∈ s) (hy : y ∈ interior s) {a b : ℝ} (ha : 0 ≤ a) (hb : 0 < b) (hab : a + b = 1) :
+lemma convex.combo_self_interior_mem_interior {s : set E} (hs : convex 𝕜 s) {x y : E}
+  (hx : x ∈ s) (hy : y ∈ interior s) {a b : 𝕜} (ha : 0 ≤ a) (hb : 0 < b) (hab : a + b = 1) :
   a • x + b • y ∈ interior s :=
 hs.combo_closure_interior_mem_interior (subset_closure hx) hy ha hb hab
 
-lemma convex.open_segment_interior_closure_subset_interior {s : set E} (hs : convex ℝ s) {x y : E}
-  (hx : x ∈ interior s) (hy : y ∈ closure s) : open_segment ℝ x y ⊆ interior s :=
+lemma convex.open_segment_interior_closure_subset_interior {s : set E} (hs : convex 𝕜 s) {x y : E}
+  (hx : x ∈ interior s) (hy : y ∈ closure s) : open_segment 𝕜 x y ⊆ interior s :=
 begin
   rintro _ ⟨a, b, ha, hb, hab, rfl⟩,
   exact hs.combo_interior_closure_mem_interior hx hy ha hb.le hab
 end
 
-lemma convex.open_segment_interior_self_subset_interior {s : set E} (hs : convex ℝ s) {x y : E}
-  (hx : x ∈ interior s) (hy : y ∈ s) : open_segment ℝ x y ⊆ interior s :=
+lemma convex.open_segment_interior_self_subset_interior {s : set E} (hs : convex 𝕜 s) {x y : E}
+  (hx : x ∈ interior s) (hy : y ∈ s) : open_segment 𝕜 x y ⊆ interior s :=
 hs.open_segment_interior_closure_subset_interior hx (subset_closure hy)
 
-lemma convex.open_segment_closure_interior_subset_interior {s : set E} (hs : convex ℝ s) {x y : E}
-  (hx : x ∈ closure s) (hy : y ∈ interior s) : open_segment ℝ x y ⊆ interior s :=
+lemma convex.open_segment_closure_interior_subset_interior {s : set E} (hs : convex 𝕜 s) {x y : E}
+  (hx : x ∈ closure s) (hy : y ∈ interior s) : open_segment 𝕜 x y ⊆ interior s :=
 begin
   rintro _ ⟨a, b, ha, hb, hab, rfl⟩,
   exact hs.combo_closure_interior_mem_interior hx hy ha.le hb hab
 end
 
-lemma convex.open_segment_self_interior_subset_interior {s : set E} (hs : convex ℝ s) {x y : E}
-  (hx : x ∈ s) (hy : y ∈ interior s) : open_segment ℝ x y ⊆ interior s :=
+lemma convex.open_segment_self_interior_subset_interior {s : set E} (hs : convex 𝕜 s) {x y : E}
+  (hx : x ∈ s) (hy : y ∈ interior s) : open_segment 𝕜 x y ⊆ interior s :=
 hs.open_segment_closure_interior_subset_interior (subset_closure hx) hy
 
 /-- If `x ∈ closure s` and `y ∈ interior s`, then the segment `(x, y]` is included in `interior s`.
 -/
-lemma convex.add_smul_sub_mem_interior' {s : set E} (hs : convex ℝ s)
-  {x y : E} (hx : x ∈ closure s) (hy : y ∈ interior s) {t : ℝ} (ht : t ∈ Ioc (0 : ℝ) 1) :
+lemma convex.add_smul_sub_mem_interior' {s : set E} (hs : convex 𝕜 s)
+  {x y : E} (hx : x ∈ closure s) (hy : y ∈ interior s) {t : 𝕜} (ht : t ∈ Ioc (0 : 𝕜) 1) :
   x + t • (y - x) ∈ interior s :=
 by simpa only [sub_smul, smul_sub, one_smul, add_sub, add_comm]
   using hs.combo_interior_closure_mem_interior hy hx ht.1 (sub_nonneg.mpr ht.2)
     (add_sub_cancel'_right _ _)
 
 /-- If `x ∈ s` and `y ∈ interior s`, then the segment `(x, y]` is included in `interior s`. -/
-lemma convex.add_smul_sub_mem_interior {s : set E} (hs : convex ℝ s)
-  {x y : E} (hx : x ∈ s) (hy : y ∈ interior s) {t : ℝ} (ht : t ∈ Ioc (0 : ℝ) 1) :
+lemma convex.add_smul_sub_mem_interior {s : set E} (hs : convex 𝕜 s)
+  {x y : E} (hx : x ∈ s) (hy : y ∈ interior s) {t : 𝕜} (ht : t ∈ Ioc (0 : 𝕜) 1) :
   x + t • (y - x) ∈ interior s :=
 hs.add_smul_sub_mem_interior' (subset_closure hx) hy ht
 
 /-- If `x ∈ closure s` and `x + y ∈ interior s`, then `x + t y ∈ interior s` for `t ∈ (0, 1]`. -/
-lemma convex.add_smul_mem_interior' {s : set E} (hs : convex ℝ s)
-  {x y : E} (hx : x ∈ closure s) (hy : x + y ∈ interior s) {t : ℝ} (ht : t ∈ Ioc (0 : ℝ) 1) :
+lemma convex.add_smul_mem_interior' {s : set E} (hs : convex 𝕜 s)
+  {x y : E} (hx : x ∈ closure s) (hy : x + y ∈ interior s) {t : 𝕜} (ht : t ∈ Ioc (0 : 𝕜) 1) :
   x + t • y ∈ interior s :=
 by simpa only [add_sub_cancel'] using hs.add_smul_sub_mem_interior' hx hy ht
 
 /-- If `x ∈ s` and `x + y ∈ interior s`, then `x + t y ∈ interior s` for `t ∈ (0, 1]`. -/
-lemma convex.add_smul_mem_interior {s : set E} (hs : convex ℝ s)
-  {x y : E} (hx : x ∈ s) (hy : x + y ∈ interior s) {t : ℝ} (ht : t ∈ Ioc (0 : ℝ) 1) :
+lemma convex.add_smul_mem_interior {s : set E} (hs : convex 𝕜 s)
+  {x y : E} (hx : x ∈ s) (hy : x + y ∈ interior s) {t : 𝕜} (ht : t ∈ Ioc (0 : 𝕜) 1) :
   x + t • y ∈ interior s :=
 hs.add_smul_mem_interior' (subset_closure hx) hy ht
 
 /-- In a topological vector space, the interior of a convex set is convex. -/
-protected lemma convex.interior {s : set E} (hs : convex ℝ s) : convex ℝ (interior s) :=
+protected lemma convex.interior {s : set E} (hs : convex 𝕜 s) : convex 𝕜 (interior s) :=
 convex_iff_open_segment_subset.mpr $ λ x y hx hy,
   hs.open_segment_closure_interior_subset_interior (interior_subset_closure hx) hy
 
 /-- In a topological vector space, the closure of a convex set is convex. -/
-protected lemma convex.closure {s : set E} (hs : convex ℝ s) : convex ℝ (closure s) :=
+protected lemma convex.closure {s : set E} (hs : convex 𝕜 s) : convex 𝕜 (closure s) :=
 λ x y hx hy a b ha hb hab,
 let f : E → E → E := λ x' y', a • x' + b • y' in
 have hf : continuous (λ p : E × E, f p.1 p.2), from
@@ -200,6 +201,39 @@ have hf : continuous (λ p : E × E, f p.1 p.2), from
 show f x y ∈ closure s, from
   mem_closure_of_continuous2 hf hx hy (λ x' hx' y' hy', subset_closure
   (hs hx' hy' ha hb hab))
+
+open affine_map
+
+/-- A convex set `s` is strictly convex provided that for any two distinct points of
+`s \ interior s`, the line passing through these points has nonempty intersection with
+`interior s`. -/
+lemma convex.to_strict_convex' {s : set E} (hs : convex 𝕜 s)
+  (h : (s \ interior s).pairwise $ λ x y, ∃ c : 𝕜, line_map x y c ∈ interior s) :
+  strict_convex 𝕜 s :=
+begin
+  refine strict_convex_iff_open_segment_subset.2 _,
+  intros x hx y hy hne,
+  by_cases hx' : x ∈ interior s, { exact hs.open_segment_interior_self_subset_interior hx' hy },
+  by_cases hy' : y ∈ interior s, { exact hs.open_segment_self_interior_subset_interior hx hy' },
+  rcases h ⟨hx, hx'⟩ ⟨hy, hy'⟩ hne with ⟨c, hc⟩,
+  refine (open_segment_subset_union c x y).trans (insert_subset.2 ⟨hc, union_subset _ _⟩),
+  exacts [hs.open_segment_self_interior_subset_interior hx hc,
+    hs.open_segment_interior_self_subset_interior hc hy]
+end
+
+/-- A convex set `s` is strictly convex provided that for any two distinct points `x`, `y` of
+`s \ interior s`, the segment with endpoints `x`, `y` has nonempty intersection with
+`interior s`. -/
+lemma convex.to_strict_convex {s : set E} (hs : convex 𝕜 s)
+  (h : (s \ interior s).pairwise $ λ x y, ([x -[𝕜] y] \ frontier s).nonempty) :
+  strict_convex 𝕜 s :=
+begin
+  refine (hs.to_strict_convex' $ h.imp_on $ λ x hx y hy hne, _),
+  simp only [segment_eq_image_line_map, ← self_diff_frontier],
+  rintro ⟨_, ⟨⟨c, hc, rfl⟩, hcs⟩⟩,
+  refine ⟨c, hs.segment_subset hx.1 hy.1 _, hcs⟩,
+  exact (segment_eq_image_line_map 𝕜 x y).symm ▸ mem_image_of_mem _ hc
+end
 
 end has_continuous_const_smul
 

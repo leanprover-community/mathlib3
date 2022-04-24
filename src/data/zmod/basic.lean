@@ -452,7 +452,7 @@ begin
 end
 
 /-- `-1 : zmod n` lifts to `n - 1 : R`. This avoids the characteristic assumption in `cast_neg`. -/
-lemma coe_neg_one {R : Type*} [ring R] (n : ℕ) : ↑(-1 : zmod n) = (n - 1 : R) :=
+lemma cast_neg_one {R : Type*} [ring R] (n : ℕ) : ↑(-1 : zmod n) = (n - 1 : R) :=
 begin
   cases n,
   { rw [int.cast_neg, int.cast_one, nat.cast_zero, zero_sub] },

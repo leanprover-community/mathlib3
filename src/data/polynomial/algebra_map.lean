@@ -34,7 +34,7 @@ instance algebra_of_algebra : algebra R (polynomial A) :=
     rw [to_finsupp_smul, to_finsupp_mul, to_finsupp_C],
     exact algebra.smul_def' _ _,
   end,
-  op_smul_def' := λ p r, begin
+  op_smul_def' := λ p r, to_finsupp_injective $ begin
     dsimp only [ring_hom.to_fun_eq_coe, ring_hom.comp_apply],
     rw [to_finsupp_smul, to_finsupp_mul, to_finsupp_C],
     exact algebra.op_smul_def' _ _,

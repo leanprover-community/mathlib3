@@ -321,6 +321,9 @@ end
 theorem sq_pos_iff (a : R) : 0 < a ^ 2 ↔ a ≠ 0 :=
 pow_bit0_pos_iff a one_ne_zero
 
+theorem sq_zero_iff (a : R) : a ^ 2 = 0 ↔ a = 0 :=
+⟨pow_eq_zero, (λ _, by simpa only [pow_eq_zero_iff, nat.succ_pos'])⟩
+
 variables {x y : R}
 
 theorem sq_abs (x : R) : |x| ^ 2 = x ^ 2 :=

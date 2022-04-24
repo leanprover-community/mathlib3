@@ -1649,3 +1649,13 @@ noncomputable def Union_eq_sigma_of_disjoint {t : α → set β}
 (equiv.of_bijective _ $ sigma_to_Union_bijective t h).symm
 
 end set
+
+open set
+
+variables [complete_lattice β]
+
+lemma supr_Union (s : ι → set α) (f : α → β) : (⨆ a ∈ (⋃ i, s i), f a) = ⨆ i (a ∈ s i), f a :=
+by { rw supr_comm, simp_rw [mem_Union, supr_exists] }
+
+lemma infi_Union (s : ι → set α) (f : α → β) : (⨅ a ∈ (⋃ i, s i), f a) = ⨅ i (a ∈ s i), f a :=
+by { rw infi_comm, simp_rw [mem_Union, infi_exists] }

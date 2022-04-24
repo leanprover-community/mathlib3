@@ -348,9 +348,8 @@ end
 
 end comm_ring
 
-section field
+section division_ring
 
--- TODO Relax `field` to `division_ring` (results are still true)
 variables [division_ring k] [module k V]
 include V
 
@@ -379,6 +378,6 @@ begin
   simp [h_tot],
 end
 
-end field
+end division_ring
 
 end affine_basis

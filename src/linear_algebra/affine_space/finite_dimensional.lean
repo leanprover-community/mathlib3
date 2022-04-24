@@ -30,7 +30,6 @@ include V
 
 open affine_subspace finite_dimensional module
 
-section
 variables [division_ring k] [add_comm_group V] [module k V] [affine_space V P]
 
 /-- The `vector_span` of a finite set is finite-dimensional. -/
@@ -84,11 +83,6 @@ lemma finite_of_fin_dim_affine_independent [finite_dimensional k V]
   {s : set P} (hi : affine_independent k (coe : s → P)) : s.finite :=
 ⟨fintype_of_fin_dim_affine_independent k hi⟩
 
-end
-
-section
-
-variables [division_ring k] [add_comm_group V] [module k V] [affine_space V P]
 variables {k}
 
 /-- The `vector_span` of a finite subset of an affinely independent
@@ -125,53 +119,6 @@ begin
   exact hi.finrank_vector_span_image_finset hc
 end
 
-/-- If the `vector_span` of a finite subset of an affinely independent
-family lies in a submodule with dimension one less than its
-cardinality, it equals that submodule. -/
-lemma affine_independent.vector_span_image_finset_eq_of_le_of_card_eq_finrank_add_one
-  {p : ι → P} (hi : affine_independent k p) {s : finset ι} {sm : submodule k V}
-  [finite_dimensional k sm] (hle : vector_span k (s.image p : set P) ≤ sm)
-  (hc : finset.card s = finrank k sm + 1) : vector_span k (s.image p : set P) = sm :=
-eq_of_le_of_finrank_eq hle $ hi.finrank_vector_span_image_finset hc
-
-/-- If the `vector_span` of a finite affinely independent
-family lies in a submodule with dimension one less than its
-cardinality, it equals that submodule. -/
-lemma affine_independent.vector_span_eq_of_le_of_card_eq_finrank_add_one [fintype ι]
-  {p : ι → P} (hi : affine_independent k p) {sm : submodule k V} [finite_dimensional k sm]
-  (hle : vector_span k (set.range p) ≤ sm) (hc : fintype.card ι = finrank k sm + 1) :
-  vector_span k (set.range p) = sm :=
-eq_of_le_of_finrank_eq hle $ hi.finrank_vector_span hc
-
-/-- If the `affine_span` of a finite subset of an affinely independent
-family lies in an affine subspace whose direction has dimension one
-less than its cardinality, it equals that subspace. -/
-lemma affine_independent.affine_span_image_finset_eq_of_le_of_card_eq_finrank_add_one
-  {p : ι → P} (hi : affine_independent k p) {s : finset ι} {sp : affine_subspace k P}
-  [finite_dimensional k sp.direction] (hle : affine_span k (s.image p : set P) ≤ sp)
-  (hc : finset.card s = finrank k sp.direction + 1) : affine_span k (s.image p : set P) = sp :=
-begin
-  have hn : (s.image p).nonempty,
-  { rw [finset.nonempty.image_iff, ← finset.card_pos, hc], apply nat.succ_pos },
-  refine eq_of_direction_eq_of_nonempty_of_le _ ((affine_span_nonempty k _).2 hn) hle,
-  have hd := direction_le hle,
-  rw direction_affine_span at ⊢ hd,
-  exact hi.vector_span_image_finset_eq_of_le_of_card_eq_finrank_add_one hd hc
-end
-
-/-- If the `affine_span` of a finite affinely independent family lies
-in an affine subspace whose direction has dimension one less than its
-cardinality, it equals that subspace. -/
-lemma affine_independent.affine_span_eq_of_le_of_card_eq_finrank_add_one [fintype ι]
-  {p : ι → P} (hi : affine_independent k p) {sp : affine_subspace k P}
-  [finite_dimensional k sp.direction] (hle : affine_span k (set.range p) ≤ sp)
-  (hc : fintype.card ι = finrank k sp.direction + 1) : affine_span k (set.range p) = sp :=
-begin
-  rw ←finset.card_univ at hc,
-  rw [←set.image_univ, ←finset.coe_univ, ← finset.coe_image] at ⊢ hle,
-  exact hi.affine_span_image_finset_eq_of_le_of_card_eq_finrank_add_one hle hc
-end
-
 /-- The `vector_span` of a finite affinely independent family whose
 cardinality is one more than that of the finite-dimensional space is
 `⊤`. -/
@@ -179,24 +126,6 @@ lemma affine_independent.vector_span_eq_top_of_card_eq_finrank_add_one [finite_d
   [fintype ι] {p : ι → P} (hi : affine_independent k p) (hc : fintype.card ι = finrank k V + 1) :
   vector_span k (set.range p) = ⊤ :=
 eq_top_of_finrank_eq $ hi.finrank_vector_span hc
-
-/-- The `affine_span` of a finite affinely independent family is `⊤` iff the
-family's cardinality is one more than that of the finite-dimensional space. -/
-lemma affine_independent.affine_span_eq_top_iff_card_eq_finrank_add_one [finite_dimensional k V]
-  [fintype ι] {p : ι → P} (hi : affine_independent k p) :
-  affine_span k (set.range p) = ⊤ ↔ fintype.card ι = finrank k V + 1 :=
-begin
-  split,
-  { intros h_tot,
-    let n := fintype.card ι - 1,
-    have hn : fintype.card ι = n + 1,
-    { exact (nat.succ_pred_eq_of_pos (card_pos_of_affine_span_eq_top k V P h_tot)).symm, },
-    rw [hn, ← finrank_top, ← (vector_span_eq_top_of_affine_span_eq_top k V P) h_tot,
-      ← hi.finrank_vector_span hn], },
-  { intros hc,
-    rw [← finrank_top, ← direction_top k V P] at hc,
-    exact hi.affine_span_eq_of_le_of_card_eq_finrank_add_one le_top hc, },
-end
 
 variables (k)
 
@@ -269,10 +198,74 @@ lemma finrank_vector_span_le_iff_not_affine_independent [fintype ι] (p : ι →
   finrank k (vector_span k (set.range p)) ≤ n ↔ ¬ affine_independent k p :=
 (not_iff_comm.1 (affine_independent_iff_not_finrank_vector_span_le k p hc).symm).symm
 
+variables {k}
+
+/-- If the `vector_span` of a finite subset of an affinely independent
+family lies in a submodule with dimension one less than its
+cardinality, it equals that submodule. -/
+lemma affine_independent.vector_span_image_finset_eq_of_le_of_card_eq_finrank_add_one
+  {p : ι → P} (hi : affine_independent k p) {s : finset ι} {sm : submodule k V}
+  [finite_dimensional k sm] (hle : vector_span k (s.image p : set P) ≤ sm)
+  (hc : finset.card s = finrank k sm + 1) : vector_span k (s.image p : set P) = sm :=
+eq_of_le_of_finrank_eq hle $ hi.finrank_vector_span_image_finset hc
+
+/-- If the `vector_span` of a finite affinely independent
+family lies in a submodule with dimension one less than its
+cardinality, it equals that submodule. -/
+lemma affine_independent.vector_span_eq_of_le_of_card_eq_finrank_add_one [fintype ι]
+  {p : ι → P} (hi : affine_independent k p) {sm : submodule k V} [finite_dimensional k sm]
+  (hle : vector_span k (set.range p) ≤ sm) (hc : fintype.card ι = finrank k sm + 1) :
+  vector_span k (set.range p) = sm :=
+eq_of_le_of_finrank_eq hle $ hi.finrank_vector_span hc
+
+/-- If the `affine_span` of a finite subset of an affinely independent
+family lies in an affine subspace whose direction has dimension one
+less than its cardinality, it equals that subspace. -/
+lemma affine_independent.affine_span_image_finset_eq_of_le_of_card_eq_finrank_add_one
+  {p : ι → P} (hi : affine_independent k p) {s : finset ι} {sp : affine_subspace k P}
+  [finite_dimensional k sp.direction] (hle : affine_span k (s.image p : set P) ≤ sp)
+  (hc : finset.card s = finrank k sp.direction + 1) : affine_span k (s.image p : set P) = sp :=
+begin
+  have hn : (s.image p).nonempty,
+  { rw [finset.nonempty.image_iff, ← finset.card_pos, hc], apply nat.succ_pos },
+  refine eq_of_direction_eq_of_nonempty_of_le _ ((affine_span_nonempty k _).2 hn) hle,
+  have hd := direction_le hle,
+  rw direction_affine_span at ⊢ hd,
+  exact hi.vector_span_image_finset_eq_of_le_of_card_eq_finrank_add_one hd hc
 end
 
-section division_ring
-variables [division_ring k] [add_comm_group V] [module k V] [affine_space V P]
+/-- If the `affine_span` of a finite affinely independent family lies
+in an affine subspace whose direction has dimension one less than its
+cardinality, it equals that subspace. -/
+lemma affine_independent.affine_span_eq_of_le_of_card_eq_finrank_add_one [fintype ι]
+  {p : ι → P} (hi : affine_independent k p) {sp : affine_subspace k P}
+  [finite_dimensional k sp.direction] (hle : affine_span k (set.range p) ≤ sp)
+  (hc : fintype.card ι = finrank k sp.direction + 1) : affine_span k (set.range p) = sp :=
+begin
+  rw ←finset.card_univ at hc,
+  rw [←set.image_univ, ←finset.coe_univ, ← finset.coe_image] at ⊢ hle,
+  exact hi.affine_span_image_finset_eq_of_le_of_card_eq_finrank_add_one hle hc
+end
+
+/-- The `affine_span` of a finite affinely independent family is `⊤` iff the
+family's cardinality is one more than that of the finite-dimensional space. -/
+lemma affine_independent.affine_span_eq_top_iff_card_eq_finrank_add_one [finite_dimensional k V]
+  [fintype ι] {p : ι → P} (hi : affine_independent k p) :
+  affine_span k (set.range p) = ⊤ ↔ fintype.card ι = finrank k V + 1 :=
+begin
+  split,
+  { intros h_tot,
+    let n := fintype.card ι - 1,
+    have hn : fintype.card ι = n + 1,
+    { exact (nat.succ_pred_eq_of_pos (card_pos_of_affine_span_eq_top k V P h_tot)).symm, },
+    rw [hn, ← finrank_top, ← (vector_span_eq_top_of_affine_span_eq_top k V P) h_tot,
+      ← hi.finrank_vector_span hn], },
+  { intros hc,
+    rw [← finrank_top, ← direction_top k V P] at hc,
+    exact hi.affine_span_eq_of_le_of_card_eq_finrank_add_one le_top hc, },
+end
+
+variables (k)
 
 /-- A set of points is collinear if their `vector_span` has dimension
 at most `1`. -/
@@ -376,11 +369,6 @@ begin
     simp [hp] }
 end
 
-end division_ring
-
-section field
-variables [field k] [add_comm_group V] [module k V] [affine_space V P]
-
 /-- Three points are affinely independent if and only if they are not
 collinear. -/
 lemma affine_independent_iff_not_collinear (p : fin 3 → P) :
@@ -394,7 +382,5 @@ lemma collinear_iff_not_affine_independent (p : fin 3 → P) :
   collinear k (set.range p) ↔ ¬ affine_independent k p :=
 by rw [collinear_iff_finrank_le_one,
        finrank_vector_span_le_iff_not_affine_independent k p (fintype.card_fin 3)]
-
-end field
 
 end affine_space'

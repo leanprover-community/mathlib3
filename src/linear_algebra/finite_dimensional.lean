@@ -781,6 +781,17 @@ begin
     apply_instance },
 end
 
+/-- The dimension of a submodule is bounded by the dimension of the ambient space. -/
+lemma finrank_le [finite_dimensional K V] (s : submodule K V) : finrank K s ≤ finrank K V :=
+by simpa only [cardinal.nat_cast_le, ←finrank_eq_dim] using
+  s.subtype.dim_le_of_injective (injective_subtype s)
+
+/-- The dimension of a quotient is bounded by the dimension of the ambient space. -/
+lemma finrank_quotient_le [finite_dimensional K V] (s : submodule K V) :
+  finrank K (V ⧸ s) ≤ finrank K V :=
+by simpa only [cardinal.nat_cast_le, ←finrank_eq_dim] using
+  (mkq s).dim_le_of_surjective (surjective_quot_mk _)
+
 end division_ring
 
 section field
@@ -796,10 +807,6 @@ begin
   exact_mod_cast this
 end
 
-/-- The dimension of a submodule is bounded by the dimension of the ambient space. -/
-lemma finrank_le [finite_dimensional K V] (s : submodule K V) : finrank K s ≤ finrank K V :=
-by { rw ← s.finrank_quotient_add_finrank, exact nat.le_add_left _ _ }
-
 /-- The dimension of a strict submodule is strictly bounded by the dimension of the ambient
 space. -/
 lemma finrank_lt [finite_dimensional K V] {s : submodule K V} (h : s < ⊤) :
@@ -808,11 +815,6 @@ begin
   rw [← s.finrank_quotient_add_finrank, add_comm],
   exact nat.lt_add_of_zero_lt_left _ _ (finrank_pos_iff.mpr (quotient.nontrivial_of_lt_top _ h))
 end
-
-/-- The dimension of a quotient is bounded by the dimension of the ambient space. -/
-lemma finrank_quotient_le [finite_dimensional K V] (s : submodule K V) :
-  finrank K (V ⧸ s) ≤ finrank K V :=
-by { rw ← s.finrank_quotient_add_finrank, exact nat.le_add_right _ _ }
 
 /-- The sum of the dimensions of s + t and s ∩ t is the sum of the dimensions of s and t -/
 theorem dim_sup_add_dim_inf_eq (s t : submodule K V)
@@ -911,11 +913,7 @@ noncomputable def linear_equiv.of_finrank_eq [finite_dimensional K V] [finite_di
   (cond : finrank K V = finrank K V₂) : V ≃ₗ[K] V₂ :=
 classical.choice $ nonempty_linear_equiv_of_finrank_eq cond
 
-end division_ring
-
-section field
-variables [field K] [add_comm_group V] [module K V]
-{V₂ : Type v'} [add_comm_group V₂] [module K V₂]
+variables {V}
 
 lemma eq_of_le_of_finrank_le {S₁ S₂ : submodule K V} [finite_dimensional K S₂] (hle : S₁ ≤ S₂)
   (hd : finrank K S₂ ≤ finrank K S₁) : S₁ = S₂ :=
@@ -932,9 +930,15 @@ lemma eq_of_le_of_finrank_eq {S₁ S₂ : submodule K V} [finite_dimensional K S
 eq_of_le_of_finrank_le hle hd.ge
 
 @[simp]
-lemma finrank_map_subtype_eq (p : subspace K V) (q : subspace K p) :
+lemma finrank_map_subtype_eq (p : submodule K V) (q : submodule K p) :
   finite_dimensional.finrank K (q.map p.subtype) = finite_dimensional.finrank K q :=
 (submodule.equiv_subtype_map p q).symm.finrank_eq
+
+end division_ring
+
+section field
+variables [field K] [add_comm_group V] [module K V]
+{V₂ : Type v'} [add_comm_group V₂] [module K V₂]
 
 variables [finite_dimensional K V] [finite_dimensional K V₂]
 
@@ -1216,18 +1220,18 @@ begin
   exact lt_of_le_of_finrank_lt_finrank le_top lt
 end
 
-end division_ring
-
-section field
-variables [field K] [add_comm_group V] [module K V]
-{V₂ : Type v'} [add_comm_group V₂] [module K V₂]
-
 lemma finrank_mono [finite_dimensional K V] :
   monotone (λ (s : submodule K V), finrank K s) :=
 λ s t hst,
 calc finrank K s = finrank K (comap t.subtype s)
   : linear_equiv.finrank_eq (comap_subtype_equiv_of_le hst).symm
 ... ≤ finrank K t : submodule.finrank_le _
+
+end division_ring
+
+section field
+variables [field K] [add_comm_group V] [module K V]
+{V₂ : Type v'} [add_comm_group V₂] [module K V₂]
 
 lemma finrank_lt_finrank_of_lt [finite_dimensional K V] {s t : submodule K V} (hst : s < t) :
   finrank K s < finrank K t :=

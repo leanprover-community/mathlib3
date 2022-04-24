@@ -76,16 +76,6 @@ around a sum.
 
 open tactic
 
-/-
-/-- A `tactic expr` that either finds the first entry of `lc` that unifies with `e` or fails. -/
-meta def expr.find_in (e : expr) (lc : list expr) : tactic expr :=
-do
-  pe ← pp e,
-  plc ← pp lc,
-  h :: _ ← lc.mfilter $ λ e', succeeds $ unify e e' | fail format!"'{pe}' not found in '{plc}'",
-  return h
--/
-
 /-- A `tactic (option expr)` that either finds the first entry `f` of `lc` that unifies with `e`
 and returns `some f` or returns `none`. -/
 meta def expr.find_in2 (e : expr) (lc : list expr) : tactic (option expr) :=

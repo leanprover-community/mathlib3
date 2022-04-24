@@ -219,11 +219,11 @@ end
 
 instance : has_mul pgame := ⟨mul⟩
 
-@[simp] theorem left_moves_mul (x y : pgame) : (x * y).left_moves
+@[simp] theorem left_moves_mul (x y : pgame.{u}) : (x * y).left_moves
   = (x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves) :=
 by { cases x, cases y, refl }
 
-@[simp] theorem right_moves_mul (x y : pgame) : (x * y).right_moves
+@[simp] theorem right_moves_mul (x y : pgame.{u}) : (x * y).right_moves
   = (x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves) :=
 by { cases x, cases y, refl }
 

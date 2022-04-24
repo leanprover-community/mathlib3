@@ -32,11 +32,12 @@ universes u
 
 /-- `is_free_group G` means that `G` isomorphic to a free group. -/
 class is_free_group (G : Type u) [group G] :=
-  ( generators : Type u )
-  ( mul_equiv [] : free_group generators ≃* G )
+(generators : Type u)
+(mul_equiv [] : free_group generators ≃* G)
 
 instance (X : Type*) : is_free_group (free_group X) :=
-  { generators := X, mul_equiv := mul_equiv.refl _ }
+{ generators := X,
+  mul_equiv := mul_equiv.refl _ }
 
 namespace is_free_group
 
@@ -47,7 +48,7 @@ variables (G : Type*) [group G] [is_free_group G]
 
 variable {G}
 
-/-- The canoncial injection of G's generators into G -/
+/-- The canonical injection of G's generators into G -/
 def of : generators G → G := (mul_equiv G).to_fun ∘ free_group.of
 
 @[simp] lemma of_eq_free_group_of {A : Type u} : (@of (free_group A) _ _ ) = free_group.of := rfl
@@ -58,7 +59,7 @@ variables {H : Type*} [group H]
 given by those generators. -/
 @[simps symm_apply]
 def lift : (generators G → H) ≃ (G →* H) :=
-  free_group.lift.trans
+free_group.lift.trans
   { to_fun := λ f, f.comp (@is_free_group.mul_equiv G _ _).symm.to_monoid_hom,
     inv_fun := λ f, f.comp (@is_free_group.mul_equiv G _ _).to_monoid_hom,
     left_inv := λ f, by { ext, simp, },
@@ -126,6 +127,6 @@ of_lift X of @lift @lift_of
 
 /-- Being a free group transports across group isomorphisms. -/
 def of_mul_equiv {H : Type*} [group H] (h : G ≃* H) : is_free_group H :=
-  { generators := generators G, mul_equiv := (mul_equiv G).trans h }
+{ generators := generators G, mul_equiv := (mul_equiv G).trans h }
 
 end is_free_group

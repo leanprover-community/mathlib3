@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import data.zmod.basic
+import data.zmod.quotient
 import group_theory.complement
 import group_theory.group_action.basic
 import group_theory.index
@@ -84,27 +84,66 @@ end
 
 end lemmaa
 
+@[to_additive] instance subgroup.zpowers.is_commutative {G : Type*} [group G] (g : G) :
+  (subgroup.zpowers g).is_commutative :=
+⟨⟨λ ⟨a, b, c⟩ ⟨d, e, f⟩, by rw [subtype.ext_iff, subgroup.coe_mul, subgroup.coe_mul,
+  subtype.coe_mk, subtype.coe_mk, ←c, ←f, zpow_mul_comm]⟩⟩
+
+noncomputable def zmultiples_quotient_stabilizer_equiv
+  {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β) :
+  add_subgroup.zmultiples a ⧸ add_action.stabilizer (add_subgroup.zmultiples a) b ≃+
+  zmod (function.minimal_period ((+ᵥ) a) b) :=
+begin
+  refine (add_equiv.symm (add_equiv.of_bijective
+    (quotient_add_group.map (add_subgroup.zmultiples (function.minimal_period ((+ᵥ) a) b : ℤ))
+    (add_action.stabilizer (add_subgroup.zmultiples a) b)
+    (zmultiples_hom (add_subgroup.zmultiples a)
+    ⟨a, add_subgroup.mem_zmultiples a⟩) _) _)).trans
+    (int.quotient_zmultiples_nat_equiv_zmod (function.minimal_period ((+ᵥ) a) b)),
+  { -- this rw chain should be a lemma:
+    rw [add_subgroup.zmultiples_eq_closure, add_subgroup.closure_le, set.singleton_subset_iff],
+    rw [set_like.mem_coe, add_subgroup.mem_comap, add_action.mem_stabilizer_iff,
+        zmultiples_hom_apply],
+    rw [coe_nat_zsmul, ←vadd_iterate],
+    exact function.is_periodic_pt_minimal_period ((+ᵥ) a) b },
+  { split,
+    { refine (add_monoid_hom.ker_eq_bot_iff _).mp (le_bot_iff.mp _),
+      refine λ q, quotient.induction_on' q (λ n hn, _),
+      replace hn := (quotient_add_group.eq_zero_iff _).mp hn,
+      change n • a +ᵥ b = b at hn,
+      refine (quotient_add_group.eq_zero_iff n).mpr _,
+      rw [int.mem_zmultiples_iff],
+      -- this sorry is the same as the other
+      sorry },
+    { refine λ q, quotient.induction_on' q _,
+      rintros ⟨-, n, rfl⟩,
+      exact ⟨n, rfl⟩ } },
+end
+
+instance party {α β : Type*} [monoid α] [mul_action α β] :
+  add_action (additive α) β :=
+{ vadd := λ a b, (additive.to_mul a • b),
+  zero_vadd := one_smul α,
+  add_vadd := mul_smul }
+
+noncomputable def zpowers_quotient_stabilizer_equiv
+  {α β : Type*} [group α] (a : α) [mul_action α β] (b : β) :
+  subgroup.zpowers a ⧸ mul_action.stabilizer (subgroup.zpowers a) b ≃*
+  multiplicative (zmod (function.minimal_period ((•) a) b)) :=
+let f := (zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b) in
+{ to_fun := f.to_fun,
+  inv_fun := f.inv_fun,
+  left_inv := f.left_inv,
+  right_inv := f.right_inv,
+  map_mul' := f.map_add' }
+
 noncomputable def orbit_zpowers_equiv
   {α β : Type*} [group α] (a : α) [mul_action α β] (b : β) :
   mul_action.orbit (subgroup.zpowers a) b ≃ zmod (function.minimal_period ((•) a) b) :=
-equiv.symm (equiv.of_bijective (λ k, (⟨a, subgroup.mem_zpowers a⟩ : subgroup.zpowers a) ^ (k : ℤ) •
-  ⟨b, mul_action.mem_orbit_self b⟩) begin
-  let a' : subgroup.zpowers a := ⟨a, subgroup.mem_zpowers a⟩,
-  let b' : mul_action.orbit α b := ⟨b, mul_action.mem_orbit_self b⟩,
-  have key : function.minimal_period ((•) a) b = function.minimal_period ((•) a') b',
-  { sorry },
-  -- ^ this stuff might not be necessary ^ --
-  split,
-  { intros k k' h,
-    replace h : a ^ (k : ℤ) • b = a ^ (k' : ℤ) • b := subtype.ext_iff.mp h,
-    rw [←smul_iterate, ←smul_iterate] at h,
-    refine iterate_injective_of_lt_minimal_period _ _ h,
-    sorry },
-  { rintros ⟨-, ⟨-, k, rfl⟩, rfl⟩,
-    refine ⟨k, subtype.ext _⟩,
-    change a ^ (k : zmod _).val • b = a ^ k • b,
-    sorry },
-end)
+begin
+  refine (mul_action.orbit_equiv_quotient_stabilizer (subgroup.zpowers a) b).trans _,
+  exact (zpowers_quotient_stabilizer_equiv a b).to_equiv,
+end
 
 lemma orbit_zpowers_equiv_symm_apply {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
   (k : zmod (function.minimal_period ((•) a) b)) :
@@ -126,6 +165,18 @@ lemma key_equiv_symm_apply {G : Type u} [group G] (H : subgroup G) (g : G)
   (key_equiv H g).symm ⟨q, k⟩ = g ^ (k : ℤ) • q.out' :=
 rfl
 
+lemma key_equiv_apply {G : Type u} [group G] (H : subgroup G) (g : G)
+  (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
+  (k : ℤ) :
+  key_equiv H g (g ^ k • q.out') = ⟨q, k⟩ :=
+begin
+  rw [equiv.apply_eq_iff_eq_symm_apply, key_equiv_symm_apply],
+  rw [←inv_smul_eq_iff, ←zpow_neg_one, ←zpow_mul, mul_neg_one, ←mul_smul, ←zpow_add, add_comm,
+    ←sub_eq_add_neg],
+  -- this sorry is the same as the other
+  sorry,
+end
+
 end equiv_stuff
 
 section transversal_stuff
@@ -146,18 +197,45 @@ lemma key_transversal_apply' {G : Type*} [group G] (H : subgroup G)
   (k : zmod (function.minimal_period ((•) g) q.out')) :
   ↑(subgroup.mem_left_transversals.to_equiv (key_transversal H g).2 (g ^ (k : ℤ) • q.out')) =
     g ^ (k : ℤ) * q.out'.out' :=
-by rw [←key_equiv_symm_apply, key_transversal_apply, equiv.apply_symm_apply]
+by rw [key_transversal_apply, ←key_equiv_symm_apply, equiv.apply_symm_apply]
+
+
+lemma zmod.coe_neg_one {R : Type*} [ring R] (n : ℕ) : ↑(-1 : zmod n) = (n - 1 : R) :=
+begin
+  cases n,
+  { rw [int.cast_neg, int.cast_one, nat.cast_zero, zero_sub] },
+  { transitivity ((((n : ℤ) : zmod n.succ).val : ℤ) : R),
+    { refine congr_arg zmod.cast _,
+      rw [neg_eq_iff_add_eq_zero, add_comm],
+      exact zmod.nat_cast_self n.succ },
+    { rw [zmod.val_int_cast, int.mod_eq_of_lt, int.cast_coe_nat, nat.cast_succ, add_sub_cancel],
+      { exact int.coe_nat_nonneg n },
+      { rw [int.coe_nat_succ, lt_add_iff_pos_right],
+        exact zero_lt_one } } },
+end
 
 lemma key_transversal_apply'' {G : Type*} [group G] (H : subgroup G)
   (g : G) (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
   (k : zmod (function.minimal_period ((•) g) q.out')) :
-  ↑(subgroup.mem_left_transversals.to_equiv (g • key_transversal H g).2 (g ^ k.val • q.out')) =
+  ↑(subgroup.mem_left_transversals.to_equiv (g • key_transversal H g).2 (g ^ (k : ℤ) • q.out')) =
     if k = 0 then g ^ (function.minimal_period ((•) g) q.out') * q.out'.out'
       else g ^ (k : ℤ) * q.out'.out' :=
 begin
-  rw subgroup.smul_apply_eq_smul_apply_inv_smul,
-  rw key_transversal_apply,
-  sorry
+  rw [subgroup.smul_apply_eq_smul_apply_inv_smul, key_transversal_apply, ←mul_smul, ←zpow_neg_one,
+      ←zpow_add, key_equiv_apply, smul_eq_mul, ←mul_assoc, ←zpow_one_add,
+      int.cast_add, int.cast_neg, int.cast_one],
+  simp only,
+  by_cases hk : k = 0,
+  { rw [hk, if_pos rfl, mul_left_inj, zmod.cast_zero, int.cast_zero, add_zero, ←zpow_coe_nat],
+    refine congr_arg ((^) g) _,
+    rw [zmod.coe_neg_one, int.nat_cast_eq_coe_nat, add_sub_cancel'_right] },
+  { rw [if_neg hk, mul_left_inj],
+    refine congr_arg ((^) g) _,
+    rw [zmod.coe_add_eq_ite, if_pos, zmod.coe_neg_one, add_sub, ←add_assoc, add_sub_cancel'_right],
+    simp only [int.nat_cast_eq_coe_nat, zmod.int_cast_cast, zmod.cast_id', id.def, add_tsub_cancel_left],
+    rw [zmod.coe_neg_one, sub_add],
+    simp,
+    sorry },
 end
 
 end transversal_stuff
@@ -239,12 +317,11 @@ begin
   ... = _ : finset.prod_sigma _ _ _
   ... = _ : fintype.prod_congr _ _ (λ q, _),
   simp only [key_equiv_symm_apply, key_transversal_apply', key_transversal_apply''],
-  rw fintype.prod_eq_single (0 : zmod _),
-  { simp only [if_pos, ←mul_assoc, zmod.val_zero, pow_zero, one_mul], },
+  rw fintype.prod_eq_single (0 : zmod (function.minimal_period ((•) g) q.out')),
+  { simp only [if_pos, zmod.cast_zero, zpow_zero, one_mul, mul_assoc] },
   { intros k hk,
     simp only [if_neg hk, inv_mul_self],
     exact ϕ.map_one },
-  by apply_instance,
 end
 
 end explicit_computation

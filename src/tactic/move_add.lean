@@ -76,6 +76,7 @@ around a sum.
 
 open tactic
 
+/-
 /-- A `tactic expr` that either finds the first entry of `lc` that unifies with `e` or fails. -/
 meta def expr.find_in (e : expr) (lc : list expr) : tactic expr :=
 do
@@ -83,6 +84,7 @@ do
   plc ← pp lc,
   h :: _ ← lc.mfilter $ λ e', succeeds $ unify e e' | fail format!"'{pe}' not found in '{plc}'",
   return h
+-/
 
 /-- A `tactic (option expr)` that either finds the first entry `f` of `lc` that unifies with `e`
 and returns `some f` or returns `none`. -/
@@ -92,7 +94,8 @@ do
   match h with
   | [] := none
   | (f::l) := return $ some f
-  end
+  end <|>
+return none
 
 /--  Given a list `lp` of `bool × pexpr` and a list `sl` of `expr`, scan the elements of `lp` one
 at a time and produce 3 sublists of `sl`.

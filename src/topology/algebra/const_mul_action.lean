@@ -100,7 +100,7 @@ instance has_continuous_const_smul.op [has_scalar Mᵐᵒᵖ α] [is_central_sca
   has_continuous_const_smul Mᵐᵒᵖ α :=
 ⟨ mul_opposite.rec $ λ c, by simpa only [op_smul_eq_smul] using continuous_const_smul c ⟩
 
-instance mul_opposite.has_continuous_const_smul :
+@[to_additive] instance mul_opposite.has_continuous_const_smul :
   has_continuous_const_smul M αᵐᵒᵖ :=
 ⟨λ c, mul_opposite.continuous_op.comp $ mul_opposite.continuous_unop.const_smul c⟩
 

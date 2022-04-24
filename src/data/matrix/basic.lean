@@ -337,7 +337,7 @@ lemma dot_product_assoc [fintype n] [non_unital_semiring α] (u : m → α) (w :
   (λ j, u ⬝ᵥ (λ i, v i j)) ⬝ᵥ w = u ⬝ᵥ (λ i, (v i) ⬝ᵥ w) :=
 by simpa [dot_product, finset.mul_sum, finset.sum_mul, mul_assoc] using finset.sum_comm
 
-lemma dot_product_comm [comm_semiring α] (v w : m → α) :
+lemma dot_product_comm [add_comm_monoid α] [comm_semigroup α] (v w : m → α) :
   v ⬝ᵥ w = w ⬝ᵥ v :=
 by simp_rw [dot_product, mul_comm]
 
@@ -465,6 +465,21 @@ lemma sum_apply [add_comm_monoid α] (i : m) (j : n)
   (∑ c in s, g c) i j = ∑ c in s, g c i j :=
 (congr_fun (s.sum_apply i g) j).trans (s.sum_apply j _)
 
+section add_comm_monoid
+
+variables [add_comm_monoid α] [has_mul α]
+
+@[simp] lemma smul_mul [fintype n] [monoid R] [distrib_mul_action R α] [is_scalar_tower R α α]
+  (a : R) (M : matrix m n α) (N : matrix n l α) :
+  (a • M) ⬝ N = a • M ⬝ N :=
+by { ext, apply smul_dot_product }
+
+@[simp] lemma mul_smul [fintype n] [monoid R] [distrib_mul_action R α] [smul_comm_class R α α]
+  (M : matrix m n α) (a : R) (N : matrix n l α) : M ⬝ (a • N) = a • M ⬝ N :=
+by { ext, apply dot_product_smul }
+
+end add_comm_monoid
+
 section non_unital_non_assoc_semiring
 variables [non_unital_non_assoc_semiring α]
 
@@ -510,15 +525,6 @@ lemma smul_eq_diagonal_mul [fintype m] [decidable_eq m] (M : matrix m n α) (a :
   a • M = diagonal (λ _, a) ⬝ M :=
 by { ext, simp }
 
-@[simp] lemma smul_mul [fintype n] [monoid R] [distrib_mul_action R α] [is_scalar_tower R α α]
-  (a : R) (M : matrix m n α) (N : matrix n l α) :
-  (a • M) ⬝ N = a • M ⬝ N :=
-by { ext, apply smul_dot_product }
-
-@[simp] lemma mul_smul [fintype n] [monoid R] [distrib_mul_action R α] [smul_comm_class R α α]
-  (M : matrix m n α) (a : R) (N : matrix n l α) : M ⬝ (a • N) = a • M ⬝ N :=
-by { ext, apply dot_product_smul }
-
 /-- Left multiplication by a matrix, as an `add_monoid_hom` from matrices to matrices. -/
 @[simps] def add_monoid_hom_mul_left [fintype m] (M : matrix l m α) :
   matrix m n α →+ matrix l n α :=
@@ -540,6 +546,16 @@ protected lemma sum_mul [fintype m] (s : finset β) (f : β → matrix l m α)
 protected lemma mul_sum [fintype m] (s : finset β) (f : β → matrix m n α)
   (M : matrix l m α) : M ⬝ ∑ a in s, f a = ∑ a in s, M ⬝ f a :=
 (add_monoid_hom_mul_left M : matrix m n α →+ _).map_sum f s
+
+/-- This instance enables use with `smul_mul_assoc`. -/
+instance semiring.is_scalar_tower [fintype n] [monoid R] [distrib_mul_action R α]
+  [is_scalar_tower R α α] : is_scalar_tower R (matrix n n α) (matrix n n α) :=
+⟨λ r m n, matrix.smul_mul r m n⟩
+
+/-- This instance enables use with `mul_smul_comm`. -/
+instance semiring.smul_comm_class [fintype n] [monoid R] [distrib_mul_action R α]
+  [smul_comm_class R α α] : smul_comm_class R (matrix n n α) (matrix n n α) :=
+⟨λ r m n, (matrix.mul_smul m r n).symm⟩
 
 end non_unital_non_assoc_semiring
 
@@ -632,16 +648,6 @@ instance [fintype n] [decidable_eq n] [ring α] : ring (matrix n n α) :=
 
 section semiring
 variables [semiring α]
-
-/-- This instance enables use with `smul_mul_assoc`. -/
-instance semiring.is_scalar_tower [fintype n] [monoid R] [distrib_mul_action R α]
-  [is_scalar_tower R α α] : is_scalar_tower R (matrix n n α) (matrix n n α) :=
-⟨λ r m n, matrix.smul_mul r m n⟩
-
-/-- This instance enables use with `mul_smul_comm`. -/
-instance semiring.smul_comm_class [fintype n] [monoid R] [distrib_mul_action R α]
-  [smul_comm_class R α α] : smul_comm_class R (matrix n n α) (matrix n n α) :=
-⟨λ r m n, (matrix.mul_smul m r n).symm⟩
 
 @[simp] lemma mul_mul_left [fintype n] (M : matrix m n α) (N : matrix n o α) (a : α) :
   (λ i j, a * M i j) ⬝ N = a • (M ⬝ N) :=
@@ -1052,12 +1058,12 @@ lemma add_vec_mul [fintype m] (A : matrix m n α) (x y : m → α) :
   vec_mul (x + y) A = vec_mul x A + vec_mul y A :=
 by { ext, apply add_dot_product }
 
-lemma vec_mul_smul [fintype n] [comm_semiring R] [semiring S] [distrib_mul_action R S]
+lemma vec_mul_smul [fintype n] [monoid R] [non_unital_non_assoc_semiring S] [distrib_mul_action R S]
   [is_scalar_tower R S S] (M : matrix n m S) (b : R) (v : n → S)  :
   M.vec_mul (b • v) = b • M.vec_mul v :=
 by { ext i, simp only [vec_mul, dot_product, finset.smul_sum, pi.smul_apply, smul_mul_assoc] }
 
-lemma mul_vec_smul [fintype n] [comm_semiring R] [semiring S] [distrib_mul_action R S]
+lemma mul_vec_smul [fintype n] [monoid R] [non_unital_non_assoc_semiring S] [distrib_mul_action R S]
   [smul_comm_class R S S] (M : matrix m n S) (b : R) (v : n → S)  :
   M.mul_vec (b • v) = b • M.mul_vec v :=
 by { ext i, simp only [mul_vec, dot_product, finset.smul_sum, pi.smul_apply, mul_smul_comm] }
@@ -1158,8 +1164,8 @@ by { ext i j, simp }
   (M - N)ᵀ = Mᵀ - Nᵀ  :=
 by { ext i j, simp }
 
-@[simp] lemma transpose_mul [comm_semiring α] [fintype n] (M : matrix m n α) (N : matrix n l α) :
-  (M ⬝ N)ᵀ = Nᵀ ⬝ Mᵀ  :=
+@[simp] lemma transpose_mul [add_comm_monoid α] [comm_semigroup α] [fintype n]
+  (M : matrix m n α) (N : matrix n l α) : (M ⬝ N)ᵀ = Nᵀ ⬝ Mᵀ  :=
 begin
   ext i j,
   apply dot_product_comm
@@ -1202,7 +1208,8 @@ lemma transpose_sum [add_comm_monoid α] {ι : Type*} (s : finset ι) (M : ι �
 
 /-- `matrix.transpose` as a `ring_equiv` to the opposite ring -/
 @[simps]
-def transpose_ring_equiv [comm_semiring α] [fintype m] : matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ :=
+def transpose_ring_equiv [add_comm_monoid α] [comm_semigroup α] [fintype m] :
+  matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ :=
 { to_fun := λ M, mul_opposite.op (Mᵀ),
   inv_fun := λ M, M.unopᵀ,
   map_mul' := λ M N, (congr_arg mul_opposite.op (transpose_mul M N)).trans
@@ -1231,7 +1238,7 @@ open_locale matrix
   Mᴴᴴ = M :=
 matrix.ext $ by simp
 
-@[simp] lemma conj_transpose_zero [semiring α] [star_add_monoid α] : (0 : matrix m n α)ᴴ = 0 :=
+@[simp] lemma conj_transpose_zero [add_monoid α] [star_add_monoid α] : (0 : matrix m n α)ᴴ = 0 :=
 matrix.ext $ by simp
 
 @[simp] lemma conj_transpose_one [decidable_eq n] [semiring α] [star_ring α]:
@@ -1325,7 +1332,7 @@ instance [fintype n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
   star_mul := conj_transpose_mul, }
 
 /-- A version of `star_mul` for `⬝` instead of `*`. -/
-lemma star_mul [fintype n] [semiring α] [star_ring α] (M N : matrix n n α) :
+lemma star_mul [fintype n] [non_unital_semiring α] [star_ring α] (M N : matrix n n α) :
   star (M ⬝ N) = star N ⬝ star M := conj_transpose_mul _ _
 
 end star
@@ -1426,13 +1433,14 @@ lemma minor_one_equiv [has_zero α] [has_one α] [decidable_eq m] [decidable_eq 
 minor_one e e.injective
 
 @[simp]
-lemma minor_mul_equiv [fintype n] [fintype o] [semiring α] {p q : Type*}
+lemma minor_mul_equiv [fintype n] [fintype o] [add_comm_monoid α] [has_mul α] {p q : Type*}
   (M : matrix m n α) (N : matrix n p α) (e₁ : l → m) (e₂ : o ≃ n) (e₃ : q → p)  :
   (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) = (M ⬝ N).minor e₁ e₃ :=
 (minor_mul M N e₁ e₂ e₃ e₂.bijective).symm
 
-lemma mul_minor_one [fintype n] [fintype o] [semiring α] [decidable_eq o] (e₁ : n ≃ o) (e₂ : l → o)
-  (M : matrix m n α) : M ⬝ (1 : matrix o o α).minor e₁ e₂ = minor M id (e₁.symm ∘ e₂) :=
+lemma mul_minor_one [fintype n] [fintype o] [non_assoc_semiring α] [decidable_eq o] (e₁ : n ≃ o)
+  (e₂ : l → o) (M : matrix m n α) :
+  M ⬝ (1 : matrix o o α).minor e₁ e₂ = minor M id (e₁.symm ∘ e₂) :=
 begin
   let A := M.minor id e₁.symm,
   have : M = A.minor id e₁,
@@ -1442,8 +1450,9 @@ begin
     equiv.symm_comp_self],
 end
 
-lemma one_minor_mul [fintype m] [fintype o] [semiring α] [decidable_eq o] (e₁ : l → o) (e₂ : m ≃ o)
-  (M : matrix m n α) : ((1 : matrix o o α).minor e₁ e₂).mul M = minor M (e₂.symm ∘ e₁) id :=
+lemma one_minor_mul [fintype m] [fintype o] [non_assoc_semiring α] [decidable_eq o] (e₁ : l → o)
+  (e₂ : m ≃ o) (M : matrix m n α) :
+  ((1 : matrix o o α).minor e₁ e₂).mul M = minor M (e₂.symm ∘ e₁) id :=
 begin
   let A := M.minor e₂.symm id,
   have : M = A.minor e₂ id,
@@ -1487,7 +1496,7 @@ lemma conj_transpose_reindex [has_star α] (eₘ : m ≃ l) (eₙ : n ≃ o) (M 
 rfl
 
 @[simp]
-lemma minor_mul_transpose_minor [fintype m] [fintype n] [semiring α]
+lemma minor_mul_transpose_minor [fintype m] [fintype n] [add_comm_monoid α] [has_mul α]
   (e : m ≃ n) (M : matrix m n α) :
   (M.minor id e) ⬝ (Mᵀ).minor e id = M ⬝ Mᵀ :=
 by rw [minor_mul_equiv, minor_id_id]

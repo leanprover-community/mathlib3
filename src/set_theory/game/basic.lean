@@ -22,6 +22,8 @@ not imply `(x*z).equiv (y*z)`. Hence, multiplication is not a well-defined opera
 Nevertheless, the abelian group structure on games allows us to simplify many proofs for pre-games.
 -/
 
+open function
+
 universes u
 
 local infix ` ≈ ` := pgame.equiv
@@ -145,8 +147,11 @@ instance : add_comm_group game :=
 { ..game.add_comm_semigroup,
   ..game.add_group }
 
-theorem add_le_add_left : ∀ (a b : game), a ≤ b → ∀ (c : game), c + a ≤ c + b :=
-begin rintro ⟨a⟩ ⟨b⟩ h ⟨c⟩, apply pgame.add_le_add_left h, end
+instance covariant_class_add_le : covariant_class game game (+) (≤) :=
+⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a end⟩
+
+instance covariant_class_swap_add_le : covariant_class game game (swap (+)) (≤) :=
+⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_right _ _ _ _ b c h a end⟩
 
 -- While it is very tempting to define a `partial_order` on games, and prove
 -- that games form an `ordered_add_comm_group`, it is a bit dangerous.
@@ -169,7 +174,7 @@ def game_partial_order : partial_order game :=
 
 /-- The `<` operation provided by this `ordered_add_comm_group` is not the usual `<` on games! -/
 def ordered_add_comm_group_game : ordered_add_comm_group game :=
-{ add_le_add_left := add_le_add_left,
+{ add_le_add_left := @add_le_add_left _ _ _ game.covariant_class_add_le,
   ..game.add_comm_group,
   ..game_partial_order }
 
@@ -277,18 +282,15 @@ begin
    ... ≃ yl × xr ⊕ yr × xl : equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
   { rintro (⟨i, j⟩ | ⟨i, j⟩),
     { change ⟦xL i * y⟧ + ⟦x * yL j⟧ - ⟦xL i * yL j⟧ = ⟦yL j * x⟧ + ⟦y * xL i⟧ - ⟦yL j * xL i⟧,
-      rw [quot_mul_comm (xL i) y, quot_mul_comm x (yL j), quot_mul_comm (xL i) (yL j)],
-      abel },
+      rw [quot_mul_comm (xL i) y, quot_mul_comm x (yL j), quot_mul_comm (xL i) (yL j), add_comm] },
     { change ⟦xR i * y⟧ + ⟦x * yR j⟧ - ⟦xR i * yR j⟧ = ⟦yR j * x⟧ + ⟦y * xR i⟧ - ⟦yR j * xR i⟧,
-      rw [quot_mul_comm (xR i) y, quot_mul_comm x (yR j), quot_mul_comm (xR i) (yR j)],
-      abel } },
+      rw [quot_mul_comm (xR i) y, quot_mul_comm x (yR j), quot_mul_comm (xR i) (yR j),
+        add_comm] } },
   { rintro (⟨j, i⟩ | ⟨j, i⟩),
     { change ⟦xR i * y⟧ + ⟦x * yL j⟧ - ⟦xR i * yL j⟧ = ⟦yL j * x⟧ + ⟦y * xR i⟧ - ⟦yL j * xR i⟧,
-      rw [quot_mul_comm (xR i) y, quot_mul_comm x (yL j), quot_mul_comm (xR i) (yL j)],
-      abel },
+      rw [quot_mul_comm (xR i) y, quot_mul_comm x (yL j), quot_mul_comm (xR i) (yL j), add_comm] },
     { change ⟦xL i * y⟧ + ⟦x * yR j⟧ - ⟦xL i * yR j⟧ = ⟦yR j * x⟧ + ⟦y * xL i⟧ - ⟦yR j * xL i⟧,
-      rw [quot_mul_comm (xL i) y, quot_mul_comm x (yR j), quot_mul_comm (xL i) (yR j)],
-      abel } }
+      rw [quot_mul_comm (xL i) y, quot_mul_comm x (yR j), quot_mul_comm (xL i) (yR j), add_comm] } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

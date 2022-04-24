@@ -210,10 +210,13 @@ quot.lift.decidable_pred _ _ _
 
 include sb
 
+/-- Note that this provides `decidable_rel (quotient.lift₂ f h)` when `α = β`. -/
 instance (f : α → β → Prop) (h : ∀ a₁ b₁ a₂ b₂, a₁ ≈ a₂ → b₁ ≈ b₂ → f a₁ b₁ = f a₂ b₂)
   [hf : Π a, decidable_pred (f a)] (q₁ : quotient sa) :
   decidable_pred (quotient.lift₂ f h q₁) :=
 λ q₂, quotient.rec_on_subsingleton₂ q₁ q₂ hf
+
+omit sb
 
 instance (q : quotient sa) (f : α → Prop) (h : ∀ a b, a ≈ b → f a = f b) [decidable_pred f] :
   decidable (quotient.lift_on q f h) :=

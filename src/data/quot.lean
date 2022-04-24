@@ -255,9 +255,12 @@ end
   x.out ≈ y.out ↔ x = y :=
 by rw [← quotient.eq_mk_iff_out, quotient.out_eq]
 
+lemma quotient.out_injective {s : setoid α} : function.injective (@quotient.out α s) :=
+λ a b h, quotient.out_equiv_out.1 $ h ▸ setoid.refl _
+
 @[simp] lemma quotient.out_inj {s : setoid α} {x y : quotient s} :
   x.out = y.out ↔ x = y :=
-⟨λ h, quotient.out_equiv_out.1 $ h ▸ setoid.refl _, λ h, h ▸ rfl⟩
+⟨λ h, quotient.out_injective h, λ h, h ▸ rfl⟩
 
 section pi
 

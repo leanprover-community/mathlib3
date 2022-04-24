@@ -77,7 +77,7 @@ theorem mem_degree_lt {n : ℕ} {f : R[X]} :
   f ∈ degree_lt R n ↔ degree f < n :=
 by { simp_rw [degree_lt, submodule.mem_infi, linear_map.mem_ker, degree,
     finset.sup_lt_iff (with_bot.bot_lt_coe n), mem_support_iff, with_bot.some_eq_coe,
-    with_bot.coe_lt_coe, lt_iff_not_ge', ne, not_imp_not], refl }
+    with_bot.coe_lt_coe, lt_iff_not_le, ne, not_imp_not], refl }
 
 @[mono] theorem degree_lt_mono {m n : ℕ} (H : m ≤ n) :
   degree_lt R m ≤ degree_lt R n :=
@@ -100,11 +100,11 @@ begin
   exact lt_of_le_of_lt (degree_X_pow_le _) (with_bot.coe_lt_coe.2 $ finset.mem_range.1 hk)
 end
 
-/-- The first `n` coefficients on `degree_lt n` form a linear equivalence with `fin n → F`. -/
-def degree_lt_equiv (F : Type*) [field F] (n : ℕ) : degree_lt F n ≃ₗ[F] (fin n → F) :=
-{ to_fun := λ p n, (↑p : F[X]).coeff n,
+/-- The first `n` coefficients on `degree_lt n` form a linear equivalence with `fin n → R`. -/
+def degree_lt_equiv (R : Type u) [comm_ring R] (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n → R) :=
+{ to_fun := λ p n, (↑p : R[X]).coeff n,
   inv_fun := λ f, ⟨∑ i : fin n, monomial i (f i),
-    (degree_lt F n).sum_mem (λ i _, mem_degree_lt.mpr (lt_of_le_of_lt
+    (degree_lt R n).sum_mem (λ i _, mem_degree_lt.mpr (lt_of_le_of_lt
       (degree_monomial_le i (f i)) (with_bot.coe_lt_coe.mpr i.is_lt)))⟩,
   map_add' := λ p q, by { ext, rw [submodule.coe_add, coeff_add], refl },
   map_smul' := λ x p, by { ext, rw [submodule.coe_smul, coeff_smul], refl },
@@ -526,7 +526,8 @@ begin
   obtain ⟨x, hx'⟩ := x,
   obtain ⟨y, rfl⟩ := (ring_hom.mem_range).1 hx',
   refine subtype.eq _,
-  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, subring.coe_zero, subtype.val_eq_coe],
+  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, add_submonoid_class.coe_zero,
+    subtype.val_eq_coe],
   suffices : C (i y) ∈ (I.map (polynomial.map_ring_hom i)),
   { obtain ⟨f, hf⟩ := mem_image_of_mem_map_of_surjective (polynomial.map_ring_hom i)
       (polynomial.map_surjective _ (((quotient.mk I).comp C).range_restrict_surjective)) this,
@@ -835,7 +836,7 @@ lemma linear_independent_powers_iff_aeval
 begin
   rw linear_independent_iff,
   simp only [finsupp.total_apply, aeval_endomorphism, forall_iff_forall_finsupp, sum, support,
-    coeff, ← zero_to_finsupp],
+    coeff, of_finsupp_eq_zero],
   exact iff.rfl,
 end
 

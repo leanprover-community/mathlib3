@@ -258,12 +258,6 @@ instance algebra : algebra 𝕜 C^∞⟮I, N; 𝓘(𝕜, A), A⟯ :=
   op_smul_def' := λ c f, by ext x; exact algebra.op_smul_def' _ _,
   ..smooth_map.semiring }
 
-/-- A special case of `pi.algebra` for non-dependent types. Lean get stuck on the definition
-below without this. -/
-instance _root_.function.algebra (I : Type*) {R : Type*} (A : Type*) {r : comm_semiring R}
-  [semiring A] [algebra R A] : algebra R (I → A) :=
-pi.algebra _ _
-
 /-- Coercion to a function as an `alg_hom`. -/
 @[simps]
 def coe_fn_alg_hom : C^∞⟮I, N; 𝓘(𝕜, A), A⟯ →ₐ[𝕜] (N → A) :=

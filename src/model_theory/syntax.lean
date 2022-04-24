@@ -5,7 +5,6 @@ Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
 import logic.equiv.fin
 import model_theory.language_map
-import set_theory.cardinal_ordinal
 
 /-!
 # Basics on First-Order Syntax
@@ -26,12 +25,6 @@ This file defines first-order terms, formulas, sentences, and theories in a styl
 above a particular index.
 * Language maps can act on syntactic objects with functions such as
 `first_order.language.Lhom.on_formula`.
-* Terms can be encoded as lists with `first_order.language.term.list_encode` and
-`first_order.language.term.list_decode`.
-
-## Main Results
-* `first_order.language.term.card_le` shows that the number of terms in `L.term α` is at most
-`# (α ⊕ Σ i, L.functions i) + ω`.
 
 ## Implementation Notes
 * Formulas use a modified version of de Bruijn variables. Specifically, a `L.bounded_formula α n`
@@ -57,8 +50,8 @@ namespace language
 variables (L : language.{u v}) {L' : language}
 variables {M : Type w} {N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
 variables {α : Type u'} {β : Type v'}
-open_locale first_order cardinal
-open Structure cardinal fin
+open_locale first_order
+open Structure fin
 
 /-- A term on `α` is either a variable indexed by an element of `α`
   or a function symbol applied to simpler terms. -/
@@ -78,89 +71,6 @@ open list
 | (var i) := var (g i)
 | (func f ts) := func f (λ i, (ts i).relabel)
 
-/-- Encodes a term as a list of variables and function symbols. -/
-def list_encode : L.term α → list (α ⊕ (Σ i, L.functions i))
-| (var i) := [sum.inl i]
-| (func f ts) := ((sum.inr (⟨_, f⟩ : Σ i, L.functions i)) ::
-    ((list.fin_range _).bind (λ i, (ts i).list_encode)))
-
-/-- Decodes a list of variables and function symbols as a list of terms. -/
-def list_decode [inhabited (L.term α)] :
-  list (α ⊕ (Σ i, L.functions i)) → list (L.term α)
-| [] := []
-| ((sum.inl a) :: l) := var a :: list_decode l
-| ((sum.inr ⟨n, f⟩) :: l) := func f (λ i, ((list_decode l).nth i).iget) :: ((list_decode l).drop n)
-
-@[simp] theorem list_decode_encode_list [inhabited (L.term α)] (l : list (L.term α)) :
-  list_decode (l.bind list_encode) = l :=
-begin
-  suffices h : ∀ (t : L.term α) (l : list (α ⊕ (Σ i, L.functions i))),
-    list_decode (t.list_encode ++ l) = t :: list_decode l,
-  { induction l with t l lih,
-    { refl },
-    { rw [cons_bind, h t (l.bind list_encode), lih] } },
-  { intro t,
-    induction t with a n f ts ih; intro l,
-    { rw [list_encode, singleton_append, list_decode] },
-    { rw [list_encode, cons_append, list_decode],
-      have h : list_decode ((fin_range n).bind (λ (i : fin n), (ts i).list_encode) ++ l) =
-        (fin_range n).map ts ++ list_decode l,
-      { induction (fin_range n) with i l' l'ih,
-        { refl },
-        { rw [cons_bind, append_assoc, ih, map_cons, l'ih, cons_append] } },
-      have h' : n ≤ (list_decode ((fin_range n).bind (λ (i : fin n),
-        (ts i).list_encode) ++ l)).length,
-      { rw [h, length_append, length_map, length_fin_range],
-        exact le_self_add, },
-      refine congr (congr rfl (congr rfl (funext (λ i, _)))) _,
-      { rw [nth_le_nth (lt_of_lt_of_le i.is_lt h'), option.iget_some, nth_le_of_eq h, nth_le_append,
-          nth_le_map, nth_le_fin_range, fin.eta],
-        { rw [length_fin_range],
-          exact i.is_lt },
-        { rw [length_map, length_fin_range],
-          exact i.is_lt } },
-      { rw [h, drop_left'],
-        rw [length_map, length_fin_range] } } }
-end
-
-lemma list_encode_injective :
-  function.injective (list_encode : L.term α → list (α ⊕ (Σ i, L.functions i))) :=
-begin
-  cases is_empty_or_nonempty (L.term α) with he hne,
-  { exact he.elim },
-  { resetI,
-    inhabit (L.term α),
-    intros t1 t2 h,
-    have h' : (list_decode ([t1].bind (list_encode))) = (list_decode ([t2].bind (list_encode))),
-    { rw [bind_singleton, h, bind_singleton] },
-    rw [list_decode_encode_list, list_decode_encode_list] at h',
-    exact head_eq_of_cons_eq h' }
-end
-
-theorem card_le : # (L.term α) ≤ # (α ⊕ (Σ i, L.functions i)) + ω :=
-begin
-  have h := (mk_le_of_injective list_encode_injective),
-  refine h.trans _,
-  casesI fintype_or_infinite (α ⊕ (Σ i, L.functions i)) with ft inf,
-  { haveI := fintype.encodable (α ⊕ (Σ i, L.functions i)),
-    exact le_add_left (encodable_iff.1 ⟨encodable.list⟩) },
-  { rw mk_list_eq_mk,
-    exact le_self_add }
-end
-
-instance [encodable α] [encodable ((Σ i, L.functions i))] [inhabited (L.term α)] :
-  encodable (L.term α) :=
-encodable.of_left_injection list_encode (λ l, (list_decode l).head')
-  (λ t, by rw [← bind_singleton list_encode, list_decode_encode_list, head'])
-
-lemma card_le_omega [h1 : nonempty (encodable α)] [h2 : L.countable_functions] :
-  # (L.term α) ≤ ω :=
-begin
-  refine (card_le.trans _),
-  rw [add_le_omega, mk_sum, add_le_omega, lift_le_omega, lift_le_omega, ← encodable_iff],
-  exact ⟨⟨h1, L.card_functions_le_omega⟩, refl _⟩,
-end
-
 instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
 
@@ -169,6 +79,12 @@ end term
 /-- The representation of a constant symbol as a term. -/
 def constants.term (c : L.constants) : (L.term α) :=
 func c default
+
+/-- Applies a unary function to a term. -/
+def functions.apply₁ (f : L.functions 1) (t : L.term α) : L.term α := func f ![t]
+
+/-- Applies a binary function to two terms. -/
+def functions.apply₂ (f : L.functions 2) (t₁ t₂ : L.term α) : L.term α := func f ![t₁, t₂]
 
 namespace term
 
@@ -246,6 +162,16 @@ variables {L} {α} {n : ℕ}
 def relations.bounded_formula {l : ℕ} (R : L.relations n) (ts : fin n → L.term (α ⊕ fin l)) :
   L.bounded_formula α l := bounded_formula.rel R ts
 
+/-- Applies a unary relation to a term as a bounded formula. -/
+def relations.bounded_formula₁ (r : L.relations 1) (t : L.term (α ⊕ fin n)) :
+  L.bounded_formula α n :=
+r.bounded_formula ![t]
+
+/-- Applies a binary relation to two terms as a bounded formula. -/
+def relations.bounded_formula₂ (r : L.relations 2) (t₁ t₂ : L.term (α ⊕ fin n)) :
+  L.bounded_formula α n :=
+r.bounded_formula ![t₁, t₂]
+
 /-- The equality of two terms as a bounded formula. -/
 def term.bd_equal (t₁ t₂ : L.term (α ⊕ fin n)) : (L.bounded_formula α n) :=
 bounded_formula.equal t₁ t₂
@@ -253,6 +179,16 @@ bounded_formula.equal t₁ t₂
 /-- Applies a relation to terms as a bounded formula. -/
 def relations.formula (R : L.relations n) (ts : fin n → L.term α) :
   L.formula α := R.bounded_formula (λ i, (ts i).relabel sum.inl)
+
+/-- Applies a unary relation to a term as a formula. -/
+def relations.formula₁ (r : L.relations 1) (t : L.term α) :
+  L.formula α :=
+r.formula ![t]
+
+/-- Applies a binary relation to two terms as a formula. -/
+def relations.formula₂ (r : L.relations 2) (t₁ t₂ : L.term α) :
+  L.formula α :=
+r.formula ![t₁, t₂]
 
 /-- The equality of two terms as a first-order formula. -/
 def term.equal (t₁ t₂ : L.term α) : (L.formula α) :=
@@ -657,6 +593,45 @@ lemma is_atomic_graph (f : L.functions n) : (graph f).is_atomic :=
 bounded_formula.is_atomic.equal _ _
 
 end formula
+
+namespace relations
+
+variable (r : L.relations 2)
+
+/-- The sentence indicating that a basic relation symbol is reflexive. -/
+protected def reflexive : L.sentence := ∀' r.bounded_formula₂ &0 &0
+
+/-- The sentence indicating that a basic relation symbol is irreflexive. -/
+protected def irreflexive : L.sentence := ∀' ∼ (r.bounded_formula₂ &0 &0)
+
+/-- The sentence indicating that a basic relation symbol is symmetric. -/
+protected def symmetric : L.sentence := ∀' ∀' (r.bounded_formula₂ &0 &1 ⟹ r.bounded_formula₂ &1 &0)
+
+/-- The sentence indicating that a basic relation symbol is antisymmetric. -/
+protected def antisymmetric : L.sentence :=
+  ∀' ∀' (r.bounded_formula₂ &0 &1 ⟹ (r.bounded_formula₂ &1 &0 ⟹ term.bd_equal &0 &1))
+
+/-- The sentence indicating that a basic relation symbol is transitive. -/
+protected def transitive : L.sentence :=
+  ∀' ∀' ∀' (r.bounded_formula₂ &0 &1 ⟹ r.bounded_formula₂ &1 &2 ⟹ r.bounded_formula₂ &0 &2)
+
+/-- The sentence indicating that a basic relation symbol is total. -/
+protected def total : L.sentence :=
+  ∀' ∀' (r.bounded_formula₂ &0 &1 ⊔ r.bounded_formula₂ &1 &0)
+
+end relations
+
+section nonempty
+
+variable (L)
+
+/-- A sentence that indicates a structure is nonempty. -/
+protected def sentence.nonempty : L.sentence := ∃' (&0 =' &0)
+
+/-- A theory that indicates a structure is nonempty. -/
+protected def Theory.nonempty : L.Theory := {sentence.nonempty L}
+
+end nonempty
 
 end language
 end first_order

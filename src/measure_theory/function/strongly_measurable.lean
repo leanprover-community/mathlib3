@@ -1288,10 +1288,16 @@ lemma _root_.ae_strongly_measurable_of_ae_strongly_measurable_trim {α} {m m0 : 
   ae_strongly_measurable f μ :=
 ⟨hf.mk f, strongly_measurable.mono hf.strongly_measurable_mk hm, ae_eq_of_ae_eq_trim hf.ae_eq_mk⟩
 
+lemma comp_ae_measurable {γ : Type*} {mγ : measurable_space γ} {mα : measurable_space α} {f : γ → α}
+  {μ : measure γ} (hg : ae_strongly_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
+  ae_strongly_measurable (g ∘ f) μ :=
+⟨(hg.mk g) ∘ hf.mk f, hg.strongly_measurable_mk.comp_measurable hf.measurable_mk,
+  (ae_eq_comp hf hg.ae_eq_mk).trans ((hf.ae_eq_mk).fun_comp (hg.mk g))⟩
+
 lemma comp_measurable {γ : Type*} {mγ : measurable_space γ} {mα : measurable_space α} {f : γ → α}
   {μ : measure γ} (hg : ae_strongly_measurable g (measure.map f μ)) (hf : measurable f) :
   ae_strongly_measurable (g ∘ f) μ :=
-⟨(hg.mk g) ∘ f, hg.strongly_measurable_mk.comp_measurable hf, ae_eq_comp hf hg.ae_eq_mk⟩
+hg.comp_ae_measurable hf.ae_measurable
 
 lemma is_separable_ae_range (hf : ae_strongly_measurable f μ) :
   ∃ (t : set β), is_separable t ∧ ∀ᵐ x ∂μ, f x ∈ t :=
@@ -1687,7 +1693,7 @@ begin
   { rw tendsto_pi_nhds,
     exact λ p, ht_sf p.fst p.snd, },
   refine measurable_of_tendsto_metric (λ n, _) h_tendsto,
-  haveI : encodable (t_sf n).range, from fintype.encodable ↥(t_sf n).range,
+  haveI : encodable (t_sf n).range, from fintype.to_encodable ↥(t_sf n).range,
   have h_meas : measurable (λ (p : (t_sf n).range × α), u ↑p.fst p.snd),
   { have : (λ (p : ↥((t_sf n).range) × α), u ↑(p.fst) p.snd)
         = (λ (p : α × ((t_sf n).range)), u ↑(p.snd) p.fst) ∘ prod.swap := rfl,
@@ -1719,7 +1725,7 @@ begin
   { rw tendsto_pi_nhds,
     exact λ p, ht_sf p.fst p.snd, },
   refine strongly_measurable_of_tendsto _ (λ n, _) h_tendsto,
-  haveI : encodable (t_sf n).range, from fintype.encodable ↥(t_sf n).range,
+  haveI : encodable (t_sf n).range, from fintype.to_encodable ↥(t_sf n).range,
   have h_str_meas : strongly_measurable (λ (p : (t_sf n).range × α), u ↑p.fst p.snd),
   { refine strongly_measurable_iff_measurable_separable.2 ⟨_, _⟩,
     { have : (λ (p : ↥((t_sf n).range) × α), u ↑(p.fst) p.snd)

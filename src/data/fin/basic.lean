@@ -202,6 +202,8 @@ instance {n : ℕ} : linear_order (fin n) :=
 
 instance {n : ℕ}  : partial_order (fin n) := linear_order.to_partial_order (fin n)
 
+lemma coe_strict_mono : strict_mono (coe : fin n → ℕ) := λ _ _, id
+
 /-- The inclusion map `fin n → ℕ` is a relation embedding. -/
 def coe_embedding (n) : (fin n) ↪o ℕ :=
 ⟨⟨coe, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
@@ -643,6 +645,8 @@ by { subst h, ext, simp }
 def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ nat.le_add_right n m
 
 @[simp] lemma coe_cast_add (m : ℕ) (i : fin n) : (cast_add m i : ℕ) = i := rfl
+
+@[simp] lemma cast_add_zero : (cast_add 0 : fin n → fin (n + 0)) = cast rfl := rfl
 
 lemma cast_add_lt {m : ℕ} (n : ℕ) (i : fin m) : (cast_add n i : ℕ) < m := i.2
 

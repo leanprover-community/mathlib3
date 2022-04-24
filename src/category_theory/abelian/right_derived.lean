@@ -89,7 +89,8 @@ def functor.right_derived_obj_injective_succ (F : C ⥤ D) [F.additive] (n : ℕ
   (F.right_derived (n+1)).obj X ≅ 0 :=
 F.right_derived_obj_iso (n+1) (InjectiveResolution.self X) ≪≫
   (homology_functor _ _ _).map_iso ((cochain_complex.single₀_map_homological_complex F).app X) ≪≫
-  (cochain_complex.homology_functor_succ_single₀ D n).app (F.obj X)
+  (cochain_complex.homology_functor_succ_single₀ D n).app (F.obj X) ≪≫
+  (functor.zero_obj _).iso_zero
 /--
 We can compute a right derived functor on a morphism using a descent of that morphism
 to a cochain map between chosen injective resolutions.
@@ -213,7 +214,7 @@ homology.lift _ _ _ (F.map (P.ι.f 0) ≫ cokernel.π _) begin
   have : (complex_shape.up ℕ).rel 0 1 := rfl,
   rw [category.assoc, cokernel.π_desc, homological_complex.d_from_eq _ this,
     map_homological_complex_obj_d, ← category.assoc, ← functor.map_comp],
-  simp only [exact.w, functor.map_zero, zero_comp],
+  simp only [InjectiveResolution.ι_f_zero_comp_complex_d, functor.map_zero, zero_comp],
 end ≫ (right_derived_obj_iso F 0 P).inv
 
 lemma right_derived_zero_to_self_app_comp_inv [enough_injectives C] [preserves_finite_limits F]
@@ -289,4 +290,3 @@ nat_iso.of_components (λ X, (right_derived_zero_to_self_app_iso _ (InjectiveRes
 end category_theory.abelian.functor
 
 end
-

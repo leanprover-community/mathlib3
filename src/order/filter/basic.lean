@@ -1539,7 +1539,7 @@ by simp only [filter.frequently, eventually_comap, not_exists, not_and]
 lemma mem_comap_iff_compl : s ∈ comap f l ↔ (f '' sᶜ)ᶜ ∈ l :=
 by simp only [mem_comap', compl_def, mem_image, mem_set_of_eq, not_exists, not_and', not_not]
 
-@[simp] lemma compl_mem_comap : sᶜ ∈ comap f l ↔ (f '' s)ᶜ ∈ l :=
+lemma compl_mem_comap : sᶜ ∈ comap f l ↔ (f '' s)ᶜ ∈ l :=
 by rw [mem_comap_iff_compl, compl_compl]
 
 end comap

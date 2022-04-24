@@ -1616,6 +1616,9 @@ calc (∑' i : s, 1 : ℝ≥0∞) = ∑' i, indicator s 1 i : tsum_subtype s 1
 lemma count_apply (hs : measurable_set s) : count s = ∑' i : s, 1 :=
 by simp only [count, sum_apply, hs, dirac_apply', ← tsum_subtype s 1, pi.one_apply]
 
+@[simp] lemma count_empty : count (∅ : set α) = 0 :=
+by rw [count_apply measurable_set.empty, tsum_empty]
+
 @[simp] lemma count_apply_finset [measurable_singleton_class α] (s : finset α) :
   count (↑s : set α) = s.card :=
 calc count (↑s : set α) = ∑' i : (↑s : set α), 1 : count_apply s.measurable_set
@@ -1637,7 +1640,9 @@ begin
   ... ≤ count s : measure_mono ht
 end
 
-@[simp] lemma count_apply_eq_top [measurable_singleton_class α] : count s = ∞ ↔ s.infinite :=
+variable [measurable_singleton_class α]
+
+@[simp] lemma count_apply_eq_top : count s = ∞ ↔ s.infinite :=
 begin
   by_cases hs : s.finite,
   { simp [set.infinite, hs, count_apply_finite] },
@@ -1645,10 +1650,34 @@ begin
     simp [hs, count_apply_infinite] }
 end
 
-@[simp] lemma count_apply_lt_top [measurable_singleton_class α] : count s < ∞ ↔ s.finite :=
+@[simp] lemma count_apply_lt_top : count s < ∞ ↔ s.finite :=
 calc count s < ∞ ↔ count s ≠ ∞ : lt_top_iff_ne_top
              ... ↔ ¬s.infinite : not_congr count_apply_eq_top
              ... ↔ s.finite    : not_not
+
+lemma empty_of_count_eq_zero (hsc : count s = 0) : s = ∅ :=
+begin
+  have hs : s.finite,
+  { rw [← count_apply_lt_top, hsc],
+    exact with_top.zero_lt_top },
+  rw count_apply_finite _ hs at hsc,
+  simpa using hsc,
+end
+
+@[simp] lemma count_eq_zero_iff : count s = 0 ↔ s = ∅ :=
+⟨empty_of_count_eq_zero, λ h, h.symm ▸ count_empty⟩
+
+lemma count_ne_zero (hs' : s.nonempty) : count s ≠ 0 :=
+begin
+  rw [ne.def, count_eq_zero_iff],
+  exact hs'.ne_empty,
+end
+
+@[simp] lemma count_singleton (a : α) : count ({a} : set α) = 1 :=
+begin
+  rw [count_apply_finite ({a} : set α) (set.finite_singleton _), set.finite.to_finset],
+  simp,
+end
 
 end count
 
@@ -2606,7 +2635,7 @@ end
 instance sum.sigma_finite {ι} [fintype ι] (μ : ι → measure α) [∀ i, sigma_finite (μ i)] :
   sigma_finite (sum μ) :=
 begin
-  haveI : encodable ι := fintype.encodable ι,
+  haveI : encodable ι := fintype.to_encodable ι,
   have : ∀ n, measurable_set (⋂ (i : ι), spanning_sets (μ i) n) :=
     λ n, measurable_set.Inter (λ i, measurable_spanning_sets (μ i) n),
   refine ⟨⟨⟨λ n, ⋂ i, spanning_sets (μ i) n, λ _, trivial, λ n, _, _⟩⟩⟩,

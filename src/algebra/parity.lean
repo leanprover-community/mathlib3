@@ -72,6 +72,11 @@ by { rintro ⟨m, rfl⟩, exact ⟨f m, by simp⟩ }
 @[simp]
 lemma is_square_zero [mul_zero_class α] : is_square (0 : α) := ⟨0, (mul_zero _).symm⟩
 
+/-- Create a decidability instance for `is_square` on `fintype`s. -/
+instance is_square_decidable [fintype α] [has_mul α] [decidable_eq α] :
+  decidable_pred (is_square : α → Prop) :=
+λ a, fintype.decidable_exists_fintype
+
 section monoid
 variables [monoid α]
 
@@ -84,6 +89,10 @@ lemma even.neg_pow : even n → ∀ a : α, (-a) ^ n = a ^ n :=
 by { rintro ⟨c, rfl⟩ a, simp_rw [←two_mul, pow_mul, neg_sq] }
 
 lemma even.neg_one_pow (h : even n) : (-1 : α) ^ n = 1 := by rw [h.neg_pow, one_pow]
+
+/-- `0` is always a square (in a monoid with zero). -/
+lemma is_square_zero (M : Type*) [monoid_with_zero M] : is_square (0 : M) :=
+by { use 0, simp only [mul_zero] }
 
 end monoid
 
@@ -334,10 +343,10 @@ lemma odd.pow_nonpos_iff (hn : odd n) : a ^ n ≤ 0 ↔ a ≤ 0 :=
 ⟨λ h, le_of_not_lt (λ ha, h.not_lt $ pow_pos ha _), hn.pow_nonpos⟩
 
 lemma odd.pow_pos_iff (hn : odd n) : 0 < a ^ n ↔ 0 < a :=
-⟨λ h, lt_of_not_ge' (λ ha, h.not_le $ hn.pow_nonpos ha), λ ha, pow_pos ha n⟩
+⟨λ h, lt_of_not_le (λ ha, h.not_le $ hn.pow_nonpos ha), λ ha, pow_pos ha n⟩
 
 lemma odd.pow_neg_iff (hn : odd n) : a ^ n < 0 ↔ a < 0 :=
-⟨λ h, lt_of_not_ge' (λ ha, h.not_le $ pow_nonneg ha _), hn.pow_neg⟩
+⟨λ h, lt_of_not_le (λ ha, h.not_le $ pow_nonneg ha _), hn.pow_neg⟩
 
 lemma even.pow_pos_iff (hn : even n) (h₀ : 0 < n) : 0 < a ^ n ↔ a ≠ 0 :=
 ⟨λ h ha, by { rw [ha, zero_pow h₀] at h, exact lt_irrefl 0 h }, hn.pow_pos⟩

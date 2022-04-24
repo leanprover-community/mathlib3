@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.limits.preserves.shapes.terminal
-import category_theory.limits.shapes.zero
+import category_theory.limits.shapes.zero_morphisms
 
 /-!
 # Preservation of zero objects and zero morphisms

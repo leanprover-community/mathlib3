@@ -363,7 +363,7 @@ instance pi.opens_measurable_space_fintype {ι : Type*} {π : ι → Type*} [fin
   [Π i, measurable_space (π i)] [∀ i, second_countable_topology (π i)]
   [∀ i, opens_measurable_space (π i)] :
   opens_measurable_space (Π i, π i) :=
-by { letI := fintype.encodable ι, apply_instance }
+by { letI := fintype.to_encodable ι, apply_instance }
 
 instance prod.opens_measurable_space [second_countable_topology α] [second_countable_topology β] :
   opens_measurable_space (α × β) :=

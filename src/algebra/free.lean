@@ -3,9 +3,10 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import data.equiv.basic
+import algebra.hom.group
 import control.applicative
 import control.traversable.basic
+import logic.equiv.basic
 
 /-!
 # Free constructions
@@ -19,6 +20,7 @@ import control.traversable.basic
   (i.e. nonempty lists), with traversable instance and decidable equality.
 * `free_semigroup_free_magma α`: isomorphism between `magma.free_semigroup (free_magma α)` and
   `free_semigroup α`.
+* `free_magma.lift`: the universal property of the free magma, expressing its adjointness.
 -/
 
 universes u v l
@@ -42,7 +44,7 @@ namespace free_magma
 variables {α : Type u}
 
 @[to_additive]
-instance [inhabited α] : inhabited (free_magma α) := ⟨of (default _)⟩
+instance [inhabited α] : inhabited (free_magma α) := ⟨of default⟩
 
 @[to_additive]
 instance : has_mul (free_magma α) := ⟨free_magma.mul⟩
@@ -53,40 +55,48 @@ attribute [pattern] has_mul.mul
 theorem mul_eq (x y : free_magma α) : mul x y = x * y := rfl
 
 /-- Recursor for `free_magma` using `x * y` instead of `free_magma.mul x y`. -/
-@[to_additive "Recursor for `free_add_magma` using `x + y` instead of `free_add_magma.add x y`."]
-def rec_on' {C : free_magma α → Sort l} (x)
+@[elab_as_eliminator, to_additive
+  "Recursor for `free_add_magma` using `x + y` instead of `free_add_magma.add x y`."]
+def rec_on_mul {C : free_magma α → Sort l} (x)
   (ih1 : ∀ x, C (of x)) (ih2 : ∀ x y, C x → C y → C (x * y)) :
   C x :=
 free_magma.rec_on x ih1 ih2
-attribute [elab_as_eliminator] rec_on' free_add_magma.rec_on'
 
 end free_magma
 
 /-- Lifts a function `α → β` to a magma homomorphism `free_magma α → β` given a magma `β`. -/
-def free_magma.lift {α : Type u} {β : Type v} [has_mul β] (f : α → β) : free_magma α → β
+def free_magma.lift_aux {α : Type u} {β : Type v} [has_mul β] (f : α → β) : free_magma α → β
 | (free_magma.of x) := f x
-| (x * y)           := x.lift * y.lift
+| (x * y)           := x.lift_aux * y.lift_aux
 
 /-- Lifts a function `α → β` to an additive magma homomorphism `free_add_magma α → β` given
 an additive magma `β`. -/
-def free_add_magma.lift {α : Type u} {β : Type v} [has_add β] (f : α → β) : free_add_magma α → β
+def free_add_magma.lift_aux {α : Type u} {β : Type v} [has_add β] (f : α → β) : free_add_magma α → β
 | (free_add_magma.of x) := f x
-| (x + y)               := x.lift + y.lift
+| (x + y)               := x.lift_aux + y.lift_aux
 
-attribute [to_additive free_add_magma.lift] free_magma.lift
+attribute [to_additive free_add_magma.lift_aux] free_magma.lift_aux
 
 namespace free_magma
 
 variables {α : Type u} {β : Type v} [has_mul β] (f : α → β)
 
-@[simp, to_additive] lemma lift_of (x) : lift f (of x) = f x := rfl
-@[simp, to_additive] lemma lift_mul (x y) : lift f (x * y) = lift f x * lift f y := rfl
-
 @[to_additive]
-theorem lift_unique (f : free_magma α → β) (hf : ∀ x y, f (x * y) = f x * f y) :
-  f = lift (f ∘ of) :=
+theorem lift_aux_unique (F : free_magma α →ₙ* β) : ⇑F = lift_aux (F ∘ of) :=
 funext $ λ x, free_magma.rec_on x (λ x, rfl) $ λ x y ih1 ih2,
-(hf x y).trans $ congr (congr_arg _ ih1) ih2
+(F.map_mul x y).trans $ congr (congr_arg _ ih1) ih2
+
+/-- The universal property of the free magma expressing its adjointness. -/
+@[to_additive "The universal property of the free additive magma expressing its adjointness."]
+def lift : (α → β) ≃ (free_magma α →ₙ* β) :=
+{ to_fun    := λ f,
+  { to_fun := lift_aux f,
+    map_mul' := λ x y, rfl, },
+  inv_fun   := λ F, F ∘ of,
+  left_inv  := λ f, by { ext, simp only [lift_aux, mul_hom.coe_mk, function.comp_app], },
+  right_inv := λ F, by { ext, rw [mul_hom.coe_mk, lift_aux_unique], } }
+
+@[simp, to_additive] lemma lift_of (x) : lift f (of x) = f x := rfl
 
 end free_magma
 
@@ -126,10 +136,10 @@ instance : monad free_magma :=
 
 /-- Recursor on `free_magma` using `pure` instead of `of`. -/
 @[elab_as_eliminator, to_additive "Recursor on `free_add_magma` using `pure` instead of `of`."]
-protected def rec_on'' {C : free_magma α → Sort l} (x)
+protected def rec_on_pure {C : free_magma α → Sort l} (x)
   (ih1 : ∀ x, C (pure x)) (ih2 : ∀ x y, C x → C y → C (x * y)) :
   C x :=
-free_magma.rec_on' x ih1 ih2
+free_magma.rec_on_mul x ih1 ih2
 
 variables {β : Type u}
 
@@ -156,9 +166,9 @@ lemma mul_seq {α β : Type u} {f g : free_magma (α → β)} {x : free_magma α
 @[to_additive]
 instance : is_lawful_monad free_magma.{u} :=
 { pure_bind := λ _ _ _ _, rfl,
-  bind_assoc := λ α β γ x f g, free_magma.rec_on'' x (λ x, rfl)
+  bind_assoc := λ α β γ x f g, free_magma.rec_on_pure x (λ x, rfl)
     (λ x y ih1 ih2, by rw [mul_bind, mul_bind, mul_bind, ih1, ih2]),
-  id_map := λ α x, free_magma.rec_on'' x (λ _, rfl)
+  id_map := λ α x, free_magma.rec_on_pure x (λ _, rfl)
     (λ x y ih1 ih2, by rw [map_mul', ih1, ih2]) }
 
 end category
@@ -218,16 +228,16 @@ lemma mul_map_seq (x y : free_magma α) :
 
 @[to_additive]
 instance : is_lawful_traversable free_magma.{u} :=
-{ id_traverse := λ α x, free_magma.rec_on'' x (λ x, rfl)
+{ id_traverse := λ α x, free_magma.rec_on_pure x (λ x, rfl)
     (λ x y ih1 ih2, by rw [traverse_mul, ih1, ih2, mul_map_seq]),
-  comp_traverse := λ F G hf1 hg1 hf2 hg2 α β γ f g x, free_magma.rec_on'' x
+  comp_traverse := λ F G hf1 hg1 hf2 hg2 α β γ f g x, free_magma.rec_on_pure x
     (λ x, by resetI; simp only [traverse_pure, traverse_pure'] with functor_norm)
     (λ x y ih1 ih2, by resetI; rw [traverse_mul, ih1, ih2, traverse_mul];
       simp only [traverse_mul'] with functor_norm),
-  naturality := λ F G hf1 hg1 hf2 hg2 η α β f x, free_magma.rec_on'' x
+  naturality := λ F G hf1 hg1 hf2 hg2 η α β f x, free_magma.rec_on_pure x
     (λ x, by simp only [traverse_pure] with functor_norm)
     (λ x y ih1 ih2, by simp only [traverse_mul] with functor_norm; rw [ih1, ih2]),
-  traverse_eq_map_id := λ α β f x, free_magma.rec_on'' x (λ _, rfl)
+  traverse_eq_map_id := λ α β f x, free_magma.rec_on_pure x (λ _, rfl)
     (λ x y ih1 ih2, by rw [traverse_mul, ih1, ih2, map_mul', mul_map_seq]; refl),
   .. free_magma.is_lawful_monad }
 
@@ -290,7 +300,7 @@ variables {α : Type u} [has_mul α]
 def of : α → free_semigroup α := quot.mk _
 
 @[to_additive]
-instance [inhabited α] : inhabited (free_semigroup α) := ⟨of (default _)⟩
+instance [inhabited α] : inhabited (free_semigroup α) := ⟨of default⟩
 
 @[elab_as_eliminator, to_additive]
 protected lemma induction_on {C : free_semigroup α → Prop} (x : free_semigroup α)
@@ -389,7 +399,7 @@ def of (x : α) : free_semigroup α :=
 (x, [])
 
 @[to_additive]
-instance [inhabited α] : inhabited (free_semigroup α) := ⟨of (default _)⟩
+instance [inhabited α] : inhabited (free_semigroup α) := ⟨of default⟩
 
 /-- Recursor for free semigroup using `of` and `*`. -/
 @[elab_as_eliminator, to_additive "Recursor for free additive semigroup using `of` and `+`."]
@@ -469,7 +479,7 @@ instance : monad free_semigroup :=
 
 /-- Recursor that uses `pure` instead of `of`. -/
 @[elab_as_eliminator, to_additive "Recursor that uses `pure` instead of `of`."]
-def rec_on' {C : free_semigroup α → Sort l} (x)
+def rec_on_pure {C : free_semigroup α → Sort l} (x)
   (ih1 : ∀ x, C (pure x)) (ih2 : ∀ x y, C (pure x) → C y → C (pure x * y)) :
   C x :=
 free_semigroup.rec_on x ih1 ih2
@@ -501,15 +511,15 @@ mul_bind _ _ _
 @[to_additive]
 instance : is_lawful_monad free_semigroup.{u} :=
 { pure_bind := λ _ _ _ _, rfl,
-  bind_assoc := λ α β γ x f g, rec_on' x (λ x, rfl)
+  bind_assoc := λ α β γ x f g, rec_on_pure x (λ x, rfl)
     (λ x y ih1 ih2, by rw [mul_bind, mul_bind, mul_bind, ih1, ih2]),
-  id_map := λ α x, rec_on' x (λ _, rfl) (λ x y ih1 ih2, by rw [map_mul', ih1, ih2]) }
+  id_map := λ α x, rec_on_pure x (λ _, rfl) (λ x y ih1 ih2, by rw [map_mul', ih1, ih2]) }
 
 /-- `free_semigroup` is traversable. -/
 @[to_additive "`free_add_semigroup` is traversable."]
 protected def traverse {m : Type u → Type u} [applicative m]
   {α β : Type u} (F : α → m β) (x : free_semigroup α) : m (free_semigroup β) :=
-rec_on' x (λ x, pure <$> F x) (λ x y ihx ihy, (*) <$> ihx <*> ihy)
+rec_on_pure x (λ x, pure <$> F x) (λ x y ihx ihy, (*) <$> ihx <*> ihy)
 
 @[to_additive]
 instance : traversable free_semigroup := ⟨@free_semigroup.traverse⟩
@@ -546,11 +556,11 @@ end
 instance : is_lawful_traversable free_semigroup.{u} :=
 { id_traverse := λ α x, free_semigroup.rec_on x (λ x, rfl)
     (λ x y ih1 ih2, by rw [traverse_mul, ih1, ih2, mul_map_seq]),
-  comp_traverse := λ F G hf1 hg1 hf2 hg2 α β γ f g x, rec_on' x
+  comp_traverse := λ F G hf1 hg1 hf2 hg2 α β γ f g x, rec_on_pure x
     (λ x, by resetI; simp only [traverse_pure, traverse_pure'] with functor_norm)
     (λ x y ih1 ih2, by resetI; rw [traverse_mul, ih1, ih2, traverse_mul];
       simp only [traverse_mul'] with functor_norm),
-  naturality := λ F G hf1 hg1 hf2 hg2 η α β f x, rec_on' x
+  naturality := λ F G hf1 hg1 hf2 hg2 η α β f x, rec_on_pure x
     (λ x, by simp only [traverse_pure] with functor_norm)
     (λ x y ih1 ih2, by resetI; simp only [traverse_mul] with functor_norm; rw [ih1, ih2]),
   traverse_eq_map_id := λ α β f x, free_semigroup.rec_on x (λ _, rfl)
@@ -569,12 +579,13 @@ end free_semigroup
 `add_magma.free_add_semigroup (free_add_magma α)` and `free_add_semigroup α`."]
 def free_semigroup_free_magma (α : Type u) :
   magma.free_semigroup (free_magma α) ≃ free_semigroup α :=
-{ to_fun := magma.free_semigroup.lift (free_magma.lift free_semigroup.of) (free_magma.lift_mul _),
-  inv_fun := free_semigroup.lift (magma.free_semigroup.of ∘ free_magma.of),
-  left_inv := λ x, magma.free_semigroup.induction_on x $ λ p, by rw magma.free_semigroup.lift_of;
-    exact free_magma.rec_on' p
+{ to_fun    :=
+    magma.free_semigroup.lift (free_magma.lift free_semigroup.of) (free_magma.lift _).map_mul,
+  inv_fun   := free_semigroup.lift (magma.free_semigroup.of ∘ free_magma.of),
+  left_inv  := λ x, magma.free_semigroup.induction_on x $ λ p, by rw magma.free_semigroup.lift_of;
+    exact free_magma.rec_on_mul p
       (λ x, by rw [free_magma.lift_of, free_semigroup.lift_of])
-      (λ x y ihx ihy, by rw [free_magma.lift_mul, free_semigroup.lift_mul, ihx, ihy,
+      (λ x y ihx ihy, by rw [mul_hom.map_mul, free_semigroup.lift_mul, ihx, ihy,
         magma.free_semigroup.of_mul]),
   right_inv := λ x, free_semigroup.rec_on x
     (λ x, by rw [free_semigroup.lift_of, magma.free_semigroup.lift_of, free_magma.lift_of])

@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.monoidal.functorial
 import category_theory.monoidal.functor_category
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 
 /-!
 # `lim : (J ⥤ C) ⥤ C` is lax monoidal when `C` is a monoidal category.

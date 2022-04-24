@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Simon Hudon All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import order.basic
 
@@ -50,7 +50,7 @@ it defaults to `pi.partial_order`. Any field of the instance that
 `pi_instance` cannot construct is left untouched and generated as a new goal.
 -/
 meta def pi_instance : tactic unit :=
-refine_struct ``( {  ..pi.partial_order, .. } );
+refine_struct ``( { ..pi.partial_order, .. } );
   propagate_tags (try $ pi_instance_derive_field >> done)
 
 run_cmd add_interactive [`pi_instance]

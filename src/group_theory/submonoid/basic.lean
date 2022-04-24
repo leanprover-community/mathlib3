@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
-import data.set.lattice
+import group_theory.subsemigroup.basic
 
 /-!
 # Submonoids: definition and `complete_lattice` structure
@@ -40,84 +40,130 @@ definition in the `add_submonoid` namespace.
 Submonoid inclusion is denoted `≤` rather than `⊆`, although `∈` is defined as
 membership of a submonoid's underlying set.
 
+Note that `submonoid M` does not actually require `monoid M`, instead requiring only the weaker
+`mul_one_class M`.
+
 This file is designed to have very few dependencies. In particular, it should not use natural
-numbers.
+numbers. `submonoid` is implemented by extending `subsemigroup` requiring `one_mem'`.
 
 ## Tags
 submonoid, submonoids
 -/
 
-variables {M : Type*} [monoid M] {s : set M}
-variables {A : Type*} [add_monoid A] {t : set A}
+variables {M : Type*} {N : Type*}
+variables {A : Type*}
+
+section non_assoc
+variables [mul_one_class M] {s : set M}
+variables [add_zero_class A] {t : set A}
+
+/-- `one_mem_class S M` says `S` is a type of subsets `s ≤ M`, such that `1 ∈ s` for all `s`. -/
+class one_mem_class (S : Type*) (M : out_param $ Type*) [has_one M] [set_like S M] :=
+(one_mem : ∀ (s : S), (1 : M) ∈ s)
+
+export one_mem_class (one_mem)
+
+/-- `zero_mem_class S M` says `S` is a type of subsets `s ≤ M`, such that `0 ∈ s` for all `s`. -/
+class zero_mem_class (S : Type*) (M : out_param $ Type*) [has_zero M] [set_like S M] :=
+(zero_mem : ∀ (s : S), (0 : M) ∈ s)
+
+export zero_mem_class (zero_mem)
+
+attribute [to_additive] one_mem_class
+
+section
+
+set_option old_structure_cmd true
 
 /-- A submonoid of a monoid `M` is a subset containing 1 and closed under multiplication. -/
-structure submonoid (M : Type*) [monoid M] :=
-(carrier : set M)
+structure submonoid (M : Type*) [mul_one_class M] extends subsemigroup M :=
 (one_mem' : (1 : M) ∈ carrier)
-(mul_mem' {a b} : a ∈ carrier → b ∈ carrier → a * b ∈ carrier)
+
+end
+
+/-- A submonoid of a monoid `M` can be considered as a subsemigroup of that monoid. -/
+add_decl_doc submonoid.to_subsemigroup
+
+/-- `submonoid_class S M` says `S` is a type of subsets `s ≤ M` that contain `1`
+and are closed under `(*)` -/
+class submonoid_class (S : Type*) (M : out_param $ Type*) [mul_one_class M] [set_like S M]
+  extends mul_mem_class S M :=
+(one_mem : ∀ (s : S), (1 : M) ∈ s)
+
+section
+
+set_option old_structure_cmd true
 
 /-- An additive submonoid of an additive monoid `M` is a subset containing 0 and
   closed under addition. -/
-structure add_submonoid (M : Type*) [add_monoid M] :=
-(carrier : set M)
+structure add_submonoid (M : Type*) [add_zero_class M] extends add_subsemigroup M :=
 (zero_mem' : (0 : M) ∈ carrier)
-(add_mem' {a b} : a ∈ carrier → b ∈ carrier → a + b ∈ carrier)
 
-attribute [to_additive] submonoid
+end
+
+/-- An additive submonoid of an additive monoid `M` can be considered as an
+additive subsemigroup of that additive monoid. -/
+add_decl_doc add_submonoid.to_add_subsemigroup
+
+/-- `add_submonoid_class S M` says `S` is a type of subsets `s ≤ M` that contain `0`
+and are closed under `(+)` -/
+class add_submonoid_class (S : Type*) (M : out_param $ Type*) [add_zero_class M] [set_like S M]
+  extends add_mem_class S M :=
+(zero_mem : ∀ (s : S), (0 : M) ∈ s)
+
+attribute [to_additive] submonoid submonoid_class
+
+@[to_additive, priority 100] -- See note [lower instance priority]
+instance submonoid_class.to_one_mem_class (S : Type*) (M : out_param $ Type*) [mul_one_class M]
+  [set_like S M] [h : submonoid_class S M] : one_mem_class S M :=
+{ ..h }
+
+@[to_additive]
+lemma pow_mem {M} [monoid M] {A : Type*} [set_like A M] [submonoid_class A M] {S : A} {x : M}
+  (hx : x ∈ S) : ∀ (n : ℕ), x ^ n ∈ S
+| 0 := by { rw pow_zero, exact one_mem_class.one_mem S }
+| (n + 1) := by { rw pow_succ, exact mul_mem_class.mul_mem hx (pow_mem n) }
 
 namespace submonoid
 
 @[to_additive]
-instance : has_coe (submonoid M) (set M) := ⟨submonoid.carrier⟩
-
-
-@[to_additive]
-instance : has_mem M (submonoid M) := ⟨λ m S, m ∈ (S:set M)⟩
+instance : set_like (submonoid M) M :=
+{ coe := submonoid.carrier,
+  coe_injective' := λ p q h, by cases p; cases q; congr' }
 
 @[to_additive]
-instance : has_coe_to_sort (submonoid M) := ⟨Type*, λ S, {x : M // x ∈ S}⟩
+instance : submonoid_class (submonoid M) M :=
+{ one_mem := submonoid.one_mem',
+  mul_mem := submonoid.mul_mem' }
+
+/-- See Note [custom simps projection] -/
+@[to_additive " See Note [custom simps projection]"]
+def simps.coe (S : submonoid M) : set M := S
+
+initialize_simps_projections submonoid (carrier → coe)
+initialize_simps_projections add_submonoid (carrier → coe)
 
 @[simp, to_additive]
 lemma mem_carrier {s : submonoid M} {x : M} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
-@[simp, norm_cast, to_additive]
-lemma mem_coe {S : submonoid M} {m : M} : m ∈ (S : set M) ↔ m ∈ S := iff.rfl
+@[simp, to_additive]
+lemma mem_mk {s : set M} {x : M} (h_one) (h_mul) : x ∈ mk s h_one h_mul ↔ x ∈ s := iff.rfl
 
-@[simp, norm_cast, to_additive]
-lemma coe_coe (s : submonoid M) : ↥(s : set M) = s := rfl
+@[simp, to_additive]
+lemma coe_set_mk {s : set M} (h_one) (h_mul) : (mk s h_one h_mul : set M) = s := rfl
 
-attribute [norm_cast] add_submonoid.mem_coe add_submonoid.coe_coe
-
-@[to_additive]
-protected lemma «exists» {s : submonoid M} {p : s → Prop} :
-  (∃ x : s, p x) ↔ ∃ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
-set_coe.exists
-
-@[to_additive]
-protected lemma «forall» {s : submonoid M} {p : s → Prop} :
-  (∀ x : s, p x) ↔ ∀ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
-set_coe.forall
-
-/-- Two submonoids are equal if the underlying subsets are equal. -/
-@[to_additive "Two `add_submonoid`s are equal if the underlying subsets are equal."]
-theorem ext' ⦃S T : submonoid M⦄ (h : (S : set M) = T) : S = T :=
-by cases S; cases T; congr'
-
-/-- Two submonoids are equal if and only if the underlying subsets are equal. -/
-@[to_additive "Two `add_submonoid`s are equal if and only if the underlying subsets are equal."]
-protected theorem ext'_iff {S T : submonoid M}  : S = T ↔ (S : set M) = T :=
-⟨λ h, h ▸ rfl, λ h, ext' h⟩
+@[simp, to_additive]
+lemma mk_le_mk {s t : set M} (h_one) (h_mul) (h_one') (h_mul') :
+  mk s h_one h_mul ≤ mk t h_one' h_mul' ↔ s ⊆ t := iff.rfl
 
 /-- Two submonoids are equal if they have the same elements. -/
 @[ext, to_additive "Two `add_submonoid`s are equal if they have the same elements."]
 theorem ext {S T : submonoid M}
-  (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := ext' $ set.ext h
-
-attribute [ext] add_submonoid.ext
+  (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
 /-- Copy a submonoid replacing `carrier` with a set that is equal to it. -/
 @[to_additive "Copy an additive submonoid replacing `carrier` with a set that is equal to it."]
-def copy (S : submonoid M) (s : set M) (hs : s = S) : submonoid M :=
+protected def copy (S : submonoid M) (s : set M) (hs : s = S) : submonoid M :=
 { carrier := s,
   one_mem' := hs.symm ▸ S.one_mem',
   mul_mem' := hs.symm ▸ S.mul_mem' }
@@ -127,41 +173,18 @@ variable {S : submonoid M}
 @[simp, to_additive] lemma coe_copy {s : set M} (hs : s = S) :
   (S.copy s hs : set M) = s := rfl
 
-@[to_additive] lemma copy_eq {s : set M} (hs : s = S) : S.copy s hs = S := ext' hs
+@[to_additive] lemma copy_eq {s : set M} (hs : s = S) : S.copy s hs = S :=
+set_like.coe_injective hs
 
 variable (S)
 
 /-- A submonoid contains the monoid's 1. -/
 @[to_additive "An `add_submonoid` contains the monoid's 0."]
-theorem one_mem : (1 : M) ∈ S := S.one_mem'
+protected theorem one_mem : (1 : M) ∈ S := one_mem S
 
 /-- A submonoid is closed under multiplication. -/
 @[to_additive "An `add_submonoid` is closed under addition."]
-theorem mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := submonoid.mul_mem' S
-
-@[to_additive] lemma coe_injective : function.injective (coe : S → M) := subtype.val_injective
-
-@[simp, to_additive] lemma coe_eq_coe (x y : S) : (x : M) = y ↔ x = y := set_coe.ext_iff
-attribute [norm_cast] coe_eq_coe add_submonoid.coe_eq_coe
-
-@[to_additive]
-instance : has_le (submonoid M) := ⟨λ S T, ∀ ⦃x⦄, x ∈ S → x ∈ T⟩
-
-@[to_additive]
-lemma le_def {S T : submonoid M} : S ≤ T ↔ ∀ ⦃x : M⦄, x ∈ S → x ∈ T := iff.rfl
-
-@[simp, norm_cast, to_additive]
-lemma coe_subset_coe {S T : submonoid M} : (S : set M) ⊆ T ↔ S ≤ T := iff.rfl
-
-@[to_additive]
-instance : partial_order (submonoid M) :=
-{ le := λ S T, ∀ ⦃x⦄, x ∈ S → x ∈ T,
-  .. partial_order.lift (coe : submonoid M → set M) ext' }
-
-@[simp, norm_cast, to_additive]
-lemma coe_ssubset_coe {S T : submonoid M} : (S : set M) ⊂ T ↔ S < T := iff.rfl
-
-attribute [norm_cast]  add_submonoid.coe_subset_coe add_submonoid.coe_ssubset_coe
+protected theorem mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := mul_mem
 
 /-- The submonoid `M` of the monoid `M`. -/
 @[to_additive "The additive submonoid `M` of the `add_monoid M`."]
@@ -205,29 +228,25 @@ lemma mem_inf {p p' : submonoid M} {x : M} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x �
 
 @[to_additive]
 instance : has_Inf (submonoid M) :=
-⟨λ s, {
-  carrier := ⋂ t ∈ s, ↑t,
+⟨λ s,
+{ carrier := ⋂ t ∈ s, ↑t,
   one_mem' := set.mem_bInter $ λ i h, i.one_mem,
   mul_mem' := λ x y hx hy, set.mem_bInter $ λ i h,
-    i.mul_mem (by apply set.mem_bInter_iff.1 hx i h) (by apply set.mem_bInter_iff.1 hy i h) }⟩
+    i.mul_mem (by apply set.mem_Inter₂.1 hx i h) (by apply set.mem_Inter₂.1 hy i h) }⟩
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_Inf (S : set (submonoid M)) : ((Inf S : submonoid M) : set M) = ⋂ s ∈ S, ↑s := rfl
 
-attribute [norm_cast] coe_Inf add_submonoid.coe_Inf
-
 @[to_additive]
-lemma mem_Inf {S : set (submonoid M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
+lemma mem_Inf {S : set (submonoid M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
 
 @[to_additive]
 lemma mem_infi {ι : Sort*} {S : ι → submonoid M} {x : M} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
 by simp only [infi, mem_Inf, set.forall_range_iff]
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_infi {ι : Sort*} {S : ι → submonoid M} : (↑(⨅ i, S i) : set M) = ⋂ i, S i :=
 by simp only [infi, coe_Inf, set.bInter_range]
-
-attribute [norm_cast] coe_infi add_submonoid.coe_infi
 
 /-- Submonoids of a monoid form a complete lattice. -/
 @[to_additive "The `add_submonoid`s of an `add_monoid` form a complete lattice."]
@@ -244,26 +263,28 @@ instance : complete_lattice (submonoid M) :=
   inf_le_left  := λ a b x, and.left,
   inf_le_right := λ a b x, and.right,
   .. complete_lattice_of_Inf (submonoid M) $ λ s,
-    is_glb.of_image (λ S T, show (S : set M) ≤ T ↔ S ≤ T, from coe_subset_coe) is_glb_binfi }
+    is_glb.of_image (λ S T,
+      show (S : set M) ≤ T ↔ S ≤ T, from set_like.coe_subset_coe) is_glb_binfi }
 
-@[to_additive]
-lemma subsingleton_iff : subsingleton M ↔ subsingleton (submonoid M) :=
-⟨ λ h, by exactI ⟨λ x y, submonoid.ext $ λ i, subsingleton.elim 1 i ▸ by simp [submonoid.one_mem]⟩,
-  λ h, by exactI ⟨λ x y,
+@[simp, to_additive]
+lemma subsingleton_iff : subsingleton (submonoid M) ↔ subsingleton M :=
+⟨ λ h, by exactI ⟨λ x y,
     have ∀ i : M, i = 1 := λ i, mem_bot.mp $ subsingleton.elim (⊤ : submonoid M) ⊥ ▸ mem_top i,
-    (this x).trans (this y).symm⟩⟩
+    (this x).trans (this y).symm⟩,
+  λ h, by exactI ⟨λ x y, submonoid.ext $ λ i, subsingleton.elim 1 i ▸ by simp [submonoid.one_mem]⟩⟩
 
-@[to_additive]
-lemma nontrivial_iff : nontrivial M ↔ nontrivial (submonoid M) :=
+@[simp, to_additive]
+lemma nontrivial_iff : nontrivial (submonoid M) ↔ nontrivial M :=
 not_iff_not.mp (
   (not_nontrivial_iff_subsingleton.trans subsingleton_iff).trans
   not_nontrivial_iff_subsingleton.symm)
 
 @[to_additive]
-instance [subsingleton M] : subsingleton (submonoid M) := subsingleton_iff.mp ‹_›
+instance [subsingleton M] : unique (submonoid M) :=
+⟨⟨⊥⟩, λ a, @subsingleton.elim _ (subsingleton_iff.mpr ‹_›) a _⟩
 
 @[to_additive]
-instance [nontrivial M] : nontrivial (submonoid M) := nontrivial_iff.mp ‹_›
+instance [nontrivial M] : nontrivial (submonoid M) := nontrivial_iff.mpr ‹_›
 
 /-- The `submonoid` generated by a set. -/
 @[to_additive "The `add_submonoid` generated by a set"]
@@ -276,6 +297,9 @@ mem_Inf
 /-- The submonoid generated by a set includes the set. -/
 @[simp, to_additive "The `add_submonoid` generated by a set includes the set."]
 lemma subset_closure : s ⊆ closure s := λ x hx, mem_closure.2 $ λ S hS, hS hx
+
+@[to_additive]
+lemma not_mem_of_not_mem_closure {P : M} (hP : P ∉ closure s) : P ∉ s := λ h, hP (subset_closure h)
 
 variable {S}
 open set
@@ -300,32 +324,53 @@ variable (S)
 
 /-- An induction principle for closure membership. If `p` holds for `1` and all elements of `s`, and
 is preserved under multiplication, then `p` holds for all elements of the closure of `s`. -/
-@[to_additive "An induction principle for additive closure membership. If `p` holds for `0` and all
-elements of `s`, and is preserved under addition, then `p` holds for all elements
-of the additive closure of `s`."]
+@[elab_as_eliminator, to_additive "An induction principle for additive closure membership. If `p`
+holds for `0` and all elements of `s`, and is preserved under addition, then `p` holds for all
+elements of the additive closure of `s`."]
 lemma closure_induction {p : M → Prop} {x} (h : x ∈ closure s)
   (Hs : ∀ x ∈ s, p x) (H1 : p 1)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-(@closure_le _ _ _ ⟨p, H1, Hmul⟩).2 Hs h
+(@closure_le _ _ _ ⟨p, Hmul, H1⟩).2 Hs h
 
-attribute [elab_as_eliminator] submonoid.closure_induction add_submonoid.closure_induction
+/-- A dependent version of `submonoid.closure_induction`.  -/
+@[elab_as_eliminator, to_additive "A dependent version of `add_submonoid.closure_induction`. "]
+lemma closure_induction' (s : set M) {p : Π x, x ∈ closure s → Prop}
+  (Hs : ∀ x (h : x ∈ s), p x (subset_closure h))
+  (H1 : p 1 (one_mem _))
+  (Hmul : ∀ x hx y hy, p x hx → p y hy → p (x * y) (mul_mem hx hy))
+  {x} (hx : x ∈ closure s) :
+  p x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ closure s) (hc : p x hx), hc),
+  exact closure_induction hx
+    (λ x hx, ⟨_, Hs x hx⟩) ⟨_, H1⟩ (λ x y ⟨hx', hx⟩ ⟨hy', hy⟩, ⟨_, Hmul _ _ _ _ hx hy⟩),
+end
+
+/-- An induction principle for closure membership for predicates with two arguments.  -/
+@[elab_as_eliminator, to_additive "An induction principle for additive closure membership for
+predicates with two arguments."]
+lemma closure_induction₂ {p : M → M → Prop} {x} {y : M} (hx : x ∈ closure s) (hy : y ∈ closure s)
+  (Hs : ∀ (x ∈ s) (y ∈ s), p x y)
+  (H1_left : ∀ x, p 1 x)
+  (H1_right : ∀ x, p x 1)
+  (Hmul_left : ∀ x y z, p x z → p y z → p (x * y) z)
+  (Hmul_right : ∀ x y z, p z x → p z y → p z (x * y)) : p x y :=
+closure_induction hx
+  (λ x xs, closure_induction hy (Hs x xs) (H1_right x) (λ z y h₁ h₂, Hmul_right z _ _ h₁ h₂))
+  (H1_left y) (λ x z h₁ h₂, Hmul_left _ _ _ h₁ h₂)
 
 /-- If `s` is a dense set in a monoid `M`, `submonoid.closure s = ⊤`, then in order to prove that
 some predicate `p` holds for all `x : M` it suffices to verify `p x` for `x ∈ s`, verify `p 1`,
 and verify that `p x` and `p y` imply `p (x * y)`. -/
-@[to_additive]
+@[elab_as_eliminator, to_additive "If `s` is a dense set in an additive monoid `M`,
+`add_submonoid.closure s = ⊤`, then in order to prove that some predicate `p` holds for all `x : M`
+it suffices to verify `p x` for `x ∈ s`, verify `p 0`, and verify that `p x` and `p y` imply
+`p (x + y)`."]
 lemma dense_induction {p : M → Prop} (x : M) {s : set M} (hs : closure s = ⊤)
   (Hs : ∀ x ∈ s, p x) (H1 : p 1)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 have ∀ x ∈ closure s, p x, from λ x hx, closure_induction hx Hs H1 Hmul,
 by simpa [hs] using this x
-
-/-- If `s` is a dense set in an additive monoid `M`, `add_submonoid.closure s = ⊤`, then in order
-to prove that some predicate `p` holds for all `x : M` it suffices to verify `p x` for `x ∈ s`,
-verify `p 0`, and verify that `p x` and `p y` imply `p (x + y)`. -/
-add_decl_doc add_submonoid.dense_induction
-
-attribute [elab_as_eliminator] dense_induction add_submonoid.dense_induction
 
 variable (M)
 
@@ -357,28 +402,40 @@ lemma closure_union (s t : set M) : closure (s ∪ t) = closure s ⊔ closure t 
 lemma closure_Union {ι} (s : ι → set M) : closure (⋃ i, s i) = ⨆ i, closure (s i) :=
 (submonoid.gi M).gc.l_supr
 
-end submonoid
+@[simp, to_additive]
+lemma closure_singleton_le_iff_mem (m : M) (p : submonoid M) :
+  closure {m} ≤ p ↔ m ∈ p :=
+by rw [closure_le, singleton_subset_iff, set_like.mem_coe]
 
-section is_unit
-
-/-- The submonoid consisting of the units of a monoid -/
-def is_unit.submonoid (M : Type*) [monoid M] : submonoid M :=
-{ carrier := set_of is_unit,
-  one_mem' := by simp only [is_unit_one, set.mem_set_of_eq],
-  mul_mem' := by { intros a b ha hb, rw set.mem_set_of_eq at *, exact is_unit.mul ha hb } }
-
-lemma is_unit.mem_submonoid_iff {M : Type*} [monoid M] (a : M) :
-  a ∈ is_unit.submonoid M ↔ is_unit a :=
+@[to_additive]
+lemma mem_supr {ι : Sort*} (p : ι → submonoid M) {m : M} :
+  (m ∈ ⨆ i, p i) ↔ (∀ N, (∀ i, p i ≤ N) → m ∈ N) :=
 begin
-  change a ∈ set_of is_unit ↔ is_unit a,
-  rw set.mem_set_of_eq
+  rw [← closure_singleton_le_iff_mem, le_supr_iff],
+  simp only [closure_singleton_le_iff_mem],
 end
 
-end is_unit
+@[to_additive]
+lemma supr_eq_closure {ι : Sort*} (p : ι → submonoid M) :
+  (⨆ i, p i) = submonoid.closure (⋃ i, (p i : set M)) :=
+by simp_rw [submonoid.closure_Union, submonoid.closure_eq]
+
+@[to_additive]
+lemma disjoint_def {p₁ p₂ : submonoid M} :
+  disjoint p₁ p₂ ↔ ∀ {x : M}, x ∈ p₁ → x ∈ p₂ → x = 1 :=
+show (∀ x, x ∈ p₁ ∧ x ∈ p₂ → x ∈ ({1} : set M)) ↔ _, by simp
+
+@[to_additive]
+lemma disjoint_def' {p₁ p₂ : submonoid M} :
+  disjoint p₁ p₂ ↔ ∀ {x y : M}, x ∈ p₁ → y ∈ p₂ → x = y → x = 1 :=
+disjoint_def.trans ⟨λ h x y hx hy hxy, h hx $ hxy.symm ▸ hy,
+  λ h x hx hx', h hx hx' rfl⟩
+
+end submonoid
 
 namespace monoid_hom
 
-variables {N : Type*} {P : Type*} [monoid N] [monoid P] (S : submonoid M)
+variables [mul_one_class N]
 
 open submonoid
 
@@ -405,12 +462,44 @@ lemma eq_of_eq_on_mdense {s : set M} (hs : closure s = ⊤) {f g : M →* N} (h 
   f = g :=
 eq_of_eq_on_mtop $ hs ▸ eq_on_mclosure h
 
+
+end monoid_hom
+
+end non_assoc
+
+section assoc
+
+variables [monoid M] [monoid N] {s : set M}
+
+section is_unit
+
+/-- The submonoid consisting of the units of a monoid -/
+@[to_additive "The additive submonoid consisting of the additive units of an additive monoid"]
+def is_unit.submonoid (M : Type*) [monoid M] : submonoid M :=
+{ carrier := set_of is_unit,
+  one_mem' := by simp only [is_unit_one, set.mem_set_of_eq],
+  mul_mem' := by { intros a b ha hb, rw set.mem_set_of_eq at *, exact is_unit.mul ha hb } }
+
+@[to_additive]
+lemma is_unit.mem_submonoid_iff {M : Type*} [monoid M] (a : M) :
+  a ∈ is_unit.submonoid M ↔ is_unit a :=
+begin
+  change a ∈ set_of is_unit ↔ is_unit a,
+  rw set.mem_set_of_eq
+end
+
+end is_unit
+
+namespace monoid_hom
+
+open submonoid
+
 /-- Let `s` be a subset of a monoid `M` such that the closure of `s` is the whole monoid.
 Then `monoid_hom.of_mdense` defines a monoid homomorphism from `M` asking for a proof
 of `f (x * y) = f x * f y` only for `y ∈ s`. -/
 @[to_additive]
-def of_mdense (f : M → N) (hs : closure s = ⊤) (h1 : f 1 = 1)
-  (hmul : ∀ x (y ∈ s), f (x * y) = f x * f y) :
+def of_mdense {M N} [monoid M] [monoid N] {s : set M} (f : M → N) (hs : closure s = ⊤)
+  (h1 : f 1 = 1) (hmul : ∀ x (y ∈ s), f (x * y) = f x * f y) :
   M →* N :=
 { to_fun := f,
   map_one' := h1,
@@ -422,9 +511,9 @@ Then `add_monoid_hom.of_mdense` defines an additive monoid homomorphism from `M`
 of `f (x + y) = f x + f y` only for `y ∈ s`. -/
 add_decl_doc add_monoid_hom.of_mdense
 
-@[simp, to_additive] lemma coe_of_mdense (f : M → N) (hs : closure s = ⊤) (h1 hmul) :
+@[simp, norm_cast, to_additive] lemma coe_of_mdense (f : M → N) (hs : closure s = ⊤) (h1 hmul) :
   ⇑(of_mdense f hs h1 hmul) = f := rfl
 
-attribute [norm_cast] coe_of_mdense add_monoid_hom.coe_of_mdense
-
 end monoid_hom
+
+end assoc

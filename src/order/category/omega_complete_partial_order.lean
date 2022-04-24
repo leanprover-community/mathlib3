@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 
 import order.omega_complete_partial_order
@@ -36,15 +36,19 @@ namespace ωCPO
 open omega_complete_partial_order
 
 instance : bundled_hom @continuous_hom :=
-{ to_fun := @continuous_hom.to_fun,
+{ to_fun := @continuous_hom.simps.apply,
   id := @continuous_hom.id,
   comp := @continuous_hom.comp,
   hom_ext := @continuous_hom.coe_inj }
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] ωCPO
+attribute [derive [large_category, concrete_category]] ωCPO
+
+instance : has_coe_to_sort ωCPO Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled ωCPO from the underlying type and typeclass. -/
 def of (α : Type*) [omega_complete_partial_order α] : ωCPO := bundled.of α
+
+@[simp] lemma coe_of (α : Type*) [omega_complete_partial_order α] : ↥(of α) = α := rfl
 
 instance : inhabited ωCPO := ⟨of punit⟩
 
@@ -58,12 +62,12 @@ namespace has_products
 
 /-- The pi-type gives a cone for a product. -/
 def product {J : Type v} (f : J → ωCPO.{v}) : fan f :=
-fan.mk (of (Π j, f j)) (λ j, continuous_hom.of_mono (pi.monotone_apply j : _) (λ c, rfl))
+fan.mk (of (Π j, f j)) (λ j, continuous_hom.of_mono (pi.eval_order_hom j) (λ c, rfl))
 
 /-- The pi-type is a limit cone for the product. -/
 def is_product (J : Type v) (f : J → ωCPO) : is_limit (product f) :=
 { lift := λ s,
-    ⟨λ t j, s.π.app j t, λ x y h j, (s.π.app j).monotone h,
+    ⟨⟨λ t j, s.π.app j t, λ x y h j, (s.π.app j).monotone h⟩,
      λ x, funext (λ j, (s.π.app j).continuous x)⟩,
   uniq' := λ s m w,
   begin
@@ -95,7 +99,7 @@ namespace has_equalizers
 def equalizer_ι {α β : Type*} [omega_complete_partial_order α] [omega_complete_partial_order β]
   (f g : α →𝒄 β) :
   {a : α // f a = g a} →𝒄 α :=
-continuous_hom.of_mono (preorder_hom.subtype.val _) (λ c, rfl)
+continuous_hom.of_mono (order_hom.subtype.val _) (λ c, rfl)
 
 /-- A construction of the equalizer fork. -/
 def equalizer {X Y : ωCPO.{v}} (f g : X ⟶ Y) :

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Michael Jendrusch. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Michael Jendrusch, Scott Morrison
+Authors: Michael Jendrusch, Scott Morrison, Bhavik Mehta, Jakob von Raumer
 -/
 import category_theory.products.basic
 
@@ -119,6 +119,7 @@ restate_axiom monoidal_category.right_unitor_naturality'
 attribute [reassoc] monoidal_category.right_unitor_naturality
 restate_axiom monoidal_category.pentagon'
 restate_axiom monoidal_category.triangle'
+attribute [reassoc] monoidal_category.pentagon
 attribute [simp, reassoc] monoidal_category.triangle
 
 open monoidal_category
@@ -151,34 +152,29 @@ variables {C : Type u} [category.{v} C] [monoidal_category.{v} C]
 
 instance tensor_is_iso {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] :
   is_iso (f ⊗ g) :=
-{ ..(as_iso f ⊗ as_iso g) }
+is_iso.of_iso (as_iso f ⊗ as_iso g)
 
 @[simp] lemma inv_tensor {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] :
-  inv (f ⊗ g) = inv f ⊗ inv g := rfl
+  inv (f ⊗ g) = inv f ⊗ inv g :=
+by { ext, simp [←tensor_comp], }
 
 variables {U V W X Y Z : C}
 
--- When `rewrite_search` lands, add @[search] attributes to
+lemma tensor_dite {P : Prop} [decidable P]
+  {W X Y Z : C} (f : W ⟶ X) (g : P → (Y ⟶ Z)) (g' : ¬P → (Y ⟶ Z)) :
+  f ⊗ (if h : P then g h else g' h) = if h : P then f ⊗ g h else f ⊗ g' h :=
+by { split_ifs; refl }
 
--- monoidal_category.tensor_id monoidal_category.tensor_comp monoidal_category.associator_naturality
--- monoidal_category.left_unitor_naturality monoidal_category.right_unitor_naturality
--- monoidal_category.pentagon monoidal_category.triangle
+lemma dite_tensor {P : Prop} [decidable P]
+  {W X Y Z : C} (f : W ⟶ X) (g : P → (Y ⟶ Z)) (g' : ¬P → (Y ⟶ Z)) :
+  (if h : P then g h else g' h) ⊗ f  = if h : P then g h ⊗ f else g' h ⊗ f :=
+by { split_ifs; refl }
 
--- tensor_comp_id tensor_id_comp comp_id_tensor_tensor_id
--- triangle_assoc_comp_left triangle_assoc_comp_right
--- triangle_assoc_comp_left_inv triangle_assoc_comp_right_inv
--- left_unitor_tensor left_unitor_tensor_inv
--- right_unitor_tensor right_unitor_tensor_inv
--- pentagon_inv
--- associator_inv_naturality
--- left_unitor_inv_naturality
--- right_unitor_inv_naturality
-
-@[simp] lemma comp_tensor_id (f : W ⟶ X) (g : X ⟶ Y) :
+@[reassoc, simp] lemma comp_tensor_id (f : W ⟶ X) (g : X ⟶ Y) :
   (f ≫ g) ⊗ (𝟙 Z) = (f ⊗ (𝟙 Z)) ≫ (g ⊗ (𝟙 Z)) :=
 by { rw ←tensor_comp, simp }
 
-@[simp] lemma id_tensor_comp (f : W ⟶ X) (g : X ⟶ Y) :
+@[reassoc, simp] lemma id_tensor_comp (f : W ⟶ X) (g : X ⟶ Y) :
   (𝟙 Z) ⊗ (f ≫ g) = (𝟙 Z ⊗ f) ≫ (𝟙 Z ⊗ g) :=
 by { rw ←tensor_comp, simp }
 
@@ -190,6 +186,7 @@ by { rw [←tensor_comp], simp }
   (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) = g ⊗ f :=
 by { rw [←tensor_comp], simp }
 
+@[reassoc]
 lemma left_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
   f ≫ (λ_ X').inv = (λ_ X).inv ≫ (𝟙 _ ⊗ f) :=
 begin
@@ -198,6 +195,7 @@ begin
   rw [left_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
 end
 
+@[reassoc]
 lemma right_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
   f ≫ (ρ_ X').inv = (ρ_ X).inv ≫ (f ⊗ 𝟙 _) :=
 begin
@@ -219,182 +217,45 @@ by rw [left_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_co
 @[simp] lemma tensor_left_iff
   {X Y : C} (f g : X ⟶ Y) :
   ((𝟙 (𝟙_ C)) ⊗ f = (𝟙 (𝟙_ C)) ⊗ g) ↔ (f = g) :=
-begin
-  split,
-  { intro h,
-    have h' := congr_arg (λ k, (λ_ _).inv ≫ k) h,
-    dsimp at h',
-    rw [←left_unitor_inv_naturality, ←left_unitor_inv_naturality] at h',
-    exact (cancel_mono _).1 h', },
-  { intro h, subst h, }
-end
+by { rw [←cancel_mono (λ_ Y).hom, left_unitor_naturality, left_unitor_naturality], simp }
 
 @[simp] lemma tensor_right_iff
   {X Y : C} (f g : X ⟶ Y) :
   (f ⊗ (𝟙 (𝟙_ C)) = g ⊗ (𝟙 (𝟙_ C))) ↔ (f = g) :=
-begin
-  split,
-  { intro h,
-    have h' := congr_arg (λ k, (ρ_ _).inv ≫ k) h,
-    dsimp at h',
-    rw [←right_unitor_inv_naturality, ←right_unitor_inv_naturality] at h',
-    exact (cancel_mono _).1 h' },
-  { intro h, subst h, }
-end
+by { rw [←cancel_mono (ρ_ Y).hom, right_unitor_naturality, right_unitor_naturality], simp }
 
--- We now prove:
---   ((α_ (𝟙_ C) X Y).hom) ≫
---     ((λ_ (X ⊗ Y)).hom)
---   = ((λ_ X).hom ⊗ (𝟙 Y))
--- (and the corresponding fact for right unitors)
--- following the proof on nLab:
--- Lemma 2.2 at <https://ncatlab.org/nlab/revision/monoidal+category/115>
+/-! The lemmas in the next section are true by coherence,
+but we prove them directly as they are used in proving the coherence theorem. -/
+section
 
-lemma left_unitor_product_aux_perimeter (X Y : C) :
-    ((α_ (𝟙_ C) (𝟙_ C) X).hom ⊗ (𝟙 Y)) ≫
-    (α_ (𝟙_ C) ((𝟙_ C) ⊗ X) Y).hom ≫
-    ((𝟙 (𝟙_ C)) ⊗ (α_ (𝟙_ C) X Y).hom) ≫
-    ((𝟙 (𝟙_ C)) ⊗ (λ_ (X ⊗ Y)).hom)
-  = (((ρ_ (𝟙_ C)).hom ⊗ (𝟙 X)) ⊗ (𝟙 Y)) ≫
-    (α_ (𝟙_ C) X Y).hom :=
-begin
-  conv_lhs { congr, skip, rw [←category.assoc] },
-  rw [←category.assoc, monoidal_category.pentagon, associator_naturality, tensor_id,
-      ←monoidal_category.triangle, ←category.assoc]
-end
-
-lemma left_unitor_product_aux_triangle (X Y : C) :
-    ((α_ (𝟙_ C) (𝟙_ C) X).hom ⊗ (𝟙 Y)) ≫
-    (((𝟙 (𝟙_ C)) ⊗ (λ_ X).hom) ⊗ (𝟙 Y))
-  = ((ρ_ (𝟙_ C)).hom ⊗ (𝟙 X)) ⊗ (𝟙 Y) :=
-by rw [←comp_tensor_id, ←monoidal_category.triangle]
-
-lemma left_unitor_product_aux_square (X Y : C) :
-    (α_ (𝟙_ C) ((𝟙_ C) ⊗ X) Y).hom ≫
-    ((𝟙 (𝟙_ C)) ⊗ (λ_ X).hom ⊗ (𝟙 Y))
-  = (((𝟙 (𝟙_ C)) ⊗ (λ_ X).hom) ⊗ (𝟙 Y)) ≫
-    (α_ (𝟙_ C) X Y).hom :=
-by rw associator_naturality
-
-lemma left_unitor_product_aux (X Y : C) :
-    ((𝟙 (𝟙_ C)) ⊗ (α_ (𝟙_ C) X Y).hom) ≫
-    ((𝟙 (𝟙_ C)) ⊗ (λ_ (X ⊗ Y)).hom)
-  = (𝟙 (𝟙_ C)) ⊗ ((λ_ X).hom ⊗ (𝟙 Y)) :=
-begin
-  rw ←(cancel_epi (α_ (𝟙_ C) ((𝟙_ C) ⊗ X) Y).hom),
-  rw left_unitor_product_aux_square,
-  rw ←(cancel_epi ((α_ (𝟙_ C) (𝟙_ C) X).hom ⊗ (𝟙 Y))),
-  slice_rhs 1 2 { rw left_unitor_product_aux_triangle },
-  conv_lhs { rw [left_unitor_product_aux_perimeter] }
-end
-
-lemma right_unitor_product_aux_perimeter (X Y : C) :
-    ((α_ X Y (𝟙_ C)).hom ⊗ (𝟙 (𝟙_ C))) ≫
-    (α_ X (Y ⊗ (𝟙_ C)) (𝟙_ C)).hom ≫
-    ((𝟙 X) ⊗ (α_ Y (𝟙_ C) (𝟙_ C)).hom) ≫
-    ((𝟙 X) ⊗ (𝟙 Y) ⊗ (λ_ (𝟙_ C)).hom)
-  = ((ρ_ (X ⊗ Y)).hom ⊗ (𝟙 (𝟙_ C))) ≫
-    (α_ X Y (𝟙_ C)).hom :=
-begin
-  transitivity (((α_ X Y _).hom ⊗ 𝟙 _) ≫ (α_ X _ _).hom ≫
-    (𝟙 X ⊗ (α_ Y _ _).hom)) ≫
-    (𝟙 X ⊗ 𝟙 Y ⊗ (λ_ _).hom),
-  { conv_lhs { congr, skip, rw [←category.assoc] },
-    conv_rhs { rw [category.assoc] } },
-  { conv_lhs { congr, rw [monoidal_category.pentagon] },
-    conv_rhs { congr, rw [←monoidal_category.triangle] },
-    conv_rhs { rw [category.assoc] },
-    conv_rhs { congr, skip, congr, congr, rw [←tensor_id] },
-    conv_rhs { congr, skip, rw [associator_naturality] },
-    conv_rhs { rw [←category.assoc] } }
-end
-
-lemma right_unitor_product_aux_triangle (X Y : C) :
-    ((𝟙 X) ⊗ (α_ Y (𝟙_ C) (𝟙_ C)).hom) ≫
-    ((𝟙 X) ⊗ (𝟙 Y) ⊗ (λ_ (𝟙_ C)).hom)
-  = (𝟙 X) ⊗ (ρ_ Y).hom ⊗ (𝟙 (𝟙_ C)) :=
-by rw [←id_tensor_comp, ←monoidal_category.triangle]
-
-lemma right_unitor_product_aux_square (X Y : C) :
-    (α_ X (Y ⊗ (𝟙_ C)) (𝟙_ C)).hom ≫
-    ((𝟙 X) ⊗ (ρ_ Y).hom ⊗ (𝟙 (𝟙_ C)))
-  = (((𝟙 X) ⊗ (ρ_ Y).hom) ⊗ (𝟙 (𝟙_ C))) ≫
-    (α_ X Y (𝟙_ C)).hom :=
-by rw [associator_naturality]
-
-lemma right_unitor_product_aux (X Y : C) :
-    ((α_ X Y (𝟙_ C)).hom ⊗ (𝟙 (𝟙_ C))) ≫
-    (((𝟙 X) ⊗ (ρ_ Y).hom) ⊗ (𝟙 (𝟙_ C)))
-  = ((ρ_ (X ⊗ Y)).hom ⊗ (𝟙 (𝟙_ C))) :=
-begin
-  rw ←(cancel_mono (α_ X Y (𝟙_ C)).hom),
-  slice_lhs 2 3 { rw ←right_unitor_product_aux_square },
-  rw [←right_unitor_product_aux_triangle, ←right_unitor_product_aux_perimeter],
-end
-
--- See Proposition 2.2.4 of <http://www-math.mit.edu/~etingof/egnobookfinal.pdf>
-lemma left_unitor_tensor' (X Y : C) :
-  ((α_ (𝟙_ C) X Y).hom) ≫ ((λ_ (X ⊗ Y)).hom) = ((λ_ X).hom ⊗ (𝟙 Y)) :=
-by rw [←tensor_left_iff, id_tensor_comp, left_unitor_product_aux]
-
-@[simp]
-lemma left_unitor_tensor (X Y : C) :
-  ((λ_ (X ⊗ Y)).hom) = ((α_ (𝟙_ C) X Y).inv) ≫ ((λ_ X).hom ⊗ (𝟙 Y)) :=
-by { rw [←left_unitor_tensor'], simp }
-
-lemma left_unitor_tensor_inv' (X Y : C) :
-  ((λ_ (X ⊗ Y)).inv) ≫ ((α_ (𝟙_ C) X Y).inv) = ((λ_ X).inv ⊗ (𝟙 Y)) :=
-eq_of_inv_eq_inv (by simp)
-
-@[simp]
-lemma left_unitor_tensor_inv (X Y : C) :
-  ((λ_ (X ⊗ Y)).inv) = ((λ_ X).inv ⊗ (𝟙 Y)) ≫ ((α_ (𝟙_ C) X Y).hom) :=
-by { rw [←left_unitor_tensor_inv'], simp }
-
-@[simp]
-lemma right_unitor_tensor (X Y : C) :
-  ((ρ_ (X ⊗ Y)).hom) = ((α_ X Y (𝟙_ C)).hom) ≫ ((𝟙 X) ⊗ (ρ_ Y).hom) :=
-by rw [←tensor_right_iff, comp_tensor_id, right_unitor_product_aux]
-
-@[simp]
-lemma right_unitor_tensor_inv (X Y : C) :
-  ((ρ_ (X ⊗ Y)).inv) = ((𝟙 X) ⊗ (ρ_ Y).inv) ≫ ((α_ X Y (𝟙_ C)).inv) :=
-eq_of_inv_eq_inv (by simp)
-
-lemma associator_inv_naturality {X Y Z X' Y' Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
-  (f ⊗ (g ⊗ h)) ≫ (α_ X' Y' Z').inv = (α_ X Y Z).inv ≫ ((f ⊗ g) ⊗ h) :=
-begin
-  apply (cancel_mono (α_ X' Y' Z').hom).1,
-  simp only [assoc, comp_id, iso.inv_hom_id],
-  rw [associator_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
-end
-
+@[reassoc]
 lemma pentagon_inv (W X Y Z : C) :
   ((𝟙 W) ⊗ (α_ X Y Z).inv) ≫ (α_ W (X ⊗ Y) Z).inv ≫ ((α_ W X Y).inv ⊗ (𝟙 Z))
     = (α_ W X (Y ⊗ Z)).inv ≫ (α_ (W ⊗ X) Y Z).inv :=
-begin
-  apply category_theory.eq_of_inv_eq_inv,
-  dsimp,
-  rw [category.assoc, monoidal_category.pentagon]
-end
+category_theory.eq_of_inv_eq_inv (by simp [pentagon])
+
+@[reassoc, simp]
+lemma right_unitor_tensor (X Y : C) :
+  (ρ_ (X ⊗ Y)).hom = (α_ X Y (𝟙_ C)).hom ≫ ((𝟙 X) ⊗ (ρ_ Y).hom) :=
+by
+  rw [←tensor_right_iff, comp_tensor_id, ←cancel_mono (α_ X Y (𝟙_ C)).hom, assoc,
+      associator_naturality, ←triangle_assoc, ←triangle, id_tensor_comp, pentagon_assoc,
+      ←associator_naturality, tensor_id]
+
+@[reassoc, simp]
+lemma right_unitor_tensor_inv (X Y : C) :
+  ((ρ_ (X ⊗ Y)).inv) = ((𝟙 X) ⊗ (ρ_ Y).inv) ≫ (α_ X Y (𝟙_ C)).inv :=
+eq_of_inv_eq_inv (by simp)
 
 lemma triangle_assoc_comp_left (X Y : C) :
   (α_ X (𝟙_ C) Y).hom ≫ ((𝟙 X) ⊗ (λ_ Y).hom) = (ρ_ X).hom ⊗ 𝟙 Y :=
 monoidal_category.triangle X Y
 
-@[simp] lemma triangle_assoc_comp_right (X Y : C) :
+@[simp, reassoc] lemma triangle_assoc_comp_right (X Y : C) :
   (α_ X (𝟙_ C) Y).inv ≫ ((ρ_ X).hom ⊗ 𝟙 Y) = ((𝟙 X) ⊗ (λ_ Y).hom) :=
-by rw [←triangle_assoc_comp_left, ←category.assoc, iso.inv_hom_id, category.id_comp]
+by rw [←triangle_assoc_comp_left, iso.inv_hom_id_assoc]
 
-@[simp] lemma triangle_assoc_comp_right_inv (X Y : C) :
-  ((ρ_ X).inv ⊗ 𝟙 Y) ≫ (α_ X (𝟙_ C) Y).hom = ((𝟙 X) ⊗ (λ_ Y).inv) :=
-begin
-  apply (cancel_mono (𝟙 X ⊗ (λ_ Y).hom)).1,
-  simp only [assoc, triangle_assoc_comp_left],
-  rw [←comp_tensor_id, iso.inv_hom_id, ←id_tensor_comp, iso.inv_hom_id]
-end
-
-@[simp] lemma triangle_assoc_comp_left_inv (X Y : C) :
+@[simp, reassoc] lemma triangle_assoc_comp_left_inv (X Y : C) :
   ((𝟙 X) ⊗ (λ_ Y).inv) ≫ (α_ X (𝟙_ C) Y).inv = ((ρ_ X).inv ⊗ 𝟙 Y) :=
 begin
   apply (cancel_mono ((ρ_ X).hom ⊗ 𝟙 Y)).1,
@@ -404,11 +265,68 @@ end
 
 end
 
+@[reassoc]
+lemma associator_inv_naturality {X Y Z X' Y' Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
+  (f ⊗ (g ⊗ h)) ≫ (α_ X' Y' Z').inv = (α_ X Y Z).inv ≫ ((f ⊗ g) ⊗ h) :=
+by { rw [comp_inv_eq, assoc, associator_naturality], simp }
+
+@[reassoc]
+lemma id_tensor_associator_naturality {X Y Z Z' : C} (h : Z ⟶ Z') :
+  (𝟙 (X ⊗ Y) ⊗ h) ≫ (α_ X Y Z').hom = (α_ X Y Z).hom ≫ (𝟙 X ⊗ (𝟙 Y ⊗ h)) :=
+by { rw [←tensor_id, associator_naturality], }
+
+@[reassoc]
+lemma id_tensor_associator_inv_naturality {X Y Z X' : C} (f : X ⟶ X')  :
+  (f ⊗ 𝟙 (Y ⊗ Z)) ≫ (α_ X' Y Z).inv = (α_ X Y Z).inv ≫ ((f ⊗ 𝟙 Y) ⊗ 𝟙 Z) :=
+by { rw [←tensor_id, associator_inv_naturality] }
+
+@[reassoc]
+lemma associator_conjugation {X X' Y Y' Z Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
+  (α_ X Y Z).hom ≫ (f ⊗ (g ⊗ h)) ≫ (α_ X' Y' Z').inv = (f ⊗ g) ⊗ h :=
+by rw [associator_inv_naturality, hom_inv_id_assoc]
+
+@[reassoc]
+lemma associator_inv_conjugation {X X' Y Y' Z Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
+  (α_ X Y Z).inv ≫ ((f ⊗ g) ⊗ h) ≫ (α_ X' Y' Z').hom = f ⊗ g ⊗ h :=
+by rw [associator_naturality, inv_hom_id_assoc]
+
+@[reassoc]
+lemma right_unitor_inv_comp_tensor (f : W ⟶ X) (g : 𝟙_ C ⟶ Z) :
+  (ρ_ _).inv ≫ (f ⊗ g) = f ≫ (ρ_ _).inv ≫ (𝟙 _ ⊗ g) :=
+by { slice_rhs 1 2 { rw right_unitor_inv_naturality }, simp }
+
+@[reassoc]
+lemma left_unitor_inv_comp_tensor (f : W ⟶ X) (g : 𝟙_ C ⟶ Z) :
+  (λ_ _).inv ≫ (g ⊗ f) = f ≫ (λ_ _).inv ≫ (g ⊗ 𝟙 _) :=
+by { slice_rhs 1 2 { rw left_unitor_inv_naturality }, simp }
+
+@[simp, reassoc]
+lemma hom_inv_id_tensor {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :
+  (f.hom ⊗ g) ≫ (f.inv ⊗ h) = 𝟙 V ⊗ (g ≫ h) :=
+by rw [←tensor_comp, f.hom_inv_id]
+
+@[simp, reassoc]
+lemma inv_hom_id_tensor {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :
+  (f.inv ⊗ g) ≫ (f.hom ⊗ h) = 𝟙 W ⊗ (g ≫ h) :=
+by rw [←tensor_comp, f.inv_hom_id]
+
+@[simp, reassoc]
+lemma tensor_hom_inv_id {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :
+  (g ⊗ f.hom) ≫ (h ⊗ f.inv) = (g ≫ h) ⊗ 𝟙 V :=
+by rw [←tensor_comp, f.hom_inv_id]
+
+@[simp, reassoc]
+lemma tensor_inv_hom_id {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :
+  (g ⊗ f.inv) ≫ (h ⊗ f.hom) = (g ≫ h) ⊗ 𝟙 W :=
+by rw [←tensor_comp, f.inv_hom_id]
+
+end
+
 section
 variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 
 /-- The tensor product expressed as a functor. -/
-def tensor : (C × C) ⥤ C :=
+@[simps] def tensor : (C × C) ⥤ C :=
 { obj := λ X, X.1 ⊗ X.2,
   map := λ {X Y : C × C} (f : X ⟶ Y), f.1 ⊗ f.2 }
 
@@ -493,7 +411,7 @@ nat_iso.of_components
 rfl
 @[simp] lemma tensor_left_tensor_inv_app (X Y Z : C) :
   (tensor_left_tensor X Y).inv.app Z = (associator X Y Z).inv :=
-rfl
+by { simp [tensor_left_tensor], }
 
 /-- Tensoring on the right with a fixed object, as a functor. -/
 @[simps]
@@ -504,12 +422,31 @@ def tensor_right (X : C) : C ⥤ C :=
 variables (C)
 
 /--
+Tensoring on the left, as a functor from `C` into endofunctors of `C`.
+
+TODO: show this is a op-monoidal functor.
+-/
+@[simps]
+def tensoring_left : C ⥤ C ⥤ C :=
+{ obj := tensor_left,
+  map := λ X Y f,
+  { app := λ Z, f ⊗ (𝟙 Z) } }
+
+instance : faithful (tensoring_left C) :=
+{ map_injective' := λ X Y f g h,
+  begin
+    injections with h,
+    replace h := congr_fun h (𝟙_ C),
+    simpa using h,
+  end }
+
+/--
 Tensoring on the right, as a functor from `C` into endofunctors of `C`.
 
 We later show this is a monoidal functor.
 -/
 @[simps]
-def tensoring_right : C ⥤ (C ⥤ C) :=
+def tensoring_right : C ⥤ C ⥤ C :=
 { obj := tensor_right,
   map := λ X Y f,
   { app := λ Z, (𝟙 Z) ⊗ f } }
@@ -538,9 +475,79 @@ nat_iso.of_components
 rfl
 @[simp] lemma tensor_right_tensor_inv_app (X Y Z : C) :
   (tensor_right_tensor X Y).inv.app Z = (associator Z X Y).hom :=
-rfl
+by simp [tensor_right_tensor]
+
+variables {C}
+
+/--
+Any property closed under `𝟙_` and `⊗` induces a full monoidal subcategory of `C`, where
+the category on the subtype is given by `full_subcategory`.
+-/
+def full_monoidal_subcategory (P : C → Prop) (h_id : P (𝟙_ C))
+ (h_tensor : ∀ {X Y}, P X → P Y → P (X ⊗ Y)) : monoidal_category {X : C // P X} :=
+{ tensor_obj := λ X Y, ⟨X ⊗ Y, h_tensor X.2 Y.2⟩,
+  tensor_hom := λ X₁ Y₁ X₂ Y₂ f g, by { change X₁.1 ⊗ X₂.1 ⟶ Y₁.1 ⊗ Y₂.1,
+    change X₁.1 ⟶ Y₁.1 at f, change X₂.1 ⟶ Y₂.1 at g, exact f ⊗ g },
+  tensor_unit := ⟨𝟙_ C, h_id⟩,
+  associator := λ X Y Z,
+    ⟨(α_ X.1 Y.1 Z.1).hom, (α_ X.1 Y.1 Z.1).inv,
+     hom_inv_id (α_ X.1 Y.1 Z.1), inv_hom_id (α_ X.1 Y.1 Z.1)⟩,
+  left_unitor := λ X, ⟨(λ_ X.1).hom, (λ_ X.1).inv, hom_inv_id (λ_ X.1), inv_hom_id (λ_ X.1)⟩,
+  right_unitor := λ X, ⟨(ρ_ X.1).hom, (ρ_ X.1).inv, hom_inv_id (ρ_ X.1), inv_hom_id (ρ_ X.1)⟩,
+  tensor_id' := λ X Y, tensor_id X.1 Y.1,
+  tensor_comp' := λ X₁ Y₁ Z₁ X₂ Y₂ Z₂ f₁ f₂ g₁ g₂, tensor_comp f₁ f₂ g₁ g₂,
+  associator_naturality' := λ X₁ X₂ X₃ Y₁ Y₂ Y₃ f₁ f₂ f₃, associator_naturality f₁ f₂ f₃,
+  left_unitor_naturality' := λ X Y f, left_unitor_naturality f,
+  right_unitor_naturality' := λ X Y f, right_unitor_naturality f,
+  pentagon' := λ W X Y Z, pentagon W.1 X.1 Y.1 Z.1,
+  triangle' := λ X Y, triangle X.1 Y.1 }
 
 end
+
+end
+
+section
+
+universes v₁ v₂ u₁ u₂
+
+variables (C₁ : Type u₁) [category.{v₁} C₁] [monoidal_category.{v₁} C₁]
+variables (C₂ : Type u₂) [category.{v₂} C₂] [monoidal_category.{v₂} C₂]
+
+local attribute [simp]
+associator_naturality left_unitor_naturality right_unitor_naturality pentagon
+
+@[simps tensor_obj tensor_hom tensor_unit associator]
+instance prod_monoidal : monoidal_category (C₁ × C₂) :=
+{ tensor_obj := λ X Y, (X.1 ⊗ Y.1, X.2 ⊗ Y.2),
+  tensor_hom := λ _ _ _ _ f g, (f.1 ⊗ g.1, f.2 ⊗ g.2),
+  tensor_unit := (𝟙_ C₁, 𝟙_ C₂),
+  associator := λ X Y Z, (α_ X.1 Y.1 Z.1).prod (α_ X.2 Y.2 Z.2),
+  left_unitor := λ ⟨X₁, X₂⟩, (λ_ X₁).prod (λ_ X₂),
+  right_unitor := λ ⟨X₁, X₂⟩, (ρ_ X₁).prod (ρ_ X₂) }
+
+@[simp] lemma prod_monoidal_left_unitor_hom_fst (X : C₁ × C₂) :
+  ((λ_ X).hom : (𝟙_ _) ⊗ X ⟶ X).1 = (λ_ X.1).hom := by { cases X, refl }
+
+@[simp] lemma prod_monoidal_left_unitor_hom_snd (X : C₁ × C₂) :
+  ((λ_ X).hom : (𝟙_ _) ⊗ X ⟶ X).2 = (λ_ X.2).hom := by { cases X, refl }
+
+@[simp] lemma prod_monoidal_left_unitor_inv_fst (X : C₁ × C₂) :
+  ((λ_ X).inv : X ⟶ (𝟙_ _) ⊗ X).1 = (λ_ X.1).inv := by { cases X, refl }
+
+@[simp] lemma prod_monoidal_left_unitor_inv_snd (X : C₁ × C₂) :
+  ((λ_ X).inv : X ⟶ (𝟙_ _) ⊗ X).2 = (λ_ X.2).inv := by { cases X, refl }
+
+@[simp] lemma prod_monoidal_right_unitor_hom_fst (X : C₁ × C₂) :
+  ((ρ_ X).hom : X ⊗ (𝟙_ _) ⟶ X).1 = (ρ_ X.1).hom := by { cases X, refl }
+
+@[simp] lemma prod_monoidal_right_unitor_hom_snd (X : C₁ × C₂) :
+  ((ρ_ X).hom : X ⊗ (𝟙_ _) ⟶ X).2 = (ρ_ X.2).hom := by { cases X, refl }
+
+@[simp] lemma prod_monoidal_right_unitor_inv_fst (X : C₁ × C₂) :
+  ((ρ_ X).inv : X ⟶ X ⊗ (𝟙_ _)).1 = (ρ_ X.1).inv := by { cases X, refl }
+
+@[simp] lemma prod_monoidal_right_unitor_inv_snd (X : C₁ × C₂) :
+  ((ρ_ X).inv : X ⟶ X ⊗ (𝟙_ _)).2 = (ρ_ X.2).inv := by { cases X, refl }
 
 end
 

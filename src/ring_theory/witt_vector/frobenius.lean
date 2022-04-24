@@ -7,6 +7,7 @@ Authors: Johan Commelin
 import data.nat.multiplicity
 import ring_theory.witt_vector.basic
 import ring_theory.witt_vector.is_poly
+import field_theory.perfect_closure
 
 
 /-!
@@ -38,14 +39,17 @@ that `witt_vector.frobenius_fun` is equal to `witt_vector.map (frobenius R p)`.
 TODO: Show that `witt_vector.frobenius_fun` is a ring homomorphism,
 and bundle it into `witt_vector.frobenius`.
 
+## References
+
+* [Hazewinkel, *Witt Vectors*][Haze09]
+
+* [Commelin and Lewis, *Formalizing the Ring of Witt Vectors*][CL21]
 -/
 
 namespace witt_vector
 
 variables {p : ℕ} {R S : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
 local notation `𝕎` := witt_vector p -- type as `\bbW`
-
-local attribute [semireducible] witt_vector
 
 noncomputable theory
 open mv_polynomial finset
@@ -68,15 +72,15 @@ begin
   rw [← bind₁_bind₁, bind₁_X_in_terms_of_W_witt_polynomial, bind₁_X_right],
 end
 
-/-- An auxilliary definition, to avoid an excessive amount of finiteness proofs
+/-- An auxiliary definition, to avoid an excessive amount of finiteness proofs
 for `multiplicity p n`. -/
 private def pnat_multiplicity (n : ℕ+) : ℕ :=
-(multiplicity p n).get $ multiplicity.finite_nat_iff.mpr $ ⟨ne_of_gt hp.one_lt, n.2⟩
+(multiplicity p n).get $ multiplicity.finite_nat_iff.mpr $ ⟨ne_of_gt hp.1.one_lt, n.2⟩
 
 local notation `v` := pnat_multiplicity
 
-/-- An auxilliary polynomial over the integers, that satisfies
-`(frobenius_poly_aux p n - X n ^ p) / p = frobenius_poly p n`.
+/-- An auxiliary polynomial over the integers, that satisfies
+`p * (frobenius_poly_aux p n) + X n ^ p = frobenius_poly p n`.
 This makes it easy to show that `frobenius_poly p n` is congruent to `X n ^ p`
 modulo `p`. -/
 noncomputable def frobenius_poly_aux : ℕ → mv_polynomial ℕ ℤ
@@ -118,10 +122,10 @@ begin
   apply multiplicity.pow_dvd_of_le_multiplicity,
   have aux : (multiplicity p ((p ^ n).choose (j + 1))).dom,
   { rw [← multiplicity.finite_iff_dom, multiplicity.finite_nat_iff],
-    exact ⟨hp.ne_one, nat.choose_pos hj⟩, },
-  rw [← enat.coe_get aux, enat.coe_le_coe, nat.sub_le_left_iff_le_add,
-      ← enat.coe_le_coe, enat.coe_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
-  exact (nat.prime.multiplicity_choose_prime_pow hp hj j.succ_pos).ge,
+    exact ⟨hp.1.ne_one, nat.choose_pos hj⟩, },
+  rw [← enat.coe_get aux, enat.coe_le_coe, tsub_le_iff_left,
+      ← enat.coe_le_coe, nat.cast_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
+  exact (hp.1.multiplicity_choose_prime_pow hj j.succ_pos).ge,
 end
 
 /-- A key numerical identity needed for the proof of `witt_vector.map_frobenius_poly`. -/
@@ -131,10 +135,12 @@ lemma map_frobenius_poly.key₂ {n i j : ℕ} (hi : i < n) (hj : j < p ^ (n - i)
 begin
   generalize h : (v p ⟨j + 1, j.succ_pos⟩) = m,
   suffices : m ≤ n - i ∧ m ≤ j,
-  { cases this, unfreezingI { clear_dependent p }, omega },
+  { rw [tsub_add_eq_add_tsub this.2, add_comm i j,
+      add_tsub_assoc_of_le (this.1.trans (nat.sub_le n i)), add_assoc, tsub_right_comm, add_comm i,
+      tsub_add_cancel_of_le (le_tsub_of_add_le_right ((le_tsub_iff_left hi.le).mp this.1))] },
   split,
   { rw [← h, ← enat.coe_le_coe, pnat_multiplicity, enat.coe_get,
-        ← (nat.prime.multiplicity_choose_prime_pow hp hj j.succ_pos)],
+        ← hp.1.multiplicity_choose_prime_pow hj j.succ_pos],
     apply le_add_left, refl },
   { obtain ⟨c, hc⟩ : p ^ m ∣ j + 1,
     { rw [← h], exact multiplicity.pow_multiplicity_dvd _, },
@@ -142,8 +148,8 @@ begin
     { apply nat.exists_eq_succ_of_ne_zero, rintro rfl, simpa only using hc },
     rw [mul_add, mul_one] at hc,
     apply nat.le_of_lt_succ,
-    calc m < p ^ m : nat.lt_pow_self hp.one_lt m
-       ... ≤ j + 1 : by { rw ← nat.sub_eq_of_eq_add hc, apply nat.sub_le } }
+    calc m < p ^ m : nat.lt_pow_self hp.1.one_lt m
+       ... ≤ j + 1 : by { rw ← tsub_eq_of_eq_add_rev hc, apply nat.sub_le } }
 end
 
 lemma map_frobenius_poly (n : ℕ) :
@@ -157,19 +163,18 @@ begin
   simp only [alg_hom.map_sum, alg_hom.map_sub, alg_hom.map_mul, alg_hom.map_pow, bind₁_C_right],
   have h1 : (↑p ^ n) * (⅟ (↑p : ℚ) ^ n) = 1 := by rw [←mul_pow, mul_inv_of_self, one_pow],
   rw [bind₁_X_right, function.comp_app, witt_polynomial_eq_sum_C_mul_X_pow, sum_range_succ,
-      sum_range_succ, nat.sub_self, nat.add_sub_cancel_left, pow_zero, pow_one, pow_one, sub_mul,
-      add_mul, add_mul, mul_assoc, mul_assoc, mul_comm _ (C (⅟ ↑p ^ n)), mul_comm _ (C (⅟ ↑p ^ n)),
-      ←mul_assoc, ←mul_assoc, ←C_mul, ←C_mul, pow_succ, mul_assoc ↑p (↑p ^ n) (⅟ ↑p ^ n), h1,
-      mul_one, C_1, one_mul, ←add_assoc, add_comm _ (X n ^ p), add_assoc, ←add_sub, add_right_inj],
-  rw [frobenius_poly_aux_eq, ring_hom.map_sub, map_X, mul_sub, ←add_sub, sub_eq_add_neg,
-      add_right_inj, neg_eq_iff_neg_eq, neg_sub],
+      sum_range_succ, tsub_self, add_tsub_cancel_left, pow_zero, pow_one, pow_one, sub_mul,
+      add_mul, add_mul, mul_right_comm, mul_right_comm (C (↑p ^ (n + 1))), ←C_mul, ←C_mul, pow_succ,
+      mul_assoc ↑p (↑p ^ n), h1, mul_one, C_1, one_mul, add_comm _ (X n ^ p), add_assoc, ←add_sub,
+      add_right_inj, frobenius_poly_aux_eq, ring_hom.map_sub, map_X, mul_sub, sub_eq_add_neg,
+      add_comm _ (C ↑p * X (n + 1)), ←add_sub, add_right_inj, neg_eq_iff_neg_eq, neg_sub],
   simp only [ring_hom.map_sum, mul_sum, sum_mul, ←sum_sub_distrib],
   apply sum_congr rfl,
   intros i hi,
   rw mem_range at hi,
   rw [← IH i hi],
   clear IH,
-  rw [add_comm (X i ^ p), add_pow, sum_range_succ', pow_zero, nat.sub_zero, nat.choose_zero_right,
+  rw [add_comm (X i ^ p), add_pow, sum_range_succ', pow_zero, tsub_zero, nat.choose_zero_right,
       one_mul, nat.cast_one, mul_one, mul_add, add_mul, nat.succ_sub (le_of_lt hi),
       nat.succ_eq_add_one (n - i), pow_succ, pow_mul, add_sub_cancel, mul_sum, sum_mul],
   apply sum_congr rfl,
@@ -184,13 +189,13 @@ begin
   rw [←C_eq_coe_nat],
   simp only [←ring_hom.map_pow, ←C_mul],
   rw C_inj,
-  simp only [inv_of_eq_inv, ring_hom.eq_int_cast, inv_pow', int.cast_coe_nat, nat.cast_mul],
+  simp only [inv_of_eq_inv, ring_hom.eq_int_cast, inv_pow₀, int.cast_coe_nat, nat.cast_mul],
   rw [rat.coe_nat_div _ _ (map_frobenius_poly.key₁ p (n - i) j hj)],
   simp only [nat.cast_pow, pow_add, pow_one],
   suffices : ((p ^ (n - i)).choose (j + 1) * p ^ (j - v p ⟨j + 1, j.succ_pos⟩) * p * p ^ n : ℚ) =
     p ^ j * p * ((p ^ (n - i)).choose (j + 1) * p ^ i) * p ^ (n - i - v p ⟨j + 1, j.succ_pos⟩),
   { have aux : ∀ k : ℕ, (p ^ k : ℚ) ≠ 0,
-    { intro, apply pow_ne_zero, exact_mod_cast hp.ne_zero },
+    { intro, apply pow_ne_zero, exact_mod_cast hp.1.ne_zero },
     simpa [aux, -one_div] with field_simps using this.symm },
   rw [mul_comm _ (p : ℚ), mul_assoc, mul_assoc, ← pow_add, map_frobenius_poly.key₂ p hi hj],
   ring_exp
@@ -200,7 +205,7 @@ lemma frobenius_poly_zmod (n : ℕ) :
   mv_polynomial.map (int.cast_ring_hom (zmod p)) (frobenius_poly p n) = X n ^ p :=
 begin
   rw [frobenius_poly, ring_hom.map_add, ring_hom.map_pow, ring_hom.map_mul, map_X, map_C],
-  simp only [int.cast_coe_nat, add_zero, ring_hom.eq_int_cast, zmod.cast_self, zero_mul, C_0],
+  simp only [int.cast_coe_nat, add_zero, ring_hom.eq_int_cast, zmod.nat_cast_self, zero_mul, C_0],
 end
 
 @[simp]
@@ -311,6 +316,15 @@ end
 lemma frobenius_zmodp (x : 𝕎 (zmod p)) :
   (frobenius x) = x :=
 by simp only [ext_iff, coeff_frobenius_char_p, zmod.pow_card, eq_self_iff_true, forall_const]
+
+variables (p R)
+lemma frobenius_bijective [perfect_ring R p] :
+  function.bijective (@witt_vector.frobenius p R _ _) :=
+begin
+  rw witt_vector.frobenius_eq_map_frobenius,
+  exact ⟨witt_vector.map_injective _ (frobenius_equiv R p).injective,
+    witt_vector.map_surjective _ (frobenius_equiv R p).surjective⟩,
+end
 
 end char_p
 

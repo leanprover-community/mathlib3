@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2020 Xi Wang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Xi Wang.
+Authors: Xi Wang
 -/
-
+import order.basic
 import tactic.basic
 
 /-!
@@ -281,7 +281,7 @@ begin
   rwa if_neg (ne_of_lt hr) at h
 end
 
-/-- The main theorem on compiler correctness.
+/-- The main **compiler correctness theorem**.
 
 Unlike Theorem 1 in the paper, both `map` and the assumption on `t` are explicit.
 -/

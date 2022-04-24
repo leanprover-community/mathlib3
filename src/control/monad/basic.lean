@@ -1,10 +1,10 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author(s): Simon Hudon
+Authors: Simon Hudon
 -/
+import logic.equiv.basic
 import tactic.basic
-import data.equiv.basic
 
 /-!
 # Monad
@@ -43,7 +43,8 @@ attribute [monad_norm] seq_eq_bind_map
 universes u v
 
 @[monad_norm]
-lemma map_eq_bind_pure_comp (m : Type u → Type v) [monad m] [is_lawful_monad m] {α β : Type u} (f : α → β) (x : m α) :
+lemma map_eq_bind_pure_comp
+  (m : Type u → Type v) [monad m] [is_lawful_monad m] {α β : Type u} (f : α → β) (x : m α) :
   f <$> x = x >>= pure ∘ f := by rw bind_pure_comp_eq_map
 
 /-- run a `state_t` program and discard the final state -/

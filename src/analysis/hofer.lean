@@ -3,8 +3,7 @@ Copyright (c) 2020 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
-
-import analysis.specific_limits
+import analysis.specific_limits.basic
 
 /-!
 # Hofer's lemma
@@ -63,7 +62,7 @@ begin
   { intro n,
     induction n using nat.case_strong_induction_on with n IH,
     { specialize hu 0,
-      simpa [hu0, mul_nonneg_iff, zero_le_one, ε_pos.le] using hu },
+      simpa [hu0, mul_nonneg_iff, zero_le_one, ε_pos.le, le_refl] using hu },
     have A : d (u (n+1)) x ≤ 2 * ε,
     { rw [dist_comm],
       let r := range (n+1), -- range (n+1) = {0, ..., n}
@@ -85,7 +84,7 @@ begin
   -- Hence u is Cauchy
   have cauchy_u : cauchy_seq u,
   { refine cauchy_seq_of_le_geometric _ ε one_half_lt_one (λ n, _),
-    simpa only [one_div, inv_pow'] using key₁ n },
+    simpa only [one_div, inv_pow₀] using key₁ n },
   -- So u converges to some y
   obtain ⟨y, limy⟩ : ∃ y, tendsto u at_top (𝓝 y),
     from complete_space.complete cauchy_u,

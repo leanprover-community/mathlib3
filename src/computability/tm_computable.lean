@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Pim Spelier, Daan van Gent. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Pim Spelier, Daan van Gent.
+Authors: Pim Spelier, Daan van Gent
 -/
 
 import computability.encoding
@@ -74,7 +74,7 @@ end fin_tm2
 def init_list (tm : fin_tm2) (s : list (tm.Γ tm.k₀)) : tm.cfg :=
 { l := option.some tm.main,
   var := tm.initial_state,
-  stk := λ k, @dite (k = tm.k₀) (tm.K_decidable_eq k tm.k₀) (list (tm.Γ k))
+  stk := λ k, @dite (list (tm.Γ k)) (k = tm.k₀) (tm.K_decidable_eq k tm.k₀)
                 (λ h, begin rw h, exact s, end)
                 (λ _,[]) }
 
@@ -82,7 +82,7 @@ def init_list (tm : fin_tm2) (s : list (tm.Γ tm.k₀)) : tm.cfg :=
 def halt_list (tm : fin_tm2) (s : list (tm.Γ tm.k₁)) : tm.cfg :=
 { l := option.none,
   var := tm.initial_state,
-  stk := λ k, @dite (k = tm.k₁) (tm.K_decidable_eq k tm.k₁) (list (tm.Γ k))
+  stk := λ k, @dite (list (tm.Γ k)) (k = tm.k₁) (tm.K_decidable_eq k tm.k₁)
                 (λ h, begin rw h, exact s, end)
                 (λ _,[]) }
 
@@ -92,6 +92,9 @@ structure evals_to {σ : Type*} (f : σ → option σ) (a : σ) (b : option σ) 
 (steps : ℕ)
 (evals_in_steps : ((flip bind f)^[steps] a) = b)
 
+-- note: this cannot currently be used in `calc`, as the last two arguments must be `a` and `b`.
+-- If this is desired, this argument order can be changed, but this spelling is I think the most
+-- natural, so there is a trade-off that needs to be made here. A notation can get around this.
 /-- A "proof" of the fact that `f` eventually reaches `b` in at most `m` steps when repeatedly
 evaluated on `a`, remembering the number of steps it takes. -/
 structure evals_to_in_time {σ : Type*} (f : σ → option σ) (a : σ) (b : option σ) (m : ℕ)
@@ -113,8 +116,8 @@ structure evals_to_in_time {σ : Type*} (f : σ → option σ) (a : σ) (b : opt
 ⟨evals_to.refl f a, le_refl 0⟩
 
 /-- Transitivity of `evals_to_in_time` in the sum of the numbers of steps. -/
-@[trans] def evals_to_in_time.trans {σ : Type*} (f : σ → option σ) (a : σ) (b : σ) (c : option σ)
-  (m₁ : ℕ) (m₂ : ℕ) (h₁ : evals_to_in_time f a b m₁) (h₂ : evals_to_in_time f b c m₂) :
+@[trans] def evals_to_in_time.trans {σ : Type*} (f : σ → option σ) (m₁ : ℕ) (m₂ : ℕ)
+  (a : σ) (b : σ) (c : option σ) (h₁ : evals_to_in_time f a b m₁) (h₂ : evals_to_in_time f b c m₂) :
   evals_to_in_time f a c (m₂ + m₁) :=
 ⟨evals_to.trans f a b c h₁.to_evals_to h₂.to_evals_to, add_le_add h₂.steps_le_m h₁.steps_le_m⟩
 
@@ -149,20 +152,20 @@ structure tm2_computable {α β : Type} (ea : fin_encoding α) (eb : fin_encodin
 structure tm2_computable_in_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β)
   (f : α → β)
   extends tm2_computable_aux ea.Γ eb.Γ :=
-( time: ℕ → ℕ )
-( outputs_fun : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a))
+(time: ℕ → ℕ)
+(outputs_fun : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a))
   (option.some ((list.map output_alphabet.inv_fun) (eb.encode (f a))))
-  (time (ea.encode a).length) )
+  (time (ea.encode a).length))
 
 /-- A Turing machine + a polynomial time function + a proof it outputs f in at most time(len(input))
 steps. -/
 structure tm2_computable_in_poly_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β)
   (f : α → β)
   extends tm2_computable_aux ea.Γ eb.Γ :=
-( time: polynomial ℕ )
-( outputs_fun : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a))
+(time: polynomial ℕ)
+(outputs_fun : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a))
   (option.some ((list.map output_alphabet.inv_fun) (eb.encode (f a))))
-  (time.eval (ea.encode a).length) )
+  (time.eval (ea.encode a).length))
 
 /-- A forgetful map, forgetting the time bound on the number of steps. -/
 def tm2_computable_in_time.to_tm2_computable {α β : Type} {ea : fin_encoding α}
@@ -207,8 +210,8 @@ def id_computable_in_poly_time {α : Type} (ea : fin_encoding α) :
     evals_in_steps := rfl,
     steps_le_m := by simp only [polynomial.eval_one] } }
 
-instance inhabited_tm2_computable_in_poly_time : inhabited (tm2_computable_in_poly_time
-(default (fin_encoding bool)) (default (fin_encoding bool)) id) :=
+instance inhabited_tm2_computable_in_poly_time :
+  inhabited (tm2_computable_in_poly_time (default : fin_encoding bool) default id) :=
 ⟨id_computable_in_poly_time computability.inhabited_fin_encoding.default⟩
 
 instance inhabited_tm2_outputs_in_time :
@@ -244,6 +247,6 @@ instance inhabited_tm2_computable :
 ⟨id_computable computability.inhabited_fin_encoding.default⟩
 
 instance inhabited_tm2_computable_aux : inhabited (tm2_computable_aux bool bool) :=
-⟨(default (tm2_computable fin_encoding_bool_bool fin_encoding_bool_bool id)).to_tm2_computable_aux⟩
+⟨(default : tm2_computable fin_encoding_bool_bool fin_encoding_bool_bool id).to_tm2_computable_aux⟩
 
 end turing

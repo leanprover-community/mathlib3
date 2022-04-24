@@ -3,6 +3,7 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Reid Barton, Bhavik Mehta
 -/
+import category_theory.limits.connected
 import category_theory.limits.constructions.over.products
 import category_theory.limits.constructions.over.connected
 import category_theory.limits.constructions.limits_of_products_and_equalizers
@@ -14,7 +15,7 @@ import category_theory.limits.constructions.equalizers
 Declare instances for limits in the over category: If `C` has finite wide pullbacks, `over B` has
 finite limits, and if `C` has arbitrary wide pullbacks then `over B` has limits.
 -/
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 
 open category_theory category_theory.limits
 
@@ -37,8 +38,7 @@ begin
   { apply @has_equalizers_of_pullbacks_and_binary_products _ _ _ _,
     { haveI : has_pullbacks C := ⟨by apply_instance⟩,
       exact construct_products.over_binary_product_of_pullback },
-    { split,
-      apply_instance} }
+    { apply_instance, } }
 end
 
 instance has_limits {B : C} [has_wide_pullbacks C] : has_limits (over B) :=
@@ -48,8 +48,7 @@ begin
   { apply @has_equalizers_of_pullbacks_and_binary_products _ _ _ _,
     { haveI : has_pullbacks C := ⟨by apply_instance⟩,
       exact construct_products.over_binary_product_of_pullback },
-    { split,
-      apply_instance } }
+    { apply_instance, } }
 end
 
 end category_theory.over

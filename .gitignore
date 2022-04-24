@@ -7,3 +7,5 @@ all.lean
 *.depend
 /src/.noisy_files
 *~
+.DS_Store
+*.lock

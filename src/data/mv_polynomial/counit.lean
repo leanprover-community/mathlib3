@@ -16,8 +16,8 @@ obtained by `X a ↦ a`.
 
 ### Main declarations
 
-* `mv_polynomial.acounit R A` is the natural surjective algebra homomorphism `mv_polynomial A R →ₐ[R] A`
-     obtained by `X a ↦ a`
+* `mv_polynomial.acounit R A` is the natural surjective algebra homomorphism
+  `mv_polynomial A R →ₐ[R] A` obtained by `X a ↦ a`
 * `mv_polynomial.counit` is an “absolute” variant with `R = ℤ`
 * `mv_polynomial.counit_nat` is an “absolute” variant with `R = ℕ`
 

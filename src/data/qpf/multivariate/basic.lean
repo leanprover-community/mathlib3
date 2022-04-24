@@ -1,10 +1,9 @@
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad, Simon Hudon
+Authors: Jeremy Avigad, Simon Hudon
 -/
 import data.pfunctor.multivariate.basic
-universe u
 
 /-!
 # Multivariate quotients of polynomial functors.
@@ -69,10 +68,12 @@ matched because they preserve the properties of QPF. The latter example,
 
 each proves that some operations on functors preserves the QPF structure
 
-##reference
+## Reference
 
  * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
+
+universe u
 
 open_locale mvfunctor
 
@@ -156,7 +157,8 @@ begin
   rw ←hi, apply h'
 end
 
-theorem supp_eq {α : typevec n} {i} (x : F α) : supp x i = { u | ∀ a f, abs ⟨a, f⟩ = x → u ∈ f i '' univ } :=
+theorem supp_eq {α : typevec n} {i} (x : F α) :
+  supp x i = { u | ∀ a f, abs ⟨a, f⟩ = x → u ∈ f i '' univ } :=
 by ext; apply mem_supp
 
 theorem has_good_supp_iff {α : typevec n} (x : F α) :

@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad, Mario Carneiro, Simon Hudon
+Authors: Jeremy Avigad, Mario Carneiro, Simon Hudon
 -/
-import data.fin2
+import data.fin.fin2
 import data.typevec
 import logic.function.basic
 import tactic.basic
@@ -169,13 +169,18 @@ end
 open function
 variables (rr : β → β → Prop)
 
-private def f : Π (n α), (λ (i : fin2 (n + 1)), {p_1 : _ × _ // of_repeat (rel_last' α rr i (typevec.prod.mk _ p_1.fst p_1.snd))}) ⟹
+private def f :
+  Π (n α),
+    (λ (i : fin2 (n + 1)),
+      {p_1 : _ × _ // of_repeat (rel_last' α rr i (typevec.prod.mk _ p_1.fst p_1.snd))}) ⟹
     λ (i : fin2 (n + 1)), {p_1 : (α ::: β) i × _ // rel_last α rr (p_1.fst) (p_1.snd)}
 | _ α (fin2.fs i) x := ⟨ x.val, cast (by simp only [rel_last]; erw repeat_eq_iff_eq) x.property ⟩
 | _ α fin2.fz x := ⟨ x.val, x.property ⟩
 
-private def g : Π (n α), (λ (i : fin2 (n + 1)), {p_1 : (α ::: β) i × _ // rel_last α rr (p_1.fst) (p_1.snd)}) ⟹
-    (λ (i : fin2 (n + 1)), {p_1 : _ × _ // of_repeat (rel_last' α rr i (typevec.prod.mk _ p_1.fst p_1.snd))})
+private def g :
+  Π (n α), (λ (i : fin2 (n + 1)), {p_1 : (α ::: β) i × _ // rel_last α rr (p_1.fst) (p_1.snd)}) ⟹
+    (λ (i : fin2 (n + 1)),
+      {p_1 : _ × _ // of_repeat (rel_last' α rr i (typevec.prod.mk _ p_1.1 p_1.2))})
 | _ α (fin2.fs i) x := ⟨ x.val, cast (by simp only [rel_last]; erw repeat_eq_iff_eq) x.property ⟩
 | _ α fin2.fz x := ⟨ x.val, x.property ⟩
 

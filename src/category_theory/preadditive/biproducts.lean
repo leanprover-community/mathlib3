@@ -54,24 +54,22 @@ If
 ```
 is invertible, then `f` is invertible.
 -/
-def is_iso_left_of_is_iso_biprod_map
+lemma is_iso_left_of_is_iso_biprod_map
   {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [is_iso (biprod.map f g)] : is_iso f :=
-{ inv := biprod.inl ≫ inv (biprod.map f g) ≫ biprod.fst,
-  hom_inv_id' :=
-  begin
+⟨⟨biprod.inl ≫ inv (biprod.map f g) ≫ biprod.fst,
+  ⟨begin
     have t := congr_arg (λ p : W ⊞ X ⟶ W ⊞ X, biprod.inl ≫ p ≫ biprod.fst)
       (is_iso.hom_inv_id (biprod.map f g)),
     simp only [category.id_comp, category.assoc, biprod.inl_map_assoc] at t,
     simp [t],
   end,
-  inv_hom_id' :=
   begin
     have t := congr_arg (λ p : Y ⊞ Z ⟶ Y ⊞ Z, biprod.inl ≫ p ≫ biprod.fst)
       (is_iso.inv_hom_id (biprod.map f g)),
     simp only [category.id_comp, category.assoc, biprod.map_fst] at t,
     simp only [category.assoc],
     simp [t],
-  end }
+  end⟩⟩⟩
 
 /--
 If
@@ -81,7 +79,7 @@ If
 ```
 is invertible, then `g` is invertible.
 -/
-def is_iso_right_of_is_iso_biprod_map
+lemma is_iso_right_of_is_iso_biprod_map
   {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [is_iso (biprod.map f g)] : is_iso g :=
 begin
   letI : is_iso (biprod.map g f) := by
@@ -250,8 +248,7 @@ lemma biprod.column_nonzero_of_iso {W X Y Z : C}
   (f : W ⊞ X ⟶ Y ⊞ Z) [is_iso f] :
   𝟙 W = 0 ∨ biprod.inl ≫ f ≫ biprod.fst ≠ 0 ∨ biprod.inl ≫ f ≫ biprod.snd ≠ 0 :=
 begin
-  by_contradiction,
-  rw [not_or_distrib, not_or_distrib, not_not, not_not] at h,
+  by_contra' h,
   rcases h with ⟨nz, a₁, a₂⟩,
   set x := biprod.inl ≫ f ≫ inv f ≫ biprod.fst,
   have h₁ : x = 𝟙 W, by simp [x],
@@ -267,7 +264,6 @@ begin
     simp only [zero_comp], },
   exact nz (h₁.symm.trans h₀),
 end
-
 
 end
 

@@ -3,16 +3,16 @@ Copyright (c) 2020 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.equiv.mul_add_aut
+import algebra.hom.aut
 import logic.function.basic
-import group_theory.subgroup
+import group_theory.subgroup.basic
 
 /-!
 # Semidirect product
 
 This file defines semidirect products of groups, and the canonical maps in and out of the
 semidirect product. The semidirect product of `N` and `G` given a hom `φ` from
-`φ` from `G` to the automorphism group of `N` is the product of sets with the group
+`G` to the automorphism group of `N` is the product of sets with the group
 `⟨n₁, g₁⟩ * ⟨n₂, g₂⟩ = ⟨n₁ * φ g₁ n₂, g₁ * g₂⟩`
 
 ## Key definitions
@@ -49,7 +49,8 @@ variables {N G} {φ : G →* mul_aut N}
 private def one_aux : N ⋊[φ] G := ⟨1, 1⟩
 private def mul_aux (a b : N ⋊[φ] G) : N ⋊[φ] G := ⟨a.1 * φ a.2 b.1, a.right * b.right⟩
 private def inv_aux (a : N ⋊[φ] G) : N ⋊[φ] G := let i := a.2⁻¹ in ⟨φ i a.1⁻¹, i⟩
-private lemma mul_assoc_aux (a b c : N ⋊[φ] G) : mul_aux (mul_aux a b) c = mul_aux a (mul_aux b c) :=
+private lemma mul_assoc_aux (a b c : N ⋊[φ] G) :
+  mul_aux (mul_aux a b) c = mul_aux a (mul_aux b c) :=
 by simp [mul_aux, mul_assoc, mul_equiv.map_mul]
 private lemma mul_one_aux (a : N ⋊[φ] G) : mul_aux a one_aux = a :=
 by cases a; simp [mul_aux, one_aux]
@@ -159,7 +160,7 @@ def lift (f₁ : N →* H) (f₂ : G →* H)
   map_one' := by simp,
   map_mul' := λ a b, begin
     have := λ n g, monoid_hom.ext_iff.1 (h n) g,
-    simp only [mul_aut.conj_apply, monoid_hom.comp_apply, mul_equiv.to_monoid_hom_apply] at this,
+    simp only [mul_aut.conj_apply, monoid_hom.comp_apply, mul_equiv.coe_to_monoid_hom] at this,
     simp [this, mul_assoc]
   end }
 
@@ -199,7 +200,7 @@ def map (f₁ : N →* N₁) (f₂ : G →* G₁)
   map_mul' := λ x y, begin
     replace h := monoid_hom.ext_iff.1 (h x.right) y.left,
     ext; simp * at *,
-  end  }
+  end }
 
 variables (f₁ : N →* N₁) (f₂ : G →* G₁)
   (h : ∀ g : G, f₁.comp (φ g).to_monoid_hom = (φ₁ (f₂ g)).to_monoid_hom.comp f₁)

@@ -42,6 +42,8 @@ instance has_uniform_continuous_const_smul.to_has_continuous_const_smul
   [has_uniform_continuous_const_smul M X] : has_continuous_const_smul M X :=
 ⟨λ c, (uniform_continuous_const_smul c).continuous⟩
 
+variables {M X Y}
+
 lemma uniform_continuous.const_smul [has_uniform_continuous_const_smul M X]
   {f : Y → X} (hf : uniform_continuous f) (c : M) :
   uniform_continuous (c • f) :=
@@ -56,6 +58,10 @@ instance has_uniform_continuous_const_smul.op [has_scalar Mᵐᵒᵖ X] [is_cent
   simp_rw op_smul_eq_smul,
   exact uniform_continuous_const_smul c,
 end⟩
+
+instance mul_opposite.has_uniform_continuous_const_smul [has_uniform_continuous_const_smul M X] :
+  has_uniform_continuous_const_smul M Xᵐᵒᵖ :=
+⟨λ c, mul_opposite.uniform_continuous_op.comp $ mul_opposite.uniform_continuous_unop.const_smul c⟩
 
 end has_scalar
 

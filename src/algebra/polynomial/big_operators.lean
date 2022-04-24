@@ -281,9 +281,14 @@ section no_zero_divisors
 section semiring
 variables [semiring R] [no_zero_divisors R]
 
+/--
+The degree of a product of polynomials is equal to
+the sum of the degrees, where the degree of the zero polynomial is ⊥.
+`[nontrivial R]` is needed, otherwise for `l = []` we have `⊥` in the LHS and `0` in the RHS.
+-/
 lemma degree_list_prod [nontrivial R] (l : list R[X]) :
   l.prod.degree = (l.map degree).sum :=
-_root_.map_list_prod (@degree_monoid_hom R _ _ _) l
+map_list_prod (@degree_monoid_hom R _ _ _) l
 
 end semiring
 

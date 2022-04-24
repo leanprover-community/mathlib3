@@ -357,7 +357,8 @@ instance _root_.punit.algebra : algebra R punit :=
   map_zero' := rfl,
   map_add' := λ _ _, rfl,
   commutes' := λ _ _, rfl,
-  smul_def' := λ _ _, rfl }
+  smul_def' := λ _ _, rfl,
+  op_smul_def' := λ _ _, rfl }
 
 @[simp] lemma algebra_map_punit (r : R) : algebra_map R punit r = punit.star := rfl
 

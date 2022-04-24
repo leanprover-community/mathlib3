@@ -7,6 +7,18 @@ Authors: Sébastien Gouëzel
 import analysis.specific_limits.basic
 import analysis.special_functions.pow
 
+/-!
+# Results on discretized exponentials
+
+We state several auxiliary results pertaining to sequences of the form `⌊c^n⌋₊`.
+
+* `tendsto_div_of_monotone_of_tendsto_div_floor_pow`: If a monotone sequence `u` is such that
+  `u ⌊c^n⌋₊ / ⌊c^n⌋₊` converges to a limit `l` for all `c > 1`, then `u n / n` tends to `l`.
+* `sum_div_nat_floor_pow_sq_le_div_sq`: The sum of `1/⌊c^i⌋₊^2` above a threshold `j` is comparable
+  to `1/j^2`, up to a multiplicative constant.
+-/
+
+
 open filter finset
 open_locale topological_space big_operators
 
@@ -234,7 +246,9 @@ begin
   exact (div_le_iff (H n)).1 hn.le
 end
 
-lemma aux_sum_horrible (N : ℕ) {j : ℝ} (hj : 0 < j) {c : ℝ} (hc : 1 < c) :
+/-- The sum of `1/(c^i)^2` above a threshold `j` is comparable to `1/j^2`, up to a multiplicative
+constant. -/
+lemma sum_div_pow_sq_le_div_sq (N : ℕ) {j : ℝ} (hj : 0 < j) {c : ℝ} (hc : 1 < c) :
   ∑ i in (range N).filter (λ i, j < c ^ i), 1 / (c ^ i) ^ 2 ≤ (c^3 * (c - 1) ⁻¹) / j ^ 2 :=
 begin
   have cpos : 0 < c := zero_lt_one.trans hc,
@@ -318,7 +332,9 @@ begin
   ... ≤ ⌊c ^ i⌋₊ : (nat.sub_one_lt_floor _).le
 end
 
-lemma aux_sum_horrible2 (N : ℕ) {j : ℝ} (hj : 0 < j) {c : ℝ} (hc : 1 < c) :
+/-- The sum of `1/⌊c^i⌋₊^2` above a threshold `j` is comparable to `1/j^2`, up to a multiplicative
+constant. -/
+lemma sum_div_nat_floor_pow_sq_le_div_sq (N : ℕ) {j : ℝ} (hj : 0 < j) {c : ℝ} (hc : 1 < c) :
   ∑ i in (range N).filter (λ i, j < ⌊c ^ i⌋₊), (1 : ℝ) / ⌊c ^ i⌋₊ ^ 2
     ≤ (c ^ 5 * (c - 1) ⁻¹ ^ 3) / j ^ 2 :=
 begin

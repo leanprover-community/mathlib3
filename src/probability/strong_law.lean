@@ -9,14 +9,21 @@ import measure_theory.function.l2_space
 import measure_theory.integral.interval_integral
 import analysis.specific_limits.floor_pow
 
+/-!
+# The strong law of large numbers
+
+We prove the strong law of large numbers, in `probability_theory.strong_law_ae`:
+If `X n` is a sequence of independent identically distributed integrable real-valued random
+variables, then `∑ i in range n, X i / n` converges almost surely to `𝔼[X 0]`.
+We give here the strong version, due to Etemadi, that only requires pairwise independence.
+-/
+
+
 open measure_theory filter finset
 
 noncomputable theory
 
 open_locale topological_space big_operators measure_theory probability_theory ennreal nnreal
-
--- Modifier le docstring de field_simp, pour le remplacer par
--- `simp [-one_div, -mul_eq_zero, hx, hy] with field_simps {discharger := tactic.field_simp.ne_zero}`
 
 
 open asymptotics
@@ -584,8 +591,8 @@ end
 
 lemma strong_law_aux2 {c : ℝ} (c_one : 1 < c) :
   ∀ᵐ ω, asymptotics.is_o
-  (λ (n : ℕ), ∑ i in range ⌊c^n⌋₊, truncation (X i) i ω - 𝔼[∑ i in range ⌊c^n⌋₊, truncation (X i) i])
-    (λ (n : ℕ), (⌊c^n⌋₊ : ℝ)) at_top :=
+  (λ (n : ℕ), ∑ i in range ⌊c^n⌋₊, truncation (X i) i ω
+              - 𝔼[∑ i in range ⌊c^n⌋₊, truncation (X i) i]) (λ (n : ℕ), (⌊c^n⌋₊ : ℝ)) at_top :=
 begin
   obtain ⟨v, -, v_pos, v_lim⟩ :
     ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧ tendsto u at_top (𝓝 0) :=

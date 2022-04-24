@@ -426,7 +426,7 @@ end
 (segment_subset_Icc h).antisymm Icc_subset_segment
 
 lemma Ioo_subset_open_segment {x y : 𝕜} : Ioo x y ⊆ open_segment 𝕜 x y :=
-λ z hz, mem_open_segment_of_ne_left_right _ hz.1.ne hz.2.ne'
+λ z hz, mem_open_segment_of_ne_left_right hz.1.ne hz.2.ne'
     (Icc_subset_segment $ Ioo_subset_Icc_self hz)
 
 @[simp] lemma open_segment_eq_Ioo {x y : 𝕜} (h : x < y) : open_segment 𝕜 x y = Ioo x y :=

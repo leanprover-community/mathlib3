@@ -232,6 +232,8 @@ by simp
 
 section
 
+open finset
+
 variables {α : Type*} [linear_ordered_field α]
 
 lemma sum_Ioc_div_sq_le_sub {k n : ℕ} (hk : k ≠ 0) (h : k ≤ n) :

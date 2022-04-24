@@ -24,15 +24,14 @@ open_locale big_operators classical affine
 
 section affine_space'
 
-variables (k : Type*) {V : Type*} {P : Type*} [add_comm_group V]
-          [affine_space V P]
+variables (k : Type*) {V : Type*} {P : Type*}
 variables {ι : Type*}
 include V
 
 open affine_subspace finite_dimensional module
 
 section
-variables [division_ring k] [module k V]
+variables [division_ring k] [add_comm_group V] [module k V] [affine_space V P]
 
 /-- The `vector_span` of a finite set is finite-dimensional. -/
 lemma finite_dimensional_vector_span_of_finite {s : set P} (h : set.finite s) :
@@ -89,7 +88,7 @@ end
 
 section
 
-variables [division_ring k] [module k V]
+variables [division_ring k] [add_comm_group V] [module k V] [affine_space V P]
 variables {k}
 
 /-- The `vector_span` of a finite subset of an affinely independent
@@ -273,7 +272,7 @@ lemma finrank_vector_span_le_iff_not_affine_independent [fintype ι] (p : ι →
 end
 
 section division_ring
-variables [division_ring k] [module k V]
+variables [division_ring k] [add_comm_group V] [module k V] [affine_space V P]
 
 /-- A set of points is collinear if their `vector_span` has dimension
 at most `1`. -/
@@ -380,7 +379,7 @@ end
 end division_ring
 
 section field
-variables [field k] [module k V]
+variables [field k] [add_comm_group V] [module k V] [affine_space V P]
 
 /-- Three points are affinely independent if and only if they are not
 collinear. -/

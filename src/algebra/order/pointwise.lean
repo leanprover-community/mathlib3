@@ -1,19 +1,85 @@
 /-
 Copyright (c) 2021 Alex J. Best. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alex J. Best
+Authors: Alex J. Best, Yaël Dillies
 -/
-import algebra.order.field
-import algebra.algebra.basic
+import algebra.bounds
 
 /-!
 # Pointwise operations on ordered algebraic objects
 
 This file contains lemmas about the effect of pointwise operations on sets with an order structure.
 
+## TODO
+
+`Sup (s • t) = Sup s • Sup t` and `Inf (s • t) = Inf s • Inf t` hold as well but
+`covariant_class` is currently not polymorphic enough to state it.
 -/
 
+open function set
 open_locale pointwise
+
+variables {α : Type*}
+
+section has_one
+variables [conditionally_complete_lattice α] [has_one α]
+
+@[simp, to_additive] lemma cSup_one : Sup (1 : set α) = 1 := cSup_singleton _
+@[simp, to_additive] lemma cInf_one : Inf (1 : set α) = 1 := cInf_singleton _
+
+end has_one
+
+section group
+variables [conditionally_complete_lattice α] [group α] [covariant_class α α (*) (≤)]
+  [covariant_class α α (swap (*)) (≤)] {s : set α}
+
+@[to_additive] lemma cSup_inv (hs₀ : s.nonempty) (hs₁ : bdd_below s) : Sup s⁻¹ = (Inf s)⁻¹ :=
+by { rw ←image_inv, exact ((order_iso.inv α).map_cInf' hs₀ hs₁).symm }
+
+@[to_additive] lemma cInf_inv (hs₀ : s.nonempty) (hs₁ : bdd_above s) : Inf s⁻¹ = (Sup s)⁻¹ :=
+by { rw ←image_inv, exact ((order_iso.inv α).map_cSup' hs₀ hs₁).symm }
+
+end group
+
+section comm_group
+variables [conditionally_complete_linear_order α] [comm_group α] [covariant_class α α (*) (≤)]
+  {s t : set α}
+
+@[to_additive] lemma cSup_mul (hs₀ : s.nonempty) (hs₁ : bdd_above s) (ht₀ : t.nonempty)
+  (ht₁ : bdd_above t) :
+  Sup (s * t) = Sup s * Sup t :=
+begin
+  refine cSup_eq_of_forall_le_of_forall_lt_exists_gt (hs₀.mul ht₀) _ (λ a ha, _),
+  { rintro f ⟨a, b, ha, hb, rfl⟩,
+    exact mul_le_mul' (le_cSup hs₁ ha) (le_cSup ht₁ hb) },
+  { obtain ⟨b, hb, hab⟩ := exists_lt_of_lt_cSup hs₀ (div_lt_iff_lt_mul.2 ha),
+    obtain ⟨c, hc, hbc⟩ := exists_lt_of_lt_cSup ht₀ (div_lt''.1 hab),
+    exact ⟨b * c, mul_mem_mul hb hc, div_lt_iff_lt_mul'.1 hbc⟩ }
+end
+
+@[to_additive] lemma cInf_mul (hs₀ : s.nonempty) (hs₁ : bdd_below s) (ht₀ : t.nonempty)
+  (ht₁ : bdd_below t) :
+  Inf (s * t) = Inf s * Inf t :=
+begin
+  refine cInf_eq_of_forall_ge_of_forall_gt_exists_lt (hs₀.mul ht₀) _ (λ a ha, _),
+  { rintro f ⟨a, b, ha, hb, rfl⟩,
+    exact mul_le_mul' (cInf_le hs₁ ha) (cInf_le ht₁ hb) },
+  { obtain ⟨b, hb, hab⟩ := exists_lt_of_cInf_lt hs₀ (lt_div_iff_mul_lt.2 ha),
+    obtain ⟨c, hc, hbc⟩ := exists_lt_of_cInf_lt ht₀ (lt_div''.1 hab),
+    exact ⟨b * c, mul_mem_mul hb hc, lt_div_iff_mul_lt'.1 hbc⟩ }
+end
+
+@[to_additive] lemma cSup_div (hs₀ : s.nonempty) (hs₁ : bdd_above s) (ht₀ : t.nonempty)
+  (ht₁ : bdd_below t) :
+  Sup (s / t) = Sup s / Inf t :=
+by rw [div_eq_mul_inv, cSup_mul hs₀ hs₁ ht₀.inv ht₁.inv, cSup_inv ht₀ ht₁, div_eq_mul_inv]
+
+@[to_additive] lemma cInf_div (hs₀ : s.nonempty) (hs₁ : bdd_below s) (ht₀ : t.nonempty)
+  (ht₁ : bdd_above t) :
+  Inf (s / t) = Inf s / Sup t :=
+by rw [div_eq_mul_inv, cInf_mul hs₀ hs₁ ht₀.inv ht₁.inv, cInf_inv ht₀ ht₁, div_eq_mul_inv]
+
+end comm_group
 
 namespace linear_ordered_field
 
@@ -25,7 +91,7 @@ include hr
 lemma smul_Ioo : r • Ioo a b = Ioo (r • a) (r • b) :=
 begin
   ext x,
-  simp only [mem_smul_set, algebra.id.smul_eq_mul, mem_Ioo],
+  simp only [mem_smul_set, smul_eq_mul, mem_Ioo],
   split,
   { rintro ⟨a, ⟨a_h_left_left, a_h_left_right⟩, rfl⟩, split,
     exact (mul_lt_mul_left hr).mpr a_h_left_left,
@@ -39,7 +105,7 @@ end
 lemma smul_Icc : r • Icc a b = Icc (r • a) (r • b) :=
 begin
   ext x,
-  simp only [mem_smul_set, algebra.id.smul_eq_mul, mem_Icc],
+  simp only [mem_smul_set, smul_eq_mul, mem_Icc],
   split,
   { rintro ⟨a, ⟨a_h_left_left, a_h_left_right⟩, rfl⟩, split,
     exact (mul_le_mul_left hr).mpr a_h_left_left,
@@ -53,7 +119,7 @@ end
 lemma smul_Ico : r • Ico a b = Ico (r • a) (r • b) :=
 begin
   ext x,
-  simp only [mem_smul_set, algebra.id.smul_eq_mul, mem_Ico],
+  simp only [mem_smul_set, smul_eq_mul, mem_Ico],
   split,
   { rintro ⟨a, ⟨a_h_left_left, a_h_left_right⟩, rfl⟩, split,
     exact (mul_le_mul_left hr).mpr a_h_left_left,
@@ -67,7 +133,7 @@ end
 lemma smul_Ioc : r • Ioc a b = Ioc (r • a) (r • b) :=
 begin
   ext x,
-  simp only [mem_smul_set, algebra.id.smul_eq_mul, mem_Ioc],
+  simp only [mem_smul_set, smul_eq_mul, mem_Ioc],
   split,
   { rintro ⟨a, ⟨a_h_left_left, a_h_left_right⟩, rfl⟩, split,
     exact (mul_lt_mul_left hr).mpr a_h_left_left,
@@ -81,7 +147,7 @@ end
 lemma smul_Ioi : r • Ioi a = Ioi (r • a) :=
 begin
   ext x,
-  simp only [mem_smul_set, algebra.id.smul_eq_mul, mem_Ioi],
+  simp only [mem_smul_set, smul_eq_mul, mem_Ioi],
   split,
   { rintro ⟨a_w, a_h_left, rfl⟩,
     exact (mul_lt_mul_left hr).mpr a_h_left, },
@@ -95,7 +161,7 @@ end
 lemma smul_Iio : r • Iio a = Iio (r • a) :=
 begin
   ext x,
-  simp only [mem_smul_set, algebra.id.smul_eq_mul, mem_Iio],
+  simp only [mem_smul_set, smul_eq_mul, mem_Iio],
   split,
   { rintro ⟨a_w, a_h_left, rfl⟩,
     exact (mul_lt_mul_left hr).mpr a_h_left, },
@@ -109,7 +175,7 @@ end
 lemma smul_Ici : r • Ici a = Ici (r • a) :=
 begin
   ext x,
-  simp only [mem_smul_set, algebra.id.smul_eq_mul, mem_Ioi],
+  simp only [mem_smul_set, smul_eq_mul, mem_Ioi],
   split,
   { rintro ⟨a_w, a_h_left, rfl⟩,
     exact (mul_le_mul_left hr).mpr a_h_left, },
@@ -123,7 +189,7 @@ end
 lemma smul_Iic : r • Iic a = Iic (r • a) :=
 begin
   ext x,
-  simp only [mem_smul_set, algebra.id.smul_eq_mul, mem_Iio],
+  simp only [mem_smul_set, smul_eq_mul, mem_Iio],
   split,
   { rintro ⟨a_w, a_h_left, rfl⟩,
     exact (mul_le_mul_left hr).mpr a_h_left, },

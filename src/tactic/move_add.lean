@@ -46,7 +46,7 @@ end
 ```
 
 The list of expressions that `move_add` takes is optional and a single expression can be passed
-without parentheses.  Thus `move_add ← f` and `move_add [← f]` mean the same.
+without brackets.  Thus `move_add ← f` and `move_add [← f]` mean the same.
 
 Finally, `move_add` can also be targeted to one or several hypothesis.  If `hp₁, hp₂` are in the
 local context, then `move_add [f, ← g] at hp₁ hp₂` performs the rearranging at `hp₁` and `hp₂`.

@@ -153,7 +153,7 @@ end perm
   sigma_congr_right (function.update (λ a, equiv.refl _) a' (equiv.swap i j))
     = equiv.swap ⟨a', i⟩ ⟨a', j⟩  :=
 begin
-  ext x,
+  ext x : 1,
   cases x,
   by_cases h : a' = x_fst,
   { subst h,

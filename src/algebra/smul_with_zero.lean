@@ -173,7 +173,7 @@ begin
   { simp only [inv_zero, zero_smul] },
   obtain rfl | hx := eq_or_ne x 0,
   { simp only [inv_zero, smul_zero'] },
-  { refine inv_eq_of_mul_eq_one_left _,
+  { refine inv_eq_of_mul_eq_one_right _,
     rw [smul_mul_smul, inv_mul_cancel hc, inv_mul_cancel hx, one_smul] }
 end
 

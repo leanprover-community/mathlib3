@@ -222,6 +222,15 @@ protected def function.surjective.semiring
 
 end injective_surjective_maps
 
+section has_one_has_add
+
+variables [has_one α] [has_add α]
+
+lemma one_add_one_eq_two : 1 + 1 = (2 : α) :=
+by unfold bit0
+
+end has_one_has_add
+
 section non_unital_semiring
 variables [non_unital_semiring α]
 
@@ -245,6 +254,9 @@ by rw [mul_add, mul_one]
 theorem two_mul (n : α) : 2 * n = n + n :=
 eq.trans (right_distrib 1 1 n) (by simp)
 
+theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
+(two_mul _).symm
+
 theorem mul_two (n : α) : n * 2 = n + n :=
 (left_distrib n 1 1).trans (by simp)
 
@@ -252,12 +264,6 @@ end non_assoc_semiring
 
 section semiring
 variables [semiring α]
-
-lemma one_add_one_eq_two : 1 + 1 = (2 : α) :=
-by unfold bit0
-
-theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
-(two_mul _).symm
 
 @[to_additive] lemma mul_ite {α} [has_mul α] (P : Prop) [decidable P] (a b c : α) :
   a * (if P then b else c) = if P then a * b else a * c :=
@@ -311,6 +317,16 @@ namespace add_hom
 ⟨λ a, a * r, λ _ _, add_mul _ _ r⟩
 
 end add_hom
+
+section add_hom_class
+
+variables {F : Type*} [non_assoc_semiring α] [non_assoc_semiring β] [add_hom_class F α β]
+
+/-- Additive homomorphisms preserve `bit0`. -/
+@[simp] lemma map_bit0 (f : F) (a : α) : (f (bit0 a) : β) = bit0 (f a) :=
+map_add _ _ _
+
+end add_hom_class
 
 namespace add_monoid_hom
 
@@ -567,10 +583,6 @@ class ring_hom_class (F : Type*) (R S : out_param Type*)
   extends monoid_hom_class F R S, add_monoid_hom_class F R S, monoid_with_zero_hom_class F R S
 
 variables {F : Type*} [non_assoc_semiring α] [non_assoc_semiring β] [ring_hom_class F α β]
-
-/-- Ring homomorphisms preserve `bit0`. -/
-@[simp] lemma map_bit0 (f : F) (a : α) : (f (bit0 a) : β) = bit0 (f a) :=
-map_add _ _ _
 
 /-- Ring homomorphisms preserve `bit1`. -/
 @[simp] lemma map_bit1 (f : F) (a : α) : (f (bit1 a) : β) = bit1 (f a) :=
@@ -906,6 +918,34 @@ by rw [←zero_mul (0 : α), ←neg_mul, mul_zero, mul_zero]
 
 end mul_zero_class
 
+section semigroup
+
+variables [semigroup α] [has_distrib_neg α] {a b c : α}
+
+theorem dvd_neg_of_dvd (h : a ∣ b) : (a ∣ -b) :=
+let ⟨c, hc⟩ := h in ⟨-c, by simp [hc]⟩
+
+theorem dvd_of_dvd_neg (h : a ∣ -b) : (a ∣ b) :=
+let t := dvd_neg_of_dvd h in by rwa neg_neg at t
+
+/-- An element a of a semigroup with a distributive negation divides the negation of an element b
+iff a divides b. -/
+@[simp] lemma dvd_neg (a b : α) : (a ∣ -b) ↔ (a ∣ b) :=
+⟨dvd_of_dvd_neg, dvd_neg_of_dvd⟩
+
+theorem neg_dvd_of_dvd (h : a ∣ b) : -a ∣ b :=
+let ⟨c, hc⟩ := h in ⟨-c, by simp [hc]⟩
+
+theorem dvd_of_neg_dvd (h : -a ∣ b) : a ∣ b :=
+let t := neg_dvd_of_dvd h in by rwa neg_neg at t
+
+/-- The negation of an element a of a semigroup with a distributive negation divides
+another element b iff a divides b. -/
+@[simp] lemma neg_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
+⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
+
+end semigroup
+
 section group
 variables [group α] [has_distrib_neg α]
 
@@ -1207,30 +1247,6 @@ instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
 section ring
 variables [ring α] {a b c : α}
 
-theorem dvd_neg_of_dvd (h : a ∣ b) : (a ∣ -b) :=
-dvd.elim h
-  (assume c, assume : b = a * c,
-    dvd.intro (-c) (by simp [this]))
-
-theorem dvd_of_dvd_neg (h : a ∣ -b) : (a ∣ b) :=
-let t := dvd_neg_of_dvd h in by rwa neg_neg at t
-
-/-- An element a of a ring divides the additive inverse of an element b iff a divides b. -/
-@[simp] lemma dvd_neg (a b : α) : (a ∣ -b) ↔ (a ∣ b) :=
-⟨dvd_of_dvd_neg, dvd_neg_of_dvd⟩
-
-theorem neg_dvd_of_dvd (h : a ∣ b) : -a ∣ b :=
-dvd.elim h
-  (assume c, assume : b = a * c,
-    dvd.intro (-c) (by simp [this]))
-
-theorem dvd_of_neg_dvd (h : -a ∣ b) : a ∣ b :=
-let t := neg_dvd_of_dvd h in by rwa neg_neg at t
-
-/-- The additive inverse of an element a of a ring divides another element b iff a divides b. -/
-@[simp] lemma neg_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
-⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
-
 theorem dvd_sub (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b - c :=
 by { rw sub_eq_add_neg, exact dvd_add h₁ (dvd_neg_of_dvd h₂) }
 
@@ -1329,10 +1345,10 @@ end
 
 end comm_ring
 
-lemma succ_ne_self [ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
+lemma succ_ne_self [non_assoc_ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
 λ h, one_ne_zero ((add_right_inj a).mp (by simp [h]))
 
-lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
+lemma pred_ne_self [non_assoc_ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by simpa [sub_eq_add_neg] using h)))
 
 /-- Left `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
@@ -1353,8 +1369,8 @@ begin
   rw [sub_mul, sub_eq_zero, h']
 end
 
-lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k ≠ 0) :
-  is_regular k :=
+lemma is_regular_of_ne_zero' [non_unital_non_assoc_ring α] [no_zero_divisors α] {k : α}
+  (hk : k ≠ 0) : is_regular k :=
 ⟨is_left_regular_of_non_zero_divisor k
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left hk),
  is_right_regular_of_non_zero_divisor k
@@ -1484,7 +1500,7 @@ variables [mul_one_class R] [has_distrib_neg R] {a x y : R}
 end
 
 section
-variables [ring R] {a b x y x' y' : R}
+variables [non_unital_non_assoc_ring R] {a b x y x' y' : R}
 
 @[simp] lemma sub_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
   semiconj_by a (x - x') (y - y') :=
@@ -1554,7 +1570,7 @@ variables [mul_one_class R] [has_distrib_neg R] {a : R}
 end
 
 section
-variables [ring R] {a b c : R}
+variables [non_unital_non_assoc_ring R] {a b c : R}
 
 @[simp] theorem sub_right : commute a b → commute a c → commute a (b - c) := semiconj_by.sub_right
 @[simp] theorem sub_left : commute a c → commute b c → commute (a - b) c := semiconj_by.sub_left

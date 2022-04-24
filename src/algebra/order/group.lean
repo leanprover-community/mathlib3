@@ -1019,8 +1019,6 @@ lemma le_abs_self (a : α) : a ≤ |a| := le_max_left _ _
 
 lemma neg_le_abs_self (a : α) : -a ≤ |a| := le_max_right _ _
 
-lemma neg_abs_le_neg (a : ℝ) : -|a| ≤ -a := by simp [le_abs_self]
-
 lemma lt_abs : a < |b| ↔ a < b ∨ a < -b := lt_max_iff
 
 theorem abs_le_abs (h₀ : a ≤ b) (h₁ : -a ≤ b) : |a| ≤ |b| :=
@@ -1092,6 +1090,9 @@ begin
   { calc -|a| = - - a : congr_arg (has_neg.neg) (abs_of_nonpos h)
             ... ≤ a     : (neg_neg a).le }
 end
+
+lemma neg_abs_le_neg (a : α) : -|a| ≤ -a :=
+by simpa using neg_abs_le_self (-a)
 
 lemma abs_nonneg (a : α) : 0 ≤ |a| :=
 (le_total 0 a).elim (λ h, h.trans (le_abs_self a)) (λ h, (neg_nonneg.2 h).trans $ neg_le_abs_self a)

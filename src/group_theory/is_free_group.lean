@@ -104,7 +104,7 @@ def of_lift {G : Type u} [group G] (X : Type u)
       let lift_symm_of : ∀ {H : Type u} [group H], by exactI ∀ (f : G →* H) a,
         lift.symm f a = f (of a) := by introsI H _ f a; simp [← lift_of (lift.symm f)],
       apply lift.symm.injective, ext x,
-      simp only [equiv.coe_fn_symm_mk, monoid_hom.coe_comp, function.comp_app, monoid_hom.id_apply,
+      simp only [monoid_hom.coe_comp, function.comp_app, monoid_hom.id_apply,
         free_group.lift.of, lift_of, lift_symm_of],
     end }
 

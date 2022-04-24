@@ -18,7 +18,6 @@ We state several auxiliary results pertaining to sequences of the form `‚åäc^n‚å
   to `1/j^2`, up to a multiplicative constant.
 -/
 
-
 open filter finset
 open_locale topological_space big_operators
 

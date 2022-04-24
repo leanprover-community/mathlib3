@@ -22,7 +22,7 @@ open filter finset
 open_locale topological_space big_operators
 
 /-- If a monotone sequence `u` is such that `u n / n` tends to a limit `l` along subsequences with
-exponential growth arbitrarily close to `1`, then `u n / n` tends to `l`. -/
+exponential growth rate arbitrarily close to `1`, then `u n / n` tends to `l`. -/
 lemma tendsto_div_of_monotone_of_exists_subseq_tendsto_div (u : ℕ → ℝ) (l : ℝ) (hmono : monotone u)
   (hlim : ∀ (a : ℝ), 1 < a → ∃ c : ℕ → ℕ, (∀ᶠ n in at_top, (c (n+1) : ℝ) ≤ a * c n) ∧
     tendsto c at_top at_top ∧ tendsto (λ n, u (c n) / (c n)) at_top (𝓝 l)) :
@@ -222,7 +222,7 @@ begin
   assume a ha,
   obtain ⟨k, hk⟩ : ∃ k, c k < a := ((tendsto_order.1 clim).2 a ha).exists,
   refine ⟨λ n, ⌊(c k)^n⌋₊, _,
-    nat.tendsto_floor_at_top.comp (tendsto_pow_at_top_at_top_of_one_lt (cone k)), hc k⟩,
+    tendsto_nat_floor_at_top.comp (tendsto_pow_at_top_at_top_of_one_lt (cone k)), hc k⟩,
   have H : ∀ (n : ℕ), (0 : ℝ) < ⌊c k ^ n⌋₊,
   { assume n,
     refine zero_lt_one.trans_le _,
@@ -368,7 +368,7 @@ begin
   begin
     rw [← mul_sum, ← mul_div_assoc'],
     refine mul_le_mul_of_nonneg_left _ (sq_nonneg _),
-    exact aux_sum_horrible N hj hc,
+    exact sum_div_pow_sq_le_div_sq N hj hc,
   end
   ... = (c ^ 5 * (c - 1) ⁻¹ ^ 3) / j ^ 2 :
   begin

@@ -443,6 +443,20 @@ begin
   rw [←zmod.int_coe_eq_int_coe_iff', int.cast_coe_nat, zmod.nat_cast_val, zmod.cast_id],
 end
 
+lemma zmod.coe_neg_one {R : Type*} [ring R] (n : ℕ) : ↑(-1 : zmod n) = (n - 1 : R) :=
+begin
+  cases n,
+  { rw [int.cast_neg, int.cast_one, nat.cast_zero, zero_sub] },
+  { transitivity ((((n : ℤ) : zmod n.succ).val : ℤ) : R),
+    { apply congr_arg zmod.cast,
+      rw [neg_eq_iff_add_eq_zero, add_comm],
+      exact zmod.nat_cast_self n.succ },
+    { rw [zmod.val_int_cast, int.mod_eq_of_lt, int.cast_coe_nat, nat.cast_succ, add_sub_cancel],
+      { exact int.coe_nat_nonneg n },
+      { rw [int.coe_nat_succ, lt_add_iff_pos_right],
+        exact zero_lt_one } } },
+end
+
 lemma nat_coe_zmod_eq_iff (p : ℕ) (n : ℕ) (z : zmod p) [fact (0 < p)] :
   ↑n = z ↔ ∃ k, n = z.val + p * k :=
 begin

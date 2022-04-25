@@ -821,7 +821,7 @@ end semiring
 In other words, it is a type with the following structures: additive commutative monoid
 (`add_comm_monoid`), commutative semigroup (`comm_semigroup`), distributive laws (`distrib`), and
 multiplication by zero law (`mul_zero_class`). -/
-@[protect_proj, ancestor semiring comm_monoid]
+@[protect_proj, ancestor non_unital_semiring comm_semigroup]
 class non_unital_comm_semiring (α : Type u) extends non_unital_semiring α, comm_semigroup α
 
 section non_unital_comm_semiring

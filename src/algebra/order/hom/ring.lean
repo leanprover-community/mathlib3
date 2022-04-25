@@ -306,7 +306,7 @@ end non_assoc_semiring
 end order_ring_iso
 
 /-!
-### Unicity
+### Uniqueness
 
 There is at most one ordered ring homomorphism from a linear ordered field to an archimedean linear
 ordered field. Reciprocally, such an ordered ring homomorphism exists when the codomain is further

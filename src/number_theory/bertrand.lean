@@ -187,13 +187,14 @@ end
 
 lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num
 
-lemma mul_div_mul (a b c : ℝ) (ha : a ≠ 0) : (a * b) / (a * c) = b / c :=
-begin
-  by_cases c = 0,
-  { subst h, simp, },
-  { field_simp,
-    ring, }
-end
+-- lemma real.mul_div_mul (a b c : ℝ) (ha : a ≠ 0) : (a * b) / (a * c) = b / c :=
+-- begin
+--   exact mul_div_mul_left b c ha,
+--   by_cases c = 0,
+--   { subst h, simp, },
+--   { field_simp,
+--     ring, }
+-- end
 
 -- This is best possible; it is false for x = 99.
 lemma inequality1 {x : ℝ} (n_large : 100 ≤ x) : log x / (x * log 4) ≤ 1/30 :=
@@ -215,7 +216,7 @@ begin
     ... = log (10 ^ (2 : ℝ)) / log (2 ^ (2 : ℝ)) / 100 : by norm_num
     ... = (2 * log 10) / log (2 ^ (2 : ℝ)) / 100 : by rw @log_rpow 10 (by norm_num) 2
     ... = ((2 * log 10) / (2 * log 2)) / 100 : by rw @log_rpow 2 (by norm_num) 2
-    ... = (log 10 / log 2) / 100 : by rw mul_div_mul 2 (log 10) (log 2) (by norm_num)
+    ... = (log 10 / log 2) / 100 : by { rw mul_div_mul_left (log 10) (log 2), norm_num, }
     ... ≤ 1 / 30 :
             begin
               have thousand_pos : 0 < (1000 : ℝ) := by norm_num,
@@ -353,7 +354,7 @@ begin
               have nineteen_pos : (0 : ℝ) < 19 := by norm_num,
               calc 4 * (log 2 + 2 * log 19) / (2 * log 2)
                     = 2 * (2 * (log 2 + 2 * log 19)) / (2 * log 2) : by ring
-                ... = 2 * (log 2 + 2 * log 19) / log 2 : mul_div_mul _ _ _ (by norm_num)
+                ... = 2 * (log 2 + 2 * log 19) / log 2 : mul_div_mul_left _ _ (by norm_num)
                 ... = (2 * log 2 + 4 * log 19) / log 2 : by ring
                 ... = (log 4 + 4 * log 19) / log 2 : by rw log_four
                 ... = (log 4 + log (19 ^ (4 : ℝ))) / log 2 : by rw log_rpow nineteen_pos 4

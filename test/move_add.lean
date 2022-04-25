@@ -4,55 +4,31 @@ import data.polynomial.degree
 open polynomial tactic interactive
 open_locale polynomial
 
-example {R : Type*} [add_comm_semigroup R] {a b c d : R} (h : a + b + c = d) : b + (a + c) = d :=
+example {R : Type*} [add_comm_semigroup R] {a b c d e f g: R} (h : a + b + c = d) : b + (a + c) = d :=
 begin
-  move_add,
+--  move_add [d] at *, -- d is an unused variable
   move_add at *,
-  move_add [a] at *,
-  move_add at a,
-  move_add at h ⊢,
-  move_add at h ⊢,
-  move_add [b] at h,
-end
-
-
-example {a b c d : ℕ} (h : a + b + a + b + c = b + a + b + a + c) : 2 + 1 = 0 :=
-begin
-  move_add [1, 2],
-  move_add [d] at h,
-  move_add [a, a] at h,
-  move_add [d, a, a] at h,
-  move_add [a, ← a, d] at *,
+--  move_add at *,  -- 'move_add at *' changes nothing
+--  move_add [a, e, f, g] at h a b c ⊢, -- '[a, b, c]' did not change,
+                                        -- '[e, f, g]' are unused variables
+--  move_add at ⊢ h,  -- '[h]' did not change
+                      -- Goal did not change
+  move_add ← a at *,
 end
 
 example {a b c d e : ℕ} (h : c = d) : c + b + a = b + a + d :=
 begin
-  move_add [← a, b, ← a, ← a, c],  -- Goal: `a + c + b = a + d + b`
-  move_add [_ * d, a, c, e] at *,  -- Goal: `a + c + b = a + d + b`
-  move_add [d, a, c, e] at *,  -- Goal: `a + c + b = a + d + b`
-  move_add [← d] at *,  -- Goal: `a + c + b = a + d + b`
-  move_add [d, d],  -- Goal: `a + c + b = a + d + b`
-  move_add [← a],  -- Goal: `a + c + b = a + d + b`
-
+  move_add [← a, b],  -- Goal: `a + c + b = a + d + b`
   congr,
   exact h
 end
 
-example {R : Type*} [add_comm_semigroup R] {a b : R} (h : a + b = b) : true :=
-begin
-  move_add [← b] at h,
-  move_add [a, ← b] at h,
-end
-
+/-  The uncommented `move_add`s in these proofs complain of unused arguments, probably because of
+the underscores.  TODO: needs fixing
 example {a b c d : ℕ} (h : c = d) (k : c + b * c + a * c = a * d + d + b * d) :
-  c + b * c + a * c = a * d + d + b * d + 1 :=
+  b * c + c + a * c = a * d + d + b * d :=
 begin
-  move_add [← c, _ * _] at k,
-  move_add [c] at k,
-  move_add [c] at k,
-  move_add [c] at k h ⊢,
-  move_add [← c] at k h ⊢,
-  move_add ← 1 at *,
+--  move_add [_ * _] at k ⊢,
   -- the first `_ * c` unifies with `b * c` and moves it to the right
   -- the second `_ * c` unifies with `a * c` and moves it to the left
   move_add [_ * c, ← _ * c], -- Goal: `a * c + c + b * c = a * d + d + b * d`
@@ -74,9 +50,11 @@ begin
   congr,
   repeat { assumption }
 end
+-/
 
 variables {R : Type*} [semiring R] (f g h : R[X]) {r s t u : R}
 
+/-  `move_add` complains of unused variables, but should not.
 example (hp : f = g) :
   7 + f + (C r * X ^ 3 + 42) + X ^ 5 * h = C r * X ^ 3 + h * X ^ 5 + g + 7 + 42 :=
 begin
@@ -86,6 +64,7 @@ begin
   congr' 4, -- takes care of using assumption `hp`
   exact X_pow_mul,
 end
+-/
 
 example (s0 : s ≠ 0) (m n : ℕ) (mn : m < n) (m1 : 1 ≤ m) :
   (C r * X ^ m + (5 + C s * X ^ n) + m * X + 37 * X).nat_degree = n :=

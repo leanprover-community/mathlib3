@@ -684,7 +684,7 @@ lemma map_bilinear_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : map_bilinear 
 /-- The linear map from `(M →ₗ P) ⊗ (N →ₗ Q)` to `(M ⊗ N →ₗ P ⊗ Q)` sending `f ⊗ₜ g` to
 the `tensor_product.map f g`, the tensor product of the two maps. -/
 def hom_tensor_hom_map : (M →ₗ[R] P) ⊗[R] (N →ₗ[R] Q) →ₗ[R] (M ⊗[R] N →ₗ[R] P ⊗[R] Q) :=
-  lift map_bilinear
+lift map_bilinear
 
 @[simp]
 lemma hom_tensor_hom_map_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :

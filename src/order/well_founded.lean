@@ -21,20 +21,20 @@ variables {α : Type*}
 
 namespace well_founded
 
-theorem lt_of_not_gt {α} {r : α → α → Prop} (h : well_founded r) :
+theorem not_gt_of_lt {α} {r : α → α → Prop} (h : well_founded r) :
   ∀ ⦃a b⦄, r a b → ¬ r b a
-| a := λ b hab hba, lt_of_not_gt hba hab
+| a := λ b hab hba, not_gt_of_lt hba hab
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, h⟩],
                      dec_tac := tactic.assumption }
 
 theorem is_asymm {α} {r : α → α → Prop} (h : well_founded r) : is_asymm α r :=
-⟨h.lt_of_not_gt⟩
+⟨h.not_gt_of_lt⟩
 
 instance {α} [has_well_founded α] : _root_.is_asymm α has_well_founded.r :=
 ⟨(well_founded.is_asymm has_well_founded.wf).1⟩
 
 theorem is_irrefl {α} {r : α → α → Prop} (h : well_founded r) : is_irrefl α r :=
-⟨λ a, by { by_contra' hr, exact h.lt_of_not_gt hr hr }⟩
+⟨λ a, by { by_contra' hr, exact h.not_gt_of_lt hr hr }⟩
 
 instance {α} [has_well_founded α] : _root_.is_irrefl α has_well_founded.r :=
 ⟨(well_founded.is_irrefl has_well_founded.wf).1⟩

@@ -62,12 +62,12 @@ end
 The list of expressions that `move_add` takes is optional and a single expression can be passed
 without brackets.  Thus `move_add ← f` and `move_add [← f]` mean the same.
 
-Finally, `move_add` can also be targeted to one or several hypothesis.  If `hp₁, hp₂` are in the
+Finally, `move_add` can also target one or more hypotheses.  If `hp₁, hp₂` are in the
 local context, then `move_add [f, ← g] at hp₁ hp₂` performs the rearranging at `hp₁` and `hp₂`.
 
 ##  Implementation notes
 
-The implementation of `move_add` only move the terms specified by the user (and rearranges
+The implementation of `move_add` only moves the terms specified by the user (and rearranges
 parentheses).
 
 An earlier version of this tactic also had a relation on `expr` that performed a sorting on the
@@ -83,10 +83,7 @@ around a sum.
 ##  Future work
 
 * Currently, `_`s in user input generate side-goals that Lean should be able to close automatically.
-  Is it possible to avoid actually get Lean to solve these goals right away and not display them?
-* Using `move_add at *` generates a message mentioning which hypotheses did not change.  It should
-  instead be silent, unless no hypothesis changes.
-* No message is reported if one of the user-provided expressions is not used.
+  Is it possible to get Lean to actually solve these goals right away and not display them?
 * Add support for `neg` and additive groups?
 * Add optional different operations than `+`, most notably `*`?
 * Add functionality for moving terms across the two sides of an in/dis/equality.

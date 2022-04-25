@@ -299,13 +299,8 @@ calc sqrt 361 = sqrt (19 ^ 2) : by norm_num
 
 lemma log_722 : log 722 = log 2 + 2 * log 19 :=
 begin
-  repeat {
-    rw ←log_rpow,
-    rw ←log_mul,
-  },
-  repeat {
-    norm_num,
-  },
+  repeat { rw ←log_rpow, rw ←log_mul, },
+  repeat { norm_num, },
 end
 --calc log 722 = log (2 * 19 ^ (2 : ℝ)) : by norm_num
 --  ... = log 2 + log (19 ^ (2 : ℝ)) : log_mul (by norm_num) (by norm_num)

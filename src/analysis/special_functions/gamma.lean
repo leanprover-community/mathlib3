@@ -236,7 +236,7 @@ begin
   have : (λ X:ℝ, s * partial_Gamma s X - X ^ s * (-X).exp) =ᶠ[at_top] (s+1).partial_Gamma,
   { apply eventually_eq_of_mem (Ici_mem_at_top (0:ℝ)),
     intros X hX,
-    rw partial_Gamma_recurrence hs (mem_Ici.mp hX),
+    rw partial_Gamma_add_one hs (mem_Ici.mp hX),
     ring_nf, },
   refine tendsto.congr' this _,
   suffices : tendsto (λ X, -X ^ s * (-X).exp : ℝ → ℂ) at_top (𝓝 0),
@@ -266,7 +266,7 @@ lemma Gamma_aux_recurrence1 (s : ℂ) (n : ℕ) (h1 : 1 - s.re ≤ ↑n) :
 begin
   induction n with n hn generalizing s,
   { simp only [nat.cast_zero, sub_nonpos] at h1,
-    dsimp only [Gamma_aux], rw Gamma_integral_recurrence h1,
+    dsimp only [Gamma_aux], rw Gamma_integral_add_one h1,
     rw [mul_comm, mul_div_cancel], contrapose! h1, rw h1,
     simp },
   { dsimp only [Gamma_aux],
@@ -281,7 +281,7 @@ lemma Gamma_aux_recurrence2 (s : ℂ) (n : ℕ) (h1 : 1 - s.re ≤ ↑n) :
 begin
   cases n,
   { simp only [nat.cast_zero, sub_nonpos] at h1,
-    dsimp only [Gamma_aux], rw Gamma_integral_recurrence h1,
+    dsimp only [Gamma_aux], rw Gamma_integral_add_one h1,
     have : s ≠ 0 := by { contrapose! h1, rw h1, simp, },
     field_simp, ring },
   { dsimp only [Gamma_aux],
@@ -310,7 +310,7 @@ begin
   rw [←nat.add_sub_of_le (nat.ceil_le.mpr h1), u (n - ⌈ 1 - s.re ⌉₊)],
 end
 
-theorem Gamma_recurrence (s : ℂ) (h2 : s ≠ 0) : s * Gamma(s) = Gamma (s+1) :=
+theorem Gamma_recurrence (s : ℂ) (h2 : s ≠ 0) : Gamma (s+1) = s * Gamma s :=
 begin
   let n := ⌈ 1 - s.re ⌉₊,
   have t1 : 1 - s.re ≤ n := nat.le_ceil (1 - s.re),
@@ -329,7 +329,7 @@ begin
   induction n with n hn,
   { rw [nat.cast_zero, zero_add], rw Gamma_eq_integral,
     simpa using Gamma_integral_one, simp,},
-  rw ←(Gamma_recurrence n.succ $ nat.cast_ne_zero.mpr $ nat.succ_ne_zero n),
+  rw (Gamma_recurrence n.succ $ nat.cast_ne_zero.mpr $ nat.succ_ne_zero n),
   { simp only [nat.cast_succ, nat.factorial_succ, nat.cast_mul], congr, exact hn },
 end
 

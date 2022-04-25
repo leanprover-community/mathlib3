@@ -148,23 +148,99 @@ def move_right : Π (g : pgame), right_moves g → pgame
 @[simp] lemma right_moves_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).right_moves = xr := rfl
 @[simp] lemma move_right_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_right = xR := rfl
 
-/-- `subsequent p q` says that `p` can be obtained by playing
-  some nonempty sequence of moves from `q`. -/
-inductive subsequent : pgame → pgame → Prop
-| move_left  : Π {x : pgame} (i : x.left_moves), subsequent (x.move_left i) x
-| move_right : Π {x : pgame} (j : x.right_moves), subsequent (x.move_right j) x
-| trans      : Π {x y z : pgame}, subsequent x y → subsequent y z → subsequent x z
+/-- Conway induction on games. -/
+@[elab_as_eliminator] def move_rec_on {C : pgame → Sort} (x : pgame)
+  (IH : ∀ (y : pgame), (∀ i, C (y.move_left i)) → (∀ j, C (y.move_right j)) → C y) : C x :=
+begin
+  cases x with xl xr xL xR,
+  apply pgame.rec_on,
+  intros yl yr yL yR IHl IHr,
+  apply IH, exact IHl, exact IHr
+end
+
+/-- `subsequent_eq x y` says that `x` can be obtained by playing some sequence of moves from `y`. -/
+inductive subsequent_eq : pgame → pgame → Prop
+| rfl {x : pgame} : subsequent_eq x x
+| move_left {x y : pgame} (i : x.left_moves) :
+    subsequent_eq x y → subsequent_eq (x.move_left i) y
+| move_right {x y : pgame} (i : x.right_moves) :
+    subsequent_eq x y → subsequent_eq (x.move_right i) y
+
+instance : is_refl pgame subsequent_eq :=
+⟨@subsequent_eq.rfl⟩
+
+@[refl] theorem subsequent_eq.refl (x : pgame) : x.subsequent_eq x :=
+is_refl.refl x
+
+instance : is_trans pgame subsequent_eq :=
+⟨λ x y z h₁ h₂, begin
+  induction h₁ with x' x' y' i h Ih x' y' i h Ih,
+  { exact h₂ },
+  { exact subsequent_eq.move_left i (Ih h₂) },
+  { exact subsequent_eq.move_right i (Ih h₂) }
+end⟩
+
+@[trans] theorem subsequent_eq.trans {x y z : pgame} :
+  x.subsequent_eq y → y.subsequent_eq z → x.subsequent_eq z :=
+is_trans.trans x y z
+
+theorem move_left_subsequent_eq {x : pgame} (i : x.left_moves) :
+  (x.move_left i).subsequent_eq x :=
+subsequent_eq.move_left i subsequent_eq.rfl
+
+theorem move_right_subsequent_eq {x : pgame} (i : x.right_moves) :
+  (x.move_right i).subsequent_eq x :=
+subsequent_eq.move_right i subsequent_eq.rfl
+
+theorem subsequent_eq_iff {x y : pgame} : x.subsequent_eq y ↔
+  x = y ∨ (∃ i, x.subsequent_eq (y.move_left i)) ∨ ∃ i, x.subsequent_eq (y.move_right i) :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { induction h with _ x' y' i hxy IH x' y' i hxy IH,
+    { exact or.inl rfl },
+    { rcases IH with rfl | ⟨j, h⟩ | ⟨j, h⟩,
+      { right, left, exact ⟨i, subsequent_eq.rfl⟩ },
+      { right, left, exact ⟨j, (move_left_subsequent_eq i).trans h⟩ },
+      { right, right, exact ⟨j, (move_left_subsequent_eq i).trans h⟩ } },
+    { rcases IH with rfl | ⟨j, h⟩ | ⟨j, h⟩,
+      { right, right, exact ⟨i, subsequent_eq.rfl⟩ },
+      { right, left, exact ⟨j, (move_right_subsequent_eq i).trans h⟩ },
+      { right, right, exact ⟨j, (move_right_subsequent_eq i).trans h⟩ } } },
+  { rintro (rfl | ⟨i, h⟩ | ⟨i, h⟩),
+    { exact subsequent_eq.rfl },
+    { exact subsequent_eq.trans h (move_left_subsequent_eq i) },
+    { exact subsequent_eq.trans h (move_right_subsequent_eq i) } }
+end
+
+/-- `subsequent x y` says that `x` can be obtained by playing some nonempty sequence of moves from
+`y`. It is equivalent to `x ≠ y ∧ subsequent_eq x y`. -/
+def subsequent (x y : pgame) : Prop :=
+x ≠ y ∧ x.subsequent_eq y
+
+instance : is_irrefl pgame subsequent :=
+⟨λ x h, h.1 rfl⟩
+
+theorem subsequent.irrefl (x : pgame) : ¬ x.subsequent x :=
+λ h, h.1 rfl
 
 theorem wf_subsequent : well_founded subsequent :=
-⟨λ x, begin
-  induction x with l r L R IHl IHr,
-  refine ⟨_, λ y h, _⟩,
-  generalize_hyp e : mk l r L R = x at h,
-  induction h with _ i _ j a b _ h1 h2 IH1 IH2; subst e,
-  { apply IHl },
-  { apply IHr },
-  { exact acc.inv (IH2 rfl) h1 }
+⟨λ x, x.move_rec_on begin
+  refine λ x IHl IHr, ⟨x, λ y, _⟩,
+  rintro ⟨hne, H⟩,
+  rcases subsequent_eq_iff.1 H with (rfl | ⟨i, h⟩ | ⟨i, h⟩),
+  { exact hne.irrefl.elim },
+  { rcases eq_or_ne y (x.move_left i) with rfl | hne,
+    { exact IHl i },
+    { exact acc.inv (IHl i) ⟨hne, h⟩ } },
+  { rcases eq_or_ne y (x.move_right i) with rfl | hne,
+    { exact IHr i },
+    { exact acc.inv (IHr i) ⟨hne, h⟩ } }
 end⟩
+
+theorem not_subsequent_move_left {x : pgame} (i : x.left_moves) : ¬ x.subsequent (x.move_left i) :=
+begin
+  sorry
+end
 
 instance : has_well_founded pgame :=
 { r := subsequent,
@@ -609,11 +685,7 @@ relabelling.mk el er (λ i, by simp) (λ j, by simp)
 theorem subsequent.relabelling {x y y' : pgame} (h : x.subsequent y) (ey : y.relabelling y') :
   ∃ (x' : pgame) (ex : x.relabelling x'), x'.subsequent y' :=
 begin
-  induction h with x' i,
-  { rcases ey with ⟨_, _, L, R, hL, hR⟩,
-    exact ⟨_, hL i, subsequent.left y' _⟩ },
-  { rcases ey with ⟨_, _, L, R, hL, hR⟩,
-    exact ⟨_, hL i, subsequent.left y' _⟩ }
+  induction x with l r L R Hl Hr,
 end
 
 /-- The negation of `{L | R}` is `{-R | -L}`. -/

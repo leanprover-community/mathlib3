@@ -141,8 +141,8 @@ begin
   ... = ∫ x in s, f x ∂μ : by simp
 end
 
-lemma of_real_set_integral_one_of_measure_ne_top {α : Type*} {m : measurable_space α} {μ : measure α}
-  {s : set α} (hs : μ s ≠ ∞) :
+lemma of_real_set_integral_one_of_measure_ne_top {α : Type*} {m : measurable_space α}
+  {μ : measure α} {s : set α} (hs : μ s ≠ ∞) :
   ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
 calc
 ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ)

@@ -596,6 +596,8 @@ begin
     exact ⟨l, by linarith, pr⟩, },
 end
 
+/-- `sqrt_aux` does eventually get near where it should be (though we have not yet proved that it
+stays near). -/
 theorem sqrt_aux_eventually_gets_near (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
   (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
   : ∃ k ≥ N, sqrt_aux f k ^ 2 - f k < 3 * ε :=

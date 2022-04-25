@@ -345,23 +345,11 @@ begin
   rw div_eq_iff two_ne_zero,
   have r : k - N = k + 1 - N - 1,
   calc k - N = k - N + 1 - 1 : eq_tsub_of_add_eq rfl
-    ... = k + 1 - N - 1 : sorry,
+    ... = k + 1 - N - 1 : by rw tsub_add_eq_add_tsub v,
   calc sqrt_aux f N / 2 ^ (k - N)
         = sqrt_aux f N / 2 ^ (k + 1 - N - 1) : by rw r
     ... = sqrt_aux f N / (2 ^ (k + 1 - N) / 2) : by rw pow_sub_one_eq_pow_div 2 (by norm_num) (k + 1 - N) (by linarith)
     ... = sqrt_aux f N / (2 ^ (k + 1 - N)) * 2 : by rw eee (sqrt_aux f N) _ 2 (by norm_num)
-end
-
-theorem cau_seq_le_zero (f : cau_seq ℚ abs) (f_nonpos : f ≤ 0) : is_cau_seq abs (sqrt_aux f) :=
-begin
-  sorry,
-end
-
-theorem sqrt_aux_cau (f : cau_seq ℚ abs) : is_cau_seq abs (sqrt_aux f) :=
-begin
-  by_cases f ≤ 0,
-  { exact cau_seq_le_zero f h, },
-  { sorry, },
 end
 
 -- This bound is not obviously possible to improve without further assumptions, but it's also
@@ -369,35 +357,36 @@ end
 -- We later prove a refinement that is extremely useful.
 theorem converges_eventually_if_near_step (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
   (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
-  (k : ℕ) (k_large : N ≤ k) (δ : ℚ) (δ_pos : 0 < δ) (converged : sqrt_aux f k ^ 2 - f k ≤ δ) :
-  sqrt_aux f (k + 1) ^ 2 - f (k + 1) ≤ (δ + ε) ^ 2 / (4 * sqrt_aux f k ^ 2) :=
+  (k : ℕ) (k_large : N ≤ k) :
+  sqrt_aux f (k + 1) ^ 2 - f (k + 1) ≤ ((sqrt_aux f k ^ 2 - f k) + ε) ^ 2 / (4 * sqrt_aux f k ^ 2) :=
 begin
   let s := sqrt_aux f k,
+  let δ := s ^ 2 - f k,
+  have δ_nonneg : 0 ≤ δ := sqrt_aux_overestimate' f k,
   by_cases t : f (k + 1) = 0,
   { specialize f_near k k_large (k + 1) (by linarith),
     unfold sqrt_aux,
     rw t at *,
-    simp at *,
+    simp,
     have: 0 < (4 : ℚ) := by norm_num,
     cancel_denoms,
     cancel_denoms,
     rw ←bl,
-    have lem : s ^ 2 ≤ δ + ε := le_trans converged (add_le_add rfl.le (le_of_abs_le f_near)),
+    have lem : s ^ 2 ≤ δ + ε,
+      calc s ^ 2 = δ + f k : by simp
+        ... = δ + (f k - 0) : by ring
+        ... ≤ δ + ε : add_le_add rfl.le (le_of_abs_le f_near),
     calc s ^ 2 ≤ δ + ε : lem
       ... ≤ (δ + ε) ^ 2 / s ^ 2 : begin
-        have r : 0 < δ + ε := add_pos δ_pos ε_pos,
-        refine eeee _ _ (add_pos δ_pos ε_pos) _,
+        have r : 0 < δ + ε,
+        calc 0 ≤ δ : δ_nonneg
+        ... < δ + ε : by linarith,
+        refine eeee _ _ r _,
         exact (one_le_div (pow_pos (sqrt_aux_pos f _) 2)).mpr lem,
       end
    },
 
-  --have t := f_gt_0 (k + 1) (by linarith),
-  --simp at t,
   have t : 0 < f (k + 1) := (ne.symm t).le_iff_lt.mp (f_ge_0 (k + 1) (le_add_right k_large)),
-
-  --have r : 1 ≤ sqrt_aux f k ^ 2 := one_le_pow_of_one_le (sqrt_aux_ge_one f N f_gt_1 k k_large) 2,
-  --have g : 0 < (4 : ℚ) := by norm_num,
-  --have ineq : 4 ≤ 4 * sqrt_aux f k ^ 2 := by simpa using mul_le_mul_of_nonneg_left r g.le,
 
   unfold sqrt_aux,
   rw max_eq_right_of_lt t,
@@ -428,21 +417,7 @@ begin
           refine (mul_le_mul_right greater).2 _,
           linarith [r], },
       end
-    --... ≤ _ / 4 : by begin
-    --  refine div_le_div_of_le_left _ g ineq,
-    --  refine nonneg_three_add (sq_nonneg _) (sq_nonneg _) _,
-    --  exact nonneg_three_mul (by norm_num) (abs_nonneg _) (sqrt_aux_overestimate' f _),
-    --end
-    ... ≤ (δ ^ 2 + (f k - f (k + 1)) ^ 2 + 2 * (abs (f k - f (k + 1))) * (s ^ 2 - f k)) / _ :
-      begin
-        refine div_le_div_of_le (le_of_lt weaker) _,
-        refine add_le_add _ rfl.le,
-        refine add_le_add _ rfl.le,
-        refine sq_le_sq _,
-        rw abs_eq_self.mpr (sqrt_aux_overestimate' f _),
-        rw abs_eq_self.mpr (le_of_lt δ_pos),
-        exact converged,
-      end
+    ... = (δ ^ 2 + (f k - f (k + 1)) ^ 2 + 2 * (abs (f k - f (k + 1))) * (s ^ 2 - f k)) / _ : by refl
     ... ≤ (δ ^ 2 + ε ^ 2 + 2 * (abs (f k - f (k + 1))) * (s ^ 2 - f k)) / _ :
       begin
         refine div_le_div_of_le (le_of_lt weaker) _,
@@ -460,30 +435,213 @@ begin
         refine mul_le_mul_of_nonneg_left _ (by norm_num),
         exact f_near k k_large (k + 1) (by linarith),
       end
-    ... ≤ (δ ^ 2 + ε ^ 2 + 2 * ε * δ) / _ :
-      begin
-        refine div_le_div_of_le (le_of_lt weaker) _,
-        refine add_le_add rfl.le _,
-        refine mul_le_mul_of_nonneg_left _ (by linarith),
-        have u := sqrt_aux_overestimate f k,
-        linarith,
-      end
-    ... = (δ + ε) ^ 2 / (4 * s ^ 2) : by ring
+    ... = (δ ^ 2 + ε ^ 2 + 2 * ε * δ) / _ : by refl
+    ... = (δ + ε) ^ 2 / (4 * s ^ 2) : by ring,
 end
 
+lemma bbbb (a b c : ℚ) (c_nonzero : c ≠ 0) : a / b * c = a / (b / c) :=
+by field_simp
+
+lemma cccc (a : ℚ) : a / (2 / 4) = 2 * a :=
+begin
+  field_simp,
+  ring,
+end
+
+lemma dddd (a b : ℚ) : 2 * a / (4 * b) = a / (2 * b) :=
+begin
+  have t : (4 : ℚ) = 2 * 2 := by norm_num,
+  have u : (2 : ℚ) ≠ 0 := by norm_num,
+  rw [t, mul_assoc, mul_div_mul_left _ (2 * b) u],
+end
+
+-- This is not best-possible; in fact that 3 could be 1+sqrt2, and the inequality is much more
+-- true for large δ.
 theorem further_refinement (f : cau_seq ℚ abs)
   (ε : ℚ) (ε_pos : 0 < ε)
-  (k : ℕ) (δ : ℚ) (δ_pos : 0 < δ) (f_pos : f k ≥ 0) (converged : sqrt_aux f k ^ 2 - f k = δ) :
-  (δ + ε) ^ 2 / (4 * sqrt_aux f k ^ 2) ≤ δ / 2 :=
+  (k : ℕ) (δ : ℚ) (δ_pos : 0 < δ) (δ_small : δ ≤ sqrt_aux f k ^ 2) :
+  (δ + ε) ^ 2 / (4 * sqrt_aux f k ^ 2) ≤ δ / 2 ∨ δ < 3 * ε :=
 begin
-  have r : 0 < 4 * sqrt_aux f k ^ 2 := sorry,
-  have u : δ ≤ sqrt_aux f k ^ 2 := sorry,
-  rw div_le_iff r,
-  ring_nf,
-  rw ←div_le_iff δ_pos,
-  calc ((δ + 2 * ε) * δ + ε ^ 2) / δ ≤ 2 * δ : sorry
-  ... ≤ 2 * sqrt_aux f k ^ 2 : by linarith,
+  have four_pos : 0 < (4 : ℚ) := by norm_num,
+  have two_pos : 0 < (2 : ℚ) := by norm_num,
+  have sqrt_aux_sq_pos : 0 < sqrt_aux f k ^ 2 := pow_pos (sqrt_aux_pos f k) 2,
+  have r : 0 < 4 * sqrt_aux f k ^ 2 := mul_pos four_pos sqrt_aux_sq_pos,
+  have s : 4 * δ ≤ 4 * sqrt_aux f k ^ 2 := (mul_le_mul_left four_pos).mpr δ_small,
+  have u : 0 < 4 * δ := by linarith,
+  have t : 0 < 2 * δ := by linarith,
+
+  by_cases δ < 3 * ε,
+  { exact or.inr h, },
+  left, simp at h,
+
+  calc (δ + ε) ^ 2 / (4 * sqrt_aux f k ^ 2)
+        ≤ (δ + ε) ^ 2 / (4 * δ) : div_le_div (sq_nonneg _) rfl.le u s
+    ... ≤ _ : begin
+      cancel_denoms, field_simp, rw dddd _ _,
+      rw div_le_iff t,
+      refine sub_nonneg.1 _,
+      ring_nf,
+      calc 0 ≤ 2 * ε ^ 2 : (zero_le_mul_left two_pos).mpr (sq_nonneg ε)
+        ... = (3 * ε - ε) ^ 2 - 2 * ε ^ 2 : by ring
+        ... ≤ (δ - ε) ^ 2 - 2 * ε ^ 2:
+          begin
+            refine sub_le_sub_right _ (2 * ε ^ 2),
+            refine sq_le_sq _,
+            have r : δ - ε ≥ 0 := by linarith,
+            have s : 3 * ε - ε ≥ 0 := by linarith,
+            rw [abs_eq_self.2 r, abs_eq_self.2 s],
+            exact sub_le_sub_right h ε,
+          end
+        ... = _ : by ring
+    end
 end
+
+theorem converges_eventually_or_near_step (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
+  (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
+  (k : ℕ) (k_large : N ≤ k) :
+  sqrt_aux f (k + 1) ^ 2 - f (k + 1) ≤ (sqrt_aux f k ^ 2 - f k) / 2 ∨ (sqrt_aux f k ^ 2 - f k) < 3 * ε :=
+begin
+  by_cases strict_overestimate : sqrt_aux f k ^ 2 = f k,
+  { right, rw strict_overestimate, simp, linarith, },
+
+  have strict_overestimate : 0 < sqrt_aux f k ^ 2 - f k,
+  { rcases lt_trichotomy 0 (sqrt_aux f k ^ 2 - f k) with h | h | h,
+    { exact h, },
+    { exfalso, refine strict_overestimate _, exact sub_eq_zero.mp (eq.symm h)},
+    { linarith [sqrt_aux_overestimate' f k]}, },
+
+  have x : sqrt_aux f k ^ 2 - f k ≤ sqrt_aux f k ^ 2 := sub_le_self _ (f_ge_0 k k_large),
+  rcases further_refinement f ε ε_pos k (sqrt_aux f k ^ 2 - f k) strict_overestimate x with a | b,
+  { left,
+    calc _ ≤ _ : converges_eventually_if_near_step f N f_ge_0 ε ε_pos f_near k k_large
+      ... ≤ _ : a, },
+  { right, exact b, },
+end
+
+lemma fooe (j k : ℕ) (j_large : j ≥ k) : (2 : ℚ) ^ (j + 1 - k) = 2 ^ (j - k) * 2 :=
+begin
+  norm_cast,
+  have r : j + 1 - k = j - k + 1 := nat.succ_sub j_large,
+  calc 2 ^ (j + 1 - k) = 2 ^ (j - k + 1) : by rw r
+    ... = 2 ^ (j - k) * 2 : pow_succ' 2 (j - k)
+end
+
+theorem converges_eventually_or_near_step' (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
+  (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
+  (k : ℕ) (k_large : N ≤ k) :
+  ∀ j ≥ k, sqrt_aux f j ^ 2 - f j ≤ (sqrt_aux f k ^ 2 - f k) / 2 ^ (j - k) ∨ ∃ l ≥ k, (sqrt_aux f l ^ 2 - f l) < 3 * ε
+| 0 pr :=
+begin
+  simp, simp at pr, rw pr at *, simp at k_large, rw k_large at *,
+  left, rw sub_add, simp,
+end
+| (j + 1) pr :=
+begin
+  by_cases j + 1 = k,
+  { rw h,
+    have answer := converges_eventually_or_near_step f N f_ge_0 ε ε_pos f_near k k_large,
+    left,
+    simp, },
+  { have pr : j + 1 > k := (ne.symm h).le_iff_lt.mp pr,
+    specialize converges_eventually_or_near_step' j (nat.lt_succ_iff.mp pr),
+    rcases converges_eventually_or_near_step' with below | found,
+    { have answer := converges_eventually_or_near_step f N f_ge_0 ε ε_pos f_near j (by linarith),
+      rcases answer with step | found,
+      { left,
+        have zero_lt_two : 0 < (2 : ℚ) := by norm_num,
+        have below' : (sqrt_aux f j ^ 2 - f j) / 2 ≤ (sqrt_aux f k ^ 2 - f k) / 2 ^ (j + 1 - k),
+        { calc _ ≤ _ : (div_le_div_right zero_lt_two).mpr below
+            ... = _ : begin
+              field_simp,
+              left,
+              exact fooe j k (by linarith),
+            end },
+        calc _ ≤ _ : step
+          ... ≤ _ : below', },
+      { right,
+        exact ⟨j, by linarith, found⟩, }, },
+    { right,
+      exact found, }, },
+end
+
+theorem decreasing_and_nonneg (f : ℕ → ℚ) (N : ℕ)
+  (nonneg : ∀ k ≥ N, 0 ≤ f k) (decreasing : ∀ k ≥ N, f (k + 1) ≤ f k / 2) :
+  ∀ ε > 0, ∃ n ≥ N, ∀ m ≥ n, f m < ε :=
+begin
+  sorry,
+end
+
+theorem global_decreasing (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
+  (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε) :
+  (∀ (k ≥ N), sqrt_aux f (k + 1) ^ 2 - f (k + 1) ≤ (sqrt_aux f k ^ 2 - f k) / 2) ∨ ∃ k ≥ N, (sqrt_aux f k ^ 2 - f k) < 3 * ε :=
+begin
+  by_contradiction,
+  push_neg at h,
+
+end
+
+theorem sqrt_aux_eventually_gets_near (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
+  (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
+  : ∃ k ≥ N, sqrt_aux f k ^ 2 - f k < 3 * ε :=
+begin
+  have nonneg : ∀ k ≥ N, 0 ≤ sqrt_aux f k ^ 2 - f k,
+  { intros k _, exact sqrt_aux_overestimate' f k, },
+  rcases global_decreasing f N f_ge_0 ε ε_pos f_near with decreasing | small,
+  { rcases decreasing_and_nonneg _ N nonneg decreasing (3 * ε) (mul_pos (by linarith) ε_pos) with ⟨n, n_big, pr⟩,
+    exact ⟨n, n_big, pr n (le_of_eq rfl)⟩, },
+  { exact small, },
+end
+
+theorem stays_near_if_near_step (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
+  (ε : ℚ) (ε_pos : 0 < ε) (ε_smallish : 16 * ε ≤ 3) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
+  (k : ℕ) (k_large : k ≥ N) (is_near : sqrt_aux f k ^ 2 - f k < 3 * ε)
+  : sqrt_aux f (k + 1) ^ 2 - f (k + 1) < 3 * ε :=
+begin
+  by_cases sqrt_aux_big: sqrt_aux f k > 1 / 2,
+  { have r : 1 < 4 * sqrt_aux f k ^ 2,
+    { have r : 1 < 2 * sqrt_aux f k := by linarith [sqrt_aux_big],
+      have s : 2 * sqrt_aux f k > 0 := by linarith,
+      calc (1 : ℚ) = (1 : ℚ) * (1 : ℚ) : by norm_num
+        ... < (2 * sqrt_aux f k) * (2 * sqrt_aux f k) : mul_lt_mul r (le_of_lt r) (by norm_num) (le_of_lt s)
+        ... = 4 * sqrt_aux f k ^ 2 : by ring, },
+    have t : 16 * ε ^ 2 ≤ 3 * ε,
+    calc 16 * ε ^ 2 = 16 * ε * ε : by ring
+      ... ≤ 3 * ε : (mul_le_mul_right ε_pos).mpr ε_smallish,
+    have u : 0 ≤ sqrt_aux f k ^ 2 - f k + ε := by linarith [sqrt_aux_overestimate' f k],
+    have r' : 0 < 4 * sqrt_aux f k ^ 2 := by linarith,
+    have num_pos : 0 ≤ ((sqrt_aux f k ^ 2 - f k) + ε) ^ 2 := sq_nonneg _,
+    have one_pos : (0 : ℚ) < 1 := by norm_num,
+    calc _ ≤ ((sqrt_aux f k ^ 2 - f k) + ε) ^ 2 / (4 * sqrt_aux f k ^ 2) : converges_eventually_if_near_step f N f_ge_0 ε ε_pos f_near k k_large
+      ... ≤ ((sqrt_aux f k ^ 2 - f k) + ε) ^ 2 / 1 : div_le_div (sq_nonneg _) (le_of_eq rfl) one_pos (le_of_lt r)
+      ... = ((sqrt_aux f k ^ 2 - f k) + ε) ^ 2 : by rw div_one
+      ... < (3 * ε + ε) ^ 2 : begin
+        apply sq_lt_sq,
+        have r : 0 ≤ 3 * ε + ε := by linarith,
+        rw abs_eq_self.2 r,
+        rw abs_eq_self.2 u,
+        linarith,
+      end
+      ... = 16 * ε ^ 2 : by ring
+      ... ≤ 3 * ε : t, },
+  { simp at sqrt_aux_big,
+    have r : _ := converges_eventually_if_near_step f N f_ge_0 ε ε_pos f_near k k_large,
+    sorry,
+   },
+end
+#exit
+
+theorem cau_seq_le_zero (f : cau_seq ℚ abs) (f_nonpos : f ≤ 0) : is_cau_seq abs (sqrt_aux f) :=
+begin
+  sorry,
+end
+
+theorem sqrt_aux_cau (f : cau_seq ℚ abs) : is_cau_seq abs (sqrt_aux f) :=
+begin
+  by_cases f ≤ 0,
+  { exact cau_seq_le_zero f h, },
+  { sorry, },
+end
+
 
 lemma eek (a b : ℚ) : a + b / a = (a ^ 2 + b) / a :=
 begin
@@ -568,7 +726,7 @@ begin
   }
 end
 
-lemma eee (e : ℚ) (bit : e ≤ 1) (pos : 0 < e) : e ^ 2 ≤ e :=
+lemma eef (e : ℚ) (bit : e ≤ 1) (pos : 0 < e) : e ^ 2 ≤ e :=
 begin
   calc e ^ 2 = e * e : by ring
     ... ≤ 1 * e : (mul_le_mul_right pos).mpr bit
@@ -596,7 +754,7 @@ begin
     have j_big : N ≤ j := by linarith,
     have v := converges_eventually_if_near j k_le_j,
     have u := converges_eventually_if_near_step f N f_gt_1 ε ε_pos f_near j j_big δ δ_pos v,
-    have x : ε ^ 2 ≤ ε := eee ε ε_small ε_pos,
+    have x : ε ^ 2 ≤ ε := eef ε ε_small ε_pos,
     linarith, },
 end
 

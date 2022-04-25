@@ -10,6 +10,7 @@ import category_theory.limits.preserves.basic
 import category_theory.adjunction.limits
 import category_theory.monoidal.functor_category
 import category_theory.monoidal.transport
+import category_theory.monoidal.braided
 
 /-!
 # `Action V G`, the category of actions of a monoid `G` inside some category `V`.
@@ -20,7 +21,8 @@ where `Action (Module R) G` is the category of `R`-linear representations of `G`
 We check `Action V G ≌ (single_obj G ⥤ V)`,
 and construct the restriction functors `res {G H : Mon} (f : G ⟶ H) : Action V H ⥤ Action V G`.
 
-When `V` has (co)limits so does `Action V G`. When `V` is monoidal so is `Action V G`.
+When `V` has (co)limits so does `Action V G`.
+When `V` is monoidal, braided, or symmetric, so is `Action V G`.
 -/
 
 universes u
@@ -208,11 +210,11 @@ def forget : Action V G ⥤ V :=
 { obj := λ M, M.V,
   map := λ M N f, f.hom, }
 
+instance : faithful (forget V G) :=
+{ map_injective' := λ X Y f g w, hom.ext _ _ w, }
+
 instance [concrete_category V] : concrete_category (Action V G) :=
-{ forget := forget V G ⋙ (concrete_category.forget V),
-  forget_faithful :=
-  { map_injective' := λ M N f g w,
-      hom.ext _ _ (faithful.map_injective (concrete_category.forget V) w), } }
+{ forget := forget V G ⋙ (concrete_category.forget V), }
 
 instance has_forget_to_V [concrete_category V] : has_forget₂ (Action V G) V :=
 { forget₂ := forget V G }
@@ -236,18 +238,36 @@ preserves_colimits_of_nat_iso
 end forget
 
 section monoidal
+variables [monoidal_category V]
 
-instance [monoidal_category V] : monoidal_category (Action V G) :=
+instance : monoidal_category (Action V G) :=
 monoidal.transport (Action.functor_category_equivalence _ _).symm
+
+variables (V G)
 
 /-- When `V` is monoidal the forgetful functor `Action V G` to `V` is monoidal. -/
 @[simps]
-def forget_monoidal [monoidal_category V] : monoidal_functor (Action V G) V :=
+def forget_monoidal : monoidal_functor (Action V G) V :=
 { ε := 𝟙 _,
   μ := λ X Y, 𝟙 _,
   ..Action.forget _ _, }
 
--- TODO braiding and symmetry
+instance forget_monoidal_faithful : faithful (forget_monoidal V G).to_functor :=
+by { change faithful (forget V G), apply_instance, }
+
+instance [braided_category V] : braided_category (Action V G) :=
+braided_category_of_faithful (forget_monoidal V G) (λ X Y, mk_iso (β_ _ _) (by tidy)) (by tidy)
+
+/-- When `V` is braided the forgetful functor `Action V G` to `V` is braided. -/
+@[simps]
+def forget_braided [braided_category V] : braided_functor (Action V G) V :=
+{ ..forget_monoidal _ _, }
+
+instance forget_braided_faithful [braided_category V] : faithful (forget_braided V G).to_functor :=
+by { change faithful (forget V G), apply_instance, }
+
+instance [symmetric_category V] : symmetric_category (Action V G) :=
+symmetric_category_of_faithful (forget_braided V G)
 
 end monoidal
 

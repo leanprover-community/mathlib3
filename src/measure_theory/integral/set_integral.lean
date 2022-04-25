@@ -141,6 +141,28 @@ begin
   ... = ∫ x in s, f x ∂μ : by simp
 end
 
+lemma of_real_set_integral_one_of_measure_ne_top {α : Type*} {m : measurable_space α} {μ : measure α}
+  {s : set α} (hs : μ s ≠ ∞) :
+  ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
+calc
+ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ)
+= ennreal.of_real (∫ x in s, ∥(1 : ℝ)∥ ∂μ) : by simp only [cstar_ring.norm_one]
+... = ∫⁻ x in s, 1 ∂μ :
+begin
+  rw of_real_integral_norm_eq_lintegral_nnnorm,
+  { simp only [nnnorm_one, ennreal.coe_one] },
+  { rw integrable_const_iff,
+    simp only [hs.lt_top, one_ne_zero, measure.restrict_apply, measurable_set.univ, set.univ_inter,
+      false_or], }
+end
+... = μ s :
+by simp only [lintegral_one, measure.restrict_apply, measurable_set.univ, set.univ_inter]
+
+lemma of_real_set_integral_one {α : Type*} {m : measurable_space α} (μ : measure α)
+  [is_finite_measure μ] (s : set α) :
+  ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
+of_real_set_integral_one_of_measure_ne_top (measure_ne_top μ s)
+
 lemma tendsto_set_integral_of_monotone {ι : Type*} [encodable ι] [semilattice_sup ι]
   {s : ι → set α} {f : α → E} (hsm : ∀ i, measurable_set (s i))
   (h_mono : monotone s) (hfi : integrable_on f (⋃ n, s n) μ) :

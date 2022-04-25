@@ -18,27 +18,46 @@ We prove the strong law of large numbers, in `probability_theory.strong_law_ae`:
 If `X n` is a sequence of independent identically distributed integrable real-valued random
 variables, then `∑ i in range n, X i / n` converges almost surely to `𝔼[X 0]`.
 We give here the strong version, due to Etemadi, that only requires pairwise independence.
+
+## Implementation
+
+We follow the proof by Etemadi, which goes as follows.
+
+It suffices to prove the result for nonnegative `X`, as one can prove the general result by
+splitting `X` into its positive part and negative part.
+Consider `Xₙ` a sequence of integrable identically distributed pairwise independent random
+variables. Let `Yₙ` be the truncation of `Xₙ` up to `n`. We claim that
+* Almost surely, `Xₙ = Yₙ` but for finitely many indices. Indeed, `∑ ℙ (Xₙ ≠ Yₙ)` is bounded by
+  `1 + 𝔼[X]` (see `sum_prob_mem_Ioc_le` and `tsum_prob_mem_Ioi_lt_top`).
+* Let `c > 1`. Along the sequence `n = c ^ k`, then `(∑_{i=0}^{n-1} Yᵢ - 𝔼[Yᵢ])/n` converges
+  to `0`. This follows from a variance control, as
+  ∑_k ℙ (|∑_{i=0}^{c^k-1} Yᵢ - 𝔼[Yᵢ]| > c^k ε)
+    ≤ ∑_k (c^k ε)^{-2} ∑_{i=0}^{c^k-1} Var[Yᵢ]    (by Markov inequality)
+    ≤ ∑_i (C/i^2) Var[Yᵢ]                         (as ∑_{c^k > i} 1/(c^k)^2 ≤ C/i^2)
+    ≤ ∑_i (C/i^2) 𝔼[Yᵢ^2]
+    ≤ 2C 𝔼[X^2]                                   (see `sum_variance_truncation_le`)
+* As `𝔼[Yᵢ]` converges to `𝔼[X]`, it follows from the two previous items and Cesaro that, along
+  the sequence `n = c^k`, one has `(∑_{i=0}^{n-1} Xᵢ) / n → 𝔼[X]`.
+* To generalize it to all sequences, we use the fact that `∑_{i=0}^{n-1} Xᵢ` is nondecreasing and
+  that, if `c` is close enough to `1`, the gap between `c^k` and `c^(k+1)` is small.
 -/
-
-
-open measure_theory filter finset
 
 noncomputable theory
 
-open_locale topological_space big_operators measure_theory probability_theory ennreal nnreal
-
-
-open asymptotics
-
+open measure_theory filter finset asymptotics
 open set (indicator)
 
+open_locale topological_space big_operators measure_theory probability_theory ennreal nnreal
+
 namespace probability_theory
+
+/-! ### Prerequisites on truncations -/
 
 section truncation
 
 variables {α : Type*}
 
-/-- Truncating a function to the interval `(-A, A]`. -/
+/-- Truncating a real-valued function to the interval `(-A, A]`. -/
 def truncation {α : Type*} (f : α → ℝ) (A : ℝ) :=
 (indicator (set.Ioc (-A) A) id) ∘ f
 
@@ -51,7 +70,6 @@ begin
   apply ae_strongly_measurable.comp_ae_measurable _ hf.ae_measurable,
   exact (strongly_measurable_id.indicator measurable_set_Ioc).ae_strongly_measurable,
 end
-
 
 lemma abs_truncation_le_bound (f : α → ℝ) (A : ℝ) (x : α) :
   abs (truncation f A x) ≤ |A| :=
@@ -214,33 +232,9 @@ h.comp (strongly_measurable_id.indicator measurable_set_Ioc).measurable
 
 end truncation
 
-
-
-lemma of_real_integral_on_one_of_measure_ne_top {α : Type*} {m : measurable_space α} (μ : measure α)
-  {s : set α} (hs : μ s ≠ ∞) :
-  ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
-calc
-ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ)
-= ennreal.of_real (∫ x in s, ∥(1 : ℝ)∥ ∂μ) : by simp only [cstar_ring.norm_one]
-... = ∫⁻ x in s, 1 ∂μ :
-begin
-  rw of_real_integral_norm_eq_lintegral_nnnorm,
-  { simp only [nnnorm_one, ennreal.coe_one] },
-  { rw integrable_const_iff,
-    simp only [hs.lt_top, one_ne_zero, measure.restrict_apply, measurable_set.univ, set.univ_inter,
-      false_or], }
-end
-... = μ s :
-  by simp only [lintegral_one, measure.restrict_apply, measurable_set.univ, set.univ_inter]
-
-lemma of_real_integral_on_one {α : Type*} {m : measurable_space α} (μ : measure α)
-  [is_finite_measure μ] (s : set α) :
-  ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
-of_real_integral_on_one_of_measure_ne_top μ (measure_ne_top μ s)
-
 variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)]
 
-lemma sum_probability_mem_Ioc_le
+lemma sum_prob_mem_Ioc_le
   {X : Ω → ℝ} (hint : integrable X) (hnonneg : 0 ≤ X) {K : ℕ} {N : ℕ} (hKN : K ≤ N) :
   ∑ j in range K, ℙ {ω | X ω ∈ set.Ioc (j : ℝ) N} ≤ ennreal.of_real (𝔼[X] + 1) :=
 begin
@@ -365,7 +359,7 @@ begin
     exact ⟨hx.1, hx.2.trans (nat.cast_le.2 hmn)⟩ },
   apply le_of_tendsto_of_tendsto A tendsto_const_nhds,
   filter_upwards [Ici_mem_at_top K] with N hN,
-  exact sum_probability_mem_Ioc_le hint hnonneg hN
+  exact sum_prob_mem_Ioc_le hint hnonneg hN
 end
 
 lemma sum_variance_truncation_le

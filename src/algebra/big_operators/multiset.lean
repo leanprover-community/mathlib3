@@ -33,7 +33,7 @@ variables [comm_monoid α] {s t : multiset α} {a : α} {m : multiset ι} {f g :
 def prod : multiset α → α := foldr (*) (λ x y z, by simp [mul_left_comm]) 1
 
 @[to_additive]
-lemma prod_eq_foldr (s : multiset α) :  prod s = foldr (*) (λ x y z, by simp [mul_left_comm]) 1 s :=
+lemma prod_eq_foldr (s : multiset α) : prod s = foldr (*) (λ x y z, by simp [mul_left_comm]) 1 s :=
 rfl
 
 @[to_additive]
@@ -53,6 +53,10 @@ end
 
 @[simp, to_additive]
 lemma prod_cons (a : α) (s) : prod (a ::ₘ s) = a * prod s := foldr_cons _ _ _ _ _
+
+lemma prod_erase [decidable_eq α] (h : a ∈ s) : a * (s.erase a).prod = s.prod :=
+by rw [← s.prod_to_list, ← list.prod_erase ((s.mem_to_list a).2 h), ← multiset.coe_prod,
+    ← multiset.coe_erase, s.coe_to_list]
 
 @[simp, to_additive]
 lemma prod_singleton (a : α) : prod {a} = a :=

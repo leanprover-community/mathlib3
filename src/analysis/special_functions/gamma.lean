@@ -147,14 +147,14 @@ lemma tendsto_partial_Gamma {s : ℂ} (hs: 1 ≤ s.re) :
   tendsto (λ X:ℝ, partial_Gamma s X) at_top (𝓝 $ Gamma_integral s) :=
 interval_integral_tendsto_integral_Ioi 0 (Gamma_integral_convergent hs) tendsto_id
 
-lemma Gamma_integrand_interval_integrable (s : ℂ) {X : ℝ} (hs : 1 ≤ s.re) (hX : 0 ≤ X):
+private lemma Gamma_integrand_interval_integrable (s : ℂ) {X : ℝ} (hs : 1 ≤ s.re) (hX : 0 ≤ X):
   interval_integrable (λ x, (-x).exp * x ^ (s - 1) : ℝ → ℂ) volume 0 X :=
 begin
   rw interval_integrable_iff_integrable_Ioc_of_le hX,
   exact integrable_on.mono_set (Gamma_integral_convergent hs) Ioc_subset_Ioi_self
 end
 
-lemma Gamma_integrand_deriv_integrable_A {s : ℂ} (hs: 1 ≤ s.re) {X : ℝ} (hX : 0 ≤ X):
+private lemma Gamma_integrand_deriv_integrable_A {s : ℂ} (hs: 1 ≤ s.re) {X : ℝ} (hX : 0 ≤ X):
  interval_integrable (λ x, -((-x).exp * x ^ s) : ℝ → ℂ) volume 0 X :=
 begin
   have t := (Gamma_integrand_interval_integrable (s+1) _ hX).neg,
@@ -162,7 +162,7 @@ begin
   { simp only [add_re, one_re], linarith,},
 end
 
-lemma Gamma_integrand_deriv_integrable_B {s : ℂ} (hs: 1 ≤ s.re) {Y : ℝ} (hY : 0 ≤ Y) :
+private lemma Gamma_integrand_deriv_integrable_B {s : ℂ} (hs: 1 ≤ s.re) {Y : ℝ} (hY : 0 ≤ Y) :
   interval_integrable (λ (x : ℝ), (-x).exp * (s * x ^ (s - 1)) : ℝ → ℂ) volume 0 Y :=
 begin
   have: (λ x, (-x).exp * (s * x ^ (s - 1)) : ℝ → ℂ) =
@@ -252,7 +252,7 @@ end
 
 end Gamma_recurrence
 
-/- Now we define `Γ(s)` on the whole complex plane, by recursion. -/
+/-! Now we define `Γ(s)` on the whole complex plane, by recursion. -/
 
 section Gamma_def
 
@@ -310,7 +310,8 @@ begin
   rw [←nat.add_sub_of_le (nat.ceil_le.mpr h1), u (n - ⌈ 1 - s.re ⌉₊)],
 end
 
-theorem Gamma_recurrence (s : ℂ) (h2 : s ≠ 0) : Gamma (s+1) = s * Gamma s :=
+/-- The recurrence relation for the Γ function. -/
+theorem Gamma_add_one (s : ℂ) (h2 : s ≠ 0) : Gamma (s+1) = s * Gamma s :=
 begin
   let n := ⌈ 1 - s.re ⌉₊,
   have t1 : 1 - s.re ≤ n := nat.le_ceil (1 - s.re),
@@ -329,7 +330,7 @@ begin
   induction n with n hn,
   { rw [nat.cast_zero, zero_add], rw Gamma_eq_integral,
     simpa using Gamma_integral_one, simp,},
-  rw (Gamma_recurrence n.succ $ nat.cast_ne_zero.mpr $ nat.succ_ne_zero n),
+  rw (Gamma_add_one n.succ $ nat.cast_ne_zero.mpr $ nat.succ_ne_zero n),
   { simp only [nat.cast_succ, nat.factorial_succ, nat.cast_mul], congr, exact hn },
 end
 

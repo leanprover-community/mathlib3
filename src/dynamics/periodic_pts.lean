@@ -3,6 +3,7 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import algebra.hom.iterate
 import data.nat.prime
 import dynamics.fixed_points.basic
 import data.pnat.basic
@@ -382,3 +383,24 @@ minimal_period_iterate_eq_div_gcd_aux $
   gcd_pos_of_pos_left n (minimal_period_pos_iff_mem_periodic_pts.mpr h)
 
 end function
+
+namespace mul_action
+
+open function
+
+variables {α β : Type*} [group α] [mul_action α β] {a : α} {b : β}
+
+@[to_additive] lemma pow_smul_eq_iff_minimal_period_dvd {n : ℕ} :
+  a ^ n • b = b ↔ function.minimal_period ((•) a) b ∣ n :=
+by rw [←is_periodic_pt_iff_minimal_period_dvd, is_periodic_pt, is_fixed_pt, smul_iterate]
+
+@[to_additive] lemma zpow_smul_eq_iff_minimal_period_dvd {n : ℤ} :
+  a ^ n • b = b ↔ (function.minimal_period ((•) a) b : ℤ) ∣ n :=
+begin
+  cases n,
+  { rw [int.of_nat_eq_coe, zpow_coe_nat, int.coe_nat_dvd, pow_smul_eq_iff_minimal_period_dvd] },
+  { rw [int.neg_succ_of_nat_coe, zpow_neg, zpow_coe_nat, inv_smul_eq_iff, eq_comm,
+        dvd_neg, int.coe_nat_dvd, pow_smul_eq_iff_minimal_period_dvd] },
+end
+
+end mul_action

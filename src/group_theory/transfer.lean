@@ -20,37 +20,34 @@ In this file we construct the transfer homomorphism.
 - `transfer ϕ` : The transfer homomorphism induced by `ϕ`.
 -/
 
+namespace subgroup
+
+@[to_additive add_subgroup.zmultiples_le]
+lemma zpowers_le {G : Type*} [group G] {g : G} {H : subgroup G} :
+  zpowers g ≤ H ↔ g ∈ H :=
+by rw [zpowers_eq_closure, closure_le, set.singleton_subset_iff, set_like.mem_coe]
+
+end subgroup
+
 section equiv_stuff
 
 noncomputable def zmultiples_quotient_stabilizer_equiv
   {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β) :
   add_subgroup.zmultiples a ⧸ add_action.stabilizer (add_subgroup.zmultiples a) b ≃+
   zmod (function.minimal_period ((+ᵥ) a) b) :=
-begin
-  refine (add_equiv.symm (add_equiv.of_bijective
-    (quotient_add_group.map (add_subgroup.zmultiples (function.minimal_period ((+ᵥ) a) b : ℤ))
-    (add_action.stabilizer (add_subgroup.zmultiples a) b)
-    (zmultiples_hom (add_subgroup.zmultiples a)
-    ⟨a, add_subgroup.mem_zmultiples a⟩) _) _)).trans
-    (int.quotient_zmultiples_nat_equiv_zmod (function.minimal_period ((+ᵥ) a) b)),
-  { -- this rw chain should be a lemma:
-    rw [add_subgroup.zmultiples_eq_closure, add_subgroup.closure_le, set.singleton_subset_iff],
-    rw [set_like.mem_coe, add_subgroup.mem_comap, add_action.mem_stabilizer_iff,
-        zmultiples_hom_apply],
-    rw [coe_nat_zsmul, ←vadd_iterate],
-    exact function.is_periodic_pt_minimal_period ((+ᵥ) a) b },
-  { split,
-    { refine (add_monoid_hom.ker_eq_bot_iff _).mp (le_bot_iff.mp _),
-      refine λ q, quotient.induction_on' q (λ n hn, _),
-      replace hn := (quotient_add_group.eq_zero_iff _).mp hn,
-      change n • a +ᵥ b = b at hn,
-      refine (quotient_add_group.eq_zero_iff n).mpr _,
-      rw [int.mem_zmultiples_iff],
-      exact add_action.zsmul_vadd_eq_iff_minimal_period_dvd.mp hn },
-    { refine λ q, quotient.induction_on' q _,
-      rintros ⟨-, n, rfl⟩,
-      exact ⟨n, rfl⟩ } },
-end
+(add_equiv.symm (add_equiv.of_bijective (quotient_add_group.map
+  (add_subgroup.zmultiples (function.minimal_period ((+ᵥ) a) b : ℤ))
+  (add_action.stabilizer (add_subgroup.zmultiples a) b)
+  (zmultiples_hom (add_subgroup.zmultiples a) ⟨a, add_subgroup.mem_zmultiples a⟩) (by
+  { rw [add_subgroup.zmultiples_le, add_subgroup.mem_comap, add_action.mem_stabilizer_iff,
+        zmultiples_hom_apply, coe_nat_zsmul, ←vadd_iterate],
+    exact function.is_periodic_pt_minimal_period ((+ᵥ) a) b }))
+    ⟨(add_monoid_hom.ker_eq_bot_iff _).mp (le_bot_iff.mp (λ q, quotient.induction_on' q
+      (λ n hn, (quotient_add_group.eq_zero_iff n).mpr (int.mem_zmultiples_iff.mpr
+      (add_action.zsmul_vadd_eq_iff_minimal_period_dvd.mp
+      ((quotient_add_group.eq_zero_iff _).mp hn)))))),
+      λ q, quotient.induction_on' q (λ ⟨_, n, rfl⟩, ⟨n, rfl⟩)⟩)).trans
+  (int.quotient_zmultiples_nat_equiv_zmod (function.minimal_period ((+ᵥ) a) b))
 
 instance party {α β : Type*} [monoid α] [mul_action α β] :
   add_action (additive α) β :=

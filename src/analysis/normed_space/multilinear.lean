@@ -375,11 +375,21 @@ lemma op_norm_neg : ∥-f∥ = ∥f∥ := by { rw norm_def, apply congr_arg, ext
 
 /-- Continuous multilinear maps themselves form a normed space with respect to
     the operator norm. -/
-instance to_normed_group : normed_group (continuous_multilinear_map 𝕜 E G) :=
+instance normed_group : normed_group (continuous_multilinear_map 𝕜 E G) :=
 normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
-instance to_normed_space : normed_space 𝕜' (continuous_multilinear_map 𝕜 E G) :=
+/-- An alias of `continuous_multilinear_map.normed_group` with non-dependent types to help typeclass
+search. -/
+instance normed_group' : normed_group (continuous_multilinear_map 𝕜 (λ i : ι, G) G') :=
+continuous_multilinear_map.normed_group
+
+instance normed_space : normed_space 𝕜' (continuous_multilinear_map 𝕜 E G) :=
 ⟨λ c f, f.op_norm_smul_le c⟩
+
+/-- An alias of `continuous_multilinear_map.normed_space` with non-dependent types to help typeclass
+search. -/
+instance normed_space' : normed_space 𝕜' (continuous_multilinear_map 𝕜 (λ i : ι, G') G) :=
+continuous_multilinear_map.normed_space
 
 theorem le_op_norm_mul_prod_of_le {b : ι → ℝ} (hm : ∀ i, ∥m i∥ ≤ b i) : ∥f m∥ ≤ ∥f∥ * ∏ i, b i :=
 (f.le_op_norm m).trans $ mul_le_mul_of_nonneg_left

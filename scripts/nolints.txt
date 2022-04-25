@@ -121,7 +121,7 @@ apply_nolint traversable.mfoldr doc_blame
 
 -- control/monad/cont.lean
 apply_nolint cont doc_blame
-apply_nolint cont_t doc_blame has_inhabited_instance
+apply_nolint cont_t has_inhabited_instance doc_blame
 apply_nolint cont_t.map doc_blame
 apply_nolint cont_t.monad_lift doc_blame
 apply_nolint cont_t.run doc_blame
@@ -131,7 +131,7 @@ apply_nolint except_t.mk_label doc_blame
 apply_nolint is_lawful_monad_cont doc_blame
 apply_nolint monad_cont doc_blame
 apply_nolint monad_cont.goto doc_blame
-apply_nolint monad_cont.label doc_blame has_inhabited_instance
+apply_nolint monad_cont.label has_inhabited_instance doc_blame
 apply_nolint option_t.call_cc doc_blame
 apply_nolint option_t.mk_label doc_blame
 apply_nolint reader_t.call_cc doc_blame
@@ -147,7 +147,7 @@ apply_nolint except_t.pass_aux doc_blame
 apply_nolint option_t.pass_aux doc_blame
 apply_nolint swap_right doc_blame
 apply_nolint writer doc_blame
-apply_nolint writer_t doc_blame has_inhabited_instance
+apply_nolint writer_t has_inhabited_instance doc_blame
 apply_nolint writer_t.adapt doc_blame
 apply_nolint writer_t.bind doc_blame
 apply_nolint writer_t.ext unused_arguments
@@ -191,7 +191,7 @@ apply_nolint filter.realizer has_inhabited_instance
 apply_nolint filter.realizer.of_eq doc_blame
 
 -- data/analysis/topology.lean
-apply_nolint compact.realizer doc_blame unused_arguments has_inhabited_instance
+apply_nolint compact.realizer has_inhabited_instance doc_blame unused_arguments
 apply_nolint ctop has_inhabited_instance
 apply_nolint ctop.realizer has_inhabited_instance
 apply_nolint ctop.realizer.id doc_blame
@@ -200,7 +200,7 @@ apply_nolint ctop.realizer.nhds_F unused_arguments
 apply_nolint ctop.realizer.nhds_σ unused_arguments
 apply_nolint ctop.realizer.of_equiv doc_blame
 apply_nolint ctop.to_realizer doc_blame
-apply_nolint locally_finite.realizer doc_blame has_inhabited_instance
+apply_nolint locally_finite.realizer has_inhabited_instance doc_blame
 
 -- data/finset/noncomm_prod.lean
 apply_nolint finset.noncomm_prod_union_of_disjoint to_additive_doc
@@ -470,6 +470,8 @@ apply_nolint left_cancel_monoid.to_has_faithful_opposite_scalar to_additive_doc
 apply_nolint monoid.to_opposite_mul_action to_additive_doc
 
 -- group_theory/group_action/pi.lean
+apply_nolint function.has_scalar to_additive_doc
+apply_nolint function.smul_comm_class to_additive_doc
 apply_nolint pi.has_faithful_scalar_at to_additive_doc
 
 -- group_theory/group_action/sub_mul_action.lean
@@ -506,10 +508,6 @@ apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
 apply_nolint affine_span.nonempty fails_quickly
 apply_nolint affine_subspace.to_add_torsor fails_quickly
 
--- linear_algebra/pi.lean
-apply_nolint function.has_scalar to_additive_doc
-apply_nolint function.smul_comm_class to_additive_doc
-
 -- logic/relator.lean
 apply_nolint relator.bi_total doc_blame
 apply_nolint relator.bi_unique doc_blame
@@ -518,33 +516,6 @@ apply_nolint relator.left_unique doc_blame
 apply_nolint relator.lift_fun doc_blame
 apply_nolint relator.right_total doc_blame
 apply_nolint relator.right_unique doc_blame
-
--- measure_theory/constructions/pi.lean
-apply_nolint measure_theory.pi.is_inv_invariant_volume to_additive_doc
-apply_nolint measure_theory.pi.is_mul_left_invariant_volume to_additive_doc
-
--- measure_theory/group/integration.lean
-apply_nolint measure_theory.integral_eq_zero_of_mul_left_eq_neg to_additive_doc
-apply_nolint measure_theory.integral_eq_zero_of_mul_right_eq_neg to_additive_doc
-apply_nolint measure_theory.integral_mul_left_eq_self to_additive_doc
-apply_nolint measure_theory.integral_mul_right_eq_self to_additive_doc
-apply_nolint measure_theory.lintegral_eq_zero_of_is_mul_left_invariant to_additive_doc
-apply_nolint measure_theory.lintegral_mul_left_eq_self to_additive_doc
-apply_nolint measure_theory.lintegral_mul_right_eq_self to_additive_doc
-
--- measure_theory/group/measure.lean
-apply_nolint measure_theory.forall_measure_preimage_mul_iff to_additive_doc
-apply_nolint measure_theory.forall_measure_preimage_mul_right_iff to_additive_doc
-apply_nolint measure_theory.is_mul_left_invariant.is_mul_right_invariant to_additive_doc
-apply_nolint measure_theory.is_open_pos_measure_of_mul_left_invariant_of_compact to_additive_doc
-apply_nolint measure_theory.is_open_pos_measure_of_mul_left_invariant_of_regular to_additive_doc
-apply_nolint measure_theory.measure.is_haar_measure.has_no_atoms to_additive_doc
-apply_nolint measure_theory.measure.is_haar_measure.sigma_finite to_additive_doc
-apply_nolint measure_theory.measure.is_haar_measure_map to_additive_doc
-apply_nolint measure_theory.measure.is_haar_measure_of_is_compact_nonempty_interior to_additive_doc
-apply_nolint measure_theory.measure_lt_top_of_is_compact_of_is_mul_left_invariant to_additive_doc
-apply_nolint measure_theory.measure_lt_top_of_is_compact_of_is_mul_left_invariant' to_additive_doc
-apply_nolint measure_theory.measure_preimage_mul to_additive_doc
 
 -- measure_theory/group/prod.lean
 apply_nolint measure_theory.absolutely_continuous_of_is_mul_left_invariant to_additive_doc

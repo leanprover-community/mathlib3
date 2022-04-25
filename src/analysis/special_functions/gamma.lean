@@ -134,7 +134,7 @@ end
 
 end complex
 
-/- Now we establish the recurrence relation `Γ(s + 1) = s * Γ(s)` using integration by parts. -/
+/-! Now we establish the recurrence relation `Γ(s + 1) = s * Γ(s)` using integration by parts. -/
 
 namespace complex
 
@@ -186,7 +186,8 @@ begin
   simpa using mul_le_mul i1 i2 (abs_nonneg (↑x ^ (s - 1))) zero_le_one,
 end
 
-lemma partial_Gamma_recurrence {s : ℂ} (hs: 1 ≤ s.re) {X : ℝ} (hX : 0 ≤ X) :
+/-- The recurrence relation for the indefinite version of the Γ function. -/
+lemma partial_Gamma_add_one {s : ℂ} (hs: 1 ≤ s.re) {X : ℝ} (hX : 0 ≤ X) :
   partial_Gamma (s + 1) X = s * partial_Gamma s X - (-X).exp * X ^ s :=
 begin
   rw [partial_Gamma, partial_Gamma, add_sub_cancel],
@@ -225,7 +226,8 @@ begin
   { contrapose! hs, rw [hs, zero_re], exact zero_lt_one,}
 end
 
-theorem Gamma_integral_recurrence {s : ℂ} (hs: 1 ≤ s.re) :
+/-- The recurrence relation for the Γ integral. -/
+theorem Gamma_integral_add_one {s : ℂ} (hs: 1 ≤ s.re) :
   Gamma_integral (s + 1) = s * Gamma_integral s :=
 begin
   suffices : tendsto (s+1).partial_Gamma at_top (𝓝 $ s * Gamma_integral s),
@@ -254,7 +256,7 @@ end Gamma_recurrence
 
 section Gamma_def
 
-/-- This function is `Γ(s)` if `1-n ≤ s.re`, and junk otherwise. -/
+/-- Th `n`th function in this family is `Γ(s)` if `1-n ≤ s.re`, and junk otherwise. -/
 noncomputable def Gamma_aux : ℕ → (ℂ → ℂ)
 | 0      := Gamma_integral
 | (n+1)  := λ s:ℂ, (Gamma_aux n (s+1)) / s

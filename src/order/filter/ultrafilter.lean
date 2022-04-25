@@ -131,9 +131,9 @@ of_compl_not_mem_iff (map m f) $ λ s, @compl_not_mem_iff _ f (m ⁻¹' s)
 lemma map_map {X Y Z: Type*} (m : X → Y) (n : Y → Z) (f : ultrafilter X) :
   (f.map m).map n = f.map (n ∘ m) :=
 begin
-    ext,
-    simp only [ultrafilter.mem_map],
-    refl,
+  ext,
+  simp only [ultrafilter.mem_map],
+  refl,
 end
 
 /-- The pullback of an ultrafilter along an injection whose range is large with respect to the given

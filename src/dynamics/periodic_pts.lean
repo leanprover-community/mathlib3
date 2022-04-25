@@ -237,6 +237,9 @@ begin
   { exact is_periodic_pt_zero f x }
 end
 
+lemma iterate_minimal_period (f : α → α) (x : α) : f^[minimal_period f x] x = x :=
+is_periodic_pt_minimal_period f x
+
 lemma iterate_eq_mod_minimal_period : f^[n] x = (f^[n % minimal_period f x] x) :=
 ((is_periodic_pt_minimal_period f x).iterate_mod_apply n).symm
 
@@ -259,6 +262,16 @@ lemma is_periodic_pt.minimal_period_le (hn : 0 < n) (hx : is_periodic_pt f n x) 
 begin
   rw [minimal_period, dif_pos (mk_mem_periodic_pts hn hx)],
   exact nat.find_min' (mk_mem_periodic_pts hn hx) ⟨hn, hx⟩
+end
+
+lemma iterate_injective_of_lt_minimal_period (hm : m < minimal_period f x)
+  (hn : n < minimal_period f x) (hf : (f^[m] x) = (f^[n] x)) : m = n :=
+begin
+  wlog h_le : n ≤ m,
+  rw [←h_le.le_iff_eq, ←tsub_le_tsub_iff_left hm.le, tsub_le_iff_right],
+  apply is_periodic_pt.minimal_period_le (nat.add_pos_left (tsub_pos_of_lt hm) n),
+  rw [is_periodic_pt, is_fixed_pt, iterate_add_apply, ←hf, ←iterate_add_apply,
+      nat.sub_add_cancel hm.le, iterate_minimal_period],
 end
 
 lemma minimal_period_id : minimal_period id x = 1 :=

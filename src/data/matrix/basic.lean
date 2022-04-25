@@ -363,8 +363,7 @@ def diag_linear_map [semiring R] [add_comm_monoid α] [module R α] : matrix n n
 
 variables {n α R}
 
-lemma diag_map [has_zero α] [has_zero β] {f : α → β} {A : matrix n n α} :
-  diag (A.map f) = f ∘ diag A := rfl
+lemma diag_map {f : α → β} {A : matrix n n α} : diag (A.map f) = f ∘ diag A := rfl
 
 @[simp] lemma diag_conj_transpose [add_monoid α] [star_add_monoid α] (A : matrix n n α) :
   diag Aᴴ = star (diag A) := rfl

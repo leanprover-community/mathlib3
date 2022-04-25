@@ -80,6 +80,14 @@ around a sum.
 
 open tactic
 
+/--  Given a list `un` of `bool × α` and a list `bo` of `bool`, return the sublist of `un`
+consisting of the entries of `un` whose corresponding entry in `bo` is `tt`, projected on the
+`α`-factor.  -/
+def list.return_unused {α : Type*} : list (bool × α) → list bool → list α
+| un [] := un.map (λ e, e.2)
+| [] bo := []
+| (u::us) (b::bs) := if b then ([u.2] ++ (us.return_unused bs)) else (us.return_unused bs)
+
 /-- A `tactic (option expr)` that either finds the first entry `f` of `lc` that unifies with `e`
 and returns `some f` or returns `none`. -/
 meta def expr.find_in (e : expr) (lc : list expr) : tactic (option expr) :=
@@ -106,26 +114,23 @@ Once we exhausts the elements of `lp`, we return the three lists:
 * next the ununified elements of `sl` and
 * finally the elements of `sl` that came from an element of `lp` whose boolean was `ff`.
  -/
-meta def list.unify_list :
-  list (bool × expr) → list expr → tactic (list expr × list expr × list expr)
-| [] sl := return ([], [], sl)
-| (be::l) sl := do
+meta def list.unify_list : list (bool × expr) → list expr → list bool →
+  tactic (list expr × list expr × list expr × list bool)
+| [] sl is_unused := return ([], [], sl, is_unused)
+| (be::l) sl is_unused := do
   cond ← be.2.find_in sl,
   match cond with
-  | none := l.unify_list sl
+  | none := l.unify_list sl (is_unused.append [tt])
   | some ex := do
-    (l1,l2,l3) ← l.unify_list (sl.erase ex),
-    if be.1 then return (ex::l1, l2, l3) else return (l1, ex::l2, l3)
+    (l1, l2, l3, is_unused) ← l.unify_list (sl.erase ex) (is_unused.append [ff]),
+    if be.1 then return (ex::l1, l2, l3, is_unused) else return (l1, ex::l2, l3, is_unused)
     end
 
 /--  Given a list of pairs `bool × pexpr`, we convert it to a list of `bool × expr`. -/
 meta def list.convert_to_expr (lp : list (bool × pexpr)) : tactic (list (bool × expr)) :=
-do
-  -- extract the list of second coordinates, converted to `expr`s
-  le2 : list expr ← (lp.map (λ e : bool × pexpr, e.2)).mmap to_expr,
-  -- reattach the booleans
-  let tle : list (bool × expr) := (lp.map (λ e : bool × pexpr, e.1)).zip le2,
-  return tle
+lp.mmap $ λ x : bool × pexpr, do
+  e ← to_expr x.2,
+  return (x.1, e)
 
 /--  We combine the previous steps.
 1. we convert a list pairs `bool × pexpr` to a list of pairs `bool × expr`,
@@ -133,11 +138,11 @@ do
    `list.unify_list`,
 3. we jam the  jam the third factor inside the first two.
 -/
-meta def list.combined (lp : list (bool × pexpr)) (sl : list expr) : tactic (list expr) :=
+meta def list.combined (lp : list (bool × pexpr)) (sl : list expr) : tactic (list expr × list bool) :=
 do
   to_exp : list (bool × expr) ← list.convert_to_expr lp,
-  (l1, l2, l3) ← list.unify_list to_exp sl,
-  return (l1 ++ l3 ++ l2)
+  (l1, l2, l3, is_unused) ← list.unify_list to_exp sl [],
+  return (l1 ++ l3 ++ l2, is_unused)
 
 namespace tactic.interactive
 setup_tactic_parser
@@ -155,11 +160,12 @@ meta def get_summands : expr → list expr
 determined using the `list.combined` applied to `ll` and `e`.
 
 We use this function for expressions in an additive commutative semigroup. -/
-meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (e : expr) : tactic unit :=
+meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (e : expr) :
+  tactic (list bool) :=
 do
-  sli ← ll.combined (get_summands e),
+  (sli, is_unused) ← ll.combined (get_summands e),
   match sli with
-  | [] := skip
+  | [] := return is_unused
   | (eₕ::es) := do
     e' ← es.mfoldl (λ eₗ eᵣ, mk_app `has_add.add [eₗ, eᵣ]) eₕ,
     e_eq ← mk_app `eq [e, e'],
@@ -173,33 +179,50 @@ do
     h ← get_local n,
     match hyp with
     | some loc := do
-      get_local loc >>= rewrite_hyp h,
-      tactic.clear h
+      ln ← get_local loc,
+      rewrite_hyp h ln,
+      tactic.clear h,
+      pure is_unused
     | none     := do
       rewrite_target h,
-      tactic.clear h
+      tactic.clear h,
+      pure is_unused
     end
   end
 
 /-- Partially traverses an expression in search for a sum of terms.
 When `recurse_on_expr` finds a sum, it sorts it using `sorted_sum`. -/
-meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) : expr → tactic unit
-| e@`(%%_ + %%_)     := sorted_sum hyp ll e <|> skip
+meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) : expr → tactic (list bool)
+| e@`(%%_ + %%_)     := sorted_sum hyp ll e
 | (expr.lam _ _ _ e) := recurse_on_expr e
 | (expr.pi  _ _ _ e) := recurse_on_expr e
-| e                  := e.get_app_args.mmap' recurse_on_expr
+| e                  := do
+  li_unused ← e.get_app_args.mmap recurse_on_expr,
+  let unused_summed := li_unused.transpose.map list.bor,
+  return unused_summed
 
 /-- Calls `recurse_on_expr` with the right expression, depending on the tactic location. -/
 meta def move_add_aux (ll : list (bool × pexpr)) : option name → tactic unit
 | (some hyp) := do
-  thyp ← get_local hyp >>= infer_type,
-  recurse_on_expr hyp ll thyp,
+  lhyp ← get_local hyp,
+  thyp ←  infer_type lhyp,
+  is_unused ← recurse_on_expr hyp ll thyp, -- error management
+  match (ll.return_unused is_unused) with
+  | [] := skip
+  | [pe] := trace format!"'{pe}' is unused at {lhyp.local_pp_name}"
+  | pes := trace format!"'{pes}' are unused at {lhyp.local_pp_name}"
+  end,
   nhyp ← get_local hyp,
   nthyp ← infer_type nhyp,
-  if (thyp = nthyp) then trace format!"'{nhyp}' did not change" else skip -- error management
+  if (thyp = nhyp) then trace format!"'{nhyp}' did not change" else skip -- error management
 | none       := do
   t ← target,
-  recurse_on_expr none ll t,
+  is_unused ← recurse_on_expr none ll t, -- error management
+  match (ll.return_unused is_unused) with
+  | [] := skip
+  | [pe] := trace format!"'{pe}' is unused at goal"
+  | pes := trace format!"'{pes}' are unused at goal"
+  end,
   tn ← target,
   if (t = tn) then trace "Goal did not change" else skip -- error management
 

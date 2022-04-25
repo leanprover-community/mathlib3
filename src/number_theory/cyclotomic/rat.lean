@@ -50,8 +50,9 @@ begin
   exact hζ.discr_zeta_eq_discr_zeta_sub_one.symm
 end
 
-/-- The discriminant of the power basis given by `ζ - 1`. Beware that this uses `1 / 2 = 0` and
-`0 - 1 = 0`. -/
+/-- The discriminant of the power basis given by `ζ - 1`. Beware that in the cases `p ^ k = 1` and
+`p ^ k = 2` the formula uses `1 / 2 = 0` and `0 - 1 = 0`. It is useful only to have a uniform
+result. -/
 lemma discr_prime_pow' [is_cyclotomic_extension {p ^ k} ℚ K]
   (hζ : is_primitive_root ζ ↑(p ^ k)) :
   discr ℚ (hζ.sub_one_power_basis ℚ).basis =

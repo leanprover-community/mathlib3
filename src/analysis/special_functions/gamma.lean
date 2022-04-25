@@ -421,7 +421,7 @@ begin
 end
 
 /-- A uniform bound for the `s`-derivative of the `Γ` integrand for `s` in vertical strips. -/
-lemma loc_unif_bound_dGamma_integrand {t : ℂ} {s1 s2 x : ℝ} (ht : s1 ≤ t.re ∧ t.re ≤ s2)
+private lemma loc_unif_bound_dGamma_integrand {t : ℂ} {s1 s2 x : ℝ} (ht : s1 ≤ t.re ∧ t.re ≤ s2)
   (hx : 0 < x) :
   ∥ dGamma_integrand t x ∥ ≤ (dGamma_integrand_real s1 x) + (dGamma_integrand_real s2 x) :=
 begin

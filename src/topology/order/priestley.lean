@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2022 Yaël Dillies, Sara Rousta. All rights reserved.
+Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yaël Dillies, Sara Rousta
+Authors: Yaël Dillies
 -/
 import order.upper_lower
 import topology.separation
@@ -56,14 +56,18 @@ end preorder
 section partial_order
 variables [partial_order α] [priestley_space α] {x y : α}
 
+lemma exists_clopen_upper_or_lower_of_ne (h : x ≠ y) :
+  ∃ U : set α, is_clopen U ∧ (is_upper_set U ∨ is_lower_set U) ∧ x ∈ U ∧ y ∉ U :=
+begin
+  obtain (h | h) := h.not_le_or_not_le,
+  { exact (exists_clopen_upper_of_not_le h).imp (λ U, and.imp_right $ and.imp_left or.inl) },
+  { obtain ⟨U, hU, hU', hy, hx⟩ := exists_clopen_lower_of_not_le h,
+    exact ⟨U, hU, or.inr hU', hx, hy⟩ }
+end
+
 @[priority 100] -- See note [lower instance priority]
 instance priestley_space.to_t2_space : t2_space α :=
-⟨λ x y h, begin
-  obtain (h | h) := h.not_le_or_not_le,
-  { obtain ⟨U, hU, hU', hx, hy⟩ := exists_clopen_upper_of_not_le h,
-    exact ⟨U, Uᶜ, hU.is_open, hU.compl.is_open, hx, hy, inter_compl_self _⟩ },
-  { obtain ⟨U, hU, hU', hy, hx⟩ := exists_clopen_upper_of_not_le h,
-    exact ⟨Uᶜ, U, hU.compl.is_open, hU.is_open, hx, hy, compl_inter_self _⟩ }
-end⟩
+⟨λ x y h, let ⟨U, hU, _, hx, hy⟩ := exists_clopen_upper_or_lower_of_ne h in
+   ⟨U, Uᶜ, hU.is_open, hU.compl.is_open, hx, hy, inter_compl_self _⟩⟩
 
 end partial_order

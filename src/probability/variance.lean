@@ -9,15 +9,24 @@ import probability.integration
 /-!
 # Variance of random variables
 
--/
+We define the variance of a real-valued random variable as `Var[X] = 𝔼[(X - 𝔼[X])^2]` (in the
+`probability_theory` locale).
 
+We prove the basic properties of the variance:
+* `variance_le_expectation_sq`: the inequality `Var[X] ≤ 𝔼[X^2]`.
+* `meas_ge_le_mul_variance`: Chebyshev's inequality, i.e.,
+      `ℙ {ω | c ≤ |X ω - 𝔼[X]|} ≤ ennreal.of_real (Var[X] / c ^ 2)`.
+* `indep_fun.Var_add`: the variance of the sum of two independent random variables is the sum of
+  the variances.
+* `indep_fun.Var_sum`: the variance of a finite sum of pairwise independent random variables is
+  the sum of the variances.
+-/
 
 open measure_theory filter finset
 
 noncomputable theory
 
 open_locale big_operators measure_theory probability_theory ennreal nnreal
-
 
 namespace probability_theory
 
@@ -35,7 +44,6 @@ lemma variance_nonneg {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (�
 integral_nonneg (λ x, sq_nonneg _)
 
 localized "notation `Var[` X `]` := probability_theory.variance X volume" in probability_theory
-localized "notation `ℙ` := volume" in probability_theory
 
 variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)]
 
@@ -79,6 +87,8 @@ begin
       simp } }
 end
 
+/-- *Chebyshev's inequality* : one can control the deviation probability of a real random variable
+from its expectation in terms of the variance. -/
 theorem meas_ge_le_mul_variance {X : Ω → ℝ} (hX : mem_ℒp X 2) {c : ℝ} (hc : 0 < c) :
   ℙ {ω | c ≤ |X ω - 𝔼[X]|} ≤ ennreal.of_real (Var[X] / c ^ 2) :=
 begin
@@ -109,6 +119,7 @@ begin
       div_eq_inv_mul, inv_pow₀] }
 end
 
+/-- The variance of the sum of two independent random variables is the sum of the variances. -/
 theorem indep_fun.Var_add {X Y : Ω → ℝ} (hX : mem_ℒp X 2) (hY : mem_ℒp Y 2) (h : indep_fun X Y) :
   Var[X + Y] = Var[X] + Var[Y] :=
 calc
@@ -135,6 +146,8 @@ end
 ... = Var[X] + Var[Y] :
   by { simp only [variance_def', hX, hY, pi.pow_apply], ring }
 
+/-- The variance of a finite sum of pairwise independent random variables is the sum of the
+variances. -/
 theorem indep_fun.Var_sum {ι : Type*} {X : ι → Ω → ℝ} {s : finset ι}
   (hs : ∀ i ∈ s, mem_ℒp (X i) 2) (h : set.pairwise ↑s (λ i j, indep_fun (X i) (X j))) :
   Var[∑ i in s, X i] = ∑ i in s, Var[X i] :=

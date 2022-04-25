@@ -24,21 +24,21 @@ We give here the strong version, due to Etemadi, that only requires pairwise ind
 We follow the proof by Etemadi, which goes as follows.
 
 It suffices to prove the result for nonnegative `X`, as one can prove the general result by
-splitting `X` into its positive part and negative part.
+splitting a general `X` into its positive part and negative part.
 Consider `Xₙ` a sequence of integrable identically distributed pairwise independent random
 variables. Let `Yₙ` be the truncation of `Xₙ` up to `n`. We claim that
-* Almost surely, `Xₙ = Yₙ` but for finitely many indices. Indeed, `∑ ℙ (Xₙ ≠ Yₙ)` is bounded by
+* Almost surely, `Xₙ = Yₙ` for all but finitely many indices. Indeed, `∑ ℙ (Xₙ ≠ Yₙ)` is bounded by
   `1 + 𝔼[X]` (see `sum_prob_mem_Ioc_le` and `tsum_prob_mem_Ioi_lt_top`).
-* Let `c > 1`. Along the sequence `n = c ^ k`, then `(∑_{i=0}^{n-1} Yᵢ - 𝔼[Yᵢ])/n` converges
-  to `0`. This follows from a variance control, as
-  ∑_k ℙ (|∑_{i=0}^{c^k-1} Yᵢ - 𝔼[Yᵢ]| > c^k ε)
-    ≤ ∑_k (c^k ε)^{-2} ∑_{i=0}^{c^k-1} Var[Yᵢ]    (by Markov inequality)
-    ≤ ∑_i (C/i^2) Var[Yᵢ]                         (as ∑_{c^k > i} 1/(c^k)^2 ≤ C/i^2)
+* Let `c > 1`. Along the sequence `n = c ^ k`, then `(∑_{i=0}^{n-1} Yᵢ - 𝔼[Yᵢ])/n` converges almost
+  surely to `0`. This follows from a variance control, as
+  ∑_k ℙ (|∑_{i=0}^{c^k - 1} Yᵢ - 𝔼[Yᵢ]| > c^k ε)
+    ≤ ∑_k (c^k ε)^{-2} ∑_{i=0}^{c^k - 1} Var[Yᵢ]    (by Markov inequality)
+    ≤ ∑_i (C/i^2) Var[Yᵢ]                           (as ∑_{c^k > i} 1/(c^k)^2 ≤ C/i^2)
     ≤ ∑_i (C/i^2) 𝔼[Yᵢ^2]
-    ≤ 2C 𝔼[X^2]                                   (see `sum_variance_truncation_le`)
+    ≤ 2C 𝔼[X^2]                                     (see `sum_variance_truncation_le`)
 * As `𝔼[Yᵢ]` converges to `𝔼[X]`, it follows from the two previous items and Cesaro that, along
-  the sequence `n = c^k`, one has `(∑_{i=0}^{n-1} Xᵢ) / n → 𝔼[X]`.
-* To generalize it to all sequences, we use the fact that `∑_{i=0}^{n-1} Xᵢ` is nondecreasing and
+  the sequence `n = c^k`, one has `(∑_{i=0}^{n-1} Xᵢ) / n → 𝔼[X]` almost surely.
+* To generalize it to all incices, we use the fact that `∑_{i=0}^{n-1} Xᵢ` is nondecreasing and
   that, if `c` is close enough to `1`, the gap between `c^k` and `c^(k+1)` is small.
 -/
 
@@ -223,14 +223,14 @@ begin
     exact (truncation_eq_self hA).symm },
 end
 
-open probability_theory
-
 lemma ident_distrib.truncation {β : Type*} [measurable_space β] {ν : measure β}
   {f : α → ℝ} {g : β → ℝ} (h : ident_distrib f g μ ν) {A : ℝ} :
   ident_distrib (truncation f A) (truncation g A) μ ν :=
 h.comp (strongly_measurable_id.indicator measurable_set_Ioc).measurable
 
 end truncation
+
+section strong_law_ae
 
 variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)]
 
@@ -313,8 +313,8 @@ begin
     end,
   have B : ∀ a b, ℙ {ω | X ω ∈ set.Ioc a b} = ennreal.of_real (∫ x in set.Ioc a b, (1 : ℝ) ∂ρ),
   { assume a b,
-    rw of_real_integral_on_one ρ _,
-    rw measure.map_apply_of_ae_measurable hint.ae_measurable measurable_set_Ioc,
+    rw [of_real_set_integral_one ρ _,
+        measure.map_apply_of_ae_measurable hint.ae_measurable measurable_set_Ioc],
     refl },
   calc ∑ j in range K, ℙ {ω | X ω ∈ set.Ioc (j : ℝ) N}
       = ∑ j in range K, ennreal.of_real (∫ x in set.Ioc (j : ℝ) N, (1 : ℝ) ∂ρ) :
@@ -459,8 +459,10 @@ begin
     end
 end
 
-
 section strong_law_aux
+
+/- This paragraph proves the strong law of large numbers (almost sure version, assuming only
+pairwise independence) for nonnegative random variables, following Etemadi's proof. -/
 
 variables (X : ℕ → Ω → ℝ) (hint : integrable (X 0))
   (hindep : pairwise (λ i j, indep_fun (X i) (X j)))
@@ -469,6 +471,9 @@ variables (X : ℕ → Ω → ℝ) (hint : integrable (X 0))
 
 include X hint hindep hident hnonneg
 
+/- The truncation of `Xᵢ` up to `i` satisfies the strong law of large numbers (with respect to
+the truncated expectation)along the sequence `c^n`, for any `c > 1`, up to a given `ε > 0`.
+This follows from a variance control. -/
 lemma strong_law_aux1 {c : ℝ} (c_one : 1 < c) {ε : ℝ} (εpos : 0 < ε) :
   ∀ᵐ ω, ∀ᶠ (n : ℕ) in at_top,
     |∑ i in range ⌊c^n⌋₊, truncation (X i) i ω - 𝔼[∑ i in range ⌊c^n⌋₊, truncation (X i) i]|
@@ -585,6 +590,9 @@ begin
   exact hω,
 end
 
+/- The truncation of `Xᵢ` up to `i` satisfies the strong law of large numbers
+(with respect to the truncated expectation) along the sequence
+`c^n`, for any `c > 1`. This follows from `strong_law_aux1` by varying `ε`. -/
 lemma strong_law_aux2 {c : ℝ} (c_one : 1 < c) :
   ∀ᵐ ω, asymptotics.is_o
   (λ (n : ℕ), ∑ i in range ⌊c^n⌋₊, truncation (X i) i ω
@@ -603,6 +611,8 @@ begin
 end
 
 omit hindep hnonneg
+/-- The expectation of the truncated version of `Xᵢ` behaves asymptotically like the whole
+expectation. This follows from convergence and Cesaro averaging. -/
 lemma strong_law_aux3 :
   asymptotics.is_o (λ n, 𝔼[∑ i in range n, truncation (X i) i] - n * 𝔼[X 0])
     (λ (n : ℕ), (n : ℝ)) at_top :=
@@ -621,6 +631,10 @@ begin
 end
 include hindep hnonneg
 
+/- The truncation of `Xᵢ` up to `i` satisfies the strong law of large numbers
+(with respect to the original expectation) along the sequence
+`c^n`, for any `c > 1`. This follows from the version from the truncated expectation, and the
+fact that truncated and original expectation have the same asymptotic behavior. -/
 lemma strong_law_aux4 {c : ℝ} (c_one : 1 < c) :
   ∀ᵐ ω, asymptotics.is_o
   (λ (n : ℕ), ∑ i in range ⌊c^n⌋₊, truncation (X i) i ω - ⌊c^n⌋₊ * 𝔼[X 0])
@@ -635,6 +649,9 @@ begin
 end
 
 omit hindep
+/-- The truncated and non-truncated versions of `Xᵢ` have the same asymptotic behavior, as they
+almost surely coincide at all but finitely many steps. This follows from a probability computation
+and Borel-Cantelli. -/
 lemma strong_law_aux5 :
   ∀ᵐ ω, asymptotics.is_o
   (λ (n : ℕ), ∑ i in range n, truncation (X i) i ω - ∑ i in range n, X i ω)
@@ -663,6 +680,10 @@ begin
 end
 include hindep
 
+
+/- `Xᵢ` satisfies the strong law of large numbers along the sequence
+`c^n`, for any `c > 1`. This follows from the version from the truncated `Xᵢ`, and the fact that
+`Xᵢ` and its truncated version have the same asymptotic behavior. -/
 lemma strong_law_aux6 {c : ℝ} (c_one : 1 < c) :
   ∀ᵐ ω, tendsto (λ (n : ℕ), (∑ i in range ⌊c^n⌋₊, X i ω) / ⌊c^n⌋₊) at_top (𝓝 (𝔼[X 0])) :=
 begin
@@ -685,6 +706,10 @@ begin
     field_simp [(H n).ne'] },
 end
 
+/-- `Xᵢ` satisfies the strong law of large numbers along all integers. This follows from the
+corresponding fact along the sequences `c^n`, and the fact that any integer can be sandwiched
+between `c^n` and `c^(n+1)` with comparably small error if `c` is close enough to `1`
+(which is formalized in `tendsto_div_of_monotone_of_tendsto_div_floor_pow`). -/
 lemma strong_law_aux7 :
   ∀ᵐ ω, tendsto (λ (n : ℕ), (∑ i in range n, X i ω) / n) at_top (𝓝 (𝔼[X 0])) :=
 begin
@@ -729,5 +754,7 @@ begin
   { simp only [← sub_div, ← sum_sub_distrib, max_zero_sub_max_neg_zero_eq_self] },
   { simp only [←integral_sub hint.pos_part hint.neg_part, max_zero_sub_max_neg_zero_eq_self] }
 end
+
+end strong_law_ae
 
 end probability_theory

@@ -31,23 +31,24 @@ end subgroup
 
 section equiv_stuff
 
+open add_subgroup add_monoid_hom add_equiv add_action quotient_add_group quotient function
+
 noncomputable def zmultiples_quotient_stabilizer_equiv
   {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β) :
-  add_subgroup.zmultiples a ⧸ add_action.stabilizer (add_subgroup.zmultiples a) b ≃+
-  zmod (function.minimal_period ((+ᵥ) a) b) :=
-(add_equiv.symm (add_equiv.of_bijective (quotient_add_group.map
-  (add_subgroup.zmultiples (function.minimal_period ((+ᵥ) a) b : ℤ))
-  (add_action.stabilizer (add_subgroup.zmultiples a) b)
-  (zmultiples_hom (add_subgroup.zmultiples a) ⟨a, add_subgroup.mem_zmultiples a⟩) (by
-  { rw [add_subgroup.zmultiples_le, add_subgroup.mem_comap, add_action.mem_stabilizer_iff,
+  zmultiples a ⧸ stabilizer (zmultiples a) b ≃+ zmod (minimal_period ((+ᵥ) a) b) :=
+(symm (of_bijective (map _ (stabilizer (zmultiples a) b)
+  (zmultiples_hom (zmultiples a) ⟨a, mem_zmultiples a⟩) (by
+  { rw [zmultiples_le, mem_comap, mem_stabilizer_iff,
         zmultiples_hom_apply, coe_nat_zsmul, ←vadd_iterate],
-    exact function.is_periodic_pt_minimal_period ((+ᵥ) a) b }))
-    ⟨(add_monoid_hom.ker_eq_bot_iff _).mp (le_bot_iff.mp (λ q, quotient.induction_on' q
-      (λ n hn, (quotient_add_group.eq_zero_iff n).mpr (int.mem_zmultiples_iff.mpr
-      (add_action.zsmul_vadd_eq_iff_minimal_period_dvd.mp
-      ((quotient_add_group.eq_zero_iff _).mp hn)))))),
-      λ q, quotient.induction_on' q (λ ⟨_, n, rfl⟩, ⟨n, rfl⟩)⟩)).trans
-  (int.quotient_zmultiples_nat_equiv_zmod (function.minimal_period ((+ᵥ) a) b))
+    exact is_periodic_pt_minimal_period ((+ᵥ) a) b })) ⟨(ker_eq_bot_iff _).mp (le_bot_iff.mp
+    (λ q, induction_on' q (λ n hn, (eq_zero_iff n).mpr (int.mem_zmultiples_iff.mpr
+    (zsmul_vadd_eq_iff_minimal_period_dvd.mp ((eq_zero_iff _).mp hn)))))),
+    λ q, induction_on' q (λ ⟨_, n, rfl⟩, ⟨n, rfl⟩)⟩)).trans
+  (int.quotient_zmultiples_nat_equiv_zmod (minimal_period ((+ᵥ) a) b))
+
+end equiv_stuff
+
+section equiv_stuff
 
 instance party {α β : Type*} [monoid α] [mul_action α β] :
   add_action (additive α) β :=

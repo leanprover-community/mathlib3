@@ -1103,21 +1103,25 @@ cokernel_cofork.of_π c.fst c.inr_fst
 
 variables {c}
 
+/-- The fork defined in `binary_bicone.fst_kernel_fork` is indeed a kernel. -/
 def binary_bicone.is_limit_fst_kernel_fork (i : is_limit c.to_cone) :
   is_limit c.fst_kernel_fork :=
 fork.is_limit.mk' _ $ λ s,
 ⟨s.ι ≫ c.snd, by apply binary_fan.is_limit.hom_ext i; simp, λ m hm, by simp [← hm]⟩
 
+/-- The fork defined in `binary_bicone.snd_kernel_fork` is indeed a kernel. -/
 def binary_bicone.is_limit_snd_kernel_fork (i : is_limit c.to_cone) :
   is_limit c.snd_kernel_fork :=
 fork.is_limit.mk' _ $ λ s,
 ⟨s.ι ≫ c.fst, by apply binary_fan.is_limit.hom_ext i; simp, λ m hm, by simp [← hm]⟩
 
+/-- The cofork defined in `binary_bicone.inl_cokernel_cofork` is indeed a cokernel. -/
 def binary_bicone.is_colimit_inl_cokernel_cofork (i : is_colimit c.to_cocone) :
   is_colimit c.inl_cokernel_cofork :=
 cofork.is_colimit.mk' _ $ λ s, ⟨c.inr ≫ s.π, by apply binary_cofan.is_colimit.hom_ext i; simp,
   λ m hm, by simp [← hm]⟩
 
+/-- The cofork defined in `binary_bicone.inr_cokernel_cofork` is indeed a cokernel. -/
 def binary_bicone.is_colimit_inr_cokernel_cofork (i : is_colimit c.to_cocone) :
   is_colimit c.inr_cokernel_cofork :=
 cofork.is_colimit.mk' _ $ λ s, ⟨c.inl ≫ s.π, by apply binary_cofan.is_colimit.hom_ext i; simp,

@@ -373,27 +373,31 @@ end wide_pushout
 
 variable (J)
 
+/-- The action on morphisms of the obvious functor
+  `wide_pullback_shape_op : wide_pullback_shape J ⥤ (wide_pushout_shape J)ᵒᵖ`-/
+def wide_pullback_shape_op_map : Π (X Y : wide_pullback_shape J),
+  (X ⟶ Y) → ((op X : (wide_pushout_shape J)ᵒᵖ) ⟶ (op Y : (wide_pushout_shape J)ᵒᵖ))
+| _ _ (wide_pullback_shape.hom.id X) := quiver.hom.op (wide_pushout_shape.hom.id _)
+| _ _ (wide_pullback_shape.hom.term j) := quiver.hom.op (wide_pushout_shape.hom.init _)
+
 /-- The obvious functor `wide_pullback_shape J ⥤ (wide_pushout_shape J)ᵒᵖ` -/
 @[simps]
 def wide_pullback_shape_op : wide_pullback_shape J ⥤ (wide_pushout_shape J)ᵒᵖ :=
 { obj := λ X, op X,
-  map := λ X Y f, begin
-    apply quiver.hom.op,
-    cases f,
-    { apply wide_pushout_shape.hom.id, },
-    { apply wide_pushout_shape.hom.init, },
-  end, }
+  map := wide_pullback_shape_op_map J, }
+
+/-- The action on morphisms of the obvious functor
+`wide_pushout_shape_op : `wide_pushout_shape J ⥤ (wide_pullback_shape J)ᵒᵖ` -/
+def wide_pushout_shape_op_map : Π (X Y : wide_pushout_shape J),
+  (X ⟶ Y) → ((op X : (wide_pullback_shape J)ᵒᵖ) ⟶ (op Y : (wide_pullback_shape J)ᵒᵖ))
+| _ _ (wide_pushout_shape.hom.id X) := quiver.hom.op (wide_pullback_shape.hom.id _)
+| _ _ (wide_pushout_shape.hom.init j) := quiver.hom.op (wide_pullback_shape.hom.term _)
 
 /-- The obvious functor `wide_pushout_shape J ⥤ (wide_pullback_shape J)ᵒᵖ` -/
 @[simps]
 def wide_pushout_shape_op : wide_pushout_shape J ⥤ (wide_pullback_shape J)ᵒᵖ :=
 { obj := λ X, op X,
-  map := λ X Y f, begin
-    apply quiver.hom.op,
-    cases f,
-    { apply wide_pullback_shape.hom.id, },
-    { apply wide_pullback_shape.hom.term, },
-  end, }
+  map := wide_pushout_shape_op_map J, }
 
 /-- The obvious functor `(wide_pullback_shape J)ᵒᵖ ⥤ wide_pushout_shape J`-/
 @[simps]
@@ -405,48 +409,40 @@ def wide_pullback_shape_unop : (wide_pullback_shape J)ᵒᵖ ⥤ wide_pushout_sh
 def wide_pushout_shape_unop : (wide_pushout_shape J)ᵒᵖ ⥤ wide_pullback_shape J :=
 (wide_pushout_shape_op J).left_op
 
-lemma wide_pushout_shape_op_unop : wide_pushout_shape_unop J ⋙ wide_pullback_shape_op J = 𝟭 _ :=
-begin
-  apply category_theory.functor.ext,
-  { intros X Y f, simp only [eq_iff_true_of_subsingleton], },
-  { intro X, refl, }
-end
+/-- The inverse of the unit isomorphism of the equivalence
+`wide_pushout_shape_op_equiv : (wide_pushout_shape J)ᵒᵖ ≌ wide_pullback_shape J` -/
+def wide_pushout_shape_op_unop : wide_pushout_shape_unop J ⋙ wide_pullback_shape_op J ≅ 𝟭 _ :=
+nat_iso.of_components (λ X, iso.refl _) (λ X Y f, dec_trivial)
 
-lemma wide_pushout_shape_unop_op : wide_pushout_shape_op J ⋙ wide_pullback_shape_unop J = 𝟭 _ :=
-begin
-  apply category_theory.functor.ext,
-  { intros X Y f, simp only [eq_iff_true_of_subsingleton], },
-  { intro X, refl, }
-end
+/-- The counit isomorphism of the equivalence
+`wide_pullback_shape_op_equiv : (wide_pullback_shape J)ᵒᵖ ≌ wide_pushout_shape J` -/
+def wide_pushout_shape_unop_op : wide_pushout_shape_op J ⋙ wide_pullback_shape_unop J ≅ 𝟭 _ :=
+nat_iso.of_components (λ X, iso.refl _) (λ X Y f, dec_trivial)
 
-lemma wide_pullback_shape_op_unop : wide_pullback_shape_unop J ⋙ wide_pushout_shape_op J = 𝟭 _ :=
-begin
-  apply category_theory.functor.ext,
-  { intros X Y f, simp only [eq_iff_true_of_subsingleton], },
-  { intro X, refl, }
-end
+/-- The inverse of the unit isomorphism of the equivalence
+`wide_pullback_shape_op_equiv : (wide_pullback_shape J)ᵒᵖ ≌ wide_pushout_shape J` -/
+def wide_pullback_shape_op_unop : wide_pullback_shape_unop J ⋙ wide_pushout_shape_op J ≅ 𝟭 _ :=
+nat_iso.of_components (λ X, iso.refl _) (λ X Y f, dec_trivial)
 
-lemma wide_pullback_shape_unop_op : wide_pullback_shape_op J ⋙ wide_pushout_shape_unop J = 𝟭 _ :=
-begin
-  apply category_theory.functor.ext,
-  { intros X Y f, simp only [eq_iff_true_of_subsingleton], },
-  { intro X, refl, }
-end
+/-- The counit isomorphism of the equivalence
+`wide_pushout_shape_op_equiv : (wide_pushout_shape J)ᵒᵖ ≌ wide_pullback_shape J` -/
+def wide_pullback_shape_unop_op : wide_pullback_shape_op J ⋙ wide_pushout_shape_unop J ≅ 𝟭 _ :=
+nat_iso.of_components (λ X, iso.refl _) (λ X Y f, dec_trivial)
 
 /-- The duality equivalence `(wide_pushout_shape J)ᵒᵖ ≌ wide_pullback_shape J` -/
 @[simps]
 def wide_pushout_shape_op_equiv : (wide_pushout_shape J)ᵒᵖ ≌ wide_pullback_shape J :=
 { functor := wide_pushout_shape_unop J,
   inverse := wide_pullback_shape_op J,
-  unit_iso := eq_to_iso (wide_pushout_shape_op_unop J).symm,
-  counit_iso := eq_to_iso (wide_pullback_shape_unop_op J), }
+  unit_iso := (wide_pushout_shape_op_unop J).symm,
+  counit_iso := wide_pullback_shape_unop_op J, }
 
 /-- The duality equivalence `(wide_pullback_shape J)ᵒᵖ ≌ wide_pushout_shape J` -/
 @[simps]
 def wide_pullback_shape_op_equiv : (wide_pullback_shape J)ᵒᵖ ≌ wide_pushout_shape J :=
 { functor := wide_pullback_shape_unop J,
   inverse := wide_pushout_shape_op J,
-  unit_iso := eq_to_iso (wide_pullback_shape_op_unop J).symm,
-  counit_iso := eq_to_iso (wide_pushout_shape_unop_op J), }
+  unit_iso := (wide_pullback_shape_op_unop J).symm,
+  counit_iso := wide_pushout_shape_unop_op J, }
 
 end category_theory.limits

@@ -3,9 +3,9 @@ Copyright (c) 202 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import set_theory.ordinal.basic
 import topology.metric_space.emetric_space
 import topology.paracompact
-import set_theory.ordinal
 
 /-!
 # (Extended) metric spaces are paracompact

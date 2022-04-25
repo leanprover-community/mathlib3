@@ -19,9 +19,7 @@ open measure topological_space
 open_locale ennreal
 
 variables {𝕜 G E F : Type*} [measurable_space G]
-variables [normed_group E] [second_countable_topology E] [normed_space ℝ E] [complete_space E]
-variables [measurable_space E] [borel_space E]
-variables [normed_group F] [measurable_space F] [opens_measurable_space F]
+variables [normed_group E] [normed_space ℝ E] [complete_space E] [normed_group F]
 variables {μ : measure G} {f : G → E} {g : G}
 
 section measurable_inv
@@ -48,9 +46,10 @@ section measurable_mul
 
 variables [group G] [has_measurable_mul G]
 
-/-- Translating a function by left-multiplication does not change its `lintegral` with respect to
-a left-invariant measure. -/
-@[to_additive]
+/-- Translating a function by left-multiplication does not change its `measure_theory.lintegral`
+with respect to a left-invariant measure. -/
+@[to_additive "Translating a function by left-addition does not change its
+`measure_theory.lintegral` with respect to a left-invariant measure."]
 lemma lintegral_mul_left_eq_self [is_mul_left_invariant μ] (f : G → ℝ≥0∞) (g : G) :
   ∫⁻ x, f (g * x) ∂μ = ∫⁻ x, f x ∂μ :=
 begin
@@ -58,9 +57,10 @@ begin
   simp [map_mul_left_eq_self μ g]
 end
 
-/-- Translating a function by right-multiplication does not change its `lintegral` with respect to
-a right-invariant measure. -/
-@[to_additive]
+/-- Translating a function by right-multiplication does not change its `measure_theory.lintegral`
+with respect to a right-invariant measure. -/
+@[to_additive "Translating a function by right-addition does not change its
+`measure_theory.lintegral` with respect to a right-invariant measure."]
 lemma lintegral_mul_right_eq_self [is_mul_right_invariant μ] (f : G → ℝ≥0∞) (g : G) :
   ∫⁻ x, f (x * g) ∂μ = ∫⁻ x, f x ∂μ :=
 begin
@@ -70,7 +70,8 @@ end
 
 /-- Translating a function by left-multiplication does not change its integral with respect to a
 left-invariant measure. -/
-@[to_additive]
+@[to_additive "Translating a function by left-addition does not change its integral with respect to
+a left-invariant measure."]
 lemma integral_mul_left_eq_self [is_mul_left_invariant μ] (f : G → E) (g : G) :
   ∫ x, f (g * x) ∂μ = ∫ x, f x ∂μ :=
 begin
@@ -81,7 +82,8 @@ end
 
 /-- Translating a function by right-multiplication does not change its integral with respect to a
 right-invariant measure. -/
-@[to_additive]
+@[to_additive "Translating a function by right-addition does not change its integral with respect to
+a right-invariant measure."]
 lemma integral_mul_right_eq_self [is_mul_right_invariant μ] (f : G → E) (g : G) :
   ∫ x, f (x * g) ∂μ = ∫ x, f x ∂μ :=
 begin
@@ -92,14 +94,16 @@ end
 
 /-- If some left-translate of a function negates it, then the integral of the function with respect
 to a left-invariant measure is 0. -/
-@[to_additive]
+@[to_additive "If some left-translate of a function negates it, then the integral of the function
+with respect to a left-invariant measure is 0."]
 lemma integral_eq_zero_of_mul_left_eq_neg [is_mul_left_invariant μ] (hf' : ∀ x, f (g * x) = - f x) :
   ∫ x, f x ∂μ = 0 :=
 by simp_rw [← self_eq_neg ℝ E, ← integral_neg, ← hf', integral_mul_left_eq_self]
 
 /-- If some right-translate of a function negates it, then the integral of the function with respect
 to a right-invariant measure is 0. -/
-@[to_additive]
+@[to_additive "If some right-translate of a function negates it, then the integral of the function
+with respect to a right-invariant measure is 0."]
 lemma integral_eq_zero_of_mul_right_eq_neg [is_mul_right_invariant μ]
   (hf' : ∀ x, f (x * g) = - f x) : ∫ x, f x ∂μ = 0 :=
 by simp_rw [← self_eq_neg ℝ E, ← integral_neg, ← hf', integral_mul_right_eq_self]
@@ -128,11 +132,11 @@ lemma integrable.comp_div_left {f : G → F}
 begin
   rw [← map_mul_right_inv_eq_self μ g⁻¹, integrable_map_measure, function.comp],
   { simp_rw [div_inv_eq_mul, mul_inv_cancel_left], exact hf },
-  { refine ae_measurable.comp_measurable _ (measurable_id.const_div g),
+  { refine ae_strongly_measurable.comp_measurable _ (measurable_id.const_div g),
     simp_rw [map_map (measurable_id'.const_div g) (measurable_id'.const_mul g⁻¹).inv,
       function.comp, div_inv_eq_mul, mul_inv_cancel_left, map_id'],
-    exact hf.ae_measurable },
-  exact (measurable_id'.const_mul g⁻¹).inv
+    exact hf.ae_strongly_measurable },
+  { exact (measurable_id'.const_mul g⁻¹).inv.ae_measurable }
 end
 
 @[to_additive]
@@ -151,7 +155,8 @@ variables [topological_space G] [group G] [topological_group G] [borel_space G]
 
 /-- For nonzero regular left invariant measures, the integral of a continuous nonnegative function
   `f` is 0 iff `f` is 0. -/
-@[to_additive]
+@[to_additive "For nonzero regular left invariant measures, the integral of a continuous nonnegative
+function `f` is 0 iff `f` is 0."]
 lemma lintegral_eq_zero_of_is_mul_left_invariant [regular μ] (hμ : μ ≠ 0)
   {f : G → ℝ≥0∞} (hf : continuous f) :
   ∫⁻ x, f x ∂μ = 0 ↔ f = 0 :=

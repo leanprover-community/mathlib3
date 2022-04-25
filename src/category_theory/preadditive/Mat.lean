@@ -462,7 +462,7 @@ universe u
 
 /-- A type synonym for `Fintype`, which we will equip with a category structure
 where the morphisms are matrices with components in `R`. -/
-@[nolint unused_arguments]
+@[nolint unused_arguments, derive inhabited]
 def Mat (R : Type u) := Fintype.{u}
 
 instance (R : Type u) : has_coe_to_sort (Mat R) (Type u) := bundled.has_coe_to_sort

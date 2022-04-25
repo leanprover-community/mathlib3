@@ -6,6 +6,7 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov, Fréd
 -/
 import topology.algebra.ring
 import topology.algebra.mul_action
+import topology.algebra.uniform_group
 import topology.uniform_space.uniform_embedding
 import algebra.algebra.basic
 import linear_algebra.projection
@@ -254,7 +255,7 @@ notation M ` →L⋆[`:25 R `] ` M₂ := continuous_linear_map (star_ring_end R)
 
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
 for the definition, although in applications `M` and `M₂` will be topological modules over the
-topological ring `R`. -/
+topological semiring `R`. -/
 @[nolint has_inhabited_instance]
 structure continuous_linear_equiv
   {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R →+* S)
@@ -327,7 +328,7 @@ section semiring
 
 variables
 {R₁ : Type*} {R₂ : Type*} {R₃ : Type*} [semiring R₁] [semiring R₂] [semiring R₃]
-{σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃}
+{σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R₁ →+* R₃}
 {M₁ : Type*} [topological_space M₁] [add_comm_monoid M₁]
 {M'₁ : Type*} [topological_space M'₁] [add_comm_monoid M'₁]
 {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂]
@@ -360,6 +361,12 @@ instance to_fun : has_coe_to_fun (M₁ →SL[σ₁₂] M₂) (λ _, M₁ → M�
 @[continuity]
 protected lemma continuous (f : M₁ →SL[σ₁₂] M₂) : continuous f := f.2
 
+protected lemma uniform_continuous {E₁ E₂ : Type*} [uniform_space E₁] [uniform_space E₂]
+  [add_comm_group E₁] [add_comm_group E₂] [module R₁ E₁] [module R₂ E₂]
+  [uniform_add_group E₁] [uniform_add_group E₂] (f : E₁ →SL[σ₁₂] E₂) :
+  uniform_continuous f :=
+uniform_continuous_add_monoid_hom_of_continuous f.continuous
+
 @[simp, norm_cast] lemma coe_inj {f g : M₁ →SL[σ₁₂] M₂} :
   (f : M₁ →ₛₗ[σ₁₂] M₂) = g ↔ f = g :=
 coe_injective.eq_iff
@@ -382,6 +389,12 @@ fun_like.ext f g h
 
 theorem ext_iff {f g : M₁ →SL[σ₁₂] M₂} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
+
+/-- Copy of a `continuous_linear_map` with a new `to_fun` equal to the old one. Useful to fix
+definitional equalities. -/
+protected def copy (f : M₁ →SL[σ₁₂] M₂) (f' : M₁ → M₂) (h : f' = ⇑f) : M₁ →SL[σ₁₂] M₂ :=
+{ to_linear_map := f.to_linear_map.copy f' h,
+  cont := show continuous f', from h.symm ▸ f.continuous }
 
 -- make some straightforward lemmas available to `simp`.
 protected lemma map_zero (f : M₁ →SL[σ₁₂] M₂) : f (0 : M₁) = 0 := map_zero f
@@ -446,6 +459,30 @@ begin
   exact hf'.dense_image f.continuous hs
 end
 
+section smul_monoid
+
+variables {S₂ T₂ : Type*} [monoid S₂] [monoid T₂]
+variables [distrib_mul_action S₂ M₂] [smul_comm_class R₂ S₂ M₂] [has_continuous_const_smul S₂ M₂]
+variables [distrib_mul_action T₂ M₂] [smul_comm_class R₂ T₂ M₂] [has_continuous_const_smul T₂ M₂]
+
+instance : mul_action S₂ (M₁ →SL[σ₁₂] M₂) :=
+{ smul := λ c f, ⟨c • f, (f.2.const_smul _ : continuous (λ x, c • f x))⟩,
+  one_smul := λ f, ext $ λ x, one_smul _ _,
+  mul_smul := λ a b f, ext $ λ x, mul_smul _ _ _ }
+
+lemma smul_apply (c : S₂) (f : M₁ →SL[σ₁₂] M₂) (x : M₁) : (c • f) x = c • (f x) := rfl
+@[simp, norm_cast]
+lemma coe_smul (c : S₂) (f : M₁ →SL[σ₁₂] M₂) : (↑(c • f) : M₁ →ₛₗ[σ₁₂] M₂) = c • f := rfl
+@[simp, norm_cast] lemma coe_smul' (c : S₂) (f : M₁ →SL[σ₁₂] M₂) : ⇑(c • f) = c • f := rfl
+
+instance [has_scalar S₂ T₂] [is_scalar_tower S₂ T₂ M₂] : is_scalar_tower S₂ T₂ (M₁ →SL[σ₁₂] M₂) :=
+⟨λ a b f, ext $ λ x, smul_assoc a b (f x)⟩
+
+instance [smul_comm_class S₂ T₂ M₂] : smul_comm_class S₂ T₂ (M₁ →SL[σ₁₂] M₂) :=
+⟨λ a b f, ext $ λ x, smul_comm a b (f x)⟩
+
+end smul_monoid
+
 /-- The continuous map that is constantly zero. -/
 instance: has_zero (M₁ →SL[σ₁₂] M₂) := ⟨⟨0, continuous_zero⟩⟩
 instance : inhabited (M₁ →SL[σ₁₂] M₂) := ⟨0⟩
@@ -504,10 +541,7 @@ instance : add_comm_monoid (M₁ →SL[σ₁₂] M₂) :=
   add_zero := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
   add_comm := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
   add_assoc := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
-  nsmul := λ n f,
-    { to_fun := λ x, n • (f x),
-      map_add' := by simp,
-      map_smul' := by simp [smul_comm n] },
+  nsmul := (•),
   nsmul_zero' := λ f, by { ext, simp },
   nsmul_succ' := λ n f, by { ext, simp [nat.succ_eq_one_add, add_smul] } }
 
@@ -525,14 +559,14 @@ by simp only [coe_sum', finset.sum_apply]
 
 end add
 
-variables {σ₁₃ : R₁ →+* R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
+variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 
 /-- Composition of bounded linear maps. -/
 def comp (g : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) : M₁ →SL[σ₁₃] M₃ :=
 ⟨(g : M₂ →ₛₗ[σ₂₃] M₃).comp ↑f, g.2.comp f.2⟩
 
-infixr ` ∘L `:80 := @continuous_linear_map.comp _ _ _ _ _ _ (ring_hom.id _) (ring_hom.id _)
-  _ _ _ _ _ _ _ _ _ _ _ _ (ring_hom.id _) ring_hom_comp_triple.ids
+infixr ` ∘L `:80 := @continuous_linear_map.comp _ _ _ _ _ _
+  (ring_hom.id _) (ring_hom.id _) (ring_hom.id _) _ _ _ _ _ _ _ _ _ _ _ _ ring_hom_comp_triple.ids
 
 @[simp, norm_cast] lemma coe_comp (h : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) :
   (h.comp f : M₁ →ₛₗ[σ₁₃] M₃) = (h : M₂ →ₛₗ[σ₂₃] M₃).comp (f : M₁ →ₛₗ[σ₁₂] M₂) := rfl
@@ -930,14 +964,8 @@ by refine
   neg := has_neg.neg,
   sub := has_sub.sub,
   sub_eq_add_neg := _,
-  nsmul := λ n f,
-    { to_fun := λ x, n • (f x),
-      map_add' := by simp,
-      map_smul' := by simp [smul_comm n] },
-  zsmul := λ n f,
-    { to_fun := λ x, n • (f x),
-      map_add' := by simp,
-      map_smul' := by simp [smul_comm n] },
+  nsmul := (•),
+  zsmul := (•),
   zsmul_zero' := λ f, by { ext, simp },
   zsmul_succ' := λ n f, by { ext, simp [add_smul, add_comm] },
   zsmul_neg' := λ n f, by { ext, simp [nat.succ_eq_add_one, add_smul] },
@@ -1011,11 +1039,6 @@ variables {R R₂ R₃ S S₃ : Type*} [semiring R] [semiring R₂] [semiring R�
   [distrib_mul_action S N₃] [smul_comm_class R S N₃] [has_continuous_const_smul S N₃]
   {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 
-instance : mul_action S₃ (M →SL[σ₁₃] M₃) :=
-{ smul := λ c f, ⟨c • f, (f.2.const_smul _ : continuous (λ x, c • f x))⟩,
-  one_smul := λ f, ext $ λ x, one_smul _ _,
-  mul_smul := λ a b f, ext $ λ x, mul_smul _ _ _ }
-
 include σ₁₃
 @[simp] lemma smul_comp (c : S₃) (h : M₂ →SL[σ₂₃] M₃) (f : M →SL[σ₁₂] M₂) :
   (c • h).comp f = c • (h.comp f) := rfl
@@ -1023,11 +1046,6 @@ omit σ₁₃
 
 variables [distrib_mul_action S₃ M₂] [has_continuous_const_smul S₃ M₂] [smul_comm_class R₂ S₃ M₂]
 variables [distrib_mul_action S N₂] [has_continuous_const_smul S N₂] [smul_comm_class R S N₂]
-
-lemma smul_apply (c : S₃) (f : M →SL[σ₁₂] M₂) (x : M) : (c • f) x = c • (f x) := rfl
-@[simp, norm_cast]
-lemma coe_smul (c : S₃) (f : M →SL[σ₁₂] M₂) : (↑(c • f) : M →ₛₗ[σ₁₂] M₂) = c • f := rfl
-@[simp, norm_cast] lemma coe_smul' (c : S₃) (f : M →SL[σ₁₂] M₂) : ⇑(c • f) = c • f := rfl
 
 @[simp] lemma comp_smul [linear_map.compatible_smul N₂ N₃ S R]
   (hₗ : N₂ →L[R] N₃) (c : S) (fₗ : M →L[R] N₂) :
@@ -1041,16 +1059,6 @@ include σ₁₃
   h.comp (c • f) = (σ₂₃ c) • (h.comp f) :=
 by { ext x, simp only [coe_smul', coe_comp', function.comp_app, pi.smul_apply, map_smulₛₗ] }
 omit σ₁₃
-
-instance {T : Type*} [monoid T] [distrib_mul_action T M₂]
-  [has_continuous_const_smul T M₂] [smul_comm_class R₂ T M₂] [has_scalar S₃ T]
-  [is_scalar_tower S₃ T M₂] : is_scalar_tower S₃ T (M →SL[σ₁₂] M₂) :=
-⟨λ a b f, ext $ λ x, smul_assoc a b (f x)⟩
-
-instance {T : Type*} [monoid T] [distrib_mul_action T M₂]
-  [has_continuous_const_smul T M₂] [smul_comm_class R₂ T M₂] [smul_comm_class S₃ T M₂] :
-  smul_comm_class S₃ T (M →SL[σ₁₂] M₂) :=
-⟨λ a b f, ext $ λ x, smul_comm a b (f x)⟩
 
 instance [has_continuous_add M₂] : distrib_mul_action S₃ (M →SL[σ₁₂] M₂) :=
 { smul_add := λ a f g, ext $ λ x, smul_add a (f x) (g x),
@@ -1151,7 +1159,7 @@ section comm_ring
 
 /-- The determinant of a continuous linear map, mainly as a convenience device to be able to
 write `A.det` instead of `(A : M →ₗ[R] M).det`. -/
-@[reducible] noncomputable def det {R : Type*} [comm_ring R] [is_domain R]
+@[reducible] noncomputable def det {R : Type*} [comm_ring R]
   {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M →L[R] M) : R :=
 linear_map.det (A : M →ₗ[R] M)
 
@@ -1495,6 +1503,25 @@ by rw [e.symm.image_eq_preimage, e.symm_symm]
 @[simp] protected lemma preimage_symm_preimage (e : M₁ ≃SL[σ₁₂] M₂) (s : set M₁) :
   e ⁻¹' (e.symm ⁻¹' s) = s := e.symm.symm_preimage_preimage s
 
+protected lemma uniform_embedding {E₁ E₂ : Type*} [uniform_space E₁] [uniform_space E₂]
+  [add_comm_group E₁] [add_comm_group E₂] [module R₁ E₁] [module R₂ E₂]
+  [uniform_add_group E₁] [uniform_add_group E₂]
+  (e : E₁ ≃SL[σ₁₂] E₂) :
+  uniform_embedding e :=
+e.to_linear_equiv.to_equiv.uniform_embedding
+  e.to_continuous_linear_map.uniform_continuous
+  e.symm.to_continuous_linear_map.uniform_continuous
+
+protected lemma _root_.linear_equiv.uniform_embedding {E₁ E₂ : Type*} [uniform_space E₁]
+  [uniform_space E₂] [add_comm_group E₁] [add_comm_group E₂] [module R₁ E₁] [module R₂ E₂]
+  [uniform_add_group E₁] [uniform_add_group E₂]
+  (e : E₁ ≃ₛₗ[σ₁₂] E₂) (h₁ : continuous e) (h₂ : continuous e.symm) :
+  uniform_embedding e :=
+continuous_linear_equiv.uniform_embedding
+({ continuous_to_fun := h₁,
+  continuous_inv_fun := h₂,
+  .. e } : E₁ ≃SL[σ₁₂] E₂)
+
 omit σ₂₁
 
 /-- Create a `continuous_linear_equiv` from two `continuous_linear_map`s that are
@@ -1745,6 +1772,11 @@ def fin_two_arrow : (fin 2 → M) ≃L[R] M × M :=
 { to_linear_equiv := linear_equiv.fin_two_arrow R M, .. pi_fin_two R (λ _, M) }
 
 end
+
+@[simp] lemma det_coe_symm {R : Type*} [field R]
+  {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M ≃L[R] M) :
+  (A.symm : M →L[R] M).det = (A : M →L[R] M).det ⁻¹ :=
+linear_equiv.det_coe_symm A.to_linear_equiv
 
 end continuous_linear_equiv
 

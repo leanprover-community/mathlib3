@@ -41,6 +41,19 @@ First we prove some facts about `semiconj_by` and `commute`. They do not require
 `pow` and/or `nsmul` and will be useful later in this file.
 -/
 
+section has_pow
+variables [has_pow M ℕ]
+
+@[simp] lemma pow_ite (P : Prop) [decidable P] (a : M) (b c : ℕ) :
+  a ^ (if P then b else c) = if P then a ^ b else a ^ c :=
+by split_ifs; refl
+
+@[simp] lemma ite_pow (P : Prop) [decidable P] (a b : M) (c : ℕ) :
+  (if P then a else b) ^ c = if P then a ^ c else b ^ c :=
+by split_ifs; refl
+
+end has_pow
+
 section monoid
 variables [monoid M] [monoid N] [add_monoid A] [add_monoid B]
 
@@ -49,7 +62,7 @@ theorem pow_one (a : M) : a^1 = a :=
 by rw [pow_succ, pow_zero, mul_one]
 
 /-- Note that most of the lemmas about powers of two refer to it as `sq`. -/
-@[to_additive two_nsmul]
+@[to_additive two_nsmul, nolint to_additive_doc]
 theorem pow_two (a : M) : a^2 = a * a :=
 by rw [pow_succ, pow_one]
 
@@ -62,14 +75,6 @@ theorem pow_mul_comm' (a : M) (n : ℕ) : a^n * a = a * a^n := commute.pow_self 
 theorem pow_add (a : M) (m n : ℕ) : a^(m + n) = a^m * a^n :=
 by induction n with n ih; [rw [nat.add_zero, pow_zero, mul_one],
   rw [pow_succ', ← mul_assoc, ← ih, ← pow_succ', nat.add_assoc]]
-
-@[simp] lemma pow_ite (P : Prop) [decidable P] (a : M) (b c : ℕ) :
-  a ^ (if P then b else c) = if P then a ^ b else a ^ c :=
-by split_ifs; refl
-
-@[simp] lemma ite_pow (P : Prop) [decidable P] (a b : M) (c : ℕ) :
-  (if P then a else b) ^ c = if P then a ^ c else b ^ c :=
-by split_ifs; refl
 
 @[simp] lemma pow_boole (P : Prop) [decidable P] (a : M) :
   a ^ (if P then 1 else 0) = if P then a else 1 :=
@@ -127,6 +132,16 @@ by rw [pow_bit0, (commute.refl a).mul_pow]
 theorem pow_bit1' (a : M) (n : ℕ) : a ^ bit1 n = (a * a) ^ n * a :=
 by rw [bit1, pow_succ', pow_bit0']
 
+lemma dvd_pow {x y : M} (hxy : x ∣ y) :
+  ∀ {n : ℕ} (hn : n ≠ 0), x ∣ y^n
+| 0       hn := (hn rfl).elim
+| (n + 1) hn := by { rw pow_succ, exact hxy.mul_right _ }
+
+alias dvd_pow ← has_dvd.dvd.pow
+
+lemma dvd_pow_self (a : M) {n : ℕ} (hn : n ≠ 0) : a ∣ a^n :=
+dvd_rfl.pow hn
+
 end monoid
 
 /-!
@@ -152,16 +167,6 @@ def pow_monoid_hom (n : ℕ) : M →* M :=
 
 -- the below line causes the linter to complain :-/
 -- attribute [simps] pow_monoid_hom nsmul_add_monoid_hom
-
-lemma dvd_pow {x y : M} (hxy : x ∣ y) :
-  ∀ {n : ℕ} (hn : n ≠ 0), x ∣ y^n
-| 0       hn := (hn rfl).elim
-| (n + 1) hn := by { rw pow_succ, exact hxy.mul_right _ }
-
-alias dvd_pow ← has_dvd.dvd.pow
-
-lemma dvd_pow_self (a : M) {n : ℕ} (hn : n ≠ 0) : a ∣ a^n :=
-dvd_rfl.pow hn
 
 end comm_monoid
 
@@ -218,7 +223,8 @@ by rw [pow_sub a⁻¹ h, inv_pow, inv_pow, inv_inv]
 
 end nat
 
-@[simp, to_additive zsmul_zero]
+-- the attributes are intentionally out of order. `smul_zero` proves `zsmul_zero`.
+@[to_additive zsmul_zero, simp]
 theorem one_zpow : ∀ (n : ℤ), (1 : G) ^ n = 1
 | (n : ℕ) := by rw [zpow_coe_nat, one_pow]
 | -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, one_inv]
@@ -379,10 +385,11 @@ by rw [pow_bit0', neg_mul_neg, pow_bit0']
 @[simp] theorem neg_pow_bit1 (a : R) (n : ℕ) : (- a) ^ (bit1 n) = - a ^ (bit1 n) :=
 by simp only [bit1, pow_succ, neg_pow_bit0, neg_mul_eq_neg_mul]
 
-@[simp] lemma neg_sq (a : R) : (-a)^2 = a^2 :=
-by simp [sq]
+@[simp] lemma neg_sq (a : R) : (-a) ^ 2 = a ^ 2 := by simp [sq]
+@[simp] lemma neg_one_sq : (-1 : R) ^ 2 = 1 := by rw [neg_sq, one_pow]
 
 alias neg_sq ← neg_pow_two
+alias neg_one_sq ← neg_one_pow_two
 
 end has_distrib_neg
 
@@ -407,7 +414,8 @@ by rw [sq, sq, mul_self_sub_mul_self]
 
 alias sq_sub_sq ← pow_two_sub_pow_two
 
-lemma eq_or_eq_neg_of_sq_eq_sq [is_domain R] (a b : R) (h : a ^ 2 = b ^ 2) : a = b ∨ a = -b :=
+lemma eq_or_eq_neg_of_sq_eq_sq [no_zero_divisors R] (a b : R) (h : a ^ 2 = b ^ 2) :
+  a = b ∨ a = -b :=
 by rwa [← add_eq_zero_iff_eq_neg, ← sub_eq_zero, or_comm, ← mul_eq_zero,
         ← sq_sub_sq a b, sub_eq_zero]
 
@@ -419,7 +427,8 @@ alias sub_sq ← sub_pow_two
 /- Copies of the above comm_ring lemmas for `units R`. -/
 namespace units
 
-lemma eq_or_eq_neg_of_sq_eq_sq [is_domain R] (a b : Rˣ) (h : a ^ 2 = b ^ 2) : a = b ∨ a = -b :=
+lemma eq_or_eq_neg_of_sq_eq_sq [no_zero_divisors R] (a b : Rˣ) (h : a ^ 2 = b ^ 2) :
+  a = b ∨ a = -b :=
 begin
   refine (eq_or_eq_neg_of_sq_eq_sq _ _ _).imp (λ h, units.ext h) (λ h, units.ext h),
   replace h := congr_arg (coe : Rˣ → R) h,
@@ -433,16 +442,18 @@ end comm_ring
 lemma of_add_nsmul [add_monoid A] (x : A) (n : ℕ) :
   multiplicative.of_add (n • x) = (multiplicative.of_add x)^n := rfl
 
-lemma of_add_zsmul [add_group A] (x : A) (n : ℤ) :
+lemma of_add_zsmul [sub_neg_monoid A] (x : A) (n : ℤ) :
   multiplicative.of_add (n • x) = (multiplicative.of_add x)^n := rfl
 
 lemma of_mul_pow [monoid A] (x : A) (n : ℕ) :
   additive.of_mul (x ^ n) = n • (additive.of_mul x) := rfl
 
-lemma of_mul_zpow [group G] (x : G) (n : ℤ) : additive.of_mul (x ^ n) = n • additive.of_mul x :=
+lemma of_mul_zpow [div_inv_monoid G] (x : G) (n : ℤ) :
+  additive.of_mul (x ^ n) = n • additive.of_mul x :=
 rfl
 
-@[simp] lemma semiconj_by.zpow_right [group G] {a x y : G} (h : semiconj_by a x y) :
+@[simp, to_additive]
+lemma semiconj_by.zpow_right [group G] {a x y : G} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (x^m) (y^m)
 | (n : ℕ) := by simp [zpow_coe_nat, h.pow_right n]
 | -[1+n] := by simp [(h.pow_right n.succ).inv_right]
@@ -451,18 +462,19 @@ namespace commute
 
 variables [group G] {a b : G}
 
-@[simp] lemma zpow_right (h : commute a b) (m : ℤ) : commute a (b^m) :=
-h.zpow_right m
+@[simp, to_additive] lemma zpow_right (h : commute a b) (m : ℤ) : commute a (b^m) := h.zpow_right m
 
-@[simp] lemma zpow_left (h : commute a b) (m : ℤ) : commute (a^m) b :=
+@[simp, to_additive] lemma zpow_left (h : commute a b) (m : ℤ) : commute (a^m) b :=
 (h.symm.zpow_right m).symm
 
+@[to_additive]
 lemma zpow_zpow (h : commute a b) (m n : ℤ) : commute (a^m) (b^n) := (h.zpow_left m).zpow_right n
 
 variables (a) (m n : ℤ)
 
-@[simp] theorem self_zpow : commute a (a ^ n) := (commute.refl a).zpow_right n
-@[simp] theorem zpow_self : commute (a ^ n) a := (commute.refl a).zpow_left n
-@[simp] theorem zpow_zpow_self : commute (a ^ m) (a ^ n) := (commute.refl a).zpow_zpow m n
+@[simp, to_additive] lemma self_zpow : commute a (a ^ n) := (commute.refl a).zpow_right n
+@[simp, to_additive] lemma zpow_self : commute (a ^ n) a := (commute.refl a).zpow_left n
+@[simp, to_additive] lemma zpow_zpow_self : commute (a ^ m) (a ^ n) :=
+(commute.refl a).zpow_zpow m n
 
 end commute

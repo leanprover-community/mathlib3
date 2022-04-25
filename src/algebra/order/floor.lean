@@ -15,7 +15,7 @@ We define the natural- and integer-valued floor and ceil functions on linearly o
 
 ## Main Definitions
 
-* `floor_semiring`: A linearly ordered semiring with natural-valued floor and ceil.
+* `floor_semiring`: An ordered semiring with natural-valued floor and ceil.
 * `nat.floor a`: Greatest natural `n` such that `n ≤ a`. Equal to `0` if `a < 0`.
 * `nat.ceil a`: Least natural `n` such that `a ≤ n`.
 
@@ -51,8 +51,9 @@ variables {α : Type*}
 
 /-! ### Floor semiring -/
 
-/-- A `floor_semiring` is a linear ordered semiring over `α` with a function
-`floor : α → ℕ` satisfying `∀ (n : ℕ) (x : α), n ≤ ⌊x⌋ ↔ (n : α) ≤ x)`. -/
+/-- A `floor_semiring` is an ordered semiring over `α` with a function
+`floor : α → ℕ` satisfying `∀ (n : ℕ) (x : α), n ≤ ⌊x⌋ ↔ (n : α) ≤ x)`.
+Note that many lemmas require a `linear_order`. Please see the above `TODO`. -/
 class floor_semiring (α) [ordered_semiring α] :=
 (floor : α → ℕ)
 (ceil : α → ℕ)
@@ -92,7 +93,7 @@ lemma le_floor (h : (n : α) ≤ a) : n ≤ ⌊a⌋₊ := (le_floor_iff $ n.cast
 
 lemma floor_lt (ha : 0 ≤ a) : ⌊a⌋₊ < n ↔ a < n := lt_iff_lt_of_le_iff_le $ le_floor_iff ha
 
-lemma lt_of_floor_lt (h : ⌊a⌋₊ < n) : a < n := lt_of_not_ge' $ λ h', (le_floor h').not_lt h
+lemma lt_of_floor_lt (h : ⌊a⌋₊ < n) : a < n := lt_of_not_le $ λ h', (le_floor h').not_lt h
 
 lemma floor_le (ha : 0 ≤ a) : (⌊a⌋₊ : α) ≤ a := (le_floor_iff ha).1 le_rfl
 

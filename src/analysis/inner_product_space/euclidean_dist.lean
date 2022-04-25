@@ -71,7 +71,7 @@ end
 lemma is_closed_closed_ball {x : E} {r : ℝ} : is_closed (closed_ball x r) :=
 is_compact_closed_ball.is_closed
 
-lemma closure_ball (x : E) {r : ℝ} (h : 0 < r) : closure (ball x r) = closed_ball x r :=
+lemma closure_ball (x : E) {r : ℝ} (h : r ≠ 0) : closure (ball x r) = closed_ball x r :=
 by rw [ball_eq_preimage, ← to_euclidean.preimage_closure, closure_ball (to_euclidean x) h,
   closed_ball_eq_preimage]
 

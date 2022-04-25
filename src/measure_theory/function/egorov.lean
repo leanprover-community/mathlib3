@@ -64,16 +64,15 @@ begin
   exact ⟨n, hn₁, hn₂.le⟩
 end
 
-variables [second_countable_topology β] [measurable_space β] [borel_space β]
-
 lemma not_convergent_seq_measurable_set [preorder ι] [encodable ι]
-  (hf : ∀ n, measurable[m] (f n)) (hg : measurable g) :
+  (hf : ∀ n, strongly_measurable[m] (f n)) (hg : strongly_measurable g) :
   measurable_set (not_convergent_seq f g n j) :=
 measurable_set.Union (λ k, measurable_set.Union_Prop $ λ hk,
-  measurable_set_lt measurable_const $ (hf k).dist hg)
+  strongly_measurable.measurable_set_lt strongly_measurable_const $ (hf k).dist hg)
 
 lemma measure_not_convergent_seq_tendsto_zero [semilattice_sup ι] [encodable ι]
-  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, strongly_measurable (f n)) (hg : strongly_measurable g)
+  (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (n : ℕ) :
   tendsto (λ j, μ (s ∩ not_convergent_seq f g n j)) at_top (𝓝 0) :=
 begin
@@ -91,7 +90,8 @@ end
 variables [semilattice_sup ι] [nonempty ι] [encodable ι]
 
 lemma exists_not_convergent_seq_lt (hε : 0 < ε)
-  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, strongly_measurable (f n)) (hg : strongly_measurable g)
+  (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (n : ℕ) :
   ∃ j : ι, μ (s ∩ not_convergent_seq f g n j) ≤ ennreal.of_real (ε * 2⁻¹ ^ n) :=
 begin
@@ -110,12 +110,14 @@ end
 
 This definition is useful for Egorov's theorem. -/
 def not_convergent_seq_lt_index (hε : 0 < ε)
-  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, strongly_measurable (f n)) (hg : strongly_measurable g)
+  (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (n : ℕ) : ι :=
 classical.some $ exists_not_convergent_seq_lt hε hf hg hsm hs hfg n
 
 lemma not_convergent_seq_lt_index_spec (hε : 0 < ε)
-  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, strongly_measurable (f n)) (hg : strongly_measurable g)
+  (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (n : ℕ) :
   μ (s ∩ not_convergent_seq f g n (not_convergent_seq_lt_index hε hf hg hsm hs hfg n)) ≤
   ennreal.of_real (ε * 2⁻¹ ^ n) :=
@@ -126,18 +128,21 @@ specific indicies such that `Union_not_convergent_seq` has measure less equal th
 
 This definition is useful for Egorov's theorem. -/
 def Union_not_convergent_seq (hε : 0 < ε)
-  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, strongly_measurable (f n)) (hg : strongly_measurable g)
+  (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) : set α :=
 ⋃ n, s ∩ not_convergent_seq f g n (not_convergent_seq_lt_index (half_pos hε) hf hg hsm hs hfg n)
 
 lemma Union_not_convergent_seq_measurable_set (hε : 0 < ε)
-  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, strongly_measurable (f n)) (hg : strongly_measurable g)
+  (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   measurable_set $ Union_not_convergent_seq hε hf hg hsm hs hfg :=
 measurable_set.Union (λ n, hsm.inter $ not_convergent_seq_measurable_set hf hg)
 
 lemma measure_Union_not_convergent_seq (hε : 0 < ε)
-  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, strongly_measurable (f n)) (hg : strongly_measurable g)
+  (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   μ (Union_not_convergent_seq hε hf hg hsm hs hfg) ≤ ennreal.of_real ε :=
 begin
@@ -154,7 +159,8 @@ begin
 end
 
 lemma Union_not_convergent_seq_subset (hε : 0 < ε)
-  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, strongly_measurable (f n)) (hg : strongly_measurable g)
+  (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   Union_not_convergent_seq hε hf hg hsm hs hfg ⊆ s :=
 begin
@@ -163,7 +169,8 @@ begin
 end
 
 lemma tendsto_uniformly_on_diff_Union_not_convergent_seq (hε : 0 < ε)
-  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, strongly_measurable (f n)) (hg : strongly_measurable g)
+  (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   tendsto_uniformly_on f g at_top (s \ egorov.Union_not_convergent_seq hε hf hg hsm hs hfg) :=
 begin
@@ -185,18 +192,19 @@ end
 end egorov
 
 variables [semilattice_sup ι] [nonempty ι] [encodable ι]
-  [second_countable_topology β] [measurable_space β] [borel_space β]
+  {γ : Type*} [topological_space γ]
   {f : ι → α → β} {g : α → β} {s : set α}
 
-/-- **Egorov's theorem**: If `f : ι → α → β` is a sequence of measurable functions that converges
-to `g : α → β` almost everywhere on a measurable set `s` of finite measure, then for all `ε > 0`,
-there exists a subset `t ⊆ s` such that `μ t ≤ ε` and `f` converges to `g` uniformly on `s \ t`.
-We require the index type `ι` to be encodable, and usually `ι = ℕ`.
+/-- **Egorov's theorem**: If `f : ι → α → β` is a sequence of strongly measurable functions that
+converges to `g : α → β` almost everywhere on a measurable set `s` of finite measure,
+then for all `ε > 0`, there exists a subset `t ⊆ s` such that `μ t ≤ ε` and `f` converges to `g`
+uniformly on `s \ t`. We require the index type `ι` to be encodable, and usually `ι = ℕ`.
 
 In other words, a sequence of almost everywhere convergent functions converges uniformly except on
 an arbitrarily small set. -/
 theorem tendsto_uniformly_on_of_ae_tendsto
-  (hf : ∀ n, measurable (f n)) (hg : measurable g) (hsm : measurable_set s) (hs : μ s ≠ ∞)
+  (hf : ∀ n, strongly_measurable (f n)) (hg : strongly_measurable g)
+  (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) {ε : ℝ} (hε : 0 < ε) :
   ∃ t ⊆ s, measurable_set t ∧ μ t ≤ ennreal.of_real ε ∧ tendsto_uniformly_on f g at_top (s \ t) :=
 ⟨egorov.Union_not_convergent_seq hε hf hg hsm hs hfg,
@@ -207,7 +215,7 @@ theorem tendsto_uniformly_on_of_ae_tendsto
 
 /-- Egorov's theorem for finite measure spaces. -/
 lemma tendsto_uniformly_on_of_ae_tendsto' [is_finite_measure μ]
-  (hf : ∀ n, measurable (f n)) (hg : measurable g)
+  (hf : ∀ n, strongly_measurable (f n)) (hg : strongly_measurable g)
   (hfg : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) {ε : ℝ} (hε : 0 < ε) :
   ∃ t, measurable_set t ∧ μ t ≤ ennreal.of_real ε ∧ tendsto_uniformly_on f g at_top tᶜ :=
 begin

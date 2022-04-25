@@ -3,10 +3,11 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
+import algebra.hom.group_instances
 import data.pi
 import data.set.function
+import data.set.pairwise
 import tactic.pi_instances
-import algebra.group.hom_instances
 
 /-!
 # Pi instances for groups and monoids
@@ -125,7 +126,7 @@ end pi
 namespace mul_hom
 
 @[to_additive] lemma coe_mul {M N} {mM : has_mul M} {mN : comm_semigroup N}
-  (f g : mul_hom M N) :
+  (f g : M →ₙ* N) :
   (f * g : M → N) = λ x, f x * g x := rfl
 
 end mul_hom
@@ -194,7 +195,7 @@ def one_hom.single [Π i, has_one $ f i] (i : I) : one_hom (f i) (Π i, f i) :=
 { to_fun := mul_single i,
   map_one' := mul_single_one i }
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma one_hom.single_apply [Π i, has_one $ f i] (i : I) (x : f i) :
   one_hom.single f i x = mul_single i x := rfl
 
@@ -210,7 +211,7 @@ def monoid_hom.single [Π i, mul_one_class $ f i] (i : I) : f i →* Π i, f i :
 { map_mul' := mul_single_op₂ (λ _, (*)) (λ _, one_mul _) _,
   .. (one_hom.single f i) }
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma monoid_hom.single_apply [Π i, mul_one_class $ f i] (i : I) (x : f i) :
   monoid_hom.single f i x = mul_single i x := rfl
 
@@ -218,7 +219,7 @@ lemma monoid_hom.single_apply [Π i, mul_one_class $ f i] (i : I) (x : f i) :
 into a dependent family of `mul_zero_class`es, as functions supported at a point.
 
 This is the `mul_hom` version of `pi.single`. -/
-@[simps] def mul_hom.single [Π i, mul_zero_class $ f i] (i : I) : mul_hom (f i) (Π i, f i) :=
+@[simps] def mul_hom.single [Π i, mul_zero_class $ f i] (i : I) : (f i) →ₙ* (Π i, f i) :=
 { to_fun := single i,
   map_mul' := pi.single_op₂ (λ _, (*)) (λ _, zero_mul _) _, }
 
@@ -242,6 +243,31 @@ lemma pi.single_div [Π i, group $ f i] (i : I) (x y : f i) :
 lemma pi.single_mul [Π i, mul_zero_class $ f i] (i : I) (x y : f i) :
   single i (x * y) = single i x * single i y :=
 (mul_hom.single f i).map_mul x y
+
+/-- The injection into a pi group at different indices commutes.
+
+For injections of commuting elements at the same index, see `commute.map` -/
+@[to_additive "The injection into an additive pi group at different indices commutes.
+
+For injections of commuting elements at the same index, see `add_commute.map`"]
+lemma pi.mul_single_commute [Π i, mul_one_class $ f i] :
+  pairwise (λ i j, ∀ (x : f i) (y : f j), commute (mul_single i x) (mul_single j y)) :=
+begin
+  intros i j hij x y, ext k,
+  by_cases h1 : i = k, { subst h1, simp [hij], },
+  by_cases h2 : j = k, { subst h2, simp [hij], },
+  simp [h1,  h2],
+end
+
+/-- The injection into a pi group with the same values commutes. -/
+@[to_additive "The injection into an additive pi group with the same values commutes."]
+lemma pi.mul_single_apply_commute [Π i, mul_one_class $ f i] (x : Π i, f i) (i j : I) :
+  commute (mul_single i (x i)) (mul_single j (x j)) :=
+begin
+  obtain rfl | hij := decidable.eq_or_ne i j,
+  { refl },
+  { exact pi.mul_single_commute _ _ hij _ _, },
+end
 
 @[to_additive update_eq_sub_add_single]
 lemma pi.update_eq_div_mul_single [Π i, group $ f i] (g : Π (i : I), f i) (x : f i) :

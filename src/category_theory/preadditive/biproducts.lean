@@ -248,8 +248,7 @@ lemma biprod.column_nonzero_of_iso {W X Y Z : C}
   (f : W ⊞ X ⟶ Y ⊞ Z) [is_iso f] :
   𝟙 W = 0 ∨ biprod.inl ≫ f ≫ biprod.fst ≠ 0 ∨ biprod.inl ≫ f ≫ biprod.snd ≠ 0 :=
 begin
-  by_contradiction,
-  rw [not_or_distrib, not_or_distrib, not_not, not_not] at h,
+  by_contra' h,
   rcases h with ⟨nz, a₁, a₂⟩,
   set x := biprod.inl ≫ f ≫ inv f ≫ biprod.fst,
   have h₁ : x = 𝟙 W, by simp [x],
@@ -265,7 +264,6 @@ begin
     simp only [zero_comp], },
   exact nz (h₁.symm.trans h₀),
 end
-
 
 end
 

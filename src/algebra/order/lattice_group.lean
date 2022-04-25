@@ -390,11 +390,8 @@ begin
   ... = |a / b|           : by rw sup_div_inf_eq_abs_div
 end
 
-/--
-Let `α` be a lattice ordered commutative group and let `a` be a positive element in `α`. Then `a` is
-equal to its positive component `a⁺`.
--/
-@[to_additive] -- pos_of_nonneg
+/-- If `a` is positive, then it is equal to its positive component `a⁺`. -/ -- pos_of_nonneg
+@[to_additive "If `a` is positive, then it is equal to its positive component `a⁺`."]
 lemma pos_of_one_le (a : α) (h : 1 ≤ a) : a⁺ = a :=
 by { rw m_pos_part_def, exact sup_of_le_left h, }
 
@@ -430,11 +427,9 @@ begin
   apply one_le_mul h h,
 end
 
-/--
-The unary operation of taking the absolute value is idempotent.
--/
-@[simp, to_additive abs_abs]
-lemma m_abs_abs [covariant_class α α (*) (≤)] (a : α) : | |a| | = |a| :=
+/-- The unary operation of taking the absolute value is idempotent. -/
+@[simp, to_additive abs_abs "The unary operation of taking the absolute value is idempotent."]
+lemma mabs_mabs [covariant_class α α (*) (≤)] (a : α) : | |a| | = |a| :=
 mabs_of_one_le _ (one_le_abs _)
 
 @[to_additive abs_sup_sub_sup_le_abs]

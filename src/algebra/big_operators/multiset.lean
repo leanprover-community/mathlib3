@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.group_with_zero.power
-import data.list.prod_monoid
+import data.list.big_operators
 import data.multiset.basic
 
 /-!
@@ -57,6 +57,10 @@ lemma prod_cons (a : α) (s) : prod (a ::ₘ s) = a * prod s := foldr_cons _ _ _
 @[simp, to_additive]
 lemma prod_singleton (a : α) : prod {a} = a :=
 by simp only [mul_one, prod_cons, singleton_eq_cons, eq_self_iff_true, prod_zero]
+
+@[to_additive]
+lemma prod_pair (a b : α) : ({a, b} : multiset α).prod = a * b :=
+by rw [insert_eq_cons, prod_cons, prod_singleton]
 
 @[simp, to_additive]
 lemma prod_add (s t : multiset α) : prod (s + t) = prod s * prod t :=
@@ -233,8 +237,20 @@ by { convert (m.map f).prod_hom (zpow_group_hom₀ _ : α →* α), rw map_map, 
 
 end comm_group_with_zero
 
-section semiring
-variables [semiring α] {a : α} {s : multiset ι} {f : ι → α}
+section non_unital_non_assoc_semiring
+variables [non_unital_non_assoc_semiring α] {a : α} {s : multiset ι} {f : ι → α}
+
+lemma _root_.commute.multiset_sum_right (s : multiset α) (a : α) (h : ∀ b ∈ s, commute a b) :
+  commute a s.sum :=
+begin
+  induction s using quotient.induction_on,
+  rw [quot_mk_to_coe, coe_sum],
+  exact commute.list_sum_right _ _ h,
+end
+
+lemma _root_.commute.multiset_sum_left (s : multiset α) (b : α) (h : ∀ a ∈ s, commute a b) :
+  commute s.sum b :=
+(commute.multiset_sum_right _ _ $ λ a ha, (h _ ha).symm).symm
 
 lemma sum_map_mul_left : sum (s.map (λ i, a * f i)) = a * sum (s.map f) :=
 multiset.induction_on s (by simp) (λ i s ih, by simp [ih, mul_add])
@@ -242,17 +258,17 @@ multiset.induction_on s (by simp) (λ i s ih, by simp [ih, mul_add])
 lemma sum_map_mul_right : sum (s.map (λ i, f i * a)) = sum (s.map f) * a :=
 multiset.induction_on s (by simp) (λ a s ih, by simp [ih, add_mul])
 
-end semiring
+end non_unital_non_assoc_semiring
 
-section comm_semiring
-variables [comm_semiring α]
+section semiring
+variables [semiring α]
 
 lemma dvd_sum {a : α} {s : multiset α} : (∀ x ∈ s, a ∣ x) → a ∣ s.sum :=
 multiset.induction_on s (λ _, dvd_zero _)
   (λ x s ih h, by { rw sum_cons, exact dvd_add
     (h _ (mem_cons_self _ _)) (ih $ λ y hy, h _ $ mem_cons.2 $ or.inr hy) })
 
-end comm_semiring
+end semiring
 
 /-! ### Order -/
 
@@ -267,11 +283,11 @@ quotient.induction_on s $ λ l hl, by simpa using list.one_le_prod_of_one_le hl
 lemma single_le_prod : (∀ x ∈ s, (1 : α) ≤ x) → ∀ x ∈ s, x ≤ s.prod :=
 quotient.induction_on s $ λ l hl x hx, by simpa using list.single_le_prod hl x hx
 
-@[to_additive]
-lemma prod_le_of_forall_le (s : multiset α) (n : α) (h : ∀ x ∈ s, x ≤ n) : s.prod ≤ n ^ s.card :=
+@[to_additive sum_le_card_nsmul]
+lemma prod_le_pow_card (s : multiset α) (n : α) (h : ∀ x ∈ s, x ≤ n) : s.prod ≤ n ^ s.card :=
 begin
   induction s using quotient.induction_on,
-  simpa using list.prod_le_of_forall_le _ _ h,
+  simpa using list.prod_le_pow_card _ _ h,
 end
 
 @[to_additive all_zero_of_le_zero_le_of_sum_eq_zero]
@@ -303,10 +319,6 @@ lemma prod_le_sum_prod (f : α → α) (h : ∀ x, x ∈ s → x ≤ f x) : s.pr
 @[to_additive card_nsmul_le_sum]
 lemma pow_card_le_prod (h : ∀ x ∈ s, a ≤ x) : a ^ s.card ≤ s.prod :=
 by { rw [←multiset.prod_repeat, ←multiset.map_const], exact prod_map_le_prod _ h }
-
-@[to_additive sum_le_card_nsmul]
-lemma prod_le_pow_card (h : ∀ x ∈ s, x ≤ a) : s.prod ≤ a ^ s.card :=
-@pow_card_le_prod (order_dual α) _ _ _ h
 
 end ordered_comm_monoid
 

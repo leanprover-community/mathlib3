@@ -68,10 +68,10 @@ begin
           split,
           { erw [assoc, h₂, ← limits.fork.condition s, comp_id], },
           { intros m hm,
-            erw [← hm],
-            simp only [← hm, assoc, fork.ι_eq_app_zero,
-              fork.of_ι_π_app, h₁],
-            erw comp_id m, }
+            rw fork.ι_of_ι at hm,
+            rw [← hm],
+            simp only [← hm, assoc, h₁],
+            exact (comp_id m).symm }
         end }⟩, },
   { intro h,
     refine ⟨_⟩,
@@ -111,7 +111,7 @@ begin
     rw [sub_sub_cancel], },
   { intros h X p hp,
     haveI : has_kernel (𝟙 _ - p) := h X (𝟙 _ - p) (idem_of_id_sub_idem p hp),
-    apply preadditive.has_limit_parallel_pair, },
+    apply preadditive.has_equalizer_of_has_kernel, },
 end
 
 /-- An abelian category is idempotent complete. -/

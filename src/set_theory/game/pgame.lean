@@ -151,9 +151,9 @@ def move_right : Π (g : pgame), right_moves g → pgame
 /-- `subsequent p q` says that `p` can be obtained by playing
   some nonempty sequence of moves from `q`. -/
 inductive subsequent : pgame → pgame → Prop
-| left : Π (x : pgame) (i : x.left_moves), subsequent (x.move_left i) x
-| right : Π (x : pgame) (j : x.right_moves), subsequent (x.move_right j) x
-| trans : Π (x y z : pgame), subsequent x y → subsequent y z → subsequent x z
+| move_left  : Π {x : pgame} (i : x.left_moves), subsequent (x.move_left i) x
+| move_right : Π {x : pgame} (j : x.right_moves), subsequent (x.move_right j) x
+| trans      : Π {x y z : pgame}, subsequent x y → subsequent y z → subsequent x z
 
 theorem wf_subsequent : well_founded subsequent :=
 ⟨λ x, begin
@@ -171,20 +171,21 @@ instance : has_well_founded pgame :=
   wf := wf_subsequent }
 
 /-- A move by Left produces a subsequent game. (For use in pgame_wf_tac.) -/
-lemma subsequent.left_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {i : xl} :
+lemma subsequent.mk_left {xl xr} {xL : xl → pgame} {xR : xr → pgame} {i : xl} :
   subsequent (xL i) (mk xl xr xL xR) :=
-subsequent.left (mk xl xr xL xR) i
+@subsequent.move_left (mk xl xr xL xR) i
+
 /-- A move by Right produces a subsequent game. (For use in pgame_wf_tac.) -/
-lemma subsequent.right_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {j : xr} :
+lemma subsequent.mk_right {xl xr} {xL : xl → pgame} {xR : xr → pgame} {j : xr} :
   subsequent (xR j) (mk xl xr xL xR) :=
-subsequent.right (mk xl xr xL xR) j
+@subsequent.move_right (mk xl xr xL xR) j
 
 /-- A local tactic for proving well-foundedness of recursive definitions involving pregames. -/
 meta def pgame_wf_tac :=
 `[solve_by_elim
   [psigma.lex.left, psigma.lex.right,
-   subsequent.left_move, subsequent.right_move,
-   subsequent.left, subsequent.right, subsequent.trans]
+   subsequent.move_left, subsequent.move_right,
+   subsequent.mk_left, subsequent.mk_right, subsequent.trans]
   { max_depth := 6 }]
 
 /-- The pre-game `zero` is defined by `0 = { | }`. -/

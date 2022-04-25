@@ -32,18 +32,20 @@ open measure_theory
 -- one ensures that `m` stays visible in the goal view: when `hm` is complicated, it gets rendered
 -- as `_` and the measurable space would not be visible in `𝔼[f|_]`, but is clear in `𝔼[f|m,_]`.
 localized "notation `𝔼[` X `|` hm `]` :=
-  measure_theory.condexp _ hm measure_theory.measure.volume X" in probability_theory
+  measure_theory.condexp _ hm measure_theory.measure_space.volume X" in probability_theory
 localized "notation `𝔼[` X `|` m `,` hm `]` :=
-  measure_theory.condexp m hm measure_theory.measure.volume X" in probability_theory
+  measure_theory.condexp m hm measure_theory.measure_space.volume X" in probability_theory
 
 localized "notation P `[` X `]` := ∫ x, X x ∂P" in probability_theory
 
 localized "notation `𝔼[` X `]` := ∫ a, X a" in probability_theory
 
-localized "notation X `=ₐₛ`:50 Y:50 := X =ᵐ[measure_theory.measure.volume] Y" in probability_theory
+localized "notation X `=ₐₛ`:50 Y:50 := X =ᵐ[measure_theory.measure_space.volume] Y"
+  in probability_theory
 
-localized "notation X `≤ₐₛ`:50 Y:50 := X ≤ᵐ[measure_theory.measure.volume] Y" in probability_theory
+localized "notation X `≤ₐₛ`:50 Y:50 := X ≤ᵐ[measure_theory.measure_space.volume] Y"
+  in probability_theory
 
 localized "notation `∂` P `/∂`:50 Q:50 := P.rn_deriv Q" in probability_theory
 
-localized "notation `ℙ` := measure_theory.measure.volume" in probability_theory
+localized "notation `ℙ` := measure_theory.measure_space.volume" in probability_theory

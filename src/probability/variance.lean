@@ -43,9 +43,11 @@ lemma variance_nonneg {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (�
   0 ≤ variance f μ :=
 integral_nonneg (λ x, sq_nonneg _)
 
-localized "notation `Var[` X `]` := probability_theory.variance X volume" in probability_theory
+localized
+"notation `Var[` X `]` := probability_theory.variance X measure_theory.measure_space.volume"
+in probability_theory
 
-variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)]
+variables {Ω : Type*} [measure_space Ω] [is_probability_measure (volume : measure Ω)]
 
 lemma variance_def' {X : Ω → ℝ} (hX : mem_ℒp X 2) :
   Var[X] = 𝔼[X^2] - 𝔼[X]^2 :=

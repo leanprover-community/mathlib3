@@ -5,9 +5,9 @@ Authors: Eric Wieser, Utensil Song
 -/
 
 import algebra.ring_quot
-import linear_algebra.tensor_algebra
-import linear_algebra.exterior_algebra
-import linear_algebra.quadratic_form
+import linear_algebra.tensor_algebra.basic
+import linear_algebra.exterior_algebra.basic
+import linear_algebra.quadratic_form.basic
 
 /-!
 # Clifford Algebras
@@ -20,7 +20,7 @@ a quadratic_form `Q`.
 The Clifford algebra of the `R`-module `M` equipped with a quadratic_form `Q` is denoted as
 `clifford_algebra Q`.
 
-Given a linear morphism `f : M → A` from a semimodule `M` to another `R`-algebra `A`, such that
+Given a linear morphism `f : M → A` from a module `M` to another `R`-algebra `A`, such that
 `cond : ∀ m, f m * f m = algebra_map _ _ (Q m)`, there is a (unique) lift of `f` to an `R`-algebra
 morphism, which is denoted `clifford_algebra.lift Q f cond`.
 
@@ -79,7 +79,7 @@ def ι : M →ₗ[R] clifford_algebra Q :=
 
 /-- As well as being linear, `ι Q` squares to the quadratic form -/
 @[simp]
-theorem ι_square_scalar (m : M) : ι Q m * ι Q m = algebra_map R _ (Q m) :=
+theorem ι_sq_scalar (m : M) : ι Q m * ι Q m = algebra_map R _ (Q m) :=
 begin
   erw [←alg_hom.map_mul, ring_quot.mk_alg_hom_rel R (rel.of m), alg_hom.commutes],
   refl,
@@ -88,9 +88,9 @@ end
 variables {Q} {A : Type*} [semiring A] [algebra R A]
 
 @[simp]
-theorem comp_ι_square_scalar (g : clifford_algebra Q →ₐ[R] A) (m : M) :
+theorem comp_ι_sq_scalar (g : clifford_algebra Q →ₐ[R] A) (m : M) :
   g (ι Q m) * g (ι Q m) = algebra_map _ _ (Q m) :=
-by rw [←alg_hom.map_mul, ι_square_scalar, alg_hom.commutes]
+by rw [←alg_hom.map_mul, ι_sq_scalar, alg_hom.commutes]
 
 variables (Q)
 
@@ -104,13 +104,19 @@ def lift :
   {f : M →ₗ[R] A // ∀ m, f m * f m = algebra_map _ _ (Q m)} ≃ (clifford_algebra Q →ₐ[R] A) :=
 { to_fun := λ f,
   ring_quot.lift_alg_hom R ⟨tensor_algebra.lift R (f : M →ₗ[R] A),
-    (λ x y (h : rel Q x y), by {
-      induction h,
+    (λ x y (h : rel Q x y), by
+    { induction h,
       rw [alg_hom.commutes, alg_hom.map_mul, tensor_algebra.lift_ι_apply, f.prop], })⟩,
   inv_fun := λ F, ⟨F.to_linear_map.comp (ι Q), λ m, by rw [
-    linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_square_scalar]⟩,
-  left_inv := λ f, by { ext, simp [ι] },
-  right_inv := λ F, by { ext, simp [ι] } }
+    linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_sq_scalar]⟩,
+  left_inv := λ f, by { ext,
+    simp only [ι, alg_hom.to_linear_map_apply, function.comp_app, linear_map.coe_comp,
+               subtype.coe_mk, ring_quot.lift_alg_hom_mk_alg_hom_apply,
+               tensor_algebra.lift_ι_apply] },
+  right_inv := λ F, by { ext,
+    simp only [ι, alg_hom.comp_to_linear_map, alg_hom.to_linear_map_apply, function.comp_app,
+               linear_map.coe_comp, subtype.coe_mk, ring_quot.lift_alg_hom_mk_alg_hom_apply,
+               tensor_algebra.lift_ι_apply] } }
 
 variables {Q}
 
@@ -138,7 +144,7 @@ attribute [irreducible] clifford_algebra ι lift
 
 @[simp]
 theorem lift_comp_ι (g : clifford_algebra Q →ₐ[R] A) :
-  lift Q ⟨g.to_linear_map.comp (ι Q), comp_ι_square_scalar _⟩ = g :=
+  lift Q ⟨g.to_linear_map.comp (ι Q), comp_ι_sq_scalar _⟩ = g :=
 begin
   convert (lift Q).apply_symm_apply g,
   rw lift_symm_apply,
@@ -170,14 +176,14 @@ lemma induction {C : clifford_algebra Q → Prop}
   C a :=
 begin
   -- the arguments are enough to construct a subalgebra, and a mapping into it from M
-  let s : subalgebra R (clifford_algebra Q) := {
-    carrier := C,
+  let s : subalgebra R (clifford_algebra Q) :=
+  { carrier := C,
     mul_mem' := h_mul,
     add_mem' := h_add,
     algebra_map_mem' := h_grade0, },
   let of : { f : M →ₗ[R] s // ∀ m, f m * f m = algebra_map _ _ (Q m) } :=
   ⟨(ι Q).cod_restrict s.to_submodule h_grade1,
-    λ m, subtype.eq $ ι_square_scalar Q m ⟩,
+    λ m, subtype.eq $ ι_sq_scalar Q m ⟩,
   -- the mapping through the subalgebra is the identity
   have of_id : alg_hom.id R (clifford_algebra Q) = s.val.comp (lift Q of),
   { ext,
@@ -190,10 +196,121 @@ end
 /-- A Clifford algebra with a zero quadratic form is isomorphic to an `exterior_algebra` -/
 def as_exterior : clifford_algebra (0 : quadratic_form R M) ≃ₐ[R] exterior_algebra R M :=
 alg_equiv.of_alg_hom
-  (clifford_algebra.lift 0 ⟨(exterior_algebra.ι R), by simp⟩)
-  (exterior_algebra.lift R ⟨(ι (0 : quadratic_form R M)), by simp⟩)
-  (by { ext, simp, })
-  (by { ext, simp, })
+  (clifford_algebra.lift 0 ⟨(exterior_algebra.ι R),
+    by simp only [forall_const, ring_hom.map_zero,
+                  exterior_algebra.ι_sq_zero, quadratic_form.zero_apply]⟩)
+  (exterior_algebra.lift R ⟨(ι (0 : quadratic_form R M)),
+    by simp only [forall_const, ring_hom.map_zero,
+                  quadratic_form.zero_apply, ι_sq_scalar]⟩)
+  (exterior_algebra.hom_ext $ linear_map.ext $
+    by simp only [alg_hom.comp_to_linear_map, linear_map.coe_comp,
+                  function.comp_app, alg_hom.to_linear_map_apply,
+                  exterior_algebra.lift_ι_apply, clifford_algebra.lift_ι_apply,
+                  alg_hom.to_linear_map_id, linear_map.id_comp, eq_self_iff_true, forall_const])
+  (clifford_algebra.hom_ext $ linear_map.ext $
+    by simp only [alg_hom.comp_to_linear_map, linear_map.coe_comp,
+                  function.comp_app, alg_hom.to_linear_map_apply,
+                  clifford_algebra.lift_ι_apply, exterior_algebra.lift_ι_apply,
+                  alg_hom.to_linear_map_id, linear_map.id_comp, eq_self_iff_true, forall_const])
+
+/-- The symmetric product of vectors is a scalar -/
+lemma ι_mul_ι_add_swap (a b : M) :
+  ι Q a * ι Q b + ι Q b * ι Q a = algebra_map R _ (quadratic_form.polar Q a b) :=
+calc  ι Q a * ι Q b + ι Q b * ι Q a
+    = ι Q (a + b) * ι Q (a + b) - ι Q a * ι Q a - ι Q b * ι Q b :
+        by { rw [(ι Q).map_add, mul_add, add_mul, add_mul], abel, }
+... = algebra_map R _ (Q (a + b)) - algebra_map R _ (Q a) - algebra_map R _ (Q b) :
+        by rw [ι_sq_scalar, ι_sq_scalar, ι_sq_scalar]
+... = algebra_map R _ (Q (a + b) - Q a - Q b) :
+        by rw [←ring_hom.map_sub, ←ring_hom.map_sub]
+... = algebra_map R _ (quadratic_form.polar Q a b) : rfl
+
+@[simp]
+lemma ι_range_map_lift (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) :
+  (ι Q).range.map (lift Q ⟨f, cond⟩).to_linear_map = f.range :=
+by rw [←linear_map.range_comp, ι_comp_lift]
+
+section map
+
+variables {M₁ M₂ M₃ : Type*}
+variables [add_comm_group M₁] [add_comm_group M₂] [add_comm_group M₃]
+variables [module R M₁] [module R M₂] [module R M₃]
+variables (Q₁ : quadratic_form R M₁) (Q₂ : quadratic_form R M₂) (Q₃ : quadratic_form R M₃)
+
+/-- Any linear map that preserves the quadratic form lifts to an `alg_hom` between algebras.
+
+See `clifford_algebra.equiv_of_isometry` for the case when `f` is a `quadratic_form.isometry`. -/
+def map (f : M₁ →ₗ[R] M₂) (hf : ∀ m, Q₂ (f m) = Q₁ m) :
+  clifford_algebra Q₁ →ₐ[R] clifford_algebra Q₂ :=
+clifford_algebra.lift Q₁ ⟨(clifford_algebra.ι Q₂).comp f,
+  λ m, (ι_sq_scalar _ _).trans $ ring_hom.congr_arg _ $ hf m⟩
+
+@[simp]
+lemma map_comp_ι (f : M₁ →ₗ[R] M₂) (hf) :
+  (map Q₁ Q₂ f hf).to_linear_map.comp (ι Q₁) = (ι Q₂).comp f :=
+ι_comp_lift _ _
+
+@[simp]
+lemma map_apply_ι (f : M₁ →ₗ[R] M₂) (hf) (m : M₁):
+  map Q₁ Q₂ f hf (ι Q₁ m) = ι Q₂ (f m) :=
+lift_ι_apply _ _ m
+
+@[simp]
+lemma map_id :
+  map Q₁ Q₁ (linear_map.id : M₁ →ₗ[R] M₁) (λ m, rfl) = alg_hom.id R (clifford_algebra Q₁) :=
+by { ext m, exact map_apply_ι _ _ _ _ m }
+
+@[simp]
+lemma map_comp_map (f : M₂ →ₗ[R] M₃) (hf) (g : M₁ →ₗ[R] M₂) (hg) :
+  (map Q₂ Q₃ f hf).comp (map Q₁ Q₂ g hg) = map Q₁ Q₃ (f.comp g) (λ m, (hf _).trans $ hg m) :=
+begin
+  ext m,
+  dsimp only [linear_map.comp_apply, alg_hom.comp_apply, alg_hom.to_linear_map_apply,
+    alg_hom.id_apply],
+  rw [map_apply_ι, map_apply_ι, map_apply_ι, linear_map.comp_apply],
+end
+
+@[simp]
+lemma ι_range_map_map (f : M₁ →ₗ[R] M₂) (hf : ∀ m, Q₂ (f m) = Q₁ m) :
+  (ι Q₁).range.map (map Q₁ Q₂ f hf).to_linear_map = f.range.map (ι Q₂) :=
+(ι_range_map_lift _ _).trans (linear_map.range_comp _ _)
+
+variables {Q₁ Q₂ Q₃}
+
+/-- Two `clifford_algebra`s are equivalent as algebras if their quadratic forms are
+equivalent. -/
+@[simps apply]
+def equiv_of_isometry (e : Q₁.isometry Q₂) :
+  clifford_algebra Q₁ ≃ₐ[R] clifford_algebra Q₂ :=
+alg_equiv.of_alg_hom
+  (map Q₁ Q₂ e e.map_app)
+  (map Q₂ Q₁ e.symm e.symm.map_app)
+  ((map_comp_map _ _ _ _ _ _ _).trans $ begin
+    convert map_id _ using 2,
+    ext m,
+    exact e.to_linear_equiv.apply_symm_apply m,
+  end)
+  ((map_comp_map _ _ _ _ _ _ _).trans $ begin
+    convert map_id _ using 2,
+    ext m,
+    exact e.to_linear_equiv.symm_apply_apply m,
+  end)
+
+@[simp]
+lemma equiv_of_isometry_symm (e : Q₁.isometry Q₂) :
+  (equiv_of_isometry e).symm = equiv_of_isometry e.symm := rfl
+
+@[simp]
+lemma equiv_of_isometry_trans (e₁₂ : Q₁.isometry Q₂) (e₂₃ : Q₂.isometry Q₃) :
+  (equiv_of_isometry e₁₂).trans (equiv_of_isometry e₂₃) = equiv_of_isometry (e₁₂.trans e₂₃) :=
+by { ext x, exact alg_hom.congr_fun (map_comp_map Q₁ Q₂ Q₃ _ _ _ _) x }
+
+@[simp]
+lemma equiv_of_isometry_refl :
+  (equiv_of_isometry $ quadratic_form.isometry.refl Q₁) = alg_equiv.refl :=
+by { ext x, exact alg_hom.congr_fun (map_id Q₁) x }
+
+end map
 
 end clifford_algebra
 

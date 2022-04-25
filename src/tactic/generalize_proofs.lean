@@ -12,6 +12,8 @@ A simple tactic to find and replace all occurrences of proof terms in the
 context and goal with new variables.
 -/
 
+open interactive interactive.types lean.parser
+
 namespace tactic
 
 private meta def collect_proofs_in :
@@ -35,28 +37,33 @@ do t ← infer_type e,
          h ← intro n,
          return (ns, h::hs)) <|> return (ns, hs)) (tac (ns, hs)) in
 match e with
-| (expr.const _ _)   := go return
-| (expr.local_const _ _ _ _) := do t ← infer_type e, collect_proofs_in t ctx (ns, hs)
-| (expr.mvar _ _ _)  := do t ← infer_type e, collect_proofs_in t ctx (ns, hs)
-| (expr.app f x)     :=
+| expr.const _ _ := go return
+| expr.local_const _ _ _ _ := do t ← infer_type e, collect_proofs_in t ctx (ns, hs)
+| expr.mvar _ _ _ := do
+  e ← instantiate_mvars e,
+  match e with
+  | expr.mvar _ _ _ := do t ← infer_type e, collect_proofs_in t ctx (ns, hs)
+  | _ := collect_proofs_in e ctx (ns, hs)
+  end
+| expr.app f x :=
   go (λ nh, collect_proofs_in f ctx nh >>= collect_proofs_in x ctx)
-| (expr.lam n b d e) :=
+| expr.lam n b d e :=
   go (λ nh, do
     nh ← collect_proofs_in d ctx nh,
     var ← mk_local' n b d,
     collect_proofs_in (expr.instantiate_var e var) (var::ctx) nh)
-| (expr.pi n b d e) := do
+| expr.pi n b d e := do
   nh ← collect_proofs_in d ctx (ns, hs),
   var ← mk_local' n b d,
   collect_proofs_in (expr.instantiate_var e var) (var::ctx) nh
-| (expr.elet n t d e) :=
+| expr.elet n t d e :=
   go (λ nh, do
     nh ← collect_proofs_in t ctx nh,
     nh ← collect_proofs_in d ctx nh,
     collect_proofs_in (expr.instantiate_var e d) ctx nh)
-| (expr.macro m l) :=
+| expr.macro m l :=
   go (λ nh, mfoldl (λ x e, collect_proofs_in e ctx x) nh l)
-| _                  := return (ns, hs)
+| _ := return (ns, hs)
 end
 
 /-- Generalize proofs in the goal, naming them with the provided list. -/
@@ -68,7 +75,6 @@ do intros_dep,
   collect_proofs_in t [] (ns, hs),
   intron n <|> (intros $> ())
 
-open interactive interactive.types lean.parser
 local postfix *:9001 := many
 
 namespace interactive

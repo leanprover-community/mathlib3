@@ -3,8 +3,9 @@ Copyright (c) 2021 James Arthur, Benjamin Davidson, Andrew Souther. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Arthur, Benjamin Davidson, Andrew Souther
 -/
-import measure_theory.interval_integral
+import measure_theory.integral.interval_integral
 import analysis.special_functions.sqrt
+import analysis.special_functions.trigonometric.inverse_deriv
 
 /-!
 # Freek № 9: The Area of a Circle
@@ -29,7 +30,7 @@ to the derivative of `λ x, r ^ 2 * arcsin (x / r) + x * sqrt (r ^ 2 - x ^ 2)` e
 `Ioo (-r) r` and that those two functions are continuous, then apply the second fundamental theorem
 of calculus with those facts. Some simple algebra then completes the proof.
 
-Note that we choose to define `disc` as a set of points in `ℝ ⨯ ℝ`. This is admittedly not ideal; it
+Note that we choose to define `disc` as a set of points in `ℝ × ℝ`. This is admittedly not ideal; it
 would be more natural to define `disc` as a `metric.ball` in `euclidean_space ℝ (fin 2)` (as well as
 to provide a more general proof in higher dimensions). However, our proof indirectly relies on a
 number of theorems (particularly `measure_theory.measure.prod_apply`) which do not yet exist for
@@ -60,18 +61,18 @@ begin
   simp only [disc, region_between, mem_set_of_eq, mem_Ioo, mem_Ioc, pi.neg_apply],
   split;
   intro h,
-  { cases abs_lt_of_sqr_lt_sqr' (lt_of_add_lt_of_nonneg_left h (pow_two_nonneg p.2)) r.2,
+  { cases abs_lt_of_sq_lt_sq' (lt_of_add_lt_of_nonneg_left h (sq_nonneg p.2)) r.2,
     rw [add_comm, ← lt_sub_iff_add_lt] at h,
-    exact ⟨⟨left, right.le⟩, sqr_lt.mp h⟩ },
+    exact ⟨⟨left, right.le⟩, sq_lt.mp h⟩ },
   { rw [add_comm, ← lt_sub_iff_add_lt],
-    exact sqr_lt.mpr h.2 },
+    exact sq_lt.mpr h.2 },
 end
 
 /-- The disc is a `measurable_set`. -/
 theorem measurable_set_disc : measurable_set (disc r) :=
 by apply measurable_set_lt; apply continuous.measurable; continuity
 
-/-- The area of a disc with radius `r` is `π * r ^ 2`. -/
+/-- **Area of a Circle**: The area of a disc with radius `r` is `π * r ^ 2`. -/
 theorem area_disc : volume (disc r) = nnreal.pi * r ^ 2 :=
 begin
   let f := λ x, sqrt (r ^ 2 - x ^ 2),
@@ -79,7 +80,7 @@ begin
   have hf : continuous f := by continuity,
   suffices : ∫ x in -r..r, 2 * f x = nnreal.pi * r ^ 2,
   { have h : integrable_on f (Ioc (-r) r) :=
-      (hf.integrable_on_compact compact_Icc).mono_set Ioc_subset_Icc_self,
+      hf.integrable_on_Icc.mono_set Ioc_subset_Icc_self,
     calc  volume (disc r)
         = volume (region_between (λ x, -f x) f (Ioc (-r) r)) : by rw disc_eq_region_between
     ... = ennreal.of_real (∫ x in Ioc (-r:ℝ) r, (f - has_neg.neg ∘ f) x) :
@@ -94,11 +95,11 @@ begin
       ((has_deriv_at_const x (r:ℝ)⁻¹).mul (has_deriv_at_id' x)))).add
         ((has_deriv_at_id' x).mul (((has_deriv_at_id' x).pow.const_sub ((r:ℝ)^2)).sqrt _)),
     { have h : sqrt (1 - x ^ 2 / r ^ 2) * r = sqrt (r ^ 2 - x ^ 2),
-      { rw [← sqrt_sqr hle, ← sqrt_mul, sub_mul, sqrt_sqr hle, div_mul_eq_mul_div_comm,
+      { rw [← sqrt_sq hle, ← sqrt_mul, sub_mul, sqrt_sq hle, div_mul_eq_mul_div_comm,
             div_self (pow_ne_zero 2 hlt.ne'), one_mul, mul_one],
-        simpa [sqrt_sqr hle, div_le_one (pow_pos hlt 2)] using sqr_le_sqr' hx1.le hx2.le },
+        simpa [sqrt_sq hle, div_le_one (pow_pos hlt 2)] using sq_le_sq' hx1.le hx2.le },
       field_simp,
-      rw [h, mul_left_comm, ← pow_two, neg_mul_eq_mul_neg, mul_div_mul_left (-x^2) _ two_ne_zero,
+      rw [h, mul_left_comm, ← sq, neg_mul_eq_mul_neg, mul_div_mul_left (-x^2) _ two_ne_zero,
           add_left_comm, div_add_div_same, tactic.ring.add_neg_eq_sub, div_sqrt, two_mul] },
     { suffices : -(1:ℝ) < r⁻¹ * x, by exact this.ne',
       calc -(1:ℝ) = r⁻¹ * -r : by simp [hlt.ne']
@@ -108,8 +109,8 @@ begin
                    ... = 1 : inv_mul_cancel hlt.ne' },
     { nlinarith } },
   have hcont := (by continuity : continuous F).continuous_on,
-  have hcont' := (continuous_const.mul hf).continuous_on,
   calc  ∫ x in -r..r, 2 * f x
-      = F r - F (-r) : integral_eq_sub_of_has_deriv_at'_of_le (neg_le_self r.2) hcont hderiv hcont'
+      = F r - F (-r) : integral_eq_sub_of_has_deriv_at_of_le (neg_le_self r.2)
+                         hcont hderiv (continuous_const.mul hf).continuous_on.interval_integrable
   ... = nnreal.pi * r ^ 2 : by norm_num [F, inv_mul_cancel hlt.ne', ← mul_div_assoc, mul_comm π],
 end

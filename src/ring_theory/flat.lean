@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import linear_algebra.dimension
 import ring_theory.noetherian
-import ring_theory.algebra_tower
 
 /-!
 # Flat modules
@@ -46,6 +44,8 @@ This result is not yet formalised.
 
 -/
 
+universes u v
+
 namespace module
 open function (injective)
 open linear_map (lsmul)
@@ -54,14 +54,14 @@ open_locale tensor_product
 
 /-- An `R`-module `M` is flat if for all finitely generated ideals `I` of `R`,
 the canonical map `I ⊗ M →ₗ M` is injective. -/
-class flat (R M : Type*) [comm_ring R] [add_comm_group M] [module R M] : Prop :=
+class flat (R : Type u) (M : Type v) [comm_ring R] [add_comm_group M] [module R M] : Prop :=
 (out : ∀ ⦃I : ideal R⦄ (hI : I.fg), injective (tensor_product.lift ((lsmul R M).comp I.subtype)))
 
 namespace flat
 
-open tensor_product linear_map submodule
+open tensor_product linear_map _root_.submodule
 
-instance self (R : Type*) [comm_ring R] : flat R R :=
+instance self (R : Type u) [comm_ring R] : flat R R :=
 ⟨begin
   intros I hI,
   rw ← equiv.injective_comp (tensor_product.rid R I).symm.to_equiv,

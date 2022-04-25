@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert A. Spencer, Markus Himmel
 -/
 import algebra.category.Group.basic
-import category_theory.concrete_category
 import category_theory.limits.shapes.kernels
-import category_theory.preadditive
+import category_theory.linear
 import linear_algebra.basic
 
 /-!
@@ -55,7 +54,12 @@ universes v u
 
 variables (R : Type u) [ring R]
 
-/-- The category of R-modules and their morphisms. -/
+/-- The category of R-modules and their morphisms.
+
+ Note that in the case of `R = ℤ`, we can not
+impose here that the `ℤ`-multiplication field from the module structure is defeq to the one coming
+from the `is_add_comm_group` structure (contrary to what we do for all module structures in
+mathlib), which creates some difficulties down the road. -/
 structure Module :=
 (carrier : Type v)
 [is_add_comm_group : add_comm_group carrier]
@@ -65,15 +69,17 @@ attribute [instance] Module.is_add_comm_group Module.is_module
 
 namespace Module
 
-instance : has_coe_to_sort (Module.{v} R) :=
-{ S := Type v, coe := Module.carrier }
+instance : has_coe_to_sort (Module.{v} R) (Type v) := ⟨Module.carrier⟩
 
-instance : category (Module.{v} R) :=
+instance Module_category : category (Module.{v} R) :=
 { hom   := λ M N, M →ₗ[R] N,
   id    := λ M, 1,
-  comp  := λ A B C f g, g.comp f }
+  comp  := λ A B C f g, g.comp f,
+  id_comp' := λ X Y f, linear_map.id_comp _,
+  comp_id' := λ X Y f, linear_map.comp_id _,
+  assoc' := λ W X Y Z f g h, linear_map.comp_assoc _ _ _ }
 
-instance : concrete_category.{v} (Module.{v} R) :=
+instance Module_concrete_category : concrete_category.{v} (Module.{v} R) :=
 { forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
   forget_faithful := { } }
 
@@ -82,11 +88,38 @@ instance has_forget_to_AddCommGroup : has_forget₂ (Module.{u} R) AddCommGroup.
   { obj := λ M, AddCommGroup.of M,
     map := λ M₁ M₂ f, linear_map.to_add_monoid_hom f } }
 
+-- TODO: instantiate `linear_map_class` once that gets defined
+instance (M N : Module R) : add_monoid_hom_class (M ⟶ N) M N :=
+{ coe := λ f, f,
+  .. linear_map.add_monoid_hom_class }
+
 /-- The object in the category of R-modules associated to an R-module -/
 def of (X : Type v) [add_comm_group X] [module R X] : Module R := ⟨X⟩
 
-instance : has_zero (Module R) := ⟨of R punit⟩
-instance : inhabited (Module R) := ⟨0⟩
+@[simp] lemma forget₂_obj (X : Module R) :
+  (forget₂ (Module R) AddCommGroup).obj X = AddCommGroup.of X :=
+rfl
+
+@[simp] lemma forget₂_obj_Module_of (X : Type v) [add_comm_group X] [module R X] :
+  (forget₂ (Module R) AddCommGroup).obj (of R X) = AddCommGroup.of X :=
+rfl
+
+@[simp] lemma forget₂_map (X Y : Module R) (f : X ⟶ Y) :
+  (forget₂ (Module R) AddCommGroup).map f = linear_map.to_add_monoid_hom f :=
+rfl
+
+/-- Typecheck a `linear_map` as a morphism in `Module R`. -/
+def of_hom {R : Type u} [ring R] {X Y : Type v} [add_comm_group X] [module R X] [add_comm_group Y]
+  [module R Y] (f : X →ₗ[R] Y) : of R X ⟶ of R Y := f
+
+@[simp] lemma of_hom_apply {R : Type u} [ring R]
+  {X Y : Type v} [add_comm_group X] [module R X] [add_comm_group Y] [module R Y] (f : X →ₗ[R] Y)
+  (x : X) : of_hom f x = f x := rfl
+
+instance : inhabited (Module R) := ⟨of R punit⟩
+
+instance of_unique {X : Type v} [add_comm_group X] [module R X] [i : unique X] :
+  unique (of R X) := i
 
 @[simp]
 lemma coe_of (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
@@ -99,19 +132,16 @@ module. -/
 def of_self_iso (M : Module R) : Module.of R M ≅ M :=
 { hom := 𝟙 M, inv := 𝟙 M }
 
-instance : subsingleton (of R punit) :=
-by { rw coe_of R punit, apply_instance }
+lemma is_zero_of_subsingleton (M : Module R) [subsingleton M] :
+  is_zero M :=
+begin
+  refine ⟨λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩⟩,
+  { ext, have : x = 0 := subsingleton.elim _ _, rw [this, map_zero, map_zero], },
+  { ext, apply subsingleton.elim }
+end
 
 instance : has_zero_object (Module.{v} R) :=
-{ zero := 0,
-  unique_to := λ X,
-  { default := (0 : punit →ₗ[R] X),
-    uniq := λ _, linear_map.ext $ λ x,
-      have h : x = 0, from dec_trivial,
-      by simp only [h, linear_map.map_zero]},
-  unique_from := λ X,
-  { default := (0 : X →ₗ[R] punit),
-    uniq := λ _, linear_map.ext $ λ x, dec_trivial } }
+⟨⟨of R punit, is_zero_of_subsingleton _⟩⟩
 
 variables {R} {M N U : Module.{v} R}
 
@@ -219,38 +249,21 @@ def linear_equiv_iso_Module_iso {X Y : Type u} [add_comm_group X] [add_comm_grou
 
 namespace Module
 
-section preadditive
-
 instance : preadditive (Module.{v} R) :=
 { add_comp' := λ P Q R f f' g,
     show (f + f') ≫ g = f ≫ g + f' ≫ g, by { ext, simp },
   comp_add' := λ P Q R f g g',
     show f ≫ (g + g') = f ≫ g + f ≫ g', by { ext, simp } }
 
-end preadditive
+section
+variables {S : Type u} [comm_ring S]
 
-section epi_mono
-variables {M N : Module.{v} R} (f : M ⟶ N)
+instance : linear S (Module.{v} S) :=
+{ hom_module := λ X Y, linear_map.module,
+  smul_comp' := by { intros, ext, simp },
+  comp_smul' := by { intros, ext, simp }, }
 
-lemma ker_eq_bot_of_mono [mono f] : f.ker = ⊥ :=
-linear_map.ker_eq_bot_of_cancel $ λ u v, (@cancel_mono _ _ _ _ _ f _ ↟u ↟v).1
-
-lemma range_eq_top_of_epi [epi f] : f.range = ⊤ :=
-linear_map.range_eq_top_of_cancel $ λ u v, (@cancel_epi _ _ _ _ _ f _ ↟u ↟v).1
-
-lemma mono_of_ker_eq_bot (hf : f.ker = ⊥) : mono f :=
-concrete_category.mono_of_injective _ $ linear_map.ker_eq_bot.1 hf
-
-lemma epi_of_range_eq_top (hf : f.range = ⊤) : epi f :=
-concrete_category.epi_of_surjective _ $ linear_map.range_eq_top.1 hf
-
-instance mono_as_hom'_subtype (U : submodule R M) : mono ↾U.subtype :=
-mono_of_ker_eq_bot _ (submodule.ker_subtype U)
-
-instance epi_as_hom''_mkq (U : submodule R M) : epi ↿U.mkq :=
-epi_of_range_eq_top _ $ submodule.range_mkq _
-
-end epi_mono
+end
 
 end Module
 

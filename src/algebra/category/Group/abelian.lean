@@ -38,9 +38,11 @@ equivalence_reflects_normal_epi (forget₂ (Module.{u} ℤ) AddCommGroup.{u}).in
 end
 
 /-- The category of abelian groups is abelian. -/
-instance : abelian AddCommGroup :=
+instance : abelian AddCommGroup.{u} :=
 { has_finite_products := ⟨by apply_instance⟩,
-  normal_mono := λ X Y, normal_mono,
-  normal_epi := λ X Y, normal_epi }
+  normal_mono_of_mono := λ X Y, normal_mono,
+  normal_epi_of_epi := λ X Y, normal_epi,
+  add_comp' := by { intros, simp only [preadditive.add_comp] },
+  comp_add' := by { intros, simp only [preadditive.comp_add] } }
 
 end AddCommGroup

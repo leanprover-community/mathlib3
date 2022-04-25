@@ -45,7 +45,7 @@ setup_tactic_parser
 /--
 `init_ring` is an auxiliary tactic that discharges goals factoring `init` over ring operations.
 -/
-meta def init_ring (assert : parse (tk "using" >> parser.pexpr)?) : tactic unit := do
+meta def init_ring (assert : parse (tk "using" *> parser.pexpr)?) : tactic unit := do
 `[rw ext_iff,
   intros i,
   simp only [init, select, coeff_mk],
@@ -53,7 +53,7 @@ meta def init_ring (assert : parse (tk "using" >> parser.pexpr)?) : tactic unit 
 match assert with
 | none := skip
 | some e := do
-  `[simp only [add_coeff, mul_coeff, neg_coeff],
+  `[simp only [add_coeff, mul_coeff, neg_coeff, sub_coeff, nsmul_coeff, zsmul_coeff, pow_coeff],
     apply eval₂_hom_congr' (ring_hom.ext_int _ _) _ rfl,
     rintro ⟨b, k⟩ h -],
   tactic.replace `h ```(%%e p _ h),
@@ -121,8 +121,12 @@ begin
   simp only [witt_polynomial_eq_sum_C_mul_X_pow, select_poly, alg_hom.map_sum, alg_hom.map_pow,
     alg_hom.map_mul, bind₁_X_right, bind₁_C_right, ← finset.sum_add_distrib, ← mul_add],
   apply finset.sum_congr rfl,
-  intros, congr' 2,
-  split_ifs; simp only [zero_pow (pow_pos hp.1.pos _), add_zero, zero_add],
+  refine λ m hm, mul_eq_mul_left_iff.mpr (or.inl _),
+  rw [ite_pow, ite_pow, zero_pow (pow_pos hp.out.pos _)],
+  by_cases Pm : P m,
+  { rw [if_pos Pm, if_neg _, add_zero],
+    exact not_not.mpr Pm },
+  { rwa [if_neg Pm, if_pos, zero_add] }
 end
 
 lemma coeff_add_of_disjoint (x y : 𝕎 R) (h : ∀ n, x.coeff n = 0 ∨ y.coeff n = 0) :
@@ -187,11 +191,19 @@ by init_ring using witt_neg_vars
 
 lemma init_sub (x y : 𝕎 R) (n : ℕ) :
   init n (x - y) = init n (init n x - init n y) :=
-begin
-  simp only [sub_eq_add_neg],
-  rw [init_add, init_neg],
-  conv_rhs { rw [init_add, init_init] },
-end
+by init_ring using witt_sub_vars
+
+lemma init_nsmul (m : ℕ) (x : 𝕎 R) (n : ℕ) :
+  init n (m • x) = init n (m • init n x) :=
+by init_ring using (λ p [fact (nat.prime p)] n, by exactI witt_nsmul_vars p m n)
+
+lemma init_zsmul (m : ℤ) (x : 𝕎 R) (n : ℕ) :
+  init n (m • x) = init n (m • init n x) :=
+by init_ring using (λ p [fact (nat.prime p)] n, by exactI witt_zsmul_vars p m n)
+
+lemma init_pow (m : ℕ) (x : 𝕎 R) (n : ℕ) :
+  init n (x ^ m) = init n (init n x ^ m) :=
+by init_ring using (λ p [fact (nat.prime p)] n, by exactI witt_pow_vars p m n)
 
 section
 

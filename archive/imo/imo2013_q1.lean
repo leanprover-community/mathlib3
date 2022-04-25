@@ -51,8 +51,9 @@ begin
   { intro n, use (λ_, 1), simp }, -- For the base case, any m works.
 
   intro n,
-  obtain ⟨t, ht : ↑n = 2 * t⟩ | ⟨t, ht : ↑n = 2 * t + 1⟩ := (n : ℕ).even_or_odd,
+  obtain ⟨t, ht : ↑n = t + t⟩ | ⟨t, ht : ↑n = 2 * t + 1⟩ := (n : ℕ).even_or_odd,
   { -- even case
+    rw ← two_mul at ht,
     cases t, -- Eliminate the zero case to simplify later calculations.
     { exfalso, rw mul_zero at ht, exact pnat.ne_zero n ht },
 
@@ -75,10 +76,9 @@ begin
                                                              ring }
     ... = (1 + 1 / (2 * t + 2^pk.succ)) *
           (1 + (2 ^ pk - 1) / t_succ)                 : by norm_cast
-    ... = (1 + 1 / ↑(m pk)) *
-          ∏ (i : ℕ) in finset.range pk, (1 + 1 / m i) : by rw [hpm, prod_lemma, ←hmpk]
-    ... = ∏ (i : ℕ) in finset.range pk.succ,
-                                        (1 + 1 / m i) : (finset.prod_range_succ _ pk).symm },
+    ... = (∏ i in finset.range pk, (1 + 1 / m i)) *
+          (1 + 1 / (m pk))                            : by rw [prod_lemma, hpm, ←hmpk, mul_comm]
+    ... = ∏ i in finset.range pk.succ, (1 + 1 / m i)  : by rw ← finset.prod_range_succ _ pk },
   { -- odd case
     let t_succ : ℕ+ := ⟨t + 1, t.succ_pos⟩,
     obtain ⟨pm, hpm⟩ := hpk t_succ,
@@ -97,8 +97,7 @@ begin
                                                              ring }
     ... = (1 + 1 / (2 * t + 1)) *
           (1 + (2^pk - 1) / t_succ)                   : by norm_cast
-    ... = (1 + 1 / ↑(m pk)) *
-          ∏ (i : ℕ) in finset.range pk, (1 + 1 / m i) : by rw [hpm, prod_lemma, ←hmpk]
-    ... = ∏ (i : ℕ) in finset.range pk.succ,
-                                        (1 + 1 / m i) : (finset.prod_range_succ _ pk).symm }
+    ... = (∏ i in finset.range pk, (1 + 1 / m i)) *
+          (1 + 1 / ↑(m pk))                           : by rw [prod_lemma, hpm, ←hmpk, mul_comm]
+    ... = ∏ i in finset.range pk.succ, (1 + 1 / m i)  : by rw ← finset.prod_range_succ _ pk }
 end

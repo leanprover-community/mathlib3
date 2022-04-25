@@ -49,6 +49,10 @@ structure pfilter (P) [preorder P] :=
 def is_pfilter [preorder P] (F : set P) : Prop :=
 @is_ideal (order_dual P) _ F
 
+lemma is_pfilter.of_def [preorder P] {F : set P} (nonempty : F.nonempty)
+  (directed : directed_on (≥) F) (mem_of_le : ∀ {x y : P}, x ≤ y → x ∈ F → y ∈ F) : is_pfilter F :=
+by { use [nonempty, directed], exact λ _ _ _ _, mem_of_le ‹_› ‹_› }
+
 /-- Create an element of type `order.pfilter` from a set satisfying the predicate
 `order.is_pfilter`. -/
 def is_pfilter.to_pfilter [preorder P] {F : set P} (h : is_pfilter F) : pfilter P :=
@@ -65,6 +69,8 @@ instance : has_coe (pfilter P) (set P) := ⟨λ F, F.dual.carrier⟩
 /-- For the notation `x ∈ F`. -/
 instance : has_mem P (pfilter P) := ⟨λ x F, x ∈ (F : set P)⟩
 
+@[simp] lemma mem_coe : x ∈ (F : set P) ↔ x ∈ F := iff_of_eq rfl
+
 lemma is_pfilter : is_pfilter (F : set P) :=
 F.dual.is_ideal
 
@@ -77,7 +83,7 @@ lemma mem_of_le {F : pfilter P} : x ≤ y → x ∈ F → y ∈ F := λ h, F.dua
 /-- The smallest filter containing a given element. -/
 def principal (p : P) : pfilter P := ⟨ideal.principal p⟩
 
-instance [inhabited P] : inhabited (pfilter P) := ⟨⟨default _⟩⟩
+instance [inhabited P] : inhabited (pfilter P) := ⟨⟨default⟩⟩
 
 /-- Two filters are equal when their underlying sets are equal. -/
 @[ext] lemma ext : ∀ (F G : pfilter P), (F : set P) = G → F = G
@@ -95,7 +101,7 @@ ideal.principal_le_iff
 end preorder
 
 section order_top
-variables [order_top P] {F : pfilter P}
+variables [preorder P] [order_top P] {F : pfilter P}
 
 /-- A specific witness of `pfilter.nonempty` when `P` has a top element. -/
 @[simp] lemma top_mem : ⊤ ∈ F :=
@@ -104,23 +110,21 @@ ideal.bot_mem
 /-- There is a bottom filter when `P` has a top element. -/
 instance : order_bot (pfilter P) :=
 { bot := ⟨⊥⟩,
-  bot_le := λ F, (bot_le : ⊥ ≤ F.dual),
-  .. pfilter.partial_order }
+  bot_le := λ F, (bot_le : ⊥ ≤ F.dual) }
 
 end order_top
 
 /-- There is a top filter when `P` has a bottom element. -/
-instance {P} [order_bot P] : order_top (pfilter P) :=
+instance {P} [preorder P] [order_bot P] : order_top (pfilter P) :=
 { top := ⟨⊤⟩,
-  le_top := λ F, (le_top : F.dual ≤ ⊤),
-  .. pfilter.partial_order }
+  le_top := λ F, (le_top : F.dual ≤ ⊤) }
 
 section semilattice_inf
 variables [semilattice_inf P] {x y : P} {F : pfilter P}
 
 /-- A specific witness of `pfilter.directed` when `P` has meets. -/
 lemma inf_mem (x y ∈ F) : x ⊓ y ∈ F :=
-ideal.sup_mem x y ‹x ∈ F› ‹y ∈ F›
+ideal.sup_mem x ‹x ∈ F› y ‹y ∈ F›
 
 @[simp] lemma inf_mem_iff : x ⊓ y ∈ F ↔ x ∈ F ∧ y ∈ F :=
 ideal.sup_mem_iff

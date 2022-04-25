@@ -38,17 +38,17 @@ lemma ultrafilter_basis_is_basis :
   topological_space.is_topological_basis (ultrafilter_basis α) :=
 ⟨begin
    rintros _ ⟨a, rfl⟩ _ ⟨b, rfl⟩ u ⟨ua, ub⟩,
-   refine ⟨_, ⟨a ∩ b, rfl⟩, inter_mem_sets ua ub, assume v hv, ⟨_, _⟩⟩;
-     apply mem_sets_of_superset hv; simp [inter_subset_right a b]
+   refine ⟨_, ⟨a ∩ b, rfl⟩, inter_mem ua ub, assume v hv, ⟨_, _⟩⟩;
+     apply mem_of_superset hv; simp [inter_subset_right a b]
  end,
  eq_univ_of_univ_subset $ subset_sUnion_of_mem $
-   ⟨univ, eq_univ_of_forall (λ u, univ_mem_sets)⟩,
+   ⟨univ, eq_univ_of_forall (λ u, univ_mem)⟩,
  rfl⟩
 
 /-- The basic open sets for the topology on ultrafilters are open. -/
 lemma ultrafilter_is_open_basic (s : set α) :
   is_open {u : ultrafilter α | s ∈ u} :=
-topological_space.is_open_of_is_topological_basis ultrafilter_basis_is_basis ⟨s, rfl⟩
+ultrafilter_basis_is_basis.is_open ⟨s, rfl⟩
 
 /-- The basic open sets for the topology on ultrafilters are also closed. -/
 lemma ultrafilter_is_closed_basic (s : set α) :
@@ -75,7 +75,7 @@ begin
 end
 
 instance ultrafilter_compact : compact_space (ultrafilter α) :=
-⟨compact_iff_ultrafilter_le_nhds.mpr $ assume f _,
+⟨is_compact_iff_ultrafilter_le_nhds.mpr $ assume f _,
    ⟨mjoin f, trivial, ultrafilter_converges_iff.mpr rfl⟩⟩
 
 instance ultrafilter.t2_space : t2_space (ultrafilter α) :=
@@ -83,6 +83,20 @@ t2_iff_ultrafilter.mpr $ assume x y f fx fy,
   have hx : x = mjoin f, from ultrafilter_converges_iff.mp fx,
   have hy : y = mjoin f, from ultrafilter_converges_iff.mp fy,
   hx.trans hy.symm
+
+instance : totally_disconnected_space (ultrafilter α) :=
+begin
+  rw totally_disconnected_space_iff_connected_component_singleton,
+  intro A,
+  simp only [set.eq_singleton_iff_unique_mem, mem_connected_component, true_and],
+  intros B hB,
+  rw ← ultrafilter.coe_le_coe,
+  intros s hs,
+  rw [connected_component_eq_Inter_clopen, set.mem_Inter] at hB,
+  let Z := { F : ultrafilter α | s ∈ F },
+  have hZ : is_clopen Z := ⟨ultrafilter_is_open_basic s, ultrafilter_is_closed_basic s⟩,
+  exact hB ⟨Z, hZ, hs⟩,
+end
 
 lemma ultrafilter_comap_pure_nhds (b : ultrafilter α) : comap pure (𝓝 b) ≤ b :=
 begin
@@ -100,9 +114,9 @@ section embedding
 lemma ultrafilter_pure_injective : function.injective (pure : α → ultrafilter α) :=
 begin
   intros x y h,
-  have : {x} ∈ (pure x : ultrafilter α) := singleton_mem_pure_sets,
+  have : {x} ∈ (pure x : ultrafilter α) := singleton_mem_pure,
   rw h at this,
-  exact (mem_singleton_iff.mp (mem_pure_sets.mp this)).symm
+  exact (mem_singleton_iff.mp (mem_pure.mp this)).symm
 end
 
 open topological_space
@@ -163,7 +177,7 @@ lemma continuous_ultrafilter_extend (f : α → γ) : continuous (ultrafilter.ex
 have ∀ (b : ultrafilter α), ∃ c, tendsto f (comap pure (𝓝 b)) (𝓝 c) := assume b,
   -- b.map f is an ultrafilter on γ, which is compact, so it converges to some c in γ.
   let ⟨c, _, h⟩ := compact_univ.ultrafilter_le_nhds (b.map f)
-    (by rw [le_principal_iff]; exact univ_mem_sets) in
+    (by rw [le_principal_iff]; exact univ_mem) in
   ⟨c, le_trans (map_mono (ultrafilter_comap_pure_nhds _)) h⟩,
 begin
   letI : topological_space α := ⊥,
@@ -186,7 +200,7 @@ lemma ultrafilter_extend_eq_iff {f : α → γ} {b : ultrafilter α} {c : γ} :
    refine le_trans _ (le_trans (map_mono t) this),
    change _ ≤ map (ultrafilter.extend f ∘ pure) ↑b,
    rw ultrafilter_extend_extends,
-   exact le_refl _
+   exact le_rfl
  end,
  assume h, by letI : topological_space α := ⊥; exact
    dense_inducing_pure.extend_eq_of_tendsto (le_trans (map_mono (ultrafilter_comap_pure_nhds _)) h)⟩
@@ -233,6 +247,7 @@ dense_range_pure.quotient
 section extension
 
 variables {γ : Type u} [topological_space γ] [t2_space γ] [compact_space γ]
+variables {γ' : Type u} [topological_space γ'] [t2_space γ']
 variables {f : α → γ} (hf : continuous f)
 
 local attribute [elab_with_expected_type] quotient.lift
@@ -247,6 +262,15 @@ ultrafilter_extend_extends f
 
 lemma continuous_stone_cech_extend : continuous (stone_cech_extend hf) :=
 continuous_quot_lift _ (continuous_ultrafilter_extend f)
+
+lemma stone_cech_hom_ext {g₁ g₂ : stone_cech α → γ'}
+  (h₁ : continuous g₁) (h₂ : continuous g₂)
+  (h : g₁ ∘ stone_cech_unit = g₂ ∘ stone_cech_unit) : g₁ = g₂ :=
+begin
+  apply continuous.ext_on dense_range_stone_cech_unit h₁ h₂,
+  rintros x ⟨x, rfl⟩,
+  apply (congr_fun h x)
+end
 
 end extension
 

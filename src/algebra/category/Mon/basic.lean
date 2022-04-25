@@ -3,9 +3,10 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import tactic.elementwise
 import category_theory.concrete_category.bundled_hom
-import category_theory.concrete_category.reflects_isomorphisms
 import algebra.punit_instances
+import category_theory.functor.reflects_isomorphisms
 
 /-!
 # Category instances for monoid, add_monoid, comm_monoid, and add_comm_monoid.
@@ -31,11 +32,23 @@ add_decl_doc AddMon
 
 namespace Mon
 
-@[to_additive]
-instance bundled_hom : bundled_hom @monoid_hom :=
-⟨@monoid_hom.to_fun, @monoid_hom.id, @monoid_hom.comp, @monoid_hom.coe_inj⟩
+/-- `monoid_hom` doesn't actually assume associativity. This alias is needed to make the category
+theory machinery work. -/
+@[to_additive "`add_monoid_hom` doesn't actually assume associativity. This alias is needed to make
+the category theory machinery work."]
+abbreviation assoc_monoid_hom (M N : Type*) [monoid M] [monoid N] := monoid_hom M N
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] Mon AddMon
+@[to_additive]
+instance bundled_hom : bundled_hom assoc_monoid_hom :=
+⟨λ M N [monoid M] [monoid N], by exactI @monoid_hom.to_fun M N _ _,
+ λ M [monoid M], by exactI @monoid_hom.id M _,
+ λ M N P [monoid M] [monoid N] [monoid P], by exactI @monoid_hom.comp M N P _ _ _,
+ λ M N [monoid M] [monoid N], by exactI @monoid_hom.coe_inj M N _ _⟩
+
+attribute [derive [large_category, concrete_category]] Mon
+attribute [to_additive] Mon.large_category Mon.concrete_category
+
+@[to_additive] instance : has_coe_to_sort Mon Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled `Mon` from the underlying type and typeclass. -/
 @[to_additive]
@@ -43,6 +56,16 @@ def of (M : Type u) [monoid M] : Mon := bundled.of M
 
 /-- Construct a bundled `Mon` from the underlying type and typeclass. -/
 add_decl_doc AddMon.of
+
+/-- Typecheck a `monoid_hom` as a morphism in `Mon`. -/
+@[to_additive] def of_hom {X Y : Type u} [monoid X] [monoid Y] (f : X →* Y) :
+  of X ⟶ of Y := f
+
+/-- Typecheck a `add_monoid_hom` as a morphism in `AddMon`. -/
+add_decl_doc AddMon.of_hom
+
+@[simp] lemma of_hom_apply {X Y : Type u} [monoid X] [monoid Y] (f : X →* Y)
+  (x : X) : of_hom f x = f x := rfl
 
 @[to_additive]
 instance : inhabited Mon :=
@@ -69,7 +92,10 @@ namespace CommMon
 @[to_additive]
 instance : bundled_hom.parent_projection comm_monoid.to_monoid := ⟨⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] CommMon AddCommMon
+attribute [derive [large_category, concrete_category]] CommMon
+attribute [to_additive] CommMon.large_category CommMon.concrete_category
+
+@[to_additive] instance : has_coe_to_sort CommMon Type* := bundled.has_coe_to_sort
 
 /-- Construct a bundled `CommMon` from the underlying type and typeclass. -/
 @[to_additive]
@@ -118,8 +144,8 @@ section
 variables [monoid X] [monoid Y]
 
 /-- Build an isomorphism in the category `Mon` from a `mul_equiv` between `monoid`s. -/
-@[simps, to_additive add_equiv.to_AddMon_iso "Build an isomorphism in the category `AddMon` from
-an `add_equiv` between `add_monoid`s."]
+@[to_additive add_equiv.to_AddMon_iso "Build an isomorphism in the category `AddMon` from
+an `add_equiv` between `add_monoid`s.", simps]
 def mul_equiv.to_Mon_iso (e : X ≃* Y) : Mon.of X ≅ Mon.of Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
@@ -130,8 +156,8 @@ section
 variables [comm_monoid X] [comm_monoid Y]
 
 /-- Build an isomorphism in the category `CommMon` from a `mul_equiv` between `comm_monoid`s. -/
-@[simps, to_additive add_equiv.to_AddCommMon_iso "Build an isomorphism in the category `AddCommMon`
-from an `add_equiv` between `add_comm_monoid`s."]
+@[to_additive add_equiv.to_AddCommMon_iso "Build an isomorphism in the category `AddCommMon`
+from an `add_equiv` between `add_comm_monoid`s.", simps]
 def mul_equiv.to_CommMon_iso (e : X ≃* Y) : CommMon.of X ≅ CommMon.of Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }

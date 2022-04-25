@@ -4,14 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import data.set.intervals.ord_connected
-import order.filter.lift
+import order.filter.small_sets
 import order.filter.at_top_bot
 
 /-!
 # Convergence of intervals
 
 If both `a` and `b` tend to some filter `l₁`, sometimes this implies that `Ixx a b` tends to
-`l₂.lift' powerset`, i.e., for any `s ∈ l₂` eventually `Ixx a b` becomes a subset of `s`.  Here and
+`l₂.small_sets`, i.e., for any `s ∈ l₂` eventually `Ixx a b` becomes a subset of `s`.  Here and
 below `Ixx` is one of `Icc`, `Ico`, `Ioc`, and `Ioo`. We define `filter.tendsto_Ixx_class Ixx l₁ l₂`
 to be a typeclass representing this property.
 
@@ -42,17 +42,19 @@ that need topology are defined in `topology/algebra/ordered`.
 
 variables {α β : Type*}
 
-open_locale classical filter
+open_locale classical filter interval
 
 open set function
 
-variables [preorder α]
-
 namespace filter
 
+section preorder
+
+variables [preorder α]
+
 /-- A pair of filters `l₁`, `l₂` has `tendsto_Ixx_class Ixx` property if `Ixx a b` tends to
-`l₂.lift' powerset` as `a` and `b` tend to `l₁`. In all instances `Ixx` is one of `Icc`, `Ico`,
-`Ioc`, or `Ioo`. The instances provide the best `l₂` for a given `l₁`. In many cases `l₁ = l₂` but
+`l₂.small_sets` as `a` and `b` tend to `l₁`. In all instances `Ixx` is one of `Icc`, `Ico`, `Ioc`,
+or `Ioo`. The instances provide the best `l₂` for a given `l₁`. In many cases `l₁ = l₂` but
 sometimes we can drop an endpoint from an interval: e.g., we prove `tendsto_Ixx_class Ico (𝓟 $ Iic
 a) (𝓟 $ Iio a)`, i.e., if `u₁ n` and `u₂ n` belong eventually to `Iic a`, then the interval `Ico (u₁
 n) (u₂ n)` is eventually included in `Iio a`.
@@ -60,50 +62,48 @@ n) (u₂ n)` is eventually included in `Iio a`.
 We mark `l₂` as an `out_param` so that Lean can automatically find an appropriate `l₂` based on
 `Ixx` and `l₁`. This way, e.g., `tendsto.Ico h₁ h₂` works without specifying explicitly `l₂`. -/
 class tendsto_Ixx_class (Ixx : α → α → set α) (l₁ : filter α) (l₂ : out_param $ filter α) : Prop :=
-(tendsto_Ixx : tendsto (λ p : α × α, Ixx p.1 p.2) (l₁ ×ᶠ l₁) (l₂.lift' powerset))
+(tendsto_Ixx : tendsto (λ p : α × α, Ixx p.1 p.2) (l₁ ×ᶠ l₁) l₂.small_sets)
 
 lemma tendsto.Icc {l₁ l₂ : filter α} [tendsto_Ixx_class Icc l₁ l₂]
   {lb : filter β} {u₁ u₂ : β → α} (h₁ : tendsto u₁ lb l₁) (h₂ : tendsto u₂ lb l₁) :
-  tendsto (λ x, Icc (u₁ x) (u₂ x)) lb (l₂.lift' powerset) :=
+  tendsto (λ x, Icc (u₁ x) (u₂ x)) lb l₂.small_sets :=
 tendsto_Ixx_class.tendsto_Ixx.comp $ h₁.prod_mk h₂
 
 lemma tendsto.Ioc {l₁ l₂ : filter α} [tendsto_Ixx_class Ioc l₁ l₂]
   {lb : filter β} {u₁ u₂ : β → α} (h₁ : tendsto u₁ lb l₁) (h₂ : tendsto u₂ lb l₁) :
-  tendsto (λ x, Ioc (u₁ x) (u₂ x)) lb (l₂.lift' powerset) :=
+  tendsto (λ x, Ioc (u₁ x) (u₂ x)) lb l₂.small_sets :=
 tendsto_Ixx_class.tendsto_Ixx.comp $ h₁.prod_mk h₂
 
 lemma tendsto.Ico {l₁ l₂ : filter α} [tendsto_Ixx_class Ico l₁ l₂]
   {lb : filter β} {u₁ u₂ : β → α} (h₁ : tendsto u₁ lb l₁) (h₂ : tendsto u₂ lb l₁) :
-  tendsto (λ x, Ico (u₁ x) (u₂ x)) lb (l₂.lift' powerset) :=
+  tendsto (λ x, Ico (u₁ x) (u₂ x)) lb l₂.small_sets :=
 tendsto_Ixx_class.tendsto_Ixx.comp $ h₁.prod_mk h₂
 
 lemma tendsto.Ioo {l₁ l₂ : filter α} [tendsto_Ixx_class Ioo l₁ l₂]
   {lb : filter β} {u₁ u₂ : β → α} (h₁ : tendsto u₁ lb l₁) (h₂ : tendsto u₂ lb l₁) :
-  tendsto (λ x, Ioo (u₁ x) (u₂ x)) lb (l₂.lift' powerset) :=
+  tendsto (λ x, Ioo (u₁ x) (u₂ x)) lb l₂.small_sets :=
 tendsto_Ixx_class.tendsto_Ixx.comp $ h₁.prod_mk h₂
 
 lemma tendsto_Ixx_class_principal {s t : set α} {Ixx : α → α → set α} :
-  tendsto_Ixx_class Ixx (𝓟 s) (𝓟 t) ↔ ∀ (x ∈ s) (y ∈ s), Ixx x y ⊆ t :=
-begin
-  refine iff.trans ⟨λ h, h.1, λ h, ⟨h⟩⟩ _,
-  simp [lift'_principal monotone_powerset, -mem_prod, -prod.forall, forall_prod_set]
-end
+  tendsto_Ixx_class Ixx (𝓟 s) (𝓟 t) ↔ ∀ x y ∈ s, Ixx x y ⊆ t :=
+iff.trans ⟨λ h, h.1, λ h, ⟨h⟩⟩ $ by simp only [small_sets_principal, prod_principal_principal,
+  tendsto_principal_principal, forall_prod_set, mem_powerset_iff, mem_principal]
 
 lemma tendsto_Ixx_class_inf {l₁ l₁' l₂ l₂' : filter α} {Ixx}
   [h : tendsto_Ixx_class Ixx l₁ l₂] [h' : tendsto_Ixx_class Ixx l₁' l₂'] :
   tendsto_Ixx_class Ixx (l₁ ⊓ l₁') (l₂ ⊓ l₂') :=
-⟨by simpa only [prod_inf_prod, lift'_inf_powerset] using h.1.inf h'.1⟩
+⟨by simpa only [prod_inf_prod, small_sets_inf] using h.1.inf h'.1⟩
 
 lemma tendsto_Ixx_class_of_subset {l₁ l₂ : filter α} {Ixx Ixx' : α → α → set α}
   (h : ∀ a b, Ixx a b ⊆ Ixx' a b) [h' : tendsto_Ixx_class Ixx' l₁ l₂] :
   tendsto_Ixx_class Ixx l₁ l₂ :=
-⟨tendsto_lift'_powerset_mono h'.1 $ eventually_of_forall $ prod.forall.2 h⟩
+⟨h'.1.small_sets_mono $ eventually_of_forall $ prod.forall.2 h⟩
 
 lemma has_basis.tendsto_Ixx_class {ι : Type*} {p : ι → Prop} {s} {l : filter α}
   (hl : l.has_basis p s) {Ixx : α → α → set α}
   (H : ∀ i, p i → ∀ (x ∈ s i) (y ∈ s i), Ixx x y ⊆ s i) :
   tendsto_Ixx_class Ixx l l :=
-⟨(hl.prod_self.tendsto_iff (hl.lift' monotone_powerset)).2 $ λ i hi,
+⟨(hl.prod_self.tendsto_iff hl.small_sets).2 $ λ i hi,
   ⟨i, hi, λ x hx, H i hi _ hx.1 _ hx.2⟩⟩
 
 instance tendsto_Icc_at_top_at_top : tendsto_Ixx_class Icc (at_top : filter α) at_top :=
@@ -172,18 +172,55 @@ tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ioc_self)
 instance tendsto_Ioo_Iio_Iio {a : α} : tendsto_Ixx_class Ioo (𝓟 (Iio a)) (𝓟 (Iio a)) :=
 tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ioc_self)
 
-variable [partial_order β]
+instance tendsto_Icc_Icc_Icc {a b : α} :
+  tendsto_Ixx_class Icc (𝓟 (Icc a b)) (𝓟 (Icc a b)) :=
+tendsto_Ixx_class_principal.mpr $ λ x hx y hy, Icc_subset_Icc hx.1 hy.2
 
-instance tendsto_Icc_pure_pure {a : β} : tendsto_Ixx_class Icc (pure a) (pure a : filter β) :=
+instance tendsto_Ioc_Icc_Icc {a b : α} : tendsto_Ixx_class Ioc (𝓟 (Icc a b)) (𝓟 (Icc a b)) :=
+tendsto_Ixx_class_of_subset $ λ _ _, Ioc_subset_Icc_self
+
+end preorder
+
+section partial_order
+
+variable [partial_order α]
+
+instance tendsto_Icc_pure_pure {a : α} : tendsto_Ixx_class Icc (pure a) (pure a : filter α) :=
 by { rw ← principal_singleton, exact tendsto_Ixx_class_principal.2 ord_connected_singleton.out }
 
-instance tendsto_Ico_pure_bot {a : β} : tendsto_Ixx_class Ico (pure a) ⊥ :=
-⟨by simp [lift'_bot monotone_powerset]⟩
+instance tendsto_Ico_pure_bot {a : α} : tendsto_Ixx_class Ico (pure a) ⊥ := ⟨by simp⟩
+instance tendsto_Ioc_pure_bot {a : α} : tendsto_Ixx_class Ioc (pure a) ⊥ := ⟨by simp⟩
+instance tendsto_Ioo_pure_bot {a : α} : tendsto_Ixx_class Ioo (pure a) ⊥ := ⟨by simp⟩
 
-instance tendsto_Ioc_pure_bot {a : β} : tendsto_Ixx_class Ioc (pure a) ⊥ :=
-⟨by simp [lift'_bot monotone_powerset]⟩
+end partial_order
 
-instance tendsto_Ioo_pure_bot {a : β} : tendsto_Ixx_class Ioo (pure a) ⊥ :=
-tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ioc_self)
+section linear_order
+
+variables [linear_order α]
+
+instance tendsto_Icc_interval_interval {a b : α} : tendsto_Ixx_class Icc (𝓟 [a, b]) (𝓟 [a, b]) :=
+filter.tendsto_Icc_Icc_Icc
+
+instance tendsto_Ioc_interval_interval {a b : α} : tendsto_Ixx_class Ioc (𝓟 [a, b]) (𝓟 [a, b]) :=
+filter.tendsto_Ioc_Icc_Icc
+
+instance tendsto_interval_of_Icc {l : filter α} [tendsto_Ixx_class Icc l l] :
+  tendsto_Ixx_class interval l l :=
+begin
+  refine ⟨λ s hs, mem_map.2 $ mem_prod_self_iff.2 _⟩,
+  obtain ⟨t, htl, hts⟩ : ∃ t ∈ l, ∀ p ∈ (t : set α) ×ˢ t, Icc (p : α × α).1 p.2 ∈ s,
+    from mem_prod_self_iff.1 (mem_map.1 (tendsto_fst.Icc tendsto_snd hs)),
+  refine ⟨t, htl, λ p hp, _⟩,
+  cases le_total p.1 p.2,
+  { rw [mem_preimage, interval_of_le h], exact hts p hp },
+  { rw [mem_preimage, interval_of_ge h], exact hts ⟨p.2, p.1⟩ ⟨hp.2, hp.1⟩ }
+end
+
+lemma tendsto.interval {l : filter α} [tendsto_Ixx_class Icc l l] {f g : β → α} {lb : filter β}
+  (hf : tendsto f lb l) (hg : tendsto g lb l) :
+  tendsto (λ x, [f x, g x]) lb l.small_sets :=
+tendsto_Ixx_class.tendsto_Ixx.comp $ hf.prod_mk hg
+
+end linear_order
 
 end filter

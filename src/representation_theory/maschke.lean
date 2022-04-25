@@ -3,15 +3,15 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.monoid_algebra
+import algebra.monoid_algebra.basic
 import algebra.char_p.invertible
+import algebra.regular.basic
 import linear_algebra.basis
-import ring_theory.simple_module
 
 /-!
 # Maschke's theorem
 
-We prove Maschke's theorem for finite groups,
+We prove **Maschke's theorem** for finite groups,
 in the formulation that every submodule of a `k[G]` module has a complement,
 when `k` is a field with `invertible (fintype.card G : k)`.
 
@@ -24,7 +24,7 @@ taking the average over `G` of the conjugates of `π`.
 ## Implementation Notes
 * These results assume `invertible (fintype.card G : k)` which is equivalent to the more
 familiar `¬(ring_char k ∣ fintype.card G)`. It is possible to convert between them using
-`invertible_of_ring_char_not_dvd` and `ring_char_not_dvd_of_invertible`.
+`invertible_of_ring_char_not_dvd` and `not_ring_char_dvd_of_invertible`.
 
 
 ## Future work
@@ -35,7 +35,7 @@ of a finite group is semisimple (i.e. a direct sum of irreducibles).
 universes u
 
 noncomputable theory
-open semimodule
+open module
 open monoid_algebra
 open_locale big_operators
 
@@ -107,13 +107,11 @@ begin
   dsimp [sum_of_conjugates],
   simp only [linear_map.sum_apply, finset.smul_sum],
   dsimp [conjugate],
-  conv_lhs {
-    rw [←finset.univ_map_embedding (mul_right_embedding g⁻¹)],
-    simp only [mul_right_embedding],
-  },
+  conv_lhs
+  { rw [←finset.univ_map_embedding (mul_right_embedding g⁻¹)],
+    simp only [mul_right_embedding], },
   simp only [←mul_smul, single_mul_single, mul_inv_rev, mul_one, function.embedding.coe_fn_mk,
-    finset.sum_map, inv_inv, inv_mul_cancel_right],
-  recover,
+    finset.sum_map, inv_inv, inv_mul_cancel_right]
 end)
 
 section
@@ -168,7 +166,8 @@ begin
   obtain ⟨φ, hφ⟩ := (f.restrict_scalars k).exists_left_inverse_of_injective
     (by simp only [hf, submodule.restrict_scalars_bot, linear_map.ker_restrict_scalars]),
   refine ⟨φ.equivariant_projection G, _⟩,
-  ext v,
+  apply linear_map.ext,
+  intro v,
   simp only [linear_map.id_coe, id.def, linear_map.comp_apply],
   apply linear_map.equivariant_projection_condition,
   intro v,

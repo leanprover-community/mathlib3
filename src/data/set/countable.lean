@@ -3,8 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.equiv.list
 import data.set.finite
+import logic.equiv.list
 
 /-!
 # Countable sets
@@ -102,12 +102,25 @@ lemma countable.mono {s₁ s₂ : set α} (h : s₁ ⊆ s₂) : countable s₂ �
 | ⟨H⟩ := ⟨@of_inj _ _ H _ (embedding_of_subset _ _ h).2⟩
 
 lemma countable.image {s : set α} (hs : countable s) (f : α → β) : countable (f '' s) :=
-let f' : s → f '' s := λ⟨a, ha⟩, ⟨f a, mem_image_of_mem f ha⟩ in
-have hf' : surjective f', from assume ⟨b, a, ha, hab⟩, ⟨⟨a, ha⟩, subtype.eq hab⟩,
-⟨@encodable.of_inj _ _ hs.to_encodable (surj_inv hf') (injective_surj_inv hf')⟩
+have surjective ((maps_to_image f s).restrict _ _ _), from surjective_maps_to_image_restrict f s,
+⟨@encodable.of_inj _ _ hs.to_encodable (surj_inv this) (injective_surj_inv this)⟩
 
 lemma countable_range [encodable α] (f : α → β) : countable (range f) :=
 by rw ← image_univ; exact (countable_encodable _).image _
+
+lemma maps_to.countable_of_inj_on {s : set α} {t : set β} {f : α → β}
+  (hf : maps_to f s t) (hf' : inj_on f s) (ht : countable t) :
+  countable s :=
+have injective (hf.restrict f s t), from (inj_on_iff_injective.1 hf').cod_restrict _,
+⟨@encodable.of_inj _ _ ht.to_encodable _ this⟩
+
+lemma countable.preimage_of_inj_on {s : set β} (hs : countable s) {f : α → β}
+  (hf : inj_on f (f ⁻¹' s)) : countable (f ⁻¹' s) :=
+(maps_to_preimage f s).countable_of_inj_on hf hs
+
+protected lemma countable.preimage {s : set β} (hs : countable s) {f : α → β} (hf : injective f) :
+  countable (f ⁻¹' s) :=
+hs.preimage_of_inj_on (hf.inj_on _)
 
 lemma exists_seq_supr_eq_top_iff_countable [complete_lattice α] {p : α → Prop} (h : ∃ x, p x) :
   (∃ s : ℕ → α, (∀ n, p (s n)) ∧ (⨆ n, s n) = ⊤) ↔
@@ -162,11 +175,26 @@ lemma countable.union
 by rw union_eq_Union; exact
 countable_Union (bool.forall_bool.2 ⟨h₂, h₁⟩)
 
+@[simp] lemma countable_union {s t : set α} : countable (s ∪ t) ↔ countable s ∧ countable t :=
+⟨λ h, ⟨h.mono (subset_union_left s t), h.mono (subset_union_right _ _)⟩, λ h, h.1.union h.2⟩
+
+@[simp] lemma countable_insert {s : set α} {a : α} : countable (insert a s) ↔ countable s :=
+by simp only [insert_eq, countable_union, countable_singleton, true_and]
+
 lemma countable.insert {s : set α} (a : α) (h : countable s) : countable (insert a s) :=
-by { rw [set.insert_eq], exact (countable_singleton _).union h }
+countable_insert.2 h
 
 lemma finite.countable {s : set α} : finite s → countable s
-| ⟨h⟩ := nonempty_of_trunc (by exactI trunc_encodable_of_fintype s)
+| ⟨h⟩ := trunc.nonempty (by exactI fintype.trunc_encodable s)
+
+lemma subsingleton.countable {s : set α} (hs : s.subsingleton) : countable s :=
+hs.finite.countable
+
+lemma countable_is_top (α : Type*) [partial_order α] : countable {x : α | is_top x} :=
+(finite_is_top α).countable
+
+lemma countable_is_bot (α : Type*) [partial_order α] : countable {x : α | is_bot x} :=
+(finite_is_bot α).countable
 
 /-- The set of finite subsets of a countable set is countable. -/
 lemma countable_set_of_finite_subset {s : set α} : countable s →
@@ -192,24 +220,17 @@ have trunc (encodable (Π (a : α), s a)), from
 trunc.induction_on this $ assume h,
 @countable_range _ _ h _
 
-lemma countable_prod {s : set α} {t : set β} (hs : countable s) (ht : countable t) :
-  countable (set.prod s t) :=
+protected lemma countable.prod {s : set α} {t : set β} (hs : countable s) (ht : countable t) :
+  countable (s ×ˢ t) :=
 begin
   haveI : encodable s := hs.to_encodable,
   haveI : encodable t := ht.to_encodable,
-  haveI : encodable (s × t) := by apply_instance,
-  have : range (λp, ⟨p.1, p.2⟩ : s × t → α × β) = set.prod s t,
-  { ext ⟨x, y⟩,
-    simp only [exists_prop, set.mem_range, set_coe.exists, prod.mk.inj_iff,
-               set.prod_mk_mem_set_prod_eq, subtype.coe_mk, prod.exists],
-    split,
-    { rintros ⟨x', x's, y', y't, x'x, y'y⟩,
-      simp [x'x.symm, y'y.symm, x's, y't] },
-    { rintros ⟨xs, yt⟩,
-      exact ⟨x, xs, y, yt, rfl, rfl⟩ }},
-  rw ← this,
-  exact countable_range _
+  exact ⟨of_equiv (s × t) (equiv.set.prod _ _)⟩
 end
+
+lemma countable.image2 {s : set α} {t : set β} (hs : countable s) (ht : countable t)
+  (f : α → β → γ) : countable (image2 f s t) :=
+by { rw ← image_prod, exact (hs.prod ht).image _ }
 
 section enumerate
 

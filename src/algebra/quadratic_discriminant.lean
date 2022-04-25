@@ -6,6 +6,8 @@ Authors: Zhouhang Zhou
 import algebra.char_p.invertible
 import order.filter.at_top_bot
 import tactic.linarith
+import tactic.field_simp
+import tactic.linear_combination
 
 /-!
 # Quadratic discriminants and roots of a quadratic
@@ -20,7 +22,7 @@ This file defines the discriminant of a quadratic and gives the solution to a qu
 
 - `quadratic_eq_zero_iff`: roots of a quadratic can be written as
   `(-b + s) / (2 * a)` or `(-b - s) / (2 * a)`, where `s` is a square root of the discriminant.
-- `quadratic_ne_zero_of_discrim_ne_square`: if the discriminant has no square root,
+- `quadratic_ne_zero_of_discrim_ne_sq`: if the discriminant has no square root,
   then the corresponding quadratic has no root.
 - `discrim_le_zero`: if a quadratic is always non-negative, then its discriminant is non-positive.
 
@@ -37,35 +39,31 @@ variables {R : Type*}
 /-- Discriminant of a quadratic -/
 def discrim [ring R] (a b c : R) : R := b^2 - 4 * a * c
 
-variables [integral_domain R] {a b c : R}
+variables [comm_ring R] [is_domain R] {a b c : R}
 
 /--
 A quadratic has roots if and only if its discriminant equals some square.
 -/
-lemma quadratic_eq_zero_iff_discrim_eq_square (h2 : (2 : R) ≠ 0) (ha : a ≠ 0) (x : R) :
+lemma quadratic_eq_zero_iff_discrim_eq_sq (h2 : (2 : R) ≠ 0) (ha : a ≠ 0) (x : R) :
   a * x * x + b * x + c = 0 ↔ discrim a b c = (2 * a * x + b) ^ 2 :=
 begin
+  dsimp [discrim] at *,
   split,
   { assume h,
-    calc discrim a b c
-        = 4 * a * (a * x * x + b * x + c) + b * b - 4 * a * c : by { rw [h, discrim], ring }
-    ... = (2*a*x + b)^2 : by ring },
+    linear_combination (h, -4 * a) },
   { assume h,
     have ha : 2 * 2 * a ≠ 0 := mul_ne_zero (mul_ne_zero h2 h2) ha,
-    apply mul_left_cancel' ha,
-    calc
-      2 * 2 * a * (a * x * x + b * x + c) = (2 * a * x + b) ^ 2 - (b ^ 2 - 4 * a * c) : by ring
-      ... = 0 : by { rw [← h, discrim], ring }
-      ... = 2*2*a*0 : by ring }
+    apply mul_left_cancel₀ ha,
+    linear_combination (h, -1) }
 end
 
 /-- A quadratic has no root if its discriminant has no square root. -/
-lemma quadratic_ne_zero_of_discrim_ne_square (h2 : (2 : R) ≠ 0) (ha : a ≠ 0)
+lemma quadratic_ne_zero_of_discrim_ne_sq (h2 : (2 : R) ≠ 0) (ha : a ≠ 0)
   (h : ∀ s : R, discrim a b c ≠ s * s) (x : R) :
   a * x * x + b * x + c ≠ 0 :=
 begin
   assume h',
-  rw [quadratic_eq_zero_iff_discrim_eq_square h2 ha, pow_two] at h',
+  rw [quadratic_eq_zero_iff_discrim_eq_sq h2 ha, sq] at h',
   exact h _ h'
 end
 
@@ -79,16 +77,12 @@ lemma quadratic_eq_zero_iff (ha : a ≠ 0) {s : K} (h : discrim a b c = s * s) (
   a * x * x + b * x + c = 0 ↔ x = (-b + s) / (2 * a) ∨ x = (-b - s) / (2 * a) :=
 begin
   have h2 : (2 : K) ≠ 0 := nonzero_of_invertible 2,
-  rw [quadratic_eq_zero_iff_discrim_eq_square h2 ha, h, pow_two, mul_self_eq_mul_self_iff],
+  rw [quadratic_eq_zero_iff_discrim_eq_sq h2 ha, h, sq, mul_self_eq_mul_self_iff],
   have ne : 2 * a ≠ 0 := mul_ne_zero h2 ha,
-  have : x = 2 * a * x / (2 * a) := (mul_div_cancel_left x ne).symm,
-  have h₁ : 2 * a * ((-b + s) / (2 * a)) = -b + s := mul_div_cancel' _ ne,
-  have h₂ : 2 * a * ((-b - s) / (2 * a)) = -b - s := mul_div_cancel' _ ne,
-  split,
-  { intro h', rcases h',
-    { left, rw h', simpa [add_comm] },
-    { right, rw h', simpa [add_comm, sub_eq_add_neg] } },
-  { intro h', rcases h', { left, rw [h', h₁], ring }, { right, rw [h', h₂], ring } }
+  field_simp,
+  apply or_congr,
+  { split; intro h'; linear_combination (h', -1) },
+  { split; intro h'; linear_combination h' },
 end
 
 /-- A quadratic has roots if its discriminant has square roots -/
@@ -117,7 +111,7 @@ variables {K : Type*} [linear_ordered_field K] {a b c : K}
 /-- If a polynomial of degree 2 is always nonnegative, then its discriminant is nonpositive -/
 lemma discrim_le_zero (h : ∀ x : K, 0 ≤ a * x * x + b * x + c) : discrim a b c ≤ 0 :=
 begin
-  rw [discrim, pow_two],
+  rw [discrim, sq],
   obtain ha|rfl|ha : a < 0 ∨ a = 0 ∨ 0 < a := lt_trichotomy a 0,
   -- if a < 0
   { have : tendsto (λ x, (a * x + b) * x + c) at_top at_bot :=

@@ -3,9 +3,10 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import data.nat.prime
 import dynamics.fixed_points.basic
-import data.set.lattice
 import data.pnat.basic
+import data.set.lattice
 
 /-!
 # Periodic points
@@ -90,8 +91,8 @@ protected lemma sub (hm : is_periodic_pt f m x) (hn : is_periodic_pt f n x) :
 begin
   cases le_total n m with h h,
   { refine left_of_add _ hn,
-    rwa [nat.sub_add_cancel h] },
-  { rw [nat.sub_eq_zero_of_le h],
+    rwa [tsub_add_cancel_of_le h] },
+  { rw [tsub_eq_zero_iff_le.mpr h],
     apply is_periodic_pt_zero }
 end
 
@@ -110,12 +111,29 @@ begin
   exact hf.is_fixed_pt.iterate m
 end
 
+lemma comp {g : α → α} (hco : commute f g) (hf : is_periodic_pt f n x) (hg : is_periodic_pt g n x) :
+  is_periodic_pt (f ∘ g) n x :=
+by { rw [is_periodic_pt, hco.comp_iterate], exact hf.comp hg }
+
+lemma comp_lcm {g : α → α} (hco : commute f g) (hf : is_periodic_pt f m x)
+  (hg : is_periodic_pt g n x) :
+  is_periodic_pt (f ∘ g) (nat.lcm m n) x :=
+(hf.trans_dvd $ nat.dvd_lcm_left _ _).comp hco (hg.trans_dvd $ nat.dvd_lcm_right _ _)
+
+lemma left_of_comp {g : α → α} (hco : commute f g) (hfg : is_periodic_pt (f ∘ g) n x)
+  (hg : is_periodic_pt g n x) : is_periodic_pt f n x :=
+begin
+  rw [is_periodic_pt, hco.comp_iterate] at hfg,
+  exact hfg.left_of_comp hg
+end
+
+lemma iterate_mod_apply (h : is_periodic_pt f n x) (m : ℕ) :
+  f^[m % n] x = (f^[m] x) :=
+by conv_rhs { rw [← nat.mod_add_div m n, iterate_add_apply, (h.mul_const _).eq] }
+
 protected lemma mod (hm : is_periodic_pt f m x) (hn : is_periodic_pt f n x) :
   is_periodic_pt f (m % n) x :=
-begin
-  rw [← nat.mod_add_div m n] at hm,
-  exact hm.left_of_add (hn.mul_const _)
-end
+(hn.iterate_mod_apply m).trans hm
 
 protected lemma gcd (hm : is_periodic_pt f m x) (hn : is_periodic_pt f n x) :
   is_periodic_pt f (m.gcd n) x :=
@@ -172,6 +190,17 @@ lemma mk_mem_periodic_pts (hn : 0 < n) (hx : is_periodic_pt f n x) :
 
 lemma mem_periodic_pts : x ∈ periodic_pts f ↔ ∃ n > 0, is_periodic_pt f n x := iff.rfl
 
+lemma is_periodic_pt_of_mem_periodic_pts_of_is_periodic_pt_iterate (hx : x ∈ periodic_pts f)
+  (hm : is_periodic_pt f m (f^[n] x)) : is_periodic_pt f m x :=
+begin
+  rcases hx with ⟨r, hr, hr'⟩,
+  convert (hm.apply_iterate ((n / r + 1) * r - n)).eq,
+  suffices : n ≤ (n / r + 1) * r,
+  { rw [←iterate_add_apply, nat.sub_add_cancel this, iterate_mul, (hr'.iterate _).eq] },
+  rw [add_mul, one_mul],
+  exact (nat.lt_div_mul_add hr).le
+end
+
 variable (f)
 
 lemma bUnion_pts_of_period : (⋃ n > 0, pts_of_period f n) = periodic_pts f :=
@@ -208,9 +237,12 @@ begin
   { exact is_periodic_pt_zero f x }
 end
 
+lemma iterate_eq_mod_minimal_period : f^[n] x = (f^[n % minimal_period f x] x) :=
+((is_periodic_pt_minimal_period f x).iterate_mod_apply n).symm
+
 lemma minimal_period_pos_of_mem_periodic_pts (hx : x ∈ periodic_pts f) :
   0 < minimal_period f x :=
-by simp only [minimal_period, dif_pos hx, gt_iff_lt.1 (nat.find_spec hx).fst]
+by simp only [minimal_period, dif_pos hx, (nat.find_spec hx).fst.lt]
 
 lemma is_periodic_pt.minimal_period_pos (hn : 0 < n) (hx : is_periodic_pt f n x) :
   0 < minimal_period f x :=
@@ -229,11 +261,31 @@ begin
   exact nat.find_min' (mk_mem_periodic_pts hn hx) ⟨hn, hx⟩
 end
 
+lemma minimal_period_id : minimal_period id x = 1 :=
+((is_periodic_id _ _ ).minimal_period_le nat.one_pos).antisymm
+  (nat.succ_le_of_lt ((is_periodic_id _ _ ).minimal_period_pos nat.one_pos))
+
+lemma is_fixed_point_iff_minimal_period_eq_one : minimal_period f x = 1 ↔ is_fixed_pt f x :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw ← iterate_one f,
+    refine function.is_periodic_pt.is_fixed_pt _,
+    rw ← h,
+    exact is_periodic_pt_minimal_period f x },
+  { exact ((h.is_periodic_pt 1).minimal_period_le nat.one_pos).antisymm
+      (nat.succ_le_of_lt ((h.is_periodic_pt 1).minimal_period_pos nat.one_pos)) }
+end
+
 lemma is_periodic_pt.eq_zero_of_lt_minimal_period (hx : is_periodic_pt f n x)
   (hn : n < minimal_period f x) :
   n = 0 :=
 eq.symm $ (eq_or_lt_of_le $ n.zero_le).resolve_right $ λ hn0,
 not_lt.2 (hx.minimal_period_le hn0) hn
+
+lemma not_is_periodic_pt_of_pos_of_lt_minimal_period :
+  ∀ {n: ℕ} (n0 : n ≠ 0) (hn : n < minimal_period f x), ¬ is_periodic_pt f n x
+| 0 n0 _ := (n0 rfl).elim
+| (n + 1) _ hn := λ hp, nat.succ_ne_zero _ (hp.eq_zero_of_lt_minimal_period hn)
 
 lemma is_periodic_pt.minimal_period_dvd (hx : is_periodic_pt f n x) :
   minimal_period f x ∣ n :=
@@ -244,7 +296,76 @@ nat.mod_lt _ $ hx.minimal_period_pos hn0
 
 lemma is_periodic_pt_iff_minimal_period_dvd :
   is_periodic_pt f n x ↔ minimal_period f x ∣ n :=
-⟨is_periodic_pt.minimal_period_dvd,
-  λ h, (is_periodic_pt_minimal_period f x).trans_dvd h⟩
+⟨is_periodic_pt.minimal_period_dvd, λ h, (is_periodic_pt_minimal_period f x).trans_dvd h⟩
+
+open nat
+
+lemma minimal_period_eq_minimal_period_iff {g : β → β} {y : β} :
+  minimal_period f x = minimal_period g y ↔ ∀ n, is_periodic_pt f n x ↔ is_periodic_pt g n y :=
+by simp_rw [is_periodic_pt_iff_minimal_period_dvd, dvd_right_iff_eq]
+
+lemma minimal_period_eq_prime {p : ℕ} [hp : fact p.prime] (hper : is_periodic_pt f p x)
+  (hfix : ¬ is_fixed_pt f x) : minimal_period f x = p :=
+(hp.out.eq_one_or_self_of_dvd _ (hper.minimal_period_dvd)).resolve_left
+  (mt is_fixed_point_iff_minimal_period_eq_one.1 hfix)
+
+lemma minimal_period_eq_prime_pow {p k : ℕ} [hp : fact p.prime] (hk : ¬ is_periodic_pt f (p ^ k) x)
+(hk1 : is_periodic_pt f (p ^ (k + 1)) x) : minimal_period f x = p ^ (k + 1) :=
+begin
+  apply nat.eq_prime_pow_of_dvd_least_prime_pow hp.out;
+  rwa ← is_periodic_pt_iff_minimal_period_dvd
+end
+
+lemma commute.minimal_period_of_comp_dvd_lcm {g : α → α} (h : function.commute f g) :
+  minimal_period (f ∘ g) x ∣ nat.lcm (minimal_period f x) (minimal_period g x) :=
+begin
+  rw [← is_periodic_pt_iff_minimal_period_dvd],
+  exact (is_periodic_pt_minimal_period f x).comp_lcm h (is_periodic_pt_minimal_period g x)
+end
+
+lemma commute.minimal_period_of_comp_dvd_mul {g : α → α} (h : function.commute f g) :
+  minimal_period (f ∘ g) x ∣ (minimal_period f x) * (minimal_period g x) :=
+dvd_trans h.minimal_period_of_comp_dvd_lcm (lcm_dvd_mul _ _)
+
+lemma commute.minimal_period_of_comp_eq_mul_of_coprime {g : α → α} (h : function.commute f g)
+  (hco : coprime (minimal_period f x) (minimal_period g x)) :
+  minimal_period (f ∘ g) x = (minimal_period f x) * (minimal_period g x) :=
+begin
+  apply dvd_antisymm (h.minimal_period_of_comp_dvd_mul),
+  suffices : ∀ {f g : α → α}, commute f g → coprime (minimal_period f x) (minimal_period g x) →
+    minimal_period f x ∣ minimal_period (f ∘ g) x,
+    from hco.mul_dvd_of_dvd_of_dvd (this h hco) (h.comp_eq.symm ▸ this h.symm hco.symm),
+  clear hco h f g,
+  intros f g h hco,
+  refine hco.dvd_of_dvd_mul_left (is_periodic_pt.left_of_comp h _ _).minimal_period_dvd,
+  { exact (is_periodic_pt_minimal_period _ _).const_mul _ },
+  { exact (is_periodic_pt_minimal_period _ _).mul_const _ }
+end
+
+private lemma minimal_period_iterate_eq_div_gcd_aux (h : 0 < gcd (minimal_period f x) n) :
+  minimal_period (f ^[n]) x = minimal_period f x / nat.gcd (minimal_period f x) n :=
+begin
+  apply nat.dvd_antisymm,
+  { apply is_periodic_pt.minimal_period_dvd,
+    rw [is_periodic_pt, is_fixed_pt, ← iterate_mul, ← nat.mul_div_assoc _ (gcd_dvd_left _ _),
+        mul_comm, nat.mul_div_assoc _ (gcd_dvd_right _ _), mul_comm, iterate_mul],
+    exact (is_periodic_pt_minimal_period f x).iterate _ },
+  { apply coprime.dvd_of_dvd_mul_right (coprime_div_gcd_div_gcd h),
+    apply dvd_of_mul_dvd_mul_right h,
+    rw [nat.div_mul_cancel (gcd_dvd_left _ _), mul_assoc, nat.div_mul_cancel (gcd_dvd_right _ _),
+        mul_comm],
+    apply is_periodic_pt.minimal_period_dvd,
+    rw [is_periodic_pt, is_fixed_pt, iterate_mul],
+    exact is_periodic_pt_minimal_period _ _ }
+end
+
+lemma minimal_period_iterate_eq_div_gcd (h : n ≠ 0) :
+  minimal_period (f ^[n]) x = minimal_period f x / nat.gcd (minimal_period f x) n :=
+minimal_period_iterate_eq_div_gcd_aux $ gcd_pos_of_pos_right _ (nat.pos_of_ne_zero h)
+
+lemma minimal_period_iterate_eq_div_gcd' (h : x ∈ periodic_pts f) :
+  minimal_period (f ^[n]) x = minimal_period f x / nat.gcd (minimal_period f x) n :=
+minimal_period_iterate_eq_div_gcd_aux $
+  gcd_pos_of_pos_left n (minimal_period_pos_iff_mem_periodic_pts.mpr h)
 
 end function

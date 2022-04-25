@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark, Kyle Miller
 -/
 import combinatorics.simple_graph.adj_matrix
-import linear_algebra.char_poly.coeff
+import linear_algebra.matrix.charpoly.coeff
 import data.int.modeq
 import data.zmod.basic
 import tactic.interval_cases
@@ -75,9 +75,9 @@ variables (R)
 theorem adj_matrix_sq_of_ne {v w : V} (hvw : v ≠ w) :
   ((G.adj_matrix R) ^ 2) v w = 1 :=
 begin
-  rw [pow_two, ← nat.cast_one, ← hG hvw],
+  rw [sq, ← nat.cast_one, ← hG hvw],
   simp [common_neighbors, neighbor_finset_eq_filter, finset.filter_filter, finset.filter_inter,
-    and_comm],
+    and_comm, ← neighbor_finset_def],
 end
 
 /-- This calculation amounts to counting the number of length 3 walks between nonadjacent vertices.
@@ -85,7 +85,7 @@ end
 lemma adj_matrix_pow_three_of_not_adj {v w : V} (non_adj : ¬ G.adj v w) :
   ((G.adj_matrix R) ^ 3) v w = degree G v :=
 begin
-  rw [pow_succ, mul_eq_mul, adj_matrix_mul_apply, degree, card_eq_sum_ones, sum_nat_cast],
+  rw [pow_succ, mul_eq_mul, adj_matrix_mul_apply, degree, card_eq_sum_ones, nat.cast_sum],
   apply sum_congr rfl,
   intros x hx,
   rw [adj_matrix_sq_of_ne _ hG, nat.cast_one],
@@ -106,9 +106,9 @@ lemma degree_eq_of_not_adj {v w : V} (hvw : ¬ G.adj v w) :
 begin
   rw [← nat.cast_id (G.degree v), ← nat.cast_id (G.degree w),
       ← adj_matrix_pow_three_of_not_adj ℕ hG hvw,
-      ← adj_matrix_pow_three_of_not_adj ℕ hG (λ h, hvw (G.sym h))],
+      ← adj_matrix_pow_three_of_not_adj ℕ hG (λ h, hvw (G.symm h))],
   conv_lhs {rw ← transpose_adj_matrix},
-  simp only [pow_succ, pow_two, mul_eq_mul, ← transpose_mul, transpose_apply],
+  simp only [pow_succ, sq, mul_eq_mul, ← transpose_mul, transpose_apply],
   simp only [← mul_eq_mul, mul_assoc],
 end
 
@@ -120,7 +120,7 @@ theorem adj_matrix_sq_of_regular (hd : G.is_regular_of_degree d) :
   ((G.adj_matrix R) ^ 2) = λ v w, if v = w then d else 1 :=
 begin
   ext v w, by_cases h : v = w,
-  { rw [h, pow_two, mul_eq_mul, adj_matrix_mul_self_apply_self, hd], simp, },
+  { rw [h, sq, mul_eq_mul, adj_matrix_mul_self_apply_self, hd], simp, },
   { rw [adj_matrix_sq_of_ne R hG h, if_neg h], },
 end
 
@@ -163,8 +163,8 @@ begin
     rw [h, mem_singleton] at h',
     injection h', },
   apply hxy',
-  rw [key ((mem_common_neighbors G).mpr ⟨hvx, G.sym hxw⟩),
-      key ((mem_common_neighbors G).mpr ⟨hvy, G.sym hcontra⟩)],
+  rw [key ((mem_common_neighbors G).mpr ⟨hvx, G.symm hxw⟩),
+      key ((mem_common_neighbors G).mpr ⟨hvy, G.symm hcontra⟩)],
 end
 
 /-- Let `A` be the adjacency matrix of a `d`-regular friendship graph, and let `v` be a vector
@@ -182,7 +182,7 @@ begin
                mem_erase, not_true, ne.def, not_false_iff, add_right_inj, false_and],
     rw [finset.sum_const_nat, card_erase_of_mem (mem_univ v), mul_one], { refl },
     intros x hx, simp [(ne_of_mem_erase hx).symm], },
-  { rw [pow_two, mul_eq_mul, ← mul_vec_mul_vec],
+  { rw [sq, mul_eq_mul, ← mul_vec_mul_vec],
     simp [adj_matrix_mul_vec_const_apply_of_regular hd, neighbor_finset,
           card_neighbor_set_eq_degree, hd v], }
 end
@@ -223,8 +223,7 @@ begin
   iterate 2 {cases k with k, { exfalso, linarith, }, },
   induction k with k hind,
   { exact adj_matrix_sq_mod_p_of_regular hG dmod hd, },
-  have h2 : 2 ≤ k.succ.succ := by omega,
-  rw [pow_succ, hind h2],
+  rw [pow_succ, hind (nat.le_add_left 2 k)],
   exact adj_matrix_mul_const_one_mod_p_of_regular dmod hd,
 end
 
@@ -275,7 +274,7 @@ begin
   { cases fintype.card V with n,
     { exact zero_le _, },
     { have : n = 0,
-      { rw [nat.succ_sub_succ_eq_sub, nat.sub_zero] at h,
+      { rw [nat.succ_sub_succ_eq_sub, tsub_zero] at h,
         linarith },
       subst n, } },
   use classical.arbitrary V,
@@ -323,8 +322,8 @@ end
 
 end friendship
 
-/-- We wish to show that a friendship graph has a politician (a vertex adjacent to all others).
-  We proceed by contradiction, and assume the graph has no politician.
+/-- **Friendship theorem**: We wish to show that a friendship graph has a politician (a vertex
+  adjacent to all others). We proceed by contradiction, and assume the graph has no politician.
   We have already proven that a friendship graph with no politician is `d`-regular for some `d`,
   and now we do casework on `d`.
   If the degree is at most 2, we observe by casework that it has a politician anyway.
@@ -333,8 +332,7 @@ theorem friendship_theorem [nonempty V] : exists_politician G :=
 begin
   by_contradiction npG,
   rcases hG.is_regular_of_not_exists_politician npG with ⟨d, dreg⟩,
-  have h : d ≤ 2 ∨ 3 ≤ d := by omega,
-  cases h with dle2 dge3,
-  { exact npG (hG.exists_politician_of_degree_le_two dreg dle2) },
+  cases lt_or_le d 3 with dle2 dge3,
+  { exact npG (hG.exists_politician_of_degree_le_two dreg (nat.lt_succ_iff.mp dle2)) },
   { exact hG.false_of_three_le_degree dreg dge3 },
 end

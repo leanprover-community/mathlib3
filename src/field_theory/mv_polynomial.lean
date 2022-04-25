@@ -29,7 +29,7 @@ variables (σ K) [field K]
 lemma quotient_mk_comp_C_injective (I : ideal (mv_polynomial σ K)) (hI : I ≠ ⊤) :
   function.injective ((ideal.quotient.mk I).comp mv_polynomial.C) :=
 begin
-  refine (ring_hom.injective_iff _).2 (λ x hx, _),
+  refine (injective_iff_map_eq_zero _).2 (λ x hx, _),
   rw [ring_hom.comp_apply, ideal.quotient.eq_zero_iff_mem] at hx,
   refine classical.by_contradiction (λ hx0, absurd (I.eq_top_iff_one.2 _) hI),
   have := I.mul_mem_left (mv_polynomial.C x⁻¹) hx,
@@ -47,7 +47,7 @@ variables {σ : Type u} {K : Type u} [field K]
 
 open_locale classical
 
-lemma dim_mv_polynomial : vector_space.dim K (mv_polynomial σ K) = cardinal.mk (σ →₀ ℕ) :=
-by rw [← cardinal.lift_inj, ← (is_basis_monomials σ K).mk_eq_dim]
+lemma dim_mv_polynomial : module.rank K (mv_polynomial σ K) = cardinal.mk (σ →₀ ℕ) :=
+by rw [← cardinal.lift_inj, ← (basis_monomials σ K).mk_eq_dim]
 
 end mv_polynomial

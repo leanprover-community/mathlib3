@@ -3,9 +3,10 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Scott Morrison
 -/
-import category_theory.currying
+import category_theory.functor.currying
 import category_theory.limits.over
-import category_theory.monad.adjunction
+import category_theory.limits.shapes.images
+import category_theory.adjunction.reflective
 
 /-!
 # Monomorphisms over a fixed object
@@ -65,8 +66,10 @@ instance : has_coe (mono_over X) C :=
 @[simp]
 lemma forget_obj_left {f} : ((forget X).obj f).left = (f : C) := rfl
 
+@[simp] lemma mk'_coe' {X A : C} (f : A ⟶ X) [hf : mono f] : (mk' f : C) = A := rfl
+
 /-- Convenience notation for the underlying arrow of a monomorphism over X. -/
-abbreviation arrow (f : mono_over X) : _ ⟶ X := ((forget X).obj f).hom
+abbreviation arrow (f : mono_over X) : (f : C) ⟶ X := ((forget X).obj f).hom
 
 @[simp] lemma mk'_arrow {X A : C} (f : A ⟶ X) [hf : mono f] : (mk' f).arrow = f := rfl
 
@@ -101,6 +104,11 @@ def iso_mk {f g : mono_over X} (h : f.val.left ≅ g.val.left) (w : h.hom ≫ g.
 { hom := hom_mk h.hom w,
   inv := hom_mk h.inv (by rw [h.inv_comp_eq, w]) }
 
+/-- If `f : mono_over X`, then `mk' f.arrow` is of course just `f`, but not definitionally, so we
+    package it as an isomorphism. -/
+@[simp] def mk'_arrow_iso {X : C} (f : mono_over X) : (mk' f.arrow) ≅ f :=
+iso_mk (iso.refl _) (by simp)
+
 /--
 Lift a functor between over categories to a functor between `mono_over` categories,
 given suitable evidence that morphisms are taken to monomorphisms.
@@ -133,6 +141,12 @@ fully_faithful_cancel_right (mono_over.forget _) (iso.refl _)
 lemma lift_comm (F : over Y ⥤ over X)
   (h : ∀ (f : mono_over Y), mono (F.obj ((mono_over.forget Y).obj f)).hom) :
   lift F h ⋙ mono_over.forget X = mono_over.forget Y ⋙ F :=
+rfl
+
+@[simp]
+lemma lift_obj_arrow {Y : D} (F : over Y ⥤ over X)
+  (h : ∀ (f : mono_over Y), mono (F.obj ((mono_over.forget Y).obj f)).hom) (f : mono_over Y) :
+  ((lift F h).obj f).arrow = (F.obj ((forget Y).obj f)).hom :=
 rfl
 
 /--
@@ -224,11 +238,25 @@ instance faithful_map (f : X ⟶ Y) [mono f] : faithful (map f) := {}.
 /--
 Isomorphic objects have equivalent `mono_over` categories.
 -/
-def map_iso {A B : C} (e : A ≅ B) : mono_over A ≌ mono_over B :=
+@[simps] def map_iso {A B : C} (e : A ≅ B) : mono_over A ≌ mono_over B :=
 { functor := map e.hom,
   inverse := map e.inv,
   unit_iso := ((map_comp _ _).symm ≪≫ eq_to_iso (by simp) ≪≫ map_id).symm,
   counit_iso := ((map_comp _ _).symm ≪≫ eq_to_iso (by simp) ≪≫ map_id) }
+
+section
+variables (X)
+
+/-- An equivalence of categories `e` between `C` and `D` induces an equivalence between
+    `mono_over X` and `mono_over (e.functor.obj X)` whenever `X` is an object of `C`. -/
+@[simps] def congr (e : C ≌ D) : mono_over X ≌ mono_over (e.functor.obj X) :=
+{ functor := lift (over.post e.functor) $ λ f, by { dsimp, apply_instance },
+  inverse := (lift (over.post e.inverse) $ λ f, by { dsimp, apply_instance })
+    ⋙ (map_iso (e.unit_iso.symm.app X)).functor,
+  unit_iso := nat_iso.of_components (λ Y, iso_mk (e.unit_iso.app Y) (by tidy)) (by tidy),
+  counit_iso := nat_iso.of_components (λ Y, iso_mk (e.counit_iso.app Y) (by tidy)) (by tidy) }
+
+end
 
 section
 variable [has_pullbacks C]

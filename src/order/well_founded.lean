@@ -41,7 +41,7 @@ is_asymm.is_irrefl
 
 /-- If `r` is a well-founded relation, then any nonempty set has a minimal element
 with respect to `r`. -/
-theorem has_min  {α} {r : α → α → Prop} (H : well_founded r)
+theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
   (s : set α) : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
 | ⟨a, ha⟩ := (acc.rec_on (H.apply a) $ λ x _ IH, not_imp_not.1 $ λ hne hx, hne $
   ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
@@ -59,7 +59,7 @@ theorem not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
 
-theorem well_founded_iff_has_min {α} {r : α → α → Prop} : (well_founded r) ↔
+theorem well_founded_iff_has_min  {α} {r : α → α → Prop} : (well_founded r) ↔
   ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, ¬ r x m :=
 begin
   classical,

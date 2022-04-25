@@ -158,6 +158,18 @@ begin
   apply IH, exact IHl, exact IHr
 end
 
+/-- `is_option x y` means that `x` is either a left or right option for `y`. -/
+def is_option (x y : pgame) : Prop :=
+(∃ i, y.move_left i = x) ∨ ∃ i, y.move_right i = x
+
+theorem wf_is_option : well_founded is_option :=
+⟨λ x, x.move_rec_on begin
+  refine λ x IHl IHr, acc.intro x _,
+  rintros y (⟨i, rfl⟩ | ⟨i, rfl⟩),
+  { exact IHl i },
+  { exact IHr i }
+end⟩
+
 /-- `subsequent p q` says that `p` can be obtained by playing
   some nonempty sequence of moves from `q`. -/
 inductive subsequent : pgame → pgame → Prop

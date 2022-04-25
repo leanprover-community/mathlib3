@@ -579,7 +579,7 @@ theorem decreasing_and_nonneg (f : ℕ → ℚ) (N : ℕ)
   (nonneg : ∀ k ≥ N, 0 ≤ f k) (decreasing : ∀ k ≥ N, f (k + 1) ≤ f k / 2) :
   ∀ ε > 0, ∃ n ≥ N, ∀ m ≥ n, f m < ε :=
 begin
-  library_search
+  sorry
 end
 
 theorem global_decreasing (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
@@ -615,32 +615,30 @@ theorem stays_near_if_near_step (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i 
   (k : ℕ) (k_large : k ≥ N) (is_near : sqrt_aux f k ^ 2 - f k < 3 * ε)
   : sqrt_aux f (k + 1) ^ 2 - f (k + 1) < 3 * ε :=
 begin
-  by_cases sqrt_aux_big: sqrt_aux f k > 1 / 2,
-  { have r : 1 < 4 * sqrt_aux f k ^ 2,
-    { have r : 1 < 2 * sqrt_aux f k := by linarith [sqrt_aux_big],
-      have s : 2 * sqrt_aux f k > 0 := by linarith,
-      calc (1 : ℚ) = (1 : ℚ) * (1 : ℚ) : by norm_num
-        ... < (2 * sqrt_aux f k) * (2 * sqrt_aux f k) : mul_lt_mul r (le_of_lt r) (by norm_num) (le_of_lt s)
-        ... = 4 * sqrt_aux f k ^ 2 : by ring, },
-    have t : 16 * ε ^ 2 ≤ 3 * ε,
-    calc 16 * ε ^ 2 = 16 * ε * ε : by ring
-      ... ≤ 3 * ε : (mul_le_mul_right ε_pos).mpr ε_smallish,
+  have bound_pos : 0 < 16 / 3 * ε := by linarith,
+  by_cases sqrt_aux_big: sqrt_aux f k ^ 2 > 16 / 3 * ε,
+  { have r : 16 / 3 * ε < 4 * sqrt_aux f k ^ 2 := by linarith,
     have u : 0 ≤ sqrt_aux f k ^ 2 - f k + ε := by linarith [sqrt_aux_overestimate' f k],
-    have r' : 0 < 4 * sqrt_aux f k ^ 2 := by linarith,
+    have r' : 0 < 4 * sqrt_aux f k ^ 2 := mul_pos (by norm_num) (sq_pos_of_pos (sqrt_aux_pos f k)),
     have num_pos : 0 ≤ ((sqrt_aux f k ^ 2 - f k) + ε) ^ 2 := sq_nonneg _,
     have one_pos : (0 : ℚ) < 1 := by norm_num,
+    have four_pos : (0 : ℚ) < 4 := by norm_num,
     calc _ ≤ ((sqrt_aux f k ^ 2 - f k) + ε) ^ 2 / (4 * sqrt_aux f k ^ 2) : converges_eventually_if_near_step f N f_ge_0 ε ε_pos f_near k k_large
-      ... ≤ ((sqrt_aux f k ^ 2 - f k) + ε) ^ 2 / 1 : div_le_div (sq_nonneg _) (le_of_eq rfl) one_pos (le_of_lt r)
-      ... = ((sqrt_aux f k ^ 2 - f k) + ε) ^ 2 : by rw div_one
-      ... < (3 * ε + ε) ^ 2 : begin
+      ... ≤ ((sqrt_aux f k ^ 2 - f k) + ε) ^ 2 / (16 / 3 * ε) : div_le_div (sq_nonneg _) (le_of_eq rfl) bound_pos (le_of_lt r)
+      ... < ((3 * ε + ε) ^ 2) / (16 / 3 * ε) : begin
+        refine (div_lt_div_right bound_pos).2 _,
         apply sq_lt_sq,
         have r : 0 ≤ 3 * ε + ε := by linarith,
         rw abs_eq_self.2 r,
         rw abs_eq_self.2 u,
         linarith,
       end
-      ... = 16 * ε ^ 2 : by ring
-      ... ≤ 3 * ε : t, },
+      ... = (16 * ε ^ 2) / (16 / 3 * ε) : by ring
+      ... = (16 * ε ^ 2) / (16 / 3) / ε : by field_simp
+      ... = (16 * ε ^ 2) * (3 / 16) / ε : by field_simp
+      ... = (3 * ε) * (ε / ε) : by ring
+      ... = (3 * ε) * 1 : by rw div_self (ne_of_gt ε_pos)
+      ... = 3 * ε : by field_simp, },
   { simp at sqrt_aux_big,
     have r : _ := converges_eventually_if_near_step f N f_ge_0 ε ε_pos f_near k k_large,
     sorry,

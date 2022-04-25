@@ -927,7 +927,21 @@ tendsto_nhds_bot_mono hf (eventually_of_forall hg)
 
 section linear_order
 
-variables [topological_space α] [linear_order α] [order_topology α]
+variables [topological_space α] [linear_order α] [order_closed_topology α]
+
+lemma eventually_le_nhds (a b : α) (hab : a < b) : ∀ᶠ (x : α) in (nhds a), x ≤ b :=
+eventually_iff.mpr (mem_nhds_iff.mpr ⟨Iio b, Iio_subset_Iic_self, is_open_Iio, hab⟩)
+
+lemma eventually_lt_nhds (a b : α) (hab : a < b) : ∀ᶠ (x : α) in (nhds a), x < b :=
+eventually_iff.mpr (mem_nhds_iff.mpr ⟨Iio b, rfl.subset, is_open_Iio, hab⟩)
+
+lemma eventually_ge_nhds (a b : α) (hab : b < a) : ∀ᶠ (x : α) in (nhds a), b ≤ x :=
+eventually_iff.mpr (mem_nhds_iff.mpr ⟨Ioi b, Ioi_subset_Ici_self, is_open_Ioi, hab⟩)
+
+lemma eventually_gt_nhds (a b : α) (hab : b < a) : ∀ᶠ (x : α) in (nhds a), b < x :=
+eventually_iff.mpr (mem_nhds_iff.mpr ⟨Ioi b, rfl.subset, is_open_Ioi, hab⟩)
+
+variables [order_topology α]
 
 lemma exists_Ioc_subset_of_mem_nhds' {a : α} {s : set α} (hs : s ∈ 𝓝 a) {l : α} (hl : l < a) :
   ∃ l' ∈ Ico l a, Ioc l' a ⊆ s :=
@@ -1444,18 +1458,6 @@ begin
   { rintros ⟨l, la, as⟩,
     exact ⟨l, la, subset.trans Ioc_subset_Icc_self as⟩ }
 end
-
-lemma eventually_le_nhds (a b : α) (hab : a < b) : ∀ᶠ (x : α) in (nhds a), x ≤ b :=
-eventually_iff.mpr (mem_nhds_iff.mpr ⟨Iio b, Iio_subset_Iic_self, is_open_Iio, hab⟩)
-
-lemma eventually_lt_nhds (a b : α) (hab : a < b) : ∀ᶠ (x : α) in (nhds a), x < b :=
-eventually_iff.mpr (mem_nhds_iff.mpr ⟨Iio b, rfl.subset, is_open_Iio, hab⟩)
-
-lemma eventually_ge_nhds (a b : α) (hab : b < a) : ∀ᶠ (x : α) in (nhds a), b ≤ x :=
-eventually_iff.mpr (mem_nhds_iff.mpr ⟨Ioi b, Ioi_subset_Ici_self, is_open_Ioi, hab⟩)
-
-lemma eventually_gt_nhds (a b : α) (hab : b < a) : ∀ᶠ (x : α) in (nhds a), b < x :=
-eventually_iff.mpr (mem_nhds_iff.mpr ⟨Ioi b, rfl.subset, is_open_Ioi, hab⟩)
 
 end linear_order
 

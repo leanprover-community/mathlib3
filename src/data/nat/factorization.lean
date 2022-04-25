@@ -42,30 +42,43 @@ open_locale big_operators
 
 namespace nat
 
+-- TODO move to padic_val.lean after #13576 merged
+lemma dvd_iff_padic_val_nat_ne_zero {p n : ℕ} [fact p.prime] (hn0 : n ≠ 0) :
+  (p ∣ n) ↔ padic_val_nat p n ≠ 0 :=
+begin
+  split,
+  { intros h H,
+    have := one_le_padic_val_nat_of_dvd hn0 h,
+    linarith },
+  { intros h,
+    apply dvd_of_one_le_padic_val_nat,
+    exact one_le_iff_ne_zero.mpr h },
+end
+
 /-- `n.factorization` is the finitely supported function `ℕ →₀ ℕ`
  mapping each prime factor of `n` to its multiplicity in `n`. -/
 def factorization (n : ℕ) : ℕ →₀ ℕ :=
 { support := n.factors.to_finset,
   to_fun := λ p, if p.prime then padic_val_nat p n else 0,
   mem_support_to_fun :=
-    begin
-      intro a,
-      rw list.mem_to_finset,
-      by_cases hn0 : n = 0,
-      { simp [hn0], },
-      rw mem_factors hn0,
-      simp only [ne.def, ite_eq_right_iff, exists_prop],
-      simp,
-      intro pa,
-      sorry,
-    end }
+      begin
+        intro a,
+        rw list.mem_to_finset,
+        rcases eq_or_ne n 0 with rfl | hn0, { simp },
+        rw mem_factors hn0,
+        simp only [ne.def, ite_eq_right_iff, not_forall, exists_prop, and.congr_right_iff],
+        intro pa,
+        haveI : fact (prime a) := fact_iff.mpr pa,
+        exact dvd_iff_padic_val_nat_ne_zero hn0,
+      end }
 
 
 lemma multiplicity_eq_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   multiplicity p n = n.factorization p :=
 begin
   have hdom : (multiplicity p n).dom,
-  { rw multiplicity.nat.multiplicity_dom_iff, split, exact hn, sorry, },
+  { rw multiplicity.nat.multiplicity_dom_iff, split, exact hn,
+    simp [factorization, pp, coe_mk, if_true, @padic_val_nat_def p (fact_iff.mpr pp) n hn], },
   simp [factorization, pp],
   rw part.get_or_else_of_dom (multiplicity p n) hdom,
   simp,

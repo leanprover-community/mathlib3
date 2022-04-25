@@ -21,22 +21,22 @@ variables {α : Type*}
 
 namespace well_founded
 
-theorem not_gt_of_lt {α} {r : α → α → Prop} (h : well_founded r) :
+theorem not_gt_of_lt {r : α → α → Prop} (h : well_founded r) :
   ∀ ⦃a b⦄, r a b → ¬ r b a
 | a := λ b hab hba, not_gt_of_lt hba hab
 using_well_founded { rel_tac := λ _ _, `[exact ⟨_, h⟩],
                      dec_tac := tactic.assumption }
 
-theorem is_asymm {α} {r : α → α → Prop} (h : well_founded r) : is_asymm α r :=
+protected theorem is_asymm {r : α → α → Prop} (h : well_founded r) : is_asymm α r :=
 ⟨h.not_gt_of_lt⟩
 
-instance {α} [has_well_founded α] : _root_.is_asymm α has_well_founded.r :=
-⟨(well_founded.is_asymm has_well_founded.wf).1⟩
+instance [has_well_founded α] : is_asymm α has_well_founded.r :=
+has_well_founded.wf.is_asymm
 
-theorem is_irrefl {α} {r : α → α → Prop} (h : well_founded r) : is_irrefl α r :=
-@is_asymm.is_irrefl α r (is_asymm h)
+protected theorem is_irrefl {r : α → α → Prop} (h : well_founded r) : is_irrefl α r :=
+@is_asymm.is_irrefl α r (h.is_asymm)
 
-instance {α} [has_well_founded α] : _root_.is_irrefl α has_well_founded.r :=
+instance [has_well_founded α] : _root_.is_irrefl α has_well_founded.r :=
 is_asymm.is_irrefl
 
 /-- If `r` is a well-founded relation, then any nonempty set has a minimal element

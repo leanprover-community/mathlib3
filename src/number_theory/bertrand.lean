@@ -151,9 +151,6 @@ begin
       ... = a ^ 2 : (sq _).symm, },
 end
 
-lemma even_prime_is_two {p : ℕ} (pr: p.prime) (div: 2 ∣ p) : p = 2 :=
-((prime_dvd_prime_iff_eq prime_two pr).mp div).symm
-
 lemma sq_prime_is_small {p n : ℕ} (hp : nat.prime p) (n_big : 2 < n) (small : p ≤ sqrt (2 * n)) :
   p ^ 2 < 2 * n :=
 begin
@@ -162,9 +159,9 @@ begin
   { have small' : p ^ 2 ≤ (2 * n) := le_sqrt'.mp small,
     have t : p * p = 2 * n := (sq _).symm.trans (small'.antisymm h),
     have p_even : 2 ∣ p := (or_self _).mp ((prime.dvd_mul prime_two).mp ⟨n, t⟩),
-    have p_two : p = 2 := even_prime_is_two hp p_even,
-    rw [p_two, sq],
-    exact (mul_lt_mul_left zero_lt_two).mpr n_big },
+    rw nat.prime_dvd_prime_iff_eq prime_two hp at p_even,
+    rw [←p_even, sq],
+    exact (mul_lt_mul_left zero_lt_two).mpr n_big, },
 end
 
 end nat

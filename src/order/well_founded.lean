@@ -34,10 +34,10 @@ instance {α} [has_well_founded α] : _root_.is_asymm α has_well_founded.r :=
 ⟨(well_founded.is_asymm has_well_founded.wf).1⟩
 
 theorem is_irrefl {α} {r : α → α → Prop} (h : well_founded r) : is_irrefl α r :=
-⟨λ a, by { by_contra' hr, exact h.not_gt_of_lt hr hr }⟩
+@is_asymm.is_irrefl α r (is_asymm h)
 
 instance {α} [has_well_founded α] : _root_.is_irrefl α has_well_founded.r :=
-⟨(well_founded.is_irrefl has_well_founded.wf).1⟩
+is_asymm.is_irrefl
 
 /-- If `r` is a well-founded relation, then any nonempty set has a minimal element
 with respect to `r`. -/

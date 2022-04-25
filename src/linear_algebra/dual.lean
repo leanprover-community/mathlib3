@@ -783,7 +783,7 @@ def dual_tensor_dual_map : (dual R M) ⊗[R] (dual R N) →ₗ[R] dual R (M ⊗[
 
 @[simp]
 lemma dual_tensor_dual_map_apply (f : dual R M) (g : dual R N) (m : M) (n : N) :
-  dual_tensor_dual_map (f ⊗ₜ g) (m ⊗ₜ n) = (f m)*(g n) :=
+  dual_tensor_dual_map (f ⊗ₜ g) (m ⊗ₜ n) = f m * g n :=
 by simp only [dual_tensor_dual_map, coe_comp, function.comp_app, hom_tensor_hom_map_apply,
   comp_right_apply, linear_equiv.coe_coe, map_tmul, lid_tmul, algebra.id.smul_eq_mul]
 

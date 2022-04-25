@@ -116,7 +116,7 @@ A logarithmic upper bound on the multiplicity of a prime in the central binomial
 lemma padic_val_nat_central_binom_le (hp : p.prime) :
   padic_val_nat p (central_binom n) ≤ log p (2 * n) :=
 begin
-  rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_ne_zero n),
+  rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_pos n),
   unfold central_binom,
   have two_n_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
   simp only [nat.prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
@@ -159,7 +159,7 @@ lemma padic_val_nat_central_binom_of_large_eq_zero
   (hp : p.prime) (n_big : 2 < n) (p_le_n : p ≤ n) (big : 2 * n < 3 * p) :
   padic_val_nat p (central_binom n) = 0 :=
 begin
-  rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_ne_zero n),
+  rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_pos n),
   unfold central_binom,
   have two_n_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
   simp only [nat.prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two) (lt_add_one _),

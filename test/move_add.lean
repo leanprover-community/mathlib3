@@ -23,8 +23,6 @@ begin
   exact h
 end
 
-/-  The uncommented `move_add`s in these proofs complain of unused arguments, probably because of
-the underscores.  TODO: needs fixing
 example {a b c d : ℕ} (h : c = d) (k : c + b * c + a * c = a * d + d + b * d) :
   b * c + c + a * c = a * d + d + b * d :=
 begin
@@ -50,11 +48,10 @@ begin
   congr,
   repeat { assumption }
 end
--/
+--/
 
 variables {R : Type*} [semiring R] (f g h : R[X]) {r s t u : R}
 
-/-  `move_add` complains of unused variables, but should not.
 example (hp : f = g) :
   7 + f + (C r * X ^ 3 + 42) + X ^ 5 * h = C r * X ^ 3 + h * X ^ 5 + g + 7 + 42 :=
 begin
@@ -64,7 +61,6 @@ begin
   congr' 4, -- takes care of using assumption `hp`
   exact X_pow_mul,
 end
--/
 
 example (s0 : s ≠ 0) (m n : ℕ) (mn : m < n) (m1 : 1 ≤ m) :
   (C r * X ^ m + (5 + C s * X ^ n) + m * X + 37 * X).nat_degree = n :=

@@ -222,7 +222,7 @@ meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) : expr 
 | (expr.pi  _ _ _ e) := recurse_on_expr e
 | e                  := do
   li_unused ← e.get_app_args.mmap recurse_on_expr,
-  let unused_summed := li_unused.transpose.map list.bor,
+  let unused_summed := li_unused.transpose.map list.band,
   return unused_summed
 
 /-- Passes the user input to `recurse_on_expr` at a single location, that could either be `none`
@@ -315,7 +315,7 @@ match locat with
     trace "'move_add at *' changed nothing" else skip,
   let li_unused := ([er_t.2] ++ err_rep.map (λ e, e.2)),
   let li_unused_clear := li_unused.filter (≠ []),
-  let li_tf_vars := li_unused_clear.transpose.map list.bor,
+  let li_tf_vars := li_unused_clear.transpose.map list.band,
   match ((args.return_unused_simple li_tf_vars).map (λ e : bool × pexpr, e.2)) with
   | [] := skip
   | [pe] := trace format!"'{pe}' is an unused variable"
@@ -332,7 +332,7 @@ match locat with
     "Goal did not change" else skip,
   let li_unused := (err_rep.map (λ e, e.2)),
   let li_unused_clear := li_unused.filter (≠ []),
-  let li_tf_vars := li_unused_clear.transpose.map list.bor,
+  let li_tf_vars := li_unused_clear.transpose.map list.band,
   match ((args.return_unused_simple li_tf_vars).map (λ e : bool × pexpr, e.2)) with
   | [] := skip
   | [pe] := trace format!"'{pe}' is an unused variable"

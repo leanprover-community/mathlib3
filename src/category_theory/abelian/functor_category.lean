@@ -18,11 +18,12 @@ noncomputable theory
 namespace category_theory
 open category_theory.limits
 
-universes w v u
-variables {C : Type (max v u)} [category.{v} C]
-variables {D : Type w} [category.{max v u} D] [abelian D]
-
 namespace abelian
+
+section
+universes z w v u
+variables {C : Type (max v u)} [category.{v} C]
+variables {D : Type w} [category.{max z v u} D] [abelian D]
 
 namespace functor_category
 variables {F G : C ⥤ D} (α : F ⟶ G) (X : C)
@@ -84,6 +85,20 @@ end functor_category
 
 noncomputable instance functor_category_abelian : abelian (C ⥤ D) :=
 abelian.of_coimage_image_comparison_is_iso
+
+end
+
+section
+
+universes u
+variables {C : Type u} [small_category C]
+variables {D : Type (u+1)} [large_category D] [abelian D]
+
+/-- A variant with specialized universes for a common case. -/
+noncomputable instance functor_category_abelian' : abelian (C ⥤ D) :=
+abelian.functor_category_abelian.{u u+1 u u}
+
+end
 
 end abelian
 

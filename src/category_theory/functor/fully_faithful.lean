@@ -53,20 +53,23 @@ class faithful (F : C ⥤ D) : Prop :=
 restate_axiom faithful.map_injective'
 
 namespace functor
-lemma map_injective (F : C ⥤ D) [faithful F] {X Y : C} :
+variables {X Y : C}
+
+lemma map_injective (F : C ⥤ D) [faithful F] :
   function.injective $ @functor.map _ _ _ _ F X Y :=
 faithful.map_injective F
 
-lemma map_iso_injective (F : C ⥤ D) [faithful F] {X Y : C} :
+lemma map_iso_injective (F : C ⥤ D) [faithful F] :
   function.injective $ @functor.map_iso _ _ _ _ F X Y :=
 λ i j h, iso.ext (map_injective F (congr_arg iso.hom h : _))
 
 /-- The specified preimage of a morphism under a full functor. -/
-def preimage (F : C ⥤ D) [full F] {X Y : C} (f : F.obj X ⟶ F.obj Y) : X ⟶ Y :=
+def preimage (F : C ⥤ D) [full F] (f : F.obj X ⟶ F.obj Y) : X ⟶ Y :=
 full.preimage.{v₁ v₂} f
 @[simp] lemma image_preimage (F : C ⥤ D) [full F] {X Y : C} (f : F.obj X ⟶ F.obj Y) :
   F.map (preimage F f) = f :=
 by unfold preimage; obviously
+
 end functor
 
 section
@@ -83,19 +86,21 @@ F.map_injective (by simp)
 
 variables (F)
 
+namespace functor
+
 /-- If `F : C ⥤ D` is fully faithful, every isomorphism `F.obj X ≅ F.obj Y` has a preimage. -/
-def functor.preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
+@[simps]
+def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
 { hom := F.preimage f.hom,
   inv := F.preimage f.inv,
   hom_inv_id' := F.map_injective (by simp),
   inv_hom_id' := F.map_injective (by simp), }
 
-@[simp] lemma preimage_iso_hom (f : (F.obj X) ≅ (F.obj Y)) :
-  (F.preimage_iso f).hom = F.preimage f.hom := rfl
-@[simp] lemma preimage_iso_inv (f : (F.obj X) ≅ (F.obj Y)) :
-  (F.preimage_iso f).inv = F.preimage (f.inv) := rfl
-@[simp] lemma preimage_iso_map_iso (f : X ≅ Y) : F.preimage_iso (F.map_iso f) = f :=
-by tidy
+@[simp] lemma preimage_iso_map_iso (f : X ≅ Y) :
+  F.preimage_iso (F.map_iso f) = f :=
+by { ext, simp, }
+
+end functor
 
 /--
 If the image of a morphism under a fully faithful functor in an isomorphism,

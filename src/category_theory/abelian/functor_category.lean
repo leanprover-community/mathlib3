@@ -27,8 +27,7 @@ namespace abelian
 namespace functor_category
 variables {F G : C ⥤ D} (α : F ⟶ G) (X : C)
 
-/-- The evaluation of the abelian coimage in a functor category is
-the abelian coimage of the corresponding component. -/
+/-- The abelian coimage in a functor category can be calculated componentwise. -/
 @[simps]
 def coimage_obj_iso : (abelian.coimage α).obj X ≅ abelian.coimage (α.app X) :=
 preserves_cokernel.iso ((evaluation C D).obj X) _ ≪≫
@@ -39,8 +38,7 @@ preserves_cokernel.iso ((evaluation C D).obj X) _ ≪≫
     exact (kernel_comparison_comp_ι _ ((evaluation C D).obj X)).symm,
   end
 
-/-- The evaluation of the abelian image in a functor category is
-the abelian image of the corresponding component. -/
+/-- The abelian image in a functor category can be calculated componentwise. -/
 @[simps]
 def image_obj_iso : (abelian.image α).obj X ≅ abelian.image (α.app X) :=
 preserves_kernel.iso ((evaluation C D).obj X) _ ≪≫
@@ -84,7 +82,7 @@ end
 
 end functor_category
 
-noncomputable instance : abelian (C ⥤ D) :=
+noncomputable instance functor_category_abelian : abelian (C ⥤ D) :=
 abelian.of_coimage_image_comparison_is_iso
 
 end abelian

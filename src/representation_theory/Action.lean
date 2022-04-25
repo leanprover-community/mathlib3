@@ -10,6 +10,8 @@ import category_theory.limits.preserves.basic
 import category_theory.adjunction.limits
 import category_theory.monoidal.functor_category
 import category_theory.monoidal.transport
+import category_theory.abelian.functor_category
+import category_theory.abelian.transfer
 
 /-!
 # `Action V G`, the category of actions of a monoid `G` inside some category `V`.
@@ -186,6 +188,10 @@ def functor_category_equivalence : Action V G ≌ (single_obj G ⥤ V) :=
 
 attribute [simps] functor_category_equivalence
 
+instance [has_finite_products V] : has_finite_products (Action V G) :=
+{ out := λ J _ _, by exactI
+  adjunction.has_limits_of_shape_of_equivalence (Action.functor_category_equivalence _ _).functor }
+
 instance [has_limits V] : has_limits (Action V G) :=
 adjunction.has_limits_of_equivalence (Action.functor_category_equivalence _ _).functor
 
@@ -234,6 +240,33 @@ preserves_colimits_of_nat_iso
 -- TODO construct categorical images?
 
 end forget
+
+section zero_morphisms
+variables [has_zero_morphisms V]
+
+instance : has_zero_morphisms (Action V G) := sorry
+
+instance : functor.preserves_zero_morphisms (functor_category_equivalence V G).functor :=
+sorry
+
+end zero_morphisms
+
+section preadditive
+variables [preadditive V]
+
+instance : preadditive (Action V G) := sorry
+
+end preadditive
+
+section abelian
+variables [abelian V]
+
+example : abelian (single_obj G ⥤ V) := @abelian.functor_category_abelian (single_obj G) _ V _ _
+
+noncomputable instance : abelian (Action V G) :=
+abelian_of_equivalence (functor_category_equivalence V G).functor
+
+end
 
 section monoidal
 

@@ -121,7 +121,7 @@ apply_nolint traversable.mfoldr doc_blame
 
 -- control/monad/cont.lean
 apply_nolint cont doc_blame
-apply_nolint cont_t doc_blame has_inhabited_instance
+apply_nolint cont_t has_inhabited_instance doc_blame
 apply_nolint cont_t.map doc_blame
 apply_nolint cont_t.monad_lift doc_blame
 apply_nolint cont_t.run doc_blame
@@ -131,7 +131,7 @@ apply_nolint except_t.mk_label doc_blame
 apply_nolint is_lawful_monad_cont doc_blame
 apply_nolint monad_cont doc_blame
 apply_nolint monad_cont.goto doc_blame
-apply_nolint monad_cont.label doc_blame has_inhabited_instance
+apply_nolint monad_cont.label has_inhabited_instance doc_blame
 apply_nolint option_t.call_cc doc_blame
 apply_nolint option_t.mk_label doc_blame
 apply_nolint reader_t.call_cc doc_blame
@@ -147,7 +147,7 @@ apply_nolint except_t.pass_aux doc_blame
 apply_nolint option_t.pass_aux doc_blame
 apply_nolint swap_right doc_blame
 apply_nolint writer doc_blame
-apply_nolint writer_t doc_blame has_inhabited_instance
+apply_nolint writer_t has_inhabited_instance doc_blame
 apply_nolint writer_t.adapt doc_blame
 apply_nolint writer_t.bind doc_blame
 apply_nolint writer_t.ext unused_arguments
@@ -191,7 +191,7 @@ apply_nolint filter.realizer has_inhabited_instance
 apply_nolint filter.realizer.of_eq doc_blame
 
 -- data/analysis/topology.lean
-apply_nolint compact.realizer doc_blame unused_arguments has_inhabited_instance
+apply_nolint compact.realizer has_inhabited_instance doc_blame unused_arguments
 apply_nolint ctop has_inhabited_instance
 apply_nolint ctop.realizer has_inhabited_instance
 apply_nolint ctop.realizer.id doc_blame
@@ -200,7 +200,7 @@ apply_nolint ctop.realizer.nhds_F unused_arguments
 apply_nolint ctop.realizer.nhds_σ unused_arguments
 apply_nolint ctop.realizer.of_equiv doc_blame
 apply_nolint ctop.to_realizer doc_blame
-apply_nolint locally_finite.realizer doc_blame has_inhabited_instance
+apply_nolint locally_finite.realizer has_inhabited_instance doc_blame
 
 -- data/finset/noncomm_prod.lean
 apply_nolint finset.noncomm_prod_union_of_disjoint to_additive_doc
@@ -470,6 +470,8 @@ apply_nolint left_cancel_monoid.to_has_faithful_opposite_scalar to_additive_doc
 apply_nolint monoid.to_opposite_mul_action to_additive_doc
 
 -- group_theory/group_action/pi.lean
+apply_nolint function.has_scalar to_additive_doc
+apply_nolint function.smul_comm_class to_additive_doc
 apply_nolint pi.has_faithful_scalar_at to_additive_doc
 
 -- group_theory/group_action/sub_mul_action.lean
@@ -505,10 +507,6 @@ apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
 -- linear_algebra/affine_space/affine_subspace.lean
 apply_nolint affine_span.nonempty fails_quickly
 apply_nolint affine_subspace.to_add_torsor fails_quickly
-
--- linear_algebra/pi.lean
-apply_nolint function.has_scalar to_additive_doc
-apply_nolint function.smul_comm_class to_additive_doc
 
 -- logic/relator.lean
 apply_nolint relator.bi_total doc_blame

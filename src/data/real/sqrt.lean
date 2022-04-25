@@ -611,7 +611,7 @@ begin
 end
 
 theorem stays_near_if_near_step (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
-  (ε : ℚ) (ε_pos : 0 < ε) (ε_smallish : 16 * ε ≤ 3) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
+  (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
   (k : ℕ) (k_large : k ≥ N) (is_near : sqrt_aux f k ^ 2 - f k < 3 * ε)
   : sqrt_aux f (k + 1) ^ 2 - f (k + 1) < 3 * ε :=
 begin
@@ -634,7 +634,6 @@ begin
         linarith,
       end
       ... = (16 * ε ^ 2) / (16 / 3 * ε) : by ring
-      ... = (16 * ε ^ 2) / (16 / 3) / ε : by field_simp
       ... = (16 * ε ^ 2) * (3 / 16) / ε : by field_simp
       ... = (3 * ε) * (ε / ε) : by ring
       ... = (3 * ε) * 1 : by rw div_self (ne_of_gt ε_pos)

@@ -714,7 +714,7 @@ end
   λ h, by simp [h]⟩
 
 @[to_additive] lemma one_lt_card_iff_ne_bot [fintype H] : 1 < fintype.card H ↔ H ≠ ⊥ :=
-lt_iff_not_ge'.trans (not_iff_not.mpr H.card_le_one_iff_eq_bot)
+lt_iff_not_le.trans H.card_le_one_iff_eq_bot.not
 
 /-- The inf of two subgroups is their intersection. -/
 @[to_additive "The inf of two `add_subgroups`s is their intersection."]
@@ -2647,6 +2647,14 @@ begin
   rw equiv.eq_image_iff_symm_image_eq,
   exact of_mul_image_zpowers_eq_zmultiples_of_mul,
 end
+
+namespace subgroup
+
+@[to_additive] instance zpowers_is_commutative (g : G) : (zpowers g).is_commutative :=
+⟨⟨λ ⟨_, _, h₁⟩ ⟨_, _, h₂⟩, by rw [subtype.ext_iff, coe_mul, coe_mul,
+  subtype.coe_mk, subtype.coe_mk, ←h₁, ←h₂, zpow_mul_comm]⟩⟩
+
+end subgroup
 
 namespace monoid_hom
 

@@ -116,7 +116,7 @@ A logarithmic upper bound on the multiplicity of a prime in the central binomial
 lemma padic_val_nat_central_binom_le (hp : p.prime) :
   padic_val_nat p (central_binom n) ≤ log p (2 * n) :=
 begin
-  rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_ne_zero n),
+  rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_pos n),
   unfold central_binom,
   have two_n_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
   simp only [nat.prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
@@ -132,22 +132,22 @@ lemma padic_val_nat_central_binom_of_large_le_one (hp : p.prime) (p_large : 2 * 
   (padic_val_nat p (central_binom n)) ≤ 1 :=
 begin
   have log_weak_bound : log p (2 * n) ≤ 2,
-    { calc log p (2 * n) ≤ log p (p ^ 2) : log_le_log_of_le (le_of_lt p_large)
-      ... = 2 : log_pow hp.one_lt 2, },
+  { calc log p (2 * n) ≤ log p (p ^ 2) : log_le_log_of_le (le_of_lt p_large)
+    ... = 2 : log_pow hp.one_lt 2, },
 
   have log_bound : log p (2 * n) ≤ 1,
-    { cases le_or_lt (log p (2 * n)) 1 with log_le lt_log,
-      { exact log_le, },
-      { have v : log p (2 * n) = 2 := by linarith,
-        cases le_or_lt p (2 * n) with h h,
-        { exfalso,
-          rw [log_of_one_lt_of_le hp.one_lt h, succ_inj', log_eq_one_iff] at v,
-          have bad : p ^ 2 ≤ 2 * n,
-            { rw pow_two,
-              exact (nat.le_div_iff_mul_le _ _ (prime.pos hp)).1 v.2.2, },
-          exact lt_irrefl _ (lt_of_le_of_lt bad p_large), },
-        { rw log_eq_zero (or.inl h),
-          exact zero_le 1, }, }, },
+  { cases le_or_lt (log p (2 * n)) 1 with log_le lt_log,
+    { exact log_le, },
+    { have v : log p (2 * n) = 2 := by linarith,
+      cases le_or_lt p (2 * n) with h h,
+      { exfalso,
+        rw [log_of_one_lt_of_le hp.one_lt h, succ_inj', log_eq_one_iff] at v,
+        have bad : p ^ 2 ≤ 2 * n,
+        { rw pow_two,
+          exact (nat.le_div_iff_mul_le _ _ (prime.pos hp)).1 v.2.2, },
+        exact lt_irrefl _ (lt_of_le_of_lt bad p_large), },
+      { rw log_eq_zero (or.inl h),
+        exact zero_le 1, }, }, },
 
   exact le_trans (padic_val_nat_central_binom_le hp) log_bound,
 end
@@ -159,18 +159,14 @@ lemma padic_val_nat_central_binom_of_large_eq_zero
   (hp : p.prime) (n_big : 2 < n) (p_le_n : p ≤ n) (big : 2 * n < 3 * p) :
   padic_val_nat p (central_binom n) = 0 :=
 begin
-  rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_ne_zero n),
+  rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_pos n),
   unfold central_binom,
   have two_n_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
-  simp only [
-    nat.prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
+  simp only [nat.prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
     two_n_sub, ←two_mul, finset.card_eq_zero, enat.get_coe', finset.filter_congr_decidable],
   clear two_n_sub,
 
-  have three_lt_p : 3 ≤ p,
-  { rcases le_or_lt 3 p with H|H,
-    { exact H, },
-    { linarith [not_prime_one], }, },
+  have three_lt_p : 3 ≤ p := by linarith,
   have p_pos : 0 < p := nat.prime.pos hp,
 
   apply finset.filter_false_of_mem,
@@ -186,10 +182,10 @@ begin
              ... = p ^ 2 : (sq _).symm
              ... ≤ p ^ i : nat.pow_le_pow_of_le_right p_pos two_le_i, },
     have n_mod : n % p ^ i = n,
-      { apply nat.mod_eq_of_lt,
-        calc n ≤ n + n : nat.le.intro rfl
-          ... = 2 * n : (two_mul n).symm
-          ... < p ^ i : two_n_lt_pow_p_i, },
+    { apply nat.mod_eq_of_lt,
+      calc n ≤ n + n : nat.le.intro rfl
+        ... = 2 * n : (two_mul n).symm
+        ... < p ^ i : two_n_lt_pow_p_i, },
     rw n_mod,
     exact two_n_lt_pow_p_i, },
 
@@ -203,8 +199,8 @@ begin
             ... ≤ 2 * (p * (n / p)) + p : add_le_add_right ((mul_le_mul_left zero_lt_two).mpr
             $ ((le_mul_iff_one_le_right p_pos).mpr n_big)) _ },
 
-  { have : i = 0 := nat.le_zero_iff.mp (nat.le_of_lt_succ H),
-    rw [this, pow_zero, nat.mod_one, mul_zero],
+  { have i_zero: i = 0 := nat.le_zero_iff.mp (nat.le_of_lt_succ H),
+    rw [i_zero, pow_zero, nat.mod_one, mul_zero],
     exact zero_lt_one, },
 end
 

@@ -215,6 +215,16 @@ lemma fact_iff {p : Prop} : fact p ↔ p := ⟨λ h, h.1, λ h, ⟨h⟩⟩
   Π i₂ j₂ i₁ j₁, φ i₁ j₁ i₂ j₂ :=
 λ i₂ j₂ i₁ j₁, f i₁ j₁ i₂ j₂
 
+/-- If `x : α . tac_name` then `x.out : α`. These are definitionally equal, but this can
+nevertheless be useful for various reasons, e.g. to apply further projection notation or in an
+argument to `simp`. -/
+def auto_param.out {α : Sort*} {n : name} (x : auto_param α n) : α := x
+
+/-- If `x : α := d` then `x.out : α`. These are definitionally equal, but this can
+nevertheless be useful for various reasons, e.g. to apply further projection notation or in an
+argument to `simp`. -/
+def opt_param.out {α : Sort*} {d : α} (x : α := d) : α := x
+
 end miscellany
 
 open function
@@ -293,8 +303,6 @@ the arguments flipped, but it is in the `not` namespace so that projection notat
 def not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
 @[reducible] theorem not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
-
-lemma iff.not (h : a ↔ b) : ¬ a ↔ ¬ b := not_congr h
 
 theorem not_not_of_not_imp : ¬(a → b) → ¬¬a :=
 mt not.elim
@@ -399,6 +407,10 @@ theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
 theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
 imp.swap
 
+lemma iff.not (h : a ↔ b) : ¬ a ↔ ¬ b := not_congr h
+lemma iff.not_left (h : a ↔ ¬ b) : ¬ a ↔ b := h.not.trans not_not
+lemma iff.not_right (h : ¬ a ↔ b) : a ↔ ¬ b := not_not.symm.trans h.not
+
 /-! ### Declarations about `xor` -/
 
 @[simp] theorem xor_true : xor true = not := funext $ λ a, by simp [xor]
@@ -439,6 +451,12 @@ by simp only [and.left_comm, and.comm]
 
 lemma and_and_and_comm (a b c d : Prop) : (a ∧ b) ∧ c ∧ d ↔ (a ∧ c) ∧ b ∧ d :=
 by rw [←and_assoc, @and.right_comm a, and_assoc]
+
+lemma and_and_distrib_left (a b c : Prop) : a ∧ (b ∧ c) ↔ (a ∧ b) ∧ (a ∧ c) :=
+by rw [and_and_and_comm, and_self]
+
+lemma and_and_distrib_right (a b c : Prop) : (a ∧ b) ∧ c ↔ (a ∧ c) ∧ (b ∧ c) :=
+by rw [and_and_and_comm, and_self]
 
 lemma and_rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a := by simp only [and.left_comm, and.comm]
 lemma and.rotate : a ∧ b ∧ c → b ∧ c ∧ a := and_rotate.1
@@ -490,6 +508,12 @@ theorem or.right_comm : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ b := by rw [or_assoc, 
 
 lemma or_or_or_comm (a b c d : Prop) : (a ∨ b) ∨ c ∨ d ↔ (a ∨ c) ∨ b ∨ d :=
 by rw [←or_assoc, @or.right_comm a, or_assoc]
+
+lemma or_or_distrib_left (a b c : Prop) : a ∨ (b ∨ c) ↔ (a ∨ b) ∨ (a ∨ c) :=
+by rw [or_or_or_comm, or_self]
+
+lemma or_or_distrib_right (a b c : Prop) : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ (b ∨ c) :=
+by rw [or_or_or_comm, or_self]
 
 lemma or_rotate : a ∨ b ∨ c ↔ b ∨ c ∨ a := by simp only [or.left_comm, or.comm]
 lemma or.rotate : a ∨ b ∨ c → b ∨ c ∨ a := or_rotate.1
@@ -860,6 +884,10 @@ rfl
 lemma heq_of_cast_eq :
   ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : cast e a = a'), a == a'
 | α ._ a a' rfl h := eq.rec_on h (heq.refl _)
+
+lemma congr_fun_heq {α β γ : Sort*} {f : α → γ} {g : β → γ} (h₁ : β = α) (h₂ : f == g) (x : β) :
+  f (cast h₁ x) = g x :=
+by { subst h₁, rw [eq_of_heq h₂, cast_eq] }
 
 lemma cast_eq_iff_heq {α β : Sort*} {a : α} {a' : β} {e : α = β} : cast e a = a' ↔ a == a' :=
 ⟨heq_of_cast_eq _, λ h, by cases h; refl⟩

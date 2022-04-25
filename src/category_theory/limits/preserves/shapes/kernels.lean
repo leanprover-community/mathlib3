@@ -48,7 +48,7 @@ begin
   refine (is_limit.postcompose_hom_equiv _ _).symm.trans (is_limit.equiv_iso_limit _),
   refine parallel_pair.ext (iso.refl _) (iso.refl _) _ _; simp,
   refine fork.ext (iso.refl _) _,
-  simp,
+  simp [fork.ι]
 end
 
 /--
@@ -137,7 +137,10 @@ begin
   refine (is_colimit.precompose_hom_equiv _ _).symm.trans (is_colimit.equiv_iso_colimit _),
   refine parallel_pair.ext (iso.refl _) (iso.refl _) _ _; simp,
   refine cofork.ext (iso.refl _) _,
-  simp, dsimp, simp,
+  simp only [cofork.π, iso.refl_hom, id_comp, cocones.precompose_obj_ι,
+    nat_trans.comp_app, parallel_pair.ext_hom_app, functor.map_cocone_ι_app,
+    cofork.of_π_ι_app],
+  apply category.comp_id
 end
 
 /--

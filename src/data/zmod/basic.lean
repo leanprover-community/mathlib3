@@ -368,7 +368,7 @@ variables (R)
 
 lemma cast_hom_injective : function.injective (zmod.cast_hom (dvd_refl n) R) :=
 begin
-  rw ring_hom.injective_iff,
+  rw injective_iff_map_eq_zero,
   intro x,
   obtain ⟨k, rfl⟩ := zmod.int_cast_surjective x,
   rw [ring_hom.map_int_cast, char_p.int_cast_eq_zero_iff R n,
@@ -441,6 +441,22 @@ begin
   have hlt : ↑(a : zmod n).val < (n : ℤ) := int.coe_nat_lt.mpr (zmod.val_lt a),
   refine (int.mod_eq_of_lt hle hlt).symm.trans _,
   rw [←zmod.int_coe_eq_int_coe_iff', int.cast_coe_nat, zmod.nat_cast_val, zmod.cast_id],
+end
+
+@[simp] lemma val_neg_one (n : ℕ) : (-1 : zmod n.succ).val = n :=
+begin
+  rw [val, fin.coe_neg],
+  cases n,
+  { rw [nat.mod_one] },
+  { rw [fin.coe_one, nat.succ_add_sub_one, nat.mod_eq_of_lt (nat.lt.base _)] },
+end
+
+/-- `-1 : zmod n` lifts to `n - 1 : R`. This avoids the characteristic assumption in `cast_neg`. -/
+lemma cast_neg_one {R : Type*} [ring R] (n : ℕ) : ↑(-1 : zmod n) = (n - 1 : R) :=
+begin
+  cases n,
+  { rw [int.cast_neg, int.cast_one, nat.cast_zero, zero_sub] },
+  { rw [←nat_cast_val, val_neg_one, nat.cast_succ, add_sub_cancel] },
 end
 
 lemma nat_coe_zmod_eq_iff (p : ℕ) (n : ℕ) (z : zmod p) [fact (0 < p)] :

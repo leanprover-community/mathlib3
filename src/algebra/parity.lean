@@ -105,10 +105,6 @@ begin
   refine ⟨m * n, mul_mul_mul_comm m m n n⟩,
 end
 
--- @[simp]
--- TODO (khw): This an the following commented out @[simp]s appear because they
--- _should_ be simp lemmas but break the simp engine when included. Thus, we
--- comment them out for a later day
 lemma irreducible.not_square {x : α} (h : irreducible x) :
   ¬is_square x :=
 begin
@@ -118,7 +114,6 @@ begin
   exact h.not_unit (hu.mul hu),
 end
 
--- @[simp]
 lemma is_square.not_irreducible {x : α} (h : is_square x) : ¬irreducible x :=
 λ h', h'.not_square h
 
@@ -127,11 +122,9 @@ end comm_monoid
 section cancel_comm_monoid_with_zero
 variable [cancel_comm_monoid_with_zero α]
 
--- @[simp]
 lemma prime.not_square {x : α} (h : prime x) :
   ¬is_square x := h.irreducible.not_square
 
--- @[simp]
 lemma is_square.not_prime {x : α} (h : is_square x) : ¬prime x :=
 λ h', h'.not_square h
 

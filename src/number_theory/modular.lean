@@ -356,7 +356,7 @@ end
 
 variables {z}
 
-@[simp] lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
+lemma coe_T_zpow_smul_eq {n : ℤ} : (↑((T^n) • z) : ℂ) = z + n :=
 by simp [coe_T_zpow]
 
 -- If instead we had `g` and `T` of type `PSL(2, ℤ)`, then we could simply state `g = T^n`.

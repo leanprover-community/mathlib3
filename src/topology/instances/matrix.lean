@@ -306,4 +306,29 @@ lemma summable.matrix_diag {f : X → matrix n n R} (hf : summable f) :
 
 variables {α}
 
+section block_matrices
+
+lemma has_sum.matrix_block_diagonal [decidable_eq p]
+  {f : X → p → matrix m n R} {a : p → matrix m n R} (hf : has_sum f a) :
+  has_sum (λ x, block_diagonal (f x)) (block_diagonal a) :=
+(hf.map (block_diagonal_add_monoid_hom m n p R) $
+  continuous.matrix_block_diagonal $ by exact continuous_id : _)
+
+lemma summable.matrix_block_diagonal [decidable_eq p] {f : X → p → matrix m n R} (hf : summable f) :
+  summable (λ x, block_diagonal (f x)) :=
+hf.has_sum.matrix_block_diagonal.summable
+
+lemma has_sum.matrix_block_diagonal' [decidable_eq l]
+  {f : X → Π i, matrix (m' i) (n' i) R} {a : Π i, matrix (m' i) (n' i) R} (hf : has_sum f a) :
+  has_sum (λ x, block_diagonal' (f x)) (block_diagonal' a) :=
+(hf.map (block_diagonal'_add_monoid_hom m' n' R) $
+  continuous.matrix_block_diagonal' $ by exact continuous_id : _)
+
+lemma summable.matrix_block_diagonal' [decidable_eq l]  {f : X → Π i, matrix (m' i) (n' i) R}
+  (hf : summable f) :
+  summable (λ x, block_diagonal' (f x)) :=
+hf.has_sum.matrix_block_diagonal'.summable
+
+end block_matrices
+
 end tsum

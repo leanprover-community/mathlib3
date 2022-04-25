@@ -72,6 +72,7 @@ end lemmaa
 ⟨⟨λ ⟨a, b, c⟩ ⟨d, e, f⟩, by rw [subtype.ext_iff, subgroup.coe_mul, subgroup.coe_mul,
   subtype.coe_mk, subtype.coe_mk, ←c, ←f, zpow_mul_comm]⟩⟩
 
+-- PRed
 @[to_additive add_the_key_lemma]
 lemma the_key_lemma {α β : Type*} [group α] {a : α} [mul_action α β] {b : β} {n : ℤ} :
   a ^ n • b = b ↔ (function.minimal_period ((•) a) b : ℤ) ∣ n :=
@@ -195,7 +196,7 @@ lemma key_transversal_apply' {G : Type*} [group G] (H : subgroup G)
     g ^ (k : ℤ) * q.out'.out' :=
 by rw [key_transversal_apply, ←key_equiv_symm_apply, equiv.apply_symm_apply]
 
-
+-- PRed
 lemma zmod.coe_neg_one {R : Type*} [ring R] (n : ℕ) : ↑(-1 : zmod n) = (n - 1 : R) :=
 begin
   cases n,

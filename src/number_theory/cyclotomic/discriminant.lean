@@ -158,7 +158,7 @@ lemma discr_prime_pow [hcycl : is_cyclotomic_extension {p ^ k} K L] [hp : fact (
   discr K (hζ.power_basis K).basis =
   (-1) ^ (((p ^ k : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ (k - 1) * ((p - 1) * k - 1)) :=
 begin
-  unfreezingI { cases k,
+  unfreezingI { cases k },
   { haveI : ne_zero ((↑(p ^ 0) : ℕ) : K) := ⟨by simp⟩,
     simp only [coe_basis, pow_zero, power_basis_gen, totient_one, mul_zero, mul_one, show 1 / 2 = 0,
       by refl, discr, trace_matrix],
@@ -194,7 +194,7 @@ begin
       rw [← (algebra_map K L).map_one, trace_algebra_map, finrank _ hirr, hp, hk],
       { simp },
       { apply_instance } },
-    { exact discr_prime_pow_ne_two hζ hirr hirr₁ hk } } }
+    { exact discr_prime_pow_ne_two hζ hirr hirr₁ hk } }
 end
 
 /-- If `p` is a prime and `is_cyclotomic_extension {p ^ k} K L`, then there are `u : ℤˣ` and

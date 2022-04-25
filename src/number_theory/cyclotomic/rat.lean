@@ -91,7 +91,7 @@ begin
     rw [← smul_assoc, ← smul_mul_assoc, units.inv_eq_coe_inv, coe_coe, zsmul_eq_mul,
       ← int.cast_mul, units.inv_mul, int.cast_one, one_mul,
       show (p : ℚ) ^ n • x = ((p : ℕ) : ℤ) ^ n • x, by simp [smul_def]] at H,
-    unfreezingI { cases k,
+    unfreezingI { cases k },
     { haveI : is_cyclotomic_extension {1} ℚ K := by simpa using hcycl,
       have : x ∈ (⊥ : subalgebra ℚ K),
       { rw [singleton_one ℚ K],
@@ -115,7 +115,7 @@ begin
       refine adjoin_le _ (mem_adjoin_of_smul_prime_pow_smul_of_minpoly_is_eiseinstein_at
         (nat.prime_iff_prime_int.1 hp.out) hint h H hmin),
       simp only [set.singleton_subset_iff, set_like.mem_coe],
-      exact subalgebra.sub_mem _ (self_mem_adjoin_singleton ℤ _) (subalgebra.one_mem _) } } },
+      exact subalgebra.sub_mem _ (self_mem_adjoin_singleton ℤ _) (subalgebra.one_mem _) } },
   { rintro ⟨y, rfl⟩,
     exact is_integral.algebra_map (le_integral_closure_iff_is_integral.1
       (adjoin_le_integral_closure (hζ.is_integral (p ^ k).pos)) _) },

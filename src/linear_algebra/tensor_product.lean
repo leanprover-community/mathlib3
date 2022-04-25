@@ -676,7 +676,7 @@ by {ext, simp only [smul_tmul, compr₂_apply, mk_apply, map_tmul, smul_apply, t
 
 /-- The tensor product of a pair of linear maps between modules, bilinear in both maps. -/
 def map_bilinear : (M →ₗ[R] P) →ₗ[R] (N →ₗ[R] Q) →ₗ[R] (M ⊗[R] N →ₗ[R] P ⊗[R] Q) :=
-  linear_map.mk₂ R map map_add_left map_smul_left map_add_right map_smul_right
+linear_map.mk₂ R map map_add_left map_smul_left map_add_right map_smul_right
 
 @[simp]
 lemma map_bilinear_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : map_bilinear f g = map f g := rfl

@@ -96,7 +96,7 @@ well_founded.fix wf_dvd_monoid.well_founded_dvd_not_unit
   a
 
 lemma exists_factors (a : α) : a ≠ 0 →
-  ∃f : multiset α, (∀b ∈ f, irreducible b) ∧ associated f.prod a :=
+  ∃ f : multiset α, (∀ b ∈ f, irreducible b) ∧ associated f.prod a :=
 wf_dvd_monoid.induction_on_irreducible a
   (λ h, (h rfl).elim)
   (λ u hu _, ⟨0, ⟨by simp [hu], associated.symm (by simp [hu, associated_one_iff_is_unit])⟩⟩)
@@ -106,6 +106,17 @@ wf_dvd_monoid.induction_on_irreducible a
     { intros b H, cases (multiset.mem_cons.mp H), { convert hii }, { exact hs.1 b h } },
       by { rw multiset.prod_cons,
            exact hs.2.mul_left _ }⟩⟩)
+
+lemma exists_factors_eq (a : α) (hn0 : a ≠ 0) (hnu : ¬ is_unit a) :
+  ∃ (f : multiset α), (∀ (b : α), b ∈ f → irreducible b) ∧ f.prod = a :=
+begin
+  obtain ⟨P,hi,u,rfl⟩ := wf_dvd_monoid.exists_factors a hn0,
+  obtain ⟨p,h⟩ := multiset.exists_mem_of_ne_zero (λ h : P = 0, hnu $ by simp [h]),
+  classical, use (P.erase p).cons (p * u), split,
+  { intros a ha, rcases multiset.mem_cons.1 ha with (rfl|ha),
+    exacts [associated.irreducible ⟨u,rfl⟩ (hi p h), hi a (multiset.mem_of_mem_erase ha)] },
+  { rw [multiset.prod_cons, mul_comm p, mul_assoc, multiset.prod_erase h, mul_comm] },
+end
 
 end wf_dvd_monoid
 
@@ -227,7 +238,7 @@ by haveI := classical.dec_eq α; exact
 /-- If an irreducible has a prime factorization,
   then it is an associate of one of its prime factors. -/
 lemma prime_factors_irreducible [cancel_comm_monoid_with_zero α] {a : α} {f : multiset α}
-  (ha : irreducible a) (pfa : (∀b ∈ f, prime b) ∧ f.prod ~ᵤ a) :
+  (ha : irreducible a) (pfa : (∀ b ∈ f, prime b) ∧ f.prod ~ᵤ a) :
   ∃ p, a ~ᵤ p ∧ f = {p} :=
 begin
   haveI := classical.dec_eq α,

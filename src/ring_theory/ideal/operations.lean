@@ -1391,7 +1391,7 @@ ideal.quotient.lift_mk _ _ _
 /-- The induced map from the quotient by the kernel is injective. -/
 lemma ker_lift_injective (f : R →+* S) : function.injective (ker_lift f) :=
 assume a b, quotient.induction_on₂' a b $
-  assume a b (h : f a = f b), quotient.sound' $
+  assume a b (h : f a = f b), ideal.quotient.eq.2 $
 show a - b ∈ ker f, by rw [mem_ker, map_sub, h, sub_self]
 
 variable {f}

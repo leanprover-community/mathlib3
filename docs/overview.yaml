@@ -158,6 +158,8 @@ Linear algebra:
     finite-dimensionality : 'finite_dimensional'
     isomorphism with $K^n$: 'basis.equiv_fun'
     isomorphism with bidual: 'module.eval_equiv'
+  Finitely generated modules over a PID:
+    classification theorem: 'equiv_free_prod_direct_sum'
   Matrices:
     ring-valued matrix: 'matrix'
     matrix representation of a linear map: 'linear_map.to_matrix'

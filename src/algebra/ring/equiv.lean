@@ -495,8 +495,9 @@ by { ext, simp }
 Construct an equivalence of rings from homomorphisms in both directions, which are inverses.
 -/
 @[simps]
-def of_hom_inv' {R S F G : Type*} [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
-  [non_unital_ring_hom_class F R S] [non_unital_ring_hom_class G S R] (hom : F) (inv : G)
+def of_hom_inv' {R S F G : Type*} [non_unital_non_assoc_semiring R]
+  [non_unital_non_assoc_semiring S] [non_unital_ring_hom_class F R S]
+  [non_unital_ring_hom_class G S R] (hom : F) (inv : G)
   (hom_inv_id : (inv : S →ₙ+* R).comp (hom : R →ₙ+* S) = non_unital_ring_hom.id R)
   (inv_hom_id : (hom : R →ₙ+* S).comp (inv : S →ₙ+* R) = non_unital_ring_hom.id S) :
   R ≃+* S :=

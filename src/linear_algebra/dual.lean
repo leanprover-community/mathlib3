@@ -779,7 +779,7 @@ sending `f ⊗ g` to the composition of `tensor_product.map f g` with
 the natural isomorphism `R ⊗ R ≃ R`.
 -/
 def dual_tensor_dual_map : (dual R M) ⊗[R] (dual R N) →ₗ[R] dual R (M ⊗[R] N) :=
-  (comp_right ↑(tensor_product.lid R R)) ∘ₗ hom_tensor_hom_map
+(comp_right ↑(tensor_product.lid R R)) ∘ₗ hom_tensor_hom_map
 
 @[simp]
 lemma dual_tensor_dual_map_apply (f : dual R M) (g : dual R N) (m : M) (n : N) :

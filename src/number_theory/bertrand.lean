@@ -184,15 +184,6 @@ end
 
 lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num
 
--- lemma real.mul_div_mul (a b c : ℝ) (ha : a ≠ 0) : (a * b) / (a * c) = b / c :=
--- begin
---   exact mul_div_mul_left b c ha,
---   by_cases c = 0,
---   { subst h, simp, },
---   { field_simp,
---     ring, }
--- end
-
 -- This is best possible; it is false for x = 99.
 lemma inequality1 {x : ℝ} (n_large : 100 ≤ x) : log x / (x * log 4) ≤ 1/30 :=
 begin
@@ -257,6 +248,8 @@ begin
   ring_nf,
 end
 
+-- The sqrts could be changed to ^(1/2) and then changed to generalize the 2 out.
+-- It could also be moved near log_div_self_antitone_on
 lemma log_div_sqrt_decreasing {x y : ℝ} (hex : exp 2 ≤ x) (hxy : x ≤ y) :
   log y / sqrt y ≤ log x / sqrt x :=
 begin
@@ -277,6 +270,8 @@ begin
   { exact real.nontrivial, },
 end
 
+-- TODO this ought to be generalized to all comm_group_with_zero and moved,
+-- probably somewhere near mul_div_mul_left
 lemma real.div_mul_eq_div_div {a b c : ℝ} (hb : b ≠ 0) (hc : c ≠ 0) : a / (b * c) = (a / b) / c :=
 by field_simp
 

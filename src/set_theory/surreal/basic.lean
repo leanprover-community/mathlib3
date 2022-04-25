@@ -52,6 +52,10 @@ def numeric : pgame → Prop
 | ⟨l, r, L, R⟩ :=
   (∀ i j, L i < R j) ∧ (∀ i, numeric (L i)) ∧ (∀ i, numeric (R i))
 
+lemma numeric_def (x : pgame) : numeric x ↔ (∀ i j, x.move_left i < x.move_right j) ∧
+  (∀ i, numeric (x.move_left i)) ∧ (∀ i, numeric (x.move_right i)) :=
+by { cases x, refl }
+
 lemma numeric.move_left {x : pgame} (o : numeric x) (i : x.left_moves) :
   numeric (x.move_left i) :=
 begin
@@ -104,10 +108,12 @@ theorem numeric_neg : Π {x : pgame} (o : numeric x), numeric (-x)
 ⟨λ j i, lt_iff_neg_gt.1 (o.1 i j),
   ⟨λ j, numeric_neg (o.2.2 j), λ i, numeric_neg (o.2.1 i)⟩⟩
 
+/-- For the `<` version, see `pgame.move_left_lt`. -/
 theorem numeric.move_left_le {x : pgame} (o : numeric x) (i : x.left_moves) :
   x.move_left i ≤ x :=
 le_of_lt (o.move_left i) o (pgame.move_left_lt i)
 
+/-- For the `<` version, see `pgame.lt_move_right`. -/
 theorem numeric.le_move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
   x ≤ x.move_right j :=
 le_of_lt o (o.move_right j) (pgame.lt_move_right j)
@@ -294,10 +300,10 @@ instance : ordered_add_comm_group surreal :=
 { add               := (+),
   add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
   zero              := 0,
-  zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv _) },
-  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv _) },
+  zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv a) },
+  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv a) },
   neg               := has_neg.neg,
-  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound pgame.add_left_neg_equiv },
+  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_left_neg_equiv a) },
   add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
   le                := (≤),
   lt                := (<),

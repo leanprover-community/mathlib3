@@ -30,8 +30,14 @@ using_well_founded { rel_tac := λ _ _, `[exact ⟨_, h⟩],
 theorem is_asymm {α} {r : α → α → Prop} (h : well_founded r) : is_asymm α r :=
 ⟨h.lt_of_not_gt⟩
 
+instance {α} [has_well_founded α] : _root_.is_asymm α has_well_founded.r :=
+⟨(well_founded.is_asymm has_well_founded.wf).1⟩
+
 theorem is_irrefl {α} {r : α → α → Prop} (h : well_founded r) : is_irrefl α r :=
 ⟨λ a, by { by_contra' hr, exact h.lt_of_not_gt hr hr }⟩
+
+instance {α} [has_well_founded α] : _root_.is_irrefl α has_well_founded.r :=
+⟨(well_founded.is_irrefl has_well_founded.wf).1⟩
 
 /-- If `r` is a well-founded relation, then any nonempty set has a minimal element
 with respect to `r`. -/

@@ -67,7 +67,7 @@ begin
 end
 
 -- This is used in `number_theory.zsqrtd.gaussian_int` and `archive.imo.imo2008_q3`
-lemma exists_sq_eq_neg_one_iff_mod_four_ne_three :
+lemma exists_sq_eq_neg_one_iff :
   (∃ y : zmod p, y ^ 2 = -1) ↔ p % 4 ≠ 3 :=
 begin
   cases nat.prime.eq_two_or_odd (fact.out p.prime) with hp2 hp_odd,
@@ -87,6 +87,24 @@ begin
     have hp : p % 4 < 4, from nat.mod_lt _ dec_trivial,
     revert hp hp_odd p_half_odd,
     generalize : p % 4 = k, dec_trivial! }
+end
+
+lemma mod_four_ne_three_of_sq_eq_neg_one {y : zmod p} (hy : y ^ 2 = -1) : p % 4 ≠ 3 :=
+(exists_sq_eq_neg_one_iff p).1 ⟨y, hy⟩
+
+lemma mod_four_ne_three_of_sq_eq_neg_sq' {x y : zmod p} (hy : y ≠ 0) (hxy : x ^ 2 = - y ^ 2) :
+  p % 4 ≠ 3 :=
+@mod_four_ne_three_of_sq_eq_neg_one p _ (x / y) begin
+  apply_fun (λ z, z / y ^ 2) at hxy,
+  rwa [neg_div, ←div_pow, ←div_pow, div_self hy, one_pow] at hxy
+end
+
+lemma mod_four_ne_three_of_sq_eq_neg_sq {x y : zmod p} (hx : x ≠ 0) (hxy : x ^ 2 = - y ^ 2) :
+  p % 4 ≠ 3 :=
+begin
+  apply_fun (λ x, -x) at hxy,
+  rw neg_neg at hxy,
+  exact mod_four_ne_three_of_sq_eq_neg_sq' p hx hxy.symm
 end
 
 lemma pow_div_two_eq_neg_one_or_one {a : zmod p} (ha : a ≠ 0) :

@@ -129,9 +129,7 @@ The restriction of a sheafed space `X` to the top subspace is isomorphic to `X` 
 -/
 def restrict_top_iso (X : SheafedSpace C) :
   X.restrict (opens.open_embedding ⊤) ≅ X :=
-@functor.preimage_iso _ _ _ _ forget_to_PresheafedSpace _ _
-  (X.restrict (opens.open_embedding ⊤)) _
-  X.to_PresheafedSpace.restrict_top_iso
+forget_to_PresheafedSpace.preimage_iso X.to_PresheafedSpace.restrict_top_iso
 
 /--
 The global sections, notated Gamma.

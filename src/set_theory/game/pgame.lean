@@ -609,6 +609,7 @@ theorem subsequent.relabelling {x y y' : pgame} (h : x.subsequent y) (ey : y.rel
   ∃ (x' : pgame) (ex : x.relabelling x'), x'.subsequent y' :=
 begin
   induction h,
+
   sorry
 end
 

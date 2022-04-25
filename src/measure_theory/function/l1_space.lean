@@ -446,6 +446,25 @@ end
 lemma integrable_const [is_finite_measure μ] (c : β) : integrable (λ x : α, c) μ :=
 integrable_const_iff.2 $ or.inr $ measure_lt_top _ _
 
+lemma mem_ℒp.integrable_norm_rpow {f : α → β} {p : ℝ≥0∞}
+  (hf : mem_ℒp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
+  integrable (λ (x : α), ∥f x∥ ^ p.to_real) μ :=
+begin
+  rw ← mem_ℒp_one_iff_integrable,
+  exact hf.norm_rpow hp_ne_zero hp_ne_top,
+end
+
+lemma mem_ℒp.integrable_norm_rpow' [is_finite_measure μ] {f : α → β} {p : ℝ≥0∞}
+  (hf : mem_ℒp f p μ) :
+  integrable (λ (x : α), ∥f x∥ ^ p.to_real) μ :=
+begin
+  by_cases h_zero : p = 0,
+  { simp [h_zero, integrable_const] },
+  by_cases h_top : p = ∞,
+  { simp [h_top, integrable_const] },
+  exact hf.integrable_norm_rpow h_zero h_top
+end
+
 lemma integrable.mono_measure {f : α → β} (h : integrable f ν) (hμ : μ ≤ ν) : integrable f μ :=
 ⟨h.ae_strongly_measurable.mono_measure hμ, h.has_finite_integral.mono_measure hμ⟩
 
@@ -560,6 +579,10 @@ begin
     (integrable_zero _ _ _) hf,
 end
 
+lemma integrable_finset_sum' {ι} (s : finset ι)
+  {f : ι → α → β} (hf : ∀ i ∈ s, integrable (f i) μ) : integrable (∑ i in s, f i) μ :=
+by { convert integrable_finset_sum s hf, ext x, simp }
+
 lemma integrable.neg {f : α → β} (hf : integrable f μ) : integrable (-f) μ :=
 ⟨hf.ae_strongly_measurable.neg, hf.has_finite_integral.neg⟩
 
@@ -583,6 +606,10 @@ by simpa only [sub_eq_add_neg] using hf.add hg.neg
 lemma integrable.norm {f : α → β} (hf : integrable f μ) :
   integrable (λa, ∥f a∥) μ :=
 ⟨hf.ae_strongly_measurable.norm, hf.has_finite_integral.norm⟩
+
+lemma integrable.abs {f : α → ℝ} (hf : integrable f μ) :
+  integrable (λa, |f a|) μ :=
+by simpa [← real.norm_eq_abs] using hf.norm
 
 lemma integrable_norm_iff {f : α → β} (hf : ae_strongly_measurable f μ) :
   integrable (λa, ∥f a∥) μ ↔ integrable f μ :=
@@ -804,13 +831,12 @@ mem_ℒp_one_iff_integrable.1 $ mem_ℒ1_to_real_of_lintegral_ne_top hfm hfi
 section pos_part
 /-! ### Lemmas used for defining the positive part of a `L¹` function -/
 
-lemma integrable.max_zero {f : α → ℝ} (hf : integrable f μ) : integrable (λ a, max (f a) 0) μ :=
+lemma integrable.pos_part {f : α → ℝ} (hf : integrable f μ) : integrable (λ a, max (f a) 0) μ :=
 ⟨(hf.ae_strongly_measurable.ae_measurable.max ae_measurable_const).ae_strongly_measurable,
   hf.has_finite_integral.max_zero⟩
 
-lemma integrable.min_zero {f : α → ℝ} (hf : integrable f μ) : integrable (λ a, min (f a) 0) μ :=
-⟨(hf.ae_strongly_measurable.ae_measurable.min ae_measurable_const).ae_strongly_measurable,
-  hf.has_finite_integral.min_zero⟩
+lemma integrable.neg_part {f : α → ℝ} (hf : integrable f μ) : integrable (λ a, max (-f a) 0) μ :=
+hf.neg.pos_part
 
 end pos_part
 
@@ -829,9 +855,17 @@ lemma integrable.const_mul {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
   integrable (λ x, c * f x) μ :=
 integrable.smul c h
 
+lemma integrable.const_mul' {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
+  integrable ((λ (x : α), c) * f) μ :=
+integrable.smul c h
+
 lemma integrable.mul_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
   integrable (λ x, f x * c) μ :=
 by simp_rw [mul_comm, h.const_mul _]
+
+lemma integrable.mul_const' {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
+  integrable (f * (λ (x : α), c)) μ :=
+integrable.mul_const h c
 
 lemma integrable.div_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
   integrable (λ x, f x / c) μ :=

@@ -246,37 +246,6 @@ meta def move_add_with_errors (ll : list (bool × pexpr)) : option name → tact
   tn ← target,
   if (t = tn) then return (tt, is_unused) else return (ff, is_unused)
 
-/-- Calls `recurse_on_expr` with the right expression, depending on the tactic location. -/
-meta def move_add_aux (ll : list (bool × pexpr)) : option name → tactic unit
-| (some hyp) := do
-  lhyp ← get_local hyp,
-  thyp ←  infer_type lhyp,
-  is_unused ← recurse_on_expr hyp ll thyp, -- error management
-  match (ll.return_unused is_unused) with
-  | [] := skip
-  | [pe] := trace format!"'{pe}' is unused at {lhyp.local_pp_name}"
-  | pes := trace format!"'{pes}' are unused at {lhyp.local_pp_name}"
-  end,
-  nhyp ← get_local hyp,
-  nthyp ← infer_type nhyp,
-  if (thyp = nthyp) then trace format!"'{nhyp}' did not change" else skip -- error management
-| none       := do
-  t ← target,
-  is_unused ← recurse_on_expr none ll t, -- error management
-  match (ll.return_unused is_unused) with
-  | [] := skip
-  | [pe] := trace format!"'{pe}' is unused at goal"
-  | pes := trace format!"'{pes}' are unused at goal"
-  end,
-  tn ← target,
-  if (t = tn) then trace "Goal did not change" else skip -- error management
-
-/--  A version of `move_add_aux` that allows failure, if `allow_failure = tt`. -/
-meta def move_add_core (allow_failure : bool) (ll : list (bool × pexpr)) (hyp : option name) :
-  tactic unit :=
-if allow_failure then (move_add_aux ll hyp) <|> skip
-else move_add_aux ll hyp
-
 /-- `move_add_arg` is a single elementary argument that `move_add` takes for the
 variables to be moved.  It is either a `pexpr`, or a `pexpr` preceded by a `←`. -/
 meta def move_add_arg (prec : nat) : parser (bool × pexpr) :=

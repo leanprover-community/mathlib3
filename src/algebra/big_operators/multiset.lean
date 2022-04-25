@@ -56,8 +56,7 @@ lemma prod_cons (a : α) (s) : prod (a ::ₘ s) = a * prod s := foldr_cons _ _ _
 
 @[simp, to_additive]
 lemma prod_erase [decidable_eq α] (h : a ∈ s) : a * (s.erase a).prod = s.prod :=
-by rw [← s.prod_to_list, ← list.prod_erase ((s.mem_to_list a).2 h), ← multiset.coe_prod,
-    ← multiset.coe_erase, s.coe_to_list]
+by rw [← s.coe_to_list, coe_erase, coe_prod, coe_prod, list.prod_erase ((s.mem_to_list a).2 h)]
 
 @[simp, to_additive]
 lemma prod_singleton (a : α) : prod {a} = a :=

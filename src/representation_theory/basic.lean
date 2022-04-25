@@ -35,7 +35,8 @@ namespace representation
 
 section
 variables (k G V : Type*) [comm_semiring k] [monoid G] [add_comm_monoid V]
-variables [module k V] [distrib_mul_action G V] [smul_comm_class G k V]
+variables [module k V] [module kᵐᵒᵖ V] [is_central_scalar k V]
+variables [distrib_mul_action G V] [smul_comm_class G k V]
 
 /--
 A `k`-linear representation of `G` on `V` can be thought of as

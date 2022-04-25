@@ -67,6 +67,8 @@ end average
 
 section invariants
 
+section left_module
+
 variables (k G V : Type*) [comm_semiring k] [group G] [add_comm_group V]
 variables [module k V] [distrib_mul_action G V] [smul_comm_class G k V]
 
@@ -86,6 +88,13 @@ lemma invariants_eq_inter :
   (invariants k G V).carrier = ⋂ g : G, function.fixed_points (has_scalar.smul g) :=
 by { ext, simp [function.is_fixed_pt] }
 
+end left_module
+
+section bimodule
+
+variables (k G V : Type*) [comm_semiring k] [group G] [add_comm_group V]
+variables [module k V] [module kᵐᵒᵖ V] [is_central_scalar k V]
+variables [distrib_mul_action G V] [smul_comm_class G k V]
 /--
 The subspace of invariants, as a submodule over `monoid_algebra k G`.
 -/
@@ -117,6 +126,8 @@ end
 Scalar multiplication by `average k G` gives a projection map onto the subspace of invariants.
 -/
 noncomputable def average_map : V →ₗ[k] V := (as_algebra_hom k G V) (average k G)
+
+end bimodule
 
 end invariants
 

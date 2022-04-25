@@ -224,17 +224,6 @@ meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) : expr 
   let unused_summed := li_unused.transpose.map list.bor,
   return unused_summed
 
-/-
-/-- Passes the user input to `recurse_on_expr` at a single location, that could either be `none`
-(referring to the goal) or `some name` (referring to hypothesis `name`).  Returns a list of
-booleans, recording which variable in `ll` has been unified in the application.
-
-This definition is useful to streamling error catching. -/
-meta def move_add_single (ll : list (bool × pexpr)) : option name → tactic (list bool)
-| (some hyp) := get_local hyp >>= infer_type >>= recurse_on_expr hyp ll
-| none       := target >>= recurse_on_expr none ll
--/
-
 /-- Passes the user input to `recurse_on_expr` at a single location, that could either be `none`
 (referring to the goal) or `some name` (referring to hypothesis `name`).  Returns a pair consisting
 of a boolean and a further list of booleans.  The single boolean is `tt` if the tactic did *not*
@@ -255,7 +244,6 @@ meta def move_add_with_errors (ll : list (bool × pexpr)) : option name → tact
   is_unused ← recurse_on_expr none ll t,
   tn ← target,
   if (t = tn) then return (tt, is_unused) else return (ff, is_unused)
-
 
 /-- Calls `recurse_on_expr` with the right expression, depending on the tactic location. -/
 meta def move_add_aux (ll : list (bool × pexpr)) : option name → tactic unit
@@ -298,6 +286,13 @@ prod.mk <$> (option.is_some <$> (tk "<-")?) <*> parser.pexpr prec
 meta def move_pexpr_list_or_texpr : parser (list (bool × pexpr)) :=
 list_of (move_add_arg 0) <|> list.ret <$> (move_add_arg tac_rbp) <|> return []
 
+/--  Out of a list of `option name`, returns a list of `name`s of target, discarding, if present
+`none`, which corresponds to the goal. -/
+meta def to_hyps : list (option name) → tactic (list expr)
+| [] := pure []
+| (some n::ns) := do ln ← get_local n, fina ← to_hyps ns, return (ln::fina)
+| (none::ns) := to_hyps ns
+
 /--
 Calling `move_add [a, ← b, c, ← d]`, recursively looks inside the goal for
 expressions involving a sum.  Whenever `move_add` finds a sum, it sorts its terms using
@@ -309,25 +304,6 @@ Finally, `move_add` can also target hypotheses. If `hp` is in the local context,
 `move_add [← f, g] at hp` performs the rearranging at `hp`.
 -/
 meta def move_add (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
-  tactic unit :=
-match locat with
-| loc.wildcard := do
-  ctx ← local_context,
-  not_changed ← ctx.mmap (λ e, move_add_core tt args e.local_pp_name),
-  trace not_changed,
-  move_add_core tt args none,
-  assumption <|> try (tactic.reflexivity reducible)
-| loc.ns names := do
-  names.mmap $ move_add_core tt args,
-  assumption <|> try (tactic.reflexivity reducible)
-  end
-
-meta def to_hyps : list (option name) → tactic (list expr)
-| [] := pure []
-| (some n::ns) := do ln ← get_local n, fina ← to_hyps ns, return (ln::fina)
-| (none::ns) := to_hyps ns
-
-meta def move_add_new (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
   tactic unit :=
 match locat with
 | loc.wildcard := do

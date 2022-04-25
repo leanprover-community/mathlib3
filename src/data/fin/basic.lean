@@ -1170,7 +1170,7 @@ by cases a; cases b; refl
 @[simp] lemma coe_fin_one (a : fin 1) : ↑a = 0 :=
 by rw [subsingleton.elim a 0, fin.coe_zero]
 
-@[simp] lemma coe_neg_one {n : ℕ} : ↑(-1 : fin (n + 1)) = n :=
+@[simp] lemma coe_neg_one : ↑(-1 : fin (n + 1)) = n :=
 begin
   cases n,
   { simp },
@@ -1211,9 +1211,8 @@ def _root_.order_iso.fin_equiv : ∀ {n}, order_dual (fin n) ≃o fin n
     rw [add_comm, tsub_add_eq_add_tsub x.is_lt.le, add_tsub_assoc_of_le x.is_le, nat.add_mod_left]
   end }
 
-lemma _root_.order_iso.fin_equiv_apply {n} (a) :
-  order_iso.fin_equiv a = last n - a.of_dual := rfl
-lemma _root_.order_iso.fin_equiv_symm_apply {n} (a) :
+lemma _root_.order_iso.fin_equiv_apply (a) : order_iso.fin_equiv a = last n - a.of_dual := rfl
+lemma _root_.order_iso.fin_equiv_symm_apply (a) :
   order_iso.fin_equiv.symm a = order_dual.to_dual (last n - a) := rfl
 
 end add_group

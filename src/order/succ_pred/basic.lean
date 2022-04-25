@@ -878,7 +878,6 @@ section preorder
 variables [preorder α]
 
 section succ_order
-
 variables [succ_order α] [is_succ_archimedean α] {a b : α}
 
 instance : is_pred_archimedean (order_dual α) :=
@@ -914,7 +913,6 @@ end
 end succ_order
 
 section pred_order
-
 variables [pred_order α] [is_pred_archimedean α] {a b : α}
 
 instance : is_succ_archimedean (order_dual α) :=

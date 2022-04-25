@@ -15,8 +15,8 @@ If `V : Rep k G`, there is a coercion that allows you to treat `V` as a type,
 and this type comes equipped with a `module k V` instance.
 Also `V.ρ` gives the homomorphism `G →* (V →ₗ[k] V)`.
 
-Conversely, given a homomorphism `ρ : G →* (V →ₗ[k] V)`, you can construct the bundled representation
-as `Rep.of ρ`.
+Conversely, given a homomorphism `ρ : G →* (V →ₗ[k] V)`,
+you can construct the bundled representation as `Rep.of ρ`.
 
 We verify that `Rep k G` has all limits and colimits, and is a monoidal category.
 -/

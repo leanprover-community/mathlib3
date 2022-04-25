@@ -325,9 +325,9 @@ have aca : ∀ a, acc (lex r s) (inl a), from λ a, lex_acc_inl (ha.apply a),
 end lex
 end sum
 
-namespace function
-
 open sum
+
+namespace function
 
 lemma injective.sum_elim {f : α → γ} {g : β → γ}
   (hf : injective f) (hg : injective g) (hfg : ∀ a b, f a ≠ g b) :
@@ -348,3 +348,20 @@ lemma surjective.sum_map {f : α → β} {g : α' → β'} (hf : surjective f) (
 | (inr y) := let ⟨x, hx⟩ := hg y in ⟨inr x, congr_arg inr hx⟩
 
 end function
+
+/-!
+### Ternary sum
+
+Abbreviations for the maps from the summands to `α ⊕ β ⊕ γ`. This is useful for pattern-matching.
+-/
+
+namespace sum3
+
+/-- The map from the first summand into a ternary sum. -/
+@[pattern, simp, reducible] def in₀ (a) : α ⊕ β ⊕ γ := inl a
+/-- The map from the second summand into a ternary sum. -/
+@[pattern, simp, reducible] def in₁ (b) : α ⊕ β ⊕ γ := inr $ inl b
+/-- The map from the third summand into a ternary sum. -/
+@[pattern, simp, reducible] def in₂ (c) : α ⊕ β ⊕ γ := inr $ inr c
+
+end sum3

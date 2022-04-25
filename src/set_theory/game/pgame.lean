@@ -158,6 +158,14 @@ x.rec_on $ λ yl yr yL yR, IH (mk yl yr yL yR)
 | move_left {x : pgame} {i} : is_option (x.move_left i) x
 | move_right {x : pgame} {i} : is_option (x.move_right i) x
 
+theorem is_option.mk_left {xl xr : Type u} {xL : xl → pgame} {xR : xr → pgame} {i : xl} :
+  (xL i).is_option (mk xl xr xL xR) :=
+@is_option.move_left (mk _ _ _ _) i
+
+theorem is_option.mk_right {xl xr : Type u} {xL : xl → pgame} {xR : xr → pgame} {i : xr} :
+  (xR i).is_option (mk xl xr xL xR) :=
+@is_option.move_right (mk _ _ _ _) i
+
 theorem wf_is_option : well_founded is_option :=
 ⟨λ x, x.move_rec_on begin
   refine λ x IHl IHr, acc.intro x _,

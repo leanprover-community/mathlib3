@@ -120,18 +120,15 @@ meta def list.unify_list :
 
 /--  Given a list of pairs `bool × pexpr`, we convert it to a list of `bool × expr`. -/
 meta def list.convert_to_expr (lp : list (bool × pexpr)) : tactic (list (bool × expr)) :=
-do
-  -- extract the list of second coordinates, converted to `expr`s
-  le2 : list expr ← (lp.map (λ e : bool × pexpr, e.2)).mmap to_expr,
-  -- reattach the booleans
-  let tle : list (bool × expr) := (lp.map (λ e : bool × pexpr, e.1)).zip le2,
-  return tle
+lp.mmap $ λ x : bool × pexpr, do
+  e ← to_expr x.2,
+  return (x.1, e)
 
 /--  We combine the previous steps.
 1. we convert a list pairs `bool × pexpr` to a list of pairs `bool × expr`,
 2. we use the extra input `sl : list expr` to perform the unification and sorting step
    `list.unify_list`,
-3. we jam the  jam the third factor inside the first two.
+3. we jam the third factor inside the first two.
 -/
 meta def list.combined (lp : list (bool × pexpr)) (sl : list expr) : tactic (list expr) :=
 do

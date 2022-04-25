@@ -5,7 +5,11 @@ Authors: Scott Morrison
 -/
 import algebra.category.Group.basic
 import category_theory.single_obj
-import category_theory.equivalence
+import category_theory.limits.functor_category
+import category_theory.limits.preserves.basic
+import category_theory.adjunction.limits
+import category_theory.monoidal.functor_category
+import category_theory.monoidal.transport
 
 /-!
 # `Action V G`, the category of actions of a monoid `G` inside some category `V`.
@@ -15,11 +19,14 @@ where `Action (Module R) G` is the category of `R`-linear representations of `G`
 
 We check `Action V G ≌ (single_obj G ⥤ V)`,
 and construct the restriction functors `res {G H : Mon} (f : G ⟶ H) : Action V H ⥤ Action V G`.
+
+When `V` has (co)limits so does `Action V G`. When `V` is monoidal so is `Action V G`.
 -/
 
 universes u
 
 open category_theory
+open category_theory.limits
 
 variables (V : Type (u+1)) [large_category V]
 
@@ -151,10 +158,12 @@ def inverse : (single_obj G ⥤ V) ⥤ Action V G :=
     comm' := λ g, f.naturality g, } }.
 
 /-- Auxilliary definition for `functor_category_equivalence`. -/
+@[simps]
 def unit_iso : 𝟭 (Action V G) ≅ functor ⋙ inverse :=
 nat_iso.of_components (λ M, mk_iso ((iso.refl _)) (by tidy)) (by tidy).
 
 /-- Auxilliary definition for `functor_category_equivalence`. -/
+@[simps]
 def counit_iso : inverse ⋙ functor ≅ 𝟭 (single_obj G ⥤ V) :=
 nat_iso.of_components (λ M, nat_iso.of_components (by tidy) (by tidy)) (by tidy).
 
@@ -162,6 +171,8 @@ end functor_category_equivalence
 
 section
 open functor_category_equivalence
+
+variables (V G)
 
 /--
 The category of actions of `G` in the category `V`
@@ -173,33 +184,76 @@ def functor_category_equivalence : Action V G ≌ (single_obj G ⥤ V) :=
   unit_iso := unit_iso,
   counit_iso := counit_iso, }
 
+attribute [simps] functor_category_equivalence
+
+instance [has_limits V] : has_limits (Action V G) :=
+adjunction.has_limits_of_equivalence (Action.functor_category_equivalence _ _).functor
+
+instance [has_colimits V] : has_colimits (Action V G) :=
+adjunction.has_colimits_of_equivalence (Action.functor_category_equivalence _ _).functor
+
 end
 
 section forget
+
+variables (V G)
 
 /-- (implementation) The forgetful functor from bundled actions to the underlying objects.
 
 Use the `category_theory.forget` API provided by the `concrete_category` instance below,
 rather than using this directly.
 -/
+@[simps]
 def forget : Action V G ⥤ V :=
 { obj := λ M, M.V,
   map := λ M N f, f.hom, }
 
 instance [concrete_category V] : concrete_category (Action V G) :=
-{ forget := forget ⋙ (concrete_category.forget V),
+{ forget := forget V G ⋙ (concrete_category.forget V),
   forget_faithful :=
   { map_injective' := λ M N f g w,
       hom.ext _ _ (faithful.map_injective (concrete_category.forget V) w), } }
 
 instance has_forget_to_V [concrete_category V] : has_forget₂ (Action V G) V :=
-{ forget₂ := forget }
+{ forget₂ := forget V G }
+
+/-- The forgetful functor is intertwined by `functor_category_equivalence` with
+evaluation at `punit.star`. -/
+def functor_category_equivalence_comp_evaluation :
+  (functor_category_equivalence V G).functor ⋙ (evaluation _ _).obj punit.star ≅ forget V G :=
+iso.refl _
+
+noncomputable instance [has_limits V] : limits.preserves_limits (forget V G) :=
+limits.preserves_limits_of_nat_iso
+  (Action.functor_category_equivalence_comp_evaluation V G)
+
+noncomputable instance [has_colimits V] : preserves_colimits (forget V G) :=
+preserves_colimits_of_nat_iso
+  (Action.functor_category_equivalence_comp_evaluation V G)
+
+-- TODO construct categorical images?
 
 end forget
 
+section monoidal
+
+instance [monoidal_category V] : monoidal_category (Action V G) :=
+monoidal.transport (Action.functor_category_equivalence _ _).symm
+
+/-- When `V` is monoidal the forgetful functor `Action V G` to `V` is monoidal. -/
+@[simps]
+def forget_monoidal [monoidal_category V] : monoidal_functor (Action V G) V :=
+{ ε := 𝟙 _,
+  μ := λ X Y, 𝟙 _,
+  ..Action.forget _ _, }
+
+-- TODO braiding and symmetry
+
+end monoidal
+
 /-- Actions/representations of the trivial group are just objects in the ambient category. -/
 def Action_punit_equivalence : Action V (Mon.of punit) ≌ V :=
-{ functor := forget,
+{ functor := forget V _,
   inverse :=
   { obj := λ X, ⟨X, 1⟩,
     map := λ X Y f, ⟨f, λ ⟨⟩, by simp⟩, },
@@ -245,9 +299,6 @@ def res_comp {G H K : Mon} (f : G ⟶ H) (g : H ⟶ K) : res V g ⋙ res V f ≅
 
 -- TODO promote `res` to a pseudofunctor from
 -- the locally discrete bicategory constructed from `Monᵒᵖ` to `Cat`, sending `G` to `Action V G`.
-
--- TODO limits, colimits, images, etc, when `V` has them
--- TODO (symmetric) monoidal category structure when `V` has one
 
 end Action
 

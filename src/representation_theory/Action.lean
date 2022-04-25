@@ -258,7 +258,7 @@ variables {V} {W : Type (u+1)} [large_category W]
 /-- A functor between categories induces a functor between
 the categories of `G`-actions within those categories. -/
 @[simps]
-def map_Action (F : V ⥤ W) (G : Mon.{u₁}) : Action V G ⥤ Action W G :=
+def map_Action (F : V ⥤ W) (G : Mon.{u}) : Action V G ⥤ Action W G :=
 { obj := λ M,
   { V := F.obj M.V,
     ρ :=

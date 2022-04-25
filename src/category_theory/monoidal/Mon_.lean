@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.monoidal.braided
 import category_theory.monoidal.discrete
+import category_theory.monoidal.coherence_lemmas
 import category_theory.limits.shapes.terminal
 import algebra.punit_instances
 

@@ -176,8 +176,8 @@ begin
     intros ha',
     apply this,
     simp only [←ha, ha', zero_smul] },
-  obtain ⟨b, hb, m, (hmb : φ(p, k) b * a = p ^ m * b)⟩ :=
-    witt_vector.exists_frobenius_solution_fraction_ring p ha,
+  obtain ⟨b, hb, m, hmb⟩ := witt_vector.exists_frobenius_solution_fraction_ring p ha,
+  replace hmb : φ(p, k) b * a = p ^ m * b := by convert hmb,
   use m,
   let F₀ : standard_one_dim_isocrystal p k m →ₗ[K(p,k)] V :=
     linear_map.to_span_singleton K(p, k) V x,

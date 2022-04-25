@@ -295,12 +295,12 @@ end
 
 variables (α)
 
-lemma has_sum.matrix_diag [decidable_eq n] {f : X → matrix n n R} {a : matrix n n R}
+lemma has_sum.matrix_diag {f : X → matrix n n R} {a : matrix n n R}
   (hf : has_sum f a) :
   has_sum (λ x, diag _ α R (f x)) (diag _ α R a) :=
 (hf.map (diag n α R) continuous_matrix_diag : _)
 
-lemma summable.matrix_diag [decidable_eq n] {f : X → matrix n n R} (hf : summable f) :
+lemma summable.matrix_diag {f : X → matrix n n R} (hf : summable f) :
   summable (λ x, diag _ α R (f x)) :=
 (hf.has_sum.matrix_diag α).summable
 

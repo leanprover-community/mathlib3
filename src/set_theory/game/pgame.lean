@@ -608,9 +608,11 @@ relabelling.mk el er (λ i, by simp) (λ j, by simp)
 theorem subsequent.relabelling {x y y' : pgame} (h : x.subsequent y) (ey : y.relabelling y') :
   ∃ (x' : pgame) (ex : x.relabelling x'), x'.subsequent y' :=
 begin
-  induction h,
-
-  sorry
+  induction h with x' i,
+  { rcases ey with ⟨_, _, L, R, hL, hR⟩,
+    exact ⟨_, hL i, subsequent.left y' _⟩ },
+  { rcases ey with ⟨_, _, L, R, hL, hR⟩,
+    exact ⟨_, hL i, subsequent.left y' _⟩ }
 end
 
 /-- The negation of `{L | R}` is `{-R | -L}`. -/

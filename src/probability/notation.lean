@@ -46,4 +46,4 @@ localized "notation X `≤ₐₛ`:50 Y:50 := X ≤ᵐ[measure_theory.measure.vol
 
 localized "notation `∂` P `/∂`:50 Q:50 := P.rn_deriv Q" in probability_theory
 
-localized "notation `ℙ` := volume" in probability_theory
+localized "notation `ℙ` := measure_theory.measure.volume" in probability_theory

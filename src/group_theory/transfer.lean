@@ -50,9 +50,8 @@ end equiv_stuff
 
 section equiv_stuff
 
-instance party {α β : Type*} [monoid α] [mul_action α β] :
-  add_action (additive α) β :=
-{ vadd := λ a b, (additive.to_mul a • b),
+instance nice_instance {α β : Type*} [monoid α] [mul_action α β] : add_action (additive α) β :=
+{ vadd := (•) ∘ additive.to_mul,
   zero_vadd := one_smul α,
   add_vadd := mul_smul }
 
@@ -60,12 +59,8 @@ noncomputable def zpowers_quotient_stabilizer_equiv
   {α β : Type*} [group α] (a : α) [mul_action α β] (b : β) :
   subgroup.zpowers a ⧸ mul_action.stabilizer (subgroup.zpowers a) b ≃*
   multiplicative (zmod (function.minimal_period ((•) a) b)) :=
-let f := (zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b) in
-{ to_fun := f.to_fun,
-  inv_fun := f.inv_fun,
-  left_inv := f.left_inv,
-  right_inv := f.right_inv,
-  map_mul' := f.map_add' }
+let f := zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b in
+⟨f.to_fun, f.inv_fun, f.left_inv, f.right_inv, f.map_add'⟩
 
 noncomputable def orbit_zpowers_equiv
   {α β : Type*} [group α] (a : α) [mul_action α β] (b : β) :

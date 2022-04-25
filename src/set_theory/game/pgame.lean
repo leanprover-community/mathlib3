@@ -605,6 +605,13 @@ def relabel_relabelling {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : 
   relabelling x (relabel el er) :=
 relabelling.mk el er (λ i, by simp) (λ j, by simp)
 
+theorem subsequent.relabelling {x y y' : pgame} (h : x.subsequent y) (ey : y.relabelling y') :
+  ∃ (x' : pgame) (ex : x.relabelling x'), x'.subsequent y' :=
+begin
+  induction h,
+  sorry
+end
+
 /-- The negation of `{L | R}` is `{-R | -L}`. -/
 def neg : pgame → pgame
 | ⟨l, r, L, R⟩ := ⟨r, l, λ i, neg (R i), λ i, neg (L i)⟩

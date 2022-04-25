@@ -21,7 +21,7 @@ interpretations in terms of existence of square roots depending on the congruenc
 `exists_sq_eq_prime_iff_of_mod_four_eq_three`.
 
 Also proven are conditions for `-1` and `2` to be a square modulo a prime,
-`exists_sq_eq_neg_one_iff_mod_four_ne_three` and
+`exists_sq_eq_neg_one_iff` and
 `exists_sq_eq_two_iff`
 
 ## Implementation notes
@@ -66,7 +66,6 @@ begin
     refine ⟨units.mk0 y hy, _⟩, simp, }
 end
 
--- This is used in `number_theory.zsqrtd.gaussian_int` and `archive.imo.imo2008_q3`
 lemma exists_sq_eq_neg_one_iff :
   (∃ y : zmod p, y ^ 2 = -1) ↔ p % 4 ≠ 3 :=
 begin

@@ -20,7 +20,7 @@ In this file we define
 -/
 
 universes u v
-variables {α : Type u} {β : Type v}
+variables {α : Type u} {β : Type v} {γ : Type*}
 
 open set filter function
 open_locale classical filter
@@ -128,13 +128,9 @@ of_compl_not_mem_iff (map m f) $ λ s, @compl_not_mem_iff _ f (m ⁻¹' s)
 @[simp] lemma mem_map {m : α → β} {f : ultrafilter α} {s : set β} :
   s ∈ map m f ↔ m ⁻¹' s ∈ f := iff.rfl
 
-lemma map_map {X Y Z: Type*} (m : X → Y) (n : Y → Z) (f : ultrafilter X) :
+@[simp] lemma map_map (f : ultrafilter α) (m : α → β) (n : β → γ) :
   (f.map m).map n = f.map (n ∘ m) :=
-begin
-  ext,
-  simp only [ultrafilter.mem_map],
-  refl,
-end
+coe_injective map_map
 
 /-- The pullback of an ultrafilter along an injection whose range is large with respect to the given
 ultrafilter. -/
@@ -158,9 +154,11 @@ instance : has_pure ultrafilter :=
 ⟨λ α a, of_compl_not_mem_iff (pure a) $ λ s, by simp⟩
 
 @[simp] lemma mem_pure {a : α} {s : set α} : s ∈ (pure a : ultrafilter α) ↔ a ∈ s := iff.rfl
+@[simp] lemma coe_pure (a : α) : ↑(pure a : ultrafilter α) = (pure a : filter α) := rfl
+@[simp] lemma map_pure (m : α → β) (a : α) : map m (pure a) = pure (m a) := rfl
 
-lemma map_pure {X Y : Type*} (x : X) (m : X → Y) :
-  (pure x : ultrafilter X).map m = pure (m x) := rfl
+lemma pure_injective : injective (pure : α → ultrafilter α) :=
+λ a b h, filter.pure_injective $ by convert congr_arg ultrafilter.to_filter h
 
 instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure default⟩
 instance [nonempty α] : nonempty (ultrafilter α) := nonempty.map pure infer_instance

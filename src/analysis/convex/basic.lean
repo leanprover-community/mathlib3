@@ -109,44 +109,41 @@ segment_symm 𝕜 y x ▸ left_mem_segment 𝕜 y x
 end mul_action_with_zero
 
 section module
-variables (𝕜) [module 𝕜 E]
+variables (𝕜) [module 𝕜 E] {x y z : E} {s : set E}
 
 @[simp] lemma segment_same (x : E) : [x -[𝕜] x] = {x} :=
 set.ext $ λ z, ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
   by simpa only [(add_smul _ _ _).symm, mem_singleton_iff, hab, one_smul, eq_comm] using hz,
   λ h, mem_singleton_iff.1 h ▸ left_mem_segment 𝕜 z z⟩
 
-lemma mem_open_segment_of_ne_left_right {x y z : E} (hx : x ≠ z) (hy : y ≠ z)
-  (hz : z ∈ [x -[𝕜] y]) :
-  z ∈ open_segment 𝕜 x y :=
+lemma insert_endpoints_open_segment (x y : E) :
+  insert x (insert y (open_segment 𝕜 x y)) = [x -[𝕜] y] :=
 begin
-  obtain ⟨a, b, ha, hb, hab, hz⟩ := hz,
-  by_cases ha' : a = 0,
-  { rw [ha', zero_add] at hab,
-    rw [ha', hab, zero_smul, one_smul, zero_add] at hz,
-    exact (hy hz).elim },
-  by_cases hb' : b = 0,
-  { rw [hb', add_zero] at hab,
-    rw [hb', hab, zero_smul, one_smul, add_zero] at hz,
-    exact (hx hz).elim },
-  exact ⟨a, b, ha.lt_of_ne (ne.symm ha'), hb.lt_of_ne (ne.symm hb'), hab, hz⟩,
+  simp only [subset_antisymm_iff, insert_subset, left_mem_segment, right_mem_segment,
+    open_segment_subset_segment, true_and],
+  rintro z ⟨a, b, ha, hb, hab, rfl⟩,
+  refine hb.eq_or_gt.imp _ (λ hb', ha.eq_or_gt.imp _ _),
+  { rintro rfl,
+    rw add_zero at hab,
+    rw [hab, one_smul, zero_smul, add_zero] },
+  { rintro rfl,
+    rw zero_add at hab,
+    rw [hab, one_smul, zero_smul, zero_add] },
+  { exact λ ha', ⟨a, b, ha', hb', hab, rfl⟩ }
 end
 
 variables {𝕜}
 
-lemma open_segment_subset_iff_segment_subset {x y : E} {s : set E} (hx : x ∈ s) (hy : y ∈ s) :
-  open_segment 𝕜 x y ⊆ s ↔ [x -[𝕜] y] ⊆ s :=
+lemma mem_open_segment_of_ne_left_right (hx : x ≠ z) (hy : y ≠ z) (hz : z ∈ [x -[𝕜] y]) :
+  z ∈ open_segment 𝕜 x y :=
 begin
-  refine ⟨λ h z hz, _, (open_segment_subset_segment 𝕜 x y).trans⟩,
-  obtain rfl | hxz := eq_or_ne x z,
-  { exact hx },
-  obtain rfl | hyz := eq_or_ne y z,
-  { exact hy },
-  exact h (mem_open_segment_of_ne_left_right 𝕜 hxz hyz hz),
+  rw [← insert_endpoints_open_segment] at hz,
+  exact ((hz.resolve_left hx.symm).resolve_left hy.symm)
 end
 
-lemma convex.combo_self {a b : 𝕜} (h : a + b = 1) (x : E) : a • x + b • x = x :=
-by rw [←add_smul, h, one_smul]
+lemma open_segment_subset_iff_segment_subset (hx : x ∈ s) (hy : y ∈ s) :
+  open_segment 𝕜 x y ⊆ s ↔ [x -[𝕜] y] ⊆ s :=
+by simp only [← insert_endpoints_open_segment, insert_subset, *, true_and]
 
 end module
 end ordered_semiring
@@ -279,52 +276,7 @@ begin
   rw midpoint_add_sub
 end
 
-end add_comm_group
-end linear_ordered_ring
-
-section linear_ordered_field
-variables [linear_ordered_field 𝕜]
-
-section add_comm_group
-variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
-
-lemma mem_segment_iff_same_ray {x y z : E} :
-  x ∈ [y -[𝕜] z] ↔ same_ray 𝕜 (x - y) (z - x) :=
-begin
-  refine ⟨same_ray_of_mem_segment, λ h, _⟩,
-  rcases h.exists_eq_smul_add with ⟨a, b, ha, hb, hab, hxy, hzx⟩,
-  rw [add_comm, sub_add_sub_cancel] at hxy hzx,
-  rw [← mem_segment_translate _ (-x), neg_add_self],
-  refine ⟨b, a, hb, ha, add_comm a b ▸ hab, _⟩,
-  rw [← sub_eq_neg_add, ← neg_sub, hxy, ← sub_eq_neg_add, hzx, smul_neg, smul_comm, neg_add_self]
-end
-
-lemma mem_segment_iff_div {x y z : E} : x ∈ [y -[𝕜] z] ↔
-  ∃ a b : 𝕜, 0 ≤ a ∧ 0 ≤ b ∧ 0 < a + b ∧ (a / (a + b)) • y + (b / (a + b)) • z = x :=
-begin
-  split,
-  { rintro ⟨a, b, ha, hb, hab, rfl⟩,
-    use [a, b, ha, hb],
-    simp * },
-  { rintro ⟨a, b, ha, hb, hab, rfl⟩,
-    refine ⟨a / (a + b), b / (a + b), div_nonneg ha hab.le, div_nonneg hb hab.le, _, rfl⟩,
-    rw [← add_div, div_self hab.ne'] }
-end
-
-lemma mem_open_segment_iff_div {x y z : E} : x ∈ open_segment 𝕜 y z ↔
-  ∃ a b : 𝕜, 0 < a ∧ 0 < b ∧ (a / (a + b)) • y + (b / (a + b)) • z = x :=
-begin
-  split,
-  { rintro ⟨a, b, ha, hb, hab, rfl⟩,
-    use [a, b, ha, hb],
-    rw [hab, div_one, div_one] },
-  { rintro ⟨a, b, ha, hb, rfl⟩,
-    have hab : 0 < a + b, from add_pos ha hb,
-    refine ⟨a / (a + b), b / (a + b), div_pos ha hab, div_pos hb hab, _, rfl⟩,
-    rw [← add_div, div_self hab.ne'] }
-end
-
-@[simp] lemma left_mem_open_segment_iff [no_zero_smul_divisors 𝕜 E] {x y : E} :
+@[simp] lemma left_mem_open_segment_iff [densely_ordered 𝕜] [no_zero_smul_divisors 𝕜 E] {x y : E} :
   x ∈ open_segment 𝕜 x y ↔ x = y :=
 begin
   split,
@@ -336,9 +288,53 @@ begin
     exact mem_singleton _ }
 end
 
-@[simp] lemma right_mem_open_segment_iff {x y : E} :
+@[simp] lemma right_mem_open_segment_iff [densely_ordered 𝕜] [no_zero_smul_divisors 𝕜 E] {x y : E} :
   y ∈ open_segment 𝕜 x y ↔ x = y :=
 by rw [open_segment_symm, left_mem_open_segment_iff, eq_comm]
+
+end add_comm_group
+end linear_ordered_ring
+
+section linear_ordered_field
+variables [linear_ordered_field 𝕜]
+
+section add_comm_group
+variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {x y z : E}
+
+lemma mem_segment_iff_same_ray : x ∈ [y -[𝕜] z] ↔ same_ray 𝕜 (x - y) (z - x) :=
+begin
+  refine ⟨same_ray_of_mem_segment, λ h, _⟩,
+  rcases h.exists_eq_smul_add with ⟨a, b, ha, hb, hab, hxy, hzx⟩,
+  rw [add_comm, sub_add_sub_cancel] at hxy hzx,
+  rw [← mem_segment_translate _ (-x), neg_add_self],
+  refine ⟨b, a, hb, ha, add_comm a b ▸ hab, _⟩,
+  rw [← sub_eq_neg_add, ← neg_sub, hxy, ← sub_eq_neg_add, hzx, smul_neg, smul_comm, neg_add_self]
+end
+
+lemma mem_segment_iff_div : x ∈ [y -[𝕜] z] ↔
+  ∃ a b : 𝕜, 0 ≤ a ∧ 0 ≤ b ∧ 0 < a + b ∧ (a / (a + b)) • y + (b / (a + b)) • z = x :=
+begin
+  split,
+  { rintro ⟨a, b, ha, hb, hab, rfl⟩,
+    use [a, b, ha, hb],
+    simp * },
+  { rintro ⟨a, b, ha, hb, hab, rfl⟩,
+    refine ⟨a / (a + b), b / (a + b), div_nonneg ha hab.le, div_nonneg hb hab.le, _, rfl⟩,
+    rw [← add_div, div_self hab.ne'] }
+end
+
+lemma mem_open_segment_iff_div : x ∈ open_segment 𝕜 y z ↔
+  ∃ a b : 𝕜, 0 < a ∧ 0 < b ∧ (a / (a + b)) • y + (b / (a + b)) • z = x :=
+begin
+  split,
+  { rintro ⟨a, b, ha, hb, hab, rfl⟩,
+    use [a, b, ha, hb],
+    rw [hab, div_one, div_one] },
+  { rintro ⟨a, b, ha, hb, rfl⟩,
+    have hab : 0 < a + b, from add_pos ha hb,
+    refine ⟨a / (a + b), b / (a + b), div_pos ha hab, div_pos hb hab, _, rfl⟩,
+    rw [← add_div, div_self hab.ne'] }
+end
 
 end add_comm_group
 end linear_ordered_field
@@ -430,7 +426,7 @@ end
 (segment_subset_Icc h).antisymm Icc_subset_segment
 
 lemma Ioo_subset_open_segment {x y : 𝕜} : Ioo x y ⊆ open_segment 𝕜 x y :=
-λ z hz, mem_open_segment_of_ne_left_right _ hz.1.ne hz.2.ne'
+λ z hz, mem_open_segment_of_ne_left_right hz.1.ne hz.2.ne'
     (Icc_subset_segment $ Ioo_subset_Icc_self hz)
 
 @[simp] lemma open_segment_eq_Ioo {x y : 𝕜} (h : x < y) : open_segment 𝕜 x y = Ioo x y :=
@@ -1067,7 +1063,7 @@ open submodule
 
 lemma submodule.convex [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] (K : submodule 𝕜 E) :
   convex 𝕜 (↑K : set E) :=
-by { repeat {intro}, refine add_mem _ (smul_mem _ _ _) (smul_mem _ _ _); assumption }
+by { repeat {intro}, refine add_mem (smul_mem _ _ _) (smul_mem _ _ _); assumption }
 
 lemma subspace.convex [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] (K : subspace 𝕜 E) :
   convex 𝕜 (↑K : set E) :=

@@ -57,6 +57,10 @@ lemma map_injective (F : C ⥤ D) [faithful F] {X Y : C} :
   function.injective $ @functor.map _ _ _ _ F X Y :=
 faithful.map_injective F
 
+lemma map_iso_injective (F : C ⥤ D) [faithful F] {X Y : C} :
+  function.injective $ @functor.map_iso _ _ _ _ F X Y :=
+λ i j h, iso.ext (map_injective F (congr_arg iso.hom h : _))
+
 /-- The specified preimage of a morphism under a full functor. -/
 def preimage (F : C ⥤ D) [full F] {X Y : C} (f : F.obj X ⟶ F.obj Y) : X ⟶ Y :=
 full.preimage.{v₁ v₂} f
@@ -65,6 +69,7 @@ full.preimage.{v₁ v₂} f
 by unfold preimage; obviously
 end functor
 
+section
 variables {F : C ⥤ D} [full F] [faithful F] {X Y Z : C}
 
 @[simp] lemma preimage_id : F.preimage (𝟙 (F.obj X)) = 𝟙 X :=
@@ -101,18 +106,50 @@ lemma is_iso_of_fully_faithful (f : X ⟶ Y) [is_iso (F.map f)] : is_iso f :=
   ⟨F.map_injective (by simp), F.map_injective (by simp)⟩⟩⟩
 
 /-- If `F` is fully faithful, we have an equivalence of hom-sets `X ⟶ Y` and `F X ⟶ F Y`. -/
+@[simps]
 def equiv_of_fully_faithful {X Y} : (X ⟶ Y) ≃ (F.obj X ⟶ F.obj Y) :=
 { to_fun := λ f, F.map f,
   inv_fun := λ f, F.preimage f,
   left_inv := λ f, by simp,
   right_inv := λ f, by simp }
 
-@[simp]
-lemma equiv_of_fully_faithful_apply {X Y : C} (f : X ⟶ Y) :
-  equiv_of_fully_faithful F f = F.map f := rfl
-@[simp]
-lemma equiv_of_fully_faithful_symm_apply {X Y} (f : F.obj X ⟶ F.obj Y) :
-  (equiv_of_fully_faithful F).symm f = F.preimage f := rfl
+/-- If `F` is fully faithful, we have an equivalence of iso-sets `X ≅ Y` and `F X ≅ F Y`. -/
+@[simps]
+def iso_equiv_of_fully_faithful {X Y} : (X ≅ Y) ≃ (F.obj X ≅ F.obj Y) :=
+{ to_fun := λ f, F.map_iso f,
+  inv_fun := λ f, preimage_iso f,
+  left_inv := λ f, by simp,
+  right_inv := λ f, by { ext, simp, } }
+
+end
+
+section
+variables {E : Type*} [category E] {F G : C ⥤ D} (H : D ⥤ E) [full H] [faithful H]
+
+/-- We can construct a natural transformation between functors by constructing a
+natural transformation between those functors composed with a fully faithful functor. -/
+@[simps]
+def nat_trans_of_comp_fully_faithful (α : F ⋙ H ⟶ G ⋙ H) : F ⟶ G :=
+{ app := λ X, (equiv_of_fully_faithful H).symm (α.app X),
+  naturality' := λ X Y f, by { dsimp, apply H.map_injective, simpa using α.naturality f, } }
+
+/-- We can construct a natural isomorphism between functors by constructing a natural isomorphism
+between those functors composed with a fully faithful functor. -/
+@[simps]
+def nat_iso_of_comp_fully_faithful (i : F ⋙ H ≅ G ⋙ H) : F ≅ G :=
+nat_iso.of_components
+  (λ X, (iso_equiv_of_fully_faithful H).symm (i.app X))
+  (λ X Y f, by { dsimp, apply H.map_injective, simpa using i.hom.naturality f, })
+
+lemma nat_iso_of_comp_fully_faithful_hom (i : F ⋙ H ≅ G ⋙ H) :
+  (nat_iso_of_comp_fully_faithful H i).hom = nat_trans_of_comp_fully_faithful H i.hom :=
+by { ext, simp [nat_iso_of_comp_fully_faithful], }
+
+lemma nat_iso_of_comp_fully_faithful_inv (i : F ⋙ H ≅ G ⋙ H) :
+  (nat_iso_of_comp_fully_faithful H i).inv = nat_trans_of_comp_fully_faithful H i.inv :=
+by { ext, simp [←preimage_comp], dsimp, simp, }
+
+end
 
 end category_theory
 

@@ -753,6 +753,18 @@ instance [comm_semiring R] : comm_semiring (hahn_series Γ R) :=
   end,
   .. hahn_series.semiring }
 
+instance [non_unital_non_assoc_ring R] : non_unital_non_assoc_ring (hahn_series Γ R) :=
+{ .. hahn_series.non_unital_non_assoc_semiring,
+  .. hahn_series.add_group }
+
+instance [non_unital_ring R] : non_unital_ring (hahn_series Γ R) :=
+{ .. hahn_series.non_unital_non_assoc_ring,
+  .. hahn_series.non_unital_semiring }
+
+instance [non_assoc_ring R] : non_assoc_ring (hahn_series Γ R) :=
+{ .. hahn_series.non_unital_non_assoc_ring,
+  .. hahn_series.non_assoc_semiring }
+
 instance [ring R] : ring (hahn_series Γ R) :=
 { .. hahn_series.semiring,
   .. hahn_series.add_comm_group }

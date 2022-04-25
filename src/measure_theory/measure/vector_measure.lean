@@ -1030,7 +1030,8 @@ lemma eq {w : vector_measure α M} (h : v = w) : v ≪ᵥ w :=
 @[refl] lemma refl (v : vector_measure α M) : v ≪ᵥ v :=
 eq rfl
 
-@[trans] lemma trans {u : vector_measure α L} (huv : u ≪ᵥ v) (hvw : v ≪ᵥ w) : u ≪ᵥ w :=
+@[trans] lemma trans {u : vector_measure α L} {v : vector_measure α M} {w : vector_measure α N}
+  (huv : u ≪ᵥ v) (hvw : v ≪ᵥ w) : u ≪ᵥ w :=
 λ _ hs, huv $ hvw hs
 
 lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ᵥ v :=

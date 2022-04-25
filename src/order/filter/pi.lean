@@ -41,8 +41,7 @@ by simp only [pi, tendsto_infi, tendsto_comap_iff]
 
 lemma le_pi {g : filter (Π i, α i)} : g ≤ pi f ↔ ∀ i, tendsto (eval i) g (f i) := tendsto_pi
 
-@[mono] lemma pi_mono (h : ∀ i, f₁ i ≤ f₂ i) : pi f₁ ≤ pi f₂ :=
-infi_le_infi $ λ i, comap_mono $ h i
+@[mono] lemma pi_mono (h : ∀ i, f₁ i ≤ f₂ i) : pi f₁ ≤ pi f₂ := infi_mono $ λ i, comap_mono $ h i
 
 lemma mem_pi_of_mem (i : ι) {s : set (α i)} (hs : s ∈ f i) :
   eval i ⁻¹' s ∈ pi f :=
@@ -170,6 +169,17 @@ by simp only [filter.Coprod, supr_ne_bot, ← exists_and_distrib_left, ← comap
   ne_bot (filter.Coprod f) ↔ ∃ d, ne_bot (f d) :=
 by simp [Coprod_ne_bot_iff', *]
 
+lemma Coprod_eq_bot_iff' : filter.Coprod f = ⊥ ↔ (∃ i, is_empty (α i)) ∨ f = ⊥ :=
+by simpa [not_and_distrib, funext_iff] using not_congr Coprod_ne_bot_iff'
+
+@[simp] lemma Coprod_eq_bot_iff [∀ i, nonempty (α i)] : filter.Coprod f = ⊥ ↔ f = ⊥ :=
+by simpa [funext_iff] using not_congr Coprod_ne_bot_iff
+
+@[simp] lemma Coprod_bot' : filter.Coprod (⊥ : Π i, filter (α i)) = ⊥ :=
+Coprod_eq_bot_iff'.2 (or.inr rfl)
+
+@[simp] lemma Coprod_bot : filter.Coprod (λ _, ⊥ : Π i, filter (α i)) = ⊥ := Coprod_bot'
+
 lemma ne_bot.Coprod [∀ i, nonempty (α i)] {i : ι} (h : ne_bot (f i)) :
   ne_bot (filter.Coprod f) :=
 Coprod_ne_bot_iff.2 ⟨i, h⟩
@@ -179,7 +189,7 @@ Coprod_ne_bot_iff.2 ⟨i, h⟩
 (H (classical.arbitrary ι)).Coprod
 
 @[mono] lemma Coprod_mono (hf : ∀ i, f₁ i ≤ f₂ i) : filter.Coprod f₁ ≤ filter.Coprod f₂ :=
-supr_le_supr $ λ i, comap_mono (hf i)
+supr_mono $ λ i, comap_mono (hf i)
 
 variables {β : ι → Type*} {m : Π i, α i → β i}
 

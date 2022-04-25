@@ -96,14 +96,8 @@ around a sum.
 
 open tactic
 
-/--  Given a list `un` of `bool × α` and a list `bo` of `bool`, return the sublist of `un`
-consisting of the entries of `un` whose corresponding entry in `bo` is `tt`, projected on the
-`α`-factor.  -/
-def list.return_unused {α : Type*} : list (bool × α) → list bool → list α
-| un [] := un.map (λ e, e.2)
-| [] bo := []
-| (u::us) (b::bs) := if b then ([u.2] ++ (us.return_unused bs)) else (us.return_unused bs)
-
+/--  Given a list `un` of `α`s and a list `bo` of `bool`, return the sublist of `un`
+consisting of the entries of `un` whose corresponding entry in `bo` is `tt`. -/
 def list.return_unused_simple {α : Type*} : list α → list bool → list α
 | un [] := un
 | [] bo := []

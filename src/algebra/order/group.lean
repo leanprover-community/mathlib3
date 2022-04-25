@@ -1149,6 +1149,9 @@ abs_le.2 ⟨(neg_add (|a|) (|b|)).symm ▸
   add_le_add (neg_le.2 $ neg_le_abs_self _) (neg_le.2 $ neg_le_abs_self _),
   add_le_add (le_abs_self _) (le_abs_self _)⟩
 
+lemma abs_add' (a b : α) : |a| ≤ |b| + |b + a| :=
+by simpa using abs_add (-b) (b + a)
+
 theorem abs_sub (a b : α) :
   |a - b| ≤ |a| + |b| :=
 by { rw [sub_eq_add_neg, ←abs_neg b], exact abs_add a _ }

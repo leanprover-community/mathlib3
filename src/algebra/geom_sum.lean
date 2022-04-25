@@ -148,8 +148,8 @@ begin
   { simp },
   { simp only [geom_sum_succ', nat.even_succ, hk],
     split_ifs,
-    { rw [nat.neg_one_pow_of_even h, add_zero] },
-    { rw [nat.neg_one_pow_of_odd (nat.odd_iff_not_even.mpr h), neg_add_self] } }
+    { rw [h.neg_one_pow, add_zero] },
+    { rw [(nat.odd_iff_not_even.2 h).neg_one_pow, neg_add_self] } }
 end
 
 theorem geom_sum₂_self {α : Type*} [comm_ring α] (x : α) (n : ℕ) :

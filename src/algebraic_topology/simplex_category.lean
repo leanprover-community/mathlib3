@@ -184,7 +184,8 @@ begin
         else k.cast_lt (by { cases j, cases k, simp only [len_mk], linarith })).cast_succ < i)
           (ite (j.cast_succ < k) (k - 1) k) (ite (j.cast_succ < k) (k - 1) k + 1),
   { dsimp [δ, σ, fin.succ_above, fin.pred_above],
-    simpa [fin.pred_above] with push_cast },
+    simp [fin.pred_above] with push_cast,
+    convert rfl },
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
@@ -665,8 +666,7 @@ begin
       erw [fin.succ_above_above i _, fin.succ_pred],
       simpa only [fin.le_iff_coe_le_coe, fin.coe_cast_succ, fin.coe_pred]
           using nat.le_pred_of_lt (fin.lt_iff_coe_lt_coe.mp h'), }, },
-  { have h' := le_antisymm (fin.le_last i) (not_lt.mp h),
-    subst h',
+  { obtain rfl := le_antisymm (fin.le_last i) (not_lt.mp h),
     use θ ≫ σ (fin.last _),
     ext1, ext1, ext1 x,
     simp only [hom.to_order_hom_mk, function.comp_app, order_hom.comp_coe, hom.comp,

@@ -20,73 +20,7 @@ In this file we construct the transfer homomorphism.
 - `transfer ϕ` : The transfer homomorphism induced by `ϕ`.
 -/
 
-section quotient_action
-
--- PRed
-lemma mk_smul_out' {α β : Type*} [group α] [monoid β] [mul_action β α] (H : subgroup α)
-  [mul_action.quotient_action β H] (b : β) (q : α ⧸ H) :
-  quotient_group.mk (b • q.out') = b • q :=
-by rw [←mul_action.quotient.smul_mk, quotient_group.out_eq']
-
--- PRed
-lemma coe_smul_out' {α β : Type*} [group α] [monoid β] [mul_action β α] (H : subgroup α)
-  [mul_action.quotient_action β H] (b : β) (q : α ⧸ H) :
-  ↑(b • q.out') = b • q :=
-mk_smul_out' H b q
-
-end quotient_action
-
 section equiv_stuff
-
-section lemmaa
-
-open function
-
--- PRed
-@[to_additive] lemma smul_iterate {G S : Type*} [monoid G] [mul_action G S] (x : G) (s : S) (n : ℕ) :
-  has_scalar.smul x^[n] s = (x ^ n) • s :=
-nat.rec_on n (by rw [iterate_zero, id.def, pow_zero, one_smul])
-  (λ n ih, by rw [iterate_succ', comp_app, ih, pow_succ, mul_smul])
-
--- PRed
-lemma iterate_injective_of_lt_minimal_period {α : Type*} {f : α → α} {x : α}
-  {m n : ℕ} (hm : m < minimal_period f x) (hn : n < minimal_period f x)
-  (hf : (f^[m] x) = (f^[n] x)) :
-  m = n :=
-begin
-  wlog h_le : m ≤ n,
-  have : (f^[(minimal_period f x - n) + m] x) = x,
-  by rw [iterate_add_apply, hf, ←iterate_add_apply, nat.sub_add_cancel hn.le,
-    iterate_eq_mod_minimal_period, nat.mod_self, iterate_zero_apply],
-  have key := is_periodic_pt.minimal_period_le (nat.add_pos_left (nat.sub_pos_of_lt hn) m) this,
-  rw [←nat.sub_add_comm hn.le, le_tsub_iff_right, add_le_add_iff_left] at key,
-  exact le_antisymm h_le key,
-  refine hn.le.trans (nat.le_add_right _ _),
-end
-
-end lemmaa
-
--- PRed
-@[to_additive] instance subgroup.zpowers.is_commutative {G : Type*} [group G] (g : G) :
-  (subgroup.zpowers g).is_commutative :=
-⟨⟨λ ⟨a, b, c⟩ ⟨d, e, f⟩, by rw [subtype.ext_iff, subgroup.coe_mul, subgroup.coe_mul,
-  subtype.coe_mk, subtype.coe_mk, ←c, ←f, zpow_mul_comm]⟩⟩
-
--- PRed
-@[to_additive add_the_key_lemma]
-lemma the_key_lemma {α β : Type*} [group α] {a : α} [mul_action α β] {b : β} {n : ℤ} :
-  a ^ n • b = b ↔ (function.minimal_period ((•) a) b : ℤ) ∣ n :=
-begin
-  have key : ∀ k : ℕ, a ^ k • b = b ↔ function.minimal_period ((•) a) b ∣ k,
-  { intro k,
-    rw ← smul_iterate,
-    exact function.is_periodic_pt_iff_minimal_period_dvd },
-  cases n,
-  { rw [int.of_nat_eq_coe, zpow_coe_nat, key, int.coe_nat_dvd] },
-  { rw [zpow_neg_succ_of_nat, inv_smul_eq_iff, eq_comm, key],
-    rw [int.neg_succ_of_nat_eq, dvd_neg, ←int.coe_nat_one, ←int.coe_nat_add, int.coe_nat_dvd] },
-end
-
 
 noncomputable def zmultiples_quotient_stabilizer_equiv
   {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β) :
@@ -112,7 +46,7 @@ begin
       change n • a +ᵥ b = b at hn,
       refine (quotient_add_group.eq_zero_iff n).mpr _,
       rw [int.mem_zmultiples_iff],
-      exact add_the_key_lemma.mp hn },
+      exact add_action.zsmul_vadd_eq_iff_minimal_period_dvd.mp hn },
     { refine λ q, quotient.induction_on' q _,
       rintros ⟨-, n, rfl⟩,
       exact ⟨n, rfl⟩ } },
@@ -170,7 +104,7 @@ lemma key_equiv_apply {G : Type u} [group G] (H : subgroup G) (g : G)
 begin
   rw [equiv.apply_eq_iff_eq_symm_apply, key_equiv_symm_apply],
   rw [←inv_smul_eq_iff, ←zpow_neg_one, ←zpow_mul, mul_neg_one, ←mul_smul, ←zpow_add, add_comm,
-    ←sub_eq_add_neg, the_key_lemma, ←zmod.int_coe_eq_int_coe_iff_dvd_sub],
+    ←sub_eq_add_neg, mul_action.zpow_smul_eq_iff_minimal_period_dvd, ←zmod.int_coe_eq_int_coe_iff_dvd_sub],
   rw [zmod.int_cast_cast, zmod.cast_int_cast'],
 end
 
@@ -180,13 +114,13 @@ section transversal_stuff
 
 def key_transversal {G : Type*} [group G] (H : subgroup G) (g : G) : subgroup.left_transversals (H : set G) :=
 ⟨set.range (λ q, g ^ ((key_equiv H g q).2 : ℤ) * (key_equiv H g q).1.out'.out'),
-  subgroup.range_mem_left_transversals (λ q, by rw [←smul_eq_mul, coe_smul_out',
+  subgroup.range_mem_left_transversals (λ q, by rw [←smul_eq_mul, mul_action.quotient.coe_smul_out',
     ←key_equiv_symm_apply, sigma.eta, equiv.symm_apply_apply])⟩
 
 lemma key_transversal_apply {G : Type*} [group G] (H : subgroup G) (g : G) (q : G ⧸ H) :
   ↑(subgroup.mem_left_transversals.to_equiv (key_transversal H g).2 q) =
     g ^ ((key_equiv H g q).2 : ℤ) * (key_equiv H g q).1.out'.out' :=
-subgroup.mem_left_transversals.range_to_equiv_apply (λ q, by rw [←smul_eq_mul, coe_smul_out',
+subgroup.mem_left_transversals.range_to_equiv_apply (λ q, by rw [←smul_eq_mul,  mul_action.quotient.coe_smul_out',
   ←key_equiv_symm_apply, sigma.eta, equiv.symm_apply_apply]) q
 
 lemma key_transversal_apply' {G : Type*} [group G] (H : subgroup G)
@@ -195,21 +129,6 @@ lemma key_transversal_apply' {G : Type*} [group G] (H : subgroup G)
   ↑(subgroup.mem_left_transversals.to_equiv (key_transversal H g).2 (g ^ (k : ℤ) • q.out')) =
     g ^ (k : ℤ) * q.out'.out' :=
 by rw [key_transversal_apply, ←key_equiv_symm_apply, equiv.apply_symm_apply]
-
--- PRed
-lemma zmod.coe_neg_one {R : Type*} [ring R] (n : ℕ) : ↑(-1 : zmod n) = (n - 1 : R) :=
-begin
-  cases n,
-  { rw [int.cast_neg, int.cast_one, nat.cast_zero, zero_sub] },
-  { transitivity ((((n : ℤ) : zmod n.succ).val : ℤ) : R),
-    { refine congr_arg zmod.cast _,
-      rw [neg_eq_iff_add_eq_zero, add_comm],
-      exact zmod.nat_cast_self n.succ },
-    { rw [zmod.val_int_cast, int.mod_eq_of_lt, int.cast_coe_nat, nat.cast_succ, add_sub_cancel],
-      { exact int.coe_nat_nonneg n },
-      { rw [int.coe_nat_succ, lt_add_iff_pos_right],
-        exact zero_lt_one } } },
-end
 
 lemma key_transversal_apply'' {G : Type*} [group G] (H : subgroup G)
   (g : G) (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
@@ -225,12 +144,12 @@ begin
   by_cases hk : k = 0,
   { rw [hk, if_pos rfl, mul_left_inj, zmod.cast_zero, int.cast_zero, add_zero, ←zpow_coe_nat],
     refine congr_arg ((^) g) _,
-    rw [zmod.coe_neg_one, int.nat_cast_eq_coe_nat, add_sub_cancel'_right] },
+    rw [zmod.cast_neg_one, int.nat_cast_eq_coe_nat, add_sub_cancel'_right] },
   { rw [if_neg hk, mul_left_inj],
     refine congr_arg ((^) g) _,
-    rw [zmod.coe_add_eq_ite, if_pos, zmod.coe_neg_one, add_sub, ←add_assoc, add_sub_cancel'_right],
+    rw [zmod.coe_add_eq_ite, if_pos, zmod.cast_neg_one, add_sub, ←add_assoc, add_sub_cancel'_right],
     simp only [int.nat_cast_eq_coe_nat, zmod.int_cast_cast, zmod.cast_id', id.def, add_tsub_cancel_left],
-    rw [zmod.coe_neg_one, sub_add],
+    rw [zmod.cast_neg_one, sub_add],
     simp only [int.nat_cast_eq_coe_nat, zmod.int_cast_cast, zmod.cast_id', id.def, le_sub_self_iff, sub_nonpos],
     sorry },
 end

@@ -66,8 +66,8 @@ around a sum.
 
 ##  Future work
 
-* Currently, `_` in user input generate side-goals that Lean should be able to close automatically.
-  Is it possible to avoid this?
+* Currently, `_`s in user input generate side-goals that Lean should be able to close automatically.
+  Is it possible to avoid actually get Lean to solve these goals right away and not display them?
 * Using `move_add at *` generates a message mentioning which hypotheses did not change.  It should
   instead be silent, unless no hypothesis changes.
 * No message is reported if one of the user-provided expressions is not used.

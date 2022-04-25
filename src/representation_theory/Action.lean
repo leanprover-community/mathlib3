@@ -3,36 +3,35 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Group.zero
-import category_theory.endomorphism
+import algebra.category.Group.basic
 import category_theory.single_obj
 import category_theory.equivalence
-import category_Theory.eq_to_hom
 
 /-!
-# `Action V G`, the category of representations of a monoid `G` inside some category `V`.
+# `Action V G`, the category of actions of a monoid `G` inside some category `V`.
 
 The prototypical example is `V = Module R`,
 where `Action (Module R) G` is the category of `R`-linear representations of `G`.
 
 We check `Action V G ≌ (single_obj G ⥤ V)`,
-and construct
+and construct the restriction functors `res {G H : Mon} (f : G ⟶ H) : Action V H ⥤ Action V G`.
 -/
 
-universes u₁
+universes u
 
 open category_theory
 
-variables (V : Type (u₁+1)) [large_category V]
+variables (V : Type (u+1)) [large_category V]
 
 /--
 An `Action V G` represents a bundled action of
 the monoid `G` on an object of some category `V`.
 
-As an example, when `V = Module R`, this is an `R`-linear representation of `G`.
+As an example, when `V = Module R`, this is an `R`-linear representation of `G`,
+while when `V = Type` this is a `G`-action.
 -/
 -- Note: this is _not_ a categorical action of `G` on `V`.
-structure Action (G : Mon.{u₁}) :=
+structure Action (G : Mon.{u}) :=
 (V : V)
 (ρ : G ⟶ Mon.of (End V))
 
@@ -40,12 +39,12 @@ namespace Action
 variable {V}
 
 @[simp]
-lemma ρ_one {G : Mon.{u₁}} (A : Action V G) : A.ρ 1 = 𝟙 A.V :=
+lemma ρ_one {G : Mon.{u}} (A : Action V G) : A.ρ 1 = 𝟙 A.V :=
 by { rw [monoid_hom.map_one], refl, }
 
 /-- When a group acts, we can lift the action to the group of automorphisms. -/
 @[simps]
-def ρ_Aut {G : Group.{u₁}} (A : Action V (Mon.of G)) : G ⟶ Group.of (Aut A.V) :=
+def ρ_Aut {G : Group.{u}} (A : Action V (Mon.of G)) : G ⟶ Group.of (Aut A.V) :=
 { to_fun := λ g,
   { hom := A.ρ g,
     inv := A.ρ (g⁻¹ : G),
@@ -54,7 +53,7 @@ def ρ_Aut {G : Group.{u₁}} (A : Action V (Mon.of G)) : G ⟶ Group.of (Aut A.
   map_one' := by { ext, exact A.ρ.map_one },
   map_mul' := λ x y, by { ext, exact A.ρ.map_mul x y }, }
 
-variable (G : Mon.{u₁})
+variable (G : Mon.{u})
 
 section
 
@@ -254,8 +253,10 @@ end Action
 
 namespace category_theory.functor
 
-variables {V} {W : Type (u₁+1)} [large_category W]
+variables {V} {W : Type (u+1)} [large_category W]
 
+/-- A functor between categories induces a functor between
+the categories of `G`-actions within those categories. -/
 @[simps]
 def map_Action (F : V ⥤ W) (G : Mon.{u₁}) : Action V G ⥤ Action W G :=
 { obj := λ M,

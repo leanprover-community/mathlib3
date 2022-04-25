@@ -18,9 +18,9 @@ We prove the following facts:
 * `convex.closure` : closure of a convex set is convex;
 * `set.finite.compact_convex_hull` : convex hull of a finite set is compact;
 * `set.finite.is_closed_convex_hull` : convex hull of a finite set is closed;
-* `covnex_on_norm`, `convex_on_dist` : norm and distance to a fixed point is convex on any convex
+* `convex_on_norm`, `convex_on_dist` : norm and distance to a fixed point is convex on any convex
   set;
-* `covnex_on_univ_norm`, `convex_on_univ_dist` : norm and distance to a fixed point is convex on
+* `convex_on_univ_norm`, `convex_on_univ_dist` : norm and distance to a fixed point is convex on
   the whole space;
 * `convex_hull_ediam`, `convex_hull_diam` : convex hull of a set has the same (e)metric diameter
   as the original set;
@@ -284,7 +284,7 @@ end has_continuous_smul
 section normed_space
 variables [semi_normed_group E] [normed_space ℝ E]
 
-/-- The norm on a real normed space is convex on any convex set.. See also `seminorm.convex_on`
+/-- The norm on a real normed space is convex on any convex set. See also `seminorm.convex_on`
 and `convex_on_univ_norm`. -/
 lemma convex_on_norm {s : set E} (hs : convex ℝ s) : convex_on ℝ s norm :=
 ⟨hs, λ x y hx hy a b ha hb hab,

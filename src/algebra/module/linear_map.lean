@@ -360,13 +360,13 @@ linear_map.ext $ λ x, rfl
 variables {f g} {f' : M₂ →ₛₗ[σ₂₃] M₃} {g' : M₁ →ₛₗ[σ₁₂] M₂}
 
 include σ₁₃
-theorem cancel_right (hf : function.surjective g) :
+theorem cancel_right (hg : function.surjective g) :
   f.comp g = f'.comp g ↔ f = f' :=
-⟨λ h, ext $ hf.forall.2 (ext_iff.1 h), λ h, h ▸ rfl⟩
+⟨λ h, ext $ hg.forall.2 (ext_iff.1 h), λ h, h ▸ rfl⟩
 
-theorem cancel_left (hg : function.injective f) :
+theorem cancel_left (hf : function.injective f) :
   f.comp g = f.comp g' ↔ g = g' :=
-⟨λ h, ext $ λ x, hg $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
+⟨λ h, ext $ λ x, hf $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
 omit σ₁₃
 
 end

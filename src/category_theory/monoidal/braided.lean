@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.monoidal.coherence
+import category_theory.monoidal.coherence_lemmas
 import category_theory.monoidal.natural_transformation
 import category_theory.monoidal.discrete
 
@@ -411,8 +411,6 @@ begin
                       ←hexagon_reverse,
                       tensor_comp, tensor_comp] },
 end
-
-set_option class.instance_max_depth 64
 
 lemma tensor_associativity (X₁ X₂ Y₁ Y₂ Z₁ Z₂ : C) :
     (tensor_μ C (X₁, X₂) (Y₁, Y₂) ⊗ 𝟙 (Z₁ ⊗ Z₂)) ≫

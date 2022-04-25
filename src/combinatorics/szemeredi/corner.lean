@@ -13,8 +13,7 @@ import combinatorics.pigeonhole
 This file proves the corners theorem and Roth's theorem.
 -/
 
-open finset function simple_graph sum₃
-open_locale classical
+open finset function simple_graph sum sum3
 
 variables {N : ℕ}
 
@@ -32,17 +31,17 @@ def is_anticorner (s : finset (ℕ × ℕ)) : ℕ → ℕ → ℕ → Prop :=
 namespace corners
 
 /-- The type of vertices of the corners graph. -/
-def vertices (N : ℕ) : Type := sum₃ (fin N) (fin N) (fin (2 * N))
+def vertices (N : ℕ) : Type := fin N ⊕ fin N ⊕ fin (2 * N)
 
-instance (N : ℕ) : inhabited (vertices (N + 1)) :=  sum₃.inhabited _ _ _
+instance (N : ℕ) : inhabited (vertices (N + 1)) := sum.inhabited_left
 
-instance : fintype (vertices N) := sum₃.fintype _ _ _
+instance : fintype (vertices N) := sum.fintype _ _
 
 @[simp] lemma card_vertices : fintype.card (vertices N) = 4 * N :=
-by { simp only [fintype.of_equiv_card, fintype.card_fin, fintype.card_sum], ring }
+by { simp only [vertices, fintype.card_fin, fintype.card_sum], ring }
 
 /-- The edges of the corners graph. -/
-inductive edges (s : finset (ℕ × ℕ)) : vertices N → vertices N → Prop
+inductive edges (N : ℕ) (s : finset (ℕ × ℕ)) : vertices N → vertices N → Prop
 | hv {h v : fin N} : ((h : ℕ), (v : ℕ)) ∈ s → edges (in₀ h) (in₁ v)
 | vh {h v : fin N} : ((h : ℕ), (v : ℕ)) ∈ s → edges (in₁ v) (in₀ h)
 | hd {h : fin N} {k : fin (2 * N)} :
@@ -59,7 +58,7 @@ variables {s : finset (ℕ × ℕ)}
 section edges
 open edges
 
-lemma edges_symm : ∀ (x y : vertices N), edges s x y → edges s y x
+lemma edges_symm : ∀ (x y : vertices N), edges N s x y → edges N s y x
 | _ _ (hv h) := vh h
 | _ _ (vh h) := hv h
 | _ _ (hd h₁ h₂) := dh h₁ h₂
@@ -67,12 +66,15 @@ lemma edges_symm : ∀ (x y : vertices N), edges s x y → edges s y x
 | _ _ (vd h₁ h₂) := dv h₁ h₂
 | _ _ (dv h₁ h₂) := vd h₁ h₂
 
-lemma edges_irrefl : ∀ (x : vertices N), ¬ edges s x x.
+lemma edges_irrefl : ∀ (x : vertices N), ¬ edges N s x x.
 
 /-- Picturing a `N × N` grid, this is the graph whose vertices are vertical, horizontal and diagonal
 (one way) lines and whose edges are the pairs of lines that meet within `s`. -/
 def graph (N : ℕ) (s : finset (ℕ × ℕ)) : simple_graph (vertices N) :=
-{ adj := edges s, symm := edges_symm, loopless := edges_irrefl }
+{ adj := edges N s, symm := edges_symm, loopless := edges_irrefl }
+
+noncomputable instance : decidable_rel (edges N s) := classical.dec_rel _
+noncomputable instance : decidable_rel (graph N s).adj := edges.decidable_rel
 
 @[simp] lemma edges_in₀_vert {h v : fin N} :
   (graph _ s).adj (in₀ h) (in₁ v) ↔ ((h : ℕ), (v : ℕ)) ∈ s :=
@@ -105,7 +107,7 @@ lemma graph_triple {s : finset (ℕ × ℕ)} {N : ℕ} :
 end edges
 
 /-- Maps an horizontal, a vertical and a diagonal line to their three points of intersection. -/
-noncomputable def triangle_map : fin N × fin N × fin (2 * N) → finset (vertices N) :=
+def triangle_map : fin N × fin N × fin (2 * N) → finset (vertices N) :=
 λ hvk, {in₀ hvk.1, in₁ hvk.2.1, in₂ hvk.2.2}
 
 /-- State whether an horizontal, a vertical and a diagonal line meet within `s`. -/
@@ -123,8 +125,8 @@ lemma triangle_map_injective : injective (triangle_map : _ → finset (vertices 
 begin
   rintro ⟨h₁, v₁, k₁⟩ ⟨h₂, v₂, k₂⟩,
   simpa only [triangle_map, finset.subset.antisymm_iff, subset_iff, mem_insert, mem_singleton,
-    forall_eq_or_imp, forall_eq, prod.mk.inj_iff, or_false, false_or, in₀.inj_eq, in₁.inj_eq,
-    in₂.inj_eq] using and.left,
+    forall_eq_or_imp, forall_eq, prod.mk.inj_iff, or_false, false_or, in₀, in₁, in₂, inl.inj_eq,
+    inr.inj_eq] using and.left,
 end
 
 lemma triangle_map_surj {t} (ht : (graph N s).is_n_clique 3 t) :
@@ -179,7 +181,7 @@ begin
   { apply le_antisymm i₁ (nat.le_of_sub_eq_zero (as _ _ _ i₂)) },
 end
 
-lemma trivial_triangles_graph {s : finset (ℕ × ℕ)} {n : ℕ}
+lemma card_clique_finset_graph_le {s : finset (ℕ × ℕ)} {n : ℕ}
   (cs : ∀ (x y h : ℕ), is_corner s x y h → h = 0)
   (as : ∀ (x y h : ℕ), is_anticorner s x y h → h = 0) :
   ((graph n s).clique_finset 3).card ≤ n^2 :=
@@ -233,7 +235,8 @@ begin
   apply add_lt_add this.1 this.2,
 end
 
-lemma triangle_free_far {ε : ℝ} (hA : s ⊆ (range N).product (range N)) (hA' : ε * N^2 ≤ s.card) :
+lemma triangle_free_far_graph {ε : ℝ} (hA : s ⊆ (range N).product (range N))
+  (hA' : ε * N^2 ≤ s.card) :
   (graph N s).triangle_free_far (ε/16) :=
 begin
   refine simple_graph.triangle_free_far_of_disjoint_triangles
@@ -241,7 +244,7 @@ begin
   { simp only [subset_iff, and_imp, exists_prop, forall_exists_index, embedding.coe_fn_mk,
       mem_map],
     rintro _ x hx rfl,
-    apply triangle_map_mem _ (trivial_triangles_mem _ hx), },
+    convert triangle_map_mem _ (trivial_triangles_mem _ hx) },
   { simp only [set.pairwise, mem_map, mem_coe, forall_exists_index, prod.forall, prod.forall',
       embedding.coe_fn_mk, trivial_triangles, true_and, and_imp, mem_filter, mem_univ],
     rintro _ ⟨h₁, _⟩ ⟨⟨v₁, _⟩, ⟨_, k₁⟩⟩ t₁ i₁ rfl _ ⟨h₂, _⟩ ⟨⟨v₂, _⟩, ⟨_, k₂⟩⟩ t₂ i₂ rfl q,
@@ -253,7 +256,7 @@ begin
     rw finset.card_le_one,
     simp only [and_imp, mem_insert, mem_inter, mem_singleton, true_and, forall_eq_or_imp, and_true,
       false_or, forall_eq, implies_true_iff, eq_self_iff_true, subtype.mk_eq_mk, or_false,
-      forall_and_distrib, and_assoc, @imp.swap (_ + _ = _), in₀.inj_eq, in₁.inj_eq, in₂.inj_eq],
+      forall_and_distrib, and_assoc, @imp.swap (_ + _ = _), in₀, in₁, in₂, inl.inj_eq, inr.inj_eq],
     refine ⟨_, _, _, _, _, _⟩;
     { intros i₁ i₂,
       apply q,
@@ -272,7 +275,7 @@ lemma weak_corners_theorem {ε : ℝ} (hε : 0 < ε) :
     ∀ s ⊆ (range n).product (range n), ε * n^2 ≤ s.card →
       ∃ x y h, 0 < h ∧ (is_corner s x y h ∨ is_anticorner s x y h) :=
 begin
-  refine ⟨⌊1/(simple_graph.triangle_removal_bound (ε / 16) * 64)⌋₊ + 1, λ n hn s hA hA', _⟩,
+  refine ⟨⌊1/(triangle_removal_bound (ε / 16) * 64)⌋₊ + 1, λ n hn s hA hA', _⟩,
   rw nat.add_one_le_iff at hn,
   have n_pos : 0 < n := (nat.zero_le _).trans_lt hn,
   have : ε ≤ 1,
@@ -280,19 +283,20 @@ begin
     simp only [sq, card_range, nat.cast_mul, card_product] at this,
     rwa mul_le_iff_le_one_left at this,
     exact mul_pos (nat.cast_pos.2 n_pos) (nat.cast_pos.2 n_pos) },
-  have tf : (graph n s).triangle_free_far (ε/16) := triangle_free_far hA hA',
+  have tf : (graph n s).triangle_free_far (ε/16) := triangle_free_far_graph hA hA',
   by_contra h,
   simp only [not_and', or_imp_distrib, forall_and_distrib, not_exists, not_lt, le_zero_iff] at h,
-  have h₁ := simple_graph.triangle_removal_2 (show 0 < ε/16, by linarith) (by linarith) tf,
+  have h₁ := triangle_removal_2 (show 0 < ε/16, by linarith) (by linarith) tf,
   rw card_vertices at h₁,
-  have i := h₁.trans (nat.cast_le.2 (trivial_triangles_graph h.1 h.2)),
+  have i := h₁.trans
+    (by { convert nat.cast_le.2 (card_clique_finset_graph_le h.1 h.2), apply_instance }),
   rw [nat.cast_mul, mul_pow, nat.cast_pow, ←mul_assoc] at i,
   norm_num at i,
-  have : simple_graph.triangle_removal_bound (ε / 16) * 64 * n ≤ 1,
+  have : triangle_removal_bound (ε / 16) * 64 * n ≤ 1,
   { apply le_of_mul_le_mul_right _ (sq_pos_of_ne_zero (n : ℝ) (nat.cast_ne_zero.2 n_pos.ne')),
     rwa [one_mul, mul_assoc, ←pow_succ] },
-  have po : 0 < simple_graph.triangle_removal_bound (ε / 16) * 64 :=
-    mul_pos (simple_graph.triangle_removal_bound_pos (by linarith) (by linarith)) (by norm_num),
+  have po : 0 < triangle_removal_bound (ε / 16) * 64 :=
+    mul_pos (triangle_removal_bound_pos (by linarith) (by linarith)) (by norm_num),
   apply not_lt_of_le this,
   rwa [nat.floor_lt (one_div_nonneg.2 po.le), div_lt_iff' po] at hn,
 end

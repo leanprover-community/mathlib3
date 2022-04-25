@@ -65,22 +65,6 @@ begin
     exact G.pairs_card_bad_le }
 end
 
-lemma nonempty_of_edge_density_ne_zero_left {s t : finset α} :
-  G.edge_density s t ≠ 0 → s.nonempty :=
-begin
-  rw nonempty_iff_ne_empty,
-  rintro h rfl,
-  exact h (edge_density_empty_left _ _),
-end
-
-lemma nonempty_of_edge_density_ne_zero_right {s t : finset α} :
-  G.edge_density s t ≠ 0 → t.nonempty :=
-begin
-  rw nonempty_iff_ne_empty,
-  rintro h rfl,
-  exact h (edge_density_empty_right _ _),
-end
-
 lemma few_bad_vertices {X Y : finset α} {ε : ℝ} (hε₀ : 0 ≤ ε) (hε : ε ≤ 1)
   (dXY : 2 * ε ≤ G.edge_density X Y) (uXY : G.is_uniform ε X Y) :
   ((G.bad_vertices ε X Y).card : ℝ) ≤ X.card * ε :=

@@ -17,7 +17,7 @@ numbers into a graph which has the property that every triangle gives a (possibl
 arithmetic progression on the original set.
 -/
 
-open finset sum₃
+open finset sum3
 open_locale pointwise
 
 variables {α : Type*} [fintype α] [decidable_eq α]
@@ -27,13 +27,12 @@ def ruzsa_szemeredi (G : simple_graph α) [G.decidable] : Prop :=
 (G.clique_finset 3 : set (finset α)).pairwise $ λ x y, (x ∩ y).card ≤ 1
 
 /-- Whether a given graph is Ruzsa-Szemerédi is decidable. -/
-instance (G : simple_graph α) [G.decidable] : decidable (ruzsa_szemeredi G) :=
-sorry
+instance (G : simple_graph α) [G.decidable] : decidable (ruzsa_szemeredi G) := pairwise.decidable
 
 namespace ruzsa_szemeredi
 
 /-- The vertices of the Ruzsa-Szemerédi graph. -/
-@[nolint inhabited_instance] abbreviation vertices {α : Type*} (s : set α) := sum₃ s s s
+@[nolint inhabited_instance] abbreviation vertices {α : Type*} (s : set α) := s ⊕ s ⊕ s
 
 section monoid
 variables [monoid α]

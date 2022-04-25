@@ -9,44 +9,21 @@ import data.real.basic
 
 /-! # Things that belong to mathlib -/
 
-open finset function
+open finset function sum
 open_locale big_operators
 
 variables {α β γ ι ι' : Type*}
 
-section sum₃
-variables (α β γ)
+namespace sum3
 
-/-- Ternary sum of types. This is equivalent to a nested binary sum (see `sum₃_equiv_sum`), but has
-better pattern-matching properties. In most cases, you should use `α ⊕ β ⊕ γ` over `sum₃ α β γ`. -/
-inductive sum₃
-| in₀ : α → sum₃
-| in₁ : β → sum₃
-| in₂ : γ → sum₃
+/-- The map from the first summand into a ternary sum. -/
+@[pattern, simp, reducible] def in₀ (a) : α ⊕ β ⊕ γ := inl a
+/-- The map from the second summand into a ternary sum. -/
+@[pattern, simp, reducible] def in₁ (b) : α ⊕ β ⊕ γ := inr $ inl b
+/-- The map from the third summand into a ternary sum. -/
+@[pattern, simp, reducible] def in₂ (c) : α ⊕ β ⊕ γ := inr $ inr c
 
-open sum₃
-
-instance [inhabited α] : inhabited (sum₃ α β γ) := ⟨in₀ default⟩
-
-/-- A ternary sum is equivalent to a nested binary sum. -/
-def sum₃_equiv_sum : sum₃ α β γ ≃ α ⊕ β ⊕ γ :=
-{ to_fun := λ x, match x with
-    | in₀ a := sum.inl a
-    | in₁ b := sum.inr (sum.inl b)
-    | in₂ c := sum.inr (sum.inr c)
-  end,
-  inv_fun := λ x, match x with
-    | sum.inl a           := in₀ a
-    | sum.inr (sum.inl b) := in₁ b
-    | sum.inr (sum.inr c) := in₂ c
-  end,
-  left_inv := λ x, by cases x; refl,
-  right_inv := λ x, by obtain (_ | _ | _) := x; refl }
-
-instance (α β γ : Type*) [fintype α] [fintype β] [fintype γ] : fintype (sum₃ α β γ) :=
-fintype.of_equiv _ (sum₃_equiv_sum _ _ _).symm
-
-end sum₃
+end sum3
 
 namespace finset
 
@@ -60,7 +37,7 @@ begin
   simp,
 end
 
-lemma dumb_thing {α : Type*} [decidable_eq α]
+lemma dumb_thing [decidable_eq α]
   {X Y Z : finset α} (hXY : disjoint X Y) (hXZ : disjoint X Z) (hYZ : disjoint Y Z)
   {x₁ x₂ y₁ y₂ z₁ z₂ : α} (h : ({x₁, y₁, z₁} : finset α) = {x₂, y₂, z₂})
   (hx₁ : x₁ ∈ X) (hx₂ : x₂ ∈ X) (hy₁ : y₁ ∈ Y) (hy₂ : y₂ ∈ Y) (hz₁ : z₁ ∈ Z) (hz₂ : z₂ ∈ Z) :
@@ -187,7 +164,7 @@ namespace simple_graph
 variables {G G' : simple_graph α} {s : finset α}
 
 /-- Abbreviation for a graph relation to be decidable. -/
-protected abbreviation decidable {α : Type*} (G : simple_graph α) := decidable_rel G.adj
+protected abbreviation decidable (G : simple_graph α) := decidable_rel G.adj
 
 instance {r : α → α → Prop} [h : decidable_rel r] : decidable_pred (uncurry r) := λ x, h x.1 x.2
 

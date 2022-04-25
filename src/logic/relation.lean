@@ -182,9 +182,15 @@ lemma mono {p : α → α → Prop} (hp : ∀ a b, r a b → p a b) : ∀ {a b},
 | a _ refl_gen.refl := by refl
 | a b (single h) := single (hp a b h)
 
+instance : is_refl α (refl_gen r) :=
+⟨@refl α r⟩
+
 end refl_gen
 
 namespace refl_trans_gen
+
+instance : is_refl α (refl_trans_gen r) :=
+⟨@refl α r⟩
 
 @[trans]
 lemma trans (hab : refl_trans_gen r a b) (hbc : refl_trans_gen r b c) : refl_trans_gen r a c :=
@@ -193,6 +199,9 @@ begin
   case refl_trans_gen.refl { assumption },
   case refl_trans_gen.tail : c d hbc hcd hac { exact hac.tail hcd }
 end
+
+instance : is_trans α (refl_trans_gen r) :=
+⟨@trans α r⟩
 
 lemma single (hab : r a b) : refl_trans_gen r a b :=
 refl.tail hab
@@ -295,6 +304,9 @@ end
 
 @[trans] lemma trans (hab : trans_gen r a b) (hbc : trans_gen r b c) : trans_gen r a c :=
 trans_left hab hbc.to_refl
+
+instance : is_trans α (trans_gen r) :=
+⟨@trans α r⟩
 
 lemma head' (hab : r a b) (hbc : refl_trans_gen r b c) : trans_gen r a c :=
 trans_left (single hab) hbc
@@ -431,7 +443,7 @@ end
 lemma refl_trans_gen.lift {p : β → β → Prop} {a b : α} (f : α → β)
   (h : ∀ a b, r a b → p (f a) (f b)) (hab : refl_trans_gen r a b) : refl_trans_gen p (f a) (f b) :=
 refl_trans_gen.trans_induction_on hab (λ a, refl)
-  (λ a b, refl_trans_gen.single ∘ h _ _) (λ a b c _ _, trans)
+  (λ a b, refl_trans_gen.single ∘ h _ _) (λ a b c _ _, refl_trans_gen.trans)
 
 lemma refl_trans_gen.mono {p : α → α → Prop} :
   (∀ a b, r a b → p a b) → refl_trans_gen r a b → refl_trans_gen p a b :=
@@ -449,7 +461,7 @@ lemma reflexive_refl_trans_gen : reflexive (refl_trans_gen r) :=
 λ a, refl
 
 lemma transitive_refl_trans_gen : transitive (refl_trans_gen r) :=
-λ a b c, trans
+λ a b c, refl_trans_gen.trans
 
 lemma refl_trans_gen_idem :
   refl_trans_gen (refl_trans_gen r) = refl_trans_gen r :=

@@ -30,14 +30,14 @@ open matrix
 open_locale matrix
 
 variables {X α l m n p S R : Type*} {m' n' : l → Type*}
-variables [topological_space X] [topological_space R]
 
-instance : topological_space (matrix m n R) := Pi.topological_space
+instance [topological_space R] : topological_space (matrix m n R) := Pi.topological_space
 
-instance [t2_space R] : t2_space (matrix m n R) := Pi.t2_space
+instance [topological_space R] [t2_space R] : t2_space (matrix m n R) := Pi.t2_space
 
 /-! ### Lemmas about continuity of operations -/
 section continuity
+variables [topological_space X] [topological_space R]
 
 instance [has_scalar α R] [has_continuous_const_smul α R] :
   has_continuous_const_smul α (matrix n n R) :=
@@ -244,7 +244,7 @@ end continuity
 
 /-! ### Lemmas about infinite sums -/
 section tsum
-variables [semiring α] [add_comm_monoid R] [module α R]
+variables [semiring α] [add_comm_monoid R] [topological_space R] [module α R]
 
 lemma has_sum.matrix_transpose {f : X → matrix m n R} {a : matrix m n R} (hf : has_sum f a) :
   has_sum (λ x, (f x)ᵀ) aᵀ :=

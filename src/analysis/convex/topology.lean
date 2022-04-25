@@ -225,7 +225,7 @@ hs.compact_convex_hull.is_closed
 
 open affine_map
 
-/-- If we dilate the interior of a convex set about a point in its interior by a scale `t > 1`, the
+/-- If we dilate the interior of a convex set about a point in its interior by a scale `t > 1`,
 the result includes the closure of the original set.
 
 TODO Generalise this from convex sets to sets that are balanced / star-shaped about `x`. -/

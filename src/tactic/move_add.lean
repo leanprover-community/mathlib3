@@ -17,6 +17,14 @@ Also, the *order* in which the terms are provided matters: the tactic reads them
 This is especially important if there are multiple matches for the typed terms in the given
 expressions.
 
+The tactic shouldn't ever fail (really? TODO), but reports two kinds of unwanted use.
+1. If a target of `move_add` is left unchanged by the tactic, then this will be flagged.
+2. If a user-provided expression never matches, then the variable is flagged.
+
+###  Remark:
+It is still possible that the same output of `move_add [exprs]` can be achieved by a proper sublist
+of `[exprs]`, even if the tactic does not flag anything.
+
 ### Warning:
 * The tactic will discard user-provided terms that do not unify with something in the expression.
   This means that the tactic will not give an error if it finds no match of the provided terms.
@@ -111,8 +119,8 @@ replacing `sl` by `sl.erase eu`.
 
 Once we exhausts the elements of `lp`, we return the three lists:
 * first the list of elements of `sl` that came from an element of `lp` whose boolean was `tt`,
-* next the ununified elements of `sl` and
-* finally the elements of `sl` that came from an element of `lp` whose boolean was `ff`.
+* next the list of elements of `sl` that came from an element of `lp` whose boolean was `ff`, and
+* finally the ununified elements of `sl`.
  -/
 meta def list.unify_list : list (bool × expr) → list expr → list bool →
   tactic (list expr × list expr × list expr × list bool)
@@ -181,6 +189,7 @@ do
     match hyp with
     | some loc := do
       ln ← get_local loc,
+      ltyp ← infer_type ln,
       rewrite_hyp h ln,
       tactic.clear h,
       pure is_unused
@@ -215,7 +224,7 @@ meta def move_add_aux (ll : list (bool × pexpr)) : option name → tactic unit
   end,
   nhyp ← get_local hyp,
   nthyp ← infer_type nhyp,
-  if (thyp = nhyp) then trace format!"'{nhyp}' did not change" else skip -- error management
+  if (thyp = nthyp) then trace format!"'{nhyp}' did not change" else skip -- error management
 | none       := do
   t ← target,
   is_unused ← recurse_on_expr none ll t, -- error management
@@ -257,7 +266,7 @@ meta def move_add (args : parse move_pexpr_list_or_texpr) (locat : parse locatio
   tactic unit :=
 match locat with
 | loc.wildcard := do
-  ctx ← local_context,
+  ctx ← local_context,trace ctx,
   ctx.mmap (λ e, move_add_core tt args e.local_pp_name),
   assumption <|> try (tactic.reflexivity reducible)
 | loc.ns names := do

@@ -136,7 +136,7 @@ lp.mmap $ λ x : bool × pexpr, do
 1. we convert a list pairs `bool × pexpr` to a list of pairs `bool × expr`,
 2. we use the extra input `sl : list expr` to perform the unification and sorting step
    `list.unify_list`,
-3. we jam the  jam the third factor inside the first two.
+3. we jam the third factor inside the first two.
 -/
 meta def list.combined (lp : list (bool × pexpr)) (sl : list expr) : tactic (list expr × list bool) :=
 do

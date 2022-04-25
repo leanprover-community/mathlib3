@@ -154,13 +154,14 @@ def move_right : Π (g : pgame), right_moves g → pgame
 x.rec_on $ λ yl yr yL yR, IH (mk yl yr yL yR)
 
 /-- `is_option x y` means that `x` is either a left or right option for `y`. -/
-def is_option (x y : pgame) : Prop :=
-(∃ i, y.move_left i = x) ∨ ∃ i, y.move_right i = x
+@[mk_iff] inductive is_option : pgame → pgame → Prop
+| left {x : pgame} {i} : is_option (x.move_left i) x
+| right {x : pgame} {i} : is_option (x.move_right i) x
 
 theorem wf_is_option : well_founded is_option :=
 ⟨λ x, x.move_rec_on begin
   refine λ x IHl IHr, acc.intro x _,
-  rintros y (⟨i, rfl⟩ | ⟨i, rfl⟩),
+  rintros y (⟨x, i⟩ | ⟨x, i⟩),
   { exact IHl i },
   { exact IHr i }
 end⟩

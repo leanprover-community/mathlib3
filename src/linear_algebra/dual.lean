@@ -837,6 +837,6 @@ isomorphism `R ⊗ R ≃ R`.
 @[simp]
 noncomputable
 def dual_tensor_dual_equiv : (dual R M) ⊗[R] (dual R N) ≃ₗ[R] dual R (M ⊗[R] N) :=
-  dual_tensor_dual_equiv_of_basis (module.free.choose_basis R M) (module.free.choose_basis R N)
+dual_tensor_dual_equiv_of_basis (module.free.choose_basis R M) (module.free.choose_basis R N)
 
 end tensor_product

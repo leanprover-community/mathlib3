@@ -610,39 +610,166 @@ begin
   { exact small, },
 end
 
-theorem stays_near_if_near_step (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
+/--
+If sqrt_aux k is near f, then either sqrt_aux (k+1) is near f, or in fact sqrt_aux k was *really*
+small.
+-/
+theorem stays_near_if_near_step' (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
   (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
-  (k : ℕ) (k_large : k ≥ N) (is_near : sqrt_aux f k ^ 2 - f k < 3 * ε)
-  : sqrt_aux f (k + 1) ^ 2 - f (k + 1) < 3 * ε :=
+  (c : ℚ) (c_pos : 0 < c) (c_small : c ≤ 3) (k : ℕ) (k_large : k ≥ N)
+  (is_near : sqrt_aux f k ^ 2 - f k ≤ c * ε) :
+  sqrt_aux f (k + 1) ^ 2 - f (k + 1) ≤ c * ε ∨ sqrt_aux f k ^ 2 - f k ≤ (c + 1) ^ 2 / (4 * c) * ε :=
 begin
-  have bound_pos : 0 < 16 / 3 * ε := by linarith,
-  by_cases sqrt_aux_big: sqrt_aux f k ^ 2 > 16 / 3 * ε,
-  { have r : 16 / 3 * ε < 4 * sqrt_aux f k ^ 2 := by linarith,
+  by_cases sqrt_aux_big: sqrt_aux f k ^ 2 > (c + 1) ^ 2 / c * ε / 4,
+  { left,
+    have c_add_1_pos : 0 < (c + 1) ^ 2 := sq_pos_of_pos (by linarith),
+    have r : (c + 1) ^ 2 / c * ε < 4 * sqrt_aux f k ^ 2 := (div_lt_iff' (by norm_num)).mp sqrt_aux_big,
+    have bound_pos : 0 < (c + 1) ^ 2 / c * ε := mul_pos (div_pos c_add_1_pos c_pos) ε_pos,
+    clear sqrt_aux_big,
     have u : 0 ≤ sqrt_aux f k ^ 2 - f k + ε := by linarith [sqrt_aux_overestimate' f k],
     have r' : 0 < 4 * sqrt_aux f k ^ 2 := mul_pos (by norm_num) (sq_pos_of_pos (sqrt_aux_pos f k)),
     have num_pos : 0 ≤ ((sqrt_aux f k ^ 2 - f k) + ε) ^ 2 := sq_nonneg _,
     have one_pos : (0 : ℚ) < 1 := by norm_num,
     have four_pos : (0 : ℚ) < 4 := by norm_num,
     calc _ ≤ ((sqrt_aux f k ^ 2 - f k) + ε) ^ 2 / (4 * sqrt_aux f k ^ 2) : converges_eventually_if_near_step f N f_ge_0 ε ε_pos f_near k k_large
-      ... ≤ ((sqrt_aux f k ^ 2 - f k) + ε) ^ 2 / (16 / 3 * ε) : div_le_div (sq_nonneg _) (le_of_eq rfl) bound_pos (le_of_lt r)
-      ... < ((3 * ε + ε) ^ 2) / (16 / 3 * ε) : begin
-        refine (div_lt_div_right bound_pos).2 _,
-        apply sq_lt_sq,
-        have r : 0 ≤ 3 * ε + ε := by linarith,
+      ... ≤ ((sqrt_aux f k ^ 2 - f k) + ε) ^ 2 / ((c + 1) ^ 2 / c * ε) : div_le_div (sq_nonneg _) (le_of_eq rfl) bound_pos (le_of_lt r)
+      ... ≤ ((c * ε + ε) ^ 2) / ((c + 1) ^ 2 / c * ε) : begin
+        refine (div_le_div_right bound_pos).2 _,
+        apply sq_le_sq,
+        have r : 0 ≤ c * ε + ε := by linarith,
         rw abs_eq_self.2 r,
         rw abs_eq_self.2 u,
         linarith,
       end
-      ... = (16 * ε ^ 2) / (16 / 3 * ε) : by ring
-      ... = (16 * ε ^ 2) * (3 / 16) / ε : by field_simp
-      ... = (3 * ε) * (ε / ε) : by ring
-      ... = (3 * ε) * 1 : by rw div_self (ne_of_gt ε_pos)
-      ... = 3 * ε : by field_simp, },
-  { simp at sqrt_aux_big,
-    have r : _ := converges_eventually_if_near_step f N f_ge_0 ε ε_pos f_near k k_large,
-    sorry,
-   },
+      ... = ((c + 1) ^ 2 * ε * ε) / ((c + 1) ^ 2 / c * ε) : by ring
+      ... = ((c + 1) ^ 2 * ε) / ((c + 1) ^ 2 / c) : mul_div_mul_right _ _ (ne_of_gt ε_pos)
+      ... = ((c + 1) ^ 2 * ε) / ((c + 1) ^ 2 * 1) * c : by field_simp
+      ... = ε / 1 * c : by rw mul_div_mul_left ε _ (ne_of_gt c_add_1_pos)
+      ... = c * ε : by ring, },
+  { right,
+    push_neg at sqrt_aux_big,
+    calc sqrt_aux f k ^ 2 - f k ≤ sqrt_aux f k ^ 2 : sub_le_self _ (f_ge_0 k k_large)
+      ... ≤ (c + 1) ^ 2 / c * ε / 4 : sqrt_aux_big
+      ... = (((c + 1) ^ 2 / c) * 1/4) * ε : by ring
+      ... = ((c + 1) ^ 2 / (c * 4)) * ε : by field_simp
+      ... = (c + 1) ^ 2 / (4 * c) * ε : by rw mul_comm c 4, },
 end
+
+private def shrink : ℕ → ℚ
+| 0 := 3
+| (k + 1) := let c := shrink k in (c + 1) ^ 2 / (4 * c)
+
+lemma shrink_pos (m : ℕ) : 0 < shrink m :=
+begin
+  induction m,
+  { unfold shrink, by norm_num, },
+  { unfold shrink,
+    refine div_pos ((sq_pos_iff _).2 _) _,
+    { linarith, },
+    { linarith, }, },
+end
+
+lemma shrink_gt_1 (m : ℕ) : 1 ≤ shrink m :=
+begin
+  induction m with m hyp,
+  { unfold shrink, by norm_num, },
+  { unfold shrink,
+    simp,
+    have u := rat.am_gm (shrink m) 1,
+    refine (le_div_iff _).2 _,
+    { exact mul_pos (by norm_num) (shrink_pos m), },
+    { simpa using u, }, },
+end
+
+lemma shrink_lt (m : ℕ) : shrink (m + 1) ≤ shrink m :=
+begin
+  unfold shrink, simp,
+  refine (div_le_iff _).2 _,
+  { exact mul_pos (by norm_num) (shrink_pos m), },
+  { suffices: (2 * shrink m) ^ 2 - (shrink m + 1) ^ 2 ≥ 0, by linarith,
+    rw sq_sub_sq,
+    refine mul_nonneg _ _,
+    { exact add_nonneg (mul_nonneg (by norm_num) (le_of_lt (shrink_pos m))) (add_nonneg (le_of_lt (shrink_pos m)) (by norm_num)), },
+    { ring_nf, linarith [shrink_gt_1 m], }, }
+end
+
+lemma shrink_le_three (m : ℕ) : shrink m ≤ 3 :=
+begin
+  induction m with m hyp,
+  { unfold shrink, },
+  { calc shrink (m + 1) ≤ shrink m : (shrink_lt m)
+    ... ≤ 3 : hyp, },
+end
+
+theorem stays_near_if_near'' (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
+  (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
+  (k : ℕ) (k_large : k ≥ N) (is_near : sqrt_aux f k ^ 2 - f k ≤ 3 * ε)
+  (big : sqrt_aux f (k + 1) ^ 2 - f (k + 1) > 3 * ε) :
+  (∀ m, ∀ n ≤ m, sqrt_aux f k ^ 2 - f k ≤ shrink n * ε)
+| 0 :=
+begin
+  intros n pr,
+  simp at pr, rw pr,
+  unfold shrink,
+  exact is_near,
+end
+| (m + 1) :=
+begin
+  intros n n_le_m,
+  rcases lt_trichotomy n (m + 1) with n_lt_succ_m | n_eq_succ_m | n_gt_succ_m,
+  { have r : n ≤ m := by linarith,
+    exact stays_near_if_near'' m n r, },
+  { subst n_eq_succ_m,
+    clear n_le_m,
+    rcases stays_near_if_near_step' f N f_ge_0 ε ε_pos f_near (shrink m) (shrink_pos m) (shrink_le_three m) k k_large (stays_near_if_near'' m m (le_of_eq rfl)) with done | step,
+    { have: shrink m * ε ≤ 3 * ε := (mul_le_mul_right ε_pos).2 (shrink_le_three m),
+      linarith, },
+    { exact step, }, },
+  { linarith, },
+end
+
+theorem stays_near_if_near' (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
+  (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
+  (k : ℕ) (k_large : k ≥ N) (is_near : sqrt_aux f k ^ 2 - f k ≤ 3 * ε) :
+  sqrt_aux f (k + 1) ^ 2 - f (k + 1) ≤ 3 * ε ∨ (∀ m, sqrt_aux f k ^ 2 - f k ≤ shrink m * ε) :=
+begin
+  by_cases sqrt_aux f (k + 1) ^ 2 - f (k + 1) ≤ 3 * ε,
+  { left, exact h, },
+  { right,
+    have h := stays_near_if_near'' f N f_ge_0 ε ε_pos f_near k k_large is_near (by linarith),
+    intros m, exact h m m rfl.ge,
+  }
+end
+
+theorem shrink_is_one (c : ℚ) (small : ∀ m, c ≤ shrink m) : c ≤ 1 :=
+begin
+  sorry
+end
+
+theorem stays_near_if_near_2 (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
+  (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
+  (k : ℕ) (k_large : k ≥ N) (is_near : sqrt_aux f k ^ 2 - f k ≤ 3 * ε) :
+  sqrt_aux f (k + 1) ^ 2 - f (k + 1) ≤ 3 * ε ∨ sqrt_aux f k ^ 2 - f k ≤ ε :=
+begin
+  rcases stays_near_if_near' f N f_ge_0 ε ε_pos f_near k k_large is_near with done | small,
+  { left, exact done, },
+  { right,
+    sorry, },
+end
+
+theorem stays_near_if_near (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
+  (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
+  (k : ℕ) (k_large : k ≥ N) (is_near : sqrt_aux f k ^ 2 - f k ≤ 3 * ε) :
+  sqrt_aux f (k + 1) ^ 2 - f (k + 1) ≤ 3 * ε :=
+begin
+  rcases stays_near_if_near_2 f N f_ge_0 ε ε_pos f_near k k_large is_near with done | small,
+  { exact done, },
+  { have u := converges_eventually_if_near_step f N f_ge_0 ε ε_pos f_near k k_large,
+    clear is_near,
+    sorry,
+  }
+end
+
 #exit
 
 theorem cau_seq_le_zero (f : cau_seq ℚ abs) (f_nonpos : f ≤ 0) : is_cau_seq abs (sqrt_aux f) :=

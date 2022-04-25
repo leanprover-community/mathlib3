@@ -1005,33 +1005,14 @@ begin
   rw [← lt_top_iff_ne_top], convert hfi.has_finite_integral, ext1 x, rw [nnreal.nnnorm_eq]
 end
 
--- Place in `nnreal`-file.
-lemma coe_comp_to_nnreal_comp {X : Type*} {f : X → ℝ} (f_nn : 0 ≤ f) :
-  (coe : ℝ≥0 → ℝ) ∘ real.to_nnreal ∘ f = f :=
-by { ext x, exact real.coe_to_nnreal _ (f_nn x), }
-
--- Place in `ennreal`-file.
-lemma ennreal_coe_comp_to_nnreal_comp {X : Type*} {f : X → ℝ} (f_nn : 0 ≤ f) :
-  (coe : ℝ≥0 → ℝ≥0∞) ∘ real.to_nnreal ∘ f = ennreal.of_real ∘ f :=
-begin
-  funext x,
-  simp only [ennreal.of_real_eq_coe_nnreal (f_nn x), function.comp_app, ennreal.coe_eq_coe],
-  apply subtype.coe_injective,
-  exact max_eq_left_iff.mpr (f_nn x),
-end
-
--- Add this?
-lemma coe_integral_eq_lintegral_coe
-  {α : Type*} [measurable_space α] {μ : measure α}
-  {f : α → ℝ} (f_intble : integrable f μ) (f_nonneg : 0 ≤ f) :
+lemma of_real_integral_eq_lintegral_of_real {f : α → ℝ} (hfi : integrable f μ) (f_nn : 0 ≤ f) :
   ennreal.of_real (∫ x, f x ∂μ) = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
 begin
-  set f_nn := real.to_nnreal ∘ f with def_f_nn,
-  have coe_f_nn : (λ x, (f_nn x : ℝ)) = f, from coe_comp_to_nnreal_comp f_nonneg,
-  have of_real_f_nn : (λ x, (f_nn x : ℝ≥0∞)) = (λ x, ennreal.of_real (f x)),
-  from ennreal_coe_comp_to_nnreal_comp f_nonneg,
-  have f_nn_intble : integrable (λ x, (f_nn x : ℝ)) μ, by rwa ←coe_f_nn at f_intble,
-  rw [←coe_f_nn, ←lintegral_coe_eq_integral f_nn f_nn_intble, of_real_f_nn, coe_f_nn],
+  set g := real.to_nnreal ∘ f with def_g,
+  have coe_g : (λ x, (g x : ℝ)) = f, from coe_comp_to_nnreal_comp f_nn,
+  have of_real_g : (λ x, (g x : ℝ≥0∞)) = (λ x, ennreal.of_real (f x)),
+  from ennreal_coe_comp_to_nnreal_comp f_nn,
+  rw [←coe_g, ←lintegral_coe_eq_integral g (by rwa ←coe_g at hfi), of_real_g, coe_g],
 end
 
 lemma integral_to_real {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hf : ∀ᵐ x ∂μ, f x < ∞) :

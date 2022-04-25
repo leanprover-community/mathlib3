@@ -465,6 +465,10 @@ real.to_nnreal_add hr hr
   real.to_nnreal (bit1 r) = bit1 (real.to_nnreal r) :=
 (real.to_nnreal_add (by simp [hr]) zero_le_one).trans (by simp [to_nnreal_one, bit1, hr])
 
+lemma coe_comp_to_nnreal_comp {α : Type*} {f : α → ℝ} (f_nn : 0 ≤ f) :
+  (coe : ℝ≥0 → ℝ) ∘ real.to_nnreal ∘ f = f :=
+by { ext x, exact real.coe_to_nnreal _ (f_nn x), }
+
 end to_nnreal
 
 end real

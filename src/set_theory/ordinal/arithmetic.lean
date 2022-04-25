@@ -40,8 +40,6 @@ Some properties of the operations are also used to discuss general tools on ordi
   and order-continuous, i.e., the image `f o` of a limit ordinal `o` is the sup of `f a` for
   `a < o`.
 * `enum_ord`: enumerates an unbounded set of ordinals by the ordinals themselves.
-* `nfp f a`: the next fixed point of a function `f` on ordinals, above `a`. It behaves well
-  for normal functions.
 * `CNF b o` is the Cantor normal form of the ordinal `o` in base `b`.
 * `sup`, `lsub`: the supremum / least strict upper bound of an indexed family of ordinals in
   `Type u`, as an ordinal in `Type u`.

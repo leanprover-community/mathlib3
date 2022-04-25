@@ -133,7 +133,8 @@ variables [has_measurable_mul G]
 
 /-- We shorten this from `measure_preimage_mul_left`, since left invariant is the preferred option
   for measures in this formalization. -/
-@[simp, to_additive]
+@[simp, to_additive "We shorten this from `measure_preimage_add_left`, since left invariant is the
+preferred option for measures in this formalization."]
 lemma measure_preimage_mul (μ : measure G) [is_mul_left_invariant μ] (g : G) (A : set G) :
   μ ((λ h, g * h) ⁻¹' A) = μ A :=
 calc μ ((λ h, g * h) ⁻¹' A) = map (λ h, g * h) μ A :
@@ -289,9 +290,11 @@ begin
 end
 
 variables [is_mul_left_invariant μ]
-/-- If a left-invariant measure gives positive mass to a compact set, then
-it gives positive mass to any open set. -/
-@[to_additive]
+
+/-- If a left-invariant measure gives positive mass to a compact set, then it gives positive mass to
+any open set. -/
+@[to_additive "If a left-invariant measure gives positive mass to a compact set, then it gives
+positive mass to any open set."]
 lemma is_open_pos_measure_of_mul_left_invariant_of_compact
   (K : set G) (hK : is_compact K) (h : μ K ≠ 0) :
   is_open_pos_measure μ :=
@@ -308,7 +311,7 @@ begin
 end
 
 /-- A nonzero left-invariant regular measure gives positive mass to any open set. -/
-@[to_additive]
+@[to_additive "A nonzero left-invariant regular measure gives positive mass to any open set."]
 lemma is_open_pos_measure_of_mul_left_invariant_of_regular [regular μ] (h₀ : μ ≠ 0) :
   is_open_pos_measure μ :=
 let ⟨K, hK, h2K⟩ := regular.exists_compact_not_null.mpr h₀
@@ -336,9 +339,10 @@ lemma measure_pos_iff_nonempty_of_is_mul_left_invariant [regular μ]
   0 < μ s ↔ s.nonempty :=
 pos_iff_ne_zero.trans $ measure_ne_zero_iff_nonempty_of_is_mul_left_invariant h3μ hs
 
-/-- If a left-invariant measure gives finite mass to a nonempty open set, then
-it gives finite mass to any compact set. -/
-@[to_additive]
+/-- If a left-invariant measure gives finite mass to a nonempty open set, then it gives finite mass
+to any compact set. -/
+@[to_additive "If a left-invariant measure gives finite mass to a nonempty open set, then it gives
+finite mass to any compact set."]
 lemma measure_lt_top_of_is_compact_of_is_mul_left_invariant
   (U : set G) (hU : is_open U) (h'U : U.nonempty) (h : μ U ≠ ∞) {K : set G} (hK : is_compact K) :
   μ K < ∞ :=
@@ -354,7 +358,8 @@ end
 
 /-- If a left-invariant measure gives finite mass to a set with nonempty interior, then
 it gives finite mass to any compact set. -/
-@[to_additive]
+@[to_additive "If a left-invariant measure gives finite mass to a set with nonempty interior, then
+it gives finite mass to any compact set."]
 lemma measure_lt_top_of_is_compact_of_is_mul_left_invariant'
   {U : set G} (hU : (interior U).nonempty) (h : μ U ≠ ∞) {K : set G} (hK : is_compact K) :
   μ K < ∞ :=
@@ -370,7 +375,9 @@ variables [comm_group G]
 /-- In an abelian group every left invariant measure is also right-invariant.
   We don't declare the converse as an instance, since that would loop type-class inference, and
   we use `is_mul_left_invariant` as default hypotheses in abelian groups. -/
-@[priority 100, to_additive]
+@[priority 100, to_additive "In an abelian additive group every left invariant measure is also
+right-invariant. We don't declare the converse as an instance, since that would loop type-class
+inference, and we use `is_add_left_invariant` as default hypotheses in abelian groups."]
 instance is_mul_left_invariant.is_mul_right_invariant {μ : measure G} [is_mul_left_invariant μ] :
   is_mul_right_invariant μ :=
 ⟨λ g, by simp_rw [mul_comm, map_mul_left_eq_self]⟩
@@ -395,10 +402,17 @@ class is_haar_measure {G : Type*} [group G] [topological_space G] [measurable_sp
   (μ : measure G)
   extends is_finite_measure_on_compacts μ, is_mul_left_invariant μ, is_open_pos_measure μ : Prop
 
-/- Record that a Haar measure on a locally compact space is locally finite. This is needed as the
+/-- Record that a Haar measure on a locally compact space is locally finite. This is needed as the
 fact that a measure which is finite on compacts is locally finite is not registered as an instance,
-to avoid an instance loop. -/
-@[priority 100, to_additive] -- see Note [lower instance priority]
+to avoid an instance loop.
+
+See Note [lower instance priority]. -/
+
+@[priority 100, to_additive "Record that an additive Haar measure on a locally compact space is
+locally finite. This is needed as the fact that a measure which is finite on compacts is locally
+finite is not registered as an instance, to avoid an instance loop.
+
+See Note [lower instance priority]"]
 instance is_locally_finite_measure_of_is_haar_measure {G : Type*}
   [group G] [measurable_space G] [topological_space G] [locally_compact_space G]
   (μ : measure G) [is_haar_measure μ] :
@@ -424,8 +438,9 @@ lemma is_haar_measure.smul {c : ℝ≥0∞} (cpos : c ≠ 0) (ctop : c ≠ ∞) 
   to_is_open_pos_measure := is_open_pos_measure_smul μ cpos }
 
 /-- If a left-invariant measure gives positive mass to some compact set with nonempty interior, then
-it is a Haar measure -/
-@[to_additive]
+it is a Haar measure. -/
+@[to_additive "If a left-invariant measure gives positive mass to some compact set with nonempty
+interior, then it is an additive Haar measure."]
 lemma is_haar_measure_of_is_compact_nonempty_interior [topological_group G] [borel_space G]
   (μ : measure G) [is_mul_left_invariant μ]
   (K : set G) (hK : is_compact K) (h'K : (interior K).nonempty) (h : μ K ≠ 0) (h' : μ K ≠ ∞) :
@@ -436,7 +451,8 @@ lemma is_haar_measure_of_is_compact_nonempty_interior [topological_group G] [bor
 
 /-- The image of a Haar measure under a group homomorphism which is also a homeomorphism is again
 a Haar measure. -/
-@[to_additive]
+@[to_additive "The image of an additive Haar measure under an additive group homomorphism which is
+also a homeomorphism is again an additive Haar measure."]
 lemma is_haar_measure_map [borel_space G] [topological_group G] {H : Type*} [group H]
   [topological_space H] [measurable_space H] [borel_space H] [t2_space H] [topological_group H]
   (f : G ≃* H) (hf : continuous f) (hfsymm : continuous f.symm) :
@@ -460,8 +476,12 @@ lemma is_haar_measure_map [borel_space G] [topological_group G] {H : Type*} [gro
   end,
   to_is_open_pos_measure := hf.is_open_pos_measure_map f.surjective }
 
-/-- A Haar measure on a sigma-compact space is sigma-finite. -/
-@[priority 100, to_additive] -- see Note [lower instance priority]
+/-- A Haar measure on a σ-compact space is σ-finite.
+
+See Note [lower instance priority] -/
+@[priority 100, to_additive "A Haar measure on a σ-compact space is σ-finite.
+
+See Note [lower instance priority]"]
 instance is_haar_measure.sigma_finite [sigma_compact_space G] : sigma_finite μ :=
 ⟨⟨{ set := compact_covering G,
   set_mem := λ n, mem_univ _,
@@ -472,11 +492,15 @@ open_locale topological_space
 open filter
 
 /-- If the neutral element of a group is not isolated, then a Haar measure on this group has
-no atom.
+no atoms.
 
-This applies in particular to show that an additive Haar measure on a nontrivial
-finite-dimensional real vector space has no atom. -/
-@[priority 100, to_additive]
+The additive version of this instance applies in particular to show that an additive Haar measure on
+a nontrivial finite-dimensional real vector space has no atom. -/
+@[priority 100, to_additive "If the zero element of an additive group is not isolated, then an
+additive Haar measure on this group has no atoms.
+
+This applies in particular to show that an additive Haar measure on a nontrivial finite-dimensional
+real vector space has no atom."]
 instance is_haar_measure.has_no_atoms [topological_group G] [borel_space G]
   [t1_space G] [locally_compact_space G] [(𝓝[≠] (1 : G)).ne_bot]
   (μ : measure G) [μ.is_haar_measure] :

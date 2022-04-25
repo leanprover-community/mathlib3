@@ -1616,6 +1616,9 @@ calc (∑' i : s, 1 : ℝ≥0∞) = ∑' i, indicator s 1 i : tsum_subtype s 1
 lemma count_apply (hs : measurable_set s) : count s = ∑' i : s, 1 :=
 by simp only [count, sum_apply, hs, dirac_apply', ← tsum_subtype s 1, pi.one_apply]
 
+@[simp] lemma count_empty : count (∅ : set α) = 0 :=
+by rw [count_apply measurable_set.empty, tsum_empty]
+
 @[simp] lemma count_apply_finset [measurable_singleton_class α] (s : finset α) :
   count (↑s : set α) = s.card :=
 calc count (↑s : set α) = ∑' i : (↑s : set α), 1 : count_apply s.measurable_set
@@ -1637,7 +1640,9 @@ begin
   ... ≤ count s : measure_mono ht
 end
 
-@[simp] lemma count_apply_eq_top [measurable_singleton_class α] : count s = ∞ ↔ s.infinite :=
+variable [measurable_singleton_class α]
+
+@[simp] lemma count_apply_eq_top : count s = ∞ ↔ s.infinite :=
 begin
   by_cases hs : s.finite,
   { simp [set.infinite, hs, count_apply_finite] },
@@ -1645,10 +1650,34 @@ begin
     simp [hs, count_apply_infinite] }
 end
 
-@[simp] lemma count_apply_lt_top [measurable_singleton_class α] : count s < ∞ ↔ s.finite :=
+@[simp] lemma count_apply_lt_top : count s < ∞ ↔ s.finite :=
 calc count s < ∞ ↔ count s ≠ ∞ : lt_top_iff_ne_top
              ... ↔ ¬s.infinite : not_congr count_apply_eq_top
              ... ↔ s.finite    : not_not
+
+lemma empty_of_count_eq_zero (hsc : count s = 0) : s = ∅ :=
+begin
+  have hs : s.finite,
+  { rw [← count_apply_lt_top, hsc],
+    exact with_top.zero_lt_top },
+  rw count_apply_finite _ hs at hsc,
+  simpa using hsc,
+end
+
+@[simp] lemma count_eq_zero_iff : count s = 0 ↔ s = ∅ :=
+⟨empty_of_count_eq_zero, λ h, h.symm ▸ count_empty⟩
+
+lemma count_ne_zero (hs' : s.nonempty) : count s ≠ 0 :=
+begin
+  rw [ne.def, count_eq_zero_iff],
+  exact hs'.ne_empty,
+end
+
+@[simp] lemma count_singleton (a : α) : count ({a} : set α) = 1 :=
+begin
+  rw [count_apply_finite ({a} : set α) (set.finite_singleton _), set.finite.to_finset],
+  simp,
+end
 
 end count
 
@@ -2332,7 +2361,7 @@ by { filter_upwards [hs_zero], intros, split_ifs, refl }
 namespace measure
 
 /-- A measure is called finite at filter `f` if it is finite at some set `s ∈ f`.
-Equivalently, it is eventually finite at `s` in `f.lift' powerset`. -/
+Equivalently, it is eventually finite at `s` in `f.small_sets`. -/
 def finite_at_filter {m0 : measurable_space α} (μ : measure α) (f : filter α) : Prop :=
 ∃ s ∈ f, μ s < ∞
 
@@ -2883,8 +2912,8 @@ protected lemma measure_mono (h : μ ≤ ν) : ν.finite_at_filter f → μ.fini
   ν.finite_at_filter g → μ.finite_at_filter f :=
 λ h, (h.filter_mono hf).measure_mono hμ
 
-protected lemma eventually (h : μ.finite_at_filter f) : ∀ᶠ s in f.lift' powerset, μ s < ∞ :=
-(eventually_lift'_powerset' $ λ s t hst ht, (measure_mono hst).trans_lt ht).2 h
+protected lemma eventually (h : μ.finite_at_filter f) : ∀ᶠ s in f.small_sets, μ s < ∞ :=
+(eventually_small_sets' $ λ s t hst ht, (measure_mono hst).trans_lt ht).2 h
 
 lemma filter_sup : μ.finite_at_filter f → μ.finite_at_filter g → μ.finite_at_filter (f ⊔ g) :=
 λ ⟨s, hsf, hsμ⟩ ⟨t, htg, htμ⟩,

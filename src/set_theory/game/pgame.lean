@@ -148,6 +148,28 @@ def move_right : Π (g : pgame), right_moves g → pgame
 @[simp] lemma right_moves_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).right_moves = xr := rfl
 @[simp] lemma move_right_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_right = xR := rfl
 
+/-- Conway induction on games. -/
+@[elab_as_eliminator] def move_rec_on {C : pgame → Sort} (x : pgame)
+  (IH : ∀ (y : pgame), (∀ i, C (y.move_left i)) → (∀ j, C (y.move_right j)) → C y) : C x :=
+begin
+  cases x with xl xr xL xR,
+  apply pgame.rec_on,
+  intros yl yr yL yR IHl IHr,
+  apply IH, exact IHl, exact IHr
+end
+
+/-- `is_option x y` means that `x` is either a left or right option for `y`. -/
+def is_option (x y : pgame) : Prop :=
+(∃ i, y.move_left i = x) ∨ ∃ i, y.move_right i = x
+
+theorem wf_is_option : well_founded is_option :=
+⟨λ x, x.move_rec_on begin
+  refine λ x IHl IHr, acc.intro x _,
+  rintros y (⟨i, rfl⟩ | ⟨i, rfl⟩),
+  { exact IHl i },
+  { exact IHr i }
+end⟩
+
 /-- `subsequent p q` says that `p` can be obtained by playing
   some nonempty sequence of moves from `q`. -/
 inductive subsequent : pgame → pgame → Prop

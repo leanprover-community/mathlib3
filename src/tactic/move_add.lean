@@ -107,7 +107,8 @@ def list.return_unused {α : Type*} : list (bool × α) → list bool → list �
 def list.return_unused_simple {α : Type*} : list α → list bool → list α
 | un [] := un
 | [] bo := []
-| (u::us) (b::bs) := if b then ([u] ++ (us.return_unused_simple bs)) else (us.return_unused_simple bs)
+| (u::us) (b::bs) := if b then
+  ([u] ++ (us.return_unused_simple bs)) else (us.return_unused_simple bs)
 
 /-- A `tactic (option expr)` that either finds the first entry `f` of `lc` that unifies with `e`
 and returns `some f` or returns `none`. -/

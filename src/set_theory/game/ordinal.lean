@@ -21,14 +21,10 @@ set consists of all previous ordinals.
 # Todo
 
 - Extend this map to `game` and `surreal`.
+- Prove that `birthday o.to_pgame = o`.
 -/
 
 universe u
-
--- This will go in some other PR.
-lemma congr_fun_heq {α β γ : Sort*} {f : α → γ} {g : β → γ} (h₁ : β = α) (h₂ : f == g) (x : β) :
-  f (cast h₁ x) = g x :=
-by { subst h₁, rw [eq_of_heq h₂, cast_eq] }
 
 namespace ordinal
 

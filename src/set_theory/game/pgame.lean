@@ -149,7 +149,7 @@ def move_right : Π (g : pgame), right_moves g → pgame
 @[simp] lemma move_right_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_right = xR := rfl
 
 /-- Conway induction on games. -/
-@[elab_as_eliminator] def move_rec_on {C : pgame → Sort} (x : pgame)
+@[elab_as_eliminator] def move_rec_on {C : pgame → Sort*} (x : pgame)
   (IH : ∀ (y : pgame), (∀ i, C (y.move_left i)) → (∀ j, C (y.move_right j)) → C y) : C x :=
 begin
   cases x with xl xr xL xR,

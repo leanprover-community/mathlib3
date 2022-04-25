@@ -91,7 +91,7 @@ end
 @[simp] theorem to_pgame_le_iff {a b : ordinal} : a.to_pgame ≤ b.to_pgame ↔ a ≤ b :=
 ⟨by { contrapose, rw [not_le, pgame.not_le], exact to_pgame_lt }, to_pgame_le⟩
 
-theorem injective_to_pgame : function.injective ordinal.to_pgame :=
+theorem to_pgame_injective : function.injective ordinal.to_pgame :=
 λ a b h, begin
   by_contra hne,
   cases lt_or_gt_of_ne hne with hlt hlt;
@@ -103,7 +103,7 @@ end
 /-- The order embedding version of `to_pgame`. -/
 @[simps] noncomputable def to_pgame_embedding : ordinal.{u} ↪o pgame.{u} :=
 { to_fun := ordinal.to_pgame,
-  inj' := injective_to_pgame,
+  inj' := to_pgame_injective,
   map_rel_iff' := @to_pgame_le_iff }
 
 end ordinal

@@ -23,7 +23,7 @@ begin
   move_add [_ * c, ← _ * c], -- Goal: `a * c + c + b * c = a * d + d + b * d`
   --  creates two side-goals of `ℕ`, one for each `_`, even though they have been unified
   --  correctly and disappear with the `assumption`s.
-  --  It is possible to not have them at all?
+  --  Is it possible to not have them at all?
   congr,
   repeat { assumption }
 end

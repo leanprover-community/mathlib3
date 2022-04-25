@@ -8,6 +8,43 @@ import probability.variance
 /-!
 # Identically distributed random variables
 
+Two random variables defined on two (possibly different) probability spaces but taking value in
+the same space are *identically distributed* if their distributions (i.e., the image probability
+measures on the target space) coincide. We define this concept and establish its basic properties
+in this file.
+
+## Main definitions and results
+
+* `ident_distrib f g μ ν` registers that the image of `μ` under `f` coincides with the image of `ν`
+  under `g` (and that `f` and `g` are almost everywhere measurable, as otherwise the image measures
+  don't make sense). The measures can be kept implicit as in `ident_distrib f g` is the spaces
+  are registered as measure spaces.
+* `ident_distrib.comp`: being identically distributed is stable under composition with measurable
+  maps.
+
+There are two main kind of lemmas, under the assumption that `f` and `g` are identically
+distributed: lemmas saying that two quantities computed for `f` and `g` are the same, and lemmas
+saying that if `f` has some property then `g` also has it. The first kind is registered as
+`ident_distrib.foo_eq`, the second one as `ident_distrib.foo_snd` (in the latter case, to deduce
+a property of `f` from one of `g`, use `h.symm.foo_snd` where `h : ident_distrib f g μ ν`). For
+instance:
+
+* `ident_distrib.measure_mem_eq`: if `f` and `g` are identically distributed, then the probabilities
+  that they belong to a given measurable set are the same.
+* `ident_distrib.integral_eq`: if `f` and `g` are identically distributed, then their integrals
+  are the same.
+* `ident_distrib.variance_eq`: if `f` and `g` are identically distributed, then their variances
+  are the same.
+
+* `ident_distrib.ae_strongly_measurable_snd`: if `f` and `g` are identically distributed and `f`
+  is almost everywhere strongly measurable, then so is `g`.
+* `ident_distrib.mem_ℒp_snd`: if `f` and `g` are identically distributed and `f`
+  belongs to `ℒp`, then so does `g`.
+
+We also register several dot notation shortcuts for convenience.
+For instance, if `h : ident_distrib f g μ ν`, then `h.sq` states that `f^2` and `g^2` are
+identically distributed, and `h.norm` states that `∥f∥` and `∥g∥` are identically distributed, and
+so on.
 -/
 
 open measure_theory filter finset

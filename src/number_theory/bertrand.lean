@@ -79,7 +79,7 @@ lemma pow_α_le_two_mul (p : nat) [hp : fact p.prime] (n : nat) (n_big : 3 ≤ n
   p ^ (α n p) ≤ 2 * n :=
 begin
   unfold α,
-  rw @padic_val_nat_def p hp (central_binom n) (central_binom_ne_zero n),
+  rw @padic_val_nat_def p hp (central_binom n) (nat.pos_of_ne_zero (central_binom_ne_zero n)),
   simp only [central_binom_eq_two_mul_choose n,
     prime.multiplicity_choose hp.out
       (le_mul_of_pos_left zero_lt_two) (lt_add_one (p.log (2 * n)))],
@@ -100,7 +100,8 @@ lemma multiplicity_implies_small (p : nat) [hp : fact p.prime] (n : nat)
 begin
   unfold α at multiplicity_pos,
   rw central_binom_eq_two_mul_choose at multiplicity_pos,
-  rw @padic_val_nat_def p hp ((2 * n).choose n) (central_binom_ne_zero n) at multiplicity_pos,
+  rw @padic_val_nat_def p hp ((2 * n).choose n) (nat.pos_of_ne_zero (central_binom_ne_zero n)) at
+    multiplicity_pos,
   simp only [prime.multiplicity_choose hp.out (le_mul_of_pos_left zero_lt_two)
               (lt_add_one (p.log (2 * n)))]
     at multiplicity_pos,
@@ -184,6 +185,8 @@ begin
   linarith,
 end
 
+lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num
+
 lemma mul_div_mul (a b c : ℝ) (ha : a ≠ 0) : (a * b) / (a * c) = b / c :=
 begin
   by_cases c = 0,
@@ -227,8 +230,6 @@ begin
                 ... = 10 * log 2 : log_rpow (by norm_num) 10
             end,
 end
-
-lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num
 
 -- This is best possible: it is false for x = 312.
 lemma inequality2 {x : ℝ} (n_large : 313 ≤ x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.04 :=
@@ -289,10 +290,10 @@ lemma sqrt_361 : sqrt 361 = 19 :=
 calc sqrt 361 = sqrt (19 ^ 2) : by norm_num
   ... = 19 : sqrt_sq (by norm_num)
 
-open tactic.interactive
-meta def collapse_log : tactic unit :=
-do
-  tactic.repeat { tactic.interactive.rw [``(real.log_rpow), ``(real.log_mul)], }
+-- open tactic.interactive
+-- meta def collapse_log : tactic unit :=
+-- do
+--   tactic.repeat { tactic.interactive.rw [``(real.log_rpow), ``(real.log_mul)], }
   --tactic.repeat tactic.norm_num,
 
 lemma log_722 : log 722 = log 2 + 2 * log 19 :=

@@ -25,7 +25,6 @@ expressions.
 
 ```lean
 import tactic.move_add
-import algebra.group.basic
 
 example {a b c d : ℕ} (h : c = d) : c + b + a = b + a + d :=
 begin
@@ -78,7 +77,7 @@ open tactic
 
 /-- A `tactic (option expr)` that either finds the first entry `f` of `lc` that unifies with `e`
 and returns `some f` or returns `none`. -/
-meta def expr.find_in2 (e : expr) (lc : list expr) : tactic (option expr) :=
+meta def expr.find_in (e : expr) (lc : list expr) : tactic (option expr) :=
 do
   h ← lc.mfilter $ λ e', succeeds $ unify e e',
   match h with
@@ -106,7 +105,7 @@ meta def list.unify_list :
   list (bool × expr) → list expr → tactic (list expr × list expr × list expr)
 | [] sl := return ([], [], sl)
 | (be::l) sl := do
-  cond ← be.2.find_in2 sl,
+  cond ← be.2.find_in sl,
   match cond with
   | none := l.unify_list sl
   | some ex := do

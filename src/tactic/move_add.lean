@@ -186,8 +186,19 @@ meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) : expr 
 
 /-- Calls `recurse_on_expr` with the right expression, depending on the tactic location. -/
 meta def move_add_aux (ll : list (bool × pexpr)) : option name → tactic unit
-| (some hyp) := get_local hyp >>= infer_type >>= recurse_on_expr hyp ll
-| none       := target >>= recurse_on_expr none ll
+| (some hyp) := do --get_local hyp >>= infer_type >>= recurse_on_expr hyp ll
+  thyp ← get_local hyp >>= infer_type,
+  recurse_on_expr hyp ll thyp,
+  nhyp ← get_local hyp,
+  nthyp ← infer_type nhyp,
+  if (thyp = nthyp) then trace format!"'{nhyp}' did not change" else skip -- error management
+| none       := do
+  t ← target,
+  recurse_on_expr none ll t,
+  tn ← target,
+  if (t = tn) then trace "Goal did not change" else skip -- error management
+
+
 
 /--  A version of `move_add_aux` that allows failure, if `allow_failure = tt`. -/
 meta def move_add_core (allow_failure : bool) (ll : list (bool × pexpr)) (hyp : option name) :

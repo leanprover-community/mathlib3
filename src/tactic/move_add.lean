@@ -21,6 +21,10 @@ The tactic never fails (really? TODO), but reports two kinds of unwanted use.
 1. If a target of `move_add` is left unchanged by the tactic, then this will be flagged.
 2. If a user-provided expression never matches, then the variable is flagged.
 
+TODO: better reporting for `at *`: currently, the tactic reports all hypotheses/goal that were
+unchanged.  It should only report gloally unused variables and whether *all* goals are unchanged,
+not *each unchanged goal*.
+
 ###  Remark:
 It is still possible that the same output of `move_add [exprs]` can be achieved by a proper sublist
 of `[exprs]`, even if the tactic does not flag anything.  For instance, giving the full re-ordering
@@ -100,6 +104,11 @@ def list.return_unused {α : Type*} : list (bool × α) → list bool → list �
 | [] bo := []
 | (u::us) (b::bs) := if b then ([u.2] ++ (us.return_unused bs)) else (us.return_unused bs)
 
+def list.return_unused_simple {α : Type*} : list α → list bool → list α
+| un [] := un
+| [] bo := []
+| (u::us) (b::bs) := if b then ([u] ++ (us.return_unused_simple bs)) else (us.return_unused_simple bs)
+
 /-- A `tactic (option expr)` that either finds the first entry `f` of `lc` that unifies with `e`
 and returns `some f` or returns `none`. -/
 meta def expr.find_in (e : expr) (lc : list expr) : tactic (option expr) :=
@@ -154,7 +163,7 @@ meta def list.combined (lp : list (bool × pexpr)) (sl : list expr) :
   tactic (list expr × list bool) :=
 do
   to_exp : list (bool × expr) ← list.convert_to_expr lp,
-  (l1, l2, l3, is_unused) ← list.unify_list to_exp sl [],
+  (l1, l2, l3, is_unused) ← to_exp.unify_list sl [],
   return (l1 ++ l3 ++ l2, is_unused)
 
 namespace tactic.interactive
@@ -215,6 +224,39 @@ meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) : expr 
   let unused_summed := li_unused.transpose.map list.bor,
   return unused_summed
 
+/-
+/-- Passes the user input to `recurse_on_expr` at a single location, that could either be `none`
+(referring to the goal) or `some name` (referring to hypothesis `name`).  Returns a list of
+booleans, recording which variable in `ll` has been unified in the application.
+
+This definition is useful to streamling error catching. -/
+meta def move_add_single (ll : list (bool × pexpr)) : option name → tactic (list bool)
+| (some hyp) := get_local hyp >>= infer_type >>= recurse_on_expr hyp ll
+| none       := target >>= recurse_on_expr none ll
+-/
+
+/-- Passes the user input to `recurse_on_expr` at a single location, that could either be `none`
+(referring to the goal) or `some name` (referring to hypothesis `name`).  Returns a pair consisting
+of a boolean and a further list of booleans.  The single boolean is `tt` if the tactic did *not*
+change the goal on which it was acting.  The list of booleans records which variable in `ll` has
+been unified in the application: `tt` means that the corresponding variable has *not* been unified.
+
+This definition is useful to streamling error catching. -/
+meta def move_add_with_errors (ll : list (bool × pexpr)) : option name → tactic (bool × list bool)
+| (some hyp) := do
+  lhyp ← get_local hyp,
+  thyp ←  infer_type lhyp,
+  is_unused ← recurse_on_expr hyp ll thyp,
+  nhyp ← get_local hyp,
+  nthyp ← infer_type nhyp,
+  if (thyp = nthyp) then return (tt, is_unused) else return (ff, is_unused)
+| none       := do
+  t ← target,
+  is_unused ← recurse_on_expr none ll t,
+  tn ← target,
+  if (t = tn) then return (tt, is_unused) else return (ff, is_unused)
+
+
 /-- Calls `recurse_on_expr` with the right expression, depending on the tactic location. -/
 meta def move_add_aux (ll : list (bool × pexpr)) : option name → tactic unit
 | (some hyp) := do
@@ -271,11 +313,49 @@ meta def move_add (args : parse move_pexpr_list_or_texpr) (locat : parse locatio
 match locat with
 | loc.wildcard := do
   ctx ← local_context,
-  ctx.mmap (λ e, move_add_core tt args e.local_pp_name),
+  not_changed ← ctx.mmap (λ e, move_add_core tt args e.local_pp_name),
+  trace not_changed,
   move_add_core tt args none,
   assumption <|> try (tactic.reflexivity reducible)
 | loc.ns names := do
   names.mmap $ move_add_core tt args,
+  assumption <|> try (tactic.reflexivity reducible)
+  end
+
+meta def to_hyps : list (option name) → tactic (list expr)
+| [] := pure []
+| (some n::ns) := do ln ← get_local n, fina ← to_hyps ns, return (ln::fina)
+| (none::ns) := to_hyps ns
+
+meta def move_add_new (args : parse move_pexpr_list_or_texpr) (locat : parse location) :
+  tactic unit :=
+match locat with
+| loc.wildcard := do
+  ctx ← local_context,trace ctx,
+  err_rep ← ctx.mmap (λ e, move_add_with_errors args e.local_pp_name),
+  er_t ← move_add_with_errors args none,
+  trace err_rep,
+  trace er_t,
+  if ff ∉ ([er_t.1] ++ err_rep.map (λ e, e.1)) then trace "'move_add' changed nothing" else skip,
+  trace err_rep,
+  assumption <|> try (tactic.reflexivity reducible)
+| loc.ns names := do
+  err_rep ← names.mmap $ move_add_with_errors args,
+  let conds := err_rep.map (λ e, e.1),
+  linames ← to_hyps (names.return_unused_simple conds),
+  if linames ≠ [] then trace
+    format!"'{linames}' did not change" else skip,
+  if none ∈ names.return_unused_simple conds then trace
+    "Goal did not change" else skip,
+  let li_unused := (err_rep.map (λ e, e.2)),
+  let li_unused_clear := li_unused.filter (≠ []),
+  let li_tf_vars := li_unused_clear.transpose.map list.bor,
+  match ((args.return_unused_simple li_tf_vars).map (λ e : bool × pexpr, e.2)) with
+  | [] := skip
+  | [pe] := trace format!"'{pe}' is an unused variable" -- at {lhyp.local_pp_name}"
+  | pes := trace format!"'{pes}' are unused variables" -- at {lhyp.local_pp_name}"
+  end,
+  if ff ∉ err_rep.map (λ e, e.1) then trace "'move_add' changed nothing" else skip,
   assumption <|> try (tactic.reflexivity reducible)
   end
 

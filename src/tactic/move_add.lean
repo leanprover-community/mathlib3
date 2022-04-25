@@ -138,7 +138,8 @@ lp.mmap $ λ x : bool × pexpr, do
    `list.unify_list`,
 3. we jam the third factor inside the first two.
 -/
-meta def list.combined (lp : list (bool × pexpr)) (sl : list expr) : tactic (list expr × list bool) :=
+meta def list.combined (lp : list (bool × pexpr)) (sl : list expr) :
+  tactic (list expr × list bool) :=
 do
   to_exp : list (bool × expr) ← list.convert_to_expr lp,
   (l1, l2, l3, is_unused) ← list.unify_list to_exp sl [],

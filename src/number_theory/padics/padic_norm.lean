@@ -110,11 +110,9 @@ variables {p : ℕ}
 lemma of_ne_one_ne_zero {z : ℤ} (hp : p ≠ 1) (hz : z ≠ 0) : padic_val_int p z =
   (multiplicity (p : ℤ) z).get (by {apply multiplicity.finite_int_iff.2, simp [hp, hz]}) :=
 begin
-  rw [padic_val_int, padic_val_nat, dif_pos],
+  rw [padic_val_int, padic_val_nat, dif_pos (and.intro hp (int.nat_abs_pos_of_ne_zero hz))],
   simp_rw multiplicity.int.nat_abs p z,
   refl,
-  simp [hp, hz],
-  exact int.nat_abs_pos_of_ne_zero hz,
 end
 
 /-- `padic_val_int p 0` is 0 for any `p`. -/
@@ -184,10 +182,9 @@ lemma multiplicity_sub_multiplicity {q : ℚ} (hp : p ≠ 1) (hq : q ≠ 0) :
     (by { rw [←finite_iff_dom, finite_nat_iff, and_iff_right hp], exact q.pos }) :=
 begin
   rw [padic_val_rat, padic_val_int.of_ne_one_ne_zero hp, padic_val_nat, dif_pos],
-  refl,
-  simp only [hp, ne.def, not_false_iff, true_and],
-  exact q.pos,
-  exact rat.num_ne_zero_of_ne_zero hq,
+  { refl },
+  { exact ⟨hp, q.pos⟩ },
+  { exact rat.num_ne_zero_of_ne_zero hq },
 end
 
 /-- The p-adic value of an integer `z ≠ 0` is its p-adic_value as a rational -/
@@ -482,21 +479,15 @@ lemma padic_val_nat_dvd_iff (p : ℕ) [hp :fact p.prime] (n : ℕ) (a : ℕ) :
   p^n ∣ a ↔ a = 0 ∨ n ≤ padic_val_nat p a :=
 begin
   split,
-  { rw pow_dvd_iff_le_multiplicity,
-    rw padic_val_nat,
+  { rw [pow_dvd_iff_le_multiplicity, padic_val_nat],
     split_ifs,
-    rw enat.coe_le_iff,
-    intro hn,
-    right,
-    apply hn,
-    simp [hp.out.ne_one] at h,
-    rw h,
-    simp, },
-  { intro h,
-    cases h,
-    rw h,
-    exact dvd_zero (p ^ n),
-    exact dvd_trans (pow_dvd_pow p h) pow_padic_val_nat_dvd, },
+    { rw enat.coe_le_iff,
+      exact λ hn, or.inr (hn _) },
+    { simp only [true_and, not_lt, ne.def, not_false_iff, nat.le_zero_iff, hp.out.ne_one] at h,
+      exact λ hn, or.inl h } },
+  { rintro (rfl|h),
+    { exact dvd_zero (p ^ n) },
+    { exact dvd_trans (pow_dvd_pow p h) pow_padic_val_nat_dvd } },
 end
 
 lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime]
@@ -589,33 +580,25 @@ by rw [padic_val_int, ←int.nat_abs_eq_zero, ←padic_val_nat_dvd_iff, ←int.c
 lemma padic_val_int_dvd (p : ℕ) [fact p.prime] (a : ℤ) : ↑p^(padic_val_int p a) ∣ a :=
 begin
   rw padic_val_int_dvd_iff,
-  simp only [le_refl, or_true],
+  exact or.inr le_rfl,
 end
 
 lemma padic_val_int_self (p : ℕ) [pp : fact p.prime] : padic_val_int p p = 1 :=
-begin
-  apply padic_val_int.self,
-  exact pp.out.one_lt,
-end
+padic_val_int.self pp.out.one_lt
 
 lemma padic_val_int.mul (p : ℕ) [fact p.prime] {a b : ℤ} (ha : a ≠ 0) (hb : b ≠ 0) :
   padic_val_int p (a*b) = padic_val_int p a + padic_val_int p b :=
 begin
   simp_rw padic_val_int,
-  rw int.nat_abs_mul,
-  rw padic_val_nat.mul;
+  rw [int.nat_abs_mul, padic_val_nat.mul];
   rwa int.nat_abs_ne_zero,
 end
 
 lemma padic_val_int_mul_eq_succ (p : ℕ) [pp : fact p.prime] (a : ℤ) (ha : a ≠ 0) :
   padic_val_int p (a * p) = (padic_val_int p a) + 1 :=
 begin
-  rw padic_val_int.mul,
-  congr,
+  rw padic_val_int.mul p ha (int.coe_nat_ne_zero.mpr (pp.out).ne_zero),
   simp only [eq_self_iff_true, padic_val_int.of_nat, padic_val_nat_self],
-  assumption,
-  simp only [int.coe_nat_eq_zero, ne.def],
-  exact (pp.out).ne_zero,
 end
 
 end padic_val_int
@@ -661,7 +644,7 @@ The p-adic norm of `p` is `1/p` if `p > 1`.
 See also `padic_norm.padic_norm_p_of_prime` for a version that assumes `p` is prime.
 -/
 lemma padic_norm_p {p : ℕ} (hp : 1 < p) : padic_norm p p = 1 / p :=
-by simp [padic_norm, (show p ≠ 0, by linarith), padic_val_nat.self hp]
+by simp [padic_norm, (pos_of_gt hp).ne', padic_val_nat.self hp]
 
 /--
 The p-adic norm of `p` is `1/p` if `p` is prime.

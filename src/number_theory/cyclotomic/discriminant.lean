@@ -119,7 +119,7 @@ begin
       { exact hζ.pow_sub_one_norm_prime_pow_of_one_le hirr (by simpa using hirr₁) rfl.le (hp2 hp) },
       { exact hζ.pow_sub_one_norm_prime_ne_two hirr (by simpa using hirr₁) rfl.le hp } },
     rw [monoid_hom.map_mul, hnorm, monoid_hom.map_mul, ← map_nat_cast (algebra_map K L),
-      norm_algebra_map, finrank _ hirr, pnat.pow_coe, totient_prime_pow hp.out (succ_pos k),
+      algebra.norm_algebra_map, finrank _ hirr, pnat.pow_coe, totient_prime_pow hp.out (succ_pos k),
       nat.sub_one, nat.pred_succ, ← hζ.minpoly_eq_cyclotomic_of_irreducible hirr, map_pow,
       hζ.norm_eq_one hk hirr, one_pow, mul_one, cast_pow, ← coe_coe, ← pow_mul, ← mul_assoc,
       mul_comm (k + 1), mul_assoc] at H,

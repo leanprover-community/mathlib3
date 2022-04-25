@@ -202,6 +202,8 @@ instance {n : ℕ} : linear_order (fin n) :=
 
 instance {n : ℕ}  : partial_order (fin n) := linear_order.to_partial_order (fin n)
 
+lemma coe_strict_mono : strict_mono (coe : fin n → ℕ) := λ _ _, id
+
 /-- The inclusion map `fin n → ℕ` is a relation embedding. -/
 def coe_embedding (n) : (fin n) ↪o ℕ :=
 ⟨⟨coe, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
@@ -1166,6 +1168,54 @@ protected lemma coe_neg (a : fin n) : ((-a : fin n) : ℕ) = (n - a) % n := rfl
 
 protected lemma coe_sub (a b : fin n) : ((a - b : fin n) : ℕ) = (a + (n - b)) % n :=
 by cases a; cases b; refl
+
+@[simp] lemma coe_fin_one (a : fin 1) : ↑a = 0 :=
+by rw [subsingleton.elim a 0, fin.coe_zero]
+
+@[simp] lemma coe_neg_one : ↑(-1 : fin (n + 1)) = n :=
+begin
+  cases n,
+  { simp },
+  rw [fin.coe_neg, fin.coe_one, nat.succ_sub_one, nat.mod_eq_of_lt],
+  constructor
+end
+
+lemma coe_sub_one {n} (a : fin (n + 1)) : ↑(a - 1) = if a = 0 then n else a - 1 :=
+begin
+  cases n,
+  { simp },
+  split_ifs,
+  { simp [h] },
+  rw [sub_eq_add_neg, coe_add_eq_ite, coe_neg_one, if_pos, add_comm, add_tsub_add_eq_tsub_left],
+  rw [add_comm ↑a, add_le_add_iff_left, nat.one_le_iff_ne_zero],
+  rwa subtype.ext_iff at h
+end
+
+/-- By sending `x` to `last n - x`, `fin n` is order-equivalent to its `order_dual`. -/
+def _root_.order_iso.fin_equiv : ∀ {n}, order_dual (fin n) ≃o fin n
+| 0 := ⟨⟨elim0, elim0, elim0, elim0⟩, elim0⟩
+| (n+1) := order_iso.symm $
+{ to_fun    := λ x, last n - x,
+  inv_fun   := λ x, last n - x,
+  left_inv  := sub_sub_cancel _,
+  right_inv := sub_sub_cancel _,
+  map_rel_iff' := λ a b,
+  begin
+    rw [order_dual.has_le],
+    simp only [equiv.coe_fn_mk],
+    rw [le_iff_coe_le_coe, fin.coe_sub, fin.coe_sub, coe_last],
+    have : (n - ↑b) % (n + 1) ≤ (n - ↑a) % (n + 1) ↔ a ≤ b,
+    { rw [nat.mod_eq_of_lt, nat.mod_eq_of_lt, tsub_le_tsub_iff_left a.is_le,
+          le_iff_coe_le_coe]; exact tsub_le_self.trans_lt n.lt_succ_self },
+    suffices key : ∀ {x : fin (n + 1)}, (n + (n + 1 - x)) % (n + 1) = (n - x) % (n + 1),
+    { convert this using 2; exact key },
+    intro x,
+    rw [add_comm, tsub_add_eq_add_tsub x.is_lt.le, add_tsub_assoc_of_le x.is_le, nat.add_mod_left]
+  end }
+
+lemma _root_.order_iso.fin_equiv_apply (a) : order_iso.fin_equiv a = last n - a.of_dual := rfl
+lemma _root_.order_iso.fin_equiv_symm_apply (a) :
+  order_iso.fin_equiv.symm a = order_dual.to_dual (last n - a) := rfl
 
 end add_group
 

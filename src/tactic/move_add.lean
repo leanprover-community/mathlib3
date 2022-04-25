@@ -17,16 +17,20 @@ Also, the *order* in which the terms are provided matters: the tactic reads them
 This is especially important if there are multiple matches for the typed terms in the given
 expressions.
 
-The tactic shouldn't ever fail (really? TODO), but reports two kinds of unwanted use.
+The tactic never fails (really? TODO), but reports two kinds of unwanted use.
 1. If a target of `move_add` is left unchanged by the tactic, then this will be flagged.
 2. If a user-provided expression never matches, then the variable is flagged.
 
 ###  Remark:
 It is still possible that the same output of `move_add [exprs]` can be achieved by a proper sublist
-of `[exprs]`, even if the tactic does not flag anything.
+of `[exprs]`, even if the tactic does not flag anything.  For instance, giving the full re-ordering
+of the expressions in the target that we want to achieve will not complain that there are unused
+variables, since all the user-provided variables have been matched.  Of course, specifying the order
+of all-but the last variable suffices to determine the permutation.
 
 ### Warning:
-* The tactic will discard user-provided terms that do not unify with something in the expression.
+* TODO: Make sure that this item is really obsolete.
+  The tactic will discard user-provided terms that do not unify with something in the expression.
   This means that the tactic will not give an error if it finds no match of the provided terms.
   The reason for this choice is that we want a single call of `move_add` to move terms across
   different sums in the same expression.  Here is an example.
@@ -266,8 +270,9 @@ meta def move_add (args : parse move_pexpr_list_or_texpr) (locat : parse locatio
   tactic unit :=
 match locat with
 | loc.wildcard := do
-  ctx ← local_context,trace ctx,
+  ctx ← local_context,
   ctx.mmap (λ e, move_add_core tt args e.local_pp_name),
+  move_add_core tt args none,
   assumption <|> try (tactic.reflexivity reducible)
 | loc.ns names := do
   names.mmap $ move_add_core tt args,

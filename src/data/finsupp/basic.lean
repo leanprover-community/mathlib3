@@ -195,6 +195,8 @@ by simp only [set.subset_def, mem_coe, mem_support_iff];
   equiv_fun_on_fintype.symm f = f :=
 by { ext, simp [equiv_fun_on_fintype], }
 
+/-- If `α` has a unique term,
+then the type of finitely supported functions `α →₀ β` is equivalent to `β`. -/
 @[simps] noncomputable
 def _root_.equiv.finsupp_unique {ι : Type*} [unique ι] : (ι →₀ M) ≃ M :=
 finsupp.equiv_fun_on_fintype.trans (equiv.fun_unique ι M)

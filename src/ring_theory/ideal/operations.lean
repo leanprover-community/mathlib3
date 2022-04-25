@@ -1944,16 +1944,7 @@ ideal.quotient.lift (I ⊔ J) (quot_quot_mk I J) (ker_quot_quot_mk I J).symm.le
 /-- `quot_quot_to_quot_add` and `lift_sup_double_qot_mk` are inverse isomorphisms -/
 def quot_quot_equiv_quot_sup : (R ⧸ I) ⧸ J.map (ideal.quotient.mk I) ≃+* R ⧸ I ⊔ J :=
 ring_equiv.of_hom_inv (quot_quot_to_quot_sup I J) (lift_sup_quot_quot_mk I J)
-  (begin
-    suffices : (lift_sup_quot_quot_mk I J).comp (quot_quot_to_quot_sup I J) = ring_hom.id _,
-    { ext, exact fun_like.congr_fun this x },
-    { ext, refl }
-  end)
-  (begin
-    suffices : (quot_quot_to_quot_sup I J).comp (lift_sup_quot_quot_mk I J) = ring_hom.id _,
-    { ext, exact fun_like.congr_fun this x },
-    { ext, refl }
-  end)
+  (by { ext z, refl }) (by { ext z, refl })
 
 @[simp]
 lemma quot_quot_equiv_quot_sup_quot_quot_mk (x : R) :

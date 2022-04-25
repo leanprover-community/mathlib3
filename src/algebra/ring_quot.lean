@@ -261,18 +261,7 @@ The ring equivalence between `ring_quot r` and `(ideal.of_rel r).quotient`
 def ring_quot_equiv_ideal_quotient (r : B → B → Prop) :
   ring_quot r ≃+* B ⧸ ideal.of_rel r :=
 ring_equiv.of_hom_inv (ring_quot_to_ideal_quotient r) (ideal_quotient_to_ring_quot r)
-  (begin
-    have : (ideal_quotient_to_ring_quot r).comp (ring_quot_to_ideal_quotient r) = ring_hom.id _,
-    { ext, refl },
-    ext,
-    exact fun_like.congr_fun this x,
-  end)
-  (begin
-    have : (ring_quot_to_ideal_quotient r).comp (ideal_quotient_to_ring_quot r) = ring_hom.id _,
-    { ext, refl },
-    ext,
-    exact fun_like.congr_fun this x,
-  end)
+  (by { ext, refl, }) (by { ext, refl, })
 
 end comm_ring
 

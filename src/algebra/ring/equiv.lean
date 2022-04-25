@@ -495,14 +495,31 @@ by { ext, simp }
 Construct an equivalence of rings from homomorphisms in both directions, which are inverses.
 -/
 @[simps]
-def of_hom_inv {R S F G : Type*} [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
+def of_hom_inv' {R S F G : Type*} [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
   [non_unital_ring_hom_class F R S] [non_unital_ring_hom_class G S R] (hom : F) (inv : G)
-  (hom_inv_id : inv ∘ hom = id) (inv_hom_id : hom ∘ inv = id) :
+  (hom_inv_id : (inv : S →ₙ+* R).comp (hom : R →ₙ+* S) = non_unital_ring_hom.id R)
+  (inv_hom_id : (hom : R →ₙ+* S).comp (inv : S →ₙ+* R) = non_unital_ring_hom.id S) :
   R ≃+* S :=
 { to_fun := hom,
   inv_fun := inv,
-  left_inv := λ x, congr_fun hom_inv_id x,
-  right_inv := λ x, congr_fun inv_hom_id x,
+  left_inv := fun_like.congr_fun hom_inv_id,
+  right_inv := fun_like.congr_fun inv_hom_id,
+  map_mul' := map_mul hom,
+  map_add' := map_add hom, }
+
+/--
+Construct an equivalence of rings from unital homomorphisms in both directions, which are inverses.
+-/
+@[simps]
+def of_hom_inv {R S F G : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
+  [ring_hom_class F R S] [ring_hom_class G S R] (hom : F) (inv : G)
+  (hom_inv_id : (inv : S →+* R).comp (hom : R →+* S) = ring_hom.id R)
+  (inv_hom_id : (hom : R →+* S).comp (inv : S →+* R) = ring_hom.id S) :
+  R ≃+* S :=
+{ to_fun := hom,
+  inv_fun := inv,
+  left_inv := fun_like.congr_fun hom_inv_id,
+  right_inv := fun_like.congr_fun inv_hom_id,
   map_mul' := map_mul hom,
   map_add' := map_add hom, }
 

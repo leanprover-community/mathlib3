@@ -514,6 +514,14 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le'
 
 section
 
+lemma tendsto_nat_floor_at_top {R : Type*} [linear_ordered_ring R] [floor_ring R] :
+  tendsto (λ (x : R), ⌊x⌋₊) at_top at_top :=
+begin
+  apply filter.tendsto_at_top.2 (λ n, _),
+  filter_upwards [Ici_mem_at_top (n : R)] with x hx,
+  exact nat.le_floor hx,
+end
+
 variables {R : Type*} [topological_space R] [linear_ordered_field R] [order_topology R]
 [floor_ring R]
 
@@ -534,6 +542,10 @@ begin
     simp [nat.floor_le (mul_nonneg ha (zero_le_one.trans hx))] }
 end
 
+lemma tendsto_nat_floor_div_at_top :
+  tendsto (λ x, (⌊x⌋₊ : R) / x) at_top (𝓝 1) :=
+by simpa using tendsto_nat_floor_mul_div_at_top (@zero_le_one R _)
+
 lemma tendsto_nat_ceil_mul_div_at_top {a : R} (ha : 0 ≤ a) :
   tendsto (λ x, (⌈a * x⌉₊ : R) / x) at_top (𝓝 a) :=
 begin
@@ -548,5 +560,9 @@ begin
     simp [div_le_iff (zero_lt_one.trans_le hx), inv_mul_cancel (zero_lt_one.trans_le hx).ne',
       (nat.ceil_lt_add_one ((mul_nonneg ha (zero_le_one.trans hx)))).le, add_mul] }
 end
+
+lemma tendsto_nat_ceil_div_at_top :
+  tendsto (λ x, (⌈x⌉₊ : R) / x) at_top (𝓝 1) :=
+by simpa using tendsto_nat_ceil_mul_div_at_top (@zero_le_one R _)
 
 end

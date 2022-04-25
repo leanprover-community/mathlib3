@@ -8,7 +8,6 @@ import algebra.big_operators.nat_antidiagonal
 import logic.encodable.lattice
 import topology.algebra.mul_action
 import topology.algebra.order.monotone_convergence
-import topology.algebra.matrix
 import topology.instances.real
 
 /-!
@@ -208,6 +207,22 @@ protected lemma summable.map [add_comm_monoid γ] [topological_space γ] (hf : s
   {G} [add_monoid_hom_class G α γ] (g : G) (hg : continuous g) :
   summable (g ∘ f) :=
 (hf.has_sum.map g hg).summable
+
+protected lemma summable.map_iff_of_left_inverse [add_comm_monoid γ] [topological_space γ]
+  {G G'} [add_monoid_hom_class G α γ] [add_monoid_hom_class G' γ α] (g : G) (g' : G')
+  (hg : continuous g) (hg' : continuous g') (hinv : function.left_inverse g' g) :
+  summable (g ∘ f) ↔ summable f :=
+⟨λ h, begin
+  have := h.map _ hg',
+  rwa [←function.comp.assoc, hinv.id] at this,
+end, λ h, h.map _ hg⟩
+
+/-- A special case of `summable.map_iff_of_left_inverse` for convenience -/
+protected lemma summable.map_iff_of_equiv [add_comm_monoid γ] [topological_space γ]
+  {G} [add_equiv_class G α γ] (g : G)
+  (hg : continuous g) (hg' : continuous (add_equiv_class.inv g : γ → α)) :
+  summable (g ∘ f) ↔ summable f :=
+summable.map_iff_of_left_inverse g (g : α ≃+ γ).symm hg hg' (add_equiv_class.left_inv g)
 
 /-- If `f : ℕ → α` has sum `a`, then the partial sums `∑_{i=0}^{n-1} f i` converge to `a`. -/
 lemma has_sum.tendsto_sum_nat {f : ℕ → α} (h : has_sum f a) :
@@ -1375,33 +1390,6 @@ lemma tsum_mul_tsum (hf : summable f) (hg : summable g)
 hf.has_sum.mul_eq hg.has_sum hfg.has_sum
 
 end tsum_mul_tsum
-
-namespace matrix
-variables {m n : Type*} [add_comm_monoid α] [topological_space α]
-
-open_locale matrix
-
-lemma _root_.has_sum.matrix_transpose {f : β → matrix m n α} {a : matrix m n α} (hf : has_sum f a) :
-  has_sum (λ b, (f b)ᵀ) aᵀ :=
-(hf.map (@matrix.transpose_add_equiv m n α _) continuous_id.matrix_transpose : _)
-
-lemma _root_.summable.matrix_transpose  {f : β → matrix m n α} (hf : summable f) :
-  summable (λ b, (f b)ᵀ) :=
-hf.has_sum.matrix_transpose.summable
-
-@[simp] lemma _root_.summable_matrix_transpose {f : β → matrix m n α} :
-  summable (λ b, (f b)ᵀ) ↔ summable f :=
-⟨λ h, by simpa only [transpose_transpose] using h.matrix_transpose, summable.matrix_transpose⟩
-
-lemma transpose_tsum [t2_space α] {f : β → matrix m n α} : (∑'b, f b)ᵀ = ∑' b, (f b)ᵀ :=
-begin
-  by_cases hf : summable f,
-  { exact hf.has_sum.matrix_transpose.tsum_eq.symm },
-  { have hft := summable_matrix_transpose.not.mpr hf,
-    rw [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable hft, transpose_zero] },
-end
-
-end matrix
 
 section cauchy_product
 

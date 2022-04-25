@@ -51,6 +51,9 @@ variables {n} {R} {M}
 @[simp] lemma diag_col_mul_row (a b : n → R) : diag n R R (col a ⬝ row b) = a * b :=
 by { ext, simp [matrix.mul_apply] }
 
+@[simp] lemma diag_diagonal [decidable_eq n] (a : n → M) : diag n R M (diagonal a) = a :=
+funext $ @diagonal_apply_eq _ _ _ _ a
+
 variables (n) (R) (M)
 
 /--

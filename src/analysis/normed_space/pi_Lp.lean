@@ -358,7 +358,7 @@ lemma norm_equiv_symm_const {β} [semi_normed_group β] (b : β) :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥ = fintype.card ι ^ (1 / p) * ∥b∥ :=
 (congr_arg coe $ nnnorm_equiv_symm_const b).trans $ by simp
 
-lemma nnnorm_equiv_one {β} [semi_normed_group β] [has_one β] :
+lemma nnnorm_equiv_symm_one {β} [semi_normed_group β] [has_one β] :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm 1∥₊ = fintype.card ι ^ (1 / p) * ∥(1 : β)∥₊ :=
 (nnnorm_equiv_symm_const (1 : β)).trans rfl
 

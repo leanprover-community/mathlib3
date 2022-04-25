@@ -281,21 +281,19 @@ def res {G H : Mon} (f : G ⟶ H) : Action V H ⥤ Action V G :=
 The natural isomorphism from restriction along the identity homomorphism to
 the identity functor on `Action V G`.
 -/
-@[simps]
 def res_id {G : Mon} : res V (𝟙 G) ≅ 𝟭 (Action V G) :=
-{ hom := { app := λ M, ⟨𝟙 M.V⟩ },
-  inv := { app := λ M, ⟨𝟙 M.V⟩ }, }
+nat_iso.of_components (λ M, mk_iso (iso.refl _) (by tidy)) (by tidy)
+
+attribute [simps] res_id
 
 /--
 The natural isomorphism from the composition of restrictions along homomorphisms
 to the restriction along the composition of homomorphism.
 -/
-@[simps]
 def res_comp {G H K : Mon} (f : G ⟶ H) (g : H ⟶ K) : res V g ⋙ res V f ≅ res V (f ≫ g) :=
-{ hom := { app := λ M, ⟨𝟙 M.V⟩ },
-  inv := { app := λ M, ⟨𝟙 M.V⟩ },
-  hom_inv_id' := by { ext, dsimp, simp, },
-  inv_hom_id' := by { ext, dsimp, simp, }, }
+nat_iso.of_components (λ M, mk_iso (iso.refl _) (by tidy)) (by tidy)
+
+attribute [simps] res_comp
 
 -- TODO promote `res` to a pseudofunctor from
 -- the locally discrete bicategory constructed from `Monᵒᵖ` to `Cat`, sending `G` to `Action V G`.
@@ -314,10 +312,12 @@ def map_Action (F : V ⥤ W) (G : Mon.{u}) : Action V G ⥤ Action W G :=
   { V := F.obj M.V,
     ρ :=
     { to_fun := λ g, F.map (M.ρ g),
-      map_one' := by tidy,
-      map_mul' := by simp, }},
+      map_one' := by simp only [End.one_def, Action.ρ_one, F.map_id],
+      map_mul' := λ g h, by simp only [End.mul_def, F.map_comp, map_mul], }, },
   map := λ M N f,
   { hom := F.map f.hom,
-    comm' := λ g, by { dsimp, rw [←F.map_comp, f.comm, F.map_comp] } }, }
+    comm' := λ g, by { dsimp, rw [←F.map_comp, f.comm, F.map_comp], }, },
+  map_id' := λ M, by { ext, simp only [Action.id_hom, F.map_id], },
+  map_comp' := λ M N P f g, by { ext, simp only [Action.comp_hom, F.map_comp], }, }
 
 end category_theory.functor

@@ -130,10 +130,10 @@ def of_lists (L R : list pgame.{0}) : pgame.{0} :=
 pgame.mk (fin L.length) (fin R.length) (λ i, L.nth_le i i.is_lt) (λ j, R.nth_le j.val j.is_lt)
 
 /-- The indexing type for allowable moves by Left. -/
-@[nolint has_inhabited_instance] def left_moves : pgame → Type u
+def left_moves : pgame → Type u
 | (mk l _ _ _) := l
 /-- The indexing type for allowable moves by Right. -/
-@[nolint has_inhabited_instance] def right_moves : pgame → Type u
+def right_moves : pgame → Type u
 | (mk _ r _ _) := r
 
 /-- The new game after Left makes an allowed move. -/
@@ -1040,6 +1040,12 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
 
 /-- The pre-game `star`, which is fuzzy/confused with zero. -/
 def star : pgame := pgame.of_lists [0] [0]
+
+instance inhabited_star_left_moves : inhabited star.left_moves :=
+show (inhabited (fin 1)), by apply_instance
+
+instance inhabited_star_right_moves : inhabited star.right_moves :=
+show (inhabited (fin 1)), by apply_instance
 
 theorem star_lt_zero : star < 0 :=
 by rw lt_def; exact

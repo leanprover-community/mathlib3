@@ -331,13 +331,19 @@ meta def move_add_new (args : parse move_pexpr_list_or_texpr) (locat : parse loc
   tactic unit :=
 match locat with
 | loc.wildcard := do
-  ctx ← local_context,trace ctx,
+  ctx ← local_context,
   err_rep ← ctx.mmap (λ e, move_add_with_errors args e.local_pp_name),
   er_t ← move_add_with_errors args none,
-  trace err_rep,
-  trace er_t,
-  if ff ∉ ([er_t.1] ++ err_rep.map (λ e, e.1)) then trace "'move_add' changed nothing" else skip,
-  trace err_rep,
+  if ff ∉ ([er_t.1] ++ err_rep.map (λ e, e.1)) then
+    trace "'move_add at *' changed nothing" else skip,
+  let li_unused := ([er_t.2] ++ err_rep.map (λ e, e.2)),
+  let li_unused_clear := li_unused.filter (≠ []),
+  let li_tf_vars := li_unused_clear.transpose.map list.bor,
+  match ((args.return_unused_simple li_tf_vars).map (λ e : bool × pexpr, e.2)) with
+  | [] := skip
+  | [pe] := trace format!"'{pe}' is an unused variable"
+  | pes := trace format!"'{pes}' are unused variables"
+  end,
   assumption <|> try (tactic.reflexivity reducible)
 | loc.ns names := do
   err_rep ← names.mmap $ move_add_with_errors args,
@@ -352,10 +358,9 @@ match locat with
   let li_tf_vars := li_unused_clear.transpose.map list.bor,
   match ((args.return_unused_simple li_tf_vars).map (λ e : bool × pexpr, e.2)) with
   | [] := skip
-  | [pe] := trace format!"'{pe}' is an unused variable" -- at {lhyp.local_pp_name}"
-  | pes := trace format!"'{pes}' are unused variables" -- at {lhyp.local_pp_name}"
+  | [pe] := trace format!"'{pe}' is an unused variable"
+  | pes := trace format!"'{pes}' are unused variables"
   end,
-  if ff ∉ err_rep.map (λ e, e.1) then trace "'move_add' changed nothing" else skip,
   assumption <|> try (tactic.reflexivity reducible)
   end
 

@@ -1009,7 +1009,7 @@ lemma of_real_integral_eq_lintegral_of_real {f : α → ℝ} (hfi : integrable f
   ennreal.of_real (∫ x, f x ∂μ) = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
 begin
   set g := real.to_nnreal ∘ f with def_g,
-  have coe_g : (λ x, (g x : ℝ)) = f, from coe_comp_to_nnreal_comp f_nn,
+  have coe_g : (λ x, (g x : ℝ)) = f, from real.coe_comp_to_nnreal_comp f_nn,
   have of_real_g : (λ x, (g x : ℝ≥0∞)) = (λ x, ennreal.of_real (f x)),
   from ennreal_coe_comp_to_nnreal_comp f_nn,
   rw [←coe_g, ←lintegral_coe_eq_integral g (by rwa ←coe_g at hfi), of_real_g, coe_g],

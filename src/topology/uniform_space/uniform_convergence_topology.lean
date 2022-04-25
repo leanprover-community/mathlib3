@@ -66,7 +66,7 @@ open_locale topological_space classical uniformity filter
 
 local attribute [-instance] Pi.uniform_space
 
-open set filter
+open set filter function
 
 namespace uniform_convergence
 
@@ -76,6 +76,18 @@ variables {F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : f
 /-- Basis sets for the uniformity of uniform convergence -/
 protected def gen (V : set (β × β)) : set ((α → β) × (α → β)) :=
   {uv : (α → β) × (α → β) | ∀ x, (uv.1 x, uv.2 x) ∈ V}
+
+variables {α β}
+
+protected lemma gen_Inter {ι : Sort*} {V : ι → set (β × β)} :
+  uniform_convergence.gen α β (⋂ i, V i) = ⋂ i, uniform_convergence.gen α β (V i) :=
+begin
+  ext uv,
+  exact ⟨λ huv, mem_Inter.mpr $ λ i x, mem_Inter.mp (huv x) i,
+         λ huv x, mem_Inter.mpr $ λ i, (mem_Inter.mp huv i) x⟩
+end
+
+variables (α β)
 
 variables [uniform_space β]
 
@@ -122,7 +134,7 @@ end
 variables {α}
 
 lemma uniform_continuous_eval (x : α) : @uniform_continuous _ _
-  (uniform_convergence.uniform_space α β) _ (function.eval x) :=
+  (uniform_convergence.uniform_space α β) _ (eval x) :=
 begin
   change _ ≤ _,
   rw [map_le_iff_le_comap,
@@ -131,6 +143,64 @@ begin
 end
 
 variables {β}
+
+protected lemma comap_const [nonempty α] :
+  (uniform_convergence.uniform_space α β).comap (const α) = ‹uniform_space β› :=
+begin
+  have : ∀ V, prod.map (const α) (const α) ⁻¹' uniform_convergence.gen α β V = V,
+    from λ V, subset_antisymm (λ ⟨x, y⟩ hxy, hxy $ classical.arbitrary _)
+      (λ ⟨x, y⟩ hxy t, hxy),
+  ext : 1,
+  refine ((uniform_convergence.has_basis_uniformity α β).comap _).eq_of_same_basis ⟨λ U, ⟨_, _⟩⟩,
+  { exact λ hU, ⟨U, hU, (this U).subset⟩ },
+  { rintros ⟨V, hV, hVU⟩,
+    refine mem_of_superset _ hVU,
+    exact ((this V).symm ▸ hV) }
+end
+
+protected lemma mono : monotone (@uniform_convergence.uniform_space α γ) :=
+begin
+  intros u₁ u₂ hu,
+  change (𝓤 _) ≤ (𝓤 _),
+  rw [(@uniform_convergence.has_basis_uniformity α γ u₁).eq_binfi,
+      (@uniform_convergence.has_basis_uniformity α γ u₂).eq_binfi],
+  exact binfi_mono hu
+end
+
+protected lemma inj [nonempty α] : injective (@uniform_convergence.uniform_space α γ) :=
+right_inverse.injective (λ u, @uniform_convergence.comap_const α γ u _)
+
+protected lemma infi_eq {u : ι → uniform_space γ} :
+  (@uniform_convergence.uniform_space α γ (⨅ i, u i)) =
+  ⨅ i, (@uniform_convergence.uniform_space α γ (u i)) :=
+begin
+  ext U,
+  change U ∈ (𝓤 _) ↔ U ∈ (𝓤 _),
+  rw [(@uniform_convergence.has_basis_uniformity α γ (⨅ i, u i)).mem_iff, infi_uniformity',
+      infi_uniformity'],
+  split,
+  { rintros ⟨V, hV, hUV⟩,
+    rw mem_infi at hV,
+    rcases hV with ⟨I, hI, 𝓥, h𝓥, rfl⟩,
+    rw uniform_convergence.gen_Inter at hUV,
+    refine mem_infi_of_Inter hI (λ i, _) hUV,
+    exact (@uniform_convergence.has_basis_uniformity α γ (u i)).mem_of_mem (h𝓥 i) },
+  { rw mem_infi,
+    rintros ⟨I, hI, 𝓥, h𝓥, rfl⟩,
+
+    sorry }
+end
+
+protected lemma comap_eq {f : γ → β} :
+  (@uniform_convergence.uniform_space α γ (‹uniform_space β›.comap f)) =
+  (uniform_convergence.uniform_space α β).comap ((∘) f) :=
+begin
+  letI : uniform_space γ := ‹uniform_space β›.comap f,
+  ext : 1,
+  change (𝓤 _) = (𝓤 _),
+  sorry
+  --rw (uniform_convergence.has_basis_uniformity α γ).ext ,
+end
 
 lemma t2_space [t2_space β] : @t2_space _ (uniform_convergence.topological_space α β) :=
 { t2 :=
@@ -182,31 +252,40 @@ begin
   sorry
 end
 
+lemma uniform_space.comap_infi {ι : Sort*} {u : ι → uniform_space γ} {f : α → γ} :
+  (⨅ i, u i).comap f = ⨅ i, (u i).comap f :=
+begin
+  ext : 1,
+  change (𝓤 _) = (𝓤 _),
+  simp [uniformity_comap rfl, infi_uniformity']
+end
+
 protected lemma foo₁ {β : ι → Type*} [Π i, uniform_space (β i)] :
   @uniform_continuous (α → Π i, β i) (Π i, α → β i)
     (@uniform_convergence.uniform_space _ _ (Pi.uniform_space _))
     (@Pi.uniform_space _ (λ i, α → β i) (λ i, uniform_convergence.uniform_space α (β i)))
-    function.swap :=
+    swap :=
 begin
   letI : uniform_space (Π i, β i) := Pi.uniform_space _,
   rw [uniform_continuous_pi],
-  exact λ i, uniform_convergence.uniform_continuous_comp_left (function.eval i)
+  exact λ i, uniform_convergence.uniform_continuous_comp_left (eval i)
     (Pi.uniform_continuous_proj _ i),
 end
+
+#check comap_eq_of_inverse
 
 protected lemma foo₂ {β : ι → Type*} [Π i, uniform_space (β i)] :
   @uniform_continuous (Π i, α → β i) (α → Π i, β i)
     (@Pi.uniform_space _ (λ i, α → β i) (λ i, uniform_convergence.uniform_space α (β i)))
     (@uniform_convergence.uniform_space _ _ (Pi.uniform_space _))
-    function.swap :=
+    swap :=
 begin
-  letI : uniform_space (Π i, β i) := Pi.uniform_space _,
-  rw [uniform_continuous, (uniform_convergence.has_basis_uniformity _ _).tendsto_right_iff],
-  intros U hU,
-  rw [Pi.uniformity],
-  sorry,
-  --exact λ i, uniform_convergence.uniform_continuous_comp_left (function.eval i)
-  --  (Pi.uniform_continuous_proj _ i),
+  rw [uniform_continuous_iff, Pi.uniform_space, uniform_space.of_core_eq_to_core,
+      Pi.uniform_space, uniform_space.of_core_eq_to_core, uniform_convergence.infi_eq,
+      uniform_space.comap_infi],
+  refine infi_mono (λ i, _),
+  rw [uniform_convergence.comap_eq, ← uniform_space.comap_comap],
+  exact le_rfl
 end
 
 end uniform_convergence
@@ -251,7 +330,7 @@ protected lemma uniform_space_antitone : antitone (uniform_convergence_on.unifor
 variables {α}
 
 lemma uniform_continuous_eval_of_mem {x : α} (hxs : x ∈ s) (hs : s ∈ 𝔖) :
-  @uniform_continuous _ _ (uniform_convergence_on.uniform_space α β 𝔖) _ (function.eval x) :=
+  @uniform_continuous _ _ (uniform_convergence_on.uniform_space α β 𝔖) _ (eval x) :=
 begin
   change _ ≤ _,
   rw [map_le_iff_le_comap, ((𝓤 _).basis_sets.comap _).ge_iff,

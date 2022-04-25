@@ -333,13 +333,19 @@ lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := mul_equiv_class.map_ne_one_iff f
 
 end semiring
 
-section ring
+section non_unital_ring
 
-variables [non_assoc_ring R] [non_assoc_ring S] (f : R ≃+* S) (x y : R)
+variables [non_unital_non_assoc_ring R] [non_unital_non_assoc_ring S] (f : R ≃+* S) (x y : R)
 
 protected lemma map_neg : f (-x) = -f x := map_neg f x
 
 protected lemma map_sub : f (x - y) = f x - f y := map_sub f x y
+
+end non_unital_ring
+
+section ring
+
+variables [non_assoc_ring R] [non_assoc_ring S] (f : R ≃+* S) (x y : R)
 
 @[simp] lemma map_neg_one : f (-1) = -1 := f.map_one ▸ f.map_neg 1
 

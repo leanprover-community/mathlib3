@@ -149,23 +149,19 @@ def move_right : Π (g : pgame), right_moves g → pgame
 @[simp] lemma move_right_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_right = xR := rfl
 
 /-- Conway induction on games. -/
-@[elab_as_eliminator] def move_rec_on {C : pgame → Sort} (x : pgame)
+@[elab_as_eliminator] def move_rec_on {C : pgame → Sort*} (x : pgame)
   (IH : ∀ (y : pgame), (∀ i, C (y.move_left i)) → (∀ j, C (y.move_right j)) → C y) : C x :=
-begin
-  cases x with xl xr xL xR,
-  apply pgame.rec_on,
-  intros yl yr yL yR IHl IHr,
-  apply IH, exact IHl, exact IHr
-end
+x.rec_on $ λ yl yr yL yR, IH (mk yl yr yL yR)
 
 /-- `is_option x y` means that `x` is either a left or right option for `y`. -/
-def is_option (x y : pgame) : Prop :=
-(∃ i, y.move_left i = x) ∨ ∃ i, y.move_right i = x
+@[mk_iff] inductive is_option : pgame → pgame → Prop
+| left {x : pgame} {i} : is_option (x.move_left i) x
+| right {x : pgame} {i} : is_option (x.move_right i) x
 
 theorem wf_is_option : well_founded is_option :=
 ⟨λ x, x.move_rec_on begin
   refine λ x IHl IHr, acc.intro x _,
-  rintros y (⟨i, rfl⟩ | ⟨i, rfl⟩),
+  rintros y (⟨x, i⟩ | ⟨x, i⟩),
   { exact IHl i },
   { exact IHr i }
 end⟩

@@ -564,20 +564,36 @@ begin
       exact found, }, },
 end
 
+theorem pull_neg {P : ℕ → Prop} {Q : Prop} (k : ℕ) (f : ∀ j ≥ k, P j ∨ Q) : (∀ j ≥ k, P j) ∨ Q :=
+begin
+  by_contradiction,
+  push_neg at h,
+  rcases h with ⟨⟨j, ⟨j_big, p_holds⟩⟩, other⟩,
+  specialize f j j_big,
+  cases f,
+  { exact p_holds f, },
+  { exact other f, },
+end
+
 theorem decreasing_and_nonneg (f : ℕ → ℚ) (N : ℕ)
   (nonneg : ∀ k ≥ N, 0 ≤ f k) (decreasing : ∀ k ≥ N, f (k + 1) ≤ f k / 2) :
   ∀ ε > 0, ∃ n ≥ N, ∀ m ≥ n, f m < ε :=
 begin
-  sorry,
+  library_search
 end
 
 theorem global_decreasing (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
   (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε) :
   (∀ (k ≥ N), sqrt_aux f (k + 1) ^ 2 - f (k + 1) ≤ (sqrt_aux f k ^ 2 - f k) / 2) ∨ ∃ k ≥ N, (sqrt_aux f k ^ 2 - f k) < 3 * ε :=
 begin
-  by_contradiction,
-  push_neg at h,
-
+  refine pull_neg N _,
+  intros j j_big,
+  have u := converges_eventually_or_near_step' f N f_ge_0 ε ε_pos f_near j j_big (j + 1) (by norm_num),
+  rcases u with step | ⟨l, l_big, pr⟩,
+  { rw [add_tsub_cancel_left j 1, pow_one] at step,
+    left, exact step, },
+  { right,
+    exact ⟨l, by linarith, pr⟩, },
 end
 
 theorem sqrt_aux_eventually_gets_near (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)

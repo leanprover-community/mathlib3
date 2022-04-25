@@ -66,6 +66,11 @@ around a sum.
 
 ##  Future work
 
+* Currently, `_` in user input generate side-goals that Lean should be able to close automatically.
+  Is it possible to avoid this?
+* Using `move_add at *` generates a message mentioning which hypotheses did not change.  It should
+  instead be silent, unless no hypothesis changes.
+* No message is reported if one of the user-provided expressions is not used.
 * Add support for `neg` and additive groups?
 * Add optional different operations than `+`, most notably `*`?
 * Add functionality for moving terms across the two sides of an in/dis/equality.

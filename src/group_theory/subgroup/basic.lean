@@ -2648,6 +2648,14 @@ begin
   exact of_mul_image_zpowers_eq_zmultiples_of_mul,
 end
 
+namespace subgroup
+
+@[to_additive] instance zpowers_is_commutative (g : G) : (zpowers g).is_commutative :=
+⟨⟨λ ⟨_, _, h₁⟩ ⟨_, _, h₂⟩, by rw [subtype.ext_iff, coe_mul, coe_mul,
+  subtype.coe_mk, subtype.coe_mk, ←h₁, ←h₂, zpow_mul_comm]⟩⟩
+
+end subgroup
+
 namespace monoid_hom
 
 variables {G' : Type*} [group G']

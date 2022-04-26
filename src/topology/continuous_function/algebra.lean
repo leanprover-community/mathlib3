@@ -185,6 +185,10 @@ instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [mul_zero_class β] [has_continuous_mul β] : mul_zero_class C(α, β) :=
 coe_injective.mul_zero_class _ coe_zero coe_mul
 
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [semigroup_with_zero β] [has_continuous_mul β] : semigroup_with_zero C(α, β) :=
+coe_injective.semigroup_with_zero _ coe_zero coe_mul
+
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : monoid C(α, β) :=
@@ -319,21 +323,64 @@ end subtype
 namespace continuous_map
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [semiring β] [topological_semiring β] : semiring C(α, β) :=
+  [non_unital_non_assoc_semiring β] [topological_semiring β] :
+  non_unital_non_assoc_semiring C(α, β) :=
 { left_distrib := λ a b c, by ext; exact left_distrib _ _ _,
   right_distrib := λ a b c, by ext; exact right_distrib _ _ _,
   ..continuous_map.add_comm_monoid,
-  ..continuous_map.monoid_with_zero }
+  ..continuous_map.mul_zero_class }
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_semiring β] [topological_semiring β] :
+  non_unital_semiring C(α, β) :=
+{ ..continuous_map.non_unital_non_assoc_semiring,
+  ..continuous_map.semigroup_with_zero }
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_assoc_semiring β] [topological_semiring β] :
+  non_assoc_semiring C(α, β) :=
+{ ..continuous_map.non_unital_non_assoc_semiring,
+  ..continuous_map.mul_one_class }
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [semiring β] [topological_semiring β] : semiring C(α, β) :=
+{ ..continuous_map.non_assoc_semiring,
+  ..continuous_map.semigroup }
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_non_assoc_ring β] [topological_ring β] : non_unital_non_assoc_ring C(α, β) :=
+{ ..continuous_map.non_unital_non_assoc_semiring,
+  ..continuous_map.add_comm_group, }
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_ring β] [topological_ring β] : non_unital_ring C(α, β) :=
+{ ..continuous_map.non_unital_semiring,
+  ..continuous_map.add_comm_group, }
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_assoc_ring β] [topological_ring β] : non_assoc_ring C(α, β) :=
+{ ..continuous_map.non_assoc_semiring,
+  ..continuous_map.add_comm_group, }
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [ring β] [topological_ring β] : ring C(α, β) :=
 { ..continuous_map.semiring,
   ..continuous_map.add_comm_group, }
 
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_comm_semiring β] [topological_semiring β] : non_unital_comm_semiring C(α, β) :=
+{ ..continuous_map.non_unital_semiring,
+  ..continuous_map.comm_semigroup }
+
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_semiring β] [topological_semiring β] : comm_semiring C(α, β) :=
 { ..continuous_map.semiring,
   ..continuous_map.comm_monoid, }
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_comm_ring β] [topological_ring β] : non_unital_comm_ring C(α, β) :=
+{ ..continuous_map.non_unital_comm_semiring,
+  ..continuous_map.non_unital_ring, }
 
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_ring β] [topological_ring β] : comm_ring C(α, β) :=

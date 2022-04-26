@@ -128,7 +128,7 @@ def is_limit_aux (t : kernel_fork f)
 This is a more convenient formulation to show that a `kernel_fork` constructed using
 `kernel_fork.of_ι` is a limit cone.
 -/
-def is_limit.of_ι {W : C} (g : W ⟶ X) (eq : g ≫ f = 0)
+def kernel_fork.is_limit.of_ι {W : C} (g : W ⟶ X) (eq : g ≫ f = 0)
   (lift : Π {W' : C} (g' : W' ⟶ X) (eq' : g' ≫ f = 0), W' ⟶ W)
   (fac : ∀ {W' : C} (g' : W' ⟶ X) (eq' : g' ≫ f = 0), lift g' eq' ≫ g = g')
   (uniq :

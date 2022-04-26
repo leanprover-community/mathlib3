@@ -151,6 +151,10 @@ mt $ λ h, by rw [nat_degree, h, option.get_or_else_coe]
 theorem nat_degree_le_iff_degree_le {n : ℕ} : nat_degree p ≤ n ↔ degree p ≤ n :=
 with_bot.get_or_else_bot_le_iff
 
+lemma nat_degree_lt_iff_degree_lt (hp : p ≠ 0) :
+  p.nat_degree < n ↔ p.degree < ↑n :=
+with_bot.get_or_else_bot_lt_iff $ degree_eq_bot.not.mpr hp
+
 alias polynomial.nat_degree_le_iff_degree_le ↔ . .
 
 lemma nat_degree_le_nat_degree [semiring S] {q : S[X]} (hpq : p.degree ≤ q.degree) :
@@ -161,7 +165,11 @@ with_bot.gi_get_or_else_bot.gc.monotone_l hpq
 by { rw [degree, ← monomial_zero_left, support_monomial 0 _ ha, sup_singleton], refl }
 
 lemma degree_C_le : degree (C a) ≤ 0 :=
-by by_cases h : a = 0; [rw [h, C_0], rw [degree_C h]]; [exact bot_le, exact le_rfl]
+begin
+  by_cases h : a = 0,
+  { rw [h, C_0], exact bot_le },
+  { rw [degree_C h], exact le_rfl }
+end
 
 lemma degree_C_lt : degree (C a) < 1 := degree_C_le.trans_lt $ with_bot.coe_lt_coe.mpr zero_lt_one
 
@@ -266,6 +274,17 @@ We can reexpress a sum over `p.support` as a sum over `range (p.nat_degree + 1)`
 lemma sum_over_range [add_comm_monoid S] (p : R[X]) {f : ℕ → R → S} (h : ∀ n, f n 0 = 0) :
   p.sum f = ∑ (a : ℕ) in range (p.nat_degree + 1), f a (coeff p a) :=
 sum_over_range' p h (p.nat_degree + 1) (lt_add_one _)
+
+-- TODO this is essentially a duplicate of `sum_over_range`, and should be removed.
+lemma sum_fin [add_comm_monoid S]
+  (f : ℕ → R → S) (hf : ∀ i, f i 0 = 0) {n : ℕ} {p : R[X]} (hn : p.degree < n) :
+  ∑ (i : fin n), f i (p.coeff i) = p.sum f :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, sum_zero_index, finset.sum_eq_zero], intros i _, exact hf i },
+  rw [sum_over_range' _ hf n ((nat_degree_lt_iff_degree_lt hp).mpr hn),
+    fin.sum_univ_eq_sum_range (λ i, f i (p.coeff i))],
+end
 
 lemma as_sum_range' (p : R[X]) (n : ℕ) (w : p.nat_degree < n) :
   p = ∑ i in range n, monomial i (coeff p i) :=
@@ -1076,18 +1095,23 @@ begin
   { exact nat_degree_eq_of_degree_eq_some (degree_X_pow_add_C (pos_iff_ne_zero.mpr hn) r) },
 end
 
+end semiring
+end nonzero_ring
+
+section semiring
+variable [semiring R]
+
 @[simp] lemma leading_coeff_X_pow_add_C {n : ℕ} (hn : 0 < n) {r : R} :
   (X ^ n + C r).leading_coeff = 1 :=
-by rw [leading_coeff, nat_degree_X_pow_add_C, coeff_add, coeff_X_pow_self,
-  coeff_C, if_neg (pos_iff_ne_zero.mp hn), add_zero]
+begin
+  nontriviality R,
+  rw [leading_coeff, nat_degree_X_pow_add_C, coeff_add, coeff_X_pow_self,
+    coeff_C, if_neg (pos_iff_ne_zero.mp hn), add_zero]
+end
 
 @[simp] lemma leading_coeff_X_add_C [semiring S] (r : S) :
   (X + C r).leading_coeff = 1 :=
-begin
-  nontriviality,
-  rw [←pow_one (X : S[X]), leading_coeff_X_pow_add_C zero_lt_one],
-  apply_instance
-end
+by rw [←pow_one (X : S[X]), leading_coeff_X_pow_add_C zero_lt_one]
 
 @[simp] lemma leading_coeff_X_pow_add_one {n : ℕ} (hn : 0 < n) :
   (X ^ n + 1 : R[X]).leading_coeff = 1 :=
@@ -1099,7 +1123,18 @@ by { nontriviality, rw leading_coeff_pow'; simp }
 
 end semiring
 
-variables [ring R]
+section ring
+variable [ring R]
+
+@[simp] lemma leading_coeff_X_pow_sub_C {n : ℕ} (hn : 0 < n) {r : R} :
+  (X ^ n - C r).leading_coeff = 1 :=
+by rw [sub_eq_add_neg, ←map_neg C r, leading_coeff_X_pow_add_C hn]; apply_instance
+
+@[simp] lemma leading_coeff_X_pow_sub_one {n : ℕ} (hn : 0 < n) :
+  (X ^ n - 1 : R[X]).leading_coeff = 1 :=
+leading_coeff_X_pow_sub_C hn
+
+variables [nontrivial R]
 
 @[simp] lemma degree_X_sub_C (a : R) : degree (X - C a) = 1 :=
 by rw [sub_eq_add_neg, ←map_neg C a, degree_X_add_C]
@@ -1130,19 +1165,11 @@ lemma nat_degree_X_pow_sub_C {n : ℕ} {r : R} :
   (X ^ n - C r).nat_degree = n :=
 by rw [sub_eq_add_neg, ←map_neg C r, nat_degree_X_pow_add_C]
 
-@[simp] lemma leading_coeff_X_pow_sub_C {n : ℕ} (hn : 0 < n) {r : R} :
-  (X ^ n - C r).leading_coeff = 1 :=
-by rw [sub_eq_add_neg, ←map_neg C r, leading_coeff_X_pow_add_C hn]; apply_instance
-
 @[simp] lemma leading_coeff_X_sub_C [ring S] (r : S) :
   (X - C r).leading_coeff = 1 :=
 by rw [sub_eq_add_neg, ←map_neg C r, leading_coeff_X_add_C]
 
-@[simp] lemma leading_coeff_X_pow_sub_one {n : ℕ} (hn : 0 < n) :
-  (X ^ n - 1 : R[X]).leading_coeff = 1 :=
-leading_coeff_X_pow_sub_C hn
-
-end nonzero_ring
+end ring
 
 section no_zero_divisors
 variables [semiring R] [no_zero_divisors R] {p q : R[X]}
@@ -1153,10 +1180,16 @@ else if hq0 : q = 0 then  by simp only [hq0, degree_zero, mul_zero, with_bot.add
 else degree_mul' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
     (mt leading_coeff_eq_zero.1 hq0)
 
+/-- `degree` as a monoid homomorphism between `R[X]` and `multiplicative (with_bot ℕ)`.
+  This is useful to prove results about multiplication and degree. -/
+def degree_monoid_hom [nontrivial R] : R[X] →* multiplicative (with_bot ℕ) :=
+{ to_fun := degree,
+  map_one' := degree_one,
+  map_mul' := λ _ _, degree_mul }
+
 @[simp] lemma degree_pow [nontrivial R] (p : R[X]) (n : ℕ) :
   degree (p ^ n) = n • (degree p) :=
-by induction n; [simp only [pow_zero, degree_one, zero_nsmul],
-simp only [*, pow_succ, succ_nsmul, degree_mul]]
+map_pow (@degree_monoid_hom R _ _ _) _ _
 
 @[simp] lemma leading_coeff_mul (p q : R[X]) : leading_coeff (p * q) =
   leading_coeff p * leading_coeff q :=

@@ -3,9 +3,7 @@ Copyright (c) 2021 Jakob von Raumer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer
 -/
-
-import category_theory.monoidal.category
-
+import category_theory.monoidal.coherence_lemmas
 
 /-!
 # Rigid (autonomous) monoidal categories
@@ -84,14 +82,8 @@ attribute [reassoc, simp] exact_pairing.evaluation_coevaluation
 instance exact_pairing_unit : exact_pairing (𝟙_ C) (𝟙_ C) :=
 { coevaluation := (ρ_ _).inv,
   evaluation := (ρ_ _).hom,
-  coevaluation_evaluation' := by
-  { rw[monoidal_category.triangle_assoc_comp_right,
-      monoidal_category.unitors_inv_equal,
-      monoidal_category.unitors_equal], simp },
-  evaluation_coevaluation' := by
-  { rw[monoidal_category.triangle_assoc_comp_right_inv_assoc,
-      monoidal_category.unitors_inv_equal,
-      monoidal_category.unitors_equal], simp } }
+  coevaluation_evaluation' := by coherence,
+  evaluation_coevaluation' := by coherence, }
 
 /-- A class of objects which have a right dual. -/
 class has_right_dual (X : C) :=

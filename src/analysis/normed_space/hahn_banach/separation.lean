@@ -26,6 +26,11 @@ We provide many variations to stricten the result under more assumptions on the 
 * `geometric_hahn_banach_point_closed`, `geometric_hahn_banach_closed_point`: One set is closed, the
   other one is a singleton. Strict separation.
 * `geometric_hahn_banach_point_point`: Both sets are singletons. Strict separation.
+
+## TODO
+
+* Eidelheit's theorem
+* `0 < δ → convex ℝ s → interior (cthickening δ s) = thickening δ s`
 -/
 
 open function metric set
@@ -98,7 +103,7 @@ a continuous linear functional `f` separating `x₀` and `s`, in the sense that 
 all of `s` to values strictly below `1`. -/
 lemma separate_convex_open_set {s : set E} (hs₀ : (0 : E) ∈ s) (hs₁ : convex ℝ s)
   (hs₂ : is_open s) {x₀ : E} (hx₀ : x₀ ∉ s) :
-  ∃ (f : E →L[ℝ] ℝ), f x₀ = 1 ∧ ∀ x ∈ s, f x < 1 :=
+  ∃ f : E →L[ℝ] ℝ, f x₀ = 1 ∧ ∀ x ∈ s, f x < 1 :=
 begin
   let f : linear_pmap ℝ E ℝ :=
     linear_pmap.mk_span_singleton x₀ 1 (ne_of_mem_of_not_mem hs₀ hx₀).symm,
@@ -185,13 +190,13 @@ begin
 end
 
 theorem geometric_hahn_banach_open_point (hs₁ : convex ℝ s) (hs₂ : is_open s) (disj : x ∉ s) :
-  ∃ (f : E →L[ℝ] ℝ), (∀ a ∈ s, f a < f x) :=
+  ∃ f : E →L[ℝ] ℝ, ∀ a ∈ s, f a < f x :=
 let ⟨f, s, hs, hx⟩ := geometric_hahn_banach_open hs₁ hs₂ (convex_singleton x)
   (disjoint_singleton_right.2 disj)
   in ⟨f, λ a ha, lt_of_lt_of_le (hs a ha) (hx x (mem_singleton _))⟩
 
 theorem geometric_hahn_banach_point_open (ht₁ : convex ℝ t) (ht₂ : is_open t) (disj : x ∉ t) :
-  ∃ (f : E →L[ℝ] ℝ), (∀ b ∈ t, f x < f b) :=
+  ∃ f : E →L[ℝ] ℝ, ∀ b ∈ t, f x < f b :=
 let ⟨f, hf⟩ := geometric_hahn_banach_open_point ht₁ ht₂ disj in ⟨-f, by simpa⟩
 
 theorem geometric_hahn_banach_open_open (hs₁ : convex ℝ s) (hs₂ : is_open s) (ht₁ : convex ℝ t)

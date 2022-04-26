@@ -122,8 +122,7 @@ begin
   { intro o,
     induction o using ordinal.induction with o IH,
     rintros x rfl,
-    rw le_def,
-    refine ⟨λ i, or.inl _, is_empty_elim⟩,
+    refine le_def.2 ⟨λ i, or.inl _, is_empty_elim⟩,
     have := birthday_move_left_lt i,
     use to_left_moves_to_pgame (enum (<) (x.move_left i).birthday (by rwa type_lt)),
     simp [IH _ this] }

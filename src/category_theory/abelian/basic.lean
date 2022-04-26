@@ -190,7 +190,7 @@ def normal_mono_category : normal_mono_category C :=
     is_limit := begin
       haveI : limits.has_images C := has_images,
       haveI : has_equalizers C := preadditive.has_equalizers_of_has_kernels,
-      letI : has_zero_object C := has_zero_object_of_has_finite_biproducts _,
+      haveI : has_zero_object C := limits.has_zero_object_of_has_finite_biproducts _,
       have aux : _ := _,
       refine is_limit_aux _ (λ A, limit.lift _ _ ≫ inv (image_mono_factorisation f).e) aux _,
       { intros A g hg,
@@ -215,7 +215,7 @@ def normal_epi_category : normal_epi_category C :=
     is_colimit := begin
       haveI : limits.has_images C := has_images,
       haveI : has_equalizers C := preadditive.has_equalizers_of_has_kernels,
-      letI : has_zero_object C := has_zero_object_of_has_finite_biproducts _,
+      haveI : has_zero_object C := limits.has_zero_object_of_has_finite_biproducts _,
       have aux : _ := _,
       refine is_colimit_aux _
         (λ A, inv (image_mono_factorisation f).m ≫

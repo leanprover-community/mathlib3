@@ -228,11 +228,11 @@ protected def op {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
 @[simp] protected def unop {α β} [has_add α] [has_mul α] [has_add β] [has_mul β] :
   (αᵐᵒᵖ ≃+* βᵐᵒᵖ) ≃ (α ≃+* β) := ring_equiv.op.symm
 
-section comm_semiring
+section non_unital_comm_semiring
 
-variables (R) [comm_semiring R]
+variables (R) [non_unital_comm_semiring R]
 
-/-- A commutative ring is isomorphic to its opposite. -/
+/-- A non-unital commutative ring is isomorphic to its opposite. -/
 def to_opposite : R ≃+* Rᵐᵒᵖ :=
 { map_add' := λ x y, rfl,
   map_mul' := λ x y, mul_comm (op y) (op x),
@@ -244,7 +244,7 @@ lemma to_opposite_apply (r : R) : to_opposite R r = op r := rfl
 @[simp]
 lemma to_opposite_symm_apply (r : Rᵐᵒᵖ) : (to_opposite R).symm r = unop r := rfl
 
-end comm_semiring
+end non_unital_comm_semiring
 
 end opposite
 
@@ -430,30 +430,30 @@ end semiring_hom
 
 section big_operators
 
-lemma map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
-  f l.prod = (l.map f).prod := f.to_ring_hom.map_list_prod l
+protected lemma map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
+  f l.prod = (l.map f).prod := map_list_prod f l
 
-lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S) (l : list R) :
-  f l.sum = (l.map f).sum := f.to_ring_hom.map_list_sum l
+protected lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S)
+  (l : list R) : f l.sum = (l.map f).sum := map_list_sum f l
 
 /-- An isomorphism into the opposite ring acts on the product by acting on the reversed elements -/
-lemma unop_map_list_prod [semiring R] [semiring S] (f : R ≃+* Sᵐᵒᵖ) (l : list R) :
+protected lemma unop_map_list_prod [semiring R] [semiring S] (f : R ≃+* Sᵐᵒᵖ) (l : list R) :
   mul_opposite.unop (f l.prod) = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
-f.to_ring_hom.unop_map_list_prod l
+unop_map_list_prod f l
 
-lemma map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S) (s : multiset R) :
-  f s.prod = (s.map f).prod := f.to_ring_hom.map_multiset_prod s
+protected lemma map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S)
+  (s : multiset R) : f s.prod = (s.map f).prod := map_multiset_prod f s
 
-lemma map_multiset_sum [non_assoc_semiring R] [non_assoc_semiring S]
-  (f : R ≃+* S) (s : multiset R) : f s.sum = (s.map f).sum := f.to_ring_hom.map_multiset_sum s
+protected lemma map_multiset_sum [non_assoc_semiring R] [non_assoc_semiring S]
+  (f : R ≃+* S) (s : multiset R) : f s.sum = (s.map f).sum := map_multiset_sum f s
 
-lemma map_prod {α : Type*} [comm_semiring R] [comm_semiring S] (g : R ≃+* S) (f : α → R)
+protected lemma map_prod {α : Type*} [comm_semiring R] [comm_semiring S] (g : R ≃+* S) (f : α → R)
   (s : finset α) : g (∏ x in s, f x) = ∏ x in s, g (f x) :=
-g.to_ring_hom.map_prod f s
+map_prod g f s
 
-lemma map_sum {α : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
+protected lemma map_sum {α : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
   (g : R ≃+* S) (f : α → R) (s : finset α) : g (∑ x in s, f x) = ∑ x in s, g (f x) :=
-g.to_ring_hom.map_sum f s
+map_sum g f s
 
 end big_operators
 

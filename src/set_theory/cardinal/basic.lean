@@ -76,11 +76,11 @@ variables {α β : Type u}
   Quotienting by this equivalence relation gives the cardinal numbers.
 -/
 instance cardinal.is_equivalent : setoid (Type u) :=
-{ r := λα β, nonempty (α ≃ β),
-  iseqv := ⟨λα,
+{ r := λ α β, nonempty (α ≃ β),
+  iseqv := ⟨λ α,
     ⟨equiv.refl α⟩,
-    λα β ⟨e⟩, ⟨e.symm⟩,
-    λα β γ ⟨e₁⟩ ⟨e₂⟩, ⟨e₁.trans e₂⟩⟩ }
+    λ α β ⟨e⟩, ⟨e.symm⟩,
+    λ α β γ ⟨e₁⟩ ⟨e₂⟩, ⟨e₁.trans e₂⟩⟩ }
 
 /-- `cardinal.{u}` is the type of cardinal numbers in `Type u`,
   defined as the quotient of `Type u` by existence of an equivalence
@@ -611,6 +611,11 @@ induction_on a $ λ α, mk_congr $
   ... ≃ ulift ι × ulift α : equiv.ulift.symm.prod_congr (out_mk_equiv.trans equiv.ulift.symm)
 
 theorem sum_const' (ι : Type u) (a : cardinal.{u}) : sum (λ _:ι, a) = #ι * a := by simp
+
+@[simp] theorem sum_add_distrib {ι} (f g : ι → cardinal) :
+  sum (f + g) = sum f + sum g :=
+by simpa only [mk_sigma, mk_sum, mk_out, lift_id] using
+  mk_congr (equiv.sigma_sum_distrib (quotient.out ∘ f) (quotient.out ∘ g))
 
 theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=
 ⟨(embedding.refl _).sigma_map $ λ i, classical.choice $

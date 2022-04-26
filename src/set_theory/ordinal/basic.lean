@@ -479,7 +479,7 @@ instance (o : ordinal) : has_well_founded o.out.α := ⟨o.out.r, o.out.wo.wf⟩
 instance (o : ordinal) : linear_order o.out.α :=
 is_well_order.linear_order o.out.r
 
-instance (o : ordinal) : is_well_order o.out.α (<) :=
+instance ordinal.is_well_order_lt (o : ordinal) : is_well_order o.out.α (<) :=
 o.out.wo
 
 namespace ordinal
@@ -785,9 +785,8 @@ end
 @[simp] theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=
 begin
   refine ⟨@eq_zero_of_out_empty o, λ h, ⟨λ i, _⟩⟩,
-  have := typein_lt_self i,
-  subst h,
-  exact not_lt_of_le (ordinal.zero_le _) this
+  subst o,
+  exact (ordinal.zero_le _).not_lt (typein_lt_self i)
 end
 
 @[simp] theorem out_nonempty_iff_ne_zero {o : ordinal} : nonempty o.out.α ↔ o ≠ 0 :=

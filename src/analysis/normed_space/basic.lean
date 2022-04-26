@@ -338,7 +338,15 @@ end normed_space_nondiscrete
 
 section normed_algebra
 
-/-- A normed algebra `𝕜'` over `𝕜` is normed module that is also an algebra. -/
+/-- A normed algebra `𝕜'` over `𝕜` is normed module that is also an algebra.
+
+See the implementation notes for `algebra` for a discussion about non-unital algebras. Following
+the strategy there, a non-unital *normed* algebra can be written as:
+```lean
+variables [normed_field 𝕜] [non_unital_semi_normed_ring 𝕜']
+variables [normed_module 𝕜 𝕜'] [smul_comm_class 𝕜 𝕜' 𝕜'] [is_scalar_tower 𝕜 𝕜' 𝕜']
+```
+-/
 class normed_algebra (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [semi_normed_ring 𝕜']
   extends algebra 𝕜 𝕜' :=
 (norm_smul_le : ∀ (r : 𝕜) (x : 𝕜'), ∥r • x∥ ≤ ∥r∥ * ∥x∥)
@@ -421,6 +429,9 @@ instance normed_algebra_rat {𝕜} [normed_division_ring 𝕜] [char_zero 𝕜] 
   normed_algebra ℚ 𝕜 :=
 { norm_smul_le := λ q x,
     by rw [←smul_one_smul ℝ q x, rat.smul_one_eq_coe, norm_smul, rat.norm_cast_real], }
+
+instance punit.normed_algebra : normed_algebra 𝕜 punit :=
+{ norm_smul_le := λ q x, by simp only [punit.norm_eq_zero, mul_zero] }
 
 /-- The product of two normed algebras is a normed algebra, with the sup norm. -/
 instance prod.normed_algebra {E F : Type*} [semi_normed_ring E] [semi_normed_ring F]

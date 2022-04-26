@@ -1189,7 +1189,7 @@ def degree_monoid_hom [nontrivial R] : R[X] →* multiplicative (with_bot ℕ) :
 
 @[simp] lemma degree_pow [nontrivial R] (p : R[X]) (n : ℕ) :
   degree (p ^ n) = n • (degree p) :=
-map_pow (degree_monoid_hom : R[X] →* _) _ _
+map_pow (@degree_monoid_hom R _ _ _) _ _
 
 @[simp] lemma leading_coeff_mul (p q : R[X]) : leading_coeff (p * q) =
   leading_coeff p * leading_coeff q :=

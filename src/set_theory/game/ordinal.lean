@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
 
-import set_theory.game.birthday
+import set_theory.game.pgame
 import set_theory.ordinal.basic
 
 /-!
@@ -104,21 +104,5 @@ end
 { to_fun := ordinal.to_pgame,
   inj' := to_pgame_injective,
   map_rel_iff' := @to_pgame_le_iff }
-
-theorem to_pgame_birthday (o : ordinal) : o.to_pgame.birthday = o :=
-begin
-  induction o using ordinal.induction with o IH,
-  rw pgame.birthday_def,
-  convert max_eq_left_iff.2 (ordinal.zero_le _),
-  { apply lsub_empty },
-  { nth_rewrite_lhs 0 ←lsub_typein o,
-    congr,
-    { exact (to_pgame_left_moves o).symm },
-    { apply function.hfunext (to_pgame_left_moves o).symm,
-      rintro a b h,
-      have hwf := typein_lt_self a,
-      have : to_left_moves_to_pgame a = b := cast_eq_iff_heq.2 h,
-      rw [←this, to_pgame_move_left, IH _ (typein_lt_self a)] } }
-end
 
 end ordinal

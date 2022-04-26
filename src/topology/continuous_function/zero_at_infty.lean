@@ -231,6 +231,10 @@ instance [non_unital_semiring β] [topological_semiring β] :
   non_unital_semiring C₀(α, β) :=
 fun_like.coe_injective.non_unital_semiring _ coe_zero coe_add coe_mul (λ _ _, rfl)
 
+instance [non_unital_comm_semiring β] [topological_semiring β] :
+  non_unital_comm_semiring C₀(α, β) :=
+fun_like.coe_injective.non_unital_comm_semiring _ coe_zero coe_add coe_mul (λ _ _, rfl)
+
 instance [non_unital_non_assoc_ring β] [topological_ring β] :
   non_unital_non_assoc_ring C₀(α, β) :=
 fun_like.coe_injective.non_unital_non_assoc_ring _ coe_zero coe_add coe_mul coe_neg coe_sub
@@ -239,6 +243,11 @@ fun_like.coe_injective.non_unital_non_assoc_ring _ coe_zero coe_add coe_mul coe_
 instance [non_unital_ring β] [topological_ring β] :
   non_unital_ring C₀(α, β) :=
 fun_like.coe_injective.non_unital_ring _ coe_zero coe_add coe_mul coe_neg coe_sub (λ _ _, rfl)
+  (λ _ _, rfl)
+
+instance [non_unital_comm_ring β] [topological_ring β] :
+  non_unital_comm_ring C₀(α, β) :=
+fun_like.coe_injective.non_unital_comm_ring _ coe_zero coe_add coe_mul coe_neg coe_sub (λ _ _, rfl)
   (λ _ _, rfl)
 
 instance {R : Type*} [semiring R] [non_unital_non_assoc_semiring β] [topological_semiring β]

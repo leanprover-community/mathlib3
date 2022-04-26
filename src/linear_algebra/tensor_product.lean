@@ -372,22 +372,17 @@ theorem span_tmul_set_eq_top {sM : set M} {sN : set N} (hM : submodule.span R sM
   (hN : submodule.span R sN = ⊤) :
   submodule.span R { t : M ⊗[R] N | ∃ (m ∈ sM) (n ∈ sN), m ⊗ₜ n = t } = ⊤ :=
 begin
-  ext t, simp only [submodule.mem_top, iff_true],
-  apply t.induction_on,
-  { exact submodule.zero_mem _, },
-  { intros m' n',
-    have hm' : m' ∈ submodule.span R sM := by {rw hM, exact submodule.mem_top},
-    have hn' : n' ∈ submodule.span R sN := by {rw hN, exact submodule.mem_top},
-    refine submodule.span_induction hm' _ _ _ _,
-    { intros m hm, refine submodule.span_induction hn' _ _ _ _,
-      { intros n hn, apply submodule.subset_span, use [m, hm, n, hn], },
-      { rw tmul_zero, exact submodule.zero_mem _, },
-      { intros n₁ n₂ hn₁ hn₂, rw tmul_add, exact submodule.add_mem _ hn₁ hn₂, },
-      { intros r n hn, rw tmul_smul, exact submodule.smul_mem _ r hn, }, },
-    { rw zero_tmul, exact submodule.zero_mem _, },
-    { intros m₁ m₂ hm₁ hm₂, rw add_tmul, exact submodule.add_mem _ hm₁ hm₂, },
-    { intros r m hm, rw ←smul_tmul', exact submodule.smul_mem _ r hm, }, },
-  { intros t₁ t₂ ht₁ ht₂, exact submodule.add_mem _ ht₁ ht₂, },
+  apply le_antisymm, { intros _ _, triv },
+  rw [← span_tmul_eq_top, submodule.span_le], rintro t ⟨m, n, rfl⟩, rw set_like.mem_coe,
+  apply submodule.span_induction (hM.substr (by triv : m ∈ ⊤)),
+  { intros m hm, apply submodule.span_induction (hN.substr (by triv : n ∈ ⊤)),
+    { exact λ n hn, submodule.subset_span ⟨m, hm, n, hn, rfl⟩, },
+    { rw tmul_zero, exact submodule.zero_mem _, },
+    { intros n₁ n₂ hn₁ hn₂, rw tmul_add, exact submodule.add_mem _ hn₁ hn₂, },
+    { intros r n hn, rw tmul_smul, exact submodule.smul_mem _ r hn, }, },
+  { rw zero_tmul, exact submodule.zero_mem _, },
+  { intros m₁ m₂ hm₁ hm₂, rw add_tmul, exact submodule.add_mem _ hm₁ hm₂, },
+  { intros r m hm, rw ←smul_tmul', exact submodule.smul_mem _ r hm, },
 end
 
 end module

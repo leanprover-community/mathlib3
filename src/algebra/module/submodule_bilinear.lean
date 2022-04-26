@@ -14,7 +14,12 @@ This file provides `submodule.map₂`, which is later used to implement `submodu
 ## Main results
 
 * `submodule.map₂_eq_span_image2`: the image of two submodules under a bilinear map is the span of
-  their `set.image`.
+  their `set.image2`.
+
+## Notes
+
+This file is quite similar to the n-ary section of `data.set.basic` and to `order.filter.n_ary`.
+Please keep them in sync.
 -/
 
 universes uι u v

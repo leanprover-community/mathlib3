@@ -115,18 +115,13 @@ begin
       rw [←this, to_pgame_move_left, IH _ (typein_lt_self a)] } }
 end
 
-theorem le_birthday (x : pgame) : x ≤ x.birthday.to_pgame :=
-begin
-  suffices : ∀ (o : ordinal) (y : pgame), y.birthday = o → y ≤ o.to_pgame,
-  { exact this _ x rfl },
-  { intro o,
-    induction o using ordinal.induction with o IH,
-    rintros x rfl,
-    refine le_def.2 ⟨λ i, or.inl _, is_empty_elim⟩,
-    have := birthday_move_left_lt i,
-    use to_left_moves_to_pgame (enum (<) (x.move_left i).birthday (by rwa type_lt)),
-    simp [IH _ this] }
-end
+theorem le_birthday : ∀ x : pgame, x ≤ x.birthday.to_pgame
+| ⟨xl, xr, xL, xR⟩ :=
+le_def.2 ⟨λ i, or.inl begin
+  have := birthday_move_left_lt i,
+  use to_left_moves_to_pgame (enum (<) (xL i).birthday (by rwa type_lt)),
+  simp [le_birthday (xL i)]
+end, is_empty_elim⟩
 
 theorem neg_birthday_le (x : pgame) : -x.birthday.to_pgame ≤ x :=
 let h := le_birthday (-x) in by rwa [neg_birthday, le_iff_neg_ge, neg_neg] at h

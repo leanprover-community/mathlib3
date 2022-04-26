@@ -266,7 +266,7 @@ lemma quadratic_char_dichotomy {a : F} (ha : a ≠ 0) :
 lemma quadratic_char_exists_neg_one (hF : ring_char F ≠ 2) : ∃ a, quadratic_char F a = -1 :=
 begin
   cases (finite_field.exists_nonsquare hF) with b h₁,
-  have hb : b ≠ 0 := by { intro hf, rw hf at h₁, exact h₁ (is_square_zero F), },
+  have hb : b ≠ 0 := by { intro hf, rw hf at h₁, exact h₁ is_square_zero, },
   use b,
   simp only [quadratic_char, hb, if_false, ite_eq_right_iff],
   tauto,

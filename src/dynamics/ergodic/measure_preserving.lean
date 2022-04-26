@@ -59,7 +59,8 @@ hf.1.ae_measurable
 lemma symm {e : α ≃ᵐ β} {μa : measure α} {μb : measure β} (h : measure_preserving e μa μb) :
   measure_preserving e.symm μb μa :=
 ⟨e.symm.measurable,
-  by rw [← h.map_eq, map_map e.symm.measurable e.measurable, e.symm_comp_self, map_id]⟩
+  by rw [← h.map_eq, map_map e.symm.measurable e.measurable.ae_measurable, e.symm_comp_self,
+    map_id]⟩
 
 lemma restrict_preimage {f : α → β} (hf : measure_preserving f μa μb) {s : set β}
   (hs : measurable_set s) : measure_preserving f (μa.restrict (f ⁻¹' s)) (μb.restrict s) :=
@@ -86,7 +87,7 @@ protected lemma quasi_measure_preserving {f : α → β} (hf : measure_preservin
 lemma comp {g : β → γ} {f : α → β} (hg : measure_preserving g μb μc)
   (hf : measure_preserving f μa μb) :
   measure_preserving (g ∘ f) μa μc :=
-⟨hg.1.comp hf.1, by rw [← map_map hg.1 hf.1, hf.2, hg.2]⟩
+⟨hg.1.comp hf.1, by rw [← map_map hg.1 hf.1.ae_measurable, hf.2, hg.2]⟩
 
 protected lemma sigma_finite {f : α → β} (hf : measure_preserving f μa μb) [sigma_finite μb] :
   sigma_finite μa :=

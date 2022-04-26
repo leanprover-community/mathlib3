@@ -250,7 +250,7 @@ lemma quasi_measure_preserving_has_pdf {X : α → E} [has_pdf X ℙ μ]
   (hmap : (map g (map X ℙ)).have_lebesgue_decomposition ν) :
   has_pdf (g ∘ X) ℙ ν :=
 begin
-  rw [has_pdf_iff, ← map_map hg.measurable (has_pdf.measurable X ℙ μ)],
+  rw [has_pdf_iff, ← map_map hg.measurable (has_pdf.measurable X ℙ μ).ae_measurable],
   refine ⟨hg.measurable.comp (has_pdf.measurable X ℙ μ), hmap, _⟩,
   rw [map_eq_with_density_pdf X ℙ μ],
   refine absolutely_continuous.mk (λ s hsm hs, _),

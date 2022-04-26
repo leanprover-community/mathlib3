@@ -65,7 +65,8 @@ def Measure : Meas ⥤ Meas :=
   map      := λX Y f, ⟨measure.map (f : X → Y), measure.measurable_map f f.2⟩,
   map_id'  := assume ⟨α, I⟩, subtype.eq $ funext $ assume μ, @measure.map_id α I μ,
   map_comp':=
-    assume X Y Z ⟨f, hf⟩ ⟨g, hg⟩, subtype.eq $ funext $ assume μ, (measure.map_map hg hf).symm }
+    assume X Y Z ⟨f, hf⟩ ⟨g, hg⟩, subtype.eq $ funext $ assume μ,
+      (measure.map_map hg hf.ae_measurable).symm }
 
 /-- The Giry monad, i.e. the monadic structure associated with `Measure`. -/
 def Giry : category_theory.monad Meas :=

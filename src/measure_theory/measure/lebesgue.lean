@@ -355,7 +355,7 @@ begin
       IHA, smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, mul_comm, mul_inv₀],
     { apply continuous.measurable,
       apply linear_map.continuous_on_pi },
-    { apply continuous.measurable,
+    { apply continuous.ae_measurable,
       apply linear_map.continuous_on_pi } }
 end
 

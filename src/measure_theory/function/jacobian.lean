@@ -1178,8 +1178,8 @@ begin
   set F : s → E := u ∘ coe with hF,
   have A : measure.map F
     (comap coe (μ.with_density (λ x, ennreal.of_real (|(f' x).det|)))) = μ.restrict (u '' s),
-  { rw [hF, ← measure.map_map u_meas measurable_subtype_coe, map_comap_subtype_coe hs,
-        restrict_with_density hs],
+  { rw [hF, ← measure.map_map u_meas measurable_subtype_coe.ae_measurable,
+        map_comap_subtype_coe hs, restrict_with_density hs],
     exact map_with_density_abs_det_fderiv_eq_add_haar μ hs u' (hf.congr uf.symm) u_meas },
   rw uf.image_eq at A,
   have : F = s.restrict f,

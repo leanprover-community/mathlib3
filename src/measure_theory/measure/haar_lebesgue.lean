@@ -224,12 +224,13 @@ begin
   have Ce : continuous e := (e : E →ₗ[ℝ] (ι → ℝ)).continuous_of_finite_dimensional,
   have Cg : continuous g := linear_map.continuous_of_finite_dimensional g,
   have Cesymm : continuous e.symm := (e.symm : (ι → ℝ) →ₗ[ℝ] E).continuous_of_finite_dimensional,
-  rw [← map_map Cesymm.measurable (Cg.comp Ce).measurable, ← map_map Cg.measurable Ce.measurable],
+  rw [← map_map Cesymm.measurable (Cg.comp Ce).ae_measurable,
+    ← map_map Cg.measurable Ce.ae_measurable],
   haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
   have ecomp : (e.symm) ∘ e = id,
     by { ext x, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
   rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), map_smul,
-    map_map Cesymm.measurable Ce.measurable, ecomp, measure.map_id]
+    map_map Cesymm.measurable Ce.ae_measurable, ecomp, measure.map_id]
 end
 
 /-- The preimage of a set `s` under a linear map `f` with nonzero determinant has measure

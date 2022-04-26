@@ -978,9 +978,9 @@ ext $ λ s, map_apply measurable_id
 
 @[simp] lemma map_id' : map (λ x, x) μ = μ := map_id
 
-lemma map_map {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
+lemma map_map {g : β → γ} {f : α → β} (hg : measurable g) (hf : ae_measurable f μ) :
   (μ.map f).map g = μ.map (g ∘ f) :=
-ext $ λ s hs, by simp [hf, hg, hs, hg hs, hg.comp hf, ← preimage_comp]
+ext $ λ s hs, by simp [hf, hg, hs, hg hs, hg.comp_ae_measurable hf, ← preimage_comp]
 
 @[mono] lemma map_mono {f : α → β} (h : μ ≤ ν) (hf : measurable f) : μ.map f ≤ ν.map f :=
 λ s hs, by simp [hf.ae_measurable, hs, h _ (hf hs)]
@@ -1775,7 +1775,8 @@ lemma mono_right (h : quasi_measure_preserving f μa μb)
 protected lemma comp {g : β → γ} {f : α → β} (hg : quasi_measure_preserving g μb μc)
   (hf : quasi_measure_preserving f μa μb) :
   quasi_measure_preserving (g ∘ f) μa μc :=
-⟨hg.measurable.comp hf.measurable, by { rw ← map_map hg.1 hf.1, exact (hf.2.map hg.1).trans hg.2 }⟩
+⟨hg.measurable.comp hf.measurable,
+  by { rw ← map_map hg.1 hf.1.ae_measurable, exact (hf.2.map hg.1).trans hg.2 }⟩
 
 protected lemma iterate {f : α → α} (hf : quasi_measure_preserving f μa μa) :
   ∀ n, quasi_measure_preserving (f^[n]) μa μa
@@ -2662,7 +2663,8 @@ lemma sigma_finite.of_map (μ : measure α) {f : α → β} (hf : ae_measurable 
 lemma _root_.measurable_equiv.sigma_finite_map {μ : measure α} (f : α ≃ᵐ β) (h : sigma_finite μ) :
   sigma_finite (μ.map f) :=
 by { refine sigma_finite.of_map _ f.symm.measurable.ae_measurable _,
-     rwa [map_map f.symm.measurable f.measurable, f.symm_comp_self, measure.map_id] }
+     rwa [map_map f.symm.measurable f.measurable.ae_measurable, f.symm_comp_self,
+      measure.map_id] }
 
 /-- Similar to `ae_of_forall_measure_lt_top_ae_restrict`, but where you additionally get the
   hypothesis that another σ-finite measure has finite values on `s`. -/
@@ -3034,10 +3036,10 @@ protected theorem map_apply (f : α ≃ᵐ β) (s : set β) : μ.map f s = μ (f
 f.measurable_embedding.map_apply _ _
 
 @[simp] lemma map_symm_map (e : α ≃ᵐ β) : (μ.map e).map e.symm  = μ :=
-by simp [map_map e.symm.measurable e.measurable]
+by simp [map_map e.symm.measurable e.measurable.ae_measurable]
 
 @[simp] lemma map_map_symm (e : α ≃ᵐ β) : (ν.map e.symm).map e  = ν :=
-by simp [map_map e.measurable e.symm.measurable]
+by simp [map_map e.measurable e.symm.measurable.ae_measurable]
 
 lemma map_measurable_equiv_injective (e : α ≃ᵐ β) : injective (map e) :=
 by { intros μ₁ μ₂ hμ, apply_fun map e.symm at hμ, simpa [map_symm_map e] using hμ }

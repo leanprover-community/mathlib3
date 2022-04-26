@@ -200,8 +200,9 @@ begin
   constructor,
   intro g,
   conv_rhs { rw [← map_mul_left_eq_self μ g⁻¹] },
-  simp_rw [measure.inv, map_map (measurable_mul_const g) measurable_inv,
-    map_map measurable_inv (measurable_const_mul g⁻¹), function.comp, mul_inv_rev, inv_inv]
+  simp_rw [measure.inv, map_map (measurable_mul_const g) measurable_inv.ae_measurable,
+    map_map measurable_inv (measurable_const_mul g⁻¹).ae_measurable, function.comp,
+    mul_inv_rev, inv_inv]
 end
 
 @[to_additive]
@@ -210,8 +211,9 @@ begin
   constructor,
   intro g,
   conv_rhs { rw [← map_mul_right_eq_self μ g⁻¹] },
-  simp_rw [measure.inv, map_map (measurable_const_mul g) measurable_inv,
-    map_map measurable_inv (measurable_mul_const g⁻¹), function.comp, mul_inv_rev, inv_inv]
+  simp_rw [measure.inv, map_map (measurable_const_mul g) measurable_inv.ae_measurable,
+    map_map measurable_inv (measurable_mul_const g⁻¹).ae_measurable, function.comp,
+    mul_inv_rev, inv_inv]
 end
 
 @[to_additive]
@@ -220,7 +222,7 @@ lemma map_div_left_eq_self (μ : measure G) [is_inv_invariant μ] [is_mul_left_i
 begin
   simp_rw [div_eq_mul_inv],
   conv_rhs { rw [← map_mul_left_eq_self μ g, ← map_inv_eq_self μ] },
-  exact (map_map (measurable_const_mul g) measurable_inv).symm
+  exact (map_map (measurable_const_mul g) measurable_inv.ae_measurable).symm
 end
 
 @[to_additive]
@@ -228,7 +230,7 @@ lemma map_mul_right_inv_eq_self (μ : measure G) [is_inv_invariant μ] [is_mul_l
   (g : G) : map (λ t, (g * t)⁻¹) μ = μ :=
 begin
   conv_rhs { rw [← map_inv_eq_self μ, ← map_mul_left_eq_self μ g] },
-  exact (map_map measurable_inv (measurable_const_mul g)).symm
+  exact (map_map measurable_inv (measurable_const_mul g).ae_measurable).symm
 end
 
 end mul_inv
@@ -423,9 +425,9 @@ lemma is_haar_measure_map [borel_space G] [topological_group G] {H : Type*} [gro
 { to_is_mul_left_invariant := begin
     constructor,
     assume h,
-    rw map_map (continuous_mul_left h).measurable hf.measurable,
+    rw map_map (continuous_mul_left h).measurable hf.ae_measurable,
     conv_rhs { rw ← map_mul_left_eq_self μ (f.symm h) },
-    rw map_map hf.measurable (continuous_mul_left _).measurable,
+    rw map_map hf.measurable (continuous_mul_left _).ae_measurable,
     congr' 2,
     ext y,
     simp only [mul_equiv.apply_symm_apply, comp_app, mul_equiv.map_mul],

@@ -133,7 +133,7 @@ begin
   rw [← map_mul_right_inv_eq_self μ g⁻¹, integrable_map_measure, function.comp],
   { simp_rw [div_inv_eq_mul, mul_inv_cancel_left], exact hf },
   { refine ae_strongly_measurable.comp_measurable _ (measurable_id.const_div g),
-    simp_rw [map_map (measurable_id'.const_div g) (measurable_id'.const_mul g⁻¹).inv,
+    simp_rw [map_map (measurable_id'.const_div g) (ae_measurable_id'.const_mul g⁻¹).inv,
       function.comp, div_inv_eq_mul, mul_inv_cancel_left, map_id'],
     exact hf.ae_strongly_measurable },
   { exact (measurable_id'.const_mul g⁻¹).inv.ae_measurable }

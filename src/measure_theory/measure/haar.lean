@@ -710,7 +710,7 @@ begin
   have : map has_inv.inv (map has_inv.inv μ) = c^2 • μ,
     by simp only [hc, smul_smul, pow_two, map_smul],
   have μeq : μ = c^2 • μ,
-  { rw [map_map continuous_inv.measurable continuous_inv.measurable] at this,
+  { rw [map_map continuous_inv.measurable continuous_inv.ae_measurable] at this,
     { simpa only [inv_involutive, involutive.comp_self, map_id] },
     all_goals { apply_instance } },
   have K : positive_compacts G := classical.arbitrary _,

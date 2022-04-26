@@ -75,7 +75,8 @@ lemma map_prod_mul_eq_swap [is_mul_left_invariant μ] :
   map (λ z : G × G, (z.2, z.2 * z.1)) (μ.prod ν) = ν.prod μ :=
 begin
   rw [← prod_swap],
-  simp_rw [map_map (measurable_snd.prod_mk (measurable_snd.mul measurable_fst)) measurable_swap],
+  simp_rw [map_map (measurable_snd.prod_mk (measurable_snd.mul measurable_fst))
+    measurable_swap.ae_measurable],
   exact map_prod_mul_eq ν μ
 end
 
@@ -106,8 +107,8 @@ lemma map_prod_inv_mul_eq_swap [is_mul_left_invariant μ] :
   map (λ z : G × G, (z.2, z.2⁻¹ * z.1)) (μ.prod ν) = ν.prod μ :=
 begin
   rw [← prod_swap],
-  simp_rw
-    [map_map (measurable_snd.prod_mk $ measurable_snd.inv.mul measurable_fst) measurable_swap],
+  simp_rw [map_map (measurable_snd.prod_mk $ measurable_snd.inv.mul measurable_fst)
+    measurable_swap.ae_measurable],
   exact map_prod_inv_mul_eq ν μ
 end
 
@@ -121,8 +122,8 @@ begin
     μ.prod ν,
   { convert this, ext1 ⟨x, y⟩, simp },
   simp_rw [← map_map (measurable_snd.prod_mk (measurable_snd.inv.mul measurable_fst))
-    (measurable_snd.prod_mk (measurable_snd.mul measurable_fst)), map_prod_mul_eq_swap μ ν,
-    map_prod_inv_mul_eq_swap ν μ]
+    (measurable_snd.prod_mk (measurable_snd.mul measurable_fst)).ae_measurable,
+    map_prod_mul_eq_swap μ ν, map_prod_inv_mul_eq_swap ν μ]
 end
 
 @[to_additive] lemma quasi_measure_preserving_inv [is_mul_left_invariant μ] :

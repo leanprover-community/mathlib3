@@ -340,6 +340,16 @@ by ext n f R; refl
 end
 
 open_locale first_order
+
+instance constants_on_self_Structure : (constants_on M).Structure M :=
+constants_on.Structure id
+
+instance with_constants_self_Structure : L[[M]].Structure M :=
+language.sum_Structure _ _ M
+
+instance with_constants_self_expansion : (Lhom_with_constants L M).is_expansion_on M :=
+⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
+
 variables (A : set M)
 
 instance with_constants_Structure : L[[A]].Structure M :=

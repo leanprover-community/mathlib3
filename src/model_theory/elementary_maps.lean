@@ -156,21 +156,16 @@ lemma comp_assoc (f : M ↪ₑ[L] N) (g : N ↪ₑ[L] P) (h : P ↪ₑ[L] Q) :
 
 end elementary_embedding
 
-instance foo : (constants_on M).Structure M :=
-constants_on.Structure id
-
-instance bar : L[[M]].Structure M :=
-language.sum_Structure _ _ M
-
-instance baz : (Lhom_with_constants L M).is_expansion_on M :=
-⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
-
 variables (L) (M)
+
+/-- The elementary diagram of an `L`-structure is the set of all sentences with parameters it
+  satisfies. -/
 abbreviation elementary_diagram : L[[M]].Theory := L[[M]].complete_theory M
 
-variables {L} {M}
-
-def foo_elementary_embedding (N : Type*) [L.Structure N] [L[[M]].Structure N]
+/-- The canonical elementary embedding of an `L`-structure into any model of its elementary diagram
+-/
+def elementary_embedding.of_models_elementary_diagram
+  (N : Type*) [L.Structure N] [L[[M]].Structure N]
   [(Lhom_with_constants L M).is_expansion_on N] [N ⊨ L.elementary_diagram M] :
   M ↪ₑ[L] N :=
 ⟨(coe : L[[M]].constants → N) ∘ sum.inr, λ n φ x, begin
@@ -183,22 +178,7 @@ def foo_elementary_embedding (N : Type*) [L.Structure N] [L[[M]].Structure N]
     refl }
 end⟩
 
-variables (L) (M)
-def elementary_diagram' : L[[M]].Theory :=
-{ x : Σ n, L.formula (fin n) × (fin n → M) | x.2.1.realize x.2.2 }.image
-  (λ x, ((L.Lhom_with_constants M).on_bounded_formula x.2.1).subst
-    (constants.term ∘ sum.inr ∘ x.2.2))
-
-variables {L} {M}
-
-@[simp] lemma mem_elementary_diagram' :
-
-def foo_elementary_embedding' (N : Type*) [L.Structure N] [L[[M]].Structure N]
-  [(Lhom_with_constants L M).is_expansion_on N] [N ⊨ L.elementary_diagram' M] :
-  M ↪ₑ[L] N :=
-⟨(coe : L[[M]].constants → N) ∘ sum.inr, λ n φ x, begin
-  have h := (L.elementary_diagram' M).realize_sentence_of_mem ,
-end⟩
+variables {L M}
 
 namespace embedding
 

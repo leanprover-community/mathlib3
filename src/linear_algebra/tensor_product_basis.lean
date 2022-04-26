@@ -16,6 +16,8 @@ These can not go into `linear_algebra.tensor_product` since they depend on
 noncomputable theory
 open set linear_map submodule
 
+open_locale tensor_product
+
 section comm_ring
 variables {R : Type*} {M : Type*} {N : Type*} {ι : Type*} {κ : Type*}
 variables [comm_ring R] [add_comm_group M] [module R M] [add_comm_group N] [module R N]
@@ -50,3 +52,27 @@ finite_dimensional.of_fintype_basis
   (basis.tensor_product (basis.of_vector_space K V) (basis.of_vector_space K W))
 
 end field
+
+section finiteness
+
+variables {R : Type*} {M : Type*} {N : Type*}
+variables [comm_semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
+variables [module.finite R M] [module.finite R N]
+
+instance tensor_product.finite : module.finite R (M ⊗[R] N) :=
+{ out := begin
+  rcases _inst_6.out with ⟨sM, hM⟩,
+  rcases _inst_7.out with ⟨sN, hN⟩,
+  let s := { t : M ⊗[R] N | ∃ (m ∈ sM) (n ∈ sN), m ⊗ₜ n = t },
+  have h : s = (λ p : M × N, p.1 ⊗ₜ p.2) '' (finset.product sM sN) :=
+  by { ext, split,
+       { intro hx, rcases hx with ⟨m, hm, n, hn, hx'⟩,
+       use ⟨(m, n), finset.mk_mem_product hm hn, by rw [←hx']⟩, },
+       { intro hx, rcases hx with ⟨p, hp, hx'⟩,
+       use ⟨p.1, (finset.mem_product.1 hp).1, p.2, (finset.mem_product.1 hp).2, by rw [←hx']⟩, }, },
+  rw submodule.fg_def,
+  use ⟨s, by {rw h, exact finite.image _ (finset.finite_to_set _)},
+    tensor_product.span_tmul_set_eq_top hM hN⟩,
+end }
+
+end finiteness

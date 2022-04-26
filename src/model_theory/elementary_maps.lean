@@ -14,6 +14,10 @@ import model_theory.substructures
   realizations of formulas.
 * A `first_order.language.elementary_substructure` is a substructure where the realization of each
   formula agrees with the realization in the larger model.
+* The `first_order.language.elementary_diagram` of a structure is the set of all sentences with
+  parameters that the structure satisfies.
+* `first_order.language.elementary_embedding.of_models_elementary_diagram` is the canonical
+elementary embedding of any structure into a model of its elementary diagram.
 
 ## Main Results
 * The Tarski-Vaught Test for embeddings: `first_order.language.embedding.is_elementary_of_exists`
@@ -164,7 +168,7 @@ abbreviation elementary_diagram : L[[M]].Theory := L[[M]].complete_theory M
 
 /-- The canonical elementary embedding of an `L`-structure into any model of its elementary diagram
 -/
-def elementary_embedding.of_models_elementary_diagram
+@[simps] def elementary_embedding.of_models_elementary_diagram
   (N : Type*) [L.Structure N] [L[[M]].Structure N]
   [(Lhom_with_constants L M).is_expansion_on N] [N ⊨ L.elementary_diagram M] :
   M ↪ₑ[L] N :=

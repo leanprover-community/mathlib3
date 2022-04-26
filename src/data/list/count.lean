@@ -10,7 +10,7 @@ import data.list.big_operators
 
 This file proves basic properties of `list.countp` and `list.count`, which count the number of
 elements of a list satisfying a predicate and equal to a given element respectively. Their
-definitions can be found in [`data.list.defs`](.defs).
+definitions can be found in [`data.list.defs`](./defs).
 -/
 
 open nat

@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel, Yaël Dillies
 -/
 import analysis.normed.group.pointwise
 import analysis.normed_space.basic
-import topology.metric_space.hausdorff_distance
 
 /-!
 # Properties of pointwise scalar multiplication of sets in normed spaces.

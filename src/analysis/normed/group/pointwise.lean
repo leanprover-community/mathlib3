@@ -48,7 +48,7 @@ end
 by simp only [preimage_add_ball, image_add_left, singleton_add, sub_neg_eq_add, add_comm y x]
 
 @[simp] lemma ball_add_singleton (x y : E) (δ : ℝ) : ball x δ + {y} = ball (x + y) δ :=
-by rw [add_comm _ {y}, singleton_add_ball, add_comm y]
+by rw [add_comm, singleton_add_ball, add_comm y]
 
 @[simp] lemma singleton_add_ball_zero (x : E) (δ : ℝ) : {x} + ball 0 δ = ball x δ := by simp
 @[simp] lemma ball_zero_add_singleton (x : E) (δ : ℝ) : ball 0 δ + {x} = ball x δ := by simp

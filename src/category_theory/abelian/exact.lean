@@ -78,7 +78,7 @@ begin
       { ext, simp },
       rw this,
       apply_instance, },
-    refine is_limit.of_ι _ _ _ _ _,
+    refine kernel_fork.is_limit.of_ι _ _ _ _ _,
     { refine λ W u hu,
         kernel.lift (cokernel.π f) u _ ≫ (image_iso_image f).hom ≫ (image_subobject_iso _).inv,
       rw [←kernel.lift_ι g u hu, category.assoc, h.2, has_zero_morphisms.comp_zero] },

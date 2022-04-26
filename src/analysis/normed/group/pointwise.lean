@@ -3,7 +3,6 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.convex.basic
 import analysis.normed.group.add_torsor
 import topology.metric_space.hausdorff_distance
 
@@ -19,16 +18,14 @@ open_locale pointwise topological_space
 
 section semi_normed_group
 
-variables {E : Type*} [semi_normed_group E]
+variables {E : Type*} [semi_normed_group E] {ε δ : ℝ} {s t : set E}
 
-lemma bounded_iff_exists_norm_le {s : set E} :
-  bounded s ↔ ∃ R, ∀ x ∈ s, ∥x∥ ≤ R :=
+lemma bounded_iff_exists_norm_le : bounded s ↔ ∃ R, ∀ x ∈ s, ∥x∥ ≤ R :=
 by simp [subset_def, bounded_iff_subset_ball (0 : E)]
 
 alias bounded_iff_exists_norm_le ↔ metric.bounded.exists_norm_le _
 
-lemma metric.bounded.exists_pos_norm_le {s : set E} (hs : metric.bounded s) :
-  ∃ R > 0, ∀ x ∈ s, ∥x∥ ≤ R :=
+lemma metric.bounded.exists_pos_norm_le (hs : metric.bounded s) : ∃ R > 0, ∀ x ∈ s, ∥x∥ ≤ R :=
 begin
   obtain ⟨R₀, hR₀⟩ := hs.exists_norm_le,
   refine ⟨max R₀ 1, _, _⟩,
@@ -37,7 +34,7 @@ begin
   exact (hR₀ x hx).trans (le_max_left _ _),
 end
 
-lemma metric.bounded.add {s t : set E} (hs : bounded s) (ht : bounded t) : bounded (s + t) :=
+lemma metric.bounded.add (hs : bounded s) (ht : bounded t) : bounded (s + t) :=
 begin
   obtain ⟨Rs, hRs⟩ : ∃ (R : ℝ), ∀ x ∈ s, ∥x∥ ≤ R := hs.exists_norm_le,
   obtain ⟨Rt, hRt⟩ : ∃ (R : ℝ), ∀ x ∈ t, ∥x∥ ≤ R := ht.exists_norm_le,
@@ -46,8 +43,6 @@ begin
   calc ∥x + y∥ ≤ ∥x∥ + ∥y∥ : norm_add_le _ _
   ... ≤ Rs + Rt : add_le_add (hRs x hx) (hRt y hy)
 end
-
-variables {ε δ : ℝ} {s : set E}
 
 @[simp] lemma singleton_add_ball (x y : E) (δ : ℝ) : {x} + ball y δ = ball (x + y) δ :=
 by simp only [preimage_add_ball, image_add_left, singleton_add, sub_neg_eq_add, add_comm y x]

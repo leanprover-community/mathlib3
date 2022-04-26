@@ -108,7 +108,7 @@ meta def expr.find_in (e : expr) (lc : list expr) : tactic (option expr) :=
 do
   h ← lc.mfilter $ λ e', succeeds $ unify e e',
   match h with
-  | [] := none
+  | []     := none
   | (f::l) := return $ some f
   end <|>
 return none
@@ -130,11 +130,11 @@ Once we exhausts the elements of `lp`, we return the three lists:
  -/
 meta def list.unify_list : list (bool × expr) → list expr → list bool →
   tactic (list expr × list expr × list expr × list bool)
-| [] sl is_unused := return ([], [], sl, is_unused)
+| [] sl is_unused      := return ([], [], sl, is_unused)
 | (be::l) sl is_unused := do
   cond ← be.2.find_in sl,
   match cond with
-  | none := l.unify_list sl (is_unused.append [tt])
+  | none    := l.unify_list sl (is_unused.append [tt])
   | some ex := do
     (l1, l2, l3, is_unused) ← l.unify_list (sl.erase ex) (is_unused.append [ff]),
     if be.1 then return (ex::l1, l2, l3, is_unused) else return (l1, ex::l2, l3, is_unused)
@@ -180,7 +180,7 @@ meta def sorted_sum (hyp : option name) (ll : list (bool × pexpr)) (e : expr) :
 do
   (sli, is_unused) ← ll.combined (get_summands e),
   match sli with
-  | [] := return is_unused
+  | []       := return is_unused
   | (eₕ::es) := do
     e' ← es.mfoldl (λ eₗ eᵣ, mk_app `has_add.add [eₗ, eᵣ]) eₕ,
     e_eq ← mk_app `eq [e, e'],
@@ -217,13 +217,14 @@ meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) : expr 
   let unused_summed := li_unused.transpose.map list.band,
   return unused_summed
 
-/-- Passes the user input to `recurse_on_expr` at a single location, that could either be `none`
-(referring to the goal) or `some name` (referring to hypothesis `name`).  Returns a pair consisting
-of a boolean and a further list of booleans.  The single boolean is `tt` if the tactic did *not*
-change the goal on which it was acting.  The list of booleans records which variable in `ll` has
-been unified in the application: `tt` means that the corresponding variable has *not* been unified.
+/-- Passes the user input `ll` to `recurse_on_expr` at a single location, that could either be
+`none` (referring to the goal) or `some name` (referring to hypothesis `name`).  Returns a pair
+consisting of a boolean and a further list of booleans.  The single boolean is `tt` if the tactic
+did *not* change the goal on which it was acting.  The list of booleans records which variable in
+`ll` has been unified in the application: `tt` means that the corresponding variable has *not* been
+unified.
 
-This definition is useful to streamling error catching. -/
+This definition is useful to streamline error catching. -/
 meta def move_add_with_errors (ll : list (bool × pexpr)) : option name → tactic (bool × list bool)
 | (some hyp) := do
   lhyp ← get_local hyp,
@@ -251,9 +252,9 @@ list_of (move_add_arg 0) <|> list.ret <$> (move_add_arg tac_rbp) <|> return []
 /--  Out of a list of `option name`, returns a list of `name`s of target, discarding, if present
 `none`, which corresponds to the goal. -/
 meta def to_hyps : list (option name) → tactic (list expr)
-| [] := pure []
+| []           := pure []
 | (some n::ns) := do ln ← get_local n, fina ← to_hyps ns, return (ln::fina)
-| (none::ns) := to_hyps ns
+| (none::ns)   := to_hyps ns
 
 /--
 Calling `move_add [a, ← b, c, ← d]`, recursively looks inside the goal for
@@ -278,9 +279,9 @@ match locat with
   let li_unused_clear := li_unused.filter (≠ []),
   let li_tf_vars := li_unused_clear.transpose.map list.band,
   match ((args.return_unused li_tf_vars).map (λ e : bool × pexpr, e.2)) with
-  | [] := skip
+  | []   := skip
   | [pe] := trace format!"'{pe}' is an unused variable"
-  | pes := trace format!"'{pes}' are unused variables"
+  | pes  := trace format!"'{pes}' are unused variables"
   end,
   assumption <|> try (tactic.reflexivity reducible)
 | loc.ns names := do
@@ -295,9 +296,9 @@ match locat with
   let li_unused_clear := li_unused.filter (≠ []),
   let li_tf_vars := li_unused_clear.transpose.map list.band,
   match ((args.return_unused li_tf_vars).map (λ e : bool × pexpr, e.2)) with
-  | [] := skip
+  | []   := skip
   | [pe] := trace format!"'{pe}' is an unused variable"
-  | pes := trace format!"'{pes}' are unused variables"
+  | pes  := trace format!"'{pes}' are unused variables"
   end,
   assumption <|> try (tactic.reflexivity reducible)
   end

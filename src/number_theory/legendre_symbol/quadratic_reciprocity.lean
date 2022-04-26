@@ -33,10 +33,6 @@ open finset nat char
 
 namespace zmod
 
-/-- We have that `ring_char (zmod n) = n`. -/
-lemma ring_char_zmod_n (n : ℕ) : ring_char (zmod n) = n :=
-by { rw ring_char.eq_iff, exact zmod.char_p n, }
-
 variables (p q : ℕ) [fact p.prime] [fact q.prime]
 
 /-- Euler's Criterion: A unit `x` of `zmod p` is a square if and only if `x ^ (p / 2) = 1`. -/

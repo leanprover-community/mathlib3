@@ -151,6 +151,10 @@ instance (n : ℕ) : char_p (zmod n) n :=
     rw [val_nat_cast, val_zero, nat.dvd_iff_mod_eq_zero],
   end }
 
+/-- We have that `ring_char (zmod n) = n`. -/
+lemma ring_char_zmod_n (n : ℕ) : ring_char (zmod n) = n :=
+by { rw ring_char.eq_iff, exact zmod.char_p n, }
+
 @[simp] lemma nat_cast_self (n : ℕ) : (n : zmod n) = 0 :=
 char_p.cast_eq_zero (zmod n) n
 

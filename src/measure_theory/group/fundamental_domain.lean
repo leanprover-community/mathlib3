@@ -229,28 +229,29 @@ protected lemma measure_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) : μ s = μ t :=
 by simpa only [set_lintegral_one] using hs.set_lintegral_eq ht (λ _, 1) (λ _ _, rfl)
 
-@[to_additive] protected lemma ae_measurable_on_iff {β : Type*} [measurable_space β]
+@[to_additive] protected lemma ae_strongly_measurable_on_iff
+  {β : Type*} [topological_space β] [metrizable_space β]
   (hs : is_fundamental_domain G s μ) (ht : is_fundamental_domain G t μ) {f : α → β}
   (hf : ∀ (g : G) x, f (g • x) = f x) :
-  ae_measurable f (μ.restrict s) ↔ ae_measurable f (μ.restrict t) :=
-calc ae_measurable f (μ.restrict s)
-    ↔ ae_measurable f (measure.sum $ λ g : G, (μ.restrict (g • t ∩ s))) :
+  ae_strongly_measurable f (μ.restrict s) ↔ ae_strongly_measurable f (μ.restrict t) :=
+calc ae_strongly_measurable f (μ.restrict s)
+    ↔ ae_strongly_measurable f (measure.sum $ λ g : G, (μ.restrict (g • t ∩ s))) :
   by simp only [← ht.restrict_restrict,
     ht.sum_restrict_of_ac restrict_le_self.absolutely_continuous]
-... ↔ ∀ g : G, ae_measurable f (μ.restrict (g • (g⁻¹ • s ∩ t))) :
-  by simp only [smul_set_inter, inter_comm, smul_inv_smul, ae_measurable_sum_measure_iff]
-... ↔ ∀ g : G, ae_measurable f (μ.restrict (g⁻¹ • (g⁻¹⁻¹ • s ∩ t))) : inv_surjective.forall
-... ↔ ∀ g : G, ae_measurable f (μ.restrict (g⁻¹ • (g • s ∩ t))) : by simp only [inv_inv]
-... ↔ ∀ g : G, ae_measurable f (μ.restrict (g • s ∩ t)) :
+... ↔ ∀ g : G, ae_strongly_measurable f (μ.restrict (g • (g⁻¹ • s ∩ t))) :
+  by simp only [smul_set_inter, inter_comm, smul_inv_smul, ae_strongly_measurable_sum_measure_iff]
+... ↔ ∀ g : G, ae_strongly_measurable f (μ.restrict (g⁻¹ • (g⁻¹⁻¹ • s ∩ t))) : inv_surjective.forall
+... ↔ ∀ g : G, ae_strongly_measurable f (μ.restrict (g⁻¹ • (g • s ∩ t))) : by simp only [inv_inv]
+... ↔ ∀ g : G, ae_strongly_measurable f (μ.restrict (g • s ∩ t)) :
   begin
     refine forall_congr (λ g, _),
     have he : measurable_embedding ((•) g⁻¹ : α → α) := measurable_embedding_const_smul _,
     rw [← image_smul,
-      ← ((measure_preserving_smul g⁻¹ μ).restrict_image_emb he _).ae_measurable_comp_iff he],
+    ← ((measure_preserving_smul g⁻¹ μ).restrict_image_emb he _).ae_strongly_measurable_comp_iff he],
     simp only [(∘), hf]
   end
-... ↔ ae_measurable f (μ.restrict t) :
-  by simp only [← ae_measurable_sum_measure_iff, ← hs.restrict_restrict,
+... ↔ ae_strongly_measurable f (μ.restrict t) :
+  by simp only [← ae_strongly_measurable_sum_measure_iff, ← hs.restrict_restrict,
     hs.sum_restrict_of_ac restrict_le_self.absolutely_continuous]
 
 @[to_additive] protected lemma has_finite_integral_on_iff (hs : is_fundamental_domain G s μ)
@@ -262,14 +263,12 @@ begin
   intros g x, rw hf
 end
 
-variables [measurable_space E]
-
 @[to_additive] protected lemma integrable_on_iff (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) {f : α → E} (hf : ∀ (g : G) x, f (g • x) = f x) :
   integrable_on f s μ ↔ integrable_on f t μ :=
-and_congr (hs.ae_measurable_on_iff ht hf) (hs.has_finite_integral_on_iff ht hf)
+and_congr (hs.ae_strongly_measurable_on_iff ht hf) (hs.has_finite_integral_on_iff ht hf)
 
-variables [normed_space ℝ E] [borel_space E] [complete_space E] [second_countable_topology E]
+variables [normed_space ℝ E] [complete_space E]
 
 @[to_additive] protected lemma set_integral_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) {f : α → E} (hf : ∀ (g : G) x, f (g • x) = f x) :

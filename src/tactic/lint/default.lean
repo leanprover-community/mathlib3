@@ -3,11 +3,19 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
+import algebra.group.to_additive
 import tactic.lint.frontend
+import tactic.lint.misc
 import tactic.lint.simp
 import tactic.lint.type_classes
-import tactic.lint.misc
-import algebra.group.to_additive
+
+/-!
+# Default linters
+
+This file defines the list of linters that are run in mathlib CI. Not all linters are considered
+"default" and run that way. A `linter` is marked as default if it is tagged with the `linter`
+attribute.
+-/
 
 open tactic
 

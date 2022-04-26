@@ -99,7 +99,7 @@ lemma is_preconnected.intermediate_value₂_eventually₁ {s : set X} (hs : is_p
 begin
   rw continuous_on_iff_continuous_restrict at hf hg,
   obtain ⟨b, h⟩ := @intermediate_value_univ₂_eventually₁ _ _ _ _ _ _ (subtype.preconnected_space hs)
-    ⟨a, ha⟩ _ (comap_coe_ne_bot_of_le_principal hl) _ _ hf hg ha' (eventually_comap' he),
+    ⟨a, ha⟩ _ (comap_coe_ne_bot_of_le_principal hl) _ _ hf hg ha' (he.comap _),
   exact ⟨b, b.prop, h⟩,
 end
 
@@ -111,7 +111,7 @@ begin
   rw continuous_on_iff_continuous_restrict at hf hg,
   obtain ⟨b, h⟩ := @intermediate_value_univ₂_eventually₂ _ _ _ _ _ _ (subtype.preconnected_space hs)
     _ _ (comap_coe_ne_bot_of_le_principal hl₁) (comap_coe_ne_bot_of_le_principal hl₂)
-    _ _ hf hg (eventually_comap' he₁) (eventually_comap' he₂),
+    _ _ hf hg (he₁.comap _) (he₂.comap _),
   exact ⟨b, b.prop, h⟩,
 end
 

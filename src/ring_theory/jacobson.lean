@@ -409,8 +409,8 @@ begin
     change (polynomial.map ((quotient.mk I).comp C).range_restrict f).coeff n = 0 at hf,
     rw [coeff_map, subtype.ext_iff] at hf,
     rwa [mem_comap, ← quotient.eq_zero_iff_mem, ← ring_hom.comp_apply], },
-  haveI : (ideal.map (map_ring_hom i) I).is_prime :=
-    map_is_prime_of_surjective (map_surjective i hi) hi',
+  haveI := map_is_prime_of_surjective
+    (show function.surjective (map_ring_hom i), from map_surjective i hi) hi',
   suffices : (I.map (polynomial.map_ring_hom i)).jacobson = (I.map (polynomial.map_ring_hom i)),
   { replace this := congr_arg (comap (polynomial.map_ring_hom i)) this,
     rw [← map_jacobson_of_surjective _ hi',
@@ -454,7 +454,7 @@ begin
   rw ← bot_quotient_is_maximal_iff,
   have hp0 : ((m : R[X]).map (quotient.mk (P.comap C : ideal R))).leading_coeff ≠ 0 :=
     λ hp0', this $ map_injective (quotient.mk (P.comap C : ideal R))
-      ((quotient.mk (P.comap C : ideal R)).injective_iff.2 (λ x hx,
+      ((injective_iff_map_eq_zero (quotient.mk (P.comap C : ideal R))).2 (λ x hx,
       by rwa [quotient.eq_zero_iff_mem, (by rwa eq_bot_iff : (P.comap C : ideal R) = ⊥)] at hx))
       (by simpa only [leading_coeff_eq_zero, polynomial.map_zero] using hp0'),
   have hM : (0 : R ⧸ P.comap C) ∉ M := λ ⟨n, hn⟩, hp0 (pow_eq_zero hn),

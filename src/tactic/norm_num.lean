@@ -1424,6 +1424,23 @@ repeat1 $ orelse' (tactic.norm_num1 step l) $
 interactive.simp_core {} (tactic.norm_num1 step (interactive.loc.ns [none]))
   ff (simp_arg_type.except ``one_div :: hs) [] l >> skip
 
+/-- Carry out similar operations as `tactic.norm_num` but on an `expr` rather than a location.
+Given an expression `e`, returns `(e', ⊢ e = e')`.
+The `no_dflt`, `hs`, and `attr_names` are passed on to `simp`.
+Unlike `norm_num`, this tactic does not fail. -/
+meta def _root_.expr.norm_num (step : expr → tactic (expr × expr))
+  (no_dflt : bool := ff) (hs : list simp_arg_type := []) (attr_names : list name := []) :
+  expr → tactic (expr × expr) :=
+let simp_step (e : expr) := do
+      (e', p, _) ← e.simp {} (tactic.norm_num1 step (interactive.loc.ns [none]))
+                   no_dflt attr_names (simp_arg_type.except ``one_div :: hs),
+      return (e', p)
+in or_refl_conv $ λ e, do
+  (e', p') ← norm_num.derive' step e <|> simp_step e,
+  (e'', p'') ← _root_.expr.norm_num e',
+  p ← mk_eq_trans p' p'',
+  return (e'', p)
+
 namespace tactic.interactive
 open norm_num interactive interactive.types
 
@@ -1524,6 +1541,9 @@ namespace tactic
 
 setup_tactic_parser
 
+/- With this option, turn off the messages if the result is exactly `true` -/
+declare_trace silence_norm_num_if_true
+
 /--
 The basic usage is `#norm_num e`, where `e` is an expression,
 which will print the `norm_num` form of `e`.
@@ -1558,7 +1578,7 @@ do
   (ts, mappings) ← synthesize_tactic_state_with_variables_as_hyps (e :: hs_es),
 
   /- Enter the `tactic` monad, *critically* using the synthesized tactic state `ts`. -/
-  simp_result ← lean.parser.of_tactic $ λ _, do
+  result ← lean.parser.of_tactic $ λ _, do
   { /- Resolve the local variables added by the parser to `e` (when it was parsed) against the local
        hypotheses added to the `ts : tactic_state` which we are using. -/
     e ← to_expr e,
@@ -1580,15 +1600,13 @@ do
        -/
     let hs := hs.map $ λ sat, sat.replace_subexprs mappings,
 
-    /- Try simplifying the expression, like in `#simp`  -/
-    e ← prod.fst <$> e.simp {fail_if_unchanged := ff} failed no_dflt attr_names hs,
-    /- Try applying `norm_num` with the default `norm_num` set, allowing it to fail to simplify. -/
-    e ← prod.fst <$> norm_num.derive e <|> return e,
-    return e } ts,
+    /- Try simplifying the expression. -/
+    step ← norm_num.get_step,
+    prod.fst <$> e.norm_num step no_dflt hs attr_names } ts,
 
   /- Trace the result. -/
-  when (¬ is_trace_enabled_for `silence_simp_if_true ∨ simp_result ≠ expr.const `true [])
-    (trace simp_result)
+  when (¬ is_trace_enabled_for `silence_norm_num_if_true ∨ result ≠ expr.const `true [])
+    (trace result)
 
 add_tactic_doc
 { name                     := "#norm_num",

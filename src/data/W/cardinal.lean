@@ -3,8 +3,9 @@ Copyright (c) 2021 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import set_theory.cardinal_ordinal
 import data.W.basic
+import set_theory.cardinal.ordinal
+
 /-!
 # Cardinality of W-types
 
@@ -69,7 +70,7 @@ calc cardinal.sum (λ a : α, m ^ #(β a))
   mul_le_mul' (le_max_left _ _) le_rfl
 ... = m : mul_eq_left.{u} (le_max_right _ _)
   (cardinal.sup_le (λ i, begin
-    cases lt_omega.1 (lt_omega_iff_fintype.2 ⟨show fintype (β i), by apply_instance⟩) with n hn,
+    cases lt_omega.1 (lt_omega_of_fintype (β i)) with n hn,
     rw [hn],
     exact power_nat_le (le_max_right _ _)
   end))

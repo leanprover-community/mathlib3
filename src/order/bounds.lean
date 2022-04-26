@@ -857,10 +857,7 @@ ball_image_of_ball (assume x H,  Hf Hat (Hst H) (Has H))
 
 lemma image_upper_bounds_subset_upper_bounds_image :
   f '' (upper_bounds s ∩ t) ⊆ upper_bounds (f '' s) :=
-begin
-  rintro _ ⟨a, ha, rfl⟩,
-  exact Hf.mem_upper_bounds_image Hst (mem_of_mem_inter_left ha) (mem_of_mem_inter_right ha)
-end
+by { rintro _ ⟨a, ha, rfl⟩, exact Hf.mem_upper_bounds_image Hst ha.1 ha.2 }
 
 lemma image_lower_bounds_subset_lower_bounds_image :
   f '' (lower_bounds s ∩ t) ⊆ lower_bounds (f '' s) :=
@@ -869,18 +866,12 @@ Hf.dual.image_upper_bounds_subset_upper_bounds_image Hst
 /-- The image under a monotone function on a set `t` of a subset which has an upper bound in `t`
   is bounded above. -/
 lemma map_bdd_above : (upper_bounds s ∩ t).nonempty → bdd_above (f '' s) :=
-begin
-  rintro ⟨C, hC⟩,
-  exact ⟨f C, Hf.mem_upper_bounds_image Hst (mem_of_mem_inter_left hC) (mem_of_mem_inter_right hC)⟩
-end
+λ ⟨C, hs, ht⟩, ⟨f C, Hf.mem_upper_bounds_image Hst hs ht⟩
 
 /-- The image under a monotone function on a set `t` of a subset which has a lower bound in `t`
   is bounded below. -/
 lemma map_bdd_below : (lower_bounds s ∩ t).nonempty → bdd_below (f '' s) :=
-begin
-  rintro ⟨C, hC⟩,
-  exact ⟨f C, Hf.mem_lower_bounds_image Hst (mem_of_mem_inter_left hC) (mem_of_mem_inter_right hC)⟩
-end
+λ ⟨C, hs, ht⟩, ⟨f C, Hf.mem_lower_bounds_image Hst hs ht⟩
 
 /-- A monotone map sends a least element of a set to a least element of its image. -/
 lemma map_is_least (Ha : is_least s a) : is_least (f '' s) (f a) :=
@@ -910,7 +901,7 @@ lemma mem_upper_bounds_image (Has : a ∈ lower_bounds s) (Hat : a ∈ t) :
   f a ∈ upper_bounds (f '' s) :=
 Hf.dual_right.mem_lower_bounds_image Hst Has Hat
 
-lemma mem_lower_bounds_image (Has : a ∈ upper_bounds s) (Hat : a ∈ t):
+lemma mem_lower_bounds_image (Has : a ∈ upper_bounds s) (Hat : a ∈ t) :
   f a ∈ lower_bounds (f '' s) :=
 Hf.dual_right.mem_upper_bounds_image Hst Has Hat
 

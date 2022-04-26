@@ -184,22 +184,6 @@ begin
     exact nat.pow_right_injective hp.two_le hxy }
 end
 
--- #13582
-lemma units.mk0_prod {β α : Type} [_inst_1 : comm_group_with_zero β] (s : finset α)
-  (f : α → β) (h) :
-  units.mk0 (∏ b in s, f b) h = ∏ b in s.attach, units.mk0 (f b) (λ hh, h (prod_eq_zero b.2 hh)) :=
-by { classical, induction s using finset.induction_on; simp* }
-
--- #13586
-lemma cyclotomic.eval_apply {C R : Type*} (q : R) (n : ℕ) [ring C] [ring R] (f : R →+* C) :
-  eval (f q) (cyclotomic n C) = f (eval q (cyclotomic n R)) :=
-by rw [← map_cyclotomic n f, eval_map, eval₂_at_apply]
-
--- #13587
-lemma _root_.is_primitive_root.ne_zero {M} [comm_monoid_with_zero M] [nontrivial M] {ζ : M} {n : ℕ}
-  (h : is_primitive_root ζ n) : n ≠ 0 → ζ ≠ 0 :=
-mt $ λ hn, h.unique (hn.symm ▸ is_primitive_root.zero)
-
 lemma sub_one_pow_totient_lt_cyclotomic_eval (n : ℕ) (q : ℝ) (hn' : 2 ≤ n) (hq' : 1 < q) :
   (q - 1) ^ totient n < (cyclotomic n ℝ).eval q :=
 begin
@@ -225,24 +209,22 @@ begin
     clear_value ζ,
     rintro rfl,
     linarith [hζ.unique is_primitive_root.one] },
-  have : ¬eval ↑q (cyclotomic n ℂ) = 0, -- this is also a general lemma
+  have : ¬eval ↑q (cyclotomic n ℂ) = 0,
   { erw cyclotomic.eval_apply q n (algebra_map ℝ ℂ),
-    simp only [complex.coe_algebra_map, complex.of_real_eq_zero],
-    exact (cyclotomic_pos' n hq').ne.symm, },
+    simpa using (cyclotomic_pos' n hq').ne' },
   suffices : (units.mk0 (real.to_nnreal (q - 1)) (by simp [hq'])) ^ totient n
               < units.mk0 (∥(cyclotomic n ℂ).eval q∥₊) (by simp [this]),
   { simp only [←units.coe_lt_coe, units.coe_pow, units.coe_mk0, ← nnreal.coe_lt_coe, hq'.le,
                real.to_nnreal_lt_to_nnreal_iff_of_nonneg, coe_nnnorm, complex.norm_eq_abs,
                nnreal.coe_pow, real.coe_to_nnreal', max_eq_left, sub_nonneg] at this,
     convert this,
-    erw (cyclotomic.eval_apply q n (algebra_map ℝ ℂ)),
-    symmetry,
+    erw [(cyclotomic.eval_apply q n (algebra_map ℝ ℂ)), eq_comm],
     simp [cyclotomic_nonneg n hq'.le], },
   simp only [cyclotomic_eq_prod_X_sub_primitive_roots hζ, eval_prod, eval_C,
              eval_X, eval_sub, nnnorm_prod, units.mk0_prod],
   convert prod_lt_prod' _ _,
   swap, { exact λ _, units.mk0 (real.to_nnreal (q - 1)) (by simp [hq']) },
-  { simp [complex.card_primitive_roots], }, -- TODO make this and card roots of unity a simp lemma
+  { simp [complex.card_primitive_roots] },
   { simp only [subtype.coe_mk, mem_attach, forall_true_left, subtype.forall, ←units.coe_le_coe,
       ← nnreal.coe_le_coe, complex.abs_nonneg, hq'.le, units.coe_mk0, real.coe_to_nnreal',
       coe_nnnorm, complex.norm_eq_abs, max_le_iff, tsub_le_iff_right],
@@ -287,7 +269,7 @@ begin
     linarith [hζ.unique $ is_primitive_root.neg_one 0 two_ne_zero.symm],
     { contrapose! hζ₀,
       ext; simp [hζ₀, h.2] } },
-  have : ¬eval ↑q (cyclotomic n ℂ) = 0, -- this is also a general lemma
+  have : ¬eval ↑q (cyclotomic n ℂ) = 0,
   { erw cyclotomic.eval_apply q n (algebra_map ℝ ℂ),
     simp only [complex.coe_algebra_map, complex.of_real_eq_zero],
     exact (cyclotomic_pos' n hq').ne.symm, },
@@ -297,42 +279,25 @@ begin
                real.to_nnreal_lt_to_nnreal_iff_of_nonneg, coe_nnnorm, complex.norm_eq_abs,
                nnreal.coe_pow, real.coe_to_nnreal', max_eq_left, sub_nonneg] at this,
     convert this,
-    erw (cyclotomic.eval_apply q n (algebra_map ℝ ℂ)),
-    symmetry,
-    simp [cyclotomic_nonneg n hq'.le],
-    symmetry,
-    simp,
-    linarith, },
+    { erw [(cyclotomic.eval_apply q n (algebra_map ℝ ℂ)), eq_comm],
+      simp [cyclotomic_nonneg n hq'.le] },
+    rw [eq_comm, max_eq_left_iff],
+    linarith },
   simp only [cyclotomic_eq_prod_X_sub_primitive_roots hζ, eval_prod, eval_C,
              eval_X, eval_sub, nnnorm_prod, units.mk0_prod],
   convert prod_lt_prod' _ _,
   swap, { exact λ _, units.mk0 (real.to_nnreal (q + 1)) (by simp; linarith only [hq']) },
-  { simp [complex.card_primitive_roots], }, -- TODO make this and card roots of unity a simp lemma
+  { simp [complex.card_primitive_roots], },
   { simp only [subtype.coe_mk, mem_attach, forall_true_left, subtype.forall, ←units.coe_le_coe,
       ← nnreal.coe_le_coe, complex.abs_nonneg, hq'.le, units.coe_mk0, real.coe_to_nnreal,
       coe_nnnorm, complex.norm_eq_abs, max_le_iff],
     intros x hx,
-    have := hfor x hx,
-    simp at this,
+    have : complex.abs _ ≤ _ := hfor x hx,
     simp [this], },
   { simp only [subtype.coe_mk, mem_attach, exists_true_left, subtype.exists,
       ← nnreal.coe_lt_coe, ← units.coe_lt_coe, units.coe_mk0 _, coe_nnnorm],
-    obtain ⟨ζ, hζ, hhζ⟩ := hex,
-    refine ⟨ζ, hζ, _⟩,
-    simp at hhζ,
-    simp [hhζ], },
-end
-
-lemma nat.totient_eq_one_iff : ∀ {n : ℕ}, n.totient = 1 ↔ n = 1 ∨ n = 2
-| 0 := by simp
-| 1 := by simp
-| 2 := by simp
-| (n+3) :=
-begin
-  have : 3 ≤ n + 3 := le_add_self,
-  have := totient_even this,
-  simp only [succ_succ_ne_one, false_or],
-  exact ⟨λ h, (not_even_one).elim $ by rwa ←h, by rintro ⟨⟩⟩,
+    obtain ⟨ζ, hζ, hhζ : complex.abs _ < _⟩ := hex,
+    exact ⟨ζ, hζ, by simp [hhζ]⟩ },
 end
 
 lemma sub_one_lt_nat_abs_cyclotomic_eval (n : ℕ) (q : ℕ) (hn' : 1 < n) (hq' : q ≠ 1) :
@@ -343,7 +308,7 @@ begin
   { rw [pos_iff_ne_zero, ne.def, int.nat_abs_eq_zero],
     intro h,
     have := degree_eq_one_of_irreducible_of_root (cyclotomic.irreducible (pos_of_gt hn')) h,
-    rw [degree_cyclotomic, with_top.coe_eq_one, nat.totient_eq_one_iff] at this,
+    rw [degree_cyclotomic, with_top.coe_eq_one, totient_eq_one_iff] at this,
     rcases this with rfl|rfl; simpa using h },
   suffices : (q.succ : ℝ) < (eval (↑q + 1 + 1) (cyclotomic n ℤ)).nat_abs,
   { exact_mod_cast this, },
@@ -353,7 +318,7 @@ begin
     convert pow_mono (by simp : 1 ≤ (q : ℝ) + 1) (totient_pos (pos_of_gt hn') : 1 ≤ n.totient),
     { simp, },
     { ring, }, },
-  convert sub_one_pow_totient_lt_cyclotomic_eval n (q + 2) (by linarith) (by norm_cast; linarith),
+  convert sub_one_pow_totient_lt_cyclotomic_eval n (q + 2) (by linarith) (by {norm_cast, linarith}),
   norm_cast,
   erw cyclotomic.eval_apply (q + 2 : ℤ) n (algebra_map ℤ ℝ),
   simp only [int.coe_nat_succ, ring_hom.eq_int_cast],

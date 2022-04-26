@@ -119,7 +119,7 @@ def of_Module_monoid_algebra : Module.{u} (monoid_algebra k G) ⥤ Rep k G :=
   begin
     refine Rep.of
       ((monoid_algebra.lift k G ((restrict_scalars k (monoid_algebra k G) V) →ₗ[k] _)).symm _),
-    apply algebra.to_module_End k,
+    apply algebra.lsmul k,
   end,
   map := λ V W f,
   { hom :=

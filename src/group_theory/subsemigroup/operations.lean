@@ -162,7 +162,7 @@ variables [has_mul M] [has_mul N] [has_mul P] (S : subsemigroup M)
 `add_subsemigroup`."]
 def comap (f : M →ₙ* N) (S : subsemigroup N) : subsemigroup M :=
 { carrier := (f ⁻¹' S),
-mul_mem' := λ a b ha hb,
+  mul_mem' := λ a b ha hb,
     show f (a * b) ∈ S, by rw map_mul; exact mul_mem ha hb }
 
 @[simp, to_additive]

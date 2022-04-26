@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2018 Chris Hughes, 2022 Michaael Stoll. All rights reserved.
+Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Michael Stoll
 -/
@@ -127,7 +127,7 @@ that `legendre_sym p` is a multiplicative function `ℤ → ℤ`.
 -/
 def legendre_sym (p : ℕ) [fact p.prime] (a : ℤ) : ℤ := quadratic_char (zmod p) a
 
-/-- We have the cogruence `legendre_sym p a ≡ a ^ (p / 2) mod p`. -/
+/-- We have the congruence `legendre_sym p a ≡ a ^ (p / 2) mod p`. -/
 lemma legendre_sym_eq_pow (p : ℕ) (a : ℤ) [hp : fact p.prime] :
   (legendre_sym p a : zmod p) = (a ^ (p / 2)) :=
 begin

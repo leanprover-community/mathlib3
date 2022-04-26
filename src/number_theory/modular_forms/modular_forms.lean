@@ -10,6 +10,20 @@ import linear_algebra.special_linear_group
 import algebra.direct_sum.ring
 import number_theory.modular
 import geometry.manifold.mfderiv
+
+/-!
+# Modular forms
+
+This file defines modular forms and proves some basic properties about them.
+
+We begin by defining the `slash_k` operator on the space of functions `ℍ → ℂ` and from this
+define the notion of weakly modular form.#check
+
+We then define `bounded_at_infinity` and `zero_at_infinity`. Finally we construct the vector
+space of modular forms and prove that the product of two modular forms is a modular form
+(of higher weight).
+-/
+
 universes u v
 
 open complex
@@ -222,31 +236,23 @@ def is_zero_at_infinity :=
   (f ∈  is_bound_at_infinity ) ↔ ∃ (M A : ℝ), ∀ z : ℍ, A ≤ im z  → abs (f z) ≤ M := iff.rfl
 
 @[simp]lemma zero_at_inf_mem (f : ℍ → ℂ) :
-  (f ∈  is_zero_at_infinity  ) ↔
-  ∀ ε : ℝ, 0 < ε  → ∃ A : ℝ, ∀ z : ℍ, A ≤ im z  → abs (f z) ≤ ε := iff.rfl
+  (f ∈  is_zero_at_infinity  ) ↔ ∀ ε : ℝ, 0 < ε  → ∃ A : ℝ,
+  ∀ z : ℍ, A ≤ im z  → abs (f z) ≤ ε := iff.rfl
 
-lemma zero_form_is_zero_at_inf : (0 : (ℍ → ℂ)) ∈  is_zero_at_infinity:=
+lemma zero_form_is_zero_at_inf : (0 : (ℍ → ℂ)) ∈ is_zero_at_infinity:=
 begin
-  simp only [ zero_at_inf_mem, gt_iff_lt, ge_iff_le,
-  set_coe.forall, subtype.coe_mk],
-  intros ε he,
-  refine ⟨0,_⟩,
-  intros x  h1,
-  simp only [complex.abs_zero, pi.zero_apply, he.le],
+  refine λ ε he, ⟨0, by {simp only [complex.abs_zero, pi.zero_apply, he.le, implies_true_iff]}⟩,
 end
 
-lemma is_zero_at_inf_is_bound (f : ℍ → ℂ): (f ∈ is_zero_at_infinity) → (f ∈ is_bound_at_infinity):=
+lemma is_zero_at_inf_is_bound (f : ℍ → ℂ) (hf : f ∈ is_zero_at_infinity) :
+  (f ∈ is_bound_at_infinity):=
 begin
-  simp only [ zero_at_inf_mem, gt_iff_lt, bound_mem, ge_iff_le, set_coe.forall,
-  subtype.coe_mk],
-  intro H,
-  refine ⟨1, by {apply H, linarith}⟩,
+  refine ⟨1, by {apply hf, linarith}⟩,
 end
 
 lemma zero_form_is_bound : (0 : (ℍ → ℂ)) ∈  is_bound_at_infinity:=
 begin
- apply is_zero_at_inf_is_bound,
- apply zero_form_is_zero_at_inf,
+ apply is_zero_at_inf_is_bound _ (zero_form_is_zero_at_inf),
 end
 
 /--This is the submodule of functions that are bounded at infinity-/
@@ -254,100 +260,57 @@ def bounded_at_infty_submodule: submodule (ℂ) (ℍ  → ℂ):={
   carrier :={ f : ℍ → ℂ | ∃ (M A : ℝ), ∀ z : ℍ, A ≤ im z → abs (f z) ≤ M },
   zero_mem' :=by {simp only [pi.zero_apply, complex.abs_zero, subtype.forall,
   upper_half_plane.coe_im, set.mem_set_of_eq],
-  refine ⟨1 ,0 ,_⟩,
-  intros x  h1,
-  simp only [zero_le_one, pi.zero_apply, complex.abs_zero, implies_true_iff], },
-  add_mem' := by  {intros f g hf hg, begin
-  cases hf with Mf hMf,
-  cases hg with Mg hMg,
-  cases hMf with Af hAMf,
-  cases hMg with Ag hAMg,
-  existsi (Mf + Mg),
-  existsi (max Af Ag),
-  intros z hz,
-  simp only [pi.add_apply],
-  apply le_trans (complex.abs_add _ _),
-  apply add_le_add,
-  { refine hAMf z _,
-  exact le_trans (le_max_left _ _) hz },
-  { refine hAMg z _,
-  exact le_trans (le_max_right _ _) hz }
-  end},
+  refine ⟨1 ,0 , (λ _ _, zero_le_one)⟩,},
+  add_mem' := by  {intros f g hf hg,
+  obtain ⟨Mf, Af, hAMf⟩ := hf,
+  obtain ⟨Mg, Ag, hAMg⟩ := hg,
+  refine ⟨(Mf + Mg),(max Af Ag) , (λ z hz , le_trans (complex.abs_add _ _) (add_le_add ((hAMf z)
+  (le_trans (le_max_left _ _) hz)) ((hAMg z) (le_trans (le_max_right _ _) hz))))⟩},
   smul_mem' := by {intros c f hyp,
-  begin
-  cases hyp with M hM,
-  cases hM with A hAM,
-  existsi (complex.abs c * M),
-  existsi A,
-  intros z hz,
-  simp only [algebra.id.smul_eq_mul, pi.smul_apply],
-  convert (mul_le_mul_of_nonneg_left (hAM z hz) (complex.abs_nonneg c)),
-  apply complex.abs_mul,
-  end  },}
+  obtain ⟨M, A,hAM⟩ := hyp,
+  refine ⟨(complex.abs c • M), A, λ z hz, by { convert (mul_le_mul_of_nonneg_left (hAM z hz)
+  (complex.abs_nonneg c)), apply complex.abs_mul}⟩,},}
 
 
  /--The submodule of functions that are zero at infinity-/
 def zero_at_infty_submodule : submodule (ℂ) (ℍ  → ℂ) := {
   carrier := { f : ℍ → ℂ | ∀ ε : ℝ, 0 < ε  → ∃ A : ℝ, ∀ z : ℍ, A ≤ im z  → abs (f z) ≤ ε },
-  zero_mem' := by {simp only [pi.zero_apply, complex.abs_zero, subtype.forall,
-  upper_half_plane.coe_im,
-  set.mem_set_of_eq],
-  intros ε he,
-  refine ⟨(-1: ℝ ), _⟩,
-  intros x  h1,
-  apply he.le,},
-  add_mem' := by  {intros f g hf hg ε hε, begin
+  zero_mem' := by {intros ε he,
+  refine ⟨(-1: ℝ ), λ (_ _ ), by{ rw [pi.zero_apply, complex.abs_zero], apply he.le,}⟩},
+  add_mem' := by  {intros f g hf hg ε hε,
   cases hf (ε/2) (half_pos hε) with Af hAf,
   cases hg (ε/2) (half_pos hε) with Ag hAg,
   existsi (max Af Ag),
-  intros z hz,
-  simp only [pi.add_apply],
-  apply le_trans (complex.abs_add _ _),
   rw show ε = ε / 2 + ε / 2, by simp only [add_halves'],
-  apply add_le_add,
-  { refine hAf z (le_trans (le_max_left _ _) hz)},
-  { refine hAg z (le_trans (le_max_right _ _) hz)}
-  end,},
+  refine λ z, (λ hz, le_trans (complex.abs_add _ _)  (add_le_add ((hAf z)
+  (le_trans (le_max_left _ _) hz)) ((hAg z) (le_trans (le_max_right _ _) hz))))},
   smul_mem' := by {intros c f hyp ε hε,
-  begin
   by_cases hc : (c = 0),
-  { existsi (0 : ℝ ), intros, simp only [hc, pi.zero_apply, complex.abs_zero, zero_smul],
-  exact le_of_lt hε },
-  have habsinv: 0 < (complex.abs c)⁻¹ :=
-  by {simp only [gt_iff_lt, complex.abs_pos, ne.def, inv_pos], exact hc,},
-  have hcc: 0 <  (ε / complex.abs c)  :=
-  by { rw div_eq_mul_inv, apply mul_pos hε habsinv,},
+  {existsi (0 : ℝ ), intros, simp only [hc, pi.zero_apply, complex.abs_zero, zero_smul],
+  exact le_of_lt hε},
+  have hcc : 0 <  (ε / complex.abs c),
+  by { rw div_eq_mul_inv, apply mul_pos hε (inv_pos.2 (complex.abs_pos.2 hc)),},
   {cases hyp (ε / complex.abs c) (hcc) with A hA,
-  existsi A,
-  intros z hz,
-  simp only [complex.abs_mul,algebra.id.smul_eq_mul, pi.smul_apply],
+  refine ⟨A, λ  z hz, by {simp only [complex.abs_mul,algebra.id.smul_eq_mul, pi.smul_apply],
   rw show ε = complex.abs c * (ε / complex.abs c),
-  begin
-  rw [mul_comm],
-  refine (div_mul_cancel _ _).symm,
-  simp only [hc, complex.abs_eq_zero, ne.def, not_false_iff]
-  end,
-  apply mul_le_mul_of_nonneg_left (hA z hz) (complex.abs_nonneg c), }
-  end },}
+  by {rw [mul_comm], refine (div_mul_cancel _ (complex.abs_ne_zero.2 hc)).symm},
+  apply mul_le_mul_of_nonneg_left (hA z hz) (complex.abs_nonneg c),}⟩ },},}
 
 /-- The product of two bounded-at-infinity functions is bounded-at-infinty --/
-lemma prod_of_bound_is_bound (f g : ℍ → ℂ) :
-  (f ∈ is_bound_at_infinity) ∧ (g ∈ is_bound_at_infinity) → ((f * g) ∈ is_bound_at_infinity) :=
+lemma prod_of_bound_is_bound (f g : ℍ → ℂ) (hf : f ∈ is_bound_at_infinity)
+  (hg : g ∈ is_bound_at_infinity): ((f * g) ∈ is_bound_at_infinity) :=
 begin
-  intro h,
-  cases h with hf hg,
-  simp [is_bound_at_infinity] at *,
-  obtain ⟨Mf, Af, hMAf⟩:= hf,
-  obtain ⟨Mg, Ag, hMAg⟩:= hg,
-  refine ⟨Mf * Mg, max Af Ag, _⟩,
-  intros z hAfg,
-  simp only [max_le_iff] at *,
-  apply mul_le_mul ( hMAf z hAfg.1) (hMAg z hAfg.2) (complex.abs_nonneg _)
-  (le_trans (complex.abs_nonneg (f(z))) (hMAf z hAfg.1 )),
+  simp only [is_bound_at_infinity, upper_half_plane.coe_im, set.mem_set_of_eq, pi.mul_apply,
+  complex.abs_mul] at *,
+  obtain ⟨Mf, Af, hMAf⟩ := hf,
+  obtain ⟨Mg, Ag, hMAg⟩ := hg,
+  refine ⟨Mf * Mg, max Af Ag, λ z hAfg, mul_le_mul ( hMAf z (max_le_iff.1 hAfg).1)
+  (hMAg z (max_le_iff.1 hAfg).2) (complex.abs_nonneg _) (le_trans (complex.abs_nonneg (f(z)))
+  (hMAf z (max_le_iff.1 hAfg).1 ))⟩,
 end
 
 /--The extension of a function from `ℍ` to `ℍ'`-/
-def hol_extn (f : ℍ → ℂ) : ℍ' → ℂ := λ (z : ℍ'), (f (z : ℍ) )
+def hol_extn (f : ℍ → ℂ) : ℍ' → ℂ := λ (z : ℍ'), (f (z : ℍ))
 
 instance : has_coe (ℍ → ℂ) (ℍ' → ℂ) :=
 ⟨λ f, hol_extn f ⟩
@@ -355,7 +318,7 @@ instance : has_coe (ℍ → ℂ) (ℍ' → ℂ) :=
 /-- A function `f : ℍ → ℂ` is a modular form of level `Γ` and weight `k ∈ ℤ` if it is holomorphic,
  Petersson and bounded at infinity -/
 
-  structure is_modular_form_of_lvl_and_weight (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ) : Prop :=
+structure is_modular_form_of_lvl_and_weight (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ) : Prop :=
   (hol      : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑f : ℍ' → ℂ))
   (transf   : f ∈ weakly_modular_submodule k Γ )
   (infinity : ∀ (A : (⊤ : subgroup SL(2,ℤ))), (f ∣[k] A) ∈ is_bound_at_infinity )
@@ -368,19 +331,6 @@ lemma mk (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ)
   hol := h,
   transf := h2,
   infinity := h3,}
-
-lemma mod_mem (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ) :
-  is_modular_form_of_lvl_and_weight Γ k f ↔ mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑f : ℍ' → ℂ) ∧
-  f ∈ weakly_modular_submodule k Γ  ∧
-  (∀ (A : (⊤ : subgroup SL(2,ℤ))), (f ∣[k] A) ∈ is_bound_at_infinity) :=
-begin
-  split,
-  intro hf,
-  simp only [hf.hol, hf.transf, true_and, subtype.forall, upper_half_plane.coe_im, coe_coe],
-  apply hf.infinity,
-  intros h,
-  apply mk Γ k f h.1 h.2.1 h.2.2,
-end
 
 /-- A function `f : ℍ → ℂ` is a cusp form of level one and weight `k ∈ ℤ` if it is holomorphic,
  Petersson and zero at infinity -/
@@ -398,30 +348,14 @@ lemma is_cuspform_mk (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ)
   transf := h2,
   infinity := h3}
 
-lemma cusp_mem (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ): is_cusp_form_of_lvl_and_weight Γ k f ↔
-  mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑f : ℍ' → ℂ) ∧
-  f ∈ weakly_modular_submodule k Γ ∧
-  ( ∀ (A : (⊤ : subgroup SL(2,ℤ))), (f ∣[k] A) ∈ is_zero_at_infinity) :=
-begin
-  split,
-  intro hf,
-  simp only [hf.hol, hf.transf, true_and, subtype.forall, upper_half_plane.coe_im, coe_coe],
-  apply hf.infinity,
-  intro h,
-  apply is_cuspform_mk Γ k f h.1 h.2.1 h.2.2,
-end
-
-
 /-- The zero modular form is a cusp form-/
 lemma zero_cusp_form :  (is_cusp_form_of_lvl_and_weight Γ k) (0 : (ℍ → ℂ)) :=
   { hol := by {apply mdifferentiable_zero,},
   transf := (weakly_modular_submodule k Γ).zero_mem',
-  infinity := by {simp only [zero_at_inf_mem, gt_iff_lt, ge_iff_le],
-  intros A ε he,
-  use (-1: ℝ ),
-  intros x  h1,
-  simp only [slash_k, complex.abs_zero, zero_mul, pi.zero_apply, complex.abs_mul],
-  linarith}}
+  infinity := by {intros A ε he,
+  refine ⟨(-1: ℝ ), λ x  h1,
+  by {simp only [slash_k, complex.abs_zero, zero_mul, pi.zero_apply, complex.abs_mul],
+  linarith}⟩}}
 
 lemma is_modular_form_of_lvl_and_weight_of_is_cusp_form_of_lvl_and_weight (f : ℍ → ℂ)
   (h : is_cusp_form_of_lvl_and_weight Γ k f) : is_modular_form_of_lvl_and_weight Γ k f :={
@@ -468,7 +402,7 @@ lemma mul_modform (k_1 k_2 : ℤ) (Γ : subgroup SL(2,ℤ)) (f g : ℍ → ℂ)
 begin
   refine ⟨mdifferentiable_mul _ _ hf.1 hg.1, mul_modular  _ _ _ _ _ hf.2 hg.2 ,
   by {intro A, rw slash_k_mul_subgroup k_1 k_2 ⊤ A f g,
-  apply prod_of_bound_is_bound _ _ ⟨(hf.3 A), (hg.3 A)⟩}⟩,
+  apply prod_of_bound_is_bound _ _ (hf.3 A) (hg.3 A) }⟩,
 end
 
 end modular_forms

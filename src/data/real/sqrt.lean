@@ -293,6 +293,7 @@ begin
   exact (one_le_div h2).mpr h
 end
 
+-- MAIN RESULT, f < 0, as long as we have convergence of a geometrically decreasing nonneg sequence
 theorem converges_le_zero_step (f : cau_seq ℚ abs) (N : ℕ) (f_le_0 : ∀ i ≥ N, f i ≤ 0)
   (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
   (k : ℕ) (k_large : k ≥ N) : sqrt_aux f (k + 1) = sqrt_aux f k / 2 :=
@@ -438,6 +439,67 @@ begin
     ... = (δ ^ 2 + ε ^ 2 + 2 * ε * δ) / _ : by refl
     ... = (δ + ε) ^ 2 / (4 * s ^ 2) : by ring,
 end
+
+lemma fooo (a b c : ℚ) (cmp : b ≤ c) (b_pos : 0 < b) (a_pos : 0 ≤ a) : a / c ≤ a / b :=
+begin
+  exact div_le_div_of_le_left a_pos b_pos cmp
+end
+
+lemma div_right (a b c : ℚ) (a_nonzero : a ≠ 0) : (a * b) / (a * c) = b / c :=
+begin
+  exact mul_div_mul_left b c a_nonzero
+end
+
+theorem converges_pos' (f : cau_seq ℚ abs)
+  (N : ℕ) (bound : ℚ) (bound_pos : 0 < bound) (f_ge_bound : ∀ i ≥ N, bound ^ 2 ≤ f i)
+  (ε : ℚ) (ε_pos : 0 < ε) (ε_small : ε < bound ^ 2) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
+  (k : ℕ) (k_large : N ≤ k) (is_near : sqrt_aux f k ^ 2 - f k ≤ ε):
+  sqrt_aux f (k + 1) ^ 2 - f (k + 1) ≤ ε :=
+begin
+  have f_ge_0 : ∀ i ≥ N, 0 ≤ f i,
+  { intros i i_big, linarith [f_ge_bound i i_big, sq_pos_of_pos bound_pos], },
+  have sqrt_aux_big : sqrt_aux f k ^ 2 ≥ bound ^ 2,
+  { linarith [f_ge_bound k k_large, sqrt_aux_overestimate f k], },
+  have denom_big : 0 < 4 * bound ^ 2 := by linarith,
+  calc sqrt_aux f (k + 1) ^ 2 - f (k + 1)
+        ≤ (sqrt_aux f k ^ 2 - f k + ε) ^ 2 / (4 * sqrt_aux f k ^ 2) : converges_eventually_if_near_step f N f_ge_0 ε ε_pos f_near k k_large
+    ... ≤ (sqrt_aux f k ^ 2 - f k + ε) ^ 2 / (4 * bound ^ 2) : div_le_div_of_le_left (sq_nonneg _) denom_big (by linarith)
+    ... ≤ (ε + ε) ^ 2 / (4 * bound ^ 2) : begin
+      refine (div_le_div_right denom_big).2 (sq_le_sq _),
+      have thing : 0 ≤ ε + ε := by linarith,
+      have thing2 : 0 ≤ sqrt_aux f k ^ 2 - f k + ε := by linarith [sqrt_aux_overestimate' f k],
+      rw abs_eq_self.2 thing,
+      rw abs_eq_self.2 thing2,
+      linarith,
+    end
+    ... = 4 * ε ^ 2 / (4 * bound ^ 2) : by ring
+    ... = (ε ^ 2 / bound ^ 2) : mul_div_mul_left _ _ (by norm_num)
+    ... ≤ (ε ^ 2 / ε) : div_le_div_of_le_left (sq_nonneg _) ε_pos (le_of_lt ε_small)
+    ... = ε : sq_div_self (ne_of_gt ε_pos)
+end
+
+theorem bump_down {k N : ℕ} (kp1_large : k + 1 ≥ N) (k_not : k + 1 ≠ N) : k ≥ N :=
+begin
+  cases le_or_gt N k,
+  { exact h, },
+  { exfalso, refine k_not _, linarith, }
+end
+
+-- MAIN RESULT, f > 0
+theorem converges_pos (f : cau_seq ℚ abs)
+  (N : ℕ) (bound : ℚ) (bound_pos : 0 < bound) (f_ge_bound : ∀ i ≥ N, bound ^ 2 ≤ f i)
+  (ε : ℚ) (ε_pos : 0 < ε) (ε_small : ε < bound ^ 2) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
+  (is_near : sqrt_aux f N ^ 2 - f N ≤ ε) : ∀ (k : ℕ) (k_large : N ≤ k), sqrt_aux f k ^ 2 - f k ≤ ε
+| 0 zero_large := by simpa [le_zero_iff.mp zero_large] using is_near
+| (k + 1) kp1_large :=
+begin
+  by_cases k + 1 = N,
+  { rw h, exact is_near, },
+  { have k_large : k ≥ N := bump_down kp1_large h,
+    exact converges_pos' f N bound bound_pos f_ge_bound ε ε_pos ε_small f_near _ k_large (converges_pos k k_large), },
+end
+
+-- TODO: how on earth to prove for f = 0
 
 lemma bbbb (a b c : ℚ) (c_nonzero : c ≠ 0) : a / b * c = a / (b / c) :=
 by field_simp
@@ -754,33 +816,6 @@ begin
   { left, exact done, },
   { right,
     sorry, },
-end
-
-theorem it_is_the_one (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
-  (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
-  (k : ℕ) (k_large : N ≤ k) (is_near : sqrt_aux f k ^ 2 - f k ≤ 3 * ε):
-  sqrt_aux f (k + 1) ^ 2 - f (k + 1) ≤ 3 * ε :=
-begin
-  have u := converges_eventually_if_near_step f N f_ge_0 ε ε_pos f_near k k_large,
-  let m := (4 : ℚ) / 3,
-  by_cases sqrt_aux f k ^ 2 ≥ m * ε,
-  { have l : 4 * sqrt_aux f k ^ 2 ≥ 4 * m * ε := by linarith,
-    calc sqrt_aux f (k + 1) ^ 2 - f (k + 1)
-          ≤ (sqrt_aux f k ^ 2 - f k + ε) ^ 2 / (4 * sqrt_aux f k ^ 2) : u
-      ... ≤ (sqrt_aux f k ^ 2 - f k + ε) ^ 2 / (4 * m * ε) : sorry
-      ... ≤ (3 * ε + ε) ^ 2 / (4 * m * ε) : sorry
-      ... ≤ (4 * ε) ^ 2 / (4 * m * ε) : sorry
-      ... = 16 * ε * ε / (4 * m * ε) : sorry
-      ... = 16 * ε / (4 * m) : sorry
-      ... = 16 / (4 * m) * ε : sorry
-      ... = (4 * 4) / (4 * m) * ε : sorry
-      ... = 4 / m * ε : sorry
-      ... = 3 * ε : sorry
-  },
-  { simp at h,
-    -- Since sk^2 is small, sk^2 >= sk
-    have r : sqrt_aux f k ^ 2 ≥ sqrt_aux f k := by sorry,
-   }
 end
 
 #exit

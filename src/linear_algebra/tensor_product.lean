@@ -558,6 +558,39 @@ linear_equiv.of_linear (lift (mk R N M).flip) (lift (mk R M N).flip)
 @[simp] theorem comm_symm_tmul (m : M) (n : N) :
   (tensor_product.comm R M N).symm (n ⊗ₜ m) = m ⊗ₜ n := rfl
 
+variables {M N} (sM : set M) (sN : set N)
+
+lemma span_tmul_eq_span_tmul_span_right :
+  submodule.span R (sM.image2 (tmul R) sN) =
+  submodule.span R (sM.image2 (tmul R) $ submodule.span R sN) :=
+le_antisymm (submodule.span_mono $ set.image2_subset_left submodule.subset_span)
+begin
+  nth_rewrite 2 ← submodule.span_span, apply submodule.span_mono,
+  rintro t ⟨m,n,hm,hn,rfl⟩,
+  refine submodule.span_mono _ (submodule.apply_mem_span_image_of_mem_span (mk R M N m) hn),
+  exact λ t ⟨n,hn,h⟩, ⟨m,n,hm,hn,h⟩,
+end
+
+lemma span_tmul_eq_span_tmul_span_left :
+  submodule.span R (sM.image2 (tmul R) sN) =
+  submodule.span R (set.image2 (tmul R) (submodule.span R sM) sN) :=
+le_antisymm (submodule.span_mono $ set.image2_subset_right submodule.subset_span)
+begin
+  nth_rewrite 2 ← submodule.span_span, apply submodule.span_mono,
+  rintro t ⟨m,n,hm,hn,rfl⟩,
+  refine submodule.span_mono _ (submodule.apply_mem_span_image_of_mem_span
+    ((tensor_product.comm R N M).to_linear_map.comp (mk R N M n)) hm),
+  exact λ t ⟨m,hm,h⟩, ⟨m,n,hm,hn,h⟩,
+end
+
+lemma span_tmul_eq_top_of_span_eq_top
+  (hM : submodule.span R sM = ⊤) (hN : submodule.span R sN = ⊤) :
+  submodule.span R (sM.image2 (tmul R) sN) = ⊤ :=
+begin
+  rw [span_tmul_eq_span_tmul_span_right, span_tmul_eq_span_tmul_span_left, ← span_tmul_eq_top],
+  congr, rw [hM, hN], ext, exact ⟨ λ ⟨m,n,_,_,h⟩, ⟨m,n,h⟩, λ ⟨m,n,h⟩, ⟨m,n,trivial,trivial,h⟩ ⟩,
+end
+
 end
 
 section

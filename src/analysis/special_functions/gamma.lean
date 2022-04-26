@@ -373,7 +373,7 @@ lemma dGamma_integral_abs_convergent (s : ℝ) (hs : 1 < s) :
   integrable_on (λ x:ℝ, ∥ exp (-x) * log x * x ^ (s-1) ∥ ) (Ioi 0) :=
 begin
   have : Ioi (0:ℝ) = Ioc 0 1 ∪ Ioi 1 := by simp,
-  rw [this,integrable_on_union],
+  rw [this, integrable_on_union],
   split,
   { split,
     { refine continuous_on.ae_strongly_measurable (continuous_on.mul _ _).norm measurable_set_Ioc,

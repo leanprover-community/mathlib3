@@ -2650,9 +2650,14 @@ end
 
 namespace subgroup
 
-@[to_additive] instance zpowers_is_commutative (g : G) : (zpowers g).is_commutative :=
+@[to_additive zmultiples_is_commutative]
+instance zpowers_is_commutative (g : G) : (zpowers g).is_commutative :=
 ⟨⟨λ ⟨_, _, h₁⟩ ⟨_, _, h₂⟩, by rw [subtype.ext_iff, coe_mul, coe_mul,
   subtype.coe_mk, subtype.coe_mk, ←h₁, ←h₂, zpow_mul_comm]⟩⟩
+
+@[simp, to_additive zmultiples_le, simp]
+lemma zpowers_le {g : G} {H : subgroup G} : zpowers g ≤ H ↔ g ∈ H :=
+by rw [zpowers_eq_closure, closure_le, set.singleton_subset_iff, set_like.mem_coe]
 
 end subgroup
 

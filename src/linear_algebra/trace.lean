@@ -41,29 +41,29 @@ variables (b : basis ι R M) (c : basis κ R M)
 /-- The trace of an endomorphism given a basis. -/
 def trace_aux :
   (M →ₗ[R] M) →ₗ[R] R :=
-(matrix.trace ι R R) ∘ₗ ↑(linear_map.to_matrix b b)
+(matrix.trace_linear_map ι R R) ∘ₗ ↑(linear_map.to_matrix b b)
 
 -- Can't be `simp` because it would cause a loop.
 lemma trace_aux_def (b : basis ι R M) (f : M →ₗ[R] M) :
-  trace_aux R b f = matrix.trace ι R R (linear_map.to_matrix b b f) :=
+  trace_aux R b f = matrix.trace (linear_map.to_matrix b b f) :=
 rfl
 
 theorem trace_aux_eq : trace_aux R b = trace_aux R c :=
 linear_map.ext $ λ f,
-calc  matrix.trace ι R R (linear_map.to_matrix b b f)
-    = matrix.trace ι R R (linear_map.to_matrix b b ((linear_map.id.comp f).comp linear_map.id)) :
+calc  matrix.trace (linear_map.to_matrix b b f)
+    = matrix.trace (linear_map.to_matrix b b ((linear_map.id.comp f).comp linear_map.id)) :
   by rw [linear_map.id_comp, linear_map.comp_id]
-... = matrix.trace ι R R (linear_map.to_matrix c b linear_map.id ⬝
+... = matrix.trace (linear_map.to_matrix c b linear_map.id ⬝
         linear_map.to_matrix c c f ⬝
         linear_map.to_matrix b c linear_map.id) :
   by rw [linear_map.to_matrix_comp _ c, linear_map.to_matrix_comp _ c]
-... = matrix.trace κ R R (linear_map.to_matrix c c f ⬝
+... = matrix.trace (linear_map.to_matrix c c f ⬝
         linear_map.to_matrix b c linear_map.id ⬝
         linear_map.to_matrix c b linear_map.id) :
   by rw [matrix.mul_assoc, matrix.trace_mul_comm]
-... = matrix.trace κ R R (linear_map.to_matrix c c ((f.comp linear_map.id).comp linear_map.id)) :
+... = matrix.trace (linear_map.to_matrix c c ((f.comp linear_map.id).comp linear_map.id)) :
   by rw [linear_map.to_matrix_comp _ b, linear_map.to_matrix_comp _ c]
-... = matrix.trace κ R R (linear_map.to_matrix c c f) :
+... = matrix.trace (linear_map.to_matrix c c f) :
   by rw [linear_map.comp_id, linear_map.comp_id]
 
 open_locale classical

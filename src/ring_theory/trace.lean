@@ -98,7 +98,7 @@ variables {R}
 
 -- Can't be a `simp` lemma because it depends on a choice of basis
 lemma trace_eq_matrix_trace [decidable_eq ι] (b : basis ι R S) (s : S) :
-  trace R S s = matrix.trace _ R _ (algebra.left_mul_matrix b s) :=
+  trace R S s = matrix.trace (algebra.left_mul_matrix b s) :=
 by rw [trace_apply, linear_map.trace_eq_matrix_trace _ b, to_matrix_lmul_eq]
 
 /-- If `x` is in the base field `K`, then the trace is `[L : K] * x`. -/

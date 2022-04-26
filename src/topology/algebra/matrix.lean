@@ -142,9 +142,9 @@ lemma continuous.matrix_diag {A : X → matrix n n R} (hA : continuous A) :
 continuous_pi $ λ _, hA.matrix_elem _ _
 
 @[continuity]
-lemma continuous.matrix_trace [fintype n] [semiring S] [add_comm_monoid R] [has_continuous_add R]
-  [module S R] {A : X → matrix n n R} (hA : continuous A) :
-  continuous (λ x, trace n S R (A x)) :=
+lemma continuous.matrix_trace [fintype n] [add_comm_monoid R] [has_continuous_add R]
+  {A : X → matrix n n R} (hA : continuous A) :
+  continuous (λ x, trace (A x)) :=
 continuous_finset_sum _ $ λ i hi, hA.matrix_elem _ _
 
 @[continuity]

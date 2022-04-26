@@ -226,8 +226,8 @@ end
 ```
 
 ##  Related tactic: `move_add`
-In the case in which the expression to be changed is a sum of terms, tactic `move_add` can also
-be useful.
+In the case in which the expression to be changed is a sum of terms, tactic
+`tactive.interactive.move_add` can also be useful.
 -/
 meta def ac_change (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 convert_to r n; try ac_refl

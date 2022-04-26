@@ -11,75 +11,8 @@ import algebra.group.basic
 
 Calling `move_add [a, ← b, c]`, recursively looks inside the goal for expressions involving a sum.
 Whenever it finds one, it moves the summands that unify to `a, b, c`, removing all parentheses.
-Repetitions are allowed, and are processed following the user-specified ordering.
-The terms preceded by a `←` get placed to the left, the ones without the arrow get placed to the
-right.  Unnamed terms stay in place.  Due to re-parenthesizing, doing `move_add` with no argument
-may change the goal. Also, the *order* in which the terms are provided matters: the tactic reads
-them from left to right.  This is especially important if there are multiple matches for the typed
-terms in the given expressions.
 
-A single call of `move_add` moves terms across different sums in the same expression.
-Here is an example.
-
-```lean
-import tactic.move_add
-
-example {a b c d : ℕ} (h : c = d) : c + b + a = b + a + d :=
-begin
-  move_add [← a, b],  -- Goal: `a + c + b = a + d + b`  -- both sides changed
-  congr,
-  exact h
-end
-
-example {a b c d : ℕ} (h : c = d) : c + b * c + a * c = a * d + d + b * d :=
-begin
-  move_add [_ * c, ← _ * c], -- Goal: `a * c + c + b * c = a * d + d + b * d`
-  -- the first `_ * c` unifies with `b * c` and moves it to the right
-  -- the second `_ * c` unifies with `a * c` and moves it to the left
-  congr;
-  assumption
-end
-```
-
-The list of expressions that `move_add` takes is optional and a single expression can be passed
-without brackets.  Thus `move_add ← f` and `move_add [← f]` mean the same.
-
-Finally, `move_add` can also target one or more hypotheses.  If `hp₁, hp₂` are in the
-local context, then `move_add [f, ← g] at hp₁ hp₂` performs the rearranging at `hp₁` and `hp₂`.
-As usual, passing `⊢` refers to acting on the goal as well.
-
-##  Reporting sub-optimal usage
-
-The tactic never fails (really? TODO), but flags three kinds of unwanted use.
-1. `move_add [vars]? at *` reports gloally unused variables and whether *all* goals
-   are unchanged, not *each unchanged goal*.
-2. If a target of `move_add` is left unchanged by the tactic, then this will be flagged (unless
-   we are using `at *`).
-3. If a user-provided expression never unifies, then the variable is flagged.
-
-The tactic does not produce an error, but reports unused inputs and unchanged targets.
-
-###  Remark:
-It is still possible that the same output of `move_add [exprs]` can be achieved by a proper sublist
-of `[exprs]`, even if the tactic does not flag anything.  For instance, giving the full re-ordering
-of the expressions in the target that we want to achieve will not complain that there are unused
-variables, since all the user-provided variables have been matched.  Of course, specifying the order
-of all-but-the-last variable suffices to determine the permutation.  E.g., with a goal of
-`a + b = 0`, applying either one of `move_add [b,a]`, or `move_add a`, or `move_add ← b` has the
-same effect and changes the goal to `b + a = 0`.  These are all valid uses of `move_add`.
-
-##  Comparison with existing tactics
-
-* `abel` performs a "reduction to normal form" that allows it to close goals involving sums with
-higher success rate than `move_add`.  If the goal is an equality of two sums that are simply
-obtained by reparenthesizing and permuting summands, then `move_add [appropriate terms]` can close
-the goal.  Compared to `abel`, `move_add` has the advantage of allowing the user to specify the
-beginning and the end of the final sum, so that from there the user can continue with the proof.
-
-* `ac_change` supports a wide variety of operations.  At the moment, `move_add` only works with
-addition.  Still, on several experiments, `move_add` had a much quicker performance than
-`ac_change`.  Also, for `move_add` the user need only specify a few terms: the tactic itself takes
-care of producing the full rearrangement and proving it "behind the scenes".
+See the doc-string for `tactic.interactive.move_add` for more information.
 
 ##  Implementation notes
 
@@ -323,16 +256,18 @@ The tactic does not produce an error, but reports unused inputs and unchanged ta
 
 ##  Comparison with existing tactics
 
-* `abel` performs a "reduction to normal form" that allows it to close goals involving sums with
-higher success rate than `move_add`.  If the goal is an equality of two sums that are simply
-obtained by reparenthesizing and permuting summands, then `move_add [appropriate terms]` can close
-the goal.  Compared to `abel`, `move_add` has the advantage of allowing the user to specify the
-beginning and the end of the final sum, so that from there the user can continue with the proof.
+* `tactive.interactive.abel`
+  performs a "reduction to normal form" that allows it to close goals involving sums with higher
+  success rate than `move_add`.  If the goal is an equality of two sums that are simply obtained by
+  reparenthesizing and permuting summands, then `move_add [appropriate terms]` can close the goal.
+  Compared to `abel`, `move_add` has the advantage of allowing the user to specify the beginning and
+  the end of the final sum, so that from there the user can continue with the proof.
 
-* `ac_change` supports a wide variety of operations.  At the moment, `move_add` only works with
-addition.  Still, on several experiments, `move_add` had a much quicker performance than
-`ac_change`.  Also, for `move_add` the user need only specify a few terms: the tactic itself takes
-care of producing the full rearrangement and proving it "behind the scenes".
+* `tactic.interactive.ac_change`
+  supports a wide variety of operations.  At the moment, `move_add` only works with addition.
+  Still, on several experiments, `move_add` had a much quicker performance than `ac_change`.
+  Also, for `move_add` the user need only specify a few terms: the tactic itself takes care of
+  producing the full rearrangement and proving it "behind the scenes".
 
 ###  Remark:
 It is still possible that the same output of `move_add [exprs]` can be achieved by a proper sublist

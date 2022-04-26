@@ -211,6 +211,10 @@ instance [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β]
 lemma smul_apply [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β]
   [has_continuous_const_smul R β] (r : R) (f : C₀(α, β)) (x : α) : (r • f) x = r • f x := rfl
 
+instance [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β] [smul_with_zero Rᵐᵒᵖ β]
+  [has_continuous_const_smul R β] [is_central_scalar R β] : is_central_scalar R C₀(α, β) :=
+⟨λ r f, ext $ λ x, op_smul_eq_smul _ _⟩
+
 instance [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β]
   [has_continuous_const_smul R β] : smul_with_zero R C₀(α, β) :=
 function.injective.smul_with_zero ⟨_, coe_zero⟩ fun_like.coe_injective coe_smul

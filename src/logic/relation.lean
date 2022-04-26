@@ -188,6 +188,9 @@ lemma mono {p : α → α → Prop} (hp : ∀ a b, r a b → p a b) : ∀ {a b},
 | a _ refl_gen.refl := by refl
 | a b (single h) := single (hp a b h)
 
+instance : is_refl α (refl_gen r) :=
+⟨@refl α r⟩
+
 end refl_gen
 
 namespace refl_trans_gen
@@ -385,6 +388,9 @@ trans_gen.single⟩
 lemma transitive_trans_gen : transitive (trans_gen r) :=
 λ a b c, trans_gen.trans
 
+instance : is_trans α (trans_gen r) :=
+⟨@trans_gen.trans α r⟩
+
 lemma trans_gen_idem :
   trans_gen (trans_gen r) = trans_gen r :=
 trans_gen_eq_self transitive_trans_gen
@@ -456,6 +462,12 @@ lemma reflexive_refl_trans_gen : reflexive (refl_trans_gen r) :=
 
 lemma transitive_refl_trans_gen : transitive (refl_trans_gen r) :=
 λ a b c, trans
+
+instance : is_refl α (refl_trans_gen r) :=
+⟨@refl_trans_gen.refl α r⟩
+
+instance : is_trans α (refl_trans_gen r) :=
+⟨@refl_trans_gen.trans α r⟩
 
 lemma refl_trans_gen_idem :
   refl_trans_gen (refl_trans_gen r) = refl_trans_gen r :=

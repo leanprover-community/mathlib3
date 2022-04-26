@@ -192,6 +192,23 @@ lemma encodable.countable_functions [h : encodable (Σl, L.functions l)] :
   L.countable_functions :=
 encodable.countable_functions
 
+@[simp] lemma card_functions_sum :
+  # (Σ n, (L.sum L').functions n) = # ((Σ n, L.functions n) ⊕ (Σ n, L'.functions n)) :=
+(equiv.sigma_sum_distrib _ _).cardinal_eq
+
+@[simp] lemma card_relations_sum :
+  # (Σ n, (L.sum L').relations n) = # ((Σ n, L.relations n) ⊕ (Σ n, L'.relations n)) :=
+(equiv.sigma_sum_distrib _ _).cardinal_eq
+
+lemma card_sum :
+  (L.sum L').card = cardinal.lift.{max u' v'} L.card + cardinal.lift.{max u v} L'.card :=
+begin
+  simp only [card_eq_card_functions_add_card_relations, lift_add, lift_lift,
+    card_functions_sum, card_relations_sum, mk_sum, add_assoc],
+  rw [← add_assoc (# (sigma L'.functions)).lift, add_comm (# (sigma L'.functions)).lift],
+  simp only [add_assoc],
+end
+
 variables (L) (M : Type w)
 
 /-- A first-order structure on a type `M` consists of interpretations of all the symbols in a given

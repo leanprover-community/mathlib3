@@ -77,7 +77,7 @@ The p-adic norm of `p` is `1/p` if `p > 1`.
 See also `padic_norm.padic_norm_p_of_prime` for a version that assumes `p` is prime.
 -/
 lemma padic_norm_p {p : ℕ} (hp : 1 < p) : padic_norm p p = 1 / p :=
-by simp [padic_norm, (show p ≠ 0, by linarith), padic_val_nat.self hp]
+by simp [padic_norm, (pos_of_gt hp).ne', padic_val_nat.self hp]
 
 /--
 The p-adic norm of `p` is `1/p` if `p` is prime.

@@ -1216,7 +1216,8 @@ calc α × (β ⊕ γ) ≃ (β ⊕ γ) × α       : prod_comm _ _
    prod_sum_distrib α β γ (a, sum.inr c) = sum.inr (a, c) := rfl
 
 /-- An indexed sum of disjoint sums of types is equivalent to the sum of the indexed sums. -/
-def sigma_sum_distrib {ι : Type*} (α β : ι → Type*) : (Σ i, α i ⊕ β i) ≃ (Σ i, α i) ⊕ Σ i, β i :=
+@[simps] def sigma_sum_distrib {ι : Type*} (α β : ι → Type*) :
+  (Σ i, α i ⊕ β i) ≃ (Σ i, α i) ⊕ Σ i, β i :=
 ⟨λ p, sum.cases_on p.2 (λ x, sum.inl ⟨_, x⟩) (λ x, sum.inr ⟨_, x⟩),
   sum.elim (sigma.map id (λ _, sum.inl)) (sigma.map id (λ _, sum.inr)),
   λ p, by { rcases p with ⟨i, (a | b)⟩; refl },

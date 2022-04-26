@@ -2357,7 +2357,7 @@ by { filter_upwards [hs_zero], intros, split_ifs, refl }
 namespace measure
 
 /-- A measure is called finite at filter `f` if it is finite at some set `s ∈ f`.
-Equivalently, it is eventually finite at `s` in `f.lift' powerset`. -/
+Equivalently, it is eventually finite at `s` in `f.small_sets`. -/
 def finite_at_filter {m0 : measurable_space α} (μ : measure α) (f : filter α) : Prop :=
 ∃ s ∈ f, μ s < ∞
 
@@ -2908,8 +2908,8 @@ protected lemma measure_mono (h : μ ≤ ν) : ν.finite_at_filter f → μ.fini
   ν.finite_at_filter g → μ.finite_at_filter f :=
 λ h, (h.filter_mono hf).measure_mono hμ
 
-protected lemma eventually (h : μ.finite_at_filter f) : ∀ᶠ s in f.lift' powerset, μ s < ∞ :=
-(eventually_lift'_powerset' $ λ s t hst ht, (measure_mono hst).trans_lt ht).2 h
+protected lemma eventually (h : μ.finite_at_filter f) : ∀ᶠ s in f.small_sets, μ s < ∞ :=
+(eventually_small_sets' $ λ s t hst ht, (measure_mono hst).trans_lt ht).2 h
 
 lemma filter_sup : μ.finite_at_filter f → μ.finite_at_filter g → μ.finite_at_filter (f ⊔ g) :=
 λ ⟨s, hsf, hsμ⟩ ⟨t, htg, htμ⟩,

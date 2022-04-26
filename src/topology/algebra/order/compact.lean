@@ -309,20 +309,6 @@ lemma continuous.exists_forall_ge_of_has_compact_mul_support [nonempty β] [has_
   ∃ (x : β), ∀ (y : β), f y ≤ f x :=
 @continuous.exists_forall_le_of_has_compact_mul_support (order_dual α) _ _ _ _ _ _ _ _ hf h
 
-/-- A continuous function with compact support is bounded below. -/
-@[to_additive]
-lemma continuous.bdd_below_range_of_has_compact_mul_support [has_one α]
-  {f : β → α} (hf : continuous f) (h : has_compact_mul_support f) :
-  bdd_below (range f) :=
-(h.is_compact_range hf).bdd_below
-
-/-- A continuous function with compact support is bounded above. -/
-@[to_additive]
-lemma continuous.bdd_above_range_of_has_compact_mul_support [has_one α]
-  {f : β → α} (hf : continuous f) (h : has_compact_mul_support f) :
-  bdd_above (range f) :=
-@continuous.bdd_below_range_of_has_compact_mul_support (order_dual α) _ _ _ _ _ _ _ hf h
-
 lemma is_compact.continuous_Sup {f : γ → β → α}
   {K : set β} (hK : is_compact K) (hf : continuous ↿f) :
     continuous (λ x, Sup (f x '' K)) :=

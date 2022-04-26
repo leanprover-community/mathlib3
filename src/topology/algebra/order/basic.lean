@@ -629,6 +629,48 @@ lemma dense.exists_between [densely_ordered α] {s : set α} (hs : dense s) {x y
   ∃ z ∈ s, z ∈ Ioo x y :=
 hs.exists_mem_open is_open_Ioo (nonempty_Ioo.2 h)
 
+variables [nonempty α] [topological_space β]
+
+/-- A compact set is bounded below -/
+lemma is_compact.bdd_below {s : set α} (hs : is_compact s) : bdd_below s :=
+begin
+  by_contra H,
+  rcases hs.elim_finite_subcover_image (λ x (_ : x ∈ s), @is_open_Ioi _ _ _ _ x) _
+    with ⟨t, st, ft, ht⟩,
+  { refine H (ft.bdd_below.imp $ λ C hC y hy, _),
+    rcases mem_Union₂.1 (ht hy) with ⟨x, hx, xy⟩,
+    exact le_trans (hC hx) (le_of_lt xy) },
+  { refine λ x hx, mem_Union₂.2 (not_imp_comm.1 _ H),
+    exact λ h, ⟨x, λ y hy, le_of_not_lt (h.imp $ λ ys, ⟨_, hy, ys⟩)⟩ }
+end
+
+/-- A compact set is bounded above -/
+lemma is_compact.bdd_above {s : set α} (hs : is_compact s) : bdd_above s :=
+@is_compact.bdd_below (order_dual α) _ _ _ _ _ hs
+
+/-- A continuous function is bounded below on a compact set. -/
+lemma is_compact.bdd_below_image {f : β → α} {K : set β}
+  (hK : is_compact K) (hf : continuous_on f K) : bdd_below (f '' K) :=
+(hK.image_of_continuous_on hf).bdd_below
+
+/-- A continuous function is bounded above on a compact set. -/
+lemma is_compact.bdd_above_image {f : β → α} {K : set β}
+  (hK : is_compact K) (hf : continuous_on f K) : bdd_above (f '' K) :=
+@is_compact.bdd_below_image (order_dual α) _ _ _ _ _ _ _ _ hK hf
+
+/-- A continuous function with compact support is bounded below. -/
+@[to_additive /-" A continuous function with compact support is bounded below. "-/]
+lemma continuous.bdd_below_range_of_has_compact_mul_support [has_one α] {f : β → α}
+  (hf : continuous f) (h : has_compact_mul_support f) : bdd_below (range f) :=
+(h.is_compact_range hf).bdd_below
+
+/-- A continuous function with compact support is bounded above. -/
+@[to_additive /-" A continuous function with compact support is bounded above. "-/]
+lemma continuous.bdd_above_range_of_has_compact_mul_support [has_one α]
+  {f : β → α} (hf : continuous f) (h : has_compact_mul_support f) :
+  bdd_above (range f) :=
+@continuous.bdd_below_range_of_has_compact_mul_support (order_dual α) _ _ _ _ _ _ _ _ hf h
+
 end linear_order
 
 end order_closed_topology
@@ -2183,37 +2225,6 @@ lemma exists_seq_tendsto_Inf {α : Type*} [conditionally_complete_linear_order �
   {S : set α} (hS : S.nonempty) (hS' : bdd_below S) :
   ∃ (u : ℕ → α), antitone u ∧ tendsto u at_top (𝓝 (Inf S)) ∧ (∀ n, u n ∈ S) :=
 @exists_seq_tendsto_Sup (order_dual α) _ _ _ _ S hS hS'
-
-/-- A compact set is bounded below -/
-lemma is_compact.bdd_below {α : Type u} [topological_space α] [linear_order α]
-  [order_closed_topology α] [nonempty α] {s : set α} (hs : is_compact s) : bdd_below s :=
-begin
-  by_contra H,
-  rcases hs.elim_finite_subcover_image (λ x (_ : x ∈ s), @is_open_Ioi _ _ _ _ x) _
-    with ⟨t, st, ft, ht⟩,
-  { refine H (ft.bdd_below.imp $ λ C hC y hy, _),
-    rcases mem_Union₂.1 (ht hy) with ⟨x, hx, xy⟩,
-    exact le_trans (hC hx) (le_of_lt xy) },
-  { refine λ x hx, mem_Union₂.2 (not_imp_comm.1 _ H),
-    exact λ h, ⟨x, λ y hy, le_of_not_lt (h.imp $ λ ys, ⟨_, hy, ys⟩)⟩ }
-end
-
-/-- A compact set is bounded above -/
-lemma is_compact.bdd_above {α : Type u} [topological_space α] [linear_order α]
-  [order_closed_topology α] : Π [nonempty α] {s : set α}, is_compact s → bdd_above s :=
-@is_compact.bdd_below (order_dual α) _ _ _
-
-/-- A continuous function is bounded below on a compact set. -/
-lemma is_compact.bdd_below_image {α : Type u} [topological_space α] [linear_order α]
-  [order_closed_topology α] [nonempty α] [topological_space γ] {f : γ → α} {K : set γ}
-  (hK : is_compact K) (hf : continuous_on f K) : bdd_below (f '' K) :=
-(hK.image_of_continuous_on hf).bdd_below
-
-/-- A continuous function is bounded above on a compact set. -/
-lemma is_compact.bdd_above_image {α : Type u} [topological_space α] [linear_order α]
-  [order_closed_topology α] [nonempty α] [topological_space γ] {f : γ → α} {K : set γ}
-  (hK : is_compact K) (hf : continuous_on f K) : bdd_above (f '' K) :=
-@is_compact.bdd_below_image _ (order_dual α) _ _ _ _ _ _ _ hK hf
 
 end order_topology
 

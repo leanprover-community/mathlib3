@@ -131,8 +131,8 @@ meta def measurability_tactics (md : transparency := semireducible) : list (tact
                         >> pure "apply_assumption",
   goal_is_not_measurable >> intro1
                         >>= λ ns, pure ("intro " ++ ns.to_string),
-  apply_rules [``(measurability)] 50 { md := md }
-                        >> pure "apply_rules measurability",
+  apply_rules [] [``measurability] 50 { md := md }
+                        >> pure "apply_rules with measurability",
   apply_measurable.comp >> pure "refine measurable.comp _ _",
   apply_measurable.comp_ae_measurable
                         >> pure "refine measurable.comp_ae_measurable _ _",

@@ -455,7 +455,7 @@ lemma reflexive_refl_trans_gen : reflexive (refl_trans_gen r) :=
 λ a, refl
 
 lemma transitive_refl_trans_gen : transitive (refl_trans_gen r) :=
-λ a b c, refl_trans_gen.trans
+λ a b c, trans
 
 instance : is_refl α (refl_trans_gen r) :=
 ⟨@refl_trans_gen.refl α r⟩

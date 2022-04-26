@@ -36,8 +36,6 @@ exact pairings and duals.
 * Show that `X ⊗ Y` and `Yᘁ ⊗ Xᘁ` form an exact pairing.
 * Show that the left adjoint mate of the right adjoint mate of a morphism is the morphism itself.
 * Simplify constructions in the case where a symmetry or braiding is present.
-* Connect this definition to `monoidal_closed`: an object with a (left?) dual is
-  a closed object `X` such that the right adjoint of `X ⊗ -` is given by `Y ⊗ -` for some `Y`.
 * Show that `ᘁ` gives an equivalence of categories `C ≅ (Cᵒᵖ)ᴹᵒᵖ`.
 * Define pivotal categories (rigid categories equipped with a natural isomorphism `ᘁᘁ ≅ 𝟙 C`).
 
@@ -297,6 +295,7 @@ If `Y` has a left dual, then the functor `tensor_left Yᘁ` is right adjoint to 
 def left_dual_tensor_left_adjunction (Y : C) [has_left_dual Y] : tensor_left Y ⊣ tensor_left (ᘁY) :=
 by { change tensor_left (ᘁY)ᘁ ⊣ tensor_left (ᘁY), apply right_dual_tensor_left_adjunction, }
 
+@[priority 100]
 instance closed_of_has_left_dual (Y : C) [has_left_dual Y] : closed Y :=
 { is_adj := ⟨_, left_dual_tensor_left_adjunction Y⟩, }
 

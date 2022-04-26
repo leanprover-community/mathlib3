@@ -263,8 +263,10 @@ begin
   cases w,
 end
 
-lemma insert_id_lhs {X Y : C} (f g : X ⟶ Y) (w : f ≫ 𝟙 _ = g) : f = g := by simpa using w
-lemma insert_id_rhs {X Y : C} (f g : X ⟶ Y) (w : f = g ≫ 𝟙 _) : f = g := by simpa using w
+lemma insert_id_lhs {C : Type*} [category C] {X Y : C} (f g : X ⟶ Y) (w : f ≫ 𝟙 _ = g) : f = g :=
+by simpa using w
+lemma insert_id_rhs {C : Type*} [category C] {X Y : C} (f g : X ⟶ Y) (w : f = g ≫ 𝟙 _) : f = g :=
+by simpa using w
 
 end coherence
 

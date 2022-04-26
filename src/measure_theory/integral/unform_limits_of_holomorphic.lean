@@ -20,8 +20,7 @@ noncomputable theory
 
 universes u v
 
-variables {E : Type u} [normed_group E] [normed_space ℂ E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] [complete_space E]
+variables {E : Type u} [normed_group E] [normed_space ℂ E]
 
 namespace complex
 
@@ -64,7 +63,7 @@ begin
   simp_rw H,
 end
 
-lemma circle_integral_transform_circle_int (R : ℝ) (z : ℂ) (f : ℂ → E) (w : ℂ) :
+lemma circle_integral_transform_circle_int [complete_space E] (R : ℝ) (z : ℂ) (f : ℂ → E) (w : ℂ) :
   ∫ (θ : ℝ) in 0..2 * π, circle_integral_transform R z f w θ =
  (2 * π * I : ℂ)⁻¹ •  ∮ z in C(z, R), (z - w)⁻¹ • f z :=
 begin
@@ -199,10 +198,10 @@ begin
 end
 
 /--Cauchy integral form of a function at `z` in a disk of radius `R`-/
-def circle_integral_form (R : ℝ) (z : ℂ) (f : ℂ → E) : (ℂ → E) :=
+def circle_integral_form [complete_space E] (R : ℝ) (z : ℂ) (f : ℂ → E) : (ℂ → E) :=
   λ w, (2 * π * I : ℂ)⁻¹ • (∮ z in C(z, R), (z - w)⁻¹ • f z)
 
-lemma circle_intgral_form_eq_int (R : ℝ) (z : ℂ) (f : ℂ → E) :
+lemma circle_intgral_form_eq_int [complete_space E] (R : ℝ) (z : ℂ) (f : ℂ → E) :
   circle_integral_form R z f =  λ w,
  ∫ (θ : ℝ) in 0..2 * π, (circle_integral_transform R z f w) θ :=
 begin

@@ -437,7 +437,7 @@ end
 lemma refl_trans_gen.lift {p : β → β → Prop} {a b : α} (f : α → β)
   (h : ∀ a b, r a b → p (f a) (f b)) (hab : refl_trans_gen r a b) : refl_trans_gen p (f a) (f b) :=
 refl_trans_gen.trans_induction_on hab (λ a, refl)
-  (λ a b, refl_trans_gen.single ∘ h _ _) (λ a b c _ _, refl_trans_gen.trans)
+  (λ a b, refl_trans_gen.single ∘ h _ _) (λ a b c _ _, trans)
 
 lemma refl_trans_gen.mono {p : α → α → Prop} :
   (∀ a b, r a b → p a b) → refl_trans_gen r a b → refl_trans_gen p a b :=

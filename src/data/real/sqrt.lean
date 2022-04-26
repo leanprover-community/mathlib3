@@ -471,7 +471,7 @@ begin
   have t : 0 < 2 * δ := by linarith,
 
   by_cases δ < 3 * ε,
-  { exact or.inr h, },
+  { right, exact h, },
   left, simp at h,
 
   calc (δ + ε) ^ 2 / (4 * sqrt_aux f k ^ 2)
@@ -538,9 +538,9 @@ end
 | (j + 1) pr :=
 begin
   by_cases j + 1 = k,
-  { rw h,
+  { left,
+    rw h,
     have answer := converges_eventually_or_near_step f N f_ge_0 ε ε_pos f_near k k_large,
-    left,
     simp, },
   { have pr : j + 1 > k := (ne.symm h).le_iff_lt.mp pr,
     specialize converges_eventually_or_near_step' j (nat.lt_succ_iff.mp pr),
@@ -737,8 +737,7 @@ begin
   { left, exact h, },
   { right,
     have h := stays_near_if_near'' f N f_ge_0 ε ε_pos f_near k k_large is_near (by linarith),
-    intros m, exact h m m rfl.ge,
-  }
+    intros m, exact h m m rfl.ge, },
 end
 
 theorem shrink_is_one (c : ℚ) (small : ∀ m, c ≤ shrink m) : c ≤ 1 :=
@@ -757,17 +756,31 @@ begin
     sorry, },
 end
 
-theorem stays_near_if_near (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
+theorem it_is_the_one (f : cau_seq ℚ abs) (N : ℕ) (f_ge_0 : ∀ i ≥ N, 0 ≤ f i)
   (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
-  (k : ℕ) (k_large : k ≥ N) (is_near : sqrt_aux f k ^ 2 - f k ≤ 3 * ε) :
+  (k : ℕ) (k_large : N ≤ k) (is_near : sqrt_aux f k ^ 2 - f k ≤ 3 * ε):
   sqrt_aux f (k + 1) ^ 2 - f (k + 1) ≤ 3 * ε :=
 begin
-  rcases stays_near_if_near_2 f N f_ge_0 ε ε_pos f_near k k_large is_near with done | small,
-  { exact done, },
-  { have u := converges_eventually_if_near_step f N f_ge_0 ε ε_pos f_near k k_large,
-    clear is_near,
-    sorry,
-  }
+  have u := converges_eventually_if_near_step f N f_ge_0 ε ε_pos f_near k k_large,
+  let m := (4 : ℚ) / 3,
+  by_cases sqrt_aux f k ^ 2 ≥ m * ε,
+  { have l : 4 * sqrt_aux f k ^ 2 ≥ 4 * m * ε := by linarith,
+    calc sqrt_aux f (k + 1) ^ 2 - f (k + 1)
+          ≤ (sqrt_aux f k ^ 2 - f k + ε) ^ 2 / (4 * sqrt_aux f k ^ 2) : u
+      ... ≤ (sqrt_aux f k ^ 2 - f k + ε) ^ 2 / (4 * m * ε) : sorry
+      ... ≤ (3 * ε + ε) ^ 2 / (4 * m * ε) : sorry
+      ... ≤ (4 * ε) ^ 2 / (4 * m * ε) : sorry
+      ... = 16 * ε * ε / (4 * m * ε) : sorry
+      ... = 16 * ε / (4 * m) : sorry
+      ... = 16 / (4 * m) * ε : sorry
+      ... = (4 * 4) / (4 * m) * ε : sorry
+      ... = 4 / m * ε : sorry
+      ... = 3 * ε : sorry
+  },
+  { simp at h,
+    -- Since sk^2 is small, sk^2 >= sk
+    have r : sqrt_aux f k ^ 2 ≥ sqrt_aux f k := by sorry,
+   }
 end
 
 #exit

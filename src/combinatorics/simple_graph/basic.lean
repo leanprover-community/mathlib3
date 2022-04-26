@@ -286,6 +286,9 @@ def edge_set : set (sym2 V) := sym2.from_rel G.symm
 
 @[simp] lemma mem_edge_set : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w := iff.rfl
 
+lemma edge_set_mono {G G' : simple_graph V} (h : G ≤ G') : G.edge_set ⊆ G'.edge_set :=
+λ e, sym2.ind (λ v w, @h v w) e
+
 /--
 Two vertices are adjacent iff there is an edge between them. The
 condition `v ≠ w` ensures they are different endpoints of the edge,
@@ -465,6 +468,10 @@ set.to_finset G.edge_set
   e ∈ G.edge_finset ↔ e ∈ G.edge_set :=
 set.mem_to_finset
 
+lemma edge_finset_mono [decidable_eq V] [fintype V] {G G' : simple_graph V}
+  [decidable_rel G.adj] [decidable_rel G'.adj] (h : G ≤ G') : G.edge_finset ⊆ G'.edge_finset :=
+by { intro e, simp_rw mem_edge_finset, exact λ he, edge_set_mono h he }
+
 @[simp] lemma edge_set_univ_card [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   (univ : finset G.edge_set).card = G.edge_finset.card :=
 fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
@@ -639,6 +646,19 @@ end
 lemma delete_edges_eq_inter_edge_set (s : set (sym2 V)) :
   G.delete_edges s = G.delete_edges (s ∩ G.edge_set) :=
 by { ext, simp [imp_false] { contextual := tt } }
+
+lemma delete_edges_sdiff_eq_of_le {H : simple_graph V} (h : H ≤ G) :
+  G.delete_edges (G.edge_set \ H.edge_set) = H :=
+by { ext v w, split; simp [@h v w] { contextual := tt } }
+
+lemma edge_set_delete_edges (s : set (sym2 V)) :
+  (G.delete_edges s).edge_set = G.edge_set \ s :=
+by { ext e, refine sym2.ind _ e, simp }
+
+lemma edge_finset_delete_edges [fintype V] [decidable_eq V] [decidable_rel G.adj]
+  (s : finset (sym2 V)) [decidable_rel (G.delete_edges s).adj] :
+  (G.delete_edges s).edge_finset = G.edge_finset \ s :=
+by { ext e, simp [edge_set_delete_edges] }
 
 section finite_at
 

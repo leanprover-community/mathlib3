@@ -116,7 +116,7 @@ begin
 end
 
 theorem le_birthday : ∀ x : pgame, x ≤ x.birthday.to_pgame
-| ⟨xl, xr, xL, xR⟩ :=
+| ⟨xl, _, xL, _⟩ :=
 le_def.2 ⟨λ i, or.inl begin
   have := birthday_move_left_lt i,
   use to_left_moves_to_pgame (enum (<) (xL i).birthday (by rwa type_lt)),

@@ -28,6 +28,10 @@ open_locale pointwise
 instance has_scalar' : has_scalar (ideal R) (submodule R M) :=
 ⟨λ I N, submodule.map₂ (linear_map.lsmul R M : _) I N⟩
 
+/-- This duplicates the global `smul_eq_mul`, but doesn't have to unfold anywhere near as much to
+apply. -/
+lemma _root_.ideal.smul_eq_mul (I J : ideal R) : I • J = I * J := rfl
+
 /-- `N.annihilator` is the ideal of all elements `r : R` such that `r • N = 0`. -/
 def annihilator (N : submodule R M) : ideal R :=
 (linear_map.lsmul R N).ker

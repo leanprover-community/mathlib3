@@ -195,11 +195,21 @@ lemma norm_eq_supr_norm : ∥f∥ = ⨆ x : α, ∥f x∥ :=
 end
 
 section
-variables {R : Type*} [normed_ring R]
+variables {R : Type*}
 
-instance : normed_ring C(α,R) :=
+instance [non_unital_normed_ring R] : non_unital_normed_ring C(α,R) :=
 { norm_mul := λ f g, norm_mul_le (mk_of_compact f) (mk_of_compact g),
   ..(infer_instance : normed_group C(α,R)) }
+
+instance [non_unital_normed_comm_ring R] : non_unital_normed_comm_ring C(α,R) :=
+{ mul_comm := λ f g, ext (λ x, mul_comm _ _),
+  ..(infer_instance : non_unital_normed_ring C(α, R)) }
+
+instance [normed_ring R] : normed_ring C(α,R) :=
+{ ..(infer_instance : non_unital_normed_ring C(α,R)) }
+
+instance [normed_comm_ring R] : normed_comm_ring C(α,R) :=
+{ ..(infer_instance : non_unital_normed_comm_ring C(α, R)) }
 
 end
 

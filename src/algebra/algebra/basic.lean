@@ -1469,6 +1469,19 @@ smul_comm_class.symm _ _ _
 lemma smul_algebra_smul_comm (r : R) (a : A) (m : M) : a • r • m = r • a • m :=
 smul_comm _ _ _
 
+section
+variables (R) {A} (M)
+
+/-- Each element of the algebra defines a module endomorphism.
+
+This is a stronger version of `distrib_mul_action.to_module_End`. -/
+@[simps]
+def algebra.to_module_End : A →ₐ[R] module.End R M :=
+{ commutes' := by { intros, ext, simp, },
+  ..module.to_module_End R M }
+
+end
+
 namespace linear_map
 
 instance coe_is_scalar_tower : has_coe (M →ₗ[A] N) (M →ₗ[R] N) :=

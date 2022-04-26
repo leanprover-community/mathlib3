@@ -403,12 +403,14 @@ end normed_space
 
 section normed_ring
 
-variables [non_unital_normed_ring β]
-
-noncomputable instance : non_unital_normed_ring C₀(α, β) :=
+noncomputable instance [non_unital_normed_ring β] : non_unital_normed_ring C₀(α, β) :=
 { norm_mul := λ f g, norm_mul_le f.to_bcf g.to_bcf,
   ..zero_at_infty_continuous_map.non_unital_ring,
   ..zero_at_infty_continuous_map.normed_group }
+
+noncomputable instance [non_unital_normed_comm_ring β] : non_unital_normed_comm_ring C₀(α, β) :=
+{ ..zero_at_infty_continuous_map.non_unital_normed_ring,
+  ..zero_at_infty_continuous_map.non_unital_comm_ring }
 
 end normed_ring
 

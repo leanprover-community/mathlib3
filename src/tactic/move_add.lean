@@ -63,7 +63,7 @@ end
 The list of expressions that `move_add` takes is optional and a single expression can be passed
 without brackets.  Thus `move_add ← f` and `move_add [← f]` mean the same.
 
-Finally, `move_add` can also be targeted to one or several hypotheses.  If `hp₁, hp₂` are in the
+Finally, `move_add` can also target one or more hypotheses.  If `hp₁, hp₂` are in the
 local context, then `move_add [f, ← g] at hp₁ hp₂` performs the rearranging at `hp₁` and `hp₂`.
 As usual, passing `⊢` refers to acting on the goal as well.
 
@@ -85,7 +85,7 @@ around a sum.
 ##  Future work
 
 * Currently, `_`s in user input generate side-goals that Lean should be able to close automatically.
-  Is it possible to avoid actually get Lean to solve these goals right away and not display them?
+  Is it possible to get Lean to actually solve these goals right away and not display them?
 * Add support for `neg` and additive groups?
 * Add optional different operations than `+`, most notably `*`?
 * Add functionality for moving terms across the two sides of an in/dis/equality.

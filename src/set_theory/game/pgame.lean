@@ -148,7 +148,9 @@ def move_right : Π (g : pgame), right_moves g → pgame
 @[simp] lemma right_moves_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).right_moves = xr := rfl
 @[simp] lemma move_right_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_right = xR := rfl
 
-/-- Conway induction on games. -/
+/-- A variant of `pgame.rec_on` expressed in terms of `pgame.move_left` and `pgame.move_right`.
+
+Both this and `pgame.rec_on` describe Conway induction on games. -/
 @[elab_as_eliminator] def move_rec_on {C : pgame → Sort*} (x : pgame)
   (IH : ∀ (y : pgame), (∀ i, C (y.move_left i)) → (∀ j, C (y.move_right j)) → C y) : C x :=
 x.rec_on $ λ yl yr yL yR, IH (mk yl yr yL yR)
@@ -158,11 +160,11 @@ x.rec_on $ λ yl yr yL yR, IH (mk yl yr yL yR)
 | move_left {x : pgame} (i) : is_option (x.move_left i) x
 | move_right {x : pgame} (i) : is_option (x.move_right i) x
 
-theorem is_option.mk_left {xl xr : Type u} {xL : xl → pgame} {xR : xr → pgame} {i : xl} :
+theorem is_option.mk_left {xl xr : Type u} (xL : xl → pgame) (xR : xr → pgame) (i : xl) :
   (xL i).is_option (mk xl xr xL xR) :=
 @is_option.move_left (mk _ _ _ _) i
 
-theorem is_option.mk_right {xl xr : Type u} {xL : xl → pgame} {xR : xr → pgame} {i : xr} :
+theorem is_option.mk_right {xl xr : Type u} (xL : xl → pgame) (xR : xr → pgame) (i : xr) :
   (xR i).is_option (mk xl xr xL xR) :=
 @is_option.move_right (mk _ _ _ _) i
 

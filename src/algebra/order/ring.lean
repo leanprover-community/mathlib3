@@ -90,7 +90,29 @@ set_option old_structure_cmd true
 universe u
 variable {α : Type u}
 
-lemma add_one_le_two_mul [preorder α] [semiring α] [covariant_class α α (+) (≤)]
+namespace order_dual
+
+/-! Note that `order_dual` does not satisfy any of the ordered ring typeclasses due to the
+`zero_le_one` field. -/
+
+instance [h : distrib α] : distrib (order_dual α) := h
+instance [has_mul α] [h : has_distrib_neg α] : has_distrib_neg (order_dual α) := h
+instance [h : non_unital_non_assoc_semiring α] : non_unital_non_assoc_semiring (order_dual α) := h
+instance [h : non_unital_semiring α] : non_unital_semiring (order_dual α) := h
+instance [h : non_assoc_semiring α] : non_assoc_semiring (order_dual α) := h
+instance [h : semiring α] : semiring (order_dual α) := h
+instance [h : non_unital_comm_semiring α] : non_unital_comm_semiring (order_dual α) := h
+instance [h : comm_semiring α] : comm_semiring (order_dual α) := h
+instance [h : non_unital_non_assoc_ring α] : non_unital_non_assoc_ring (order_dual α) := h
+instance [h : non_unital_ring α] : non_unital_ring (order_dual α) := h
+instance [h : non_assoc_ring α] : non_assoc_ring (order_dual α) := h
+instance [h : ring α] : ring (order_dual α) := h
+instance [h : non_unital_comm_ring α] : non_unital_comm_ring (order_dual α) := h
+instance [h : comm_ring α] : comm_ring (order_dual α) := h
+
+end order_dual
+
+lemma add_one_le_two_mul [has_le α] [semiring α] [covariant_class α α (+) (≤)]
   {a : α} (a1 : 1 ≤ a) :
   a + 1 ≤ 2 * a :=
 calc  a + 1 ≤ a + a : add_le_add_left a1 a
@@ -156,6 +178,12 @@ ordered_semiring.mul_lt_mul_of_pos_left a b c h₁ h₂
 
 lemma mul_lt_mul_of_pos_right (h₁ : a < b) (h₂ : 0 < c) : a * c < b * c :=
 ordered_semiring.mul_lt_mul_of_pos_right a b c h₁ h₂
+
+lemma mul_lt_of_lt_one_left (hb : 0 < b) (ha : a < 1) : a * b < b :=
+(mul_lt_mul_of_pos_right ha hb).trans_le (one_mul _).le
+
+lemma mul_lt_of_lt_one_right (ha : 0 < a) (hb : b < 1) : a * b < a :=
+(mul_lt_mul_of_pos_left hb ha).trans_le (mul_one _).le
 
 -- See Note [decidable namespace]
 protected lemma decidable.mul_le_mul_of_nonneg_left [@decidable_rel α (≤)]
@@ -338,6 +366,9 @@ decidable.mul_lt_mul h le_rfl hb (zero_le_one.trans h.le)
 
 lemma lt_mul_of_one_lt_left : 0 < b → 1 < a → b < a * b :=
 by classical; exact decidable.lt_mul_of_one_lt_left
+
+lemma lt_two_mul_self [nontrivial α] (ha : 0 < a) : a < 2 * a :=
+lt_mul_of_one_lt_left ha one_lt_two
 
 -- See Note [decidable namespace]
 protected lemma decidable.add_le_mul_two_add [@decidable_rel α (≤)] {a b : α}
@@ -667,7 +698,6 @@ lemma add_le_mul' (a2 : 2 ≤ a) (b2 : 2 ≤ b) : a + b ≤ b * a :=
 (le_of_eq (add_comm _ _)).trans (add_le_mul b2 a2)
 
 section
-variables [nontrivial α]
 
 @[simp] lemma bit0_le_bit0 : bit0 a ≤ bit0 b ↔ a ≤ b :=
 by rw [bit0, bit0, ← two_mul, ← two_mul, mul_le_mul_left (zero_lt_two : 0 < (2:α))]
@@ -1021,6 +1051,32 @@ instance linear_ordered_ring.to_linear_ordered_add_comm_group [s : linear_ordere
   linear_ordered_add_comm_group α :=
 { .. s }
 
+section linear_ordered_semiring
+variables [linear_ordered_semiring α] {a b c : α}
+
+local attribute [instance] linear_ordered_semiring.decidable_le
+
+lemma le_of_mul_le_of_one_le {a b c : α} (h : a * c ≤ b) (hb : 0 ≤ b) (hc : 1 ≤ c) : a ≤ b :=
+have h' : a * c ≤ b * c, from calc
+     a * c ≤ b : h
+       ... = b * 1 : by rewrite mul_one
+       ... ≤ b * c : decidable.mul_le_mul_of_nonneg_left hc hb,
+le_of_mul_le_mul_right h' (zero_lt_one.trans_le hc)
+
+lemma nonneg_le_nonneg_of_sq_le_sq {a b : α} (hb : 0 ≤ b) (h : a * a ≤ b * b) : a ≤ b :=
+le_of_not_gt (λhab, (decidable.mul_self_lt_mul_self hb hab).not_le h)
+
+lemma mul_self_le_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a ≤ b ↔ a * a ≤ b * b :=
+⟨decidable.mul_self_le_mul_self h1, nonneg_le_nonneg_of_sq_le_sq h2⟩
+
+lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b ↔ a * a < b * b :=
+((@decidable.strict_mono_on_mul_self α _ _).lt_iff_lt h1 h2).symm
+
+lemma mul_self_inj {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a * a = b * b ↔ a = b :=
+(@decidable.strict_mono_on_mul_self α _ _).inj_on.eq_iff h1 h2
+
+end linear_ordered_semiring
+
 section linear_ordered_ring
 variables [linear_ordered_ring α] {a b c : α}
 
@@ -1135,30 +1191,6 @@ have h3 : (-c) * b < (-c) * a, from calc
 lt_of_mul_lt_mul_left h3 nhc
 
 lemma neg_one_lt_zero : -1 < (0:α) := neg_lt_zero.2 zero_lt_one
-
-lemma le_of_mul_le_of_one_le {a b c : α} (h : a * c ≤ b) (hb : 0 ≤ b) (hc : 1 ≤ c) : a ≤ b :=
-by haveI := @linear_order.decidable_le α _; exact
-have h' : a * c ≤ b * c, from calc
-     a * c ≤ b : h
-       ... = b * 1 : by rewrite mul_one
-       ... ≤ b * c : decidable.mul_le_mul_of_nonneg_left hc hb,
-le_of_mul_le_mul_right h' (zero_lt_one.trans_le hc)
-
-lemma nonneg_le_nonneg_of_sq_le_sq {a b : α} (hb : 0 ≤ b) (h : a * a ≤ b * b) : a ≤ b :=
-by haveI := @linear_order.decidable_le α _; exact
-le_of_not_gt (λhab, (decidable.mul_self_lt_mul_self hb hab).not_le h)
-
-lemma mul_self_le_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a ≤ b ↔ a * a ≤ b * b :=
-by haveI := @linear_order.decidable_le α _; exact
-⟨decidable.mul_self_le_mul_self h1, nonneg_le_nonneg_of_sq_le_sq h2⟩
-
-lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b ↔ a * a < b * b :=
-by haveI := @linear_order.decidable_le α _; exact
-((@decidable.strict_mono_on_mul_self α _ _).lt_iff_lt h1 h2).symm
-
-lemma mul_self_inj {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a * a = b * b ↔ a = b :=
-by haveI := @linear_order.decidable_le α _; exact
-(@decidable.strict_mono_on_mul_self α _ _).inj_on.eq_iff h1 h2
 
 @[simp] lemma mul_le_mul_left_of_neg {a b c : α} (h : c < 0) : c * a ≤ c * b ↔ b ≤ a :=
 by haveI := @linear_order.decidable_le α _; exact
@@ -1316,12 +1348,6 @@ lemma self_dvd_abs (a : α) : a ∣ |a| :=
 
 lemma abs_dvd_abs (a b : α) : |a| ∣ |b| ↔ a ∣ b :=
 (abs_dvd _ _).trans (dvd_abs _ _)
-
-lemma even_abs {a : α} : even (|a|) ↔ even a :=
-dvd_abs _ _
-
-lemma odd_abs {a : α} : odd (abs a) ↔ odd a :=
-by { cases abs_choice a with h h; simp only [h, odd_neg] }
 
 end
 
@@ -1537,7 +1563,7 @@ begin
   { simp [← coe_mul] }
 end
 
-lemma mul_lt_top [partial_order α] {a b : with_top α} (ha : a ≠ ⊤) (hb : b ≠ ⊤) : a * b < ⊤ :=
+lemma mul_lt_top [preorder α] {a b : with_top α} (ha : a ≠ ⊤) (hb : b ≠ ⊤) : a * b < ⊤ :=
 begin
   lift a to α using ha,
   lift b to α using hb,
@@ -1667,7 +1693,7 @@ with_top.mul_coe hb
 @[simp] lemma mul_eq_bot_iff {a b : with_bot α} : a * b = ⊥ ↔ (a ≠ 0 ∧ b = ⊥) ∨ (a = ⊥ ∧ b ≠ 0) :=
 with_top.mul_eq_top_iff
 
-lemma bot_lt_mul [partial_order α] {a b : with_bot α} (ha : ⊥ < a) (hb : ⊥ < b) : ⊥ < a * b :=
+lemma bot_lt_mul [preorder α] {a b : with_bot α} (ha : ⊥ < a) (hb : ⊥ < b) : ⊥ < a * b :=
 begin
   lift a to α using ne_bot_of_gt ha,
   lift b to α using ne_bot_of_gt hb,

@@ -3,13 +3,10 @@ Copyright (c) 2022 David Loeffler. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
-
 import measure_theory.integral.interval_integral
-
 import analysis.special_functions.exponential
 import analysis.special_functions.integrals
 import measure_theory.integral.integral_eq_improper
-
 
 /-!
 # Integrals with exponential decay at ∞
@@ -19,7 +16,6 @@ for integrability:
 
 * `integrable_of_is_O_exp_neg`: If `f` is continuous on `[a,∞)`, for some `a ∈ ℝ`, and there
   exists `b > 0` such that `f(x) = O(exp(-b x))` as `x → ∞`, then `f` is integrable on `(a, ∞)`.
-
 -/
 
 noncomputable theory
@@ -43,7 +39,7 @@ begin
 end
 
 /-- `exp (-b * x)` is integrable on `(a, ∞)`. -/
-lemma exp_neg_integrable_on_Ioi (a : ℝ) {b : ℝ} (h : 0 < b) : 
+lemma exp_neg_integrable_on_Ioi (a : ℝ) {b : ℝ} (h : 0 < b) :
   integrable_on (λ x : ℝ, exp (-b * x)) (Ioi a) :=
 begin
   have : ∀ (X : ℝ), integrable_on (λ x : ℝ, exp (-b * x) ) (Ioc a X),
@@ -73,7 +69,7 @@ begin
     simpa only [Ioc_union_Ioi_eq_Ioi, le_max_iff, le_refl, true_or] using t },
   -- now show integrable on `(v, ∞)` from asymptotic
   split,
-  { exact (h1.mono $ Ioi_subset_Ici $ le_max_left a r).ae_measurable measurable_set_Ioi, },
+  { exact (h1.mono $ Ioi_subset_Ici $ le_max_left a r).ae_strongly_measurable measurable_set_Ioi },
   have : has_finite_integral (λ x : ℝ, c * exp (-b * x)) (volume.restrict (Ioi v)),
   { exact (exp_neg_integrable_on_Ioi v h0).has_finite_integral.const_mul c },
   apply this.mono,

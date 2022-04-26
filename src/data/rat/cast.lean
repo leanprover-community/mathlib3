@@ -24,8 +24,9 @@ casting lemmas showing the well-behavedness of this injection.
 rat, rationals, field, ℚ, numerator, denominator, num, denom, cast, coercion, casting
 -/
 
+variables {F α β : Type*}
+
 namespace rat
-variable {α : Type*}
 open_locale rat
 
 section with_div_ring
@@ -245,6 +246,9 @@ by rw [← cast_zero, cast_lt]
 @[simp, norm_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
 | ⟨n, d, h, c⟩ := by rw [num_denom', cast_mk, mk_eq_div]
 
+@[simp] lemma cast_hom_rat : cast_hom ℚ = ring_hom.id ℚ :=
+ring_hom.ext cast_id
+
 @[simp, norm_cast] theorem cast_min [linear_ordered_field α] {a b : ℚ} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [h, min_def]
@@ -268,10 +272,9 @@ calc f r = f (r.1 / r.2) : by rw [← int.cast_coe_nat, ← mk_eq_div, num_denom
 
 -- This seems to be true for a `[char_p k]` too because `k'` must have the same characteristic
 -- but the proof would be much longer
-lemma ring_hom.map_rat_cast {k k'} [division_ring k] [char_zero k] [division_ring k']
-  (f : k →+* k') (r : ℚ) :
-  f r = r :=
-(f.comp (cast_hom k)).eq_rat_cast r
+@[simp] lemma map_rat_cast [division_ring α] [division_ring β] [char_zero α] [ring_hom_class F α β]
+  (f : F) (q : ℚ) : f q = q :=
+((f : α →+* β).comp $ cast_hom α).eq_rat_cast q
 
 lemma ring_hom.ext_rat {R : Type*} [semiring R] (f g : ℚ →+* R) : f = g :=
 begin
@@ -322,7 +325,7 @@ end monoid_with_zero_hom
 
 namespace mul_opposite
 
-variables {α : Type*} [division_ring α]
+variables [division_ring α]
 
 @[simp, norm_cast] lemma op_rat_cast (r : ℚ) : op (r : α) = (↑r : αᵐᵒᵖ) :=
 by rw [cast_def, div_eq_mul_inv, op_mul, op_inv, op_nat_cast, op_int_cast,

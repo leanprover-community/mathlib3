@@ -6,6 +6,7 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov, Fréd
 -/
 import topology.algebra.ring
 import topology.algebra.mul_action
+import topology.algebra.uniform_group
 import topology.uniform_space.uniform_embedding
 import algebra.algebra.basic
 import linear_algebra.projection
@@ -254,7 +255,7 @@ notation M ` →L⋆[`:25 R `] ` M₂ := continuous_linear_map (star_ring_end R)
 
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
 for the definition, although in applications `M` and `M₂` will be topological modules over the
-topological ring `R`. -/
+topological semiring `R`. -/
 @[nolint has_inhabited_instance]
 structure continuous_linear_equiv
   {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R →+* S)
@@ -360,6 +361,12 @@ instance to_fun : has_coe_to_fun (M₁ →SL[σ₁₂] M₂) (λ _, M₁ → M�
 @[continuity]
 protected lemma continuous (f : M₁ →SL[σ₁₂] M₂) : continuous f := f.2
 
+protected lemma uniform_continuous {E₁ E₂ : Type*} [uniform_space E₁] [uniform_space E₂]
+  [add_comm_group E₁] [add_comm_group E₂] [module R₁ E₁] [module R₂ E₂]
+  [uniform_add_group E₁] [uniform_add_group E₂] (f : E₁ →SL[σ₁₂] E₂) :
+  uniform_continuous f :=
+uniform_continuous_add_monoid_hom_of_continuous f.continuous
+
 @[simp, norm_cast] lemma coe_inj {f g : M₁ →SL[σ₁₂] M₂} :
   (f : M₁ →ₛₗ[σ₁₂] M₂) = g ↔ f = g :=
 coe_injective.eq_iff
@@ -382,6 +389,12 @@ fun_like.ext f g h
 
 theorem ext_iff {f g : M₁ →SL[σ₁₂] M₂} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
+
+/-- Copy of a `continuous_linear_map` with a new `to_fun` equal to the old one. Useful to fix
+definitional equalities. -/
+protected def copy (f : M₁ →SL[σ₁₂] M₂) (f' : M₁ → M₂) (h : f' = ⇑f) : M₁ →SL[σ₁₂] M₂ :=
+{ to_linear_map := f.to_linear_map.copy f' h,
+  cont := show continuous f', from h.symm ▸ f.continuous }
 
 -- make some straightforward lemmas available to `simp`.
 protected lemma map_zero (f : M₁ →SL[σ₁₂] M₂) : f (0 : M₁) = 0 := map_zero f
@@ -1489,6 +1502,25 @@ by rw [e.symm.image_eq_preimage, e.symm_symm]
 
 @[simp] protected lemma preimage_symm_preimage (e : M₁ ≃SL[σ₁₂] M₂) (s : set M₁) :
   e ⁻¹' (e.symm ⁻¹' s) = s := e.symm.symm_preimage_preimage s
+
+protected lemma uniform_embedding {E₁ E₂ : Type*} [uniform_space E₁] [uniform_space E₂]
+  [add_comm_group E₁] [add_comm_group E₂] [module R₁ E₁] [module R₂ E₂]
+  [uniform_add_group E₁] [uniform_add_group E₂]
+  (e : E₁ ≃SL[σ₁₂] E₂) :
+  uniform_embedding e :=
+e.to_linear_equiv.to_equiv.uniform_embedding
+  e.to_continuous_linear_map.uniform_continuous
+  e.symm.to_continuous_linear_map.uniform_continuous
+
+protected lemma _root_.linear_equiv.uniform_embedding {E₁ E₂ : Type*} [uniform_space E₁]
+  [uniform_space E₂] [add_comm_group E₁] [add_comm_group E₂] [module R₁ E₁] [module R₂ E₂]
+  [uniform_add_group E₁] [uniform_add_group E₂]
+  (e : E₁ ≃ₛₗ[σ₁₂] E₂) (h₁ : continuous e) (h₂ : continuous e.symm) :
+  uniform_embedding e :=
+continuous_linear_equiv.uniform_embedding
+({ continuous_to_fun := h₁,
+  continuous_inv_fun := h₂,
+  .. e } : E₁ ≃SL[σ₁₂] E₂)
 
 omit σ₂₁
 

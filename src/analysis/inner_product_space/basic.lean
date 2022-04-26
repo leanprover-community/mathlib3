@@ -6,6 +6,7 @@ Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 import algebra.direct_sum.module
 import analysis.complex.basic
 import analysis.normed_space.bounded_linear_maps
+import analysis.convex.strict_convex_space
 import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 
@@ -1011,6 +1012,9 @@ end
 lemma norm_inner_le_norm (x y : E) : ∥⟪x, y⟫∥ ≤ ∥x∥ * ∥y∥ :=
 (is_R_or_C.norm_eq_abs _).le.trans (abs_inner_le_norm x y)
 
+lemma nnnorm_inner_le_nnnorm (x y : E) : ∥⟪x, y⟫∥₊ ≤ ∥x∥₊ * ∥y∥₊ :=
+norm_inner_le_norm x y
+
 lemma re_inner_le_norm (x y : E) : re ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
 le_trans (re_le_abs (inner x y)) (abs_inner_le_norm x y)
 
@@ -1023,18 +1027,19 @@ lemma real_inner_le_norm (x y : F) : ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
 le_trans (le_abs_self _) (abs_real_inner_le_norm _ _)
 
 include 𝕜
-lemma parallelogram_law_with_norm {x y : E} :
+lemma parallelogram_law_with_norm (x y : E) :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
 begin
   simp only [← inner_self_eq_norm_mul_norm],
   rw [← re.map_add, parallelogram_law, two_mul, two_mul],
   simp only [re.map_add],
 end
-omit 𝕜
 
-lemma parallelogram_law_with_norm_real {x y : F} :
-  ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
-by { have h := @parallelogram_law_with_norm ℝ F _ _ x y, simpa using h }
+lemma parallelogram_law_with_nnnorm (x y : E) :
+  ∥x + y∥₊ * ∥x + y∥₊ + ∥x - y∥₊ * ∥x - y∥₊ = 2 * (∥x∥₊ * ∥x∥₊ + ∥y∥₊ * ∥y∥₊) :=
+subtype.ext $ parallelogram_law_with_norm x y
+
+omit 𝕜
 
 /-- Polarization identity: The real part of the  inner product, in terms of the norm. -/
 lemma re_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two (x y : E) :
@@ -1477,8 +1482,7 @@ begin
       rwa [is_R_or_C.abs_div, abs_of_real, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm,
           div_eq_one_iff_eq hxy0] at h } },
   rw [h₁, abs_inner_div_norm_mul_norm_eq_one_iff x y],
-  have : x ≠ 0 := λ h, (hx0' $ norm_eq_zero.mpr h),
-  simp [this]
+  simp [hx0]
 end
 
 /-- The inner product of two vectors, divided by the product of their
@@ -1569,6 +1573,19 @@ of the equality case for Cauchy-Schwarz.
 Compare `abs_inner_eq_norm_iff`, which takes the weaker hypothesis `abs ⟪x, y⟫ = ∥x∥ * ∥y∥`. -/
 lemma inner_eq_norm_mul_iff_real {x y : F} : ⟪x, y⟫_ℝ = ∥x∥ * ∥y∥ ↔ ∥y∥ • x = ∥x∥ • y :=
 inner_eq_norm_mul_iff
+
+/-- An inner product space is strictly convex. We do not register this as an instance for an inner
+space over `𝕜`, `is_R_or_C 𝕜`, because there is no order of the typeclass argument that does not
+lead to a search of `[is_scalar_tower ℝ ?m E]` with unknown `?m`. -/
+instance inner_product_space.strict_convex_space : strict_convex_space ℝ F :=
+begin
+  refine strict_convex_space.of_norm_add (λ x y h, _),
+  rw [same_ray_iff_norm_smul_eq, eq_comm, ← inner_eq_norm_mul_iff_real,
+    real_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two, h,
+    add_mul_self_eq, sub_sub, add_sub_add_right_eq_sub, add_sub_cancel', mul_assoc,
+    mul_div_cancel_left],
+  exact _root_.two_ne_zero
+end
 
 /-- If the inner product of two unit vectors is `1`, then the two vectors are equal. One form of
 the equality case for Cauchy-Schwarz. -/

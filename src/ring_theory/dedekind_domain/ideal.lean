@@ -20,7 +20,7 @@ Then we prove some results on the unique factorization monoid structure of the i
    every nonzero fractional ideal is invertible.
  - `is_dedekind_domain_inv_iff` shows that this does note depend on the choice of field of
    fractions.
- - `height_one_spectrum` defines the type of nonzero prime ideals of `R`.
+ - `is_dedekind_domain.height_one_spectrum` defines the type of nonzero prime ideals of `R`.
 
 ## Main results:
  - `is_dedekind_domain_iff_is_dedekind_domain_inv`
@@ -387,9 +387,9 @@ begin
   -- Choose an element `b` of the product that is not in `J`.
   obtain ⟨b, hbZ, hbJ⟩ := set_like.not_le_iff_exists.mp hnle,
   have hnz_fa : algebra_map A K a ≠ 0 :=
-    mt ((ring_hom.injective_iff _).mp (is_fraction_ring.injective A K) a) ha0,
+    mt ((injective_iff_map_eq_zero _).mp (is_fraction_ring.injective A K) a) ha0,
   have hb0 : algebra_map A K b ≠ 0 :=
-    mt ((ring_hom.injective_iff _).mp (is_fraction_ring.injective A K) b)
+    mt ((injective_iff_map_eq_zero _).mp (is_fraction_ring.injective A K) b)
       (λ h, hbJ $ h.symm ▸ J.zero_mem),
   -- Then `b a⁻¹ : K` is in `M⁻¹` but not in `1`.
   refine ⟨algebra_map A K b * (algebra_map A K a)⁻¹, (mem_inv_iff _).mpr _, _⟩,
@@ -430,7 +430,7 @@ begin
   by_cases hI1 : I = ⊤,
   { rw [hI1, coe_ideal_top, one_mul, fractional_ideal.one_inv] },
   by_cases hNF : is_field A,
-  { letI := hNF.to_field A, rcases hI1 (I.eq_bot_or_top.resolve_left hI0) },
+  { letI := hNF.to_field, rcases hI1 (I.eq_bot_or_top.resolve_left hI0) },
   -- We'll show a contradiction with `exists_not_mem_one_of_ne_bot`:
   -- `J⁻¹ = (I * I⁻¹)⁻¹` cannot have an element `x ∉ 1`, so it must equal `1`.
   obtain ⟨J, hJ⟩ : ∃ (J : ideal A), (J : fractional_ideal A⁰ K) = I * I⁻¹ :=
@@ -512,7 +512,8 @@ begin
   rw [mul_assoc, mul_left_comm (J : fractional_ideal A⁰ K), coe_ideal_mul_inv, mul_one,
       fractional_ideal.span_singleton_mul_span_singleton, inv_mul_cancel,
       fractional_ideal.span_singleton_one],
-  { exact mt ((algebra_map A K).injective_iff.mp (is_fraction_ring.injective A K) _) ha },
+  { exact mt ((injective_iff_map_eq_zero (algebra_map A K)).mp
+      (is_fraction_ring.injective A K) _) ha },
   { exact fractional_ideal.coe_ideal_ne_zero_iff.mp (right_ne_zero_of_mul hne) }
 end
 
@@ -684,6 +685,12 @@ lemma ideal.exists_mem_pow_not_mem_pow_succ (I : ideal A) (hI0 : I ≠ ⊥) (hI1
   ∃ x ∈ I^e, x ∉ I^(e+1) :=
 set_like.exists_of_lt (I.strict_anti_pow hI0 hI1 e.lt_succ_self)
 
+lemma associates.le_singleton_iff (x : A) (n : ℕ) (I : ideal A) :
+  associates.mk I^n ≤ associates.mk (ideal.span {x}) ↔ x ∈ I^n :=
+begin
+  rw [← associates.dvd_eq_le, ← associates.mk_pow, associates.mk_dvd_mk, ideal.dvd_span_singleton],
+end
+
 open fractional_ideal
 variables {A K}
 
@@ -731,12 +738,11 @@ end is_dedekind_domain
 
 section is_dedekind_domain
 
-variables {T : Type*} [comm_ring T] [is_domain T] [is_dedekind_domain T] (I J : ideal T)
+variables {T : Type*} [comm_ring T] [is_domain T] [is_dedekind_domain T] {I J : ideal T}
 open_locale classical
 open multiset unique_factorization_monoid ideal
 
-lemma prod_normalized_factors_eq_self {I : ideal T} (hI : I ≠ ⊥) :
-  (normalized_factors I).prod = I :=
+lemma prod_normalized_factors_eq_self (hI : I ≠ ⊥) : (normalized_factors I).prod = I :=
 associated_iff_eq.1 (normalized_factors_prod hI)
 
 lemma normalized_factors_prod {α : multiset (ideal T)}
@@ -781,6 +787,31 @@ begin
     { exact this } },
 end
 
+lemma irreducible_pow_sup (hI : I ≠ ⊥) (hJ : irreducible J) (n : ℕ) :
+  J^n ⊔ I = J^(min ((normalized_factors I).count J) n) :=
+by rw [sup_eq_prod_inf_factors (pow_ne_zero n hJ.ne_zero) hI, ← inf_eq_inter,
+       normalized_factors_of_irreducible_pow hJ, normalize_eq J, repeat_inf, prod_repeat]
+
+lemma irreducible_pow_sup_of_le (hJ : irreducible J) (n : ℕ)
+  (hn : ↑n ≤ multiplicity J I) : J^n ⊔ I = J^n :=
+begin
+  by_cases hI : I = ⊥,
+  { simp [*] at *, },
+  rw [irreducible_pow_sup hI hJ, min_eq_right],
+  rwa [multiplicity_eq_count_normalized_factors hJ hI, enat.coe_le_coe, normalize_eq J] at hn
+end
+
+lemma irreducible_pow_sup_of_ge (hI : I ≠ ⊥) (hJ : irreducible J) (n : ℕ)
+  (hn : multiplicity J I ≤ n) : J^n ⊔ I = J ^ (multiplicity J I).get (enat.dom_of_le_coe hn) :=
+begin
+  rw [irreducible_pow_sup hI hJ, min_eq_left],
+  congr,
+  { rw [← enat.coe_inj, enat.coe_get, multiplicity_eq_count_normalized_factors hJ hI,
+    normalize_eq J] },
+  { rwa [multiplicity_eq_count_normalized_factors hJ hI, enat.coe_le_coe, normalize_eq J]
+      at hn }
+end
+
 end is_dedekind_domain
 
 section height_one_spectrum
@@ -798,7 +829,7 @@ variables [is_domain R] [is_dedekind_domain R]
 
 /-- The height one prime spectrum of a Dedekind domain `R` is the type of nonzero prime ideals of
 `R`. Note that this equals the maximal spectrum if `R` has Krull dimension 1. -/
-@[nolint has_inhabited_instance unused_arguments]
+@[ext, nolint has_inhabited_instance unused_arguments]
 structure height_one_spectrum :=
 (as_ideal : ideal R)
 (is_prime : as_ideal.is_prime)
@@ -816,7 +847,7 @@ begin
   apply v.prime,
 end
 
-lemma height_one_spectrum.associates.irreducible (v : height_one_spectrum R) :
+lemma height_one_spectrum.associates_irreducible (v : height_one_spectrum R) :
   irreducible (associates.mk v.as_ideal) :=
 begin
   rw [associates.irreducible_mk _],

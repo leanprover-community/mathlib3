@@ -5,8 +5,8 @@ Authors: Aaron Anderson
 -/
 
 import order.closure
-import model_theory.terms_and_formulas
-import set_theory.cardinal_ordinal
+import model_theory.semantics
+import model_theory.encoding
 
 /-!
 # First-Order Substructures
@@ -244,6 +244,13 @@ begin
     simp only [term.realize, λ i, classical.some_spec (hx i)] }
 end
 
+instance small_closure [small.{u} s] :
+  small.{u} (closure L s) :=
+begin
+  rw [← set_like.coe_sort_coe, substructure.coe_closure_eq_range_term_realize],
+  exact small_range _,
+end
+
 lemma mem_closure_iff_exists_term {x : M} :
   x ∈ closure L s ↔ ∃ (t : L.term s), t.realize (coe : s → M) = x :=
 by rw [← set_like.mem_coe, coe_closure_eq_range_term_realize, mem_range]
@@ -256,7 +263,7 @@ begin
 end
 
 theorem lift_card_closure_le : cardinal.lift.{(max u w) w} (# (closure L s)) ≤
-  cardinal.lift.{(max u w) w} (#s) + cardinal.lift.{(max u w) u} (#(Σ i, L.functions i)) + ω :=
+  max ω (cardinal.lift.{(max u w) w} (#s) + cardinal.lift.{(max u w) u} (#(Σ i, L.functions i))) :=
 begin
   refine lift_card_closure_le_card_term.trans (term.card_le.trans _),
   rw [mk_sum, lift_umax', lift_umax],
@@ -316,6 +323,13 @@ lemma closure_union (s t : set M) : closure L (s ∪ t) = closure L s ⊔ closur
 
 lemma closure_Union {ι} (s : ι → set M) : closure L (⋃ i, s i) = ⨆ i, closure L (s i) :=
 (substructure.gi L M).gc.l_supr
+
+instance small_bot :
+  small.{u} (⊥ : L.substructure M) :=
+begin
+  rw ← closure_empty,
+  exact substructure.small_closure
+end
 
 /-!
 ### `comap` and `map`

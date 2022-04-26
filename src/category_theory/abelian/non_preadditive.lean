@@ -6,6 +6,7 @@ Authors: Markus Himmel
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.kernels
 import category_theory.limits.shapes.normal_mono.equalizers
+import category_theory.abelian.images
 import category_theory.preadditive
 
 /-!
@@ -81,35 +82,19 @@ end category_theory
 
 open category_theory
 
-namespace category_theory.non_preadditive_abelian
-
 universes v u
 
 variables {C : Type u} [category.{v} C] [non_preadditive_abelian C]
+
+namespace category_theory.non_preadditive_abelian
 
 section factor
 
 variables {P Q : C} (f : P ⟶ Q)
 
-/-- The kernel of the cokernel of `f` is called the image of `f`. -/
-protected abbreviation image : C := kernel (cokernel.π f)
-
-/-- The inclusion of the image into the codomain. -/
-protected abbreviation image.ι : non_preadditive_abelian.image f ⟶ Q :=
-kernel.ι (cokernel.π f)
-
-/-- There is a canonical epimorphism `p : P ⟶ image f` for every `f`. -/
-protected abbreviation factor_thru_image : P ⟶ non_preadditive_abelian.image f :=
-kernel.lift (cokernel.π f) f $ cokernel.condition f
-
-/-- `f` factors through its image via the canonical morphism `p`. -/
-@[simp, reassoc] protected lemma image.fac :
-  non_preadditive_abelian.factor_thru_image f ≫ image.ι f = f :=
-kernel.lift_ι _ _ _
-
 /-- The map `p : P ⟶ image f` is an epimorphism -/
-instance : epi (non_preadditive_abelian.factor_thru_image f) :=
-let I := non_preadditive_abelian.image f, p := non_preadditive_abelian.factor_thru_image f,
+instance : epi (abelian.factor_thru_image f) :=
+let I := abelian.image f, p := abelian.factor_thru_image f,
     i := kernel.ι (cokernel.π f) in
 -- It will suffice to consider some g : I ⟶ R such that p ≫ g = 0 and show that g = 0.
 normal_mono_category.epi_of_zero_cancel _ $ λ R (g : I ⟶ R) (hpg : p ≫ g = 0),
@@ -122,7 +107,7 @@ begin
   -- By hypothesis, p factors through the kernel of g via some t.
   obtain ⟨t, ht⟩ := kernel.lift' g p hpg,
   have fh : f ≫ h = 0, calc
-    f ≫ h = (p ≫ i) ≫ h : (image.fac f).symm ▸ rfl
+    f ≫ h = (p ≫ i) ≫ h : (abelian.image.fac f).symm ▸ rfl
        ... = ((t ≫ kernel.ι g) ≫ i) ≫ h : ht ▸ rfl
        ... = t ≫ u ≫ h : by simp only [category.assoc]; conv_lhs { congr, skip, rw ←category.assoc }
        ... = t ≫ 0 : hu.w ▸ rfl
@@ -141,30 +126,12 @@ begin
   exact zero_of_epi_comp _ (kernel.condition g)
 end
 
-instance mono_factor_thru_image [mono f] : mono (non_preadditive_abelian.factor_thru_image f) :=
-mono_of_mono_fac $ image.fac f
-
-instance is_iso_factor_thru_image [mono f] : is_iso (non_preadditive_abelian.factor_thru_image f) :=
+instance is_iso_factor_thru_image [mono f] : is_iso (abelian.factor_thru_image f) :=
 is_iso_of_mono_of_epi _
 
-/-- The cokernel of the kernel of `f` is called the coimage of `f`. -/
-protected abbreviation coimage : C := cokernel (kernel.ι f)
-
-/-- The projection onto the coimage. -/
-protected abbreviation coimage.π : P ⟶ non_preadditive_abelian.coimage f :=
-cokernel.π (kernel.ι f)
-
-/-- There is a canonical monomorphism `i : coimage f ⟶ Q`. -/
-protected abbreviation factor_thru_coimage : non_preadditive_abelian.coimage f ⟶ Q :=
-cokernel.desc (kernel.ι f) f $ kernel.condition f
-
-/-- `f` factors through its coimage via the canonical morphism `p`. -/
-protected lemma coimage.fac : coimage.π f ≫ non_preadditive_abelian.factor_thru_coimage f = f :=
-cokernel.π_desc _ _ _
-
 /-- The canonical morphism `i : coimage f ⟶ Q` is a monomorphism -/
-instance : mono (non_preadditive_abelian.factor_thru_coimage f) :=
-let I := non_preadditive_abelian.coimage f, i := non_preadditive_abelian.factor_thru_coimage f,
+instance : mono (abelian.factor_thru_coimage f) :=
+let I := abelian.coimage f, i := abelian.factor_thru_coimage f,
     p := cokernel.π (kernel.ι f) in
 normal_epi_category.mono_of_cancel_zero _ $ λ R (g : R ⟶ I) (hgi : g ≫ i = 0),
 begin
@@ -176,7 +143,7 @@ begin
   -- By hypothesis, i factors through the cokernel of g via some t.
   obtain ⟨t, ht⟩ := cokernel.desc' g i hgi,
   have hf : h ≫ f = 0, calc
-    h ≫ f = h ≫ (p ≫ i) : (coimage.fac f).symm ▸ rfl
+    h ≫ f = h ≫ (p ≫ i) : (abelian.coimage.fac f).symm ▸ rfl
     ... = h ≫ (p ≫ (cokernel.π g ≫ t)) : ht ▸ rfl
     ... = h ≫ u ≫ t : by simp only [category.assoc]; conv_lhs { congr, skip, rw ←category.assoc }
     ... = 0 ≫ t : by rw [←category.assoc, hu.w]
@@ -195,11 +162,8 @@ begin
   exact zero_of_comp_mono _ (cokernel.condition g)
 end
 
-instance epi_factor_thru_coimage [epi f] : epi (non_preadditive_abelian.factor_thru_coimage f) :=
-epi_of_epi_fac $ coimage.fac f
-
 instance is_iso_factor_thru_coimage [epi f] :
-  is_iso (non_preadditive_abelian.factor_thru_coimage f) :=
+  is_iso (abelian.factor_thru_coimage f) :=
 is_iso_of_mono_of_epi _
 
 end factor
@@ -216,7 +180,7 @@ is_cokernel.cokernel_iso _ _
   (cokernel.of_iso_comp _ _
     (limits.is_limit.cone_point_unique_up_to_iso (limit.is_limit _) h)
     (cone_morphism.w (limits.is_limit.unique_up_to_iso (limit.is_limit _) h).hom _))
-  (as_iso $ non_preadditive_abelian.factor_thru_coimage f) (coimage.fac f)
+  (as_iso $ abelian.factor_thru_coimage f) (abelian.coimage.fac f)
 
 /-- In a `non_preadditive_abelian` category, a mono is the kernel of its cokernel. More precisely:
     If `f` is a monomorphism and `s` is some colimit cokernel cocone on `f`, then `f` is a kernel
@@ -227,7 +191,7 @@ is_kernel.iso_kernel _ _
   (kernel.of_comp_iso _ _
     (limits.is_colimit.cocone_point_unique_up_to_iso h (colimit.is_colimit _))
     (cocone_morphism.w (limits.is_colimit.unique_up_to_iso h $ colimit.is_colimit _).hom _))
-  (as_iso $ non_preadditive_abelian.factor_thru_image f) (image.fac f)
+  (as_iso $ abelian.factor_thru_image f) (abelian.image.fac f)
 
 end cokernel_of_kernel
 section
@@ -266,7 +230,7 @@ begin
     { intros s m h,
       haveI : mono (prod.lift (𝟙 A) (0 : A ⟶ A)) := mono_of_mono_fac (prod.lift_fst _ _),
       apply (cancel_mono (prod.lift (𝟙 A) (0 : A ⟶ A))).1,
-      convert h walking_parallel_pair.zero,
+      convert h,
       ext; simp } },
   let hp2 : is_colimit (cokernel_cofork.of_π (limits.prod.snd : A ⨯ A ⟶ A) hlp),
   { exact epi_is_cokernel_of_kernel _ hp1 },

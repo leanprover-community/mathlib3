@@ -204,7 +204,8 @@ lemma ae_cover_Ioo_of_Ioo :
 
 variables [has_no_atoms μ]
 
-lemma ae_cover_Ioc_of_Icc :
+
+lemma ae_cover_Ioc_of_Icc (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
   ae_cover (μ.restrict $ Ioc A B) l (λ i, Icc (a i) (b i)) :=
 begin
   have : Ioo A B =ᵐ[μ] Ioc A B, exact Ioo_ae_eq_Ioc,
@@ -212,7 +213,7 @@ begin
   exact ae_cover_Ioo_of_Icc ha hb,
 end
 
-lemma ae_cover_Ioc_of_Ico :
+lemma ae_cover_Ioc_of_Ico (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
   ae_cover (μ.restrict $ Ioc A B) l (λ i, Ico (a i) (b i)) :=
 begin
   have : Ioo A B =ᵐ[μ] Ioc A B, exact Ioo_ae_eq_Ioc,
@@ -220,7 +221,7 @@ begin
   exact ae_cover_Ioo_of_Ico ha hb,
 end
 
-lemma ae_cover_Ioc_of_Ioc :
+lemma ae_cover_Ioc_of_Ioc (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
   ae_cover (μ.restrict $ Ioc A B) l (λ i, Ioc (a i) (b i)) :=
 begin
   have : Ioo A B =ᵐ[μ] Ioc A B, exact Ioo_ae_eq_Ioc,
@@ -228,7 +229,7 @@ begin
   exact ae_cover_Ioo_of_Ioc ha hb,
 end
 
-lemma ae_cover_Ioc_of_Ioo :
+lemma ae_cover_Ioc_of_Ioo (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
   ae_cover (μ.restrict $ Ioc A B) l (λ i, Ioo (a i) (b i)) :=
 begin
   have : Ioo A B =ᵐ[μ] Ioc A B, exact Ioo_ae_eq_Ioc,
@@ -236,7 +237,7 @@ begin
   exact ae_cover_Ioo_of_Ioo ha hb,
 end
 
-lemma ae_cover_Ico_of_Icc :
+lemma ae_cover_Ico_of_Icc (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
   ae_cover (μ.restrict $ Ico A B) l (λ i, Icc (a i) (b i)) :=
 begin
   have : Ioo A B =ᵐ[μ] Ico A B, exact Ioo_ae_eq_Ico,
@@ -244,7 +245,7 @@ begin
   exact ae_cover_Ioo_of_Icc ha hb,
 end
 
-lemma ae_cover_Ico_of_Ico :
+lemma ae_cover_Ico_of_Ico (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
   ae_cover (μ.restrict $ Ico A B) l (λ i, Ico (a i) (b i)) :=
 begin
   have : Ioo A B =ᵐ[μ] Ico A B, exact Ioo_ae_eq_Ico,
@@ -252,7 +253,7 @@ begin
   exact ae_cover_Ioo_of_Ico ha hb,
 end
 
-lemma ae_cover_Ico_of_Ioc :
+lemma ae_cover_Ico_of_Ioc (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
   ae_cover (μ.restrict $ Ico A B) l (λ i, Ioc (a i) (b i)) :=
 begin
   have : Ioo A B =ᵐ[μ] Ico A B, exact Ioo_ae_eq_Ico,
@@ -260,7 +261,7 @@ begin
   exact ae_cover_Ioo_of_Ioc ha hb,
 end
 
-lemma ae_cover_Ico_of_Ioo :
+lemma ae_cover_Ico_of_Ioo (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
   ae_cover (μ.restrict $ Ico A B) l (λ i, Ioo (a i) (b i)) :=
 begin
   have : Ioo A B =ᵐ[μ] Ico A B, exact Ioo_ae_eq_Ico,
@@ -268,7 +269,7 @@ begin
   exact ae_cover_Ioo_of_Ioo ha hb,
 end
 
-lemma ae_cover_Icc_of_Icc :
+lemma ae_cover_Icc_of_Icc (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
   ae_cover (μ.restrict $ Icc A B) l (λ i, Icc (a i) (b i)) :=
 begin
   have : Ioo A B =ᵐ[μ] Icc A B, exact Ioo_ae_eq_Icc,
@@ -276,7 +277,7 @@ begin
   exact ae_cover_Ioo_of_Icc ha hb,
 end
 
-lemma ae_cover_Icc_of_Ico :
+lemma ae_cover_Icc_of_Ico (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
   ae_cover (μ.restrict $ Icc A B) l (λ i, Ico (a i) (b i)) :=
 begin
   have : Ioo A B =ᵐ[μ] Icc A B, exact Ioo_ae_eq_Icc,
@@ -284,7 +285,7 @@ begin
   exact ae_cover_Ioo_of_Ico ha hb,
 end
 
-lemma ae_cover_Icc_of_Ioc :
+lemma ae_cover_Icc_of_Ioc (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
   ae_cover (μ.restrict $ Icc A B) l (λ i, Ioc (a i) (b i)) :=
 begin
   have : Ioo A B =ᵐ[μ] Icc A B, exact Ioo_ae_eq_Icc,
@@ -292,7 +293,7 @@ begin
   exact ae_cover_Ioo_of_Ioc ha hb,
 end
 
-lemma ae_cover_Icc_of_Ioo :
+lemma ae_cover_Icc_of_Ioo (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B)) :
   ae_cover (μ.restrict $ Icc A B) l (λ i, Ioo (a i) (b i)) :=
 begin
   have : Ioo A B =ᵐ[μ] Icc A B, exact Ioo_ae_eq_Icc,

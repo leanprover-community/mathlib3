@@ -20,13 +20,6 @@ variables {A : Type*} [comm_ring A] (S : submonoid A)
   (B : Type*) [comm_ring B] [algebra A B] [is_localization S B]
 variables {Γ : Type*} [linear_ordered_comm_group_with_zero Γ] (v : valuation A Γ)
 
-variable {S}
-
-lemma valuation.ne_zero_of_mem_of_le_prime_compl_supp (s : A) (hs : s ∈ S)
-  (hS : S ≤ v.supp.prime_compl) : v s ≠ 0 := hS hs
-
-variable (S)
-
 /-- We can extend a valuation `v` on a ring to a localization at a submonoid of
 the complement of `v.supp`. -/
 noncomputable

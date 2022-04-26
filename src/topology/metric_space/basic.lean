@@ -365,6 +365,13 @@ iff.rfl
   dist x y ≤ c ↔ nndist x y ≤ c :=
 iff.rfl
 
+@[simp] lemma edist_lt_of_real {x y : α} {r : ℝ} : edist x y < ennreal.of_real r ↔ dist x y < r :=
+by rw [edist_dist, ennreal.of_real_lt_of_real_iff_of_nonneg dist_nonneg]
+
+@[simp] lemma edist_le_of_real {x y : α} {r : ℝ} (hr : 0 ≤ r) :
+  edist x y ≤ ennreal.of_real r ↔ dist x y ≤ r :=
+by rw [edist_dist, ennreal.of_real_le_of_real_iff hr]
+
 /--Express `nndist` in terms of `dist`-/
 lemma nndist_dist (x y : α) : nndist x y = real.to_nnreal (dist x y) :=
 by rw [dist_nndist, real.to_nnreal_coe]
@@ -389,7 +396,7 @@ by rw [edist_dist, ennreal.to_real_of_real (dist_nonneg)]
 namespace metric
 
 /- instantiate pseudometric space as a topology -/
-variables {x y z : α} {ε ε₁ ε₂ : ℝ} {s : set α}
+variables {x y z : α} {δ ε ε₁ ε₂ : ℝ} {s : set α}
 
 /-- `ball x ε` is the set of all points `y` with `dist y x < ε` -/
 def ball (x : α) (ε : ℝ) : set α := {y | dist y x < ε}
@@ -466,31 +473,18 @@ assume y (hy : _ < _), le_of_lt hy
 theorem sphere_subset_closed_ball : sphere x ε ⊆ closed_ball x ε :=
 λ y, le_of_eq
 
-lemma closed_ball_disjoint_ball (x y : α) (rx ry : ℝ) (h : rx + ry ≤ dist x y) :
-  disjoint (closed_ball x rx) (ball y ry) :=
-begin
-  rw disjoint_left,
-  intros a ax ay,
-  apply lt_irrefl (dist x y),
-  calc dist x y ≤ dist a x + dist a y : dist_triangle_left _ _ _
-  ... < rx + ry : add_lt_add_of_le_of_lt (mem_closed_ball.1 ax) (mem_ball.1 ay)
-  ... ≤ dist x y : h
-end
+lemma closed_ball_disjoint_ball (h : δ + ε ≤ dist x y) : disjoint (closed_ball x δ) (ball y ε) :=
+λ a ha, (h.trans $ dist_triangle_left _ _ _).not_lt $ add_lt_add_of_le_of_lt ha.1 ha.2
 
-lemma ball_disjoint_ball (x y : α) (rx ry : ℝ) (h : rx + ry ≤ dist x y) :
-  disjoint (ball x rx) (ball y ry) :=
-(closed_ball_disjoint_ball x y rx ry h).mono_left ball_subset_closed_ball
+lemma ball_disjoint_closed_ball (h : δ + ε ≤ dist x y) : disjoint (ball x δ) (closed_ball y ε) :=
+(closed_ball_disjoint_ball $ by rwa [add_comm, dist_comm]).symm
 
-lemma closed_ball_disjoint_closed_ball {x y : α} {rx ry : ℝ} (h : rx + ry < dist x y) :
-  disjoint (closed_ball x rx) (closed_ball y ry) :=
-begin
-  rw disjoint_left,
-  intros a ax ay,
-  apply lt_irrefl (dist x y),
-  calc dist x y ≤ dist a x + dist a y : dist_triangle_left _ _ _
-  ... ≤ rx + ry : add_le_add ax ay
-  ... < dist x y : h
-end
+lemma ball_disjoint_ball (h : δ + ε ≤ dist x y) : disjoint (ball x δ) (ball y ε) :=
+(closed_ball_disjoint_ball h).mono_left ball_subset_closed_ball
+
+lemma closed_ball_disjoint_closed_ball (h : δ + ε < dist x y) :
+  disjoint (closed_ball x δ) (closed_ball y ε) :=
+λ a ha, h.not_le $ (dist_triangle_left _ _ _).trans $ add_le_add ha.1 ha.2
 
 theorem sphere_disjoint_ball : disjoint (sphere x ε) (ball x ε) :=
 λ y ⟨hy₁, hy₂⟩, absurd hy₁ $ ne_of_lt hy₂
@@ -1404,37 +1398,32 @@ end
 end nnreal
 
 section prod
+variables [pseudo_metric_space β]
 
-noncomputable instance prod.pseudo_metric_space_max [pseudo_metric_space β] :
+noncomputable instance prod.pseudo_metric_space_max :
   pseudo_metric_space (α × β) :=
-{ dist := λ x y, max (dist x.1 y.1) (dist x.2 y.2),
-  dist_self := λ x, by simp,
-  dist_comm := λ x y, by simp [dist_comm],
-  dist_triangle := λ x y z, max_le
-    (le_trans (dist_triangle _ _ _) (add_le_add (le_max_left _ _) (le_max_left _ _)))
-    (le_trans (dist_triangle _ _ _) (add_le_add (le_max_right _ _) (le_max_right _ _))),
-  edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
-  edist_dist := assume x y, begin
-    have : monotone ennreal.of_real := assume x y h, ennreal.of_real_le_of_real h,
-    rw [edist_dist, edist_dist, ← this.map_max]
-  end,
-  uniformity_dist := begin
-    refine uniformity_prod.trans _,
-    simp only [uniformity_basis_dist.eq_binfi, comap_infi],
-    rw ← infi_inf_eq, congr, funext,
-    rw ← infi_inf_eq, congr, funext,
-    simp [inf_principal, ext_iff, max_lt_iff]
-  end,
-  to_uniform_space := prod.uniform_space }
+pseudo_emetric_space.to_pseudo_metric_space_of_dist
+  (λ x y : α × β, max (dist x.1 y.1) (dist x.2 y.2))
+  (λ x y, (max_lt (edist_lt_top _ _) (edist_lt_top _ _)).ne) $
+  λ x y, by rw [dist_edist, dist_edist, prod.edist_eq,
+    ← ennreal.to_real_max (edist_ne_top _ _) (edist_ne_top _ _)]
 
-lemma prod.dist_eq [pseudo_metric_space β] {x y : α × β} :
+lemma prod.dist_eq {x y : α × β} :
   dist x y = max (dist x.1 y.1) (dist x.2 y.2) := rfl
 
-theorem ball_prod_same [pseudo_metric_space β] (x : α) (y : β) (r : ℝ) :
+@[simp]
+lemma dist_prod_same_left {x : α} {y₁ y₂ : β} : dist (x, y₁) (x, y₂) = dist y₁ y₂ :=
+by simp [prod.dist_eq, dist_nonneg]
+
+@[simp]
+lemma dist_prod_same_right {x₁ x₂ : α} {y : β} : dist (x₁, y) (x₂, y) = dist x₁ x₂ :=
+by simp [prod.dist_eq, dist_nonneg]
+
+theorem ball_prod_same (x : α) (y : β) (r : ℝ) :
   ball x r ×ˢ ball y r = ball (x, y) r :=
 ext $ λ z, by simp [prod.dist_eq]
 
-theorem closed_ball_prod_same [pseudo_metric_space β] (x : α) (y : β) (r : ℝ) :
+theorem closed_ball_prod_same (x : α) (y : β) (r : ℝ) :
   closed_ball x r ×ˢ closed_ball y r = closed_ball (x, y) r :=
 ext $ λ z, by simp [prod.dist_eq]
 
@@ -1581,7 +1570,7 @@ lemma _root_.topological_space.is_separable.separable_space {s : set α} (hs : i
 begin
   classical,
   rcases eq_empty_or_nonempty s with rfl|⟨⟨x₀, x₀s⟩⟩,
-  { haveI : encodable (∅ : set α) := fintype.encodable ↥∅, exact encodable.separable_space },
+  { haveI : encodable (∅ : set α) := fintype.to_encodable ↥∅, exact encodable.to_separable_space },
   rcases hs with ⟨c, hc, h'c⟩,
   haveI : encodable c := hc.to_encodable,
   obtain ⟨u, -, u_pos, u_lim⟩ : ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧
@@ -1654,17 +1643,11 @@ begin
   the uniformity is the same as the product uniformity, but we register nevertheless a nice formula
   for the distance -/
   refine pseudo_emetric_space.to_pseudo_metric_space_of_dist
-    (λf g, ((sup univ (λb, nndist (f b) (g b)) : ℝ≥0) : ℝ)) _ _,
-  show ∀ (x y : Π (b : β), π b), edist x y ≠ ⊤,
-  { assume x y,
-    rw ← lt_top_iff_ne_top,
-    have : (⊥ : ℝ≥0∞) < ⊤ := ennreal.coe_lt_top,
-    simp [edist_pi_def, finset.sup_lt_iff this, edist_lt_top] },
-  show ∀ (x y : Π (b : β), π b), ↑(sup univ (λ (b : β), nndist (x b) (y b))) =
-    ennreal.to_real (sup univ (λ (b : β), edist (x b) (y b))),
-  { assume x y,
-    simp only [edist_nndist],
-    norm_cast }
+    (λf g, ((sup univ (λb, nndist (f b) (g b)) : ℝ≥0) : ℝ)) (λ f g, _) (λ f g, _),
+  show edist f g ≠ ⊤,
+    from ne_of_lt ((finset.sup_lt_iff bot_lt_top).2 $ λ b hb, edist_lt_top _ _),
+  show ↑(sup univ (λ b, nndist (f b) (g b))) = (sup univ (λ b, edist (f b) (g b))).to_real,
+    by simp only [edist_nndist, ← ennreal.coe_finset_sup, ennreal.coe_to_real]
 end
 
 lemma nndist_pi_def (f g : Πb, π b) : nndist f g = sup univ (λb, nndist (f b) (g b)) :=

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel
+Authors: Sébastien Gouëzel, Yaël Dillies
 -/
 import analysis.normed.group.pointwise
 import analysis.normed_space.basic
@@ -93,16 +93,14 @@ constant `r` is the ball of radius `r`. -/
 lemma smul_unit_ball_of_pos {r : ℝ} (hr : 0 < r) : r • ball 0 1 = ball (0 : E) r :=
 by rw [smul_unit_ball hr.ne', real.norm_of_nonneg hr.le]
 
+-- This is also true for `ℚ`-normed spaces
 lemma exists_dist_eq (x z : E) {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   ∃ y, dist x y = b * dist x z ∧ dist y z = a * dist x z :=
 begin
-  refine ⟨a • x + b • z, _, _⟩; simp_rw dist_eq_norm,
-  calc _ = ∥(a • x - a • x) + b • (x - z)∥
-    : by rw [smul_sub, sub_add_sub_comm, convex.combo_self hab]
-  ... = _ : by rw [sub_self, zero_add, norm_smul_of_nonneg hb],
-  calc _ = ∥a • (x - z) + (b • z - b • z)∥
-    : by rw [smul_sub, sub_add_sub_comm, convex.combo_self hab]
-  ... = _ : by rw [sub_self, add_zero, norm_smul_of_nonneg ha],
+  use a • x + b • z,
+  nth_rewrite 0 [←one_smul ℝ x],
+  nth_rewrite 3 [←one_smul ℝ z],
+  simp [dist_eq_norm, ←hab, add_smul, ←smul_sub, norm_smul_of_nonneg, ha, hb],
 end
 
 lemma exists_dist_le_le (hδ : 0 ≤ δ) (hε : 0 ≤ ε) (h : dist x z ≤ ε + δ) :
@@ -122,9 +120,8 @@ end
 lemma exists_dist_le_lt (hδ : 0 ≤ δ) (hε : 0 < ε) (h : dist x z < ε + δ) :
   ∃ y, dist x y ≤ δ ∧ dist y z < ε :=
 begin
-  refine (exists_dist_eq x z (div_nonneg hε.le $ add_nonneg hε.le hδ)
-    (div_nonneg hδ $ add_nonneg hε.le hδ) $
-    by rw [←add_div, div_self (add_pos_of_pos_of_nonneg hε hδ).ne']).imp (λ y hy, _),
+  refine (exists_dist_eq x z (div_nonneg hε.le $ add_nonneg hε.le hδ) (div_nonneg hδ $ add_nonneg
+    hε.le hδ) $ by rw [←add_div, div_self (add_pos_of_pos_of_nonneg hε hδ).ne']).imp (λ y hy, _),
   rw [hy.1, hy.2, div_mul_comm', div_mul_comm' ε],
   rw ←div_lt_one (add_pos_of_pos_of_nonneg hε hδ) at h,
   exact ⟨mul_le_of_le_one_left hδ h.le, mul_lt_of_lt_one_left hε h⟩,
@@ -134,34 +131,27 @@ end
 lemma exists_dist_lt_le (hδ : 0 < δ) (hε : 0 ≤ ε) (h : dist x z < ε + δ) :
   ∃ y, dist x y < δ ∧ dist y z ≤ ε :=
 begin
-  refine (exists_dist_eq x z (div_nonneg hε $ add_nonneg hε hδ.le)
-    (div_nonneg hδ.le $ add_nonneg hε hδ.le) $
-    by rw [←add_div, div_self (add_pos_of_nonneg_of_pos hε hδ).ne']).imp (λ y hy, _),
-  rw [hy.1, hy.2, div_mul_comm', div_mul_comm' ε],
-  rw ←div_lt_one (add_pos_of_nonneg_of_pos hε hδ) at h,
-  exact ⟨mul_lt_of_lt_one_left hδ h, mul_le_of_le_one_left hε h.le⟩,
+  obtain ⟨y, yz, xy⟩ := exists_dist_le_lt hε hδ
+    (show dist z x < δ + ε, by simpa only [dist_comm, add_comm] using h),
+  exact ⟨y, by simp [dist_comm x y, dist_comm y z, *]⟩,
 end
 
 -- This is also true for `ℚ`-normed spaces
 lemma exists_dist_lt_lt (hδ : 0 < δ) (hε : 0 < ε) (h : dist x z < ε + δ) :
   ∃ y, dist x y < δ ∧ dist y z < ε :=
 begin
-  refine (exists_dist_eq x z (div_nonneg hε.le $ add_nonneg hε.le hδ.le) (div_nonneg hδ.le $ add_nonneg hε.le hδ.le) $
-    by rw [←add_div, div_self (add_pos hε hδ).ne']).imp (λ y hy, _),
+  refine (exists_dist_eq x z (div_nonneg hε.le $ add_nonneg hε.le hδ.le) (div_nonneg hδ.le $
+    add_nonneg hε.le hδ.le) $ by rw [←add_div, div_self (add_pos hε hδ).ne']).imp (λ y hy, _),
   rw [hy.1, hy.2, div_mul_comm', div_mul_comm' ε],
   rw ←div_lt_one (add_pos hε hδ) at h,
   exact ⟨mul_lt_of_lt_one_left hδ h, mul_lt_of_lt_one_left hε h⟩,
 end
 
-lemma ball_disjoint_closed_ball (x y : E) (rx ry : ℝ) (h : rx + ry ≤ dist x y) :
-  disjoint (ball x rx) (closed_ball y ry) :=
-(closed_ball_disjoint_ball _ _ _ _ $ by rwa [add_comm, dist_comm]).symm
-
 -- This is also true for `ℚ`-normed spaces
 lemma disjoint_ball_ball_iff (hδ : 0 < δ) (hε : 0 < ε) :
   disjoint (ball x δ) (ball y ε) ↔ δ + ε ≤ dist x y :=
 begin
-  refine ⟨λ h, le_of_not_lt $ λ hxy, _, ball_disjoint_ball _ _ _ _⟩,
+  refine ⟨λ h, le_of_not_lt $ λ hxy, _, ball_disjoint_ball⟩,
   rw add_comm at hxy,
   obtain ⟨z, hxz, hzy⟩ := exists_dist_lt_lt hδ hε hxy,
   rw dist_comm at hxz,
@@ -172,7 +162,7 @@ end
 lemma disjoint_ball_closed_ball_iff (hδ : 0 < δ) (hε : 0 ≤ ε) :
   disjoint (ball x δ) (closed_ball y ε) ↔ δ + ε ≤ dist x y :=
 begin
-  refine ⟨λ h, le_of_not_lt $ λ hxy, _, ball_disjoint_closed_ball _ _ _ _⟩,
+  refine ⟨λ h, le_of_not_lt $ λ hxy, _, ball_disjoint_closed_ball⟩,
   rw add_comm at hxy,
   obtain ⟨z, hxz, hzy⟩ := exists_dist_lt_le hδ hε hxy,
   rw dist_comm at hxz,
@@ -192,6 +182,58 @@ begin
   obtain ⟨z, hxz, hzy⟩ := exists_dist_le_le hδ hε hxy,
   rw dist_comm at hxz,
   exact h ⟨hxz, hzy⟩,
+end
+
+open emetric ennreal
+
+@[simp] lemma inf_edist_thickening (hδ : 0 < δ) (s : set E) (x : E) :
+  inf_edist x (thickening δ s) = inf_edist x s - ennreal.of_real δ :=
+begin
+  obtain hs | hs := lt_or_le (inf_edist x s) (ennreal.of_real δ),
+  { rw [inf_edist_zero_of_mem, tsub_eq_zero_of_le hs.le], exact hs },
+  refine (tsub_le_iff_right.2 inf_edist_le_inf_edist_thickening_add).antisymm' _,
+  refine le_sub_of_add_le_right of_real_ne_top _,
+  refine le_inf_edist.2 (λ z hz, le_of_forall_lt' $ λ r h, _),
+  cases r,
+  { exact add_lt_top.2 ⟨lt_top_iff_ne_top.2 $ inf_edist_ne_top ⟨z, self_subset_thickening hδ _ hz⟩,
+      of_real_lt_top⟩ },
+  have hr : 0 < ↑r - δ,
+  { refine sub_pos_of_lt _,
+    have := hs.trans_lt ((inf_edist_le_edist_of_mem hz).trans_lt h),
+    rw [of_real_eq_coe_nnreal hδ.le, some_eq_coe] at this,
+    exact_mod_cast this },
+  rw [some_eq_coe, edist_lt_coe, ←dist_lt_coe, ←add_sub_cancel'_right δ (↑r)] at h,
+  obtain ⟨y, hxy, hyz⟩ := exists_dist_lt_lt hr hδ h,
+  refine (ennreal.add_lt_add_right of_real_ne_top $ inf_edist_lt_iff.2
+    ⟨_, mem_thickening_iff.2 ⟨_, hz, hyz⟩, edist_lt_of_real.2 hxy⟩).trans_le _,
+  rw [←of_real_add hr.le hδ.le, sub_add_cancel, of_real_coe_nnreal],
+  exact le_rfl,
+end
+
+@[simp] lemma inf_edist_cthickening (δ : ℝ) (s : set E) (x : E) :
+  inf_edist x (cthickening δ s) = inf_edist x s - ennreal.of_real δ :=
+begin
+  obtain hδ | hδ := le_total δ 0,
+  { rw [cthickening_of_nonpos hδ, inf_edist_closure, of_real_of_nonpos hδ, tsub_zero] },
+  obtain hs | hs := le_or_lt (inf_edist x s) (ennreal.of_real δ),
+  { rw [inf_edist_zero_of_mem (mem_cthickening_iff.2 hs), tsub_eq_zero_of_le hs] },
+  refine (tsub_le_iff_right.2 inf_edist_le_inf_edist_cthickening_add).antisymm' _,
+  refine le_sub_of_add_le_right of_real_ne_top _,
+  refine le_inf_edist.2 (λ z hz, le_of_forall_lt' $ λ r h, _),
+  cases r,
+  { exact add_lt_top.2 ⟨lt_top_iff_ne_top.2 $ inf_edist_ne_top ⟨z, self_subset_cthickening _ hz⟩,
+      of_real_lt_top⟩ },
+  have hr : 0 < ↑r - δ,
+  { refine sub_pos_of_lt _,
+    have := hs.trans ((inf_edist_le_edist_of_mem hz).trans_lt h),
+    rw [of_real_eq_coe_nnreal hδ, some_eq_coe] at this,
+    exact_mod_cast this },
+  rw [some_eq_coe, edist_lt_coe, ←dist_lt_coe, ←add_sub_cancel'_right δ (↑r)] at h,
+  obtain ⟨y, hxy, hyz⟩ := exists_dist_lt_le hr hδ h,
+  refine (ennreal.add_lt_add_right of_real_ne_top $ inf_edist_lt_iff.2
+    ⟨_, mem_cthickening_of_dist_le _ _ _ _ hz hyz, edist_lt_of_real.2 hxy⟩).trans_le _,
+  rw [←of_real_add hr.le hδ, sub_add_cancel, of_real_coe_nnreal],
+  exact le_rfl,
 end
 
 @[simp] lemma thickening_thickening (hε : 0 < ε) (hδ : 0 < δ) (s : set E) :
@@ -217,26 +259,15 @@ end
 @[simp] lemma cthickening_thickening (hε : 0 ≤ ε) (hδ : 0 < δ) (s : set E) :
   cthickening ε (thickening δ s) = cthickening (ε + δ) s :=
 (cthickening_thickening_subset hε _ _).antisymm $ λ x, begin
-  simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ.le],
-  refine λ h, le_of_forall_lt' (λ r hr, _),
-  sorry --done
-  -- have := h.trans_lt _,
-  -- rintro ⟨z, hz, hxz⟩,
-  -- rw add_comm at hxz,
-  -- obtain ⟨y, hxy, hyz⟩ := exists_dist_lt_le hε hδ hxz,
-  -- exact ⟨y, mem_cthickening_of_dist_le _ _ _ _ hz hyz, hxy⟩,
+  simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ.le, inf_edist_thickening hδ],
+  exact tsub_le_iff_right.2,
 end
 
 @[simp] lemma cthickening_cthickening (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (s : set E) :
   cthickening ε (cthickening δ s) = cthickening (ε + δ) s :=
 (cthickening_cthickening_subset hε hδ _).antisymm $ λ x, begin
-  simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ],
-  refine λ h, le_of_forall_lt' (λ r hr, _),
-  sorry --done
-  -- rintro ⟨z, hz, hxz⟩,
-  -- rw add_comm at hxz,
-  -- obtain ⟨y, hxy, hyz⟩ := exists_dist_lt_le hε hδ hxz,
-  -- exact ⟨y, mem_cthickening_of_dist_le _ _ _ _ hz hyz, hxy⟩,
+  simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ, inf_edist_cthickening],
+  exact tsub_le_iff_right.2,
 end
 
 @[simp] lemma thickening_ball (hε : 0 < ε) (hδ : 0 < δ) (x : E) :
@@ -274,6 +305,7 @@ by rw [add_comm, ball_add_closed_ball hδ hε, add_comm, add_comm δ]; apply_ins
   closed_ball a ε + closed_ball b δ = closed_ball (a + b) (ε + δ) :=
 by rw [(is_compact_closed_ball _ _).add_closed_ball hδ, cthickening_closed_ball hδ hε,
   vadd_closed_ball, vadd_eq_add, add_comm, add_comm δ]; apply_instance
+
 
 end semi_normed_group
 

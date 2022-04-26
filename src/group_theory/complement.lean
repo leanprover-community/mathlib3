@@ -198,36 +198,36 @@ mem_left_transversals_iff_exists_unique_quotient_mk'_eq.trans
 mem_right_transversals_iff_exists_unique_quotient_mk'_eq.trans
   (function.bijective_iff_exists_unique (S.restrict quotient.mk')).symm
 
+@[to_additive] lemma range_mem_left_transversals {f : G ⧸ H → G} (hf : ∀ q, ↑(f q) = q) :
+  set.range f ∈ left_transversals (H : set G) :=
+mem_left_transversals_iff_bijective.mpr ⟨by rintros ⟨-, q₁, rfl⟩ ⟨-, q₂, rfl⟩ h;
+  exact congr_arg _ (((hf q₁).symm.trans h).trans (hf q₂)), λ q, ⟨⟨f q, q, rfl⟩, hf q⟩⟩
+
+@[to_additive] lemma range_mem_right_transversals {f : quotient (quotient_group.right_rel H) → G}
+  (hf : ∀ q, quotient.mk' (f q) = q) : set.range f ∈ right_transversals (H : set G) :=
+mem_right_transversals_iff_bijective.mpr ⟨by rintros ⟨-, q₁, rfl⟩ ⟨-, q₂, rfl⟩ h;
+  exact congr_arg _ (((hf q₁).symm.trans h).trans (hf q₂)), λ q, ⟨⟨f q, q, rfl⟩, hf q⟩⟩
+
 @[to_additive] lemma exists_left_transversal (g : G) :
   ∃ S ∈ left_transversals (H : set G), g ∈ S :=
 begin
   classical,
-  let f : G ⧸ H → G := function.update quotient.out' g g,
-  have hf : ∀ q, ↑(f q) = q,
-  { intro q,
-    by_cases hq : q = g,
-    { exact hq.symm ▸ congr_arg _ (function.update_same g g quotient.out') },
-    { exact eq.trans (congr_arg _ (function.update_noteq hq g quotient.out')) q.out_eq' } },
-  refine ⟨set.range f, mem_left_transversals_iff_bijective.mpr ⟨_, λ q, ⟨⟨f q, q, rfl⟩, hf q⟩⟩,
-    ⟨g, function.update_same g g quotient.out'⟩⟩,
-  rintros ⟨-, q₁, rfl⟩ ⟨-, q₂, rfl⟩ hg,
-  exact congr_arg _ (((hf q₁).symm.trans hg).trans (hf q₂)),
+  refine ⟨set.range (function.update quotient.out' ↑g g), range_mem_left_transversals (λ q, _),
+    g, function.update_same g g quotient.out'⟩,
+  by_cases hq : q = g,
+  { exact hq.symm ▸ congr_arg _ (function.update_same g g quotient.out') },
+  { exact eq.trans (congr_arg _ (function.update_noteq hq g quotient.out')) q.out_eq' },
 end
 
 @[to_additive] lemma exists_right_transversal (g : G) :
   ∃ S ∈ right_transversals (H : set G), g ∈ S :=
 begin
   classical,
-  let f : _ → G := function.update quotient.out' (quotient.mk' g) g,
-  have hf : ∀ q : quotient (quotient_group.right_rel H), quotient.mk' (f q) = q,
-  { intro q,
-    by_cases hq : q = quotient.mk' g,
-    { exact hq.symm ▸ congr_arg _ (function.update_same (quotient.mk' g) g quotient.out') },
-    { exact eq.trans (congr_arg _ (function.update_noteq hq g quotient.out')) q.out_eq' } },
-  refine ⟨set.range f, mem_right_transversals_iff_bijective.mpr ⟨_, λ q, ⟨⟨_, q, rfl⟩, hf q⟩⟩,
-    ⟨quotient.mk' g, function.update_same (quotient.mk' g) g quotient.out'⟩⟩,
-  rintros ⟨-, q₁, rfl⟩ ⟨-, q₂, rfl⟩ hg,
-  exact congr_arg _ (((hf q₁).symm.trans hg).trans (hf q₂)),
+  refine ⟨set.range (function.update quotient.out' _ g), range_mem_right_transversals (λ q, _),
+    quotient.mk' g, function.update_same (quotient.mk' g) g quotient.out'⟩,
+  by_cases hq : q = quotient.mk' g,
+  { exact hq.symm ▸ congr_arg _ (function.update_same (quotient.mk' g) g quotient.out') },
+  { exact eq.trans (congr_arg _ (function.update_noteq hq g quotient.out')) q.out_eq' },
 end
 
 namespace mem_left_transversals
@@ -315,17 +315,21 @@ subtype.ext_iff.mp $ @unique_of_exists_unique ↥(f • T) (λ s, (↑s)⁻¹ * 
   ⟨f • to_fun T.2 g, set.smul_mem_smul_set (subtype.coe_prop _)⟩ (to_fun (f • T).2 (f • g))
   (quotient_action.inv_mul_mem f (inv_to_fun_mul_mem T.2 g)) (inv_to_fun_mul_mem (f • T).2 (f • g))
 
+@[to_additive] lemma smul_to_equiv (f : F) (T : left_transversals (H : set G)) (q : G ⧸ H) :
+  f • (to_equiv T.2 q : G) = to_equiv (f • T).2 (f • q) :=
+quotient.induction_on' q (λ g, smul_to_fun f T g)
+
+@[to_additive] lemma smul_apply_eq_smul_apply_inv_smul (f : F) (T : left_transversals (H : set G))
+  (q : G ⧸ H) : (to_equiv (f • T).2 q : G) = f • (to_equiv T.2 (f⁻¹ • q) : G) :=
+by rw [smul_to_equiv, smul_inv_smul]
+
 end action
 
 @[to_additive] instance : inhabited (left_transversals (H : set G)) :=
-⟨⟨set.range quotient.out', mem_left_transversals_iff_bijective.mpr ⟨by
-{ rintros ⟨_, q₁, rfl⟩ ⟨_, q₂, rfl⟩ hg,
-  rw (q₁.out_eq'.symm.trans hg).trans q₂.out_eq' }, λ q, ⟨⟨q.out', q, rfl⟩, quotient.out_eq' q⟩⟩⟩⟩
+⟨⟨set.range quotient.out', range_mem_left_transversals quotient.out_eq'⟩⟩
 
 @[to_additive] instance : inhabited (right_transversals (H : set G)) :=
-⟨⟨set.range quotient.out', mem_right_transversals_iff_bijective.mpr ⟨by
-{ rintros ⟨_, q₁, rfl⟩ ⟨_, q₂, rfl⟩ hg,
-  rw (q₁.out_eq'.symm.trans hg).trans q₂.out_eq' }, λ q, ⟨⟨q.out', q, rfl⟩, quotient.out_eq' q⟩⟩⟩⟩
+⟨⟨set.range quotient.out', range_mem_right_transversals quotient.out_eq'⟩⟩
 
 lemma is_complement'.is_compl (h : is_complement' H K) : is_compl H K :=
 begin
@@ -372,5 +376,19 @@ lemma is_complement'_of_coprime [fintype G] [fintype H] [fintype K]
   (h2 : nat.coprime (fintype.card H) (fintype.card K)) :
   is_complement' H K :=
 is_complement'_of_card_mul_and_disjoint h1 (disjoint_iff.mpr (inf_eq_bot_of_coprime h2))
+
+lemma is_complement'_stabilizer {α : Type*} [mul_action G α] (a : α)
+  (h1 : ∀ (h : H), h • a = a → h = 1) (h2 : ∀ g : G, ∃ h : H, h • (g • a) = a) :
+  is_complement' H (mul_action.stabilizer G a) :=
+begin
+  refine is_complement_iff_exists_unique.mpr (λ g, _),
+  obtain ⟨h, hh⟩ := h2 g,
+  have hh' : (↑h * g) • a = a := by rwa [mul_smul],
+  refine ⟨⟨h⁻¹, h * g, hh'⟩, inv_mul_cancel_left h g, _⟩,
+  rintros ⟨h', g, hg : g • a = a⟩ rfl,
+  specialize h1 (h * h') (by rwa [mul_smul, smul_def h', ←hg, ←mul_smul, hg]),
+  refine prod.ext (eq_inv_of_eq_inv (eq_inv_of_mul_eq_one h1)) (subtype.ext _),
+  rwa [subtype.ext_iff, coe_one, coe_mul, ←self_eq_mul_left, mul_assoc ↑h ↑h' g] at h1,
+end
 
 end subgroup

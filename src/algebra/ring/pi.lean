@@ -42,6 +42,11 @@ by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),
   nsmul := add_monoid.nsmul, npow := monoid.npow };
 tactic.pi_instance_derive_field
 
+instance non_unital_comm_semiring [∀ i, non_unital_comm_semiring $ f i] :
+  non_unital_comm_semiring (Π i : I, f i) :=
+by refine_struct { zero := (0 : Π i, f i), add := (+), mul := (*), nsmul := add_monoid.nsmul };
+tactic.pi_instance_derive_field
+
 instance comm_semiring [∀ i, comm_semiring $ f i] : comm_semiring (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),
   nsmul := add_monoid.nsmul, npow := monoid.npow };
@@ -69,6 +74,12 @@ instance ring [∀ i, ring $ f i] : ring (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),
   neg := has_neg.neg, nsmul := add_monoid.nsmul, zsmul := sub_neg_monoid.zsmul,
   npow := monoid.npow };
+tactic.pi_instance_derive_field
+
+instance non_unital_comm_ring [∀ i, non_unital_comm_ring $ f i] :
+  non_unital_comm_ring (Π i : I, f i) :=
+by refine_struct { zero := (0 : Π i, f i), add := (+), mul := (*), neg := has_neg.neg,
+  nsmul := add_monoid.nsmul, zsmul := sub_neg_monoid.zsmul };
 tactic.pi_instance_derive_field
 
 instance comm_ring [∀ i, comm_ring $ f i] : comm_ring (Π i : I, f i) :=
@@ -100,7 +111,7 @@ section ring_hom
 universes u v
 variable {I : Type u}
 
-/-- Evaluation of functions into an indexed collection of monoids at a point is a monoid
+/-- Evaluation of functions into an indexed collection of rings at a point is a ring
 homomorphism. This is `function.eval` as a `ring_hom`. -/
 @[simps]
 def pi.eval_ring_hom (f : I → Type v) [Π i, non_assoc_semiring (f i)] (i : I) :

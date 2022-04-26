@@ -714,7 +714,7 @@ end
   λ h, by simp [h]⟩
 
 @[to_additive] lemma one_lt_card_iff_ne_bot [fintype H] : 1 < fintype.card H ↔ H ≠ ⊥ :=
-lt_iff_not_ge'.trans (not_iff_not.mpr H.card_le_one_iff_eq_bot)
+lt_iff_not_le.trans H.card_le_one_iff_eq_bot.not
 
 /-- The inf of two subgroups is their intersection. -/
 @[to_additive "The inf of two `add_subgroups`s is their intersection."]
@@ -1675,16 +1675,16 @@ let ⟨y, hy⟩ := this in conj_injective hy.2 ▸ hy.1⟩
 
 variable {H}
 @[to_additive] lemma mem_normalizer_iff {g : G} :
-  g ∈ normalizer H ↔ ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H := iff.rfl
+  g ∈ H.normalizer ↔ ∀ h, h ∈ H ↔ g * h * g⁻¹ ∈ H :=
+iff.rfl
 
-@[to_additive] lemma mem_normalizer_iff' {g : G} : g ∈ normalizer H ↔ ∀ n, n * g ∈ H ↔ g * n ∈ H :=
-begin
-  refine ⟨λ h n, _, λ h n, _⟩,
-  { specialize h (n * g),
-    rwa [mul_assoc, mul_inv_cancel_right] at h },
-  { specialize h (n * g⁻¹),
-    rwa [inv_mul_cancel_right, ←mul_assoc] at h },
-end
+@[to_additive] lemma mem_normalizer_iff'' {g : G} :
+  g ∈ H.normalizer ↔ ∀ h : G, h ∈ H ↔ g⁻¹ * h * g ∈ H :=
+by rw [←inv_mem_iff, mem_normalizer_iff, inv_inv]
+
+@[to_additive] lemma mem_normalizer_iff' {g : G} : g ∈ H.normalizer ↔ ∀ n, n * g ∈ H ↔ g * n ∈ H :=
+⟨λ h n, by rw [h, mul_assoc, mul_inv_cancel_right],
+  λ h n, by rw [mul_assoc, ←h, inv_mul_cancel_right]⟩
 
 @[to_additive] lemma le_normalizer : H ≤ normalizer H :=
 λ x xH n, by rw [H.mul_mem_cancel_right (H.inv_mem xH), H.mul_mem_cancel_left xH]
@@ -2647,6 +2647,14 @@ begin
   rw equiv.eq_image_iff_symm_image_eq,
   exact of_mul_image_zpowers_eq_zmultiples_of_mul,
 end
+
+namespace subgroup
+
+@[to_additive] instance zpowers_is_commutative (g : G) : (zpowers g).is_commutative :=
+⟨⟨λ ⟨_, _, h₁⟩ ⟨_, _, h₂⟩, by rw [subtype.ext_iff, coe_mul, coe_mul,
+  subtype.coe_mk, subtype.coe_mk, ←h₁, ←h₂, zpow_mul_comm]⟩⟩
+
+end subgroup
 
 namespace monoid_hom
 

@@ -322,11 +322,19 @@ lemma is_normal_of_mem_self_adjoint {A : E →ₗ[𝕜] E} (hA : A ∈ self_adjo
   is_normal A :=
 (A.mem_self_adjoint_iff_is_self_adjoint.mp hA).is_normal
 
+lemma is_normal_of_is_self_adjoint {A : E →ₗ[𝕜] E} (hA : is_self_adjoint A) :
+  is_normal A :=
+(A.mem_self_adjoint_iff_is_self_adjoint.mp
+  (A.mem_self_adjoint_iff_is_self_adjoint.mpr hA)).is_normal
+
 lemma is_star_normal_iff_is_normal (A : E →ₗ[𝕜] E) : is_star_normal A ↔ is_normal A :=
 begin
-  refine ⟨λ h, ⟨A.adjoint, ⟨h, λ x y, adjoint_inner_left _ _ _⟩⟩, λ h, _⟩,
-  rcases h with ⟨B, ⟨h₁, h₂⟩⟩,
-  rwa [(eq_adjoint_iff B A).mpr h₂] at h₁,
+  refine ⟨λ h, _, λ h, _⟩,
+  { haveI : is_star_normal A := h,
+    exact ⟨A.adjoint, ⟨star_comm_self' A, λ x y, adjoint_inner_left _ _ _⟩⟩ },
+  { rcases h with ⟨B, ⟨h₁, h₂⟩⟩,
+    rw [(eq_adjoint_iff B A).mpr h₂] at h₁,
+    exact ⟨h₁⟩ }
 end
 
 lemma _root_.is_star_normal.is_normal {A : E →ₗ[𝕜] E} (hA : is_star_normal A) : is_normal A :=

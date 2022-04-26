@@ -373,6 +373,14 @@ end
 
 end trans_gen
 
+lemma well_founded.trans_gen {α} {r : α → α → Prop} (h : well_founded r) :
+  well_founded (trans_gen r) :=
+⟨λ a, h.induction a (λ x H, acc.intro x (λ y hy, begin
+  cases hy with _ hyx z _ hyz hzx,
+  { exact H y hyx },
+  { exact acc.inv (H z hzx) hyz }
+end))⟩
+
 section trans_gen
 
 lemma trans_gen_eq_self (trans : transitive r) :

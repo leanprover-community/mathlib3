@@ -1072,18 +1072,24 @@ section normed_comm_ring
 /-!
 ### Normed commutative ring structure
 
-In this section, if `R` is a normed commutative ring, then we show that the space of bounded
-continuous functions from `α` to `R` inherits a normed commutative ring structure, by using
-pointwise operations and checking that they are compatible with the uniform distance. -/
+In this section, if `R` is a (possibly non-unital) normed commutative ring, then we show that the
+space of bounded continuous functions from `α` to `R` inherits a (non-unital) normed commutative
+ring structure, by using pointwise operations and checking that they are compatible with the
+uniform distance. -/
 
-variables [topological_space α] {R : Type*} [normed_comm_ring R]
+variables [topological_space α] {R : Type*}
 
-instance : comm_ring (α →ᵇ R) :=
+instance [non_unital_normed_comm_ring R] : non_unital_comm_ring (α →ᵇ R) :=
 { mul_comm := λ f₁ f₂, ext $ λ x, mul_comm _ _,
-  .. bounded_continuous_function.ring }
+  .. bounded_continuous_function.non_unital_ring }
 
-instance : normed_comm_ring (α →ᵇ R) :=
-{ .. bounded_continuous_function.comm_ring, .. bounded_continuous_function.normed_group }
+instance [non_unital_normed_comm_ring R] : non_unital_normed_comm_ring (α →ᵇ R) :=
+{ .. bounded_continuous_function.non_unital_comm_ring,
+  .. bounded_continuous_function.normed_group }
+
+instance [normed_comm_ring R] : normed_comm_ring (α →ᵇ R) :=
+{ .. bounded_continuous_function.ring,
+  .. bounded_continuous_function.non_unital_normed_comm_ring }
 
 end normed_comm_ring
 

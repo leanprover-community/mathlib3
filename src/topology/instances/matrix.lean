@@ -155,9 +155,9 @@ lemma continuous.matrix_diag {A : X → matrix n n R} (hA : continuous A) :
 continuous_pi $ λ _, hA.matrix_elem _ _
 
 -- note this doesn't elaborate well from the above
-lemma continuous_matrix_diag [semiring S] [add_comm_monoid R] [module S R] :
-  continuous (matrix.diag n S R) :=
-show continuous (λ x, matrix.diag n S R x), from continuous_id.matrix_diag
+lemma continuous_matrix_diag [add_comm_monoid R] :
+  continuous (matrix.diag : matrix n n R → n → R) :=
+show continuous (λ x : matrix n n R, matrix.diag x), from continuous_id.matrix_diag
 
 @[continuity]
 lemma continuous.matrix_trace [fintype n] [semiring S] [add_comm_monoid R] [has_continuous_add R]
@@ -277,10 +277,10 @@ hf.has_sum.matrix_diagonal.summable
 @[simp] lemma summable_matrix_diagonal [decidable_eq n] {f : X → n → R} :
   summable (λ x, diagonal (f x)) ↔ summable f :=
 (summable.map_iff_of_left_inverse
-  (@matrix.diagonal_add_monoid_hom n R _ _) (matrix.diag n ℕ R)
+  (@matrix.diagonal_add_monoid_hom n R _ _) (matrix.diag_add_monoid_hom n R)
   (by exact continuous.matrix_diagonal continuous_id)
   continuous_matrix_diag
-  diag_diagonal : _)
+  (λ A, diag_diagonal A) : _)
 
 lemma matrix.diagonal_tsum [decidable_eq n] [t2_space R] {f : X → n → R} :
   diagonal (∑' x, f x) = ∑' x, diagonal (f x) :=
@@ -292,18 +292,12 @@ begin
     exact diagonal_zero },
 end
 
-variables (α)
+lemma has_sum.matrix_diag {f : X → matrix n n R} {a : matrix n n R} (hf : has_sum f a) :
+  has_sum (λ x, diag (f x)) (diag a) :=
+(hf.map (diag_add_monoid_hom n R) continuous_matrix_diag : _)
 
-lemma has_sum.matrix_diag {f : X → matrix n n R} {a : matrix n n R}
-  (hf : has_sum f a) :
-  has_sum (λ x, diag _ α R (f x)) (diag _ α R a) :=
-(hf.map (diag n α R) continuous_matrix_diag : _)
-
-lemma summable.matrix_diag {f : X → matrix n n R} (hf : summable f) :
-  summable (λ x, diag _ α R (f x)) :=
-(hf.has_sum.matrix_diag α).summable
-
-variables {α}
+lemma summable.matrix_diag {f : X → matrix n n R} (hf : summable f) : summable (λ x, diag (f x)) :=
+hf.has_sum.matrix_diag.summable
 
 section block_matrices
 

@@ -97,11 +97,10 @@ open tactic
 
 /--  Given a list `un` of `α`s and a list `bo` of `bool`, return the sublist of `un`
 consisting of the entries of `un` whose corresponding entry in `bo` is `tt`. -/
-def list.return_unused_simple {α : Type*} : list α → list bool → list α
+def list.return_unused {α : Type*} : list α → list bool → list α
 | un [] := un
 | [] bo := []
-| (u::us) (b::bs) := if b then
-  ([u] ++ (us.return_unused_simple bs)) else (us.return_unused_simple bs)
+| (u::us) (b::bs) := if b then ([u] ++ (us.return_unused bs)) else (us.return_unused bs)
 
 /-- A `tactic (option expr)` that either finds the first entry `f` of `lc` that unifies with `e`
 and returns `some f` or returns `none`. -/
@@ -278,7 +277,7 @@ match locat with
   let li_unused := ([er_t.2] ++ err_rep.map (λ e, e.2)),
   let li_unused_clear := li_unused.filter (≠ []),
   let li_tf_vars := li_unused_clear.transpose.map list.band,
-  match ((args.return_unused_simple li_tf_vars).map (λ e : bool × pexpr, e.2)) with
+  match ((args.return_unused li_tf_vars).map (λ e : bool × pexpr, e.2)) with
   | [] := skip
   | [pe] := trace format!"'{pe}' is an unused variable"
   | pes := trace format!"'{pes}' are unused variables"
@@ -287,15 +286,15 @@ match locat with
 | loc.ns names := do
   err_rep ← names.mmap $ move_add_with_errors args,
   let conds := err_rep.map (λ e, e.1),
-  linames ← to_hyps (names.return_unused_simple conds),
+  linames ← to_hyps (names.return_unused conds),
   if linames ≠ [] then trace
     format!"'{linames}' did not change" else skip,
-  if none ∈ names.return_unused_simple conds then trace
+  if none ∈ names.return_unused conds then trace
     "Goal did not change" else skip,
   let li_unused := (err_rep.map (λ e, e.2)),
   let li_unused_clear := li_unused.filter (≠ []),
   let li_tf_vars := li_unused_clear.transpose.map list.band,
-  match ((args.return_unused_simple li_tf_vars).map (λ e : bool × pexpr, e.2)) with
+  match ((args.return_unused li_tf_vars).map (λ e : bool × pexpr, e.2)) with
   | [] := skip
   | [pe] := trace format!"'{pe}' is an unused variable"
   | pes := trace format!"'{pes}' are unused variables"

@@ -10,41 +10,42 @@ import algebra.group.basic
 # `move_add`: a tactic for moving summands
 
 Calling `move_add [a, ← b, c]`, recursively looks inside the goal for expressions involving a sum.
-Whenever it finds one, it moves the terms `a, b, c`, removing all parentheses.  The terms preceded
-by a `←` get placed to the left, the ones without the arrow get placed to the right.  Unnamed terms
-stay in place.  Due to re-parenthesizing, doing `move_add` with no argument may change the goal.
-Also, the *order* in which the terms are provided matters: the tactic reads them from left to right.
-This is especially important if there are multiple matches for the typed terms in the given
-expressions.
+Whenever it finds one, it moves the summands that unify to `a, b, c`, removing all parentheses.
+Repetitions are allowed, and are processed following the user-specified ordering.
+The terms preceded by a `←` get placed to the left, the ones without the arrow get placed to the
+right.  Unnamed terms stay in place.  Due to re-parenthesizing, doing `move_add` with no argument
+may change the goal. Also, the *order* in which the terms are provided matters: the tactic reads
+them from left to right.  This is especially important if there are multiple matches for the typed
+terms in the given expressions.
 
 The tactic never fails (really? TODO), but reports two kinds of unwanted use.
 1. If a target of `move_add` is left unchanged by the tactic, then this will be flagged.
-2. If a user-provided expression never matches, then the variable is flagged.
+2. If a user-provided expression never unifies, then the variable is flagged.
 
-TODO: better reporting for `at *`: currently, the tactic reports all hypotheses/goal that were
-unchanged.  It should only report gloally unused variables and whether *all* goals are unchanged,
-not *each unchanged goal*.
+Applying `move_add [vars] at *` should only report gloally unused variables and whether *all* goals
+are unchanged, not *each unchanged goal*.
 
 ###  Remark:
 It is still possible that the same output of `move_add [exprs]` can be achieved by a proper sublist
 of `[exprs]`, even if the tactic does not flag anything.  For instance, giving the full re-ordering
 of the expressions in the target that we want to achieve will not complain that there are unused
 variables, since all the user-provided variables have been matched.  Of course, specifying the order
-of all-but the last variable suffices to determine the permutation.
+of all-but-the-last variable suffices to determine the permutation.  E.g., with a goal of
+`a + b = 0`, applying either one of `move_add [b,a]`, or `move_add a`, or `move_add ← b` has the
+same effect and changes the goal to `b + a = 0`.
 
-### Warning:
-* TODO: Make sure that this item is really obsolete.
-  The tactic will discard user-provided terms that do not unify with something in the expression.
-  This means that the tactic will not give an error if it finds no match of the provided terms.
-  The reason for this choice is that we want a single call of `move_add` to move terms across
-  different sums in the same expression.  Here is an example.
+The tactic flags user-provided terms that do not unify with something in the expression.
+The tactic does not produce an error, but prints a report of unused inputs and unchanged target.
+
+A single call of `move_add` moves terms across different sums in the same expression.
+Here is an example.
 
 ```lean
 import tactic.move_add
 
 example {a b c d : ℕ} (h : c = d) : c + b + a = b + a + d :=
 begin
-  move_add [← a, b],  -- Goal: `a + c + b = a + d + b`
+  move_add [← a, b],  -- Goal: `a + c + b = a + d + b`  -- both sides changed
   congr,
   exact h
 end
@@ -62,12 +63,13 @@ end
 The list of expressions that `move_add` takes is optional and a single expression can be passed
 without brackets.  Thus `move_add ← f` and `move_add [← f]` mean the same.
 
-Finally, `move_add` can also be targeted to one or several hypothesis.  If `hp₁, hp₂` are in the
+Finally, `move_add` can also be targeted to one or several hypotheses.  If `hp₁, hp₂` are in the
 local context, then `move_add [f, ← g] at hp₁ hp₂` performs the rearranging at `hp₁` and `hp₂`.
+As usual, passing `⊢` refers to acting on the goal as well.
 
 ##  Implementation notes
 
-The implementation of `move_add` only move the terms specified by the user (and rearranges
+The implementation of `move_add` only moves the terms specified by the user (and rearranges
 parentheses).
 
 An earlier version of this tactic also had a relation on `expr` that performed a sorting on the
@@ -84,9 +86,6 @@ around a sum.
 
 * Currently, `_`s in user input generate side-goals that Lean should be able to close automatically.
   Is it possible to avoid actually get Lean to solve these goals right away and not display them?
-* Using `move_add at *` generates a message mentioning which hypotheses did not change.  It should
-  instead be silent, unless no hypothesis changes.
-* No message is reported if one of the user-provided expressions is not used.
 * Add support for `neg` and additive groups?
 * Add optional different operations than `+`, most notably `*`?
 * Add functionality for moving terms across the two sides of an in/dis/equality.

@@ -127,7 +127,7 @@ def is_limit_image (h : exact f g) :
     (kernel_fork.of_ι (abelian.image.ι f) (image_ι_comp_eq_zero h.1) : kernel_fork g) :=
 begin
   rw exact_iff at h,
-  refine is_limit.of_ι _ _ _ _ _,
+  refine kernel_fork.is_limit.of_ι _ _ _ _ _,
   { refine λ W u hu, kernel.lift (cokernel.π f) u _,
     rw [←kernel.lift_ι g u hu, category.assoc, h.2, has_zero_morphisms.comp_zero] },
   tidy
@@ -143,7 +143,7 @@ def is_colimit_coimage (h : exact f g) : is_colimit (cokernel_cofork.of_π (abel
   (abelian.comp_coimage_π_eq_zero h.1) : cokernel_cofork f) :=
 begin
   rw exact_iff at h,
-  refine is_colimit.of_π _ _ _ _ _,
+  refine cokernel_cofork.is_colimit.of_π _ _ _ _ _,
   { refine λ W u hu, cokernel.desc (kernel.ι g) u _,
     rw [←cokernel.π_desc f u hu, ←category.assoc, h.2, has_zero_morphisms.zero_comp] },
   tidy

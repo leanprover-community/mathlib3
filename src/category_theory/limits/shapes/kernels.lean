@@ -450,7 +450,7 @@ def is_colimit_aux (t : cokernel_cofork f)
 This is a more convenient formulation to show that a `cokernel_cofork` constructed using
 `cokernel_cofork.of_π` is a limit cone.
 -/
-def is_colimit.of_π {Z : C} (g : Y ⟶ Z) (eq : f ≫ g = 0)
+def kernel_cofork.is_colimit.of_π {Z : C} (g : Y ⟶ Z) (eq : f ≫ g = 0)
   (desc : Π {Z' : C} (g' : Y ⟶ Z') (eq' : f ≫ g' = 0), Z ⟶ Z')
   (fac : ∀ {Z' : C} (g' : Y ⟶ Z') (eq' : f ≫ g' = 0), g ≫ desc g' eq' = g')
   (uniq :

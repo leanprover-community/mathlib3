@@ -325,47 +325,42 @@ namespace continuous_map
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_unital_non_assoc_semiring β] [topological_semiring β] :
   non_unital_non_assoc_semiring C(α, β) :=
-{ left_distrib := λ a b c, by ext; exact left_distrib _ _ _,
-  right_distrib := λ a b c, by ext; exact right_distrib _ _ _,
-  ..continuous_map.add_comm_monoid,
-  ..continuous_map.mul_zero_class }
+coe_injective.non_unital_non_assoc_semiring _ coe_zero coe_add coe_mul coe_nsmul
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_unital_semiring β] [topological_semiring β] :
   non_unital_semiring C(α, β) :=
-{ ..continuous_map.non_unital_non_assoc_semiring,
-  ..continuous_map.semigroup_with_zero }
+coe_injective.non_unital_semiring _ coe_zero coe_add coe_mul coe_nsmul
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_assoc_semiring β] [topological_semiring β] :
   non_assoc_semiring C(α, β) :=
-{ ..continuous_map.non_unital_non_assoc_semiring,
-  ..continuous_map.mul_one_class }
+coe_injective.non_assoc_semiring _ coe_zero coe_one coe_add coe_mul coe_nsmul
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [semiring β] [topological_semiring β] : semiring C(α, β) :=
-{ ..continuous_map.non_assoc_semiring,
-  ..continuous_map.semigroup }
+coe_injective.semiring _ coe_zero coe_one coe_add coe_mul coe_nsmul coe_pow
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_unital_non_assoc_ring β] [topological_ring β] : non_unital_non_assoc_ring C(α, β) :=
-{ ..continuous_map.non_unital_non_assoc_semiring,
-  ..continuous_map.add_comm_group, }
+coe_injective.non_unital_non_assoc_ring _ coe_zero coe_add coe_mul coe_neg coe_sub
+  coe_nsmul coe_zsmul
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_unital_ring β] [topological_ring β] : non_unital_ring C(α, β) :=
-{ ..continuous_map.non_unital_semiring,
-  ..continuous_map.add_comm_group, }
+coe_injective.non_unital_ring _ coe_zero coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_assoc_ring β] [topological_ring β] : non_assoc_ring C(α, β) :=
-{ ..continuous_map.non_assoc_semiring,
-  ..continuous_map.add_comm_group, }
+coe_injective.non_assoc_ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [ring β] [topological_ring β] : ring C(α, β) :=
-{ ..continuous_map.semiring,
-  ..continuous_map.add_comm_group, }
+coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul coe_pow
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_comm_semiring β] [topological_semiring β] : non_unital_comm_semiring C(α, β) :=
+coe_injective.non_unital_comm_semiring _ coe_zero coe_add coe_mul coe_nsmul
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_unital_comm_semiring β] [topological_semiring β] : non_unital_comm_semiring C(α, β) :=
@@ -374,8 +369,11 @@ instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
 
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_semiring β] [topological_semiring β] : comm_semiring C(α, β) :=
-{ ..continuous_map.semiring,
-  ..continuous_map.comm_monoid, }
+coe_injective.comm_semiring _ coe_zero coe_one coe_add coe_mul coe_nsmul coe_pow
+
+instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
+  [non_unital_comm_ring β] [topological_ring β] : non_unital_comm_ring C(α, β) :=
+coe_injective.non_unital_comm_ring _ coe_zero coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_unital_comm_ring β] [topological_ring β] : non_unital_comm_ring C(α, β) :=
@@ -384,8 +382,8 @@ instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
 
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_ring β] [topological_ring β] : comm_ring C(α, β) :=
-{ ..continuous_map.comm_semiring,
-  ..continuous_map.ring, }
+coe_injective.comm_ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
+  coe_pow
 
 /-- Composition on the left by a (continuous) homomorphism of topological semirings, as a
 `ring_hom`.  Similar to `ring_hom.comp_left`. -/

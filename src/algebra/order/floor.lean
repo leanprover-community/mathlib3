@@ -128,10 +128,7 @@ begin
 end
 
 @[simp] lemma one_le_floor_iff (x : α) : 1 ≤ ⌊x⌋₊ ↔ 1 ≤ x :=
-begin
-  convert le_floor_iff' one_ne_zero,
-  simp only [nat.cast_one]
-end
+by exact_mod_cast le_floor_iff' one_ne_zero
 
 lemma floor_lt' (hn : n ≠ 0) : ⌊a⌋₊ < n ↔ a < n := lt_iff_lt_of_le_iff_le $ le_floor_iff' hn
 

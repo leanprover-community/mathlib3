@@ -31,7 +31,7 @@ variables {L : language.{u v}} {α : Type w} {V : Type w'} {n : ℕ}
 
 /-! ### Simple Graphs -/
 
-/-- The language consisting of a single relation representing `≤`. -/
+/-- The language consisting of a single relation representing adjacency. -/
 protected def graph : language :=
 language.mk₂ empty empty empty empty unit
 
@@ -43,10 +43,14 @@ def _root_.simple_graph.Structure (G : simple_graph V) :
   language.graph.Structure V :=
 Structure.mk₂ empty.elim empty.elim empty.elim empty.elim (λ _, G.adj)
 
+namespace graph
+
 instance : is_relational (language.graph) := language.is_relational_mk₂
 
 instance : subsingleton (language.graph.relations n) :=
 language.subsingleton_mk₂_relations
+
+end graph
 
 /-- The theory of simple graphs. -/
 protected def Theory.simple_graph : language.graph.Theory :=
@@ -64,6 +68,8 @@ begin
   exact ⟨G.loopless, G.symm⟩,
 end
 
+variables (V)
+
 /-- Any model of the theory of simple graphs represents a simple graph. -/
 @[simps] def simple_graph_of_structure [language.graph.Structure V] [V ⊨ Theory.simple_graph] :
   simple_graph V :=
@@ -73,9 +79,30 @@ end
   loopless := relations.realize_irreflexive.1 (Theory.realize_sentence_of_mem Theory.simple_graph
       (set.mem_insert _ _)) }
 
+variables {V}
+
 @[simp] lemma _root_.simple_graph.simple_graph_of_structure (G : simple_graph V) :
   @simple_graph_of_structure V G.Structure _ = G :=
 by { ext, refl }
+
+@[simp] lemma Structure_simple_graph_of_structure [S : language.graph.Structure V] [V ⊨ Theory.simple_graph] :
+  (simple_graph_of_structure V).Structure = S :=
+begin
+  ext n f xs,
+  { exact (is_relational.empty_functions n).elim f },
+  { ext n r xs,
+    rw iff_eq_eq,
+    cases n,
+    { exact r.elim },
+    { cases n,
+      { exact r.elim },
+      { cases n,
+        { cases r,
+          change rel_map adj ![xs 0, xs 1] = _,
+          refine congr rfl (funext _),
+          simp [fin.forall_fin_two], },
+        { exact r.elim } } } }
+end
 
 theorem Theory.simple_graph_is_satisfiable :
   Theory.is_satisfiable Theory.simple_graph :=

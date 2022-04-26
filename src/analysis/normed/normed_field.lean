@@ -79,10 +79,40 @@ instance normed_ring.to_semi_normed_ring [β : normed_ring α] : semi_normed_rin
 instance normed_ring.to_non_unital_normed_ring [β : normed_ring α] : non_unital_normed_ring α :=
 { ..β }
 
+/-- A non-unital seminormed commutative ring is a not-necessarily-unital ring
+endowed with a seminorm which satisfies the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
+class non_unital_semi_normed_comm_ring (α : Type*)
+  extends non_unital_semi_normed_ring α :=
+(mul_comm : ∀ x y : α, x * y = y * x)
+
+/-- A non-unital seminormed commutative ring is a non-unital commutative ring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance non_unital_semi_normed_comm_ring.to_non_unital_comm_ring
+  [β : non_unital_semi_normed_comm_ring α] : non_unital_comm_ring α :=
+{ ..β }
+
 /-- A seminormed commutative ring is a commutative ring endowed with a seminorm which satisfies
 the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
 class semi_normed_comm_ring (α : Type*) extends semi_normed_ring α :=
 (mul_comm : ∀ x y : α, x * y = y * x)
+
+/-- A seminormed commutative ring is a non-unital seminormed commutative ring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance semi_normed_comm_ring.to_non_unital_semi_normed_comm_ring
+  [β : semi_normed_comm_ring α] : non_unital_semi_normed_comm_ring α :=
+{ ..β }
+
+/-- A non-unital normed commutative ring is a not-necessarily-unital ring
+endowed with a norm which satisfies the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
+class non_unital_normed_comm_ring (α : Type*)
+  extends non_unital_normed_ring α :=
+(mul_comm : ∀ x y : α, x * y = y * x)
+
+/-- A non-unital normed commutative ring is a non-unital seminormed commutative ring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance non_unital_normed_comm_ring.to_non_unital_semi_normed_comm_ring
+  [β : non_unital_normed_comm_ring α] : non_unital_semi_normed_comm_ring α :=
+{ ..β }
 
 /-- A normed commutative ring is a commutative ring endowed with a norm which satisfies
 the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
@@ -93,6 +123,11 @@ class normed_comm_ring (α : Type*) extends normed_ring α :=
 @[priority 100] -- see Note [lower instance priority]
 instance normed_comm_ring.to_semi_normed_comm_ring [β : normed_comm_ring α] :
   semi_normed_comm_ring α := { ..β }
+
+/-- A normed commutative ring is a non-unital normed commutative ring. -/
+@[priority 100] -- see Note [lower instance priority]
+instance normed_comm_ring.to_non_unital_normed_comm_ring [β : normed_comm_ring α] :
+  non_unital_normed_comm_ring α := { ..β }
 
 instance : normed_comm_ring punit :=
 { norm_mul := λ _ _, by simp,
@@ -204,6 +239,25 @@ instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
   ..pi.semi_normed_group }
 
 end non_unital_semi_normed_ring
+
+section non_unital_semi_normed_comm_ring
+
+/-- Non-unital seminormed commutative ring structure on the product of two non-unital seminormed
+commutative rings, using the sup norm. -/
+instance prod.non_unital_semi_normed_comm_ring [non_unital_semi_normed_comm_ring α]
+  [non_unital_semi_normed_comm_ring β] : non_unital_semi_normed_comm_ring (α × β) :=
+{ ..prod.non_unital_semi_normed_ring,
+  ..prod.non_unital_comm_ring }
+
+/-- Non-unital seminormed commutative ring structure on the product of finitely many non-unital
+seminormed commutative rings, using the sup norm. -/
+instance pi.non_unital_semi_normed_comm_ring {π : ι → Type*} [fintype ι]
+  [Π i, non_unital_semi_normed_comm_ring (π i)] :
+  non_unital_semi_normed_comm_ring (Π i, π i) :=
+{ ..pi.non_unital_semi_normed_ring,
+  ..pi.non_unital_comm_ring }
+
+end non_unital_semi_normed_comm_ring
 
 section semi_normed_ring
 
@@ -327,6 +381,24 @@ instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι] [Π i, non_u
   ..pi.normed_group }
 
 end non_unital_normed_ring
+
+section non_unital_semi_normed_comm_ring
+
+/-- Non-unital normed commutative ring structure on the product of two non-unital normed
+commutative rings, using the sup norm. -/
+instance prod.non_unital_normed_comm_ring [non_unital_normed_comm_ring α]
+  [non_unital_normed_comm_ring β] : non_unital_normed_comm_ring (α × β) :=
+{ ..prod.non_unital_normed_ring,
+  ..prod.non_unital_comm_ring }
+
+/-- Non-unital normed commutative ring structure on the product of finitely many non-unital
+normed commutative rings, using the sup norm. -/
+instance pi.non_unital_normed_comm_ring {π : ι → Type*} [fintype ι]
+  [Π i, non_unital_normed_comm_ring (π i)] : non_unital_normed_comm_ring (Π i, π i) :=
+{ ..pi.non_unital_normed_ring,
+  ..pi.non_unital_comm_ring }
+
+end non_unital_semi_normed_comm_ring
 
 section normed_ring
 

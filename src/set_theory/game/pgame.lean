@@ -167,11 +167,10 @@ theorem is_option.mk_right {xl xr : Type u} {xL : xl → pgame} {xR : xr → pga
 @is_option.move_right (mk _ _ _ _) i
 
 theorem wf_is_option : well_founded is_option :=
-⟨λ x, x.move_rec_on begin
-  refine λ x IHl IHr, acc.intro x _,
-  rintros y (⟨x, i⟩ | ⟨x, i⟩),
+⟨λ x, move_rec_on x $ λ x IHl IHr, acc.intro x $ λ y h, begin
+  induction h with _ i _ j,
   { exact IHl i },
-  { exact IHr i }
+  { exact IHr j }
 end⟩
 
 /-- `subsequent p q` says that `p` can be obtained by playing

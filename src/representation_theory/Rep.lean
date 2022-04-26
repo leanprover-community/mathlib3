@@ -111,10 +111,6 @@ def to_Module_monoid_algebra : Rep k G ⥤ Module.{u} (monoid_algebra k G) :=
 { obj := λ V, Module.of _ V,
   map := λ V W f, to_Module_monoid_algebra_map f, }
 
--- instance (M : Type*) [add_comm_group M] [module (monoid_algebra k G) M] : module k M := by apply_instance
-
--- instance (M : Module.{u} (monoid_algebra k G)) : is_scalar_tower k (monoid_algebra k G) M := sorry
-
 attribute [simps] to_Module_monoid_algebra
 
 @[simps]

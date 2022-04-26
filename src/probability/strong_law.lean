@@ -38,7 +38,7 @@ variables. Let `Yₙ` be the truncation of `Xₙ` up to `n`. We claim that
     ≤ 2C 𝔼[X^2]                                     (see `sum_variance_truncation_le`)
 * As `𝔼[Yᵢ]` converges to `𝔼[X]`, it follows from the two previous items and Cesaro that, along
   the sequence `n = c^k`, one has `(∑_{i=0}^{n-1} Xᵢ) / n → 𝔼[X]` almost surely.
-* To generalize it to all incices, we use the fact that `∑_{i=0}^{n-1} Xᵢ` is nondecreasing and
+* To generalize it to all indices, we use the fact that `∑_{i=0}^{n-1} Xᵢ` is nondecreasing and
   that, if `c` is close enough to `1`, the gap between `c^k` and `c^(k+1)` is small.
 -/
 

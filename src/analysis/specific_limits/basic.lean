@@ -514,13 +514,9 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le'
 
 section
 
-lemma tendsto_nat_floor_at_top {R : Type*} [linear_ordered_ring R] [floor_ring R] :
-  tendsto (λ (x : R), ⌊x⌋₊) at_top at_top :=
-begin
-  apply filter.tendsto_at_top.2 (λ n, _),
-  filter_upwards [Ici_mem_at_top (n : R)] with x hx,
-  exact nat.le_floor hx,
-end
+lemma tendsto_nat_floor_at_top {α : Type*} [linear_ordered_semiring α] [floor_semiring α] :
+  tendsto (λ (x : α), ⌊x⌋₊) at_top at_top :=
+nat.floor_mono.tendsto_at_top_at_top (λ x, ⟨max 0 (x + 1), by simp [nat.le_floor_iff]⟩)
 
 variables {R : Type*} [topological_space R] [linear_ordered_field R] [order_topology R]
 [floor_ring R]

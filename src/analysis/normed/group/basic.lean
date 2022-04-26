@@ -1020,7 +1020,7 @@ begin
   exact (tendsto_at_top_of_eventually_const this).cauchy_seq.add hv
 end
 
-lemma normed_group.tendsto_sub_nhds_zero_iff
+lemma tendsto_sub_nhds_zero_iff
   {α : Type*} {l : filter α} {E : Type*} [semi_normed_group E] {x : E} {u : α → E} :
   tendsto (λ n, u n - x) l (𝓝 0) ↔ tendsto u l (𝓝 x) :=
 begin

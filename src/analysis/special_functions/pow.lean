@@ -720,6 +720,16 @@ end
 lemma rpow_le_one_iff_of_pos (hx : 0 < x) : x ^ y ≤ 1 ↔ 1 ≤ x ∧ y ≤ 0 ∨ x ≤ 1 ∧ 0 ≤ y :=
 by rw [rpow_def_of_pos hx, exp_le_one_iff, mul_nonpos_iff, log_nonneg_iff hx, log_nonpos_iff hx]
 
+/-- Bound for `| log x * x ^ t |` in the interval `(0, 1]`, for positive real `t`. -/
+lemma abs_log_mul_self_rpow_lt (x t : ℝ) (hx : 0 < x ∧ x ≤ 1) (ht : 0 < t) :
+  | log x * x ^ t | < 1 / t :=
+begin
+  rw lt_div_iff ht,
+  have := abs_log_mul_self_lt (x ^ t) ⟨rpow_pos_of_pos hx.1 t, rpow_le_one hx.1.le hx.2 ht.le⟩,
+  rw [log_rpow hx.1, mul_assoc, abs_mul, abs_of_pos ht, mul_comm] at this,
+  exact this,
+end
+
 lemma pow_nat_rpow_nat_inv {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
   (x ^ n) ^ (n⁻¹ : ℝ) = x :=
 have hn0 : (n : ℝ) ≠ 0, by simpa [pos_iff_ne_zero] using hn,

@@ -196,6 +196,19 @@ begin
   rw exp_log hx,
 end
 
+/-- Bound for `| log x * x |` in the interval `(0, 1]`. -/
+lemma abs_log_mul_self_lt (x: ℝ) (hx : 0 < x ∧ x ≤ 1) : | log x * x | < 1 :=
+begin
+  have : 0 < 1/x := by simpa only [one_div, inv_pos] using hx.1,
+  replace := log_le_sub_one_of_pos this,
+  replace : log (1 / x) < 1/x := by linarith,
+  rw [log_div one_ne_zero hx.1.ne', log_one, zero_sub, lt_div_iff hx.1] at this,
+  have aux : 0 ≤ -log x * x,
+  { refine mul_nonneg _ hx.1.le, rw ←log_inv, apply log_nonneg,
+    rw [←(le_inv hx.1 zero_lt_one), inv_one], exact hx.2, },
+  rw [←(abs_of_nonneg aux), neg_mul, abs_neg] at this, exact this,
+end
+
 lemma log_div_self_antitone_on : antitone_on (λ x : ℝ, log x / x) {x | exp 1 ≤ x} :=
 begin
   simp only [antitone_on, mem_set_of_eq],

@@ -37,7 +37,7 @@ end
 
 namespace real
 
-/-- Asymptotic bound for the Γ function integrand. -/
+/-- Asymptotic bound for the `Γ` function integrand. -/
 lemma Gamma_integrand_is_O (s : ℝ) : is_O (λ x:ℝ, exp (-x) * x ^ s)
   (λ x:ℝ, exp (-(1/2) * x)) at_top :=
 begin
@@ -58,7 +58,7 @@ end
 See `Gamma_integral_convergent` for a proof of the convergence of the integral for `1 ≤ s`. -/
 def Gamma_integral (s : ℝ) : ℝ := ∫ x in Ioi (0:ℝ), exp (-x) * x ^ (s - 1)
 
-/-- The integral defining the Γ function converges for real `s` with `1 ≤ s`.
+/-- The integral defining the `Γ` function converges for real `s` with `1 ≤ s`.
 
 This is not optimal, but the optimal bound (convergence for `0 < s`) is hard to establish with the
 results currently in the library. -/
@@ -81,7 +81,7 @@ make a choice between ↑(real.exp (-x)), complex.exp (↑(-x)), and complex.exp
 equal but not definitionally so. We use the first of these throughout. -/
 
 
-/-- The integral defining the Γ function converges for complex `s` with `1 ≤ re s`.
+/-- The integral defining the `Γ` function converges for complex `s` with `1 ≤ re s`.
 
 This is proved by reduction to the real case. The bound is not optimal, but the optimal bound
 (convergence for `0 < re s`) is hard to establish with the results currently in the library. -/
@@ -139,7 +139,7 @@ namespace complex
 
 section Gamma_recurrence
 
-/-- The indefinite version of the Γ function, Γ(s, X) = ∫ x ∈ 0..X, exp(-x) x ^ (s - 1). -/
+/-- The indefinite version of the `Γ` function, `Γ(s, X) = ∫ x ∈ 0..X, exp(-x) x ^ (s - 1)`. -/
 def partial_Gamma (s : ℂ) (X : ℝ) : ℂ := ∫ x in 0..X, (-x).exp * x ^ (s - 1)
 
 lemma tendsto_partial_Gamma {s : ℂ} (hs: 1 ≤ s.re) :
@@ -185,7 +185,7 @@ begin
   simpa using mul_le_mul i1 i2 (abs_nonneg (↑x ^ (s - 1))) zero_le_one,
 end
 
-/-- The recurrence relation for the indefinite version of the Γ function. -/
+/-- The recurrence relation for the indefinite version of the `Γ` function. -/
 lemma partial_Gamma_add_one {s : ℂ} (hs: 1 ≤ s.re) {X : ℝ} (hX : 0 ≤ X) :
   partial_Gamma (s + 1) X = s * partial_Gamma s X - (-X).exp * X ^ s :=
 begin
@@ -225,7 +225,7 @@ begin
   { contrapose! hs, rw [hs, zero_re], exact zero_lt_one,}
 end
 
-/-- The recurrence relation for the Γ integral. -/
+/-- The recurrence relation for the `Γ` integral. -/
 theorem Gamma_integral_add_one {s : ℂ} (hs: 1 ≤ s.re) :
   Gamma_integral (s + 1) = s * Gamma_integral s :=
 begin
@@ -309,7 +309,7 @@ begin
   rw [←nat.add_sub_of_le (nat.ceil_le.mpr h1), u (n - ⌈ 1 - s.re ⌉₊)],
 end
 
-/-- The recurrence relation for the Γ function. -/
+/-- The recurrence relation for the `Γ` function. -/
 theorem Gamma_add_one (s : ℂ) (h2 : s ≠ 0) : Gamma (s+1) = s * Gamma s :=
 begin
   let n := ⌈ 1 - s.re ⌉₊,
@@ -344,7 +344,7 @@ section Gamma_has_deriv
 /-- Integrand for the derivative of the `Γ` function -/
 private def dGamma_integrand (s : ℂ) (x : ℝ) : ℂ := exp (-x) * log x * x ^ (s - 1)
 
-/-- Integrand for abslute value -/
+/-- Integrand for the absolute value of the derivative of the `Γ` function -/
 private def dGamma_integrand_real (s x : ℝ) : ℝ := | exp (-x) * log x * x ^ (s - 1) |
 
 lemma dGamma_integrand_is_O_at_top (s : ℝ) : is_O (λ x:ℝ, exp (-x) * log x * x ^ (s - 1))
@@ -367,28 +367,6 @@ begin
   intros x hx, simp [exp_log hx],
 end
 
-/-- Bound for `x log x` in the interval `(0, 1]`. -/
-lemma log_bound (x: ℝ) (hx : 0 < x ∧ x ≤ 1) : | log x * x | < 1 :=
-begin
-  have : 0 < 1/x := by simpa only [one_div, inv_pos] using hx.1,
-  replace := log_le_sub_one_of_pos this,
-  replace : log (1 / x) < 1/x := by linarith,
-  rw [log_div one_ne_zero hx.1.ne', log_one, zero_sub, lt_div_iff hx.1] at this,
-  have aux : 0 ≤ -log x * x,
-  { refine mul_nonneg _ hx.1.le, rw ←log_inv, apply log_nonneg,
-    rw [←(le_inv hx.1 zero_lt_one), inv_one], exact hx.2, },
-  rw [←(abs_of_nonneg aux), neg_mul, abs_neg] at this, exact this,
-end
-
-/-- Bound for `x ^ t log x` in the interval `(0, 1]`, for positive real `t`. -/
-lemma log_rpow_bound (x t : ℝ) (hx : 0 < x ∧ x ≤ 1) (ht : 0 < t) : | log x * x ^ t | < 1 / t :=
-begin
-  rw lt_div_iff ht,
-  have := log_bound (x ^ t) ⟨rpow_pos_of_pos hx.1 t, rpow_le_one hx.1.le hx.2 ht.le⟩,
-  rw [log_rpow hx.1, mul_assoc, abs_mul, abs_of_pos ht, mul_comm] at this,
-  exact this,
-end
-
 /-- Absolute convergence of the integral which will give the derivative of the `Γ` function on
 `1 < re s`. -/
 lemma dGamma_integral_abs_convergent (s : ℝ) (hs : 1 < s) :
@@ -409,7 +387,7 @@ begin
       have : 1/(s-1) = 1 * (1 / (s-1)) := by ring, rw this,
       refine mul_le_mul _ _ (by apply abs_nonneg) zero_le_one,
       { rw [abs_of_pos (exp_pos(-x)), exp_le_one_iff, neg_le, neg_zero], exact hx.1.le },
-      { apply le_of_lt, refine log_rpow_bound x (s-1) _ (by linarith),
+      { apply le_of_lt, refine abs_log_mul_self_rpow_lt x (s-1) _ (by linarith),
         rw Ioc at hx, exact hx, }, }, },
   { have := is_O.norm_left (dGamma_integrand_is_O_at_top s),
     refine integrable_of_is_O_exp_neg one_half_pos (continuous_on.mul _ _).norm this,

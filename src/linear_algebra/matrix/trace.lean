@@ -19,12 +19,11 @@ matrix, trace, diagonal
 
 -/
 
-open_locale big_operators
-open_locale matrix
+open_locale big_operators matrix
 
 namespace matrix
 
-variables {m n p : Type*} {α R S : Type*}
+variables {ι m n p : Type*} {α R S : Type*}
 variables [fintype m] [fintype n] [fintype p]
 
 section add_comm_monoid
@@ -60,8 +59,30 @@ def trace_add_monoid_hom : matrix n n R →+ R :=
 @[simps]
 def trace_linear_map [semiring α] [module α R] : matrix n n R →ₗ[α] R :=
 { to_fun := trace, map_add' := trace_add, map_smul' := trace_smul }
+variables {n α R}
+
+@[simp] lemma trace_list_sum (l : list (matrix n n R)) : trace l.sum = (l.map trace).sum :=
+map_list_sum (trace_add_monoid_hom n R) l
+
+@[simp] lemma trace_multiset_sum (s : multiset (matrix n n R)) : trace s.sum = (s.map trace).sum :=
+map_multiset_sum (trace_add_monoid_hom n R) s
+
+@[simp] lemma trace_sum (s : finset ι) (f : ι → matrix n n R) :
+  trace (∑ i in s, f i) = ∑ i in s, trace (f i) :=
+map_sum (trace_add_monoid_hom n R) f s
 
 end add_comm_monoid
+
+section add_comm_group
+variables [add_comm_group R]
+
+@[simp] lemma trace_sub (A B : matrix n n R) : trace (A - B) = trace A - trace B :=
+finset.sum_sub_distrib
+
+@[simp] lemma trace_neg (A : matrix n n R) : trace (-A) = -trace A :=
+finset.sum_neg_distrib
+
+end add_comm_group
 
 section one
 variables [decidable_eq n]  [add_comm_monoid R] [has_one R]

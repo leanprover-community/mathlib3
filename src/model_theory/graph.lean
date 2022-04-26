@@ -85,7 +85,8 @@ variables {V}
   @simple_graph_of_structure V G.Structure _ = G :=
 by { ext, refl }
 
-@[simp] lemma Structure_simple_graph_of_structure [S : language.graph.Structure V] [V ⊨ Theory.simple_graph] :
+@[simp] lemma Structure_simple_graph_of_structure
+  [S : language.graph.Structure V] [V ⊨ Theory.simple_graph] :
   (simple_graph_of_structure V).Structure = S :=
 begin
   ext n f xs,

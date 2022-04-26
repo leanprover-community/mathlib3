@@ -20,21 +20,13 @@ In this file we construct the transfer homomorphism.
 - `transfer ϕ` : The transfer homomorphism induced by `ϕ`.
 -/
 
-namespace subgroup
-
-@[to_additive add_subgroup.zmultiples_le]
-lemma zpowers_le {G : Type*} [group G] {g : G} {H : subgroup G} :
-  zpowers g ≤ H ↔ g ∈ H :=
-by rw [zpowers_eq_closure, closure_le, set.singleton_subset_iff, set_like.mem_coe]
-
-end subgroup
-
 section equiv_stuff
 
 open add_subgroup add_monoid_hom add_equiv add_action quotient_add_group quotient function
 
-noncomputable def zmultiples_quotient_stabilizer_equiv
-  {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β) :
+variables {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β)
+
+noncomputable def zmultiples_quotient_stabilizer_equiv :
   zmultiples a ⧸ stabilizer (zmultiples a) b ≃+ zmod (minimal_period ((+ᵥ) a) b) :=
 (symm (of_bijective (map _ (stabilizer (zmultiples a) b)
   (zmultiples_hom (zmultiples a) ⟨a, mem_zmultiples a⟩) (by
@@ -45,6 +37,11 @@ noncomputable def zmultiples_quotient_stabilizer_equiv
     (zsmul_vadd_eq_iff_minimal_period_dvd.mp ((eq_zero_iff _).mp hn)))))),
     λ q, induction_on' q (λ ⟨_, n, rfl⟩, ⟨n, rfl⟩)⟩)).trans
   (int.quotient_zmultiples_nat_equiv_zmod (minimal_period ((+ᵥ) a) b))
+
+lemma zmultiples_quotient_stabilizer_equiv_symm_apply (n : zmod (minimal_period ((+ᵥ) a) b)) :
+  (zmultiples_quotient_stabilizer_equiv a b).symm n =
+    (n : ℤ) • (⟨a, mem_zmultiples a⟩ : zmultiples a) :=
+rfl
 
 end equiv_stuff
 

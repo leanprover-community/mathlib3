@@ -183,6 +183,23 @@ def foo_elementary_embedding (N : Type*) [L.Structure N] [L[[M]].Structure N]
     refl }
 end⟩
 
+variables (L) (M)
+def elementary_diagram' : L[[M]].Theory :=
+{ x : Σ n, L.formula (fin n) × (fin n → M) | x.2.1.realize x.2.2 }.image
+  (λ x, ((L.Lhom_with_constants M).on_bounded_formula x.2.1).subst
+    (constants.term ∘ sum.inr ∘ x.2.2))
+
+variables {L} {M}
+
+@[simp] lemma mem_elementary_diagram' :
+
+def foo_elementary_embedding' (N : Type*) [L.Structure N] [L[[M]].Structure N]
+  [(Lhom_with_constants L M).is_expansion_on N] [N ⊨ L.elementary_diagram' M] :
+  M ↪ₑ[L] N :=
+⟨(coe : L[[M]].constants → N) ∘ sum.inr, λ n φ x, begin
+  have h := (L.elementary_diagram' M).realize_sentence_of_mem ,
+end⟩
+
 namespace embedding
 
 /-- The Tarski-Vaught test for elementarity of an embedding. -/

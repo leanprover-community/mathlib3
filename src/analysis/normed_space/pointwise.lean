@@ -236,7 +236,7 @@ end
   exact tsub_le_iff_right.2,
 end
 
--- TODO: `interior (cthickening δ s) = thickening δ s`
+-- Note: `interior (cthickening δ s) ≠ thickening δ s` in general
 @[simp] lemma closure_thickening (hδ : 0 < δ) (s : set E) :
   closure (thickening δ s) = cthickening δ s :=
 by { rw [←cthickening_zero, cthickening_thickening le_rfl hδ, zero_add], apply_instance }

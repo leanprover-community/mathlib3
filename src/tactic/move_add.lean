@@ -18,25 +18,6 @@ may change the goal. Also, the *order* in which the terms are provided matters: 
 them from left to right.  This is especially important if there are multiple matches for the typed
 terms in the given expressions.
 
-The tactic never fails (really? TODO), but reports two kinds of unwanted use.
-1. If a target of `move_add` is left unchanged by the tactic, then this will be flagged.
-2. If a user-provided expression never unifies, then the variable is flagged.
-
-Applying `move_add [vars] at *` should only report gloally unused variables and whether *all* goals
-are unchanged, not *each unchanged goal*.
-
-###  Remark:
-It is still possible that the same output of `move_add [exprs]` can be achieved by a proper sublist
-of `[exprs]`, even if the tactic does not flag anything.  For instance, giving the full re-ordering
-of the expressions in the target that we want to achieve will not complain that there are unused
-variables, since all the user-provided variables have been matched.  Of course, specifying the order
-of all-but-the-last variable suffices to determine the permutation.  E.g., with a goal of
-`a + b = 0`, applying either one of `move_add [b,a]`, or `move_add a`, or `move_add ← b` has the
-same effect and changes the goal to `b + a = 0`.
-
-The tactic flags user-provided terms that do not unify with something in the expression.
-The tactic does not produce an error, but prints a report of unused inputs and unchanged target.
-
 A single call of `move_add` moves terms across different sums in the same expression.
 Here is an example.
 
@@ -66,6 +47,26 @@ without brackets.  Thus `move_add ← f` and `move_add [← f]` mean the same.
 Finally, `move_add` can also target one or more hypotheses.  If `hp₁, hp₂` are in the
 local context, then `move_add [f, ← g] at hp₁ hp₂` performs the rearranging at `hp₁` and `hp₂`.
 As usual, passing `⊢` refers to acting on the goal as well.
+
+##  Reporting sub-optimal usage
+
+The tactic never fails (really? TODO), but flags three kinds of unwanted use.
+1. `move_add [vars]? at *` reports gloally unused variables and whether *all* goals
+   are unchanged, not *each unchanged goal*.
+2. If a target of `move_add` is left unchanged by the tactic, then this will be flagged (unless
+   we are using `at *`).
+3. If a user-provided expression never unifies, then the variable is flagged.
+
+The tactic does not produce an error, but reports unused inputs and unchanged targets.
+
+###  Remark:
+It is still possible that the same output of `move_add [exprs]` can be achieved by a proper sublist
+of `[exprs]`, even if the tactic does not flag anything.  For instance, giving the full re-ordering
+of the expressions in the target that we want to achieve will not complain that there are unused
+variables, since all the user-provided variables have been matched.  Of course, specifying the order
+of all-but-the-last variable suffices to determine the permutation.  E.g., with a goal of
+`a + b = 0`, applying either one of `move_add [b,a]`, or `move_add a`, or `move_add ← b` has the
+same effect and changes the goal to `b + a = 0`.  These are all valid uses of `move_add`.
 
 ##  Implementation notes
 

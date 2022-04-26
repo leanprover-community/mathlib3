@@ -37,16 +37,16 @@ inner product space `T`,
   `is_star_normal.diagonalization_basis` (resp. `self_adjoint.diagonalization_basis`) gives the
   associated linear isometry equivalence from `E` to Euclidean space, and the theorem
   `is_star_normal.diagonalization_basis_apply_self_apply` (resp.
-  `self_adjoint.diagonalization_basis_apply_self_apply`) states that, when `T` is transferred via
-  this equivalence to an operator on Euclidean space, it acts diagonally.
+  `inner_product_space.is_self_adjoint.diagonalization_basis_apply_self_apply`) states that, when
+  `T` is transferred via this equivalence to an operator on Euclidean space, it acts diagonally.
 
 The fourth part of the file covers properties of compact self-adjoint operators over `[is_R_or_C 𝕜]`
 on Hilbert spaces in possibly infinite dimension. Letting `T` be a self-adjoint operator on a
 Hilbert space `T`,
-* The definition `self_adjoint.diagonalization'` provides a
+* The definition `inner_product_space.is_self_adjoint.diagonalization'` provides a
   linear isometry equivalence from `E` to the Hilbert sum of the eigenspaces of `T`.  The theorem
-  `self_adjoint.diagonalization_apply_self_apply'` states that, when `T` is transferred via this
-  equivalence to an operator on the Hilbert sum, it acts diagonally.
+  `inner_product_space.is_self_adjoint.diagonalization_apply_self_apply'` states that, when `T` is
+  transferred via this equivalence to an operator on the Hilbert sum, it acts diagonally.
 
 These are forms of the **spectral theorem**/**diagonalization theorem** for self-adjoint/normal
 operators on Hilbert spaces.

@@ -225,7 +225,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     special unitary group: ''
     self-adjoint endomorphism: 'inner_product_space.is_self_adjoint'
     normal endomorphism: 'https://en.wikipedia.org/wiki/Normal_operator'
-    diagonalization of a self-adjoint endomorphism: 'self_adjoint.diagonalization_basis_apply_self_apply'
+    diagonalization of a self-adjoint endomorphism: 'inner_product_space.is_self_adjoint.diagonalization_basis_apply_self_apply'
     diagonalization of normal endomorphisms: 'is_star_normal.diagonalization_basis_apply_self_apply'
     simultaneous diagonalization of two real quadratic forms, with one positive-definite: 'https://fr.wikipedia.org/wiki/Th%C3%A9or%C3%A8me_spectral#Formalisation_alg%C3%A9brique'
     decomposition of an orthogonal transformation as a product of reflections: 'linear_isometry_equiv.reflections_generate'

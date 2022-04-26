@@ -94,13 +94,11 @@ begin
   cases H1,
   {simp only [H1, complex.of_real_zero, denom, coe_fn_eq_coe, zero_mul, zero_add,
     complex.of_real_eq_zero] at H,
-  have := matrix.det_fin_two g,
-  simp [coe_fn_coe_base', subtype.val_eq_coe, coe_im, general_linear_group.coe_fn_eq_coe] at *,
-  rw this at DET,
-  simp only [H, H1, mul_zero, sub_zero, lt_self_iff_false] at DET,
+  rw [←coe_coe, (matrix.det_fin_two (↑g : matrix (fin 2) (fin 2) ℝ))] at DET,
+  simp only [coe_coe,H, H1, mul_zero, sub_zero, lt_self_iff_false] at DET,
   exact DET,},
-  change z.im > 0 at hz,
-  linarith,
+  {change z.im > 0 at hz,
+  linarith,}
 end
 
 lemma norm_sq_denom_pos (g : GL(2, ℝ)⁺) (z : ℍ) : 0 < complex.norm_sq (denom g z) :=
@@ -121,11 +119,8 @@ begin
   { simp only [denom_ne_zero g z, monoid_with_zero_hom.map_eq_zero, ne.def, not_false_iff], },
   field_simp [smul_aux'],
   ring_nf,
-  have det := matrix.det_fin_two (g : GL (fin 2) ℝ),
-  simp at det,
-  rw det,
+  rw [←coe_coe,  matrix.det_fin_two (↑g : matrix (fin 2) (fin 2) ℝ)],
   ring,
-  exact real.comm_ring,
 end
 
 /-- Fractional linear transformation,  also known as the Moebius transformation -/
@@ -134,11 +129,10 @@ def smul_aux (g :  GL(2, ℝ)⁺) (z : ℍ) : ℍ :=
     by { rw smul_aux'_im,
     simp only [denom, coe_coe],
     have h1 := div_pos z.im_pos (complex.norm_sq_pos.mpr (denom_ne_zero g z)),
-    have h2 :=g.property,
+    have h2 := g.property,
     simp only [denom, coe_coe, subtype.val_eq_coe, mem_GL_pos,
     general_linear_group.coe_det_apply] at *,
-    have := mul_pos h2 h1,
-    convert this,
+    convert (mul_pos h2 h1),
     ring, }⟩
 
 lemma denom_cocycle (x y : GL(2, ℝ)⁺) (z : ℍ) :
@@ -188,7 +182,7 @@ lemma SL_on_GL_pos_smul_apply (s : SL(2,ℤ)) (g : (GL(2, ℝ)⁺) ) (z : ℍ) :
   (s • g) • z = ( (s : GL(2, ℝ)⁺) * g) • z := rfl
 
 instance SL_to_GL_tower : is_scalar_tower SL(2,ℤ) (GL(2, ℝ)⁺) ℍ :=
- {smul_assoc := by {intros s g z, rw SL_on_GL_pos_smul_apply, simp, apply mul_smul',},}
+ {smul_assoc := by {intros s g z, simp only [SL_on_GL_pos_smul_apply, coe_coe], apply mul_smul',},}
 
 instance subgroup_GL_pos : has_scalar Γ (GL(2, ℝ)⁺) := ⟨λ s g, s * g⟩
 
@@ -197,7 +191,7 @@ lemma subgroup_on_GL_pos_smul_apply (s : Γ) (g : (GL(2, ℝ)⁺) ) (z : ℍ) :
 
 instance subgroup_on_GL_pos : is_scalar_tower Γ (GL(2, ℝ)⁺) ℍ :=
  {smul_assoc :=
-  by {intros s g z, rw subgroup_on_GL_pos_smul_apply, simp only [coe_coe], apply mul_smul',},}
+  by {intros s g z, simp only [subgroup_on_GL_pos_smul_apply, coe_coe], apply mul_smul',},}
 
 instance subgroup_SL : has_scalar Γ SL(2,ℤ) := ⟨λ s g, s * g⟩
 
@@ -221,7 +215,8 @@ begin
   ext1,
   change _ / _ = _ / _,
   field_simp [denom_ne_zero, -denom, -num],
-  simp [coe_GL_pos_neg, coe_fn_coe_base'],
+  simp_rw [num, denom, GL_pos.coe_neg_apply],
+  simp only [num, denom, GL_pos.coe_neg_apply, coe_coe, complex.of_real_neg, neg_mul],
   ring_nf,
 end
 

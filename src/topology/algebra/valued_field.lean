@@ -338,7 +338,28 @@ noncomputable def extension_valuation :
 -- Bourbaki CA VI §5 no.3 Proposition 5 (d) [I hope]
 lemma closure_v_lt {γ : Γ₀ˣ} :
   closure (coe '' { x : K | v x < (γ : Γ₀) }) = { x : hat K | extension_valuation x < (γ : Γ₀) } :=
-sorry
+begin
+  refine le_antisymm (λ x hx, _) (λ x hx, _),
+  { -- TODO Golf this ridiculous proof!
+    let γ₀ := extension_valuation x,
+    change γ₀ < (γ : Γ₀),
+    cases eq_or_ne γ₀ 0,
+    { simp [h], },
+    { have hγ₀ : is_open ({ γ₀ } : set Γ₀),
+      { simp only [is_open_iff_mem_nhds, mem_singleton_iff, forall_eq],
+        apply (linear_ordered_comm_group_with_zero.has_basis_nhds_of_ne_zero h).mem_of_mem
+          true.intro,
+        exact unit.star, },
+      let u := (extension_valuation : hat K → Γ₀)⁻¹' { γ₀ },
+      have hu : x ∈ u, { simp, },
+      obtain ⟨-, hy₁, y, hy₂, rfl⟩ :=
+        mem_closure_iff.mp hx u (continuous_extension.is_open_preimage _ hγ₀) hu,
+      replace hy₁ : v y = γ₀, { rw ← extension_extends y, simp at hy₁, exact hy₁, },
+      rw ← hy₁,
+      exact hy₂, }, },
+  { -- Oh, it's basically the same argument. OK tidy up later.
+    sorry, },
+end
 
 noncomputable instance valued_completion : valued (hat K) Γ₀ :=
 { v := valued.extension_valuation,

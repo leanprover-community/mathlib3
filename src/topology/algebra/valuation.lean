@@ -89,6 +89,8 @@ See Note [forgetful inheritance] for why we extend `uniform_space`. -/
 class valued (R : Type u) [ring R] (Γ₀ : out_param (Type v))
   [linear_ordered_comm_group_with_zero Γ₀] extends uniform_space R :=
 (v : valuation R Γ₀)
+-- On second thought perhaps `is_uniform_valuation` would be better replaced with a topological
+-- condition characterising the neighbourhoods of (0 : R).
 (is_uniform_valuation : ∀ s, s ∈ 𝓤 R ↔ ∃ (γ : Γ₀ˣ), { p : R × R | v (p.2 - p.1) < γ } ⊆ s)
 
 /-- The `dangerous_instance` linter does not check whether the metavariables only occur in

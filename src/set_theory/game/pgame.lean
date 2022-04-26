@@ -155,8 +155,8 @@ x.rec_on $ λ yl yr yL yR, IH (mk yl yr yL yR)
 
 /-- `is_option x y` means that `x` is either a left or right option for `y`. -/
 @[mk_iff] inductive is_option : pgame → pgame → Prop
-| move_left {x : pgame} {i} : is_option (x.move_left i) x
-| move_right {x : pgame} {i} : is_option (x.move_right i) x
+| move_left {x : pgame} (i) : is_option (x.move_left i) x
+| move_right {x : pgame} (i) : is_option (x.move_right i) x
 
 theorem is_option.mk_left {xl xr : Type u} {xL : xl → pgame} {xR : xr → pgame} {i : xl} :
   (xL i).is_option (mk xl xr xL xR) :=

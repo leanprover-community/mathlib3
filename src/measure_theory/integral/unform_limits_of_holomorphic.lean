@@ -364,8 +364,8 @@ lemma circle_integral_transform_sub_bound  (R : ℝ) (hR: 0 < R)  (f : ℂ → �
     complex.abs (circle_integral_transform R z (λ x, r) w θ) :=
 begin
   intro θ,
-  simp only [circle_integral_transform, abs_of_real, mul_one, algebra.id.smul_eq_mul, abs_I, abs_mul,
-  abs_inv, abs_two, ←mul_assoc, deriv_circle_map, abs_circle_map_zero],
+  simp only [circle_integral_transform, abs_of_real, mul_one, algebra.id.smul_eq_mul, abs_I,
+  abs_mul, abs_inv, abs_two, ←mul_assoc, deriv_circle_map, abs_circle_map_zero],
   apply_rules [monotone_mul_left_of_nonneg, mul_nonneg, mul_nonneg],
   simp_rw inv_nonneg,
   apply mul_nonneg,

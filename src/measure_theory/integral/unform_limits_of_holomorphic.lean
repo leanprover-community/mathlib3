@@ -59,8 +59,8 @@ begin
   field_simp,
   simp_rw [←one_div_mul_one_div,←mul_smul, ←mul_assoc],
   field_simp,
-  have H : ∀ a b c d e : ℂ, a/(e * d * b * c) = a/ (c * e * d * b) ,
-  by {intros a b c d e, have : (e * d * b * c) = (c * e * d * b) , by {ring,}, rw this, },
+  have H : ∀ a b c d e : ℂ, a/(e * d * b * c) = a/ (c * e * d * b),
+  by {intros a b c d e, have : (e * d * b * c) = (c * e * d * b), by {ring,}, rw this, },
   simp_rw H,
 end
 
@@ -78,14 +78,11 @@ lemma circle_map_ne_on_ball (R : ℝ) (hR: 0 < R) (z w : ℂ) (hw : w ∈ ball z
 begin
   intros x hx,
   by_contra,
-  have h1 : circle_map z R x = w, by {exact sub_eq_zero.mp hx,},
-  rw ←h1 at hw,
-  simp only [mem_ball] at hw,
+  rw ←(sub_eq_zero.mp hx) at hw,
   have  h2 := circle_map_mem_sphere z hR.le x,
-  rw mem_sphere at h2,
+  simp only [mem_ball, mem_sphere] at *,
   rw h2 at hw,
-  simp at hw,
-  apply hw,
+  linarith,
 end
 
 lemma circle_map_inv_continuous_on (R : ℝ) (hR : 0 < R) (z w : ℂ) (hw : w ∈ ball z R) :
@@ -112,7 +109,7 @@ begin
   apply continuous_on.comp hf (continuous_circle_map z R).continuous_on,
   rw maps_to,
   intros v hv,
-  apply_rules [circle_map_mem_sphere, hR.le],
+  apply circle_map_mem_sphere _ hR.le,
 end
 
 lemma circle_integral_transform_deriv_cont_on_ICC (R : ℝ) (hR : 0 < R) (f : ℂ → E) (z w : ℂ)
@@ -135,6 +132,7 @@ begin
  Ioc_subset_Icc_self],
 end
 
+/--A useful bound for circle integrals-/
 def circle_integral_bounding_function (R : ℝ) (z : ℂ) : (ℂ × ℝ → ℂ) :=
   λ w, circle_integral_transform_deriv R z (λ x, 1) w.1 w.2
 
@@ -482,7 +480,7 @@ begin
   by_cases (n ≤ a),
   simp_rw bound,
   have hnn : n ∈ finset.range(a + 1), by {simp only [finset.mem_range], linarith},
-  have := finset.add_sum_erase (finset.range (a+1))
+  have := finset.add_sum_erase (finset.range (a + 1))
   (λ i , complex.abs ((circle_integral_transform R z (F i) w) y)) hnn,
   simp only [and_imp, mem_Ioc, finset.mem_range, mem_sphere_iff_norm, norm_eq_abs] at *,
   simp_rw [←this, add_assoc, le_add_iff_nonneg_right],
@@ -505,9 +503,7 @@ begin
   simp only [measurable_set_Ioc],
   simp_rw bound,
   apply_rules [integrable.add, integrable.add,  integrable_finset_sum],
-  simp  [finset.mem_attach, forall_true_left, finset.univ_eq_attach],
-  intros i hi,
-  apply circle_integral_transform_int_abs R hR (F i) z (F_cts i),
+  refine (λ _ _, circle_integral_transform_int_abs R hR (F _) z (F_cts _) w),
   apply circle_integral_transform_int_abs R hR _ z continuous_const.continuous_on,
   apply circle_integral_transform_int_abs R hR f z f_cont,
 end
@@ -534,10 +530,9 @@ begin
   have hboundlem := circle_integral_transform_of_uniform_exists_bounding_function R hR F f z w F_cts
   hlim,
   obtain ⟨bound, h_bound, bound_integrable⟩ := hboundlem,
-  have := tendsto_integral_of_dominated_convergence bound F_measurable bound_integrable
-  h_bound h_lim',
-  have pi: 0 ≤ 2*π , by {apply real.two_pi_pos.le},
-  simp_rw  integral_of_le pi,
+  have := tendsto_integral_of_dominated_convergence bound F_measurable bound_integrable h_bound
+  h_lim',
+  simp_rw  integral_of_le (real.two_pi_pos.le),
   apply this,
 end
 
@@ -577,18 +572,15 @@ lemma Ineq2 (a b c d r : ℂ) (ε : ℝ) (hε : 0 < ε )
  (abs r)⁻¹ * abs ((y - x) - (c - d)) < 8⁻¹ * ε) :
  (abs r)⁻¹ * abs ((a - b)- (c - d)) < (2/3) * ε :=
 begin
-  obtain ⟨x, y, h1, h2, h3⟩:= h,
+  obtain ⟨x, y, h1, h2, h3⟩ := h,
   have hr : 0 < abs r,
   by {by_contradiction h,
   simp only [abs_pos, not_not] at h,
-  rw h at h1,
-  simp only [zero_mul, abs_zero, mul_zero] at h1,
-  linarith [abs_nonneg (a - y),h1] },
+  simp only [h, zero_mul, abs_zero, mul_zero] at h1,
+  linarith [abs_nonneg (a - y), h1] },
   have h33 : (abs r)⁻¹ * abs ((c - d) - (y - x)) < 8⁻¹ * ε,
-  by {rw abs_sub_comm,
-  apply h3,},
-  have h5 : abs ((a - b) - (c - d)) = abs (((a - y) - (b - x))- ((c - d) - (y - x))),
-  by {ring_nf,},
+  by {rw abs_sub_comm, apply h3,},
+  have h5 : abs ((a - b) - (c - d)) = abs (((a - y) - (b - x))- ((c - d) - (y - x))), by {ring_nf,},
   rw h5,
   have h6 : (abs r)⁻¹ * abs (((a - y) - (b - x))- ((c - d) - (y - x))) ≤ (abs r)⁻¹ * abs (a - y) +
   (abs r)⁻¹ * abs(b - x) + (abs r)⁻¹ * abs ((c - d) - (y - x)),
@@ -597,15 +589,14 @@ begin
   have h4 : abs (((a - y) - (b - x)) + -((c - d) - (y - x)) ) ≤ abs ((a - y) - (b - x)) +
   abs ((c - d) - (y - x)),
   by {have := complex.abs_add ((a - y) - (b - x)) (-((c - d) - (y - x))),
-  have ho : abs (c - d - (y - x)) = abs (-((c - d) - (y - x))), by { rw abs_neg,},
+  have ho : abs (c - d - (y - x)) = abs (-((c - d) - (y - x))), by {rw abs_neg,},
   rw ho,
   convert this,},
   have h44 : abs ((a - y) - (b - x)) ≤ abs (a - y) + abs (b - x),
   by {have := complex.abs_sub_le (a - y) 0 (b - x),
   simp only [zero_sub, sub_zero, neg_sub] at this,
   have hcd : abs (b - x) = abs (x - b), by {apply complex.abs_sub_comm,},
-  rw hcd,
-  apply this,},
+  convert this,},
   apply le_trans h4,
   simp only [← add_assoc, h44, add_le_add_iff_right],},
   have e1 : 8⁻¹ * (abs r) * ε = 8⁻¹ * ε * (abs r), by {ring_nf,},
@@ -619,12 +610,13 @@ end
 lemma Ineq3 (a b c d e f r : ℂ) (ε : ℝ) (hε : 0 < ε) (h1 : abs (a- b) < 8⁻¹ * abs(r) * ε)
   (h2 : abs (c - d) < 8⁻¹ * abs(r) * ε )
   (h : ∃ (x y : ℂ), abs (b - y) < 8⁻¹ * abs(r) * ε ∧ abs (d - x) < 8⁻¹ * abs(r) * ε ∧
-  (abs r)⁻¹ * abs ((y - x)- (e - f)) < 8⁻¹ * ε) :
+  (abs r)⁻¹ * abs ((y - x) - (e - f)) < 8⁻¹ * ε) :
   (abs r)⁻¹ * abs ((a - b) - (c - d) + (b - d) - (e - f)) < ε :=
 begin
   apply (Ineq1 _ _ _ _ _ _ _ _ hε h1 h2),
   apply Ineq2 _ _ _ _ _ _ hε h,
 end
+
 
 lemma circle_integral_unif_of_diff_has_fderiv (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (R r : ℝ)
   (hr : r < R) (hlim : tendsto_uniformly_on F f filter.at_top (closed_ball z R))
@@ -637,13 +629,11 @@ lemma circle_integral_unif_of_diff_has_fderiv (F : ℕ → ℂ → ℂ) (f : ℂ
   (hD : has_fderiv_within_at (circle_integral_form R z f) D (ball z r) x ) :
   ∃ (f' : ℂ →L[ℂ] ℂ), has_fderiv_within_at f f' (ball z r) x :=
 begin
-  have hxx : x ∈ ball z R, by {apply ball_subset_ball hr.le, apply hx},
   use D,
   simp_rw [has_fderiv_within_at_iff_tendsto, metric.tendsto_nhds, tendsto_uniformly_on_iff,
   dist_eq_norm]  at *,
   intros ε hε,
-  have h8 : 0 < 8⁻¹ * ε,
-  by {simp only [zero_lt_bit0, zero_lt_mul_left, zero_lt_one, inv_pos], apply hε,},
+  have h8 : 0 < 8⁻¹ * ε, by {rw inv_eq_one_div, linarith,},
   have hDε := hD (8⁻¹ * ε) h8,
   clear hD,
   simp only [mem_ball, gt_iff_lt, mem_closed_ball, norm_mul, ge_iff_le,
@@ -661,37 +651,30 @@ begin
   clear hU hS1,
   intros y hy,
   simp_rw U at hy,
-  let t := abs (y - x),
-  by_cases ht : t ≠ 0,
+  by_cases ht : abs (y - x)  ≠ 0,
   simp only [mem_ball, mem_inter_eq, inf_eq_inter] at hy,
   simp_rw [real.norm_eq_abs, abs_abs],
-  have hyz: y ∈ ball z R, by {apply ball_subset_ball hr.le, exact (mem_ball.2 hy.2),},
-  have keyy:= keyb y hyz,
-  have keyy2:= keyb x hxx,
-  have h8' : 0 < 8⁻¹*t*ε, by {apply mul_pos, apply mul_pos,
-  simp only [zero_lt_bit0, zero_lt_one, inv_pos],
-  rw abs_pos,
-  simp only [abs_eq_zero, ne.def] at ht,
-  apply ht,
-  apply hε,},
-  have key2 := keyy2 (8⁻¹ * t * ε) h8',
-  have hlim2 := hlim (8⁻¹ * t * ε) h8',
-  clear hlim,
-  obtain ⟨a'', ha''⟩ := keyy (8⁻¹ * t * ε) h8',
-  obtain ⟨a, ha⟩ := hlim2,
-  obtain ⟨a', ha'⟩ := key2,
+  have h8' : 0 < 8⁻¹ * abs (y - x) * ε, by {have : 0 < (8 : ℝ), by {linarith},
+  apply mul_pos (mul_pos (inv_pos.2 this) (abs_pos.2 (abs_ne_zero.1 ht))) hε,},
+  obtain ⟨a'', ha''⟩ := (keyb y ((ball_subset_ball hr.le) (mem_ball.2 hy.2)))
+    (8⁻¹ * abs (y - x) * ε) h8',
+  obtain ⟨a, ha⟩ := (hlim (8⁻¹ * abs (y - x) * ε) h8'),
+  obtain ⟨a', ha'⟩ := ((keyb x ((ball_subset_ball hr.le) hx)) (8⁻¹ * abs (y - x) * ε) h8'),
   set A' : ℕ := max a a',
+  have test := mem_ball.1 ((ball_subset_ball hr.le) (mem_ball.2 hy.2)),
   simp only [mem_ball, abs_eq_zero, ne.def, subtype.coe_mk] at *,
   set A : ℕ := max A' a'',
   have haA : a ≤ A, by {simp only [le_refl, true_or, le_max_iff],},
   have ha'A : a' ≤ A, by {simp only [le_refl, true_or, or_true, le_max_iff],},
   have ha''A : a'' ≤ A, by {simp only [le_refl, or_true, le_max_iff],},
   have HH : ∀ (y : ℂ), f y - f x - (D y - D x) =
-  (f y - F A y) - ((f x)- (F A x)) + ((F A y)- (F A x)) - (D y - D x),
-  by {intro y,simp only [sub_left_inj], ring_nf,},
+    (f y - F A y) - ((f x) - (F A x)) + ((F A y) - (F A x)) - (D y - D x),
+  by {intro y, simp only [sub_left_inj], ring_nf,},
   simp_rw HH,
-  apply' Ineq3 _ _ _ _ _ _ _ _ hε (ha A haA y hyz.le) (ha A haA x (mem_ball.1 hxx).le),
-  clear keyb keyy keyy2 HH hε h8 h8',
+  apply Ineq3 _ _ _ _ _ _ _ _ hε
+    (ha A haA y (mem_ball.1 ((ball_subset_ball hr.le) (mem_ball.2 hy.2))).le)
+    (ha A haA x (mem_ball.1 ((ball_subset_ball hr.le) hx)).le),
+  clear keyb HH hε h8 h8',
   refine ⟨(circle_integral_form R  z f x), (circle_integral_form R z f y),_⟩,
   simp_rw circle_intgral_form_eq_int,
   refine ⟨by {have := F_alt A ⟨y,(mem_ball.2 hy.2)⟩,
@@ -705,9 +688,7 @@ begin
   by {simp_rw [real.norm_eq_abs, abs_abs, circle_intgral_form_eq_int ] at HS1,
   apply HS1 _ hy.1}⟩,
   simp only [abs_eq_zero, not_not] at ht,
-  rw ht,
-  simp only [norm_zero, zero_mul, abs_zero, inv_zero],
-  apply hε,
+  simp only [ht, norm_zero, zero_mul, abs_zero, inv_zero, hε],
 end
 
 lemma uniform_of_diff_circle_int_is_diff (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (R r : ℝ)

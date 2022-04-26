@@ -219,32 +219,6 @@ begin
   exact le_rfl,
 end
 
-@[simp] lemma inf_edist_cthickening (δ : ℝ) (s : set E) (x : E) :
-  inf_edist x (cthickening δ s) = inf_edist x s - ennreal.of_real δ :=
-begin
-  obtain hδ | hδ := le_total δ 0,
-  { rw [cthickening_of_nonpos hδ, inf_edist_closure, of_real_of_nonpos hδ, tsub_zero] },
-  obtain hs | hs := le_or_lt (inf_edist x s) (ennreal.of_real δ),
-  { rw [inf_edist_zero_of_mem (mem_cthickening_iff.2 hs), tsub_eq_zero_of_le hs] },
-  refine (tsub_le_iff_right.2 inf_edist_le_inf_edist_cthickening_add).antisymm' _,
-  refine le_sub_of_add_le_right of_real_ne_top _,
-  refine le_inf_edist.2 (λ z hz, le_of_forall_lt' $ λ r h, _),
-  cases r,
-  { exact add_lt_top.2 ⟨lt_top_iff_ne_top.2 $ inf_edist_ne_top ⟨z, self_subset_cthickening _ hz⟩,
-      of_real_lt_top⟩ },
-  have hr : 0 < ↑r - δ,
-  { refine sub_pos_of_lt _,
-    have := hs.trans ((inf_edist_le_edist_of_mem hz).trans_lt h),
-    rw [of_real_eq_coe_nnreal hδ, some_eq_coe] at this,
-    exact_mod_cast this },
-  rw [some_eq_coe, edist_lt_coe, ←dist_lt_coe, ←add_sub_cancel'_right δ (↑r)] at h,
-  obtain ⟨y, hxy, hyz⟩ := exists_dist_lt_le hr hδ h,
-  refine (ennreal.add_lt_add_right of_real_ne_top $ inf_edist_lt_iff.2
-    ⟨_, mem_cthickening_of_dist_le _ _ _ _ hz hyz, edist_lt_of_real.2 hxy⟩).trans_le _,
-  rw [←of_real_add hr.le hδ, sub_add_cancel, of_real_coe_nnreal],
-  exact le_rfl,
-end
-
 @[simp] lemma thickening_thickening (hε : 0 < ε) (hδ : 0 < δ) (s : set E) :
   thickening ε (thickening δ s) = thickening (ε + δ) s :=
 (thickening_thickening_subset _ _ _).antisymm $ λ x, begin
@@ -255,21 +229,32 @@ end
   exact ⟨y, ⟨_, hz, hyz⟩, hxy⟩,
 end
 
-@[simp] lemma thickening_cthickening (hε : 0 < ε) (hδ : 0 ≤ δ) (s : set E) :
-  thickening ε (cthickening δ s) = thickening (ε + δ) s :=
-(thickening_cthickening_subset _ hδ _).antisymm $ λ x, begin
-  simp_rw mem_thickening_iff,
-  rintro ⟨z, hz, hxz⟩,
-  rw add_comm at hxz,
-  obtain ⟨y, hxy, hyz⟩ := exists_dist_lt_le hε hδ hxz,
-  exact ⟨y, mem_cthickening_of_dist_le _ _ _ _ hz hyz, hxy⟩,
-end
-
 @[simp] lemma cthickening_thickening (hε : 0 ≤ ε) (hδ : 0 < δ) (s : set E) :
   cthickening ε (thickening δ s) = cthickening (ε + δ) s :=
 (cthickening_thickening_subset hε _ _).antisymm $ λ x, begin
   simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ.le, inf_edist_thickening hδ],
   exact tsub_le_iff_right.2,
+end
+
+-- Note: `interior (cthickening δ s) ≠ thickening δ s` in general
+@[simp] lemma closure_thickening (hδ : 0 < δ) (s : set E) :
+  closure (thickening δ s) = cthickening δ s :=
+by { rw [←cthickening_zero, cthickening_thickening le_rfl hδ, zero_add], apply_instance }
+
+@[simp] lemma inf_edist_cthickening (δ : ℝ) (s : set E) (x : E) :
+  inf_edist x (cthickening δ s) = inf_edist x s - ennreal.of_real δ :=
+begin
+  obtain hδ | hδ := le_or_lt δ 0,
+  { rw [cthickening_of_nonpos hδ, inf_edist_closure, of_real_of_nonpos hδ, tsub_zero] },
+  { rw [←closure_thickening hδ, inf_edist_closure, inf_edist_thickening hδ]; apply_instance }
+end
+
+@[simp] lemma thickening_cthickening (hε : 0 < ε) (hδ : 0 ≤ δ) (s : set E) :
+  thickening ε (cthickening δ s) = thickening (ε + δ) s :=
+begin
+  obtain rfl | hδ := hδ.eq_or_lt,
+  { rw [cthickening_zero, thickening_closure, add_zero] },
+  { rw [←closure_thickening hδ, thickening_closure, thickening_thickening hε hδ]; apply_instance }
 end
 
 @[simp] lemma cthickening_cthickening (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (s : set E) :

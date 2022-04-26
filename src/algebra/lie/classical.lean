@@ -74,9 +74,9 @@ variables [decidable_eq n] [decidable_eq p] [decidable_eq q] [decidable_eq l]
 variables [comm_ring R]
 
 @[simp] lemma matrix_trace_commutator_zero [fintype n] (X Y : matrix n n R) :
-  matrix.trace n R R ⁅X, Y⁆ = 0 :=
-calc _ = matrix.trace n R R (X ⬝ Y) - matrix.trace n R R (Y ⬝ X) : linear_map.map_sub _ _ _
-   ... = matrix.trace n R R (X ⬝ Y) - matrix.trace n R R (X ⬝ Y) :
+  matrix.trace ⁅X, Y⁆ = 0 :=
+calc _ = matrix.trace (X ⬝ Y) - matrix.trace (Y ⬝ X) : linear_map.map_sub _ _ _
+   ... = matrix.trace (X ⬝ Y) - matrix.trace (X ⬝ Y) :
      congr_arg (λ x, _ - x) (matrix.trace_mul_comm Y X)
    ... = 0 : sub_self _
 

@@ -81,13 +81,13 @@ variables (R) {M}
 /-- Auxiliary lemma for `trace_eq_matrix_trace`. -/
 theorem trace_eq_matrix_trace_of_finset {s : finset M} (b : basis s R M)
   (f : M →ₗ[R] M) :
-  trace R M f = matrix.trace s R R (linear_map.to_matrix b b f) :=
+  trace R M f = matrix.trace (linear_map.to_matrix b b f) :=
 have ∃ (s : finset M), nonempty (basis s R M),
 from ⟨s, ⟨b⟩⟩,
 by { rw [trace, dif_pos this, ← trace_aux_def], congr' 1, apply trace_aux_eq }
 
 theorem trace_eq_matrix_trace (f : M →ₗ[R] M) :
-  trace R M f = matrix.trace ι R R (linear_map.to_matrix b b f) :=
+  trace R M f = matrix.trace (linear_map.to_matrix b b f) :=
 by rw [trace_eq_matrix_trace_of_finset R b.reindex_finset_range,
     ← trace_aux_def, ← trace_aux_def, trace_aux_eq R b]
 

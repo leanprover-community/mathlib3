@@ -129,7 +129,7 @@ by { ext j, by_cases hij : i = j; try {rw hij}; simp [hij] }
 
 variable [fintype n]
 
-lemma trace_zero (h : j ≠ i) : trace n α α (std_basis_matrix i j c) = 0 := by simp [h]
+lemma trace_zero (h : j ≠ i) : trace (std_basis_matrix i j c) = 0 := by simp [trace, h]
 
 @[simp] lemma mul_left_apply_same (b : n) (M : matrix n n α) :
   (std_basis_matrix i j c ⬝ M) i b = c * M j b :=

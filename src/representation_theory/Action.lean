@@ -274,13 +274,11 @@ instance : functor.additive (functor_category_equivalence V G).functor := {}
 end preadditive
 
 section abelian
-variables [abelian V]
-
 /-- Auxilliary construction for the `abelian (Action V G)` instance. -/
 def abelian_aux : Action V G ≌ (ulift.{u} (single_obj G) ⥤ V) :=
 (functor_category_equivalence V G).trans (equivalence.congr_left ulift.equivalence)
 
-noncomputable instance : abelian (Action V G) :=
+noncomputable instance [abelian V] : abelian (Action V G) :=
 abelian_of_equivalence abelian_aux.functor
 
 end abelian

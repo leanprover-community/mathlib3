@@ -317,10 +317,10 @@ end free_ring
 def free_comm_ring_equiv_mv_polynomial_int :
   free_comm_ring α ≃+* mv_polynomial α ℤ :=
 ring_equiv.of_hom_inv
-  (free_comm_ring.lift $ λ a, mv_polynomial.X a)
+  (free_comm_ring.lift $ (λ a, mv_polynomial.X a : α → mv_polynomial α ℤ))
   (mv_polynomial.eval₂_hom (int.cast_ring_hom (free_comm_ring α)) free_comm_ring.of)
   (by { ext, simp })
-  (by ext; simp )
+  (by ext; simp)
 
 /-- The free commutative ring on the empty type is isomorphic to `ℤ`. -/
 def free_comm_ring_pempty_equiv_int : free_comm_ring pempty.{u+1} ≃+* ℤ :=

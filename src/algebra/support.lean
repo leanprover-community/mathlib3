@@ -71,6 +71,16 @@ by { simp_rw [← subset_empty_iff, mul_support_subset_iff', funext_iff], simp }
   (mul_support f).nonempty ↔ f ≠ 1 :=
 by rw [← ne_empty_iff_nonempty, ne.def, mul_support_eq_empty_iff]
 
+@[to_additive]
+lemma range_subset_insert_image_mul_support (f : α → M) :
+  range f ⊆ insert 1 (f '' mul_support f) :=
+begin
+  intros y hy,
+  rcases eq_or_ne y 1 with rfl|h2y,
+  { exact mem_insert _ _ },
+  { obtain ⟨x, rfl⟩ := hy, refine mem_insert_of_mem _ ⟨x, h2y, rfl⟩ }
+end
+
 @[simp, to_additive] lemma mul_support_one' : mul_support (1 : α → M) = ∅ :=
 mul_support_eq_empty_iff.2 rfl
 

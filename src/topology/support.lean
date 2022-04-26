@@ -59,6 +59,17 @@ by rw [mul_tsupport, closure_empty_iff, mul_support_eq_empty_iff]
 lemma image_eq_zero_of_nmem_mul_tsupport {f : X → α} {x : X} (hx : x ∉ mul_tsupport f) : f x = 1 :=
 mul_support_subset_iff'.mp (subset_mul_tsupport f) x hx
 
+@[to_additive]
+lemma range_subset_insert_image_mul_tsupport (f : X → α) :
+  range f ⊆ insert 1 (f '' mul_tsupport f) :=
+(range_subset_insert_image_mul_support f).trans $
+  insert_subset_insert $ image_subset _ subset_closure
+
+@[to_additive]
+lemma range_eq_image_mul_tsupport_or (f : X → α) :
+  range f = f '' mul_tsupport f ∨ range f = insert 1 (f '' mul_tsupport f) :=
+(wcovby_insert _ _).eq_or_eq (image_subset_range _ _) (range_subset_insert_image_mul_tsupport f)
+
 end one
 
 section
@@ -110,6 +121,14 @@ lemma has_compact_mul_support_iff_eventually_eq :
     λ x, not_imp_comm.mpr $ λ hx, subset_mul_tsupport f hx⟩,
   λ h, let ⟨C, hC⟩ := mem_coclosed_compact'.mp h in
     compact_of_is_closed_subset hC.2.1 (is_closed_mul_tsupport _) (closure_minimal hC.2.2 hC.1)⟩
+
+@[to_additive]
+lemma has_compact_mul_support.is_compact_range [topological_space β]
+  (h : has_compact_mul_support f) (hf : continuous f) : is_compact (range f) :=
+begin
+  cases range_eq_image_mul_tsupport_or f with h2 h2; rw [h2],
+  exacts [h.image hf, (h.image hf).insert 1]
+end
 
 @[to_additive]
 lemma has_compact_mul_support.mono' {f' : α → γ} (hf : has_compact_mul_support f)

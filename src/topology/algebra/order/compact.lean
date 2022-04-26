@@ -297,12 +297,9 @@ lemma _root_.continuous.exists_forall_le_of_has_compact_mul_support [nonempty β
   {f : β → α} (hf : continuous f) (h : has_compact_mul_support f) :
   ∃ (x : β), ∀ (y : β), f x ≤ f y :=
 begin
-  -- Proof sketch: we use `continuous.exists_forall_le'` with as `x₀` any element outside the
-  -- support of `f`, if such an element exists (and otherwise an arbitrary element).
-  refine hf.exists_forall_le' (classical.epsilon $ λ x, f x = 1)
-    (eventually_of_mem h.compl_mem_cocompact $ λ x hx, _),
-  have : f x = 1 := nmem_mul_support.mp (mt (λ h2x, subset_closure h2x) hx),
-  exact ((classical.epsilon_spec ⟨x, this⟩).trans this.symm).le
+  obtain ⟨_, ⟨x, rfl⟩, hx⟩ := (h.is_compact_range hf).exists_is_least (range_nonempty _),
+  rw [mem_lower_bounds, forall_range_iff] at hx,
+  exact ⟨x, hx⟩,
 end
 
 /-- A continuous function with compact support has a global maximum. -/
@@ -312,69 +309,12 @@ lemma continuous.exists_forall_ge_of_has_compact_mul_support [nonempty β] [has_
   ∃ (x : β), ∀ (y : β), f y ≤ f x :=
 @continuous.exists_forall_le_of_has_compact_mul_support (order_dual α) _ _ _ _ _ _ _ _ hf h
 
--- begin move
-
-@[to_additive]
-lemma range_subset_insert_image_mul_support {α β : Type*} [has_one β] {f : α → β} :
-  range f ⊆ insert 1 (f '' mul_support f) :=
-begin
-  intros y hy,
-  rcases eq_or_ne y 1 with rfl|h2y,
-  { exact mem_insert _ _ },
-  { obtain ⟨x, rfl⟩ := hy, refine mem_insert_of_mem _ ⟨x, h2y, rfl⟩ }
-end
-
-@[to_additive]
-lemma range_subset_insert_image_mul_tsupport {α β : Type*} [topological_space α] [has_one β]
-  {f : α → β} : range f ⊆ insert 1 (f '' mul_tsupport f) :=
-range_subset_insert_image_mul_support.trans $ insert_subset_insert $ image_subset _ subset_closure
-
-#print is_compact.insert
-#print ⋖
-
-/-- This is almost showing that `s ⋖ t`. -/
-lemma false_of_ssubset_of_ssubset_insert {α : Type*} {x : α} {s t : set α} (ht : s ⊂ t)
-  (h2t : t ⊂ insert x s) : false :=
-h2t.not_subset $ insert_subset.mpr ⟨by_contra $ λ hxt, ht.not_subset $ λ y hy,
-  ((h2t.subset : t ⊆ insert x s) hy).resolve_left $ λ hyx, hxt $ hyx ▸ hy, ht.subset⟩
-
-lemma covby_insert {α : Type*} {x : α} {s : set α} (hx : x ∉ s) : s ⋖ insert x s :=
-⟨ssubset_insert hx, λ t, false_of_ssubset_of_ssubset_insert⟩
-
-lemma subset_and_subset_insert_iff {α : Type*} {x : α} {s t : set α} :
-  s ⊆ t ∧ t ⊆ insert x s ↔ t = s ∨ t = insert x s :=
-sorry
-
-@[to_additive]
-lemma range_eq_image_mul_tsupport_or {α β : Type*} [topological_space α] [has_one β]
-  (f : α → β) : range f = f '' mul_tsupport f ∨ range f = insert 1 (f '' mul_tsupport f) :=
-subset_and_subset_insert_iff.mp ⟨image_subset_range _ _, range_subset_insert_image_mul_tsupport⟩
-
-@[to_additive]
-lemma has_compact_mul_support.is_compact_range {α β : Type*}
-  [topological_space α] [topological_space β] [has_one α]
-  {f : β → α} (hf : continuous f) (h : has_compact_mul_support f) :
-  is_compact (range f) :=
-begin
-  cases range_eq_image_mul_tsupport_or f with h2 h2; rw [h2],
-  exact h.image hf,
-  exact (h.image hf).insert 1
-end
-
--- end move
-
 /-- A continuous function with compact support is bounded below. -/
 @[to_additive]
 lemma continuous.bdd_below_range_of_has_compact_mul_support [has_one α]
   {f : β → α} (hf : continuous f) (h : has_compact_mul_support f) :
   bdd_below (range f) :=
 (h.is_compact_range hf).bdd_below
--- begin
---   casesI is_empty_or_nonempty β with hβ hβ,
---   { rw range_eq_empty_iff.mpr, exact bdd_below_empty, exact hβ },
---   obtain ⟨x, hx⟩ := hf.exists_forall_le_of_has_compact_mul_support h,
---   refine ⟨f x, _⟩, rintro _ ⟨x', rfl⟩, exact hx x'
--- end
 
 /-- A continuous function with compact support is bounded above. -/
 @[to_additive]

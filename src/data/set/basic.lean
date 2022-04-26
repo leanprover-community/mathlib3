@@ -2312,8 +2312,7 @@ end image_preimage
 /-!
 ### Images of binary and ternary functions
 
-This section is very similar to `data.finset.n_ary` and `order.filter.n_ary`. Please keep them in
-sync.
+This section is very similar to `order.filter.n_ary`. Please keep them in sync.
 -/
 
 section n_ary_image

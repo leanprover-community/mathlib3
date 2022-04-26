@@ -8,7 +8,8 @@ import data.finset.prod
 /-!
 ### N-ary images of finsets
 
-
+This file defines the binary image of finsets. This is mostly useful to define pointwise operations
+on finsets.
 
 ## Notes
 
@@ -40,6 +41,14 @@ by simp [image₂, and_assoc]
   (image₂ f s t : set γ) = set.image2 f s t :=
 set.ext $ λ _, mem_image₂
 
+lemma card_image₂_le (f : α → β → γ) (s : finset α) (t : finset β) :
+  (image₂ f s t).card ≤ s.card * t.card :=
+card_image_le.trans_eq $ card_product _ _
+
+lemma card_image₂ (hf : injective2 f) (s : finset α) (t : finset β) :
+  (image₂ f s t).card = s.card * t.card :=
+(card_image_of_injective hf.uncurry).trans $ card_product _ _
+
 lemma mem_image₂_of_mem (ha : a ∈ s) (hb : b ∈ t) : f a b ∈ image₂ f s t :=
 mem_image₂.2 ⟨a, b, ha, hb, rfl⟩
 
@@ -66,15 +75,14 @@ by simp_rw [←mem_coe, coe_image₂, forall_image2_iff]
 @[simp] lemma image₂_subset_iff : image₂ f s t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), f x y ∈ u :=
 forall_image₂_iff
 
-@[simp] lemma image₂_empty_left : image₂ f ∅ t = ∅ := coe_injective $ by simp
-@[simp] lemma image₂_empty_right : image₂ f s ∅ = ∅ := coe_injective $ by simp
-
 lemma nonempty.image₂ : s.nonempty → t.nonempty → (image₂ f s t).nonempty :=
 λ ⟨a, ha⟩ ⟨b, hb⟩, ⟨_, mem_image₂_of_mem ha hb⟩
 
 @[simp] lemma image₂_nonempty_iff : (image₂ f s t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 by { rw [←coe_nonempty, coe_image₂], exact image2_nonempty_iff }
 
+@[simp] lemma image₂_empty_left : image₂ f ∅ t = ∅ := coe_injective $ by simp
+@[simp] lemma image₂_empty_right : image₂ f s ∅ = ∅ := coe_injective $ by simp
 @[simp] lemma image₂_eq_empty_iff : image₂ f s t = ∅ ↔ s = ∅ ∨ t = ∅ :=
 by simp_rw [←not_nonempty_iff_eq_empty, image₂_nonempty_iff, not_and_distrib]
 

@@ -321,6 +321,19 @@ The tactic never fails (really? TODO), but flags three kinds of unwanted use.
 
 The tactic does not produce an error, but reports unused inputs and unchanged targets.
 
+##  Comparison with existing tactics
+
+* `abel` performs a "reduction to normal form" that allows it to close goals involving sums with
+higher success rate than `move_add`.  If the goal is an equality of two sums that are simply
+obtained by reparenthesizing and permuting summands, then `move_add [appropriate terms]` can close
+the goal.  Compared to `abel`, `move_add` has the advantage of allowing the user to specify the
+beginning and the end of the final sum, so that from there the user can continue with the proof.
+
+* `ac_change` supports a wide variety of operations.  At the moment, `move_add` only works with
+addition.  Still, on several experiments, `move_add` had a much quicker performance than
+`ac_change`.  Also, for `move_add` the user need only specify a few terms: the tactic itself takes
+care of producing the full rearrangement and proving it "behind the scenes".
+
 ###  Remark:
 It is still possible that the same output of `move_add [exprs]` can be achieved by a proper sublist
 of `[exprs]`, even if the tactic does not flag anything.  For instance, giving the full re-ordering

@@ -158,6 +158,12 @@ by rw [← dist_zero_left, ← dist_add_left g 0 h, add_zero]
 @[simp] theorem dist_self_add_left (g h : E) : dist (g + h) g = ∥h∥ :=
 by rw [dist_comm, dist_self_add_right]
 
+@[simp] theorem dist_self_sub_right (g h : E) : dist g (g - h) = ∥h∥ :=
+by rw [sub_eq_add_neg, dist_self_add_right, norm_neg]
+
+@[simp] theorem dist_self_sub_left (g h : E) : dist (g - h) g = ∥h∥ :=
+by rw [dist_comm, dist_self_sub_right]
+
 /-- **Triangle inequality** for the norm. -/
 lemma norm_add_le (g h : E) : ∥g + h∥ ≤ ∥g∥ + ∥h∥ :=
 by simpa [dist_eq_norm] using dist_triangle g 0 (-h)
@@ -765,6 +771,12 @@ noncomputable instance pi.semi_normed_group {π : ι → Type*} [fintype ι]
     congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
     show nndist (x a) (y a) = ∥x a - y a∥₊, from nndist_eq_nnnorm _ _ }
 
+lemma pi.norm_def {π : ι → Type*} [fintype ι] [Π i, semi_normed_group (π i)] (f : Π i, π i) :
+  ∥f∥ = ↑(finset.univ.sup (λ b, ∥f b∥₊)) := rfl
+
+lemma pi.nnnorm_def {π : ι → Type*} [fintype ι] [Π i, semi_normed_group (π i)] (f : Π i, π i) :
+  ∥f∥₊ = finset.univ.sup (λ b, ∥f b∥₊) := subtype.eta _ _
+
 /-- The seminorm of an element in a product space is `≤ r` if and only if the norm of each
 component is. -/
 lemma pi_norm_le_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] {r : ℝ}
@@ -799,6 +811,19 @@ by simpa only [← dist_zero_right] using dist_pi_const a 0
 @[simp] lemma pi_nnnorm_const [nonempty ι] [fintype ι] (a : E) :
   ∥(λ i : ι, a)∥₊ = ∥a∥₊ :=
 nnreal.eq $ pi_norm_const a
+
+/-- The $L^1$ norm is less than the $L^\infty$ norm scaled by the cardinality. -/
+lemma pi.sum_norm_apply_le_norm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)]
+  (x : Π i, π i) :
+  ∑ i, ∥x i∥ ≤ fintype.card ι • ∥x∥ :=
+calc ∑ i, ∥x i∥ ≤ ∑ i : ι, ∥x∥ : finset.sum_le_sum $ λ i hi, norm_le_pi_norm x i
+            ... = fintype.card ι • ∥x∥ : finset.sum_const _
+
+/-- The $L^1$ norm is less than the $L^\infty$ norm scaled by the cardinality. -/
+lemma pi.sum_nnnorm_apply_le_nnnorm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)]
+  (x : Π i, π i) :
+  ∑ i, ∥x i∥₊ ≤ fintype.card ι • ∥x∥₊ :=
+nnreal.coe_sum.trans_le $ pi.sum_norm_apply_le_norm x
 
 lemma tendsto_iff_norm_tendsto_zero {f : α → E} {a : filter α} {b : E} :
   tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥f e - b∥) a (𝓝 0) :=

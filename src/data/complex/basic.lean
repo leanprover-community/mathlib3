@@ -400,8 +400,7 @@ by rw [← of_real_int_cast, of_real_re]
 @[simp, norm_cast] lemma int_cast_im (n : ℤ) : (n : ℂ).im = 0 :=
 by rw [← of_real_int_cast, of_real_im]
 
-@[simp, norm_cast] theorem of_real_rat_cast (n : ℚ) : ((n : ℝ) : ℂ) = n :=
-of_real.map_rat_cast n
+@[simp, norm_cast] theorem of_real_rat_cast (n : ℚ) : ((n : ℝ) : ℂ) = n := map_rat_cast of_real n
 
 @[simp, norm_cast] lemma rat_cast_re (q : ℚ) : (q : ℂ).re = q :=
 by rw [← of_real_rat_cast, of_real_re]
@@ -599,7 +598,11 @@ lemma lt_def {z w : ℂ} : z < w ↔ z.re < w.re ∧ z.im = w.im := iff.rfl
 lemma not_le_iff {z w : ℂ} : ¬(z ≤ w) ↔ w.re < z.re ∨ z.im ≠ w.im :=
 by rw [le_def, not_and_distrib, not_le]
 
+lemma not_lt_iff {z w : ℂ} : ¬(z < w) ↔ w.re ≤ z.re ∨ z.im ≠ w.im :=
+by rw [lt_def, not_and_distrib, not_lt]
+
 lemma not_le_zero_iff {z : ℂ} : ¬z ≤ 0 ↔ 0 < z.re ∨ z.im ≠ 0 := not_le_iff
+lemma not_lt_zero_iff {z : ℂ} : ¬z < 0 ↔ 0 ≤ z.re ∨ z.im ≠ 0 := not_lt_iff
 
 /--
 With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is an ordered ring.

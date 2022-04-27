@@ -63,7 +63,7 @@ def to_clm (φ : character_space 𝕜 A) : A →L[𝕜] 𝕜 := (φ : weak_dual 
 lemma to_clm_apply (φ : character_space 𝕜 A) (x : A) : φ x = to_clm φ x := rfl
 
 /-- An element of the character space, as an non-unital algebra homomorphism. -/
-@[simps] def to_non_unital_alg_hom (φ : character_space 𝕜 A) : non_unital_alg_hom 𝕜 A 𝕜 :=
+@[simps] def to_non_unital_alg_hom (φ : character_space 𝕜 A) : A →ₙₐ[𝕜] 𝕜 :=
 { to_fun := (φ : A → 𝕜),
   map_mul' := φ.prop.2,
   map_smul' := (to_clm φ).map_smul,

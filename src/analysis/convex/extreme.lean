@@ -194,18 +194,14 @@ that contain it are those with `x` as one of their endpoints. -/
 lemma mem_extreme_points_iff_forall_segment :
   x ∈ A.extreme_points 𝕜 ↔ x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ segment 𝕜 x₁ x₂ → x₁ = x ∨ x₂ = x :=
 begin
+  refine and_congr_right (λ hxA, forall₄_congr $ λ x₁ h₁ x₂ h₂, _),
   split,
-  { rintro ⟨hxA, hAx⟩,
-    use hxA,
-    rintro x₁ hx₁ x₂ hx₂ hx,
-    by_contra' h,
-    exact h.1 (hAx _ hx₁ _ hx₂ (mem_open_segment_of_ne_left_right 𝕜 h.1 h.2 hx)).1 },
-  rintro ⟨hxA, hAx⟩,
-  use hxA,
-  rintro x₁ x₂ hx₁ hx₂ hx,
-  obtain rfl | rfl := hAx x₁ x₂ hx₁ hx₂ (open_segment_subset_segment 𝕜 _ _ hx),
-  { exact ⟨rfl, (left_mem_open_segment_iff.1 hx).symm⟩ },
-  exact ⟨right_mem_open_segment_iff.1 hx, rfl⟩,
+  { rw ← insert_endpoints_open_segment,
+    rintro H (rfl|rfl|hx),
+    exacts [or.inl rfl, or.inr rfl, or.inl $ (H hx).1] },
+  { intros H hx,
+    rcases H (open_segment_subset_segment _ _ _ hx) with rfl | rfl,
+    exacts [⟨rfl, (left_mem_open_segment_iff.1 hx).symm⟩, ⟨right_mem_open_segment_iff.1 hx, rfl⟩] }
 end
 
 lemma convex.mem_extreme_points_iff_convex_diff (hA : convex 𝕜 A) :

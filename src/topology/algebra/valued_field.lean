@@ -336,27 +336,21 @@ noncomputable def extension_valuation :
   end }
 
 -- Bourbaki CA VI §5 no.3 Proposition 5 (d)
-lemma closure_v_lt {γ : Γ₀ˣ} :
+lemma closure_coe_completion_v_lt {γ : Γ₀ˣ} :
   closure (coe '' { x : K | v x < (γ : Γ₀) }) = { x : hat K | extension_valuation x < (γ : Γ₀) } :=
 begin
   ext x,
   let γ₀ := extension_valuation x,
   suffices : γ₀ ≠ 0 → (x ∈ closure (coe '' { x : K | v x < (γ : Γ₀) }) ↔ γ₀ < (γ : Γ₀)),
   { cases eq_or_ne γ₀ 0,
-    { rw valuation.zero_iff at h,
-      simp only [h, mem_set_of_eq, valuation.map_zero, units.zero_lt, iff_true],
+    { simp only [h, (valuation.zero_iff _).mp h, mem_set_of_eq, valuation.map_zero, units.zero_lt,
+        iff_true],
       apply subset_closure,
-      use 0,
-      simpa only [mem_set_of_eq, valuation.map_zero, units.zero_lt, true_and], },
+      exact ⟨0, by simpa only [mem_set_of_eq, valuation.map_zero, units.zero_lt, true_and]⟩, },
     { exact this h, }, },
   intros h,
-  have hγ₀ : { γ₀ } ∈ 𝓝 γ₀,
-  { apply (linear_ordered_comm_group_with_zero.has_basis_nhds_of_ne_zero h).mem_of_mem
-      true.intro,
-    exact unit.star, },
-  replace hγ₀ := continuous_extension.continuous_at.preimage_mem_nhds hγ₀,
-  let u := (extension_valuation : hat K → Γ₀)⁻¹' { γ₀ },
-  have hu : x ∈ u, { simp, },
+  have hγ₀ : extension ⁻¹' {γ₀} ∈ 𝓝 x := continuous_extension.continuous_at.preimage_mem_nhds
+    (linear_ordered_comm_group_with_zero.singleton_mem_nhds_of_ne_zero h),
   rw mem_closure_iff_nhds',
   refine ⟨λ hx, _, λ hx s hs, _⟩,
   { obtain ⟨⟨-, y, hy₁ : v y < (γ : Γ₀), rfl⟩, hy₂⟩ := hx _ hγ₀,
@@ -369,21 +363,21 @@ begin
 end
 
 noncomputable instance valued_completion : valued (hat K) Γ₀ :=
-{ v := valued.extension_valuation,
+{ v := extension_valuation,
   is_uniform_valuation := λ s,
   begin
     suffices : has_basis (𝓝 (0 : hat K)) (λ _, true) (λ (γ : Γ₀ˣ),
-      { x | valued.extension_valuation x < (γ : Γ₀) }),
+      { x | extension_valuation x < (γ : Γ₀) }),
     { simp only [uniformity_eq_comap_nhds_zero, mem_comap],
       split,
       { rintros ⟨n, hn, hns⟩,
         obtain ⟨γ, -, hγ⟩ := this.mem_iff.mp hn,
         exact ⟨γ, subset.trans (preimage_mono hγ) hns⟩, },
       { rintros ⟨γ, hγ⟩,
-        exact ⟨{ x | valued.extension_valuation x < (γ : Γ₀) },
+        exact ⟨{ x | extension_valuation x < (γ : Γ₀) },
           this.mem_iff.mpr ⟨γ, trivial, subset.rfl⟩, subset.trans subset.rfl hγ⟩, }, },
-    simp_rw ← valued.closure_v_lt,
-    exact (valued.has_basis_nhds_zero K Γ₀).completion_nhds_zero,
+    simp_rw ← closure_coe_completion_v_lt,
+    exact (has_basis_nhds_zero K Γ₀).completion_nhds_zero,
   end }
 
 end valued

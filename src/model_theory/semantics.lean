@@ -548,6 +548,7 @@ iff.rfl
 
 variables (L)
 
+/-- The complete theory of a structure `M` is the set of all sentences `M` satisfies. -/
 def complete_theory : L.Theory := { φ | M ⊨ φ }
 
 variables {L}

@@ -52,7 +52,7 @@ def numeric : pgame → Prop
 | ⟨l, r, L, R⟩ :=
   (∀ i j, L i < R j) ∧ (∀ i, numeric (L i)) ∧ (∀ i, numeric (R i))
 
-lemma numeric_def (x : pgame) : numeric x ↔ (∀ i j, x.move_left i < x.move_right j) ∧
+lemma numeric_def {x : pgame} : numeric x ↔ (∀ i j, x.move_left i < x.move_right j) ∧
   (∀ i, numeric (x.move_left i)) ∧ (∀ i, numeric (x.move_right i)) :=
 by { cases x, refl }
 

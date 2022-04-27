@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
 
-import set_theory.game.pgame
+import set_theory.game.basic
 import set_theory.ordinal.basic
+import set_theory.surreal.basic
 
 /-!
 # Ordinals as games
@@ -20,13 +21,14 @@ set consists of all previous ordinals.
 
 # Todo
 
-- Extend this map to `game` and `surreal`.
 - Prove that `birthday o.to_pgame = o`.
 -/
 
 universe u
 
 namespace ordinal
+
+/-! ## Ordinals to pre-games -/
 
 /-- Converts an ordinal into the corresponding pre-game. -/
 noncomputable! def to_pgame : Π o : ordinal.{u}, pgame.{u}
@@ -61,9 +63,13 @@ theorem to_pgame_move_left_heq {o : ordinal} :
   o.to_pgame.move_left == λ x : o.out.α, (typein (<) x).to_pgame :=
 by { rw to_pgame, refl }
 
-@[simp] theorem to_pgame_move_left {o : ordinal} (i : o.out.α) :
+theorem to_pgame_move_left {o : ordinal} (i) :
   o.to_pgame.move_left (to_left_moves_to_pgame i) = (typein (<) i).to_pgame :=
 by { rw to_left_moves_to_pgame, exact congr_fun_heq _ to_pgame_move_left_heq i }
+
+@[simp] theorem to_pgame_move_left' {o : ordinal} (i) :
+  o.to_pgame.move_left i = (typein (<) (to_left_moves_to_pgame.symm i)).to_pgame :=
+by { nth_rewrite_lhs 0 ←to_left_moves_to_pgame.apply_symm_apply i, rw to_pgame_move_left }
 
 theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
 begin
@@ -81,8 +87,7 @@ begin
     apply lt_of_lt_of_le _ h,
     simp_rw ←type_lt a,
     apply typein_lt_type },
-  { rw [←to_left_moves_to_pgame.apply_symm_apply i, to_pgame_move_left],
-    simp }
+  { simp }
 end
 
 @[simp] theorem to_pgame_lt_iff {a b : ordinal} : a.to_pgame < b.to_pgame ↔ a < b :=
@@ -105,5 +110,67 @@ end
 { to_fun := ordinal.to_pgame,
   inj' := to_pgame_injective,
   map_rel_iff' := @to_pgame_le_iff }
+
+theorem to_pgame_numeric (o : ordinal) : o.to_pgame.numeric :=
+begin
+  induction o using ordinal.induction with o IH,
+  refine pgame.numeric_def.2 ⟨λ _, is_empty_elim, λ i, _, is_empty_elim⟩,
+  rw to_pgame_move_left',
+  exact IH _ (typein_lt_self _)
+end
+
+/-! ## Ordinals to games -/
+
+/-- Converts an ordinal into the corresponding game. -/
+noncomputable def to_game (o : ordinal.{u}) : game.{u} := ⟦o.to_pgame⟧
+theorem to_game_def (o : ordinal.{u}) : o.to_game = ⟦o.to_pgame⟧ := rfl
+
+theorem to_game_lt {a b : ordinal} : a < b → game.lt a.to_game b.to_game := to_pgame_lt
+theorem to_game_le {a b : ordinal} : a ≤ b → game.le a.to_game b.to_game := to_pgame_le
+
+@[simp] theorem to_game_lt_iff {a b : ordinal} : game.lt a.to_game b.to_game ↔ a < b :=
+to_pgame_lt_iff
+@[simp] theorem to_game_le_iff {a b : ordinal} : game.le a.to_game b.to_game ↔ a ≤ b :=
+to_pgame_le_iff
+
+theorem to_game_injective : function.injective ordinal.to_game :=
+λ a b h, begin
+  cases quotient.exact h with hl hr,
+  rw to_pgame_le_iff at hl hr,
+  exact hl.antisymm hr
+end
+
+/-- The order embedding version of `to_game`. -/
+@[simps] noncomputable def to_game_embedding : ordinal.{u} ↪o game.{u} :=
+{ to_fun := ordinal.to_game,
+  inj' := to_game_injective,
+  map_rel_iff' := @to_game_le_iff }
+
+/-! ## Surreals to games -/
+
+/-- Converts an ordinal into the corresponding game. -/
+noncomputable def to_surreal (o : ordinal.{u}) : surreal.{u} := ⟦⟨_, o.to_pgame_numeric⟩⟧
+theorem to_surreal_def (o : ordinal.{u}) : o.to_surreal = ⟦⟨_, o.to_pgame_numeric⟩⟧ := rfl
+
+theorem to_surreal_lt {a b : ordinal} : a < b → a.to_surreal < b.to_surreal := to_pgame_lt
+theorem to_surreal_le {a b : ordinal} : a ≤ b → a.to_surreal ≤ b.to_surreal := to_pgame_le
+
+@[simp] theorem to_surreal_lt_iff {a b : ordinal} : a.to_surreal < b.to_surreal ↔ a < b :=
+to_pgame_lt_iff
+@[simp] theorem to_surreal_le_iff {a b : ordinal} : a.to_surreal ≤ b.to_surreal ↔ a ≤ b :=
+to_pgame_le_iff
+
+theorem to_surreal_injective : function.injective ordinal.to_surreal :=
+λ a b h, begin
+  cases quotient.exact h with hl hr,
+  rw to_pgame_le_iff at hl hr,
+  exact hl.antisymm hr
+end
+
+/-- The order embedding version of `to_surreal`. -/
+@[simps] noncomputable def to_surreal_embedding : ordinal.{u} ↪o surreal.{u} :=
+{ to_fun := ordinal.to_surreal,
+  inj' := to_surreal_injective,
+  map_rel_iff' := @to_surreal_le_iff }
 
 end ordinal

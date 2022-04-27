@@ -120,15 +120,6 @@ inductive pgame : Type (u+1)
 
 namespace pgame
 
-/--
-Construct a pre-game from list of pre-games describing the available moves for Left and Right.
--/
--- TODO provide some API describing the interaction with
--- `left_moves`, `right_moves`, `move_left` and `move_right` below.
--- TODO define this at the level of games, as well, and perhaps also for finsets of games.
-def of_lists (L R : list pgame.{0}) : pgame.{0} :=
-pgame.mk (fin L.length) (fin R.length) (λ i, L.nth_le i i.is_lt) (λ j, R.nth_le j.val j.is_lt)
-
 /-- The indexing type for allowable moves by Left. -/
 def left_moves : pgame → Type u
 | (mk l _ _ _) := l
@@ -147,6 +138,45 @@ def move_right : Π (g : pgame), right_moves g → pgame
 @[simp] lemma move_left_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_left = xL := rfl
 @[simp] lemma right_moves_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).right_moves = xr := rfl
 @[simp] lemma move_right_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_right = xR := rfl
+
+/--
+Construct a pre-game from list of pre-games describing the available moves for Left and Right.
+-/
+-- TODO define this at the level of games, as well, and perhaps also for finsets of games.
+def of_lists (L R : list pgame.{u}) : pgame.{u} :=
+mk (ulift (fin L.length)) (ulift (fin R.length))
+  (λ i, L.nth_le i.down i.down.is_lt) (λ j, R.nth_le j.down.val j.down.is_lt)
+
+@[simp] lemma of_lists_left_moves (L R : list pgame) :
+  (of_lists L R).left_moves = ulift (fin L.length) := rfl
+@[simp] lemma of_lists_right_moves (L R : list pgame) :
+  (of_lists L R).right_moves = ulift (fin R.length) := rfl
+
+/-- Converts a number into a left move for `of_lists`. -/
+def to_of_lists_left_moves {L R : list pgame} : fin L.length ≃ (of_lists L R).left_moves :=
+((equiv.cast (of_lists_left_moves L R).symm).trans equiv.ulift).symm
+
+/-- Converts a number into a right move for `of_lists`. -/
+def to_of_lists_right_moves {L R : list pgame} : fin R.length ≃ (of_lists L R).right_moves :=
+((equiv.cast (of_lists_right_moves L R).symm).trans equiv.ulift).symm
+
+theorem of_lists_move_left {L R : list pgame} (i : fin L.length) :
+  (of_lists L R).move_left (to_of_lists_left_moves i) = L.nth_le i i.is_lt :=
+rfl
+
+@[simp] theorem of_lists_move_left' {L R : list pgame} (i : (of_lists L R).left_moves) :
+  (of_lists L R).move_left i =
+  L.nth_le (to_of_lists_left_moves.symm i) (to_of_lists_left_moves.symm i).is_lt :=
+rfl
+
+theorem of_lists_move_right {L R : list pgame} (i : fin R.length) :
+  (of_lists L R).move_right (to_of_lists_right_moves i) = R.nth_le i i.is_lt :=
+rfl
+
+@[simp] theorem of_lists_move_right' {L R : list pgame} (i : (of_lists L R).right_moves) :
+  (of_lists L R).move_right i =
+  R.nth_le (to_of_lists_right_moves.symm i) (to_of_lists_right_moves.symm i).is_lt :=
+rfl
 
 /-- A variant of `pgame.rec_on` expressed in terms of `pgame.move_left` and `pgame.move_right`.
 
@@ -232,6 +262,7 @@ instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 @[simp] lemma one_move_left : (1 : pgame).move_left punit.star = 0 := rfl
 @[simp] lemma one_right_moves : (1 : pgame).right_moves = pempty := rfl
 
+instance is_unique_one_left_moves : unique (1 : pgame).left_moves := punit.unique
 instance is_empty_one_right_moves : is_empty (1 : pgame).right_moves := pempty.is_empty
 
 /-- Define simultaneously by mutual induction the `<=` and `<`
@@ -1089,53 +1120,52 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
      ... ≤ y : (add_zero_relabelling y).le⟩
 
 /-- The pre-game `star`, which is fuzzy/confused with zero. -/
-def star : pgame := pgame.of_lists [0] [0]
+def star : pgame.{u} := of_lists [0] [0]
 
-instance inhabited_star_left_moves : inhabited star.left_moves :=
-show (inhabited (fin 1)), by apply_instance
+@[simp] theorem star_left_moves : star.left_moves = ulift (fin 1) := rfl
+@[simp] theorem star_right_moves : star.right_moves = ulift (fin 1) := rfl
 
-instance inhabited_star_right_moves : inhabited star.right_moves :=
-show (inhabited (fin 1)), by apply_instance
+@[simp] theorem star_move_left (x) : star.move_left x = 0 :=
+show (of_lists _ _).move_left x = 0, by simp
+@[simp] theorem star_move_right (x) : star.move_right x = 0 :=
+show (of_lists _ _).move_right x = 0, by simp
+
+instance unique_star_left_moves : unique star.left_moves :=
+@equiv.unique _ (fin 1) _ equiv.ulift
+instance unique_star_right_moves : unique star.right_moves :=
+@equiv.unique _ (fin 1) _ equiv.ulift
 
 theorem star_lt_zero : star < 0 :=
-by rw lt_def; exact
-or.inr ⟨⟨0, zero_lt_one⟩, (by split; rintros ⟨⟩)⟩
-
+by { rw lt_zero, use default, rintros ⟨⟩ }
 theorem zero_lt_star : 0 < star :=
-by rw lt_def; exact
-or.inl ⟨⟨0, zero_lt_one⟩, (by split; rintros ⟨⟩)⟩
+by { rw zero_lt, use default, rintros ⟨⟩ }
 
 /-- The pre-game `ω`. (In fact all ordinals have game and surreal representatives.) -/
 def omega : pgame := ⟨ulift ℕ, pempty, λ n, ↑n.1, pempty.elim⟩
 
 theorem zero_lt_one : (0 : pgame) < 1 :=
-begin
-  rw lt_def,
-  left,
-  use ⟨punit.star, by split; rintro ⟨ ⟩⟩,
-end
+by { rw zero_lt, use default, rintro ⟨⟩ }
 
 /-- The pre-game `half` is defined as `{0 | 1}`. -/
 def half : pgame := ⟨punit, punit, 0, 1⟩
 
-@[simp] lemma half_move_left : half.move_left punit.star = 0 := rfl
+@[simp] theorem half_left_moves : half.left_moves = punit := rfl
+@[simp] theorem half_right_moves : half.right_moves = punit := rfl
+@[simp] lemma half_move_left (x) : half.move_left x = 0 := rfl
+@[simp] lemma half_move_right (x) : half.move_right x = 1 := rfl
 
-@[simp] lemma half_move_right : half.move_right punit.star = 1 := rfl
+instance unique_half_left_moves : unique half.left_moves := punit.unique
+instance unique_half_right_moves : unique half.right_moves := punit.unique
 
 protected theorem zero_lt_half : 0 < half :=
-begin
-  rw lt_def,
-  left,
-  use punit.star,
-  split; rintro ⟨ ⟩,
-end
+by { rw zero_lt, use default, rintro ⟨⟩ }
 
 theorem half_lt_one : half < 1 :=
 begin
   rw lt_def,
   right,
-  use punit.star,
-  split; rintro ⟨ ⟩,
+  use default,
+  split; rintro ⟨⟩,
   exact zero_lt_one,
 end
 

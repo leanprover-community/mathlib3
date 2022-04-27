@@ -210,7 +210,7 @@ instance sum_inr_is_expansion_on (M : Type*)
   (Lhom.sum_inr : L' →ᴸ L.sum L').is_expansion_on M :=
 ⟨λ _ f _, rfl, λ _ R _, rfl⟩
 
-instance is_expansion_on_reduct (ϕ : L →ᴸ L') (M : Type*) [L'.Structure M] :
+@[priority 100] instance is_expansion_on_reduct (ϕ : L →ᴸ L') (M : Type*) [L'.Structure M] :
   @is_expansion_on L L' ϕ M (ϕ.reduct M) _ :=
 begin
   letI := ϕ.reduct M,

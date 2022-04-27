@@ -149,7 +149,7 @@ instance module.finite.tensor_product [comm_semiring R]
   [hM : module.finite R M] [hN : module.finite R N] : module.finite R (tensor_product R M N) :=
 { out := begin
     obtain ⟨fM, hM⟩ := hM.out, obtain ⟨fN, hN⟩ := hN.out,
-    rw ← tensor_product.span_tmul_eq_top_of_span_eq_top R _ _ hM hN,
+    rw ← tensor_product.span_image2_eq_top R _ _ hM hN,
     exact ⟨_, congr_arg _ (fM.finite_to_set.image2 _ fN.finite_to_set).coe_to_finset⟩,
   end }
 

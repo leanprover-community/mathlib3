@@ -292,6 +292,10 @@ by rw [←cthickening_singleton _ hδ, cthickening_cthickening hε hδ,
   ball a ε + ball b δ = ball (a + b) (ε + δ) :=
 by rw [ball_add, thickening_ball hε hδ, vadd_ball, vadd_eq_add]; apply_instance
 
+@[simp] lemma ball_sub_ball (hε : 0 < ε) (hδ : 0 < δ) (a b : E) :
+  ball a ε - ball b δ = ball (a - b) (ε + δ) :=
+by rw [ball_sub, thickening_ball hε hδ, vadd_ball, vadd_eq_add]; apply_instance
+
 @[simp] lemma ball_add_closed_ball (hε : 0 < ε) (hδ : 0 ≤ δ) (a b : E) :
   ball a ε + closed_ball b δ = ball (a + b) (ε + δ) :=
 by rw [ball_add, thickening_closed_ball hε hδ, vadd_ball, vadd_eq_add]; apply_instance

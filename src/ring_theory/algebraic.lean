@@ -101,7 +101,7 @@ by { rw ←ring_hom.map_int_cast (algebra_map R A), exact is_algebraic_algebra_m
 
 lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [char_zero R]
   [algebra R A] (n : ℚ) : is_algebraic R (n : A) :=
-by { rw ←ring_hom.map_rat_cast (algebra_map R A), exact is_algebraic_algebra_map n }
+by { rw ←map_rat_cast (algebra_map R A), exact is_algebraic_algebra_map n }
 
 lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :
   is_algebraic R a → is_algebraic R (algebra_map S A a) :=

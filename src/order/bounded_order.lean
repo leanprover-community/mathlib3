@@ -639,6 +639,17 @@ lemma get_or_else_bot_le_iff [has_le α] [order_bot α] {a : with_bot α} {b : �
   a.get_or_else ⊥ ≤ b ↔ a ≤ b :=
 by cases a; simp [none_eq_bot, some_eq_coe]
 
+lemma get_or_else_bot_lt_iff [partial_order α] [order_bot α] {a : with_bot α} {b : α}
+  (ha : a ≠ ⊥) :
+  a.get_or_else ⊥ < b ↔ a < b :=
+begin
+  obtain ⟨a, rfl⟩ := ne_bot_iff_exists.mp ha,
+  simp only [lt_iff_le_and_ne, get_or_else_bot_le_iff, and.congr_right_iff],
+  intro h,
+  apply iff.not,
+  simp only [with_bot.coe_eq_coe, option.get_or_else_coe, iff_self],
+end
+
 instance [semilattice_sup α] : semilattice_sup (with_bot α) :=
 { sup          := option.lift_or_get (⊔),
   le_sup_left  := λ o₁ o₂ a ha,

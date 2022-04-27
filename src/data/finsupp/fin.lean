@@ -36,7 +36,7 @@ finsupp.equiv_fun_on_fintype.inv_fun (fin.cons y s.to_fun)
 lemma tail_apply : tail t i = t i.succ :=
 begin
   simp only [tail, equiv_fun_on_fintype_symm_apply_to_fun, equiv.inv_fun_as_coe],
-  congr,
+  refl,
 end
 
 @[simp] lemma cons_zero : cons y s 0 = y :=
@@ -53,7 +53,7 @@ begin
   simp only [finsupp.cons, fin.cons, finsupp.tail, fin.tail],
   ext,
   simp only [equiv_fun_on_fintype_symm_apply_to_fun, equiv.inv_fun_as_coe,
-  finsupp.coe_mk, fin.cases_succ, equiv_fun_on_fintype],
+    finsupp.coe_mk, fin.cases_succ, equiv_fun_on_fintype],
   refl,
 end
 
@@ -68,46 +68,32 @@ end
 @[simp] lemma cons_zero_zero : cons 0 (0 : fin n →₀ M) = 0 :=
 begin
   ext,
-  by_cases c : a ≠ 0,
+  by_cases c : a = 0,
+  { simp [c] },
   { rw [←fin.succ_pred a c, cons_succ],
     simp },
-  { simp only [not_not] at c,
-    simp [c] },
 end
 
 variables {s} {y}
 
 lemma cons_ne_zero_of_left (h : y ≠ 0) : cons y s ≠ 0 :=
 begin
-  by_contradiction c,
-  have h1 : cons y s 0 = 0 := by simp [c],
-  rw cons_zero at h1,
-  cc,
+  contrapose! h with c,
+  rw [←cons_zero y s, c, finsupp.coe_zero, pi.zero_apply],
 end
 
 lemma cons_ne_zero_of_right (h : s ≠ 0) : cons y s ≠ 0 :=
 begin
-  by_contradiction c,
-  have h' : s = 0,
-  { ext,
-    simp [ ← cons_succ a y s, c] },
-  cc,
+  contrapose! h with c,
+  ext,
+  simp [ ← cons_succ a y s, c],
 end
 
 lemma cons_ne_zero_iff : cons y s ≠ 0 ↔ y ≠ 0 ∨ s ≠ 0 :=
 begin
-  apply iff.intro,
-  { intro h,
-    apply or_iff_not_imp_left.2,
-    intro h',
-    simp only [not_not] at h',
-    by_contra c,
-    rw [h', c] at h,
-    simpa using h },
-  { intro h,
-    cases h,
-    { exact cons_ne_zero_of_left h },
-    { exact cons_ne_zero_of_right h } },
+  refine ⟨λ h, _, λ h, h.cases_on cons_ne_zero_of_left cons_ne_zero_of_right⟩,
+  refine imp_iff_not_or.1 (λ h' c, h _),
+  rw [h', c, finsupp.cons_zero_zero],
 end
 
 end finsupp

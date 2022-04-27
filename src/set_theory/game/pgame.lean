@@ -190,19 +190,19 @@ theorem wf_subsequent : well_founded subsequent := well_founded.trans_gen wf_is_
 
 instance : has_well_founded pgame := ⟨_, wf_subsequent⟩
 
-lemma subsequent.move_left {x : pgame} (i) : subsequent (x.move_left i) x :=
+lemma subsequent.move_left {x : pgame} (i : x.left_moves) : subsequent (x.move_left i) x :=
 trans_gen.single (is_option.move_left i)
 
-lemma subsequent.move_right {x : pgame} (i) : subsequent (x.move_right i) x :=
-trans_gen.single (is_option.move_right i)
+lemma subsequent.move_right {x : pgame} (j : x.right_moves) : subsequent (x.move_right j) x :=
+trans_gen.single (is_option.move_right j)
 
 lemma subsequent.mk_left {xl xr} (xL : xl → pgame) (xR : xr → pgame) (i : xl) :
   subsequent (xL i) (mk xl xr xL xR) :=
 @subsequent.move_left (mk _ _ _ _) i
 
-lemma subsequent.mk_right {xl xr} (xL : xl → pgame) (xR : xr → pgame) (i : xr) :
-  subsequent (xR i) (mk xl xr xL xR) :=
-@subsequent.move_right (mk _ _ _ _) i
+lemma subsequent.mk_right {xl xr} (xL : xl → pgame) (xR : xr → pgame) (j : xr) :
+  subsequent (xR j) (mk xl xr xL xR) :=
+@subsequent.move_right (mk _ _ _ _) j
 
 /-- A local tactic for proving well-foundedness of recursive definitions involving pregames. -/
 meta def pgame_wf_tac :=

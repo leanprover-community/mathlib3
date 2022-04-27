@@ -90,7 +90,7 @@ def of_lift {G : Type u} [group G] (X : Type u)
   (of : X → G)
   (lift : ∀ {H : Type u} [group H], by exactI (X → H) ≃ (G →* H))
   (lift_of : ∀ {H : Type u} [group H], by exactI ∀ (f : X → H) a, lift f (of a) = f a) :
-  (is_free_group G : Type (u+1)) :=
+  is_free_group G :=
 { generators := X,
   mul_equiv := monoid_hom.to_mul_equiv
     (free_group.lift of)
@@ -114,7 +114,7 @@ noncomputable
 def of_unique_lift {G : Type u} [group G] (X : Type u)
   (of : X → G)
   (h : ∀ {H : Type u} [group H] (f : X → H), by exactI ∃! F : G →* H, ∀ a, F (of a) = f a) :
-  (is_free_group G : Type (u+1)) :=
+  is_free_group G :=
 let lift {H : Type u} [group H] : by exactI (X → H) ≃ (G →* H) := by exactI
   { to_fun := λ f, classical.some (h f),
     inv_fun := λ F, F ∘ of,

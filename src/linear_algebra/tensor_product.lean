@@ -369,9 +369,8 @@ lemma span_image2_eq_top {sM : set M} {sN : set N}
   (hM : submodule.span R sM = ⊤) (hN : submodule.span R sN = ⊤) :
   submodule.span R (set.image2 (tmul R) sM sN) = ⊤ :=
 begin
-  erw [← submodule.map₂_span_span R (mk R M N), submodule.map₂_eq_span_image2, ← span_tmul_eq_top],
-  rw [hM, hN], congr, ext,
-  exact ⟨ λ ⟨m,n,_,_,h⟩,⟨m,n,h⟩, λ ⟨m,n,h⟩,⟨m,n,trivial,trivial,h⟩ ⟩,
+  erw [← top_le_iff, ← submodule.map₂_span_span R (mk R M N), submodule.map₂_eq_span_image2,
+    ← span_tmul_eq_top, hM, hN], exact submodule.span_mono (λ _ ⟨m,n,h⟩, ⟨m,n,trivial,trivial,h⟩),
 end
 
 end module

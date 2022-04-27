@@ -103,7 +103,8 @@ instance valued.topological_division_ring [valued K Γ₀] : topological_divisio
 @[priority 100]
 instance valued_ring.separated [valued K Γ₀] : separated_space K :=
 begin
-  apply valued.separated_of_zero_sep,
+  rw separated_iff_t2,
+  apply topological_add_group.t2_space_of_zero_sep,
   intros x x_ne,
   refine ⟨{k | v k < v x}, _, λ h, lt_irrefl _ h⟩,
   rw valued.mem_nhds,

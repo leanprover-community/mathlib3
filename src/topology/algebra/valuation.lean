@@ -125,20 +125,10 @@ begin
   exact (has_basis_nhds_zero R Γ₀).comap _,
 end
 
-lemma uniformity_eq :
-  𝓤 R = (@topological_add_group.to_uniform_space R _ v.subgroups_basis.topology _).uniformity :=
-(has_basis_uniformity R Γ₀).eq_of_same_basis $ v.subgroups_basis.has_basis_nhds_zero.comap _
-
 lemma to_uniform_space_eq :
   to_uniform_space = @topological_add_group.to_uniform_space R _ v.subgroups_basis.topology _ :=
-uniform_space_eq (uniformity_eq R Γ₀)
-
-lemma to_topological_space_eq :
-  (by apply_instance : topological_space R) = v.subgroups_basis.topology :=
-begin
-  rw to_uniform_space_eq,
-  congr,
-end
+uniform_space_eq
+  ((has_basis_uniformity R Γ₀).eq_of_same_basis $ v.subgroups_basis.has_basis_nhds_zero.comap _)
 
 variables {R Γ₀}
 
@@ -176,19 +166,6 @@ begin
     exact h _ (valued.v.subgroups_basis.mem_add_group_filter_basis _) },
   { rintros h - ⟨γ, rfl⟩,
     exact h γ }
-end
-
-lemma separated_of_zero_sep
-  (H : ∀ x : R, x ≠ 0 → ∃ U ∈ 𝓝 (0 : R), x ∉ U) : separated_space R :=
-begin
-  -- The nasty typeclass rewrites here ultimately stem from the fact that
-  -- `topological_add_group.separated_of_zero_sep` redundantly demands a `uniform_space`
-  -- structure (which is definitionally `topological_group.to_uniform_space`).
-  -- TODO Change the conclusion to be `t2_space`, both here and in
-  -- `topological_add_group.separated_of_zero_sep`.
-  rw to_uniform_space_eq,
-  convert topological_add_group.separated_of_zero_sep H,
-  rw to_topological_space_eq,
 end
 
 end valued

@@ -6,7 +6,7 @@ Authors: Stuart Presnell
 import data.nat.prime
 import data.finsupp.multiset
 import algebra.big_operators.finsupp
-import number_theory.padics.padic_norm
+import number_theory.padics.padic_val
 import tactic.linarith
 import tactic.interval_cases
 
@@ -48,7 +48,7 @@ lemma dvd_iff_padic_val_nat_ne_zero {p n : ℕ} [fact p.prime] (hn0 : n ≠ 0) :
 begin
   split,
   { intros h H,
-    have := one_le_padic_val_nat_of_dvd hn0 h,
+    have := one_le_padic_val_nat_of_dvd (nat.pos_of_ne_zero hn0) h,
     linarith },
   { intros h,
     apply dvd_of_one_le_padic_val_nat,
@@ -82,6 +82,14 @@ begin
   simp [factorization, pp],
   rw part.get_or_else_of_dom (multiplicity p n) hdom,
   simp,
+end
+
+lemma padic_val_nat_eq_factorization (p n : ℕ) [hp : fact p.prime] :
+  padic_val_nat p n = n.factorization p :=
+begin
+  by_cases hn : n = 0, { subst hn, simp },
+  rw @padic_val_nat_def p _ n (nat.pos_of_ne_zero hn),
+  simp [@multiplicity_eq_factorization n p hp.elim hn],
 end
 
 /-! ### Basic facts about factorization -/

@@ -9,7 +9,7 @@ import ring_theory.int.basic
 import tactic.basic
 import tactic.ring_exp
 import number_theory.divisors
-import data.nat.factorization
+-- import data.nat.factorization
 
 /-!
 # p-adic Valuation
@@ -510,15 +510,18 @@ protected lemma padic_val_nat.div' {p : ℕ} [p_prime : fact p.prime] :
       { exact hc } },
   end
 
-lemma padic_val_nat_eq_factorization (p n : ℕ) [hp : fact p.prime] :
-  padic_val_nat p n = n.factorization p :=
-begin
-  by_cases hn : n = 0, { subst hn, simp },
-  rw @padic_val_nat_def p _ n (nat.pos_of_ne_zero hn),
-  simp [@multiplicity_eq_factorization n p hp.elim hn],
-end
-
 open_locale big_operators
+
+/-- Two positive naturals are equal if their prime padic valuations are equal -/
+lemma eq_iff_prime_padic_val_nat_eq (a b : ℕ) (a_pos : 0 < a) (b_pos : 0 < b) :
+  a = b ↔ (∀ p : ℕ, p.prime → padic_val_nat p a = padic_val_nat p b) :=
+begin
+  split,
+  { intros h p pp,
+    rw h, },
+  intro h,
+  apply nat.rec_on_mul,
+end
 
 lemma prod_pow_prime_padic_val_nat (n : nat) (hn : n ≠ 0) (m : nat) (pr : n < m) :
   ∏ p in finset.filter nat.prime (finset.range m), p ^ (padic_val_nat p n) = n :=

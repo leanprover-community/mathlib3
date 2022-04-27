@@ -22,6 +22,7 @@ Moreover, we prove some lemmas about the fixed points of specific normal functio
 * `fp_family_unbounded`, `fp_bfamily_unbounded`, `fp_unbounded`: the (common) fixed points of a
   (family of) normal function(s) are unbounded in the ordinals.
 * `deriv_add_eq_mul_omega_add`: a characterization of the derivative of addition.
+* `deriv_mul_eq_opow_omega_mul`: a characterization of the derivative of multiplication.
 -/
 
 noncomputable theory

@@ -20,52 +20,6 @@ We define bundled non-unital subsemirings and some standard constructions:
 `comap` and range (`srange`) of a `non_unital_ring_hom` etc.
 -/
 
-section prelim
-
--- this can generalize the corresponding section of `group_theory/submonoid/membership`
-namespace mul_mem_class
-
-variables {R M : Type*} [non_unital_non_assoc_semiring R] [set_like M R] [mul_mem_class M R]
-  {S : M} {a b : R}
-
-/-- The product of an element of the additive closure of a multiplicative subsemigroup `M`
-and an element of `M` is contained in the additive closure of `M`. -/
-lemma mul_right_mem_add_closure
-  (ha : a ∈ add_submonoid.closure (S : set R)) (hb : b ∈ S) :
-  a * b ∈ add_submonoid.closure (S : set R) :=
-begin
-  revert b,
-  refine add_submonoid.closure_induction ha _ _ _; clear ha a,
-  { exact λ r hr b hb, add_submonoid.mem_closure.mpr (λ y hy, hy (mul_mem hr hb)) },
-  { exact λ b hb, by simp only [zero_mul, (add_submonoid.closure (S : set R)).zero_mem] },
-  { simp_rw add_mul,
-    exact λ r s hr hs b hb, (add_submonoid.closure (S : set R)).add_mem (hr hb) (hs hb) }
-end
-
-/-- The product of two elements of the additive closure of a submonoid `M` is an element of the
-additive closure of `M`. -/
-lemma mul_mem_add_closure
-  (ha : a ∈ add_submonoid.closure (S : set R)) (hb : b ∈ add_submonoid.closure (S : set R)) :
-  a * b ∈ add_submonoid.closure (S : set R) :=
-begin
-  revert a,
-  refine add_submonoid.closure_induction hb _ _ _; clear hb b,
-  { exact λ r hr b hb, mul_mem_class.mul_right_mem_add_closure hb hr },
-  { exact λ b hb, by simp only [mul_zero, (add_submonoid.closure (S : set R)).zero_mem] },
-  { simp_rw mul_add,
-    exact λ r s hr hs b hb, (add_submonoid.closure (S : set R)).add_mem (hr hb) (hs hb) }
-end
-
-/-- The product of an element of `S` and an element of the additive closure of a multiplicative
-submonoid `S` is contained in the additive closure of `S`. -/
-lemma mul_left_mem_add_closure (ha : a ∈ S) (hb : b ∈ add_submonoid.closure (S : set R)) :
-  a * b ∈ add_submonoid.closure (S : set R) :=
-mul_mem_add_closure (add_submonoid.mem_closure.mpr (λ sT hT, hT ha)) hb
-
-end mul_mem_class
-
-end prelim
-
 open_locale big_operators
 
 universes u v w

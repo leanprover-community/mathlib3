@@ -1111,7 +1111,7 @@ theorem sup_ord {ι} (f : ι → cardinal) : sup (λ i, (f i).ord) = (cardinal.s
 eq_of_forall_ge_iff $ λ a, by simp only [sup_le_iff, cardinal.ord_le, cardinal.sup_le_iff]
 
 @[simp] theorem sup_const {ι} [hι : nonempty ι] (o : ordinal) : sup (λ _ : ι, o) = o :=
-le_antisymm (sup_le (λ _, le_rfl)) (le_sup _ hι.some)
+csupr_const
 
 @[simp] theorem sup_unique {ι} [unique ι] (f : ι → ordinal) : sup f = f default :=
 supr_unique

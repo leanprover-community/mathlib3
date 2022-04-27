@@ -70,7 +70,7 @@ free_group.lift.trans
 @[simp] lemma lift_of (f : generators G → H) (a : generators G) : lift f (of a) = f a :=
 congr_fun (lift.symm_apply_apply f) a
 
-@[simp] lemma lift_symm_of (f : G →* H) (a : generators G) : (lift.symm f) a = f (of a) :=
+@[simp] lemma lift_symm_apply (f : G →* H) (a : generators G) : (lift.symm f) a = f (of a) :=
 rfl
 
 @[ext] lemma ext_hom ⦃f g : G →* H⦄ (h : ∀ (a : generators G), f (of a) = g (of a)) : f = g :=

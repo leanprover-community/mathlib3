@@ -627,21 +627,29 @@ between them. -/
 def to_right_moves_neg {x : pgame} : x.left_moves ≃ (-x).right_moves :=
 equiv.cast (right_moves_neg x).symm
 
-@[simp] lemma move_left_neg {x : pgame} (i : x.right_moves) :
+lemma move_left_neg {x : pgame} (i) :
   (-x).move_left (to_left_moves_neg i) = -(x.move_right i) :=
 by { cases x, refl }
 
-@[simp] lemma move_right_neg {x : pgame} (i : x.left_moves) :
+@[simp] lemma move_left_neg' {x : pgame} (i) :
+  (-x).move_left i = -(x.move_right (to_left_moves_neg.symm i)) :=
+by { cases x, refl }
+
+lemma move_right_neg {x : pgame} (i) :
   (-x).move_right (to_right_moves_neg i) = -(x.move_left i) :=
 by { cases x, refl }
 
-@[simp] lemma move_left_neg_symm {x : pgame} (i : (-x).right_moves) :
-  x.move_left (to_right_moves_neg.symm i) = -((-x).move_right i) :=
-by { cases x, exact (neg_neg _).symm }
+@[simp] lemma move_right_neg' {x : pgame} (i) :
+  (-x).move_right i = -(x.move_left (to_right_moves_neg.symm i)) :=
+by { cases x, refl }
 
-@[simp] lemma move_right_neg_symm {x : pgame} (i : (-x).left_moves) :
+lemma move_left_neg_symm {x : pgame} (i) :
+  x.move_left (to_right_moves_neg.symm i) = -((-x).move_right i) :=
+by simp
+
+lemma move_right_neg_symm {x : pgame} (i) :
   x.move_right (to_left_moves_neg.symm i) = -((-x).move_left i) :=
-by { cases x, exact (neg_neg _).symm }
+by simp
 
 /-- If `x` has the same moves as `y`, then `-x` has the sames moves as `-y`. -/
 def relabelling.neg_congr : ∀ {x y : pgame}, x.relabelling y → (-x).relabelling (-y)

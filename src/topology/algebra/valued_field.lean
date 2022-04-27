@@ -386,8 +386,7 @@ noncomputable instance valued_completion : valued (hat K) Γ₀ :=
 { v := extension_valuation,
   is_topological_valuation := λ s,
   begin
-    suffices : has_basis (𝓝 (0 : hat K)) (λ _, true) (λ (γ : Γ₀ˣ),
-      { x | extension_valuation x < (γ : Γ₀) }),
+    suffices : has_basis (𝓝 (0 : hat K)) (λ _, true) (λ γ : Γ₀ˣ, { x | extension_valuation x < γ }),
     { rw this.mem_iff,
       exact exists_congr (λ γ, by simp), },
     simp_rw ← closure_coe_completion_v_lt,

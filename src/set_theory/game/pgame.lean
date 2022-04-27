@@ -718,8 +718,16 @@ lemma move_left_neg_symm {x : pgame} (i) :
   x.move_left (to_right_moves_neg.symm i) = -((-x).move_right i) :=
 by simp
 
+lemma move_left_neg_symm' {x : pgame} (i) :
+  x.move_left i = -((-x).move_right (to_right_moves_neg i)) :=
+by simp
+
 lemma move_right_neg_symm {x : pgame} (i) :
   x.move_right (to_left_moves_neg.symm i) = -((-x).move_left i) :=
+by simp
+
+lemma move_right_neg_symm' {x : pgame} (i) :
+  x.move_right i = -((-x).move_left (to_left_moves_neg i)) :=
 by simp
 
 /-- If `x` has the same moves as `y`, then `-x` has the sames moves as `-y`. -/

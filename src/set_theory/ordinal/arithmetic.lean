@@ -1114,7 +1114,7 @@ eq_of_forall_ge_iff $ λ a, by simp only [sup_le_iff, cardinal.ord_le, cardinal.
 le_antisymm (sup_le (λ _, le_rfl)) (le_sup _ hι.some)
 
 @[simp] theorem sup_unique {ι} [unique ι] (f : ι → ordinal) : sup f = f default :=
-supr_unique
+csupr_unique
 
 theorem sup_le_of_range_subset {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
   (h : set.range f ⊆ set.range g) : sup.{u (max v w)} f ≤ sup.{v (max u w)} g :=

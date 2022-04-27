@@ -288,6 +288,10 @@ def prod_map_linear : ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₄)) →ₗ[R] ((
   map_add' := λ f g, by {ext, repeat {simp}},
   map_smul' := λ r f, by {ext, repeat {simp}} }
 
+@[simp]
+lemma prod_map_linear_apply (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) :
+  prod_map_linear (f, g) = prod_map f g := rfl
+
 end linear_map
 
 namespace linear_map

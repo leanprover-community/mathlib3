@@ -57,6 +57,7 @@ protected def mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
 
 variables (ϕ : L →ᴸ L')
 
+/-- Pulls a structure back along a language map. -/
 def reduct (M : Type*) [L'.Structure M] : L.Structure M :=
 { fun_map := λ n f xs, fun_map (ϕ.on_function f) xs,
   rel_map := λ n r xs, rel_map (ϕ.on_relation r) xs }

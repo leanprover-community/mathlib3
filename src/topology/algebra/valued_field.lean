@@ -33,7 +33,7 @@ section move_to_correct_file
 open uniform_space
 open_locale topological_space
 
--- Bourbaki GT III §3 no.4 Proposition 7 [I hope]
+-- Bourbaki GT III §3 no.4 Proposition 7
 lemma filter.has_basis.completion_nhds_zero {G ι : Type*}
   [add_group G] [uniform_space G] [uniform_add_group G] {s : ι → set G} {p : ι → Prop}
   (h : (𝓝 (0 : G)).has_basis p s) :
@@ -54,7 +54,10 @@ begin
     { exact is_closed.preimage (continuous.prod.mk 0) hZ_closed, },
     exact ⟨i, hi, subset_trans ((is_closed.closure_subset_iff (hZ_ball_closed)).mpr
       (set.image_subset_iff.mpr hsi)) (subset_trans (ball_mono hZV 0) hV_ball)⟩, },
-  { sorry }
+  { obtain ⟨i, hi, hi'⟩ := hT,
+    suffices : closure (coe '' s i) ∈ 𝓝 (0 : completion G), { filter_upwards [this] using hi', },
+    replace h := (h (s i)).mpr ⟨i, hi, set.subset.rfl⟩,
+    exact completion.dense_inducing_coe.closure_image_mem_nhds h, },
 end
 
 end move_to_correct_file

@@ -835,16 +835,15 @@ begin
   exact union_of singletons (symm hi),
 end
 
-lemma exists_mem_subset_of_subset_bUnion_of_directed {α ι : Type*}
-  {f : ι → set α} (a : ι) (h : directed (⊆) f)
+lemma _root_.directed.exists_mem_subset_of_finset_subset_bUnion {α ι : Type*} [hn : nonempty ι]
+  {f : ι → set α} (h : directed (⊆) f)
   {s : finset α} (hs : (s : set α) ⊆ ⋃ i, f i) : ∃ i, (s : set α) ⊆ f i :=
 begin
   classical,
   revert hs,
   apply s.induction_on,
-  { intros,
-    use a,
-    simp },
+  { refine λ _, ⟨hn.some, _⟩,
+    simp only [coe_empty, set.empty_subset], },
   { intros b t hbt htc hbtc,
     obtain ⟨i : ι , hti : (t : set α) ⊆ f i⟩ :=
       htc (set.subset.trans (t.subset_insert b) hbtc),
@@ -856,13 +855,14 @@ begin
     exact ⟨hk hbj, trans hti hk'⟩ }
 end
 
-lemma exists_mem_subset_of_subset_bUnion_of_directed_on {α ι : Type*}
-  {f : ι → set α}  {c : set ι} {a : ι} (hac : a ∈ c) (hc : directed_on (λ i j, f i ⊆ f j) c)
+lemma _root_.directed_on.exists_mem_subset_of_finset_subset_bUnion {α ι : Type*}
+  {f : ι → set α}  {c : set ι} (hn : c.nonempty) (hc : directed_on (λ i j, f i ⊆ f j) c)
   {s : finset α} (hs : (s : set α) ⊆ ⋃ i ∈ c, f i) : ∃ i ∈ c, (s : set α) ⊆ f i :=
 begin
   rw set.bUnion_eq_Union at hs,
-  obtain ⟨⟨i, hic⟩, hi⟩ := exists_mem_subset_of_subset_bUnion_of_directed (⟨a, hac⟩ : c)
-    (directed_comp.2 hc.directed_coe) hs,
+  haveI := c.nonempty_coe_sort.2 hn,
+  obtain ⟨⟨i, hic⟩, hi⟩ :=
+    (directed_comp.2 hc.directed_coe).exists_mem_subset_of_finset_subset_bUnion hs,
   exact ⟨i, hic, hi⟩
 end
 

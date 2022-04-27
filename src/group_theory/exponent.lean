@@ -7,7 +7,7 @@ import group_theory.order_of_element
 import algebra.punit_instances
 import algebra.gcd_monoid.finset
 import tactic.by_contra
-import number_theory.padics.padic_norm
+import number_theory.padics.padic_val
 
 /-!
 # Exponent of a group

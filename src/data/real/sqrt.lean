@@ -294,7 +294,7 @@ begin
 end
 
 -- MAIN RESULT, f < 0, as long as we have convergence of a geometrically decreasing nonneg sequence
-theorem converges_le_zero_step (f : cau_seq ℚ abs) (N : ℕ) (f_le_0 : ∀ i ≥ N, f i ≤ 0)
+lemma converges_le_zero_step (f : cau_seq ℚ abs) (N : ℕ) (f_le_0 : ∀ i ≥ N, f i ≤ 0)
   (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
   (k : ℕ) (k_large : k ≥ N) : sqrt_aux f (k + 1) = sqrt_aux f k / 2 :=
 begin
@@ -353,6 +353,17 @@ begin
     ... = sqrt_aux f N / (2 ^ (k + 1 - N)) * 2 : by rw eee (sqrt_aux f N) _ 2 (by norm_num)
 end
 
+lemma div_sq (a b : ℚ) : (a / b) ^ 2 = a ^ 2 / b ^ 2 :=
+begin
+  exact div_pow a b 2
+end
+
+lemma bring_inside (a b : ℚ) : (a + b) ^ 2 - 4 * a * b = (a - b) ^ 2 :=
+by ring
+
+lemma split_sub (a b c : ℚ) : (a - b) ^ 2 = (a - c) ^ 2 + (c - b) ^ 2 + 2 * (c - b) * (a - c) :=
+by ring
+
 -- This bound is not obviously possible to improve without further assumptions, but it's also
 -- not obviously useful.
 -- We later prove a refinement that is extremely useful.
@@ -393,20 +404,22 @@ begin
   rw max_eq_right_of_lt t,
 
   have weaker : 0 < 4 * s ^ 2 := by linarith [pow_pos (sqrt_aux_pos f k) 2],
+  have s_ne_zero : s ≠ 0 := ne_of_gt (sqrt_aux_pos f k),
 
   calc ((s + f (k + 1) / s) / 2) ^ 2 - f (k + 1)
-    = (4 * s ^ 2 * ((s + f (k + 1) / s) / 2) ^ 2 - 4 * s ^ 2 * f (k + 1)) / (4 * s ^ 2) :
-      begin
-        sorry
-      end
-    ... = (4 * s ^ 2 * ((s + f (k + 1) / s) / 2) ^ 2 - 4 * s ^ 2 * f (k + 1)) / (4 * s ^ 2) :
-      begin
-        sorry
-      end
-    ... = ((s ^ 2 - f k) ^ 2 + (f k - f (k + 1)) ^ 2 + 2 * (f k - f (k + 1)) * (s ^ 2 - f k)) / (4 * s ^ 2) :
-      begin
-       sorry
-      end
+    = (s + f (k + 1) / s) ^ 2 / 2 ^ 2 - f (k + 1) : by ring
+    ... = (s + f (k + 1) / s) ^ 2 / 4 - f (k + 1) : by norm_num
+    ... = ((s * 1 + f (k + 1) / s) ^ 2 - 4 * f (k + 1)) / 4 : by ring
+    ... = ((s * (s / s) + f (k + 1) / s) ^ 2 - 4 * f (k + 1)) / 4 : by rw div_self s_ne_zero
+    ... = (((s ^ 2 + f (k + 1)) / s) ^ 2 - 4 * f (k + 1)) / 4 : by ring
+    ... = ((s ^ 2 + f (k + 1)) ^ 2 / s ^ 2 - 4 * f (k + 1)) / 4 : by rw div_pow _ s 2
+    ... = ((s ^ 2 + f (k + 1)) ^ 2 / s ^ 2 - 4 * f (k + 1) * 1) / 4 : by ring
+    ... = ((s ^ 2 + f (k + 1)) ^ 2 / s ^ 2 - 4 * f (k + 1) * (s ^ 2 / s ^ 2)) / 4 : by rw div_self (ne_of_gt (sq_pos_of_ne_zero _ s_ne_zero))
+    ... = ((s ^ 2 + f (k + 1)) ^ 2 - 4 * s ^ 2 * f (k + 1)) / s ^ 2 / 4 : by ring
+    ... = ((s ^ 2 + f (k + 1)) ^ 2 - 4 * s ^ 2 * f (k + 1)) / (s ^ 2 * 4) : by field_simp
+    ... = ((s ^ 2 + f (k + 1)) ^ 2 - 4 * s ^ 2 * f (k + 1)) / (4 * s ^ 2) : by rw mul_comm (s ^ 2) 4
+    ... = ((s ^ 2 - f (k + 1)) ^ 2) / (4 * s ^ 2) : by rw bring_inside _ _
+    ... = ((s ^ 2 - f k) ^ 2 + (f k - f (k + 1)) ^ 2 + 2 * (f k - f (k + 1)) * (s ^ 2 - f k)) / (4 * s ^ 2) : by rw split_sub (s ^ 2) (f (k + 1)) (f k)
     ... ≤ ((s ^ 2 - f k) ^ 2 + (f k - f (k + 1)) ^ 2 + 2 * (abs (f k - f (k + 1))) * (s ^ 2 - f k)) / (4 * s ^ 2) :
       begin
         refine div_le_div_right' _ _ _ weaker _,
@@ -483,20 +496,6 @@ begin
   cases le_or_gt N k,
   { exact h, },
   { exfalso, refine k_not _, linarith, }
-end
-
--- MAIN RESULT, f > 0
-theorem converges_pos (f : cau_seq ℚ abs)
-  (N : ℕ) (bound : ℚ) (bound_pos : 0 < bound) (f_ge_bound : ∀ i ≥ N, bound ^ 2 ≤ f i)
-  (ε : ℚ) (ε_pos : 0 < ε) (ε_small : ε < bound ^ 2) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
-  (is_near : sqrt_aux f N ^ 2 - f N ≤ ε) : ∀ (k : ℕ) (k_large : N ≤ k), sqrt_aux f k ^ 2 - f k ≤ ε
-| 0 zero_large := by simpa [le_zero_iff.mp zero_large] using is_near
-| (k + 1) kp1_large :=
-begin
-  by_cases k + 1 = N,
-  { rw h, exact is_near, },
-  { have k_large : k ≥ N := bump_down kp1_large h,
-    exact converges_pos' f N bound bound_pos f_ge_bound ε ε_pos ε_small f_near _ k_large (converges_pos k k_large), },
 end
 
 -- TODO: how on earth to prove for f = 0
@@ -671,6 +670,67 @@ begin
     exact ⟨n, n_big, pr n (le_of_eq rfl)⟩, },
   { exact small, },
 end
+
+-- MAIN RESULT, f > 0
+theorem converges_pos (f : cau_seq ℚ abs)
+  (N : ℕ) (bound : ℚ) (bound_pos : 0 < bound) (f_ge_bound : ∀ i ≥ N, bound ^ 2 ≤ f i)
+  (ε : ℚ) (ε_pos : 0 < ε) (ε_small : ε < bound ^ 2) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
+  (is_near : sqrt_aux f N ^ 2 - f N ≤ ε) : ∀ (k : ℕ) (k_large : N ≤ k), sqrt_aux f k ^ 2 - f k ≤ ε
+| 0 zero_large := by simpa [le_zero_iff.mp zero_large] using is_near
+| (k + 1) kp1_large :=
+begin
+  by_cases k + 1 = N,
+  { rw h, exact is_near, },
+  { have k_large : k ≥ N := bump_down kp1_large h,
+    exact converges_pos' f N bound bound_pos f_ge_bound ε ε_pos ε_small f_near _ k_large (converges_pos k k_large), },
+end
+
+theorem cauchy_for_pos (f : cau_seq ℚ abs) (f_pos : f.pos) : is_cau_seq abs (sqrt_aux f) :=
+begin
+  unfold is_cau_seq,
+  intros ε ε_pos,
+  have ε'_pos : 0 < min ε 1,
+  { by_cases ε ≤ 1,
+    { simp [h], exact ε_pos, },
+    { simp [h], exact ε_pos, }, },
+  have ε'_div_3_pos : 0 < (min ε 1) / 3 := div_pos ε'_pos (by linarith),
+  rcases f_pos with ⟨bound, bound_pos, N, bounded⟩,
+  rcases f.cauchy ε'_pos with ⟨convergedN, converged⟩,
+  have f_ge_zero : ∀ i ≥ max convergedN N, 0 ≤ f i,
+  { intros i i_big, linarith [bounded i sorry], },
+  have ε'_div_3_lt_ε : (min ε 1) / 3 < ε,
+  { sorry, },
+  have f_near : ∀ i ≥ max convergedN N, ∀ j ≥ max convergedN N, abs (f i - f j) ≤ (min ε 1) / 3,
+  { intros i i_big j j_big,
+    sorry, },
+  rcases sqrt_aux_eventually_gets_near f (max convergedN N) f_ge_zero ((min ε 1) / 3) (div_pos ε'_pos (by linarith)) f_near with ⟨final, final_big, pr⟩,
+  use final,
+  intros j j_big,
+  sorry,
+end
+
+theorem cauchy_for_neg (f : cau_seq ℚ abs) (f_neg : f < 0) : is_cau_seq abs (sqrt_aux f) :=
+begin
+  unfold is_cau_seq,
+  rcases f_neg with ⟨bound, bound_pos, N, bounded⟩,
+  have f_le_0 : ∀ i ≥ N, f i ≤ 0,
+  { intros i i_big, simp at bounded, linarith [bounded i sorry], },
+  intros ε ε_pos,
+  let f := converges_le_zero_step f N f_le_0,
+
+-- MAIN RESULT, f < 0, as long as we have convergence of a geometrically decreasing nonneg sequence
+--lemma converges_le_zero_step (f : cau_seq ℚ abs) (N : ℕ) (f_le_0 : ∀ i ≥ N, f i ≤ 0)
+--  (ε : ℚ) (ε_pos : 0 < ε) (f_near : ∀ i ≥ N, ∀ j ≥ N, abs (f i - f j) ≤ ε)
+--  (k : ℕ) (k_large : k ≥ N) : sqrt_aux f (k + 1) = sqrt_aux f k / 2 :=
+--begin
+--  unfold sqrt_aux,
+--  have r : f (k + 1) ≤ 0 := f_le_0 (k + 1) (le_add_right k_large),
+--  rw max_eq_left r,
+--  simp,
+--end
+  sorry,
+end
+
 
 /--
 If sqrt_aux k is near f, then either sqrt_aux (k+1) is near f, or in fact sqrt_aux k was *really*

@@ -44,7 +44,7 @@ instance functor_has_right_dual [right_rigid_category D] (F : C ⥤ D) : has_rig
           category.assoc, ←comp_tensor_id, is_iso.inv_hom_id, tensor_id, category.comp_id],
       end, }, }, }
 
-instance [right_rigid_category D] : right_rigid_category (C ⥤ D) := {}
+instance right_rigid_functor_category [right_rigid_category D] : right_rigid_category (C ⥤ D) := {}
 
 instance functor_has_left_dual [left_rigid_category D] (F : C ⥤ D) : has_left_dual F :=
 { left_dual :=
@@ -69,8 +69,8 @@ instance functor_has_left_dual [left_rigid_category D] (F : C ⥤ D) : has_left_
           category.assoc, ←id_tensor_comp, is_iso.inv_hom_id, tensor_id, category.comp_id],
       end, }, }, }
 
-instance [left_rigid_category D] : left_rigid_category (C ⥤ D) := {}
+instance left_rigid_functor_category [left_rigid_category D] : left_rigid_category (C ⥤ D) := {}
 
-instance [rigid_category D] : rigid_category (C ⥤ D) := {}
+instance rigid_functor_category [rigid_category D] : rigid_category (C ⥤ D) := {}
 
 end category_theory.monoidal

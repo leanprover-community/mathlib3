@@ -91,7 +91,8 @@ begin
   refine ⟨λ h' i, h'.mono (set.subset_Union _ _), λ h', _⟩,
   rw [is_satisfiable_iff_is_finitely_satisfiable, is_finitely_satisfiable],
   intros T0 hT0,
-  have h2 := h.exists_mem_subset_of_finset_subset_bUnion _ hT0,
+  obtain ⟨i, hi⟩ := h.exists_mem_subset_of_finset_subset_bUnion hT0,
+  exact (h' i).mono hi,
 end
 
 variable (T)

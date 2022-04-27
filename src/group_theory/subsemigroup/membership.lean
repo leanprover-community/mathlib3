@@ -15,12 +15,12 @@ In this file we prove various facts about membership in a subsemigroup:
   to a multiplicative subsemigroup, then so does their product;
 * `list_sum_mem`, `multiset_sum_mem`, `sum_mem`: if each element of a collection belongs
   to an additive subsemigroup, then so does their sum;
-* `pow_mem`, `nsmul_mem`: if `x ∈ S` where `S` is a multiplicative (resp., additive) subsemigroup and
-  `n` is a natural number, then `x^n` (resp., `n • x`) belongs to `S`;
+* `pow_mem`, `nsmul_mem`: if `x ∈ S` where `S` is a multiplicative (resp., additive) subsemigroup
+  and `n` is a natural number, then `x^n` (resp., `n • x`) belongs to `S`;
 * `mem_supr_of_directed`, `coe_supr_of_directed`, `mem_Sup_of_directed_on`,
   `coe_Sup_of_directed_on`: the supremum of a directed collection of subsemigroup is their union.
-* `sup_eq_range`, `mem_sup`: supremum of two subsemigroups `S`, `T` of a commutative semigroup is the set
-  of products;
+* `sup_eq_range`, `mem_sup`: supremum of two subsemigroups `S`, `T` of a commutative semigroup is
+  the set of products;
 * `closure_singleton_eq`, `mem_closure_singleton`, `mem_closure_pair`: the multiplicative (resp.,
   additive) closure of `{x}` consists of powers (resp., natural multiples) of `x`, and a similar
   result holds for the closure of `{x, y}`.

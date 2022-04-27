@@ -509,8 +509,8 @@ le_antisymm
     (closure s).to_subsemigroup subset_closure))
   (closure_mono (subsemigroup.subset_closure))
 
-/-- The elements of the non-unital subsemiring closure of `M` are exactly the elements of the additive closure
-of a multiplicative subsemigroup `M`. -/
+/-- The elements of the non-unital subsemiring closure of `M` are exactly the elements of the
+additive closure of a multiplicative subsemigroup `M`. -/
 lemma coe_closure_eq (s : set R) :
   (closure s : set R) = add_submonoid.closure (subsemigroup.closure s : set R) :=
 by simp [← subsemigroup.non_unital_subsemiring_closure_to_add_submonoid,
@@ -749,7 +749,9 @@ srange_top_iff_surjective.2 hf
 /-
 /-- The non-unital subsemiring of elements `x : R` such that `f x = g x` -/
 def eq_slocus (f g : F) : non_unital_subsemiring R :=
-{ carrier := {x | f x = g x}, .. (f : R →ₙ* S).eq_mlocus (g : R →ₙ* S), .. (f : R →+ S).eq_mlocus g }
+{ carrier := {x | f x = g x},
+  .. (f : R →ₙ* S).eq_mlocus (g : R →ₙ* S),
+  .. (f : R →+ S).eq_mlocus g }
 
 /-- If two ring homomorphisms are equal on a set, then they are equal on its subsemiring closure. -/
 lemma eq_on_sclosure {f g : R →ₙ+* S} {s : set R} (h : set.eq_on f g s) :

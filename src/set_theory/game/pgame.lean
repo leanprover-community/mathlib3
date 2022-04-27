@@ -229,7 +229,7 @@ instance : inhabited pgame := ⟨0⟩
 instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 
 @[simp] lemma one_left_moves : (1 : pgame).left_moves = punit := rfl
-@[simp] lemma one_move_left : (1 : pgame).move_left punit.star = 0 := rfl
+@[simp] lemma one_move_left (x) : (1 : pgame).move_left x = 0 := rfl
 @[simp] lemma one_right_moves : (1 : pgame).right_moves = pempty := rfl
 
 instance is_empty_one_right_moves : is_empty (1 : pgame).right_moves := pempty.is_empty

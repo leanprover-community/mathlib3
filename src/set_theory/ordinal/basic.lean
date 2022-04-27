@@ -1203,6 +1203,9 @@ wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (ordinal.zero_le
 
 @[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
 
+@[simp] lemma max_zero_left : ∀ a : ordinal, max 0 a = a := max_bot_left
+@[simp] lemma max_zero_right : ∀ a : ordinal, max a 0 = a := max_bot_right
+
 protected theorem not_lt_zero (o : ordinal) : ¬ o < 0 :=
 not_lt_bot
 

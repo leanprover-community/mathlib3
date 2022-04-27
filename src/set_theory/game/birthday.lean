@@ -40,13 +40,21 @@ theorem birthday_def (x : pgame) : birthday x = max
   (ordinal.lsub.{u u} (λ i, birthday (x.move_right i))) :=
 by { cases x, rw birthday, refl }
 
+theorem birthday_mk_left_lt {xl xr} (xL : xl → pgame) (xR : xr → pgame) (i : xl) :
+  (xL i).birthday < (mk xl xr xL xR).birthday :=
+by { rw birthday, exact lt_max_of_lt_left (ordinal.lt_lsub _ i) }
+
+theorem birthday_mk_right_lt {xl xr} (xL : xl → pgame) (xR : xr → pgame) (i : xr) :
+  (xR i).birthday < (mk xl xr xL xR).birthday :=
+by { rw birthday, exact lt_max_of_lt_right (ordinal.lt_lsub _ i) }
+
 theorem birthday_move_left_lt {x : pgame} (i : x.left_moves) :
   (x.move_left i).birthday < x.birthday :=
-by { cases x, rw birthday, exact lt_max_of_lt_left (ordinal.lt_lsub _ i) }
+by { cases x, exact birthday_mk_left_lt _ _ i }
 
 theorem birthday_move_right_lt {x : pgame} (i : x.right_moves) :
   (x.move_right i).birthday < x.birthday :=
-by { cases x, rw birthday, exact lt_max_of_lt_right (ordinal.lt_lsub _ i) }
+by { cases x, exact birthday_mk_right_lt _ _ i }
 
 theorem lt_birthday_iff {x : pgame} {o : ordinal} : o < x.birthday ↔
   (∃ i : x.left_moves, o ≤ (x.move_left i).birthday) ∨
@@ -90,5 +98,40 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 @[simp] theorem birthday_zero : birthday 0 = 0 :=
 by rw [birthday_def, ordinal.lsub_empty, ordinal.lsub_empty, max_self]
+
+@[simp] theorem birthday_add_zero (x : pgame) : birthday (x + 0) = x.birthday :=
+sorry
+
+theorem lsub_sum {α β} (f : α ⊕ β → ordinal) :
+  ordinal.lsub f = max (ordinal.lsub (λ x, f (sum.inl x))) (ordinal.lsub (λ x, f (sum.inr x))) :=
+sorry
+
+theorem birthday_add : ∀ (x y : pgame.{u}), (x + y).birthday =
+  max (max (ordinal.lsub.{u u} (λ i, (x.move_left i + y).birthday))
+  (ordinal.lsub.{u u} (λ i, (x + y.move_left i).birthday)))
+  (max (ordinal.lsub.{u u} (λ i, (x.move_right i + y).birthday))
+  (ordinal.lsub.{u u} (λ i, (x + y.move_right i).birthday)))
+| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ := begin
+  change (mk _ _ _ _).birthday = _,
+  rw [birthday, lsub_sum.{u u}, lsub_sum.{u u}],
+  refl
+end
+
+@[simp] theorem birthday_add_one : ∀ x : pgame.{u}, (x + 1).birthday = x.birthday.succ
+| ⟨xl, xr, xL, xR⟩ := begin
+  rw birthday_add,
+  dsimp,
+  simp only [birthday_add_zero, ordinal.lsub_unique, ordinal.lsub_empty, ordinal.max_zero_right,
+    birthday_add_one],
+  nth_rewrite 1 max_comm,
+  rw [max_assoc, max_eq_left_iff, max_le_iff],
+  split,
+  all_goals
+  { rw ordinal.lsub_le_iff,
+    intro i,
+    rw ordinal.succ_lt_succ },
+  { apply birthday_mk_left_lt },
+  { apply birthday_mk_right_lt }
+end
 
 end pgame

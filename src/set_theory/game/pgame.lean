@@ -262,7 +262,7 @@ instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 @[simp] lemma one_move_left : (1 : pgame).move_left punit.star = 0 := rfl
 @[simp] lemma one_right_moves : (1 : pgame).right_moves = pempty := rfl
 
-instance is_unique_one_left_moves : unique (1 : pgame).left_moves := punit.unique
+instance unique_one_left_moves : unique (1 : pgame).left_moves := punit.unique
 instance is_empty_one_right_moves : is_empty (1 : pgame).right_moves := pempty.is_empty
 
 /-- Define simultaneously by mutual induction the `<=` and `<`

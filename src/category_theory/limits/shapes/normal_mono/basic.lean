@@ -220,7 +220,7 @@ def normal_epi_of_normal_mono_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) (m : normal_mon
 { W := op m.Z,
   g := m.g.op,
   w := congr_arg quiver.hom.op m.w,
-  is_colimit := kernel_cofork.is_colimit.of_π _ _
+  is_colimit := cokernel_cofork.is_colimit.of_π _ _
     (λ Z' g' w',
       (kernel_fork.is_limit.lift' m.is_limit g'.unop (congr_arg quiver.hom.unop w')).1.op)
     (λ Z' g' w',

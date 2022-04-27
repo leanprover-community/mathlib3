@@ -179,9 +179,8 @@ end
 lemma join {P Q : X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) :
   is_Lprojection (P + Q - P * Q) :=
 begin
-  have e1: 1 - (1 - P) * (1 - Q) = P + Q - P * Q := by noncomm_ring,
-  rw [← e1, ← is_Lprojection.Lcomplement_iff],
-  exact (h₁.Lcomplement).mul (h₂.Lcomplement)
+  convert (Lcomplement_iff _).mp (h₁.Lcomplement.mul h₂.Lcomplement) using 1,
+  noncomm_ring,
 end
 
 instance : has_compl { f : X →L[𝕜] X // is_Lprojection f } :=

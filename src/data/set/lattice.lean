@@ -1320,6 +1320,10 @@ lemma image2_Inter₂_subset_right (s : set α) (t : Π i, κ i → set β) :
   image2 f s (⋂ i j, t i j) ⊆ ⋂ i j, image2 f s (t i j) :=
 by { simp_rw [image2_subset_iff, mem_Inter], exact λ x hx y hy i j, mem_image2_of_mem hx (hy _ _) }
 
+/-- The `set.image2` version of `set.image_eq_Union` -/
+lemma image2_eq_Union : image2 f s t = ⋃ (i ∈ s) (j ∈ t), {f i j} :=
+by simp_rw [←image_eq_Union, Union_image_left]
+
 end image2
 
 section seq

@@ -227,6 +227,89 @@ end
 theorem squarefree_iff_prime_squarefree {n : ℕ} : squarefree n ↔ ∀ x, prime x → ¬ x * x ∣ n :=
 squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible ⟨_, prime_two⟩
 
+lemma squarefree.factorization_le_one {n : ℕ} (hn : squarefree n) :
+  ∀ p, n.factorization p ≤ 1 :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn',
+  { simp },
+  rw [multiplicity.squarefree_iff_multiplicity_le_one] at hn,
+  intros p,
+  by_cases hp : p.prime,
+  { have := hn p,
+    simp only [multiplicity_eq_factorization hp hn', nat.is_unit_iff, hp.ne_one, or_false] at this,
+    exact_mod_cast this },
+  { rw factorization_eq_zero_of_non_prime _ hp,
+    exact zero_le_one }
+end
+
+lemma squarefree_of_factorization_le_one {n : ℕ} (hn : n ≠ 0) (hn' : ∀ p, n.factorization p ≤ 1) :
+  squarefree n :=
+begin
+  rw [squarefree_iff_nodup_factors hn, list.nodup_iff_count_le_one],
+  intro a,
+  rw factors_count_eq,
+  apply hn',
+end
+
+lemma squarefree_iff_factorization_le_one {n : ℕ} (hn : n ≠ 0) :
+  squarefree n ↔ ∀ p, n.factorization p ≤ 1 :=
+⟨squarefree.factorization_le_one, squarefree_of_factorization_le_one hn⟩
+
+lemma squarefree.ext_iff {n m : ℕ} (hn : squarefree n) (hm : squarefree m) :
+  n = m ↔ ∀ p, prime p → (p ∣ n ↔ p ∣ m) :=
+begin
+  split,
+  { rintro rfl, simp },
+  intro h,
+  apply eq_of_factorization_eq hn.ne_zero hm.ne_zero,
+  intro p,
+  by_cases hp : p.prime,
+  { have h₁ := h _ hp,
+    rw [←not_iff_not, hp.dvd_iff_one_le_factorization hn.ne_zero, not_le, lt_one_iff,
+      hp.dvd_iff_one_le_factorization hm.ne_zero, not_le, lt_one_iff] at h₁,
+    have h₂ := squarefree.factorization_le_one hn p,
+    have h₃ := squarefree.factorization_le_one hm p,
+    rw [nat.le_add_one_iff, le_zero_iff] at h₂ h₃,
+    cases h₂,
+    { rwa [h₂, eq_comm, ←h₁] },
+    { rw [h₂, h₃.resolve_left],
+      rw [←h₁, h₂],
+      simp only [nat.one_ne_zero, not_false_iff] } },
+  rw [factorization_eq_zero_of_non_prime _ hp, factorization_eq_zero_of_non_prime _ hp],
+end
+
+lemma squarefree_pow_iff {n k : ℕ} (hn : n ≠ 1) (hk : k ≠ 0) :
+  squarefree (n ^ k) ↔ squarefree n ∧ k = 1 :=
+begin
+  symmetry,
+  split,
+  { rintro ⟨hn, rfl⟩,
+    simpa },
+  intro h,
+  rcases eq_or_ne n 0 with rfl | hn₀,
+  { rw zero_pow hk.bot_lt at h,
+    simpa using h },
+  split,
+  { exact squarefree_of_dvd_of_squarefree (dvd_pow_self _ hk) h },
+  by_contra h₁,
+  have : 2 ≤ k,
+  { rw [nat.two_le_iff],
+    exact ⟨hk, h₁⟩ },
+  apply hn (nat.is_unit_iff.1 (h _ _)),
+  rw ←sq,
+  exact pow_dvd_pow _ this
+end
+
+lemma squarefree_and_prime_pow_iff_prime {n : ℕ} :
+  squarefree n ∧ is_prime_pow n ↔ prime n :=
+begin
+  refine iff.symm ⟨λ hn, ⟨hn.squarefree, hn.is_prime_pow⟩, _⟩,
+  rw is_prime_pow_nat_iff,
+  rintro ⟨h, p, k, hp, hk, rfl⟩,
+  rw squarefree_pow_iff hp.ne_one hk.ne' at h,
+  rwa [h.2, pow_one],
+end
+
 /-- Assuming that `n` has no factors less than `k`, returns the smallest prime `p` such that
   `p^2 ∣ n`. -/
 def min_sq_fac_aux : ℕ → ℕ → option ℕ
@@ -458,11 +541,6 @@ begin
   { obtain ⟨a, b, -, -, h₁, h₂⟩ := sq_mul_squarefree_of_pos (succ_pos n),
     exact ⟨a, b, h₁, h₂⟩ },
 end
-
-lemma squarefree_iff_prime_sq_not_dvd (n : ℕ) :
-  squarefree n ↔ ∀ x : ℕ, x.prime → ¬ x * x ∣ n :=
-squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
-  ⟨2, (irreducible_iff_nat_prime _).2 prime_two⟩
 
 /-- `squarefree` is multiplicative. Note that the → direction does not require `hmn`
 and generalizes to arbitrary commutative monoids. See `squarefree.of_mul_left` and

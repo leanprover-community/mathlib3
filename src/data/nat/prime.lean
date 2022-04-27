@@ -64,12 +64,6 @@ instance prime.one_lt' (p : ℕ) [hp : _root_.fact p.prime] : _root_.fact (1 < p
 lemma prime.ne_one {p : ℕ} (hp : p.prime) : p ≠ 1 :=
 hp.one_lt.ne'
 
-lemma two_le_iff (n : ℕ) : 2 ≤ n ↔ n ≠ 0 ∧ ¬is_unit n :=
-begin
-  rw nat.is_unit_iff,
-  rcases n with _|_|m; norm_num [one_lt_succ_succ, succ_le_iff]
-end
-
 lemma prime.eq_one_or_self_of_dvd {p : ℕ} (pp : p.prime) (m : ℕ) (hm : m ∣ p) : m = 1 ∨ m = p :=
 begin
   obtain ⟨n, hn⟩ := hm,

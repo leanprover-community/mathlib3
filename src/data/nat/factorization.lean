@@ -255,6 +255,10 @@ lemma prime.pow_dvd_iff_dvd_pow_factorization {p k n : ℕ} (pp : prime p) (hn :
   p ^ k ∣ n ↔ p ^ k ∣ p ^ n.factorization p :=
 by rw [pow_dvd_pow_iff_le_right pp.one_lt, pp.pow_dvd_iff_le_factorization hn]
 
+lemma prime.dvd_iff_one_le_factorization {p n : ℕ} (pp : prime p) (hn : n ≠ 0) :
+  p ∣ n ↔ 1 ≤ n.factorization p :=
+iff.trans (by simp) (pp.pow_dvd_iff_le_factorization hn)
+
 lemma exists_factorization_lt_of_lt {a b : ℕ} (ha : a ≠ 0) (hab : a < b) :
   ∃ p : ℕ, a.factorization p < b.factorization p :=
 begin

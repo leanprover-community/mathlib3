@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2020 Yury Kudryashov All rights reserved.
+Copyright (c) 2022 Jireh Loreaux All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov
+Authors: Jireh Loreaux
 -/
 
 import algebra.module.basic
@@ -828,18 +828,19 @@ le_antisymm
 
 end non_unital_ring_hom
 
-namespace subsemiring
+namespace non_unital_subsemiring
 
-open ring_hom
+open non_unital_ring_hom non_unital_subsemiring_class
 
 /-- The non-unital ring homomorphism associated to an inclusion of
 non-unital subsemirings. -/
-def inclusion {S T : non_unital_subsemiring R} (h : S ≤ T) : S →* T :=
-S.subtype.cod_srestrict _ (λ x, h x.2)
+def inclusion {S T : non_unital_subsemiring R} (h : S ≤ T) : S →ₙ+* T :=
+cod_srestrict (subtype S) _ (λ x, h x.2)
 
-@[simp] lemma srange_subtype (s : subsemiring R) : s.subtype.srange = s :=
+@[simp] lemma srange_subtype (s : non_unital_subsemiring R) : (subtype s).srange = s :=
 set_like.coe_injective $ (coe_srange _).trans subtype.range_coe
 
+/-
 @[simp]
 lemma range_fst : (fst R S).srange = ⊤ :=
 (fst R S).srange_top_of_surjective $ prod.fst_surjective
@@ -847,13 +848,48 @@ lemma range_fst : (fst R S).srange = ⊤ :=
 @[simp]
 lemma range_snd : (snd R S).srange = ⊤ :=
 (snd R S).srange_top_of_surjective $ prod.snd_surjective
+-/
 
-@[simp]
-lemma prod_bot_sup_bot_prod (s : subsemiring R) (t : subsemiring S) :
-  (s.prod ⊥) ⊔ (prod ⊥ t) = s.prod t :=
-le_antisymm (sup_le (prod_mono_right s bot_le) (prod_mono_left t bot_le)) $
-assume p hp, prod.fst_mul_snd p ▸ mul_mem _
-  ((le_sup_left : s.prod ⊥ ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨hp.1, set_like.mem_coe.2 $ one_mem ⊥⟩)
-  ((le_sup_right : prod ⊥ t ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨set_like.mem_coe.2 $ one_mem ⊥, hp.2⟩)
+end non_unital_subsemiring
 
-end subsemiring
+namespace ring_equiv
+
+open non_unital_ring_hom non_unital_subsemiring_class
+
+variables {s t : non_unital_subsemiring R}
+variables {F : Type*} [non_unital_ring_hom_class F R S]
+
+/-- Makes the identity isomorphism from a proof two non-unital subsemirings of a multiplicative
+monoid are equal. -/
+def subsemiring_congr (h : s = t) : s ≃+* t :=
+{ map_mul' :=  λ _ _, rfl, map_add' := λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
+
+/-- Restrict a non-unital ring homomorphism with a left inverse to a ring isomorphism to its
+`non_unital_ring_hom.srange`. -/
+def sof_left_inverse {g : S → R} {f : F} (h : function.left_inverse g f) :
+  R ≃+* srange f :=
+{ to_fun := srange_restrict f,
+  inv_fun := λ x, g (subtype (srange f) x),
+  left_inv := h,
+  right_inv := λ x, subtype.ext $
+    let ⟨x', hx'⟩ := non_unital_ring_hom.mem_srange.mp x.prop in
+    show f (g x) = x, by rw [←hx', h x'],
+  ..(srange_restrict f) }
+
+@[simp] lemma sof_left_inverse_apply
+  {g : S → R} {f : F} (h : function.left_inverse g f) (x : R) :
+  ↑(sof_left_inverse h x) = f x := rfl
+
+@[simp] lemma sof_left_inverse_symm_apply
+  {g : S → R} {f : F} (h : function.left_inverse g f) (x : srange f) :
+  (sof_left_inverse h).symm x = g x := rfl
+
+/-- Given an equivalence `e : R ≃+* S` of non-unital semirings and a non-unital subsemiring
+`s` of `R`, `non_unital_subsemiring_map e s` is the induced equivalence between `s` and
+`s.map e` -/
+@[simps] def non_unital_subsemiring_map (e : R ≃+* S) (s : non_unital_subsemiring R) :
+  s ≃+* non_unital_subsemiring.map e.to_non_unital_ring_hom s :=
+{ ..e.to_add_equiv.add_submonoid_map s.to_add_submonoid,
+  ..e.to_mul_equiv.subsemigroup_map s.to_subsemigroup }
+
+end ring_equiv

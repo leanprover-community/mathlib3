@@ -57,11 +57,10 @@ variables {H : Type*} [group H]
 
 /-- The equivalence between functions on the generators and group homomorphisms from a free group
 given by those generators. -/
-@[simps symm_apply]
 def lift : (generators G → H) ≃ (G →* H) :=
 free_group.lift.trans
-  { to_fun := λ f, f.comp (@is_free_group.mul_equiv G _ _).symm.to_monoid_hom,
-    inv_fun := λ f, f.comp (@is_free_group.mul_equiv G _ _).to_monoid_hom,
+  { to_fun := λ f, f.comp (mul_equiv G).symm.to_monoid_hom,
+    inv_fun := λ f, f.comp (mul_equiv G).to_monoid_hom,
     left_inv := λ f, by { ext, simp, },
     right_inv := λ f, by { ext, simp, }, }
 
@@ -70,6 +69,9 @@ free_group.lift.trans
 
 @[simp] lemma lift_of (f : generators G → H) (a : generators G) : lift f (of a) = f a :=
 congr_fun (lift.symm_apply_apply f) a
+
+@[simp] lemma lift_symm_of (f : G →* H) (a : generators G) : (lift.symm f) a = f (of a) :=
+rfl
 
 @[ext] lemma ext_hom ⦃f g : G →* H⦄ (h : ∀ (a : generators G), f (of a) = g (of a)) : f = g :=
 lift.symm.injective (funext h)

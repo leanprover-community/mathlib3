@@ -111,6 +111,11 @@ by simp [sub_eq_add_neg]
 | -[1+ m] -[1+ n] := show (((m + 1) * (n + 1) : ℕ) : α) = -(m + 1) * -(n + 1),
   by rw [nat.cast_mul, nat.cast_add_one, nat.cast_add_one, neg_mul_neg]
 
+@[simp, norm_cast] theorem cast_ite [has_zero α] [has_one α] [has_add α] [has_neg α]
+  (P : Prop) [decidable P] :
+  ∀ m n, ((ite P m n : ℤ) : α) = ite P m n :=
+apply_ite _ _
+
 /-- `coe : ℤ → α` as an `add_monoid_hom`. -/
 def cast_add_hom (α : Type*) [add_group α] [has_one α] : ℤ →+ α := ⟨coe, cast_zero, cast_add⟩
 

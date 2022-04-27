@@ -47,7 +47,7 @@ card_image_le.trans_eq $ card_product _ _
 
 lemma card_image₂ (hf : injective2 f) (s : finset α) (t : finset β) :
   (image₂ f s t).card = s.card * t.card :=
-(card_image_of_injective hf.uncurry).trans $ card_product _ _
+(card_image_of_injective _ hf.uncurry).trans $ card_product _ _
 
 lemma mem_image₂_of_mem (ha : a ∈ s) (hb : b ∈ t) : f a b ∈ image₂ f s t :=
 mem_image₂.2 ⟨a, b, ha, hb, rfl⟩
@@ -111,6 +111,21 @@ coe_injective $ by { push_cast, exact image2_congr h }
 /-- A common special case of `image₂_congr` -/
 lemma image₂_congr' (h : ∀ a b, f a b = f' a b) : image₂ f s t = image₂ f' s t :=
 image₂_congr $ λ a _ b _, h a b
+
+lemma subset_image₂ {s : set α} {t : set β} (hu : ↑u ⊆ image2 f s t) :
+  ∃ (s' : finset α) (t' : finset β), ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ image₂ f s' t' :=
+begin
+  apply finset.induction_on' u,
+  { exact ⟨∅, ∅, set.empty_subset _, set.empty_subset _, empty_subset _⟩ },
+  rintro a u ha _ _ ⟨s', t', hs, hs', h⟩,
+  obtain ⟨x, y, hx, hy, ha⟩ := hu ha,
+  haveI := classical.dec_eq α,
+  haveI := classical.dec_eq β,
+  refine ⟨insert x s', insert y t', _⟩,
+  simp_rw [coe_insert, set.insert_subset],
+  exact ⟨⟨hx, hs⟩, ⟨hy, hs'⟩, insert_subset.2 ⟨mem_image₂.2 ⟨x, y, mem_insert_self _ _,
+    mem_insert_self _ _, ha⟩, h.trans $ image₂_subset (subset_insert _ _) $ subset_insert _ _⟩⟩,
+end
 
 /-!
 ### Algebraic replacement rules

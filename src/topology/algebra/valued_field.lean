@@ -335,30 +335,37 @@ noncomputable def extension_valuation :
       exact v.map_add x y, },
   end }
 
--- Bourbaki CA VI §5 no.3 Proposition 5 (d) [I hope]
+-- Bourbaki CA VI §5 no.3 Proposition 5 (d)
 lemma closure_v_lt {γ : Γ₀ˣ} :
   closure (coe '' { x : K | v x < (γ : Γ₀) }) = { x : hat K | extension_valuation x < (γ : Γ₀) } :=
 begin
-  refine le_antisymm (λ x hx, _) (λ x hx, _),
-  { -- TODO Golf this ridiculous proof!
-    let γ₀ := extension_valuation x,
-    change γ₀ < (γ : Γ₀),
-    cases eq_or_ne γ₀ 0,
-    { simp [h], },
-    { have hγ₀ : is_open ({ γ₀ } : set Γ₀),
-      { simp only [is_open_iff_mem_nhds, mem_singleton_iff, forall_eq],
-        apply (linear_ordered_comm_group_with_zero.has_basis_nhds_of_ne_zero h).mem_of_mem
-          true.intro,
-        exact unit.star, },
-      let u := (extension_valuation : hat K → Γ₀)⁻¹' { γ₀ },
-      have hu : x ∈ u, { simp, },
-      obtain ⟨-, hy₁, y, hy₂, rfl⟩ :=
-        mem_closure_iff.mp hx u (continuous_extension.is_open_preimage _ hγ₀) hu,
-      replace hy₁ : v y = γ₀, { rw ← extension_extends y, simp at hy₁, exact hy₁, },
-      rw ← hy₁,
-      exact hy₂, }, },
-  { -- Oh, it's basically the same argument. OK tidy up later.
-    sorry, },
+  ext x,
+  let γ₀ := extension_valuation x,
+  suffices : γ₀ ≠ 0 → (x ∈ closure (coe '' { x : K | v x < (γ : Γ₀) }) ↔ γ₀ < (γ : Γ₀)),
+  { cases eq_or_ne γ₀ 0,
+    { rw valuation.zero_iff at h,
+      simp only [h, mem_set_of_eq, valuation.map_zero, units.zero_lt, iff_true],
+      apply subset_closure,
+      use 0,
+      simpa only [mem_set_of_eq, valuation.map_zero, units.zero_lt, true_and], },
+    { exact this h, }, },
+  intros h,
+  have hγ₀ : { γ₀ } ∈ 𝓝 γ₀,
+  { apply (linear_ordered_comm_group_with_zero.has_basis_nhds_of_ne_zero h).mem_of_mem
+      true.intro,
+    exact unit.star, },
+  replace hγ₀ := continuous_extension.continuous_at.preimage_mem_nhds hγ₀,
+  let u := (extension_valuation : hat K → Γ₀)⁻¹' { γ₀ },
+  have hu : x ∈ u, { simp, },
+  rw mem_closure_iff_nhds',
+  refine ⟨λ hx, _, λ hx s hs, _⟩,
+  { obtain ⟨⟨-, y, hy₁ : v y < (γ : Γ₀), rfl⟩, hy₂⟩ := hx _ hγ₀,
+    replace hy₂ : v y = γ₀, { simpa using hy₂, },
+    rwa ← hy₂, },
+  { obtain ⟨y, hy₁, hy₂ : ↑y ∈ s⟩ := completion.dense_range_coe.mem_nhds (inter_mem hγ₀ hs),
+    replace hy₁ : v y = γ₀, { simpa using hy₁, },
+    rw ← hy₁ at hx,
+    exact ⟨⟨y, ⟨y, hx, rfl⟩⟩, hy₂⟩, },
 end
 
 noncomputable instance valued_completion : valued (hat K) Γ₀ :=

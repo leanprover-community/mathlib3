@@ -32,8 +32,6 @@ noncomputable theory
 
 universes u v
 
-open_locale topological_space
-
 section group
 open uniform_space Cauchy filter set
 variables {α : Type u} [uniform_space α]
@@ -118,32 +116,6 @@ instance {α : Type u} [uniform_space α] [add_comm_group α] [uniform_add_group
       (continuous_map₂ continuous_snd continuous_fst))
     (assume x y, by { change ↑x + ↑y = ↑y + ↑x, rw [← coe_add, ← coe_add, add_comm]}),
   .. completion.add_group }
-
--- Bourbaki GT III §3 no.4 Proposition 7
-lemma _root_.filter.has_basis.completion_has_basis_closure_nhds_zero
-  {ι : Type*} {s : ι → set α} {p : ι → Prop} (h : (𝓝 (0 : α)).has_basis p s) :
-  (𝓝 (0 : completion α)).has_basis p $ λ i, closure $ coe '' (s i) :=
-begin
-  rw filter.has_basis_iff at h ⊢,
-  intro T,
-  refine ⟨λ hT, _, λ hT, _⟩,
-  { obtain ⟨V, hV_unif, hV_ball⟩ := uniform_space.mem_nhds_iff.mp hT,
-    obtain ⟨Z, hZ_unif, hZ_closed, hZV⟩ := mem_uniformity_is_closed hV_unif,
-    have h_coe : coe ⁻¹' (ball 0 Z) ∈ 𝓝 (0 : α),
-    { rw uniform_space.mem_nhds_iff,
-      refine ⟨(λ (p : α × α), (↑(p.fst), ↑(p.snd))) ⁻¹' Z, _, rfl.subset⟩,
-      { rw ← uniform_space.completion.comap_coe_eq_uniformity,
-        use [Z, hZ_unif], }},
-    obtain ⟨i, hi, hsi⟩ := (h (coe ⁻¹' (ball 0 Z))).mp h_coe,
-    have hZ_ball_closed : is_closed (ball 0 Z),
-    { exact is_closed.preimage (continuous.prod.mk 0) hZ_closed, },
-    exact ⟨i, hi, subset_trans ((is_closed.closure_subset_iff (hZ_ball_closed)).mpr
-      (set.image_subset_iff.mpr hsi)) (subset_trans (ball_mono hZV 0) hV_ball)⟩, },
-  { obtain ⟨i, hi, hi'⟩ := hT,
-    suffices : closure (coe '' s i) ∈ 𝓝 (0 : completion α), { filter_upwards [this] using hi', },
-    replace h := (h (s i)).mpr ⟨i, hi, set.subset.rfl⟩,
-    exact completion.dense_inducing_coe.closure_image_mem_nhds h, },
-end
 
 end uniform_add_group
 

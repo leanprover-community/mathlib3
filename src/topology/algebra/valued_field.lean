@@ -356,7 +356,7 @@ noncomputable instance valued_completion : valued (hat K) Γ₀ :=
     { rw this.mem_iff,
       exact exists_congr (λ γ, by simp), },
     simp_rw ← closure_coe_completion_v_lt,
-    exact (has_basis_nhds_zero K Γ₀).completion_has_basis_closure_nhds_zero,
+    exact (has_basis_nhds_zero K Γ₀).has_basis_of_dense_inducing completion.dense_inducing_coe,
   end }
 
 end valued

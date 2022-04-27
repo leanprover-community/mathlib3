@@ -233,7 +233,7 @@ instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 @[simp] lemma one_right_moves : right_moves 1 = pempty := rfl
 
 instance is_empty_one_right_moves : is_empty (right_moves 1) := pempty.is_empty
-instance inhabited_one_left_moves : inhabited (left_moves 1) := ⟨punit.star⟩
+instance unique_one_left_moves : unique (left_moves 1) := punit.unique
 
 /-- Define simultaneously by mutual induction the `<=` and `<`
   relation on pre-games. The ZFC definition says that `x = {xL | xR}`

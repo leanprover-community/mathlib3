@@ -147,18 +147,18 @@ def of_lists (L R : list pgame.{u}) : pgame.{u} :=
 mk (ulift (fin L.length)) (ulift (fin R.length))
   (λ i, L.nth_le i.down i.down.is_lt) (λ j, R.nth_le j.down.val j.down.is_lt)
 
-@[simp] lemma of_lists_left_moves (L R : list pgame) :
+@[simp] lemma left_moves_of_lists (L R : list pgame) :
   (of_lists L R).left_moves = ulift (fin L.length) := rfl
-@[simp] lemma of_lists_right_moves (L R : list pgame) :
+@[simp] lemma right_moves_of_lists (L R : list pgame) :
   (of_lists L R).right_moves = ulift (fin R.length) := rfl
 
 /-- Converts a number into a left move for `of_lists`. -/
 def to_of_lists_left_moves {L R : list pgame} : fin L.length ≃ (of_lists L R).left_moves :=
-((equiv.cast (of_lists_left_moves L R).symm).trans equiv.ulift).symm
+((equiv.cast (left_moves_of_lists L R).symm).trans equiv.ulift).symm
 
 /-- Converts a number into a right move for `of_lists`. -/
 def to_of_lists_right_moves {L R : list pgame} : fin R.length ≃ (of_lists L R).right_moves :=
-((equiv.cast (of_lists_right_moves L R).symm).trans equiv.ulift).symm
+((equiv.cast (right_moves_of_lists L R).symm).trans equiv.ulift).symm
 
 theorem of_lists_move_left {L R : list pgame} (i : fin L.length) :
   (of_lists L R).move_left (to_of_lists_left_moves i) = L.nth_le i i.is_lt :=

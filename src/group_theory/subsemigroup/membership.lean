@@ -37,7 +37,7 @@ define a type of nonempty lists, and then products on those?
 -/
 
 section non_assoc
-variables [mul_one_class M]
+variables [has_mul M]
 
 open set
 

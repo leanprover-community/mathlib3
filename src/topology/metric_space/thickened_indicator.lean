@@ -7,22 +7,34 @@ import data.real.ennreal
 import topology.continuous_function.bounded
 
 /-!
-# Thickenings and thickened indicators
+# Thickened indicators
+
+This file is about thickened indicators of sets in (pseudo e)metric spaces. For a decreasing
+sequence of thickening radii tending to 0, the thickened indicators of a closed set form a
+decreasing pointwise converging approximation of the indicator function of the set, where the
+members of the approximating sequence are nonnegative bounded continuous functions.
 
 ## Main definitions
 
+ * `thickened_indicator_aux δ E`: The `δ`-thickened indicator of a set `E` as an
+   unbundled `ℝ≥0∞`-valued function.
+ * `thickened_indicator δ E`: The `δ`-thickened indicator of a set `E` as a bundled
+   bounded continuous `ℝ≥0`-valued function.
+
 ## Main results
+
+ * For a sequence of thickening radii tending to 0, the `δ`-thickened indicators of a set `E` tend
+   pointwise to the indicator of `closure E`.
+   - `thickened_indicator_aux_tendsto_indicator_closure`: The version is for the
+     unbundled `ℝ≥0∞`-valued functions.
+   - `thickened_indicator_tendsto_indicator_closure`: The version is for the bundled `ℝ≥0`-valued
+     bounded continuous functions.
 
 -/
 noncomputable theory
 open_locale classical nnreal ennreal topological_space bounded_continuous_function
 
 open nnreal ennreal set metric emetric filter
-
--- To be placed in the file `data/real/ennreal.lean`.
-lemma _root_.ennreal.div_le_div {a b c d : ℝ≥0∞} (hab : a ≤ b) (hdc : d ≤ c) :
-  a / c ≤ b / d :=
-div_eq_mul_inv b d ▸ div_eq_mul_inv a c ▸ ennreal.mul_le_mul hab (ennreal.inv_le_inv.mpr hdc)
 
 section thickened_indicator
 

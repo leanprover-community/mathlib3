@@ -582,7 +582,7 @@ namespace submonoid
 /-- The additive closure of a submonoid is a subsemiring. -/
 def subsemiring_closure (M : submonoid R) : subsemiring R :=
 { one_mem' := add_submonoid.mem_closure.mpr (λ y hy, hy M.one_mem),
-  mul_mem' := λ x y, mul_mem_add_closure,
+  mul_mem' := λ x y, mul_mem_class.mul_mem_add_closure,
   ..add_submonoid.closure (M : set R)}
 
 lemma subsemiring_closure_coe :

@@ -82,7 +82,7 @@ group extends in a unique way to a homomorphism from `G`.
 Note that since `is_free_group.lift` is expressed as a bijection, it already
 expresses the universal property.  -/
 lemma unique_lift (f : generators G → H) : ∃! F : G →* H, ∀ a, F (of a) = f a :=
-by simpa [function.funext_iff] using (@lift G _ _ H _).symm.bijective.exists_unique f
+by simpa only [function.funext_iff] using lift.symm.bijective.exists_unique f
 
 /-- If a group satisfies the universal property of a free group, then it is a free group, where
 the universal property is expressed as in `is_free_group.lift` and its properties. -/

@@ -157,31 +157,20 @@ variables (S : set R) (T : set M)
 
 theorem span_smul_span : (ideal.span S) • (span R T) =
   span R (⋃ (s ∈ S) (t ∈ T), {s • t}) :=
-(map₂_span_span _ _ _ _).trans $ congr_arg _ $ begin
-  simp_rw [linear_map.lsmul_apply],
-  conv_lhs { rw [←set.bUnion_of_singleton S, ←set.bUnion_of_singleton T] },
-  simp_rw [set.image2_Union₂_left, set.image2_Union₂_right, set.image2_singleton],
-end
-
-lemma union_eq_smul_set (r : R) (T : set M) :
-  (⋃ (t : M) (x : t ∈ T), {r • t}) = r • T := by tidy
+(map₂_span_span _ _ _ _).trans $ congr_arg _ $ set.image2_eq_Union _ _ _
 
 lemma ideal_span_singleton_smul (r : R) (N : submodule R M) :
   (ideal.span {r} : ideal R) • N = r • N :=
 begin
   have : span R (⋃ (t : M) (x : t ∈ N), {r • t}) = r • N,
-  { convert span_eq _, exact union_eq_smul_set r (N : set M) },
+  { convert span_eq _, exact (set.image_eq_Union _ (N : set M)).symm },
   conv_lhs { rw [← span_eq N, span_smul_span] },
   simpa
 end
 
-lemma span_smul_eq (r : R) (s : set M) :
-  span R (r • s) = r • span R s :=
-begin
-  rw [← ideal_span_singleton_smul, span_smul_span],
-  congr,
-  simpa using (union_eq_smul_set r s).symm
-end
+lemma span_smul_eq (r : R) (s : set M) : span R (r • s) = r • span R s :=
+by rw [← ideal_span_singleton_smul, span_smul_span, ←set.image2_eq_Union,
+    set.image2_singleton_left, set.image_smul]
 
 lemma mem_of_span_top_of_smul_mem (M' : submodule R M)
   (s : set R) (hs : ideal.span s = ⊤) (x : M) (H : ∀ r : s, (r : R) • x ∈ M') : x ∈ M' :=

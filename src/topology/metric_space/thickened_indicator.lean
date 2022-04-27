@@ -91,6 +91,13 @@ lemma thickened_indicator_aux_subset (δ : ℝ) {E₁ E₂ : set α} (subset : E
 λ _, tsub_le_tsub (@rfl ℝ≥0∞ 1).le
   (ennreal.div_le_div (inf_edist_le_inf_edist_of_subset subset) rfl.le)
 
+/-- As the thickening radius δ tends to 0, the δ-thickened indicator of a set E (in α) tends
+pointwise (i.e., w.r.t. the product topology on `α → ℝ≥0∞`) to the indicator function of the
+closure of E.
+
+This statement is for the unbundled `ℝ≥0∞`-valued functions `thickened_indicator_aux δ E`, see
+`thickened_indicator_tendsto_indicator_closure` for the version for bundled `ℝ≥0`-valued
+bounded continuous functions. -/
 lemma thickened_indicator_aux_tendsto_indicator_closure
   {δseq : ℕ → ℝ} (δseq_lim : tendsto δseq at_top (𝓝 0)) (E : set α) :
   tendsto (λ n, (thickened_indicator_aux (δseq n) E)) at_top
@@ -193,10 +200,16 @@ lemma thickened_indicator_subset {δ : ℝ} (δ_pos : 0 < δ) {E₁ E₂ : set �
 λ x, (to_nnreal_le_to_nnreal thickened_indicator_aux_lt_top.ne
       thickened_indicator_aux_lt_top.ne).mpr (thickened_indicator_aux_subset δ subset x)
 
+/-- As the thickening radius δ tends to 0, the δ-thickened indicator of a set E (in α) tends
+pointwise to the indicator function of the closure of E.
+
+Note: This version is for the bundled bounded continuous functions, but the topology is not
+the topology on `α →ᵇ ℝ≥0`. Coercions to functions `α → ℝ≥0` are done first, so the topology
+instance is the product topology (the topology of pointwise convergence). -/
 lemma thickened_indicator_tendsto_indicator_closure
   {δseq : ℕ → ℝ} (δseq_pos : ∀ n, 0 < δseq n) (δseq_lim : tendsto δseq at_top (𝓝 0)) (E : set α) :
-  tendsto (λ n, (thickened_indicator (δseq_pos n) E).to_fun) at_top
-    (𝓝 (indicator (closure E) (λ x, (1 : ℝ≥0)))) :=
+  tendsto (λ (n : ℕ), (coe_fn : (α →ᵇ ℝ≥0) → (α → ℝ≥0)) (thickened_indicator (δseq_pos n) E))
+    at_top (𝓝 (indicator (closure E) (λ x, (1 : ℝ≥0)))) :=
 begin
   have key := thickened_indicator_aux_tendsto_indicator_closure δseq_lim E,
   rw tendsto_pi_nhds at *,

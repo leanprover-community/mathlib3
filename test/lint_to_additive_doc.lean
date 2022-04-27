@@ -70,13 +70,15 @@ run_cmd do
   decl ← get_decl ``a_one_iff_b_one,
   res ← linter.to_additive_doc.test decl,
   -- linter is happy
-  guard $ res.is_none,
+  guard $ res.is_none
 
+run_cmd do
   decl ← get_decl ``b_one_of_a_one,
   res ← linter.to_additive_doc.test decl,
   -- linter is happy
-  guard $ res.is_none,
+  guard $ res.is_none
 
+run_cmd do
   decl ← get_decl ``a_one_of_b_one,
   res ← linter.to_additive_doc.test decl,
   -- linter is happy

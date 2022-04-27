@@ -128,6 +128,16 @@ abbreviation binary_fan.snd {X Y : C} (s : binary_fan X Y) := s.π.app walking_p
 @[simp] lemma binary_fan.π_app_right {X Y : C} (s : binary_fan X Y) :
   s.π.app walking_pair.right = s.snd := rfl
 
+/-- A convenient way to show that a `binary_fan` is a limit. -/
+@[simps] def binary_fan.is_limit.mk {X Y : C} (t : binary_fan X Y)
+  (lift : ∀ (s : binary_fan X Y), s.X ⟶ t.X)
+  (fac_fst : ∀ s, lift s ≫ t.fst = s.fst) (fac_snd : ∀ s, lift s ≫ t.snd = s.snd)
+  (uniq : ∀ (s : binary_fan X Y) (m : s.X ⟶ t.X) (w_fst : m ≫ t.fst = s.fst)
+    (w_snd : m ≫ t.snd = s.snd), m = lift s) :
+  is_limit t :=
+is_limit.mk lift (λ s j, walking_pair.cases_on j (fac_fst s) (fac_snd s))
+  (λ s m w, by solve_by_elim)
+
 lemma binary_fan.is_limit.hom_ext {W X Y : C} {s : binary_fan X Y} (h : is_limit s)
   {f g : W ⟶ s.X} (h₁ : f ≫ s.fst = g ≫ s.fst) (h₂ : f ≫ s.snd = g ≫ s.snd) : f = g :=
 h.hom_ext $ λ j, walking_pair.cases_on j h₁ h₂
@@ -145,6 +155,16 @@ abbreviation binary_cofan.inr {X Y : C} (s : binary_cofan X Y) := s.ι.app walki
   s.ι.app walking_pair.left = s.inl := rfl
 @[simp] lemma binary_cofan.ι_app_right {X Y : C} (s : binary_cofan X Y) :
   s.ι.app walking_pair.right = s.inr := rfl
+
+/-- A convenient way to show that a `binary_cofan` is a colimit. -/
+@[simps] def binary_fan.is_colimit.mk {X Y : C} (t : binary_cofan X Y)
+  (desc : ∀ (s : binary_cofan X Y), t.X ⟶ s.X)
+  (fac_inl : ∀ s, t.inl ≫ desc s = s.inl) (fac_inr : ∀ s, t.inr ≫ desc s = s.inr)
+  (uniq : ∀ (s : binary_cofan X Y) (m : t.X ⟶ s.X) (w_fst : t.inl ≫ m = s.inl)
+    (w_snd : t.inr ≫ m = s.inr), m = desc s)
+  : is_colimit t :=
+is_colimit.mk desc (λ s j, walking_pair.cases_on j (fac_inl s) (fac_inr s))
+  (λ s m w, by solve_by_elim)
 
 lemma binary_cofan.is_colimit.hom_ext {W X Y : C} {s : binary_cofan X Y} (h : is_colimit s)
   {f g : s.X ⟶ W} (h₁ : s.inl ≫ f = s.inl ≫ g) (h₂ : s.inr ≫ f = s.inr ≫ g) : f = g :=

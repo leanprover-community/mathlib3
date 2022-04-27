@@ -74,7 +74,7 @@ begin
   ring,},
   simp_rw aux1,
   end
-#exit
+
 lemma slash_k_add (k : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
   (f + g) ∣[k] A = (f ∣[k] A) + (g ∣[k] A) :=
 begin

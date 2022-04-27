@@ -1166,7 +1166,7 @@ begin
   right,
   use default,
   split; rintro ⟨⟩,
-  exact zero_lt_one,
+  exact zero_lt_one
 end
 
 end pgame

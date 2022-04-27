@@ -10,6 +10,8 @@ import category_theory.limits.preserves.basic
 import category_theory.adjunction.limits
 import category_theory.monoidal.functor_category
 import category_theory.monoidal.transport
+import category_theory.monoidal.rigid.of_equivalence
+import category_theory.monoidal.rigid.functor_category
 
 /-!
 # `Action V G`, the category of actions of a monoid `G` inside some category `V`.
@@ -236,18 +238,41 @@ preserves_colimits_of_nat_iso
 end forget
 
 section monoidal
+variables [monoidal_category V]
 
-instance [monoidal_category V] : monoidal_category (Action V G) :=
+instance : monoidal_category (Action V G) :=
 monoidal.transport (Action.functor_category_equivalence _ _).symm
 
 /-- When `V` is monoidal the forgetful functor `Action V G` to `V` is monoidal. -/
 @[simps]
-def forget_monoidal [monoidal_category V] : monoidal_functor (Action V G) V :=
+def forget_monoidal : monoidal_functor (Action V G) V :=
 { ε := 𝟙 _,
   μ := λ X Y, 𝟙 _,
   ..Action.forget _ _, }
 
 -- TODO braiding and symmetry
+
+variables (V G)
+noncomputable theory
+
+/-- Upgrading the functor `Action V G ⥤ (single_obj G ⥤ V)` to a monoidal functor. -/
+def functor_category_monoidal_equivalence : monoidal_functor (Action V G) (single_obj G ⥤ V) :=
+monoidal.from_transported (Action.functor_category_equivalence _ _).symm
+
+instance : is_equivalence ((functor_category_monoidal_equivalence V G).to_functor) :=
+by { change is_equivalence (Action.functor_category_equivalence _ _).functor, apply_instance, }
+
+variables (G' : Group.{u})
+
+instance : has_coe Group.{u} Mon.{u} :=
+{ coe := (forget₂ Group Mon).obj, }
+
+instance [right_rigid_category V] : right_rigid_category (single_obj (G' : Mon.{u}) ⥤ V) :=
+by { change right_rigid_category (single_obj G' ⥤ V), apply_instance }
+
+/-- If `V` is (right) rigid, so is `Action V G`. -/
+instance [right_rigid_category V] : right_rigid_category (Action V G') :=
+right_rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
 
 end monoidal
 

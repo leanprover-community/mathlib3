@@ -173,12 +173,13 @@ module `V →ₗ[k] W`, where `G` acts by conjugation.
 def lin_hom : representation k G (V →ₗ[k] W) :=
 { to_fun := λ g,
   { to_fun := λ f, (ρW g) ∘ₗ f ∘ₗ (ρV g⁻¹),
-    map_add' := λ f₁ f₂, by simp only [add_comp, comp_add],
-    map_smul' := λ r f, by {ext, simp only [coe_comp, function.comp_app, smul_apply, map_smulₛₗ]} },
-  map_one' :=
-    by {ext, simp only [coe_comp, function.comp_app, map_one, one_inv, coe_mk, one_apply]},
-  map_mul' := λ g h, by {ext, simp}}
-
+    map_add' := λ f₁ f₂, by simp_rw [add_comp, comp_add],
+    map_smul' := λ r f, by simp_rw [ring_hom.id_apply, smul_comp, comp_smul]},
+  map_one' := linear_map.ext $ λ x,
+    by simp_rw [coe_mk, one_inv, map_one, one_apply, one_eq_id, comp_id, id_comp],
+  map_mul' := λ g h,  linear_map.ext $ λ x,
+    by simp_rw [coe_mul, coe_mk, function.comp_apply, mul_inv_rev, map_mul, mul_eq_comp,
+                comp_assoc ]}
 @[simp]
 lemma lin_hom_apply (g : G) (f : V →ₗ[k] W) : (lin_hom ρV ρW) g f = (ρW g) ∘ₗ f ∘ₗ (ρV g⁻¹) := rfl
 

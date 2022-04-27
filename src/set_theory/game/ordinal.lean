@@ -61,9 +61,13 @@ theorem to_pgame_move_left_heq {o : ordinal} :
   o.to_pgame.move_left == λ x : o.out.α, (typein (<) x).to_pgame :=
 by { rw to_pgame, refl }
 
-@[simp] theorem to_pgame_move_left {o : ordinal} (i : o.out.α) :
+theorem to_pgame_move_left {o : ordinal} (i : o.out.α) :
   o.to_pgame.move_left (to_left_moves_to_pgame i) = (typein (<) i).to_pgame :=
 by { rw to_left_moves_to_pgame, exact congr_fun_heq _ to_pgame_move_left_heq i }
+
+@[simp] theorem to_pgame_move_left' {o : ordinal} (i : o.to_pgame.left_moves) :
+  o.to_pgame.move_left i = (typein (<) (to_left_moves_to_pgame.symm i)).to_pgame :=
+by { nth_rewrite_lhs 0 ←to_left_moves_to_pgame.apply_symm_apply i, rw to_pgame_move_left }
 
 theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
 begin
@@ -81,8 +85,7 @@ begin
     apply lt_of_lt_of_le _ h,
     simp_rw ←type_lt a,
     apply typein_lt_type },
-  { rw [←to_left_moves_to_pgame.apply_symm_apply i, to_pgame_move_left],
-    simp }
+  { simp }
 end
 
 @[simp] theorem to_pgame_lt_iff {a b : ordinal} : a.to_pgame < b.to_pgame ↔ a < b :=

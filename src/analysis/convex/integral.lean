@@ -228,8 +228,8 @@ by simpa only [average_eq_integral]
 values of `f` over `s` and `sᶜ` are different. -/
 lemma measure_theory.integrable.ae_eq_const_or_exists_average_ne_compl [is_finite_measure μ]
   {f : α → E} (hfi : integrable f μ) :
-  (f =ᵐ[μ] const α (⨍ x, f x ∂μ)) ∨ ∃ s, measurable_set s ∧ μ s ≠ 0 ∧ μ sᶜ ≠ 0 ∧
-    ⨍ x in s, f x ∂μ ≠ ⨍ x in sᶜ, f x ∂μ :=
+  (f =ᵐ[μ] const α (⨍ x, f x ∂μ)) ∨ ∃ t, measurable_set t ∧ μ t ≠ 0 ∧ μ tᶜ ≠ 0 ∧
+    ⨍ x in t, f x ∂μ ≠ ⨍ x in tᶜ, f x ∂μ :=
 begin
   refine or_iff_not_imp_right.mpr (λ H, _), push_neg at H,
   refine hfi.ae_eq_of_forall_set_integral_eq _ _ (integrable_const _) (λ s hs hs', _), clear hs',
@@ -339,4 +339,13 @@ begin
     real.norm_eq_abs, abs_inv, abs_of_pos hμ', ← div_eq_inv_mul, div_lt_iff' hμ']
     using (strict_convex_closed_ball ℝ (0 : E) C).ae_eq_const_or_average_mem_interior
       is_closed_ball h_le hfi
+end
+
+lemma ae_eq_const_or_norm_set_integral_lt_of_norm_le_const [strict_convex_space ℝ E]
+  {t : set α} {f : α → E} {C : ℝ} (ht : μ t ≠ ∞) (h_le : ∀ᵐ x ∂μ.restrict t, ∥f x∥ ≤ C) :
+  (f =ᵐ[μ.restrict t] const α ⨍ x in t, f x ∂μ) ∨ ∥∫ x in t, f x ∂μ∥ < (μ t).to_real * C :=
+begin
+  haveI := fact.mk ht.lt_top,
+  rw [← restrict_apply_univ],
+  exact ae_eq_const_or_norm_integral_lt_of_norm_le_const h_le
 end

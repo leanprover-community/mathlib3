@@ -115,9 +115,15 @@ calc range (circle_map c R) = c +ᵥ R • range (λ θ : ℝ, exp (θ * I)) :
 ... = sphere c (|R|) : by simp [smul_sphere R (0 : ℂ) zero_le_one, real.norm_eq_abs]
 
 /-- The image of `(0, 2π]` under `circle_map c R` is the circle with center `c` and radius `|R|`. -/
-@[simp] lemma image_circle_map_Ioc (c : ℂ) (R : ℝ) :
+@[simp] lemma image_circle_map_Ioc' (c : ℂ) (R : ℝ) :
   circle_map c R '' Ioc 0 (2 * π) = sphere c (|R|) :=
 by rw [← range_circle_map, ← (periodic_circle_map c R).image_Ioc real.two_pi_pos 0, zero_add]
+
+/-- The image of `(0, 2π]` under `circle_map c R`, `0 ≤ R`, is the circle with center `c` and radius
+`R`. -/
+@[simp] lemma image_circle_map_Ioc (c : ℂ) {R : ℝ} (hR : 0 ≤ R) :
+  circle_map c R '' Ioc 0 (2 * π) = sphere c R :=
+by rw [image_circle_map_Ioc', _root_.abs_of_nonneg hR]
 
 @[simp] lemma circle_map_eq_center_iff {c : ℂ} {R : ℝ} {θ : ℝ} : circle_map c R θ = c ↔ R = 0 :=
 by simp [circle_map, exp_ne_zero]
@@ -142,6 +148,16 @@ lemma differentiable_circle_map (c : ℂ) (R : ℝ) :
 
 @[continuity] lemma continuous_circle_map (c : ℂ) (R : ℝ) : continuous (circle_map c R) :=
 (differentiable_circle_map c R).continuous
+
+lemma continuous_on.comp_circle_map' {X : Type*} [topological_space X] {f : ℂ → X} {c : ℂ} {R : ℝ}
+  (h : continuous_on f (sphere c (|R|))) :
+  continuous (f ∘ circle_map c R) :=
+h.comp_continuous (continuous_circle_map c R) (circle_map_mem_sphere' _ _)
+
+lemma continuous_on.comp_circle_map {X : Type*} [topological_space X] {f : ℂ → X} {c : ℂ} {R : ℝ}
+  (h : continuous_on f (sphere c R)) (hR : 0 ≤ R) :
+  continuous (f ∘ circle_map c R) :=
+continuous_on.comp_circle_map' $ (_root_.abs_of_nonneg hR).symm ▸ h
 
 @[measurability] lemma measurable_circle_map (c : ℂ) (R : ℝ) : measurable (circle_map c R) :=
 (continuous_circle_map c R).measurable
@@ -222,7 +238,7 @@ begin
   refine (h.norm.const_mul (|R|⁻¹)).mono' _ _,
   { have H : ∀ {θ}, circle_map 0 R θ * I ≠ 0 := λ θ, by simp [h₀, I_ne_zero],
     simpa only [inv_smul_smul₀ H]
-      using (((continuous_circle_map 0 R).ae_strongly_measurable).mul_const I).ae_measurable
+      using ((continuous_circle_map 0 R).ae_strongly_measurable.mul_const I).ae_measurable
         .inv.ae_strongly_measurable.smul h.ae_strongly_measurable },
   { simp [norm_smul, h₀] },
 end
@@ -230,8 +246,7 @@ end
 lemma continuous_on.circle_integrable' {f : ℂ → E} {c : ℂ} {R : ℝ}
   (hf : continuous_on f (sphere c (|R|))) :
   circle_integrable f c R :=
-(hf.comp_continuous (continuous_circle_map _ _)
-  (circle_map_mem_sphere' _ _)).interval_integrable _ _
+(hf.comp_circle_map').interval_integrable _ _
 
 lemma continuous_on.circle_integrable {f : ℂ → E} {c : ℂ} {R : ℝ} (hR : 0 ≤ R)
   (hf : continuous_on f (sphere c R)) :
@@ -246,7 +261,7 @@ begin
   split,
   { intro h, contrapose! h, rcases h with ⟨hR, hn, hw⟩,
     simp only [circle_integrable_iff R, deriv_circle_map],
-    rw ← image_circle_map_Ioc at hw, rcases hw with ⟨θ, hθ, rfl⟩,
+    rw ← image_circle_map_Ioc' at hw, rcases hw with ⟨θ, hθ, rfl⟩,
     replace hθ : θ ∈ [0, 2 * π], from Icc_subset_interval (Ioc_subset_Icc_self hθ),
     refine not_interval_integrable_of_sub_inv_is_O_punctured _ real.two_pi_pos.ne hθ,
     set f : ℝ → ℂ := λ θ', circle_map c R θ' - circle_map c R θ,
@@ -283,6 +298,14 @@ def circle_integral (f : ℂ → E) (c : ℂ) (R : ℝ) : E :=
 
 notation `∮` binders ` in ` `C(` c `, ` R `)` `, ` r:(scoped:60 f, circle_integral f c R) := r
 
+lemma circle_integral_def_Ioc (f : ℂ → E) (c : ℂ) (R : ℝ) :
+  ∮ z in C(c, R), f z = ∫ θ in Ioc 0 (2 * π), deriv (circle_map c R) θ • f (circle_map c R θ) :=
+by rw [circle_integral, interval_integral.integral_of_le real.two_pi_pos.le]
+
+lemma circle_integral_def_Icc (f : ℂ → E) (c : ℂ) (R : ℝ) :
+  ∮ z in C(c, R), f z = ∫ θ in Icc 0 (2 * π), deriv (circle_map c R) θ • f (circle_map c R θ) :=
+(circle_integral_def_Ioc _ _ _).trans (set_integral_congr_set_ae Ioc_ae_eq_Icc)
+
 namespace circle_integral
 
 @[simp] lemma integral_radius_zero (f : ℂ → E) (c : ℂ) : ∮ z in C(c, 0), f z = 0 :=
@@ -311,25 +334,22 @@ lemma integral_sub {f g : ℂ → E} {c : ℂ} {R : ℝ} (hf : circle_integrable
   ∮ z in C(c, R), f z - g z = (∮ z in C(c, R), f z) - ∮ z in C(c, R), g z :=
 by simp only [circle_integral, smul_sub, interval_integral.integral_sub hf.out hg.out]
 
-lemma norm_integral_le_of_norm_le_const' {f : ℂ → E} {c : ℂ} {R C : ℝ}
-  (hf : ∀ z ∈ sphere c (|R|), ∥f z∥ ≤ C) :
-  ∥∮ z in C(c, R), f z∥ ≤ 2 * π * |R| * C :=
-calc ∥∮ z in C(c, R), f z∥ ≤ |R| * C * |2 * π - 0| :
-  interval_integral.norm_integral_le_of_norm_le_const $ λ θ _,
-    (calc ∥deriv (circle_map c R) θ • f (circle_map c R θ)∥ = |R| * ∥f (circle_map c R θ)∥ :
-      by simp [norm_smul]
-    ... ≤ |R| * C : mul_le_mul_of_nonneg_left (hf _ $ circle_map_mem_sphere' _ _ _)
-      (_root_.abs_nonneg _))
-... = 2 * π * |R| * C :
-  by { rw [sub_zero, _root_.abs_of_pos real.two_pi_pos], ac_refl }
+lemma norm_function_le_of_norm_le_const {f : ℂ → E} {c : ℂ} {R C : ℝ} (hR : 0 ≤ R)
+  (hf : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) (θ : ℝ) :
+  ∥deriv (circle_map c R) θ • f (circle_map c R θ)∥ ≤ R * C :=
+calc ∥deriv (circle_map c R) θ • f (circle_map c R θ)∥ = R * ∥f (circle_map c R θ)∥ :
+  by rw [norm_smul, norm_deriv_circle_map, _root_.abs_of_nonneg hR]
+... ≤ R * C :
+  mul_le_mul_of_nonneg_left (hf _ $ circle_map_mem_sphere _ hR _) hR
 
 lemma norm_integral_le_of_norm_le_const {f : ℂ → E} {c : ℂ} {R C : ℝ} (hR : 0 ≤ R)
   (hf : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
   ∥∮ z in C(c, R), f z∥ ≤ 2 * π * R * C :=
-have |R| = R, from _root_.abs_of_nonneg hR,
-calc ∥∮ z in C(c, R), f z∥ ≤ 2 * π * |R| * C :
-  norm_integral_le_of_norm_le_const' $ by rwa this
-... = 2 * π * R * C : by rw this
+calc ∥∮ z in C(c, R), f z∥ ≤ R * C * |2 * π - 0| :
+  interval_integral.norm_integral_le_of_norm_le_const $ λ θ _,
+    norm_function_le_of_norm_le_const hR hf θ
+... = 2 * π * R * C :
+  by { rw [sub_zero, _root_.abs_of_pos real.two_pi_pos], ac_refl }
 
 lemma norm_two_pi_I_inv_smul_integral_le_of_norm_le_const {f : ℂ → E} {c : ℂ} {R C : ℝ} (hR : 0 ≤ R)
   (hf : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
@@ -348,7 +368,7 @@ lemma norm_integral_lt_of_norm_le_const_of_lt {f : ℂ → E} {c : ℂ} {R C : �
   (hlt : ∃ z ∈ sphere c R, ∥f z∥ < C) :
   ∥∮ z in C(c, R), f z∥ < 2 * π * R * C :=
 begin
-  rw [← abs_of_pos hR, ← image_circle_map_Ioc] at hlt,
+  rw [← abs_of_pos hR, ← image_circle_map_Ioc'] at hlt,
   rcases hlt with ⟨_, ⟨θ₀, hmem, rfl⟩, hlt⟩,
   calc ∥∮ z in C(c, R), f z∥ ≤ ∫ θ in 0..2 * π, ∥deriv (circle_map c R) θ • f (circle_map c R θ)∥ :
     interval_integral.norm_integral_le_integral_norm real.two_pi_pos.le
@@ -357,30 +377,44 @@ begin
       simp only [norm_smul, norm_deriv_circle_map, abs_of_pos hR],
       refine interval_integral.integral_lt_integral_of_continuous_on_of_le_of_exists_lt
         real.two_pi_pos _ continuous_on_const (λ θ hθ, _) ⟨θ₀, Ioc_subset_Icc_self hmem, _⟩,
-      { exact continuous_on_const.mul (hc.comp (continuous_circle_map _ _).continuous_on
-          (λ θ hθ, circle_map_mem_sphere _ hR.le _)).norm },
+      { exact continuous_on_const.mul (hc.comp_circle_map hR.le).continuous_on.norm },
       { exact mul_le_mul_of_nonneg_left (hf _ $ circle_map_mem_sphere _ hR.le _) hR.le },
       { exact (mul_lt_mul_left hR).2 hlt }
     end
   ... = 2 * π * R * C : by simp [mul_assoc]
 end
 
-lemma exists_eq_smul_const_or_norm_integral_lt {f : ℂ → E} {c : ℂ} {R C : ℝ} (hR : 0 < R)
-  (hc : continuous_on f (sphere c R)) (hf : ∀ z ∈ sphere c R, ∥f z∥ ≤ C)
-  (h_conv : ∀ r, strict_convex ℝ (closed_ball (0 : E) r)) :
-  ∥∮ z in C(c, R), f z∥ < 2 * π * R * C :=
+lemma exists_eq_smul_const_or_norm_integral_lt [strict_convex_space ℝ E]
+  {f : ℂ → E} {c : ℂ} {R C : ℝ} (hR : 0 < R)
+  (hc : continuous_on f (sphere c R)) (hf : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
+  (∃ x : E, ∥x∥ = R * C ∧ ∀ z ∈ sphere c R, f z = (z - c)⁻¹ • x) ∨
+    ∥∮ z in C(c, R), f z∥ < 2 * π * R * C :=
 begin
-  have : ∀ᵐ θ ∂(volume.restrict (Ioc (0 : ℝ) (2 * π))),
-    ∥deriv (circle_map c R) θ • f (circle_map c R θ)∥ ≤ R * C,
-  { refine eventually_of_forall (λ θ, _),
-    rw [norm_smul, norm_deriv_circle_map, abs_of_pos hR, mul_le_mul_left hR],
-    exact hf _ (circle_map_mem_sphere _ hR.le _) },
-  rcases (h_conv _).exists_ae_eq_const_or_norm_set_integral_lt_of_norm_le_const
-    measure_Ioc_lt_top.ne this
-    with ⟨c, hc⟩|hlt,
-  {  }
+  have hvol : (volume (Ioc 0 (2 * π))).to_real = 2 * π,
+    by rw [real.volume_Ioc, sub_zero, ennreal.to_real_of_real real.two_pi_pos.le],
+  rw [(norm_integral_le_of_norm_le_const hR.le hf).lt_iff_ne, ne.def, ← imp_iff_or_not],
+  intro h,
+  set avg : E := I⁻¹ • ⨍ θ in Ioc 0 (2 * π), deriv (circle_map c R) θ • f (circle_map c R θ),
+  refine ⟨avg, _, _⟩,
+  { simp only [set_average_eq, hvol, norm_smul, ← circle_integral_def_Ioc, h, _root_.abs_inv,
+      real.norm_eq_abs, abs_of_pos hR, abs_of_pos real.two_pi_pos, mul_assoc (2 * π),
+      inv_mul_cancel_left₀ real.two_pi_pos.ne', inv_mul_cancel_left₀ hR.ne', norm_eq_abs,
+      abs_I, complex.abs_inv, inv_one, one_mul, avg] },
+  { rw [← image_circle_map_Ioc _ hR.le, ball_image_iff],
+    refine measure.eq_on_Ioc_of_ae_eq volume _ _ _,
+    { refine or.resolve_right _ h.not_lt,
+      rw [mul_assoc (2 * π), circle_integral_def_Ioc],
+      nth_rewrite 2 [← hvol],
+      refine (ae_eq_const_or_norm_set_integral_lt_of_norm_le_const measure_Ioc_lt_top.ne $
+        eventually_of_forall $ norm_function_le_of_norm_le_const hR.le hf).imp_left (λ H, _),
+      refine H.mono (λ θ hθ, ((eq_inv_smul_iff₀ $ deriv_circle_map_ne_zero hR.ne').2 hθ).trans _),
+      simp only [avg, function.const_apply, deriv_circle_map, circle_map_sub_center, smul_smul,
+        mul_inv₀] },
+    { exact (hc.comp_circle_map hR.le).continuous_on },
+    { refine ((((continuous_circle_map _ _).sub continuous_const).inv₀ $ λ θ, _).smul
+        continuous_const).continuous_on,
+      exact sub_ne_zero.2 (circle_map_ne_center hR.ne') } }
 end
-
 
 @[simp] lemma integral_smul {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [smul_comm_class 𝕜 ℂ E]
   (a : 𝕜) (f : ℂ → E) (c : ℂ) (R : ℝ) :

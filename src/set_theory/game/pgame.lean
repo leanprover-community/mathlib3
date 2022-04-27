@@ -176,26 +176,19 @@ theorem wf_is_option : well_founded is_option :=
   { exact IHr j }
 end⟩
 
-/-- `subsequent p q` says that `p` can be obtained by playing
-  some nonempty sequence of moves from `q`. -/
+/-- `subsequent x y` says that `x` can be obtained by playing some nonempty sequence of moves from
+`y`. It is the transitive closure of `is_option`. -/
 def subsequent : pgame → pgame → Prop :=
 trans_gen is_option
 
-instance : is_trans _ subsequent :=
-begin
-  change is_trans _ (trans_gen _),
-  apply_instance
-end
+instance : is_trans _ subsequent := trans_gen.is_trans
 
-theorem subsequent.trans : ∀ {x y z}, subsequent x y → subsequent y z → subsequent x z :=
+@[trans] theorem subsequent.trans : ∀ {x y z}, subsequent x y → subsequent y z → subsequent x z :=
 @trans_gen.trans _ _
 
-theorem wf_subsequent : well_founded subsequent :=
-well_founded.trans_gen wf_is_option
+theorem wf_subsequent : well_founded subsequent := well_founded.trans_gen wf_is_option
 
-instance : has_well_founded pgame :=
-{ r := subsequent,
-  wf := wf_subsequent }
+instance : has_well_founded pgame := ⟨_, wf_subsequent⟩
 
 lemma subsequent.move_left (x : pgame) {i : x.left_moves} :
   subsequent (x.move_left i) x :=
@@ -216,8 +209,7 @@ lemma subsequent.mk_right {xl xr} {xL : xl → pgame} {xR : xr → pgame} {j : x
 /-- A local tactic for proving well-foundedness of recursive definitions involving pregames. -/
 meta def pgame_wf_tac :=
 `[solve_by_elim
-  [psigma.lex.left, psigma.lex.right,
-   subsequent.move_left, subsequent.move_right,
+  [psigma.lex.left, psigma.lex.right, subsequent.move_left, subsequent.move_right,
    subsequent.mk_left, subsequent.mk_right, subsequent.trans]
   { max_depth := 6 }]
 

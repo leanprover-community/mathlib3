@@ -786,8 +786,7 @@ end
 
 instance : has_add pgame := ⟨add⟩
 
-@[simp] theorem nat_one : ((1 : ℕ) : pgame) = 0 + 1 :=
-rfl
+@[simp] theorem nat_one : ((1 : ℕ) : pgame) = 0 + 1 := rfl
 
 /-- `x + 0` has exactly the same moves as `x`. -/
 def add_zero_relabelling : Π (x : pgame.{u}), relabelling (x + 0) x

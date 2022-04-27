@@ -1450,7 +1450,7 @@ has_binary_biproduct.mk
 
 /-- We can turn any limit cone over a pair into a bicone. -/
 @[simps]
-def binary_bicone.of_limit_cone {X Y : C} {t : cone (pair X Y)} (ht : is_limit t) :
+def binary_bicone.of_limit_cone {X Y : C} {t : binary_fan X Y} (ht : is_limit t) :
   binary_bicone X Y :=
 { X := t.X,
   fst := t.π.app walking_pair.left,
@@ -1473,7 +1473,7 @@ def is_binary_bilimit_of_is_limit {X Y : C} (t : binary_bicone X Y) (ht : is_lim
 is_binary_bilimit_of_total _ (by refine binary_fan.is_limit.hom_ext ht _ _; simp)
 
 /-- We can turn any limit cone over a pair into a bilimit bicone. -/
-def binary_bicone_is_bilimit_of_limit_cone_of_is_limit {X Y : C} {t : cone (pair X Y)}
+def binary_bicone_is_bilimit_of_limit_cone_of_is_limit {X Y : C} {t : binary_fan X Y}
   (ht : is_limit t) : (binary_bicone.of_limit_cone ht).is_bilimit :=
 is_binary_bilimit_of_total _ $ binary_fan.is_limit.hom_ext ht (by simp) (by simp)
 
@@ -1492,7 +1492,7 @@ lemma has_binary_biproducts.of_has_binary_products [has_binary_products C] :
 
 /-- We can turn any colimit cocone over a pair into a bicone. -/
 @[simps]
-def binary_bicone.of_colimit_cocone {X Y : C} {t : cocone (pair X Y)} (ht : is_colimit t) :
+def binary_bicone.of_colimit_cocone {X Y : C} {t : binary_cofan X Y} (ht : is_colimit t) :
   binary_bicone X Y :=
 { X := t.X,
   fst := ht.desc (binary_cofan.mk (𝟙 X) 0),
@@ -1506,9 +1506,7 @@ begin
   refine ht.hom_ext (λ j, _),
   rw ht.fac,
   cases j,
-  all_goals { simp only [binary_bicone.to_cocone_ι_app_left, binary_bicone.inl_fst,
-      binary_cofan.mk_ι_app_left, binary_bicone.to_cocone_ι_app_right, binary_bicone.inr_fst,
-      binary_cofan.mk_ι_app_right] },
+  all_goals { simp },
   refl
 end
 
@@ -1518,9 +1516,7 @@ begin
   refine ht.hom_ext (λ j, _),
   rw ht.fac,
   cases j,
-  all_goals { simp only [binary_bicone.to_cocone_ι_app_left, binary_bicone.inl_snd,
-    binary_cofan.mk_ι_app_left, binary_bicone.to_cocone_ι_app_right, binary_bicone.inr_snd,
-    binary_cofan.mk_ι_app_right] },
+  all_goals { simp },
   refl
 end
 

@@ -92,19 +92,27 @@ begin
   refl,
 end
 
+lemma aux {k G : Type*} [comm_ring k] [monoid G]
+  (V W : Type*) [add_comm_group V] [add_comm_group W] [module k V] [module k W]
+  (ρ : G →* V →ₗ[k] V) (σ : G →* W →ₗ[k] W)
+  (f : V →ₗ[k] W) (w : ∀ (g : G), f.comp (ρ g) = (σ g).comp f)
+  (r : monoid_algebra k G) (x : V) :
+  f ((((monoid_algebra.lift k G (V →ₗ[k] V)) ρ) r) x) =
+    (((monoid_algebra.lift k G (W →ₗ[k] W)) σ) r) (f x) :=
+begin
+  apply monoid_algebra.induction_on r,
+  { intro g,
+      simp only [one_smul, monoid_algebra.lift_single, monoid_algebra.of_apply],
+      exact linear_map.congr_fun (w g) x, },
+  { intros g h gw hw, simp only [map_add, add_left_inj, linear_map.add_apply, hw, gw], },
+  { intros r g w,
+    simp only [alg_hom.map_smul, w, ring_hom.id_apply,
+      linear_map.smul_apply, linear_map.map_smulₛₗ], }
+end
+
 def to_Module_monoid_algebra_map {V W : Rep k G} (f : V ⟶ W) :
   Module.of (monoid_algebra k G) V ⟶ Module.of (monoid_algebra k G) W :=
-{ map_smul' := λ r x, begin
-    dsimp,
-    apply monoid_algebra.induction_on r,
-    { intro g,
-      simp only [one_smul, monoid_algebra.lift_single, monoid_algebra.of_apply],
-      exact congr_hom (f.comm g) x, },
-    { intros g h gw hw, simp only [map_add, add_left_inj, linear_map.add_apply, hw, gw], },
-    { intros r g w,
-      simp only [alg_hom.map_smul, w, ring_hom.id_apply,
-        linear_map.smul_apply, linear_map.map_smulₛₗ], },
-  end,
+{ map_smul' := λ r x, aux V.V W.V V.ρ W.ρ f.hom f.comm r x,
   ..f.hom, }
 
 def to_Module_monoid_algebra : Rep k G ⥤ Module.{u} (monoid_algebra k G) :=

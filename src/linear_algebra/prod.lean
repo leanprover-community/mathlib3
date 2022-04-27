@@ -283,6 +283,7 @@ variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add
 variables [add_comm_monoid M₅] [add_comm_monoid M₆]
 variables [module R M] [module R M₂] [module R M₃] [module R M₄]
 
+@[simps apply]
 def prod_map_linear : ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₄)) →ₗ[R] ((M × M₂) →ₗ[R] (M₃ × M₄)) :=
 { to_fun := λ f, prod_map f.1 f.2,
   map_add' := λ f g, by {ext, repeat {simp}},

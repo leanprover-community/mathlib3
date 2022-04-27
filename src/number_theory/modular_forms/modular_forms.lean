@@ -44,7 +44,7 @@ local notation `SL(` n `, ` R `)`:= matrix.special_linear_group (fin n) R
 variable (M : GL(2, ℝ)⁺)
 
 def slash_k : ℤ → GL(2, ℝ)⁺ → (ℍ → ℂ) → (ℍ → ℂ) := λ k γ f,
-  (λ (x : ℍ), f (γ • x) * ( ((↑ₘ γ).det ) : ℝ)^(k-1) * (((↑ₘ γ 1 0 : ℝ) * x +(↑ₘ γ 1 1 : ℝ))^k)⁻¹)
+  (λ (x : ℍ), f (γ • x) * (((↑ₘ γ).det ) : ℝ)^(k-1) * (((↑ₘ γ 1 0 : ℝ) * x +(↑ₘ γ 1 1 : ℝ))^k)⁻¹)
 
 namespace modular_forms
 
@@ -53,37 +53,28 @@ variables (Γ : subgroup SL(2,ℤ)) (C : GL(2, ℝ)⁺) (k: ℤ) (f : (ℍ → �
 localized "notation  f  ` ∣[`:100 k `]`:0 γ :100 := slash_k k γ f" in modular_form
 
 lemma slash_k_right_action (k : ℤ) (A B : GL(2, ℝ)⁺) (f : ℍ → ℂ ) :
-  (f ∣[k] A) ∣[k] B = f ∣[k] (A * B):=
+  (f ∣[k] A) ∣[k] B = f ∣[k] (A * B) :=
 begin
   simp_rw slash_k,
-  simp  [upper_half_plane.num, upper_half_plane.denom, monoid_hom.map_mul, of_real_mul,
-  subgroup.coe_mul,matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, coe_coe,
-  upper_half_plane.coe_smul, units.coe_mul],
   ext1,
-  have e1:= upper_half_plane.denom_cocycle A B x,
-  simp  [upper_half_plane.denom, upper_half_plane.smul_aux,  upper_half_plane.smul_aux',
-  matrix.general_linear_group.coe_mul, coe_fn_coe_base, subgroup.coe_mul,
-  matrix.general_linear_group.coe_fn_eq_coe] at e1,
-  rw e1,
-  dsimp only,
-  have e2 := upper_half_plane.mul_smul' A B x,
-  have e3 : (A * B) • x = A • B • x , by {convert e2,} ,
-  rw e3,
+  have e1 := upper_half_plane.denom_cocycle A B x,
+  simp only [upper_half_plane.num, upper_half_plane.denom, of_real_mul, subgroup.coe_mul, coe_coe,
+  upper_half_plane.coe_smul, units.coe_mul, matrix.mul_eq_mul, matrix.det_mul,
+  upper_half_plane.smul_aux, upper_half_plane.smul_aux', subtype.coe_mk] at *,
+  have e3 : (A * B) • x = A • B • x , by {convert (upper_half_plane.mul_smul' A B x),} ,
+  rw [e1,e3],
   ring_nf,
-  have aux1 : ∀  (a b c d e: ℂ) (k : ℤ), (e^k)⁻¹*a^(k-1) * (b^k)⁻¹ * c^(k -1) * d =
+  have aux1 : ∀  (a b c d e: ℂ) (k : ℤ), (e^k)⁻¹ * a^(k-1) * (b^k)⁻¹ * c^(k -1) * d =
   ( (b * e)^ k)⁻¹ * (c * a)^(k-1) * d, by
   {intros a b c d e k,
-  have : (b^k)⁻¹ * ((e)^ k)⁻¹ * (c)^(k-1) * (a)^(k-1) * d = ( (b * e)^ k)⁻¹ * (c * a)^(k-1) * d ,
-  by  {ring_exp,
-  rw ← mul_assoc,
-  have :  (b * e)^ k = b^k * e^k, by {exact mul_zpow₀ b e k,},
-  simp_rw [mul_zpow₀, mul_inv₀],
+  have : (b^k)⁻¹ * (e^ k)⁻¹ * c^(k-1) * a^(k-1) * d = ( (b * e)^ k)⁻¹ * (c * a)^(k-1) * d ,
+  by  {simp_rw [mul_zpow₀, mul_inv₀],
   ring,},
   rw ←this,
   ring,},
   simp_rw aux1,
   end
-
+#exit
 lemma slash_k_add (k : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
   (f + g) ∣[k] A = (f ∣[k] A) + (g ∣[k] A) :=
 begin

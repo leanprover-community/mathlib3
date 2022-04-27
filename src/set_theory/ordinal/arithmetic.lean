@@ -352,12 +352,12 @@ instance : unique (1 : ordinal).out.α :=
     rw type_lt
   end }
 
+@[simp] theorem one_default_eq_enum :
+  (default : (1 : ordinal).out.α) = enum (<) 0 (by { rwa type_lt, exact zero_lt_one }) :=
+rfl
+
 @[simp] theorem typein_lt_one_out (x : (1 : ordinal).out.α) : typein (<) x = 0 :=
-begin
-  rw unique.eq_default x,
-  unfold default,
-  apply typein_enum
-end
+by simp [unique.eq_default x]
 
 theorem enum_succ_eq_top {o : ordinal} :
   enum (<) o (by { rw type_lt, apply lt_succ_self }) = (⊤ : o.succ.out.α) :=

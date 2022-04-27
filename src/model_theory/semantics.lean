@@ -710,6 +710,23 @@ instance model_nonempty [h : nonempty M] :
   M ⊨ L.nonempty_theory :=
 L.model_nonempty_theory_iff.2 h
 
+lemma model_distinct_constants_theory [L[[α]].Structure M] (s : set α) :
+  M ⊨ L.distinct_constants_theory s ↔ set.inj_on (λ (i : α), (L.con i : M)) s :=
+begin
+  simp only [distinct_constants_theory, set.compl_eq_compl, Theory.model_iff, set.mem_image,
+    set.mem_inter_eq, set.mem_prod, set.mem_compl_eq, prod.exists, forall_exists_index, and_imp],
+  refine ⟨λ h a as b bs ab, _, _⟩,
+  { contrapose! ab,
+    have h' := h _ a b as bs ab rfl,
+    simp only [sentence.realize, formula.realize_not, formula.realize_equal,
+      term.realize_constants] at h',
+    exact h', },
+  { rintros h φ a b as bs ab rfl,
+    simp only [sentence.realize, formula.realize_not, formula.realize_equal,
+      term.realize_constants],
+    exact λ contra, ab (h as bs contra) }
+end
+
 end cardinality
 
 end language

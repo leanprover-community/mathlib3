@@ -35,7 +35,7 @@ universes u v w
 namespace first_order
 namespace language
 
-variables {L : language.{u v}} {T : L.Theory} {α : Type*} {n : ℕ}
+variables {L : language.{u v}} {T : L.Theory} {α : Type w} {n : ℕ}
 
 namespace Theory
 
@@ -83,6 +83,13 @@ theorem is_satisfiable_iff_is_finitely_satisfiable {T : L.Theory} :
     exact ⟨hφ, h' (finset.mem_singleton_self _)⟩ },
   exact ⟨Model.of T M'⟩,
 end⟩
+
+lemma is_satisfiable_union_distinct_constants_theory (T : L.Theory) (s : set α) :
+  ((L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s).is_satisfiable ↔
+    ∃ (M : Model.{u v (max u v w)} T), cardinal.lift.{w} (# s) ≤ # M :=
+begin
+  sorry
+end
 
 variable (T)
 

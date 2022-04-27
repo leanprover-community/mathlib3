@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
 import data.list.prod_sigma
+import data.set.prod
 import logic.equiv.fin
 import model_theory.language_map
 
@@ -636,6 +637,40 @@ def infinite_theory : L.Theory := set.range (sentence.card_ge L)
 
 /-- A theory that indicates a structure is nonempty. -/
 def nonempty_theory : L.Theory := {sentence.card_ge L 1}
+
+/-- A theory indicating that each of a set of constants is distinct. -/
+def distinct_constants_theory (s : set α) : L[[α]].Theory :=
+((s ×ˢ s) ∩ (set.diagonal α).compl).image (λ ab, (((L.con ab.1).term.equal (L.con ab.2).term).not))
+
+variable {L}
+
+open set
+
+lemma directed_distinct_constants_theory :
+  directed (⊆) (L.distinct_constants_theory : set α → L[[α]].Theory) :=
+monotone.directed_le (λ s t st, (image_subset _ (inter_subset_inter_left _ (prod_mono st st))))
+
+lemma distinct_constants_theory_eq_Union (s : set α) :
+  L.distinct_constants_theory s = ⋃ (t : finset α) (h : ↑t ⊆ s), L.distinct_constants_theory t :=
+begin
+  classical,
+  transitivity ⋃ (t : {t : finset α // ↑t ⊆ s}), L.distinct_constants_theory (t : set α),
+  { simp only [distinct_constants_theory],
+    rw [← image_Union, ← Union_inter],
+    refine congr rfl (congr (congr rfl _) rfl),
+    ext ⟨i, j⟩,
+    simp only [prod_mk_mem_set_prod_eq, coe_coe, mem_Union, finset.mem_coe, subtype.exists,
+      subtype.coe_mk, exists_prop],
+    refine ⟨λ h, ⟨{i, j}, _, _⟩, _⟩,
+    { simp only [finset.coe_insert, finset.coe_singleton],
+      rw [insert_subset, singleton_subset_iff],
+      exact h, },
+    { simp only [finset.mem_insert, eq_self_iff_true, finset.mem_singleton, true_or,
+        or_true, and_self], },
+    { rintros ⟨t, ht, it, jt⟩,
+      exact ⟨ht (finset.mem_coe.2 it), ht (finset.mem_coe.2 jt)⟩ } },
+  { exact Union_subtype _ _ }
+end
 
 end cardinality
 

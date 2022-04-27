@@ -801,7 +801,7 @@ noncomputable instance : complete_linear_order (with_top α) :=
   Inf := Inf, le_Inf := λ s, (is_glb_Inf s).2, Inf_le := λ s, (is_glb_Inf s).1,
   .. with_top.linear_order, ..with_top.lattice, ..with_top.order_top, ..with_top.order_bot }
 
-lemma coe_Sup {s : set α} (hb : bdd_above s) : (↑(Sup s) : with_top α) = ⨆ a ∈ s, ↑a :=
+lemma coe_Sup {s : set α} (hb : bdd_above s) : (↑(Sup s) : with_top α) = ⨆ a ∈ s, a :=
 begin
   cases s.eq_empty_or_nonempty with hs hs,
   { rw [hs, cSup_empty], simp only [set.mem_empty_eq, supr_bot, supr_false], refl },

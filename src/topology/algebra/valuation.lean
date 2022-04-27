@@ -85,16 +85,14 @@ is designed for the situation that there is a canonical valuation on the ring.
 TODO: show that there always exists an equivalent valuation taking values in a type belonging to
 the same universe as the ring.
 
-See Note [forgetful inheritance] for why we extend `uniform_space`. -/
+See Note [forgetful inheritance] for why we extend `uniform_space`, `uniform_add_group`. -/
 class valued (R : Type u) [ring R] (Γ₀ : out_param (Type v))
-  [linear_ordered_comm_group_with_zero Γ₀] extends uniform_space R :=
+  [linear_ordered_comm_group_with_zero Γ₀] extends uniform_space R, uniform_add_group R :=
 (v : valuation R Γ₀)
--- On second thought perhaps `is_uniform_valuation` would be better replaced with a topological
--- condition characterising the neighbourhoods of (0 : R).
-(is_uniform_valuation : ∀ s, s ∈ 𝓤 R ↔ ∃ (γ : Γ₀ˣ), { p : R × R | v (p.2 - p.1) < γ } ⊆ s)
+(is_topological_valuation : ∀ s, s ∈ 𝓝 (0 : R) ↔ ∃ (γ : Γ₀ˣ), { x : R | v x < γ } ⊆ s)
 
 /-- The `dangerous_instance` linter does not check whether the metavariables only occur in
-arguments marked with `out_param`, so in this instance it gives a false positive.-/
+arguments marked with `out_param`, so in this instance it gives a false positive. -/
 attribute [nolint dangerous_instance] valued.to_uniform_space
 
 namespace valued
@@ -104,22 +102,28 @@ structure. -/
 def mk' (v : valuation R Γ₀) : valued R Γ₀ :=
 { v := v,
   to_uniform_space := @topological_add_group.to_uniform_space R _ v.subgroups_basis.topology _,
-  is_uniform_valuation :=
+  to_uniform_add_group := @topological_add_group_is_uniform _ _ v.subgroups_basis.topology _,
+  is_topological_valuation :=
   begin
     letI := @topological_add_group.to_uniform_space R _ v.subgroups_basis.topology _,
     intros s,
-    suffices : (𝓤 R).has_basis (λ _, true) (λ (γ : Γ₀ˣ), { p : R × R | v (p.2 - p.1) < (γ : Γ₀) }),
-    { rw this.mem_iff,
-      exact exists_congr (λ γ, by simp), },
-    exact v.subgroups_basis.has_basis_nhds_zero.comap _,
+    rw filter.has_basis_iff.mp v.subgroups_basis.has_basis_nhds_zero s,
+    exact exists_congr (λ γ, by simpa),
   end }
 
 variables (R Γ₀) [_i : valued R Γ₀]
 include _i
 
+lemma has_basis_nhds_zero :
+  (𝓝 (0 : R)).has_basis (λ _, true) (λ (γ : Γ₀ˣ), { x | v x < (γ : Γ₀) }) :=
+by simp [filter.has_basis_iff, is_topological_valuation]
+
 lemma has_basis_uniformity :
   (𝓤 R).has_basis (λ _, true) (λ (γ : Γ₀ˣ), { p : R × R | v (p.2 - p.1) < (γ : Γ₀) }) :=
-by simp [filter.has_basis_iff, is_uniform_valuation]
+begin
+  rw uniformity_eq_comap_nhds_zero,
+  exact (has_basis_nhds_zero R Γ₀).comap _,
+end
 
 lemma uniformity_eq :
   𝓤 R = (@topological_add_group.to_uniform_space R _ v.subgroups_basis.topology _).uniformity :=
@@ -136,21 +140,12 @@ begin
   congr,
 end
 
-lemma has_basis_nhds_zero :
-  (𝓝 (0 : R)).has_basis (λ _, true) (λ (γ : Γ₀ˣ), { x | v x < (γ : Γ₀) }) :=
-begin
-  rw to_topological_space_eq,
-  exact v.subgroups_basis.has_basis_nhds_zero,
-end
-
 variables {R Γ₀}
 
 lemma mem_nhds {s : set R} {x : R} :
   (s ∈ 𝓝 x) ↔ ∃ (γ : Γ₀ˣ), {y | (v (y - x) : Γ₀) < γ } ⊆ s :=
-begin
-  rw to_topological_space_eq,
-  simpa [(v.subgroups_basis.has_basis_nhds x).mem_iff],
-end
+by simp [← nhds_translation_add_neg x, ← sub_eq_add_neg,
+  ((has_basis_nhds_zero R Γ₀).comap (λ y, y - x)).mem_iff]
 
 lemma mem_nhds_zero {s : set R} :
   (s ∈ 𝓝 (0 : R)) ↔ ∃ γ : Γ₀ˣ, {x | v x < (γ : Γ₀) } ⊆ s :=
@@ -165,10 +160,6 @@ begin
   intros y y_in,
   exact valuation.map_eq_of_sub_lt _ y_in
 end
-
-@[priority 100]
-instance to_uniform_add_group : uniform_add_group R :=
-(to_uniform_space_eq R Γ₀).symm ▸ @topological_add_group_is_uniform _ _ v.subgroups_basis.topology _
 
 @[priority 100]
 instance : topological_ring R :=
@@ -190,7 +181,11 @@ end
 lemma separated_of_zero_sep
   (H : ∀ x : R, x ≠ 0 → ∃ U ∈ 𝓝 (0 : R), x ∉ U) : separated_space R :=
 begin
-  -- TODO Tidy up this proof: looks like missing fact about uniform add group structure
+  -- The nasty typeclass rewrites here ultimately stem from the fact that
+  -- `topological_add_group.separated_of_zero_sep` redundantly demands a `uniform_space`
+  -- structure (which is definitionally `topological_group.to_uniform_space`).
+  -- TODO Change the conclusion to be `t2_space`, both here and in
+  -- `topological_add_group.separated_of_zero_sep`.
   rw to_uniform_space_eq,
   convert topological_add_group.separated_of_zero_sep H,
   rw to_topological_space_eq,

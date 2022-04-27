@@ -229,7 +229,7 @@ end
 
 /-- The valued field `Fq(t)` with the valuation at infinity. -/
 def infty_valued_Fqt : valued (ratfunc Fq) (with_zero (multiplicative ℤ)) :=
-valued.mk' (infty_valuation Fq)
+valued.mk' $ infty_valuation Fq
 
 lemma infty_valued_Fqt.def {x : ratfunc Fq} :
   @valued.v (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq) x = infty_valuation_def Fq x := rfl

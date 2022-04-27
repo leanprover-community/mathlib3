@@ -364,18 +364,12 @@ end
 
 noncomputable instance valued_completion : valued (hat K) Γ₀ :=
 { v := extension_valuation,
-  is_uniform_valuation := λ s,
+  is_topological_valuation := λ s,
   begin
     suffices : has_basis (𝓝 (0 : hat K)) (λ _, true) (λ (γ : Γ₀ˣ),
       { x | extension_valuation x < (γ : Γ₀) }),
-    { simp only [uniformity_eq_comap_nhds_zero, mem_comap],
-      split,
-      { rintros ⟨n, hn, hns⟩,
-        obtain ⟨γ, -, hγ⟩ := this.mem_iff.mp hn,
-        exact ⟨γ, subset.trans (preimage_mono hγ) hns⟩, },
-      { rintros ⟨γ, hγ⟩,
-        exact ⟨{ x | extension_valuation x < (γ : Γ₀) },
-          this.mem_iff.mpr ⟨γ, trivial, subset.rfl⟩, subset.trans subset.rfl hγ⟩, }, },
+    { rw this.mem_iff,
+      exact exists_congr (λ γ, by simp), },
     simp_rw ← closure_coe_completion_v_lt,
     exact (has_basis_nhds_zero K Γ₀).completion_nhds_zero,
   end }

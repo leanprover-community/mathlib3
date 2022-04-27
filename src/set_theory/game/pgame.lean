@@ -570,6 +570,8 @@ end
 `relabelling x y` says that `x` and `y` are really the same game, just dressed up differently.
 Specifically, there is a bijection between the moves for Left in `x` and in `y`, and similarly
 for Right, and under these bijections we inductively have `relabelling`s for the consequent games.
+
+In ZFC, where there's only one empty pre-game, relabellings would indeed be the same games.
 -/
 inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
 | mk : Π {x y : pgame} (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves),

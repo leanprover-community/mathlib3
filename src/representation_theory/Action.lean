@@ -262,17 +262,14 @@ monoidal.from_transported (Action.functor_category_equivalence _ _).symm
 instance : is_equivalence ((functor_category_monoidal_equivalence V G).to_functor) :=
 by { change is_equivalence (Action.functor_category_equivalence _ _).functor, apply_instance, }
 
-variables (G' : Group.{u})
+variables (H : Group.{u})
 
-instance : has_coe Group.{u} Mon.{u} :=
-{ coe := (forget₂ Group Mon).obj, }
+instance [rigid_category V] : rigid_category (single_obj (H : Mon.{u}) ⥤ V) :=
+by { change rigid_category (single_obj H ⥤ V), apply_instance }
 
-instance [right_rigid_category V] : right_rigid_category (single_obj (G' : Mon.{u}) ⥤ V) :=
-by { change right_rigid_category (single_obj G' ⥤ V), apply_instance }
-
-/-- If `V` is (right) rigid, so is `Action V G`. -/
-instance [right_rigid_category V] : right_rigid_category (Action V G') :=
-right_rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
+/-- If `V` is rigid, so is `Action V G`. -/
+instance [rigid_category V] : rigid_category (Action V H) :=
+rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
 
 end monoidal
 

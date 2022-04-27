@@ -802,7 +802,7 @@ begin
   have Ha : a ∈ ((a :: l) : cycle α) := by simp,
   have Hl : ∀ {b} (hb : b ∈ l), b ∈ ((a :: l) : cycle α) := λ b hb, by simp [hb],
   rw cycle.chain_coe_cons,
-  apply chain_of_pairwise,
+  apply pairwise.chain,
   rw pairwise_cons,
   refine ⟨λ b hb, _, pairwise_append.2 ⟨pairwise_of_forall_mem_list
     (λ b hb c hc, hs b (Hl hb) c (Hl hc)), pairwise_singleton r a, λ b hb c hc, _⟩⟩,

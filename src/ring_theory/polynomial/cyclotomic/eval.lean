@@ -7,7 +7,7 @@ Authors: Eric Rodriguez
 import ring_theory.polynomial.cyclotomic.basic
 import tactic.by_contra
 import topology.algebra.polynomial
-import number_theory.padics.padic_norm
+import number_theory.padics.padic_val
 
 /-!
 # Evaluating cyclotomic polynomials

@@ -277,6 +277,20 @@ end linear_map
 end prod
 
 namespace linear_map
+
+variables [comm_semiring R]
+variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
+variables [add_comm_monoid M₅] [add_comm_monoid M₆]
+variables [module R M] [module R M₂] [module R M₃] [module R M₄]
+
+def prod_map_linear : ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₄)) →ₗ[R] ((M × M₂) →ₗ[R] (M₃ × M₄)) :=
+{ to_fun := λ f, prod_map f.1 f.2,
+  map_add' := λ f g, by {ext, repeat {simp}},
+  map_smul' := λ r f, by {ext, repeat {simp}} }
+
+end linear_map
+
+namespace linear_map
 open submodule
 
 variables [semiring R]

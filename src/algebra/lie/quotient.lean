@@ -102,6 +102,7 @@ instance lie_quotient_has_bracket : has_bracket (L ⧸ I) (L ⧸ I) :=
   apply quotient.lift_on₂' x y (λ x' y', mk ⁅x', y'⁆),
   intros x₁ x₂ y₁ y₂ h₁ h₂,
   apply (submodule.quotient.eq I.to_submodule).2,
+  rw submodule.quotient_rel_r_def at h₁ h₂,
   have h : ⁅x₁, x₂⁆ - ⁅y₁, y₂⁆ = ⁅x₁, x₂ - y₂⁆ + ⁅x₁ - y₁, y₂⁆,
     by simp [-lie_skew, sub_eq_add_neg, add_assoc],
   rw h,

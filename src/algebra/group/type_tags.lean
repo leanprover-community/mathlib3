@@ -16,6 +16,10 @@ We define two type tags:
   multiplicative structure on `multiplicative α`.
 
 We also define instances `additive.*` and `multiplicative.*` that actually transfer the structures.
+
+## See also
+
+This file is similar to `order.synonym`.
 -/
 
 universes u v

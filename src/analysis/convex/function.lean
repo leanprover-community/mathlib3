@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, François Dupuis
 -/
 import analysis.convex.basic
-import order.order_dual
 import tactic.field_simp
 import tactic.linarith
 import tactic.ring

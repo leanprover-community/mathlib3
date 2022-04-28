@@ -184,6 +184,9 @@
   title  : Pi is Transcendental
 54:
   title  : Konigsberg Bridges Problem
+  author : Arjun Pitchanathan
+  links:
+    result: https://github.com/Superty/konigsberg-lean/blob/lean-3.5.1/src/graph.lean#L597-L648=
 55:
   title  : Product of Segments of Chords
   decl   : euclidean_geometry.mul_dist_eq_mul_dist_of_cospherical_of_angle_eq_pi

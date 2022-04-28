@@ -91,12 +91,10 @@ begin
   rw [← abs_norm_eq_norm f, ← abs_norm_eq_norm g, ← abs_mul,
     pi_Lp.inner_apply, is_R_or_C.abs_to_real] at this,
   convert sq_le_sq this using 1,
-  rw mul_pow, iterate 2 { rw [euclidean_space.norm_eq, real.sq_sqrt] },
+  rw mul_pow,
+  iterate 2 { rw [euclidean_space.norm_eq, real.sq_sqrt] },
   { congr; simp only [is_R_or_C.norm_eq_abs, is_R_or_C.abs_to_real, pow_bit0_abs], },
-  iterate 2
-  { rw ← finsum_eq_sum_of_fintype,
-    apply finsum_nonneg,
-    simp only [pow_nonneg, norm_nonneg, implies_true_iff]},
+  iterate 2 { exact finset.sum_nonneg' (λ _, sq_nonneg _) },
 end
 
 lemma cauchy_schwarz_nat {α : Type*} [fintype α] (f g : α → ℕ) :
@@ -147,14 +145,15 @@ begin
   norm_num,
 end
 
-lemma div_four_eq (n : ℕ) :
+lemma pow_two_div_four_eq (n : ℕ) :
   n ^ 2 / 4 = (n / 2) * ((n + 1) / 2) :=
 begin
   obtain ⟨k, rfl | rfl⟩ := nat.even_or_odd' n,
   { norm_num [mul_pow],
     rw pow_two, },
-  { simp [pow_two, add_assoc],
-    simp [mul_add, add_mul],
+  { simp only [pow_two, add_assoc, two_mul_add_one_div_two, nat.add_div_right, nat.succ_pos',
+      nat.mul_div_right],
+    simp only [mul_add, add_mul, mul_one, one_mul],
     convert_to (4 * (k * (k + 1)) + 1) / 4 = _,
     { congr' 1,
       ring, },
@@ -173,42 +172,28 @@ section edge_equiv
 open sum
 
 private def to_pair {α β} :
-  Π (vw : (α ⊕ β) × (α ⊕ β)), (complete_bipartite_graph α β).adj vw.1 vw.2 → α × β :=
-by { rintro ⟨(v | w), (v | w)⟩ h; exact ⟨v, w⟩ <|> simpa using h }
-
-@[simp] private lemma to_pair_inl_inr {α β} {a} {b}
-  (h : (complete_bipartite_graph α β).adj (inl a) (inr b) := by simp) :
-  to_pair (inl a, inr b) h = (a, b) := by simp [to_pair]
-
-@[simp] private lemma to_pair_inr_inl {α β} {a} {b}
-  (h : (complete_bipartite_graph α β).adj (inr b) (inl a) := by simp) :
-  to_pair (inr b, inl a) h = (a, b) := by simp [to_pair]
+  Π (v w : (α ⊕ β)), (complete_bipartite_graph α β).adj v w → α × β
+| (inl a) (inl a') h := by simpa using h
+| (inl a) (inr b) h := (a, b)
+| (inr b) (inl a) h := (a, b)
+| (inr b) (inr b') h := by simpa using h
 
 def complete_bipartite_edge_equiv {V W} : (complete_bipartite_graph V W).edge_set ≃ V × W :=
-{ to_fun := λ ⟨x, hx⟩,
+{ to_fun := λ x',
   begin
-    revert hx,
-    refine x.hrec_on _ _,
-    exact to_pair,
-    rintro ⟨v₁ | w₁, v₂ | w₂⟩ ⟨v₃ | w₃, v₄ | w₄⟩ (⟨_, _⟩ | ⟨_, _⟩),
-    { simp },
-    { rw heq_iff_eq, funext h, simpa using h },
-    { simp },
-    { apply function.hfunext; simp },
-    { apply function.hfunext; simp },
-    { simp },
-    { simp },
-    { rw heq_iff_eq, funext h, simpa using h }
+    refine quotient.hrec_on x'.1 (λ p hx, to_pair p.1 p.2 hx) _ x'.2,
+    rintro ⟨v₁ | w₁, v₂ | w₂⟩ ⟨v₃ | w₃, v₄ | w₄⟩ (⟨_, _⟩ | ⟨_, _⟩); ext1 h;
+    simp only [to_pair, heq_iff_eq, eq_self_iff_true,
+      mem_edge_set, is_left, is_right, complete_bipartite_graph_adj, coe_sort_tt, coe_sort_ff,
+      and_false, false_and, and_self,
+      or_false, false_or, or_self, forall_false_left, forall_true_left],
   end,
   inv_fun := λ x, ⟨⟦(sum.inl x.1, sum.inr x.2)⟧, by simp⟩,
-  left_inv := λ ⟨x, hx⟩,
+  left_inv := λ x',
   begin
-    revert hx,
-    apply x.induction_on,
-    clear x,
-    rintro (x | x) (y | y) (⟨⟨⟩, ⟨⟩⟩ | ⟨⟨⟩, ⟨⟩⟩),
-    { simp! only [subtype.mk_eq_mk, quotient.eq],
-      constructor },
+    obtain ⟨x, hx⟩ := x',
+    refine sym2.ind _ x hx,
+    rintro (x | x) (y | y) (⟨⟨⟩, ⟨⟩⟩ | ⟨⟨⟩, ⟨⟩⟩);
     { simp! only [subtype.mk_eq_mk, quotient.eq],
       constructor }
   end,
@@ -233,9 +218,8 @@ lemma bipartite_num_edges (n : ℕ) :
   = n ^ 2 / 4 :=
 begin
   rw card_edge_finset,
-  transitivity,
-  { exact fintype.card_congr (complete_bipartite_edge_equiv) },
-  { simp [div_four_eq] },
+  refine eq.trans (fintype.card_congr complete_bipartite_edge_equiv) _,
+  simp [pow_two_div_four_eq],
 end
 
 /-- Therefore the bound in `simple_graph.not_triangle_free_of_lt_card_edge_set` is strict. -/
@@ -245,7 +229,7 @@ begin
   simp_rw [clique_free, is_3_clique_iff],
   push_neg,
   intros s a b c,
-  simp,
+  simp only [complete_bipartite_graph_adj, ne.def],
   obtain (a|a) := a; obtain (b|b) := b; obtain (c|c) := c; simp,
 end
 

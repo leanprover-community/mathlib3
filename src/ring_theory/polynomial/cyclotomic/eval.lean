@@ -184,7 +184,7 @@ begin
     exact nat.pow_right_injective hp.two_le hxy }
 end
 
-lemma sub_one_pow_totient_lt_cyclotomic_eval (n : ℕ) (q : ℝ) (hn' : 2 ≤ n) (hq' : 1 < q) :
+lemma sub_one_pow_totient_lt_cyclotomic_eval {n : ℕ} {q : ℝ} (hn' : 2 ≤ n) (hq' : 1 < q) :
   (q - 1) ^ totient n < (cyclotomic n ℝ).eval q :=
 begin
   have hn : 0 < n := pos_of_gt hn',
@@ -235,7 +235,7 @@ begin
     simpa [hq'.le] using hex, },
 end
 
-lemma cyclotomic_eval_lt_sub_one_pow_totient (n : ℕ) (q : ℝ) (hn' : 3 ≤ n) (hq' : 1 < q) :
+lemma cyclotomic_eval_lt_sub_one_pow_totient {n : ℕ} {q : ℝ} (hn' : 3 ≤ n) (hq' : 1 < q) :
   (cyclotomic n ℝ).eval q < (q + 1) ^ totient n :=
 begin
   have hn : 0 < n := pos_of_gt hn',
@@ -300,7 +300,7 @@ begin
     exact ⟨ζ, hζ, by simp [hhζ]⟩ },
 end
 
-lemma sub_one_lt_nat_abs_cyclotomic_eval (n : ℕ) (q : ℕ) (hn' : 1 < n) (hq' : q ≠ 1) :
+lemma sub_one_lt_nat_abs_cyclotomic_eval {n : ℕ} {q : ℕ} (hn' : 1 < n) (hq' : q ≠ 1) :
   q - 1 < ((cyclotomic n ℤ).eval ↑q).nat_abs :=
 begin
   rcases q with _ | _ | q,

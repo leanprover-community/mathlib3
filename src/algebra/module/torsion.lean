@@ -303,9 +303,11 @@ include hM
 
 /-- can't be an instance because hM can't be inferred -/
 def is_torsion_by_set.has_scalar : has_scalar (R ⧸ I) M :=
-{ smul := λ b x, quotient.lift_on' b (• x) $ λ b₁ b₂ (h : b₁ - b₂ ∈ _), begin
+{ smul := λ b x, quotient.lift_on' b (• x) $ λ b₁ b₂ h, begin
     show b₁ • x = b₂ • x,
-    rw [← sub_eq_zero, ← sub_smul], exact @hM x ⟨_, h⟩
+    have : (-b₁ + b₂) • x = 0 := @hM x ⟨_, h⟩,
+    rw [add_smul, neg_smul, neg_add_eq_zero] at this,
+    exact this
   end }
 
 @[simp] lemma is_torsion_by_set.mk_smul (b : R) (x : M) :

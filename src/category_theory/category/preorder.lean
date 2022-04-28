@@ -3,9 +3,8 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
-
-import category_theory.category.Cat
-import order.category.Preorder
+import category_theory.adjunction.basic
+import order.galois_connection
 
 /-!
 
@@ -129,23 +128,6 @@ An adjunction between preorder categories induces a galois connection.
 lemma adjunction.gc {L : X ⥤ Y} {R : Y ⥤ X} (adj : L ⊣ R) :
   galois_connection L.obj R.obj :=
 λ x y, ⟨λ h, ((adj.hom_equiv x y).to_fun h.hom).le, λ h, ((adj.hom_equiv x y).inv_fun h.hom).le⟩
-
-/--
-The embedding of `Preorder` into `Cat`.
--/
-@[simps]
-def Preorder_to_Cat : Preorder.{u} ⥤ Cat :=
-{ obj := λ X, Cat.of X.1,
-  map := λ X Y f, f.monotone.functor,
-  map_id' := λ X, begin apply category_theory.functor.ext, tidy end,
-  map_comp' := λ X Y Z f g, begin apply category_theory.functor.ext, tidy end }
-
-instance : faithful Preorder_to_Cat.{u} :=
-{ map_injective' := λ X Y f g h, begin ext x, exact functor.congr_obj h x end }
-
-instance : full Preorder_to_Cat.{u} :=
-{ preimage := λ X Y f, ⟨f.obj, f.monotone⟩,
-  witness' := λ X Y f, begin apply category_theory.functor.ext, tidy end }
 
 end preorder
 

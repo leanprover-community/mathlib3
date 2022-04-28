@@ -33,7 +33,7 @@ finitely many vertices.
    if `incidence_set` is finite
 
 * `simple_graph.dart` is an ordered pair of adjacent vertices, thought of as being an
-  orientated edge.
+  orientated edge. These are also known as "half-edges" or "bonds."
 
 * `simple_graph.hom`, `simple_graph.embedding`, and `simple_graph.iso` for graph
   homomorphisms, graph embeddings, and
@@ -321,7 +321,9 @@ instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
 
 /-! ## Darts -/
 
-/-- A `dart` is an oriented edge, implemented as an ordered pair of adjacent vertices. -/
+/-- A `dart` is an oriented edge, implemented as an ordered pair of adjacent vertices.
+This terminology comes from combinatorial maps, and they are also known as "half-edges"
+or "bonds." -/
 @[ext, derive decidable_eq]
 structure dart extends V × V :=
 (is_adj : G.adj fst snd)
@@ -595,8 +597,10 @@ end incidence
 
 /-! ## Edge deletion -/
 
-/-- Given a set of vertex pairs, remove all of the corresponding edges from the edge set.
-It is fine to delete edges outside the edge set. -/
+/-- Given a set of vertex pairs, remove all of the corresponding edges from the
+graph's edge set, if present.
+
+See also: `simple_graph.subgraph.delete_edges`. -/
 def delete_edges (s : set (sym2 V)) : simple_graph V :=
 { adj := G.adj \ sym2.to_rel s,
   symm := λ a b, by simp [adj_comm, sym2.eq_swap] }
@@ -975,6 +979,11 @@ The underlying map on edges is given by `sym2.map`. -/
 /-- The map between neighbor sets induced by a homomorphism. -/
 @[simps] def map_neighbor_set (v : V) (w : G.neighbor_set v) : G'.neighbor_set (f v) :=
 ⟨f w, f.apply_mem_neighbor_set w.property⟩
+
+/-- The map between darts induced by a homomorphism. -/
+def map_dart (d : G.dart) : G'.dart := ⟨d.1.map f f, f.map_adj d.2⟩
+
+@[simp] lemma map_dart_apply (d : G.dart) : f.map_dart d = ⟨d.1.map f f, f.map_adj d.2⟩ := rfl
 
 /-- The induced map for spanning subgraphs, which is the identity on vertices. -/
 def map_spanning_subgraphs {G G' : simple_graph V} (h : G ≤ G') : G →g G' :=

@@ -1208,6 +1208,29 @@ end set
 
 namespace finset
 
+/-! ### Interaction with ordered algebra structures -/
+
+lemma sup_mul_le_mul_sup_of_nonneg [linear_ordered_semiring α] [order_bot α]
+  {a b : ι → α} (s : finset ι) (ha : ∀ i ∈ s, 0 ≤ a i) (hb : ∀ i ∈ s, 0 ≤ b i)  :
+  s.sup (a * b) ≤ s.sup a * s.sup b :=
+finset.sup_le $ λ i hi, mul_le_mul (le_sup hi) (le_sup hi) (hb _ hi) ((ha _ hi).trans $ le_sup hi)
+
+lemma mul_inf_le_inf_mul_of_nonneg [linear_ordered_semiring α] [order_top α]
+  {a b : ι → α} (s : finset ι) (ha : ∀ i ∈ s, 0 ≤ a i) (hb : ∀ i ∈ s, 0 ≤ b i) :
+  s.inf a * s.inf b ≤ s.inf (a * b) :=
+finset.le_inf $ λ i hi, mul_le_mul (inf_le hi) (inf_le hi) (finset.le_inf hb) (ha i hi)
+
+lemma sup'_mul_le_mul_sup'_of_nonneg [linear_ordered_semiring α]
+  {a b : ι → α} (s : finset ι) (H : s.nonempty) (ha : ∀ i ∈ s, 0 ≤ a i) (hb : ∀ i ∈ s, 0 ≤ b i)  :
+  s.sup' H (a * b) ≤ s.sup' H a * s.sup' H b :=
+sup'_le _ _ $ λ i hi,
+  mul_le_mul (le_sup' _ hi) (le_sup' _ hi) (hb _ hi) ((ha _ hi).trans $ le_sup' _ hi)
+
+lemma inf'_mul_le_mul_inf'_of_nonneg [linear_ordered_semiring α]
+  {a b : ι → α} (s : finset ι) (H : s.nonempty) (ha : ∀ i ∈ s, 0 ≤ a i) (hb : ∀ i ∈ s, 0 ≤ b i)  :
+  s.inf' H a * s.inf' H b ≤ s.inf' H (a * b) :=
+le_inf' _ _ $ λ i hi, mul_le_mul (inf'_le _ hi) (inf'_le _ hi) (le_inf' _ _ hb) (ha _ hi)
+
 open function
 
 /-! ### Interaction with big lattice/set operations -/

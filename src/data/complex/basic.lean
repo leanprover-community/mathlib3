@@ -69,6 +69,8 @@ def _root_.set.re_prod_im (s t : set ℝ) : set ℂ := re ⁻¹' s ∩ im ⁻¹'
 
 infix ` ×ℂ `:72 := set.re_prod_im
 
+lemma mem_re_prod_im {z : ℂ} {s t : set ℝ} : z ∈ s ×ℂ t ↔ z.re ∈ s ∧ z.im ∈ t := iff.rfl
+
 instance : has_zero ℂ := ⟨(0 : ℝ)⟩
 instance : inhabited ℂ := ⟨0⟩
 
@@ -145,6 +147,11 @@ ext_iff.2 $ by simp
 
 @[simp] lemma re_add_im (z : ℂ) : (z.re : ℂ) + z.im * I = z :=
 ext_iff.2 $ by simp
+
+lemma mul_I_re (z : ℂ) : (z * I).re = -z.im := by simp
+lemma mul_I_im (z : ℂ) : (z * I).im = z.re := by simp
+lemma I_mul_re (z : ℂ) : (I * z).re = -z.im := by simp
+lemma I_mul_im (z : ℂ) : (I * z).im = z.re := by simp
 
 /-! ### Commutative ring instance and lemmas -/
 
@@ -393,8 +400,7 @@ by rw [← of_real_int_cast, of_real_re]
 @[simp, norm_cast] lemma int_cast_im (n : ℤ) : (n : ℂ).im = 0 :=
 by rw [← of_real_int_cast, of_real_im]
 
-@[simp, norm_cast] theorem of_real_rat_cast (n : ℚ) : ((n : ℝ) : ℂ) = n :=
-of_real.map_rat_cast n
+@[simp, norm_cast] theorem of_real_rat_cast (n : ℚ) : ((n : ℝ) : ℂ) = n := map_rat_cast of_real n
 
 @[simp, norm_cast] lemma rat_cast_re (q : ℚ) : (q : ℂ).re = q :=
 by rw [← of_real_rat_cast, of_real_re]
@@ -503,6 +509,13 @@ lemma re_le_abs (z : ℂ) : z.re ≤ abs z :=
 lemma im_le_abs (z : ℂ) : z.im ≤ abs z :=
 (abs_le.1 (abs_im_le_abs _)).2
 
+@[simp] lemma abs_re_lt_abs {z : ℂ} : |z.re| < abs z ↔ z.im ≠ 0 :=
+by rw [abs, real.lt_sqrt (_root_.abs_nonneg _), norm_sq_apply, _root_.sq_abs, ← sq,
+  lt_add_iff_pos_right, mul_self_pos]
+
+@[simp] lemma abs_im_lt_abs {z : ℂ} : |z.im| < abs z ↔ z.re ≠ 0 :=
+by simpa using @abs_re_lt_abs (z * I)
+
 /--
 The **triangle inequality** for complex numbers.
 -/
@@ -585,7 +598,11 @@ lemma lt_def {z w : ℂ} : z < w ↔ z.re < w.re ∧ z.im = w.im := iff.rfl
 lemma not_le_iff {z w : ℂ} : ¬(z ≤ w) ↔ w.re < z.re ∨ z.im ≠ w.im :=
 by rw [le_def, not_and_distrib, not_le]
 
+lemma not_lt_iff {z w : ℂ} : ¬(z < w) ↔ w.re ≤ z.re ∨ z.im ≠ w.im :=
+by rw [lt_def, not_and_distrib, not_lt]
+
 lemma not_le_zero_iff {z : ℂ} : ¬z ≤ 0 ↔ 0 < z.re ∨ z.im ≠ 0 := not_le_iff
+lemma not_lt_zero_iff {z : ℂ} : ¬z < 0 ↔ 0 ≤ z.re ∨ z.im ≠ 0 := not_lt_iff
 
 /--
 With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is an ordered ring.

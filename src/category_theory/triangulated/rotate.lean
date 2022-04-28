@@ -49,6 +49,7 @@ applying `rotate` gives a triangle of the form:
 @[simps]
 def triangle.rotate (T : triangle C) : triangle C := triangle.mk _ T.mor₂ T.mor₃ (-T.mor₁⟦1⟧')
 
+section
 local attribute [semireducible] shift_shift_neg shift_neg_shift
 
 /--
@@ -70,7 +71,7 @@ def triangle.inv_rotate (T : triangle C) : triangle C :=
 triangle.mk _ (-T.mor₃⟦(-1:ℤ)⟧' ≫ (shift_shift_neg _ _).hom) T.mor₁
   (T.mor₂ ≫ (shift_neg_shift _ _).inv)
 
-local attribute [reducible] shift_shift_neg shift_neg_shift discrete.add_monoidal
+end
 
 namespace triangle_morphism
 variables {T₁ T₂ T₃ T₄: triangle C}
@@ -142,14 +143,14 @@ def inv_rotate (f : triangle_morphism T₁ T₂) :
   hom₂ := f.hom₁,
   hom₃ := f.hom₂,
   comm₁' := begin
-    dsimp [inv_rotate_mor₁],
-    simp only [discrete.functor_map_id, id_comp, preadditive.comp_neg, assoc,
-      neg_inj, nat_trans.id_app, preadditive.neg_comp],
-    rw [← functor.map_comp_assoc, ← f.comm₃, functor.map_comp_assoc, μ_naturality_assoc,
-      nat_trans.naturality, functor.id_map],
+    dsimp [triangle.inv_rotate],
+    simp only [unit_of_tensor_iso_unit_hom_app, discrete.functor_map_id, category.id_comp,
+      category.assoc, nat_trans.id_app, preadditive.comp_neg, neg_inj, preadditive.neg_comp],
+    rw [← functor.map_comp_assoc, ← f.comm₃, functor.map_comp_assoc],
+    simp,
   end,
   comm₃' := begin
-    dsimp,
+    dsimp [triangle.inv_rotate],
     simp only [discrete.functor_map_id, id_comp, opaque_eq_to_iso_inv, μ_inv_naturality,
       category.assoc, nat_trans.id_app, unit_of_tensor_iso_unit_inv_app],
     erw ε_naturality_assoc,
@@ -188,6 +189,11 @@ def to_inv_rotate_rotate (T : triangle C) : T ⟶ (inv_rotate C).obj ((rotate C)
     hom₃ := 𝟙 T.obj₃,
     comm₃' := begin
       dsimp,
+      simp,
+      dsimp,
+      simp,
+      congr' 2,
+      erw is_iso.hom_inv_id_assoc,
       simp only [ε_app_obj, eq_to_iso.hom, discrete.functor_map_id, id_comp, eq_to_iso.inv,
         opaque_eq_to_iso_inv, category.assoc, obj_μ_inv_app, functor.map_comp, nat_trans.id_app,
         obj_ε_app, unit_of_tensor_iso_unit_inv_app],

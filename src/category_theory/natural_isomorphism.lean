@@ -175,6 +175,30 @@ noncomputable instance has_inv_app_of_has_inv (α : F ⟶ G) [has_inv α] (X) : 
 example (α β : F ⟶ F) [is_iso α] [is_iso β] (X) : inv ((inv α ≫ inv β).app X) = (β ≫ α).app X :=
 by simp
 
+variables {X Y : C}
+
+@[simp, reassoc]
+lemma inv_naturality (α : F ⟶ G) [is_iso α] (f : X ⟶ Y) :
+  G.map f ≫ inv (α.app Y) = inv (α.app X) ≫ F.map f :=
+begin
+  apply (cancel_epi (α.app X)).1,
+  simp [←naturality_assoc],
+end
+
+lemma naturality_1 (α : F ≅ G) (f : X ⟶ Y) :
+  α.inv.app X ≫ F.map f ≫ α.hom.app Y = G.map f :=
+by simp
+lemma naturality_2 (α : F ≅ G) (f : X ⟶ Y) :
+  α.hom.app X ≫ G.map f ≫ α.inv.app Y = F.map f :=
+by simp
+
+lemma naturality_1' (α : F ⟶ G) (f : X ⟶ Y) [is_iso (α.app X)] :
+  inv (α.app X) ≫ F.map f ≫ α.app Y = G.map f :=
+by simp
+lemma naturality_2' (α : F ⟶ G) (f : X ⟶ Y) [is_iso (α.app Y)] :
+  α.app X ≫ G.map f ≫ inv (α.app Y) = F.map f :=
+by rw [←category.assoc, ←naturality, category.assoc, is_iso.hom_inv_id, category.comp_id]
+
 /--
 Construct a natural isomorphism between functors by giving object level isomorphisms,
 and checking naturality only in the forward direction.

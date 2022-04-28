@@ -444,7 +444,7 @@ by { ext, refl }
   B.comp linear_map.id linear_map.id = B :=
 by { ext, refl }
 
-lemma comp_injective (B₁ B₂ : bilin_form R M') {l r : M →ₗ[R] M'}
+lemma comp_inj (B₁ B₂ : bilin_form R M') {l r : M →ₗ[R] M'}
   (hₗ : function.surjective l) (hᵣ : function.surjective r) :
   B₁.comp l r = B₂.comp l r ↔ B₁ = B₂ :=
 begin
@@ -795,7 +795,7 @@ begin
   have he : function.surjective (⇑(↑e : M₃' →ₗ[R₃] M₃) : M₃' → M₃) := e.surjective,
   show bilin_form.is_adjoint_pair _ _ _ _  ↔ bilin_form.is_adjoint_pair _ _ _ _,
   rw [is_adjoint_pair_iff_comp_left_eq_comp_right, is_adjoint_pair_iff_comp_left_eq_comp_right,
-      hᵣ, hₗ, comp_injective _ _ he he],
+      hᵣ, hₗ, comp_inj _ _ he he],
 end
 
 /-- An endomorphism of a module is self-adjoint with respect to a bilinear form if it serves as an

@@ -140,18 +140,12 @@ instance has_forget_to_Group : has_forget₂ CommGroup Group := bundled_hom.forg
 @[to_additive] instance : has_coe CommGroup.{u} Group.{u} :=
 { coe := (forget₂ CommGroup Group).obj, }
 
-@[simp, norm_cast] lemma coe_CommGroup_Group_Mon (G : CommGroup.{u}) :
-  ((G : Group.{u}) : Mon.{u}) = (G : Mon.{u}) := rfl
-
 @[to_additive has_forget_to_AddCommMon]
 instance has_forget_to_CommMon : has_forget₂ CommGroup CommMon :=
 induced_category.has_forget₂ (λ G : CommGroup, CommMon.of G)
 
 @[to_additive] instance : has_coe CommGroup.{u} CommMon.{u} :=
 { coe := (forget₂ CommGroup CommMon).obj, }
-
-@[simp, norm_cast] lemma coe_CommGroup_CommMon_Mon (G : CommGroup.{u}) :
-  ((G : CommMon.{u}) : Mon.{u}) = (G : Mon.{u}) := rfl
 
 end CommGroup
 

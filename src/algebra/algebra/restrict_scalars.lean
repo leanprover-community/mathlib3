@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import algebra.algebra.basic
+import algebra.algebra.tower
 
 /-!
 
@@ -97,10 +97,17 @@ module.comp_hom M (algebra_map R S)
 instance : is_scalar_tower R S (restrict_scalars R S M) :=
 ⟨λ r S M, by { rw [algebra.smul_def, mul_smul], refl }⟩
 
+/--
+The `R`-algebra homomorphism from the original coefficient algebra `S` to endomorphisms
+of `restrict_scalars R S M`.
+-/
+def restrict_scalars.lsmul : S →ₐ[R] (module.End R (restrict_scalars R S M)) :=
+algebra.lsmul R (restrict_scalars R S M)
+
 end
 
 /-- `restrict_scalars.add_equiv` is the additive equivalence with the original module. -/
-def restrict_scalars.add_equiv [semiring S] [add_comm_monoid M] [module S M] :
+@[simps] def restrict_scalars.add_equiv [semiring S] [add_comm_monoid M] [module S M] :
   restrict_scalars R S M ≃+ M :=
 add_equiv.refl M
 

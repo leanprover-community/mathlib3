@@ -122,40 +122,32 @@ def to_Module_monoid_algebra : Rep k G ⥤ Module.{u} (monoid_algebra k G) :=
 -- attribute [simps] to_Module_monoid_algebra
 
 def representation_of_module_monoid_algebra (V : Module.{u} (monoid_algebra k G)) :
-  G →* restrict_scalars k (monoid_algebra k G) ↥V →ₗ[k] restrict_scalars k (monoid_algebra k G) V :=
-((monoid_algebra.lift k G
+  G →* restrict_scalars k (monoid_algebra k G) V →ₗ[k] restrict_scalars k (monoid_algebra k G) V :=
+(monoid_algebra.lift k G
   ((restrict_scalars k (monoid_algebra k G) V) →ₗ[k] restrict_scalars k (monoid_algebra k G) V)).symm
-  (algebra.lsmul k (restrict_scalars k (monoid_algebra k G) V)))
+  (restrict_scalars.lsmul k (monoid_algebra k G) (restrict_scalars k (monoid_algebra k G) V))
 
 -- @[simps]
 -- @[irreducible]
 def of_Module_monoid_algebra : Module.{u} (monoid_algebra k G) ⥤ Rep k G :=
-{ obj := λ V, Rep.of (representation_of_module_monoid_algebra V),
+{ obj := λ V, Rep.of (representation_of_module_monoid_algebra V), -- inline?
   map := λ V W f,
   { hom :=
     { map_smul' := λ r x, f.map_smul (algebra_map k _ r) x,
       ..f },
     comm' := λ g, by { ext, apply f.map_smul, }, }, }.
 
-@[simp] lemma of_Module_monoid_algebra_obj_coe (M : Module.{u} (monoid_algebra k G)) :
+lemma of_Module_monoid_algebra_obj_coe (M : Module.{u} (monoid_algebra k G)) :
   (of_Module_monoid_algebra.obj M : Type u) = restrict_scalars k (monoid_algebra k G) M := rfl
 
+lemma of_Module_monoid_algebra_obj_ρ' (M : Module.{u} (monoid_algebra k G)) :
+  (of_Module_monoid_algebra.obj M).ρ' = representation_of_module_monoid_algebra M := rfl
+
 def step1 (M : Module.{u} (monoid_algebra k G)) : of_Module_monoid_algebra.obj M ≃+ M :=
-begin
-  dsimp,
--- exact { to_fun := λ x, x,
---   inv_fun := λ x, x,
---   map_add' := λ x y, rfl,
---   left_inv := λ x, rfl,
---   right_inv := λ x, rfl, },
-end.
+restrict_scalars.add_equiv k (monoid_algebra k G) M
 
 def step2 (V : Rep k G) : to_Module_monoid_algebra.obj V ≃+ V :=
-{ to_fun := λ x, x,
-  inv_fun := λ x, x,
-  map_add' := λ x y, rfl,
-  left_inv := λ x, rfl,
-  right_inv := λ x, rfl, }.
+add_equiv.refl _
 
 lemma step2_smul (V : Rep k G) (r : monoid_algebra k G) (x : to_Module_monoid_algebra.obj V) :
   step2 V (r • x) = monoid_algebra.lift k G _ V.ρ' r (step2 V x) := sorry
@@ -164,11 +156,25 @@ lemma smul_step1 (M : Module.{u} (monoid_algebra k G)) (r : monoid_algebra k G) 
   r • step1 M x = step1 M (monoid_algebra.lift k G _ (representation_of_module_monoid_algebra M) r x) :=
 sorry
 
+lemma smul_step1_symm (M : Module.{u} (monoid_algebra k G)) (r : k) (x : M) :
+  r • (step1 M).symm x = (step1 M).symm (algebra_map k (monoid_algebra k G) r • x) :=
+rfl
+
+lemma step2_symm_smul (V : Rep k G) (r : k) (x : V) :
+  (step2 V).symm (r • x) = algebra_map k (monoid_algebra k G) r • ((step2 V).symm x) :=
+sorry
+
 attribute [irreducible] of_Module_monoid_algebra to_Module_monoid_algebra
 
+@[simps?]
 def counit_iso_add_equiv {M : Module.{u} (monoid_algebra k G)}
   : ((of_Module_monoid_algebra ⋙ to_Module_monoid_algebra).obj M) ≃+ M :=
 (step2 _).trans (step1 _)
+
+@[simps?]
+def unit_iso_add_equiv {V : Rep k G}
+  : V ≃+ ((to_Module_monoid_algebra ⋙ of_Module_monoid_algebra).obj V) :=
+(step2 _).symm.trans (step1 _).symm
 
 -- lemma counit_iso_map_smul {M : Module.{u} (monoid_algebra k G)} (r : monoid_algebra k G)
 --   (x : ((of_Module_monoid_algebra ⋙ to_Module_monoid_algebra).obj M)) :
@@ -191,30 +197,56 @@ def counit_iso_add_equiv {M : Module.{u} (monoid_algebra k G)}
 --     rw algebra.smul_def, },
 -- end
 
+#print add_equiv.trans_apply
+attribute [simp] add_equiv.trans_apply
+
+@[simps?]
 def counit_iso (M : Module.{u} (monoid_algebra k G)) :
   (of_Module_monoid_algebra ⋙ to_Module_monoid_algebra).obj M ≅ M :=
 linear_equiv.to_Module_iso'
-{ map_smul' := λ r x, begin dsimp [counit_iso_add_equiv], rw step2_smul, rw smul_step1, apply congr_arg,  end,
+{ map_smul' := λ r x, begin
+    dsimp [counit_iso_add_equiv],
+    rw step2_smul, rw smul_step1,
+    --dsimp only [of_Module_monoid_algebra_obj_coe, of_Module_monoid_algebra_obj_ρ'],
+    dsimp [of_Module_monoid_algebra, to_Module_monoid_algebra],
+    refl,
+  end,
   ..counit_iso_add_equiv, } --counit_iso_map_smul r x, }
 
-@[simps]
-def foo (V : Rep k G) : Module.of k (restrict_scalars k (monoid_algebra k G) V) ≅ V.V :=
-{ hom :=
-  { to_fun := λ x, x,
-    map_add' := λ x y, rfl,
-    map_smul' := λ r x, algebra_map_smul', },
-  inv :=
-  { to_fun := λ x, x,
-    map_add' := λ x y, rfl,
-    map_smul' := λ r x, algebra_map_smul'.symm, }, }.
+attribute [simp] add_equiv.refl_apply
+
+#print restrict_scalars.add_equiv_symm_apply
+
+def unit_iso (V : Rep k G) :
+  V ≅ ((to_Module_monoid_algebra ⋙ of_Module_monoid_algebra).obj V) :=
+Action.mk_iso (linear_equiv.to_Module_iso'
+{ map_smul' := λ r x, begin
+
+    dsimp only [unit_iso_add_equiv],
+    dsimp,
+    rw step2_symm_smul,
+    rw smul_step1_symm,
+  end,
+  ..unit_iso_add_equiv,
+}) (λ g, begin ext, dsimp only [unit_iso_add_equiv], dsimp [step1, step2], dsimp [of_Module_monoid_algebra, to_Module_monoid_algebra],refl, simp, end
+
+-- @[simps]
+-- def foo (V : Rep k G) : Module.of k (restrict_scalars k (monoid_algebra k G) V) ≅ V.V :=
+-- { hom :=
+--   { to_fun := λ x, x,
+--     map_add' := λ x y, rfl,
+--     map_smul' := λ r x, algebra_map_smul', },
+--   inv :=
+--   { to_fun := λ x, x,
+--     map_add' := λ x y, rfl,
+--     map_smul' := λ r x, algebra_map_smul'.symm, }, }.
 
 /-- The categorical equivalence `Rep k G ≌ Module (monoid_algebra k G)`. -/
 def equivalence_Module_monoid_algebra : Rep k G ≌ Module.{u} (monoid_algebra k G) :=
 { functor := to_Module_monoid_algebra,
   inverse := of_Module_monoid_algebra,
-  unit_iso := nat_iso.of_components
-    (λ V, Action.mk_iso (foo V).symm (by { intros, ext, exact quux.symm, })) (by tidy),
-  counit_iso := nat_iso.of_components (λ M, counit_iso M) (by tidy), }
+  unit_iso := nat_iso.of_components (λ V, unit_iso V) sorry,
+  counit_iso := nat_iso.of_components (λ M, counit_iso M) (sorry), }
 
 -- Verify that the monoidal structure is available.
 example : monoidal_category (Rep k G) := by apply_instance

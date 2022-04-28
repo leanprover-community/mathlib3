@@ -619,6 +619,11 @@ begin
   { intro j, simpa using (R_relabelling₁ _).trans (R_relabelling₂ _) },
 end
 
+/-- Any game without left or right moves is a relabelling of 0. -/
+def relabelling.is_empty (x : pgame) [is_empty (x.left_moves)] [is_empty (x.right_moves)] :
+  relabelling x 0 :=
+⟨equiv.equiv_pempty _, equiv.equiv_pempty _, is_empty_elim, is_empty_elim⟩
+
 theorem relabelling.le {x y : pgame} (r : relabelling x y) : x ≤ y :=
 r.restricted.le
 

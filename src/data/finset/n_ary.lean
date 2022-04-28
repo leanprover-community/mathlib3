@@ -17,7 +17,7 @@ This file is very similar to the n-ary section of `data.set.basic` and to `order
 Please keep them in sync.
 
 We do not define `finset.image₃` as its only purpose would be to prove properties of `finset.image₂`
-and `set.image2` already fullfils this task.
+and `set.image2` already fulfills this task.
 -/
 
 open function set

@@ -155,8 +155,7 @@ lemma continuous.matrix_diag {A : X → matrix n n R} (hA : continuous A) :
 continuous_pi $ λ _, hA.matrix_elem _ _
 
 -- note this doesn't elaborate well from the above
-lemma continuous_matrix_diag [add_comm_monoid R] :
-  continuous (matrix.diag : matrix n n R → n → R) :=
+lemma continuous_matrix_diag : continuous (matrix.diag : matrix n n R → n → R) :=
 show continuous (λ x : matrix n n R, matrix.diag x), from continuous_id.matrix_diag
 
 @[continuity]

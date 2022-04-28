@@ -1,13 +1,23 @@
-import .clique .degree_sum
+/-
+Copyright (c) 2022 Mathlib contributors. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kyle Miller, Eric Rodriguez
+-/
+import .clique
+import .degree_sum
 import algebra.big_operators
 
+/-! # Main results to go into triangle module
+
+recall that "triangle free" means `G.clique_free 3`
+-/
+
+open finset
 open_locale big_operators
 
 namespace simple_graph
 
 variables {V : Type*} {G : simple_graph V}
-
-/- recall that "triangle free" means `G.clique_free 3` -/
 
 lemma common_neighbors_of_triangle_free (htf : G.clique_free 3)
   {u v : V} (huv : G.adj u v) :
@@ -29,11 +39,11 @@ lemma degree_add_degree_le_of_triangle_free [fintype V]
 begin
   classical,
   convert_to (G.neighbor_set u ∪ G.neighbor_set v).to_finset.card ≤ _,
-  { rw [set.to_finset_union, finset.card_union_eq],
+  { rw [set.to_finset_union, card_union_eq],
     { simp },
     { rw [set.to_finset_disjoint_iff, set.disjoint_iff_inter_eq_empty,
         ← common_neighbors_eq, common_neighbors_of_triangle_free htf huv] } },
-  exact finset.card_le_univ _,
+  exact card_le_univ _,
 end
 
 lemma sum_degree_pow_two_le_of_triangle_free [fintype V]
@@ -43,31 +53,31 @@ lemma sum_degree_pow_two_le_of_triangle_free [fintype V]
 begin
   calc ∑ v, G.degree v ^ 2
         = ∑ v, ∑ e in G.incidence_finset v, G.degree v : _
-    ... = ∑ e in G.edge_finset, ∑ v in finset.univ.filter (∈ e), G.degree v : _
+    ... = ∑ e in G.edge_finset, ∑ v in univ.filter (∈ e), G.degree v : _
     ... ≤ ∑ e in G.edge_finset, fintype.card V : _
     ... = G.edge_finset.card * fintype.card V : _,
-  { simp only [pow_two, finset.sum_const, card_incidence_finset_eq_degree,
+  { simp only [pow_two, sum_const, card_incidence_finset_eq_degree,
       nsmul_eq_mul, nat.cast_id], },
-  { simp only [finset.sum_filter],
-    rw [finset.sum_comm],
-    apply finset.sum_congr rfl,
+  { simp only [sum_filter],
+    rw [sum_comm],
+    apply sum_congr rfl,
     rintro u -,
-    rw [← finset.sum_filter],
-    apply finset.sum_congr _ (λ _ _, rfl),
+    rw [← sum_filter],
+    apply sum_congr _ (λ _ _, rfl),
     ext e,
     refine sym2.ind (λ v w, _) e,
     simp [mk_mem_incidence_set_iff], },
-  { apply finset.sum_le_sum,
+  { apply sum_le_sum,
     intros e he,
     rw mem_edge_finset at he,
     refine sym2.ind (λ v w he, _) e he,
     simp only [mem_edge_set] at he,
-    simp only [finset.filter_or, eq_comm, finset.filter_eq, sym2.mem_iff, finset.mem_univ, if_true],
-    rw [finset.sum_union],
-    { simp only [finset.sum_singleton],
+    simp only [filter_or, eq_comm, filter_eq, sym2.mem_iff, mem_univ, if_true],
+    rw [sum_union],
+    { simp only [sum_singleton],
       exact degree_add_degree_le_of_triangle_free htf he },
-    { simp only [finset.disjoint_singleton, ne.def, he.ne, not_false_iff] } },
-  { rw [finset.sum_const, nsmul_eq_mul, nat.cast_id] },
+    { simp only [disjoint_singleton, ne.def, he.ne, not_false_iff] } },
+  { rw [sum_const, nsmul_eq_mul, nat.cast_id] },
 end
 
 lemma cauchy {α : Type*} [fintype α] (f : α → ℕ) :

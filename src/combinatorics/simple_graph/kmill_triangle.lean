@@ -118,6 +118,8 @@ lemma cauchy {α : Type*} [fintype α] (f : α → ℕ) :
   (∑ x, f x) ^ 2 ≤ fintype.card α * ∑ x, f x ^ 2 :=
 by simpa using cauchy_schwarz_nat (λ _, 1) f
 
+/-- **Mantel's theorem.** (Note: generalized by Turán's theorem.)
+-/
 lemma card_edge_set_le_of_triangle_free [fintype V]
   [decidable_eq V] [decidable_rel G.adj]
   (htf : G.clique_free 3) :

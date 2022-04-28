@@ -158,15 +158,15 @@ x.rec_on $ λ yl yr yL yR, IH (mk yl yr yL yR)
 /-- `is_option x y` means that `x` is either a left or right option for `y`. -/
 @[mk_iff] inductive is_option : pgame → pgame → Prop
 | move_left {x : pgame} (i : x.left_moves) : is_option (x.move_left i) x
-| move_right {x : pgame} (i : x.right_moves) : is_option (x.move_right i) x
+| move_right {x : pgame} (j : x.right_moves) : is_option (x.move_right j) x
 
 theorem is_option.mk_left {xl xr : Type u} (xL : xl → pgame) (xR : xr → pgame) (i : xl) :
   (xL i).is_option (mk xl xr xL xR) :=
 @is_option.move_left (mk _ _ _ _) i
 
-theorem is_option.mk_right {xl xr : Type u} (xL : xl → pgame) (xR : xr → pgame) (i : xr) :
-  (xR i).is_option (mk xl xr xL xR) :=
-@is_option.move_right (mk _ _ _ _) i
+theorem is_option.mk_right {xl xr : Type u} (xL : xl → pgame) (xR : xr → pgame) (j : xr) :
+  (xR j).is_option (mk xl xr xL xR) :=
+@is_option.move_right (mk _ _ _ _) j
 
 theorem wf_is_option : well_founded is_option :=
 ⟨λ x, move_rec_on x $ λ x IHl IHr, acc.intro x $ λ y h, begin
@@ -654,6 +654,87 @@ by simp
 def relabel_relabelling {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') :
   relabelling x (relabel el er) :=
 relabelling.mk el er (λ i, by simp) (λ j, by simp)
+
+/-- `is_option' x y` means that `x` is either a either a left or right option of `y`, up to
+relabelling. Contrast with `is_option`. -/
+@[mk_iff] inductive is_option' : pgame → pgame → Prop
+| relabelling_left {x₁ x₂ y : pgame} (h : is_option x₁ y) (e : x₁.relabelling x₂) : is_option' x₂ y
+
+theorem is_option.is_option' {x y : pgame} (h : is_option x y) : is_option' x y :=
+⟨h, relabelling.refl x⟩
+
+theorem is_option'.congr_left {x₁ x₂ y : pgame} (e : x₁.relabelling x₂) :
+  is_option' x₁ y ↔ is_option' x₂ y :=
+begin
+  split,
+  { rintro ⟨w, _, _, h, e'⟩,
+    exact ⟨h, e'.trans e⟩ },
+  { rintro ⟨w, _, _, h, e'⟩,
+    exact ⟨h, e'.trans e.symm⟩ },
+end
+
+theorem is_option'.relabelling_right {x y₁ y₂ : pgame} :
+  is_option x y₁ → y₁.relabelling y₂ → is_option' x y₂ :=
+begin
+  rintro (⟨_, i⟩ | ⟨_, j⟩) ⟨_, _, L, R, hL, hR⟩,
+  { exact ⟨is_option.move_left _, (hL i).symm⟩ },
+  { have := (hR (R j)).symm,
+    rw equiv.symm_apply_apply at this,
+    exact ⟨is_option.move_right _, this⟩ }
+end
+
+theorem is_option'_iff' {x y₂ : pgame} :
+  x.is_option' y₂ ↔ ∃ {y₁ : pgame} (e : y₁.relabelling y₂), x.is_option y₁ :=
+begin
+  classical,
+  cases y₂ with zl zr zL zR,
+  split,
+  { rintro ⟨y, x, _, (⟨_, i⟩ | ⟨_, j⟩), e⟩,
+    { refine ⟨mk zl zr (λ i', if i' = i then x else zL i') zR,
+        ⟨equiv.refl _, equiv.refl _, λ i', _, λ j, relabelling.refl _⟩, _⟩,
+      { by_cases hi : i' = i,
+        { subst hi,
+          simpa using e.symm },
+        { simp [hi] } },
+      { convert is_option.mk_left (λ i', if i' = i then x else zL i') zR i,
+        rw if_pos rfl } },
+    { refine ⟨mk zl zr zL (λ j', if j' = j then x else zR j'),
+        ⟨equiv.refl _, equiv.refl _, λ j, relabelling.refl _, λ j', _⟩, _⟩,
+      { by_cases hi : j' = j,
+        { subst hi,
+          simpa using e.symm },
+        { simp [hi] } },
+      { convert is_option.mk_right zL (λ j', if j' = j then x else zR j') j,
+        rw if_pos rfl } } },
+  { rintro ⟨y, e, h⟩,
+    exact is_option'.relabelling_right h e }
+end
+
+theorem is_option'.congr_right {x y₁ y₂ : pgame} (e : y₁.relabelling y₂) :
+  is_option' x y₁ ↔ is_option' x y₂ :=
+begin
+  rw [is_option'_iff', is_option'_iff'],
+  exact ⟨λ ⟨w, e', h⟩, ⟨w, e'.trans e, h⟩, λ ⟨w, e', h⟩, ⟨w, e'.trans e.symm, h⟩⟩
+end
+
+theorem is_option'.congr {x₁ x₂ y₁ y₂ : pgame} (e₁ : x₁.relabelling x₂) (e₂ : y₁.relabelling y₂) :
+  is_option' x₁ y₁ ↔ is_option' x₂ y₂ :=
+by rw [is_option'.congr_left e₁, is_option'.congr_right e₂]
+
+theorem wf_is_option' : well_founded is_option' :=
+begin
+  suffices : ∀ {x y : pgame} (e : y.relabelling x), acc is_option' y,
+  { exact ⟨λ x, this (relabelling.refl x)⟩ },
+  { intro x,
+    apply x.move_rec_on,
+    rintros x IHl IHr y ⟨_, _, L, R, hL, hR⟩,
+    split,
+    rintros z ⟨w, _, _, (⟨_, i⟩ | ⟨_, j⟩), e'⟩,
+    { exact IHl _ (e'.symm.trans (hL i)) },
+    { apply IHr (R j) (e'.symm.trans _),
+      convert hR (R j),
+      rw equiv.symm_apply_apply } }
+end
 
 /-- The negation of `{L | R}` is `{-R | -L}`. -/
 def neg : pgame → pgame

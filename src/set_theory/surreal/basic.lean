@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
 import set_theory.game.basic
+import set_theory.game.birthday
 
 /-!
 # Surreal numbers
@@ -345,6 +346,99 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
     or_iff_not_imp_left.2 (λ h, le_of_lt oy ox (pgame.not_le.1 h)),
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
+
+/-- To prove that surreal multiplication is well-defined, we use a modified argument by Schleicher.
+We simultaneously prove two assertions on numeric pre-games:
+
+- `P1 x y` means `x * y` is numeric.
+- `P2 x₁ x₂ y` means all of the following hold:
+- - If `x₁ ≈ x₂` then `x₁ * y ≈ x₂ * y`,
+- - If `x₁ < x₂`, then
+- - - For every left move `yL`, `yL * x₂ + y * x₁ < yL * x₁ + y * x₂`,
+- - - For every right move `yR`, `y * x₂ + yR * x₁ < y * x₁ + yR * x₂`.
+
+We prove this by defining a well-founded "depth" on `P1` and `P2`, and showing that each statement
+follows from statements of lesser depth. This auxiliary type represents either the assertion `P1` on
+two games, or the assertion `P2` on three games. -/
+inductive mul_args : Type (u+1)
+| P1 (x y : pgame.{u}) : mul_args
+| P2 (x₁ x₂ y : pgame.{u}) : mul_args
+
+namespace mul_args
+
+/-- The depth function on the type. See the docstring for `mul_args`. -/
+noncomputable def depth : mul_args → ordinal ×ₗ ordinal
+| (P1 x y) := ((x + y).birthday, 0)
+| (P2 x₁ x₂ y) := (max ((x₁ + y).birthday) ((x₂ + y).birthday),
+                    (min x₁.birthday x₂.birthday).succ)
+
+/-- This is the statement we wish to prove. -/
+def hypothesis : mul_args → Prop
+| (P1 x y) := numeric x → numeric y → numeric (x * y)
+| (P2 x₁ x₂ y) := numeric x₁ → numeric x₂ → numeric y →
+                    (x₁ ≈ x₂ → x₁ * y ≈ x₂ * y) ∧
+                    (x₁ < x₂ →
+                      (∀ i, y.move_left i * x₂ + y * x₁ < y.move_left i * x₁ + y * x₂) ∧
+                      ∀ j, y * x₂ + y.move_right j * x₁ < y * x₁ + y.move_right j * x₂)
+
+instance : has_lt mul_args := ⟨λ x y, x.depth < y.depth⟩
+
+instance : has_well_founded mul_args :=
+{ r := (<),
+  wf := inv_image.wf _ (prod.lex_wf ordinal.wf ordinal.wf) }
+
+theorem result : ∀ x : mul_args, x.hypothesis
+| (P1 ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩) := begin
+  intros ox oy,
+  rw numeric_def,
+  refine ⟨_, _, _⟩,
+  { rintro (⟨ix, iy⟩ | ⟨ix, iy⟩) (⟨ix', jy⟩ | ⟨ix', jy⟩),
+    {
+      simp,
+      /-cases lt_or_equiv_or_gt (ox₁.move_left ix) (ox₁.move_left ix'),
+      {
+
+      },
+      change game.lt ⟦_⟧ ⟦_⟧,
+      simp,
+      abel,-/
+      sorry
+    }, repeat { sorry } },
+  { rintro (⟨ix, iy⟩ | ⟨jx, jy⟩),
+    { --simp, -- can be commented out
+      apply numeric_sub (numeric_add _ _) _,
+      { exact result (P1 (xL ix) ⟨yl, yr, yL, yR⟩) (ox.move_left ix) oy },
+      { exact result (P1 _ _) ox (oy.move_left iy) },
+      { exact result (P1 _ _) (ox.move_left ix) (oy.move_left iy) } },
+    { simp, -- can be commented out
+      apply numeric_sub (numeric_add _ _) _,
+      { exact result (P1 _ _) (ox.move_right jx) oy },
+      { exact result (P1 _ _) ox (oy.move_right jy) },
+      { exact result (P1 _ _) (ox.move_right jx) (oy.move_right jy) } } },
+  { rintro (⟨ix, jy⟩ | ⟨jx, iy⟩),
+    { --simp, -- can be commented out
+      apply numeric_sub (numeric_add _ _) _,
+      { exact (magic_theorem ((x₁L ix) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + ⟨yl, yr, yL, yR⟩)
+          (x₁L ix) ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩ rfl (ox₁.move_left ix) ox₂ oy).1 },
+      { exact (magic_theorem (⟨x₁l, x₁r, x₁L, x₁R⟩ + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yR jy))
+          ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ (yR jy) rfl ox₁ ox₂ (oy.move_right jy)).1 },
+      { exact (magic_theorem ((x₁L ix) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yR jy))
+          (x₁L ix) ⟨x₂l, x₂r, x₂L, x₂R⟩ (yR jy) rfl (ox₁.move_left ix) ox₂ (oy.move_right jy)).1 } },
+    { --simp, -- can be commented out
+      apply numeric_sub (numeric_add _ _) _,
+      { exact (magic_theorem ((x₁R jx) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + ⟨yl, yr, yL, yR⟩)
+          (x₁R jx) ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩ rfl (ox₁.move_right jx) ox₂ oy).1 },
+      { exact (magic_theorem (⟨x₁l, x₁r, x₁L, x₁R⟩ + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yL iy))
+          ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ (yL iy) rfl ox₁ ox₂ (oy.move_left iy)).1 },
+      { exact (magic_theorem ((x₁R jx) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yL iy))
+          (x₁R jx) ⟨x₂l, x₂r, x₂L, x₂R⟩ (yL iy) rfl (ox₁.move_right jx) ox₂ (oy.move_left iy)).1 } } }
+end
+| (P2 x₁ x₂ y) := sorry
+
+end mul_args
+
+theorem numeric_mul {x y : pgame} : numeric x → numeric y → numeric (x * y) :=
+(mul_args.P1 x y).result
 
 /-- This is the induction needed to prove that the product of two numeric games is numeric. It's a
 simplification of Conway's original argument.

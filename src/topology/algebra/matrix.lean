@@ -21,7 +21,8 @@ This file is a place to collect topological results about matrices.
 open matrix
 open_locale matrix
 
-variables {X α l m n p S R : Type*} [topological_space X] [topological_space R]
+variables {X α l m n p S R : Type*} {m' n' : l → Type*}
+variables [topological_space X] [topological_space R]
 
 instance : topological_space (matrix m n R) := Pi.topological_space
 
@@ -45,19 +46,19 @@ lemma continuous.matrix_elem {A : X → matrix m n R} (hA : continuous A) (i : m
 (continuous_apply_apply i j).comp hA
 
 @[continuity]
-lemma continuous.matrix_map [topological_space S] {A : X → matrix n m S} {f : S → R}
+lemma continuous.matrix_map [topological_space S] {A : X → matrix m n S} {f : S → R}
    (hA : continuous A) (hf : continuous f) :
   continuous (λ x, (A x).map f) :=
 continuous_matrix $ λ i j, hf.comp $ hA.matrix_elem _ _
 
 @[continuity]
-lemma continuous.matrix_transpose {A : X → matrix n m R} (hA : continuous A) :
+lemma continuous.matrix_transpose {A : X → matrix m n R} (hA : continuous A) :
   continuous (λ x, (A x)ᵀ) :=
 continuous_matrix $ λ i j, hA.matrix_elem j i
 
 /-! TODO: add a `has_continuous_star` typeclass so we can write
 ```
-lemma continuous.matrix.conj_transpose [has_star R] {A : X → matrix n m R} (hA : continuous A) :
+lemma continuous.matrix.conj_transpose [has_star R] {A : X → matrix m n R} (hA : continuous A) :
   continuous (λ x, (A x)ᴴ) :=
 hA.matrix_transpose.matrix_map continuous_star
 ```
@@ -72,7 +73,7 @@ lemma continuous.matrix_row {A : X → n → R} (hA : continuous A) : continuous
 continuous_matrix $ λ i j, (continuous_apply _).comp hA
 
 @[continuity]
-lemma continuous_matrix.diagonal [has_zero R] [decidable_eq n] {A : X → n → R} (hA : continuous A) :
+lemma continuous.matrix_diagonal [has_zero R] [decidable_eq n] {A : X → n → R} (hA : continuous A) :
   continuous (λ x, diagonal (A x)) :=
 continuous_matrix $ λ i j, ((continuous_apply i).comp hA).if_const _ continuous_zero
 
@@ -136,9 +137,8 @@ lemma continuous.matrix_reindex {A : X → matrix l n R}
 hA.matrix_minor _ _
 
 @[continuity]
-lemma continuous.matrix_diag [semiring S] [add_comm_monoid R] [module S R]
-  {A : X → matrix n n R} (hA : continuous A) :
-  continuous (λ x, matrix.diag n S R (A x)) :=
+lemma continuous.matrix_diag {A : X → matrix n n R} (hA : continuous A) :
+  continuous (λ x, matrix.diag (A x)) :=
 continuous_pi $ λ _, hA.matrix_elem _ _
 
 @[continuity]
@@ -188,3 +188,35 @@ lemma continuous_at_matrix_inv [fintype n] [decidable_eq n] [comm_ring R] [topol
   (A : matrix n n R) (h : continuous_at ring.inverse A.det) :
   continuous_at has_inv.inv A :=
 (h.comp continuous_id.matrix_det.continuous_at).smul continuous_id.matrix_adjugate.continuous_at
+
+-- lemmas about functions in `data/matrix/block.lean`
+section block_matrices
+
+@[continuity]
+lemma continuous.matrix_from_blocks
+  {A : X → matrix n l R} {B : X → matrix n m R} {C : X → matrix p l R} {D : X → matrix p m R}
+  (hA : continuous A) (hB : continuous B) (hC : continuous C) (hD : continuous D) :
+  continuous (λ x, matrix.from_blocks (A x) (B x) (C x) (D x)) :=
+continuous_matrix $ λ i j,
+  by cases i; cases j; refine continuous.matrix_elem _ i j; assumption
+
+@[continuity]
+lemma continuous.matrix_block_diagonal [has_zero R] [decidable_eq p] {A : X → p → matrix m n R}
+  (hA : continuous A) :
+  continuous (λ x, block_diagonal (A x)) :=
+continuous_matrix $ λ ⟨i₁, i₂⟩ ⟨j₁, j₂⟩,
+  (((continuous_apply i₂).comp hA).matrix_elem i₁ j₁).if_const _ continuous_zero
+
+@[continuity]
+lemma continuous.matrix_block_diagonal' [has_zero R] [decidable_eq l]
+  {A : X → Π i, matrix (m' i) (n' i) R} (hA : continuous A) :
+  continuous (λ x, block_diagonal' (A x)) :=
+continuous_matrix $ λ ⟨i₁, i₂⟩ ⟨j₁, j₂⟩, begin
+  dsimp only [block_diagonal'],
+  split_ifs,
+  { subst h,
+    exact ((continuous_apply i₁).comp hA).matrix_elem i₂ j₂ },
+  { exact continuous_const },
+end
+
+end block_matrices

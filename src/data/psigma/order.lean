@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Minchao Wu
 -/
 import data.sigma.lex
-import order.lexicographic
+import order.synonym
 
 /-!
 # Lexicographic order on a sigma type

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Minchao Wu
 -/
 import order.lex
-import tactic.basic
 
 /-!
 # Lexicographic order

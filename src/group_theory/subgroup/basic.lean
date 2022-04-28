@@ -247,11 +247,12 @@ lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n :=
 def inclusion {H K : S} (h : H ≤ K) : H →* K :=
 monoid_hom.mk' (λ x, ⟨x, h x.prop⟩) (λ ⟨a, ha⟩  ⟨b, hb⟩, rfl)
 
-@[simp] lemma inclusion_self (x : H) : inclusion subset.rfl x = x := by { cases x, refl }
+@[simp, to_additive] lemma inclusion_self (x : H) : inclusion le_rfl x = x := by { cases x, refl }
+@[simp, to_additive] lemma inclusion_mk {h : H ≤ K} (x : G) (hx : x ∈ H) :
+  inclusion h ⟨x, hx⟩ = ⟨x, h hx⟩ := rfl
 
-@[simp] lemma inclusion_mk {h : H ≤ K} (x : G) (ha : x ∈ H) : inclusion h ⟨x, hx⟩ = ⟨x, h hx⟩ := rfl
-
-lemma inclusion_right (h : H ≤ K) (x : K) (hx : (x : α) ∈ s) : inclusion h ⟨x, hx⟩ = x :=
+@[to_additive]
+lemma inclusion_right (h : H ≤ K) (x : K) (hx : (x : G) ∈ H) : inclusion h ⟨x, hx⟩ = x :=
 by { cases x, refl }
 
 @[simp] lemma inclusion_inclusion {L : S} (hHK : H ≤ K) (hKL : K ≤ L) (x : H) :

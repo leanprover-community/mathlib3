@@ -288,36 +288,36 @@ by rw [←thickening_singleton, cthickening_thickening hε hδ,
 by rw [←cthickening_singleton _ hδ, cthickening_cthickening hε hδ,
   cthickening_singleton _ (add_nonneg hε hδ)]; apply_instance
 
-@[simp] lemma ball_add_ball (hε : 0 < ε) (hδ : 0 < δ) (a b : E) :
+lemma ball_add_ball (hε : 0 < ε) (hδ : 0 < δ) (a b : E) :
   ball a ε + ball b δ = ball (a + b) (ε + δ) :=
 by rw [ball_add, thickening_ball hε hδ, vadd_ball, vadd_eq_add]; apply_instance
 
-@[simp] lemma ball_sub_ball (hε : 0 < ε) (hδ : 0 < δ) (a b : E) :
+lemma ball_sub_ball (hε : 0 < ε) (hδ : 0 < δ) (a b : E) :
   ball a ε - ball b δ = ball (a - b) (ε + δ) :=
 by simp_rw [sub_eq_add_neg, neg_ball, ball_add_ball hε hδ]
 
-@[simp] lemma ball_add_closed_ball (hε : 0 < ε) (hδ : 0 ≤ δ) (a b : E) :
+lemma ball_add_closed_ball (hε : 0 < ε) (hδ : 0 ≤ δ) (a b : E) :
   ball a ε + closed_ball b δ = ball (a + b) (ε + δ) :=
 by rw [ball_add, thickening_closed_ball hε hδ, vadd_ball, vadd_eq_add]; apply_instance
 
-@[simp] lemma ball_sub_closed_ball (hε : 0 < ε) (hδ : 0 ≤ δ) (a b : E) :
+lemma ball_sub_closed_ball (hε : 0 < ε) (hδ : 0 ≤ δ) (a b : E) :
   ball a ε - closed_ball b δ = ball (a - b) (ε + δ) :=
 by simp_rw [sub_eq_add_neg, neg_closed_ball, ball_add_closed_ball hε hδ]
 
-@[simp] lemma closed_ball_add_ball (hε : 0 ≤ ε) (hδ : 0 < δ) (a b : E) :
+lemma closed_ball_add_ball (hε : 0 ≤ ε) (hδ : 0 < δ) (a b : E) :
   closed_ball a ε + ball b δ = ball (a + b) (ε + δ) :=
 by rw [add_comm, ball_add_closed_ball hδ hε, add_comm, add_comm δ]; apply_instance
 
-@[simp] lemma closed_ball_sub_ball (hε : 0 ≤ ε) (hδ : 0 < δ) (a b : E) :
+lemma closed_ball_sub_ball (hε : 0 ≤ ε) (hδ : 0 < δ) (a b : E) :
   closed_ball a ε - ball b δ = ball (a - b) (ε + δ) :=
 by simp_rw [sub_eq_add_neg, neg_ball, closed_ball_add_ball hε hδ]
 
-@[simp] lemma closed_ball_add_closed_ball [proper_space E] (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (a b : E) :
+lemma closed_ball_add_closed_ball [proper_space E] (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (a b : E) :
   closed_ball a ε + closed_ball b δ = closed_ball (a + b) (ε + δ) :=
 by rw [(is_compact_closed_ball _ _).add_closed_ball hδ, cthickening_closed_ball hδ hε,
   vadd_closed_ball, vadd_eq_add, add_comm, add_comm δ]; apply_instance
 
-@[simp] lemma closed_ball_sub_closed_ball [proper_space E] (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (a b : E) :
+lemma closed_ball_sub_closed_ball [proper_space E] (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (a b : E) :
   closed_ball a ε - closed_ball b δ = closed_ball (a - b) (ε + δ) :=
 by simp_rw [sub_eq_add_neg, neg_closed_ball, closed_ball_add_closed_ball hε hδ]
 

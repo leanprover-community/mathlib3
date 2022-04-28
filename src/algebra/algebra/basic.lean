@@ -939,7 +939,7 @@ def trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) : A₁ ≃�
 @[simp] lemma coe_trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) :
   ⇑(e₁.trans e₂) = e₂ ∘ e₁ := rfl
 
-lemma trans_apply (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) (x : A₁) :
+@[simp] lemma trans_apply (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) (x : A₁) :
   (e₁.trans e₂) x = e₂ (e₁ x) := rfl
 
 @[simp] lemma comp_symm (e : A₁ ≃ₐ[R] A₂) :

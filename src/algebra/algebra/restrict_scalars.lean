@@ -77,13 +77,17 @@ instance [I : add_comm_monoid M] : add_comm_monoid (restrict_scalars R S M) := I
 instance [I : add_comm_group M] : add_comm_group (restrict_scalars R S M) := I
 
 section module
-variables [semiring S] [add_comm_monoid M] [comm_semiring R] [algebra R S] [module S M]
 
 section
+variables [semiring S] [add_comm_monoid M]
+
+/-- We temporarily install an action of the original ring on `restrict_sclars R S M`. -/
 def restrict_scalars.module_orig [I : module S M] :
   module S (restrict_scalars R S M) := I
 
 local attribute [instance] restrict_scalars.module_orig
+
+variables [comm_semiring R] [algebra R S] [module S M]
 
 /--
 When `M` is a module over a ring `S`, and `S` is an algebra over `R`, then `M` inherits a
@@ -106,10 +110,13 @@ algebra.lsmul R (restrict_scalars R S M)
 
 end
 
+variables [add_comm_monoid M]
+
 /-- `restrict_scalars.add_equiv` is the additive equivalence with the original module. -/
-@[simps] def restrict_scalars.add_equiv [semiring S] [add_comm_monoid M] [module S M] :
-  restrict_scalars R S M ≃+ M :=
+@[simps] def restrict_scalars.add_equiv : restrict_scalars R S M ≃+ M :=
 add_equiv.refl M
+
+variables [comm_semiring R] [semiring S] [algebra R S] [module S M]
 
 lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R S M) :
   c • x = ((algebra_map R S c) • x : M) := rfl
@@ -128,12 +135,12 @@ instance [I : ring A] : ring (restrict_scalars R S A) := I
 instance [I : comm_semiring A] : comm_semiring (restrict_scalars R S A) := I
 instance [I : comm_ring A] : comm_ring (restrict_scalars R S A) := I
 
-variables [comm_semiring S] [semiring A] [algebra S A]
+variables [semiring A]
 
 /-- Tautological ring isomorphism `restrict_scalars R S A ≃+* A`. -/
 def restrict_scalars.ring_equiv : restrict_scalars R S A ≃+* A := ring_equiv.refl _
 
-variables [comm_semiring R] [algebra R S]
+variables [comm_semiring S] [algebra S A] [comm_semiring R] [algebra R S]
 
 /-- `R ⟶ S` induces `S-Alg ⥤ R-Alg` -/
 instance : algebra R (restrict_scalars R S A) :=

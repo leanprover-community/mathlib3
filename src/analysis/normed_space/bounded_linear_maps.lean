@@ -233,7 +233,9 @@ namespace continuous_linear_map
   If `f` is a continuuous bilinear map, to use the corresponding rules for the second argument, use
   `(f _).map_add` and similar.
 
-  Note that the first argumentin this section
+  We have to assume that `F` and `G` are normed spaces in this section, to use
+  `continuous_linear_map.to_normed_group`, but we don't need to assume this for the first argument
+  of `f`.
 -/
 
 variables {R : Type*}

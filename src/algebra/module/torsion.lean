@@ -219,7 +219,7 @@ end
 
 @[simp] lemma torsion_by_one : torsion_by R M 1 = ⊥ :=
 eq_bot_iff.mpr (λ _ h, by { rw [mem_torsion_by_iff, one_smul] at h, exact h })
-@[simp] lemma torsion_by_top : torsion_by_set R M ⊤ = ⊥ :=
+@[simp] lemma torsion_by_top : torsion_by_set R M set.univ = ⊥ :=
 by { rw [eq_bot_iff, ← torsion_by_one, ← torsion_by_singleton_eq],
   exact torsion_by_set_le_torsion_by_set_of_subset (λ _ _, trivial) }
 

@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
+import group_theory.group_action.conj_act
 import group_theory.quotient_group
 import order.filter.pointwise
 import topology.algebra.monoid
@@ -341,11 +342,15 @@ class topological_group (G : Type*) [topological_space G] [group G]
 
 section conj
 
+instance conj_act.units_has_continuous_const_smul {M} [monoid M] [topological_space M]
+  [has_continuous_mul M] :
+  has_continuous_const_smul (conj_act Mˣ) M :=
+⟨λ m, (continuous_const.mul continuous_id).mul continuous_const⟩
+
 /-- we slightly weaken the type class assumptions here so that it will also apply to `ennreal`, but
 we nevertheless leave it in the `topological_group` namespace. -/
 
-variables [topological_space G] [has_inv G] [has_mul G]
-[has_continuous_mul G]
+variables [topological_space G] [has_inv G] [has_mul G] [has_continuous_mul G]
 
 /-- Conjugation is jointly continuous on `G × G` when both `mul` and `inv` are continuous. -/
 @[to_additive "Conjugation is jointly continuous on `G × G` when both `mul` and `inv` are
@@ -935,10 +940,21 @@ lemma topological_group.regular_space [t1_space G] : regular_space G :=
    contradiction
  end⟩
 
-local attribute [instance] topological_group.regular_space
+@[to_additive]
+lemma topological_group.t2_space [t1_space G] : t2_space G :=
+@regular_space.t2_space G _ (topological_group.regular_space G)
+
+variables {G} (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)]
 
 @[to_additive]
-lemma topological_group.t2_space [t1_space G] : t2_space G := regular_space.t2_space G
+instance subgroup.regular_quotient_of_is_closed
+  (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)] : regular_space (G ⧸ S) :=
+begin
+  suffices : t1_space (G ⧸ S), { exact @topological_group.regular_space _ _ _ _ this, },
+  have hS : is_closed (S : set G) := infer_instance,
+  rw ← quotient_group.ker_mk S at hS,
+  exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS),
+end
 
 end
 
@@ -1069,7 +1085,7 @@ end
 /-- On a topological group, `𝓝 : G → filter G` can be promoted to a `mul_hom`. -/
 @[to_additive "On an additive topological group, `𝓝 : G → filter G` can be promoted to an
 `add_hom`.", simps]
-def nhds_mul_hom : mul_hom G (filter G) :=
+def nhds_mul_hom : G →ₙ* (filter G) :=
 { to_fun := 𝓝,
   map_mul' := λ_ _, nhds_mul _ _ }
 

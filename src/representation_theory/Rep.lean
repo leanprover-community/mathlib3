@@ -29,12 +29,12 @@ open category_theory.limits
 
 /-- The category of `k`-linear representations of a monoid `G`. -/
 @[derive [large_category, concrete_category, has_limits, has_colimits]]
-abbreviation Rep (k G : Type u) [ring k] [monoid G] :=
+abbreviation Rep (k G : Type u) [comm_ring k] [monoid G] :=
 Action (Module.{u} k) (Mon.of G)
 
 namespace Rep
 
-variables {k G : Type u} [ring k] [monoid G]
+variables {k G : Type u} [comm_ring k] [monoid G]
 
 instance : has_coe_to_sort (Rep k G) (Type u) := concrete_category.has_coe_to_sort _
 
@@ -45,15 +45,14 @@ instance (V : Rep k G) : module k V :=
 by { change module k ((forget₂ (Rep k G) (Module k)).obj V), apply_instance, }
 
 -- This works well with the new design for representations:
-def ρ' (V : Rep k G) : G →* (V →ₗ[k] V) := V.ρ
+def ρ (V : Rep k G) : representation k G V := V.ρ
 
 /-- Lift an unbundled representation to `Rep`. -/
-@[simps]
 def of {V : Type u} [add_comm_group V] [module k V] (ρ : G →* (V →ₗ[k] V)) : Rep k G :=
 ⟨Module.of k V, ρ⟩
 
-@[simp] lemma of_ρ' {V : Type u} [add_comm_group V] [module k V] (ρ : G →* (V →ₗ[k] V)) :
-  (of ρ).ρ' = ρ := rfl
+@[simp] lemma of_ρ {V : Type u} [add_comm_group V] [module k V] (ρ : G →* (V →ₗ[k] V)) :
+  (of ρ).ρ = ρ := rfl
 
 -- Verify that limits are calculated correctly.
 noncomputable example : preserves_limits (forget₂ (Rep k G) (Module.{u} k)) :=
@@ -68,29 +67,29 @@ variables {k G : Type u} [comm_ring k] [monoid G]
 
 noncomputable theory
 
-def module_monoid_algebra (V : Rep k G) : module (monoid_algebra k G) V :=
-representation.as_module V.ρ
+-- def module_monoid_algebra (V : Rep k G) : module (monoid_algebra k G) V :=
+-- representation.as_module V.ρ
 
-local attribute [instance] module_monoid_algebra
+-- local attribute [instance] module_monoid_algebra
 
-@[simp]
-lemma turkle {V : Rep k G} (r : monoid_algebra k G) (x : V) :
-  r • x = (monoid_algebra.lift k G _) V.ρ' r x :=
-rfl
+-- @[simp]
+-- lemma turkle {V : Rep k G} (r : monoid_algebra k G) (x : V) :
+--   r • x = (monoid_algebra.lift k G _) V.ρ' r x :=
+-- rfl
 
-lemma algebra_map_smul' {V : Rep k G} {r : k} {v : V} :
-  algebra_map k (monoid_algebra k G) r • v = r • v :=
-begin
-  simp,
-end
+-- lemma algebra_map_smul' {V : Rep k G} {r : k} {v : V} :
+--   algebra_map k (monoid_algebra k G) r • v = r • v :=
+-- begin
+--   simp,
+-- end
 
 -- local attribute [-instance] Rep.module
 
-lemma quux {V : Rep k G} {g : G} {v : V} : monoid_algebra.of k G g • v = (V.ρ g).to_fun v :=
-begin
-  simp,
-  refl,
-end
+-- lemma quux {V : Rep k G} {g : G} {v : V} : monoid_algebra.of k G g • v = (V.ρ g).to_fun v :=
+-- begin
+--   simp,
+--   refl,
+-- end
 
 lemma aux {k G : Type*} [comm_ring k] [monoid G]
   (V W : Type*) [add_comm_group V] [add_comm_group W] [module k V] [module k W]
@@ -111,25 +110,27 @@ begin
 end
 
 def to_Module_monoid_algebra_map {V W : Rep k G} (f : V ⟶ W) :
-  Module.of (monoid_algebra k G) V ⟶ Module.of (monoid_algebra k G) W :=
+  Module.of (monoid_algebra k G) V.ρ.as_module ⟶ Module.of (monoid_algebra k G) W.ρ.as_module :=
 { map_smul' := λ r x, aux V.V W.V V.ρ W.ρ f.hom f.comm r x,
   ..f.hom, }
 
 def to_Module_monoid_algebra : Rep k G ⥤ Module.{u} (monoid_algebra k G) :=
-{ obj := λ V, Module.of _ V,
+{ obj := λ V, Module.of _ V.ρ.as_module ,
   map := λ V W f, to_Module_monoid_algebra_map f, }
 
 -- attribute [simps] to_Module_monoid_algebra
 
-def representation_of_module_monoid_algebra (V : Module.{u} (monoid_algebra k G)) :
+-- Move to representation/basic?
+def representation.of_module (V : Module.{u} (monoid_algebra k G)) :
   G →* restrict_scalars k (monoid_algebra k G) V →ₗ[k] restrict_scalars k (monoid_algebra k G) V :=
-(monoid_algebra.lift k G _).symm
+(monoid_algebra.lift k G
+  (restrict_scalars k (monoid_algebra k G) V →ₗ[k] restrict_scalars k (monoid_algebra k G) V)).symm
   (restrict_scalars.lsmul k (monoid_algebra k G) (restrict_scalars k (monoid_algebra k G) V))
 
 -- @[simps]
 -- @[irreducible]
 def of_Module_monoid_algebra : Module.{u} (monoid_algebra k G) ⥤ Rep k G :=
-{ obj := λ V, Rep.of (representation_of_module_monoid_algebra V), -- inline?
+{ obj := λ V, Rep.of (representation.of_module V), -- inline?
   map := λ V W f,
   { hom :=
     { map_smul' := λ r x, f.map_smul (algebra_map k _ r) x,
@@ -139,8 +140,8 @@ def of_Module_monoid_algebra : Module.{u} (monoid_algebra k G) ⥤ Rep k G :=
 lemma of_Module_monoid_algebra_obj_coe (M : Module.{u} (monoid_algebra k G)) :
   (of_Module_monoid_algebra.obj M : Type u) = restrict_scalars k (monoid_algebra k G) M := rfl
 
-lemma of_Module_monoid_algebra_obj_ρ' (M : Module.{u} (monoid_algebra k G)) :
-  (of_Module_monoid_algebra.obj M).ρ' = representation_of_module_monoid_algebra M := rfl
+lemma of_Module_monoid_algebra_obj_ρ (M : Module.{u} (monoid_algebra k G)) :
+  (of_Module_monoid_algebra.obj M).ρ = representation.of_module M := rfl
 
 def step1 (M : Module.{u} (monoid_algebra k G)) : of_Module_monoid_algebra.obj M ≃+ M :=
 restrict_scalars.add_equiv k (monoid_algebra k G) M
@@ -149,12 +150,12 @@ def step2 (V : Rep k G) : to_Module_monoid_algebra.obj V ≃+ V :=
 add_equiv.refl _
 
 lemma step2_smul (V : Rep k G) (r : monoid_algebra k G) (x : to_Module_monoid_algebra.obj V) :
-  step2 V (r • x) = monoid_algebra.lift k G _ V.ρ' r (step2 V x) := sorry
+  step2 V (r • x) = monoid_algebra.lift k G _ V.ρ r (step2 V x) := sorry
 
 lemma smul_step1 (M : Module.{u} (monoid_algebra k G))
   (r : monoid_algebra k G) (x : of_Module_monoid_algebra.obj M) :
   r • step1 M x =
-    step1 M (monoid_algebra.lift k G _ (representation_of_module_monoid_algebra M) r x) :=
+    step1 M (monoid_algebra.lift k G _ (representation.of_module M) r x) :=
 sorry
 
 lemma smul_step1_symm (M : Module.{u} (monoid_algebra k G)) (r : k) (x : M) :
@@ -167,15 +168,16 @@ sorry
 
 attribute [irreducible] of_Module_monoid_algebra to_Module_monoid_algebra
 
-@[simps?]
-def counit_iso_add_equiv {M : Module.{u} (monoid_algebra k G)}
-  : ((of_Module_monoid_algebra ⋙ to_Module_monoid_algebra).obj M) ≃+ M :=
-(step2 _).trans (step1 _)
+-- @[simps?]
+def counit_iso_add_equiv {M : Module.{u} (monoid_algebra k G)} :
+  ((of_Module_monoid_algebra ⋙ to_Module_monoid_algebra).obj M) ≃+ M :=
+(step2 (of_Module_monoid_algebra.obj M)).trans (step1 M)
 
-@[simps?]
-def unit_iso_add_equiv {V : Rep k G}
-  : V ≃+ ((to_Module_monoid_algebra ⋙ of_Module_monoid_algebra).obj V) :=
+
+def unit_iso_add_equiv {V : Rep k G} :
+  V ≃+ ((to_Module_monoid_algebra ⋙ of_Module_monoid_algebra).obj V) :=
 (step2 _).symm.trans (step1 _).symm
+
 
 -- lemma counit_iso_map_smul {M : Module.{u} (monoid_algebra k G)} (r : monoid_algebra k G)
 --   (x : ((of_Module_monoid_algebra ⋙ to_Module_monoid_algebra).obj M)) :
@@ -218,25 +220,33 @@ attribute [simp] add_equiv.refl_apply
 
 #print restrict_scalars.add_equiv_symm_apply
 
-def unit_iso (V : Rep k G) :
-  V ≅ ((to_Module_monoid_algebra ⋙ of_Module_monoid_algebra).obj V) :=
-Action.mk_iso (linear_equiv.to_Module_iso'
-{ map_smul' := λ r x, begin
-
-    dsimp only [unit_iso_add_equiv],
+lemma unit_iso_comm (V : Rep k G) (g : G) (x : V) :
+  unit_iso_add_equiv (((V.ρ) g).to_fun x) = (((of_Module_monoid_algebra.obj (to_Module_monoid_algebra.obj V)).ρ) g).to_fun (unit_iso_add_equiv x) :=
+begin
     dsimp,
-    rw step2_symm_smul,
-    rw smul_step1_symm,
-  end,
-  ..unit_iso_add_equiv, })
-  (λ g, begin
-    ext,
     dsimp only [unit_iso_add_equiv],
     dsimp [step1, step2],
     dsimp [of_Module_monoid_algebra, to_Module_monoid_algebra],
     refl,
     simp,
   end
+
+def unit_iso (V : Rep k G) :
+  V ≅ ((to_Module_monoid_algebra ⋙ of_Module_monoid_algebra).obj V) :=
+Action.mk_iso (linear_equiv.to_Module_iso'
+{ map_smul' := λ r x, begin
+    dsimp only [unit_iso_add_equiv],
+    dsimp,
+    rw step2_symm_smul,
+    rw smul_step1_symm,
+  end,
+  ..unit_iso_add_equiv, })
+  (λ g, by { ext, apply unit_iso_comm, })
+
+-- unnecessary?
+attribute [simps] counit_iso_add_equiv
+attribute [simps] unit_iso_add_equiv
+
 
 -- @[simps]
 -- def foo (V : Rep k G) : Module.of k (restrict_scalars k (monoid_algebra k G) V) ≅ V.V :=

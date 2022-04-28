@@ -197,8 +197,6 @@ def symm (h : M ≃* N) : N ≃* M :=
 @[simp, to_additive]
 lemma inv_fun_eq_symm {f : M ≃* N} : f.inv_fun = f.symm := rfl
 
-@[simp] lemma coe_to_equiv_symm {f : M ≃* N} : ⇑f.to_equiv.symm = f.symm := rfl
-
 /-- See Note [custom simps projection] -/
 -- we don't hyperlink the note in the additive version, since that breaks syntax highlighting
 -- in the whole file.

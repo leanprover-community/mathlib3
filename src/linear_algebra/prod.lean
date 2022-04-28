@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric W
 -/
 import linear_algebra.span
 import order.partial_sups
+import algebra.algebra.basic
 
 /-! ### Products of modules
 
@@ -250,12 +251,37 @@ lemma prod_map_comp (f₁₂ : M →ₗ[R] M₂) (f₂₃ : M₂ →ₗ[R] M₃)
 lemma prod_map_mul (f₁₂ : M →ₗ[R] M) (f₂₃ : M →ₗ[R] M) (g₁₂ : M₂ →ₗ[R] M₂) (g₂₃ : M₂ →ₗ[R] M₂) :
   f₂₃.prod_map g₂₃ * f₁₂.prod_map g₁₂ = (f₂₃ * f₁₂).prod_map (g₂₃ * g₁₂) := rfl
 
-/-- `linear_map.prod_map` as a `monoid_hom` -/
+lemma prod_map_add (f₁ : M →ₗ[R] M₃) (f₂ : M →ₗ[R] M₃) (g₁ : M₂ →ₗ[R] M₄) (g₂ : M₂ →ₗ[R] M₄) :
+  (f₁ + f₂).prod_map (g₁ + g₂) = f₁.prod_map g₁ + f₂.prod_map g₂ := rfl
+
+@[simp] lemma prod_map_zero :
+  (0 : M →ₗ[R] M₂).prod_map (0 : M₃ →ₗ[R] M₄) = 0 := rfl
+
+@[simp] lemma prod_map_smul
+ [module S M₃] [module S M₄] [smul_comm_class R S M₃] [smul_comm_class R S M₄]
+ (s : S) (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) : prod_map (s • f) (s • g) = s • prod_map f g := rfl
+
+variables (R M M₂ M₃ M₄)
+
+/-- `linear_map.prod_map` as a `linear_map` -/
 @[simps]
-def prod_map_monoid_hom : (M →ₗ[R] M) × (M₂ →ₗ[R] M₂) →* ((M × M₂) →ₗ[R] (M × M₂)) :=
+def prod_map_linear
+ [module S M₃] [module S M₄] [smul_comm_class R S M₃] [smul_comm_class R S M₄] :
+ ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₄)) →ₗ[S] ((M × M₂) →ₗ[R] (M₃ × M₄)) :=
+{ to_fun := λ f, prod_map f.1 f.2,
+  map_add' := λ _ _, rfl,
+  map_smul' := λ _ _, rfl}
+
+/-- `linear_map.prod_map` as a `ring_hom` -/
+@[simps]
+def prod_map_ring_hom : (M →ₗ[R] M) × (M₂ →ₗ[R] M₂) →+* ((M × M₂) →ₗ[R] (M × M₂)) :=
 { to_fun := λ f, prod_map f.1 f.2,
   map_one' := prod_map_one,
-  map_mul' := λ _ _, prod_map_mul _ _ _ _ }
+  map_zero' := rfl,
+  map_add' := λ _ _, rfl,
+  map_mul' := λ _ _, rfl }
+
+variables {R M M₂ M₃ M₄}
 
 section map_mul
 
@@ -278,20 +304,16 @@ end prod
 
 namespace linear_map
 
+variables (R M M₂)
+
 variables [comm_semiring R]
-variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
-variables [add_comm_monoid M₅] [add_comm_monoid M₆]
-variables [module R M] [module R M₂] [module R M₃] [module R M₄]
+variables [add_comm_monoid M] [add_comm_monoid M₂]
+variables [module R M] [module R M₂]
 
-@[simps apply]
-def prod_map_linear : ((M →ₗ[R] M₃) × (M₂ →ₗ[R] M₄)) →ₗ[R] ((M × M₂) →ₗ[R] (M₃ × M₄)) :=
-{ to_fun := λ f, prod_map f.1 f.2,
-  map_add' := λ f g, by {ext, repeat {simp}},
-  map_smul' := λ r f, by {ext, repeat {simp}} }
-
-@[simp]
-lemma prod_map_linear_apply (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₄) :
-  prod_map_linear (f, g) = prod_map f g := rfl
+/-- `linear_map.prod_map` as an `algebra_hom` -/
+@[simps]
+def prod_map_alg_hom : (module.End R M) × (module.End R M₂) →ₐ[R] module.End R (M × M₂) :=
+{ commutes' := λ _, rfl, ..prod_map_ring_hom R M M₂ }
 
 end linear_map
 

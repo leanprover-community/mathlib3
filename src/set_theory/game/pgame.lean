@@ -130,10 +130,10 @@ def of_lists (L R : list pgame.{0}) : pgame.{0} :=
 pgame.mk (fin L.length) (fin R.length) (λ i, L.nth_le i i.is_lt) (λ j, R.nth_le j.val j.is_lt)
 
 /-- The indexing type for allowable moves by Left. -/
-@[nolint has_inhabited_instance] def left_moves : pgame → Type u
+def left_moves : pgame → Type u
 | (mk l _ _ _) := l
 /-- The indexing type for allowable moves by Right. -/
-@[nolint has_inhabited_instance] def right_moves : pgame → Type u
+def right_moves : pgame → Type u
 | (mk _ r _ _) := r
 
 /-- The new game after Left makes an allowed move. -/
@@ -147,6 +147,33 @@ def move_right : Π (g : pgame), right_moves g → pgame
 @[simp] lemma move_left_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_left = xL := rfl
 @[simp] lemma right_moves_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).right_moves = xr := rfl
 @[simp] lemma move_right_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_right = xR := rfl
+
+/-- A variant of `pgame.rec_on` expressed in terms of `pgame.move_left` and `pgame.move_right`.
+
+Both this and `pgame.rec_on` describe Conway induction on games. -/
+@[elab_as_eliminator] def move_rec_on {C : pgame → Sort*} (x : pgame)
+  (IH : ∀ (y : pgame), (∀ i, C (y.move_left i)) → (∀ j, C (y.move_right j)) → C y) : C x :=
+x.rec_on $ λ yl yr yL yR, IH (mk yl yr yL yR)
+
+/-- `is_option x y` means that `x` is either a left or right option for `y`. -/
+@[mk_iff] inductive is_option : pgame → pgame → Prop
+| move_left {x : pgame} (i : x.left_moves) : is_option (x.move_left i) x
+| move_right {x : pgame} (i : x.right_moves) : is_option (x.move_right i) x
+
+theorem is_option.mk_left {xl xr : Type u} (xL : xl → pgame) (xR : xr → pgame) (i : xl) :
+  (xL i).is_option (mk xl xr xL xR) :=
+@is_option.move_left (mk _ _ _ _) i
+
+theorem is_option.mk_right {xl xr : Type u} (xL : xl → pgame) (xR : xr → pgame) (i : xr) :
+  (xR i).is_option (mk xl xr xL xR) :=
+@is_option.move_right (mk _ _ _ _) i
+
+theorem wf_is_option : well_founded is_option :=
+⟨λ x, move_rec_on x $ λ x IHl IHr, acc.intro x $ λ y h, begin
+  induction h with _ i _ j,
+  { exact IHl i },
+  { exact IHr j }
+end⟩
 
 /-- `subsequent p q` says that `p` can be obtained by playing
   some nonempty sequence of moves from `q`. -/
@@ -1063,6 +1090,12 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
 
 /-- The pre-game `star`, which is fuzzy/confused with zero. -/
 def star : pgame := pgame.of_lists [0] [0]
+
+instance inhabited_star_left_moves : inhabited star.left_moves :=
+show (inhabited (fin 1)), by apply_instance
+
+instance inhabited_star_right_moves : inhabited star.right_moves :=
+show (inhabited (fin 1)), by apply_instance
 
 theorem star_lt_zero : star < 0 :=
 by rw lt_def; exact

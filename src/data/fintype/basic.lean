@@ -1727,12 +1727,19 @@ have ∀ x y, r x y → (univ.filter (λ z, r z x)).card < (univ.filter (λ z, r
     exact ⟨λ z hzx, trans hzx hxy, not_forall_of_exists_not ⟨x, not_imp.2 ⟨hxy, irrefl x⟩⟩⟩,
 subrelation.wf this (measure_wf _)
 
-lemma preorder.well_founded [fintype α] [preorder α] : well_founded ((<) : α → α → Prop) :=
+lemma preorder.well_founded_lt [fintype α] [preorder α] : well_founded ((<) : α → α → Prop) :=
 well_founded_of_trans_of_irrefl _
 
-@[instance, priority 10] lemma linear_order.is_well_order [fintype α] [linear_order α] :
+lemma preorder.well_founded_gt [fintype α] [preorder α] : well_founded ((>) : α → α → Prop) :=
+well_founded_of_trans_of_irrefl _
+
+@[instance, priority 10] lemma linear_order.is_well_order_lt [fintype α] [linear_order α] :
   is_well_order α (<) :=
-{ wf := preorder.well_founded }
+{ wf := preorder.well_founded_lt }
+
+@[instance, priority 10] lemma linear_order.is_well_order_gt [fintype α] [linear_order α] :
+  is_well_order α (>) :=
+{ wf := preorder.well_founded_gt }
 
 end fintype
 

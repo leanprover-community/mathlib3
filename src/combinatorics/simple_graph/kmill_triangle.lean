@@ -6,6 +6,7 @@ Authors: Kyle Miller, Eric Rodriguez
 import .clique
 import .degree_sum
 import algebra.big_operators
+import analysis.inner_product_space.pi_L2
 
 /-! # Main results to go into triangle module
 
@@ -80,11 +81,31 @@ begin
   { rw [sum_const, nsmul_eq_mul, nat.cast_id] },
 end
 
+-- generalized from proof by Junyan Xu
+lemma cauchy_schwarz {α : Type*} [fintype α] (f g : α → ℝ) :
+  (∑ x, f x * g x) ^ 2 ≤ (∑ x, f x ^ 2) * (∑ x, g x ^ 2) :=
+begin
+  change euclidean_space ℝ α at f,
+  change euclidean_space ℝ α at g,
+  have := @abs_inner_le_norm ℝ _ _ _ f g,
+  rw [← abs_norm_eq_norm f, ← abs_norm_eq_norm g, ← abs_mul,
+    pi_Lp.inner_apply, is_R_or_C.abs_to_real] at this,
+  convert sq_le_sq this using 1,
+  rw mul_pow, iterate 2 { rw [euclidean_space.norm_eq, real.sq_sqrt] },
+  { congr; simp only [is_R_or_C.norm_eq_abs, is_R_or_C.abs_to_real, pow_bit0_abs], },
+  iterate 2
+  { rw ← finsum_eq_sum_of_fintype,
+    apply finsum_nonneg,
+    simp only [pow_nonneg, norm_nonneg, implies_true_iff]},
+end
+
+lemma cauchy_schwarz_nat {α : Type*} [fintype α] (f g : α → ℕ) :
+  (∑ x, f x * g x) ^ 2 ≤ (∑ x, f x ^ 2) * (∑ x, g x ^ 2) :=
+by exact_mod_cast cauchy_schwarz (λ x, f x) (λ x, g x)
+
 lemma cauchy {α : Type*} [fintype α] (f : α → ℕ) :
   (∑ x, f x) ^ 2 ≤ fintype.card α * ∑ x, f x ^ 2 :=
-begin
-  sorry
-end
+by simpa using cauchy_schwarz_nat (λ _, 1) f
 
 lemma card_edge_set_le_of_triangle_free [fintype V]
   [decidable_eq V] [decidable_rel G.adj]

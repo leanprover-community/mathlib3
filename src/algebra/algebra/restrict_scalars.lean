@@ -16,10 +16,10 @@ typeclass instead.
 ## Main definitions
 
 * `restrict_scalars R S M`: the `S`-module `M` viewed as an `R` module when `S` is an `R`-algebra.
-* `restrict_scalars.linear_equiv : restrict_scalars R S M ≃ₗ[S] M`: the equivalence as an
-  `S`-module between the restricted and origianl space.
-* `restrict_scalars.alg_equiv : restrict_scalars R S A ≃ₐ[S] A`: the equivalence as an `S`-algebra
-   between the restricted and original space.
+* `restrict_scalars.add_equiv : restrict_scalars R S M ≃+ M`: the additive equivalence
+  between the restricted and origianl space.
+* `restrict_scalars.ring_equiv : restrict_scalars R S A ≃+* A`: the ring equivalence
+   between the restricted and original space when the module is an algebra.
 
 ## See also
 
@@ -121,14 +121,10 @@ instance [I : ring A] : ring (restrict_scalars R S A) := I
 instance [I : comm_semiring A] : comm_semiring (restrict_scalars R S A) := I
 instance [I : comm_ring A] : comm_ring (restrict_scalars R S A) := I
 
-variables [comm_semiring S] [semiring A]
+variables [comm_semiring S] [semiring A] [algebra S A]
 
-instance restrict_scalars.algebra_orig [I : algebra S A] : algebra S (restrict_scalars R S A) := I
-
-variables [algebra S A]
-
-/-- Tautological `S`-algebra isomorphism `restrict_scalars R S A ≃ₐ[S] A`. -/
-def restrict_scalars.alg_equiv : restrict_scalars R S A ≃ₐ[S] A := alg_equiv.refl
+/-- Tautological ring isomorphism `restrict_scalars R S A ≃+* A`. -/
+def restrict_scalars.ring_equiv : restrict_scalars R S A ≃+* A := ring_equiv.refl _
 
 variables [comm_semiring R] [algebra R S]
 

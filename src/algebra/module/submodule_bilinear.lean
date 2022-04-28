@@ -52,22 +52,11 @@ theorem map₂_le {f : M →ₗ[R] N →ₗ[R] P}
 
 variables R
 theorem map₂_span_span (f : M →ₗ[R] N →ₗ[R] P) (s : set M) (t : set N) :
-  map₂ f (span R s) (span R t) = span R (set.image2 (λ m n, f m n) s t) :=
+  map₂ f (span R s) (span R t) = span R (set.image2 (λ m, f m) s t) :=
 begin
-  apply le_antisymm,
-  { rw map₂_le, intros a ha b hb,
-    apply span_induction ha,
-    work_on_goal 1 { intros, apply span_induction hb,
-      work_on_goal 1 { intros, exact subset_span ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
-    all_goals {
-      intros,
-      simp only [linear_map.map_zero, linear_map.zero_apply, zero_mem,
-        linear_map.map_add, linear_map.add_apply, linear_map.map_smul, linear_map.smul_apply] },
-    all_goals {
-      solve_by_elim [add_mem _ _, zero_mem _, smul_mem _ _ _]
-        { max_depth := 4, discharger := tactic.interactive.apply_instance } } },
-  { rw span_le, rintros _ ⟨a, b, ha, hb, rfl⟩,
-    exact apply_mem_map₂ _ (subset_span ha) (subset_span hb) }
+  rw [← span_image2_span_left, ← span_image2_span_right], apply le_antisymm,
+  { rw map₂_le, exact λ m hm n hn, subset_span ⟨m,n,hm,hn,rfl⟩ },
+  { rw span_le, exact λ _ ⟨m,n,hm,hn,h⟩, h ▸ apply_mem_map₂ _ hm hn },
 end
 variables {R}
 

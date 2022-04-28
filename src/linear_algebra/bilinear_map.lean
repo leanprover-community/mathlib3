@@ -290,6 +290,26 @@ variables {R M}
 
 @[simp] theorem lsmul_apply (r : R) (m : M) : lsmul R M r m = r • m := rfl
 
+section span
+open submodule
+variables (g : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ) (s : set Mₗ) (t : set Nₗ)
+
+theorem _root_.submodule.span_image2_span_left :
+  span R (set.image2 (λ m, g m) (span R s) t) = span R (s.image2 (λ m, g m) t) :=
+span_eq_of_le _ (λ t ⟨m,n,hm,hn,h⟩, begin
+  rw ← h, apply span_mono _ (apply_mem_span_image_of_mem_span (g.flip n) hm),
+  exact λ t ⟨m,hm,h⟩, ⟨m,n,hm,hn,h⟩,
+end) $ span_mono $ set.image2_subset_right subset_span
+
+theorem _root_.submodule.span_image2_span_right :
+  span R (s.image2 (λ m, g m) (span R t)) = span R (s.image2 (λ m, g m) t) :=
+span_eq_of_le _ (λ t ⟨m,n,hm,hn,h⟩, begin
+  rw ← h, refine span_mono _ (apply_mem_span_image_of_mem_span (g m) hn),
+  exact λ t ⟨n,hn,h⟩, ⟨m,n,hm,hn,h⟩,
+end) $ span_mono $ set.image2_subset_left subset_span
+
+end span
+
 end comm_semiring
 
 section comm_ring

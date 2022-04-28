@@ -697,6 +697,7 @@ begin
     exact ⟨is_option.move_right _, this⟩ }
 end
 
+/-- Contrast with `is_option'_iff`, which asks for a relabelling of the left argument. -/
 theorem is_option'_iff' {x y₂ : pgame} :
   x.is_option' y₂ ↔ ∃ {y₁ : pgame} (e : y₁.relabelling y₂), x.is_option y₁ :=
 begin

@@ -5,7 +5,7 @@ Authors: Yaël Dillies
 -/
 import data.sigma.lex
 import order.bounded_order
-import order.lexicographic
+import order.lex
 
 /-!
 # Orders on a sigma type

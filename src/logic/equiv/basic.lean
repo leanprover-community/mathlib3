@@ -5,11 +5,11 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.fun_like.equiv
 import data.option.basic
-import data.prod
+import data.prod.basic
 import data.quot
 import data.sigma.basic
-import data.sum.basic
 import data.subtype
+import data.sum.basic
 import logic.function.conjugate
 import logic.unique
 import tactic.norm_cast

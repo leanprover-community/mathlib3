@@ -15,7 +15,7 @@ import order.basic
 
 ## Basic Lemmas to convert between an order and its dual
 
-This file is similar to algebra/group/type_tags.lean
+This file is similar to `algebra.group.type_tags` and `order.lex`.
 -/
 
 open function

@@ -148,7 +148,7 @@ def of_module' (M : Type*) [add_comm_monoid M] [module k M] [module (monoid_alge
 
 section
 variables (k G) (M : Type*) [add_comm_monoid M] [module (monoid_algebra k G) M]
--- local attribute [irreducible] restrict_scalars
+local attribute [irreducible] restrict_scalars
 
 /--
 Build a `representation` from a `[module (monoid_algebra k G) M]`.

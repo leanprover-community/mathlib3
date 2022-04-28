@@ -55,8 +55,8 @@ example (V : fdRep k G) : G →* (V →ₗ[k] V) := V.ρ
 
 /-- Lift an unbundled representation to `Rep`. -/
 @[simps ρ]
-def of {V : Type u} [add_comm_group V] [module k V] [finite_dimensional k V] (ρ : G →* (V →ₗ[k] V)) :
-  Rep k G :=
+def of {V : Type u} [add_comm_group V] [module k V] [finite_dimensional k V]
+  (ρ : G →* (V →ₗ[k] V)) : Rep k G :=
 ⟨FinVect.of k V, ρ⟩
 
 instance : has_forget₂ (fdRep k G) (Rep k G) :=

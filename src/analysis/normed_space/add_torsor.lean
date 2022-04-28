@@ -24,7 +24,7 @@ variables {W Q : Type*} [normed_group W] [metric_space Q] [normed_add_torsor W Q
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 V]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 V] [normed_space 𝕜 W]
 
 open affine_map
 
@@ -93,6 +93,8 @@ by rw [homothety_eq_line_map, dist_line_map_right]
   dist p₂ (homothety p₁ c p₂) = ∥1 - c∥ * dist p₁ p₂ :=
 by rw [dist_comm, dist_homothety_self]
 
+section invertible_two
+
 variables [invertible (2:𝕜)]
 
 @[simp] lemma dist_left_midpoint (p₁ p₂ : P) :
@@ -118,6 +120,35 @@ begin
     try { apply_instance },
   rw [midpoint_eq_smul_add, norm_smul, inv_of_eq_inv, norm_inv, ← div_eq_inv_mul],
   exact div_le_div_of_le_of_nonneg (norm_add_le _ _) (norm_nonneg _),
+end
+
+end invertible_two
+
+omit V
+include W
+
+lemma eventually_homothety_mem_of_mem_interior (x : Q) {s : set Q} {y : Q} (hy : y ∈ interior s) :
+  ∀ᶠ δ in 𝓝 (1 : 𝕜), homothety x δ y ∈ s :=
+begin
+  rw (normed_group.nhds_basis_norm_lt (1 : 𝕜)).eventually_iff,
+  cases eq_or_ne y x with h h, { use 1, simp [h.symm, interior_subset hy], },
+  have hxy : 0 < ∥y -ᵥ x∥, { rwa [norm_pos_iff, vsub_ne_zero], },
+  obtain ⟨u, hu₁, hu₂, hu₃⟩ := mem_interior.mp hy,
+  obtain ⟨ε, hε, hyε⟩ := metric.is_open_iff.mp hu₂ y hu₃,
+  refine ⟨ε / ∥y -ᵥ x∥, div_pos hε hxy, λ δ (hδ : ∥δ - 1∥ < ε / ∥y -ᵥ x∥), hu₁ (hyε _)⟩,
+  rw [lt_div_iff hxy, ← norm_smul, sub_smul, one_smul] at hδ,
+  rwa [homothety_apply, metric.mem_ball, dist_eq_norm_vsub W, vadd_vsub_eq_sub_vsub],
+end
+
+lemma eventually_homothety_image_subset_of_finite_subset_interior
+  (x : Q) {s : set Q} {t : set Q} (ht : t.finite) (h : t ⊆ interior s) :
+  ∀ᶠ δ in 𝓝 (1 : 𝕜), homothety x δ '' t ⊆ s :=
+begin
+  suffices : ∀ y ∈ t, ∀ᶠ δ in 𝓝 (1 : 𝕜), homothety x δ y ∈ s,
+  { simp_rw set.image_subset_iff,
+    exact (filter.eventually_all_finite ht).mpr this, },
+  intros y hy,
+  exact eventually_homothety_mem_of_mem_interior x (h hy),
 end
 
 end normed_space

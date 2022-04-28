@@ -109,8 +109,9 @@ $$
 ∥x∥ = max(∥P x∥, ∥(1-P) x∥).
 $$
 -/
-def is_Mprojection (P : X →L[𝕜] X) : Prop :=
-  is_projection P ∧ ∀ (x : X), ∥x∥ = (max ∥P x∥  ∥(1 - P) x∥)
+structure is_Mprojection (P : X →L[𝕜] X) : Prop :=
+(proje : is_projection P)
+(Mnorm : ∀ (x : X), ∥x∥ = (max ∥P x∥  ∥(1 - P) x∥))
 
 namespace is_Lprojection
 

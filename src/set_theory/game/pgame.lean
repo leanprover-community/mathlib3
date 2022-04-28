@@ -663,6 +663,20 @@ relabelling. Contrast with `is_option`. -/
 theorem is_option.is_option' {x y : pgame} (h : is_option x y) : is_option' x y :=
 ⟨h, relabelling.refl x⟩
 
+theorem is_option'.move_left {x : pgame} (i : x.left_moves) : is_option' (x.move_left i) x :=
+(is_option.move_left i).is_option'
+
+theorem is_option'.move_right {x : pgame} (j : x.right_moves) : is_option' (x.move_right j) x :=
+(is_option.move_right j).is_option'
+
+theorem is_option'.mk_left {xl xr : Type u} (xL : xl → pgame) (xR : xr → pgame) (i : xl) :
+  is_option' (xL i) (mk xl xr xL xR) :=
+@is_option'.move_left (mk _ _ _ _) i
+
+theorem is_option'.mk_right {xl xr : Type u} (xL : xl → pgame) (xR : xr → pgame) (j : xr) :
+  is_option' (xR j) (mk xl xr xL xR) :=
+@is_option'.move_right (mk _ _ _ _) j
+
 theorem is_option'.congr_left {x₁ x₂ y : pgame} (e : x₁.relabelling x₂) :
   is_option' x₁ y ↔ is_option' x₂ y :=
 begin

@@ -106,12 +106,14 @@ end
 
 @[simp] lemma two_mul_add_one_div_two (n : ℕ) : (2*n + 1) / 2 = n :=
 begin
-  sorry
+  rw [nat.add_div two_pos, n.mul_div_cancel_left two_pos],
+  norm_num,
 end
 
 lemma four_mul_add_one_div_four (n : ℕ) : (4*n + 1) / 4 = n :=
 begin
-  sorry
+  rw [nat.add_div four_pos, n.mul_div_cancel_left four_pos],
+  norm_num,
 end
 
 lemma div_four_eq (n : ℕ) :
@@ -135,12 +137,71 @@ begin
   obtain (a|a) := a; obtain (b|b) := b; simp; apply_instance,
 end
 
+section edge_equiv
+
+open sum
+
+private def to_pair {α β} :
+  ∀ (vw : (α ⊕ β) × (α ⊕ β)), (complete_bipartite_graph α β).adj vw.1 vw.2 → α × β :=
+by { rintro ⟨(v | w), (v | w)⟩ h; exact ⟨v, w⟩ <|> simpa using h }
+
+@[simp] private lemma to_pair_inl_inr {α β} {a} {b}
+  (h : (complete_bipartite_graph α β).adj (inl a) (inr b) := by simp) :
+  to_pair (inl a, inr b) h = (a, b) := by simp [to_pair]
+
+@[simp] private lemma to_pair_inr_inl {α β} {a} {b}
+  (h : (complete_bipartite_graph α β).adj (inr b) (inl a) := by simp) :
+  to_pair (inr b, inl a) h = (a, b) := by simp [to_pair]
+
+def complete_bipartite_edge_equiv {V W} : (complete_bipartite_graph V W).edge_set ≃ V × W :=
+{ to_fun := λ ⟨x, hx⟩,
+  begin
+    revert hx,
+    refine x.hrec_on _ _,
+    exact to_pair,
+    rintro ⟨v₁ | w₁, v₂ | w₂⟩ ⟨v₃ | w₃, v₄ | w₄⟩ (⟨_, _⟩ | ⟨_, _⟩),
+    { simp },
+    { rw heq_iff_eq, funext h, simpa using h },
+    { simp },
+    { apply function.hfunext; simp },
+    { apply function.hfunext; simp },
+    { simp },
+    { simp },
+    { rw heq_iff_eq, funext h, simpa using h }
+  end,
+  inv_fun := λ x, ⟨⟦(sum.inl x.1, sum.inr x.2)⟧, by simp⟩,
+  left_inv := λ ⟨x, hx⟩,
+  begin
+    revert hx,
+    apply x.induction_on,
+    clear x,
+    rintro (x | x) (y | y) (⟨⟨⟩, ⟨⟩⟩ | ⟨⟨⟩, ⟨⟩⟩),
+    { simp! only [subtype.mk_eq_mk, quotient.eq],
+      constructor },
+    { simp! only [subtype.mk_eq_mk, quotient.eq],
+      constructor }
+  end,
+  right_inv := λ ⟨v, w⟩, rfl }
+
+end edge_equiv
+
+def set.to_finset_equiv {α} {s : set α} [fintype s] : s.to_finset ≃ s :=
+equiv.subtype_equiv_prop s.coe_to_finset
+
+def edge_set_equiv_edge_finset {α} [fintype α] [decidable_eq α]
+  (G : simple_graph α) [decidable_rel G.adj] : G.edge_finset ≃ G.edge_set :=
+set.to_finset_equiv
+
 lemma bipartite_num_edges (n : ℕ) :
   (complete_bipartite_graph (fin (n / 2)) (fin ((n + 1) / 2))).edge_finset.card
   = n ^ 2 / 4 :=
 begin
-  rw div_four_eq,
-  sorry,
+  rw [←fintype.card_coe],
+  transitivity,
+  exact fintype.card_congr (edge_set_equiv_edge_finset _),
+  transitivity,
+  exact fintype.card_congr (complete_bipartite_edge_equiv),
+  simp [div_four_eq]
 end
 
 /-- Therefore the bound in `simple_graph.not_triangle_free_of_lt_card_edge_set` is strict. -/

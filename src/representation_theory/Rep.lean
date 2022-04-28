@@ -123,8 +123,7 @@ def to_Module_monoid_algebra : Rep k G ⥤ Module.{u} (monoid_algebra k G) :=
 
 def representation_of_module_monoid_algebra (V : Module.{u} (monoid_algebra k G)) :
   G →* restrict_scalars k (monoid_algebra k G) V →ₗ[k] restrict_scalars k (monoid_algebra k G) V :=
-(monoid_algebra.lift k G
-  ((restrict_scalars k (monoid_algebra k G) V) →ₗ[k] restrict_scalars k (monoid_algebra k G) V)).symm
+(monoid_algebra.lift k G _).symm
   (restrict_scalars.lsmul k (monoid_algebra k G) (restrict_scalars k (monoid_algebra k G) V))
 
 -- @[simps]
@@ -152,8 +151,10 @@ add_equiv.refl _
 lemma step2_smul (V : Rep k G) (r : monoid_algebra k G) (x : to_Module_monoid_algebra.obj V) :
   step2 V (r • x) = monoid_algebra.lift k G _ V.ρ' r (step2 V x) := sorry
 
-lemma smul_step1 (M : Module.{u} (monoid_algebra k G)) (r : monoid_algebra k G) (x : of_Module_monoid_algebra.obj M) :
-  r • step1 M x = step1 M (monoid_algebra.lift k G _ (representation_of_module_monoid_algebra M) r x) :=
+lemma smul_step1 (M : Module.{u} (monoid_algebra k G))
+  (r : monoid_algebra k G) (x : of_Module_monoid_algebra.obj M) :
+  r • step1 M x =
+    step1 M (monoid_algebra.lift k G _ (representation_of_module_monoid_algebra M) r x) :=
 sorry
 
 lemma smul_step1_symm (M : Module.{u} (monoid_algebra k G)) (r : k) (x : M) :
@@ -227,8 +228,15 @@ Action.mk_iso (linear_equiv.to_Module_iso'
     rw step2_symm_smul,
     rw smul_step1_symm,
   end,
-  ..unit_iso_add_equiv,
-}) (λ g, begin ext, dsimp only [unit_iso_add_equiv], dsimp [step1, step2], dsimp [of_Module_monoid_algebra, to_Module_monoid_algebra],refl, simp, end
+  ..unit_iso_add_equiv, })
+  (λ g, begin
+    ext,
+    dsimp only [unit_iso_add_equiv],
+    dsimp [step1, step2],
+    dsimp [of_Module_monoid_algebra, to_Module_monoid_algebra],
+    refl,
+    simp,
+  end
 
 -- @[simps]
 -- def foo (V : Rep k G) : Module.of k (restrict_scalars k (monoid_algebra k G) V) ≅ V.V :=

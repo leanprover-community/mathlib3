@@ -13,8 +13,6 @@ We explore the relationships between pointwise addition of sets in normed groups
 Notably, we show that the sum of bounded sets remain bounded.
 -/
 
-attribute [simp] set.neg_singleton
-
 open metric set
 open_locale pointwise topological_space
 

@@ -22,7 +22,9 @@ universes u v
 
 variables {R : Type u} {I : Type v} [comm_semiring R] {x y z : R} {s : I → R} {t : finset I}
 
-open_locale big_operators classical
+open_locale big_operators
+section
+open_locale classical
 
 theorem nat.is_coprime_iff_coprime {m n : ℕ} : is_coprime (m : ℤ) n ↔ nat.coprime m n :=
 ⟨λ ⟨a, b, H⟩, nat.eq_one_of_dvd_one $ int.coe_nat_dvd.1 $ by { rw [int.coe_nat_one, ← H],
@@ -71,9 +73,10 @@ theorem fintype.prod_dvd_of_coprime [fintype I] (Hs : pairwise (is_coprime on s)
   (Hs1 : ∀ i, s i ∣ z) : ∏ x, s x ∣ z :=
 finset.prod_dvd_of_coprime (Hs.set_pairwise _) (λ i _, Hs1 i)
 
+end
 open finset
 
-lemma exists_sum_eq_one_iff_pairwise_coprime (h : t.nonempty) :
+lemma exists_sum_eq_one_iff_pairwise_coprime [decidable_eq I] (h : t.nonempty) :
   (∃ μ : I → R, ∑ i in t, μ i * ∏ j in t \ {i}, s j = 1) ↔ pairwise (is_coprime on λ i : t, s i) :=
 begin
   refine h.cons_induction _ _; clear' t h,
@@ -118,7 +121,7 @@ begin
     convert sdiff_sdiff_comm, rw [sdiff_singleton_eq_erase, erase_insert hat] }
 end
 
-lemma exists_sum_eq_one_iff_pairwise_coprime' [fintype I] [nonempty I] :
+lemma exists_sum_eq_one_iff_pairwise_coprime' [fintype I] [nonempty I] [decidable_eq I] :
   (∃ μ : I → R, ∑ (i : I), μ i * ∏ j in {i}ᶜ, s j = 1) ↔ pairwise (is_coprime on s) :=
 begin
   convert exists_sum_eq_one_iff_pairwise_coprime finset.univ_nonempty using 1,
@@ -126,7 +129,7 @@ begin
   assumption
 end
 
-lemma pairwise_coprime_iff_coprime_prod :
+lemma pairwise_coprime_iff_coprime_prod [decidable_eq I] :
   pairwise (is_coprime on λ i : t, s i) ↔ ∀ i ∈ t, is_coprime (s i) (∏ j in t \ {i}, (s j)) :=
 begin
   refine ⟨λ hp i hi, is_coprime.prod_right_iff.mpr (λ j hj, _), λ hp, _⟩,

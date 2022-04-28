@@ -46,6 +46,12 @@ begin
   ... ≤ Rs + Rt : add_le_add (hRs x hx) (hRt y hy)
 end
 
+lemma metric.bounded.neg : bounded s → bounded (-s) :=
+by { simp_rw [bounded_iff_exists_norm_le, ←image_neg, ball_image_iff, norm_neg], exact id }
+
+lemma metric.bounded.sub (hs : bounded s) (ht : bounded t) : bounded (s - t) :=
+(sub_eq_add_neg _ _).symm.subst $ hs.add ht.neg
+
 section emetric
 open emetric
 

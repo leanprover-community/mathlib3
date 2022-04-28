@@ -58,7 +58,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
           {F : Type*} [normed_group F] [normed_space 𝕜 F]
           {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
-
 /-- A function `f` satisfies `is_bounded_linear_map 𝕜 f` if it is linear and satisfies the
 inequality `∥f x∥ ≤ M * ∥x∥` for some positive constant `M`. -/
 structure is_bounded_linear_map (𝕜 : Type*) [normed_field 𝕜]
@@ -230,20 +229,50 @@ section bilinear_map
 
 namespace continuous_linear_map
 
-lemma map_add₂ (f : E →L[𝕜] F →L[𝕜] G) (x x' : E) (y : F) : f (x + x') y = f x y + f x' y :=
+/-! We prove some computation rules for continuous (semi-)bilinear maps in their first argument.
+  If `f` is a continuuous bilinear map, to use the corresponding rules for the second argument, use
+  `(f _).map_add` and similar.
+
+  Note that the first argumentin this section
+-/
+
+variables {R : Type*}
+variables {𝕜₂ 𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [nondiscrete_normed_field 𝕜₂]
+variables {M : Type*} [topological_space M]
+variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
+variables {G' : Type*} [normed_group G'] [normed_space 𝕜₂ G'] [normed_space 𝕜' G']
+variables [smul_comm_class 𝕜₂ 𝕜' G']
+
+section semiring
+variables [semiring R] [add_comm_monoid M] [module R M] {ρ₁₂ : R →+* 𝕜'}
+
+lemma map_add₂ (f : M →SL[ρ₁₂] F →SL[σ₁₂] G') (x x' : M) (y : F) :
+  f (x + x') y = f x y + f x' y :=
 by rw [f.map_add, add_apply]
 
-lemma map_sub₂ (f : E →L[𝕜] F →L[𝕜] G) (x x' : E) (y : F) : f (x - x') y = f x y - f x' y :=
+lemma map_zero₂ (f : M →SL[ρ₁₂] F →SL[σ₁₂] G') (y : F) : f 0 y = 0 :=
+by rw [f.map_zero, zero_apply]
+
+lemma map_smulₛₗ₂ (f : M →SL[ρ₁₂] F →SL[σ₁₂] G') (c : R) (x : M) (y : F) :
+  f (c • x) y = ρ₁₂ c • f x y :=
+by rw [f.map_smulₛₗ, smul_apply]
+end semiring
+
+section ring
+
+variables [ring R] [add_comm_group M] [module R M] {ρ₁₂ : R →+* 𝕜'}
+
+lemma map_sub₂ (f : M →SL[ρ₁₂] F →SL[σ₁₂] G') (x x' : M) (y : F) :
+  f (x - x') y = f x y - f x' y :=
 by rw [f.map_sub, sub_apply]
 
-lemma map_neg₂ (f : E →L[𝕜] F →L[𝕜] G) (x : E) (y : F) : f (- x) y = - f x y :=
+lemma map_neg₂ (f : M →SL[ρ₁₂] F →SL[σ₁₂] G') (x : M) (y : F) : f (- x) y = - f x y :=
 by rw [f.map_neg, neg_apply]
+
+end ring
 
 lemma map_smul₂ (f : E →L[𝕜] F →L[𝕜] G) (c : 𝕜) (x : E) (y : F) : f (c • x) y = c • f x y :=
 by rw [f.map_smul, smul_apply]
-
-lemma map_zero₂ (f : E →L[𝕜] F →L[𝕜] G) (y : F) : f 0 y = 0 :=
-by rw [f.map_zero, zero_apply]
 
 end continuous_linear_map
 

@@ -26,7 +26,7 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M]
 open_locale pointwise
 
 instance has_scalar' : has_scalar (ideal R) (submodule R M) :=
-⟨λ I N, submodule.map₂ (linear_map.lsmul R M : _) I N⟩
+⟨submodule.map₂ (linear_map.lsmul R M)⟩
 
 /-- This duplicates the global `smul_eq_mul`, but doesn't have to unfold anywhere near as much to
 apply. -/

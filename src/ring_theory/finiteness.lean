@@ -147,11 +147,7 @@ end module
 instance module.finite.tensor_product [comm_semiring R]
   [add_comm_group M] [module R M] [add_comm_group N] [module R N]
   [hM : module.finite R M] [hN : module.finite R N] : module.finite R (tensor_product R M N) :=
-{ out := begin
-    obtain ⟨fM, hM⟩ := hM.out, obtain ⟨fN, hN⟩ := hN.out,
-    rw ← tensor_product.span_image2_eq_top R _ _ hM hN,
-    exact ⟨_, congr_arg _ (fM.finite_to_set.image2 _ fN.finite_to_set).coe_to_finset⟩,
-  end }
+{ out := (tensor_product.map₂_mk_top_top_eq_top R M N).subst (submodule.fg_map₂ _ hM.out hN.out) }
 
 namespace algebra
 

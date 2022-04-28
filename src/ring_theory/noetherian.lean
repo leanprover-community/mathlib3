@@ -775,11 +775,17 @@ is_noetherian_ring_of_surjective R S f.to_ring_hom f.to_equiv.surjective
 
 namespace submodule
 variables {R : Type*} {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+
+theorem fg_map₂ {M N P : Type*} [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
+  [module R M] [module R N] [module R P]
+  (f : M →ₗ[R] N →ₗ[R] P) {M' : submodule R M} {N' : submodule R N}
+  (hM : M'.fg) (hN : N'.fg) : (map₂ f M' N').fg :=
+let ⟨m, hfm, hm⟩ := fg_def.1 hM, ⟨n, hfn, hn⟩ := fg_def.1 hN in
+fg_def.2 ⟨m.image2 (λ x, f x) n, hfm.image2 _ hfn, map₂_span_span R f m n ▸ hm ▸ hn ▸ rfl⟩
+
 variables (M N : submodule R A)
 
-theorem fg_mul (hm : M.fg) (hn : N.fg) : (M * N).fg :=
-let ⟨m, hfm, hm⟩ := fg_def.1 hm, ⟨n, hfn, hn⟩ := fg_def.1 hn in
-fg_def.2 ⟨m * n, hfm.mul hfn, span_mul_span R m n ▸ hm ▸ hn ▸ rfl⟩
+theorem fg_mul (hm : M.fg) (hn : N.fg) : (M * N).fg := fg_map₂ _ hm hn
 
 lemma fg_pow (h : M.fg) (n : ℕ) : (M ^ n).fg :=
 nat.rec_on n

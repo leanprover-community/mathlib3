@@ -366,7 +366,8 @@ variables [unique_factorization_monoid M] [unique_factorization_monoid N]
 
 lemma mem_normalized_factors_factor_dvd_iso_of_mem_normalized_factors [decidable_eq N] {m p : M}
   {n : N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
-  (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}) (hd : ∀ l l', ((d l) : N) ∣ (d l') ↔ (l : M) ∣ (l' : M)):
+  (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n})
+  (hd : ∀ l l', ((d l) : N) ∣ (d l') ↔ (l : M) ∣ (l' : M)) :
     ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) ∈ normalized_factors n :=
 begin
   suffices : prime ↑(d ⟨mk_monoid_equiv.symm (mk_monoid_equiv p),

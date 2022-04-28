@@ -66,8 +66,8 @@ variables [is_domain k] [char_p k p] [perfect_ring k p]
 /-! ### Frobenius-linear maps -/
 
 /-- The Frobenius automorphism of `k` induces an automorphism of `K`. -/
-def fraction_ring.frobenius : K(p, k) ≃+* K(p, k) := is_fraction_ring.field_equiv_of_ring_equiv
-  (ring_equiv.of_bijective _ (witt_vector.frobenius_bijective p k))
+def fraction_ring.frobenius : K(p, k) ≃+* K(p, k) :=
+is_fraction_ring.field_equiv_of_ring_equiv (frobenius_equiv p k)
 
 /-- The Frobenius automorphism of `k` induces an endomorphism of `K`. For notation purposes. -/
 def fraction_ring.frobenius_ring_hom : K(p, k) →+* K(p, k) := fraction_ring.frobenius p k
@@ -176,8 +176,8 @@ begin
     intros ha',
     apply this,
     simp only [←ha, ha', zero_smul] },
-  obtain ⟨b, hb, m, (hmb : φ(p, k) b * a = p ^ m * b)⟩ :=
-    witt_vector.exists_frobenius_solution_fraction_ring p ha,
+  obtain ⟨b, hb, m, hmb⟩ := witt_vector.exists_frobenius_solution_fraction_ring p ha,
+  replace hmb : φ(p, k) b * a = p ^ m * b := by convert hmb,
   use m,
   let F₀ : standard_one_dim_isocrystal p k m →ₗ[K(p,k)] V :=
     linear_map.to_span_singleton K(p, k) V x,

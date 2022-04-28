@@ -114,7 +114,7 @@ equal. -/
 @[simp] lemma vsub_eq_zero_iff_eq {p1 p2 : P} : p1 -ᵥ p2 = (0 : G) ↔ p1 = p2 :=
 iff.intro eq_of_vsub_eq_zero (λ h, h ▸ vsub_self _)
 
-@[simp] lemma vsub_ne_zero {p q : P} : p -ᵥ q ≠ (0 : G) ↔ p ≠ q :=
+lemma vsub_ne_zero {p q : P} : p -ᵥ q ≠ (0 : G) ↔ p ≠ q :=
 not_congr vsub_eq_zero_iff_eq
 
 /-- Cancellation adding the results of two subtractions. -/

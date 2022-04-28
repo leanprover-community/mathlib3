@@ -19,11 +19,13 @@ open add_monoid_hom measure_theory measure_theory.measure metric nnreal set
 open_locale pointwise topological_space
 
 section PR13381
-variables {E : Type*} [semi_normed_group E] [normed_space ℝ E] {x y z : E} {δ ε : ℝ}
+variables {E : Type*} [semi_normed_group E] [normed_space ℝ E] {s t : set E}
 
-@[simp] lemma ball_sub_ball (hε : 0 < ε) (hδ : 0 < δ) (a b : E) :
-  ball a ε - ball b δ = ball (a - b) (ε + δ) :=
-sorry
+lemma metric.bounded.neg : bounded s → bounded (-s) :=
+by { simp_rw [bounded_iff_exists_norm_le, ←image_neg, ball_image_iff, norm_neg], exact id }
+
+lemma metric.bounded.sub (hs : bounded s) (ht : bounded t) : bounded (s - t) :=
+(sub_eq_add_neg _ _).symm.subst $ hs.add ht.neg
 
 end PR13381
 
@@ -75,13 +77,9 @@ begin
   obtain ⟨r, z, hfr⟩ := exists_real_preimage_ball_pos_volume f,
   refine ⟨_, sub_mem_nhds_zero_of_add_haar_pos volume (f⁻¹' ball z r) (h $ measurable_set_ball) hfr,
     _⟩,
-  suffices : f '' (⇑f ⁻¹' ball z r - ⇑f ⁻¹' ball z r) ⊆ ball (z - z) (r + r),
-  { exact bounded_ball.mono this },
-  obtain hr | hr := le_or_lt r 0,
-  { simp only [ball_eq_empty.2 hr, preimage_empty, sub_empty, image_empty, empty_subset] },
-  rw [image_sub, ←ball_sub_ball hr hr],
-  exact sub_subset_sub (image_preimage_subset _ _) (image_preimage_subset _ _),
-  apply_instance,
+  rw image_sub,
+  exact (bounded_ball.mono $ image_preimage_subset _ _).sub
+    (bounded_ball.mono $ image_preimage_subset _ _),
 end
 
 lemma additive_continuous_at_zero_of_bounded_nhds_zero (f : ℝ →+ ℝ) {U : set ℝ}

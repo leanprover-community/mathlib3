@@ -9,6 +9,7 @@ import data.nat.gcd
 import data.nat.sqrt_norm_num
 import data.set.finite
 import tactic.wlog
+import algebra.parity
 
 /-!
 # Prime numbers
@@ -178,8 +179,7 @@ by { rw ← h, exact not_prime_mul h₁ h₂ }
 
 lemma prime_mul_iff {a b : ℕ} :
   nat.prime (a * b) ↔ (a.prime ∧ b = 1) ∨ (b.prime ∧ a = 1) :=
-by cases a; cases b; try { cases a; cases b };
-  simp [not_prime_zero, not_prime_one, not_prime_mul]
+by simp only [iff_self, irreducible_mul_iff, ←irreducible_iff_nat_prime, nat.is_unit_iff]
 
 lemma prime.dvd_iff_eq {p a : ℕ} (hp : p.prime) (a1 : a ≠ 1) : a ∣ p ↔ p = a :=
 begin
@@ -429,6 +429,14 @@ p.mod_two_eq_zero_or_one.imp_left
 lemma prime.eq_two_or_odd' {p : ℕ} (hp : prime p) : p = 2 ∨ odd p :=
 or.imp_right (λ h, ⟨p / 2, (div_add_mod p 2).symm.trans (congr_arg _ h)⟩) hp.eq_two_or_odd
 
+/-- A prime `p` satisfies `p % 2 = 1` if and only if `p ≠ 2`. -/
+lemma prime.mod_two_eq_one_iff_ne_two {p : ℕ} [fact p.prime] : p % 2 = 1 ↔ p ≠ 2 :=
+begin
+  refine ⟨λ h hf, _, (nat.prime.eq_two_or_odd $ fact.out p.prime).resolve_left⟩,
+  rw hf at h,
+  simpa using h,
+end
+
 theorem coprime_of_dvd {m n : ℕ} (H : ∀ k, prime k → k ∣ m → ¬ k ∣ n) : coprime m n :=
 begin
   rw [coprime_iff_gcd_eq_one],
@@ -656,24 +664,7 @@ lemma eq_or_coprime_of_le_prime {n p} (n_pos : 0 < n) (hle : n ≤ p) (pp : prim
 hle.eq_or_lt.imp eq.symm (λ h, coprime_of_lt_prime n_pos h pp)
 
 theorem dvd_prime_pow {p : ℕ} (pp : prime p) {m i : ℕ} : i ∣ (p^m) ↔ ∃ k ≤ m, i = p^k :=
-begin
-  induction m with m IH generalizing i, { simp },
-  by_cases p ∣ i,
-  { cases h with a e, subst e,
-    rw [pow_succ, nat.mul_dvd_mul_iff_left pp.pos, IH],
-    split; intro h; rcases h with ⟨k, h, e⟩,
-    { exact ⟨succ k, succ_le_succ h, by rw [e, pow_succ]; refl⟩ },
-    cases k with k,
-    { apply pp.not_dvd_one.elim,
-      rw [← pow_zero, ← e], apply dvd_mul_right },
-    { refine ⟨k, le_of_succ_le_succ h, _⟩,
-      rwa [mul_comm, pow_succ', nat.mul_left_inj pp.pos] at e } },
-  { split; intro d,
-    { rw (pp.coprime_pow_of_not_dvd h).eq_one_of_dvd d,
-      exact ⟨0, zero_le _, (pow_zero p).symm⟩ },
-    { rcases d with ⟨k, l, rfl⟩,
-      exact pow_dvd_pow _ l } }
-end
+by simp_rw [dvd_prime_pow (prime_iff.mp pp) m, associated_eq_eq]
 
 lemma prime.dvd_mul_of_dvd_ne {p1 p2 n : ℕ} (h_neq : p1 ≠ p2) (pp1 : prime p1) (pp2 : prime p2)
   (h1 : p1 ∣ n) (h2 : p2 ∣ n) : (p1 * p2 ∣ n) :=

@@ -50,21 +50,19 @@ add_decl_doc AddGroup.of
 /-- Typecheck a `add_monoid_hom` as a morphism in `AddGroup`. -/
 add_decl_doc AddGroup.of_hom
 
+@[simp, to_additive] lemma of_hom_apply {X Y : Type*} [group X] [group Y] (f : X →* Y) (x : X) :
+  of_hom f x = f x := rfl
+
 @[to_additive]
 instance (G : Group) : group G := G.str
 
 @[simp, to_additive] lemma coe_of (R : Type u) [group R] : (Group.of R : Type u) = R := rfl
 
 @[to_additive]
-instance : has_one Group := ⟨Group.of punit⟩
+instance : inhabited Group := ⟨Group.of punit⟩
 
 @[to_additive]
-instance : inhabited Group := ⟨1⟩
-
-@[to_additive]
-instance one.unique : unique (1 : Group) :=
-{ default := 1,
-  uniq := λ a, begin cases a, refl, end }
+instance of_unique (G : Type*) [group G] [i : unique G] : unique (Group.of G) := i
 
 @[simp, to_additive]
 lemma one_apply (G H : Group) (g : G) : (1 : G ⟶ H) g = 1 := rfl
@@ -112,19 +110,19 @@ add_decl_doc AddCommGroup.of
 /-- Typecheck a `add_monoid_hom` as a morphism in `AddCommGroup`. -/
 add_decl_doc AddCommGroup.of_hom
 
+@[simp, to_additive] lemma of_hom_apply {X Y : Type*} [comm_group X] [comm_group Y] (f : X →* Y)
+  (x : X) : of_hom f x = f x := rfl
+
 @[to_additive]
 instance comm_group_instance (G : CommGroup) : comm_group G := G.str
 
 @[simp, to_additive] lemma coe_of (R : Type u) [comm_group R] : (CommGroup.of R : Type u) = R := rfl
 
-@[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩
-
-@[to_additive] instance : inhabited CommGroup := ⟨1⟩
+@[to_additive]
+instance : inhabited CommGroup := ⟨CommGroup.of punit⟩
 
 @[to_additive]
-instance one.unique : unique (1 : CommGroup) :=
-{ default := 1,
-  uniq := λ a, begin cases a, refl, end }
+instance of_unique (G : Type*) [comm_group G] [i : unique G] : unique (CommGroup.of G) := i
 
 @[simp, to_additive]
 lemma one_apply (G H : CommGroup) (g : G) : (1 : G ⟶ H) g = 1 := rfl

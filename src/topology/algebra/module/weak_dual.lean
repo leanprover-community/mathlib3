@@ -9,7 +9,7 @@ import topology.algebra.module.basic
 # Weak dual topology
 
 This file defines the weak topology given two vector spaces `E` and `F` over a commutative semiring
-`𝕜` and a bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜`. The weak topology on `E` is the coarest topology
+`𝕜` and a bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜`. The weak topology on `E` is the coarsest topology
 such that for all `y : F` every map `λ x, B x y` is continuous.
 
 In the case that `F = E →L[𝕜] 𝕜` and `B` being the canonical pairing, we obtain the weak-* topology,
@@ -62,7 +62,7 @@ noncomputable theory
 open filter
 open_locale topological_space
 
-variables {α 𝕜 R E F M : Type*}
+variables {α 𝕜 𝕝 R E F M : Type*}
 
 section weak_topology
 
@@ -72,9 +72,17 @@ nolint has_inhabited_instance unused_arguments]
 def weak_bilin [comm_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] [add_comm_monoid F]
   [module 𝕜 F] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) := E
 
-instance [comm_semiring 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_monoid F]
-  [module 𝕜 F] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : add_comm_group (weak_bilin B) :=
-by { dunfold weak_bilin, apply_instance }
+instance [comm_semiring 𝕜] [a : add_comm_group E] [module 𝕜 E] [add_comm_monoid F]
+  [module 𝕜 F] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : add_comm_group (weak_bilin B) := a
+
+@[priority 100]
+instance module_weak_bilin [comm_semiring 𝕜] [comm_semiring 𝕝] [add_comm_group E] [module 𝕜 E]
+  [add_comm_group F] [module 𝕜 F] [m : module 𝕝 E] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
+  module 𝕝 (weak_bilin B) := m
+
+instance scalar_tower_weak_bilin [comm_semiring 𝕜] [comm_semiring 𝕝] [add_comm_group E] [module 𝕜 E]
+  [add_comm_group F] [module 𝕜 F] [has_scalar 𝕝 𝕜] [module 𝕝 E] [s : is_scalar_tower 𝕝 𝕜 E]
+  (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : is_scalar_tower 𝕝 𝕜 (weak_bilin B) := s
 
 section semiring
 
@@ -170,11 +178,10 @@ def weak_dual (𝕜 E) [comm_semiring 𝕜] [topological_space 𝕜] [has_contin
   [has_continuous_const_smul 𝕜 𝕜] [add_comm_monoid E] [module 𝕜 E] [topological_space E] :=
 weak_bilin (top_dual_pairing 𝕜 E)
 
-instance : inhabited (weak_dual 𝕜 E) :=
-by {dunfold weak_dual, dunfold weak_bilin, apply_instance}
+instance : inhabited (weak_dual 𝕜 E) := continuous_linear_map.inhabited
 
-instance fun_like_weak_dual : fun_like (weak_dual 𝕜 E) E (λ _, 𝕜) :=
-by {dunfold weak_dual, dunfold weak_bilin, apply_instance}
+instance add_monoid_hom_class_weak_dual : add_monoid_hom_class (weak_dual 𝕜 E) E 𝕜 :=
+continuous_linear_map.add_monoid_hom_class
 
 /-- If a monoid `M` distributively continuously acts on `𝕜` and this action commutes with
 multiplication on `𝕜`, then it acts on `weak_dual 𝕜 E`. -/
@@ -192,7 +199,7 @@ continuous_linear_map.distrib_mul_action
 
 /-- If `𝕜` is a topological module over a semiring `R` and scalar multiplication commutes with the
 multiplication on `𝕜`, then `weak_dual 𝕜 E` is a module over `R`. -/
-instance R_module (R) [semiring R] [module R 𝕜] [smul_comm_class 𝕜 R 𝕜]
+instance weak_dual_module (R) [semiring R] [module R 𝕜] [smul_comm_class 𝕜 R 𝕜]
   [has_continuous_const_smul R 𝕜] :
   module R (weak_dual 𝕜 E) :=
 continuous_linear_map.module
@@ -216,5 +223,11 @@ nolint has_inhabited_instance]
 def weak_space (𝕜 E) [comm_semiring 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜]
   [has_continuous_const_smul 𝕜 𝕜] [add_comm_monoid E] [module 𝕜 E] [topological_space E] :=
 weak_bilin (top_dual_pairing 𝕜 E).flip
+
+theorem tendsto_iff_forall_eval_tendsto_top_dual_pairing
+  {l : filter α} {f : α → weak_dual 𝕜 E} {x : weak_dual 𝕜 E} :
+  tendsto f l (𝓝 x) ↔
+    ∀ y, tendsto (λ i, top_dual_pairing 𝕜 E (f i) y) l (𝓝 (top_dual_pairing 𝕜 E x y)) :=
+tendsto_iff_forall_eval_tendsto _ continuous_linear_map.coe_injective
 
 end weak_star_topology

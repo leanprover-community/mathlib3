@@ -64,8 +64,6 @@ instance division_ring.to_group_with_zero :
 { .. ‹division_ring K›,
   .. (infer_instance : semiring K) }
 
-attribute [field_simps] inv_eq_one_div
-
 local attribute [simp]
   division_def mul_comm mul_assoc
   mul_left_comm mul_inv_cancel inv_mul_cancel
@@ -243,10 +241,16 @@ lemma field.to_is_field (R : Type u) [field R] : is_field R :=
 { mul_inv_cancel := λ a ha, ⟨a⁻¹, field.mul_inv_cancel ha⟩,
   ..‹field R› }
 
+@[simp] lemma is_field.nontrivial {R : Type u} [ring R] (h : is_field R) : nontrivial R :=
+⟨h.exists_pair_ne⟩
+
+@[simp] lemma not_is_field_of_subsingleton (R : Type u) [ring R] [subsingleton R] : ¬is_field R :=
+λ h, let ⟨x, y, h⟩ := h.exists_pair_ne in h (subsingleton.elim _ _)
+
 open_locale classical
 
 /-- Transferring from is_field to field -/
-noncomputable def is_field.to_field (R : Type u) [ring R] (h : is_field R) : field R :=
+noncomputable def is_field.to_field {R : Type u} [ring R] (h : is_field R) : field R :=
 { inv := λ a, if ha : a = 0 then 0 else classical.some (is_field.mul_inv_cancel h ha),
   inv_zero := dif_pos rfl,
   mul_inv_cancel := λ a ha,
@@ -301,7 +305,8 @@ lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_monoid_with_zero_hom.map_inv x
 
 lemma map_div : g (x / y) = g x / g y := g.to_monoid_with_zero_hom.map_div x y
 
-protected lemma injective : function.injective f := f.injective_iff.2 $ λ x, f.map_eq_zero.1
+protected lemma injective : function.injective f :=
+(injective_iff_map_eq_zero f).2 $ λ x, f.map_eq_zero.1
 
 end
 

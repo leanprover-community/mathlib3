@@ -237,29 +237,48 @@ begin
   rw [basis.equiv_fun_symm_apply, basis.sum_repr]
 end
 
-theorem affine_map.continuous_of_finite_dimensional {PE PF : Type*}
-  [metric_space PE] [normed_add_torsor E PE] [metric_space PF] [normed_add_torsor F PF]
-  [finite_dimensional 𝕜 E] (f : PE →ᵃ[𝕜] PF) : continuous f :=
+section affine
+
+variables  {PE PF : Type*} [metric_space PE] [normed_add_torsor E PE] [metric_space PF]
+  [normed_add_torsor F PF] [finite_dimensional 𝕜 E]
+
+include E F
+
+theorem affine_map.continuous_of_finite_dimensional (f : PE →ᵃ[𝕜] PF) : continuous f :=
 affine_map.continuous_linear_iff.1 f.linear.continuous_of_finite_dimensional
+
+theorem affine_equiv.continuous_of_finite_dimensional (f : PE ≃ᵃ[𝕜] PF) : continuous f :=
+f.to_affine_map.continuous_of_finite_dimensional
+
+/-- Reinterpret an affine equivalence as a homeomorphism. -/
+def affine_equiv.to_homeomorph_of_finite_dimensional (f : PE ≃ᵃ[𝕜] PF) : PE ≃ₜ PF :=
+{ to_equiv := f.to_equiv,
+  continuous_to_fun := f.continuous_of_finite_dimensional,
+  continuous_inv_fun :=
+    begin
+      haveI : finite_dimensional 𝕜 F, from f.linear.finite_dimensional,
+      exact f.symm.continuous_of_finite_dimensional
+    end }
+
+@[simp] lemma affine_equiv.coe_to_homeomorph_of_finite_dimensional (f : PE ≃ᵃ[𝕜] PF) :
+  ⇑f.to_homeomorph_of_finite_dimensional = f := rfl
+
+@[simp] lemma affine_equiv.coe_to_homeomorph_of_finite_dimensional_symm (f : PE ≃ᵃ[𝕜] PF) :
+  ⇑f.to_homeomorph_of_finite_dimensional.symm = f.symm := rfl
+
+end affine
 
 lemma continuous_linear_map.continuous_det :
   continuous (λ (f : E →L[𝕜] E), f.det) :=
 begin
   change continuous (λ (f : E →L[𝕜] E), (f : E →ₗ[𝕜] E).det),
-  classical,
   by_cases h : ∃ (s : finset E), nonempty (basis ↥s 𝕜 E),
   { rcases h with ⟨s, ⟨b⟩⟩,
     haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finset_basis b,
-    letI : normed_group (matrix s s 𝕜) := matrix.normed_group,
-    letI : normed_space 𝕜 (matrix s s 𝕜) := matrix.normed_space,
     simp_rw linear_map.det_eq_det_to_matrix_of_finset b,
-    have A : continuous (λ (f : E →L[𝕜] E), linear_map.to_matrix b b f),
-    { change continuous ((linear_map.to_matrix b b).to_linear_map.comp
-        (continuous_linear_map.coe_lm 𝕜)),
-      exact linear_map.continuous_of_finite_dimensional _ },
-    convert continuous_det.comp A,
-    ext f,
-    congr },
+    refine continuous.matrix_det _,
+    exact ((linear_map.to_matrix b b).to_linear_map.comp
+        (continuous_linear_map.coe_lm 𝕜)).continuous_of_finite_dimensional },
   { unfold linear_map.det,
     simpa only [h, monoid_hom.one_apply, dif_neg, not_false_iff] using continuous_const }
 end
@@ -487,42 +506,43 @@ v.constr_apply_fintype 𝕜 _ _
   (v.constrL f) (v i) = f i :=
 v.constr_basis 𝕜 _ _
 
-lemma basis.sup_norm_le_norm (v : basis ι 𝕜 E) :
-  ∃ C > (0 : ℝ), ∀ e : E, ∑ i, ∥v.equiv_fun e i∥ ≤ C * ∥e∥ :=
-begin
+lemma basis.op_nnnorm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) {u : E →L[𝕜] F} (M : ℝ≥0)
+  (hu : ∀ i, ∥u (v i)∥₊ ≤ M) :
+  ∥u∥₊ ≤ fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥₊ * M :=
+u.op_nnnorm_le_bound _ $ λ e, begin
   set φ := v.equiv_funL.to_continuous_linear_map,
-  set C := ∥φ∥ * (fintype.card ι),
-  use [max C 1, lt_of_lt_of_le (zero_lt_one) (le_max_right C 1)],
-  intros e,
-  calc ∑ i, ∥φ e i∥ ≤ ∑ i : ι, ∥φ e∥ : by { apply finset.sum_le_sum,
-                                           exact λ i hi, norm_le_pi_norm (φ e) i }
-  ... = ∥φ e∥*(fintype.card ι) : by simpa only [mul_comm, finset.sum_const, nsmul_eq_mul]
-  ... ≤ ∥φ∥ * ∥e∥ * (fintype.card ι) : mul_le_mul_of_nonneg_right (φ.le_op_norm e)
-                                                                 (fintype.card ι).cast_nonneg
-  ... = ∥φ∥ * (fintype.card ι) * ∥e∥ : by ring
-  ... ≤ max C 1 * ∥e∥ :  mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _)
+  calc
+  ∥u e∥₊ = ∥u (∑ i, v.equiv_fun e i • v i)∥₊ :   by rw [v.sum_equiv_fun]
+    ... = ∥∑ i, (v.equiv_fun e i) • (u $ v i)∥₊ : by simp [u.map_sum, linear_map.map_smul]
+    ... ≤ ∑ i, ∥(v.equiv_fun e i) • (u $ v i)∥₊ : nnnorm_sum_le _ _
+    ... = ∑ i, ∥v.equiv_fun e i∥₊ * ∥u (v i)∥₊ :   by simp only [nnnorm_smul]
+    ... ≤ ∑ i, ∥v.equiv_fun e i∥₊ * M : finset.sum_le_sum (λ i hi,
+                                                    mul_le_mul_of_nonneg_left (hu i) (zero_le _))
+    ... = (∑ i, ∥v.equiv_fun e i∥₊) * M : finset.sum_mul.symm
+    ... ≤ fintype.card ι • (∥φ∥₊ * ∥e∥₊) * M :
+          (suffices _, from mul_le_mul_of_nonneg_right this (zero_le M),
+          calc  ∑ i, ∥v.equiv_fun e i∥₊
+              ≤ fintype.card ι • ∥φ e∥₊ : pi.sum_nnnorm_apply_le_nnnorm _
+          ... ≤ fintype.card ι • (∥φ∥₊ * ∥e∥₊) : nsmul_le_nsmul_of_le_right (φ.le_op_nnnorm e) _)
+    ... = fintype.card ι • ∥φ∥₊ * M * ∥e∥₊ : by simp only [smul_mul_assoc, mul_right_comm],
 end
 
-lemma basis.op_norm_le  {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :
+lemma basis.op_norm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) {u : E →L[𝕜] F} {M : ℝ}
+  (hM : 0 ≤ M) (hu : ∀ i, ∥u (v i)∥ ≤ M) :
+  ∥u∥ ≤ fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥ * M :=
+by simpa using nnreal.coe_le_coe.mpr (v.op_nnnorm_le ⟨M, hM⟩ hu)
+
+/-- A weaker version of `basis.op_nnnorm_le` that abstracts away the value of `C`. -/
+lemma basis.exists_op_nnnorm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :
+  ∃ C > (0 : ℝ≥0), ∀ {u : E →L[𝕜] F} (M : ℝ≥0), (∀ i, ∥u (v i)∥₊ ≤ M) → ∥u∥₊ ≤ C*M :=
+⟨ max (fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥₊) 1,
+  zero_lt_one.trans_le (le_max_right _ _),
+  λ u M hu, (v.op_nnnorm_le M hu).trans $ mul_le_mul_of_nonneg_right (le_max_left _ _) (zero_le M)⟩
+
+/-- A weaker version of `basis.op_norm_le` that abstracts away the value of `C`. -/
+lemma basis.exists_op_norm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :
   ∃ C > (0 : ℝ), ∀ {u : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥u (v i)∥ ≤ M) → ∥u∥ ≤ C*M :=
-begin
-  obtain ⟨C, C_pos, hC⟩ : ∃ C > (0 : ℝ), ∀ (e : E), ∑ i, ∥v.equiv_fun e i∥ ≤ C * ∥e∥,
-    from v.sup_norm_le_norm,
-  use [C, C_pos],
-  intros u M hM hu,
-  apply u.op_norm_le_bound (mul_nonneg (le_of_lt C_pos) hM),
-  intros e,
-  calc
-  ∥u e∥ = ∥u (∑ i, v.equiv_fun e i • v i)∥ :   by rw [v.sum_equiv_fun]
-  ... = ∥∑ i, (v.equiv_fun e i) • (u $ v i)∥ : by simp [u.map_sum, linear_map.map_smul]
-  ... ≤ ∑ i, ∥(v.equiv_fun e i) • (u $ v i)∥ : norm_sum_le _ _
-  ... = ∑ i, ∥v.equiv_fun e i∥ * ∥u (v i)∥ :   by simp only [norm_smul]
-  ... ≤ ∑ i, ∥v.equiv_fun e i∥ * M : finset.sum_le_sum (λ i hi,
-                                                  mul_le_mul_of_nonneg_left (hu i) (norm_nonneg _))
-  ... = (∑ i, ∥v.equiv_fun e i∥) * M : finset.sum_mul.symm
-  ... ≤ C * ∥e∥ * M : mul_le_mul_of_nonneg_right (hC e) hM
-  ... = C * M * ∥e∥ : by ring
-end
+let ⟨C, hC, h⟩ := v.exists_op_nnnorm_le in ⟨C, hC, λ u, subtype.forall'.mpr h⟩
 
 instance [finite_dimensional 𝕜 E] [second_countable_topology F] :
   second_countable_topology (E →L[𝕜] F) :=
@@ -537,7 +557,7 @@ begin
   let v := finite_dimensional.fin_basis 𝕜 E,
   obtain ⟨C : ℝ, C_pos : 0 < C,
           hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥φ (v i)∥ ≤ M) → ∥φ∥ ≤ C * M⟩ :=
-    v.op_norm_le,
+    v.exists_op_norm_le,
   have h_2C : 0 < 2*C := mul_pos zero_lt_two C_pos,
   have hε2C : 0 < ε/(2*C) := div_pos ε_pos h_2C,
   have : ∀ φ : E →L[𝕜] F, ∃ n : fin d → ℕ, ∥φ - (v.constrL $ u ∘ n)∥ ≤ ε/2,
@@ -591,6 +611,11 @@ complete_space_coe_iff_is_complete.1 (finite_dimensional.complete 𝕜 s)
 lemma submodule.closed_of_finite_dimensional (s : submodule 𝕜 E) [finite_dimensional 𝕜 s] :
   is_closed (s : set E) :=
 s.complete_of_finite_dimensional.is_closed
+
+lemma affine_subspace.closed_of_finite_dimensional {P : Type*} [metric_space P]
+  [normed_add_torsor E P] (s : affine_subspace 𝕜 P) [finite_dimensional 𝕜 s.direction] :
+  is_closed (s : set P) :=
+s.is_closed_direction_iff.mp s.direction.closed_of_finite_dimensional
 
 section riesz
 
@@ -751,7 +776,7 @@ lemma exists_mem_frontier_inf_dist_compl_eq_dist {E : Type*} [normed_group E]
 begin
   rcases metric.exists_mem_closure_inf_dist_eq_dist (nonempty_compl.2 hs) x with ⟨y, hys, hyd⟩,
   rw closure_compl at hys,
-  refine ⟨y, ⟨metric.closed_ball_inf_dist_compl_subset_closure hx hs $
+  refine ⟨y, ⟨metric.closed_ball_inf_dist_compl_subset_closure hx $
     metric.mem_closed_ball.2 $ ge_of_eq _, hys⟩, hyd⟩,
   rwa dist_comm
 end

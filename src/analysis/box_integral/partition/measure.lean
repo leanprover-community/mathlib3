@@ -48,7 +48,7 @@ variables [fintype ι] (I : box ι)
 lemma measurable_set_coe : measurable_set (I : set (ι → ℝ)) :=
 begin
   rw [coe_eq_pi],
-  haveI := fintype.encodable ι,
+  haveI := fintype.to_encodable ι,
   exact measurable_set.univ_pi (λ i, measurable_set_Ioc)
 end
 

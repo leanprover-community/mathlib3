@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne Baanen,
   Frédéric Dupuis, Heather Macbeth
 -/
-import algebra.group.hom
+import algebra.hom.group
+import algebra.hom.group_action
 import algebra.module.basic
 import algebra.module.pi
-import algebra.group_action_hom
 import algebra.ring.comp_typeclasses
 import algebra.star.basic
 
@@ -357,6 +357,18 @@ linear_map.ext $ λ x, rfl
 @[simp] theorem id_comp : id.comp f = f :=
 linear_map.ext $ λ x, rfl
 
+variables {f g} {f' : M₂ →ₛₗ[σ₂₃] M₃} {g' : M₁ →ₛₗ[σ₁₂] M₂}
+
+include σ₁₃
+theorem cancel_right (hg : function.surjective g) :
+  f.comp g = f'.comp g ↔ f = f' :=
+⟨λ h, ext $ hg.forall.2 (ext_iff.1 h), λ h, h ▸ rfl⟩
+
+theorem cancel_left (hf : function.injective f) :
+  f.comp g = f.comp g' ↔ g = g' :=
+⟨λ h, ext $ λ x, hf $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
+omit σ₁₃
+
 end
 
 variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₃]
@@ -500,7 +512,7 @@ abbreviation module.End (R : Type u) (M : Type v)
 /-- Reinterpret an additive homomorphism as a `ℕ`-linear map. -/
 def add_monoid_hom.to_nat_linear_map [add_comm_monoid M] [add_comm_monoid M₂] (f : M →+ M₂) :
   M →ₗ[ℕ] M₂ :=
-{ to_fun := f, map_add' := f.map_add, map_smul' := f.map_nat_module_smul }
+{ to_fun := f, map_add' := f.map_add, map_smul' := map_nsmul f }
 
 lemma add_monoid_hom.to_nat_linear_map_injective [add_comm_monoid M] [add_comm_monoid M₂] :
   function.injective (@add_monoid_hom.to_nat_linear_map M M₂ _ _) :=
@@ -509,7 +521,7 @@ by { intros f g h, ext, exact linear_map.congr_fun h x }
 /-- Reinterpret an additive homomorphism as a `ℤ`-linear map. -/
 def add_monoid_hom.to_int_linear_map [add_comm_group M] [add_comm_group M₂] (f : M →+ M₂) :
   M →ₗ[ℤ] M₂ :=
-{ to_fun := f, map_add' := f.map_add, map_smul' := f.map_int_module_smul }
+{ to_fun := f, map_add' := f.map_add, map_smul' := map_zsmul f }
 
 lemma add_monoid_hom.to_int_linear_map_injective [add_comm_group M] [add_comm_group M₂] :
   function.injective (@add_monoid_hom.to_int_linear_map M M₂ _ _) :=
@@ -523,7 +535,7 @@ by { intros f g h, ext, exact linear_map.congr_fun h x }
 def add_monoid_hom.to_rat_linear_map [add_comm_group M] [module ℚ M]
   [add_comm_group M₂] [module ℚ M₂] (f : M →+ M₂) :
   M →ₗ[ℚ] M₂ :=
-{ map_smul' := f.map_rat_module_smul, ..f }
+{ map_smul' := map_rat_smul f, ..f }
 
 lemma add_monoid_hom.to_rat_linear_map_injective
   [add_comm_group M] [module ℚ M] [add_comm_group M₂] [module ℚ M₂] :

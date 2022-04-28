@@ -155,8 +155,17 @@ assume ⟨h⟩, h.elim
 lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ = a₂ → f a₁ == f a₂
 | a _ rfl := heq.rfl
 
-lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a = b
+lemma ulift.down_injective {α : Sort*} : function.injective (@ulift.down α)
 | ⟨a⟩ ⟨b⟩ rfl := rfl
+
+@[simp] lemma ulift.down_inj {α : Sort*} {a b : ulift α} : a.down = b.down ↔ a = b :=
+⟨λ h, ulift.down_injective h, λ h, by rw h⟩
+
+lemma plift.down_injective {α : Sort*} : function.injective (@plift.down α)
+| ⟨a⟩ ⟨b⟩ rfl := rfl
+
+@[simp] lemma plift.down_inj {α : Sort*} {a b : plift α} : a.down = b.down ↔ a = b :=
+⟨λ h, plift.down_injective h, λ h, by rw h⟩
 
 -- missing [symm] attribute for ne in core.
 attribute [symm] ne.symm
@@ -200,7 +209,25 @@ library_note "fact non-instances"
 lemma fact.elim {p : Prop} (h : fact p) : p := h.1
 lemma fact_iff {p : Prop} : fact p ↔ p := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
+/-- Swaps two pairs of arguments to a function. -/
+@[reducible] def function.swap₂ {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  {φ : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Sort*} (f : Π i₁ j₁ i₂ j₂, φ i₁ j₁ i₂ j₂) :
+  Π i₂ j₂ i₁ j₁, φ i₁ j₁ i₂ j₂ :=
+λ i₂ j₂ i₁ j₁, f i₁ j₁ i₂ j₂
+
+/-- If `x : α . tac_name` then `x.out : α`. These are definitionally equal, but this can
+nevertheless be useful for various reasons, e.g. to apply further projection notation or in an
+argument to `simp`. -/
+def auto_param.out {α : Sort*} {n : name} (x : auto_param α n) : α := x
+
+/-- If `x : α := d` then `x.out : α`. These are definitionally equal, but this can
+nevertheless be useful for various reasons, e.g. to apply further projection notation or in an
+argument to `simp`. -/
+def opt_param.out {α : Sort*} {d : α} (x : α := d) : α := x
+
 end miscellany
+
+open function
 
 /-!
 ### Declarations about propositional connectives
@@ -276,8 +303,6 @@ the arguments flipped, but it is in the `not` namespace so that projection notat
 def not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
 @[reducible] theorem not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
-
-lemma iff.not (h : a ↔ b) : ¬ a ↔ ¬ b := not_congr h
 
 theorem not_not_of_not_imp : ¬(a → b) → ¬¬a :=
 mt not.elim
@@ -382,6 +407,10 @@ theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
 theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
 imp.swap
 
+lemma iff.not (h : a ↔ b) : ¬ a ↔ ¬ b := not_congr h
+lemma iff.not_left (h : a ↔ ¬ b) : ¬ a ↔ b := h.not.trans not_not
+lemma iff.not_right (h : ¬ a ↔ b) : a ↔ ¬ b := not_not.symm.trans h.not
+
 /-! ### Declarations about `xor` -/
 
 @[simp] theorem xor_true : xor true = not := funext $ λ a, by simp [xor]
@@ -422,6 +451,12 @@ by simp only [and.left_comm, and.comm]
 
 lemma and_and_and_comm (a b c d : Prop) : (a ∧ b) ∧ c ∧ d ↔ (a ∧ c) ∧ b ∧ d :=
 by rw [←and_assoc, @and.right_comm a, and_assoc]
+
+lemma and_and_distrib_left (a b c : Prop) : a ∧ (b ∧ c) ↔ (a ∧ b) ∧ (a ∧ c) :=
+by rw [and_and_and_comm, and_self]
+
+lemma and_and_distrib_right (a b c : Prop) : (a ∧ b) ∧ c ↔ (a ∧ c) ∧ (b ∧ c) :=
+by rw [and_and_and_comm, and_self]
 
 lemma and_rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a := by simp only [and.left_comm, and.comm]
 lemma and.rotate : a ∧ b ∧ c → b ∧ c ∧ a := and_rotate.1
@@ -473,6 +508,12 @@ theorem or.right_comm : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ b := by rw [or_assoc, 
 
 lemma or_or_or_comm (a b c d : Prop) : (a ∨ b) ∨ c ∨ d ↔ (a ∨ c) ∨ b ∨ d :=
 by rw [←or_assoc, @or.right_comm a, or_assoc]
+
+lemma or_or_distrib_left (a b c : Prop) : a ∨ (b ∨ c) ↔ (a ∨ b) ∨ (a ∨ c) :=
+by rw [or_or_or_comm, or_self]
+
+lemma or_or_distrib_right (a b c : Prop) : (a ∨ b) ∨ c ↔ (a ∨ c) ∨ (b ∨ c) :=
+by rw [or_or_or_comm, or_self]
 
 lemma or_rotate : a ∨ b ∨ c ↔ b ∨ c ∨ a := by simp only [or.left_comm, or.comm]
 lemma or.rotate : a ∨ b ∨ c → b ∨ c ∨ a := or_rotate.1
@@ -844,6 +885,10 @@ lemma heq_of_cast_eq :
   ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : cast e a = a'), a == a'
 | α ._ a a' rfl h := eq.rec_on h (heq.refl _)
 
+lemma congr_fun_heq {α β γ : Sort*} {f : α → γ} {g : β → γ} (h₁ : β = α) (h₂ : f == g) (x : β) :
+  f (cast h₁ x) = g x :=
+by { subst h₁, rw [eq_of_heq h₂, cast_eq] }
+
 lemma cast_eq_iff_heq {α β : Sort*} {a : α} {a' : β} {e : α = β} : cast e a = a' ↔ a == a' :=
 ⟨heq_of_cast_eq _, λ h, by cases h; refl⟩
 
@@ -862,6 +907,21 @@ lemma congr_arg2 {α β γ : Sort*} (f : α → β → γ) {x x' : α} {y y' : �
   (hx : x = x') (hy : y = y') : f x y = f x' y' :=
 by { subst hx, subst hy }
 
+variables {β : α → Sort*} {γ : Π a, β a → Sort*} {δ : Π a b, γ a b → Sort*}
+
+lemma congr_fun₂ {f g : Π a b, γ a b} (h : f = g) (a : α) (b : β a) : f a b = g a b :=
+congr_fun (congr_fun h _) _
+
+lemma congr_fun₃ {f g : Π a b c, δ a b c} (h : f = g) (a : α) (b : β a) (c : γ a b) :
+  f a b c = g a b c :=
+congr_fun₂ (congr_fun h _) _ _
+
+lemma funext₂ {f g : Π a, β a → Prop} (h : ∀ a b, f a b = g a b) : f = g :=
+funext $ λ _, funext $ h _
+
+lemma funext₃ {f g : Π a b, γ a b → Prop} (h : ∀ a b c, f a b c = g a b c) : f = g :=
+funext $ λ _, funext₂ $ h _
+
 end equality
 
 /-! ### Declarations about quantifiers -/
@@ -869,7 +929,7 @@ end equality
 section quantifiers
 variables {α : Sort*}
 
-section congr
+section dependent
 variables {β : α → Sort*} {γ : Π a, β a → Sort*} {δ : Π a b, γ a b → Sort*}
   {ε : Π a b c, δ a b c → Sort*}
 
@@ -890,7 +950,7 @@ lemma forall₅_congr {p q : Π a b c d, ε a b c d → Prop}
   (∀ a b c d e, p a b c d e) ↔ ∀ a b c d e, q a b c d e :=
 forall_congr $ λ a, forall₄_congr $ h a
 
-lemma exists₂_congr {p q : Π a, β a → Prop}  (h : ∀ a b, p a b ↔ q a b) :
+lemma exists₂_congr {p q : Π a, β a → Prop} (h : ∀ a b, p a b ↔ q a b) :
   (∃ a b, p a b) ↔ ∃ a b, q a b :=
 exists_congr $ λ a, exists_congr $ h a
 
@@ -907,22 +967,30 @@ lemma exists₅_congr {p q : Π a b c d, ε a b c d → Prop}
   (∃ a b c d e, p a b c d e) ↔ ∃ a b c d e, q a b c d e :=
 exists_congr $ λ a, exists₄_congr $ h a
 
-end congr
+lemma forall_imp {p q : α → Prop} (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a := λ h' a, h a (h' a)
 
-variables {ι β : Sort*} {κ : ι → Sort*} {p q : α → Prop} {b : Prop}
-
-lemma forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
-λ h' a, h a (h' a)
-
-lemma forall₂_imp {p q : Π i, κ i → Prop} (h : ∀ i j, p i j → q i j) :
-  (∀ i j, p i j) → ∀ i j, q i j :=
+lemma forall₂_imp {p q : Π a, β a → Prop} (h : ∀ a b, p a b → q a b) :
+  (∀ a b, p a b) → ∀ a b, q a b :=
 forall_imp $ λ i, forall_imp $ h i
 
-lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
+lemma forall₃_imp {p q : Π a b, γ a b → Prop} (h : ∀ a b c, p a b c → q a b c) :
+  (∀ a b c, p a b c) → ∀ a b c, q a b c :=
+forall_imp $ λ a, forall₂_imp $ h a
 
-lemma Exists₂.imp {p q : Π i, κ i → Prop} (h : ∀ i j, p i j → q i j) :
-  (∃ i j, p i j) → ∃ i j, q i j :=
-Exists.imp $ λ i, Exists.imp $ h i
+lemma Exists.imp {p q : α → Prop}  (h : ∀ a, (p a → q a)) : (∃ a, p a) → ∃ a, q a :=
+exists_imp_exists h
+
+lemma Exists₂.imp {p q : Π a, β a → Prop} (h : ∀ a b, p a b → q a b) :
+  (∃ a b, p a b) → ∃ a b, q a b :=
+Exists.imp $ λ a, Exists.imp $ h a
+
+lemma Exists₃.imp {p q : Π a b, γ a b → Prop} (h : ∀ a b c, p a b c → q a b c) :
+  (∃ a b c, p a b c) → ∃ a b c, q a b c :=
+Exists.imp $ λ a, Exists₂.imp $ h a
+
+end dependent
+
+variables {ι β : Sort*} {κ : ι → Sort*} {p q : α → Prop} {b : Prop}
 
 lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a))
   (hp : ∃ a, p a) : ∃ b, q b :=
@@ -930,6 +998,11 @@ exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨swap, swap⟩
+
+lemma forall₂_swap {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  {p : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Prop} :
+  (∀ i₁ j₁ i₂ j₂, p i₁ j₁ i₂ j₂) ↔ ∀ i₂ j₂ i₁ j₁, p i₁ j₁ i₂ j₂ :=
+⟨swap₂, swap₂⟩
 
 /-- We intentionally restrict the type of `α` in this lemma so that this is a safer to use in simp
 than `forall_swap`. -/

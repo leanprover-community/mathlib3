@@ -831,7 +831,7 @@ lemma _root_.is_fractional.div_of_nonzero {I J : submodule R₁ K} :
     have : algebra_map R₁ K aJ * y = 0,
     { rw [← algebra.smul_def, ←hy', y'_eq_zero, ring_hom.map_zero] },
     have y_zero := (mul_eq_zero.mp this).resolve_left
-      (mt ((algebra_map R₁ K).injective_iff.1 (is_fraction_ring.injective _ _) _)
+      (mt ((injective_iff_map_eq_zero (algebra_map R₁ K)).1 (is_fraction_ring.injective _ _) _)
           (mem_non_zero_divisors_iff_ne_zero.mp haJ)),
     apply not_mem_zero,
     simpa only using (mem_zero_iff R₁⁰).mpr y_zero, },
@@ -978,7 +978,7 @@ end
 
 lemma eq_zero_or_one_of_is_field (hF : is_field R₁) (I : fractional_ideal R₁⁰ K) : I = 0 ∨ I = 1 :=
 begin
-  letI : field R₁ := hF.to_field R₁,
+  letI : field R₁ := hF.to_field,
   -- TODO can this be less ugly?
   exact @eq_zero_or_one R₁ K _ _ _ (by { unfreezingI {cases _inst_4}, convert _inst_9 }) I
 end
@@ -1307,7 +1307,8 @@ begin
   { rw [hx, ring_hom.map_zero, _root_.inv_zero, span_singleton_zero, zero_mul],
     exact is_noetherian_zero },
   have h_gx : algebra_map R₁ K x ≠ 0,
-    from mt ((algebra_map R₁ K).injective_iff.mp (is_fraction_ring.injective _ _) x) hx,
+  from mt ((injective_iff_map_eq_zero (algebra_map R₁ K)).mp
+    (is_fraction_ring.injective _ _) x) hx,
   have h_spanx : span_singleton R₁⁰ (algebra_map R₁ K x) ≠ 0,
     from span_singleton_ne_zero_iff.mpr h_gx,
 

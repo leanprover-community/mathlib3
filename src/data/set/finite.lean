@@ -130,8 +130,7 @@ instance finite.inhabited : inhabited {s : set α // finite s} := ⟨⟨∅, fin
 
 /-- A `fintype` structure on `insert a s`. -/
 def fintype_insert' {a : α} (s : set α) [fintype s] (h : a ∉ s) : fintype (insert a s : set α) :=
-fintype.of_finset ⟨a ::ₘ s.to_finset.1,
-  multiset.nodup_cons_of_nodup (by simp [h]) s.to_finset.2⟩ $ by simp
+fintype.of_finset ⟨a ::ₘ s.to_finset.1, s.to_finset.nodup.cons (by simp [h]) ⟩ $ by simp
 
 theorem card_fintype_insert' {a : α} (s : set α) [fintype s] (h : a ∉ s) :
   @fintype.card _ (fintype_insert' s h) = fintype.card s + 1 :=
@@ -379,8 +378,7 @@ theorem finite.map {α β} {s : set α} :
 then `s` has a `fintype` structure as well. -/
 def fintype_of_fintype_image (s : set α)
   {f : α → β} {g} (I : is_partial_inv f g) [fintype (f '' s)] : fintype s :=
-fintype.of_finset ⟨_, @multiset.nodup_filter_map β α g _
-  (@injective_of_partial_inv_right _ _ f g I) (f '' s).to_finset.2⟩ $ λ a,
+fintype.of_finset ⟨_, (f '' s).to_finset.2.filter_map g $ injective_of_partial_inv_right I⟩ $ λ a,
 begin
   suffices : (∃ b x, f x = b ∧ g b = some a ∧ x ∈ s) ↔ a ∈ s,
   by simpa [exists_and_distrib_left.symm, and.comm, and.left_comm, and.assoc],
@@ -495,6 +493,11 @@ fintype.of_finset (s.to_finset.product t.to_finset) $ by simp
 lemma finite.prod {s : set α} {t : set β} : finite s → finite t → finite (s ×ˢ t)
 | ⟨hs⟩ ⟨ht⟩ := by exactI ⟨set.fintype_prod s t⟩
 
+lemma finite_image_fst_and_snd_iff {s : set (α × β)} :
+  finite (prod.fst '' s) ∧ finite (prod.snd '' s) ↔ finite s :=
+⟨λ h, (h.1.prod h.2).subset $ λ x h, ⟨mem_image_of_mem _ h, mem_image_of_mem _ h⟩,
+  λ h, ⟨h.image _, h.image _⟩⟩
+
 /-- `image2 f s t` is finitype if `s` and `t` are. -/
 instance fintype_image2 [decidable_eq γ] (f : α → β → γ) (s : set α) (t : set β)
   [hs : fintype s] [ht : fintype t] : fintype (image2 f s t : set γ) :=
@@ -594,6 +597,10 @@ begin
   rw ← fintype.coe_pi_finset,
   exact (fintype.pi_finset t).finite_to_set,
 end
+
+lemma forall_finite_image_eval_iff {δ : Type*} [fintype δ] {κ : δ → Type*} {s : set (Π d, κ d)} :
+  (∀ d, finite (eval d '' s)) ↔ finite s :=
+⟨λ h, (finite.pi h).subset $ subset_pi_eval_image _ _, λ h d, h.image _⟩
 
 /-- A finite union of finsets is finite. -/
 lemma union_finset_finite_of_range_finite (f : α → finset β) (h : (range f).finite) :
@@ -777,10 +784,6 @@ lemma infinite.exists_not_mem_finset {s : set α} (hs : s.infinite) (f : finset 
 let ⟨a, has, haf⟩ := (hs.diff f.finite_to_set).nonempty in ⟨a, has, λ h, haf $ finset.mem_coe.1 h⟩
 
 section decidable_eq
-
-lemma to_finset_compl {α : Type*} [fintype α] [decidable_eq α]
-  (s : set α) [fintype (sᶜ : set α)] [fintype s] : sᶜ.to_finset = (s.to_finset)ᶜ :=
-by ext; simp
 
 lemma to_finset_inter {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∩ t : set α)]
   [fintype s] [fintype t] : (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=

@@ -3,11 +3,11 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
+import algebra.hom.group_instances
 import data.pi
 import data.set.function
 import data.set.pairwise
 import tactic.pi_instances
-import algebra.group.hom_instances
 
 /-!
 # Pi instances for groups and monoids
@@ -126,7 +126,7 @@ end pi
 namespace mul_hom
 
 @[to_additive] lemma coe_mul {M N} {mM : has_mul M} {mN : comm_semigroup N}
-  (f g : mul_hom M N) :
+  (f g : M →ₙ* N) :
   (f * g : M → N) = λ x, f x * g x := rfl
 
 end mul_hom
@@ -195,7 +195,7 @@ def one_hom.single [Π i, has_one $ f i] (i : I) : one_hom (f i) (Π i, f i) :=
 { to_fun := mul_single i,
   map_one' := mul_single_one i }
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma one_hom.single_apply [Π i, has_one $ f i] (i : I) (x : f i) :
   one_hom.single f i x = mul_single i x := rfl
 
@@ -211,7 +211,7 @@ def monoid_hom.single [Π i, mul_one_class $ f i] (i : I) : f i →* Π i, f i :
 { map_mul' := mul_single_op₂ (λ _, (*)) (λ _, one_mul _) _,
   .. (one_hom.single f i) }
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma monoid_hom.single_apply [Π i, mul_one_class $ f i] (i : I) (x : f i) :
   monoid_hom.single f i x = mul_single i x := rfl
 
@@ -219,7 +219,7 @@ lemma monoid_hom.single_apply [Π i, mul_one_class $ f i] (i : I) (x : f i) :
 into a dependent family of `mul_zero_class`es, as functions supported at a point.
 
 This is the `mul_hom` version of `pi.single`. -/
-@[simps] def mul_hom.single [Π i, mul_zero_class $ f i] (i : I) : mul_hom (f i) (Π i, f i) :=
+@[simps] def mul_hom.single [Π i, mul_zero_class $ f i] (i : I) : (f i) →ₙ* (Π i, f i) :=
 { to_fun := single i,
   map_mul' := pi.single_op₂ (λ _, (*)) (λ _, zero_mul _) _, }
 

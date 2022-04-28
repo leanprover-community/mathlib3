@@ -214,3 +214,46 @@ begin
 end
 
 end mul_zero_class
+
+namespace locally_finite
+
+variables {ι : Type*} {U : ι → set X} [topological_space X] [has_one R]
+
+/-- If a family of functions `f` has locally-finite multiplicative support, subordinate to a family
+of open sets, then for any point we can find a neighbourhood on which only finitely-many members of
+`f` are not equal to 1. -/
+@[to_additive
+/-" If a family of functions `f` has locally-finite support, subordinate to a family of open sets,
+then for any point we can find a neighbourhood on which only finitely-many members of `f` are
+non-zero. "-/]
+lemma exists_finset_nhd_mul_support_subset
+  {f : ι → X → R} (hlf : locally_finite (λ i, mul_support (f i)))
+  (hso : ∀ i, mul_tsupport (f i) ⊆ U i) (ho : ∀ i, is_open (U i)) (x : X) :
+  ∃ (is : finset ι) {n : set X} (hn₁ : n ∈ 𝓝 x) (hn₂ : n ⊆ ⋂ i ∈ is, U i), ∀ (z ∈ n),
+    mul_support (λ i, f i z) ⊆ is :=
+begin
+  obtain ⟨n, hn, hnf⟩ := hlf x,
+  classical,
+  let is := hnf.to_finset.filter (λ i, x ∈ U i),
+  let js := hnf.to_finset.filter (λ j, x ∉ U j),
+  refine ⟨is, n ∩ (⋂ j ∈ js, (mul_tsupport (f j))ᶜ) ∩ (⋂ i ∈ is, U i),
+    inter_mem (inter_mem hn _) _, inter_subset_right _ _, λ z hz, _⟩,
+  { exact (bInter_finset_mem js).mpr (λ j hj, is_closed.compl_mem_nhds
+      (is_closed_mul_tsupport _) (set.not_mem_subset (hso j) (finset.mem_filter.mp hj).2)), },
+  { exact (bInter_finset_mem is).mpr (λ i hi, (ho i).mem_nhds (finset.mem_filter.mp hi).2) },
+  { have hzn : z ∈ n,
+    { rw inter_assoc at hz,
+      exact mem_of_mem_inter_left hz, },
+    replace hz := mem_of_mem_inter_right (mem_of_mem_inter_left hz),
+    simp only [finset.mem_filter, finite.mem_to_finset, mem_set_of_eq, mem_Inter, and_imp] at hz,
+    suffices : mul_support (λ i, f i z) ⊆ hnf.to_finset,
+    { refine hnf.to_finset.subset_coe_filter_of_subset_forall _ this (λ i hi, _),
+      specialize hz i ⟨z, ⟨hi, hzn⟩⟩,
+      contrapose hz,
+      simp [hz, subset_mul_tsupport (f i) hi], },
+    intros i hi,
+    simp only [finite.coe_to_finset, mem_set_of_eq],
+    exact ⟨z, ⟨hi, hzn⟩⟩, },
+end
+
+end locally_finite

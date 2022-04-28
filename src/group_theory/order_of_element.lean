@@ -3,11 +3,10 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Julian Kuelshammer
 -/
+import algebra.hom.iterate
 import data.nat.modeq
-import algebra.iterate_hom
-import algebra.pointwise
+import data.set.pointwise
 import dynamics.periodic_pts
-import group_theory.coset
 import group_theory.quotient_group
 
 /-!
@@ -20,7 +19,7 @@ This file defines the order of an element of a finite group. For a finite group 
 
 * `is_of_fin_order` is a predicate on an element `x` of a monoid `G` saying that `x` is of finite
   order.
-* `is_of_fin_add_order` is the additive analogue of `is_of_find_order`.
+* `is_of_fin_add_order` is the additive analogue of `is_of_fin_order`.
 * `order_of x` defines the order of an element `x` of a monoid `G`, by convention its value is `0`
   if `x` has infinite order.
 * `add_order_of` is the additive analogue of `order_of`.
@@ -69,23 +68,34 @@ lemma is_of_fin_order_iff_pow_eq_one (x : G) :
   is_of_fin_order x ↔ ∃ n, 0 < n ∧ x ^ n = 1 :=
 by { convert iff.rfl, simp [is_periodic_pt_mul_iff_pow_eq_one] }
 
-/-- Elements of finite order are of finite order in subgroups.-/
+/-- Elements of finite order are of finite order in submonoids.-/
 @[to_additive is_of_fin_add_order_iff_coe]
-lemma is_of_fin_order_iff_coe {G : Type u} [group G] (H : subgroup G) (x : H) :
+lemma is_of_fin_order_iff_coe (H : submonoid G) (x : H) :
   is_of_fin_order x ↔ is_of_fin_order (x : G) :=
 by { rw [is_of_fin_order_iff_pow_eq_one, is_of_fin_order_iff_pow_eq_one], norm_cast }
 
-/-- Elements of finite order are of finite order in quotient groups.-/
-@[to_additive is_of_fin_add_order_iff_quotient]
-lemma is_of_fin_order.quotient {G : Type u} [group G] (N : subgroup G) [N.normal] (x : G) :
-  is_of_fin_order x → is_of_fin_order (x : G ⧸ N) := begin
-  rw [is_of_fin_order_iff_pow_eq_one, is_of_fin_order_iff_pow_eq_one],
-  rintros ⟨n, ⟨npos, hn⟩⟩,
-  exact ⟨n, ⟨npos, (quotient_group.con N).eq.mpr $ hn ▸ (quotient_group.con N).eq.mp rfl⟩⟩,
+/-- The image of an element of finite order has finite order. -/
+@[to_additive add_monoid_hom.is_of_fin_order
+  "The image of an element of finite additive order has finite additive order."]
+lemma monoid_hom.is_of_fin_order
+  {H : Type v} [monoid H] (f : G →* H) {x : G} (h : is_of_fin_order x) :
+  is_of_fin_order $ f x :=
+(is_of_fin_order_iff_pow_eq_one _).mpr $ begin
+  rcases (is_of_fin_order_iff_pow_eq_one _).mp h with ⟨n, npos, hn⟩,
+  exact ⟨n, npos, by rw [←f.map_pow, hn, f.map_one]⟩,
 end
 
-/-- 1 is of finite order in any group. -/
-@[to_additive "0 is of finite order in any additive group."]
+/-- If a direct product has finite order then so does each component. -/
+@[to_additive "If a direct product has finite additive order then so does each component."]
+lemma is_of_fin_order.apply
+  {η : Type*} {Gs : η → Type*} [∀ i, monoid (Gs i)] {x : Π i, Gs i} (h : is_of_fin_order x) :
+∀ i, is_of_fin_order (x i) := begin
+  rcases (is_of_fin_order_iff_pow_eq_one _).mp h with ⟨n, npos, hn⟩,
+  exact λ _, (is_of_fin_order_iff_pow_eq_one _).mpr ⟨n, npos, (congr_fun hn.symm _).symm⟩,
+end
+
+/-- 1 is of finite order in any monoid. -/
+@[to_additive "0 is of finite order in any additive monoid."]
 lemma is_of_fin_order_one : is_of_fin_order (1 : G) :=
 (is_of_fin_order_iff_pow_eq_one 1).mpr ⟨1, _root_.one_pos, one_pow 1⟩
 
@@ -127,6 +137,12 @@ by rwa [order_of, minimal_period, dif_neg]
 @[to_additive add_order_of_eq_zero_iff'] lemma order_of_eq_zero_iff' :
   order_of x = 0 ↔ ∀ n : ℕ, 0 < n → x ^ n ≠ 1 :=
 by simp_rw [order_of_eq_zero_iff, is_of_fin_order_iff_pow_eq_one, not_exists, not_and]
+
+/-- A group element has finite order iff its order is positive. -/
+@[to_additive add_order_of_pos_iff
+  "A group element has finite additive order iff its order is positive."]
+lemma order_of_pos_iff : 0 < order_of x ↔ is_of_fin_order x :=
+by rwa [iff_not_comm.mp order_of_eq_zero_iff, pos_iff_ne_zero]
 
 @[to_additive nsmul_ne_zero_of_lt_add_order_of']
 lemma pow_ne_one_of_lt_order_of' (n0 : n ≠ 0) (h : n < order_of x) : x ^ n ≠ 1 :=
@@ -263,6 +279,14 @@ begin
   simp only [order_of, comp_mul_left],
 end
 
+/-- Commuting elements of finite order are closed under multiplication. -/
+@[to_additive "Commuting elements of finite additive order are closed under addition."]
+lemma commute.is_of_fin_order_mul
+  {x} (h : commute x y) (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
+  is_of_fin_order (x * y) :=
+order_of_pos_iff.mp $
+  pos_of_dvd_of_pos h.order_of_mul_dvd_mul_order_of $ mul_pos (order_of_pos' hx) (order_of_pos' hy)
+
 section p_prime
 
 variables {a x n} {p : ℕ} [hp : fact p.prime]
@@ -293,25 +317,10 @@ end monoid_add_monoid
 section cancel_monoid
 variables [left_cancel_monoid G] (x y)
 
-@[to_additive]
-lemma pow_injective_aux (h : n ≤ m)
-  (hm : m < order_of x) (eq : x ^ n = x ^ m) : n = m :=
-by_contradiction $ assume ne : n ≠ m,
-  have h₁ : m - n > 0, from nat.pos_of_ne_zero (by simp [tsub_eq_iff_eq_add_of_le h, ne.symm]),
-  have h₂ : m = n + (m - n) := (add_tsub_cancel_of_le h).symm,
-  have h₃ : x ^ (m - n) = 1,
-    by { rw [h₂, pow_add] at eq, apply mul_left_cancel, convert eq.symm, exact mul_one (x ^ n) },
-  have le : order_of x ≤ m - n, from order_of_le_of_pow_eq_one h₁ h₃,
-  have lt : m - n < order_of x,
-    from (tsub_lt_iff_left h).mpr $ nat.lt_add_left _ _ _ hm,
-  lt_irrefl _ (le.trans_lt lt)
-
 @[to_additive nsmul_injective_of_lt_add_order_of]
 lemma pow_injective_of_lt_order_of
   (hn : n < order_of x) (hm : m < order_of x) (eq : x ^ n = x ^ m) : n = m :=
-(le_total n m).elim
-  (assume h, pow_injective_aux x h hm eq)
-  (assume h, (pow_injective_aux x h hn eq.symm).symm)
+iterate_injective_of_lt_minimal_period hn hm (by simpa only [mul_left_iterate, mul_one])
 
 @[to_additive mem_multiples_iff_mem_range_add_order_of']
 lemma mem_powers_iff_mem_range_order_of' [decidable_eq G] (hx : 0 < order_of x) :
@@ -336,8 +345,8 @@ variables [group G] [add_group A] {x a} {i : ℤ}
 
 /-- Inverses of elements of finite order have finite order. -/
 @[to_additive "Inverses of elements of finite additive order have finite additive order."]
-lemma is_of_fin_order_inv (x : G) : is_of_fin_order x → is_of_fin_order x⁻¹ :=
-λ hx, (is_of_fin_order_iff_pow_eq_one _).mpr $ begin
+lemma is_of_fin_order.inv {x : G} (hx : is_of_fin_order x) : is_of_fin_order x⁻¹ :=
+(is_of_fin_order_iff_pow_eq_one _).mpr $ begin
   rcases (is_of_fin_order_iff_pow_eq_one x).mp hx with ⟨n, npos, hn⟩,
   refine ⟨n, npos, by simp_rw [inv_pow, hn, one_inv]⟩,
 end
@@ -345,7 +354,7 @@ end
 /-- Inverses of elements of finite order have finite order. -/
 @[simp, to_additive "Inverses of elements of finite additive order have finite additive order."]
 lemma is_of_fin_order_inv_iff {x : G} : is_of_fin_order x⁻¹ ↔ is_of_fin_order x :=
-⟨λ h, by rw [←inv_inv x]; exact (is_of_fin_order_inv x⁻¹) h, is_of_fin_order_inv x⟩
+⟨λ h, inv_inv x ▸ h.inv, is_of_fin_order.inv⟩
 
 @[to_additive add_order_of_dvd_iff_zsmul_eq_zero]
 lemma order_of_dvd_iff_zpow_eq_one : (order_of x : ℤ) ∣ i ↔ x ^ i = 1 :=
@@ -370,7 +379,6 @@ calc x ^ i = x ^ (i % order_of x + order_of x * (i / order_of x)) :
     by rw [int.mod_add_div]
        ... = x ^ (i % order_of x) :
     by simp [zpow_add, zpow_mul, pow_order_of_eq_one]
-    set_option pp.all true
 
 @[to_additive nsmul_inj_iff_of_add_order_of_eq_zero]
 lemma pow_inj_iff_of_order_of_eq_zero (h : order_of x = 0) {n m : ℕ} :
@@ -397,8 +405,19 @@ begin
   exact ⟨pow_injective_of_lt_order_of _ (nat.mod_lt _ hx) (nat.mod_lt _ hx), λ h, congr_arg _ h⟩
 end
 
-
 end group
+
+section comm_monoid
+
+variables [comm_monoid G]
+
+/-- Elements of finite order are closed under multiplication. -/
+@[to_additive "Elements of finite additive order are closed under addition."]
+lemma is_of_fin_order.mul (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
+  is_of_fin_order (x * y) :=
+(commute.all x y).is_of_fin_order_mul hx hy
+
+end comm_monoid
 
 section fintype
 variables [fintype G] [fintype A]
@@ -717,9 +736,9 @@ have pow_mem : ∀ a : M, a ∈ S → ∀ n : ℕ, a ^ (n + 1) ∈ S :=
 def subgroup_of_idempotent {G : Type*} [group G] [fintype G] (S : set G)
   (hS1 : S.nonempty) (hS2 : S * S = S) : subgroup G :=
 { carrier := S,
-  inv_mem' := λ a ha, by
+  inv_mem' := λ a ha, show a⁻¹ ∈ submonoid_of_idempotent S hS1 hS2, by
   { rw [←one_mul a⁻¹, ←pow_one a, ←pow_order_of_eq_one a, ←pow_sub a (order_of_pos a)],
-    exact (submonoid_of_idempotent S hS1 hS2).pow_mem ha (order_of a - 1) },
+    exact pow_mem ha (order_of a - 1) },
   .. submonoid_of_idempotent S hS1 hS2 }
 
 /-- If `S` is a nonempty subset of a finite group `G`, then `S ^ |G|` is a subgroup -/

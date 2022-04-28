@@ -49,6 +49,7 @@ applying `rotate` gives a triangle of the form:
 @[simps]
 def triangle.rotate (T : triangle C) : triangle C := triangle.mk _ T.mor₂ T.mor₃ (-T.mor₁⟦1⟧')
 
+section
 local attribute [semireducible] shift_shift_neg shift_neg_shift
 
 /--
@@ -70,7 +71,7 @@ def triangle.inv_rotate (T : triangle C) : triangle C :=
 triangle.mk _ (-T.mor₃⟦(-1:ℤ)⟧' ≫ (shift_shift_neg _ _).hom) T.mor₁
   (T.mor₂ ≫ (shift_neg_shift _ _).inv)
 
-local attribute [reducible] shift_shift_neg shift_neg_shift discrete.add_monoidal
+end
 
 namespace triangle_morphism
 variables {T₁ T₂ T₃ T₄: triangle C}

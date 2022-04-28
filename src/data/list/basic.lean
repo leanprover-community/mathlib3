@@ -57,6 +57,8 @@ cons_injective.eq_iff
 theorem exists_cons_of_ne_nil {l : list α} (h : l ≠ nil) : ∃ b L, l = b :: L :=
 by { induction l with c l',  contradiction,  use [c,l'], }
 
+lemma set_of_mem_cons (l : list α) (a : α) : {x | x ∈ a :: l} = insert a {x | x ∈ l} := rfl
+
 /-! ### mem -/
 
 theorem mem_singleton_self (a : α) : a ∈ [a] := mem_cons_self _ _
@@ -679,13 +681,21 @@ end
   ∀ (h : l ≠ nil), last (a :: l) (cons_ne_nil a l) = last l h :=
 by {induction l; intros, contradiction, reflexivity}
 
-@[simp] theorem last_append {a : α} (l : list α) :
+@[simp] theorem last_append_singleton {a : α} (l : list α) :
   last (l ++ [a]) (append_ne_nil_of_ne_nil_right l _ (cons_ne_nil a _)) = a :=
 by induction l;
   [refl, simp only [cons_append, last_cons (λ H, cons_ne_nil _ _ (append_eq_nil.1 H).2), *]]
 
+theorem last_append (l₁ l₂ : list α) (h : l₂ ≠ []) :
+  last (l₁ ++ l₂) (append_ne_nil_of_ne_nil_right l₁ l₂ h) = last l₂ h :=
+begin
+  induction l₁ with _ _ ih,
+  { simp },
+  { simp only [cons_append], rw list.last_cons, exact ih },
+end
+
 theorem last_concat {a : α} (l : list α) : last (concat l a) (concat_ne_nil a l) = a :=
-by simp only [concat_eq_append, last_append]
+by simp only [concat_eq_append, last_append_singleton]
 
 @[simp] theorem last_singleton (a : α) : last [a] (cons_ne_nil a []) = a := rfl
 
@@ -3698,6 +3708,31 @@ theorem to_chunks_length_le : ∀ n xs, n ≠ 0 → ∀ l : list α,
 end
 
 end to_chunks
+
+/-! ### all₂ -/
+
+section all₂
+variables {p q : α → Prop} {l : list α}
+
+@[simp] lemma all₂_cons (p : α → Prop) (x : α) : ∀ (l : list α), all₂ p (x :: l) ↔ p x ∧ all₂ p l
+| []       := (and_true _).symm
+| (x :: l) := iff.rfl
+
+lemma all₂_iff_forall : ∀ {l : list α}, all₂ p l ↔ ∀ x ∈ l, p x
+| []       := (iff_true_intro $ ball_nil _).symm
+| (x :: l) := by rw [ball_cons, all₂_cons, all₂_iff_forall]
+
+lemma all₂.imp (h : ∀ x, p x → q x) : ∀ {l : list α}, all₂ p l → all₂ q l
+| []       := id
+| (x :: l) := by simpa using and.imp (h x) all₂.imp
+
+@[simp] lemma all₂_map_iff {p : β → Prop} (f : α → β) : all₂ p (l.map f) ↔ all₂ (p ∘ f) l :=
+by induction l; simp *
+
+instance (p : α → Prop) [decidable_pred p] : decidable_pred (all₂ p) :=
+λ l, decidable_of_iff' _ all₂_iff_forall
+
+end all₂
 
 /-! ### Retroattributes
 

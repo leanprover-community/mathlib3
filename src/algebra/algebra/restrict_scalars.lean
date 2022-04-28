@@ -76,16 +76,14 @@ instance [I : add_comm_monoid M] : add_comm_monoid (restrict_scalars R S M) := I
 
 instance [I : add_comm_group M] : add_comm_group (restrict_scalars R S M) := I
 
-instance restrict_scalars.module_orig [semiring S] [add_comm_monoid M] [I : module S M] :
-  module S (restrict_scalars R S M) := I
-
-/-- `restrict_scalars.linear_equiv` is an equivalence of modules over the semiring `S`. -/
-def restrict_scalars.linear_equiv [semiring S] [add_comm_monoid M] [module S M] :
-  restrict_scalars R S M ≃ₗ[S] M :=
-linear_equiv.refl S M
-
 section module
 variables [semiring S] [add_comm_monoid M] [comm_semiring R] [algebra R S] [module S M]
+
+section
+def restrict_scalars.module_orig [I : module S M] :
+  module S (restrict_scalars R S M) := I
+
+local attribute [instance] restrict_scalars.module_orig
 
 /--
 When `M` is a module over a ring `S`, and `S` is an algebra over `R`, then `M` inherits a
@@ -96,16 +94,23 @@ The preferred way of setting this up is `[module R M] [module S M] [is_scalar_to
 instance : module R (restrict_scalars R S M) :=
 module.comp_hom M (algebra_map R S)
 
+instance : is_scalar_tower R S (restrict_scalars R S M) :=
+⟨λ r S M, by { rw [algebra.smul_def, mul_smul], refl }⟩
+
+end
+
+/-- `restrict_scalars.add_equiv` is the additive equivalence with the original module. -/
+def restrict_scalars.add_equiv [semiring S] [add_comm_monoid M] [module S M] :
+  restrict_scalars R S M ≃+ M :=
+add_equiv.refl M
+
 lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R S M) :
   c • x = ((algebra_map R S c) • x : M) := rfl
 
-@[simp] lemma restrict_scalars.linear_equiv_map_smul (t : R) (x : restrict_scalars R S M) :
-  restrict_scalars.linear_equiv R S M (t • x)
-  = (algebra_map R S t) • restrict_scalars.linear_equiv R S M x :=
+@[simp] lemma restrict_scalars.add_equiv_map_smul (t : R) (x : restrict_scalars R S M) :
+  restrict_scalars.add_equiv R S M (t • x)
+  = (algebra_map R S t) • restrict_scalars.add_equiv R S M x :=
 rfl
-
-instance : is_scalar_tower R S (restrict_scalars R S M) :=
-⟨λ r S M, by { rw [algebra.smul_def, mul_smul], refl }⟩
 
 end module
 

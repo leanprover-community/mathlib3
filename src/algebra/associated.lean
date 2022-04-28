@@ -726,7 +726,7 @@ section comm_monoid_with_zero
 
 variables [comm_monoid_with_zero α]
 
-lemma associates.mk_monoid_equiv_symm_dvd_iff_le [unique αˣ] {a b : associates α} :
+lemma mk_monoid_equiv_symm_dvd_iff_le [unique αˣ] {a b : associates α} :
   (associates.mk_monoid_equiv.symm a) ∣ (associates.mk_monoid_equiv.symm b) ↔ a ≤ b :=
 begin
   conv_rhs {rw [← (associates.mk_monoid_equiv).apply_symm_apply a,

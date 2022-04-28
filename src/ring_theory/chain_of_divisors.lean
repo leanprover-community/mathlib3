@@ -315,7 +315,7 @@ end
 
 lemma multiplicity_prime_eq_multiplicity_image_by_factor_order_iso [decidable_eq (associates M)]
   {m p : associates M} {n : associates N} (hn : n ≠ 0)
-  (hp : p ∈ normalized_factors m) (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
+  (hp : p ∈ normalized_factors m) (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}):
   multiplicity p m = multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n :=
 begin
   convert le_antisymm (multiplicity_prime_le_multiplicity_image_by_factor_order_iso hp d) _,
@@ -364,7 +364,7 @@ noncomputable def mk_factor_order_iso_of_factor_dvd_equiv
 variables [unique_factorization_monoid M] [unique_factorization_monoid N]
   [decidable_eq M]
 
-lemma mem_normalized_factors_factor_dvd_iso_of_mem_normalized_factors  [decidable_eq N] {m p : M}
+lemma mem_normalized_factors_factor_dvd_iso_of_mem_normalized_factors [decidable_eq N] {m p : M}
   {n : N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
   (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}) (hd : ∀ l l', ((d l) : N) ∣ (d l') ↔ (l : M) ∣ (l' : M)):
     ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) ∈ normalized_factors n :=

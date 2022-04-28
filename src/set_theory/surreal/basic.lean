@@ -45,7 +45,6 @@ universes u
 local infix ` ≈ ` := pgame.equiv
 
 namespace pgame
-variables {x y : pgame.{u}}
 
 /-- A pre-game is numeric if everything in the L set is less than everything in the R set,
 and all the elements of L and R are also numeric. -/
@@ -174,7 +173,7 @@ theorem numeric.add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeri
  end⟩
 using_well_founded { dec_tac := pgame_wf_tac }
 
-lemma numeric.sub (ox : numeric x) (oy : numeric y) : numeric (x - y) := ox.add oy.neg
+lemma numeric.sub {x y : pgame} (ox : numeric x) (oy : numeric y) : numeric (x - y) := ox.add oy.neg
 
 /-- Pre-games defined by natural numbers are numeric. -/
 theorem numeric_nat : Π (n : ℕ), numeric n

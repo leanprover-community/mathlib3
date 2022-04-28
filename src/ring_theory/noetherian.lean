@@ -783,8 +783,7 @@ variables [module R M] [module R N] [module R P]
 theorem fg.map₂ (f : M →ₗ[R] N →ₗ[R] P) {p : submodule R M} {q : submodule R N}
   (hp : p.fg) (hq : q.fg) : (map₂ f p q).fg :=
 let ⟨sm, hfm, hm⟩ := fg_def.1 hp, ⟨sn, hfn, hn⟩ := fg_def.1 hq in
-fg_def.2 ⟨set.image2 (λ m n, f m n) sm sn,
-  hfm.image2 _ hfn, map₂_span_span R f sm sn ▸ hm ▸ hn ▸ rfl⟩
+fg_def.2 ⟨sm.image2 (λ m, f m) sn, hfm.image2 _ hfn, map₂_span_span R f sm sn ▸ hm ▸ hn ▸ rfl⟩
 
 end map₂
 
@@ -792,7 +791,7 @@ section mul
 variables {R : Type*} {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 variables {M N : submodule R A}
 
-theorem fg_mul (hm : M.fg) (hn : N.fg) : (M * N).fg := hm.map₂ _ hn
+theorem fg.mul : M.fg → N.fg → (M * N).fg := fg.map₂ _
 
 lemma fg.pow (h : M.fg) (n : ℕ) : (M ^ n).fg :=
 nat.rec_on n

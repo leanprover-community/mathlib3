@@ -792,7 +792,7 @@ section mul
 variables {R : Type*} {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
 variables {M N : submodule R A}
 
-theorem fg_mul (hm : M.fg) (hn : N.fg) : (M * N).fg := hm.map₂ _ hn
+theorem fg.mul (hm : M.fg) (hn : N.fg) : (M * N).fg := hm.map₂ _ hn
 
 lemma fg.pow (h : M.fg) (n : ℕ) : (M ^ n).fg :=
 nat.rec_on n

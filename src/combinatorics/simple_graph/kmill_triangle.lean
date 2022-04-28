@@ -32,6 +32,19 @@ begin
   simp only [*, is_3_clique_triple_iff, and_self],
 end
 
+lemma triangle_free_iff_common_neighbors_eq_empty :
+  G.clique_free 3 ↔ ∀ {u v : V}, G.adj u v → G.common_neighbors u v = ∅ :=
+begin
+  classical,
+  refine ⟨common_neighbors_of_triangle_free, _⟩,
+  intros h s,
+  rw [is_3_clique_iff],
+  push_neg,
+  rintros u v w huv huw hvw rfl,
+  have : w ∈ G.common_neighbors u v := by simp [huw, hvw],
+  simpa only [h huv],
+end
+
 lemma degree_add_degree_le_of_triangle_free [fintype V]
   (htf : G.clique_free 3)
   {u v : V} (huv : G.adj u v)

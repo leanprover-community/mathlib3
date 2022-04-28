@@ -199,6 +199,9 @@ theorem numeric_add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeri
  end⟩
 using_well_founded { dec_tac := pgame_wf_tac }
 
+theorem numeric_sub {x y : pgame} (ox : numeric x) (oy : numeric y) : numeric (x - y) :=
+numeric_add ox (numeric_neg oy)
+
 /-- Pre-games defined by natural numbers are numeric. -/
 theorem numeric_nat : Π (n : ℕ), numeric n
 | 0 := numeric_zero
@@ -346,58 +349,67 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
 /-- This is the induction needed to prove that the product of two numeric games is numeric. It's a
 simplification of Conway's original argument.
 -/
-theorem magic_theorem : ∀ (g x₁ x₂ y : pgame), g = x₁ + x₂ + y + y →
+
+-- g is the thing we induct on. The relation is `subsequent'`, i.e. `subsequent` up to relabelling.
+theorem magic_theorem : ∀ (g x₁ x₂ y : pgame), ⟦g⟧ = ⟦x₁ + x₂ + y⟧ →
   numeric x₁ → numeric x₂ → numeric y →
-  (x₁ = x₂ → numeric (x₁ * y)) ∧
+  (numeric (x₁ * y)) ∧ (numeric (x₂ * y)) ∧
   (x₁ ≈ x₂ → x₁ * y ≈ x₂ * y) ∧
   (x₁ < x₂ →
     (∀ i, y.move_left i * x₂ + y * x₁ < y.move_left i * x₁ + y * x₂) ∧
     ∀ j, y * x₂ + y.move_right j * x₁ < y * x₁ + y.move_right j * x₂)
-| (pgame.mk gl gr gL gR) x₁ x₂ y hg ox₁ ox₂ oy := begin
-  refine ⟨_, _, _⟩, {
-    rintro rfl,
-    rw numeric_def,
-    split,
-    { cases x₁ with xl xr xL xR,
-      cases y with yl yr yL yR,
-      rintro (⟨ix, iy⟩ | ⟨ix, iy⟩) (⟨ix', jy⟩ | ⟨ix', jy⟩),
-      { dsimp,
-        rcases lt_or_equiv_or_gt (ox₁.move_left ix) (ox₁.move_left ix') with h|h|h,
-        { dsimp at h,
+| ⟨gl, gr, gL, gR⟩ ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩ hg ox₁ ox₂ oy := begin
+  refine ⟨_, _, _, _⟩,
+  { rw numeric_def,
+    refine ⟨_, _, _⟩,
+    { rintro (⟨ix, iy⟩ | ⟨ix, iy⟩) (⟨ix', jy⟩ | ⟨ix', jy⟩),
+      {
+        simp,
+        cases lt_or_equiv_or_gt (ox₁.move_left ix) (ox₁.move_left ix'),
+        {
 
-          -- xL ix * y - xL ix * yL jy < xL ix' * y - xL ix' * yL jy
-          have H₁ := ((magic_theorem sorry (xL ix) (xL ix') (pgame.mk yl yr yL yR) sorry sorry sorry
-            sorry).2.2 h).1 iy,
-          dsimp at H₁,
-
-          -- x * yL iy - xL ix' * yL iy < x * yR jy - xL ix' * yR jy
-          have H₂ := ((magic_theorem sorry (yL iy) (yR jy) (pgame.mk xl xr xL xR) sorry sorry sorry
-            sorry).2.2 sorry).1 ix',
-          dsimp at H₂,
-
-          -- compose both inequalities
-          sorry },
-        { dsimp at h,
-
-          have H := (magic_theorem sorry (xL ix) (xL ix') (pgame.mk yl yr yL yR) sorry sorry sorry
-            sorry).2.1 h,
-
-          -- congr
-          sorry },
-        { -- analogous to first case
-          sorry } },
-
-      -- three more analogous cases!
-      sorry, sorry, sorry },
-    { -- almost immediate
-      sorry } },
-  {
-    intro e,
-    sorry
-  },
-  {
-    sorry
-  }
+        },
+        change game.lt ⟦_⟧ ⟦_⟧,
+        simp,
+        abel,
+      } },
+    { rintro (⟨ix, iy⟩ | ⟨jx, jy⟩),
+      { --simp, -- can be commented out
+        apply numeric_sub (numeric_add _ _) _,
+        { exact (magic_theorem ((x₁L ix) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + ⟨yl, yr, yL, yR⟩)
+            (x₁L ix) ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩ rfl (ox₁.move_left ix) ox₂ oy).1 },
+        { exact (magic_theorem (⟨x₁l, x₁r, x₁L, x₁R⟩ + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yL iy))
+            ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ (yL iy) rfl ox₁ ox₂ (oy.move_left iy)).1 },
+        { exact (magic_theorem ((x₁L ix) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yL iy))
+            (x₁L ix) ⟨x₂l, x₂r, x₂L, x₂R⟩ (yL iy) rfl (ox₁.move_left ix) ox₂ (oy.move_left iy)).1 } },
+      { --simp, -- can be commented out
+        apply numeric_sub (numeric_add _ _) _,
+        { exact (magic_theorem ((x₁R jx) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + ⟨yl, yr, yL, yR⟩)
+            (x₁R jx) ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩ rfl (ox₁.move_right jx) ox₂ oy).1 },
+        { exact (magic_theorem (⟨x₁l, x₁r, x₁L, x₁R⟩ + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yR jy))
+            ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ (yR jy) rfl ox₁ ox₂ (oy.move_right jy)).1 },
+        { exact (magic_theorem ((x₁R jx) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yR jy))
+            (x₁R jx) ⟨x₂l, x₂r, x₂L, x₂R⟩ (yR jy) rfl (ox₁.move_right jx) ox₂ (oy.move_right jy)).1 } } },
+    { rintro (⟨ix, jy⟩ | ⟨jx, iy⟩),
+      { --simp, -- can be commented out
+        apply numeric_sub (numeric_add _ _) _,
+        { exact (magic_theorem ((x₁L ix) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + ⟨yl, yr, yL, yR⟩)
+            (x₁L ix) ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩ rfl (ox₁.move_left ix) ox₂ oy).1 },
+        { exact (magic_theorem (⟨x₁l, x₁r, x₁L, x₁R⟩ + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yR jy))
+            ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ (yR jy) rfl ox₁ ox₂ (oy.move_right jy)).1 },
+        { exact (magic_theorem ((x₁L ix) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yR jy))
+            (x₁L ix) ⟨x₂l, x₂r, x₂L, x₂R⟩ (yR jy) rfl (ox₁.move_left ix) ox₂ (oy.move_right jy)).1 } },
+      { --simp, -- can be commented out
+        apply numeric_sub (numeric_add _ _) _,
+        { exact (magic_theorem ((x₁R jx) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + ⟨yl, yr, yL, yR⟩)
+            (x₁R jx) ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩ rfl (ox₁.move_right jx) ox₂ oy).1 },
+        { exact (magic_theorem (⟨x₁l, x₁r, x₁L, x₁R⟩ + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yL iy))
+            ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ (yL iy) rfl ox₁ ox₂ (oy.move_left iy)).1 },
+        { exact (magic_theorem ((x₁R jx) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yL iy))
+            (x₁R jx) ⟨x₂l, x₂r, x₂L, x₂R⟩ (yL iy) rfl (ox₁.move_right jx) ox₂ (oy.move_left iy)).1 } } } },
+  { sorry }, -- the same thing but for x₂ instead of x₁. Is there a way to golf this?
+  { sorry },
+  { sorry }
 end
 
 theorem numeric_mul {x y : pgame} (ox : x.numeric) (oy : y.numeric) : (x * y).numeric :=

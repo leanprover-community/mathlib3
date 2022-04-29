@@ -23,8 +23,8 @@ Laurent polynomials
 ## Notation
 The symbol `R[T;T⁻¹]` stands for `laurent_polynomial R`.  We also define
 
-* `C : R →+* R[T;T⁻¹]` is the inclusion of constant polynomials, analogous to the one for `R[X]`;
-* `T : ℤ → R[T;T⁻¹]` is the sequence of powers of the variable `T`.
+* `C : R →+* R[T;T⁻¹]` the inclusion of constant polynomials, analogous to the one for `R[X]`;
+* `T : ℤ → R[T;T⁻¹]` the sequence of powers of the variable `T`.
 
 ## Implementation notes
 
@@ -33,16 +33,16 @@ Thus, they are essentially `finsupp`s `ℤ →₀ R`.
 This choice differs from the current irreducible design of `polynomial`, that instead shields away
 the implementation via `finsupp`s.  It is closer to the original definition of polynomials.
 
-As a consequence, `laurent_polynomials` play well with polynomials, but there is a little roughness
+As a consequence, `laurent_polynomial` plays well with polynomials, but there is a little roughness
 in establishing the API, since the `finsupp` implementation of `polynomial R` is well-shielded.
 
 Unlike the case of polynomials, I felt that the exponent notation was not too easy to use, as only
 natural exponents would be allowed.  Moreover, in the end, it seems likely that we should aim to
-performing computations on exponents in `ℤ` anyway and separating this via the symbol `T` seems
+perform computations on exponents in `ℤ` anyway and separating this via the symbol `T` seems
 convenient.
 
-I made some *heavy* use of `simp` lemmas, aiming to bring Laurent polynomials to the form
-`C a * T n`.  Any comments or suggestions for improvements is greatly appreciated!
+I made a *heavy* use of `simp` lemmas, aiming to bring Laurent polynomials to the form `C a * T n`.
+Any comments or suggestions for improvements is greatly appreciated!
 
 ##  Future work
 Lots is missing!  I would certainly like to show that `R[T;T⁻¹]` is the localization of `R[X]`

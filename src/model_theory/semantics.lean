@@ -509,10 +509,21 @@ def sentence.realize (φ : L.sentence) : Prop :=
 
 infix ` ⊨ `:51 := sentence.realize -- input using \|= or \vDash, but not using \models
 
+@[simp] lemma sentence.realize_not {φ : L.sentence} :
+  M ⊨ φ.not ↔ ¬ M ⊨ φ :=
+iff.rfl
+
 @[simp] lemma Lhom.realize_on_sentence [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
   (ψ : L.sentence) :
   M ⊨ φ.on_sentence ψ ↔ M ⊨ ψ :=
 φ.realize_on_formula ψ
+
+variables (L)
+
+/-- The complete theory of a structure `M` is the set of all sentences `M` satisfies. -/
+def complete_theory : L.Theory := { φ | M ⊨ φ }
+
+variables {L}
 
 /-- A model of a theory is a structure in which every sentence is realized as true. -/
 class Theory.model (T : L.Theory) : Prop :=
@@ -544,6 +555,26 @@ lemma Theory.model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
 lemma Theory.model_singleton_iff {φ : L.sentence} :
   M ⊨ ({φ} : L.Theory) ↔ M ⊨ φ :=
 by simp
+
+theorem Theory.model_iff_subset_complete_theory :
+  M ⊨ T ↔ T ⊆ L.complete_theory M :=
+T.model_iff
+
+instance model_complete_theory : M ⊨ L.complete_theory M :=
+Theory.model_iff_subset_complete_theory.2 (subset_refl _)
+
+variables (M N)
+
+theorem realize_iff_of_model_complete_theory [N ⊨ L.complete_theory M] (φ : L.sentence) :
+  N ⊨ φ ↔ M ⊨ φ :=
+begin
+  refine ⟨λ h, _, Theory.realize_sentence_of_mem (L.complete_theory M)⟩,
+  contrapose! h,
+  rw [← sentence.realize_not] at *,
+  exact Theory.realize_sentence_of_mem (L.complete_theory M) h,
+end
+
+variables {M N}
 
 namespace bounded_formula
 

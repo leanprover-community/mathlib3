@@ -49,6 +49,7 @@ end equiv_stuff
 
 section equiv_stuff
 
+-- PRed
 instance nice_instance {α β : Type*} [monoid α] [mul_action α β] : add_action (additive α) β :=
 { vadd := (•) ∘ additive.to_mul,
   zero_vadd := one_smul α,
@@ -86,12 +87,12 @@ lemma orbit_zpowers_equiv_symm_apply {α β : Type*} [group α] (a : α) [mul_ac
   (⟨a, subgroup.mem_zpowers a⟩ : subgroup.zpowers a) ^ (k : ℤ) • ⟨b, mul_action.mem_orbit_self b⟩ :=
 rfl
 
-lemma zmod.coe_eq_mod {n : ℕ} (k : ℤ) : ((k : zmod n) : ℤ) = k % n :=
+-- PRed
+lemma zmod.coe_int_cast {n : ℕ} (k : ℤ) : ((k : zmod n) : ℤ) = k % n :=
 begin
   cases n,
   { rw [int.coe_nat_zero, int.mod_zero, int.cast_id, int.cast_id] },
-  { rw [←zmod.val_int_cast, ←int.nat_cast_eq_coe_nat],
-    refl },
+  { rw [←zmod.val_int_cast, ←int.nat_cast_eq_coe_nat, zmod.val, coe_coe] },
 end
 
 lemma orbit_zpowers_equiv_symm_apply' {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
@@ -100,7 +101,7 @@ lemma orbit_zpowers_equiv_symm_apply' {α β : Type*} [group α] (a : α) [mul_a
   (⟨a, subgroup.mem_zpowers a⟩ : subgroup.zpowers a) ^ k • ⟨b, mul_action.mem_orbit_self b⟩ :=
 begin
   conv_rhs { rw ← int.mod_add_div k (function.minimal_period ((•) a) b) },
-  rw [zpow_add, mul_smul, orbit_zpowers_equiv_symm_apply, zmod.coe_eq_mod, smul_left_cancel_iff,
+  rw [zpow_add, mul_smul, orbit_zpowers_equiv_symm_apply, zmod.coe_int_cast, smul_left_cancel_iff,
       eq_comm, subtype.ext_iff, mul_action.orbit.coe_smul, subtype.coe_mk,
       mul_action.zpow_smul_eq_iff_minimal_period_dvd],
   apply dvd_mul_right,
@@ -135,8 +136,7 @@ end equiv_stuff
 
 section transversal_stuff
 
-def key_transversal_set {G : Type*} [group G] (H : subgroup G) (g : G) :
-  set G :=
+def key_transversal_set {G : Type*} [group G] (H : subgroup G) (g : G) : set G :=
 set.range (λ q, g ^ ((key_equiv H g q).2 : ℤ)  * (key_equiv H g q).1.out'.out')
 
 def key_transversal {G : Type*} [group G] (H : subgroup G) (g : G) : subgroup.left_transversals (H : set G) :=

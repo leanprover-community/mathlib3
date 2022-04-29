@@ -452,7 +452,7 @@ end
 
 end complete_lattice
 
-section complete_linear_order
+namespace complete_lattice
 variables {α β : Type*} [omega_complete_partial_order α] [complete_linear_order β]
 
 lemma inf_continuous (f g : α →o β) (hf : continuous f) (hg : continuous g) : continuous (f ⊓ g) :=
@@ -468,7 +468,7 @@ lemma inf_continuous' {f g : α → β} (hf : continuous' f) (hg : continuous' g
   continuous' (f ⊓ g) :=
 ⟨_, inf_continuous _ _ hf.snd hg.snd⟩
 
-end complete_linear_order
+end complete_lattice
 
 namespace omega_complete_partial_order
 

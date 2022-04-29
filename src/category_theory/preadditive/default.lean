@@ -243,7 +243,7 @@ def is_limit_fork_of_kernel_fork {c : kernel_fork (f - g)} (i : is_limit c) :
   is_limit (fork_of_kernel_fork c) :=
 fork.is_limit.mk' _ $ λ s,
   ⟨i.lift (kernel_fork_of_fork s), i.fac _ _,
-   λ m h, by { apply fork.is_limit.hom_ext i, rw [i.fac], exact h }⟩
+   λ m h, by apply fork.is_limit.hom_ext i; tidy⟩
 
 @[simp]
 lemma is_limit_fork_of_kernel_fork_lift {c : kernel_fork (f - g)} (i : is_limit c) (s : fork f g) :
@@ -254,7 +254,7 @@ def is_limit_kernel_fork_of_fork {c : fork f g} (i : is_limit c) :
   is_limit (kernel_fork_of_fork c) :=
 fork.is_limit.mk' _ $ λ s,
   ⟨i.lift (fork_of_kernel_fork s), i.fac _ _,
-    λ m h, by { apply fork.is_limit.hom_ext i, rw [i.fac], exact h }⟩
+    λ m h, by apply fork.is_limit.hom_ext i; tidy⟩
 
 variables (f g)
 
@@ -289,7 +289,7 @@ def is_colimit_cofork_of_cokernel_cofork {c : cokernel_cofork (f - g)} (i : is_c
   is_colimit (cofork_of_cokernel_cofork c) :=
 cofork.is_colimit.mk' _ $ λ s,
   ⟨i.desc (cokernel_cofork_of_cofork s), i.fac _ _,
-   λ m h, by { apply cofork.is_colimit.hom_ext i, rw [i.fac], exact h }⟩
+    λ m h, by apply cofork.is_colimit.hom_ext i; tidy⟩
 
 @[simp]
 lemma is_colimit_cofork_of_cokernel_cofork_desc {c : cokernel_cofork (f - g)}
@@ -301,7 +301,7 @@ def is_colimit_cokernel_cofork_of_cofork {c : cofork f g} (i : is_colimit c) :
   is_colimit (cokernel_cofork_of_cofork c) :=
 cofork.is_colimit.mk' _ $ λ s,
   ⟨i.desc (cofork_of_cokernel_cofork s), i.fac _ _,
-    λ m h, by { apply cofork.is_colimit.hom_ext i, rw [i.fac], exact h }⟩
+    λ m h, by apply cofork.is_colimit.hom_ext i; tidy⟩
 
 variables (f g)
 

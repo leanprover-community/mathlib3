@@ -229,6 +229,9 @@ theorem symm_mk (f : M → N) (g h₁ h₂ h₃) :
   (mul_equiv.mk f g h₁ h₂ h₃).symm =
   { to_fun := g, inv_fun := f, ..(mul_equiv.mk f g h₁ h₂ h₃).symm} := rfl
 
+@[simp, to_additive]
+theorem refl_symm : (refl M).symm = refl M := rfl
+
 /-- Transitivity of multiplication-preserving isomorphisms -/
 @[trans, to_additive "Transitivity of addition-preserving isomorphisms"]
 def trans (h1 : M ≃* N) (h2 : N ≃* P) : (M ≃* P) :=
@@ -350,11 +353,11 @@ lemma map_ne_one_iff {M N} [mul_one_class M] [mul_one_class N] (h : M ≃* N) {x
   h x ≠ 1 ↔ x ≠ 1 :=
 mul_equiv_class.map_ne_one_iff h
 
-/-- A bijective `monoid` homomorphism is an isomorphism -/
-@[to_additive "A bijective `add_monoid` homomorphism is an isomorphism"]
-noncomputable def of_bijective {M N} [mul_one_class M] [mul_one_class N] (f : M →* N)
+/-- A bijective `semigroup` homomorphism is an isomorphism -/
+@[to_additive "A bijective `add_semigroup` homomorphism is an isomorphism"]
+noncomputable def of_bijective {M N F} [has_mul M] [has_mul N] [mul_hom_class F M N] (f : F)
   (hf : function.bijective f) : M ≃* N :=
-{ map_mul' := f.map_mul',
+{ map_mul' := map_mul f,
   ..equiv.of_bijective f hf }
 
 /--
@@ -382,7 +385,7 @@ where the equivalence between the targets is multiplicative.
 -/
 @[to_additive "An additive analogue of `equiv.arrow_congr`,
 where the equivalence between the targets is additive.", simps apply]
-def arrow_congr {M N P Q : Type*} [mul_one_class P] [mul_one_class Q]
+def arrow_congr {M N P Q : Type*} [has_mul P] [has_mul Q]
   (f : M ≃ N) (g : P ≃* Q) : (M → P) ≃* (N → Q) :=
 { to_fun := λ h n, g (h (f.symm n)),
   inv_fun := λ k m, g.symm (k (f m)),
@@ -418,7 +421,7 @@ generates an additive equivalence between `Π j, Ms j` and `Π j, Ns j`.
 This is the `add_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
 `add_equiv.arrow_congr`.", simps apply]
 def Pi_congr_right {η : Type*}
-  {Ms Ns : η → Type*} [Π j, mul_one_class (Ms j)] [Π j, mul_one_class (Ns j)]
+  {Ms Ns : η → Type*} [Π j, has_mul (Ms j)] [Π j, has_mul (Ns j)]
   (es : ∀ j, Ms j ≃* Ns j) : (Π j, Ms j) ≃* (Π j, Ns j) :=
 { to_fun := λ x j, es j (x j),
   inv_fun := λ x j, (es j).symm (x j),
@@ -426,18 +429,18 @@ def Pi_congr_right {η : Type*}
   .. equiv.Pi_congr_right (λ j, (es j).to_equiv) }
 
 @[simp]
-lemma Pi_congr_right_refl {η : Type*} {Ms : η → Type*} [Π j, mul_one_class (Ms j)] :
+lemma Pi_congr_right_refl {η : Type*} {Ms : η → Type*} [Π j, has_mul (Ms j)] :
   Pi_congr_right (λ j, mul_equiv.refl (Ms j)) = mul_equiv.refl _ := rfl
 
 @[simp]
 lemma Pi_congr_right_symm {η : Type*}
-  {Ms Ns : η → Type*} [Π j, mul_one_class (Ms j)] [Π j, mul_one_class (Ns j)]
+  {Ms Ns : η → Type*} [Π j, has_mul (Ms j)] [Π j, has_mul (Ns j)]
   (es : ∀ j, Ms j ≃* Ns j) : (Pi_congr_right es).symm = (Pi_congr_right $ λ i, (es i).symm) := rfl
 
 @[simp]
 lemma Pi_congr_right_trans {η : Type*}
-  {Ms Ns Ps : η → Type*} [Π j, mul_one_class (Ms j)] [Π j, mul_one_class (Ns j)]
-  [Π j, mul_one_class (Ps j)]
+  {Ms Ns Ps : η → Type*} [Π j, has_mul (Ms j)] [Π j, has_mul (Ns j)]
+  [Π j, has_mul (Ps j)]
   (es : ∀ j, Ms j ≃* Ns j) (fs : ∀ j, Ns j ≃* Ps j) :
   (Pi_congr_right es).trans (Pi_congr_right fs) = (Pi_congr_right $ λ i, (es i).trans (fs i)) := rfl
 

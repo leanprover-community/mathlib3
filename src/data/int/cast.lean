@@ -143,6 +143,10 @@ by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
 lemma cast_two [ring α] : ((2 : ℤ) : α) = 2 := by simp
 
+lemma cast_three [ring α] : ((3 : ℤ) : α) = 3 := by simp
+
+lemma cast_four [ring α] : ((4 : ℤ) : α) = 4 := by simp
+
 theorem cast_mono [ordered_ring α] : monotone (coe : ℤ → α) :=
 begin
   intros m n h,
@@ -177,22 +181,49 @@ by rw [← cast_zero, cast_lt]
 @[simp] theorem cast_lt_zero [ordered_ring α] [nontrivial α] {n : ℤ} : (n : α) < 0 ↔ n < 0 :=
 by rw [← cast_zero, cast_lt]
 
-@[simp, norm_cast] theorem cast_min [linear_ordered_ring α] {a b : ℤ} :
-  (↑(min a b) : α) = min a b :=
+section linear_ordered_ring
+
+variables [linear_ordered_ring α] {a b : ℤ} (n : ℤ)
+
+@[simp, norm_cast] theorem cast_min : (↑(min a b) : α) = min a b :=
 monotone.map_min cast_mono
 
-@[simp, norm_cast] theorem cast_max [linear_ordered_ring α] {a b : ℤ} :
-  (↑(max a b) : α) = max a b :=
+@[simp, norm_cast] theorem cast_max : (↑(max a b) : α) = max a b :=
 monotone.map_max cast_mono
 
-@[simp, norm_cast] theorem cast_abs [linear_ordered_ring α] {q : ℤ} :
-  ((|q| : ℤ) : α) = |q| :=
+@[simp, norm_cast] theorem cast_abs : ((|a| : ℤ) : α) = |a| :=
 by simp [abs_eq_max_neg]
 
-lemma cast_nat_abs {R : Type*} [linear_ordered_ring R] : ∀ (n : ℤ), (n.nat_abs : R) = |n|
-| (n : ℕ) := by simp only [int.nat_abs_of_nat, int.cast_coe_nat, nat.abs_cast]
-| -[1+n]  := by simp only [int.nat_abs, int.cast_neg_succ_of_nat, abs_neg,
-                           ← nat.cast_succ, nat.abs_cast]
+lemma cast_one_le_of_pos (h : 0 < a) : (1 : α) ≤ a :=
+by exact_mod_cast int.add_one_le_of_lt h
+
+lemma cast_le_neg_one_of_neg (h : a < 0) : (a : α) ≤ -1 :=
+by exact_mod_cast int.le_sub_one_of_lt h
+
+lemma nneg_mul_add_sq_of_abs_le_one {x : α} (hx : |x| ≤ 1) :
+  (0 : α) ≤ n * x + n * n :=
+begin
+  have hnx : 0 < n → 0 ≤ x + n := λ hn, by
+  { convert add_le_add (neg_le_of_abs_le hx) (cast_one_le_of_pos hn),
+    rw add_left_neg, },
+  have hnx' : n < 0 → x + n ≤ 0 := λ hn, by
+  { convert add_le_add (le_of_abs_le hx) (cast_le_neg_one_of_neg hn),
+    rw add_right_neg, },
+  rw [← mul_add, mul_nonneg_iff],
+  rcases lt_trichotomy n 0 with h | rfl | h,
+  { exact or.inr ⟨by exact_mod_cast h.le, hnx' h⟩, },
+  { simp [le_total 0 x], },
+  { exact or.inl ⟨by exact_mod_cast h.le, hnx h⟩, },
+end
+
+lemma cast_nat_abs : (n.nat_abs : α) = |n| :=
+begin
+  cases n,
+  { simp, },
+  { simp only [int.nat_abs, int.cast_neg_succ_of_nat, abs_neg, ← nat.cast_succ, nat.abs_cast], },
+end
+
+end linear_ordered_ring
 
 lemma coe_int_dvd [comm_ring α] (m n : ℤ) (h : m ∣ n) :
   (m : α) ∣ (n : α) :=

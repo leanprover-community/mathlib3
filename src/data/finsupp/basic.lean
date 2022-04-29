@@ -2479,11 +2479,6 @@ instance [semiring R] [add_comm_monoid M] [module R M] : module R (α →₀ M) 
 
 variables {α M} {R}
 
-lemma comap_domain_smul {R : Type*} [add_monoid M] [monoid R] [distrib_mul_action R M]
-  {f : α → β} (hf : function.injective f) (r : R) (v : β →₀ M) :
-  comap_domain f (r • v) (hf.inj_on _) = r • comap_domain f v (hf.inj_on _) :=
-by { ext, refl }
-
 lemma support_smul {_ : monoid R} [add_monoid M] [distrib_mul_action R M] {b : R} {g : α →₀ M} :
   (b • g).support ⊆ g.support :=
 λ a, by { simp only [smul_apply, mem_support_iff, ne.def], exact mt (λ h, h.symm ▸ smul_zero _) }
@@ -2530,6 +2525,11 @@ end
 
 lemma smul_single_one [semiring R] (a : α) (b : R) : b • single a 1 = single a b :=
 by rw [smul_single, smul_eq_mul, mul_one]
+
+lemma comap_domain_smul [add_monoid M] [monoid R] [distrib_mul_action R M]
+  {f : α → β} (hf : function.injective f) (r : R) (v : β →₀ M) :
+  comap_domain f (r • v) (hf.inj_on _) = r • comap_domain f v (hf.inj_on _) :=
+by { ext, refl }
 
 end
 

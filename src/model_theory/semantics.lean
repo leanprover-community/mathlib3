@@ -312,22 +312,19 @@ begin
   rw [if_pos i.is_lt],
 end
 
+@[simp] lemma realize_subst_aux {tf : α → L.term β} {v : β → M} {xs : fin n → M} :
+  (λ x, term.realize (sum.elim v xs) (sum.elim (term.relabel sum.inl ∘ tf) (var ∘ sum.inr) x)) =
+    sum.elim (λ (a : α), term.realize v (tf a)) xs :=
+funext (λ x, sum.cases_on x (λ x,
+  by simp only [sum.elim_inl, term.realize_relabel, sum.elim_comp_inl]) (λ x, rfl))
+
 lemma realize_subst {φ : L.bounded_formula α n} {tf : α → L.term β} {v : β → M} {xs : fin n → M} :
   (φ.subst tf).realize v xs ↔ φ.realize (λ a, (tf a).realize v) xs :=
 begin
   induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih,
   { refl },
-  { simp only [subst, bounded_formula.realize, realize_subst],
-    rw iff_eq_eq,
-    refine congr (congr rfl (congr (congr rfl _) rfl)) (congr (congr rfl _) rfl),
-    { ext x,
-      cases x; simp },
-    { ext x,
-      cases x; simp }, },
-  { simp only [subst, bounded_formula.realize, realize_subst],
-    rw iff_eq_eq,
-    refine congr rfl (funext (λ x, (congr (congr rfl (funext (λ x, _))) rfl))),
-    { cases x; simp }, },
+  { simp only [subst, bounded_formula.realize, realize_subst, realize_subst_aux] },
+  { simp only [subst, bounded_formula.realize, realize_subst, realize_subst_aux] },
   { simp only [subst, realize_imp, ih1, ih2] },
   { simp only [ih, subst, realize_all] }
 end

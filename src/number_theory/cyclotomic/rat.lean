@@ -8,7 +8,7 @@ import number_theory.cyclotomic.discriminant
 import ring_theory.polynomial.eisenstein
 
 /-!
-# Ring of integers of `p`-th power cyclotomic fields
+# Ring of integers of `p ^ n`-th cyclotomic fields
 We compute the ring of integers of a `p ^ n`-th cyclotomic extension of `ℚ`.
 
 ## Main results

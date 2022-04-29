@@ -29,13 +29,17 @@ noncomputable theory
 open_locale classical big_operators polynomial
 
 universes u v w
+variables {R : Type u} {S : Type*}
 
 namespace polynomial
 
-instance {R : Type u} [semiring R] (p : ℕ) [h : char_p R p] : char_p R[X] p :=
+section semiring
+variables [semiring R]
+
+instance (p : ℕ) [h : char_p R p] : char_p R[X] p :=
 let ⟨h⟩ := h in ⟨λ n, by rw [← map_nat_cast C, ← C_0, C_inj, h]⟩
 
-variables (R : Type u) [comm_ring R]
+variables (R)
 
 /-- The `R`-submodule of `R[X]` consisting of polynomials of degree ≤ `n`. -/
 def degree_le (n : with_bot ℕ) : submodule R R[X] :=
@@ -101,7 +105,7 @@ begin
 end
 
 /-- The first `n` coefficients on `degree_lt n` form a linear equivalence with `fin n → R`. -/
-def degree_lt_equiv (R : Type u) [comm_ring R] (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n → R) :=
+def degree_lt_equiv (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n → R) :=
 { to_fun := λ p n, (↑p : R[X]).coeff n,
   inv_fun := λ f, ⟨∑ i : fin n, monomial i (f i),
     (degree_lt R n).sum_mem (λ i _, mem_degree_lt.mpr (lt_of_le_of_lt
@@ -154,11 +158,12 @@ begin
 end
 
 /-- Given a polynomial, return the polynomial whose coefficients are in
-the ring closure of the original coefficients. -/
-def restriction (p : R[X]) : polynomial (subring.closure (↑p.frange : set R)) :=
+the semiring closure of the original coefficients. -/
+def restriction (p : R[X]) : polynomial (subsemiring.closure (↑p.frange : set R)) :=
 ∑ i in p.support, monomial i (⟨p.coeff i,
-  if H : p.coeff i = 0 then H.symm ▸ (subring.closure _).zero_mem
-  else subring.subset_closure (p.coeff_mem_frange _ H)⟩ : (subring.closure (↑p.frange : set R)))
+  if H : p.coeff i = 0 then H.symm ▸ (subsemiring.closure _).zero_mem
+  else subsemiring.subset_closure (p.coeff_mem_frange _ H)⟩ :
+    (subsemiring.closure (↑p.frange : set R)))
 
 @[simp] theorem coeff_restriction {p : R[X]} {n : ℕ} :
   ↑(coeff (restriction p) n) = coeff p n :=
@@ -183,8 +188,9 @@ begin
   exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
 end
 
-@[simp] theorem map_restriction (p : R[X]) : p.restriction.map (algebra_map _ _) = p :=
-ext $ λ n, by rw [coeff_map, algebra.algebra_map_of_subring_apply, coeff_restriction]
+@[simp] theorem map_restriction {R : Type u} [comm_semiring R]
+  (p : R[X]) : p.restriction.map (algebra_map _ _) = p :=
+ext $ λ n, by rw [coeff_map, algebra.algebra_map_of_subsemiring_apply, coeff_restriction]
 
 @[simp] theorem degree_restriction {p : R[X]} : (restriction p).degree = p.degree :=
 by simp [degree]
@@ -206,17 +212,17 @@ by simp only [restriction, finset.sum_empty, support_zero]
 @[simp] theorem restriction_one : restriction (1 : R[X]) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
 
-variables {S : Type v} [ring S] {f : R →+* S} {x : S}
+variables [semiring S] {f : R →+* S} {x : S}
 
 theorem eval₂_restriction {p : R[X]} :
   eval₂ f x p =
-  eval₂ (f.comp (subring.subtype (subring.closure (p.frange : set R)))) x p.restriction :=
+  eval₂ (f.comp (subsemiring.subtype (subsemiring.closure (p.frange : set R)))) x p.restriction :=
 begin
   simp only [eval₂_eq_sum, sum, support_restriction, ←@coeff_restriction _ _ p],
   refl,
 end
 
-lemma geom_sum_X_comp_X_add_one_eq_sum (n : ℕ) :
+lemma geom_sum_X_comp_X_add_one_eq_sum' (n : ℕ) :
   (geom_sum (X : R[X]) n).comp (X + 1) =
   (finset.range n).sum (λ (i : ℕ), (n.choose (i + 1) : R[X]) * X ^ i) :=
 begin
@@ -229,16 +235,11 @@ begin
         not_lt, eq_self_iff_true, if_true, implies_true_iff] {contextual := tt}, } },
   induction n with n ih generalizing i,
   { simp only [geom_sum_zero, zero_comp, coeff_zero, nat.choose_zero_succ, nat.cast_zero], },
-  simp only [geom_sum_succ', ih, add_comp, pow_comp, X_comp, coeff_add, nat.choose_succ_succ,
-    nat.cast_add, add_pow, one_pow, mul_one, finset_sum_coeff, ← C_eq_nat_cast, mul_comm _ (C _),
-    coeff_C_mul_X_pow],
-  rw [finset.sum_eq_single i, if_pos rfl],
-  { simp only [@eq_comm _ i, if_false, eq_self_iff_true, implies_true_iff] {contextual := tt}, },
-  { simp only [nat.lt_add_one_iff, nat.choose_eq_zero_of_lt, nat.cast_zero, finset.mem_range,
-      eq_self_iff_true, if_true, implies_true_iff, not_le] {contextual := tt}, },
+  simp only [geom_sum_succ', ih, add_comp, X_pow_comp, coeff_add, nat.choose_succ_succ,
+    nat.cast_add, coeff_X_add_one_pow],
 end
 
-lemma monic.geom_sum {R : Type*} [semiring R] {P : R[X]}
+lemma monic.geom_sum {P : R[X]}
   (hP : P.monic) (hdeg : 0 < P.nat_degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
 begin
   nontriviality R,
@@ -254,17 +255,22 @@ begin
     exact (hP.pow _).ne_zero }
 end
 
-lemma monic.geom_sum' {R : Type*} [semiring R] {P : R[X]}
+lemma monic.geom_sum' {P : R[X]}
   (hP : P.monic) (hdeg : 0 < P.degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
 hP.geom_sum (nat_degree_pos_iff_degree_pos.2 hdeg) hn
 
-lemma monic_geom_sum_X (R : Type*) [semiring R] {n : ℕ} (hn : n ≠ 0) :
+lemma monic_geom_sum_X {n : ℕ} (hn : n ≠ 0) :
   (geom_sum (X : R[X]) n).monic :=
 begin
   nontriviality R,
   apply monic_X.geom_sum _ hn,
   simpa only [nat_degree_X] using zero_lt_one
 end
+
+end semiring
+
+section ring
+variables [ring R]
 
 section to_subring
 
@@ -355,6 +361,11 @@ begin
   exact subtype.mem (coeff p n : T)
 end
 
+end ring
+
+section comm_ring
+variables [comm_ring R]
+
 section mod_by_monic
 
 variables {q : R[X]}
@@ -369,13 +380,46 @@ submodule.ext (λ f, (mem_ker_mod_by_monic hq).trans ideal.mem_span_singleton.sy
 
 end mod_by_monic
 
-end polynomial
+end comm_ring
 
-variables {R : Type u} {S : Type*} {σ : Type v} {M : Type w}
-variables [comm_ring R] [comm_ring S] [add_comm_group M] [module R M]
+end polynomial
 
 namespace ideal
 open polynomial
+
+section semiring
+variables [semiring R]
+
+/-- Transport an ideal of `R[X]` to an `R`-submodule of `R[X]`. -/
+def of_polynomial (I : ideal R[X]) : submodule R R[X] :=
+{ carrier := I.carrier,
+  zero_mem' := I.zero_mem,
+  add_mem' := λ _ _, I.add_mem,
+  smul_mem' := λ c x H, by { rw [← C_mul'], exact I.mul_mem_left _ H } }
+
+variables {I : ideal R[X]}
+theorem mem_of_polynomial (x) : x ∈ I.of_polynomial ↔ x ∈ I := iff.rfl
+variables (I)
+
+/-- Given an ideal `I` of `R[X]`, make the `R`-submodule of `I`
+consisting of polynomials of degree ≤ `n`. -/
+def degree_le (n : with_bot ℕ) : submodule R R[X] :=
+degree_le R n ⊓ I.of_polynomial
+
+/-- Given an ideal `I` of `R[X]`, make the ideal in `R` of
+leading coefficients of polynomials in `I` with degree ≤ `n`. -/
+def leading_coeff_nth (n : ℕ) : ideal R :=
+(I.degree_le n).map $ lcoeff R n
+
+/-- Given an ideal `I` in `R[X]`, make the ideal in `R` of the
+leading coefficients in `I`. -/
+def leading_coeff : ideal R :=
+⨆ n : ℕ, I.leading_coeff_nth n
+
+end semiring
+
+section comm_semiring
+variables [comm_semiring R] [semiring S]
 
 /-- If every coefficient of a polynomial is in an ideal `I`, then so is the polynomial itself -/
 lemma polynomial_mem_ideal_of_coeff_mem_ideal (I : ideal R[X]) (p : R[X])
@@ -416,6 +460,102 @@ begin
   rw [mem_map_C_iff, ring_hom.mem_ker, polynomial.ext_iff],
   simp_rw [coe_map_ring_hom, coeff_map, coeff_zero, ring_hom.mem_ker],
 end
+
+variable (I : ideal R[X])
+
+theorem mem_leading_coeff_nth (n : ℕ) (x) :
+  x ∈ I.leading_coeff_nth n ↔ ∃ p ∈ I, degree p ≤ n ∧ p.leading_coeff = x :=
+begin
+  simp only [leading_coeff_nth, degree_le, submodule.mem_map, lcoeff_apply, submodule.mem_inf,
+    mem_degree_le],
+  split,
+  { rintro ⟨p, ⟨hpdeg, hpI⟩, rfl⟩,
+    cases lt_or_eq_of_le hpdeg with hpdeg hpdeg,
+    { refine ⟨0, I.zero_mem, bot_le, _⟩,
+      rw [leading_coeff_zero, eq_comm],
+      exact coeff_eq_zero_of_degree_lt hpdeg },
+    { refine ⟨p, hpI, le_of_eq hpdeg, _⟩,
+      rw [polynomial.leading_coeff, nat_degree, hpdeg], refl } },
+  { rintro ⟨p, hpI, hpdeg, rfl⟩,
+    have : nat_degree p + (n - nat_degree p) = n,
+    { exact add_tsub_cancel_of_le (nat_degree_le_of_degree_le hpdeg) },
+    refine ⟨p * X ^ (n - nat_degree p), ⟨_, I.mul_mem_right _ hpI⟩, _⟩,
+    { apply le_trans (degree_mul_le _ _) _,
+      apply le_trans (add_le_add (degree_le_nat_degree) (degree_X_pow_le _)) _,
+      rw [← with_bot.coe_add, this],
+      exact le_rfl },
+    { rw [polynomial.leading_coeff, ← coeff_mul_X_pow p (n - nat_degree p), this] } }
+end
+
+theorem mem_leading_coeff_nth_zero (x) :
+  x ∈ I.leading_coeff_nth 0 ↔ C x ∈ I :=
+(mem_leading_coeff_nth _ _ _).trans
+⟨λ ⟨p, hpI, hpdeg, hpx⟩, by rwa [← hpx, polynomial.leading_coeff,
+  nat.eq_zero_of_le_zero (nat_degree_le_of_degree_le hpdeg),
+  ← eq_C_of_degree_le_zero hpdeg],
+λ hx, ⟨C x, hx, degree_C_le, leading_coeff_C x⟩⟩
+
+theorem leading_coeff_nth_mono {m n : ℕ} (H : m ≤ n) :
+  I.leading_coeff_nth m ≤ I.leading_coeff_nth n :=
+begin
+  intros r hr,
+  simp only [set_like.mem_coe, mem_leading_coeff_nth] at hr ⊢,
+  rcases hr with ⟨p, hpI, hpdeg, rfl⟩,
+  refine ⟨p * X ^ (n - m), I.mul_mem_right _ hpI, _, leading_coeff_mul_X_pow⟩,
+  refine le_trans (degree_mul_le _ _) _,
+  refine le_trans (add_le_add hpdeg (degree_X_pow_le _)) _,
+  rw [← with_bot.coe_add, add_tsub_cancel_of_le H],
+  exact le_rfl
+end
+
+theorem mem_leading_coeff (x) :
+  x ∈ I.leading_coeff ↔ ∃ p ∈ I, polynomial.leading_coeff p = x :=
+begin
+  rw [leading_coeff, submodule.mem_supr_of_directed],
+  simp only [mem_leading_coeff_nth],
+  { split, { rintro ⟨i, p, hpI, hpdeg, rfl⟩, exact ⟨p, hpI, rfl⟩ },
+    rintro ⟨p, hpI, rfl⟩, exact ⟨nat_degree p, p, hpI, degree_le_nat_degree, rfl⟩ },
+  intros i j, exact ⟨i + j, I.leading_coeff_nth_mono (nat.le_add_right _ _),
+    I.leading_coeff_nth_mono (nat.le_add_left _ _)⟩
+end
+
+end comm_semiring
+
+section ring
+variables [ring R]
+
+/-- `polynomial R` is never a field for any ring `R`. -/
+lemma polynomial_not_is_field : ¬ is_field R[X] :=
+begin
+  by_contradiction hR,
+  by_cases hR' : ∃ (x y : R), x ≠ y,
+  { haveI : nontrivial R := let ⟨x, y, hxy⟩ := hR' in nontrivial_of_ne x y hxy,
+    obtain ⟨p, hp⟩ := hR.mul_inv_cancel X_ne_zero,
+    by_cases hp0 : p = 0,
+    { replace hp := congr_arg degree hp,
+      rw [hp0, mul_zero, degree_zero, degree_one] at hp,
+      contradiction },
+    { have : p.degree < (X * p).degree := (X_mul.symm : p * X = _) ▸ degree_lt_degree_mul_X hp0,
+      rw [congr_arg degree hp, degree_one, nat.with_bot.lt_zero_iff, degree_eq_bot] at this,
+      exact hp0 this } },
+  { push_neg at hR',
+    exact let ⟨x, y, hxy⟩ := hR.exists_pair_ne in hxy (polynomial.ext (λ n, hR' _ _)) }
+end
+
+/-- The only constant in a maximal ideal over a field is `0`. -/
+lemma eq_zero_of_constant_mem_of_maximal (hR : is_field R)
+  (I : ideal R[X]) [hI : I.is_maximal] (x : R) (hx : C x ∈ I) : x = 0 :=
+begin
+  refine classical.by_contradiction (λ hx0, hI.ne_top ((eq_top_iff_one I).2 _)),
+  obtain ⟨y, hy⟩ := hR.mul_inv_cancel hx0,
+  convert I.mul_mem_left (C y) hx,
+  rw [← C.map_mul, hR.mul_comm y x, hy, ring_hom.map_one],
+end
+
+end ring
+
+section comm_ring
+variables [comm_ring R]
 
 lemma quotient_map_C_eq_zero {I : ideal R} :
   ∀ a ∈ I, ((quotient.mk (map C I : ideal R[X])).comp C) a = 0 :=
@@ -536,122 +676,17 @@ begin
   exact hx,
 end
 
-/-- `polynomial R` is never a field for any ring `R`. -/
-lemma polynomial_not_is_field : ¬ is_field R[X] :=
-begin
-  by_contradiction hR,
-  by_cases hR' : ∃ (x y : R), x ≠ y,
-  { haveI : nontrivial R := let ⟨x, y, hxy⟩ := hR' in nontrivial_of_ne x y hxy,
-    obtain ⟨p, hp⟩ := hR.mul_inv_cancel X_ne_zero,
-    by_cases hp0 : p = 0,
-    { replace hp := congr_arg degree hp,
-      rw [hp0, mul_zero, degree_zero, degree_one] at hp,
-      contradiction },
-    { have : p.degree < (X * p).degree := (mul_comm p X) ▸ degree_lt_degree_mul_X hp0,
-      rw [congr_arg degree hp, degree_one, nat.with_bot.lt_zero_iff, degree_eq_bot] at this,
-      exact hp0 this } },
-  { push_neg at hR',
-    exact let ⟨x, y, hxy⟩ := hR.exists_pair_ne in hxy (polynomial.ext (λ n, hR' _ _)) }
-end
-
-/-- The only constant in a maximal ideal over a field is `0`. -/
-lemma eq_zero_of_constant_mem_of_maximal (hR : is_field R)
-  (I : ideal R[X]) [hI : I.is_maximal] (x : R) (hx : C x ∈ I) : x = 0 :=
-begin
-  refine classical.by_contradiction (λ hx0, hI.ne_top ((eq_top_iff_one I).2 _)),
-  obtain ⟨y, hy⟩ := hR.mul_inv_cancel hx0,
-  convert I.mul_mem_left (C y) hx,
-  rw [← C.map_mul, mul_comm y x, hy, ring_hom.map_one],
-end
-
-/-- Transport an ideal of `R[X]` to an `R`-submodule of `R[X]`. -/
-def of_polynomial (I : ideal R[X]) : submodule R R[X] :=
-{ carrier := I.carrier,
-  zero_mem' := I.zero_mem,
-  add_mem' := λ _ _, I.add_mem,
-  smul_mem' := λ c x H, by { rw [← C_mul'], exact I.mul_mem_left _ H } }
-
-variables {I : ideal R[X]}
-theorem mem_of_polynomial (x) : x ∈ I.of_polynomial ↔ x ∈ I := iff.rfl
-variables (I)
-
-/-- Given an ideal `I` of `R[X]`, make the `R`-submodule of `I`
-consisting of polynomials of degree ≤ `n`. -/
-def degree_le (n : with_bot ℕ) : submodule R R[X] :=
-degree_le R n ⊓ I.of_polynomial
-
-/-- Given an ideal `I` of `R[X]`, make the ideal in `R` of
-leading coefficients of polynomials in `I` with degree ≤ `n`. -/
-def leading_coeff_nth (n : ℕ) : ideal R :=
-(I.degree_le n).map $ lcoeff R n
-
-theorem mem_leading_coeff_nth (n : ℕ) (x) :
-  x ∈ I.leading_coeff_nth n ↔ ∃ p ∈ I, degree p ≤ n ∧ leading_coeff p = x :=
-begin
-  simp only [leading_coeff_nth, degree_le, submodule.mem_map, lcoeff_apply, submodule.mem_inf,
-    mem_degree_le],
-  split,
-  { rintro ⟨p, ⟨hpdeg, hpI⟩, rfl⟩,
-    cases lt_or_eq_of_le hpdeg with hpdeg hpdeg,
-    { refine ⟨0, I.zero_mem, bot_le, _⟩,
-      rw [leading_coeff_zero, eq_comm],
-      exact coeff_eq_zero_of_degree_lt hpdeg },
-    { refine ⟨p, hpI, le_of_eq hpdeg, _⟩,
-      rw [leading_coeff, nat_degree, hpdeg], refl } },
-  { rintro ⟨p, hpI, hpdeg, rfl⟩,
-    have : nat_degree p + (n - nat_degree p) = n,
-    { exact add_tsub_cancel_of_le (nat_degree_le_of_degree_le hpdeg) },
-    refine ⟨p * X ^ (n - nat_degree p), ⟨_, I.mul_mem_right _ hpI⟩, _⟩,
-    { apply le_trans (degree_mul_le _ _) _,
-      apply le_trans (add_le_add (degree_le_nat_degree) (degree_X_pow_le _)) _,
-      rw [← with_bot.coe_add, this],
-      exact le_rfl },
-    { rw [leading_coeff, ← coeff_mul_X_pow p (n - nat_degree p), this] } }
-end
-
-theorem mem_leading_coeff_nth_zero (x) :
-  x ∈ I.leading_coeff_nth 0 ↔ C x ∈ I :=
-(mem_leading_coeff_nth _ _ _).trans
-⟨λ ⟨p, hpI, hpdeg, hpx⟩, by rwa [← hpx, leading_coeff,
-  nat.eq_zero_of_le_zero (nat_degree_le_of_degree_le hpdeg),
-  ← eq_C_of_degree_le_zero hpdeg],
-λ hx, ⟨C x, hx, degree_C_le, leading_coeff_C x⟩⟩
-
-theorem leading_coeff_nth_mono {m n : ℕ} (H : m ≤ n) :
-  I.leading_coeff_nth m ≤ I.leading_coeff_nth n :=
-begin
-  intros r hr,
-  simp only [set_like.mem_coe, mem_leading_coeff_nth] at hr ⊢,
-  rcases hr with ⟨p, hpI, hpdeg, rfl⟩,
-  refine ⟨p * X ^ (n - m), I.mul_mem_right _ hpI, _, leading_coeff_mul_X_pow⟩,
-  refine le_trans (degree_mul_le _ _) _,
-  refine le_trans (add_le_add hpdeg (degree_X_pow_le _)) _,
-  rw [← with_bot.coe_add, add_tsub_cancel_of_le H],
-  exact le_rfl
-end
-
-/-- Given an ideal `I` in `R[X]`, make the ideal in `R` of the
-leading coefficients in `I`. -/
-def leading_coeff : ideal R :=
-⨆ n : ℕ, I.leading_coeff_nth n
-
-theorem mem_leading_coeff (x) :
-  x ∈ I.leading_coeff ↔ ∃ p ∈ I, polynomial.leading_coeff p = x :=
-begin
-  rw [leading_coeff, submodule.mem_supr_of_directed],
-  simp only [mem_leading_coeff_nth],
-  { split, { rintro ⟨i, p, hpI, hpdeg, rfl⟩, exact ⟨p, hpI, rfl⟩ },
-    rintro ⟨p, hpI, rfl⟩, exact ⟨nat_degree p, p, hpI, degree_le_nat_degree, rfl⟩ },
-  intros i j, exact ⟨i + j, I.leading_coeff_nth_mono (nat.le_add_right _ _),
-    I.leading_coeff_nth_mono (nat.le_add_left _ _)⟩
-end
-
-theorem is_fg_degree_le [is_noetherian_ring R] (n : ℕ) :
+theorem is_fg_degree_le [is_noetherian_ring R] (I : ideal R[X]) (n : ℕ) :
   submodule.fg (I.degree_le n) :=
 is_noetherian_submodule_left.1 (is_noetherian_of_fg_of_noetherian _
   ⟨_, degree_le_eq_span_X_pow.symm⟩) _
 
+end comm_ring
+
 end ideal
+
+variables {σ : Type v} {M : Type w}
+variables [comm_ring R] [comm_ring S] [add_comm_group M] [module R M]
 
 section prime
 variables (σ) {r : R}

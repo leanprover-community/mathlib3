@@ -88,13 +88,34 @@ open is_noetherian
 
 section division_ring
 
-variables (K : Type u) (V : Type v) [division_ring K] [add_comm_group V] [module K V]
+variables {K : Type u} {V : Type v} [division_ring K] [add_comm_group V] [module K V]
 {V₂ : Type v'} [add_comm_group V₂] [module K V₂]
+
+/-- If the codomain of an injective linear map is finite dimensional, the domain must be as well. -/
+def of_injective (f : V →ₗ[K] V₂) (w : function.injective f)
+  [finite_dimensional K V₂] : finite_dimensional K V :=
+begin
+  haveI : is_noetherian K V₂ := is_noetherian.iff_fg.mpr ‹_›,
+  exact module.finite.of_injective f w,
+end
+
+/-- If the domain of a surjective linear map is finite dimensional, the codomain must be as well. -/
+def of_surjective (f : V →ₗ[K] V₂) (w : function.surjective f)
+  [finite_dimensional K V] : finite_dimensional K V₂ :=
+module.finite.of_surjective f w
 
 variables (K V)
 
 instance finite_dimensional_pi {ι} [fintype ι] : finite_dimensional K (ι → K) :=
 iff_fg.1 is_noetherian_pi
+
+instance finite_dimensional_pi' {ι} [fintype ι] (M : ι → Type*)
+  [∀ i, add_comm_group (M i)] [∀ i, module K (M i)] [I : ∀ i, finite_dimensional K (M i)] :
+  finite_dimensional K (Π i, M i) :=
+begin
+  haveI : ∀ i : ι, is_noetherian K (M i) := λ i, iff_fg.2 (I i),
+  exact iff_fg.1 is_noetherian_pi
+end
 
 /-- A finite dimensional vector space over a finite field is finite -/
 noncomputable def fintype_of_fintype [fintype K] [finite_dimensional K V] : fintype V :=

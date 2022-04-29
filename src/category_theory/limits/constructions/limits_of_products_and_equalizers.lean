@@ -82,15 +82,15 @@ end has_limit_of_has_products_of_has_equalizers
 open has_limit_of_has_products_of_has_equalizers
 
 /--
-Given the existence of the appropriate (possibly finite) products and equalizers, we know a limit of
-`F` exists.
+Given the existence of the appropriate (possibly finite) products and equalizers,
+we can construct a limit cone for `F`.
 (This assumes the existence of all equalizers, which is technically stronger than needed.)
 -/
-lemma has_limit_of_equalizer_and_product (F : J ⥤ C)
+noncomputable
+def limit_cone_of_equalizer_and_product (F : J ⥤ C)
   [has_limit (discrete.functor F.obj)]
   [has_limit (discrete.functor (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2))]
-  [has_equalizers C] : has_limit F :=
-has_limit.mk
+  [has_equalizers C] : limit_cone F :=
 { cone := _,
   is_limit :=
     build_is_limit
@@ -101,6 +101,27 @@ has_limit.mk
       (limit.is_limit _)
       (limit.is_limit _)
       (limit.is_limit _) }
+
+/--
+Given the existence of the appropriate (possibly finite) products and equalizers, we know a limit of
+`F` exists.
+(This assumes the existence of all equalizers, which is technically stronger than needed.)
+-/
+lemma has_limit_of_equalizer_and_product (F : J ⥤ C)
+  [has_limit (discrete.functor F.obj)]
+  [has_limit (discrete.functor (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2))]
+  [has_equalizers C] : has_limit F :=
+has_limit.mk (limit_cone_of_equalizer_and_product F)
+
+/-- A limit can be realised as a subobject of a product. -/
+noncomputable
+def limit_subobject_product [has_limits C] (F : J ⥤ C) :
+  limit F ⟶ ∏ (λ j, F.obj j) :=
+(limit.iso_limit_cone (limit_cone_of_equalizer_and_product F)).hom ≫ equalizer.ι _ _
+
+instance limit_subobject_product_mono [has_limits C] (F : J ⥤ C) :
+  mono (limit_subobject_product F) :=
+mono_comp _ _
 
 /--
 Any category with products and equalizers has all limits.
@@ -244,14 +265,14 @@ open has_colimit_of_has_coproducts_of_has_coequalizers
 
 /--
 Given the existence of the appropriate (possibly finite) coproducts and coequalizers,
-we know a colimit of `F` exists.
+we can construct a colimit cocone for `F`.
 (This assumes the existence of all coequalizers, which is technically stronger than needed.)
 -/
-lemma has_colimit_of_coequalizer_and_coproduct (F : J ⥤ C)
+noncomputable
+def colimit_cocone_of_coequalizer_and_coproduct (F : J ⥤ C)
   [has_colimit (discrete.functor F.obj)]
   [has_colimit (discrete.functor (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.1))]
-  [has_coequalizers C] : has_colimit F :=
-has_colimit.mk
+  [has_coequalizers C] : colimit_cocone F :=
 { cocone := _,
   is_colimit :=
     build_is_colimit
@@ -262,6 +283,28 @@ has_colimit.mk
       (colimit.is_colimit _)
       (colimit.is_colimit _)
       (colimit.is_colimit _) }
+
+
+/--
+Given the existence of the appropriate (possibly finite) coproducts and coequalizers,
+we know a colimit of `F` exists.
+(This assumes the existence of all coequalizers, which is technically stronger than needed.)
+-/
+lemma has_colimit_of_coequalizer_and_coproduct (F : J ⥤ C)
+  [has_colimit (discrete.functor F.obj)]
+  [has_colimit (discrete.functor (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.1))]
+  [has_coequalizers C] : has_colimit F :=
+has_colimit.mk (colimit_cocone_of_coequalizer_and_coproduct F)
+
+/-- A colimit can be realised as a quotient of a coproduct. -/
+noncomputable
+def colimit_quotient_coproduct [has_colimits C] (F : J ⥤ C) :
+  ∐ (λ j, F.obj j) ⟶ colimit F :=
+coequalizer.π _ _ ≫ (colimit.iso_colimit_cocone (colimit_cocone_of_coequalizer_and_coproduct F)).inv
+
+instance colimit_quotient_coproduct_epi [has_colimits C] (F : J ⥤ C) :
+  epi (colimit_quotient_coproduct F) :=
+epi_comp _ _
 
 /--
 Any category with coproducts and coequalizers has all colimits.

@@ -222,12 +222,8 @@ end
 begin
   induction l with φ l ih,
   { simp },
-  { simp only [ih, list.foldr_cons, realize_sup, exists_prop, list.mem_cons_iff],
-    refine ⟨λ h, or.elim h (λ h, ⟨φ, or.intro_left _ rfl, h⟩)
-      (Exists.imp (λ φ, and.imp_left (or.intro_right _))), _⟩,
-    rintro ⟨ψ, (rfl | h1), h2⟩,
-    { exact or.intro_left _ h2 },
-    { exact or.intro_right _ ⟨ψ, h1, h2⟩ } }
+  { simp_rw [list.foldr_cons, realize_sup, ih, exists_prop, list.mem_cons_iff,
+      or_and_distrib_right, exists_or_distrib, exists_eq_left] }
 end
 
 @[simp] lemma realize_all : (all θ).realize v xs ↔ ∀ (a : M), (θ.realize v (fin.snoc xs a)) :=

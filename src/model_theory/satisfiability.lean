@@ -205,15 +205,8 @@ lemma is_satisfiable [nonempty M] : (L.complete_theory M).is_satisfiable :=
 Theory.model.is_satisfiable M
 
 lemma mem_or_not_mem (φ : L.sentence) :
-  φ ∈ (L.complete_theory M) ∨ (formula.not φ) ∈ (L.complete_theory M) :=
-begin
-  by_cases h : M ⊨ φ,
-  { exact or.intro_left _ h },
-  { right,
-    rw [complete_theory, set.mem_set_of_eq, sentence.realize, formula.realize_not,
-      ← sentence.realize],
-    exact h }
-end
+  φ ∈ L.complete_theory M ∨ φ.not ∈ L.complete_theory M :=
+by simp_rw [complete_theory, set.mem_set_of_eq, sentence.realize, formula.realize_not, or_not]
 
 lemma is_complete [nonempty M] : (L.complete_theory M).is_complete :=
 ⟨is_satisfiable L M,

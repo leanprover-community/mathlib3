@@ -163,4 +163,6 @@ lemma is_regular_T (n : ℤ) : is_regular (T n : R[T;T⁻¹]) :=
 ⟨is_left_regular_of_mul_eq_one (by simp [← T_add] : T (-n) * T n = 1),
   is_right_regular_of_mul_eq_one (by simp [← T_add] : T n * T (-n) = 1)⟩
 
+end semiring
+
 end laurent_polynomial

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
-import ring_theory.polynomial.cyclotomic.basic
+import ring_theory.polynomial.cyclotomic.eval
 import topology.algebra.polynomial
 import field_theory.finite.basic
 
@@ -23,27 +23,23 @@ open polynomial nat filter
 lemma exists_prime_ge_modeq_one (k n : ℕ) (hpos : 0 < k) :
   ∃ (p : ℕ), nat.prime p ∧ n ≤ p ∧ p ≡ 1 [MOD k] :=
 begin
-  have hli : tendsto (abs ∘ (λ (a : ℕ), |(a : ℚ)|)) at_top at_top,
-  { simp only [(∘), abs_cast],
-    exact nat.strict_mono_cast.monotone.tendsto_at_top_at_top exists_nat_ge },
-  have hcff : int.cast_ring_hom ℚ (cyclotomic k ℤ).leading_coeff ≠ 0,
-  { simp only [cyclotomic.monic, ring_hom.eq_int_cast, monic.leading_coeff, int.cast_one, ne.def,
-     not_false_iff, one_ne_zero] },
-  obtain ⟨a, ha⟩ := tendsto_at_top_at_top.1 (tendsto_abv_eval₂_at_top (int.cast_ring_hom ℚ)
-    abs (cyclotomic k ℤ) (degree_cyclotomic_pos k ℤ hpos) hcff hli) 2,
-  let b := a * (k * n.factorial),
-  have hgt : 1 < (eval ↑(a * (k * n.factorial)) (cyclotomic k ℤ)).nat_abs,
-  { suffices hgtabs : 1 < |eval ↑b (cyclotomic k ℤ)|,
-    { rw [int.abs_eq_nat_abs] at hgtabs,
-      exact_mod_cast hgtabs },
-    suffices hgtrat : 1 < |eval ↑b (cyclotomic k ℚ)|,
-    { rw [← map_cyclotomic_int k ℚ, ← int.cast_coe_nat, ← int.coe_cast_ring_hom, eval_map,
-        eval₂_hom, int.coe_cast_ring_hom] at hgtrat,
-      assumption_mod_cast },
-    suffices hleab : a ≤ b,
-    { replace ha := lt_of_lt_of_le one_lt_two (ha b hleab),
-      rwa [← eval_map, map_cyclotomic_int k ℚ, abs_cast] at ha },
-    exact le_mul_of_pos_right (mul_pos hpos (factorial_pos n)) },
+  let b := 3 * (k * n.factorial),
+  have hgt : 1 < (eval ↑b (cyclotomic k ℤ)).nat_abs,
+  { have hkey : ∀ l : ℕ, 2 < 3 * (l.succ * n.factorial),
+    from λ l, lt_mul_of_lt_of_one_le (2 : ℕ).lt_succ_self
+      (le_mul_of_le_of_le_one (nat.succ_pos _) n.factorial_pos),
+    rcases k with _ | _ | k,
+    { simpa using hpos, },
+    { simp only [one_mul, int.coe_nat_mul, int.coe_nat_succ, int.coe_nat_zero, zero_add,
+        cyclotomic_one, eval_sub, eval_X, eval_one],
+      convert int.nat_abs_lt_nat_abs_of_nonneg_of_lt int.one_nonneg _,
+      rw lt_sub_iff_add_lt,
+      specialize hkey 0,
+      norm_cast,
+      rwa one_mul at hkey, },
+    calc 1 ≤ _ : by { rw le_tsub_iff_left (one_le_two.trans (hkey _).le), exact (hkey _).le, }
+       ... < _ : sub_one_lt_nat_abs_cyclotomic_eval (one_lt_succ_succ k)
+                   (one_lt_two.trans (hkey k.succ)).ne.symm, },
   let p := min_fac (eval ↑b (cyclotomic k ℤ)).nat_abs,
   haveI hprime : fact p.prime := ⟨min_fac_prime (ne_of_lt hgt).symm⟩,
   have hroot : is_root (cyclotomic k (zmod p)) (cast_ring_hom (zmod p) b),

@@ -18,6 +18,14 @@ In this file we provide the following non-instances on matrices, using the eleme
 
 These are not declared as instances because there are several natural choices for defining the norm
 of a matrix.
+
+We also provide definitions of the frobenius norm, again not declared as instances:
+
+* `matrix.frobenius_semi_normed_group`
+* `matrix.frobenius_normed_group`
+* `matrix.frobenius_normed_space`
+* `matrix.frobenius_normed_ring`
+* `matrix.frobenius_normed_algebra`
 -/
 
 noncomputable theory
@@ -199,7 +207,7 @@ begin
     dsimp,
     simp_rw diagonal_apply_eq },
   { suffices : i.1 ≠ i.2,
-    { rw [diagonal_apply_ne this, nnnorm_zero, nnreal.zero_rpow two_ne_zero], },
+    { rw [diagonal_apply_ne _ this, nnnorm_zero, nnreal.zero_rpow two_ne_zero], },
     intro h,
     exact finset.mem_map.not.mp his ⟨i.1, finset.mem_univ _, prod.ext rfl h⟩ }
 end

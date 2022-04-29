@@ -19,7 +19,7 @@ extended to the localization `S⁻¹A`.
 variables
   {A : Type*} [comm_ring A]
   {Γ : Type*} [linear_ordered_comm_group_with_zero Γ] (v : valuation A Γ)
-  (S : submonoid A) (hS : S ≤ v.supp.prime_compl)
+  {S : submonoid A} (hS : S ≤ v.supp.prime_compl)
   (B : Type*) [comm_ring B] [algebra A B] [is_localization S B]
 
 /-- We can extend a valuation `v` on a ring to a localization at a submonoid of
@@ -45,5 +45,5 @@ let f := is_localization.to_localization_map S B,
 
 @[simp]
 lemma valuation.extend_to_localization_apply_map_apply (a : A) :
-  v.extend_to_localization S hS B (algebra_map A B a) = v a :=
+  v.extend_to_localization hS B (algebra_map A B a) = v a :=
 submonoid.localization_map.lift_eq _ _ a

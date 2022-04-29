@@ -289,7 +289,7 @@ end has_continuous_smul
 /-! ### Normed vector space -/
 
 section normed_space
-variables [semi_normed_group E] [normed_space ℝ E] {s : set E}
+variables [semi_normed_group E] [normed_space ℝ E] {s t : set E}
 
 /-- The norm on a real normed space is convex on any convex set. See also `seminorm.convex_on`
 and `convex_on_univ_norm`. -/
@@ -318,7 +318,7 @@ lemma convex_closed_ball (a : E) (r : ℝ) : convex ℝ (metric.closed_ball a r)
 by simpa only [metric.closed_ball, sep_univ] using (convex_on_univ_dist a).convex_le r
 
 lemma convex.thickening (hs : convex ℝ s) (ε : ℝ) : convex ℝ (thickening ε s) :=
-by { rw ←add_ball, exact hs.add (convex_ball 0 _) }
+by { rw ←add_ball_zero, exact hs.add (convex_ball 0 _) }
 
 lemma convex.cthickening (hs : convex ℝ s) (ε : ℝ) : convex ℝ (cthickening ε s) :=
 begin
@@ -334,7 +334,7 @@ disjoint convex sets containing them. -/
 -- TODO: This proof uses the normed space structure of `E`, but it could work for locally convex
 -- topological vector spaces: instead of looking at thickenings, we could show there must be some
 -- convex neighbourhood `u` of 0 which make `s + u` and `t + u` disjoint?
-lemma exists_disjoint_open_convexes {s t : set E} (hs₁ : convex ℝ s) (hs₂ : is_compact s)
+lemma exists_disjoint_open_convexes (hs₁ : convex ℝ s) (hs₂ : is_compact s)
   (ht₁ : convex ℝ t) (ht₂ : is_closed t) (disj : disjoint s t) :
   ∃ u v, is_open u ∧ is_open v ∧ convex ℝ u ∧ convex ℝ v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
 let ⟨ε, hε, hst⟩ := exists_disjoint_thickenings hs₂ ht₂ disj in

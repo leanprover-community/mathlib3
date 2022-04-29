@@ -107,16 +107,18 @@ induction_on_irreducible a
       by { rw multiset.prod_cons,
            exact hs.2.mul_left _ }⟩⟩)
 
-lemma exists_factors_eq (a : α) (hn0 : a ≠ 0) (hnu : ¬ is_unit a) :
-  ∃ (f : multiset α), (∀ (b : α), b ∈ f → irreducible b) ∧ f.prod = a :=
-begin
-  obtain ⟨P, hi, u, rfl⟩ := exists_factors a hn0,
-  obtain ⟨p, h⟩ := multiset.exists_mem_of_ne_zero (λ h : P = 0, hnu $ by simp [h]),
-  classical, use (P.erase p).cons (p * u), split,
-  { intros a ha, rcases multiset.mem_cons.1 ha with (rfl|ha),
-    exacts [associated.irreducible ⟨u,rfl⟩ (hi p h), hi a (multiset.mem_of_mem_erase ha)] },
-  { rw [multiset.prod_cons, mul_comm p, mul_assoc, multiset.prod_erase h, mul_comm] },
-end
+lemma not_unit_iff_exists_factors_eq (a : α) (hn0 : a ≠ 0) :
+  ¬ is_unit a ↔ ∃ f : multiset α, (∀ b ∈ f, irreducible b) ∧ f.prod = a ∧ f ≠ ∅ :=
+⟨λ hnu, begin
+  obtain ⟨f, hi, u, rfl⟩ := exists_factors a hn0,
+  obtain ⟨b, h⟩ := multiset.exists_mem_of_ne_zero (λ h : f = 0, hnu $ by simp [h]),
+  classical, refine ⟨(f.erase b).cons (b * u), λ a ha, _, _, multiset.cons_ne_zero⟩,
+  { obtain (rfl|ha) := multiset.mem_cons.1 ha,
+    exacts [associated.irreducible ⟨u,rfl⟩ (hi b h), hi a (multiset.mem_of_mem_erase ha)] },
+  { rw [multiset.prod_cons, mul_comm b, mul_assoc, multiset.prod_erase h, mul_comm] },
+end,
+λ ⟨f,hi,he,hne⟩, let ⟨b, h⟩ := multiset.exists_mem_of_ne_zero hne in
+  not_is_unit_of_not_is_unit_dvd (hi b h).not_unit (he.subst $ multiset.dvd_prod h)⟩
 
 end wf_dvd_monoid
 

@@ -1840,16 +1840,14 @@ lemma comap_domain_single {a : α} {m : M} (hif : set.inj_on f (f ⁻¹' (single
 begin
   by_cases m0 : m = 0,
   { have : (( _ : α →₀ M) = _) := comap_domain_zero f,
-    simpa [m0] },
+    simpa only [m0, single_zero] },
   { ext x,
-    rw [comap_domain_apply, single, coe_mk, single, coe_mk],
     by_cases hx : a = x,
-    { simp [hx] },
-    { rw [if_neg hx, ite_eq_right_iff],
-      intros ax,
-      refine (hx _).elim,
-      rwa [set.inj_on.eq_iff hif] at ax,
-      { simpa },
+    { simp only [hx, comap_domain_apply, single_eq_same] },
+    { rw [comap_domain_apply, single, coe_mk, single, coe_mk, if_neg hx, ite_eq_right_iff],
+      refine λ ax, (hx _).elim,
+      refine (set.inj_on.eq_iff hif _ _).mp ax,
+      { simpa only [set.mem_preimage, mem_coe, mem_support_iff, single_eq_same] },
       { rw [set.mem_preimage, mem_coe, mem_support_single],
         exact ⟨ax.symm, m0⟩ } } }
 end

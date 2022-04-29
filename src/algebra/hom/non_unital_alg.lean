@@ -189,7 +189,75 @@ def inverse (f : A →ₙₐ[R] B) (g : B → A)
   (inverse f g h₁ h₂ : B → A) = g :=
 rfl
 
+/-! ### Operations on the product type
+
+Note that much of this is copied from [`linear_algebra/prod`](../../linear_algebra/prod). -/
+
+section prod
+
+variables (R A B)
+/-- The first projection of a product is a non-unital alg_hom. -/
+@[simps]
+def fst : A × B →ₙₐ[R] A :=
+{ to_fun := prod.fst,
+  map_zero' := rfl, map_add' := λ x y, rfl, map_smul' := λ x y, rfl, map_mul' := λ x y, rfl }
+
+/-- The second projection of a product is a non-unital alg_hom. -/
+@[simps]
+def snd : A × B →ₙₐ[R] B :=
+{ to_fun := prod.snd,
+  map_zero' := rfl, map_add' := λ x y, rfl, map_smul' := λ x y, rfl, map_mul' := λ x y, rfl }
+
+variables {R A B}
+
+/-- The prod of two morphisms is a morphism. -/
+@[simps] def prod (f : A →ₙₐ[R] B) (g : A →ₙₐ[R] C) : (A →ₙₐ[R] B × C) :=
+{ to_fun    := pi.prod f g,
+  map_zero' := by simp only [pi.prod, prod.zero_eq_mk, map_zero],
+  map_add'  := λ x y, by simp only [pi.prod, prod.mk_add_mk, map_add],
+  map_mul'  := λ x y, by simp only [pi.prod, prod.mk_mul_mk, map_mul],
+  map_smul' := λ c x, by simp only [pi.prod, prod.smul_mk, map_smul, ring_hom.id_apply] }
+
+lemma coe_prod (f : A →ₙₐ[R] B) (g : A →ₙₐ[R] C) : ⇑(f.prod g) = pi.prod f g := rfl
+
+@[simp] theorem fst_prod (f : A →ₙₐ[R] B) (g : A →ₙₐ[R] C) :
+  (fst R B C).comp (prod f g) = f := by ext; refl
+
+@[simp] theorem snd_prod (f : A →ₙₐ[R] B) (g : A →ₙₐ[R] C) :
+  (snd R B C).comp (prod f g) = g := by ext; refl
+
+@[simp] theorem prod_fst_snd : prod (fst R A B) (snd R A B) = 1 :=
+coe_injective pi.prod_fst_snd
+
+/-- Taking the product of two maps with the same domain is equivalent to taking the product of
+their codomains. -/
+@[simps] def prod_equiv : ((A →ₙₐ[R] B) × (A →ₙₐ[R] C)) ≃ (A →ₙₐ[R] B × C) :=
+{ to_fun := λ f, f.1.prod f.2,
+  inv_fun := λ f, ((fst _ _ _).comp f, (snd _ _ _).comp f),
+  left_inv := λ f, by ext; refl,
+  right_inv := λ f, by ext; refl }
+
+variables (R A B)
+
+/-- The left injection into a product is a non-unital algebra homomorphism. -/
+def inl : A →ₙₐ[R] A × B := prod 1 0
+
+/-- The right injection into a product is a non-unital algebra homomorphism. -/
+def inr : B →ₙₐ[R] A × B := prod 0 1
+
+variables {R A B}
+
+@[simp] theorem coe_inl : (inl R A B : A → A × B) = λ x, (x, 0) := rfl
+theorem inl_apply (x : A) : inl R A B x = (x, 0) := rfl
+
+@[simp] theorem coe_inr : (inr R A B : B → A × B) = prod.mk 0 := rfl
+theorem inr_apply (x : B) : inr R A B x = (0, x) := rfl
+
+end prod
+
 end non_unital_alg_hom
+
+/-! ### Interaction with `alg_hom` -/
 
 namespace alg_hom
 

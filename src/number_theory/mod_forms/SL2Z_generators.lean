@@ -7,6 +7,9 @@ import .mod_group
 
 /-  This is an attemmatrix_makrto update the kbb birthday repo, so most is not orginal to me-/
 
+@[simp] lemma not_one_lt_zero {α : Type*} [linear_ordered_semiring α] : ¬ (1:α) < 0 :=
+not_lt_of_gt zero_lt_one
+
 namespace int
 
 theorem mul_eq_one {m n : ℤ} :
@@ -177,7 +180,7 @@ end
 lemma fixlem (m : ℤ) (A : Mat m) :
   A 0 0 + -(A 0 0/ A 1 0)*( A 1 0)= A 0 0 % A 1 0:=
 begin
-  simp,
+  simp ,
   rw  ← sub_eq_add_neg,
   rw mul_comm,
   rw  ← int.mod_def,
@@ -342,8 +345,8 @@ begin
       have a_pos : -A 0 0 > 0 := neg_pos_of_neg (lt_of_le_of_ne (le_of_not_gt ha) a_ne),
        simp only [reduce_eq2, reps, c_eq, ha, eq, true_and, T_pow_c, T_pow_a, add_zero,
         int.div_neg, one_mul,  modular_group.SLnZ_M_c,  modular_group.SLnZ_M_b,
-        S_mul_c, right.neg_pos_iff, zero_mul, int.nat_abs_neg, int.nat_abs_eq_zero,
-        eq_self_iff_true, S_mul_a, mul_neg,  modular_group.SLnZ_M_a, zero_add, not_false_iff,
+        S_mul_c, right.neg_pos_iff, zero_mul, int.nat_abs_neg, int.nat_abs_eq_zero, eq_self_iff_true,
+        S_mul_a, mul_neg,  modular_group.SLnZ_M_a, zero_add, not_false_iff,
         modular_group.SLnZ_M_d, neg_neg, int.nat_abs, set.mem_set_of_eq,
         reduce_eq2, mul_zero, S_mul_d, T_pow_d, neg_zero, S_mul_b, T_pow_b],
       rw S_a,

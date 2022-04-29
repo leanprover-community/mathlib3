@@ -471,9 +471,6 @@ apply_nolint pi.has_faithful_scalar_at to_additive_doc
 -- group_theory/group_action/sub_mul_action.lean
 apply_nolint sub_mul_action.has_zero fails_quickly
 
--- group_theory/monoid_localization.lean
-apply_nolint submonoid.localization_map.lift_left_inverse to_additive_doc
-
 -- group_theory/order_of_element.lean
 apply_nolint image_range_order_of to_additive_doc
 apply_nolint is_of_fin_order_iff_coe to_additive_doc

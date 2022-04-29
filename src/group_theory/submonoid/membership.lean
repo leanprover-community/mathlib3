@@ -285,14 +285,17 @@ lemma closure_eq_mrange (s : set M) : closure s = (free_monoid.lift (coe : s →
 by rw [mrange_eq_map, ← free_monoid.closure_range_of, map_mclosure, ← set.range_comp,
   free_monoid.lift_comp_of, subtype.range_coe]
 
+@[to_additive] lemma closure_eq_image_prod (s : set M) :
+  (closure s : set M) = list.prod '' {l : list M | ∀ x ∈ l, x ∈ s} :=
+begin
+  rw [closure_eq_mrange, coe_mrange, ← list.range_map_coe, ← set.range_comp],
+  refl
+end
+
 @[to_additive]
 lemma exists_list_of_mem_closure {s : set M} {x : M} (hx : x ∈ closure s) :
   ∃ (l : list M) (hl : ∀ y ∈ l, y ∈ s), l.prod = x :=
-begin
-  rw [closure_eq_mrange, mem_mrange] at hx,
-  rcases hx with ⟨l, hx⟩,
-  exact ⟨list.map coe l, λ y hy, let ⟨z, hz, hy⟩ := list.mem_map.1 hy in hy ▸ z.2, hx⟩
-end
+by rwa [← set_like.mem_coe, closure_eq_image_prod, set.mem_image_iff_bex] at hx
 
 @[to_additive]
 lemma exists_multiset_of_mem_closure {M : Type*} [comm_monoid M] {s : set M}

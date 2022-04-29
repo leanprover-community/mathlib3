@@ -898,6 +898,9 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 instance : has_sub pgame := ⟨λ x y, x + -y⟩
 
+@[simp] theorem sub_zero (x : pgame) : x - 0 = x + 0 :=
+show x + -0 = x + 0, by rw pgame.neg_zero
+
 /-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
 then `w - y` has the same moves as `x - z`. -/
 def relabelling.sub_congr {w x y z : pgame}

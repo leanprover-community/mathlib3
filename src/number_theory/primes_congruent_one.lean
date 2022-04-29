@@ -5,8 +5,6 @@ Authors: Riccardo Brasca
 -/
 
 import ring_theory.polynomial.cyclotomic.eval
-import topology.algebra.polynomial
-import field_theory.finite.basic
 
 /-!
 # Primes congruent to one

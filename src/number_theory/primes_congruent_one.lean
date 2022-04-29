@@ -18,7 +18,7 @@ namespace nat
 open polynomial nat filter
 
 /-- For any positive `k : ℕ` there are infinitely many primes `p` such that `p ≡ 1 [MOD k]`. -/
-lemma exists_prime_ge_modeq_one (k n : ℕ) (hpos : 0 < k) :
+lemma exists_prime_ge_modeq_one {k : ℕ} (n : ℕ) (hpos : 0 < k) :
   ∃ (p : ℕ), nat.prime p ∧ n ≤ p ∧ p ≡ 1 [MOD k] :=
 begin
   let b := 3 * (k * n.factorial),
@@ -60,16 +60,16 @@ begin
     exact ((modeq_iff_dvd' hprime.1.pos).2 hdiv).symm }
 end
 
-lemma frequently_at_top_modeq_one (k : ℕ) (hpos : 0 < k) :
+lemma frequently_at_top_modeq_one {k : ℕ} (hpos : 0 < k) :
   ∃ᶠ p in at_top, nat.prime p ∧ p ≡ 1 [MOD k] :=
 begin
   refine frequently_at_top.2 (λ n, _),
-  obtain ⟨p, hp⟩ := exists_prime_ge_modeq_one k n hpos,
+  obtain ⟨p, hp⟩ := exists_prime_ge_modeq_one n hpos,
   exact ⟨p, ⟨hp.2.1, hp.1, hp.2.2⟩⟩
 end
 
-lemma infinite_set_of_prime_modeq_one (k : ℕ) (hpos : 0 < k) :
+lemma infinite_set_of_prime_modeq_one {k : ℕ} (hpos : 0 < k) :
   set.infinite {p : ℕ | nat.prime p ∧ p ≡ 1 [MOD k]} :=
-frequently_at_top_iff_infinite.1 (frequently_at_top_modeq_one k hpos)
+frequently_at_top_iff_infinite.1 (frequently_at_top_modeq_one hpos)
 
 end nat

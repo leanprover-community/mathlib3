@@ -103,10 +103,8 @@ theorem numeric_zero : numeric 0 :=
 theorem numeric_one : numeric 1 :=
 ⟨by rintros ⟨⟩ ⟨⟩, ⟨λ x, numeric_zero, by rintros ⟨⟩⟩⟩
 
-theorem numeric_neg : Π {x : pgame} (o : numeric x), numeric (-x)
-| ⟨l, r, L, R⟩ o :=
-⟨λ j i, lt_iff_neg_gt.1 (o.1 i j),
-  ⟨λ j, numeric_neg (o.2.2 j), λ i, numeric_neg (o.2.1 i)⟩⟩
+theorem numeric.neg : Π {x : pgame} (o : numeric x), numeric (-x)
+| ⟨l, r, L, R⟩ o := ⟨λ j i, lt_iff_neg_gt.1 (o.1 i j), λ j, (o.2.2 j).neg, λ i, (o.2.1 i).neg⟩
 
 /-- For the `<` version, see `pgame.move_left_lt`. -/
 theorem numeric.move_left_le {x : pgame} (o : numeric x) (i : x.left_moves) :
@@ -151,7 +149,7 @@ begin
             ... ≤ x + z : add_le_add_left hjy _ },
 end
 
-theorem numeric_add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeric (x + y)
+theorem numeric.add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeric (x + y)
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ox oy :=
 ⟨begin
    rintros (ix|iy) (jx|jy),
@@ -167,18 +165,20 @@ theorem numeric_add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeri
  begin
    split,
    { rintros (ix|iy),
-     { apply numeric_add (ox.move_left ix) oy, },
-     { apply numeric_add ox (oy.move_left iy), }, },
+     { exact (ox.move_left ix).add oy },
+     { exact ox.add (oy.move_left iy) } },
    { rintros (jx|jy),
-     { apply numeric_add (ox.move_right jx) oy, },
-     { apply numeric_add ox (oy.move_right jy), }, },
+     { apply (ox.move_right jx).add oy },
+     { apply ox.add (oy.move_right jy) } }
  end⟩
 using_well_founded { dec_tac := pgame_wf_tac }
+
+lemma numeric.sub {x y : pgame} (ox : numeric x) (oy : numeric y) : numeric (x - y) := ox.add oy.neg
 
 /-- Pre-games defined by natural numbers are numeric. -/
 theorem numeric_nat : Π (n : ℕ), numeric n
 | 0 := numeric_zero
-| (n + 1) := numeric_add (numeric_nat n) numeric_one
+| (n + 1) := (numeric_nat n).add numeric_one
 
 /-- The pre-game omega is numeric. -/
 theorem numeric_omega : numeric omega :=
@@ -281,14 +281,14 @@ by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; exact not_le
 the sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 def add : surreal → surreal → surreal :=
 surreal.lift₂
-  (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, numeric_add ox oy⟩⟧)
+  (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, ox.add oy⟩⟧)
   (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound (pgame.add_congr hx hy))
 
 /-- Negation for surreal numbers is inherited from pre-game negation:
 the negation of `{L | R}` is `{-R | -L}`. -/
 def neg : surreal → surreal :=
 surreal.lift
-  (λ x ox, ⟦⟨-x, pgame.numeric_neg ox⟩⟧)
+  (λ x ox, ⟦⟨-x, ox.neg⟩⟧)
   (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))
 
 instance : has_le surreal   := ⟨le⟩

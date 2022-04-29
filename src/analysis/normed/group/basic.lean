@@ -256,6 +256,9 @@ lemma norm_le_add_norm_add (u v : E) :
 calc ∥u∥ = ∥u + v - v∥ : by rw add_sub_cancel
 ... ≤ ∥u + v∥ + ∥v∥ : norm_sub_le _ _
 
+lemma ball_eq (y : E) (ε : ℝ) : metric.ball y ε = { x | ∥x - y∥ < ε} :=
+by { ext, simp [dist_eq_norm], }
+
 lemma ball_zero_eq (ε : ℝ) : ball (0 : E) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
@@ -424,6 +427,20 @@ by simp_rw [metric.tendsto_nhds_nhds, dist_eq_norm]
 lemma normed_group.cauchy_seq_iff [nonempty α] [semilattice_sup α] {u : α → E} :
   cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m, N ≤ m → ∀ n, N ≤ n → ∥u m - u n∥ < ε :=
 by simp [metric.cauchy_seq_iff, dist_eq_norm]
+
+lemma normed_group.nhds_basis_norm_lt (x : E) :
+  (𝓝 x).has_basis (λ (ε : ℝ), 0 < ε) (λ (ε : ℝ), { y | ∥y - x∥ < ε }) :=
+begin
+  simp_rw ← ball_eq,
+  exact metric.nhds_basis_ball,
+end
+
+lemma normed_group.nhds_zero_basis_norm_lt :
+  (𝓝 (0 : E)).has_basis (λ (ε : ℝ), 0 < ε) (λ (ε : ℝ), { y | ∥y∥ < ε }) :=
+begin
+  convert normed_group.nhds_basis_norm_lt (0 : E),
+  simp,
+end
 
 lemma normed_group.uniformity_basis_dist :
   (𝓤 E).has_basis (λ (ε : ℝ), 0 < ε) (λ ε, {p : E × E | ∥p.fst - p.snd∥ < ε}) :=

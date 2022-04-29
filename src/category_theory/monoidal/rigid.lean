@@ -75,9 +75,9 @@ notation `η_` := exact_pairing.coevaluation
 notation `ε_` := exact_pairing.evaluation
 
 restate_axiom coevaluation_evaluation'
-attribute [reassoc, simp] exact_pairing.coevaluation_evaluation
+attribute [simp, reassoc] exact_pairing.coevaluation_evaluation
 restate_axiom evaluation_coevaluation'
-attribute [reassoc, simp] exact_pairing.evaluation_coevaluation
+attribute [simp, reassoc] exact_pairing.evaluation_coevaluation
 
 instance exact_pairing_unit : exact_pairing (𝟙_ C) (𝟙_ C) :=
 { coevaluation := (ρ_ _).inv,
@@ -225,6 +225,60 @@ begin
   repeat { rw category.assoc },
   rw [triangle_assoc_comp_left_inv_assoc, ←right_unitor_tensor_assoc,
     right_unitor_naturality_assoc, ←unitors_equal, ←category.assoc, ←category.assoc], simp
+end
+
+/-- Transport an exact pairing across an isomorphism in the first argument. -/
+def exact_pairing_congr_left {X X' Y : C} [exact_pairing X' Y] (i : X ≅ X') : exact_pairing X Y :=
+{ evaluation := (𝟙 Y ⊗ i.hom) ≫ ε_ _ _,
+  coevaluation := η_ _ _ ≫ (i.inv ⊗ 𝟙 Y),
+  evaluation_coevaluation' := begin
+    rw [id_tensor_comp, comp_tensor_id],
+    slice_lhs 2 3 { rw [associator_naturality], },
+    slice_lhs 3 4 { rw [tensor_id, tensor_id_comp_id_tensor, ←id_tensor_comp_tensor_id], },
+    slice_lhs 4 5 { rw [tensor_id_comp_id_tensor, ←id_tensor_comp_tensor_id], },
+    slice_lhs 2 3 { rw [←associator_naturality], },
+    slice_lhs 1 2 { rw [tensor_id, tensor_id_comp_id_tensor, ←id_tensor_comp_tensor_id], },
+    slice_lhs 2 4 { rw [evaluation_coevaluation], },
+    slice_lhs 1 2 { rw [left_unitor_naturality], },
+    slice_lhs 3 4 { rw [←right_unitor_inv_naturality], },
+    simp,
+  end,
+  coevaluation_evaluation' := begin
+    rw [id_tensor_comp, comp_tensor_id],
+    simp only [iso.inv_hom_id_assoc, associator_conjugation, category.assoc],
+    slice_lhs 2 3 { rw [←tensor_comp], simp, },
+    simp,
+  end, }
+
+/-- Transport an exact pairing across an isomorphism in the second argument. -/
+def exact_pairing_congr_right {X Y Y' : C} [exact_pairing X Y'] (i : Y ≅ Y') : exact_pairing X Y :=
+{ evaluation := (i.hom ⊗ 𝟙 X) ≫ ε_ _ _,
+  coevaluation := η_ _ _ ≫ (𝟙 X ⊗ i.inv),
+  evaluation_coevaluation' := begin
+    rw [id_tensor_comp, comp_tensor_id],
+    simp only [iso.inv_hom_id_assoc, associator_conjugation, category.assoc],
+    slice_lhs 3 4 { rw [←tensor_comp], simp, },
+    simp,
+  end,
+  coevaluation_evaluation' := begin
+    rw [id_tensor_comp, comp_tensor_id],
+    slice_lhs 3 4 { rw [←associator_inv_naturality], },
+    slice_lhs 2 3 { rw [tensor_id, id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor], },
+    slice_lhs 1 2 { rw [id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor], },
+    slice_lhs 3 4 { rw [associator_inv_naturality], },
+    slice_lhs 4 5 { rw [tensor_id, id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor], },
+    slice_lhs 2 4 { rw [coevaluation_evaluation], },
+    slice_lhs 1 2 { rw [right_unitor_naturality], },
+    slice_lhs 3 4 { rw [←left_unitor_inv_naturality], },
+    simp,
+  end, }
+
+/-- Transport an exact pairing across isomorphisms. -/
+def exact_pairing_congr {X X' Y Y' : C} [exact_pairing X' Y'] (i : X ≅ X') (j : Y ≅ Y') :
+  exact_pairing X Y :=
+begin
+  haveI : exact_pairing X' Y := exact_pairing_congr_right j,
+  exact exact_pairing_congr_left i,
 end
 
 /-- Right duals are isomorphic. -/

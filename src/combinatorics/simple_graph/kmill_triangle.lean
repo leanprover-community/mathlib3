@@ -104,10 +104,8 @@ begin
   rw [← abs_norm_eq_norm f, ← abs_norm_eq_norm g, ← abs_mul,
     pi_Lp.inner_apply, is_R_or_C.abs_to_real] at this,
   convert sq_le_sq this using 1,
-  rw mul_pow,
-  iterate 2 { rw [euclidean_space.norm_eq, real.sq_sqrt] },
-  { congr; simp only [is_R_or_C.norm_eq_abs, is_R_or_C.abs_to_real, pow_bit0_abs], },
-  iterate 2 { exact finset.sum_nonneg' (λ _, sq_nonneg _) },
+  simp_rw [mul_pow, ← real_inner_self_eq_norm_sq],
+  simp only [sq, pi_Lp.inner_apply, is_R_or_C.inner_apply, is_R_or_C.conj_to_real],
 end
 
 lemma cauchy_schwarz_nat {α : Type*} [fintype α] (f g : α → ℕ) :

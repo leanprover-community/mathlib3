@@ -70,8 +70,17 @@ by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ 
 def lt : game → game → Prop :=
 quotient.lift₂ (λ x y, x < y) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx hy))
 
-theorem not_le : ∀ {x y : game}, ¬ (x ≤ y) ↔ (lt y x) :=
+@[simp] theorem not_le : ∀ {x y : game}, ¬ x ≤ y ↔ lt y x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact not_le }
+
+@[simp] theorem not_lt : ∀ {x y : game}, ¬ lt x y ↔ y ≤ x :=
+by { rintro ⟨x⟩ ⟨y⟩, exact not_lt }
+
+theorem lt_or_eq_of_le : ∀ {x y : game}, x ≤ y → lt x y ∨ x = y :=
+by { rintro ⟨x⟩ ⟨y⟩, change _ → _ ∨ ⟦x⟧ = ⟦y⟧, rw quotient.eq, exact lt_or_equiv_of_le }
+
+instance : is_trichotomous _ lt :=
+⟨by { rintro ⟨x⟩ ⟨y⟩, change _ ∨ ⟦x⟧ = ⟦y⟧ ∨ _, rw quotient.eq, apply lt_or_equiv_or_gt }⟩
 
 instance : has_zero game := ⟨⟦0⟧⟩
 instance : inhabited game := ⟨0⟩

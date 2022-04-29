@@ -508,6 +508,19 @@ theorem le_congr {x₁ y₁ x₂ y₂} : x₁ ≈ x₂ → y₁ ≈ y₂ → (x�
 theorem lt_congr {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ < y₁ ↔ x₂ < y₂ :=
 not_le.symm.trans $ (not_congr (le_congr hy hx)).trans not_le
 
+theorem lt_or_equiv_of_le {x y : pgame} (h : x ≤ y) : x < y ∨ x ≈ y :=
+or_iff_not_imp_left.2 $ λ h', ⟨h, not_lt.1 h'⟩
+
+theorem lt_or_equiv_or_gt (x y : pgame) : x < y ∨ x ≈ y ∨ y < x :=
+begin
+  by_cases h : x < y,
+  { exact or.inl h },
+  { right,
+    cases (lt_or_equiv_of_le (not_lt.1 h)) with h' h',
+    { exact or.inr h' },
+    { exact or.inl h'.symm } }
+end
+
 theorem equiv_congr_left {y₁ y₂} : y₁ ≈ y₂ ↔ ∀ x₁, x₁ ≈ y₁ ↔ x₁ ≈ y₂ :=
 ⟨λ h x₁, ⟨λ h', equiv_trans h' h, λ h', equiv_trans h' (equiv_symm h)⟩,
  λ h, (h y₁).1 $ equiv_refl _⟩

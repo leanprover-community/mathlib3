@@ -80,6 +80,10 @@ begin
   exact (map_domain_alg_hom R R (nat.cast_add_monoid_hom ℤ)),
 end
 
+@[simp]
+lemma polynomial.to_laurent_alg_apply [comm_semiring R] (f : R[X]) :
+  f.to_laurent_alg = f.to_laurent := rfl
+
 namespace laurent_polynomial
 
 section semiring

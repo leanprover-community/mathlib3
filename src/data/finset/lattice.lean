@@ -908,27 +908,26 @@ begin
   exact s.min'_lt_max' ha hb hab
 end
 
-lemma max'_eq_of_dual_min' {s : finset α} (hs : s.nonempty) :
-  max' s hs = of_dual (min' (image to_dual s) (nonempty.image hs to_dual)) :=
-begin
-  rw [of_dual, to_dual, equiv.coe_fn_mk, equiv.coe_fn_symm_mk, id.def],
-  simp_rw (@image_id (order_dual α) (s : finset (order_dual α))),
-  refl,
-end
+lemma of_dual_min' {s : finset (order_dual α)} (hs : s.nonempty) :
+  of_dual (min' s hs) = max' (s.image of_dual) (hs.image _) :=
+by { convert rfl, exact image_id }
 
-lemma min'_eq_of_dual_max' {s : finset α} (hs : s.nonempty) :
-  min' s hs = of_dual (max' (image to_dual s) (nonempty.image hs to_dual)) :=
-begin
-  rw [of_dual, to_dual, equiv.coe_fn_mk, equiv.coe_fn_symm_mk, id.def],
-  simp_rw (@image_id (order_dual α) (s : finset (order_dual α))),
-  refl,
-end
+lemma of_dual_max' {s : finset (order_dual α)} (hs : s.nonempty) :
+  of_dual (max' s hs) = min' (s.image of_dual) (hs.image _) :=
+by { convert rfl, exact image_id }
 
-@[simp] lemma of_dual_max_eq_min_of_dual {a b : α} :
-  of_dual (max a b) = min (of_dual a) (of_dual b) := rfl
+lemma to_dual_min' {s : finset α} (hs : s.nonempty) :
+  to_dual (min' s hs) = max' (s.image to_dual) (hs.image _) :=
+by { convert rfl, exact image_id }
 
-@[simp] lemma of_dual_min_eq_max_of_dual {a b : α} :
-  of_dual (min a b) = max (of_dual a) (of_dual b) := rfl
+lemma to_dual_max' {s : finset α} (hs : s.nonempty) :
+  to_dual (max' s hs) = min' (s.image to_dual) (hs.image _) :=
+by { convert rfl, exact image_id }
+
+@[simp] lemma of_dual_min (a b : α) : of_dual (min a b) = max (of_dual a) (of_dual b) := rfl
+@[simp] lemma of_dual_max (a b : α) : of_dual (max a b) = min (of_dual a) (of_dual b) := rfl
+@[simp] lemma to_dual_min (a b) : to_dual (min a b) = max (to_dual a : α) (to_dual b) := rfl
+@[simp] lemma to_dual_max (a b) : to_dual (max a b) = min (to_dual a : α) (to_dual b) := rfl
 
 lemma max'_subset {s t : finset α} (H : s.nonempty) (hst : s ⊆ t) :
   s.max' H ≤ t.max' (H.mono hst) :=

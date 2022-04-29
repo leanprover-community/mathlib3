@@ -357,14 +357,9 @@ protected lemma bijective : function.bijective e := e.to_equiv.bijective
 protected lemma injective : function.injective e := e.to_equiv.injective
 protected lemma surjective : function.surjective e := e.to_equiv.surjective
 
-lemma bijective_to_linear_map : function.bijective e.to_linear_map :=
-  eq.substr (coe_to_linear_map e) e.bijective
-  
-lemma injective_to_linear_map : function.injective e.to_linear_map :=
-  eq.substr (coe_to_linear_map e) e.injective
-
-lemma surjective_to_linear_map : function.surjective e.to_linear_map :=
-  eq.substr (coe_to_linear_map e) e.surjective
+lemma bijective_to_linear_map : function.bijective e.to_linear_map := e.bijective
+lemma injective_to_linear_map : function.injective e.to_linear_map := e.injective
+lemma surjective_to_linear_map : function.surjective e.to_linear_map := e.surjective
 
 protected lemma image_eq_preimage (s : set M) : e '' s = e.symm ⁻¹' s :=
 e.to_equiv.image_eq_preimage s

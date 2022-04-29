@@ -81,6 +81,9 @@ instance fintype : Π (n : ℕ) [fact (0 < n)], fintype (zmod n)
 | 0     h := false.elim $ nat.not_lt_zero 0 h.1
 | (n+1) _ := fin.fintype (n+1)
 
+instance infinite : infinite (zmod 0) :=
+int.infinite
+
 @[simp] lemma card (n : ℕ) [fact (0 < n)] : fintype.card (zmod n) = n :=
 begin
   casesI n,

@@ -18,17 +18,6 @@ intermediate well-known variants.
 open add_monoid_hom measure_theory measure_theory.measure metric nnreal set
 open_locale pointwise topological_space
 
-section PR13381
-variables {E : Type*} [semi_normed_group E] [normed_space ℝ E] {s t : set E}
-
-lemma metric.bounded.neg : bounded s → bounded (-s) :=
-by { simp_rw [bounded_iff_exists_norm_le, ←image_neg, ball_image_iff, norm_neg], exact id }
-
-lemma metric.bounded.sub (hs : bounded s) (ht : bounded t) : bounded (s - t) :=
-(sub_eq_add_neg _ _).symm.subst $ hs.add ht.neg
-
-end PR13381
-
 section
 variables {F α β : Type*}
 

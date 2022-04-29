@@ -377,8 +377,16 @@ theorem result : ∀ x : mul_args, x.hypothesis
         have H₁ := ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') oy).2 h).1 iy,
         have H₂ := ((result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2
           (oy.left_lt_right iy jy)).1 ix',
-        have := add_lt_add sorry sorry H₁ H₂,
+        dsimp at H₁ H₂,
+        have := pgame.lt_trans
+          ((result (P1 _ _) (ox.move_left ix') (oy.move_right jy)).add
+            (result (P1 _ _) ox (oy.move_left iy)))
+          ((result (P1 _ _) (ox.move_left ix') (oy.move_left iy)).add
+            (result (P1 _ _) ox (oy.move_right jy))) H₁ H₂,
         change game.lt ⟦_⟧ ⟦_⟧ at this,
+        change game.lt ⟦_⟧ ⟦_⟧,
+        dsimp at ⊢ this,
+        rw [quot_mul_comm],
       },
       /-cases lt_or_equiv_or_gt (ox₁.move_left ix) (ox₁.move_left ix'),
       {

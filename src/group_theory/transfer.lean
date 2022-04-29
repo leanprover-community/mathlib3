@@ -253,6 +253,7 @@ section explicit_computation
 
 variables (H)
 
+-- PRed
 instance : infinite (zmod 0) :=
 int.infinite
 
@@ -282,7 +283,9 @@ open_locale classical
 
 lemma transfer_computation (g : G) : transfer ϕ g =
   ∏ (q : quotient (mul_action.orbit_rel (zpowers g) (G ⧸ H))),
-    ϕ ⟨q.out'.out'⁻¹ * g ^ (function.minimal_period ((•) g) q.out') * q.out'.out', sorry⟩ :=
+    ϕ ⟨q.out'.out'⁻¹ * g ^ (function.minimal_period ((•) g) q.out') * q.out'.out',
+      by rw [mul_assoc, ←quotient_group.eq', ←smul_eq_mul, mul_action.quotient.mk_smul_out',
+        quotient_group.out_eq', eq_comm, mul_action.pow_smul_eq_iff_minimal_period_dvd]⟩ :=
 begin
   calc transfer ϕ g = ∏ (q : G ⧸ H), _ : transfer_def ϕ (key_transversal H g) g
   ... = _ : ((key_equiv H g).symm.prod_comp _).symm

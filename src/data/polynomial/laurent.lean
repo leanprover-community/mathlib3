@@ -68,7 +68,7 @@ def polynomial.to_laurent [semiring R] :
   R[X] →+* R[T;T⁻¹] :=
 begin
   refine ring_hom.comp _ (to_finsupp_iso R).to_ring_hom,
-  exact (map_domain_ring_hom R (nat.cast_add_monoid_hom ℤ)),
+  exact (map_domain_ring_hom R int.of_nat_hom),
 end
 
 /--  The `R`-algebra map, taking a polynomial with coefficients in `R` to a Laurent polynomial
@@ -127,13 +127,8 @@ by convert single_mul_single.symm; simp
 @[simp]
 lemma _root_.polynomial.to_laurent_C_mul_T (n : ℕ) (r : R) :
   ((polynomial.monomial n r).to_laurent : R[T;T⁻¹]) = C r * T n :=
-begin
-  show map_domain (nat.cast_add_monoid_hom ℤ) ((to_finsupp_iso R) (monomial n r)) =
-    (C r * T n : R[T;T⁻¹]),
-  convert (map_domain_single : _ = single (nat.cast_add_monoid_hom ℤ n) r),
-  { exact to_finsupp_monomial n r },
-  { simp only [nat.coe_cast_add_monoid_hom, int.nat_cast_eq_coe_nat, single_eq_C_mul_T] },
-end
+show map_domain coe (monomial n r).to_finsupp = (C r * T n : R[T;T⁻¹]),
+by rw [to_finsupp_monomial, map_domain_single, single_eq_C_mul_T]
 
 @[simp]
 lemma _root_.polynomial.to_laurent_C (r : R) :

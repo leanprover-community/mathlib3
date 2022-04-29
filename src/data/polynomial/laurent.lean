@@ -64,12 +64,13 @@ local notation R`[T;T⁻¹]`:9000 := laurent_polynomial R
 
 /--  The ring homomorphism, taking a polynomial with coefficients in `R` to a Laurent polynomial
 with coefficients in `R`. -/
-def polynomial.to_laurent [semiring R] :
-  R[X] →+* R[T;T⁻¹] :=
-begin
-  refine ring_hom.comp _ (to_finsupp_iso R).to_ring_hom,
-  exact (map_domain_ring_hom R int.of_nat_hom),
-end
+def polynomial.to_laurent [semiring R] : R[X] →+* R[T;T⁻¹] :=
+(map_domain_ring_hom R int.of_nat_hom).comp (to_finsupp_iso R)
+
+/-- This is not a simp lemma, as it is usually preferable to use the lemmas about `C` and `X`
+instead. -/
+lemma polynomial.to_laurent_apply [semiring R] (p : R[X]) :
+  p.to_laurent = p.to_finsupp.map_domain coe := rfl
 
 /--  The `R`-algebra map, taking a polynomial with coefficients in `R` to a Laurent polynomial
 with coefficients in `R`. -/

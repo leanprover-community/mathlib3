@@ -79,6 +79,10 @@ lemma as_algebra_hom_single (g : G) (r : k) :
   (as_algebra_hom ρ (finsupp.single g r)) = r • ρ g :=
 by simp only [as_algebra_hom_def, monoid_algebra.lift_single]
 
+lemma as_algebra_hom_single_one (g : G):
+  (as_algebra_hom ρ (finsupp.single g 1)) = ρ g :=
+by simp
+
 lemma as_algebra_hom_of (g : G) :
   (as_algebra_hom ρ (of k G g)) = ρ g :=
 by simp only [monoid_algebra.of_apply, as_algebra_hom_single, one_smul]

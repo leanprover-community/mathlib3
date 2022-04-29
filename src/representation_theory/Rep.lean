@@ -98,17 +98,6 @@ def to_Module_monoid_algebra : Rep k G ⥤ Module.{u} (monoid_algebra k G) :=
 { obj := λ V, Module.of _ V.ρ.as_module ,
   map := λ V W f, to_Module_monoid_algebra_map f, }
 
--- attribute [simps] to_Module_monoid_algebra
-
--- Move to representation/basic?
--- def representation.of_module (V : Module.{u} (monoid_algebra k G)) :
---   G →* restrict_scalars k (monoid_algebra k G) V →ₗ[k] restrict_scalars k (monoid_algebra k G) V :=
--- (monoid_algebra.lift k G
---   (restrict_scalars k (monoid_algebra k G) V →ₗ[k] restrict_scalars k (monoid_algebra k G) V)).symm
---   (restrict_scalars.lsmul k (monoid_algebra k G) (restrict_scalars k (monoid_algebra k G) V))
-
--- @[simps]
--- @[irreducible]
 def of_Module_monoid_algebra : Module.{u} (monoid_algebra k G) ⥤ Rep k G :=
 { obj := λ M, Rep.of (representation.of_module k G M),
   map := λ M N f,
@@ -138,7 +127,6 @@ begin
   exact (restrict_scalars.add_equiv _ _ _).symm,
 end
 
-@[simps?]
 def counit_iso (M : Module.{u} (monoid_algebra k G)) :
   (of_Module_monoid_algebra ⋙ to_Module_monoid_algebra).obj M ≅ M :=
 linear_equiv.to_Module_iso'
@@ -146,9 +134,7 @@ linear_equiv.to_Module_iso'
     dsimp [counit_iso_add_equiv],
     simp,
   end,
-  ..counit_iso_add_equiv, } --counit_iso_map_smul r x, }
-
-local attribute [simp] add_equiv.refl_apply
+  ..counit_iso_add_equiv, }
 
 -- TODO consider removing @[simp] from monoid_algebra.of_apply?
 
@@ -173,16 +159,12 @@ Action.mk_iso (linear_equiv.to_Module_iso'
   ..unit_iso_add_equiv, })
   (λ g, by { ext, apply unit_iso_comm, })
 
--- unnecessary?
-attribute [simps] counit_iso_add_equiv
-attribute [simps] unit_iso_add_equiv
-
 /-- The categorical equivalence `Rep k G ≌ Module (monoid_algebra k G)`. -/
 def equivalence_Module_monoid_algebra : Rep k G ≌ Module.{u} (monoid_algebra k G) :=
 { functor := to_Module_monoid_algebra,
   inverse := of_Module_monoid_algebra,
-  unit_iso := nat_iso.of_components (λ V, unit_iso V) sorry,
-  counit_iso := nat_iso.of_components (λ M, counit_iso M) (sorry), }
+  unit_iso := nat_iso.of_components (λ V, unit_iso V) (by tidy),
+  counit_iso := nat_iso.of_components (λ M, counit_iso M) (by tidy), }
 
 -- Verify that the monoidal structure is available.
 example : monoidal_category (Rep k G) := by apply_instance

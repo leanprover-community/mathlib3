@@ -13,12 +13,15 @@ import algebra.category.Module.monoidal
 
 This introduces `FinVect K`, the category of finite dimensional vector spaces over a field `K`.
 It is implemented as a full subcategory on a subtype of `Module K`.
-We first create the instance as a category, then as a monoidal category and then as a rigid monoidal
-category.
+
+We first create the instance as a `K`-linear category,
+then as a `K`-linear monoidal category and then as a right-rigid monoidal category.
 
 ## Future work
 
-* Show that `FinVect K` is a symmetric monoidal category.
+* Show that `FinVect K` is a symmetric monoidal category (it is already monoidal).
+* Show that `FinVect K` is abelian.
+* Show that `FinVect K` is rigid (it is already right rigid).
 
 -/
 noncomputable theory
@@ -31,7 +34,7 @@ universes u
 variables (K : Type u) [field K]
 
 /-- Define `FinVect` as the subtype of `Module.{u} K` of finite dimensional vector spaces. -/
-@[derive [large_category, λ α, has_coe_to_sort α (Sort*), concrete_category]]
+@[derive [large_category, λ α, has_coe_to_sort α (Sort*), concrete_category, preadditive, linear K]]
 def FinVect := { V : Module.{u} K // finite_dimensional K V }
 
 namespace FinVect
@@ -49,6 +52,9 @@ protected lemma coe_comp {U V W : FinVect K} (f : U ⟶ V) (g : V ⟶ W) :
 def of (V : Type u) [add_comm_group V] [module K V] [finite_dimensional K V] : FinVect K :=
 ⟨Module.of K V, by { change finite_dimensional K V, apply_instance }⟩
 
+instance (V W : FinVect K) : finite_dimensional K (V ⟶ W) :=
+(by apply_instance : finite_dimensional K (V →ₗ[K] W))
+
 instance : has_forget₂ (FinVect.{u} K) (Module.{u} K) :=
 by { dsimp [FinVect], apply_instance, }
 
@@ -57,6 +63,27 @@ monoidal_category.full_monoidal_subcategory
   (λ V, finite_dimensional K V)
   (finite_dimensional.finite_dimensional_self K)
   (λ X Y hX hY, by exactI finite_dimensional_tensor_product X Y)
+
+/-- The forgetful functor `FinVect K ⥤ Module K` as a monoidal functor. -/
+def forget₂_monoidal : monoidal_functor (FinVect K) (Module.{u} K) :=
+{ to_functor := forget₂ (FinVect K) (Module.{u} K),
+  ε := 𝟙 _,
+  μ := λ X Y, 𝟙 _, }
+
+instance forget₂_monoidal_faithful : faithful (forget₂_monoidal K).to_functor :=
+by { dsimp [forget₂_monoidal], apply_instance, }
+
+instance forget₂_monoidal_additive : (forget₂_monoidal K).to_functor.additive :=
+functor.full_subcategory_inclusion_additive _
+
+instance : monoidal_preadditive (FinVect K) :=
+monoidal_preadditive_of_faithful (forget₂_monoidal K)
+
+instance forget₂_monoidal_linear : (forget₂_monoidal K).to_functor.linear K :=
+functor.full_subcategory_inclusion_linear K _
+
+instance : monoidal_linear K (FinVect K) :=
+monoidal_linear_of_faithful K (forget₂_monoidal K)
 
 variables (V : FinVect K)
 

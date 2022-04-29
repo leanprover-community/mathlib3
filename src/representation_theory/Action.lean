@@ -251,9 +251,13 @@ section has_zero_morphisms
 variables [has_zero_morphisms V]
 
 instance : has_zero_morphisms (Action V G) :=
-{ has_zero := λ X Y, ⟨⟨0, by tidy⟩⟩, }
+{ has_zero := λ X Y, ⟨⟨0, by simp⟩⟩, }
 
-instance : functor.preserves_zero_morphisms (functor_category_equivalence V G).functor := {}
+instance forget_preserves_zero_morphisms : functor.preserves_zero_morphisms (forget V G) := {}
+instance forget₂_preserves_zero_morphisms [concrete_category V] :
+  functor.preserves_zero_morphisms (forget₂ (Action V G) V) := {}
+instance functor_category_equivalence_preserves_zero_morphisms :
+  functor.preserves_zero_morphisms (functor_category_equivalence V G).functor := {}
 
 end has_zero_morphisms
 
@@ -273,7 +277,12 @@ instance : preadditive (Action V G) :=
   add_comp' := by { intros, ext, exact preadditive.add_comp _ _ _ _ _ _, },
   comp_add' := by { intros, ext, exact preadditive.comp_add _ _ _ _ _ _, }, }
 
-instance : functor.additive (functor_category_equivalence V G).functor := {}
+instance forget_additive :
+  functor.additive (forget V G) := {}
+instance forget₂_additive [concrete_category V] :
+  functor.additive (forget₂ (Action V G) V) := {}
+instance functor_category_equivalence_additive :
+  functor.additive (functor_category_equivalence V G).functor := {}
 
 @[simp] lemma zero_hom {X Y : Action V G} : (0 : X ⟶ Y).hom = 0 := rfl
 @[simp] lemma neg_hom {X Y : Action V G} (f : X ⟶ Y) : (-f).hom = -f.hom := rfl
@@ -296,7 +305,12 @@ instance : linear R (Action V G) :=
   smul_comp' := by { intros, ext, exact linear.smul_comp _ _ _ _ _ _, },
   comp_smul' := by { intros, ext, exact linear.comp_smul _ _ _ _ _ _, }, }
 
-instance : functor.linear R (functor_category_equivalence V G).functor := {}
+instance forget_linear :
+  functor.linear R (forget V G) := {}
+instance forget₂_linear [concrete_category V] :
+  functor.linear R (forget₂ (Action V G) V) := {}
+instance functor_category_equivalence_linear :
+  functor.linear R (functor_category_equivalence V G).functor := {}
 
 @[simp] lemma smul_hom {X Y : Action V G} (r : R) (f : X ⟶ Y) : (r • f).hom = r • f.hom := rfl
 

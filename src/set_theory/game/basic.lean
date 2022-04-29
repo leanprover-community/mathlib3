@@ -105,16 +105,16 @@ instance : add_comm_group game :=
   ..game.add_group }
 
 instance covariant_class_add_le : covariant_class game game (+) (≤) :=
-⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a end⟩
+⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a }⟩
 
 instance covariant_class_swap_add_le : covariant_class game game (swap (+)) (≤) :=
-⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_right _ _ _ _ b c h a end⟩
+⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_right _ _ _ _ b c h a }⟩
 
 instance covariant_class_add_lt : covariant_class game game (+) (<) :=
-⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_lt_add_left _ _ _ _ b c h a end⟩
+⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_lt_add_left _ _ _ _ b c h a }⟩
 
 instance covariant_class_swap_add_lt : covariant_class game game (swap (+)) (<) :=
-⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_lt_add_right _ _ _ _ b c h a end⟩
+⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_lt_add_right _ _ _ _ b c h a }⟩
 
 -- While it is very tempting to define a `partial_order` on games, and prove
 -- that games form an `ordered_add_comm_group`, it is a bit dangerous.

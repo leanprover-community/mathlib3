@@ -215,32 +215,45 @@ lemma T_mul (n : ℤ) (f : R[T;T⁻¹]) : T n * f = f * T n :=
 (commute_T n f).eq
 
 /--  `trunc : R[T;T⁻¹] →+ R[X]` maps a Laurent polynomial `f` to the polynomial whose terms of
-strictly positive degree coincide with the ones of `f`.  The coefficients of the terms of
-non-positive degree of `f` are summed up and used as constant term.
+nonnegative degree coincide with the ones of `f`.  The terms of negative degree of `f` "vanish".
 
 `trunc` is a left-inverse to `polynomial.to_laurent`. -/
 def trunc : R[T;T⁻¹] →+ R[X] :=
-((to_finsupp_iso R).symm.to_add_monoid_hom).comp (map_domain.add_monoid_hom int.to_nat)
+((to_finsupp_iso R).symm.to_add_monoid_hom).comp $
+  comap_domain.add_monoid_hom $ λ a b, int.of_nat.inj
 
 @[simp]
-lemma trunc_C_mul_T (n : ℤ) (r : R) : trunc (C r * T n) = monomial n.to_nat r :=
+lemma trunc_C_mul_T (n : ℤ) (r : R) : trunc (C r * T n) = ite (0 ≤ n) (monomial n.to_nat r) 0 :=
 begin
   apply (to_finsupp_iso R).injective,
-  -- the combination `rw ← single_eq_C_mul_T, simp [-single_eq_C_mul_T, trunc], refl`
-  -- closes the goal, but involves a non-terminal `simp`.
   rw [← single_eq_C_mul_T, trunc, add_monoid_hom.coe_comp, function.comp_app,
-    map_domain.add_monoid_hom_apply, to_finsupp_iso_apply, map_domain_single, to_finsupp_iso_apply,
-    to_finsupp_monomial],
-  refl,
+    comap_domain.add_monoid_hom_apply, to_finsupp_iso_apply],
+  by_cases n0 : 0 ≤ n,
+  { lift n to ℕ using n0,
+    erw [comap_domain_single _ (λ a b, int.coe_nat_inj), to_finsupp_iso_symm_apply],
+    simp only [int.coe_nat_nonneg, int.to_nat_coe_nat, if_true, to_finsupp_iso_apply,
+      to_finsupp_monomial] },
+  { lift (- n) to ℕ using (neg_pos.mpr (not_le.mp n0)).le with m,
+    rw [to_finsupp_iso_apply, to_finsupp_inj, if_neg n0],
+    erw to_finsupp_iso_symm_apply,
+    ext a,
+    have := ((not_le.mp n0).trans_le (int.coe_zero_le a)).ne',
+    simp only [coeff, comap_domain_apply, int.of_nat_eq_coe, coeff_zero, single_apply_eq_zero, this,
+      forall_false_left] }
+end
+
+@[simp]
+lemma _root_.polynomial.trunc_to_laurent (f : R[X]) : trunc f.to_laurent = f :=
+begin
+  refine f.induction_on' _ _,
+  { exact λ f g hf hg, by simp only [hf, hg, _root_.map_add] },
+  { exact λ n r, by simp only [polynomial.to_laurent_C_mul_T, trunc_C_mul_T, int.coe_nat_nonneg,
+      int.to_nat_coe_nat, if_true] }
 end
 
 lemma _root_.polynomial.to_laurent_injective :
   function.injective (polynomial.to_laurent : R[X] → R[T;T⁻¹]) :=
-begin
-  refine function.has_left_inverse.injective ⟨trunc, λ f, f.induction_on' _ _⟩,
-  { exact λ f g hf hg, by simp only [hf, hg, _root_.map_add] },
-  { exact λ n r, by simp only [polynomial.to_laurent_C_mul_T, trunc_C_mul_T, int.to_nat_coe_nat] }
-end
+function.has_left_inverse.injective ⟨trunc, polynomial.trunc_to_laurent⟩
 
 @[simp]
 lemma _root_.polynomial.to_laurent_inj (f g : R[X]) :

@@ -54,14 +54,6 @@ all intermediate fields `E` with `E/K` finite dimensional.
 -/
 
 section
-variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A] {S T : subalgebra R A}
-
-@[simp] lemma subalgebra.inclusion_mk (h : S ≤ T) {x : A} (hx : x ∈ S) :
-  subalgebra.inclusion h ⟨x, hx⟩ = ⟨x, h hx⟩ := rfl
-
-end
-
-section
 variables {K L L' : Type*} [field K] [field L] [field L'] [algebra K L] [algebra K L']
   {F : intermediate_field K L}
 

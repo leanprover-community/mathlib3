@@ -53,7 +53,7 @@ open_locale polynomial big_operators
 open polynomial add_monoid_algebra finsupp
 noncomputable theory
 
-variables {R N Z : Type*}
+variables {R : Type*}
 
 /--  The semiring of Laurent polynomials with coefficients in the semiring `R`.
 We denote it by `R[T;T⁻¹]`.

@@ -15,6 +15,8 @@ import algebra.algebra.basic
 An `R`-linear category is a category in which `X ⟶ Y` is an `R`-module in such a way that
 composition of morphisms is `R`-linear in both variables.
 
+Note that sometimes in the literature a "linear category" is further required to be abelian.
+
 ## Implementation
 
 Corresponding to the fact that we need to have an `add_comm_group X` structure in place
@@ -85,12 +87,15 @@ section induced_category
 universes u'
 variables {C} {D : Type u'} (F : D → C)
 
-instance induced_category.category : linear.{w v} R (induced_category C F) :=
+instance induced_category : linear.{w v} R (induced_category C F) :=
 { hom_module := λ X Y, @linear.hom_module R _ C _ _ _ (F X) (F Y),
   smul_comp' := λ P Q R f f' g, smul_comp' _ _ _ _ _ _,
   comp_smul' := λ P Q R f g g', comp_smul' _ _ _ _ _ _, }
 
 end induced_category
+
+instance full_subcategory (Z : C → Prop) : linear.{w v} R { X : C // Z X } :=
+linear.induced_category _
 
 variables (R)
 

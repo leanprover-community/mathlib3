@@ -83,12 +83,15 @@ section induced_category
 universes u'
 variables {C} {D : Type u'} (F : D → C)
 
-instance induced_category.category : preadditive.{v} (induced_category C F) :=
+instance induced_category : preadditive.{v} (induced_category C F) :=
 { hom_group := λ P Q, @preadditive.hom_group C _ _ (F P) (F Q),
   add_comp' := λ P Q R f f' g, add_comp' _ _ _ _ _ _,
   comp_add' := λ P Q R f g g', comp_add' _ _ _ _ _ _, }
 
 end induced_category
+
+instance full_subcategory (Z : C → Prop) : preadditive.{v} { X : C // Z X } :=
+preadditive.induced_category _
 
 instance (X : C) : add_comm_group (End X) := by { dsimp [End], apply_instance, }
 

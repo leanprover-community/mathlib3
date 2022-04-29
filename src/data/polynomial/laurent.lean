@@ -96,7 +96,7 @@ lemma single_zero_one_eq_one : (single 0 1 : R[T;T⁻¹]) = (1 : R[T;T⁻¹]) :=
 /--  The ring homomorphism `C`, including `R` into the ring of Laurent polynomials over `R` as
 the constant Laurent polynomials. -/
 def C : R →+* R[T;T⁻¹] :=
-add_monoid_algebra.single_zero_ring_hom
+single_zero_ring_hom
 
 lemma single_eq_C (r : R) : single 0 r = C r := rfl
 

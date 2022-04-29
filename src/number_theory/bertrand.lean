@@ -292,7 +292,7 @@ end
 -- The sqrts could be changed to ^(1/2) and then changed to generalize the 2 out.
 -- It could also be moved near log_div_self_antitone_on
 -- it could also be made into an antitone_on statemnt
-lemma log_div_self_rpow_decreasing {x y a : ℝ} (ha : 0 < a) (hex : exp (1 / a) ≤ x) (hxy : x ≤ y) :
+lemma log_div_self_rpow_antitone_on {x y a : ℝ} (ha : 0 < a) (hex : exp (1 / a) ≤ x) (hxy : x ≤ y) :
   log y / y ^ a ≤ log x / x ^ a :=
 begin
   have x_pos : 0 < x := lt_of_lt_of_le (exp_pos (1 / a)) hex,
@@ -337,7 +337,7 @@ lemma log_div_sqrt_decreasing {x y : ℝ} (hex : exp 2 ≤ x) (hxy : x ≤ y) :
 begin
   rw sqrt_eq_rpow,
   rw sqrt_eq_rpow,
-  apply log_div_self_rpow_decreasing,
+  apply log_div_self_rpow_antitone_on,
   norm_num,
   simp only [one_div, inv_inv],
   assumption,

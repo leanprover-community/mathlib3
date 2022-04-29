@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import representation_theory.Rep
 import algebra.category.FinVect
-import category_theory.preadditive.schur
 
 /-!
 # `fdRep k G` is the category of finite dimensional `k`-linear representations of `G`.

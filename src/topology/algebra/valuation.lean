@@ -134,12 +134,12 @@ variables {R Γ₀}
 
 lemma mem_nhds {s : set R} {x : R} :
   (s ∈ 𝓝 x) ↔ ∃ (γ : Γ₀ˣ), {y | (v (y - x) : Γ₀) < γ } ⊆ s :=
-by simp [← nhds_translation_add_neg x, ← sub_eq_add_neg,
+by simp only [← nhds_translation_add_neg x, ← sub_eq_add_neg, preimage_set_of_eq, exists_true_left,
   ((has_basis_nhds_zero R Γ₀).comap (λ y, y - x)).mem_iff]
 
 lemma mem_nhds_zero {s : set R} :
   (s ∈ 𝓝 (0 : R)) ↔ ∃ γ : Γ₀ˣ, {x | v x < (γ : Γ₀) } ⊆ s :=
-by simp [mem_nhds, sub_zero]
+by simp only [mem_nhds, sub_zero]
 
 lemma loc_const {x : R} (h : (v x : Γ₀) ≠ 0) : {y : R | v y = v x} ∈ 𝓝 x :=
 begin

@@ -156,12 +156,16 @@ lemma _root_.polynomial.to_laurent_C_mul_X_pow (n : ℕ) (r : R) :
   (polynomial.C r * X ^ n).to_laurent = C r * T n :=
 by simp only [_root_.map_mul, polynomial.to_laurent_C, polynomial.to_laurent_X_pow]
 
+instance invertible_T (n : ℤ) : invertible (T n : R[T;T⁻¹]) :=
+{ inv_of := T (- n),
+  inv_of_mul_self := by rw [← T_add, add_left_neg, T_zero],
+  mul_inv_of_self := by rw [← T_add, add_right_neg, T_zero] }
+
 lemma is_unit_T (n : ℤ) : is_unit (T n : R[T;T⁻¹]) :=
-by refine ⟨⟨T n, T (- n), _, _⟩, _⟩; simp [← T_add]
+is_unit_of_invertible _
 
 lemma is_regular_T (n : ℤ) : is_regular (T n : R[T;T⁻¹]) :=
-⟨is_left_regular_of_mul_eq_one (by simp [← T_add] : T (-n) * T n = 1),
-  is_right_regular_of_mul_eq_one (by simp [← T_add] : T n * T (-n) = 1)⟩
+is_unit.is_regular (is_unit_T _)
 
 end semiring
 

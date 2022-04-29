@@ -215,6 +215,16 @@ lemma fact_iff {p : Prop} : fact p ↔ p := ⟨λ h, h.1, λ h, ⟨h⟩⟩
   Π i₂ j₂ i₁ j₁, φ i₁ j₁ i₂ j₂ :=
 λ i₂ j₂ i₁ j₁, f i₁ j₁ i₂ j₂
 
+/-- If `x : α . tac_name` then `x.out : α`. These are definitionally equal, but this can
+nevertheless be useful for various reasons, e.g. to apply further projection notation or in an
+argument to `simp`. -/
+def auto_param.out {α : Sort*} {n : name} (x : auto_param α n) : α := x
+
+/-- If `x : α := d` then `x.out : α`. These are definitionally equal, but this can
+nevertheless be useful for various reasons, e.g. to apply further projection notation or in an
+argument to `simp`. -/
+def opt_param.out {α : Sort*} {d : α} (x : α := d) : α := x
+
 end miscellany
 
 open function
@@ -875,6 +885,10 @@ lemma heq_of_cast_eq :
   ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : cast e a = a'), a == a'
 | α ._ a a' rfl h := eq.rec_on h (heq.refl _)
 
+lemma congr_fun_heq {α β γ : Sort*} {f : α → γ} {g : β → γ} (h₁ : β = α) (h₂ : f == g) (x : β) :
+  f (cast h₁ x) = g x :=
+by { subst h₁, rw [eq_of_heq h₂, cast_eq] }
+
 lemma cast_eq_iff_heq {α β : Sort*} {a : α} {a' : β} {e : α = β} : cast e a = a' ↔ a == a' :=
 ⟨heq_of_cast_eq _, λ h, by cases h; refl⟩
 
@@ -892,6 +906,21 @@ lemma eq.congr_right {x y z : α} (h : x = y) : z = x ↔ z = y := by rw [h]
 lemma congr_arg2 {α β γ : Sort*} (f : α → β → γ) {x x' : α} {y y' : β}
   (hx : x = x') (hy : y = y') : f x y = f x' y' :=
 by { subst hx, subst hy }
+
+variables {β : α → Sort*} {γ : Π a, β a → Sort*} {δ : Π a b, γ a b → Sort*}
+
+lemma congr_fun₂ {f g : Π a b, γ a b} (h : f = g) (a : α) (b : β a) : f a b = g a b :=
+congr_fun (congr_fun h _) _
+
+lemma congr_fun₃ {f g : Π a b c, δ a b c} (h : f = g) (a : α) (b : β a) (c : γ a b) :
+  f a b c = g a b c :=
+congr_fun₂ (congr_fun h _) _ _
+
+lemma funext₂ {f g : Π a, β a → Prop} (h : ∀ a b, f a b = g a b) : f = g :=
+funext $ λ _, funext $ h _
+
+lemma funext₃ {f g : Π a b, γ a b → Prop} (h : ∀ a b c, f a b c = g a b c) : f = g :=
+funext $ λ _, funext₂ $ h _
 
 end equality
 

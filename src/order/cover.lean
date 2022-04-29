@@ -224,6 +224,18 @@ h.wcovby.Icc_eq
 
 end partial_order
 
+section linear_order
+
+variables [linear_order α] {a b : α}
+
+lemma covby.Ioi_eq (h : a ⋖ b) : Ioi a = Ici b :=
+by rw [← Ioo_union_Ici_eq_Ioi h.lt, h.Ioo_eq, empty_union]
+
+lemma covby.Iio_eq (h : a ⋖ b) : Iio b = Iic a :=
+by rw [← Iic_union_Ioo_eq_Iio h.lt, h.Ioo_eq, union_empty]
+
+end linear_order
+
 namespace set
 
 lemma wcovby_insert (x : α) (s : set α) : s ⩿ insert x s :=

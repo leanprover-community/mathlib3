@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric Wieser
 -/
-import linear_algebra.basic
+import linear_algebra.span
 import order.partial_sups
 
 /-! ### Products of modules
@@ -33,7 +33,7 @@ It contains theorems relating these to each other, as well as to `submodule.prod
 universes u v w x y z u' v' w' y'
 variables {R : Type u} {K : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}
 variables {M₃ : Type y} {V₃ : Type y'} {M₄ : Type z} {ι : Type x}
-
+variables {M₅ M₆ : Type*}
 
 section prod
 
@@ -41,7 +41,9 @@ namespace linear_map
 
 variables (S : Type*) [semiring R] [semiring S]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
+variables [add_comm_monoid M₅] [add_comm_monoid M₆]
 variables [module R M] [module R M₂] [module R M₃] [module R M₄]
+variables [module R M₅] [module R M₆]
 variables (f : M →ₗ[R] M₂)
 
 section
@@ -62,10 +64,11 @@ theorem snd_surjective : function.surjective (snd R M M₂) := λ x, ⟨(0, x), 
 
 /-- The prod of two linear maps is a linear map. -/
 @[simps] def prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : (M →ₗ[R] M₂ × M₃) :=
-{ to_fun    := λ x, (f x, g x),
-  map_add'  := λ x y, by simp only [prod.mk_add_mk, map_add],
-  map_smul' := λ c x, by simp only [prod.smul_mk, map_smul, ring_hom.id_apply] }
+{ to_fun    := pi.prod f g,
+  map_add'  := λ x y, by simp only [pi.prod, prod.mk_add_mk, map_add],
+  map_smul' := λ c x, by simp only [pi.prod, prod.smul_mk, map_smul, ring_hom.id_apply] }
 
+lemma coe_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) : ⇑(f.prod g) = pi.prod f g := rfl
 
 @[simp] theorem fst_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
   (fst R M₂ M₃).comp (prod f g) = f := by ext; refl
@@ -74,7 +77,7 @@ theorem snd_surjective : function.surjective (snd R M M₂) := λ x, ⟨(0, x), 
   (snd R M₂ M₃).comp (prod f g) = g := by ext; refl
 
 @[simp] theorem pair_fst_snd : prod (fst R M M₂) (snd R M M₂) = linear_map.id :=
-by ext; refl
+fun_like.coe_injective pi.prod_fst_snd
 
 /-- Taking the product of two maps with the same domain is equivalent to taking the product of
 their codomains.
@@ -194,7 +197,7 @@ See note [bundled maps over different rings] for why separate `R` and `S` semiri
   left_inv := λ f, by simp only [prod.mk.eta, coprod_inl, coprod_inr],
   right_inv := λ f, by simp only [←comp_coprod, comp_id, coprod_inl_inr],
   map_add' := λ a b,
-    by { ext, simp only [prod.snd_add, add_apply, coprod_apply, prod.fst_add], ac_refl },
+    by { ext, simp only [prod.snd_add, add_apply, coprod_apply, prod.fst_add, add_add_add_comm] },
   map_smul' := λ r a,
     by { dsimp, ext, simp only [smul_add, smul_apply, prod.smul_snd, prod.smul_fst,
                                 coprod_apply] } }
@@ -232,6 +235,27 @@ begin
   dsimp only [ker],
   rw [←prod_map_comap_prod, submodule.prod_bot],
 end
+
+@[simp]
+lemma prod_map_id : (id : M →ₗ[R] M).prod_map (id : M₂ →ₗ[R] M₂) = id :=
+linear_map.ext $ λ _, prod.mk.eta
+
+@[simp]
+lemma prod_map_one : (1 : M →ₗ[R] M).prod_map (1 : M₂ →ₗ[R] M₂) = 1 :=
+linear_map.ext $ λ _, prod.mk.eta
+
+lemma prod_map_comp (f₁₂ : M →ₗ[R] M₂) (f₂₃ : M₂ →ₗ[R] M₃) (g₁₂ : M₄ →ₗ[R] M₅) (g₂₃ : M₅ →ₗ[R] M₆) :
+  f₂₃.prod_map g₂₃ ∘ₗ f₁₂.prod_map g₁₂ = (f₂₃ ∘ₗ f₁₂).prod_map (g₂₃ ∘ₗ g₁₂) := rfl
+
+lemma prod_map_mul (f₁₂ : M →ₗ[R] M) (f₂₃ : M →ₗ[R] M) (g₁₂ : M₂ →ₗ[R] M₂) (g₂₃ : M₂ →ₗ[R] M₂) :
+  f₂₃.prod_map g₂₃ * f₁₂.prod_map g₁₂ = (f₂₃ * f₁₂).prod_map (g₂₃ * g₁₂) := rfl
+
+/-- `linear_map.prod_map` as a `monoid_hom` -/
+@[simps]
+def prod_map_monoid_hom : (M →ₗ[R] M) × (M₂ →ₗ[R] M₂) →* ((M × M₂) →ₗ[R] (M × M₂)) :=
+{ to_fun := λ f, prod_map f.1 f.2,
+  map_one' := prod_map_one,
+  map_mul' := λ _ _, prod_map_mul _ _ _ _ }
 
 section map_mul
 
@@ -441,6 +465,39 @@ end
 
 lemma fst_inf_snd : submodule.fst R M M₂ ⊓ submodule.snd R M M₂ = ⊥ := by tidy
 
+lemma le_prod_iff {p₁ : submodule R M} {p₂ : submodule R M₂} {q : submodule R (M × M₂)} :
+  q ≤ p₁.prod p₂ ↔ map (linear_map.fst R M M₂) q ≤ p₁ ∧ map (linear_map.snd R M M₂) q ≤ p₂ :=
+begin
+  split,
+  { intros h,
+    split,
+    { rintros x ⟨⟨y1,y2⟩, ⟨hy1,rfl⟩⟩, exact (h hy1).1 },
+    { rintros x ⟨⟨y1,y2⟩, ⟨hy1,rfl⟩⟩, exact (h hy1).2 }, },
+  { rintros ⟨hH, hK⟩ ⟨x1, x2⟩ h, exact ⟨hH ⟨_ , h, rfl⟩, hK ⟨ _, h, rfl⟩⟩, }
+end
+
+lemma prod_le_iff {p₁ : submodule R M} {p₂ : submodule R M₂} {q : submodule R (M × M₂)} :
+  p₁.prod p₂ ≤ q ↔ map (linear_map.inl R M M₂) p₁ ≤ q ∧ map (linear_map.inr R M M₂) p₂ ≤ q :=
+begin
+  split,
+  { intros h,
+    split,
+    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨hx, zero_mem p₂⟩, },
+    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨zero_mem p₁, hx⟩, }, },
+  { rintros ⟨hH, hK⟩ ⟨x1, x2⟩ ⟨h1, h2⟩,
+    have h1' : (linear_map.inl R _ _) x1 ∈ q, { apply hH, simpa using h1, },
+    have h2' : (linear_map.inr R _ _) x2 ∈ q, { apply hK, simpa using h2, },
+    simpa using add_mem h1' h2', }
+end
+
+lemma prod_eq_bot_iff {p₁ : submodule R M} {p₂ : submodule R M₂} :
+  p₁.prod p₂ = ⊥ ↔ p₁ = ⊥ ∧ p₂ = ⊥ :=
+by simp only [eq_bot_iff, prod_le_iff, (gc_map_comap _).le_iff_le, comap_bot, ker_inl, ker_inr]
+
+lemma prod_eq_top_iff {p₁ : submodule R M} {p₂ : submodule R M₂} :
+  p₁.prod p₂ = ⊤ ↔ p₁ = ⊤ ∧ p₂ = ⊤ :=
+by simp only [eq_top_iff, le_prod_iff, ← (gc_map_comap _).le_iff_le, map_top, range_fst, range_snd]
+
 end submodule
 
 namespace linear_equiv
@@ -519,7 +576,7 @@ lemma range_prod_eq {f : M →ₗ[R] M₂} {g : M →ₗ[R] M₃} (h : ker f ⊔
 begin
   refine le_antisymm (f.range_prod_le g) _,
   simp only [set_like.le_def, prod_apply, mem_range, set_like.mem_coe, mem_prod, exists_imp_distrib,
-    and_imp, prod.forall],
+    and_imp, prod.forall, pi.prod],
   rintros _ _ x rfl y rfl,
   simp only [prod.mk.inj_iff, ← sub_mem_ker_iff],
   have : y - x ∈ ker f ⊔ ker g, { simp only [h, mem_top] },

@@ -63,4 +63,20 @@ instance strict_bicategory.category [bicategory.strict B] : category B :=
   comp_id' := λ a b, bicategory.strict.comp_id,
   assoc' := λ a b c d, bicategory.strict.assoc }
 
+namespace bicategory
+
+variables {B}
+
+@[simp]
+lemma whisker_left_eq_to_hom {a b c : B} (f : a ⟶ b) {g h : b ⟶ c} (η : g = h) :
+  f ◁ eq_to_hom η = eq_to_hom (congr_arg2 (≫) rfl η) :=
+by { cases η, simp only [whisker_left_id, eq_to_hom_refl] }
+
+@[simp]
+lemma eq_to_hom_whisker_right {a b c : B} {f g : a ⟶ b} (η : f = g) (h : b ⟶ c) :
+  eq_to_hom η ▷ h = eq_to_hom (congr_arg2 (≫) η rfl) :=
+by { cases η, simp only [id_whisker_right, eq_to_hom_refl] }
+
+end bicategory
+
 end category_theory

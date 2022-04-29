@@ -71,8 +71,8 @@ def pi_Lp {ι : Type*} (p : ℝ) (α : ι → Type*) : Type* := Π (i : ι), α 
 instance {ι : Type*} (p : ℝ) (α : ι → Type*) [∀ i, inhabited (α i)] : inhabited (pi_Lp p α) :=
 ⟨λ i, default⟩
 
-lemma fact_one_le_one_real : fact ((1:ℝ) ≤ 1) := ⟨rfl.le⟩
-lemma fact_one_le_two_real : fact ((1:ℝ) ≤ 2) := ⟨one_le_two⟩
+instance fact_one_le_one_real : fact ((1:ℝ) ≤ 1) := ⟨rfl.le⟩
+instance fact_one_le_two_real : fact ((1:ℝ) ≤ 2) := ⟨one_le_two⟩
 
 namespace pi_Lp
 
@@ -284,6 +284,11 @@ omit fact_one_le_p
 lemma norm_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [∀i, semi_normed_group (β i)] (f : pi_Lp p β) :
   ∥f∥ = (∑ (i : ι), ∥f i∥ ^ p) ^ (1/p) := rfl
+
+lemma nnnorm_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
+  [∀i, semi_normed_group (β i)] (f : pi_Lp p β) :
+  ∥f∥₊ = (∑ (i : ι), ∥f i∥₊ ^ p) ^ (1/p) :=
+by { ext, simp [nnreal.coe_sum, norm_eq] }
 
 lemma norm_eq_of_nat {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [∀i, semi_normed_group (β i)] (n : ℕ) (h : p = n) (f : pi_Lp p β) :

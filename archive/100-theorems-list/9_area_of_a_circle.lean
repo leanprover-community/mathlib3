@@ -30,7 +30,7 @@ to the derivative of `λ x, r ^ 2 * arcsin (x / r) + x * sqrt (r ^ 2 - x ^ 2)` e
 `Ioo (-r) r` and that those two functions are continuous, then apply the second fundamental theorem
 of calculus with those facts. Some simple algebra then completes the proof.
 
-Note that we choose to define `disc` as a set of points in `ℝ ⨯ ℝ`. This is admittedly not ideal; it
+Note that we choose to define `disc` as a set of points in `ℝ × ℝ`. This is admittedly not ideal; it
 would be more natural to define `disc` as a `metric.ball` in `euclidean_space ℝ (fin 2)` (as well as
 to provide a more general proof in higher dimensions). However, our proof indirectly relies on a
 number of theorems (particularly `measure_theory.measure.prod_apply`) which do not yet exist for

@@ -18,20 +18,20 @@ two judges, their ratings coincide for at most `k` contestants. Prove that `k / 
 ## Solution
 The problem asks us to think about triples consisting of a contestant and two judges whose ratings
 agree for that contestant. We thus consider the subset `A ⊆ C × JJ` of all such incidences of
-agreement, where `C` and `J` are the sets of contestants and judges, and `JJ = J × J − {(j, j)}`. We
+agreement, where `C` and `J` are the sets of contestants and judges, and `JJ = J × J - {(j, j)}`. We
 have natural maps: `left : A → C` and `right: A → JJ`. We count the elements of `A` in two ways: as
 the sum of the cardinalities of the fibres of `left` and as the sum of the cardinalities of the
 fibres of `right`. We obtain an upper bound on the cardinality of `A` from the count for `right`,
 and a lower bound from the count for `left`. These two bounds combine to the required result.
 
 First consider the map `right : A → JJ`. Since the size of any fibre over a point in JJ is bounded
-by `k` and since `|JJ| = b^2 - b`, we obtain the upper bound: `|A| ≤ k(b^2−b)`.
+by `k` and since `|JJ| = b^2 - b`, we obtain the upper bound: `|A| ≤ k(b^2-b)`.
 
 Now consider the map `left : A → C`. The fibre over a given contestant `c ∈ C` is the set of
 ordered pairs of (distinct) judges who agree about `c`. We seek to bound the cardinality of this
 fibre from below. Minimum agreement for a contestant occurs when the judges' ratings are split as
 evenly as possible. Since `b` is odd, this occurs when they are divided into groups of size
-`(b−1)/2` and `(b+1)/2`. This corresponds to a fibre of cardinality `(b-1)^2/2` and so we obtain
+`(b-1)/2` and `(b+1)/2`. This corresponds to a fibre of cardinality `(b-1)^2/2` and so we obtain
 the lower bound: `a(b-1)^2/2 ≤ |A|`.
 
 Rearranging gives the result.

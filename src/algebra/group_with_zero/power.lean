@@ -64,10 +64,10 @@ theorem pow_inv_comm₀ (a : G₀) (m n : ℕ) : (a⁻¹) ^ m * a ^ n = a ^ n * 
 (commute.refl a).inv_left₀.pow_pow m n
 
 lemma inv_pow_sub₀ (ha : a ≠ 0) (h : n ≤ m) : a⁻¹ ^ (m - n) = (a ^ m)⁻¹ * a ^ n :=
-by rw [pow_sub₀ _ (inv_ne_zero ha) h, inv_pow₀, inv_pow₀, inv_inv₀]
+by rw [pow_sub₀ _ (inv_ne_zero ha) h, inv_pow₀, inv_pow₀, inv_inv]
 
 lemma inv_pow_sub_of_lt (a : G₀) (h : n < m) : a⁻¹ ^ (m - n) = (a ^ m)⁻¹ * a ^ n :=
-by rw [pow_sub_of_lt a⁻¹ h, inv_pow₀, inv_pow₀, inv_inv₀]
+by rw [pow_sub_of_lt a⁻¹ h, inv_pow₀, inv_pow₀, inv_inv]
 
 end nat_pow
 
@@ -97,7 +97,7 @@ end
 @[simp] theorem zpow_neg₀ (a : G₀) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 | (n+1:ℕ) := div_inv_monoid.zpow_neg' _ _
 | 0       := by { change a ^ (0 : ℤ) = (a ^ (0 : ℤ))⁻¹, simp }
-| -[1+ n] := by { rw [zpow_neg_succ_of_nat, inv_inv₀, ← zpow_coe_nat], refl }
+| -[1+ n] := by { rw [zpow_neg_succ_of_nat, inv_inv, ← zpow_coe_nat], refl }
 
 lemma mul_zpow_neg_one₀ (a b : G₀) : (a * b) ^ (-1 : ℤ) = b ^ (-1 : ℤ) * a ^ (-1 : ℤ) :=
 by simp only [mul_inv_rev₀, zpow_one, zpow_neg₀]
@@ -111,9 +111,8 @@ theorem inv_zpow₀ (a : G₀) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 
 lemma zpow_add_one₀ {a : G₀} (ha : a ≠ 0) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
 | (n : ℕ)    := by simp [← int.coe_nat_succ, pow_succ']
-| -[1+0]     := by simp [int.neg_succ_of_nat_eq, ha]
-| -[1+(n+1)] := by rw [int.neg_succ_of_nat_eq, zpow_neg₀, neg_add, neg_add_cancel_right, zpow_neg₀,
-  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev₀, mul_assoc,
+| -[1+n] := by rw [int.neg_succ_of_nat_eq, zpow_neg₀, neg_add, neg_add_cancel_right, zpow_neg₀,
+  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ n, mul_inv_rev₀, mul_assoc,
   inv_mul_cancel ha, mul_one]
 
 lemma zpow_sub_one₀ {a : G₀} (ha : a ≠ 0) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
@@ -182,11 +181,11 @@ end
 theorem zpow_mul₀ (a : G₀) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 | (m : ℕ) (n : ℕ) := by { rw [zpow_coe_nat, zpow_coe_nat, ← pow_mul, ← zpow_coe_nat], refl }
 | (m : ℕ) -[1+ n] := by { rw [zpow_coe_nat, zpow_neg_succ_of_nat, ← pow_mul, coe_nat_mul_neg_succ,
-    zpow_neg₀, inv_inj₀, ← zpow_coe_nat], refl }
+    zpow_neg₀, inv_inj, ← zpow_coe_nat], refl }
 | -[1+ m] (n : ℕ) := by { rw [zpow_coe_nat, zpow_neg_succ_of_nat, ← inv_pow₀, ← pow_mul,
-    neg_succ_mul_coe_nat, zpow_neg₀, inv_pow₀, inv_inj₀, ← zpow_coe_nat], refl }
+    neg_succ_mul_coe_nat, zpow_neg₀, inv_pow₀, inv_inj, ← zpow_coe_nat], refl }
 | -[1+ m] -[1+ n] := by { rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, neg_succ_mul_neg_succ,
-    inv_pow₀, inv_inv₀, ← pow_mul, ← zpow_coe_nat], refl }
+    inv_pow₀, inv_inv, ← pow_mul, ← zpow_coe_nat], refl }
 
 theorem zpow_mul₀' (a : G₀) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
 by rw [mul_comm, zpow_mul₀]
@@ -216,6 +215,14 @@ by rw [zpow_bit1₀, (commute.refl a).mul_zpow₀]
 
 lemma zpow_eq_zero {x : G₀} {n : ℤ} (h : x ^ n = 0) : x = 0 :=
 classical.by_contradiction $ λ hx, zpow_ne_zero_of_ne_zero hx n h
+
+lemma zpow_eq_zero_iff {a : G₀} {n : ℤ} (hn : 0 < n) :
+  a ^ n = 0 ↔ a = 0 :=
+begin
+  refine ⟨zpow_eq_zero, _⟩,
+  rintros rfl,
+  exact zero_zpow _ hn.ne'
+end
 
 lemma zpow_ne_zero {x : G₀} (n : ℤ) : x ≠ 0 → x ^ n ≠ 0 :=
 mt zpow_eq_zero
@@ -274,7 +281,7 @@ end
 /-- If a monoid homomorphism `f` between two `group_with_zero`s maps `0` to `0`, then it maps `x^n`,
 `n : ℤ`, to `(f x)^n`. -/
 lemma monoid_with_zero_hom.map_zpow {G₀ G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀']
-  (f : monoid_with_zero_hom G₀ G₀') (x : G₀) :
+  (f : G₀ →*₀ G₀') (x : G₀) :
   ∀ n : ℤ, f (x ^ n) = f x ^ n
 | (n : ℕ) := by { rw [zpow_coe_nat, zpow_coe_nat], exact f.to_monoid_hom.map_pow x n }
 | -[1+n] := begin

@@ -3,7 +3,7 @@ Copyright (c) 2020 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.specific_limits
+import analysis.specific_limits.normed
 
 /-!
 # The group of units of a complete normed ring
@@ -105,7 +105,7 @@ begin
     cancel_denoms },
   have hright := inverse_one_sub (-↑x⁻¹ * t) ht',
   have hleft := inverse_unit (x.add t ht),
-  simp only [← neg_mul_eq_neg_mul, sub_neg_eq_add] at hright,
+  simp only [neg_mul, sub_neg_eq_add] at hright,
   simp only [units.coe_add] at hleft,
   simp [hleft, hright, units.add]
 end
@@ -143,7 +143,7 @@ begin
   { convert ((mul_left_continuous (- (↑x⁻¹ : R))).tendsto 0).comp tendsto_id,
     simp },
   refine (hzero.eventually (inverse_one_sub_nth_order n)).mp (eventually_of_forall _),
-  simp only [neg_mul_eq_neg_mul_symm, sub_neg_eq_add],
+  simp only [neg_mul, sub_neg_eq_add],
   intros t h1 h2,
   have h := congr_arg (λ (a : R), a * ↑x⁻¹) h1,
   dsimp at h,
@@ -165,7 +165,7 @@ begin
   change ∥∑' n : ℕ, t ^ n∥ ≤ _,
   have := normed_ring.tsum_geometric_of_norm_lt_1 t ht',
   have : (1 - ∥t∥)⁻¹ ≤ 2,
-  { rw ← inv_inv₀ (2:ℝ),
+  { rw ← inv_inv (2:ℝ),
     refine inv_le_inv_of_le (by norm_num) _,
     have : (2:ℝ)⁻¹ + (2:ℝ)⁻¹ = 1 := by ring,
     linarith },
@@ -211,7 +211,7 @@ begin
     simp },
   refine h.mp (hC.mp (eventually_of_forall _)),
   intros t _ hLHS,
-  simp only [neg_mul_eq_neg_mul_symm] at hLHS,
+  simp only [neg_mul] at hLHS,
   rw hLHS,
   refine le_trans (norm_mul_le _ _ ) _,
   have h' : ∥(-(↑x⁻¹ * t)) ^ n∥ ≤ ∥(↑x⁻¹ : R)∥ ^ n * ∥t∥ ^ n,
@@ -229,7 +229,7 @@ end
 /-- The function `λ t, inverse (x + t) - x⁻¹` is `O(t)` as `t → 0`. -/
 lemma inverse_add_norm_diff_first_order (x : Rˣ) :
   is_O (λ t, inverse (↑x + t) - ↑x⁻¹) (λ t, ∥t∥) (𝓝 (0:R)) :=
-by { convert inverse_add_norm_diff_nth_order x 1; simp }
+by simpa using inverse_add_norm_diff_nth_order x 1
 
 /-- The function
 `λ t, inverse (x + t) - x⁻¹ + x⁻¹ * t * x⁻¹`
@@ -240,23 +240,21 @@ begin
   convert inverse_add_norm_diff_nth_order x 2,
   ext t,
   simp only [range_succ, range_one, sum_insert, mem_singleton, sum_singleton, not_false_iff,
-    one_ne_zero, pow_zero, add_mul, pow_one, one_mul, neg_mul_eq_neg_mul_symm,
+    one_ne_zero, pow_zero, add_mul, pow_one, one_mul, neg_mul,
     sub_add_eq_sub_sub_swap, sub_neg_eq_add],
 end
 
 /-- The function `inverse` is continuous at each unit of `R`. -/
 lemma inverse_continuous_at (x : Rˣ) : continuous_at inverse (x : R) :=
 begin
-  have h_is_o : is_o (λ (t : R), ∥inverse (↑x + t) - ↑x⁻¹∥) (λ (t : R), (1:ℝ)) (𝓝 0),
-  { refine is_o_norm_left.mpr ((inverse_add_norm_diff_first_order x).trans_is_o _),
-    exact is_o_norm_left.mpr (is_o_id_const one_ne_zero) },
+  have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹) (λ _, 1 : R → ℝ) (𝓝 0),
+    from ((inverse_add_norm_diff_first_order x).trans_is_o
+      (is_o_id_const (@one_ne_zero ℝ _ _)).norm_left),
   have h_lim : tendsto (λ (y:R), y - x) (𝓝 x) (𝓝 0),
   { refine tendsto_zero_iff_norm_tendsto_zero.mpr _,
     exact tendsto_iff_norm_tendsto_zero.mp tendsto_id },
-  simp only [continuous_at],
-  rw [tendsto_iff_norm_tendsto_zero, inverse_unit],
-  convert h_is_o.tendsto_0.comp h_lim,
-  ext, simp
+  rw [continuous_at, tendsto_iff_norm_tendsto_zero, inverse_unit],
+  simpa [(∘)] using h_is_o.norm_left.tendsto_div_nhds_zero.comp h_lim
 end
 
 end normed_ring

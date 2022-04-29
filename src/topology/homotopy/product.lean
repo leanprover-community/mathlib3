@@ -3,7 +3,6 @@ Copyright (c) 2021 Praneeth Kolichala. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Praneeth Kolichala
 -/
-import topology.homotopy.basic
 import topology.constructions
 import topology.homotopy.path
 
@@ -43,12 +42,6 @@ of products.
   class of paths up to path homotopy.
 
 - `path.homotopic.prod` The product of two path classes.
-
-## Lemmas
-- `path.homotopic.comp_pi_eq_pi_comp` If Pᵢ and Qᵢ are families of path classes,
-    then (∏ Pᵢ) ⬝ (∏ Qᵢ) = ∏ (Pᵢ ⬝ Qᵢ), where ⬝ denotes path composition.
-
-- `path.homotopic.comp_prod_eq_prod_comp` Similarly, binary products commute with path composition
 -/
 
 noncomputable theory
@@ -58,17 +51,15 @@ open continuous_map
 
 section pi
 
-variables {I : Type*} {X : I → Type*} [∀i, topological_space (X i)]
-  {A : Type*} [topological_space A]
+variables {I A : Type*} {X : I → Type*} [Π i, topological_space (X i)] [topological_space A]
   {f g : Π i, C(A, X i)} {S : set A}
 
 /-- The product homotopy of `homotopies` between functions `f` and `g` -/
 @[simps]
-def homotopy.pi (homotopies : Π i, homotopy (f i) (g i)) :
-        homotopy (pi f) (pi g) :=
+def homotopy.pi (homotopies : Π i, homotopy (f i) (g i)) : homotopy (pi f) (pi g) :=
 { to_fun := λ t i, homotopies i t,
-  to_fun_zero := by { intro t, ext i, simp only [pi_eval, homotopy.apply_zero], },
-  to_fun_one := by { intro t, ext i, simp only [pi_eval, homotopy.apply_one], } }
+  map_zero_left' := λ t, by { ext i, simp only [pi_eval, homotopy.apply_zero] },
+  map_one_left' := λ t, by { ext i, simp only [pi_eval, homotopy.apply_one] } }
 
 /-- The relative product homotopy of `homotopies` between functions `f` and `g` -/
 @[simps]
@@ -98,8 +89,8 @@ variables {α β : Type*} [topological_space α] [topological_space β]
 def homotopy.prod (F : homotopy f₀ f₁) (G : homotopy g₀ g₁) :
   homotopy (prod_mk f₀ g₀) (prod_mk f₁ g₁) :=
 { to_fun := λ t, (F t, G t),
-  to_fun_zero := by { intro, simp only [prod_eval, homotopy.apply_zero], },
-  to_fun_one := by { intro, simp only [prod_eval, homotopy.apply_one], } }
+  map_zero_left' := λ x, by simp only [prod_eval, homotopy.apply_zero],
+  map_one_left' := λ x, by simp only [prod_eval, homotopy.apply_one] }
 
 /-- The relative product of homotopies `F` and `G`,
   where `F` takes `f₀` to `f₁`  and `G` takes `g₀` to `g₁` -/

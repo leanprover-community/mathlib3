@@ -3,8 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import order.lattice
 import data.set.basic
+import order.lattice
+import order.max
 
 /-!
 # Directed indexed families and sets
@@ -100,7 +101,13 @@ lemma directed_of (r : α → α → Prop) [is_directed α r] (a b : α) : ∃ c
 is_directed.directed _ _
 
 lemma directed_id [is_directed α r] : directed r id := by convert directed_of r
-lemma directed_id_iff_is_directed : directed r id ↔ is_directed α r := ⟨λ h, ⟨h⟩, @directed_id _ _⟩
+lemma directed_id_iff : directed r id ↔ is_directed α r := ⟨λ h, ⟨h⟩, @directed_id _ _⟩
+
+lemma directed_on_univ [is_directed α r] : directed_on r set.univ :=
+λ a _ b _, let ⟨c, hc⟩ := directed_of r a b in ⟨c, trivial, hc⟩
+
+lemma directed_on_univ_iff : directed_on r set.univ ↔ is_directed α r :=
+⟨λ h, ⟨λ a b, let ⟨c, _, hc⟩ := h a trivial b trivial in ⟨c, hc⟩⟩, @directed_on_univ _ _⟩
 
 @[priority 100]  -- see Note [lower instance priority]
 instance is_total.to_is_directed [is_total α r] : is_directed α r :=
@@ -123,6 +130,22 @@ instance order_dual.is_directed_le [has_le α] [is_directed α (swap (≤))] :
   is_directed (order_dual α) (≤) :=
 by assumption
 
+section preorder
+variables [preorder α] {a : α}
+
+protected lemma is_min.is_bot [is_directed α (swap (≤))] (h : is_min a) : is_bot a :=
+λ b, let ⟨c, hca, hcb⟩ := exists_le_le a b in (h hca).trans hcb
+
+protected lemma is_max.is_top [is_directed α (≤)] (h : is_max a) : is_top a :=
+λ b, let ⟨c, hac, hbc⟩ := exists_ge_ge a b in hbc.trans $ h hac
+
+lemma is_bot_iff_is_min [is_directed α (swap (≤))] : is_bot a ↔ is_min a :=
+⟨is_bot.is_min, is_min.is_bot⟩
+
+lemma is_top_iff_is_max [is_directed α (≤)] : is_top a ↔ is_max a := ⟨is_top.is_max, is_max.is_top⟩
+
+end preorder
+
 @[priority 100]  -- see Note [lower instance priority]
 instance semilattice_sup.to_is_directed_le [semilattice_sup α] : is_directed α (≤) :=
 ⟨λ a b, ⟨a ⊔ b, le_sup_left, le_sup_right⟩⟩
@@ -130,3 +153,11 @@ instance semilattice_sup.to_is_directed_le [semilattice_sup α] : is_directed α
 @[priority 100]  -- see Note [lower instance priority]
 instance semilattice_inf.to_is_directed_ge [semilattice_inf α] : is_directed α (swap (≤)) :=
 ⟨λ a b, ⟨a ⊓ b, inf_le_left, inf_le_right⟩⟩
+
+@[priority 100]  -- see Note [lower instance priority]
+instance order_top.to_is_directed_le [has_le α] [order_top α] : is_directed α (≤) :=
+⟨λ a b, ⟨⊤, le_top, le_top⟩⟩
+
+@[priority 100]  -- see Note [lower instance priority]
+instance order_bot.to_is_directed_ge [has_le α] [order_bot α] : is_directed α (swap (≤)) :=
+⟨λ a b, ⟨⊥, bot_le, bot_le⟩⟩

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Yaël Dillies
 -/
 import data.nat.pow
+import tactic.by_contra
 
 /-!
 # Natural number logarithms
@@ -50,22 +51,18 @@ by rw [log, if_neg (λ h : b ≤ n ∧ 1 < b, h.2.not_le hb)]
 
 lemma log_eq_zero_iff {b n : ℕ} : log b n = 0 ↔ n < b ∨ b ≤ 1 :=
 begin
-  split,
-  { intro h_log,
-    by_contra h,
-    push_neg at h,
-    have := log_of_one_lt_of_le h.2 h.1,
-    rw h_log at this,
-    exact succ_ne_zero _ this.symm, },
-  { exact log_eq_zero, },
+  refine ⟨λ h_log, _, log_eq_zero⟩,
+  by_contra' h,
+  have := log_of_one_lt_of_le h.2 h.1,
+  rw h_log at this,
+  exact succ_ne_zero _ this.symm
 end
 
 lemma log_eq_one_iff {b n : ℕ} : log b n = 1 ↔ n < b * b ∧ 1 < b ∧ b ≤ n :=
 -- This is best possible: if b = 2, n = 5, then 1 < b and b ≤ n but n > b * b.
 begin
-  split,
-  { intro h_log,
-    have bound : 1 < b ∧ b ≤ n,
+  refine ⟨λ h_log, _, _⟩,
+  { have bound : 1 < b ∧ b ≤ n,
     { contrapose h_log,
       rw [not_and_distrib, not_lt, not_le, or_comm, ←log_eq_zero_iff] at h_log,
       rw h_log,
@@ -131,9 +128,12 @@ begin
   simp [hn, this]
 end
 
-lemma lt_pow_succ_log_self {b : ℕ} (hb : 1 < b) {x : ℕ} (hx : 0 < x) :
+lemma lt_pow_succ_log_self {b : ℕ} (hb : 1 < b) (x : ℕ) :
   x < b ^ (log b x).succ :=
 begin
+  cases x.eq_zero_or_pos with hx hx,
+  { simp only [hx, log_zero_right, pow_one],
+    exact pos_of_gt hb },
   rw [←not_le, pow_le_iff_le_log hb hx, not_le],
   exact lt_succ_self _,
 end
@@ -303,11 +303,10 @@ end
 
 lemma clog_le_clog_of_left_ge {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : clog b n ≤ clog c n :=
 begin
-  cases n, { simp },
   rw ← le_pow_iff_clog_le (lt_of_lt_of_le hc hb),
   calc
-    n.succ ≤ c ^ clog c n.succ : le_pow_clog hc _
-       ... ≤ b ^ clog c n.succ : pow_le_pow_of_le_left (le_of_lt $ zero_lt_one.trans hc) hb _
+    n ≤ c ^ clog c n : le_pow_clog hc _
+  ... ≤ b ^ clog c n : pow_le_pow_of_le_left (le_of_lt $ zero_lt_one.trans hc) hb _
 end
 
 lemma clog_monotone (b : ℕ) : monotone (clog b) :=

@@ -5,8 +5,8 @@ Authors: Kenny Lau
 -/
 import algebra.group.inj_surj
 import algebra.group.commute
+import algebra.hom.equiv
 import algebra.opposites
-import data.equiv.mul_add
 
 /-!
 # Group structures on the multiplicative and additive opposites
@@ -30,28 +30,25 @@ instance [add_right_cancel_semigroup α] : add_right_cancel_semigroup αᵐᵒ�
 unop_injective.add_right_cancel_semigroup _ (λ x y, rfl)
 
 instance [add_comm_semigroup α] : add_comm_semigroup αᵐᵒᵖ :=
-{ add_comm := λ x y, unop_injective $ add_comm (unop x) (unop y),
-  .. mul_opposite.add_semigroup α }
+unop_injective.add_comm_semigroup _ (λ x y, rfl)
 
 instance [add_zero_class α] : add_zero_class αᵐᵒᵖ :=
 unop_injective.add_zero_class _ rfl (λ x y, rfl)
 
 instance [add_monoid α] : add_monoid αᵐᵒᵖ :=
-unop_injective.add_monoid_smul _ rfl (λ _ _, rfl) (λ _ _, rfl)
+unop_injective.add_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_comm_monoid α] : add_comm_monoid αᵐᵒᵖ :=
-{ .. mul_opposite.add_monoid α, .. mul_opposite.add_comm_semigroup α }
+unop_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 instance [sub_neg_monoid α] : sub_neg_monoid αᵐᵒᵖ :=
-unop_injective.sub_neg_monoid_smul _ rfl (λ _ _, rfl) (λ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+unop_injective.sub_neg_monoid _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_group α] : add_group αᵐᵒᵖ :=
-unop_injective.add_group_smul _ rfl (λ _ _, rfl) (λ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+unop_injective.add_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_comm_group α] : add_comm_group αᵐᵒᵖ :=
-{ .. mul_opposite.add_group α, .. mul_opposite.add_comm_monoid α }
+unop_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-!
 ### Multiplicative structures on `αᵐᵒᵖ`
@@ -118,6 +115,14 @@ We also generate additive structures on `αᵃᵒᵖ` using `to_additive`
 
 variable {α}
 
+@[simp, to_additive] lemma unop_div [div_inv_monoid α] (x y : αᵐᵒᵖ) :
+  unop (x / y) = (unop y)⁻¹ * unop x :=
+rfl
+
+@[simp, to_additive] lemma op_div [div_inv_monoid α] (x y : α) :
+  op (x / y) = (op y)⁻¹ * op x :=
+by simp [div_eq_mul_inv]
+
 @[simp, to_additive] lemma semiconj_by_op [has_mul α] {a x y : α} :
   semiconj_by (op a) (op y) (op x) ↔ semiconj_by a x y :=
 by simp only [semiconj_by, ← op_mul, op_inj, eq_comm]
@@ -175,8 +180,7 @@ instance [right_cancel_semigroup α] : right_cancel_semigroup αᵃᵒᵖ :=
 unop_injective.right_cancel_semigroup _ (λ x y, rfl)
 
 instance [comm_semigroup α] : comm_semigroup αᵃᵒᵖ :=
-{ mul_comm := λ x y, unop_injective $ mul_comm (unop x) (unop y),
-  .. add_opposite.semigroup α }
+unop_injective.comm_semigroup _ (λ x y, rfl)
 
 instance [mul_one_class α] : mul_one_class αᵃᵒᵖ :=
 unop_injective.mul_one_class _ rfl (λ x y, rfl)
@@ -187,21 +191,19 @@ instance {β} [has_pow α β] : has_pow αᵃᵒᵖ β := { pow := λ a b, op (u
 @[simp] lemma unop_pow {β} [has_pow α β] (a : αᵃᵒᵖ) (b : β) : unop (a ^ b) = unop a ^ b := rfl
 
 instance [monoid α] : monoid αᵃᵒᵖ :=
-unop_injective.monoid_pow _ rfl (λ _ _, rfl) (λ _ _, rfl)
+unop_injective.monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 instance [comm_monoid α] : comm_monoid αᵃᵒᵖ :=
-{ .. add_opposite.monoid α, .. add_opposite.comm_semigroup α }
+unop_injective.comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 instance [div_inv_monoid α] : div_inv_monoid αᵃᵒᵖ :=
-unop_injective.div_inv_monoid_pow _ rfl (λ _ _, rfl) (λ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+unop_injective.div_inv_monoid _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance [group α] : group αᵃᵒᵖ :=
-unop_injective.group_pow _ rfl (λ _ _, rfl) (λ _, rfl)
-  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+unop_injective.group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance [comm_group α] : comm_group αᵃᵒᵖ :=
-{ .. add_opposite.group α, .. add_opposite.comm_monoid α }
+unop_injective.comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 variable {α}
 
@@ -220,16 +222,16 @@ open mul_opposite
 
 /-- Inversion on a group is a `mul_equiv` to the opposite group. When `G` is commutative, there is
 `mul_equiv.inv`. -/
-@[to_additive "/-- Negation on an additive group is an `add_equiv` to the opposite group. When `G`
-is commutative, there is `add_equiv.inv`. -/", simps { fully_applied := ff, simp_rhs := tt }]
+@[to_additive "Negation on an additive group is an `add_equiv` to the opposite group. When `G`
+is commutative, there is `add_equiv.inv`.", simps { fully_applied := ff, simp_rhs := tt }]
 def mul_equiv.inv' (G : Type*) [group G] : G ≃* Gᵐᵒᵖ :=
 { map_mul' := λ x y, unop_injective $ mul_inv_rev x y,
   .. (equiv.inv G).trans op_equiv }
 
 /-- A monoid homomorphism `f : M →* N` such that `f x` commutes with `f y` for all `x, y` defines
 a monoid homomorphism to `Nᵐᵒᵖ`. -/
-@[to_additive "/-- An additive monoid homomorphism `f : M →+ N` such that `f x` additively commutes
-with `f y` for all `x, y` defines an additive monoid homomorphism to `Sᵃᵒᵖ`. -/",
+@[to_additive "An additive monoid homomorphism `f : M →+ N` such that `f x` additively commutes
+with `f y` for all `x, y` defines an additive monoid homomorphism to `Sᵃᵒᵖ`.",
   simps {fully_applied := ff}]
 def monoid_hom.to_opposite {M N : Type*} [mul_one_class M] [mul_one_class N] (f : M →* N)
   (hf : ∀ x y, commute (f x) (f y)) : M →* Nᵐᵒᵖ :=
@@ -239,8 +241,8 @@ def monoid_hom.to_opposite {M N : Type*} [mul_one_class M] [mul_one_class N] (f 
 
 /-- A monoid homomorphism `f : M →* N` such that `f x` commutes with `f y` for all `x, y` defines
 a monoid homomorphism from `Mᵐᵒᵖ`. -/
-@[to_additive "/-- An additive monoid homomorphism `f : M →+ N` such that `f x` additively commutes
-with `f y` for all `x`, `y` defines an additive monoid homomorphism from `Mᵃᵒᵖ`. -/",
+@[to_additive "An additive monoid homomorphism `f : M →+ N` such that `f x` additively commutes
+with `f y` for all `x`, `y` defines an additive monoid homomorphism from `Mᵃᵒᵖ`.",
   simps {fully_applied := ff}]
 def monoid_hom.from_opposite {M N : Type*} [mul_one_class M] [mul_one_class N] (f : M →* N)
   (hf : ∀ x y, commute (f x) (f y)) : Mᵐᵒᵖ →* N :=
@@ -270,9 +272,9 @@ rfl
 
 /-- A monoid homomorphism `M →* N` can equivalently be viewed as a monoid homomorphism
 `Mᵐᵒᵖ →* Nᵐᵒᵖ`. This is the action of the (fully faithful) `ᵐᵒᵖ`-functor on morphisms. -/
-@[to_additive "/-- An additive monoid homomorphism `M →+ N` can equivalently be viewed as an
+@[to_additive "An additive monoid homomorphism `M →+ N` can equivalently be viewed as an
 additive monoid homomorphism `Mᵃᵒᵖ →+ Nᵃᵒᵖ`. This is the action of the (fully faithful)
-`ᵃᵒᵖ`-functor on morphisms. -/", simps]
+`ᵃᵒᵖ`-functor on morphisms.", simps]
 def monoid_hom.op {M N} [mul_one_class M] [mul_one_class N] :
   (M →* N) ≃ (Mᵐᵒᵖ →* Nᵐᵒᵖ) :=
 { to_fun    := λ f, { to_fun   := op ∘ f ∘ unop,
@@ -323,7 +325,7 @@ def add_equiv.mul_op {α β} [has_add α] [has_add β] :
   (αᵐᵒᵖ ≃+ βᵐᵒᵖ) ≃ (α ≃+ β) := add_equiv.mul_op.symm
 
 /-- A iso `α ≃* β` can equivalently be viewed as an iso `αᵐᵒᵖ ≃* βᵐᵒᵖ`. -/
-@[to_additive "A iso `α ≃+ β` can equivalently be viewed as an iso `αᵃᵒᵖ ≃+ βᵃᵒᵖ`. -/", simps]
+@[to_additive "A iso `α ≃+ β` can equivalently be viewed as an iso `αᵃᵒᵖ ≃+ βᵃᵒᵖ`.", simps]
 def mul_equiv.op {α β} [has_mul α] [has_mul β] :
   (α ≃* β) ≃ (αᵐᵒᵖ ≃* βᵐᵒᵖ) :=
 { to_fun    := λ f, { to_fun   := op ∘ f ∘ unop,

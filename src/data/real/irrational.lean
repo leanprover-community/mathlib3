@@ -53,8 +53,7 @@ begin
   have hdivn : ↑D ^ n ∣ N ^ n := dvd.intro_left m hxr,
   rw [← int.dvd_nat_abs, ← int.coe_nat_pow, int.coe_nat_dvd, int.nat_abs_pow,
     nat.pow_dvd_pow_iff hnpos] at hdivn,
-  have hD : D = 1 := by rw [← nat.gcd_eq_right hdivn, C.gcd_eq_one],
-  subst D,
+  obtain rfl : D = 1 := by rw [← nat.gcd_eq_right hdivn, C.gcd_eq_one],
   refine hv ⟨N, _⟩,
   rw [num_denom', int.coe_nat_one, mk_eq_div, int.cast_one, div_one, cast_coe_int]
 end
@@ -297,7 +296,7 @@ theorem of_inv (h : irrational x⁻¹) : irrational x :=
 λ ⟨q, hq⟩, h $ hq ▸ ⟨q⁻¹, q.cast_inv⟩
 
 protected theorem inv (h : irrational x) : irrational x⁻¹ :=
-of_inv $ by rwa inv_inv₀
+of_inv $ by rwa inv_inv
 
 /-!
 #### Division

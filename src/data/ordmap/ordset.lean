@@ -568,7 +568,7 @@ begin
             nat.le_zero_iff, add_eq_zero_iff] at this },
         cases sr.2.2.2.1.size_eq_zero.1 this.1,
         cases sr.2.2.2.2.size_eq_zero.1 this.2,
-        have : rrs = 1 := sr.2.2.1, subst rrs,
+        obtain rfl : rrs = 1 := sr.2.2.1,
         rw [if_neg, if_pos, rotate_l, if_pos], {refl},
         all_goals {exact dec_trivial} },
       { have : size rll = 0 ∧ size rlr = 0,
@@ -577,7 +577,7 @@ begin
             nat.le_zero_iff, add_eq_zero_iff] at this },
         cases sr.2.1.2.1.size_eq_zero.1 this.1,
         cases sr.2.1.2.2.size_eq_zero.1 this.2,
-        have : rls = 1 := sr.2.1.1, subst rls,
+        obtain rfl : rls = 1 := sr.2.1.1,
         rw [if_neg, if_pos, rotate_l, if_neg], {refl},
         all_goals {exact dec_trivial} },
       { symmetry, rw [zero_add, if_neg, if_pos, rotate_l],
@@ -598,7 +598,7 @@ begin
             nat.le_zero_iff, add_eq_zero_iff] at this },
         cases sl.2.2.2.1.size_eq_zero.1 this.1,
         cases sl.2.2.2.2.size_eq_zero.1 this.2,
-        have : lrs = 1 := sl.2.2.1, subst lrs,
+        obtain rfl : lrs = 1 := sl.2.2.1,
         rw [if_neg, if_neg, if_pos, rotate_r, if_neg], {refl},
         all_goals {exact dec_trivial} },
       { have : size lll = 0 ∧ size llr = 0,
@@ -607,7 +607,7 @@ begin
             nat.le_zero_iff, add_eq_zero_iff] at this },
         cases sl.2.1.2.1.size_eq_zero.1 this.1,
         cases sl.2.1.2.2.size_eq_zero.1 this.2,
-        have : lls = 1 := sl.2.1.1, subst lls,
+        obtain rfl : lls = 1 := sl.2.1.1,
         rw [if_neg, if_neg, if_pos, rotate_r, if_pos], {refl},
         all_goals {exact dec_trivial} },
       { symmetry, rw [if_neg, if_neg, if_pos, rotate_r],
@@ -673,8 +673,8 @@ def raised (n m : ℕ) : Prop := m = n ∨ m = n + 1
 theorem raised_iff {n m} : raised n m ↔ n ≤ m ∧ m ≤ n + 1 :=
 begin
   split, rintro (rfl | rfl),
-  { exact ⟨le_refl _, nat.le_succ _⟩ },
-  { exact ⟨nat.le_succ _, le_refl _⟩ },
+  { exact ⟨le_rfl, nat.le_succ _⟩ },
+  { exact ⟨nat.le_succ _, le_rfl⟩ },
   { rintro ⟨h₁, h₂⟩,
     rcases eq_or_lt_of_le h₁ with rfl | h₁,
     { exact or.inl rfl },
@@ -1410,7 +1410,7 @@ theorem insert_eq_insert_with [@decidable_rel α (≤)]
 theorem insert.valid [is_total α (≤)] [@decidable_rel α (≤)]
   (x : α) {t} (h : valid t) : valid (ordnode.insert x t) :=
 by rw insert_eq_insert_with; exact
-insert_with.valid _ _ (λ _ _, ⟨le_refl _, le_refl _⟩) h
+insert_with.valid _ _ (λ _ _, ⟨le_rfl, le_rfl⟩) h
 
 theorem insert'_eq_insert_with [@decidable_rel α (≤)]
   (x : α) : ∀ t, insert' x t = insert_with id x t

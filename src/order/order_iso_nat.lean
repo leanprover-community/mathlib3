@@ -3,8 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.equiv.denumerable
 import data.nat.lattice
+import logic.denumerable
 import logic.function.iterate
 import order.hom.basic
 
@@ -45,7 +45,8 @@ theorem well_founded_iff_no_descending_seq :
 ⟨λ ⟨h⟩, ⟨λ ⟨f, o⟩,
   suffices ∀ a, acc r a → ∀ n, a ≠ f n, from this (f 0) (h _) 0 rfl,
   λ a ac, begin
-    induction ac with a _ IH, intros n h, subst a,
+    induction ac with a _ IH,
+    rintro n rfl,
     exact IH (f (n+1)) (o.2 (nat.lt_succ_self _)) _ rfl
   end⟩,
 λ E, ⟨λ a, classical.by_contradiction $ λ na,
@@ -140,6 +141,8 @@ begin
       or.intro_left _ (λ n, (nat.find_spec (h (g' n))).2)⟩ }
 end
 
+/-- This is the infinitary Erdős–Szekeres theorem, and an important lemma in the usual proof of
+    Bolzano-Weierstrass for `ℝ`. -/
 theorem exists_increasing_or_nonincreasing_subseq
   {α : Type*} (r : α → α → Prop) [is_trans α r] (f : ℕ → α) :
   ∃ (g : ℕ ↪o ℕ), (∀ m n : ℕ, m < n → r (f (g m)) (f (g n))) ∨
@@ -174,12 +177,12 @@ end
 type, `monotonic_sequence_limit_index a` is the least natural number `n` for which `aₙ` reaches the
 constant value. For sequences that are not eventually constant, `monotonic_sequence_limit_index a`
 is defined, but is a junk value. -/
-noncomputable def monotonic_sequence_limit_index {α : Type*} [partial_order α] (a : ℕ →o α) : ℕ :=
+noncomputable def monotonic_sequence_limit_index {α : Type*} [preorder α] (a : ℕ →o α) : ℕ :=
 Inf { n | ∀ m, n ≤ m → a n = a m }
 
 /-- The constant value of an eventually-constant monotone sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a
 partially-ordered type. -/
-noncomputable def monotonic_sequence_limit {α : Type*} [partial_order α] (a : ℕ →o α) :=
+noncomputable def monotonic_sequence_limit {α : Type*} [preorder α] (a : ℕ →o α) :=
 a (monotonic_sequence_limit_index a)
 
 lemma well_founded.supr_eq_monotonic_sequence_limit {α : Type*} [complete_lattice α]

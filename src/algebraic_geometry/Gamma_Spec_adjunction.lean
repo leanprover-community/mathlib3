@@ -38,7 +38,7 @@ open prime_spectrum
 namespace algebraic_geometry
 open opposite
 open category_theory
-open structure_sheaf
+open structure_sheaf Spec (structure_sheaf)
 open topological_space
 open algebraic_geometry.LocallyRingedSpace
 open Top.presheaf
@@ -171,7 +171,7 @@ lemma to_stalk_stalk_map_to_Γ_Spec (x : X) : to_stalk _ _ ≫
 begin
   rw PresheafedSpace.stalk_map,
   erw ← to_open_germ _ (basic_open (1 : Γ.obj (op X)))
-    ⟨X.to_Γ_Spec_fun x, by rw basic_open_one; triv⟩,
+    ⟨X.to_Γ_Spec_fun x, by rw basic_open_one; trivial⟩,
   rw [← category.assoc, category.assoc (to_open _ _)],
   erw stalk_functor_map_germ,
   rw [← category.assoc (to_open _ _), X.to_Γ_Spec_SheafedSpace_app_spec 1],
@@ -203,7 +203,7 @@ def to_Γ_Spec : X ⟶ Spec.LocallyRingedSpace_obj (Γ.obj (op X)) :=
     erw ← he,
     rw ring_hom.map_mul,
     exact ht.mul ((is_localization.map_units S s : _).map
-      (PresheafedSpace.stalk_map X.to_Γ_Spec_SheafedSpace x).to_monoid_hom)
+      (PresheafedSpace.stalk_map X.to_Γ_Spec_SheafedSpace x))
   end }
 
 lemma comp_ring_hom_ext {X : LocallyRingedSpace} {R : CommRing}

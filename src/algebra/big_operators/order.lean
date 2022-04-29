@@ -14,6 +14,7 @@ Mostly monotonicity results for the `∏` and `∑` operations.
 
 -/
 
+open function
 open_locale big_operators
 
 variables {ι α β M N G k R : Type*}
@@ -168,24 +169,24 @@ calc f a = ∏ i in {a}, f i : prod_singleton.symm
      ... ≤ ∏ i in s, f i   :
   prod_le_prod_of_subset_of_one_le' (singleton_subset_iff.2 h) $ λ i hi _, hf i hi
 
-@[to_additive]
-lemma prod_le_of_forall_le (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, f x ≤ n) :
+@[to_additive sum_le_card_nsmul]
+lemma prod_le_pow_card (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, f x ≤ n) :
   s.prod f ≤ n ^ s.card :=
 begin
-  refine (multiset.prod_le_of_forall_le (s.val.map f) n _).trans _,
+  refine (multiset.prod_le_pow_card (s.val.map f) n _).trans _,
   { simpa using h },
   { simpa }
 end
 
-@[to_additive]
-lemma le_prod_of_forall_le (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, n ≤ f x) :
+@[to_additive card_nsmul_le_sum]
+lemma pow_card_le_prod (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, n ≤ f x) :
   n ^ s.card ≤ s.prod f :=
-@finset.prod_le_of_forall_le _ (order_dual N) _ _ _ _ h
+@finset.prod_le_pow_card _ (order_dual N) _ _ _ _ h
 
 lemma card_bUnion_le_card_mul [decidable_eq β] (s : finset ι) (f : ι → finset β) (n : ℕ)
   (h : ∀ a ∈ s, (f a).card ≤ n) :
   (s.bUnion f).card ≤ s.card * n :=
-card_bUnion_le.trans $ sum_le_of_forall_le _ _ _ h
+card_bUnion_le.trans $ sum_le_card_nsmul _ _ _ h
 
 variables {ι' : Type*} [decidable_eq ι']
 
@@ -263,7 +264,7 @@ times how many they are. -/
 lemma sum_card_inter_le (h : ∀ a ∈ s, (B.filter $ (∈) a).card ≤ n) :
   ∑ t in B, (s ∩ t).card ≤ s.card * n :=
 begin
-  refine le_trans _ (s.sum_le_of_forall_le _ _ h),
+  refine le_trans _ (s.sum_le_card_nsmul _ _ h),
   simp_rw [←filter_mem_eq_inter, card_eq_sum_ones, sum_filter],
   exact sum_comm.le,
 end
@@ -280,7 +281,7 @@ times how many they are. -/
 lemma le_sum_card_inter (h : ∀ a ∈ s, n ≤ (B.filter $ (∈) a).card) :
   s.card * n ≤ ∑ t in B, (s ∩ t).card :=
 begin
-  apply (s.le_sum_of_forall_le _ _ h).trans,
+  apply (s.card_nsmul_le_sum _ _ h).trans,
   simp_rw [←filter_mem_eq_inter, card_eq_sum_ones, sum_filter],
   exact sum_comm.le,
 end
@@ -303,6 +304,27 @@ many they are. -/
 lemma sum_card [fintype α] (h : ∀ a, (B.filter $ (∈) a).card = n) :
   ∑ s in B, s.card = fintype.card α * n :=
 by simp_rw [fintype.card, ←sum_card_inter (λ a _, h a), univ_inter]
+
+lemma card_le_card_bUnion {s : finset ι} {f : ι → finset α} (hs : (s : set ι).pairwise_disjoint f)
+  (hf : ∀ i ∈ s, (f i).nonempty) :
+  s.card ≤ (s.bUnion f).card :=
+by { rw [card_bUnion hs, card_eq_sum_ones], exact sum_le_sum (λ i hi, (hf i hi).card_pos) }
+
+lemma card_le_card_bUnion_add_card_fiber {s : finset ι} {f : ι → finset α}
+  (hs : (s : set ι).pairwise_disjoint f) :
+  s.card ≤ (s.bUnion f).card + (s.filter $ λ i, f i = ∅).card :=
+begin
+  rw [←finset.filter_card_add_filter_neg_card_eq_card (λ i, f i = ∅), add_comm],
+  exact add_le_add_right ((card_le_card_bUnion (hs.subset $ filter_subset _ _) $ λ i hi,
+    nonempty_of_ne_empty $ (mem_filter.1 hi).2).trans $ card_le_of_subset $
+    bUnion_subset_bUnion_of_subset_left _ $ filter_subset _ _) _,
+end
+
+lemma card_le_card_bUnion_add_one {s : finset ι} {f : ι → finset α} (hf : injective f)
+  (hs : (s : set ι).pairwise_disjoint f) :
+  s.card ≤ (s.bUnion f).card + 1 :=
+(card_le_card_bUnion_add_card_fiber hs).trans $ add_le_add_left (card_le_one.2 $ λ i hi j hj, hf $
+  (mem_filter.1 hi).2.trans (mem_filter.1 hj).2.symm) _
 
 end double_counting
 
@@ -597,7 +619,7 @@ begin
   refine finset.induction_on s _ (λ i s hi ih, _),
   { simp },
   { simp only [finset.sum_insert hi],
-  exact (abv.add_le _ _).trans (add_le_add (le_refl _) ih) },
+  exact (abv.add_le _ _).trans (add_le_add le_rfl ih) },
 end
 
 lemma is_absolute_value.abv_sum [semiring R] [ordered_semiring S] (abv : R → S)

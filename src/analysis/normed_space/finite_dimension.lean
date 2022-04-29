@@ -3,9 +3,10 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import analysis.asymptotics.asymptotic_equivalent
 import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
-import analysis.asymptotics.asymptotic_equivalent
+import analysis.normed_space.riesz_lemma
 import linear_algebra.matrix.to_lin
 import topology.algebra.matrix
 
@@ -46,7 +47,7 @@ universes u v w x
 noncomputable theory
 
 open set finite_dimensional topological_space filter asymptotics
-open_locale classical big_operators filter topological_space asymptotics
+open_locale classical big_operators filter topological_space asymptotics nnreal
 
 namespace linear_isometry
 
@@ -87,7 +88,7 @@ variables {𝕜 : Type*} {V₁ V₂  : Type*} {P₁ P₂ : Type*}
   [normed_group V₁] [semi_normed_group V₂]
   [normed_space 𝕜 V₁] [normed_space 𝕜 V₂]
   [metric_space P₁] [pseudo_metric_space P₂]
-  [normed_add_torsor V₁ P₁] [semi_normed_add_torsor V₂ P₂]
+  [normed_add_torsor V₁ P₁] [normed_add_torsor V₂ P₂]
 
 variables [finite_dimensional 𝕜 V₁] [finite_dimensional 𝕜 V₂]
 
@@ -212,7 +213,7 @@ begin
     have C0_le : ∀i, C0 i ≤ C :=
       λi, finset.single_le_sum (λj hj, (hC0 j).1) (finset.mem_univ _),
     apply ξ.equiv_fun.to_linear_map.continuous_of_bound C (λx, _),
-    rw pi_semi_norm_le_iff,
+    rw pi_norm_le_iff,
     { exact λi, le_trans ((hC0 i).2 x) (mul_le_mul_of_nonneg_right (C0_le i) (norm_nonneg _)) },
     { exact mul_nonneg C_nonneg (norm_nonneg _) } }
 end
@@ -236,29 +237,48 @@ begin
   rw [basis.equiv_fun_symm_apply, basis.sum_repr]
 end
 
-theorem affine_map.continuous_of_finite_dimensional {PE PF : Type*}
-  [metric_space PE] [normed_add_torsor E PE] [metric_space PF] [normed_add_torsor F PF]
-  [finite_dimensional 𝕜 E] (f : PE →ᵃ[𝕜] PF) : continuous f :=
+section affine
+
+variables  {PE PF : Type*} [metric_space PE] [normed_add_torsor E PE] [metric_space PF]
+  [normed_add_torsor F PF] [finite_dimensional 𝕜 E]
+
+include E F
+
+theorem affine_map.continuous_of_finite_dimensional (f : PE →ᵃ[𝕜] PF) : continuous f :=
 affine_map.continuous_linear_iff.1 f.linear.continuous_of_finite_dimensional
+
+theorem affine_equiv.continuous_of_finite_dimensional (f : PE ≃ᵃ[𝕜] PF) : continuous f :=
+f.to_affine_map.continuous_of_finite_dimensional
+
+/-- Reinterpret an affine equivalence as a homeomorphism. -/
+def affine_equiv.to_homeomorph_of_finite_dimensional (f : PE ≃ᵃ[𝕜] PF) : PE ≃ₜ PF :=
+{ to_equiv := f.to_equiv,
+  continuous_to_fun := f.continuous_of_finite_dimensional,
+  continuous_inv_fun :=
+    begin
+      haveI : finite_dimensional 𝕜 F, from f.linear.finite_dimensional,
+      exact f.symm.continuous_of_finite_dimensional
+    end }
+
+@[simp] lemma affine_equiv.coe_to_homeomorph_of_finite_dimensional (f : PE ≃ᵃ[𝕜] PF) :
+  ⇑f.to_homeomorph_of_finite_dimensional = f := rfl
+
+@[simp] lemma affine_equiv.coe_to_homeomorph_of_finite_dimensional_symm (f : PE ≃ᵃ[𝕜] PF) :
+  ⇑f.to_homeomorph_of_finite_dimensional.symm = f.symm := rfl
+
+end affine
 
 lemma continuous_linear_map.continuous_det :
   continuous (λ (f : E →L[𝕜] E), f.det) :=
 begin
   change continuous (λ (f : E →L[𝕜] E), (f : E →ₗ[𝕜] E).det),
-  classical,
   by_cases h : ∃ (s : finset E), nonempty (basis ↥s 𝕜 E),
   { rcases h with ⟨s, ⟨b⟩⟩,
     haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finset_basis b,
-    letI : normed_group (matrix s s 𝕜) := matrix.normed_group,
-    letI : normed_space 𝕜 (matrix s s 𝕜) := matrix.normed_space,
     simp_rw linear_map.det_eq_det_to_matrix_of_finset b,
-    have A : continuous (λ (f : E →L[𝕜] E), linear_map.to_matrix b b f),
-    { change continuous ((linear_map.to_matrix b b).to_linear_map.comp
-        (continuous_linear_map.coe_lm 𝕜)),
-      exact linear_map.continuous_of_finite_dimensional _ },
-    convert continuous_det.comp A,
-    ext f,
-    congr },
+    refine continuous.matrix_det _,
+    exact ((linear_map.to_matrix b b).to_linear_map.comp
+        (continuous_linear_map.coe_lm 𝕜)).continuous_of_finite_dimensional },
   { unfold linear_map.det,
     simpa only [h, monoid_hom.one_apply, dif_neg, not_false_iff] using continuous_const }
 end
@@ -287,16 +307,105 @@ def to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F' 
 
 end linear_map
 
+namespace linear_equiv
+
+variables [finite_dimensional 𝕜 E]
+
 /-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional
 space. -/
-@[simps]
-def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E ≃ₗ[𝕜] F) : E ≃L[𝕜] F :=
+def to_continuous_linear_equiv (e : E ≃ₗ[𝕜] F) : E ≃L[𝕜] F :=
 { continuous_to_fun := e.to_linear_map.continuous_of_finite_dimensional,
   continuous_inv_fun := begin
     haveI : finite_dimensional 𝕜 F := e.finite_dimensional,
     exact e.symm.to_linear_map.continuous_of_finite_dimensional
   end,
   ..e }
+
+@[simp] lemma coe_to_continuous_linear_equiv (e : E ≃ₗ[𝕜] F) :
+  (e.to_continuous_linear_equiv : E →ₗ[𝕜] F) = e := rfl
+
+@[simp] lemma coe_to_continuous_linear_equiv' (e : E ≃ₗ[𝕜] F) :
+  (e.to_continuous_linear_equiv : E → F) = e := rfl
+
+@[simp] lemma coe_to_continuous_linear_equiv_symm (e : E ≃ₗ[𝕜] F) :
+  (e.to_continuous_linear_equiv.symm : F →ₗ[𝕜] E) = e.symm := rfl
+
+@[simp] lemma coe_to_continuous_linear_equiv_symm' (e : E ≃ₗ[𝕜] F) :
+  (e.to_continuous_linear_equiv.symm : F → E) = e.symm := rfl
+
+@[simp] lemma to_linear_equiv_to_continuous_linear_equiv (e : E ≃ₗ[𝕜] F) :
+  e.to_continuous_linear_equiv.to_linear_equiv = e :=
+by { ext x, refl }
+
+@[simp] lemma to_linear_equiv_to_continuous_linear_equiv_symm (e : E ≃ₗ[𝕜] F) :
+  e.to_continuous_linear_equiv.symm.to_linear_equiv = e.symm :=
+by { ext x, refl }
+
+end linear_equiv
+
+namespace continuous_linear_map
+
+variable [finite_dimensional 𝕜 E]
+
+/-- Builds a continuous linear equivalence from a continuous linear map on a finite-dimensional
+vector space whose determinant is nonzero. -/
+def to_continuous_linear_equiv_of_det_ne_zero
+  (f : E →L[𝕜] E) (hf : f.det ≠ 0) : E ≃L[𝕜] E :=
+((f : E →ₗ[𝕜] E).equiv_of_det_ne_zero hf).to_continuous_linear_equiv
+
+@[simp] lemma coe_to_continuous_linear_equiv_of_det_ne_zero (f : E →L[𝕜] E) (hf : f.det ≠ 0) :
+  (f.to_continuous_linear_equiv_of_det_ne_zero hf : E →L[𝕜] E) = f :=
+by { ext x, refl }
+
+@[simp] lemma to_continuous_linear_equiv_of_det_ne_zero_apply
+  (f : E →L[𝕜] E) (hf : f.det ≠ 0) (x : E) :
+  f.to_continuous_linear_equiv_of_det_ne_zero hf x = f x :=
+rfl
+
+end continuous_linear_map
+
+/-- Any `K`-Lipschitz map from a subset `s` of a metric space `α` to a finite-dimensional real
+vector space `E'` can be extended to a Lipschitz map on the whole space `α`, with a slightly worse
+constant `C * K` where `C` only depends on `E'`. We record a working value for this constant `C`
+as `lipschitz_extension_constant E'`. -/
+@[irreducible] def lipschitz_extension_constant
+  (E' : Type*) [normed_group E'] [normed_space ℝ E'] [finite_dimensional ℝ E'] : ℝ≥0 :=
+let A := (basis.of_vector_space ℝ E').equiv_fun.to_continuous_linear_equiv in
+  max (∥A.symm.to_continuous_linear_map∥₊ * ∥A.to_continuous_linear_map∥₊) 1
+
+lemma lipschitz_extension_constant_pos
+  (E' : Type*) [normed_group E'] [normed_space ℝ E'] [finite_dimensional ℝ E'] :
+  0 < lipschitz_extension_constant E' :=
+by { rw lipschitz_extension_constant, exact zero_lt_one.trans_le (le_max_right _ _) }
+
+/-- Any `K`-Lipschitz map from a subset `s` of a metric space `α` to a finite-dimensional real
+vector space `E'` can be extended to a Lipschitz map on the whole space `α`, with a slightly worse
+constant `lipschitz_extension_constant E' * K`. -/
+theorem lipschitz_on_with.extend_finite_dimension
+  {α : Type*} [pseudo_metric_space α]
+  {E' : Type*} [normed_group E'] [normed_space ℝ E'] [finite_dimensional ℝ E']
+  {s : set α} {f : α → E'} {K : ℝ≥0} (hf : lipschitz_on_with K f s) :
+  ∃ (g : α → E'), lipschitz_with (lipschitz_extension_constant E' * K) g ∧ eq_on f g s :=
+begin
+  /- This result is already known for spaces `ι → ℝ`. We use a continuous linear equiv between
+  `E'` and such a space to transfer the result to `E'`. -/
+  let ι : Type* := basis.of_vector_space_index ℝ E',
+  let A := (basis.of_vector_space ℝ E').equiv_fun.to_continuous_linear_equiv,
+  have LA : lipschitz_with (∥A.to_continuous_linear_map∥₊) A, by apply A.lipschitz,
+  have L : lipschitz_on_with (∥A.to_continuous_linear_map∥₊ * K) (A ∘ f) s :=
+    LA.comp_lipschitz_on_with hf,
+  obtain ⟨g, hg, gs⟩ : ∃ g : α → (ι → ℝ), lipschitz_with (∥A.to_continuous_linear_map∥₊ * K) g ∧
+    eq_on (A ∘ f) g s := L.extend_pi,
+  refine ⟨A.symm ∘ g, _, _⟩,
+  { have LAsymm : lipschitz_with (∥A.symm.to_continuous_linear_map∥₊) A.symm,
+      by apply A.symm.lipschitz,
+    apply (LAsymm.comp hg).weaken,
+    rw [lipschitz_extension_constant, ← mul_assoc],
+    refine mul_le_mul' (le_max_left _ _) le_rfl },
+  { assume x hx,
+    have : A (f x) = g x := gs hx,
+    simp only [(∘), ← this, A.symm_apply_apply] }
+end
 
 lemma linear_map.exists_antilipschitz_with [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F)
   (hf : f.ker = ⊥) : ∃ K > 0, antilipschitz_with K f :=
@@ -397,42 +506,43 @@ v.constr_apply_fintype 𝕜 _ _
   (v.constrL f) (v i) = f i :=
 v.constr_basis 𝕜 _ _
 
-lemma basis.sup_norm_le_norm (v : basis ι 𝕜 E) :
-  ∃ C > (0 : ℝ), ∀ e : E, ∑ i, ∥v.equiv_fun e i∥ ≤ C * ∥e∥ :=
-begin
+lemma basis.op_nnnorm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) {u : E →L[𝕜] F} (M : ℝ≥0)
+  (hu : ∀ i, ∥u (v i)∥₊ ≤ M) :
+  ∥u∥₊ ≤ fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥₊ * M :=
+u.op_nnnorm_le_bound _ $ λ e, begin
   set φ := v.equiv_funL.to_continuous_linear_map,
-  set C := ∥φ∥ * (fintype.card ι),
-  use [max C 1, lt_of_lt_of_le (zero_lt_one) (le_max_right C 1)],
-  intros e,
-  calc ∑ i, ∥φ e i∥ ≤ ∑ i : ι, ∥φ e∥ : by { apply finset.sum_le_sum,
-                                           exact λ i hi, norm_le_pi_norm (φ e) i }
-  ... = ∥φ e∥*(fintype.card ι) : by simpa only [mul_comm, finset.sum_const, nsmul_eq_mul]
-  ... ≤ ∥φ∥ * ∥e∥ * (fintype.card ι) : mul_le_mul_of_nonneg_right (φ.le_op_norm e)
-                                                                 (fintype.card ι).cast_nonneg
-  ... = ∥φ∥ * (fintype.card ι) * ∥e∥ : by ring
-  ... ≤ max C 1 * ∥e∥ :  mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _)
+  calc
+  ∥u e∥₊ = ∥u (∑ i, v.equiv_fun e i • v i)∥₊ :   by rw [v.sum_equiv_fun]
+    ... = ∥∑ i, (v.equiv_fun e i) • (u $ v i)∥₊ : by simp [u.map_sum, linear_map.map_smul]
+    ... ≤ ∑ i, ∥(v.equiv_fun e i) • (u $ v i)∥₊ : nnnorm_sum_le _ _
+    ... = ∑ i, ∥v.equiv_fun e i∥₊ * ∥u (v i)∥₊ :   by simp only [nnnorm_smul]
+    ... ≤ ∑ i, ∥v.equiv_fun e i∥₊ * M : finset.sum_le_sum (λ i hi,
+                                                    mul_le_mul_of_nonneg_left (hu i) (zero_le _))
+    ... = (∑ i, ∥v.equiv_fun e i∥₊) * M : finset.sum_mul.symm
+    ... ≤ fintype.card ι • (∥φ∥₊ * ∥e∥₊) * M :
+          (suffices _, from mul_le_mul_of_nonneg_right this (zero_le M),
+          calc  ∑ i, ∥v.equiv_fun e i∥₊
+              ≤ fintype.card ι • ∥φ e∥₊ : pi.sum_nnnorm_apply_le_nnnorm _
+          ... ≤ fintype.card ι • (∥φ∥₊ * ∥e∥₊) : nsmul_le_nsmul_of_le_right (φ.le_op_nnnorm e) _)
+    ... = fintype.card ι • ∥φ∥₊ * M * ∥e∥₊ : by simp only [smul_mul_assoc, mul_right_comm],
 end
 
-lemma basis.op_norm_le  {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :
+lemma basis.op_norm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) {u : E →L[𝕜] F} {M : ℝ}
+  (hM : 0 ≤ M) (hu : ∀ i, ∥u (v i)∥ ≤ M) :
+  ∥u∥ ≤ fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥ * M :=
+by simpa using nnreal.coe_le_coe.mpr (v.op_nnnorm_le ⟨M, hM⟩ hu)
+
+/-- A weaker version of `basis.op_nnnorm_le` that abstracts away the value of `C`. -/
+lemma basis.exists_op_nnnorm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :
+  ∃ C > (0 : ℝ≥0), ∀ {u : E →L[𝕜] F} (M : ℝ≥0), (∀ i, ∥u (v i)∥₊ ≤ M) → ∥u∥₊ ≤ C*M :=
+⟨ max (fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥₊) 1,
+  zero_lt_one.trans_le (le_max_right _ _),
+  λ u M hu, (v.op_nnnorm_le M hu).trans $ mul_le_mul_of_nonneg_right (le_max_left _ _) (zero_le M)⟩
+
+/-- A weaker version of `basis.op_norm_le` that abstracts away the value of `C`. -/
+lemma basis.exists_op_norm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :
   ∃ C > (0 : ℝ), ∀ {u : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥u (v i)∥ ≤ M) → ∥u∥ ≤ C*M :=
-begin
-  obtain ⟨C, C_pos, hC⟩ : ∃ C > (0 : ℝ), ∀ (e : E), ∑ i, ∥v.equiv_fun e i∥ ≤ C * ∥e∥,
-    from v.sup_norm_le_norm,
-  use [C, C_pos],
-  intros u M hM hu,
-  apply u.op_norm_le_bound (mul_nonneg (le_of_lt C_pos) hM),
-  intros e,
-  calc
-  ∥u e∥ = ∥u (∑ i, v.equiv_fun e i • v i)∥ :   by rw [v.sum_equiv_fun]
-  ... = ∥∑ i, (v.equiv_fun e i) • (u $ v i)∥ : by simp [u.map_sum, linear_map.map_smul]
-  ... ≤ ∑ i, ∥(v.equiv_fun e i) • (u $ v i)∥ : norm_sum_le _ _
-  ... = ∑ i, ∥v.equiv_fun e i∥ * ∥u (v i)∥ :   by simp only [norm_smul]
-  ... ≤ ∑ i, ∥v.equiv_fun e i∥ * M : finset.sum_le_sum (λ i hi,
-                                                  mul_le_mul_of_nonneg_left (hu i) (norm_nonneg _))
-  ... = (∑ i, ∥v.equiv_fun e i∥) * M : finset.sum_mul.symm
-  ... ≤ C * ∥e∥ * M : mul_le_mul_of_nonneg_right (hC e) hM
-  ... = C * M * ∥e∥ : by ring
-end
+let ⟨C, hC, h⟩ := v.exists_op_nnnorm_le in ⟨C, hC, λ u, subtype.forall'.mpr h⟩
 
 instance [finite_dimensional 𝕜 E] [second_countable_topology F] :
   second_countable_topology (E →L[𝕜] F) :=
@@ -447,7 +557,7 @@ begin
   let v := finite_dimensional.fin_basis 𝕜 E,
   obtain ⟨C : ℝ, C_pos : 0 < C,
           hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥φ (v i)∥ ≤ M) → ∥φ∥ ≤ C * M⟩ :=
-    v.op_norm_le,
+    v.exists_op_norm_le,
   have h_2C : 0 < 2*C := mul_pos zero_lt_two C_pos,
   have hε2C : 0 < ε/(2*C) := div_pos ε_pos h_2C,
   have : ∀ φ : E →L[𝕜] F, ∃ n : fin d → ℕ, ∥φ - (v.constrL $ u ∘ n)∥ ≤ ε/2,
@@ -502,6 +612,11 @@ lemma submodule.closed_of_finite_dimensional (s : submodule 𝕜 E) [finite_dime
   is_closed (s : set E) :=
 s.complete_of_finite_dimensional.is_closed
 
+lemma affine_subspace.closed_of_finite_dimensional {P : Type*} [metric_space P]
+  [normed_add_torsor E P] (s : affine_subspace 𝕜 P) [finite_dimensional 𝕜 s.direction] :
+  is_closed (s : set P) :=
+s.is_closed_direction_iff.mp s.direction.closed_of_finite_dimensional
+
 section riesz
 
 /-- In an infinite dimensional space, given a finite number of points, one may find a point
@@ -553,9 +668,10 @@ begin
 end
 
 variable (𝕜)
-/-- Riesz's theorem: if the unit ball is compact in a vector space, then the space is
-finite-dimensional. -/
-theorem finite_dimensional_of_is_compact_closed_ball {r : ℝ} (rpos : 0 < r)
+
+/-- **Riesz's theorem**: if a closed ball with center zero of positive radius is compact in a vector
+space, then the space is finite-dimensional. -/
+theorem finite_dimensional_of_is_compact_closed_ball₀ {r : ℝ} (rpos : 0 < r)
   (h : is_compact (metric.closed_ball (0 : E) r)) : finite_dimensional 𝕜 E :=
 begin
   by_contra hfin,
@@ -585,6 +701,16 @@ begin
   ... < ∥c∥ : hN (N+1) (nat.le_succ N)
 end
 
+/-- **Riesz's theorem**: if a closed ball of positive radius is compact in a vector space, then the
+space is finite-dimensional. -/
+theorem finite_dimensional_of_is_compact_closed_ball {r : ℝ} (rpos : 0 < r) {c : E}
+  (h : is_compact (metric.closed_ball c r)) : finite_dimensional 𝕜 E :=
+begin
+  apply finite_dimensional_of_is_compact_closed_ball₀ 𝕜 rpos,
+  have : continuous (λ x, -c + x), from continuous_const.add continuous_id,
+  simpa using h.image this,
+end
+
 end riesz
 
 /-- An injective linear map with finite-dimensional domain is a closed embedding. -/
@@ -605,7 +731,7 @@ let ⟨g, hg⟩ := (f : E →ₗ[𝕜] F).exists_right_inverse_of_surjective hf 
 ⟨g.to_continuous_linear_map, continuous_linear_map.ext $ linear_map.ext_iff.1 hg⟩
 
 lemma closed_embedding_smul_left {c : E} (hc : c ≠ 0) : closed_embedding (λ x : 𝕜, x • c) :=
-linear_equiv.closed_embedding_of_injective (linear_equiv.ker_to_span_singleton 𝕜 E hc)
+linear_equiv.closed_embedding_of_injective (linear_map.ker_to_span_singleton 𝕜 E hc)
 
 /- `smul` is a closed map in the first argument. -/
 lemma is_closed_map_smul_left (c : E) : is_closed_map (λ x : 𝕜, x • c) :=
@@ -642,16 +768,37 @@ finite_dimensional.proper ℝ E
 
 /-- If `E` is a finite dimensional normed real vector space, `x : E`, and `s` is a neighborhood of
 `x` that is not equal to the whole space, then there exists a point `y ∈ frontier s` at distance
-`metric.inf_dist x sᶜ` from `x`. -/
+`metric.inf_dist x sᶜ` from `x`. See also
+`is_compact.exists_mem_frontier_inf_dist_compl_eq_dist`. -/
 lemma exists_mem_frontier_inf_dist_compl_eq_dist {E : Type*} [normed_group E]
   [normed_space ℝ E] [finite_dimensional ℝ E] {x : E} {s : set E} (hx : x ∈ s) (hs : s ≠ univ) :
   ∃ y ∈ frontier s, metric.inf_dist x sᶜ = dist x y :=
 begin
   rcases metric.exists_mem_closure_inf_dist_eq_dist (nonempty_compl.2 hs) x with ⟨y, hys, hyd⟩,
   rw closure_compl at hys,
-  refine ⟨y, ⟨metric.closed_ball_inf_dist_compl_subset_closure hx hs $
+  refine ⟨y, ⟨metric.closed_ball_inf_dist_compl_subset_closure hx $
     metric.mem_closed_ball.2 $ ge_of_eq _, hys⟩, hyd⟩,
   rwa dist_comm
+end
+
+/-- If `K` is a compact set in a nontrivial real normed space and `x ∈ K`, then there exists a point
+`y` of the boundary of `K` at distance `metric.inf_dist x Kᶜ` from `x`. See also
+`exists_mem_frontier_inf_dist_compl_eq_dist`. -/
+lemma is_compact.exists_mem_frontier_inf_dist_compl_eq_dist {E : Type*} [normed_group E]
+  [normed_space ℝ E] [nontrivial E] {x : E} {K : set E} (hK : is_compact K) (hx : x ∈ K) :
+  ∃ y ∈ frontier K, metric.inf_dist x Kᶜ = dist x y :=
+begin
+  obtain (hx'|hx') : x ∈ interior K ∪ frontier K,
+  { rw ← closure_eq_interior_union_frontier, exact subset_closure hx },
+  { rw [mem_interior_iff_mem_nhds, metric.nhds_basis_closed_ball.mem_iff] at hx',
+    rcases hx' with ⟨r, hr₀, hrK⟩,
+    haveI : finite_dimensional ℝ E,
+      from finite_dimensional_of_is_compact_closed_ball ℝ hr₀
+        (compact_of_is_closed_subset hK metric.is_closed_ball hrK),
+    exact exists_mem_frontier_inf_dist_compl_eq_dist hx hK.ne_univ },
+  { refine ⟨x, hx', _⟩,
+    rw frontier_eq_closure_inter_closure at hx',
+    rw [metric.inf_dist_zero_of_mem_closure hx'.2, dist_self] },
 end
 
 /-- In a finite dimensional vector space over `ℝ`, the series `∑ x, ∥f x∥` is unconditionally

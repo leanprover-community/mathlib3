@@ -5,6 +5,7 @@ Authors: Kenny Lau, Mario Carneiro
 -/
 
 import linear_algebra.basic
+import linear_algebra.basis
 
 /-!
 # Basics on bilinear maps
@@ -29,6 +30,8 @@ commuting actions, and `ρ₁₂ : R →+* R₂` and `σ₁₂ : S →+* S₂`.
 bilinear
 -/
 
+variables {ι₁ ι₂ : Type*}
+
 namespace linear_map
 
 section semiring
@@ -37,16 +40,20 @@ section semiring
 variables {R : Type*} [semiring R] {S : Type*} [semiring S]
 variables {R₂ : Type*} [semiring R₂] {S₂ : Type*} [semiring S₂]
 variables {M : Type*} {N : Type*} {P : Type*}
+variables {M₂ : Type*} {N₂ : Type*} {P₂ : Type*}
 variables {Nₗ : Type*} {Pₗ : Type*}
 variables {M' : Type*} {N' : Type*} {P' : Type*}
 
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
+variables [add_comm_monoid M₂] [add_comm_monoid N₂] [add_comm_monoid P₂]
 variables [add_comm_monoid Nₗ] [add_comm_monoid Pₗ]
 variables [add_comm_group M'] [add_comm_group N'] [add_comm_group P']
 variables [module R M] [module S N] [module R₂ P] [module S₂ P]
+variables [module R M₂] [module S N₂] [module R P₂] [module S₂ P₂]
 variables [module R Pₗ] [module S Pₗ]
 variables [module R M'] [module S N'] [module R₂ P'] [module S₂ P']
 variables [smul_comm_class S₂ R₂ P] [smul_comm_class S R Pₗ] [smul_comm_class S₂ R₂ P']
+variables [smul_comm_class S₂ R P₂]
 variables {ρ₁₂ : R →+* R₂} {σ₁₂ : S →+* S₂}
 
 variables (ρ₁₂ σ₁₂)
@@ -85,6 +92,9 @@ theorem ext₂ {f g : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P}
   (H : ∀ m n, f m n = g m n) : f = g :=
 linear_map.ext (λ m, linear_map.ext $ λ n, H m n)
 
+lemma congr_fun₂ {f g : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P} (h : f = g) (x y) : f x y = g x y :=
+linear_map.congr_fun (linear_map.congr_fun h x) y
+
 section
 
 local attribute [instance] smul_comm_class.symm
@@ -101,6 +111,9 @@ mk₂'ₛₗ σ₁₂ ρ₁₂ (λ n m, f m n)
 end
 
 @[simp] theorem flip_apply (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (m : M) (n : N) : flip f n m = f m n := rfl
+
+@[simp] lemma flip_flip [smul_comm_class R₂ S₂ P] (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) :
+  f.flip.flip = f := linear_map.ext₂ (λ x y, ((f.flip).flip_apply _ _).trans (f.flip_apply _ _))
 
 open_locale big_operators
 
@@ -120,7 +133,7 @@ theorem map_sub₂ (f : M' →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P') (x y z)
 theorem map_add₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (x₁ x₂ y) : f (x₁ + x₂) y = f x₁ y + f x₂ y :=
 (flip f y).map_add _ _
 
-theorem map_smul₂ (f : M →ₗ[R] N →ₗ[S] Pₗ) (r : R) (x y) : f (r • x) y = r • f x y :=
+theorem map_smul₂ (f : M₂ →ₗ[R] N₂ →ₛₗ[σ₁₂] P₂) (r : R) (x y) : f (r • x) y = r • f x y :=
 (flip f y).map_smul _ _
 
 theorem map_smulₛₗ₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (r : R) (x y) : f (r • x) y = (ρ₁₂ r) • f x y :=
@@ -130,6 +143,24 @@ theorem map_sum₂ {ι : Type*} (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂]
   f (∑ i in t, x i) y = ∑ i in t, f (x i) y :=
 (flip f y).map_sum
 
+/-- Restricting a bilinear map in the second entry -/
+def dom_restrict₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : submodule S N) :
+  M →ₛₗ[ρ₁₂] q →ₛₗ[σ₁₂] P :=
+{ to_fun := λ m, (f m).dom_restrict q,
+  map_add' := λ m₁ m₂, linear_map.ext $ λ _, by simp only [map_add, dom_restrict_apply, add_apply],
+  map_smul' := λ c m, linear_map.ext $ λ _, by simp only [map_smulₛₗ, dom_restrict_apply,
+    smul_apply]}
+
+lemma dom_restrict₂_apply (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (q : submodule S N) (x : M) (y : q) :
+  f.dom_restrict₂ q x y = f x y := rfl
+
+/-- Restricting a bilinear map in both components -/
+def dom_restrict₁₂ (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (p : submodule R M) (q : submodule S N) :
+  p →ₛₗ[ρ₁₂] q →ₛₗ[σ₁₂] P := (f.dom_restrict p).dom_restrict₂ q
+
+lemma dom_restrict₁₂_apply (f : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P) (p : submodule R M) (q : submodule S N)
+  (x : p) (y : q) : f.dom_restrict₁₂ p q x y = f x y := rfl
+
 end semiring
 
 section comm_semiring
@@ -137,12 +168,13 @@ section comm_semiring
 variables {R : Type*} [comm_semiring R] {R₂ : Type*} [comm_semiring R₂]
 variables {R₃ : Type*} [comm_semiring R₃] {R₄ : Type*} [comm_semiring R₄]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*}
-variables {Nₗ : Type*} {Pₗ : Type*} {Qₗ : Type*}
+variables {Mₗ : Type*} {Nₗ : Type*} {Pₗ : Type*} {Qₗ Qₗ': Type*}
 
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
-variables [add_comm_monoid Nₗ] [add_comm_monoid Pₗ] [add_comm_monoid Qₗ]
+variables [add_comm_monoid Mₗ] [add_comm_monoid Nₗ] [add_comm_monoid Pₗ]
+variables [add_comm_monoid Qₗ] [add_comm_monoid Qₗ']
 variables [module R M] [module R₂ N] [module R₃ P] [module R₄ Q]
-variables [module R Nₗ] [module R Pₗ] [module R Qₗ]
+variables [module R Mₗ] [module R Nₗ] [module R Pₗ] [module R Qₗ] [module R Qₗ']
 variables {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃}
 variables {σ₄₂ : R₄ →+* R₂} {σ₄₃ : R₄ →+* R₃}
 variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₄₂ σ₂₃ σ₄₃]
@@ -218,6 +250,29 @@ include σ₄₃
   f.compl₂ g m q = f m (g q) := rfl
 omit σ₄₃
 
+/-- Composing linear maps `Q → M` and `Q' → N` with a bilinear map `M → N → P` to
+form a bilinear map `Q → Q' → P`. -/
+def compl₁₂ (f : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ) (g : Qₗ →ₗ[R] Mₗ) (g' : Qₗ' →ₗ[R] Nₗ) :
+  Qₗ →ₗ[R] Qₗ' →ₗ[R] Pₗ :=
+(f.comp g).compl₂ g'
+
+@[simp] theorem compl₁₂_apply (f : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ) (g : Qₗ →ₗ[R] Mₗ) (g' : Qₗ' →ₗ[R] Nₗ)
+  (x : Qₗ) (y : Qₗ') : f.compl₁₂ g g' x y = f (g x) (g' y) := rfl
+
+lemma compl₁₂_inj {f₁ f₂ : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ} {g : Qₗ →ₗ[R] Mₗ} {g' : Qₗ' →ₗ[R] Nₗ}
+  (hₗ : function.surjective g) (hᵣ : function.surjective g') :
+  f₁.compl₁₂ g g' = f₂.compl₁₂ g g' ↔ f₁ = f₂ :=
+begin
+  split; intros h,
+  { -- B₁.comp l r = B₂.comp l r → B₁ = B₂
+    ext x y,
+    cases hₗ x with x' hx, subst hx,
+    cases hᵣ y with y' hy, subst hy,
+    convert linear_map.congr_fun₂ h x' y' },
+  { -- B₁ = B₂ → B₁.comp l r = B₂.comp l r
+    subst h },
+end
+
 /-- Composing a linear map `P → Q` and a bilinear map `M → N → P` to
 form a bilinear map `M → N → Q`. -/
 def compr₂ (f : M →ₗ[R] Nₗ →ₗ[R] Pₗ) (g : Pₗ →ₗ[R] Qₗ) : M →ₗ[R] Nₗ →ₗ[R] Qₗ :=
@@ -239,7 +294,13 @@ end comm_semiring
 
 section comm_ring
 
-variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+variables {R R₂ S S₂ M N P : Type*}
+variables [comm_ring R] [comm_ring S] [comm_ring R₂] [comm_ring S₂]
+variables [add_comm_group M] [add_comm_group N] [add_comm_group P]
+variables [module R M] [module S N] [module R₂ P] [module S₂ P]
+variables [smul_comm_class S₂ R₂ P]
+variables {ρ₁₂ : R →+* R₂} {σ₁₂ : S →+* S₂}
+variables (b₁ : basis ι₁ R M) (b₂ : basis ι₂ S N)
 
 lemma lsmul_injective [no_zero_smul_divisors R M] {x : R} (hx : x ≠ 0) :
   function.injective (lsmul R M x) :=
@@ -248,6 +309,22 @@ smul_right_injective _ hx
 lemma ker_lsmul [no_zero_smul_divisors R M] {a : R} (ha : a ≠ 0) :
   (linear_map.lsmul R M a).ker = ⊥ :=
 linear_map.ker_eq_bot_of_injective (linear_map.lsmul_injective ha)
+
+
+/-- Two bilinear maps are equal when they are equal on all basis vectors. -/
+lemma ext_basis {B B' : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P}
+  (h : ∀ i j, B (b₁ i) (b₂ j) = B' (b₁ i) (b₂ j)) : B = B' :=
+b₁.ext $ λ i, b₂.ext $ λ j, h i j
+
+/-- Write out `B x y` as a sum over `B (b i) (b j)` if `b` is a basis. -/
+lemma sum_repr_mul_repr_mul {B : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P} (x y) :
+  (b₁.repr x).sum (λ i xi, (b₂.repr y).sum (λ j yj, (ρ₁₂ xi) • (σ₁₂ yj) • B (b₁ i) (b₂ j))) =
+  B x y :=
+begin
+  conv_rhs { rw [← b₁.total_repr x, ← b₂.total_repr y] },
+  simp_rw [finsupp.total_apply, finsupp.sum, map_sum₂, map_sum, map_smulₛₗ₂, map_smulₛₗ],
+end
+
 
 end comm_ring
 

@@ -3,8 +3,8 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
 import analysis.normed.group.basic
+import topology.metric_space.hausdorff_distance
 
 /-!
 # Properties of pointwise addition of sets in normed groups.
@@ -79,5 +79,15 @@ by simp
 lemma closed_ball_zero_add_singleton (x : E) (r : ℝ) :
   closed_ball 0 r + {x} = closed_ball x r :=
 by simp
+
+lemma is_compact.cthickening_eq_add_closed_ball
+  {s : set E} (hs : is_compact s) {r : ℝ} (hr : 0 ≤ r) :
+  cthickening r s = s + closed_ball 0 r :=
+begin
+  rw hs.cthickening_eq_bUnion_closed_ball hr,
+  ext x,
+  simp only [mem_add, dist_eq_norm, exists_prop, mem_Union, mem_closed_ball,
+    exists_and_distrib_left, mem_closed_ball_zero_iff, ← eq_sub_iff_add_eq', exists_eq_right],
+end
 
 end semi_normed_group

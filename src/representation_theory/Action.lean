@@ -12,6 +12,8 @@ import category_theory.monoidal.functor_category
 import category_theory.monoidal.transport
 import category_theory.monoidal.rigid.of_equivalence
 import category_theory.monoidal.rigid.functor_category
+import category_theory.abelian.functor_category
+import category_theory.abelian.transfer
 
 /-!
 # `Action V G`, the category of actions of a monoid `G` inside some category `V`.
@@ -22,7 +24,9 @@ where `Action (Module R) G` is the category of `R`-linear representations of `G`
 We check `Action V G ≌ (single_obj G ⥤ V)`,
 and construct the restriction functors `res {G H : Mon} (f : G ⟶ H) : Action V H ⥤ Action V G`.
 
-When `V` has (co)limits so does `Action V G`. When `V` is monoidal so is `Action V G`.
+* When `V` has (co)limits so does `Action V G`.
+* When `V` is monoidal so is `Action V G`.
+* When `V` is preadditive or abelian so is `Action V G`.
 -/
 
 universes u
@@ -188,6 +192,10 @@ def functor_category_equivalence : Action V G ≌ (single_obj G ⥤ V) :=
 
 attribute [simps] functor_category_equivalence
 
+instance [has_finite_products V] : has_finite_products (Action V G) :=
+{ out := λ J _ _, by exactI
+  adjunction.has_limits_of_shape_of_equivalence (Action.functor_category_equivalence _ _).functor }
+
 instance [has_limits V] : has_limits (Action V G) :=
 adjunction.has_limits_of_equivalence (Action.functor_category_equivalence _ _).functor
 
@@ -236,6 +244,46 @@ preserves_colimits_of_nat_iso
 -- TODO construct categorical images?
 
 end forget
+
+section has_zero_morphisms
+variables [has_zero_morphisms V]
+
+instance : has_zero_morphisms (Action V G) :=
+{ has_zero := λ X Y, ⟨⟨0, by tidy⟩⟩, }
+
+instance : functor.preserves_zero_morphisms (functor_category_equivalence V G).functor := {}
+
+end has_zero_morphisms
+
+section preadditive
+variables [preadditive V]
+
+instance : preadditive (Action V G) :=
+{ hom_group := λ X Y,
+  { zero := ⟨0, by simp⟩,
+    add := λ f g, ⟨f.hom + g.hom, by simp [f.comm, g.comm]⟩,
+    neg := λ f, ⟨-f.hom, by simp [f.comm]⟩,
+    zero_add := by { intros, ext, exact zero_add _, },
+    add_zero := by { intros, ext, exact add_zero _, },
+    add_assoc := by { intros, ext, exact add_assoc _ _ _, },
+    add_left_neg := by { intros, ext, exact add_left_neg _, },
+    add_comm := by { intros, ext, exact add_comm _ _, }, },
+  add_comp' := by { intros, ext, exact preadditive.add_comp _ _ _ _ _ _, },
+  comp_add' := by { intros, ext, exact preadditive.comp_add _ _ _ _ _ _, }, }
+
+instance : functor.additive (functor_category_equivalence V G).functor := {}
+
+end preadditive
+
+section abelian
+/-- Auxilliary construction for the `abelian (Action V G)` instance. -/
+def abelian_aux : Action V G ≌ (ulift.{u} (single_obj G) ⥤ V) :=
+(functor_category_equivalence V G).trans (equivalence.congr_left ulift.equivalence)
+
+noncomputable instance [abelian V] : abelian (Action V G) :=
+abelian_of_equivalence abelian_aux.functor
+
+end abelian
 
 section monoidal
 variables [monoidal_category V]

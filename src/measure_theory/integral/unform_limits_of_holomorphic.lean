@@ -34,33 +34,16 @@ def circle_integral_transform_deriv (R : ℝ) (z : ℂ) (f : ℂ → E) (w : ℂ
   (2 * π * I : ℂ)⁻¹ • deriv (circle_map z R) θ •
   (((circle_map z R θ) - w)^(2))⁻¹ • f  (circle_map z R θ)
 
-/--An alternative description of the derivative of `circle_integral_transform` -/
-def circle_integral_transform_deriv_alt (R : ℝ) (z : ℂ) (f : ℂ → E) (w : ℂ) : (ℝ → E) := λ θ,
-   (((circle_map z R θ) - w)⁻¹ )^(2) •  (2 * π * I : ℂ)⁻¹ •
-   deriv (circle_map z R) θ • f  (circle_map z R θ)
-
-lemma circle_integral_transform_deriv_eq_alt (R : ℝ) (z : ℂ) (f : ℂ → E) (w : ℂ) :
-  circle_integral_transform_deriv  R z f w = circle_integral_transform_deriv_alt  R z f w :=
-begin
-  simp_rw [circle_integral_transform_deriv, circle_integral_transform_deriv_alt],
-  ext,
-  simp_rw [←mul_smul, ←mul_assoc],
-  field_simp,
-  simp_rw mul_comm,
-end
-
 lemma circle_integral_transform_deriv_eq (R : ℝ) (z : ℂ) (f : ℂ → E) (w : ℂ) :
   circle_integral_transform_deriv  R z f w = (λ θ,
   ((circle_map z R θ) - w)⁻¹ • (circle_integral_transform R z f w θ)) :=
 begin
-  simp_rw [circle_integral_transform_deriv, circle_integral_transform, pow_two],
   ext,
-  field_simp,
-  simp_rw [←one_div_mul_one_div,←mul_smul, ←mul_assoc],
-  field_simp,
-  have H : ∀ a b c d e : ℂ, a/(e * d * b * c) = a/ (c * e * d * b),
-  by {intros a b c d e, have : (e * d * b * c) = (c * e * d * b), by {ring,}, rw this, },
-  simp_rw H,
+  simp_rw [circle_integral_transform_deriv, circle_integral_transform, pow_two,←mul_smul,
+   ←mul_assoc],
+  ring_nf,
+  congr',
+  rw [pow_two,mul_inv₀],
 end
 
 lemma circle_integral_transform_circle_int [complete_space E] (R : ℝ) (z : ℂ) (f : ℂ → E) (w : ℂ) :
@@ -90,8 +73,7 @@ begin
   simp_rw ←one_div,
   apply_rules [continuous_on.div, continuous_const.continuous_on, continuous_on.sub,
   (continuous_circle_map z R).continuous_on, continuous_const.continuous_on],
-  intros x hx,
-  apply circle_map_ne_on_ball R hR z w hw,
+  refine (λ _ _,  (circle_map_ne_on_ball R hR z w hw) _),
 end
 
 lemma circle_integral_transform_cont_on_ICC (R : ℝ) (hR : 0 < R)  (f : ℂ → E) (z w : ℂ)
@@ -106,9 +88,7 @@ begin
   apply_rules [continuous_on.mul, this, continuous_const.continuous_on],
   apply circle_map_inv_continuous_on R hR z w hw,
   apply continuous_on.comp hf (continuous_circle_map z R).continuous_on,
-  rw maps_to,
-  intros v hv,
-  apply circle_map_mem_sphere _ hR.le,
+  refine (λ _ _,  (circle_map_mem_sphere _ hR.le) _),
 end
 
 lemma circle_integral_transform_deriv_cont_on_ICC (R : ℝ) (hR : 0 < R) (f : ℂ → E) (z w : ℂ)
@@ -155,15 +135,17 @@ lemma circle_integral_bounding_function_continuous_on (R r : ℝ) (hR : 0 < R) (
   continuous_on  (complex.abs ∘ (circle_integral_bounding_function R z ))
   ( ((closed_ball z r) ×ˢ (interval 0 (2*π))) : set (ℂ × ℝ)) :=
 begin
-  have c3: continuous_on (circle_integral_bounding_function R z) (closed_ball z r ×ˢ [0, 2 * π]),
-  by {simp_rw [circle_integral_bounding_function, circle_integral_transform_deriv_eq_alt,
-  circle_integral_transform_deriv_alt],
-  apply continuous_on.smul (circle_int_funct_cont_on_prod R r hR hr z),
+  have c3 : continuous_on (circle_integral_bounding_function R z) (closed_ball z r ×ˢ [0, 2 * π]),
+  by {simp_rw [circle_integral_bounding_function],
+  apply continuous_on.smul continuous_const.continuous_on ,
   apply_rules [continuous_on.smul, continuous_const.continuous_on],
   simp only [deriv_circle_map],
   have c1 := (continuous_circle_map 0 R).continuous_on ,
   apply_rules [continuous_on.mul, continuous_on.comp c1 continuous_on_snd (λ _, and.right),
-  continuous_const.continuous_on], apply_instance},
+  continuous_const.continuous_on],
+  simp_rw ←inv_pow₀,
+  apply (circle_int_funct_cont_on_prod R r hR hr z),
+  all_goals{apply_instance}},
   have C: maps_to (circle_integral_bounding_function R z) (closed_ball z r ×ˢ [0, 2 * π])
   (⊤ : set ℂ), by {simp [maps_to],},
   apply continuous_on.comp (continuous_abs.continuous_on) c3 C,

@@ -447,7 +447,6 @@ begin
   rw [←zmod.int_coe_eq_int_coe_iff', int.cast_coe_nat, zmod.nat_cast_val, zmod.cast_id],
 end
 
-/-- `-1 : zmod n` lifts to `n - 1 : R`. This avoids the characteristic assumption in `cast_neg`. -/
 lemma coe_int_cast {n : ℕ} (a : ℤ) : ↑(a : zmod n) = a % n :=
 begin
   cases n,

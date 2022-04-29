@@ -1717,38 +1717,41 @@ linear_equiv.coord_self 𝕜 E x h
 
 variables {𝕜} {𝕜₄ : Type*} [nondiscrete_normed_field 𝕜₄]
 variables {H : Type*} [normed_group H] [normed_space 𝕜₄ H] [normed_space 𝕜₃ G]
-variables {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
-variables {σ₃₄ : 𝕜₃ →+* 𝕜₄} {σ₄₃ : 𝕜₄ →+* 𝕜₃} [ring_hom_inv_pair σ₃₄ σ₄₃] [ring_hom_inv_pair σ₄₃ σ₃₄]
+variables {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
+variables {σ₃₄ : 𝕜₃ →+* 𝕜₄} {σ₄₃ : 𝕜₄ →+* 𝕜₃}
 variables {σ₂₄ : 𝕜₂ →+* 𝕜₄} {σ₁₄ : 𝕜 →+* 𝕜₄}
+variables [ring_hom_inv_pair σ₃₄ σ₄₃] [ring_hom_inv_pair σ₄₃ σ₃₄]
 variables [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
 variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
 variables [ring_hom_isometric σ₁₄] [ring_hom_isometric σ₂₃]
 variables [ring_hom_isometric σ₄₃] [ring_hom_isometric σ₂₄]
+variables [ring_hom_isometric σ₁₃] [ring_hom_isometric σ₁₂]
+variables [ring_hom_isometric σ₃₄]
 
 include σ₂₁ σ₃₄ σ₁₃ σ₂₄
-#check@ continuous_linear_equiv.arrow_congr_equiv
-#check@ continuous_linear_equiv.arrow_congr_equiv_apply
-@[simps] def arrow_congr_equivL (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
+/-- A pair of continuous (semi)linear equivalences generates an continuous (semi)linear equivalence
+between the spaces of continuous (semi)linear maps. -/
+def arrow_congr_equivSL (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
   (E →SL[σ₁₄] H) ≃SL[σ₄₃] (F →SL[σ₂₃] G) :=
 { map_add' := λ f g, by simp only [equiv.to_fun_as_coe, add_comp, comp_add,
     continuous_linear_equiv.arrow_congr_equiv_apply],
   map_smul' := λ t f, by simp only [equiv.to_fun_as_coe, smul_comp, comp_smulₛₗ,
     continuous_linear_equiv.arrow_congr_equiv_apply],
   continuous_to_fun := (compSL F H G σ₂₄ σ₄₃ e₄₃).continuous.comp
-    ((compSL F E _ σ₂₁ _).flip e₁₂.symm).continuous,
+    (continuous_linear_map.flip (compSL F E H σ₂₁ σ₁₄) e₁₂.symm).continuous,
   continuous_inv_fun := (compSL E G H σ₁₃ σ₃₄ e₄₃.symm).continuous.comp
-    ((compSL E F _ σ₁₂ _).flip e₁₂).continuous,
+    (continuous_linear_map.flip (compSL E F G σ₁₂ σ₂₃) e₁₂).continuous,
   .. e₁₂.arrow_congr_equiv e₄₃, }
 
-omit σ₂₁ σ₃₄
+omit σ₂₁ σ₃₄ σ₁₃ σ₂₄
 
 /-- A pair of continuous linear equivalences generates an continuous linear equivalence between
-  the spaces of continuous linear maps. -/
-@[simps] def arrow_congr_equivL'
-  {H : Type*} [normed_group H] [normed_space 𝕜 H] (e₁ : E ≃L[𝕜] G) (e₂ : F ≃L[𝕜] H)
-   :
-  (E →L[𝕜] F) ≃L[𝕜] (G →L[𝕜] H) :=
-arrow_congr_equivL
+the spaces of continuous linear maps. -/
+def arrow_congr_equivL {F H : Type*} [normed_group F] [normed_group H]
+  [normed_space 𝕜 F] [normed_space 𝕜 G] [normed_space 𝕜 H]
+  (e₁ : E ≃L[𝕜] F) (e₂ : H ≃L[𝕜] G) :
+  (E →L[𝕜] H) ≃L[𝕜] (F →L[𝕜] G) :=
+arrow_congr_equivSL e₁ e₂
 
 /-- Continuous linear equivalence between continuous linear functions `𝕜ⁿ → E` and `Eⁿ`.
 The spaces `𝕜ⁿ` and `Eⁿ` are represented as `ι → 𝕜` and `ι → E`, respectively,

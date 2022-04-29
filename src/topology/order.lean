@@ -838,7 +838,7 @@ lemma set_of_is_open_Sup {T : set (topological_space α)} :
 
 lemma generate_from_union_is_open (a b : topological_space α) :
   topological_space.generate_from ({s | a.is_open s} ∪ {s | b.is_open s}) = a ⊓ b :=
-@galois_insertion.l_sup_u _ (topological_space α)ᵒᵈ _ _ _ (gi_generate_from α) a b
+@galois_insertion.l_sup_u _ (topological_space α)ᵒᵈ _ _ _ _ (gi_generate_from α) a b
 
 lemma generate_from_Union_is_open (f : ι → topological_space α) :
   topological_space.generate_from (⋃ i, {s | (f i).is_open s}) = ⨅ i, (f i) :=

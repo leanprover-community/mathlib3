@@ -1815,7 +1815,6 @@ end
 section f_injective
 
 variables [add_comm_monoid M] (v₁ v₂ : β →₀ M) (f : α → β) (hf : function.injective f)
-include hf
 
 lemma map_domain_comap_domain (l : β →₀ M) (hl : ↑l.support ⊆ set.range f):
   map_domain f (comap_domain f l (hf.inj_on _)) = l :=
@@ -1829,19 +1828,30 @@ begin
     apply h_cases (hl $ finset.mem_coe.2 $ mem_support_iff.2 $ λ h, h_contr h.symm) }
 end
 
+@[simp] lemma comap_domain_zero {M : Type*} [has_zero M] :
+  comap_domain f (0 : β →₀ M) (set.inj_on_empty _) = (0 : α →₀ M) :=
+by { ext, refl }
+
 variable {f}
 
-@[simp] lemma comap_domain_zero :
-  comap_domain f (0 : β →₀ M) (hf.inj_on _) = (0 : α →₀ M) :=
-by { ext, simp only [comap_domain_apply, coe_zero, pi.zero_apply] }
-
 @[simp]
-lemma comap_domain_single {a : α} {m : M} :
-  comap_domain f (finsupp.single (f a) m) (hf.inj_on _) = finsupp.single a m :=
+lemma comap_domain_single {a : α} {m : M} (hif : set.inj_on f (f ⁻¹' (single (f a) m).support)) :
+  comap_domain f (finsupp.single (f a) m) hif = finsupp.single a m :=
 begin
-  ext x,
-  have : f a = f x ↔ a = x := ⟨λ h, hf h, congr_arg f⟩,
-  rw [comap_domain_apply, single, coe_mk, single, coe_mk, this]
+  by_cases m0 : m = 0,
+  { have : (( _ : α →₀ M) = _) := comap_domain_zero f,
+    simpa [m0] },
+  { ext x,
+    rw [comap_domain_apply, single, coe_mk, single, coe_mk],
+    by_cases hx : a = x,
+    { simp [hx] },
+    { rw [if_neg hx, ite_eq_right_iff],
+      intros ax,
+      refine (hx _).elim,
+      rwa [set.inj_on.eq_iff hif] at ax,
+      { simpa },
+      { rw [set.mem_preimage, mem_coe, mem_support_single],
+        exact ⟨ax.symm, m0⟩ } } }
 end
 
 lemma comap_domain_add :
@@ -1853,7 +1863,7 @@ by { ext, simp only [comap_domain_apply, coe_add, pi.add_apply] }
 @[simps]
 def comap_domain.add_monoid_hom : (β →₀ M) →+ (α →₀ M) :=
 { to_fun := λ x, comap_domain f x (hf.inj_on _),
-  map_zero' := comap_domain_zero hf,
+  map_zero' := comap_domain_zero f,
   map_add' := λ _ _, comap_domain_add _ _ hf }
 
 end f_injective

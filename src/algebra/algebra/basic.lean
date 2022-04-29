@@ -348,13 +348,13 @@ instance of_subsemiring (S : subsemiring R) : algebra S A :=
   smul_def' := λ r x, algebra.smul_def r x,
   .. (algebra_map R A).comp S.subtype }
 
-lemma algebra_map_of_subsemiring {R : Type*} [comm_semiring R] (S : subsemiring R) :
+lemma algebra_map_of_subsemiring (S : subsemiring R) :
   (algebra_map S R : S →+* R) = subsemiring.subtype S := rfl
 
-lemma coe_algebra_map_of_subsemiring {R : Type*} [comm_semiring R] (S : subsemiring R) :
+lemma coe_algebra_map_of_subsemiring (S : subsemiring R) :
   (algebra_map S R : S → R) = subtype.val := rfl
 
-lemma algebra_map_of_subsemiring_apply {R : Type*} [comm_semiring R] (S : subsemiring R) (x : S) :
+lemma algebra_map_of_subsemiring_apply (S : subsemiring R) (x : S) :
   algebra_map S R x = x := rfl
 
 /-- Algebra over a subring. This builds upon `subring.module`. -/

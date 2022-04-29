@@ -5,6 +5,7 @@ Authors: Mantas Bakšys
 -/
 import algebra.order.module
 import group_theory.perm.support
+import order.lexicographic
 import order.monovary
 import tactic.abel
 

@@ -114,6 +114,29 @@ end preorder
 section linear_order
 variables [linear_order α]
 
+/-- A constructor for `succ_order α` for `α` a linear order. -/
+@[simps] def succ_order.of_core (succ : α → α) (hn : ∀ {a}, ¬ is_max a → ∀ b, a < b ↔ succ a ≤ b)
+  (hm : ∀ a, is_max a → succ a = a) : succ_order α :=
+{ succ           := succ,
+  succ_le_of_lt  := λ a b, classical.by_cases (λ h hab, (hm a h).symm ▸ hab.le) (λ h, (hn h b).mp),
+  le_succ        := λ a, classical.by_cases (λ h, (hm a h).symm.le)
+                                            (λ h, le_of_lt $ by simpa using (hn h a).not),
+  le_of_lt_succ  := λ a b hab, classical.by_cases (λ h, hm b h ▸ hab.le)
+                                                  (λ h, by simpa [hab] using (hn h a).not),
+  max_of_succ_le := λ a, not_imp_not.mp $ λ h, by simpa using (hn h a).not }
+
+/-- A constructor for `pred_order α` for `α` a linear order. -/
+@[simps] def pred_order.of_core {α} [linear_order α] (pred : α → α)
+  (hn : ∀ {a}, ¬ is_min a → ∀ b, b ≤ pred a ↔ b < a) (hm : ∀ a, is_min a → pred a = a) :
+  pred_order α :=
+{ pred           := pred,
+  le_pred_of_lt  := λ a b, classical.by_cases (λ h hab, (hm b h).symm ▸ hab.le) (λ h, (hn h a).mpr),
+  pred_le        := λ a, classical.by_cases (λ h, (hm a h).le)
+                                            (λ h, le_of_lt $ by simpa using (hn h a).not),
+  le_of_pred_lt  := λ a b hab, classical.by_cases (λ h, hm a h ▸ hab.le)
+                                                  (λ h, by simpa [hab] using (hn h b).not),
+  min_of_le_pred := λ a, not_imp_not.mp $ λ h, by simpa using (hn h a).not }
+
 /-- A constructor for `succ_order α` usable when `α` is a linear order with no maximal element. -/
 def succ_order.of_succ_le_iff (succ : α → α) (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b) :
   succ_order α :=
@@ -938,6 +961,31 @@ lemma pred.rec_linear {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) (a b
 
 end pred_order
 end linear_order
+
+section is_well_order
+variables [linear_order α]
+
+@[priority 100]
+instance is_well_order.to_is_pred_archimedean [h : is_well_order α (<)] [pred_order α] :
+  is_pred_archimedean α :=
+⟨λ a, begin
+  refine well_founded.fix h.wf (λ b ih hab, _),
+  replace hab := hab.eq_or_lt,
+  rcases hab with rfl | hab,
+  { exact ⟨0, rfl⟩ },
+  cases le_or_lt b (pred b) with hb hb,
+  { cases (min_of_le_pred hb).not_lt hab },
+  obtain ⟨k, hk⟩ := ih (pred b) hb (le_pred_of_lt hab),
+  refine ⟨k + 1, _⟩,
+  rw [iterate_add_apply, iterate_one, hk],
+end⟩
+
+@[priority 100]
+instance is_well_order.to_is_succ_archimedean [h : is_well_order α (>)] [succ_order α] :
+  is_succ_archimedean α :=
+by convert @order_dual.is_succ_archimedean (order_dual α) _ _ _
+
+end is_well_order
 
 section order_bot
 variables [preorder α] [order_bot α] [succ_order α] [is_succ_archimedean α]

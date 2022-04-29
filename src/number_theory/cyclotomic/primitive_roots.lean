@@ -184,7 +184,8 @@ variables {K} [field K] [algebra K L] [ne_zero ((n : ℕ) : K)]
 
 /-- This mathematically trivial result is complementary to `norm_eq_one` below. -/
 lemma norm_eq_neg_one_pow (hζ : is_primitive_root ζ 2) : norm K ζ = (-1) ^ finrank K L :=
-by rw [hζ.eq_neg_one_of_two_right , show -1 = algebra_map K L (-1), by simp, norm_algebra_map]
+by rw [hζ.eq_neg_one_of_two_right , show -1 = algebra_map K L (-1), by simp,
+  algebra.norm_algebra_map]
 
 include hζ
 
@@ -195,7 +196,7 @@ lemma norm_eq_one [is_cyclotomic_extension {n} K L] (hn : n ≠ 2)
 begin
   by_cases h1 : n = 1,
   { rw [h1, one_coe, one_right_iff] at hζ,
-    rw [hζ, show 1 = algebra_map K L 1, by simp, norm_algebra_map, one_pow] },
+    rw [hζ, show 1 = algebra_map K L 1, by simp, algebra.norm_algebra_map, one_pow] },
   { replace h1 : 2 ≤ n,
     { by_contra' h,
       exact h1 (pnat.eq_one_of_lt_two h) },
@@ -211,7 +212,7 @@ lemma norm_eq_one_of_linearly_ordered {K : Type*} [linear_ordered_field K] [alge
 begin
   haveI := ne_zero.of_no_zero_smul_divisors K L n,
   have hz := congr_arg (norm K) ((is_primitive_root.iff_def _ n).1 hζ).1,
-  rw [←(algebra_map K L).map_one , norm_algebra_map, one_pow, map_pow, ←one_pow ↑n] at hz,
+  rw [←(algebra_map K L).map_one , algebra.norm_algebra_map, one_pow, map_pow, ←one_pow ↑n] at hz,
   exact strict_mono.injective hodd.strict_mono_pow hz
 end
 
@@ -412,7 +413,8 @@ begin
   { simp only [_root_.map_neg, map_bit0, _root_.map_one],
     ring },
   replace hirr : irreducible (cyclotomic (2 ^ (k + 1) : ℕ+) K) := by simp [hirr],
-  rw [this.eq_neg_one_of_two_right, H, norm_algebra_map, is_cyclotomic_extension.finrank L hirr,
+  rw [this.eq_neg_one_of_two_right, H, algebra.norm_algebra_map,
+    is_cyclotomic_extension.finrank L hirr,
     pow_coe, pnat.coe_bit0, one_coe, totient_prime_pow nat.prime_two (zero_lt_succ k),
     succ_sub_succ_eq_sub, tsub_zero, mul_one]
 end

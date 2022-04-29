@@ -151,6 +151,10 @@ mt $ λ h, by rw [nat_degree, h, option.get_or_else_coe]
 theorem nat_degree_le_iff_degree_le {n : ℕ} : nat_degree p ≤ n ↔ degree p ≤ n :=
 with_bot.get_or_else_bot_le_iff
 
+lemma nat_degree_lt_iff_degree_lt (hp : p ≠ 0) :
+  p.nat_degree < n ↔ p.degree < ↑n :=
+with_bot.get_or_else_bot_lt_iff $ degree_eq_bot.not.mpr hp
+
 alias polynomial.nat_degree_le_iff_degree_le ↔ . .
 
 lemma nat_degree_le_nat_degree [semiring S] {q : S[X]} (hpq : p.degree ≤ q.degree) :
@@ -161,7 +165,11 @@ with_bot.gi_get_or_else_bot.gc.monotone_l hpq
 by { rw [degree, ← monomial_zero_left, support_monomial 0 _ ha, sup_singleton], refl }
 
 lemma degree_C_le : degree (C a) ≤ 0 :=
-by by_cases h : a = 0; [rw [h, C_0], rw [degree_C h]]; [exact bot_le, exact le_rfl]
+begin
+  by_cases h : a = 0,
+  { rw [h, C_0], exact bot_le },
+  { rw [degree_C h], exact le_rfl }
+end
 
 lemma degree_C_lt : degree (C a) < 1 := degree_C_le.trans_lt $ with_bot.coe_lt_coe.mpr zero_lt_one
 
@@ -274,13 +282,8 @@ lemma sum_fin [add_comm_monoid S]
 begin
   by_cases hp : p = 0,
   { rw [hp, sum_zero_index, finset.sum_eq_zero], intros i _, exact hf i },
-  rw [degree_eq_nat_degree hp, with_bot.coe_lt_coe] at hn,
-  calc  ∑ (i : fin n), f i (p.coeff i)
-      = ∑ i in finset.range n, f i (p.coeff i) : fin.sum_univ_eq_sum_range (λ i, f i (p.coeff i)) _
-  ... = ∑ i in p.support, f i (p.coeff i) : (finset.sum_subset
-    (supp_subset_range_nat_degree_succ.trans (finset.range_subset.mpr hn))
-    (λ i _ hi, show f i (p.coeff i) = 0, by rw [not_mem_support_iff.mp hi, hf])).symm
-  ... = p.sum f : p.sum_def _
+  rw [sum_over_range' _ hf n ((nat_degree_lt_iff_degree_lt hp).mpr hn),
+    fin.sum_univ_eq_sum_range (λ i, f i (p.coeff i))],
 end
 
 lemma as_sum_range' (p : R[X]) (n : ℕ) (w : p.nat_degree < n) :
@@ -1186,7 +1189,7 @@ def degree_monoid_hom [nontrivial R] : R[X] →* multiplicative (with_bot ℕ) :
 
 @[simp] lemma degree_pow [nontrivial R] (p : R[X]) (n : ℕ) :
   degree (p ^ n) = n • (degree p) :=
-map_pow (degree_monoid_hom : R[X] →* _) _ _
+map_pow (@degree_monoid_hom R _ _ _) _ _
 
 @[simp] lemma leading_coeff_mul (p q : R[X]) : leading_coeff (p * q) =
   leading_coeff p * leading_coeff q :=

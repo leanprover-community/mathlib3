@@ -467,9 +467,9 @@ end Well_order
 isomorphism. -/
 instance ordinal.is_equivalent : setoid Well_order :=
 { r     := λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≃r s),
-  iseqv := ⟨λ⟨α, r, _⟩, ⟨rel_iso.refl _⟩,
-    λ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, ⟨e.symm⟩,
-    λ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨e₁⟩ ⟨e₂⟩, ⟨e₁.trans e₂⟩⟩ }
+  iseqv := ⟨λ ⟨α, r, _⟩, ⟨rel_iso.refl _⟩,
+    λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, ⟨e.symm⟩,
+    λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨e₁⟩ ⟨e₂⟩, ⟨e₁.trans e₂⟩⟩ }
 
 /-- `ordinal.{u}` is the type of well orders in `Type u`, up to order isomorphism. -/
 def ordinal : Type (u + 1) := quotient ordinal.is_equivalent
@@ -479,7 +479,7 @@ instance (o : ordinal) : has_well_founded o.out.α := ⟨o.out.r, o.out.wo.wf⟩
 instance (o : ordinal) : linear_order o.out.α :=
 is_well_order.linear_order o.out.r
 
-instance (o : ordinal) : is_well_order o.out.α (<) :=
+instance ordinal.is_well_order_lt (o : ordinal) : is_well_order o.out.α (<) :=
 o.out.wo
 
 namespace ordinal
@@ -503,7 +503,7 @@ theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
   type r = type s ↔ nonempty (r ≃r s) := quotient.eq
 
-@[simp] lemma type_lt (o : ordinal) : type ((<) : o.out.α → o.out.α → Prop) = o :=
+@[simp] theorem type_lt (o : ordinal) : type ((<) : o.out.α → o.out.α → Prop) = o :=
 begin
   change type o.out.r = _,
   refine eq.trans _ (quotient.out_eq o),
@@ -785,9 +785,8 @@ end
 @[simp] theorem out_empty_iff_eq_zero {o : ordinal} : is_empty o.out.α ↔ o = 0 :=
 begin
   refine ⟨@eq_zero_of_out_empty o, λ h, ⟨λ i, _⟩⟩,
-  have := typein_lt_self i,
-  subst h,
-  exact not_lt_of_le (ordinal.zero_le _) this
+  subst o,
+  exact (ordinal.zero_le _).not_lt (typein_lt_self i)
 end
 
 @[simp] theorem out_nonempty_iff_ne_zero {o : ordinal} : nonempty o.out.α ↔ o ≠ 0 :=
@@ -1203,6 +1202,10 @@ wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (ordinal.zero_le
   not_lt.1 (wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
 
 @[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
+
+@[simp] lemma max_zero_left : ∀ a : ordinal, max 0 a = a := max_bot_left
+@[simp] lemma max_zero_right : ∀ a : ordinal, max a 0 = a := max_bot_right
+@[simp] lemma max_eq_zero {a b : ordinal} : max a b = 0 ↔ a = 0 ∧ b = 0 := max_eq_bot
 
 protected theorem not_lt_zero (o : ordinal) : ¬ o < 0 :=
 not_lt_bot

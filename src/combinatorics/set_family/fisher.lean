@@ -1,55 +1,22 @@
+/-
+Copyright (c) 2022 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors:Bhavik Mehta
+-/
+
 import data.real.basic
 import algebra.big_operators.ring
 import linear_algebra.finite_dimensional
 import data.matrix.rank
 
+/-!
+# Fisher's inequality
+
+Fisher's inequality for a family of finite sets: Given a finite family `E` of finite sets,
+-/
+
 open finset finite_dimensional
 open_locale big_operators
-
-lemma product_sdiff_diag {α : Type*} [decidable_eq α] {s : finset α} :
-  s.product s \ s.diag = s.off_diag :=
-by rw [←diag_union_off_diag, union_comm, union_sdiff_self,
-    sdiff_eq_self_of_disjoint (disjoint_diag_off_diag _).symm]
-
-lemma product_sdiff_off_diag {α : Type*} [decidable_eq α] {s : finset α} :
-  s.product s \ s.off_diag = s.diag :=
-by rw [←diag_union_off_diag, union_sdiff_self, sdiff_eq_self_of_disjoint (disjoint_diag_off_diag _)]
-
-lemma union_diag {α : Type*} [decidable_eq α] {s t : finset α} :
-  (s ∪ t).diag = s.diag ∪ t.diag :=
-by { ext ⟨i, j⟩, simp only [mem_diag, mem_union, or_and_distrib_right] }
-
-lemma union_off_diag {α : Type*} [decidable_eq α] {s t : finset α} (h : disjoint s t) :
-  (s ∪ t).off_diag = s.off_diag ∪ t.off_diag ∪ s.product t ∪ t.product s :=
-begin
-  ext ⟨i, j⟩,
-  simp only [mem_union, mem_product, mem_off_diag, mem_union, or_assoc, or_and_distrib_right,
-    and_or_distrib_left, ←and_assoc],
-  rw [or_congr_right'],
-  rw [←or_rotate, or_congr_right'],
-  rw or_comm,
-  refine or_congr (and_iff_left_of_imp _) (and_iff_left_of_imp _),
-  { rintro ⟨hi, hj⟩,
-    exact h.forall_ne_finset hi hj },
-  { rintro ⟨hi, hj⟩,
-    exact h.symm.forall_ne_finset hi hj },
-end
-
-@[simp] lemma singleton_off_diag {α : Type*} [decidable_eq α] (a : α) :
-  ({a} : finset α).off_diag = ∅ :=
-by simp [←finset.card_eq_zero]
-
-lemma singleton_diag {α : Type*} [decidable_eq α] (a : α) : ({a} : finset α).diag = {(a, a)} :=
-by rw [←product_sdiff_off_diag, singleton_off_diag, sdiff_empty, singleton_product_singleton]
-
-lemma insert_diag {α : Type*} [decidable_eq α] {a : α} {s : finset α} :
-  (insert a s).diag = insert (a, a) s.diag :=
-by rw [insert_eq, insert_eq, union_diag, singleton_diag]
-
-lemma insert_off_diag {α : Type*} [decidable_eq α] {a : α} {s : finset α} (has : a ∉ s) :
-  (insert a s).off_diag = s.off_diag ∪ ({a} : finset α).product s ∪ s.product {a} :=
-by rw [insert_eq, union_comm, union_off_diag (disjoint_singleton_right.2 has), singleton_off_diag,
-  union_empty, union_right_comm]
 
 @[to_additive] lemma prod_diag {α R : Type*} [decidable_eq α] [comm_monoid R]
   (s : finset α) (f : α → α → R) :

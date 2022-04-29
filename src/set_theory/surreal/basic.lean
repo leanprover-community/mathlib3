@@ -374,8 +374,11 @@ theorem result : ∀ x : mul_args, x.hypothesis
       simp,
       rcases lt_or_equiv_or_gt (xL ix) (xL ix') with h | h | h,
       {
-        have := ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') oy).2 h).1 iy,
-        have := ((result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2 sorry).1 ix,
+        have H₁ := ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') oy).2 h).1 iy,
+        have H₂ := ((result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2
+          (oy.left_lt_right iy jy)).1 ix',
+        have := add_lt_add sorry sorry H₁ H₂,
+        change game.lt ⟦_⟧ ⟦_⟧ at this,
       },
       /-cases lt_or_equiv_or_gt (ox₁.move_left ix) (ox₁.move_left ix'),
       {

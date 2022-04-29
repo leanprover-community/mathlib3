@@ -365,6 +365,13 @@ iff.rfl
   dist x y ≤ c ↔ nndist x y ≤ c :=
 iff.rfl
 
+@[simp] lemma edist_lt_of_real {x y : α} {r : ℝ} : edist x y < ennreal.of_real r ↔ dist x y < r :=
+by rw [edist_dist, ennreal.of_real_lt_of_real_iff_of_nonneg dist_nonneg]
+
+@[simp] lemma edist_le_of_real {x y : α} {r : ℝ} (hr : 0 ≤ r) :
+  edist x y ≤ ennreal.of_real r ↔ dist x y ≤ r :=
+by rw [edist_dist, ennreal.of_real_le_of_real_iff hr]
+
 /--Express `nndist` in terms of `dist`-/
 lemma nndist_dist (x y : α) : nndist x y = real.to_nnreal (dist x y) :=
 by rw [dist_nndist, real.to_nnreal_coe]

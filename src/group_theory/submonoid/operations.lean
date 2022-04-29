@@ -6,6 +6,7 @@ Amelia Livingston, Yury Kudryashov
 -/
 import group_theory.group_action.defs
 import group_theory.submonoid.basic
+import group_theory.subsemigroup.operations
 
 /-!
 # Operations on `submonoid`s
@@ -385,15 +386,10 @@ namespace submonoid_class
 variables {A : Type*} [set_like A M] [hA : submonoid_class A M] (S' : A)
 include hA
 
-/-- A submonoid of a monoid inherits a multiplication. -/
-@[to_additive "An `add_submonoid` of an `add_monoid` inherits an addition."]
-instance has_mul : has_mul S' := ⟨λ a b, ⟨a.1 * b.1, mul_mem a.2 b.2⟩⟩
-
 /-- A submonoid of a monoid inherits a 1. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
 instance has_one : has_one S' := ⟨⟨_, one_mem S'⟩⟩
 
-@[simp, norm_cast, to_additive] lemma coe_mul (x y : S') : (↑(x * y) : M) = ↑x * ↑y := rfl
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : S') : M) = 1 := rfl
 
 variables {S'}
@@ -401,10 +397,6 @@ variables {S'}
 (subtype.ext_iff.symm : (x : M) = (1 : S') ↔ x = 1)
 variables (S')
 
-@[simp, to_additive] lemma mk_mul_mk (x y : M) (hx : x ∈ S') (hy : y ∈ S') :
-  (⟨x, hx⟩ : S') * ⟨y, hy⟩ = ⟨x * y, mul_mem hx hy⟩ := rfl
-
-@[to_additive] lemma mul_def (x y : S') : x * y = ⟨x * y, mul_mem x.2 y.2⟩ := rfl
 @[to_additive] lemma one_def : (1 : S') = ⟨1, one_mem S'⟩ := rfl
 
 omit hA

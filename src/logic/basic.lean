@@ -907,6 +907,21 @@ lemma congr_arg2 {α β γ : Sort*} (f : α → β → γ) {x x' : α} {y y' : �
   (hx : x = x') (hy : y = y') : f x y = f x' y' :=
 by { subst hx, subst hy }
 
+variables {β : α → Sort*} {γ : Π a, β a → Sort*} {δ : Π a b, γ a b → Sort*}
+
+lemma congr_fun₂ {f g : Π a b, γ a b} (h : f = g) (a : α) (b : β a) : f a b = g a b :=
+congr_fun (congr_fun h _) _
+
+lemma congr_fun₃ {f g : Π a b c, δ a b c} (h : f = g) (a : α) (b : β a) (c : γ a b) :
+  f a b c = g a b c :=
+congr_fun₂ (congr_fun h _) _ _
+
+lemma funext₂ {f g : Π a, β a → Prop} (h : ∀ a b, f a b = g a b) : f = g :=
+funext $ λ _, funext $ h _
+
+lemma funext₃ {f g : Π a b, γ a b → Prop} (h : ∀ a b c, f a b c = g a b c) : f = g :=
+funext $ λ _, funext₂ $ h _
+
 end equality
 
 /-! ### Declarations about quantifiers -/

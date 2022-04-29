@@ -79,6 +79,8 @@ add_decl_doc localization_map.to_add_monoid_hom
 
 end add_submonoid
 
+section comm_monoid
+
 variables {M : Type*} [comm_monoid M] (S : submonoid M) (N : Type*) [comm_monoid N]
           {P : Type*} [comm_monoid P]
 
@@ -788,7 +790,10 @@ monoid_hom.ext_iff.1 (f.lift_of_comp $ monoid_hom.id N) x
 /-- Given two localization maps `f : M →* N, k : M →* P` for a submonoid `S ⊆ M`,
 the hom from `P` to `N` induced by `f` is left inverse to the hom from `N` to `P`
 induced by `k`. -/
-@[simp, to_additive] lemma lift_left_inverse {k : localization_map S P} (z : N) :
+@[simp, to_additive "Given two localization maps `f : M →+ N, k : M →+ P` for a submonoid `S ⊆ M`,
+the hom from `P` to `N` induced by `f` is left inverse to the hom from `N` to `P`
+induced by `k`."]
+lemma lift_left_inverse {k : localization_map S P} (z : N) :
   k.lift f.map_units (f.lift k.map_units z) = z :=
 begin
   rw lift_spec,
@@ -1315,3 +1320,97 @@ mul_equiv_of_quotient f
 
 end away
 end localization
+
+end comm_monoid
+
+section comm_monoid_with_zero
+
+variables {M : Type*} [comm_monoid_with_zero M] (S : submonoid M)
+          (N : Type*) [comm_monoid_with_zero N]
+          {P : Type*} [comm_monoid_with_zero P]
+
+namespace submonoid
+
+/-- The type of homomorphisms between monoids with zero satisfying the characteristic predicate:
+if `f : M →*₀ N` satisfies this predicate, then `N` is isomorphic to the localization of `M` at
+`S`. -/
+@[nolint has_inhabited_instance] structure localization_with_zero_map
+  extends localization_map S N :=
+(map_zero' : to_fun 0 = 0)
+
+attribute [nolint doc_blame] localization_with_zero_map.to_localization_map
+
+variables {S N}
+
+/-- The monoid with zero hom underlying a `localization_map`. -/
+def localization_with_zero_map.to_monoid_with_zero_hom (f : localization_with_zero_map S N) :
+  M →*₀ N :=
+{ .. f }
+
+end submonoid
+
+namespace localization
+
+local attribute [semireducible] localization
+
+/-- The zero element in a localization is defined as `(0, 1)`.
+
+Should not be confused with `add_localization.zero` which is `(0, 0)`. -/
+@[irreducible] protected def zero : localization S :=
+mk 0 1
+
+instance : has_zero (localization S) :=⟨localization.zero S⟩
+
+local attribute [semireducible] localization.zero localization.mul
+
+instance : comm_monoid_with_zero (localization S) :=
+by refine_struct
+{ zero := 0, .. localization.comm_monoid S };
+  exact λ x, localization.induction_on x $ by
+  { intros,
+    refine mk_eq_mk_iff.mpr (r_of_eq _),
+    simp only [zero_mul, mul_zero] }
+
+attribute [irreducible] localization
+
+variables {S}
+
+lemma mk_zero (x : S) : mk 0 (x : S) = 0 :=
+calc mk 0 x = mk 0 1  : mk_eq_mk_iff.mpr (r_of_eq (by simp))
+        ... = 0       : rfl
+
+lemma lift_on_zero {p : Type*} (f : ∀ (x : M) (y : S), p) (H) : lift_on 0 f H = f 0 1 :=
+by rw [← mk_zero 1, lift_on_mk]
+
+end localization
+
+variables {S N}
+
+namespace submonoid
+
+@[simp] lemma localization_map.sec_zero_fst {f : localization_map S N} :
+  f.to_map (f.sec 0).fst = 0 :=
+by rw [localization_map.sec_spec', mul_zero]
+
+namespace localization_with_zero_map
+
+/-- Given a localization map `f : M →*₀ N` for a submonoid `S ⊆ M` and a map of
+`comm_monoid_with_zero`s `g : M →*₀ P` such that `g y` is invertible for all `y : S`, the
+homomorphism induced from `N` to `P` sending `z : N` to `g x * (g y)⁻¹`, where `(x, y) : M × S`
+are such that `z = f x * (f y)⁻¹`. -/
+noncomputable def lift (f : localization_with_zero_map S N)
+  (g : M →*₀ P) (hg : ∀ y : S, is_unit (g y)) : N →*₀ P :=
+{ map_zero' :=
+  begin
+    rw [monoid_hom.to_fun_eq_coe, localization_map.lift_spec, mul_zero,
+      ←map_zero g, ←g.to_monoid_hom_coe],
+    refine f.to_localization_map.eq_of_eq hg _,
+    rw localization_map.sec_zero_fst,
+    exact f.to_monoid_with_zero_hom.map_zero.symm
+  end
+  .. @localization_map.lift _ _ _ _ _ _ _ f.to_localization_map g.to_monoid_hom hg }
+
+end localization_with_zero_map
+end submonoid
+
+end comm_monoid_with_zero

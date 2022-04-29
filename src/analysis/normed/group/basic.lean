@@ -256,6 +256,9 @@ lemma norm_le_add_norm_add (u v : E) :
 calc ∥u∥ = ∥u + v - v∥ : by rw add_sub_cancel
 ... ≤ ∥u + v∥ + ∥v∥ : norm_sub_le _ _
 
+lemma ball_eq (y : E) (ε : ℝ) : metric.ball y ε = { x | ∥x - y∥ < ε} :=
+by { ext, simp [dist_eq_norm], }
+
 lemma ball_zero_eq (ε : ℝ) : ball (0 : E) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
@@ -424,6 +427,20 @@ by simp_rw [metric.tendsto_nhds_nhds, dist_eq_norm]
 lemma normed_group.cauchy_seq_iff [nonempty α] [semilattice_sup α] {u : α → E} :
   cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m, N ≤ m → ∀ n, N ≤ n → ∥u m - u n∥ < ε :=
 by simp [metric.cauchy_seq_iff, dist_eq_norm]
+
+lemma normed_group.nhds_basis_norm_lt (x : E) :
+  (𝓝 x).has_basis (λ (ε : ℝ), 0 < ε) (λ (ε : ℝ), { y | ∥y - x∥ < ε }) :=
+begin
+  simp_rw ← ball_eq,
+  exact metric.nhds_basis_ball,
+end
+
+lemma normed_group.nhds_zero_basis_norm_lt :
+  (𝓝 (0 : E)).has_basis (λ (ε : ℝ), 0 < ε) (λ (ε : ℝ), { y | ∥y∥ < ε }) :=
+begin
+  convert normed_group.nhds_basis_norm_lt (0 : E),
+  simp,
+end
 
 lemma normed_group.uniformity_basis_dist :
   (𝓤 E).has_basis (λ (ε : ℝ), 0 < ε) (λ ε, {p : E × E | ∥p.fst - p.snd∥ < ε}) :=
@@ -624,6 +641,10 @@ lemma nnnorm_sum_le (s : finset ι) (f : ι → E) :
   ∥∑ a in s, f a∥₊ ≤ ∑ a in s, ∥f a∥₊ :=
 s.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le f
 
+lemma nnnorm_sum_le_of_le (s : finset ι) {f : ι → E} {n : ι → ℝ≥0} (h : ∀ b ∈ s, ∥f b∥₊ ≤ n b) :
+  ∥∑ b in s, f b∥₊ ≤ ∑ b in s, n b :=
+(norm_sum_le_of_le s h).trans_eq nnreal.coe_sum.symm
+
 lemma add_monoid_hom.lipschitz_of_bound_nnnorm (f : E →+ F) (C : ℝ≥0) (h : ∀ x, ∥f x∥₊ ≤ C * ∥x∥₊) :
   lipschitz_with C f :=
 @real.to_nnreal_coe C ▸ f.lipschitz_of_bound C h
@@ -766,7 +787,7 @@ max_le_iff
 using the sup norm. -/
 noncomputable instance pi.semi_normed_group {π : ι → Type*} [fintype ι]
   [Π i, semi_normed_group (π i)] : semi_normed_group (Π i, π i) :=
-{ norm := λf, ((finset.sup finset.univ (λ b, ∥f b∥₊) : ℝ≥0) : ℝ),
+{ norm := λ f, ↑(finset.univ.sup (λ b, ∥f b∥₊)),
   dist_eq := assume x y,
     congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
     show nndist (x a) (y a) = ∥x a - y a∥₊, from nndist_eq_nnnorm _ _ }

@@ -1202,10 +1202,10 @@ def of' : G → add_monoid_algebra k G := λ a, single a 1
 
 end
 
-@[simp] lemma of_apply [add_zero_class G] (a : multiplicative G) : of k G a = single a.to_add 1 :=
+lemma of_apply [add_zero_class G] (a : multiplicative G) : of k G a = single a.to_add 1 :=
 rfl
 
-@[simp] lemma of'_apply (a : G) : of' k G a = single a 1 := rfl
+lemma of'_apply (a : G) : of' k G a = single a 1 := rfl
 
 lemma of'_eq_of [add_zero_class G] (a : G) : of' k G a = of k G a := rfl
 
@@ -1542,11 +1542,11 @@ lemma lift_unique' (F : add_monoid_algebra k G →ₐ[k] A) :
 /-- Decomposition of a `k`-algebra homomorphism from `monoid_algebra k G` by
 its values on `F (single a 1)`. -/
 lemma lift_unique (F : add_monoid_algebra k G →ₐ[k] A) (f : monoid_algebra k G) :
-  F f = f.sum (λ a b, b • F (single a 1)) :=
-by conv_lhs { rw lift_unique' F, simp [lift_apply] }
+  F f = f.sum (λ a b, b • F (of k G a)) :=
+by { conv_lhs { rw lift_unique' F, simp [lift_apply], }, refl, }
 
 lemma alg_hom_ext_iff {φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] A} :
-  (∀ x, φ₁ (finsupp.single x 1) = φ₂ (finsupp.single x 1)) ↔ φ₁ = φ₂ :=
+  (∀ x, φ₁ (of k G x) = φ₂ (of k G x)) ↔ φ₁ = φ₂ :=
 ⟨λ h, alg_hom_ext h, by rintro rfl _; refl⟩
 
 end lift

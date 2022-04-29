@@ -60,7 +60,7 @@ begin
   have A : f' = g',
   { ext,
     { simp [h₁, ring_equiv.to_ring_hom_eq_coe] },
-    { simpa [ring_equiv.to_ring_hom_eq_coe] using h₂, } },
+    { simpa [ring_equiv.to_ring_hom_eq_coe, add_monoid_algebra.of_apply] using h₂, } },
   have B : f = f'.comp (to_finsupp_iso R),
     by { rw [hf', ring_hom.comp_assoc], ext x, simp only [ring_equiv.to_ring_hom_eq_coe,
       ring_equiv.symm_apply_apply, function.comp_app, ring_hom.coe_comp,

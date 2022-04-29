@@ -213,7 +213,7 @@ lemma frobenius_nnnorm_one [decidable_eq n] [semi_normed_group α] [has_one α] 
   ∥(1 : matrix n n α)∥₊ = nnreal.sqrt (fintype.card n) * ∥(1 : α)∥₊:=
 begin
   refine (frobenius_nnnorm_diagonal _).trans _,
-  simp_rw [pi_Lp.nnnorm_equiv_const, nnreal.sqrt_eq_rpow],
+  simp_rw [pi_Lp.nnnorm_equiv_symm_const, nnreal.sqrt_eq_rpow],
 end
 
 section is_R_or_C

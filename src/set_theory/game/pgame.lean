@@ -502,6 +502,26 @@ theorem lt_of_equiv_of_lt {x y z} (h₁ : x ≈ y) (h₂ : y < z) : x < z := lt_
 @[trans]
 theorem le_of_equiv_of_le {x y z} (h₁ : x ≈ y) (h₂ : y ≤ z) : x ≤ z := le_trans h₁.1 h₂
 
+theorem lt_or_equiv_of_le {x y : pgame} (h : x ≤ y) : x < y ∨ x ≈ y :=
+begin
+  suffices : ¬x <y → x ≈ y ,{
+exact or_iff_not_imp_left.mpr this
+  } ,
+  apply or.resolve_left,
+  exact or.inr ⟨h, not_lt.1 h'⟩
+end
+
+theorem lt_or_equiv_or_gt {x y : pgame} :
+  x < y ∨ x ≈ y ∨ y < x :=
+begin
+  by_cases h : x < y,
+  { exact or.inl h },
+  { right,
+    cases lt_or_equiv_of_le (not_lt.1 h) with hlt heq,
+  { exact or.inr hlt },
+  { exact or.inl heq.symm } }
+end
+
 theorem le_congr {x₁ y₁ x₂ y₂} : x₁ ≈ x₂ → y₁ ≈ y₂ → (x₁ ≤ y₁ ↔ x₂ ≤ y₂)
 | ⟨x12, x21⟩ ⟨y12, y21⟩ := ⟨λ h, le_trans x21 (le_trans h y12), λ h, le_trans x12 (le_trans h y21)⟩
 

@@ -99,10 +99,6 @@ theorem lt_iff_le_not_le {x y : pgame} (ox : numeric x) (oy : numeric y) :
   x < y ↔ x ≤ y ∧ ¬ y ≤ x :=
 ⟨λ h, ⟨le_of_lt ox oy h, not_le.2 h⟩, λ h, not_le.1 h.2⟩
 
-theorem lt_or_equiv_or_gt {x y : pgame} (ox : numeric x) (oy : numeric y) :
-  x < y ∨ x ≈ y ∨ y < x :=
-sorry
-
 theorem numeric_zero : numeric 0 :=
 ⟨by rintros ⟨⟩ ⟨⟩, ⟨by rintros ⟨⟩, by rintros ⟨⟩⟩⟩
 theorem numeric_one : numeric 1 :=

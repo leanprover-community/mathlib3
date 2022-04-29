@@ -460,9 +460,8 @@ begin
   refine λ c, eq_of_forall_ge_iff (λ z, _),
   simp only [inf_le_iff, hf c, hg c, ωSup_le_iff, ←forall_or_distrib_left, ←forall_or_distrib_right,
              function.comp_app, chain.map_coe, order_hom.has_inf_inf_coe],
-  refine ⟨λ h _, h _ _, λ h i j, (h (max i j)).imp _ _⟩; apply le_trans; mono*; try { exact le_rfl },
-  { apply le_max_left },
-  { apply le_max_right }
+  exact ⟨λ h _, h _ _, λ h i j, (h (max i j)).imp (le_trans $ f.mono $ c.mono $ le_max_left _ _)
+    (le_trans $ g.mono $ c.mono $ le_max_right _ _)⟩,
 end
 
 lemma inf_continuous' {f g : α → β} (hf : continuous' f) (hg : continuous' g) :

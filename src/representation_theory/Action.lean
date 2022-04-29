@@ -332,11 +332,11 @@ variables [preadditive V] [monoidal_preadditive V]
 
 local attribute [simp] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
 
-instance : monoidal_preadditive V := {}
+instance : monoidal_preadditive (Action V G) := {}
 
 variables {R : Type*} [semiring R] [linear R V] [monoidal_linear R V]
 
-instance : monoidal_linear R V := {}
+instance : monoidal_linear R (Action V G) := {}
 
 end monoidal
 

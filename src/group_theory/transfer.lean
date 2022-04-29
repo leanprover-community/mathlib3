@@ -73,6 +73,26 @@ lemma orbit_zpowers_equiv_symm_apply {α β : Type*} [group α] (a : α) [mul_ac
   (⟨a, subgroup.mem_zpowers a⟩ : subgroup.zpowers a) ^ (k : ℤ) • ⟨b, mul_action.mem_orbit_self b⟩ :=
 rfl
 
+lemma zmod.coe_eq_mod {n : ℕ} (k : ℤ) : ((k : zmod n) : ℤ) = k % n :=
+begin
+  cases n,
+  { rw [int.coe_nat_zero, int.mod_zero, int.cast_id, int.cast_id] },
+  { rw [←zmod.val_int_cast, ←int.nat_cast_eq_coe_nat],
+    refl },
+end
+
+lemma orbit_zpowers_equiv_symm_apply' {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
+  (k : ℤ) :
+  (orbit_zpowers_equiv a b).symm k =
+  (⟨a, subgroup.mem_zpowers a⟩ : subgroup.zpowers a) ^ k • ⟨b, mul_action.mem_orbit_self b⟩ :=
+begin
+  conv_rhs { rw ← int.mod_add_div k (function.minimal_period ((•) a) b) },
+  rw [zpow_add, mul_smul, orbit_zpowers_equiv_symm_apply, zmod.coe_eq_mod, smul_left_cancel_iff,
+      eq_comm, subtype.ext_iff, mul_action.orbit.coe_smul, subtype.coe_mk,
+      mul_action.zpow_smul_eq_iff_minimal_period_dvd],
+  apply dvd_mul_right,
+end
+
 universe u
 
 noncomputable def key_equiv {G : Type u} [group G] (H : subgroup G) (g : G) :
@@ -80,8 +100,6 @@ noncomputable def key_equiv {G : Type u} [group G] (H : subgroup G) (g : G) :
   zmod (function.minimal_period ((•) g) q.out') :=
 (mul_action.self_equiv_sigma_orbits (subgroup.zpowers g) (G ⧸ H)).trans
   (equiv.sigma_congr_right (λ q, orbit_zpowers_equiv g q.out'))
-
-
 
 lemma key_equiv_symm_apply {G : Type u} [group G] (H : subgroup G) (g : G)
   (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
@@ -222,18 +240,42 @@ section explicit_computation
 
 variables (H)
 
+instance : infinite (zmod 0) :=
+int.infinite
+
+lemma zmod.card' {n : ℕ} [fintype (zmod n)] : fintype.card (zmod n) = n :=
+begin
+  unfreezingI { cases n },
+  { exact (not_fintype (zmod 0)).elim },
+  { convert zmod.card n.succ },
+end
+
+lemma lem0 {α β : Type*} [group α] [mul_action α β] (a : α) (b : β)
+  [fintype (mul_action.orbit (zpowers a) b)] :
+  function.minimal_period ((•) a) b = fintype.card (mul_action.orbit (zpowers a) b) :=
+begin
+  rw [←fintype.of_equiv_card (orbit_zpowers_equiv a b), zmod.card'],
+end
+
+instance {α β : Type*} [group α] [mul_action α β] (a : α) (b : β)
+  [fintype (mul_action.orbit (zpowers a) b)] :
+  fact (0 < function.minimal_period ((•) a) b) :=
+⟨begin
+  rw lem0,
+  exact fintype.card_pos_iff.mpr ⟨⟨b, mul_action.mem_orbit_self b⟩⟩,
+end⟩
+
 open_locale classical
 
 lemma transfer_computation (g : G) : transfer ϕ g =
   ∏ (q : quotient (mul_action.orbit_rel (zpowers g) (G ⧸ H))),
     ϕ ⟨q.out'.out'⁻¹ * g ^ (function.minimal_period ((•) g) q.out') * q.out'.out', sorry⟩ :=
 begin
-  haveI : ∀ q : quotient (mul_action.orbit_rel (zpowers g) (G ⧸ H)), fintype
-    (zmod (function.minimal_period ((•) g) q.out')) := sorry,
   calc transfer ϕ g = ∏ (q : G ⧸ H), _ : transfer_def ϕ (key_transversal H g) g
   ... = _ : ((key_equiv H g).symm.prod_comp _).symm
   ... = _ : finset.prod_sigma _ _ _
   ... = _ : fintype.prod_congr _ _ (λ q, _),
+  simp only,
   simp only [key_equiv_symm_apply, key_transversal_apply', key_transversal_apply''],
   rw fintype.prod_eq_single (0 : zmod (function.minimal_period ((•) g) q.out')),
   { simp only [if_pos, zmod.cast_zero, zpow_zero, one_mul, mul_assoc] },

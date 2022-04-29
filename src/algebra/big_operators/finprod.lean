@@ -285,6 +285,15 @@ end
   ∏ᶠ i, f i = ∏ i in s, f i :=
 finprod_eq_prod_of_mul_support_subset _ $ λ x hx, h $ hf.mem_to_finset.2 hx
 
+@[to_additive] lemma finprod_eq_prod_of_mul_support_to_finset_subset'
+  (f : α → M) {s : finset α} (h : mul_support f ⊆ (s : set α)) :
+  ∏ᶠ i, f i = ∏ i in s, f i :=
+begin
+  have h' : (s.finite_to_set.subset h).to_finset ⊆ s,
+  { simpa [← finset.coe_subset, set.coe_to_finset], },
+  exact finprod_eq_prod_of_mul_support_to_finset_subset _ _ h',
+end
+
 @[to_additive] lemma finprod_def (f : α → M) [decidable (mul_support f).finite] :
   ∏ᶠ i : α, f i = if h : (mul_support f).finite then ∏ i in h.to_finset, f i else 1 :=
 begin

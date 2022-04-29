@@ -497,7 +497,6 @@ def basis.equiv_funL (v : basis ι 𝕜 E) : E ≃L[𝕜] (ι → 𝕜) :=
   end,
   ..v.equiv_fun }
 
-
 @[simp] lemma basis.constrL_apply (v : basis ι 𝕜 E) (f : ι → F) (e : E) :
   (v.constrL f) e = ∑ i, (v.equiv_fun e i) • f i :=
 v.constr_apply_fintype 𝕜 _ _
@@ -740,6 +739,24 @@ begin
   { simp_rw [hc, smul_zero], exact is_closed_map_const },
   { exact (closed_embedding_smul_left hc).is_closed_map }
 end
+#check@ continuous_linear_equiv.arrow_congr_equivL
+/-- A family of continuous linear maps is continuous on `s` if all its applications are. -/
+lemma continuous_on_clm_apply {X : Type*} [topological_space X]
+  [finite_dimensional 𝕜 E] {f : X → E →L[𝕜] F} {s : set X} :
+  continuous_on f s ↔ ∀ y, continuous_on (λ x, f x y) s :=
+begin
+  refine ⟨λ h y, (continuous_linear_map.apply 𝕜 F y).continuous.comp_continuous_on h, λ h, _⟩,
+  let d := finrank 𝕜 E,
+  have hd : d = finrank 𝕜 (fin d → 𝕜) := (finrank_fin_fun 𝕜).symm,
+  let e₁ := continuous_linear_equiv.of_finrank_eq hd,
+  let e₂ := (e₁.arrow_congr_equivL (1 : F ≃L[𝕜] F)).trans (continuous_linear_equiv.pi_ring (fin d)),
+  rw [← comp.left_id f, ← e₂.symm_comp_self],
+  exact e₂.symm.continuous.comp_continuous_on (continuous_on_pi.mpr (λ i, h _))
+end
+
+lemma continuous_clm_apply {X : Type*} [topological_space X] {f : X → E →L[𝕜] F} :
+  continuous f ↔ ∀ y, continuous (λ x, f x y) :=
+by simp_rw [continuous_iff_continuous_on_univ, continuous_on_clm_apply]
 
 end complete_field
 

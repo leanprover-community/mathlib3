@@ -2734,6 +2734,45 @@ f.cont_diff_at_symm ha (hf₀'.has_fderiv_at_equiv h₀) hf
 
 end function_inverse
 
+
+/-! ### Finite dimensional results -/
+section finite_dimensional
+
+-- [complete_space 𝕜]
+
+/-- A family of continuous linear maps is `C^n` on `s` if all its applications are. -/
+lemma cont_diff_on_clm_apply {n : with_top ℕ} {f : E → F →L[𝕜] G}
+  {s : set E} [finite_dimensional 𝕜 F] :
+  cont_diff_on 𝕜 n f s ↔ ∀ y, cont_diff_on 𝕜 n (λ x, f x y) s :=
+begin
+  refine ⟨λ h y, (continuous_linear_map.apply 𝕜 G y).cont_diff.comp_cont_diff_on h, λ h, _⟩,
+  let d := finrank 𝕜 F,
+  have hd : d = finrank 𝕜 (fin d → 𝕜) := (finrank_fin_fun 𝕜).symm,
+  let e₁ := continuous_linear_equiv.of_finrank_eq hd,
+  let e₂ := (e₁.arrow_congr_equivL (1 : G ≃L[𝕜] G)).trans (continuous_linear_equiv.pi_ring (fin d)),
+  rw [← comp.left_id f, ← e₂.symm_comp_self],
+  exact e₂.symm.cont_diff.comp_cont_diff_on (cont_diff_on_pi.mpr (λ i, h _))
+end
+
+lemma cont_diff_clm_apply {n : with_top ℕ} {f : E → F →L[𝕜] G} [finite_dimensional 𝕜 F] :
+  cont_diff 𝕜 n f ↔ ∀ y, cont_diff 𝕜 n (λ x, f x y) :=
+by simp_rw [← cont_diff_on_univ, cont_diff_on_clm_apply]
+
+lemma cont_diff_succ_iff_fderiv_apply [finite_dimensional 𝕜 E] {n : ℕ} {f : E → F} :
+  cont_diff 𝕜 ((n + 1) : ℕ) f ↔
+  differentiable 𝕜 f ∧ ∀ y, cont_diff 𝕜 n (λ x, fderiv 𝕜 f x y) :=
+by rw [cont_diff_succ_iff_fderiv, cont_diff_clm_apply]
+
+-- `unique_diff_on` should not be necessary from the right-to-left implication, which is the one
+-- we really care about.
+lemma cont_diff_on_succ_iff_fderiv_apply [finite_dimensional 𝕜 E] {n : ℕ} {f : E → F}
+  {s : set E} (hs : unique_diff_on 𝕜 s) : cont_diff_on 𝕜 ((n + 1) : ℕ) f s ↔
+  differentiable_on 𝕜 f s ∧ ∀ y, cont_diff_on 𝕜 n (λ x, fderiv_within 𝕜 f s x y) s :=
+by rw [cont_diff_on_succ_iff_fderiv_within hs, cont_diff_on_clm_apply]
+
+end finite_dimensional
+
+
 section real
 /-!
 ### Results over `ℝ` or `ℂ`

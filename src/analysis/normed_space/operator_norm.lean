@@ -1715,6 +1715,67 @@ end
   (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : 𝕜 ∙ x) = 1 :=
 linear_equiv.coord_self 𝕜 E x h
 
+variables {𝕜} {𝕜₄ : Type*} [nondiscrete_normed_field 𝕜₄]
+variables {H : Type*} [normed_group H] [normed_space 𝕜₄ H] [normed_space 𝕜₃ G]
+variables {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
+variables {σ₃₄ : 𝕜₃ →+* 𝕜₄} {σ₄₃ : 𝕜₄ →+* 𝕜₃} [ring_hom_inv_pair σ₃₄ σ₄₃] [ring_hom_inv_pair σ₄₃ σ₃₄]
+variables {σ₂₄ : 𝕜₂ →+* 𝕜₄} {σ₁₄ : 𝕜 →+* 𝕜₄}
+variables [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
+variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
+variables [ring_hom_isometric σ₁₄] [ring_hom_isometric σ₂₃]
+variables [ring_hom_isometric σ₄₃] [ring_hom_isometric σ₂₄]
+
+include σ₂₁ σ₃₄ σ₁₃ σ₂₄
+#check@ continuous_linear_equiv.arrow_congr_equiv
+#check@ continuous_linear_equiv.arrow_congr_equiv_apply
+@[simps] def arrow_congr_equivL (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
+  (E →SL[σ₁₄] H) ≃SL[σ₄₃] (F →SL[σ₂₃] G) :=
+{ map_add' := λ f g, by simp only [equiv.to_fun_as_coe, add_comp, comp_add,
+    continuous_linear_equiv.arrow_congr_equiv_apply],
+  map_smul' := λ t f, by simp only [equiv.to_fun_as_coe, smul_comp, comp_smulₛₗ,
+    continuous_linear_equiv.arrow_congr_equiv_apply],
+  continuous_to_fun := (compSL F H G σ₂₄ σ₄₃ e₄₃).continuous.comp
+    ((compSL F E _ σ₂₁ _).flip e₁₂.symm).continuous,
+  continuous_inv_fun := (compSL E G H σ₁₃ σ₃₄ e₄₃.symm).continuous.comp
+    ((compSL E F _ σ₁₂ _).flip e₁₂).continuous,
+  .. e₁₂.arrow_congr_equiv e₄₃, }
+
+omit σ₂₁ σ₃₄
+
+/-- A pair of continuous linear equivalences generates an continuous linear equivalence between
+  the spaces of continuous linear maps. -/
+@[simps] def arrow_congr_equivL'
+  {H : Type*} [normed_group H] [normed_space 𝕜 H] (e₁ : E ≃L[𝕜] G) (e₂ : F ≃L[𝕜] H)
+   :
+  (E →L[𝕜] F) ≃L[𝕜] (G →L[𝕜] H) :=
+arrow_congr_equivL
+
+/-- Continuous linear equivalence between continuous linear functions `𝕜ⁿ → E` and `Eⁿ`.
+The spaces `𝕜ⁿ` and `Eⁿ` are represented as `ι → 𝕜` and `ι → E`, respectively,
+where `ι` is a finite type. -/
+@[simps] def pi_ring (ι : Type*) [fintype ι] [decidable_eq ι] [complete_space 𝕜] :
+  ((ι → 𝕜) →L[𝕜] G) ≃L[𝕜] (ι → G) :=
+{ continuous_to_fun :=
+  begin
+    refine continuous_pi (λ i, _),
+    exact (continuous_linear_map.apply 𝕜 G (pi.single i 1)).continuous,
+  end,
+  continuous_inv_fun :=
+  begin
+    simp_rw [linear_equiv.inv_fun_eq_symm, linear_equiv.trans_symm_apply, linear_equiv.symm_symm],
+    apply linear_map.continuous_of_bound _ (fintype.card ι : ℝ) (λ g, _),
+    rw ← nsmul_eq_mul,
+    apply op_norm_le_bound _ (nsmul_nonneg (norm_nonneg g) (fintype.card ι)) (λ t, _),
+    simp_rw [linear_map.coe_comp, linear_equiv.coe_to_linear_map, comp_app,
+      linear_map.coe_to_continuous_linear_map', linear_equiv.pi_ring_symm_apply],
+    apply le_trans (norm_sum_le _ _),
+    rw smul_mul_assoc,
+    refine finset.sum_le_card_nsmul _ _ _ (λ i hi, _),
+    rw [norm_smul, mul_comm],
+    exact mul_le_mul (norm_le_pi_norm g i) (norm_le_pi_norm t i) (norm_nonneg _) (norm_nonneg g),
+  end,
+  .. linear_map.to_continuous_linear_map.symm.trans (linear_equiv.pi_ring 𝕜 G ι 𝕜) }
+
 end
 
 end continuous_linear_equiv

@@ -1242,17 +1242,6 @@ variables [comm_ring R] [comm_ring S]
 variables (f : R →+* S)
 variables {I J : ideal R} {K L : ideal S}
 
-lemma mem_quotient_iff_mem (hIJ : I ≤ J) {x : R} :
-  quotient.mk I x ∈ J.map (quotient.mk I) ↔ x ∈ J :=
-begin
-  refine iff.trans (mem_map_iff_of_surjective _ quotient.mk_surjective) _,
-  split,
-  { rintros ⟨x, x_mem, x_eq⟩,
-    simpa using J.add_mem (hIJ (quotient.eq.mp x_eq.symm)) x_mem },
-  { intro x_mem,
-    exact ⟨x, x_mem, rfl⟩ }
-end
-
 variables (I J K L)
 
 theorem map_mul : map f (I * J) = map f I * map f J :=
@@ -1336,6 +1325,10 @@ end is_primary
 
 end ideal
 
+lemma associates.mk_ne_zero' {R : Type*} [comm_ring R] {r : R} :
+  (associates.mk (ideal.span {r} : ideal R)) ≠ 0 ↔ (r ≠ 0):=
+by rw [associates.mk_ne_zero, ideal.zero_eq_bot, ne.def, ideal.span_singleton_eq_bot]
+
 namespace ring_hom
 
 variables {R : Type u} {S : Type v} {T : Type v}
@@ -1370,10 +1363,10 @@ section ring
 variables [ring R] [semiring S] (f : R →+* S)
 
 lemma injective_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
-by { rw [set_like.ext'_iff, ker_eq, set.ext_iff], exact f.injective_iff' }
+by { rw [set_like.ext'_iff, ker_eq, set.ext_iff], exact injective_iff_map_eq_zero' f }
 
 lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
-by { rw [← f.injective_iff, injective_iff_ker_eq_bot] }
+by { rw [← injective_iff_map_eq_zero f, injective_iff_ker_eq_bot] }
 
 @[simp] lemma ker_coe_equiv (f : R ≃+* S) : ker (f : R →+* S) = ⊥ :=
 by simpa only [←injective_iff_ker_eq_bot] using f.injective
@@ -1398,7 +1391,7 @@ ideal.quotient.lift_mk _ _ _
 /-- The induced map from the quotient by the kernel is injective. -/
 lemma ker_lift_injective (f : R →+* S) : function.injective (ker_lift f) :=
 assume a b, quotient.induction_on₂' a b $
-  assume a b (h : f a = f b), quotient.sound' $
+  assume a b (h : f a = f b), ideal.quotient.eq.2 $
 show a - b ∈ ker f, by rw [mem_ker, map_sub, h, sub_self]
 
 variable {f}
@@ -1573,6 +1566,18 @@ end
   @comap_is_maximal_of_surjective _ _ _ _ (quotient.mk I) quotient.mk_surjective ⊥ hI,
  λ hI, @bot_is_maximal _ (@field.to_division_ring _ (@quotient.field _ _ I hI)) ⟩
 
+/-- See also `ideal.mem_quotient_iff_mem` in case `I ≤ J`. -/
+@[simp]
+lemma mem_quotient_iff_mem_sup {I J : ideal R} {x : R} :
+  quotient.mk I x ∈ J.map (quotient.mk I) ↔ x ∈ J ⊔ I :=
+by rw [← mem_comap, comap_map_of_surjective _ quotient.mk_surjective, ← ring_hom.ker_eq_comap_bot,
+  mk_ker]
+
+/-- See also `ideal.mem_quotient_iff_mem_sup` if the assumption `I ≤ J` is not available. -/
+lemma mem_quotient_iff_mem {I J : ideal R} (hIJ : I ≤ J) {x : R} :
+  quotient.mk I x ∈ J.map (quotient.mk I) ↔ x ∈ J :=
+by rw [mem_quotient_iff_mem_sup, sup_eq_left.mpr hIJ]
+
 section quotient_algebra
 
 variables (R₁ R₂ : Type*) {A B : Type*}
@@ -1725,7 +1730,7 @@ lemma quotient_equiv_symm_mk (I : ideal R) (J : ideal S) (f : R ≃+* S)
 lemma quotient_map_injective' {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}
   (h : I.comap f ≤ J) : function.injective (quotient_map I f H) :=
 begin
-  refine (quotient_map I f H).injective_iff.2 (λ a ha, _),
+  refine (injective_iff_map_eq_zero (quotient_map I f H)).2 (λ a ha, _),
   obtain ⟨r, rfl⟩ := quotient.mk_surjective a,
   rw [quotient_map_mk, quotient.eq_zero_iff_mem] at ha,
   exact (quotient.eq_zero_iff_mem).mpr (h ha),

@@ -35,8 +35,8 @@ open_locale topological_space
 local postfix `⋆`:std.prec.max_plus := star
 
 /-- A normed star group is a normed group with a compatible `star` which is isometric. -/
-class normed_star_group (E : Type*) [normed_group E] [star_add_monoid E] : Prop :=
-(norm_star : ∀ {x : E}, ∥x⋆∥ = ∥x∥)
+class normed_star_group (E : Type*) [semi_normed_group E] [star_add_monoid E] : Prop :=
+(norm_star : ∀ x : E, ∥x⋆∥ = ∥x∥)
 
 export normed_star_group (norm_star)
 attribute [simp] norm_star
@@ -44,16 +44,18 @@ attribute [simp] norm_star
 variables {𝕜 E α : Type*}
 
 section normed_star_group
-variables [normed_group E] [star_add_monoid E] [normed_star_group E]
+variables [semi_normed_group E] [star_add_monoid E] [normed_star_group E]
+
+@[simp] lemma nnnorm_star (x : E) : ∥star x∥₊ = ∥x∥₊ := subtype.ext $ norm_star _
 
 /-- The `star` map in a normed star group is a normed group homomorphism. -/
 def star_normed_group_hom : normed_group_hom E E :=
-{ bound' := ⟨1, λ v, le_trans (norm_star.le) (one_mul _).symm.le⟩,
+{ bound' := ⟨1, λ v, le_trans (norm_star _).le (one_mul _).symm.le⟩,
   .. star_add_equiv }
 
 /-- The `star` map in a normed star group is an isometry -/
 lemma star_isometry : isometry (star : E → E) :=
-star_add_equiv.to_add_monoid_hom.isometry_of_norm (λ _, norm_star)
+star_add_equiv.to_add_monoid_hom.isometry_of_norm norm_star
 
 lemma continuous_star : continuous (star : E → E) := star_isometry.continuous
 
@@ -90,7 +92,7 @@ end normed_star_group
 
 instance ring_hom_isometric.star_ring_end [normed_comm_ring E] [star_ring E]
   [normed_star_group E] : ring_hom_isometric (star_ring_end E) :=
-⟨λ _, norm_star⟩
+⟨norm_star⟩
 
 /-- A C*-ring is a normed star ring that satifies the stronger condition `∥x⋆ * x∥ = ∥x∥^2`
 for every `x`. -/
@@ -177,7 +179,7 @@ norm_coe_unitary_mul ⟨U, hU⟩ A
 calc _ = ∥((U : E)⋆ * A⋆)⋆∥ : by simp only [star_star, star_mul]
   ...  = ∥(U : E)⋆ * A⋆∥    : by rw [norm_star]
   ...  = ∥A⋆∥               : norm_mem_unitary_mul (star A) (unitary.star_mem U.prop)
-  ...  = ∥A∥                : norm_star
+  ...  = ∥A∥                : norm_star _
 
 lemma norm_mul_mem_unitary (A : E) {U : E} (hU : U ∈ unitary E) : ∥A * U∥ = ∥A∥ :=
 norm_mul_coe_unitary A ⟨U, hU⟩
@@ -208,7 +210,7 @@ variables (𝕜)
 /-- `star` bundled as a linear isometric equivalence -/
 def starₗᵢ : E ≃ₗᵢ⋆[𝕜] E :=
 { map_smul' := star_smul,
-  norm_map' := λ x, norm_star,
+  norm_map' := norm_star,
   .. star_add_equiv }
 
 variables {𝕜}
@@ -218,25 +220,3 @@ variables {𝕜}
 lemma starₗᵢ_apply {x : E} : starₗᵢ 𝕜 x = star x := rfl
 
 end starₗᵢ
-
-section matrix
-
-local attribute [instance] matrix.normed_group
-
-open_locale matrix
-
-@[simp] lemma matrix.entrywise_sup_norm_star_eq_norm {n : Type*} [normed_ring E] [star_add_monoid E]
-  [normed_star_group E] [fintype n] (M : (matrix n n E)) : ∥star M∥ = ∥M∥ :=
-begin
-  refine le_antisymm (by simp [norm_matrix_le_iff, M.norm_entry_le_entrywise_sup_norm]) _,
-  refine ((norm_matrix_le_iff (norm_nonneg _)).mpr (λ i j, _)).trans
-    (congr_arg _ M.star_eq_conj_transpose).ge,
-  exact (normed_star_group.norm_star).symm.le.trans Mᴴ.norm_entry_le_entrywise_sup_norm
-end
-
-@[priority 100] -- see Note [lower instance priority]
-instance matrix.to_normed_star_group {n : Type*} [normed_ring E] [star_add_monoid E]
-  [normed_star_group E] [fintype n] : normed_star_group (matrix n n E) :=
-⟨matrix.entrywise_sup_norm_star_eq_norm⟩
-
-end matrix

@@ -46,7 +46,21 @@ variables {L L'}
 
 namespace Lhom
 
+/-- Defines a map between languages defined with `language.mk₂`. -/
+protected def mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  (φ₀ : c → L'.constants) (φ₁ : f₁ → L'.functions 1) (φ₂ : f₂ → L'.functions 2)
+  (φ₁' : r₁ → L'.relations 1) (φ₂' : r₂ → L'.relations 2) :
+  language.mk₂ c f₁ f₂ r₁ r₂ →ᴸ L' :=
+⟨λ n, nat.cases_on n φ₀ (λ n, nat.cases_on n φ₁ (λ n, nat.cases_on n φ₂ (λ _, pempty.elim))),
+  λ n, nat.cases_on n pempty.elim
+    (λ n, nat.cases_on n φ₁' (λ n, nat.cases_on n φ₂' (λ _, pempty.elim)))⟩
+
 variables (ϕ : L →ᴸ L')
+
+/-- Pulls a structure back along a language map. -/
+def reduct (M : Type*) [L'.Structure M] : L.Structure M :=
+{ fun_map := λ n f xs, fun_map (ϕ.on_function f) xs,
+  rel_map := λ n r xs, rel_map (ϕ.on_relation r) xs }
 
 /-- The identity language homomorphism. -/
 @[simps] protected def id (L : language) : L →ᴸ L :=
@@ -76,6 +90,18 @@ by {cases F with Ff Fr, cases G with Gf Gr, simp only *, exact and.intro h_fun h
 
 instance [L.is_algebraic] [L.is_relational] : unique (L →ᴸ L') :=
 ⟨⟨Lhom.of_is_empty L L'⟩, λ _, Lhom.funext (subsingleton.elim _ _) (subsingleton.elim _ _)⟩
+
+lemma mk₂_funext {c f₁ f₂ : Type u} {r₁ r₂ : Type v} {F G : language.mk₂ c f₁ f₂ r₁ r₂ →ᴸ L'}
+  (h0 : ∀ (c : (language.mk₂ c f₁ f₂ r₁ r₂).constants), F.on_function c = G.on_function c)
+  (h1 : ∀ (f : (language.mk₂ c f₁ f₂ r₁ r₂).functions 1), F.on_function f = G.on_function f)
+  (h2 : ∀ (f : (language.mk₂ c f₁ f₂ r₁ r₂).functions 2), F.on_function f = G.on_function f)
+  (h1' : ∀ (r : (language.mk₂ c f₁ f₂ r₁ r₂).relations 1), F.on_relation r = G.on_relation r)
+  (h2' : ∀ (r : (language.mk₂ c f₁ f₂ r₁ r₂).relations 2), F.on_relation r = G.on_relation r) :
+  F = G :=
+Lhom.funext (funext (λ n, nat.cases_on n (funext h0) (λ n, nat.cases_on n (funext h1)
+      (λ n, nat.cases_on n (funext h2) (λ n, funext (λ f, pempty.elim f))))))
+      (funext (λ n, nat.cases_on n (funext (λ r, pempty.elim r)) (λ n, nat.cases_on n (funext h1')
+      (λ n, nat.cases_on n (funext h2') (λ n, funext (λ r, pempty.elim r))))))
 
 /-- The composition of two language homomorphisms. -/
 @[simps] def comp (g : L' →ᴸ L'') (f : L →ᴸ L') : L →ᴸ L'' :=
@@ -174,6 +200,23 @@ instance sum_map_is_expansion_on {L₁ L₂ : language} (ψ : L₁ →ᴸ L₂) 
   (ϕ.sum_map ψ).is_expansion_on M :=
 ⟨λ _ f _, sum.cases_on f (by simp) (by simp), λ _ R _, sum.cases_on R (by simp) (by simp)⟩
 
+instance sum_inl_is_expansion_on (M : Type*)
+  [L.Structure M] [L'.Structure M] :
+  (Lhom.sum_inl : L →ᴸ L.sum L').is_expansion_on M :=
+⟨λ _ f _, rfl, λ _ R _, rfl⟩
+
+instance sum_inr_is_expansion_on (M : Type*)
+  [L.Structure M] [L'.Structure M] :
+  (Lhom.sum_inr : L' →ᴸ L.sum L').is_expansion_on M :=
+⟨λ _ f _, rfl, λ _ R _, rfl⟩
+
+@[priority 100] instance is_expansion_on_reduct (ϕ : L →ᴸ L') (M : Type*) [L'.Structure M] :
+  @is_expansion_on L L' ϕ M (ϕ.reduct M) _ :=
+begin
+  letI := ϕ.reduct M,
+  exact ⟨λ _ f _, rfl, λ _ R _, rfl⟩,
+end
+
 end Lhom
 
 /-- A language equivalence maps the symbols of one language to symbols of another bijectively. -/
@@ -222,7 +265,7 @@ def constants_on_functions : ℕ → Type u'
 instance [h : inhabited α] : inhabited (constants_on_functions α 0) := h
 
 /-- A language with constants indexed by a type. -/
-def constants_on : language.{u' 0} := ⟨constants_on_functions α, λ _, pempty⟩
+def constants_on : language.{u' 0} := ⟨constants_on_functions α, λ _, empty⟩
 
 variables {α}
 
@@ -237,13 +280,13 @@ instance is_relational_constants_on [ie : is_empty α] : is_relational (constant
 /-- Gives a `constants_on α` structure to a type by assigning each constant a value. -/
 def constants_on.Structure (f : α → M) : (constants_on α).Structure M :=
 { fun_map := λ n, nat.cases_on n (λ a _, f a) (λ _, pempty.elim),
-  rel_map := λ _, pempty.elim }
+  rel_map := λ _, empty.elim }
 
 variables {β : Type v'}
 
 /-- A map between index types induces a map between constant languages. -/
 def Lhom.constants_on_map (f : α → β) : (constants_on α) →ᴸ (constants_on β) :=
-⟨λ n, nat.cases_on n f (λ _, pempty.elim), λ n, pempty.elim⟩
+⟨λ n, nat.cases_on n f (λ _, pempty.elim), λ n, empty.elim⟩
 
 lemma constants_on_map_is_expansion_on {f : α → β} {fα : α → M} {fβ : β → M}
   (h : fβ ∘ f = fα) :
@@ -253,7 +296,7 @@ begin
   letI := constants_on.Structure fα,
   letI := constants_on.Structure fβ,
   exact ⟨λ n, nat.cases_on n (λ F x, (congr_fun h F : _)) (λ n F, pempty.elim F),
-    λ _ R, pempty.elim R⟩,
+    λ _ R, empty.elim R⟩,
 end
 
 end constants_on

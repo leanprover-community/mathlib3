@@ -273,7 +273,6 @@ theorem quot_mul_comm : Π (x y : pgame.{u}), ⟦x * y⟧ = ⟦y * x⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
   let x := mk xl xr xL xR,
-  let y := mk yl yr yL yR,
   refine quot_eq_of_mk_quot_eq _ _ _ _,
   apply equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
   calc

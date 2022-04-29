@@ -81,6 +81,8 @@ noncomputable def key_equiv {G : Type u} [group G] (H : subgroup G) (g : G) :
 (mul_action.self_equiv_sigma_orbits (subgroup.zpowers g) (G ⧸ H)).trans
   (equiv.sigma_congr_right (λ q, orbit_zpowers_equiv g q.out'))
 
+
+
 lemma key_equiv_symm_apply {G : Type u} [group G] (H : subgroup G) (g : G)
   (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
   (k : zmod (function.minimal_period ((•) g) q.out')) :
@@ -102,10 +104,13 @@ end equiv_stuff
 
 section transversal_stuff
 
+def key_transversal_set {G : Type*} [group G] (H : subgroup G) (g : G) :
+  set G :=
+set.range (λ q, g ^ ((key_equiv H g q).2 : ℤ)  * (key_equiv H g q).1.out'.out')
+
 def key_transversal {G : Type*} [group G] (H : subgroup G) (g : G) : subgroup.left_transversals (H : set G) :=
-⟨set.range (λ q, g ^ ((key_equiv H g q).2 : ℤ) * (key_equiv H g q).1.out'.out'),
-  subgroup.range_mem_left_transversals (λ q, by rw [←smul_eq_mul, mul_action.quotient.coe_smul_out',
-    ←key_equiv_symm_apply, sigma.eta, equiv.symm_apply_apply])⟩
+⟨key_transversal_set H g, subgroup.range_mem_left_transversals (λ q, by rw [←smul_eq_mul,
+  mul_action.quotient.coe_smul_out', ←key_equiv_symm_apply, sigma.eta, equiv.symm_apply_apply])⟩
 
 lemma key_transversal_apply {G : Type*} [group G] (H : subgroup G) (g : G) (q : G ⧸ H) :
   ↑(subgroup.mem_left_transversals.to_equiv (key_transversal H g).2 q) =
@@ -120,28 +125,35 @@ lemma key_transversal_apply' {G : Type*} [group G] (H : subgroup G)
     g ^ (k : ℤ) * q.out'.out' :=
 by rw [key_transversal_apply, ←key_equiv_symm_apply, equiv.apply_symm_apply]
 
+lemma zmod.cast_sub_one {R : Type*} [ring R] {n : ℕ} (k : zmod n) :
+  ((k - 1 : zmod n) : R) = (if k = 0 then n else k) - 1 :=
+begin
+  by_cases hk : k = 0,
+  { rw [if_pos hk, hk, zero_sub, zmod.cast_neg_one] },
+  { rw [if_neg hk],
+    cases n,
+    { rw [int.cast_sub, int.cast_one] },
+    { rw [←zmod.nat_cast_val, zmod.val, fin.coe_sub_one, if_neg],
+      { rw [nat.cast_sub, nat.cast_one, coe_coe],
+        exact nat.one_le_iff_ne_zero.mpr (mt k.val_eq_zero.mp hk) },
+      { exact hk } } },
+end
+
 lemma key_transversal_apply'' {G : Type*} [group G] (H : subgroup G)
   (g : G) (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
   (k : zmod (function.minimal_period ((•) g) q.out')) :
   ↑(subgroup.mem_left_transversals.to_equiv (g • key_transversal H g).2 (g ^ (k : ℤ) • q.out')) =
-    if k = 0 then g ^ (function.minimal_period ((•) g) q.out') * q.out'.out'
+    if k = 0 then g ^ function.minimal_period ((•) g) q.out' * q.out'.out'
       else g ^ (k : ℤ) * q.out'.out' :=
 begin
   rw [subgroup.smul_apply_eq_smul_apply_inv_smul, key_transversal_apply, ←mul_smul, ←zpow_neg_one,
       ←zpow_add, key_equiv_apply, smul_eq_mul, ←mul_assoc, ←zpow_one_add,
-      int.cast_add, int.cast_neg, int.cast_one],
-  simp only,
+      int.cast_add, int.cast_neg, int.cast_one, zmod.int_cast_cast, zmod.cast_id', id.def],
+
+  rw [←sub_eq_neg_add, zmod.cast_sub_one, add_sub_cancel'_right],
   by_cases hk : k = 0,
-  { rw [hk, if_pos rfl, mul_left_inj, zmod.cast_zero, int.cast_zero, add_zero, ←zpow_coe_nat],
-    refine congr_arg ((^) g) _,
-    rw [zmod.cast_neg_one, int.nat_cast_eq_coe_nat, add_sub_cancel'_right] },
-  { rw [if_neg hk, mul_left_inj],
-    refine congr_arg ((^) g) _,
-    rw [zmod.coe_add_eq_ite, if_pos, zmod.cast_neg_one, add_sub, ←add_assoc, add_sub_cancel'_right],
-    simp only [int.nat_cast_eq_coe_nat, zmod.int_cast_cast, zmod.cast_id', id.def, add_tsub_cancel_left],
-    rw [zmod.cast_neg_one, sub_add],
-    simp only [int.nat_cast_eq_coe_nat, zmod.int_cast_cast, zmod.cast_id', id.def, le_sub_self_iff, sub_nonpos],
-    sorry },
+  { rw [if_pos hk, if_pos hk, int.nat_cast_eq_coe_nat, zpow_coe_nat] },
+  { rw [if_neg hk, if_neg hk] },
 end
 
 end transversal_stuff

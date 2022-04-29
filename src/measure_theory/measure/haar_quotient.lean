@@ -44,18 +44,68 @@ begin
   refine ⟨g₁, hg₁, h.ae_eq hg₁'⟩,
 end
 
-#check lintegral_tsum
-
-
-theorem measure_theory.integral_count {α : Type*}
-{β : Type*} {m : measurable_space α}
-  {μ : measure_theory.measure α} [encodable β] {E : Type*} [normed_group E] [normed_space ℝ E]
-  [measurable_space E] [borel_space E] [complete_space E]
-  {f : α → E} (hf : integrable f μ)  :
+theorem measure_theory.integral_count {α : Type*} {β : Type*} [measurable_space α]
+  [measurable_singleton_class α] [encodable β]
+  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  [complete_space E] {f : α → E} (hf : integrable f measure_theory.measure.count)  :
 ∫ (a : α), f a ∂measure_theory.measure.count = ∑' (a : α), f a :=
 begin
+  rw measure_theory.integral_eq f hf,
+  rw measure_theory.L1.integral_eq,
+  rw ← measure_theory.mem_ℒp_one_iff_integrable  at hf,
+  have := (measure_theory.Lp.simple_func.dense_range (ennreal.one_ne_top)).induction_on
+    (measure_theory.Lp.mk f hf) ,
+--  have := @dense_range.induction_on,
+  --refine dense_range.induction_on (measure_theory.Lp.simple_func.dense_range _) _ _ _,
+
 --  rw measure_theory.measure.count,
-  let P : (α → E) → Prop := λ f, ∫ (a : α), f a ∂measure_theory.measure.count = ∑' (a : α), f a ,
+--  let P : (α → E) → Prop := λ f, ∫ (a : α), f a ∂measure_theory.measure.count = ∑' (a : α), f a ,
+  refine @integrable.induction _ _ _ _ _ _ _ _ _ _ f hf,
+  {
+    intros c s hs hs',
+    let g := measure_theory.simple_func.piecewise s hs (measure_theory.simple_func.const α c)
+      (measure_theory.simple_func.const α 0),
+    convert (measure_theory.simple_func.integral_eq_integral g _).symm using 2,
+    {
+      rw measure_theory.measure.count_apply_lt_top at hs',
+      rw @tsum_eq_sum _ _ _ _ _ _ hs'.to_finset,
+      sorry, -- ALEX HOMEWORK
+      sorry, -- ALEX HOMEWORK
+      apply_instance,
+--      simp [set.indicator, g],
+  --    simp,
+--      rw tsum_ite_eq,
+
+      --library_search,
+    },
+    rw measure_theory.simple_func.integrable_iff_fin_meas_supp,
+
+    rw measure_theory.simple_func.fin_meas_supp_iff,
+    intros y hy,
+    simp [g, hs', set.indicator],
+    by_cases hy' : y = c,
+    {
+      rw hy',
+--      rw if_pos,
+      sorry,
+    },
+
+    -- rw if_neg,
+    sorry, -- ALEX HOMEWORK
+--    have := measure_theory.simple_func.integrable_of_is_finite_measure g,
+--    rw ←  measure_theory.simple_func.integral_eq_integral ,
+  },
+  {
+    intros f g dfg hf hg hf' hg',
+  },
+
+
+
+  sorry,
+
+
+
+
   apply integrable.induction P, -- _ _ _ hf hf,
   intros c s t hs,
   { sorry, },

@@ -281,6 +281,37 @@ end
 @[simp] lemma adjugate_one : adjugate (1 : matrix n n α) = 1 :=
 by { ext, simp [adjugate_def, matrix.one_apply, pi.single_apply, eq_comm] }
 
+@[simp] lemma adjugate_diagonal (v : n → α) :
+  adjugate (diagonal v) = diagonal (λ i, ∏ j in finset.univ.erase i, v j) :=
+begin
+  ext,
+  simp only [adjugate_def, cramer_apply, diagonal_transpose],
+  obtain rfl | hij := eq_or_ne i j,
+  { have : (diagonal v).update_column i (pi.single i 1) = diagonal (function.update v i 1),
+    { ext j k,
+      rw [update_column_apply],
+      obtain rfl | hjk := eq_or_ne j k,
+      { rw [diagonal_apply_eq, diagonal_apply_eq],
+        obtain rfl | hji := eq_or_ne j i,
+        { rw [if_pos rfl, pi.single_eq_same, function.update_same], },
+        { rw [if_neg hji, function.update_noteq hji], } },
+      { rw [diagonal_apply_ne _ hjk, diagonal_apply_ne _ hjk],
+        obtain rfl | hki := eq_or_ne k i,
+        { rw [if_pos rfl, pi.single_eq_of_ne hjk] },
+        { rw if_neg hki } } },
+    rw [this, det_diagonal, diagonal_apply_eq, prod_update_of_mem (finset.mem_univ _),
+      sdiff_singleton_eq_erase, one_mul] },
+  { rw [diagonal_apply_ne _ hij, det_apply],
+    apply finset.sum_eq_zero,
+    intros σ hσ,
+    convert smul_zero _,
+    simp_rw [update_column_apply],
+    apply prod_eq_zero (finset.mem_univ (σ.symm j)),
+    erw σ.apply_symm_apply j,
+    split_ifs,
+    { rw pi.single_eq_of_ne' hij },
+    { rw diagonal_apply_ne' _ h } },
+end
 
 lemma _root_.ring_hom.map_adjugate {R S : Type*} [comm_ring R] [comm_ring S] (f : R →+* S)
   (M : matrix n n R) : f.map_matrix M.adjugate = matrix.adjugate (f.map_matrix M) :=

@@ -258,13 +258,13 @@ theorem self_comp_symm (e : M ≃* N) : e ∘ e.symm = id := funext e.apply_symm
 @[simp, to_additive]
 theorem coe_refl : ⇑(refl M) = id := rfl
 
-@[to_additive]
+@[simp, to_additive]
 theorem refl_apply (m : M) : refl M m = m := rfl
 
 @[simp, to_additive]
 theorem coe_trans (e₁ : M ≃* N) (e₂ : N ≃* P) : ⇑(e₁.trans e₂) = e₂ ∘ e₁ := rfl
 
-@[to_additive]
+@[simp, to_additive]
 theorem trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (m : M) : e₁.trans e₂ m = e₂ (e₁ m) := rfl
 
 @[simp, to_additive] theorem symm_trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (p : P) :

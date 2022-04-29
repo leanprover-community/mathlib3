@@ -295,6 +295,9 @@ we get a bijection on hom-sets `(Y' ⊗ X ⟶ Z) ≃ (X ⟶ Y ⊗ Z)`
 by "pulling the string on the left" up or down.
 
 This gives the adjunction `tensor_left_adjunction Y Y' : tensor_left Y' ⊣ tensor_left Y`.
+
+This adjunction is often referred to as "Frobenius reciprocity" in the
+fusion categories / planar algebras / subfactors literature.
 -/
 def tensor_left_hom_equiv (X Y Y' Z : C) [exact_pairing Y Y'] :
   (Y' ⊗ X ⟶ Z) ≃ (X ⟶ Y ⊗ Z) :=
@@ -576,6 +579,60 @@ lemma right_adjoint_mate_comp_evaluation
 begin
   apply_fun (tensor_right_hom_equiv _ X (Xᘁ) _),
   simp,
+end
+
+/-- Transport an exact pairing across an isomorphism in the first argument. -/
+def exact_pairing_congr_left {X X' Y : C} [exact_pairing X' Y] (i : X ≅ X') : exact_pairing X Y :=
+{ evaluation := (𝟙 Y ⊗ i.hom) ≫ ε_ _ _,
+  coevaluation := η_ _ _ ≫ (i.inv ⊗ 𝟙 Y),
+  evaluation_coevaluation' := begin
+    rw [id_tensor_comp, comp_tensor_id],
+    slice_lhs 2 3 { rw [associator_naturality], },
+    slice_lhs 3 4 { rw [tensor_id, tensor_id_comp_id_tensor, ←id_tensor_comp_tensor_id], },
+    slice_lhs 4 5 { rw [tensor_id_comp_id_tensor, ←id_tensor_comp_tensor_id], },
+    slice_lhs 2 3 { rw [←associator_naturality], },
+    slice_lhs 1 2 { rw [tensor_id, tensor_id_comp_id_tensor, ←id_tensor_comp_tensor_id], },
+    slice_lhs 2 4 { rw [evaluation_coevaluation], },
+    slice_lhs 1 2 { rw [left_unitor_naturality], },
+    slice_lhs 3 4 { rw [←right_unitor_inv_naturality], },
+    simp,
+  end,
+  coevaluation_evaluation' := begin
+    rw [id_tensor_comp, comp_tensor_id],
+    simp only [iso.inv_hom_id_assoc, associator_conjugation, category.assoc],
+    slice_lhs 2 3 { rw [←tensor_comp], simp, },
+    simp,
+  end, }
+
+/-- Transport an exact pairing across an isomorphism in the second argument. -/
+def exact_pairing_congr_right {X Y Y' : C} [exact_pairing X Y'] (i : Y ≅ Y') : exact_pairing X Y :=
+{ evaluation := (i.hom ⊗ 𝟙 X) ≫ ε_ _ _,
+  coevaluation := η_ _ _ ≫ (𝟙 X ⊗ i.inv),
+  evaluation_coevaluation' := begin
+    rw [id_tensor_comp, comp_tensor_id],
+    simp only [iso.inv_hom_id_assoc, associator_conjugation, category.assoc],
+    slice_lhs 3 4 { rw [←tensor_comp], simp, },
+    simp,
+  end,
+  coevaluation_evaluation' := begin
+    rw [id_tensor_comp, comp_tensor_id],
+    slice_lhs 3 4 { rw [←associator_inv_naturality], },
+    slice_lhs 2 3 { rw [tensor_id, id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor], },
+    slice_lhs 1 2 { rw [id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor], },
+    slice_lhs 3 4 { rw [associator_inv_naturality], },
+    slice_lhs 4 5 { rw [tensor_id, id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor], },
+    slice_lhs 2 4 { rw [coevaluation_evaluation], },
+    slice_lhs 1 2 { rw [right_unitor_naturality], },
+    slice_lhs 3 4 { rw [←left_unitor_inv_naturality], },
+    simp,
+  end, }
+
+/-- Transport an exact pairing across isomorphisms. -/
+def exact_pairing_congr {X X' Y Y' : C} [exact_pairing X' Y'] (i : X ≅ X') (j : Y ≅ Y') :
+  exact_pairing X Y :=
+begin
+  haveI : exact_pairing X' Y := exact_pairing_congr_right j,
+  exact exact_pairing_congr_left i,
 end
 
 /-- Right duals are isomorphic. -/

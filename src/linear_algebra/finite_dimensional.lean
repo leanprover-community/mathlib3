@@ -88,8 +88,21 @@ open is_noetherian
 
 section division_ring
 
-variables (K : Type u) (V : Type v) [division_ring K] [add_comm_group V] [module K V]
+variables {K : Type u} {V : Type v} [division_ring K] [add_comm_group V] [module K V]
 {V₂ : Type v'} [add_comm_group V₂] [module K V₂]
+
+/-- If the codomain of an injective linear map is finite dimensional, the domain must be as well. -/
+def of_injective (f : V →ₗ[K] V₂) (w : function.injective f)
+  [finite_dimensional K V₂] : finite_dimensional K V :=
+begin
+  haveI : is_noetherian K V₂ := is_noetherian.iff_fg.mpr ‹_›,
+  exact module.finite.of_injective f w,
+end
+
+/-- If the domain of a surjective linear map is finite dimensional, the codomain must be as well. -/
+def of_surjective (f : V →ₗ[K] V₂) (w : function.surjective f)
+  [finite_dimensional K V] : finite_dimensional K V₂ :=
+module.finite.of_surjective f w
 
 variables (K V)
 

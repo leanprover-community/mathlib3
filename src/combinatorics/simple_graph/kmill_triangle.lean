@@ -173,8 +173,7 @@ begin
     rw [four_mul_add_one_div_four], },
 end
 
-instance (V W : Type*) [decidable_eq V] [decidable_eq W] :
-  decidable_rel (complete_bipartite_graph V W).adj :=
+instance (V W : Type*) : decidable_rel (complete_bipartite_graph V W).adj :=
 begin
   intros a b,
   obtain (a|a) := a; obtain (b|b) := b; simp; apply_instance,
@@ -191,6 +190,8 @@ private def to_pair {α β} :
 | (inr b) (inl a) h := (a, b)
 | (inr b) (inr b') h := by simpa using h
 
+/-- There is a correspondences between edges in a bipartite graph and pairs of vertices from
+the partitions. -/
 def complete_bipartite_edge_equiv {V W} : (complete_bipartite_graph V W).edge_set ≃ V × W :=
 { to_fun := λ x',
   begin
@@ -214,10 +215,13 @@ def complete_bipartite_edge_equiv {V W} : (complete_bipartite_graph V W).edge_se
 
 end edge_equiv
 
+-- unused
+/-- equivalence between a finset coerced to a type and the set coerced to a type  -/
 def set.to_finset_equiv {α} {s : set α} [fintype s] : s.to_finset ≃ s :=
 equiv.subtype_equiv_prop s.coe_to_finset
 
 -- unused
+/-- equivalence between the edge finset coerced to a type and the edge set coerced to a type -/
 def edge_set_equiv_edge_finset {α} [fintype α] [decidable_eq α]
   (G : simple_graph α) [decidable_rel G.adj] : G.edge_finset ≃ G.edge_set :=
 set.to_finset_equiv

@@ -8,19 +8,33 @@ import data.polynomial.algebra_map
 
 /-!  # Laurent polynomials
 
-Following a suggestion by Eric, Laurent polynomials are defined via `add_monoid_algebra R ℤ`.
-Thus, they are essentially `finsupp`s `ℤ →₀ R`.
+We introduce Laurent polynomials over a semiring `R`.  Mathematically, they are expressions of the
+form
+```latex
+\sum_{i \in \mathbb{Z}} a_i T ^ i
+```
+where the sum extends over a finite subset of `ℤ`.  Thus, negative exponents are allowed.  The
+coefficients come from the semiring `R` and the variable `T` commutes with everything.
 
-This means that they play well with polynomials, but there is a little roughness in establishing
-the API, since the `finsupp` implementation of `polynomial R` is well-shielded.
+Since we are going to convert back and forth between polynomials and Laurent polynomials, we
+decided to maintain some distinction by using the symbol `T`, rather than `X`, as the variable for
+Laurent polynomials
 
 ## Notation
-The symbol `R[T;T⁻¹]` stands for `laurent_polynomial R`.
-
-## Implementation notes
+The symbol `R[T;T⁻¹]` stands for `laurent_polynomial R`.  We also define
 
 * `C : R →+* R[T;T⁻¹]` is the inclusion of constant polynomials, analogous to the one for `R[X]`;
 * `T : ℤ → R[T;T⁻¹]` is the sequence of powers of the variable `T`.
+
+## Implementation notes
+
+We define Laurent polynomials as `add_monoid_algebra R ℤ`.
+Thus, they are essentially `finsupp`s `ℤ →₀ R`.
+This choice differs from the current irreducible design of `polynomial`, that instead shields away
+the implementation via `finsupp`s.  It is closer to the original definition of polynomials.
+
+As a consequence, `laurent_polynomials` play well with polynomials, but there is a little roughness
+in establishing the API, since the `finsupp` implementation of `polynomial R` is well-shielded.
 
 Unlike the case of polynomials, I felt that the exponent notation was not too easy to use, as only
 natural exponents would be allowed.  Moreover, in the end, it seems likely that we should aim to
@@ -32,7 +46,7 @@ I made some *heavy* use of `simp` lemmas, aiming to bring Laurent polynomials to
 
 ##  Future work
 Lots is missing!  I would certainly like to show that `R[T;T⁻¹]` is the localization of `R[X]`
-inverting `X`.  This should be mostly in place, given `exists_T_pow`.
+inverting `X`.  This should be mostly in place, given `exists_T_pow` (which is part of PR #13415).
 -/
 
 open_locale polynomial big_operators
@@ -161,11 +175,11 @@ instance invertible_T (n : ℤ) : invertible (T n : R[T;T⁻¹]) :=
   inv_of_mul_self := by rw [← T_add, add_left_neg, T_zero],
   mul_inv_of_self := by rw [← T_add, add_right_neg, T_zero] }
 
+@[simp]
+lemma invertible_def (n : ℤ) : ⅟ (T n : R[T;T⁻¹]) = T (- n) := rfl
+
 lemma is_unit_T (n : ℤ) : is_unit (T n : R[T;T⁻¹]) :=
 is_unit_of_invertible _
-
-lemma is_regular_T (n : ℤ) : is_regular (T n : R[T;T⁻¹]) :=
-is_unit.is_regular (is_unit_T _)
 
 end semiring
 

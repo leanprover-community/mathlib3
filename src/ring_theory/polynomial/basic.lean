@@ -157,71 +157,6 @@ begin
   exact ⟨n, h, rfl⟩,
 end
 
-/-- Given a polynomial, return the polynomial whose coefficients are in
-the semiring closure of the original coefficients. -/
-def restriction (p : R[X]) : polynomial (subsemiring.closure (↑p.frange : set R)) :=
-∑ i in p.support, monomial i (⟨p.coeff i,
-  if H : p.coeff i = 0 then H.symm ▸ (subsemiring.closure _).zero_mem
-  else subsemiring.subset_closure (p.coeff_mem_frange _ H)⟩ :
-    (subsemiring.closure (↑p.frange : set R)))
-
-@[simp] theorem coeff_restriction {p : R[X]} {n : ℕ} :
-  ↑(coeff (restriction p) n) = coeff p n :=
-begin
-  simp only [restriction, coeff_monomial, finset_sum_coeff, mem_support_iff, finset.sum_ite_eq',
-    ne.def, ite_not],
-  split_ifs,
-  { rw h, refl },
-  { refl }
-end
-
-@[simp] theorem coeff_restriction' {p : R[X]} {n : ℕ} :
-  (coeff (restriction p) n).1 = coeff p n :=
-coeff_restriction
-
-@[simp] lemma support_restriction (p : R[X]) :
-  support (restriction p) = support p :=
-begin
-  ext i,
-  simp only [mem_support_iff, not_iff_not, ne.def],
-  conv_rhs { rw [← coeff_restriction] },
-  exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
-end
-
-@[simp] theorem map_restriction {R : Type u} [comm_semiring R]
-  (p : R[X]) : p.restriction.map (algebra_map _ _) = p :=
-ext $ λ n, by rw [coeff_map, algebra.algebra_map_of_subsemiring_apply, coeff_restriction]
-
-@[simp] theorem degree_restriction {p : R[X]} : (restriction p).degree = p.degree :=
-by simp [degree]
-
-@[simp] theorem nat_degree_restriction {p : R[X]} :
-  (restriction p).nat_degree = p.nat_degree :=
-by simp [nat_degree]
-
-@[simp] theorem monic_restriction {p : R[X]} : monic (restriction p) ↔ monic p :=
-begin
-  simp only [monic, leading_coeff, nat_degree_restriction],
-  rw [←@coeff_restriction _ _ p],
-  exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
-end
-
-@[simp] theorem restriction_zero : restriction (0 : R[X]) = 0 :=
-by simp only [restriction, finset.sum_empty, support_zero]
-
-@[simp] theorem restriction_one : restriction (1 : R[X]) = 1 :=
-ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
-
-variables [semiring S] {f : R →+* S} {x : S}
-
-theorem eval₂_restriction {p : R[X]} :
-  eval₂ f x p =
-  eval₂ (f.comp (subsemiring.subtype (subsemiring.closure (p.frange : set R)))) x p.restriction :=
-begin
-  simp only [eval₂_eq_sum, sum, support_restriction, ←@coeff_restriction _ _ p],
-  refl,
-end
-
 lemma geom_sum_X_comp_X_add_one_eq_sum' (n : ℕ) :
   (geom_sum (X : R[X]) n).comp (X + 1) =
   (finset.range n).sum (λ (i : ℕ), (n.choose (i + 1) : R[X]) * X ^ i) :=
@@ -271,6 +206,71 @@ end semiring
 
 section ring
 variables [ring R]
+
+/-- Given a polynomial, return the polynomial whose coefficients are in
+the semiring closure of the original coefficients. -/
+def restriction (p : R[X]) : polynomial (subring.closure (↑p.frange : set R)) :=
+∑ i in p.support, monomial i (⟨p.coeff i,
+  if H : p.coeff i = 0 then H.symm ▸ (subring.closure _).zero_mem
+  else subring.subset_closure (p.coeff_mem_frange _ H)⟩ :
+    (subring.closure (↑p.frange : set R)))
+
+@[simp] theorem coeff_restriction {p : R[X]} {n : ℕ} :
+  ↑(coeff (restriction p) n) = coeff p n :=
+begin
+  simp only [restriction, coeff_monomial, finset_sum_coeff, mem_support_iff, finset.sum_ite_eq',
+    ne.def, ite_not],
+  split_ifs,
+  { rw h, refl },
+  { refl }
+end
+
+@[simp] theorem coeff_restriction' {p : R[X]} {n : ℕ} :
+  (coeff (restriction p) n).1 = coeff p n :=
+coeff_restriction
+
+@[simp] lemma support_restriction (p : R[X]) :
+  support (restriction p) = support p :=
+begin
+  ext i,
+  simp only [mem_support_iff, not_iff_not, ne.def],
+  conv_rhs { rw [← coeff_restriction] },
+  exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
+end
+
+@[simp] theorem map_restriction {R : Type u} [comm_ring R]
+  (p : R[X]) : p.restriction.map (algebra_map _ _) = p :=
+ext $ λ n, by rw [coeff_map, algebra.algebra_map_of_subring_apply, coeff_restriction]
+
+@[simp] theorem degree_restriction {p : R[X]} : (restriction p).degree = p.degree :=
+by simp [degree]
+
+@[simp] theorem nat_degree_restriction {p : R[X]} :
+  (restriction p).nat_degree = p.nat_degree :=
+by simp [nat_degree]
+
+@[simp] theorem monic_restriction {p : R[X]} : monic (restriction p) ↔ monic p :=
+begin
+  simp only [monic, leading_coeff, nat_degree_restriction],
+  rw [←@coeff_restriction _ _ p],
+  exact ⟨λ H, by { rw H, refl }, λ H, subtype.coe_injective H⟩
+end
+
+@[simp] theorem restriction_zero : restriction (0 : R[X]) = 0 :=
+by simp only [restriction, finset.sum_empty, support_zero]
+
+@[simp] theorem restriction_one : restriction (1 : R[X]) = 1 :=
+ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
+
+variables [semiring S] {f : R →+* S} {x : S}
+
+theorem eval₂_restriction {p : R[X]} :
+  eval₂ f x p =
+  eval₂ (f.comp (subring.subtype (subring.closure (p.frange : set R)))) x p.restriction :=
+begin
+  simp only [eval₂_eq_sum, sum, support_restriction, ←@coeff_restriction _ _ p],
+  refl,
+end
 
 section to_subring
 

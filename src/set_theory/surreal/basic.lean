@@ -52,6 +52,10 @@ def numeric : pgame → Prop
 | ⟨l, r, L, R⟩ :=
   (∀ i j, L i < R j) ∧ (∀ i, numeric (L i)) ∧ (∀ i, numeric (R i))
 
+lemma numeric_def (x : pgame) : numeric x ↔ (∀ i j, x.move_left i < x.move_right j) ∧
+  (∀ i, numeric (x.move_left i)) ∧ (∀ i, numeric (x.move_right i)) :=
+by { cases x, refl }
+
 lemma numeric.move_left {x : pgame} (o : numeric x) (i : x.left_moves) :
   numeric (x.move_left i) :=
 begin
@@ -99,40 +103,18 @@ theorem numeric_zero : numeric 0 :=
 theorem numeric_one : numeric 1 :=
 ⟨by rintros ⟨⟩ ⟨⟩, ⟨λ x, numeric_zero, by rintros ⟨⟩⟩⟩
 
-theorem numeric_neg : Π {x : pgame} (o : numeric x), numeric (-x)
-| ⟨l, r, L, R⟩ o :=
-⟨λ j i, lt_iff_neg_gt.1 (o.1 i j),
-  ⟨λ j, numeric_neg (o.2.2 j), λ i, numeric_neg (o.2.1 i)⟩⟩
+theorem numeric.neg : Π {x : pgame} (o : numeric x), numeric (-x)
+| ⟨l, r, L, R⟩ o := ⟨λ j i, lt_iff_neg_gt.1 (o.1 i j), λ j, (o.2.2 j).neg, λ i, (o.2.1 i).neg⟩
 
--- We provide this as an analogue for `numeric.move_left_le`,
--- even though it does not need the `numeric` hypothesis.
-@[nolint unused_arguments]
-theorem numeric.move_left_lt {x : pgame.{u}} (o : numeric x) (i : x.left_moves) :
-  x.move_left i < x :=
-begin
-  rw lt_def_le,
-  left,
-  use i,
-end
-
+/-- For the `<` version, see `pgame.move_left_lt`. -/
 theorem numeric.move_left_le {x : pgame} (o : numeric x) (i : x.left_moves) :
   x.move_left i ≤ x :=
-le_of_lt (o.move_left i) o (o.move_left_lt i)
+le_of_lt (o.move_left i) o (pgame.move_left_lt i)
 
--- We provide this as an analogue for `numeric.le_move_right`,
--- even though it does not need the `numeric` hypothesis.
-@[nolint unused_arguments]
-theorem numeric.lt_move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
-  x < x.move_right j :=
-begin
-  rw lt_def_le,
-  right,
-  use j,
-end
-
+/-- For the `<` version, see `pgame.lt_move_right`. -/
 theorem numeric.le_move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
   x ≤ x.move_right j :=
-le_of_lt o (o.move_right j) (o.lt_move_right j)
+le_of_lt o (o.move_right j) (pgame.lt_move_right j)
 
 theorem add_lt_add
   {w x y z : pgame.{u}} (oy : numeric y) (oz : numeric z)
@@ -167,34 +149,36 @@ begin
             ... ≤ x + z : add_le_add_left hjy _ },
 end
 
-theorem numeric_add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeric (x + y)
+theorem numeric.add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeric (x + y)
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ox oy :=
 ⟨begin
    rintros (ix|iy) (jx|jy),
    { show xL ix + ⟨yl, yr, yL, yR⟩ < xR jx + ⟨yl, yr, yL, yR⟩,
      exact add_lt_add_right (ox.1 ix jx) _ },
    { show xL ix + ⟨yl, yr, yL, yR⟩ < ⟨xl, xr, xL, xR⟩ + yR jy,
-     exact add_lt_add oy (oy.move_right jy) (ox.move_left_lt _) (oy.lt_move_right _), },
-   { --  show ⟨xl, xr, xL, xR⟩ + yL iy < xR jx + ⟨yl, yr, yL, yR⟩, -- fails?
-     exact add_lt_add (oy.move_left iy) oy (ox.lt_move_right _) (oy.move_left_lt _), },
-   { --  show ⟨xl, xr, xL, xR⟩ + yL iy < ⟨xl, xr, xL, xR⟩ + yR jy, -- fails?
+     exact add_lt_add oy (oy.move_right jy) (pgame.lt_mk ix) (pgame.mk_lt jy), },
+   { -- show ⟨xl, xr, xL, xR⟩ + yL iy < xR jx + ⟨yl, yr, yL, yR⟩, -- fails?
+     exact add_lt_add (oy.move_left iy) oy (pgame.mk_lt jx) (pgame.lt_mk iy), },
+   { -- show ⟨xl, xr, xL, xR⟩ + yL iy < ⟨xl, xr, xL, xR⟩ + yR jy, -- fails?
      exact @add_lt_add_left pgame _ _ _ _ _ (oy.1 iy jy) ⟨xl, xr, xL, xR⟩ }
  end,
  begin
    split,
    { rintros (ix|iy),
-     { apply numeric_add (ox.move_left ix) oy, },
-     { apply numeric_add ox (oy.move_left iy), }, },
+     { exact (ox.move_left ix).add oy },
+     { exact ox.add (oy.move_left iy) } },
    { rintros (jx|jy),
-     { apply numeric_add (ox.move_right jx) oy, },
-     { apply numeric_add ox (oy.move_right jy), }, },
+     { apply (ox.move_right jx).add oy },
+     { apply ox.add (oy.move_right jy) } }
  end⟩
 using_well_founded { dec_tac := pgame_wf_tac }
+
+lemma numeric.sub {x y : pgame} (ox : numeric x) (oy : numeric y) : numeric (x - y) := ox.add oy.neg
 
 /-- Pre-games defined by natural numbers are numeric. -/
 theorem numeric_nat : Π (n : ℕ), numeric n
 | 0 := numeric_zero
-| (n + 1) := numeric_add (numeric_nat n) numeric_one
+| (n + 1) := (numeric_nat n).add numeric_one
 
 /-- The pre-game omega is numeric. -/
 theorem numeric_omega : numeric omega :=
@@ -297,14 +281,14 @@ by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; exact not_le
 the sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 def add : surreal → surreal → surreal :=
 surreal.lift₂
-  (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, numeric_add ox oy⟩⟧)
+  (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, ox.add oy⟩⟧)
   (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound (pgame.add_congr hx hy))
 
 /-- Negation for surreal numbers is inherited from pre-game negation:
 the negation of `{L | R}` is `{-R | -L}`. -/
 def neg : surreal → surreal :=
 surreal.lift
-  (λ x ox, ⟦⟨-x, pgame.numeric_neg ox⟩⟧)
+  (λ x ox, ⟦⟨-x, ox.neg⟩⟧)
   (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))
 
 instance : has_le surreal   := ⟨le⟩
@@ -316,10 +300,10 @@ instance : ordered_add_comm_group surreal :=
 { add               := (+),
   add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
   zero              := 0,
-  zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv _) },
-  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv _) },
+  zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv a) },
+  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv a) },
   neg               := has_neg.neg,
-  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound pgame.add_left_neg_equiv },
+  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_left_neg_equiv a) },
   add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
   le                := (≤),
   lt                := (<),

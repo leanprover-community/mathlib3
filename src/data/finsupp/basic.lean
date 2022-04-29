@@ -1849,6 +1849,10 @@ lemma comap_domain_add :
     comap_domain f v₁ (hf.inj_on _) + comap_domain f v₂ (hf.inj_on _) :=
 by { ext, simp only [comap_domain_apply, coe_add, pi.add_apply] }
 
+lemma comap_domain_smul (n : ℕ) :
+  comap_domain f (n • v₁) (hf.inj_on _) = n • comap_domain f v₁ (hf.inj_on _) :=
+by { ext, refl }
+
 /-- `finsupp.comap_domain` is an `add_monoid_hom`. -/
 @[simps]
 def comap_domain.add_monoid_hom : (β →₀ M) →+ (α →₀ M) :=

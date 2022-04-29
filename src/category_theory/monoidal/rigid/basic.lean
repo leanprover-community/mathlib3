@@ -241,6 +241,9 @@ we get a bijection on hom-sets `(Y' ⊗ X ⟶ Z) ≃ (X ⟶ Y ⊗ Z)`
 by "pulling the string on the left" up or down.
 
 This gives the adjunction `tensor_left_adjunction Y Y' : tensor_left Y' ⊣ tensor_left Y`.
+
+This adjunction is often referred to as "Frobenius reciprocity" in the
+fusion categories / planar algebras / subfactors literature.
 -/
 def tensor_left_hom_equiv (X Y Y' Z : C) [exact_pairing Y Y'] :
   (Y' ⊗ X ⟶ Z) ≃ (X ⟶ Y ⊗ Z) :=

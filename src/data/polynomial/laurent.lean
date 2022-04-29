@@ -197,8 +197,7 @@ begin
   have B : ∀ (s : finset ℤ), M (s.sum (λ (n : ℤ), C (p.to_fun n) * T n)),
   { apply finset.induction,
     { convert h_C 0, simp only [finset.sum_empty, _root_.map_zero] },
-    { assume n s ns ih, rw finset.sum_insert ns,
-    { exact h_add A ih } } },
+    { assume n s ns ih, rw finset.sum_insert ns, exact h_add A ih } },
   convert B p.support,
   ext a,
   simp_rw [← single_eq_C_mul_T, finset.sum_apply', single_apply, finset.sum_ite_eq'],
@@ -248,7 +247,7 @@ begin
     comap_domain.add_monoid_hom_apply, to_finsupp_iso_apply],
   by_cases n0 : 0 ≤ n,
   { lift n to ℕ using n0,
-    erw [comap_domain_single _ (λ a b, int.coe_nat_inj), to_finsupp_iso_symm_apply],
+    erw [comap_domain_single (λ a b, int.coe_nat_inj), to_finsupp_iso_symm_apply],
     simp only [int.coe_nat_nonneg, int.to_nat_coe_nat, if_true, to_finsupp_iso_apply,
       to_finsupp_monomial] },
   { lift (- n) to ℕ using (neg_pos.mpr (not_le.mp n0)).le with m,
@@ -306,7 +305,7 @@ end
 * `Q` is true on *ordinary* polynomials;
 * `Q (f * T)` implies `Q f`;
 it follow that `Q` is true on all Laurent polynomials. -/
-lemma proprop (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
+lemma reduce_to_polynomial_of_mul_T (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
   (Qf : ∀ (f : R[X]), Q f.to_laurent)
   (QT : ∀ f, Q (f * T 1) → Q f) :
   Q f :=

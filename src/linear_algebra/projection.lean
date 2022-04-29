@@ -337,6 +337,10 @@ namespace linear_map
 
 open submodule
 
+/--
+A linear endomorphism of a module `E` is a projection onto a submodule `p` if it sends every element
+of `E` to `p` and fixes every element of `p`.
+-/
 structure is_proj (f : E →ₗ[R] E) : Prop :=
   (map_mem : ∀ x, f x ∈ p)
   (map_id : ∀ x ∈ p, f x = x)

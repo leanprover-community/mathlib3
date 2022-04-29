@@ -10,8 +10,10 @@ import category_theory.limits.preserves.basic
 import category_theory.adjunction.limits
 import category_theory.monoidal.functor_category
 import category_theory.monoidal.transport
+import category_theory.monoidal.linear
 import category_theory.abelian.functor_category
 import category_theory.abelian.transfer
+import category_theory.linear.functor_category
 
 /-!
 # `Action V G`, the category of actions of a monoid `G` inside some category `V`.
@@ -24,7 +26,7 @@ and construct the restriction functors `res {G H : Mon} (f : G ⟶ H) : Action V
 
 * When `V` has (co)limits so does `Action V G`.
 * When `V` is monoidal so is `Action V G`.
-* When `V` is preadditive or abelian so is `Action V G`.
+* When `V` is preadditive, linear, or abelian so is `Action V G`.
 -/
 
 universes u
@@ -271,7 +273,32 @@ instance : preadditive (Action V G) :=
 
 instance : functor.additive (functor_category_equivalence V G).functor := {}
 
+@[simp] lemma zero_hom {X Y : Action V G} : (0 : X ⟶ Y).hom = 0 := rfl
+@[simp] lemma neg_hom {X Y : Action V G} (f : X ⟶ Y) : (-f).hom = -f.hom := rfl
+@[simp] lemma add_hom {X Y : Action V G} (f g : X ⟶ Y) : (f + g).hom = f.hom + g.hom := rfl
+
 end preadditive
+
+section linear
+variables [preadditive V] {R : Type*} [semiring R] [linear R V]
+
+instance : linear R (Action V G) :=
+{ hom_module := λ X Y,
+  { smul := λ r f, ⟨r • f.hom, by simp [f.comm]⟩,
+    one_smul := by { intros, ext, exact one_smul _ _, },
+    smul_zero := by { intros, ext, exact smul_zero _, },
+    zero_smul := by { intros, ext, exact zero_smul _ _, },
+    add_smul := by { intros, ext, exact add_smul _ _ _, },
+    smul_add := by { intros, ext, exact smul_add _ _ _, },
+    mul_smul := by { intros, ext, exact mul_smul _ _ _, }, },
+  smul_comp' := by { intros, ext, exact linear.smul_comp _ _ _ _ _ _, },
+  comp_smul' := by { intros, ext, exact linear.comp_smul _ _ _ _ _ _, }, }
+
+instance : functor.linear R (functor_category_equivalence V G).functor := {}
+
+@[simp] lemma smul_hom {X Y : Action V G} (r : R) (f : X ⟶ Y) : (r • f).hom = r • f.hom := rfl
+
+end linear
 
 section abelian
 /-- Auxilliary construction for the `abelian (Action V G)` instance. -/
@@ -284,18 +311,32 @@ abelian_of_equivalence abelian_aux.functor
 end abelian
 
 section monoidal
+variables [monoidal_category V]
 
-instance [monoidal_category V] : monoidal_category (Action V G) :=
+instance : monoidal_category (Action V G) :=
 monoidal.transport (Action.functor_category_equivalence _ _).symm
+
+@[simp] lemma tensor_hom {W X Y Z : Action V G} (f : W ⟶ X) (g : Y ⟶ Z) :
+  (f ⊗ g).hom = f.hom ⊗ g.hom := rfl
 
 /-- When `V` is monoidal the forgetful functor `Action V G` to `V` is monoidal. -/
 @[simps]
-def forget_monoidal [monoidal_category V] : monoidal_functor (Action V G) V :=
+def forget_monoidal : monoidal_functor (Action V G) V :=
 { ε := 𝟙 _,
   μ := λ X Y, 𝟙 _,
   ..Action.forget _ _, }
 
 -- TODO braiding and symmetry
+
+variables [preadditive V] [monoidal_preadditive V]
+
+local attribute [simp] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
+
+instance : monoidal_preadditive V := {}
+
+variables {R : Type*} [semiring R] [linear R V] [monoidal_linear R V]
+
+instance : monoidal_linear R V := {}
 
 end monoidal
 
@@ -346,6 +387,14 @@ attribute [simps] res_comp
 -- TODO promote `res` to a pseudofunctor from
 -- the locally discrete bicategory constructed from `Monᵒᵖ` to `Cat`, sending `G` to `Action V G`.
 
+variables {G} {H : Mon.{u}} (f : G ⟶ H)
+
+instance res_additive [preadditive V] : (res V f).additive := {}
+
+variables {R : Type*} [semiring R]
+
+instance res_linear [preadditive V] [linear R V] : (res V f).linear R := {}
+
 end Action
 
 namespace category_theory.functor
@@ -367,5 +416,13 @@ def map_Action (F : V ⥤ W) (G : Mon.{u}) : Action V G ⥤ Action W G :=
     comm' := λ g, by { dsimp, rw [←F.map_comp, f.comm, F.map_comp], }, },
   map_id' := λ M, by { ext, simp only [Action.id_hom, F.map_id], },
   map_comp' := λ M N P f g, by { ext, simp only [Action.comp_hom, F.map_comp], }, }
+
+variables (F : V ⥤ W) (G : Mon.{u}) [preadditive V] [preadditive W]
+
+instance map_Action_preadditive [F.additive] : (F.map_Action G).additive := {}
+
+variables {R : Type*} [semiring R] [category_theory.linear R V] [category_theory.linear R W]
+
+instance map_Action_linear [F.additive] [F.linear R] : (F.map_Action G).linear R := {}
 
 end category_theory.functor

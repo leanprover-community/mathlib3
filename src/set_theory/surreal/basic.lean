@@ -57,18 +57,15 @@ lemma numeric_def (x : pgame) : numeric x ↔ (∀ i j, x.move_left i < x.move_r
   (∀ i, numeric (x.move_left i)) ∧ (∀ i, numeric (x.move_right i)) :=
 by { cases x, refl }
 
+lemma numeric.left_lt_right {x : pgame} (o : numeric x) (i : x.left_moves) (j : x.right_moves) :
+  x.move_left i < x.move_right j :=
+by { cases x with xl xr xL xR, exact o.1 i j }
 lemma numeric.move_left {x : pgame} (o : numeric x) (i : x.left_moves) :
   numeric (x.move_left i) :=
-begin
-  cases x with xl xr xL xR,
-  exact o.2.1 i,
-end
+by { cases x with xl xr xL xR, exact o.2.1 i }
 lemma numeric.move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
   numeric (x.move_right j) :=
-begin
-  cases x with xl xr xL xR,
-  exact o.2.2 j,
-end
+by { cases x with xl xr xL xR, exact o.2.2 j }
 
 @[elab_as_eliminator]
 theorem numeric_rec {C : pgame → Prop}

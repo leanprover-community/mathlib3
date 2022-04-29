@@ -16,8 +16,12 @@ typeclass instead.
 ## Main definitions
 
 * `restrict_scalars R S M`: the `S`-module `M` viewed as an `R` module when `S` is an `R`-algebra.
+  Note that by default we do *not* have a `module S (restrict_scalars R S M)` instance
+  for the original action.
+  This is available as a def `restrict_scalars.module_orig` if really needed.
 * `restrict_scalars.add_equiv : restrict_scalars R S M ≃+ M`: the additive equivalence
-  between the restricted and origianl space.
+  between the restricted and original space (in fact, they are definitionally equal,
+  but sometimes it is helpful to avoid using this fact, to keep instances from leaking).
 * `restrict_scalars.ring_equiv : restrict_scalars R S A ≃+* A`: the ring equivalence
    between the restricted and original space when the module is an algebra.
 
@@ -85,9 +89,10 @@ variables [semiring S] [add_comm_monoid M]
 def restrict_scalars.module_orig [I : module S M] :
   module S (restrict_scalars R S M) := I
 
-local attribute [instance] restrict_scalars.module_orig
-
 variables [comm_semiring R] [algebra R S] [module S M]
+
+section
+local attribute [instance] restrict_scalars.module_orig
 
 /--
 When `M` is a module over a ring `S`, and `S` is an algebra over `R`, then `M` inherits a
@@ -98,15 +103,25 @@ The preferred way of setting this up is `[module R M] [module S M] [is_scalar_to
 instance : module R (restrict_scalars R S M) :=
 module.comp_hom M (algebra_map R S)
 
+/--
+This instance is only relevant when `restrict_scalars.module_orig` is available as an instance.
+-/
 instance : is_scalar_tower R S (restrict_scalars R S M) :=
 ⟨λ r S M, by { rw [algebra.smul_def, mul_smul], refl }⟩
+
+end
 
 /--
 The `R`-algebra homomorphism from the original coefficient algebra `S` to endomorphisms
 of `restrict_scalars R S M`.
 -/
 def restrict_scalars.lsmul : S →ₐ[R] (module.End R (restrict_scalars R S M)) :=
-algebra.lsmul R (restrict_scalars R S M)
+begin
+  -- We use `restrict_scalars.module_orig` in the implementation,
+  -- but not in the type.
+  letI : module S (restrict_scalars R S M) := restrict_scalars.module_orig R S M,
+  exact algebra.lsmul R (restrict_scalars R S M),
+end
 
 end
 

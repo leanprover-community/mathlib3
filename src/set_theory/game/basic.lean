@@ -530,7 +530,7 @@ def inv' : pgame → pgame
 
 /-- The inverse of a surreal number in terms of the inverse on positive surreals. -/
 noncomputable instance : has_inv pgame :=
-⟨by classical; exact λ x, if x = 0 then 0 else if 0 < x then inv' x else inv' (-x)⟩
+⟨by { classical, exact λ x, if x = 0 then 0 else if 0 < x then inv' x else inv' (-x) }⟩
 
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 

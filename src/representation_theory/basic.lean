@@ -97,7 +97,7 @@ def as_module (ρ : representation k G V) := V
 A `k`-linear representation of `G` on `V` can be thought of as
 a module over `monoid_algebra k G`.
 -/
-noncomputable instance XXXXX : module (monoid_algebra k G) ρ.as_module :=
+noncomputable instance as_module_module : module (monoid_algebra k G) ρ.as_module :=
 begin
   change module (monoid_algebra k G) V,
   exact module.comp_hom V (as_algebra_hom ρ).to_ring_hom,
@@ -127,15 +127,11 @@ begin
   simp,
 end
 
--- Now that we've checked the actions work as expected,
--- we make `as_module` irreducible for the sake of hygiene.
-attribute [irreducible] as_module
-
 /--
 Build a `representation k G M` from a `[module (monoid_algebra k G) M]`.
 
-This version is unsatisfactory, as it requires an additional
-`[is_scalar_tower k (monoid_algebra k G) M]` instance.
+This version is not always what we want, as it relies on an existing `[module k M]`
+instance, along with a `[is_scalar_tower k (monoid_algebra k G) M]` instance.
 
 We remedy this below in `of_module`
 (with the tradeoff that the representation is defined
@@ -163,31 +159,35 @@ def of_module :
   (restrict_scalars k (monoid_algebra k G) M →ₗ[k] restrict_scalars k (monoid_algebra k G) M)).symm
   (restrict_scalars.lsmul k (monoid_algebra k G) M)
 
-example (r : monoid_algebra k G) (m : restrict_scalars k (monoid_algebra k G) M) :
-   ((((of_module k G M).as_algebra_hom) r) m) =
-    (restrict_scalars.add_equiv _ _ _).symm (r • restrict_scalars.add_equiv _ _ _ m) :=
-begin
-  apply monoid_algebra.induction_on r,
-  { intros g, simp [of_module, restrict_scalars.lsmul_apply_apply], },
-  { intros f g fw gw, simp [fw, gw, add_smul], },
-  { intros r f w, simp [w], sorry, }
-end
-
 /-!
 ## `of_module` and `as_module` are inverses.
 
 This requires a little care in both directions:
 this is a categorical equivalence, not an isomorphism.
 
+See `Rep.equivalence_Module_monoid_algebra` for the full statement.
+
 Starting with `ρ : representation k G V`, converting to a module and back again
 we have a `representation k G (restrict_scalars k (monoid_algebra k G) ρ.as_module)`.
 To compare these, we use the composition of `restrict_scalars_add_equiv` and `ρ.as_module_equiv`.
 
-Starting with `module (monoid_algebra k G) M`, after we convert to a representation and back
-to a module, we have `module (monoid_algebra k G) (restrict_scalars k (monoid_algebra k G) M)`
---- FIXME continue
+Similarly, starting with `module (monoid_algebra k G) M`,
+after we convert to a representation and back to a module,
+we have `module (monoid_algebra k G) (restrict_scalars k (monoid_algebra k G) M)`.
 -/
 
+@[simp] lemma of_module_as_algebra_hom_apply_apply
+  (r : monoid_algebra k G) (m : restrict_scalars k (monoid_algebra k G) M) :
+  ((((of_module k G M).as_algebra_hom) r) m) =
+    (restrict_scalars.add_equiv _ _ _).symm (r • restrict_scalars.add_equiv _ _ _ m) :=
+begin
+  apply monoid_algebra.induction_on r,
+  { intros g, simp [of_module, restrict_scalars.lsmul_apply_apply], },
+  { intros f g fw gw, simp [fw, gw, add_smul], },
+  { intros r f w, simp [w], }
+end
+
+-- TODO keep only one of the next two:
 lemma of_module_as_module_act (g : G) (x : restrict_scalars k (monoid_algebra k G) ρ.as_module) :
  (ρ.as_module_equiv) ((restrict_scalars.add_equiv _ _ _) (of_module k G (ρ.as_module) g x)) =
      (ρ g (ρ.as_module_equiv (restrict_scalars.add_equiv _ _ _ x))) :=
@@ -197,33 +197,32 @@ begin
   simp,
 end.
 
-local attribute [semireducible] restrict_scalars
+@[simp]
+lemma of_module_as_module_act' (g : G) (x : restrict_scalars k (monoid_algebra k G) ρ.as_module) :
+  of_module k G (ρ.as_module) g x =
+    (restrict_scalars.add_equiv _ _ _).symm ((ρ.as_module_equiv).symm
+      (ρ g (ρ.as_module_equiv (restrict_scalars.add_equiv _ _ _ x)))) :=
+begin
+  apply_fun restrict_scalars.add_equiv _ _ ρ.as_module using
+    (restrict_scalars.add_equiv _ _ _).injective,
+  dsimp [of_module, restrict_scalars.lsmul_apply_apply],
+  simp,
+end.
+
 
 lemma as_module_of_module_act (r : monoid_algebra k G)
   (m : restrict_scalars k (monoid_algebra k G) M) :
-   (restrict_scalars.add_equiv _ _ _) ((of_module k G M).as_module_equiv (r • ((of_module k G M).as_module_equiv.symm m))) =
-     r • (restrict_scalars.add_equiv _ _ _) m :=
-begin
-  dsimp,
-  simp only [add_equiv.apply_symm_apply],
-  extract_goal,
-  apply monoid_algebra.induction_on r, -- what's wrong here?
+  (restrict_scalars.add_equiv _ _ _)
+    ((of_module k G M).as_module_equiv (r • ((of_module k G M).as_module_equiv.symm m))) =
+  r • (restrict_scalars.add_equiv _ _ _) m :=
+by { dsimp, simp only [add_equiv.apply_symm_apply, of_module_as_algebra_hom_apply_apply], }
 
-end
-
--- reformulation of the above...?
+-- reformulation of the above...? -- FIXME needed?
 lemma as_module_of_module_act' (r : monoid_algebra k G)
   (m : (of_module k G M).as_module) :
    (restrict_scalars.add_equiv _ _ _) ((of_module k G M).as_module_equiv (r • m)) =
      r • (restrict_scalars.add_equiv _ _ _) ((of_module k G M).as_module_equiv m) :=
-begin
-  dsimp,
-  apply monoid_algebra.induction_on r,
-  { intro g, dsimp, simp, sorry, },
-  { sorry, },
-  { sorry, },
-end
-
+as_module_of_module_act k G M r (((of_module k G M).as_module_equiv m))
 
 end
 
@@ -231,13 +230,10 @@ end monoid_algebra
 
 section add_comm_group
 
-variables {k G V : Type*} [comm_ring k] [monoid G] [add_comm_group V] [module k V]
+variables {k G V : Type*} [comm_ring k] [monoid G] [I : add_comm_group V] [module k V]
 variables (ρ : representation k G V)
 
-local attribute [semireducible] as_module
-
-instance : add_comm_group ρ.as_module :=
-by { change add_comm_group V, apply_instance, }
+instance : add_comm_group ρ.as_module := I
 
 end add_comm_group
 

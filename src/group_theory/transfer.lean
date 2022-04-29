@@ -26,6 +26,7 @@ open add_subgroup add_monoid_hom add_equiv add_action quotient_add_group quotien
 
 variables {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β)
 
+-- PRed
 noncomputable def zmultiples_quotient_stabilizer_equiv :
   zmultiples a ⧸ stabilizer (zmultiples a) b ≃+ zmod (minimal_period ((+ᵥ) a) b) :=
 (symm (of_bijective (map _ (stabilizer (zmultiples a) b)
@@ -38,6 +39,7 @@ noncomputable def zmultiples_quotient_stabilizer_equiv :
     λ q, induction_on' q (λ ⟨_, n, rfl⟩, ⟨n, rfl⟩)⟩)).trans
   (int.quotient_zmultiples_nat_equiv_zmod (minimal_period ((+ᵥ) a) b))
 
+-- PRed
 lemma zmultiples_quotient_stabilizer_equiv_symm_apply (n : zmod (minimal_period ((+ᵥ) a) b)) :
   (zmultiples_quotient_stabilizer_equiv a b).symm n =
     (n : ℤ) • (⟨a, mem_zmultiples a⟩ : zmultiples a) :=
@@ -67,6 +69,17 @@ begin
   exact (zpowers_quotient_stabilizer_equiv a b).to_equiv,
 end
 
+noncomputable def orbit_zmultiples_equiv
+  {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β) :
+  add_action.orbit (add_subgroup.zmultiples a) b ≃ zmod (function.minimal_period ((+ᵥ) a) b) :=
+begin
+  refine (add_action.orbit_equiv_quotient_stabilizer (add_subgroup.zmultiples a) b).trans _,
+  exact (zmultiples_quotient_stabilizer_equiv a b).to_equiv,
+end
+
+attribute [to_additive orbit_zmultiples_equiv] orbit_zpowers_equiv
+
+@[to_additive orbit_zmultiples_equiv_symm_apply]
 lemma orbit_zpowers_equiv_symm_apply {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
   (k : zmod (function.minimal_period ((•) a) b)) :
   (orbit_zpowers_equiv a b).symm k =
@@ -243,21 +256,21 @@ variables (H)
 instance : infinite (zmod 0) :=
 int.infinite
 
-lemma zmod.card' {n : ℕ} [fintype (zmod n)] : fintype.card (zmod n) = n :=
+lemma _root_.zmod.card' {n : ℕ} [fintype (zmod n)] : fintype.card (zmod n) = n :=
 begin
-  unfreezingI { cases n },
+  casesI n,
   { exact (not_fintype (zmod 0)).elim },
-  { convert zmod.card n.succ },
+  { convert fintype.card_fin n.succ },
 end
 
-lemma lem0 {α β : Type*} [group α] [mul_action α β] (a : α) (b : β)
+@[to_additive] lemma lem0 {α β : Type*} [group α] [mul_action α β] (a : α) (b : β)
   [fintype (mul_action.orbit (zpowers a) b)] :
   function.minimal_period ((•) a) b = fintype.card (mul_action.orbit (zpowers a) b) :=
 begin
   rw [←fintype.of_equiv_card (orbit_zpowers_equiv a b), zmod.card'],
 end
 
-instance {α β : Type*} [group α] [mul_action α β] (a : α) (b : β)
+@[to_additive] instance {α β : Type*} [group α] [mul_action α β] (a : α) (b : β)
   [fintype (mul_action.orbit (zpowers a) b)] :
   fact (0 < function.minimal_period ((•) a) b) :=
 ⟨begin

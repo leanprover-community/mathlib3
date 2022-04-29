@@ -1753,32 +1753,6 @@ def arrow_congr_equivL {F H : Type*} [normed_group F] [normed_group H]
   (E →L[𝕜] H) ≃L[𝕜] (F →L[𝕜] G) :=
 arrow_congr_equivSL e₁ e₂
 
-/-- Continuous linear equivalence between continuous linear functions `𝕜ⁿ → E` and `Eⁿ`.
-The spaces `𝕜ⁿ` and `Eⁿ` are represented as `ι → 𝕜` and `ι → E`, respectively,
-where `ι` is a finite type. -/
-@[simps] def pi_ring (ι : Type*) [fintype ι] [decidable_eq ι] [complete_space 𝕜] :
-  ((ι → 𝕜) →L[𝕜] G) ≃L[𝕜] (ι → G) :=
-{ continuous_to_fun :=
-  begin
-    refine continuous_pi (λ i, _),
-    exact (continuous_linear_map.apply 𝕜 G (pi.single i 1)).continuous,
-  end,
-  continuous_inv_fun :=
-  begin
-    simp_rw [linear_equiv.inv_fun_eq_symm, linear_equiv.trans_symm_apply, linear_equiv.symm_symm],
-    apply linear_map.continuous_of_bound _ (fintype.card ι : ℝ) (λ g, _),
-    rw ← nsmul_eq_mul,
-    apply op_norm_le_bound _ (nsmul_nonneg (norm_nonneg g) (fintype.card ι)) (λ t, _),
-    simp_rw [linear_map.coe_comp, linear_equiv.coe_to_linear_map, comp_app,
-      linear_map.coe_to_continuous_linear_map', linear_equiv.pi_ring_symm_apply],
-    apply le_trans (norm_sum_le _ _),
-    rw smul_mul_assoc,
-    refine finset.sum_le_card_nsmul _ _ _ (λ i hi, _),
-    rw [norm_smul, mul_comm],
-    exact mul_le_mul (norm_le_pi_norm g i) (norm_le_pi_norm t i) (norm_nonneg _) (norm_nonneg g),
-  end,
-  .. linear_map.to_continuous_linear_map.symm.trans (linear_equiv.pi_ring 𝕜 G ι 𝕜) }
-
 end
 
 end continuous_linear_equiv

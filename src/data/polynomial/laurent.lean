@@ -10,9 +10,9 @@ import data.polynomial.algebra_map
 
 We introduce Laurent polynomials over a semiring `R`.  Mathematically, they are expressions of the
 form
-```latex
+$$
 \sum_{i \in \mathbb{Z}} a_i T ^ i
-```
+$$
 where the sum extends over a finite subset of `ℤ`.  Thus, negative exponents are allowed.  The
 coefficients come from the semiring `R` and the variable `T` commutes with everything.
 

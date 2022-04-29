@@ -362,6 +362,8 @@ instance : has_well_founded mul_args :=
 
 theorem result : ∀ x : mul_args, x.hypothesis
 | (P1 ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩) := begin
+  let x := pgame.mk xl xr xL xR,
+  let y := pgame.mk yl yr yL yR,
   intros ox oy,
   rw numeric_def,
   refine ⟨_, _, _⟩,
@@ -378,33 +380,23 @@ theorem result : ∀ x : mul_args, x.hypothesis
       sorry
     }, repeat { sorry } },
   { rintro (⟨ix, iy⟩ | ⟨jx, jy⟩),
-    { --simp, -- can be commented out
-      apply numeric_sub (numeric_add _ _) _,
-      { exact result (P1 (xL ix) ⟨yl, yr, yL, yR⟩) (ox.move_left ix) oy },
+    { apply (numeric.add _ _).sub _,
+      { exact result (P1 _ _) (ox.move_left ix) oy },
       { exact result (P1 _ _) ox (oy.move_left iy) },
       { exact result (P1 _ _) (ox.move_left ix) (oy.move_left iy) } },
-    { simp, -- can be commented out
-      apply numeric_sub (numeric_add _ _) _,
+    { apply (numeric.add _ _).sub _,
       { exact result (P1 _ _) (ox.move_right jx) oy },
       { exact result (P1 _ _) ox (oy.move_right jy) },
       { exact result (P1 _ _) (ox.move_right jx) (oy.move_right jy) } } },
   { rintro (⟨ix, jy⟩ | ⟨jx, iy⟩),
-    { --simp, -- can be commented out
-      apply numeric_sub (numeric_add _ _) _,
-      { exact (magic_theorem ((x₁L ix) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + ⟨yl, yr, yL, yR⟩)
-          (x₁L ix) ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩ rfl (ox₁.move_left ix) ox₂ oy).1 },
-      { exact (magic_theorem (⟨x₁l, x₁r, x₁L, x₁R⟩ + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yR jy))
-          ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ (yR jy) rfl ox₁ ox₂ (oy.move_right jy)).1 },
-      { exact (magic_theorem ((x₁L ix) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yR jy))
-          (x₁L ix) ⟨x₂l, x₂r, x₂L, x₂R⟩ (yR jy) rfl (ox₁.move_left ix) ox₂ (oy.move_right jy)).1 } },
-    { --simp, -- can be commented out
-      apply numeric_sub (numeric_add _ _) _,
-      { exact (magic_theorem ((x₁R jx) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + ⟨yl, yr, yL, yR⟩)
-          (x₁R jx) ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩ rfl (ox₁.move_right jx) ox₂ oy).1 },
-      { exact (magic_theorem (⟨x₁l, x₁r, x₁L, x₁R⟩ + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yL iy))
-          ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ (yL iy) rfl ox₁ ox₂ (oy.move_left iy)).1 },
-      { exact (magic_theorem ((x₁R jx) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yL iy))
-          (x₁R jx) ⟨x₂l, x₂r, x₂L, x₂R⟩ (yL iy) rfl (ox₁.move_right jx) ox₂ (oy.move_left iy)).1 } } }
+    { apply (numeric.add _ _).sub _,
+      { exact result (P1 _ _) (ox.move_left ix) oy },
+      { exact result (P1 _ _) ox (oy.move_right jy) },
+      { exact result (P1 _ _) (ox.move_left ix) (oy.move_right jy) } },
+    { apply (numeric.add _ _).sub _,
+      { exact result (P1 _ _) (ox.move_right jx) oy },
+      { exact result (P1 _ _) ox (oy.move_left iy) },
+      { exact result (P1 _ _) (ox.move_right jx) (oy.move_left iy) } } }
 end
 | (P2 x₁ x₂ y) := sorry
 

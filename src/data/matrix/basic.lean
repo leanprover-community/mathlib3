@@ -1224,6 +1224,16 @@ begin
   apply dot_product_comm
 end
 
+/-- A version of `matrix.transpose_mul` for non-commutative coefficients-/
+@[simp] lemma transpose_mul_map_op [add_comm_monoid α] [semigroup α] [fintype n]
+  (M : matrix m n α) (N : matrix n l α) :
+    (M ⬝ N)ᵀ.map mul_opposite.op = ((N.map mul_opposite.op)ᵀ ⬝ (M.map mul_opposite.op)ᵀ)  :=
+begin
+  ext i j,
+  dsimp [matrix.mul_apply],
+  simp_rw [finset.op_sum, mul_opposite.op_mul],
+end
+
 @[simp] lemma transpose_smul {R : Type*} [has_scalar R α] (c : R) (M : matrix m n α) :
   (c • M)ᵀ = c • Mᵀ :=
 by { ext i j, refl }
@@ -1268,6 +1278,37 @@ def transpose_ring_equiv [add_comm_monoid α] [comm_semigroup α] [fintype m] :
   map_mul' := λ M N, (congr_arg mul_opposite.op (transpose_mul M N)).trans
     (mul_opposite.op_mul _ _),
   ..transpose_add_equiv.trans mul_opposite.op_add_equiv }
+
+variables (m α)
+
+/-- `matrix.transpose` as a `ring_equiv` to the opposite ring for non-commutative coefficients -/
+@[simps]
+def transpose_ring_equiv' [add_comm_monoid α] [semigroup α] [fintype m] :
+  matrix m m α ≃+* (matrix m m αᵐᵒᵖ)ᵐᵒᵖ :=
+{ to_fun := λ M, mul_opposite.op (M.map mul_opposite.op)ᵀ,
+  inv_fun := λ M, (mul_opposite.unop M)ᵀ.map mul_opposite.unop,
+  left_inv := λ M, ext $ λ i j, by { dsimp, refl },
+  right_inv := mul_opposite.rec $ λ M, mul_opposite.unop_injective $ ext $ λ i j,
+    by { dsimp, refl },
+  map_mul' := λ M N, (congr_arg mul_opposite.op $ transpose_mul_map_op _ _).trans
+    (mul_opposite.op_mul _ _),
+  map_add' := λ M N, (congr_arg mul_opposite.op $ by refl).trans
+    (mul_opposite.op_add _ _)}
+
+variables {m α}
+
+@[simp] lemma transpose_pow [semiring α] [fintype n] [decidable_eq n] (M : matrix n n α) (k : ℕ) :
+  (M ^ k)ᵀ = Mᵀ ^ k :=
+begin
+  apply_fun (λ M, matrix.map M mul_opposite.op),
+  apply mul_opposite.op_injective,
+  have := (transpose_ring_equiv' n α).map_pow M k,
+  dsimp [←mul_opposite.op_pow] at this ⊢,
+  rw [transpose_map],
+  rw this,
+  congr' 2,
+  rw [←transpose_map],
+end
 
 lemma transpose_list_prod [comm_semiring α] [fintype m] [decidable_eq m] (l : list (matrix m m α)) :
   l.prodᵀ = (l.map transpose).reverse.prod :=

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import representation_theory.Action
-import algebra.category.Module.limits
+import algebra.category.Module.abelian
 import algebra.category.Module.colimits
 import algebra.category.Module.monoidal
 
@@ -18,7 +18,7 @@ Also `V.ρ` gives the homomorphism `G →* (V →ₗ[k] V)`.
 Conversely, given a homomorphism `ρ : G →* (V →ₗ[k] V)`,
 you can construct the bundled representation as `Rep.of ρ`.
 
-We verify that `Rep k G` has all limits and colimits, and is a monoidal category.
+We verify that `Rep k G` is an abelian monoidal category with all (co)limits.
 -/
 
 universes u
@@ -27,7 +27,7 @@ open category_theory
 open category_theory.limits
 
 /-- The category of `k`-linear representations of a monoid `G`. -/
-@[derive [large_category, concrete_category, has_limits, has_colimits]]
+@[derive [large_category, concrete_category, has_limits, has_colimits, abelian]]
 abbreviation Rep (k G : Type u) [ring k] [monoid G] :=
 Action (Module.{u} k) (Mon.of G)
 

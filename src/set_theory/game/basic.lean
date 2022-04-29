@@ -232,7 +232,7 @@ by { cases x, cases y, refl, }
 @[simp] lemma mk_mul_move_left_inl {xl xr yl yr} {xL xR yL yR} {i j} :
   (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inl (i, j))
   = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xL i * yL j :=
- rfl
+rfl
 
 @[simp] lemma mul_move_left_inl {x y : pgame} {i j} :
    (x * y).move_left ((left_moves_mul x y).symm (sum.inl (i, j)))

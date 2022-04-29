@@ -79,14 +79,12 @@ example : monoidal_preadditive (fdRep k G) := by apply_instance
 example : monoidal_linear k (fdRep k G) := by apply_instance
 
 open finite_dimensional
+open_locale classical
 
 -- Verify that Schur's lemma applies out of the box.
-example [is_alg_closed k] (V W : fdRep k G) [simple V] [simple W] :
-  finrank k (V ⟶ W) = 1 ↔ nonempty (V ≅ W) :=
-finrank_hom_simple_simple_eq_one_iff k V W
-example [is_alg_closed k] (V W : fdRep k G) [simple V] [simple W] :
-  finrank k (V ⟶ W) = 0 ↔ is_empty (V ≅ W) :=
-finrank_hom_simple_simple_eq_zero_iff k V W
+lemma finrank_hom_simple_simple [is_alg_closed k] (V W : fdRep k G) [simple V] [simple W] :
+  finrank k (V ⟶ W) = if nonempty (V ≅ W) then 1 else 0 :=
+category_theory.finrank_hom_simple_simple k V W
 
 end fdRep
 

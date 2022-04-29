@@ -8,19 +8,33 @@ import data.polynomial.algebra_map
 
 /-!  # Laurent polynomials
 
-Following a suggestion by Eric, Laurent polynomials are defined via `add_monoid_algebra R ℤ`.
-Thus, they are essentially `finsupp`s `ℤ →₀ R`.
+We introduce Laurent polynomials over a semiring `R`.  Mathematically, they are expressions of the
+form
+$$
+\sum_{i \in \mathbb{Z}} a_i T ^ i
+$$
+where the sum extends over a finite subset of `ℤ`.  Thus, negative exponents are allowed.  The
+coefficients come from the semiring `R` and the variable `T` commutes with everything.
 
-This means that they play well with polynomials, but there is a little roughness in establishing
-the API, since the `finsupp` implementation of `polynomial R` is well-shielded.
+Since we are going to convert back and forth between polynomials and Laurent polynomials, we
+decided to maintain some distinction by using the symbol `T`, rather than `X`, as the variable for
+Laurent polynomials
 
 ## Notation
-The symbol `R[T;T⁻¹]` stands for `laurent_polynomial R`.
-
-## Implementation notes
+The symbol `R[T;T⁻¹]` stands for `laurent_polynomial R`.  We also define
 
 * `C : R →+* R[T;T⁻¹]` is the inclusion of constant polynomials, analogous to the one for `R[X]`;
 * `T : ℤ → R[T;T⁻¹]` is the sequence of powers of the variable `T`.
+
+## Implementation notes
+
+We define Laurent polynomials as `add_monoid_algebra R ℤ`.
+Thus, they are essentially `finsupp`s `ℤ →₀ R`.
+This choice differs from the current irreducible design of `polynomial`, that instead shields away
+the implementation via `finsupp`s.  It is closer to the original definition of polynomials.
+
+As a consequence, `laurent_polynomials` play well with polynomials, but there is a little roughness
+in establishing the API, since the `finsupp` implementation of `polynomial R` is well-shielded.
 
 Unlike the case of polynomials, I felt that the exponent notation was not too easy to use, as only
 natural exponents would be allowed.  Moreover, in the end, it seems likely that we should aim to
@@ -32,14 +46,14 @@ I made some *heavy* use of `simp` lemmas, aiming to bring Laurent polynomials to
 
 ##  Future work
 Lots is missing!  I would certainly like to show that `R[T;T⁻¹]` is the localization of `R[X]`
-inverting `X`.  This should be mostly in place, given `exists_T_pow`.
+inverting `X`.  This should be mostly in place, given `exists_T_pow` (which is part of PR #13415).
 -/
 
 open_locale polynomial big_operators
 open polynomial add_monoid_algebra finsupp
 noncomputable theory
 
-variables {R N Z : Type*}
+variables {R : Type*}
 
 /--  The semiring of Laurent polynomials with coefficients in the semiring `R`.
 We denote it by `R[T;T⁻¹]`.
@@ -50,12 +64,13 @@ local notation R`[T;T⁻¹]`:9000 := laurent_polynomial R
 
 /--  The ring homomorphism, taking a polynomial with coefficients in `R` to a Laurent polynomial
 with coefficients in `R`. -/
-def polynomial.to_laurent [semiring R] :
-  R[X] →+* R[T;T⁻¹] :=
-begin
-  refine ring_hom.comp _ (to_finsupp_iso R).to_ring_hom,
-  exact (map_domain_ring_hom R (nat.cast_add_monoid_hom ℤ)),
-end
+def polynomial.to_laurent [semiring R] : R[X] →+* R[T;T⁻¹] :=
+(map_domain_ring_hom R int.of_nat_hom).comp (to_finsupp_iso R)
+
+/-- This is not a simp lemma, as it is usually preferable to use the lemmas about `C` and `X`
+instead. -/
+lemma polynomial.to_laurent_apply [semiring R] (p : R[X]) :
+  p.to_laurent = p.to_finsupp.map_domain coe := rfl
 
 /--  The `R`-algebra map, taking a polynomial with coefficients in `R` to a Laurent polynomial
 with coefficients in `R`. -/
@@ -63,8 +78,12 @@ def polynomial.to_laurent_alg [comm_semiring R] :
   R[X] →ₐ[R] R[T;T⁻¹] :=
 begin
   refine alg_hom.comp _ (to_finsupp_iso_alg R).to_alg_hom,
-  exact (map_domain_alg_hom R R (nat.cast_add_monoid_hom ℤ)),
+  exact (map_domain_alg_hom R R int.of_nat_hom),
 end
+
+@[simp]
+lemma polynomial.to_laurent_alg_apply [comm_semiring R] (f : R[X]) :
+  f.to_laurent_alg = f.to_laurent := rfl
 
 namespace laurent_polynomial
 
@@ -113,13 +132,8 @@ by convert single_mul_single.symm; simp
 @[simp]
 lemma _root_.polynomial.to_laurent_C_mul_T (n : ℕ) (r : R) :
   ((polynomial.monomial n r).to_laurent : R[T;T⁻¹]) = C r * T n :=
-begin
-  show map_domain (nat.cast_add_monoid_hom ℤ) ((to_finsupp_iso R) (monomial n r)) =
-    (C r * T n : R[T;T⁻¹]),
-  convert (map_domain_single : _ = single (nat.cast_add_monoid_hom ℤ n) r),
-  { exact to_finsupp_monomial n r },
-  { simp only [nat.coe_cast_add_monoid_hom, int.nat_cast_eq_coe_nat, single_eq_C_mul_T] },
-end
+show map_domain coe (monomial n r).to_finsupp = (C r * T n : R[T;T⁻¹]),
+by rw [to_finsupp_monomial, map_domain_single, single_eq_C_mul_T]
 
 @[simp]
 lemma _root_.polynomial.to_laurent_C (r : R) :
@@ -156,12 +170,16 @@ lemma _root_.polynomial.to_laurent_C_mul_X_pow (n : ℕ) (r : R) :
   (polynomial.C r * X ^ n).to_laurent = C r * T n :=
 by simp only [_root_.map_mul, polynomial.to_laurent_C, polynomial.to_laurent_X_pow]
 
-lemma is_unit_T (n : ℤ) : is_unit (T n : R[T;T⁻¹]) :=
-by refine ⟨⟨T n, T (- n), _, _⟩, _⟩; simp [← T_add]
+instance invertible_T (n : ℤ) : invertible (T n : R[T;T⁻¹]) :=
+{ inv_of := T (- n),
+  inv_of_mul_self := by rw [← T_add, add_left_neg, T_zero],
+  mul_inv_of_self := by rw [← T_add, add_right_neg, T_zero] }
 
-lemma is_regular_T (n : ℤ) : is_regular (T n : R[T;T⁻¹]) :=
-⟨is_left_regular_of_mul_eq_one (by simp [← T_add] : T (-n) * T n = 1),
-  is_right_regular_of_mul_eq_one (by simp [← T_add] : T n * T (-n) = 1)⟩
+@[simp]
+lemma inv_of_T (n : ℤ) : ⅟ (T n : R[T;T⁻¹]) = T (- n) := rfl
+
+lemma is_unit_T (n : ℤ) : is_unit (T n : R[T;T⁻¹]) :=
+is_unit_of_invertible _
 
 @[elab_as_eliminator] protected lemma induction_on {M : R[T;T⁻¹] → Prop} (p : R[T;T⁻¹])
   (h_C         : ∀ a, M (C a))

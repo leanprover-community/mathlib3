@@ -360,6 +360,7 @@ instance : has_well_founded mul_args :=
 { r := (<),
   wf := inv_image.wf _ (prod.lex_wf ordinal.wf ordinal.wf) }
 
+/-- The hypothesis is true for any arguments. -/
 theorem result : ∀ x : mul_args, x.hypothesis
 | (P1 ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩) := begin
   let x := pgame.mk xl xr xL xR,
@@ -398,81 +399,18 @@ theorem result : ∀ x : mul_args, x.hypothesis
       { exact result (P1 _ _) ox (oy.move_left iy) },
       { exact result (P1 _ _) (ox.move_right jx) (oy.move_left iy) } } }
 end
-| (P2 x₁ x₂ y) := sorry
+| (P2 x₁ x₂ y) := begin
+  sorry
+end
+using_well_founded { dec_tac := sorry }
 
 end mul_args
 
 theorem numeric_mul {x y : pgame} : numeric x → numeric y → numeric (x * y) :=
 (mul_args.P1 x y).result
 
-/-- This is the induction needed to prove that the product of two numeric games is numeric. It's a
-simplification of Conway's original argument.
--/
-
--- g is the thing we induct on. The relation is `subsequent'`, i.e. `subsequent` up to relabelling.
-theorem magic_theorem : ∀ (g x₁ x₂ y : pgame), ⟦g⟧ = ⟦x₁ + x₂ + y⟧ →
-  numeric x₁ → numeric x₂ → numeric y →
-  (numeric (x₁ * y)) ∧ (numeric (x₂ * y)) ∧
-  (x₁ ≈ x₂ → x₁ * y ≈ x₂ * y) ∧
-  (x₁ < x₂ →
-    (∀ i, y.move_left i * x₂ + y * x₁ < y.move_left i * x₁ + y * x₂) ∧
-    ∀ j, y * x₂ + y.move_right j * x₁ < y * x₁ + y.move_right j * x₂)
-| ⟨gl, gr, gL, gR⟩ ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩ hg ox₁ ox₂ oy := begin
-  refine ⟨_, _, _, _⟩,
-  { rw numeric_def,
-    refine ⟨_, _, _⟩,
-    { rintro (⟨ix, iy⟩ | ⟨ix, iy⟩) (⟨ix', jy⟩ | ⟨ix', jy⟩),
-      {
-        simp,
-        cases lt_or_equiv_or_gt (ox₁.move_left ix) (ox₁.move_left ix'),
-        {
-
-        },
-        change game.lt ⟦_⟧ ⟦_⟧,
-        simp,
-        abel,
-      } },
-    { rintro (⟨ix, iy⟩ | ⟨jx, jy⟩),
-      { --simp, -- can be commented out
-        apply numeric_sub (numeric_add _ _) _,
-        { exact (magic_theorem ((x₁L ix) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + ⟨yl, yr, yL, yR⟩)
-            (x₁L ix) ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩ rfl (ox₁.move_left ix) ox₂ oy).1 },
-        { exact (magic_theorem (⟨x₁l, x₁r, x₁L, x₁R⟩ + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yL iy))
-            ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ (yL iy) rfl ox₁ ox₂ (oy.move_left iy)).1 },
-        { exact (magic_theorem ((x₁L ix) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yL iy))
-            (x₁L ix) ⟨x₂l, x₂r, x₂L, x₂R⟩ (yL iy) rfl (ox₁.move_left ix) ox₂ (oy.move_left iy)).1 } },
-      { --simp, -- can be commented out
-        apply numeric_sub (numeric_add _ _) _,
-        { exact (magic_theorem ((x₁R jx) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + ⟨yl, yr, yL, yR⟩)
-            (x₁R jx) ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩ rfl (ox₁.move_right jx) ox₂ oy).1 },
-        { exact (magic_theorem (⟨x₁l, x₁r, x₁L, x₁R⟩ + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yR jy))
-            ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ (yR jy) rfl ox₁ ox₂ (oy.move_right jy)).1 },
-        { exact (magic_theorem ((x₁R jx) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yR jy))
-            (x₁R jx) ⟨x₂l, x₂r, x₂L, x₂R⟩ (yR jy) rfl (ox₁.move_right jx) ox₂ (oy.move_right jy)).1 } } },
-    { rintro (⟨ix, jy⟩ | ⟨jx, iy⟩),
-      { --simp, -- can be commented out
-        apply numeric_sub (numeric_add _ _) _,
-        { exact (magic_theorem ((x₁L ix) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + ⟨yl, yr, yL, yR⟩)
-            (x₁L ix) ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩ rfl (ox₁.move_left ix) ox₂ oy).1 },
-        { exact (magic_theorem (⟨x₁l, x₁r, x₁L, x₁R⟩ + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yR jy))
-            ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ (yR jy) rfl ox₁ ox₂ (oy.move_right jy)).1 },
-        { exact (magic_theorem ((x₁L ix) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yR jy))
-            (x₁L ix) ⟨x₂l, x₂r, x₂L, x₂R⟩ (yR jy) rfl (ox₁.move_left ix) ox₂ (oy.move_right jy)).1 } },
-      { --simp, -- can be commented out
-        apply numeric_sub (numeric_add _ _) _,
-        { exact (magic_theorem ((x₁R jx) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + ⟨yl, yr, yL, yR⟩)
-            (x₁R jx) ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩ rfl (ox₁.move_right jx) ox₂ oy).1 },
-        { exact (magic_theorem (⟨x₁l, x₁r, x₁L, x₁R⟩ + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yL iy))
-            ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ (yL iy) rfl ox₁ ox₂ (oy.move_left iy)).1 },
-        { exact (magic_theorem ((x₁R jx) + ⟨x₂l, x₂r, x₂L, x₂R⟩ + (yL iy))
-            (x₁R jx) ⟨x₂l, x₂r, x₂L, x₂R⟩ (yL iy) rfl (ox₁.move_right jx) ox₂ (oy.move_left iy)).1 } } } },
-  { sorry }, -- the same thing but for x₂ instead of x₁. Is there a way to golf this?
-  { sorry },
-  { sorry }
-end
-
-theorem numeric_mul {x y : pgame} (ox : x.numeric) (oy : y.numeric) : (x * y).numeric :=
-(magic_theorem _ x x y rfl ox ox oy).1 rfl
+theorem mul_congr_left {x y : pgame} : numeric x → numeric y → numeric (x * y) :=
+(mul_args.P1 x y).result
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 

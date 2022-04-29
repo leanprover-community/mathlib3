@@ -273,22 +273,19 @@ theorem quot_mul_comm : Π (x y : pgame.{u}), ⟦x * y⟧ = ⟦y * x⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
   let x := mk xl xr xL xR,
+  let y := mk yl yr yL yR,
   refine quot_eq_of_mk_quot_eq _ _ _ _,
   apply equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
   calc
     xl × yr ⊕ xr × yl
        ≃ xr × yl ⊕ xl × yr : equiv.sum_comm _ _
    ... ≃ yl × xr ⊕ yr × xl : equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
-  { rintro (⟨i, j⟩ | ⟨i, j⟩),
-    { dsimp,
-      rw [quot_mul_comm, quot_mul_comm x, quot_mul_comm (xL i), add_comm] },
-    { dsimp,
-      rw [quot_mul_comm, quot_mul_comm x, quot_mul_comm (xR i), add_comm] } },
-  { rintro (⟨j, i⟩ | ⟨j, i⟩),
-    { dsimp,
-      rw [quot_mul_comm, quot_mul_comm x, quot_mul_comm (xR i), add_comm] },
-    { dsimp,
-      rw [quot_mul_comm, quot_mul_comm x, quot_mul_comm (xL i), add_comm] } }
+  { rintro (⟨i, j⟩ | ⟨i, j⟩); dsimp; rw [quot_mul_comm, quot_mul_comm x],
+    { rw [quot_mul_comm (xL i), add_comm] },
+    { rw [quot_mul_comm (xR i), add_comm] } },
+  { rintro (⟨j, i⟩ | ⟨j, i⟩); dsimp; rw [quot_mul_comm, quot_mul_comm x],
+    { rw [quot_mul_comm (xR i), add_comm] },
+    { rw [quot_mul_comm (xL i), add_comm] } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

@@ -64,12 +64,13 @@ local notation R`[T;T⁻¹]`:9000 := laurent_polynomial R
 
 /--  The ring homomorphism, taking a polynomial with coefficients in `R` to a Laurent polynomial
 with coefficients in `R`. -/
-def polynomial.to_laurent [semiring R] :
-  R[X] →+* R[T;T⁻¹] :=
-begin
-  refine ring_hom.comp _ (to_finsupp_iso R).to_ring_hom,
-  exact (map_domain_ring_hom R (nat.cast_add_monoid_hom ℤ)),
-end
+def polynomial.to_laurent [semiring R] : R[X] →+* R[T;T⁻¹] :=
+(map_domain_ring_hom R int.of_nat_hom).comp (to_finsupp_iso R)
+
+/-- This is not a simp lemma, as it is usually preferable to use the lemmas about `C` and `X`
+instead. -/
+lemma polynomial.to_laurent_apply [semiring R] (p : R[X]) :
+  p.to_laurent = p.to_finsupp.map_domain coe := rfl
 
 /--  The `R`-algebra map, taking a polynomial with coefficients in `R` to a Laurent polynomial
 with coefficients in `R`. -/
@@ -77,7 +78,7 @@ def polynomial.to_laurent_alg [comm_semiring R] :
   R[X] →ₐ[R] R[T;T⁻¹] :=
 begin
   refine alg_hom.comp _ (to_finsupp_iso_alg R).to_alg_hom,
-  exact (map_domain_alg_hom R R (nat.cast_add_monoid_hom ℤ)),
+  exact (map_domain_alg_hom R R int.of_nat_hom),
 end
 
 @[simp]
@@ -131,13 +132,8 @@ by convert single_mul_single.symm; simp
 @[simp]
 lemma _root_.polynomial.to_laurent_C_mul_T (n : ℕ) (r : R) :
   ((polynomial.monomial n r).to_laurent : R[T;T⁻¹]) = C r * T n :=
-begin
-  show map_domain (nat.cast_add_monoid_hom ℤ) ((to_finsupp_iso R) (monomial n r)) =
-    (C r * T n : R[T;T⁻¹]),
-  convert (map_domain_single : _ = single (nat.cast_add_monoid_hom ℤ n) r),
-  { exact to_finsupp_monomial n r },
-  { simp only [nat.coe_cast_add_monoid_hom, int.nat_cast_eq_coe_nat, single_eq_C_mul_T] },
-end
+show map_domain coe (monomial n r).to_finsupp = (C r * T n : R[T;T⁻¹]),
+by rw [to_finsupp_monomial, map_domain_single, single_eq_C_mul_T]
 
 @[simp]
 lemma _root_.polynomial.to_laurent_C (r : R) :

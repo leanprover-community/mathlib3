@@ -44,7 +44,7 @@ local notation `SL(` n `, ` R `)`:= matrix.special_linear_group (fin n) R
 variable (M : GL(2, ℝ)⁺)
 
 def slash_k : ℤ → GL(2, ℝ)⁺ → (ℍ → ℂ) → (ℍ → ℂ) := λ k γ f,
-  (λ (x : ℍ), f (γ • x) * (((↑ₘ γ).det ) : ℝ)^(k-1) * (((↑ₘ γ 1 0 : ℝ) * x +(↑ₘ γ 1 1 : ℝ))^k)⁻¹)
+  (λ (x : ℍ), f (γ • x) * (((↑ₘ γ).det ) : ℝ)^(k-1) * (upper_half_plane.denom γ x)^(-k))
 
 namespace modular_forms
 
@@ -55,24 +55,21 @@ localized "notation  f  ` ∣[`:100 k `]`:0 γ :100 := slash_k k γ f" in modula
 lemma slash_k_right_action (k : ℤ) (A B : GL(2, ℝ)⁺) (f : ℍ → ℂ ) :
   (f ∣[k] A) ∣[k] B = f ∣[k] (A * B) :=
 begin
-  simp_rw slash_k,
   ext1,
-  have e1 := upper_half_plane.denom_cocycle A B x,
-  simp only [upper_half_plane.num, upper_half_plane.denom, of_real_mul, subgroup.coe_mul, coe_coe,
+  simp_rw [slash_k,(upper_half_plane.denom_cocycle A B x)],
+  have e3 : (A * B) • x = A • B • x , by {convert (upper_half_plane.mul_smul' A B x),} ,
+  rw e3,
+  simp only [-upper_half_plane.num, -upper_half_plane.denom, of_real_mul, subgroup.coe_mul, coe_coe,
   upper_half_plane.coe_smul, units.coe_mul, matrix.mul_eq_mul, matrix.det_mul,
   upper_half_plane.smul_aux, upper_half_plane.smul_aux', subtype.coe_mk] at *,
-  have e3 : (A * B) • x = A • B • x , by {convert (upper_half_plane.mul_smul' A B x),} ,
-  rw [e1,e3],
+  field_simp,
   ring_nf,
-  have aux1 : ∀  (a b c d e: ℂ) (k : ℤ), (e^k)⁻¹ * a^(k-1) * (b^k)⁻¹ * c^(k -1) * d =
-  ( (b * e)^ k)⁻¹ * (c * a)^(k-1) * d, by
-  {intros a b c d e k,
-  have : (b^k)⁻¹ * (e^ k)⁻¹ * c^(k-1) * a^(k-1) * d = ( (b * e)^ k)⁻¹ * (c * a)^(k-1) * d ,
-  by  {simp_rw [mul_zpow₀, mul_inv₀],
-  ring,},
-  rw ←this,
-  ring,},
-  simp_rw aux1,
+  have : (((↑(↑A : GL (fin 2) ℝ) : (matrix (fin 2) (fin 2) ℝ)).det : ℂ) *
+  ((↑(↑B  : GL (fin 2) ℝ) : (matrix (fin 2) (fin 2) ℝ)).det : ℂ))^(k-1) =
+  ((↑(↑B : GL (fin 2) ℝ) : (matrix (fin 2) (fin 2) ℝ)).det : ℂ)^(k-1) *
+  ((↑(↑A : GL (fin 2) ℝ) : (matrix (fin 2) (fin 2) ℝ)).det : ℂ)^(k-1) ,
+  by {simp_rw [←mul_zpow₀, mul_comm]},
+  simp_rw [this,← mul_assoc,←mul_zpow₀],
   end
 
 lemma slash_k_add (k : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
@@ -105,45 +102,31 @@ lemma slash_k_mul (k1 k2 : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
   (f * g) ∣[k1+k2] A = (((↑ₘ A).det) : ℝ) • (f ∣[k1] A) * (g ∣[k2] A) :=
 begin
   ext1,
-  simp [slash_k, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, coe_coe,
-  ←mul_assoc],
-  rw  pi.mul_apply,
-  have h1 : ((((↑ₘ A).det) : ℝ)^(k1+k2-1) : ℂ) =
-  (((↑ₘ A).det) : ℝ) * (((↑ₘ A).det) : ℝ)^(k1-1) * (((↑ₘ A).det) : ℝ)^(k2-1),
+  simp only [slash_k, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, ←mul_assoc],
+  have h1 : ((((↑ₘ A).det) : ℝ)^(k1 + k2 - 1) : ℂ) =
+  (((↑ₘ A).det) : ℝ) * (((↑ₘ A).det) : ℝ)^(k1 - 1) * (((↑ₘ A).det) : ℝ)^(k2 - 1),
   by {simp only [mul_assoc, matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, coe_coe],
   rw [←zpow_add₀, ←zpow_one_add₀],
   ring_exp,
-  all_goals{ have hd:= (matrix.mem_GL_pos _).1 A.2,
-  simp only [subtype.val_eq_coe, matrix.general_linear_group.coe_det_apply] at hd,
-  norm_cast,
-  apply ne_of_gt hd,},},
-  simp only [matrix.general_linear_group.coe_det_apply, subtype.val_eq_coe, coe_coe] at h1,
-  rw h1,
-  have h2 : ((((↑ₘA 1 0 : ℝ) : ℂ) * (x : ℂ) + ((↑ₘA 1 1 : ℝ)))^(k1 + k2))⁻¹ =
-  ((((↑ₘA 1 0 : ℝ) : ℂ) * (x : ℂ) + ((↑ₘA 1 1 : ℝ)))^k1)⁻¹ *
-  ((((↑ₘA 1 0 : ℝ) : ℂ) * (x : ℂ) + ((↑ₘA 1 1 : ℝ)))^k2)⁻¹,
-  by {simp_rw ← mul_inv₀,
-  simp only [coe_coe, inv_inj],
-  apply zpow_add₀ (upper_half_plane.denom_ne_zero A x),},
-  simp only [coe_coe] at h2,
-  rw h2,
+  all_goals{norm_cast, apply (matrix.GL_pos.det_ne_zero A),},},
+  have h22 : (upper_half_plane.denom A x)^(-(k1+k2))=(upper_half_plane.denom A x)^(-k1) *
+  (upper_half_plane.denom A  x)^(-k2),
+  by {rw [int.neg_add, zpow_add₀], exact upper_half_plane.denom_ne_zero A x,},
+  rw [h1,h22],
+  simp only [upper_half_plane.denom, pi.mul_apply, coe_coe, zpow_neg₀, algebra.smul_mul_assoc,
+  pi.smul_apply, real_smul],
   ring,
 end
 
 /--The  space of functions that are modular-/
 def weakly_modular_submodule (k : ℤ)  (Γ : subgroup SL(2,ℤ)): submodule ℂ (ℍ  → ℂ) :=
   {carrier := {f : (ℍ → ℂ) | ∀ (γ : Γ),  (f ∣[k] (γ : GL(2, ℝ)⁺)) = f },
-  zero_mem' := by {simp only [set.mem_set_of_eq, coe_coe],
-  simp_rw slash_k,
-  simp only [forall_const, zero_mul, pi.zero_apply],
-  refl, },
-  add_mem' := by {intros f g hf hg,
-  intro γ,
+  zero_mem' := by {simp only [slash_k, set.mem_set_of_eq, pi.zero_apply, zero_mul, forall_const],
+  refl,},
+  add_mem' := by {intros f g hf hg γ,
   rw [slash_k_add k γ f g, hf γ, hg γ], },
-  smul_mem' := by {intros c f hf,
-  intro γ,
-  have : (c • f) ∣[k] γ = c • (f  ∣[k] γ ),
-  by {apply smul_slash_k},
+  smul_mem' := by {intros c f hf γ,
+  have : (c • f) ∣[k] γ = c • (f  ∣[k] γ ), by {apply smul_slash_k},
   rw (hf γ) at this,
   apply this,}}
 
@@ -172,19 +155,19 @@ begin
   {intros h1 γ z,
   have h3 : (f ∣[k] γ) z = f z , by {simp_rw (h1 γ)},
   rw [←h3, slash_k, mul_comm],
-  have h55 := inv_mul_cancel (zpow_ne_zero k (upper_half_plane.denom_ne_zero (γ : GL(2, ℝ)⁺) z)),
+  have h55 := zpow_neg_mul_zpow_self  k (upper_half_plane.denom_ne_zero (γ : GL(2, ℝ)⁺) z),
   simp only [upper_half_plane.denom, upper_half_plane.subgroup_to_sl_moeb, upper_half_plane.sl_moeb,
   coe_coe, matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix,
   matrix.special_linear_group.coe_matrix_coe, int.coe_cast_ring_hom, matrix.map_apply,
   of_real_int_cast] at *,
-  rw [mul_assoc, h55,←int.coe_cast_ring_hom, ←matrix.special_linear_group.coe_matrix_coe,
+  rw [mul_assoc, h55, ←int.coe_cast_ring_hom, ←matrix.special_linear_group.coe_matrix_coe,
   matrix.special_linear_group.det_coe ((γ : SL(2, ℤ) ) : SL(2, ℝ))],
-  simp only [of_real_one, one_zpow₀, mul_one]},
+  simp only [of_real_one, one_zpow₀, mul_one],},
   {intros hf γ,
   simp_rw slash_k,
   ext1,
   rw [←upper_half_plane.subgroup_moeb, (hf γ x), mul_comm],
-  have h55 := inv_mul_cancel (zpow_ne_zero k (upper_half_plane.denom_ne_zero (γ : GL(2, ℝ)⁺) x)),
+  have h55 := zpow_neg_mul_zpow_self k (upper_half_plane.denom_ne_zero (γ : GL(2, ℝ)⁺) x),
   simp_rw upper_half_plane.denom at *,
   simp only [matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix, coe_coe,
   matrix.special_linear_group.coe_matrix_coe, int.coe_cast_ring_hom, matrix.map_apply,

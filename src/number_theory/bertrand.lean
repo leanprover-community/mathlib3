@@ -184,6 +184,42 @@ end
 
 lemma four_eq_two_rpow_two : (4 : ℝ) = 2 ^ (2 : ℝ) := by norm_num
 
+-- TODO this ought to be generalized to all comm_group_with_zero and moved,
+-- probably somewhere near mul_div_mul_left
+lemma real.div_mul_eq_div_div {a b c : ℝ} (hb : b ≠ 0) (hc : c ≠ 0) : a / (b * c) = (a / b) / c :=
+by field_simp
+
+lemma log_four : log 4 = 2 * log 2 :=
+calc log 4 = log (2 ^ (2 : ℝ)) : by norm_num
+  ... = 2 * log 2 : by rw log_rpow two_pos
+
+lemma sqrt_361 : sqrt 361 = 19 :=
+calc sqrt 361 = sqrt (19 ^ 2) : by norm_num
+  ... = 19 : sqrt_sq (by norm_num)
+
+-- open tactic.interactive
+-- meta def collapse_log : tactic unit :=
+-- do
+--   tactic.repeat { tactic.interactive.rw [``(real.log_rpow), ``(real.log_mul)], }
+  --tactic.repeat tactic.norm_num,
+
+lemma log_722 : log 722 = log 2 + 2 * log 19 :=
+begin
+  repeat { rw ←log_rpow, rw ←log_mul, },
+  repeat { norm_num, },
+end
+--calc log 722 = log (2 * 19 ^ (2 : ℝ)) : by norm_num
+--  ... = log 2 + log (19 ^ (2 : ℝ)) : log_mul (by norm_num) (by norm_num)
+--  ... = log 2 + 2 * log 19 : by rw @log_rpow 19 (by norm_num)
+
+lemma inequality : log 521284 / log 2 ≤ 19 :=
+begin
+  rw div_le_iff (log_pos one_lt_two),
+  calc log 521284
+        ≤ log (2 ^ (19 : ℝ)) : (@log_le_log 521284 _ (by norm_num) (by norm_num)).2 (by norm_num)
+    ... = 19 * log 2 : @log_rpow 2 two_pos 19,
+end
+
 -- This is best possible; it is false for x = 99.
 lemma inequality1 {x : ℝ} (n_large : 100 ≤ x) : log x / (x * log 4) ≤ 1/30 :=
 begin
@@ -248,62 +284,68 @@ begin
   ring_nf,
 end
 
+lemma exp_rpow (x a : ℝ) (hx : 0 < x) : (exp x) ^ a = exp (x * a) :=
+begin
+  exact (exp_mul x a).symm,
+end
+
 -- The sqrts could be changed to ^(1/2) and then changed to generalize the 2 out.
 -- It could also be moved near log_div_self_antitone_on
+-- it could also be made into an antitone_on statemnt
+lemma log_div_rpow_decreasing {x y a : ℝ} (ha : 0 < a) (hex : exp (1 / a) ≤ x) (hxy : x ≤ y) :
+  log y / y ^ a ≤ log x / x ^ a :=
+begin
+  have x_pos : 0 < x := lt_of_lt_of_le (exp_pos (1 / a)) hex,
+  have y_pos : 0 < y := by linarith,
+  have x_nonneg : 0 ≤ x := le_trans (le_of_lt (exp_pos (1 / a))) hex,
+  have y_nonneg : 0 ≤ y := by linarith,
+  nth_rewrite 0 ←rpow_one y,
+  nth_rewrite 0 ←rpow_one x,
+  rw ←div_self (ne_of_lt ha).symm,
+  rw div_eq_mul_one_div a a,
+  rw rpow_mul,
+  rw rpow_mul,
+  rw log_rpow (rpow_pos_of_pos y_pos a),
+  rw log_rpow (rpow_pos_of_pos x_pos a),
+  -- rw [log_rpow (sqrt_pos.mpr y_pos), log_rpow (sqrt_pos.mpr x_pos)],
+  -- simp only [nat.cast_bit0, nat.cast_one],
+  repeat { rw mul_div_assoc, },
+  rw mul_le_mul_left,
+  { refine log_div_self_antitone_on _ _ _,
+    { simp only [set.mem_set_of_eq],
+      convert rpow_le_rpow _ hex (le_of_lt ha),
+      rw ←exp_mul,
+      simp only [real.exp_eq_exp],
+      field_simp [(ne_of_lt ha).symm],
+      exact le_of_lt (exp_pos (1 / a)), },
+    { simp only [set.mem_set_of_eq],
+      convert rpow_le_rpow _ (trans hex hxy) (le_of_lt ha),
+      rw ←exp_mul,
+      simp only [real.exp_eq_exp],
+      field_simp [(ne_of_lt ha).symm],
+      exact le_of_lt (exp_pos (1 / a)), },
+    apply rpow_le_rpow,
+    exact x_nonneg,
+    exact hxy,
+    exact le_of_lt ha, },
+  exact one_div_pos.mpr ha,
+  exact x_nonneg,
+  exact y_nonneg,
+end
+
+-- The sqrts could be changed to ^(1/2) and then changed to generalize the 2 out.
+-- It could also be moved near log_div_self_antitone_on
+-- it could also be made into an antitone_on statemnt
 lemma log_div_sqrt_decreasing {x y : ℝ} (hex : exp 2 ≤ x) (hxy : x ≤ y) :
   log y / sqrt y ≤ log x / sqrt x :=
 begin
-  have x_pos : 0 < x := lt_of_lt_of_le (exp_pos 2) hex,
-  have y_pos : 0 < y := by linarith,
-  have x_nonneg : 0 ≤ x := le_trans (le_of_lt (exp_pos 2)) hex,
-  have y_nonneg : 0 ≤ y := by linarith,
-  conv_lhs { congr, rw ←sq_sqrt y_nonneg, },
-  conv_rhs { congr, rw ←sq_sqrt x_nonneg, },
-  rw [←rpow_nat_cast, ←rpow_nat_cast, log_rpow (sqrt_pos.mpr y_pos), log_rpow (sqrt_pos.mpr x_pos)],
-  simp only [nat.cast_bit0, nat.cast_one],
-  repeat { rw mul_div_assoc, },
-  rw mul_le_mul_left two_pos,
-  { refine log_div_self_antitone_on _ _ (sqrt_le_sqrt hxy),
-    repeat { simp only [set.mem_set_of_eq],
-      rw [le_sqrt (le_of_lt (exp_pos 1)), ←exp_nat_mul],
-      norm_num, linarith, linarith, }, },
-  { exact real.nontrivial, },
-end
-
--- TODO this ought to be generalized to all comm_group_with_zero and moved,
--- probably somewhere near mul_div_mul_left
-lemma real.div_mul_eq_div_div {a b c : ℝ} (hb : b ≠ 0) (hc : c ≠ 0) : a / (b * c) = (a / b) / c :=
-by field_simp
-
-lemma log_four : log 4 = 2 * log 2 :=
-calc log 4 = log (2 ^ (2 : ℝ)) : by norm_num
-  ... = 2 * log 2 : by rw log_rpow two_pos
-
-lemma sqrt_361 : sqrt 361 = 19 :=
-calc sqrt 361 = sqrt (19 ^ 2) : by norm_num
-  ... = 19 : sqrt_sq (by norm_num)
-
--- open tactic.interactive
--- meta def collapse_log : tactic unit :=
--- do
---   tactic.repeat { tactic.interactive.rw [``(real.log_rpow), ``(real.log_mul)], }
-  --tactic.repeat tactic.norm_num,
-
-lemma log_722 : log 722 = log 2 + 2 * log 19 :=
-begin
-  repeat { rw ←log_rpow, rw ←log_mul, },
-  repeat { norm_num, },
-end
---calc log 722 = log (2 * 19 ^ (2 : ℝ)) : by norm_num
---  ... = log 2 + log (19 ^ (2 : ℝ)) : log_mul (by norm_num) (by norm_num)
---  ... = log 2 + 2 * log 19 : by rw @log_rpow 19 (by norm_num)
-
-lemma inequality : log 521284 / log 2 ≤ 19 :=
-begin
-  rw div_le_iff (log_pos one_lt_two),
-  calc log 521284
-        ≤ log (2 ^ (19 : ℝ)) : (@log_le_log 521284 _ (by norm_num) (by norm_num)).2 (by norm_num)
-    ... = 19 * log 2 : @log_rpow 2 two_pos 19,
+  rw sqrt_eq_rpow,
+  rw sqrt_eq_rpow,
+  apply log_div_rpow_decreasing,
+  norm_num,
+  simp only [one_div, inv_inv],
+  assumption,
+  assumption,
 end
 
 -- This is best possible: it's false for x = 721.

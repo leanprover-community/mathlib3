@@ -394,6 +394,10 @@ def comp_right (f : M₂ →ₗ[R] M₃) : (M →ₗ[R] M₂) →ₗ[R] (M →�
   map_add' := λ _ _, linear_map.ext $ λ _, f.map_add _ _,
   map_smul' := λ _ _, linear_map.ext $ λ _, f.map_smul _ _ }
 
+@[simp]
+lemma comp_right_apply (f : M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂) :
+  comp_right f g = f.comp g := rfl
+
 /-- Applying a linear map at `v : M`, seen as a linear map from `M →ₗ[R] M₂` to `M₂`.
 See also `linear_map.applyₗ'` for a version that works with two different semirings.
 

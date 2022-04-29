@@ -58,6 +58,10 @@ lemma prod_cons (a : α) (s) : prod (a ::ₘ s) = a * prod s := foldr_cons _ _ _
 lemma prod_singleton (a : α) : prod {a} = a :=
 by simp only [mul_one, prod_cons, singleton_eq_cons, eq_self_iff_true, prod_zero]
 
+@[to_additive]
+lemma prod_pair (a b : α) : ({a, b} : multiset α).prod = a * b :=
+by rw [insert_eq_cons, prod_cons, prod_singleton]
+
 @[simp, to_additive]
 lemma prod_add (s t : multiset α) : prod (s + t) = prod s * prod t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, by simp

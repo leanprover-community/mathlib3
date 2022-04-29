@@ -87,7 +87,7 @@ It is stated in more general form than needed: in the intended application, `Z =
 root of `f`, `ε` is small, `M` is a bound on the Lipschitz constant of `f` near `α`, `n` is
 the degree of the polynomial `f`.
 -/
-lemma exists_one_le_pow_mul_dist {Z N R : Type*} [metric_space R]
+lemma exists_one_le_pow_mul_dist {Z N R : Type*} [pseudo_metric_space R]
   {d : N → ℝ} {j : Z → N → R} {f : R → R} {α : R} {ε M : ℝ}
 -- denominators are positive
   (d0 : ∀ (a : N), 1 ≤ d a)

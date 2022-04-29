@@ -13,9 +13,8 @@ import topology.uniform_space.compact_separated
 In this file we define the integral of a function over a box in `ℝⁿ. The same definition works for
 Riemann, Henstock-Kurzweil, and McShane integrals.
 
-As usual, we represent `ℝⁿ` as the type of functions `ι → ℝ` for some finite type `ι`. A rectangular
-box `(l, u]` in `ℝⁿ` is defined to be the set `{x : ι → ℝ | ∀ i, l i < x i ∧ x i ≤ u i}`, see
-`box_integral.box`.
+As usual, we represent `ℝⁿ` as the type of functions `fin n → ℝ`. A rectangular box `(l, u]` in `ℝⁿ`
+is defined to be the set `{x : ℝⁿ | ∀ i, l i < x i ∧ x i ≤ u i}`, see `box_integral.box`.
 
 Let `vol` be a box-additive function on boxes in `ℝⁿ` with codomain `E →L[ℝ] F`. Given a function
 `f : ℝⁿ → E`, a box `I` and a tagged partition `π` of this box, the *integral sum* of `f` over `π`
@@ -41,7 +40,8 @@ non-Riemann filter (e.g., Henstock-Kurzweil and McShane).
 
 ## Notation
 
-- `ℝⁿ`: local notation for `ι → ℝ`
+- `ℝⁿ`: local notation for `fin n → ℝ`;
+- `ℝ>0`: local notation for `{x : ℝ // 0 < x}`.
 
 ## Tags
 
@@ -55,14 +55,15 @@ noncomputable theory
 
 namespace box_integral
 
-universes u v w
+universes u v
 
-variables {ι : Type u} {E : Type v} {F : Type w} [normed_group E] [normed_space ℝ E]
-  [normed_group F] [normed_space ℝ F] {I J : box ι} {π : tagged_prepartition I}
+variables {n : ℕ} {E : Type u} {F : Type v} [normed_group E] [normed_space ℝ E]
+  [normed_group F] [normed_space ℝ F] {I J : box n} {π : tagged_prepartition I}
 
 open tagged_prepartition
 
-local notation `ℝⁿ` := ι → ℝ
+local notation `ℝⁿ` := fin n → ℝ
+local notation `ℝ>0` := {x : ℝ // 0 < x}
 
 /-!
 ### Integral sum and its basic properties
@@ -70,10 +71,10 @@ local notation `ℝⁿ` := ι → ℝ
 
 /-- The integral sum of `f : ℝⁿ → E` over a tagged prepartition `π` w.r.t. box-additive volume `vol`
 with codomain `E →L[ℝ] F` is the sum of `vol J (f (π.tag J))` over all boxes of `π`. -/
-def integral_sum (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F)) (π : tagged_prepartition I) : F :=
+def integral_sum (f : ℝⁿ → E) (vol : n →ᵇᵃ (E →L[ℝ] F)) (π : tagged_prepartition I) : F :=
 ∑ J in π.boxes, vol J (f (π.tag J))
 
-lemma integral_sum_bUnion_tagged (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F)) (π : prepartition I)
+lemma integral_sum_bUnion_tagged (f : ℝⁿ → E) (vol : n →ᵇᵃ (E →L[ℝ] F)) (π : prepartition I)
   (πi : Π J, tagged_prepartition J) :
   integral_sum f vol (π.bUnion_tagged πi) = ∑ J in π.boxes, integral_sum f vol (πi J) :=
 begin
@@ -81,7 +82,7 @@ begin
   rw π.tag_bUnion_tagged hJ hJ'
 end
 
-lemma integral_sum_bUnion_partition (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F))
+lemma integral_sum_bUnion_partition (f : ℝⁿ → E) (vol : n →ᵇᵃ (E →L[ℝ] F))
   (π : tagged_prepartition I) (πi : Π J, prepartition J) (hπi : ∀ J ∈ π, (πi J).is_partition) :
   integral_sum f vol (π.bUnion_prepartition πi) = integral_sum f vol π :=
 begin
@@ -94,17 +95,17 @@ begin
       le_top (hπi J hJ)
 end
 
-lemma integral_sum_inf_partition (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F))
+lemma integral_sum_inf_partition (f : ℝⁿ → E) (vol : n →ᵇᵃ (E →L[ℝ] F))
   (π : tagged_prepartition I) {π' : prepartition I} (h : π'.is_partition) :
   integral_sum f vol (π.inf_prepartition π') = integral_sum f vol π :=
 integral_sum_bUnion_partition f vol  π _ $ λ J hJ, h.restrict (prepartition.le_of_mem _ hJ)
 
-lemma integral_sum_fiberwise {α} (g : box ι → α) (f : ℝⁿ → E)
-  (vol : ι →ᵇᵃ (E →L[ℝ] F)) (π : tagged_prepartition I) :
+lemma integral_sum_fiberwise {α} (g : box n → α) (f : ℝⁿ → E)
+  (vol : n →ᵇᵃ (E →L[ℝ] F)) (π : tagged_prepartition I) :
   ∑ y in π.boxes.image g, integral_sum f vol (π.filter (λ x, g x = y)) = integral_sum f vol π :=
 π.to_prepartition.sum_fiberwise g (λ J, vol J (f $ π.tag J))
 
-lemma integral_sum_sub_partitions (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F))
+lemma integral_sum_sub_partitions (f : ℝⁿ → E) (vol : n →ᵇᵃ (E →L[ℝ] F))
   {π₁ π₂ : tagged_prepartition I} (h₁ : π₁.is_partition) (h₂ : π₂.is_partition) :
   integral_sum f vol π₁ - integral_sum f vol π₂ =
     ∑ J in (π₁.to_prepartition ⊓ π₂.to_prepartition).boxes,
@@ -117,7 +118,7 @@ begin
   simp only [inf_prepartition_to_prepartition, _root_.inf_comm]
 end
 
-@[simp] lemma integral_sum_disj_union (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F))
+@[simp] lemma integral_sum_disj_union (f : ℝⁿ → E) (vol : n →ᵇᵃ (E →L[ℝ] F))
   {π₁ π₂ : tagged_prepartition I} (h : disjoint π₁.Union π₂.Union) :
   integral_sum f vol (π₁.disj_union π₂ h) = integral_sum f vol π₁ + integral_sum f vol π₂ :=
 begin
@@ -127,22 +128,20 @@ begin
   { rw disj_union_tag_of_mem_right _ hJ }
 end
 
-@[simp] lemma integral_sum_add (f g : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F))
+@[simp] lemma integral_sum_add (f g : ℝⁿ → E) (vol : n →ᵇᵃ (E →L[ℝ] F))
   (π : tagged_prepartition I) :
   integral_sum (f + g) vol π = integral_sum f vol π + integral_sum g vol π :=
 by simp only [integral_sum, pi.add_apply, (vol _).map_add, finset.sum_add_distrib]
 
-@[simp] lemma integral_sum_neg (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F))
+@[simp] lemma integral_sum_neg (f : ℝⁿ → E) (vol : n →ᵇᵃ (E →L[ℝ] F))
   (π : tagged_prepartition I) :
   integral_sum (-f) vol π = -integral_sum f vol π :=
 by simp only [integral_sum, pi.neg_apply, (vol _).map_neg, finset.sum_neg_distrib]
 
-@[simp] lemma integral_sum_smul (c : ℝ) (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F))
+@[simp] lemma integral_sum_smul (c : ℝ) (f : ℝⁿ → E) (vol : n →ᵇᵃ (E →L[ℝ] F))
   (π : tagged_prepartition I) :
   integral_sum (c • f) vol π = c • integral_sum f vol π :=
 by simp only [integral_sum, finset.smul_sum, pi.smul_apply, continuous_linear_map.map_smul]
-
-variables [fintype ι]
 
 /-!
 ### Basic integrability theory
@@ -151,21 +150,21 @@ variables [fintype ι]
 /-- The predicate `has_integral I l f vol y` says that `y` is the integral of `f` over `I` along `l`
 w.r.t. volume `vol`. This means that integral sums of `f` tend to `𝓝 y` along
 `box_integral.integration_params.to_filter_Union I ⊤`. -/
-def has_integral (I : box ι) (l : integration_params) (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F))
+def has_integral (I : box n) (l : integration_params) (f : ℝⁿ → E) (vol : n →ᵇᵃ (E →L[ℝ] F))
   (y : F) : Prop :=
 tendsto (integral_sum f vol) (l.to_filter_Union I ⊤) (𝓝 y)
 
 /-- A function is integrable if there exists a vector that satisfies the `has_integral`
 predicate. -/
-def integrable (I : box ι) (l : integration_params) (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F)) :=
+def integrable (I : box n) (l : integration_params) (f : ℝⁿ → E) (vol : n →ᵇᵃ (E →L[ℝ] F)) :=
 ∃ y, has_integral I l f vol y
 
 /-- The integral of a function `f` over a box `I` along a filter `l` w.r.t. a volume `vol`.  Returns
 zero on non-integrable functions. -/
-def integral (I : box ι) (l : integration_params) (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F)) :=
+def integral (I : box n) (l : integration_params) (f : ℝⁿ → E) (vol : n →ᵇᵃ (E →L[ℝ] F)) :=
 if h : integrable I l f vol then h.some else 0
 
-variables {l : integration_params} {f g : ℝⁿ → E} {vol : ι →ᵇᵃ (E →L[ℝ] F)} {y y' : F}
+variables {l : integration_params} {f g : ℝⁿ → E} {vol : n →ᵇᵃ (E →L[ℝ] F)} {y y' : F}
 
 /-- Reinterpret `box_integral.has_integral` as `filter.tendsto`, e.g., dot-notation theorems
 that are shadowed in the `box_integral.has_integral` namespace. -/
@@ -174,7 +173,7 @@ lemma has_integral.tendsto (h : has_integral I l f vol y) :
 
 /-- The `ε`-`δ` definition of `box_integral.has_integral`. -/
 lemma has_integral_iff : has_integral I l f vol y ↔
-  ∀ ε > (0 : ℝ), ∃ r : ℝ≥0 → ℝⁿ → Ioi (0 : ℝ), (∀ c, l.r_cond (r c)) ∧
+  ∀ ε > (0 : ℝ), ∃ r : ℝ≥0 → ℝⁿ → ℝ>0, (∀ c, l.r_cond (r c)) ∧
     ∀ c π, l.mem_base_set I c (r c) π → is_partition π → dist (integral_sum f vol π) y ≤ ε :=
 ((l.has_basis_to_filter_Union_top I).tendsto_iff nhds_basis_closed_ball).trans $
   by simp [@forall_swap ℝ≥0 (tagged_prepartition I)]
@@ -182,7 +181,7 @@ lemma has_integral_iff : has_integral I l f vol y ↔
 /-- Quite often it is more natural to prove an estimate of the form `a * ε`, not `ε` in the RHS of
 `box_integral.has_integral_iff`, so we provide this auxiliary lemma.  -/
 lemma has_integral_of_mul (a : ℝ) (h : ∀ ε : ℝ, 0 < ε →
-  ∃ r: ℝ≥0 → ℝⁿ → Ioi (0 : ℝ), (∀ c, l.r_cond (r c)) ∧ ∀ c π, l.mem_base_set I c (r c) π →
+  ∃ r: ℝ≥0 → ℝⁿ → ℝ>0, (∀ c, l.r_cond (r c)) ∧ ∀ c π, l.mem_base_set I c (r c) π →
     is_partition π → dist (integral_sum f vol π) y ≤ a * ε) :
   has_integral I l f vol y :=
 begin
@@ -199,7 +198,7 @@ cauchy_map_iff_exists_tendsto.symm
 /-- In a complete space, a function is integrable if and only if its integral sums form a Cauchy
 net. Here we restate this fact in terms of `∀ ε > 0, ∃ r, ...`. -/
 lemma integrable_iff_cauchy_basis [complete_space F] :
-  integrable I l f vol ↔ ∀ ε > (0 : ℝ), ∃ r : ℝ≥0 → ℝⁿ → Ioi (0 : ℝ), (∀ c, l.r_cond (r c)) ∧
+  integrable I l f vol ↔ ∀ ε > (0 : ℝ), ∃ r : ℝ≥0 → ℝⁿ → ℝ>0, (∀ c, l.r_cond (r c)) ∧
     ∀ c₁ c₂ π₁ π₂, l.mem_base_set I c₁ (r c₁) π₁ → π₁.is_partition → l.mem_base_set I c₂ (r c₂) π₂ →
       π₂.is_partition → dist (integral_sum f vol π₁) (integral_sum f vol π₂) ≤ ε :=
 begin
@@ -342,7 +341,7 @@ lemma norm_integral_le_of_norm_le {g : ℝⁿ → ℝ} (hle : ∀ x ∈ I.Icc, �
   ∥(integral I l f μ.to_box_additive.to_smul : E)∥ ≤
     integral I l g μ.to_box_additive.to_smul :=
 begin
-  by_cases hfi : integrable.{u v v} I l f μ.to_box_additive.to_smul,
+  by_cases hfi : integrable.{u u} I l f μ.to_box_additive.to_smul,
   { refine le_of_tendsto_of_tendsto' hfi.has_integral.norm hg.has_integral (λ π, _),
     refine norm_sum_le_of_le _ (λ J hJ, _),
     simp only [box_additive_map.to_smul_apply, norm_smul, smul_eq_mul, real.norm_eq_abs,
@@ -395,9 +394,9 @@ corresponding integral sum is `ε`-close to the integral.
 
 If `box.integral.integration_params.bRiemann = tt`, then `r c x` does not depend on `x`. If `ε ≤ 0`,
 then we use `r c x = 1`.  -/
-def convergence_r (h : integrable I l f vol) (ε : ℝ) : ℝ≥0 → ℝⁿ → Ioi (0 : ℝ) :=
+def convergence_r (h : integrable I l f vol) (ε : ℝ) : ℝ≥0 → ℝⁿ → ℝ>0 :=
 if hε : 0 < ε then (has_integral_iff.1 h.has_integral ε hε).some
-else λ _ _, ⟨1, set.mem_Ioi.2 zero_lt_one⟩
+else λ _ _, ⟨1, zero_lt_one⟩
 
 variables {c c₁ c₂ : ℝ≥0} {ε ε₁ ε₂ : ℝ} {π₁ π₂ : tagged_prepartition I}
 
@@ -438,7 +437,7 @@ lemma dist_integral_sum_le_of_mem_base_set (h : integrable I l f vol)
   dist (integral_sum f vol π₁) (integral_sum f vol π₂) ≤ ε₁ + ε₂ :=
 begin
   rcases h₁.exists_common_compl h₂ HU with ⟨π, hπU, hπc₁, hπc₂⟩,
-  set r : ℝⁿ → Ioi (0 : ℝ) := λ x, min (h.convergence_r ε₁ c₁ x) (h.convergence_r ε₂ c₂ x),
+  set r : ℝⁿ → ℝ>0 := λ x, min (h.convergence_r ε₁ c₁ x) (h.convergence_r ε₂ c₂ x),
   have hr : l.r_cond r := (h.convergence_r_cond _ c₁).min (h.convergence_r_cond _ c₂),
   set πr := π.to_subordinate r,
   have H₁ : dist (integral_sum f vol (π₁.union_compl_to_subordinate π hπU r))
@@ -617,7 +616,7 @@ if `π₁`, `π₂` are two prepartitions of `I` covering the same part of `I`, 
 of `f` over the boxes of `π₁` is equal to the sum of integrals of `f` over the boxes of `π₂`.
 
 See also `box_integral.integrable.sum_integral_congr` for an unbundled version. -/
-@[simps] def to_box_additive (h : integrable I l f vol) : ι →ᵇᵃ[I] F :=
+@[simps] def to_box_additive (h : integrable I l f vol) : n →ᵇᵃ[I] F :=
 { to_fun := λ J, integral J l f vol,
   sum_partition_boxes' := λ J hJ π hπ,
     begin
@@ -639,9 +638,9 @@ variable (l)
 /-- A continuous function is box-integrable with respect to any locally finite measure.
 
 This is true for any volume with bounded variation. -/
-lemma integrable_of_continuous_on [complete_space E] {I : box ι} {f : ℝⁿ → E}
+lemma integrable_of_continuous_on [complete_space E] {I : box n} {f : ℝⁿ → E}
   (hc : continuous_on f I.Icc) (μ : measure ℝⁿ) [is_locally_finite_measure μ] :
-  integrable.{u v v} I l f μ.to_box_additive.to_smul :=
+  integrable.{u u} I l f μ.to_box_additive.to_smul :=
 begin
   have huc := I.is_compact_Icc.uniform_continuous_on_of_continuous hc,
   rw metric.uniform_continuous_on_iff_le at huc,
@@ -677,7 +676,7 @@ variable {l}
 /-- This is an auxiliary lemma used to prove two statements at once. Use one of the next two
 lemmas instead. -/
 lemma has_integral_of_bRiemann_eq_ff_of_forall_is_o (hl : l.bRiemann = ff)
-  (B : ι →ᵇᵃ[I] ℝ) (hB0 : ∀ J, 0 ≤ B J) (g : ι →ᵇᵃ[I] F) (s : set ℝⁿ) (hs : s.countable)
+  (B : n →ᵇᵃ[I] ℝ) (hB0 : ∀ J, 0 ≤ B J) (g : n →ᵇᵃ[I] F) (s : set ℝⁿ) (hs : s.countable)
   (hlH : s.nonempty → l.bHenstock = tt)
   (H₁ : ∀ (c : ℝ≥0) (x ∈ I.Icc ∩ s) (ε > (0 : ℝ)), ∃ δ > 0, ∀ J ≤ I,
     J.Icc ⊆ metric.closed_ball x δ → x ∈ J.Icc →
@@ -689,10 +688,10 @@ lemma has_integral_of_bRiemann_eq_ff_of_forall_is_o (hl : l.bRiemann = ff)
 begin
   /- We choose `r x` differently for `x ∈ s` and `x ∉ s`.
 
-  For `x ∈ s`, we choose `εs` such that `∑' x : s, εs x < ε / 2 / 2 ^ #ι`, then choose `r x` so that
+  For `x ∈ s`, we choose `εs` such that `∑' x : s, εs x < ε / 2 / 2 ^ n`, then choose `r x` so that
   `dist (vol J (f x)) (g J) ≤ εs x` for `J` in the `r x`-neighborhood of `x`. This guarantees that
   the sum of these distances over boxes `J` such that `π.tag J ∈ s` is less than `ε / 2`. We need an
-  additional multiplier `2 ^ #ι` because different boxes can have the same tag.
+  additional multiplier `2 ^ n` because different boxes can have the same tag.
 
   For `x ∉ s`, we choose `r x` so that `dist (vol (J (f x))) (g J) ≤ (ε / 2 / B I) * B J` for a box
   `J` in the `δ`-neighborhood of `x`. -/
@@ -701,11 +700,11 @@ begin
   simp only [subtype.exists'] at H₁ H₂,
   choose! δ₁ Hδ₁ using H₁,
   choose! δ₂ Hδ₂ using H₂,
-  have ε0' := half_pos ε0, have H0 : 0 < (2 ^ fintype.card ι : ℝ), from pow_pos zero_lt_two _,
+  have ε0' := half_pos ε0, have H0 : 0 < (2 ^ n : ℝ), from pow_pos zero_lt_two _,
   rcases hs.exists_pos_forall_sum_le (div_pos ε0' H0) with ⟨εs, hεs0, hεs⟩,
   simp only [le_div_iff' H0, mul_sum] at hεs,
   rcases exists_pos_mul_lt ε0' (B I) with ⟨ε', ε'0, hεI⟩,
-  set δ : ℝ≥0 → ℝⁿ → Ioi (0 : ℝ) := λ c x, if x ∈ s then δ₁ c x (εs x) else (δ₂ c) x ε',
+  set δ : ℝ≥0 → ℝⁿ → ℝ>0 := λ c x, if x ∈ s then δ₁ c x (εs x) else (δ₂ c) x ε',
   refine ⟨δ, λ c, l.r_cond_of_bRiemann_eq_ff hl, _⟩,
   simp only [set.mem_Union, mem_inter_eq, mem_set_of_eq],
   rintro π ⟨c, hπδ, hπp⟩,
@@ -715,7 +714,7 @@ begin
     ← sum_filter_add_sum_filter_not π.boxes (λ J, π.tag J ∈ s), ← add_halves ε],
   refine dist_add_add_le_of_le _ _,
   { unfreezingI { rcases s.eq_empty_or_nonempty with rfl|hsne }, { simp [ε0'.le] },
-    /- For the boxes such that `π.tag J ∈ s`, we use the fact that at most `2 ^ #ι` boxes have the
+    /- For the boxes such that `π.tag J ∈ s`, we use the fact that at most `2 ^ n` boxes have the
     same tag. -/
     specialize hlH hsne,
     have : ∀ J ∈ π.boxes.filter (λ J, π.tag J ∈ s), dist (vol J (f $ π.tag J)) (g J) ≤ εs (π.tag J),
@@ -766,8 +765,8 @@ the distance between the term `vol J (f x)` of an integral sum corresponding to 
 less than or equal to `ε` if `x ∈ s` and is less than or equal to `ε * B J` otherwise.
 
 Then `f` is integrable on `I along `l` with integral `g I`. -/
-lemma has_integral_of_le_Henstock_of_forall_is_o (hl : l ≤ Henstock) (B : ι →ᵇᵃ[I] ℝ)
-  (hB0 : ∀ J, 0 ≤ B J) (g : ι →ᵇᵃ[I] F) (s : set ℝⁿ) (hs : s.countable)
+lemma has_integral_of_le_Henstock_of_forall_is_o (hl : l ≤ Henstock) (B : n →ᵇᵃ[I] ℝ)
+  (hB0 : ∀ J, 0 ≤ B J) (g : n →ᵇᵃ[I] F) (s : set ℝⁿ) (hs : s.countable)
   (H₁ : ∀ (c : ℝ≥0) (x ∈ I.Icc ∩ s) (ε > (0 : ℝ)), ∃ δ > 0, ∀ J ≤ I,
     J.Icc ⊆ metric.closed_ball x δ → x ∈ J.Icc → (l.bDistortion → J.distortion ≤ c) →
     dist (vol J (f x)) (g J) ≤ ε)
@@ -791,8 +790,8 @@ the distance between the term `vol J (f x)` of an integral sum corresponding to 
 less than or equal to `ε * B J`.
 
 Then `f` is McShane integrable on `I` with integral `g I`. -/
-lemma has_integral_McShane_of_forall_is_o (B : ι →ᵇᵃ[I] ℝ) (hB0 : ∀ J, 0 ≤ B J)
-  (g : ι →ᵇᵃ[I] F) (H : ∀ (c : ℝ≥0) (x ∈ I.Icc) (ε > (0 : ℝ)), ∃ δ > 0, ∀ J ≤ I,
+lemma has_integral_McShane_of_forall_is_o (B : n →ᵇᵃ[I] ℝ) (hB0 : ∀ J, 0 ≤ B J)
+  (g : n →ᵇᵃ[I] F) (H : ∀ (c : ℝ≥0) (x ∈ I.Icc) (ε > (0 : ℝ)), ∃ δ > 0, ∀ J ≤ I,
     J.Icc ⊆ metric.closed_ball x δ → dist (vol J (f x)) (g J) ≤ ε * B J) :
   has_integral I McShane f vol (g I) :=
 has_integral_of_bRiemann_eq_ff_of_forall_is_o rfl B hB0 g ∅ countable_empty (λ ⟨x, hx⟩, hx.elim)

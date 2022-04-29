@@ -32,12 +32,14 @@ open set metric
 open_locale classical topological_space
 noncomputable theory
 
-variables {ι : Type*} [fintype ι] {I J : box ι}
+variables {n : ℕ} {I J : box n}
+local notation `ℝⁿ` := fin n → ℝ
+local notation `ℝ>0` := {x : ℝ // 0 < x}
 
 namespace prepartition
 
 /-- Split a box in `ℝⁿ` into `2 ^ n` boxes by hyperplanes passing through its center. -/
-def split_center (I : box ι) : prepartition I :=
+def split_center (I : box n) : prepartition I :=
 { boxes := finset.univ.map (box.split_center_box_emb I),
   le_of_mem' := by simp [I.split_center_box_le],
   pairwise_disjoint :=
@@ -50,10 +52,10 @@ def split_center (I : box ι) : prepartition I :=
 @[simp] lemma mem_split_center : J ∈ split_center I ↔ ∃ s, I.split_center_box s = J :=
 by simp [split_center]
 
-lemma is_partition_split_center (I : box ι) : is_partition (split_center I) :=
+lemma is_partition_split_center (I : box n) : is_partition (split_center I) :=
 λ x hx, by simp [hx]
 
-lemma upper_sub_lower_of_mem_split_center (h : J ∈ split_center I) (i : ι) :
+lemma upper_sub_lower_of_mem_split_center (h : J ∈ split_center I) (i : fin n) :
   J.upper i - J.lower i = (I.upper i - I.lower i) / 2 :=
 let ⟨s, hs⟩ := mem_split_center.1 h in hs ▸ I.upper_sub_lower_split_center_box s i
 
@@ -63,7 +65,7 @@ namespace box
 
 open prepartition tagged_prepartition
 
-/-- Let `p` be a predicate on `box ι`, let `I` be a box. Suppose that the following two properties
+/-- Let `p` be a predicate on `box n`, let `I` be a box. Suppose that the following two properties
 hold true.
 
 * Consider a smaller box `J ≤ I`. The hyperplanes passing through the center of `J` split it into
@@ -75,7 +77,7 @@ hold true.
 Then `p I` is true. See also `box_integral.box.subbox_induction_on'` for a version using
 `box_integral.box.split_center_box` instead of `box_integral.prepartition.split_center`. -/
 @[elab_as_eliminator]
-lemma subbox_induction_on {p : box ι → Prop} (I : box ι)
+lemma subbox_induction_on {p : box n → Prop} (I : box n)
   (H_ind : ∀ J ≤ I, (∀ J' ∈ split_center J, p J') → p J)
   (H_nhds : ∀ z ∈ I.Icc, ∃ (U ∈ 𝓝[I.Icc] z), ∀ (J ≤ I) (m : ℕ), z ∈ J.Icc → J.Icc ⊆ U →
     (∀ i, J.upper i - J.lower i = (I.upper i - I.lower i) / 2 ^ m) → p J) :
@@ -95,22 +97,22 @@ end
 
 This lemma implies that the Henstock filter is nontrivial, hence the Henstock integral is
 well-defined. -/
-lemma exists_tagged_partition_is_Henstock_is_subordinate_homothetic (I : box ι)
-  (r : (ι → ℝ) → Ioi (0 : ℝ)) :
+lemma exists_tagged_partition_is_Henstock_is_subordinate_homothetic (I : box n)
+  (r : ℝⁿ → ℝ>0) :
   ∃ π : tagged_prepartition I, π.is_partition ∧ π.is_Henstock ∧ π.is_subordinate r ∧
     (∀ J ∈ π, ∃ m : ℕ, ∀ i, (J : _).upper i - J.lower i = (I.upper i - I.lower i) / 2 ^ m) ∧
     π.distortion = I.distortion :=
 begin
   refine subbox_induction_on I (λ J hle hJ, _) (λ z hz, _),
-  { choose! πi hP hHen hr Hn Hd using hJ, choose! n hn using Hn,
+  { choose! πi hP hHen hr Hk Hd using hJ, choose! k hk using Hk,
     have hP : ((split_center J).bUnion_tagged πi).is_partition,
       from (is_partition_split_center _).bUnion_tagged hP,
-    have hsub : ∀ (J' ∈ (split_center J).bUnion_tagged πi), ∃ n : ℕ, ∀ i,
-      (J' : _).upper i - J'.lower i = (J.upper i - J.lower i) / 2 ^ n,
+    have hsub : ∀ (J' ∈ (split_center J).bUnion_tagged πi), ∃ l : ℕ, ∀ i,
+      (J' : _).upper i - J'.lower i = (J.upper i - J.lower i) / 2 ^ l,
     { intros J' hJ',
       rcases (split_center J).mem_bUnion_tagged.1 hJ' with ⟨J₁, h₁, h₂⟩,
-      refine ⟨n J₁ J' + 1, λ i, _⟩,
-      simp only [hn J₁ h₁ J' h₂, upper_sub_lower_of_mem_split_center h₁, pow_succ,
+      refine ⟨k J₁ J' + 1, λ i, _⟩,
+      simp only [hk J₁ h₁ J' h₂, upper_sub_lower_of_mem_split_center h₁, pow_succ,
         div_div_eq_div_mul] },
     refine ⟨_, hP, is_Henstock_bUnion_tagged.2 hHen, is_subordinate_bUnion_tagged.2 hr, hsub, _⟩,
     refine tagged_prepartition.distortion_of_const _ hP.nonempty_boxes (λ J' h', _),
@@ -141,7 +143,7 @@ exists a tagged prepartition `π'` of `I` such that
 * `π'` covers exactly the same part of `I` as `π`;
 * the distortion of `π'` is equal to the distortion of `π`.
 -/
-lemma exists_tagged_le_is_Henstock_is_subordinate_Union_eq {I : box ι} (r : (ι → ℝ) → Ioi (0 : ℝ))
+lemma exists_tagged_le_is_Henstock_is_subordinate_Union_eq {I : box n} (r : ℝⁿ → ℝ>0)
   (π : prepartition I) :
   ∃ π' : tagged_prepartition I, π'.to_prepartition ≤ π ∧
     π'.is_Henstock ∧ π'.is_subordinate r ∧ π'.distortion = π.distortion ∧
@@ -164,26 +166,26 @@ is a tagged partition `π'` such that
 * `π'` covers exactly the same part of `I` as `π`;
 * the distortion of `π'` is equal to the distortion of `π`.
 -/
-def to_subordinate (π : prepartition I) (r : (ι → ℝ) → Ioi (0 : ℝ)) : tagged_prepartition I :=
+def to_subordinate (π : prepartition I) (r : ℝⁿ → ℝ>0) : tagged_prepartition I :=
 (π.exists_tagged_le_is_Henstock_is_subordinate_Union_eq r).some
 
-lemma to_subordinate_to_prepartition_le (π : prepartition I) (r : (ι → ℝ) → Ioi (0 : ℝ)) :
+lemma to_subordinate_to_prepartition_le (π : prepartition I) (r : ℝⁿ → ℝ>0) :
   (π.to_subordinate r).to_prepartition ≤ π :=
 (π.exists_tagged_le_is_Henstock_is_subordinate_Union_eq r).some_spec.1
 
-lemma is_Henstock_to_subordinate (π : prepartition I) (r : (ι → ℝ) → Ioi (0 : ℝ)) :
+lemma is_Henstock_to_subordinate (π : prepartition I) (r : ℝⁿ → ℝ>0) :
   (π.to_subordinate r).is_Henstock :=
 (π.exists_tagged_le_is_Henstock_is_subordinate_Union_eq r).some_spec.2.1
 
-lemma is_subordinate_to_subordinate (π : prepartition I) (r : (ι → ℝ) → Ioi (0 : ℝ)) :
+lemma is_subordinate_to_subordinate (π : prepartition I) (r : ℝⁿ → ℝ>0) :
   (π.to_subordinate r).is_subordinate r :=
 (π.exists_tagged_le_is_Henstock_is_subordinate_Union_eq r).some_spec.2.2.1
 
-@[simp] lemma distortion_to_subordinate (π : prepartition I) (r : (ι → ℝ) → Ioi (0 : ℝ)) :
+@[simp] lemma distortion_to_subordinate (π : prepartition I) (r : ℝⁿ → ℝ>0) :
   (π.to_subordinate r).distortion = π.distortion :=
 (π.exists_tagged_le_is_Henstock_is_subordinate_Union_eq r).some_spec.2.2.2.1
 
-@[simp] lemma Union_to_subordinate (π : prepartition I) (r : (ι → ℝ) → Ioi (0 : ℝ)) :
+@[simp] lemma Union_to_subordinate (π : prepartition I) (r : ℝⁿ → ℝ>0) :
   (π.to_subordinate r).Union = π.Union :=
 (π.exists_tagged_le_is_Henstock_is_subordinate_Union_eq r).some_spec.2.2.2.2
 
@@ -203,28 +205,28 @@ a function `r : ℝⁿ → (0, ∞)`, returns the union of `π₁` and `π₂.to
 * the distortion of `π` is equal to the maximum of the distortions of `π₁` and `π₂`.
 -/
 def union_compl_to_subordinate (π₁ : tagged_prepartition I) (π₂ : prepartition I)
-  (hU : π₂.Union = I \ π₁.Union) (r : (ι → ℝ) → Ioi (0 : ℝ)) :
+  (hU : π₂.Union = I \ π₁.Union) (r : ℝⁿ → ℝ>0) :
   tagged_prepartition I :=
 π₁.disj_union (π₂.to_subordinate r)
   (((π₂.Union_to_subordinate r).trans hU).symm ▸ disjoint_diff)
 
 lemma is_partition_union_compl_to_subordinate (π₁ : tagged_prepartition I) (π₂ : prepartition I)
-  (hU : π₂.Union = I \ π₁.Union) (r : (ι → ℝ) → Ioi (0 : ℝ)) :
+  (hU : π₂.Union = I \ π₁.Union) (r : ℝⁿ → ℝ>0) :
   is_partition (π₁.union_compl_to_subordinate π₂ hU r) :=
 prepartition.is_partition_disj_union_of_eq_diff ((π₂.Union_to_subordinate r).trans hU)
 
 @[simp] lemma union_compl_to_subordinate_boxes (π₁ : tagged_prepartition I) (π₂ : prepartition I)
-  (hU : π₂.Union = I \ π₁.Union) (r : (ι → ℝ) → Ioi (0 : ℝ)) :
+  (hU : π₂.Union = I \ π₁.Union) (r : ℝⁿ → ℝ>0) :
   (π₁.union_compl_to_subordinate π₂ hU r).boxes = π₁.boxes ∪ (π₂.to_subordinate r).boxes :=
 rfl
 
 @[simp] lemma Union_union_compl_to_subordinate_boxes (π₁ : tagged_prepartition I)
-  (π₂ : prepartition I) (hU : π₂.Union = I \ π₁.Union) (r : (ι → ℝ) → Ioi (0 : ℝ)) :
+  (π₂ : prepartition I) (hU : π₂.Union = I \ π₁.Union) (r : ℝⁿ → ℝ>0) :
   (π₁.union_compl_to_subordinate π₂ hU r).Union = I :=
 (is_partition_union_compl_to_subordinate _ _ _ _).Union_eq
 
 @[simp] lemma distortion_union_compl_to_subordinate (π₁ : tagged_prepartition I)
-  (π₂ : prepartition I) (hU : π₂.Union = I \ π₁.Union) (r : (ι → ℝ) → Ioi (0 : ℝ)) :
+  (π₂ : prepartition I) (hU : π₂.Union = I \ π₁.Union) (r : ℝⁿ → ℝ>0) :
   (π₁.union_compl_to_subordinate π₂ hU r).distortion = max π₁.distortion π₂.distortion :=
 by simp [union_compl_to_subordinate]
 

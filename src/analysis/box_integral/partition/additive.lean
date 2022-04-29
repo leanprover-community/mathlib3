@@ -10,9 +10,9 @@ import data.set.intervals.proj_Icc
 /-!
 # Box additive functions
 
-We say that a function `f : box ι → M` from boxes in `ℝⁿ` to a commutative additive monoid `M` is
-*box additive* on subboxes of `I₀ : with_top (box ι)` if for any box `J`, `↑J ≤ I₀`, and a partition
-`π` of `J`, `f J = ∑ J' in π.boxes, f J'`. We use `I₀ : with_top (box ι)` instead of `I₀ : box ι` to
+We say that a function `f : box n → M` from boxes in `ℝⁿ` to a commutative additive monoid `M` is
+*box additive* on subboxes of `I₀ : with_top (box n)` if for any box `J`, `↑J ≤ I₀`, and a partition
+`π` of `J`, `f J = ∑ J' in π.boxes, f J'`. We use `I₀ : with_top (box n)` instead of `I₀ : box n` to
 use the same definition for functions box additive on subboxes of a box and for functions box
 additive on all boxes.
 
@@ -22,7 +22,12 @@ integrable function over a box.
 In this file we define box-additive functions and prove that a function such that
 `f J = f (J ∩ {x | x i < y}) + f (J ∩ {x | y ≤ x i})` is box-additive.
 
-### Tags
+## Notation
+
+- `ℝⁿ`: local notation for `fin n → ℝ`;
+- `ℝⁿ⁺¹`: local notation for `fin (n + 1) → ℝ`.
+
+## Tags
 
 rectangular box, additive function
 -/
@@ -33,81 +38,83 @@ open function set
 
 namespace box_integral
 
-variables {ι M : Type*} {n : ℕ}
+variables {M : Type*} {n : ℕ}
+local notation `ℝⁿ` := fin n → ℝ
+local notation `ℝⁿ⁺¹` := fin (n + 1) → ℝ
 
-/-- A function on `box ι` is called box additive if for every box `J` and a partition `π` of `J`
-we have `f J = ∑ Ji in π.boxes, f Ji`. A function is called box additive on subboxes of `I : box ι`
+/-- A function on `box n` is called box additive if for every box `J` and a partition `π` of `J`
+we have `f J = ∑ Ji in π.boxes, f Ji`. A function is called box additive on subboxes of `I : box n`
 if the same property holds for `J ≤ I`. We formalize these two notions in the same definition
-using `I : with_bot (box ι)`: the value `I = ⊤` corresponds to functions box additive on the whole
+using `I : with_bot (box n)`: the value `I = ⊤` corresponds to functions box additive on the whole
 space.  -/
-structure box_additive_map (ι M : Type*) [add_comm_monoid M] (I : with_top (box ι)) :=
-(to_fun : box ι → M)
-(sum_partition_boxes' : ∀ J : box ι, ↑J ≤ I → ∀ π : prepartition J, π.is_partition →
+structure box_additive_map (n : ℕ) (M : Type*) [add_comm_monoid M] (I : with_top (box n)) :=
+(to_fun : box n → M)
+(sum_partition_boxes' : ∀ J : box n, ↑J ≤ I → ∀ π : prepartition J, π.is_partition →
   ∑ Ji in π.boxes, to_fun Ji = to_fun J)
 
-localized "notation ι ` →ᵇᵃ `:25 M := box_integral.box_additive_map ι M ⊤" in box_integral
-localized "notation ι ` →ᵇᵃ[`:25 I `] ` M := box_integral.box_additive_map ι M I" in box_integral
+localized "notation n ` →ᵇᵃ `:25 M := box_integral.box_additive_map n M ⊤" in box_integral
+localized "notation n ` →ᵇᵃ[`:25 I `] ` M := box_integral.box_additive_map n M I" in box_integral
 
 namespace box_additive_map
 
 open box prepartition finset
 
-variables {N : Type*} [add_comm_monoid M] [add_comm_monoid N] {I₀ : with_top (box ι)}
-  {I J : box ι} {i : ι}
+variables {N : Type*} [add_comm_monoid M] [add_comm_monoid N] {I₀ : with_top (box n)}
+  {I J : box n} {i : fin n}
 
-instance : has_coe_to_fun (ι →ᵇᵃ[I₀] M) (λ _, box ι → M) := ⟨to_fun⟩
+instance : has_coe_to_fun (n →ᵇᵃ[I₀] M) (λ _, box n → M) := ⟨to_fun⟩
 
 initialize_simps_projections box_integral.box_additive_map (to_fun → apply)
 
-@[simp] lemma to_fun_eq_coe (f : ι →ᵇᵃ[I₀] M) : f.to_fun = f := rfl
+@[simp] lemma to_fun_eq_coe (f : n →ᵇᵃ[I₀] M) : f.to_fun = f := rfl
 
-@[simp] lemma coe_mk (f h) : ⇑(mk f h : ι →ᵇᵃ[I₀] M) = f := rfl
+@[simp] lemma coe_mk (f h) : ⇑(mk f h : n →ᵇᵃ[I₀] M) = f := rfl
 
-lemma coe_injective : injective (λ (f : ι →ᵇᵃ[I₀] M) x, f x) :=
+lemma coe_injective : injective (λ (f : n →ᵇᵃ[I₀] M) x, f x) :=
 by { rintro ⟨f, hf⟩ ⟨g, hg⟩ (rfl : f = g), refl }
 
-@[simp] lemma coe_inj {f g : ι →ᵇᵃ[I₀] M} : (f : box ι → M) = g ↔ f = g :=
+@[simp] lemma coe_inj {f g : n →ᵇᵃ[I₀] M} : (f : box n → M) = g ↔ f = g :=
 coe_injective.eq_iff
 
-lemma sum_partition_boxes (f : ι →ᵇᵃ[I₀] M) (hI : ↑I ≤ I₀) {π : prepartition I}
+lemma sum_partition_boxes (f : n →ᵇᵃ[I₀] M) (hI : ↑I ≤ I₀) {π : prepartition I}
   (h : π.is_partition) :
   ∑ J in π.boxes, f J = f I :=
 f.sum_partition_boxes' I hI π h
 
-@[simps { fully_applied := ff }] instance : has_zero (ι →ᵇᵃ[I₀] M) :=
+@[simps { fully_applied := ff }] instance : has_zero (n →ᵇᵃ[I₀] M) :=
 ⟨⟨0, λ I hI π hπ, sum_const_zero⟩⟩
 
-instance : inhabited (ι →ᵇᵃ[I₀] M) := ⟨0⟩
+instance : inhabited (n →ᵇᵃ[I₀] M) := ⟨0⟩
 
-instance : has_add (ι →ᵇᵃ[I₀] M) :=
+instance : has_add (n →ᵇᵃ[I₀] M) :=
 ⟨λ f g, ⟨f + g, λ I hI π hπ,
   by simp only [pi.add_apply, sum_add_distrib, sum_partition_boxes _ hI hπ]⟩⟩
 
-instance {R} [monoid R] [distrib_mul_action R M] : has_scalar R (ι →ᵇᵃ[I₀] M) :=
+instance {R} [monoid R] [distrib_mul_action R M] : has_scalar R (n →ᵇᵃ[I₀] M) :=
 ⟨λ r f, ⟨r • f, λ I hI π hπ,
   by simp only [pi.smul_apply, ←smul_sum, sum_partition_boxes _ hI hπ]⟩⟩
 
-instance : add_comm_monoid (ι →ᵇᵃ[I₀] M) :=
+instance : add_comm_monoid (n →ᵇᵃ[I₀] M) :=
 function.injective.add_comm_monoid _ coe_injective rfl (λ _ _, rfl) (λ _ _, rfl)
 
-@[simp] lemma map_split_add (f : ι →ᵇᵃ[I₀] M) (hI : ↑I ≤ I₀) (i : ι) (x : ℝ) :
+@[simp] lemma map_split_add (f : n →ᵇᵃ[I₀] M) (hI : ↑I ≤ I₀) (i : fin n) (x : ℝ) :
   (I.split_lower i x).elim 0 f + (I.split_upper i x).elim 0 f = f I :=
 by rw [← f.sum_partition_boxes hI (is_partition_split I i x), sum_split_boxes]
 
 /-- If `f` is box-additive on subboxes of `I₀`, then it is box-additive on subboxes of any
 `I ≤ I₀`. -/
-@[simps] def restrict (f : ι →ᵇᵃ[I₀] M) (I : with_top (box ι)) (hI : I ≤ I₀) : ι →ᵇᵃ[I] M :=
+@[simps] def restrict (f : n →ᵇᵃ[I₀] M) (I : with_top (box n)) (hI : I ≤ I₀) : n →ᵇᵃ[I] M :=
 ⟨f, λ J hJ, f.2 J (hJ.trans hI)⟩
 
-/-- If `f : box ι → M` is box additive on partitions of the form `split I i x`, then it is box
+/-- If `f : box n → M` is box additive on partitions of the form `split I i x`, then it is box
 additive. -/
-def of_map_split_add [fintype ι] (f : box ι → M) (I₀ : with_top (box ι))
-  (hf : ∀ I : box ι, ↑I ≤ I₀ → ∀ {i x}, x ∈ Ioo (I.lower i) (I.upper i) →
+def of_map_split_add (f : box n → M) (I₀ : with_top (box n))
+  (hf : ∀ I : box n, ↑I ≤ I₀ → ∀ {i x}, x ∈ Ioo (I.lower i) (I.upper i) →
     (I.split_lower i x).elim 0 f + (I.split_upper i x).elim 0 f = f I) :
-  ι →ᵇᵃ[I₀] M :=
+  n →ᵇᵃ[I₀] M :=
 begin
   refine ⟨f, _⟩,
-  replace hf : ∀ I : box ι, ↑I ≤ I₀ → ∀ s, ∑ J in (split_many I s).boxes, f J = f I,
+  replace hf : ∀ I : box n, ↑I ≤ I₀ → ∀ s, ∑ J in (split_many I s).boxes, f J = f I,
   { intros I hI s,
     induction s using finset.induction_on with a s ha ihs, { simp },
     rw [split_many_insert, inf_split, ← ihs, bUnion_boxes, sum_bUnion_boxes],
@@ -125,14 +132,14 @@ end
 
 /-- If `g : M → N` is an additive map and `f` is a box additive map, then `g ∘ f` is a box additive
 map. -/
-@[simps { fully_applied := ff }] def map (f : ι →ᵇᵃ[I₀] M) (g : M →+ N) :
-  ι →ᵇᵃ[I₀] N :=
+@[simps { fully_applied := ff }] def map (f : n →ᵇᵃ[I₀] M) (g : M →+ N) :
+  n →ᵇᵃ[I₀] N :=
 { to_fun := g ∘ f,
   sum_partition_boxes' := λ I hI π hπ, by rw [← g.map_sum, f.sum_partition_boxes hI hπ] }
 
 /-- If `f` is a box additive function on subboxes of `I` and `π₁`, `π₂` are two prepartitions of
 `I` that cover the same part of `I`, then `∑ J in π₁.boxes, f J = ∑ J in π₂.boxes, f J`. -/
-lemma sum_boxes_congr [fintype ι] (f : ι →ᵇᵃ[I₀] M) (hI : ↑I ≤ I₀) {π₁ π₂ : prepartition I}
+lemma sum_boxes_congr (f : n →ᵇᵃ[I₀] M) (hI : ↑I ≤ I₀) {π₁ π₂ : prepartition I}
   (h : π₁.Union = π₂.Union) :
   ∑ J in π₁.boxes, f J = ∑ J in π₂.boxes, f J :=
 begin
@@ -157,10 +164,10 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E]
 
 /-- If `f` is a box-additive map, then so is the map sending `I` to the scalar multiplication
 by `f I` as a continuous linear map from `E` to itself. -/
-def to_smul (f : ι →ᵇᵃ[I₀] ℝ) : ι →ᵇᵃ[I₀] (E →L[ℝ] E) :=
+def to_smul (f : n →ᵇᵃ[I₀] ℝ) : n →ᵇᵃ[I₀] (E →L[ℝ] E) :=
 f.map (continuous_linear_map.lsmul ℝ ℝ).to_linear_map.to_add_monoid_hom
 
-@[simp] lemma to_smul_apply (f : ι →ᵇᵃ[I₀] ℝ) (I : box ι) (x : E) : f.to_smul I x = f I • x := rfl
+@[simp] lemma to_smul_apply (f : n →ᵇᵃ[I₀] ℝ) (I : box n) (x : E) : f.to_smul I x = f I • x := rfl
 
 end to_smul
 
@@ -169,12 +176,12 @@ end to_smul
 `I₀`, then `λ J, f (J.upper i) (J.face i) - f (J.lower i) (J.face i)` is box-additive on subboxes of
 `I₀`. -/
 @[simps] def {u} upper_sub_lower {G : Type u} [add_comm_group G]
-  (I₀ : box (fin (n + 1))) (i : fin (n + 1)) (f : ℝ → box (fin n) → G)
-  (fb : Icc (I₀.lower i) (I₀.upper i) → fin n →ᵇᵃ[I₀.face i] G)
+  (I₀ : box (n + 1)) (i : fin (n + 1)) (f : ℝ → box n → G)
+  (fb : Icc (I₀.lower i) (I₀.upper i) → n →ᵇᵃ[I₀.face i] G)
   (hf : ∀ x (hx : x ∈ Icc (I₀.lower i) (I₀.upper i)) J, f x J = fb ⟨x, hx⟩ J) :
-  fin (n + 1) →ᵇᵃ[I₀] G :=
+  n + 1 →ᵇᵃ[I₀] G :=
 of_map_split_add
-  (λ J : box (fin (n + 1)), f (J.upper i) (J.face i) - f (J.lower i) (J.face i)) I₀
+  (λ J : box (n + 1), f (J.upper i) (J.face i) - f (J.lower i) (J.face i)) I₀
   begin
     intros J hJ j,
     rw with_top.coe_le_coe at hJ,
@@ -184,7 +191,7 @@ of_map_split_add
         ← with_bot.some_eq_coe, option.elim, box.face, (∘), update_noteq (fin.succ_above_ne _ _)],
       abel },
     { clear j, intros j x hx,
-      have : (J.face i : with_top (box (fin n))) ≤ I₀.face i,
+      have : (J.face i : with_top (box n)) ≤ I₀.face i,
         from with_top.coe_le_coe.2 (face_mono hJ i),
       rw [le_iff_Icc, @box.Icc_eq_pi _ I₀] at hJ,
       rw [hf _ (hJ J.upper_mem_Icc _ trivial), hf _ (hJ J.lower_mem_Icc _ trivial),

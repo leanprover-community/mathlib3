@@ -51,7 +51,7 @@ local notation `ℝⁿ` := fin n → ℝ
 local notation `ℝⁿ⁺¹` := fin (n + 1) → ℝ
 local notation `Eⁿ⁺¹` := fin (n + 1) → E
 
-variables [complete_space E] (I : box (fin (n + 1))) {i : fin (n + 1)}
+variables [complete_space E] (I : box (n + 1)) {i : fin (n + 1)}
 
 open measure_theory
 
@@ -75,7 +75,7 @@ begin
   have Hl : I.lower i ∈ Icc (I.lower i) (I.upper i) := set.left_mem_Icc.2 (I.lower_le_upper i),
   have Hu : I.upper i ∈ Icc (I.lower i) (I.upper i) := set.right_mem_Icc.2 (I.lower_le_upper i),
   have Hi : ∀ x ∈ Icc (I.lower i) (I.upper i),
-    integrable.{0 u u} (I.face i) ⊥ (f ∘ i.insert_nth x) box_additive_map.volume,
+    integrable.{u u} (I.face i) ⊥ (f ∘ i.insert_nth x) box_additive_map.volume,
     from λ x hx, integrable_of_continuous_on _ (box.continuous_on_face_Icc hfc hx) volume,
   /- We start with an estimate: the difference of the values of `f` at the corresponding points
   of the faces `x i = I.lower i` and `x i = I.upper i` is `(2 * ε * diam I.Icc)`-close to the value
@@ -103,7 +103,7 @@ begin
   calc ∥(∏ j, (I.upper j - I.lower j)) • f' (pi.single i 1) -
     (integral (I.face i) ⊥ (f ∘ i.insert_nth (I.upper i)) box_additive_map.volume -
       integral (I.face i) ⊥ (f ∘ i.insert_nth (I.lower i)) box_additive_map.volume)∥
-      = ∥integral.{0 u u} (I.face i) ⊥
+      = ∥integral.{u u} (I.face i) ⊥
           (λ (x : fin n → ℝ), f' (pi.single i (I.upper i - I.lower i)) -
           (f (i.insert_nth (I.upper i) x) - f (i.insert_nth (I.lower i) x)))
           box_additive_map.volume∥ :
@@ -142,9 +142,9 @@ requires either better integrability theorems, or usage of a filter depending on
 lemma has_integral_bot_pderiv (f : ℝⁿ⁺¹ → E) (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] E) (s : set ℝⁿ⁺¹)
   (hs : countable s) (Hs : ∀ x ∈ s, continuous_within_at f I.Icc x)
   (Hd : ∀ x ∈ I.Icc \ s, has_fderiv_within_at f (f' x) I.Icc x) (i : fin (n + 1)) :
-  has_integral.{0 u u} I ⊥ (λ x, f' x (pi.single i 1)) box_additive_map.volume
-    (integral.{0 u u} (I.face i) ⊥ (λ x, f (i.insert_nth (I.upper i) x)) box_additive_map.volume -
-      integral.{0 u u} (I.face i) ⊥ (λ x, f (i.insert_nth (I.lower i) x))
+  has_integral.{u u} I ⊥ (λ x, f' x (pi.single i 1)) box_additive_map.volume
+    (integral.{u u} (I.face i) ⊥ (λ x, f (i.insert_nth (I.upper i) x)) box_additive_map.volume -
+      integral.{u u} (I.face i) ⊥ (λ x, f (i.insert_nth (I.lower i) x))
         box_additive_map.volume) :=
 begin
   /- Note that `f` is continuous on `I.Icc`, hence it is integrable on the faces of all boxes
@@ -154,11 +154,11 @@ begin
   { intros x hx,
     by_cases hxs : x ∈ s,
     exacts [Hs x hxs, (Hd x ⟨hx, hxs⟩).continuous_within_at] },
-  set fI : ℝ → box (fin n) → E := λ y J,
-    integral.{0 u u} J ⊥ (λ x, f (i.insert_nth y x)) box_additive_map.volume,
-  set fb : Icc (I.lower i) (I.upper i) → fin n →ᵇᵃ[↑(I.face i)] E :=
+  set fI : ℝ → box n → E := λ y J,
+    integral.{u u} J ⊥ (λ x, f (i.insert_nth y x)) box_additive_map.volume,
+  set fb : Icc (I.lower i) (I.upper i) → n →ᵇᵃ[↑(I.face i)] E :=
     λ x, (integrable_of_continuous_on ⊥ (box.continuous_on_face_Icc Hc x.2) volume).to_box_additive,
-  set F : fin (n + 1) →ᵇᵃ[I] E := box_additive_map.upper_sub_lower I i fI fb (λ x hx J, rfl),
+  set F : (n + 1) →ᵇᵃ[I] E := box_additive_map.upper_sub_lower I i fI fb (λ x hx J, rfl),
   /- Thus our statement follows from some local estimates. -/
   change has_integral I ⊥ (λ x, f' x (pi.single i 1)) _ (F I),
   refine has_integral_of_le_Henstock_of_forall_is_o bot_le _ _ _ s hs _ _,
@@ -193,7 +193,7 @@ begin
     have Hl : J.lower i ∈ Icc (J.lower i) (J.upper i) := set.left_mem_Icc.2 (J.lower_le_upper i),
     have Hu : J.upper i ∈ Icc (J.lower i) (J.upper i) := set.right_mem_Icc.2 (J.lower_le_upper i),
     have Hi : ∀ x ∈ Icc (J.lower i) (J.upper i),
-      integrable.{0 u u} (J.face i) ⊥ (λ y, f (i.insert_nth x y)) box_additive_map.volume,
+      integrable.{u u} (J.face i) ⊥ (λ y, f (i.insert_nth x y)) box_additive_map.volume,
       from λ x hx, integrable_of_continuous_on _
         (box.continuous_on_face_Icc (Hc.mono $ box.le_iff_Icc.1 hJI) hx) volume,
     have hJδ' : J.Icc ⊆ closed_ball x δ ∩ I.Icc,
@@ -254,11 +254,11 @@ lemma has_integral_bot_divergence_of_forall_has_deriv_within_at
   (f : ℝⁿ⁺¹ → Eⁿ⁺¹) (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : countable s)
   (Hs : ∀ x ∈ s, continuous_within_at f I.Icc x)
   (Hd : ∀ x ∈ I.Icc \ s, has_fderiv_within_at f (f' x) I.Icc x) :
-  has_integral.{0 u u} I ⊥ (λ x, ∑ i, f' x (pi.single i 1) i)
+  has_integral.{u u} I ⊥ (λ x, ∑ i, f' x (pi.single i 1) i)
     box_additive_map.volume
-    (∑ i, (integral.{0 u u} (I.face i) ⊥ (λ x, f (i.insert_nth (I.upper i) x) i)
+    (∑ i, (integral.{u u} (I.face i) ⊥ (λ x, f (i.insert_nth (I.upper i) x) i)
       box_additive_map.volume -
-      integral.{0 u u} (I.face i) ⊥ (λ x, f (i.insert_nth (I.lower i) x) i)
+      integral.{u u} (I.face i) ⊥ (λ x, f (i.insert_nth (I.lower i) x) i)
         box_additive_map.volume)) :=
 begin
   refine has_integral_sum (λ i hi, _), clear hi,

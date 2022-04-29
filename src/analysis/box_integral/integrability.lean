@@ -20,9 +20,12 @@ integral, McShane integral, Bochner integral
 
 open_locale classical nnreal ennreal topological_space big_operators
 
-universes u v
+universes u
 
-variables {ι : Type u} {E : Type v} [fintype ι] [normed_group E] [normed_space ℝ E]
+variables {E : Type u} {n : ℕ} [normed_group E] [normed_space ℝ E]
+
+local notation `ℝⁿ` := fin n → ℝ
+local notation `ℝ>0` := {x : ℝ // 0 < x}
 
 open measure_theory metric set finset filter box_integral
 
@@ -31,15 +34,15 @@ namespace box_integral
 /-- The indicator function of a measurable set is McShane integrable with respect to any
 locally-finite measure. -/
 lemma has_integral_indicator_const (l : integration_params) (hl : l.bRiemann = ff)
-  {s : set (ι → ℝ)} (hs : measurable_set s) (I : box ι) (y : E)
-  (μ : measure (ι → ℝ)) [is_locally_finite_measure μ] :
-  has_integral.{u v v} I l (s.indicator (λ _, y)) μ.to_box_additive.to_smul
+  {s : set ℝⁿ} (hs : measurable_set s) (I : box n) (y : E)
+  (μ : measure ℝⁿ) [is_locally_finite_measure μ] :
+  has_integral.{u u} I l (s.indicator (λ _, y)) μ.to_box_additive.to_smul
     ((μ (s ∩ I)).to_real • y) :=
 begin
   refine has_integral_of_mul (∥y∥) (λ ε ε0, _),
   lift ε to ℝ≥0 using ε0.le, rw nnreal.coe_pos at ε0,
   /- First we choose a closed set `F ⊆ s ∩ I.Icc` and an open set `U ⊇ s` such that
-  both `(s ∩ I.Icc) \ F` and `U \ s` have measuer less than `ε`. -/
+  both `(s ∩ I.Icc) \ F` and `U \ s` have measure less than `ε`. -/
   have A : μ (s ∩ I.Icc) ≠ ∞,
     from ((measure_mono $ set.inter_subset_right _ _).trans_lt (I.measure_Icc_lt_top μ)).ne,
   have B : μ (s ∩ I) ≠ ∞,
@@ -50,14 +53,14 @@ begin
     from (hs.inter I.measurable_set_Icc).exists_is_open_diff_lt A (ennreal.coe_pos.2 ε0).ne',
   /- Then we choose `r` so that `closed_ball x (r x) ⊆ U` whenever `x ∈ s ∩ I.Icc` and
   `closed_ball x (r x)` is disjoint with `F` otherwise. -/
-  have : ∀ x ∈ s ∩ I.Icc, ∃ r : Ioi (0 : ℝ), closed_ball x r ⊆ U,
+  have : ∀ x ∈ s ∩ I.Icc, ∃ r : ℝ>0, closed_ball x r ⊆ U,
     from λ x hx, subtype.exists'.1 (nhds_basis_closed_ball.mem_iff.1 (hUo.mem_nhds $ hsU hx)),
   choose! rs hrsU,
-  have : ∀ x ∈ I.Icc \ s, ∃ r : Ioi (0 : ℝ), closed_ball x r ⊆ Fᶜ,
+  have : ∀ x ∈ I.Icc \ s, ∃ r : ℝ>0, closed_ball x r ⊆ Fᶜ,
     from λ x hx, subtype.exists'.1 (nhds_basis_closed_ball.mem_iff.1 (hFc.is_open_compl.mem_nhds $
       λ hx', hx.2 (hFs hx').1)),
   choose! rs' hrs'F,
-  set r : (ι → ℝ) → Ioi (0 : ℝ) := s.piecewise rs rs',
+  set r : ℝⁿ → ℝ>0 := s.piecewise rs rs',
   refine ⟨λ c, r, λ c, l.r_cond_of_bRiemann_eq_ff hl, λ c π hπ hπp, _⟩, rw mul_comm,
   /- Then the union of boxes `J ∈ π` such that `π.tag ∈ s` includes `F` and is included by `U`,
   hence its measure is `ε`-close to the measure of `s`. -/
@@ -93,10 +96,10 @@ end
 
 /-- If `f` is a.e. equal to zero on a rectangular box, then it has McShane integral zero on this
 box. -/
-lemma has_integral_zero_of_ae_eq_zero {l : integration_params} {I : box ι} {f : (ι → ℝ) → E}
-  {μ : measure (ι → ℝ)} [is_locally_finite_measure μ] (hf : f =ᵐ[μ.restrict I] 0)
+lemma has_integral_zero_of_ae_eq_zero {l : integration_params} {I : box n} {f : ℝⁿ → E}
+  {μ : measure ℝⁿ} [is_locally_finite_measure μ] (hf : f =ᵐ[μ.restrict I] 0)
   (hl : l.bRiemann = ff) :
-  has_integral.{u v v} I l f μ.to_box_additive.to_smul 0 :=
+  has_integral.{u u} I l f μ.to_box_additive.to_smul 0 :=
 begin
   /- Each set `{x | n < ∥f x∥ ≤ n + 1}`, `n : ℕ`, has measure zero. We cover it by an open set of
   measure less than `ε / 2 ^ n / (n + 1)`. Then the norm of the integral sum is less than `ε`. -/
@@ -105,18 +108,18 @@ begin
   rcases nnreal.exists_pos_sum_of_encodable ε0.ne' ℕ with ⟨δ, δ0, c, hδc, hcε⟩,
   haveI := fact.mk (I.measure_coe_lt_top μ),
   change μ.restrict I {x | f x ≠ 0} = 0 at hf,
-  set N : (ι → ℝ) → ℕ := λ x, ⌈∥f x∥⌉₊,
+  set N : ℝⁿ → ℕ := λ x, ⌈∥f x∥⌉₊,
   have N0 : ∀ {x}, N x = 0 ↔ f x = 0, by { intro x, simp [N] },
-  have : ∀ n, ∃ U ⊇ N ⁻¹' {n}, is_open U ∧ μ.restrict I U < δ n / n,
-  { refine λ n, (N ⁻¹' {n}).exists_is_open_lt_of_lt _ _,
-    cases n,
+  have : ∀ k, ∃ U ⊇ N ⁻¹' {k}, is_open U ∧ μ.restrict I U < δ k / k,
+  { refine λ k, (N ⁻¹' {k}).exists_is_open_lt_of_lt _ _,
+    cases k,
     { simpa [ennreal.div_zero (ennreal.coe_pos.2 (δ0 _)).ne']
         using measure_lt_top (μ.restrict I) _ },
     { refine (measure_mono_null _ hf).le.trans_lt _,
-      { exact λ x hxN hxf, n.succ_ne_zero ((eq.symm hxN).trans $ N0.2 hxf) },
+      { exact λ x hxN hxf, k.succ_ne_zero ((eq.symm hxN).trans $ N0.2 hxf) },
       { simp [(δ0 _).ne'] } } },
   choose U hNU hUo hμU,
-  have : ∀ x, ∃ r : Ioi (0 : ℝ), closed_ball x r ⊆ U (N x),
+  have : ∀ x, ∃ r : ℝ>0, closed_ball x r ⊆ U (N x),
     from λ x, subtype.exists'.1 (nhds_basis_closed_ball.mem_iff.1 ((hUo _).mem_nhds (hNU _ rfl))),
   choose r hrU,
   refine ⟨λ _, r, λ c, l.r_cond_of_bRiemann_eq_ff hl, λ c π hπ hπp, _⟩,
@@ -149,11 +152,11 @@ end
 
 /-- If `f` has integral `y` on a box `I` with respect to a locally finite measure `μ` and `g` is
 a.e. equal to `f` on `I`, then `g` has the same integral on `I`.  -/
-lemma has_integral.congr_ae {l : integration_params} {I : box ι} {y : E} {f g : (ι → ℝ) → E}
-  {μ : measure (ι → ℝ)} [is_locally_finite_measure μ]
-  (hf : has_integral.{u v v} I l f μ.to_box_additive.to_smul y)
+lemma has_integral.congr_ae {l : integration_params} {I : box n} {y : E} {f g : ℝⁿ → E}
+  {μ : measure ℝⁿ} [is_locally_finite_measure μ]
+  (hf : has_integral.{u u} I l f μ.to_box_additive.to_smul y)
   (hfg : f =ᵐ[μ.restrict I] g) (hl : l.bRiemann = ff) :
-  has_integral.{u v v} I l g μ.to_box_additive.to_smul y :=
+  has_integral.{u u} I l g μ.to_box_additive.to_smul y :=
 begin
   have : (g - f) =ᵐ[μ.restrict I] 0, from hfg.mono (λ x hx, sub_eq_zero.2 hx.symm),
   simpa using hf.add (has_integral_zero_of_ae_eq_zero this hl)
@@ -166,9 +169,9 @@ namespace measure_theory
 namespace simple_func
 
 /-- A simple function is McShane integrable w.r.t. any locally finite measure. -/
-lemma has_box_integral (f : simple_func (ι → ℝ) E) (μ : measure (ι → ℝ))
-  [is_locally_finite_measure μ] (I : box ι) (l : integration_params) (hl : l.bRiemann = ff) :
-  has_integral.{u v v} I l f μ.to_box_additive.to_smul (f.integral (μ.restrict I)) :=
+lemma has_box_integral (f : simple_func ℝⁿ E) (μ : measure ℝⁿ)
+  [is_locally_finite_measure μ] (I : box n) (l : integration_params) (hl : l.bRiemann = ff) :
+  has_integral.{u u} I l f μ.to_box_additive.to_smul (f.integral (μ.restrict I)) :=
 begin
   induction f using measure_theory.simple_func.induction with y s hs f g hd hfi hgi,
   { simpa [function.const, measure.restrict_apply hs]
@@ -181,9 +184,9 @@ end
 
 /-- For a simple function, its McShane (or Henstock, or `⊥`) box integral is equal to its
 integral in the sense of `measure_theory.simple_func.integral`. -/
-lemma box_integral_eq_integral (f : simple_func (ι → ℝ) E) (μ : measure (ι → ℝ))
-  [is_locally_finite_measure μ] (I : box ι) (l : integration_params) (hl : l.bRiemann = ff) :
-  box_integral.integral.{u v v} I l f μ.to_box_additive.to_smul = f.integral (μ.restrict I) :=
+lemma box_integral_eq_integral (f : simple_func ℝⁿ E) (μ : measure ℝⁿ)
+  [is_locally_finite_measure μ] (I : box n) (l : integration_params) (hl : l.bRiemann = ff) :
+  box_integral.integral.{u u} I l f μ.to_box_additive.to_smul = f.integral (μ.restrict I) :=
 (f.has_box_integral μ I l hl).integral_eq
 
 end simple_func
@@ -192,10 +195,10 @@ open topological_space
 
 /-- If `f : ℝⁿ → E` is Bochner integrable w.r.t. a locally finite measure `μ` on a rectangular box
 `I`, then it is McShane integrable on `I` with the same integral.  -/
-lemma integrable_on.has_box_integral [complete_space E] {f : (ι → ℝ) → E} {μ : measure (ι → ℝ)}
-  [is_locally_finite_measure μ] {I : box ι} (hf : integrable_on f I μ) (l : integration_params)
+lemma integrable_on.has_box_integral [complete_space E] {f : ℝⁿ → E} {μ : measure ℝⁿ}
+  [is_locally_finite_measure μ] {I : box n} (hf : integrable_on f I μ) (l : integration_params)
   (hl : l.bRiemann = ff) :
-  has_integral.{u v v} I l f μ.to_box_additive.to_smul (∫ x in I, f x ∂ μ) :=
+  has_integral.{u u} I l f μ.to_box_additive.to_smul (∫ x in I, f x ∂ μ) :=
 begin
   borelize E,
   /- First we replace an `ae_strongly_measurable` function by a measurable one. -/
@@ -207,7 +210,7 @@ begin
   /- Now consider the sequence of simple functions
   `simple_func.approx_on g hg.measurable (range g ∪ {0}) 0 (by simp)`
   approximating `g`. Recall some properties of this sequence. -/
-  set f : ℕ → simple_func (ι → ℝ) E :=
+  set f : ℕ → simple_func ℝⁿ E :=
     simple_func.approx_on g hg.measurable (range g ∪ {0}) 0 (by simp),
   have hfi : ∀ n, integrable_on (f n) I μ,
     from simple_func.integrable_approx_on_range hg.measurable hgi,
@@ -242,7 +245,7 @@ begin
   the integral sum of `f` over any tagged prepartition is `δᵢ`-close to the sum of integrals
   of `fᵢ` over the boxes of this prepartition. For each `x`, we choose `r (Nx x)` as the radius
   at `x`. -/
-  set r : ℝ≥0 → (ι → ℝ) → Ioi (0 : ℝ) := λ c x, (hfi' $ Nx x).convergence_r (δ $ Nx x) c x,
+  set r : ℝ≥0 → ℝⁿ → ℝ>0 := λ c x, (hfi' $ Nx x).convergence_r (δ $ Nx x) c x,
   refine ⟨r, λ c, l.r_cond_of_bRiemann_eq_ff hl, λ c π hπ hπp, _⟩,
   /- Now we prove the estimate in 3 "jumps": first we replace `g x` in the formula for the
   integral sum by `f (Nx x)`; then we replace each `μ J • f (Nx (π.tag J)) (π.tag J)`

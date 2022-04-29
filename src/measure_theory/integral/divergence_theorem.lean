@@ -95,7 +95,7 @@ in several aspects.
 `measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable`. This is exactly
 `box_integral.has_integral_bot_divergence_of_forall_has_deriv_within_at` reformulated for the
 Bochner integral. -/
-lemma integral_divergence_of_has_fderiv_within_at_off_countable_aux₁ (I : box (fin (n + 1)))
+lemma integral_divergence_of_has_fderiv_within_at_off_countable_aux₁ (I : box (n + 1))
   (f : ℝⁿ⁺¹ → Eⁿ⁺¹) (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : countable s)
   (Hc : continuous_on f I.Icc) (Hd : ∀ x ∈ I.Icc \ s, has_fderiv_within_at f (f' x) I.Icc x)
   (Hi : integrable_on (λ x, ∑ i, f' x (e i) i) I.Icc) :
@@ -123,7 +123,7 @@ end
 /-- An auxiliary lemma for
 `measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable`. Compared to the previous
 lemma, here we drop the assumption of differentiability on the boundary of the box. -/
-lemma integral_divergence_of_has_fderiv_within_at_off_countable_aux₂ (I : box (fin (n + 1)))
+lemma integral_divergence_of_has_fderiv_within_at_off_countable_aux₂ (I : box (n + 1))
   (f : ℝⁿ⁺¹ → Eⁿ⁺¹) (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : countable s)
   (Hc : continuous_on f I.Icc) (Hd : ∀ x ∈ I.Ioo \ s, has_fderiv_at f (f' x) x)
   (Hi : integrable_on (λ x, ∑ i, f' x (e i) i) I.Icc) :
@@ -189,7 +189,7 @@ begin
   `{x | x i = c k}` and `{x | x i = d}` over `((J k).face i).Icc` tends to zero as `k → ∞`. Choose
   `ε > 0`. -/
   refine H.congr_dist (metric.nhds_basis_closed_ball.tendsto_right_iff.2 (λ ε εpos, _)),
-  have hvol_pos : ∀ J : box (fin n), 0 < ∏ j, (J.upper j - J.lower j),
+  have hvol_pos : ∀ J : box n, 0 < ∏ j, (J.upper j - J.lower j),
     from λ J, (prod_pos $ λ j hj, sub_pos.2 $ J.lower_lt_upper _),
   /- Choose `δ > 0` such that for any `x y ∈ I.Icc` at distance at most `δ`, the distance between
   `f x` and `f y` is at most `ε / volume (I.face i).Icc`, then the distance between the integrals

@@ -124,7 +124,8 @@ section quotient
 variables [comm_ring R] [add_comm_group M] [module R M] (a : R)
 
 instance : has_scalar (R ⧸ R ∙ a) (torsion_by R M a) :=
-{ smul := λ b x, quotient.lift_on' b (• x) $ λ b₁ b₂ (h : b₁ - b₂ ∈ _), begin
+{ smul := λ b x, quotient.lift_on' b (• x) $ λ b₁ b₂ h, begin
+    rw submodule.quotient_rel_r_def at h,
     show b₁ • x = b₂ • x,
     obtain ⟨c, h⟩ := ideal.mem_span_singleton'.mp h,
     rw [← sub_eq_zero, ← sub_smul, ← h, mul_smul, smul_torsion_by, smul_zero],

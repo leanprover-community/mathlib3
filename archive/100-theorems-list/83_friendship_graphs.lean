@@ -256,7 +256,7 @@ begin
   -- but the trace is 1 mod p when computed the other way
   rw adj_matrix_pow_mod_p_of_regular hG dmod hd hp2,
   dunfold fintype.card at Vmod,
-  simp only [matrix.trace, diag_apply, mul_one, nsmul_eq_mul, linear_map.coe_mk, sum_const],
+  simp only [matrix.trace, matrix.diag, mul_one, nsmul_eq_mul, linear_map.coe_mk, sum_const],
   rw [Vmod, ← nat.cast_one, zmod.nat_coe_zmod_eq_zero_iff_dvd, nat.dvd_one,
     nat.min_fac_eq_one_iff],
   linarith,

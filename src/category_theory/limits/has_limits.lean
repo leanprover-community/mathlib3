@@ -500,7 +500,7 @@ by { constructor, intro F, apply has_limit_of_equivalence_comp e, apply_instance
 variable (C)
 
 /--
-`has_limits_of_size.{v u} C` tries to obtain `has_limits_of_size.{v u} C`
+`has_limits_of_size_shrink.{v u} C` tries to obtain `has_limits_of_size.{v u} C`
 from some other `has_limits_of_size C`.
 -/
 lemma has_limits_of_size_shrink [has_limits_of_size.{(max v₁ v₂) (max u₁ u₂)} C] :
@@ -983,7 +983,7 @@ by { constructor, intro F, apply has_colimit_of_equivalence_comp e, apply_instan
 variable (C)
 
 /--
-`has_colimits_of_size.{v u} C` tries to obtain `has_colimits_of_size.{v u} C`
+`has_colimits_of_size_shrink.{v u} C` tries to obtain `has_colimits_of_size.{v u} C`
 from some other `has_colimits_of_size C`.
 -/
 lemma has_colimits_of_size_shrink [has_colimits_of_size.{(max v₁ v₂) (max u₁ u₂)} C] :

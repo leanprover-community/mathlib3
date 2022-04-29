@@ -34,56 +34,6 @@ lemma tendsto_neg_cobounded (E : Type*) [normed_group E] :
   tendsto (has_neg.neg : E → E) (comap norm at_top) (comap norm at_top) :=
 by simp only [tendsto_comap_iff, (∘), norm_neg, tendsto_comap]
 
-lemma filter.tendsto.op_zero_is_bounded_under_le' {ι E F G : Type*} [semi_normed_group E]
-  [semi_normed_group F] [semi_normed_group G] {f : ι → E} {g : ι → F} {l : filter ι}
-  (hf : tendsto f l (𝓝 0)) (hg : is_bounded_under (≤) l (norm ∘ g)) (op : E → F → G) (A : ℝ)
-  (h_op : ∀ x y, ∥op x y∥ ≤ A * ∥x∥ * ∥y∥) :
-  tendsto (λ x, op (f x) (g x)) l (𝓝 0) :=
-begin
-  rcases hg with ⟨C, hC⟩, rw eventually_map at hC,
-  rw normed_group.tendsto_nhds_zero at hf ⊢,
-  intros ε ε₀,
-  rcases exists_pos_mul_lt ε₀ (A * C) with ⟨δ, δ₀, hδ⟩,
-  filter_upwards [hf δ δ₀, hC] with i hf hg,
-  refine (h_op _ _).trans_lt _,
-  cases le_total A 0 with hA hA,
-  { exact (mul_nonpos_of_nonpos_of_nonneg (mul_nonpos_of_nonpos_of_nonneg hA (norm_nonneg _))
-      (norm_nonneg _)).trans_lt ε₀ },
-  calc A * ∥f i∥ * ∥g i∥ ≤ A * δ * C :
-    mul_le_mul (mul_le_mul_of_nonneg_left hf.le hA) hg (norm_nonneg _) (mul_nonneg hA δ₀.le)
-  ... = A * C * δ : mul_right_comm _ _ _
-  ... < ε : hδ
-end
-
-lemma filter.tendsto.op_zero_is_bounded_under_le {ι E F G : Type*} [semi_normed_group E]
-  [semi_normed_group F] [semi_normed_group G] {f : ι → E} {g : ι → F} {l : filter ι}
-  (hf : tendsto f l (𝓝 0)) (hg : is_bounded_under (≤) l (norm ∘ g)) (op : E → F → G)
-  (h_op : ∀ x y, ∥op x y∥ ≤ ∥x∥ * ∥y∥) :
-  tendsto (λ x, op (f x) (g x)) l (𝓝 0) :=
-hf.op_zero_is_bounded_under_le' hg op 1 (λ x y, (one_mul (∥x∥)).symm ▸ h_op x y)
-
-lemma filter.tendsto.zero_smul_is_bounded_under_le {ι 𝕜 E : Type*} [normed_field 𝕜]
-  [semi_normed_group E] [normed_space 𝕜 E] {f : ι → 𝕜} {g : ι → E} {l : filter ι}
-  (hf : tendsto f l (𝓝 0)) (hg : is_bounded_under (≤) l (norm ∘ g)) :
-  tendsto (λ x, f x • g x) l (𝓝 0) :=
-hf.op_zero_is_bounded_under_le hg (•) (λ x y, (norm_smul x y).le)
-
-lemma filter.is_bounded_under_le.smul_tendsto_zero {ι 𝕜 E : Type*} [normed_field 𝕜]
-  [semi_normed_group E] [normed_space 𝕜 E] {f : ι → 𝕜} {g : ι → E} {l : filter ι}
-  (hf : is_bounded_under (≤) l (norm ∘ f)) (hg : tendsto g l (𝓝 0)) :
-  tendsto (λ x, f x • g x) l (𝓝 0) :=
-hg.op_zero_is_bounded_under_le hf (flip (•)) (λ x y, ((norm_smul y x).trans (mul_comm _ _)).le)
-
-lemma filter.tendsto.zero_mul_is_bounded_under_le {ι R : Type*} [non_unital_semi_normed_ring R]
-  {f g : ι → R} {l : filter ι} (hf : tendsto f l (𝓝 0)) (hg : is_bounded_under (≤) l (norm ∘ g)) :
-  tendsto (λ x, f x * g x) l (𝓝 0) :=
-hf.op_zero_is_bounded_under_le hg (*) norm_mul_le
-
-lemma filter.is_bounded_under_le.mul_tendsto_zero {ι R : Type*} [non_unital_semi_normed_ring R]
-  {f g : ι → R} {l : filter ι} (hf : is_bounded_under (≤) l (norm ∘ f)) (hg : tendsto g l (𝓝 0)) :
-  tendsto (λ x, f x * g x) l (𝓝 0) :=
-hg.op_zero_is_bounded_under_le hf (flip (*)) (λ x y, ((norm_mul_le y x).trans_eq (mul_comm _ _)))
-
 namespace complex
 
 lemma abs_exp_mul_exp_add_exp_neg_le_of_abs_im_le_of_lt_pi_div_two {a b : ℝ} (ha : a ≤ 0)

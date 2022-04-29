@@ -299,7 +299,7 @@ lemma _root_.subgroup.pow_index_mem_of_le_center
   {G : Type*} [group G] (H : subgroup G) (hH : H ≤ center G) [fintype (G ⧸ H)] (g : G) :
   g ^ H.index ∈ H :=
 begin
-  haveI : normal H := sorry,
+  haveI : normal H := ⟨λ h hh g, by rwa [hH hh, mul_inv_cancel_right]⟩,
   exact H.pow_index_mem g,
 end
 

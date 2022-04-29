@@ -211,7 +211,7 @@ begin
   rw [linfty_op_nnnorm_def, pi.nnnorm_def],
   congr' 1 with i : 1,
   refine (finset.sum_eq_single_of_mem _ (finset.mem_univ i) $ λ j hj hij, _).trans _,
-  { rw [diagonal_apply_ne' hij, nnnorm_zero] },
+  { rw [diagonal_apply_ne' _ hij, nnnorm_zero] },
   { rw [diagonal_apply_eq] },
 end
 

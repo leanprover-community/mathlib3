@@ -81,10 +81,11 @@ add_monoid_algebra.single_zero_ring_hom
 
 lemma single_eq_C (r : R) : single 0 r = C r := rfl
 
-/-  Using directly `T ^ n` does not work, since we want the exponents to be of Type `ℤ` and there
+/--  The function `n ↦ T ^ n`, implemented as a sequence `ℤ → R[T;T⁻¹]`.
+
+Using directly `T ^ n` does not work, since we want the exponents to be of Type `ℤ` and there
 is no `ℤ`-power defined on `R[T;T⁻¹]`.  Using that `T` is a unit introduces extra coercions.
-For these reasons, the definition of as a sequence. -/
-/--  The function `n ↦ T ^ n`, implemented as a sequence `ℤ → R[T;T⁻¹]`. -/
+For these reasons, the definition of `T` is as a sequence. -/
 def T (n : ℤ) : R[T;T⁻¹] := single n 1
 
 @[simp]

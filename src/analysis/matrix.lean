@@ -87,7 +87,7 @@ begin
   refine le_antisymm (finset.sup_le $ λ j hj, _) _,
   { obtain rfl | hij := eq_or_ne i j,
     { rw diagonal_apply_eq },
-    { rw [diagonal_apply_ne hij, nnnorm_zero],
+    { rw [diagonal_apply_ne _ hij, nnnorm_zero],
       exact zero_le _ }, },
   { refine eq.trans_le _ (finset.le_sup (finset.mem_univ i)),
     rw diagonal_apply_eq }

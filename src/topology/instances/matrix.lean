@@ -5,6 +5,7 @@ Authors: Oliver Nash, Eric Wieser
 -/
 import linear_algebra.determinant
 import topology.algebra.ring
+import topology.algebra.infinite_sum
 
 /-!
 # Topological properties of matrices
@@ -13,17 +14,30 @@ This file is a place to collect topological results about matrices.
 
 ## Main definitions:
 
- * `matrix.topological_ring`: square matrices form a topological ring
- * `continuous.matrix_det`: the determinant is continuous over a topological ring.
- * `continuous.matrix_adjugate`: the adjugate is continuous over a topological ring.
+* `matrix.topological_ring`: square matrices form a topological ring
+
+## Main results
+
+* Continuity:
+  * `continuous.matrix_det`: the determinant is continuous over a topological ring.
+  * `continuous.matrix_adjugate`: the adjugate is continuous over a topological ring.
+* Infinite sums
+  * `matrix.transpose_tsum`: transpose commutes with infinite sums
+  * `matrix.diagonal_tsum`: diagonal commutes with infinite sums
 -/
 
 open matrix
 open_locale matrix
 
-variables {X α l m n p S R : Type*} [topological_space X] [topological_space R]
+variables {X α l m n p S R : Type*} {m' n' : l → Type*}
 
-instance : topological_space (matrix m n R) := Pi.topological_space
+instance [topological_space R] : topological_space (matrix m n R) := Pi.topological_space
+
+instance [topological_space R] [t2_space R] : t2_space (matrix m n R) := Pi.t2_space
+
+/-! ### Lemmas about continuity of operations -/
+section continuity
+variables [topological_space X] [topological_space R]
 
 instance [has_scalar α R] [has_continuous_const_smul α R] :
   has_continuous_const_smul α (matrix n n R) :=
@@ -72,7 +86,7 @@ lemma continuous.matrix_row {A : X → n → R} (hA : continuous A) : continuous
 continuous_matrix $ λ i j, (continuous_apply _).comp hA
 
 @[continuity]
-lemma continuous_matrix.diagonal [has_zero R] [decidable_eq n] {A : X → n → R} (hA : continuous A) :
+lemma continuous.matrix_diagonal [has_zero R] [decidable_eq n] {A : X → n → R} (hA : continuous A) :
   continuous (λ x, diagonal (A x)) :=
 continuous_matrix $ λ i j, ((continuous_apply i).comp hA).if_const _ continuous_zero
 
@@ -136,10 +150,13 @@ lemma continuous.matrix_reindex {A : X → matrix l n R}
 hA.matrix_minor _ _
 
 @[continuity]
-lemma continuous.matrix_diag [semiring S] [add_comm_monoid R] [module S R]
-  {A : X → matrix n n R} (hA : continuous A) :
-  continuous (λ x, matrix.diag n S R (A x)) :=
+lemma continuous.matrix_diag {A : X → matrix n n R} (hA : continuous A) :
+  continuous (λ x, matrix.diag (A x)) :=
 continuous_pi $ λ _, hA.matrix_elem _ _
+
+-- note this doesn't elaborate well from the above
+lemma continuous_matrix_diag : continuous (matrix.diag : matrix n n R → n → R) :=
+show continuous (λ x : matrix n n R, matrix.diag x), from continuous_id.matrix_diag
 
 @[continuity]
 lemma continuous.matrix_trace [fintype n] [semiring S] [add_comm_monoid R] [has_continuous_add R]
@@ -188,3 +205,122 @@ lemma continuous_at_matrix_inv [fintype n] [decidable_eq n] [comm_ring R] [topol
   (A : matrix n n R) (h : continuous_at ring.inverse A.det) :
   continuous_at has_inv.inv A :=
 (h.comp continuous_id.matrix_det.continuous_at).smul continuous_id.matrix_adjugate.continuous_at
+
+-- lemmas about functions in `data/matrix/block.lean`
+section block_matrices
+
+@[continuity]
+lemma continuous.matrix_from_blocks
+  {A : X → matrix n l R} {B : X → matrix n m R} {C : X → matrix p l R} {D : X → matrix p m R}
+  (hA : continuous A) (hB : continuous B) (hC : continuous C) (hD : continuous D) :
+  continuous (λ x, matrix.from_blocks (A x) (B x) (C x) (D x)) :=
+continuous_matrix $ λ i j,
+  by cases i; cases j; refine continuous.matrix_elem _ i j; assumption
+
+@[continuity]
+lemma continuous.matrix_block_diagonal [has_zero R] [decidable_eq p] {A : X → p → matrix m n R}
+  (hA : continuous A) :
+  continuous (λ x, block_diagonal (A x)) :=
+continuous_matrix $ λ ⟨i₁, i₂⟩ ⟨j₁, j₂⟩,
+  (((continuous_apply i₂).comp hA).matrix_elem i₁ j₁).if_const _ continuous_zero
+
+@[continuity]
+lemma continuous.matrix_block_diagonal' [has_zero R] [decidable_eq l]
+  {A : X → Π i, matrix (m' i) (n' i) R} (hA : continuous A) :
+  continuous (λ x, block_diagonal' (A x)) :=
+continuous_matrix $ λ ⟨i₁, i₂⟩ ⟨j₁, j₂⟩, begin
+  dsimp only [block_diagonal'],
+  split_ifs,
+  { subst h,
+    exact ((continuous_apply i₁).comp hA).matrix_elem i₂ j₂ },
+  { exact continuous_const },
+end
+
+end block_matrices
+
+end continuity
+
+/-! ### Lemmas about infinite sums -/
+section tsum
+variables [semiring α] [add_comm_monoid R] [topological_space R] [module α R]
+
+lemma has_sum.matrix_transpose {f : X → matrix m n R} {a : matrix m n R} (hf : has_sum f a) :
+  has_sum (λ x, (f x)ᵀ) aᵀ :=
+(hf.map (@matrix.transpose_add_equiv m n R _) continuous_id.matrix_transpose : _)
+
+lemma summable.matrix_transpose {f : X → matrix m n R} (hf : summable f) :
+  summable (λ x, (f x)ᵀ) :=
+hf.has_sum.matrix_transpose.summable
+
+@[simp] lemma summable_matrix_transpose {f : X → matrix m n R} :
+  summable (λ x, (f x)ᵀ) ↔ summable f :=
+(summable.map_iff_of_equiv (@matrix.transpose_add_equiv m n R _)
+    (@continuous_id (matrix m n R) _).matrix_transpose (continuous_id.matrix_transpose) : _)
+
+lemma matrix.transpose_tsum [t2_space R] {f : X → matrix m n R} : (∑' x, f x)ᵀ = ∑' x, (f x)ᵀ :=
+begin
+  by_cases hf : summable f,
+  { exact hf.has_sum.matrix_transpose.tsum_eq.symm },
+  { have hft := summable_matrix_transpose.not.mpr hf,
+    rw [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable hft, transpose_zero] },
+end
+
+lemma has_sum.matrix_diagonal [decidable_eq n] {f : X → n → R} {a : n → R} (hf : has_sum f a) :
+  has_sum (λ x, diagonal (f x)) (diagonal a) :=
+(hf.map (diagonal_add_monoid_hom n R) $ continuous.matrix_diagonal $ by exact continuous_id : _)
+
+lemma summable.matrix_diagonal [decidable_eq n] {f : X → n → R} (hf : summable f) :
+  summable (λ x, diagonal (f x)) :=
+hf.has_sum.matrix_diagonal.summable
+
+@[simp] lemma summable_matrix_diagonal [decidable_eq n] {f : X → n → R} :
+  summable (λ x, diagonal (f x)) ↔ summable f :=
+(summable.map_iff_of_left_inverse
+  (@matrix.diagonal_add_monoid_hom n R _ _) (matrix.diag_add_monoid_hom n R)
+  (by exact continuous.matrix_diagonal continuous_id)
+  continuous_matrix_diag
+  (λ A, diag_diagonal A) : _)
+
+lemma matrix.diagonal_tsum [decidable_eq n] [t2_space R] {f : X → n → R} :
+  diagonal (∑' x, f x) = ∑' x, diagonal (f x) :=
+begin
+  by_cases hf : summable f,
+  { exact hf.has_sum.matrix_diagonal.tsum_eq.symm },
+  { have hft := summable_matrix_diagonal.not.mpr hf,
+    rw [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable hft],
+    exact diagonal_zero },
+end
+
+lemma has_sum.matrix_diag {f : X → matrix n n R} {a : matrix n n R} (hf : has_sum f a) :
+  has_sum (λ x, diag (f x)) (diag a) :=
+(hf.map (diag_add_monoid_hom n R) continuous_matrix_diag : _)
+
+lemma summable.matrix_diag {f : X → matrix n n R} (hf : summable f) : summable (λ x, diag (f x)) :=
+hf.has_sum.matrix_diag.summable
+
+section block_matrices
+
+lemma has_sum.matrix_block_diagonal [decidable_eq p]
+  {f : X → p → matrix m n R} {a : p → matrix m n R} (hf : has_sum f a) :
+  has_sum (λ x, block_diagonal (f x)) (block_diagonal a) :=
+(hf.map (block_diagonal_add_monoid_hom m n p R) $
+  continuous.matrix_block_diagonal $ by exact continuous_id : _)
+
+lemma summable.matrix_block_diagonal [decidable_eq p] {f : X → p → matrix m n R} (hf : summable f) :
+  summable (λ x, block_diagonal (f x)) :=
+hf.has_sum.matrix_block_diagonal.summable
+
+lemma has_sum.matrix_block_diagonal' [decidable_eq l]
+  {f : X → Π i, matrix (m' i) (n' i) R} {a : Π i, matrix (m' i) (n' i) R} (hf : has_sum f a) :
+  has_sum (λ x, block_diagonal' (f x)) (block_diagonal' a) :=
+(hf.map (block_diagonal'_add_monoid_hom m' n' R) $
+  continuous.matrix_block_diagonal' $ by exact continuous_id : _)
+
+lemma summable.matrix_block_diagonal' [decidable_eq l]  {f : X → Π i, matrix (m' i) (n' i) R}
+  (hf : summable f) :
+  summable (λ x, block_diagonal' (f x)) :=
+hf.has_sum.matrix_block_diagonal'.summable
+
+end block_matrices
+
+end tsum

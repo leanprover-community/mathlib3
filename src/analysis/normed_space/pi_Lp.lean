@@ -345,7 +345,7 @@ variables (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
 @[simp] lemma equiv_symm_smul :
   (pi_Lp.equiv p β).symm (c • x') = c • (pi_Lp.equiv p β).symm x' := rfl
 
-lemma nnnorm_equiv_const {β} [semi_normed_group β] (b : β) :
+lemma nnnorm_equiv_symm_const {β} [semi_normed_group β] (b : β) :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥₊ = fintype.card ι ^ (1 / p) * ∥b∥₊ :=
 begin
   have : p ≠ 0 := (zero_lt_one.trans_le (fact.out $ 1 ≤ p)).ne',
@@ -354,16 +354,16 @@ begin
     nnreal.rpow_one],
 end
 
-lemma norm_equiv_const {β} [semi_normed_group β] (b : β) :
+lemma norm_equiv_symm_const {β} [semi_normed_group β] (b : β) :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥ = fintype.card ι ^ (1 / p) * ∥b∥ :=
-(congr_arg coe $ nnnorm_equiv_const b).trans $ by simp
+(congr_arg coe $ nnnorm_equiv_symm_const b).trans $ by simp
 
-lemma nnnorm_equiv_one {β} [semi_normed_group β] [has_one β] :
+lemma nnnorm_equiv_symm_one {β} [semi_normed_group β] [has_one β] :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm 1∥₊ = fintype.card ι ^ (1 / p) * ∥(1 : β)∥₊ :=
-(nnnorm_equiv_const (1 : β)).trans rfl
+(nnnorm_equiv_symm_const (1 : β)).trans rfl
 
-lemma norm_equiv_one {β} [semi_normed_group β] [has_one β] :
+lemma norm_equiv_symm_one {β} [semi_normed_group β] [has_one β] :
   ∥(pi_Lp.equiv p (λ _ : ι, β)).symm 1∥ = fintype.card ι ^ (1 / p) * ∥(1 : β)∥ :=
-(norm_equiv_const (1 : β)).trans rfl
+(norm_equiv_symm_const (1 : β)).trans rfl
 
 end pi_Lp

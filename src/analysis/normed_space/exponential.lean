@@ -12,9 +12,12 @@ import data.finset.noncomm_prod
 /-!
 # Exponential in a Banach algebra
 
-In this file, we define `exp 𝕂 𝔸`, the exponential map in a normed algebra `𝔸` over a nondiscrete
-normed field `𝕂`. Although the definition doesn't require `𝔸` to be complete, we need to assume it
-for most results.
+In this file, we define `exp 𝕂 𝔸`, the exponential map in a topological algebra `𝔸` over a field
+`𝕂`.
+
+While for most interesting results we need `𝔸` to be normed algebra, we do not require this in the
+definition in order to make `exp` independent of a particular choice of norm. The definition also
+does not require that `𝔸` be complete, but we need to assume it for most results.
 
 We then prove some basic results, but we avoid importing derivatives here to minimize dependencies.
 Results involving derivatives and comparisons with `real.exp` and `complex.exp` can be found in
@@ -60,23 +63,21 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
 open filter is_R_or_C continuous_multilinear_map normed_field asymptotics
 open_locale nat topological_space big_operators ennreal
 
-section any_field_any_algebra
+section topological_algebra
 
-variables (𝕂 𝔸 𝔹 : Type*) [nondiscrete_normed_field 𝕂]
-variables [normed_ring 𝔸] [normed_ring 𝔹] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝔹]
+variables (𝕂 𝔸 : Type*) [field 𝕂] [ring 𝔸] [algebra 𝕂 𝔸] [topological_space 𝔸]
+  [topological_ring 𝔸] [has_continuous_const_smul 𝕂 𝔸]
 
-/-- In a Banach algebra `𝔸` over a normed field `𝕂`, `exp_series 𝕂 𝔸` is the
-`formal_multilinear_series` whose `n`-th term is the map `(xᵢ) : 𝔸ⁿ ↦ (1/n! : 𝕂) • ∏ xᵢ`.
-Its sum is the exponential map `exp 𝕂 𝔸 : 𝔸 → 𝔸`. -/
+/-- `exp_series 𝕂 𝔸` is the `formal_multilinear_series` whose `n`-th term is the map
+`(xᵢ) : 𝔸ⁿ ↦ (1/n! : 𝕂) • ∏ xᵢ`. Its sum is the exponential map `exp 𝕂 𝔸 : 𝔸 → 𝔸`. -/
 def exp_series : formal_multilinear_series 𝕂 𝔸 𝔸 :=
-  λ n, (1/n! : 𝕂) • continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸
+λ n, (1/n! : 𝕂) • continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸
 
-/-- In a Banach algebra `𝔸` over a normed field `𝕂`, `exp 𝕂 𝔸 : 𝔸 → 𝔸` is the exponential map
-determined by the action of `𝕂` on `𝔸`.
+/-- `exp 𝕂 𝔸 : 𝔸 → 𝔸` is the exponential map determined by the action of `𝕂` on `𝔸`.
 It is defined as the sum of the `formal_multilinear_series` `exp_series 𝕂 𝔸`. -/
 noncomputable def exp (x : 𝔸) : 𝔸 := (exp_series 𝕂 𝔸).sum x
 
-variables {𝕂 𝔸 𝔹}
+variables {𝕂 𝔸}
 
 lemma exp_series_apply_eq (x : 𝔸) (n : ℕ) : exp_series 𝕂 𝔸 n (λ _, x) = (1 / n! : 𝕂) • x^n :=
 by simp [exp_series]
@@ -85,28 +86,32 @@ lemma exp_series_apply_eq' (x : 𝔸) :
   (λ n, exp_series 𝕂 𝔸 n (λ _, x)) = (λ n, (1 / n! : 𝕂) • x^n) :=
 funext (exp_series_apply_eq x)
 
-lemma exp_series_apply_eq_field (x : 𝕂) (n : ℕ) : exp_series 𝕂 𝕂 n (λ _, x) = x^n / n! :=
+lemma exp_series_apply_eq_field [topological_space 𝕂] [topological_ring 𝕂] (x : 𝕂) (n : ℕ) :
+  exp_series 𝕂 𝕂 n (λ _, x) = x^n / n! :=
 begin
   rw [div_eq_inv_mul, ←smul_eq_mul, inv_eq_one_div],
   exact exp_series_apply_eq x n,
 end
 
-lemma exp_series_apply_eq_field' (x : 𝕂) : (λ n, exp_series 𝕂 𝕂 n (λ _, x)) = (λ n, x^n / n!) :=
+lemma exp_series_apply_eq_field' [topological_space 𝕂] [topological_ring 𝕂] (x : 𝕂) :
+  (λ n, exp_series 𝕂 𝕂 n (λ _, x)) = (λ n, x^n / n!) :=
 funext (exp_series_apply_eq_field x)
 
 lemma exp_series_sum_eq (x : 𝔸) : (exp_series 𝕂 𝔸).sum x = ∑' (n : ℕ), (1 / n! : 𝕂) • x^n :=
 tsum_congr (λ n, exp_series_apply_eq x n)
 
-lemma exp_series_sum_eq_field (x : 𝕂) : (exp_series 𝕂 𝕂).sum x = ∑' (n : ℕ), x^n / n! :=
+lemma exp_series_sum_eq_field [topological_space 𝕂] [topological_ring 𝕂] (x : 𝕂) :
+  (exp_series 𝕂 𝕂).sum x = ∑' (n : ℕ), x^n / n! :=
 tsum_congr (λ n, exp_series_apply_eq_field x n)
 
 lemma exp_eq_tsum : exp 𝕂 𝔸 = (λ x : 𝔸, ∑' (n : ℕ), (1 / n! : 𝕂) • x^n) :=
 funext exp_series_sum_eq
 
-lemma exp_eq_tsum_field : exp 𝕂 𝕂 = (λ x : 𝕂, ∑' (n : ℕ), x^n / n!) :=
+lemma exp_eq_tsum_field [topological_space 𝕂] [topological_ring 𝕂] :
+  exp 𝕂 𝕂 = (λ x : 𝕂, ∑' (n : ℕ), x^n / n!) :=
 funext exp_series_sum_eq_field
 
-@[simp] lemma exp_zero : exp 𝕂 𝔸 0 = 1 :=
+@[simp] lemma exp_zero [t2_space 𝔸] : exp 𝕂 𝔸 0 = 1 :=
 begin
   suffices : (λ x : 𝔸, ∑' (n : ℕ), (1 / n! : 𝕂) • x^n) 0 = ∑' (n : ℕ), if n = 0 then 1 else 0,
   { have key : ∀ n ∉ ({0} : finset ℕ), (if n = 0 then (1 : 𝔸) else 0) = 0,
@@ -117,6 +122,15 @@ begin
   split_ifs with h h;
   simp [h]
 end
+
+end topological_algebra
+
+section normed
+
+section any_field_any_algebra
+
+variables {𝕂 𝔸 𝔹 : Type*} [nondiscrete_normed_field 𝕂]
+variables [normed_ring 𝔸] [normed_ring 𝔹] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝔹]
 
 lemma norm_exp_series_summable_of_mem_ball (x : 𝔸)
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
@@ -464,6 +478,32 @@ map_exp _ (ring_hom.fst 𝔸 𝔹) continuous_fst x
 @[simp] lemma prod.snd_exp [complete_space 𝔹] (x : 𝔸 × 𝔹) : (exp 𝕂 (𝔸 × 𝔹) x).snd = exp 𝕂 𝔹 x.snd :=
 map_exp _ (ring_hom.snd 𝔸 𝔹) continuous_snd x
 
+@[simp] lemma pi.exp_apply {ι : Type*} {𝔸 : ι → Type*} [fintype ι]
+  [Π i, normed_ring (𝔸 i)] [Π i, normed_algebra 𝕂 (𝔸 i)] [Π i, complete_space (𝔸 i)]
+  (x : Π i, 𝔸 i) (i : ι) :
+  exp 𝕂 (Π i, 𝔸 i) x i = exp 𝕂 (𝔸 i) (x i) :=
+begin
+  -- Lean struggles to infer this instance due to it wanting `[Π i, semi_normed_ring (𝔸 i)]`
+  letI : normed_algebra 𝕂 (Π i, 𝔸 i) := pi.normed_algebra _,
+  exact map_exp _ (pi.eval_ring_hom 𝔸 i) (continuous_apply _) x
+end
+
+lemma pi.exp_def {ι : Type*} {𝔸 : ι → Type*} [fintype ι]
+  [Π i, normed_ring (𝔸 i)] [Π i, normed_algebra 𝕂 (𝔸 i)] [Π i, complete_space (𝔸 i)]
+  (x : Π i, 𝔸 i) :
+  exp 𝕂 (Π i, 𝔸 i) x = λ i, exp 𝕂 (𝔸 i) (x i) :=
+funext $ pi.exp_apply 𝕂 x
+
+lemma function.update_exp {ι : Type*} {𝔸 : ι → Type*} [fintype ι] [decidable_eq ι]
+  [Π i, normed_ring (𝔸 i)] [Π i, normed_algebra 𝕂 (𝔸 i)] [Π i, complete_space (𝔸 i)]
+  (x : Π i, 𝔸 i) (j : ι) (xj : 𝔸 j) :
+  function.update (exp 𝕂 (Π i, 𝔸 i) x) j (exp 𝕂 (𝔸 j) xj) = exp 𝕂 _ (function.update x j xj) :=
+begin
+  ext i,
+  simp_rw [pi.exp_def],
+  exact (function.apply_update (λ i, exp 𝕂 (𝔸 i)) x j xj i).symm,
+end
+
 end complete_algebra
 
 lemma algebra_map_exp_comm (x : 𝕂) :
@@ -520,10 +560,13 @@ end comm_algebra
 
 end is_R_or_C
 
+end normed
+
 section scalar_tower
 
-variables (𝕂 𝕂' 𝔸 : Type*) [nondiscrete_normed_field 𝕂] [nondiscrete_normed_field 𝕂']
-  [normed_ring 𝔸] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂' 𝔸]
+variables (𝕂 𝕂' 𝔸 : Type*) [field 𝕂] [field 𝕂'] [ring 𝔸] [algebra 𝕂 𝔸] [algebra 𝕂' 𝔸]
+  [topological_space 𝔸] [topological_ring 𝔸]
+  [has_continuous_const_smul 𝕂 𝔸] [has_continuous_const_smul 𝕂' 𝔸]
 
 /-- If a normed ring `𝔸` is a normed algebra over two fields, then they define the same
 `exp_series` on `𝔸`. -/

@@ -1030,8 +1030,8 @@ theorem add_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w + y �
 theorem add_congr_left {x y z : pgame} (h : x ≈ y) : x + z ≈ y + z :=
 add_congr h equiv_rfl
 
-theorem add_congr_right {x y z : pgame} (h : y ≈ z) : x + y ≈ x + z :=
-add_congr equiv_rfl h
+theorem add_congr_right {x y z : pgame} : y ≈ z → x + y ≈ x + z :=
+add_congr equiv_rfl
 
 theorem sub_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w - y ≈ x - z :=
 add_congr h₁ (neg_congr h₂)
@@ -1039,8 +1039,8 @@ add_congr h₁ (neg_congr h₂)
 theorem sub_congr_left {x y z : pgame} (h : x ≈ y) : x - z ≈ y - z :=
 sub_congr h equiv_rfl
 
-theorem sub_congr_right {x y z : pgame} (h : y ≈ z) : x - y ≈ x - z :=
-sub_congr equiv_rfl h
+theorem sub_congr_right {x y z : pgame} : y ≈ z → x - y ≈ x - z :=
+sub_congr equiv_rfl
 
 theorem add_left_neg_le_zero : ∀ (x : pgame), -x + x ≤ 0
 | ⟨xl, xr, xL, xR⟩ :=

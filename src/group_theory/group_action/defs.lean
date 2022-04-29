@@ -340,6 +340,11 @@ funext $ λ _, (mul_smul _ _ _).symm
 
 variables {M}
 
+instance additive.add_action : add_action (additive M) α :=
+{ vadd := (•) ∘ additive.to_mul,
+  zero_vadd := one_smul M,
+  add_vadd := mul_smul }
+
 /-- Pullback a multiplicative action along an injective map respecting `•`.
 See note [reducible non-instances]. -/
 @[reducible, to_additive "Pullback an additive action along an injective map respecting `+ᵥ`."]

@@ -619,6 +619,11 @@ begin
   { intro j, simpa using (R_relabelling₁ _).trans (R_relabelling₂ _) },
 end
 
+/-- Any game without left or right moves is a relabelling of 0. -/
+def relabelling.is_empty (x : pgame) [is_empty (x.left_moves)] [is_empty (x.right_moves)] :
+  relabelling x 0 :=
+⟨equiv.equiv_pempty _, equiv.equiv_pempty _, is_empty_elim, is_empty_elim⟩
+
 theorem relabelling.le {x y : pgame} (r : relabelling x y) : x ≤ y :=
 r.restricted.le
 
@@ -856,6 +861,14 @@ rfl
 @[simp] lemma add_move_right_inr {x y : pgame} {i} :
   (x + y).move_right ((@right_moves_add x y).symm (sum.inr i)) = x + y.move_right i :=
 by { cases x, cases y, refl, }
+
+instance is_empty_nat_right_moves : ∀ n : ℕ, is_empty (right_moves n)
+| 0 := pempty.is_empty
+| (n + 1) := begin
+  haveI := is_empty_nat_right_moves n,
+  rw nat.cast_succ,
+  exact (right_moves_add _ _).is_empty
+end
 
 /-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
 then `w + y` has the same moves as `x + z`. -/

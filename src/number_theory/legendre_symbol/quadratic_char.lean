@@ -72,7 +72,7 @@ end
 
 /-- A unit `a` of a finite field `F` of odd characteristic is a square
 if and only if `a ^ (#F / 2) = 1`. -/
-lemma unit_is_sqare_iff (hF : ring_char F ≠ 2) (a : Fˣ) :
+lemma unit_is_square_iff (hF : ring_char F ≠ 2) (a : Fˣ) :
   is_square a ↔ a ^ (fintype.card F / 2) = 1 :=
 begin
   classical,
@@ -102,7 +102,7 @@ lemma is_square_iff (hF : ring_char F ≠ 2) {a : F} (ha : a ≠ 0) :
   is_square a ↔ a ^ (fintype.card F / 2) = 1 :=
 begin
   apply (iff_congr _ (by simp [units.ext_iff])).mp
-        (finite_field.unit_is_sqare_iff hF (units.mk0 a ha)),
+        (finite_field.unit_is_square_iff hF (units.mk0 a ha)),
   simp only [is_square, units.ext_iff, units.coe_mk0, units.coe_mul],
   split, { rintro ⟨y, hy⟩, exact ⟨y, hy⟩ },
   { rintro ⟨y, rfl⟩,
@@ -176,7 +176,7 @@ begin
   simp only [quadratic_char],
   by_cases ha : a = 0,
   { simp only [ha, eq_self_iff_true, if_true], },
-  { simp [ha],
+  { simp only [ha, if_false, iff_false],
     split_ifs; simp only [neg_eq_zero, one_ne_zero, not_false_iff], },
 end
 
@@ -191,7 +191,8 @@ by simp only [quadratic_char, one_ne_zero, is_square_one, if_true, if_false, id.
 /-- For nonzero `a : F`, `quadratic_char F a = 1 ↔ is_square a`. -/
 lemma quadratic_char_one_iff_is_square {a : F} (ha : a ≠ 0) :
   quadratic_char F a = 1 ↔ is_square a :=
-by { simp [quadratic_char, ha, (dec_trivial : (-1 : ℤ) ≠ 1)], tauto }
+by { simp only [quadratic_char, ha, (dec_trivial : (-1 : ℤ) ≠ 1), if_false, ite_eq_left_iff],
+     tauto, }
 
 /-- The quadratic character takes the value `1` on nonzero squares. -/
 lemma quadratic_char_sq_one' {a : F} (ha : a ≠ 0) : quadratic_char F (a ^ 2) = 1 :=
@@ -254,7 +255,7 @@ end
   map_mul' := quadratic_char_mul }
 
 /-- The square of the quadratic character on nonzero arguments is `1`. -/
-lemma quadratic_char_sq_one {a : F} (ha : a ≠ 0) : (quadratic_char F a)^2 = 1 :=
+lemma quadratic_char_sq_one {a : F} (ha : a ≠ 0) : (quadratic_char F a) ^ 2 = 1 :=
 by rwa [pow_two, ← quadratic_char_mul, ← pow_two, quadratic_char_sq_one']
 
 /-- The quadratic character is `1` or `-1` on nonzero arguments. -/

@@ -229,6 +229,9 @@ theorem symm_mk (f : M → N) (g h₁ h₂ h₃) :
   (mul_equiv.mk f g h₁ h₂ h₃).symm =
   { to_fun := g, inv_fun := f, ..(mul_equiv.mk f g h₁ h₂ h₃).symm} := rfl
 
+@[simp, to_additive]
+theorem refl_symm : (refl M).symm = refl M := rfl
+
 /-- Transitivity of multiplication-preserving isomorphisms -/
 @[trans, to_additive "Transitivity of addition-preserving isomorphisms"]
 def trans (h1 : M ≃* N) (h2 : N ≃* P) : (M ≃* P) :=
@@ -255,13 +258,13 @@ theorem self_comp_symm (e : M ≃* N) : e ∘ e.symm = id := funext e.apply_symm
 @[simp, to_additive]
 theorem coe_refl : ⇑(refl M) = id := rfl
 
-@[to_additive]
+@[simp, to_additive]
 theorem refl_apply (m : M) : refl M m = m := rfl
 
 @[simp, to_additive]
 theorem coe_trans (e₁ : M ≃* N) (e₂ : N ≃* P) : ⇑(e₁.trans e₂) = e₂ ∘ e₁ := rfl
 
-@[to_additive]
+@[simp, to_additive]
 theorem trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (m : M) : e₁.trans e₂ m = e₂ (e₁ m) := rfl
 
 @[simp, to_additive] theorem symm_trans_apply (e₁ : M ≃* N) (e₂ : N ≃* P) (p : P) :

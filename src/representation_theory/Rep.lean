@@ -20,6 +20,8 @@ Conversely, given a homomorphism `ρ : G →* (V →ₗ[k] V)`,
 you can construct the bundled representation as `Rep.of ρ`.
 
 We verify that `Rep k G` has all limits and colimits, and is a monoidal category.
+
+We construct the categorical equivalence `Rep k G ≌ Module (monoid_algebra k G)`.
 -/
 
 universes u
@@ -44,7 +46,9 @@ by { change add_comm_group ((forget₂ (Rep k G) (Module k)).obj V), apply_insta
 instance (V : Rep k G) : module k V :=
 by { change module k ((forget₂ (Rep k G) (Module k)).obj V), apply_instance, }
 
--- This works well with the new design for representations:
+/--
+Specialize the existing `Action.ρ`, changing the type to `representation k G V`.
+-/
 def ρ (V : Rep k G) : representation k G V := V.ρ
 
 /-- Lift an unbundled representation to `Rep`. -/
@@ -66,12 +70,16 @@ by apply_instance
 
 end Rep
 
+/-!
+# The categorical equivalence `Rep k G ≌ Module.{u} (monoid_algebra k G)`.
+-/
 namespace Rep
 variables {k G : Type u} [comm_ring k] [monoid G]
 
 noncomputable theory
 
-lemma aux {k G : Type*} [comm_ring k] [monoid G]
+/-- Auxilliary lemma for `to_Module_monoid_algebra`. -/
+lemma to_Module_monoid_algebra_map_aux {k G : Type*} [comm_ring k] [monoid G]
   (V W : Type*) [add_comm_group V] [add_comm_group W] [module k V] [module k W]
   (ρ : G →* V →ₗ[k] V) (σ : G →* W →ₗ[k] W)
   (f : V →ₗ[k] W) (w : ∀ (g : G), f.comp (ρ g) = (σ g).comp f)
@@ -89,15 +97,18 @@ begin
       linear_map.smul_apply, linear_map.map_smulₛₗ], }
 end
 
+/-- Auxilliary definition for `to_Module_monoid_algebra`. -/
 def to_Module_monoid_algebra_map {V W : Rep k G} (f : V ⟶ W) :
   Module.of (monoid_algebra k G) V.ρ.as_module ⟶ Module.of (monoid_algebra k G) W.ρ.as_module :=
-{ map_smul' := λ r x, aux V.V W.V V.ρ W.ρ f.hom f.comm r x,
+{ map_smul' := λ r x, to_Module_monoid_algebra_map_aux V.V W.V V.ρ W.ρ f.hom f.comm r x,
   ..f.hom, }
 
+/-- Functorially convert a representation of `G` into a module over `monoid_algebra k G`. -/
 def to_Module_monoid_algebra : Rep k G ⥤ Module.{u} (monoid_algebra k G) :=
 { obj := λ V, Module.of _ V.ρ.as_module ,
   map := λ V W f, to_Module_monoid_algebra_map f, }
 
+/-- Functorially convert a module over `monoid_algebra k G` into a representation of `G`. -/
 def of_Module_monoid_algebra : Module.{u} (monoid_algebra k G) ⥤ Rep k G :=
 { obj := λ M, Rep.of (representation.of_module k G M),
   map := λ M N f,
@@ -112,6 +123,7 @@ lemma of_Module_monoid_algebra_obj_coe (M : Module.{u} (monoid_algebra k G)) :
 lemma of_Module_monoid_algebra_obj_ρ (M : Module.{u} (monoid_algebra k G)) :
   (of_Module_monoid_algebra.obj M).ρ = representation.of_module k G M := rfl
 
+/-- Auxilliary definition for `equivalence_Module_monoid_algebra`. -/
 def counit_iso_add_equiv {M : Module.{u} (monoid_algebra k G)} :
   ((of_Module_monoid_algebra ⋙ to_Module_monoid_algebra).obj M) ≃+ M :=
 begin
@@ -119,6 +131,7 @@ begin
   refine (representation.of_module k G ↥M).as_module_equiv.trans (restrict_scalars.add_equiv _ _ _),
 end
 
+/-- Auxilliary definition for `equivalence_Module_monoid_algebra`. -/
 def unit_iso_add_equiv {V : Rep k G} :
   V ≃+ ((to_Module_monoid_algebra ⋙ of_Module_monoid_algebra).obj V) :=
 begin
@@ -127,6 +140,7 @@ begin
   exact (restrict_scalars.add_equiv _ _ _).symm,
 end
 
+/-- Auxilliary definition for `equivalence_Module_monoid_algebra`. -/
 def counit_iso (M : Module.{u} (monoid_algebra k G)) :
   (of_Module_monoid_algebra ⋙ to_Module_monoid_algebra).obj M ≅ M :=
 linear_equiv.to_Module_iso'
@@ -136,8 +150,6 @@ linear_equiv.to_Module_iso'
   end,
   ..counit_iso_add_equiv, }
 
--- TODO consider removing @[simp] from monoid_algebra.of_apply?
-
 lemma unit_iso_comm (V : Rep k G) (g : G) (x : V) :
   unit_iso_add_equiv (((V.ρ) g).to_fun x) =
     (((of_Module_monoid_algebra.obj (to_Module_monoid_algebra.obj V)).ρ) g).to_fun
@@ -145,9 +157,10 @@ lemma unit_iso_comm (V : Rep k G) (g : G) (x : V) :
 begin
   dsimp [unit_iso_add_equiv, of_Module_monoid_algebra, to_Module_monoid_algebra],
   simp only [add_equiv.apply_eq_iff_eq, add_equiv.apply_symm_apply,
-    representation.as_module_equiv_symm_map_rho, representation.of_module_as_module_act'],
+    representation.as_module_equiv_symm_map_rho, representation.of_module_as_module_act],
 end
 
+/-- Auxilliary definition for `equivalence_Module_monoid_algebra`. -/
 def unit_iso (V : Rep k G) :
   V ≅ ((to_Module_monoid_algebra ⋙ of_Module_monoid_algebra).obj V) :=
 Action.mk_iso (linear_equiv.to_Module_iso'

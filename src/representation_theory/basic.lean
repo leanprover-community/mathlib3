@@ -107,6 +107,12 @@ begin
   exact module.comp_hom V (as_algebra_hom ρ).to_ring_hom,
 end
 
+/--
+The additive equivalence from the `module (monoid_algebra k G)` to the original vector space
+of the representative.
+
+This is just the identity, but it is helpful for typechecking and keeping track of instances.
+-/
 def as_module_equiv : ρ.as_module ≃+ V :=
 add_equiv.refl _
 
@@ -191,18 +197,8 @@ begin
   { intros r f w, simp [w], }
 end
 
--- TODO keep only one of the next two:
-lemma of_module_as_module_act (g : G) (x : restrict_scalars k (monoid_algebra k G) ρ.as_module) :
- (ρ.as_module_equiv) ((restrict_scalars.add_equiv _ _ _) (of_module k G (ρ.as_module) g x)) =
-     (ρ g (ρ.as_module_equiv (restrict_scalars.add_equiv _ _ _ x))) :=
-begin
-  apply_fun ρ.as_module_equiv.symm,
-  dsimp [of_module, restrict_scalars.lsmul_apply_apply],
-  simp,
-end.
-
 @[simp]
-lemma of_module_as_module_act' (g : G) (x : restrict_scalars k (monoid_algebra k G) ρ.as_module) :
+lemma of_module_as_module_act (g : G) (x : restrict_scalars k (monoid_algebra k G) ρ.as_module) :
   of_module k G (ρ.as_module) g x =
     (restrict_scalars.add_equiv _ _ _).symm ((ρ.as_module_equiv).symm
       (ρ g (ρ.as_module_equiv (restrict_scalars.add_equiv _ _ _ x)))) :=
@@ -213,20 +209,11 @@ begin
   simp,
 end.
 
-
-lemma as_module_of_module_act (r : monoid_algebra k G)
-  (m : restrict_scalars k (monoid_algebra k G) M) :
-  (restrict_scalars.add_equiv _ _ _)
-    ((of_module k G M).as_module_equiv (r • ((of_module k G M).as_module_equiv.symm m))) =
-  r • (restrict_scalars.add_equiv _ _ _) m :=
-by { dsimp, simp only [add_equiv.apply_symm_apply, of_module_as_algebra_hom_apply_apply], }
-
--- reformulation of the above...? -- FIXME needed?
-lemma as_module_of_module_act' (r : monoid_algebra k G)
+lemma smul_of_module_as_module (r : monoid_algebra k G)
   (m : (of_module k G M).as_module) :
    (restrict_scalars.add_equiv _ _ _) ((of_module k G M).as_module_equiv (r • m)) =
      r • (restrict_scalars.add_equiv _ _ _) ((of_module k G M).as_module_equiv m) :=
-as_module_of_module_act k G M r (((of_module k G M).as_module_equiv m))
+by { dsimp, simp only [add_equiv.apply_symm_apply, of_module_as_algebra_hom_apply_apply], }
 
 end
 

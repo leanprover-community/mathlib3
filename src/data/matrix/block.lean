@@ -323,6 +323,11 @@ def block_diagonal_ring_hom [decidable_eq m] [fintype o] [fintype m] [non_assoc_
   ..block_diagonal_add_monoid_hom m m o α }
 end
 
+@[simp] lemma block_diagonal_pow [decidable_eq m] [fintype o] [fintype m] [semiring α]
+  (M : o → matrix m m α) (n : ℕ)  :
+  block_diagonal (M ^ n) = block_diagonal M ^ n :=
+map_pow (block_diagonal_ring_hom m o α) M n
+
 @[simp] lemma block_diagonal_smul {R : Type*} [monoid R] [add_monoid α] [distrib_mul_action R α]
   (x : R) (M : o → matrix m n α) : block_diagonal (x • M) = x • block_diagonal M :=
 by { ext, simp only [block_diagonal_apply, pi.smul_apply], split_ifs; simp }
@@ -464,6 +469,11 @@ def block_diagonal'_ring_hom [Π i, decidable_eq (m' i)] [fintype o] [Π i, fint
   map_mul' := block_diagonal'_mul,
   ..block_diagonal'_add_monoid_hom m' m' α }
 end
+
+@[simp] lemma block_diagonal'_pow [Π i, decidable_eq (m' i)] [fintype o] [Π i, fintype (m' i)]
+  [semiring α] (M : Π i, matrix (m' i) (m' i) α) (n : ℕ)  :
+  block_diagonal' (M ^ n) = block_diagonal' M ^ n :=
+map_pow (block_diagonal'_ring_hom m' α) M n
 
 @[simp] lemma block_diagonal'_smul {R : Type*} [semiring R] [add_comm_monoid α] [module R α]
   (x : R) (M : Π i, matrix (m' i) (n' i) α) : block_diagonal' (x • M) = x • block_diagonal' M :=

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Yaël Dillies
 -/
 import data.nat.pow
+import tactic.by_contra
 
 /-!
 # Natural number logarithms
@@ -50,22 +51,18 @@ by rw [log, if_neg (λ h : b ≤ n ∧ 1 < b, h.2.not_le hb)]
 
 lemma log_eq_zero_iff {b n : ℕ} : log b n = 0 ↔ n < b ∨ b ≤ 1 :=
 begin
-  split,
-  { intro h_log,
-    by_contra h,
-    push_neg at h,
-    have := log_of_one_lt_of_le h.2 h.1,
-    rw h_log at this,
-    exact succ_ne_zero _ this.symm, },
-  { exact log_eq_zero, },
+  refine ⟨λ h_log, _, log_eq_zero⟩,
+  by_contra' h,
+  have := log_of_one_lt_of_le h.2 h.1,
+  rw h_log at this,
+  exact succ_ne_zero _ this.symm
 end
 
 lemma log_eq_one_iff {b n : ℕ} : log b n = 1 ↔ n < b * b ∧ 1 < b ∧ b ≤ n :=
 -- This is best possible: if b = 2, n = 5, then 1 < b and b ≤ n but n > b * b.
 begin
-  split,
-  { intro h_log,
-    have bound : 1 < b ∧ b ≤ n,
+  refine ⟨λ h_log, _, _⟩,
+  { have bound : 1 < b ∧ b ≤ n,
     { contrapose h_log,
       rw [not_and_distrib, not_lt, not_le, or_comm, ←log_eq_zero_iff] at h_log,
       rw h_log,
@@ -120,9 +117,23 @@ by { rw ←pow_le_iff_le_log hb (pow_pos (zero_lt_one.trans hb) _),
 lemma log_pos {b n : ℕ} (hb : 1 < b) (hn : b ≤ n) : 0 < log b n :=
 by { rwa [←succ_le_iff, ←pow_le_iff_le_log hb (hb.le.trans hn), pow_one] }
 
-lemma lt_pow_succ_log_self {b : ℕ} (hb : 1 < b) {x : ℕ} (hx : 0 < x) :
+lemma log_mul_base (b n : ℕ) (hb : 1 < b) (hn : 0 < n) : log b (n * b) = log b n + 1 :=
+eq_of_forall_le_iff $ λ z,
+begin
+  cases z,
+  { simp },
+  have : 0 < b := zero_lt_one.trans hb,
+  rw [←pow_le_iff_le_log hb, pow_succ', (strict_mono_mul_right_of_pos this).le_iff_le,
+      pow_le_iff_le_log hb hn, nat.succ_le_succ_iff],
+  simp [hn, this]
+end
+
+lemma lt_pow_succ_log_self {b : ℕ} (hb : 1 < b) (x : ℕ) :
   x < b ^ (log b x).succ :=
 begin
+  cases x.eq_zero_or_pos with hx hx,
+  { simp only [hx, log_zero_right, pow_one],
+    exact pos_of_gt hb },
   rw [←not_le, pow_le_iff_le_log hb hx, not_le],
   exact lt_succ_self _,
 end
@@ -156,6 +167,45 @@ lemma log_monotone {b : ℕ} : monotone (λ n : ℕ, log b n) :=
 
 lemma log_antitone_left {n : ℕ} : antitone_on (λ b, log b n) (set.Ioi 1) :=
 λ _ hc _ _ hb, log_le_log_of_left_ge (set.mem_Iio.1 hc) hb
+
+@[simp] lemma log_div_mul_self (b n : ℕ) : log b (n / b * b) = log b n :=
+begin
+  refine eq_of_forall_le_iff (λ z, _),
+  split,
+  { intro h,
+    exact h.trans (log_monotone (div_mul_le_self _ _)) },
+  { intro h,
+    rcases b with _|_|b,
+    { simpa using h },
+    { simpa using h },
+    rcases n.zero_le.eq_or_lt with rfl|hn,
+    { simpa using h },
+    cases le_or_lt b.succ.succ n with hb hb,
+    { cases z,
+      { simp },
+      have : 0 < b.succ.succ := nat.succ_pos',
+      rw [←pow_le_iff_le_log, pow_succ'] at h ⊢,
+      { rwa [(strict_mono_mul_right_of_pos this).le_iff_le,
+             nat.le_div_iff_mul_le _ _ nat.succ_pos'] },
+      all_goals { simp [hn, nat.div_pos hb nat.succ_pos'] } },
+    { simpa [div_eq_of_lt, hb, log_eq_zero] using h } }
+end
+
+@[simp] lemma log_div_base (b n : ℕ) : log b (n / b) = log b n - 1 :=
+begin
+  cases lt_or_le n b with h h,
+  { simp [div_eq_of_lt, h, log_eq_zero] },
+  rcases n.zero_le.eq_or_lt with rfl|hn,
+  { simp },
+  rcases b with _|_|b,
+  { simp },
+  { simp },
+  rw [←succ_inj', ←succ_inj'],
+  simp_rw succ_eq_add_one,
+  rw [nat.sub_add_cancel, ←log_mul_base];
+  { simp [succ_le_iff, log_pos, h, nat.div_pos] },
+end
+
 
 private lemma add_pred_div_lt {b n : ℕ} (hb : 1 < b) (hn : 2 ≤ n) : (n + b - 1)/b < n :=
 begin
@@ -253,11 +303,10 @@ end
 
 lemma clog_le_clog_of_left_ge {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : clog b n ≤ clog c n :=
 begin
-  cases n, { simp },
   rw ← le_pow_iff_clog_le (lt_of_lt_of_le hc hb),
   calc
-    n.succ ≤ c ^ clog c n.succ : le_pow_clog hc _
-       ... ≤ b ^ clog c n.succ : pow_le_pow_of_le_left (le_of_lt $ zero_lt_one.trans hc) hb _
+    n ≤ c ^ clog c n : le_pow_clog hc _
+  ... ≤ b ^ clog c n : pow_le_pow_of_le_left (le_of_lt $ zero_lt_one.trans hc) hb _
 end
 
 lemma clog_monotone (b : ℕ) : monotone (clog b) :=

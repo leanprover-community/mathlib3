@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
 
-import linear_algebra.tensor_product
+import linear_algebra.tensor_product_basis
 import ring_theory.adjoin.basic
 
 /-!
@@ -664,23 +664,21 @@ lemma assoc_aux_2 (r : R) :
   (tensor_product.assoc R A B C) (((algebra_map R A) r ⊗ₜ[R] 1) ⊗ₜ[R] 1) =
     (algebra_map R (A ⊗ (B ⊗ C))) r := rfl
 
--- variables (R A B C)
+variables (R A B C)
 
--- -- local attribute [elab_simple] alg_equiv_of_linear_equiv_triple_tensor_product
+/-- The associator for tensor product of R-algebras, as an algebra isomorphism. -/
+protected def assoc : ((A ⊗[R] B) ⊗[R] C) ≃ₐ[R] (A ⊗[R] (B ⊗[R] C)) :=
+alg_equiv_of_linear_equiv_triple_tensor_product
+  (tensor_product.assoc.{u v₁ v₂ v₃} R A B C : (A ⊗ B ⊗ C) ≃ₗ[R] (A ⊗ (B ⊗ C)))
+  (@algebra.tensor_product.assoc_aux_1.{u v₁ v₂ v₃} R _ A _ _ B _ _ C _ _)
+  (@algebra.tensor_product.assoc_aux_2.{u v₁ v₂ v₃} R _ A _ _ B _ _ C _ _)
 
--- /-- The associator for tensor product of R-algebras, as an algebra isomorphism. -/
--- -- FIXME This is _really_ slow to compile. :-(
--- protected def assoc : ((A ⊗[R] B) ⊗[R] C) ≃ₐ[R] (A ⊗[R] (B ⊗[R] C)) :=
--- alg_equiv_of_linear_equiv_triple_tensor_product
---   (tensor_product.assoc R A B C)
---   assoc_aux_1 assoc_aux_2
+variables {R A B C}
 
--- variables {R A B C}
-
--- @[simp] theorem assoc_tmul (a : A) (b : B) (c : C) :
---   ((tensor_product.assoc R A B C) :
---   (A ⊗[R] B) ⊗[R] C → A ⊗[R] (B ⊗[R] C)) ((a ⊗ₜ b) ⊗ₜ c) = a ⊗ₜ (b ⊗ₜ c) :=
--- rfl
+@[simp] theorem assoc_tmul (a : A) (b : B) (c : C) :
+  ((tensor_product.assoc R A B C) :
+  (A ⊗[R] B) ⊗[R] C → A ⊗[R] (B ⊗[R] C)) ((a ⊗ₜ b) ⊗ₜ c) = a ⊗ₜ (b ⊗ₜ c) :=
+rfl
 
 end
 
@@ -789,3 +787,11 @@ by rw [product_map, alg_hom.range_comp, map_range, map_sup, ←alg_hom.range_com
 end
 end tensor_product
 end algebra
+
+lemma subalgebra.finite_dimensional_sup {K L : Type*} [field K] [comm_ring L] [algebra K L]
+  (E1 E2 : subalgebra K L) [finite_dimensional K E1] [finite_dimensional K E2] :
+  finite_dimensional K ↥(E1 ⊔ E2) :=
+begin
+  rw [←E1.range_val, ←E2.range_val, ←algebra.tensor_product.product_map_range],
+  exact (algebra.tensor_product.product_map E1.val E2.val).to_linear_map.finite_dimensional_range,
+end

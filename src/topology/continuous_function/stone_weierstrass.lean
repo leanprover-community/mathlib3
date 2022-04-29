@@ -60,7 +60,7 @@ lemma polynomial_comp_attach_bound (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : p
     polynomial.aeval f g :=
 begin
   ext,
-  simp only [continuous_map.comp_coe, function.comp_app,
+  simp only [continuous_map.coe_comp, function.comp_app,
     continuous_map.attach_bound_apply_coe,
     polynomial.to_continuous_map_on_to_fun,
     polynomial.aeval_subalgebra_coe,
@@ -298,8 +298,8 @@ begin
     ⟨(1 : C(X, ℝ)), A.subalgebra_topological_closure A.one_mem⟩,
   convert sublattice_closure_eq_top
     (L : set C(X, ℝ)) n
-    (λ f g fm gm, inf_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
-    (λ f g fm gm, sup_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
+    (λ f fm g gm, inf_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
+    (λ f fm g gm, sup_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
     (subalgebra.separates_points.strongly
       (subalgebra.separates_points_monotone (A.subalgebra_topological_closure) w)),
   { simp, },
@@ -390,7 +390,7 @@ begin
   intros x₁ x₂ hx,
   -- Let `f` in the subalgebra `A` separate the points `x₁`, `x₂`
   obtain ⟨_, ⟨f, hfA, rfl⟩, hf⟩ := hA hx,
-  let F : C(X, ℂ) := f - const (f x₂),
+  let F : C(X, ℂ) := f - const _ (f x₂),
   -- Subtract the constant `f x₂` from `f`; this is still an element of the subalgebra
   have hFA : F ∈ A,
   { refine A.sub_mem hfA _,

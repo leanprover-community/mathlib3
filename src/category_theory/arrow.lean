@@ -35,7 +35,7 @@ def arrow := comma.{v v v} (𝟭 T) (𝟭 T)
 
 -- Satisfying the inhabited linter
 instance arrow.inhabited [inhabited T] : inhabited (arrow T) :=
-{ default := show comma (𝟭 T) (𝟭 T), from default (comma (𝟭 T) (𝟭 T)) }
+{ default := show comma (𝟭 T) (𝟭 T), from default }
 
 end
 

@@ -3,7 +3,7 @@ Copyright (c) 2020 Johan Commelin, Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Damiano Testa
 -/
-import data.equiv.basic
+import logic.equiv.basic
 import logic.nontrivial
 import order.basic
 
@@ -83,5 +83,7 @@ iff.rfl
 
 end order_dual
 
-alias order_dual.to_dual_lt_to_dual ↔ _ has_lt.lt.dual
 alias order_dual.to_dual_le_to_dual ↔ _ has_le.le.dual
+alias order_dual.to_dual_lt_to_dual ↔ _ has_lt.lt.dual
+alias order_dual.of_dual_le_of_dual ↔ _ has_le.le.of_dual
+alias order_dual.of_dual_lt_of_dual ↔ _ has_lt.lt.of_dual

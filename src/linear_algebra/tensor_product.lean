@@ -6,6 +6,7 @@ Authors: Kenny Lau, Mario Carneiro
 
 import group_theory.congruence
 import linear_algebra.bilinear_map
+import linear_algebra.span
 
 /-!
 # Tensor product of modules over commutative semirings.
@@ -273,6 +274,13 @@ instance left_module : module R'' (M ⊗[R] N) :=
   ..tensor_product.left_distrib_mul_action }
 
 instance : module R (M ⊗[R] N) := tensor_product.left_module
+
+instance [module R''ᵐᵒᵖ M] [is_central_scalar R'' M] : is_central_scalar R'' (M ⊗[R] N) :=
+{ op_smul_eq_smul := λ r x,
+  tensor_product.induction_on x
+    (by rw [smul_zero, smul_zero])
+    (λ x y, by rw [smul_tmul', smul_tmul', op_smul_eq_smul])
+    (λ x y hx hy, by rw [smul_add, smul_add, hx, hy]) }
 
 section
 
@@ -924,7 +932,7 @@ When `R` is a `ring` we get the required `tensor_product.compatible_smul` instan
 `is_scalar_tower`, but when it is only a `semiring` we need to build it from scratch.
 The instance diamond in `compatible_smul` doesn't matter because it's in `Prop`.
 -/
-instance compatible_smul.int [module ℤ M] [module ℤ N] : compatible_smul R ℤ M N :=
+instance compatible_smul.int : compatible_smul R ℤ M N :=
 ⟨λ r m n, int.induction_on r
   (by simp)
   (λ r ih, by simpa [add_smul, tmul_add, add_tmul] using ih)
@@ -932,7 +940,7 @@ instance compatible_smul.int [module ℤ M] [module ℤ N] : compatible_smul R �
 
 instance compatible_smul.unit {S} [monoid S] [distrib_mul_action S M] [distrib_mul_action S N]
   [compatible_smul R S M N] :
-  compatible_smul R (units S) M N :=
+  compatible_smul R Sˣ M N :=
 ⟨λ s m n, (compatible_smul.smul_tmul (s : S) m n : _)⟩
 
 end tensor_product

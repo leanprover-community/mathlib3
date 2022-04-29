@@ -8,7 +8,7 @@ import field_theory.primitive_element
 import linear_algebra.determinant
 import linear_algebra.matrix.charpoly.coeff
 import linear_algebra.matrix.to_linear_equiv
-import ring_theory.power_basis
+import field_theory.is_alg_closed.algebraic_closure
 
 /-!
 # Norm for (finite) ring extensions
@@ -39,15 +39,15 @@ See also `algebra.trace`, which is defined similarly as the trace of
 
 universes u v w
 
-variables {R S T : Type*} [comm_ring R] [is_domain R] [comm_ring S]
+variables {R S T : Type*} [comm_ring R] [comm_ring S]
 variables [algebra R S]
 variables {K L F : Type*} [field K] [field L] [field F]
-variables [algebra K L] [algebra L F] [algebra K F]
+variables [algebra K L] [algebra K F]
 variables {ι : Type w} [fintype ι]
 
 open finite_dimensional
 open linear_map
-open matrix
+open matrix polynomial
 
 open_locale big_operators
 open_locale matrix
@@ -89,7 +89,7 @@ end
 (If `L` is not finite-dimensional over `K`, then `norm = 1 = x ^ 0 = x ^ (finrank L K)`.)
 -/
 @[simp]
-lemma norm_algebra_map (x : K) : norm K (algebra_map K L x) = x ^ finrank K L :=
+protected lemma norm_algebra_map (x : K) : norm K (algebra_map K L x) = x ^ finrank K L :=
 begin
   by_cases H : ∃ (s : finset L), nonempty (basis s K L),
   { rw [norm_algebra_map_of_basis H.some_spec.some, finrank_eq_card_basis H.some_spec.some] },
@@ -100,31 +100,34 @@ end
 
 section eq_prod_roots
 
-lemma norm_gen_eq_prod_roots [algebra K S] (pb : power_basis K S)
+/-- Given `pb : power_basis K S`, then the norm of `pb.gen` is
+`(-1) ^ pb.dim * coeff (minpoly K pb.gen) 0`. -/
+lemma power_basis.norm_gen_eq_coeff_zero_minpoly [algebra K S] (pb : power_basis K S) :
+  norm K pb.gen = (-1) ^ pb.dim * coeff (minpoly K pb.gen) 0 :=
+begin
+  rw [norm_eq_matrix_det pb.basis, det_eq_sign_charpoly_coeff, charpoly_left_mul_matrix,
+    fintype.card_fin]
+end
+
+/-- Given `pb : power_basis K S`, then the norm of `pb.gen` is
+`((minpoly K pb.gen).map (algebra_map K F)).roots.prod`. -/
+lemma power_basis.norm_gen_eq_prod_roots [algebra K S] (pb : power_basis K S)
   (hf : (minpoly K pb.gen).splits (algebra_map K F)) :
   algebra_map K F (norm K pb.gen) =
     ((minpoly K pb.gen).map (algebra_map K F)).roots.prod :=
 begin
-  -- Write the LHS as the 0'th coefficient of `minpoly K pb.gen`
-  rw [norm_eq_matrix_det pb.basis, det_eq_sign_charpoly_coeff, charpoly_left_mul_matrix,
-      ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_neg, ring_hom.map_one,
-      ← polynomial.coeff_map, fintype.card_fin],
-  -- Rewrite `minpoly K pb.gen` as a product over the roots.
-  conv_lhs { rw polynomial.eq_prod_roots_of_splits hf },
-  rw [polynomial.coeff_C_mul, polynomial.coeff_zero_multiset_prod, multiset.map_map,
-      (minpoly.monic pb.is_integral_gen).leading_coeff, ring_hom.map_one, one_mul],
-  -- Incorporate the `-1` from the `charpoly` back into the product.
-  rw [← multiset.prod_repeat (-1 : F), ← pb.nat_degree_minpoly,
-      polynomial.nat_degree_eq_card_roots hf, ← multiset.map_const, ← multiset.prod_map_mul],
-  -- And conclude that both sides are the same.
-  congr, convert multiset.map_id _, ext f, simp
+  rw [power_basis.norm_gen_eq_coeff_zero_minpoly, ← pb.nat_degree_minpoly, ring_hom.map_mul,
+    ← coeff_map, prod_roots_eq_coeff_zero_of_monic_of_split
+      ((minpoly.monic (power_basis.is_integral_gen _)).map _)
+      ((splits_id_iff_splits _).2 hf), nat_degree_map, map_pow, ← mul_assoc, ← mul_pow],
+  simp
 end
 
 end eq_prod_roots
 
 section eq_zero_iff
 
-lemma norm_eq_zero_iff_of_basis [is_domain S] (b : basis ι R S) {x : S} :
+lemma norm_eq_zero_iff_of_basis [is_domain R] [is_domain S] (b : basis ι R S) {x : S} :
   algebra.norm R x = 0 ↔ x = 0 :=
 begin
   have hι : nonempty ι := b.index_nonempty,
@@ -144,7 +147,7 @@ begin
     rw [alg_hom.map_zero, matrix.det_zero hι] },
 end
 
-lemma norm_ne_zero_iff_of_basis [is_domain S] (b : basis ι R S) {x : S} :
+lemma norm_ne_zero_iff_of_basis [is_domain R] [is_domain S] (b : basis ι R S) {x : S} :
   algebra.norm R x ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr (algebra.norm_eq_zero_iff_of_basis b)
 
@@ -174,18 +177,50 @@ begin
   let pbx := intermediate_field.adjoin.power_basis (is_separable.is_integral K x),
   rw [← adjoin_simple.algebra_map_gen K x, norm_eq_matrix_det (pbx.basis.smul pbL.basis) _,
     smul_left_mul_matrix_algebra_map, det_block_diagonal, norm_eq_matrix_det pbx.basis],
-  simp only [finset.card_fin, finset.prod_const, adjoin.power_basis_basis],
+  simp only [finset.card_fin, finset.prod_const],
   congr,
-  rw [← power_basis.finrank, adjoin_simple.algebra_map_gen K x],
+  rw [← power_basis.finrank, adjoin_simple.algebra_map_gen K x]
 end
-
-section eq_prod_embeddings
 
 variable {K}
 
+section intermediate_field
+
+lemma _root_.intermediate_field.adjoin_simple.norm_gen_eq_one {x : L}
+  (hx : ¬_root_.is_integral K x) : norm K (adjoin_simple.gen K x) = 1 :=
+begin
+  rw [norm_eq_one_of_not_exists_basis],
+  contrapose! hx,
+  obtain ⟨s, ⟨b⟩⟩ := hx,
+  refine is_integral_of_mem_of_fg (K⟮x⟯).to_subalgebra _ x _,
+  { exact (submodule.fg_iff_finite_dimensional _).mpr (of_finset_basis b) },
+  { exact intermediate_field.subset_adjoin K _ (set.mem_singleton x) }
+end
+
+lemma _root_.intermediate_field.adjoin_simple.norm_gen_eq_prod_roots (x : L)
+  (hf : (minpoly K x).splits (algebra_map K F)) :
+  (algebra_map K F) (norm K (adjoin_simple.gen K x)) =
+    ((minpoly K x).map (algebra_map K F)).roots.prod :=
+begin
+  have injKxL := (algebra_map K⟮x⟯ L).injective,
+  by_cases hx : _root_.is_integral K x, swap,
+  { simp [minpoly.eq_zero hx, intermediate_field.adjoin_simple.norm_gen_eq_one hx] },
+  have hx' : _root_.is_integral K (adjoin_simple.gen K x),
+  { rwa [← is_integral_algebra_map_iff injKxL, adjoin_simple.algebra_map_gen],
+    apply_instance },
+  rw [← adjoin.power_basis_gen hx, power_basis.norm_gen_eq_prod_roots];
+    rw [adjoin.power_basis_gen hx, minpoly.eq_of_algebra_map_eq injKxL hx'];
+    try { simp only [adjoin_simple.algebra_map_gen _ _] },
+  exact hf
+end
+
+end intermediate_field
+
+section eq_prod_embeddings
+
 open intermediate_field intermediate_field.adjoin_simple polynomial
 
-variables (E : Type*) [field E] [algebra K E] [is_scalar_tower K L F]
+variables (E : Type*) [field E] [algebra K E]
 
 lemma norm_eq_prod_embeddings_gen
   (pb : power_basis K L)
@@ -194,18 +229,25 @@ lemma norm_eq_prod_embeddings_gen
     (@@finset.univ (power_basis.alg_hom.fintype pb)).prod (λ σ, σ pb.gen) :=
 begin
   letI := classical.dec_eq E,
-  rw [norm_gen_eq_prod_roots pb hE, fintype.prod_equiv pb.lift_equiv', finset.prod_mem_multiset,
-    finset.prod_eq_multiset_prod, multiset.to_finset_val,
-    multiset.erase_dup_eq_self.mpr, multiset.map_id],
+  rw [power_basis.norm_gen_eq_prod_roots pb hE, fintype.prod_equiv pb.lift_equiv',
+    finset.prod_mem_multiset, finset.prod_eq_multiset_prod, multiset.to_finset_val,
+    multiset.dedup_eq_self.mpr, multiset.map_id],
   { exact nodup_roots ((separable_map _).mpr hfx) },
   { intro x, refl },
   { intro σ, rw [power_basis.lift_equiv'_apply_coe, id.def] }
 end
 
+lemma norm_eq_prod_roots [is_separable K L] [finite_dimensional K L]
+  {x : L} (hF : (minpoly K x).splits (algebra_map K F)) :
+  algebra_map K F (norm K x) = ((minpoly K x).map (algebra_map K F)).roots.prod ^ finrank K⟮x⟯ L :=
+by rw [norm_eq_norm_adjoin K x, map_pow,
+  intermediate_field.adjoin_simple.norm_gen_eq_prod_roots _ hF]
+
 variable (F)
 
-lemma prod_embeddings_eq_finrank_pow [is_alg_closed E] [is_separable K F] [finite_dimensional K F]
-  (pb : power_basis K L) : ∏ σ : F →ₐ[K] E, σ (algebra_map L F pb.gen) =
+lemma prod_embeddings_eq_finrank_pow [algebra L F] [is_scalar_tower K L F][is_alg_closed E]
+  [is_separable K F] [finite_dimensional K F] (pb : power_basis K L) :
+  ∏ σ : F →ₐ[K] E, σ (algebra_map L F pb.gen) =
   ((@@finset.univ (power_basis.alg_hom.fintype pb)).prod
     (λ σ : L →ₐ[K] E, σ pb.gen)) ^ finrank L F :=
 begin
@@ -239,6 +281,22 @@ begin
   { exact (prod_embeddings_eq_finrank_pow L E (adjoin.power_basis hx)).symm },
   { haveI := is_separable_tower_bot_of_is_separable K K⟮x⟯ L,
     exact is_separable.separable K _ }
+end
+
+lemma is_integral_norm [algebra S L] [algebra S K] [is_scalar_tower S K L]
+  [is_separable K L] [finite_dimensional K L] {x : L} (hx : _root_.is_integral S x) :
+  _root_.is_integral S (norm K x) :=
+begin
+  have hx' : _root_.is_integral K x := is_integral_of_is_scalar_tower _ hx,
+  rw [← is_integral_algebra_map_iff (algebra_map K (algebraic_closure L)).injective,
+      norm_eq_prod_roots],
+  { refine (is_integral.multiset_prod (λ y hy, _)).pow _,
+    rw mem_roots_map (minpoly.ne_zero hx') at hy,
+    use [minpoly S x, minpoly.monic hx],
+    rw ← aeval_def at ⊢ hy,
+    exact minpoly.aeval_of_is_scalar_tower S x y hy },
+  { apply is_alg_closed.splits_codomain },
+  { apply_instance }
 end
 
 end eq_prod_embeddings

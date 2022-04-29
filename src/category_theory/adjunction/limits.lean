@@ -32,15 +32,17 @@ open category_theory
 open category_theory.functor
 open category_theory.limits
 
-universes u₁ u₂ v
+universes v u v₁ v₂ v₀ u₁ u₂
 
-variables {C : Type u₁} [category.{v} C] {D : Type u₂} [category.{v} D]
+section arbitrary_universe
+
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
 include adj
 
 section preservation_colimits
-variables {J : Type v} [small_category J] (K : J ⥤ C)
+variables {J : Type u} [category.{v} J] (K : J ⥤ C)
 
 /--
 The right adjoint of `cocones.functoriality K F : cocone K ⥤ cocone (K ⋙ F)`.
@@ -84,7 +86,7 @@ A left adjoint preserves colimits.
 
 See https://stacks.math.columbia.edu/tag/0038.
 -/
-def left_adjoint_preserves_colimits : preserves_colimits F :=
+def left_adjoint_preserves_colimits : preserves_colimits_of_size.{v u} F :=
 { preserves_colimits_of_shape := λ J 𝒥,
   { preserves_colimit := λ F,
     by exactI
@@ -95,11 +97,13 @@ def left_adjoint_preserves_colimits : preserves_colimits F :=
 omit adj
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_equivalence_preserves_colimits (E : C ⥤ D) [is_equivalence E] : preserves_colimits E :=
+instance is_equivalence_preserves_colimits (E : C ⥤ D) [is_equivalence E] :
+  preserves_colimits_of_size.{v u} E :=
 left_adjoint_preserves_colimits E.adjunction
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_equivalence_reflects_colimits (E : D ⥤ C) [is_equivalence E] : reflects_colimits E :=
+instance is_equivalence_reflects_colimits (E : D ⥤ C) [is_equivalence E] :
+  reflects_colimits_of_size.{v u} E :=
 { reflects_colimits_of_shape := λ J 𝒥, by exactI
   { reflects_colimit := λ K,
     { reflects := λ c t,
@@ -110,7 +114,8 @@ instance is_equivalence_reflects_colimits (E : D ⥤ C) [is_equivalence E] : ref
       end } } }
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_equivalence_creates_colimits (H : D ⥤ C) [is_equivalence H] : creates_colimits H :=
+instance is_equivalence_creates_colimits (H : D ⥤ C) [is_equivalence H] :
+  creates_colimits_of_size.{v u} H :=
 { creates_colimits_of_shape := λ J 𝒥, by exactI
   { creates_colimit := λ F,
     { lifts := λ c t,
@@ -140,14 +145,14 @@ lemma has_colimits_of_shape_of_equivalence (E : C ⥤ D) [is_equivalence E]
 ⟨λ F, by exactI has_colimit_of_comp_equivalence F E⟩
 
 /-- Transport a `has_colimits` instance across an equivalence. -/
-lemma has_colimits_of_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimits D] :
-  has_colimits C :=
-⟨λ J hJ, by exactI has_colimits_of_shape_of_equivalence E⟩
+lemma has_colimits_of_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimits_of_size.{v u} D] :
+  has_colimits_of_size.{v u} C :=
+⟨λ J hJ, by { exactI has_colimits_of_shape_of_equivalence E }⟩
 
 end preservation_colimits
 
 section preservation_limits
-variables {J : Type v} [small_category J] (K : J ⥤ D)
+variables {J : Type u} [category.{v} J] (K : J ⥤ D)
 
 /--
 The left adjoint of `cones.functoriality K G : cone K ⥤ cone (K ⋙ G)`.
@@ -191,7 +196,7 @@ A right adjoint preserves limits.
 
 See https://stacks.math.columbia.edu/tag/0038.
 -/
-def right_adjoint_preserves_limits : preserves_limits G :=
+def right_adjoint_preserves_limits : preserves_limits_of_size.{v u} G :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ K,
     by exactI
@@ -202,11 +207,13 @@ def right_adjoint_preserves_limits : preserves_limits G :=
 omit adj
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_equivalence_preserves_limits (E : D ⥤ C) [is_equivalence E] : preserves_limits E :=
+instance is_equivalence_preserves_limits (E : D ⥤ C) [is_equivalence E] :
+  preserves_limits_of_size.{v u} E :=
 right_adjoint_preserves_limits E.inv.adjunction
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_equivalence_reflects_limits (E : D ⥤ C) [is_equivalence E] : reflects_limits E :=
+instance is_equivalence_reflects_limits (E : D ⥤ C) [is_equivalence E] :
+  reflects_limits_of_size.{v u} E :=
 { reflects_limits_of_shape := λ J 𝒥, by exactI
   { reflects_limit := λ K,
     { reflects := λ c t,
@@ -217,7 +224,8 @@ instance is_equivalence_reflects_limits (E : D ⥤ C) [is_equivalence E] : refle
       end } } }
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_equivalence_creates_limits (H : D ⥤ C) [is_equivalence H] : creates_limits H :=
+instance is_equivalence_creates_limits (H : D ⥤ C) [is_equivalence H] :
+  creates_limits_of_size.{v u} H :=
 { creates_limits_of_shape := λ J 𝒥, by exactI
   { creates_limit := λ F,
     { lifts := λ c t,
@@ -247,14 +255,15 @@ lemma has_limits_of_shape_of_equivalence (E : D ⥤ C) [is_equivalence E] [has_l
 ⟨λ F, by exactI has_limit_of_comp_equivalence F E⟩
 
 /-- Transport a `has_limits` instance across an equivalence. -/
-lemma has_limits_of_equivalence (E : D ⥤ C) [is_equivalence E] [has_limits C] : has_limits D :=
+lemma has_limits_of_equivalence (E : D ⥤ C) [is_equivalence E] [has_limits_of_size.{v u} C] :
+  has_limits_of_size.{v u} D :=
 ⟨λ J hJ, by exactI has_limits_of_shape_of_equivalence E⟩
 
 end preservation_limits
 
 /-- auxiliary construction for `cocones_iso` -/
 @[simps]
-def cocones_iso_component_hom {J : Type v} [small_category J] {K : J ⥤ C}
+def cocones_iso_component_hom {J : Type u} [category.{v} J] {K : J ⥤ C}
   (Y : D) (t : ((cocones J D).obj (op (K ⋙ F))).obj Y) :
   (G ⋙ (cocones J C).obj (op K)).obj Y :=
 { app := λ j, (adj.hom_equiv (K.obj j) Y) (t.app j),
@@ -262,7 +271,7 @@ def cocones_iso_component_hom {J : Type v} [small_category J] {K : J ⥤ C}
 
 /-- auxiliary construction for `cocones_iso` -/
 @[simps]
-def cocones_iso_component_inv {J : Type v} [small_category J] {K : J ⥤ C}
+def cocones_iso_component_inv {J : Type u} [category.{v} J] {K : J ⥤ C}
   (Y : D) (t : (G ⋙ (cocones J C).obj (op K)).obj Y) :
   ((cocones J D).obj (op (K ⋙ F))).obj Y :=
 { app := λ j, (adj.hom_equiv (K.obj j) Y).symm (t.app j),
@@ -272,23 +281,9 @@ def cocones_iso_component_inv {J : Type v} [small_category J] {K : J ⥤ C}
     dsimp, simp
   end }
 
-/--
-When `F ⊣ G`,
-the functor associating to each `Y` the cocones over `K ⋙ F` with cone point `Y`
-is naturally isomorphic to
-the functor associating to each `Y` the cocones over `K` with cone point `G.obj Y`.
--/
--- Note: this is natural in K, but we do not yet have the tools to formulate that.
-def cocones_iso {J : Type v} [small_category J] {K : J ⥤ C} :
-  (cocones J D).obj (op (K ⋙ F)) ≅ G ⋙ ((cocones J C).obj (op K)) :=
-nat_iso.of_components (λ Y,
-{ hom := cocones_iso_component_hom adj Y,
-  inv := cocones_iso_component_inv adj Y, })
-(by tidy)
-
 /-- auxiliary construction for `cones_iso` -/
 @[simps]
-def cones_iso_component_hom {J : Type v} [small_category J] {K : J ⥤ D}
+def cones_iso_component_hom {J : Type u} [category.{v} J] {K : J ⥤ D}
   (X : Cᵒᵖ) (t : (functor.op F ⋙ (cones J D).obj K).obj X) :
   ((cones J C).obj (K ⋙ G)).obj X :=
 { app := λ j, (adj.hom_equiv (unop X) (K.obj j)) (t.app j),
@@ -300,7 +295,7 @@ def cones_iso_component_hom {J : Type v} [small_category J] {K : J ⥤ D}
 
 /-- auxiliary construction for `cones_iso` -/
 @[simps]
-def cones_iso_component_inv {J : Type v} [small_category J] {K : J ⥤ D}
+def cones_iso_component_inv {J : Type u} [category.{v} J] {K : J ⥤ D}
   (X : Cᵒᵖ) (t : ((cones J C).obj (K ⋙ G)).obj X) :
   (functor.op F ⋙ (cones J D).obj K).obj X :=
 { app := λ j, (adj.hom_equiv (unop X) (K.obj j)).symm (t.app j),
@@ -309,6 +304,25 @@ def cones_iso_component_inv {J : Type v} [small_category J] {K : J ⥤ D}
     erw [← adj.hom_equiv_naturality_right_symm, ← t.naturality, category.id_comp, category.id_comp]
   end }
 
+end arbitrary_universe
+
+variables {C : Type u₁} [category.{v₀} C] {D : Type u₂} [category.{v₀} D]
+{F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
+
+/--
+When `F ⊣ G`,
+the functor associating to each `Y` the cocones over `K ⋙ F` with cone point `Y`
+is naturally isomorphic to
+the functor associating to each `Y` the cocones over `K` with cone point `G.obj Y`.
+-/
+-- Note: this is natural in K, but we do not yet have the tools to formulate that.
+def cocones_iso {J : Type u} [category.{v} J] {K : J ⥤ C} :
+  (cocones J D).obj (op (K ⋙ F)) ≅ G ⋙ (cocones J C).obj (op K) :=
+nat_iso.of_components (λ Y,
+{ hom := cocones_iso_component_hom adj Y,
+  inv := cocones_iso_component_inv adj Y, })
+(by tidy)
+
 -- Note: this is natural in K, but we do not yet have the tools to formulate that.
 /--
 When `F ⊣ G`,
@@ -316,8 +330,8 @@ the functor associating to each `X` the cones over `K` with cone point `F.op.obj
 is naturally isomorphic to
 the functor associating to each `X` the cones over `K ⋙ G` with cone point `X`.
 -/
-def cones_iso {J : Type v} [small_category J] {K : J ⥤ D} :
-  F.op ⋙ ((cones J D).obj K) ≅ (cones J C).obj (K ⋙ G) :=
+def cones_iso {J : Type u} [category.{v} J] {K : J ⥤ D} :
+  F.op ⋙ (cones J D).obj K ≅ (cones J C).obj (K ⋙ G) :=
 nat_iso.of_components (λ X,
 { hom := cones_iso_component_hom adj X,
   inv := cones_iso_component_inv adj X, } )

@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl
 -/
-import data.list.basic
+import data.list.infix
 
 /-!
 # Double universal quantification on a list
@@ -54,7 +54,7 @@ begin
   funext a b, apply propext,
   split,
   { intro h, induction h, {refl}, simp only [*]; split; refl },
-  { intro h, subst h, exact forall₂_refl _ }
+  { rintro rfl, exact forall₂_refl _ }
 end
 
 @[simp, priority 900] lemma forall₂_nil_left_iff {l} : forall₂ r nil l ↔ l = nil :=

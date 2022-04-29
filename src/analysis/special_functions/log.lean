@@ -92,7 +92,7 @@ begin
   rw [← exp_eq_exp, exp_log_eq_abs (inv_ne_zero hx), exp_neg, exp_log_eq_abs hx, abs_inv]
 end
 
-lemma log_le_log (h : 0 < x) (h₁ : 0 < y) : real.log x ≤ real.log y ↔ x ≤ y :=
+lemma log_le_log (h : 0 < x) (h₁ : 0 < y) : log x ≤ log y ↔ x ≤ y :=
 by rw [← exp_le_exp, exp_log h, exp_log h₁]
 
 lemma log_lt_log (hx : 0 < x) : x < y → log x < log y :=
@@ -172,6 +172,46 @@ begin
   { rintro (rfl|rfl|rfl); simp only [log_one, log_zero, log_neg_eq_log], }
 end
 
+@[simp] lemma log_pow (x : ℝ) (n : ℕ) : log (x ^ n) = n * log x :=
+begin
+  induction n with n ih,
+  { simp },
+  rcases eq_or_ne x 0 with rfl | hx,
+  { simp },
+  rw [pow_succ', log_mul (pow_ne_zero _ hx) hx, ih, nat.cast_succ, add_mul, one_mul],
+end
+
+@[simp] lemma log_zpow (x : ℝ) (n : ℤ) : log (x ^ n) = n * log x :=
+begin
+  induction n,
+  { rw [int.of_nat_eq_coe, zpow_coe_nat, log_pow, int.cast_coe_nat] },
+  rw [zpow_neg_succ_of_nat, log_inv, log_pow, int.cast_neg_succ_of_nat, nat.cast_add_one,
+    neg_mul_eq_neg_mul],
+end
+
+lemma log_le_sub_one_of_pos {x : ℝ} (hx : 0 < x) : log x ≤ x - 1 :=
+begin
+  rw le_sub_iff_add_le,
+  convert add_one_le_exp (log x),
+  rw exp_log hx,
+end
+
+lemma log_div_self_antitone_on : antitone_on (λ x : ℝ, log x / x) {x | exp 1 ≤ x} :=
+begin
+  simp only [antitone_on, mem_set_of_eq],
+  intros x hex y hey hxy,
+  have x_pos : 0 < x := (exp_pos 1).trans_le hex,
+  have y_pos : 0 < y := (exp_pos 1).trans_le hey,
+  have hlogx : 1 ≤ log x := by rwa le_log_iff_exp_le x_pos,
+  have hyx : 0 ≤ y / x - 1 := by rwa [le_sub_iff_add_le, le_div_iff x_pos, zero_add, one_mul],
+  rw [div_le_iff y_pos, ←sub_le_sub_iff_right (log x)],
+  calc
+    log y - log x = log (y / x)           : by rw [log_div (y_pos.ne') (x_pos.ne')]
+    ...           ≤ (y / x) - 1           : log_le_sub_one_of_pos (div_pos y_pos x_pos)
+    ...           ≤ log x * (y / x - 1)   : le_mul_of_one_le_left hyx hlogx
+    ...           = log x / x * y - log x : by ring,
+end
+
 /-- The real logarithm function tends to `+∞` at `+∞`. -/
 lemma tendsto_log_at_top : tendsto log at_top at_top :=
 tendsto_comp_exp_at_top.1 $ by simpa only [log_exp] using tendsto_id
@@ -205,6 +245,31 @@ begin
   rintros h rfl,
   exact not_tendsto_nhds_of_tendsto_at_bot tendsto_log_nhds_within_zero _
     (h.tendsto.mono_left inf_le_left)
+end
+
+open_locale big_operators
+
+lemma log_prod {α : Type*} (s : finset α) (f : α → ℝ) (hf : ∀ x ∈ s, f x ≠ 0):
+  log (∏ i in s, f i) = ∑ i in s, log (f i) :=
+begin
+  classical,
+  induction s using finset.induction_on with a s ha ih,
+  { simp },
+  simp only [finset.mem_insert, forall_eq_or_imp] at hf,
+  simp [ha, ih hf.2, log_mul hf.1 (finset.prod_ne_zero_iff.2 hf.2)],
+end
+
+lemma tendsto_pow_log_div_mul_add_at_top (a b : ℝ) (n : ℕ) (ha : a ≠ 0) :
+  tendsto (λ x, log x ^ n / (a * x + b)) at_top (𝓝 0) :=
+((tendsto_div_pow_mul_exp_add_at_top a b n ha.symm).comp tendsto_log_at_top).congr'
+  (by filter_upwards [eventually_gt_at_top (0 : ℝ)] with x hx using by simp [exp_log hx])
+
+lemma is_o_pow_log_id_at_top {n : ℕ} :
+  asymptotics.is_o (λ x, log x ^ n) id at_top :=
+begin
+  rw asymptotics.is_o_iff_tendsto',
+  { simpa using tendsto_pow_log_div_mul_add_at_top 1 0 n one_ne_zero },
+  filter_upwards [eventually_ne_at_top (0 : ℝ)] with x h₁ h₂ using (h₁ h₂).elim,
 end
 
 end real

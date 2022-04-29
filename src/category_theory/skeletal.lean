@@ -66,7 +66,7 @@ its category structure.
 @[derive category]
 def skeleton : Type u₁ := induced_category C quotient.out
 
-instance [inhabited C] : inhabited (skeleton C) := ⟨⟦default C⟧⟩
+instance [inhabited C] : inhabited (skeleton C) := ⟨⟦default⟧⟩
 
 /-- The functor from the skeleton of `C` to `C`. -/
 @[simps, derive [full, faithful]]
@@ -118,7 +118,7 @@ If your original category is not thin, you probably want to be using `skeleton` 
 def thin_skeleton : Type u₁ := quotient (is_isomorphic_setoid C)
 
 instance inhabited_thin_skeleton [inhabited C] : inhabited (thin_skeleton C) :=
-⟨quotient.mk (default _)⟩
+⟨quotient.mk default⟩
 
 instance thin_skeleton.preorder : preorder (thin_skeleton C) :=
 { le := quotient.lift₂ (λ X Y, nonempty (X ⟶ Y))

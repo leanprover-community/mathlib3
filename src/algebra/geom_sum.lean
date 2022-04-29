@@ -148,8 +148,8 @@ begin
   { simp },
   { simp only [geom_sum_succ', nat.even_succ, hk],
     split_ifs,
-    { rw [nat.neg_one_pow_of_even h, add_zero] },
-    { rw [nat.neg_one_pow_of_odd (nat.odd_iff_not_even.mpr h), neg_add_self] } }
+    { rw [h.neg_one_pow, add_zero] },
+    { rw [(nat.odd_iff_not_even.2 h).neg_one_pow, neg_add_self] } }
 end
 
 theorem geom_sum₂_self {α : Type*} [comm_ring α] (x : α) (n : ℕ) :
@@ -192,7 +192,7 @@ end
 
 lemma commute.mul_geom_sum₂ [ring α] {x y : α} (h : commute x y) (n : ℕ) :
   (x - y) * (geom_sum₂ x y n) = x ^ n - y ^ n :=
-by rw [← neg_sub (y ^ n), ← h.mul_neg_geom_sum₂, ← neg_mul_eq_neg_mul_symm, neg_sub]
+by rw [← neg_sub (y ^ n), ← h.mul_neg_geom_sum₂, ← neg_mul, neg_sub]
 
 theorem geom_sum₂_mul [comm_ring α] (x y : α) (n : ℕ) :
   (geom_sum₂ x y n) * (x - y) = x ^ n - y ^ n :=
@@ -214,7 +214,7 @@ theorem geom_sum_mul_neg [ring α] (x : α) (n : ℕ) :
   (geom_sum x n) * (1 - x) = 1 - x ^ n :=
 begin
   have := congr_arg has_neg.neg (geom_sum_mul x n),
-  rw [neg_sub, ← mul_neg_eq_neg_mul_symm, neg_sub] at this,
+  rw [neg_sub, ← mul_neg, neg_sub] at this,
   exact this
 end
 
@@ -429,7 +429,7 @@ lemma geom_sum_alternating_of_lt_neg_one [ordered_ring α] (hx : x + 1 < 0) (hn 
 begin
   have hx0 : x < 0, from ((le_add_iff_nonneg_right _).2 (@zero_le_one α _)).trans_lt hx,
   refine nat.le_induction _ _ n (show 2 ≤ n, from hn),
-  { simp only [geom_sum_two, hx, true_or, nat.even_bit0, if_true_left_eq_or] },
+  { simp only [geom_sum_two, hx, true_or, even_bit0, if_true_left_eq_or] },
   clear hn n,
   intros n hn ihn,
   simp only [nat.even_succ, geom_sum_succ],

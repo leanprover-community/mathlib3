@@ -35,24 +35,24 @@ We first show that every element of `N` is of the form `m' + m`.-/
     { apply N_minimal,
       { refine ⟨(continuous_mul_left m).is_closed_map _ N_closed,
           ⟨_, ⟨m, hm, rfl⟩⟩, _⟩,
-        rintros _ _ ⟨m'', hm'', rfl⟩ ⟨m', hm', rfl⟩,
-        exact ⟨m'' * m * m', N_mul _ _ (N_mul _ _ hm'' hm) hm', mul_assoc _ _ _⟩, },
+        rintros _ ⟨m'', hm'', rfl⟩ _ ⟨m', hm', rfl⟩,
+        refine ⟨m'' * m * m', N_mul _ (N_mul _ hm'' _ hm) _ hm', mul_assoc _ _ _⟩, },
       { rintros _ ⟨m', hm', rfl⟩,
-        exact N_mul _ _ hm' hm, }, },
+        exact N_mul _ hm' _ hm, }, },
 /- In particular, this means that `m' * m = m` for some `m'`. We now use minimality again to show
 that this holds for _all_ `m' ∈ N`. -/
     have absorbing_eq_self : N ∩ { m' | m' * m = m} = N,
     { apply N_minimal,
       { refine ⟨N_closed.inter ((t1_space.t1 m).preimage (continuous_mul_left m)), _, _⟩,
         { rw ←scaling_eq_self at hm, exact hm },
-        { rintros m'' m' ⟨mem'', eq'' : _ = m⟩ ⟨mem', eq' : _ = m⟩,
-          refine ⟨N_mul _ _ mem'' mem', _⟩,
+        { rintros m'' ⟨mem'', eq'' : _ = m⟩ m' ⟨mem', eq' : _ = m⟩,
+          refine ⟨N_mul _ mem'' _ mem', _⟩,
           rw [set.mem_set_of_eq, mul_assoc, eq', eq''], }, },
       apply set.inter_subset_left, },
 /- Thus `m * m = m` as desired. -/
     rw ←absorbing_eq_self at hm,
     exact hm.2, },
-  apply zorn.zorn_superset,
+  apply zorn_superset,
   intros c hcs hc,
   refine ⟨⋂₀ c, ⟨is_closed_sInter $ λ t ht, (hcs ht).1, _, _⟩, _⟩,
   { obtain rfl | hcnemp := c.eq_empty_or_nonempty,
@@ -60,14 +60,14 @@ that this holds for _all_ `m' ∈ N`. -/
     convert @is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ _ _
       (c.nonempty_coe_sort.mpr hcnemp) (coe : c → set M) _ _ _ _,
     { simp only [subtype.range_coe_subtype, set.set_of_mem_eq] } ,
-    { refine directed_on_iff_directed.mp (zorn.chain.directed_on _), exact hc.symm, },
+    { refine directed_on.directed_coe (is_chain.directed_on hc.symm) },
     { intro i, exact (hcs i.property).2.1, },
     { intro i, exact (hcs i.property).1.is_compact, },
     { intro i, exact (hcs i.property).1, }, },
-  { intros m m' hm hm',
+  { intros m hm m' hm',
     rw set.mem_sInter,
     intros t ht,
-    exact (hcs ht).2.2 m m' (set.mem_sInter.mp hm t ht) (set.mem_sInter.mp hm' t ht), },
+    exact (hcs ht).2.2 m (set.mem_sInter.mp hm t ht) m' (set.mem_sInter.mp hm' t ht) },
   { intros s hs, exact set.sInter_subset_of_mem hs, },
 end
 
@@ -83,7 +83,7 @@ lemma exists_idempotent_in_compact_subsemigroup {M} [semigroup M] [topological_s
 begin
   let M' := { m // m ∈ s },
   letI : semigroup M' :=
-    { mul       := λ p q, ⟨p.1 * q.1, s_add _ _ p.2 q.2⟩,
+    { mul       := λ p q, ⟨p.1 * q.1, s_add _ p.2 _ q.2⟩,
       mul_assoc := λ p q r, subtype.eq (mul_assoc _ _ _) },
   haveI : compact_space M' := is_compact_iff_compact_space.mp s_compact,
   haveI : nonempty M' := nonempty_subtype.mpr snemp,

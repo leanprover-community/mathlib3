@@ -84,7 +84,7 @@ instance [linear_order ι] [∀ a, ordered_comm_group (β a)] :
   ordered_comm_group (pilex ι β) :=
 { mul_le_mul_left := λ x y hxy z,
     hxy.elim
-      (λ hxyz, hxyz ▸ le_refl _)
+      (λ hxyz, hxyz ▸ le_rfl)
       (λ ⟨i, hi⟩,
         or.inr ⟨i, λ j hji, show z j * x j = z j * y j, by rw hi.1 j hji,
           mul_lt_mul_left' hi.2 _⟩),

@@ -93,9 +93,7 @@ begin
       tendsto_const_nhds.add (tendsto_const_nhds.div_at_top tendsto_coe_nat_at_top_at_top),
     rw add_zero at this,
     exact (tendsto_order.1 this).2 _ wL },
-  filter_upwards [B, C],
-  assume p hp h'p,
-  exact hp.trans_lt h'p
+  filter_upwards [B, C] with _ hp h'p using hp.trans_lt h'p,
 end
 
 /-- Fekete's lemma: a subadditive sequence which is bounded below converges. -/

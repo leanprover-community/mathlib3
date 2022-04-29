@@ -95,7 +95,7 @@ instance : normed_lattice_add_comm_group (order_dual α) :=
     intros a b h₂,
     apply dual_solid,
     rw ← order_dual.dual_le at h₂,
-    finish,
+    exact h₂,
   end, }
 
 lemma norm_abs_eq_norm (a : α) : ∥|a|∥ = ∥a∥ :=

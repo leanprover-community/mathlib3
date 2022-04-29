@@ -26,7 +26,7 @@ In this file we define several notions of finiteness that are common in commutat
 -/
 
 open function (surjective)
-open_locale big_operators
+open_locale big_operators polynomial
 
 section module_and_algebra
 
@@ -109,7 +109,7 @@ variables {R M}
 instance prod [hM : finite R M] [hN : finite R N] : finite R (M × N) :=
 ⟨begin
   rw ← submodule.prod_top,
-  exact submodule.fg_prod hM.1 hN.1
+  exact hM.1.prod hN.1
 end⟩
 
 instance pi {ι : Type*} {M : ι → Type*} [fintype ι] [Π i, add_comm_monoid (M i)]
@@ -186,7 +186,7 @@ variables {R A B}
 lemma of_surjective (hRA : finite_type R A) (f : A →ₐ[R] B) (hf : surjective f) :
   finite_type R B :=
 ⟨begin
-  convert subalgebra.fg_map _ f hRA.1,
+  convert hRA.1.map f,
   simpa only [map_top f, @eq_comm _ ⊤, eq_top_iff, alg_hom.mem_range] using hf
 end⟩
 
@@ -255,7 +255,7 @@ end
 instance prod [hA : finite_type R A] [hB : finite_type R B] : finite_type R (A × B) :=
 ⟨begin
   rw ← subalgebra.prod_top,
-  exact subalgebra.fg_prod hA.1 hB.1
+  exact hA.1.prod hB.1
 end⟩
 
 end finite_type
@@ -382,7 +382,7 @@ begin
     (mv_polynomial.map_surjective f.to_ring_hom hf_surj).comp (alg_equiv.surjective _),
     ideal.fg_ker_comp _ _ _ _ (alg_equiv.surjective _)⟩,
   { convert submodule.fg_bot,
-    exact ring_hom.ker_coe_equiv _, },
+    exact ring_hom.ker_coe_equiv (mv_polynomial.sum_alg_equiv R ι ι').to_ring_equiv },
   { rw [alg_hom.to_ring_hom_eq_coe, mv_polynomial.map_alg_hom_coe_ring_hom, mv_polynomial.ker_map],
     exact hf_ker.map mv_polynomial.C, }
 end
@@ -660,7 +660,7 @@ begin
   have hincl : of' R M '' f.support ⊆
     ⋃ (g : add_monoid_algebra R M) (H : g ∈ S), of' R M '' g.support,
   { intros s hs,
-    exact set.mem_bUnion_iff.2 ⟨f, ⟨hf, hs⟩⟩ },
+    exact set.mem_Union₂.2 ⟨f, ⟨hf, hs⟩⟩ },
   exact adjoin_mono hincl (mem_adjoin_support f)
 end
 
@@ -816,7 +816,7 @@ begin
   have hincl : (of R M) '' f.support ⊆
     ⋃ (g : monoid_algebra R M) (H : g ∈ S), of R M '' g.support,
   { intros s hs,
-    exact set.mem_bUnion_iff.2 ⟨f, ⟨hf, hs⟩⟩ },
+    exact set.mem_Union₂.2 ⟨f, ⟨hf, hs⟩⟩ },
   exact adjoin_mono hincl (mem_adjoint_support f)
 end
 
@@ -921,3 +921,60 @@ by simpa [group.fg_iff_monoid.fg] using finite_type_iff_fg
 end monoid_algebra
 
 end monoid_algebra
+
+section vasconcelos
+variables {R : Type*} [comm_ring R] {M : Type*} [add_comm_group M] [module R M] (f : M →ₗ[R] M)
+
+noncomputable theory
+
+/-- The structure of a module `M` over a ring `R` as a module over `polynomial R` when given a
+choice of how `X` acts by choosing a linear map `f : M →ₗ[R] M` -/
+@[simps]
+def module_polynomial_of_endo : module R[X] M :=
+module.comp_hom M (polynomial.aeval f).to_ring_hom
+
+include f
+lemma module_polynomial_of_endo.is_scalar_tower : @is_scalar_tower R R[X] M _
+  (by { letI := module_polynomial_of_endo f, apply_instance }) _ :=
+begin
+  letI := module_polynomial_of_endo f,
+  constructor,
+  intros x y z,
+  simp,
+end
+
+open polynomial module
+
+/-- A theorem/proof by Vasconcelos, given a finite module `M` over a commutative ring, any
+surjective endomorphism of `M` is also injective. Based on,
+https://math.stackexchange.com/a/239419/31917,
+https://www.ams.org/journals/tran/1969-138-00/S0002-9947-1969-0238839-5/.
+This is similar to `is_noetherian.injective_of_surjective_endomorphism` but only applies in the
+commutative case, but does not use a Noetherian hypothesis. -/
+theorem module.finite.injective_of_surjective_endomorphism [hfg : finite R M]
+  (f_surj : function.surjective f) : function.injective f :=
+begin
+  letI := module_polynomial_of_endo f,
+  haveI : is_scalar_tower R R[X] M := module_polynomial_of_endo.is_scalar_tower f,
+  have hfgpoly : finite R[X] M, from finite.of_restrict_scalars_finite R _ _,
+  have X_mul : ∀ o, (X : R[X]) • o = f o,
+  { intro,
+    simp, },
+  have : (⊤ : submodule R[X] M) ≤ ideal.span {X} • ⊤,
+  { intros a ha,
+    obtain ⟨y, rfl⟩ := f_surj a,
+    rw [← X_mul y],
+    exact submodule.smul_mem_smul (ideal.mem_span_singleton.mpr (dvd_refl _)) trivial, },
+  obtain ⟨F, hFa, hFb⟩ := submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul _
+    (⊤ : submodule R[X] M) (finite_def.mp hfgpoly) this,
+  rw [← linear_map.ker_eq_bot, linear_map.ker_eq_bot'],
+  intros m hm,
+  rw ideal.mem_span_singleton' at hFa,
+  obtain ⟨G, hG⟩ := hFa,
+  suffices : (F - 1) • m = 0,
+  { have Fmzero := hFb m (by simp),
+    rwa [← sub_add_cancel F 1, add_smul, one_smul, this, zero_add] at Fmzero, },
+  rw [← hG, mul_smul, X_mul m, hm, smul_zero],
+end
+
+end vasconcelos

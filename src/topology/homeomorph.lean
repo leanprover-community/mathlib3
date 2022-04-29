@@ -3,8 +3,9 @@ Copyright (c) 2019 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Sébastien Gouëzel, Zhouhang Zhou, Reid Barton
 -/
+import logic.equiv.fin
 import topology.dense_embedding
-import data.equiv.fin
+import topology.support
 
 /-!
 # Homeomorphisms
@@ -173,21 +174,21 @@ h.embedding.is_compact_iff_is_compact_image.symm
 lemma compact_preimage {s : set β} (h : α ≃ₜ β) : is_compact (h ⁻¹' s) ↔ is_compact s :=
 by rw ← image_symm; exact h.symm.compact_image
 
-lemma compact_space [compact_space α] (h : α ≃ₜ β) : compact_space β :=
+protected lemma compact_space [compact_space α] (h : α ≃ₜ β) : compact_space β :=
 { compact_univ := by { rw [← image_univ_of_surjective h.surjective, h.compact_image],
     apply compact_space.compact_univ } }
 
-lemma t2_space [t2_space α] (h : α ≃ₜ β) : t2_space β :=
-{ t2 :=
-  begin
-    intros x y hxy,
-    obtain ⟨u, v, hu, hv, hxu, hyv, huv⟩ := t2_separation (h.symm.injective.ne hxy),
-    refine ⟨h.symm ⁻¹' u, h.symm ⁻¹' v,
-      h.symm.continuous.is_open_preimage _ hu,
-      h.symm.continuous.is_open_preimage _ hv,
-      hxu, hyv, _⟩,
-    rw [← preimage_inter, huv, preimage_empty],
-  end }
+protected lemma t0_space [t0_space α] (h : α ≃ₜ β) : t0_space β :=
+h.symm.embedding.t0_space
+
+protected lemma t1_space [t1_space α] (h : α ≃ₜ β) : t1_space β :=
+h.symm.embedding.t1_space
+
+protected lemma t2_space [t2_space α] (h : α ≃ₜ β) : t2_space β :=
+h.symm.embedding.t2_space
+
+protected lemma regular_space [regular_space α] (h : α ≃ₜ β) : regular_space β :=
+h.symm.embedding.regular_space
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := h.surjective.dense_range,
@@ -199,19 +200,13 @@ h.quotient_map.is_open_preimage
 @[simp] lemma is_open_image (h : α ≃ₜ β) {s : set α} : is_open (h '' s) ↔ is_open s :=
 by rw [← preimage_symm, is_open_preimage]
 
+protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h := λ s, h.is_open_image.2
+
 @[simp] lemma is_closed_preimage (h : α ≃ₜ β) {s : set β} : is_closed (h ⁻¹' s) ↔ is_closed s :=
 by simp only [← is_open_compl_iff, ← preimage_compl, is_open_preimage]
 
 @[simp] lemma is_closed_image (h : α ≃ₜ β) {s : set α} : is_closed (h '' s) ↔ is_closed s :=
 by rw [← preimage_symm, is_closed_preimage]
-
-lemma preimage_closure (h : α ≃ₜ β) (s : set β) : h ⁻¹' (closure s) = closure (h ⁻¹' s) :=
-by rw [h.embedding.closure_eq_preimage_closure_image, h.image_preimage]
-
-lemma image_closure (h : α ≃ₜ β) (s : set α) : h '' (closure s) = closure (h '' s) :=
-by rw [← preimage_symm, preimage_closure]
-
-protected lemma is_open_map (h : α ≃ₜ β) : is_open_map h := λ s, h.is_open_image.2
 
 protected lemma is_closed_map (h : α ≃ₜ β) : is_closed_map h := λ s, h.is_closed_image.2
 
@@ -220,6 +215,29 @@ open_embedding_of_embedding_open h.embedding h.is_open_map
 
 protected lemma closed_embedding (h : α ≃ₜ β) : closed_embedding h :=
 closed_embedding_of_embedding_closed h.embedding h.is_closed_map
+
+protected lemma normal_space [normal_space α] (h : α ≃ₜ β) : normal_space β :=
+h.symm.closed_embedding.normal_space
+
+lemma preimage_closure (h : α ≃ₜ β) (s : set β) : h ⁻¹' (closure s) = closure (h ⁻¹' s) :=
+h.is_open_map.preimage_closure_eq_closure_preimage h.continuous _
+
+lemma image_closure (h : α ≃ₜ β) (s : set α) : h '' (closure s) = closure (h '' s) :=
+by rw [← preimage_symm, preimage_closure]
+
+lemma preimage_interior (h : α ≃ₜ β) (s : set β) : h⁻¹' (interior s) = interior (h ⁻¹' s) :=
+h.is_open_map.preimage_interior_eq_interior_preimage h.continuous _
+
+lemma image_interior (h : α ≃ₜ β) (s : set α) : h '' (interior s) = interior (h '' s) :=
+by rw [← preimage_symm, preimage_interior]
+
+lemma preimage_frontier (h : α ≃ₜ β) (s : set β) : h ⁻¹' (frontier s) = frontier (h ⁻¹' s) :=
+h.is_open_map.preimage_frontier_eq_frontier_preimage h.continuous _
+
+@[to_additive]
+lemma _root_.has_compact_mul_support.comp_homeomorph {M} [has_one M] {f : β → M}
+  (hf : has_compact_mul_support f) (φ : α ≃ₜ β) : has_compact_mul_support (f ∘ φ) :=
+hf.comp_closed_embedding φ.closed_embedding
 
 @[simp] lemma map_nhds_eq (h : α ≃ₜ β) (x : α) : map h (𝓝 x) = 𝓝 (h x) :=
 h.embedding.map_nhds_of_mem _ (by simp)
@@ -425,3 +443,36 @@ def image (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
   ..e.to_equiv.image s, }
 
 end homeomorph
+
+/-- An inducing equiv between topological spaces is a homeomorphism. -/
+@[simps] def equiv.to_homeomorph_of_inducing [topological_space α] [topological_space β] (f : α ≃ β)
+  (hf : inducing f) :
+  α ≃ₜ β :=
+{ continuous_to_fun := hf.continuous,
+  continuous_inv_fun := hf.continuous_iff.2 $ by simpa using continuous_id,
+  .. f }
+
+namespace continuous
+variables [topological_space α] [topological_space β]
+
+lemma continuous_symm_of_equiv_compact_to_t2 [compact_space α] [t2_space β]
+  {f : α ≃ β} (hf : continuous f) : continuous f.symm :=
+begin
+  rw continuous_iff_is_closed,
+  intros C hC,
+  have hC' : is_closed (f '' C) := (hC.is_compact.image hf).is_closed,
+  rwa equiv.image_eq_preimage at hC',
+end
+
+/-- Continuous equivalences from a compact space to a T2 space are homeomorphisms.
+
+This is not true when T2 is weakened to T1
+(see `continuous.homeo_of_equiv_compact_to_t2.t1_counterexample`). -/
+@[simps]
+def homeo_of_equiv_compact_to_t2 [compact_space α] [t2_space β]
+  {f : α ≃ β} (hf : continuous f) : α ≃ₜ β :=
+{ continuous_to_fun := hf,
+  continuous_inv_fun := hf.continuous_symm_of_equiv_compact_to_t2,
+  ..f }
+
+end continuous

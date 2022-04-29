@@ -272,7 +272,7 @@ begin
 end
 
 /-- There are strictly fewer than `q^2` units, since `0` is not a unit. -/
-lemma units_card (w : 1 < q) : fintype.card (units (X q)) < q^2 :=
+lemma units_card (w : 1 < q) : fintype.card ((X q)ˣ) < q^2 :=
 begin
   haveI : fact (1 < (q:ℕ)) := ⟨w⟩,
   convert card_units_lt (X q),
@@ -414,7 +414,7 @@ end
 
 lemma order_ineq (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) : 2^(p'+2) < (q (p'+2) : ℕ)^2 :=
 calc 2^(p'+2) = order_of (ω_unit (p'+2)) : (order_ω p' h).symm
-     ... ≤ fintype.card (units (X _))    : order_of_le_card_univ
+     ... ≤ fintype.card ((X _)ˣ)    : order_of_le_card_univ
      ... < (q (p'+2) : ℕ)^2              : units_card (nat.lt_of_succ_lt (two_lt_q _))
 
 end lucas_lehmer
@@ -510,7 +510,7 @@ begin
   conv in k { rw ← nat.div_add_mod k (2^n) },
   refine nat.modeq.add_right _ _,
   conv { congr, skip, skip, rw ← one_mul (k/2^n) },
-  exact (nat.modeq_sub $ pow_pos (by norm_num : 0 < 2) _).mul_right _,
+  exact (nat.modeq_sub $ nat.succ_le_of_lt $ pow_pos zero_lt_two _).mul_right _,
 end
 
 -- It's hard to know what the limiting factor for large Mersenne primes would be.

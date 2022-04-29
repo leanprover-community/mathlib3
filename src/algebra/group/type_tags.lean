@@ -3,8 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.group.hom
-import data.equiv.basic
+import algebra.hom.group
+import logic.equiv.basic
 /-!
 # Type tags that turn additive structures into multiplicative, and vice versa
 
@@ -62,8 +62,8 @@ end multiplicative
 @[simp] lemma to_mul_of_mul (x : α) : (additive.of_mul x).to_mul = x := rfl
 @[simp] lemma of_mul_to_mul (x : additive α) : additive.of_mul x.to_mul = x := rfl
 
-instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul (default α)⟩
-instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add (default α)⟩
+instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul default⟩
+instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add default⟩
 
 instance [nontrivial α] : nontrivial (additive α) :=
 additive.of_mul.injective.nontrivial
@@ -174,22 +174,22 @@ instance [h : add_monoid α] : monoid (multiplicative α) :=
   ..multiplicative.semigroup }
 
 instance [left_cancel_monoid α] : add_left_cancel_monoid (additive α) :=
-{ .. additive.add_monoid, .. additive.add_left_cancel_semigroup }
+{ zero := 0, add := (+), .. additive.add_monoid, .. additive.add_left_cancel_semigroup }
 
 instance [add_left_cancel_monoid α] : left_cancel_monoid (multiplicative α) :=
-{ .. multiplicative.monoid, .. multiplicative.left_cancel_semigroup }
+{ one := 1, mul := (*), .. multiplicative.monoid, .. multiplicative.left_cancel_semigroup }
 
 instance [right_cancel_monoid α] : add_right_cancel_monoid (additive α) :=
-{ .. additive.add_monoid, .. additive.add_right_cancel_semigroup }
+{ zero := 0, add := (+), .. additive.add_monoid, .. additive.add_right_cancel_semigroup }
 
 instance [add_right_cancel_monoid α] : right_cancel_monoid (multiplicative α) :=
-{ .. multiplicative.monoid, .. multiplicative.right_cancel_semigroup }
+{ one := 1, mul := (*), .. multiplicative.monoid, .. multiplicative.right_cancel_semigroup }
 
 instance [comm_monoid α] : add_comm_monoid (additive α) :=
-{ .. additive.add_monoid, .. additive.add_comm_semigroup }
+{ zero := 0, add := (+), .. additive.add_monoid, .. additive.add_comm_semigroup }
 
 instance [add_comm_monoid α] : comm_monoid (multiplicative α) :=
-{ ..multiplicative.monoid, .. multiplicative.comm_semigroup }
+{ one := 1, mul := (*), ..multiplicative.monoid, .. multiplicative.comm_semigroup }
 
 instance [has_inv α] : has_neg (additive α) := ⟨λ x, multiplicative.of_add x.to_mul⁻¹⟩
 
@@ -257,33 +257,48 @@ instance [comm_group α] : add_comm_group (additive α) :=
 instance [add_comm_group α] : comm_group (multiplicative α) :=
 { .. multiplicative.group, .. multiplicative.comm_monoid }
 
+open multiplicative (of_add)
+open additive (of_mul)
+
 /-- Reinterpret `α →+ β` as `multiplicative α →* multiplicative β`. -/
-def add_monoid_hom.to_multiplicative [add_zero_class α] [add_zero_class β] :
+@[simps] def add_monoid_hom.to_multiplicative [add_zero_class α] [add_zero_class β] :
   (α →+ β) ≃ (multiplicative α →* multiplicative β) :=
-⟨λ f, ⟨f.1, f.2, f.3⟩, λ f, ⟨f.1, f.2, f.3⟩, λ x, by { ext, refl, }, λ x, by { ext, refl, }⟩
+{ to_fun := λ f, ⟨λ a, of_add (f a.to_add), f.2, f.3⟩,
+  inv_fun := λ f, ⟨λ a, (f (of_add a)).to_add, f.2, f.3⟩,
+  left_inv := λ x, by { ext, refl, },
+  right_inv := λ x, by { ext, refl, } }
 
 /-- Reinterpret `α →* β` as `additive α →+ additive β`. -/
-def monoid_hom.to_additive [mul_one_class α] [mul_one_class β] :
+@[simps] def monoid_hom.to_additive [mul_one_class α] [mul_one_class β] :
   (α →* β) ≃ (additive α →+ additive β) :=
-⟨λ f, ⟨f.1, f.2, f.3⟩, λ f, ⟨f.1, f.2, f.3⟩, λ x, by { ext, refl, }, λ x, by { ext, refl, }⟩
+{ to_fun := λ f, ⟨λ a, of_mul (f a.to_mul), f.2, f.3⟩,
+  inv_fun := λ f, ⟨λ a, (f (of_mul a)).to_mul, f.2, f.3⟩,
+  left_inv := λ x, by { ext, refl, },
+  right_inv := λ x, by { ext, refl, } }
 
 /-- Reinterpret `additive α →+ β` as `α →* multiplicative β`. -/
-def add_monoid_hom.to_multiplicative' [mul_one_class α] [add_zero_class β] :
+@[simps] def add_monoid_hom.to_multiplicative' [mul_one_class α] [add_zero_class β] :
   (additive α →+ β) ≃ (α →* multiplicative β) :=
-⟨λ f, ⟨f.1, f.2, f.3⟩, λ f, ⟨f.1, f.2, f.3⟩, λ x, by { ext, refl, }, λ x, by { ext, refl, }⟩
+{ to_fun := λ f, ⟨λ a, of_add (f (of_mul a)), f.2, f.3⟩,
+  inv_fun := λ f, ⟨λ a, (f a.to_mul).to_add, f.2, f.3⟩,
+  left_inv := λ x, by { ext, refl, },
+  right_inv := λ x, by { ext, refl, } }
 
 /-- Reinterpret `α →* multiplicative β` as `additive α →+ β`. -/
-def monoid_hom.to_additive' [mul_one_class α] [add_zero_class β] :
+@[simps] def monoid_hom.to_additive' [mul_one_class α] [add_zero_class β] :
   (α →* multiplicative β) ≃ (additive α →+ β) :=
 add_monoid_hom.to_multiplicative'.symm
 
 /-- Reinterpret `α →+ additive β` as `multiplicative α →* β`. -/
-def add_monoid_hom.to_multiplicative'' [add_zero_class α] [mul_one_class β] :
+@[simps] def add_monoid_hom.to_multiplicative'' [add_zero_class α] [mul_one_class β] :
   (α →+ additive β) ≃ (multiplicative α →* β) :=
-⟨λ f, ⟨f.1, f.2, f.3⟩, λ f, ⟨f.1, f.2, f.3⟩, λ x, by { ext, refl, }, λ x, by { ext, refl, }⟩
+{ to_fun := λ f, ⟨λ a, (f a.to_add).to_mul, f.2, f.3⟩,
+  inv_fun := λ f, ⟨λ a, of_mul (f (of_add a)), f.2, f.3⟩,
+  left_inv := λ x, by { ext, refl, },
+  right_inv := λ x, by { ext, refl, } }
 
 /-- Reinterpret `multiplicative α →* β` as `α →+ additive β`. -/
-def monoid_hom.to_additive'' [add_zero_class α] [mul_one_class β] :
+@[simps] def monoid_hom.to_additive'' [add_zero_class α] [mul_one_class β] :
   (multiplicative α →* β) ≃ (α →+ additive β) :=
 add_monoid_hom.to_multiplicative''.symm
 

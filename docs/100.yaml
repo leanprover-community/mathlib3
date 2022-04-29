@@ -114,7 +114,6 @@
   author : Bhavik Mehta
   links  :
     result: https://github.com/b-mehta/combinatorics/blob/extras/src/inf_ramsey.lean
-
 32:
   title  : The Four Color Problem
 33:
@@ -129,6 +128,9 @@
   title  : Brouwer Fixed Point Theorem
 37:
   title  : The Solution of a Cubic
+  author : Jeoff Lee
+  links  :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/37_solution_of_cubic.lean
 38:
   title  : Arithmetic Mean/Geometric Mean
   decl   : real.geom_mean_le_arith_mean_weighted
@@ -155,6 +157,9 @@
   author : Chris Hughes
 45:
   title  : The Partition Theorem
+  author : Bhavik Mehta, Aaron Anderson
+  links:
+    mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/45_partition.lean
 46:
   title  : The Solution of the General Quartic Equation
 47:
@@ -275,6 +280,10 @@
   author : Yury G. Kudryashov
 76:
   title  : Fourier Series
+  decls   :
+    - fourier_series_repr
+    - has_sum_fourier_series
+  author : Heather Macbeth
 77:
   title  : Sum of kth powers
   decls  :
@@ -303,6 +312,9 @@
   note   : "it also has a generalized version, by showing that every Euclidean domain is a unique factorization domain, and showing that the integers form a Euclidean domain."
 81:
   title  : Divergence of the Prime Reciprocal Series
+  links  :
+    mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/81_sum_of_prime_reciprocals_diverges.lean
+  author : Manuel Candales
 82:
   title  : Dissection of Cubes (J.E. Littlewood’s ‘elegant’ proof)
   links :

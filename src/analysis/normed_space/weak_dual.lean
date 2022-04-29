@@ -3,7 +3,7 @@ Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
-import topology.algebra.weak_dual_topology
+import topology.algebra.module.weak_dual
 import analysis.normed_space.dual
 import analysis.normed_space.operator_norm
 
@@ -42,7 +42,7 @@ TODOs:
 * Add that in finite dimensions, the weak-* topology and the dual norm topology coincide.
 * Add that in infinite dimensions, the weak-* topology is strictly coarser than the dual norm
   topology.
-* Add Banach-Alaoglu theorem (general version maybe in `topology.algebra.weak_dual_topology`).
+* Add Banach-Alaoglu theorem (general version maybe in `topology.algebra.module.weak_dual`).
 * Add metrizability of the dual unit ball (more generally bounded subsets) of `weak_dual 𝕜 E`
   under the assumption of separability of `E`. Sequential Banach-Alaoglu theorem would then follow
   from the general one.
@@ -53,7 +53,7 @@ No new notation is introduced.
 
 ## Implementation notes
 
-Weak-* topology is defined generally in the file `topology.algebra.weak_dual_topology`.
+Weak-* topology is defined generally in the file `topology.algebra.module.weak_dual`.
 
 When `E` is a normed space, the duals `dual 𝕜 E` and `weak_dual 𝕜 E` are type synonyms with
 different topology instances.
@@ -72,7 +72,6 @@ noncomputable theory
 open filter
 open_locale topological_space
 
-section weak_star_topology_for_duals_of_normed_spaces
 /-!
 ### Weak star topology on duals of normed spaces
 In this section, we prove properties about the weak-* topology on duals of normed spaces.
@@ -113,7 +112,7 @@ weak_dual.to_normed_dual.injective.eq_iff
 theorem to_weak_dual_continuous :
   continuous (λ (x' : dual 𝕜 E), x'.to_weak_dual) :=
 begin
-  apply weak_dual.continuous_of_continuous_eval,
+  apply continuous_of_continuous_eval,
   intros z,
   exact (inclusion_in_double_dual 𝕜 E z).continuous,
 end
@@ -149,36 +148,4 @@ begin
   exact set.preimage_set_of_eq,
 end
 
-variables (𝕜)
-
-/-- The polar set `polar 𝕜 s` of `s : set E` seen as a subset of the dual of `E` with the
-weak-star topology is `weak_dual.polar 𝕜 s`. -/
-def polar (s : set E) : set (weak_dual 𝕜 E) := to_normed_dual ⁻¹' (polar 𝕜 s)
-
 end weak_dual
-
-end weak_star_topology_for_duals_of_normed_spaces
-
-section polar_sets_in_weak_dual
-
-open metric set normed_space
-
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
-
-/-- The polar `polar 𝕜 s` of a set `s : E` is a closed subset when the weak star topology
-is used, i.e., when `polar 𝕜 s` is interpreted as a subset of `weak_dual 𝕜 E`. -/
-lemma weak_dual.is_closed_polar (s : set E) : is_closed (weak_dual.polar 𝕜 s) :=
-begin
-  rw [weak_dual.polar, polar_eq_Inter, preimage_bInter],
-  apply is_closed_bInter,
-  intros z hz,
-  rw set.preimage_set_of_eq,
-  have eq : {x' : weak_dual 𝕜 E | ∥weak_dual.to_normed_dual x' z∥ ≤ 1}
-    = (λ (x' : weak_dual 𝕜 E), ∥x' z∥)⁻¹' (Iic 1) := by refl,
-  rw eq,
-  refine is_closed.preimage _ (is_closed_Iic),
-  apply continuous.comp continuous_norm (weak_dual.eval_continuous _ _ z),
-end
-
-end polar_sets_in_weak_dual

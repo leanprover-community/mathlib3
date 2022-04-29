@@ -52,6 +52,9 @@ variables {a}
 @[ext] lemma ext {I J : ideal α} (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
 submodule.ext h
 
+lemma sum_mem (I : ideal α) {ι : Type*} {t : finset ι} {f : ι → α} :
+  (∀c∈t, f c ∈ I) → (∑ i in t, f i) ∈ I := submodule.sum_mem I
+
 theorem eq_top_of_unit_mem
   (x y : α) (hx : x ∈ I) (h : y * x = 1) : I = ⊤ :=
 eq_top_iff.2 $ λ z _, calc
@@ -84,6 +87,19 @@ def span (s : set α) : ideal α := submodule.span α s
 @[simp] lemma submodule_span_eq {s : set α} :
   submodule.span α s = ideal.span s :=
 rfl
+
+@[simp] lemma span_empty : span (∅ : set α) = ⊥ := submodule.span_empty
+
+@[simp] lemma span_univ : span (set.univ : set α) = ⊤ := submodule.span_univ
+
+lemma span_union (s t : set α) : span (s ∪ t) = span s ⊔ span t :=
+submodule.span_union _ _
+
+lemma span_Union {ι} (s : ι → set α) : span (⋃ i, s i) = ⨆ i, span (s i) :=
+submodule.span_Union _
+
+lemma mem_span {s : set α} (x) : x ∈ span s ↔ ∀ p : ideal α, s ⊆ p → x ∈ p :=
+mem_Inter₂
 
 lemma subset_span {s : set α} : s ⊆ span s := submodule.subset_span
 
@@ -453,13 +469,10 @@ namespace ideal
 
 variables [ring α] (I : ideal α) {a b : α}
 
-lemma neg_mem_iff : -a ∈ I ↔ a ∈ I := I.neg_mem_iff
-
-lemma add_mem_iff_left : b ∈ I → (a + b ∈ I ↔ a ∈ I) := I.add_mem_iff_left
-
-lemma add_mem_iff_right : a ∈ I → (a + b ∈ I ↔ b ∈ I) := I.add_mem_iff_right
-
-protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := I.sub_mem
+protected lemma neg_mem_iff : -a ∈ I ↔ a ∈ I := neg_mem_iff
+protected lemma add_mem_iff_left : b ∈ I → (a + b ∈ I ↔ a ∈ I) := I.add_mem_iff_left
+protected lemma add_mem_iff_right : a ∈ I → (a + b ∈ I ↔ b ∈ I) := I.add_mem_iff_right
+protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := sub_mem
 
 lemma mem_span_insert' {s : set α} {x y} :
   x ∈ span (insert y s) ↔ ∃a, x + a * y ∈ span s := submodule.mem_span_insert'
@@ -574,7 +587,7 @@ lemma bot_lt_of_maximal (M : ideal R) [hm : M.is_maximal] (non_field : ¬ is_fie
 begin
   rcases (ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top.1 non_field)
     with ⟨I, Ibot, Itop⟩,
-  split, finish,
+  split, { simp },
   intro mle,
   apply @irrefl _ (<) _ (⊤ : ideal R),
   have : M = ⊥ := eq_bot_iff.mpr mle,

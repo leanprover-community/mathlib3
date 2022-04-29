@@ -18,12 +18,13 @@ related by the summand's relation.
 
 ## See also
 
-For the lexicographic order per say, see `data.sigma.order`.
-
-The lexicographic order on lists can be found in `data.list.lex`.
-
-The lexicographic order on a product type (which can be thought of as the special case of
-`sigma.lex` where all summands are the same) and on `psigma` live in `order.lexicographic`.
+Related files are:
+* `data.finset.colex`: Colexicographic order on finite sets.
+* `data.list.lex`: Lexicographic order on lists.
+* `data.sigma.order`: Lexicographic order on `Σ i, α i` per say.
+* `data.psigma.order`: Lexicographic order on `Σ' i, α i`.
+* `order.lexicographic`: Lexicographic order on `α × β`. Can be thought of as the special case of
+  `sigma.lex` where all summands are the same
 -/
 
 namespace sigma

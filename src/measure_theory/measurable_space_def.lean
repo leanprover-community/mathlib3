@@ -3,11 +3,11 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import order.symm_diff
-import order.disjointed
-import order.conditionally_complete_lattice
-import data.equiv.encodable.lattice
 import data.set.countable
+import logic.encodable.lattice
+import order.conditionally_complete_lattice
+import order.disjointed
+import order.symm_diff
 
 /-!
 # Measurable spaces and measurable functions
@@ -58,15 +58,18 @@ attribute [class] measurable_space
 instance [h : measurable_space α] : measurable_space (order_dual α) := h
 
 section
-variable [measurable_space α]
 
 /-- `measurable_set s` means that `s` is measurable (in the ambient measure space on `α`) -/
-def measurable_set : set α → Prop := ‹measurable_space α›.measurable_set'
+def measurable_set [measurable_space α] : set α → Prop := ‹measurable_space α›.measurable_set'
 
 localized "notation `measurable_set[` m `]` := @measurable_set _ m" in measure_theory
 
-@[simp] lemma measurable_set.empty : measurable_set (∅ : set α) :=
+@[simp] lemma measurable_set.empty [measurable_space α] : measurable_set (∅ : set α) :=
 ‹measurable_space α›.measurable_set_empty
+
+variable {m : measurable_space α}
+
+include m
 
 lemma measurable_set.compl : measurable_set s → measurable_set sᶜ :=
 ‹measurable_space α›.measurable_set_compl s
@@ -137,7 +140,7 @@ by { rw compl_Inter, exact measurable_set.Union (λ b, (h b).compl) }
 
 section fintype
 
-local attribute [instance] fintype.encodable
+local attribute [instance] fintype.to_encodable
 
 lemma measurable_set.Union_fintype [fintype β] {f : β → set α} (h : ∀ b, measurable_set (f b)) :
   measurable_set (⋃ b, f b) :=
@@ -152,7 +155,7 @@ end fintype
 lemma measurable_set.bInter {f : β → set α} {s : set β} (hs : countable s)
   (h : ∀ b ∈ s, measurable_set (f b)) : measurable_set (⋂ b ∈ s, f b) :=
 measurable_set.compl_iff.1 $
-by { rw compl_bInter, exact measurable_set.bUnion hs (λ b hb, (h b hb).compl) }
+by { rw compl_Inter₂, exact measurable_set.bUnion hs (λ b hb, (h b hb).compl) }
 
 lemma set.finite.measurable_set_bInter {f : β → set α} {s : set β} (hs : finite s)
   (h : ∀ b ∈ s, measurable_set (f b)) : measurable_set (⋂ b ∈ s, f b) :=
@@ -191,7 +194,7 @@ h₁.inter h₂.compl
 
 @[simp] lemma measurable_set.symm_diff {s₁ s₂ : set α}
   (h₁ : measurable_set s₁) (h₂ : measurable_set s₂) :
-  measurable_set (s₁ Δ s₂) :=
+  measurable_set (s₁ ∆ s₂) :=
 (h₁.diff h₂).union (h₂.diff h₁)
 
 @[simp] lemma measurable_set.ite {t s₁ s₂ : set α} (ht : measurable_set t) (h₁ : measurable_set s₁)
@@ -279,7 +282,7 @@ lemma le_def {α} {a b : measurable_space α} :
   a ≤ b ↔ a.measurable_set' ≤ b.measurable_set' := iff.rfl
 
 instance : partial_order (measurable_space α) :=
-{ le_refl     := assume a b, le_refl _,
+{ le_refl     := assume a b, le_rfl,
   le_trans    := assume a b c hab hbc, le_def.mpr (le_trans hab hbc),
   le_antisymm := assume a b h₁ h₂, measurable_space.ext $ assume s, ⟨h₁ s, h₂ s⟩,
   ..measurable_space.has_le }
@@ -299,7 +302,7 @@ def generate_from (s : set (set α)) : measurable_space α :=
   measurable_set_Union := generate_measurable.union }
 
 lemma measurable_set_generate_from {s : set (set α)} {t : set α} (ht : t ∈ s) :
-  (generate_from s).measurable_set' t :=
+  @measurable_set _ (generate_from s) t :=
 generate_measurable.basic t ht
 
 lemma generate_from_le {s : set (set α)} {m : measurable_space α}
@@ -416,7 +419,8 @@ lemma measurable_id : measurable (@id α) := λ t, id
 
 lemma measurable_id' : measurable (λ a : α, a) := measurable_id
 
-lemma measurable.comp {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
+lemma measurable.comp {α β γ} {mα : measurable_space α} {mβ : measurable_space β}
+  {mγ : measurable_space γ} {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
   measurable (g ∘ f) :=
 λ t ht, hf (hg ht)
 

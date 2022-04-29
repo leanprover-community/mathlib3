@@ -5,8 +5,8 @@ Authors: Yury Kudryashov
 -/
 import category_theory.concrete_category.bundled
 import category_theory.discrete_category
-import category_theory.eq_to_hom
 import category_theory.types
+import category_theory.bicategory.strict
 
 /-!
 # Category of categories
@@ -40,14 +40,42 @@ instance str (C : Cat.{v u}) : category.{v u} C := C.str
 /-- Construct a bundled `Cat` from the underlying type and the typeclass. -/
 def of (C : Type u) [category.{v} C] : Cat.{v u} := bundled.of C
 
-/-- Category structure on `Cat` -/
-instance category : large_category.{max v u} Cat.{v u} :=
+/-- Bicategory structure on `Cat` -/
+instance bicategory : bicategory.{(max v u) (max v u)} Cat.{v u} :=
 { hom := λ C D, C ⥤ D,
   id := λ C, 𝟭 C,
   comp := λ C D E F G, F ⋙ G,
-  id_comp' := λ C D F, by cases F; refl,
+  hom_category := λ C D, functor.category C D,
+  whisker_left := λ C D E F G H η, whisker_left F η,
+  whisker_right := λ C D E F G η H, whisker_right η H,
+  associator := λ A B C D, functor.associator,
+  left_unitor :=  λ A B, functor.left_unitor,
+  right_unitor := λ A B, functor.right_unitor,
+  pentagon' := λ A B C D E, functor.pentagon,
+  triangle' := λ A B C, functor.triangle }
+
+/-- `Cat` is a strict bicategory. -/
+instance bicategory.strict : bicategory.strict Cat.{v u} :=
+{ id_comp' := λ C D F, by cases F; refl,
   comp_id' := λ C D F, by cases F; refl,
   assoc' := by intros; refl }
+
+/-- Category structure on `Cat` -/
+instance category : large_category.{max v u} Cat.{v u} := strict_bicategory.category Cat.{v u}
+
+@[simp]
+lemma id_map {C : Cat} {X Y : C} (f : X ⟶ Y) : (𝟙 C : C ⥤ C).map f = f :=
+functor.id_map f
+
+@[simp]
+lemma comp_obj {C D E : Cat} (F : C ⟶ D) (G : D ⟶ E) (X : C) :
+  (F ≫ G).obj X = G.obj (F.obj X) :=
+functor.comp_obj F G X
+
+@[simp]
+lemma comp_map {C D E : Cat} (F : C ⟶ D) (G : D ⟶ E) {X Y : C} (f : X ⟶ Y) :
+  (F ≫ G).map f = G.map (F.map f) :=
+functor.comp_map F G f
 
 /-- Functor that gets the set of objects of a category. It is not
 called `forget`, because it is not a faithful functor. -/

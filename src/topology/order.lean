@@ -63,10 +63,14 @@ def generate_from (g : set (set α)) : topological_space α :=
   is_open_inter  := generate_open.inter,
   is_open_sUnion := generate_open.sUnion }
 
+lemma is_open_generate_from_of_mem {g : set (set α)} {s : set α} (hs : s ∈ g) :
+  @is_open _ (generate_from g) s :=
+generate_open.basic s hs
+
 lemma nhds_generate_from {g : set (set α)} {a : α} :
   @nhds α (generate_from g) a = (⨅s∈{s | a ∈ s ∧ s ∈ g}, 𝓟 s) :=
 by rw nhds_def; exact le_antisymm
-  (infi_le_infi $ assume s, infi_le_infi_const $ assume ⟨as, sg⟩, ⟨as, generate_open.basic _ sg⟩)
+  (binfi_mono $ λ s ⟨as, sg⟩, ⟨as, generate_open.basic _ sg⟩)
   (le_infi $ assume s, le_infi $ assume ⟨as, hs⟩,
     begin
       revert as, clear_, induction hs,
@@ -110,6 +114,20 @@ begin
     exact mem_of_superset h₁ h₀ },
   { rcases (@mem_nhds_iff α (topological_space.mk_of_nhds n) _ _).1 hs with ⟨t, hts, ht, hat⟩,
     exact (n a).sets_of_superset (ht _ hat) hts },
+end
+
+lemma nhds_mk_of_nhds_filter_basis (B : α → filter_basis α) (a : α) (h₀ : ∀ x (n ∈ B x), x ∈ n)
+  (h₁ : ∀ x (n ∈ B x), ∃ n₁ ∈ B x, n₁ ⊆ n ∧ ∀ x' ∈ n₁, ∃ n₂ ∈ B x', n₂ ⊆ n) :
+  @nhds α (topological_space.mk_of_nhds (λ x, (B x).filter)) a = (B a).filter :=
+begin
+  rw topological_space.nhds_mk_of_nhds;
+  intros x n hn;
+  obtain ⟨m, hm₁, hm₂⟩ := (B x).mem_filter_iff.mp hn,
+  { exact hm₂ (h₀ _ _ hm₁), },
+  { obtain ⟨n₁, hn₁, hn₂, hn₃⟩ := h₁ x m hm₁,
+    refine ⟨n₁, (B x).mem_filter_of_mem hn₁, hn₂.trans hm₂, λ x' hx', (B x').mem_filter_iff.mp _⟩,
+    obtain ⟨n₂, hn₄, hn₅⟩ := hn₃ x' hx',
+    exact ⟨n₂, hn₄, hn₅.trans hm₂⟩, },
 end
 
 end topological_space
@@ -159,7 +177,7 @@ def gi_generate_from (α : Type*) :
 { gc        := assume g t, generate_from_le_iff_subset_is_open,
   le_l_u    := assume ts s hs, topological_space.generate_open.basic s hs,
   choice    := λg hg, mk_of_closure g
-    (subset.antisymm hg $ generate_from_le_iff_subset_is_open.1 $ le_refl _),
+    (subset.antisymm hg $ generate_from_le_iff_subset_is_open.1 $ le_rfl),
   choice_eq := assume s hs, mk_of_closure_sets }
 
 lemma generate_from_mono {α} {g₁ g₂ : set (set α)} (h : g₁ ⊆ g₂) :
@@ -216,7 +234,7 @@ instance : complete_lattice (topological_space α) :=
 
 lemma is_open_implies_is_open_iff {a b : topological_space α} :
   (∀ s, a.is_open s → b.is_open s) ↔ b ≤ a :=
-@galois_insertion.u_le_u_iff _ (order_dual (topological_space α)) _ _ _ _ (gi_generate_from α) a b
+iff.rfl
 
 /-- A topological space is discrete if every set is open, that is,
   its topology equals the discrete topology `⊥`. -/
@@ -249,6 +267,10 @@ end
 
 lemma nhds_discrete (α : Type*) [topological_space α] [discrete_topology α] : (@nhds α _) = pure :=
 (discrete_topology.eq_bot α).symm ▸ nhds_bot α
+
+lemma mem_nhds_discrete [topological_space α] [discrete_topology α] {x : α} {s : set α} :
+  s ∈ 𝓝 x ↔ x ∈ s :=
+by rw [nhds_discrete, mem_pure]
 
 lemma le_of_nhds_le_nhds {t₁ t₂ : topological_space α} (h : ∀x, @nhds α t₁ x ≤ @nhds α t₂ x) :
   t₁ ≤ t₂ :=
@@ -404,6 +426,23 @@ lemma coinduced_compose [tα : topological_space α]
   {f : α → β} {g : β → γ} : (tα.coinduced f).coinduced g = tα.coinduced (g ∘ f) :=
 topological_space_eq rfl
 
+lemma equiv.induced_symm {α β : Type*} (e : α ≃ β) :
+  topological_space.induced e.symm = topological_space.coinduced e :=
+begin
+  ext t U,
+  split,
+  { rintros ⟨V, hV, rfl⟩,
+    change t.is_open (e ⁻¹' _),
+    rwa [← preimage_comp, ← equiv.coe_trans, equiv.self_trans_symm] },
+  { intros hU,
+    refine ⟨e ⁻¹' U, hU, _⟩,
+    rw [← preimage_comp, ← equiv.coe_trans, equiv.symm_trans_self, equiv.coe_refl, preimage_id] }
+end
+
+lemma equiv.coinduced_symm {α β : Type*} (e : α ≃ β) :
+  topological_space.coinduced e.symm = topological_space.induced e :=
+by rw [← e.symm.induced_symm, e.symm_symm]
+
 end galois_connection
 
 /- constructions using the complete lattice structure -/
@@ -465,7 +504,7 @@ end
 
 /-- This construction is left adjoint to the operation sending a topology on `α`
   to its neighborhood filter at a fixed point `a : α`. -/
-protected def topological_space.nhds_adjoint (a : α) (f : filter α) : topological_space α :=
+def nhds_adjoint (a : α) (f : filter α) : topological_space α :=
 { is_open        := λs, a ∈ s → s ∈ f,
   is_open_univ   := assume s, univ_mem,
   is_open_inter  := assume s t hs ht ⟨has, hat⟩, inter_mem (hs has) (ht hat),
@@ -473,11 +512,74 @@ protected def topological_space.nhds_adjoint (a : α) (f : filter α) : topologi
     (subset_sUnion_of_mem hu) }
 
 lemma gc_nhds (a : α) :
-  galois_connection  (topological_space.nhds_adjoint a) (λt, @nhds α t a) :=
+  galois_connection (nhds_adjoint a) (λt, @nhds α t a) :=
 assume f t, by { rw le_nhds_iff, exact ⟨λ H s hs has, H _ has hs, λ H s has hs, H _ hs has⟩ }
 
 lemma nhds_mono {t₁ t₂ : topological_space α} {a : α} (h : t₁ ≤ t₂) :
   @nhds α t₁ a ≤ @nhds α t₂ a := (gc_nhds a).monotone_u h
+
+lemma le_iff_nhds {α : Type*} (t t' : topological_space α) :
+  t ≤ t' ↔ ∀ x, @nhds α t x ≤ @nhds α t' x :=
+⟨λ h x, nhds_mono h, le_of_nhds_le_nhds⟩
+
+lemma nhds_adjoint_nhds {α : Type*} (a : α) (f : filter α) :
+  @nhds α (nhds_adjoint a f) a = pure a ⊔ f :=
+begin
+  ext U,
+  rw mem_nhds_iff,
+  split,
+  { rintros ⟨t, htU, ht, hat⟩,
+    exact ⟨htU hat, mem_of_superset (ht hat) htU⟩},
+  { rintros ⟨haU, hU⟩,
+    exact ⟨U, subset.rfl, λ h, hU, haU⟩ }
+end
+
+lemma nhds_adjoint_nhds_of_ne {α : Type*} (a : α) (f : filter α) {b : α} (h : b ≠ a) :
+  @nhds α (nhds_adjoint a f) b = pure b :=
+begin
+  apply le_antisymm,
+  { intros U hU,
+    rw mem_nhds_iff,
+    use {b},
+    simp only [and_true, singleton_subset_iff, mem_singleton],
+    refine ⟨hU, λ ha, (h.symm ha).elim⟩ },
+  { exact @pure_le_nhds α (nhds_adjoint a f) b },
+end
+
+lemma is_open_singleton_nhds_adjoint {α : Type*} {a b : α} (f : filter α) (hb : b ≠ a) :
+  @is_open α (nhds_adjoint a f) {b} :=
+begin
+  rw is_open_singleton_iff_nhds_eq_pure,
+  exact nhds_adjoint_nhds_of_ne a f hb
+end
+
+lemma le_nhds_adjoint_iff' {α : Type*} (a : α) (f : filter α) (t : topological_space α) :
+  t ≤ nhds_adjoint a f ↔ @nhds α t a ≤ pure a ⊔ f ∧ ∀ b ≠ a, @nhds α t b = pure b :=
+begin
+  rw le_iff_nhds,
+  split,
+  { intros h,
+    split,
+    { specialize h a,
+      rwa nhds_adjoint_nhds at h },
+    { intros b hb,
+      apply le_antisymm _ (pure_le_nhds b),
+      specialize h b,
+      rwa nhds_adjoint_nhds_of_ne a f hb at h } },
+  { rintros ⟨h, h'⟩ b,
+    by_cases hb : b = a,
+    { rwa [hb, nhds_adjoint_nhds] },
+    { simp [nhds_adjoint_nhds_of_ne a f hb, h' b hb] } }
+end
+
+lemma le_nhds_adjoint_iff {α : Type*} (a : α) (f : filter α) (t : topological_space α) :
+  t ≤ nhds_adjoint a f ↔ (@nhds α t a ≤ pure a ⊔ f ∧ ∀ b, b ≠ a → t.is_open {b}) :=
+begin
+  change _ ↔ _ ∧ ∀ (b : α), b ≠ a → is_open {b},
+  rw [le_nhds_adjoint_iff', and.congr_right_iff],
+  apply λ h, forall_congr (λ b,  _),
+  rw @is_open_singleton_iff_nhds_eq_pure α t b
+end
 
 lemma nhds_infi {ι : Sort*} {t : ι → topological_space α} {a : α} :
   @nhds α (infi t) a = (⨅i, @nhds α (t i) a) := (gc_nhds a).u_infi
@@ -619,6 +721,13 @@ continuous_iff_le_induced.2 $ bot_le
 
 @[continuity] lemma continuous_top {t : tspace α} : cont t ⊤ f :=
 continuous_iff_coinduced_le.2 $ le_top
+
+lemma continuous_id_of_le {t t' : tspace α} (h : t ≤ t') : cont t t' id :=
+begin
+  rw continuous_def,
+  assume u hu,
+  exact h u hu
+end
 
 /- 𝓝 in the induced topology -/
 

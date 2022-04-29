@@ -184,7 +184,7 @@ G.recolor_of_embedding $ (function.embedding.nonempty_of_card_le hn).some
 
 variables {G}
 
-lemma colorable.of_le {n m : ℕ} (hc : G.colorable n) (h : n ≤ m) : G.colorable m :=
+lemma colorable.mono {n m : ℕ} (h : n ≤ m) (hc : G.colorable n) : G.colorable m :=
 ⟨G.recolor_of_card_le (by simp [h]) hc.some⟩
 
 lemma coloring.to_colorable [fintype α] (C : G.coloring α) :
@@ -204,6 +204,10 @@ begin
   exact G.recolor_of_card_le hn hc.some,
 end
 
+lemma colorable.of_embedding {V' : Type*} {G' : simple_graph V'}
+  (f : G ↪g G') {n : ℕ} (h : G'.colorable n) : G.colorable n :=
+⟨(h.to_coloring (by simp)).comp f⟩
+
 lemma colorable_iff_exists_bdd_nat_coloring (n : ℕ) :
   G.colorable n ↔ ∃ (C : G.coloring ℕ), ∀ v, C v < n :=
 begin
@@ -219,7 +223,7 @@ begin
     refine ⟨coloring.mk _ _⟩,
     { exact λ v, ⟨C v, Cf v⟩, },
     { rintro v w hvw,
-      simp only [complete_graph_eq_top, top_adj, subtype.mk_eq_mk, ne.def],
+      simp only [subtype.mk_eq_mk, ne.def],
       exact C.valid hvw, } }
 end
 
@@ -284,7 +288,7 @@ begin
   exact G.is_empty_of_colorable_zero h',
 end
 
-lemma zero_lt_chromatic_number [nonempty V] {n : ℕ} (hc : G.colorable n) :
+lemma chromatic_number_pos [nonempty V] {n : ℕ} (hc : G.colorable n) :
   0 < G.chromatic_number :=
 begin
   apply le_cInf (colorable_set_nonempty_of_colorable hc),
@@ -296,11 +300,18 @@ begin
   exact nat.not_lt_zero _ hi,
 end
 
-lemma colorable_of_le_colorable {G' : simple_graph V} (h : G ≤ G') (n : ℕ)
+lemma colorable_of_chromatic_number_pos (h : 0 < G.chromatic_number) :
+  G.colorable G.chromatic_number :=
+begin
+  obtain ⟨h, hn⟩ := nat.nonempty_of_pos_Inf h,
+  exact colorable_chromatic_number hn,
+end
+
+lemma colorable.mono_left {G' : simple_graph V} (h : G ≤ G') {n : ℕ}
   (hc : G'.colorable n) : G.colorable n :=
 ⟨hc.some.comp (hom.map_spanning_subgraphs h)⟩
 
-lemma chromatic_number_le_of_forall_imp {G' : simple_graph V}
+lemma colorable.chromatic_number_le_of_forall_imp {V' : Type*} {G' : simple_graph V'}
   {m : ℕ} (hc : G'.colorable m)
   (h : ∀ n, G'.colorable n → G.colorable n) :
   G.chromatic_number ≤ G'.chromatic_number :=
@@ -310,13 +321,15 @@ begin
   apply colorable_chromatic_number hc,
 end
 
-lemma chromatic_number_le_of_le_colorable (G' : simple_graph V)
+lemma colorable.chromatic_number_mono (G' : simple_graph V)
   {m : ℕ} (hc : G'.colorable m) (h : G ≤ G') :
   G.chromatic_number ≤ G'.chromatic_number :=
-begin
-  apply chromatic_number_le_of_forall_imp hc,
-  exact colorable_of_le_colorable h,
-end
+hc.chromatic_number_le_of_forall_imp (λ n, colorable.mono_left h)
+
+lemma colorable.chromatic_number_mono_of_embedding {V' : Type*} {G' : simple_graph V'}
+  {n : ℕ} (h : G'.colorable n) (f : G ↪g G') :
+  G.chromatic_number ≤ G'.chromatic_number :=
+h.chromatic_number_le_of_forall_imp (λ _, colorable.of_embedding f)
 
 lemma chromatic_number_eq_card_of_forall_surj [fintype α] (C : G.coloring α)
   (h : ∀ (C' : G.coloring α), function.surjective C') :
@@ -345,10 +358,10 @@ begin
     coloring.mk (λ _, 0) (λ v w h, false.elim h),
   apply le_antisymm,
   { exact chromatic_number_le_card C, },
-  { exact zero_lt_chromatic_number C.to_colorable, },
+  { exact chromatic_number_pos C.to_colorable, },
 end
 
-lemma chromatic_number_complete_graph [fintype V] :
+@[simp] lemma chromatic_number_top [fintype V] :
   (⊤ : simple_graph V).chromatic_number = fintype.card V :=
 begin
   apply chromatic_number_eq_card_of_forall_surj (self_coloring _),
@@ -358,6 +371,20 @@ begin
   contrapose,
   intro h,
   exact C.valid h,
+end
+
+lemma chromatic_number_top_eq_zero_of_infinite (V : Type*) [infinite V] :
+  (⊤ : simple_graph V).chromatic_number = 0 :=
+begin
+  let n := (⊤ : simple_graph V).chromatic_number,
+  by_contra hc,
+  replace hc := pos_iff_ne_zero.mpr hc,
+  apply nat.not_succ_le_self n,
+  convert_to (⊤ : simple_graph {m | m < n + 1}).chromatic_number ≤ _,
+  { simp, },
+  refine (colorable_of_chromatic_number_pos hc).chromatic_number_mono_of_embedding _,
+  apply embedding.complete_graph.of_embedding,
+  exact (function.embedding.subtype _).trans (infinite.nat_embedding V),
 end
 
 /-- The bicoloring of a complete bipartite graph using whether a vertex

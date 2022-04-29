@@ -303,7 +303,7 @@ lemma appr_lt (x : ℤ_[p]) (n : ℕ) : x.appr n < p ^ n :=
 begin
   induction n with n ih generalizing x,
   { simp only [appr, succ_pos', pow_zero], },
-  simp only [appr, ring_hom.map_nat_cast, zmod.nat_cast_self, ring_hom.map_pow, int.nat_abs,
+  simp only [appr, map_nat_cast, zmod.nat_cast_self, ring_hom.map_pow, int.nat_abs,
     ring_hom.map_mul],
   have hp : p ^ n < p ^ (n + 1),
   { apply pow_lt_pow hp_prime.1.one_lt (lt_add_one n) },
@@ -355,7 +355,7 @@ begin
   { rw h, apply dvd_zero },
   push_cast, rw sub_add_eq_sub_sub,
   obtain ⟨c, hc⟩ := ih x,
-  simp only [ring_hom.map_nat_cast, zmod.nat_cast_self, ring_hom.map_pow, ring_hom.map_mul,
+  simp only [map_nat_cast, zmod.nat_cast_self, ring_hom.map_pow, ring_hom.map_mul,
     zmod.nat_cast_val],
   have hc' : c ≠ 0,
   { rintro rfl, simp only [mul_zero] at hc, contradiction },
@@ -378,7 +378,7 @@ begin
   { rw zero_pow hc0,
     simp only [sub_zero, zmod.cast_zero, mul_zero],
     rw unit_coeff_spec hc',
-    exact (dvd_pow_self _ hc0.ne').mul_left _ }
+    exact (dvd_pow_self (p : ℤ_[p]) hc0.ne').mul_left _, },
 end
 
 attribute [irreducible] appr
@@ -465,7 +465,7 @@ section lift
 
 open cau_seq padic_seq
 
-variables {R : Type*} [comm_ring R] (f : Π k : ℕ, R →+* zmod (p^k))
+variables {R : Type*} [non_assoc_semiring R] (f : Π k : ℕ, R →+* zmod (p^k))
   (f_compat : ∀ k1 k2 (hk : k1 ≤ k2), (zmod.cast_hom (pow_dvd_pow p hk) _).comp (f k2) = f k1)
 
 omit hp_prime
@@ -646,7 +646,7 @@ lemma lift_spec (n : ℕ) : (to_zmod_pow n).comp (lift f_compat) = f n :=
 begin
   ext r,
   haveI : fact (0 < p ^ n) := ⟨pow_pos hp_prime.1.pos n⟩,
-  rw [ring_hom.comp_apply, ← zmod.nat_cast_zmod_val (f n r), ← (to_zmod_pow n).map_nat_cast,
+  rw [ring_hom.comp_apply, ← zmod.nat_cast_zmod_val (f n r), ← map_nat_cast $ to_zmod_pow n,
       ← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker, ker_to_zmod_pow],
   apply lift_sub_val_mem_span,
 end
@@ -687,7 +687,7 @@ begin
   { rintro rfl _, refl }
 end
 
-lemma to_zmod_pow_eq_iff_ext {R : Type*} [comm_ring R] {g g' : R →+* ℤ_[p]} :
+lemma to_zmod_pow_eq_iff_ext {R : Type*} [non_assoc_semiring R] {g g' : R →+* ℤ_[p]} :
   (∀ n, (to_zmod_pow n).comp g = (to_zmod_pow n).comp g') ↔ g = g' :=
 begin
   split,

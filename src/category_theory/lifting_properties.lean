@@ -98,7 +98,7 @@ def right_lifting_subcat (R : Type u) := R
 
 instance right_lifting_subcat.inhabited  (R : Type u) [inhabited R] :
   inhabited (right_lifting_subcat R) :=
-{ default := (default R : R) }
+{ default := (default : R) }
 
 /-- The objects of the subcategory `right_lifting_subcategory` are the ones in the
 underlying category. -/

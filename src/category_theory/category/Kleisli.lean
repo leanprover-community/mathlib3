@@ -46,5 +46,5 @@ lemma Kleisli.comp_def {m} [monad m] (α β γ : Kleisli m)
   (xs ≫ ys) a = xs a >>= ys := rfl
 
 instance : inhabited (Kleisli id) := ⟨punit⟩
-instance {α : Type u} [inhabited α] : inhabited (Kleisli.mk id α) := ⟨(default α : _)⟩
+instance {α : Type u} [inhabited α] : inhabited (Kleisli.mk id α) := ⟨show α, from default⟩
 end category_theory

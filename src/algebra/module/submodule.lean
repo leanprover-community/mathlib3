@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.module.linear_map
-import data.equiv.module
+import algebra.module.equiv
 import group_theory.group_action.sub_mul_action
 /-!
 
@@ -47,7 +47,12 @@ namespace submodule
 variables [semiring R] [add_comm_monoid M] [module R M]
 
 instance : set_like (submodule R M) M :=
-⟨submodule.carrier, λ p q h, by cases p; cases q; congr'⟩
+{ coe := submodule.carrier,
+  coe_injective' := λ p q h, by cases p; cases q; congr' }
+
+instance : add_submonoid_class (submodule R M) M :=
+{ zero_mem := zero_mem',
+  add_mem := add_mem' }
 
 @[simp] theorem mem_to_add_submonoid (p : submodule R M) (x : M) : x ∈ p.to_add_submonoid ↔ x ∈ p :=
 iff.rfl
@@ -91,6 +96,8 @@ to_add_submonoid_injective.eq_iff
 @[mono] lemma to_add_submonoid_strict_mono :
   strict_mono (to_add_submonoid : submodule R M → add_submonoid M) := λ _ _, id
 
+lemma to_add_submonoid_le : p.to_add_submonoid ≤ q.to_add_submonoid ↔ p ≤ q := iff.rfl
+
 @[mono]
 lemma to_add_submonoid_mono : monotone (to_add_submonoid : submodule R M → add_submonoid M) :=
 to_add_submonoid_strict_mono.monotone
@@ -132,27 +139,26 @@ variables {r : R} {x y : M}
 variables (p)
 @[simp] lemma mem_carrier : x ∈ p.carrier ↔ x ∈ (p : set M) := iff.rfl
 
-@[simp] lemma zero_mem : (0 : M) ∈ p := p.zero_mem'
-
-lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := p.add_mem' h₁ h₂
+@[simp] protected lemma zero_mem : (0 : M) ∈ p := zero_mem _
+protected lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := add_mem h₁ h₂
 
 lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
 lemma smul_of_tower_mem [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M]
   (r : S) (h : x ∈ p) : r • x ∈ p :=
 p.to_sub_mul_action.smul_of_tower_mem r h
 
-lemma sum_mem {t : finset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
-p.to_add_submonoid.sum_mem
+protected lemma sum_mem {t : finset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
+sum_mem
 
 lemma sum_smul_mem {t : finset ι} {f : ι → M} (r : ι → R)
     (hyp : ∀ c ∈ t, f c ∈ p) : (∑ i in t, r i • f i) ∈ p :=
-submodule.sum_mem _ (λ i hi, submodule.smul_mem  _ _ (hyp i hi))
+sum_mem (λ i hi, smul_mem _ _ (hyp i hi))
 
 @[simp] lemma smul_mem_iff' [group G] [mul_action G M] [has_scalar G R] [is_scalar_tower G R M]
   (g : G) : g • x ∈ p ↔ x ∈ p :=
 p.to_sub_mul_action.smul_mem_iff' g
 
-instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem _ x.2 y.2⟩⟩
+instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
 instance [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] :
@@ -202,9 +208,11 @@ instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_diviso
 protected def subtype : p →ₗ[R] M :=
 by refine {to_fun := coe, ..}; simp [coe_smul]
 
-@[simp] theorem subtype_apply (x : p) : p.subtype x = x := rfl
+theorem subtype_apply (x : p) : p.subtype x = x := rfl
 
-lemma subtype_eq_val : ((submodule.subtype p) : p → M) = subtype.val := rfl
+@[simp] lemma coe_subtype : ((submodule.subtype p) : p → M) = coe := rfl
+
+lemma injective_subtype : injective p.subtype := subtype.coe_injective
 
 /-- Note the `add_submonoid` version of this lemma is called `add_submonoid.coe_finset_sum`. -/
 @[simp] lemma coe_sum (x : ι → p) (s : finset ι) : ↑(∑ i in s, x i) = ∑ i in s, (x i : M) :=
@@ -278,7 +286,11 @@ variables {module_M : module R M}
 variables (p p' : submodule R M)
 variables {r : R} {x y : M}
 
-lemma neg_mem (hx : x ∈ p) : -x ∈ p := p.to_sub_mul_action.neg_mem hx
+instance [module R M] : add_subgroup_class (submodule R M) M :=
+{ neg_mem := λ p x, p.to_sub_mul_action.neg_mem,
+  .. submodule.add_submonoid_class }
+
+protected lemma neg_mem (hx : x ∈ p) : -x ∈ p := neg_mem hx
 
 /-- Reinterpret a submodule as an additive subgroup. -/
 def to_add_subgroup : add_subgroup M :=
@@ -299,27 +311,28 @@ to_add_subgroup_injective.eq_iff
 @[mono] lemma to_add_subgroup_strict_mono :
   strict_mono (to_add_subgroup : submodule R M → add_subgroup M) := λ _ _, id
 
+lemma to_add_subgroup_le : p.to_add_subgroup ≤ p'.to_add_subgroup ↔ p ≤ p' := iff.rfl
+
 @[mono] lemma to_add_subgroup_mono : monotone (to_add_subgroup : submodule R M → add_subgroup M) :=
 to_add_subgroup_strict_mono.monotone
 
 omit module_M
 
-lemma sub_mem : x ∈ p → y ∈ p → x - y ∈ p := p.to_add_subgroup.sub_mem
+protected lemma sub_mem : x ∈ p → y ∈ p → x - y ∈ p := sub_mem
+protected lemma neg_mem_iff : -x ∈ p ↔ x ∈ p := neg_mem_iff
+protected lemma add_mem_iff_left : y ∈ p → (x + y ∈ p ↔ x ∈ p) := add_mem_cancel_right
+protected lemma add_mem_iff_right : x ∈ p → (x + y ∈ p ↔ y ∈ p) := add_mem_cancel_left
+protected lemma coe_neg (x : p) : ((-x : p) : M) = -x := add_subgroup_class.coe_neg _
+protected lemma coe_sub (x y : p) : (↑(x - y) : M) = ↑x - ↑y := add_subgroup_class.coe_sub _ _
 
-@[simp] lemma neg_mem_iff : -x ∈ p ↔ x ∈ p := p.to_add_subgroup.neg_mem_iff
+lemma sub_mem_iff_left (hy : y ∈ p) : (x - y) ∈ p ↔ x ∈ p :=
+by rw [sub_eq_add_neg, p.add_mem_iff_left (p.neg_mem hy)]
 
-lemma add_mem_iff_left : y ∈ p → (x + y ∈ p ↔ x ∈ p) := p.to_add_subgroup.add_mem_cancel_right
-
-lemma add_mem_iff_right : x ∈ p → (x + y ∈ p ↔ y ∈ p) := p.to_add_subgroup.add_mem_cancel_left
-
-instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
-
-@[simp, norm_cast] lemma coe_neg (x : p) : ((-x : p) : M) = -x := rfl
+lemma sub_mem_iff_right (hx : x ∈ p) : (x - y) ∈ p ↔ y ∈ p :=
+by rw [sub_eq_add_neg, p.add_mem_iff_right hx, p.neg_mem_iff]
 
 instance : add_comm_group p :=
 { add := (+), zero := 0, neg := has_neg.neg, ..p.to_add_subgroup.to_add_comm_group }
-
-@[simp, norm_cast] lemma coe_sub (x y : p) : (↑(x - y) : M) = ↑x - ↑y := rfl
 
 end add_comm_group
 
@@ -348,26 +361,26 @@ variables [semiring R]
 instance to_ordered_add_comm_monoid
   {M} [ordered_add_comm_monoid M] [module R M] (S : submodule R M) :
   ordered_add_comm_monoid S :=
-subtype.coe_injective.ordered_add_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.ordered_add_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submodule of a `linear_ordered_add_comm_monoid` is a `linear_ordered_add_comm_monoid`. -/
 instance to_linear_ordered_add_comm_monoid
   {M} [linear_ordered_add_comm_monoid M] [module R M] (S : submodule R M) :
   linear_ordered_add_comm_monoid S :=
-subtype.coe_injective.linear_ordered_add_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_add_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submodule of an `ordered_cancel_add_comm_monoid` is an `ordered_cancel_add_comm_monoid`. -/
 instance to_ordered_cancel_add_comm_monoid
   {M} [ordered_cancel_add_comm_monoid M] [module R M] (S : submodule R M) :
   ordered_cancel_add_comm_monoid S :=
-subtype.coe_injective.ordered_cancel_add_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.ordered_cancel_add_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submodule of a `linear_ordered_cancel_add_comm_monoid` is a
 `linear_ordered_cancel_add_comm_monoid`. -/
 instance to_linear_ordered_cancel_add_comm_monoid
   {M} [linear_ordered_cancel_add_comm_monoid M] [module R M] (S : submodule R M) :
   linear_ordered_cancel_add_comm_monoid S :=
-subtype.coe_injective.linear_ordered_cancel_add_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_cancel_add_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 end ordered_monoid
 
@@ -379,14 +392,16 @@ variables [ring R]
 instance to_ordered_add_comm_group
   {M} [ordered_add_comm_group M] [module R M] (S : submodule R M) :
   ordered_add_comm_group S :=
-subtype.coe_injective.ordered_add_comm_group coe rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_add_comm_group coe
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submodule of a `linear_ordered_add_comm_group` is a
 `linear_ordered_add_comm_group`. -/
 instance to_linear_ordered_add_comm_group
   {M} [linear_ordered_add_comm_group M] [module R M] (S : submodule R M) :
   linear_ordered_add_comm_group S :=
-subtype.coe_injective.linear_ordered_add_comm_group coe rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_add_comm_group coe
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 end ordered_group
 

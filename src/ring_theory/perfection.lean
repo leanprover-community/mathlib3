@@ -10,7 +10,7 @@ import algebra.char_p.subring
 import algebra.ring.pi
 import analysis.special_functions.pow
 import field_theory.perfect_closure
-import ring_theory.localization
+import ring_theory.localization.fraction_ring
 import ring_theory.subring.basic
 import ring_theory.valuation.integers
 
@@ -333,7 +333,7 @@ ideal.quotient.comm_ring _
 
 include hp hvp
 instance : char_p (mod_p K v O hv p) p :=
-char_p.quotient O p $ mt hv.one_of_is_unit $ ((algebra_map O K).map_nat_cast p).symm ▸ hvp.1
+char_p.quotient O p $ mt hv.one_of_is_unit $ (map_nat_cast (algebra_map O K) p).symm ▸ hvp.1
 
 instance : nontrivial (mod_p K v O hv p) :=
 char_p.nontrivial_of_char_ne_one hp.1.ne_one
@@ -353,7 +353,7 @@ lemma pre_val_mk {x : O} (hx : (ideal.quotient.mk _ x : mod_p K v O hv p) ≠ 0)
 begin
   obtain ⟨r, hr⟩ := ideal.mem_span_singleton'.1 (ideal.quotient.eq.1 $ quotient.sound' $
     @quotient.mk_out' O (ideal.span {p} : ideal O).quotient_rel x),
-  refine (if_neg hx).trans (v.map_eq_of_sub_lt $ lt_of_not_ge' _),
+  refine (if_neg hx).trans (v.map_eq_of_sub_lt $ lt_of_not_le _),
   erw [← ring_hom.map_sub, ← hr, hv.le_iff_dvd],
   exact λ hprx, hx (ideal.quotient.eq_zero_iff_mem.2 $ ideal.mem_span_singleton.2 $
     dvd_of_mul_left_dvd hprx),
@@ -388,9 +388,9 @@ end
 lemma v_p_lt_pre_val {x : mod_p K v O hv p} : v p < pre_val K v O hv p x ↔ x ≠ 0 :=
 begin
   refine ⟨λ h hx, by { rw [hx, pre_val_zero] at h, exact not_lt_zero' h },
-    λ h, lt_of_not_ge' $ λ hp, h _⟩,
+    λ h, lt_of_not_le $ λ hp, h _⟩,
   obtain ⟨r, rfl⟩ := ideal.quotient.mk_surjective x,
-  rw [pre_val_mk h, ← (algebra_map O K).map_nat_cast p, hv.le_iff_dvd] at hp,
+  rw [pre_val_mk h, ← map_nat_cast (algebra_map O K) p, hv.le_iff_dvd] at hp,
   rw [ideal.quotient.eq_zero_iff_mem, ideal.mem_span_singleton], exact hp
 end
 
@@ -402,7 +402,7 @@ lemma pre_val_eq_zero {x : mod_p K v O hv p} : pre_val K v O hv p x = 0 ↔ x = 
 variables (hv hvp)
 lemma v_p_lt_val {x : O} :
   v p < v (algebra_map O K x) ↔ (ideal.quotient.mk _ x : mod_p K v O hv p) ≠ 0 :=
-by rw [lt_iff_not_ge', not_iff_not, ← (algebra_map O K).map_nat_cast p, hv.le_iff_dvd,
+by rw [lt_iff_not_le, not_iff_not, ← map_nat_cast (algebra_map O K) p, hv.le_iff_dvd,
       ideal.quotient.eq_zero_iff_mem, ideal.mem_span_singleton]
 
 open nnreal
@@ -422,7 +422,7 @@ begin
   rw [ring_hom.map_mul, v.map_mul], refine lt_of_le_of_lt _ (mul_lt_mul₀ hx hy),
   by_cases hvp : v p = 0, { rw hvp, exact zero_le _ }, replace hvp := zero_lt_iff.2 hvp,
   conv_lhs { rw ← rpow_one (v p) }, rw ← rpow_add (ne_of_gt hvp),
-  refine rpow_le_rpow_of_exponent_ge hvp ((algebra_map O K).map_nat_cast p ▸ hv.2 _) _,
+  refine rpow_le_rpow_of_exponent_ge hvp (map_nat_cast (algebra_map O K) p ▸ hv.2 _) _,
   rw [← add_div, div_le_one (nat.cast_pos.2 hp.1.pos : 0 < (p : ℝ))], exact_mod_cast hp.1.two_le
 end
 
@@ -534,7 +534,7 @@ noncomputable def val : valuation (pre_tilt K v O hv p) ℝ≥0 :=
   map_one' := val_aux_one,
   map_mul' := val_aux_mul,
   map_zero' := val_aux_zero,
-  map_add' := val_aux_add }
+  map_add_le_max' := val_aux_add }
 
 variables {K v O hv p}
 lemma map_eq_zero {f : pre_tilt K v O hv p} : val K v O hv p f = 0 ↔ f = 0 :=

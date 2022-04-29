@@ -58,7 +58,7 @@ begin
   exact linear_map.range_comp_le_range _ _,
 end
 
-lemma rank_unit (A : units (matrix n n K)) :
+lemma rank_unit (A : (matrix n n K)ˣ) :
   (A : matrix n n K).rank = fintype.card n :=
 begin
   refine le_antisymm (rank_le_card_width A) _,

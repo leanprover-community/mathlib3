@@ -30,7 +30,7 @@ proves Noether's first and second isomorphism theorems.
   isomorphism between `H/(H ∩ N)` and `(HN)/N` given a subgroup `H` and a normal subgroup `N` of a
   group `G`.
 * `quotient_group.quotient_quotient_equiv_quotient`: Noether's third isomorphism theorem,
-  the canonical isomorphism between `(G / M) / (M / N)` and `G / N`, where `N ≤ M`.
+  the canonical isomorphism between `(G / N) / (M / N)` and `G / M`, where `N ≤ M`.
 
 ## Tags
 
@@ -66,6 +66,9 @@ lemma coe_mk' : (mk' N : G → G ⧸ N) = coe := rfl
 
 @[simp, to_additive]
 lemma mk'_apply (x : G) : mk' N x = x := rfl
+
+@[to_additive]
+lemma mk'_surjective : function.surjective $ mk' N := @mk_surjective _ _ N
 
 /-- Two `monoid_hom`s from a quotient group are equal if their compositions with
 `quotient_group.mk'` are equal.
@@ -192,7 +195,7 @@ lift_mk _ _ _
 lemma ker_lift_mk' (g : G) : (ker_lift φ) (mk g) = φ g :=
 lift_mk' _ _ _
 
-@[to_additive quotient_add_group.injective_ker_lift]
+@[to_additive quotient_add_group.ker_lift_injective]
 lemma ker_lift_injective : injective (ker_lift φ) :=
 assume a b, quotient.induction_on₂' a b $
   assume a b (h : φ a = φ b), quotient.sound' $
@@ -315,6 +318,34 @@ monoid_hom.to_mul_equiv
   (by { ext ⟨x, hx⟩, refl })
   (by { ext ⟨x, hx⟩, refl })
 
+section zpow
+
+variables {G' H' : Type u} [comm_group G'] [comm_group H']
+variables (φ' : G' →* H') (ψ' : H' →* G') (χ : G' ≃* H')
+
+/-- The map of quotients by powers of an integer induced by a group homomorphism. -/
+@[to_additive "The map of quotients by multiples of an integer induced by an additive group
+homomorphism."]
+def hom_quotient_zpow_of_hom (n : ℤ) :
+  G' ⧸ (zpow_group_hom n : G' →* G').range →* H' ⧸ (zpow_group_hom n : H' →* H').range :=
+lift _ ((mk' _).comp φ') $
+  λ g ⟨h, (hg : h ^ n = g)⟩, (eq_one_iff _).mpr ⟨_, by simpa only [← hg, map_zpow]⟩
+
+@[to_additive, simp]
+lemma hom_quotient_zpow_of_hom_right_inverse (h : function.right_inverse ψ' φ') (n : ℤ) :
+  (hom_quotient_zpow_of_hom φ' n).comp (hom_quotient_zpow_of_hom ψ' n) = monoid_hom.id _ :=
+monoid_hom_ext _ $ monoid_hom.ext $ λ g, congr_arg coe $ h g
+
+/-- The equivalence of quotients by powers of an integer induced by a group isomorphism. -/
+@[to_additive "The equivalence of quotients by multiples of an integer induced by an additive group
+isomorphism."]
+def equiv_quotient_zpow_of_equiv (χ : G' ≃* H') (n : ℤ) :
+  G' ⧸ (zpow_group_hom n : G' →* G').range ≃* H' ⧸ (zpow_group_hom n : H' →* H').range :=
+monoid_hom.to_mul_equiv _ _ (hom_quotient_zpow_of_hom_right_inverse χ.symm χ χ.left_inv n)
+  (hom_quotient_zpow_of_hom_right_inverse χ χ.symm χ.right_inv n)
+
+end zpow
+
 section snd_isomorphism_thm
 
 open _root_.subgroup
@@ -397,7 +428,8 @@ section trivial
 trunc.subsingleton
 
 /-- If the quotient by a subgroup gives a singleton then the subgroup is the whole group. -/
-@[to_additive] lemma subgroup_eq_top_of_subsingleton (H : subgroup G)
+@[to_additive "If the quotient by an additive subgroup gives a singleton then the additive subgroup
+is the whole additive group."] lemma subgroup_eq_top_of_subsingleton (H : subgroup G)
   (h : subsingleton (G ⧸ H)) : H = ⊤ :=
 top_unique $ λ x _,
   have this : 1⁻¹ * x ∈ H := quotient_group.eq.1 (subsingleton.elim _ _),
@@ -405,4 +437,51 @@ top_unique $ λ x _,
 
 end trivial
 
+@[to_additive quotient_add_group.comap_comap_center]
+lemma comap_comap_center {H₁ : subgroup G} [H₁.normal] {H₂ : subgroup (G ⧸ H₁)} [H₂.normal] :
+  (((subgroup.center ((G ⧸ H₁) ⧸ H₂))).comap (mk' H₂)).comap (mk' H₁) =
+  (subgroup.center (G ⧸ H₂.comap (mk' H₁))).comap (mk' (H₂.comap (mk' H₁))) :=
+begin
+  ext x,
+  simp only [mk'_apply, subgroup.mem_comap, subgroup.mem_center_iff, forall_coe],
+  apply forall_congr,
+  change ∀ (y : G), (↑↑(y * x) = ↑↑(x * y) ↔ ↑(y * x) = ↑(x * y)),
+  intro y,
+  repeat { rw [eq_iff_div_mem] },
+  simp,
+end
+
 end quotient_group
+
+namespace group
+
+open_locale classical
+open quotient_group subgroup
+
+variables {F G H : Type u} [group F] [group G] [group H] [fintype F] [fintype H]
+variables (f : F →* G) (g : G →* H)
+
+/-- If `F` and `H` are finite such that `ker(G →* H) ≤ im(F →* G)`, then `G` is finite. -/
+@[to_additive "If `F` and `H` are finite such that `ker(G →+ H) ≤ im(F →+ G)`, then `G` is finite."]
+noncomputable def fintype_of_ker_le_range (h : g.ker ≤ f.range) : fintype G :=
+@fintype.of_equiv _ _ (@prod.fintype _ _ (fintype.of_injective _ $ ker_lift_injective g) $
+                                          fintype.of_injective _ $ inclusion_injective h)
+  group_equiv_quotient_times_subgroup.symm
+
+/-- If `F` and `H` are finite such that `ker(G →* H) = im(F →* G)`, then `G` is finite. -/
+@[to_additive "If `F` and `H` are finite such that `ker(G →+ H) = im(F →+ G)`, then `G` is finite."]
+noncomputable def fintype_of_ker_eq_range (h : g.ker = f.range) : fintype G :=
+fintype_of_ker_le_range _ _ h.le
+
+/-- If `ker(G →* H)` and `H` are finite, then `G` is finite. -/
+@[to_additive "If `ker(G →+ H)` and `H` are finite, then `G` is finite."]
+noncomputable def fintype_of_ker_of_codom [fintype g.ker] : fintype G :=
+fintype_of_ker_le_range ((top_equiv : _ ≃* G).to_monoid_hom.comp $ inclusion le_top) g $
+  λ x hx, ⟨⟨x, hx⟩, rfl⟩
+
+/-- If `F` and `coker(F →* G)` are finite, then `G` is finite. -/
+@[to_additive "If `F` and `coker(F →+ G)` are finite, then `G` is finite."]
+noncomputable def fintype_of_dom_of_coker [normal f.range] [fintype $ G ⧸ f.range] : fintype G :=
+fintype_of_ker_le_range _ (mk' f.range) $ λ x, (eq_one_iff x).mp
+
+end group

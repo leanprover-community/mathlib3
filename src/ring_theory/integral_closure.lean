@@ -7,6 +7,7 @@ import linear_algebra.finite_dimensional
 import ring_theory.adjoin.fg
 import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.tower
+import linear_algebra.matrix.determinant
 
 /-!
 # Integral closure of a subring.
@@ -27,7 +28,7 @@ Let `R` be a `comm_ring` and let `A` be an R-algebra.
 -/
 
 open_locale classical
-open_locale big_operators
+open_locale big_operators polynomial
 open polynomial submodule
 
 section ring
@@ -35,9 +36,9 @@ variables {R S A : Type*}
 variables [comm_ring R] [ring A] [ring S] (f : R →+* S)
 
 /-- An element `x` of `A` is said to be integral over `R` with respect to `f`
-if it is a root of a monic polynomial `p : polynomial R` evaluated under `f` -/
+if it is a root of a monic polynomial `p : R[X]` evaluated under `f` -/
 def ring_hom.is_integral_elem (f : R →+* A) (x : A) :=
-∃ p : polynomial R, monic p ∧ eval₂ f x p = 0
+∃ p : R[X], monic p ∧ eval₂ f x p = 0
 
 /-- A ring homomorphism `f : R →+* A` is said to be integral
 if every element `A` is integral with respect to the map `f` -/
@@ -47,7 +48,7 @@ def ring_hom.is_integral (f : R →+* A) :=
 variables [algebra R A] (R)
 
 /-- An element `x` of an algebra `A` over a commutative ring `R` is said to be *integral*,
-if it is a root of some monic polynomial `p : polynomial R`.
+if it is a root of some monic polynomial `p : R[X]`.
 Equivalently, the element is integral over `R` with respect to the induced `algebra_map` -/
 def is_integral (x : A) : Prop :=
 (algebra_map R A).is_integral_elem x
@@ -69,7 +70,7 @@ theorem is_integral_algebra_map {x : R} : is_integral R (algebra_map R A x) :=
 theorem is_integral_of_noetherian (H : is_noetherian R A) (x : A) :
   is_integral R x :=
 begin
-  let leval : (polynomial R →ₗ[R] A) := (aeval x).to_linear_map,
+  let leval : (R[X] →ₗ[R] A) := (aeval x).to_linear_map,
   let D : ℕ → submodule R A := λ n, (degree_le R n).map leval,
   let M := well_founded.min (is_noetherian_iff_well_founded.1 H)
     (set.range D) ⟨_, ⟨0, rfl⟩⟩,
@@ -122,7 +123,7 @@ theorem is_integral_alg_equiv (f : A ≃ₐ[R] B) {x : A} : is_integral R (f x) 
 theorem is_integral_of_is_scalar_tower [algebra A B] [is_scalar_tower R A B]
   (x : B) (hx : is_integral R x) : is_integral A x :=
 let ⟨p, hp, hpx⟩ := hx in
-⟨p.map $ algebra_map R A, monic_map _ hp,
+⟨p.map $ algebra_map R A, hp.map _,
   by rw [← aeval_def, ← is_scalar_tower.aeval_apply, aeval_def, hpx]⟩
 
 theorem is_integral_of_subring {x : A} (T : subring R)
@@ -177,7 +178,7 @@ begin
   have : degree (p %ₘ f) ≤ degree f := degree_mod_by_monic_le p hfm,
   generalize_hyp : p %ₘ f = q at this ⊢,
   rw [← sum_C_mul_X_eq q, aeval_def, eval₂_sum, sum_def],
-  refine sum_mem _ (λ k hkq, _),
+  refine sum_mem (λ k hkq, _),
   rw [eval₂_mul, eval₂_C, eval₂_pow, eval₂_X, ← algebra.smul_def],
   refine smul_mem _ _ (subset_span _),
   rw finset.mem_coe, refine finset.mem_image.2 ⟨_, _, rfl⟩,
@@ -193,7 +194,7 @@ set.finite.induction_on hfs (λ _, ⟨{1}, submodule.ext $ λ x,
   by { erw [algebra.adjoin_empty, finset.coe_singleton, ← one_eq_span, one_eq_range,
             linear_map.mem_range, algebra.mem_bot], refl }⟩)
 (λ a s has hs ih his, by rw [← set.union_singleton, algebra.adjoin_union_coe_submodule]; exact
-  fg_mul _ _ (ih $ λ i hi, his i $ set.mem_insert_of_mem a hi)
+  fg.mul (ih $ λ i hi, his i $ set.mem_insert_of_mem a hi)
     (fg_adjoin_singleton_of_integral _ $ his a $ set.mem_insert a s)) his
 
 lemma is_noetherian_adjoin_finset [is_noetherian_ring R] (s : finset A)
@@ -227,7 +228,7 @@ begin
     subring.closure ↑(lx.frange ∪ finset.bUnion finset.univ (finsupp.frange ∘ ly)),
   -- It suffices to prove that `x` is integral over `S₀`.
   refine is_integral_of_subring S₀ _,
-  letI : comm_ring S₀ := subring.to_comm_ring S₀,
+  letI : comm_ring S₀ := subring_class.to_comm_ring S₀,
   letI : algebra S₀ A := algebra.of_subring S₀,
   -- Claim: the `S₀`-module span (in `A`) of the set `y ∪ {1}` is closed under
   -- multiplication (indeed, this is the motivation for the definition of `S₀`).
@@ -290,7 +291,7 @@ lemma ring_hom.is_integral_of_mem_closure {x y z : S}
   f.is_integral_elem z :=
 begin
   letI : algebra R S := f.to_algebra,
-  have := fg_mul _ _ (fg_adjoin_singleton_of_integral x hx) (fg_adjoin_singleton_of_integral y hy),
+  have := (fg_adjoin_singleton_of_integral x hx).mul (fg_adjoin_singleton_of_integral y hy),
   rw [← algebra.adjoin_union_coe_submodule, set.singleton_union] at this,
   exact is_integral_of_mem_of_fg (algebra.adjoin R {x, y}) this z
     (algebra.mem_adjoin_iff.2 $ subring.closure_mono (set.subset_union_right _ _) hz),
@@ -350,6 +351,13 @@ theorem is_integral_mul {x y : A}
   (hx : is_integral R x) (hy : is_integral R y) : is_integral R (x * y) :=
 (algebra_map R A).is_integral_mul hx hy
 
+lemma is_integral_smul [algebra S A] [algebra R S] [is_scalar_tower R S A] {x : A} (r : R)
+  (hx : is_integral S x) : is_integral S (r • x) :=
+begin
+  rw [algebra.smul_def, is_scalar_tower.algebra_map_apply R S A],
+  exact is_integral_mul is_integral_algebra_map hx,
+end
+
 variables (R A)
 
 /-- The integral closure of R in an R-algebra A. -/
@@ -367,6 +375,14 @@ theorem mem_integral_closure_iff_mem_fg {r : A} :
 λ ⟨M, Hf, hrM⟩, is_integral_of_mem_of_fg M Hf _ hrM⟩
 
 variables {R} {A}
+
+lemma adjoin_le_integral_closure {x : A} (hx : is_integral R x) :
+  algebra.adjoin R {x} ≤ integral_closure R A :=
+begin
+  rw [algebra.adjoin_le_iff],
+  simp only [set_like.mem_coe, set.singleton_subset_iff],
+  exact hx
+end
 
 lemma le_integral_closure_iff_is_integral {S : subalgebra R A} :
   S ≤ integral_closure R A ↔ algebra.is_integral R S :=
@@ -442,6 +458,130 @@ lemma is_integral.prod {α : Type*} {s : finset α} (f : α → A) (h : ∀ x �
 lemma is_integral.sum {α : Type*} {s : finset α} (f : α → A) (h : ∀ x ∈ s, is_integral R (f x)) :
   is_integral R (∑ x in s, f x) :=
 (integral_closure R A).sum_mem h
+
+lemma is_integral.det {n : Type*} [fintype n] [decidable_eq n] {M : matrix n n A}
+  (h : ∀ i j, is_integral R (M i j)) :
+  is_integral R M.det :=
+begin
+  rw [matrix.det_apply],
+  exact is_integral.sum _ (λ σ hσ, is_integral.zsmul (is_integral.prod _ (λ i hi, h _ _)) _)
+end
+
+section
+
+variables (p : R[X]) (x : S)
+
+/--  The monic polynomial whose roots are `p.leading_coeff * x` for roots `x` of `p`. -/
+noncomputable
+def normalize_scale_roots (p : R[X]) : R[X] :=
+∑ i in p.support, monomial i
+  (if i = p.nat_degree then 1 else p.coeff i * p.leading_coeff ^ (p.nat_degree - 1 - i))
+
+lemma normalize_scale_roots_coeff_mul_leading_coeff_pow (i : ℕ) (hp : 1 ≤ nat_degree p) :
+  (normalize_scale_roots p).coeff i * p.leading_coeff ^ i =
+    p.coeff i * p.leading_coeff ^ (p.nat_degree - 1) :=
+begin
+  simp only [normalize_scale_roots, finset_sum_coeff, coeff_monomial, finset.sum_ite_eq', one_mul,
+    zero_mul, mem_support_iff, ite_mul, ne.def, ite_not],
+  split_ifs with h₁ h₂,
+  { simp [h₁], },
+  { rw [h₂, leading_coeff, ← pow_succ, tsub_add_cancel_of_le hp], },
+  { rw [mul_assoc, ← pow_add, tsub_add_cancel_of_le],
+    apply nat.le_pred_of_lt,
+    rw lt_iff_le_and_ne,
+    exact ⟨le_nat_degree_of_ne_zero h₁, h₂⟩, },
+end
+
+lemma leading_coeff_smul_normalize_scale_roots (p : R[X]) :
+  p.leading_coeff • normalize_scale_roots p = scale_roots p p.leading_coeff :=
+begin
+  ext,
+  simp only [coeff_scale_roots, normalize_scale_roots, coeff_monomial, coeff_smul, finset.smul_sum,
+    ne.def, finset.sum_ite_eq', finset_sum_coeff, smul_ite, smul_zero, mem_support_iff],
+  split_ifs with h₁ h₂,
+  { simp [*] },
+  { simp [*] },
+  { rw [algebra.id.smul_eq_mul, mul_comm, mul_assoc, ← pow_succ', tsub_right_comm,
+      tsub_add_cancel_of_le],
+    rw nat.succ_le_iff,
+    exact tsub_pos_of_lt (lt_of_le_of_ne (le_nat_degree_of_ne_zero h₁) h₂) },
+end
+
+lemma normalize_scale_roots_support :
+  (normalize_scale_roots p).support ≤ p.support :=
+begin
+  intro x,
+  contrapose,
+  simp only [not_mem_support_iff, normalize_scale_roots, finset_sum_coeff, coeff_monomial,
+    finset.sum_ite_eq', mem_support_iff, ne.def, not_not, ite_eq_right_iff],
+  intros h₁ h₂,
+  exact (h₂ h₁).rec _,
+end
+
+lemma normalize_scale_roots_degree :
+  (normalize_scale_roots p).degree = p.degree :=
+begin
+  apply le_antisymm,
+  { exact finset.sup_mono (normalize_scale_roots_support p) },
+  { rw [← degree_scale_roots, ← leading_coeff_smul_normalize_scale_roots],
+    exact degree_smul_le _ _ }
+end
+
+lemma normalize_scale_roots_eval₂_leading_coeff_mul (h : 1 ≤ p.nat_degree) (f : R →+* S) (x : S) :
+  (normalize_scale_roots p).eval₂ f (f p.leading_coeff * x) =
+    f p.leading_coeff ^ (p.nat_degree - 1) * (p.eval₂ f x) :=
+begin
+  rw [eval₂_eq_sum_range, eval₂_eq_sum_range, finset.mul_sum],
+  apply finset.sum_congr,
+  { rw nat_degree_eq_of_degree_eq (normalize_scale_roots_degree p) },
+  intros n hn,
+  rw [mul_pow, ← mul_assoc, ← f.map_pow, ← f.map_mul,
+    normalize_scale_roots_coeff_mul_leading_coeff_pow _ _ h, f.map_mul, f.map_pow],
+  ring,
+end
+
+lemma normalize_scale_roots_monic (h : p ≠ 0) : (normalize_scale_roots p).monic :=
+begin
+  delta monic leading_coeff,
+  rw nat_degree_eq_of_degree_eq (normalize_scale_roots_degree p),
+  suffices : p = 0 → (0 : R) = 1,
+  { simpa [normalize_scale_roots, coeff_monomial] },
+  exact λ h', (h h').rec _,
+end
+
+/-- Given a `p : R[X]` and a `x : S` such that `p.eval₂ f x = 0`,
+`f p.leading_coeff * x` is integral. -/
+lemma ring_hom.is_integral_elem_leading_coeff_mul (h : p.eval₂ f x = 0) :
+  f.is_integral_elem (f p.leading_coeff * x) :=
+begin
+  by_cases h' : 1 ≤ p.nat_degree,
+  { use normalize_scale_roots p,
+    have : p ≠ 0 := λ h'', by { rw [h'', nat_degree_zero] at h', exact nat.not_succ_le_zero 0 h' },
+    use normalize_scale_roots_monic p this,
+    rw [normalize_scale_roots_eval₂_leading_coeff_mul p h' f x, h, mul_zero] },
+  { by_cases hp : p.map f = 0,
+    { apply_fun (λ q, coeff q p.nat_degree) at hp,
+      rw [coeff_map, coeff_zero, coeff_nat_degree] at hp,
+      rw [hp, zero_mul],
+      exact f.is_integral_zero },
+    { rw [nat.one_le_iff_ne_zero, not_not] at h',
+      rw [eq_C_of_nat_degree_eq_zero h', eval₂_C] at h,
+      suffices : p.map f = 0,
+      { exact (hp this).rec _ },
+      rw [eq_C_of_nat_degree_eq_zero h', map_C, h, C_eq_zero] } }
+end
+
+/-- Given a `p : R[X]` and a root `x : S`,
+then `p.leading_coeff • x : S` is integral over `R`. -/
+lemma is_integral_leading_coeff_smul [algebra R S] (h : aeval x p = 0) :
+  is_integral R (p.leading_coeff • x) :=
+begin
+  rw aeval_def at h,
+  rw algebra.smul_def,
+  exact (algebra_map R S).is_integral_elem_leading_coeff_mul p x h,
+end
+
+end
 
 end
 
@@ -551,7 +691,7 @@ variables {R A B S T : Type*}
 variables [comm_ring R] [comm_ring A] [comm_ring B] [comm_ring S] [comm_ring T]
 variables [algebra A B] [algebra R B] (f : R →+* S) (g : S →+* T)
 
-lemma is_integral_trans_aux (x : B) {p : polynomial A} (pmonic : monic p) (hp : aeval x p = 0) :
+lemma is_integral_trans_aux (x : B) {p : A[X]} (pmonic : monic p) (hp : aeval x p = 0) :
   is_integral (adjoin R (↑(p.map $ algebra_map A B).frange : set B)) x :=
 begin
   generalize hS : (↑(p.map $ algebra_map A B).frange : set B) = S,
@@ -560,7 +700,7 @@ begin
     { rw hi, exact subalgebra.zero_mem _ },
     rw ← hS,
     exact subset_adjoin (coeff_mem_frange _ _ hi) },
-  obtain ⟨q, hq⟩ : ∃ q : polynomial (adjoin R S), q.map (algebra_map (adjoin R S) B) =
+  obtain ⟨q, hq⟩ : ∃ q : (adjoin R S)[X], q.map (algebra_map (adjoin R S) B) =
       (p.map $ algebra_map A B),
   { rw ← set.mem_range, exact (polynomial.mem_map_range _).2 (λ i, ⟨⟨_, coeffs_mem i⟩, rfl⟩) },
   use q,
@@ -568,7 +708,7 @@ begin
   { suffices h : (q.map (algebra_map (adjoin R S) B)).monic,
     { refine monic_of_injective _ h,
       exact subtype.val_injective },
-    { rw hq, exact monic_map _ pmonic } },
+    { rw hq, exact pmonic.map _ } },
   { convert hp using 1,
     replace hq := congr_arg (eval x) hq,
     convert hq using 1; symmetry; apply eval_map },
@@ -638,7 +778,7 @@ is_integral_tower_bot_of_is_integral (algebra_map A B).injective h
 
 lemma ring_hom.is_integral_elem_of_is_integral_elem_comp {x : T}
   (h : (g.comp f).is_integral_elem x) : g.is_integral_elem x :=
-let ⟨p, ⟨hp, hp'⟩⟩ := h in ⟨p.map f, monic_map f hp, by rwa ← eval₂_map at hp'⟩
+let ⟨p, ⟨hp, hp'⟩⟩ := h in ⟨p.map f, hp.map f, by rwa ← eval₂_map at hp'⟩
 
 lemma ring_hom.is_integral_tower_top_of_is_integral (h : (g.comp f).is_integral) : g.is_integral :=
 λ x, ring_hom.is_integral_elem_of_is_integral_elem_comp f g (h x)
@@ -648,7 +788,7 @@ then if the entire tower is an integral extension so is `A → B`. -/
 lemma is_integral_tower_top_of_is_integral {x : B} (h : is_integral R x) : is_integral A x :=
 begin
   rcases h with ⟨p, ⟨hp, hp'⟩⟩,
-  refine ⟨p.map (algebra_map R A), ⟨monic_map (algebra_map R A) hp, _⟩⟩,
+  refine ⟨p.map (algebra_map R A), ⟨hp.map (algebra_map R A), _⟩⟩,
   rw [is_scalar_tower.algebra_map_eq R A B, ← eval₂_map] at hp',
   exact hp',
 end
@@ -658,7 +798,7 @@ lemma ring_hom.is_integral_quotient_of_is_integral {I : ideal S} (hf : f.is_inte
 begin
   rintros ⟨x⟩,
   obtain ⟨p, ⟨p_monic, hpx⟩⟩ := hf x,
-  refine ⟨p.map (ideal.quotient.mk _), ⟨monic_map _ p_monic, _⟩⟩,
+  refine ⟨p.map (ideal.quotient.mk _), ⟨p_monic.map _, _⟩⟩,
   simpa only [hom_eval₂, eval₂_map] using congr_arg (ideal.quotient.mk I) hpx
 end
 
@@ -688,7 +828,7 @@ begin
   -- then we need to show that `a_inv` is of the form `algebra_map R S b`.
   obtain ⟨a_inv, ha_inv⟩ := hS.mul_inv_cancel (λ h, ha (hRS (trans h (ring_hom.map_zero _).symm))),
 
-  -- Let `p : polynomial R` be monic with root `a_inv`,
+  -- Let `p : R[X]` be monic with root `a_inv`,
   -- and `q` be `p` with coefficients reversed (so `q(a) = q'(a) * a + 1`).
   -- We claim that `q(a) = 0`, so `-q'(a)` is the inverse of `a`.
   obtain ⟨p, p_monic, hp⟩ := H a_inv,
@@ -697,7 +837,7 @@ begin
   -- `q(a) = 0`, because multiplying everything with `a_inv^n` gives `p(a_inv) = 0`.
   -- TODO: this could be a lemma for `polynomial.reverse`.
   have hq : ∑ (i : ℕ) in finset.range (p.nat_degree + 1), (p.coeff i) * a ^ (p.nat_degree - i) = 0,
-  { apply (algebra_map R S).injective_iff.mp hRS,
+  { apply (injective_iff_map_eq_zero (algebra_map R S)).mp hRS,
     have a_inv_ne_zero : a_inv ≠ 0 := right_ne_zero_of_mul (mt ha_inv.symm.trans one_ne_zero),
     refine (mul_eq_zero.mp _).resolve_right (pow_ne_zero p.nat_degree a_inv_ne_zero),
     rw [eval₂_eq_sum_range] at hp,
@@ -713,7 +853,7 @@ begin
   -- TODO: we could use a lemma for `polynomial.div_X` here.
   rw [finset.sum_range_succ_comm, p_monic.coeff_nat_degree, one_mul, tsub_self, pow_zero,
       add_eq_zero_iff_eq_neg, eq_comm] at hq,
-  rw [mul_comm, ← neg_mul_eq_neg_mul, finset.sum_mul],
+  rw [mul_comm, neg_mul, finset.sum_mul],
   convert hq using 2,
   refine finset.sum_congr rfl (λ i hi, _),
   have : 1 ≤ p.nat_degree - i := le_tsub_of_add_le_left (finset.mem_range.mp hi),
@@ -725,7 +865,7 @@ lemma is_field_of_is_integral_of_is_field'
   (H : algebra.is_integral R S) (hR : is_field R) :
   is_field S :=
 begin
-  letI := hR.to_field R,
+  letI := hR.to_field,
   refine ⟨⟨0, 1, zero_ne_one⟩, mul_comm, λ x hx, _⟩,
   let A := algebra.adjoin R ({x} : set S),
   haveI : is_noetherian R A :=

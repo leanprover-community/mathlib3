@@ -755,11 +755,11 @@ def ins_rb_result : rbnode α → color → nat → Prop
 variables {lt : α → α → Prop} [decidable_rel lt]
 
 lemma of_get_color_eq_red {t : rbnode α} {c n} : get_color t = red → is_red_black t c n → c = red :=
-begin intros h₁ h₂, cases h₂; simp [get_color] at h₁; contradiction end
+begin intros h₁ h₂, cases h₂; simp only [get_color] at h₁; contradiction end
 
 lemma of_get_color_ne_red {t : rbnode α} {c n} : get_color t ≠ red → is_red_black t c n →
   c = black :=
-begin intros h₁ h₂, cases h₂; simp [get_color] at h₁; contradiction end
+begin intros h₁ h₂, cases h₂; simp only [get_color] at h₁; contradiction end
 
 variable (lt)
 
@@ -772,21 +772,19 @@ begin
   { constructor; assumption },
   { specialize ih h_rb_r, cases ih, constructor; assumption },
   { specialize ih h_rb_l,
-    have := of_get_color_eq_red hr h_rb_l, subst h_c₁,
-    simp [ins_rb_result] at ih,
+    cases of_get_color_eq_red hr h_rb_l,
     apply balance1_node_rb; assumption },
   { specialize ih h_rb_l,
-    have := of_get_color_ne_red hnr h_rb_l, subst h_c₁,
-    simp [ins_rb_result] at ih, cases ih,
+    cases of_get_color_ne_red hnr h_rb_l,
+    cases ih,
     constructor, constructor; assumption },
   { constructor, constructor; assumption },
   { specialize ih h_rb_r,
-    have := of_get_color_eq_red hr h_rb_r, subst h_c₂,
-    simp [ins_rb_result] at ih,
+    cases of_get_color_eq_red hr h_rb_r,
     apply balance2_node_rb; assumption },
   { specialize ih h_rb_r,
-    have := of_get_color_ne_red hnr h_rb_r, subst h_c₂,
-    simp [ins_rb_result] at ih, cases ih,
+    cases of_get_color_ne_red hnr h_rb_r,
+    cases ih,
     constructor, constructor; assumption }
 end
 

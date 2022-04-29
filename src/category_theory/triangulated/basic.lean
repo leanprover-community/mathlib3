@@ -3,6 +3,7 @@ Copyright (c) 2021 Luke Kershaw. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Luke Kershaw
 -/
+import data.int.basic
 import category_theory.shift
 
 /-!
@@ -27,7 +28,7 @@ open category_theory.category
 /-
 We work in a category `C` equipped with a shift.
 -/
-variables (C : Type u) [category.{v} C] [has_shift C]
+variables (C : Type u) [category.{v} C] [has_shift C ℤ]
 
 /--
 A triangle in `C` is a sextuple `(X,Y,Z,f,g,h)` where `X,Y,Z` are objects of `C`,

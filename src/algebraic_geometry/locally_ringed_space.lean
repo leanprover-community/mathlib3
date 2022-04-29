@@ -6,7 +6,7 @@ Authors: Johan Commelin
 
 import algebraic_geometry.ringed_space
 import algebraic_geometry.stalks
-import data.equiv.transfer_instance
+import logic.equiv.transfer_instance
 
 /-!
 # The category of locally ringed spaces
@@ -121,14 +121,26 @@ instance : category LocallyRingedSpace :=
   assoc' := by { intros, ext1, simp, }, }.
 
 /-- The forgetful functor from `LocallyRingedSpace` to `SheafedSpace CommRing`. -/
-def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
+@[simps] def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
 { obj := λ X, X.to_SheafedSpace,
   map := λ X Y f, f.1, }
 
 instance : faithful forget_to_SheafedSpace := {}
 
+/-- The forgetful functor from `LocallyRingedSpace` to `Top`. -/
+@[simps]
+def forget_to_Top : LocallyRingedSpace ⥤ Top :=
+forget_to_SheafedSpace ⋙ SheafedSpace.forget _
+
 @[simp] lemma comp_val {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).val = f.val ≫ g.val := rfl
+
+@[simp] lemma comp_val_c {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).val.c = g.val.c ≫ (presheaf.pushforward _ g.val.base).map f.val.c := rfl
+
+lemma comp_val_c_app {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) (U : (opens Z)ᵒᵖ) :
+  (f ≫ g).val.c.app U = g.val.c.app U ≫ f.val.c.app (op $ (opens.map g.val.base).obj U.unop) :=
+rfl
 
 /--
 Given two locally ringed spaces `X` and `Y`, an isomorphism between `X` and `Y` as _sheafed_
@@ -167,6 +179,10 @@ instance : reflects_isomorphisms forget_to_SheafedSpace :=
   { out := by exactI
     ⟨hom_of_SheafedSpace_hom_of_is_iso (category_theory.inv (forget_to_SheafedSpace.map f)),
       hom_ext _ _ (is_iso.hom_inv_id _), hom_ext _ _ (is_iso.inv_hom_id _)⟩ } }
+
+instance is_SheafedSpace_iso {X Y : LocallyRingedSpace} (f : X ⟶ Y) [is_iso f] :
+  is_iso f.1 :=
+LocallyRingedSpace.forget_to_SheafedSpace.map_is_iso f
 
 /--
 The restriction of a locally ringed space along an open embedding.
@@ -230,6 +246,18 @@ begin
     erw RingedSpace.mem_basic_open _ _ ⟨f.1.base y.1, y.2⟩,
     rw ← PresheafedSpace.stalk_map_germ_apply at hy,
     exact (is_unit_map_iff (PresheafedSpace.stalk_map f.1 _) _).mp hy }
+end
+
+-- This actually holds for all ringed spaces with nontrivial stalks.
+@[simp] lemma basic_open_zero (X : LocallyRingedSpace) (U : opens X.carrier) :
+  X.to_RingedSpace.basic_open (0 : X.presheaf.obj $ op U) = ∅ :=
+begin
+  ext,
+  simp only [set.mem_empty_eq, topological_space.opens.empty_eq, topological_space.opens.mem_coe,
+    opens.coe_bot, iff_false, RingedSpace.basic_open, is_unit_zero_iff, set.mem_set_of_eq,
+    map_zero],
+  rintro ⟨⟨y, _⟩, h, e⟩,
+  exact @zero_ne_one (X.presheaf.stalk y) _ _ h,
 end
 
 instance component_nontrivial (X : LocallyRingedSpace) (U : opens X.carrier)

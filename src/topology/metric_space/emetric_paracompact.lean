@@ -3,9 +3,9 @@ Copyright (c) 202 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import set_theory.ordinal.basic
 import topology.metric_space.emetric_space
 import topology.paracompact
-import set_theory.ordinal
 
 /-!
 # (Extended) metric spaces are paracompact
@@ -83,7 +83,7 @@ begin
       rcases ennreal.exists_inv_two_pow_lt this.ne' with ⟨n, hn⟩,
       refine ⟨n, subset.trans (ball_subset_ball _) hε⟩,
       simpa only [div_eq_mul_inv, mul_comm] using (ennreal.mul_lt_of_lt_div hn).le },
-    by_contra h, push_neg at h,
+    by_contra' h,
     apply h n (ind x),
     exact memD.2 ⟨x, rfl, hn, λ _ _ _, h _ _, mem_ball_self (pow_pos _)⟩ },
   -- Each `D n i` is a union of open balls, hence it is an open set

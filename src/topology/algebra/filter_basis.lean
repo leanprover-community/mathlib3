@@ -5,7 +5,7 @@ Authors: Patrick Massot
 -/
 
 import order.filter.bases
-import topology.algebra.module
+import topology.algebra.module.basic
 /-!
 # Group and ring filter bases
 
@@ -331,11 +331,11 @@ instance [discrete_topology R] : inhabited (module_filter_basis R M) :=
      simp [h]
    end,
    smul_right' := begin
-     rintro m₀ U (h : U ∈ {{(0 : M)}}),
-     rw mem_singleton_iff at h,
+     rintro m₀ U (h : U ∈ (0 : set (set M))),
+     rw set.mem_zero at h,
      simp [h, nhds_discrete]
    end,
-   ..(default $ add_group_filter_basis M) }⟩
+   ..show add_group_filter_basis M, from default }⟩
 
 /-- The topology associated to a module filter basis on a module over a topological ring.
 It has the given basis as a basis of neighborhoods of zero. -/

@@ -15,6 +15,8 @@ import tactic.squeeze
 We define characteristic polynomials of matrices and
 prove the Cayley–Hamilton theorem over arbitrary commutative rings.
 
+See the file `matrix/charpoly/coeff` for corollaries of this theorem.
+
 ## Main definitions
 
 * `matrix.charpoly` is the characteristic polynomial of a matrix.
@@ -29,7 +31,7 @@ noncomputable theory
 universes u v w
 
 open polynomial matrix
-open_locale big_operators
+open_locale big_operators polynomial
 
 variables {R : Type u} [comm_ring R]
 variables {n : Type w} [decidable_eq n] [fintype n]
@@ -41,11 +43,11 @@ open finset
 The "characteristic matrix" of `M : matrix n n R` is the matrix of polynomials $t I - M$.
 The determinant of this matrix is the characteristic polynomial.
 -/
-def charmatrix (M : matrix n n R) : matrix n n (polynomial R) :=
-matrix.scalar n (X : polynomial R) - (C : R →+* polynomial R).map_matrix M
+def charmatrix (M : matrix n n R) : matrix n n R[X] :=
+matrix.scalar n (X : R[X]) - (C : R →+* R[X]).map_matrix M
 
 @[simp] lemma charmatrix_apply_eq (M : matrix n n R) (i : n) :
-  charmatrix M i i = (X : polynomial R) - C (M i i) :=
+  charmatrix M i i = (X : R[X]) - C (M i i) :=
 by simp only [charmatrix, sub_left_inj, pi.sub_apply, scalar_apply_eq,
   ring_hom.map_matrix_apply, map_apply, dmatrix.sub_apply]
 
@@ -78,7 +80,7 @@ end
 /--
 The characteristic polynomial of a matrix `M` is given by $\det (t I - M)$.
 -/
-def matrix.charpoly (M : matrix n n R) : polynomial R :=
+def matrix.charpoly (M : matrix n n R) : R[X] :=
 (charmatrix M).det
 
 lemma matrix.charpoly_reindex {m : Type v} [decidable_eq m] [fintype m] (e : n ≃ m)
@@ -93,17 +95,19 @@ The **Cayley-Hamilton Theorem**, that the characteristic polynomial of a matrix,
 applied to the matrix itself, is zero.
 
 This holds over any commutative ring.
+
+See `linear_map.aeval_self_charpoly` for the equivalent statement about endomorphisms.
 -/
 -- This proof follows http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
 theorem matrix.aeval_self_charpoly (M : matrix n n R) :
   aeval M M.charpoly = 0 :=
 begin
   -- We begin with the fact $χ_M(t) I = adjugate (t I - M) * (t I - M)$,
-  -- as an identity in `matrix n n (polynomial R)`.
-  have h : M.charpoly • (1 : matrix n n (polynomial R)) =
+  -- as an identity in `matrix n n R[X]`.
+  have h : M.charpoly • (1 : matrix n n R[X]) =
     adjugate (charmatrix M) * (charmatrix M) :=
     (adjugate_mul _).symm,
-  -- Using the algebra isomorphism `matrix n n (polynomial R) ≃ₐ[R] polynomial (matrix n n R)`,
+  -- Using the algebra isomorphism `matrix n n R[X] ≃ₐ[R] polynomial (matrix n n R)`,
   -- we have the same identity in `polynomial (matrix n n R)`.
   apply_fun mat_poly_equiv at h,
   simp only [mat_poly_equiv.map_mul,

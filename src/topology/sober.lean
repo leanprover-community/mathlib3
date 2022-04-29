@@ -167,6 +167,19 @@ begin
     rw set.image_singleton }
 end
 
+omit h
+
+lemma is_generic_point_iff_forall_closed {x : α} {S : set α} (hS : is_closed S) (hxS : x ∈ S) :
+  is_generic_point x S ↔ ∀ (Z : set α) (hZ : is_closed Z) (hxZ : x ∈ Z), S ⊆ Z :=
+begin
+  split,
+  { intros h Z hZ hxZ, exact (h.mem_closed_set_iff hZ).mp hxZ },
+  { intro h,
+    apply le_antisymm,
+    { rwa [set.le_eq_subset, hS.closure_subset_iff, set.singleton_subset_iff] },
+    { exact h _ is_closed_closure (subset_closure $ set.mem_singleton x) } }
+end
+
 end generic_point
 
 section sober
@@ -224,7 +237,7 @@ def irreducible_set_equiv_points [quasi_sober α] [t0_space α] :
   map_rel_iff' := λ s t, by { change _ ⤳ _ ↔ _, rw specializes_iff_closure_subset,
     simp [s.prop.2.closure_eq, t.prop.2.closure_eq, ← subtype.coe_le_coe] } }
 
-lemma closed_embedding.sober {f : α → β} (hf : closed_embedding f) [quasi_sober β] :
+lemma closed_embedding.quasi_sober {f : α → β} (hf : closed_embedding f) [quasi_sober β] :
   quasi_sober α :=
 begin
   constructor,
@@ -238,7 +251,7 @@ begin
   rw [← hx, ← hf.closure_image_eq, set.image_singleton]
 end
 
-lemma open_embedding.sober {f : α → β} (hf : open_embedding f) [quasi_sober β] :
+lemma open_embedding.quasi_sober {f : α → β} (hf : open_embedding f) [quasi_sober β] :
   quasi_sober α :=
 begin
   constructor,
@@ -265,8 +278,8 @@ begin
     λ h, subset_closure ⟨h, hy⟩⟩
 end
 
-/-- A space is sober if it can be covered by open sober subsets. -/
-lemma sober_of_open_cover (S : set (set α)) (hS : ∀ s : S, is_open (s : set α))
+/-- A space is quasi sober if it can be covered by open quasi sober subsets. -/
+lemma quasi_sober_of_open_cover (S : set (set α)) (hS : ∀ s : S, is_open (s : set α))
   [hS' : ∀ s : S, quasi_sober s] (hS'' : ⋃₀ S = ⊤) : quasi_sober α :=
 begin
   rw quasi_sober_iff,
@@ -298,7 +311,7 @@ begin
   constructor,
   rintro S h -,
   obtain ⟨x, rfl⟩ := (is_irreducible_iff_singleton S).mp h,
-  exact ⟨x, (t1_space.t1 x).closure_eq⟩
+  exact ⟨x, closure_singleton⟩
 end
 
 end sober

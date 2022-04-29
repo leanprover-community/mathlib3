@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
-import linear_algebra.bilinear_form
+import linear_algebra.matrix.bilinear_form
 import linear_algebra.matrix.charpoly.coeff
 import linear_algebra.determinant
 import linear_algebra.vandermonde
@@ -195,29 +195,28 @@ open algebra polynomial
 variables {F : Type*} [field F]
 variables [algebra K S] [algebra K F]
 
+/-- Given `pb : power_basis K S`, the trace of `pb.gen` is `-(minpoly K pb.gen).next_coeff`. -/
+lemma power_basis.trace_gen_eq_next_coeff_minpoly [nontrivial S] (pb : power_basis K S) :
+  algebra.trace K S pb.gen = -(minpoly K pb.gen).next_coeff :=
+begin
+  have d_pos : 0 < pb.dim := power_basis.dim_pos pb,
+  have d_pos' : 0 < (minpoly K pb.gen).nat_degree, { simpa },
+  haveI : nonempty (fin pb.dim) := ⟨⟨0, d_pos⟩⟩,
+  rw [trace_eq_matrix_trace pb.basis, trace_eq_neg_charpoly_coeff, charpoly_left_mul_matrix,
+      ← pb.nat_degree_minpoly, fintype.card_fin, ← next_coeff_of_pos_nat_degree _ d_pos']
+end
+
+/-- Given `pb : power_basis K S`, then the trace of `pb.gen` is
+`((minpoly K pb.gen).map (algebra_map K F)).roots.sum`. -/
 lemma power_basis.trace_gen_eq_sum_roots [nontrivial S] (pb : power_basis K S)
   (hf : (minpoly K pb.gen).splits (algebra_map K F)) :
   algebra_map K F (trace K S pb.gen) =
     ((minpoly K pb.gen).map (algebra_map K F)).roots.sum :=
 begin
-  have d_pos : 0 < pb.dim := power_basis.dim_pos pb,
-  have d_pos' : 0 < (minpoly K pb.gen).nat_degree, { simpa },
-  haveI : nonempty (fin pb.dim) := ⟨⟨0, d_pos⟩⟩,
-  -- Write the LHS as the `d-1`'th coefficient of `minpoly K pb.gen`
-  rw [trace_eq_matrix_trace pb.basis, trace_eq_neg_charpoly_coeff, charpoly_left_mul_matrix,
-      ring_hom.map_neg, ← pb.nat_degree_minpoly, fintype.card_fin,
-      ← next_coeff_of_pos_nat_degree _ d_pos',
-      ← next_coeff_map (algebra_map K F).injective],
-  -- Rewrite `minpoly K pb.gen` as a product over the roots.
-  conv_lhs { rw eq_prod_roots_of_splits hf },
-  rw [monic.next_coeff_mul, next_coeff_C_eq_zero, zero_add, monic.next_coeff_multiset_prod],
-  -- And conclude both sides are the same.
-  simp_rw [next_coeff_X_sub_C, multiset.sum_map_neg, neg_neg],
-  -- Now we deal with the side conditions.
-  { intros, apply monic_X_sub_C },
-  { convert monic_one, simp [(minpoly.monic pb.is_integral_gen).leading_coeff] },
-  { apply monic_multiset_prod_of_monic,
-    intros, apply monic_X_sub_C },
+  rw [power_basis.trace_gen_eq_next_coeff_minpoly, ring_hom.map_neg, ← next_coeff_map
+    (algebra_map K F).injective, sum_roots_eq_next_coeff_of_monic_of_split
+      ((minpoly.monic (power_basis.is_integral_gen _)).map _)
+      ((splits_id_iff_splits _).2 hf), neg_neg]
 end
 
 namespace intermediate_field.adjoin_simple
@@ -240,8 +239,7 @@ lemma trace_gen_eq_sum_roots (x : L)
   algebra_map K F (trace K K⟮x⟯ (adjoin_simple.gen K x)) =
     ((minpoly K x).map (algebra_map K F)).roots.sum :=
 begin
-  have injKKx : function.injective (algebra_map K K⟮x⟯) := ring_hom.injective _,
-  have injKxL : function.injective (algebra_map K⟮x⟯ L) := ring_hom.injective _,
+  have injKxL := (algebra_map K⟮x⟯ L).injective,
   by_cases hx : is_integral K x, swap,
   { simp [minpoly.eq_zero hx, trace_gen_eq_zero hx], },
   have hx' : is_integral K (adjoin_simple.gen K x),
@@ -316,7 +314,7 @@ begin
   letI := classical.dec_eq E,
   rw [pb.trace_gen_eq_sum_roots hE, fintype.sum_equiv pb.lift_equiv', finset.sum_mem_multiset,
       finset.sum_eq_multiset_sum, multiset.to_finset_val,
-      multiset.erase_dup_eq_self.mpr _, multiset.map_id],
+      multiset.dedup_eq_self.mpr _, multiset.map_id],
   { exact nodup_roots ((separable_map _).mpr hfx) },
   { intro x, refl },
   { intro σ, rw [power_basis.lift_equiv'_apply_coe, id.def] }
@@ -377,6 +375,10 @@ def trace_matrix (b : κ → B) : matrix κ κ A
 
 lemma trace_matrix_def (b : κ → B) : trace_matrix A b = λ i j, trace_form A B (b i) (b j) := rfl
 
+lemma trace_matrix_reindex {κ' : Type*} (b : basis κ A B) (f : κ ≃ κ') :
+  trace_matrix A (b.reindex f) = reindex f f (trace_matrix A b) :=
+by {ext x y, simp}
+
 variables {A}
 
 lemma trace_matrix_of_matrix_vec_mul [fintype κ] (b : κ → B) (P : matrix κ κ A) :
@@ -411,6 +413,26 @@ lemma trace_matrix_of_basis [fintype κ] [decidable_eq κ] (b : basis κ A B) :
 begin
   ext i j,
   rw [trace_matrix, trace_form_apply, trace_form_to_matrix]
+end
+
+lemma trace_matrix_of_basis_mul_vec (b : basis ι A B) (z : B) :
+  (trace_matrix A b).mul_vec (b.equiv_fun z) = (λ i, trace A B (z * (b i))) :=
+begin
+  ext i,
+  rw [← col_apply ((trace_matrix A b).mul_vec (b.equiv_fun z)) i unit.star, col_mul_vec,
+    matrix.mul_apply, trace_matrix_def],
+  simp only [col_apply, trace_form_apply],
+  conv_lhs
+  { congr, skip, funext,
+    rw [mul_comm _ (b.equiv_fun z _), ← smul_eq_mul, ← linear_map.map_smul] },
+    rw [← linear_map.map_sum],
+    congr,
+    conv_lhs
+    { congr, skip, funext,
+      rw [← mul_smul_comm] },
+    rw [← finset.mul_sum, mul_comm z],
+    congr,
+    rw [b.sum_equiv_fun ]
 end
 
 variable (A)

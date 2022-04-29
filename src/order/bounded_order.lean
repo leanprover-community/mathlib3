@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 import data.option.basic
 import logic.nontrivial
 import order.lattice
-import order.order_dual
+import order.max
 import tactic.pi_instances
 
 /-!
@@ -68,55 +68,61 @@ class order_top (α : Type u) [has_le α] extends has_top α :=
 (le_top : ∀ a : α, a ≤ ⊤)
 
 section order_top
-variables [partial_order α] [order_top α] {a b : α}
+section has_le
+variables [has_le α] [order_top α] {a : α}
 
-@[simp] theorem le_top {α : Type u} [has_le α] [order_top α] {a : α} : a ≤ ⊤ :=
-order_top.le_top a
+@[simp] lemma le_top : a ≤ ⊤ := order_top.le_top a
+@[simp] lemma is_top_top : is_top (⊤ : α) := λ _, le_top
 
-@[simp] theorem not_top_lt {α : Type u} [preorder α] [order_top α] {a : α} : ¬ ⊤ < a :=
-λ h, lt_irrefl a (lt_of_le_of_lt le_top h)
+end has_le
 
-theorem top_unique (h : ⊤ ≤ a) : a = ⊤ :=
-le_top.antisymm h
+section preorder
+variables [preorder α] [order_top α] {a b : α}
 
--- TODO: delete in favor of the next?
-theorem eq_top_iff : a = ⊤ ↔ ⊤ ≤ a :=
-⟨λ eq, eq.symm ▸ le_refl ⊤, top_unique⟩
+@[simp] lemma is_max_top : is_max (⊤ : α) := is_top_top.is_max
+@[simp] lemma not_top_lt : ¬ ⊤ < a := is_max_top.not_lt
 
-@[simp] theorem top_le_iff : ⊤ ≤ a ↔ a = ⊤ :=
-⟨top_unique, λ h, h.symm ▸ le_refl ⊤⟩
-
-@[simp] theorem is_top_iff_eq_top : is_top a ↔ a = ⊤ :=
-⟨λ h, h.unique le_top, λ h b, h.symm ▸ le_top⟩
-
-theorem eq_top_mono (h : a ≤ b) (h₂ : a = ⊤) : b = ⊤ :=
-top_le_iff.1 $ h₂ ▸ h
-
-lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ := le_top.lt_iff_ne
-
-lemma eq_top_or_lt_top (a : α) : a = ⊤ ∨ a < ⊤ :=
-begin
-  by_cases h : a = ⊤,
-  { exact or.inl h },
-  right,
-  rw lt_top_iff_ne_top,
-  exact h,
-end
-
-lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ :=
-lt_top_iff_ne_top.1 $ lt_of_lt_of_le h le_top
+lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ := (h.trans_le le_top).ne
 
 alias ne_top_of_lt ← has_lt.lt.ne_top
 
-theorem ne_top_of_le_ne_top {a b : α} (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ :=
-λ ha, hb $ top_unique $ ha ▸ hab
+end preorder
 
-lemma eq_top_of_maximal (h : ∀ b, ¬ a < b) : a = ⊤ :=
-or.elim (lt_or_eq_of_le le_top) (λ hlt, absurd hlt (h ⊤)) (λ he, he)
+variables [partial_order α] [order_top α] [preorder β] {f : α → β} {a b : α}
 
+@[simp] lemma is_max_iff_eq_top : is_max a ↔ a = ⊤ :=
+⟨λ h, h.eq_of_le le_top, λ h b _, h.symm ▸ le_top⟩
+
+@[simp] lemma is_top_iff_eq_top : is_top a ↔ a = ⊤ :=
+⟨λ h, h.is_max.eq_of_le le_top, λ h b, h.symm ▸ le_top⟩
+
+lemma not_is_max_iff_ne_top : ¬ is_max a ↔ a ≠ ⊤ := is_max_iff_eq_top.not
+lemma not_is_top_iff_ne_top : ¬ is_top a ↔ a ≠ ⊤ := is_top_iff_eq_top.not
+
+alias is_max_iff_eq_top ↔ is_max.eq_top _
+alias is_top_iff_eq_top ↔ is_top.eq_top _
+
+@[simp] lemma top_le_iff : ⊤ ≤ a ↔ a = ⊤ := le_top.le_iff_eq.trans eq_comm
+lemma top_unique (h : ⊤ ≤ a) : a = ⊤ := le_top.antisymm h
+lemma eq_top_iff : a = ⊤ ↔ ⊤ ≤ a := top_le_iff.symm
+lemma eq_top_mono (h : a ≤ b) (h₂ : a = ⊤) : b = ⊤ := top_unique $ h₂ ▸ h
+lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ := le_top.lt_iff_ne
+@[simp] lemma not_lt_top_iff : ¬ a < ⊤ ↔ a = ⊤ := lt_top_iff_ne_top.not_left
+lemma eq_top_or_lt_top (a : α) : a = ⊤ ∨ a < ⊤ := le_top.eq_or_lt
 lemma ne.lt_top (h : a ≠ ⊤) : a < ⊤ := lt_top_iff_ne_top.mpr h
-
 lemma ne.lt_top' (h : ⊤ ≠ a) : a < ⊤ := h.symm.lt_top
+lemma ne_top_of_le_ne_top (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ := (hab.trans_lt hb.lt_top).ne
+
+lemma strict_mono.apply_eq_top_iff (hf : strict_mono f) : f a = f ⊤ ↔ a = ⊤ :=
+⟨λ h, not_lt_top_iff.1 $ λ ha, (hf ha).ne h, congr_arg _⟩
+
+lemma strict_anti.apply_eq_top_iff (hf : strict_anti f) : f a = f ⊤ ↔ a = ⊤ :=
+⟨λ h, not_lt_top_iff.1 $ λ ha, (hf ha).ne' h, congr_arg _⟩
+
+variables [nontrivial α]
+
+lemma not_is_min_top : ¬ is_min (⊤ : α) :=
+λ h, let ⟨a, ha⟩ := exists_ne (⊤ : α) in ha $ top_le_iff.1 $ h le_top
 
 end order_top
 
@@ -146,59 +152,62 @@ class order_bot (α : Type u) [has_le α] extends has_bot α :=
 (bot_le : ∀ a : α, ⊥ ≤ a)
 
 section order_bot
-variables [partial_order α] [order_bot α] {a b : α}
+section has_le
+variables [has_le α] [order_bot α] {a : α}
 
-@[simp] theorem bot_le {α : Type u} [has_le α] [order_bot α] {a : α} : ⊥ ≤ a := order_bot.bot_le a
+@[simp] lemma bot_le : ⊥ ≤ a := order_bot.bot_le a
+@[simp] lemma is_bot_bot : is_bot (⊥ : α) := λ _, bot_le
 
-@[simp] theorem not_lt_bot {α : Type u} [preorder α] [order_bot α] {a : α} : ¬ a < ⊥ :=
-λ h, lt_irrefl a (lt_of_lt_of_le h bot_le)
+end has_le
 
-theorem bot_unique (h : a ≤ ⊥) : a = ⊥ :=
-h.antisymm bot_le
+section preorder
+variables [preorder α] [order_bot α] {a b : α}
 
--- TODO: delete?
-theorem eq_bot_iff : a = ⊥ ↔ a ≤ ⊥ :=
-⟨λ eq, eq.symm ▸ le_refl ⊥, bot_unique⟩
+@[simp] lemma is_min_bot : is_min (⊥ : α) := is_bot_bot.is_min
+@[simp] lemma not_lt_bot : ¬ a < ⊥ := is_min_bot.not_lt
 
-@[simp] theorem le_bot_iff : a ≤ ⊥ ↔ a = ⊥ :=
-⟨bot_unique, λ h, h.symm ▸ le_refl ⊥⟩
-
-@[simp] theorem is_bot_iff_eq_bot : is_bot a ↔ a = ⊥ :=
-⟨λ h, h.unique bot_le, λ h b, h.symm ▸ bot_le⟩
-
-theorem ne_bot_of_le_ne_bot {a b : α} (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ :=
-λ ha, hb $ bot_unique $ ha ▸ hab
-
-theorem eq_bot_mono (h : a ≤ b) (h₂ : b = ⊥) : a = ⊥ :=
-le_bot_iff.1 $ h₂ ▸ h
-
-lemma bot_lt_iff_ne_bot : ⊥ < a ↔ a ≠ ⊥ :=
-begin
-  haveI := classical.dec_eq α,
-  haveI : decidable (a ≤ ⊥) := decidable_of_iff' _ le_bot_iff,
-  simp only [lt_iff_le_not_le, not_iff_not.mpr le_bot_iff, true_and, bot_le],
-end
-
-lemma eq_bot_or_bot_lt (a : α) : a = ⊥ ∨ ⊥ < a :=
-begin
-  by_cases h : a = ⊥,
-  { exact or.inl h },
-  right,
-  rw bot_lt_iff_ne_bot,
-  exact h,
-end
-
-lemma ne_bot_of_gt (h : a < b) : b ≠ ⊥ :=
-bot_lt_iff_ne_bot.1 $ lt_of_le_of_lt bot_le h
+lemma ne_bot_of_gt (h : a < b) : b ≠ ⊥ := (bot_le.trans_lt h).ne'
 
 alias ne_bot_of_gt ← has_lt.lt.ne_bot
 
-lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ :=
-or.elim (lt_or_eq_of_le bot_le) (λ hlt, absurd hlt (h ⊥)) (λ he, he.symm)
+end preorder
 
+variables [partial_order α] [order_bot α] [preorder β] {f : α → β} {a b : α}
+
+@[simp] lemma is_min_iff_eq_bot : is_min a ↔ a = ⊥ :=
+⟨λ h, h.eq_of_ge bot_le, λ h b _, h.symm ▸ bot_le⟩
+
+@[simp] lemma is_bot_iff_eq_bot : is_bot a ↔ a = ⊥ :=
+⟨λ h, h.is_min.eq_of_ge bot_le, λ h b, h.symm ▸ bot_le⟩
+
+lemma not_is_min_iff_ne_bot : ¬ is_min a ↔ a ≠ ⊥ := is_min_iff_eq_bot.not
+lemma not_is_bot_iff_ne_bot : ¬ is_bot a ↔ a ≠ ⊥ := is_bot_iff_eq_bot.not
+
+alias is_min_iff_eq_bot ↔ is_min.eq_bot _
+alias is_bot_iff_eq_bot ↔ is_bot.eq_bot _
+
+@[simp] lemma le_bot_iff : a ≤ ⊥ ↔ a = ⊥ := bot_le.le_iff_eq
+lemma bot_unique (h : a ≤ ⊥) : a = ⊥ := h.antisymm bot_le
+lemma eq_bot_iff : a = ⊥ ↔ a ≤ ⊥ := le_bot_iff.symm
+lemma eq_bot_mono (h : a ≤ b) (h₂ : b = ⊥) : a = ⊥ := bot_unique $ h₂ ▸ h
+lemma bot_lt_iff_ne_bot : ⊥ < a ↔ a ≠ ⊥ := bot_le.lt_iff_ne.trans ne_comm
+@[simp] lemma not_bot_lt_iff : ¬ ⊥ < a ↔ a = ⊥ := bot_lt_iff_ne_bot.not_left
+lemma eq_bot_or_bot_lt (a : α) : a = ⊥ ∨ ⊥ < a := bot_le.eq_or_gt
+lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ := (eq_bot_or_bot_lt a).resolve_right (h ⊥)
 lemma ne.bot_lt (h : a ≠ ⊥) : ⊥ < a := bot_lt_iff_ne_bot.mpr h
-
 lemma ne.bot_lt' (h : ⊥ ≠ a) : ⊥ < a := h.symm.bot_lt
+lemma ne_bot_of_le_ne_bot (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ := (hb.bot_lt.trans_le hab).ne'
+
+lemma strict_mono.apply_eq_bot_iff (hf : strict_mono f) : f a = f ⊥ ↔ a = ⊥ :=
+⟨λ h, not_bot_lt_iff.1 $ λ ha, (hf ha).ne' h, congr_arg _⟩
+
+lemma strict_anti.apply_eq_bot_iff (hf : strict_anti f) : f a = f ⊥ ↔ a = ⊥ :=
+⟨λ h, not_bot_lt_iff.1 $ λ ha, (hf ha).ne h, congr_arg _⟩
+
+variables [nontrivial α]
+
+lemma not_is_max_bot : ¬ is_max (⊥ : α) :=
+λ h, let ⟨a, ha⟩ := exists_ne (⊥ : α) in ha $ le_bot_iff.1 $ h bot_le
 
 end order_bot
 
@@ -317,15 +326,22 @@ instance Prop.bounded_order : bounded_order Prop :=
   bot          := false,
   bot_le       := @false.elim }
 
+instance Prop.le_is_total : is_total Prop (≤) :=
+⟨λ p q, by { change (p → q) ∨ (q → p), tauto! }⟩
+
 noncomputable instance Prop.linear_order : linear_order Prop :=
-@lattice.to_linear_order Prop _ (classical.dec_eq _) (classical.dec_rel _) (classical.dec_rel _) $
-λ p q, by { change (p → q) ∨ (q → p), tauto! }
+by classical; exact lattice.to_linear_order Prop
 
 @[simp] lemma le_Prop_eq : ((≤) : Prop → Prop → Prop) = (→) := rfl
 @[simp] lemma sup_Prop_eq : (⊔) = (∨) := rfl
 @[simp] lemma inf_Prop_eq : (⊓) = (∧) := rfl
 
 section logic
+/-!
+#### In this section we prove some properties about monotone and antitone operations on `Prop`
+-/
+section preorder
+
 variable [preorder α]
 
 theorem monotone_and {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
@@ -336,6 +352,54 @@ theorem monotone_and {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
 theorem monotone_or {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
   monotone (λ x, p x ∨ q x) :=
 λ a b h, or.imp (m_p h) (m_q h)
+
+lemma monotone_le {x : α}: monotone ((≤) x) :=
+λ y z h' h, h.trans h'
+
+lemma monotone_lt {x : α}: monotone ((<) x) :=
+λ y z h' h, h.trans_le h'
+
+lemma antitone_le {x : α}: antitone (≤ x) :=
+λ y z h' h, h'.trans h
+
+lemma antitone_lt {x : α}: antitone (< x) :=
+λ y z h' h, h'.trans_lt h
+
+lemma monotone.forall {P : β → α → Prop} (hP : ∀ x, monotone (P x)) :
+  monotone (λ y, ∀ x, P x y) :=
+λ y y' hy h x, hP x hy $ h x
+
+lemma antitone.forall {P : β → α → Prop} (hP : ∀ x, antitone (P x)) :
+  antitone (λ y, ∀ x, P x y) :=
+λ y y' hy h x, hP x hy (h x)
+
+lemma monotone.ball {P : β → α → Prop} {s : set β} (hP : ∀ x ∈ s, monotone (P x)) :
+  monotone (λ y, ∀ x ∈ s, P x y) :=
+λ y y' hy h x hx, hP x hx hy (h x hx)
+
+lemma antitone.ball {P : β → α → Prop} {s : set β} (hP : ∀ x ∈ s, antitone (P x)) :
+  antitone (λ y, ∀ x ∈ s, P x y) :=
+λ y y' hy h x hx, hP x hx hy (h x hx)
+
+end preorder
+
+section semilattice_sup
+variables [semilattice_sup α]
+
+lemma exists_ge_and_iff_exists {P : α → Prop} {x₀ : α} (hP : monotone P) :
+  (∃ x, x₀ ≤ x ∧ P x) ↔ ∃ x, P x :=
+⟨λ h, h.imp $ λ x h, h.2, λ ⟨x, hx⟩, ⟨x ⊔ x₀, le_sup_right, hP le_sup_left hx⟩⟩
+
+end semilattice_sup
+
+section semilattice_inf
+variables [semilattice_inf α]
+
+lemma exists_le_and_iff_exists {P : α → Prop} {x₀ : α} (hP : antitone P) :
+  (∃ x, x ≤ x₀ ∧ P x) ↔ ∃ x, P x :=
+exists_ge_and_iff_exists hP.dual_left
+
+end semilattice_inf
 end logic
 
 /-! ### Function lattices -/
@@ -393,30 +457,59 @@ lemma subsingleton_iff_bot_eq_top :
 
 end subsingleton
 
+section lift
+
+/-- Pullback an `order_top`. -/
+@[reducible] -- See note [reducible non-instances]
+def order_top.lift [has_le α] [has_top α] [has_le β] [order_top β] (f : α → β)
+  (map_le : ∀ a b, f a ≤ f b → a ≤ b) (map_top : f ⊤ = ⊤) :
+  order_top α :=
+⟨⊤, λ a, map_le _ _ $ by { rw map_top, exact le_top }⟩
+
+/-- Pullback an `order_bot`. -/
+@[reducible] -- See note [reducible non-instances]
+def order_bot.lift [has_le α] [has_bot α] [has_le β] [order_bot β] (f : α → β)
+  (map_le : ∀ a b, f a ≤ f b → a ≤ b) (map_bot : f ⊥ = ⊥) :
+  order_bot α :=
+⟨⊥, λ a, map_le _ _ $ by { rw map_bot, exact bot_le }⟩
+
+/-- Pullback a `bounded_order`. -/
+@[reducible] -- See note [reducible non-instances]
+def bounded_order.lift [has_le α] [has_top α] [has_bot α] [has_le β] [bounded_order β] (f : α → β)
+  (map_le : ∀ a b, f a ≤ f b → a ≤ b) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
+  bounded_order α :=
+{ ..order_top.lift f map_le map_top, ..order_bot.lift f map_le map_bot }
+
+end lift
+
 /-! ### `with_bot`, `with_top` -/
 
 /-- Attach `⊥` to a type. -/
 def with_bot (α : Type*) := option α
 
 namespace with_bot
+variables {a b : α}
 
-meta instance {α} [has_to_format α] : has_to_format (with_bot α) :=
+meta instance [has_to_format α] : has_to_format (with_bot α) :=
 { to_format := λ x,
   match x with
   | none := "⊥"
   | (some x) := to_fmt x
   end }
 
+instance [has_repr α] : has_repr (with_bot α) :=
+⟨λ o, match o with | none := "⊥" | (some a) := "↑" ++ repr a end⟩
+
 instance : has_coe_t α (with_bot α) := ⟨some⟩
-instance has_bot : has_bot (with_bot α) := ⟨none⟩
+instance : has_bot (with_bot α) := ⟨none⟩
 
 instance : inhabited (with_bot α) := ⟨⊥⟩
 
 lemma none_eq_bot : (none : with_bot α) = (⊥ : with_bot α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rfl
 
-@[simp] theorem bot_ne_coe (a : α) : ⊥ ≠ (a : with_bot α) .
-@[simp] theorem coe_ne_bot (a : α) : (a : with_bot α) ≠ ⊥ .
+@[simp] lemma bot_ne_coe : ⊥ ≠ (a : with_bot α) .
+@[simp] lemma coe_ne_bot : (a : with_bot α) ≠ ⊥ .
 
 /-- Recursor for `with_bot` using the preferred forms `⊥` and `↑a`. -/
 @[elab_as_eliminator]
@@ -424,63 +517,108 @@ def rec_bot_coe {C : with_bot α → Sort*} (h₁ : C ⊥) (h₂ : Π (a : α), 
   Π (n : with_bot α), C n :=
 option.rec h₁ h₂
 
-@[norm_cast]
-theorem coe_eq_coe {a b : α} : (a : with_bot α) = b ↔ a = b :=
-by rw [← option.some.inj_eq a b]; refl
+@[norm_cast] lemma coe_eq_coe : (a : with_bot α) = b ↔ a = b := option.some_inj
 
-lemma ne_bot_iff_exists {x : with_bot α} : x ≠ ⊥ ↔ ∃ (a : α), ↑a = x :=
-option.ne_none_iff_exists
+-- the `by exact` here forces the type of the equality to be `@eq (with_bot α)`
+@[simp] lemma map_bot (f : α → β) :
+  (by exact option.map f (⊥ : with_bot α)) = (⊥ : with_bot β) := rfl
+lemma map_coe (f : α → β) (a : α) :
+  (by exact option.map f (a : with_bot α)) = (f a : with_bot β) := rfl
+
+lemma ne_bot_iff_exists {x : with_bot α} : x ≠ ⊥ ↔ ∃ (a : α), ↑a = x := option.ne_none_iff_exists
 
 /-- Deconstruct a `x : with_bot α` to the underlying value in `α`, given a proof that `x ≠ ⊥`. -/
 def unbot : Π (x : with_bot α), x ≠ ⊥ → α
 | ⊥        h := absurd rfl h
 | (some x) h := x
 
-@[simp] lemma coe_unbot {α : Type*} (x : with_bot α) (h : x ≠ ⊥) :
-  (x.unbot h : with_bot α) = x :=
+@[simp] lemma coe_unbot (x : with_bot α) (h : x ≠ ⊥) : (x.unbot h : with_bot α) = x :=
 by { cases x, simpa using h, refl, }
 
-@[simp] lemma unbot_coe (x : α) (h : (x : with_bot α) ≠ ⊥ := coe_ne_bot _) :
+@[simp] lemma unbot_coe (x : α) (h : (x : with_bot α) ≠ ⊥ := coe_ne_bot) :
   (x : with_bot α).unbot h = x := rfl
-
-@[priority 10]
-instance has_le [has_le α] : has_le (with_bot α) :=
-{ le          := λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b }
-
-@[priority 10]
-instance has_lt [has_lt α] : has_lt (with_bot α) :=
-{ lt := λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b }
-
-@[simp] theorem some_lt_some [has_lt α] {a b : α} :
-  @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b :=
-by simp [(<)]
-
-lemma none_lt_some [has_lt α] (a : α) :
-  @has_lt.lt (with_bot α) _ none (some a) :=
-⟨a, rfl, λ b hb, (option.not_mem_none _ hb).elim⟩
-
-lemma not_lt_none [has_lt α] (a : option α) : ¬ @has_lt.lt (with_bot α) _ a none :=
-λ ⟨_, h, _⟩, option.not_mem_none _ h
-
-lemma bot_lt_coe [has_lt α] (a : α) : (⊥ : with_bot α) < a := none_lt_some a
 
 instance : can_lift (with_bot α) α :=
 { coe := coe,
   cond := λ r, r ≠ ⊥,
-  prf := λ x hx, ⟨option.get $ option.ne_none_iff_is_some.1 hx, option.some_get _⟩ }
+  prf := λ x h, ⟨x.unbot h, coe_unbot _ _⟩ }
+
+section has_le
+variables [has_le α]
+
+@[priority 10]
+instance : has_le (with_bot α) := ⟨λ o₁ o₂ : option α, ∀ a ∈ o₁, ∃ b ∈ o₂, a ≤ b⟩
+
+@[simp] lemma some_le_some : @has_le.le (with_bot α) _ (some a) (some b) ↔ a ≤ b := by simp [(≤)]
+@[simp, norm_cast] lemma coe_le_coe : (a : with_bot α) ≤ b ↔ a ≤ b := some_le_some
+
+@[simp] lemma none_le {a : with_bot α} : @has_le.le (with_bot α) _ none a :=
+λ b h, option.no_confusion h
+
+instance : order_bot (with_bot α) := { bot_le := λ a, none_le, ..with_bot.has_bot }
+
+instance [order_top α] : order_top (with_bot α) :=
+{ top := some ⊤,
+  le_top := λ o a ha, by cases ha; exact ⟨_, rfl, le_top⟩ }
+
+instance [order_top α] : bounded_order (with_bot α) :=
+{ ..with_bot.order_top, ..with_bot.order_bot }
+
+lemma not_coe_le_bot (a : α) : ¬ (a : with_bot α) ≤ ⊥ :=
+λ h, let ⟨b, hb, _⟩ := h _ rfl in option.not_mem_none _ hb
+
+lemma coe_le : ∀ {o : option α}, b ∈ o → ((a : with_bot α) ≤ o ↔ a ≤ b) | _ rfl := coe_le_coe
+
+lemma coe_le_iff : ∀ {x : with_bot α}, ↑a ≤ x ↔ ∃ b : α, x = b ∧ a ≤ b
+| (some a) := by simp [some_eq_coe, coe_eq_coe]
+| none     := iff_of_false (not_coe_le_bot _) $ by simp [none_eq_bot]
+
+lemma le_coe_iff : ∀ {x : with_bot α}, x ≤ b ↔ ∀ a, x = ↑a → a ≤ b
+| (some b) := by simp [some_eq_coe, coe_eq_coe]
+| none     := by simp [none_eq_bot]
+
+protected lemma _root_.is_max.with_bot (h : is_max a) : is_max (a : with_bot α)
+| none _ := bot_le
+| (some b) hb := some_le_some.2 $ h $ some_le_some.1 hb
+
+end has_le
+
+section has_lt
+variables [has_lt α]
+
+@[priority 10]
+instance : has_lt (with_bot α) := ⟨λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b⟩
+
+@[simp] lemma some_lt_some : @has_lt.lt (with_bot α) _ (some a) (some b) ↔ a < b := by simp [(<)]
+@[simp, norm_cast] lemma coe_lt_coe : (a : with_bot α) < b ↔ a < b := some_lt_some
+
+@[simp] lemma none_lt_some (a : α) : @has_lt.lt (with_bot α) _ none (some a) :=
+⟨a, rfl, λ b hb, (option.not_mem_none _ hb).elim⟩
+lemma bot_lt_coe (a : α) : (⊥ : with_bot α) < a := none_lt_some a
+
+@[simp] lemma not_lt_none (a : with_bot α) : ¬ @has_lt.lt (with_bot α) _ a none :=
+λ ⟨_, h, _⟩, option.not_mem_none _ h
+
+lemma lt_iff_exists_coe : ∀ {a b : with_bot α}, a < b ↔ ∃ p : α, b = p ∧ a < p
+| a (some b) := by simp [some_eq_coe, coe_eq_coe]
+| a none     := iff_of_false (not_lt_none _) $ by simp [none_eq_bot]
+
+lemma lt_coe_iff : ∀ {x : with_bot α}, x < b ↔ ∀ a, x = ↑a → a < b
+| (some b) := by simp [some_eq_coe, coe_eq_coe, coe_lt_coe]
+| none     := by simp [none_eq_bot, bot_lt_coe]
+
+end has_lt
 
 instance [preorder α] : preorder (with_bot α) :=
 { le          := (≤),
   lt          := (<),
-  lt_iff_le_not_le := by intros; cases a; cases b;
-                         simp [lt_iff_le_not_le]; simp [(≤), (<)];
-                         split; refl,
-  le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
+  lt_iff_le_not_le := by { intros, cases a; cases b; simp [lt_iff_le_not_le]; simp [(<), (≤)] },
+  le_refl     := λ o a ha, ⟨a, ha, le_rfl⟩,
   le_trans    := λ o₁ o₂ o₃ h₁ h₂ a ha,
     let ⟨b, hb, ab⟩ := h₁ a ha, ⟨c, hc, bc⟩ := h₂ b hb in
     ⟨c, hc, le_trans ab bc⟩ }
 
-instance partial_order [partial_order α] : partial_order (with_bot α) :=
+instance [partial_order α] : partial_order (with_bot α) :=
 { le_antisymm := λ o₁ o₂ h₁ h₂, begin
     cases o₁ with a,
     { cases o₂ with b, {refl},
@@ -490,25 +628,6 @@ instance partial_order [partial_order α] : partial_order (with_bot α) :=
       rw le_antisymm h₁' h₂' }
   end,
   .. with_bot.preorder }
-
-instance order_bot [has_le α] : order_bot (with_bot α) :=
-{ bot_le := λ a a' h, option.no_confusion h,
-  ..with_bot.has_bot }
-
-@[simp, norm_cast] theorem coe_le_coe [has_le α] {a b : α} :
-  (a : with_bot α) ≤ b ↔ a ≤ b :=
-⟨λ h, by rcases h a rfl with ⟨_, ⟨⟩, h⟩; exact h,
- λ h a' e, option.some_inj.1 e ▸ ⟨b, rfl, h⟩⟩
-
-@[simp] theorem some_le_some [has_le α] {a b : α} :
-  @has_le.le (with_bot α) _ (some a) (some b) ↔ a ≤ b := coe_le_coe
-
-theorem coe_le [has_le α] {a b : α} :
-  ∀ {o : option α}, b ∈ o → ((a : with_bot α) ≤ o ↔ a ≤ b)
-| _ rfl := coe_le_coe
-
-@[norm_cast]
-lemma coe_lt_coe [has_lt α] {a b : α} : (a : with_bot α) < b ↔ a < b := some_lt_some
 
 lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a.get_or_else b
 | (some a) b := le_refl a
@@ -520,30 +639,18 @@ lemma get_or_else_bot_le_iff [has_le α] [order_bot α] {a : with_bot α} {b : �
   a.get_or_else ⊥ ≤ b ↔ a ≤ b :=
 by cases a; simp [none_eq_bot, some_eq_coe]
 
-instance decidable_le [has_le α] [@decidable_rel α (≤)] : @decidable_rel (with_bot α) (≤)
-| none x := is_true $ λ a h, option.no_confusion h
-| (some x) (some y) :=
-  if h : x ≤ y
-  then is_true (some_le_some.2 h)
-  else is_false $ by simp *
-| (some x) none := is_false $ λ h, by rcases h x rfl with ⟨y, ⟨_⟩, _⟩
+lemma get_or_else_bot_lt_iff [partial_order α] [order_bot α] {a : with_bot α} {b : α}
+  (ha : a ≠ ⊥) :
+  a.get_or_else ⊥ < b ↔ a < b :=
+begin
+  obtain ⟨a, rfl⟩ := ne_bot_iff_exists.mp ha,
+  simp only [lt_iff_le_and_ne, get_or_else_bot_le_iff, and.congr_right_iff],
+  intro h,
+  apply iff.not,
+  simp only [with_bot.coe_eq_coe, option.get_or_else_coe, iff_self],
+end
 
-instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with_bot α) (<)
-| none (some x) := is_true $ by existsi [x,rfl]; rintros _ ⟨⟩
-| (some x) (some y) :=
-  if h : x < y
-  then is_true $ by simp *
-  else is_false $ by simp *
-| x none := is_false $ by rintro ⟨a,⟨⟨⟩⟩⟩
-
-instance [partial_order α] [is_total α (≤)] : is_total (with_bot α) (≤) :=
-{ total := λ a b, match a, b with
-  | none  , _      := or.inl bot_le
-  | _     , none   := or.inr bot_le
-  | some x, some y := by simp only [some_le_some, total_of]
-  end }
-
-instance semilattice_sup [semilattice_sup α] : semilattice_sup (with_bot α) :=
+instance [semilattice_sup α] : semilattice_sup (with_bot α) :=
 { sup          := option.lift_or_get (⊔),
   le_sup_left  := λ o₁ o₂ a ha,
     by cases ha; cases o₂; simp [option.lift_or_get],
@@ -562,7 +669,7 @@ instance semilattice_sup [semilattice_sup α] : semilattice_sup (with_bot α) :=
 
 lemma coe_sup [semilattice_sup α] (a b : α) : ((a ⊔ b : α) : with_bot α) = a ⊔ b := rfl
 
-instance semilattice_inf [semilattice_inf α] : semilattice_inf (with_bot α) :=
+instance [semilattice_inf α] : semilattice_inf (with_bot α) :=
 { inf          := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a ⊓ b)),
   inf_le_left  := λ o₁ o₂ a ha, begin
     simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
@@ -583,16 +690,33 @@ instance semilattice_inf [semilattice_inf α] : semilattice_inf (with_bot α) :=
 
 lemma coe_inf [semilattice_inf α] (a b : α) : ((a ⊓ b : α) : with_bot α) = a ⊓ b := rfl
 
-instance lattice [lattice α] : lattice (with_bot α) :=
+instance [lattice α] : lattice (with_bot α) :=
 { ..with_bot.semilattice_sup, ..with_bot.semilattice_inf }
 
-instance linear_order [linear_order α] : linear_order (with_bot α) :=
-lattice.to_linear_order _ $ λ o₁ o₂,
-begin
-  cases o₁ with a, {exact or.inl bot_le},
-  cases o₂ with b, {exact or.inr bot_le},
-  simp [le_total]
-end
+instance decidable_le [has_le α] [@decidable_rel α (≤)] : @decidable_rel (with_bot α) (≤)
+| none x := is_true $ λ a h, option.no_confusion h
+| (some x) (some y) :=
+  if h : x ≤ y
+  then is_true (some_le_some.2 h)
+  else is_false $ by simp *
+| (some x) none := is_false $ λ h, by rcases h x rfl with ⟨y, ⟨_⟩, _⟩
+
+instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with_bot α) (<)
+| none (some x) := is_true $ by existsi [x,rfl]; rintros _ ⟨⟩
+| (some x) (some y) :=
+  if h : x < y
+  then is_true $ by simp *
+  else is_false $ by simp *
+| x none := is_false $ by rintro ⟨a,⟨⟨⟩⟩⟩
+
+instance is_total_le [has_le α] [is_total α (≤)] : is_total (with_bot α) (≤) :=
+⟨λ a b, match a, b with
+  | none  , _      := or.inl bot_le
+  | _     , none   := or.inr bot_le
+  | some x, some y := (total_of (≤) x y).imp some_le_some.2 some_le_some.2
+  end⟩
+
+instance [linear_order α] : linear_order (with_bot α) := lattice.to_linear_order _
 
 @[norm_cast] -- this is not marked simp because the corresponding with_top lemmas are used
 lemma coe_min [linear_order α] (x y : α) : ((min x y : α) : with_bot α) = min x y := rfl
@@ -600,15 +724,7 @@ lemma coe_min [linear_order α] (x y : α) : ((min x y : α) : with_bot α) = mi
 @[norm_cast] -- this is not marked simp because the corresponding with_top lemmas are used
 lemma coe_max [linear_order α] (x y : α) : ((max x y : α) : with_bot α) = max x y := rfl
 
-instance order_top [has_le α] [order_top α] : order_top (with_bot α) :=
-{ top := some ⊤,
-  le_top := λ o a ha, by cases ha; exact ⟨_, rfl, le_top⟩ }
-
-instance bounded_order [has_le α] [order_top α] : bounded_order (with_bot α) :=
-{ ..with_bot.order_top, ..with_bot.order_bot }
-
-lemma well_founded_lt [preorder α] (h : well_founded ((<) : α → α → Prop)) :
-  well_founded ((<) : with_bot α → with_bot α → Prop) :=
+lemma well_founded_lt [preorder α] (h : @well_founded α (<)) : @well_founded (with_bot α) (<) :=
 have acc_bot : acc ((<) : with_bot α → with_bot α → Prop) ⊥ :=
   acc.intro _ (λ a ha, (not_le_of_gt ha bot_le).elim),
 ⟨λ a, option.rec_on a acc_bot (λ a, acc.intro _ (λ b, option.rec_on b (λ _, acc_bot)
@@ -619,23 +735,36 @@ have acc_bot : acc ((<) : with_bot α → with_bot α → Prop) ⊥ :=
   from λ b ih hba, acc.intro _ (λ c, option.rec_on c (λ _, acc_bot)
     (λ c hc, ih _ (some_lt_some.1 hc) (lt_trans hc hba)))))))⟩
 
-instance densely_ordered [has_lt α] [densely_ordered α] [no_bot_order α] :
-  densely_ordered (with_bot α) :=
+instance [has_lt α] [densely_ordered α] [no_min_order α] : densely_ordered (with_bot α) :=
 ⟨ λ a b,
   match a, b with
   | a,      none   := λ h : a < ⊥, (not_lt_none _ h).elim
-  | none,   some b := λ h, let ⟨a, ha⟩ := no_bot b in ⟨a, bot_lt_coe a, coe_lt_coe.2 ha⟩
+  | none,   some b := λ h, let ⟨a, ha⟩ := exists_lt b in ⟨a, bot_lt_coe a, coe_lt_coe.2 ha⟩
   | some a, some b := λ h, let ⟨a, ha₁, ha₂⟩ := exists_between (coe_lt_coe.1 h) in
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
 
-instance {α : Type*} [has_lt α] [no_top_order α] [nonempty α] : no_top_order (with_bot α) :=
+lemma lt_iff_exists_coe_btwn [preorder α] [densely_ordered α] [no_min_order α] {a b : with_bot α} :
+  a < b ↔ ∃ x : α, a < ↑x ∧ ↑x < b :=
+⟨λ h, let ⟨y, hy⟩ := exists_between h, ⟨x, hx⟩ := lt_iff_exists_coe.1 hy.1 in ⟨x, hx.1 ▸ hy⟩,
+ λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
+
+instance [has_le α] [no_top_order α] [nonempty α] : no_top_order (with_bot α) :=
+⟨begin
+  apply rec_bot_coe,
+  { exact ‹nonempty α›.elim (λ a, ⟨a, not_coe_le_bot a⟩) },
+  { intro a,
+    obtain ⟨b, h⟩ := exists_not_le a,
+    exact ⟨b, by rwa coe_le_coe⟩ }
+end⟩
+
+instance [has_lt α] [no_max_order α] [nonempty α] : no_max_order (with_bot α) :=
 ⟨begin
   apply with_bot.rec_bot_coe,
   { apply ‹nonempty α›.elim,
     exact λ a, ⟨a, with_bot.bot_lt_coe a⟩, },
   { intro a,
-    obtain ⟨b, ha⟩ := no_top a,
+    obtain ⟨b, ha⟩ := exists_gt a,
     exact ⟨b, with_bot.coe_lt_coe.mpr ha⟩, }
 end⟩
 
@@ -646,21 +775,28 @@ end with_bot
 def with_top (α : Type*) := option α
 
 namespace with_top
+variables {a b : α}
 
-meta instance {α} [has_to_format α] : has_to_format (with_top α) :=
+meta instance [has_to_format α] : has_to_format (with_top α) :=
 { to_format := λ x,
   match x with
   | none := "⊤"
   | (some x) := to_fmt x
   end }
 
+instance [has_repr α] : has_repr (with_top α) :=
+⟨λ o, match o with | none := "⊤" | (some a) := "↑" ++ repr a end⟩
+
 instance : has_coe_t α (with_top α) := ⟨some⟩
-instance has_top : has_top (with_top α) := ⟨none⟩
+instance : has_top (with_top α) := ⟨none⟩
 
 instance : inhabited (with_top α) := ⟨⊤⟩
 
 lemma none_eq_top : (none : with_top α) = (⊤ : with_top α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_top α) = (↑a : with_top α) := rfl
+
+@[simp] lemma top_ne_coe : ⊤ ≠ (a : with_top α) .
+@[simp] lemma coe_ne_top : (a : with_top α) ≠ ⊤ .
 
 /-- Recursor for `with_top` using the preferred forms `⊤` and `↑a`. -/
 @[elab_as_eliminator]
@@ -668,70 +804,108 @@ def rec_top_coe {C : with_top α → Sort*} (h₁ : C ⊤) (h₂ : Π (a : α), 
   Π (n : with_top α), C n :=
 option.rec h₁ h₂
 
-@[norm_cast]
-theorem coe_eq_coe {a b : α} : (a : with_top α) = b ↔ a = b :=
-by rw [← option.some.inj_eq a b]; refl
+@[norm_cast] lemma coe_eq_coe : (a : with_top α) = b ↔ a = b := option.some_inj
 
-@[simp] theorem top_ne_coe {a : α} : ⊤ ≠ (a : with_top α) .
-@[simp] theorem coe_ne_top {a : α} : (a : with_top α) ≠ ⊤ .
+-- the `by exact` here forces the type of the equality to be `@eq (with_top α)`
+@[simp] lemma map_top (f : α → β) :
+  (by exact option.map f (⊤ : with_top α)) = (⊤ : with_top β) := rfl
+lemma map_coe (f : α → β) (a : α) :
+  (by exact option.map f (a : with_top α)) = (f a : with_top β) := rfl
 
-lemma ne_top_iff_exists {x : with_top α} : x ≠ ⊤ ↔ ∃ (a : α), ↑a = x :=
-option.ne_none_iff_exists
+lemma ne_top_iff_exists {x : with_top α} : x ≠ ⊤ ↔ ∃ (a : α), ↑a = x := option.ne_none_iff_exists
 
 /-- Deconstruct a `x : with_top α` to the underlying value in `α`, given a proof that `x ≠ ⊤`. -/
 def untop : Π (x : with_top α), x ≠ ⊤ → α :=
 with_bot.unbot
 
-@[simp] lemma coe_untop {α : Type*} (x : with_top α) (h : x ≠ ⊤) :
-  (x.untop h : with_top α) = x :=
+@[simp] lemma coe_untop (x : with_top α) (h : x ≠ ⊤) : (x.untop h : with_top α) = x :=
 by { cases x, simpa using h, refl, }
 
 @[simp] lemma untop_coe (x : α) (h : (x : with_top α) ≠ ⊤ := coe_ne_top) :
   (x : with_top α).untop h = x := rfl
 
-@[priority 10]
-instance has_lt [has_lt α] : has_lt (with_top α) :=
-{ lt := λ o₁ o₂ : option α, ∃ b ∈ o₁, ∀ a ∈ o₂, b < a }
-
-@[priority 10]
-instance has_le [has_le α] : has_le (with_top α) :=
-{ le          := λ o₁ o₂ : option α, ∀ a ∈ o₂, ∃ b ∈ o₁, b ≤ a }
-
-@[simp] theorem some_lt_some [has_lt α] {a b : α} :
-  @has_lt.lt (with_top α) _ (some a) (some b) ↔ a < b :=
-by simp [(<)]
-
-@[simp] theorem some_le_some [has_le α] {a b : α} :
-  @has_le.le (with_top α) _ (some a) (some b) ↔ a ≤ b :=
-by simp [(≤)]
-
-@[simp] theorem le_none [has_le α] {a : with_top α} :
-  @has_le.le (with_top α) _ a none :=
-by simp [(≤)]
-
-@[simp] theorem some_lt_none [has_lt α] (a : α) :
-  @has_lt.lt (with_top α) _ (some a) none :=
-by simp [(<)]; existsi a; refl
-
-@[simp] theorem not_none_lt [has_lt α] (a : option α) : ¬ @has_lt.lt (with_top α) _ none a :=
-λ ⟨_, h, _⟩, option.not_mem_none _ h
-
 instance : can_lift (with_top α) α :=
 { coe := coe,
   cond := λ r, r ≠ ⊤,
-  prf := λ x hx, ⟨option.get $ option.ne_none_iff_is_some.1 hx, option.some_get _⟩ }
+  prf := λ x h, ⟨x.untop h, coe_untop _ _⟩ }
+
+section has_le
+variables [has_le α]
+
+@[priority 10]
+instance : has_le (with_top α) := ⟨λ o₁ o₂ : option α, ∀ a ∈ o₂, ∃ b ∈ o₁, b ≤ a⟩
+
+@[simp] lemma some_le_some : @has_le.le (with_top α) _ (some a) (some b) ↔ a ≤ b := by simp [(≤)]
+@[simp, norm_cast] lemma coe_le_coe : (a : with_top α) ≤ b ↔ a ≤ b := some_le_some
+
+@[simp] lemma le_none {a : with_top α} : @has_le.le (with_top α) _ a none :=
+λ b h, option.no_confusion h
+
+instance : order_top (with_top α) := { le_top := λ a, le_none, .. with_top.has_top }
+
+instance [order_bot α] : order_bot (with_top α) :=
+{ bot := some ⊥,
+  bot_le := λ o a ha, by cases ha; exact ⟨_, rfl, bot_le⟩ }
+
+instance [order_bot α] : bounded_order (with_top α) :=
+{ ..with_top.order_top, ..with_top.order_bot }
+
+lemma not_top_le_coe (a : α) : ¬ (⊤ : with_top α) ≤ ↑a :=
+λ h, let ⟨b, hb, _⟩ := h _ rfl in option.not_mem_none _ hb
+
+lemma le_coe : ∀ {o : option α}, a ∈ o → (@has_le.le (with_top α) _ o b ↔ a ≤ b) | _ rfl :=
+coe_le_coe
+
+lemma le_coe_iff : ∀ {x : with_top α}, x ≤ b ↔ ∃ a : α, x = a ∧ a ≤ b
+| (some a) := by simp [some_eq_coe, coe_eq_coe]
+| none     := iff_of_false (not_top_le_coe _) $ by simp [none_eq_top]
+
+lemma coe_le_iff : ∀ {x : with_top α}, ↑a ≤ x ↔ ∀ b, x = ↑b → a ≤ b
+| (some b) := by simp [some_eq_coe, coe_eq_coe]
+| none     := by simp [none_eq_top]
+
+protected lemma _root_.is_min.with_top (h : is_min a) : is_min (a : with_top α)
+| none _ := le_top
+| (some b) hb := some_le_some.2 $ h $ some_le_some.1 hb
+
+end has_le
+
+section has_lt
+variables [has_lt α]
+
+@[priority 10]
+instance : has_lt (with_top α) := ⟨λ o₁ o₂ : option α, ∃ b ∈ o₁, ∀ a ∈ o₂, b < a⟩
+
+@[simp] lemma some_lt_some : @has_lt.lt (with_top α) _ (some a) (some b) ↔ a < b := by simp [(<)]
+@[simp, norm_cast] lemma coe_lt_coe : (a : with_top α) < b ↔ a < b := some_lt_some
+
+@[simp] lemma some_lt_none (a : α) : @has_lt.lt (with_top α) _ (some a) none :=
+⟨a, rfl, λ b hb, (option.not_mem_none _ hb).elim⟩
+lemma coe_lt_top (a : α) : (a : with_top α) < ⊤ := some_lt_none a
+
+@[simp] lemma not_none_lt (a : with_top α) : ¬ @has_lt.lt (with_top α) _ none a :=
+λ ⟨_, h, _⟩, option.not_mem_none _ h
+
+lemma lt_iff_exists_coe : ∀ {a b : with_top α}, a < b ↔ ∃ p : α, a = p ∧ ↑p < b
+| (some a) b := by simp [some_eq_coe, coe_eq_coe]
+| none     b := iff_of_false (not_none_lt _) $ by simp [none_eq_top]
+
+lemma coe_lt_iff : ∀ {x : with_top α}, ↑a < x ↔ ∀ b, x = ↑b → a < b
+| (some b) := by simp [some_eq_coe, coe_eq_coe, coe_lt_coe]
+| none     := by simp [none_eq_top, coe_lt_top]
+
+end has_lt
 
 instance [preorder α] : preorder (with_top α) :=
-{ le          := λ o₁ o₂ : option α, ∀ a ∈ o₂, ∃ b ∈ o₁, b ≤ a,
+{ le          := (≤),
   lt          := (<),
-  lt_iff_le_not_le := by { intros; cases a; cases b;
-                           simp [lt_iff_le_not_le]; simp [(<),(≤)] },
-  le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
+  lt_iff_le_not_le := by { intros, cases a; cases b; simp [lt_iff_le_not_le]; simp [(<), (≤)] },
+  le_refl     := λ o a ha, ⟨a, ha, le_rfl⟩,
   le_trans    := λ o₁ o₂ o₃ h₁ h₂ c hc,
     let ⟨b, hb, bc⟩ := h₂ c hc, ⟨a, ha, ab⟩ := h₁ b hb in
-    ⟨a, ha, le_trans ab bc⟩, }
+    ⟨a, ha, le_trans ab bc⟩ }
 
-instance partial_order [partial_order α] : partial_order (with_top α) :=
+instance [partial_order α] : partial_order (with_top α) :=
 { le_antisymm := λ o₁ o₂ h₁ h₂, begin
     cases o₂ with b,
     { cases o₁ with a, {refl},
@@ -742,58 +916,7 @@ instance partial_order [partial_order α] : partial_order (with_top α) :=
   end,
   .. with_top.preorder }
 
-instance order_top [has_le α] : order_top (with_top α) :=
-{ le_top := λ a a' h, option.no_confusion h,
-  .. with_top.has_top }
-
-@[simp, norm_cast] theorem coe_le_coe [has_le α] {a b : α} :
-  (a : with_top α) ≤ b ↔ a ≤ b :=
-⟨λ h, by rcases h b rfl with ⟨_, ⟨⟩, h⟩; exact h,
- λ h a' e, option.some_inj.1 e ▸ ⟨a, rfl, h⟩⟩
-
-theorem le_coe [has_le α] {a b : α} :
-  ∀ {o : option α}, a ∈ o →
-  (@has_le.le (with_top α) _ o b ↔ a ≤ b)
-| _ rfl := coe_le_coe
-
-theorem le_coe_iff [partial_order α] {b : α} : ∀{x : with_top α}, x ≤ b ↔ (∃a:α, x = a ∧ a ≤ b)
-| (some a) := by simp [some_eq_coe, coe_eq_coe]
-| none     := by simp [none_eq_top]
-
-theorem coe_le_iff [partial_order α] {a : α} : ∀{x : with_top α}, ↑a ≤ x ↔ (∀b:α, x = ↑b → a ≤ b)
-| (some b) := by simp [some_eq_coe, coe_eq_coe]
-| none     := by simp [none_eq_top]
-
-theorem lt_iff_exists_coe [partial_order α] : ∀{a b : with_top α}, a < b ↔ (∃p:α, a = p ∧ ↑p < b)
-| (some a) b := by simp [some_eq_coe, coe_eq_coe]
-| none     b := by simp [none_eq_top]
-
-@[norm_cast]
-lemma coe_lt_coe [has_lt α] {a b : α} : (a : with_top α) < b ↔ a < b := some_lt_some
-
-lemma coe_lt_top [has_lt α] (a : α) : (a : with_top α) < ⊤ := some_lt_none a
-
-theorem coe_lt_iff [preorder α] {a : α} : ∀{x : with_top α}, ↑a < x ↔ (∀b:α, x = ↑b → a < b)
-| (some b) := by simp [some_eq_coe, coe_eq_coe, coe_lt_coe]
-| none     := by simp [none_eq_top, coe_lt_top]
-
-lemma not_top_le_coe [preorder α] (a : α) : ¬ (⊤:with_top α) ≤ ↑a :=
-λ h, (lt_irrefl ⊤ (lt_of_le_of_lt h (coe_lt_top a))).elim
-
-instance decidable_le [has_le α] [@decidable_rel α (≤)] : @decidable_rel (with_top α) (≤) :=
-λ x y, @with_bot.decidable_le (order_dual α) _ _ y x
-
-instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with_top α) (<) :=
-λ x y, @with_bot.decidable_lt (order_dual α) _ _ y x
-
-instance [partial_order α] [is_total α (≤)] : is_total (with_top α) (≤) :=
-{ total := λ a b, match a, b with
-  | none  , _      := or.inr le_top
-  | _     , none   := or.inl le_top
-  | some x, some y := by simp only [some_le_some, total_of]
-  end }
-
-instance semilattice_inf [semilattice_inf α] : semilattice_inf (with_top α) :=
+instance [semilattice_inf α] : semilattice_inf (with_top α) :=
 { inf          := option.lift_or_get (⊓),
   inf_le_left  := λ o₁ o₂ a ha,
     by cases ha; cases o₂; simp [option.lift_or_get],
@@ -811,7 +934,7 @@ instance semilattice_inf [semilattice_inf α] : semilattice_inf (with_top α) :=
 
 lemma coe_inf [semilattice_inf α] (a b : α) : ((a ⊓ b : α) : with_top α) = a ⊓ b := rfl
 
-instance semilattice_sup [semilattice_sup α] : semilattice_sup (with_top α) :=
+instance [semilattice_sup α] : semilattice_sup (with_top α) :=
 { sup          := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a ⊔ b)),
   le_sup_left  := λ o₁ o₂ a ha, begin
     simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
@@ -831,32 +954,31 @@ instance semilattice_sup [semilattice_sup α] : semilattice_sup (with_top α) :=
 
 lemma coe_sup [semilattice_sup α] (a b : α) : ((a ⊔ b : α) : with_top α) = a ⊔ b := rfl
 
-instance lattice [lattice α] : lattice (with_top α) :=
+instance [lattice α] : lattice (with_top α) :=
 { ..with_top.semilattice_sup, ..with_top.semilattice_inf }
 
-instance linear_order [linear_order α] : linear_order (with_top α) :=
-lattice.to_linear_order _ $ λ o₁ o₂,
-begin
-  cases o₁ with a, {exact or.inr le_top},
-  cases o₂ with b, {exact or.inl le_top},
-  simp [le_total]
-end
+instance decidable_le [has_le α] [@decidable_rel α (≤)] : @decidable_rel (with_top α) (≤) :=
+λ x y, @with_bot.decidable_le (order_dual α) _ _ y x
+
+instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with_top α) (<) :=
+λ x y, @with_bot.decidable_lt (order_dual α) _ _ y x
+
+instance is_total_le [has_le α] [is_total α (≤)] : is_total (with_top α) (≤) :=
+⟨λ a b, match a, b with
+  | _     , none   := or.inl le_top
+  | none  , _      := or.inr le_top
+  | some x, some y := (total_of (≤) x y).imp some_le_some.2 some_le_some.2
+  end⟩
+
+instance [linear_order α] : linear_order (with_top α) := lattice.to_linear_order _
 
 @[simp, norm_cast]
-lemma coe_min [linear_order α] (x y : α) : ((min x y : α) : with_top α) = min x y := rfl
+lemma coe_min [linear_order α] (x y : α) : (↑(min x y) : with_top α) = min x y := rfl
 
 @[simp, norm_cast]
-lemma coe_max [linear_order α] (x y : α) : ((max x y : α) : with_top α) = max x y := rfl
+lemma coe_max [linear_order α] (x y : α) : (↑(max x y) : with_top α) = max x y := rfl
 
-instance order_bot [has_le α] [order_bot α] : order_bot (with_top α) :=
-{ bot := some ⊥,
-  bot_le := λ o a ha, by cases ha; exact ⟨_, rfl, bot_le⟩ }
-
-instance bounded_order [has_le α] [order_bot α] : bounded_order (with_top α) :=
-{ ..with_top.order_top, ..with_top.order_bot }
-
-lemma well_founded_lt {α : Type*} [preorder α] (h : well_founded ((<) : α → α → Prop)) :
-  well_founded ((<) : with_top α → with_top α → Prop) :=
+lemma well_founded_lt [preorder α] (h : @well_founded α (<)) : @well_founded (with_top α) (<) :=
 have acc_some : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (some a) :=
 λ a, acc.intro _ (well_founded.induction h a
   (show ∀ b, (∀ c, c < b → ∀ d : with_top α, d < some c → acc (<) d) →
@@ -866,30 +988,43 @@ have acc_some : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (so
 ⟨λ a, option.rec_on a (acc.intro _ (λ y, option.rec_on y (λ h, (lt_irrefl _ h).elim)
   (λ _ _, acc_some _))) acc_some⟩
 
-instance densely_ordered [has_lt α] [densely_ordered α] [no_top_order α] :
-  densely_ordered (with_top α) :=
+lemma well_founded_gt [preorder α] (h : @well_founded α (>)) : @well_founded (with_top α) (>) :=
+@with_bot.well_founded_lt (order_dual α) _ h
+
+lemma _root_.with_bot.well_founded_gt [preorder α] (h : @well_founded α (>)) :
+  @well_founded (with_bot α) (>) :=
+@with_top.well_founded_lt (order_dual α) _ h
+
+instance [has_lt α] [densely_ordered α] [no_max_order α] : densely_ordered (with_top α) :=
 ⟨ λ a b,
   match a, b with
   | none,   a   := λ h : ⊤ < a, (not_none_lt _ h).elim
-  | some a, none := λ h, let ⟨b, hb⟩ := no_top a in ⟨b, coe_lt_coe.2 hb, coe_lt_top b⟩
+  | some a, none := λ h, let ⟨b, hb⟩ := exists_gt a in ⟨b, coe_lt_coe.2 hb, coe_lt_top b⟩
   | some a, some b := λ h, let ⟨a, ha₁, ha₂⟩ := exists_between (coe_lt_coe.1 h) in
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
 
-lemma lt_iff_exists_coe_btwn [partial_order α] [densely_ordered α] [no_top_order α]
-  {a b : with_top α} :
-  (a < b) ↔ (∃ x : α, a < ↑x ∧ ↑x < b) :=
+lemma lt_iff_exists_coe_btwn [preorder α] [densely_ordered α] [no_max_order α] {a b : with_top α} :
+  a < b ↔ ∃ x : α, a < ↑x ∧ ↑x < b :=
 ⟨λ h, let ⟨y, hy⟩ := exists_between h, ⟨x, hx⟩ := lt_iff_exists_coe.1 hy.2 in ⟨x, hx.1 ▸ hy⟩,
  λ ⟨x, hx⟩, lt_trans hx.1 hx.2⟩
 
-instance {α : Type*} [has_lt α] [no_bot_order α] [nonempty α] : no_bot_order (with_top α) :=
+instance [has_le α] [no_bot_order α] [nonempty α] : no_bot_order (with_top α) :=
 ⟨begin
   apply with_top.rec_top_coe,
-  { apply ‹nonempty α›.elim,
-    exact λ a, ⟨a, with_top.coe_lt_top a⟩, },
+  { exact ‹nonempty α›.elim (λ a, ⟨a, not_top_le_coe a⟩) },
   { intro a,
-    obtain ⟨b, ha⟩ := no_bot a,
-    exact ⟨b, with_top.coe_lt_coe.mpr ha⟩, }
+    obtain ⟨b, h⟩ := exists_not_ge a,
+    exact ⟨b, by rwa coe_le_coe⟩ }
+end⟩
+
+instance [has_lt α] [no_min_order α] [nonempty α] : no_min_order (with_top α) :=
+⟨begin
+  apply rec_top_coe,
+  { exact ‹nonempty α›.elim (λ a, ⟨a, with_top.coe_lt_top a⟩) },
+  { intro a,
+    obtain ⟨b, ha⟩ := exists_lt a,
+    exact ⟨b, coe_lt_coe.mpr ha⟩ }
 end⟩
 
 end with_top
@@ -897,22 +1032,55 @@ end with_top
 /-! ### Subtype, order dual, product lattices -/
 
 namespace subtype
+variables {p : α → Prop}
 
-/-- A subtype remains a `⊥`-order if the property holds at `⊥`.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def order_bot [preorder α] [order_bot α] {P : α → Prop} (Pbot : P ⊥) :
-  order_bot {x : α // P x} :=
-{ bot := ⟨⊥, Pbot⟩,
+/-- A subtype remains a `⊥`-order if the property holds at `⊥`. -/
+@[reducible] -- See note [reducible non-instances]
+protected def order_bot [has_le α] [order_bot α] (hbot : p ⊥) : order_bot {x : α // p x} :=
+{ bot := ⟨⊥, hbot⟩,
   bot_le := λ _, bot_le }
 
-/-- A subtype remains a `⊤`-order if the property holds at `⊤`.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def order_top [preorder α] [order_top α] {P : α → Prop} (Ptop : P ⊤) :
-  order_top {x : α // P x} :=
-{ top := ⟨⊤, Ptop⟩,
+/-- A subtype remains a `⊤`-order if the property holds at `⊤`. -/
+@[reducible] -- See note [reducible non-instances]
+protected def order_top [has_le α] [order_top α] (htop : p ⊤) : order_top {x : α // p x} :=
+{ top := ⟨⊤, htop⟩,
   le_top := λ _, le_top }
+
+/-- A subtype remains a bounded order if the property holds at `⊥` and `⊤`. -/
+@[reducible] -- See note [reducible non-instances]
+protected def bounded_order [has_le α] [bounded_order α] (hbot : p ⊥) (htop : p ⊤) :
+  bounded_order (subtype p) :=
+{ ..subtype.order_top htop, ..subtype.order_bot hbot }
+
+variables [partial_order α]
+
+@[simp] lemma mk_bot [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) : mk ⊥ hbot = ⊥ :=
+le_bot_iff.1 $ coe_le_coe.1 bot_le
+
+@[simp] lemma mk_top [order_top α] [order_top (subtype p)] (htop : p ⊤) : mk ⊤ htop = ⊤ :=
+top_le_iff.1 $ coe_le_coe.1 le_top
+
+lemma coe_bot [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) : ((⊥ : subtype p) : α) = ⊥ :=
+congr_arg coe (mk_bot hbot).symm
+
+lemma coe_top [order_top α] [order_top (subtype p)] (htop : p ⊤) : ((⊤ : subtype p) : α) = ⊤ :=
+congr_arg coe (mk_top htop).symm
+
+@[simp] lemma coe_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : {x // p x}} :
+  (x : α) = ⊥ ↔ x = ⊥ :=
+by rw [←coe_bot hbot, ext_iff]
+
+@[simp] lemma coe_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : {x // p x}} :
+  (x : α) = ⊤ ↔ x = ⊤ :=
+by rw [←coe_top htop, ext_iff]
+
+@[simp] lemma mk_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : α} (hx : p x) :
+  (⟨x, hx⟩ : subtype p) = ⊥ ↔ x = ⊥ :=
+(coe_eq_bot_iff hbot).symm
+
+@[simp] lemma mk_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : α} (hx : p x) :
+  (⟨x, hx⟩ : subtype p) = ⊤ ↔ x = ⊤ :=
+(coe_eq_top_iff htop).symm
 
 end subtype
 
@@ -986,10 +1154,10 @@ theorem disjoint.mono {a b c d : α} (h₁ : a ≤ b) (h₂ : c ≤ d) :
   disjoint b d → disjoint a c := le_trans (inf_le_inf h₁ h₂)
 
 theorem disjoint.mono_left {a b c : α} (h : a ≤ b) : disjoint b c → disjoint a c :=
-disjoint.mono h (le_refl _)
+disjoint.mono h le_rfl
 
 theorem disjoint.mono_right {a b c : α} (h : b ≤ c) : disjoint a c → disjoint a b :=
-disjoint.mono (le_refl _) h
+disjoint.mono le_rfl h
 
 @[simp] lemma disjoint_self {a : α} : disjoint a a ↔ a = ⊥ :=
 by simp [disjoint]
@@ -1000,6 +1168,9 @@ by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
 lemma disjoint.eq_bot_of_le {a b : α} (hab : disjoint a b) (h : a ≤ b) : a = ⊥ :=
 eq_bot_iff.2 (by rwa ←inf_eq_left.2 h)
 
+lemma disjoint_assoc {a b c : α} : disjoint (a ⊓ b) c ↔ disjoint a (b ⊓ c) :=
+by rw [disjoint, disjoint, inf_assoc]
+
 lemma disjoint.of_disjoint_inf_of_le {a b c : α} (h : disjoint (a ⊓ b) c) (hle : a ≤ c) :
   disjoint a b := by rw [disjoint_iff, h.eq_bot_of_le (inf_le_left.trans hle)]
 
@@ -1008,12 +1179,9 @@ lemma disjoint.of_disjoint_inf_of_le' {a b c : α} (h : disjoint (a ⊓ b) c) (h
 
 end semilattice_inf_bot
 
-section bounded_order
+section order_bot
 
-variables [lattice α] [bounded_order α] {a : α}
-
-@[simp] theorem disjoint_top : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
-@[simp] theorem top_disjoint : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]
+variables [lattice α] [order_bot α]
 
 lemma eq_bot_of_disjoint_absorbs
   {a b : α} (w : disjoint a b) (h : a ⊔ b = a) : b = ⊥ :=
@@ -1022,6 +1190,15 @@ begin
   rw [←w, right_eq_inf],
   rwa sup_eq_left at h,
 end
+
+end order_bot
+
+section bounded_order
+
+variables [lattice α] [bounded_order α] {a : α}
+
+@[simp] theorem disjoint_top : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
+@[simp] theorem top_disjoint : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]
 
 end bounded_order
 
@@ -1245,7 +1422,8 @@ variables [partial_order α] [bounded_order α] [nontrivial α]
 lemma bot_ne_top : (⊥ : α) ≠ ⊤ :=
 λ H, not_nontrivial_iff_subsingleton.mpr (subsingleton_of_bot_eq_top H) ‹_›
 
-lemma top_ne_bot : (⊤ : α) ≠ ⊥ := ne.symm bot_ne_top
+lemma top_ne_bot : (⊤ : α) ≠ ⊥ := bot_ne_top.symm
+lemma bot_lt_top : (⊥ : α) < ⊤ := lt_top_iff_ne_top.2 bot_ne_top
 
 end nontrivial
 

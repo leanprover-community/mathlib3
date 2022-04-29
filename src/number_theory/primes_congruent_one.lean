@@ -25,9 +25,8 @@ lemma exists_prime_ge_modeq_one (k n : ℕ) (hpos : 0 < k) :
 begin
   let b := 3 * (k * n.factorial),
   have hgt : 1 < (eval ↑b (cyclotomic k ℤ)).nat_abs,
-  { have hkey : ∀ l : ℕ, 2 < 3 * (l.succ * n.factorial),
-    from λ l, lt_mul_of_lt_of_one_le (2 : ℕ).lt_succ_self
-      (le_mul_of_le_of_le_one (nat.succ_pos _) n.factorial_pos),
+  { have hkey : ∀ l : ℕ, 2 < 3 * (l.succ * n.factorial) := λ l, lt_mul_of_lt_of_one_le
+          (2 : ℕ).lt_succ_self (le_mul_of_le_of_le_one (nat.succ_pos _) n.factorial_pos),
     rcases k with _ | _ | k,
     { simpa using hpos, },
     { simp only [one_mul, int.coe_nat_mul, int.coe_nat_succ, int.coe_nat_zero, zero_add,

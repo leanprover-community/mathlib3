@@ -1,16 +1,39 @@
+/-
+Copyright (c) 2022 Amelia Livingston. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Amelia Livingston
+-/
 import category_theory.abelian.opposite
 import algebra.homology.homotopy_category
 import category_theory.preadditive.opposite
-open category_theory
-universes v u
+
+/-!
+# Opposite categories of complexes
+
+Given an appropriate category `C`, the opposite of its category of chain complexes,
+`Ch(C)ᵒᵖ` is the category of cochain complexes `CoCh(Cᵒᵖ)`. We define this equivalence
+(and the other analogous equivalences).
+
+Likewise, something something natural transformation with the homology functor.
+
+## Implementation notes
+
+We work in terms of homological complexes, a generalisation of both chain and cochain complexes.
+See the file blah for an explanation.
+
+## Tags
+
+opposite, chain complex, cochain complex, homology, cohomology, homological complex
+-/
+
 noncomputable theory
 open category_theory category_theory.limits
-
+universes v u
 /-!
 The equivalence of categories `homological_complex V c ≅ (homological_complex Vᵒᵖ c.symm)ᵒᵖ`.
 
 maybe there's a way to get all this more abstractly that I'm missing. I didn't
-think about it too hard.
+think about it too hard. Ask on zulip.... should it go via the dold kan correspondence?
 -/
 variables {ι : Type*}
 variables {V : Type*} [category V] [preadditive V]
@@ -18,6 +41,8 @@ variables {c : complex_shape ι}
 
 namespace homological_complex
 
+/-- Given a complex `C` of objects in `V` with shape `c`, this is the complex in `Vᵒᵖ`
+with the opposite shape. -/
 def op_obj (C : homological_complex V c) :
   homological_complex Vᵒᵖ c.symm :=
 { X := λ i, opposite.op (C.X i),
@@ -25,6 +50,8 @@ def op_obj (C : homological_complex V c) :
   shape' := λ i j hij, by rw [C.shape' _ _ hij, op_zero],
   d_comp_d' := λ i j k hij hjk, by rw [←op_comp, C.d_comp_d, op_zero] }
 
+/-- Given a chain map `f : C → D` of complexes with objects in `V` and shape `c`, this is
+the induced map `opp(D) → opp(C).` -/
 def op_map {C D : homological_complex V c} (f : C ⟶ D) :
   op_obj D ⟶ op_obj C :=
 { f := λ i, (f.f i).op,
@@ -33,11 +60,15 @@ def op_map {C D : homological_complex V c} (f : C ⟶ D) :
 
 variables (V c)
 
-def op : homological_complex V c ⥤ (homological_complex Vᵒᵖ c.symm)ᵒᵖ :=
+/-- The functor `Cxᶜ(V) ⥤ (Cxᶜ'(Vᵒᵖ))ᵒᵖ` -/
+def to_op_op : homological_complex V c ⥤ (homological_complex Vᵒᵖ c.symm)ᵒᵖ :=
 { obj := λ C, opposite.op C.op_obj,
   map := λ C D f, (op_map f).op,
   map_id' := λ C, by { rw ←op_id, congr },
   map_comp' := λ X Y Z f g, by { rw ←op_comp, congr } }
+
+def op_to_op : (homological_complex V c)ᵒᵖ ⥤ homological_complex Vᵒᵖ c.symm :=
+(to_op_op V c).left_op
 
 variables {V c}
 
@@ -55,11 +86,14 @@ def unop_map {C D : homological_complex Vᵒᵖ c} (f : C ⟶ D) :
 
 variables (V c)
 
-def unop : (homological_complex Vᵒᵖ c)ᵒᵖ ⥤ homological_complex V c.symm :=
+def to_unop_unop : (homological_complex Vᵒᵖ c)ᵒᵖ ⥤ homological_complex V c.symm :=
 { obj := λ C, (opposite.unop C).unop_obj,
   map := λ C D f, unop_map f.unop,
   map_id' := λ C, by { rw unop_id, refl },
   map_comp' := λ X Y Z f g, by { rw unop_comp, refl } }
+
+def unop_to_unop : homological_complex Vᵒᵖ c ⥤ (homological_complex V c.symm)ᵒᵖ :=
+(to_unop_unop V c).right_op
 
 -- need to fix because c.symm.symm isn't defeq to c
 /-def op_unop_obj (C : homological_complex V c) :

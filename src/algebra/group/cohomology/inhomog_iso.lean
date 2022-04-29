@@ -11,16 +11,39 @@ open_locale tensor_product
 
 namespace group_ring
 section
-variables (M : Type u) [add_comm_group M]
-  [distrib_mul_action G M] (n : ℕ)
+variables (M : Type u) [add_comm_group M] [distrib_mul_action G M] (n : ℕ)
 variables {G n}
 
-lemma helpful {f : fin n → G} {i : fin (n + 1)} :
-  ↑i < (list.of_fn f).inits.length :=
-by cases i with i1 i2; simp only [i2, list.length_of_fn, list.length_inits, fin.coe_mk]
-
 def to_prod (f : fin n → G) : fin (n + 1) → G :=
-λ i, ((list.of_fn f).inits.nth_le i helpful).prod
+λ i, ((list.of_fn f).take i).prod
+
+lemma to_prod_zero (f : fin n → G) :
+  to_prod f 0 = 1 :=
+begin
+  unfold to_prod,
+  simp only [fin.coe_zero, list.take_zero, list.prod_nil],
+end
+
+lemma to_prod_succ (f : fin n → G) (j : fin n) :
+  to_prod f j.succ = to_prod f j.cast_succ * (f j) :=
+begin
+  unfold to_prod,
+  simp only [fin.coe_succ, fin.coe_cast_succ],
+  rw list.take_succ,
+  simp only [mul_right_inj, list.prod_append, list.nth_of_fn],
+  rw [list.of_fn_nth_val, dif_pos j.is_lt, fin.eta],
+  erw option.to_list_some,
+  rw list.prod_singleton
+end
+
+lemma to_prod_succ' (f : fin (n + 1) → G) (j : fin (n + 1)) :
+  to_prod f j.succ = f 0 * to_prod (fin.tail f) j :=
+begin
+  unfold to_prod,
+  simp only [mul_right_inj, fin.coe_eq_cast_succ, list.take, fin.coe_succ,
+    fin.coe_cast_succ, list.of_fn_succ, list.prod_cons],
+  refl,
+end
 
 variables (G n)
 
@@ -54,11 +77,8 @@ begin
   intros h x,
   simp only [of_apply, single_smul_single, one_smul, one_mul, to_tensor_add_hom_single],
   dsimp,
-  simp only [mul_inv_rev],
-  rw tensor_product.smul_tmul',
-  rw smul_eq_mul,
-  erw monoid_algebra.single_mul_single,
-  rw one_mul,
+  simp only [mul_inv_rev, tensor_product.smul_tmul', smul_eq_mul],
+  erw [monoid_algebra.single_mul_single, one_mul],
   congr,
   ext,
   assoc_rw inv_mul_cancel_left,
@@ -118,51 +138,42 @@ lemma equiv_tensor_left_inv_aux (f : fin (n + 1) → G) :
   f 0 • to_prod (λ i : fin n, (f i)⁻¹ * f i.succ) = f :=
 begin
   ext,
-  unfold to_prod,
-  simp only [fin.coe_eq_cast_succ, list.nth_le_inits, smul_eq_mul, pi.smul_apply],
   cases x with x hn,
   revert hn,
   induction x with x hx,
   { intro hn,
-    simp only [fin.mk_zero, mul_one, fin.coe_zero, list.take_zero, list.prod_nil] },
+    dsimp,
+    rw [to_prod_zero, mul_one] },
   { intro hn,
+    dsimp at hx ⊢,
+    rw [←fin.succ_mk _ _ (nat.succ_lt_succ_iff.1 hn), to_prod_succ],
     specialize hx (lt_trans (nat.lt_succ_self x) hn),
-    rw fin.coe_mk at hx ⊢,
-    rw list.take_succ,
-    simp only [list.prod_append, list.nth_of_fn],
-    rw ←mul_assoc,
-    rw hx,
-    unfold list.of_fn_nth_val,
-    rw dif_pos (nat.succ_lt_succ_iff.1 hn),
-    erw list.prod_cons,
-    simp only [mul_one, mul_inv_cancel_left, fin.succ_mk, fin.cast_succ_mk, list.prod_nil],}
+    erw [←mul_assoc, hx],
+    convert mul_inv_cancel_left _ _,
+    ext,
+    simp only [fin.coe_of_nat_eq_mod, fin.coe_mk, nat.mod_eq_of_lt
+      (lt_trans (nat.lt_succ_self _) hn)] }
 end
 
 lemma equiv_tensor_right_inv_aux (g : G) (f : fin n → G) (i : fin n) :
   ((g • to_prod f) i)⁻¹ * (g • to_prod f) i.succ = f i :=
 begin
-  unfold to_prod,
-  simp only [mul_inv_rev, fin.coe_eq_cast_succ, list.nth_le_inits, fin.coe_succ,
-    fin.coe_cast_succ, smul_eq_mul, pi.smul_apply],
   cases i with i hn,
   revert hn,
   induction i with i hi,
   { intro hn,
-    simp only [list.take_succ, one_inv, nat.nat_zero_eq_zero, one_mul, inv_mul_cancel_left, list.nil_append, list.take_zero,
-      list.prod_nil, fin.coe_mk, list.nth_of_fn],
-    unfold list.of_fn_nth_val,
-    rw [dif_pos hn, option.to_list],
-    exact one_mul _ },
+    dsimp,
+    rw [←fin.succ_mk, to_prod_succ],
+    simp only [fin.mk_zero, to_prod_zero, mul_one, mul_left_eq_self,
+      inv_mul_cancel_left, fin.cast_succ_mk] },
   { intro hn,
     specialize hi (lt_trans (nat.lt_succ_self i) hn),
-    rw fin.coe_mk at hi ⊢,
-    simp only [list.take_succ, mul_inv_rev, list.prod_append, list.nth_of_fn] at ⊢ hi,
-    unfold list.of_fn_nth_val at ⊢ hi,
-    simp only [dif_pos hn, dif_pos (lt_trans (nat.lt_succ_self i) hn)] at ⊢ hi,
-    erw option.to_list_some at ⊢ hi,
-    erw option.to_list_some,
-    assoc_rw hi,
-    simp only [mul_one, one_mul, list.prod_cons, mul_left_inv, list.prod_nil] }
+    simp only [mul_inv_rev, fin.coe_eq_cast_succ, fin.succ_mk, fin.cast_succ_mk,
+      smul_eq_mul, pi.smul_apply] at hi ⊢,
+    rw [←fin.succ_mk _ _ (lt_trans (nat.lt_succ_self _) hn), ←fin.succ_mk,
+      to_prod_succ, to_prod_succ],
+    simp only [mul_inv_rev, fin.cast_succ_mk],
+    assoc_rw [hi, inv_mul_cancel_left] }
 end
 
 def equiv_tensor : group_ring (fin (n + 1) → G) ≃ₗ[group_ring G] group_ring G
@@ -173,8 +184,7 @@ def equiv_tensor : group_ring (fin (n + 1) → G) ≃ₗ[group_ring G] group_rin
       ((of_tensor G n).comp (to_tensor G n)).to_add_monoid_hom (add_monoid_hom.id _) _) x,
     intros x y,
     dsimp,
-    erw to_tensor_add_hom_single,
-    erw of_tensor_add_hom_single,
+    erw [to_tensor_add_hom_single, of_tensor_add_hom_single],
     rw [finsupp.lift_apply, finsupp.sum_single_index, one_smul, of_apply,
       finsupp.smul_single_one, equiv_tensor_left_inv_aux],
     { rw zero_smul }},
@@ -189,20 +199,22 @@ def equiv_tensor : group_ring (fin (n + 1) → G) ≃ₗ[group_ring G] group_rin
         (group_ring G) _).flip z).to_add_monoid_hom _) y,
       intros x m,
       dsimp [of_tensor],
-      rw of_tensor_add_hom_single,
-      rw linear_map.map_smul_of_tower,
-      rw finsupp.lift_apply,
+      rw [of_tensor_add_hom_single, linear_map.map_smul_of_tower, finsupp.lift_apply],
       simp only [mul_one, finsupp.smul_single', of_apply, linear_map.map_finsupp_sum],
       unfold to_tensor,
-      simp only [mk_linear_apply],
-      simp only [to_tensor_add_hom_single, equiv_tensor_right_inv_aux],
-      unfold finsupp.sum,
-      sorry },
+      simp only [mk_linear_apply, to_tensor_add_hom_single, equiv_tensor_right_inv_aux],
+      dsimp,
+      simp only [to_prod_zero, mul_one],
+      conv_rhs {rw ←finsupp.sum_single z},
+      rw [←finsupp.smul_single_one x m, ←tensor_product.smul_tmul'],
+      erw tensor_product.tmul_sum,
+      refine congr_arg _ (finset.sum_congr rfl _),
+      intros g hg,
+      rw [←finsupp.smul_single_one g, ←tensor_product.smul_tmul, finsupp.smul_single_one] },
     { intros z w hz hw,
       dsimp at hz hw ⊢,
       simp only [map_add, hz, hw] } },
   ..to_tensor G n }
-
 
 @[simp] lemma equiv_tensor_apply (x : fin (n + 1) → G) (m : ℤ) :
   equiv_tensor G n (finsupp.single x m) = (finsupp.single (x 0) m) ⊗ₜ (finsupp.single (λ i, (x i)⁻¹ * x i.succ) 1) :=
@@ -354,23 +366,39 @@ begin
   rw [finsupp.total_single, one_smul],
 end
 
-lemma to_prod_succ (g : fin (n + 1) → G) (k : fin (n + 1)) :
-  g 0 * to_prod (λ (i : fin n), g ((fin.add_nat 1) i)) k = to_prod g k.succ :=
+lemma to_prod_F (g : fin (n + 1) → G) (m : ℕ) (hm : m ∈ finset.range (n + 1))
+  (j : fin (n + 1)) : to_prod g (fin.delta rfl (m + 1) j) = to_prod (F m g) j :=
 begin
-  unfold to_prod,
-  simp only [mul_right_inj, list.nth_le_inits, list.take, fin.coe_succ, list.of_fn_succ, list.prod_cons],
-  cases k with k hk,
-  revert hk,
-  induction k with k hn,
-  { intro hk,
-    simp only [fin.mk_zero, fin.coe_zero, list.take_zero], },
-  { intro hk,
-    specialize hn (lt_trans (nat.lt_succ_self _) hk),
-    simp only [fin.coe_mk] at hn ⊢,
-    simp only [list.take_succ, list.prod_append, list.nth_of_fn, list.of_fn_nth_val,
-      dif_pos (nat.succ_lt_succ_iff.1 hk)],
-    erw option.to_list_some,
-    rw hn }
+  cases j with j hj,
+  revert hj,
+  induction j with j hn,
+  { intro h0,
+    simp only [to_prod_zero, fin.mk_zero, fin.coe_zero, fin.delta,
+      if_pos m.succ_pos] },
+  { intro hj,
+    specialize hn (lt_trans j.lt_succ_self hj),
+    rw ←fin.succ_mk _ _ (nat.succ_lt_succ_iff.1 hj),
+    rw to_prod_succ,
+    unfold fin.delta at ⊢ hn,
+    split_ifs,
+    { dsimp at ⊢ h hn,
+      rw [←fin.succ_mk _ _ (lt_trans j.lt_succ_self hj), to_prod_succ],
+      simp only [if_pos (lt_trans j.lt_succ_self h)] at hn,
+      erw [hn, F_lt_apply],
+      { refl },
+      { exact nat.succ_lt_succ_iff.1 h }},
+    { dsimp at ⊢ h hn,
+      rw [←fin.succ_mk _ _ hj, to_prod_succ, fin.cast_succ_mk, ← hn,
+          ←fin.succ_mk _ _ (lt_trans j.lt_succ_self hj), to_prod_succ, fin.cast_succ_mk],
+      by_cases hjm : j = m,
+      { simp only [F_eq_apply m _ ⟨j, nat.succ_lt_succ_iff.1 hj⟩ hjm,
+          if_pos (show j < m + 1, by rw hjm; exact m.lt_succ_self)],
+        exact mul_assoc _ _ _ },
+      { rw F_neg_apply _ _ ⟨j, nat.succ_lt_succ_iff.1 hj⟩ (λ hl, h $ nat.succ_lt_succ hl) hjm,
+        simp only [if_neg (show ¬j < m + 1, from λ h', hjm $ nat.eq_of_le_of_lt_succ
+          (nat.le_of_succ_le_succ $ not_lt.1 h) h')],
+        conv_rhs {rw ← fin.succ_mk _ _ (lt_trans j.lt_succ_self hj)}, rw to_prod_succ,
+        refl, }}}
 end
 
 lemma cochain_comm (x : group_ring (fin (n + 1) → G) →ₗ[group_ring G] M) :
@@ -392,23 +420,26 @@ begin
     erw of_smul_of,
     congr,
     ext k,
-    simp only [to_prod_succ, smul_eq_mul, pi.smul_apply] },
+    rw to_prod_succ',
+    simp only [to_prod_succ', smul_eq_mul, pi.smul_apply],
+    congr,
+    ext y,
+    cases y,
+    refl, },
   { rw finset.sum_map,
     refine finset.sum_congr rfl (λ m hm, _),
     rw [cochain_equiv_apply, ←linear_map.map_smul_of_tower, of_apply, finsupp.smul_single_one],
     congr' 2,
     { dsimp,
       ext j,
-      sorry },
-    sorry },
-  sorry
+      rw to_prod_F _ _ hm, },
+    { exact mul_one _ } },
+  { simp }
 end
 
 lemma cochain_symm_comm (x : (fin n → G) → M) :
   (cochain_equiv G M (n + 1)).symm (cochain.d G M n x)
     = ((cochain_equiv G M n).symm x).comp (group_ring.d G rfl) :=
-begin
-  sorry
-end
+by rw [add_equiv.symm_apply_eq, ←cochain_comm, add_equiv.apply_symm_apply]
 
 end group_ring

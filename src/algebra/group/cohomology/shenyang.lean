@@ -274,12 +274,43 @@ def cochain.d : ((fin n → G) → M) →+ ((fin (n + 1) → G) → M) :=
   map_add' := λ x y, funext $ λ g, by simp only [d_to_fun, smul_add, sum_add_distrib,
     pi.add_apply]; abel }
 
-/-def distrib_d (A : Type u) [comm_monoid A] (M : Type v) [add_comm_group M]
-  [distrib_mul_action A M] (n : ℕ) : cochain A M n →+[A] cochain A M (n + 1) :=
-{ map_smul' := λ c m, funext $ λ g, show d_to_fun _ _ = c • d_to_fun _ _, by
-    simp only [d_to_fun, ←mul_smul, distrib_mul_action.gsmul_comm, mul_comm,
-      smul_sum, smul_add, pi.smul_apply],
-  ..d A M n }-/
+variables {G M}
+
+lemma cochain.d_zero_apply (x : (fin 0 → G) → M) (g : fin 1 → G) :
+  cochain.d G M 0 x g = g 0 • x (default _) - x (default _) :=
+begin
+  dsimp [cochain.d, d_to_fun],
+  simp only [pow_one, one_zsmul, sum_singleton, neg_smul],
+  rw [unique.eq_default (λ i, g (fin.add_nat 1 i)), unique.eq_default (F 0 g), sub_eq_add_neg],
+end
+
+lemma cochain.d_one_apply (x : (fin 1 → G) → M) (g : fin 2 → G) :
+  cochain.d G M 1 x g = g 0 • x (λ i, g 1) - x (λ i, g 0 * g 1) + x (λ i, g 0) :=
+begin
+  dsimp [cochain.d, d_to_fun],
+  rw [finset.range_succ', finset.sum_insert],
+  simp only [pow_one, image_singleton, one_zsmul,
+    sum_singleton, nat.neg_one_sq, neg_smul, range_one],
+  rw [←add_assoc, sub_eq_add_neg],
+  congr,
+  { ext y,
+    rw subsingleton.elim y 0,
+    refl },
+  { ext y,
+    rw [F_eq_apply 0 _ y (by rw subsingleton.elim y 0; refl), subsingleton.elim y 0],
+    refl },
+  { ext y,
+    rw [subsingleton.elim y 0, F_succ_zero] },
+  { simp }
+end
+
+lemma cochain.d_one_apply' (x : (fin 1 → G) → M) (g h : G) :
+  cochain.d G M 1 x (fin.cons g (λ i, h)) = g • x (λ i, h) - x (λ i, g * h) + x (λ i, g) :=
+begin
+  convert cochain.d_one_apply x (fin.cons g (λ i, h)),
+end
+
+variables (G M)
 
 theorem cochain.d_square_zero : (cochain.d G M (n + 1)).comp (cochain.d G M n) = 0 :=
 by ext1; exact d_to_fun_square_zero _

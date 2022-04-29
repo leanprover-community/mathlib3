@@ -123,7 +123,8 @@ rfl
 
 @[simp]
 lemma as_module_equiv_symm_map_smul (r : k) (x : V) :
-  ρ.as_module_equiv.symm (r • x) = algebra_map k (monoid_algebra k G) r • (ρ.as_module_equiv.symm x) :=
+  ρ.as_module_equiv.symm (r • x) =
+    algebra_map k (monoid_algebra k G) r • (ρ.as_module_equiv.symm x) :=
 begin
   apply_fun ρ.as_module_equiv,
   simp,
@@ -192,9 +193,15 @@ we have `module (monoid_algebra k G) (restrict_scalars k (monoid_algebra k G) M)
     (restrict_scalars.add_equiv _ _ _).symm (r • restrict_scalars.add_equiv _ _ _ m) :=
 begin
   apply monoid_algebra.induction_on r,
-  { intros g, simp [of_module, restrict_scalars.lsmul_apply_apply], },
-  { intros f g fw gw, simp [fw, gw, add_smul], },
-  { intros r f w, simp [w], }
+  { intros g,
+    simp only [one_smul, monoid_algebra.lift_symm_apply, monoid_algebra.of_apply,
+      representation.as_algebra_hom_single, representation.of_module,
+      add_equiv.apply_eq_iff_eq, restrict_scalars.lsmul_apply_apply], },
+  { intros f g fw gw,
+    simp only [fw, gw, map_add, add_smul, linear_map.add_apply], },
+  { intros r f w,
+    simp only [w, alg_hom.map_smul, linear_map.smul_apply,
+      restrict_scalars.add_equiv_symm_map_smul_smul], }
 end
 
 @[simp]

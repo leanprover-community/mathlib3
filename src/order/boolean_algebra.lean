@@ -769,7 +769,7 @@ boolean_algebra.of_core
   ..order_dual.distrib_lattice α, ..order_dual.bounded_order α }
 
 @[simp] lemma of_dual_compl (a) : of_dual aᶜ = (of_dual a : α)ᶜ := rfl
-@[simp] lemma to_dual_compl (a) : to_dual (aᶜ : α) = (to_dual a)ᶜ := rfl
+@[simp] lemma to_dual_compl (a : α) : to_dual aᶜ = (to_dual a)ᶜ := rfl
 
 theorem sdiff_eq : x \ y = x ⊓ yᶜ := boolean_algebra.sdiff_eq x y
 

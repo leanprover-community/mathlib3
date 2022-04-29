@@ -289,9 +289,9 @@ begin
   exact (exp_mul x a).symm,
 end
 
--- The sqrts could be changed to ^(1/2) and then changed to generalize the 2 out.
--- It could also be moved near log_div_self_antitone_on
--- it could also be made into an antitone_on statemnt
+-- I would like to move this and the below near log_div_self_antitone_on, but that file doesn't
+-- know about rpow TODO
+-- This could also be made into an antitone_on statemnt
 lemma log_div_self_rpow_antitone_on {x y a : ℝ} (ha : 0 < a) (hex : exp (1 / a) ≤ x) (hxy : x ≤ y) :
   log y / y ^ a ≤ log x / x ^ a :=
 begin
@@ -329,9 +329,7 @@ begin
     exact le_of_lt ha, },
 end
 
--- The sqrts could be changed to ^(1/2) and then changed to generalize the 2 out.
--- It could also be moved near log_div_self_antitone_on
--- it could also be made into an antitone_on statemnt
+-- This could also be made into an antitone_on statemnt
 lemma log_div_sqrt_decreasing {x y : ℝ} (hex : exp 2 ≤ x) (hxy : x ≤ y) :
   log y / sqrt y ≤ log x / sqrt x :=
 begin

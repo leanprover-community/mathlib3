@@ -284,13 +284,13 @@ begin
   { rintros f g ⟨m, fn, hf⟩ ⟨n, gn, hg⟩,
     by_cases h : m ≤ n;
     refine ⟨m + n, fn * X ^ n + gn * X ^ m, _⟩;
-    simp only [hf, hg, add_mul, add_comm (n : ℤ), int.coe_nat_add, _root_.map_add,
-      _root_.map_mul, map_pow, polynomial.to_laurent_X, T_pow, mul_one, mul_T_assoc]  },
+    simp only [hf, hg, add_mul, add_comm (n : ℤ), map_add, map_mul, polynomial.to_laurent_X_pow,
+      mul_T_assoc, int.coe_nat_add] },
   { cases n with n n,
     { exact ⟨0, polynomial.C a * X ^ n, by simp⟩ },
     { refine ⟨n + 1, polynomial.C a, _⟩,
-      simp only [int.neg_succ_of_nat_eq, neg_add_self, int.coe_nat_succ, mul_T_assoc, T_zero,
-        mul_one, polynomial.to_laurent_C] } }
+      simp only [int.neg_succ_of_nat_eq, polynomial.to_laurent_C, int.coe_nat_succ, mul_T_assoc,
+        add_left_neg, T_zero, mul_one] } }
 end
 
 /--  This version of `exists_T_pow` can be called as `rcases f.exists_T_pow' with ⟨n, f', rfl⟩`. -/

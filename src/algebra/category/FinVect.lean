@@ -3,7 +3,7 @@ Copyright (c) 2021 Jakob von Raumer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer
 -/
-import category_theory.monoidal.rigid
+import category_theory.monoidal.rigid.basic
 import linear_algebra.tensor_product_basis
 import linear_algebra.coevaluation
 import algebra.category.Module.monoidal
@@ -11,8 +11,8 @@ import algebra.category.Module.monoidal
 /-!
 # The category of finite dimensional vector spaces
 
-This introduces `FinVect K`, the category of finite dimensional vector spaces on a field `K`.
-It is implemented as a full subcategory on a subtype of  `Module K`.
+This introduces `FinVect K`, the category of finite dimensional vector spaces over a field `K`.
+It is implemented as a full subcategory on a subtype of `Module K`.
 We first create the instance as a category, then as a monoidal category and then as a rigid monoidal
 category.
 
@@ -31,12 +31,12 @@ universes u
 variables (K : Type u) [field K]
 
 /-- Define `FinVect` as the subtype of `Module.{u} K` of finite dimensional vector spaces. -/
-@[derive [category, λ α, has_coe_to_sort α (Sort*)]]
+@[derive [large_category, λ α, has_coe_to_sort α (Sort*), concrete_category]]
 def FinVect := { V : Module.{u} K // finite_dimensional K V }
 
 namespace FinVect
 
-instance finite_dimensional (V : FinVect K): finite_dimensional K V := V.prop
+instance finite_dimensional (V : FinVect K) : finite_dimensional K V := V.prop
 
 instance : inhabited (FinVect K) := ⟨⟨Module.of K K, finite_dimensional.finite_dimensional_self K⟩⟩
 
@@ -44,6 +44,13 @@ instance : has_coe (FinVect.{u} K) (Module.{u} K) := { coe := λ V, V.1, }
 
 protected lemma coe_comp {U V W : FinVect K} (f : U ⟶ V) (g : V ⟶ W) :
   ((f ≫ g) : U → W) = (g : V → W) ∘ (f : U → V) := rfl
+
+/-- Lift an unbundled vector space to `FinVect K`. -/
+def of (V : Type u) [add_comm_group V] [module K V] [finite_dimensional K V] : FinVect K :=
+⟨Module.of K V, by { change finite_dimensional K V, apply_instance }⟩
+
+instance : has_forget₂ (FinVect.{u} K) (Module.{u} K) :=
+by { dsimp [FinVect], apply_instance, }
 
 instance monoidal_category : monoidal_category (FinVect K) :=
 monoidal_category.full_monoidal_subcategory

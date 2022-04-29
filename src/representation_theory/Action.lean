@@ -11,6 +11,8 @@ import category_theory.adjunction.limits
 import category_theory.monoidal.functor_category
 import category_theory.monoidal.transport
 import category_theory.monoidal.linear
+import category_theory.monoidal.rigid.of_equivalence
+import category_theory.monoidal.rigid.functor_category
 import category_theory.abelian.functor_category
 import category_theory.abelian.transfer
 import category_theory.linear.functor_category
@@ -337,6 +339,32 @@ instance : monoidal_preadditive (Action V G) := {}
 variables {R : Type*} [semiring R] [linear R V] [monoidal_linear R V]
 
 instance : monoidal_linear R (Action V G) := {}
+
+variables (V G)
+noncomputable theory
+
+/-- Upgrading the functor `Action V G ⥤ (single_obj G ⥤ V)` to a monoidal functor. -/
+def functor_category_monoidal_equivalence : monoidal_functor (Action V G) (single_obj G ⥤ V) :=
+monoidal.from_transported (Action.functor_category_equivalence _ _).symm
+
+instance : is_equivalence ((functor_category_monoidal_equivalence V G).to_functor) :=
+by { change is_equivalence (Action.functor_category_equivalence _ _).functor, apply_instance, }
+
+variables (H : Group.{u})
+
+instance [right_rigid_category V] : right_rigid_category (single_obj (H : Mon.{u}) ⥤ V) :=
+by { change right_rigid_category (single_obj H ⥤ V), apply_instance }
+
+/-- If `V` is right rigid, so is `Action V G`. -/
+instance [right_rigid_category V] : right_rigid_category (Action V H) :=
+right_rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
+
+instance [rigid_category V] : rigid_category (single_obj (H : Mon.{u}) ⥤ V) :=
+by { change rigid_category (single_obj H ⥤ V), apply_instance }
+
+/-- If `V` is rigid, so is `Action V G`. -/
+instance [rigid_category V] : rigid_category (Action V H) :=
+rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
 
 end monoidal
 

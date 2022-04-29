@@ -505,8 +505,8 @@ by simp only [this, csupr_const]
 
 theorem infi_unique [unique ι] {s : ι → α} : (⨅ i, s i) = s default := @supr_unique αᵒᵈ _ _ _ _
 
-@[simp] lemma supr_unit {f : unit → α} : (⨆ x, f x) = f () := supr_unique
-@[simp] lemma infi_unit {f : unit → α} : (⨅ x, f x) = f () := infi_unique
+@[simp] lemma supr_unit {f : unit → α} : (⨆ x, f x) = f () := @supr_unique _ unit _ _ _
+@[simp] lemma infi_unit {f : unit → α} : (⨅ x, f x) = f () := @infi_unique _ unit _ _ _
 
 @[simp] lemma csupr_pos {p : Prop} {f : p → α} (hp : p) : (⨆ h : p, f h) = f hp :=
 by haveI := unique_prop hp; exact supr_unique

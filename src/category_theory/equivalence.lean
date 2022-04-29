@@ -603,7 +603,7 @@ noncomputable def of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : is_equivalence F :=
 is_equivalence.mk (equivalence_inverse F)
   (nat_iso.of_components
-    (λ X, (preimage_iso $ F.obj_obj_preimage_iso $ F.obj X).symm)
+    (λ X, (F.preimage_iso $ F.obj_obj_preimage_iso $ F.obj X).symm)
     (λ X Y f, by { apply F.map_injective, obviously }))
   (nat_iso.of_components F.obj_obj_preimage_iso (by tidy))
 

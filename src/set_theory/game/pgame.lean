@@ -409,15 +409,15 @@ end
 @[simp] theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y < x := not_le_lt.1
 @[simp] theorem not_lt {x y : pgame} : ¬ x < y ↔ y ≤ x := not_le_lt.2
 
-@[refl] protected theorem le_refl : ∀ x : pgame, x ≤ x
+@[refl] protected theorem le_rfl : ∀ {x : pgame}, x ≤ x
 | ⟨l, r, L, R⟩ := by rw mk_le_mk; exact
-⟨λ i, lt_mk_of_le (le_refl _), λ i, mk_lt_of_le (le_refl _)⟩
+⟨λ i, lt_mk_of_le le_rfl, λ i, mk_lt_of_le le_rfl⟩
 
-protected theorem le_rfl {x : pgame} : x ≤ x :=
-pgame.le_refl x
+protected theorem le_refl (x : pgame) : x ≤ x :=
+pgame.le_rfl
 
 protected theorem lt_irrefl (x : pgame) : ¬ x < x :=
-not_lt.2 (pgame.le_refl _)
+not_lt.2 pgame.le_rfl
 
 protected theorem ne_of_lt : ∀ {x y : pgame}, x < y → x ≠ y
 | x _ h rfl := pgame.lt_irrefl x h
@@ -488,7 +488,8 @@ def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
 
 local infix ` ≈ ` := pgame.equiv
 
-@[refl, simp] theorem equiv_refl (x) : x ≈ x := ⟨pgame.le_refl _, pgame.le_refl _⟩
+@[refl, simp] theorem equiv_rfl {x} : x ≈ x := ⟨pgame.le_rfl, pgame.le_rfl⟩
+theorem equiv_refl (x) : x ≈ x := equiv_rfl
 @[symm] theorem equiv_symm {x y} : x ≈ y → y ≈ x | ⟨xy, yx⟩ := ⟨yx, xy⟩
 @[trans] theorem equiv_trans {x y z} : x ≈ y → y ≈ z → x ≈ z
 | ⟨xy, yx⟩ ⟨yz, zy⟩ := ⟨le_trans xy yz, le_trans zy yx⟩
@@ -922,7 +923,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 theorem neg_add_le {x y : pgame} : -(x + y) ≤ -x + -y :=
 (neg_add_relabelling x y).le
 
-/-- `x+y` has exactly the same moves as `y+x`. -/
+/-- `x + y` has exactly the same moves as `y + x`. -/
 def add_comm_relabelling : Π (x y : pgame.{u}), relabelling (x + y) (y + x)
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
@@ -1023,13 +1024,23 @@ instance covariant_class_add_le : covariant_class pgame pgame (+) (≤) :=
                    ... ≤ x + z : add_comm_le⟩
 
 theorem add_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w + y ≈ x + z :=
-⟨calc w + y ≤ w + z : add_le_add_left h₂.1 _
-        ... ≤ x + z : add_le_add_right h₁.1 _,
- calc x + z ≤ x + y : add_le_add_left h₂.2 _
-        ... ≤ w + y : add_le_add_right h₁.2 _⟩
+⟨le_trans (add_le_add_left h₂.1 w) (add_le_add_right h₁.1 z),
+  le_trans (add_le_add_left h₂.2 x) (add_le_add_right h₁.2 y)⟩
+
+theorem add_congr_left {x y z : pgame} (h : x ≈ y) : x + z ≈ y + z :=
+add_congr h equiv_rfl
+
+theorem add_congr_right {x y z : pgame} (h : y ≈ z) : x + y ≈ x + z :=
+add_congr equiv_rfl h
 
 theorem sub_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w - y ≈ x - z :=
 add_congr h₁ (neg_congr h₂)
+
+theorem sub_congr_left {x y z : pgame} (h : x ≈ y) : x - z ≈ y - z :=
+sub_congr h equiv_rfl
+
+theorem sub_congr_right {x y z : pgame} (h : y ≈ z) : x - y ≈ x - z :=
+sub_congr equiv_rfl h
 
 theorem add_left_neg_le_zero : ∀ (x : pgame), -x + x ≤ 0
 | ⟨xl, xr, xL, xR⟩ :=

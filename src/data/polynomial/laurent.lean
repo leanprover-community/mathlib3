@@ -176,7 +176,7 @@ instance invertible_T (n : ℤ) : invertible (T n : R[T;T⁻¹]) :=
   mul_inv_of_self := by rw [← T_add, add_right_neg, T_zero] }
 
 @[simp]
-lemma invertible_def (n : ℤ) : ⅟ (T n : R[T;T⁻¹]) = T (- n) := rfl
+lemma inv_of_T (n : ℤ) : ⅟ (T n : R[T;T⁻¹]) = T (- n) := rfl
 
 lemma is_unit_T (n : ℤ) : is_unit (T n : R[T;T⁻¹]) :=
 is_unit_of_invertible _

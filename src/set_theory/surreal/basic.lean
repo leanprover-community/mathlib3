@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Scott Morrison
 -/
 import set_theory.game.basic
 import set_theory.game.birthday
+import tactic.linarith
 
 /-!
 # Surreal numbers
@@ -368,8 +369,8 @@ instance : has_well_founded mul_args :=
 /-- The hypothesis is true for any arguments. -/
 theorem result : ∀ x : mul_args, x.hypothesis
 | (P1 ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩) := begin
-  let x := pgame.mk xl xr xL xR,
-  let y := pgame.mk yl yr yL yR,
+  let x := mk xl xr xL xR,
+  let y := mk yl yr yL yR,
   intros ox oy,
   rw numeric_def,
   refine ⟨_, _, _⟩,
@@ -377,8 +378,23 @@ theorem result : ∀ x : mul_args, x.hypothesis
     {
       simp,
       rcases lt_or_equiv_or_gt (xL ix) (xL ix') with h | h | h,
-      {
-        have H₁ := ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') oy).2 h).1 iy,
+      { have HH₁ : game.lt ⟦xL ix * (mk yl yr yL yR) + (mk xl xr xL xR) * yL iy - xL ix * yL iy⟧
+        ⟦xL ix' * (mk yl yr yL yR) + (mk xl xr xL xR) * yL iy - xL ix' * yL iy⟧ :=
+      begin
+        have H₁ : game.lt ⟦_⟧ ⟦_⟧ := ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') oy).2 h).1 iy,
+        dsimp at H₁ ⊢,
+        rw quot_mul_comm (xL ix') (yL iy),
+        rw quot_mul_comm (xL ix) (yL iy)  ,
+        rw quot_mul_comm (xL ix') _,
+        rw quot_mul_comm (xL ix) _,
+        rw add_comm,
+        rw add_comm ⟦mk yl yr yL yR * xL ix'⟧  ⟦mk xl xr xL xR * yL iy⟧,
+        rw add_sub_assoc,
+        rw add_sub_assoc ⟦mk xl xr xL xR * yL iy⟧,
+        rw add_lt_add_iff_left ⟦mk xl xr xL xR * yL iy⟧,
+        linarith,
+
+      end,
         have H₂ := ((result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2
           (oy.left_lt_right iy jy)).1 ix',
         dsimp at H₁ H₂,

@@ -70,6 +70,10 @@ by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ 
 def lt : game → game → Prop :=
 quotient.lift₂ (λ x y, x < y) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx hy))
 
+
+instance : has_lt game :=
+{ lt := lt }
+
 @[simp] theorem not_le : ∀ {x y : game}, ¬ x ≤ y ↔ lt y x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact not_le }
 
@@ -161,6 +165,12 @@ instance covariant_class_add_le : covariant_class game game (+) (≤) :=
 
 instance covariant_class_swap_add_le : covariant_class game game (swap (+)) (≤) :=
 ⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_right _ _ _ _ b c h a end⟩
+
+instance covariant_class_add_lt : covariant_class game game (+) lt :=
+⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_lt_add_left _ _ _ _ b c h a end⟩
+
+instance covariant_class_swap_add_lt : covariant_class game game (swap (+)) lt :=
+⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_lt_add_right _ _ _ _ b c h a end⟩
 
 -- While it is very tempting to define a `partial_order` on games, and prove
 -- that games form an `ordered_add_comm_group`, it is a bit dangerous.

@@ -193,7 +193,8 @@ lemma coe_eq_of_mem_split_of_lt_mem {y : ℝⁿ} (h₁ : J ∈ split I i x) (h�
 (mem_split_iff'.1 h₁).resolve_left $ λ H,
   by { rw [← box.mem_coe, H] at h₂, exact h₃.not_le h₂.2 }
 
-@[simp] lemma restrict_split (h : I ≤ J) (i : fin n) (x : ℝ) : (split J i x).restrict I = split I i x :=
+@[simp] lemma restrict_split (h : I ≤ J) (i : fin n) (x : ℝ) :
+  (split J i x).restrict I = split I i x :=
 begin
   refine ((is_partition_split J i x).restrict h).eq_of_boxes_subset _,
   simp only [finset.subset_iff, mem_boxes, mem_restrict', exists_prop, mem_split_iff'],

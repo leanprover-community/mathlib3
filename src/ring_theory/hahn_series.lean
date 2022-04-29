@@ -732,7 +732,7 @@ instance [semiring R] : semiring (hahn_series Γ R) :=
   .. hahn_series.non_assoc_semiring,
   .. hahn_series.non_unital_semiring }
 
-instance [comm_semiring R] : comm_semiring (hahn_series Γ R) :=
+instance [non_unital_comm_semiring R] : non_unital_comm_semiring (hahn_series Γ R) :=
 { mul_comm := λ x y, begin
     ext,
     simp_rw [mul_coeff, mul_comm],
@@ -751,11 +751,31 @@ instance [comm_semiring R] : comm_semiring (hahn_series Γ R) :=
         ne.def, set.mem_set_of_eq] at ha ⊢,
       exact ⟨(add_comm _ _).trans ha.1, ha.2.2, ha.2.1⟩ }
   end,
+  .. hahn_series.non_unital_semiring }
+
+instance [comm_semiring R] : comm_semiring (hahn_series Γ R) :=
+{ .. hahn_series.non_unital_comm_semiring,
   .. hahn_series.semiring }
+
+instance [non_unital_non_assoc_ring R] : non_unital_non_assoc_ring (hahn_series Γ R) :=
+{ .. hahn_series.non_unital_non_assoc_semiring,
+  .. hahn_series.add_group }
+
+instance [non_unital_ring R] : non_unital_ring (hahn_series Γ R) :=
+{ .. hahn_series.non_unital_non_assoc_ring,
+  .. hahn_series.non_unital_semiring }
+
+instance [non_assoc_ring R] : non_assoc_ring (hahn_series Γ R) :=
+{ .. hahn_series.non_unital_non_assoc_ring,
+  .. hahn_series.non_assoc_semiring }
 
 instance [ring R] : ring (hahn_series Γ R) :=
 { .. hahn_series.semiring,
   .. hahn_series.add_comm_group }
+
+instance [non_unital_comm_ring R] : non_unital_comm_ring (hahn_series Γ R) :=
+{ .. hahn_series.non_unital_comm_semiring,
+  .. hahn_series.non_unital_ring }
 
 instance [comm_ring R] : comm_ring (hahn_series Γ R) :=
 { .. hahn_series.comm_semiring,

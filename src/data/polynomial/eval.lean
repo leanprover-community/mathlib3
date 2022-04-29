@@ -306,9 +306,10 @@ eval₂_monomial _ _
 
 @[simp] lemma eval_bit1 : (bit1 p).eval x = bit1 (p.eval x) := eval₂_bit1 _ _
 
-@[simp] lemma eval_smul (p : R[X]) (x : R) {s : R} :
-  (s • p).eval x = s * p.eval x :=
-eval₂_smul (ring_hom.id _) _ _
+@[simp] lemma eval_smul [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R]
+  (s : S) (p : R[X]) (x : R) :
+  (s • p).eval x = s • p.eval x :=
+by rw [← smul_one_smul R s p, eval, eval₂_smul, ring_hom.id_apply, smul_one_mul]
 
 @[simp] lemma eval_C_mul : (C a * p).eval x = a * p.eval x :=
 begin
@@ -323,7 +324,7 @@ end
 @[simps] def leval {R : Type*} [semiring R] (r : R) : R[X] →ₗ[R] R :=
 { to_fun := λ f, f.eval r,
   map_add' := λ f g, eval_add,
-  map_smul' := λ c f, eval_smul f r }
+  map_smul' := λ c f, eval_smul c f r }
 
 @[simp] lemma eval_nat_cast_mul {n : ℕ} : ((n : R[X]) * p).eval x = n * p.eval x :=
 by rw [←C_eq_nat_cast, eval_C_mul]
@@ -469,6 +470,10 @@ by simp only [bit0, add_comp]
 @[simp] lemma bit1_comp : comp (bit1 p : R[X]) q = bit1 (p.comp q) :=
 by simp only [bit1, add_comp, bit0_comp, one_comp]
 
+@[simp] lemma smul_comp [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R]
+  (s : S) (p q : R[X]) : (s • p).comp q = s • p.comp q :=
+by rw [← smul_one_smul R s p, comp, comp, eval₂_smul, ← smul_eq_C_mul, smul_assoc, one_smul]
+
 lemma comp_assoc {R : Type*} [comm_semiring R] (φ ψ χ : R[X]) :
   (φ.comp ψ).comp χ = φ.comp (ψ.comp χ) :=
 begin
@@ -555,8 +560,8 @@ end
 /-- If `R` and `S` are isomorphic, then so are their polynomial rings. -/
 @[simps] def map_equiv (e : R ≃+* S) : R[X] ≃+* S[X] :=
 ring_equiv.of_hom_inv
-  (map_ring_hom e)
-  (map_ring_hom e.symm)
+  (map_ring_hom (e : R →+* S))
+  (map_ring_hom (e.symm : S →+* R))
   (by ext; simp)
   (by ext; simp)
 
@@ -861,7 +866,7 @@ by rw [is_root, eval_map, eval₂_hom, h.eq_zero, f.map_zero]
 
 lemma is_root.of_map {R} [comm_ring R] {f : R →+* S} {x : R} {p : R[X]}
   (h : is_root (p.map f) (f x)) (hf : function.injective f) : is_root p x :=
-by rwa [is_root, ←f.injective_iff'.mp hf, ←eval₂_hom, ←eval_map]
+by rwa [is_root, ←(injective_iff_map_eq_zero' f).mp hf, ←eval₂_hom, ←eval_map]
 
 lemma is_root_map_iff {R : Type*} [comm_ring R] {f : R →+* S} {x : R} {p : R[X]}
   (hf : function.injective f) : is_root (p.map f) (f x) ↔ is_root p x :=

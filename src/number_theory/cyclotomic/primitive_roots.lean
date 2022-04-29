@@ -184,7 +184,8 @@ variables {K} [field K] [algebra K L] [ne_zero ((n : ℕ) : K)]
 
 /-- This mathematically trivial result is complementary to `norm_eq_one` below. -/
 lemma norm_eq_neg_one_pow (hζ : is_primitive_root ζ 2) : norm K ζ = (-1) ^ finrank K L :=
-by rw [hζ.eq_neg_one_of_two_right , show -1 = algebra_map K L (-1), by simp, norm_algebra_map]
+by rw [hζ.eq_neg_one_of_two_right , show -1 = algebra_map K L (-1), by simp,
+  algebra.norm_algebra_map]
 
 include hζ
 
@@ -195,7 +196,7 @@ lemma norm_eq_one [is_cyclotomic_extension {n} K L] (hn : n ≠ 2)
 begin
   by_cases h1 : n = 1,
   { rw [h1, one_coe, one_right_iff] at hζ,
-    rw [hζ, show 1 = algebra_map K L 1, by simp, norm_algebra_map, one_pow] },
+    rw [hζ, show 1 = algebra_map K L 1, by simp, algebra.norm_algebra_map, one_pow] },
   { replace h1 : 2 ≤ n,
     { by_contra' h,
       exact h1 (pnat.eq_one_of_lt_two h) },
@@ -211,7 +212,7 @@ lemma norm_eq_one_of_linearly_ordered {K : Type*} [linear_ordered_field K] [alge
 begin
   haveI := ne_zero.of_no_zero_smul_divisors K L n,
   have hz := congr_arg (norm K) ((is_primitive_root.iff_def _ n).1 hζ).1,
-  rw [←(algebra_map K L).map_one , norm_algebra_map, one_pow, map_pow, ←one_pow ↑n] at hz,
+  rw [←(algebra_map K L).map_one , algebra.norm_algebra_map, one_pow, map_pow, ←one_pow ↑n] at hz,
   exact strict_mono.injective hodd.strict_mono_pow hz
 end
 
@@ -412,7 +413,8 @@ begin
   { simp only [_root_.map_neg, map_bit0, _root_.map_one],
     ring },
   replace hirr : irreducible (cyclotomic (2 ^ (k + 1) : ℕ+) K) := by simp [hirr],
-  rw [this.eq_neg_one_of_two_right, H, norm_algebra_map, is_cyclotomic_extension.finrank L hirr,
+  rw [this.eq_neg_one_of_two_right, H, algebra.norm_algebra_map,
+    is_cyclotomic_extension.finrank L hirr,
     pow_coe, pnat.coe_bit0, one_coe, totient_prime_pow nat.prime_two (zero_lt_succ k),
     succ_sub_succ_eq_sub, tsub_zero, mul_one]
 end
@@ -437,6 +439,42 @@ begin
   replace hζ : is_primitive_root ζ (2 ^ k : ℕ+) := by simp [hζ],
   obtain ⟨k₁, hk₁⟩ := exists_eq_succ_of_ne_zero ((lt_of_lt_of_le zero_lt_two hk).ne.symm),
   simpa [hk₁] using sub_one_norm_eq_eval_cyclotomic hζ this hirr,
+end
+
+/-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` and
+`irreducible (cyclotomic (p ^ (k - s + 1)) K))` (in particular for `K = ℚ`) and `p` is a prime,
+then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)` if `1 ≤ k`. -/
+lemma pow_sub_one_norm_prime_pow_of_one_le [hne : ne_zero ((p : ℕ) : K)] {k s : ℕ}
+  (hζ : is_primitive_root ζ ↑(p ^ (k + 1))) [hpri : fact (p : ℕ).prime]
+  [hcycl : is_cyclotomic_extension {p ^ (k + 1)} K L]
+  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))
+  (hirr₁ : irreducible (cyclotomic (↑(p ^ (k - s + 1)) : ℕ) K)) (hs : s ≤ k)
+  (hk : 1 ≤ k) : norm K (ζ ^ ((p : ℕ) ^ s) - 1) = p ^ ((p : ℕ) ^ s) :=
+begin
+  by_cases htwo : p ^ (k - s + 1) = 2,
+  { have hp : p = 2,
+    { rw [← pnat.coe_inj, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe, ← pow_one 2] at htwo,
+      replace htwo := eq_of_prime_pow_eq (prime_iff.1 hpri.out) (prime_iff.1 nat.prime_two)
+        (succ_pos _) htwo,
+      rwa [show 2 = ((2 : ℕ+) : ℕ), by simp, pnat.coe_inj] at htwo },
+    replace hs : s = k,
+    { rw [hp, ← pnat.coe_inj, pnat.pow_coe, pnat.coe_bit0, pnat.one_coe] at htwo,
+      nth_rewrite 1 [← pow_one 2] at htwo,
+      replace htwo := nat.pow_right_injective rfl.le htwo,
+      rw [add_left_eq_self, nat.sub_eq_zero_iff_le] at htwo,
+      refine le_antisymm hs htwo },
+    haveI : ne_zero (2 : K),
+    { refine ⟨λ h, _⟩,
+      rw [hp, pnat.coe_bit0, one_coe, cast_bit0, cast_one, h] at hne,
+      simpa using hne.out },
+    simp only [hs, hp, pnat.coe_bit0, one_coe, coe_coe, cast_bit0, cast_one,
+      pow_coe] at ⊢ hζ hirr hcycl,
+    haveI := hcycl,
+    obtain ⟨k₁, hk₁⟩ := nat.exists_eq_succ_of_ne_zero (one_le_iff_ne_zero.1 hk),
+    rw [hζ.pow_sub_one_norm_two hirr],
+    rw [hk₁, pow_succ, pow_mul, neg_eq_neg_one_mul, mul_pow, neg_one_sq, one_mul, ← pow_mul,
+      ← pow_succ] },
+  { exact hζ.pow_sub_one_norm_prime_pow_ne_two hirr hirr₁ hs htwo }
 end
 
 end is_primitive_root

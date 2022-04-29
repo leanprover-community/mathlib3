@@ -4,15 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jalex Stark
 -/
 
-import algebra.polynomial.big_operators
-import data.matrix.char_p
-import field_theory.finite.basic
-import group_theory.perm.cycles
+import data.polynomial.expand
 import linear_algebra.matrix.charpoly.basic
-import linear_algebra.matrix.trace
-import linear_algebra.matrix.to_lin
-import ring_theory.polynomial.basic
-import ring_theory.power_basis
 
 /-!
 # Characteristic polynomials
@@ -181,53 +174,7 @@ begin
       not_false_iff] }
 end
 
-@[simp] lemma finite_field.matrix.charpoly_pow_card {K : Type*} [field K] [fintype K]
-  (M : matrix n n K) : (M ^ (fintype.card K)).charpoly = M.charpoly :=
-begin
-  casesI (is_empty_or_nonempty n).symm,
-  { cases char_p.exists K with p hp, letI := hp,
-    rcases finite_field.card K p with ⟨⟨k, kpos⟩, ⟨hp, hk⟩⟩,
-    haveI : fact p.prime := ⟨hp⟩,
-    dsimp at hk, rw hk at *,
-    apply (frobenius_inj K[X] p).iterate k,
-    repeat { rw iterate_frobenius, rw ← hk },
-    rw ← finite_field.expand_card,
-    unfold charpoly, rw [alg_hom.map_det, ← coe_det_monoid_hom,
-      ← (det_monoid_hom : matrix n n K[X] →* K[X]).map_pow],
-    apply congr_arg det,
-    refine mat_poly_equiv.injective _,
-    rw [alg_equiv.map_pow, mat_poly_equiv_charmatrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
-    { exact (id (mat_poly_equiv_eq_X_pow_sub_C (p ^ k) M) : _) },
-    { exact (C M).commute_X } },
-  { -- TODO[gh-6025]: remove this `haveI` once `subsingleton_of_empty_right` is a global instance
-    haveI : subsingleton (matrix n n K) := subsingleton_of_empty_right,
-    exact congr_arg _ (subsingleton.elim _ _), },
-end
-
-@[simp] lemma zmod.charpoly_pow_card (M : matrix n n (zmod p)) :
-  (M ^ p).charpoly = M.charpoly :=
-by { have h := finite_field.matrix.charpoly_pow_card M, rwa zmod.card at h, }
-
-lemma finite_field.trace_pow_card {K : Type*} [field K] [fintype K]
-  (M : matrix n n K) : trace n K K (M ^ (fintype.card K)) = (trace n K K M) ^ (fintype.card K) :=
-begin
-  casesI is_empty_or_nonempty n,
-  { simp [zero_pow fintype.card_pos], },
-  rw [matrix.trace_eq_neg_charpoly_coeff, matrix.trace_eq_neg_charpoly_coeff,
-       finite_field.matrix.charpoly_pow_card, finite_field.pow_card]
-end
-
-lemma zmod.trace_pow_card {p:ℕ} [fact p.prime] (M : matrix n n (zmod p)) :
-  trace n (zmod p) (zmod p) (M ^ p) = (trace n (zmod p) (zmod p) M)^p :=
-by { have h := finite_field.trace_pow_card M, rwa zmod.card at h, }
-
 namespace matrix
-
-theorem is_integral : is_integral R M := ⟨M.charpoly, ⟨charpoly_monic M, aeval_self_charpoly M⟩⟩
-
-theorem minpoly_dvd_charpoly {K : Type*} [field K] (M : matrix n n K) :
-  (minpoly K M) ∣ M.charpoly :=
-minpoly.dvd _ _ (aeval_self_charpoly M)
 
 /-- Any matrix polynomial `p` is equivalent under evaluation to `p %ₘ M.charpoly`; that is, `p`
 is equivalent to a polynomial with degree less than the dimension of the matrix. -/
@@ -242,29 +189,3 @@ lemma pow_eq_aeval_mod_charpoly (M : matrix n n R) (k : ℕ) : M^k = aeval M (X^
 by rw [←aeval_eq_aeval_mod_charpoly, map_pow, aeval_X]
 
 end matrix
-
-section power_basis
-
-open algebra
-
-/-- The characteristic polynomial of the map `λ x, a * x` is the minimal polynomial of `a`.
-
-In combination with `det_eq_sign_charpoly_coeff` or `trace_eq_neg_charpoly_coeff`
-and a bit of rewriting, this will allow us to conclude the
-field norm resp. trace of `x` is the product resp. sum of `x`'s conjugates.
--/
-lemma charpoly_left_mul_matrix {K S : Type*} [field K] [comm_ring S] [algebra K S]
-  (h : power_basis K S) :
-  (left_mul_matrix h.basis h.gen).charpoly = minpoly K h.gen :=
-begin
-  apply minpoly.unique,
-  { apply matrix.charpoly_monic },
-  { apply (injective_iff_map_eq_zero (left_mul_matrix _)).mp (left_mul_matrix_injective h.basis),
-    rw [← polynomial.aeval_alg_hom_apply, aeval_self_charpoly] },
-  { intros q q_monic root_q,
-    rw [matrix.charpoly_degree_eq_dim, fintype.card_fin, degree_eq_nat_degree q_monic.ne_zero],
-    apply with_bot.some_le_some.mpr,
-    exact h.dim_le_nat_degree_of_root q_monic.ne_zero root_q }
-end
-
-end power_basis

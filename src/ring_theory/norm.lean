@@ -6,7 +6,7 @@ Authors: Anne Baanen
 
 import field_theory.primitive_element
 import linear_algebra.determinant
-import linear_algebra.matrix.charpoly.coeff
+import linear_algebra.matrix.charpoly.minpoly
 import linear_algebra.matrix.to_linear_equiv
 import field_theory.is_alg_closed.algebraic_closure
 

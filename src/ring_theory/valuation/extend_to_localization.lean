@@ -8,7 +8,7 @@ import ring_theory.valuation.basic
 
 /-!
 
-# Extending valuations in a localization
+# Extending valuations to a localization
 
 We show that, given a valuation `v` taking values in a linearly ordered commutative *group*
 with zero `Γ`, and a submonoid `S` of `v.supp.prime_compl`, the valuation `v` can be naturally
@@ -16,14 +16,16 @@ extended to the localization `S⁻¹A`.
 
 -/
 
-variables {A : Type*} [comm_ring A] (S : submonoid A)
+variables
+  {A : Type*} [comm_ring A]
+  {Γ : Type*} [linear_ordered_comm_group_with_zero Γ] (v : valuation A Γ)
+  (S : submonoid A) (hS : S ≤ v.supp.prime_compl)
   (B : Type*) [comm_ring B] [algebra A B] [is_localization S B]
-variables {Γ : Type*} [linear_ordered_comm_group_with_zero Γ] (v : valuation A Γ)
 
 /-- We can extend a valuation `v` on a ring to a localization at a submonoid of
 the complement of `v.supp`. -/
 noncomputable
-def valuation.extend_to_localization (hS : S ≤ v.supp.prime_compl) : valuation B Γ :=
+def valuation.extend_to_localization : valuation B Γ :=
 let f := is_localization.to_localization_map S B,
     h : ∀ s : S, is_unit (v.1.to_monoid_hom s) := λ s, is_unit_iff_ne_zero.2 (hS s.2) in
 { map_zero' := by convert f.lift_eq _ 0; simp,
@@ -42,6 +44,6 @@ let f := is_localization.to_localization_map S B,
 ..f.lift h }
 
 @[simp]
-lemma valuation.extend_to_localization_apply_map_apply (hS : S ≤ v.supp.prime_compl)
-  (a : A) : v.extend_to_localization S B hS (algebra_map A B a) = v a :=
+lemma valuation.extend_to_localization_apply_map_apply (a : A) :
+  v.extend_to_localization S hS B (algebra_map A B a) = v a :=
 submonoid.localization_map.lift_eq _ _ a

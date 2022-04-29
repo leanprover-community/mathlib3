@@ -198,6 +198,10 @@ instance [has_finite_products V] : has_finite_products (Action V G) :=
 { out := λ J _ _, by exactI
   adjunction.has_limits_of_shape_of_equivalence (Action.functor_category_equivalence _ _).functor }
 
+instance [has_finite_limits V] : has_finite_limits (Action V G) :=
+{ out := λ J _ _, by exactI
+  adjunction.has_limits_of_shape_of_equivalence (Action.functor_category_equivalence _ _).functor }
+
 instance [has_limits V] : has_limits (Action V G) :=
 adjunction.has_limits_of_equivalence (Action.functor_category_equivalence _ _).functor
 

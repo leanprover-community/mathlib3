@@ -320,6 +320,10 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
 
+end surreal
+
+namespace pgame
+
 /-- To prove that surreal multiplication is well-defined, we use a modified argument by Schleicher.
 We simultaneously prove two assertions on numeric pre-games:
 
@@ -371,6 +375,11 @@ theorem result : ∀ x : mul_args, x.hypothesis
   { rintro (⟨ix, iy⟩ | ⟨ix, iy⟩) (⟨ix', jy⟩ | ⟨ix', jy⟩),
     {
       simp,
+      rcases lt_or_equiv_or_gt (xL ix) (xL ix') with h | h | h,
+      {
+        have := ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') oy).2 h).1 iy,
+        have := ((result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2 sorry).1 ix,
+      },
       /-cases lt_or_equiv_or_gt (ox₁.move_left ix) (ox₁.move_left ix'),
       {
 
@@ -409,12 +418,36 @@ end mul_args
 theorem numeric_mul {x y : pgame} : numeric x → numeric y → numeric (x * y) :=
 (mul_args.P1 x y).result
 
-theorem mul_congr_left {x y : pgame} : numeric x → numeric y → numeric (x * y) :=
-(mul_args.P1 x y).result
+theorem mul_congr_left {x₁ x₂ y : pgame} (ox₁ : numeric x₁) (ox₂ : numeric x₂) (oy : numeric y) :
+  x₁ ≈ x₂ → x₁ * y ≈ x₂ * y :=
+((mul_args.P2 x₁ x₂ y).result ox₁ ox₂ oy).1
+
+theorem mul_congr_right {x y₁ y₂ : pgame} (ox : numeric x) (oy₁ : numeric y₁) (oy₂ : numeric y₂)
+  (h : y₁ ≈ y₂) : x * y₁ ≈ x * y₂ :=
+pgame.equiv_trans (mul_comm_equiv _ _)
+  (pgame.equiv_trans (mul_congr_left oy₁ oy₂ ox h) (mul_comm_equiv _ _))
+
+theorem mul_congr {x₁ x₂ y₁ y₂ : pgame} (ox₁ : numeric x₁) (ox₂ : numeric x₂) (oy₁ : numeric y₁)
+  (oy₂ : numeric y₂) (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ * y₁ ≈ x₂ * y₂ :=
+pgame.equiv_trans (mul_congr_left ox₁ ox₂ oy₁ hx) (mul_congr_right ox₂ oy₁ oy₂ hy)
+
+end pgame
+
+namespace surreal
+
+/-- Multiplication of surreal numbers is inherited from pre-game multiplication: the product of
+`x = {xL | xR}` and `y = {yL | yR}` is
+`{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, x*yL + xR*y - xR*yL }`. -/
+def mul : surreal → surreal → surreal :=
+surreal.lift₂
+  (λ x y ox oy, ⟦⟨x * y, pgame.numeric_mul ox oy⟩⟧)
+  (λ _ _ _ _ ox₁ oy₁ ox₂ oy₂ hx hy, quotient.sound (pgame.mul_congr ox₁ ox₂ oy₁ oy₂ hx hy))
+
+instance : has_mul surreal := ⟨mul⟩
+
+end surreal
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
 -- TODO define the inclusion of groups `surreal → game`
 -- TODO define the field structure on the surreals
-
-end surreal

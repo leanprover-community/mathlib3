@@ -27,9 +27,43 @@ After this, we prove some additional results about matrix operations:
 * `matrix.exp_block_diagonal'`
 
 -/
+open_locale matrix
+
+instance function.topological_ring (I : Type*) (R : Type*)
+  [non_unital_ring R] [topological_space R] [topological_ring R] :
+  topological_ring (I → R) :=
+pi.topological_ring
+
+/-- A special case of `function.algebra` for when A is a ring not a semiring -/
+instance function.algebra_ring (I : Type*) {R : Type*} (A : Type*) [comm_semiring R]
+  [ring A] [algebra R A] : algebra R (I → A) :=
+pi.algebra _ _
 
 variables (𝕂 : Type*) {m n : Type*} {n' : m → Type*} {𝔸 : Type*}
-  [is_R_or_C 𝕂]
+
+section topological
+variables [fintype m] [decidable_eq m] [field 𝕂]
+  [ring 𝔸] [topological_space 𝔸] [topological_ring 𝔸] [algebra 𝕂 𝔸]
+  [has_continuous_const_smul 𝕂 𝔸] [t2_space 𝔸]
+
+namespace matrix
+
+lemma exp_diagonal (v : m → 𝔸) : exp 𝕂 _ (diagonal v) = diagonal (exp 𝕂 (m → 𝔸) v) :=
+by simp_rw [exp_eq_tsum, ←diagonal_ring_hom_apply, ←map_pow, diagonal_ring_hom_apply,
+    ←diagonal_smul, ←diagonal_tsum]
+
+-- where's transpose_pow!?
+-- lemma exp_transpose (A : matrix m m 𝔸) : exp 𝕂 (matrix m m 𝔸) Aᵀ = (exp 𝕂 _ A)ᵀ :=
+-- by simp_rw [exp_eq_tsum, ←tranpose_pow, ←map_pow, tranpose_ring_hom_apply,
+--     ←tranpose_smul, ←tranpose_tsum]
+
+end matrix
+
+end topological
+
+section normed
+
+variables [is_R_or_C 𝕂]
   [fintype m] [decidable_eq m]
   [fintype n] [decidable_eq n]
   [Π i, fintype (n' i)] [Π i, decidable_eq (n' i)]
@@ -91,17 +125,6 @@ begin
   exact exp_nsmul n A,
 end
 
-lemma exp_diagonal (v : m → 𝔸) :
-  exp 𝕂 _ (diagonal v) = diagonal (exp 𝕂 (m → 𝔸) v) :=
-begin
-  letI : semi_normed_ring (matrix m m 𝔸) := matrix.linfty_op_semi_normed_ring,
-  letI : normed_ring (matrix m m 𝔸) := matrix.linfty_op_normed_ring,
-  letI : normed_algebra 𝕂 (matrix m m 𝔸) := matrix.linfty_op_normed_algebra,
-  letI : normed_algebra 𝕂 (m → 𝔸) := by apply_instance,
-  refine (map_exp 𝕂 (diagonal_ring_hom m 𝔸) _ _).symm,
-  exact continuous_matrix.diagonal continuous_id,
-end
-
 lemma exp_block_diagonal (v : m → matrix n n 𝔸) :
   exp 𝕂 _ (block_diagonal v) = block_diagonal (exp 𝕂 (m → matrix n n 𝔸) v) :=
 begin
@@ -139,3 +162,5 @@ begin
 end
 
 end matrix
+
+end normed

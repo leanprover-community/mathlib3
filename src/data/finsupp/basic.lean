@@ -1241,7 +1241,7 @@ end
 /-- Taking the product under `h` is an additive-to-multiplicative homomorphism of finsupps,
 if `h` is an additive-to-multiplicative homomorphism.
 This is a more specialized version of `finsupp.prod_add_index` with simpler hypotheses. -/
-@[to_additive "Taking the product under `h` is an additive homomorphism of finsupps,
+@[to_additive "Taking the sum under `h` is an additive homomorphism of finsupps,
 if `h` is an additive homomorphism.
 This is a more specific version of `finsupp.sum_add_index` with simpler hypotheses."]
 lemma prod_add_index' [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
@@ -1812,8 +1812,12 @@ begin
   exact h b (hb.2.symm ▸ ha)
 end
 
-lemma map_domain_comap_domain [add_comm_monoid M] (f : α → β) (l : β →₀ M)
-  (hf : function.injective f) (hl : ↑l.support ⊆ set.range f):
+section f_injective
+
+variables [add_comm_monoid M] {v₂ v₁ v : β →₀ M} (f : α → β) (hf : function.injective f)
+include hf
+
+lemma map_domain_comap_domain (l : β →₀ M) (hl : ↑l.support ⊆ set.range f):
   map_domain f (comap_domain f l (hf.inj_on _)) = l :=
 begin
   ext a,
@@ -1824,6 +1828,26 @@ begin
     by_contra h_contr,
     apply h_cases (hl $ finset.mem_coe.2 $ mem_support_iff.2 $ λ h, h_contr h.symm) }
 end
+
+variable {f}
+
+@[simp] lemma comap_domain_zero :
+  comap_domain f (0 : β →₀ M) (hf.inj_on _) = (0 : α →₀ M) :=
+by { ext, simp only [comap_domain_apply, coe_zero, pi.zero_apply] }
+
+lemma comap_domain_add :
+  comap_domain f (v₁ + v₂) (hf.inj_on _) =
+    comap_domain f v₁ (hf.inj_on _) + comap_domain f v₂ (hf.inj_on _) :=
+by { ext, simp only [comap_domain_apply, coe_add, pi.add_apply] }
+
+/-- `finsupp.comap_domain` is an `add_monoid_hom`. -/
+@[simps]
+def comap_domain.add_monoid_hom : (β →₀ M) →+ (α →₀ M) :=
+{ to_fun := λ x, comap_domain f x (hf.inj_on _),
+  map_zero' := comap_domain_zero hf,
+  map_add' := λ _ _, comap_domain_add hf }
+
+end f_injective
 
 end comap_domain
 

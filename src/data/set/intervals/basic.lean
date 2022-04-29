@@ -186,8 +186,7 @@ Ioo_eq_empty h.not_lt
 lemma Ici_subset_Ici : Ici a ⊆ Ici b ↔ b ≤ a :=
 ⟨λ h, h $ left_mem_Ici, λ h x hx, h.trans hx⟩
 
-lemma Iic_subset_Iic : Iic a ⊆ Iic b ↔ a ≤ b :=
-@Ici_subset_Ici (order_dual α) _ _ _
+lemma Iic_subset_Iic : Iic a ⊆ Iic b ↔ a ≤ b := @Ici_subset_Ici αᵒᵈ _ _ _
 
 lemma Ici_subset_Ioi : Ici a ⊆ Ioi b ↔ b < a :=
 ⟨λ h, h left_mem_Ici, λ h x hx, h.trans_le hx⟩
@@ -485,7 +484,7 @@ classical.by_cases
 
 lemma mem_Iic_Iio_of_subset_of_subset {s : set α} (ho : Iio a ⊆ s) (hc : s ⊆ Iic a) :
   s ∈ ({Iic a, Iio a} : set (set α)) :=
-@mem_Ici_Ioi_of_subset_of_subset (order_dual α) _ a s ho hc
+@mem_Ici_Ioi_of_subset_of_subset αᵒᵈ _ a s ho hc
 
 lemma mem_Icc_Ico_Ioc_Ioo_of_subset_of_subset {s : set α} (ho : Ioo a b ⊆ s) (hc : s ⊆ Icc a b) :
   s ∈ ({Icc a b, Ico a b, Ioc a b, Ioo a b} : set (set α)) :=
@@ -627,7 +626,7 @@ lemma Ico_subset_Ico_iff (h₁ : a₁ < b₁) :
 
 lemma Ioc_subset_Ioc_iff (h₁ : a₁ < b₁) :
   Ioc a₁ b₁ ⊆ Ioc a₂ b₂ ↔ b₁ ≤ b₂ ∧ a₂ ≤ a₁ :=
-by { convert @Ico_subset_Ico_iff (order_dual α) _ b₁ b₂ a₁ a₂ h₁; exact (@dual_Ico α _ _ _).symm }
+by { convert @Ico_subset_Ico_iff αᵒᵈ _ b₁ b₂ a₁ a₂ h₁; exact (@dual_Ico α _ _ _).symm }
 
 lemma Ioo_subset_Ioo_iff [densely_ordered α] (h₁ : a₁ < b₁) :
   Ioo a₁ b₁ ⊆ Ioo a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=

@@ -123,13 +123,13 @@ lemma id_le_iterate_of_id_le (h : id ≤ f) (n : ℕ) : id ≤ (f^[n]) :=
 by simpa only [iterate_id] using monotone_id.iterate_le_of_le h n
 
 lemma iterate_le_id_of_le_id (h : f ≤ id) (n : ℕ) : (f^[n]) ≤ id :=
-@id_le_iterate_of_id_le (order_dual α) _ f h n
+@id_le_iterate_of_id_le αᵒᵈ _ f h n
 
 lemma monotone_iterate_of_id_le (h : id ≤ f) : monotone (λ m, f^[m]) :=
 monotone_nat_of_le_succ $ λ n x, by { rw iterate_succ_apply', exact h _ }
 
 lemma antitone_iterate_of_le_id (h : f ≤ id) : antitone (λ m, f^[m]) :=
-λ m n hmn, @monotone_iterate_of_id_le (order_dual α) _ f h m n hmn
+λ m n hmn, @monotone_iterate_of_id_le αᵒᵈ _ f h m n hmn
 
 end preorder
 
@@ -161,7 +161,7 @@ by refine hf.seq_pos_lt_seq_of_le_of_lt hn _ (λ k hk, _) (λ k hk, _);
 lemma iterate_pos_lt_of_map_lt' (h : commute f g) (hf : strict_mono f) (hg : monotone g)
   {x} (hx : f x < g x) {n} (hn : 0 < n) :
   f^[n] x < (g^[n]) x :=
-@iterate_pos_lt_of_map_lt (order_dual α) _ g f h.symm hg.dual hf.dual x hx n hn
+@iterate_pos_lt_of_map_lt αᵒᵈ _ g f h.symm hg.dual hf.dual x hx n hn
 
 end preorder
 
@@ -180,7 +180,7 @@ end
 lemma iterate_pos_lt_iff_map_lt' (h : commute f g) (hf : strict_mono f)
   (hg : monotone g) {x n} (hn : 0 < n) :
   f^[n] x < (g^[n]) x ↔ f x < g x :=
-@iterate_pos_lt_iff_map_lt (order_dual α) _ _ _ h.symm hg.dual hf.dual x n hn
+@iterate_pos_lt_iff_map_lt αᵒᵈ _ _ _ h.symm hg.dual hf.dual x n hn
 
 lemma iterate_pos_le_iff_map_le (h : commute f g) (hf : monotone f)
   (hg : strict_mono g) {x n} (hn : 0 < n) :

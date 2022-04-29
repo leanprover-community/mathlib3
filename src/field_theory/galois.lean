@@ -251,7 +251,7 @@ by conv { to_rhs, rw [←fixed_field_fixing_subgroup K,
 
 /-- The Galois correspondence from intermediate fields to subgroups -/
 def intermediate_field_equiv_subgroup [finite_dimensional F E] [is_galois F E] :
-  intermediate_field F E ≃o order_dual (subgroup (E ≃ₐ[F] E)) :=
+  intermediate_field F E ≃o (subgroup (E ≃ₐ[F] E)ᵒᵈ) :=
 { to_fun := intermediate_field.fixing_subgroup,
   inv_fun := intermediate_field.fixed_field,
   left_inv := λ K, fixed_field_fixing_subgroup K,

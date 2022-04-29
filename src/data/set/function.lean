@@ -875,7 +875,7 @@ lemma piecewise_le {δ : α → Type*} [Π i, preorder (δ i)] {s : set α} [Π 
 lemma le_piecewise {δ : α → Type*} [Π i, preorder (δ i)] {s : set α} [Π j, decidable (j ∈ s)]
   {f₁ f₂ g : Π i, δ i} (h₁ : ∀ i ∈ s, g i ≤ f₁ i) (h₂ : ∀ i ∉ s, g i ≤ f₂ i) :
   g ≤ s.piecewise f₁ f₂ :=
-@piecewise_le α (λ i, order_dual (δ i)) _ s _ _ _ _ h₁ h₂
+@piecewise_le α (λ i, (δ i)ᵒᵈ) _ s _ _ _ _ h₁ h₂
 
 lemma piecewise_le_piecewise {δ : α → Type*} [Π i, preorder (δ i)] {s : set α}
   [Π j, decidable (j ∈ s)] {f₁ f₂ g₁ g₂ : Π i, δ i} (h₁ : ∀ i ∈ s, f₁ i ≤ g₁ i)
@@ -995,7 +995,7 @@ lemma strict_mono_on.inj_on [linear_order α] [preorder β] {f : α → β} {s :
 lemma strict_anti_on.inj_on [linear_order α] [preorder β] {f : α → β} {s : set α}
   (H : strict_anti_on f s) :
   s.inj_on f :=
-@strict_mono_on.inj_on α (order_dual β) _ _ f s H
+@strict_mono_on.inj_on α βᵒᵈ _ _ f s H
 
 lemma strict_mono_on.comp [preorder α] [preorder β] [preorder γ]
   {g : β → γ} {f : α → β} {s : set α} {t : set β} (hg : strict_mono_on g t)

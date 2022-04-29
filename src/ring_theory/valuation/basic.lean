@@ -47,7 +47,7 @@ on R / J = `ideal.quotient J` is `on_quot v h`.
 
 ## Implementation Details
 
-`add_valuation R Γ₀` is implemented as `valuation R (multiplicative (order_dual Γ₀))`.
+`add_valuation R Γ₀` is implemented as `valuation R (multiplicative Γ₀)ᵒᵈ`.
 
 ## TODO
 
@@ -448,7 +448,7 @@ variables (R) [ring R] (Γ₀ : Type*) [linear_ordered_add_comm_monoid_with_top 
 
 /-- The type of `Γ₀`-valued additive valuations on `R`. -/
 @[nolint has_inhabited_instance]
-def add_valuation := valuation R (multiplicative (order_dual Γ₀))
+def add_valuation := valuation R (multiplicative Γ₀ᵒᵈ)
 
 end add_monoid
 
@@ -473,8 +473,7 @@ section
 variables (f : R → Γ₀) (h0 : f 0 = ⊤) (h1 : f 1 = 0)
 variables (hadd : ∀ x y, min (f x) (f y) ≤ f (x + y)) (hmul : ∀ x y, f (x * y) = f x + f y)
 
-/-- An alternate constructor of `add_valuation`, that doesn't reference
-  `multiplicative (order_dual Γ₀)` -/
+/-- An alternate constructor of `add_valuation`, that doesn't reference `multiplicative Γ₀ᵒᵈ` -/
 def of : add_valuation R Γ₀ :=
 { to_fun := f,
   map_one' := h1,
@@ -489,7 +488,7 @@ theorem of_apply : (of f h0 h1 hadd hmul) r = f r := rfl
 
 /-- The `valuation` associated to an `add_valuation` (useful if the latter is constructed using
 `add_valuation.of`). -/
-def valuation : valuation R (multiplicative (order_dual Γ₀)) := v
+def valuation : valuation R (multiplicative Γ₀ᵒᵈ) := v
 
 @[simp] lemma valuation_apply (r : R) :
   v.valuation r = multiplicative.of_add (order_dual.to_dual (v r)) := rfl

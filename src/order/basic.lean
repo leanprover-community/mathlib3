@@ -392,34 +392,36 @@ instance order.preimage.decidable {α β} (f : α → β) (s : β → β → Pro
 /-- Type synonym to equip a type with the dual order: `≤` means `≥` and `<` means `>`. -/
 def order_dual (α : Type*) : Type* := α
 
+notation α `ᵒᵈ`:std.prec.max_plus := order_dual α
+
 namespace order_dual
 
-instance (α : Type*) [h : nonempty α] : nonempty (order_dual α) := h
-instance (α : Type*) [h : subsingleton α] : subsingleton (order_dual α) := h
-instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λ x y : α, y ≤ x⟩
-instance (α : Type*) [has_lt α] : has_lt (order_dual α) := ⟨λ x y : α, y < x⟩
-instance (α : Type*) [has_zero α] : has_zero (order_dual α) := ⟨(0 : α)⟩
+instance (α : Type*) [h : nonempty α] : nonempty αᵒᵈ := h
+instance (α : Type*) [h : subsingleton α] : subsingleton αᵒᵈ := h
+instance (α : Type*) [has_le α] : has_le αᵒᵈ := ⟨λ x y : α, y ≤ x⟩
+instance (α : Type*) [has_lt α] : has_lt αᵒᵈ := ⟨λ x y : α, y < x⟩
+instance (α : Type*) [has_zero α] : has_zero αᵒᵈ := ⟨(0 : α)⟩
 
 -- `dual_le` and `dual_lt` should not be simp lemmas:
--- they cause a loop since `α` and `order_dual α` are definitionally equal
+-- they cause a loop since `α` and `αᵒᵈ` are definitionally equal
 
 lemma dual_le [has_le α] {a b : α} :
-  @has_le.le (order_dual α) _ a b ↔ @has_le.le α _ b a := iff.rfl
+  @has_le.le αᵒᵈ _ a b ↔ @has_le.le α _ b a := iff.rfl
 
 lemma dual_lt [has_lt α] {a b : α} :
-  @has_lt.lt (order_dual α) _ a b ↔ @has_lt.lt α _ b a := iff.rfl
+  @has_lt.lt αᵒᵈ _ a b ↔ @has_lt.lt α _ b a := iff.rfl
 
-instance (α : Type*) [preorder α] : preorder (order_dual α) :=
+instance (α : Type*) [preorder α] : preorder αᵒᵈ :=
 { le_refl          := le_refl,
   le_trans         := λ a b c hab hbc, hbc.trans hab,
   lt_iff_le_not_le := λ _ _, lt_iff_le_not_le,
   .. order_dual.has_le α,
   .. order_dual.has_lt α }
 
-instance (α : Type*) [partial_order α] : partial_order (order_dual α) :=
+instance (α : Type*) [partial_order α] : partial_order αᵒᵈ :=
 { le_antisymm := λ a b hab hba, @le_antisymm α _ a b hba hab, .. order_dual.preorder α }
 
-instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
+instance (α : Type*) [linear_order α] : linear_order αᵒᵈ :=
 { le_total     := λ a b : α, le_total b a,
   decidable_le := (infer_instance : decidable_rel (λ a b : α, b ≤ a)),
   decidable_lt := (infer_instance : decidable_rel (λ a b : α, b < a)),
@@ -429,18 +431,18 @@ instance (α : Type*) [linear_order α] : linear_order (order_dual α) :=
   max_def := @linear_order.min_def α _,
   .. order_dual.partial_order α }
 
-instance : Π [inhabited α], inhabited (order_dual α) := id
+instance : Π [inhabited α], inhabited αᵒᵈ := id
 
 theorem preorder.dual_dual (α : Type*) [H : preorder α] :
-  order_dual.preorder (order_dual α) = H :=
+  order_dual.preorder αᵒᵈ = H :=
 preorder.ext $ λ _ _, iff.rfl
 
 theorem partial_order.dual_dual (α : Type*) [H : partial_order α] :
-  order_dual.partial_order (order_dual α) = H :=
+  order_dual.partial_order αᵒᵈ = H :=
 partial_order.ext $ λ _ _, iff.rfl
 
 theorem linear_order.dual_dual (α : Type*) [H : linear_order α] :
-  order_dual.linear_order (order_dual α) = H :=
+  order_dual.linear_order αᵒᵈ = H :=
 linear_order.ext $ λ _ _, iff.rfl
 
 end order_dual
@@ -626,7 +628,7 @@ lemma exists_between [has_lt α] [densely_ordered α] :
 densely_ordered.dense
 
 instance order_dual.densely_ordered (α : Type u) [has_lt α] [densely_ordered α] :
-  densely_ordered (order_dual α) :=
+  densely_ordered αᵒᵈ :=
 ⟨λ a₁ a₂ ha, (@exists_between α _ _ _ _ ha).imp $ λ a, and.symm⟩
 
 lemma le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}

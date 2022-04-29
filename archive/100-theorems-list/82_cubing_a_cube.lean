@@ -496,7 +496,7 @@ noncomputable def sequence_of_cubes : ℕ → { i : ι // valley cs ((cs i).shif
 | 0     := let v := valley_unit_cube h      in ⟨mi h v, valley_mi⟩
 | (k+1) := let v := (sequence_of_cubes k).2 in ⟨mi h v, valley_mi⟩
 
-def decreasing_sequence (k : ℕ) : order_dual ℝ :=
+def decreasing_sequence (k : ℕ) : ℝᵒᵈ :=
 (cs (sequence_of_cubes h k).1).w
 
 lemma strict_mono_sequence_of_cubes : strict_mono $ decreasing_sequence h :=

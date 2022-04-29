@@ -25,61 +25,38 @@ variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
 namespace order_dual
 
-instance [nontrivial α] : nontrivial (order_dual α) := by delta order_dual; assumption
+instance [nontrivial α] : nontrivial αᵒᵈ := by delta order_dual; assumption
 
 /-- `to_dual` is the identity function to the `order_dual` of a linear order.  -/
-def to_dual : α ≃ order_dual α := ⟨id, id, λ h, rfl, λ h, rfl⟩
+def to_dual : α ≃ αᵒᵈ := ⟨id, id, λ h, rfl, λ h, rfl⟩
 
 /-- `of_dual` is the identity function from the `order_dual` of a linear order.  -/
-def of_dual : order_dual α ≃ α := to_dual.symm
+def of_dual : αᵒᵈ ≃ α := to_dual.symm
 
 @[simp] lemma to_dual_symm_eq : (@to_dual α).symm = of_dual := rfl
-
 @[simp] lemma of_dual_symm_eq : (@of_dual α).symm = to_dual := rfl
-
-@[simp] lemma to_dual_of_dual (a : order_dual α) : to_dual (of_dual a) = a := rfl
+@[simp] lemma to_dual_of_dual (a : αᵒᵈ) : to_dual (of_dual a) = a := rfl
 @[simp] lemma of_dual_to_dual (a : α) : of_dual (to_dual a) = a := rfl
 
-@[simp] lemma to_dual_inj {a b : α} :
-  to_dual a = to_dual b ↔ a = b := iff.rfl
+@[simp] lemma to_dual_inj {a b : α} : to_dual a = to_dual b ↔ a = b := iff.rfl
+@[simp] lemma of_dual_inj {a b : αᵒᵈ} : of_dual a = of_dual b ↔ a = b := iff.rfl
 
-@[simp] lemma to_dual_le_to_dual [has_le α] {a b : α} :
-  to_dual a ≤ to_dual b ↔ b ≤ a := iff.rfl
+@[simp] lemma to_dual_le_to_dual [has_le α] {a b : α} : to_dual a ≤ to_dual b ↔ b ≤ a := iff.rfl
+@[simp] lemma to_dual_lt_to_dual [has_lt α] {a b : α} : to_dual a < to_dual b ↔ b < a := iff.rfl
+@[simp] lemma of_dual_le_of_dual [has_le α] {a b : αᵒᵈ} : of_dual a ≤ of_dual b ↔ b ≤ a := iff.rfl
+@[simp] lemma of_dual_lt_of_dual [has_lt α] {a b : αᵒᵈ} : of_dual a < of_dual b ↔ b < a := iff.rfl
 
-@[simp] lemma to_dual_lt_to_dual [has_lt α] {a b : α} :
-  to_dual a < to_dual b ↔ b < a := iff.rfl
+lemma le_to_dual [has_le α] {a : αᵒᵈ} {b : α} : a ≤ to_dual b ↔ b ≤ of_dual a := iff.rfl
+lemma lt_to_dual [has_lt α] {a : αᵒᵈ} {b : α} : a < to_dual b ↔ b < of_dual a := iff.rfl
+lemma to_dual_le [has_le α] {a : α} {b : αᵒᵈ} : to_dual a ≤ b ↔ of_dual b ≤ a := iff.rfl
+lemma to_dual_lt [has_lt α] {a : α} {b : αᵒᵈ} : to_dual a < b ↔ of_dual b < a := iff.rfl
 
-@[simp] lemma of_dual_inj {a b : order_dual α} :
-  of_dual a = of_dual b ↔ a = b := iff.rfl
-
-@[simp] lemma of_dual_le_of_dual [has_le α] {a b : order_dual α} :
-  of_dual a ≤ of_dual b ↔ b ≤ a := iff.rfl
-
-@[simp] lemma of_dual_lt_of_dual [has_lt α] {a b : order_dual α} :
-  of_dual a < of_dual b ↔ b < a := iff.rfl
-
-lemma le_to_dual [has_le α] {a : order_dual α} {b : α} :
-  a ≤ to_dual b ↔ b ≤ of_dual a := iff.rfl
-
-lemma lt_to_dual [has_lt α] {a : order_dual α} {b : α} :
-  a < to_dual b ↔ b < of_dual a := iff.rfl
-
-lemma to_dual_le [has_le α] {a : α} {b : order_dual α} :
-  to_dual a ≤ b ↔ of_dual b ≤ a := iff.rfl
-
-lemma to_dual_lt [has_lt α] {a : α} {b : order_dual α} :
-  to_dual a < b ↔ of_dual b < a := iff.rfl
-
-/-- Recursor for `order_dual α`. -/
+/-- Recursor for `αᵒᵈ`. -/
 @[elab_as_eliminator]
-protected def rec {C : order_dual α → Sort*} (h₂ : Π (a : α), C (to_dual a)) :
-  Π (a : order_dual α), C a := h₂
+protected def rec {C : αᵒᵈ → Sort*} (h₂ : Π (a : α), C (to_dual a)) : Π (a : αᵒᵈ), C a := h₂
 
-@[simp] protected lemma «forall» {p : order_dual α → Prop} : (∀ a, p a) ↔ ∀ a, p (to_dual a) :=
-iff.rfl
-
-@[simp] protected lemma «exists» {p : order_dual α → Prop} : (∃ a, p a) ↔ ∃ a, p (to_dual a) :=
-iff.rfl
+@[simp] protected lemma «forall» {p : αᵒᵈ → Prop} : (∀ a, p a) ↔ ∀ a, p (to_dual a) := iff.rfl
+@[simp] protected lemma «exists» {p : αᵒᵈ → Prop} : (∃ a, p a) ↔ ∃ a, p (to_dual a) := iff.rfl
 
 end order_dual
 

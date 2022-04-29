@@ -91,14 +91,14 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
   has_exists_mul_of_le α :=
 ⟨λ a b hab, ⟨b * a⁻¹, (mul_inv_cancel_comm_assoc a b).symm⟩⟩
 
-@[to_additive] instance [h : has_inv α] : has_inv (order_dual α) := h
-@[to_additive] instance [h : has_div α] : has_div (order_dual α) := h
-@[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv (order_dual α) := h
-@[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid (order_dual α) := h
-@[to_additive] instance [h : group α] : group (order_dual α) := h
-@[to_additive] instance [h : comm_group α] : comm_group (order_dual α) := h
+@[to_additive] instance [h : has_inv α] : has_inv αᵒᵈ := h
+@[to_additive] instance [h : has_div α] : has_div αᵒᵈ := h
+@[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv αᵒᵈ := h
+@[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid αᵒᵈ := h
+@[to_additive] instance [h : group α] : group αᵒᵈ := h
+@[to_additive] instance [h : comm_group α] : comm_group αᵒᵈ := h
 
-@[to_additive] instance [ordered_comm_group α] : ordered_comm_group (order_dual α) :=
+@[to_additive] instance [ordered_comm_group α] : ordered_comm_group αᵒᵈ :=
 { .. order_dual.ordered_comm_monoid, .. order_dual.group }
 
 section group
@@ -292,7 +292,7 @@ variable (α)
 
 /-- `x ↦ x⁻¹` as an order-reversing equivalence. -/
 @[to_additive "`x ↦ -x` as an order-reversing equivalence.", simps]
-def order_iso.inv : α ≃o order_dual α :=
+def order_iso.inv : α ≃o αᵒᵈ :=
 { to_equiv := (equiv.inv α).trans order_dual.to_dual,
   map_rel_iff' := λ a b, @inv_le_inv_iff α _ _ _ _ _ _ }
 
@@ -853,7 +853,7 @@ calc a ≤ b * (b⁻¹ * c) : h _ (lt_inv_mul_iff_lt.mpr hc)
 
 @[to_additive]
 lemma le_of_forall_lt_one_mul_le (h : ∀ ε < 1, a * ε ≤ b) : a ≤ b :=
-@le_of_forall_one_lt_le_mul (order_dual α) _ _ _ _ _ _ h
+@le_of_forall_one_lt_le_mul αᵒᵈ _ _ _ _ _ _ h
 
 @[to_additive]
 lemma le_of_forall_one_lt_div_le (h : ∀ ε : α, 1 < ε → a / ε ≤ b) : a ≤ b :=
@@ -866,7 +866,7 @@ lemma le_iff_forall_one_lt_le_mul : a ≤ b ↔ ∀ ε, 1 < ε → a ≤ b * ε 
 
 @[to_additive]
 lemma le_iff_forall_lt_one_mul_le : a ≤ b ↔ ∀ ε < 1, a * ε ≤ b :=
-@le_iff_forall_one_lt_le_mul (order_dual α) _ _ _ _ _ _
+@le_iff_forall_one_lt_le_mul αᵒᵈ _ _ _ _ _ _
 
 end densely_ordered
 
@@ -897,7 +897,7 @@ multiplication is monotone. -/
 class linear_ordered_comm_group (α : Type u) extends ordered_comm_group α, linear_order α
 
 @[to_additive] instance [linear_ordered_comm_group α] :
-  linear_ordered_comm_group (order_dual α) :=
+  linear_ordered_comm_group αᵒᵈ :=
 { .. order_dual.ordered_comm_group, .. order_dual.linear_order α }
 
 section linear_ordered_comm_group
@@ -933,11 +933,11 @@ mul_lt_mul_left' h c
 
 @[to_additive min_neg_neg]
 lemma min_inv_inv' (a b : α) : min (a⁻¹) (b⁻¹) = (max a b)⁻¹ :=
-eq.symm $ @monotone.map_max α (order_dual α) _ _ has_inv.inv a b $ λ a b, inv_le_inv_iff.mpr
+eq.symm $ @monotone.map_max α αᵒᵈ _ _ has_inv.inv a b $ λ a b, inv_le_inv_iff.mpr
 
 @[to_additive max_neg_neg]
 lemma max_inv_inv' (a b : α) : max (a⁻¹) (b⁻¹) = (min a b)⁻¹ :=
-eq.symm $ @monotone.map_min α (order_dual α) _ _ has_inv.inv a b $ λ a b, inv_le_inv_iff.mpr
+eq.symm $ @monotone.map_min α αᵒᵈ _ _ has_inv.inv a b $ λ a b, inv_le_inv_iff.mpr
 
 @[to_additive min_sub_sub_right]
 lemma min_div_div_right' (a b c : α) : min (a / c) (b / c) = min a b / c :=

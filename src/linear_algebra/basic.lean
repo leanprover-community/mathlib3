@@ -971,7 +971,7 @@ end
 The decreasing sequence of submodules consisting of the ranges of the iterates of a linear map.
 -/
 @[simps]
-def iterate_range (f : M →ₗ[R] M) : ℕ →o order_dual (submodule R M) :=
+def iterate_range (f : M →ₗ[R] M) : ℕ →o (submodule R M)ᵒᵈ :=
 ⟨λ n, (f ^ n).range, λ n m w x h, begin
   obtain ⟨c, rfl⟩ := le_iff_exists_add.mp w,
   rw linear_map.mem_range at h,

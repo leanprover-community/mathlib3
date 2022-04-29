@@ -218,7 +218,7 @@ lemma sup_univ_eq_supr [complete_lattice β] (f : α → β) : finset.univ.sup f
 
 /-- A special case of `finset.inf_eq_infi` that omits the useless `x ∈ univ` binder. -/
 lemma inf_univ_eq_infi [complete_lattice β] (f : α → β) : finset.univ.inf f = infi f :=
-sup_univ_eq_supr (by exact f : α → order_dual β)
+sup_univ_eq_supr (by exact f : α → βᵒᵈ)
 
 @[simp] lemma fold_inf_univ [semilattice_inf α] [order_bot α] (a : α) :
   finset.univ.fold (⊓) a (λ x, x) = ⊥ :=
@@ -227,7 +227,7 @@ eq_bot_iff.2 $ ((finset.fold_op_rel_iff_and $ @_root_.le_inf_iff α _).1 le_rfl)
 
 @[simp] lemma fold_sup_univ [semilattice_sup α] [order_top α] (a : α) :
   finset.univ.fold (⊔) a (λ x, x) = ⊤ :=
-@fold_inf_univ (order_dual α) ‹fintype α› _ _ _
+@fold_inf_univ αᵒᵈ ‹fintype α› _ _ _
 
 end finset
 
@@ -891,10 +891,10 @@ fintype.of_equiv _ equiv.plift.symm
   fintype.card (plift α) = fintype.card α :=
 fintype.of_equiv_card _
 
-instance (α : Type*) [fintype α] : fintype (order_dual α) := ‹fintype α›
+instance (α : Type*) [fintype α] : fintype αᵒᵈ := ‹fintype α›
 
-@[simp] lemma fintype.card_order_dual (α : Type*) [fintype α] :
-  fintype.card (order_dual α) = fintype.card α := rfl
+@[simp] lemma fintype.card_order_dual (α : Type*) [fintype α] : fintype.card αᵒᵈ = fintype.card α :=
+rfl
 
 instance (α : Type*) [fintype α] : fintype (lex α) := ‹fintype α›
 
@@ -1788,7 +1788,7 @@ end
 
 lemma finset.exists_maximal {α : Type*} [preorder α] (s : finset α) (h : s.nonempty) :
   ∃ m ∈ s, ∀ x ∈ s, ¬ (m < x) :=
-@finset.exists_minimal (order_dual α) _ s h
+@finset.exists_minimal αᵒᵈ _ s h
 
 namespace infinite
 

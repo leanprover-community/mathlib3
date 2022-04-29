@@ -845,13 +845,12 @@ section
 variables [semilattice_inf α] [nonempty α] {s : set α}
 
 /--A finite set is bounded below.-/
-protected lemma finite.bdd_below (hs : finite s) : bdd_below s :=
-@finite.bdd_above (order_dual α) _ _ _ hs
+protected lemma finite.bdd_below (hs : finite s) : bdd_below s := @finite.bdd_above αᵒᵈ _ _ _ hs
 
 /--A finite union of sets which are all bounded below is still bounded below.-/
 lemma finite.bdd_below_bUnion {I : set β} {S : β → set α} (H : finite I) :
-  (bdd_below (⋃i∈I, S i)) ↔ (∀i ∈ I, bdd_below (S i)) :=
-@finite.bdd_above_bUnion (order_dual α) _ _ _ _ _ H
+  bdd_below (⋃ i ∈ I, S i) ↔ ∀ i ∈ I, bdd_below (S i) :=
+@finite.bdd_above_bUnion αᵒᵈ _ _ _ _ _ H
 
 lemma infinite_of_not_bdd_below : ¬ bdd_below s → s.infinite :=
 begin

@@ -51,7 +51,7 @@ lemma pi_univ_Ioi_subset : pi univ (λ i, Ioi (x i)) ⊆ Ioi x :=
   λ h, nonempty.elim ‹nonempty ι› $ λ i, (h i).not_lt (hz i trivial)⟩
 
 lemma pi_univ_Iio_subset : pi univ (λ i, Iio (x i)) ⊆ Iio x :=
-@pi_univ_Ioi_subset ι (λ i, order_dual (α i)) _ x _
+@pi_univ_Ioi_subset ι (λ i, (α i)ᵒᵈ) _ x _
 
 lemma pi_univ_Ioo_subset : pi univ (λ i, Ioo (x i) (y i)) ⊆ Ioo x y :=
 λ x hx, ⟨pi_univ_Ioi_subset _ $ λ i hi, (hx i hi).1, pi_univ_Iio_subset _ $ λ i hi, (hx i hi).2⟩

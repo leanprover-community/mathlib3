@@ -696,8 +696,7 @@ calc
       : add_le_add (smul_le_smul_of_nonneg hx ha) (smul_le_smul_of_nonneg hy hb)
   ... = r : convex.combo_self hab _
 
-lemma convex_Ici (r : β) : convex 𝕜 (Ici r) :=
-@convex_Iic 𝕜 (order_dual β) _ _ _ _ r
+lemma convex_Ici (r : β) : convex 𝕜 (Ici r) := @convex_Iic 𝕜 βᵒᵈ _ _ _ _ r
 
 lemma convex_Icc (r s : β) : convex 𝕜 (Icc r s) :=
 Ici_inter_Iic.subst ((convex_Ici r).inter $ convex_Iic s)
@@ -736,8 +735,7 @@ begin
     ... = r : convex.combo_self hab _
 end
 
-lemma convex_Ioi (r : β) : convex 𝕜 (Ioi r) :=
-@convex_Iio 𝕜 (order_dual β) _ _ _ _ r
+lemma convex_Ioi (r : β) : convex 𝕜 (Ioi r) := @convex_Iio 𝕜 βᵒᵈ _ _ _ _ r
 
 lemma convex_Ioo (r s : β) : convex 𝕜 (Ioo r s) :=
 Ioi_inter_Iio.subst ((convex_Ioi r).inter $ convex_Iio s)
@@ -786,27 +784,27 @@ lemma monotone_on.convex_lt (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β)
 
 lemma monotone_on.convex_ge (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | r ≤ f x} :=
-@monotone_on.convex_le 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ _ _ hf.dual hs r
+@monotone_on.convex_le 𝕜 Eᵒᵈ βᵒᵈ _ _ _ _ _ _ _ hf.dual hs r
 
 lemma monotone_on.convex_gt (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | r < f x} :=
-@monotone_on.convex_lt 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ _ _ hf.dual hs r
+@monotone_on.convex_lt 𝕜 Eᵒᵈ βᵒᵈ _ _ _ _ _ _ _ hf.dual hs r
 
 lemma antitone_on.convex_le (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | f x ≤ r} :=
-@monotone_on.convex_ge 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
+@monotone_on.convex_ge 𝕜 E βᵒᵈ _ _ _ _ _ _ _ hf hs r
 
 lemma antitone_on.convex_lt (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | f x < r} :=
-@monotone_on.convex_gt 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
+@monotone_on.convex_gt 𝕜 E βᵒᵈ _ _ _ _ _ _ _ hf hs r
 
 lemma antitone_on.convex_ge (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | r ≤ f x} :=
-@monotone_on.convex_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
+@monotone_on.convex_le 𝕜 E βᵒᵈ _ _ _ _ _ _ _ hf hs r
 
 lemma antitone_on.convex_gt (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | r < f x} :=
-@monotone_on.convex_lt 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
+@monotone_on.convex_lt 𝕜 E βᵒᵈ _ _ _ _ _ _ _ hf hs r
 
 lemma monotone.convex_le (hf : monotone f) (r : β) :
   convex 𝕜 {x | f x ≤ r} :=

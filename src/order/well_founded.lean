@@ -75,7 +75,7 @@ by simp only [eq_iff_not_lt_of_le, well_founded_iff_has_min]
 
 theorem well_founded_iff_has_min' [partial_order α] : (well_founded (has_lt.lt : α → α → Prop)) ↔
   ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, x ≤ m → x = m :=
-@well_founded_iff_has_max' (order_dual α) _
+@well_founded_iff_has_max' αᵒᵈ _
 
 open set
 /-- The supremum of a bounded, well-founded order -/

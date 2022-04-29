@@ -2046,8 +2046,7 @@ variables [partial_order α] {a b : α}
 lemma Iio_ae_eq_Iic' (ha : μ {a} = 0) : Iio a =ᵐ[μ] Iic a :=
 by rw [←Iic_diff_right, diff_ae_eq_self, measure_mono_null (set.inter_subset_right _ _) ha]
 
-lemma Ioi_ae_eq_Ici' (ha : μ {a} = 0) : Ioi a =ᵐ[μ] Ici a :=
-@Iio_ae_eq_Iic' (order_dual α) ‹_› ‹_› _ _ ha
+lemma Ioi_ae_eq_Ici' (ha : μ {a} = 0) : Ioi a =ᵐ[μ] Ici a := @Iio_ae_eq_Iic' αᵒᵈ ‹_› ‹_› _ _ ha
 
 lemma Ioo_ae_eq_Ioc' (hb : μ {b} = 0) : Ioo a b =ᵐ[μ] Ioc a b :=
 (ae_eq_refl _).inter (Iio_ae_eq_Iic' hb)

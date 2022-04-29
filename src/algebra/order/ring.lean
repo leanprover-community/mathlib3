@@ -95,20 +95,20 @@ namespace order_dual
 /-! Note that `order_dual` does not satisfy any of the ordered ring typeclasses due to the
 `zero_le_one` field. -/
 
-instance [h : distrib α] : distrib (order_dual α) := h
-instance [has_mul α] [h : has_distrib_neg α] : has_distrib_neg (order_dual α) := h
-instance [h : non_unital_non_assoc_semiring α] : non_unital_non_assoc_semiring (order_dual α) := h
-instance [h : non_unital_semiring α] : non_unital_semiring (order_dual α) := h
-instance [h : non_assoc_semiring α] : non_assoc_semiring (order_dual α) := h
-instance [h : semiring α] : semiring (order_dual α) := h
-instance [h : non_unital_comm_semiring α] : non_unital_comm_semiring (order_dual α) := h
-instance [h : comm_semiring α] : comm_semiring (order_dual α) := h
-instance [h : non_unital_non_assoc_ring α] : non_unital_non_assoc_ring (order_dual α) := h
-instance [h : non_unital_ring α] : non_unital_ring (order_dual α) := h
-instance [h : non_assoc_ring α] : non_assoc_ring (order_dual α) := h
-instance [h : ring α] : ring (order_dual α) := h
-instance [h : non_unital_comm_ring α] : non_unital_comm_ring (order_dual α) := h
-instance [h : comm_ring α] : comm_ring (order_dual α) := h
+instance [h : distrib α] : distrib αᵒᵈ := h
+instance [has_mul α] [h : has_distrib_neg α] : has_distrib_neg αᵒᵈ := h
+instance [h : non_unital_non_assoc_semiring α] : non_unital_non_assoc_semiring αᵒᵈ := h
+instance [h : non_unital_semiring α] : non_unital_semiring αᵒᵈ := h
+instance [h : non_assoc_semiring α] : non_assoc_semiring αᵒᵈ := h
+instance [h : semiring α] : semiring αᵒᵈ := h
+instance [h : non_unital_comm_semiring α] : non_unital_comm_semiring αᵒᵈ := h
+instance [h : comm_semiring α] : comm_semiring αᵒᵈ := h
+instance [h : non_unital_non_assoc_ring α] : non_unital_non_assoc_ring αᵒᵈ := h
+instance [h : non_unital_ring α] : non_unital_ring αᵒᵈ := h
+instance [h : non_assoc_ring α] : non_assoc_ring αᵒᵈ := h
+instance [h : ring α] : ring αᵒᵈ := h
+instance [h : non_unital_comm_ring α] : non_unital_comm_ring αᵒᵈ := h
+instance [h : comm_ring α] : comm_ring αᵒᵈ := h
 
 end order_dual
 

@@ -84,7 +84,7 @@ lemma set.ord_connected.apply_wcovby_apply_iff (f : α ↪o β) (h : (range f).o
 @[simp] lemma to_dual_wcovby_to_dual_iff : to_dual b ⩿ to_dual a ↔ a ⩿ b :=
 and_congr_right' $ forall_congr $ λ c, forall_swap
 
-@[simp] lemma of_dual_wcovby_of_dual_iff {a b : order_dual α} :
+@[simp] lemma of_dual_wcovby_of_dual_iff {a b : αᵒᵈ} :
   of_dual a ⩿ of_dual b ↔ b ⩿ a :=
 and_congr_right' $ forall_congr $ λ c, forall_swap
 
@@ -148,8 +148,7 @@ lemma densely_ordered_iff_forall_not_covby : densely_ordered α ↔ ∀ a b : α
 @[simp] lemma to_dual_covby_to_dual_iff : to_dual b ⋖ to_dual a ↔ a ⋖ b :=
 and_congr_right' $ forall_congr $ λ c, forall_swap
 
-@[simp] lemma of_dual_covby_of_dual_iff {a b : order_dual α} :
-  of_dual a ⋖ of_dual b ↔ b ⋖ a :=
+@[simp] lemma of_dual_covby_of_dual_iff {a b : αᵒᵈ} : of_dual a ⋖ of_dual b ↔ b ⋖ a :=
 and_congr_right' $ forall_congr $ λ c, forall_swap
 
 alias to_dual_covby_to_dual_iff ↔ _ covby.to_dual

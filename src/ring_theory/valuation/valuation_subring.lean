@@ -284,8 +284,7 @@ def prime_spectrum_equiv :
 
 /-- An ordered variant of `prime_spectrum_equiv`. -/
 @[simps]
-def prime_spectrum_order_equiv :
-  order_dual (prime_spectrum A) ≃o { S | A ≤ S } :=
+def prime_spectrum_order_equiv : (prime_spectrum A)ᵒᵈ ≃o {S | A ≤ S} :=
 { map_rel_iff' := λ P Q,
     ⟨ λ h, begin
         have := ideal_of_le_le_of_le A _ _ _ _ h,

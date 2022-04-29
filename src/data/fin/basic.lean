@@ -1192,7 +1192,7 @@ begin
 end
 
 /-- By sending `x` to `last n - x`, `fin n` is order-equivalent to its `order_dual`. -/
-def _root_.order_iso.fin_equiv : ∀ {n}, order_dual (fin n) ≃o fin n
+def _root_.order_iso.fin_equiv : ∀ {n}, (fin n)ᵒᵈ ≃o fin n
 | 0 := ⟨⟨elim0, elim0, elim0, elim0⟩, elim0⟩
 | (n+1) := order_iso.symm $
 { to_fun    := λ x, last n - x,

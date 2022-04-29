@@ -143,12 +143,12 @@ let ⟨a₀, _, ha₀⟩ := hf.exists_within_forall_le univ_nonempty in ⟨a₀,
 lemma filter.tendsto.exists_within_forall_ge [linear_order β] {s : set α} (hs : s.nonempty)
   {f : α → β} (hf : filter.tendsto f filter.cofinite filter.at_bot) :
   ∃ a₀ ∈ s, ∀ a ∈ s, f a ≤ f a₀ :=
-@filter.tendsto.exists_within_forall_le _ (order_dual β) _ _ hs _ hf
+@filter.tendsto.exists_within_forall_le _ βᵒᵈ _ _ hs _ hf
 
 lemma filter.tendsto.exists_forall_ge [nonempty α] [linear_order β] {f : α → β}
   (hf : tendsto f cofinite at_bot) :
   ∃ a₀, ∀ a, f a ≤ f a₀ :=
-@filter.tendsto.exists_forall_le _ (order_dual β) _ _ _ hf
+@filter.tendsto.exists_forall_le _ βᵒᵈ _ _ _ hf
 
 /-- For an injective function `f`, inverse images of finite sets are finite. See also
 `filter.comap_cofinite_le` and `function.injective.comap_cofinite_eq`. -/

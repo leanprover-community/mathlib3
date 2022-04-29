@@ -74,7 +74,7 @@ lemma map_inf [semilattice_inf α] [linear_order β]
 lemma map_sup [semilattice_sup α] [linear_order β]
   [rel_hom_class F ((>) : β → β → Prop) ((>) : α → α → Prop)]
   (a : F) (m n : β) : a (m ⊔ n) = a m ⊔ a n :=
-@map_inf (order_dual α) (order_dual β) _ _ _ _ _ _ _
+@map_inf αᵒᵈ βᵒᵈ _ _ _ _ _ _ _
 
 protected theorem is_irrefl [rel_hom_class F r s] (f : F) : ∀ [is_irrefl β s], is_irrefl α r
 | ⟨H⟩ := ⟨λ a h, H _ (map_rel f h)⟩

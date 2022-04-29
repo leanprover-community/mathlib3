@@ -127,7 +127,7 @@ by cases o₁; cases o₂; exact dec_trivial
 end ordering
 
 lemma order_dual.dual_compares [has_lt α] {a b : α} {o : ordering} :
-  @ordering.compares (order_dual α) _ o a b ↔ @ordering.compares α _ o b a :=
+  @ordering.compares αᵒᵈ _ o a b ↔ @ordering.compares α _ o b a :=
 by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
 
 lemma cmp_compares [linear_order α] (a b : α) : (cmp a b).compares a b :=
@@ -146,7 +146,7 @@ begin
 end
 
 lemma order_dual.cmp_le_flip {α} [has_le α] [@decidable_rel α (≤)] (x y : α) :
-  @cmp_le (order_dual α) _ _ x y = cmp_le y x := rfl
+  @cmp_le αᵒᵈ _ _ x y = cmp_le y x := rfl
 
 /-- Generate a linear order structure from a preorder and `cmp` function. -/
 def linear_order_of_compares [preorder α] (cmp : α → α → ordering)

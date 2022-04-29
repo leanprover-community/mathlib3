@@ -49,40 +49,36 @@ namespace order_dual
 
 variables {R M : Type*}
 
-instance [has_scalar R M] : has_scalar R (order_dual M) :=
-{ smul := λ k x, order_dual.rec (λ x', (k • x' : M)) x }
+instance [has_scalar R M] : has_scalar R Mᵒᵈ := ⟨λ k x, order_dual.rec $ λ x', (k • x' : M)⟩
 
-instance [has_zero R] [add_zero_class M] [h : smul_with_zero R M] :
-  smul_with_zero R (order_dual M) :=
+instance [has_zero R] [add_zero_class M] [h : smul_with_zero R M] : smul_with_zero R Mᵒᵈ :=
 { zero_smul := λ m, order_dual.rec (zero_smul _) m,
   smul_zero := λ r, order_dual.rec (smul_zero' _) r,
   ..order_dual.has_scalar }
 
-instance [monoid R] [mul_action R M] : mul_action R (order_dual M) :=
+instance [monoid R] [mul_action R M] : mul_action R Mᵒᵈ :=
 { one_smul := λ m, order_dual.rec (one_smul _) m,
   mul_smul := λ r, order_dual.rec mul_smul r,
   ..order_dual.has_scalar }
 
 instance [monoid_with_zero R] [add_monoid M] [mul_action_with_zero R M] :
-  mul_action_with_zero R (order_dual M) :=
+  mul_action_with_zero R Mᵒᵈ :=
 { ..order_dual.mul_action, ..order_dual.smul_with_zero }
 
 instance [monoid_with_zero R] [add_monoid M] [distrib_mul_action R M] :
-  distrib_mul_action R (order_dual M) :=
+  distrib_mul_action R Mᵒᵈ :=
 { smul_add := λ k a, order_dual.rec (λ a' b, order_dual.rec (smul_add _ _) b) a,
   smul_zero := λ r, order_dual.rec smul_zero r }
 
 instance [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M]
   [ordered_smul R M] :
-  ordered_smul R (order_dual M) :=
+  ordered_smul R Mᵒᵈ :=
 { smul_lt_smul_of_pos := λ a b, @ordered_smul.smul_lt_smul_of_pos R M _ _ _ _ b a,
   lt_of_smul_lt_smul_of_pos := λ a b,
     @ordered_smul.lt_of_smul_lt_smul_of_pos R M _ _ _ _ b a }
 
 @[simp] lemma to_dual_smul [has_scalar R M] {c : R} {a : M} : to_dual (c • a) = c • to_dual a := rfl
-
-@[simp] lemma of_dual_smul [has_scalar R M] {c : R} {a : order_dual M} :
-  of_dual (c • a) = c • of_dual a :=
+@[simp] lemma of_dual_smul [has_scalar R M] {c : R} {a : Mᵒᵈ} : of_dual (c • a) = c • of_dual a :=
 rfl
 
 end order_dual
@@ -109,7 +105,7 @@ calc (0 : M) = c • (0 : M) : (smul_zero' M c).symm
          ... ≤ c • a : smul_le_smul_of_nonneg ha hc
 
 lemma smul_nonpos_of_nonneg_of_nonpos (hc : 0 ≤ c) (ha : a ≤ 0) : c • a ≤ 0 :=
-@smul_nonneg R (order_dual M) _ _ _ _ _ _ hc ha
+@smul_nonneg R Mᵒᵈ _ _ _ _ _ _ hc ha
 
 lemma eq_of_smul_eq_smul_of_pos_of_le (h₁ : c • a = c • b) (hc : 0 < c) (hle : a ≤ b) :
   a = b :=

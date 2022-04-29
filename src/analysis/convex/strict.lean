@@ -153,8 +153,7 @@ begin
   { exact add_lt_add (smul_lt_smul_of_pos hx ha) (smul_lt_smul_of_pos hy hb) }
 end
 
-lemma strict_convex_Ici (r : β) : strict_convex 𝕜 (Ici r) :=
-@strict_convex_Iic 𝕜 (order_dual β) _ _ _ _ _ _ r
+lemma strict_convex_Ici (r : β) : strict_convex 𝕜 (Ici r) := @strict_convex_Iic 𝕜 βᵒᵈ _ _ _ _ _ _ r
 
 lemma strict_convex_Icc (r s : β) : strict_convex 𝕜 (Icc r s) :=
 (strict_convex_Ici r).inter $ strict_convex_Iic s

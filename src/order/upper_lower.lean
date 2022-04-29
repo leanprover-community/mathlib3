@@ -109,9 +109,9 @@ lemma is_lower_set_sInter {S : set (set α)} (hf : ∀ s ∈ S, is_lower_set s) 
 iff.rfl
 @[simp] lemma is_upper_set_preimage_of_dual_iff : is_upper_set (of_dual ⁻¹' s) ↔ is_lower_set s :=
 iff.rfl
-@[simp] lemma is_lower_set_preimage_to_dual_iff {s : set (order_dual α)} :
+@[simp] lemma is_lower_set_preimage_to_dual_iff {s : set αᵒᵈ} :
   is_lower_set (to_dual ⁻¹' s) ↔ is_upper_set s := iff.rfl
-@[simp] lemma is_upper_set_preimage_to_dual_iff {s : set (order_dual α)} :
+@[simp] lemma is_upper_set_preimage_to_dual_iff {s : set αᵒᵈ} :
   is_upper_set (to_dual ⁻¹' s) ↔ is_lower_set s := iff.rfl
 
 alias is_lower_set_preimage_of_dual_iff ↔ _ is_upper_set.of_dual
@@ -383,7 +383,7 @@ variables [semilattice_sup α]
 @[simp] lemma Ici_sup (a b : α) : Ici (a ⊔ b) = Ici a ⊓ Ici b := ext Ici_inter_Ici.symm
 
 /-- `upper_set.Ici` as a `sup_hom`. -/
-def Ici_sup_hom : sup_hom α (order_dual $ upper_set α) := ⟨Ici, Ici_sup⟩
+def Ici_sup_hom : sup_hom α (upper_set α)ᵒᵈ := ⟨Ici, Ici_sup⟩
 
 @[simp] lemma Ici_sup_hom_apply (a : α) : Ici_sup_hom a = to_dual (Ici a) := rfl
 
@@ -402,7 +402,7 @@ set_like.ext $ λ c, by simp only [mem_Ici_iff, mem_infi_iff, supr_le_iff]
 by simp_rw Ici_supr
 
 /-- `upper_set.Ici` as a `Sup_hom`. -/
-def Ici_Sup_hom : Sup_hom α (order_dual $ upper_set α) :=
+def Ici_Sup_hom : Sup_hom α (upper_set α)ᵒᵈ :=
 ⟨Ici, λ s, (Ici_Sup s).trans Inf_image.symm⟩
 
 @[simp] lemma Ici_Sup_hom_apply (a : α) : Ici_Sup_hom a = to_dual (Ici a) := rfl

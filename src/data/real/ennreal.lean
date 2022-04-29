@@ -252,10 +252,10 @@ lemma infi_ne_top [complete_lattice α] (f : ℝ≥0∞ → α) : (⨅ x ≠ ∞
 by rw [infi_subtype', cinfi_ne_top]
 
 lemma csupr_ne_top [has_Sup α] (f : ℝ≥0∞ → α) : (⨆ x : {x // x ≠ ∞}, f x) = ⨆ x : ℝ≥0, f x :=
-@cinfi_ne_top (order_dual α) _ _
+@cinfi_ne_top αᵒᵈ _ _
 
 lemma supr_ne_top [complete_lattice α] (f : ℝ≥0∞ → α) : (⨆ x ≠ ∞, f x) = ⨆ x : ℝ≥0, f x :=
-@infi_ne_top (order_dual α) _ _
+@infi_ne_top αᵒᵈ _ _
 
 lemma infi_ennreal {α : Type*} [complete_lattice α] {f : ℝ≥0∞ → α} :
   (⨅ n, f n) = (⨅ n : ℝ≥0, f n) ⊓ f ∞ :=
@@ -265,7 +265,7 @@ le_antisymm
 
 lemma supr_ennreal {α : Type*} [complete_lattice α] {f : ℝ≥0∞ → α} :
   (⨆ n, f n) = (⨆ n : ℝ≥0, f n) ⊔ f ∞ :=
-@infi_ennreal (order_dual α) _ _
+@infi_ennreal αᵒᵈ _ _
 
 @[simp] lemma add_top : a + ∞ = ∞ := add_top _
 @[simp] lemma top_add : ∞ + a = ∞ := top_add _
@@ -1067,7 +1067,7 @@ inv_lt_iff_inv_lt.trans $ by rw [inv_one]
 
 /-- The inverse map `λ x, x⁻¹` is an order isomorphism between `ℝ≥0∞` and its `order_dual` -/
 @[simps apply]
-def _root_.order_iso.inv_ennreal : ℝ≥0∞ ≃o order_dual ℝ≥0∞ :=
+def _root_.order_iso.inv_ennreal : ℝ≥0∞ ≃o ℝ≥0∞ᵒᵈ :=
 { to_fun := λ x, x⁻¹,
   inv_fun := λ x, x⁻¹,
   map_rel_iff' := λ a b, ennreal.inv_le_inv,

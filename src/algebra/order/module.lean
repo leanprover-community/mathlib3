@@ -29,7 +29,7 @@ variables {k M N : Type*}
 
 namespace order_dual
 
-instance [semiring k] [ordered_add_comm_monoid M] [module k M] : module k (order_dual M) :=
+instance [semiring k] [ordered_add_comm_monoid M] [module k M] : module k Mᵒᵈ :=
 { add_smul := λ r s x, order_dual.rec (add_smul _ _) x,
   zero_smul := λ m, order_dual.rec (zero_smul _) m }
 
@@ -110,7 +110,7 @@ calc
   ... = 0 : smul_zero' M c
 
 lemma smul_nonneg_of_nonpos_of_nonpos (hc : c ≤ 0) (ha : a ≤ 0) : 0 ≤ c • a :=
-@smul_nonpos_of_nonpos_of_nonneg k (order_dual M) _ _ _ _ _ _ hc ha
+@smul_nonpos_of_nonpos_of_nonneg k Mᵒᵈ _ _ _ _ _ _ hc ha
 
 alias smul_pos_iff_of_neg ↔ _ smul_pos_of_neg_of_neg
 alias smul_neg_iff_of_pos ↔ _ smul_neg_of_pos_of_neg
@@ -149,7 +149,7 @@ end
 variables (M)
 
 /-- Left scalar multiplication as an order isomorphism. -/
-@[simps] def order_iso.smul_left_dual {c : k} (hc : c < 0) : M ≃o order_dual M :=
+@[simps] def order_iso.smul_left_dual {c : k} (hc : c < 0) : M ≃o Mᵒᵈ :=
 { to_fun := λ b, order_dual.to_dual (c • b),
   inv_fun := λ b, c⁻¹ • (order_dual.of_dual b),
   left_inv := inv_smul_smul₀ hc.ne,

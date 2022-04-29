@@ -52,7 +52,7 @@ end
 lemma concave_on.le_map_center_mass (hf : concave_on 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i)
   (h₁ : 0 < ∑ i in t, w i) (hmem : ∀ i ∈ t, p i ∈ s) :
   t.center_mass w (f ∘ p) ≤ f (t.center_mass w p) :=
-@convex_on.map_center_mass_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ _ _ _ _ hf h₀ h₁ hmem
+@convex_on.map_center_mass_le 𝕜 E βᵒᵈ _ _ _ _ _ _ _ _ _ _ _ _ hf h₀ h₁ hmem
 
 /-- Convex **Jensen's inequality**, `finset.sum` version. -/
 lemma convex_on.map_sum_le (hf : convex_on 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i in t, w i = 1)
@@ -65,7 +65,7 @@ by simpa only [center_mass, h₁, inv_one, one_smul]
 lemma concave_on.le_map_sum (hf : concave_on 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i in t, w i = 1)
   (hmem : ∀ i ∈ t, p i ∈ s) :
   ∑ i in t, w i • f (p i) ≤ f (∑ i in t, w i • p i) :=
-@convex_on.map_sum_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ _ _ _ _ hf h₀ h₁ hmem
+@convex_on.map_sum_le 𝕜 E βᵒᵈ _ _ _ _ _ _ _ _ _ _ _ _ hf h₀ h₁ hmem
 
 end jensen
 
@@ -100,7 +100,7 @@ end
 lemma concave_on.exists_le_of_center_mass (h : concave_on 𝕜 s f)
   (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hw₁ : 0 < ∑ i in t, w i) (hp : ∀ i ∈ t, p i ∈ s) :
   ∃ i ∈ t, f (p i) ≤ f (t.center_mass w p) :=
-@convex_on.exists_ge_of_center_mass 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ _ _ _ _ h hw₀ hw₁ hp
+@convex_on.exists_ge_of_center_mass 𝕜 E βᵒᵈ _ _ _ _ _ _ _ _ _ _ _ _ h hw₀ hw₁ hp
 
 /-- Maximum principle for convex functions. If a function `f` is convex on the convex hull of `s`,
 then the eventual maximum of `f` on `convex_hull 𝕜 s` lies in `s`. -/
@@ -118,6 +118,6 @@ end
 then the eventual minimum of `f` on `convex_hull 𝕜 s` lies in `s`. -/
 lemma concave_on.exists_le_of_mem_convex_hull (hf : concave_on 𝕜 (convex_hull 𝕜 s) f) {x}
   (hx : x ∈ convex_hull 𝕜 s) : ∃ y ∈ s, f y ≤ f x :=
-@convex_on.exists_ge_of_mem_convex_hull 𝕜 E (order_dual β) _ _ _ _ _ _ _ _ hf _ hx
+@convex_on.exists_ge_of_mem_convex_hull 𝕜 E βᵒᵈ _ _ _ _ _ _ _ _ hf _ hx
 
 end maximum_principle

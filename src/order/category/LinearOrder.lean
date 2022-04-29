@@ -49,7 +49,7 @@ instance has_forget_to_Lattice : has_forget₂ LinearOrder Lattice :=
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : LinearOrder ⥤ LinearOrder :=
-{ obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
+{ obj := λ X, of Xᵒᵈ, map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `LinearOrder` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : LinearOrder ≌ LinearOrder :=

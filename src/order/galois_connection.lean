@@ -543,22 +543,22 @@ structure galois_coinsertion {α β : Type*} [preorder α] [preorder β] (l : α
 
 /-- Make a `galois_insertion u l` in the `order_dual`, from a `galois_coinsertion l u` -/
 def galois_coinsertion.dual {α β : Type*} [preorder α] [preorder β] {l : α → β} {u : β → α} :
-  galois_coinsertion l u → @galois_insertion (order_dual β) (order_dual α) _ _ u l :=
+  galois_coinsertion l u → galois_insertion (to_dual ∘ u ∘ of_dual) (to_dual ∘ l ∘ of_dual) :=
 λ x, ⟨x.1, x.2.dual, x.3, x.4⟩
 
 /-- Make a `galois_coinsertion u l` in the `order_dual`, from a `galois_insertion l u` -/
 def galois_insertion.dual {α β : Type*} [preorder α] [preorder β] {l : α → β} {u : β → α} :
-  galois_insertion l u → @galois_coinsertion (order_dual β) (order_dual α) _ _ u l :=
+  galois_insertion l u → galois_coinsertion (to_dual ∘ u ∘ of_dual) (to_dual ∘ l ∘ of_dual) :=
 λ x, ⟨x.1, x.2.dual, x.3, x.4⟩
 
 /-- Make a `galois_coinsertion l u` from a `galois_insertion l u` in the `order_dual` -/
 def galois_coinsertion.of_dual {α β : Type*} [preorder α] [preorder β] {l : α → β} {u : β → α} :
-  @galois_insertion (order_dual β) (order_dual α) _ _ u l → galois_coinsertion l u :=
+  galois_insertion (to_dual ∘ u ∘ of_dual) (to_dual ∘ l ∘ of_dual) → galois_coinsertion l u :=
 λ x, ⟨x.1, x.2.dual, x.3, x.4⟩
 
 /-- Make a `galois_insertion l u` from a `galois_coinsertion l u` in the `order_dual` -/
 def galois_insertion.of_dual {α β : Type*} [preorder α] [preorder β] {l : α → β} {u : β → α} :
-  @galois_coinsertion (order_dual β) (order_dual α) _ _ u l → galois_insertion l u :=
+  galois_coinsertion (to_dual ∘ u ∘ of_dual) (to_dual ∘ l ∘ of_dual) → galois_insertion l u :=
 λ x, ⟨x.1, x.2.dual, x.3, x.4⟩
 
 /-- Makes a Galois coinsertion from an order-preserving bijection. -/

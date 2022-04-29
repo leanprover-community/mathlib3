@@ -540,7 +540,7 @@ theorem find_max'_all {P : α → Prop} : ∀ (x : α) t, P x → all P t → P 
 /-! ### `insert` -/
 
 theorem dual_insert [preorder α] [is_total α (≤)] [@decidable_rel α (≤)] (x : α) :
-  ∀ t : ordnode α, dual (ordnode.insert x t) = @ordnode.insert (order_dual α) _ _ x (dual t)
+  ∀ t : ordnode α, dual (ordnode.insert x t) = @ordnode.insert αᵒᵈ _ _ x (dual t)
 | nil := rfl
 | (node _ l y r) := begin
   rw [ordnode.insert, dual, ordnode.insert, order_dual.cmp_le_flip, ← cmp_le_swap x y],
@@ -796,12 +796,12 @@ def bounded : ordnode α → with_bot α → with_top α → Prop
 | (node _ l x r) o₁ o₂ := bounded l o₁ ↑x ∧ bounded r ↑x o₂
 
 theorem bounded.dual : ∀ {t : ordnode α} {o₁ o₂} (h : bounded t o₁ o₂),
-  @bounded (order_dual α) _ (dual t) o₂ o₁
+  @bounded αᵒᵈ _ (dual t) o₂ o₁
 | nil o₁ o₂ h := by cases o₁; cases o₂; try {trivial}; exact h
 | (node s l x r) _ _ ⟨ol, or⟩ := ⟨or.dual, ol.dual⟩
 
-theorem bounded.dual_iff {t : ordnode α} {o₁ o₂} : bounded t o₁ o₂ ↔
-  @bounded (order_dual α) _ (dual t) o₂ o₁ :=
+theorem bounded.dual_iff {t : ordnode α} {o₁ o₂} :
+  bounded t o₁ o₂ ↔ @bounded αᵒᵈ _ (dual t) o₂ o₁ :=
 ⟨bounded.dual, λ h, by have := bounded.dual h;
   rwa [dual_dual, order_dual.preorder.dual_dual] at this⟩
 
@@ -927,8 +927,7 @@ theorem valid'.node {s l x r o₁ o₂}
   valid' o₁ (@node α s l x r) o₂ :=
 ⟨⟨hl.1, hr.1⟩, ⟨hs, hl.2, hr.2⟩, ⟨H, hl.3, hr.3⟩⟩
 
-theorem valid'.dual : ∀ {t : ordnode α} {o₁ o₂} (h : valid' o₁ t o₂),
-  @valid' (order_dual α) _ o₂ (dual t) o₁
+theorem valid'.dual : ∀ {t : ordnode α} {o₁ o₂} (h : valid' o₁ t o₂), @valid' αᵒᵈ _ o₂ (dual t) o₁
 | nil o₁ o₂ h := valid'_nil h.1.dual
 | (node s l x r) o₁ o₂ ⟨⟨ol, or⟩, ⟨rfl, sl, sr⟩, ⟨b, bl, br⟩⟩ :=
   let ⟨ol', sl', bl'⟩ := valid'.dual ⟨ol, sl, bl⟩,
@@ -937,16 +936,13 @@ theorem valid'.dual : ∀ {t : ordnode α} {o₁ o₂} (h : valid' o₁ t o₂),
    ⟨by simp [size_dual, add_comm], sr', sl'⟩,
    ⟨by rw [size_dual, size_dual]; exact b.symm, br', bl'⟩⟩
 
-theorem valid'.dual_iff {t : ordnode α} {o₁ o₂} : valid' o₁ t o₂ ↔
-  @valid' (order_dual α) _ o₂ (dual t) o₁ :=
+theorem valid'.dual_iff {t : ordnode α} {o₁ o₂} : valid' o₁ t o₂ ↔ @valid' αᵒᵈ _ o₂ (dual t) o₁ :=
 ⟨valid'.dual, λ h, by have := valid'.dual h;
   rwa [dual_dual, order_dual.preorder.dual_dual] at this⟩
 
-theorem valid.dual {t : ordnode α} : valid t →
-  @valid (order_dual α) _ (dual t) := valid'.dual
+theorem valid.dual {t : ordnode α} : valid t → @valid αᵒᵈ _ (dual t) := valid'.dual
 
-theorem valid.dual_iff {t : ordnode α} : valid t ↔
-  @valid (order_dual α) _ (dual t) := valid'.dual_iff
+theorem valid.dual_iff {t : ordnode α} : valid t ↔ @valid αᵒᵈ _ (dual t) := valid'.dual_iff
 
 theorem valid'.left {s l x r o₁ o₂} (H : valid' o₁ (@node α s l x r) o₂) : valid' o₁ l x :=
 ⟨H.1.1, H.2.2.1, H.3.2.1⟩

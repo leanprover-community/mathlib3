@@ -235,7 +235,7 @@ lemma pow_card_le_prod [preorder M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
   (l : list M) (n : M) (h : ∀ (x ∈ l), n ≤ x) :
   n ^ l.length ≤ l.prod :=
-@prod_le_pow_card (order_dual M) _ _ _ _ l n h
+@prod_le_pow_card Mᵒᵈ _ _ _ _ l n h
 
 @[to_additive exists_lt_of_sum_lt] lemma exists_lt_of_prod_lt' [linear_order M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)] {l : list ι}

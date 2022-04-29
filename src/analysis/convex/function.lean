@@ -131,7 +131,7 @@ lemma convex_on_const (c : β) (hs : convex 𝕜 s) : convex_on 𝕜 s (λ x:E, 
 ⟨hs, λ x y _ _ a b _ _ hab, (convex.combo_self hab c).ge⟩
 
 lemma concave_on_const (c : β) (hs : convex 𝕜 s) : concave_on 𝕜 s (λ x:E, c) :=
-@convex_on_const _ _ (order_dual β) _ _ _ _ _ _ c hs
+@convex_on_const _ _ βᵒᵈ _ _ _ _ _ _ c hs
 
 lemma convex_on_of_convex_epigraph (h : convex 𝕜 {p : E × β | p.1 ∈ s ∧ f p.1 ≤ p.2}) :
   convex_on 𝕜 s f :=
@@ -140,7 +140,7 @@ lemma convex_on_of_convex_epigraph (h : convex 𝕜 {p : E × β | p.1 ∈ s ∧
 
 lemma concave_on_of_convex_hypograph (h : convex 𝕜 {p : E × β | p.1 ∈ s ∧ p.2 ≤ f p.1}) :
   concave_on 𝕜 s f :=
-@convex_on_of_convex_epigraph 𝕜  E (order_dual β) _ _ _ _ _ _ _ h
+@convex_on_of_convex_epigraph 𝕜  E βᵒᵈ _ _ _ _ _ _ _ h
 
 end module
 
@@ -180,7 +180,7 @@ lemma convex_on_iff_convex_epigraph :
 
 lemma concave_on_iff_convex_hypograph :
   concave_on 𝕜 s f ↔ convex 𝕜 {p : E × β | p.1 ∈ s ∧ p.2 ≤ f p.1} :=
-@convex_on_iff_convex_epigraph 𝕜 E (order_dual β) _ _ _ _ _ _ _ f
+@convex_on_iff_convex_epigraph 𝕜 E βᵒᵈ _ _ _ _ _ _ _ f
 
 end ordered_smul
 
@@ -234,7 +234,7 @@ lemma concave_on_iff_forall_pos {s : set E} {f : E → β} :
   concave_on 𝕜 s f ↔ convex 𝕜 s ∧
     ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
     → a • f x + b • f y ≤ f (a • x + b • y) :=
-@convex_on_iff_forall_pos 𝕜 E (order_dual β) _ _ _ _ _ _ _
+@convex_on_iff_forall_pos 𝕜 E βᵒᵈ _ _ _ _ _ _ _
 
 lemma convex_on_iff_pairwise_pos {s : set E} {f : E → β} :
   convex_on 𝕜 s f ↔ convex 𝕜 s ∧
@@ -253,7 +253,7 @@ lemma concave_on_iff_pairwise_pos {s : set E} {f : E → β} :
   concave_on 𝕜 s f ↔ convex 𝕜 s ∧
    s.pairwise (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
     → a • f x + b • f y ≤ f (a • x + b • y)) :=
-@convex_on_iff_pairwise_pos 𝕜 E (order_dual β) _ _ _ _ _ _ _
+@convex_on_iff_pairwise_pos 𝕜 E βᵒᵈ _ _ _ _ _ _ _
 
 /-- A linear map is convex. -/
 lemma linear_map.convex_on (f : E →ₗ[𝕜] β) {s : set E} (hs : convex 𝕜 s) : convex_on 𝕜 s f :=
@@ -314,7 +314,7 @@ main use case is `E = ℝ` however one can apply it, e.g., to `ℝ^n` with lexic
 lemma linear_order.concave_on_of_lt (hs : convex 𝕜 s)
   (hf : ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x < y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
      a • f x + b • f y ≤ f (a • x + b • y)) : concave_on 𝕜 s f :=
-@linear_order.convex_on_of_lt _ _ (order_dual β) _ _ _ _ _ _ s f hs hf
+@linear_order.convex_on_of_lt _ _ βᵒᵈ _ _ _ _ _ _ s f hs hf
 
 /-- For a function on a convex set in a linearly ordered space (where the order and the algebraic
 structures aren't necessarily compatible), in order to prove that it is convex, it suffices to
@@ -337,7 +337,7 @@ main use case is `E = 𝕜` however one can apply it, e.g., to `𝕜^n` with lex
 lemma linear_order.strict_concave_on_of_lt (hs : convex 𝕜 s)
   (hf : ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x < y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
      a • f x + b • f y < f (a • x + b • y)) : strict_concave_on 𝕜 s f :=
-@linear_order.strict_convex_on_of_lt _ _ (order_dual β) _ _ _ _ _ _ _ _ hs hf
+@linear_order.strict_convex_on_of_lt _ _ βᵒᵈ _ _ _ _ _ _ _ _ hs hf
 
 end linear_order
 end module
@@ -824,7 +824,7 @@ end⟩
 lemma concave_on_iff_div {f : E → β} :
   concave_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b
   → 0 < a + b → (a/(a+b)) • f x + (b/(a+b)) • f y ≤ f ((a/(a+b)) • x + (b/(a+b)) • y) :=
-@convex_on_iff_div _ _ (order_dual β) _ _ _ _ _ _ _
+@convex_on_iff_div _ _ βᵒᵈ _ _ _ _ _ _ _
 
 lemma strict_convex_on_iff_div {f : E → β} :
   strict_convex_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a
@@ -844,7 +844,7 @@ end⟩
 lemma strict_concave_on_iff_div {f : E → β} :
   strict_concave_on 𝕜 s f ↔ convex 𝕜 s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x ≠ y → ∀ ⦃a b : 𝕜⦄, 0 < a
     → 0 < b → (a/(a+b)) • f x + (b/(a+b)) • f y < f ((a/(a+b)) • x + (b/(a+b)) • y) :=
-@strict_convex_on_iff_div _ _ (order_dual β) _ _ _ _ _ _ _
+@strict_convex_on_iff_div _ _ βᵒᵈ _ _ _ _ _ _ _
 
 end has_scalar
 end ordered_add_comm_monoid

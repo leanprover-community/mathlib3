@@ -358,7 +358,7 @@ end
 
 lemma antitone_on.interval_integrable {u : ℝ → E} {a b : ℝ} (hu : antitone_on u (interval a b)) :
   interval_integrable u μ a b :=
-@monotone_on.interval_integrable (order_dual E) _ _ _ _ _ _ _ _ _ hu
+@hu.dual.interval_integrable
 
 lemma monotone.interval_integrable {u : ℝ → E} {a b : ℝ} (hu : monotone u) :
   interval_integrable u μ a b :=

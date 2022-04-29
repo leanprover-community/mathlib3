@@ -64,7 +64,7 @@ instance complete_distrib_lattice.to_coframe [complete_distrib_lattice α] : cof
 section frame
 variables [frame α] {s t : set α} {a b : α}
 
-instance order_dual.coframe : coframe (order_dual α) :=
+instance order_dual.coframe : coframe αᵒᵈ :=
 { infi_sup_le_sup_Inf := frame.inf_Sup_le_supr_inf, ..order_dual.complete_lattice α }
 
 lemma inf_Sup_eq : a ⊓ Sup s = ⨆ b ∈ s, a ⊓ b :=
@@ -122,37 +122,31 @@ end frame
 section coframe
 variables [coframe α] {s t : set α} {a b : α}
 
-instance order_dual.frame : frame (order_dual α) :=
+instance order_dual.frame : frame αᵒᵈ :=
 { inf_Sup_le_supr_inf := coframe.infi_sup_le_sup_Inf, ..order_dual.complete_lattice α }
 
-theorem sup_Inf_eq : a ⊔ Inf s = (⨅ b ∈ s, a ⊔ b) :=
-@inf_Sup_eq (order_dual α) _ _ _
+lemma sup_Inf_eq : a ⊔ Inf s = ⨅ b ∈ s, a ⊔ b := @inf_Sup_eq αᵒᵈ _ _ _
+lemma Inf_sup_eq : Inf s ⊔ b = ⨅ a ∈ s, a ⊔ b := @Sup_inf_eq αᵒᵈ _ _ _
 
-theorem Inf_sup_eq : Inf s ⊔ b = (⨅ a ∈ s, a ⊔ b) :=
-@Sup_inf_eq (order_dual α) _ _ _
-
-theorem infi_sup_eq (f : ι → α) (a : α) : (⨅ i, f i) ⊔ a = ⨅ i, f i ⊔ a :=
-@supr_inf_eq (order_dual α) _ _ _ _
-
-theorem sup_infi_eq (a : α) (f : ι → α) : a ⊔ (⨅ i, f i) = ⨅ i, a ⊔ f i :=
-@inf_supr_eq (order_dual α) _ _ _ _
+lemma infi_sup_eq (f : ι → α) (a : α) : (⨅ i, f i) ⊔ a = ⨅ i, f i ⊔ a := @supr_inf_eq αᵒᵈ _ _ _ _
+lemma sup_infi_eq (a : α) (f : ι → α) : a ⊔ (⨅ i, f i) = ⨅ i, a ⊔ f i := @inf_supr_eq αᵒᵈ _ _ _ _
 
 lemma binfi_sup_eq {f : Π i, κ i → α} (a : α) : (⨅ i j, f i j) ⊔ a = ⨅ i j, f i j ⊔ a :=
-@bsupr_inf_eq (order_dual α) _ _ _ _ _
+@bsupr_inf_eq αᵒᵈ _ _ _ _ _
 
 lemma sup_binfi_eq {f : Π i, κ i → α} (a : α) : a ⊔ (⨅ i j, f i j) = ⨅ i j, a ⊔ f i j :=
-@inf_bsupr_eq (order_dual α) _ _ _ _ _
+@inf_bsupr_eq αᵒᵈ _ _ _ _ _
 
 lemma infi_sup_infi {ι ι' : Type*} {f : ι → α} {g : ι' → α} :
   (⨅ i, f i) ⊔ (⨅ i, g i) = ⨅ i : ι × ι', f i.1 ⊔ g i.2 :=
-@supr_inf_supr (order_dual α) _ _ _ _ _
+@supr_inf_supr αᵒᵈ _ _ _ _ _
 
 lemma binfi_sup_binfi {ι ι' : Type*} {f : ι → α} {g : ι' → α} {s : set ι} {t : set ι'} :
   (⨅ i ∈ s, f i) ⊔ (⨅ j ∈ t, g j) = ⨅ p ∈ s ×ˢ t, f (p : ι × ι').1 ⊔ g p.2 :=
-@bsupr_inf_bsupr (order_dual α) _ _ _ _ _ _ _
+@bsupr_inf_bsupr αᵒᵈ _ _ _ _ _ _ _
 
 theorem Inf_sup_Inf : Inf s ⊔ Inf t = (⨅ p ∈ s ×ˢ t, (p : α × α).1 ⊔ p.2) :=
-@Sup_inf_Sup (order_dual α) _ _ _
+@Sup_inf_Sup αᵒᵈ _ _ _
 
 instance pi.coframe {ι : Type*} {π : ι → Type*} [Π i, coframe (π i)] : coframe (Π i, π i) :=
 { Inf := Inf,
@@ -165,7 +159,7 @@ end coframe
 section complete_distrib_lattice
 variables [complete_distrib_lattice α] {a b : α} {s t : set α}
 
-instance : complete_distrib_lattice (order_dual α) := { ..order_dual.frame, ..order_dual.coframe }
+instance : complete_distrib_lattice αᵒᵈ := { ..order_dual.frame, ..order_dual.coframe }
 
 instance pi.complete_distrib_lattice {ι : Type*} {π : ι → Type*}
   [Π i, complete_distrib_lattice (π i)] : complete_distrib_lattice (Π i, π i) :=

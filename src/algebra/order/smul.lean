@@ -49,7 +49,7 @@ namespace order_dual
 
 variables {R M : Type*}
 
-instance [has_scalar R M] : has_scalar R Mᵒᵈ := ⟨λ k x, order_dual.rec $ λ x', (k • x' : M)⟩
+instance [has_scalar R M] : has_scalar R Mᵒᵈ := ⟨λ k x, order_dual.rec (λ x', (k • x' : M)) x⟩
 
 instance [has_zero R] [add_zero_class M] [h : smul_with_zero R M] : smul_with_zero R Mᵒᵈ :=
 { zero_smul := λ m, order_dual.rec (zero_smul _) m,

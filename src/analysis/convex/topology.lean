@@ -317,15 +317,15 @@ by simpa only [metric.ball, sep_univ] using (convex_on_univ_dist a).convex_lt r
 lemma convex_closed_ball (a : E) (r : ℝ) : convex ℝ (metric.closed_ball a r) :=
 by simpa only [metric.closed_ball, sep_univ] using (convex_on_univ_dist a).convex_le r
 
-lemma convex.thickening (hs : convex ℝ s) (ε : ℝ) : convex ℝ (thickening ε s) :=
+lemma convex.thickening (hs : convex ℝ s) (δ : ℝ) : convex ℝ (thickening δ s) :=
 by { rw ←add_ball_zero, exact hs.add (convex_ball 0 _) }
 
-lemma convex.cthickening (hs : convex ℝ s) (ε : ℝ) : convex ℝ (cthickening ε s) :=
+lemma convex.cthickening (hs : convex ℝ s) (δ : ℝ) : convex ℝ (cthickening δ s) :=
 begin
-  obtain hε | hε := le_total 0 ε,
-  { rw cthickening_eq_Inter_thickening hε,
+  obtain hδ | hδ := le_total 0 δ,
+  { rw cthickening_eq_Inter_thickening hδ,
     exact convex_Inter₂ (λ _ _, hs.thickening _) },
-  { rw cthickening_of_nonpos hε,
+  { rw cthickening_of_nonpos hδ,
     exact hs.closure }
 end
 
@@ -334,12 +334,12 @@ disjoint convex sets containing them. -/
 -- TODO: This proof uses the normed space structure of `E`, but it could work for locally convex
 -- topological vector spaces: instead of looking at thickenings, we could show there must be some
 -- convex neighbourhood `u` of 0 which make `s + u` and `t + u` disjoint?
-lemma exists_disjoint_open_convexes (hs₁ : convex ℝ s) (hs₂ : is_compact s)
+lemma disjoint.exists_open_convexes (hs₁ : convex ℝ s) (hs₂ : is_compact s)
   (ht₁ : convex ℝ t) (ht₂ : is_closed t) (disj : disjoint s t) :
   ∃ u v, is_open u ∧ is_open v ∧ convex ℝ u ∧ convex ℝ v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
-let ⟨ε, hε, hst⟩ := exists_disjoint_thickenings hs₂ ht₂ disj in
+let ⟨δ, hδ, hst⟩ := disj.exists_thickenings hs₂ ht₂ in
   ⟨_, _, is_open_thickening, is_open_thickening, hs₁.thickening _, ht₁.thickening _,
-    self_subset_thickening hε _, self_subset_thickening hε _, hst⟩
+    self_subset_thickening hδ _, self_subset_thickening hδ _, hst⟩
 
 /-- Given a point `x` in the convex hull of `s` and a point `y`, there exists a point
 of `s` at distance at least `dist x y` from `y`. -/

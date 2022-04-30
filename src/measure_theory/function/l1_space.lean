@@ -571,17 +571,14 @@ lemma integrable.add
   {f g : α → β} (hf : integrable f μ) (hg : integrable g μ) : integrable (f + g) μ :=
 ⟨hf.ae_strongly_measurable.add hg.ae_strongly_measurable, hf.add' hg⟩
 
-lemma integrable_finset_sum {ι} (s : finset ι)
-  {f : ι → α → β} (hf : ∀ i ∈ s, integrable (f i) μ) : integrable (λ a, ∑ i in s, f i a) μ :=
-begin
-  simp only [← finset.sum_apply],
-  exact finset.sum_induction f (λ g, integrable g μ) (λ _ _, integrable.add)
-    (integrable_zero _ _ _) hf,
-end
-
 lemma integrable_finset_sum' {ι} (s : finset ι)
   {f : ι → α → β} (hf : ∀ i ∈ s, integrable (f i) μ) : integrable (∑ i in s, f i) μ :=
-by { convert integrable_finset_sum s hf, ext x, simp }
+finset.sum_induction f (λ g, integrable g μ) (λ _ _, integrable.add)
+  (integrable_zero _ _ _) hf
+
+lemma integrable_finset_sum {ι} (s : finset ι)
+  {f : ι → α → β} (hf : ∀ i ∈ s, integrable (f i) μ) : integrable (λ a, ∑ i in s, f i a) μ :=
+by simpa only [← finset.sum_apply] using integrable_finset_sum' s hf
 
 lemma integrable.neg {f : α → β} (hf : integrable f μ) : integrable (-f) μ :=
 ⟨hf.ae_strongly_measurable.neg, hf.has_finite_integral.neg⟩

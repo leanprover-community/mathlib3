@@ -935,7 +935,10 @@ end nat
 section piecewise_const
 
 variables [preorder ι] {𝒢 : filtration ι m} {τ η : α → ι} {i j : ι} {s : set α}
+  [decidable_pred (∈ s)]
 
+/-- Given stopping times `τ` and `η` which are bounded below, `set.piecewise s τ η` is also
+a stopping time with respect to the same filtration. -/
 lemma is_stopping_time.piecewise_of_le (hτ_st : is_stopping_time 𝒢 τ)
   (hη_st : is_stopping_time 𝒢 η) (hτ : ∀ x, i ≤ τ x) (hη : ∀ x, i ≤ η x)
   (hs : measurable_set[𝒢 i] s) :
@@ -961,6 +964,10 @@ lemma is_stopping_time_piecewise_const (hij : i ≤ j) (hs : measurable_set[𝒢
 (is_stopping_time_const i).piecewise_of_le (is_stopping_time_const j) (λ x, le_rfl) (λ _, hij) hs
 
 lemma stopped_value_piecewise_const {i j : ι} {f : ι → α → ℝ} :
+  stopped_value f (s.piecewise (λ _, i) (λ _, j)) = s.piecewise (f i) (f j) :=
+by { ext x, rw stopped_value, by_cases hx : x ∈ s; simp [hx] }
+
+lemma stopped_value_piecewise_const' {i j : ι} {f : ι → α → ℝ} :
   stopped_value f (s.piecewise (λ _, i) (λ _, j)) = s.indicator (f i) + sᶜ.indicator (f j) :=
 by { ext x, rw stopped_value, by_cases hx : x ∈ s; simp [hx] }
 

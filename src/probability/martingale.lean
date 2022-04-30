@@ -395,8 +395,7 @@ begin
     (is_stopping_time_const j) (λ x, (ite_le_sup _ _ _).trans (max_eq_right hij).le)
     ⟨j, λ x, le_rfl⟩,
   rwa [stopped_value_const, stopped_value_piecewise_const,
-    integral_add' ((hint i).indicator (𝒢.le _ _ hs)) ((hint j).indicator (𝒢.le _ _ hs.compl)),
-    integral_indicator (𝒢.le _ _ hs), integral_indicator (𝒢.le _ _ hs.compl),
+    integral_piecewise (𝒢.le _ _ hs) (hint _).integrable_on (hint _).integrable_on,
     ← integral_add_compl (𝒢.le _ _ hs) (hint j), add_le_add_iff_right] at hf,
 end
 

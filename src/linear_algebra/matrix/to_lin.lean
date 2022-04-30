@@ -66,15 +66,7 @@ variables [fintype n] [decidable_eq n]
 
 @[simp] lemma matrix.mul_vec_std_basis (M : matrix m n R) (i j) :
   M.mul_vec (std_basis R (λ _, R) j 1) i = M i j :=
-begin
-  have : (∑ j', M i j' * if j = j' then 1 else 0) = M i j,
-  { simp_rw [mul_boole, finset.sum_ite_eq, finset.mem_univ, if_true] },
-  convert this,
-  ext,
-  split_ifs with h; simp only [std_basis_apply],
-  { rw [h, function.update_same] },
-  { rw [function.update_noteq (ne.symm h), pi.zero_apply] }
-end
+(congr_fun (matrix.mul_vec_single _ _ _) i).trans $ mul_one
 
 /-- Linear maps `(n → R) →ₗ[R] (m → R)` are linearly equivalent to `matrix m n R`. -/
 def linear_map.to_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n R :=

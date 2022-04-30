@@ -626,7 +626,7 @@ by simpa only [mk_sigma, mk_sum, mk_out, lift_id] using
 sum_add_distrib f g
 
 @[simp] theorem sum_lift {ι : Type u} (f : ι → cardinal.{v}) :
-  cardinal.lift.{v'} (cardinal.sum f) = cardinal.sum (λ i, cardinal.lift.{v'} (f i)) :=
+  cardinal.lift.{w} (cardinal.sum f) = cardinal.sum (λ i, cardinal.lift.{w} (f i)) :=
 equiv.cardinal_eq $ equiv.ulift.trans $ equiv.sigma_congr_right $ λ a, nonempty.some $
   by rw [←lift_mk_eq, mk_out, mk_out, lift_lift]
 

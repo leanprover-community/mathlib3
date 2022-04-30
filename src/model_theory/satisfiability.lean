@@ -30,7 +30,10 @@ yet proven in mathlib.
 
 -/
 
-universes u v w
+universes u v w w'
+
+open cardinal
+open_locale cardinal first_order
 
 namespace first_order
 namespace language
@@ -84,11 +87,63 @@ theorem is_satisfiable_iff_is_finitely_satisfiable {T : L.Theory} :
   exact ⟨Model.of T M'⟩,
 end⟩
 
-lemma is_satisfiable_union_distinct_constants_theory (T : L.Theory) (s : set α) :
-  ((L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s).is_satisfiable ↔
-    ∃ (M : Model.{u v (max u v w)} T), cardinal.lift.{w} (# s) ≤ # M :=
+theorem is_satisfiable_directed_union_iff {ι : Type*} [nonempty ι]
+  {T : ι → L.Theory} (h : directed (⊆) T) :
+  Theory.is_satisfiable (⋃ i, T i) ↔ ∀ i, (T i).is_satisfiable :=
 begin
   sorry
+end
+
+theorem is_satisfiable_union_distinct_constants_theory_of_card_le (T : L.Theory) (s : set α)
+  (M : Type w') [nonempty M] [L.Structure M] [M ⊨ T]
+  (h : cardinal.lift.{w'} (# s) ≤ cardinal.lift.{w} (# M)) :
+  ((L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s).is_satisfiable :=
+begin
+  haveI : inhabited M := classical.inhabited_of_nonempty infer_instance,
+  rw [cardinal.lift_mk_le'] at h,
+  letI : (constants_on α).Structure M :=
+    constants_on.Structure (function.extend coe h.some default),
+  haveI : M ⊨ (L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s,
+  { refine ((Lhom.on_Theory_model _ _).2 infer_instance).union _,
+    rw [model_distinct_constants_theory],
+    refine λ a as b bs ab, _,
+    rw [← subtype.coe_mk a as, ← subtype.coe_mk b bs, ← subtype.ext_iff],
+    exact h.some.injective
+      ((function.extend_apply subtype.coe_injective h.some default ⟨a, as⟩).symm.trans
+      (ab.trans (function.extend_apply subtype.coe_injective h.some default ⟨b, bs⟩))), },
+  exact model.is_satisfiable M,
+end
+
+theorem is_satisfiable_union_distinct_constants_theory_of_infinite (T : L.Theory) (s : set α)
+  (M : Type w') [L.Structure M] [M ⊨ T] [infinite M] :
+  ((L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s).is_satisfiable :=
+begin
+  classical,
+  rw [distinct_constants_theory_eq_Union, set.union_Union, is_satisfiable_directed_union_iff],
+  { exact λ t, is_satisfiable_union_distinct_constants_theory_of_card_le T _ M ((lift_le_omega.2
+      (le_of_lt (finset_card_lt_omega _))).trans (omega_le_lift.2 (omega_le_mk M))), },
+  { refine monotone.directed_le (λ t1 t2 tt, _),
+    rw [finset.le_iff_subset, ← finset.coe_subset,
+      ← set.image_subset_image_iff subtype.coe_injective] at tt,
+    simp only [finset.coe_map, function.embedding.coe_subtype, set.le_eq_subset,
+      set.union_subset_iff, set.subset_union_left, true_and],
+    exact set.subset_union_of_subset_right
+      (set.image_subset _ (set.inter_subset_inter_left _ (set.prod_mono tt tt))) _ }
+end
+
+lemma exists_large_model_of_infinite_model (T : L.Theory) (κ : cardinal.{w})
+  (M : Type w') [L.Structure M] [M ⊨ T] [infinite M] :
+  ∃ (N : Model.{_ _ (max u v w)} T), cardinal.lift.{max u v w} κ ≤ # N :=
+begin
+  obtain ⟨N⟩ :=
+    is_satisfiable_union_distinct_constants_theory_of_infinite T (set.univ : set κ.out) M,
+  refine ⟨(N.is_model.mono (set.subset_union_left _ _)).bundled.reduct _, _⟩,
+  haveI : N ⊨ distinct_constants_theory _ _ := N.is_model.mono (set.subset_union_right _ _),
+  simp only [Model.reduct_carrier, coe_of, Model.carrier_eq_coe],
+  refine trans (lift_le.2 (le_of_eq (cardinal.mk_out κ).symm)) _,
+  rw [← mk_univ],
+  refine (card_le_of_model_distinct_constants_theory L set.univ N).trans (lift_le.1 _),
+  rw lift_lift,
 end
 
 variable (T)

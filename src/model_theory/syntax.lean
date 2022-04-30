@@ -651,25 +651,22 @@ lemma directed_distinct_constants_theory :
 monotone.directed_le (λ s t st, (image_subset _ (inter_subset_inter_left _ (prod_mono st st))))
 
 lemma distinct_constants_theory_eq_Union (s : set α) :
-  L.distinct_constants_theory s = ⋃ (t : finset α) (h : ↑t ⊆ s), L.distinct_constants_theory t :=
+  L.distinct_constants_theory s = ⋃ (t : finset s), L.distinct_constants_theory
+    (t.map (function.embedding.subtype (λ x, x ∈ s))) :=
 begin
   classical,
-  transitivity ⋃ (t : {t : finset α // ↑t ⊆ s}), L.distinct_constants_theory (t : set α),
-  { simp only [distinct_constants_theory],
-    rw [← image_Union, ← Union_inter],
-    refine congr rfl (congr (congr rfl _) rfl),
-    ext ⟨i, j⟩,
-    simp only [prod_mk_mem_set_prod_eq, coe_coe, mem_Union, finset.mem_coe, subtype.exists,
-      subtype.coe_mk, exists_prop],
-    refine ⟨λ h, ⟨{i, j}, _, _⟩, _⟩,
-    { simp only [finset.coe_insert, finset.coe_singleton],
-      rw [insert_subset, singleton_subset_iff],
-      exact h, },
-    { simp only [finset.mem_insert, eq_self_iff_true, finset.mem_singleton, true_or,
-        or_true, and_self], },
-    { rintros ⟨t, ht, it, jt⟩,
-      exact ⟨ht (finset.mem_coe.2 it), ht (finset.mem_coe.2 jt)⟩ } },
-  { exact Union_subtype _ _ }
+  simp only [distinct_constants_theory],
+  rw [← image_Union, ← Union_inter],
+  refine congr rfl (congr (congr rfl _) rfl),
+  ext ⟨i, j⟩,
+  simp only [prod_mk_mem_set_prod_eq, finset.coe_map, function.embedding.coe_subtype, mem_Union,
+    mem_image, finset.mem_coe, subtype.exists, subtype.coe_mk, exists_and_distrib_right,
+    exists_eq_right],
+  refine ⟨λ h, ⟨{⟨i, h.1⟩, ⟨j, h.2⟩}, ⟨h.1, _⟩, ⟨h.2, _⟩⟩, _⟩,
+  { simp },
+  { simp },
+  { rintros ⟨t, ⟨is, _⟩, ⟨js, _⟩⟩,
+    exact ⟨is, js⟩ }
 end
 
 end cardinality

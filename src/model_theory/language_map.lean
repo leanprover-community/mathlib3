@@ -352,12 +352,13 @@ by ext n f R; refl
 end
 
 open_locale first_order
-variables (A : set M)
 
-instance with_constants_Structure : L[[A]].Structure M :=
+variables (α : Type*) [(constants_on α).Structure M]
+
+instance with_constants_Structure : L[[α]].Structure M :=
 language.sum_Structure _ _ _
 
-instance with_constants_expansion : (L.Lhom_with_constants A).is_expansion_on M :=
+instance with_constants_expansion : (L.Lhom_with_constants α).is_expansion_on M :=
 ⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
 
 instance add_empty_constants_is_expansion_on' :
@@ -370,8 +371,10 @@ Lhom.sum_elim_is_expansion_on _ _ _
 
 instance add_constants_expansion {L' : language} [L'.Structure M] (φ : L →ᴸ L')
   [φ.is_expansion_on M] :
-  (φ.add_constants A).is_expansion_on M :=
+  (φ.add_constants α).is_expansion_on M :=
 Lhom.sum_map_is_expansion_on _ _ M
+
+variables {α} (A : set M)
 
 @[simp] lemma coe_con {a : A} : ((L.con a) : M) = a := rfl
 

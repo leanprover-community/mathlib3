@@ -793,8 +793,8 @@ An inverse to `dual_tensor_dual_map` given bases.
 noncomputable
 def dual_tensor_dual_inv_of_basis (b : basis ι R M) (c : basis κ R N) :
   dual R (M ⊗[R] N) →ₗ[R] (dual R M) ⊗[R] (dual R N) :=
-∑ i j, (ring_lmap_equiv_self R ℕ _).symm (b.dual_basis i ⊗ₜ c.dual_basis j)
-    ∘ₗ applyₗ (c j) ∘ₗ applyₗ (b i) ∘ₗ (lcurry R M N R)
+∑ i j, (ring_lmap_equiv_self R ℕ _).symm (b.dual_basis i ⊗ₜ c.dual_basis j) ∘ₗ
+applyₗ (c j) ∘ₗ applyₗ (b i) ∘ₗ (lcurry R M N R)
 
 @[simp]
 lemma dual_tensor_dual_inv_of_basis_apply (b : basis ι R M) (c : basis κ R N)

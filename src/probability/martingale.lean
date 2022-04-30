@@ -388,84 +388,79 @@ end submartingale
 
 -- We now prove the converse of the optional stopping theorem
 
-section indicator_stopping_time
+section piecewise_const
 
-/-- Auxilliary definition for `submartingale_of_expected_stopped_value_mono`.  -/
-def indicator_stopping_time (i j : ℕ) (s : set α) [decidable_pred (λ k, k ∈ s)] : α → ℕ :=
-s.piecewise i j
+/-- TODO: move all of this. -/
 
 variables {i j n : ℕ} {s : set α} {x : α} [decidable_pred (λ k, k ∈ s)]
 
-lemma indicator_stopping_time_eq_iff :
-  indicator_stopping_time i j s x = n ↔ (x ∈ s ∧ i = n) ∨ (x ∉ s ∧ j = n) :=
+lemma piecewise_const_eq_iff :
+  s.piecewise (λ _, i) (λ _, j) x = n ↔ (x ∈ s ∧ i = n) ∨ (x ∉ s ∧ j = n) :=
 begin
-  rw [indicator_stopping_time, set.piecewise],
+  rw [set.piecewise],
   dsimp only,
   split_ifs; simp [h],
 end
 
-@[simp] lemma indicator_stopping_time_of_eq : indicator_stopping_time i i s x = i :=
-by simp [indicator_stopping_time]
+@[simp] lemma piecewise_const_of_eq : s.piecewise (λ _, i) (λ _, i) x = i :=
+by simp [piecewise_const_eq_iff]
 
-@[simp] lemma indicator_stopping_time_of_mem (hx : x ∈ s) :
-  indicator_stopping_time i j s x = i :=
-by simp [indicator_stopping_time_eq_iff, hx]
+@[simp] lemma piecewise_const_of_mem (hx : x ∈ s) :
+  s.piecewise (λ _, i) (λ _, j) x = i :=
+by simp [piecewise_const_eq_iff, hx]
 
-@[simp] lemma indicator_stopping_time_of_nmem (hx : x ∉ s) :
-  indicator_stopping_time i j s x = j :=
-by simp [indicator_stopping_time_eq_iff, hx]
+@[simp] lemma piecewise_const_of_nmem (hx : x ∉ s) :
+  s.piecewise (λ _, i) (λ _, j) x = j :=
+by simp [piecewise_const_eq_iff, hx]
 
-lemma indicator_stopping_time_eq_left_iff (hij : i ≠ j) :
-  indicator_stopping_time i j s x = i ↔ x ∈ s :=
+lemma piecewise_const_eq_left_iff (hij : i ≠ j) :
+  s.piecewise (λ _, i) (λ _, j) x = i ↔ x ∈ s :=
 begin
-  simp only [indicator_stopping_time_eq_iff, eq_self_iff_true, and_true, or_iff_left_iff_imp,
+  simp only [piecewise_const_eq_iff, eq_self_iff_true, and_true, or_iff_left_iff_imp,
     and_imp],
   exact λ hx hij_eq, absurd hij_eq.symm hij,
 end
 
-lemma indicator_stopping_time_eq_right_iff (hij : i ≠ j) :
-  indicator_stopping_time i j s x = j ↔ x ∈ sᶜ :=
+lemma piecewise_const_eq_right_iff (hij : i ≠ j) :
+  s.piecewise (λ _, i) (λ _, j) x = j ↔ x ∈ sᶜ :=
 begin
-  simp only [indicator_stopping_time_eq_iff, eq_self_iff_true, and_true, set.mem_compl_eq,
+  simp only [piecewise_const_eq_iff, eq_self_iff_true, and_true, set.mem_compl_eq,
     or_iff_right_iff_imp, and_imp],
   exact λ hx hij_eq, absurd hij_eq hij,
 end
 
-lemma indicator_stopping_time_compl :
-  indicator_stopping_time j i sᶜ = indicator_stopping_time i j s :=
+lemma piecewise_const_compl :
+  sᶜ.piecewise (λ _, j) (λ _, i) = s.piecewise (λ _, i) (λ _, j) :=
 by { ext1 x, by_cases hx : x ∈ s; simp [hx], }
 
-lemma indicator_stopping_time_le_max : indicator_stopping_time i j s x ≤ max i j :=
+lemma piecewise_const_le_max : s.piecewise (λ _, i) (λ _, j) x ≤ max i j :=
 by { by_cases hx : x ∈ s; simp [hx], }
 
 @[measurability]
-lemma measurable_indicator_stopping_time {m : measurable_space α} (hs : measurable_set s) :
-  measurable (indicator_stopping_time i j s) :=
-begin
-  simp_rw [indicator_stopping_time, pi.coe_nat],
-  exact measurable.piecewise hs measurable_const measurable_const,
-end
+lemma measurable_piecewise_const {m : measurable_space α} (hs : measurable_set s) :
+  measurable (s.piecewise (λ _, i) (λ _, j)) :=
+measurable.piecewise hs measurable_const measurable_const
 
-lemma is_stopping_time_indicator_stopping_time (hij : i ≤ j) (hs : measurable_set[𝒢 i] s) :
-  is_stopping_time 𝒢 (indicator_stopping_time i j s) :=
+lemma is_stopping_time_piecewise_const (hij : i ≤ j) (hs : measurable_set[𝒢 i] s) :
+  is_stopping_time 𝒢 (s.piecewise (λ _, i) (λ _, j)) :=
 begin
   refine is_stopping_time_of_measurable_set_eq (λ n, _),
   by_cases hij' : i = j,
   { simp [hij'], },
   by_cases hin : i = n,
   { have hs_n : measurable_set[𝒢 n] s, by { convert hs, exact hin.symm, },
-    exact measurable_indicator_stopping_time hs_n (measurable_set_singleton n), },
+    exact (measurable_piecewise_const hs_n) (measurable_set_singleton n), },
   by_cases hjn : j = n,
   { have hs_n : measurable_set[𝒢 n] s, by { convert 𝒢.mono hij _ hs, exact hjn.symm, },
-    exact measurable_indicator_stopping_time hs_n (measurable_set_singleton n), },
-  simp [indicator_stopping_time_eq_iff, hin, hjn],
+    exact measurable_piecewise_const hs_n (measurable_set_singleton n), },
+  simp [piecewise_const_eq_iff, hin, hjn],
 end
 
-lemma stopped_value_indicator_stopping_time {f : ℕ → α → ℝ} :
-  stopped_value f (indicator_stopping_time i j s) = s.indicator (f i) + sᶜ.indicator (f j) :=
+lemma stopped_value_piecewise_const {f : ℕ → α → ℝ} :
+  stopped_value f (s.piecewise (λ _, i) (λ _, j)) = s.indicator (f i) + sᶜ.indicator (f j) :=
 by { ext x, rw stopped_value, by_cases hx : x ∈ s; simp [hx], }
 
-end indicator_stopping_time
+end piecewise_const
 
 /-- The converse direction of the optional stopping theorem, i.e. an adapted integrable process `f`
 is a submartingale if for all bounded stopping times `τ` and `π` such that `τ ≤ π`, the
@@ -478,11 +473,11 @@ lemma submartingale_of_expected_stopped_value_mono [is_finite_measure μ]
 begin
   refine submartingale_of_set_integral_le hadp hint (λ i j hij s hs, _),
   classical,
-  specialize hf (indicator_stopping_time i j s) _
-      (is_stopping_time_indicator_stopping_time hij hs)
-      (is_stopping_time_const j) (λ x, indicator_stopping_time_le_max.trans (max_eq_right hij).le)
+  specialize hf (s.piecewise (λ _, i) (λ _, j)) _
+      (is_stopping_time_piecewise_const hij hs)
+      (is_stopping_time_const j) (λ x, piecewise_const_le_max.trans (max_eq_right hij).le)
       ⟨j, λ x, le_rfl⟩,
-  rwa [stopped_value_const, stopped_value_indicator_stopping_time,
+  rwa [stopped_value_const, stopped_value_piecewise_const,
     integral_add' ((hint i).indicator (𝒢.le _ _ hs)) ((hint j).indicator (𝒢.le _ _ hs.compl)),
     integral_indicator (𝒢.le _ _ hs), integral_indicator (𝒢.le _ _ hs.compl),
     ← integral_add_compl (𝒢.le _ _ hs) (hint j), add_le_add_iff_right] at hf,

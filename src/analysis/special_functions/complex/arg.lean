@@ -309,7 +309,7 @@ begin
     exacts [hre.ne, abs_pos.2 $ ne_of_apply_ne re hre.ne] }
 end
 
-lemma abs_arg_le_pi_div_two_iff {z : ℂ} : |arg z| ≤ π / 2 ↔ 0 ≤ re z :=
+@[simp] lemma abs_arg_le_pi_div_two_iff {z : ℂ} : |arg z| ≤ π / 2 ↔ 0 ≤ re z :=
 by rw [abs_le, arg_le_pi_div_two_iff, neg_pi_div_two_le_arg_iff, ← or_and_distrib_left, ← not_le,
   and_not_self, or_false]
 

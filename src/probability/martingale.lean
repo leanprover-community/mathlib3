@@ -391,16 +391,16 @@ end submartingale
 section indicator_stopping_time
 
 /-- Auxilliary definition for `submartingale_of_expected_stopped_value_mono`.  -/
-noncomputable def indicator_stopping_time (i j : ℕ) (s : set α) : α → ℕ :=
-s.indicator i + sᶜ.indicator j
+def indicator_stopping_time (i j : ℕ) (s : set α) [decidable_pred (λ k, k ∈ s)] : α → ℕ :=
+s.piecewise i j
 
-variables {i j n : ℕ} {s : set α} {x : α}
+variables {i j n : ℕ} {s : set α} {x : α} [decidable_pred (λ k, k ∈ s)]
 
 lemma indicator_stopping_time_eq_iff :
   indicator_stopping_time i j s x = n ↔ (x ∈ s ∧ i = n) ∨ (x ∉ s ∧ j = n) :=
 begin
-  rw [indicator_stopping_time, pi.add_apply, set.indicator_add_compl_eq_ite ↑i ↑j x,
-    pi.coe_nat, nat.cast_id, pi.coe_nat, nat.cast_id],
+  rw [indicator_stopping_time, set.piecewise],
+  dsimp only,
   split_ifs; simp [h],
 end
 
@@ -443,7 +443,7 @@ lemma measurable_indicator_stopping_time {m : measurable_space α} (hs : measura
   measurable (indicator_stopping_time i j s) :=
 begin
   simp_rw [indicator_stopping_time, pi.coe_nat],
-  exact (measurable_const.indicator hs).add' (measurable_const.indicator hs.compl),
+  exact measurable.piecewise hs measurable_const measurable_const,
 end
 
 lemma is_stopping_time_indicator_stopping_time (hij : i ≤ j) (hs : measurable_set[𝒢 i] s) :
@@ -477,6 +477,7 @@ lemma submartingale_of_expected_stopped_value_mono [is_finite_measure μ]
   submartingale f 𝒢 μ :=
 begin
   refine submartingale_of_set_integral_le hadp hint (λ i j hij s hs, _),
+  classical,
   specialize hf (indicator_stopping_time i j s) _
       (is_stopping_time_indicator_stopping_time hij hs)
       (is_stopping_time_const j) (λ x, indicator_stopping_time_le_max.trans (max_eq_right hij).le)

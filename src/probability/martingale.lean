@@ -394,94 +394,76 @@ section indicator_stopping_time
 noncomputable def indicator_stopping_time (i j : ℕ) (s : set α) : α → ℕ :=
 s.indicator i + sᶜ.indicator j
 
-variables {i j n : ℕ} {s : set α}
+variables {i j n : ℕ} {s : set α} {x : α}
 
-lemma indicator_stopping_time_range (i j : ℕ) (s : set α) (x : α) :
-  indicator_stopping_time i j s x = i ∨
-  indicator_stopping_time i j s x = j :=
+lemma indicator_stopping_time_eq_iff :
+  indicator_stopping_time i j s x = n ↔ (x ∈ s ∧ i = n) ∨ (x ∉ s ∧ j = n) :=
 begin
-  classical,
   rw [indicator_stopping_time, pi.add_apply, set.indicator_add_compl_eq_ite ↑i ↑j x,
     pi.coe_nat, nat.cast_id, pi.coe_nat, nat.cast_id],
-  split_ifs,
-  exacts [or.inl rfl, or.inr rfl]
+  split_ifs; simp [h],
 end
 
-lemma indicator_stopping_time_of_eq :
-  {x | indicator_stopping_time i i s x = i} = set.univ :=
+@[simp] lemma indicator_stopping_time_of_eq : indicator_stopping_time i i s x = i :=
+by simp [indicator_stopping_time]
+
+@[simp] lemma indicator_stopping_time_of_mem (hx : x ∈ s) :
+  indicator_stopping_time i j s x = i :=
+by simp [indicator_stopping_time_eq_iff, hx]
+
+@[simp] lemma indicator_stopping_time_of_nmem (hx : x ∉ s) :
+  indicator_stopping_time i j s x = j :=
+by simp [indicator_stopping_time_eq_iff, hx]
+
+lemma indicator_stopping_time_eq_left_iff (hij : i ≠ j) :
+  indicator_stopping_time i j s x = i ↔ x ∈ s :=
 begin
-  rw [set.eq_univ_iff_forall, indicator_stopping_time],
-  simp,
+  simp only [indicator_stopping_time_eq_iff, eq_self_iff_true, and_true, or_iff_left_iff_imp,
+    and_imp],
+  exact λ hx hij_eq, absurd hij_eq.symm hij,
 end
 
-lemma indicator_stopping_time_eq (hij : i ≠ j):
-  {x | indicator_stopping_time i j s x = i} = s :=
+lemma indicator_stopping_time_eq_right_iff (hij : i ≠ j) :
+  indicator_stopping_time i j s x = j ↔ x ∈ sᶜ :=
 begin
-  ext x,
-  refine ⟨λ (hx : _ + _ = _), _, λ hx, _⟩,
-  { by_contra hxs,
-    rw [set.indicator_of_not_mem hxs, set.indicator_of_mem (set.mem_compl hxs),
-      zero_add, pi.coe_nat, nat.cast_id] at hx,
-    exact hij hx.symm },
-  simp [indicator_stopping_time, set.indicator_of_mem hx,
-    set.indicator_of_not_mem (set.not_mem_compl_iff.2 hx)],
+  simp only [indicator_stopping_time_eq_iff, eq_self_iff_true, and_true, set.mem_compl_eq,
+    or_iff_right_iff_imp, and_imp],
+  exact λ hx hij_eq, absurd hij_eq hij,
 end
 
-lemma indicator_stopping_time_eq' (hij : i ≠ j):
-  {x | indicator_stopping_time i j s x = j} = sᶜ :=
+lemma indicator_stopping_time_compl :
+  indicator_stopping_time j i sᶜ = indicator_stopping_time i j s :=
+by { ext1 x, by_cases hx : x ∈ s; simp [hx], }
+
+lemma indicator_stopping_time_le_max : indicator_stopping_time i j s x ≤ max i j :=
+by { by_cases hx : x ∈ s; simp [hx], }
+
+@[measurability]
+lemma measurable_indicator_stopping_time {m : measurable_space α} (hs : measurable_set s) :
+  measurable (indicator_stopping_time i j s) :=
 begin
-  ext x,
-  refine ⟨λ (hx : _ + _ = _), _, λ hx, _⟩,
-  { by_contra hxs,
-    rw [set.mem_compl_eq, set.not_not_mem] at hxs,
-    rw [set.indicator_of_mem hxs, set.indicator_of_not_mem ((set.not_mem_compl_iff.2 hxs)),
-      add_zero, pi.coe_nat, nat.cast_id] at hx,
-    exact hij hx },
-  simp [indicator_stopping_time, set.indicator_of_not_mem hx,
-    set.indicator_of_mem (set.mem_compl hx)],
+  simp_rw [indicator_stopping_time, pi.coe_nat],
+  exact (measurable_const.indicator hs).add' (measurable_const.indicator hs.compl),
 end
 
-lemma indicator_stopping_time_eq_of_ne (hni : i ≠ n) (hnj : j ≠ n) :
-  {x | indicator_stopping_time i j s x = n} = ∅ :=
-begin
-  ext x,
-  simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
-  obtain (hx | hx) := indicator_stopping_time_range i j s x;
-  rwa hx,
-end
-
-lemma is_stopping_time_indicator_stopping_time
-  (hij : i ≤ j) {s : set α} (hs : measurable_set[𝒢 i] s) :
+lemma is_stopping_time_indicator_stopping_time (hij : i ≤ j) (hs : measurable_set[𝒢 i] s) :
   is_stopping_time 𝒢 (indicator_stopping_time i j s) :=
 begin
   refine is_stopping_time_of_measurable_set_eq (λ n, _),
   by_cases hij' : i = j,
-  { by_cases hin : i = n,
-    { rw [← hin, ← hij', indicator_stopping_time_of_eq],
-      exact measurable_set.univ },
-    convert measurable_set.empty,
-    ext x,
-    simp only [indicator_stopping_time, ← hij', hin, pi.coe_nat, nat.cast_id,
-      set.indicator_self_add_compl, set.mem_empty_eq, iff_false],
-    exact dec_trivial },
+  { simp [hij'], },
   by_cases hin : i = n,
-  { rwa [← hin, indicator_stopping_time_eq hij'] },
+  { have hs_n : measurable_set[𝒢 n] s, by { convert hs, exact hin.symm, },
+    exact measurable_indicator_stopping_time hs_n (measurable_set_singleton n), },
   by_cases hjn : j = n,
-  { rw [← hjn, indicator_stopping_time_eq' hij'],
-    exact 𝒢.mono hij _ hs.compl },
-  rw indicator_stopping_time_eq_of_ne hin hjn,
-  exact @measurable_set.empty _ (𝒢 n)
+  { have hs_n : measurable_set[𝒢 n] s, by { convert 𝒢.mono hij _ hs, exact hjn.symm, },
+    exact measurable_indicator_stopping_time hs_n (measurable_set_singleton n), },
+  simp [indicator_stopping_time_eq_iff, hin, hjn],
 end
 
 lemma stopped_value_indicator_stopping_time {f : ℕ → α → ℝ} :
   stopped_value f (indicator_stopping_time i j s) = s.indicator (f i) + sᶜ.indicator (f j) :=
-begin
-  ext x,
-  rw [stopped_value, indicator_stopping_time],
-  by_cases hx : x ∈ s,
-  { simp [set.indicator_of_mem hx, set.indicator_of_not_mem ((set.not_mem_compl_iff.2 hx))] },
-  { simp [set.indicator_of_not_mem hx, set.indicator_of_mem (set.mem_compl hx)] }
-end
+by { ext x, rw stopped_value, by_cases hx : x ∈ s; simp [hx], }
 
 end indicator_stopping_time
 
@@ -496,11 +478,9 @@ lemma submartingale_of_expected_stopped_value_mono [is_finite_measure μ]
 begin
   refine submartingale_of_set_integral_le hadp hint (λ i j hij s hs, _),
   specialize hf (indicator_stopping_time i j s) _
-    (is_stopping_time_indicator_stopping_time hij hs)
-    (is_stopping_time_const j) _ ⟨j, λ x, le_rfl⟩,
-  { intro x,
-    obtain (hx | hx) := indicator_stopping_time_range i j s x;
-    rwa hx },
+      (is_stopping_time_indicator_stopping_time hij hs)
+      (is_stopping_time_const j) (λ x, indicator_stopping_time_le_max.trans (max_eq_right hij).le)
+      ⟨j, λ x, le_rfl⟩,
   rwa [stopped_value_const, stopped_value_indicator_stopping_time,
     integral_add' ((hint i).indicator (𝒢.le _ _ hs)) ((hint j).indicator (𝒢.le _ _ hs.compl)),
     integral_indicator (𝒢.le _ _ hs), integral_indicator (𝒢.le _ _ hs.compl),

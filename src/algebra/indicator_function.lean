@@ -250,11 +250,11 @@ begin
 end
 
 @[to_additive] lemma mul_indicator_mul_compl_eq_piecewise
-  [hs : decidable_pred (∈ s)] (f g : α → M) :
+  [decidable_pred (∈ s)] (f g : α → M) :
   s.mul_indicator f * sᶜ.mul_indicator g = s.piecewise f g :=
 begin
   ext x,
-  obtain h | h := hs x,
+  by_cases h : x ∈ s,
   { rw [piecewise_eq_of_not_mem _ _ _ h, pi.mul_apply, set.mul_indicator_of_not_mem h,
       set.mul_indicator_of_mem (set.mem_compl h), one_mul] },
   { rw [piecewise_eq_of_mem _ _ _ h, pi.mul_apply, set.mul_indicator_of_mem h,

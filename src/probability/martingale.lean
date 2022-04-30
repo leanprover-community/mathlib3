@@ -419,7 +419,7 @@ lemma is_stopping_time_piecewise_const (hij : i ≤ j) (hs : measurable_set[𝒢
 
 lemma stopped_value_piecewise_const {f : ι' → α → ℝ} :
   stopped_value f (s.piecewise (λ _, i) (λ _, j)) = s.indicator (f i) + sᶜ.indicator (f j) :=
-by { ext x, rw stopped_value, by_cases hx : x ∈ s; simp [hx], }
+by { ext x, rw stopped_value, by_cases hx : x ∈ s; simp [hx] }
 
 end piecewise_const
 
@@ -435,9 +435,9 @@ begin
   refine submartingale_of_set_integral_le hadp hint (λ i j hij s hs, _),
   classical,
   specialize hf (s.piecewise (λ _, i) (λ _, j)) _
-      (is_stopping_time_piecewise_const hij hs)
-      (is_stopping_time_const j) (λ x, (ite_le_sup _ _ _).trans (max_eq_right hij).le)
-      ⟨j, λ x, le_rfl⟩,
+    (is_stopping_time_piecewise_const hij hs)
+    (is_stopping_time_const j) (λ x, (ite_le_sup _ _ _).trans (max_eq_right hij).le)
+    ⟨j, λ x, le_rfl⟩,
   rwa [stopped_value_const, stopped_value_piecewise_const,
     integral_add' ((hint i).indicator (𝒢.le _ _ hs)) ((hint j).indicator (𝒢.le _ _ hs.compl)),
     integral_indicator (𝒢.le _ _ hs), integral_indicator (𝒢.le _ _ hs.compl),

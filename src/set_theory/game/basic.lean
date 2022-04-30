@@ -527,15 +527,11 @@ inductive inv_ty (l r : Type u) : bool → Type u
 | right₂ : r → inv_ty tt → inv_ty tt
 
 instance (l r : Type u) [is_empty l] [is_empty r] : is_empty (inv_ty l r tt) :=
-⟨by { rintro (a | a), all_goals { exact is_empty_elim ᾰ_ᾰ } }⟩
+⟨λ h, by { cases h with _ _ _ _ a _ a _, all_goals { exact is_empty_elim a } }⟩
 
 instance unique_inv_ty (l r : Type u) [is_empty l] [is_empty r] : unique (inv_ty l r ff) :=
 { default := inv_ty.zero,
-  uniq := begin
-    rintro (a | a | a),
-    { refl },
-    all_goals { exact is_empty_elim a }
-  end }
+  uniq := by { rintro (a | a | a), refl, all_goals { exact is_empty_elim a } } }
 
 @[simp] theorem default_inv_ty_eq_zero (l r : Type u) [is_empty l] [is_empty r] :
   (default : inv_ty l r ff) = inv_ty.zero :=
@@ -578,6 +574,7 @@ def inv' : pgame → pgame
 theorem inv'_pos : ∀ {x : pgame}, 0 < inv' x
 | ⟨xl, xr, xL, xR⟩ := by { convert lt_mk inv_ty.zero, refl }
 
+/-- `inv' 0` is a relabelling of `1`. -/
 def inv'_zero : relabelling (inv' 0) 1 :=
 begin
   change relabelling (inv' (mk _ _ _ _)) 1,
@@ -590,6 +587,7 @@ end
 
 theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
 
+/-- `inv' 1` is a relabelling of `1`. -/
 def inv'_one : relabelling (inv' 1) 1 :=
 begin
   change relabelling (inv' (mk _ _ _ _)) 1,

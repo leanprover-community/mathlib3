@@ -157,7 +157,7 @@ begin
   exact ⟨n, h, rfl⟩,
 end
 
-lemma geom_sum_X_comp_X_add_one_eq_sum' (n : ℕ) :
+lemma geom_sum_X_comp_X_add_one_eq_sum (n : ℕ) :
   (geom_sum (X : R[X]) n).comp (X + 1) =
   (finset.range n).sum (λ (i : ℕ), (n.choose (i + 1) : R[X]) * X ^ i) :=
 begin
@@ -208,7 +208,7 @@ section ring
 variables [ring R]
 
 /-- Given a polynomial, return the polynomial whose coefficients are in
-the semiring closure of the original coefficients. -/
+the ring closure of the original coefficients. -/
 def restriction (p : R[X]) : polynomial (subring.closure (↑p.frange : set R)) :=
 ∑ i in p.support, monomial i (⟨p.coeff i,
   if H : p.coeff i = 0 then H.symm ▸ (subring.closure _).zero_mem

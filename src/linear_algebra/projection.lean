@@ -342,21 +342,35 @@ A linear endomorphism of a module `E` is a projection onto a submodule `p` if it
 of `E` to `p` and fixes every element of `p`.
 -/
 structure is_proj (f : E →ₗ[R] E) : Prop :=
-  (map_mem : ∀ x, f x ∈ p)
-  (map_id : ∀ x ∈ p, f x = x)
+(map_mem : ∀ x, f x ∈ p)
+(map_id : ∀ x ∈ p, f x = x)
 
 variables {p}
 
+/--
+Restriction of the codomain of a projection of onto a subspace `p` to `p` instead of the whole
+space.
+-/
 def is_proj_cod_restrict {f : E →ₗ[R] E} (h : is_proj p f) : E →ₗ[R] p :=
- f.cod_restrict p h.map_mem
+f.cod_restrict p h.map_mem
 
 @[simp]
 lemma proj_of_is_proj_apply {f : E →ₗ[R] E} {h : is_proj p f} (x : E) :
   ↑(is_proj_cod_restrict h x) = f x := f.cod_restrict_apply p x
 
+@[simp]
 lemma is_proj_cod_restrict_apply_cod {f : E →ₗ[R] E} (h : is_proj p f) (x : p) :
   is_proj_cod_restrict h x = x :=
 by {ext, rw [proj_of_is_proj_apply], exact h.map_id x x.2}
+
+lemma is_proj_iff_idempotent (f : E →ₗ[R] E) : (∃ p, is_proj p f) ↔ f ∘ₗ f = f :=
+begin
+  split,
+  { intro h, obtain ⟨p, hp⟩ := h, ext, rw comp_apply, exact hp.map_id (f x) (hp.map_mem x), },
+  { intro h, use f.range, split,
+    { intro x, exact mem_range_self f x, },
+    { intros x hx, obtain ⟨y, hy⟩ := mem_range.1 hx, rw [←hy, ←comp_apply, h], }, },
+end
 
 lemma proj_of_is_proj_ker {f : E →ₗ[R] E} {h : is_proj p f} :
   (is_proj_cod_restrict h).ker = f.ker := f.ker_cod_restrict p _
@@ -365,7 +379,7 @@ lemma is_compl_of_is_proj {f : E →ₗ[R] E} (h : is_proj p f) : is_compl p f.k
 by { rw ←proj_of_is_proj_ker, exact is_compl_of_proj (is_proj_cod_restrict_apply_cod h), }
 
 lemma is_proj_eq_conj_prod_map' {f : E →ₗ[R] E} (h : is_proj p f) :
- f = (p.prod_equiv_of_is_compl f.ker (is_compl_of_is_proj h)).to_linear_map ∘ₗ prod_map id 0 ∘ₗ
+  f = (p.prod_equiv_of_is_compl f.ker (is_compl_of_is_proj h)).to_linear_map ∘ₗ prod_map id 0 ∘ₗ
     (p.prod_equiv_of_is_compl f.ker (is_compl_of_is_proj h)).symm.to_linear_map :=
 begin
   refine (linear_map.cancel_right
@@ -392,7 +406,7 @@ namespace linear_map
 variables {R : Type*} [comm_ring R] {E : Type*} [add_comm_group E] [module R E]  {p : submodule R E}
 
 lemma is_proj_eq_conj_prod_map {f : E →ₗ[R] E} (h : is_proj p f) :
- f = (p.prod_equiv_of_is_compl f.ker (is_compl_of_is_proj h)).conj (prod_map id 0) :=
+  f = (p.prod_equiv_of_is_compl f.ker (is_compl_of_is_proj h)).conj (prod_map id 0) :=
 by {rw linear_equiv.conj_apply, exact is_proj_eq_conj_prod_map' h}
 
 end linear_map

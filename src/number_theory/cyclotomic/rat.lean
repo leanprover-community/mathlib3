@@ -37,8 +37,7 @@ lemma discr_prime_pow_ne_two' [is_cyclotomic_extension {p ^ (k + 1)} ℚ K]
   discr ℚ (hζ.sub_one_power_basis ℚ).basis =
   (-1) ^ (((p ^ (k + 1) : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ k * ((p - 1) * (k + 1) - 1)) :=
 begin
-  rw [← discr_prime_pow_ne_two hζ (cyclotomic.irreducible_rat (p ^ (k + 1)).pos)
-    (cyclotomic.irreducible_rat p.pos) hk],
+  rw [← discr_prime_pow_ne_two hζ (cyclotomic.irreducible_rat (p ^ (k + 1)).pos) hk],
   exact hζ.discr_zeta_eq_discr_zeta_sub_one.symm
 end
 
@@ -58,8 +57,7 @@ lemma discr_prime_pow' [is_cyclotomic_extension {p ^ k} ℚ K]
   discr ℚ (hζ.sub_one_power_basis ℚ).basis =
   (-1) ^ (((p ^ k : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ (k - 1) * ((p - 1) * k - 1)) :=
 begin
-  rw [← discr_prime_pow hζ (cyclotomic.irreducible_rat (p ^ k).pos)
-    (cyclotomic.irreducible_rat p.pos)],
+  rw [← discr_prime_pow hζ (cyclotomic.irreducible_rat (p ^ k).pos)],
   exact hζ.discr_zeta_eq_discr_zeta_sub_one.symm
 end
 
@@ -72,7 +70,6 @@ lemma discr_prime_pow_eq_unit_mul_pow' [is_cyclotomic_extension {p ^ k} ℚ K]
 begin
   rw [hζ.discr_zeta_eq_discr_zeta_sub_one.symm],
   exact discr_prime_pow_eq_unit_mul_pow hζ (cyclotomic.irreducible_rat (p ^ k).pos)
-    (cyclotomic.irreducible_rat p.pos)
 end
 
 /-- If `K` is a `p ^ k`-th cyclotomic extension of `ℚ`, then `(adjoin ℤ {ζ})` is the

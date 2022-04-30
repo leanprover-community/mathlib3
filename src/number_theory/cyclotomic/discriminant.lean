@@ -58,15 +58,15 @@ variables [algebra K L]
 
 /-- If `p` is a prime and `is_cyclotomic_extension {p ^ (k + 1)} K L`, then the discriminant of
 `hζ.power_basis K` is `(-1) ^ ((p ^ (k + 1).totient) / 2) * p ^ (p ^ k * ((p - 1) * (k + 1) - 1))`
-if `irreducible (cyclotomic (p ^ (k + 1)) K))`, `irreducible (cyclotomic p K)` and
-`p ^ (k + 1) ≠ 2`. -/
+if `irreducible (cyclotomic (p ^ (k + 1)) K))`, and `p ^ (k + 1) ≠ 2`. -/
 lemma discr_prime_pow_ne_two [is_cyclotomic_extension {p ^ (k + 1)} K L] [hp : fact (p : ℕ).prime]
   [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ ↑(p ^ (k + 1)))
   (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))
-  (hirr₁ : irreducible (cyclotomic (p : ℕ) K)) (hk : p ^ (k + 1) ≠ 2) :
+  (hk : p ^ (k + 1) ≠ 2) :
   discr K (hζ.power_basis K).basis =
   (-1) ^ (((p ^ (k + 1) : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ k * ((p - 1) * (k + 1) - 1)) :=
 begin
+  have hirr₁ := cyclotomic_irreducible_of_irreducible_pow hp.1 k.succ_ne_zero hirr,
   haveI : ne_zero ((↑(p ^ (k + 1)) : ℕ) : K),
   { refine ⟨λ hzero, _⟩,
     rw [pnat.pow_coe] at hzero,
@@ -136,25 +136,22 @@ end
 
 /-- If `p` is a prime and `is_cyclotomic_extension {p ^ (k + 1)} K L`, then the discriminant of
 `hζ.power_basis K` is `(-1) ^ (p ^ k * (p - 1) / 2) * p ^ (p ^ k * ((p - 1) * (k + 1) - 1))`
-if `irreducible (cyclotomic (p ^ (k + 1)) K))`, `irreducible (cyclotomic p K)` and
-`p ^ (k + 1) ≠ 2`. -/
+if `irreducible (cyclotomic (p ^ (k + 1)) K))`, and `p ^ (k + 1) ≠ 2`. -/
 lemma discr_prime_pow_ne_two' [is_cyclotomic_extension {p ^ (k + 1)} K L] [hp : fact (p : ℕ).prime]
   [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ ↑(p ^ (k + 1)))
-  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))
-  (hirr₁ : irreducible (cyclotomic (p : ℕ) K)) (hk : p ^ (k + 1) ≠ 2) :
+  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K)) (hk : p ^ (k + 1) ≠ 2) :
   discr K (hζ.power_basis K).basis =
   (-1) ^ (((p : ℕ) ^ k  * (p - 1)) / 2) * p ^ ((p : ℕ) ^ k * ((p - 1) * (k + 1) - 1)) :=
-by simpa [totient_prime_pow hp.out (succ_pos k)] using discr_prime_pow_ne_two hζ hirr hirr₁ hk
+by simpa [totient_prime_pow hp.out (succ_pos k)] using discr_prime_pow_ne_two hζ hirr hk
 
 /-- If `p` is a prime and `is_cyclotomic_extension {p ^ k} K L`, then the discriminant of
 `hζ.power_basis K` is `(-1) ^ ((p ^ k).totient / 2) * p ^ (p ^ (k - 1) * ((p - 1) * k - 1))`
-if `irreducible (cyclotomic (p ^ k) K))` and `irreducible (cyclotomic p K)`. Beware that in the
-cases `p ^ k = 1` and `p ^ k = 2` the formula uses `1 / 2 = 0` and `0 - 1 = 0`. It is useful only
-to have a uniform result. See also `is_cyclotomic_extension.discr_prime_pow_eq_unit_mul_pow`. -/
+if `irreducible (cyclotomic (p ^ k) K))`. Beware that in the cases `p ^ k = 1` and `p ^ k = 2`
+the formula uses `1 / 2 = 0` and `0 - 1 = 0`. It is useful only to have a uniform result.
+See also `is_cyclotomic_extension.discr_prime_pow_eq_unit_mul_pow`. -/
 lemma discr_prime_pow [hcycl : is_cyclotomic_extension {p ^ k} K L] [hp : fact (p : ℕ).prime]
   [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ ↑(p ^ k))
-  (hirr : irreducible (cyclotomic (↑(p ^ k) : ℕ) K))
-  (hirr₁ : irreducible (cyclotomic (p : ℕ) K)) :
+  (hirr : irreducible (cyclotomic (↑(p ^ k) : ℕ) K)) :
   discr K (hζ.power_basis K).basis =
   (-1) ^ (((p ^ k : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ (k - 1) * ((p - 1) * k - 1)) :=
 begin
@@ -194,7 +191,7 @@ begin
       rw [← (algebra_map K L).map_one, trace_algebra_map, finrank _ hirr, hp, hk],
       { simp },
       { apply_instance } },
-    { exact discr_prime_pow_ne_two hζ hirr hirr₁ hk } }
+    { exact discr_prime_pow_ne_two hζ hirr hk } }
 end
 
 /-- If `p` is a prime and `is_cyclotomic_extension {p ^ k} K L`, then there are `u : ℤˣ` and
@@ -202,11 +199,10 @@ end
 less cumbersome to use than the previous lemmas. -/
 lemma discr_prime_pow_eq_unit_mul_pow [is_cyclotomic_extension {p ^ k} K L]
   [hp : fact (p : ℕ).prime] [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ ↑(p ^ k))
-  (hirr : irreducible (cyclotomic (↑(p ^ k) : ℕ) K))
-  (hirr₁ : irreducible (cyclotomic (p : ℕ) K)) :
+  (hirr : irreducible (cyclotomic (↑(p ^ k) : ℕ) K)) :
   ∃ (u : ℤˣ) (n : ℕ), discr K (hζ.power_basis K).basis = u * p ^ n :=
 begin
-  rw [discr_prime_pow hζ hirr hirr₁],
+  rw [discr_prime_pow hζ hirr],
   by_cases heven : even (((p ^ k : ℕ).totient) / 2),
   { refine ⟨1, (p : ℕ) ^ (k - 1) * ((p - 1) * k - 1), by simp [heven.neg_one_pow]⟩ },
   { exact ⟨-1, (p : ℕ) ^ (k - 1) * ((p - 1) * k - 1),
@@ -225,7 +221,7 @@ begin
   { rw [zero_add, pow_one],
     apply_instance },
   have hζ' : is_primitive_root ζ ↑(p ^ (0 + 1)) := by simpa using hζ,
-  convert discr_prime_pow_ne_two hζ' (by simpa [hirr]) (by simp [hirr]) (by simp [hodd]),
+  convert discr_prime_pow_ne_two hζ' (by simpa [hirr]) (by simp [hodd]),
   { rw [zero_add, pow_one, totient_prime hp.out] },
   { rw [pow_zero, one_mul, zero_add, mul_one, nat.sub_sub] }
 end

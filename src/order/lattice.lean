@@ -791,14 +791,6 @@ lemma map_sup [semilattice_sup β] {f : α → β} (hf : monotone f) (x y : α) 
 lemma map_inf [semilattice_inf β] {f : α → β} (hf : monotone f) (x y : α) : f (x ⊓ y) = f x ⊓ f y :=
 hf.dual.map_sup _ _
 
-variables [linear_order β] {f : α → β}
-
-lemma map_max (hf : monotone f) (x y : α) : f (max x y) = max (f x) (f y) :=
-by simp_rw [←sup_eq_max, hf.map_sup]
-
-lemma map_min (hf : monotone f) (x y : α) : f (min x y) = min (f x) (f y) :=
-by simp_rw [←inf_eq_min, hf.map_inf]
-
 end monotone
 
 namespace antitone
@@ -840,14 +832,6 @@ hf.dual_right.map_sup x y
 
 lemma map_inf [semilattice_sup β] {f : α → β} (hf : antitone f) (x y : α) : f (x ⊓ y) = f x ⊔ f y :=
 hf.dual_right.map_inf x y
-
-variables [linear_order β] {f : α → β}
-
-lemma map_max (hf : antitone f) (x y : α) : f (max x y) = min (f x) (f y) :=
-hf.dual_right.map_max  _ _
-
-lemma map_min (hf : antitone f) (x y : α) : f (min x y) = max (f x) (f y) :=
-hf.dual_right.map_min _ _
 
 end antitone
 

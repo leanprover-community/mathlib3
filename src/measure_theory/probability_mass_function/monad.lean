@@ -147,7 +147,7 @@ calc (p.bind f).to_outer_measure s
   ... = ∑' (a : α), ↑(p a) * ∑' (b : β), if b ∈ s then ↑(f a b) else (0 : ℝ≥0∞) :
     tsum_congr (λ a, congr_arg (λ x, ↑(p a) * x) $ tsum_congr (λ b, by split_ifs; refl))
   ... = ∑' (a : α), ↑(p a) * (f a).to_outer_measure s :
-    tsum_congr (λ a, by rw [to_outer_measure_apply, set.indicator])
+    tsum_congr (λ a, by simp only [to_outer_measure_apply, set.indicator_apply])
 
 /-- The measure of a set under `p.bind f` is the sum over `a : α`
   of the probability of `a` under `p` times the measure of the set under `f a` -/

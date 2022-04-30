@@ -91,11 +91,12 @@ by simp only [monoid_algebra.of_apply, as_algebra_hom_single, one_smul]
 If `ρ : representation k G V`, then `ρ.as_module` is a type synonym for `V`,
 which we equip with an instance `module (monoid_algebra k G) ρ.as_module`.
 
-The type synonym is irreducible, as you should use `as_module_equiv : ρ.as_module ≃+ V`
-to translate terms.
+You should use `as_module_equiv : ρ.as_module ≃+ V` to translate terms.
 -/
 @[nolint unused_arguments, derive add_comm_monoid]
 def as_module (ρ : representation k G V) := V
+
+instance : inhabited ρ.as_module := ⟨0⟩
 
 /--
 A `k`-linear representation of `G` on `V` can be thought of as
@@ -155,7 +156,6 @@ def of_module' (M : Type*) [add_comm_monoid M] [module k M] [module (monoid_alge
 
 section
 variables (k G) (M : Type*) [add_comm_monoid M] [module (monoid_algebra k G) M]
-local attribute [irreducible] restrict_scalars
 
 /--
 Build a `representation` from a `[module (monoid_algebra k G) M]`.

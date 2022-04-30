@@ -390,30 +390,32 @@ end submartingale
 
 section piecewise_const
 
+lemma is_stopping_time_piecewise_of_le {ι : Type*} [linear_order ι] {𝒢 : filtration ι m0}
+  {τ η : α → ι} {i : ι} (hs : measurable_set[𝒢 i] s) (hτ : ∀ x, i ≤ τ x) (hη : ∀ x, i ≤ η x)
+  (hτ_st : is_stopping_time 𝒢 τ) (hη_st : is_stopping_time 𝒢 η) :
+  is_stopping_time 𝒢 (s.piecewise τ η) :=
+begin
+  intro n,
+  have : {x | s.piecewise τ η x ≤ n}
+    = (s ∩ {x | τ x ≤ n}) ∪ (sᶜ ∩ {x | η x ≤ n}),
+  { ext1 x,
+    simp only [set.piecewise, set.mem_inter_eq, set.mem_set_of_eq, and.congr_right_iff],
+    by_cases hx : x ∈ s; simp [hx], },
+  rw this,
+  by_cases hin : i ≤ n,
+  { have hs_n : measurable_set[𝒢 n] s, from 𝒢.mono hin _ hs,
+    exact (hs_n.inter (hτ_st n)).union (hs_n.compl.inter (hη_st n)), },
+  { have hτn : ∀ x, ¬ τ x ≤ n := λ x hτn, hin ((hτ x).trans hτn),
+    have hηn : ∀ x, ¬ η x ≤ n := λ x hηn, hin ((hη x).trans hηn),
+    simp [hτn, hηn], },
+end
+
 variables {i j n : ℕ} {s : set α} {x : α} [decidable_pred (∈ s)]
 
-lemma piecewise_const_le_max : s.piecewise (λ _, i) (λ _, j) x ≤ max i j :=
-by { by_cases hx : x ∈ s; simp [hx], }
-
-@[measurability]
-lemma measurable_piecewise_const {m : measurable_space α} (hs : measurable_set s) :
-  measurable (s.piecewise (λ _, i) (λ _, j)) :=
-measurable.piecewise hs measurable_const measurable_const
-
-lemma is_stopping_time_piecewise_const (hij : i ≤ j) (hs : measurable_set[𝒢 i] s) :
+lemma is_stopping_time_piecewise_const {ι : Type*} [linear_order ι] {𝒢 : filtration ι m0}
+  {i j : ι} (hij : i ≤ j) (hs : measurable_set[𝒢 i] s) :
   is_stopping_time 𝒢 (s.piecewise (λ _, i) (λ _, j)) :=
-begin
-  refine is_stopping_time_of_measurable_set_eq (λ n, _),
-  by_cases hij' : i = j,
-  { simp [hij'], },
-  by_cases hin : i = n,
-  { have hs_n : measurable_set[𝒢 n] s, by { convert hs, exact hin.symm, },
-    exact (measurable_piecewise_const hs_n) (measurable_set_singleton n), },
-  by_cases hjn : j = n,
-  { have hs_n : measurable_set[𝒢 n] s, by { convert 𝒢.mono hij _ hs, exact hjn.symm, },
-    exact measurable_piecewise_const hs_n (measurable_set_singleton n), },
-  simp [set.piecewise, ite_eq_iff, hin, hjn],
-end
+is_stopping_time_piecewise_of_le hs _ _ (is_stopping_time_const i) (is_stopping_time_const j)
 
 lemma stopped_value_piecewise_const {f : ℕ → α → ℝ} :
   stopped_value f (s.piecewise (λ _, i) (λ _, j)) = s.indicator (f i) + sᶜ.indicator (f j) :=
@@ -434,7 +436,7 @@ begin
   classical,
   specialize hf (s.piecewise (λ _, i) (λ _, j)) _
       (is_stopping_time_piecewise_const hij hs)
-      (is_stopping_time_const j) (λ x, piecewise_const_le_max.trans (max_eq_right hij).le)
+      (is_stopping_time_const j) (λ x, (ite_le_sup _ _ _).trans (max_eq_right hij).le)
       ⟨j, λ x, le_rfl⟩,
   rwa [stopped_value_const, stopped_value_piecewise_const,
     integral_add' ((hint i).indicator (𝒢.le _ _ hs)) ((hint j).indicator (𝒢.le _ _ hs.compl)),

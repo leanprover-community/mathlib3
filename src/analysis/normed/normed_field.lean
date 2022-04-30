@@ -385,8 +385,6 @@ instance normed_division_ring.to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
 
-export norm_one_class (norm_one)
-
 @[simp] lemma nnnorm_mul (a b : α) : ∥a * b∥₊ = ∥a∥₊ * ∥b∥₊ :=
 nnreal.eq $ norm_mul a b
 
@@ -421,6 +419,20 @@ nnreal.eq $ by simp
 
 @[simp] lemma nnnorm_zpow : ∀ (a : α) (n : ℤ), ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
 (nnnorm_hom : α →*₀ ℝ≥0).map_zpow
+
+/-- Multiplication on the left by a nonzero element of a normed division ring tends to infinity at
+infinity. TODO: use `bornology.cobounded` instead of `filter.comap has_norm.norm filter.at_top`. -/
+lemma filter.tendsto_mul_left_cobounded {a : α} (ha : a ≠ 0) :
+  tendsto ((*) a) (comap norm at_top) (comap norm at_top) :=
+by simpa only [tendsto_comap_iff, (∘), norm_mul]
+  using tendsto_const_nhds.mul_at_top (norm_pos_iff.2 ha) tendsto_comap
+
+/-- Multiplication on the right by a nonzero element of a normed division ring tends to infinity at
+infinity. TODO: use `bornology.cobounded` instead of `filter.comap has_norm.norm filter.at_top`. -/
+lemma filter.tendsto_mul_right_cobounded {a : α} (ha : a ≠ 0) :
+  tendsto (λ x, x * a) (comap norm at_top) (comap norm at_top) :=
+by simpa only [tendsto_comap_iff, (∘), norm_mul]
+  using tendsto_comap.at_top_mul (norm_pos_iff.2 ha) tendsto_const_nhds
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_division_ring.to_has_continuous_inv₀ : has_continuous_inv₀ α :=

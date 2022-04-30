@@ -51,33 +51,34 @@ M-summand, M-projection, L-summand, L-projection, M-ideal, M-structure
 
 -/
 
-variables {M : Type*} [monoid M]
+variables {M : Type*} [has_mul M]
 
 /--
 A continuous linear map `P` on a normed space `X` is said to be a projection if it is idempotent.
 -/
-def is_projection (x : M) : Prop := x^2 = x
+def is_projection (x : M) : Prop := x*x = x
 
-lemma projection_def {P : M} (h : is_projection P) : P^2 = P := by exact h
+lemma projection_def {P : M} (h : is_projection P) : P*P = P := by exact h
 
 namespace is_projection
 
-lemma mul_of_commute {P Q : M} (h : commute P Q) (h₁ : is_projection P) (h₂ : is_projection Q) :
+variables {S : Type*} [semigroup S]
+
+lemma mul_of_commute {P Q : S} (h : commute P Q) (h₁ : is_projection P) (h₂ : is_projection Q) :
   is_projection (P * Q)  :=
 begin
   rw is_projection at h₁,
   rw is_projection at h₂,
   rw [commute, semiconj_by] at h,
-  rw [is_projection, sq, mul_assoc, ← mul_assoc Q, ←h, mul_assoc P, ← sq, h₂, ← mul_assoc, ← sq,
-    h₁],
+  rw [is_projection, mul_assoc, ← mul_assoc Q, ←h, mul_assoc P, h₂, ← mul_assoc, h₁],
 end
 
 variables {R : Type*} [ring R]
 
 lemma complement {P : R} (h : is_projection P) : is_projection (1 - P) :=
 begin
-  rw [is_projection, sq] at h,
-  rw [is_projection, sq, mul_sub_left_distrib, mul_one, sub_mul, one_mul, h, sub_self, sub_zero],
+  rw is_projection at h,
+  rw [is_projection, mul_sub_left_distrib, mul_one, sub_mul, one_mul, h, sub_self, sub_zero],
 end
 
 
@@ -133,11 +134,11 @@ begin
       by rw [h₁.Lnorm, h₃.Lnorm, h₃.Lnorm ((1 - P) (R x)), continuous_linear_map.sub_apply 1 P,
         continuous_linear_map.one_apply, map_sub, continuous_linear_map.coe_mul]
     ... = ∥R (P (R x))∥ + ∥(1-R) (P (R x))∥ + (∥R x - R (P (R x))∥
-      + ∥((1 - R) * R) x - (1-R) (P (R x))∥) : by rw [← sq, projection_def h₃.proj,
+      + ∥((1 - R) * R) x - (1-R) (P (R x))∥) : by rw [projection_def h₃.proj,
         continuous_linear_map.sub_apply 1 P, continuous_linear_map.one_apply,
         map_sub,continuous_linear_map.coe_mul]
     ... = ∥R (P (R x))∥ + ∥(1 - R) (P (R x))∥ + (∥R x - R (P (R x))∥ + ∥(1 - R) (P (R x))∥) :
-      by rw [sub_mul, ← sq, projection_def h₃.proj, one_mul, sub_self,
+      by rw [sub_mul, projection_def h₃.proj, one_mul, sub_self,
         continuous_linear_map.zero_apply, zero_sub, norm_neg]
     ... = ∥R (P (R x))∥ + ∥R x - R (P (R x))∥ + 2•∥(1 - R) (P (R x))∥  : by abel
     ... ≥ ∥R x∥ + 2 • ∥ (P * R) x - (R * P * R) x∥ :
@@ -220,7 +221,7 @@ lemma le_def (P Q : {P : X →L[𝕜] X // is_Lprojection P}) : P ≤ Q ↔ (P :
 iff.rfl
 
 instance : has_zero {P : X →L[𝕜] X // is_Lprojection P}  :=
-⟨⟨0, ⟨by rw [is_projection, sq, zero_mul],
+⟨⟨0, ⟨by rw [is_projection, zero_mul],
      λ x, by simp only [continuous_linear_map.zero_apply, norm_zero, sub_zero,
                         continuous_linear_map.one_apply, zero_add]⟩⟩⟩
 
@@ -250,7 +251,7 @@ lemma compl_mul_left {P : {P : X →L[𝕜] X // is_Lprojection P}} {Q: X →L[�
 
 lemma compl_orthog {P : {P : X →L[𝕜] X // is_Lprojection P}} :
   (↑P : X →L[𝕜] X) * (↑Pᶜ) = 0 :=
-by rw [coe_compl, mul_sub, ← sq, mul_one, projection_def P.prop.proj, sub_self]
+by rw [coe_compl, mul_sub, mul_one, projection_def P.prop.proj, sub_self]
 
 lemma distrib_lattice_lemma {P Q R : {P : X →L[𝕜] X // is_Lprojection P}} :
   ((↑P : X →L[𝕜] X) + ↑Pᶜ * R) * (↑P + ↑Q * ↑R * ↑Pᶜ) = (↑P + ↑Q * ↑R * ↑Pᶜ) :=
@@ -258,16 +259,16 @@ by rw [add_mul, mul_add, mul_add, mul_assoc ↑Pᶜ ↑R (↑Q * ↑R * ↑Pᶜ)
     ← coe_inf Q, (Pᶜ.prop.commute R.prop).eq, ((Q⊓R).prop.commute Pᶜ.prop).eq,
     (R.prop.commute (Q⊓R).prop).eq, coe_inf Q, mul_assoc ↑Q, ← mul_assoc, mul_assoc ↑R,
     (Pᶜ.prop.commute P.prop).eq, compl_orthog, zero_mul, mul_zero, zero_add, add_zero, ← mul_assoc,
-    ← sq, ← sq, projection_def P.prop.proj, projection_def R.prop.proj, ← coe_inf Q, mul_assoc,
-    ((Q⊓R).prop.commute Pᶜ.prop).eq, ← mul_assoc, ← sq, projection_def Pᶜ.prop.proj]
+    projection_def P.prop.proj, projection_def R.prop.proj, ← coe_inf Q, mul_assoc,
+    ((Q⊓R).prop.commute Pᶜ.prop).eq, ← mul_assoc, projection_def Pᶜ.prop.proj]
 
 instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
 { le_sup_left := λ P Q, by rw [le_def, coe_inf, coe_sup, ← add_sub, mul_add, mul_sub, ← mul_assoc,
-    ← sq, projection_def P.prop.proj, sub_self, add_zero],
+    projection_def P.prop.proj, sub_self, add_zero],
   le_sup_right := λ P Q,
   begin
     rw [le_def, coe_inf, coe_sup, ← add_sub, mul_add, mul_sub, commute.eq (commute P.prop Q.prop),
-      ← mul_assoc, ← sq, projection_def Q.prop.proj],
+      ← mul_assoc, projection_def Q.prop.proj],
     abel,
   end,
   sup_le := λ P Q R,
@@ -278,9 +279,9 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
     rw [← h₂, ← h₁],
   end,
   inf_le_left := λ P Q, by rw [le_def, coe_inf, coe_inf, coe_inf, mul_assoc,
-    (Q.prop.commute P.prop).eq, ← mul_assoc, ← sq, (projection_def P.prop.proj)],
+    (Q.prop.commute P.prop).eq, ← mul_assoc, (projection_def P.prop.proj)],
   inf_le_right := λ P Q, by rw [le_def, coe_inf, coe_inf, coe_inf, mul_assoc,
-    ← sq, (projection_def Q.prop.proj)],
+    (projection_def Q.prop.proj)],
   le_inf := λ P Q R,
   begin
     rw [le_def, le_def, le_def, coe_inf, coe_inf, coe_inf, coe_inf, ← mul_assoc],
@@ -293,7 +294,7 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
     by rw [coe_inf, coe_sup, coe_sup,
       ← add_sub, ← add_sub, compl_mul_left, compl_mul_left, add_mul, mul_add,
       (Pᶜ.prop.commute Q.prop).eq, mul_add, ← mul_assoc, mul_assoc ↑Q, (Pᶜ.prop.commute P.prop).eq,
-      compl_orthog, zero_mul, mul_zero, zero_add, add_zero, ← mul_assoc, mul_assoc ↑Q, ←sq, ← sq,
+      compl_orthog, zero_mul, mul_zero, zero_add, add_zero, ← mul_assoc, mul_assoc ↑Q,
       projection_def P.prop.proj, projection_def Pᶜ.prop.proj, mul_assoc,
       (Pᶜ.prop.commute R.prop).eq, ← mul_assoc],
     have e₂ : ↑((P ⊔ Q) ⊓ (P ⊔ R)) * ↑(P ⊔ Q ⊓ R) = ↑P + ↑Q * ↑R * ↑Pᶜ := by rw [coe_inf, coe_sup,

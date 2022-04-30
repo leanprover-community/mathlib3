@@ -82,6 +82,16 @@ end
 
 lemma max_eq_iff : max a b = c ↔ a = c ∧ b ≤ a ∨ b = c ∧ a ≤ b := @min_eq_iff αᵒᵈ _ a b c
 
+lemma min_lt_min_left_iff : min a c < min b c ↔ a < b ∧ a < c :=
+by { simp_rw [lt_min_iff, min_lt_iff, or_iff_left (lt_irrefl _)],
+  exact and_congr_left (λ h, or_iff_left_of_imp h.trans) }
+
+lemma min_lt_min_right_iff : min a b < min a c ↔ b < c ∧ b < a :=
+by simp_rw [min_comm a, min_lt_min_left_iff]
+
+lemma max_lt_max_left_iff : max a c < max b c ↔ a < b ∧ c < b := @min_lt_min_left_iff αᵒᵈ _ _ _ _
+lemma max_lt_max_right_iff : max a b < max a c ↔ b < c ∧ a < c := @min_lt_min_right_iff αᵒᵈ _ _ _ _
+
 /-- An instance asserting that `max a a = a` -/
 instance max_idem : is_idempotent α max := by apply_instance -- short-circuit type class inference
 

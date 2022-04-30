@@ -65,22 +65,7 @@ variable {L}
 
 namespace term
 
-open set
-
-/-- The `set` of variables used in a given term. -/
-@[simp] def var_set : L.term α → set α
-| (var i) := {i}
-| (func f ts) := ⋃ i, (ts i).var_set
-
-lemma finite_var_set (t : L.term α) : t.var_set.finite :=
-begin
-  induction t with _ _ _ _ ih,
-  { simp only [var_set, finite_singleton], },
-  { exact finite_Union ih }
-end
-
-lemma finite_var_set_left (t : L.term (α ⊕ β)) : (sum.inl ⁻¹' t.var_set).finite :=
-t.finite_var_set.preimage (sum.inl_injective.inj_on _)
+open finset
 
 /-- The `finset` of variables used in a given term. -/
 @[simp] def var_finset [decidable_eq α] : L.term α → finset α
@@ -93,45 +78,23 @@ t.finite_var_set.preimage (sum.inl_injective.inj_on _)
 | (var (sum.inr i)) := ∅
 | (func f ts) := finset.univ.bUnion (λ i, (ts i).var_finset_left)
 
-/-- The `finset` of variables from the left side of a sum used in a given term. -/
-@[simp] noncomputable def var_finset_left' [decidable_eq α] [decidable_eq β] (t : L.term (α ⊕ β)) :
-  finset α :=
-t.var_finset.preimage sum.inl (sum.inl_injective.inj_on _)
-
 /-- Relabels a term's variables along a particular function. -/
 @[simp] def relabel (g : α → β) : L.term α → L.term β
 | (var i) := var (g i)
 | (func f ts) := func f (λ i, (ts i).relabel)
 
 /-- Restricts a term to use only a set of the given variables. -/
-def restrict_var : Π (t : L.term α) (f : t.var_set → β), L.term β
-| (var a) f := var (f ⟨a, rfl⟩)
-| (func F ts) f := func F (λ i, (ts i).restrict_var
-  (f ∘ (set.inclusion (set.subset_Union _ i))))
-
-/-- A helper function for `restrict_var_left`. -/
-def restrict_var_left_aux {s : set (α ⊕ β)} : s → (sum.inl ⁻¹' s) ⊕ β
-| ⟨sum.inl x, h⟩ := sum.inl ⟨x, h⟩
-| ⟨sum.inr x, h⟩ := sum.inr x
-
-/-- Restricts a term on `α ⊕ fin n` to use only a set of the free variables indexed by `α`. -/
-def restrict_var_left {n : ℕ} (t : L.term (α ⊕ fin n))
-  (f : sum.inl ⁻¹' t.var_set → β) :
-  L.term (β ⊕ fin n) :=
-t.restrict_var (sum.map f id ∘ restrict_var_left_aux)
-
-/-- Restricts a term to use only a set of the given variables. -/
-def restrict_var' [decidable_eq α] : Π (t : L.term α) (f : t.var_finset → β), L.term β
+def restrict_var [decidable_eq α] : Π (t : L.term α) (f : t.var_finset → β), L.term β
 | (var a) f := var (f ⟨a, finset.mem_singleton_self a⟩)
-| (func F ts) f := func F (λ i, (ts i).restrict_var'
+| (func F ts) f := func F (λ i, (ts i).restrict_var
   (f ∘ (set.inclusion (finset.subset_bUnion_of_mem _ (finset.mem_univ i)))))
 
 /-- Restricts a term to use only a set of the given variables on the left side of a sum. -/
-def restrict_var_left' [decidable_eq α] {γ : Type*} :
+def restrict_var_left [decidable_eq α] {γ : Type*} :
   Π (t : L.term (α ⊕ γ)) (f : t.var_finset_left → β), L.term (β ⊕ γ)
 | (var (sum.inl a)) f := var (sum.inl (f ⟨a, finset.mem_singleton_self a⟩))
 | (var (sum.inr a)) f := var (sum.inr a)
-| (func F ts) f := func F (λ i, (ts i).restrict_var_left'
+| (func F ts) f := func F (λ i, (ts i).restrict_var_left
   (f ∘ (set.inclusion (finset.subset_bUnion_of_mem _ (finset.mem_univ i)))))
 
 end term
@@ -277,26 +240,6 @@ instance : has_sup (L.bounded_formula α n) := ⟨λ f g, f.not.imp g⟩
 /-- The biimplication between two bounded formulas. -/
 protected def iff (φ ψ : L.bounded_formula α n) := φ.imp ψ ⊓ ψ.imp φ
 
-/-- The `set` of variables used in a given formula. -/
-@[simp] def free_var_set :
-  ∀ {n}, L.bounded_formula α n → set α
-| n falsum := ∅
-| n (equal t₁ t₂) := sum.inl ⁻¹' t₁.var_set ∪ sum.inl ⁻¹' t₂.var_set
-| n (rel R ts) := ⋃ i, sum.inl ⁻¹' (ts i).var_set
-| n (imp f₁ f₂) := f₁.free_var_set ∪ f₂.free_var_set
-| n (all f) := f.free_var_set
-
-lemma finite_free_var_set (φ : L.bounded_formula α n) :
-  φ.free_var_set.finite :=
-begin
-  induction φ with _ _ t₁ t₂ _ _ _ ts _ _ _ ih1 ih2 _ _ ih,
-  { exact set.finite_empty },
-  { exact set.finite_union.2 ⟨t₁.finite_var_set_left, t₂.finite_var_set_left⟩ },
-  { exact set.finite_Union (λ i, (ts i).finite_var_set_left) },
-  { exact set.finite_union.2 ⟨ih1, ih2⟩ },
-  { exact ih }
-end
-
 /-- The `finset` of variables used in a given formula. -/
 @[simp] def free_var_finset [decidable_eq α] :
   ∀ {n}, L.bounded_formula α n → finset α
@@ -343,36 +286,18 @@ def relabel (g : α → (β ⊕ fin n)) :
 | k (all f) := f.relabel.all
 
 /-- Restricts a bounded formula to only use a particular set of free variables. -/
-def restrict_free_var : Π {n : ℕ} (φ : L.bounded_formula α n)
-  (f : φ.free_var_set → β), L.bounded_formula β n
-| n falsum f := falsum
-| n (equal t₁ t₂) f := equal
-  (t₁.restrict_var_left (f ∘ (set.inclusion (set.subset_union_left _ _))))
-  (t₂.restrict_var_left (f ∘ (set.inclusion (set.subset_union_right _ _))))
-| n (rel R ts) f := rel R (λ i, (ts i).restrict_var_left (f ∘ set.inclusion (set.subset_Union _ i)))
-| n (imp φ₁ φ₂) f := (φ₁.restrict_free_var (f ∘ (set.inclusion (set.subset_union_left _ _)))).imp
-  (φ₂.restrict_free_var (f ∘ (set.inclusion (set.subset_union_right _ _))))
-| n (all φ) f := (φ.restrict_free_var f).all
-
-example (φ : L.bounded_formula α n) : L.bounded_formula φ.free_var_set n :=
-φ.restrict_free_var id
-
-/-- Restricts a bounded formula to only use a particular set of free variables. -/
-def restrict_free_var' [decidable_eq α] : Π {n : ℕ} (φ : L.bounded_formula α n)
+def restrict_free_var [decidable_eq α] : Π {n : ℕ} (φ : L.bounded_formula α n)
   (f : φ.free_var_finset → β), L.bounded_formula β n
 | n falsum f := falsum
 | n (equal t₁ t₂) f := equal
-  (t₁.restrict_var_left' (f ∘ (set.inclusion (finset.subset_union_left _ _))))
-  (t₂.restrict_var_left' (f ∘ (set.inclusion (finset.subset_union_right _ _))))
-| n (rel R ts) f := rel R (λ i, (ts i).restrict_var_left'
+  (t₁.restrict_var_left (f ∘ (set.inclusion (finset.subset_union_left _ _))))
+  (t₂.restrict_var_left (f ∘ (set.inclusion (finset.subset_union_right _ _))))
+| n (rel R ts) f := rel R (λ i, (ts i).restrict_var_left
   (f ∘ set.inclusion (finset.subset_bUnion_of_mem _ (finset.mem_univ i))))
 | n (imp φ₁ φ₂) f :=
-  (φ₁.restrict_free_var' (f ∘ (set.inclusion (finset.subset_union_left _ _)))).imp
-  (φ₂.restrict_free_var' (f ∘ (set.inclusion (finset.subset_union_right _ _))))
-| n (all φ) f := (φ.restrict_free_var' f).all
-
-example [decidable_eq α] (φ : L.bounded_formula α n) : L.bounded_formula φ.free_var_finset n :=
-φ.restrict_free_var' id
+  (φ₁.restrict_free_var (f ∘ (set.inclusion (finset.subset_union_left _ _)))).imp
+  (φ₂.restrict_free_var (f ∘ (set.inclusion (finset.subset_union_right _ _))))
+| n (all φ) f := (φ.restrict_free_var f).all
 
 /-- Places universal quantifiers on all extra variables of a bounded formula. -/
 def alls : ∀ {n}, L.bounded_formula α n → L.formula α

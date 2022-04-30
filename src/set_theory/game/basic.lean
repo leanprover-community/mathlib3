@@ -155,6 +155,9 @@ namespace pgame
 
 @[simp] lemma quot_add (a b : pgame) : ⟦a + b⟧ = ⟦a⟧ + ⟦b⟧ := rfl
 
+lemma quot_add_comm (a b : pgame) : ⟦a + b⟧ = ⟦b + a⟧ :=
+quot.sound (add_comm_equiv)
+
 @[simp] lemma quot_sub (a b : pgame) : ⟦a - b⟧ = ⟦a⟧ - ⟦b⟧ := rfl
 
 theorem quot_eq_of_mk_quot_eq {x y : pgame}

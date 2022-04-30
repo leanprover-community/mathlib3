@@ -31,12 +31,6 @@ We show that the surreals form a linear ordered commutative group.
 
 One can also map all the ordinals into the surreals!
 
-### Multiplication of surreal numbers
-The definition of multiplication for surreal numbers is surprisingly difficult and is currently
-missing in the library. A sample proof can be found in Theorem 3.8 in the second reference below.
-The difficulty lies in the length of the proof and the number of theorems that need to proven
-simultaneously. This will make for a fun and challenging project.
-
 ## References
 * [Conway, *On numbers and games*][conway2001]
 * [Schleicher, Stoll, *An introduction to Conway's games and numbers*][schleicher_stoll]
@@ -347,6 +341,30 @@ inductive mul_args : Type (u+1)
 | P1 (x y : pgame.{u}) : mul_args
 | P2 (x₁ x₂ y : pgame.{u}) : mul_args
 
+end pgame
+
+namespace game
+
+/-- An auxiliary result for the surreal multiplication proof. -/
+theorem add_add_lt_cancel_left {a b c d e : game} : a + b + c < a + d + e ↔ b + c < d + e :=
+by rw [add_assoc, add_assoc, add_lt_add_iff_left]
+
+/-- An auxiliary result for the surreal multiplication proof. -/
+theorem add_add_lt_cancel_mid {a b c d e : game} : a + b + c < d + b + e ↔ a + c < d + e :=
+by rw [add_comm a, add_comm d, add_add_lt_cancel_left]
+
+end game
+
+namespace pgame
+
+/-- An auxiliary result for the surreal multiplication proof. -/
+theorem add_add_lt_cancel_left {a b c d e : pgame} : a + b + c < a + d + e ↔ b + c < d + e :=
+@game.add_add_lt_cancel_left ⟦a⟧ ⟦b⟧ ⟦c⟧ ⟦d⟧ ⟦e⟧
+
+/-- An auxiliary result for the surreal multiplication proof. -/
+theorem add_add_lt_cancel_mid {a b c d e : pgame} : a + b + c < d + b + e ↔ a + c < d + e :=
+@game.add_add_lt_cancel_mid ⟦a⟧ ⟦b⟧ ⟦c⟧ ⟦d⟧ ⟦e⟧
+
 namespace mul_args
 
 /-- The depth function on the type. See the docstring for `mul_args`. -/
@@ -373,59 +391,50 @@ instance : has_well_founded mul_args :=
 /-- The hypothesis is true for any arguments. -/
 theorem result : ∀ x : mul_args, x.hypothesis
 | (P1 ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩) := begin
-  let x := mk xl xr xL xR,
-  let y := mk yl yr yL yR,
   intros ox oy,
   rw numeric_def,
+
+  have HN₁ : ∀ {ix iy}, (xL ix * mk yl yr yL yR + mk xl xr xL xR * yL iy - xL ix * yL iy).numeric :=
+  λ ix iy, ((result (P1 _ _) (ox.move_left ix) oy).add (result (P1 _ _) ox (oy.move_left iy))).sub
+    (result (P1 _ _) (ox.move_left ix) (oy.move_left iy)),
+
   refine ⟨_, _, _⟩,
   { rintro (⟨ix, iy⟩ | ⟨ix, iy⟩) (⟨ix', jy⟩ | ⟨ix', jy⟩),
-    {
-      simp,
-      rcases lt_or_equiv_or_gt (xL ix) (xL ix') with h | h | h,
-      { have HH₁ : game.lt ⟦xL ix * (mk yl yr yL yR) + (mk xl xr xL xR) * yL iy - xL ix * yL iy⟧
-        ⟦xL ix' * (mk yl yr yL yR) + (mk xl xr xL xR) * yL iy - xL ix' * yL iy⟧ :=
-      begin
-        have H₁ : game.lt ⟦_⟧ ⟦_⟧ := ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') oy).2 h).1 iy,
-        dsimp at H₁ ⊢,
-        rw quot_mul_comm (xL ix') (yL iy),
-        rw quot_mul_comm (xL ix) (yL iy)  ,
-        rw quot_mul_comm (xL ix') _,
-        rw quot_mul_comm (xL ix) _,
-        rw add_comm,
-        rw add_comm ⟦mk yl yr yL yR * xL ix'⟧  ⟦mk xl xr xL xR * yL iy⟧,
-        rw add_sub_assoc,
-        rw add_sub_assoc ⟦mk xl xr xL xR * yL iy⟧,
-        rw add_lt_add_iff_left ⟦mk xl xr xL xR * yL iy⟧,
-        linarith,
+    { rcases lt_or_equiv_or_gt (xL ix) (xL ix') with h | h | h,
+      { have H₁ : ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xL ix * yL iy⟧ <
+          ⟦xL ix' * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xL ix' * yL iy⟧,
+        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_mid, add_comm ⟦xL ix' * _⟧, add_comm,
+            quot_mul_comm, quot_mul_comm (xL ix), quot_mul_comm (xL ix), quot_mul_comm (xL ix')],
+          apply ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') oy).2 h).1 },
+        have H₂ : ⟦xL ix' * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xL ix' * yL iy⟧ <
+          ⟦xL ix' * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yR jy⟧ - ⟦xL ix' * yR jy⟧,
+        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_left, add_comm ⟦_ * yR jy⟧, add_comm],
+          apply ((result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2
+            (oy.left_lt_right iy jy)).1 },
+        exact lt_trans HN₁ HN₁ H₁ H₂ },
+      { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
+        have H₁ : ⟦xL ix * _⟧ = ⟦xL ix' * _⟧ := quot.sound
+          ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') oy).1 h),
+        have H₂ : ⟦xL ix * yR jy⟧ = ⟦xL ix' * yR jy⟧ := quot.sound
+          ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') (oy.move_right jy)).1 h),
+        rw [H₁, ←H₂, sub_lt_sub_iff, game.add_add_lt_cancel_left, add_comm ⟦_ * yR jy⟧, add_comm],
+        apply ((result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2
+          (oy.left_lt_right iy jy)).1 },
+      { have Hsussy : ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xL ix * yL iy⟧ <
+          ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yR jy⟧ - ⟦xL ix * yR jy⟧,
+        {
 
-      end,
-        have H₂ := ((result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2
-          (oy.left_lt_right iy jy)).1 ix',
-        dsimp at H₁ H₂,
-        have := pgame.lt_trans
-          ((result (P1 _ _) (ox.move_left ix') (oy.move_right jy)).add
-            (result (P1 _ _) ox (oy.move_left iy)))
-          ((result (P1 _ _) (ox.move_left ix') (oy.move_left iy)).add
-            (result (P1 _ _) ox (oy.move_right jy))) H₁ H₂,
-        change game.lt ⟦_⟧ ⟦_⟧ at this,
-        change game.lt ⟦_⟧ ⟦_⟧,
-        dsimp at ⊢ this,
-        rw [quot_mul_comm],
-      },
-      /-cases lt_or_equiv_or_gt (ox₁.move_left ix) (ox₁.move_left ix'),
-      {
+        },
+        apply lt_trans sorry sorry Hsussy,
+        apply thesus ,
+        rw mul_sub_lt_iff,
+        apply (HR₂.2 h).2,
 
-      },
-      change game.lt ⟦_⟧ ⟦_⟧,
-      simp,
-      abel,-/
-      sorry
+
+       }
     }, repeat { sorry } },
   { rintro (⟨ix, iy⟩ | ⟨jx, jy⟩),
-    { apply (numeric.add _ _).sub _,
-      { exact result (P1 _ _) (ox.move_left ix) oy },
-      { exact result (P1 _ _) ox (oy.move_left iy) },
-      { exact result (P1 _ _) (ox.move_left ix) (oy.move_left iy) } },
+    { apply HN₁ },
     { apply (numeric.add _ _).sub _,
       { exact result (P1 _ _) (ox.move_right jx) oy },
       { exact result (P1 _ _) ox (oy.move_right jy) },

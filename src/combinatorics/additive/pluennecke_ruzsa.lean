@@ -1,3 +1,4 @@
+import combinatorics.additive.mathlib
 import combinatorics.double_counting
 import data.finset.pointwise
 
@@ -30,10 +31,19 @@ lemma pluennecke_petridis (hXA : ∀ A' ⊆ A, (A + B).card * A'.card ≤ (A' + 
   (C : finset α) :
   (A + B + C).card * A.card ≤ (A + B).card * (B + C).card :=
 begin
-  induction C using finset.induction_on with c C hc ih,
+  induction C using finset.induction_on with x C hc ih,
   { simp },
-  let A' := A ∩ (A + C),
-  sorry
+  set A' := A ∩ (A + C - {x}) with hA',
+  set C' := insert x C with hC',
+  rw [insert_eq, add_union],
+  have : A' + {x} = (A + {x}) ∩ (A + C),
+  {
+    rw [hA'],
+  },
+  have : (A + C').card = (A + C).card + A.card - A'.card,
+  {
+    rw [hC', insert_eq, add_union, hA'],
+  }
 end
 
 /-- **Ruzsa's triangle inequality** -/

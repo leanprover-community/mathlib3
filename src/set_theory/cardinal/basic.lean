@@ -621,6 +621,15 @@ theorem sum_const' (ι : Type u) (a : cardinal.{u}) : sum (λ _:ι, a) = #ι * a
 by simpa only [mk_sigma, mk_sum, mk_out, lift_id] using
   mk_congr (equiv.sigma_sum_distrib (quotient.out ∘ f) (quotient.out ∘ g))
 
+@[simp] theorem sum_add_distrib' {ι} (f g : ι → cardinal) :
+  cardinal.sum (λ i, f i + g i) = sum f + sum g :=
+sum_add_distrib f g
+
+@[simp] theorem lift_sum {ι : Type u} (f : ι → cardinal.{v}) :
+  cardinal.lift.{w} (cardinal.sum f) = cardinal.sum (λ i, cardinal.lift.{w} (f i)) :=
+equiv.cardinal_eq $ equiv.ulift.trans $ equiv.sigma_congr_right $ λ a, nonempty.some $
+  by rw [←lift_mk_eq, mk_out, mk_out, lift_lift]
+
 theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=
 ⟨(embedding.refl _).sigma_map $ λ i, classical.choice $
   by have := H i; rwa [← quot.out_eq (f i), ← quot.out_eq (g i)] at this⟩

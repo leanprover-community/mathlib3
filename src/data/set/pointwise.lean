@@ -626,20 +626,48 @@ multiplication/division!) of a `set`. -/
 @[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (set α) ℤ :=
 ⟨λ s n, zpow_rec n s⟩
 
+end div
+
+localized "attribute [instance] set.has_nsmul set.has_npow set.has_zsmul set.has_zpow" in pointwise
+
+open_locale pointwise
+
+section division_monoid
+variables [division_monoid α] {s t : set α}
+
+@[to_additive]
+protected lemma mul_eq_one_iff : s * t = 1 ↔ ∃ a b, s = {a} ∧ t = {b} ∧ a * b = 1 :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { have hst : (s * t).nonempty := h.symm.subst one_nonempty,
+    obtain ⟨a, ha⟩ := hst.of_image2_left,
+    obtain ⟨b, hb⟩ := hst.of_image2_right,
+    have H : ∀ {a b}, a ∈ s → b ∈ t → a * b = (1 : α) :=
+      λ a b ha hb, (h.subset $ mem_image2_of_mem ha hb),
+    refine ⟨a, b, _, _, H ha hb⟩; refine eq_singleton_iff_unique_mem.2 ⟨‹_›, λ x hx, _⟩,
+    { exact (eq_inv_of_mul_eq_one_left $ H hx hb).trans (inv_eq_of_mul_eq_one_right $ H ha hb) },
+    { exact (eq_inv_of_mul_eq_one_right $ H ha hx).trans (inv_eq_of_mul_eq_one_left $ H ha hb) } },
+  { rintro ⟨b, c, rfl, rfl, h⟩,
+    rw [singleton_mul_singleton, h, singleton_one] }
+end
+
 /-- `set α` is a division monoid under pointwise if `α` is. -/
 @[to_additive subtraction_monoid "`set α` is a subtraction monoid under pointwise if `α` is."]
-protected def division_monoid [division_monoid α] : division_monoid (set α) :=
+protected def division_monoid : division_monoid (set α) :=
 { mul_inv_rev := λ s t, by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev },
+  inv_eq_of_mul := λ s t h, begin
+    obtain ⟨a, b, rfl, rfl, hab⟩ := set.mul_eq_one_iff.1 h,
+    rw [inv_singleton, inv_eq_of_mul_eq_one_left hab],
+  end,
   div_eq_mul_inv := λ s t,
     by { rw [←image_id (s / t), ←image_inv], exact image_image2_distrib_right div_eq_mul_inv },
   ..set.monoid, ..set.has_involutive_inv, ..set.has_div }
 
+end division_monoid
+
+localized "attribute [instance] set.division_monoid set.subtraction_monoid" in pointwise
+
 -- `set α` is not a group because `s / s ≠ 1` in general
-
-localized "attribute [instance] set.has_nsmul set.has_npow set.has_zsmul set.has_zpow
-  set.division_monoid set.subtraction_monoid" in pointwise
-
-end div
 
 /-! ### Translation/scaling of sets -/
 

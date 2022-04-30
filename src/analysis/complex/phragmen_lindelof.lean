@@ -14,26 +14,6 @@ open_locale topological_space filter real
 
 local notation `expR` := real.exp
 
-lemma tendsto_smul_cobounded {𝕜 : Type*} [normed_field 𝕜] {c : 𝕜} (hc : c ≠ 0)
-  (E : Type*) [semi_normed_group E] [normed_space 𝕜 E] :
-  tendsto ((•) c : E → E) (comap norm at_top) (comap norm at_top) :=
-begin
-  simp only [tendsto_comap_iff, (∘), norm_smul],
-  exact (tendsto_const_nhds.mul_at_top (norm_pos_iff.2 hc) tendsto_id).comp tendsto_comap
-end
-
-lemma tendsto_mul_left_cobounded {𝕜 : Type*} [normed_field 𝕜] {c : 𝕜} (hc : c ≠ 0) :
-  tendsto ((*) c) (comap norm at_top) (comap norm at_top) :=
-tendsto_smul_cobounded hc 𝕜
-
-lemma tendsto_mul_right_cobounded {𝕜 : Type*} [normed_field 𝕜] {c : 𝕜} (hc : c ≠ 0) :
-  tendsto (λ x, x * c) (comap norm at_top) (comap norm at_top) :=
-by simpa only [mul_comm _ c] using tendsto_mul_left_cobounded hc
-
-lemma tendsto_neg_cobounded (E : Type*) [normed_group E] :
-  tendsto (has_neg.neg : E → E) (comap norm at_top) (comap norm at_top) :=
-by simp only [tendsto_comap_iff, (∘), norm_neg, tendsto_comap]
-
 namespace complex
 
 lemma abs_exp_mul_exp_add_exp_neg_le_of_abs_im_le_of_lt_pi_div_two {a b : ℝ} (ha : a ≤ 0)

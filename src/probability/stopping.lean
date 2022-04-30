@@ -267,7 +267,7 @@ begin
   intro i,
   have : u i = (λ p : set.Iic i × α, u p.1 p.2) ∘ (λ x, (⟨i, set.mem_Iic.mpr le_rfl⟩, x)) := rfl,
   rw this,
-  exact (h i).comp_measurable ((@measurable_const _ _ _ (f i) _).prod_mk (@measurable_id _ (f i))),
+  exact (h i).comp_measurable measurable_prod_mk_left,
 end
 
 protected lemma comp {t : ι → α → ι} [topological_space ι] [borel_space ι] [metrizable_space ι]
@@ -280,7 +280,7 @@ begin
     = (λ p : ↥(set.Iic i) × α, u (p.fst : ι) p.snd) ∘ (λ p : ↥(set.Iic i) × α,
       (⟨t (p.fst : ι) p.snd, set.mem_Iic.mpr ((ht_le _ _).trans p.fst.prop)⟩, p.snd)) := rfl,
   rw this,
-  exact (h i).comp_measurable ((ht i).measurable.subtype_mk.prod_mk (@measurable_snd _ _ _ (f i))),
+  exact (h i).comp_measurable ((ht i).measurable.subtype_mk.prod_mk measurable_snd),
 end
 
 section arithmetic
@@ -750,7 +750,7 @@ begin
     rw h_set_eq,
     suffices h_meas : @measurable _ _ (m_set s) (f i) (λ x : s, (x : set.Iic i × α).snd),
       from h_meas (f.mono (min_le_left _ _) _ (hτ.measurable_set_le (min i j))),
-    exact (@measurable_snd _ _ _ (f i)).comp (@measurable_subtype_coe _ m_prod _), },
+    exact measurable_snd.comp (@measurable_subtype_coe _ m_prod _), },
   { suffices h_min_eq_left : (λ x : sᶜ, min ↑((x : set.Iic i × α).fst) (τ (x : set.Iic i × α).snd))
       = λ x : sᶜ, ↑((x : set.Iic i × α).fst),
     { rw [set.restrict, h_min_eq_left],
@@ -833,10 +833,9 @@ begin
   { suffices h_meas : measurable[measurable_space.prod _ (f i)]
         (λ a : ↥(set.Iic i) × α, (a.fst : ℕ)),
       from h_meas (measurable_set_singleton j),
-    exact (@measurable_fst _ α _ (f i)).subtype_coe, },
+    exact measurable_fst.subtype_coe, },
   { have h_le : j ≤ i, from finset.mem_range_succ_iff.mp hj,
-    exact (strongly_measurable.mono (h j) (f.mono h_le)).comp_measurable
-      (@measurable_snd _ α _ (f i)), },
+    exact (strongly_measurable.mono (h j) (f.mono h_le)).comp_measurable measurable_snd, },
   { exact strongly_measurable_const, },
 end
 

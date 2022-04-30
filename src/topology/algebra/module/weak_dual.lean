@@ -9,7 +9,7 @@ import topology.algebra.module.basic
 # Weak dual topology
 
 This file defines the weak topology given two vector spaces `E` and `F` over a commutative semiring
-`𝕜` and a bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜`. The weak topology on `E` is the coarest topology
+`𝕜` and a bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜`. The weak topology on `E` is the coarsest topology
 such that for all `y : F` every map `λ x, B x y` is continuous.
 
 In the case that `F = E →L[𝕜] 𝕜` and `B` being the canonical pairing, we obtain the weak-* topology,
@@ -180,8 +180,8 @@ weak_bilin (top_dual_pairing 𝕜 E)
 
 instance : inhabited (weak_dual 𝕜 E) := continuous_linear_map.inhabited
 
-instance fun_like_weak_dual : fun_like (weak_dual 𝕜 E) E (λ _, 𝕜) :=
-by {dunfold weak_dual, dunfold weak_bilin, apply_instance}
+instance add_monoid_hom_class_weak_dual : add_monoid_hom_class (weak_dual 𝕜 E) E 𝕜 :=
+continuous_linear_map.add_monoid_hom_class
 
 /-- If a monoid `M` distributively continuously acts on `𝕜` and this action commutes with
 multiplication on `𝕜`, then it acts on `weak_dual 𝕜 E`. -/
@@ -223,5 +223,11 @@ nolint has_inhabited_instance]
 def weak_space (𝕜 E) [comm_semiring 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜]
   [has_continuous_const_smul 𝕜 𝕜] [add_comm_monoid E] [module 𝕜 E] [topological_space E] :=
 weak_bilin (top_dual_pairing 𝕜 E).flip
+
+theorem tendsto_iff_forall_eval_tendsto_top_dual_pairing
+  {l : filter α} {f : α → weak_dual 𝕜 E} {x : weak_dual 𝕜 E} :
+  tendsto f l (𝓝 x) ↔
+    ∀ y, tendsto (λ i, top_dual_pairing 𝕜 E (f i) y) l (𝓝 (top_dual_pairing 𝕜 E x y)) :=
+tendsto_iff_forall_eval_tendsto _ continuous_linear_map.coe_injective
 
 end weak_star_topology

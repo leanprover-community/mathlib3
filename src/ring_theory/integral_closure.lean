@@ -178,7 +178,7 @@ begin
   have : degree (p %ₘ f) ≤ degree f := degree_mod_by_monic_le p hfm,
   generalize_hyp : p %ₘ f = q at this ⊢,
   rw [← sum_C_mul_X_eq q, aeval_def, eval₂_sum, sum_def],
-  refine sum_mem _ (λ k hkq, _),
+  refine sum_mem (λ k hkq, _),
   rw [eval₂_mul, eval₂_C, eval₂_pow, eval₂_X, ← algebra.smul_def],
   refine smul_mem _ _ (subset_span _),
   rw finset.mem_coe, refine finset.mem_image.2 ⟨_, _, rfl⟩,
@@ -194,7 +194,7 @@ set.finite.induction_on hfs (λ _, ⟨{1}, submodule.ext $ λ x,
   by { erw [algebra.adjoin_empty, finset.coe_singleton, ← one_eq_span, one_eq_range,
             linear_map.mem_range, algebra.mem_bot], refl }⟩)
 (λ a s has hs ih his, by rw [← set.union_singleton, algebra.adjoin_union_coe_submodule]; exact
-  fg_mul _ _ (ih $ λ i hi, his i $ set.mem_insert_of_mem a hi)
+  fg.mul (ih $ λ i hi, his i $ set.mem_insert_of_mem a hi)
     (fg_adjoin_singleton_of_integral _ $ his a $ set.mem_insert a s)) his
 
 lemma is_noetherian_adjoin_finset [is_noetherian_ring R] (s : finset A)
@@ -228,7 +228,7 @@ begin
     subring.closure ↑(lx.frange ∪ finset.bUnion finset.univ (finsupp.frange ∘ ly)),
   -- It suffices to prove that `x` is integral over `S₀`.
   refine is_integral_of_subring S₀ _,
-  letI : comm_ring S₀ := subring.to_comm_ring S₀,
+  letI : comm_ring S₀ := subring_class.to_comm_ring S₀,
   letI : algebra S₀ A := algebra.of_subring S₀,
   -- Claim: the `S₀`-module span (in `A`) of the set `y ∪ {1}` is closed under
   -- multiplication (indeed, this is the motivation for the definition of `S₀`).
@@ -291,7 +291,7 @@ lemma ring_hom.is_integral_of_mem_closure {x y z : S}
   f.is_integral_elem z :=
 begin
   letI : algebra R S := f.to_algebra,
-  have := fg_mul _ _ (fg_adjoin_singleton_of_integral x hx) (fg_adjoin_singleton_of_integral y hy),
+  have := (fg_adjoin_singleton_of_integral x hx).mul (fg_adjoin_singleton_of_integral y hy),
   rw [← algebra.adjoin_union_coe_submodule, set.singleton_union] at this,
   exact is_integral_of_mem_of_fg (algebra.adjoin R {x, y}) this z
     (algebra.mem_adjoin_iff.2 $ subring.closure_mono (set.subset_union_right _ _) hz),
@@ -837,7 +837,7 @@ begin
   -- `q(a) = 0`, because multiplying everything with `a_inv^n` gives `p(a_inv) = 0`.
   -- TODO: this could be a lemma for `polynomial.reverse`.
   have hq : ∑ (i : ℕ) in finset.range (p.nat_degree + 1), (p.coeff i) * a ^ (p.nat_degree - i) = 0,
-  { apply (algebra_map R S).injective_iff.mp hRS,
+  { apply (injective_iff_map_eq_zero (algebra_map R S)).mp hRS,
     have a_inv_ne_zero : a_inv ≠ 0 := right_ne_zero_of_mul (mt ha_inv.symm.trans one_ne_zero),
     refine (mul_eq_zero.mp _).resolve_right (pow_ne_zero p.nat_degree a_inv_ne_zero),
     rw [eval₂_eq_sum_range] at hp,

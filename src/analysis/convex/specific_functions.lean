@@ -32,14 +32,6 @@ For `p : ℝ`, prove that `λ x, x ^ p` is concave when `0 ≤ p ≤ 1` and stri
 open real set
 open_locale big_operators
 
-/-- The norm of a real normed space is convex. Also see `seminorm.convex_on`. -/
-lemma convex_on_norm {E : Type*} [normed_group E] [normed_space ℝ E] :
-  convex_on ℝ univ (norm : E → ℝ) :=
-⟨convex_univ, λ x y hx hy a b ha hb hab,
-  calc ∥a • x + b • y∥ ≤ ∥a • x∥ + ∥b • y∥ : norm_add_le _ _
-    ... = a * ∥x∥ + b * ∥y∥
-        : by rw [norm_smul, norm_smul, real.norm_of_nonneg ha, real.norm_of_nonneg hb]⟩
-
 /-- `exp` is strictly convex on the whole real line. -/
 lemma strict_convex_on_exp : strict_convex_on ℝ univ exp :=
 strict_convex_on_univ_of_deriv2_pos differentiable_exp (λ x, (iter_deriv_exp 2).symm ▸ exp_pos x)
@@ -53,8 +45,8 @@ begin
   apply convex_on_univ_of_deriv2_nonneg differentiable_pow,
   { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
   { intro x,
-    rcases nat.even.sub_even hn (even_bit0 1) with ⟨k, hk⟩,
-    rw [iter_deriv_pow, finset.prod_range_cast_nat_sub, hk, pow_mul'],
+    obtain ⟨k, hk⟩ := (hn.tsub_even $ even_bit0 _).exists_two_nsmul _,
+    rw [iter_deriv_pow, finset.prod_range_cast_nat_sub, hk, nsmul_eq_mul, pow_mul'],
     exact mul_nonneg (nat.cast_nonneg _) (pow_two_nonneg _) }
 end
 
@@ -106,7 +98,8 @@ lemma int_prod_range_nonneg (m : ℤ) (n : ℕ) (hn : even n) :
 begin
   rcases hn with ⟨n, rfl⟩,
   induction n with n ihn, { simp },
-  rw [nat.succ_eq_add_one, mul_add, mul_one, bit0, ← add_assoc, finset.prod_range_succ,
+  rw ← two_mul at ihn,
+  rw [← two_mul, nat.succ_eq_add_one, mul_add, mul_one, bit0, ← add_assoc, finset.prod_range_succ,
     finset.prod_range_succ, mul_assoc],
   refine mul_nonneg ihn _, generalize : (1 + 1) * n = k,
   cases le_or_lt m k with hmk hmk,

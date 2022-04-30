@@ -98,7 +98,7 @@ begin
     convert comp_zero,
     convert comp_zero,
     convert comp_zero,
-    apply o.eq_zero, },
+    apply o.eq_zero nm, },
 end
 
 variables {R : Type*} [comm_semiring R] [linear R C]

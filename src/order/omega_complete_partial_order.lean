@@ -386,6 +386,13 @@ instance : omega_complete_partial_order (α × β) :=
   le_ωSup := λ c i,
     ⟨le_ωSup (c.map order_hom.fst) i, le_ωSup (c.map order_hom.snd) i⟩ }
 
+lemma ωSup_zip (c₀ : chain α) (c₁ : chain β) :
+  ωSup (c₀.zip c₁) = (ωSup c₀, ωSup c₁) :=
+begin
+  apply eq_of_forall_ge_iff, rintro ⟨z₁,z₂⟩,
+  simp [ωSup_le_iff, forall_and_distrib],
+end
+
 end prod
 
 namespace complete_lattice
@@ -721,15 +728,9 @@ end prod
 
 lemma ωSup_def (c : chain (α →𝒄 β)) (x : α) : ωSup c x = continuous_hom.ωSup c x := rfl
 
-lemma ωSup_ωSup (c₀ : chain (α →𝒄 β)) (c₁ : chain α) :
+lemma ωSup_apply_ωSup (c₀ : chain (α →𝒄 β)) (c₁ : chain α) :
   ωSup c₀ (ωSup c₁) = prod.apply (ωSup (c₀.zip c₁)) :=
-begin
-  apply eq_of_forall_ge_iff, intro z,
-  simp only [ωSup_le_iff, (c₀ _).continuous, chain.map_coe, to_mono_coe, coe_apply, ωSup_def,
-    chain.zip_coe, order_hom.apply_coe, function.comp_app, ωSup_apply, function.eval,
-    prod.apply_apply, prod.omega_complete_partial_order_ωSup_fst,
-    prod.omega_complete_partial_order_ωSup_snd, order_hom.fst_coe, order_hom.snd_coe],
-end
+by simp [prod.apply_apply, prod.ωSup_zip]
 
 /-- A family of continuous functions yields a continuous family of functions. -/
 @[simps]

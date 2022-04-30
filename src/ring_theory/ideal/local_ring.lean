@@ -36,7 +36,7 @@ variables {R : Type u} {S : Type v} {T : Type w} {K : Type u'}
 Note that `local_ring` is a predicate. -/
 class local_ring (R : Type u) [semiring R] extends nontrivial R : Prop :=
 of_is_unit_or_is_unit_of_add_one ::
-(is_unit_or_is_unit_of_add_one (a b : R) (h : a + b = 1) : is_unit a ∨ is_unit b)
+(is_unit_or_is_unit_of_add_one {a b : R} (h : a + b = 1) : is_unit a ∨ is_unit b)
 
 section comm_semiring
 variables [comm_semiring R]
@@ -80,17 +80,17 @@ end
 
 variables [local_ring R]
 
-lemma is_unit_or_is_unit_of_is_unit_add (a b : R) (h : is_unit (a + b)) :
+lemma is_unit_or_is_unit_of_is_unit_add {a b : R} (h : is_unit (a + b)) :
   is_unit a ∨ is_unit b :=
 begin
   rcases h with ⟨u, hu⟩,
   replace hu : ↑u⁻¹ * a + ↑u⁻¹ * b = 1, from by rw [←mul_add, ←hu, units.inv_mul],
-  cases is_unit_or_is_unit_of_add_one _ _ hu; [left, right];
+  cases is_unit_or_is_unit_of_add_one hu; [left, right];
     exact (is_unit_of_mul_is_unit_right (by assumption))
 end
 
 lemma nonunits_add {a b : R} (ha : a ∈ nonunits R) (hb : b ∈ nonunits R) : a + b ∈ nonunits R:=
-λ H, not_or ha hb (is_unit_or_is_unit_of_is_unit_add a b H)
+λ H, not_or ha hb (is_unit_or_is_unit_of_is_unit_add H)
 
 variables (R)
 
@@ -146,7 +146,7 @@ lemma of_is_unit_or_is_unit_one_sub_self [nontrivial R]
 variables [local_ring R]
 
 lemma is_unit_or_is_unit_one_sub_self (a : R) : is_unit a ∨ is_unit (1 - a) :=
-is_unit_or_is_unit_of_is_unit_add a (1 - a) $ (add_sub_cancel'_right a 1).symm ▸ is_unit_one
+is_unit_or_is_unit_of_is_unit_add $ (add_sub_cancel'_right a 1).symm ▸ is_unit_one
 
 lemma is_unit_of_mem_nonunits_one_sub_self (a : R) (h : 1 - a ∈ nonunits R) :
   is_unit a :=
@@ -303,7 +303,7 @@ begin
   obtain ⟨a, rfl⟩ := hf a,
   obtain ⟨b, rfl⟩ := hf b,
   replace hab : is_unit (f (a + b)), from by simpa only [map_add] using hab,
-  refine (is_unit_or_is_unit_of_is_unit_add _ _ $ is_local_ring_hom.map_nonunit _ hab).imp
+  exact (is_unit_or_is_unit_of_is_unit_add $ is_local_ring_hom.map_nonunit _ hab).imp
     f.is_unit_map f.is_unit_map
 end
 

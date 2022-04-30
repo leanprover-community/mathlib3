@@ -173,6 +173,10 @@ by refine_struct
     zsmul := λ n z, ⟨n • z.re - 0 * z.im, n • z.im + 0 * z.re⟩ };
 intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
+/-- This shortcut instance ensures we do not find `add_comm_group` via the noncomputable
+`complex.normed_group` instance. -/
+instance : add_comm_group ℂ := by apply_instance
+
 /-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`
 instance. -/
 instance : ring ℂ := by apply_instance

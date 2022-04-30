@@ -373,11 +373,16 @@ inv_eq_left_inv (by simp [h, smul_smul])
 lemma inv_smul' (k : αˣ) (h : is_unit A.det) : (k • A)⁻¹ = k⁻¹ • A⁻¹ :=
 inv_eq_left_inv (by simp [h, smul_smul])
 
-lemma inv_adjugate (A : matrix n n α) (h : is_unit A.det) :
-  (adjugate A)⁻¹ = h.unit⁻¹ • A :=
+lemma inv_diagonal_of_invertible (v : n → α) [invertible v] : (diagonal v)⁻¹ = diagonal (⅟v) :=
+inv_eq_left_inv $
+  by rw [diagonal_mul_diagonal, ←pi.mul_def, inv_of_mul_self, pi.one_def, diagonal_one]
+
+lemma inv_diagonal_of_is_unit {v : n → α} (h : is_unit v):
+  (diagonal v)⁻¹ = diagonal ↑(h.unit⁻¹) :=
 begin
-  refine inv_eq_left_inv _,
-  rw [smul_mul, mul_adjugate, units.smul_def, smul_smul, h.coe_inv_mul, one_smul]
+  obtain ⟨u, rfl⟩ := h,
+  letI := u.invertible,
+  rw [inv_diagonal_of_invertible (↑u : n → α), inv_of_units, is_unit.unit_of_coe_units],
 end
 
 @[simp] lemma inv_inv_inv (A : matrix n n α) : A⁻¹⁻¹⁻¹ = A⁻¹ :=

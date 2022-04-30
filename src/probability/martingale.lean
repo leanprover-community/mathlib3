@@ -392,11 +392,6 @@ section piecewise_const
 
 variables {i j n : ℕ} {s : set α} {x : α} [decidable_pred (∈ s)]
 
-@[measurability]
-lemma measurable_piecewise_const {m : measurable_space α} (hs : measurable_set s) :
-  measurable (s.piecewise (λ _, i) (λ _, j)) :=
-measurable.piecewise hs measurable_const measurable_const
-
 lemma is_stopping_time_piecewise_const (hij : i ≤ j) (hs : measurable_set[𝒢 i] s) :
   is_stopping_time 𝒢 (s.piecewise (λ _, i) (λ _, j)) :=
 begin
@@ -404,19 +399,16 @@ begin
   obtain rfl | hij' := decidable.eq_or_ne i j,
   { simp },
   obtain rfl | hin := decidable.eq_or_ne i n,
-  { refine measurable.piecewise hs _ _ (measurable_set_singleton i),
-    apply measurable_const,
-    apply measurable_const, },
+  { exact measurable_const.piecewise hs measurable_const (measurable_set_singleton i) },
   obtain rfl | hjn := decidable.eq_or_ne j n,
-  { refine measurable.piecewise (𝒢.mono hij _ hs) _ _ (measurable_set_singleton j),
-    apply measurable_const,
-    apply measurable_const, },
+  { exact measurable_const.piecewise (𝒢.mono hij _ hs) measurable_const
+      (measurable_set_singleton j) },
   simp [set.piecewise, ite_eq_iff, hin, hjn],
 end
 
 lemma stopped_value_piecewise_const {f : ℕ → α → ℝ} :
   stopped_value f (s.piecewise (λ _, i) (λ _, j)) = s.indicator (f i) + sᶜ.indicator (f j) :=
-by { ext x, rw stopped_value, by_cases hx : x ∈ s; simp [hx], }
+by { ext x, rw stopped_value, by_cases hx : x ∈ s; simp [hx] }
 
 end piecewise_const
 

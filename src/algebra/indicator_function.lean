@@ -255,10 +255,10 @@ end
 begin
   ext x,
   by_cases h : x ∈ s,
-  { rw [piecewise_eq_of_not_mem _ _ _ h, pi.mul_apply, set.mul_indicator_of_not_mem h,
-      set.mul_indicator_of_mem (set.mem_compl h), one_mul] },
   { rw [piecewise_eq_of_mem _ _ _ h, pi.mul_apply, set.mul_indicator_of_mem h,
       set.mul_indicator_of_not_mem (set.not_mem_compl_iff.2 h), mul_one] },
+  { rw [piecewise_eq_of_not_mem _ _ _ h, pi.mul_apply, set.mul_indicator_of_not_mem h,
+      set.mul_indicator_of_mem (set.mem_compl h), one_mul] },
 end
 
 

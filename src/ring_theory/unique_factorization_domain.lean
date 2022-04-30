@@ -84,8 +84,8 @@ well_founded_dvd_not_unit.fix
   (λ a ih, if ha0 : a = 0 then ha0.substr h0
     else if hau : is_unit a then hu a hau
     else let ⟨i, hii, b, hb⟩ := exists_irreducible_factor hau ha0,
-      hb0 : b ≠ 0 := ne_zero_of_dvd_ne_zero ha0 ⟨i, by rw [hb, mul_comm]⟩ in
-      hb.symm ▸ hi b i hb0 hii $ ih b ⟨hb0, i, hii.1, by rw [hb, mul_comm]⟩)
+      hb0 : b ≠ 0 := ne_zero_of_dvd_ne_zero ha0 ⟨i, mul_comm i b ▸ hb⟩ in
+      hb.symm ▸ hi b i hb0 hii $ ih b ⟨hb0, i, hii.1, mul_comm i b ▸ hb⟩)
   a
 
 lemma exists_factors (a : α) : a ≠ 0 →

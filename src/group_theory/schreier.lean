@@ -4,11 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import data.finset.pointwise
-import group_theory.complement
-import group_theory.finiteness
-import group_theory.index
-import tactic.group
+import group_theory.abelianization
+import group_theory.transfer
 
 /-!
 # Schreier's Lemma
@@ -144,6 +141,22 @@ begin
   calc group.rank H ≤ T.card : group.rank_le H hT
   ... ≤ H.index * S.card : hT₀
   ... = H.index * group.rank G : congr_arg ((*) H.index) hS₀,
+end
+
+noncomputable lemma key_lemma [fintype {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}]
+  (h : (center G).index ≠ 0) : fintype (commutator G) :=
+begin
+  let H := (center G).subgroup_of (commutator G),
+  replace h : H.index ≠ 0,
+  { rw [←relindex],
+    sorry },
+  haveI : group.fg (commutator G),
+  { rw [commutator_eq_closure],
+    -- add closure.fg instance?
+    sorry },
+  have key := fg_of_index_ne_zero h,
+  -- remains to show abelian of bounded exponent
+  sorry,
 end
 
 end subgroup

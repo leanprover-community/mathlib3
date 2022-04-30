@@ -312,6 +312,7 @@ by rw [←quotient_group.eq_one_iff, quotient_group.coe_pow, index_eq_card, pow_
 lemma transfer_eq_pow [fintype (G ⧸ center G)] (g : G) :
   transfer (monoid_hom.id (center G)) g = ⟨g ^ (center G).index, (center G).pow_index_mem g⟩ :=
 begin
+  classical,
   rw transfer_computation,
   simp only [monoid_hom.id_apply],
   change ∏ q : quotient (mul_action.orbit_rel _ (G ⧸ center G)),
@@ -329,7 +330,11 @@ begin
   apply congr_arg (zpowers g).subtype,
   rw finset.prod_pow_eq_pow_sum,
   congr,
-  sorry,
+  simp only [lem0],
+  simp only [←fintype.card_sigma],
+  rw [index_eq_card],
+  have key := mul_action.self_equiv_sigma_orbits (zpowers g) (G ⧸ center G),
+  convert fintype.card_congr key.symm,
 end
 
 noncomputable def transfer_pow [fintype (G ⧸ center G)] : G →* center G :=

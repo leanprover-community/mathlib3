@@ -249,13 +249,16 @@ begin
   rw [pi.mul_apply, this, one_mul]
 end
 
-@[to_additive] lemma mul_indicator_mul_compl_eq_ite (f g : α → M) (x : α) :
-  s.mul_indicator f x * sᶜ.mul_indicator g x = if x ∈ s then f x else g x :=
+@[to_additive] lemma mul_indicator_mul_compl_eq_piecewise (f g : α → M) :
+  s.mul_indicator f * sᶜ.mul_indicator g = s.piecewise f g :=
 begin
+  rw piecewise,
+  ext x,
   split_ifs,
-  { rw [set.mul_indicator_of_mem h, set.mul_indicator_of_not_mem (set.not_mem_compl_iff.2 h),
-      mul_one] },
-  { rw [set.mul_indicator_of_not_mem h, set.mul_indicator_of_mem (set.mem_compl h), one_mul] }
+  { rw [pi.mul_apply, set.mul_indicator_of_mem h,
+      set.mul_indicator_of_not_mem (set.not_mem_compl_iff.2 h), mul_one] },
+  { rw [pi.mul_apply, set.mul_indicator_of_not_mem h,
+      set.mul_indicator_of_mem (set.mem_compl h), one_mul] }
 end
 
 /-- `set.mul_indicator` as a `monoid_hom`. -/

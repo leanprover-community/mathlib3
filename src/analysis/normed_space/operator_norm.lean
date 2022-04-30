@@ -1731,7 +1731,7 @@ variables [ring_hom_isometric σ₃₄]
 include σ₂₁ σ₃₄ σ₁₃ σ₂₄
 /-- A pair of continuous (semi)linear equivalences generates an continuous (semi)linear equivalence
 between the spaces of continuous (semi)linear maps. -/
-def arrow_congr_equivSL (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
+def arrow_congrSL (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
   (E →SL[σ₁₄] H) ≃SL[σ₄₃] (F →SL[σ₂₃] G) :=
 { map_add' := λ f g, by simp only [equiv.to_fun_as_coe, add_comp, comp_add,
     continuous_linear_equiv.arrow_congr_equiv_apply],
@@ -1751,7 +1751,7 @@ def arrow_congr {F H : Type*} [normed_group F] [normed_group H]
   [normed_space 𝕜 F] [normed_space 𝕜 G] [normed_space 𝕜 H]
   (e₁ : E ≃L[𝕜] F) (e₂ : H ≃L[𝕜] G) :
   (E →L[𝕜] H) ≃L[𝕜] (F →L[𝕜] G) :=
-arrow_congr_equivSL e₁ e₂
+arrow_congrSL e₁ e₂
 
 end
 

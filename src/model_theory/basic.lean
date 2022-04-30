@@ -169,12 +169,11 @@ lemma encodable.countable [h : encodable L.symbols] :
   L.countable :=
 ⟨cardinal.encodable_iff.1 ⟨h⟩⟩
 
+@[simp] lemma empty_card : language.empty.card = 0 :=
+by simp [card_eq_card_functions_add_card_relations]
+
 instance countable_empty : language.empty.countable :=
-⟨begin
-  rw [card_eq_card_functions_add_card_relations, add_le_omega, lift_le_omega, lift_le_omega,
-    ← cardinal.encodable_iff, ← cardinal.encodable_iff],
-  exact ⟨⟨sigma.encodable⟩, ⟨sigma.encodable⟩⟩,
-end⟩
+⟨by { rw empty_card, apply zero_le }⟩
 
 @[priority 100] instance countable.countable_functions [L.countable] :
   L.countable_functions :=

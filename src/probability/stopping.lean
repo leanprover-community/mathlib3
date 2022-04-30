@@ -935,7 +935,7 @@ end nat
 
 section piecewise_const
 
-variables {ι' : Type*} [linear_order ι'] {𝒢' : filtration ι' m0} {τ η : α → ι'} {i j : ι'}
+variables {ι' : Type*} [linear_order ι'] {𝒢' : filtration ι' m} {τ η : α → ι'} {i j : ι'}
   {s : set α} [decidable_pred (∈ s)]
 
 lemma is_stopping_time.piecewise_of_le (hτ_st : is_stopping_time 𝒢' τ)

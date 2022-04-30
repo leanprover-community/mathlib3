@@ -180,12 +180,12 @@ end
 
 lemma antitone_on.integrable_on_compact (hs : is_compact s) (hanti : antitone_on f s) :
   integrable_on f s μ :=
-hanti.dual.integrable_on_compact
+hanti.dual_right.integrable_on_compact hs
 
 lemma monotone.locally_integrable (hmono : monotone f) : locally_integrable f μ :=
 λ s hs, (hmono.monotone_on _).integrable_on_compact hs
 
 lemma antitone.locally_integrable (hanti : antitone f) : locally_integrable f μ :=
-hanti.dual.locally_integrable
+hanti.dual_right.locally_integrable
 
 end monotone

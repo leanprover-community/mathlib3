@@ -933,4 +933,39 @@ end normed_group
 
 end nat
 
+section piecewise_const
+
+variables {ι' : Type*} [linear_order ι'] {𝒢' : filtration ι' m0} {τ η : α → ι'} {i j : ι'}
+  {s : set α} [decidable_pred (∈ s)]
+
+lemma is_stopping_time.piecewise_of_le (hτ_st : is_stopping_time 𝒢' τ)
+  (hη_st : is_stopping_time 𝒢' η) (hτ : ∀ x, i ≤ τ x) (hη : ∀ x, i ≤ η x)
+  (hs : measurable_set[𝒢' i] s) :
+  is_stopping_time 𝒢' (s.piecewise τ η) :=
+begin
+  intro n,
+  have : {x | s.piecewise τ η x ≤ n}
+    = (s ∩ {x | τ x ≤ n}) ∪ (sᶜ ∩ {x | η x ≤ n}),
+  { ext1 x,
+    simp only [set.piecewise, set.mem_inter_eq, set.mem_set_of_eq, and.congr_right_iff],
+    by_cases hx : x ∈ s; simp [hx], },
+  rw this,
+  by_cases hin : i ≤ n,
+  { have hs_n : measurable_set[𝒢' n] s, from 𝒢'.mono hin _ hs,
+    exact (hs_n.inter (hτ_st n)).union (hs_n.compl.inter (hη_st n)), },
+  { have hτn : ∀ x, ¬ τ x ≤ n := λ x hτn, hin ((hτ x).trans hτn),
+    have hηn : ∀ x, ¬ η x ≤ n := λ x hηn, hin ((hη x).trans hηn),
+    simp [hτn, hηn], },
+end
+
+lemma is_stopping_time_piecewise_const (hij : i ≤ j) (hs : measurable_set[𝒢' i] s) :
+  is_stopping_time 𝒢' (s.piecewise (λ _, i) (λ _, j)) :=
+(is_stopping_time_const i).piecewise_of_le (is_stopping_time_const j) (λ x, le_rfl) (λ _, hij) hs
+
+lemma stopped_value_piecewise_const {f : ι' → α → ℝ} :
+  stopped_value f (s.piecewise (λ _, i) (λ _, j)) = s.indicator (f i) + sᶜ.indicator (f j) :=
+by { ext x, rw stopped_value, by_cases hx : x ∈ s; simp [hx] }
+
+end piecewise_const
+
 end measure_theory

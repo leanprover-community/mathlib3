@@ -91,7 +91,11 @@ theorem is_satisfiable_directed_union_iff {ι : Type*} [nonempty ι]
   {T : ι → L.Theory} (h : directed (⊆) T) :
   Theory.is_satisfiable (⋃ i, T i) ↔ ∀ i, (T i).is_satisfiable :=
 begin
-  sorry
+  refine ⟨λ h' i, h'.mono (set.subset_Union _ _), λ h', _⟩,
+  rw [is_satisfiable_iff_is_finitely_satisfiable, is_finitely_satisfiable],
+  intros T0 hT0,
+  obtain ⟨i, hi⟩ := h.exists_mem_subset_of_finset_subset_bUnion hT0,
+  exact (h' i).mono hi,
 end
 
 theorem is_satisfiable_union_distinct_constants_theory_of_card_le (T : L.Theory) (s : set α)

@@ -20,15 +20,15 @@ some basic properties of these maps.
 contraction, dual module, tensor product
 -/
 
+variables (R M N P Q : Type*) [add_comm_group M]
+variables [add_comm_group N] [add_comm_group P] [add_comm_group Q]
+
+local attribute [ext] tensor_product.ext
+
 section contraction
 
 open tensor_product linear_map matrix
 open_locale tensor_product big_operators
-
-local attribute [ext] tensor_product.ext
-
-variables (R M N P Q : Type*) [add_comm_group M]
-variables [add_comm_group N] [add_comm_group P] [add_comm_group Q]
 
 section comm_ring
 
@@ -82,7 +82,7 @@ end
 
 /-- If `M` is free, the natural linear map $M^* ⊗ N → Hom(M, N)$ is an equivalence. This function
 provides this equivalence in return for a basis of `M`. -/
-@[simps]
+@[simps apply]
 noncomputable def dual_tensor_hom_equiv_of_basis :
   (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=
 linear_equiv.of_linear
@@ -106,6 +106,14 @@ end)
   dual_tensor_hom R M N :=
 rfl
 
+@[simp] lemma dual_tensor_hom_equiv_of_basis_symm_cancel_left (x : (module.dual R M) ⊗[R] N) :
+  (dual_tensor_hom_equiv_of_basis b).symm (dual_tensor_hom R M N x) = x :=
+by rw [←dual_tensor_hom_equiv_of_basis_apply b, linear_equiv.symm_apply_apply]
+
+@[simp] lemma dual_tensor_hom_equiv_of_basis_symm_cancel_right (x : M →ₗ[R] N) :
+  dual_tensor_hom R M N ((dual_tensor_hom_equiv_of_basis b).symm x)  = x :=
+by rw [←dual_tensor_hom_equiv_of_basis_apply b, linear_equiv.apply_symm_apply]
+
 variables (R M N P Q)
 
 variables [module.free R M] [module.finite R M] [nontrivial R]
@@ -117,11 +125,98 @@ equivalence. -/
 @[simp] noncomputable def dual_tensor_hom_equiv : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=
 dual_tensor_hom_equiv_of_basis (module.free.choose_basis R M)
 
-variables [module.free R N] [module.finite R N]
+end comm_ring
 
-open module
+end contraction
 
-variables [module.finite R (M ⊗[R] N)] --Temporary until this is made an instance by #13705
+section hom_tensor_hom
+
+open_locale tensor_product
+
+open module tensor_product linear_map
+
+section comm_semiring
+
+variables [comm_semiring R] [module R M] [module R N] [module R P] [module R Q]
+
+/-- The canonical linear map from `P ⊗[R] (M →ₗ[R] Q)` to `(M →ₗ[R] P ⊗[R] Q)` -/
+def ltensor_hom_to_hom_ltensor : P ⊗[R] (M →ₗ[R] Q) →ₗ[R] (M →ₗ[R] P ⊗[R] Q) :=
+tensor_product.lift (llcomp R M Q _ ∘ₗ mk R P Q)
+
+/-- The canonical linear map from `(M →ₗ[R] P) ⊗[R] Q` to `(M →ₗ[R] P ⊗[R] Q)` -/
+def rtensor_hom_to_hom_rtensor : (M →ₗ[R] P) ⊗[R] Q →ₗ[R] (M →ₗ[R] P ⊗[R] Q) :=
+tensor_product.lift (llcomp R M P _ ∘ₗ (mk R P Q).flip).flip
+
+variables {R M N P Q}
+
+@[simp]
+lemma ltensor_hom_to_hom_ltensor_apply (p : P) (f : M →ₗ[R] Q) (m : M) :
+  ltensor_hom_to_hom_ltensor R M P Q (p ⊗ₜ f) m = p ⊗ₜ f m := rfl
+
+@[simp]
+lemma rtensor_hom_to_hom_rtensor_apply (f : M →ₗ[R] P) (q : Q) (m : M) :
+  rtensor_hom_to_hom_rtensor R M P Q (f ⊗ₜ q) m = f m ⊗ₜ q := rfl
+
+end comm_semiring
+
+section comm_ring
+
+variables [comm_ring R] [module R M] [module R N] [module R P] [module R Q]
+variables [free R M] [finite R M] [free R N] [finite R N] [nontrivial R]
+
+/-- When `M` is a finite free module, them map `ltensor_hom_to_hom_ltensor` is an equivalence. Note
+that `ltensor_hom_equiv_hom_ltensor` is not defined directly in terms of
+`ltensor_hom_to_hom_ltensor`, but the equivalence between the two is given by
+`ltensor_hom_equiv_hom_ltensor_to_linear_map` and `ltensor_hom_equiv_hom_ltensor_apply`. -/
+noncomputable def ltensor_hom_equiv_hom_ltensor : P ⊗[R] (M →ₗ[R] Q) ≃ₗ[R] (M →ₗ[R] P ⊗[R] Q) :=
+congr (linear_equiv.refl R P) (dual_tensor_hom_equiv R M Q).symm ≪≫ₗ
+  tensor_product.left_comm R P _ Q ≪≫ₗ dual_tensor_hom_equiv R M _
+
+/-- When `M` is a finite free module, them map `rtensor_hom_to_hom_rtensor` is an equivalence. Note
+that `rtensor_hom_equiv_hom_rtensor` is not defined directly in terms of
+`rtensor_hom_to_hom_rtensor`, but the equivalence between the two is given by
+`rtensor_hom_equiv_hom_rtensor_to_linear_map` and `rtensor_hom_equiv_hom_rtensor_apply`. -/
+noncomputable def rtensor_hom_equiv_hom_rtensor : (M →ₗ[R] P) ⊗[R] Q ≃ₗ[R] (M →ₗ[R] P ⊗[R] Q) :=
+congr (dual_tensor_hom_equiv R M P).symm (linear_equiv.refl R Q) ≪≫ₗ
+  tensor_product.assoc R _ P Q ≪≫ₗ dual_tensor_hom_equiv R M _
+
+@[simp] lemma ltensor_hom_equiv_hom_ltensor_to_linear_map :
+  (ltensor_hom_equiv_hom_ltensor R M P Q).to_linear_map = ltensor_hom_to_hom_ltensor R M P Q :=
+begin
+  refine
+    (cancel_right (congr (linear_equiv.refl R P) (dual_tensor_hom_equiv R M Q)).surjective).1 _,
+  ext p f q m,
+  simp only [ltensor_hom_equiv_hom_ltensor, dual_tensor_hom_equiv, compr₂_apply, mk_apply, coe_comp,
+  linear_equiv.coe_to_linear_map, function.comp_app, map_tmul, linear_equiv.coe_coe,
+  dual_tensor_hom_equiv_of_basis_apply, linear_equiv.trans_apply, congr_tmul,
+  linear_equiv.refl_apply, dual_tensor_hom_equiv_of_basis_symm_cancel_left, left_comm_tmul,
+  dual_tensor_hom_apply, ltensor_hom_to_hom_ltensor_apply, tmul_smul],
+end
+
+@[simp] lemma rtensor_hom_equiv_hom_rtensor_to_linear_map :
+  (rtensor_hom_equiv_hom_rtensor R M P Q).to_linear_map = rtensor_hom_to_hom_rtensor R M P Q :=
+begin
+  refine
+    (cancel_right (congr (dual_tensor_hom_equiv R M P) (linear_equiv.refl R Q)).surjective).1 _,
+  ext f p q m,
+  simp only [rtensor_hom_equiv_hom_rtensor, dual_tensor_hom_equiv, compr₂_apply, mk_apply, coe_comp,
+  linear_equiv.coe_to_linear_map, function.comp_app, map_tmul, linear_equiv.coe_coe,
+  dual_tensor_hom_equiv_of_basis_apply, linear_equiv.trans_apply, congr_tmul,
+  dual_tensor_hom_equiv_of_basis_symm_cancel_left, linear_equiv.refl_apply, assoc_tmul,
+  dual_tensor_hom_apply, rtensor_hom_to_hom_rtensor_apply, smul_tmul'],
+end
+
+variables {R M N P Q}
+
+@[simp] lemma ltensor_hom_equiv_hom_ltensor_apply (x : P ⊗[R] (M →ₗ[R] Q)) :
+  ltensor_hom_equiv_hom_ltensor R M P Q x = ltensor_hom_to_hom_ltensor R M P Q x :=
+by rw [←linear_equiv.coe_to_linear_map, ltensor_hom_equiv_hom_ltensor_to_linear_map]
+
+@[simp] lemma rtensor_hom_equiv_hom_rtensor_apply (x : (M →ₗ[R] P) ⊗[R] Q) :
+  rtensor_hom_equiv_hom_rtensor R M P Q x = rtensor_hom_to_hom_rtensor R M P Q x :=
+by rw [←linear_equiv.coe_to_linear_map, rtensor_hom_equiv_hom_rtensor_to_linear_map]
+
+variables (R M N P Q)
 
 /--
 When `M` and `N` are free `R` modules, the map `hom_tensor_hom_map` is an equivalence. Note that
@@ -130,30 +225,20 @@ between the two is given by `hom_tensor_hom_equiv_to_linear_map` and `hom_tensor
 -/
 noncomputable
 def hom_tensor_hom_equiv : (M →ₗ[R] P) ⊗[R] (N →ₗ[R] Q) ≃ₗ[R] (M ⊗[R] N →ₗ[R] P ⊗[R] Q) :=
-  congr (dual_tensor_hom_equiv R M P).symm (dual_tensor_hom_equiv R N Q).symm ≪≫ₗ
-  tensor_tensor_tensor_comm R (dual R M) P (dual R N) Q ≪≫ₗ
-  tensor_product.congr dual_tensor_dual_equiv (linear_equiv.refl R (P ⊗ Q)) ≪≫ₗ
-  dual_tensor_hom_equiv R (M ⊗ N) (P ⊗ Q)
+rtensor_hom_equiv_hom_rtensor R M P _ ≪≫ₗ
+  (linear_equiv.refl R M).arrow_congr (ltensor_hom_equiv_hom_ltensor R N _ Q) ≪≫ₗ
+  lift.equiv R M N _
 
 @[simp]
 lemma hom_tensor_hom_equiv_to_linear_map :
   (hom_tensor_hom_equiv R M N P Q).to_linear_map = hom_tensor_hom_map :=
 begin
-  refine (linear_map.cancel_right
-  (congr (dual_tensor_hom_equiv R M P) (dual_tensor_hom_equiv R N Q)).surjective).1 _,
-  show (hom_tensor_hom_equiv R M N P Q).to_linear_map ∘ₗ
-    (congr (dual_tensor_hom_equiv R M P) (dual_tensor_hom_equiv R N Q)).to_linear_map =
-    hom_tensor_hom_map ∘ₗ
-    (congr (dual_tensor_hom_equiv R M P) (dual_tensor_hom_equiv R N Q)).to_linear_map,
-  ext f p g q m n,
-  simp only [dual_tensor_hom_equiv, compr₂_apply, mk_apply, coe_comp,
-  linear_equiv.coe_to_linear_map, function.comp_app, congr_tmul, hom_tensor_hom_map_apply,
-  map_tmul, dual_tensor_hom_apply, tmul_smul, hom_tensor_hom_equiv, dual_tensor_hom_equiv,
-  dual_tensor_dual_equiv, linear_equiv.trans_apply, congr_tmul, linear_equiv.symm_apply_apply,
-  tensor_tensor_tensor_comm_tmul, linear_equiv.refl_apply],
-  simp only [dual_tensor_hom_equiv_of_basis_apply, dual_tensor_hom_apply,
-  dual_tensor_dual_equiv_of_basis_apply_apply, hom_tensor_hom_map_apply, map_tmul, lid_tmul,
-  algebra.id.smul_eq_mul, mul_smul_tmul],
+  ext f g m n,
+  simp only [hom_tensor_hom_equiv, compr₂_apply, mk_apply, linear_equiv.coe_to_linear_map,
+  linear_equiv.trans_apply, lift.equiv_apply, linear_equiv.arrow_congr_apply,
+  linear_equiv.refl_symm, linear_equiv.refl_apply, rtensor_hom_equiv_hom_rtensor_apply,
+  ltensor_hom_equiv_hom_ltensor_apply, ltensor_hom_to_hom_ltensor_apply,
+  rtensor_hom_to_hom_rtensor_apply, hom_tensor_hom_map_apply, map_tmul],
 end
 
 variables {R M N P Q}
@@ -165,4 +250,5 @@ by rw [←linear_equiv.coe_to_linear_map, hom_tensor_hom_equiv_to_linear_map]
 
 end comm_ring
 
-end contraction
+end hom_tensor_hom
+

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 import data.nat.enat
 import data.set.countable
+import logic.small
 import order.conditionally_complete_lattice
 import set_theory.schroeder_bernstein
 
@@ -75,11 +76,11 @@ variables {α β : Type u}
   Quotienting by this equivalence relation gives the cardinal numbers.
 -/
 instance cardinal.is_equivalent : setoid (Type u) :=
-{ r := λα β, nonempty (α ≃ β),
-  iseqv := ⟨λα,
+{ r := λ α β, nonempty (α ≃ β),
+  iseqv := ⟨λ α,
     ⟨equiv.refl α⟩,
-    λα β ⟨e⟩, ⟨e.symm⟩,
-    λα β γ ⟨e₁⟩ ⟨e₂⟩, ⟨e₁.trans e₂⟩⟩ }
+    λ α β ⟨e⟩, ⟨e.symm⟩,
+    λ α β γ ⟨e₁⟩ ⟨e₂⟩, ⟨e₁.trans e₂⟩⟩ }
 
 /-- `cardinal.{u}` is the type of cardinal numbers in `Type u`,
   defined as the quotient of `Type u` by existence of an equivalence
@@ -183,6 +184,12 @@ theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
 ⟨induction_on c $ λ β ⟨⟨f, hf⟩⟩,
   ⟨set.range f, (equiv.of_injective f hf).cardinal_eq.symm⟩,
 λ ⟨p, e⟩, e ▸ ⟨⟨subtype.val, λ a b, subtype.eq⟩⟩⟩
+
+theorem mk_subtype_le {α : Type u} (p : α → Prop) : #(subtype p) ≤ #α :=
+⟨embedding.subtype p⟩
+
+theorem mk_set_le (s : set α) : #s ≤ #α :=
+mk_subtype_le s
 
 theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
@@ -428,6 +435,10 @@ theorem lift_two : lift.{u v} 2 = 2 := by simp
 
 @[simp] theorem mk_set {α : Type u} : #(set α) = 2 ^ #α := by simp [set, mk_arrow]
 
+/-- A variant of `cardinal.mk_set` expressed in terms of a `set` instead of a `Type`. -/
+@[simp] theorem mk_powerset {α : Type u} (s : set α) : #↥(𝒫 s) = 2 ^ #↥s :=
+(mk_congr (equiv.set.powerset s)).trans mk_set
+
 theorem lift_two_power (a) : lift (2 ^ a) = 2 ^ lift a := by simp
 
 section order_properties
@@ -605,6 +616,11 @@ induction_on a $ λ α, mk_congr $
 
 theorem sum_const' (ι : Type u) (a : cardinal.{u}) : sum (λ _:ι, a) = #ι * a := by simp
 
+@[simp] theorem sum_add_distrib {ι} (f g : ι → cardinal) :
+  sum (f + g) = sum f + sum g :=
+by simpa only [mk_sigma, mk_sum, mk_out, lift_id] using
+  mk_congr (equiv.sigma_sum_distrib (quotient.out ∘ f) (quotient.out ∘ g))
+
 theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=
 ⟨(embedding.refl _).sigma_map $ λ i, classical.choice $
   by have := H i; rwa [← quot.out_eq (f i), ← quot.out_eq (g i)] at this⟩
@@ -614,13 +630,37 @@ lemma mk_le_mk_mul_of_mk_preimage_le {c : cardinal} (f : α → β) (hf : ∀ b 
 by simpa only [←mk_congr (@equiv.sigma_preimage_equiv α β f), mk_sigma, ←sum_const']
   using sum_le_sum _ _ hf
 
+/-- The range of an indexed cardinal function, whose outputs live in a higher universe than the
+    inputs, is always bounded above. -/
+theorem bdd_above_range {ι : Type u} (f : ι → cardinal.{max u v}) : bdd_above (set.range f) :=
+⟨_, by { rintros a ⟨i, rfl⟩, exact le_sum f i }⟩
+
+instance (a : cardinal.{u}) : small.{u} (set.Iic a) :=
+begin
+  rw ←mk_out a,
+  apply @small_of_surjective (set a.out) (Iic (#a.out)) _ (λ x, ⟨#x, mk_set_le x⟩),
+  rintro ⟨x, hx⟩,
+  simpa using le_mk_iff_exists_set.1 hx
+end
+
+/-- A set of cardinals is bounded above iff it's small, i.e. it corresponds to an usual ZFC set. -/
+theorem bdd_above_iff_small (s : set cardinal.{u}) : bdd_above s ↔ small.{u} s :=
+⟨λ ⟨a, ha⟩, @small_subset _ (Iic a) s (λ x h, ha h) _, begin
+  rintro ⟨ι, ⟨e⟩⟩,
+  suffices : range (λ x : ι, (e.symm x).1) = s,
+  { rw ←this,
+    apply bdd_above_range.{u u} },
+  ext x,
+  refine ⟨_, λ hx, ⟨e ⟨x, hx⟩, _⟩⟩,
+  { rintro ⟨a, rfl⟩,
+    exact (e.symm a).prop },
+  { simp_rw [subtype.val_eq_coe, equiv.symm_apply_apply], refl }
+end⟩
+
 /-- The indexed supremum of cardinals is the smallest cardinal above
   everything in the family. -/
 def sup {ι : Type u} (f : ι → cardinal.{max u v}) : cardinal :=
 Sup (set.range f)
-
-theorem bdd_above_range {ι : Type u} (f : ι → cardinal.{max u v}) : bdd_above (set.range f) :=
-⟨_, by { rintros a ⟨i, rfl⟩, exact le_sum f i }⟩
 
 theorem le_sup {ι} (f : ι → cardinal.{max u v}) (i) : f i ≤ sup f :=
 le_cSup (bdd_above_range f) (mem_range_self i)
@@ -1227,9 +1267,6 @@ mk_le_of_surjective quot.exists_rep
 theorem mk_quotient_le {α : Type u} {s : setoid α} : #(quotient s) ≤ #α :=
 mk_quot_le
 
-theorem mk_subtype_le {α : Type u} (p : α → Prop) : #(subtype p) ≤ #α :=
-⟨embedding.subtype p⟩
-
 theorem mk_subtype_le_of_subset {α : Type u} {p q : α → Prop} (h : ∀ ⦃x⦄, p x → q x) :
   #(subtype p) ≤ #(subtype q) :=
 ⟨embedding.subtype_map (embedding.refl α) h⟩
@@ -1337,9 +1374,6 @@ lemma mk_le_mk_of_subset {α} {s t : set α} (h : s ⊆ t) : #s ≤ #t :=
 
 lemma mk_subtype_mono {p q : α → Prop} (h : ∀x, p x → q x) : #{x // p x} ≤ #{x // q x} :=
 ⟨embedding_of_subset _ _ h⟩
-
-lemma mk_set_le (s : set α) : #s ≤ #α :=
-mk_subtype_le s
 
 lemma mk_union_le_omega {α} {P Q : set α} : #((P ∪ Q : set α)) ≤ ω ↔ #P ≤ ω ∧ #Q ≤ ω :=
 by simp

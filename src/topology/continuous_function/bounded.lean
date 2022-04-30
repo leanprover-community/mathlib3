@@ -1119,13 +1119,8 @@ instance : algebra 𝕜 (α →ᵇ γ) :=
   algebra_map 𝕜 (α →ᵇ γ) k a = k • 1 :=
 by { rw algebra.algebra_map_eq_smul_one, refl, }
 
-instance [nonempty α] : normed_algebra 𝕜 (α →ᵇ γ) :=
-{ norm_algebra_map_eq := λ c, begin
-    calc ∥ (algebra_map 𝕜 (α →ᵇ γ)).to_fun c∥ = ∥(algebra_map 𝕜 γ) c∥ : _
-    ... = ∥c∥ : norm_algebra_map_eq _ _,
-    apply norm_const_eq ((algebra_map 𝕜 γ) c), assumption,
-  end,
-  ..bounded_continuous_function.algebra }
+instance : normed_algebra 𝕜 (α →ᵇ γ) :=
+{ ..bounded_continuous_function.normed_space }
 
 /-!
 ### Structure as normed module over scalar functions
@@ -1202,8 +1197,7 @@ instance `pi.has_star`. Upon inspecting the goal, one sees `⊢ ⇑(star f) = st
 @[simp] lemma star_apply (f : α →ᵇ β) (x : α) : star f x = star (f x) := rfl
 
 instance : normed_star_group (α →ᵇ β) :=
-{ norm_star := λ f, by
-  { simp only [norm_eq], congr, ext, conv_lhs { find (∥_∥) { erw (@norm_star β _ _ _ (f x)) } } } }
+{ norm_star := λ f, by simp only [norm_eq, star_apply, norm_star] }
 
 instance : star_module 𝕜 (α →ᵇ β) :=
 { star_smul := λ k f, ext $ λ x, star_smul k (f x) }

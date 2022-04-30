@@ -302,45 +302,47 @@ end
 
 end explicit_computation
 
-section explicit_computation
+section center_transfer
 
 lemma _root_.subgroup.pow_index_mem
   {G : Type*} [group G] (H : subgroup G) [H.normal] [fintype (G ⧸ H)] (g : G) :
   g ^ H.index ∈ H :=
-begin
-  rw [←quotient_group.eq_one_iff, quotient_group.coe_pow, index_eq_card, pow_card_eq_one],
-end
+by rw [←quotient_group.eq_one_iff, quotient_group.coe_pow, index_eq_card, pow_card_eq_one]
 
-lemma _root_.subgroup.pow_index_mem_of_le_center
-  {G : Type*} [group G] (H : subgroup G) (hH : H ≤ center G) [fintype (G ⧸ H)] (g : G) :
-  g ^ H.index ∈ H :=
-begin
-  haveI : normal H := ⟨λ h hh g, by rwa [hH hh, mul_inv_cancel_right]⟩,
-  exact H.pow_index_mem g,
-end
-
-
-lemma transfer_eq_pow [fintype (G ⧸ H)] (hH : H ≤ center G) [fintype (G ⧸ H)] (g : G) :
-  transfer ϕ g = ϕ ⟨g ^ H.index, H.pow_index_mem_of_le_center hH g⟩ :=
+lemma transfer_eq_pow [fintype (G ⧸ center G)] (g : G) :
+  transfer (monoid_hom.id (center G)) g = ⟨g ^ (center G).index, (center G).pow_index_mem g⟩ :=
 begin
   rw transfer_computation,
+  simp only [monoid_hom.id_apply],
+  change ∏ q : quotient (mul_action.orbit_rel _ (G ⧸ center G)),
+    (⟨q.out'.out'⁻¹ * g ^ function.minimal_period ((•) g) q.out' * q.out'.out', _⟩ : center G) =
+    (⟨g ^ (center G).index, (center G).pow_index_mem g⟩ : center G),
+  have key : Π (h : G) (k : ℕ) (hg : h⁻¹ * g ^ k * h ∈ center G),
+    (center G).subtype ⟨h⁻¹ * g ^ k * h, hg⟩ = (zpowers g).subtype (⟨g, mem_zpowers g⟩ ^ k) := sorry,
+  simp only [key],
+  apply (show function.injective (center G).subtype, from subtype.coe_injective),
+  rw [←finset.prod_to_list],
+  rw [←list.prod_map_hom],
+  change (list.map (λ q, _) _).prod = (zpowers g).subtype (⟨g, mem_zpowers g⟩ ^ (center G).index),
+  simp only [key],
+  rw [list.prod_map_hom, finset.prod_to_list],
+  apply congr_arg (zpowers g).subtype,
+  rw finset.prod_pow_eq_pow_sum,
+  congr,
   sorry,
 end
 
-noncomputable def transfer_pow (hH : H ≤ center G) [fintype (G ⧸ H)] : G →* H :=
-{ to_fun := λ g, ⟨g ^ H.index, H.pow_index_mem_of_le_center hH g⟩,
-  map_one' := subtype.ext (one_pow H.index),
-  map_mul' := λ a b, begin
-    letI : is_commutative H := ⟨⟨λ a b, subtype.ext (hH b.2 a)⟩⟩,
-    simp_rw [←show ∀ g, (_ : H) = ⟨_, _⟩, from transfer_eq_pow (id H) hH, map_mul],
-  end }
+noncomputable def transfer_pow [fintype (G ⧸ center G)] : G →* center G :=
+{ to_fun := λ g, ⟨g ^ (center G).index, (center G).pow_index_mem g⟩,
+  map_one' := subtype.ext (one_pow (center G).index),
+  map_mul' := λ a b, by simp_rw [←show ∀ g, (_ : center G) = _, from transfer_eq_pow, map_mul] }
 
-noncomputable def transfer_pow' (hH : H ≤ center G) (hH₀ : H.index ≠ 0) : G →* H :=
+noncomputable def transfer_pow' (h : (center G).index ≠ 0) : G →* center G :=
 begin
-  haveI : fintype (G ⧸ H) := fintype_of_index_ne_zero hH₀,
-  exact transfer_pow hH,
+  haveI : fintype (G ⧸ center G) := fintype_of_index_ne_zero h,
+  exact transfer_pow,
 end
 
-end explicit_computation
+end center_transfer
 
 end monoid_hom

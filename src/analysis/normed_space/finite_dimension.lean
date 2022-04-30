@@ -744,7 +744,7 @@ open continuous_linear_map
 /-- Continuous linear equivalence between continuous linear functions `𝕜ⁿ → E` and `Eⁿ`.
 The spaces `𝕜ⁿ` and `Eⁿ` are represented as `ι → 𝕜` and `ι → E`, respectively,
 where `ι` is a finite type. -/
-def continuous_linear_equiv.pi_ring (ι : Type*) [fintype ι] [decidable_eq ι] [complete_space 𝕜] :
+def continuous_linear_equiv.pi_ring (ι : Type*) [fintype ι] [decidable_eq ι] :
   ((ι → 𝕜) →L[𝕜] E) ≃L[𝕜] (ι → E) :=
 { continuous_to_fun :=
   begin
@@ -768,7 +768,7 @@ def continuous_linear_equiv.pi_ring (ι : Type*) [fintype ι] [decidable_eq ι] 
   .. linear_map.to_continuous_linear_map.symm.trans (linear_equiv.pi_ring 𝕜 E ι 𝕜) }
 
 /-- A family of continuous linear maps is continuous on `s` if all its applications are. -/
-lemma continuous_on_clm_apply {X : Type*} [topological_space X] [complete_space 𝕜]
+lemma continuous_on_clm_apply {X : Type*} [topological_space X]
   [finite_dimensional 𝕜 E] {f : X → E →L[𝕜] F} {s : set X} :
   continuous_on f s ↔ ∀ y, continuous_on (λ x, f x y) s :=
 begin

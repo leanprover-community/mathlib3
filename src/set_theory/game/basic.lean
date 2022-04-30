@@ -574,7 +574,7 @@ def inv' : pgame → pgame
 theorem inv'_pos : ∀ {x : pgame}, 0 < inv' x
 | ⟨xl, xr, xL, xR⟩ := by { convert lt_mk inv_ty.zero, refl }
 
-/-- `inv' 0` is a relabelling of `1`. -/
+/-- `inv' 0` has exactly the same moves as `1`. -/
 def inv'_zero : relabelling (inv' 0) 1 :=
 begin
   change relabelling (inv' (mk _ _ _ _)) 1,
@@ -587,7 +587,7 @@ end
 
 theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
 
-/-- `inv' 1` is a relabelling of `1`. -/
+/-- `inv' 1` has exactly the same moves as `1`. -/
 def inv'_one : relabelling (inv' 1) 1 :=
 begin
   change relabelling (inv' (mk _ _ _ _)) 1,
@@ -630,7 +630,7 @@ begin
   { exact λ h', not_lt.2 h'.2 h₂ }
 end
 
-/-- `1⁻¹` is a relabelling of `1`. -/
+/-- `1⁻¹` has exactly the same moves as `1`. -/
 def inv_one : relabelling (1 : pgame)⁻¹ 1 :=
 by { rw inv_pos zero_lt_one, exact inv'_one }
 

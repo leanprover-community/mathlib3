@@ -135,30 +135,6 @@ open_locale tensor_product
 
 open module tensor_product linear_map
 
-section comm_semiring
-
-variables [comm_semiring R] [module R M] [module R N] [module R P] [module R Q]
-
-/-- The canonical linear map from `P ⊗[R] (M →ₗ[R] Q)` to `(M →ₗ[R] P ⊗[R] Q)` -/
-def ltensor_hom_to_hom_ltensor : P ⊗[R] (M →ₗ[R] Q) →ₗ[R] (M →ₗ[R] P ⊗[R] Q) :=
-tensor_product.lift (llcomp R M Q _ ∘ₗ mk R P Q)
-
-/-- The canonical linear map from `(M →ₗ[R] P) ⊗[R] Q` to `(M →ₗ[R] P ⊗[R] Q)` -/
-def rtensor_hom_to_hom_rtensor : (M →ₗ[R] P) ⊗[R] Q →ₗ[R] (M →ₗ[R] P ⊗[R] Q) :=
-tensor_product.lift (llcomp R M P _ ∘ₗ (mk R P Q).flip).flip
-
-variables {R M N P Q}
-
-@[simp]
-lemma ltensor_hom_to_hom_ltensor_apply (p : P) (f : M →ₗ[R] Q) (m : M) :
-  ltensor_hom_to_hom_ltensor R M P Q (p ⊗ₜ f) m = p ⊗ₜ f m := rfl
-
-@[simp]
-lemma rtensor_hom_to_hom_rtensor_apply (f : M →ₗ[R] P) (q : Q) (m : M) :
-  rtensor_hom_to_hom_rtensor R M P Q (f ⊗ₜ q) m = f m ⊗ₜ q := rfl
-
-end comm_semiring
-
 section comm_ring
 
 variables [comm_ring R] [module R M] [module R N] [module R P] [module R Q]
@@ -251,4 +227,3 @@ by rw [←linear_equiv.coe_to_linear_map, hom_tensor_hom_equiv_to_linear_map]
 end comm_ring
 
 end hom_tensor_hom
-

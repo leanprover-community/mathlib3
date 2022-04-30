@@ -25,35 +25,37 @@ projection, idempotent
 
 variables {M : Type*} [has_mul M]
 
-def is_projection (x : M) : Prop := x*x = x
+/--
+An element `p` is said to be idempotent if `p * p = p`
+-/
+def is_idempotent_elem (p : M) : Prop := p*p = p
 
-lemma projection_def {P : M} (h : is_projection P) : P*P = P := by exact h
+lemma idempotent_elem_def {p : M} (h : is_idempotent_elem p) : p*p = p := h
 
-namespace is_projection
+namespace is_idempotent_elem
 
 variables {S : Type*} [semigroup S]
 
-lemma mul_of_commute {P Q : S} (h : commute P Q) (h₁ : is_projection P) (h₂ : is_projection Q) :
-  is_projection (P * Q)  :=
+lemma mul_of_commute {p q : S} (h : commute p q) (h₁ : is_idempotent_elem p)
+  (h₂ : is_idempotent_elem q) : is_idempotent_elem (p * q)  :=
 begin
-  rw is_projection at h₁,
-  rw is_projection at h₂,
+  rw is_idempotent_elem at h₁ h₂,
   rw [commute, semiconj_by] at h,
-  rw [is_projection, mul_assoc, ← mul_assoc Q, ←h, mul_assoc P, h₂, ← mul_assoc, h₁],
+  rw [is_idempotent_elem, mul_assoc, ← mul_assoc q, ←h, mul_assoc p, h₂, ← mul_assoc, h₁],
 end
 
 variables {R : Type*} [non_assoc_ring R]
 
-lemma complement {P : R} (h : is_projection P) : is_projection (1 - P) :=
+lemma complement {p : R} (h : is_idempotent_elem p) : is_idempotent_elem (1 - p) :=
 begin
-  rw is_projection at h,
-  rw [is_projection, mul_sub_left_distrib, mul_one, sub_mul, one_mul, h, sub_self, sub_zero],
+  rw is_idempotent_elem at h,
+  rw [is_idempotent_elem, mul_sub_left_distrib, mul_one, sub_mul, one_mul, h, sub_self, sub_zero],
 end
 
-lemma complement_iff {P : R} : is_projection P ↔ is_projection (1 - P) :=
-⟨ is_projection.complement , λ h, sub_sub_cancel 1 P ▸ h.complement⟩
+lemma complement_iff {p : R} : is_idempotent_elem p ↔ is_idempotent_elem (1 - p) :=
+⟨ is_idempotent_elem.complement , λ h, sub_sub_cancel 1 p ▸ h.complement⟩
 
-instance : has_compl (subtype (is_projection  : R → Prop)) :=
+instance : has_compl (subtype (is_idempotent_elem  : R → Prop)) :=
 ⟨λ P, ⟨1 - P, P.prop.complement⟩⟩
 
-end is_projection
+end is_idempotent_elem

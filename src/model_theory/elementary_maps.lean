@@ -329,7 +329,7 @@ instance Theory_model {T : L.Theory} [h : M ⊨ T] {S : L.elementary_substructur
 (Theory_model_iff S T).2 h
 
 instance [h : nonempty M] {S : L.elementary_substructure M} : nonempty S :=
-(Theory.model_nonempty_iff L).1 infer_instance
+(model_nonempty_theory_iff L).1 infer_instance
 
 end elementary_substructure
 

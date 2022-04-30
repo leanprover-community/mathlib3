@@ -526,7 +526,20 @@ inductive inv_ty (l r : Type u) : bool → Type u
 | right₁ : l → inv_ty ff → inv_ty tt
 | right₂ : r → inv_ty tt → inv_ty tt
 
-instance (l r : Type u) : inhabited (inv_ty l r ff) := ⟨inv_ty.zero⟩
+instance (l r : Type u) [is_empty l] [is_empty r] : is_empty (inv_ty l r tt) :=
+⟨by { rintro (a | a), all_goals { exact is_empty_elim ᾰ_ᾰ } }⟩
+
+instance unique_inv_ty (l r : Type u) [is_empty l] [is_empty r] : unique (inv_ty l r ff) :=
+{ default := inv_ty.zero,
+  uniq := begin
+    rintro (a | a | a),
+    { refl },
+    all_goals { exact is_empty_elim a }
+  end }
+
+@[simp] theorem default_inv_ty_eq_zero (l r : Type u) [is_empty l] [is_empty r] :
+  (default : inv_ty l r ff) = inv_ty.zero :=
+rfl
 
 /-- Because the two halves of the definition of `inv` produce more elements
 of each side, we have to define the two families inductively.
@@ -538,6 +551,14 @@ def inv_val {l r} (L : l → pgame) (R : r → pgame)
 | _ (inv_ty.left₂ i j) := (1 + (L i - mk l r L R) * inv_val j) * IHl i
 | _ (inv_ty.right₁ i j) := (1 + (L i - mk l r L R) * inv_val j) * IHl i
 | _ (inv_ty.right₂ i j) := (1 + (R i - mk l r L R) * inv_val j) * IHr i
+
+@[simp] theorem inv_val_is_empty {l r : Type u} {b} (L R IHl IHr) (i : inv_ty l r b)
+  [is_empty l] [is_empty r] : inv_val L R IHl IHr i = 0 :=
+begin
+  cases i with a _ a _ a _ a,
+  { refl },
+  all_goals { exact is_empty_elim a }
+end
 
 /-- The inverse of a positive surreal number `x = {L | R}` is
 given by `x⁻¹ = {0,
@@ -554,12 +575,68 @@ def inv' : pgame → pgame
   ⟨inv_ty l' r ff, inv_ty l' r tt,
     inv_val L' R IHl' IHr, inv_val L' R IHl' IHr⟩
 
+theorem inv'_pos : ∀ {x : pgame}, 0 < inv' x
+| ⟨xl, xr, xL, xR⟩ := by { convert lt_mk inv_ty.zero, refl }
+
+def inv'_zero : relabelling (inv' 0) 1 :=
+begin
+  change relabelling (inv' (mk _ _ _ _)) 1,
+  rw inv',
+  refine ⟨_, _, λ i, _, is_empty_elim⟩,
+  { dsimp, apply equiv_punit_of_unique },
+  { dsimp, apply equiv.equiv_pempty },
+  { simp }
+end
+
+def inv'_one : relabelling (inv' 1) 1 :=
+begin
+  change relabelling (inv' (mk _ _ _ _)) 1,
+  rw inv',
+  haveI H : is_empty {i : punit // (0 : pgame) < 0} := ⟨λ ⟨_, h⟩, pgame.lt_irrefl 0 h⟩,
+  refine ⟨_, _, λ i, _, is_empty_elim⟩,
+  { simp, apply @equiv_punit_of_unique _ (pgame.unique_inv_ty _ _),
+    { exact H },
+    { apply_instance } },
+  { dsimp, apply equiv.equiv_pempty },
+  { simp }
+end
+
 /-- The inverse of a surreal number in terms of the inverse on positive surreals. -/
 noncomputable def inv (x : pgame) : pgame :=
 by classical; exact
-if x = 0 then 0 else if 0 < x then inv' x else inv' (-x)
+if x ≈ 0 then 0 else if 0 < x then inv' x else inv' (-x)
 
 noncomputable instance : has_inv pgame := ⟨inv⟩
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
+
+theorem inv_equiv_zero {x : pgame} (h : x ≈ 0) : x⁻¹ = 0 :=
+by { apply if_pos, exact h }
+
+@[simp] theorem inv_zero : (0 : pgame)⁻¹ = 0 :=
+inv_equiv_zero (equiv_refl _)
+
+theorem inv_pos {x : pgame} (h : 0 < x) : x⁻¹ = inv' x :=
+begin
+  convert if_neg _,
+  { apply eq.symm (if_pos _), exact h },
+  { exact λ h', not_lt.2 h'.1 h }
+end
+
+theorem inv_not_pos {x : pgame} (h₁ : x ≤ 0) (h₂ : x < 0) : x⁻¹ = inv' (-x) :=
+begin
+  convert if_neg _,
+  { apply eq.symm (if_neg _), exact not_lt.2 h₁ },
+  { exact λ h', not_lt.2 h'.2 h₂ }
+end
+
+theorem inv_neg {x : pgame} : (-x)⁻¹ = -x⁻¹ :=
+begin
+  convert if_neg _,
+  { apply eq.symm (if_neg _), exact not_lt.2 h₁ },
+  { exact λ h', not_lt.2 h'.2 h₂ }
+end
+
+theorem inv_one : (0 : pgame)⁻¹ = 0 :=
+inv_equiv_zero (equiv_refl _)
 
 end pgame

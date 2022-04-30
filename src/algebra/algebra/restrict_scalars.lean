@@ -115,7 +115,7 @@ end
 The `R`-algebra homomorphism from the original coefficient algebra `S` to endomorphisms
 of `restrict_scalars R S M`.
 -/
-def restrict_scalars.lsmul : S →ₐ[R] (module.End R (restrict_scalars R S M)) :=
+def restrict_scalars.lsmul : S →ₐ[R] module.End R (restrict_scalars R S M) :=
 begin
   -- We use `restrict_scalars.module_orig` in the implementation,
   -- but not in the type.

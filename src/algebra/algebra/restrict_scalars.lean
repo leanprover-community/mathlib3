@@ -157,11 +157,21 @@ def restrict_scalars.ring_equiv : restrict_scalars R S A ≃+* A := ring_equiv.r
 
 variables [comm_semiring S] [algebra S A] [comm_semiring R] [algebra R S]
 
+@[simp] lemma restrict_scalars.ring_equiv_map_smul (r : R) (x : restrict_scalars R S A) :
+  restrict_scalars.ring_equiv R S A (r • x)
+  = (algebra_map R S r) • restrict_scalars.ring_equiv R S A x :=
+rfl
+
 /-- `R ⟶ S` induces `S-Alg ⥤ R-Alg` -/
 instance : algebra R (restrict_scalars R S A) :=
 { smul := (•),
   commutes' := λ r x, algebra.commutes _ _,
   smul_def' := λ _ _, algebra.smul_def _ _,
   .. (algebra_map S A).comp (algebra_map R S) }
+
+@[simp] lemma restrict_scalars.ring_equiv_algebra_map (r : R) :
+  restrict_scalars.ring_equiv R S A (algebra_map R (restrict_scalars R S A) r) =
+    algebra_map S A (algebra_map R S r) :=
+rfl
 
 end algebra

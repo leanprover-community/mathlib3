@@ -1032,10 +1032,9 @@ section division_monoid
 variables {R M : Type*}
 
 /-- A nonzero continuous linear functional is open. -/
-protected lemma is_open_map [topological_space R] [division_ring R]
+protected lemma is_open_map_of_ne_zero [topological_space R] [division_ring R]
   [has_continuous_sub R] [add_comm_group M] [topological_space M] [has_continuous_add M]
-  [module R M] [has_continuous_smul R M] (f : M →L[R] R) (hf : f ≠ 0) :
-  is_open_map f :=
+  [module R M] [has_continuous_smul R M] (f : M →L[R] R) (hf : f ≠ 0) : is_open_map f :=
 let ⟨x, hx⟩ := exists_ne_zero hf in is_open_map.of_sections $ λ y,
     ⟨λ a, y + (a - f y) • (f x)⁻¹ • x, continuous.continuous_at $ by continuity,
       by simp, λ a, by simp [hx]⟩

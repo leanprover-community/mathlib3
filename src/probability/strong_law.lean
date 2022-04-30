@@ -623,7 +623,7 @@ begin
   { convert (tendsto_integral_truncation hint).comp tendsto_coe_nat_at_top_at_top,
     ext i,
     exact (hident i).truncation.integral_eq },
-  convert asymptotics.is_o_sum_range_of_tendsto_zero (normed_group.tendsto_sub_nhds_zero_iff.2 A),
+  convert asymptotics.is_o_sum_range_of_tendsto_zero (tendsto_sub_nhds_zero_iff.2 A),
   ext1 n,
   simp only [sum_sub_distrib, sum_const, card_range, nsmul_eq_mul, sum_apply, sub_left_inj],
   rw integral_finset_sum _ (λ i hi, _),
@@ -693,7 +693,7 @@ begin
     simp only [nat.one_le_cast, nat.one_le_floor_iff, one_le_pow_of_one_le c_one.le n] },
   filter_upwards [strong_law_aux4 X hint hindep hident hnonneg c_one,
     strong_law_aux5 X hint hident hnonneg] with ω hω h'ω,
-  rw [← normed_group.tendsto_sub_nhds_zero_iff, ← asymptotics.is_o_one_iff ℝ],
+  rw [← tendsto_sub_nhds_zero_iff, ← asymptotics.is_o_one_iff ℝ],
   have L : asymptotics.is_o (λ (n : ℕ), ∑ i in range ⌊c^n⌋₊, X i ω - ⌊c^n⌋₊ * 𝔼[X 0])
     (λ (n : ℕ), (⌊c^n⌋₊ : ℝ)) at_top,
   { have A : tendsto (λ (n : ℕ), ⌊c ^ n⌋₊) at_top at_top :=

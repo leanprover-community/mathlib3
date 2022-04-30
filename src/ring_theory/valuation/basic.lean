@@ -181,6 +181,10 @@ def comap {S : Type*} [ring S] (f : S →+* R) (v : valuation R Γ₀) :
   map_add_le_max' := λ x y, by simp only [comp_app, map_add, f.map_add],
   .. v.to_monoid_with_zero_hom.comp f.to_monoid_with_zero_hom, }
 
+@[simp]
+lemma comap_apply {S : Type*} [ring S] (f : S →+* R) (v : valuation R Γ₀) (s : S) :
+  v.comap f s = v (f s) := rfl
+
 @[simp] lemma comap_id : v.comap (ring_hom.id R) = v := ext $ λ r, rfl
 
 lemma comap_comp {S₁ : Type*} {S₂ : Type*} [ring S₁] [ring S₂] (f : S₁ →+* S₂) (g : S₂ →+* R) :

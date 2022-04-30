@@ -159,8 +159,8 @@ lemma filter.tendsto.cesaro_smul {E : Type*} [normed_group E] [normed_space ℝ 
   {u : ℕ → E} {l : E} (h : tendsto u at_top (𝓝 l)) :
   tendsto (λ (n : ℕ), (n ⁻¹ : ℝ) • (∑ i in range n, u i)) at_top (𝓝 l) :=
 begin
-  rw [← normed_group.tendsto_sub_nhds_zero_iff, ← is_o_one_iff ℝ],
-  have := asymptotics.is_o_sum_range_of_tendsto_zero (normed_group.tendsto_sub_nhds_zero_iff.2 h),
+  rw [← tendsto_sub_nhds_zero_iff, ← is_o_one_iff ℝ],
+  have := asymptotics.is_o_sum_range_of_tendsto_zero (tendsto_sub_nhds_zero_iff.2 h),
   apply ((is_O_refl (λ (n : ℕ), (n : ℝ) ⁻¹) at_top).smul_is_o this).congr' _ _,
   { filter_upwards [Ici_mem_at_top 1] with n npos,
     have nposℝ : (0 : ℝ) < n := nat.cast_pos.2 npos,

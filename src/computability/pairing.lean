@@ -5,7 +5,7 @@ Authors: Praneeth Kolichala
 -/
 import data.num.to_bits
 import data.list.basic
-import tactic
+import tactic.linarith
 
 /-!
 # Efficient Pairing
@@ -18,7 +18,7 @@ e.g. create lists by encoding `[a, b, c, ...] = (a, (b, (c, ...)))` in polynomia
 This file defines an efficient pairing function. We first define a pairing function
 on lists which take `list bool`'s of `a` and `b`, and outputs an encoding of `(a, b)`,
 which has size `a.length + b.length + O(log a.length)` (so only logarithmic overhead in the first
-argument). We then extend this to `nat`'s using `encode_num`.
+argument). We then extend this to `nat`'s using `to_bits`.
 
 ## Main definitions
 

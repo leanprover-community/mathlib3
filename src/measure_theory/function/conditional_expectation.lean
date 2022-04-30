@@ -853,6 +853,7 @@ begin
   { refine lintegral_congr_ae (ae_restrict_of_ae _),
     refine (@indicator_const_Lp_coe_fn _ _ _ 2 _ _ _ hs hμs (1 : ℝ)).mono (λ x hx, _),
     rw hx,
+    classical,
     simp_rw set.indicator_apply,
     split_ifs; simp, },
   rw [h_eq, lintegral_indicator _ hs, lintegral_const, measure.restrict_restrict hs],

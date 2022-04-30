@@ -516,6 +516,9 @@ lemma Lp_meas.ae_fin_strongly_measurable' (hm : m ≤ m0) (f : Lp_meas F 𝕜 m 
 ⟨Lp_meas_subgroup_to_Lp_trim F p μ hm f, Lp.fin_strongly_measurable _ hp_ne_zero hp_ne_top,
   (Lp_meas_subgroup_to_Lp_trim_ae_eq hm f).symm⟩
 
+/-- When applying the inverse of `Lp_meas_to_Lp_trim_lie` (which takes a function in the Lp space of
+the sub-sigma algebra and returns its version in the larger Lp space) to an indicator of the
+sub-sigma-algebra, we obtain an indicator in the Lp space of the larger sigma-algebra. -/
 lemma Lp_meas_to_Lp_trim_lie_symm_indicator [one_le_p : fact (1 ≤ p)] [normed_space ℝ F]
   {hm : m ≤ m0} {s : set α} {μ : measure α}
   (hs : measurable_set[m] s) (hμs : μ.trim hm s ≠ ∞) (c : F) :

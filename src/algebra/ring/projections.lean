@@ -6,17 +6,12 @@ Authors: Christopher Hoskin
 import algebra.ring.basic
 
 /-!
-# Projections
+# Idempotents
 
-This file defines projections for an arbitary multiplication and proves some basic results:
+This file defines idempotents for an arbitary multiplication and proves some basic results:
 
-* In a semigroup, the product of two commuting projections is a projection;
-* In a (non-associative) ring, p is a projection if and only if 1-p is a projection.
-
-## Implementation notes
-
-A better name would probably be `is_idempotent`, but that is already used in a different sense in
-Lean's internal library.
+* In a semigroup, the product of two commuting idempotents is an idempotent;
+* In a (non-associative) ring, p is an idempotent if and only if 1-p is an idempotent.
 
 ## Tags
 

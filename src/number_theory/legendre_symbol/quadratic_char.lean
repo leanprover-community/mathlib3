@@ -58,6 +58,16 @@ begin
   exact char_p.neg_one_ne_one _ (ring_char F),
 end
 
+/-- Characteristic `≠ 2` implies that `-a ≠ a` when `a ≠ 0`. -/
+lemma neg_ne_self_of_char_ne_two (hF : ring_char F ≠ 2) {a : F} (ha : a ≠ 0) : a ≠ -a :=
+begin
+  intro hf,
+  rw [eq_neg_iff_add_eq_zero, (by ring : a + a = 2 * a), mul_eq_zero] at hf,
+  have h := mt eq_neg_iff_add_eq_zero.mpr (neg_one_ne_one_of_char_ne_two hF).symm,
+  norm_num at h,
+  exact or.dcases_on hf (λ (hf : 2 = 0), h hf) (λ (hf : a = 0), ha hf),
+end
+
 /-- If `F` has odd characteristic, then for nonzero `a : F`, we have that `a ^ (#F / 2) = ±1`. -/
 lemma pow_dichotomy (hF : ring_char F ≠ 2) {a : F} (ha : a ≠ 0) :
   a^(fintype.card F / 2) = 1 ∨ a^(fintype.card F / 2) = -1 :=
@@ -263,14 +273,65 @@ lemma quadratic_char_dichotomy {a : F} (ha : a ≠ 0) :
   quadratic_char F a = 1 ∨ quadratic_char F a = -1 :=
 (sq_eq_one_iff (quadratic_char F a)).mp (quadratic_char_sq_one ha)
 
+/-- For `a : F`, `quadratic_char F a = -1 ↔ ¬ is_square a`. -/
+lemma quadratic_char_neg_one_iff_not_is_square {a : F} :
+  quadratic_char F a = -1 ↔ ¬ is_square a :=
+begin
+  by_cases ha : a = 0,
+  { simp only [ha, is_square_zero, quadratic_char_zero, zero_eq_neg, one_ne_zero, not_true], },
+  { have h : quadratic_char F a = -1 ↔ ¬ quadratic_char F a = 1,
+    { split,
+      { intro h,
+        rw h,
+        norm_num, },
+      { exact λ (h₂ : ¬ quadratic_char F a = 1),
+                (or_iff_right h₂).mp (quadratic_char_dichotomy ha), }, },
+    rw h,
+    exact not_iff_not.mpr (quadratic_char_one_iff_is_square ha), },
+end
+
 /-- If `F` has odd characteristic, then `quadratic_char F` takes the value `-1`. -/
 lemma quadratic_char_exists_neg_one (hF : ring_char F ≠ 2) : ∃ a, quadratic_char F a = -1 :=
+Exists.dcases_on (finite_field.exists_nonsquare hF)
+  (λ (b : F) (h₁ : ¬is_square b), ⟨b, (quadratic_char_neg_one_iff_not_is_square.mpr h₁)⟩)
+
+/-- The number of solutions to `x^2 = a` is determined by the quadratic character. -/
+lemma quadratic_char_number_of_sqrts (hF : ring_char F ≠ 2) (a : F) :
+  ↑{x : F | x^2 = a}.to_finset.card = 1 + quadratic_char F a :=
 begin
-  cases (finite_field.exists_nonsquare hF) with b h₁,
-  have hb : b ≠ 0 := by { intro hf, rw hf at h₁, exact h₁ (is_square_zero F), },
-  use b,
-  simp only [quadratic_char, hb, if_false, ite_eq_right_iff],
-  tauto,
+  -- we consider the cases `a = 0`, `a` is a nonzero square and `a` is a nonsquare in turn
+  by_cases h₀ : a = 0,
+  { simp only [h₀, pow_eq_zero_iff, nat.succ_pos', int.coe_nat_succ, int.coe_nat_zero, zero_add,
+               quadratic_char_zero, add_zero, set.set_of_eq_eq_singleton, set.to_finset_card,
+               set.card_singleton], },
+  { set s := {x : F | x^2 = a}.to_finset with hs,
+    by_cases h : is_square a,
+    { rw (quadratic_char_one_iff_is_square h₀).mpr h,
+      rcases h with ⟨b, h⟩,
+      have hb₀ : b ≠ 0 := by { intro hb, rw [hb, mul_zero] at h, exact h₀ h, },
+      have h₁ : s = [b, -b].to_finset := by
+      { ext x,
+        simp only [finset.mem_filter, finset.mem_univ, true_and, list.to_finset_cons, list.to_finset_nil,
+                   insert_emptyc_eq, finset.mem_insert, finset.mem_singleton],
+        rw ← pow_two at h,
+        rw hs,
+        simp only [set.mem_to_finset, set.mem_set_of_eq],
+        rw h,
+        split,
+        { exact eq_or_eq_neg_of_sq_eq_sq _ _, },
+        { rintro (h₂ | h₂); rw h₂,
+          simp only [neg_sq], }, },
+      simp only [h₁, finset.card_doubleton (finite_field.neg_ne_self_of_char_ne_two hF hb₀),
+                 list.to_finset_cons, list.to_finset_nil, insert_emptyc_eq, int.coe_nat_succ,
+                 int.coe_nat_zero, zero_add], },
+    { rw quadratic_char_neg_one_iff_not_is_square.mpr h,
+      simp only [int.add_neg_one, sub_self, int.coe_nat_eq_zero, finset.card_eq_zero,
+                 set.to_finset_eq_empty_iff, set.empty_def],
+      ext x,
+      simp only [iff_false, set.mem_set_of_eq],
+      rw is_square_iff_exists_sq at h,
+      push_neg at h,
+      exact (h x).symm, }, },
 end
 
 open_locale big_operators

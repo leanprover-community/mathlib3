@@ -222,6 +222,19 @@ lemma legendre_sym_eq_one_iff {a : ℤ} (ha0 : (a : zmod p) ≠ 0) :
   legendre_sym p a = 1 ↔ is_square (a : zmod p) :=
 quadratic_char_one_iff_is_square ha0
 
+/-- `legendre_sym p a = -1` iff`a` is a nonsquare mod `p`. -/
+lemma legendre_sym_eq_neg_one_iff {a : ℤ} :
+  legendre_sym p a = -1 ↔ ¬ is_square (a : zmod p) :=
+quadratic_char_neg_one_iff_not_is_square
+
+/-- The number of square roots of `a` modulo `p` is determined by the Legendre symbol. -/
+lemma legendre_sym_number_of_sqrts (hp : p ≠ 2) (a : ℤ) :
+  ↑{x : zmod p | x^2 = a}.to_finset.card = 1 + legendre_sym p a :=
+begin
+  have h : ring_char (zmod p) ≠ 2 := by { rw ring_char_zmod_n, exact hp, },
+  exact quadratic_char_number_of_sqrts h a,
+end
+
 open_locale big_operators
 
 lemma eisenstein_lemma (hp : p ≠ 2) {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a : zmod p) ≠ 0) :

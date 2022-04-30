@@ -40,12 +40,6 @@ open function
 
 variables {M₀ G₀ M₀' G₀' : Type*}
 
-mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `field_simp` to
-reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
-division-free."
-
-attribute [field_simps] mul_div_assoc'
-
 section
 
 section mul_zero_class
@@ -147,6 +141,8 @@ not_congr mul_eq_zero_comm
 
 lemma mul_self_eq_zero : a * a = 0 ↔ a = 0 := by simp
 lemma zero_eq_mul_self : 0 = a * a ↔ a = 0 := by simp
+lemma mul_self_ne_zero : a * a ≠ 0 ↔ a ≠ 0 := not_congr mul_self_eq_zero
+lemma zero_ne_mul_self : 0 ≠ a * a ↔ a ≠ 0 := not_congr zero_eq_mul_self
 
 end
 
@@ -989,6 +985,9 @@ local attribute [simp] mul_assoc mul_comm mul_left_comm
 lemma div_mul_div_comm₀ (a b c d : G₀) :
       (a / b) * (c / d) = (a * c) / (b * d) :=
 by simp [div_eq_mul_inv, mul_inv₀]
+
+lemma div_div_div_comm₀ (a b c d : G₀) : (a / b) / (c / d) = (a / c) / (b / d) :=
+by simp_rw [div_eq_mul_inv, mul_inv₀, inv_inv, mul_mul_mul_comm]
 
 lemma mul_div_mul_left (a b : G₀) {c : G₀} (hc : c ≠ 0) :
       (c * a) / (c * b) = a / b :=

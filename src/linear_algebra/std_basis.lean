@@ -101,7 +101,7 @@ begin
     assume hiI,
     rw [std_basis_same],
     exact hb _ ((hu trivial).resolve_left hiI) },
-  exact sum_mem _ (assume i hiI, mem_supr_of_mem i $ mem_supr_of_mem hiI $
+  exact sum_mem (assume i hiI, mem_supr_of_mem i $ mem_supr_of_mem hiI $
     (std_basis R φ i).mem_range_self (b i))
 end
 
@@ -262,11 +262,11 @@ end pi
 
 namespace matrix
 
-variables (R : Type*) (n : Type*) (m : Type*) [fintype m] [fintype n] [semiring R]
+variables (R : Type*) (m n : Type*) [fintype m] [fintype n] [semiring R]
 
-/-- The standard basis of `matrix n m R`. -/
-noncomputable def std_basis : basis (n × m) R (matrix n m R) :=
-basis.reindex (pi.basis (λ (i : n), pi.basis_fun R m)) (equiv.sigma_equiv_prod _ _)
+/-- The standard basis of `matrix m n R`. -/
+noncomputable def std_basis : basis (m × n) R (matrix m n R) :=
+basis.reindex (pi.basis (λ (i : m), pi.basis_fun R n)) (equiv.sigma_equiv_prod _ _)
 
 variables {n m}
 

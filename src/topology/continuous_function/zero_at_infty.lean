@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
 import topology.continuous_function.bounded
+import topology.continuous_function.cocompact_map
 
 /-!
 # Continuous functions vanishing at infinity
@@ -106,6 +107,13 @@ def zero_at_infty_continuous_map_class.of_compact {G : Type*} [continuous_map_cl
   zero_at_infty := by simp }
 
 end basics
+
+/-! ### Algebraic structure
+
+Whenever `β` has suitable algebraic structure and a compatible topological structure, then
+`C₀(α, β)` inherits a corresponding algebraic structure. The primary exception to this is that
+`C₀(α, β)` will not have a multiplicative identity.
+-/
 
 section algebraic_structure
 
@@ -211,15 +219,58 @@ instance [has_zero β] {R : Type*} [monoid_with_zero R] [mul_action_with_zero R 
   [has_continuous_const_smul R β] : mul_action_with_zero R C₀(α, β) :=
 function.injective.mul_action_with_zero ⟨_, coe_zero⟩ fun_like.coe_injective coe_smul
 
-instance [add_comm_monoid β] [has_continuous_add β] {R : Type*} [comm_semiring R] [module R β]
+instance [add_comm_monoid β] [has_continuous_add β] {R : Type*} [semiring R] [module R β]
   [has_continuous_const_smul R β] : module R C₀(α, β) :=
 function.injective.module R ⟨_, coe_zero, coe_add⟩ fun_like.coe_injective coe_smul
 
-instance [non_unital_semiring β] [has_continuous_add β] [has_continuous_mul β] :
+instance [non_unital_non_assoc_semiring β] [topological_semiring β] :
+  non_unital_non_assoc_semiring C₀(α, β) :=
+fun_like.coe_injective.non_unital_non_assoc_semiring _ coe_zero coe_add coe_mul (λ _ _, rfl)
+
+instance [non_unital_semiring β] [topological_semiring β] :
   non_unital_semiring C₀(α, β) :=
 fun_like.coe_injective.non_unital_semiring _ coe_zero coe_add coe_mul (λ _ _, rfl)
 
+instance [non_unital_non_assoc_ring β] [topological_ring β] :
+  non_unital_non_assoc_ring C₀(α, β) :=
+fun_like.coe_injective.non_unital_non_assoc_ring _ coe_zero coe_add coe_mul coe_neg coe_sub
+  (λ _ _, rfl) (λ _ _, rfl)
+
+instance [non_unital_ring β] [topological_ring β] :
+  non_unital_ring C₀(α, β) :=
+fun_like.coe_injective.non_unital_ring _ coe_zero coe_add coe_mul coe_neg coe_sub (λ _ _, rfl)
+  (λ _ _, rfl)
+
+instance {R : Type*} [semiring R] [non_unital_non_assoc_semiring β] [topological_semiring β]
+  [module R β] [has_continuous_const_smul R β] [is_scalar_tower R β β] :
+  is_scalar_tower R C₀(α, β) C₀(α, β) :=
+{ smul_assoc := λ r f g,
+  begin
+    ext,
+    simp only [smul_eq_mul, coe_mul, coe_smul, pi.mul_apply, pi.smul_apply],
+    rw [←smul_eq_mul, ←smul_eq_mul, smul_assoc],
+  end }
+
+instance {R : Type*} [semiring R] [non_unital_non_assoc_semiring β] [topological_semiring β]
+  [module R β] [has_continuous_const_smul R β] [smul_comm_class R β β] :
+  smul_comm_class R C₀(α, β) C₀(α, β) :=
+{ smul_comm := λ r f g,
+  begin
+    ext,
+    simp only [smul_eq_mul, coe_smul, coe_mul, pi.smul_apply, pi.mul_apply],
+    rw [←smul_eq_mul, ←smul_eq_mul, smul_comm],
+  end }
+
+
 end algebraic_structure
+
+/-! ### Metric structure
+
+When `β` is a metric space, then every element of `C₀(α, β)` is bounded, and so there is a natural
+inclusion map `zero_at_infty_continuous_map.to_bcf : C₀(α, β) → (α →ᵇ β)`. Via this map `C₀(α, β)`
+inherits a metric as the pullback of the metric on `α →ᵇ β`. Moreover, this map has closed range
+in `α →ᵇ β` and consequently `C₀(α, β)` is a complete space whenever `β` is complete.
+-/
 
 section metric
 
@@ -259,7 +310,7 @@ def to_bcf (f : C₀(α, β)) : α →ᵇ β :=
 
 section
 variables (α) (β)
-lemma to_bounded_continuous_function_injective :
+lemma to_bcf_injective :
   function.injective (to_bcf : C₀(α, β) → α →ᵇ β) :=
 λ f g h, by { ext, simpa only using fun_like.congr_fun h x, }
 end
@@ -269,7 +320,7 @@ variables {C : ℝ} {f g : C₀(α, β)}
 /-- The type of continuous functions vanishing at infinity, with the uniform distance induced by the
 inclusion `zero_at_infinity_continuous_map.to_bcf`, is a metric space. -/
 noncomputable instance : metric_space C₀(α, β) :=
-metric_space.induced _ (to_bounded_continuous_function_injective α β) (by apply_instance)
+metric_space.induced _ (to_bcf_injective α β) (by apply_instance)
 
 @[simp]
 lemma dist_to_bcf_eq_dist {f g : C₀(α, β)} : dist f.to_bcf g.to_bcf = dist f g := rfl
@@ -306,5 +357,175 @@ instance [complete_space β] : complete_space C₀(α, β) :=
   closed_range_to_bcf.is_complete
 
 end metric
+
+section norm
+
+/-! ### Normed space
+
+The norm structure on `C₀(α, β)` is the one induced by the inclusion `to_bcf : C₀(α, β) → (α →ᵇ b)`,
+viewed as an additive monoid homomorphism. Then `C₀(α, β)` is naturally a normed space over a normed
+field `𝕜` whenever `β` is as well.
+-/
+
+section normed_space
+
+variables [normed_group β] {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+
+/-- The natural inclusion `to_bcf : C₀(α, β) → (α →ᵇ β)` realized as an additive monoid
+homomorphism. -/
+def to_bcf_add_monoid_hom : C₀(α, β) →+ (α →ᵇ β) :=
+{ to_fun := to_bcf,
+  map_zero' := rfl,
+  map_add' := λ x y, rfl }
+
+@[simp]
+lemma coe_to_bcf_add_monoid_hom (f : C₀(α, β)) : (f.to_bcf_add_monoid_hom : α → β) = f := rfl
+
+noncomputable instance : normed_group C₀(α, β) :=
+normed_group.induced to_bcf_add_monoid_hom (to_bcf_injective α β)
+
+@[simp]
+lemma norm_to_bcf_eq_norm {f : C₀(α, β)} : ∥f.to_bcf∥ = ∥f∥ := rfl
+
+instance : normed_space 𝕜 C₀(α, β) :=
+{ norm_smul_le := λ k f, (norm_smul k f.to_bcf).le }
+
+end normed_space
+
+section normed_ring
+
+variables [non_unital_normed_ring β]
+
+noncomputable instance : non_unital_normed_ring C₀(α, β) :=
+{ norm_mul := λ f g, norm_mul_le f.to_bcf g.to_bcf,
+  ..zero_at_infty_continuous_map.non_unital_ring,
+  ..zero_at_infty_continuous_map.normed_group }
+
+end normed_ring
+
+end norm
+
+section star
+
+/-! ### Star structure
+
+It is possible to equip `C₀(α, β)` with a pointwise `star` operation whenever there is a continuous
+`star : β → β` for which `star (0 : β) = 0`. However, we have no such minimal type classes (e.g.,
+`has_continuous_star` or `star_zero_class`) and so the type class assumptions on `β` sufficient to
+guarantee these conditions are `[normed_group β]`, `[star_add_monoid β]` and
+`[normed_star_group β]`, which allow for the corresponding classes on `C₀(α, β)` essentially
+inherited from their counterparts on `α →ᵇ β`. Ultimately, when `β` is a C⋆-ring, then so is
+`C₀(α, β)`.
+-/
+
+variables [normed_group β] [star_add_monoid β] [normed_star_group β]
+
+instance : has_star C₀(α, β) :=
+{ star := λ f,
+  { to_fun := λ x, star (f x),
+    continuous_to_fun := (map_continuous f).star,
+    zero_at_infty' := by simpa only [star_zero]
+      using (continuous_star.tendsto (0 : β)).comp (zero_at_infty f) } }
+
+@[simp]
+lemma coe_star (f : C₀(α, β)) : ⇑(star f) = star f := rfl
+
+lemma star_apply (f : C₀(α, β)) (x : α) :
+  (star f) x = star (f x) := rfl
+
+instance : star_add_monoid C₀(α, β) :=
+{ star_involutive := λ f, ext $ λ x, star_star (f x),
+  star_add := λ f g, ext $ λ x, star_add (f x) (g x) }
+
+instance : normed_star_group C₀(α, β) :=
+{ norm_star := λ f, (norm_star f.to_bcf : _) }
+
+end star
+
+section star_module
+
+variables {𝕜 : Type*} [semiring 𝕜] [has_star 𝕜]
+  [normed_group β] [star_add_monoid β] [normed_star_group β]
+  [module 𝕜 β] [has_continuous_const_smul 𝕜 β] [star_module 𝕜 β]
+
+instance : star_module 𝕜 C₀(α, β) :=
+{ star_smul := λ k f, ext $ λ x, star_smul k (f x) }
+
+end star_module
+
+section star_ring
+
+variables [non_unital_normed_ring β] [star_ring β]
+
+instance [normed_star_group β] : star_ring C₀(α, β) :=
+{ star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),
+  ..zero_at_infty_continuous_map.star_add_monoid }
+
+instance [cstar_ring β] : cstar_ring C₀(α, β) :=
+{ norm_star_mul_self := λ f, @cstar_ring.norm_star_mul_self _ _ _ _ f.to_bcf }
+
+end star_ring
+
+/-! ### C₀ as a functor
+
+For each `β` with sufficient structure, there is a contravariant functor `C₀(-, β)` from the
+category of topological spaces with morphisms given by `cocompact_map`s.
+-/
+
+variables {δ : Type*} [topological_space β] [topological_space γ] [topological_space δ]
+
+local notation α ` →co ` β := cocompact_map α β
+
+section
+variables [has_zero δ]
+
+/-- Composition of a continuous function vanishing at infinity with a cocompact map yields another
+continuous function vanishing at infinity. -/
+def comp (f : C₀(γ, δ)) (g : β →co γ) : C₀(β, δ) :=
+{ to_continuous_map := (f : C(γ, δ)).comp g,
+  zero_at_infty' := (zero_at_infty f).comp (cocompact_tendsto g) }
+
+@[simp] lemma coe_comp_to_continuous_fun (f : C₀(γ, δ)) (g : β →co γ) :
+  ((f.comp g).to_continuous_map : β → δ) = f ∘ g := rfl
+
+@[simp] lemma comp_id (f : C₀(γ, δ)) : f.comp (cocompact_map.id γ) = f := ext (λ x, rfl)
+
+@[simp] lemma comp_assoc (f : C₀(γ, δ)) (g : β →co γ) (h : α →co β) :
+  (f.comp g).comp h = f.comp (g.comp h) := rfl
+
+@[simp] lemma zero_comp (g : β →co γ) : (0 : C₀(γ, δ)).comp g = 0 := rfl
+
+end
+
+/-- Composition as an additive monoid homomorphism. -/
+def comp_add_monoid_hom [add_monoid δ] [has_continuous_add δ] (g : β →co γ) :
+  C₀(γ, δ) →+ C₀(β, δ) :=
+{ to_fun := λ f, f.comp g,
+  map_zero' := zero_comp g,
+  map_add' := λ f₁ f₂, rfl }
+
+/-- Composition as a semigroup homomorphism. -/
+def comp_mul_hom [mul_zero_class δ] [has_continuous_mul δ]
+  (g : β →co γ) : C₀(γ, δ) →ₙ* C₀(β, δ) :=
+{ to_fun := λ f, f.comp g,
+  map_mul' := λ f₁ f₂, rfl }
+
+/-- Composition as a linear map. -/
+def comp_linear_map [add_comm_monoid δ] [has_continuous_add δ] {R : Type*}
+  [semiring R] [module R δ] [has_continuous_const_smul R δ] (g : β →co γ) :
+  C₀(γ, δ) →ₗ[R] C₀(β, δ) :=
+{ to_fun := λ f, f.comp g,
+  map_add' := λ f₁ f₂, rfl,
+  map_smul' := λ r f, rfl }
+
+/-- Composition as a non-unital algebra homomorphism. -/
+def comp_non_unital_alg_hom {R : Type*} [semiring R] [non_unital_non_assoc_semiring δ]
+  [topological_semiring δ] [module R δ] [has_continuous_const_smul R δ] (g : β →co γ) :
+  C₀(γ, δ) →ₙₐ[R] C₀(β, δ) :=
+{ to_fun := λ f, f.comp g,
+  map_smul' := λ r f, rfl,
+  map_zero' := rfl,
+  map_add' := λ f₁ f₂, rfl,
+  map_mul' := λ f₁ f₂, rfl }
 
 end zero_at_infty_continuous_map

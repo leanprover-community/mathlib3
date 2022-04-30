@@ -6,7 +6,8 @@ Authors: Pim Spelier, Daan van Gent
 
 import data.fintype.basic
 import data.num.lemmas
-import data.num.encode_list_bool
+import data.num.to_bits
+import set_theory.cardinal.ordinal
 import tactic.derive_fintype
 
 /-!
@@ -24,20 +25,34 @@ It also contains several examples:
 - `fin_encoding_bool_bool`  : an encoding of bool.
 -/
 
+universes u v
+open_locale cardinal
+
 namespace computability
 
 /-- An encoding of a type in a certain alphabet, together with a decoding. -/
-structure encoding (α : Type) :=
-(Γ : Type)
+structure encoding (α : Type u) :=
+(Γ : Type v)
 (encode : α → list Γ)
 (decode : list Γ → option α)
 (decode_encode : ∀ x, decode (encode x) = some x)
 
 attribute [simp] encoding.decode_encode
 
+lemma encoding.encode_injective {α : Type u} (e : encoding α) :
+  function.injective e.encode :=
+begin
+  refine λ _ _ h, option.some_injective _ _,
+  rw [← e.decode_encode, ← e.decode_encode, h],
+end
+
 /-- An encoding plus a guarantee of finiteness of the alphabet. -/
-structure fin_encoding (α : Type) extends encoding α :=
+structure fin_encoding (α : Type u) extends encoding.{u 0} α :=
 (Γ_fin : fintype Γ)
+
+instance {α : Type u} (e : fin_encoding α) :
+  fintype e.to_encoding.Γ :=
+e.Γ_fin
 
 /-- A standard Turing machine alphabet, consisting of blank,bit0,bit1,bra,ket,comma. -/
 @[derive [decidable_eq,fintype]]
@@ -63,8 +78,8 @@ function.has_left_inverse.injective (Exists.intro section_Γ'_bool left_inverse_
 /-- A binary encoding of ℕ in bool. -/
 def encoding_nat_bool : encoding ℕ :=
 { Γ := bool,
-  encode := λ n, num.encode_num n,
-  decode := λ n, some (num.decode_num n),
+  encode := λ n, num.to_bits n,
+  decode := λ n, some (num.of_bits n),
   decode_encode := λ n, by simp }
 
 /-- A binary fin_encoding of ℕ in bool. -/
@@ -73,8 +88,8 @@ def fin_encoding_nat_bool : fin_encoding ℕ := ⟨encoding_nat_bool, bool.finty
 /-- A binary encoding of ℕ in Γ'. -/
 def encoding_nat_Γ' : encoding ℕ :=
 { Γ := Γ',
-  encode := λ x, list.map inclusion_bool_Γ' (num.encode_num x),
-  decode := λ x, some (num.decode_num (list.map section_Γ'_bool x)),
+  encode := λ x, list.map inclusion_bool_Γ' (num.to_bits x),
+  decode := λ x, some (num.of_bits (list.map section_Γ'_bool x)),
   decode_encode := λ x, by simp [function.left_inverse.comp_eq_id left_inverse_section_inclusion] }
 
 /-- A binary fin_encoding of ℕ in Γ'. -/
@@ -120,5 +135,26 @@ def fin_encoding_bool_bool : fin_encoding bool :=
 instance inhabited_fin_encoding : inhabited (fin_encoding bool) := ⟨fin_encoding_bool_bool⟩
 
 instance inhabited_encoding : inhabited (encoding bool) := ⟨fin_encoding_bool_bool.to_encoding⟩
+
+lemma encoding.card_le_card_list {α : Type u} (e : encoding.{u v} α) :
+  cardinal.lift.{v} (# α) ≤ cardinal.lift.{u} (# (list e.Γ)) :=
+(cardinal.lift_mk_le').2 ⟨⟨e.encode, e.encode_injective⟩⟩
+
+lemma encoding.card_le_omega {α : Type u} (e : encoding.{u v} α) [encodable e.Γ] :
+  (# α) ≤ ω :=
+begin
+  refine cardinal.lift_le.1 (e.card_le_card_list.trans _),
+  simp only [cardinal.lift_omega, cardinal.lift_le_omega],
+  casesI is_empty_or_nonempty e.Γ with h h,
+  { simp only [cardinal.mk_le_omega], },
+  { rw cardinal.mk_list_eq_omega },
+end
+
+lemma fin_encoding.card_le_omega {α : Type u} (e : fin_encoding α) :
+  (# α) ≤ ω :=
+begin
+  haveI : encodable e.Γ := fintype.to_encodable _,
+  exact e.to_encoding.card_le_omega,
+end
 
 end computability

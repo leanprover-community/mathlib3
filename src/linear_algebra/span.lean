@@ -113,7 +113,7 @@ begin
   refine exists.elim _ (λ (hx : x ∈ span R s) (hc : p x hx), hc),
   refine span_induction hx (λ m hm, ⟨subset_span hm, Hs m hm⟩) ⟨zero_mem _, H0⟩
     (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
-    ⟨add_mem _ hx' hy', H1 _ _ _ _ hx hy⟩) (λ r x hx, exists.elim hx $ λ hx' hx,
+    ⟨add_mem hx' hy', H1 _ _ _ _ hx hy⟩) (λ r x hx, exists.elim hx $ λ hx' hx,
     ⟨smul_mem _ _ hx', H2 r _ _ hx⟩)
 end
 
@@ -122,7 +122,7 @@ eq_top_iff.2 $ λ x, subtype.rec_on x $ λ x hx _, begin
   refine span_induction' (λ x hx, _) _ (λ x y _ _, _) (λ r x _, _) hx,
   { exact subset_span hx },
   { exact zero_mem _ },
-  { exact add_mem _ },
+  { exact add_mem },
   { exact smul_mem _ _ }
 end
 
@@ -227,7 +227,7 @@ begin
   { exact hι.elim (λ i, ⟨i, (S i).zero_mem⟩) },
   { intros x y i hi j hj,
     rcases H i j with ⟨k, ik, jk⟩,
-    exact ⟨k, add_mem _ (ik hi) (jk hj)⟩ },
+    exact ⟨k, add_mem (ik hi) (jk hj)⟩ },
   { exact λ a x i hi, ⟨i, smul_mem _ a hi⟩ },
 end
 
@@ -271,11 +271,11 @@ lemma mem_sup : x ∈ p ⊔ p' ↔ ∃ (y ∈ p) (z ∈ p'), y + z = x :=
     { exact ⟨0, by simp, y, h, by simp⟩ } },
   { exact ⟨0, by simp, 0, by simp⟩ },
   { rintro _ _ ⟨y₁, hy₁, z₁, hz₁, rfl⟩ ⟨y₂, hy₂, z₂, hz₂, rfl⟩,
-    exact ⟨_, add_mem _ hy₁ hy₂, _, add_mem _ hz₁ hz₂, by simp [add_assoc]; cc⟩ },
+    exact ⟨_, add_mem hy₁ hy₂, _, add_mem hz₁ hz₂, by simp [add_assoc]; cc⟩ },
   { rintro a _ ⟨y, hy, z, hz, rfl⟩,
     exact ⟨_, smul_mem _ a hy, _, smul_mem _ a hz, by simp [smul_add]⟩ }
 end,
-by rintro ⟨y, hy, z, hz, rfl⟩; exact add_mem _
+by rintro ⟨y, hy, z, hz, rfl⟩; exact add_mem
   ((le_sup_left : p ≤ p ⊔ p') hy)
   ((le_sup_right : p' ≤ p ⊔ p') hz)⟩
 
@@ -533,7 +533,7 @@ end
 lemma supr_induction' {ι : Sort*} (p : ι → submodule R M) {C : Π x, (x ∈ ⨆ i, p i) → Prop}
   (hp : ∀ i (x ∈ p i), C x (mem_supr_of_mem i ‹_›))
   (h0 : C 0 (zero_mem _))
-  (hadd : ∀ x y hx hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
+  (hadd : ∀ x y hx hy, C x hx → C y hy → C (x + y) (add_mem ‹_› ‹_›))
   {x : M} (hx : x ∈ ⨆ i, p i) : C x hx :=
 begin
   refine exists.elim _ (λ (hx : x ∈ ⨆ i, p i) (hc : C x hx), hc),

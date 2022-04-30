@@ -139,27 +139,26 @@ variables {r : R} {x y : M}
 variables (p)
 @[simp] lemma mem_carrier : x ∈ p.carrier ↔ x ∈ (p : set M) := iff.rfl
 
-@[simp] lemma zero_mem : (0 : M) ∈ p := p.zero_mem'
-
-lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := p.add_mem' h₁ h₂
+@[simp] protected lemma zero_mem : (0 : M) ∈ p := zero_mem _
+protected lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := add_mem h₁ h₂
 
 lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
 lemma smul_of_tower_mem [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M]
   (r : S) (h : x ∈ p) : r • x ∈ p :=
 p.to_sub_mul_action.smul_of_tower_mem r h
 
-lemma sum_mem {t : finset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
-p.to_add_submonoid.sum_mem
+protected lemma sum_mem {t : finset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
+sum_mem
 
 lemma sum_smul_mem {t : finset ι} {f : ι → M} (r : ι → R)
     (hyp : ∀ c ∈ t, f c ∈ p) : (∑ i in t, r i • f i) ∈ p :=
-submodule.sum_mem _ (λ i hi, submodule.smul_mem  _ _ (hyp i hi))
+sum_mem (λ i hi, smul_mem _ _ (hyp i hi))
 
 @[simp] lemma smul_mem_iff' [group G] [mul_action G M] [has_scalar G R] [is_scalar_tower G R M]
   (g : G) : g • x ∈ p ↔ x ∈ p :=
 p.to_sub_mul_action.smul_mem_iff' g
 
-instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem _ x.2 y.2⟩⟩
+instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
 instance [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M] :
@@ -291,7 +290,7 @@ instance [module R M] : add_subgroup_class (submodule R M) M :=
 { neg_mem := λ p x, p.to_sub_mul_action.neg_mem,
   .. submodule.add_submonoid_class }
 
-lemma neg_mem (hx : x ∈ p) : -x ∈ p := neg_mem_class.neg_mem hx
+protected lemma neg_mem (hx : x ∈ p) : -x ∈ p := neg_mem hx
 
 /-- Reinterpret a submodule as an additive subgroup. -/
 def to_add_subgroup : add_subgroup M :=
@@ -319,13 +318,12 @@ to_add_subgroup_strict_mono.monotone
 
 omit module_M
 
-lemma sub_mem : x ∈ p → y ∈ p → x - y ∈ p := p.to_add_subgroup.sub_mem
-
-@[simp] lemma neg_mem_iff : -x ∈ p ↔ x ∈ p := p.to_add_subgroup.neg_mem_iff
-
-lemma add_mem_iff_left : y ∈ p → (x + y ∈ p ↔ x ∈ p) := p.to_add_subgroup.add_mem_cancel_right
-
-lemma add_mem_iff_right : x ∈ p → (x + y ∈ p ↔ y ∈ p) := p.to_add_subgroup.add_mem_cancel_left
+protected lemma sub_mem : x ∈ p → y ∈ p → x - y ∈ p := sub_mem
+protected lemma neg_mem_iff : -x ∈ p ↔ x ∈ p := neg_mem_iff
+protected lemma add_mem_iff_left : y ∈ p → (x + y ∈ p ↔ x ∈ p) := add_mem_cancel_right
+protected lemma add_mem_iff_right : x ∈ p → (x + y ∈ p ↔ y ∈ p) := add_mem_cancel_left
+protected lemma coe_neg (x : p) : ((-x : p) : M) = -x := add_subgroup_class.coe_neg _
+protected lemma coe_sub (x y : p) : (↑(x - y) : M) = ↑x - ↑y := add_subgroup_class.coe_sub _ _
 
 lemma sub_mem_iff_left (hy : y ∈ p) : (x - y) ∈ p ↔ x ∈ p :=
 by rw [sub_eq_add_neg, p.add_mem_iff_left (p.neg_mem hy)]
@@ -333,14 +331,8 @@ by rw [sub_eq_add_neg, p.add_mem_iff_left (p.neg_mem hy)]
 lemma sub_mem_iff_right (hx : x ∈ p) : (x - y) ∈ p ↔ y ∈ p :=
 by rw [sub_eq_add_neg, p.add_mem_iff_right hx, p.neg_mem_iff]
 
-instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
-
-@[simp, norm_cast] lemma coe_neg (x : p) : ((-x : p) : M) = -x := rfl
-
 instance : add_comm_group p :=
 { add := (+), zero := 0, neg := has_neg.neg, ..p.to_add_subgroup.to_add_comm_group }
-
-@[simp, norm_cast] lemma coe_sub (x y : p) : (↑(x - y) : M) = ↑x - ↑y := rfl
 
 end add_comm_group
 

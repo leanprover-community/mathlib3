@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
 import algebra.hom.group_instances
-import data.pi
+import data.pi.algebra
 import data.set.function
 import data.set.pairwise
 import tactic.pi_instances

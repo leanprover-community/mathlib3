@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import algebra.group.type_tags
 import algebra.group_with_zero.basic
-import data.pi
+import data.pi.algebra
 
 /-!
 # Multiplicative and additive equivs

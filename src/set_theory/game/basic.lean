@@ -588,6 +588,8 @@ begin
   { simp }
 end
 
+theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
+
 def inv'_one : relabelling (inv' 1) 1 :=
 begin
   change relabelling (inv' (mk _ _ _ _)) 1,
@@ -601,10 +603,11 @@ begin
   { simp }
 end
 
-/-- The inverse of a surreal number in terms of the inverse on positive surreals. -/
+theorem inv'_one_equiv : inv' 1 ≈ 1 := inv'_one.equiv
+
+/-- The inverse of a pre-game in terms of the inverse on positive pre-games. -/
 noncomputable def inv (x : pgame) : pgame :=
-by classical; exact
-if x ≈ 0 then 0 else if 0 < x then inv' x else inv' (-x)
+by { classical, exact if x ≈ 0 then 0 else if 0 < x then inv' x else inv' (-x) }
 
 noncomputable instance : has_inv pgame := ⟨inv⟩
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
@@ -629,14 +632,9 @@ begin
   { exact λ h', not_lt.2 h'.2 h₂ }
 end
 
-theorem inv_neg {x : pgame} : (-x)⁻¹ = -x⁻¹ :=
-begin
-  convert if_neg _,
-  { apply eq.symm (if_neg _), exact not_lt.2 h₁ },
-  { exact λ h', not_lt.2 h'.2 h₂ }
-end
+def inv_one : relabelling (1 : pgame)⁻¹ 1 :=
+by { rw inv_pos zero_lt_one, exact inv'_one }
 
-theorem inv_one : (0 : pgame)⁻¹ = 0 :=
-inv_equiv_zero (equiv_refl _)
+theorem inv_one_equiv : (1 : pgame)⁻¹ ≈ 1 := inv_one.equiv
 
 end pgame

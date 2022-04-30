@@ -6,6 +6,7 @@ Authors: Praneeth Kolichala
 import data.num.to_bits
 import data.list.basic
 import tactic.ring
+import tactic.linarith
 
 /-!
 # Efficient Pairing

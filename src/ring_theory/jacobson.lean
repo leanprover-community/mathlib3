@@ -289,7 +289,7 @@ begin
   let M' : submonoid (R[X] ⧸ P) :=
   (submonoid.powers (pX.map (quotient.mk (P.comap C))).leading_coeff).map (quotient_map P C le_rfl),
   let φ : R ⧸ P' →+* R[X] ⧸ P := quotient_map P C le_rfl,
-  let φ' := is_localization.map Sₘ φ M.le_comap_map,
+  let φ' : Rₘ →+* Sₘ := is_localization.map Sₘ φ M.le_comap_map,
   have hφ' : φ.comp (quotient.mk P') = (quotient.mk P).comp C := rfl,
   intro p,
   obtain ⟨⟨p', ⟨q, hq⟩⟩, hp⟩ := is_localization.surj M' p,
@@ -454,7 +454,7 @@ begin
   rw ← bot_quotient_is_maximal_iff,
   have hp0 : ((m : R[X]).map (quotient.mk (P.comap C : ideal R))).leading_coeff ≠ 0 :=
     λ hp0', this $ map_injective (quotient.mk (P.comap C : ideal R))
-      ((quotient.mk (P.comap C : ideal R)).injective_iff.2 (λ x hx,
+      ((injective_iff_map_eq_zero (quotient.mk (P.comap C : ideal R))).2 (λ x hx,
       by rwa [quotient.eq_zero_iff_mem, (by rwa eq_bot_iff : (P.comap C : ideal R) = ⊥)] at hx))
       (by simpa only [leading_coeff_eq_zero, polynomial.map_zero] using hp0'),
   have hM : (0 : R ⧸ P.comap C) ∉ M := λ ⟨n, hn⟩, hp0 (pow_eq_zero hn),
@@ -502,7 +502,7 @@ begin
     exact (let ⟨z, zM, z0⟩ := hM' in (quotient_map_injective (trans z0 φ.map_zero.symm)) ▸ zM) },
   { rw ← is_localization.map_comp M.le_comap_map,
     refine ring_hom.is_integral_trans (algebra_map (R ⧸ P') (localization M))
-      (is_localization.map _ _ M.le_comap_map) _ _,
+      (is_localization.map (localization M') _ M.le_comap_map) _ _,
     { exact (algebra_map (R ⧸ P') (localization M)).is_integral_of_surjective
       (is_field.localization_map_bijective hM ((quotient.maximal_ideal_iff_is_field_quotient _).mp
                                                (is_maximal_comap_C_of_is_maximal P hP'))).2 },

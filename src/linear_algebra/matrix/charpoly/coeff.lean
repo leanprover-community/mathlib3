@@ -259,7 +259,7 @@ lemma charpoly_left_mul_matrix {K S : Type*} [field K] [comm_ring S] [algebra K 
 begin
   apply minpoly.unique,
   { apply matrix.charpoly_monic },
-  { apply (left_mul_matrix _).injective_iff.mp (left_mul_matrix_injective h.basis),
+  { apply (injective_iff_map_eq_zero (left_mul_matrix _)).mp (left_mul_matrix_injective h.basis),
     rw [← polynomial.aeval_alg_hom_apply, aeval_self_charpoly] },
   { intros q q_monic root_q,
     rw [matrix.charpoly_degree_eq_dim, fintype.card_fin, degree_eq_nat_degree q_monic.ne_zero],

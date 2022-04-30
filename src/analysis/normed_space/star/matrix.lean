@@ -16,24 +16,21 @@ This file collects facts about the unitary matrices over `𝕜` (either `ℝ` or
 
 open_locale big_operators matrix
 
-variables {𝕜 n E : Type*}
+variables {𝕜 m n E : Type*}
 
 namespace matrix
-variables [fintype n] [semi_normed_group E] [star_add_monoid E] [normed_star_group E]
+variables [fintype m] [fintype n] [semi_normed_group E] [star_add_monoid E] [normed_star_group E]
 
 local attribute [instance] matrix.semi_normed_group
 
-@[simp] lemma entrywise_sup_norm_star_eq_norm (M : matrix n n E) : ∥star M∥ = ∥M∥ :=
-begin
-  refine le_antisymm (by simp [matrix.norm_le_iff, M.norm_entry_le_entrywise_sup_norm]) _,
-  refine ((matrix.norm_le_iff (norm_nonneg _)).mpr (λ i j, _)).trans
-    (congr_arg _ M.star_eq_conj_transpose).ge,
-  exact (norm_star _).ge.trans Mᴴ.norm_entry_le_entrywise_sup_norm
-end
+@[simp] lemma norm_conj_transpose (M : matrix m n E) : ∥Mᴴ∥ = ∥M∥ :=
+(norm_map_eq _ _ norm_star).trans M.norm_transpose
 
-@[priority 100] -- see Note [lower instance priority]
-instance to_normed_star_group : normed_star_group (matrix n n E) :=
-⟨matrix.entrywise_sup_norm_star_eq_norm⟩
+@[simp] lemma nnnorm_conj_transpose (M : matrix m n E) : ∥Mᴴ∥₊ = ∥M∥₊ :=
+subtype.ext M.norm_conj_transpose
+
+instance : normed_star_group (matrix n n E) :=
+⟨matrix.norm_conj_transpose⟩
 
 end matrix
 

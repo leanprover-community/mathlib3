@@ -157,7 +157,8 @@ namespace uniform_space
 variables {α : Type*}
 lemma ring_sep_rel (α) [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
   separation_setoid α = submodule.quotient_rel (ideal.closure ⊥) :=
-setoid.ext $ assume x y, add_group_separation_rel x y
+setoid.ext $ λ x y, (add_group_separation_rel x y).trans $
+  iff.trans (by refl) (submodule.quotient_rel_r_def _).symm
 
 lemma ring_sep_quot
   (α : Type u) [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
@@ -170,7 +171,8 @@ corresponding to the closure of zero. -/
 def sep_quot_equiv_ring_quot (α)
   [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
   quotient (separation_setoid α) ≃ (α ⧸ (⊥ : ideal α).closure) :=
-quotient.congr_right $ assume x y, add_group_separation_rel x y
+quotient.congr_right $ λ x y, (add_group_separation_rel x y).trans $
+  iff.trans (by refl) (submodule.quotient_rel_r_def _).symm
 
 /- TODO: use a form of transport a.k.a. lift definition a.k.a. transfer -/
 instance comm_ring [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :

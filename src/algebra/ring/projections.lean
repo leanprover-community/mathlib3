@@ -27,7 +27,7 @@ variables {M : Type*} [has_mul M]
 
 def is_projection (x : M) : Prop := x*x = x
 
-lemma projection_def {P : M} (h : is_projection P) : P*P = P := by exact h
+lemma projection_def {P : M} (h : is_projection P) : P*P = P := h
 
 namespace is_projection
 

@@ -392,9 +392,6 @@ section piecewise_const
 
 variables {i j n : ℕ} {s : set α} {x : α} [decidable_pred (∈ s)]
 
-lemma piecewise_const_le_max : s.piecewise (λ _, i) (λ _, j) x ≤ max i j :=
-by { by_cases hx : x ∈ s; simp [hx], }
-
 @[measurability]
 lemma measurable_piecewise_const {m : measurable_space α} (hs : measurable_set s) :
   measurable (s.piecewise (λ _, i) (λ _, j)) :=
@@ -433,9 +430,9 @@ begin
   refine submartingale_of_set_integral_le hadp hint (λ i j hij s hs, _),
   classical,
   specialize hf (s.piecewise (λ _, i) (λ _, j)) _
-      (is_stopping_time_piecewise_const hij hs)
-      (is_stopping_time_const j) (λ x, piecewise_const_le_max.trans (max_eq_right hij).le)
-      ⟨j, λ x, le_rfl⟩,
+    (is_stopping_time_piecewise_const hij hs)
+    (is_stopping_time_const j) (λ x, (ite_le_sup _ _ _).trans (max_eq_right hij).le)
+    ⟨j, λ x, le_rfl⟩,
   rwa [stopped_value_const, stopped_value_piecewise_const,
     integral_add' ((hint i).indicator (𝒢.le _ _ hs)) ((hint j).indicator (𝒢.le _ _ hs.compl)),
     integral_indicator (𝒢.le _ _ hs), integral_indicator (𝒢.le _ _ hs.compl),

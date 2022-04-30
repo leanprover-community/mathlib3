@@ -344,6 +344,7 @@ def forget_monoidal : monoidal_functor (Action V G) V :=
 
 -- TODO braiding and symmetry
 
+section
 variables [preadditive V] [monoidal_preadditive V]
 
 local attribute [simp] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
@@ -353,6 +354,7 @@ instance : monoidal_preadditive (Action V G) := {}
 variables {R : Type*} [semiring R] [linear R V] [monoidal_linear R V]
 
 instance : monoidal_linear R (Action V G) := {}
+end
 
 variables (V G)
 noncomputable theory

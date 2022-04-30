@@ -126,13 +126,7 @@ begin
   rw [distinct_constants_theory_eq_Union, set.union_Union, is_satisfiable_directed_union_iff],
   { exact λ t, is_satisfiable_union_distinct_constants_theory_of_card_le T _ M ((lift_le_omega.2
       (le_of_lt (finset_card_lt_omega _))).trans (omega_le_lift.2 (omega_le_mk M))), },
-  { refine monotone.directed_le (λ t1 t2 tt, _),
-    rw [finset.le_iff_subset, ← finset.coe_subset,
-      ← set.image_subset_image_iff subtype.coe_injective] at tt,
-    simp only [finset.coe_map, function.embedding.coe_subtype, set.le_eq_subset,
-      set.union_subset_iff, set.subset_union_left, true_and],
-    exact set.subset_union_of_subset_right
-      (set.image_subset _ (set.inter_subset_inter_left _ (set.prod_mono tt tt))) _ }
+  { exact (monotone_id.union monotone_distinct_constants_theory).directed_le }
 end
 
 lemma exists_large_model_of_infinite_model (T : L.Theory) (κ : cardinal.{w})

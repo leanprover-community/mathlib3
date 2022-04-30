@@ -646,9 +646,13 @@ variable {L}
 
 open set
 
+lemma monotone_distinct_constants_theory :
+  monotone (L.distinct_constants_theory : set α → L[[α]].Theory) :=
+λ s t st, (image_subset _ (inter_subset_inter_left _ (prod_mono st st)))
+
 lemma directed_distinct_constants_theory :
   directed (⊆) (L.distinct_constants_theory : set α → L[[α]].Theory) :=
-monotone.directed_le (λ s t st, (image_subset _ (inter_subset_inter_left _ (prod_mono st st))))
+monotone_distinct_constants_theory.directed_le
 
 lemma distinct_constants_theory_eq_Union (s : set α) :
   L.distinct_constants_theory s = ⋃ (t : finset s), L.distinct_constants_theory

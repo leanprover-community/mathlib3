@@ -527,7 +527,7 @@ inductive inv_ty (l r : Type u) : bool → Type u
 | right₂ : r → inv_ty tt → inv_ty tt
 
 instance (l r : Type u) [is_empty l] [is_empty r] : is_empty (inv_ty l r tt) :=
-⟨λ h, by { cases h with _ _ _ _ a _ a _, all_goals { exact is_empty_elim a } }⟩
+⟨λ h, by { cases h with _ _ _ _ a _ a _; exact is_empty_elim a }⟩
 
 instance unique_inv_ty (l r : Type u) [is_empty l] [is_empty r] : unique (inv_ty l r ff) :=
 { default := inv_ty.zero,
@@ -630,6 +630,7 @@ begin
   { exact λ h', not_lt.2 h'.2 h₂ }
 end
 
+/-- `1⁻¹` is a relabelling of `1`. -/
 def inv_one : relabelling (1 : pgame)⁻¹ 1 :=
 by { rw inv_pos zero_lt_one, exact inv'_one }
 

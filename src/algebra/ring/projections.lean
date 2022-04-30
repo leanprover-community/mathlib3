@@ -36,8 +36,7 @@ variables {S : Type*} [semigroup S]
 lemma mul_of_commute {P Q : S} (h : commute P Q) (h₁ : is_projection P) (h₂ : is_projection Q) :
   is_projection (P * Q)  :=
 begin
-  rw is_projection at h₁,
-  rw is_projection at h₂,
+  rw is_projection at h₁ h₂,
   rw [commute, semiconj_by] at h,
   rw [is_projection, mul_assoc, ← mul_assoc Q, ←h, mul_assoc P, h₂, ← mul_assoc, h₁],
 end

@@ -66,7 +66,7 @@ variables [fintype n] [decidable_eq n]
 
 @[simp] lemma matrix.mul_vec_std_basis (M : matrix m n R) (i j) :
   M.mul_vec (std_basis R (λ _, R) j 1) i = M i j :=
-(congr_fun (matrix.mul_vec_single _ _ _) i).trans $ mul_one
+(congr_fun (matrix.mul_vec_single _ _ (1 : R)) i).trans $ mul_one _
 
 /-- Linear maps `(n → R) →ₗ[R] (m → R)` are linearly equivalent to `matrix m n R`. -/
 def linear_map.to_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n R :=
@@ -126,7 +126,7 @@ by { ext, rw [matrix.one_apply, linear_map.to_matrix'_apply, id_apply] }
 
 @[simp] lemma matrix.to_lin'_mul [fintype m] [decidable_eq m] (M : matrix l m R)
   (N : matrix m n R) : matrix.to_lin' (M ⬝ N) = (matrix.to_lin' M).comp (matrix.to_lin' N) :=
-by { ext, simp }
+by { ext i : 2, exact (mul_vec_mul_vec _ _ _).symm }
 
 /-- Shortcut lemma for `matrix.to_lin'_mul` and `linear_map.comp_apply` -/
 lemma matrix.to_lin'_mul_apply [fintype m] [decidable_eq m] (M : matrix l m R)
@@ -210,7 +210,7 @@ by { ext, rw [matrix.one_apply, linear_map.to_matrix_alg_equiv'_apply, id_apply]
 @[simp] lemma matrix.to_lin_alg_equiv'_mul (M N : matrix n n R) :
   matrix.to_lin_alg_equiv' (M ⬝ N) =
     (matrix.to_lin_alg_equiv' M).comp (matrix.to_lin_alg_equiv' N) :=
-by { ext, simp }
+by { ext : 2, exact (mul_vec_mul_vec _ _ _).symm }
 
 lemma linear_map.to_matrix_alg_equiv'_comp (f g : (n → R) →ₗ[R] (n → R)) :
   (f.comp g).to_matrix_alg_equiv' = f.to_matrix_alg_equiv' ⬝ g.to_matrix_alg_equiv' :=

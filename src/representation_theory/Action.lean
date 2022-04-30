@@ -318,6 +318,42 @@ monoidal.transport (Action.functor_category_equivalence _ _).symm
 
 @[simp] lemma tensor_hom {W X Y Z : Action V G} (f : W ⟶ X) (g : Y ⟶ Z) :
   (f ⊗ g).hom = f.hom ⊗ g.hom := rfl
+@[simp] lemma associator_hom_hom {X Y Z : Action V G} :
+  hom.hom (α_ X Y Z).hom = (α_ X.V Y.V Z.V).hom :=
+begin
+  dsimp [monoidal.transport_associator],
+  simp,
+end
+@[simp] lemma associator_inv_hom {X Y Z : Action V G} :
+  hom.hom (α_ X Y Z).inv = (α_ X.V Y.V Z.V).inv :=
+begin
+  dsimp [monoidal.transport_associator],
+  simp,
+end
+@[simp] lemma left_unitor_hom_hom {X : Action V G} :
+  hom.hom (λ_ X).hom = (λ_ X.V).hom :=
+begin
+  dsimp [monoidal.transport_left_unitor],
+  simp,
+end
+@[simp] lemma left_unitor_inv_hom {X : Action V G} :
+  hom.hom (λ_ X).inv = (λ_ X.V).inv :=
+begin
+  dsimp [monoidal.transport_left_unitor],
+  simp,
+end
+@[simp] lemma right_unitor_hom_hom {X : Action V G} :
+  hom.hom (ρ_ X).hom = (ρ_ X.V).hom :=
+begin
+  dsimp [monoidal.transport_right_unitor],
+  simp,
+end
+@[simp] lemma right_unitor_inv_hom {X : Action V G} :
+  hom.hom (ρ_ X).inv = (ρ_ X.V).inv :=
+begin
+  dsimp [monoidal.transport_right_unitor],
+  simp,
+end
 
 /-- When `V` is monoidal the forgetful functor `Action V G` to `V` is monoidal. -/
 @[simps]

@@ -111,9 +111,9 @@ lift_le.1 (trans term.encoding.card_le_card_list (lift_le.2 (mk_list_le_max _)))
 
 theorem card_sigma : # (Σ n, (L.term (α ⊕ fin n))) = max ω (# (α ⊕ Σ i, L.functions i)) :=
 begin
-  rw mk_sigma,
   refine le_antisymm _ _,
-  { refine (sum_le_sup_lift _).trans _,
+  { rw [mk_sigma],
+    refine (sum_le_sup_lift _).trans _,
     rw [mk_nat, lift_omega, mul_eq_max_of_omega_le_left le_rfl, max_le_iff, cardinal.sup_le_iff],
     { refine ⟨le_max_left _ _, λ i, card_le.trans _⟩,
       rw max_le_iff,
@@ -127,7 +127,7 @@ begin
       refine trans _ (le_sup _ 1),
       rw [one_le_iff_ne_zero, mk_ne_zero_iff],
       exact ⟨var (sum.inr 0)⟩ } },
-  { rw [max_le_iff, ← mk_sigma, ← infinite_iff],
+  { rw [max_le_iff, ← infinite_iff],
     refine ⟨infinite.of_injective (λ i, ⟨i + 1, var (sum.inr i)⟩) (λ i j ij, _), _⟩,
     { cases ij,
       refl },
@@ -173,12 +173,12 @@ namespace bounded_formula
 /-- Encodes a bounded formula as a list of symbols. -/
 def list_encode : ∀ {n : ℕ}, L.bounded_formula α n →
   list ((Σ k, L.term (α ⊕ fin k)) ⊕ (Σ n, L.relations n) ⊕ ℕ)
-| n falsum := [sum.inr (sum.inr (n + 3))]
-| n (equal t₁ t₂) := [sum.inr (sum.inr 0), sum.inl ⟨_, t₁⟩, sum.inl ⟨_, t₂⟩]
+| n falsum := [sum.inr (sum.inr (n + 2))]
+| n (equal t₁ t₂) := [sum.inl ⟨_, t₁⟩, sum.inl ⟨_, t₂⟩]
 | n (rel R ts) := [sum.inr (sum.inl ⟨_, R⟩), sum.inr (sum.inr n)] ++
   ((list.fin_range _).map (λ i, sum.inl ⟨n, (ts i)⟩))
-| n (imp φ₁ φ₂) := (sum.inr (sum.inr 1)) :: φ₁.list_encode ++ φ₂.list_encode
-| n (all φ) := (sum.inr (sum.inr 2)) :: φ.list_encode
+| n (imp φ₁ φ₂) := (sum.inr (sum.inr 0)) :: φ₁.list_encode ++ φ₂.list_encode
+| n (all φ) := (sum.inr (sum.inr 1)) :: φ.list_encode
 
 /-- Applies the `forall` quantifier to an element of `(Σ n, L.bounded_formula α n)`,
 or returns `default` if not possible. -/
@@ -198,8 +198,8 @@ def sigma_imp :
     (Σ n, L.bounded_formula α n) ×
     { l' : list ((Σ k, L.term (α ⊕ fin k)) ⊕ (Σ n, L.relations n) ⊕ ℕ)
     // l'.sizeof ≤ max 1 l.sizeof }
-| ((sum.inr (sum.inr (n + 3))) :: l) := ⟨⟨n, falsum⟩, l, le_max_of_le_right le_add_self⟩
-| ((sum.inr (sum.inr 0)) :: (sum.inl ⟨n₁, t₁⟩) :: sum.inl ⟨n₂, t₂⟩ :: l) :=
+| ((sum.inr (sum.inr (n + 2))) :: l) := ⟨⟨n, falsum⟩, l, le_max_of_le_right le_add_self⟩
+| ((sum.inl ⟨n₁, t₁⟩) :: sum.inl ⟨n₂, t₂⟩ :: l) :=
     ⟨if h : n₁ = n₂ then ⟨n₁, equal t₁ (eq.mp (by rw h) t₂)⟩ else default, l, begin
       simp only [list.sizeof, ← add_assoc],
       exact le_max_of_le_right le_add_self,
@@ -211,9 +211,9 @@ def sigma_imp :
       else default
     else default,
     l.drop n, le_max_of_le_right (le_add_left (le_add_left (list.drop_sizeof_le _ _)))⟩
-| ((sum.inr (sum.inr 1)) :: l) :=
+| ((sum.inr (sum.inr 0)) :: l) :=
   have (↑((list_decode l).2) : list ((Σ k, L.term (α ⊕ fin k)) ⊕ (Σ n, L.relations n) ⊕ ℕ)).sizeof
-    < 1 + (1 + (1 + 1)) + l.sizeof, from begin
+    < 1 + (1 + 1) + l.sizeof, from begin
       refine lt_of_le_of_lt (list_decode l).2.2 (max_lt _ (nat.lt_add_of_pos_left dec_trivial)),
       rw [add_assoc, add_comm, nat.lt_succ_iff, add_assoc],
       exact le_self_add,
@@ -222,7 +222,7 @@ def sigma_imp :
     (list_decode (list_decode l).2).2, le_max_of_le_right (trans (list_decode _).2.2 (max_le
       (le_add_right le_self_add) (trans (list_decode _).2.2
       (max_le (le_add_right le_self_add) le_add_self))))⟩
-| ((sum.inr (sum.inr 2)) :: l) := ⟨sigma_all (list_decode l).1, (list_decode l).2,
+| ((sum.inr (sum.inr 1)) :: l) := ⟨sigma_all (list_decode l).1, (list_decode l).2,
   (list_decode l).2.2.trans (max_le_max le_rfl le_add_self)⟩
 | _ := ⟨default, [], le_max_left _ _⟩
 
@@ -239,7 +239,7 @@ begin
     induction φ with _ _ _ _ _ _ _ ts _ _ _ ih1 ih2 _ _ ih; intro l,
     { rw [list_encode, singleton_append, list_decode],
       simp only [eq_self_iff_true, heq_iff_eq, and_self], },
-    { rw [list_encode, cons_append, cons_append, cons_append, list_decode, dif_pos],
+    { rw [list_encode, cons_append, cons_append, list_decode, dif_pos],
       { simp only [eq_mp_eq_cast, cast_eq, eq_self_iff_true, heq_iff_eq, and_self, nil_append], },
       { simp only [eq_self_iff_true, heq_iff_eq, and_self], } },
     { rw [list_encode, cons_append, cons_append, singleton_append, cons_append, list_decode],

@@ -390,11 +390,7 @@ end submartingale
 
 section piecewise_const
 
-variables {i j n : ℕ} {s : set α} {x : α} [decidable_pred (λ k, k ∈ s)]
-
-lemma piecewise_const_eq_iff :
-  s.piecewise (λ _, i) (λ _, j) x = n ↔ (x ∈ s ∧ i = n) ∨ (x ∉ s ∧ j = n) :=
-by { rw [set.piecewise], dsimp only, split_ifs; simp [h], }
+variables {i j n : ℕ} {s : set α} {x : α} [decidable_pred (∈ s)]
 
 lemma piecewise_const_le_max : s.piecewise (λ _, i) (λ _, j) x ≤ max i j :=
 by { by_cases hx : x ∈ s; simp [hx], }
@@ -416,7 +412,7 @@ begin
   by_cases hjn : j = n,
   { have hs_n : measurable_set[𝒢 n] s, by { convert 𝒢.mono hij _ hs, exact hjn.symm, },
     exact measurable_piecewise_const hs_n (measurable_set_singleton n), },
-  simp [piecewise_const_eq_iff, hin, hjn],
+  simp [set.piecewise, ite_eq_iff, hin, hjn],
 end
 
 lemma stopped_value_piecewise_const {f : ℕ → α → ℝ} :

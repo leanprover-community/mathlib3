@@ -95,8 +95,8 @@ induction_on_irreducible a
   (λ u hu _, ⟨0, λ _ h, h.elim, hu.unit, one_mul _⟩)
   (λ a i ha0 hi ih _,
     let ⟨s, hs⟩ := ih ha0 in
-    ⟨i ::ₘ s, λ b H, (multiset.mem_cons.1 H).elim (λ h, h.substr hi) (hs.1 b),
-      by { rw s.prod_cons _, exact hs.2.mul_left i }⟩)
+    ⟨i ::ₘ s, λ b H, (multiset.mem_cons.1 H).elim (λ h, h.symm ▸ hi) (hs.1 b),
+      by { rw s.prod_cons i, exact hs.2.mul_left i }⟩)
 
 lemma not_unit_iff_exists_factors_eq (a : α) (hn0 : a ≠ 0) :
   ¬ is_unit a ↔ ∃ f : multiset α, (∀ b ∈ f, irreducible b) ∧ f.prod = a ∧ f ≠ ∅ :=
@@ -105,12 +105,12 @@ lemma not_unit_iff_exists_factors_eq (a : α) (hn0 : a ≠ 0) :
   (λ u hu _ h, (h hu).elim)
   (λ a i ha0 hi ih _ hnu, (em $ is_unit a).elim
     (λ h, ⟨{i*a}, λ b hb, by rwa [multiset.mem_singleton.1 hb, irreducible_mul_is_unit h], by simp⟩)
-    (λ h, let ⟨s, hs⟩ := ih ha0 h in ⟨i ::ₘ s,
-      λ b H, (multiset.mem_cons.1 H).elim (λ h, h.substr hi) (hs.1 b),
-      hs.2.1 ▸ s.prod_cons _, multiset.cons_ne_zero⟩))
+    (λ h, let ⟨s, hs⟩ := ih ha0 h in
+      ⟨i ::ₘ s, λ b H, (multiset.mem_cons.1 H).elim (λ h, h.symm ▸ hi) (hs.1 b),
+        hs.2.1 ▸ s.prod_cons i, multiset.cons_ne_zero⟩))
   hn0,
-λ ⟨f, hi, he, hne⟩, let ⟨b, h⟩ := multiset.exists_mem_of_ne_zero hne in
-  not_is_unit_of_not_is_unit_dvd (hi b h).not_unit $ he.subst $ multiset.dvd_prod h⟩
+ λ ⟨f, hi, he, hne⟩, let ⟨b, h⟩ := multiset.exists_mem_of_ne_zero hne in
+  not_is_unit_of_not_is_unit_dvd (hi b h).not_unit $ he ▸ multiset.dvd_prod h⟩
 
 end wf_dvd_monoid
 

@@ -98,6 +98,7 @@ namespace basis
 universes u v w
 
 open module module.dual submodule linear_map cardinal function
+open_locale big_operators
 
 variables {R M K V ι : Type*}
 
@@ -184,6 +185,20 @@ begin
 end
 
 end comm_semiring
+
+section
+
+variables [comm_semiring R] [add_comm_monoid M] [module R M] [fintype ι]
+variables (b : basis ι R M)
+
+@[simp] lemma sum_dual_apply_smul_coord (f : module.dual R M) : ∑ x, f (b x) • b.coord x = f :=
+begin
+  ext m,
+  simp_rw [linear_map.sum_apply, linear_map.smul_apply, smul_eq_mul, mul_comm (f _), ←smul_eq_mul,
+    ←f.map_smul, ←f.map_sum, basis.coord_apply, basis.sum_repr],
+end
+
+end
 
 section comm_ring
 

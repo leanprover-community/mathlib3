@@ -56,7 +56,7 @@ instance inhabited_multiset : inhabited (multiset α)  := ⟨0⟩
 @[simp] theorem coe_nil_eq_zero : (@nil α : multiset α) = 0 := rfl
 @[simp] theorem empty_eq_zero : (∅ : multiset α) = 0 := rfl
 
-theorem coe_eq_zero (l : list α) : (l : multiset α) = 0 ↔ l = [] :=
+@[simp] theorem coe_eq_zero (l : list α) : (l : multiset α) = 0 ↔ l = [] :=
 iff.trans coe_eq_coe perm_nil
 
 /-! ### `multiset.cons` -/
@@ -492,6 +492,9 @@ quot.induction_on s $ λ l, rfl
 
 @[simp] theorem card_singleton (a : α) : card ({a} : multiset α) = 1 :=
 by simp only [singleton_eq_cons, card_zero, eq_self_iff_true, zero_add, card_cons]
+
+lemma card_pair (a b : α) : ({a, b} : multiset α).card = 2 :=
+by rw [insert_eq_cons, card_cons, card_singleton]
 
 theorem card_eq_one {s : multiset α} : card s = 1 ↔ ∃ a, s = {a} :=
 ⟨quot.induction_on s $ λ l h,

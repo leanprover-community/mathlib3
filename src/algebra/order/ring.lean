@@ -101,11 +101,13 @@ instance [h : non_unital_non_assoc_semiring α] : non_unital_non_assoc_semiring 
 instance [h : non_unital_semiring α] : non_unital_semiring (order_dual α) := h
 instance [h : non_assoc_semiring α] : non_assoc_semiring (order_dual α) := h
 instance [h : semiring α] : semiring (order_dual α) := h
+instance [h : non_unital_comm_semiring α] : non_unital_comm_semiring (order_dual α) := h
 instance [h : comm_semiring α] : comm_semiring (order_dual α) := h
 instance [h : non_unital_non_assoc_ring α] : non_unital_non_assoc_ring (order_dual α) := h
 instance [h : non_unital_ring α] : non_unital_ring (order_dual α) := h
 instance [h : non_assoc_ring α] : non_assoc_ring (order_dual α) := h
 instance [h : ring α] : ring (order_dual α) := h
+instance [h : non_unital_comm_ring α] : non_unital_comm_ring (order_dual α) := h
 instance [h : comm_ring α] : comm_ring (order_dual α) := h
 
 end order_dual
@@ -176,6 +178,12 @@ ordered_semiring.mul_lt_mul_of_pos_left a b c h₁ h₂
 
 lemma mul_lt_mul_of_pos_right (h₁ : a < b) (h₂ : 0 < c) : a * c < b * c :=
 ordered_semiring.mul_lt_mul_of_pos_right a b c h₁ h₂
+
+lemma mul_lt_of_lt_one_left (hb : 0 < b) (ha : a < 1) : a * b < b :=
+(mul_lt_mul_of_pos_right ha hb).trans_le (one_mul _).le
+
+lemma mul_lt_of_lt_one_right (ha : 0 < a) (hb : b < 1) : a * b < a :=
+(mul_lt_mul_of_pos_left hb ha).trans_le (mul_one _).le
 
 -- See Note [decidable namespace]
 protected lemma decidable.mul_le_mul_of_nonneg_left [@decidable_rel α (≤)]

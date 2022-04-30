@@ -330,6 +330,9 @@ lemma pow_ne_zero_iff [monoid_with_zero R] [no_zero_divisors R] {a : R} {n : ℕ
   {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
+theorem sq_eq_zero_iff [monoid_with_zero R] [no_zero_divisors R] {a : R} : a ^ 2 = 0 ↔ a = 0 :=
+pow_eq_zero_iff two_pos
+
 lemma pow_dvd_pow_iff [cancel_comm_monoid_with_zero R]
   {x : R} {n m : ℕ} (h0 : x ≠ 0) (h1 : ¬ is_unit x) :
   x ^ n ∣ x ^ m ↔ n ≤ m :=
@@ -452,7 +455,8 @@ lemma of_mul_zpow [div_inv_monoid G] (x : G) (n : ℤ) :
   additive.of_mul (x ^ n) = n • additive.of_mul x :=
 rfl
 
-@[simp] lemma semiconj_by.zpow_right [group G] {a x y : G} (h : semiconj_by a x y) :
+@[simp, to_additive]
+lemma semiconj_by.zpow_right [group G] {a x y : G} (h : semiconj_by a x y) :
   ∀ m : ℤ, semiconj_by a (x^m) (y^m)
 | (n : ℕ) := by simp [zpow_coe_nat, h.pow_right n]
 | -[1+n] := by simp [(h.pow_right n.succ).inv_right]
@@ -461,18 +465,19 @@ namespace commute
 
 variables [group G] {a b : G}
 
-@[simp] lemma zpow_right (h : commute a b) (m : ℤ) : commute a (b^m) :=
-h.zpow_right m
+@[simp, to_additive] lemma zpow_right (h : commute a b) (m : ℤ) : commute a (b^m) := h.zpow_right m
 
-@[simp] lemma zpow_left (h : commute a b) (m : ℤ) : commute (a^m) b :=
+@[simp, to_additive] lemma zpow_left (h : commute a b) (m : ℤ) : commute (a^m) b :=
 (h.symm.zpow_right m).symm
 
+@[to_additive]
 lemma zpow_zpow (h : commute a b) (m n : ℤ) : commute (a^m) (b^n) := (h.zpow_left m).zpow_right n
 
 variables (a) (m n : ℤ)
 
-@[simp] theorem self_zpow : commute a (a ^ n) := (commute.refl a).zpow_right n
-@[simp] theorem zpow_self : commute (a ^ n) a := (commute.refl a).zpow_left n
-@[simp] theorem zpow_zpow_self : commute (a ^ m) (a ^ n) := (commute.refl a).zpow_zpow m n
+@[simp, to_additive] lemma self_zpow : commute a (a ^ n) := (commute.refl a).zpow_right n
+@[simp, to_additive] lemma zpow_self : commute (a ^ n) a := (commute.refl a).zpow_left n
+@[simp, to_additive] lemma zpow_zpow_self : commute (a ^ m) (a ^ n) :=
+(commute.refl a).zpow_zpow m n
 
 end commute

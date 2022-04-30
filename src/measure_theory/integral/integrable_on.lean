@@ -38,8 +38,8 @@ def strongly_measurable_at_filter (f : α → β) (l : filter α) (μ : measure 
 ⟨∅, mem_bot, by simp⟩
 
 protected lemma strongly_measurable_at_filter.eventually (h : strongly_measurable_at_filter f l μ) :
-  ∀ᶠ s in l.lift' powerset, ae_strongly_measurable f (μ.restrict s) :=
-(eventually_lift'_powerset' $ λ s t, ae_strongly_measurable.mono_set).2 h
+  ∀ᶠ s in l.small_sets, ae_strongly_measurable f (μ.restrict s) :=
+(eventually_small_sets' $ λ s t, ae_strongly_measurable.mono_set).2 h
 
 protected lemma strongly_measurable_at_filter.filter_mono
   (h : strongly_measurable_at_filter f l μ) (h' : l' ≤ l) :
@@ -246,15 +246,15 @@ begin
 end
 
 /-- We say that a function `f` is *integrable at filter* `l` if it is integrable on some
-set `s ∈ l`. Equivalently, it is eventually integrable on `s` in `l.lift' powerset`. -/
+set `s ∈ l`. Equivalently, it is eventually integrable on `s` in `l.small_sets`. -/
 def integrable_at_filter (f : α → E) (l : filter α) (μ : measure α . volume_tac) :=
 ∃ s ∈ l, integrable_on f s μ
 
 variables {l l' : filter α}
 
 protected lemma integrable_at_filter.eventually (h : integrable_at_filter f l μ) :
-  ∀ᶠ s in l.lift' powerset, integrable_on f s μ :=
-by { refine (eventually_lift'_powerset' $ λ s t hst ht, _).2 h, exact ht.mono_set hst }
+  ∀ᶠ s in l.small_sets, integrable_on f s μ :=
+iff.mpr (eventually_small_sets' $ λ s t hst ht, ht.mono_set hst) h
 
 lemma integrable_at_filter.filter_mono (hl : l ≤ l') (hl' : integrable_at_filter f l' μ) :
   integrable_at_filter f l μ :=
@@ -289,9 +289,9 @@ lemma measure.finite_at_filter.integrable_at_filter {l : filter α} [is_measurab
   (hf : l.is_bounded_under (≤) (norm ∘ f)) :
   integrable_at_filter f l μ :=
 begin
-  obtain ⟨C, hC⟩ : ∃ C, ∀ᶠ s in (l.lift' powerset), ∀ x ∈ s, ∥f x∥ ≤ C,
-    from hf.imp (λ C hC, eventually_lift'_powerset.2 ⟨_, hC, λ t, id⟩),
-  rcases (hfm.eventually.and (hμ.eventually.and hC)).exists_measurable_mem_of_lift'
+  obtain ⟨C, hC⟩ : ∃ C, ∀ᶠ s in l.small_sets, ∀ x ∈ s, ∥f x∥ ≤ C,
+    from hf.imp (λ C hC, eventually_small_sets.2 ⟨_, hC, λ t, id⟩),
+  rcases (hfm.eventually.and (hμ.eventually.and hC)).exists_measurable_mem_of_small_sets
     with ⟨s, hsl, hsm, hfm, hμ, hC⟩,
   refine ⟨s, hsl, ⟨hfm, has_finite_integral_restrict_of_bounded hμ _⟩⟩,
   exact C,

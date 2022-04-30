@@ -23,11 +23,17 @@ variables {M : Type*} [has_mul M]
 /--
 An element `p` is said to be idempotent if `p * p = p`
 -/
-def is_idempotent_elem (p : M) : Prop := p*p = p
+def is_idempotent_elem (p : M) : Prop := p * p = p
 
-lemma idempotent_elem_def {p : M} (h : is_idempotent_elem p) : p*p = p := h
+lemma eg [is_idempotent M (*)] (a : M) : is_idempotent_elem a :=
+begin
+  unfold is_idempotent_elem,
+  exact is_idempotent.idempotent a,
+end
 
 namespace is_idempotent_elem
+
+lemma eq {p : M} (h : is_idempotent_elem p) : p * p = p := h
 
 variables {S : Type*} [semigroup S]
 

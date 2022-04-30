@@ -88,9 +88,9 @@ begin
   exact h_mono.range_factorization.tendsto_at_top_at_top (λ b, b.2.imp $ λ a ha, ha.ge)
 end
 
-lemma tendsto_at_bot_is_lub (h_anti : antitone f)
-  (ha : is_lub (set.range f) a) : tendsto f at_bot (𝓝 a) :=
-@tendsto_at_top_is_lub α ιᵒᵈ _ _ _ _ f a h_anti.dual ha
+lemma tendsto_at_bot_is_lub (h_anti : antitone f) (ha : is_lub (set.range f) a) :
+  tendsto f at_bot (𝓝 a) :=
+by convert tendsto_at_top_is_lub h_anti.dual_left ha
 
 end is_lub
 
@@ -100,11 +100,11 @@ variables [preorder α] [Inf_convergence_class α] {f : ι → α} {a : α}
 
 lemma tendsto_at_bot_is_glb (h_mono : monotone f) (ha : is_glb (set.range f) a) :
   tendsto f at_bot (𝓝 a) :=
-tendsto_at_top_is_lub h_mono.dual ha
+by convert tendsto_at_top_is_lub h_mono.dual ha.dual
 
 lemma tendsto_at_top_is_glb (h_anti : antitone f) (ha : is_glb (set.range f) a) :
   tendsto f at_top (𝓝 a) :=
-tendsto_at_top_is_lub h_anti.dual ha
+by convert tendsto_at_bot_is_lub h_anti.dual ha.dual
 
 end is_glb
 
@@ -121,7 +121,7 @@ end
 
 lemma tendsto_at_bot_csupr (h_anti : antitone f) (hbdd : bdd_above $ range f) :
   tendsto f at_bot (𝓝 (⨆ i, f i)) :=
-tendsto_at_top_csupr h_anti.dual hbdd
+by convert tendsto_at_top_csupr h_anti.dual hbdd.dual
 
 end csupr
 
@@ -131,11 +131,11 @@ variables [conditionally_complete_lattice α] [Inf_convergence_class α] {f : ι
 
 lemma tendsto_at_bot_cinfi (h_mono : monotone f) (hbdd : bdd_below $ range f) :
   tendsto f at_bot (𝓝 (⨅ i, f i)) :=
-tendsto_at_top_csupr h_mono.dual hbdd
+by convert tendsto_at_top_csupr h_mono.dual hbdd.dual
 
 lemma tendsto_at_top_cinfi (h_anti : antitone f) (hbdd : bdd_below $ range f) :
   tendsto f at_top (𝓝 (⨅ i, f i)) :=
-tendsto_at_top_csupr h_anti.dual hbdd
+by convert tendsto_at_bot_csupr h_anti.dual hbdd.dual
 
 end cinfi
 

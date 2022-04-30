@@ -21,6 +21,9 @@ But since it is usually used to restrict a function to a certain set `s`,
 we let the indicator function take the value `f x` for some function `f`, instead of `1`.
 If the usual indicator function is needed, just set `f` to be the constant function `λx, 1`.
 
+The indicator function is implemented non-computably, to avoid having to pass around `decidable`
+arguments. This is in contrast with the design of `pi.single` or `set.piecewise`.
+
 ## Tags
 indicator, characteristic
 -/

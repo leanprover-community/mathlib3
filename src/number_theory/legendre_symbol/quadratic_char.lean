@@ -311,8 +311,8 @@ begin
       have hb₀ : b ≠ 0 := by { intro hb, rw [hb, mul_zero] at h, exact h₀ h, },
       have h₁ : s = [b, -b].to_finset := by
       { ext x,
-        simp only [finset.mem_filter, finset.mem_univ, true_and, list.to_finset_cons, list.to_finset_nil,
-                   insert_emptyc_eq, finset.mem_insert, finset.mem_singleton],
+        simp only [finset.mem_filter, finset.mem_univ, true_and, list.to_finset_cons,
+                   list.to_finset_nil, insert_emptyc_eq, finset.mem_insert, finset.mem_singleton],
         rw ← pow_two at h,
         rw hs,
         simp only [set.mem_to_finset, set.mem_set_of_eq],

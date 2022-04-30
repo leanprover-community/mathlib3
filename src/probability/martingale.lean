@@ -253,15 +253,8 @@ lemma submartingale_of_set_integral_le [is_finite_measure μ]
   submartingale f ℱ μ :=
 begin
   refine ⟨hadp, λ i j hij, _, hint⟩,
-  -- need to show `f i ≤ᵐ[μ] μ[f j|_]`. This is equivalent to `f i ≤ᵐ[μ.trim _] μ[f j|_]`
-  -- since both sides are `ℱ i`-measurable
   suffices : f i ≤ᵐ[μ.trim (ℱ.le i)] μ[f j| ℱ.le i],
-  { change ∀ᵐ x ∂μ, _,
-    change ∀ᵐ x ∂μ.trim _, _ at this,
-    rw [ae_iff] at this ⊢,
-    rwa trim_measurable_set_eq at this,
-    exact measurable_set.compl (@measurable_set_le _ _ _ _ _ (ℱ i) _ _ _ _ _ (hadp i).measurable
-      strongly_measurable_condexp.measurable) },
+  { exact ae_le_of_ae_le_trim this },
   suffices : 0 ≤ᵐ[μ.trim (ℱ.le i)] μ[f j| ℱ.le i] - f i,
   { filter_upwards [this] with x hx,
     rwa ← sub_nonneg },

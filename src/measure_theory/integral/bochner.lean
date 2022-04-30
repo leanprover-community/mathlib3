@@ -1478,7 +1478,7 @@ lemma ae_le_trim_iff
   [linear_order γ] [topological_space γ] [order_closed_topology γ] [metrizable_space γ]
   (hm : m ≤ m0) {f g : β → γ} (hf : strongly_measurable[m] f) (hg : strongly_measurable[m] g) :
   f ≤ᵐ[μ.trim hm] g ↔ f ≤ᵐ[μ] g :=
-⟨ae_le_of_ae_eq_trim, ae_le_trim_of_strongly_measurable hm hf hg⟩
+⟨ae_le_of_ae_le_trim, ae_le_trim_of_strongly_measurable hm hf hg⟩
 
 end integral_trim
 

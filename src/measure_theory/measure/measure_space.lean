@@ -3104,7 +3104,7 @@ lemma ae_eq_of_ae_eq_trim {E} {hm : m ≤ m0} {f₁ f₂ : α → E}
   f₁ =ᵐ[μ] f₂ :=
 measure_eq_zero_of_trim_eq_zero hm h12
 
-lemma ae_le_of_ae_eq_trim {E} [has_le E] {hm : m ≤ m0} {f₁ f₂ : α → E}
+lemma ae_le_of_ae_le_trim {E} [has_le E] {hm : m ≤ m0} {f₁ f₂ : α → E}
   (h12 : f₁ ≤ᶠ[@measure.ae α m (μ.trim hm)] f₂) :
   f₁ ≤ᵐ[μ] f₂ :=
 measure_eq_zero_of_trim_eq_zero hm h12

@@ -27,8 +27,8 @@ sentence of `T` is realized in `M`. Also denoted `T ⊨ φ`.
 * `first_order.language.bounded_formula.realize_to_prenex` shows that the prenex normal form of a
 formula has the same realization as the original formula.
 * Several results in this file show that syntactic constructions such as `relabel`, `cast_le`,
-`lift_at`, and the actions of language maps commute with realization of terms, formulas, sentences,
-and theories.
+`lift_at`, `subst`, and the actions of language maps commute with realization of terms, formulas,
+sentences, and theories.
 
 ## Implementation Notes
 * Formulas use a modified version of de Bruijn variables. Specifically, a `L.bounded_formula α n`
@@ -102,6 +102,14 @@ end
 
 lemma realize_con {A : set M} {a : A} {v : α → M} :
   (L.con a).term.realize v = a := rfl
+
+@[simp] lemma realize_subst {t : L.term α} {tf : α → L.term β} {v : β → M} :
+  (t.subst tf).realize v = t.realize (λ a, (tf a).realize v) :=
+begin
+  induction t with _ _ _ _ ih,
+  { refl },
+  { simp [ih] }
+end
 
 end term
 
@@ -323,7 +331,26 @@ begin
   rw [if_pos i.is_lt],
 end
 
-lemma realize_all_lift_at_one_self [nonempty M] {n : ℕ} {φ : L.bounded_formula α n}
+@[simp] lemma realize_subst_aux {tf : α → L.term β} {v : β → M} {xs : fin n → M} :
+  (λ x, term.realize (sum.elim v xs) (sum.elim (term.relabel sum.inl ∘ tf) (var ∘ sum.inr) x)) =
+    sum.elim (λ (a : α), term.realize v (tf a)) xs :=
+funext (λ x, sum.cases_on x (λ x,
+  by simp only [sum.elim_inl, term.realize_relabel, sum.elim_comp_inl]) (λ x, rfl))
+
+lemma realize_subst {φ : L.bounded_formula α n} {tf : α → L.term β} {v : β → M} {xs : fin n → M} :
+  (φ.subst tf).realize v xs ↔ φ.realize (λ a, (tf a).realize v) xs :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih,
+  { refl },
+  { simp only [subst, bounded_formula.realize, realize_subst, realize_subst_aux] },
+  { simp only [subst, bounded_formula.realize, realize_subst, realize_subst_aux] },
+  { simp only [subst, realize_imp, ih1, ih2] },
+  { simp only [ih, subst, realize_all] }
+end
+
+variables [nonempty M]
+
+lemma realize_all_lift_at_one_self {n : ℕ} {φ : L.bounded_formula α n}
   {v : α → M} {xs : fin n → M} :
   (φ.lift_at 1 n).all.realize v xs ↔ φ.realize v xs :=
 begin
@@ -335,8 +362,6 @@ begin
   { refine (congr rfl (funext (λ i, _))).mp h,
     simp }
 end
-
-variables [nonempty M]
 
 lemma realize_to_prenex_imp_right {φ ψ : L.bounded_formula α n}
   (hφ : is_qf φ) (hψ : is_prenex ψ) {v : α → M} {xs : fin n → M} :

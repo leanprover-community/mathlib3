@@ -401,14 +401,16 @@ lemma is_stopping_time_piecewise_const (hij : i ≤ j) (hs : measurable_set[𝒢
   is_stopping_time 𝒢 (s.piecewise (λ _, i) (λ _, j)) :=
 begin
   refine is_stopping_time_of_measurable_set_eq (λ n, _),
-  by_cases hij' : i = j,
-  { simp [hij'], },
-  by_cases hin : i = n,
-  { have hs_n : measurable_set[𝒢 n] s, by { convert hs, exact hin.symm, },
-    exact (measurable_piecewise_const hs_n) (measurable_set_singleton n), },
-  by_cases hjn : j = n,
-  { have hs_n : measurable_set[𝒢 n] s, by { convert 𝒢.mono hij _ hs, exact hjn.symm, },
-    exact measurable_piecewise_const hs_n (measurable_set_singleton n), },
+  obtain rfl | hij' := decidable.eq_or_ne i j,
+  { simp },
+  obtain rfl | hin := decidable.eq_or_ne i n,
+  { refine measurable.piecewise hs _ _ (measurable_set_singleton i),
+    apply measurable_const,
+    apply measurable_const, },
+  obtain rfl | hjn := decidable.eq_or_ne j n,
+  { refine measurable.piecewise (𝒢.mono hij _ hs) _ _ (measurable_set_singleton j),
+    apply measurable_const,
+    apply measurable_const, },
   simp [set.piecewise, ite_eq_iff, hin, hjn],
 end
 

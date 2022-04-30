@@ -173,7 +173,7 @@ lemma encodable.countable [h : encodable L.symbols] :
 by simp [card_eq_card_functions_add_card_relations]
 
 instance countable_empty : language.empty.countable :=
-⟨by { rw empty_card, apply zero_le }⟩
+⟨by simp⟩
 
 @[priority 100] instance countable.countable_functions [L.countable] :
   L.countable_functions :=

@@ -31,7 +31,7 @@ not hard but quite a pain to go about as there are many cases to consider.
 * https://en.wikipedia.org/wiki/Quasiconvex_function
 -/
 
-open function set
+open function order_dual set
 
 variables {𝕜 E F β : Type*}
 

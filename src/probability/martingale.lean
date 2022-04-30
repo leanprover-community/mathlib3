@@ -390,48 +390,11 @@ end submartingale
 
 section piecewise_const
 
-/-- TODO: move all of this. -/
-
 variables {i j n : ℕ} {s : set α} {x : α} [decidable_pred (λ k, k ∈ s)]
 
 lemma piecewise_const_eq_iff :
   s.piecewise (λ _, i) (λ _, j) x = n ↔ (x ∈ s ∧ i = n) ∨ (x ∉ s ∧ j = n) :=
-begin
-  rw [set.piecewise],
-  dsimp only,
-  split_ifs; simp [h],
-end
-
-@[simp] lemma piecewise_const_of_eq : s.piecewise (λ _, i) (λ _, i) x = i :=
-by simp [piecewise_const_eq_iff]
-
-@[simp] lemma piecewise_const_of_mem (hx : x ∈ s) :
-  s.piecewise (λ _, i) (λ _, j) x = i :=
-by simp [piecewise_const_eq_iff, hx]
-
-@[simp] lemma piecewise_const_of_nmem (hx : x ∉ s) :
-  s.piecewise (λ _, i) (λ _, j) x = j :=
-by simp [piecewise_const_eq_iff, hx]
-
-lemma piecewise_const_eq_left_iff (hij : i ≠ j) :
-  s.piecewise (λ _, i) (λ _, j) x = i ↔ x ∈ s :=
-begin
-  simp only [piecewise_const_eq_iff, eq_self_iff_true, and_true, or_iff_left_iff_imp,
-    and_imp],
-  exact λ hx hij_eq, absurd hij_eq.symm hij,
-end
-
-lemma piecewise_const_eq_right_iff (hij : i ≠ j) :
-  s.piecewise (λ _, i) (λ _, j) x = j ↔ x ∈ sᶜ :=
-begin
-  simp only [piecewise_const_eq_iff, eq_self_iff_true, and_true, set.mem_compl_eq,
-    or_iff_right_iff_imp, and_imp],
-  exact λ hx hij_eq, absurd hij_eq hij,
-end
-
-lemma piecewise_const_compl :
-  sᶜ.piecewise (λ _, j) (λ _, i) = s.piecewise (λ _, i) (λ _, j) :=
-by { ext1 x, by_cases hx : x ∈ s; simp [hx], }
+by { rw [set.piecewise], dsimp only, split_ifs; simp [h], }
 
 lemma piecewise_const_le_max : s.piecewise (λ _, i) (λ _, j) x ≤ max i j :=
 by { by_cases hx : x ∈ s; simp [hx], }

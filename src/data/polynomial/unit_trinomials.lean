@@ -108,6 +108,13 @@ begin
   rwa trinomial_trailing_coeff hkm hmn hu.ne_zero,
 end
 
+lemma is_unit_trinomial_of_card_support_eq_three
+  (h1 : p.support.card = 3) (h2 : ∀ k ∈ p.support, is_unit (p.coeff k)) :
+  is_unit_trinomial p :=
+begin
+  sorry,
+end
+
 end semiring
 
 section domain
@@ -152,6 +159,26 @@ end domain
 
 variables {p : ℤ[X]}
 
+lemma int.sq_eq_one {x : ℤ} (h1 : x ^ 2 < 4) (h2 : x ≠ 0) : x ^ 2 = 1 :=
+begin
+  let y := |x|,
+  replace h1 : |x| < 2,
+  { contrapose! h1,
+    rw (show (2 : ℤ) = |(2 : ℤ)|, by norm_num) at h1,
+    rw show (4 : ℤ) = (2 : ℤ) ^ 2, by norm_num,
+    exact sq_le_sq h1 },
+  replace h2 : 0 < |x| := abs_pos.mpr h2,
+  interval_cases |x|,
+  rw [←sq_abs x, h, one_pow],
+end
+
+lemma int.sq_eq_one' {x : ℤ} (h1 : x ^ 2 ≤ 3) (h2 : x ≠ 0) : x ^ 2 = 1 :=
+begin
+  refine int.sq_eq_one _ h2,
+  refine lt_of_le_of_lt h1 _,
+  norm_num,
+end
+
 lemma is_unit_trinomial_iff : is_unit_trinomial p ↔ coeff (p * mirror p)
   ((nat_degree (p * mirror p) + nat_trailing_degree (p * mirror p)) / 2) = 3 :=
 begin
@@ -164,7 +191,13 @@ begin
       sum_insert (mt mem_singleton.mp hmn.ne), sum_singleton,
       trinomial_coeff_k hkm hmn, trinomial_coeff_m hkm hmn, trinomial_coeff_n hkm hmn],
     simp only [*, int.is_unit_sq, bit0, bit1, add_assoc] },
-  { sorry },
+  { have key1 : ∀ k ∈ p.support, (p.coeff k) ^ 2 = 1 :=
+    λ k hk, int.sq_eq_one' ((single_le_sum (λ k hk, sq_nonneg (p.coeff k)) hk).trans hp.le)
+        (mem_support_iff.mp hk),
+    refine is_unit_trinomial_of_card_support_eq_three _
+      (λ k hk, is_unit_of_pow_eq_one (p.coeff k) 2 (key1 k hk) zero_lt_two),
+    rw [sum_def, sum_congr rfl key1, sum_const, nat.smul_one_eq_coe] at hp,
+    exact nat.cast_injective hp },
 end
 
 lemma is_unit_trinomial.irreducible1 (hp : is_unit_trinomial p)

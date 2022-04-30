@@ -1,5 +1,6 @@
 import tactic.ring
 import data.real.basic
+import algebra.parity
 
 example (x y : ℕ) : x + y = y + x := by ring
 example (x y : ℕ) : x + y + y = 2 * y + x := by ring
@@ -53,3 +54,25 @@ end
 
 -- this proof style is not recommended practice
 example (A B : ℕ) (H : B * A = 2) : A * B = 2 := by {ring_nf, exact H}
+
+example (a : ℤ) : odd ((2 * a + 1) ^ 2) :=
+begin
+  use 2 * a ^ 2 + 2 * a,
+  ring_nf,
+end
+
+example {x y : ℝ}
+  (hxy : -y ^ 2 + x ^ 2 = -(5 * y) + 5 * x) :
+  x ^ 2 - y ^ 2 = 5 * x - 5 * y :=
+begin
+  ring_nf at hxy ⊢,
+  exact hxy
+end
+
+example {α} [field α] {x y : α}
+  (h : 0 = (1 - x) ^ 2 * (x * (2 ^ 2 * y ^ 2 + 4 * (1 - x) ^ 2))) :
+  0 = x * ((2 ^ 2 * y ^ 2 + 4 * (1 - x) ^ 2) * (1 - x) ^ 2) :=
+by transitivity; [exact h, ring]
+
+-- `ring_nf` should descend into the subexpressions `x * -a` and `-a * x`:
+example {a x : ℚ} : x * -a = - a * x := by ring_nf

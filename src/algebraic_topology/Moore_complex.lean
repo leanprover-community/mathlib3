@@ -3,10 +3,9 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import algebra.homology.homological_complex
 import algebraic_topology.simplicial_object
 import category_theory.abelian.basic
-import category_theory.subobject
-import algebra.homology.homological_complex
 
 /-!
 ## Moore complex
@@ -41,7 +40,7 @@ namespace algebraic_topology
 variables {C : Type*} [category C] [abelian C]
 local attribute [instance] abelian.has_pullbacks
 
-/-! The definitions in this namespace are all auxilliary definitions for `normalized_Moore_complex`
+/-! The definitions in this namespace are all auxiliary definitions for `normalized_Moore_complex`
 and should usually only be accessed via that. -/
 namespace normalized_Moore_complex
 

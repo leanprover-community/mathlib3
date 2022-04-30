@@ -15,7 +15,7 @@ product `I × J`, viewed as an ideal of `R × S`. In `ideal_prod_eq` we show tha
 -/
 
 universes u v
-variables {R : Type u} {S : Type v} [comm_ring R] [comm_ring S] (I I' : ideal R) (J J' : ideal S)
+variables {R : Type u} {S : Type v} [ring R] [ring S] (I I' : ideal R) (J J' : ideal S)
 
 namespace ideal
 
@@ -48,7 +48,7 @@ begin
     mem_map_iff_of_surjective (ring_hom.snd R S) prod.snd_surjective],
   refine ⟨λ h, ⟨⟨_, ⟨h, rfl⟩⟩, ⟨_, ⟨h, rfl⟩⟩⟩, _⟩,
   rintro ⟨⟨⟨r, s'⟩, ⟨h₁, rfl⟩⟩, ⟨⟨r', s⟩, ⟨h₂, rfl⟩⟩⟩,
-  simpa using I.add_mem (I.mul_mem_right (1, 0) h₁) (I.mul_mem_right (0, 1) h₂)
+  simpa using I.add_mem (I.mul_mem_left (1, 0) h₁) (I.mul_mem_left (0, 1) h₂),
 end
 
 @[simp] lemma map_fst_prod (I : ideal R) (J : ideal S) : map (ring_hom.fst R S) (prod I J) = I :=

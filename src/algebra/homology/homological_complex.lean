@@ -5,6 +5,7 @@ Authors: Johan Commelin, Scott Morrison
 -/
 import algebra.homology.complex_shape
 import category_theory.subobject.limits
+import category_theory.graded_object
 
 /-!
 # Homological complexes.
@@ -34,7 +35,7 @@ Defined in terms of these we have `C.d_from i : C.X i ⟶ C.X_next i` and
 
 universes v u
 
-open category_theory category_theory.limits
+open category_theory category_theory.category category_theory.limits
 
 variables {ι : Type*}
 variables (V : Type u) [category.{v} V] [has_zero_morphisms V]
@@ -71,6 +72,21 @@ begin
     { exact C.d_comp_d' i j k hij hjk },
     { rw [C.shape j k hjk, comp_zero] } },
   { rw [C.shape i j hij, zero_comp] }
+end
+
+lemma ext {C₁ C₂ : homological_complex V c} (h_X : C₁.X = C₂.X)
+  (h_d : ∀ (i j : ι), c.rel i j → C₁.d i j ≫ eq_to_hom (congr_fun h_X j) =
+    eq_to_hom (congr_fun h_X i) ≫ C₂.d i j) : C₁ = C₂ :=
+begin
+  cases C₁,
+  cases C₂,
+  dsimp at h_X,
+  subst h_X,
+  simp only [true_and, eq_self_iff_true, heq_iff_eq],
+  ext i j,
+  by_cases hij : c.rel i j,
+  { simpa only [id_comp, eq_to_hom_refl, comp_id] using h_d i j hij, },
+  { rw [C₁_shape' i j hij, C₂_shape' i j hij], }
 end
 
 end homological_complex
@@ -175,6 +191,12 @@ end
   (f ≫ g).f i = f.f i ≫ g.f i :=
 rfl
 
+@[simp]
+lemma eq_to_hom_f {C₁ C₂ : homological_complex V c} (h : C₁ = C₂) (n : ι) :
+  homological_complex.hom.f (eq_to_hom h) n =
+  eq_to_hom (congr_fun (congr_arg homological_complex.X h) n) :=
+by { subst h, refl, }
+
 -- We'll use this later to show that `homological_complex V c` is preadditive when `V` is.
 lemma hom_f_injective {C₁ C₂ : homological_complex V c} :
   function.injective (λ f : hom C₁ C₂, f.f) :=
@@ -188,24 +210,41 @@ instance : has_zero_morphisms (homological_complex V c) :=
 
 open_locale zero_object
 
-instance [has_zero_object V] : has_zero_object (homological_complex V c) :=
-{ zero :=
-  { X := λ i, 0,
-    d := λ i j, 0 },
-  unique_from := λ C, ⟨⟨0⟩, λ f, by ext⟩,
-  unique_to := λ C, ⟨⟨0⟩, λ f, by ext⟩ }
+/-- The zero complex -/
+noncomputable def zero [has_zero_object V] : homological_complex V c :=
+{ X := λ i, 0, d := λ i j, 0 }
 
-instance [has_zero_object V] : inhabited (homological_complex V c) := ⟨0⟩
+lemma is_zero_zero [has_zero_object V] : is_zero (zero : homological_complex V c) :=
+by { refine ⟨λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩⟩; ext, }
+
+instance [has_zero_object V] : has_zero_object (homological_complex V c) :=
+⟨⟨zero, is_zero_zero⟩⟩
+
+noncomputable
+instance [has_zero_object V] : inhabited (homological_complex V c) := ⟨zero⟩
 
 lemma congr_hom {C D : homological_complex V c} {f g : C ⟶ D} (w : f = g) (i : ι) : f.f i = g.f i :=
 congr_fun (congr_arg hom.f w) i
 
-/--
-Picking out the `i`-th object, as a functor.
--/
-def eval_at (i : ι) : homological_complex V c ⥤ V :=
+section
+variables (V c)
+
+/-- The functor picking out the `i`-th object of a complex. -/
+@[simps] def eval (i : ι) : homological_complex V c ⥤ V :=
 { obj := λ C, C.X i,
-  map := λ C D f, f.f i }
+  map := λ C D f, f.f i, }
+
+/-- The functor forgetting the differential in a complex, obtaining a graded object. -/
+@[simps] def forget : homological_complex V c ⥤ graded_object ι V :=
+{ obj := λ C, C.X,
+  map := λ _ _ f, f.f }
+
+/-- Forgetting the differentials than picking out the `i`-th object is the same as
+just picking out the `i`-th object. -/
+@[simps] def forget_eval (i : ι) : forget V c ⋙ graded_object.eval i ≅ eval V c i :=
+nat_iso.of_components (λ X, iso.refl _) (by tidy)
+
+end
 
 open_locale classical
 noncomputable theory
@@ -401,6 +440,34 @@ end
 namespace hom
 
 variables {C₁ C₂ C₃ : homological_complex V c}
+
+/-- The `i`-th component of an isomorphism of chain complexes. -/
+@[simps]
+def iso_app (f : C₁ ≅ C₂) (i : ι) : C₁.X i ≅ C₂.X i :=
+(eval V c i).map_iso f
+
+/-- Construct an isomorphism of chain complexes from isomorphism of the objects
+which commute with the differentials. -/
+@[simps]
+def iso_of_components (f : Π i, C₁.X i ≅ C₂.X i)
+  (hf : ∀ i j, c.rel i j → (f i).hom ≫ C₂.d i j = C₁.d i j ≫ (f j).hom) :
+  C₁ ≅ C₂ :=
+{ hom := { f := λ i, (f i).hom, comm' := hf },
+  inv :=
+  { f := λ i, (f i).inv,
+    comm' := λ i j hij,
+    calc (f i).inv ≫ C₁.d i j
+        = (f i).inv ≫ (C₁.d i j ≫ (f j).hom) ≫ (f j).inv : by simp
+    ... = (f i).inv ≫ ((f i).hom ≫ C₂.d i j) ≫ (f j).inv : by rw hf i j hij
+    ... =  C₂.d i j ≫ (f j).inv : by simp },
+  hom_inv_id' := by { ext i, exact (f i).hom_inv_id },
+  inv_hom_id' := by { ext i, exact (f i).inv_hom_id } }
+
+@[simp] lemma iso_of_components_app (f : Π i, C₁.X i ≅ C₂.X i)
+  (hf : ∀ i j, c.rel i j → (f i).hom ≫ C₂.d i j = C₁.d i j ≫ (f j).hom) (i : ι) :
+  iso_app (iso_of_components f hf) i = f i :=
+by { ext, simp, }
+
 variables [has_zero_object V]
 open_locale zero_object
 
@@ -436,7 +503,7 @@ begin
   refl,
 end
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma comm_from (f : hom C₁ C₂) (i : ι) :
   f.f i ≫ C₂.d_from i = C₁.d_from i ≫ f.next i :=
 begin
@@ -445,7 +512,7 @@ begin
   { simp [d_from_eq _ w, next_eq _ w] }
 end
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma comm_to (f : hom C₁ C₂) (j : ι) :
   f.prev j ≫ C₂.d_to j = C₁.d_to j ≫ f.f j :=
 begin

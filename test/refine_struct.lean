@@ -57,10 +57,10 @@ begin
     guard_tags _field inv group, admit,
     guard_tags _field div group, admit,
     guard_tags _field div_eq_mul_inv group, admit,
-    guard_tags _field gpow group, admit,
-    guard_tags _field gpow_zero' group, admit,
-    guard_tags _field gpow_succ' group, admit,
-    guard_tags _field gpow_neg' group, admit,
+    guard_tags _field zpow group, admit,
+    guard_tags _field zpow_zero' group, admit,
+    guard_tags _field zpow_succ' group, admit,
+    guard_tags _field zpow_neg' group, admit,
     guard_tags _field mul_left_inv group, admit, },
   trivial
 end
@@ -138,22 +138,22 @@ begin
       -- α : Type
       -- ⊢ α → α
 
-    guard_tags _field gpow group, admit,
-      -- case group, gpow
+    guard_tags _field zpow group, admit,
+      -- case group, zpow
       -- α : Type
       -- ⊢ ℤ → α → α
 
-    guard_tags _field gpow_zero' group, admit,
-      -- case group, gpow_zero'
+    guard_tags _field zpow_zero' group, admit,
+      -- case group, zpow_zero'
       -- α : Type
       -- ⊢ ∀ (a : α), sorry 0 a = 1
 
-    guard_tags _field gpow_succ' group, admit,
+    guard_tags _field zpow_succ' group, admit,
       -- case group, inv
       -- α : Type
       -- ⊢ ∀ (n : ℕ) (a : α), sorry (int.of_nat n.succ) a = a * sorry (int.of_nat n) a
 
-    guard_tags _field gpow_neg' group, admit,
+    guard_tags _field zpow_neg' group, admit,
       -- case group, inv
       -- α : Type
       -- ⊢ ∀ (n : ℕ) (a : α), sorry -[1+ n] a = sorry (sorry ↑(n.succ) a)
@@ -185,10 +185,10 @@ begin
     guard_tags _field inv group, admit,
     guard_tags _field div group, admit,
     guard_tags _field div_eq_mul_inv group, admit,
-    guard_tags _field gpow group, admit,
-    guard_tags _field gpow_zero' group, admit,
-    guard_tags _field gpow_succ' group, admit,
-    guard_tags _field gpow_neg' group, admit,
+    guard_tags _field zpow group, admit,
+    guard_tags _field zpow_zero' group, admit,
+    guard_tags _field zpow_succ' group, admit,
+    guard_tags _field zpow_neg' group, admit,
     guard_tags _field mul_left_inv group, admit,
     guard_tags _field mul_assoc monoid, admit,
     guard_tags _field one monoid, admit,

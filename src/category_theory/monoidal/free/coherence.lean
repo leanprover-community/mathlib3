@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.monoidal.free.basic
+import category_theory.groupoid
 import category_theory.discrete_category
 
 /-!
@@ -194,8 +195,9 @@ begin
     simp only [discrete.functor_map_id, iso.cancel_iso_inv_left, category.assoc],
     dsimp, simp only [category.comp_id] },
   { dsimp,
-    simp only [←(iso.eq_comp_inv _).1 (right_unitor_tensor_inv _ _), iso.hom_inv_id_assoc,
-      right_unitor_conjugation, discrete.functor_map_id, category.assoc],
+    simp only [←(iso.eq_comp_inv _).1 (right_unitor_tensor_inv _ _), right_unitor_conjugation,
+      discrete.functor_map_id, category.assoc,
+      iso.hom_inv_id, iso.hom_inv_id_assoc, iso.inv_hom_id, iso.inv_hom_id_assoc],
     dsimp, simp only [category.comp_id], },
   { dsimp at *,
     rw [id_tensor_comp, category.assoc, f_ih_g ⟦f_g⟧, ←category.assoc, f_ih_f ⟦f_f⟧, category.assoc,

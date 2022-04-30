@@ -2,12 +2,17 @@
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
-
-Instances of `traversable` for types from the core library
 -/
+import control.applicative
 import data.list.forall2
-import data.set.lattice
-import control.traversable.lemmas
+import data.set.functor
+
+/-!
+# Traversable instances
+
+This file provides instances of `traversable` for types from the core library: `option`, `list` and
+`sum`.
+-/
 
 universes u v
 
@@ -55,8 +60,7 @@ variables [applicative F] [applicative G]
 section
 variables [is_lawful_applicative F] [is_lawful_applicative G]
 
-open applicative functor
-open list (cons)
+open applicative functor list
 
 protected lemma id_traverse {α} (xs : list α) :
   list.traverse id.mk xs = xs :=
@@ -107,14 +111,9 @@ variables [is_lawful_applicative F]
 lemma mem_traverse {f : α' → set β'} :
   ∀(l : list α') (n : list β'), n ∈ traverse f l ↔ forall₂ (λb a, b ∈ f a) n l
 | []      []      := by simp
-| (a::as) []      := by simp; exact assume h, match h with end
+| (a::as) []      := by simp
 | []      (b::bs) := by simp
-| (a::as) (b::bs) :=
-  suffices (b :: bs : list β') ∈ traverse f (a :: as) ↔ b ∈ f a ∧ bs ∈ traverse f as,
-    by simp [mem_traverse as bs],
-  iff.intro
-    (assume ⟨_, ⟨b, hb, rfl⟩, _, hl, rfl⟩, ⟨hb, hl⟩)
-    (assume ⟨hb, hl⟩, ⟨_, ⟨b, hb, rfl⟩, _, hl, rfl⟩)
+| (a::as) (b::bs) := by simp [mem_traverse as bs]
 
 end traverse
 

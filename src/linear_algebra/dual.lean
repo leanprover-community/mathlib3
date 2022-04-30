@@ -5,6 +5,7 @@ Authors: Johan Commelin, Fabian Glöckle
 -/
 import linear_algebra.finite_dimensional
 import linear_algebra.projection
+import linear_algebra.sesquilinear_form
 
 /-!
 # Dual vector spaces
@@ -47,13 +48,22 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M]
 @[derive [add_comm_monoid, module R]] def dual := M →ₗ[R] R
 
 instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
-  add_comm_group (dual S N) := by {unfold dual, apply_instance}
+  add_comm_group (dual S N) := linear_map.add_comm_group
+
+instance : add_monoid_hom_class (dual R M) M R :=
+linear_map.add_monoid_hom_class
+
+/-- The canonical pairing of a vector space and its algebraic dual. -/
+def dual_pairing (R M) [comm_semiring R] [add_comm_monoid M] [module R M] :
+  module.dual R M →ₗ[R] M →ₗ[R] R := linear_map.id
+
+@[simp] lemma dual_pairing_apply (v x) : dual_pairing R M v x = v x := rfl
 
 namespace dual
 
-instance : inhabited (dual R M) := by dunfold dual; apply_instance
+instance : inhabited (dual R M) := linear_map.inhabited
 
-instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
+instance : has_coe_to_fun (dual R M) (λ _, M → R) := ⟨linear_map.to_fun⟩
 
 /-- Maps a module M to the dual of the dual of M. See `module.erange_coe` and
 `module.eval_equiv`. -/
@@ -88,6 +98,7 @@ namespace basis
 universes u v w
 
 open module module.dual submodule linear_map cardinal function
+open_locale big_operators
 
 variables {R M K V ι : Type*}
 
@@ -175,6 +186,20 @@ end
 
 end comm_semiring
 
+section
+
+variables [comm_semiring R] [add_comm_monoid M] [module R M] [fintype ι]
+variables (b : basis ι R M)
+
+@[simp] lemma sum_dual_apply_smul_coord (f : module.dual R M) : ∑ x, f (b x) • b.coord x = f :=
+begin
+  ext m,
+  simp_rw [linear_map.sum_apply, linear_map.smul_apply, smul_eq_mul, mul_comm (f _), ←smul_eq_mul,
+    ←f.map_smul, ←f.map_sum, basis.coord_apply, basis.sum_repr],
+end
+
+end
+
 section comm_ring
 
 variables [comm_ring R] [add_comm_group M] [module R M] [decidable_eq ι]
@@ -183,7 +208,8 @@ variables (b : basis ι R M)
 /-- A vector space is linearly equivalent to its dual space. -/
 @[simps]
 def to_dual_equiv [fintype ι] : M ≃ₗ[R] (dual R M) :=
-linear_equiv.of_bijective b.to_dual b.to_dual_ker b.to_dual_range
+linear_equiv.of_bijective b.to_dual
+  (ker_eq_bot.mp b.to_dual_ker) (range_eq_top.mp b.to_dual_range)
 
 /-- Maps a basis for `V` to a basis for the dual space. -/
 def dual_basis [fintype ι] : basis ι R (dual R M) :=
@@ -245,7 +271,8 @@ end
 
 /-- A module with a basis is linearly equivalent to the dual of its dual space. -/
 def eval_equiv  {ι : Type*} [fintype ι] (b : basis ι R M) : M ≃ₗ[R] dual R (dual R M) :=
-linear_equiv.of_bijective (eval R M) b.eval_ker b.eval_range
+linear_equiv.of_bijective (eval R M)
+  (ker_eq_bot.mp b.eval_ker) (range_eq_top.mp b.eval_range)
 
 @[simp] lemma eval_equiv_to_linear_map {ι : Type*} [fintype ι] (b : basis ι R M) :
   (b.eval_equiv).to_linear_map = dual.eval R M := rfl
@@ -263,7 +290,7 @@ theorem dual_dim_eq [field K] [add_comm_group V] [module K V] [fintype ι] (b : 
   cardinal.lift (module.rank K V) = module.rank K (dual K V) :=
 begin
   classical,
-  have := linear_equiv.dim_eq_lift b.to_dual_equiv,
+  have := linear_equiv.lift_dim_eq b.to_dual_equiv,
   simp only [cardinal.lift_umax] at this,
   rw [this, ← cardinal.lift_umax],
   apply cardinal.lift_id,
@@ -286,13 +313,17 @@ theorem dual_dim_eq [finite_dimensional K V] :
 (basis.of_vector_space K V).dual_dim_eq
 
 lemma erange_coe [finite_dimensional K V] : (eval K V).range = ⊤ :=
-by { classical, exact (basis.of_vector_space K V).eval_range }
+begin
+  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
+  exact (basis.of_vector_space K V).eval_range
+end
 
 variables (K V)
 
 /-- A vector space is linearly equivalent to the dual of its dual space. -/
 def eval_equiv [finite_dimensional K V] : V ≃ₗ[K] dual K (dual K V) :=
-linear_equiv.of_bijective (eval K V) eval_ker (erange_coe)
+linear_equiv.of_bijective (eval K V)
+  (ker_eq_bot.mp eval_ker) (range_eq_top.mp erange_coe)
 
 variables {K V}
 
@@ -388,7 +419,7 @@ lemma mem_of_mem_span {H : set ι} {x : M} (hmem : x ∈ submodule.span R (e '' 
   ∀ i : ι, ε i x ≠ 0 → i ∈ H :=
 begin
   intros i hi,
-  rcases (finsupp.mem_span_iff_total _).mp hmem with ⟨l, supp_l, rfl⟩,
+  rcases (finsupp.mem_span_image_iff_total _).mp hmem with ⟨l, supp_l, rfl⟩,
   apply not_imp_comm.mp ((finsupp.mem_supported' _ _).mp supp_l i),
   rwa [← lc_def, h.dual_lc] at hi
 end
@@ -510,14 +541,14 @@ W.dual_restrict_left_inverse.injective
 /-- The quotient by the `dual_annihilator` of a subspace is isomorphic to the
   dual of that subspace. -/
 noncomputable def quot_annihilator_equiv (W : subspace K V) :
-  W.dual_annihilator.quotient ≃ₗ[K] module.dual K W :=
+  (module.dual K V ⧸ W.dual_annihilator) ≃ₗ[K] module.dual K W :=
 (quot_equiv_of_eq _ _ W.dual_restrict_ker_eq_dual_annihilator).symm.trans $
   W.dual_restrict.quot_ker_equiv_of_surjective dual_restrict_surjective
 
 /-- The natural isomorphism forom the dual of a subspace `W` to `W.dual_lift.range`. -/
 noncomputable def dual_equiv_dual (W : subspace K V) :
   module.dual K W ≃ₗ[K] W.dual_lift.range :=
-linear_equiv.of_injective _ $ ker_eq_bot.2 dual_lift_injective
+linear_equiv.of_injective _ dual_lift_injective
 
 lemma dual_equiv_dual_def (W : subspace K V) :
   W.dual_equiv_dual.to_linear_map = W.dual_lift.range_restrict := rfl
@@ -544,15 +575,15 @@ linear_equiv.finrank_eq (basis.of_vector_space K V).to_dual_equiv.symm
 
 /-- The quotient by the dual is isomorphic to its dual annihilator.  -/
 noncomputable def quot_dual_equiv_annihilator (W : subspace K V) :
-  W.dual_lift.range.quotient ≃ₗ[K] W.dual_annihilator :=
+  (module.dual K V ⧸ W.dual_lift.range) ≃ₗ[K] W.dual_annihilator :=
 linear_equiv.quot_equiv_of_quot_equiv $
   linear_equiv.trans W.quot_annihilator_equiv W.dual_equiv_dual
 
 /-- The quotient by a subspace is isomorphic to its dual annihilator. -/
 noncomputable def quot_equiv_annihilator (W : subspace K V) :
-  W.quotient ≃ₗ[K] W.dual_annihilator :=
+  (V ⧸ W) ≃ₗ[K] W.dual_annihilator :=
 begin
-  refine linear_equiv.trans _ W.quot_dual_equiv_annihilator,
+  refine _ ≪≫ₗ W.quot_dual_equiv_annihilator,
   refine linear_equiv.quot_equiv_of_equiv _ (basis.of_vector_space K V).to_dual_equiv,
   exact (basis.of_vector_space K W).to_dual_equiv.trans W.dual_equiv_dual
 end
@@ -695,5 +726,29 @@ begin
 end
 
 end finite_dimensional
+
+section field
+
+variables {K V : Type*}
+variables [field K] [add_comm_group V] [module K V]
+
+lemma dual_pairing_nondegenerate : (dual_pairing K V).nondegenerate :=
+begin
+  refine ⟨separating_left_iff_ker_eq_bot.mpr ker_id, _⟩,
+  intros x,
+  contrapose,
+  rintros hx : x ≠ 0,
+  rw [not_forall],
+  let f : V →ₗ[K] K := classical.some (linear_pmap.mk_span_singleton x 1 hx).to_fun.exists_extend,
+  use [f],
+  refine ne_zero_of_eq_one _,
+  have h : f.comp (K ∙ x).subtype = (linear_pmap.mk_span_singleton x 1 hx).to_fun :=
+    classical.some_spec (linear_pmap.mk_span_singleton x (1 : K) hx).to_fun.exists_extend,
+  rw linear_map.ext_iff at h,
+  convert h ⟨x, submodule.mem_span_singleton_self x⟩,
+  exact (linear_pmap.mk_span_singleton_apply' K hx 1).symm,
+end
+
+end field
 
 end linear_map

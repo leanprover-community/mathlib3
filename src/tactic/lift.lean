@@ -33,12 +33,14 @@ This should not be applied by hand.
 meta def can_lift_attr : user_attribute (list name) :=
 { name := "_can_lift",
   descr := "internal attribute used by the lift tactic",
-  cache_cfg := { mk_cache := λ _,
-    do { ls ← attribute.get_instances `instance,
-        ls.mfilter $ λ l,
-        do { (_,t) ← mk_const l >>= infer_type >>= open_pis,
-         return $ t.is_app_of `can_lift } },
-  dependencies := [`instance] } }
+  parser := failed,
+  cache_cfg :=
+  { mk_cache := λ _,
+      do { ls ← attribute.get_instances `instance,
+          ls.mfilter $ λ l,
+          do { (_,t) ← mk_const l >>= infer_type >>= open_pis,
+          return $ t.is_app_of `can_lift } },
+    dependencies := [`instance] } }
 
 instance : can_lift ℤ ℕ :=
 ⟨coe, λ n, 0 ≤ n, λ n hn, ⟨n.nat_abs, int.nat_abs_of_nonneg hn⟩⟩
@@ -85,17 +87,16 @@ If the proof was not specified, we create assert it as a local constant.
 (The name of this local constant doesn't matter, since `lift` will remove it from the context.)
 -/
 meta def get_lift_prf (h : option pexpr) (old_tp new_tp inst e : expr)
-  (s : simp_lemmas) (to_unfold : list name) : tactic expr :=
-if h_some : h.is_some then
-  (do prf ← i_to_expr (option.get h_some), prf_ty ← infer_type prf,
+  (s : simp_lemmas) (to_unfold : list name) : tactic expr := do
   expected_prf_ty ← mk_app `can_lift.cond [old_tp, new_tp, inst, e],
-  unify prf_ty expected_prf_ty <|>
-    (do expected_prf_ty2 ← s.dsimplify to_unfold expected_prf_ty,
-      pformat!"lift tactic failed. The type of\n  {prf}\nis\n  {prf_ty}\nbut it is expected to be\n  {expected_prf_ty2}" >>= fail),
-  return prf)
-  else (do prf_nm ← get_unused_name,
-    prf ← mk_app `can_lift.cond [old_tp, new_tp, inst, e] >>= assert prf_nm,
-    dsimp_target s to_unfold {}, swap, return prf)
+  expected_prf_ty ← s.dsimplify to_unfold expected_prf_ty,
+  if h_some : h.is_some then
+    decorate_error "lift tactic failed." $ i_to_expr ``((%%(option.get h_some) : %%expected_prf_ty))
+  else do
+    prf_nm ← get_unused_name,
+    prf ← assert prf_nm expected_prf_ty,
+    swap,
+    return prf
 
 /-- Lift the expression `p` to the type `t`, with proof obligation given by `h`.
   The list `n` is used for the two newly generated names, and to specify whether `h` should
@@ -146,9 +147,8 @@ do
   if h_prf_nm : prf_nm.is_some ∧ n.nth 2 ≠ prf_nm then
     get_local (option.get h_prf_nm.1) >>= clear else skip
 
-open lean.parser interactive interactive.types
+setup_tactic_parser
 
-local postfix `?`:9001 := optional
 /-- Parses an optional token "using" followed by a trailing `pexpr`. -/
 meta def using_texpr := (tk "using" *> texpr)?
 

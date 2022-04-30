@@ -10,9 +10,9 @@ import data.polynomial.eval
 # The Pochhammer polynomials
 
 We define and prove some basic relations about
-`pochhammer S n : polynomial S = X * (X+1) * ... * (X + n - 1)`
+`pochhammer S n : S[X] := X * (X + 1) * ... * (X + n - 1)`
 which is also known as the rising factorial. A version of this definition
-that is focused on `nat` can be found in `data.nat.factorial` as `desc_fac`.
+that is focused on `nat` can be found in `data.nat.factorial` as `nat.asc_factorial`.
 
 ## Implementation
 
@@ -23,21 +23,21 @@ we define the polynomial with coefficients in any `[semiring S]`.
 
 There is lots more in this direction:
 * q-factorials, q-binomials, q-Pochhammer.
-* Defining Bernstein polynomials (e.g. as one way to prove Weierstrass' theorem).
 -/
 
 universes u v
 
 open polynomial
+open_locale polynomial
 
-section
+section semiring
 variables (S : Type u) [semiring S]
 
 /--
 `pochhammer S n` is the polynomial `X * (X+1) * ... * (X + n - 1)`,
 with coefficients in the semiring `S`.
 -/
-noncomputable def pochhammer : ℕ → polynomial S
+noncomputable def pochhammer : ℕ → S[X]
 | 0 := 1
 | (n+1) := X * (pochhammer n).comp (X + 1)
 
@@ -61,8 +61,8 @@ end
 @[simp, norm_cast] lemma pochhammer_eval_cast (n k : ℕ) :
   ((pochhammer ℕ n).eval k : S) = (pochhammer S n).eval k :=
 begin
-  rw [←pochhammer_map (algebra_map ℕ S), eval_map, ←(algebra_map ℕ S).eq_nat_cast,
-    eval₂_at_nat_cast, nat.cast_id, ring_hom.eq_nat_cast],
+  rw [←pochhammer_map (algebra_map ℕ S), eval_map, ←eq_nat_cast (algebra_map ℕ S),
+    eval₂_at_nat_cast, nat.cast_id, eq_nat_cast],
 end
 
 lemma pochhammer_eval_zero {n : ℕ} : (pochhammer S n).eval 0 = if n = 0 then 1 else 0 :=
@@ -82,16 +82,34 @@ lemma pochhammer_succ_right (n : ℕ) : pochhammer S (n+1) = pochhammer S n * (X
 begin
   suffices h : pochhammer ℕ (n+1) = pochhammer ℕ n * (X + n),
   { apply_fun polynomial.map (algebra_map ℕ S) at h,
-    simpa only [pochhammer_map, map_mul, map_add, map_X, map_nat_cast] using h, },
+    simpa only [pochhammer_map, polynomial.map_mul, polynomial.map_add,
+                map_X, polynomial.map_nat_cast] using h },
   induction n with n ih,
   { simp, },
-  { conv_lhs {
-    rw [pochhammer_succ_left, ih, mul_comp, ←mul_assoc, ←pochhammer_succ_left, add_comp, X_comp,
-      nat_cast_comp, add_assoc, add_comm (1 : polynomial ℕ)], },
+  { conv_lhs
+  { rw [pochhammer_succ_left, ih, mul_comp, ←mul_assoc, ←pochhammer_succ_left, add_comp, X_comp,
+      nat_cast_comp, add_assoc, add_comm (1 : ℕ[X])], },
     refl, },
 end
 
-lemma polynomial.mul_X_add_nat_cast_comp {p q : polynomial S} {n : ℕ} :
+lemma pochhammer_succ_eval {S : Type*} [semiring S] (n : ℕ) (k : S) :
+  (pochhammer S (n + 1)).eval k = (pochhammer S n).eval k * (k + n) :=
+by rw [pochhammer_succ_right, mul_add, eval_add, eval_mul_X, ← nat.cast_comm, ← C_eq_nat_cast,
+    eval_C_mul, nat.cast_comm, ← mul_add]
+
+lemma pochhammer_succ_comp_X_add_one (n : ℕ) :
+  (pochhammer S (n + 1)).comp (X + 1) =
+    pochhammer S (n + 1) + (n + 1) • (pochhammer S n).comp (X + 1) :=
+begin
+  suffices : (pochhammer ℕ (n + 1)).comp (X + 1) =
+              pochhammer ℕ (n + 1) + (n + 1) * (pochhammer ℕ n).comp (X + 1),
+  { simpa [map_comp] using congr_arg (polynomial.map (nat.cast_ring_hom S)) this },
+  nth_rewrite 1 pochhammer_succ_left,
+  rw [← add_mul, pochhammer_succ_right ℕ n, mul_comp, mul_comm, add_comp, X_comp,
+      nat_cast_comp, add_comm ↑n, ← add_assoc]
+end
+
+lemma polynomial.mul_X_add_nat_cast_comp {p q : S[X]} {n : ℕ} :
   (p * (X + n)).comp q = (p.comp q) * (q + n) :=
 by rw [mul_add, add_comp, mul_X_comp, ←nat.cast_comm, nat_cast_mul_comp, nat.cast_comm, mul_add]
 
@@ -104,17 +122,31 @@ begin
       nat.succ_eq_add_one, ←add_assoc, pochhammer_succ_right, nat.cast_add, add_assoc], }
 end
 
-lemma pochhammer_nat_eq_desc_fac (n : ℕ) : ∀ k, (pochhammer ℕ k).eval (n + 1) = nat.desc_fac n k
+lemma pochhammer_nat_eq_asc_factorial (n : ℕ) :
+  ∀ k, (pochhammer ℕ k).eval (n + 1) = n.asc_factorial k
 | 0 := by erw [eval_one]; refl
 | (t + 1) := begin
-  rw [pochhammer_succ_right, eval_mul, pochhammer_nat_eq_desc_fac t],
-  suffices : n.desc_fac t * (n + 1 + t) = n.desc_fac (t + 1), by simpa,
-  rw [nat.desc_fac_succ, add_right_comm, mul_comm]
+  rw [pochhammer_succ_right, eval_mul, pochhammer_nat_eq_asc_factorial t],
+  suffices : n.asc_factorial t * (n + 1 + t) = n.asc_factorial (t + 1), by simpa,
+  rw [nat.asc_factorial_succ, add_right_comm, mul_comm]
 end
 
+lemma pochhammer_nat_eq_desc_factorial (a b : ℕ) :
+  (pochhammer ℕ b).eval a = (a + b - 1).desc_factorial b :=
+begin
+  cases b,
+  { rw [nat.desc_factorial_zero, pochhammer_zero, polynomial.eval_one] },
+  rw [nat.add_succ, nat.succ_sub_succ, tsub_zero],
+  cases a,
+  { rw [pochhammer_ne_zero_eval_zero _ b.succ_ne_zero, zero_add,
+    nat.desc_factorial_of_lt b.lt_succ_self] },
+  { rw [nat.succ_add, ←nat.add_succ, nat.add_desc_factorial_eq_asc_factorial,
+      pochhammer_nat_eq_asc_factorial] }
 end
 
-section
+end semiring
+
+section ordered_semiring
 variables {S : Type*} [ordered_semiring S] [nontrivial S]
 
 lemma pochhammer_pos (n : ℕ) (s : S) (h : 0 < s) : 0 < (pochhammer S n).eval s :=
@@ -127,7 +159,7 @@ begin
       (lt_of_lt_of_le h ((le_add_iff_nonneg_right _).mpr (nat.cast_nonneg n))), }
 end
 
-end
+end ordered_semiring
 
 section factorial
 
@@ -138,11 +170,11 @@ variables (S : Type*) [semiring S] (r n : ℕ)
 @[simp]
 lemma pochhammer_eval_one (S : Type*) [semiring S] (n : ℕ) :
   (pochhammer S n).eval (1 : S) = (n! : S) :=
-by rw_mod_cast [pochhammer_nat_eq_desc_fac, nat.zero_desc_fac]
+by rw_mod_cast [pochhammer_nat_eq_asc_factorial, nat.zero_asc_factorial]
 
 lemma factorial_mul_pochhammer (S : Type*) [semiring S] (r n : ℕ) :
   (r! : S) * (pochhammer S n).eval (r + 1) = (r + n)! :=
-by rw_mod_cast [pochhammer_nat_eq_desc_fac, nat.factorial_mul_desc_fac]
+by rw_mod_cast [pochhammer_nat_eq_asc_factorial, nat.factorial_mul_asc_factorial]
 
 lemma pochhammer_nat_eval_succ (r : ℕ) :
   ∀ n : ℕ, n * (pochhammer ℕ r).eval (n + 1) = (n + r) * (pochhammer ℕ r).eval n
@@ -151,7 +183,7 @@ lemma pochhammer_nat_eval_succ (r : ℕ) :
   { simp only [h, zero_mul, zero_add], },
   { simp only [pochhammer_eval_zero, zero_mul, if_neg h, mul_zero], }
 end
-| (k + 1) := by simp only [pochhammer_nat_eq_desc_fac, nat.succ_desc_fac, add_right_comm]
+| (k + 1) := by simp only [pochhammer_nat_eq_asc_factorial, nat.succ_asc_factorial, add_right_comm]
 
 lemma pochhammer_eval_succ (r n : ℕ) :
   (n : S) * (pochhammer S r).eval (n + 1 : S) = (n + r) * (pochhammer S r).eval n :=

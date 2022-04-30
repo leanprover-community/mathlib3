@@ -3,10 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.shift
-import category_theory.concrete_category
+import data.int.basic
+import algebra.group_power.lemmas
 import category_theory.pi.basic
-import algebra.group.basic
+import category_theory.shift
+import category_theory.concrete_category.basic
 
 /-!
 # The category of graded objects
@@ -38,7 +39,7 @@ def graded_object (β : Type w) (C : Type u) : Type (max w u) := β → C
 -- Satisfying the inhabited linter...
 instance inhabited_graded_object (β : Type w) (C : Type u) [inhabited C] :
   inhabited (graded_object β C) :=
-⟨λ b, inhabited.default C⟩
+⟨λ b, inhabited.default⟩
 
 /--
 A type synonym for `β → C`, used for `β`-graded objects in a category `C`
@@ -55,7 +56,10 @@ variables {C : Type u} [category.{v} C]
 instance category_of_graded_objects (β : Type w) : category.{(max w v)} (graded_object β C) :=
 category_theory.pi (λ _, C)
 
-
+/-- The projection of a graded object to its `i`-th component. -/
+@[simps] def eval {β : Type w} (b : β) : graded_object β C ⥤ C :=
+{ obj := λ X, X b,
+  map := λ X Y f, f b, }
 
 section
 variable (C)
@@ -80,6 +84,10 @@ begin
   simp,
 end
 
+@[simp] lemma eq_to_hom_apply {β : Type w} {X Y : Π b : β, C} (h : X = Y) (b : β) :
+  (eq_to_hom h : X ⟶ Y) b = eq_to_hom (by subst h) :=
+by { subst h, refl }
+
 /--
 The equivalence between β-graded objects and γ-graded objects,
 given an equivalence between β and γ.
@@ -96,20 +104,23 @@ def comap_equiv {β γ : Type w} (e : β ≃ γ) :
 end
 
 instance has_shift {β : Type*} [add_comm_group β] (s : β) :
-  has_shift (graded_object_with_shift s C) :=
-{ shift := comap_equiv C
-  { to_fun := λ b, b-s,
-    inv_fun := λ b, b+s,
-    left_inv := λ x, (by simp),
-    right_inv := λ x, (by simp), } }
+  has_shift (graded_object_with_shift s C) ℤ :=
+has_shift_mk _ _
+{ F := λ n, comap (λ _, C) $ λ (b : β), b + n • s,
+  ε := (comap_id β (λ _, C)).symm ≪≫ (comap_eq C (by { ext, simp })),
+  μ := λ m n, comap_comp _ _ _ ≪≫ comap_eq C (by { ext, simp [add_zsmul, add_comm] }),
+  left_unitality := by { introv, ext, dsimp, simpa },
+  right_unitality := by { introv, ext, dsimp, simpa },
+  associativity := by { introv, ext, dsimp, simp } }
 
-@[simp] lemma shift_functor_obj_apply {β : Type*} [add_comm_group β] (s : β) (X : β → C) (t : β) :
-  (shift (graded_object_with_shift s C)).functor.obj X t = X (t + s) :=
+@[simp] lemma shift_functor_obj_apply {β : Type*} [add_comm_group β]
+  (s : β) (X : β → C) (t : β) (n : ℤ) :
+  (shift_functor (graded_object_with_shift s C) n).obj X t = X (t + n • s) :=
 rfl
 
 @[simp] lemma shift_functor_map_apply {β : Type*} [add_comm_group β] (s : β)
-  {X Y : graded_object_with_shift s C} (f : X ⟶ Y) (t : β) :
-  (shift (graded_object_with_shift s C)).functor.map f t = f (t + s) :=
+  {X Y : graded_object_with_shift s C} (f : X ⟶ Y) (t : β) (n : ℤ) :
+  (shift_functor (graded_object_with_shift s C) n).map f t = f (t + n • s) :=
 rfl
 
 instance has_zero_morphisms [has_zero_morphisms C] (β : Type w) :
@@ -126,9 +137,7 @@ open_locale zero_object
 
 instance has_zero_object [has_zero_object C] [has_zero_morphisms C] (β : Type w) :
   has_zero_object.{(max w v)} (graded_object β C) :=
-{ zero := λ b, (0 : C),
-  unique_to := λ X, ⟨⟨λ b, 0⟩, λ f, (by ext)⟩,
-  unique_from := λ X, ⟨⟨λ b, 0⟩, λ f, (by ext)⟩, }
+by { refine ⟨⟨λ b, 0, λ X, ⟨⟨⟨λ b, 0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨λ b, 0⟩, λ f, _⟩⟩⟩⟩; ext, }
 end
 
 end graded_object
@@ -160,7 +169,7 @@ instance : faithful (total β C) :=
   begin
     classical,
     ext i,
-    replace w := sigma.ι (λ i : ulift β, X i.down) ⟨i⟩ ≫= w,
+    replace w := sigma.ι (λ i : ulift.{v} β, X i.down) ⟨i⟩ ≫= w,
     erw [colimit.ι_map, colimit.ι_map] at w,
     exact mono.right_cancellation _ _ w,
   end }

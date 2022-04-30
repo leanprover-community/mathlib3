@@ -112,15 +112,17 @@ else if ¬ lhs_in_nf then do
       ++ "to" ++ lhs'.group.indent 2 ++ format.line
       ++ "using " ++ (to_fmt prf1_lems).group.indent 2 ++ format.line
       ++ "Try to change the left-hand side to the simplified term!\n"
-else if ¬ is_cond ∧ lhs = lhs' then do
-  pure "Left-hand side does not simplify.\nYou need to debug this yourself using `set_option trace.simplify.rewrite true`"
+else if ¬ is_cond ∧ lhs = lhs' then
+  pure $ some $ "Left-hand side does not simplify.\nYou need to debug this yourself using " ++
+"`set_option trace.simplify.rewrite true`"
 else
   pure none
 
 /--
 This note gives you some tips to debug any errors that the simp-normal form linter raises.
 
-The reason that a lemma was considered faulty is because its left-hand side is not in simp-normal form.
+The reason that a lemma was considered faulty is because its left-hand side is not in simp-normal
+form.
 These lemmas are hence never used by the simplifier.
 
 This linter gives you a list of other simp lemmas: look at them!
@@ -169,11 +171,10 @@ library_note "simp-normal form"
 @[linter] meta def linter.simp_nf : linter :=
 { test := simp_nf_linter,
   auto_decls := tt,
-  no_errors_found := "All left-hand sides of simp lemmas are in simp-normal form",
+  no_errors_found := "All left-hand sides of simp lemmas are in simp-normal form.",
   errors_found := "SOME SIMP LEMMAS ARE NOT IN SIMP-NORMAL FORM.
 see note [simp-normal form] for tips how to debug this.
-https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20form
-" }
+https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20form" }
 
 private meta def simp_var_head (d : declaration) : tactic (option string) := do
 tt ← is_simp_lemma d.to_name | pure none,
@@ -193,9 +194,9 @@ and which hence never fire.
 { test := simp_var_head,
   auto_decls := tt,
   no_errors_found :=
-    "No left-hand sides of a simp lemma has a variable as head symbol",
+    "No left-hand sides of a simp lemma has a variable as head symbol.",
   errors_found := "LEFT-HAND SIDE HAS VARIABLE AS HEAD SYMBOL.\n" ++
-    "Some simp lemmas have a variable as head symbol of the left-hand side" }
+    "Some simp lemmas have a variable as head symbol of the left-hand side:" }
 
 private meta def simp_comm (d : declaration) : tactic (option string) := do
 tt ← is_simp_lemma d.to_name | pure none,
@@ -215,6 +216,6 @@ pure $ "should not be marked simp"
 @[linter] meta def linter.simp_comm : linter :=
 { test := simp_comm,
   auto_decls := tt,
-  no_errors_found := "No commutativity lemma is marked simp",
+  no_errors_found := "No commutativity lemma is marked simp.",
   errors_found := "COMMUTATIVITY LEMMA IS SIMP.\n" ++
-    "Some commutativity lemmas are simp lemmas" }
+    "Some commutativity lemmas are simp lemmas:" }

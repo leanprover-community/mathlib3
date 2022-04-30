@@ -3,9 +3,9 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import data.dfinsupp
+import algebra.module.equiv
+import data.dfinsupp.basic
 import data.finsupp.basic
-import algebra.module.linear_map
 
 /-!
 # Conversion between `finsupp` and homogenous `dfinsupp`
@@ -15,12 +15,17 @@ It is in its own file since neither `finsupp` or `dfinsupp` depend on each other
 
 ## Main definitions
 
-* `finsupp.to_dfinsupp : (ι →₀ M) → (Π₀ i : ι, M)`
-* `dfinsupp.to_finsupp : (Π₀ i : ι, M) → (ι →₀ M)`
-* Bundled equiv versions of the above:
-  * `finsupp_equiv_dfinsupp : (ι →₀ M) ≃ (Π₀ i : ι, M)`
-  * `finsupp_add_equiv_dfinsupp : (ι →₀ M) ≃+ (Π₀ i : ι, M)`
-  * `finsupp_lequiv_dfinsupp R : (ι →₀ M) ≃ₗ[R] (Π₀ i : ι, M)`
+* "identity" maps between `finsupp` and `dfinsupp`:
+  * `finsupp.to_dfinsupp : (ι →₀ M) → (Π₀ i : ι, M)`
+  * `dfinsupp.to_finsupp : (Π₀ i : ι, M) → (ι →₀ M)`
+  * Bundled equiv versions of the above:
+    * `finsupp_equiv_dfinsupp : (ι →₀ M) ≃ (Π₀ i : ι, M)`
+    * `finsupp_add_equiv_dfinsupp : (ι →₀ M) ≃+ (Π₀ i : ι, M)`
+    * `finsupp_lequiv_dfinsupp R : (ι →₀ M) ≃ₗ[R] (Π₀ i : ι, M)`
+* stronger versions of `finsupp.split`:
+  * `sigma_finsupp_equiv_dfinsupp : ((Σ i, η i) →₀ N) ≃ (Π₀ i, (η i →₀ N))`
+  * `sigma_finsupp_add_equiv_dfinsupp : ((Σ i, η i) →₀ N) ≃+ (Π₀ i, (η i →₀ N))`
+  * `sigma_finsupp_lequiv_dfinsupp : ((Σ i, η i) →₀ N) ≃ₗ[R] (Π₀ i, (η i →₀ N))`
 
 ## Theorems
 
@@ -118,9 +123,9 @@ namespace finsupp
 
 @[simp] lemma to_dfinsupp_sub [add_group M] (f g : ι →₀ M) :
   (f - g).to_dfinsupp = f.to_dfinsupp - g.to_dfinsupp :=
-dfinsupp.coe_fn_injective (sub_eq_add_neg _ _)
+dfinsupp.coe_fn_injective rfl
 
-@[simp] lemma to_dfinsupp_smul [semiring R] [add_comm_monoid M] [module R M]
+@[simp] lemma to_dfinsupp_smul [monoid R] [add_monoid M] [distrib_mul_action R M]
   (r : R) (f : ι →₀ M) : (r • f).to_dfinsupp = r • f.to_dfinsupp :=
 dfinsupp.coe_fn_injective rfl
 
@@ -144,7 +149,7 @@ finsupp.coe_fn_injective $ dfinsupp.coe_neg _
   (to_finsupp (f - g) : ι →₀ M) = to_finsupp f - to_finsupp g :=
 finsupp.coe_fn_injective $ dfinsupp.coe_sub _ _
 
-@[simp] lemma to_finsupp_smul [semiring R] [add_comm_monoid M] [module R M]
+@[simp] lemma to_finsupp_smul [monoid R] [add_monoid M] [distrib_mul_action R M]
   [Π m : M, decidable (m ≠ 0)]
   (r : R) (f : Π₀ i : ι, M) : (to_finsupp (r • f) : ι →₀ M) = r • to_finsupp f :=
 finsupp.coe_fn_injective $ dfinsupp.coe_smul _ _
@@ -167,7 +172,7 @@ def finsupp_equiv_dfinsupp [decidable_eq ι] [has_zero M] [Π m : M, decidable (
 /-- The additive version of `finsupp.to_finsupp`. Note that this is `noncomputable` because
 `finsupp.has_add` is noncomputable. -/
 @[simps {fully_applied := ff}]
-noncomputable def finsupp_add_equiv_dfinsupp
+def finsupp_add_equiv_dfinsupp
   [decidable_eq ι] [add_zero_class M] [Π m : M, decidable (m ≠ 0)] :
   (ι →₀ M) ≃+ (Π₀ i : ι, M) :=
 { to_fun := finsupp.to_dfinsupp, inv_fun := dfinsupp.to_finsupp,
@@ -179,12 +184,110 @@ variables (R)
 /-- The additive version of `finsupp.to_finsupp`. Note that this is `noncomputable` because
 `finsupp.has_add` is noncomputable. -/
 @[simps {fully_applied := ff}]
-noncomputable def finsupp_lequiv_dfinsupp
+def finsupp_lequiv_dfinsupp
   [decidable_eq ι] [semiring R] [add_comm_monoid M] [Π m : M, decidable (m ≠ 0)] [module R M] :
   (ι →₀ M) ≃ₗ[R] (Π₀ i : ι, M) :=
 { to_fun := finsupp.to_dfinsupp, inv_fun := dfinsupp.to_finsupp,
   map_smul' := finsupp.to_dfinsupp_smul,
   map_add' := finsupp.to_dfinsupp_add,
   .. finsupp_equiv_dfinsupp}
+
+section sigma
+/-- ### Stronger versions of `finsupp.split` -/
+
+noncomputable theory
+open_locale classical
+
+variables {η : ι → Type*} {N : Type*} [semiring R]
+
+open finsupp
+
+/-- `finsupp.split` is an equivalence between `(Σ i, η i) →₀ N` and `Π₀ i, (η i →₀ N)`. -/
+def sigma_finsupp_equiv_dfinsupp [has_zero N] : ((Σ i, η i) →₀ N) ≃ (Π₀ i, (η i →₀ N)) :=
+{ to_fun := λ f, ⟦⟨split f, (split_support f : finset ι).val, λ i,
+    begin
+    rw [← finset.mem_def, mem_split_support_iff_nonzero],
+    exact (decidable.em _).symm
+    end⟩⟧,
+  inv_fun := λ f,
+  begin
+    refine on_finset (finset.sigma f.support (λ j, (f j).support)) (λ ji, f ji.1 ji.2)
+      (λ g hg, finset.mem_sigma.mpr ⟨_, mem_support_iff.mpr hg⟩),
+    simp only [ne.def, dfinsupp.mem_support_to_fun],
+    intro h,
+    rw h at hg,
+    simpa using hg
+  end,
+  left_inv := λ f, by { ext, simp [split] },
+  right_inv := λ f, by { ext, simp [split] } }
+
+@[simp]
+lemma sigma_finsupp_equiv_dfinsupp_apply [has_zero N] (f : (Σ i, η i) →₀ N) :
+  (sigma_finsupp_equiv_dfinsupp f : Π i, (η i →₀ N)) = finsupp.split f := rfl
+
+@[simp]
+lemma sigma_finsupp_equiv_dfinsupp_symm_apply [has_zero N] (f : Π₀ i, (η i →₀ N)) (s : Σ i, η i) :
+  (sigma_finsupp_equiv_dfinsupp.symm f : (Σ i, η i) →₀ N) s = f s.1 s.2 := rfl
+
+@[simp]
+lemma sigma_finsupp_equiv_dfinsupp_support [has_zero N] (f : (Σ i, η i) →₀ N) :
+  (sigma_finsupp_equiv_dfinsupp f).support = finsupp.split_support f :=
+begin
+  ext,
+  rw dfinsupp.mem_support_to_fun,
+  exact (finsupp.mem_split_support_iff_nonzero _ _).symm,
+end
+
+@[simp] lemma sigma_finsupp_equiv_dfinsupp_single [has_zero N] (a : Σ i, η i) (n : N) :
+  sigma_finsupp_equiv_dfinsupp (finsupp.single a n)
+    = @dfinsupp.single _ (λ i, η i →₀ N) _ _ a.1 (finsupp.single a.2 n) :=
+begin
+  obtain ⟨i, a⟩ := a,
+  ext j b,
+  by_cases h : i = j,
+  { subst h,
+    simp [split_apply, finsupp.single_apply] },
+  suffices : finsupp.single (⟨i, a⟩ : Σ i, η i) n ⟨j, b⟩ = 0,
+  { simp [split_apply, dif_neg h, this] },
+  have H : (⟨i, a⟩ : Σ i, η i) ≠ ⟨j, b⟩ := by simp [h],
+  rw [finsupp.single_apply, if_neg H]
+end
+
+-- Without this Lean fails to find the `add_zero_class` instance on `Π₀ i, (η i →₀ N)`.
+local attribute [-instance] finsupp.has_zero
+
+@[simp]
+lemma sigma_finsupp_equiv_dfinsupp_add [add_zero_class N] (f g : (Σ i, η i) →₀ N) :
+  sigma_finsupp_equiv_dfinsupp (f + g) =
+  (sigma_finsupp_equiv_dfinsupp f + (sigma_finsupp_equiv_dfinsupp g) : (Π₀ (i : ι), η i →₀ N)) :=
+by {ext, refl}
+
+/-- `finsupp.split` is an additive equivalence between `(Σ i, η i) →₀ N` and `Π₀ i, (η i →₀ N)`. -/
+@[simps]
+def sigma_finsupp_add_equiv_dfinsupp [add_zero_class N] : ((Σ i, η i) →₀ N) ≃+ (Π₀ i, (η i →₀ N)) :=
+{ to_fun := sigma_finsupp_equiv_dfinsupp,
+  inv_fun := sigma_finsupp_equiv_dfinsupp.symm,
+  map_add' := sigma_finsupp_equiv_dfinsupp_add,
+  .. sigma_finsupp_equiv_dfinsupp }
+
+local attribute [-instance] finsupp.add_zero_class
+
+--tofix: r • (sigma_finsupp_equiv_dfinsupp f) doesn't work.
+@[simp]
+lemma sigma_finsupp_equiv_dfinsupp_smul {R} [monoid R] [add_monoid N] [distrib_mul_action R N]
+  (r : R) (f : (Σ i, η i) →₀ N) : sigma_finsupp_equiv_dfinsupp (r • f) =
+  @has_scalar.smul R (Π₀ i, η i →₀ N) mul_action.to_has_scalar r (sigma_finsupp_equiv_dfinsupp f) :=
+by { ext, refl }
+
+local attribute [-instance] finsupp.add_monoid
+
+/-- `finsupp.split` is a linear equivalence between `(Σ i, η i) →₀ N` and `Π₀ i, (η i →₀ N)`. -/
+@[simps]
+def sigma_finsupp_lequiv_dfinsupp [add_comm_monoid N] [module R N] :
+  ((Σ i, η i) →₀ N) ≃ₗ[R] (Π₀ i, (η i →₀ N)) :=
+{ map_smul' := sigma_finsupp_equiv_dfinsupp_smul,
+  .. sigma_finsupp_add_equiv_dfinsupp }
+
+end sigma
 
 end equivs

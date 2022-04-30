@@ -3,7 +3,6 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.buffer.parser
 import tactic.core
 
 /-!
@@ -43,12 +42,12 @@ The `..` notation attempts to generate the 'of'-names automatically when the
 input theorem has the form `A_iff_B` or `A_iff_B_left` etc.
 -/
 
-open lean.parser tactic interactive parser
+open lean.parser tactic interactive
 
 namespace tactic.alias
 
 @[user_attribute] meta def alias_attr : user_attribute :=
-{ name := `alias, descr := "This definition is an alias of another." }
+{ name := `alias, descr := "This definition is an alias of another.", parser := failed }
 
 meta def alias_direct (d : declaration) (doc : string) (al : name) : tactic unit :=
 do updateex_env $ λ env,
@@ -81,7 +80,7 @@ meta def alias_iff (d : declaration) (doc : string) (al : name) (iffmp : name) :
 meta def make_left_right : name → tactic (name × name)
 | (name.mk_string s p) := do
   let buf : char_buffer := s.to_char_buffer,
-  sum.inr parts ← pure $ run (sep_by1 (ch '_') (many_char (sat (≠ '_')))) s.to_char_buffer,
+  let parts := s.split_on '_',
   (left, _::right) ← pure $ parts.span (≠ "iff"),
   let pfx (a b : string) := a.to_list.is_prefix_of b.to_list,
   (suffix', right') ← pure $ right.reverse.span (λ s, pfx "left" s ∨ pfx "right" s),
@@ -132,12 +131,12 @@ do old ← ident,
     fail ("declaration " ++ to_string old ++ " not found"),
   let doc := λ al : name, meta_info.doc_string.get_or_else $
     "**Alias** of `" ++ to_string old ++ "`.",
-  do {
-    tk "←" <|> tk "<-",
+  do
+  { tk "←" <|> tk "<-",
     aliases ← many ident,
     ↑(aliases.mmap' $ λ al, alias_direct d (doc al) al) } <|>
-  do {
-    tk "↔" <|> tk "<->",
+  do
+  { tk "↔" <|> tk "<->",
     (left, right) ←
       mcond ((tk "." *> tk "." >> pure tt) <|> pure ff)
         (make_left_right old <|> fail "invalid name for automatic name generation")

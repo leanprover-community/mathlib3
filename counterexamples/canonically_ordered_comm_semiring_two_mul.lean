@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import data.zmod.basic
-import ring_theory.subsemiring
-import algebra.ordered_monoid
+import ring_theory.subsemiring.basic
+import algebra.order.monoid
 /-!
 
 A `canonically_ordered_comm_semiring` with two different elements `a` and `b` such that
@@ -151,12 +151,6 @@ open Nxzmod_2 subtype
 /-- Initially, `L` was defined as the subsemiring closure of `(1,0)`. -/
 def L : Type := { l : (ℕ × zmod 2) // l ≠ (0, 1) }
 
-instance zero : has_zero L := ⟨⟨(0, 0), dec_trivial⟩⟩
-
-instance one : has_one L := ⟨⟨(1, 1), dec_trivial⟩⟩
-
-instance inhabited : inhabited L := ⟨1⟩
-
 lemma add_L {a b : ℕ × zmod 2} (ha : a ≠ (0, 1)) (hb : b ≠ (0, 1)) :
   a + b ≠ (0, 1) :=
 begin
@@ -191,20 +185,18 @@ begin
   { simp [mul_ne_zero _ _, nat.succ_ne_zero _] }
 end
 
-instance has_add_L : has_add L :=
-{ add := λ ⟨a, ha⟩ ⟨b, hb⟩, ⟨a + b, add_L ha hb⟩ }
-
-instance : has_mul L :=
-{ mul := λ ⟨a, ha⟩ ⟨b, hb⟩, ⟨a * b, mul_L ha hb⟩ }
+/-- The subsemiring corresponding to the elements of `L`, used to transfer instances. -/
+def L_subsemiring : subsemiring (ℕ × zmod 2) :=
+{ carrier := { l | l ≠ (0, 1) },
+  zero_mem' := dec_trivial,
+  one_mem' := dec_trivial,
+  add_mem' := λ _ _, add_L,
+  mul_mem' := λ _ _, mul_L }
 
 instance : ordered_comm_semiring L :=
-begin
-  refine function.injective.ordered_comm_semiring _ subtype.coe_injective rfl rfl _ _;
-  { refine λ x y, _,
-    cases x,
-    cases y,
-    refl }
-end
+L_subsemiring.to_ordered_comm_semiring
+
+instance inhabited : inhabited L := ⟨1⟩
 
 lemma bot_le : ∀ (a : L), 0 ≤ a :=
 begin
@@ -222,9 +214,6 @@ instance order_bot : order_bot L :=
   bot_le := bot_le,
   ..(infer_instance : partial_order L) }
 
-lemma lt_of_add_lt_add_left : ∀ (a b c : L), a + b < a + c → b < c :=
-λ (a : L) {b c : L}, (add_lt_add_iff_left a).mp
-
 lemma le_iff_exists_add : ∀ (a b : L), a ≤ b ↔ ∃ (c : L), b = a + c :=
 begin
   rintros ⟨⟨an, a2⟩, ha⟩ ⟨⟨bn, b2⟩, hb⟩,
@@ -234,9 +223,9 @@ begin
     { exact ⟨(0 : L), (add_zero _).symm⟩ },
     { refine ⟨⟨⟨bn - an, b2 + a2⟩, _⟩, _⟩,
       { rw [ne.def, prod.mk.inj_iff, not_and_distrib],
-        exact or.inl (ne_of_gt (nat.sub_pos_of_lt h)) },
+        exact or.inl (ne_of_gt (tsub_pos_of_lt h)) },
       { congr,
-        { exact (nat.add_sub_cancel' h.le).symm },
+        { exact (add_tsub_cancel_of_le h.le).symm },
         { change b2 = a2 + (b2 + a2),
           rw [add_comm b2, ← add_assoc, add_self_zmod_2, zero_add] } } } },
   { rcases h with ⟨⟨⟨c, c2⟩, hc⟩, abc⟩,
@@ -271,8 +260,7 @@ begin
 end
 
 instance can : canonically_ordered_comm_semiring L :=
-{ lt_of_add_lt_add_left := lt_of_add_lt_add_left,
-  le_iff_exists_add := le_iff_exists_add,
+{ le_iff_exists_add := le_iff_exists_add,
   eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
   ..(infer_instance : order_bot L),
   ..(infer_instance : ordered_comm_semiring L) }

@@ -107,26 +107,29 @@ begin
   { cases hl with hpos hnonneg,
     rw ←not_lt at hnonneg,
     have hneg := lt_of_lt_of_equiv hpos (neg_equiv_self G),
-    rw [lt_iff_neg_gt, neg_neg, neg_zero] at hneg,
+    rw [lt_iff_neg_gt, neg_neg, pgame.neg_zero] at hneg,
     contradiction },
   { cases hr with hnonpos hneg,
     rw ←not_lt at hnonpos,
     have hpos := lt_of_equiv_of_lt (neg_equiv_self G).symm hneg,
-    rw [lt_iff_neg_gt, neg_neg, neg_zero] at hpos,
+    rw [lt_iff_neg_gt, neg_neg, pgame.neg_zero] at hpos,
     contradiction },
   { left, assumption },
   { right, assumption }
 end
 
 lemma not_first_wins (G : pgame) [G.impartial] : ¬G.first_wins ↔ G.first_loses :=
-by cases winner_cases G; finish using [not_first_loses_of_first_wins]
+begin
+  cases winner_cases G; -- `finish using [not_first_loses_of_first_wins]` can close these goals
+  simp [not_first_loses_of_first_wins, not_first_wins_of_first_loses, h]
+end
 
 lemma not_first_loses (G : pgame) [G.impartial] : ¬G.first_loses ↔ G.first_wins :=
 iff.symm $ iff_not_comm.1 $ iff.symm $ not_first_wins G
 
 lemma add_self (G : pgame) [G.impartial] : (G + G).first_loses :=
   first_loses_is_zero.2 $ equiv_trans (add_congr (neg_equiv_self G) G.equiv_refl)
-  add_left_neg_equiv
+  (add_left_neg_equiv G)
 
 lemma equiv_iff_sum_first_loses (G H : pgame) [G.impartial] [H.impartial] :
   G ≈ H ↔ (G + H).first_loses :=
@@ -138,18 +141,18 @@ begin
     split,
     { rw le_iff_sub_nonneg,
       exact le_trans hGHp.2
-        (le_trans add_comm_le $ le_of_le_of_equiv (le_refl _) $ add_congr (equiv_refl _)
+        (le_trans add_comm_le $ le_of_le_of_equiv (pgame.le_refl _) $ add_congr (equiv_refl _)
         (neg_equiv_self G)) },
     { rw le_iff_sub_nonneg,
       exact le_trans hGHp.2
-        (le_of_le_of_equiv (le_refl _) $ add_congr (equiv_refl _) (neg_equiv_self H)) } }
+        (le_of_le_of_equiv (pgame.le_refl _) $ add_congr (equiv_refl _) (neg_equiv_self H)) } }
 end
 
 lemma le_zero_iff {G : pgame} [G.impartial] : G ≤ 0 ↔ 0 ≤ G :=
 by rw [le_zero_iff_zero_le_neg, le_congr (equiv_refl 0) (neg_equiv_self G)]
 
 lemma lt_zero_iff {G : pgame} [G.impartial] : G < 0 ↔ 0 < G :=
-by rw [lt_iff_neg_gt, neg_zero, lt_congr (equiv_refl 0) (neg_equiv_self G)]
+by rw [lt_iff_neg_gt, pgame.neg_zero, lt_congr (equiv_refl 0) (neg_equiv_self G)]
 
 lemma first_loses_symm (G : pgame) [G.impartial] : G.first_loses ↔ G ≤ 0 :=
 ⟨and.left, λ h, ⟨h, le_zero_iff.1 h⟩⟩

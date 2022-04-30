@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Wojciech Nawrocki, Bhavik Mehta
 -/
 
-import category_theory.adjunction
-import category_theory.monad.adjunction
+import category_theory.adjunction.basic
 import category_theory.monad.basic
 
 /-! # Kleisli category on a monad
@@ -33,7 +32,7 @@ namespace kleisli
 
 variables (T : monad C)
 
-instance [inhabited C] (T : monad C) : inhabited (kleisli T) := ⟨(default _ : C)⟩
+instance [inhabited C] (T : monad C) : inhabited (kleisli T) := ⟨(default : C)⟩
 
 /-- The Kleisli category on a monad `T`.
     cf Definition 5.2.9 in [Riehl][riehl2017]. -/

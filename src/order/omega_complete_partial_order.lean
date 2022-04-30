@@ -644,19 +644,6 @@ of_mono (order_hom.const _ x) (continuous_const x)
 instance [inhabited β] : inhabited (α →𝒄 β) :=
 ⟨ const default ⟩
 
-namespace prod
-
-/-- The application of continuous functions as a monotone function.
-
-(It would make sense to make it a continuous function, but we are currently constructing a
-`omega_complete_partial_order` instance for `α →𝒄 β`, and we cannot use it as the domain or image
-of a continuous function before we do.) -/
-@[simps]
-def apply : (α →𝒄 β) × α →o β :=
-{ to_fun := λ f, f.1 f.2,
-  monotone' := λ x y h, by dsimp; transitivity y.fst x.snd; [apply h.1, apply y.1.monotone h.2] }
-
-end prod
 
 /-- The map from continuous functions to monotone functions is itself a monotone function. -/
 @[simps]
@@ -704,17 +691,46 @@ instance : omega_complete_partial_order (α →𝒄 β) :=
 omega_complete_partial_order.lift continuous_hom.to_mono continuous_hom.ωSup
   (λ x y h, h) (λ c, rfl)
 
+namespace prod
+
+/-- The application of continuous functions as a continuous function.  -/
+@[simps]
+def apply : (α →𝒄 β) × α →𝒄 β :=
+{ to_fun := λ f, f.1 f.2,
+  monotone' := λ x y h, by {dsimp, transitivity y.fst x.snd; [apply h.1, apply y.1.monotone h.2]},
+  cont := begin
+    intro c,
+    dsimp,
+    simp only [chain.map_comp],
+    apply le_antisymm,
+    { apply ωSup_le, intros i,
+      simp [(c _).fst.continuous],
+      apply ωSup_le, intros j,
+      refine le_trans _ (le_ωSup _ (max i j)),
+      simp,
+      apply apply_mono,
+      refine monotone_fst (order_hom.mono _ (le_max_left _ _)),
+      refine monotone_snd (order_hom.mono _ (le_max_right _ _)), },
+    { apply ωSup_le, intros i,
+      refine le_trans _ (le_ωSup _ i),
+      simp,
+      apply order_hom.mono _,
+      apply le_trans _ (le_ωSup _ i),
+      reflexivity, }
+  end }
+
+end prod
+
 lemma ωSup_def (c : chain (α →𝒄 β)) (x : α) : ωSup c x = continuous_hom.ωSup c x := rfl
 
 lemma ωSup_ωSup (c₀ : chain (α →𝒄 β)) (c₁ : chain α) :
-  ωSup c₀ (ωSup c₁) = ωSup (continuous_hom.prod.apply.comp $ c₀.zip c₁) :=
+  ωSup c₀ (ωSup c₁) = prod.apply (ωSup (c₀.zip c₁)) :=
 begin
   apply eq_of_forall_ge_iff, intro z,
-  simp only [ωSup_le_iff, (c₀ _).continuous, chain.map_coe, to_mono_coe, coe_apply,
-    order_hom.omega_complete_partial_order_ωSup_coe, ωSup_def, forall_forall_merge,
-    chain.zip_coe, order_hom.prod_map_coe, order_hom.diag_coe, prod.map_mk,
-    order_hom.apply_coe, function.comp_app, prod.apply_coe,
-    order_hom.comp_coe, ωSup_apply, function.eval],
+  simp only [ωSup_le_iff, (c₀ _).continuous, chain.map_coe, to_mono_coe, coe_apply, ωSup_def,
+    chain.zip_coe, order_hom.apply_coe, function.comp_app, ωSup_apply, function.eval,
+    prod.apply_apply, prod.omega_complete_partial_order_ωSup_fst,
+    prod.omega_complete_partial_order_ωSup_snd, order_hom.fst_coe, order_hom.snd_coe],
 end
 
 /-- A family of continuous functions yields a continuous family of functions. -/

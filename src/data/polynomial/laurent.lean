@@ -276,7 +276,7 @@ function.has_left_inverse.injective ⟨trunc, polynomial.trunc_to_laurent⟩
 @[simp]
 lemma _root_.polynomial.to_laurent_inj (f g : R[X]) :
   f.to_laurent = g.to_laurent ↔ f = g :=
-⟨λ h, polynomial.to_laurent_injective h, λ h, congr_arg _ h⟩
+⟨λ h, polynomial.to_laurent_injective h, congr_arg _⟩
 
 lemma exists_T_pow (f : R[T;T⁻¹]) :
   ∃ (n : ℕ) (f' : R[X]), f'.to_laurent = f * T n :=

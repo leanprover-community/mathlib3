@@ -1747,7 +1747,7 @@ omit σ₂₁ σ₃₄ σ₁₃ σ₂₄
 
 /-- A pair of continuous linear equivalences generates an continuous linear equivalence between
 the spaces of continuous linear maps. -/
-def arrow_congr_equivL {F H : Type*} [normed_group F] [normed_group H]
+def arrow_congr {F H : Type*} [normed_group F] [normed_group H]
   [normed_space 𝕜 F] [normed_space 𝕜 G] [normed_space 𝕜 H]
   (e₁ : E ≃L[𝕜] F) (e₂ : H ≃L[𝕜] G) :
   (E →L[𝕜] H) ≃L[𝕜] (F →L[𝕜] G) :=

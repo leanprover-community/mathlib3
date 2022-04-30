@@ -777,7 +777,7 @@ begin
   have hd : d = finrank 𝕜 (fin d → 𝕜) := (finrank_fin_fun 𝕜).symm,
   let e₁ : E ≃L[𝕜] fin d → 𝕜 := continuous_linear_equiv.of_finrank_eq hd,
   let e₂ : (E →L[𝕜] F) ≃L[𝕜] fin d → F :=
-    (e₁.arrow_congr_equivL (1 : F ≃L[𝕜] F)).trans (continuous_linear_equiv.pi_ring (fin d)),
+    (e₁.arrow_congr (1 : F ≃L[𝕜] F)).trans (continuous_linear_equiv.pi_ring (fin d)),
   rw [← function.comp.left_id f, ← e₂.symm_comp_self],
   exact e₂.symm.continuous.comp_continuous_on (continuous_on_pi.mpr (λ i, h _))
 end

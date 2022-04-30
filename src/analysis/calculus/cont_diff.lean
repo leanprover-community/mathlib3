@@ -2755,7 +2755,7 @@ begin
   let d := finrank 𝕜 F,
   have hd : d = finrank 𝕜 (fin d → 𝕜) := (finrank_fin_fun 𝕜).symm,
   let e₁ := continuous_linear_equiv.of_finrank_eq hd,
-  let e₂ := (e₁.arrow_congr_equivL (1 : G ≃L[𝕜] G)).trans (continuous_linear_equiv.pi_ring (fin d)),
+  let e₂ := (e₁.arrow_congr (1 : G ≃L[𝕜] G)).trans (continuous_linear_equiv.pi_ring (fin d)),
   rw [← comp.left_id f, ← e₂.symm_comp_self],
   exact e₂.symm.cont_diff.comp_cont_diff_on (cont_diff_on_pi.mpr (λ i, h _))
 end

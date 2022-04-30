@@ -73,7 +73,7 @@ begin
   rw [is_projection, mul_assoc, ← mul_assoc Q, ←h, mul_assoc P, h₂, ← mul_assoc, h₁],
 end
 
-variables {R : Type*} [ring R]
+variables {R : Type*} [non_assoc_ring R]
 
 lemma complement {P : R} (h : is_projection P) : is_projection (1 - P) :=
 begin

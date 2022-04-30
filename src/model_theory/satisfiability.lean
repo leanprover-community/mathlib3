@@ -126,7 +126,7 @@ begin
   rw [distinct_constants_theory_eq_Union, set.union_Union, is_satisfiable_directed_union_iff],
   { exact λ t, is_satisfiable_union_distinct_constants_theory_of_card_le T _ M ((lift_le_omega.2
       (le_of_lt (finset_card_lt_omega _))).trans (omega_le_lift.2 (omega_le_mk M))), },
-  { exact (monotone_id.union monotone_distinct_constants_theory).directed_le }
+  { exact (monotone_const.union monotone_distinct_constants_theory).directed_le }
 end
 
 lemma exists_large_model_of_infinite_model (T : L.Theory) (κ : cardinal.{w})

@@ -113,6 +113,9 @@ by { simp_rw ne_bot_iff, exact map₂_eq_bot_iff.not.trans not_or_distrib }
 lemma ne_bot.map₂ (hf : f.ne_bot) (hg : g.ne_bot) : (map₂ m f g).ne_bot :=
 map₂_ne_bot_iff.2 ⟨hf, hg⟩
 
+lemma ne_bot.of_map₂_left (h : (map₂ m f g).ne_bot) : f.ne_bot := (map₂_ne_bot_iff.1 h).1
+lemma ne_bot.of_map₂_right (h : (map₂ m f g).ne_bot) : g.ne_bot := (map₂_ne_bot_iff.1 h).2
+
 lemma map₂_sup_left : map₂ m (f₁ ⊔ f₂) g = map₂ m f₁ g ⊔ map₂ m f₂ g :=
 begin
   ext u,

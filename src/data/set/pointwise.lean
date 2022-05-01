@@ -72,23 +72,15 @@ protected def has_one : has_one (set α) := ⟨{1}⟩
 
 localized "attribute [instance] set.has_one set.has_zero" in pointwise
 
-@[to_additive]
-lemma singleton_one : ({1} : set α) = 1 := rfl
-
-@[simp, to_additive]
-lemma mem_one : a ∈ (1 : set α) ↔ a = 1 := iff.rfl
-
-@[to_additive]
-lemma one_mem_one : (1 : α) ∈ (1 : set α) := eq.refl _
-
-@[simp, to_additive]
-lemma one_subset : 1 ⊆ s ↔ (1 : α) ∈ s := singleton_subset_iff
-
-@[to_additive]
-lemma one_nonempty : (1 : set α).nonempty := ⟨1, rfl⟩
-
-@[simp, to_additive]
-lemma image_one {f : α → β} : f '' 1 = {f 1} := image_singleton
+@[to_additive] lemma singleton_one : ({1} : set α) = 1 := rfl
+@[simp, to_additive] lemma mem_one : a ∈ (1 : set α) ↔ a = 1 := iff.rfl
+@[to_additive] lemma one_mem_one : (1 : α) ∈ (1 : set α) := eq.refl _
+@[simp, to_additive] lemma one_subset : 1 ⊆ s ↔ (1 : α) ∈ s := singleton_subset_iff
+@[to_additive] lemma one_nonempty : (1 : set α).nonempty := ⟨1, rfl⟩
+@[simp, to_additive] lemma image_one {f : α → β} : f '' 1 = {f 1} := image_singleton
+@[to_additive] lemma subset_one_iff_eq : s ⊆ 1 ↔ s = ∅ ∨ s = 1 := subset_singleton_iff_eq
+@[to_additive] lemma nonempty.subset_one_iff (h : s.nonempty) : s ⊆ 1 ↔ s = 1 :=
+h.subset_singleton_iff
 
 end one
 
@@ -126,6 +118,9 @@ lemma image_mul_prod : (λ x : α × α, x.fst * x.snd) '' s ×ˢ t = s * t := i
 
 @[simp, to_additive] lemma empty_mul : ∅ * s = ∅ := image2_empty_left
 @[simp, to_additive] lemma mul_empty : s * ∅ = ∅ := image2_empty_right
+@[simp, to_additive] lemma mul_eq_empty : s * t = ∅ ↔ s = ∅ ∨ t = ∅ := image2_eq_empty_iff
+@[simp, to_additive] lemma mul_nonempty : (s * t).nonempty ↔ s.nonempty ∧ t.nonempty :=
+image2_nonempty_iff
 
 @[simp, to_additive] lemma mul_singleton : s * {b} = (* b) '' s := image2_singleton_right
 @[simp, to_additive] lemma singleton_mul : {a} * t = ((*) a) '' t := image2_singleton_left
@@ -548,6 +543,9 @@ lemma image_div_prod : (λ x : α × α, x.fst / x.snd) '' s ×ˢ t = s / t := i
 
 @[simp, to_additive] lemma empty_div : ∅ / s = ∅ := image2_empty_left
 @[simp, to_additive] lemma div_empty : s / ∅ = ∅ := image2_empty_right
+@[simp, to_additive] lemma div_eq_empty : s / t = ∅ ↔ s = ∅ ∨ t = ∅ := image2_eq_empty_iff
+@[simp, to_additive] lemma div_nonempty : (s / t).nonempty ↔ s.nonempty ∧ t.nonempty :=
+image2_nonempty_iff
 
 @[simp, to_additive] lemma div_singleton : s / {b} = (/ b) '' s := image2_singleton_right
 @[simp, to_additive] lemma singleton_div : {a} / t = ((/) a) '' t := image2_singleton_left
@@ -713,6 +711,9 @@ lemma smul_subset_smul (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ • t₁
 
 @[simp, to_additive] lemma empty_smul : (∅ : set α) • t = ∅ := image2_empty_left
 @[simp, to_additive] lemma smul_empty : s • (∅ : set β) = ∅ := image2_empty_right
+@[simp, to_additive] lemma smul_eq_empty : s • t = ∅ ↔ s = ∅ ∨ t = ∅ := image2_eq_empty_iff
+@[simp, to_additive] lemma smul_nonempty : (s • t).nonempty ↔ s.nonempty ∧ t.nonempty :=
+image2_nonempty_iff
 
 @[simp, to_additive] lemma smul_singleton : s • {b} = (• b) '' s := image2_singleton_right
 @[simp, to_additive] lemma singleton_smul : ({a} : set α) • t = a • t := image2_singleton_left

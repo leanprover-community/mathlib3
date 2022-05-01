@@ -450,6 +450,8 @@ lemma ne_bot.ne {f : filter α} (hf : ne_bot f) : f ≠ ⊥ := ne_bot.ne'
 @[simp] lemma not_ne_bot {α : Type*} {f : filter α} : ¬ f.ne_bot ↔ f = ⊥ :=
 not_iff_comm.1 ne_bot_iff.symm
 
+lemma eq_bot_or_ne_bot (f : filter α) : f = ⊥ ∨ f.ne_bot := or_iff_not_imp_left.2 ne_bot_iff.2
+
 lemma ne_bot.mono {f g : filter α} (hf : ne_bot f) (hg : f ≤ g) : ne_bot g :=
 ⟨ne_bot_of_le_ne_bot hf.1 hg⟩
 
@@ -2027,6 +2029,7 @@ protected lemma push_pull' (f : α → β) (F : filter α) (G : filter β) :
 by simp only [filter.push_pull, inf_comm]
 
 section applicative
+variables {f : filter α} {a : α}
 
 lemma singleton_mem_pure {a : α} : {a} ∈ (pure a : filter α) :=
 mem_singleton a
@@ -2037,9 +2040,14 @@ lemma pure_injective : injective (pure : α → filter α) :=
 instance pure_ne_bot {α : Type u} {a : α} : ne_bot (pure a) :=
 ⟨mt empty_mem_iff_bot.2 $ not_mem_empty a⟩
 
-@[simp] lemma le_pure_iff {f : filter α} {a : α} : f ≤ pure a ↔ {a} ∈ f :=
+lemma pure_le_iff : pure a ≤ f ↔ ∀ s ∈ f, a ∈ s := iff.rfl
+
+@[simp] lemma le_pure_iff : f ≤ pure a ↔ {a} ∈ f :=
 ⟨λ h, h singleton_mem_pure,
   λ h s hs, mem_of_superset h $ singleton_subset_iff.2 hs⟩
+
+lemma eq_pure_iff_unique_mem : f = pure a ↔ {a} ∈ f ∧ ∀ s ∈ f, a ∈ s :=
+le_antisymm_iff.trans $ le_pure_iff.and pure_le_iff
 
 lemma mem_seq_def {f : filter (α → β)} {g : filter α} {s : set β} :
   s ∈ f.seq g ↔ (∃ u ∈ f, ∃ t ∈ g, ∀ x ∈ u, ∀ y ∈ t, (x : α → β) y ∈ s) :=
@@ -2423,9 +2431,6 @@ tendsto_pure.2 rfl
 
 lemma tendsto_const_pure {a : filter α} {b : β} : tendsto (λ x, b) a (pure b) :=
 tendsto_pure.2 $ univ_mem' $ λ _, rfl
-
-lemma pure_le_iff {a : α} {l : filter α} : pure a ≤ l ↔ ∀ s ∈ l, a ∈ s :=
-iff.rfl
 
 lemma tendsto_pure_left {f : α → β} {a : α} {l : filter β} :
   tendsto f (pure a) l ↔ ∀ s ∈ l, f a ∈ s :=

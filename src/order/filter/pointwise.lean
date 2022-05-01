@@ -5,6 +5,7 @@ Authors: Zhouhang Zhou, Yaël Dillies
 -/
 import data.set.pointwise
 import order.filter.n_ary
+import order.filter.ultrafilter
 
 /-!
 # Pointwise operations on filters
@@ -54,17 +55,16 @@ variables [has_one α] {f : filter α} {s : set α}
 
 /-- `1 : filter α` is the set of sets containing `1 : α`. -/
 @[to_additive "`0 : filter α` is the set of sets containing `0 : α`."]
-instance : has_one (filter α) := ⟨principal 1⟩
+instance : has_one (filter α) := ⟨pure 1⟩
 
-@[simp, to_additive] lemma mem_one : s ∈ (1 : filter α) ↔ (1 : α) ∈ s := one_subset
-
-@[to_additive] lemma one_mem_one : (1 : set α) ∈ (1 : filter α) := mem_principal_self _
-
-@[simp, to_additive] lemma principal_one : 𝓟 1 = (1 : filter α) := rfl
-@[simp, to_additive] lemma pure_one : pure 1 = (1 : filter α) := (principal_singleton _).symm
-@[simp, to_additive] lemma le_one_iff : f ≤ 1 ↔ (1 : set α) ∈ f := le_principal_iff
-@[simp, to_additive] lemma eventually_one {p : α → Prop} : (∀ᶠ x in 1, p x) ↔ p 1 :=
-by rw [←pure_one, eventually_pure]
+@[simp, to_additive] lemma mem_one : s ∈ (1 : filter α) ↔ (1 : α) ∈ s := mem_pure
+@[to_additive] lemma one_mem_one : (1 : set α) ∈ (1 : filter α) := mem_pure.2 one_mem_one
+@[simp, to_additive] lemma pure_one : pure 1 = (1 : filter α) := rfl
+@[simp, to_additive] lemma principal_one : 𝓟 1 = (1 : filter α) := principal_singleton _
+@[to_additive] lemma one_ne_bot : (1 : filter α).ne_bot := filter.pure_ne_bot
+@[simp, to_additive] protected lemma map_one' (f : α → β) : (1 : filter α).map f = pure (f 1) := rfl
+@[simp, to_additive] lemma le_one_iff : f ≤ 1 ↔ (1 : set α) ∈ f := le_pure_iff
+@[simp, to_additive] lemma eventually_one {p : α → Prop} : (∀ᶠ x in 1, p x) ↔ p 1 := eventually_pure
 @[simp, to_additive] lemma tendsto_one {a : filter β} {f : β → α} :
    tendsto f a 1 ↔ ∀ᶠ x in a, f x = 1 :=
 by rw [←pure_one, tendsto_pure]
@@ -73,27 +73,31 @@ variables [has_one β]
 
 @[simp, to_additive]
 protected lemma map_one [one_hom_class F α β] (φ : F) : map φ 1 = 1 :=
-le_antisymm
-  (le_principal_iff.2 $ mem_map_iff_exists_image.2 ⟨1, one_mem_one, λ x, by simp [map_one φ]⟩)
-  (le_map $ λ s hs, mem_one.2 ⟨1, mem_one.1 hs, map_one φ⟩)
+by rw [filter.map_one', map_one, pure_one]
 
 end one
 
 /-! ### Filter addition/multiplication -/
 
 section mul
-variables [has_mul α] [has_mul β] {f f₁ f₂ g g₁ g₂ h : filter α} {s t : set α}
+variables [has_mul α] [has_mul β] {f f₁ f₂ g g₁ g₂ h : filter α} {s t : set α} {a b : α}
 
-@[to_additive] instance : has_mul (filter α) := ⟨map₂ (*)⟩
+@[to_additive] instance : has_mul (filter α) :=
+⟨λ f g, { sets := {s | ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ * t₂ ⊆ s}, ..map₂ (*) f g }⟩
 
 @[simp, to_additive] lemma map₂_mul : map₂ (*) f g = f * g := rfl
 @[to_additive] lemma mem_mul_iff : s ∈ f * g ↔ ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ * t₂ ⊆ s := iff.rfl
 @[to_additive] lemma mul_mem_mul : s ∈ f → t ∈ g → s * t ∈ f * g := image2_mem_map₂
 @[simp, to_additive] lemma bot_mul : ⊥ * g = ⊥ := map₂_bot_left
 @[simp, to_additive] lemma mul_bot : f * ⊥ = ⊥ := map₂_bot_right
+@[simp, to_additive] lemma pure_mul : pure a * g = g.map ((*) a)  := map₂_pure_left
+@[simp, to_additive] lemma mul_pure : f * pure b = f.map (* b)  := map₂_pure_right
+@[simp, to_additive] lemma pure_mul_pure : (pure a : filter α) * pure b = pure (a * b) := map₂_pure
 @[simp, to_additive] lemma mul_eq_bot_iff : f * g = ⊥ ↔ f = ⊥ ∨ g = ⊥ := map₂_eq_bot_iff
 @[simp, to_additive] lemma mul_ne_bot_iff : (f * g).ne_bot ↔ f.ne_bot ∧ g.ne_bot := map₂_ne_bot_iff
 @[to_additive] lemma ne_bot.mul : ne_bot f → ne_bot g → ne_bot (f * g) := ne_bot.map₂
+@[to_additive] lemma ne_bot.of_mul_left : (f * g).ne_bot → f.ne_bot := ne_bot.of_map₂_left
+@[to_additive] lemma ne_bot.of_mul_right : (f * g).ne_bot → g.ne_bot := ne_bot.of_map₂_right
 @[simp, to_additive] lemma le_mul_iff : h ≤ f * g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s * t ∈ h :=
 le_map₂_iff
 
@@ -164,7 +168,7 @@ end map
 /-! ### Filter negation/inversion -/
 
 section has_inv
-variables [has_inv α] {f g : filter α} {s : set α}
+variables [has_inv α] {f g : filter α} {s : set α} {a : α}
 
 /-- The inverse of a filter is the pointwise preimage under `⁻¹` of its sets. -/
 @[to_additive "The negation of a filter is the pointwise preimage under `-` of its sets."]
@@ -173,6 +177,8 @@ instance : has_inv (filter α) := ⟨map has_inv.inv⟩
 @[simp, to_additive] protected lemma map_inv : f.map has_inv.inv = f⁻¹ := rfl
 @[to_additive] lemma mem_inv : s ∈ f⁻¹ ↔ has_inv.inv ⁻¹' s ∈ f := iff.rfl
 @[to_additive] protected lemma inv_le_inv (hf : f ≤ g) : f⁻¹ ≤ g⁻¹ := map_mono hf
+@[simp, to_additive] lemma inv_pure : (pure a : filter α)⁻¹ = pure a⁻¹ := rfl
+@[simp, to_additive] lemma inv_eq_bot_iff : f⁻¹ = ⊥ ↔ f = ⊥  := map_eq_bot_iff
 @[simp, to_additive] lemma ne_bot_inv_iff : f⁻¹.ne_bot ↔ ne_bot f := map_ne_bot_iff _
 @[to_additive] lemma ne_bot.inv : f.ne_bot → f⁻¹.ne_bot := λ h, h.map _
 
@@ -207,7 +213,7 @@ end group
 /-! ### Filter subtraction/division -/
 
 section div
-variables [has_div α] {f f₁ f₂ g g₁ g₂ h : filter α} {s t : set α}
+variables [has_div α] {f f₁ f₂ g g₁ g₂ h : filter α} {s t : set α} {a b : α}
 
 @[to_additive] instance : has_div (filter α) := ⟨map₂ (/)⟩
 
@@ -216,9 +222,14 @@ variables [has_div α] {f f₁ f₂ g g₁ g₂ h : filter α} {s t : set α}
 @[to_additive] lemma div_mem_div : s ∈ f → t ∈ g → s / t ∈ f / g := image2_mem_map₂
 @[simp, to_additive] lemma bot_div : ⊥ / g = ⊥ := map₂_bot_left
 @[simp, to_additive] lemma div_bot : f / ⊥ = ⊥ := map₂_bot_right
+@[simp, to_additive] lemma pure_div : pure a / g = g.map ((/) a)  := map₂_pure_left
+@[simp, to_additive] lemma div_pure : f / pure b = f.map (/ b)  := map₂_pure_right
+@[simp, to_additive] lemma pure_div_pure : (pure a : filter α) / pure b = pure (a / b) := map₂_pure
 @[simp, to_additive] lemma div_eq_bot_iff : f / g = ⊥ ↔ f = ⊥ ∨ g = ⊥ := map₂_eq_bot_iff
 @[simp, to_additive] lemma div_ne_bot_iff : (f / g).ne_bot ↔ f.ne_bot ∧ g.ne_bot := map₂_ne_bot_iff
 @[to_additive] lemma ne_bot.div : ne_bot f → ne_bot g → ne_bot (f / g) := ne_bot.map₂
+@[to_additive] lemma ne_bot.of_div_left : (f / g).ne_bot → f.ne_bot := ne_bot.of_map₂_left
+@[to_additive] lemma ne_bot.of_div_right : (f / g).ne_bot → g.ne_bot := ne_bot.of_map₂_right
 @[simp, to_additive] protected lemma le_div_iff :
   h ≤ f / g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s / t ∈ h :=
 le_map₂_iff
@@ -234,6 +245,40 @@ le_map₂_iff
 
 end div
 
+section division_monoid
+variables [division_monoid α] {f g : filter α}
+
+@[to_additive]
+protected lemma mul_eq_one_iff : f * g = 1 ↔ ∃ a b, f = pure a ∧ g = pure b ∧ a * b = 1 :=
+begin
+  refine ⟨λ hfg, _, _⟩,
+  { obtain ⟨t₁, t₂, h₁, h₂, h⟩ : (1 : set α) ∈ f * g := hfg.symm.subst one_mem_one,
+    have hfg : (f * g).ne_bot := hfg.symm.subst one_ne_bot,
+    rw [(hfg.nonempty_of_mem $ mul_mem_mul h₁ h₂).subset_one_iff, set.mul_eq_one_iff] at h,
+    obtain ⟨a, b, rfl, rfl, h⟩ := h,
+    refine ⟨a, b, _, _, h⟩,
+    { rwa [←hfg.of_mul_left.le_pure_iff, le_pure_iff] },
+    { rwa [←hfg.of_mul_right.le_pure_iff, le_pure_iff] } },
+  { rintro ⟨a, b, rfl, rfl, h⟩,
+    rw [pure_mul_pure, h, pure_one] }
+end
+
+/-- `filter α` is a division monoid under pointwise operations if `α` is. -/
+@[to_additive subtraction_monoid "`filter α` is a subtraction monoid under pointwise
+operations if `α` is."]
+instance division_monoid : division_monoid (filter α) :=
+{ mul_inv_rev := λ s t, map_map₂_antidistrib mul_inv_rev,
+  inv_eq_of_mul := λ s t h, begin
+    obtain ⟨a, b, rfl, rfl, hab⟩ := filter.mul_eq_one_iff.1 h,
+    rw [inv_pure, inv_eq_of_mul_eq_one_left hab],
+  end,
+  div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
+  ..filter.monoid, ..filter.has_involutive_inv, ..filter.has_div }
+
+end division_monoid
+
+-- `filter α` is not a group because `f / f ≠ 1` in general
+
 section group
 variables [group α] [group β] {f g  : filter α} {f₂ : filter β}
 
@@ -247,16 +292,6 @@ lemma tendsto.div_div [monoid_hom_class F α β] (m : F) {f₁ g₁ : filter α}
 λ hf hg, (filter.map_div m).trans_le $ filter.div_le_div hf hg
 
 end group
-
-/-- `filter α` is a division monoid under pointwise operations if `α` is. -/
-@[to_additive subtraction_monoid "`filter α` is a subtraction monoid under pointwise
-operations if `α` is."]
-instance division_monoid [division_monoid α] : division_monoid (filter α) :=
-{ mul_inv_rev := λ s t, map_map₂_antidistrib mul_inv_rev,
-  div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
-  ..filter.monoid, ..filter.has_involutive_inv, ..filter.has_div }
-
--- `filter α` is not a group because `s / s ≠ 1` in general
 
 /-! ### Scalar addition/multiplication of filters -/
 

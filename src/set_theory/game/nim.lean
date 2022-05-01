@@ -58,22 +58,61 @@ lemma nim_def (O : ordinal) : nim O = pgame.mk O.out.α O.out.α
   (λ O₂, nim (ordinal.typein (<) O₂)) :=
 by { rw nim, refl }
 
-instance nim_impartial : ∀ (O : ordinal), impartial (nim O)
-| O :=
+@[simp] lemma left_moves_nim (O : ordinal) : (nim O).left_moves = O.out.α :=
+by { rw nim_def, refl }
+@[simp] lemma right_moves_nim (O : ordinal) : (nim O).right_moves = O.out.α :=
+by { rw nim_def, refl }
+
+lemma move_left_nim_heq (O : ordinal) : (nim O).move_left == λ i : O.out.α, nim (typein (<) i) :=
+by { rw nim_def, refl }
+lemma move_right_nim_heq (O : ordinal) : (nim O).move_right == λ i : O.out.α, nim (typein (<) i) :=
+by { rw nim_def, refl }
+
+/-- Turns an ordinal less than `O` into a left move for `nim O` and viceversa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_left_moves_nim {O : ordinal} : O.out.α ≃ (nim O).left_moves :=
+equiv.cast (left_moves_nim O).symm
+
+/-- Turns an ordinal less than `O` into a right move for `nim O` and viceversa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_right_moves_nim {O : ordinal} : O.out.α ≃ (nim O).right_moves :=
+equiv.cast (right_moves_nim O).symm
+
+@[simp] lemma move_left_nim' {O : ordinal} (i) :
+  (nim O).move_left i = nim (typein (<) (to_left_moves_nim.symm i)) :=
+(congr_fun_heq _ (move_left_nim_heq O).symm i).symm
+@[simp] lemma move_left_nim {O : ordinal} (i) :
+  (nim O).move_left (to_left_moves_nim i) = nim (typein (<) i) :=
+by simp
+
+@[simp] lemma move_right_nim' {O : ordinal} (i) :
+  (nim O).move_right i = nim (typein (<) (to_right_moves_nim.symm i)) :=
+(congr_fun_heq _ (move_right_nim_heq O).symm i).symm
+@[simp] lemma move_right_nim {O : ordinal} (i) :
+  (nim O).move_right (to_right_moves_nim i) = nim (typein (<) i) :=
+by simp
+
+@[simp] lemma neg_nim (O : ordinal) : -nim O = nim O :=
 begin
-  rw [impartial_def, nim_def, neg_def],
-  split, split;
-  rw pgame.le_def,
-  all_goals { refine ⟨λ i, let hwf := ordinal.typein_lt_self i in _,
-    λ j, let hwf := ordinal.typein_lt_self j in _⟩ },
-  { exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) i).1⟩ },
-  { exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) j).1⟩ },
-  { exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) i).2⟩ },
-  { exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) j).2⟩ },
-  { exact nim_impartial (typein (<) i) },
-  { exact nim_impartial (typein (<) j) }
+  induction O using ordinal.induction with O IH,
+  rw nim_def, dsimp; congr;
+  funext i;
+  exact IH _ (ordinal.typein_lt_self i)
 end
-using_well_founded { dec_tac := tactic.assumption }
+
+instance nim_impartial (O : ordinal) : impartial (nim O) :=
+begin
+  induction O using ordinal.induction with O IH,
+  rw [impartial_def, neg_nim],
+  refine ⟨equiv_refl _, _, _⟩,
+  all_goals
+  { intro i,
+    simpa using IH _ (typein_lt_self _) }
+end
 
 lemma exists_ordinal_move_left_eq (O : ordinal) : ∀ i, ∃ O' < O, (nim O).move_left i = nim O' :=
 by { rw nim_def, exact λ i, ⟨_, ⟨ordinal.typein_lt_self i, rfl⟩⟩ }

@@ -61,9 +61,12 @@ end
 
 @[simp] lemma iff_eq_one {p : G} : is_idempotent_elem p ↔ p = 1 :=
 begin
-  rw ← mul_left_inv p,
-  nth_rewrite_rhs 1 ← h.eq,
-  rw [← mul_assoc, mul_left_inv, one_mul],
+  split,
+  { intro h,
+    rw ← mul_left_inv p,
+    nth_rewrite_rhs 1 ← h.eq,
+    rw [← mul_assoc, mul_left_inv, one_mul] },
+  { intro h, rw h, apply one, }
 end
 
 lemma group_with_zero_nonzero_one {p : G₀} (h : is_idempotent_elem p) (h₀ : p ≠ 0) : p = 1 :=

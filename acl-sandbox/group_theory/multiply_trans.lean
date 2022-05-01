@@ -17,7 +17,9 @@ import group_theory.group_action.embedding
 
 import .ad_to_ulift
 import .ad_sub_mul_actions
+import .mul_action_bihom
 import .wielandt
+
 
 
 -- import group_theory.subgroup.pointwise
@@ -206,6 +208,40 @@ def is_multiply_pretransitive' (M α : Type*) [has_scalar M α] (n : ℕ) :=
 def is_multiply_pretransitive (n : ℕ) :=
   is_pretransitive M (fin n ↪ α)
 
+lemma is_multiply_pretransitive_bihom (n : ℕ) (N β : Type*) [group N] [mul_action N β]
+  (j : mul_action_bihom M α N β) (hj : function.surjective j.to_fun)
+  (h : is_multiply_pretransitive M α n) : is_multiply_pretransitive N β n :=
+begin
+  let h_eq := h.exists_smul_eq,
+  apply is_pretransitive.mk,
+--  intros x y,
+  have aux : ∀ (x : fin n ↪ β), ∃ (x' : fin n ↪ α),
+    j.to_fun ∘ x'.to_fun = x.to_fun := λ x,
+  begin
+    let x' : fin n → α := λi, (hj (x i)).some,
+    suffices hx' : function.injective x',
+    { use ⟨x', hx'⟩,
+      ext i,
+      simp only [function.comp_app, to_fun_eq_coe],
+      rw ← classical.some_spec (hj (x i)) },
+    { intros i i' hi,
+      let hi' := congr_arg j.to_fun hi,
+      simp only [(classical.some_spec (hj (x _)))] at hi',
+      exact x.inj' hi' }
+  end,
+  intros x y,
+  obtain ⟨x', hx'⟩ := aux x,
+  obtain ⟨y', hy'⟩ := aux y,
+  obtain ⟨g, hg'⟩ := h_eq x' y',
+  use j.to_monoid_hom g,
+  ext i,
+  change _ • x.to_fun i = y.to_fun i,
+  rw [← hy', ← hx', j.map_smul'],
+  apply congr_arg,
+  rw ← hg',
+  simp only [to_fun_eq_coe, smul_apply]
+end
+
 lemma is_zero_pretransitive : is_multiply_pretransitive M α 0 :=
 begin
   apply is_pretransitive.mk,
@@ -213,7 +249,6 @@ begin
   ext i, exfalso,
   exact is_empty.false i,
 end
-
 
 /-
 lemma is_multiply_pretransitive_of_higher (M α : Type*) [has_scalar M α] {n : ℕ}

@@ -902,7 +902,7 @@ lemma nhds_top_basis [topological_space α] [linear_order α] [order_top α] [or
 lemma nhds_bot_basis [topological_space α] [linear_order α] [order_bot α] [order_topology α]
   [nontrivial α] :
   (𝓝 ⊥).has_basis (λ a : α, ⊥ < a) (λ a : α, Iio a) :=
-@nhds_top_basis (order_dual α) _ _ _ _ _ _
+@nhds_top_basis (order_dual α) _ _ _ _ _
 
 lemma nhds_top_basis_Ici [topological_space α] [linear_order α] [order_top α] [order_topology α]
   [nontrivial α] [densely_ordered α] :
@@ -914,7 +914,7 @@ nhds_top_basis.to_has_basis
 lemma nhds_bot_basis_Iic [topological_space α] [linear_order α] [order_bot α] [order_topology α]
   [nontrivial α] [densely_ordered α] :
   (𝓝 ⊥).has_basis (λ a : α, ⊥ < a) Iic :=
-@nhds_top_basis_Ici (order_dual α) _ _ _ _ _ _ _
+@nhds_top_basis_Ici (order_dual α) _ _ _ _ _ _
 
 lemma tendsto_nhds_top_mono [topological_space β] [partial_order β] [order_top β] [order_topology β]
   {l : filter α} {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ᶠ[l] g) :

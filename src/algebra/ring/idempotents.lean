@@ -49,11 +49,17 @@ lemma zero : is_idempotent_elem (0 : M₀) := by rw [is_idempotent_elem, mul_zer
 
 instance : has_zero { p : M₀ // is_idempotent_elem p } := { zero := ⟨ 0, zero ⟩ }
 
+@[simp] lemma coe_zero : ↑(0 : {p : M₀ // is_idempotent_elem p}) = (0 : M₀) :=
+rfl
+
 variables {M₁ : Type*} [mul_one_class M₁]
 
 lemma one : is_idempotent_elem (1 : M₁) := by rw [is_idempotent_elem, mul_one]
 
 instance : has_one { p : M₁ // is_idempotent_elem p } := { one := ⟨ 1, one ⟩ }
+
+@[simp] lemma coe_one : ↑(1 : { p : M₁ // is_idempotent_elem p }) = (1 : M₁) :=
+rfl
 
 variables {R : Type*} [non_assoc_ring R]
 
@@ -67,12 +73,27 @@ end
 ⟨ λ h, sub_sub_cancel 1 p ▸ h.one_sub, is_idempotent_elem.one_sub ⟩
 
 instance : has_compl { p : R // is_idempotent_elem p } :=
-⟨λ P, ⟨1 - P, P.prop.one_sub⟩⟩
+⟨λ p, ⟨1 - p.val, p.prop.one_sub⟩⟩
+
+@[simp] lemma coe_compl (p : { p : R // is_idempotent_elem p }) :
+  ↑(pᶜ) = (1 : R) - ↑p := rfl
 
 @[simp] lemma compl_compl (p : {p : R // is_idempotent_elem p}) : pᶜᶜ = p :=
 begin
   unfold has_compl.compl,
-  simp only [subtype.coe_mk, sub_sub_cancel, subtype.coe_eta],
+  simp only [subtype.val_eq_coe, sub_sub_cancel, subtype.coe_eta],
+end
+
+@[simp] lemma zero_compl : (0 : {p : R // is_idempotent_elem p})ᶜ = 1 :=
+begin
+  unfold has_compl.compl,
+  simpa only [subtype.val_eq_coe, coe_zero, sub_zero],
+end
+
+@[simp] lemma one_compl : (1 : {p : R // is_idempotent_elem p})ᶜ = 0 :=
+begin
+  unfold has_compl.compl,
+  simpa only [subtype.val_eq_coe, coe_one, sub_self],
 end
 
 end is_idempotent_elem

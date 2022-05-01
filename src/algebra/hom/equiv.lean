@@ -676,7 +676,7 @@ def mul_equiv.inv (G : Type*) [division_comm_monoid G] : G ≃* G :=
   map_mul' := mul_inv,
   ..equiv.inv G }
 
-@[simp] lemma mul_equiv.inv₀_symm (G : Type*) [division_comm_monoid G] :
+@[simp] lemma mul_equiv.inv_symm (G : Type*) [division_comm_monoid G] :
   (mul_equiv.inv G).symm = mul_equiv.inv G := rfl
 
 section type_tags

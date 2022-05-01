@@ -956,6 +956,8 @@ begin
   exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS),
 end
 
+end
+
 section
 
 /-! Some results about an open set containing the product of two sets in a topological group. -/

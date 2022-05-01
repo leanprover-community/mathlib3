@@ -29,9 +29,10 @@ An element `p` is said to be idempotent if `p * p = p`
 -/
 def is_idempotent_elem (p : M) : Prop := p * p = p
 
-lemma is_idempotent_elem.of_is_idempotent [is_idempotent M (*)] (a : M) : is_idempotent_elem a := is_idempotent.idempotent a
-
 namespace is_idempotent_elem
+
+lemma of_is_idempotent [is_idempotent M (*)] (a : M) : is_idempotent_elem a :=
+is_idempotent.idempotent a
 
 lemma eq {p : M} (h : is_idempotent_elem p) : p * p = p := h
 

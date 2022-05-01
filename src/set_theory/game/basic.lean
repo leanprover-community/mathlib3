@@ -624,7 +624,7 @@ begin
   { exact λ h', not_lt.2 h'.1 h }
 end
 
-theorem inv_not_pos {x : pgame} (h₁ : x ≤ 0) (h₂ : x < 0) : x⁻¹ = inv' (-x) :=
+theorem inv_eq_of_not_pos {x : pgame} (h₁ : x ≤ 0) (h₂ : x < 0) : x⁻¹ = inv' (-x) :=
 begin
   convert if_neg _,
   { apply eq.symm (if_neg _), exact not_lt.2 h₁ },

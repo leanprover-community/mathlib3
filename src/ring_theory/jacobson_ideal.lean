@@ -85,8 +85,7 @@ theorem mem_jacobson_iff {x : R} : x ∈ jacobson I ↔ ∀ y, ∃ z, z * y * x 
   (assume hxy : I ⊔ span {y * x + 1} = ⊤,
     let ⟨p, hpi, q, hq, hpq⟩ := submodule.mem_sup.1 ((eq_top_iff_one _).1 hxy) in
     let ⟨r, hr⟩ := mem_span_singleton'.1 hq in
-    ⟨r, by rw [← mul_one r, mul_assoc, mul_assoc, ← mul_add, one_mul, hr, ← hpq, ← neg_sub,
-               add_sub_cancel]; exact I.neg_mem hpi⟩)
+    ⟨r, by rw [mul_assoc, ←mul_add_one, hr, ← hpq, ← neg_sub, add_sub_cancel]; exact I.neg_mem hpi⟩)
   (assume hxy : I ⊔ span {y * x + 1} ≠ ⊤,
     let ⟨M, hm1, hm2⟩ := exists_le_maximal _ hxy in
     suffices x ∉ M, from (this $ mem_Inf.1 hx ⟨le_trans le_sup_left hm2, hm1⟩).elim,
@@ -94,13 +93,11 @@ theorem mem_jacobson_iff {x : R} : x ∈ jacobson I ↔ ∀ y, ∃ z, z * y * x 
       (le_sup_right.trans hm2 $ subset_span rfl)
       (M.mul_mem_left _ hxm)),
 λ hx, mem_Inf.2 $ λ M ⟨him, hm⟩, classical.by_contradiction $ λ hxm,
-  let ⟨y, hy⟩ := hm.exists_inv hxm, ⟨z, hz⟩ := hx (-y) in
+  let ⟨y, i, hi, df⟩ := hm.exists_inv hxm, ⟨z, hz⟩ := hx (-y) in
   hm.1.1 $ (eq_top_iff_one _).2 $ sub_sub_cancel (z * -y * x + z) 1 ▸ M.sub_mem
-    (by {
-      rw [mul_assoc, ←mul_add_one, neg_mul],
-      rcases hy with ⟨i, hi, df⟩,
-      rw [← (sub_eq_iff_eq_add.mpr df.symm), neg_sub, sub_add_cancel],
-      refine M.mul_mem_left _ hi }) (him hz)⟩
+    (by { rw [mul_assoc, ←mul_add_one, neg_mul, ← (sub_eq_iff_eq_add.mpr df.symm), neg_sub,
+            sub_add_cancel],
+          exact M.mul_mem_left _ hi }) (him hz)⟩
 
 lemma exists_mul_sub_mem_of_sub_one_mem_jacobson {I : ideal R} (r : R)
   (h : r - 1 ∈ jacobson I) : ∃ s, s * r - 1 ∈ I :=

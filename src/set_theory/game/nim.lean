@@ -215,7 +215,7 @@ lemma equiv_iff_grundy_value_eq (G H : pgame) [G.impartial] [H.impartial] :
 (equiv_congr_left.1 (equiv_nim_grundy_value H) _).trans $ equiv_nim_iff_grundy_value_eq _ _
 
 lemma grundy_value_zero : grundy_value 0 = 0 :=
-by rw [(equiv_iff_grundy_value_eq 0 (nim 0)).1 (equiv_symm nim.zero_first_loses), nim.grundy_value]
+by { rw [←nim.grundy_value 0, ←equiv_iff_grundy_value_eq], exact equiv_symm nim.nim_zero_equiv }
 
 lemma equiv_zero_iff_grundy_value (G : pgame) [G.impartial] : G ≈ 0 ↔ grundy_value G = 0 :=
 by rw [equiv_iff_grundy_value_eq, grundy_value_zero]

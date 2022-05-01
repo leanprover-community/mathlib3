@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Patrick Lutz
 -/
 
-_import field_theory.separable
+import field_theory.intermediate_field
+import field_theory.separable
 import ring_theory.tensor_product
 
 /-!

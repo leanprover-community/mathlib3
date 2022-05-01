@@ -422,30 +422,26 @@ end distrib_lattice
 section linear_order
 variables [linear_order α]
 
-lemma comp_sup_eq_sup_comp_of_is_total [semilattice_sup β] [order_bot β] (g : α → γ)
-  (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
-comp_sup_eq_sup_comp g mono_g.map_sup bot
-
-lemma comp_inf_eq_inf_comp_of_is_total [semilattice_inf β] [order_top β] (g : α → γ)
-  (mono_g : monotone g) (top : g ⊤ = ⊤) : g (s.inf f) = s.inf (g ∘ f) :=
-comp_inf_eq_inf_comp g mono_g.map_inf top
-
 section order_bot
 variables [order_bot α] {s : finset ι} {f : ι → α} {a : α}
 
-@[simp] lemma le_sup_iff (ha : ⊥ < a) : a ≤ s.sup f ↔ ∃ b ∈ s, a ≤ f b :=
+lemma comp_sup_eq_sup_comp_of_is_total [semilattice_sup β] [order_bot β] (g : α → β)
+  (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
+comp_sup_eq_sup_comp g mono_g.map_sup bot
+
+@[simp] protected lemma le_sup_iff (ha : ⊥ < a) : a ≤ s.sup f ↔ ∃ b ∈ s, a ≤ f b :=
 ⟨finset.cons_induction_on s (λ h, absurd h (not_le_of_lt ha))
   (λ c t hc ih, by simpa using @or.rec _ _ (∃ b, (b = c ∨ b ∈ t) ∧ a ≤ f b)
     (λ h, ⟨c, or.inl rfl, h⟩) (λ h, let ⟨b, hb, hle⟩ := ih h in ⟨b, or.inr hb, hle⟩)),
 (λ ⟨b, hb, hle⟩, trans hle (le_sup hb))⟩
 
-@[simp] lemma lt_sup_iff : a < s.sup f ↔ ∃ b ∈ s, a < f b :=
+@[simp] protected lemma lt_sup_iff : a < s.sup f ↔ ∃ b ∈ s, a < f b :=
 ⟨finset.cons_induction_on s (λ h, absurd h not_lt_bot)
   (λ c t hc ih, by simpa using @or.rec _ _ (∃ b, (b = c ∨ b ∈ t) ∧ a < f b)
     (λ h, ⟨c, or.inl rfl, h⟩) (λ h, let ⟨b, hb, hlt⟩ := ih h in ⟨b, or.inr hb, hlt⟩)),
 (λ ⟨b, hb, hlt⟩, lt_of_lt_of_le hlt (le_sup hb))⟩
 
-@[simp] lemma sup_lt_iff (ha : ⊥ < a) : s.sup f < a ↔ ∀ b ∈ s, f b < a :=
+@[simp] protected lemma sup_lt_iff (ha : ⊥ < a) : s.sup f < a ↔ ∀ b ∈ s, f b < a :=
 ⟨(λ hs b hb, lt_of_le_of_lt (le_sup hb) hs), finset.cons_induction_on s (λ _, ha)
   (λ c t hc, by simpa only [sup_cons, sup_lt_iff, mem_cons, forall_eq_or_imp] using and.imp_right)⟩
 
@@ -454,14 +450,18 @@ end order_bot
 section order_top
 variables [order_top α] {s : finset ι} {f : ι → α} {a : α}
 
-@[simp] lemma inf_le_iff (ha : a < ⊤) : s.inf f ≤ a ↔ ∃ b ∈ s, f b ≤ a :=
-@le_sup_iff (order_dual α) _ _ _ _ _ _ ha
+lemma comp_inf_eq_inf_comp_of_is_total [semilattice_inf β] [order_top β] (g : α → β)
+  (mono_g : monotone g) (top : g ⊤ = ⊤) : g (s.inf f) = s.inf (g ∘ f) :=
+comp_inf_eq_inf_comp g mono_g.map_inf top
 
-@[simp] lemma inf_lt_iff : s.inf f < a ↔ (∃ b ∈ s, f b < a) :=
-@lt_sup_iff (order_dual α) _ _ _ _ _ _
+@[simp] protected lemma inf_le_iff (ha : a < ⊤) : s.inf f ≤ a ↔ ∃ b ∈ s, f b ≤ a :=
+@finset.le_sup_iff (order_dual α) _ _ _ _ _ _ ha
 
-@[simp] lemma lt_inf_iff (ha : a < ⊤) : a < s.inf f ↔ ∀ b ∈ s, a < f b :=
-@sup_lt_iff (order_dual α) _ _ _ _ _ _ ha
+@[simp] protected lemma inf_lt_iff : s.inf f < a ↔ (∃ b ∈ s, f b < a) :=
+@finset.lt_sup_iff (order_dual α) _ _ _ _ _ _
+
+@[simp] protected lemma lt_inf_iff (ha : a < ⊤) : a < s.inf f ↔ ∀ b ∈ s, a < f b :=
+@finset.sup_lt_iff (order_dual α) _ _ _ _ _ _ ha
 
 end order_top
 end linear_order
@@ -713,19 +713,19 @@ variables [linear_order α] {s : finset ι} (H : s.nonempty) {f : ι → α} {a 
 
 @[simp] lemma le_sup'_iff : a ≤ s.sup' H f ↔ ∃ b ∈ s, a ≤ f b :=
 begin
-  rw [←with_bot.coe_le_coe, coe_sup', le_sup_iff (with_bot.bot_lt_coe a)],
+  rw [←with_bot.coe_le_coe, coe_sup', finset.le_sup_iff (with_bot.bot_lt_coe a)],
   exact bex_congr (λ b hb, with_bot.coe_le_coe),
 end
 
 @[simp] lemma lt_sup'_iff : a < s.sup' H f ↔ ∃ b ∈ s, a < f b :=
 begin
-  rw [←with_bot.coe_lt_coe, coe_sup', lt_sup_iff],
+  rw [←with_bot.coe_lt_coe, coe_sup', finset.lt_sup_iff],
   exact bex_congr (λ b hb, with_bot.coe_lt_coe),
 end
 
 @[simp] lemma sup'_lt_iff : s.sup' H f < a ↔ ∀ i ∈ s, f i < a :=
 begin
-  rw [←with_bot.coe_lt_coe, coe_sup', sup_lt_iff (with_bot.bot_lt_coe a)],
+  rw [←with_bot.coe_lt_coe, coe_sup', finset.sup_lt_iff (with_bot.bot_lt_coe a)],
   exact ball_congr (λ b hb, with_bot.coe_lt_coe),
 end
 
@@ -738,7 +738,7 @@ end
 @[simp] lemma lt_inf'_iff : a < s.inf' H f ↔ ∀ i ∈ s, a < f i :=
 @sup'_lt_iff (order_dual α) _ _ _ H f _
 
-lemma exists_mem_eq_sup' : ∃ i, i ∈ s ∧ s.sup' H f = f i :=
+lemma exists_mem_eq_sup' (f : ι → α) : ∃ i, i ∈ s ∧ s.sup' H f = f i :=
 begin
   refine H.cons_induction (λ c, _) (λ c s hc hs ih, _),
   { exact ⟨c, mem_singleton_self c, rfl⟩, },
@@ -749,8 +749,8 @@ begin
     { exact ⟨b, mem_cons.2 (or.inr hb), sup_eq_right.2 h⟩, }, },
 end
 
-lemma exists_mem_eq_inf' : ∃ i, i ∈ s ∧ s.inf' H f = f i :=
-@exists_mem_eq_sup' (order_dual α) _ _ _ H f _
+lemma exists_mem_eq_inf' (f : ι → α) : ∃ i, i ∈ s ∧ s.inf' H f = f i :=
+@exists_mem_eq_sup' (order_dual α) _ _ _ H f
 
 lemma exists_mem_eq_sup [order_bot α] (s : finset ι) (h : s.nonempty) (f : ι → α) :
   ∃ i, i ∈ s ∧ s.sup f = f i :=
@@ -758,7 +758,7 @@ sup'_eq_sup h f ▸ exists_mem_eq_sup' h f
 
 lemma exists_mem_eq_inf [order_top α] (s : finset ι) (h : s.nonempty) (f : ι → α) :
   ∃ i, i ∈ s ∧ s.inf f = f i :=
-@exists_mem_eq_sup (order_dual α) _ _ _ _ _ h f
+@exists_mem_eq_sup (order_dual α) _ _ _ _ h f
 
 end linear_order
 

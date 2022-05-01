@@ -18,7 +18,8 @@ This file defines idempotents for an arbitary multiplication and proves some bas
 projection, idempotent
 -/
 
-variables {M : Type*} [has_mul M]
+variables {M S M₀ M₁ : Type*}
+variables [has_mul M] [semigroup S] [mul_zero_class M₀] [mul_one_class M₁]
 
 /--
 An element `p` is said to be idempotent if `p * p = p`

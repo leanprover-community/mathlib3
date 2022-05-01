@@ -226,7 +226,7 @@ begin
   { simp only [continuous_pi_iff, fin.forall_fin_two],
     have : ∀ c : ℝ, continuous (λ x : ℝ, c) := λ c, continuous_const,
     exact ⟨⟨continuous_id, @this (-1 : ℤ)⟩, ⟨this (cd 0), this (cd 1)⟩⟩ },
-  refine filter.tendsto.of_tendsto_comp _ (comap_cocompact hmB),
+  refine filter.tendsto.of_tendsto_comp _ (comap_cocompact_le hmB),
   let f₁ : SL(2, ℤ) → matrix (fin 2) (fin 2) ℝ :=
     λ g, matrix.map (↑g : matrix _ _ ℤ) (coe : ℤ → ℝ),
   have cocompact_ℝ_to_cofinite_ℤ_matrix :

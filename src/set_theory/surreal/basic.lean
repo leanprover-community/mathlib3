@@ -342,27 +342,28 @@ inductive mul_args : Type (u+1)
 
 end pgame
 
-namespace game
+section comm_lemmas
 
-/-- An auxiliary result for the surreal multiplication proof. -/
-theorem add_add_lt_cancel_left {a b c d e : game} : a + b + c < a + d + e ↔ b + c < d + e :=
+parameters {a b c d e f g h : game.{u}}
+
+/-! A few auxiliary results for the surreal multiplication proof. -/
+
+private theorem add_add_lt_cancel_left : a + b + c < a + d + e ↔ b + c < d + e :=
 by rw [add_assoc, add_assoc, add_lt_add_iff_left]
 
-/-- An auxiliary result for the surreal multiplication proof. -/
-theorem add_add_lt_cancel_mid {a b c d e : game} : a + b + c < d + b + e ↔ a + c < d + e :=
+private theorem add_add_lt_cancel_mid : a + b + c < d + b + e ↔ a + c < d + e :=
 by rw [add_comm a, add_comm d, add_add_lt_cancel_left]
 
-end game
+private theorem add_comm₂ : a + b < c + d ↔ b + a < d + c :=
+by abel
+
+end comm_lemmas
 
 namespace pgame
 
-/-- An auxiliary result for the surreal multiplication proof. -/
-theorem add_add_lt_cancel_left {a b c d e : pgame} : a + b + c < a + d + e ↔ b + c < d + e :=
-@game.add_add_lt_cancel_left ⟦a⟧ ⟦b⟧ ⟦c⟧ ⟦d⟧ ⟦e⟧
-
-/-- An auxiliary result for the surreal multiplication proof. -/
-theorem add_add_lt_cancel_mid {a b c d e : pgame} : a + b + c < d + b + e ↔ a + c < d + e :=
-@game.add_add_lt_cancel_mid ⟦a⟧ ⟦b⟧ ⟦c⟧ ⟦d⟧ ⟦e⟧
+theorem quot_mul_comm₄ {a b c d e f g h : pgame} :
+  ⟦a * b⟧ + ⟦c * d⟧ < ⟦e * f⟧ + ⟦g * h⟧ ↔ ⟦b * a⟧ + ⟦d * c⟧ < ⟦f * e⟧ + ⟦h * g⟧ :=
+by rw [quot_mul_comm a, quot_mul_comm c, quot_mul_comm e, quot_mul_comm g]
 
 namespace mul_args
 
@@ -408,13 +409,12 @@ theorem result : ∀ x : mul_args, x.hypothesis
 
   have HL₁ : ∀ {ix iy jy}, ⟦mk xl xr xL xR * yL iy⟧ + ⟦xL ix * yR jy⟧ <
     ⟦⟨xl, xr, xL, xR⟩ * yR jy⟧ + ⟦xL ix * yL iy⟧,
-  { intros, rw [add_comm ⟦_ * yR jy⟧, add_comm],
+  { intros, rw add_comm₂,
     apply ((result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2
       (oy.left_lt_right iy jy)).1 },
   have HL₂ : ∀ {ix jx iy}, ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦xR jx * yL iy⟧ <
     ⟦xR jx * ⟨yl, yr, yL, yR⟩⟧ + ⟦xL ix * yL iy⟧,
-  { intros, rw [add_comm ⟦xR jx * _⟧, add_comm,
-      quot_mul_comm, quot_mul_comm (xL ix), quot_mul_comm (xL ix), quot_mul_comm (xR jx)],
+  { intros, rw [add_comm₂, quot_mul_comm₄],
     apply ((result (P2 _ _ _) (ox.move_left ix) (ox.move_right jx) oy).2
       (ox.left_lt_right ix jx)).1 },
 
@@ -426,35 +426,33 @@ theorem result : ∀ x : mul_args, x.hypothesis
     { rcases lt_or_equiv_or_gt (xL ix) (xL ix') with h | h | h,
       { have H₁ : ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xL ix * yL iy⟧ <
           ⟦xL ix' * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xL ix' * yL iy⟧,
-        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_mid, add_comm ⟦xL ix' * _⟧, add_comm,
-            quot_mul_comm, quot_mul_comm (xL ix), quot_mul_comm (xL ix), quot_mul_comm (xL ix')],
+        { rw [sub_lt_sub_iff, add_add_lt_cancel_mid, add_comm₂, quot_mul_comm₄],
           apply (HR₁.2 h).1 },
         have H₂ : ⟦xL ix' * mk yl yr yL yR⟧ + ⟦mk xl xr xL xR * yL iy⟧ - ⟦xL ix' * yL iy⟧ <
           ⟦xL ix' * mk yl yr yL yR⟧ + ⟦mk xl xr xL xR * yR jy⟧ - ⟦xL ix' * yR jy⟧,
-        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_left], apply HL₁ },
+        { rw [sub_lt_sub_iff, add_add_lt_cancel_left], apply HL₁ },
         exact lt_trans HN₁ HN₁ H₁ H₂ },
       { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
         have H₁ : ⟦xL ix * _⟧ = ⟦xL ix' * _⟧ := quot.sound (HR₁.1 h),
         have H₂ : ⟦xL ix * yR jy⟧ = ⟦xL ix' * yR jy⟧ := quot.sound
           ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') (oy.move_right jy)).1 h),
-        rw [H₁, ←H₂, sub_lt_sub_iff, game.add_add_lt_cancel_left], apply HL₁ },
+        rw [H₁, ←H₂, sub_lt_sub_iff, add_add_lt_cancel_left], apply HL₁ },
       { have H₁ : ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xL ix * yL iy⟧ <
           ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yR jy⟧ - ⟦xL ix * yR jy⟧,
-        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_left], apply HL₁ },
+        { rw [sub_lt_sub_iff, add_add_lt_cancel_left], apply HL₁ },
         have H₂ : ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yR jy⟧ - ⟦xL ix * yR jy⟧ <
           ⟦xL ix' * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yR jy⟧ - ⟦xL ix' * yR jy⟧,
-        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_mid,
-            quot_mul_comm, quot_mul_comm (xL ix'), quot_mul_comm (xL ix'), quot_mul_comm (xL ix)],
+        { rw [sub_lt_sub_iff, add_add_lt_cancel_mid, quot_mul_comm₄],
           apply (HR₁.2 h).2 },
         exact lt_trans HN₁ HN₃ H₁ H₂ } },
     { rcases lt_or_equiv_or_gt (yL iy) (yL iy') with h | h | h,
       { have H₁ : ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xL ix * yL iy⟧ <
           ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy'⟧ - ⟦xL ix * yL iy'⟧,
-        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_left, add_comm ⟦_ * yL iy'⟧, add_comm],
+        { rw [sub_lt_sub_iff, add_add_lt_cancel_left, add_comm₂],
           apply (HR₂.2 h).1 },
         have H₂ : ⟦xL ix * mk yl yr yL yR⟧ + ⟦mk xl xr xL xR * yL iy'⟧ - ⟦xL ix * yL iy'⟧ <
           ⟦xR jx * mk yl yr yL yR⟧ + ⟦mk xl xr xL xR * yL iy'⟧ - ⟦xR jx * yL iy'⟧,
-        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_mid], apply HL₂ },
+        { rw [sub_lt_sub_iff, add_add_lt_cancel_mid], apply HL₂ },
         exact lt_trans HN₁ HN₁ H₁ H₂ },
       { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
         have H₁ : ⟦mk xl xr xL xR * yL iy⟧ = ⟦mk xl xr xL xR * yL iy'⟧,
@@ -464,21 +462,21 @@ theorem result : ∀ x : mul_args, x.hypothesis
         { rw [quot_mul_comm, quot_mul_comm _ (yL iy')],
           exact quot.sound
             ((result (P2 _ _ _) (oy.move_left iy) (oy.move_left iy') (ox.move_right jx)).1 h) },
-        rw [H₁, ←H₂, sub_lt_sub_iff, game.add_add_lt_cancel_mid], apply HL₂ },
+        rw [H₁, ←H₂, sub_lt_sub_iff, add_add_lt_cancel_mid], apply HL₂ },
       { have H₁ : ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xL ix * yL iy⟧ <
           ⟦xR jx * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xR jx * yL iy⟧,
-        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_mid], apply HL₂ },
+        { rw [sub_lt_sub_iff, add_add_lt_cancel_mid], apply HL₂ },
         have H₂ : ⟦xR jx * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xR jx * yL iy⟧ <
           ⟦xR jx * mk yl yr yL yR⟧ + ⟦mk xl xr xL xR * yL iy'⟧ - ⟦xR jx * yL iy'⟧,
-        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_left], apply (HR₂.2 h).2 },
+        { rw [sub_lt_sub_iff, add_add_lt_cancel_left], apply (HR₂.2 h).2 },
         exact lt_trans HN₁ HN₂ H₁ H₂ } },
     repeat { sorry } },
   { rintro (⟨ix, iy⟩ | ⟨jx, jy⟩),
-    { apply HN₁ },
-    { apply HN₄ } },
+    { exact HN₁ },
+    { exact HN₄ } },
   { rintro (⟨ix, jy⟩ | ⟨jx, iy⟩),
-    { apply HN₃ },
-    { apply HN₂ } }
+    { exact HN₃ },
+    { exact HN₂ } }
 end
 | (P2 x₁ x₂ y) := begin
   sorry

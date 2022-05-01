@@ -81,7 +81,7 @@ by { rw nim_def, exact λ i, ⟨_, ⟨ordinal.typein_lt_self i, rfl⟩⟩ }
 lemma exists_move_left_eq {O : ordinal} : ∀ O' < O, ∃ i, (nim O).move_left i = nim O' :=
 by { rw nim_def, exact λ _ h, ⟨(ordinal.principal_seg_out h).top, by simp⟩ }
 
-lemma zero_first_loses : (nim (0 : ordinal)).first_loses :=
+@[simp] lemma zero_first_loses : (nim (0 : ordinal)).first_loses :=
 begin
   rw [impartial.first_loses_symm, nim_def, le_def_lt],
   exact ⟨@is_empty_elim (0 : ordinal).out.α _ _, @is_empty_elim pempty _ _⟩
@@ -94,7 +94,7 @@ begin
   exact or.inr ⟨(ordinal.principal_seg_out hO).top, by simpa using zero_first_loses.1⟩
 end
 
-lemma sum_first_loses_iff_eq (O₁ O₂ : ordinal) : (nim O₁ + nim O₂).first_loses ↔ O₁ = O₂ :=
+@[simp] lemma sum_first_loses_iff_eq (O₁ O₂ : ordinal) : (nim O₁ + nim O₂).first_loses ↔ O₁ = O₂ :=
 begin
   split,
   { contrapose,
@@ -112,10 +112,10 @@ begin
     exact impartial.add_self (nim O₁) }
 end
 
-lemma sum_first_wins_iff_neq (O₁ O₂ : ordinal) : (nim O₁ + nim O₂).first_wins ↔ O₁ ≠ O₂ :=
+@[simp] lemma sum_first_wins_iff_neq (O₁ O₂ : ordinal) : (nim O₁ + nim O₂).first_wins ↔ O₁ ≠ O₂ :=
 by rw [iff_not_comm, impartial.not_first_wins, sum_first_loses_iff_eq]
 
-lemma equiv_iff_eq (O₁ O₂ : ordinal) : nim O₁ ≈ nim O₂ ↔ O₁ = O₂ :=
+@[simp] lemma equiv_iff_eq (O₁ O₂ : ordinal) : nim O₁ ≈ nim O₂ ↔ O₁ = O₂ :=
 ⟨λ h, (sum_first_loses_iff_eq _ _).1 $
   by rw [first_loses_of_equiv_iff (add_congr h (equiv_refl _)), sum_first_loses_iff_eq],
  by { rintro rfl, refl }⟩
@@ -173,25 +173,26 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-lemma equiv_nim_iff_grundy_value_eq (G : pgame) [G.impartial] (O : ordinal) :
-  G ≈ nim O ↔ grundy_value G = O :=
-⟨by { intro h, rw ←nim.equiv_iff_eq, exact equiv_trans (equiv_symm (equiv_nim_grundy_value G)) h },
- by { rintro rfl, exact equiv_nim_grundy_value G }⟩
+@[simp] lemma equiv_nim_iff_grundy_value_eq (G : pgame) [G.impartial] (O : ordinal) :
+  grundy_value G = O ↔ G ≈ nim O :=
+⟨by { rintro rfl, exact equiv_nim_grundy_value G },
+  by { intro h, rw ←nim.equiv_iff_eq, exact equiv_trans (equiv_symm (equiv_nim_grundy_value G)) h }⟩
 
 lemma nim.grundy_value (O : ordinal.{u}) : grundy_value (nim O) = O :=
-by rw ←equiv_nim_iff_grundy_value_eq
+by simp
 
-lemma equiv_iff_grundy_value_eq (G H : pgame) [G.impartial] [H.impartial] :
-  G ≈ H ↔ grundy_value G = grundy_value H :=
-(equiv_congr_left.1 (equiv_nim_grundy_value H) _).trans $ equiv_nim_iff_grundy_value_eq _ _
+@[simp] lemma grundy_value_eq_iff_equiv (G H : pgame) [G.impartial] [H.impartial] :
+  grundy_value G = grundy_value H ↔ G ≈ H :=
+(equiv_nim_iff_grundy_value_eq _ _).trans (equiv_congr_left.1 (equiv_nim_grundy_value H) _).symm
 
-lemma grundy_value_zero : grundy_value 0 = 0 :=
-by rw [(equiv_iff_grundy_value_eq 0 (nim 0)).1 (equiv_symm nim.zero_first_loses), nim.grundy_value]
+@[simp] lemma grundy_value_zero : grundy_value 0 = 0 :=
+by rw [(grundy_value_eq_iff_equiv 0 (nim 0)).2 (equiv_symm nim.zero_first_loses), nim.grundy_value]
 
-lemma equiv_zero_iff_grundy_value (G : pgame) [G.impartial] : G ≈ 0 ↔ grundy_value G = 0 :=
-by rw [equiv_iff_grundy_value_eq, grundy_value_zero]
+@[simp] lemma grundy_value_iff_equiv_zero (G : pgame) [G.impartial] : grundy_value G = 0 ↔ G ≈ 0 :=
+by rw [←grundy_value_eq_iff_equiv, grundy_value_zero]
 
-lemma grundy_value_nim_add_nim (n m : ℕ) : grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=
+@[simp] lemma grundy_value_nim_add_nim (n m : ℕ) :
+  grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=
 begin
   induction n using nat.strong_induction_on with n hn generalizing m,
   induction m using nat.strong_induction_on with m hm,
@@ -262,12 +263,12 @@ begin
 end
 
 lemma nim_add_nim_equiv {n m : ℕ} : nim n + nim m ≈ nim (nat.lxor n m) :=
-by rw [equiv_nim_iff_grundy_value_eq, grundy_value_nim_add_nim]
+by rw [←equiv_nim_iff_grundy_value_eq, grundy_value_nim_add_nim]
 
 lemma grundy_value_add (G H : pgame) [G.impartial] [H.impartial] {n m : ℕ} (hG : grundy_value G = n)
   (hH : grundy_value H = m) : grundy_value (G + H) = nat.lxor n m :=
 begin
-  rw [←nim.grundy_value (nat.lxor n m), ←equiv_iff_grundy_value_eq],
+  rw [←nim.grundy_value (nat.lxor n m), grundy_value_eq_iff_equiv],
   refine equiv_trans _ nim_add_nim_equiv,
   convert add_congr (equiv_nim_grundy_value G) (equiv_nim_grundy_value H);
   simp only [hG, hH]

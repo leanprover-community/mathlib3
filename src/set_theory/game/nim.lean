@@ -120,7 +120,7 @@ lemma non_zero_first_wins {O : ordinal} (hO : O ≠ 0) : (nim O).first_wins :=
 begin
   rw [impartial.first_wins_symm, nim_def, lt_def_le],
   rw ←ordinal.pos_iff_ne_zero at hO,
-  exact or.inr ⟨(ordinal.principal_seg_out hO).top, by simpa using zero_first_loses.1⟩
+  exact or.inr ⟨(ordinal.principal_seg_out hO).top, by simp⟩
 end
 
 lemma sum_first_loses_iff_eq (O₁ O₂ : ordinal) : (nim O₁ + nim O₂).first_loses ↔ O₁ = O₂ :=

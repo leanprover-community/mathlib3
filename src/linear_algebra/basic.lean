@@ -1007,6 +1007,9 @@ def ker (f : M →ₛₗ[τ₁₂] M₂) : submodule R M := comap f ⊥
 lemma ker_to_add_submonoid (f : M →ₛₗ[τ₁₂] M₂) :
   f.ker.to_add_submonoid = f.to_add_monoid_hom.mker := rfl
 
+lemma range_to_add_submonoid [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) :
+  f.range.to_add_submonoid = f.to_add_monoid_hom.mrange := rfl
+
 lemma comp_ker_subtype (f : M →ₛₗ[τ₁₂] M₂) : f.comp f.ker.subtype = 0 :=
 linear_map.ext $ λ x, suffices f x = 0, by simp [this], mem_ker.1 x.2
 
@@ -1121,6 +1124,9 @@ open submodule
 
 lemma ker_to_add_subgroup (f : M →ₛₗ[τ₁₂] M₂) :
   f.ker.to_add_subgroup = f.to_add_monoid_hom.ker := rfl
+
+lemma range_to_add_subgroup [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) :
+  f.range.to_add_subgroup = f.to_add_monoid_hom.range := rfl
 
 theorem sub_mem_ker_iff {x y} : x - y ∈ f.ker ↔ f x = f y :=
 by rw [mem_ker, map_sub, sub_eq_zero]

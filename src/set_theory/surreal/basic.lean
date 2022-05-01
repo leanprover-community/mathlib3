@@ -1,11 +1,10 @@
 /-
 Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Scott Morrison
+Authors: Mario Carneiro, Scott Morrison, Violeta Hernández Palacios
 -/
 import set_theory.game.basic
 import set_theory.game.birthday
-import tactic.linarith
 
 /-!
 # Surreal numbers
@@ -397,57 +396,89 @@ theorem result : ∀ x : mul_args, x.hypothesis
   have HN₁ : ∀ {ix iy}, (xL ix * mk yl yr yL yR + mk xl xr xL xR * yL iy - xL ix * yL iy).numeric :=
   λ ix iy, ((result (P1 _ _) (ox.move_left ix) oy).add (result (P1 _ _) ox (oy.move_left iy))).sub
     (result (P1 _ _) (ox.move_left ix) (oy.move_left iy)),
+  have HN₂ : ∀ {jx iy}, (xR jx * mk yl yr yL yR + mk xl xr xL xR * yL iy - xR jx * yL iy).numeric :=
+  λ jx iy, ((result (P1 _ _) (ox.move_right jx) oy).add (result (P1 _ _) ox (oy.move_left iy))).sub
+    (result (P1 _ _) (ox.move_right jx) (oy.move_left iy)),
+  have HN₃ : ∀ {ix jy}, (xL ix * mk yl yr yL yR + mk xl xr xL xR * yR jy - xL ix * yR jy).numeric :=
+  λ ix jy, ((result (P1 _ _) (ox.move_left ix) oy).add (result (P1 _ _) ox (oy.move_right jy))).sub
+    (result (P1 _ _) (ox.move_left ix) (oy.move_right jy)),
+  have HN₄ : ∀ {jx jy}, (xR jx * mk yl yr yL yR + mk xl xr xL xR * yR jy - xR jx * yR jy).numeric :=
+  λ jx jy, ((result (P1 _ _) (ox.move_right jx) oy).add (result (P1 _ _) ox (oy.move_right jy))).sub
+    (result (P1 _ _) (ox.move_right jx) (oy.move_right jy)),
+
+  have HL₁ : ∀ {ix iy jy}, ⟦mk xl xr xL xR * yL iy⟧ + ⟦xL ix * yR jy⟧ <
+    ⟦⟨xl, xr, xL, xR⟩ * yR jy⟧ + ⟦xL ix * yL iy⟧,
+  { intros, rw [add_comm ⟦_ * yR jy⟧, add_comm],
+    apply ((result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2
+      (oy.left_lt_right iy jy)).1 },
+  have HL₂ : ∀ {ix jx iy}, ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦xR jx * yL iy⟧ <
+    ⟦xR jx * ⟨yl, yr, yL, yR⟩⟧ + ⟦xL ix * yL iy⟧,
+  { intros, rw [add_comm ⟦xR jx * _⟧, add_comm,
+      quot_mul_comm, quot_mul_comm (xL ix), quot_mul_comm (xL ix), quot_mul_comm (xR jx)],
+    apply ((result (P2 _ _ _) (ox.move_left ix) (ox.move_right jx) oy).2
+      (ox.left_lt_right ix jx)).1 },
+
+  have HR₁ := λ {ix ix'}, result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') oy,
+  have HR₂ := λ {iy iy'}, result (P2 _ _ _) (oy.move_left iy) (oy.move_left iy') ox,
 
   refine ⟨_, _, _⟩,
-  { rintro (⟨ix, iy⟩ | ⟨ix, iy⟩) (⟨ix', jy⟩ | ⟨ix', jy⟩),
+  { rintro (⟨ix, iy⟩ | ⟨ix, iy⟩) (⟨ix', jy⟩ | ⟨jx, iy'⟩),
     { rcases lt_or_equiv_or_gt (xL ix) (xL ix') with h | h | h,
       { have H₁ : ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xL ix * yL iy⟧ <
           ⟦xL ix' * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xL ix' * yL iy⟧,
         { rw [sub_lt_sub_iff, game.add_add_lt_cancel_mid, add_comm ⟦xL ix' * _⟧, add_comm,
             quot_mul_comm, quot_mul_comm (xL ix), quot_mul_comm (xL ix), quot_mul_comm (xL ix')],
-          apply ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') oy).2 h).1 },
-        have H₂ : ⟦xL ix' * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xL ix' * yL iy⟧ <
-          ⟦xL ix' * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yR jy⟧ - ⟦xL ix' * yR jy⟧,
-        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_left, add_comm ⟦_ * yR jy⟧, add_comm],
-          apply ((result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2
-            (oy.left_lt_right iy jy)).1 },
+          apply (HR₁.2 h).1 },
+        have H₂ : ⟦xL ix' * mk yl yr yL yR⟧ + ⟦mk xl xr xL xR * yL iy⟧ - ⟦xL ix' * yL iy⟧ <
+          ⟦xL ix' * mk yl yr yL yR⟧ + ⟦mk xl xr xL xR * yR jy⟧ - ⟦xL ix' * yR jy⟧,
+        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_left], apply HL₁ },
         exact lt_trans HN₁ HN₁ H₁ H₂ },
       { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
-        have H₁ : ⟦xL ix * _⟧ = ⟦xL ix' * _⟧ := quot.sound
-          ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') oy).1 h),
+        have H₁ : ⟦xL ix * _⟧ = ⟦xL ix' * _⟧ := quot.sound (HR₁.1 h),
         have H₂ : ⟦xL ix * yR jy⟧ = ⟦xL ix' * yR jy⟧ := quot.sound
           ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') (oy.move_right jy)).1 h),
-        rw [H₁, ←H₂, sub_lt_sub_iff, game.add_add_lt_cancel_left, add_comm ⟦_ * yR jy⟧, add_comm],
-        apply ((result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2
-          (oy.left_lt_right iy jy)).1 },
-      { have Hsussy : ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xL ix * yL iy⟧ <
+        rw [H₁, ←H₂, sub_lt_sub_iff, game.add_add_lt_cancel_left], apply HL₁ },
+      { have H₁ : ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xL ix * yL iy⟧ <
           ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yR jy⟧ - ⟦xL ix * yR jy⟧,
-        {
-
-        },
-        apply lt_trans sorry sorry Hsussy,
-        apply thesus ,
-        rw mul_sub_lt_iff,
-        apply (HR₂.2 h).2,
-
-
-       }
-    }, repeat { sorry } },
+        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_left], apply HL₁ },
+        have H₂ : ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yR jy⟧ - ⟦xL ix * yR jy⟧ <
+          ⟦xL ix' * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yR jy⟧ - ⟦xL ix' * yR jy⟧,
+        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_mid,
+            quot_mul_comm, quot_mul_comm (xL ix'), quot_mul_comm (xL ix'), quot_mul_comm (xL ix)],
+          apply (HR₁.2 h).2 },
+        exact lt_trans HN₁ HN₃ H₁ H₂ } },
+    { rcases lt_or_equiv_or_gt (yL iy) (yL iy') with h | h | h,
+      { have H₁ : ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xL ix * yL iy⟧ <
+          ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy'⟧ - ⟦xL ix * yL iy'⟧,
+        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_left, add_comm ⟦_ * yL iy'⟧, add_comm],
+          apply (HR₂.2 h).1 },
+        have H₂ : ⟦xL ix * mk yl yr yL yR⟧ + ⟦mk xl xr xL xR * yL iy'⟧ - ⟦xL ix * yL iy'⟧ <
+          ⟦xR jx * mk yl yr yL yR⟧ + ⟦mk xl xr xL xR * yL iy'⟧ - ⟦xR jx * yL iy'⟧,
+        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_mid], apply HL₂ },
+        exact lt_trans HN₁ HN₁ H₁ H₂ },
+      { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
+        have H₁ : ⟦mk xl xr xL xR * yL iy⟧ = ⟦mk xl xr xL xR * yL iy'⟧,
+        { rw [quot_mul_comm, quot_mul_comm _ (yL iy')],
+          exact quot.sound (HR₂.1 h) },
+        have H₂ : ⟦xR jx * yL iy⟧ = ⟦xR jx * yL iy'⟧,
+        { rw [quot_mul_comm, quot_mul_comm _ (yL iy')],
+          exact quot.sound
+            ((result (P2 _ _ _) (oy.move_left iy) (oy.move_left iy') (ox.move_right jx)).1 h) },
+        rw [H₁, ←H₂, sub_lt_sub_iff, game.add_add_lt_cancel_mid], apply HL₂ },
+      { have H₁ : ⟦xL ix * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xL ix * yL iy⟧ <
+          ⟦xR jx * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xR jx * yL iy⟧,
+        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_mid], apply HL₂ },
+        have H₂ : ⟦xR jx * ⟨yl, yr, yL, yR⟩⟧ + ⟦⟨xl, xr, xL, xR⟩ * yL iy⟧ - ⟦xR jx * yL iy⟧ <
+          ⟦xR jx * mk yl yr yL yR⟧ + ⟦mk xl xr xL xR * yL iy'⟧ - ⟦xR jx * yL iy'⟧,
+        { rw [sub_lt_sub_iff, game.add_add_lt_cancel_left], apply (HR₂.2 h).2 },
+        exact lt_trans HN₁ HN₂ H₁ H₂ } },
+    repeat { sorry } },
   { rintro (⟨ix, iy⟩ | ⟨jx, jy⟩),
     { apply HN₁ },
-    { apply (numeric.add _ _).sub _,
-      { exact result (P1 _ _) (ox.move_right jx) oy },
-      { exact result (P1 _ _) ox (oy.move_right jy) },
-      { exact result (P1 _ _) (ox.move_right jx) (oy.move_right jy) } } },
+    { apply HN₄ } },
   { rintro (⟨ix, jy⟩ | ⟨jx, iy⟩),
-    { apply (numeric.add _ _).sub _,
-      { exact result (P1 _ _) (ox.move_left ix) oy },
-      { exact result (P1 _ _) ox (oy.move_right jy) },
-      { exact result (P1 _ _) (ox.move_left ix) (oy.move_right jy) } },
-    { apply (numeric.add _ _).sub _,
-      { exact result (P1 _ _) (ox.move_right jx) oy },
-      { exact result (P1 _ _) ox (oy.move_left iy) },
-      { exact result (P1 _ _) (ox.move_right jx) (oy.move_left iy) } } }
+    { apply HN₃ },
+    { apply HN₂ } }
 end
 | (P2 x₁ x₂ y) := begin
   sorry

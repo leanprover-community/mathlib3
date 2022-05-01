@@ -16,7 +16,7 @@ section semiring
 
 variables {R : Type*} [semiring R] (p : R[X]) {k m n : ℕ} {u v w : R}
 
-lemma trinomial_support_le : support (C u * X ^ k + C v * X ^ m + C w * X ^ n) ⊆ {k, m, n} :=
+lemma trinomial_support_le : (C u * X ^ k + C v * X ^ m + C w * X ^ n).support ⊆ {k, m, n} :=
 support_add.trans (union_subset (support_add.trans (union_subset (support_C_mul_X_pow'.trans
   (singleton_subset_iff.mpr (mem_insert_self k {m, n}))) (support_C_mul_X_pow'.trans
   (singleton_subset_iff.mpr (mem_insert_of_mem (mem_insert_self m {n}))))))
@@ -24,29 +24,29 @@ support_add.trans (union_subset (support_add.trans (union_subset (support_C_mul_
   (mem_insert_of_mem (mem_insert_of_mem $ mem_singleton_self n)))))
 
 lemma trinomial_coeff_k (hkm : k < m) (hmn : m < n) :
-  coeff (C u * X ^ k + C v * X ^ m + C w * X ^ n) k = u :=
+  (C u * X ^ k + C v * X ^ m + C w * X ^ n).coeff k = u :=
 by rw [coeff_add, coeff_add, coeff_C_mul_X_pow, coeff_C_mul_X_pow, coeff_C_mul_X_pow,
   if_pos rfl, if_neg hkm.ne, if_neg (hkm.trans hmn).ne, add_zero, add_zero]
 
 lemma trinomial_coeff_m (hkm : k < m) (hmn : m < n) :
-  coeff (C u * X ^ k + C v * X ^ m + C w * X ^ n) m = v :=
+  (C u * X ^ k + C v * X ^ m + C w * X ^ n).coeff m = v :=
 by rw [coeff_add, coeff_add, coeff_C_mul_X_pow, coeff_C_mul_X_pow, coeff_C_mul_X_pow,
   if_neg hkm.ne', if_pos rfl, if_neg hmn.ne, zero_add, add_zero]
 
 lemma trinomial_coeff_n (hkm : k < m) (hmn : m < n) :
-  coeff (C u * X ^ k + C v * X ^ m + C w * X ^ n) n = w :=
+  (C u * X ^ k + C v * X ^ m + C w * X ^ n).coeff n = w :=
 by rw [coeff_add, coeff_add, coeff_C_mul_X_pow, coeff_C_mul_X_pow, coeff_C_mul_X_pow,
   if_neg (hkm.trans hmn).ne', if_neg hmn.ne', if_pos rfl, zero_add, zero_add]
 
 lemma trinomial_support_eq (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) (hv : v ≠ 0) (hw : w ≠ 0) :
-  support (C u * X ^ k + C v * X ^ m + C w * X ^ n) = {k, m, n} :=
+  (C u * X ^ k + C v * X ^ m + C w * X ^ n).support = {k, m, n} :=
 subset_antisymm trinomial_support_le (by
 { rw [insert_subset, mem_support_iff, trinomial_coeff_k hkm hmn, insert_subset, mem_support_iff,
     trinomial_coeff_m hkm hmn, singleton_subset_iff, mem_support_iff, trinomial_coeff_n hkm hmn],
   exact ⟨hu, hv, hw⟩ })
 
 lemma trinomial_nat_degree (hkm : k < m) (hmn : m < n) (hw : w ≠ 0) :
-  nat_degree (C u * X ^ k + C v * X ^ m + C w * X ^ n) = n :=
+  (C u * X ^ k + C v * X ^ m + C w * X ^ n).nat_degree = n :=
 begin
   refine nat_degree_eq_of_degree_eq_some (le_antisymm (sup_le (λ i hi, _))
     (le_degree_of_ne_zero (by rwa trinomial_coeff_n hkm hmn))),
@@ -59,7 +59,7 @@ begin
 end
 
 lemma trinomial_nat_trailing_degree (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) :
-  nat_trailing_degree (C u * X ^ k + C v * X ^ m + C w * X ^ n) = k :=
+  (C u * X ^ k + C v * X ^ m + C w * X ^ n).nat_trailing_degree = k :=
 begin
   refine nat_trailing_degree_eq_of_trailing_degree_eq_some (le_antisymm
     (le_trailing_degree_of_ne_zero (by rwa trinomial_coeff_k hkm hmn)) (le_inf (λ i hi, _))),
@@ -72,15 +72,15 @@ begin
 end
 
 lemma trinomial_leading_coeff (hkm : k < m) (hmn : m < n) (hw : w ≠ 0) :
-  leading_coeff (C u * X ^ k + C v * X ^ m + C w * X ^ n) = w :=
+  (C u * X ^ k + C v * X ^ m + C w * X ^ n).leading_coeff = w :=
 by rw [leading_coeff, trinomial_nat_degree hkm hmn hw, trinomial_coeff_n hkm hmn]
 
 lemma trinomial_trailing_coeff (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) :
-  trailing_coeff (C u * X ^ k + C v * X ^ m + C w * X ^ n) = u :=
+  (C u * X ^ k + C v * X ^ m + C w * X ^ n).trailing_coeff = u :=
 by rw [trailing_coeff, trinomial_nat_trailing_degree hkm hmn hu, trinomial_coeff_k hkm hmn]
 
 lemma trinomial_mirror (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) (hw : w ≠ 0) :
-  mirror (C u * X ^ k + C v * X ^ m + C w * X ^ n) =
+  (C u * X ^ k + C v * X ^ m + C w * X ^ n).mirror =
     C w * X ^ k + C v * X ^ (n - m + k) + C u * X ^ n :=
 by rw [mirror, trinomial_nat_trailing_degree hkm hmn hu, reverse, trinomial_nat_degree hkm hmn hw,
   reflect_add, reflect_add, reflect_C_mul_X_pow, reflect_C_mul_X_pow, reflect_C_mul_X_pow,
@@ -94,8 +94,9 @@ def is_unit_trinomial := ∃ {k m n : ℕ} (hkm : k < m) (hmn : m < n) {u v w : 
 
 variables {p} [nontrivial R]
 
-lemma is_unit_trinomial.card_support_eq_three (hp : is_unit_trinomial p) :
-  card (support p) = 3 :=
+namespace is_unit_trinomial
+
+lemma card_support_eq_three (hp : p.is_unit_trinomial) : p.support.card = 3 :=
 begin
   obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
   rw [trinomial_support_eq hkm hmn hu.ne_zero hv.ne_zero hw.ne_zero, card_insert_of_not_mem
@@ -103,15 +104,15 @@ begin
       card_insert_of_not_mem (mt mem_singleton.mp hmn.ne), card_singleton],
 end
 
-lemma is_unit_trinomial.ne_zero (hp : is_unit_trinomial p) : p ≠ 0 :=
+lemma ne_zero (hp : p.is_unit_trinomial) : p ≠ 0 :=
 begin
   rintro rfl,
   apply nat.zero_ne_bit1 1,
   rw [←hp.card_support_eq_three, support_zero, card_empty],
 end
 
-lemma is_unit_trinomial.coeff_is_unit (hp : is_unit_trinomial p)
-  {k : ℕ} (hk : k ∈ support p) : is_unit (coeff p k) :=
+lemma coeff_is_unit (hp : p.is_unit_trinomial) {k : ℕ} (hk : k ∈ p.support) :
+  is_unit (p.coeff k) :=
 begin
   obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
   have := trinomial_support_le hk,
@@ -122,28 +123,47 @@ begin
   { rwa trinomial_coeff_n hkm hmn },
 end
 
-lemma is_unit_trinomial.leading_coeff_is_unit (hp : is_unit_trinomial p) :
-  is_unit (leading_coeff p) :=
+lemma leading_coeff_is_unit (hp : p.is_unit_trinomial) : is_unit p.leading_coeff :=
 hp.coeff_is_unit (nat_degree_mem_support_of_nonzero hp.ne_zero)
 
-lemma is_unit_trinomial.trailing_coeff_is_unit (hp : is_unit_trinomial p) :
-  is_unit (trailing_coeff p) :=
+lemma trailing_coeff_is_unit (hp : p.is_unit_trinomial) : is_unit p.trailing_coeff :=
 hp.coeff_is_unit (nat_trailing_degree_mem_support_of_nonzero hp.ne_zero)
 
-lemma card_support_eq_three_iff : card (support p) = 3 ↔
-  ∃ {k m n : ℕ} (hkm : k < m) (hmn : m < n) {u v w}, p = C u * X ^ k + C v * X ^ m + C w * X ^ n :=
-begin
-  sorry,
-end
+end is_unit_trinomial
 
 lemma is_unit_trinomial_iff :
-  is_unit_trinomial p ↔ card (support p) = 3 ∧ ∀ k ∈ p.support, is_unit (coeff p k) :=
+  p.is_unit_trinomial ↔ p.support.card = 3 ∧ ∀ k ∈ p.support, is_unit (p.coeff k) :=
 begin
   refine ⟨λ hp, ⟨hp.card_support_eq_three, λ k, hp.coeff_is_unit⟩, λ hp, _⟩,
-  obtain ⟨k, m, n, hkm, hmn, u, v, w, rfl⟩ := card_support_eq_three_iff.mp hp.1,
-  -- first show that the support is exactly u,v,w by antisymm stuff
-  refine ⟨k, m, n, hkm, hmn, u, v, w, _⟩,
-  sorry,
+  have h3 : p.support.card = 3 := hp.1,
+  have h2 : p.erase_lead.support.card = 2 := erase_lead_card_support h3,
+  have h1 : p.erase_lead.erase_lead.support.card = 1 := erase_lead_card_support h2,
+  have h0 : p.erase_lead.erase_lead.erase_lead.support.card = 0 := erase_lead_card_support h1,
+  have h3' : p ≠ 0 := mt card_support_eq_zero.mpr (ne_of_eq_of_ne h3 three_ne_zero),
+  have h2' : p.erase_lead ≠ 0 := mt card_support_eq_zero.mpr (ne_of_eq_of_ne h2 two_ne_zero),
+  have h1' : p.erase_lead.erase_lead ≠ 0 :=
+  mt card_support_eq_zero.mpr (ne_of_eq_of_ne h1 one_ne_zero),
+  have h0' : p.erase_lead.erase_lead.erase_lead = 0 := by rw [←card_support_eq_zero, h0],
+  have hkm : p.erase_lead.erase_lead.nat_degree < p.erase_lead.nat_degree :=
+  p.erase_lead.erase_lead_nat_degree_lt_or_erase_lead_eq_zero.resolve_right h1',
+  have hmn : p.erase_lead.nat_degree < p.nat_degree :=
+  p.erase_lead_nat_degree_lt_or_erase_lead_eq_zero.resolve_right h2',
+  have hkn : p.erase_lead.erase_lead.nat_degree < p.nat_degree := hkm.trans hmn,
+  refine ⟨p.erase_lead.erase_lead.nat_degree, p.erase_lead.nat_degree, p.nat_degree, hkm, hmn,
+    p.erase_lead.erase_lead.leading_coeff, p.erase_lead.leading_coeff, p.leading_coeff, _, _, _, _⟩,
+  { rw [leading_coeff, erase_lead_coeff_of_ne _ hkm.ne, erase_lead_coeff_of_ne _ hkn.ne],
+    apply hp.2,
+    rwa [mem_support_iff, ←erase_lead_coeff_of_ne _ hkn.ne, ←erase_lead_coeff_of_ne _ hkm.ne,
+      ←leading_coeff, leading_coeff_ne_zero] },
+  { rw [leading_coeff, erase_lead_coeff_of_ne _ hmn.ne],
+    apply hp.2,
+    rwa [mem_support_iff, ←erase_lead_coeff_of_ne _ hmn.ne,
+      ←leading_coeff, leading_coeff_ne_zero] },
+  { apply hp.2,
+    rwa [mem_support_iff, ←leading_coeff, leading_coeff_ne_zero] },
+  { conv_lhs {rw ←p.erase_lead_add_C_mul_X_pow, congr, rw ←p.erase_lead.erase_lead_add_C_mul_X_pow,
+      congr, rw ← p.erase_lead.erase_lead.erase_lead_add_C_mul_X_pow },
+    rw [h0', zero_add] },
 end
 
 end semiring

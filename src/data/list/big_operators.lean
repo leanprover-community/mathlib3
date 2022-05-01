@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Sébastien Gouëzel, Alex J. Best
 -/
 import algebra.group_power
-import data.list.basic
+import data.list.forall2
 
 /-!
 # Sums and products from lists
@@ -193,15 +193,40 @@ lemma _root_.commute.list_sum_left [non_unital_non_assoc_semiring R] (b : R) (l 
   commute l.sum b :=
 (commute.list_sum_right _ _ $ λ x hx, (h _ hx).symm).symm
 
+@[to_additive sum_le_sum] lemma forall₂.prod_le_prod' [preorder M]
+  [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
+  {l₁ l₂ : list M} (h : forall₂ (≤) l₁ l₂) : l₁.prod ≤ l₂.prod :=
+begin
+  induction h with a b la lb hab ih ih',
+  { refl },
+  { simpa only [prod_cons] using mul_le_mul' hab ih' }
+end
+
+@[to_additive sum_le_sum] lemma sublist.prod_le_prod' [preorder M]
+  [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
+  {l₁ l₂ : list M} (h : l₁ <+ l₂) (h₁ : ∀ a ∈ l₂, (1 : M) ≤ a) : l₁.prod ≤ l₂.prod :=
+begin
+  induction h, { refl },
+  case cons : l₁ l₂ a ih ih' {
+    simp only [prod_cons, forall_mem_cons] at h₁ ⊢,
+    exact (ih' h₁.2).trans (le_mul_of_one_le_left' h₁.1) },
+  case cons2 : l₁ l₂ a ih ih' {
+    simp only [prod_cons, forall_mem_cons] at h₁ ⊢,
+    exact mul_le_mul_left' (ih' h₁.2) _ }
+end
+
+@[to_additive sum_le_sum] lemma sublist_forall₂.prod_le_prod' [preorder M]
+  [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
+  {l₁ l₂ : list M} (h : sublist_forall₂ (≤) l₁ l₂) (h₁ : ∀ a ∈ l₂, (1 : M) ≤ a) :
+  l₁.prod ≤ l₂.prod :=
+let ⟨l, hall, hsub⟩ := sublist_forall₂_iff.1 h
+in hall.prod_le_prod'.trans $ hsub.prod_le_prod' h₁
+
 @[to_additive sum_le_sum] lemma prod_le_prod' [preorder M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
   {l : list ι} {f g : ι → M} (h : ∀ i ∈ l, f i ≤ g i) :
   (l.map f).prod ≤ (l.map g).prod :=
-begin
-  induction l with i l ihl, { refl },
-  rw forall_mem_cons at h,
-  simpa using mul_le_mul' h.1 (ihl h.2)
-end
+forall₂.prod_le_prod' $ by simpa
 
 @[to_additive sum_lt_sum] lemma prod_lt_prod'
   [preorder M] [covariant_class M M (*) (<)] [covariant_class M M (*) (≤)]

@@ -125,8 +125,8 @@ theorem revzip_powerset_aux_lemma [decidable_eq α] (l : list α)
 begin
   have : forall₂ (λ (p : multiset α × multiset α) (s : multiset α), p = (s, ↑l - s))
     (revzip l') ((revzip l').map prod.fst),
-  { rw forall₂_map_right_iff,
-    apply forall₂_same, rintro ⟨s, t⟩ h,
+  { rw [forall₂_map_right_iff, forall₂_same],
+    rintro ⟨s, t⟩ h,
     dsimp, rw [← H h, add_tsub_cancel_left] },
   rw [← forall₂_eq_eq_eq, forall₂_map_right_iff], simpa
 end

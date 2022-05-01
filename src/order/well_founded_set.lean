@@ -738,19 +738,7 @@ lemma submonoid_closure [ordered_cancel_comm_monoid α] {s : set α} (hpos : ∀
 begin
   rw submonoid.closure_eq_image_prod,
   refine (h.partially_well_ordered_on_sublist_forall₂ (≤)).image_of_monotone_on _,
-  intros l1 l2 hl1 hl2 h12,
-  obtain ⟨l, hll1, hll2⟩ := list.sublist_forall₂_iff.1 h12,
-  refine le_trans (list.rel_prod (le_refl 1) (λ a b ab c d cd, mul_le_mul' ab cd) hll1) _,
-  obtain ⟨l', hl'⟩ := hll2.exists_perm_append,
-  rw [hl'.prod_eq, list.prod_append, ← mul_one l.prod, mul_assoc, one_mul],
-  apply mul_le_mul_left',
-  have hl's := λ x hx, hl2 x (list.subset.trans (l.subset_append_right _) hl'.symm.subset hx),
-  clear hl',
-  induction l' with x1 x2 x3 x4 x5,
-  { refl },
-  rw [list.prod_cons, ← one_mul (1 : α)],
-  exact mul_le_mul' (hpos x1 (hl's x1 (list.mem_cons_self x1 x2)))
-    (x3 (λ x hx, hl's x (list.mem_cons_of_mem _ hx)))
+  exact λ l1 hl1 l2 hl2 h12, h12.prod_le_prod' (λ x hx, hpos x $ hl2 x hx)
 end
 
 end is_pwo

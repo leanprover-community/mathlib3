@@ -18,8 +18,8 @@ This file defines idempotents for an arbitary multiplication and proves some bas
 projection, idempotent
 -/
 
-variables {M S M₀ M₁ : Type*}
-variables [has_mul M] [semigroup S] [mul_zero_class M₀] [mul_one_class M₁]
+variables {M S M₀ M₁ R : Type*}
+variables [has_mul M] [semigroup S] [mul_zero_class M₀] [mul_one_class M₁] [non_assoc_ring R]
 
 /--
 An element `p` is said to be idempotent if `p * p = p`
@@ -36,15 +36,11 @@ namespace is_idempotent_elem
 
 lemma eq {p : M} (h : is_idempotent_elem p) : p * p = p := h
 
-variables {S : Type*} [semigroup S]
-
 lemma mul_of_commute {p q : S} (h : commute p q) (h₁ : is_idempotent_elem p)
   (h₂ : is_idempotent_elem q) : is_idempotent_elem (p * q)  :=
 begin
   rw [is_idempotent_elem, mul_assoc, ← mul_assoc q, ←h.eq, mul_assoc p, h₂.eq, ← mul_assoc, h₁.eq],
 end
-
-variables {M₀ : Type*} [mul_zero_class M₀]
 
 lemma zero : is_idempotent_elem (0 : M₀) := by rw [is_idempotent_elem, mul_zero]
 
@@ -53,16 +49,12 @@ instance : has_zero { p : M₀ // is_idempotent_elem p } := { zero := ⟨ 0, zer
 @[simp] lemma coe_zero : ↑(0 : {p : M₀ // is_idempotent_elem p}) = (0 : M₀) :=
 rfl
 
-variables {M₁ : Type*} [mul_one_class M₁]
-
 lemma one : is_idempotent_elem (1 : M₁) := by rw [is_idempotent_elem, mul_one]
 
 instance : has_one { p : M₁ // is_idempotent_elem p } := { one := ⟨ 1, one ⟩ }
 
 @[simp] lemma coe_one : ↑(1 : { p : M₁ // is_idempotent_elem p }) = (1 : M₁) :=
 rfl
-
-variables {R : Type*} [non_assoc_ring R]
 
 lemma one_sub {p : R} (h : is_idempotent_elem p) : is_idempotent_elem (1 - p) :=
 begin

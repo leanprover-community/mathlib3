@@ -515,16 +515,13 @@ end
 /-- An equation in the target type gives an equivalence between the corresponding preimages. -/
 @[simps]
 def preimage_congr {α β : Type*} (f : α → β)
-  {c c' : β} (h : c = c') : f ⁻¹' {c} ≃ f ⁻¹' {c'} :=
-{ to_fun := λ x, ⟨x.1, by simpa [h] using x.2⟩,
-  inv_fun := λ x, ⟨x.1, by simpa [h] using x.2⟩,
-  left_inv := λ x, by simp,
-  right_inv := λ x, by simp, }
+  {s s' : set β} (h : s = s') : f ⁻¹' s ≃ f ⁻¹' s' :=
+equiv.set_congr $ h ▸ rfl
 
 lemma preimage_congr_apply
   {α β γ : Type*} {f : α → γ} {g : β → γ} (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c}))
   {c c' : γ} (h : c = c') (x : f ⁻¹' {c'}) :
-  (preimage_congr g h) (e c ⟨x.1, begin simpa [h] using x.2, end⟩) = e c' x :=
+  (preimage_congr g (congr_arg singleton h)) (e c ⟨x.1, begin simpa [h] using x.2, end⟩) = e c' x :=
 by { ext, cases h, simp, }
 
 /--

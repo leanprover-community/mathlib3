@@ -64,6 +64,19 @@ instance move_right_impartial {G : pgame} [h : G.impartial] (j : G.right_moves) 
   (G.move_right j).impartial :=
 (impartial_def.1 h).2.2 j
 
+theorem impartial_congr : ∀ {G H : pgame} (e : relabelling G H) [G.impartial], H.impartial
+| G H e := begin
+  introI h,
+  rw impartial_def,
+  refine ⟨equiv_trans e.symm.equiv (equiv_trans (neg_equiv_self G) (neg_congr e.equiv)),
+    λ i, _, λ j, _⟩;
+  cases e with _ _ L R hL hR,
+  { convert impartial_congr (hL (L.symm i)),
+    rw equiv.apply_symm_apply },
+  { exact impartial_congr (hR j) }
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
 instance impartial_add : ∀ (G H : pgame) [G.impartial] [H.impartial], (G + H).impartial
 | G H :=
 begin

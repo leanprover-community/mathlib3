@@ -12,13 +12,13 @@ import tactic.noncomm_ring
 
 A continuous projection P on a normed space X is said to be an L-projection if, for all `x` in `X`,
 $$
-∥x∥ = ∥P x∥ + ∥(1-P) x∥.
+∥x∥ = ∥P x∥ + ∥(1 - P) x∥.
 $$
 The range of an L-projection is said to be an L-summand of X.
 
 A continuous projection P on a normed space X is said to be an M-projection if, for all `x` in `X`,
 $$
-∥x∥ = max(∥P x∥,∥(1-P) x∥).
+∥x∥ = max(∥P x∥,∥(1 - P) x∥).
 $$
 The range of an M-projection is said to be an M-summand of X.
 
@@ -59,7 +59,7 @@ variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 X]
 /--
 A projection on a normed space `X` is said to be an L-projection if, for all `x` in `X`,
 $$
-∥x∥ = ∥P x∥ + ∥(1-P) x∥.
+∥x∥ = ∥P x∥ + ∥(1 - P) x∥.
 $$
 -/
 structure is_Lprojection (P : X →L[𝕜] X) : Prop :=
@@ -69,7 +69,7 @@ structure is_Lprojection (P : X →L[𝕜] X) : Prop :=
 /--
 A projection on a normed space `X` is said to be an M-projection if, for all `x` in `X`,
 $$
-∥x∥ = max(∥P x∥, ∥(1-P) x∥).
+∥x∥ = max(∥P x∥, ∥(1 - P) x∥).
 $$
 -/
 structure is_Mprojection (P : X →L[𝕜] X) : Prop :=
@@ -92,11 +92,11 @@ begin
     rw ← norm_sub_eq_zero_iff,
     have e1 : ∥R x∥ ≥ ∥R x∥ + 2 • ∥ (P * R) x - (R * P * R) x∥ :=
     calc ∥R x∥ = ∥R (P (R x))∥ + ∥(1 - R) (P (R x))∥ + (∥(R * R) x - R (P (R x))∥
-      + ∥(1-R) ((1 - P) (R x))∥) :
+      + ∥(1 - R) ((1 - P) (R x))∥) :
       by rw [h₁.Lnorm, h₃.Lnorm, h₃.Lnorm ((1 - P) (R x)), continuous_linear_map.sub_apply 1 P,
         continuous_linear_map.one_apply, map_sub, continuous_linear_map.coe_mul]
-    ... = ∥R (P (R x))∥ + ∥(1-R) (P (R x))∥ + (∥R x - R (P (R x))∥
-      + ∥((1 - R) * R) x - (1-R) (P (R x))∥) : by rw [h₃.proj.eq,
+    ... = ∥R (P (R x))∥ + ∥(1 - R) (P (R x))∥ + (∥R x - R (P (R x))∥
+      + ∥((1 - R) * R) x - (1 - R) (P (R x))∥) : by rw [h₃.proj.eq,
         continuous_linear_map.sub_apply 1 P, continuous_linear_map.one_apply,
         map_sub,continuous_linear_map.coe_mul]
     ... = ∥R (P (R x))∥ + ∥(1 - R) (P (R x))∥ + (∥R x - R (P (R x))∥ + ∥(1 - R) (P (R x))∥) :
@@ -114,7 +114,7 @@ begin
   end,
   have QP_eq_QPQ : Q * P = Q * P * Q :=
   begin
-    have e1: P * (1 - Q) = P * (1 - Q) - (Q * P - Q * P * Q) :=
+    have e1 : P * (1 - Q) = P * (1 - Q) - (Q * P - Q * P * Q) :=
     calc P * (1 - Q) = (1 - Q) * P * (1 - Q) : by rw PR_eq_RPR (1 - Q) h₂.Lcomplement
     ... = P * (1 - Q) - (Q * P - Q * P * Q) : by noncomm_ring,
     rwa [eq_sub_iff_add_eq, add_right_eq_self, sub_eq_zero] at e1
@@ -132,10 +132,10 @@ begin
     ... ≤ ∥(P * Q) x∥ + ∥ x - (P * Q) x ∥ : by apply norm_add_le
     ... = ∥(P * Q) x∥ + ∥(1 - P * Q) x∥ : by rw [continuous_linear_map.sub_apply,
       continuous_linear_map.one_apply] },
-  { calc ∥x∥ = ∥P(Q x)∥ + (∥Q x - P (Q x)∥ + ∥x - Q x∥) : by rw [h₂.Lnorm x, h₁.Lnorm (Q x),
+  { calc ∥x∥ = ∥P (Q x)∥ + (∥Q x - P (Q x)∥ + ∥x - Q x∥) : by rw [h₂.Lnorm x, h₁.Lnorm (Q x),
       continuous_linear_map.sub_apply, continuous_linear_map.one_apply,
       continuous_linear_map.sub_apply, continuous_linear_map.one_apply, add_assoc]
-    ... ≥ ∥P(Q x)∥ + ∥(Q x - P (Q x)) + (x - Q x)∥ :
+    ... ≥ ∥P (Q x)∥ + ∥(Q x - P (Q x)) + (x - Q x)∥ :
       by apply (add_le_add_iff_left (∥P(Q x)∥)).mpr (norm_add_le (Q x - P (Q x)) (x - Q x))
     ... = ∥(P * Q) x∥ + ∥(1 - P * Q) x∥ : by rw [sub_add_sub_cancel',
       continuous_linear_map.sub_apply, continuous_linear_map.one_apply,
@@ -168,7 +168,7 @@ instance : has_sup {P : X →L[𝕜] X // is_Lprojection P} :=
   ↑(P ⊔ Q) = ((↑P : X →L[𝕜] X) + ↑Q - ↑P * ↑Q) := rfl
 
 instance : has_sdiff {P : X →L[𝕜] X // is_Lprojection P} :=
-⟨λ P Q, ⟨P * (1-Q), by exact P.prop.mul Q.prop.Lcomplement ⟩⟩
+⟨λ P Q, ⟨P * (1 - Q), by exact P.prop.mul Q.prop.Lcomplement ⟩⟩
 
 @[simp] lemma coe_sdiff (P Q : {P : X →L[𝕜] X // is_Lprojection P}) :
   ↑(P \ Q) = (↑P : X →L[𝕜] X) * (1 - ↑Q) := rfl
@@ -198,7 +198,7 @@ rfl
 
 instance : bounded_order {P : X →L[𝕜] X // is_Lprojection P} :=
 { top := 1,
-  le_top := λ P, (by rw mul_one : (↑P: X  →L[𝕜] X) = ↑P * 1),
+  le_top := λ P, (by rw mul_one : (↑P : X  →L[𝕜] X) = ↑P * 1),
   bot := 0,
   bot_le := λ P, show 0 ≤ P, from zero_mul P, }
 
@@ -208,7 +208,7 @@ instance : bounded_order {P : X →L[𝕜] X // is_Lprojection P} :=
 @[simp] lemma coe_top : ↑(bounded_order.top : {P : X →L[𝕜] X // is_Lprojection P}) = (1 : X →L[𝕜] X)
   := rfl
 
-lemma compl_mul_left {P : {P : X →L[𝕜] X // is_Lprojection P}} {Q: X →L[𝕜] X} :
+lemma compl_mul_left {P : {P : X →L[𝕜] X // is_Lprojection P}} {Q : X →L[𝕜] X} :
   Q - ↑P * Q = ↑Pᶜ * Q := by rw [coe_compl, sub_mul, one_mul]
 
 lemma compl_orthog {P : {P : X →L[𝕜] X // is_Lprojection P}} :
@@ -217,11 +217,11 @@ by rw [coe_compl, mul_sub, mul_one, P.prop.proj.eq, sub_self]
 
 lemma distrib_lattice_lemma {P Q R : {P : X →L[𝕜] X // is_Lprojection P}} :
   ((↑P : X →L[𝕜] X) + ↑Pᶜ * R) * (↑P + ↑Q * ↑R * ↑Pᶜ) = (↑P + ↑Q * ↑R * ↑Pᶜ) :=
-by rw [add_mul, mul_add, mul_add, mul_assoc ↑Pᶜ ↑R (↑Q * ↑R * ↑Pᶜ), ← mul_assoc ↑R (↑Q*↑R)  ↑Pᶜ,
-    ← coe_inf Q, (Pᶜ.prop.commute R.prop).eq, ((Q⊓R).prop.commute Pᶜ.prop).eq,
-    (R.prop.commute (Q⊓R).prop).eq, coe_inf Q, mul_assoc ↑Q, ← mul_assoc, mul_assoc ↑R,
+by rw [add_mul, mul_add, mul_add, mul_assoc ↑Pᶜ ↑R (↑Q * ↑R * ↑Pᶜ), ← mul_assoc ↑R (↑Q * ↑R)  ↑Pᶜ,
+    ← coe_inf Q, (Pᶜ.prop.commute R.prop).eq, ((Q ⊓ R).prop.commute Pᶜ.prop).eq,
+    (R.prop.commute (Q ⊓ R).prop).eq, coe_inf Q, mul_assoc ↑Q, ← mul_assoc, mul_assoc ↑R,
     (Pᶜ.prop.commute P.prop).eq, compl_orthog, zero_mul, mul_zero, zero_add, add_zero, ← mul_assoc,
-    P.prop.proj.eq, R.prop.proj.eq, ← coe_inf Q, mul_assoc, ((Q⊓R).prop.commute Pᶜ.prop).eq,
+    P.prop.proj.eq, R.prop.proj.eq, ← coe_inf Q, mul_assoc, ((Q ⊓ R).prop.commute Pᶜ.prop).eq,
     ← mul_assoc, Pᶜ.prop.proj.eq]
 
 instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=

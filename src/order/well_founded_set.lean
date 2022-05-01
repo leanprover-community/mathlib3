@@ -98,16 +98,15 @@ begin
   simpa only [subtype.forall]
 end
 
-protected theorem mono (h : t.well_founded_on r') (hle : subrelation r r') (hst : s ⊆ t) :
+protected lemma mono (h : t.well_founded_on r') (hle : r ≤ r') (hst : s ⊆ t) :
   s.well_founded_on r :=
 begin
   rw well_founded_on_iff at *,
   refine subrelation.wf (λ x y xy, _) h,
-  exact ⟨hle xy.1, hst xy.2.1, hst xy.2.2⟩
+  exact ⟨hle _ _ xy.1, hst xy.2.1, hst xy.2.2⟩
 end
 
-theorem mono_set (h : t.well_founded_on r) (hst : s ⊆ t) : s.well_founded_on r :=
-h.mono (λ x y, id) hst
+lemma subset (h : t.well_founded_on r) (hst : s ⊆ t) : s.well_founded_on r := h.mono le_rfl hst
 
 end well_founded_on
 
@@ -148,7 +147,7 @@ end
 
 @[simp] lemma well_founded_on_union {s t : set α} {r : α → α → Prop} [is_strict_order α r] :
   (s ∪ t).well_founded_on r ↔ s.well_founded_on r ∧ t.well_founded_on r :=
-⟨λ h, ⟨h.mono_set $ subset_union_left _ _, h.mono_set $ subset_union_right _ _⟩, λ h, h.1.union h.2⟩
+⟨λ h, ⟨h.subset $ subset_union_left _ _, h.subset $ subset_union_right _ _⟩, λ h, h.1.union h.2⟩
 
 end is_strict_order
 
@@ -168,7 +167,7 @@ def is_wf (s : set α) : Prop := well_founded_on s (<)
 lemma is_wf_univ_iff : is_wf (univ : set α) ↔ well_founded ((<) : α → α → Prop) :=
 by simp [is_wf, well_founded_on_iff]
 
-theorem is_wf.mono (h : is_wf t) (st : s ⊆ t) : is_wf s := h.mono_set st
+theorem is_wf.mono (h : is_wf t) (st : s ⊆ t) : is_wf s := h.subset st
 
 end has_lt
 

@@ -169,7 +169,7 @@ open_locale pointwise
 
 @[to_additive] lemma left_inv_eq_inv : S.left_inv = S⁻¹ :=
 submonoid.ext $ λ x,
-  ⟨λ h, submonoid.mem_inv.mpr (eq_inv_of_mul_eq_one h.some_spec ▸ h.some.prop),
+  ⟨λ h, submonoid.mem_inv.mpr (eq_inv_of_mul_eq_one_left h.some_spec ▸ h.some.prop),
     λ h, ⟨⟨_, h⟩, mul_right_inv _⟩⟩
 
 @[simp, to_additive] lemma from_left_inv_eq_inv (x : S.left_inv) :

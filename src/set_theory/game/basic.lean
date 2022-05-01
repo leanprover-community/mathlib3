@@ -531,13 +531,12 @@ instance (l r : Type u) [is_empty l] [is_empty r] : is_empty (inv_ty l r tt) :=
 
 instance (l r : Type u) : inhabited (inv_ty l r ff) := ⟨inv_ty.zero⟩
 
+@[simp] theorem default_inv_ty_eq_zero (l r : Type u) : (default : inv_ty l r ff) = inv_ty.zero :=
+rfl
+
 instance unique_inv_ty (l r : Type u) [is_empty l] [is_empty r] : unique (inv_ty l r ff) :=
 { uniq := by { rintro (a | a | a), refl, all_goals { exact is_empty_elim a } },
   ..inv_ty.inhabited l r }
-
-@[simp] theorem default_inv_ty_eq_zero (l r : Type u) [is_empty l] [is_empty r] :
-  (default : inv_ty l r ff) = inv_ty.zero :=
-rfl
 
 /-- Because the two halves of the definition of `inv` produce more elements
 of each side, we have to define the two families inductively.

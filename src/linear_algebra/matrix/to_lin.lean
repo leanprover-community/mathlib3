@@ -50,7 +50,7 @@ section to_matrix'
 instance {n m} [fintype m] [decidable_eq m] [fintype n] [decidable_eq n] (R) [fintype R] :
   fintype (matrix m n R) := by unfold matrix; apply_instance
 
-variables {R : Type*} [comm_ring R]
+variables {R : Type*} [comm_semiring R]
 variables {l m n : Type*}
 
 /-- `matrix.mul_vec M` is a linear map. -/

@@ -69,7 +69,7 @@ open function
 universes u v w
 
 section
-variables (R : Type u) [ring R]
+variables (R : Type u) [semiring R]
 
 /-- We say that `R` satisfies the strong rank condition if `(fin n → R) →ₗ[R] (fin m → R)` injective
     implies `n ≤ m`. -/
@@ -164,7 +164,7 @@ instance invariant_basis_number_of_rank_condition [rank_condition R] : invariant
 end
 
 section
-variables (R : Type u) [ring R] [invariant_basis_number R]
+variables (R : Type u) [semiring R] [invariant_basis_number R]
 
 lemma eq_of_fin_equiv {n m : ℕ} : ((fin n → R) ≃ₗ[R] (fin m → R)) → n = m :=
 invariant_basis_number.eq_of_fin_equiv

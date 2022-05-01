@@ -73,7 +73,7 @@ end
 ⟨ λ h, sub_sub_cancel 1 p ▸ h.one_sub, is_idempotent_elem.one_sub ⟩
 
 instance : has_compl { p : R // is_idempotent_elem p } :=
-⟨λ p, ⟨1 - p.val, p.prop.one_sub⟩⟩
+⟨λ p, ⟨1 - p, p.prop.one_sub⟩⟩
 
 @[simp] lemma coe_compl (p : { p : R // is_idempotent_elem p }) :
   ↑(pᶜ) = (1 : R) - ↑p := rfl

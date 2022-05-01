@@ -61,7 +61,7 @@ begin
       ih.eq], }
 end
 
-lemma powers {p : N} (n : ℕ) (h : is_idempotent_elem p) : p^(n + 1) = p :=
+lemma pow_succ_eq {p : N} (n : ℕ) (h : is_idempotent_elem p) : p^(n + 1) = p :=
 begin
   induction n with n ih,
   { rw [nat.zero_add, pow_one], },

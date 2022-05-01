@@ -32,14 +32,6 @@ For `p : ℝ`, prove that `λ x, x ^ p` is concave when `0 ≤ p ≤ 1` and stri
 open real set
 open_locale big_operators
 
-/-- The norm of a real normed space is convex. Also see `seminorm.convex_on`. -/
-lemma convex_on_norm {E : Type*} [normed_group E] [normed_space ℝ E] :
-  convex_on ℝ univ (norm : E → ℝ) :=
-⟨convex_univ, λ x y hx hy a b ha hb hab,
-  calc ∥a • x + b • y∥ ≤ ∥a • x∥ + ∥b • y∥ : norm_add_le _ _
-    ... = a * ∥x∥ + b * ∥y∥
-        : by rw [norm_smul, norm_smul, real.norm_of_nonneg ha, real.norm_of_nonneg hb]⟩
-
 /-- `exp` is strictly convex on the whole real line. -/
 lemma strict_convex_on_exp : strict_convex_on ℝ univ exp :=
 strict_convex_on_univ_of_deriv2_pos differentiable_exp (λ x, (iter_deriv_exp 2).symm ▸ exp_pos x)

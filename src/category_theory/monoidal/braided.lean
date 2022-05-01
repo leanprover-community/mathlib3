@@ -57,12 +57,64 @@ restate_axiom braided_category.braiding_naturality'
 attribute [simp,reassoc] braided_category.braiding_naturality
 restate_axiom braided_category.hexagon_forward'
 restate_axiom braided_category.hexagon_reverse'
+attribute [reassoc] braided_category.hexagon_forward braided_category.hexagon_reverse
 
 open category
 open monoidal_category
 open braided_category
 
 notation `β_` := braiding
+
+/--
+Verifying the axioms for a braiding by checking that the candidate braiding is sent to a braiding
+by a faithful monoidal functor.
+-/
+def braided_category_of_faithful {C D : Type*} [category C] [category D]
+  [monoidal_category C] [monoidal_category D] (F : monoidal_functor C D) [faithful F.to_functor]
+  [braided_category D] (β : Π X Y : C, X ⊗ Y ≅ Y ⊗ X)
+  (w : ∀ X Y, F.μ _ _ ≫ F.map (β X Y).hom = (β_ _ _).hom ≫ F.μ _ _) : braided_category C :=
+{ braiding := β,
+  braiding_naturality' := begin
+    intros,
+    apply F.to_functor.map_injective,
+    refine (cancel_epi (F.μ _ _)).1 _,
+    rw [functor.map_comp, ←lax_monoidal_functor.μ_natural_assoc, w, functor.map_comp, reassoc_of w,
+      braiding_naturality_assoc, lax_monoidal_functor.μ_natural],
+  end,
+  hexagon_forward' := begin
+    intros,
+    apply F.to_functor.map_injective,
+    refine (cancel_epi (F.μ _ _)).1 _,
+    refine (cancel_epi (F.μ _ _ ⊗ 𝟙 _)).1 _,
+    rw [functor.map_comp, functor.map_comp, functor.map_comp, functor.map_comp,
+      ←lax_monoidal_functor.μ_natural_assoc, functor.map_id, ←comp_tensor_id_assoc, w,
+      comp_tensor_id, category.assoc, lax_monoidal_functor.associativity_assoc,
+      lax_monoidal_functor.associativity_assoc, ←lax_monoidal_functor.μ_natural, functor.map_id,
+      ←id_tensor_comp_assoc, w, id_tensor_comp_assoc, reassoc_of w, braiding_naturality_assoc,
+      lax_monoidal_functor.associativity, hexagon_forward_assoc],
+  end,
+  hexagon_reverse' := begin
+    intros,
+    apply F.to_functor.map_injective,
+    refine (cancel_epi (F.μ _ _)).1 _,
+    refine (cancel_epi (𝟙 _ ⊗ F.μ _ _)).1 _,
+    rw [functor.map_comp, functor.map_comp, functor.map_comp, functor.map_comp,
+      ←lax_monoidal_functor.μ_natural_assoc, functor.map_id, ←id_tensor_comp_assoc, w,
+      id_tensor_comp_assoc, lax_monoidal_functor.associativity_inv_assoc,
+      lax_monoidal_functor.associativity_inv_assoc, ←lax_monoidal_functor.μ_natural, functor.map_id,
+      ←comp_tensor_id_assoc, w, comp_tensor_id_assoc, reassoc_of w, braiding_naturality_assoc,
+      lax_monoidal_functor.associativity_inv, hexagon_reverse_assoc],
+  end, }
+
+/-- Pull back a braiding along a fully faithful monoidal functor. -/
+noncomputable
+def braided_category_of_fully_faithful {C D : Type*} [category C] [category D]
+  [monoidal_category C] [monoidal_category D] (F : monoidal_functor C D)
+  [full F.to_functor] [faithful F.to_functor]
+  [braided_category D] : braided_category C :=
+braided_category_of_faithful F (λ X Y, F.to_functor.preimage_iso
+  ((as_iso (F.μ _ _)).symm ≪≫ β_ (F.obj X) (F.obj Y) ≪≫ (as_iso (F.μ _ _))))
+  (by tidy)
 
 section
 /-!
@@ -236,6 +288,12 @@ structure braided_functor extends monoidal_functor C D :=
 
 restate_axiom braided_functor.braided'
 attribute [simp] braided_functor.braided
+
+/-- A braided category with a braided functor to a symmetric category is itself symmetric. -/
+def symmetric_category_of_faithful {C D : Type*} [category C] [category D]
+  [monoidal_category C] [monoidal_category D] [braided_category C] [symmetric_category D]
+  (F : braided_functor C D) [faithful F.to_functor] : symmetric_category C :=
+{ symmetry' := λ X Y, F.to_functor.map_injective (by simp), }
 
 namespace braided_functor
 

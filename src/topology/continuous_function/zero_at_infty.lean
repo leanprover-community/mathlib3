@@ -423,15 +423,14 @@ section star
 /-! ### Star structure
 
 It is possible to equip `C₀(α, β)` with a pointwise `star` operation whenever there is a continuous
-`star : β → β` for which `star (0 : β) = 0`. However, we have no such minimal type classes (e.g.,
-`has_continuous_star` or `star_zero_class`) and so the type class assumptions on `β` sufficient to
-guarantee these conditions are `[normed_group β]`, `[star_add_monoid β]` and
-`[normed_star_group β]`, which allow for the corresponding classes on `C₀(α, β)` essentially
-inherited from their counterparts on `α →ᵇ β`. Ultimately, when `β` is a C⋆-ring, then so is
-`C₀(α, β)`.
+`star : β → β` for which `star (0 : β) = 0`. We don't have quite this weak a typeclass, but
+`star_add_monoid` is close enough.
+
+The `star_add_monoid` and `normed_star_group` classes on `C₀(α, β)` are inherited from their
+counterparts on `α →ᵇ β`. Ultimately, when `β` is a C⋆-ring, then so is `C₀(α, β)`.
 -/
 
-variables [normed_group β] [star_add_monoid β] [normed_star_group β]
+variables [topological_space β] [add_monoid β] [star_add_monoid β] [has_continuous_star β]
 
 instance : has_star C₀(α, β) :=
 { star := λ f,
@@ -446,20 +445,26 @@ lemma coe_star (f : C₀(α, β)) : ⇑(star f) = star f := rfl
 lemma star_apply (f : C₀(α, β)) (x : α) :
   (star f) x = star (f x) := rfl
 
-instance : star_add_monoid C₀(α, β) :=
+instance [has_continuous_add β] : star_add_monoid C₀(α, β) :=
 { star_involutive := λ f, ext $ λ x, star_star (f x),
   star_add := λ f g, ext $ λ x, star_add (f x) (g x) }
+
+end star
+
+section normed_star
+
+variables [normed_group β] [star_add_monoid β] [normed_star_group β]
 
 instance : normed_star_group C₀(α, β) :=
 { norm_star := λ f, (norm_star f.to_bcf : _) }
 
-end star
+end normed_star
 
 section star_module
 
-variables {𝕜 : Type*} [semiring 𝕜] [has_star 𝕜]
-  [normed_group β] [star_add_monoid β] [normed_star_group β]
-  [module 𝕜 β] [has_continuous_const_smul 𝕜 β] [star_module 𝕜 β]
+variables {𝕜 : Type*} [has_zero 𝕜] [has_star 𝕜]
+  [add_monoid β] [star_add_monoid β] [topological_space β] [has_continuous_star β]
+  [smul_with_zero 𝕜 β] [has_continuous_const_smul 𝕜 β] [star_module 𝕜 β]
 
 instance : star_module 𝕜 C₀(α, β) :=
 { star_smul := λ k f, ext $ λ x, star_smul k (f x) }
@@ -468,16 +473,21 @@ end star_module
 
 section star_ring
 
-variables [non_unital_normed_ring β] [star_ring β]
+variables [non_unital_semiring β] [star_ring β] [topological_space β] [has_continuous_star β]
+  [topological_semiring β]
 
-instance [normed_star_group β] : star_ring C₀(α, β) :=
+instance : star_ring C₀(α, β) :=
 { star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),
   ..zero_at_infty_continuous_map.star_add_monoid }
 
-instance [cstar_ring β] : cstar_ring C₀(α, β) :=
+end star_ring
+
+section cstar_ring
+
+instance [non_unital_normed_ring β] [star_ring β] [cstar_ring β] : cstar_ring C₀(α, β) :=
 { norm_star_mul_self := λ f, @cstar_ring.norm_star_mul_self _ _ _ _ f.to_bcf }
 
-end star_ring
+end cstar_ring
 
 /-! ### C₀ as a functor
 

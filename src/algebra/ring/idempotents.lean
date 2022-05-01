@@ -18,8 +18,8 @@ This file defines idempotents for an arbitary multiplication and proves some bas
 projection, idempotent
 -/
 
-variables {M S M₀ M₁ R : Type*}
-variables [has_mul M] [semigroup S] [mul_zero_class M₀] [mul_one_class M₁] [non_assoc_ring R]
+variables {M N S M₀ M₁ R : Type*}
+variables [has_mul M] [monoid N] [semigroup S] [mul_zero_class M₀] [mul_one_class M₁] [non_assoc_ring R]
 
 /--
 An element `p` is said to be idempotent if `p * p = p`
@@ -42,22 +42,9 @@ begin
   rw [is_idempotent_elem, mul_assoc, ← mul_assoc q, ←h.eq, mul_assoc p, h₂.eq, ← mul_assoc, h₁.eq],
 end
 
-/-! ### Instances on `subtype is_idempotent_elem` -/
-section instances
-
 lemma zero : is_idempotent_elem (0 : M₀) := by rw [is_idempotent_elem, mul_zero]
 
-instance : has_zero { p : M₀ // is_idempotent_elem p } := { zero := ⟨ 0, zero ⟩ }
-
-@[simp] lemma coe_zero : ↑(0 : {p : M₀ // is_idempotent_elem p}) = (0 : M₀) :=
-rfl
-
 lemma one : is_idempotent_elem (1 : M₁) := by rw [is_idempotent_elem, mul_one]
-
-instance : has_one { p : M₁ // is_idempotent_elem p } := { one := ⟨ 1, one ⟩ }
-
-@[simp] lemma coe_one : ↑(1 : { p : M₁ // is_idempotent_elem p }) = (1 : M₁) :=
-rfl
 
 lemma one_sub {p : R} (h : is_idempotent_elem p) : is_idempotent_elem (1 - p) :=
 begin
@@ -67,6 +54,19 @@ end
 
 @[simp] lemma one_sub_iff {p : R} : is_idempotent_elem (1 - p) ↔ is_idempotent_elem p :=
 ⟨ λ h, sub_sub_cancel 1 p ▸ h.one_sub, is_idempotent_elem.one_sub ⟩
+
+/-! ### Instances on `subtype is_idempotent_elem` -/
+section instances
+
+instance : has_zero { p : M₀ // is_idempotent_elem p } := { zero := ⟨ 0, zero ⟩ }
+
+@[simp] lemma coe_zero : ↑(0 : {p : M₀ // is_idempotent_elem p}) = (0 : M₀) :=
+rfl
+
+instance : has_one { p : M₁ // is_idempotent_elem p } := { one := ⟨ 1, one ⟩ }
+
+@[simp] lemma coe_one : ↑(1 : { p : M₁ // is_idempotent_elem p }) = (1 : M₁) :=
+rfl
 
 instance : has_compl { p : R // is_idempotent_elem p } :=
 ⟨λ p, ⟨1 - p, p.prop.one_sub⟩⟩

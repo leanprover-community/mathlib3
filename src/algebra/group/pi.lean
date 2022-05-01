@@ -52,9 +52,17 @@ instance comm_monoid [∀ i, comm_monoid $ f i] : comm_monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), npow := monoid.npow };
 tactic.pi_instance_derive_field
 
+@[to_additive pi.sub_neg_monoid]
+instance [Π i, div_inv_monoid $ f i] : div_inv_monoid (Π i : I, f i) :=
+by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
+  npow := monoid.npow, zpow := λ z x i, (x i) ^ z }; tactic.pi_instance_derive_field
+
 @[to_additive]
-instance div_inv_monoid [∀ i, div_inv_monoid $ f i] :
-  div_inv_monoid (Π i : I, f i) :=
+instance [Π i, has_involutive_inv $ f i] : has_involutive_inv (Π i, f i) :=
+by refine_struct { inv := has_inv.inv }; tactic.pi_instance_derive_field
+
+@[to_additive pi.subtraction_monoid]
+instance [Π i, division_monoid $ f i] : division_monoid (Π i, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, div := has_div.div,
   npow := monoid.npow, zpow := λ z x i, (x i) ^ z }; tactic.pi_instance_derive_field
 

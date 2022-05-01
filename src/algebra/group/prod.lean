@@ -80,6 +80,11 @@ lemma inv_mk [has_inv G] [has_inv H] (a : G) (b : H) : (a, b)⁻¹ = (a⁻¹, b�
 lemma swap_inv [has_inv G] [has_inv H] (p : G × H) : (p⁻¹).swap = p.swap⁻¹ := rfl
 
 @[to_additive]
+instance [has_involutive_inv M] [has_involutive_inv N] : has_involutive_inv (M × N) :=
+{ inv_inv := λ a, ext (inv_inv _) (inv_inv _),
+  ..prod.has_inv }
+
+@[to_additive]
 instance [has_div M] [has_div N] : has_div (M × N) := ⟨λ p q, ⟨p.1 / q.1, p.2 / q.2⟩⟩
 
 @[simp, to_additive] lemma fst_div [has_div G] [has_div H] (a b : G × H) : (a / b).1 = a.1 / b.1 :=
@@ -117,7 +122,7 @@ instance [monoid M] [monoid N] : monoid (M × N) :=
   npow_succ' := λ z a, ext (monoid.npow_succ' _ _) (monoid.npow_succ' _ _),
   .. prod.semigroup, .. prod.mul_one_class }
 
-@[to_additive]
+@[to_additive prod.sub_neg_monoid]
 instance [div_inv_monoid G] [div_inv_monoid H] : div_inv_monoid (G × H) :=
 { div_eq_mul_inv := λ a b, mk.inj_iff.mpr ⟨div_eq_mul_inv _ _, div_eq_mul_inv _ _⟩,
   zpow := λ z a, ⟨div_inv_monoid.zpow z a.1, div_inv_monoid.zpow z a.2⟩,
@@ -125,6 +130,13 @@ instance [div_inv_monoid G] [div_inv_monoid H] : div_inv_monoid (G × H) :=
   zpow_succ' := λ z a, ext (div_inv_monoid.zpow_succ' _ _) (div_inv_monoid.zpow_succ' _ _),
   zpow_neg' := λ z a, ext (div_inv_monoid.zpow_neg' _ _) (div_inv_monoid.zpow_neg' _ _),
   .. prod.monoid, .. prod.has_inv, .. prod.has_div }
+
+@[to_additive subtraction_monoid]
+instance [division_monoid G] [division_monoid H] : division_monoid (G × H) :=
+{ mul_inv_rev := λ a b, ext (mul_inv_rev _ _) (mul_inv_rev _ _),
+  inv_eq_of_mul := λ a b h, ext (inv_eq_of_mul_eq_one $ congr_arg fst h)
+    (inv_eq_of_mul_eq_one $ congr_arg snd h),
+  .. prod.div_inv_monoid, .. prod.has_involutive_inv }
 
 @[to_additive]
 instance [group G] [group H] : group (G × H) :=

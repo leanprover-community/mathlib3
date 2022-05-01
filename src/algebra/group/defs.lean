@@ -642,7 +642,7 @@ variables [division_monoid G] {a b : G}
 division_monoid.mul_inv_rev _ _
 
 @[simp, to_additive]
-lemma inv_eq_of_mul_eq_one_left : a * b = 1 → a⁻¹ = b := division_monoid.inv_eq_of_mul _ _
+lemma inv_eq_of_mul_eq_one : a * b = 1 → a⁻¹ = b := division_monoid.inv_eq_of_mul _ _
 
 end division_monoid
 

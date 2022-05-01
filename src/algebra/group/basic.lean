@@ -225,7 +225,7 @@ variables {G : Type u} [group G] {a b c d : G}
 
 @[simp, to_additive neg_zero]
 lemma one_inv : 1⁻¹ = (1 : G) :=
-inv_eq_of_mul_eq_one_left (one_mul 1)
+inv_eq_of_mul_eq_one (one_mul 1)
 
 @[to_additive]
 theorem left_inverse_inv (G) [has_involutive_inv G] :
@@ -254,7 +254,7 @@ theorem mul_right_surjective (a : G) : function.surjective (λ x, x * a) :=
 
 @[to_additive]
 lemma eq_inv_of_mul_eq_one (h : a * b = 1) : a = b⁻¹ :=
-have a⁻¹ = b, from inv_eq_of_mul_eq_one_left h,
+have a⁻¹ = b, from inv_eq_of_mul_eq_one h,
 by simp [this.symm]
 
 @[to_additive]

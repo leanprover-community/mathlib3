@@ -177,7 +177,7 @@ open tensor_product
 variable [module.finite R (M ⊗[R] N)] --Temporary until this is made an instance by #13705
 
 theorem trace_tensor_product :
-  compr₂ map_bilinear (trace R (M ⊗ N)) =
+  compr₂ (map_bilinear R M N M N) (trace R (M ⊗ N)) =
   compl₁₂ (lsmul R R : R →ₗ[R] R →ₗ[R] R) (trace R M) (trace R N) :=
 begin
   apply (compl₁₂_inj

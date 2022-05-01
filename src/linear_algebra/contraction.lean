@@ -61,7 +61,7 @@ by { dunfold dual_tensor_hom, rw uncurry_apply, refl, }
 
 lemma map_dual_tensor_hom (f : module.dual R M) (p : P) (g : module.dual R N) (q : Q) :
   tensor_product.map (dual_tensor_hom R M P (f ⊗ₜ[R] p)) (dual_tensor_hom R N Q (g ⊗ₜ[R] q)) =
-  dual_tensor_hom R (M ⊗[R] N) (P ⊗[R] Q) (dual_tensor_dual_map (f ⊗ₜ g) ⊗ₜ[R] (p ⊗ₜ[R] q)) :=
+  dual_tensor_hom R (M ⊗[R] N) (P ⊗[R] Q) (dual_tensor_dual_map R M N (f ⊗ₜ g) ⊗ₜ[R] (p ⊗ₜ[R] q)) :=
 begin
   ext m n, simp only [compr₂_apply, mk_apply, map_tmul, dual_tensor_hom_apply,
   dual_tensor_dual_map_apply, mul_smul_tmul],
@@ -207,7 +207,7 @@ rtensor_hom_equiv_hom_rtensor R M P _ ≪≫ₗ
 
 @[simp]
 lemma hom_tensor_hom_equiv_to_linear_map :
-  (hom_tensor_hom_equiv R M N P Q).to_linear_map = hom_tensor_hom_map :=
+  (hom_tensor_hom_equiv R M N P Q).to_linear_map = hom_tensor_hom_map R M N P Q :=
 begin
   ext f g m n,
   simp only [hom_tensor_hom_equiv, compr₂_apply, mk_apply, linear_equiv.coe_to_linear_map,
@@ -221,7 +221,7 @@ variables {R M N P Q}
 
 @[simp]
 lemma hom_tensor_hom_equiv_apply (x : (M →ₗ[R] P) ⊗[R] (N →ₗ[R] Q)) :
-  hom_tensor_hom_equiv R M N P Q x = hom_tensor_hom_map x :=
+  hom_tensor_hom_equiv R M N P Q x = hom_tensor_hom_map R M N P Q x :=
 by rw [←linear_equiv.coe_to_linear_map, hom_tensor_hom_equiv_to_linear_map]
 
 end comm_ring

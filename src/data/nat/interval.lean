@@ -121,6 +121,9 @@ by { ext x, rw [mem_Ico, mem_Ioc, succ_le_iff, lt_succ_iff] }
 @[simp] lemma Ico_pred_singleton {a : ℕ} (h : 0 < a) : Ico (a - 1) a = {a - 1} :=
 by rw [←Icc_pred_right _ h, Icc_self]
 
+@[simp] lemma Ioc_succ_singleton : Ioc b (b + 1) = {b+1} :=
+by rw [← nat.Icc_succ_left, Icc_self]
+
 variables {a b c}
 
 lemma Ico_succ_right_eq_insert_Ico (h : a ≤ b) : Ico a (b + 1) = insert b (Ico a b) :=

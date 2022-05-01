@@ -246,6 +246,8 @@ The tactic never fails (really? TODO), but flags three kinds of unwanted use.
 
 The tactic does not produce an error, but reports unused inputs and unchanged targets.
 
+For instance, `move_add ← _` always reports an unchanged goal, but never an unused variable.
+
 ##  Comparison with existing tactics
 
 * `tactive.interactive.abel`

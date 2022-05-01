@@ -147,10 +147,10 @@ def of_lists (L R : list pgame.{u}) : pgame.{u} :=
 mk (ulift (fin L.length)) (ulift (fin R.length))
   (λ i, L.nth_le i.down i.down.is_lt) (λ j, R.nth_le j.down.val j.down.is_lt)
 
-@[simp] lemma left_moves_of_lists (L R : list pgame) :
-  (of_lists L R).left_moves = ulift (fin L.length) := rfl
-@[simp] lemma right_moves_of_lists (L R : list pgame) :
-  (of_lists L R).right_moves = ulift (fin R.length) := rfl
+lemma left_moves_of_lists (L R : list pgame) : (of_lists L R).left_moves = ulift (fin L.length) :=
+rfl
+lemma right_moves_of_lists (L R : list pgame) : (of_lists L R).right_moves = ulift (fin R.length) :=
+rfl
 
 /-- Converts a number into a left move for `of_lists`. -/
 def to_of_lists_left_moves {L R : list pgame} : fin L.length ≃ (of_lists L R).left_moves :=

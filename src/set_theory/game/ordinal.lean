@@ -63,7 +63,7 @@ by { rw to_pgame, refl }
 
 @[simp] theorem to_pgame_move_left {o : ordinal} (i : o.out.α) :
   o.to_pgame.move_left (to_left_moves_to_pgame i) = (typein (<) i).to_pgame :=
-by { rw to_left_moves_to_pgame, exact congr_fun_heq _ to_pgame_move_left_heq i }
+by { rw to_left_moves_to_pgame, exact congr_heq to_pgame_move_left_heq i }
 
 theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
 begin

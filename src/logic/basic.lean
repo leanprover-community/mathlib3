@@ -152,6 +152,10 @@ assume ⟨h⟩, h.elim
 @[simp] theorem exists_pempty {P : pempty → Prop} : (∃ x : pempty, P x) ↔ false :=
 ⟨λ h, by { cases h with w, cases w }, false.elim⟩
 
+lemma congr_heq {α β γ : Sort*} {f : α → γ} {g : β → γ} {x : α} {y : β} (h₁ : f == g)
+  (h₂ : x == y) : f x = g y :=
+by { have := type_eq_of_heq h₂, subst this, rw [eq_of_heq h₁, eq_of_heq h₂] }
+
 lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ = a₂ → f a₁ == f a₂
 | a _ rfl := heq.rfl
 
@@ -884,10 +888,6 @@ rfl
 lemma heq_of_cast_eq :
   ∀ {α β : Sort*} {a : α} {a' : β} (e : α = β) (h₂ : cast e a = a'), a == a'
 | α ._ a a' rfl h := eq.rec_on h (heq.refl _)
-
-lemma congr_fun_heq {α β γ : Sort*} {f : α → γ} {g : β → γ} (h₁ : β = α) (h₂ : f == g) (x : β) :
-  f (cast h₁ x) = g x :=
-by { subst h₁, rw [eq_of_heq h₂, cast_eq] }
 
 lemma cast_eq_iff_heq {α β : Sort*} {a : α} {a' : β} {e : α = β} : cast e a = a' ↔ a == a' :=
 ⟨heq_of_cast_eq _, λ h, by cases h; refl⟩

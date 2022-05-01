@@ -178,11 +178,21 @@ type_ne_zero_iff_nonempty.2 ⟨punit.star⟩
 instance : nontrivial ordinal.{u} :=
 ⟨⟨1, 0, ordinal.one_ne_zero⟩⟩
 
-instance : nonempty (1 : ordinal).out.α :=
-out_nonempty_iff_ne_zero.2 ordinal.one_ne_zero
-
-theorem zero_lt_one : (0 : ordinal) < 1 :=
+@[simp] theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
+
+instance : unique (1 : ordinal).out.α :=
+{ default := enum (<) 0 (by simp),
+  uniq := λ a, begin
+    rw ←enum_typein (<) a,
+    unfold default,
+    congr,
+    rw ←lt_one_iff_zero,
+    apply typein_lt_self
+  end }
+
+@[simp] theorem default_one_out_eq : (default : (1 : ordinal).out.α) = enum (<) 0 (by simp) :=
+rfl
 
 theorem le_one_iff {a : ordinal} : a ≤ 1 ↔ a = 0 ∨ a = 1 :=
 begin

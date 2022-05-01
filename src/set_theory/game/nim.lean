@@ -58,6 +58,34 @@ lemma nim_def (O : ordinal) : nim O = pgame.mk O.out.α O.out.α
   (λ O₂, nim (ordinal.typein (<) O₂)) :=
 by { rw nim, refl }
 
+instance : is_empty (left_moves (nim 0)) :=
+by { rw nim_def, exact α.is_empty }
+
+instance : is_empty (right_moves (nim 0)) :=
+by { rw nim_def, exact α.is_empty }
+
+noncomputable instance : unique (left_moves (nim 1)) :=
+by { rw nim_def, exact α.unique }
+
+noncomputable instance : unique (right_moves (nim 1)) :=
+by { rw nim_def, exact α.unique }
+
+/-- `nim 0` has exactly the same moves as `0`. -/
+def nim_zero_relabelling : relabelling (nim 0) 0 :=
+relabelling.is_empty _
+
+theorem nim_zero_equiv : nim 0 ≈ 0 := nim_zero_relabelling.equiv
+
+/-- `nim 1` has exactly the same moves as `star`. -/
+def nim_one_relabelling : relabelling (nim 1) star :=
+begin
+  rw nim_def,
+  refine ⟨_, _, _, _⟩,
+   dsimp, apply equiv_of_unique_of_unique ,
+end
+
+theorem nim_one_equiv : nim 1 ≈ star := nim_one_relabelling.equiv
+
 instance nim_impartial : ∀ (O : ordinal), impartial (nim O)
 | O :=
 begin

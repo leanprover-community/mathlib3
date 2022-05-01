@@ -52,7 +52,6 @@ begin
     ...           = log x / x * y - log x : by ring,
 end
 
--- This could also be made into an antitone_on statemnt
 lemma log_div_self_rpow_antitone_on {a : ℝ} (ha : 0 < a) :
   antitone_on (λ x : ℝ, log x / x ^ a) {x | exp (1 / a) ≤ x} :=
 begin

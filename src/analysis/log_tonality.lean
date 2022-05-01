@@ -83,7 +83,7 @@ begin
     exact rpow_le_rpow x_nonneg hxy (le_of_lt ha), },
 end
 
-lemma log_div_sqrt_decreasing :
+lemma log_div_sqrt_antitone_on :
   antitone_on (λ x : ℝ, log x / sqrt x) {x | exp 2 ≤ x} :=
 begin
   simp_rw sqrt_eq_rpow,

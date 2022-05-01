@@ -32,8 +32,7 @@ lemma impartial_aux_def {G : pgame} : G.impartial_aux ↔ G ≈ -G ∧
 by rw impartial_aux
 
 /-- A typeclass on impartial games. -/
-class impartial (G : pgame) : Prop :=
-(out : impartial_aux G)
+class impartial (G : pgame) : Prop := (out : impartial_aux G)
 
 lemma impartial_iff_aux {G : pgame} : G.impartial ↔ G.impartial_aux :=
 ⟨λ h, h.1, λ h, ⟨h⟩⟩

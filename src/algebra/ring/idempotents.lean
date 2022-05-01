@@ -43,7 +43,7 @@ begin
   rw [is_idempotent_elem, mul_assoc, ← mul_assoc q, ←h.eq, mul_assoc p, h₂.eq, ← mul_assoc, h₁.eq],
 end
 
-lemma zero : is_idempotent_elem (0 : M₀) := by rw [is_idempotent_elem, mul_zero]
+lemma zero : is_idempotent_elem (0 : M₀) := mul_zero _
 
 lemma one : is_idempotent_elem (1 : M₁) := by rw [is_idempotent_elem, mul_one]
 

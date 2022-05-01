@@ -11,7 +11,7 @@ universes v u
 
 variables {C : Type u} [category.{v} C]
 
-/-- A family of objects in a category with zero morphisms is "hom orthogonal" is the only
+/-- A family of objects in a category with zero morphisms is "hom orthogonal" if the only
 morphism between distinct objects is the zero morphism. -/
 def hom_orthogonal {ι : Type*} (s : ι → C) : Prop :=
 ∀ i j, i ≠ j → subsingleton (s i ⟶ s j)
@@ -70,6 +70,7 @@ def hom_orthogonal.matrix_decomposition_add_equiv
 { map_add' := λ w z, by { ext, dsimp [biproduct.components], simp, },
   ..o.matrix_decomposition, }.
 
+-- TODO move
 @[to_additive]
 lemma finset.prod_congr_set
   {α : Type*} [comm_monoid α] {β : Type*} [fintype β] (s : set β) (f : β → α) (g : s → α)
@@ -110,6 +111,7 @@ begin
     apply o.eq_zero nm, },
 end
 
+section
 variables {R : Type*} [semiring R] [linear R C]
 
 /-- `hom_orthogonal.matrix_decomposition` as an `R`-linear equivalence. -/
@@ -122,37 +124,40 @@ def hom_orthogonal.matrix_decomposition_linear_equiv
 { map_smul' := λ w z, by { ext, dsimp [biproduct.components], simp, },
   ..o.matrix_decomposition_add_equiv, }
 
-variables [invariant_basis_number R]
+end
+
+/-!
+The hypothesis that `End (s i)` has invariant basis number is automatically satisfied
+if `s i` is simple (as then `End (s i)` is a division ring).
+-/
+variables [∀ i, invariant_basis_number (End (s i))]
+
+-- This hypothesis is mathematically unnecessary, and can be dropped when the problem identified in
+-- `linear_algebra.matrix.invariant_basis_number` is resolved.
+variables (h : ∀ (i : ι) (f g : End (s i)), f * g = g * f)
+include h
 
 /--
 Given a hom orthogonal family `s : ι → C`
-for which each `End (s i)` is a ring with invariant basis number,
+for which each `End (s i)` is a ring with invariant basis number (e.g. if each `s i` is simple),
 if two direct sums over `s` are isomorphic, then they have the same multiplicities.
 -/
-lemma foo (o : hom_orthogonal s) {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι}
+lemma hom_orthogonal.equiv_of_iso (o : hom_orthogonal s) {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι}
   (i : ⨁ (λ a, s (f a)) ≅ ⨁ (λ b, s (g b))) :
   ∃ e : α ≃ β, ∀ a, g (e a) = f a :=
-sorry
-
-
-
+begin
+  refine ⟨equiv_of_preimage_equiv _, λ a, equiv_of_preimage_equiv_property _ _⟩,
+  intro c,
+  haveI : comm_ring (End (s i)) :=
+  { mul_comm' := h c,
+    ..(infer_instance : ring (End (s i))), },
+  apply nonempty.some,
+  apply cardinal.eq.1,
+  fapply matrix.square_of_invertible,
+  { exact o.matrix_decomposition i.hom c, },
+  { exact o.matrix_decomposition i.inv c, },
+  { rw ←o.matrix_decomposition_comp, simp, },
+  { rw ←o.matrix_decomposition_comp, simp, },
 end
 
-variables [has_zero_morphisms C]
-
-/--
-A "brick" is an object for which every endomorphism is either zero or an isomorphism.
-
-In every preadditive category with kernels, every simple object is a brick.
--/
-def brick (X : C) : Prop :=
-∀ f : X ⟶ X, f ≠ 0 → is_iso f
-
-/--
-A "semibrick" is a collection of objects `s : ι → C` such that
-* each endomorphism `s i ⟶ s i` is either zero or invertible, and
-* all morphisms `s i ⟶ s j` for `i ≠ j` are zero.
--/
-structure semibrick {ι : Type*} (s : ι → C) :=
-(brick : ∀ i, brick (s i))
-(orthogonal : hom_orthogonal s)
+end

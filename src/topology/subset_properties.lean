@@ -759,7 +759,7 @@ fintype_of_univ_finite (hf.finite_of_compact hne)
 /-- The comap of the cocompact filter on `β` by a continuous function `f : α → β` is less than or
 equal to the cocompact filter on `α`.
 This is a reformulation of the fact that images of compact sets are compact. -/
-lemma filter.comap_cocompact {f : α → β} (hf : continuous f) :
+lemma filter.comap_cocompact_le {f : α → β} (hf : continuous f) :
   (filter.cocompact β).comap f ≤ filter.cocompact α :=
 begin
   rw (filter.has_basis_cocompact.comap f).le_basis_iff filter.has_basis_cocompact,
@@ -974,7 +974,7 @@ type `Π d, κ d` the `filter.Coprod` of filters `filter.cocompact` on `κ d`. -
 lemma filter.Coprod_cocompact {δ : Type*} {κ : δ → Type*} [Π d, topological_space (κ d)] :
   filter.Coprod (λ d, filter.cocompact (κ d)) = filter.cocompact (Π d, κ d) :=
 begin
-  refine le_antisymm (supr_le $ λ i, filter.comap_cocompact (continuous_apply i)) _,
+  refine le_antisymm (supr_le $ λ i, filter.comap_cocompact_le (continuous_apply i)) _,
   refine compl_surjective.forall.2 (λ s H, _),
   simp only [compl_mem_Coprod, filter.mem_cocompact, compl_subset_compl, image_subset_iff] at H ⊢,
   choose K hKc htK using H,

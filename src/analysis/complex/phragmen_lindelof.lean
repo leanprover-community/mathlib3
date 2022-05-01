@@ -9,23 +9,21 @@ import analysis.asymptotics.superpolynomial_decay
 /-!
 -/
 
-open set function filter asymptotics complex metric
+open set function filter asymptotics metric
 open_locale topological_space filter real
 
 local notation `expR` := real.exp
 
 namespace complex
 
-lemma abs_exp_mul_exp_add_exp_neg_le_of_abs_im_le_of_lt_pi_div_two {a b : ℝ} (ha : a ≤ 0)
-  (hb : b ≤ π / 2) {z : ℂ} (hz : |z.im| ≤ b) :
+lemma abs_exp_mul_exp_add_exp_neg_le_of_abs_im_le {a b : ℝ} (ha : a ≤ 0)
+  {z : ℂ} (hz : |z.im| ≤ b) (hb : b ≤ π / 2) :
   abs (exp (a * (exp z + exp (-z)))) ≤ expR (a * real.cos b * expR (|z.re|)) :=
 begin
   simp only [abs_exp, real.exp_le_exp, of_real_mul_re, add_re, exp_re, neg_im, real.cos_neg,
     ← add_mul, mul_assoc, mul_comm (real.cos b), neg_re, ← real.cos_abs z.im],
   have : expR (|z.re|) ≤ expR z.re + expR (-z.re),
-  { cases le_total z.re 0 with hz hz,
-    { rw [abs_of_nonpos hz], exact le_add_of_nonneg_left (real.exp_pos _).le },
-    { rw [_root_.abs_of_nonneg hz], exact le_add_of_nonneg_right (real.exp_pos _).le } },
+    from apply_abs_le_add_of_nonneg (λ x, (real.exp_pos x).le) z.re,
   refine mul_le_mul_of_nonpos_left (mul_le_mul this _ _ ((real.exp_pos _).le.trans this)) ha,
   { exact real.cos_le_cos_of_nonneg_of_le_pi (_root_.abs_nonneg _)
       (hb.trans $ half_le_self $ real.pi_pos.le) hz },
@@ -41,28 +39,27 @@ namespace phragmen_lindelof
 
 variables {ι E : Type*} [normed_group E] [normed_space ℂ E] {a b C : ℝ} {f : ℂ → E} {z : ℂ}
 
-lemma horizontal_strip_pi_div_two (hd : diff_cont_on_cl ℂ f (im ⁻¹' Ioo (-(π / 2)) (π / 2)))
-  (hB : ∃ (c < 1) B, is_O f (λ z, expR (B * expR (c * |z.re|)))
-    (comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo (-(π / 2)) (π / 2))))
-  (hle : ∀ z : ℂ, |z.im| = (π / 2) → ∥f z∥ ≤ C) (hz : |z.im| ≤ π / 2) :
+lemma horizontal_strip_symmetric (hd : diff_cont_on_cl ℂ f {z : ℂ | |im z| < a})
+  (hB : ∃ (c < π / 2 / a) B, is_O f (λ z, expR (B * expR (c * |z.re|)))
+    (comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 {z : ℂ | |im z| < a}))
+  (hle : ∀ z : ℂ, |im z| = a  → ∥f z∥ ≤ C) (hz : |im z| ≤ a) :
   ∥f z∥ ≤ C :=
 begin
+  -- If `|im z| = a`, then we apply `hle`, otherwise `|im z| < a`
+  refine hz.eq_or_lt.by_cases (hle z) (λ hlt, _), clear hz, rename hlt hz,
+  have ha₀ : 0 < a, from (_root_.abs_nonneg z.im).trans_lt hz,
   -- WLOG, `0 < C`.
-  have hπ2 : 0 < π / 2, from real.pi_div_two_pos,
-  have hπ : -(π / 2) < π / 2, from neg_lt_self hπ2,
-  suffices : ∀ C' : ℝ, 0 < C' → (∀ w : ℂ, |w.im| = (π / 2) → ∥f w∥ ≤ C') → ∥f z∥ ≤ C',
+  suffices : ∀ C' : ℝ, 0 < C' → (∀ w : ℂ, |im w| = a → ∥f w∥ ≤ C') → ∥f z∥ ≤ C',
   { refine le_of_forall_le_of_dense (λ C' hC', this C' _ $ λ w hw, (hle w hw).trans hC'.le),
-    refine ((norm_nonneg (f (↑(π / 2) * I))).trans (hle _ _)).trans_lt hC',
-    rwa [of_real_mul_im, I_im, mul_one, abs_of_pos] },
+    refine ((norm_nonneg (f (a * I))).trans (hle _ _)).trans_lt hC',
+    rw [mul_I_im, of_real_re, abs_of_pos ha₀] },
   clear_dependent C, intros C hC₀ hle,
-  -- Choose some `c B : ℝ` satisfying `hB`, then choose `b ∈ (c, 1)`.
+  have hπa : 0 < π / 2 / a, from div_pos real.pi_div_two_pos ha₀,
+  -- Choose some `c B : ℝ` satisfying `hB`, then choose `max c 0 < r < π / (b - a)`.
   rcases hB with ⟨c, hc, B, hO⟩,
-  rcases exists_between (max_lt hc one_pos) with ⟨b, hcb, hb₁⟩,
-  rw max_lt_iff at hcb, cases hcb with hcb hb₀,
-  have hbπ : 0 < b * (π / 2), from mul_pos hb₀ hπ2,
-  have hbπ' : b * (π / 2) < π / 2, from (mul_lt_iff_lt_one_left hπ2).2 hb₁,
-  /- Put `g ε w = exp (ε * (exp (b * w) + exp (-b * w)))`. We're only interested in `ε < 0`
-  and `w` from our strip. -/
+  obtain ⟨b, ⟨hcb, hb₀⟩, hb⟩ : ∃ b, (c < b ∧ 0 < b) ∧ b < π / 2 / a,
+    by simpa only [max_lt_iff] using exists_between (max_lt hc hπa),
+  have hb' : b * a < π / 2, from (lt_div_iff ha₀).1 hb,
   set g : ℝ → ℂ → ℂ := λ ε w, exp (ε * (exp (b * w) + exp (-(b * w)))),
   /- Since `g ε z → 1` as `ε → 0⁻`, it suffices to prove that `∥g ε z • f z∥ ≤ C`
   for all negative `ε`. -/
@@ -72,24 +69,24 @@ begin
     simp, apply_instance },
   filter_upwards [self_mem_nhds_within] with ε ε₀, change ε < 0 at ε₀,
   -- An upper estimate on `∥g ε w∥` that will be used in two branches of the proof.
-  obtain ⟨δ, δ₀, hδ⟩ : ∃ δ : ℝ, δ < 0 ∧ ∀ {w : ℂ}, |w.im| ≤ π / 2 →
-    abs (g ε w) ≤ expR (δ * expR (b * |w.re|)),
-  { refine ⟨ε * real.cos (b * (π / 2)), mul_neg_of_neg_of_pos ε₀ $
-      real.cos_pos_of_mem_Ioo (abs_lt.1 $ (abs_of_pos hbπ).symm ▸ hbπ'), λ w hw, _⟩,
-    replace hw : |(↑b * w).im| ≤ b * (π / 2),
+  obtain ⟨δ, δ₀, hδ⟩ : ∃ δ : ℝ, δ < 0 ∧ ∀ ⦃w⦄, |im w| ≤ a →
+    abs (g ε w) ≤ expR (δ * expR (b * |re w|)),
+  { have H : ε * real.cos (b * a) < 0,
+      from mul_neg_of_neg_of_pos ε₀ (real.cos_pos_of_mem_Ioo $ abs_lt.1 $
+        (abs_of_pos (mul_pos hb₀ ha₀)).symm ▸ hb'),
+    refine ⟨_, H, λ w hw, _⟩,
+    replace hw : |im (b * w)| ≤ b * a,
       by rwa [of_real_mul_im, _root_.abs_mul, abs_of_pos hb₀, mul_le_mul_left hb₀],
-    simpa only [neg_mul, of_real_mul_re, _root_.abs_mul, abs_of_pos hb₀]
-      using abs_exp_mul_exp_add_exp_neg_le_of_abs_im_le_of_lt_pi_div_two ε₀.le
-        (mul_le_of_le_one_left hπ2.le hb₁.le) hw, },
+    simpa only [of_real_mul_re, _root_.abs_mul, abs_of_pos hb₀]
+      using abs_exp_mul_exp_add_exp_neg_le_of_abs_im_le ε₀.le hw hb'.le },
   -- `abs (g ε w) ≤ 1` on the lines `w.im = ±π` (actually, it holds everywhere in the strip)
-  have hg₁ : ∀ (w : ℂ), |w.im| = π / 2 → abs (g ε w) ≤ 1,
+  have hg₁ : ∀ w, |im w| = a → abs (g ε w) ≤ 1,
   { intros w hw,
     refine (hδ hw.le).trans (real.exp_le_one_iff.2 _),
     exact mul_nonpos_of_nonpos_of_nonneg δ₀.le (real.exp_pos _).le },
   /- Our apriori estimate on `f` implies that `g ε w • f w → 0` as `|w.re| → ∞`. In particular,
   its norm is less than or equal to `C` for sufficiently large `|w.re|`. -/
-  obtain ⟨R, hzR, hR⟩ : ∃ R : ℝ, |z.re| < R ∧ ∀ w : ℂ, |w.re| = R → |w.im| < π / 2 →
-    ∥g ε w • f w∥ ≤ C,
+  obtain ⟨R, hzR, hR⟩ : ∃ R : ℝ, |z.re| < R ∧ ∀ w, |re w| = R → |im w| < a → ∥g ε w • f w∥ ≤ C,
   { refine ((eventually_gt_at_top _).and _).exists,
     rcases hO.exists_pos with ⟨A, hA₀, hA⟩,
     simp only [is_O_with_iff, eventually_inf_principal, eventually_comap, mem_Ioo, ← abs_lt,
@@ -101,16 +98,16 @@ begin
       rw [norm_smul, real.exp_add, ← hre, real.exp_add, real.exp_log hA₀, mul_assoc, mul_comm _ A],
       exact mul_le_mul (hδ him.le) (Hle _ hre him) (norm_nonneg _) (real.exp_pos _).le },
     refine real.tendsto_exp_at_bot.comp _,
-    obtain ⟨c, hc₀, rfl⟩ : ∃ c' : ℝ, 0 < c' ∧ b - c' = c,
-      from ⟨b - c, sub_pos.2 hcb, sub_sub_cancel _ _⟩,
-    simp only [sub_mul, real.exp_sub, div_eq_inv_mul, real.exp_add, ← mul_assoc, ← add_mul],
-    suffices : tendsto (λ R, δ + B * (expR (c * R))⁻¹) at_top (𝓝 (δ + B * 0)),
-    { rw [mul_zero, add_zero] at this,
-      exact (this.neg_mul_at_top δ₀ (real.tendsto_exp_at_top.comp $
-        tendsto_const_nhds.mul_at_top hb₀ tendsto_id)).at_bot_add tendsto_const_nhds },
+    suffices H : tendsto (λ R, δ + B * (expR ((b - c) * R))⁻¹) at_top (𝓝 (δ + B * 0)),
+    { rw [mul_zero, add_zero] at H,
+      refine tendsto.at_bot_add _ tendsto_const_nhds,
+      simpa only [id, (∘), add_mul, mul_assoc, ← div_eq_inv_mul, ← real.exp_sub,
+        ← sub_mul, sub_sub_cancel]
+        using H.neg_mul_at_top δ₀ (real.tendsto_exp_at_top.comp $
+          tendsto_const_nhds.mul_at_top hb₀ tendsto_id) },
     refine tendsto_const_nhds.add (tendsto_const_nhds.mul _),
     exact tendsto_inv_at_top_zero.comp (real.tendsto_exp_at_top.comp $
-      tendsto_const_nhds.mul_at_top hc₀ tendsto_id) },
+      tendsto_const_nhds.mul_at_top (sub_pos.2 hcb) tendsto_id) },
   have hR₀ : 0 < R, from (_root_.abs_nonneg _).trans_lt hzR,
   /- Finally, we apply the bounded version of the maximum modulus principle to the rectangle
   `(-R, R) × (-π / 2, π / 2)`. The function is bounded by `C` on the horizontal sides by assumption
@@ -118,25 +115,62 @@ begin
   have hgd : differentiable ℂ (g ε),
     by convert (((differentiable_id.const_mul _).cexp.add
       (differentiable_id.const_mul _).neg.cexp).const_mul _).cexp,
-  replace hd : diff_cont_on_cl ℂ (λ w, g ε w • f w) ((Ioo (-R) R) ×ℂ Ioo (-(π / 2)) (π / 2)),
-    from (hgd.diff_cont_on_cl.smul hd).mono (λ w hw, hw.2),
-  convert norm_le_of_forall_mem_frontier_norm_le
-    ((bounded_Ioo _ _).re_prod_im (bounded_Ioo _ _)) hd (λ w hw, _) _,
+  replace hd : diff_cont_on_cl ℂ (λ w, g ε w • f w) (Ioo (-R) R ×ℂ Ioo (-a) a),
+    from (hgd.diff_cont_on_cl.smul hd).mono (λ w hw, abs_lt.2 hw.2),
+  convert norm_le_of_forall_mem_frontier_norm_le ((bounded_Ioo _ _).re_prod_im (bounded_Ioo _ _))
+    hd (λ w hw, _) _,
   { have hwc := frontier_subset_closure hw,
-    rw [frontier_re_prod_im, closure_Ioo (neg_lt_self hR₀).ne, frontier_Ioo hπ,
-      closure_Ioo hπ.ne, frontier_Ioo (neg_lt_self hR₀)] at hw,
-    cases eq_or_ne (|w.im|) (π / 2) with him him,
+    rw [frontier_re_prod_im, closure_Ioo (neg_lt_self hR₀).ne, frontier_Ioo (neg_lt_self ha₀),
+      closure_Ioo (neg_lt_self ha₀).ne, frontier_Ioo (neg_lt_self hR₀)] at hw,
+    cases eq_or_ne (|w.im|) a with him him,
     { rw [closure_re_prod_im, closure_Ioo (neg_lt_self hR₀).ne] at hwc,
       rw [norm_smul, ← one_mul C],
       exact mul_le_mul (hg₁ _ him) (hle _ him) (norm_nonneg _) zero_le_one },
-    { replace hw : w ∈ {-R, R} ×ℂ Icc (-(π / 2)) (π / 2),
-      { rw [ne.def, abs_eq hπ2.le] at him,
+    { replace hw : w ∈ {-R, R} ×ℂ Icc (-a) a,
+      { rw [ne.def, abs_eq ha₀.le] at him,
         exact hw.resolve_left (λ h, him (or.symm h.right)) },
       exact hR _ ((abs_eq hR₀.le).2 (or.symm hw.1)) ((abs_le.2 hw.2).lt_of_ne him) } },
-  { rw [closure_re_prod_im, closure_Ioo hπ.ne, closure_Ioo (neg_lt_self hR₀).ne],
-    exact ⟨abs_le.1 hzR.le, abs_le.1 hz⟩ }
+  { rw [closure_re_prod_im, closure_Ioo (neg_lt_self ha₀).ne, closure_Ioo (neg_lt_self hR₀).ne],
+    exact ⟨abs_le.1 hzR.le, abs_le.1 hz.le⟩ }
 end
 
+lemma horizontal_strip (hd : diff_cont_on_cl ℂ f (im ⁻¹' Ioo a b))
+  (hB : ∃ (c < π / (b - a)) B, is_O f (λ z, expR (B * expR (c * |z.re|)))
+    (comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b)))
+  (hle : ∀ z : ℂ, (im z = a ∨ im z = b) → ∥f z∥ ≤ C) (hz : im z ∈ Icc a b) :
+  ∥f z∥ ≤ C :=
+begin
+  obtain ⟨a, b, rfl, rfl⟩ : ∃ a' b', a = a' - b' ∧ b = a' + b',
+  { refine ⟨(a + b) / 2, (b - a) / 2, _, _⟩,
+    { rw [← sub_div, ← sub_add, add_sub_cancel, ← two_mul, mul_div_cancel_left a two_ne_zero] },
+    { rw [← add_div, add_comm (a + b), ← add_assoc, sub_add_cancel, ← two_mul,
+        mul_div_cancel_left b two_ne_zero] } },
+  replace hd : diff_cont_on_cl ℂ (λ w, f (a * I + w)) {w | |im w| < b},
+  { refine hd.comp ((differentiable_const _).add differentiable_id).diff_cont_on_cl (λ w hw, _),
+    simpa only [mem_preimage, add_im, mul_I_im, of_real_re, mem_Ioo, add_sub_cancel',
+      ← sub_lt_iff_lt_add', abs_lt, mem_set_of_eq, sub_sub_cancel_left] using hw },
+  rw [← add_sub_cancel'_right (↑a * I) z],
+  convert horizontal_strip_symmetric hd _ (λ w hw, _) _,
+  { rw [add_sub_sub_cancel, ← two_mul, ← div_div_eq_div_mul] at hB,
+    refine flip Exists₃.imp hB (λ c hc B hO, (hO.comp_tendsto _).trans_le _),
+    { refine (tendsto_comap_iff.2 _).inf (tendsto_principal_principal.2 _),
+      { simpa only [(∘), add_re, mul_I_re, of_real_im, neg_zero, zero_add] using tendsto_comap },
+      { sorry } },
+    { simp } },
+  {  }
+end
+
+/-- **Phragmen-Lindelöf principle** in a strip `U = {z : ℂ | a < im z < b}`.
+Let `f : ℂ → E` be a function such that
+
+* `f` is differentiable on `U` and is continuous on its closure;
+* `∥f z∥` is bounded from above by `A * exp(B * exp(c * |re z|))` on `U` for some `c < π / (b - a)`;
+* `∥f z∥` is bounded from above by a constant `C` on the boundary of `U`.
+
+Then `∥f z∥` is bounded by the same constant on the closed strip
+`{z : ℂ | a ≤ im z ≤ b}`. Moreover, it suffices to verify the second assumption
+only for sufficiently large values of `|re z|`.
+-/
 lemma horizontal_strip (hd : diff_cont_on_cl ℂ f (im ⁻¹' Ioo a b))
   (hB : ∃ (c < π / (b - a)) B, is_O f (λ z, expR (B * expR (c * |z.re|)))
     (comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b)))
@@ -187,13 +221,30 @@ begin
       _root_.abs_mul, abs_of_pos ha, mul_assoc, mul_left_comm a c] }
 end
 
+/-- **Phragmen-Lindelöf principle** in a strip `U = {z : ℂ | a < im z < b}`.
+Let `f : ℂ → E` be a function such that
+
+* `f` is differentiable on `U` and is continuous on its closure;
+* `∥f z∥` is bounded from above by `A * exp(B * exp(c * |re z|))` on `U` for some `c < π / (b - a)`;
+* `f z = 0` on the boundary of `U`.
+
+Then `f` is equal to zero on the closed strip `{z : ℂ | a ≤ im z ≤ b}`.
+-/
 lemma eq_zero_on_horizontal_strip (hd : diff_cont_on_cl ℂ f (im ⁻¹' Ioo a b))
   (hB : ∃ (c < π / (b - a)) B, is_O f (λ z, expR (B * expR (c * |z.re|)))
     (comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b)))
-  (h₀ : ∀ z : ℂ, (z.im = a ∨ z.im = b) → f z = 0) (hz : z.im ∈ Icc a b) :
-  f z = 0 :=
-norm_le_zero_iff.1 $ horizontal_strip hd hB (λ z hz, norm_le_zero_iff.2 $ h₀ z hz) hz
+  (h₀ : ∀ z : ℂ, (z.im = a ∨ z.im = b) → f z = 0) :
+  eq_on f 0 (im ⁻¹' Icc a b) :=
+λ z hz, norm_le_zero_iff.1 $ horizontal_strip hd hB (λ z hz, norm_le_zero_iff.2 $ h₀ z hz) hz
 
+/-- **Phragmen-Lindelöf principle** in the first quadrant. Let `f : ℂ → E` be a function such that
+
+* `f` is differentiable in the open first quadrant and is continuous on its closure;
+* `∥f z∥` is bounded from above by `A * exp(B * (abs z) ^ c)` on the open first quadrant
+  for some `c < 2`;
+* `∥f z∥` is bounded from above by a constant `C` on the boundary of the first quadrant.
+
+Then `∥f z∥` is bounded from above by the same constant on the closed first quadrant. -/
 lemma quadrant_I (hd : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Ioi 0))
   (hB : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
     (comap abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Ioi 0)))
@@ -205,7 +256,7 @@ begin
   obtain ⟨z, hz, rfl⟩ : ∃ ζ : ℂ, ζ.im ∈ Icc 0 (π / 2) ∧ exp ζ = z,
   { refine ⟨log z, _, exp_log hzne⟩,
     rw log_im,
-    exact ⟨arg_nonneg_iff.2 hz.2, (arg_mem_Icc_neg_pi_div_two_pi_div_two.2 hz.1).2⟩ },
+    exact ⟨arg_nonneg_iff.2 hz.2, arg_le_pi_div_two_iff.2 (or.inl hz.1)⟩ },
   clear hz hzne,
   change ∥(f ∘ exp) z∥ ≤ C,
   have : maps_to exp (im ⁻¹' Ioo 0 (π / 2)) (Ioi 0 ×ℂ Ioi 0),
@@ -253,6 +304,14 @@ begin
       exact him _ (real.exp_pos _).le } }
 end
 
+/-- **Phragmen-Lindelöf principle** in the second quadrant. Let `f : ℂ → E` be a function such that
+
+* `f` is differentiable in the open second quadrant and is continuous on its closure;
+* `∥f z∥` is bounded from above by `A * exp(B * (abs z) ^ c)` on the open second quadrant
+  for some `c < 2`;
+* `∥f z∥` is bounded from above by a constant `C` on the boundary of the second quadrant.
+
+Then `∥f z∥` is bounded from above by the same constant on the closed second quadrant. -/
 lemma quadrant_II (hd : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Ioi 0))
   (hB : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
     (comap abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Ioi 0)))
@@ -275,6 +334,14 @@ begin
     exact hre _ (neg_nonpos.2 hx) }
 end
 
+/-- **Phragmen-Lindelöf principle** in the third quadrant. Let `f : ℂ → E` be a function such that
+
+* `f` is differentiable in the open third quadrant and is continuous on its closure;
+* `∥f z∥` is bounded from above by `A * exp(B * (abs z) ^ c)` on the open third quadrant
+  for some `c < 2`;
+* `∥f z∥` is bounded from above by a constant `C` on the boundary of the third quadrant.
+
+Then `∥f z∥` is bounded from above by the same constant on the closed third quadrant. -/
 lemma quadrant_III (hd : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Iio 0))
   (hB : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
     (comap abs at_top ⊓ 𝓟 (Iio 0 ×ℂ Iio 0)))
@@ -291,13 +358,21 @@ begin
   refine quadrant_I (hd.comp differentiable_neg.diff_cont_on_cl H) _ (λ x hx, _) (λ x hx, _) hz,
   { refine Exists₃.imp (λ c hc B hO, _) hB,
     simpa only [(∘), complex.abs_neg]
-      using hO.comp_tendsto ((tendsto_neg_cobounded ℂ).inf H.tendsto) },
+      using hO.comp_tendsto (tendsto_neg_cobounded.inf H.tendsto) },
   { rw [comp_app, ← of_real_neg],
     exact hre (-x) (neg_nonpos.2 hx) },
   { rw [comp_app, ← neg_mul, ← of_real_neg],
     exact him (-x) (neg_nonpos.2 hx) }
 end
 
+/-- **Phragmen-Lindelöf principle** in the fourth quadrant. Let `f : ℂ → E` be a function such that
+
+* `f` is differentiable in the open fourth quadrant and is continuous on its closure;
+* `∥f z∥` is bounded from above by `A * exp(B * (abs z) ^ c)` on the open fourth quadrant
+  for some `c < 2`;
+* `∥f z∥` is bounded from above by a constant `C` on the boundary of the fourth quadrant.
+
+Then `∥f z∥` is bounded from above by the same constant on the closed fourth quadrant. -/
 lemma quadrant_IV (hd : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Iio 0))
   (hB : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
     (comap abs at_top ⊓ 𝓟 (Ioi 0 ×ℂ Iio 0)))
@@ -314,13 +389,23 @@ begin
   refine quadrant_II (hd.comp differentiable_neg.diff_cont_on_cl H) _ (λ x hx, _) (λ x hx, _) hz,
   { refine Exists₃.imp (λ c hc B hO, _) hB,
     simpa only [(∘), complex.abs_neg]
-      using hO.comp_tendsto ((tendsto_neg_cobounded ℂ).inf H.tendsto) },
+      using hO.comp_tendsto (tendsto_neg_cobounded.inf H.tendsto) },
   { rw [comp_app, ← of_real_neg],
     exact hre (-x) (neg_nonneg.2 hx) },
   { rw [comp_app, ← neg_mul, ← of_real_neg],
     exact him (-x) (neg_nonpos.2 hx) }
 end
 
+/-- **Phragmen-Lindelöf principle** in the right half-plane. Let `f : ℂ → E` be a function such that
+
+* `f` is differentiable in the open right half-plane and is continuous on its closure;
+* `∥f z∥` is bounded from above by `A * exp(B * (abs z) ^ c)` on the open right half-plane
+  for some `c < 2`;
+* `∥f z∥` is bounded from above by a constant `C` on the imaginary axis;
+* `f x → 0` as `x : ℝ` tends to infinity.
+
+Then `∥f z∥` is bounded from above by the same constant on the closed right half-plane.
+See also `phragmen_lindelof.right_half_plane_of_bounded_on_real` for a stronger version. -/
 lemma right_half_plane_of_tendsto_zero_on_real (hd : diff_cont_on_cl ℂ f {z | 0 < z.re})
   (hexp : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
     (comap abs at_top ⊓ 𝓟 {z | 0 < z.re}))
@@ -373,6 +458,16 @@ begin
       simpa using him 0 } }
 end
 
+/-- **Phragmen-Lindelöf principle** in the right half-plane. Let `f : ℂ → E` be a function such that
+
+* `f` is differentiable in the open right half-plane and is continuous on its closure;
+* `∥f z∥` is bounded from above by `A * exp(B * (abs z) ^ c)` on the open right half-plane
+  for some `c < 2`;
+* `∥f z∥` is bounded from above by a constant `C` on the imaginary axis;
+* `∥f x∥` is bounded from above by a constant for large real values of `x`.
+
+Then `∥f z∥` is bounded from above by `C` on the closed right half-plane.
+See also `phragmen_lindelof.right_half_plane_of_tendsto_zero_on_real` for a weaker version. -/
 lemma right_half_plane_of_bounded_on_real (hd : diff_cont_on_cl ℂ f {z | 0 < z.re})
   (hexp : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
     (comap abs at_top ⊓ 𝓟 {z | 0 < z.re}))
@@ -404,6 +499,16 @@ begin
     exact him y }
 end
 
+/-- **Phragmen-Lindelöf principle** in the right half-plane. Let `f : ℂ → E` be a function such that
+
+* `f` is differentiable in the open right half-plane and is continuous on its closure;
+* `∥f z∥` is bounded from above by `A * exp(B * (abs z) ^ c)` on the open right half-plane
+  for some `c < 2`;
+* `∥f z∥` is bounded from above by a constant on the imaginary axis;
+* `f x`, `x : ℝ`, tends to zero superexponentially fast as `x → ∞`:
+  for any natural `n`, `exp (n * x) * ∥f x∥` tends to zero as `x → ∞`.
+
+Then `f` is equal to zero on the closed right half-plane. -/
 lemma eq_zero_on_right_half_plane_of_superexponential_decay
   (hd : diff_cont_on_cl ℂ f {z | 0 < z.re})
   (hexp : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))

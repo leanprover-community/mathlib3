@@ -279,7 +279,7 @@ hf.has_sum.matrix_conj_transpose.summable
   {f : X → matrix m n R} :
   summable (λ x, (f x)ᴴ) ↔ summable f :=
 (summable.map_iff_of_equiv (@matrix.conj_transpose_add_equiv m n R _ _)
-    (@continuous_id (matrix m n R) _).matrix_conj_transpose (continuous_id.matrix_conj_transpose) : _)
+  (@continuous_id (matrix m n R) _).matrix_conj_transpose (continuous_id.matrix_conj_transpose) : _)
 
 lemma matrix.conj_transpose_tsum [star_add_monoid R] [has_continuous_star R] [t2_space R]
   {f : X → matrix m n R} : (∑' x, f x)ᴴ = ∑' x, (f x)ᴴ :=

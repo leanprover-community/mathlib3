@@ -76,8 +76,6 @@ noncomputable def to_left_moves_nim {O : ordinal} : {O' // O' < O} ≃ (nim O).l
 noncomputable def to_right_moves_nim {O : ordinal} : {O' // O' < O} ≃ (nim O).right_moves :=
 (out_equiv_lt O).trans (equiv.cast (right_moves_nim O).symm)
 
-set_option pp.universes true
-
 @[simp] lemma move_left_nim' {O : ordinal.{u}} (i) :
   (nim O).move_left i = nim (to_left_moves_nim.symm i).val :=
 (congr_fun_heq _ (move_left_nim_heq O).symm i).symm

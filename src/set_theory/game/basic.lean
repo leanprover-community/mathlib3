@@ -529,8 +529,7 @@ inductive inv_ty (l r : Type u) : bool → Type u
 instance (l r : Type u) [is_empty l] [is_empty r] : is_empty (inv_ty l r tt) :=
 ⟨λ h, by { cases h with _ _ _ _ a _ a _; exact is_empty_elim a }⟩
 
-instance (l r : Type u) : inhabited (inv_ty l r ff) :=
-⟨inv_ty.zero⟩
+instance (l r : Type u) : inhabited (inv_ty l r ff) := ⟨inv_ty.zero⟩
 
 instance unique_inv_ty (l r : Type u) [is_empty l] [is_empty r] : unique (inv_ty l r ff) :=
 { uniq := by { rintro (a | a | a), refl, all_goals { exact is_empty_elim a } },

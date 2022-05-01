@@ -20,9 +20,9 @@ This file defines idempotents for an arbitary multiplication and proves some bas
 projection, idempotent
 -/
 
-variables {M N S M₀ M₁ R G: Type*}
+variables {M N S M₀ M₁ R G G₀ : Type*}
 variables [has_mul M] [monoid N] [semigroup S] [mul_zero_class M₀] [mul_one_class M₁]
-  [non_assoc_ring R] [group G]
+  [non_assoc_ring R] [group G] [group_with_zero G₀]
 
 /--
 An element `p` is said to be idempotent if `p * p = p`
@@ -64,6 +64,13 @@ begin
   rw ← mul_left_inv p,
   nth_rewrite_rhs 1 ← h.eq,
   rw [← mul_assoc, mul_left_inv, one_mul],
+end
+
+lemma group_with_zero_nonzero_one {p : G₀} (h : is_idempotent_elem p) (h₀ : p ≠ 0) : p = 1 :=
+begin
+  rw ← mul_inv_cancel h₀,
+  nth_rewrite_rhs 0 ← h.eq,
+  rw [mul_assoc, mul_inv_cancel h₀, mul_one],
 end
 
 /-! ### Instances on `subtype is_idempotent_elem` -/

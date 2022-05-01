@@ -40,9 +40,7 @@ variables {S : Type*} [semigroup S]
 lemma mul_of_commute {p q : S} (h : commute p q) (h₁ : is_idempotent_elem p)
   (h₂ : is_idempotent_elem q) : is_idempotent_elem (p * q)  :=
 begin
-  rw is_idempotent_elem at h₁ h₂,
-  rw [commute, semiconj_by] at h,
-  rw [is_idempotent_elem, mul_assoc, ← mul_assoc q, ←h, mul_assoc p, h₂, ← mul_assoc, h₁],
+  rw [is_idempotent_elem, mul_assoc, ← mul_assoc q, ←h.eq, mul_assoc p, h₂.eq, ← mul_assoc, h₁.eq],
 end
 
 variables {R : Type*} [non_assoc_ring R]

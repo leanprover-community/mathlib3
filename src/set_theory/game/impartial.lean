@@ -24,20 +24,12 @@ local infix ` ≈ ` := equiv
 
 /-- The definition for a impartial game, defined using Conway induction -/
 def impartial_aux : pgame → Prop
-| G := G ≈ -G ∧ (∀ i, impartial_aux (G.move_left i)) ∧ (∀ j, impartial_aux (G.move_right j))
+| G := G ≈ -G ∧ (∀ i, impartial_aux (G.move_left i)) ∧ ∀ j, impartial_aux (G.move_right j)
 using_well_founded { dec_tac := pgame_wf_tac }
 
 lemma impartial_aux_def {G : pgame} : G.impartial_aux ↔ G ≈ -G ∧
-  (∀ i, impartial_aux (G.move_left i)) ∧ (∀ j, impartial_aux (G.move_right j)) :=
-begin
-  split,
-  { intro hi,
-    unfold1 impartial_aux at hi,
-    exact hi },
-  { intro hi,
-    unfold1 impartial_aux,
-    exact hi }
-end
+  (∀ i, impartial_aux (G.move_left i)) ∧ ∀ j, impartial_aux (G.move_right j) :=
+by rw impartial_aux
 
 /-- A typeclass on impartial games. -/
 class impartial (G : pgame) : Prop := (out : impartial_aux G)
@@ -46,7 +38,7 @@ lemma impartial_iff_aux {G : pgame} : G.impartial ↔ G.impartial_aux :=
 ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 lemma impartial_def {G : pgame} : G.impartial ↔ G ≈ -G ∧
-  (∀ i, impartial (G.move_left i)) ∧ (∀ j, impartial (G.move_right j)) :=
+  (∀ i, impartial (G.move_left i)) ∧ ∀ j, impartial (G.move_right j) :=
 by simpa only [impartial_iff_aux] using impartial_aux_def
 
 namespace impartial

@@ -223,13 +223,9 @@ end div_inv_monoid
 section group
 variables {G : Type u} [group G] {a b c d : G}
 
-@[simp, to_additive]
-lemma inv_mul_cancel_right (a b : G) : a * b⁻¹ * b = a :=
-by simp [mul_assoc]
-
 @[simp, to_additive neg_zero]
 lemma one_inv : 1⁻¹ = (1 : G) :=
-inv_eq_of_mul_eq_one (one_mul 1)
+inv_eq_of_mul_eq_one_left (one_mul 1)
 
 @[to_additive]
 theorem left_inverse_inv (G) [has_involutive_inv G] :
@@ -248,10 +244,6 @@ theorem inv_ne_one : a⁻¹ ≠ 1 ↔ a ≠ 1 := not_congr inv_eq_one
 @[simp, to_additive] theorem div_eq_inv_self : a / b = b⁻¹ ↔ a = 1 :=
 by rw [div_eq_mul_inv, mul_left_eq_self]
 
-@[simp, to_additive]
-lemma mul_inv_cancel_left (a b : G) : a * (a⁻¹ * b) = b :=
-by rw [← mul_assoc, mul_right_inv, one_mul]
-
 @[to_additive]
 theorem mul_left_surjective (a : G) : function.surjective ((*) a) :=
 λ x, ⟨a⁻¹ * x, mul_inv_cancel_left a x⟩
@@ -260,13 +252,9 @@ theorem mul_left_surjective (a : G) : function.surjective ((*) a) :=
 theorem mul_right_surjective (a : G) : function.surjective (λ x, x * a) :=
 λ x, ⟨x * a⁻¹, inv_mul_cancel_right x a⟩
 
-@[simp, to_additive neg_add_rev]
-lemma mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
-inv_eq_of_mul_eq_one $ by simp
-
 @[to_additive]
 lemma eq_inv_of_mul_eq_one (h : a * b = 1) : a = b⁻¹ :=
-have a⁻¹ = b, from inv_eq_of_mul_eq_one h,
+have a⁻¹ = b, from inv_eq_of_mul_eq_one_left h,
 by simp [this.symm]
 
 @[to_additive]

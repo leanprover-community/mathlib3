@@ -500,8 +500,6 @@ end cancel_comm_monoid_with_zero
 section group_with_zero
 variables [group_with_zero G₀] {a b c g h x : G₀}
 
-alias div_eq_mul_inv ← division_def
-
 /-- Pullback a `group_with_zero` class along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
@@ -576,14 +574,25 @@ calc a⁻¹ * (a * b) = (a⁻¹ * a) * b : (mul_assoc _ _ _).symm
 calc 1⁻¹ = 1 * 1⁻¹ : by rw [one_mul]
      ... = (1:G₀)  : by simp
 
-@[priority 100]
-instance group_with_zero.to_has_involutive_inv : has_involutive_inv G₀ :=
+private lemma inv_eq_of_mul (h : a * b = 1) : a⁻¹ = b :=
+by rw [← inv_mul_cancel_left₀ (left_ne_zero_of_mul_eq_one h) b, h, mul_one]
+
+@[priority 100] -- See note [lower instance priority]
+instance group_with_zero.to_division_monoid : division_monoid G₀ :=
 { inv := has_inv.inv,
   inv_inv := λ a, begin
-    by_cases h : a = 0, { simp [h] },
-    calc a⁻¹⁻¹ = a * (a⁻¹ * a⁻¹⁻¹) : by simp [h]
-          ... = a                 : by simp [inv_ne_zero h]
-  end }
+    by_cases h : a = 0,
+    { simp [h] },
+    { exact left_inv_eq_right_inv (inv_mul_cancel $ inv_ne_zero h) (inv_mul_cancel h) }
+  end,
+  mul_inv_rev := λ a b, begin
+    by_cases ha : a = 0, { simp [ha] },
+    by_cases hb : b = 0, { simp [hb] },
+    refine inv_eq_of_mul _,
+    simp [mul_assoc, ha, hb]
+  end,
+  inv_eq_of_mul := λ a b, inv_eq_of_mul,
+  ..‹group_with_zero G₀› }
 
 /-- Multiplying `a` by itself and then by its inverse results in `a`
 (whether or not `a` is zero). -/
@@ -877,11 +886,11 @@ lemma div_eq_one_iff_eq (hb : b ≠ 0) : a / b = 1 ↔ a = b :=
 ⟨eq_of_div_eq_one, λ h, h.symm ▸ div_self hb⟩
 
 lemma div_mul_left {a b : G₀} (hb : b ≠ 0) : b / (a * b) = 1 / a :=
-by simp only [div_eq_mul_inv, mul_inv_rev₀, mul_inv_cancel_left₀ hb, one_mul]
+by simp only [div_eq_mul_inv, mul_inv_rev, mul_inv_cancel_left₀ hb, one_mul]
 
 lemma mul_div_mul_right (a b : G₀) {c : G₀} (hc : c ≠ 0) :
   (a * c) / (b * c) = a / b :=
-by simp only [div_eq_mul_inv, mul_inv_rev₀, mul_assoc, mul_inv_cancel_left₀ hc]
+by simp only [div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_inv_cancel_left₀ hc]
 
 lemma mul_mul_div (a : G₀) {b : G₀} (hb : b ≠ 0) : a = a * b * (1 / b) :=
 by simp [hb]
@@ -936,6 +945,10 @@ variables [comm_group_with_zero G₀] {a b c : G₀}
 @[priority 10] -- see Note [lower instance priority]
 instance comm_group_with_zero.cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero G₀ :=
 { ..group_with_zero.cancel_monoid_with_zero, ..comm_group_with_zero.to_comm_monoid_with_zero G₀ }
+
+@[priority 100] -- See note [lower instance priority]
+instance comm_group_with_zero.to_division_comm_monoid : division_comm_monoid G₀ :=
+{ ..‹comm_group_with_zero G₀›, ..group_with_zero.to_division_monoid }
 
 /-- Pullback a `comm_group_with_zero` class along an injective function.
 See note [reducible non-instances]. -/

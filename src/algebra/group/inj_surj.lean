@@ -170,6 +170,16 @@ protected def cancel_comm_monoid [cancel_comm_monoid M₂] (f : M₁ → M₂) (
   cancel_comm_monoid M₁ :=
 { .. hf.left_cancel_semigroup f mul, .. hf.comm_monoid f one mul npow }
 
+/-- A type has an involutive inversion if it admits a surjective map that preserves `⁻¹` to a type
+which has an involutive inversion. -/
+@[reducible, to_additive "A type has an involutive negation if it admits a surjective map that
+preserves `⁻¹` to a type which has an involutive inversion."] --See note [reducible non-instances]
+protected def has_involutive_inv {M₁ : Type*} [has_inv M₁][has_involutive_inv M₂]
+  (f : M₁ → M₂) (hf : injective f) (inv : ∀ x, f x⁻¹ = (f x)⁻¹) :
+  has_involutive_inv M₁ :=
+{ inv := has_inv.inv,
+  inv_inv := λ x, hf $ by rw [inv, inv, inv_inv] }
+
 variables [has_inv M₁] [has_div M₁] [has_pow M₁ ℤ]
 
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `div_inv_monoid`
@@ -191,8 +201,27 @@ protected def div_inv_monoid [div_inv_monoid M₂]
   zpow_zero' := λ x, hf $ by erw [zpow, zpow_zero, one],
   zpow_succ' := λ n x, hf $ by erw [zpow, mul, zpow_of_nat, pow_succ, zpow, zpow_of_nat],
   zpow_neg' := λ n x, hf $ by erw [zpow, zpow_neg_succ_of_nat, inv, zpow, zpow_coe_nat],
-   div_eq_mul_inv := λ x y, hf $ by erw [div, mul, inv, div_eq_mul_inv],
+  div_eq_mul_inv := λ x y, hf $ by erw [div, mul, inv, div_eq_mul_inv],
   .. hf.monoid f one mul npow, .. ‹has_inv M₁›, .. ‹has_div M₁› }
+
+/-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `division_monoid`
+if it admits an injective map that preserves `1`, `*`, `⁻¹`, and `/` to a `division_monoid`.
+See note [reducible non-instances]. -/
+@[reducible, to_additive subtraction_monoid
+"A type endowed with `0`, `+`, unary `-`, and binary `-` is a `subtraction_monoid`
+if it admits an injective map that preserves `0`, `+`, unary `-`, and binary `-` to
+a `sub_neg_monoid`.
+This version takes custom `nsmul` and `zsmul` as `[has_scalar ℕ M₁]` and
+`[has_scalar ℤ M₁]` arguments."]
+protected def division_monoid [division_monoid M₂]
+  (f : M₁ → M₂) (hf : injective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹)
+  (div : ∀ x y, f (x / y) = f x / f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
+  division_monoid M₁ :=
+{ mul_inv_rev := λ x y, hf $ by erw [inv, mul, mul_inv_rev, mul, inv, inv],
+  inv_eq_of_mul := λ x y h, hf $ by erw [inv, inv_eq_of_mul_eq_one_left (by erw [←mul, h, one])],
+  .. hf.div_inv_monoid f one mul inv div npow zpow, .. hf.has_involutive_inv f inv  }
 
 /-- A type endowed with `1`, `*` and `⁻¹` is a group,
 if it admits an injective map that preserves `1`, `*` and `⁻¹` to a group.
@@ -296,6 +325,16 @@ protected def comm_monoid [comm_monoid M₁] (f : M₁ → M₂) (hf : surjectiv
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   comm_monoid M₂ :=
 { .. hf.comm_semigroup f mul, .. hf.monoid f one mul npow }
+
+/-- A type has an involutive inversion if it admits a surjective map that preserves `⁻¹` to a type
+which has an involutive inversion. -/
+@[reducible, to_additive "A type has an involutive negation if it admits a surjective map that
+preserves `⁻¹` to a type which has an involutive inversion."] --See note [reducible non-instances]
+protected def has_involutive_inv {M₂ : Type*} [has_inv M₂] [has_involutive_inv M₁]
+  (f : M₁ → M₂) (hf : surjective f) (inv : ∀ x, f x⁻¹ = (f x)⁻¹) :
+  has_involutive_inv M₂ :=
+{ inv := has_inv.inv,
+  inv_inv := hf.forall.2 $ λ x, by erw [←inv, ←inv, inv_inv] }
 
 variables [has_inv M₂] [has_div M₂] [has_pow M₂ ℤ]
 

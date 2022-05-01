@@ -36,6 +36,8 @@ actions and register the following instances:
 
 -/
 
+open function
+
 /-- Type class for the `+ᵥ` notation. -/
 class has_vadd (G : Type*) (P : Type*) := (vadd : G → P → P)
 
@@ -58,6 +60,8 @@ attribute [to_additive has_scalar.smul] has_pow.pow
 set_option old_structure_cmd true
 
 universe u
+
+variables {G : Type*}
 
 /- Additive "sister" structures.
    Example, add_semigroup mirrors semigroup.
@@ -85,8 +89,7 @@ reduce an expression in a field to an expression of the form `n / d` where `n` a
 division-free."
 
 section has_mul
-
-variables {G : Type u} [has_mul G]
+variables [has_mul G]
 
 /-- `left_mul g` denotes left multiplication by `g` -/
 @[to_additive "`left_add g` denotes left addition by `g`"]
@@ -107,7 +110,7 @@ end has_mul
 attribute [to_additive] semigroup
 
 section semigroup
-variables {G : Type u} [semigroup G]
+variables [semigroup G]
 
 @[no_rsimp, to_additive]
 lemma mul_assoc : ∀ a b c : G, a * b * c = a * (b * c) :=
@@ -131,7 +134,7 @@ class add_comm_semigroup (G : Type u) extends add_semigroup G :=
 attribute [to_additive] comm_semigroup
 
 section comm_semigroup
-variables {G : Type u} [comm_semigroup G]
+variables [comm_semigroup G]
 
 @[no_rsimp, to_additive]
 lemma mul_comm : ∀ a b : G, a * b = b * a :=
@@ -155,7 +158,7 @@ class add_left_cancel_semigroup (G : Type u) extends add_semigroup G :=
 attribute [to_additive add_left_cancel_semigroup] left_cancel_semigroup
 
 section left_cancel_semigroup
-variables {G : Type u} [left_cancel_semigroup G] {a b c : G}
+variables [left_cancel_semigroup G] {a b c : G}
 
 @[to_additive]
 lemma mul_left_cancel : a * b = a * c → b = c :=
@@ -192,7 +195,7 @@ class add_right_cancel_semigroup (G : Type u) extends add_semigroup G :=
 attribute [to_additive add_right_cancel_semigroup] right_cancel_semigroup
 
 section right_cancel_semigroup
-variables {G : Type u} [right_cancel_semigroup G] {a b c : G}
+variables [right_cancel_semigroup G] {a b c : G}
 
 @[to_additive]
 lemma mul_right_cancel : a * b = c * b → a = c :=
@@ -468,11 +471,11 @@ class add_cancel_monoid (M : Type u)
 @[protect_proj, ancestor left_cancel_monoid right_cancel_monoid, to_additive add_cancel_monoid]
 class cancel_monoid (M : Type u) extends left_cancel_monoid M, right_cancel_monoid M
 
-/-- Commutative version of add_cancel_monoid. -/
+/-- Commutative version of `add_cancel_monoid`. -/
 @[protect_proj, ancestor add_left_cancel_monoid add_comm_monoid]
 class add_cancel_comm_monoid (M : Type u) extends add_left_cancel_monoid M, add_comm_monoid M
 
-/-- Commutative version of cancel_monoid. -/
+/-- Commutative version of `cancel_monoid`. -/
 @[protect_proj, ancestor left_cancel_monoid comm_monoid, to_additive add_cancel_comm_monoid]
 class cancel_comm_monoid (M : Type u) extends left_cancel_monoid M, comm_monoid M
 
@@ -498,11 +501,30 @@ def zsmul_rec {M : Type*} [has_zero M] [has_add M] [has_neg M]: ℤ → M → M
 
 attribute [to_additive] zpow_rec
 
+section has_involutive_inv
+
+-- ensure that we don't go via these typeclasses to find `has_inv` on groups and groups with zero
+set_option extends_priority 50
+
+/-- Auxiliary typeclass for types with an involutive `has_neg`. -/
+@[ancestor has_neg]
+class has_involutive_neg (A : Type*) extends has_neg A :=
+(neg_neg : ∀ x : A, - -x = x)
+
+/-- Auxiliary typeclass for types with an involutive `has_inv`. -/
+@[ancestor has_inv, to_additive]
+class has_involutive_inv (G : Type*) extends has_inv G :=
+(inv_inv : ∀ x : G, x⁻¹⁻¹ = x)
+variables [has_involutive_inv G]
+
+@[simp, to_additive] lemma inv_inv (a : G) : a⁻¹⁻¹ = a := has_involutive_inv.inv_inv _
+
+end has_involutive_inv
+
 /-- A `div_inv_monoid` is a `monoid` with operations `/` and `⁻¹` satisfying
 `div_eq_mul_inv : ∀ a b, a / b = a * b⁻¹`.
 
-This is the immediate common ancestor of `group` and `group_with_zero`,
-in order to deduplicate the name `div_eq_mul_inv`.
+This deduplicates the name `div_eq_mul_inv`.
 The default for `div` is such that `a / b = a * b⁻¹` holds by definition.
 
 Adding `div` as a field rather than defining `a / b := a * b⁻¹` allows us to
@@ -566,9 +588,8 @@ instance sub_neg_monoid.has_scalar_int {M} [sub_neg_monoid M] : has_scalar ℤ M
 
 attribute [to_additive sub_neg_monoid.has_scalar_int] div_inv_monoid.has_pow
 
-section
-
-variables {G : Type*} [div_inv_monoid G]
+section div_inv_monoid
+variables [div_inv_monoid G] {a b : G}
 
 @[simp, to_additive zsmul_eq_smul]
 lemma zpow_eq_pow (n : ℤ) (x : G) : div_inv_monoid.zpow n x = x^n := rfl
@@ -592,39 +613,48 @@ zpow_coe_nat a n
 theorem zpow_neg_succ_of_nat (a : G) (n : ℕ) : a ^ -[1+n] = (a ^ (n + 1))⁻¹ :=
 by { rw ← zpow_coe_nat, exact div_inv_monoid.zpow_neg' n a }
 
-end
+@[to_additive] lemma div_eq_mul_inv (a b : G) : a / b = a * b⁻¹ := div_inv_monoid.div_eq_mul_inv _ _
 
-@[to_additive]
-lemma div_eq_mul_inv {G : Type u} [div_inv_monoid G] :
-  ∀ a b : G, a / b = a * b⁻¹ :=
-div_inv_monoid.div_eq_mul_inv
+alias div_eq_mul_inv ← division_def
 
-section
--- ensure that we don't go via these typeclasses to find `has_inv` on groups and groups with zero
-set_option extends_priority 50
+end div_inv_monoid
 
-/-- Auxiliary typeclass for types with an involutive `has_inv`. -/
-@[ancestor has_inv]
-class has_involutive_inv (G : Type*) extends has_inv G :=
-(inv_inv : ∀ x : G, x⁻¹⁻¹ = x)
+/-- A `subtraction_monoid` is a `sub_neg_monoid` with involutive negation and such that
+`-(a + b) = -b + -a`. -/
+@[protect_proj, ancestor sub_neg_monoid has_involutive_neg]
+class subtraction_monoid (G : Type u) extends sub_neg_monoid G, has_involutive_neg G :=
+(neg_add_rev (a b : G) : -(a + b) = -b + -a)
+(neg_eq_of_add (a b : G) : a + b = 0 → -a = b)
 
-/-- Auxiliary typeclass for types with an involutive `has_neg`. -/
-@[ancestor has_neg]
-class has_involutive_neg (A : Type*) extends has_neg A :=
-(neg_neg : ∀ x : A, - -x = x)
+/-- A `division_monoid` is a `div_inv_monoid` with involutive inversion and such that
+`(a * b)⁻¹ = b⁻¹ * a⁻¹`.
 
-attribute [to_additive] has_involutive_inv
+This is the immediate common ancestor of `group` and `group_with_zero`. -/
+@[protect_proj, ancestor div_inv_monoid has_involutive_inv, to_additive subtraction_monoid]
+class division_monoid (G : Type u) extends div_inv_monoid G, has_involutive_inv G :=
+(mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹)
+(inv_eq_of_mul (a b : G) : a * b = 1 → a⁻¹ = b)
 
-end
+section division_monoid
+variables [division_monoid G] {a b : G}
 
-section has_involutive_inv
-variables {G : Type*} [has_involutive_inv G]
+@[simp, to_additive neg_add_rev] lemma mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
+division_monoid.mul_inv_rev _ _
 
 @[simp, to_additive]
-lemma inv_inv (a : G) : (a⁻¹)⁻¹ = a :=
-has_involutive_inv.inv_inv _
+lemma inv_eq_of_mul_eq_one_left : a * b = 1 → a⁻¹ = b := division_monoid.inv_eq_of_mul _ _
 
-end has_involutive_inv
+end division_monoid
+
+/-- Commutative `subtraction_monoid`. -/
+@[protect_proj, ancestor subtraction_monoid add_comm_monoid]
+class subtraction_comm_monoid (G : Type u) extends subtraction_monoid G, add_comm_monoid G
+
+/-- Commutative `division_monoid`.
+
+This is the immediate common ancestor of `comm_group` and `comm_group_with_zero`. -/
+@[protect_proj, ancestor division_monoid comm_monoid, to_additive subtraction_comm_monoid]
+class division_comm_monoid (G : Type u) extends division_monoid G, comm_monoid G
 
 /-- A `group` is a `monoid` with an operation `⁻¹` satisfying `a⁻¹ * a = 1`.
 
@@ -661,7 +691,7 @@ def group.to_monoid (G : Type u) [group G] : monoid G :=
 @div_inv_monoid.to_monoid _ (@group.to_div_inv_monoid _ _)
 
 section group
-variables {G : Type u} [group G] {a b c : G}
+variables [group G] {a b c : G}
 
 @[simp, to_additive]
 lemma mul_left_inv : ∀ a : G, a⁻¹ * a = 1 :=
@@ -669,29 +699,33 @@ group.mul_left_inv
 
 @[to_additive] lemma inv_mul_self (a : G) : a⁻¹ * a = 1 := mul_left_inv a
 
-@[simp, to_additive]
-lemma inv_mul_cancel_left (a b : G) : a⁻¹ * (a * b) = b :=
-by rw [← mul_assoc, mul_left_inv, one_mul]
-
-@[simp, to_additive]
-lemma inv_eq_of_mul_eq_one (h : a * b = 1) : a⁻¹ = b :=
+@[to_additive] private lemma inv_eq_of_mul (h : a * b = 1) : a⁻¹ = b :=
 left_inv_eq_right_inv (inv_mul_self a) h
-
-@[priority 100, to_additive]
-instance group.to_has_involutive_inv : has_involutive_inv G :=
-{ inv := has_inv.inv,
-  inv_inv := λ a, inv_eq_of_mul_eq_one (mul_left_inv a) }
 
 @[simp, to_additive]
 lemma mul_right_inv (a : G) : a * a⁻¹ = 1 :=
-have a⁻¹⁻¹ * a⁻¹ = 1 := mul_left_inv a⁻¹,
-by rwa [inv_inv] at this
+by rw [←mul_left_inv a⁻¹, inv_eq_of_mul (mul_left_inv a)]
 
 @[to_additive] lemma mul_inv_self (a : G) : a * a⁻¹ = 1 := mul_right_inv a
 
-@[simp, to_additive]
-lemma mul_inv_cancel_right (a b : G) : a * b * b⁻¹ = a :=
+@[simp, to_additive] lemma inv_mul_cancel_left (a b : G) : a⁻¹ * (a * b) = b :=
+by rw [←mul_assoc, mul_left_inv, one_mul]
+
+@[simp, to_additive] lemma mul_inv_cancel_left (a b : G) : a * (a⁻¹ * b) = b :=
+by rw [←mul_assoc, mul_right_inv, one_mul]
+
+@[simp, to_additive] lemma mul_inv_cancel_right (a b : G) : a * b * b⁻¹ = a :=
 by rw [mul_assoc, mul_right_inv, mul_one]
+
+@[simp, to_additive] lemma inv_mul_cancel_right (a b : G) : a * b⁻¹ * b = a :=
+by rw [mul_assoc, mul_left_inv, mul_one]
+
+@[priority 100, to_additive]
+instance group.to_division_monoid : division_monoid G :=
+{ inv_inv := λ a, inv_eq_of_mul (mul_left_inv a),
+  mul_inv_rev := λ a b, inv_eq_of_mul $ by rw [mul_assoc, mul_inv_cancel_left, mul_right_inv],
+  inv_eq_of_mul := λ _ _, inv_eq_of_mul,
+  ..‹group G› }
 
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance group.to_cancel_monoid : cancel_monoid G :=
@@ -734,11 +768,16 @@ end
 
 section comm_group
 
-variables {G : Type u} [comm_group G]
+variables [comm_group G]
 
 @[priority 100, to_additive]    -- see Note [lower instance priority]
 instance comm_group.to_cancel_comm_monoid : cancel_comm_monoid G :=
 { ..‹comm_group G›,
   ..group.to_cancel_monoid }
+
+@[priority 100, to_additive]    -- see Note [lower instance priority]
+instance comm_group.to_division_comm_monoid : division_comm_monoid G :=
+{ ..‹comm_group G›,
+  ..group.to_division_monoid }
 
 end comm_group

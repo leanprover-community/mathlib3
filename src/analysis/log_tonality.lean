@@ -53,24 +53,20 @@ begin
 end
 
 -- This could also be made into an antitone_on statemnt
-lemma log_div_self_rpow_antitone_on {x y a : ℝ} (ha : 0 < a) (hex : exp (1 / a) ≤ x) (hxy : x ≤ y) :
-  log y / y ^ a ≤ log x / x ^ a :=
+lemma log_div_self_rpow_antitone_on {a : ℝ} (ha : 0 < a) :
+  antitone_on (λ x : ℝ, log x / x ^ a) {x | exp (1 / a) ≤ x} :=
 begin
+  simp only [antitone_on, mem_set_of_eq],
+  intros x hex y hey hxy,
   have x_pos : 0 < x := lt_of_lt_of_le (exp_pos (1 / a)) hex,
   have y_pos : 0 < y := by linarith,
   have x_nonneg : 0 ≤ x := le_trans (le_of_lt (exp_pos (1 / a))) hex,
   have y_nonneg : 0 ≤ y := by linarith,
   nth_rewrite 0 ←rpow_one y,
   nth_rewrite 0 ←rpow_one x,
-  rw ←div_self (ne_of_lt ha).symm,
-  rw div_eq_mul_one_div a a,
-  rw rpow_mul y_nonneg,
-  rw rpow_mul x_nonneg,
-  rw log_rpow (rpow_pos_of_pos y_pos a),
-  rw log_rpow (rpow_pos_of_pos x_pos a),
-  rw mul_div_assoc,
-  rw mul_div_assoc,
-  rw mul_le_mul_left (one_div_pos.mpr ha),
+  rw [←div_self (ne_of_lt ha).symm, div_eq_mul_one_div a a, rpow_mul y_nonneg, rpow_mul x_nonneg,
+    log_rpow (rpow_pos_of_pos y_pos a), log_rpow (rpow_pos_of_pos x_pos a), mul_div_assoc,
+    mul_div_assoc, mul_le_mul_left (one_div_pos.mpr ha)],
   { refine log_div_self_antitone_on _ _ _,
     { simp only [set.mem_set_of_eq],
       convert rpow_le_rpow _ hex (le_of_lt ha),
@@ -84,23 +80,15 @@ begin
       simp only [real.exp_eq_exp],
       field_simp [(ne_of_lt ha).symm],
       exact le_of_lt (exp_pos (1 / a)), },
-    apply rpow_le_rpow,
-    exact x_nonneg,
-    exact hxy,
-    exact le_of_lt ha, },
+    exact rpow_le_rpow x_nonneg hxy (le_of_lt ha), },
 end
 
--- This could also be made into an antitone_on statemnt
-lemma log_div_sqrt_decreasing {x y : ℝ} (hex : exp 2 ≤ x) (hxy : x ≤ y) :
-  log y / sqrt y ≤ log x / sqrt x :=
+lemma log_div_sqrt_decreasing :
+  antitone_on (λ x : ℝ, log x / sqrt x) {x | exp 2 ≤ x} :=
 begin
-  rw sqrt_eq_rpow,
-  rw sqrt_eq_rpow,
-  apply log_div_self_rpow_antitone_on,
+  simp_rw sqrt_eq_rpow,
+  convert @log_div_self_rpow_antitone_on (1 / 2) (by norm_num),
   norm_num,
-  simp only [one_div, inv_inv],
-  assumption,
-  assumption,
 end
 
 end real

@@ -5,6 +5,7 @@ Authors: Christopher Hoskin
 -/
 import algebra.ring.basic
 import algebra.group_power.basic
+import tactic.nth_rewrite.default
 
 /-!
 # Idempotents
@@ -19,9 +20,9 @@ This file defines idempotents for an arbitary multiplication and proves some bas
 projection, idempotent
 -/
 
-variables {M N S M₀ M₁ R : Type*}
+variables {M N S M₀ M₁ R G: Type*}
 variables [has_mul M] [monoid N] [semigroup S] [mul_zero_class M₀] [mul_one_class M₁]
-  [non_assoc_ring R]
+  [non_assoc_ring R] [group G]
 
 /--
 An element `p` is said to be idempotent if `p * p = p`
@@ -56,6 +57,13 @@ begin
   induction n with n ih,
   { rw [nat.zero_add, pow_one], },
   { rw [pow_succ, ih, h.eq], }
+end
+
+lemma group_one {p : G} (h : is_idempotent_elem p) : p = 1 :=
+begin
+  rw ← mul_left_inv p,
+  nth_rewrite_rhs 1 ← h.eq,
+  rw [← mul_assoc, mul_left_inv, one_mul],
 end
 
 /-! ### Instances on `subtype is_idempotent_elem` -/

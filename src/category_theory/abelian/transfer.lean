@@ -168,4 +168,15 @@ begin
   apply abelian.of_coimage_image_comparison_is_iso,
 end
 
+/--
+If `C` is an additive category equivalent to an abelian category `D`
+via a functor that preserves zero morphisms,
+then `C` is also abelian.
+-/
+def abelian_of_equivalence
+  {C : Type u₁} [category.{v} C] [preadditive C] [has_finite_products C]
+  {D : Type u₂} [category.{v} D] [abelian D]
+  (F : C ⥤ D) [functor.preserves_zero_morphisms F] [is_equivalence F] : abelian C :=
+abelian_of_adjunction F F.inv F.as_equivalence.unit_iso.symm F.as_equivalence.symm.to_adjunction
+
 end category_theory

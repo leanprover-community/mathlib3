@@ -191,8 +191,11 @@ instance : unique (1 : ordinal).out.α :=
     apply typein_lt_self
   end }
 
-@[simp] theorem default_one_out_eq : (default : (1 : ordinal).out.α) = enum (<) 0 (by simp) :=
-rfl
+theorem one_out_eq (x : (1 : ordinal).out.α) : x = enum (<) 0 (by simp) :=
+unique.eq_default x
+
+@[simp] theorem typein_one_out (x : (1 : ordinal).out.α) : typein (<) x = 0 :=
+by rw [one_out_eq x, typein_enum]
 
 theorem le_one_iff {a : ordinal} : a ≤ 1 ↔ a = 0 ∨ a = 1 :=
 begin

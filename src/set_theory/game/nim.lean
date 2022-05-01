@@ -77,11 +77,12 @@ relabelling.is_empty _
 theorem nim_zero_equiv : nim 0 ≈ 0 := nim_zero_relabelling.equiv
 
 /-- `nim 1` has exactly the same moves as `star`. -/
-def nim_one_relabelling : relabelling (nim 1) star :=
+noncomputable def nim_one_relabelling : relabelling (nim 1) star :=
 begin
   rw nim_def,
-  refine ⟨_, _, _, _⟩,
-   dsimp, apply equiv_of_unique_of_unique ,
+  refine ⟨_, _, λ i,  _, λ j, _⟩,
+  any_goals { dsimp, apply equiv_of_unique_of_unique },
+  all_goals { simp, exact nim_zero_relabelling }
 end
 
 theorem nim_one_equiv : nim 1 ≈ star := nim_one_relabelling.equiv

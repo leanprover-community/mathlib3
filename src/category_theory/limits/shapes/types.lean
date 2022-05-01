@@ -73,7 +73,7 @@ def initial_colimit_cocone : limits.colimit_cocone (functor.empty (Type u)) :=
     ι := by tidy, },
   is_colimit := by tidy, }
 
-/-- The terminal object in `Type u` is `punit`. -/
+/-- The initial object in `Type u` is `punit`. -/
 noncomputable def initial_iso : ⊥_ (Type u) ≅ pempty :=
 colimit.iso_colimit_cocone initial_colimit_cocone
 

@@ -1909,34 +1909,12 @@ namespace submodule
 variables {R M : Type*} [ring R] [add_comm_group M] [module R M] [topological_space M]
   (S : submodule R M)
 
-/-- The quotient module `M ⧸ S` is homeomorphic to the quotient group `M ⧸ S`. This is
-  `submodule.quotient_equiv_quotient_group` as an homeomorphism. -/
-noncomputable def quotient_homeomorph_quotient_group : M ⧸ S ≃ₜ M ⧸ S.to_add_subgroup :=
-{ continuous_to_fun :=
-  begin
-    refine continuous_coinduced_dom _,
-    change continuous (S.quotient_equiv_quotient_group ∘ S.mkq),
-    rw S.quotient_equiv_quotient_group_comp_mkq,
-    exact continuous_quot_mk
-  end,
-  continuous_inv_fun := continuous_coinduced_dom continuous_quot_mk,
-  .. S.quotient_equiv_quotient_group }
-
 lemma is_open_map_mkq [topological_add_group M] : is_open_map S.mkq :=
-begin
-  rw ← S.quotient_equiv_quotient_group_symm_comp_mk,
-  exact S.quotient_homeomorph_quotient_group.symm.is_open_map.comp
-    (quotient_add_group.is_open_map_coe _)
-end
+quotient_add_group.is_open_map_coe S.to_add_subgroup
 
 instance topological_add_group_quotient [topological_add_group M] :
     topological_add_group (M ⧸ S) :=
-begin
-  have : inducing S.quotient_equiv_quotient_group :=
-    S.quotient_homeomorph_quotient_group.inducing,
-  rw this.1,
-  exact topological_add_group_induced _
-end
+topological_add_group_quotient S.to_add_subgroup
 
 instance has_continuous_smul_quotient [topological_space R] [topological_add_group M]
   [has_continuous_smul R M] :
@@ -1952,31 +1930,11 @@ begin
   exact continuous_quot_mk.comp continuous_smul
 end
 
-lemma regular_quotient_of_is_closed [topological_add_group M]
-  (hS : is_closed (S : set M)) :
+instance regular_quotient_of_is_closed [topological_add_group M] [is_closed (S : set M)] :
   regular_space (M ⧸ S) :=
 begin
-  letI : regular_space (M ⧸ S.to_add_subgroup) :=
-    S.to_add_subgroup.regular_quotient_of_is_closed hS,
-  exact S.quotient_homeomorph_quotient_group.symm.regular_space
-end
-
-lemma t2_quotient_of_is_closed [topological_add_group M]
-  (hS : is_closed (S : set M)) :
-  t2_space (M ⧸ S) :=
-begin
-  letI : regular_space (M ⧸ S) :=
-    S.regular_quotient_of_is_closed hS,
-  apply_instance
-end
-
-lemma t1_quotient_of_is_closed [topological_add_group M]
-  (hS : is_closed (S : set M)) :
-  t1_space (M ⧸ S) :=
-begin
-  letI : regular_space (M ⧸ S) :=
-    S.regular_quotient_of_is_closed hS,
-  apply_instance
+  letI : is_closed (S.to_add_subgroup : set M) := ‹_›,
+  exact S.to_add_subgroup.regular_quotient_of_is_closed
 end
 
 end submodule

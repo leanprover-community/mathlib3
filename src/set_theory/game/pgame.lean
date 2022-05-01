@@ -339,38 +339,28 @@ end
 /-- The definition of `x ≤ 0` on pre-games, in terms of `≤ 0` two moves later. -/
 theorem le_zero {x : pgame} : x ≤ 0 ↔
   ∀ i : x.left_moves, ∃ j : (x.move_left i).right_moves, (x.move_left i).move_right j ≤ 0 :=
-begin
-  rw le_def,
-  dsimp,
-  simp [forall_pempty, exists_pempty]
-end
+by { rw le_def, dsimp, simp [forall_pempty, exists_pempty] }
 
 /-- The definition of `0 ≤ x` on pre-games, in terms of `0 ≤` two moves later. -/
 theorem zero_le {x : pgame} : 0 ≤ x ↔
   ∀ j : x.right_moves, ∃ i : (x.move_right j).left_moves, 0 ≤ (x.move_right j).move_left i :=
-begin
-  rw le_def,
-  dsimp,
-  simp [forall_pempty, exists_pempty]
-end
+by { rw le_def, dsimp, simp [forall_pempty, exists_pempty] }
 
 /-- The definition of `x < 0` on pre-games, in terms of `< 0` two moves later. -/
 theorem lt_zero {x : pgame} : x < 0 ↔
   ∃ j : x.right_moves, ∀ i : (x.move_right j).left_moves, (x.move_right j).move_left i < 0 :=
-begin
-  rw lt_def,
-  dsimp,
-  simp [forall_pempty, exists_pempty]
-end
+by { rw lt_def, dsimp, simp [forall_pempty, exists_pempty] }
 
 /-- The definition of `0 < x` on pre-games, in terms of `< x` two moves later. -/
 theorem zero_lt {x : pgame} : 0 < x ↔
   ∃ i : x.left_moves, ∀ j : (x.move_left i).right_moves, 0 < (x.move_left i).move_right j :=
-begin
-  rw lt_def,
-  dsimp,
-  simp [forall_pempty, exists_pempty]
-end
+by { rw lt_def, dsimp, simp [forall_pempty, exists_pempty] }
+
+@[simp] theorem le_zero_of_is_empty_left_moves {x : pgame} [is_empty x.left_moves] : x ≤ 0 :=
+le_zero.2 is_empty_elim
+
+@[simp] theorem zero_le_of_is_empty_right_moves {x : pgame} [is_empty x.right_moves] : 0 ≤ x :=
+zero_le.2 is_empty_elim
 
 /-- Given a right-player-wins game, provide a response to any move by left. -/
 noncomputable def right_response {x : pgame} (h : x ≤ 0) (i : x.left_moves) :
@@ -1143,8 +1133,11 @@ by { rw zero_lt, use default, rintros ⟨⟩ }
 /-- The pre-game `ω`. (In fact all ordinals have game and surreal representatives.) -/
 def omega : pgame := ⟨ulift ℕ, pempty, λ n, ↑n.1, pempty.elim⟩
 
-theorem zero_lt_one : (0 : pgame) < 1 :=
+@[simp] theorem zero_lt_one : (0 : pgame) < 1 :=
 by { rw zero_lt, use default, rintro ⟨⟩ }
+
+theorem zero_le_one : (0 : pgame) ≤ 1 :=
+zero_le_of_is_empty_right_moves
 
 /-- The pre-game `half` is defined as `{0 | 1}`. -/
 def half : pgame := ⟨punit, punit, 0, 1⟩

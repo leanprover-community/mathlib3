@@ -963,11 +963,11 @@ lemma is_stopping_time_piecewise_const (hij : i ≤ j) (hs : measurable_set[𝒢
   is_stopping_time 𝒢 (s.piecewise (λ _, i) (λ _, j)) :=
 (is_stopping_time_const i).piecewise_of_le (is_stopping_time_const j) (λ x, le_rfl) (λ _, hij) hs
 
-lemma stopped_value_piecewise_const {i j : ι} {f : ι → α → ℝ} :
+lemma stopped_value_piecewise_const {ι' : Type*} {i j : ι'} {f : ι' → α → ℝ} :
   stopped_value f (s.piecewise (λ _, i) (λ _, j)) = s.piecewise (f i) (f j) :=
 by { ext x, rw stopped_value, by_cases hx : x ∈ s; simp [hx] }
 
-lemma stopped_value_piecewise_const' {i j : ι} {f : ι → α → ℝ} :
+lemma stopped_value_piecewise_const' {ι' : Type*} {i j : ι'} {f : ι' → α → ℝ} :
   stopped_value f (s.piecewise (λ _, i) (λ _, j)) = s.indicator (f i) + sᶜ.indicator (f j) :=
 by { ext x, rw stopped_value, by_cases hx : x ∈ s; simp [hx] }
 

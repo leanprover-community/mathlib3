@@ -529,9 +529,12 @@ inductive inv_ty (l r : Type u) : bool → Type u
 instance (l r : Type u) [is_empty l] [is_empty r] : is_empty (inv_ty l r tt) :=
 ⟨λ h, by { cases h with _ _ _ _ a _ a _; exact is_empty_elim a }⟩
 
+instance (l r : Type u) : inhabited (inv_ty l r ff) :=
+⟨inv_ty.zero⟩
+
 instance unique_inv_ty (l r : Type u) [is_empty l] [is_empty r] : unique (inv_ty l r ff) :=
-{ default := inv_ty.zero,
-  uniq := by { rintro (a | a | a), refl, all_goals { exact is_empty_elim a } } }
+{ uniq := by { rintro (a | a | a), refl, all_goals { exact is_empty_elim a } },
+  ..inv_ty.inhabited l r }
 
 @[simp] theorem default_inv_ty_eq_zero (l r : Type u) [is_empty l] [is_empty r] :
   (default : inv_ty l r ff) = inv_ty.zero :=
@@ -610,13 +613,13 @@ by { classical, exact if x ≈ 0 then 0 else if 0 < x then inv' x else inv' (-x)
 noncomputable instance : has_inv pgame := ⟨inv⟩
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 
-theorem inv_equiv_zero {x : pgame} (h : x ≈ 0) : x⁻¹ = 0 :=
+theorem inv_eq_of_equiv_zero {x : pgame} (h : x ≈ 0) : x⁻¹ = 0 :=
 by { apply if_pos, exact h }
 
 @[simp] theorem inv_zero : (0 : pgame)⁻¹ = 0 :=
-inv_equiv_zero (equiv_refl _)
+inv_eq_of_equiv_zero (equiv_refl _)
 
-theorem inv_pos {x : pgame} (h : 0 < x) : x⁻¹ = inv' x :=
+theorem inv_eq_of_pos {x : pgame} (h : 0 < x) : x⁻¹ = inv' x :=
 begin
   convert if_neg _,
   { apply eq.symm (if_pos _), exact h },
@@ -632,7 +635,7 @@ end
 
 /-- `1⁻¹` has exactly the same moves as `1`. -/
 def inv_one : relabelling (1 : pgame)⁻¹ 1 :=
-by { rw inv_pos zero_lt_one, exact inv'_one }
+by { rw inv_eq_of_pos zero_lt_one, exact inv'_one }
 
 theorem inv_one_equiv : (1 : pgame)⁻¹ ≈ 1 := inv_one.equiv
 

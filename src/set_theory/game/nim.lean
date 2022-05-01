@@ -108,10 +108,8 @@ instance nim_impartial (O : ordinal) : impartial (nim O) :=
 begin
   induction O using ordinal.induction with O IH,
   rw [impartial_def, neg_nim],
-  refine ⟨equiv_refl _, _, _⟩,
-  all_goals
-  { intro i,
-    simpa using IH _ (typein_lt_self _) }
+  refine ⟨equiv_refl _, λ i, _, λ i, _⟩;
+  simpa using IH _ (typein_lt_self _)
 end
 
 lemma exists_ordinal_move_left_eq (O : ordinal) : ∀ i, ∃ O' < O, (nim O).move_left i = nim O' :=

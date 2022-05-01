@@ -356,10 +356,10 @@ theorem zero_lt {x : pgame} : 0 < x ↔
   ∃ i : x.left_moves, ∀ j : (x.move_left i).right_moves, 0 < (x.move_left i).move_right j :=
 by { rw lt_def, dsimp, simp [forall_pempty, exists_pempty] }
 
-@[simp] theorem le_zero_of_is_empty_left_moves {x : pgame} [is_empty x.left_moves] : x ≤ 0 :=
+@[simp] theorem le_zero_of_is_empty_left_moves (x : pgame) [is_empty x.left_moves] : x ≤ 0 :=
 le_zero.2 is_empty_elim
 
-@[simp] theorem zero_le_of_is_empty_right_moves {x : pgame} [is_empty x.right_moves] : 0 ≤ x :=
+@[simp] theorem zero_le_of_is_empty_right_moves (x : pgame) [is_empty x.right_moves] : 0 ≤ x :=
 zero_le.2 is_empty_elim
 
 /-- Given a right-player-wins game, provide a response to any move by left. -/
@@ -1137,7 +1137,7 @@ def omega : pgame := ⟨ulift ℕ, pempty, λ n, ↑n.1, pempty.elim⟩
 by { rw zero_lt, use default, rintro ⟨⟩ }
 
 theorem zero_le_one : (0 : pgame) ≤ 1 :=
-zero_le_of_is_empty_right_moves
+zero_le_of_is_empty_right_moves 1
 
 /-- The pre-game `half` is defined as `{0 | 1}`. -/
 def half : pgame := ⟨punit, punit, 0, 1⟩

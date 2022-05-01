@@ -408,7 +408,7 @@ by simp [nnreal.coe_le_coe.symm, real.to_nnreal, hp]
 
 @[simp] lemma to_nnreal_lt_to_nnreal_iff' {r p : ℝ} :
   real.to_nnreal r < real.to_nnreal p ↔ r < p ∧ 0 < p :=
-by simp [nnreal.coe_lt_coe.symm, real.to_nnreal, lt_irrefl]
+nnreal.coe_lt_coe.symm.trans max_lt_max_left_iff
 
 lemma to_nnreal_lt_to_nnreal_iff {r p : ℝ} (h : 0 < p) :
   real.to_nnreal r < real.to_nnreal p ↔ r < p :=

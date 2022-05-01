@@ -408,6 +408,9 @@ theorem pow_zero (a : M) : a^0 = 1 := monoid.npow_zero' _
 @[to_additive succ_nsmul]
 theorem pow_succ (a : M) (n : ℕ) : a^(n+1) = a * a^n := monoid.npow_succ' n a
 
+@[to_additive one_nsmul, simp]
+theorem pow_one (a : M) : a^1 = a := by rw [pow_succ, pow_zero, mul_one]
+
 end
 
 section monoid

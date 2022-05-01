@@ -800,7 +800,7 @@ the `tensor_product.map f g`, the tensor product of the two maps. -/
 def End_tensor_End_alg_hom : (End R M) ⊗[R] (End R N) →ₐ[R] End R (M ⊗[R] N) :=
 begin
   refine algebra.tensor_product.alg_hom_of_linear_map_tensor_product
-  hom_tensor_hom_map _ _,
+  (hom_tensor_hom_map R M N M N) _ _,
   { intros f₁ f₂ g₁ g₂,
     simp only [hom_tensor_hom_map_apply, tensor_product.map_mul] },
   { intro r,

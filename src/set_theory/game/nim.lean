@@ -124,17 +124,17 @@ end nim
 
 /-- The Grundy value of an impartial game, the ordinal which corresponds to the game of nim that the
  game is equivalent to -/
-noncomputable def grundy_value : Π (G : pgame.{u}) [G.impartial], ordinal.{u}
-| G := λ hG, by exactI ordinal.mex.{u u} (λ i, grundy_value (G.move_left i))
+noncomputable def grundy_value : Π (G : pgame.{u}), ordinal.{u}
+| G := ordinal.mex.{u u} (λ i, grundy_value (G.move_left i))
 using_well_founded { dec_tac := pgame_wf_tac }
 
-lemma grundy_value_def (G : pgame) [G.impartial] :
+lemma grundy_value_def (G : pgame) :
   grundy_value G = ordinal.mex.{u u} (λ i, grundy_value (G.move_left i)) :=
 by rw grundy_value
 
 /-- The Sprague-Grundy theorem which states that every impartial game is equivalent to a game of
  nim, namely the game of nim corresponding to the games Grundy value -/
-theorem equiv_nim_grundy_value : ∀ (G : pgame.{u}) [G.impartial], by exactI G ≈ nim (grundy_value G)
+theorem equiv_nim_grundy_value : ∀ (G : pgame.{u}) [G.impartial], G ≈ nim (grundy_value G)
 | G :=
 begin
   introI hG,

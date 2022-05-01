@@ -79,11 +79,20 @@ begin
   { intro h, rw h, apply one, }
 end
 
-lemma group_with_zero_nonzero_one {p : G₀} (h : is_idempotent_elem p) (h₀ : p ≠ 0) : p = 1 :=
+@[simp] lemma iff_eq_zero_or_one {p : G₀}  : is_idempotent_elem p ↔ p = 0 ∨ p = 1 :=
 begin
-  rw ← mul_inv_cancel h₀,
-  nth_rewrite_rhs 0 ← h.eq,
-  rw [mul_assoc, mul_inv_cancel h₀, mul_one],
+  split,
+  { intro h,
+    by_cases hp : p = 0,
+    { finish, },
+    { rw ← mul_inv_cancel hp,
+      nth_rewrite_rhs 1 ← h.eq,
+      rw [mul_assoc, mul_inv_cancel hp, mul_one, eq_self_iff_true, or_true],
+      finish, } },
+  { intro h,
+    cases h,
+    { rw h, apply zero, },
+    { rw h, apply one, } }
 end
 
 /-! ### Instances on `subtype is_idempotent_elem` -/

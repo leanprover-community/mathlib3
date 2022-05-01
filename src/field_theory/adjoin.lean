@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Patrick Lutz
 -/
 
-import field_theory.intermediate_field
-import field_theory.separable
+_import field_theory.separable
 import ring_theory.tensor_product
 
 /-!
@@ -368,7 +367,7 @@ begin
   haveI := minpoly.irreducible hα,
   suffices : ϕ ⟨x, hx⟩ * (ϕ ⟨x, hx⟩)⁻¹ = 1,
   { convert subtype.mem (ϕ.symm (ϕ ⟨x, hx⟩)⁻¹),
-    refine inv_eq_of_mul_eq_one_LEFT _,
+    refine inv_eq_of_mul_eq_one_left _,
     apply_fun ϕ.symm at this,
     rw [alg_equiv.map_one, alg_equiv.map_mul, alg_equiv.symm_apply_apply] at this,
     rw [←subsemiring.coe_one, ←this, subsemiring.coe_mul, subtype.coe_mk] },

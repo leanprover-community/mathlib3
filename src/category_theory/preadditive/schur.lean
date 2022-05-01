@@ -58,7 +58,8 @@ In any preadditive category with kernels,
 the endomorphisms of a simple object form a division ring.
 -/
 noncomputable
-instance [has_kernels C] {X : C} [simple X] [decidable_eq (End X)] : division_ring (End X) :=
+instance [has_kernels C] {X : C} [simple X] : division_ring (End X) :=
+by classical; exact
 { inv := λ f, if h : f = 0 then 0 else by { haveI := is_iso_of_hom_simple h, exact inv f, },
   exists_pair_ne := ⟨𝟙 X, 0, id_nonzero _⟩,
   inv_zero := dif_pos rfl,
@@ -149,8 +150,9 @@ Endomorphisms of a simple object form a field if they are finite dimensional.
 This can't be an instance as `𝕜` would be undetermined.
 -/
 noncomputable
-def (X : C) [simple X] [decidable_eq (End X)] [I : finite_dimensional 𝕜 (X ⟶ X)] :
+def field_End_of_finite_dimensional (X : C) [simple X] [I : finite_dimensional 𝕜 (X ⟶ X)] :
   field (End X) :=
+by classical; exact
 { mul_comm := λ f g, begin
     obtain ⟨c, rfl⟩ := endomorphism_simple_eq_smul_id 𝕜 f,
     obtain ⟨d, rfl⟩ := endomorphism_simple_eq_smul_id 𝕜 g,
@@ -165,10 +167,10 @@ if hom spaces are finite dimensional, then the hom space between simples is at m
 See `finrank_hom_simple_simple_eq_one_iff` and `finrank_hom_simple_simple_eq_zero_iff` below
 for the refinements when we know whether or not the simples are isomorphic.
 -/
--- We don't really need `[∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)]` here,
--- just at least one of `[finite_dimensional 𝕜 (X ⟶ X)]` or `[finite_dimensional 𝕜 (Y ⟶ Y)]`.
+-- There is a symmetric argument that uses `[finite_dimensional 𝕜 (Y ⟶ Y)]` instead,
+-- but we don't bother proving that here.
 lemma finrank_hom_simple_simple_le_one
-  (X Y : C) [∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)] [simple X] [simple Y] :
+  (X Y : C) [finite_dimensional 𝕜 (X ⟶ X)] [simple X] [simple Y] :
   finrank 𝕜 (X ⟶ Y) ≤ 1 :=
 begin
   cases subsingleton_or_nontrivial (X ⟶ Y) with h,
@@ -184,7 +186,7 @@ begin
 end
 
 lemma finrank_hom_simple_simple_eq_one_iff
-  (X Y : C) [∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)] [simple X] [simple Y] :
+  (X Y : C) [finite_dimensional 𝕜 (X ⟶ X)] [finite_dimensional 𝕜 (X ⟶ Y)] [simple X] [simple Y] :
   finrank 𝕜 (X ⟶ Y) = 1 ↔ nonempty (X ≅ Y) :=
 begin
   fsplit,
@@ -201,7 +203,7 @@ begin
 end
 
 lemma finrank_hom_simple_simple_eq_zero_iff
-  (X Y : C) [∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)] [simple X] [simple Y] :
+  (X Y : C) [finite_dimensional 𝕜 (X ⟶ X)] [finite_dimensional 𝕜 (X ⟶ Y)] [simple X] [simple Y] :
   finrank 𝕜 (X ⟶ Y) = 0 ↔ is_empty (X ≅ Y) :=
 begin
   rw [← not_nonempty_iff, ← not_congr (finrank_hom_simple_simple_eq_one_iff 𝕜 X Y)],

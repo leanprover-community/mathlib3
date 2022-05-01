@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash, Eric Wieser
 -/
 import linear_algebra.determinant
-import topology.algebra.ring
 import topology.algebra.infinite_sum
+import topology.algebra.ring
+import topology.algebra.star
 
 /-!
 # Topological properties of matrices
@@ -69,13 +70,12 @@ lemma continuous.matrix_transpose {A : X → matrix m n R} (hA : continuous A) :
   continuous (λ x, (A x)ᵀ) :=
 continuous_matrix $ λ i j, hA.matrix_elem j i
 
-/-! TODO: add a `has_continuous_star` typeclass so we can write
-```
-lemma continuous.matrix.conj_transpose [has_star R] {A : X → matrix m n R} (hA : continuous A) :
-  continuous (λ x, (A x)ᴴ) :=
+lemma continuous.matrix_conj_transpose [has_star R] [has_continuous_star R] {A : X → matrix m n R}
+  (hA : continuous A) : continuous (λ x, (A x)ᴴ) :=
 hA.matrix_transpose.matrix_map continuous_star
-```
--/
+
+instance [has_star R] [has_continuous_star R] : has_continuous_star (matrix m m R) :=
+⟨continuous_id.matrix_conj_transpose⟩
 
 @[continuity]
 lemma continuous.matrix_col {A : X → n → R} (hA : continuous A) : continuous (λ x, col (A x)) :=
@@ -263,6 +263,31 @@ begin
   { exact hf.has_sum.matrix_transpose.tsum_eq.symm },
   { have hft := summable_matrix_transpose.not.mpr hf,
     rw [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable hft, transpose_zero] },
+end
+
+lemma has_sum.matrix_conj_transpose [star_add_monoid R] [has_continuous_star R]
+  {f : X → matrix m n R} {a : matrix m n R} (hf : has_sum f a) :
+  has_sum (λ x, (f x)ᴴ) aᴴ :=
+(hf.map (@matrix.conj_transpose_add_equiv m n R _ _) continuous_id.matrix_conj_transpose : _)
+
+lemma summable.matrix_conj_transpose [star_add_monoid R] [has_continuous_star R]
+  {f : X → matrix m n R} (hf : summable f) :
+  summable (λ x, (f x)ᴴ) :=
+hf.has_sum.matrix_conj_transpose.summable
+
+@[simp] lemma summable_matrix_conj_transpose [star_add_monoid R] [has_continuous_star R]
+  {f : X → matrix m n R} :
+  summable (λ x, (f x)ᴴ) ↔ summable f :=
+(summable.map_iff_of_equiv (@matrix.conj_transpose_add_equiv m n R _ _)
+    (@continuous_id (matrix m n R) _).matrix_conj_transpose (continuous_id.matrix_conj_transpose) : _)
+
+lemma matrix.conj_transpose_tsum [star_add_monoid R] [has_continuous_star R] [t2_space R]
+  {f : X → matrix m n R} : (∑' x, f x)ᴴ = ∑' x, (f x)ᴴ :=
+begin
+  by_cases hf : summable f,
+  { exact hf.has_sum.matrix_conj_transpose.tsum_eq.symm },
+  { have hft := summable_matrix_conj_transpose.not.mpr hf,
+    rw [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable hft, conj_transpose_zero] },
 end
 
 lemma has_sum.matrix_diagonal [decidable_eq n] {f : X → n → R} {a : n → R} (hf : has_sum f a) :

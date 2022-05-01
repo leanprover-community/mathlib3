@@ -222,6 +222,15 @@ protected def function.surjective.semiring
 
 end injective_surjective_maps
 
+section has_one_has_add
+
+variables [has_one α] [has_add α]
+
+lemma one_add_one_eq_two : 1 + 1 = (2 : α) :=
+by unfold bit0
+
+end has_one_has_add
+
 section non_unital_semiring
 variables [non_unital_semiring α]
 
@@ -245,6 +254,9 @@ by rw [mul_add, mul_one]
 theorem two_mul (n : α) : 2 * n = n + n :=
 eq.trans (right_distrib 1 1 n) (by simp)
 
+theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
+(two_mul _).symm
+
 theorem mul_two (n : α) : n * 2 = n + n :=
 (left_distrib n 1 1).trans (by simp)
 
@@ -252,12 +264,6 @@ end non_assoc_semiring
 
 section semiring
 variables [semiring α]
-
-lemma one_add_one_eq_two : 1 + 1 = (2 : α) :=
-by unfold bit0
-
-theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
-(two_mul _).symm
 
 @[to_additive] lemma mul_ite {α} [has_mul α] (P : Prop) [decidable P] (a b c : α) :
   a * (if P then b else c) = if P then a * b else a * c :=
@@ -311,6 +317,16 @@ namespace add_hom
 ⟨λ a, a * r, λ _ _, add_mul _ _ r⟩
 
 end add_hom
+
+section add_hom_class
+
+variables {F : Type*} [non_assoc_semiring α] [non_assoc_semiring β] [add_hom_class F α β]
+
+/-- Additive homomorphisms preserve `bit0`. -/
+@[simp] lemma map_bit0 (f : F) (a : α) : (f (bit0 a) : β) = bit0 (f a) :=
+map_add _ _ _
+
+end add_hom_class
 
 namespace add_monoid_hom
 
@@ -568,10 +584,6 @@ class ring_hom_class (F : Type*) (R S : out_param Type*)
 
 variables {F : Type*} [non_assoc_semiring α] [non_assoc_semiring β] [ring_hom_class F α β]
 
-/-- Ring homomorphisms preserve `bit0`. -/
-@[simp] lemma map_bit0 (f : F) (a : α) : (f (bit0 a) : β) = bit0 (f a) :=
-map_add _ _ _
-
 /-- Ring homomorphisms preserve `bit1`. -/
 @[simp] lemma map_bit1 (f : F) (a : α) : (f (bit1 a) : β) = bit1 (f a) :=
 by simp [bit1]
@@ -805,12 +817,52 @@ lemma ring_hom.map_dvd [semiring β] (f : α →+* β) {a b : α} : a ∣ b → 
 
 end semiring
 
+/-- A non-unital commutative semiring is a `non_unital_semiring` with commutative multiplication.
+In other words, it is a type with the following structures: additive commutative monoid
+(`add_comm_monoid`), commutative semigroup (`comm_semigroup`), distributive laws (`distrib`), and
+multiplication by zero law (`mul_zero_class`). -/
+@[protect_proj, ancestor non_unital_semiring comm_semigroup]
+class non_unital_comm_semiring (α : Type u) extends non_unital_semiring α, comm_semigroup α
+
+section non_unital_comm_semiring
+variables [non_unital_comm_semiring α] [non_unital_comm_semiring β] {a b c : α}
+
+/-- Pullback a `non_unital_semiring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.non_unital_comm_semiring [has_zero γ] [has_add γ] [has_mul γ]
+  [has_scalar ℕ γ] (f : γ → α) (hf : injective f) (zero : f 0 = 0)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) :
+  non_unital_comm_semiring γ :=
+{ .. hf.non_unital_semiring f zero add mul nsmul, .. hf.comm_semigroup f mul }
+
+/-- Pushforward a `non_unital_semiring` instance along a surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.surjective.non_unital_comm_semiring [has_zero γ] [has_add γ] [has_mul γ]
+  [has_scalar ℕ γ] (f : α → γ) (hf : surjective f) (zero : f 0 = 0)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) :
+  non_unital_comm_semiring γ :=
+{ .. hf.non_unital_semiring f zero add mul nsmul, .. hf.comm_semigroup f mul }
+
+lemma has_dvd.dvd.linear_comb {d x y : α} (hdx : d ∣ x) (hdy : d ∣ y) (a b : α) :
+  d ∣ (a * x + b * y) :=
+dvd_add (hdx.mul_left a) (hdy.mul_left b)
+
+end non_unital_comm_semiring
+
 /-- A commutative semiring is a `semiring` with commutative multiplication. In other words, it is a
 type with the following structures: additive commutative monoid (`add_comm_monoid`), multiplicative
 commutative monoid (`comm_monoid`), distributive laws (`distrib`), and multiplication by zero law
 (`mul_zero_class`). -/
 @[protect_proj, ancestor semiring comm_monoid]
 class comm_semiring (α : Type u) extends semiring α, comm_monoid α
+
+@[priority 100] -- see Note [lower instance priority]
+instance comm_semiring.to_non_unital_comm_semiring [comm_semiring α] : non_unital_comm_semiring α :=
+{ .. comm_semiring.to_comm_monoid α, .. comm_semiring.to_semiring α }
 
 @[priority 100] -- see Note [lower instance priority]
 instance comm_semiring.to_comm_monoid_with_zero [comm_semiring α] : comm_monoid_with_zero α :=
@@ -841,10 +893,6 @@ protected def function.surjective.comm_semiring [has_zero γ] [has_one γ] [has_
 
 lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
 by simp only [two_mul, add_mul, mul_add, add_assoc, mul_comm b]
-
-lemma has_dvd.dvd.linear_comb {d x y : α} (hdx : d ∣ x) (hdy : d ∣ y) (a b : α) :
-  d ∣ (a * x + b * y) :=
-dvd_add (hdx.mul_left a) (hdy.mul_left b)
 
 end comm_semiring
 
@@ -905,6 +953,34 @@ variables [mul_zero_class α] [has_distrib_neg α]
 by rw [←zero_mul (0 : α), ←neg_mul, mul_zero, mul_zero]
 
 end mul_zero_class
+
+section semigroup
+
+variables [semigroup α] [has_distrib_neg α] {a b c : α}
+
+theorem dvd_neg_of_dvd (h : a ∣ b) : (a ∣ -b) :=
+let ⟨c, hc⟩ := h in ⟨-c, by simp [hc]⟩
+
+theorem dvd_of_dvd_neg (h : a ∣ -b) : (a ∣ b) :=
+let t := dvd_neg_of_dvd h in by rwa neg_neg at t
+
+/-- An element a of a semigroup with a distributive negation divides the negation of an element b
+iff a divides b. -/
+@[simp] lemma dvd_neg (a b : α) : (a ∣ -b) ↔ (a ∣ b) :=
+⟨dvd_of_dvd_neg, dvd_neg_of_dvd⟩
+
+theorem neg_dvd_of_dvd (h : a ∣ b) : -a ∣ b :=
+let ⟨c, hc⟩ := h in ⟨-c, by simp [hc]⟩
+
+theorem dvd_of_neg_dvd (h : -a ∣ b) : a ∣ b :=
+let t := neg_dvd_of_dvd h in by rwa neg_neg at t
+
+/-- The negation of an element a of a semigroup with a distributive negation divides
+another element b iff a divides b. -/
+@[simp] lemma neg_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
+⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
+
+end semigroup
 
 section group
 variables [group α] [has_distrib_neg α]
@@ -1196,6 +1272,15 @@ def mk' {γ} [non_assoc_semiring α] [non_assoc_ring γ] (f : α →* γ)
 
 end ring_hom
 
+/-- A non-unital commutative ring is a `non_unital_ring` with commutative multiplication. -/
+@[protect_proj, ancestor non_unital_ring comm_semigroup]
+class non_unital_comm_ring (α : Type u) extends non_unital_ring α, comm_semigroup α
+
+@[priority 100] -- see Note [lower instance priority]
+instance non_unital_comm_ring.to_non_unital_comm_semiring [s : non_unital_comm_ring α] :
+  non_unital_comm_semiring α :=
+{ ..s }
+
 /-- A commutative ring is a `ring` with commutative multiplication. -/
 @[protect_proj, ancestor ring comm_semigroup]
 class comm_ring (α : Type u) extends ring α, comm_monoid α
@@ -1204,32 +1289,12 @@ class comm_ring (α : Type u) extends ring α, comm_monoid α
 instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
 { mul_zero := mul_zero, zero_mul := zero_mul, ..s }
 
-section ring
-variables [ring α] {a b c : α}
+@[priority 100] -- see Note [lower instance priority]
+instance comm_ring.to_non_unital_comm_ring [s : comm_ring α] : non_unital_comm_ring α :=
+{ mul_zero := mul_zero, zero_mul := zero_mul, ..s }
 
-theorem dvd_neg_of_dvd (h : a ∣ b) : (a ∣ -b) :=
-dvd.elim h
-  (assume c, assume : b = a * c,
-    dvd.intro (-c) (by simp [this]))
-
-theorem dvd_of_dvd_neg (h : a ∣ -b) : (a ∣ b) :=
-let t := dvd_neg_of_dvd h in by rwa neg_neg at t
-
-/-- An element a of a ring divides the additive inverse of an element b iff a divides b. -/
-@[simp] lemma dvd_neg (a b : α) : (a ∣ -b) ↔ (a ∣ b) :=
-⟨dvd_of_dvd_neg, dvd_neg_of_dvd⟩
-
-theorem neg_dvd_of_dvd (h : a ∣ b) : -a ∣ b :=
-dvd.elim h
-  (assume c, assume : b = a * c,
-    dvd.intro (-c) (by simp [this]))
-
-theorem dvd_of_neg_dvd (h : -a ∣ b) : a ∣ b :=
-let t := neg_dvd_of_dvd h in by rwa neg_neg at t
-
-/-- The additive inverse of an element a of a ring divides another element b iff a divides b. -/
-@[simp] lemma neg_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
-⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
+section non_unital_ring
+variables [non_unital_ring α] {a b c : α}
 
 theorem dvd_sub (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b - c :=
 by { rw sub_eq_add_neg, exact dvd_add h₁ (dvd_neg_of_dvd h₂) }
@@ -1240,8 +1305,6 @@ theorem dvd_add_iff_left (h : a ∣ c) : a ∣ b ↔ a ∣ b + c :=
 theorem dvd_add_iff_right (h : a ∣ b) : a ∣ c ↔ a ∣ b + c :=
 by rw add_comm; exact dvd_add_iff_left h
 
-theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right (@two_dvd_bit0 _ _ a)).symm
-
 /-- If an element a divides another element c in a commutative ring, a divides the sum of another
   element b with c iff a divides b. -/
 theorem dvd_add_left (h : a ∣ c) : a ∣ b + c ↔ a ∣ b :=
@@ -1251,14 +1314,6 @@ theorem dvd_add_left (h : a ∣ c) : a ∣ b + c ↔ a ∣ b :=
   another element c iff a divides c. -/
 theorem dvd_add_right (h : a ∣ b) : a ∣ b + c ↔ a ∣ c :=
 (dvd_add_iff_right h).symm
-
-/-- An element a divides the sum a + b if and only if a divides b.-/
-@[simp] lemma dvd_add_self_left {a b : α} : a ∣ a + b ↔ a ∣ b :=
-dvd_add_right (dvd_refl a)
-
-/-- An element a divides the sum b + a if and only if a divides b.-/
-@[simp] lemma dvd_add_self_right {a b : α} : a ∣ b + a ↔ a ∣ b :=
-dvd_add_left (dvd_refl a)
 
 lemma dvd_iff_dvd_of_dvd_sub {a b c : α} (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
 begin
@@ -1271,7 +1326,75 @@ begin
     exact eq_add_of_sub_eq rfl }
 end
 
+end non_unital_ring
+
+section ring
+variables [ring α] {a b c : α}
+
+theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right (@two_dvd_bit0 _ _ a)).symm
+
+/-- An element a divides the sum a + b if and only if a divides b.-/
+@[simp] lemma dvd_add_self_left {a b : α} : a ∣ a + b ↔ a ∣ b :=
+dvd_add_right (dvd_refl a)
+
+/-- An element a divides the sum b + a if and only if a divides b.-/
+@[simp] lemma dvd_add_self_right {a b : α} : a ∣ b + a ↔ a ∣ b :=
+dvd_add_left (dvd_refl a)
+
 end ring
+
+section non_unital_comm_ring
+variables [non_unital_comm_ring α] {a b c : α}
+
+/-- Pullback a `comm_ring` instance along an injective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.non_unital_comm_ring
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_scalar ℕ β] [has_scalar ℤ β]
+  (f : β → α) (hf : injective f) (zero : f 0 = 0)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x) :
+  non_unital_comm_ring β :=
+{ .. hf.non_unital_ring f zero add mul neg sub nsmul zsmul, .. hf.comm_semigroup f mul }
+
+/-- Pushforward a `non_unital_comm_ring` instance along a surjective function.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.surjective.non_unital_comm_ring
+  [has_zero β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_scalar ℕ β] [has_scalar ℤ β]
+  (f : α → β) (hf : surjective f) (zero : f 0 = 0)
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x) :
+  non_unital_comm_ring β :=
+{ .. hf.non_unital_ring f zero add mul neg sub nsmul zsmul, .. hf.comm_semigroup f mul }
+
+local attribute [simp] add_assoc add_comm add_left_comm mul_comm
+
+/-- Vieta's formula for a quadratic equation, relating the coefficients of the polynomial with
+  its roots. This particular version states that if we have a root `x` of a monic quadratic
+  polynomial, then there is another root `y` such that `x + y` is negative the `a_1` coefficient
+  and `x * y` is the `a_0` coefficient. -/
+lemma Vieta_formula_quadratic {b c x : α} (h : x * x - b * x + c = 0) :
+  ∃ y : α, y * y - b * y + c = 0 ∧ x + y = b ∧ x * y = c :=
+begin
+  have : c = x * (b - x) := (eq_neg_of_add_eq_zero_right h).trans (by simp [mul_sub, mul_comm]),
+  refine ⟨b - x, _, by simp, by rw this⟩,
+  rw [this, sub_add, ← sub_mul, sub_self]
+end
+
+lemma dvd_mul_sub_mul {k a b x y : α} (hab : k ∣ a - b) (hxy : k ∣ x - y) :
+  k ∣ a * x - b * y :=
+begin
+  convert dvd_add (hxy.mul_left a) (hab.mul_right y),
+  rw [mul_sub_left_distrib, mul_sub_right_distrib],
+  simp only [sub_eq_add_neg, add_assoc, neg_add_cancel_left],
+end
+
+end non_unital_comm_ring
 
 section comm_ring
 variables [comm_ring α] {a b c : α}
@@ -1304,34 +1427,12 @@ protected def function.surjective.comm_ring
   comm_ring β :=
 { .. hf.ring f zero one add mul neg sub nsmul zsmul npow, .. hf.comm_semigroup f mul }
 
-local attribute [simp] add_assoc add_comm add_left_comm mul_comm
-
-/-- Vieta's formula for a quadratic equation, relating the coefficients of the polynomial with
-  its roots. This particular version states that if we have a root `x` of a monic quadratic
-  polynomial, then there is another root `y` such that `x + y` is negative the `a_1` coefficient
-  and `x * y` is the `a_0` coefficient. -/
-lemma Vieta_formula_quadratic {b c x : α} (h : x * x - b * x + c = 0) :
-  ∃ y : α, y * y - b * y + c = 0 ∧ x + y = b ∧ x * y = c :=
-begin
-  have : c = x * (b - x) := (eq_neg_of_add_eq_zero_right h).trans (by simp [mul_sub, mul_comm]),
-  refine ⟨b - x, _, by simp, by rw this⟩,
-  rw [this, sub_add, ← sub_mul, sub_self]
-end
-
-lemma dvd_mul_sub_mul {k a b x y : α} (hab : k ∣ a - b) (hxy : k ∣ x - y) :
-  k ∣ a * x - b * y :=
-begin
-  convert dvd_add (hxy.mul_left a) (hab.mul_right y),
-  rw [mul_sub_left_distrib, mul_sub_right_distrib],
-  simp only [sub_eq_add_neg, add_assoc, neg_add_cancel_left],
-end
-
 end comm_ring
 
-lemma succ_ne_self [ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
+lemma succ_ne_self [non_assoc_ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
 λ h, one_ne_zero ((add_right_inj a).mp (by simp [h]))
 
-lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
+lemma pred_ne_self [non_assoc_ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by simpa [sub_eq_add_neg] using h)))
 
 /-- Left `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
@@ -1352,15 +1453,15 @@ begin
   rw [sub_mul, sub_eq_zero, h']
 end
 
-lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k ≠ 0) :
-  is_regular k :=
+lemma is_regular_of_ne_zero' [non_unital_non_assoc_ring α] [no_zero_divisors α] {k : α}
+  (hk : k ≠ 0) : is_regular k :=
 ⟨is_left_regular_of_non_zero_divisor k
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left hk),
  is_right_regular_of_non_zero_divisor k
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
 
-lemma is_regular_iff_ne_zero' [nontrivial α] [ring α] [no_zero_divisors α] {k : α} :
-  is_regular k ↔ k ≠ 0 :=
+lemma is_regular_iff_ne_zero' [nontrivial α] [non_unital_non_assoc_ring α] [no_zero_divisors α]
+  {k : α} : is_regular k ↔ k ≠ 0 :=
 ⟨λ h, by { rintro rfl, exact not_not.mpr h.left not_is_left_regular_zero }, is_regular_of_ne_zero'⟩
 
 /-- A ring with no zero divisors is a cancel_monoid_with_zero.
@@ -1483,7 +1584,7 @@ variables [mul_one_class R] [has_distrib_neg R] {a x y : R}
 end
 
 section
-variables [ring R] {a b x y x' y' : R}
+variables [non_unital_non_assoc_ring R] {a b x y x' y' : R}
 
 @[simp] lemma sub_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
   semiconj_by a (x - x') (y - y') :=
@@ -1553,7 +1654,7 @@ variables [mul_one_class R] [has_distrib_neg R] {a : R}
 end
 
 section
-variables [ring R] {a b c : R}
+variables [non_unital_non_assoc_ring R] {a b c : R}
 
 @[simp] theorem sub_right : commute a b → commute a c → commute a (b - c) := semiconj_by.sub_right
 @[simp] theorem sub_left : commute a c → commute b c → commute (a - b) c := semiconj_by.sub_left

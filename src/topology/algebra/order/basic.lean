@@ -782,9 +782,8 @@ instance tendsto_Icc_class_nhds_pi {ι : Type*} {α : ι → Type*}
   tendsto_Ixx_class Icc (𝓝 f) (𝓝 f) :=
 begin
   constructor,
-  conv in ((𝓝 f).lift' powerset) { rw [nhds_pi, filter.pi] },
-  simp only [lift'_infi_powerset, comap_lift'_eq2 monotone_powerset, tendsto_infi, tendsto_lift',
-    mem_powerset_iff, subset_def, mem_preimage],
+  conv in ((𝓝 f).small_sets) { rw [nhds_pi, filter.pi] },
+  simp only [small_sets_infi, small_sets_comap, tendsto_infi, tendsto_lift', (∘), mem_powerset_iff],
   intros i s hs,
   have : tendsto (λ g : Π i, α i, g i) (𝓝 f) (𝓝 (f i)) := ((continuous_apply i).tendsto f),
   refine (tendsto_lift'.1 ((this.comp tendsto_fst).Icc (this.comp tendsto_snd)) s hs).mono _,

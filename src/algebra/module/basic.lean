@@ -39,9 +39,8 @@ semimodule, module, vector space
 open function
 open_locale big_operators
 
-universes u u' v w x y z
-variables {R : Type u} {k : Type u'} {S : Type v} {M : Type w} {M₂ : Type x} {M₃ : Type y}
-  {ι : Type z}
+universes u v
+variables {α R k S M M₂ M₃ ι : Type*}
 
 /-- A module is a generalization of vector spaces to a scalar semiring.
   It consists of a scalar semiring `R` and an additive monoid of "vectors" `M`,
@@ -618,3 +617,6 @@ by rw [nsmul_eq_mul, mul_one]
 @[simp] lemma int.smul_one_eq_coe {R : Type*} [ring R] (m : ℤ) :
   m • (1 : R) = ↑m :=
 by rw [zsmul_eq_mul, mul_one]
+
+lemma finset.cast_card [comm_semiring R] (s : finset α) : (s.card : R) = ∑ a in s, 1 :=
+by rw [finset.sum_const, nat.smul_one_eq_coe]

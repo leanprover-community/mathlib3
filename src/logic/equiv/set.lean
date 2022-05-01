@@ -512,6 +512,37 @@ begin
   by_cases hi : p i; simp [hi]
 end
 
+/-- An equation in the target type gives an equivalence between the corresponding preimages. -/
+@[simps]
+def preimage_congr {α β : Type*} (f : α → β)
+  {c c' : β} (h : c = c') : f ⁻¹' {c} ≃ f ⁻¹' {c'} :=
+{ to_fun := λ x, ⟨x.1, by simpa [h] using x.2⟩,
+  inv_fun := λ x, ⟨x.1, by simpa [h] using x.2⟩,
+  left_inv := λ x, by simp,
+  right_inv := λ x, by simp, }
+
+lemma preimage_congr_apply
+  {α β γ : Type*} {f : α → γ} {g : β → γ} (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c}))
+  {c c' : γ} (h : c = c') (x : f ⁻¹' {c'}) :
+  (preimage_congr g h) (e c ⟨x.1, begin simpa [h] using x.2, end⟩) = e c' x :=
+by { ext, cases h, simp, }
+
+/--
+A family of equivalences between the preimages of two functions gives
+an equivalence of the domains.
+-/
+@[simps] def equiv_of_preimage_equiv
+  {α β γ : Type*} {f : α → γ} {g : β → γ} (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c})) : α ≃ β :=
+{ to_fun := λ a, (e (f a) ⟨a, (by simp)⟩).1,
+  inv_fun := λ b, ((e (g b)).symm ⟨b, (by simp)⟩).1,
+  left_inv := λ a, by simp [←preimage_congr_apply e (e (f a) ⟨a, (by simp)⟩).2],
+  right_inv := λ b, by simp [←preimage_congr_apply e ((e (g b)).symm ⟨b, (by simp)⟩).2.symm], }
+
+lemma equiv_of_preimage_equiv_property
+  {α β γ : Type*} {f : α → γ} {g : β → γ} (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c})) (a : α) :
+    g (equiv_of_preimage_equiv e a) = f a :=
+by simpa using (e (f a) ⟨a, (by simp)⟩).2
+
 end equiv
 
 /-- If a function is a bijection between two sets `s` and `t`, then it induces an

@@ -47,17 +47,13 @@ variables {M₀ : Type*} [mul_zero_class M₀]
 
 lemma zero : is_idempotent_elem (0 : M₀) := by rw [is_idempotent_elem, mul_zero]
 
-instance : has_zero { p : M₀ // is_idempotent_elem p } := {
-  zero := ⟨ 0, zero ⟩
-}
+instance : has_zero { p : M₀ // is_idempotent_elem p } := { zero := ⟨ 0, zero ⟩ }
 
 variables {M₁ : Type*} [mul_one_class M₁]
 
 lemma one : is_idempotent_elem (1 : M₁) := by rw [is_idempotent_elem, mul_one]
 
-instance : has_one { p : M₁ // is_idempotent_elem p } := {
-  one := ⟨ 1, one ⟩
-}
+instance : has_one { p : M₁ // is_idempotent_elem p } := { one := ⟨ 1, one ⟩ }
 
 variables {R : Type*} [non_assoc_ring R]
 

@@ -71,9 +71,18 @@ def hom_orthogonal.matrix_decomposition_add_equiv
   ..o.matrix_decomposition, }.
 
 @[to_additive]
-lemma foo_prod' {α : Type*} [comm_monoid α] {β : Type*} [fintype β] (s : set β) (f : β → α) (g : s → α)
+lemma finset.prod_congr_set
+  {α : Type*} [comm_monoid α] {β : Type*} [fintype β] (s : set β) (f : β → α) (g : s → α)
   (w : ∀ (x : β) (h : x ∈ s), f x = g ⟨x, h⟩) (w' : ∀ (x : β), x ∉ s → f x = 1) :
-  finset.univ.prod f = finset.univ.prod g := sorry
+  finset.univ.prod f = finset.univ.prod g :=
+begin
+  rw ←@finset.prod_subset _ _ s.to_finset finset.univ f _ (by simp),
+  { rw finset.prod_subtype,
+    { apply finset.prod_congr rfl,
+      exact λ ⟨x, h⟩ _, w x h, },
+    { simp, }, },
+  { rintro x _ h, exact w' x (by simpa using h), },
+end
 
 lemma hom_orthogonal.matrix_decomposition_comp
 (o : hom_orthogonal s)
@@ -90,7 +99,7 @@ begin
     eq_to_hom_refl, eq_to_hom_trans_assoc, finset.sum_congr],
   conv_lhs { rw ←category.id_comp w, rw ←biproduct.total, },
   simp only [preadditive.sum_comp, preadditive.comp_sum],
-  apply foo_sum',
+  apply finset.sum_congr_set,
   { intros, simp, refl, },
   { intros b nm, simp at nm,
     simp only [category.assoc],
@@ -126,7 +135,7 @@ def brick (X : C) : Prop :=
 ∀ f : X ⟶ X, f ≠ 0 → is_iso f
 
 /--
-A "semibrick" is a collection of object `s : ι → C` such that
+A "semibrick" is a collection of objects `s : ι → C` such that
 * each endomorphism `s i ⟶ s i` is either zero or invertible, and
 * all morphisms `s i ⟶ s j` for `i ≠ j` are zero.
 -/
@@ -134,4 +143,8 @@ structure semibrick {ι : Type*} (s : ι → C) :=
 (brick : ∀ i, brick (s i))
 (orthogonal : hom_orthogonal s)
 
-/-- If two direct sums over a semibrick are isomorphic, then they have the same multiplicities. -/
+/--
+Given a hom orthogonal family `s : ι → C`
+for which each `End (s i)` is a ring with invariant basis number,
+if two direct sums over `s` are isomorphic, then they have the same multiplicities.
+-/

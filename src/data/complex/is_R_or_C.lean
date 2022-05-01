@@ -846,6 +846,7 @@ noncomputable def conj_cle : K ≃L[ℝ] K := @conj_lie K _
 @[simp, is_R_or_C_simps] lemma conj_cle_norm : ∥(@conj_cle K _ : K →L[ℝ] K)∥ = 1 :=
 (@conj_lie K _).to_linear_isometry.norm_to_continuous_linear_map
 
+@[priority 100]
 instance : has_continuous_star K := ⟨conj_lie.continuous⟩
 
 @[continuity] lemma continuous_conj : continuous (conj : K → K) := continuous_star

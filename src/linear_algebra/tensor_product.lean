@@ -674,21 +674,22 @@ by {ext, simp only [smul_tmul, compr₂_apply, mk_apply, map_tmul, smul_apply, t
 lemma map_smul_right (r : R) (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : map f (r • g) = r • map f g :=
 by {ext, simp only [smul_tmul, compr₂_apply, mk_apply, map_tmul, smul_apply, tmul_smul]}
 
+variables (R M N P Q)
+
 /-- The tensor product of a pair of linear maps between modules, bilinear in both maps. -/
 def map_bilinear : (M →ₗ[R] P) →ₗ[R] (N →ₗ[R] Q) →ₗ[R] (M ⊗[R] N →ₗ[R] P ⊗[R] Q) :=
 linear_map.mk₂ R map map_add_left map_smul_left map_add_right map_smul_right
 
-@[simp]
-lemma map_bilinear_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) : map_bilinear f g = map f g := rfl
-
-variables (R M N P Q)
-
 /-- The linear map from `(M →ₗ P) ⊗ (N →ₗ Q)` to `(M ⊗ N →ₗ P ⊗ Q)` sending `f ⊗ₜ g` to
 the `tensor_product.map f g`, the tensor product of the two maps. -/
 def hom_tensor_hom_map : (M →ₗ[R] P) ⊗[R] (N →ₗ[R] Q) →ₗ[R] (M ⊗[R] N →ₗ[R] P ⊗[R] Q) :=
-lift map_bilinear
+lift (map_bilinear R M N P Q)
 
 variables {R M N P Q}
+
+@[simp]
+lemma map_bilinear_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
+  map_bilinear R M N P Q f g = map f g := rfl
 
 @[simp]
 lemma hom_tensor_hom_map_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :

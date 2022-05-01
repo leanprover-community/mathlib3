@@ -756,7 +756,7 @@ end linear_map
 
 section tensor_product
 
-variables {M : Type*} {N : Type*}
+variables (R) (M : Type*) (N : Type*)
 variables [add_comm_group M] [add_comm_group N]
 variables [module R M] [module R N]
 
@@ -779,13 +779,9 @@ sending `f ⊗ g` to the composition of `tensor_product.map f g` with
 the natural isomorphism `R ⊗ R ≃ R`.
 -/
 def dual_tensor_dual_map : (dual R M) ⊗[R] (dual R N) →ₗ[R] dual R (M ⊗[R] N) :=
-(comp_right ↑(tensor_product.lid R R)) ∘ₗ hom_tensor_hom_map
+(comp_right ↑(tensor_product.lid R R)) ∘ₗ hom_tensor_hom_map R M N R R
 
-@[simp]
-lemma dual_tensor_dual_map_apply (f : dual R M) (g : dual R N) (m : M) (n : N) :
-  dual_tensor_dual_map (f ⊗ₜ g) (m ⊗ₜ n) = f m * g n :=
-by simp only [dual_tensor_dual_map, coe_comp, function.comp_app, hom_tensor_hom_map_apply,
-  comp_right_apply, linear_equiv.coe_coe, map_tmul, lid_tmul, algebra.id.smul_eq_mul]
+variables {R M N}
 
 /--
 An inverse to `dual_tensor_dual_map` given bases.
@@ -795,6 +791,12 @@ def dual_tensor_dual_inv_of_basis (b : basis ι R M) (c : basis κ R N) :
   dual R (M ⊗[R] N) →ₗ[R] (dual R M) ⊗[R] (dual R N) :=
 ∑ i j, (ring_lmap_equiv_self R ℕ _).symm (b.dual_basis i ⊗ₜ c.dual_basis j)
     ∘ₗ applyₗ (c j) ∘ₗ applyₗ (b i) ∘ₗ (lcurry R M N R)
+
+@[simp]
+lemma dual_tensor_dual_map_apply (f : dual R M) (g : dual R N) (m : M) (n : N) :
+  dual_tensor_dual_map R M N (f ⊗ₜ g) (m ⊗ₜ n) = f m * g n :=
+by simp only [dual_tensor_dual_map, coe_comp, function.comp_app, hom_tensor_hom_map_apply,
+  comp_right_apply, linear_equiv.coe_coe, map_tmul, lid_tmul, algebra.id.smul_eq_mul]
 
 @[simp]
 lemma dual_tensor_dual_inv_of_basis_apply (b : basis ι R M) (c : basis κ R N)
@@ -811,7 +813,8 @@ isomorphism `R ⊗ R ≃ R`.
 noncomputable def dual_tensor_dual_equiv_of_basis (b : basis ι R M) (c : basis κ R N) :
   (dual R M) ⊗[R] (dual R N) ≃ₗ[R] dual R (M ⊗[R] N) :=
 begin
-  refine linear_equiv.of_linear dual_tensor_dual_map (dual_tensor_dual_inv_of_basis b c) _ _,
+  refine linear_equiv.of_linear
+    (dual_tensor_dual_map R M N) (dual_tensor_dual_inv_of_basis b c) _ _,
   { ext f m n,
     have h : ∀ (r s : R), r • s = s • r := is_commutative.comm,
     simp only [compr₂_apply, mk_apply, comp_apply, id_apply, dual_tensor_dual_inv_of_basis_apply,
@@ -824,6 +827,7 @@ begin
       basis.sum_dual_apply_smul_coord] }
 end
 
+variables (R M N)
 variables [module.finite R M] [module.finite R N] [module.free R M] [module.free R N]
 variables [nontrivial R]
 

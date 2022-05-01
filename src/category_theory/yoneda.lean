@@ -29,7 +29,7 @@ variables {C : Type u₁} [category.{v₁} C]
 /--
 The Yoneda embedding, as a functor from `C` into presheaves on `C`.
 
-See https://stacks.math.columbia.edu/tag/001O.
+See <https://stacks.math.columbia.edu/tag/001O>.
 -/
 @[simps]
 def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
@@ -62,7 +62,7 @@ by { dsimp, simp }
 /--
 The Yoneda embedding is full.
 
-See https://stacks.math.columbia.edu/tag/001P.
+See <https://stacks.math.columbia.edu/tag/001P>.
 -/
 instance yoneda_full : full (yoneda : C ⥤ Cᵒᵖ ⥤ Type v₁) :=
 { preimage := λ X Y f, f.app (op X) (𝟙 X) }
@@ -70,7 +70,7 @@ instance yoneda_full : full (yoneda : C ⥤ Cᵒᵖ ⥤ Type v₁) :=
 /--
 The Yoneda embedding is faithful.
 
-See https://stacks.math.columbia.edu/tag/001P.
+See <https://stacks.math.columbia.edu/tag/001P>.
 -/
 instance yoneda_faithful : faithful (yoneda : C ⥤ Cᵒᵖ ⥤ Type v₁) :=
 { map_injective' := λ X Y f g p, by convert (congr_fun (congr_app p (op X)) (𝟙 X)); dsimp; simp }
@@ -133,7 +133,7 @@ namespace functor
 /--
 A functor `F : Cᵒᵖ ⥤ Type v₁` is representable if there is object `X` so `F ≅ yoneda.obj X`.
 
-See https://stacks.math.columbia.edu/tag/001Q.
+See <https://stacks.math.columbia.edu/tag/001Q>.
 -/
 class representable (F : Cᵒᵖ ⥤ Type v₁) : Prop :=
 (has_representation : ∃ X (f : yoneda.obj X ⟶ F), is_iso f)
@@ -144,7 +144,7 @@ instance {X : C} : representable (yoneda.obj X) :=
 /--
 A functor `F : C ⥤ Type v₁` is corepresentable if there is object `X` so `F ≅ coyoneda.obj X`.
 
-See https://stacks.math.columbia.edu/tag/001Q.
+See <https://stacks.math.columbia.edu/tag/001Q>.
 -/
 class corepresentable (F : C ⥤ Type v₁) : Prop :=
 (has_corepresentation : ∃ X (f : coyoneda.obj X ⟶ F), is_iso f)
@@ -289,7 +289,7 @@ The Yoneda lemma asserts that that the Yoneda pairing
 `(X : Cᵒᵖ, F : Cᵒᵖ ⥤ Type) ↦ (yoneda.obj (unop X) ⟶ F)`
 is naturally isomorphic to the evaluation `(X, F) ↦ F.obj X`.
 
-See https://stacks.math.columbia.edu/tag/001P.
+See <https://stacks.math.columbia.edu/tag/001P>.
 -/
 def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
 { hom :=

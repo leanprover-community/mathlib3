@@ -49,16 +49,11 @@ def list.return_unused {α : Type*} : list α → list bool → list α
 | [] bo := []
 | (u::us) (b::bs) := if b then ([u] ++ (us.return_unused bs)) else (us.return_unused bs)
 
-/-- A `tactic (option expr)` that either finds the first entry `f` of `lc` that unifies with `e`
-and returns `some f` or returns `none`. -/
-meta def expr.find_in (e : expr) (lc : list expr) : tactic (option expr) :=
-do
-  h ← lc.mfilter $ λ e', succeeds $ unify e e',
-  match h with
-  | []     := none
-  | (f::l) := return $ some f
-  end <|>
-return none
+/-- A `tactic expr` that either finds the first entry `f` of `lc` that unifies with `e` and returns
+it or fails. -/
+meta def expr.find_in (e : expr) (lc : list expr) : tactic expr :=
+(do (h :: hs) ← lc.mfilter $ λ e', succeeds $ unify e e', return h ) <|>
+  tactic.fail "expression not found"
 
 /--  Given a list `lp` of `bool × pexpr` and a list `sl` of `expr`, scan the elements of `lp` one
 at a time and produce 3 sublists of `sl`.
@@ -78,14 +73,11 @@ Once we exhausts the elements of `lp`, we return the three lists:
 meta def list.unify_list : list (bool × expr) → list expr → list bool →
   tactic (list expr × list expr × list expr × list bool)
 | [] sl is_unused      := return ([], [], sl, is_unused)
-| (be::l) sl is_unused := do
-  cond ← be.2.find_in sl,
-  match cond with
-  | none    := l.unify_list sl (is_unused.append [tt])
-  | some ex := do
-    (l1, l2, l3, is_unused) ← l.unify_list (sl.erase ex) (is_unused.append [ff]),
-    if be.1 then return (ex::l1, l2, l3, is_unused) else return (l1, ex::l2, l3, is_unused)
-    end
+| (be::l) sl is_unused :=
+( do ex ← be.2.find_in sl,
+  (l1, l2, l3, is_unused) ← l.unify_list (sl.erase ex) (is_unused.append [ff]),
+    if be.1 then return (ex::l1, l2, l3, is_unused) else return (l1, ex::l2, l3, is_unused))
+<|> (l.unify_list sl (is_unused.append [tt]))
 
 /--  Given a list of pairs `bool × pexpr`, we convert it to a list of `bool × expr`. -/
 meta def list.convert_to_expr (lp : list (bool × pexpr)) : tactic (list (bool × expr)) :=

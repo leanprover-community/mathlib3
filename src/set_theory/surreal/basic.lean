@@ -361,7 +361,7 @@ end comm_lemmas
 
 namespace pgame
 
-theorem quot_mul_comm₄ {a b c d e f g h : pgame} :
+private theorem quot_mul_comm₄ {a b c d e f g h : pgame} :
   ⟦a * b⟧ + ⟦c * d⟧ < ⟦e * f⟧ + ⟦g * h⟧ ↔ ⟦b * a⟧ + ⟦d * c⟧ < ⟦f * e⟧ + ⟦h * g⟧ :=
 by rw [quot_mul_comm a, quot_mul_comm c, quot_mul_comm e, quot_mul_comm g]
 
@@ -478,8 +478,14 @@ theorem result : ∀ x : mul_args, x.hypothesis
     { exact HN₃ },
     { exact HN₂ } }
 end
-| (P2 x₁ x₂ y) := begin
-  sorry
+| (P2 ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩) := begin
+  refine λ ox₁ ox₂ oy, ⟨λ h, ⟨le_def_lt.2 ⟨_, _⟩, le_def_lt.2 ⟨_, _⟩⟩, _⟩,
+  { rintro (⟨ix₁, iy⟩ | ⟨jx₁, jy⟩),
+    { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
+      rw sub_lt_iff_lt_add,
+    }
+
+  }
 end
 using_well_founded { dec_tac := sorry }
 

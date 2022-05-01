@@ -42,6 +42,9 @@ begin
   rw [is_idempotent_elem, mul_assoc, ← mul_assoc q, ←h.eq, mul_assoc p, h₂.eq, ← mul_assoc, h₁.eq],
 end
 
+/-! ### Instances on `subtype is_idempotent_elem` -/
+section instances
+
 lemma zero : is_idempotent_elem (0 : M₀) := by rw [is_idempotent_elem, mul_zero]
 
 instance : has_zero { p : M₀ // is_idempotent_elem p } := { zero := ⟨ 0, zero ⟩ }
@@ -88,5 +91,7 @@ begin
   unfold has_compl.compl,
   simpa only [subtype.val_eq_coe, coe_one, sub_self],
 end
+
+end instances
 
 end is_idempotent_elem

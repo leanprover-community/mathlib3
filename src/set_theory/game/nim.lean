@@ -221,7 +221,7 @@ lemma equiv_zero_iff_grundy_value (G : pgame) [G.impartial] : G ≈ 0 ↔ grundy
 by rw [equiv_iff_grundy_value_eq, grundy_value_zero]
 
 @[simp] lemma grundy_value_star : grundy_value star = 1 :=
-by { rw [←nim.grundy_value 0, ←equiv_iff_grundy_value_eq], exact equiv_symm nim.nim_zero_equiv }
+by { rw ←equiv_nim_iff_grundy_value_eq, exact equiv_symm nim.nim_one_equiv }
 
 lemma grundy_value_nim_add_nim (n m : ℕ) : grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=
 begin

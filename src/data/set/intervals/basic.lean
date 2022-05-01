@@ -25,8 +25,7 @@ for some statements it should be `linear_order` or `densely_ordered`).
 TODO: This is just the beginning; a lot of rules are missing
 -/
 
-universe u
-variables {α : Type u}
+variables {α β : Type*}
 
 namespace set
 
@@ -1130,7 +1129,7 @@ end
 
 end linear_order
 
-section
+section lattice
 
 section inf
 
@@ -1241,7 +1240,7 @@ end linear_order
 
 section prod
 
-variables {α β : Type*} [preorder α] [preorder β]
+variables [preorder α] [preorder β]
 
 @[simp] lemma Iic_prod_Iic (a : α) (b : β) : Iic a ×ˢ Iic b = Iic (a, b) := rfl
 
@@ -1265,7 +1264,7 @@ end prod
 
 section ordered_comm_group
 
-variables {α : Type*} [ordered_comm_group α] {a b c d : α}
+variables [ordered_comm_group α] {a b c d : α}
 
 /-! `inv_mem_Ixx_iff`, `sub_mem_Ixx_iff` -/
 @[to_additive] lemma inv_mem_Icc_iff : a⁻¹ ∈ set.Icc c d ↔ a ∈ set.Icc (d⁻¹) (c⁻¹) :=
@@ -1281,7 +1280,7 @@ end ordered_comm_group
 
 section ordered_add_comm_group
 
-variables {α : Type*} [ordered_add_comm_group α] {a b c d : α}
+variables [ordered_add_comm_group α] {a b c d : α}
 
 /-! `add_mem_Ixx_iff_left` -/
 lemma add_mem_Icc_iff_left : a + b ∈ set.Icc c d ↔ a ∈ set.Icc (c - b) (d - b) :=
@@ -1351,7 +1350,6 @@ end set
 open set
 
 namespace order_iso
-variables {α β : Type*}
 
 section preorder
 variables [preorder α] [preorder β]
@@ -1422,7 +1420,7 @@ end order_iso
 
 section dense
 
-variables (α : Type*) [preorder α] [densely_ordered α] {x y : α}
+variables (α) [preorder α] [densely_ordered α] {x y : α}
 
 instance : no_min_order (set.Ioo x y) :=
 ⟨λ ⟨a, ha₁, ha₂⟩, begin

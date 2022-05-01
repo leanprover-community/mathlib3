@@ -45,6 +45,14 @@ end
 
 variables {R : Type*} [non_assoc_ring R]
 
+instance : has_zero { p : R // is_idempotent_elem p } := {
+  zero := ⟨0, by rw [is_idempotent_elem, mul_zero] ⟩
+}
+
+instance : has_one { p : R // is_idempotent_elem p } := {
+  one := ⟨1, by rw [is_idempotent_elem, mul_one] ⟩
+}
+
 lemma one_sub {p : R} (h : is_idempotent_elem p) : is_idempotent_elem (1 - p) :=
 begin
   rw is_idempotent_elem at h,

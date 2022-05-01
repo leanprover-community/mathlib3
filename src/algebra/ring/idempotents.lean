@@ -52,6 +52,15 @@ end
 @[simp] lemma one_sub_iff {p : R} : is_idempotent_elem (1 - p) ↔ is_idempotent_elem p :=
 ⟨ λ h, sub_sub_cancel 1 p ▸ h.one_sub, is_idempotent_elem.one_sub ⟩
 
+lemma pow {p : N} (n : ℕ) (h : is_idempotent_elem p) : is_idempotent_elem (p ^ n) :=
+begin
+  induction n with n ih,
+  { rw pow_zero, apply one, },
+  { unfold is_idempotent_elem,
+    rw [pow_succ, ← mul_assoc, ← pow_mul_comm', mul_assoc (p^n), h.eq, pow_mul_comm', mul_assoc,
+      ih.eq], }
+end
+
 lemma powers {p : N} (n : ℕ) (h : is_idempotent_elem p) : p^(n + 1) = p :=
 begin
   induction n with n ih,

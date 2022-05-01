@@ -530,10 +530,10 @@ an equivalence of the domains.
 -/
 @[simps] def equiv_of_preimage_equiv
   {α β γ : Type*} {f : α → γ} {g : β → γ} (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c})) : α ≃ β :=
-{ to_fun := λ a, (e (f a) ⟨a, (by simp)⟩).1,
-  inv_fun := λ b, ((e (g b)).symm ⟨b, (by simp)⟩).1,
-  left_inv := λ a, by simp [←preimage_congr_apply e (e (f a) ⟨a, (by simp)⟩).2],
-  right_inv := λ b, by simp [←preimage_congr_apply e ((e (g b)).symm ⟨b, (by simp)⟩).2.symm], }
+{ to_fun := λ a, e (f a) ⟨a, rfl⟩,
+  inv_fun := λ b, (e (g b)).symm ⟨b, rfl⟩,
+  left_inv := λ a, by simp [←preimage_congr_apply e (e (f a) ⟨a, rfl⟩).prop],
+  right_inv := λ b, by simp [←preimage_congr_apply e ((e (g b)).symm ⟨b, rfl⟩).prop.symm], }
 
 lemma equiv_of_preimage_equiv_property
   {α β γ : Type*} {f : α → γ} {g : β → γ} (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c})) (a : α) :

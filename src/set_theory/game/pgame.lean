@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
 import data.fin.basic
-import data.nat.cast
-import logic.embedding
+import data.list.basic
 
 /-!
 # Combinatorial (pre-)games.
@@ -704,6 +703,24 @@ begin
   congr; funext i; cases i
 end
 
+@[simp] lemma neg_of_lists (L R : list pgame) :
+  -of_lists L R = of_lists (R.map (λ x, -x)) (L.map (λ x, -x)) :=
+begin
+  simp only [of_lists, neg_def, fin.val_eq_coe, list.length_map, list.nth_le_map', eq_self_iff_true,
+    true_and],
+  split, all_goals
+  { apply hfunext,
+    { simp },
+    { intros a a' ha,
+      have : (a.down : ℕ) = ↑(a'.down) := begin
+        have : ∀ {m n} (h₁ : m = n) {b : ulift (fin m)} {c : ulift (fin n)} (h₂ : b == c),
+          (b.down : ℕ) = ↑c.down,
+        { rintros m n rfl b c rfl, refl },
+        exact this (by simp) ha
+      end,
+      simp_rw this } }
+end
+
 /-- An explicit equivalence between the moves for Left in `-x` and the moves for Right in `x`. -/
 -- This equivalence is useful to avoid having to use `cases` unnecessarily.
 def left_moves_neg (x : pgame) : (-x).left_moves ≃ x.right_moves :=
@@ -1147,7 +1164,7 @@ theorem zero_lt_star : 0 < star :=
 by { rw zero_lt, use default, rintros ⟨⟩ }
 
 @[simp] theorem neg_star : -star = star :=
-by { rw [star, of_lists], simp }
+by simp [star]
 
 /-- The pre-game `ω`. (In fact all ordinals have game and surreal representatives.) -/
 def omega : pgame := ⟨ulift ℕ, pempty, λ n, ↑n.1, pempty.elim⟩

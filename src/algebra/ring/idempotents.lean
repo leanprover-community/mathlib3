@@ -59,7 +59,7 @@ begin
   { rw [pow_succ, ih, h.eq], }
 end
 
-lemma group_one {p : G} (h : is_idempotent_elem p) : p = 1 :=
+@[simp] lemma iff_eq_one {p : G} : is_idempotent_elem p ↔ p = 1 :=
 begin
   rw ← mul_left_inv p,
   nth_rewrite_rhs 1 ← h.eq,

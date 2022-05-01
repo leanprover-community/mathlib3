@@ -73,4 +73,10 @@ end
 instance : has_compl { p : R // is_idempotent_elem p } :=
 ⟨λ P, ⟨1 - P, P.prop.one_sub⟩⟩
 
+@[simp] lemma compl_compl (p : {p : R // is_idempotent_elem p}) : pᶜᶜ = p :=
+begin
+  unfold has_compl.compl,
+  simp only [subtype.coe_mk, sub_sub_cancel, subtype.coe_eta],
+end
+
 end is_idempotent_elem

@@ -68,32 +68,28 @@ by { rw nim_def, refl }
 lemma move_right_nim_heq (O : ordinal) : (nim O).move_right == λ i : O.out.α, nim (typein (<) i) :=
 by { rw nim_def, refl }
 
-/-- Turns an ordinal less than `O` into a left move for `nim O` and viceversa.
+/-- Turns an ordinal less than `O` into a left move for `nim O` and viceversa. -/
+noncomputable def to_left_moves_nim {O : ordinal} : {O' // O' < O} ≃ (nim O).left_moves :=
+(out_equiv_lt O).trans (equiv.cast (left_moves_nim O).symm)
 
-Even though these types are the same (not definitionally so), this is the preferred way to convert
-between them. -/
-def to_left_moves_nim {O : ordinal} : O.out.α ≃ (nim O).left_moves :=
-equiv.cast (left_moves_nim O).symm
+/-- Turns an ordinal less than `O` into a right move for `nim O` and viceversa. -/
+noncomputable def to_right_moves_nim {O : ordinal} : {O' // O' < O} ≃ (nim O).right_moves :=
+(out_equiv_lt O).trans (equiv.cast (right_moves_nim O).symm)
 
-/-- Turns an ordinal less than `O` into a right move for `nim O` and viceversa.
+set_option pp.universes true
 
-Even though these types are the same (not definitionally so), this is the preferred way to convert
-between them. -/
-def to_right_moves_nim {O : ordinal} : O.out.α ≃ (nim O).right_moves :=
-equiv.cast (right_moves_nim O).symm
-
-@[simp] lemma move_left_nim' {O : ordinal} (i) :
-  (nim O).move_left i = nim (typein (<) (to_left_moves_nim.symm i)) :=
+@[simp] lemma move_left_nim' {O : ordinal.{u}} (i) :
+  (nim O).move_left i = nim (to_left_moves_nim.symm i).val :=
 (congr_fun_heq _ (move_left_nim_heq O).symm i).symm
 @[simp] lemma move_left_nim {O : ordinal} (i) :
-  (nim O).move_left (to_left_moves_nim i) = nim (typein (<) i) :=
+  (nim O).move_left (to_left_moves_nim i) = nim i :=
 by simp
 
 @[simp] lemma move_right_nim' {O : ordinal} (i) :
-  (nim O).move_right i = nim (typein (<) (to_right_moves_nim.symm i)) :=
+  (nim O).move_right i = nim (to_right_moves_nim.symm i).val :=
 (congr_fun_heq _ (move_right_nim_heq O).symm i).symm
 @[simp] lemma move_right_nim {O : ordinal} (i) :
-  (nim O).move_right (to_right_moves_nim i) = nim (typein (<) i) :=
+  (nim O).move_right (to_right_moves_nim i) = nim i :=
 by simp
 
 @[simp] lemma neg_nim (O : ordinal) : -nim O = nim O :=
@@ -112,11 +108,11 @@ begin
   simpa using IH _ (typein_lt_self _)
 end
 
-lemma exists_ordinal_move_left_eq (O : ordinal) : ∀ i, ∃ O' < O, (nim O).move_left i = nim O' :=
-by { rw nim_def, exact λ i, ⟨_, ⟨ordinal.typein_lt_self i, rfl⟩⟩ }
+lemma exists_ordinal_move_left_eq {O : ordinal} (i) : ∃ O' < O, (nim O).move_left i = nim O' :=
+⟨_, typein_lt_self _, move_left_nim' i⟩
 
-lemma exists_move_left_eq {O : ordinal} : ∀ O' < O, ∃ i, (nim O).move_left i = nim O' :=
-by { rw nim_def, exact λ _ h, ⟨(ordinal.principal_seg_out h).top, by simp⟩ }
+lemma exists_move_left_eq {O O' : ordinal} (h : O' < O) : ∃ i, (nim O).move_left i = nim O' :=
+⟨to_left_moves_nim ⟨O', h⟩, by simp⟩
 
 lemma zero_first_loses : (nim (0 : ordinal)).first_loses :=
 begin
@@ -249,7 +245,7 @@ begin
 
     all_goals
     { -- One of the piles is reduced to `k` stones, with `k < n` or `k < m`.
-      obtain ⟨ok, ⟨hk, hk'⟩⟩ := nim.exists_ordinal_move_left_eq _ a,
+      obtain ⟨ok, hk, hk'⟩ := nim.exists_ordinal_move_left_eq a,
       obtain ⟨k, rfl⟩ := ordinal.lt_omega.1 (lt_trans hk (ordinal.nat_lt_omega _)),
       replace hk := ordinal.nat_cast_lt.1 hk,
 
@@ -283,11 +279,11 @@ begin
 
     -- Therefore, we can play the corresponding move, and by the inductive hypothesis the new state
     -- is `(u xor m) xor m = u` or `n xor (u xor n) = u` as required.
-    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq _ (ordinal.nat_cast_lt.2 h),
+    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq (ordinal.nat_cast_lt.2 h),
       refine ⟨(left_moves_add _ _).symm (sum.inl i), _⟩,
       simp only [hi, add_move_left_inl],
       rw [hn _ h, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] },
-    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq _ (ordinal.nat_cast_lt.2 h),
+    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq (ordinal.nat_cast_lt.2 h),
       refine ⟨(left_moves_add _ _).symm (sum.inr i), _⟩,
       simp only [hi, add_move_left_inr],
       rw [hm _ h, nat.lxor_comm, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] } },

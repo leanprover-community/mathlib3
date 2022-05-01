@@ -819,11 +819,11 @@ begin
     have h : ∀ (r s : R), r • s = s • r := is_commutative.comm,
     simp only [compr₂_apply, mk_apply, comp_apply, id_apply, dual_tensor_dual_inv_of_basis_apply,
       linear_map.map_sum, map_smul, sum_apply, smul_apply, dual_tensor_dual_map_apply, h (f _) _,
-      ← f.map_smul, ←f.map_sum, mul_smul_tmul, ←tmul_sum, ←sum_tmul, basis.coe_dual_basis,
+      ← f.map_smul, ←f.map_sum, ←smul_tmul_smul, ←tmul_sum, ←sum_tmul, basis.coe_dual_basis,
       basis.coord_apply, basis.sum_repr] },
   { ext f g,
     simp only [compr₂_apply, mk_apply, comp_apply, id_apply, dual_tensor_dual_inv_of_basis_apply,
-      dual_tensor_dual_map_apply, mul_smul_tmul, ←tmul_sum, ←sum_tmul, basis.coe_dual_basis,
+      dual_tensor_dual_map_apply, ←smul_tmul_smul, ←tmul_sum, ←sum_tmul, basis.coe_dual_basis,
       basis.sum_dual_apply_smul_coord] }
 end
 

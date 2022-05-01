@@ -45,7 +45,7 @@ end
 
 variables {R : Type*} [non_assoc_ring R]
 
-lemma complement {p : R} (h : is_idempotent_elem p) : is_idempotent_elem (1 - p) :=
+lemma one_sub {p : R} (h : is_idempotent_elem p) : is_idempotent_elem (1 - p) :=
 begin
   rw is_idempotent_elem at h,
   rw [is_idempotent_elem, mul_sub_left_distrib, mul_one, sub_mul, one_mul, h, sub_self, sub_zero],

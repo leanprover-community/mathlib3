@@ -53,7 +53,7 @@ begin
   rw [is_idempotent_elem, mul_sub_left_distrib, mul_one, sub_mul, one_mul, h, sub_self, sub_zero],
 end
 
-lemma complement_iff {p : R} : is_idempotent_elem p ↔ is_idempotent_elem (1 - p) :=
+@[simp] lemma one_sub_iff {p : R} : is_idempotent_elem (1 - p) ↔ is_idempotent_elem p :=
 ⟨ is_idempotent_elem.complement , λ h, sub_sub_cancel 1 p ▸ h.complement⟩
 
 instance : has_compl (subtype (is_idempotent_elem  : R → Prop)) :=

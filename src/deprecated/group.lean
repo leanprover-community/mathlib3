@@ -233,7 +233,7 @@ lemma injective_iff {f : α → β} (hf : is_group_hom f) :
 ⟨λ h _, by rw ← hf.map_one; exact @h _ _,
   λ h x y hxy, by rw [← inv_inv (f x), inv_eq_iff_mul_eq_one, ← hf.map_inv,
       ← hf.map_mul] at hxy;
-    simpa using inv_eq_of_mul_eq_one (h _ hxy)⟩
+    simpa using inv_eq_of_mul_eq_one_left (h _ hxy)⟩
 
 /-- The product of group homomorphisms is a group homomorphism if the target is commutative. -/
 @[to_additive]

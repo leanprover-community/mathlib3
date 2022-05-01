@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
 import algebra.ring.basic
+import algebra.group_power.basic
 
 /-!
 # Idempotents
@@ -54,6 +55,13 @@ end
 
 @[simp] lemma one_sub_iff {p : R} : is_idempotent_elem (1 - p) ↔ is_idempotent_elem p :=
 ⟨ λ h, sub_sub_cancel 1 p ▸ h.one_sub, is_idempotent_elem.one_sub ⟩
+
+lemma powers {p : N} (n : ℕ) (h : is_idempotent_elem p) : p^(n + 1) = p :=
+begin
+  induction n with n ih,
+  { rw [nat.zero_add, pow_one], },
+  { rw [pow_succ, ih, h.eq], }
+end
 
 /-! ### Instances on `subtype is_idempotent_elem` -/
 section instances

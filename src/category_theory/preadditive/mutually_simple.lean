@@ -1,6 +1,6 @@
 import category_theory.linear
 import category_theory.limits.shapes.biproducts
-import data.matrix.basic
+import linear_algebra.matrix.invariant_basis_number
 
 open_locale classical matrix
 
@@ -110,7 +110,7 @@ begin
     apply o.eq_zero nm, },
 end
 
-variables {R : Type*} [comm_semiring R] [linear R C]
+variables {R : Type*} [semiring R] [linear R C]
 
 /-- `hom_orthogonal.matrix_decomposition` as an `R`-linear equivalence. -/
 @[simps] noncomputable
@@ -121,6 +121,20 @@ def hom_orthogonal.matrix_decomposition_linear_equiv
     Π (i : ι), matrix (g ⁻¹' {i}) (f ⁻¹' {i}) (End (s i)) :=
 { map_smul' := λ w z, by { ext, dsimp [biproduct.components], simp, },
   ..o.matrix_decomposition_add_equiv, }
+
+variables [invariant_basis_number R]
+
+/--
+Given a hom orthogonal family `s : ι → C`
+for which each `End (s i)` is a ring with invariant basis number,
+if two direct sums over `s` are isomorphic, then they have the same multiplicities.
+-/
+lemma foo (o : hom_orthogonal s) {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι}
+  (i : ⨁ (λ a, s (f a)) ≅ ⨁ (λ b, s (g b))) :
+  ∃ e : α ≃ β, ∀ a, g (e a) = f a :=
+sorry
+
+
 
 end
 
@@ -142,9 +156,3 @@ A "semibrick" is a collection of objects `s : ι → C` such that
 structure semibrick {ι : Type*} (s : ι → C) :=
 (brick : ∀ i, brick (s i))
 (orthogonal : hom_orthogonal s)
-
-/--
-Given a hom orthogonal family `s : ι → C`
-for which each `End (s i)` is a ring with invariant basis number,
-if two direct sums over `s` are isomorphic, then they have the same multiplicities.
--/

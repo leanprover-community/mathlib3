@@ -42,18 +42,16 @@ around a sum.
 
 open tactic
 
-/--  Given a list `un` of `α`s and a list `bo` of `bool`, return the sublist of `un`
-consisting of the entries of `un` whose corresponding entry in `bo` is `tt`. -/
+/--  Given a list `un` of `α`s and a list `bo` of `bool`s, return the sublist of `un`
+consisting of the entries of `un` whose corresponding entry in `bo` is `tt`.
+
+Used for error management: `un` is the list of user inputs, `bo` is the list encoding which input
+is unused (`tt`) and which input is used (`ff`).
+`list.return_unused` returns the unused user inputs. -/
 def list.return_unused {α : Type*} : list α → list bool → list α
 | un [] := un
 | [] bo := []
 | (u::us) (b::bs) := if b then ([u] ++ (us.return_unused bs)) else (us.return_unused bs)
-
-/-- A `tactic expr` that either finds the first entry `f` of `lc` that unifies with `e` and returns
-it or fails. -/
-meta def expr.find_in (e : expr) (lc : list expr) : tactic expr :=
-(do (h :: hs) ← lc.mfilter $ λ e', succeeds $ unify e e', return h ) <|>
-  tactic.fail "expression not found"
 
 /--  Given a list `lp` of `bool × pexpr` and a list `sl` of `expr`, scan the elements of `lp` one
 at a time and produce 3 sublists of `sl`.
@@ -65,19 +63,21 @@ next element of either the first or the second list, depending on the boolean `t
 `eu` from the list `sl`.  In this case, we continue our scanning with the next element of `lp`,
 replacing `sl` by `sl.erase eu`.
 
-Once we exhausts the elements of `lp`, we return the three lists:
+Once we exhaust the elements of `lp`, we return the three lists:
 * first the list of elements of `sl` that came from an element of `lp` whose boolean was `tt`,
 * next the list of elements of `sl` that came from an element of `lp` whose boolean was `ff`, and
 * finally the ununified elements of `sl`.
- -/
+
+The ununified elements of `sl` get used for error management: they keep track of which user inputs
+are superfluous. -/
 meta def list.unify_list : list (bool × expr) → list expr → list bool →
   tactic (list expr × list expr × list expr × list bool)
 | [] sl is_unused      := return ([], [], sl, is_unused)
 | (be::l) sl is_unused :=
-( do ex ← be.2.find_in sl,
+  do (ex :: hs) ← sl.mfilter $ λ e', succeeds $ unify be.2 e' |
+    l.unify_list sl (is_unused.append [tt]),
   (l1, l2, l3, is_unused) ← l.unify_list (sl.erase ex) (is_unused.append [ff]),
-    if be.1 then return (ex::l1, l2, l3, is_unused) else return (l1, ex::l2, l3, is_unused))
-<|> (l.unify_list sl (is_unused.append [tt]))
+  if be.1 then return (ex::l1, l2, l3, is_unused) else return (l1, ex::l2, l3, is_unused)
 
 /--  Given a list of pairs `bool × pexpr`, we convert it to a list of `bool × expr`. -/
 meta def list.convert_to_expr (lp : list (bool × pexpr)) : tactic (list (bool × expr)) :=

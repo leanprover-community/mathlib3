@@ -52,9 +52,9 @@ begin
 end
 
 @[simp] lemma one_sub_iff {p : R} : is_idempotent_elem (1 - p) ↔ is_idempotent_elem p :=
-⟨ is_idempotent_elem.complement , λ h, sub_sub_cancel 1 p ▸ h.complement⟩
+⟨ λ h, sub_sub_cancel 1 p ▸ h.one_sub, is_idempotent_elem.one_sub ⟩
 
 instance : has_compl (subtype (is_idempotent_elem  : R → Prop)) :=
-⟨λ P, ⟨1 - P, P.prop.complement⟩⟩
+⟨λ P, ⟨1 - P, P.prop.one_sub⟩⟩
 
 end is_idempotent_elem

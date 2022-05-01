@@ -208,7 +208,7 @@ end
 
 end domain
 
-variables {p : ℤ[X]}
+variables {p q : ℤ[X]}
 
 lemma int.sq_eq_one {x : ℤ} (h1 : x ^ 2 < 4) (h2 : x ≠ 0) : x ^ 2 = 1 :=
 begin
@@ -251,25 +251,36 @@ begin
     exact nat.cast_injective hp },
 end
 
+lemma is_unit_trinomial.irreducible1_aux (hp : is_unit_trinomial p) (hq : is_unit_trinomial q)
+  (h : ∀ q : ℤ[X], q ∣ p → q ∣ mirror p → is_unit q) :
+  irreducible p :=
+begin
+  -- TODO: Update lemma statement to involve kmn
+  sorry
+end
+
 lemma is_unit_trinomial.irreducible1 (hp : is_unit_trinomial p)
   (h : ∀ q : ℤ[X], q ∣ p → q ∣ mirror p → is_unit q) :
   irreducible p :=
 begin
   refine irreducible_of_mirror hp.not_is_unit (λ q hpq, _) h,
-  have key : is_unit_trinomial q := by rwa [is_unit_trinomial_iff', ←hpq, ←is_unit_trinomial_iff'],
-  /-
-  * Use `nat_degree_mul_mirror` and `nat_trailing_degree_mul_mirror` to show that `p` and `q`
-    have the same `nat_degree` and `nat_trailing_degree`.
-  * WLOG mirror to make middle degrees match (both ≤ half)
-  * WLOG negate to make leading coefficients match (both +1)
-
-
-  -/
-
-
-
-  -- this is a big result!
-  sorry
+  have hq : is_unit_trinomial q := by rwa [is_unit_trinomial_iff', ←hpq, ←is_unit_trinomial_iff'],
+  obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, hp⟩ := hp,
+  obtain ⟨k', m', n', hkm', hmn', x, y, z, hx, hy, hz, hq⟩ := hq,
+  have hk : k = k',
+  { rw [←mul_right_inj' (show 2 ≠ 0, from two_ne_zero),
+      ←trinomial_nat_trailing_degree hkm hmn hu.ne_zero, ←hp, ←nat_trailing_degree_mul_mirror,
+      ←trinomial_nat_trailing_degree hkm' hmn' hx.ne_zero, ←hq, ←nat_trailing_degree_mul_mirror,
+      hpq] },
+  have hn : n = n',
+  { rw [←mul_right_inj' (show 2 ≠ 0, from two_ne_zero),
+        ←trinomial_nat_degree hkm hmn hw.ne_zero, ←hp, ←nat_degree_mul_mirror,
+        ←trinomial_nat_degree hkm' hmn' hz.ne_zero, ←hq, ←nat_degree_mul_mirror, hpq] },
+  -- WLOG m = m' (after mirroring)
+  -- (go to prev lemma)
+  -- WLOG w = w' (after negating)
+  -- then u = u' (leading coeff)
+  sorry,
 end
 
 lemma is_unit_trinomial.irreducible2 (hp : is_unit_trinomial p)

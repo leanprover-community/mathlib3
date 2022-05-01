@@ -1,6 +1,38 @@
+/-
+Copyright (c) 2022 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import category_theory.linear
 import category_theory.limits.shapes.biproducts
 import linear_algebra.matrix.invariant_basis_number
+
+/-!
+# Hom orthogonal families.
+
+A family of objects in a category with zero morphisms is "hom orthogonal" if the only
+morphism between distinct objects is the zero morphism.
+
+We should that in any category with zero morphisms and finite biproducts,
+a morphism between biproducts drawn from a hom orthogonal family `s : ι → C`
+can be decomposed into a block diagonal matrix with entries in the endomorphism rings of the `s i`.
+
+When the category is preadditive, this decomposition is an additive equivalence,
+and intertwines composition and matrix multiplication.
+When the category is `R`-linear, the decomposition is an `R`-linear equivalence.
+
+If every object in the hom orthogonal family has an endomorphism ring with invariant basis number
+(e.g. if each object in the family is simple, so its endomorphism ring is a division ring,
+or otherwise if each endomorphism ring is commutative),
+then decompositions of an object as a biproduct of the family have uniquely defined multiplicities.
+We state this as:
+```
+lemma hom_orthogonal.equiv_of_iso (o : hom_orthogonal s) {f : α → ι} {g : β → ι}
+  (i : ⨁ (λ a, s (f a)) ≅ ⨁ (λ b, s (g b))) : ∃ e : α ≃ β, ∀ a, g (e a) = f a
+```
+
+This is preliminary to defining semisimple categories.
+-/
 
 open_locale classical matrix
 
@@ -11,8 +43,8 @@ universes v u
 
 variables {C : Type u} [category.{v} C]
 
-/-- A family of objects in a category with zero morphisms is "hom orthogonal" if the only
-morphism between distinct objects is the zero morphism. -/
+/-- A family of objects in a category with zero morphisms is "hom orthogonal" if
+the only morphism between distinct objects is the zero morphism. -/
 def hom_orthogonal {ι : Type*} (s : ι → C) : Prop :=
 ∀ i j, i ≠ j → subsingleton (s i ⟶ s j)
 

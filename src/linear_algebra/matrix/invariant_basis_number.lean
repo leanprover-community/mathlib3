@@ -21,11 +21,15 @@ The problem is just that `matrix.to_lin'` requires the `comm_semiring` typeclass
 because when that was written no one was thinking about the noncommutative case.
 -/
 variables {n m : Type*} [fintype n] [decidable_eq n] [fintype m] [decidable_eq m]
-variables {R : Type*} [comm_semiring R] [invariant_basis_number R]
+variables {R : Type*} [semiring R] [invariant_basis_number R]
 
 open_locale matrix
+
+def matrix.to_lin'_of_inv' {R : Type*} [semiring R] {m : Type*} {n : Type*} [_inst_2 : fintype n]
+[_inst_3 : decidable_eq n] [_inst_4 : fintype m] [_inst_5 : decidable_eq m] {M : matrix m n R} {M' : matrix n m R}
+  (h : M ⬝ M' = 1) (h' : M' ⬝ M = 1) : ((m → R) ≃ₗ[R] n → R) := sorry
 
 lemma matrix.square_of_invertible
   (M : matrix n m R) (N : matrix m n R) (h : M ⬝ N = 1) (h' : N ⬝ M = 1) :
   fintype.card n = fintype.card m :=
-card_eq_of_lequiv R (matrix.to_lin'_of_inv h h')
+card_eq_of_lequiv R (matrix.to_lin'_of_inv' h h')

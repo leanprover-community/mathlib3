@@ -63,8 +63,7 @@ with blocks indexed by `ι`,
 and matrix entries in `i`-th block living in the endomorphisms of `s i`. -/
 @[simps] noncomputable
 def hom_orthogonal.matrix_decomposition
-  (o : hom_orthogonal s)
-  {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι} :
+  (o : hom_orthogonal s) {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι} :
   (⨁ (λ a, s (f a)) ⟶ ⨁ (λ b, s (g b))) ≃
     Π (i : ι), matrix (g ⁻¹' {i}) (f ⁻¹' {i}) (End (s i)) :=
 { to_fun := λ z i j k,
@@ -95,8 +94,7 @@ variables [preadditive C] [has_finite_biproducts C]
 /-- `hom_orthogonal.matrix_decomposition` as an additive equivalence. -/
 @[simps] noncomputable
 def hom_orthogonal.matrix_decomposition_add_equiv
-(o : hom_orthogonal s)
-  {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι} :
+  (o : hom_orthogonal s) {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι} :
   (⨁ (λ a, s (f a)) ⟶ ⨁ (λ b, s (g b))) ≃+
     Π (i : ι), matrix (g ⁻¹' {i}) (f ⁻¹' {i}) (End (s i)) :=
 { map_add' := λ w z, by { ext, dsimp [biproduct.components], simp, },
@@ -117,15 +115,30 @@ begin
   { rintro x _ h, exact w' x (by simpa using h), },
 end
 
+@[simp]
+lemma hom_orthogonal.matrix_decomposition_id
+  (o : hom_orthogonal s) {α : Type*} [fintype α] {f : α → ι} (i : ι) :
+  o.matrix_decomposition (𝟙 (⨁ (λ a, s (f a)))) i = 1 :=
+begin
+  ext ⟨b, ⟨⟩⟩ ⟨a⟩,
+  simp only [set.mem_preimage, set.mem_singleton_iff] at j_property,
+  simp only [category.comp_id, category.id_comp, category.assoc, End.one_def, eq_to_hom_refl,
+    matrix.one_apply, hom_orthogonal.matrix_decomposition_apply, biproduct.components],
+  split_ifs with h,
+  { cases h, simp, },
+  { convert comp_zero,
+    simpa using biproduct.ι_π_ne _ (ne.symm h), },
+end
+
 lemma hom_orthogonal.matrix_decomposition_comp
-(o : hom_orthogonal s)
+  (o : hom_orthogonal s)
   {α β γ : Type*} [fintype α] [fintype β] [fintype γ] {f : α → ι} {g : β → ι} {h : γ → ι}
   (z : (⨁ (λ a, s (f a)) ⟶ ⨁ (λ b, s (g b)))) (w : (⨁ (λ b, s (g b)) ⟶ ⨁ (λ c, s (h c))))
   (i : ι) :
   o.matrix_decomposition (z ≫ w) i = o.matrix_decomposition w i ⬝ o.matrix_decomposition z i :=
 begin
   ext ⟨c, ⟨⟩⟩ ⟨a⟩,
-  simp at j_property,
+  simp only [set.mem_preimage, set.mem_singleton_iff] at j_property,
   simp only [matrix.mul_apply, limits.biproduct.components,
     hom_orthogonal.matrix_decomposition_apply,
     category.comp_id, category.id_comp, category.assoc, End.mul_def,
@@ -164,30 +177,24 @@ if `s i` is simple (as then `End (s i)` is a division ring).
 -/
 variables [∀ i, invariant_basis_number (End (s i))]
 
--- This hypothesis is mathematically unnecessary, and can be dropped when the problem identified in
--- `linear_algebra.matrix.invariant_basis_number` is resolved.
-variables (h : ∀ (i : ι) (f g : End (s i)), f * g = g * f)
-include h
+open_locale classical
 
 /--
 Given a hom orthogonal family `s : ι → C`
 for which each `End (s i)` is a ring with invariant basis number (e.g. if each `s i` is simple),
 if two direct sums over `s` are isomorphic, then they have the same multiplicities.
 -/
-lemma hom_orthogonal.equiv_of_iso (o : hom_orthogonal s) {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι}
+lemma hom_orthogonal.equiv_of_iso (o : hom_orthogonal s)
+  {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι}
   (i : ⨁ (λ a, s (f a)) ≅ ⨁ (λ b, s (g b))) :
   ∃ e : α ≃ β, ∀ a, g (e a) = f a :=
 begin
-  refine ⟨equiv_of_preimage_equiv _, λ a, equiv_of_preimage_equiv_property _ _⟩,
+  refine ⟨equiv.equiv_of_preimage_equiv _, λ a, equiv.equiv_of_preimage_equiv_property _ _⟩,
   intro c,
-  haveI : comm_ring (End (s i)) :=
-  { mul_comm' := h c,
-    ..(infer_instance : ring (End (s i))), },
   apply nonempty.some,
   apply cardinal.eq.1,
-  fapply matrix.square_of_invertible,
-  { exact o.matrix_decomposition i.hom c, },
-  { exact o.matrix_decomposition i.inv c, },
+  simp only [cardinal.mk_fintype, nat.cast_inj],
+  fapply matrix.square_of_invertible (o.matrix_decomposition i.inv c) (o.matrix_decomposition i.hom c),
   { rw ←o.matrix_decomposition_comp, simp, },
   { rw ←o.matrix_decomposition_comp, simp, },
 end

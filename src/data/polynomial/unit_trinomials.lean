@@ -92,26 +92,57 @@ by rw [mirror, trinomial_nat_trailing_degree hkm hmn hu, reverse, trinomial_nat_
 def is_unit_trinomial := ∃ {k m n : ℕ} (hkm : k < m) (hmn : m < n) {u v w : R}
   (hu : is_unit u) (hv : is_unit v) (hw : is_unit w), p = C u * X ^ k + C v * X ^ m + C w * X ^ n
 
-variable {p}
+variables {p} [nontrivial R]
 
-lemma is_unit_trinomial.leading_coeff_is_unit [nontrivial R] (hp : is_unit_trinomial p) :
+lemma is_unit_trinomial.card_support_eq_three (hp : is_unit_trinomial p) :
+  card (support p) = 3 :=
+begin
+  obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
+  rw [trinomial_support_eq hkm hmn hu.ne_zero hv.ne_zero hw.ne_zero, card_insert_of_not_mem
+        (mt mem_insert.mp (not_or hkm.ne (mt mem_singleton.mp (hkm.trans hmn).ne))),
+      card_insert_of_not_mem (mt mem_singleton.mp hmn.ne), card_singleton],
+end
+
+lemma is_unit_trinomial.ne_zero (hp : is_unit_trinomial p) : p ≠ 0 :=
+begin
+  rintro rfl,
+  apply nat.zero_ne_bit1 1,
+  rw [←hp.card_support_eq_three, support_zero, card_empty],
+end
+
+lemma is_unit_trinomial.coeff_is_unit (hp : is_unit_trinomial p)
+  {k : ℕ} (hk : k ∈ support p) : is_unit (coeff p k) :=
+begin
+  obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
+  have := trinomial_support_le hk,
+  rw [mem_insert, mem_insert, mem_singleton] at this,
+  rcases this with rfl | rfl | rfl,
+  { rwa trinomial_coeff_k hkm hmn },
+  { rwa trinomial_coeff_m hkm hmn },
+  { rwa trinomial_coeff_n hkm hmn },
+end
+
+lemma is_unit_trinomial.leading_coeff_is_unit (hp : is_unit_trinomial p) :
   is_unit (leading_coeff p) :=
-begin
-  obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
-  rwa trinomial_leading_coeff hkm hmn hw.ne_zero,
-end
+hp.coeff_is_unit (nat_degree_mem_support_of_nonzero hp.ne_zero)
 
-lemma is_unit_trinomial.trailing_coeff_is_unit [nontrivial R] (hp : is_unit_trinomial p) :
+lemma is_unit_trinomial.trailing_coeff_is_unit (hp : is_unit_trinomial p) :
   is_unit (trailing_coeff p) :=
+hp.coeff_is_unit (nat_trailing_degree_mem_support_of_nonzero hp.ne_zero)
+
+lemma card_support_eq_three_iff : card (support p) = 3 ↔
+  ∃ {k m n : ℕ} (hkm : k < m) (hmn : m < n) {u v w}, p = C u * X ^ k + C v * X ^ m + C w * X ^ n :=
 begin
-  obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
-  rwa trinomial_trailing_coeff hkm hmn hu.ne_zero,
+  sorry,
 end
 
-lemma is_unit_trinomial_of_card_support_eq_three
-  (h1 : p.support.card = 3) (h2 : ∀ k ∈ p.support, is_unit (p.coeff k)) :
-  is_unit_trinomial p :=
+lemma is_unit_trinomial_iff :
+  is_unit_trinomial p ↔ card (support p) = 3 ∧ ∀ k ∈ p.support, is_unit (coeff p k) :=
 begin
+  refine ⟨λ hp, ⟨hp.card_support_eq_three, λ k, hp.coeff_is_unit⟩, λ hp, _⟩,
+  obtain ⟨k, m, n, hkm, hmn, u, v, w, rfl⟩ := card_support_eq_three_iff.mp hp.1,
+  -- first show that the support is exactly u,v,w by antisymm stuff
+  refine ⟨k, m, n, hkm, hmn, u, v, w, _⟩,
   sorry,
 end
 
@@ -179,7 +210,7 @@ begin
   norm_num,
 end
 
-lemma is_unit_trinomial_iff : is_unit_trinomial p ↔ coeff (p * mirror p)
+lemma is_unit_trinomial_iff' : is_unit_trinomial p ↔ coeff (p * mirror p)
   ((nat_degree (p * mirror p) + nat_trailing_degree (p * mirror p)) / 2) = 3 :=
 begin
   rw [nat_degree_mul_mirror, nat_trailing_degree_mul_mirror, ←mul_add,
@@ -194,8 +225,8 @@ begin
   { have key1 : ∀ k ∈ p.support, (p.coeff k) ^ 2 = 1 :=
     λ k hk, int.sq_eq_one' ((single_le_sum (λ k hk, sq_nonneg (p.coeff k)) hk).trans hp.le)
         (mem_support_iff.mp hk),
-    refine is_unit_trinomial_of_card_support_eq_three _
-      (λ k hk, is_unit_of_pow_eq_one (p.coeff k) 2 (key1 k hk) zero_lt_two),
+    refine is_unit_trinomial_iff.mpr ⟨_,
+      λ k hk, is_unit_of_pow_eq_one (p.coeff k) 2 (key1 k hk) zero_lt_two⟩,
     rw [sum_def, sum_congr rfl key1, sum_const, nat.smul_one_eq_coe] at hp,
     exact nat.cast_injective hp },
 end
@@ -205,7 +236,7 @@ lemma is_unit_trinomial.irreducible1 (hp : is_unit_trinomial p)
   irreducible p :=
 begin
   refine irreducible_of_mirror hp.not_is_unit (λ q hpq, _) h,
-  have key : is_unit_trinomial q := by rwa [is_unit_trinomial_iff, ←hpq, ←is_unit_trinomial_iff],
+  have key : is_unit_trinomial q := by rwa [is_unit_trinomial_iff', ←hpq, ←is_unit_trinomial_iff'],
   /-
   * Use `nat_degree_mul_mirror` and `nat_trailing_degree_mul_mirror` to show that `p` and `q`
     have the same `nat_degree` and `nat_trailing_degree`.

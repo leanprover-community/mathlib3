@@ -103,7 +103,7 @@ begin
     { have hU₃' : U'.nonempty := (set.finite.to_finset.nonempty hU₁).mpr hU₃,
       let r := U'.inf' hU₃' U.snd,
       have hr : 0 < r :=
-      (finset.lt_inf'_iff hU₃' _).mpr (λ y hy, hU₂ y ((set.finite.mem_to_finset hU₁).mp hy)),
+      (finset.lt_inf'_iff hU₃').mpr (λ y hy, hU₂ y ((set.finite.mem_to_finset hU₁).mp hy)),
       use [seminorm.ball (U'.sup p) (0 : E) r],
       refine ⟨p.basis_sets_mem _ hr, λ x hx y hy, _⟩,
       simp only [set.mem_preimage, set.mem_pi, mem_ball_zero_iff],

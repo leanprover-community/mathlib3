@@ -144,8 +144,12 @@ lemma endomorphism_simple_eq_smul_id
   ∃ c : 𝕜, c • 𝟙 X = f :=
 (finrank_eq_one_iff_of_nonzero' (𝟙 X) (id_nonzero X)).mp (finrank_endomorphism_simple_eq_one 𝕜 X) f
 
+/--
+Endomorphisms of a simple object form a field if they are finite dimensional.
+This can't be an instance as `𝕜` would be undetermined.
+-/
 noncomputable
-instance (X : C) [simple X] [decidable_eq (End X)] [I : finite_dimensional 𝕜 (X ⟶ X)] :
+def (X : C) [simple X] [decidable_eq (End X)] [I : finite_dimensional 𝕜 (X ⟶ X)] :
   field (End X) :=
 { mul_comm := λ f g, begin
     obtain ⟨c, rfl⟩ := endomorphism_simple_eq_smul_id 𝕜 f,

@@ -80,17 +80,9 @@ begin
   simp only [subtype.coe_mk, sub_sub_cancel, subtype.coe_eta],
 end
 
-@[simp] lemma zero_compl : (0 : {p : R // is_idempotent_elem p})ᶜ = 1 :=
-begin
-  unfold has_compl.compl,
-  simpa only [subtype.val_eq_coe, coe_zero, sub_zero],
-end
+@[simp] lemma zero_compl : (0 : {p : R // is_idempotent_elem p})ᶜ = 1 := subtype.ext $ sub_zero _
 
-@[simp] lemma one_compl : (1 : {p : R // is_idempotent_elem p})ᶜ = 0 :=
-begin
-  unfold has_compl.compl,
-  simpa only [subtype.val_eq_coe, coe_one, sub_self],
-end
+@[simp] lemma one_compl : (1 : {p : R // is_idempotent_elem p})ᶜ = 0 := subtype.ext $ sub_self _
 
 end instances
 

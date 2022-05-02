@@ -75,7 +75,7 @@ begin
   interval_integral.integral_smul, zero_add],
 end
 
-lemma circle_integral_transform_cont_on_ICC (R : ℝ) (hR : 0 < R)  (f : ℂ → E) (z w : ℂ)
+lemma circle_integral_transform_cont_on_ICC (R : ℝ) (hR : 0 < R) (f : ℂ → E) (z w : ℂ)
   (hf : continuous_on f (sphere z R))
   (hw : w ∈ ball z R) :
   continuous_on (circle_integral_transform R z w f) [0, 2 * π] :=

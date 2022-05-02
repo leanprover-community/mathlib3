@@ -164,8 +164,6 @@ begin
   simp,
 end
 
-
-
 end
 
 end linear_map

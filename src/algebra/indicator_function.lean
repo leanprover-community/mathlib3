@@ -249,6 +249,19 @@ begin
   rw [pi.mul_apply, this, one_mul]
 end
 
+@[to_additive] lemma mul_indicator_mul_compl_eq_piecewise
+  [decidable_pred (∈ s)] (f g : α → M) :
+  s.mul_indicator f * sᶜ.mul_indicator g = s.piecewise f g :=
+begin
+  ext x,
+  by_cases h : x ∈ s,
+  { rw [piecewise_eq_of_mem _ _ _ h, pi.mul_apply, set.mul_indicator_of_mem h,
+      set.mul_indicator_of_not_mem (set.not_mem_compl_iff.2 h), mul_one] },
+  { rw [piecewise_eq_of_not_mem _ _ _ h, pi.mul_apply, set.mul_indicator_of_not_mem h,
+      set.mul_indicator_of_mem (set.mem_compl h), one_mul] },
+end
+
+
 /-- `set.mul_indicator` as a `monoid_hom`. -/
 @[to_additive "`set.indicator` as an `add_monoid_hom`."]
 def mul_indicator_hom {α} (M) [mul_one_class M] (s : set α) : (α → M) →* (α → M) :=

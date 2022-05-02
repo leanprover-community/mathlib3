@@ -3095,9 +3095,18 @@ lemma measure_trim_to_measurable_eq_zero {hm : m ≤ m0} (hs : μ.trim hm s = 0)
   μ (@to_measurable α m (μ.trim hm) s) = 0 :=
 measure_eq_zero_of_trim_eq_zero hm (by rwa measure_to_measurable)
 
+lemma ae_of_ae_trim (hm : m ≤ m0) {μ : measure α} {P : α → Prop} (h : ∀ᵐ x ∂(μ.trim hm), P x) :
+  ∀ᵐ x ∂μ, P x :=
+measure_eq_zero_of_trim_eq_zero hm h
+
 lemma ae_eq_of_ae_eq_trim {E} {hm : m ≤ m0} {f₁ f₂ : α → E}
   (h12 : f₁ =ᶠ[@measure.ae α m (μ.trim hm)] f₂) :
   f₁ =ᵐ[μ] f₂ :=
+measure_eq_zero_of_trim_eq_zero hm h12
+
+lemma ae_le_of_ae_le_trim {E} [has_le E] {hm : m ≤ m0} {f₁ f₂ : α → E}
+  (h12 : f₁ ≤ᶠ[@measure.ae α m (μ.trim hm)] f₂) :
+  f₁ ≤ᵐ[μ] f₂ :=
 measure_eq_zero_of_trim_eq_zero hm h12
 
 lemma trim_trim {m₁ m₂ : measurable_space α} {hm₁₂ : m₁ ≤ m₂} {hm₂ : m₂ ≤ m0} :

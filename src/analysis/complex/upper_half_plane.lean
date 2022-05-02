@@ -30,6 +30,10 @@ open_locale classical big_operators matrix_groups
 
 local attribute [instance] fintype.card_fin_even
 
+/- Disable this instances as it is not the simp-normal form, and having them disabled ensures
+we state lemmas in this file without spurious `coe_fn` terms. -/
+local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
+
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 
 local notation `GL(` n `, ` R `)`⁺:= matrix.GL_pos (fin n) R
@@ -220,7 +224,16 @@ begin
   ring_nf,
 end
 
+
+section SL_modular_action
+
+variables (g : SL(2, ℤ)) (z : ℍ)(Γ : subgroup SL(2,ℤ))
+
 @[simp]lemma sl_moeb (A: SL(2,ℤ)) (z : ℍ) : A • z = (A : (GL(2, ℝ)⁺)) • z := rfl
+
+lemma subgroup_moeb (A: Γ) (z : ℍ) : A • z = (A : (GL(2, ℝ)⁺)) • z := rfl
+
+@[simp]lemma subgroup_to_sl_moeb (A : Γ) (z : ℍ) : A • z = (A : SL(2,ℤ)) • z := rfl
 
 @[simp] lemma SL_neg_smul (g : SL(2,ℤ)) (z : ℍ) : -g • z = g • z :=
 begin
@@ -235,5 +248,19 @@ begin
   calc (c * z.im)^2 ≤ (c * z.im)^2 + (c * z.re + d)^2 : by nlinarith
                 ... = complex.norm_sq (denom g z) : by simp [complex.norm_sq]; ring,
 end
+
+lemma special_linear_group.im_smul_eq_div_norm_sq :
+  (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
+begin
+  convert (im_smul_eq_div_norm_sq g z),
+  simp only [coe_coe, general_linear_group.coe_det_apply,coe_GL_pos_coe_GL_coe_matrix,
+    int.coe_cast_ring_hom,(g : SL(2,ℝ)).prop, one_mul],
+end
+
+lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = (↑g : matrix (fin 2) (fin 2) ℤ) 1 0 * z +
+  (↑g : matrix (fin 2) (fin 2) ℤ) 1 1 :=
+  by {simp,}
+
+end SL_modular_action
 
 end upper_half_plane

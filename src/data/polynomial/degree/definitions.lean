@@ -155,7 +155,7 @@ lemma nat_degree_lt_iff_degree_lt (hp : p ≠ 0) :
   p.nat_degree < n ↔ p.degree < ↑n :=
 with_bot.get_or_else_bot_lt_iff $ degree_eq_bot.not.mpr hp
 
-alias polynomial.nat_degree_le_iff_degree_le ↔ . .
+alias polynomial.nat_degree_le_iff_degree_le ↔ ..
 
 lemma nat_degree_le_nat_degree [semiring S] {q : S[X]} (hpq : p.degree ≤ q.degree) :
   p.nat_degree ≤ q.nat_degree :=

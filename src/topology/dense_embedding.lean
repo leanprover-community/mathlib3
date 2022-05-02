@@ -337,3 +337,26 @@ lemma dense_range.equalizer (hfd : dense_range f)
   g = h :=
 funext $ λ y, hfd.induction_on y (is_closed_eq hg hh) $ congr_fun H
 end
+
+-- Bourbaki GT III §3 no.4 Proposition 7 (generalised to any dense-inducing map to a regular space)
+lemma filter.has_basis.has_basis_of_dense_inducing
+  [topological_space α] [topological_space β] [regular_space β]
+  {ι : Type*} {s : ι → set α} {p : ι → Prop} {x : α} (h : (𝓝 x).has_basis p s)
+  {f : α → β} (hf : dense_inducing f) :
+  (𝓝 (f x)).has_basis p $ λ i, closure $ f '' (s i) :=
+begin
+  rw filter.has_basis_iff at h ⊢,
+  intros T,
+  refine ⟨λ hT, _, λ hT, _⟩,
+  { obtain ⟨T', hT₁, hT₂, hT₃⟩ := nhds_is_closed hT,
+    have hT₄ : f⁻¹' T' ∈ 𝓝 x,
+    { rw hf.to_inducing.nhds_eq_comap x,
+      exact ⟨T', hT₁, subset.rfl⟩, },
+    obtain ⟨i, hi, hi'⟩ := (h _).mp hT₄,
+    exact ⟨i, hi, (closure_mono (image_subset f hi')).trans (subset.trans (closure_minimal
+      (image_subset_iff.mpr subset.rfl) hT₃) hT₂)⟩, },
+  { obtain ⟨i, hi, hi'⟩ := hT,
+    suffices : closure (f '' s i) ∈ 𝓝 (f x), { filter_upwards [this] using hi', },
+    replace h := (h (s i)).mpr ⟨i, hi, subset.rfl⟩,
+    exact hf.closure_image_mem_nhds h, },
+end

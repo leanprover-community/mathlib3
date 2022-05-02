@@ -450,6 +450,13 @@ begin
   rw [←zmod.int_coe_eq_int_coe_iff', int.cast_coe_nat, zmod.nat_cast_val, zmod.cast_id],
 end
 
+lemma coe_int_cast {n : ℕ} (a : ℤ) : ↑(a : zmod n) = a % n :=
+begin
+  cases n,
+  { rw [int.coe_nat_zero, int.mod_zero, int.cast_id, int.cast_id] },
+  { rw [←val_int_cast, ←int.nat_cast_eq_coe_nat, val, coe_coe] },
+end
+
 @[simp] lemma val_neg_one (n : ℕ) : (-1 : zmod n.succ).val = n :=
 begin
   rw [val, fin.coe_neg],

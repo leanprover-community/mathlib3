@@ -833,6 +833,10 @@ lemma integrable.mul_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
   integrable (λ x, f x * c) μ :=
 by simp_rw [mul_comm, h.const_mul _]
 
+lemma integrable.div_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
+  integrable (λ x, f x / c) μ :=
+by simp_rw [div_eq_mul_inv, h.mul_const]
+
 end normed_space
 
 section normed_space_over_complete_field

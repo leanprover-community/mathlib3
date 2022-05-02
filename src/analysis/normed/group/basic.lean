@@ -143,8 +143,10 @@ by simp [dist_eq_norm]
 @[simp] lemma dist_add_right (g₁ g₂ h : E) : dist (g₁ + h) (g₂ + h) = dist g₁ g₂ :=
 by simp [dist_eq_norm]
 
-@[simp] lemma dist_neg_neg (g h : E) : dist (-g) (-h) = dist g h :=
-by simp only [dist_eq_norm, neg_sub_neg, norm_sub_rev]
+lemma dist_neg (x y : E) : dist (-x) y = dist x (-y) :=
+by simp_rw [dist_eq_norm, ←norm_neg (-x - y), neg_sub, sub_neg_eq_add, add_comm]
+
+@[simp] lemma dist_neg_neg (g h : E) : dist (-g) (-h) = dist g h := by rw [dist_neg, neg_neg]
 
 @[simp] lemma dist_sub_left (g h₁ h₂ : E) : dist (g - h₁) (g - h₂) = dist h₁ h₂ :=
 by simp only [sub_eq_add_neg, dist_add_left, dist_neg_neg]
@@ -157,6 +159,12 @@ by rw [← dist_zero_left, ← dist_add_left g 0 h, add_zero]
 
 @[simp] theorem dist_self_add_left (g h : E) : dist (g + h) g = ∥h∥ :=
 by rw [dist_comm, dist_self_add_right]
+
+@[simp] theorem dist_self_sub_right (g h : E) : dist g (g - h) = ∥h∥ :=
+by rw [sub_eq_add_neg, dist_self_add_right, norm_neg]
+
+@[simp] theorem dist_self_sub_left (g h : E) : dist (g - h) g = ∥h∥ :=
+by rw [dist_comm, dist_self_sub_right]
 
 /-- **Triangle inequality** for the norm. -/
 lemma norm_add_le (g h : E) : ∥g + h∥ ≤ ∥g∥ + ∥h∥ :=
@@ -249,6 +257,9 @@ lemma norm_le_add_norm_add (u v : E) :
   ∥u∥ ≤ ∥u + v∥ + ∥v∥ :=
 calc ∥u∥ = ∥u + v - v∥ : by rw add_sub_cancel
 ... ≤ ∥u + v∥ + ∥v∥ : norm_sub_le _ _
+
+lemma ball_eq (y : E) (ε : ℝ) : metric.ball y ε = { x | ∥x - y∥ < ε} :=
+by { ext, simp [dist_eq_norm], }
 
 lemma ball_zero_eq (ε : ℝ) : ball (0 : E) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
@@ -418,6 +429,20 @@ by simp_rw [metric.tendsto_nhds_nhds, dist_eq_norm]
 lemma normed_group.cauchy_seq_iff [nonempty α] [semilattice_sup α] {u : α → E} :
   cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m, N ≤ m → ∀ n, N ≤ n → ∥u m - u n∥ < ε :=
 by simp [metric.cauchy_seq_iff, dist_eq_norm]
+
+lemma normed_group.nhds_basis_norm_lt (x : E) :
+  (𝓝 x).has_basis (λ (ε : ℝ), 0 < ε) (λ (ε : ℝ), { y | ∥y - x∥ < ε }) :=
+begin
+  simp_rw ← ball_eq,
+  exact metric.nhds_basis_ball,
+end
+
+lemma normed_group.nhds_zero_basis_norm_lt :
+  (𝓝 (0 : E)).has_basis (λ (ε : ℝ), 0 < ε) (λ (ε : ℝ), { y | ∥y∥ < ε }) :=
+begin
+  convert normed_group.nhds_basis_norm_lt (0 : E),
+  simp,
+end
 
 lemma normed_group.uniformity_basis_dist :
   (𝓤 E).has_basis (λ (ε : ℝ), 0 < ε) (λ ε, {p : E × E | ∥p.fst - p.snd∥ < ε}) :=
@@ -605,8 +630,8 @@ by simp [edist_dist]
 @[simp] lemma edist_add_right (g₁ g₂ h : E) : edist (g₁ + h) (g₂ + h) = edist g₁ g₂ :=
 by simp [edist_dist]
 
-@[simp] lemma edist_neg_neg (x y : E) : edist (-x) (-y) = edist x y :=
-by rw [edist_dist, dist_neg_neg, edist_dist]
+lemma edist_neg (x y : E) : edist (-x) y = edist x (-y) := by simp_rw [edist_dist, dist_neg]
+@[simp] lemma edist_neg_neg (x y : E) : edist (-x) (-y) = edist x y := by rw [edist_neg, neg_neg]
 
 @[simp] lemma edist_sub_left (g h₁ h₂ : E) : edist (g - h₁) (g - h₂) = edist h₁ h₂ :=
 by simp only [sub_eq_add_neg, edist_add_left, edist_neg_neg]
@@ -617,6 +642,10 @@ by simpa only [sub_eq_add_neg] using edist_add_right _ _ _
 lemma nnnorm_sum_le (s : finset ι) (f : ι → E) :
   ∥∑ a in s, f a∥₊ ≤ ∑ a in s, ∥f a∥₊ :=
 s.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le f
+
+lemma nnnorm_sum_le_of_le (s : finset ι) {f : ι → E} {n : ι → ℝ≥0} (h : ∀ b ∈ s, ∥f b∥₊ ≤ n b) :
+  ∥∑ b in s, f b∥₊ ≤ ∑ b in s, n b :=
+(norm_sum_le_of_le s h).trans_eq nnreal.coe_sum.symm
 
 lemma add_monoid_hom.lipschitz_of_bound_nnnorm (f : E →+ F) (C : ℝ≥0) (h : ∀ x, ∥f x∥₊ ≤ C * ∥x∥₊) :
   lipschitz_with C f :=
@@ -760,7 +789,7 @@ max_le_iff
 using the sup norm. -/
 noncomputable instance pi.semi_normed_group {π : ι → Type*} [fintype ι]
   [Π i, semi_normed_group (π i)] : semi_normed_group (Π i, π i) :=
-{ norm := λf, ((finset.sup finset.univ (λ b, ∥f b∥₊) : ℝ≥0) : ℝ),
+{ norm := λ f, ↑(finset.univ.sup (λ b, ∥f b∥₊)),
   dist_eq := assume x y,
     congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
     show nndist (x a) (y a) = ∥x a - y a∥₊, from nndist_eq_nnnorm _ _ }
@@ -805,6 +834,19 @@ by simpa only [← dist_zero_right] using dist_pi_const a 0
 @[simp] lemma pi_nnnorm_const [nonempty ι] [fintype ι] (a : E) :
   ∥(λ i : ι, a)∥₊ = ∥a∥₊ :=
 nnreal.eq $ pi_norm_const a
+
+/-- The $L^1$ norm is less than the $L^\infty$ norm scaled by the cardinality. -/
+lemma pi.sum_norm_apply_le_norm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)]
+  (x : Π i, π i) :
+  ∑ i, ∥x i∥ ≤ fintype.card ι • ∥x∥ :=
+calc ∑ i, ∥x i∥ ≤ ∑ i : ι, ∥x∥ : finset.sum_le_sum $ λ i hi, norm_le_pi_norm x i
+            ... = fintype.card ι • ∥x∥ : finset.sum_const _
+
+/-- The $L^1$ norm is less than the $L^\infty$ norm scaled by the cardinality. -/
+lemma pi.sum_nnnorm_apply_le_nnnorm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)]
+  (x : Π i, π i) :
+  ∑ i, ∥x i∥₊ ≤ fintype.card ι • ∥x∥₊ :=
+nnreal.coe_sum.trans_le $ pi.sum_norm_apply_le_norm x
 
 lemma tendsto_iff_norm_tendsto_zero {f : α → E} {a : filter α} {b : E} :
   tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥f e - b∥) a (𝓝 0) :=

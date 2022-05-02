@@ -6,10 +6,10 @@ Authors: Yaël Dillies
 import data.finset.prod
 
 /-!
-### N-ary images of finsets
+# N-ary images of finsets
 
-This file defines the binary image of finsets. This is mostly useful to define pointwise operations
-on finsets.
+This file defines `finset.image₂`, the binary image of finsets. This is the finset version of
+`set.image2`. This is mostly useful to define pointwise operations.
 
 ## Notes
 
@@ -24,10 +24,11 @@ open function set
 
 namespace finset
 
-variables {α α' β β' γ γ' δ δ' ε ε' : Type*} [decidable_eq α'] [decidable_eq β'] [decidable_eq γ]
-  [decidable_eq δ] [decidable_eq δ'] [decidable_eq ε] [decidable_eq ε'] {f f' : α → β → γ}
-  {g g' : α → β → γ → δ} {s s' : finset α} {t t' : finset β} {u u' : finset γ} {a a' : α} {b b' : β}
-  {c : γ}
+variables {α α' β β' γ γ' δ δ' ε ε' : Type*}
+  [decidable_eq α'] [decidable_eq β'] [decidable_eq γ] [decidable_eq δ] [decidable_eq δ']
+  [decidable_eq ε] [decidable_eq ε']
+  {f f' : α → β → γ} {g g' : α → β → γ → δ} {s s' : finset α} {t t' : finset β} {u u' : finset γ}
+  {a a' : α} {b b' : β} {c : γ}
 
 /-- The image of a binary function `f : α → β → γ` as a function `finset α → finset β → finset γ`.
 Mathematically this should be thought of as the image of the corresponding function `α × β → γ`. -/
@@ -75,11 +76,17 @@ by simp_rw [←mem_coe, coe_image₂, forall_image2_iff]
 @[simp] lemma image₂_subset_iff : image₂ f s t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), f x y ∈ u :=
 forall_image₂_iff
 
-lemma nonempty.image₂ : s.nonempty → t.nonempty → (image₂ f s t).nonempty :=
-λ ⟨a, ha⟩ ⟨b, hb⟩, ⟨_, mem_image₂_of_mem ha hb⟩
-
 @[simp] lemma image₂_nonempty_iff : (image₂ f s t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 by { rw [←coe_nonempty, coe_image₂], exact image2_nonempty_iff }
+
+lemma nonempty.image₂ (hs : s.nonempty) (ht : t.nonempty) : (image₂ f s t).nonempty :=
+image₂_nonempty_iff.2 ⟨hs, ht⟩
+
+lemma nonempty.of_image₂_left (h : (image₂ f s t).nonempty) : s.nonempty :=
+(image₂_nonempty_iff.1 h).1
+
+lemma nonempty.of_image₂_right (h : (image₂ f s t).nonempty) : t.nonempty :=
+(image₂_nonempty_iff.1 h).2
 
 @[simp] lemma image₂_empty_left : image₂ f ∅ t = ∅ := coe_injective $ by simp
 @[simp] lemma image₂_empty_right : image₂ f s ∅ = ∅ := coe_injective $ by simp

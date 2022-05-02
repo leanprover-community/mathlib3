@@ -243,7 +243,7 @@ as a special case."]
 def self_equiv_sigma_orbits' {φ : Ω → β} (hφ : right_inverse φ quotient.mk') :
   β ≃ Σ (ω : Ω), orbit α (φ ω) :=
 calc  β
-    ≃ Σ (ω : Ω), {b // quotient.mk' b = ω} : (equiv.sigma_preimage_equiv quotient.mk').symm
+    ≃ Σ (ω : Ω), {b // quotient.mk' b = ω} : (equiv.sigma_fiber_equiv quotient.mk').symm
 ... ≃ Σ (ω : Ω), orbit α (φ ω) :
         equiv.sigma_congr_right (λ ω, equiv.subtype_equiv_right $
           λ x, by {rw [← hφ ω, quotient.eq', hφ ω], refl })

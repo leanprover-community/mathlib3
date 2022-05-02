@@ -213,7 +213,7 @@ lemma fintype.prod_fiberwise [fintype α] [decidable_eq β] [fintype β] [comm_m
   (f : α → β) (g : α → γ) :
   (∏ b : β, ∏ a : {a // f a = b}, g (a : α)) = ∏ a, g a :=
 begin
-  rw [← (equiv.sigma_preimage_equiv f).prod_comp, ← univ_sigma_univ, prod_sigma],
+  rw [← (equiv.sigma_fiber_equiv f).prod_comp, ← univ_sigma_univ, prod_sigma],
   refl
 end
 

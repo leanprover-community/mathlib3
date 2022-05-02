@@ -121,7 +121,7 @@ lemma card_modeq_card_fixed_points : card α ≡ card (fixed_points G α) [MOD p
 begin
   classical,
   calc card α = card (Σ y : quotient (orbit_rel G α), {x // quotient.mk' x = y}) :
-    card_congr (equiv.sigma_preimage_equiv (@quotient.mk' _ (orbit_rel G α))).symm
+    card_congr (equiv.sigma_fiber_equiv (@quotient.mk' _ (orbit_rel G α))).symm
   ... = ∑ a : quotient (orbit_rel G α), card {x // quotient.mk' x = a} : card_sigma _
   ... ≡ ∑ a : fixed_points G α, 1 [MOD p] : _
   ... = _ : by simp; refl,

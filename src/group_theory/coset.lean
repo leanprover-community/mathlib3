@@ -383,7 +383,7 @@ def right_coset_equiv_subgroup (g : α) : right_coset ↑s g ≃ s :=
 noncomputable def group_equiv_quotient_times_subgroup :
   α ≃ (α ⧸ s) × s :=
 calc α ≃ Σ L : α ⧸ s, {x : α // (x : α ⧸ s) = L} :
-  (equiv.sigma_preimage_equiv quotient_group.mk).symm
+  (equiv.sigma_fiber_equiv quotient_group.mk).symm
     ... ≃ Σ L : α ⧸ s, left_coset (quotient.out' L) s :
   equiv.sigma_congr_right (λ L,
     begin

@@ -101,11 +101,8 @@ begin
     let U' := hU₁.to_finset,
     by_cases hU₃ : U.fst.nonempty,
     { have hU₃' : U'.nonempty := (set.finite.to_finset.nonempty hU₁).mpr hU₃,
-      let r := U'.inf' hU₃' U.snd,
-      have hr : 0 < r :=
-      (finset.lt_inf'_iff hU₃').mpr (λ y hy, hU₂ y ((set.finite.mem_to_finset hU₁).mp hy)),
-      use [seminorm.ball (U'.sup p) (0 : E) r],
-      refine ⟨p.basis_sets_mem _ hr, λ x hx y hy, _⟩,
+      refine ⟨(U'.sup p).ball 0 $ U'.inf' hU₃' U.snd, p.basis_sets_mem _ $
+        (finset.lt_inf'_iff _).2 $ λ y hy, hU₂ y $ (hU₁.mem_to_finset).mp hy, λ x hx y hy, _⟩,
       simp only [set.mem_preimage, set.mem_pi, mem_ball_zero_iff],
       rw seminorm.mem_ball_zero at hx,
       rw ←linear_map.to_seminorm_family_apply,

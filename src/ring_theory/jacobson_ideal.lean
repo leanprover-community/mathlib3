@@ -49,7 +49,7 @@ section jacobson
 section ring
 variables [ring R] [ring S] {I : ideal R}
 
-/-- The Jacobson radical of `I` is the infimum of all maximal ideals containing `I`. -/
+/-- The Jacobson radical of `I` is the infimum of all maximal (left) ideals containing `I`. -/
 def jacobson (I : ideal R) : ideal R :=
 Inf {J : ideal R | I ≤ J ∧ is_maximal J}
 

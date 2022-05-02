@@ -42,12 +42,7 @@ lemma totient_le (n : ℕ) : φ n ≤ n :=
 ((range n).card_filter_le _).trans_eq (card_range n)
 
 lemma totient_lt (n : ℕ) (hn : 1 < n) : φ n < n :=
-begin
-  nth_rewrite_rhs 0 ←card_range n,
-  refine card_lt_card (filter_ssubset.mpr ⟨0, _⟩),
-  rw [mem_range, coprime_zero_right],
-  exact ⟨pos_of_gt hn, ne_of_gt hn⟩,
-end
+(card_lt_card (filter_ssubset.2 ⟨0, by simp [hn.ne', pos_of_gt hn]⟩)).trans_eq (card_range n)
 
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 0 := dec_trivial

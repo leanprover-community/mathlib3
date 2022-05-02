@@ -823,7 +823,7 @@ The theorem is specialized to nonempty finite types (which are compact Hausdorff
 discrete topology) in `nonempty_sections_of_fintype_cofiltered_system` and
 `nonempty_sections_of_fintype_inverse_system`.
 
-(See https://stacks.math.columbia.edu/tag/086J for the Set version.)
+(See <https://stacks.math.columbia.edu/tag/086J> for the Set version.)
 -/
 
 variables {J : Type u} [small_category J]

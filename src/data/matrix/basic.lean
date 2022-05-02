@@ -1746,14 +1746,33 @@ begin
 end
 
 @[simp] lemma update_row_eq_self [decidable_eq m]
-  (A : matrix m n α) {i : m} :
+  (A : matrix m n α) (i : m) :
   A.update_row i (A i) = A :=
 function.update_eq_self i A
 
 @[simp] lemma update_column_eq_self [decidable_eq n]
-  (A : matrix m n α) {i : n} :
+  (A : matrix m n α) (i : n) :
   A.update_column i (λ j, A j i) = A :=
 funext $ λ j, function.update_eq_self i (A j)
+
+lemma diagonal_update_column_single [decidable_eq n] [has_zero α] (v : n → α) (i : n) (x : α):
+  (diagonal v).update_column i (pi.single i x) = diagonal (function.update v i x) :=
+begin
+  ext j k,
+  obtain rfl | hjk := eq_or_ne j k,
+  { rw [diagonal_apply_eq],
+    obtain rfl | hji := eq_or_ne j i,
+    { rw [update_column_self, pi.single_eq_same, function.update_same], },
+    { rw [update_column_ne hji, diagonal_apply_eq, function.update_noteq hji], } },
+  { rw [diagonal_apply_ne _ hjk],
+    obtain rfl | hki := eq_or_ne k i,
+    { rw [update_column_self, pi.single_eq_of_ne hjk] },
+    { rw [update_column_ne hki, diagonal_apply_ne _ hjk] } }
+end
+
+lemma diagonal_update_row_single [decidable_eq n] [has_zero α] (v : n → α) (i : n) (x : α):
+  (diagonal v).update_row i (pi.single i x) = diagonal (function.update v i x) :=
+by rw [←diagonal_transpose, update_row_transpose, diagonal_update_column_single, diagonal_transpose]
 
 end update
 

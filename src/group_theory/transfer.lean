@@ -240,13 +240,10 @@ section explicit_computation
 
 variables (H)
 
--- PRed
 @[to_additive] lemma lem0 {α β : Type*} [group α] [mul_action α β] (a : α) (b : β)
   [fintype (mul_action.orbit (zpowers a) b)] :
   function.minimal_period ((•) a) b = fintype.card (mul_action.orbit (zpowers a) b) :=
-begin
-  rw [←fintype.of_equiv_card (orbit_zpowers_equiv a b), zmod.card'],
-end
+by rw [←fintype.of_equiv_card (orbit_zpowers_equiv a b), zmod.card]
 
 @[to_additive] instance {α β : Type*} [group α] [mul_action α β] (a : α) (b : β)
   [fintype (mul_action.orbit (zpowers a) b)] :

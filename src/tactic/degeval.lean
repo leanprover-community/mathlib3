@@ -46,40 +46,65 @@ end
 -/
 #check list.erase
 #check expr.to_nat
+/--  Given an expression `e`, assuming it is a polyomial, `guess_deg e` tries to guess the
+`nat_degree` of `e`.  Currently, it supports:
+* `monomial n r`, guessing `n`,
+* `C a`, guessing `0`,
+* `polynomial.X`, guessing `1`,
+* `X ^ n`, guessing `n`,
+* everything else, guessing `e.nat_degree`.
+
+The expectation is that the argument of `guess_deg` is a factor of a summand of an expression in
+a polynomial ring. -/
 meta def guess_deg (e : expr) : tactic expr :=
-do n0 ← to_expr ``(nat.zero),
-   n1 ← to_expr ``(bit1 nat.zero),
-   pol ← to_expr ``(polynomial.X),pt ← infer_type pol, trace pt,
-match e.app_fn with
---| (expr.app op a) := if (op.get_app_fn.const_name = `has_add.add) then a else a
-| `(coe_fn $ polynomial.monomial %%n) := return n
-| `(coe_fn $ polynomial.C) := --do `(some %%arg) ← e.get_app_args.nth 0, trace arg,
-                              return n0
-| a := do bo ← (succeeds $ unify e pol), if bo then return n1 else
+do
+  n0 ← to_expr ``(nat.zero),
+  n1 ← to_expr ``(bit1 nat.zero),
+  pX ← to_expr ``(polynomial.X),
+  match e.app_fn with
+  | `(coe_fn $ polynomial.monomial %%n) := return n
+  | `(coe_fn $ polynomial.C) := return n0
+  | a := do
+          bo ← succeeds $ unify e pX,
+          if bo then
+            return n1
+          else
+            ( do let margs := e.get_app_args,
+              margs.nth 4 >>= return ) <|>
+            ( do val ← to_expr ``(polynomial.nat_degree),
+              return $ expr.mk_app val [e] )
+          end
 
---let cond : bool := e = pol, trace cond,trace e, trace pol,
-       (--if cond then (do return n1) else
-            (do let margs := e.get_app_args,
-            hh ← margs.nth 4,
-            return hh) <|>
-            (do val ← to_expr ``(polynomial.nat_degree), return $ expr.mk_app val [e]))
---| `(polynomial.C %%a) := return a
---| a := do trace a, if a.const_name = ``polynomial.C then (do n0 ← to_expr ``(nat.zero), return n0) else
---    (do val ← to_expr ``(polynomial.nat_degree), return $ expr.mk_app val [e])
-end
-
+/--  `get_factors_add` takes apart "factors" in an expression and returns them as sums of their
+"guessed degrees", via `guess_deg`.  When applied to an expression that is a summand in a
+polynomial, it should correctly guess its `nat_degree`. -/
 meta def get_factors_add : expr → tactic expr
-| `(has_mul.mul %%a %%b) := do ga ← get_factors_add a, gb ← get_factors_add b,
-                              tot ← mk_app `has_add.add [ga, gb],
-                              return tot
---| `(expr.app $ coe_fn $ polynomial.monomial %%n) := [n]
-| e := do ge ← guess_deg e, return ge
+| `(has_mul.mul %%a %%b) := do
+                              ga ← get_factors_add a,
+                              gb ← get_factors_add b,
+                              mk_app `has_add.add [ga, gb] >>= return
+| e := guess_deg e >>= return
 
+meta def produce_equalities : list expr →  (list expr)
+| [] := []
+| (e::es) := --do n0 ← to_expr ``(nat.zero),
+          let ca := mk_app `eq [e, e],
+          let res := produce_equalities es,
+          (ca :: res)
 
+/--  My work-in-progress `tactic`.  Using `fina` shows the effect of the tactic-so-far. -/
 meta def fina : tactic unit :=
 do `(polynomial.nat_degree %%tl = %%tr) ← target,
+  n0 ← to_expr ``(nat.zero),
   let summ := (get_summands tl),
-  let rere := summ.map get_factors_add,-- (get_factors_add t),
+  let rere := summ.mmap get_factors_add,-- (get_factors_add t),
+-- does not work yet
+  do let preq : list expr := produce_equalities rere,
+
+--  do meq : list expr ← rere.mmap (λ f : expr, mk_app `eq [f, n0]),
+  --assert
+--  let le : expr → expr → bool := λ e1 e2, e1.to_string ≤ e2.to_string,
+--  res ← rere.qsort le,
   trace rere
 --  ret ← rere.foldl guess_deg t,
 
@@ -90,7 +115,7 @@ open polynomial
 open_locale polynomial
 variables {R : Type*} [semiring R] {f g h : R[X]} {a b c d e : R}
 
-lemma pro {h : C d ≠ 0} :
+lemma pro {h : C d ≠ 0} (f10 : f.nat_degree ≤ 10) :
   nat_degree (monomial 5 c * monomial 1 c + f + monomial 7 d + C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + C d * X ^ 10 + C e * X + bit0 0 : R[X]) = 10 :=
 begin
   fina,

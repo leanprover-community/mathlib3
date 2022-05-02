@@ -77,25 +77,6 @@ namespace modular_group
 
 variables (g : SL(2, ℤ)) (z : ℍ)
 
-section upper_half_plane_action
-
-/-- For a subring `R` of `ℝ`, the action of `SL(2, R)` on the upper half-plane, as a restriction of
-the `SL(2, ℝ)`-action defined by `upper_half_plane.mul_action`. -/
-
-lemma im_smul_eq_div_norm_sq :
-  (g • z).im = z.im / (complex.norm_sq (denom g z)) :=
-begin
-  simp only [im_smul_eq_div_norm_sq, sl_moeb, coe_coe, denom,
-    general_linear_group.coe_det_apply,coe_GL_pos_coe_GL_coe_matrix, int.coe_cast_ring_hom],
-  rw (g : SL(2,ℝ)).prop,
-  simp,
-end
-
-lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = ↑ₘg 1 0 * z + ↑ₘg 1 1 :=
-  by {simp,}
-
-end upper_half_plane_action
-
 variables {g}
 
 section bottom_row
@@ -305,7 +286,8 @@ begin
     filter.tendsto.exists_within_forall_le hs (tendsto_norm_sq_coprime_pair z),
   obtain ⟨g, -, hg⟩ := bottom_row_surj hp_coprime,
   refine ⟨g, λ g', _⟩,
-  rw [im_smul_eq_div_norm_sq, im_smul_eq_div_norm_sq, div_le_div_left],
+  rw [special_linear_group.im_smul_eq_div_norm_sq, special_linear_group.im_smul_eq_div_norm_sq,
+    div_le_div_left],
   { simpa [← hg] using hp (↑ₘg' 1) (bottom_row_coprime g') },
   { exact z.im_pos },
   { exact norm_sq_denom_pos g' z },
@@ -398,7 +380,7 @@ begin
     apply (lt_div_iff z.norm_sq_pos).mpr,
     nlinarith },
   convert this,
-  simp only [im_smul_eq_div_norm_sq],
+  simp only [special_linear_group.im_smul_eq_div_norm_sq],
   field_simp [norm_sq_denom_ne_zero, norm_sq_ne_zero, S]
 end
 
@@ -460,7 +442,8 @@ begin
   -- `g` has same max im property as `g₀`
   have hg₀' : ∀ (g' : SL(2,ℤ)), (g' • z).im ≤ (g • z).im,
   { have hg'' : (g • z).im = (g₀ • z).im,
-    { rw [im_smul_eq_div_norm_sq, im_smul_eq_div_norm_sq, denom_apply, denom_apply, hg] },
+    { rw [special_linear_group.im_smul_eq_div_norm_sq, special_linear_group.im_smul_eq_div_norm_sq,
+      denom_apply, denom_apply, hg]},
     simpa only [hg''] using hg₀ },
   split,
   { -- Claim: `1 ≤ ⇑norm_sq ↑(g • z)`. If not, then `S•g•z` has larger imaginary part
@@ -516,7 +499,8 @@ begin
       (upper_half_plane.c_mul_im_sq_le_norm_sq_denom z g)) (sq_nonneg _),
   let nsq := norm_sq (denom g z),
   calc 9 * c^4 < c^4 * z.im^2 * (g • z).im^2 * 16 : by linarith
-           ... = c^4 * z.im^4 / nsq^2 * 16 : by { rw [im_smul_eq_div_norm_sq, div_pow], ring, }
+           ... = c^4 * z.im^4 / nsq^2 * 16 : by { rw [special_linear_group.im_smul_eq_div_norm_sq,
+            div_pow], ring, }
            ... ≤ 16 : by { rw ← mul_pow, linarith, },
 end
 

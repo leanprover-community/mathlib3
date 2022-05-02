@@ -476,10 +476,9 @@ end
 lemma cast_sub_one {R : Type*} [ring R] {n : ℕ} (k : zmod n) :
   ((k - 1 : zmod n) : R) = (if k = 0 then n else k) - 1 :=
 begin
-  by_cases hk : k = 0,
-  { rw [if_pos hk, hk, zero_sub, zmod.cast_neg_one] },
-  { rw [if_neg hk],
-    cases n,
+  split_ifs with hk,
+  { rw [hk, zero_sub, zmod.cast_neg_one] },
+  { cases n,
     { rw [int.cast_sub, int.cast_one] },
     { rw [←zmod.nat_cast_val, zmod.val, fin.coe_sub_one, if_neg],
       { rw [nat.cast_sub, nat.cast_one, coe_coe],

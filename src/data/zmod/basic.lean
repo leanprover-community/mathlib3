@@ -84,11 +84,11 @@ instance fintype : Π (n : ℕ) [fact (0 < n)], fintype (zmod n)
 instance infinite : infinite (zmod 0) :=
 int.infinite
 
-@[simp] lemma card {n : ℕ} [fintype (zmod n)] : fintype.card (zmod n) = n :=
+@[simp] lemma card (n : ℕ) [fintype (zmod n)] : fintype.card (zmod n) = n :=
 begin
   casesI n,
   { exact (not_fintype (zmod 0)).elim },
-  { convert fintype.card_fin n.succ },
+  { convert fintype.card_fin (n+1) },
 end
 
 instance decidable_eq : Π (n : ℕ), decidable_eq (zmod n)

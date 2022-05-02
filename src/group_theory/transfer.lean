@@ -142,6 +142,7 @@ lemma key_transversal_apply' {G : Type*} [group G] (H : subgroup G)
     g ^ (k : ℤ) * q.out'.out' :=
 by rw [key_transversal_apply, ←key_equiv_symm_apply, equiv.apply_symm_apply]
 
+-- PRed
 lemma zmod.cast_sub_one {R : Type*} [ring R] {n : ℕ} (k : zmod n) :
   ((k - 1 : zmod n) : R) = (if k = 0 then n else k) - 1 :=
 begin
@@ -239,6 +240,7 @@ section explicit_computation
 
 variables (H)
 
+-- PRed
 lemma _root_.zmod.card' {n : ℕ} [fintype (zmod n)] : fintype.card (zmod n) = n :=
 begin
   casesI n,
@@ -286,6 +288,7 @@ end explicit_computation
 
 section center_transfer
 
+-- PRed
 lemma _root_.subgroup.pow_index_mem
   {G : Type*} [group G] (H : subgroup G) [H.normal] [fintype (G ⧸ H)] (g : G) :
   g ^ H.index ∈ H :=

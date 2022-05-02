@@ -1126,20 +1126,16 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
      ... ≤ y : (add_zero_relabelling y).le⟩
 
 /-- The pre-game `star`, which is fuzzy/confused with zero. -/
-def star : pgame.{u} := of_lists [0] [0]
+def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩
 
-@[simp] theorem star_left_moves : star.left_moves = ulift (fin 1) := rfl
-@[simp] theorem star_right_moves : star.right_moves = ulift (fin 1) := rfl
+@[simp] theorem star_left_moves : star.left_moves = punit := rfl
+@[simp] theorem star_right_moves : star.right_moves = punit := rfl
 
-@[simp] theorem star_move_left (x) : star.move_left x = 0 :=
-show (of_lists _ _).move_left x = 0, by simp
-@[simp] theorem star_move_right (x) : star.move_right x = 0 :=
-show (of_lists _ _).move_right x = 0, by simp
+@[simp] theorem star_move_left (x) : star.move_left x = 0 := rfl
+@[simp] theorem star_move_right (x) : star.move_right x = 0 := rfl
 
-instance unique_star_left_moves : unique star.left_moves :=
-@equiv.unique _ (fin 1) _ equiv.ulift
-instance unique_star_right_moves : unique star.right_moves :=
-@equiv.unique _ (fin 1) _ equiv.ulift
+instance unique_star_left_moves : unique star.left_moves := punit.unique
+instance unique_star_right_moves : unique star.right_moves := punit.unique
 
 theorem star_lt_zero : star < 0 :=
 by { rw lt_zero, use default, rintros ⟨⟩ }
@@ -1147,7 +1143,7 @@ theorem zero_lt_star : 0 < star :=
 by { rw zero_lt, use default, rintros ⟨⟩ }
 
 @[simp] theorem neg_star : -star = star :=
-by { rw [star, of_lists], simp }
+by simp [star]
 
 /-- The pre-game `ω`. (In fact all ordinals have game and surreal representatives.) -/
 def omega : pgame := ⟨ulift ℕ, pempty, λ n, ↑n.1, pempty.elim⟩

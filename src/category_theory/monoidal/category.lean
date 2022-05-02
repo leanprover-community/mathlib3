@@ -42,7 +42,7 @@ This is far from completely effective, but seems to prove a useful principle.
 ## References
 * Tensor categories, Etingof, Gelaki, Nikshych, Ostrik,
   http://www-math.mit.edu/~etingof/egnobookfinal.pdf
-* https://stacks.math.columbia.edu/tag/0FFK.
+* <https://stacks.math.columbia.edu/tag/0FFK>.
 -/
 
 open category_theory
@@ -62,7 +62,7 @@ specified associator, `α_ X Y Z : (X ⊗ Y) ⊗ Z ≅ X ⊗ (Y ⊗ Z)`. There i
 with specified left and right unitor isomorphisms `λ_ X : 𝟙_ C ⊗ X ≅ X` and `ρ_ X : X ⊗ 𝟙_ C ≅ X`.
 These associators and unitors satisfy the pentagon and triangle equations.
 
-See https://stacks.math.columbia.edu/tag/0FFK.
+See <https://stacks.math.columbia.edu/tag/0FFK>.
 -/
 class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
 -- curried tensor product of objects:
@@ -299,6 +299,26 @@ by rw [←tensor_comp, f.hom_inv_id, comp_tensor_id]
 lemma tensor_inv_hom_id {V W X Y Z : C} (f : V ≅ W) (g : X ⟶ Y) (h : Y ⟶ Z) :
   (g ⊗ f.inv) ≫ (h ⊗ f.hom) = (g ⊗ 𝟙 W) ≫ (h ⊗ 𝟙 W) :=
 by rw [←tensor_comp, f.inv_hom_id, comp_tensor_id]
+
+@[simp, reassoc]
+lemma hom_inv_id_tensor' {V W X Y Z : C} (f : V ⟶ W) [is_iso f] (g : X ⟶ Y) (h : Y ⟶ Z) :
+  (f ⊗ g) ≫ (inv f ⊗ h) = (𝟙 V ⊗ g) ≫ (𝟙 V ⊗ h) :=
+by rw [←tensor_comp, is_iso.hom_inv_id, id_tensor_comp]
+
+@[simp, reassoc]
+lemma inv_hom_id_tensor' {V W X Y Z : C} (f : V ⟶ W) [is_iso f] (g : X ⟶ Y) (h : Y ⟶ Z) :
+  (inv f ⊗ g) ≫ (f ⊗ h) = (𝟙 W ⊗ g) ≫ (𝟙 W ⊗ h) :=
+by rw [←tensor_comp, is_iso.inv_hom_id, id_tensor_comp]
+
+@[simp, reassoc]
+lemma tensor_hom_inv_id' {V W X Y Z : C} (f : V ⟶ W) [is_iso f] (g : X ⟶ Y) (h : Y ⟶ Z) :
+  (g ⊗ f) ≫ (h ⊗ inv f) = (g ⊗ 𝟙 V) ≫ (h ⊗ 𝟙 V) :=
+by rw [←tensor_comp, is_iso.hom_inv_id, comp_tensor_id]
+
+@[simp, reassoc]
+lemma tensor_inv_hom_id' {V W X Y Z : C} (f : V ⟶ W) [is_iso f] (g : X ⟶ Y) (h : Y ⟶ Z) :
+  (g ⊗ inv f) ≫ (h ⊗ f) = (g ⊗ 𝟙 W) ≫ (h ⊗ 𝟙 W) :=
+by rw [←tensor_comp, is_iso.inv_hom_id, comp_tensor_id]
 
 end
 

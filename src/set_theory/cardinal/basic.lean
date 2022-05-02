@@ -435,6 +435,10 @@ theorem lift_two : lift.{u v} 2 = 2 := by simp
 
 @[simp] theorem mk_set {α : Type u} : #(set α) = 2 ^ #α := by simp [set, mk_arrow]
 
+/-- A variant of `cardinal.mk_set` expressed in terms of a `set` instead of a `Type`. -/
+@[simp] theorem mk_powerset {α : Type u} (s : set α) : #↥(𝒫 s) = 2 ^ #↥s :=
+(mk_congr (equiv.set.powerset s)).trans mk_set
+
 theorem lift_two_power (a) : lift (2 ^ a) = 2 ^ lift a := by simp
 
 section order_properties
@@ -616,6 +620,15 @@ theorem sum_const' (ι : Type u) (a : cardinal.{u}) : sum (λ _:ι, a) = #ι * a
   sum (f + g) = sum f + sum g :=
 by simpa only [mk_sigma, mk_sum, mk_out, lift_id] using
   mk_congr (equiv.sigma_sum_distrib (quotient.out ∘ f) (quotient.out ∘ g))
+
+@[simp] theorem sum_add_distrib' {ι} (f g : ι → cardinal) :
+  cardinal.sum (λ i, f i + g i) = sum f + sum g :=
+sum_add_distrib f g
+
+@[simp] theorem lift_sum {ι : Type u} (f : ι → cardinal.{v}) :
+  cardinal.lift.{w} (cardinal.sum f) = cardinal.sum (λ i, cardinal.lift.{w} (f i)) :=
+equiv.cardinal_eq $ equiv.ulift.trans $ equiv.sigma_congr_right $ λ a, nonempty.some $
+  by rw [←lift_mk_eq, mk_out, mk_out, lift_lift]
 
 theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=
 ⟨(embedding.refl _).sigma_map $ λ i, classical.choice $

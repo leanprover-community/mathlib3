@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.fintype.basic
+import set_theory.cardinal.cofinality
 import set_theory.game.basic
 import set_theory.game.birthday
-import set_theory.cardinal.cofinality
 
 /-!
 # Short games

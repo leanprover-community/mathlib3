@@ -49,12 +49,6 @@ end equiv_stuff
 
 section equiv_stuff
 
--- PRed
-instance nice_instance {α β : Type*} [monoid α] [mul_action α β] : add_action (additive α) β :=
-{ vadd := (•) ∘ additive.to_mul,
-  zero_vadd := one_smul α,
-  add_vadd := mul_smul }
-
 noncomputable def zpowers_quotient_stabilizer_equiv
   {α β : Type*} [group α] (a : α) [mul_action α β] (b : β) :
   subgroup.zpowers a ⧸ mul_action.stabilizer (subgroup.zpowers a) b ≃*
@@ -86,14 +80,6 @@ lemma orbit_zpowers_equiv_symm_apply {α β : Type*} [group α] (a : α) [mul_ac
   (orbit_zpowers_equiv a b).symm k =
   (⟨a, subgroup.mem_zpowers a⟩ : subgroup.zpowers a) ^ (k : ℤ) • ⟨b, mul_action.mem_orbit_self b⟩ :=
 rfl
-
--- PRed
-lemma zmod.coe_int_cast {n : ℕ} (k : ℤ) : ((k : zmod n) : ℤ) = k % n :=
-begin
-  cases n,
-  { rw [int.coe_nat_zero, int.mod_zero, int.cast_id, int.cast_id] },
-  { rw [←zmod.val_int_cast, ←int.nat_cast_eq_coe_nat, zmod.val, coe_coe] },
-end
 
 lemma orbit_zpowers_equiv_symm_apply' {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
   (k : ℤ) :
@@ -252,10 +238,6 @@ by rw [transfer, ←diff_mul_diff, ←smul_diff_smul, mul_comm, diff_mul_diff]; 
 section explicit_computation
 
 variables (H)
-
--- PRed
-instance : infinite (zmod 0) :=
-int.infinite
 
 lemma _root_.zmod.card' {n : ℕ} [fintype (zmod n)] : fintype.card (zmod n) = n :=
 begin

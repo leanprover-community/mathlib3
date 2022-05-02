@@ -186,14 +186,23 @@ namespace tactic
 open tactic
 setup_tactic_parser
 
+/--
+Auxilliary definition of `monoidal_coherence`,
+being careful with namespaces to avoid shadowing.
+-/
+meta def mk_project_map_expr (e : expr) : tactic expr :=
+  to_expr ``(category_theory.free_monoidal_category.project_map _root_.id _ _
+    (category_theory.monoidal_category.lift_hom.lift %%e))
+
 /-- Coherence tactic for monoidal categories. -/
 meta def monoidal_coherence : tactic unit :=
 do
   o ← get_options, set_options $ o.set_nat `class.instance_max_depth 128,
   try `[dsimp],
   `(%%lhs = %%rhs) ← target,
-  to_expr  ``(project_map id _ _ (lift_hom.lift %%lhs) = project_map id _ _ (lift_hom.lift %%rhs))
-    >>= tactic.change,
+  project_map_lhs ← mk_project_map_expr lhs,
+  project_map_rhs ← mk_project_map_expr rhs,
+  to_expr  ``(%%project_map_lhs = %%project_map_rhs) >>= tactic.change,
   congr
 
 /--
@@ -241,8 +250,11 @@ where `f₀` and `g₀` are maximal prefixes of `f` and `g` (possibly after reas
 which are "liftable" (i.e. expressible as compositions of unitors and associators).
 -/
 meta def liftable_prefixes : tactic unit :=
-`[apply (cancel_epi (𝟙 _)).1; try { apply_instance }] >>
-  try `[simp only [tactic.coherence.assoc_lift_hom, tactic.bicategory.coherence.assoc_lift_hom₂]]
+do
+  o ← get_options, set_options $ o.set_nat `class.instance_max_depth 128,
+  try `[simp only [monoidal_comp, category_theory.category.assoc]] >>
+    `[apply (cancel_epi (𝟙 _)).1; try { apply_instance }] >>
+    try `[simp only [tactic.coherence.assoc_lift_hom, tactic.bicategory.coherence.assoc_lift_hom₂]]
 
 example {W X Y Z : C} (f : Y ⟶ Z) (g) (w : false) : (λ_ _).hom ≫ f = g :=
 begin

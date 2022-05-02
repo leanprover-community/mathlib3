@@ -97,9 +97,8 @@ instance pi {ι : Type*} [fintype ι] {M : ι → Type*} [Π (i : ι), add_comm_
 of_basis $ pi.basis $ λ i, choose_basis R (M i)
 
 /-- The module of finite matrices is free. -/
-instance matrix {n : Type*} [fintype n] {m : Type*} [fintype m] :
-  module.free R (matrix n m R) :=
-of_basis $ matrix.std_basis R n m
+instance matrix {m n : Type*} [fintype m] [fintype n] : module.free R (matrix m n R) :=
+of_basis $ matrix.std_basis R m n
 
 variables {R M N}
 

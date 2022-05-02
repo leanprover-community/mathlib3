@@ -196,17 +196,33 @@ lemma equiv.summable_iff_of_support {g : γ → α} (e : support f ≃ support g
 exists_congr $ λ _, e.has_sum_iff_of_support he
 
 protected lemma has_sum.map [add_comm_monoid γ] [topological_space γ] (hf : has_sum f a)
-  (g : α →+ γ) (hg : continuous g) :
+  {G} [add_monoid_hom_class G α γ] (g : G) (hg : continuous g) :
   has_sum (g ∘ f) (g a) :=
 have g ∘ (λs:finset β, ∑ b in s, f b) = (λs:finset β, ∑ b in s, g (f b)),
-  from funext $ g.map_sum _,
+  from funext $ map_sum g _,
 show tendsto (λs:finset β, ∑ b in s, g (f b)) at_top (𝓝 (g a)),
   from this ▸ (hg.tendsto a).comp hf
 
 protected lemma summable.map [add_comm_monoid γ] [topological_space γ] (hf : summable f)
-  (g : α →+ γ) (hg : continuous g) :
+  {G} [add_monoid_hom_class G α γ] (g : G) (hg : continuous g) :
   summable (g ∘ f) :=
 (hf.has_sum.map g hg).summable
+
+protected lemma summable.map_iff_of_left_inverse [add_comm_monoid γ] [topological_space γ]
+  {G G'} [add_monoid_hom_class G α γ] [add_monoid_hom_class G' γ α] (g : G) (g' : G')
+  (hg : continuous g) (hg' : continuous g') (hinv : function.left_inverse g' g) :
+  summable (g ∘ f) ↔ summable f :=
+⟨λ h, begin
+  have := h.map _ hg',
+  rwa [←function.comp.assoc, hinv.id] at this,
+end, λ h, h.map _ hg⟩
+
+/-- A special case of `summable.map_iff_of_left_inverse` for convenience -/
+protected lemma summable.map_iff_of_equiv [add_comm_monoid γ] [topological_space γ]
+  {G} [add_equiv_class G α γ] (g : G)
+  (hg : continuous g) (hg' : continuous (add_equiv_class.inv g : γ → α)) :
+  summable (g ∘ f) ↔ summable f :=
+summable.map_iff_of_left_inverse g (g : α ≃+ γ).symm hg hg' (add_equiv_class.left_inv g)
 
 /-- If `f : ℕ → α` has sum `a`, then the partial sums `∑_{i=0}^{n-1} f i` converge to `a`. -/
 lemma has_sum.tendsto_sum_nat {f : ℕ → α} (h : has_sum f a) :

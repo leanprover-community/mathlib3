@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 import linear_algebra.finsupp
 import linear_algebra.prod
 import logic.equiv.fin
-import set_theory.cardinal
+import set_theory.cardinal.basic
 
 /-!
 
@@ -438,7 +438,8 @@ variables {a b : R} {x y : M}
 
 theorem linear_independent_iff_injective_total : linear_independent R v ↔
   function.injective (finsupp.total ι M R v) :=
-linear_independent_iff.trans (finsupp.total ι M R v).to_add_monoid_hom.injective_iff.symm
+linear_independent_iff.trans
+  (injective_iff_map_eq_zero (finsupp.total ι M R v).to_add_monoid_hom).symm
 
 alias linear_independent_iff_injective_total ↔ linear_independent.injective_total _
 
@@ -810,11 +811,11 @@ begin
     dsimp [indep],
     rw [linear_independent_comp_subtype],
     intros f hsupport hsum,
-    rcases eq_empty_or_nonempty c with rfl | ⟨a, hac⟩,
+    rcases eq_empty_or_nonempty c with rfl | hn,
     { simpa using hsupport },
     haveI : is_refl X r := ⟨λ _, set.subset.refl _⟩,
     obtain ⟨I, I_mem, hI⟩ : ∃ I ∈ c, (f.support : set ι) ⊆ I :=
-      finset.exists_mem_subset_of_subset_bUnion_of_directed_on hac hc.directed_on hsupport,
+      hc.directed_on.exists_mem_subset_of_finset_subset_bUnion hn hsupport,
     exact linear_independent_comp_subtype.mp I.2 f hI hsum },
   have trans : transitive r := λ I J K, set.subset.trans,
   obtain ⟨⟨I, hli : indep I⟩, hmax : ∀ a, r ⟨I, hli⟩ a → r a ⟨I, hli⟩⟩ :=

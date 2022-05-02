@@ -143,8 +143,10 @@ by simp [dist_eq_norm]
 @[simp] lemma dist_add_right (g₁ g₂ h : E) : dist (g₁ + h) (g₂ + h) = dist g₁ g₂ :=
 by simp [dist_eq_norm]
 
-@[simp] lemma dist_neg_neg (g h : E) : dist (-g) (-h) = dist g h :=
-by simp only [dist_eq_norm, neg_sub_neg, norm_sub_rev]
+lemma dist_neg (x y : E) : dist (-x) y = dist x (-y) :=
+by simp_rw [dist_eq_norm, ←norm_neg (-x - y), neg_sub, sub_neg_eq_add, add_comm]
+
+@[simp] lemma dist_neg_neg (g h : E) : dist (-g) (-h) = dist g h := by rw [dist_neg, neg_neg]
 
 @[simp] lemma dist_sub_left (g h₁ h₂ : E) : dist (g - h₁) (g - h₂) = dist h₁ h₂ :=
 by simp only [sub_eq_add_neg, dist_add_left, dist_neg_neg]
@@ -157,6 +159,12 @@ by rw [← dist_zero_left, ← dist_add_left g 0 h, add_zero]
 
 @[simp] theorem dist_self_add_left (g h : E) : dist (g + h) g = ∥h∥ :=
 by rw [dist_comm, dist_self_add_right]
+
+@[simp] theorem dist_self_sub_right (g h : E) : dist g (g - h) = ∥h∥ :=
+by rw [sub_eq_add_neg, dist_self_add_right, norm_neg]
+
+@[simp] theorem dist_self_sub_left (g h : E) : dist (g - h) g = ∥h∥ :=
+by rw [dist_comm, dist_self_sub_right]
 
 /-- **Triangle inequality** for the norm. -/
 lemma norm_add_le (g h : E) : ∥g + h∥ ≤ ∥g∥ + ∥h∥ :=
@@ -249,6 +257,9 @@ lemma norm_le_add_norm_add (u v : E) :
   ∥u∥ ≤ ∥u + v∥ + ∥v∥ :=
 calc ∥u∥ = ∥u + v - v∥ : by rw add_sub_cancel
 ... ≤ ∥u + v∥ + ∥v∥ : norm_sub_le _ _
+
+lemma ball_eq (y : E) (ε : ℝ) : metric.ball y ε = { x | ∥x - y∥ < ε} :=
+by { ext, simp [dist_eq_norm], }
 
 lemma ball_zero_eq (ε : ℝ) : ball (0 : E) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
@@ -419,6 +430,20 @@ lemma normed_group.cauchy_seq_iff [nonempty α] [semilattice_sup α] {u : α →
   cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m, N ≤ m → ∀ n, N ≤ n → ∥u m - u n∥ < ε :=
 by simp [metric.cauchy_seq_iff, dist_eq_norm]
 
+lemma normed_group.nhds_basis_norm_lt (x : E) :
+  (𝓝 x).has_basis (λ (ε : ℝ), 0 < ε) (λ (ε : ℝ), { y | ∥y - x∥ < ε }) :=
+begin
+  simp_rw ← ball_eq,
+  exact metric.nhds_basis_ball,
+end
+
+lemma normed_group.nhds_zero_basis_norm_lt :
+  (𝓝 (0 : E)).has_basis (λ (ε : ℝ), 0 < ε) (λ (ε : ℝ), { y | ∥y∥ < ε }) :=
+begin
+  convert normed_group.nhds_basis_norm_lt (0 : E),
+  simp,
+end
+
 lemma normed_group.uniformity_basis_dist :
   (𝓤 E).has_basis (λ (ε : ℝ), 0 < ε) (λ ε, {p : E × E | ∥p.fst - p.snd∥ < ε}) :=
 begin
@@ -550,6 +575,8 @@ instance semi_normed_group.to_has_nnnorm : has_nnnorm E := ⟨λ a, ⟨norm a, n
 
 @[simp, norm_cast] lemma coe_nnnorm (a : E) : (∥a∥₊ : ℝ) = norm a := rfl
 
+@[simp] lemma coe_comp_nnnorm : (coe : ℝ≥0 → ℝ) ∘ (nnnorm : E → ℝ≥0) = norm := rfl
+
 lemma norm_to_nnreal {a : E} : ∥a∥.to_nnreal = ∥a∥₊ :=
 @real.to_nnreal_coe ∥a∥₊
 
@@ -569,6 +596,13 @@ nnreal.eq $ norm_neg g
 
 lemma nndist_nnnorm_nnnorm_le (g h : E) : nndist ∥g∥₊ ∥h∥₊ ≤ ∥g - h∥₊ :=
 nnreal.coe_le_coe.1 $ dist_norm_norm_le g h
+
+/-- The direct path from `0` to `v` is shorter than the path with `u` inserted in between. -/
+lemma nnnorm_le_insert (u v : E) : ∥v∥₊ ≤ ∥u∥₊ + ∥u - v∥₊ := norm_le_insert u v
+
+lemma nnnorm_le_insert' (u v : E) : ∥u∥₊ ≤ ∥v∥₊ + ∥u - v∥₊ := norm_le_insert' u v
+
+lemma nnnorm_le_add_nnnorm_add (u v : E) : ∥u∥₊ ≤ ∥u + v∥₊ + ∥v∥₊ := norm_le_add_norm_add u v
 
 lemma of_real_norm_eq_coe_nnnorm (x : E) : ennreal.of_real ∥x∥ = (∥x∥₊ : ℝ≥0∞) :=
 ennreal.of_real_eq_coe_nnreal _
@@ -596,8 +630,8 @@ by simp [edist_dist]
 @[simp] lemma edist_add_right (g₁ g₂ h : E) : edist (g₁ + h) (g₂ + h) = edist g₁ g₂ :=
 by simp [edist_dist]
 
-@[simp] lemma edist_neg_neg (x y : E) : edist (-x) (-y) = edist x y :=
-by rw [edist_dist, dist_neg_neg, edist_dist]
+lemma edist_neg (x y : E) : edist (-x) y = edist x (-y) := by simp_rw [edist_dist, dist_neg]
+@[simp] lemma edist_neg_neg (x y : E) : edist (-x) (-y) = edist x y := by rw [edist_neg, neg_neg]
 
 @[simp] lemma edist_sub_left (g h₁ h₂ : E) : edist (g - h₁) (g - h₂) = edist h₁ h₂ :=
 by simp only [sub_eq_add_neg, edist_add_left, edist_neg_neg]
@@ -608,6 +642,10 @@ by simpa only [sub_eq_add_neg] using edist_add_right _ _ _
 lemma nnnorm_sum_le (s : finset ι) (f : ι → E) :
   ∥∑ a in s, f a∥₊ ≤ ∑ a in s, ∥f a∥₊ :=
 s.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le f
+
+lemma nnnorm_sum_le_of_le (s : finset ι) {f : ι → E} {n : ι → ℝ≥0} (h : ∀ b ∈ s, ∥f b∥₊ ≤ n b) :
+  ∥∑ b in s, f b∥₊ ≤ ∑ b in s, n b :=
+(norm_sum_le_of_le s h).trans_eq nnreal.coe_sum.symm
 
 lemma add_monoid_hom.lipschitz_of_bound_nnnorm (f : E →+ F) (C : ℝ≥0) (h : ∀ x, ∥f x∥₊ ≤ C * ∥x∥₊) :
   lipschitz_with C f :=
@@ -751,10 +789,16 @@ max_le_iff
 using the sup norm. -/
 noncomputable instance pi.semi_normed_group {π : ι → Type*} [fintype ι]
   [Π i, semi_normed_group (π i)] : semi_normed_group (Π i, π i) :=
-{ norm := λf, ((finset.sup finset.univ (λ b, ∥f b∥₊) : ℝ≥0) : ℝ),
+{ norm := λ f, ↑(finset.univ.sup (λ b, ∥f b∥₊)),
   dist_eq := assume x y,
     congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
     show nndist (x a) (y a) = ∥x a - y a∥₊, from nndist_eq_nnnorm _ _ }
+
+lemma pi.norm_def {π : ι → Type*} [fintype ι] [Π i, semi_normed_group (π i)] (f : Π i, π i) :
+  ∥f∥ = ↑(finset.univ.sup (λ b, ∥f b∥₊)) := rfl
+
+lemma pi.nnnorm_def {π : ι → Type*} [fintype ι] [Π i, semi_normed_group (π i)] (f : Π i, π i) :
+  ∥f∥₊ = finset.univ.sup (λ b, ∥f b∥₊) := subtype.eta _ _
 
 /-- The seminorm of an element in a product space is `≤ r` if and only if the norm of each
 component is. -/
@@ -762,15 +806,27 @@ lemma pi_norm_le_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (
   (hr : 0 ≤ r) {x : Πi, π i} : ∥x∥ ≤ r ↔ ∀i, ∥x i∥ ≤ r :=
 by simp only [← dist_zero_right, dist_pi_le_iff hr, pi.zero_apply]
 
+lemma pi_nnnorm_le_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] {r : ℝ≥0}
+  {x : Πi, π i} : ∥x∥₊ ≤ r ↔ ∀i, ∥x i∥₊ ≤ r :=
+pi_norm_le_iff r.coe_nonneg
+
 /-- The seminorm of an element in a product space is `< r` if and only if the norm of each
 component is. -/
 lemma pi_norm_lt_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] {r : ℝ}
   (hr : 0 < r) {x : Πi, π i} : ∥x∥ < r ↔ ∀i, ∥x i∥ < r :=
 by simp only [← dist_zero_right, dist_pi_lt_iff hr, pi.zero_apply]
 
+lemma pi_nnnorm_lt_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] {r : ℝ≥0}
+  (hr : 0 < r) {x : Πi, π i} : ∥x∥₊ < r ↔ ∀i, ∥x i∥₊ < r :=
+pi_norm_lt_iff hr
+
 lemma norm_le_pi_norm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] (x : Πi, π i)
   (i : ι) : ∥x i∥ ≤ ∥x∥ :=
 (pi_norm_le_iff (norm_nonneg x)).1 le_rfl i
+
+lemma nnnorm_le_pi_nnnorm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] (x : Πi, π i)
+  (i : ι) : ∥x i∥₊ ≤ ∥x∥₊ :=
+norm_le_pi_norm x i
 
 @[simp] lemma pi_norm_const [nonempty ι] [fintype ι] (a : E) : ∥(λ i : ι, a)∥ = ∥a∥ :=
 by simpa only [← dist_zero_right] using dist_pi_const a 0
@@ -778,6 +834,19 @@ by simpa only [← dist_zero_right] using dist_pi_const a 0
 @[simp] lemma pi_nnnorm_const [nonempty ι] [fintype ι] (a : E) :
   ∥(λ i : ι, a)∥₊ = ∥a∥₊ :=
 nnreal.eq $ pi_norm_const a
+
+/-- The $L^1$ norm is less than the $L^\infty$ norm scaled by the cardinality. -/
+lemma pi.sum_norm_apply_le_norm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)]
+  (x : Π i, π i) :
+  ∑ i, ∥x i∥ ≤ fintype.card ι • ∥x∥ :=
+calc ∑ i, ∥x i∥ ≤ ∑ i : ι, ∥x∥ : finset.sum_le_sum $ λ i hi, norm_le_pi_norm x i
+            ... = fintype.card ι • ∥x∥ : finset.sum_const _
+
+/-- The $L^1$ norm is less than the $L^\infty$ norm scaled by the cardinality. -/
+lemma pi.sum_nnnorm_apply_le_nnnorm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)]
+  (x : Π i, π i) :
+  ∑ i, ∥x i∥₊ ≤ fintype.card ι • ∥x∥₊ :=
+nnreal.coe_sum.trans_le $ pi.sum_norm_apply_le_norm x
 
 lemma tendsto_iff_norm_tendsto_zero {f : α → E} {a : filter α} {b : E} :
   tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥f e - b∥) a (𝓝 0) :=
@@ -824,6 +893,9 @@ continuous_subtype_mk _ continuous_norm
 
 lemma lipschitz_with_one_norm : lipschitz_with 1 (norm : E → ℝ) :=
 by simpa only [dist_zero_left] using lipschitz_with.dist_right (0 : E)
+
+lemma lipschitz_with_one_nnnorm : lipschitz_with 1 (has_nnnorm.nnnorm : E → ℝ≥0) :=
+lipschitz_with_one_norm
 
 lemma uniform_continuous_norm : uniform_continuous (norm : E → ℝ) :=
 lipschitz_with_one_norm.uniform_continuous

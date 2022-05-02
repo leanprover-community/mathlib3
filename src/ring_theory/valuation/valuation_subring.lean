@@ -6,6 +6,7 @@ Authors: Adam Topaz, Junyan Xu
 import ring_theory.valuation.valuation_ring
 import ring_theory.localization.as_subring
 import algebraic_geometry.prime_spectrum.basic
+import algebra.group_with_zero.basic
 
 /-!
 
@@ -302,5 +303,46 @@ instance linear_order_overring : linear_order { S | A ≤ S } :=
   ..(infer_instance : partial_order _) }
 
 end order
+
+section unit_group
+
+def unit_group : subgroup Kˣ :=
+{ carrier := { x | A.valuation x = 1 },
+  mul_mem' := begin
+    intros a b ha hb,
+    dsimp at *,
+    rw [A.valuation.map_mul, ha, hb, one_mul],
+  end,
+  one_mem' := A.valuation.map_one,
+  inv_mem' := begin
+    intros a ha,
+    dsimp at *,
+    push_cast,
+    rw [A.valuation.map_inv, ha, inv_one],
+  end }
+
+lemma mem_iff_unit_group_aux (x : K) : x ∈ A ↔
+  A.valuation x = 1 ∨ A.valuation (1 + x) = 1 := sorry
+
+lemma mem_iff_unit_group (x : Kˣ) : (x : K) ∈ A ↔
+  x ∈ A.unit_group ∨ ∃ (h : 1 + (x : K) ≠ 0), units.mk0 _ h ∈ A.unit_group :=
+begin
+  sorry
+end
+
+lemma unit_group_eq_iff (A B : valuation_subring K) :
+  A.unit_group = B.unit_group ↔ A = B :=
+begin
+  split,
+  { intros h, ext x,
+    by_cases hx : x = 0, { simp [hx, A.zero_mem, B.zero_mem] },
+    let y : Kˣ := units.mk0 x hx,
+    change (y : K) ∈ A ↔ (y : K) ∈ B,
+    rw [A.mem_iff_unit_group, B.mem_iff_unit_group],
+    simp only [h] },
+  { intros h, rw h },
+end
+
+end unit_group
 
 end valuation_subring

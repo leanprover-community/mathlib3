@@ -119,26 +119,19 @@ begin
   set NsqBot := (denom g z).norm_sq,
   have : NsqBot ≠ 0,
   { simp only [denom_ne_zero g z, monoid_with_zero_hom.map_eq_zero, ne.def, not_false_iff], },
-  field_simp [smul_aux'],
+  field_simp [smul_aux', -coe_coe],
   ring_nf,
-  have:= matrix.det_fin_two(g : GL (fin 2) ℝ),
-  simp at this,
-  rw this,
+  rw (matrix.det_fin_two (↑ₘg)),
   ring,
-  exact real.comm_ring,
 end
 
 /-- Fractional linear transformation,  also known as the Moebius transformation -/
-def smul_aux (g :  GL(2, ℝ)⁺) (z : ℍ) : ℍ :=
+def smul_aux (g : GL(2, ℝ)⁺) (z : ℍ) : ℍ :=
   ⟨smul_aux' g z,
     by { rw smul_aux'_im,
-    simp,
-    have h1:= div_pos z.im_pos (complex.norm_sq_pos.mpr (denom_ne_zero g z)),
-    have h2:=g.property,
-    simp at *,
-    have:= mul_pos h2 h1,
-    convert this,
-    simp [coe_fn_coe_base'],
+    convert (mul_pos ((mem_GL_pos _).1 g.property)
+      (div_pos z.im_pos (complex.norm_sq_pos.mpr (denom_ne_zero g z)))),
+    simp only [ subtype.val_eq_coe, general_linear_group.coe_det_apply, coe_coe],
     ring, }⟩
 
 lemma denom_cocycle (x y : GL(2, ℝ)⁺) (z : ℍ) :

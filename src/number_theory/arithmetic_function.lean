@@ -93,11 +93,9 @@ instance : has_one (arithmetic_function R) := ⟨⟨λ x, ite (x = 1) 1 0, rfl�
 
 lemma one_apply {x : ℕ} : (1 : arithmetic_function R) x = ite (x = 1) 1 0 := rfl
 
-@[simp]
-lemma one_one : (1 : arithmetic_function R) 1 = 1 := rfl
+@[simp] lemma one_one : (1 : arithmetic_function R) 1 = 1 := rfl
 
-@[simp]
-lemma one_apply_ne {x : ℕ} (h : x ≠ 1) : (1 : arithmetic_function R) x = 0 := if_neg h
+@[simp] lemma one_apply_ne {x : ℕ} (h : x ≠ 1) : (1 : arithmetic_function R) x = 0 := if_neg h
 
 end has_one
 end has_zero

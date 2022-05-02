@@ -285,7 +285,7 @@ end
   ∏ᶠ i, f i = ∏ i in s, f i :=
 finprod_eq_prod_of_mul_support_subset _ $ λ x hx, h $ hf.mem_to_finset.2 hx
 
-@[to_additive] lemma finprod_eq_prod_of_mul_support_to_finset_subset'
+@[to_additive] lemma finprod_eq_finset_prod_of_mul_support_subset
   (f : α → M) {s : finset α} (h : mul_support f ⊆ (s : set α)) :
   ∏ᶠ i, f i = ∏ i in s, f i :=
 begin

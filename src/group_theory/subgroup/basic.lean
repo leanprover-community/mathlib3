@@ -832,7 +832,7 @@ def closure_comm_group_of_comm {k : set G} (hcomm : ∀ (x ∈ k) (y ∈ k), x *
 { mul_comm := λ x y,
   begin
     ext,
-    simp only [subgroup.coe_mul],
+    simp only [submonoid_class.coe_mul],
     refine closure_induction₂ x.prop y.prop hcomm
     (λ  x, by simp only [mul_one, one_mul])
     (λ  x, by simp only [mul_one, one_mul])
@@ -841,7 +841,7 @@ def closure_comm_group_of_comm {k : set G} (hcomm : ∀ (x ∈ k) (y ∈ k), x *
     (λ x y h, by rw [inv_mul_eq_iff_eq_mul, ←mul_assoc, h, mul_assoc, mul_inv_self, mul_one])
     (λ x y h, by rw [mul_inv_eq_iff_eq_mul, mul_assoc, h, ←mul_assoc, inv_mul_self, one_mul])
   end,
-  ..(closure k).to_group }
+  ..subgroup_class.to_group (closure k) }
 
 variable (G)
 
@@ -2588,8 +2588,8 @@ namespace subgroup
 
 @[to_additive zmultiples_is_commutative]
 instance zpowers_is_commutative (g : G) : (zpowers g).is_commutative :=
-⟨⟨λ ⟨_, _, h₁⟩ ⟨_, _, h₂⟩, by rw [subtype.ext_iff, coe_mul, coe_mul,
-  subtype.coe_mk, subtype.coe_mk, ←h₁, ←h₂, zpow_mul_comm]⟩⟩
+⟨⟨λ ⟨_, _, h₁⟩ ⟨_, _, h₂⟩, by rw [subtype.ext_iff, submonoid_class.coe_mul,
+  submonoid_class.coe_mul, subtype.coe_mk, subtype.coe_mk, ←h₁, ←h₂, zpow_mul_comm]⟩⟩
 
 @[simp, to_additive zmultiples_le, simp]
 lemma zpowers_le {g : G} {H : subgroup G} : zpowers g ≤ H ↔ g ∈ H :=

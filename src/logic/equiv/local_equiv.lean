@@ -121,7 +121,6 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 maps `to_fun : α → β` and `inv_fun : β → α` map `source` to `target` and conversely, and are inverse
 to each other there. The values of `to_fun` outside of `source` and of `inv_fun` outside of `target`
 are irrelevant. -/
-@[nolint has_inhabited_instance]
 structure local_equiv (α : Type*) (β : Type*) :=
 (to_fun      : α → β)
 (inv_fun     : β → α)
@@ -146,6 +145,13 @@ def equiv.to_local_equiv (e : α ≃ β) : local_equiv α β :=
 namespace local_equiv
 
 variables (e : local_equiv α β) (e' : local_equiv β γ)
+
+instance [inhabited α] [inhabited β] : inhabited (local_equiv α β) :=
+⟨⟨const α default, const β default, ∅, ∅, maps_to_empty _ _, maps_to_empty _ _,
+  eq_on_empty _ _, eq_on_empty _ _⟩⟩
+
+instance inhabited_of_empty [is_empty α] [is_empty β] : inhabited (local_equiv α β) :=
+⟨((equiv.equiv_empty α).trans (equiv.equiv_empty β).symm).to_local_equiv⟩
 
 /-- The inverse of a local equiv -/
 protected def symm : local_equiv β α :=

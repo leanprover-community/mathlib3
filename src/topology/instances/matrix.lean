@@ -159,9 +159,9 @@ lemma continuous_matrix_diag : continuous (matrix.diag : matrix n n R → n → 
 show continuous (λ x : matrix n n R, matrix.diag x), from continuous_id.matrix_diag
 
 @[continuity]
-lemma continuous.matrix_trace [fintype n] [semiring S] [add_comm_monoid R] [has_continuous_add R]
-  [module S R] {A : X → matrix n n R} (hA : continuous A) :
-  continuous (λ x, trace n S R (A x)) :=
+lemma continuous.matrix_trace [fintype n] [add_comm_monoid R] [has_continuous_add R]
+  {A : X → matrix n n R} (hA : continuous A) :
+  continuous (λ x, trace (A x)) :=
 continuous_finset_sum _ $ λ i hi, hA.matrix_elem _ _
 
 @[continuity]

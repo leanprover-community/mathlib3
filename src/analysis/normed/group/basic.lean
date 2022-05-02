@@ -143,8 +143,10 @@ by simp [dist_eq_norm]
 @[simp] lemma dist_add_right (g₁ g₂ h : E) : dist (g₁ + h) (g₂ + h) = dist g₁ g₂ :=
 by simp [dist_eq_norm]
 
-@[simp] lemma dist_neg_neg (g h : E) : dist (-g) (-h) = dist g h :=
-by simp only [dist_eq_norm, neg_sub_neg, norm_sub_rev]
+lemma dist_neg (x y : E) : dist (-x) y = dist x (-y) :=
+by simp_rw [dist_eq_norm, ←norm_neg (-x - y), neg_sub, sub_neg_eq_add, add_comm]
+
+@[simp] lemma dist_neg_neg (g h : E) : dist (-g) (-h) = dist g h := by rw [dist_neg, neg_neg]
 
 @[simp] lemma dist_sub_left (g h₁ h₂ : E) : dist (g - h₁) (g - h₂) = dist h₁ h₂ :=
 by simp only [sub_eq_add_neg, dist_add_left, dist_neg_neg]
@@ -628,8 +630,8 @@ by simp [edist_dist]
 @[simp] lemma edist_add_right (g₁ g₂ h : E) : edist (g₁ + h) (g₂ + h) = edist g₁ g₂ :=
 by simp [edist_dist]
 
-@[simp] lemma edist_neg_neg (x y : E) : edist (-x) (-y) = edist x y :=
-by rw [edist_dist, dist_neg_neg, edist_dist]
+lemma edist_neg (x y : E) : edist (-x) y = edist x (-y) := by simp_rw [edist_dist, dist_neg]
+@[simp] lemma edist_neg_neg (x y : E) : edist (-x) (-y) = edist x y := by rw [edist_neg, neg_neg]
 
 @[simp] lemma edist_sub_left (g h₁ h₂ : E) : edist (g - h₁) (g - h₂) = edist h₁ h₂ :=
 by simp only [sub_eq_add_neg, edist_add_left, edist_neg_neg]

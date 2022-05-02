@@ -706,19 +706,16 @@ end
 @[simp] lemma neg_of_lists (L R : list pgame) :
   -of_lists L R = of_lists (R.map (λ x, -x)) (L.map (λ x, -x)) :=
 begin
-  simp only [of_lists, neg_def,list.length_map, list.nth_le_map', eq_self_iff_true,
-    true_and],
+  simp only [of_lists, neg_def, list.length_map, list.nth_le_map', eq_self_iff_true, true_and],
   split, all_goals
   { apply hfunext,
     { simp },
     { intros a a' ha,
-      have : (a.down : ℕ) = ↑(a'.down) := begin
-        have : ∀ {m n} (h₁ : m = n) {b : ulift (fin m)} {c : ulift (fin n)} (h₂ : b == c),
-          (b.down : ℕ) = ↑c.down,
-        { rintros m n rfl b c rfl, refl },
-        exact this (by simp) ha
-      end,
-      simp_rw this } }
+      congr' 2,
+      have : ∀ {m n} (h₁ : m = n) {b : ulift (fin m)} {c : ulift (fin n)} (h₂ : b == c),
+        (b.down : ℕ) = ↑c.down,
+      { rintros m n rfl b c rfl, refl },
+      exact this (list.length_map _ _).symm ha } }
 end
 
 /-- An explicit equivalence between the moves for Left in `-x` and the moves for Right in `x`. -/

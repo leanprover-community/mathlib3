@@ -46,6 +46,25 @@ lemma is_iso_of_mono_of_nonzero {X Y : C} [simple Y] {f : X ⟶ Y} [mono f] (w :
   is_iso f :=
 (simple.mono_is_iso_iff_nonzero f).mpr w
 
+lemma simple.of_iso {X Y : C} [simple Y] (i : X ≅ Y) : simple X :=
+{ mono_is_iso_iff_nonzero := λ Z f m, begin
+    resetI,
+    haveI : mono (f ≫ i.hom) := mono_comp _ _,
+    split,
+    { introsI h w,
+      haveI j : is_iso (f ≫ i.hom), apply_instance,
+      rw simple.mono_is_iso_iff_nonzero at j,
+      unfreezingI { subst w, },
+      simpa using j, },
+    { intro h,
+      haveI j : is_iso (f ≫ i.hom),
+      { apply is_iso_of_mono_of_nonzero,
+        intro w, apply h,
+        simpa using (cancel_mono i.inv).2 w, },
+      rw [←category.comp_id f, ←i.hom_inv_id, ←category.assoc],
+      apply_instance, },
+  end }
+
 lemma kernel_zero_of_nonzero_from_simple
   {X Y : C} [simple X] {f : X ⟶ Y} [has_kernel f] (w : f ≠ 0) :
   kernel.ι f = 0 :=
@@ -135,5 +154,94 @@ begin
 end
 
 end abelian
+
+section
+variables [has_zero_morphisms C] [has_binary_biproducts C]
+
+open category
+
+lemma is_zero_iff_id_eq_zero (X : C) : is_zero X ↔ (𝟙 X = 0) :=
+begin
+  fsplit,
+  exact λ h, h.eq_of_src _ _,
+  intro h,
+  split,
+  exact λ Y, ⟨⟨⟨0⟩, λ f, by { rw [←id_comp f, ←id_comp default, h, zero_comp, zero_comp], }⟩⟩,
+  exact λ Y, ⟨⟨⟨0⟩, λ f, by { rw [←comp_id f, ←comp_id default, h, comp_zero, comp_zero], }⟩⟩,
+end
+
+lemma biprod.inl_eq_zero_iff_is_zero (X Y : C) : (biprod.inl : X ⟶ X ⊞ Y) = 0 ↔ is_zero X :=
+begin
+  rw is_zero_iff_id_eq_zero,
+  split,
+  { intro h, rw [←biprod.inl_fst, h, zero_comp], },
+  { intro h, rw [←id_comp biprod.inl, h, zero_comp], },
+end
+
+lemma biprod.inr_eq_zero_iff_is_zero (X Y : C) : (biprod.inr : Y ⟶ X ⊞ Y) = 0 ↔ is_zero Y :=
+begin
+  rw is_zero_iff_id_eq_zero,
+  split,
+  { intro h, rw [←biprod.inr_snd, h, zero_comp], },
+  { intro h, rw [←id_comp biprod.inr, h, zero_comp], },
+end
+
+lemma biprod.fst_eq_zero_iff_is_zero (X Y : C) : (biprod.fst : X ⊞ Y ⟶ X) = 0 ↔ is_zero X :=
+begin
+  rw is_zero_iff_id_eq_zero,
+  split,
+  { intro h, rw [←biprod.inl_fst, h, comp_zero], },
+  { intro h, rw [←comp_id biprod.fst, h, comp_zero], },
+end
+
+lemma biprod.snd_eq_zero_iff_is_zero (X Y : C) : (biprod.snd : X ⊞ Y ⟶ Y) = 0 ↔ is_zero Y :=
+begin
+  rw is_zero_iff_id_eq_zero,
+  split,
+  { intro h, rw [←biprod.inr_snd, h, comp_zero], },
+  { intro h, rw [←comp_id biprod.snd, h, comp_zero], },
+end
+
+-- TODO there are three further variations,
+-- about `is_iso biprod.inr`, `is_iso biprod.fst` and `is_iso biprod.snd`.
+lemma biprod.is_iso_inl_iff_fst_comp_inl_eq_id (X Y : C) :
+  is_iso (biprod.inl : X ⟶ X ⊞ Y) ↔ 𝟙 (X ⊞ Y) = biprod.fst ≫ biprod.inl :=
+begin
+  split,
+  { introI h,
+    have := (cancel_epi (inv biprod.inl : X ⊞ Y ⟶ X)).2 biprod.inl_fst,
+    rw [is_iso.inv_hom_id_assoc, comp_id] at this,
+    rw [this, is_iso.inv_hom_id], },
+  { intro h, exact ⟨⟨biprod.fst, biprod.inl_fst, h.symm⟩⟩, },
+end
+
+end
+
+section
+variables [preadditive C] [has_binary_biproducts C]
+
+-- TODO, again, there are another three variations of this lemma.
+lemma biprod.is_iso_inl_iff_is_zero (X Y : C) : is_iso (biprod.inl : X ⟶ X ⊞ Y) ↔ is_zero Y :=
+begin
+  rw [biprod.is_iso_inl_iff_fst_comp_inl_eq_id, ←biprod.total, add_right_eq_self],
+  split,
+  { intro h, replace h := h =≫ biprod.snd,
+    simpa [biprod.snd_eq_zero_iff_is_zero] using h, },
+  { intro h, rw ←biprod.snd_eq_zero_iff_is_zero at h, rw [h, zero_comp], },
+end
+
+/-- Any simple object in a preadditive category is indecomposable. -/
+lemma indecomposable_of_simple (X : C) [simple X] : indecomposable X :=
+λ Y Z i, begin
+  refine or_iff_not_imp_left.mpr (λ h, _),
+  rw ←biprod.inl_eq_zero_iff_is_zero Y Z at h,
+  change biprod.inl ≠ 0 at h,
+  rw ←(simple.mono_is_iso_iff_nonzero biprod.inl) at h,
+  { rwa biprod.is_iso_inl_iff_is_zero at h, },
+  { exact simple.of_iso i.symm, },
+  { apply_instance, },
+end
+
+end
 
 end category_theory

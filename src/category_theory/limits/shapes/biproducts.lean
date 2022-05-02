@@ -1570,7 +1570,7 @@ begin
     split_epi_of_idempotent_of_is_colimit_cofork_section_],
   dsimp only [binary_bicone_of_split_mono_of_cokernel_X],
   rw [is_colimit_cofork_of_cokernel_cofork_desc, is_cokernel_epi_comp_desc],
-  simp only [binary_bicone_of_split_mono_of_cokernel_inl, cofork.is_colimit.π_comp_desc, 
+  simp only [binary_bicone_of_split_mono_of_cokernel_inl, cofork.is_colimit.π_comp_desc,
     cokernel_cofork_of_cofork_π, cofork.π_of_π, add_sub_cancel'_right]
 end
 
@@ -1645,6 +1645,7 @@ end limits
 
 open category_theory.limits
 
+section
 local attribute [ext] preadditive
 
 /-- The existence of binary biproducts implies that there is at most one preadditive structure. -/
@@ -1661,5 +1662,11 @@ begin
   congr' 2;
   exact subsingleton.elim _ _
 end
+end
+
+variables {C : Type u} [category.{v} C] [has_zero_morphisms C] [has_binary_biproducts C]
+
+/-- An object is indecomposable if it cannot be written as the biproduct of two nonzero objects. -/
+def indecomposable (X : C) : Prop := ∀ Y Z, (X ≅ Y ⊞ Z) → is_zero Y ∨ is_zero Z
 
 end category_theory

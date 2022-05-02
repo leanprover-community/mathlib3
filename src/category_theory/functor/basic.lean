@@ -33,7 +33,7 @@ To apply a functor `F` to an object use `F.obj X`, and to a morphism use `F.map 
 The axiom `map_id` expresses preservation of identities, and
 `map_comp` expresses functoriality.
 
-See https://stacks.math.columbia.edu/tag/001B.
+See <https://stacks.math.columbia.edu/tag/001B>.
 -/
 structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D]
   extends prefunctor C D : Type (max v₁ v₂ u₁ u₂) :=

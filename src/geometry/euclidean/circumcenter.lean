@@ -615,7 +615,7 @@ begin
              fs.subset_univ
              (λ i, zero_smul ℝ _),
            set.indicator_apply],
-  congr, funext, congr' 2
+  congr,
 end
 
 omit V

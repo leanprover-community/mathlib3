@@ -413,21 +413,21 @@ def measurable [measurable_space α] [measurable_space β] (f : α → β) : Pro
 
 localized "notation `measurable[` m `]` := @measurable _ _ m _" in measure_theory
 
-variables [measurable_space α] [measurable_space β] [measurable_space γ]
+lemma measurable_id {ma : measurable_space α} : measurable (@id α) := λ t, id
 
-lemma measurable_id : measurable (@id α) := λ t, id
+lemma measurable_id' {ma : measurable_space α} : measurable (λ a : α, a) := measurable_id
 
-lemma measurable_id' : measurable (λ a : α, a) := measurable_id
-
-lemma measurable.comp {α β γ} {mα : measurable_space α} {mβ : measurable_space β}
+lemma measurable.comp {mα : measurable_space α} {mβ : measurable_space β}
   {mγ : measurable_space γ} {g : β → γ} {f : α → β} (hg : measurable g) (hf : measurable f) :
   measurable (g ∘ f) :=
 λ t ht, hf (hg ht)
 
-@[simp] lemma measurable_const {a : α} : measurable (λ b : β, a) :=
+@[simp] lemma measurable_const {ma : measurable_space α} {mb : measurable_space β} {a : α} :
+  measurable (λ b : β, a) :=
 assume s hs, measurable_set.const (a ∈ s)
 
-lemma measurable.le {α} {m m0 : measurable_space α} (hm : m ≤ m0) {f : α → β}
+lemma measurable.le {α} {m m0 : measurable_space α} {mb : measurable_space β} (hm : m ≤ m0)
+  {f : α → β}
   (hf : measurable[m] f) : measurable[m0] f :=
 λ s hs, hm _ (hf hs)
 

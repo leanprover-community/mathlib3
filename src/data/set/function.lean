@@ -202,6 +202,26 @@ lemma eq_on.congr_strict_anti_on (h : s.eq_on f₁ f₂) : strict_anti_on f₁ s
 
 end order
 
+/-! ### Mono lemmas-/
+
+section mono
+
+variables [preorder α] [preorder β]
+
+lemma _root_.monotone_on.mono (h : monotone_on f s) (h' : s₂ ⊆ s) : monotone_on f s₂ :=
+λ x hx y hy, h (h' hx) (h' hy)
+
+lemma _root_.antitone_on.mono (h : antitone_on f s) (h' : s₂ ⊆ s) : antitone_on f s₂ :=
+λ x hx y hy, h (h' hx) (h' hy)
+
+lemma _root_.strict_mono_on.mono (h : strict_mono_on f s) (h' : s₂ ⊆ s) : strict_mono_on f s₂ :=
+λ x hx y hy, h (h' hx) (h' hy)
+
+lemma _root_.strict_anti_on.mono (h : strict_anti_on f s) (h' : s₂ ⊆ s) : strict_anti_on f s₂ :=
+λ x hx y hy, h (h' hx) (h' hy)
+
+end mono
+
 /-! ### maps to -/
 
 /-- `maps_to f a b` means that the image of `a` is contained in `b`. -/

@@ -372,14 +372,13 @@ begin
   simpa [(∘), div_eq_mul_inv, mul_comm, mul_left_comm] using this
 end
 
-local attribute [instance] topological_group_is_uniform
-
 open set
 
-@[to_additive] lemma topological_group.separated_iff_one_closed :
-  separated_space G ↔ is_closed ({1} : set G) :=
+@[to_additive] lemma topological_group.t2_space_iff_one_closed :
+  t2_space G ↔ is_closed ({1} : set G) :=
 begin
-  rw [separated_space_iff, ← closure_eq_iff_is_closed],
+  haveI : uniform_group G := topological_group_is_uniform,
+  rw [← separated_iff_t2, separated_space_iff, ← closure_eq_iff_is_closed],
   split; intro h,
   { apply subset.antisymm,
     { intros x x_in,
@@ -395,10 +394,10 @@ begin
     refl }
 end
 
-@[to_additive] lemma topological_group.separated_of_one_sep
-  (H : ∀ x : G, x ≠ 1 → ∃ U ∈ nhds (1 : G), x ∉ U) : separated_space G:=
+@[to_additive] lemma topological_group.t2_space_of_one_sep
+  (H : ∀ x : G, x ≠ 1 → ∃ U ∈ nhds (1 : G), x ∉ U) : t2_space G :=
 begin
-  rw [topological_group.separated_iff_one_closed, ← is_open_compl_iff, is_open_iff_mem_nhds],
+  rw [topological_group.t2_space_iff_one_closed, ← is_open_compl_iff, is_open_iff_mem_nhds],
   intros x x_not,
   have : x ≠ 1, from mem_compl_singleton_iff.mp x_not,
   rcases H x this with ⟨U, U_in, xU⟩,

@@ -714,7 +714,7 @@ have (∈ s) = p, from set.ext h, by { substI p, rw ← prod_coe_sort, congr }
 the product of a function `f` defined everywhere,
 as long as `f` and `g` agree on `s`, and `f = 1` off `s`. -/
 @[to_additive]
-lemma finset.prod_congr_set
+lemma prod_congr_set
   {α : Type*} [comm_monoid α] {β : Type*} [fintype β]
   (s : set β) [decidable_pred (∈s)] (f : β → α) (g : s → α)
   (w : ∀ (x : β) (h : x ∈ s), f x = g ⟨x, h⟩) (w' : ∀ (x : β), x ∉ s → f x = 1) :

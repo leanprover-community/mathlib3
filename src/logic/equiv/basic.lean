@@ -778,10 +778,11 @@ def sum_equiv_sigma_bool (α β : Type u) : α ⊕ β ≃ (Σ b: bool, cond b α
  λ s, by cases s; refl,
  λ s, by rcases s with ⟨_|_, _⟩; refl⟩
 
-/-- `sigma_preimage_equiv f` for `f : α → β` is the natural equivalence between
+/-- `sigma_fiber_equiv f` for `f : α → β` is the natural equivalence between
 the type of all fibres of `f` and the total space `α`. -/
+-- See also `equiv.sigma_preimage_equiv`.
 @[simps]
-def sigma_preimage_equiv {α β : Type*} (f : α → β) :
+def sigma_fiber_equiv {α β : Type*} (f : α → β) :
   (Σ y : β, {x // f x = y}) ≃ α :=
 ⟨λ x, ↑x.2, λ x, ⟨f x, x, rfl⟩, λ ⟨y, x, rfl⟩, rfl, λ x, rfl⟩
 
@@ -1119,6 +1120,18 @@ lemma sigma_equiv_prod_sigma_congr_right :
     (prod_congr_right e).trans (sigma_equiv_prod α₁ β₂).symm :=
 by { ext ⟨a, b⟩ : 1, simp }
 
+/-- A family of equivalences between fibers gives an equivalence between domains. -/
+-- See also `equiv.of_preimage_equiv`.
+@[simps]
+def of_fiber_equiv {α β γ : Type*} {f : α → γ} {g : β → γ}
+  (e : Π c, {a // f a = c} ≃ {b // g b = c}) :
+  α ≃ β :=
+(sigma_fiber_equiv f).symm.trans $ (equiv.sigma_congr_right e).trans (sigma_fiber_equiv g)
+
+@[simp] lemma of_fiber_equiv_map {α β γ} {f : α → γ} {g : β → γ}
+  (e : Π c, {a // f a = c} ≃ {b // g b = c}) (a : α) : g (of_fiber_equiv e a) = f a :=
+(_ : {b // g b = _}).prop
+
 /-- A variation on `equiv.prod_congr` where the equivalence in the second component can depend
   on the first component. A typical example is a shear mapping, explaining the name of this
   declaration. -/
@@ -1409,15 +1422,15 @@ def sigma_subtype_equiv_of_subset {α : Type u} (p : α → Type v) (q : α → 
 
 /-- If a predicate `p : β → Prop` is true on the range of a map `f : α → β`, then
 `Σ y : {y // p y}, {x // f x = y}` is equivalent to `α`. -/
-def sigma_subtype_preimage_equiv {α : Type u} {β : Type v} (f : α → β) (p : β → Prop)
+def sigma_subtype_fiber_equiv {α : Type u} {β : Type v} (f : α → β) (p : β → Prop)
   (h : ∀ x, p (f x)) :
   (Σ y : subtype p, {x : α // f x = y}) ≃ α :=
 calc _ ≃ Σ y : β, {x : α // f x = y} : sigma_subtype_equiv_of_subset _ p (λ y ⟨x, h'⟩, h' ▸ h x)
-   ... ≃ α                           : sigma_preimage_equiv f
+   ... ≃ α                           : sigma_fiber_equiv f
 
 /-- If for each `x` we have `p x ↔ q (f x)`, then `Σ y : {y // q y}, f ⁻¹' {y}` is equivalent
 to `{x // p x}`. -/
-def sigma_subtype_preimage_equiv_subtype {α : Type u} {β : Type v} (f : α → β)
+def sigma_subtype_fiber_equiv_subtype {α : Type u} {β : Type v} (f : α → β)
   {p : α → Prop} {q : β → Prop} (h : ∀ x, p x ↔ q (f x)) :
   (Σ y : subtype q, {x : α // f x = y}) ≃ subtype p :=
 calc (Σ y : subtype q, {x : α // f x = y}) ≃
@@ -1430,8 +1443,7 @@ calc (Σ y : subtype q, {x : α // f x = y}) ≃
     assume x,
     exact ⟨λ ⟨hp, h'⟩, congr_arg subtype.val h', λ h', ⟨(h x).2 (h'.symm ▸ y.2), subtype.eq h'⟩⟩
   end
-
-   ... ≃ subtype p : sigma_preimage_equiv (λ x : subtype p, (⟨f x, (h x).1 x.property⟩ : subtype q))
+   ... ≃ subtype p : sigma_fiber_equiv (λ x : subtype p, (⟨f x, (h x).1 x.property⟩ : subtype q))
 
 /-- A sigma type over an `option` is equivalent to the sigma set over the original type,
 if the fiber is empty at none. -/

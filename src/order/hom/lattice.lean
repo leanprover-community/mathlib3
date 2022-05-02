@@ -805,12 +805,11 @@ variables [semilattice_sup α] [semilattice_sup β] [semilattice_sup γ]
 /-- Adjoins a `⊤` to the domain and codomain of a `sup_hom`. -/
 @[simps] protected def with_top (f : sup_hom α β) : sup_hom (with_top α) (with_top β) :=
 { to_fun := option.map f,
-  map_sup' := begin
-    rintro (_ | a) b,
-    { refl },
-    cases b,
-    { refl },
-    { exact congr_arg _ (f.map_sup' _ _) }
+  map_sup' := λ a b, match a, b with
+    | ⊤, ⊤ := rfl
+    | ⊤, (b : α) := rfl
+    | (a : α), ⊤ := rfl
+    | (a : α), (b : α) := congr_arg _ (f.map_sup' _ _)
   end }
 
 @[simp] lemma with_top_id : (sup_hom.id α).with_top = sup_hom.id _ :=
@@ -823,12 +822,11 @@ fun_like.coe_injective (option.map_comp_map _ _).symm
 /-- Adjoins a `⊥` to the domain and codomain of a `sup_hom`. -/
 @[simps] protected def with_bot (f : sup_hom α β) : sup_bot_hom (with_bot α) (with_bot β) :=
 { to_fun := option.map f,
-  map_sup' := begin
-    rintro (_ | a) (_ | b),
-    { refl },
-    { refl },
-    { refl },
-    { exact congr_arg _ (f.map_sup' _ _) }
+  map_sup' := λ a b, match a, b with
+    | ⊥, ⊥ := rfl
+    | ⊥, (b : α) := rfl
+    | (a : α), ⊥ := rfl
+    | (a : α), (b : α) := congr_arg _ (f.map_sup' _ _)
   end,
   map_bot' := rfl }
 
@@ -843,26 +841,20 @@ fun_like.coe_injective (option.map_comp_map _ _).symm
 @[simps] def with_top' [order_top β] (f : sup_hom α β) : sup_hom (with_top α) β :=
 { to_fun := λ a, a.elim ⊤ f,
   map_sup' := λ a b, match a, b with
-    | none, none := by simp only [sup_idem]
-    | none, some b := begin
-        simp only [with_bot.none_eq_bot, option.elim, bot_inf_eq],
-        exact top_sup_eq.symm,
-      end
-    | some a, none := begin
-        simp only [with_bot.none_eq_bot, option.elim, bot_inf_eq],
-        exact sup_top_eq.symm,
-      end
-    | some a, some b := f.map_sup' _ _
+    | ⊤, ⊤ := top_sup_eq.symm
+    | ⊤, (b : α) := top_sup_eq.symm
+    | (a : α), ⊤ := sup_top_eq.symm
+    | (a : α), (b : α) := f.map_sup' _ _
   end }
 
 /-- Adjoins a `⊥` to the domain of a `sup_hom`. -/
 @[simps] def with_bot' [order_bot β] (f : sup_hom α β) : sup_bot_hom (with_bot α) β :=
 { to_fun := λ a, a.elim ⊥ f,
   map_sup' := λ a b, match a, b with
-    | none, none := bot_sup_eq.symm
-    | none, some b := bot_sup_eq.symm
-    | some a, none := by { rw [with_bot.none_eq_bot, sup_bot_eq], exact sup_bot_eq.symm }
-    | some a, some b := f.map_sup' _ _
+    | ⊥, ⊥ := bot_sup_eq.symm
+    | ⊥, (b : α) := bot_sup_eq.symm
+    | (a : α), ⊥ := sup_bot_eq.symm
+    | (a : α), (b : α) := f.map_sup' _ _
   end,
   map_bot' := rfl }
 
@@ -874,12 +866,11 @@ variables [semilattice_inf α] [semilattice_inf β] [semilattice_inf γ]
 /-- Adjoins a `⊤` to the domain and codomain of an `inf_hom`. -/
 @[simps] protected def with_top (f : inf_hom α β) : inf_top_hom (with_top α) (with_top β) :=
 { to_fun := option.map f,
-  map_inf' := begin
-    rintro (_ | a) (_ | b),
-    { refl },
-    { refl },
-    { refl },
-    { exact congr_arg _ (f.map_inf' _ _) }
+  map_inf' := λ a b, match a, b with
+    | ⊤, ⊤ := rfl
+    | ⊤, (b : α) := rfl
+    | (a : α), ⊤ := rfl
+    | (a : α), (b : α) := congr_arg _ (f.map_inf' _ _)
   end,
   map_top' := rfl }
 
@@ -893,12 +884,11 @@ fun_like.coe_injective (option.map_comp_map _ _).symm
 /-- Adjoins a `⊥ to the domain and codomain of an `inf_hom`. -/
 @[simps] protected def with_bot (f : inf_hom α β) : inf_hom (with_bot α) (with_bot β) :=
 { to_fun := option.map f,
-  map_inf' := begin
-    rintro (_ | a) b,
-    { refl },
-    cases b,
-    { refl },
-    { exact congr_arg _ (f.map_inf' _ _) }
+  map_inf' := λ a b, match a, b with
+    | ⊥, ⊥ := rfl
+    | ⊥, (b : α) := rfl
+    | (a : α), ⊥ := rfl
+    | (a : α), (b : α) := congr_arg _ (f.map_inf' _ _)
   end }
 
 @[simp] lemma with_bot_id : (inf_hom.id α).with_bot = inf_hom.id _ :=
@@ -912,10 +902,10 @@ fun_like.coe_injective (option.map_comp_map _ _).symm
 @[simps] def with_top' [order_top β] (f : inf_hom α β) : inf_top_hom (with_top α) β :=
 { to_fun := λ a, a.elim ⊤ f,
   map_inf' := λ a b, match a, b with
-    | none, none := top_inf_eq.symm
-    | none, some b := top_inf_eq.symm
-    | some a, none := by { rw [with_top.none_eq_top, inf_top_eq], exact inf_top_eq.symm }
-    | some a, some b := f.map_inf' _ _
+    | ⊤, ⊤ := top_inf_eq.symm
+    | ⊤, (b : α)  := top_inf_eq.symm
+    | (a : α), ⊤ := inf_top_eq.symm
+    | (a : α), (b : α) := f.map_inf' _ _
   end,
   map_top' := rfl }
 
@@ -923,16 +913,10 @@ fun_like.coe_injective (option.map_comp_map _ _).symm
 @[simps] def with_bot' [order_bot β] (f : inf_hom α β) : inf_hom (with_bot α) β :=
 { to_fun := λ a, a.elim ⊥ f,
   map_inf' := λ a b, match a, b with
-    | none, none := by simp only [inf_idem]
-    | none, some b := begin
-        simp only [with_bot.none_eq_bot, option.elim, bot_inf_eq],
-        exact bot_inf_eq.symm,
-      end
-    | some a, none := begin
-        simp only [with_bot.none_eq_bot, option.elim, bot_inf_eq],
-        exact inf_bot_eq.symm,
-      end
-    | some a, some b := f.map_inf' _ _
+    | ⊥, ⊥ := bot_inf_eq.symm
+    | ⊥, (b : α) := bot_inf_eq.symm
+    | (a : α), ⊥ := inf_bot_eq.symm
+    | (a : α), (b : α) := f.map_inf' _ _
   end }
 
 end inf_hom

@@ -3,7 +3,7 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
-import set_theory.game.pgame
+import set_theory.game.ordinal
 
 /-!
 # Surreal numbers
@@ -112,6 +112,14 @@ le_of_lt (o.move_left i) o (pgame.move_left_lt i)
 theorem numeric.le_move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
   x ≤ x.move_right j :=
 le_of_lt o (o.move_right j) (pgame.lt_move_right j)
+
+theorem numeric_to_pgame (o : ordinal) : o.to_pgame.numeric :=
+begin
+  induction o using ordinal.induction with o IH,
+  rw numeric_def,
+  simp only [ordinal.to_pgame_move_left', subtype.val_eq_coe],
+  exact ⟨λ i, is_empty_elim, λ i, IH _ (ordinal.to_left_moves_to_pgame_symm_lt i), is_empty_elim⟩
+end
 
 theorem add_lt_add
   {w x y z : pgame.{u}} (oy : numeric y) (oz : numeric z)

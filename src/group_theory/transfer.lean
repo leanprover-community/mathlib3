@@ -74,21 +74,21 @@ end
 
 attribute [to_additive orbit_zmultiples_equiv] orbit_zpowers_equiv
 
-@[to_additive orbit_zmultiples_equiv_symm_apply]
-lemma orbit_zpowers_equiv_symm_apply {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
+@[to_additive orbit_zmultiples_equiv_symm_apply']
+lemma orbit_zpowers_equiv_symm_apply' {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
   (k : zmod (function.minimal_period ((•) a) b)) :
   (orbit_zpowers_equiv a b).symm k =
   (⟨a, subgroup.mem_zpowers a⟩ : subgroup.zpowers a) ^ (k : ℤ) • ⟨b, mul_action.mem_orbit_self b⟩ :=
 rfl
 
-lemma orbit_zpowers_equiv_symm_apply' {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
+lemma orbit_zpowers_equiv_symm_apply {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
   (k : ℤ) :
   (orbit_zpowers_equiv a b).symm k =
   (⟨a, subgroup.mem_zpowers a⟩ : subgroup.zpowers a) ^ k • ⟨b, mul_action.mem_orbit_self b⟩ :=
 begin
   conv_rhs { rw ← int.mod_add_div k (function.minimal_period ((•) a) b) },
-  rw [zpow_add, mul_smul, orbit_zpowers_equiv_symm_apply, zmod.coe_int_cast, smul_left_cancel_iff,
-      eq_comm, subtype.ext_iff, mul_action.orbit.coe_smul, subtype.coe_mk,
+  rw [zpow_add, mul_smul, orbit_zpowers_equiv_symm_apply', zmod.coe_int_cast, smul_left_cancel_iff,
+      subtype.ext_iff, mul_action.orbit.coe_smul, subtype.coe_mk, eq_comm,
       mul_action.zpow_smul_eq_iff_minimal_period_dvd],
   apply dvd_mul_right,
 end
@@ -241,13 +241,6 @@ section explicit_computation
 variables (H)
 
 -- PRed
-lemma _root_.zmod.card' {n : ℕ} [fintype (zmod n)] : fintype.card (zmod n) = n :=
-begin
-  casesI n,
-  { exact (not_fintype (zmod 0)).elim },
-  { convert fintype.card_fin n.succ },
-end
-
 @[to_additive] lemma lem0 {α β : Type*} [group α] [mul_action α β] (a : α) (b : β)
   [fintype (mul_action.orbit (zpowers a) b)] :
   function.minimal_period ((•) a) b = fintype.card (mul_action.orbit (zpowers a) b) :=

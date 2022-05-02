@@ -105,7 +105,6 @@ variables [fintype m] [decidable_eq m] [field 𝕂]
   [comm_ring 𝔸] [topological_space 𝔸] [topological_ring 𝔸] [algebra 𝕂 𝔸]
   [has_continuous_const_smul 𝕂 𝔸] [t2_space 𝔸]
 
--- where's transpose_pow!?
 lemma exp_transpose (A : matrix m m 𝔸) : exp 𝕂 (matrix m m 𝔸) Aᵀ = (exp 𝕂 _ A)ᵀ :=
 by simp_rw [exp_eq_tsum, transpose_tsum, transpose_smul, transpose_pow]
 

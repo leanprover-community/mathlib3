@@ -134,6 +134,9 @@ end
 lemma commute.exp_left [t2_space 𝔸] {x y : 𝔸} (h : commute x y) : commute (exp 𝕂 𝔸 x) y :=
 (h.symm.exp_right 𝕂).symm
 
+lemma commute.exp [t2_space 𝔸] {x y : 𝔸} (h : commute x y) : commute (exp 𝕂 𝔸 x) (exp 𝕂 𝔸 y) :=
+(h.exp_left _).exp_right _
+
 end topological_algebra
 
 section normed
@@ -431,9 +434,6 @@ begin
   letI := invertible_exp 𝕂 x,
   exact ring.inverse_invertible _,
 end
-
-lemma commute.exp {x y : 𝔸} (h : commute x y) : commute (exp 𝕂 𝔸 x) (exp 𝕂 𝔸 y) :=
-(h.exp_left _).exp_right _
 
 end
 

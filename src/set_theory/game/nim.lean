@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson, Markus Himmel
 -/
 import data.nat.bitwise
+import set_theory.game.birthday
 import set_theory.game.impartial
-import set_theory.ordinal_arithmetic
-
 /-!
 # Nim and the Sprague-Grundy theorem
 
@@ -57,6 +56,16 @@ lemma nim_def (O : ordinal) : nim O = pgame.mk O.out.α O.out.α
   (λ O₂, nim (ordinal.typein (<) O₂))
   (λ O₂, nim (ordinal.typein (<) O₂)) :=
 by { rw nim, refl }
+
+@[simp] lemma nim_birthday (O : ordinal) : (nim O).birthday = O :=
+begin
+  induction O using ordinal.induction with O IH,
+  rw [nim_def, birthday_def],
+  dsimp,
+  rw max_eq_right le_rfl,
+  convert lsub_typein O,
+  exact funext (λ i, IH _ (typein_lt_self i))
+end
 
 instance nim_impartial : ∀ (O : ordinal), impartial (nim O)
 | O :=

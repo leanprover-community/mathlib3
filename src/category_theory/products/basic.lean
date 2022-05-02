@@ -33,7 +33,7 @@ variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D
 /--
 `prod C D` gives the cartesian product of two categories.
 
-See https://stacks.math.columbia.edu/tag/001K.
+See <https://stacks.math.columbia.edu/tag/001K>.
 -/
 @[simps {not_recursive := []}] -- the generates simp lemmas like `id_fst` and `comp_snd`
 instance prod : category.{max v₁ v₂} (C × D) :=

@@ -12,7 +12,7 @@ import category_theory.sites.sheaf
 This file contains the construction of `P⁺`, for a presheaf `P : Cᵒᵖ ⥤ D`
 where `C` is endowed with a grothendieck topology `J`.
 
-See https://stacks.math.columbia.edu/tag/00W1 for details.
+See <https://stacks.math.columbia.edu/tag/00W1> for details.
 
 -/
 

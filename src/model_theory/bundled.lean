@@ -91,6 +91,14 @@ noncomputable def shrink (M : Model.{u v w} T) [small.{w'} M] :
 def ulift (M : Model.{u v w} T) : Model.{u v (max w w')} T :=
   equiv_induced (equiv.ulift.symm : M ≃ _)
 
+/-- The reduct of any model of `φ.on_Theory T` is a model of `T`. -/
+@[simps] def reduct {L' : language} {φ : L →ᴸ L'} (M : (φ.on_Theory T).Model) :
+  T.Model :=
+{ carrier := M,
+  struc := φ.reduct M,
+  nonempty' := M.nonempty',
+  is_model := (@Lhom.on_Theory_model L L' M (φ.reduct M) _ φ _ T).1 M.is_model, }
+
 end Model
 
 variables {T}
@@ -109,6 +117,10 @@ end Theory
 /-- An elementary substructure of a bundled model as a bundled model. -/
 def elementary_substructure.to_Model {M : T.Model} (S : L.elementary_substructure M) : T.Model :=
 Theory.Model.of T S
+
+instance {M : T.Model} (S : L.elementary_substructure M) [h : small S] :
+  small (S.to_Model T) :=
+h
 
 end language
 end first_order

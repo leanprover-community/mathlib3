@@ -110,7 +110,7 @@ begin
   { rintros x s hx ⟨y, hy, hs⟩,
     obtain ⟨x', y', hy', hx'⟩ := exists_integral_multiple
       ((is_fraction_ring.is_algebraic_iff A K L).mpr (is_algebraic_of_finite _ _ x))
-      ((algebra_map A L).injective_iff.mp _),
+      ((injective_iff_map_eq_zero (algebra_map A L)).mp _),
     refine ⟨y * y', mul_ne_zero hy hy', λ x'' hx'', _⟩,
     rcases finset.mem_insert.mp hx'' with (rfl | hx''),
     { rw [mul_smul, algebra.smul_def, algebra.smul_def, mul_comm _ x'', hx'],
@@ -135,7 +135,7 @@ begin
   let bs' := is_noetherian.finset_basis K L,
   obtain ⟨y, hy, his'⟩ := exists_integral_multiples A K (finset.univ.image bs'),
   have hy' : algebra_map A L y ≠ 0,
-  { refine mt ((algebra_map A L).injective_iff.mp _ _) hy,
+  { refine mt ((injective_iff_map_eq_zero (algebra_map A L)).mp _ _) hy,
     rw is_scalar_tower.algebra_map_eq A K L,
     exact (algebra_map K L).injective.comp (is_fraction_ring.injective A K) },
   refine ⟨s', bs'.map { to_fun := λ x, algebra_map A L y * x,

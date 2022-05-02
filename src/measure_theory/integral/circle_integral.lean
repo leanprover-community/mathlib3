@@ -127,6 +127,17 @@ funext $ λ θ, circle_map_eq_center_iff.2 rfl
 lemma circle_map_ne_center {c : ℂ} {R : ℝ} (hR : R ≠ 0) {θ : ℝ} : circle_map c R θ ≠ c :=
 mt circle_map_eq_center_iff.1 hR
 
+lemma circle_map_ne_on_ball (R : ℝ) (hR : 0 < R) (z w : ℂ) (hw : w ∈ ball z R) :
+  ∀  x : ℝ, circle_map z R x - w ≠ 0 :=
+begin
+  intros x hx,
+  rw ←(sub_eq_zero.mp hx) at hw,
+  have  h2 := circle_map_mem_sphere z hR.le x,
+  simp only [mem_ball, mem_sphere] at *,
+  rw h2 at hw,
+  linarith,
+end
+
 lemma has_deriv_at_circle_map (c : ℂ) (R : ℝ) (θ : ℝ) :
   has_deriv_at (circle_map c R) (circle_map 0 R θ * I) θ :=
 by simpa only [mul_assoc, one_mul, of_real_clm_apply, circle_map, of_real_one, zero_add]
@@ -161,6 +172,15 @@ lemma lipschitz_with_circle_map (c : ℂ) (R : ℝ) :
   lipschitz_with R.nnabs (circle_map c R) :=
 lipschitz_with_of_nnnorm_deriv_le (differentiable_circle_map _ _) $ λ θ,
   nnreal.coe_le_coe.1 $ by simp
+
+lemma circle_map_inv_continuous_on (R : ℝ) (hR : 0 < R) (z w : ℂ) (hw : w ∈ ball z R) :
+ continuous_on (λ θ, (circle_map z R θ - w)⁻¹) [0, 2*π] :=
+begin
+  simp_rw ←one_div,
+  apply_rules [continuous_on.div, continuous_const.continuous_on, continuous_on.sub,
+  (continuous_circle_map z R).continuous_on, continuous_const.continuous_on],
+  refine (λ _ _,  (circle_map_ne_on_ball R hR z w hw) _),
+end
 
 /-!
 ### Integrability of a function on a circle

@@ -175,12 +175,10 @@ begin
   rwa [← principal_singleton, le_principal_iff]
 end
 
-lemma eq_principal_of_fintype (X : Type*) [fintype X]
-  (f : ultrafilter X) : ∃ x : X, (f : filter X) = pure x :=
-let ⟨x, hx1, (hx2 : (f : filter X) = pure x)⟩ :=
-  ultrafilter.eq_principal_of_finite_mem (finite_univ : (univ : set X).finite)
-  (filter.univ_mem) in
-⟨x, hx2⟩
+lemma eq_principal_of_fintype (α : Type*) [fintype α] (f : ultrafilter α) :
+  ∃ a, (f : filter α) = pure a :=
+(eq_principal_of_finite_mem (finite_univ : (univ : set α).finite) filter.univ_mem).imp $ λ a,
+  Exists.some_spec
 
 /-- Monadic bind for ultrafilters, coming from the one on filters
 defined in terms of map and join.-/

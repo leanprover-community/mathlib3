@@ -53,20 +53,6 @@ all intermediate fields `E` with `E/K` finite dimensional.
 - `krull_topology K L` is defined as an instance for type class inference.
 -/
 
-section
-variables {K L L' : Type*} [field K] [field L] [field L'] [algebra K L] [algebra K L']
-  {F : intermediate_field K L}
-
-@[simp] lemma coe_map (f : L →ₐ[K] L') : ↥(F.map f) = ↥(f '' F) := rfl
-
-@[simp] lemma coe_sort_coe_left (E : intermediate_field F L) :
-  ↥(↑E : intermediate_field K L) = ↥E := rfl
-
-@[simp] lemma coe_sort_coe_right (E : intermediate_field K F) :
-  ↥(↑E : intermediate_field K L) = ↥((coe : F → L) '' ↑E) := rfl
-
-end
-
 open set ultrafilter
 open_locale classical
 

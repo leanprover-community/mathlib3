@@ -271,6 +271,8 @@ def map (f : L →ₐ[K] L') : intermediate_field K L' :=
   neg_mem' := λ x hx, (S.to_subalgebra.map f).neg_mem hx,
   .. S.to_subalgebra.map f}
 
+@[simp] lemma coe_map (f : L →ₐ[K] L') : ↥(S.map f) = ↥(f '' S) := rfl
+
 lemma map_map {K L₁ L₂ L₃ : Type*} [field K] [field L₁] [algebra K L₁]
   [field L₂] [algebra K L₂] [field L₃] [algebra K L₃]
   (E : intermediate_field K L₁) (f : L₁ →ₐ[K] L₂) (g : L₂ →ₐ[K] L₃) :
@@ -344,11 +346,10 @@ variables {S}
 section tower
 
 /-- Lift an intermediate_field of an intermediate_field -/
-def lift1 {F : intermediate_field K L} (E : intermediate_field K F) : intermediate_field K L :=
-  map E (val F)
+def lift1 (E : intermediate_field K S) : intermediate_field K L := map E (val S)
 
 /-- Lift an intermediate_field of an intermediate_field -/
-def lift2 {F : intermediate_field K L} (E : intermediate_field F L) : intermediate_field K L :=
+def lift2 (E : intermediate_field S L) : intermediate_field K L :=
 { carrier := E.carrier,
   zero_mem' := zero_mem E,
   add_mem' := λ x y (hx : x ∈ E), add_mem hx,
@@ -356,15 +357,18 @@ def lift2 {F : intermediate_field K L} (E : intermediate_field F L) : intermedia
   one_mem' := one_mem E,
   mul_mem' := λ x y (hx : x ∈ E), mul_mem hx,
   inv_mem' := λ x (hx : x ∈ E), inv_mem hx,
-  algebra_map_mem' := λ x, algebra_map_mem E (algebra_map K F x) }
+  algebra_map_mem' := λ x, algebra_map_mem E (algebra_map K S x) }
 
-instance has_lift1 {F : intermediate_field K L} :
-  has_lift_t (intermediate_field K F) (intermediate_field K L) := ⟨lift1⟩
+instance has_lift1 : has_lift_t (intermediate_field K S) (intermediate_field K L) := ⟨lift1⟩
+instance has_lift2 : has_lift_t (intermediate_field S L) (intermediate_field K L) := ⟨lift2⟩
 
-instance has_lift2 {F : intermediate_field K L} :
-  has_lift_t (intermediate_field F L) (intermediate_field K L) := ⟨lift2⟩
+@[simp] lemma coe_sort_coe_left (E : intermediate_field S L) :
+  ↥(↑E : intermediate_field K L) = ↥E := rfl
 
-@[simp] lemma mem_lift2 {F : intermediate_field K L} {E : intermediate_field F L} {x : L} :
+@[simp] lemma coe_sort_coe_right (E : intermediate_field K S) :
+  ↥(↑E : intermediate_field K L) = ↥((coe : S → L) '' ↑E) := rfl
+
+@[simp] lemma mem_lift2 {E : intermediate_field S L} {x : L} :
   x ∈ (↑E : intermediate_field K L) ↔ x ∈ E := iff.rfl
 
 /-- This was formerly an instance called `lift2_alg`, but an instance above already provides it. -/

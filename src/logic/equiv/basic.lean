@@ -1128,7 +1128,7 @@ def of_fiber_equiv {α β γ : Type*} {f : α → γ} {g : β → γ}
   α ≃ β :=
 (sigma_fiber_equiv f).symm.trans $ (equiv.sigma_congr_right e).trans (sigma_fiber_equiv g)
 
-@[simp] lemma of_fiber_equiv_map {α β γ} {f : α → γ} {g : β → γ}
+lemma of_fiber_equiv_map {α β γ} {f : α → γ} {g : β → γ}
   (e : Π c, {a // f a = c} ≃ {b // g b = c}) (a : α) : g (of_fiber_equiv e a) = f a :=
 (_ : {b // g b = _}).prop
 

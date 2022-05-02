@@ -528,38 +528,9 @@ def of_preimage_equiv {α β γ} {f : α → γ} {g : β → γ} (e : Π c, (f �
   α ≃ β :=
 (sigma_preimage_equiv f).symm.trans $ (equiv.sigma_congr_right e).trans (sigma_preimage_equiv g)
 
-@[simp] lemma of_preimage_equiv_map {α β γ} {f : α → γ} {g : β → γ}
+lemma of_preimage_equiv_map {α β γ} {f : α → γ} {g : β → γ}
   (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c})) (a : α) : g (of_preimage_equiv e a) = f a :=
 (_ : g ⁻¹' {_}).prop
-
-/-- An equation in the target type gives an equivalence between the corresponding preimages. -/
-@[simps]
-def preimage_congr {α β : Type*} (f : α → β)
-  {s s' : set β} (h : s = s') : f ⁻¹' s ≃ f ⁻¹' s' :=
-equiv.set_congr $ h ▸ rfl
-
-lemma preimage_congr_apply
-  {α β γ : Type*} {f : α → γ} {g : β → γ} (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c}))
-  {c c' : γ} (h : c = c') (x : f ⁻¹' {c'}) :
-  (preimage_congr g (congr_arg singleton h)) (e c ⟨x.1, begin simpa [h] using x.2, end⟩) = e c' x :=
-by { ext, cases h, simp, }
-
-/--
-A family of equivalences between the preimages of two functions gives
-an equivalence of the domains.
--/
-@[simps] def equiv_of_preimage_equiv
-  {α β γ : Type*} {f : α → γ} {g : β → γ} (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c})) : α ≃ β :=
-{ to_fun := λ a, e (f a) ⟨a, rfl⟩,
-  inv_fun := λ b, (e (g b)).symm ⟨b, rfl⟩,
-  left_inv := λ a, by simp [←preimage_congr_apply e (e (f a) ⟨a, rfl⟩).prop],
-  right_inv := λ b, by simp [←preimage_congr_apply e ((e (g b)).symm ⟨b, rfl⟩).prop.symm], }
-
-lemma equiv_of_preimage_equiv_property
-  {α β γ : Type*} {f : α → γ} {g : β → γ} (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c})) (a : α) :
-    g (equiv_of_preimage_equiv e a) = f a :=
-by simpa using (e (f a) ⟨a, (by simp)⟩).2
-
 end equiv
 
 /-- If a function is a bijection between two sets `s` and `t`, then it induces an

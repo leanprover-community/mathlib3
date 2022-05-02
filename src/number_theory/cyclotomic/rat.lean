@@ -129,7 +129,7 @@ lemma cyclotomic_ring_is_integral_closure_of_prime_pow :
 begin
   haveI : is_cyclotomic_extension {p ^ k} ℚ (cyclotomic_field (p ^ k) ℚ),
   { convert cyclotomic_field.is_cyclotomic_extension (p ^ k) _,
-    { exact subsingleton.elim (algebra_rat) _ },
+    { exact subsingleton.elim _ _ },
     { exact ne_zero.char_zero } },
   have hζ := zeta_primitive_root (p ^ k) ℚ (cyclotomic_field (p ^ k) ℚ),
   refine ⟨is_fraction_ring.injective _ _, λ x, ⟨λ h, ⟨⟨x, _⟩, rfl⟩, _⟩⟩,
@@ -142,7 +142,7 @@ begin
       exact hζ.pow_eq_one } },
   { haveI : is_cyclotomic_extension {p ^ k} ℤ (cyclotomic_ring (p ^ k) ℤ ℚ),
     { convert cyclotomic_ring.is_cyclotomic_extension _ ℤ ℚ,
-      { exact subsingleton.elim (algebra_int _) _ },
+      { exact subsingleton.elim _ _ },
       { exact ne_zero.char_zero } },
     rintro ⟨y, rfl⟩,
     exact is_integral.algebra_map ((is_cyclotomic_extension.integral {p ^ k} ℤ _) _) }

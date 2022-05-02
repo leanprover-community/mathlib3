@@ -154,7 +154,7 @@ assume ⟨h⟩, h.elim
 
 lemma congr_heq {α β γ : Sort*} {f : α → γ} {g : β → γ} {x : α} {y : β} (h₁ : f == g)
   (h₂ : x == y) : f x = g y :=
-by { have := type_eq_of_heq h₂, subst this, rw [eq_of_heq h₁, eq_of_heq h₂] }
+by { cases h₂, cases h₁, refl }
 
 lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ = a₂ → f a₁ == f a₂
 | a _ rfl := heq.rfl

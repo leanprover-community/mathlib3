@@ -18,7 +18,7 @@ In this file we provide the following non-instances for norms on matrices:
   * `matrix.normed_group`
   * `matrix.normed_space`
 
-* The frobenius norm:
+* The Frobenius norm:
 
   * `matrix.frobenius_semi_normed_group`
   * `matrix.frobenius_normed_group`

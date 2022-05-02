@@ -58,7 +58,7 @@ noncomputable def to_left_moves_to_pgame {o : ordinal} : {o' // o' < o} ≃ o.to
 (out_equiv_lt o).trans (equiv.cast (to_pgame_left_moves o).symm)
 
 @[simp] theorem to_left_moves_to_pgame_symm_lt {o : ordinal} (i : o.to_pgame.left_moves) :
-  (to_left_moves_to_pgame.symm i).val < o :=
+  ↑(to_left_moves_to_pgame.symm i) < o :=
 (to_left_moves_to_pgame.symm i).prop
 
 theorem to_pgame_move_left_heq {o : ordinal} :
@@ -77,12 +77,8 @@ theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
 by { convert pgame.move_left_lt (to_left_moves_to_pgame ⟨a, h⟩), rw to_pgame_move_left }
 
 theorem to_pgame_le {a b : ordinal} (h : a ≤ b) : a.to_pgame ≤ b.to_pgame :=
-begin
-  rw pgame.le_def,
-  refine ⟨λ i, or.inl ⟨to_left_moves_to_pgame
-    ⟨_, (to_left_moves_to_pgame_symm_lt i).trans_le h⟩, _⟩, is_empty_elim⟩,
-  simp
-end
+pgame.le_def.2 ⟨λ i, or.inl ⟨to_left_moves_to_pgame
+  ⟨_, (to_left_moves_to_pgame_symm_lt i).trans_le h⟩, by simp⟩, is_empty_elim⟩
 
 @[simp] theorem to_pgame_lt_iff {a b : ordinal} : a.to_pgame < b.to_pgame ↔ a < b :=
 ⟨by { contrapose, rw [not_lt, pgame.not_lt], exact to_pgame_le }, to_pgame_lt⟩

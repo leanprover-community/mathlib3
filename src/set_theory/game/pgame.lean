@@ -120,15 +120,6 @@ inductive pgame : Type (u+1)
 
 namespace pgame
 
-/--
-Construct a pre-game from list of pre-games describing the available moves for Left and Right.
--/
--- TODO provide some API describing the interaction with
--- `left_moves`, `right_moves`, `move_left` and `move_right` below.
--- TODO define this at the level of games, as well, and perhaps also for finsets of games.
-def of_lists (L R : list pgame.{0}) : pgame.{0} :=
-pgame.mk (fin L.length) (fin R.length) (λ i, L.nth_le i i.is_lt) (λ j, R.nth_le j.val j.is_lt)
-
 /-- The indexing type for allowable moves by Left. -/
 def left_moves : pgame → Type u
 | (mk l _ _ _) := l
@@ -147,6 +138,45 @@ def move_right : Π (g : pgame), right_moves g → pgame
 @[simp] lemma move_left_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_left = xL := rfl
 @[simp] lemma right_moves_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).right_moves = xr := rfl
 @[simp] lemma move_right_mk {xl xr xL xR} : (⟨xl, xr, xL, xR⟩ : pgame).move_right = xR := rfl
+
+/--
+Construct a pre-game from list of pre-games describing the available moves for Left and Right.
+-/
+-- TODO define this at the level of games, as well, and perhaps also for finsets of games.
+def of_lists (L R : list pgame.{u}) : pgame.{u} :=
+mk (ulift (fin L.length)) (ulift (fin R.length))
+  (λ i, L.nth_le i.down i.down.is_lt) (λ j, R.nth_le j.down.val j.down.is_lt)
+
+lemma left_moves_of_lists (L R : list pgame) : (of_lists L R).left_moves = ulift (fin L.length) :=
+rfl
+lemma right_moves_of_lists (L R : list pgame) : (of_lists L R).right_moves = ulift (fin R.length) :=
+rfl
+
+/-- Converts a number into a left move for `of_lists`. -/
+def to_of_lists_left_moves {L R : list pgame} : fin L.length ≃ (of_lists L R).left_moves :=
+((equiv.cast (left_moves_of_lists L R).symm).trans equiv.ulift).symm
+
+/-- Converts a number into a right move for `of_lists`. -/
+def to_of_lists_right_moves {L R : list pgame} : fin R.length ≃ (of_lists L R).right_moves :=
+((equiv.cast (right_moves_of_lists L R).symm).trans equiv.ulift).symm
+
+theorem of_lists_move_left {L R : list pgame} (i : fin L.length) :
+  (of_lists L R).move_left (to_of_lists_left_moves i) = L.nth_le i i.is_lt :=
+rfl
+
+@[simp] theorem of_lists_move_left' {L R : list pgame} (i : (of_lists L R).left_moves) :
+  (of_lists L R).move_left i =
+  L.nth_le (to_of_lists_left_moves.symm i) (to_of_lists_left_moves.symm i).is_lt :=
+rfl
+
+theorem of_lists_move_right {L R : list pgame} (i : fin R.length) :
+  (of_lists L R).move_right (to_of_lists_right_moves i) = R.nth_le i i.is_lt :=
+rfl
+
+@[simp] theorem of_lists_move_right' {L R : list pgame} (i : (of_lists L R).right_moves) :
+  (of_lists L R).move_right i =
+  R.nth_le (to_of_lists_right_moves.symm i) (to_of_lists_right_moves.symm i).is_lt :=
+rfl
 
 /-- A variant of `pgame.rec_on` expressed in terms of `pgame.move_left` and `pgame.move_right`.
 
@@ -217,22 +247,23 @@ meta def pgame_wf_tac :=
 /-- The pre-game `zero` is defined by `0 = { | }`. -/
 instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩⟩
 
-@[simp] lemma zero_left_moves : (0 : pgame).left_moves = pempty := rfl
-@[simp] lemma zero_right_moves : (0 : pgame).right_moves = pempty := rfl
+@[simp] lemma zero_left_moves : left_moves 0 = pempty := rfl
+@[simp] lemma zero_right_moves : right_moves 0 = pempty := rfl
 
-instance is_empty_zero_left_moves : is_empty (0 : pgame).left_moves := pempty.is_empty
-instance is_empty_zero_right_moves : is_empty (0 : pgame).right_moves := pempty.is_empty
+instance is_empty_zero_left_moves : is_empty (left_moves 0) := pempty.is_empty
+instance is_empty_zero_right_moves : is_empty (right_moves 0) := pempty.is_empty
 
 instance : inhabited pgame := ⟨0⟩
 
 /-- The pre-game `one` is defined by `1 = { 0 | }`. -/
 instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 
-@[simp] lemma one_left_moves : (1 : pgame).left_moves = punit := rfl
-@[simp] lemma one_move_left : (1 : pgame).move_left punit.star = 0 := rfl
-@[simp] lemma one_right_moves : (1 : pgame).right_moves = pempty := rfl
+@[simp] lemma one_left_moves : left_moves 1 = punit := rfl
+@[simp] lemma one_move_left (x) : move_left 1 x = 0 := rfl
+@[simp] lemma one_right_moves : right_moves 1 = pempty := rfl
 
-instance is_empty_one_right_moves : is_empty (1 : pgame).right_moves := pempty.is_empty
+instance unique_one_left_moves : unique (left_moves 1) := punit.unique
+instance is_empty_one_right_moves : is_empty (right_moves 1) := pempty.is_empty
 
 /-- Define simultaneously by mutual induction the `<=` and `<`
   relation on pre-games. The ZFC definition says that `x = {xL | xR}`
@@ -308,38 +339,28 @@ end
 /-- The definition of `x ≤ 0` on pre-games, in terms of `≤ 0` two moves later. -/
 theorem le_zero {x : pgame} : x ≤ 0 ↔
   ∀ i : x.left_moves, ∃ j : (x.move_left i).right_moves, (x.move_left i).move_right j ≤ 0 :=
-begin
-  rw le_def,
-  dsimp,
-  simp [forall_pempty, exists_pempty]
-end
+by { rw le_def, dsimp, simp [forall_pempty, exists_pempty] }
 
 /-- The definition of `0 ≤ x` on pre-games, in terms of `0 ≤` two moves later. -/
 theorem zero_le {x : pgame} : 0 ≤ x ↔
   ∀ j : x.right_moves, ∃ i : (x.move_right j).left_moves, 0 ≤ (x.move_right j).move_left i :=
-begin
-  rw le_def,
-  dsimp,
-  simp [forall_pempty, exists_pempty]
-end
+by { rw le_def, dsimp, simp [forall_pempty, exists_pempty] }
 
 /-- The definition of `x < 0` on pre-games, in terms of `< 0` two moves later. -/
 theorem lt_zero {x : pgame} : x < 0 ↔
   ∃ j : x.right_moves, ∀ i : (x.move_right j).left_moves, (x.move_right j).move_left i < 0 :=
-begin
-  rw lt_def,
-  dsimp,
-  simp [forall_pempty, exists_pempty]
-end
+by { rw lt_def, dsimp, simp [forall_pempty, exists_pempty] }
 
 /-- The definition of `0 < x` on pre-games, in terms of `< x` two moves later. -/
 theorem zero_lt {x : pgame} : 0 < x ↔
   ∃ i : x.left_moves, ∀ j : (x.move_left i).right_moves, 0 < (x.move_left i).move_right j :=
-begin
-  rw lt_def,
-  dsimp,
-  simp [forall_pempty, exists_pempty]
-end
+by { rw lt_def, dsimp, simp [forall_pempty, exists_pempty] }
+
+@[simp] theorem le_zero_of_is_empty_left_moves (x : pgame) [is_empty x.left_moves] : x ≤ 0 :=
+le_zero.2 is_empty_elim
+
+@[simp] theorem zero_le_of_is_empty_right_moves (x : pgame) [is_empty x.right_moves] : 0 ≤ x :=
+zero_le.2 is_empty_elim
 
 /-- Given a right-player-wins game, provide a response to any move by left. -/
 noncomputable def right_response {x : pgame} (h : x ≤ 0) (i : x.left_moves) :
@@ -1105,54 +1126,55 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
      ... ≤ y : (add_zero_relabelling y).le⟩
 
 /-- The pre-game `star`, which is fuzzy/confused with zero. -/
-def star : pgame := pgame.of_lists [0] [0]
+def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩
 
-instance inhabited_star_left_moves : inhabited star.left_moves :=
-show (inhabited (fin 1)), by apply_instance
+@[simp] theorem star_left_moves : star.left_moves = punit := rfl
+@[simp] theorem star_right_moves : star.right_moves = punit := rfl
 
-instance inhabited_star_right_moves : inhabited star.right_moves :=
-show (inhabited (fin 1)), by apply_instance
+@[simp] theorem star_move_left (x) : star.move_left x = 0 := rfl
+@[simp] theorem star_move_right (x) : star.move_right x = 0 := rfl
+
+instance unique_star_left_moves : unique star.left_moves := punit.unique
+instance unique_star_right_moves : unique star.right_moves := punit.unique
 
 theorem star_lt_zero : star < 0 :=
-by rw lt_def; exact
-or.inr ⟨⟨0, zero_lt_one⟩, (by split; rintros ⟨⟩)⟩
-
+by { rw lt_zero, use default, rintros ⟨⟩ }
 theorem zero_lt_star : 0 < star :=
-by rw lt_def; exact
-or.inl ⟨⟨0, zero_lt_one⟩, (by split; rintros ⟨⟩)⟩
+by { rw zero_lt, use default, rintros ⟨⟩ }
+
+@[simp] theorem neg_star : -star = star :=
+by simp [star]
 
 /-- The pre-game `ω`. (In fact all ordinals have game and surreal representatives.) -/
 def omega : pgame := ⟨ulift ℕ, pempty, λ n, ↑n.1, pempty.elim⟩
 
-theorem zero_lt_one : (0 : pgame) < 1 :=
-begin
-  rw lt_def,
-  left,
-  use ⟨punit.star, by split; rintro ⟨ ⟩⟩,
-end
+@[simp] theorem zero_lt_one : (0 : pgame) < 1 :=
+by { rw zero_lt, use default, rintro ⟨⟩ }
+
+theorem zero_le_one : (0 : pgame) ≤ 1 :=
+zero_le_of_is_empty_right_moves 1
 
 /-- The pre-game `half` is defined as `{0 | 1}`. -/
 def half : pgame := ⟨punit, punit, 0, 1⟩
 
-@[simp] lemma half_move_left : half.move_left punit.star = 0 := rfl
+@[simp] theorem half_left_moves : half.left_moves = punit := rfl
+@[simp] theorem half_right_moves : half.right_moves = punit := rfl
+@[simp] lemma half_move_left (x) : half.move_left x = 0 := rfl
+@[simp] lemma half_move_right (x) : half.move_right x = 1 := rfl
 
-@[simp] lemma half_move_right : half.move_right punit.star = 1 := rfl
+instance unique_half_left_moves : unique half.left_moves := punit.unique
+instance unique_half_right_moves : unique half.right_moves := punit.unique
 
 protected theorem zero_lt_half : 0 < half :=
-begin
-  rw lt_def,
-  left,
-  use punit.star,
-  split; rintro ⟨ ⟩,
-end
+by { rw zero_lt, use default, rintro ⟨⟩ }
 
 theorem half_lt_one : half < 1 :=
 begin
   rw lt_def,
   right,
-  use punit.star,
-  split; rintro ⟨ ⟩,
-  exact zero_lt_one,
+  use default,
+  split; rintro ⟨⟩,
+  exact zero_lt_one
 end
 
 end pgame

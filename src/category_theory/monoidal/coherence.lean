@@ -263,6 +263,11 @@ begin
   cases w,
 end
 
+lemma insert_id_lhs {C : Type*} [category C] {X Y : C} (f g : X ⟶ Y) (w : f ≫ 𝟙 _ = g) : f = g :=
+by simpa using w
+lemma insert_id_rhs {C : Type*} [category C] {X Y : C} (f g : X ⟶ Y) (w : f = g ≫ 𝟙 _) : f = g :=
+by simpa using w
+
 end coherence
 
 open coherence
@@ -300,6 +305,8 @@ do
   -- Then check that either `g₀` is identically `g₁`,
   reflexivity <|> (do
     -- or that both are compositions,
+    (do `(_ ≫ _ = _) ← target, skip) <|> `[apply tactic.coherence.insert_id_lhs],
+    (do `(_ = _ ≫ _) ← target, skip) <|> `[apply tactic.coherence.insert_id_rhs],
     `(_ ≫ _ = _ ≫ _) ← target |
       fail "`coherence` tactic failed, non-structural morphisms don't match",
     tactic.congr_core',
@@ -321,6 +328,9 @@ by coherence
 
 example {U V W X Y : C} (f : U ⟶ V ⊗ (W ⊗ X)) (g : (V ⊗ W) ⊗ X ⟶ Y) :
   f ⊗≫ g = f ≫ (α_ _ _ _).inv ≫ g :=
+by coherence
+
+example {U : C} (f : U ⟶ 𝟙_ C) : f ≫ (ρ_ (𝟙_ C)).inv ≫ (λ_ (𝟙_ C)).hom = f :=
 by coherence
 
 example (W X Y Z : C) (f) :

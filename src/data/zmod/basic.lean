@@ -81,6 +81,9 @@ instance fintype : Π (n : ℕ) [fact (0 < n)], fintype (zmod n)
 | 0     h := false.elim $ nat.not_lt_zero 0 h.1
 | (n+1) _ := fin.fintype (n+1)
 
+instance infinite : infinite (zmod 0) :=
+int.infinite
+
 @[simp] lemma card (n : ℕ) [fact (0 < n)] : fintype.card (zmod n) = n :=
 begin
   casesI n,
@@ -150,6 +153,10 @@ instance (n : ℕ) : char_p (zmod n) n :=
     show (k : zmod (n+1)).val = (0 : zmod (n+1)).val ↔ _,
     rw [val_nat_cast, val_zero, nat.dvd_iff_mod_eq_zero],
   end }
+
+/-- We have that `ring_char (zmod n) = n`. -/
+lemma ring_char_zmod_n (n : ℕ) : ring_char (zmod n) = n :=
+by { rw ring_char.eq_iff, exact zmod.char_p n, }
 
 @[simp] lemma nat_cast_self (n : ℕ) : (n : zmod n) = 0 :=
 char_p.cast_eq_zero (zmod n) n
@@ -441,6 +448,13 @@ begin
   have hlt : ↑(a : zmod n).val < (n : ℤ) := int.coe_nat_lt.mpr (zmod.val_lt a),
   refine (int.mod_eq_of_lt hle hlt).symm.trans _,
   rw [←zmod.int_coe_eq_int_coe_iff', int.cast_coe_nat, zmod.nat_cast_val, zmod.cast_id],
+end
+
+lemma coe_int_cast {n : ℕ} (a : ℤ) : ↑(a : zmod n) = a % n :=
+begin
+  cases n,
+  { rw [int.coe_nat_zero, int.mod_zero, int.cast_id, int.cast_id] },
+  { rw [←val_int_cast, ←int.nat_cast_eq_coe_nat, val, coe_coe] },
 end
 
 @[simp] lemma val_neg_one (n : ℕ) : (-1 : zmod n.succ).val = n :=

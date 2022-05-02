@@ -232,7 +232,7 @@ by { cases x, cases y, refl, }
 @[simp] lemma mk_mul_move_left_inl {xl xr yl yr} {xL xR yL yR} {i j} :
   (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inl (i, j))
   = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xL i * yL j :=
- rfl
+rfl
 
 @[simp] lemma mul_move_left_inl {x y : pgame} {i j} :
    (x * y).move_left ((left_moves_mul x y).symm (sum.inl (i, j)))
@@ -272,25 +272,14 @@ by {cases x, cases y, refl}
 theorem quot_mul_comm : Π (x y : pgame.{u}), ⟦x * y⟧ = ⟦y * x⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
-  let x := mk xl xr xL xR,
-  let y := mk yl yr yL yR,
-  refine quot_eq_of_mk_quot_eq _ _ _ _,
-  apply equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
-  calc
-    xl × yr ⊕ xr × yl
-       ≃ xr × yl ⊕ xl × yr : equiv.sum_comm _ _
-   ... ≃ yl × xr ⊕ yr × xl : equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
-  { rintro (⟨i, j⟩ | ⟨i, j⟩),
-    { change ⟦xL i * y⟧ + ⟦x * yL j⟧ - ⟦xL i * yL j⟧ = ⟦yL j * x⟧ + ⟦y * xL i⟧ - ⟦yL j * xL i⟧,
-      rw [quot_mul_comm (xL i) y, quot_mul_comm x (yL j), quot_mul_comm (xL i) (yL j), add_comm] },
-    { change ⟦xR i * y⟧ + ⟦x * yR j⟧ - ⟦xR i * yR j⟧ = ⟦yR j * x⟧ + ⟦y * xR i⟧ - ⟦yR j * xR i⟧,
-      rw [quot_mul_comm (xR i) y, quot_mul_comm x (yR j), quot_mul_comm (xR i) (yR j),
-        add_comm] } },
-  { rintro (⟨j, i⟩ | ⟨j, i⟩),
-    { change ⟦xR i * y⟧ + ⟦x * yL j⟧ - ⟦xR i * yL j⟧ = ⟦yL j * x⟧ + ⟦y * xR i⟧ - ⟦yL j * xR i⟧,
-      rw [quot_mul_comm (xR i) y, quot_mul_comm x (yL j), quot_mul_comm (xR i) (yL j), add_comm] },
-    { change ⟦xL i * y⟧ + ⟦x * yR j⟧ - ⟦xL i * yR j⟧ = ⟦yR j * x⟧ + ⟦y * xL i⟧ - ⟦yR j * xL i⟧,
-      rw [quot_mul_comm (xL i) y, quot_mul_comm x (yR j), quot_mul_comm (xL i) (yR j), add_comm] } }
+  refine quot_eq_of_mk_quot_eq
+    (equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _))
+    ((equiv.sum_comm _ _).trans (equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _))) _ _,
+  all_goals { rintro (⟨i, j⟩ | ⟨i, j⟩); dsimp; rw [quot_mul_comm, quot_mul_comm (mk xl xr xL xR)] },
+  { rw [quot_mul_comm (xL i), add_comm] },
+  { rw [quot_mul_comm (xR i), add_comm] },
+  { rw [quot_mul_comm (xR j), add_comm] },
+  { rw [quot_mul_comm (xL j), add_comm] }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

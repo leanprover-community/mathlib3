@@ -130,11 +130,9 @@ instance {𝕜 E F : Type*} [field 𝕜] [topological_space 𝕜]
   [topological_space F] [add_comm_group F] [module 𝕜 F] [topological_add_group F]
   [has_continuous_smul 𝕜 F] [finite_dimensional 𝕜 F] :
   finite_dimensional 𝕜 (E →L[𝕜] F) :=
-begin
-  haveI : is_noetherian 𝕜 (E →ₗ[𝕜] F) := is_noetherian.iff_fg.mpr (by apply_instance),
-  let I : (E →L[𝕜] F) →ₗ[𝕜] (E →ₗ[𝕜] F) := continuous_linear_map.coe_lm 𝕜,
-  exact module.finite.of_injective I continuous_linear_map.coe_injective
-end
+finite_dimensional.of_injective
+  (continuous_linear_map.coe_lm 𝕜 : (E →L[𝕜] F) →ₗ[𝕜] (E →ₗ[𝕜] F))
+  continuous_linear_map.coe_injective
 
 section complete_field
 

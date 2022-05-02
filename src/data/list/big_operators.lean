@@ -207,11 +207,11 @@ end
   {l₁ l₂ : list M} (h : l₁ <+ l₂) (h₁ : ∀ a ∈ l₂, (1 : M) ≤ a) : l₁.prod ≤ l₂.prod :=
 begin
   induction h, { refl },
-  case cons : l₁ l₂ a ih ih' {
-    simp only [prod_cons, forall_mem_cons] at h₁ ⊢,
+  case cons : l₁ l₂ a ih ih'
+  { simp only [prod_cons, forall_mem_cons] at h₁ ⊢,
     exact (ih' h₁.2).trans (le_mul_of_one_le_left' h₁.1) },
-  case cons2 : l₁ l₂ a ih ih' {
-    simp only [prod_cons, forall_mem_cons] at h₁ ⊢,
+  case cons2 : l₁ l₂ a ih ih'
+  { simp only [prod_cons, forall_mem_cons] at h₁ ⊢,
     exact mul_le_mul_left' (ih' h₁.2) _ }
 end
 

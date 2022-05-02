@@ -24,6 +24,8 @@ set consists of all previous ordinals.
 - Prove that `birthday o.to_pgame = o`.
 -/
 
+local infix ` ≈ ` := pgame.equiv
+
 universe u
 
 namespace ordinal
@@ -84,6 +86,9 @@ end
 
 @[simp] theorem to_pgame_le_iff {a b : ordinal} : a.to_pgame ≤ b.to_pgame ↔ a ≤ b :=
 ⟨by { contrapose, rw [not_le, pgame.not_le], exact to_pgame_lt }, to_pgame_le⟩
+
+@[simp] theorem to_pgame_equiv_iff {a b : ordinal} : a.to_pgame ≈ b.to_pgame ↔ a = b :=
+by rw [pgame.equiv, le_antisymm_iff, to_pgame_le_iff, to_pgame_le_iff]
 
 theorem to_pgame_injective : function.injective ordinal.to_pgame :=
 λ a b h, begin

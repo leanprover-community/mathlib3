@@ -60,7 +60,6 @@ lemma circle_map_ne_on_ball (R : ℝ) (hR: 0 < R) (z w : ℂ) (hw : w ∈ ball z
   ∀  x : ℝ, circle_map z R x - w ≠ 0 :=
 begin
   intros x hx,
-  by_contra,
   rw ←(sub_eq_zero.mp hx) at hw,
   have  h2 := circle_map_mem_sphere z hR.le x,
   simp only [mem_ball, mem_sphere] at *,

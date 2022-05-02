@@ -1,16 +1,16 @@
 import algebra.group.to_additive
 import tactic.alias
 
-/-- Test assertion helpres -/
+/-- Test assertion helpers -/
 meta def assert_ok (n : name) := do
   decl ← tactic.get_decl n,
   some msg ← linter.to_additive_doc.test decl | pure (),
-  fail! "Linting {n} complained unexepctedly:\n{msg}"
+  fail! "Linting {n} complained unexpectedly:\n{msg}"
 
 meta def assert_complain (n : name) := do
   decl ← tactic.get_decl n,
   none ← linter.to_additive_doc.test decl | pure (),
-  fail! "Linting {n} succeeded unexepctedly"
+  fail! "Linting {n} succeeded unexpectedly"
 
 /-- Docstring -/
 @[to_additive add_foo]

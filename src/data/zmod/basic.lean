@@ -473,7 +473,7 @@ begin
   { rw [←nat_cast_val, val_neg_one, nat.cast_succ, add_sub_cancel] },
 end
 
-lemma zmod.cast_sub_one {R : Type*} [ring R] {n : ℕ} (k : zmod n) :
+lemma cast_sub_one {R : Type*} [ring R] {n : ℕ} (k : zmod n) :
   ((k - 1 : zmod n) : R) = (if k = 0 then n else k) - 1 :=
 begin
   by_cases hk : k = 0,

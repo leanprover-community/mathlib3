@@ -713,7 +713,9 @@ have (∈ s) = p, from set.ext h, by { substI p, rw ← prod_coe_sort, congr }
 /-- The product of a function `g` defined only on a set `s` is equal to
 the product of a function `f` defined everywhere,
 as long as `f` and `g` agree on `s`, and `f = 1` off `s`. -/
-@[to_additive]
+@[to_additive "The sum of a function `g` defined only on a set `s` is equal to
+the sum of a function `f` defined everywhere,
+as long as `f` and `g` agree on `s`, and `f = 0` off `s`."]
 lemma prod_congr_set
   {α : Type*} [comm_monoid α] {β : Type*} [fintype β]
   (s : set β) [decidable_pred (∈s)] (f : β → α) (g : s → α)

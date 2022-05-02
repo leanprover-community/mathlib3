@@ -812,13 +812,13 @@ end
 lemma zero_add_equiv (x : pgame.{u}) : 0 + x ≈ x :=
 (zero_add_relabelling x).equiv
 
-@[simp] theorem left_moves_add (x y : pgame.{u}) :
-  (x + y).left_moves = (x.left_moves ⊕ y.left_moves) :=
-by { cases x, cases y, refl }
+theorem left_moves_add : ∀ (x y : pgame.{u}),
+  (x + y).left_moves = (x.left_moves ⊕ y.left_moves)
+| ⟨_, _, _, _⟩ ⟨_, _, _, _⟩ := rfl
 
-@[simp] theorem right_moves_add (x y : pgame.{u}) :
-  (x + y).right_moves = (x.right_moves ⊕ y.right_moves) :=
-by { cases x, cases y, refl }
+theorem right_moves_add : ∀ (x y : pgame.{u}),
+  (x + y).right_moves = (x.right_moves ⊕ y.right_moves)
+| ⟨_, _, _, _⟩ ⟨_, _, _, _⟩ := rfl
 
 /-- Converts a left move for `x` or `y` into a left move for `x + y` and vice versa.
 

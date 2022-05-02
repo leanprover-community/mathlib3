@@ -59,7 +59,7 @@ begin
   simp_rw [slash_k,(upper_half_plane.denom_cocycle A B x)],
   have e3 : (A * B) • x = A • B • x , by {convert (upper_half_plane.mul_smul' A B x),} ,
   rw e3,
-  simp only [-upper_half_plane.num, -upper_half_plane.denom, of_real_mul, subgroup.coe_mul, coe_coe,
+  simp only [upper_half_plane.num, upper_half_plane.denom, of_real_mul, subgroup.coe_mul, coe_coe,
   upper_half_plane.coe_smul, units.coe_mul, matrix.mul_eq_mul, matrix.det_mul,
   upper_half_plane.smul_aux, upper_half_plane.smul_aux', subtype.coe_mk] at *,
   field_simp,

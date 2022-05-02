@@ -95,7 +95,7 @@ noncomputable def to_right_moves_nim {O : ordinal} : {O' // O' < O} ≃ (nim O).
 
 @[simp] lemma move_left_nim' {O : ordinal.{u}} (i) :
   (nim O).move_left i = nim (to_left_moves_nim.symm i).val :=
-(congr_fun_heq _ (move_left_nim_heq O).symm i).symm
+(congr_heq (move_left_nim_heq O).symm (cast_heq _ i)).symm
 
 lemma move_left_nim {O : ordinal} (i) :
   (nim O).move_left (to_left_moves_nim i) = nim i :=
@@ -103,7 +103,7 @@ by simp
 
 @[simp] lemma move_right_nim' {O : ordinal} (i) :
   (nim O).move_right i = nim (to_right_moves_nim.symm i).val :=
-(congr_fun_heq _ (move_right_nim_heq O).symm i).symm
+(congr_heq (move_right_nim_heq O).symm (cast_heq _ i)).symm
 
 lemma move_right_nim {O : ordinal} (i) :
   (nim O).move_right (to_right_moves_nim i) = nim i :=

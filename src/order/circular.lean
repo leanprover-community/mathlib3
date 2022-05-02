@@ -48,7 +48,7 @@ Some concrete circular orders one encounters in the wild are `zmod n` for `0 < n
 
 ## Notes
 
-There's an unsolved diamond here. The instances `has_le α → has_btw αᵒᵈ` and
+There's an unsolved diamond on `order_dual α` here. The instances `has_le α → has_btw αᵒᵈ` and
 `has_lt α → has_sbtw αᵒᵈ` can each be inferred in two ways:
 * `has_le α` → `has_btw α` → `has_btw αᵒᵈ` vs
   `has_le α` → `has_le αᵒᵈ` → `has_btw αᵒᵈ`

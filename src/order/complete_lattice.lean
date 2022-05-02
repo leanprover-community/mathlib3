@@ -1162,9 +1162,6 @@ instance Prop.complete_lattice : complete_lattice Prop :=
   .. Prop.bounded_order,
   .. Prop.distrib_lattice }
 
-noncomputable instance Prop.complete_linear_order : complete_linear_order Prop :=
-{ ..Prop.complete_lattice, ..Prop.linear_order }
-
 @[simp] lemma Sup_Prop_eq {s : set Prop} : Sup s = ∃ p ∈ s, p := rfl
 @[simp] lemma Inf_Prop_eq {s : set Prop} : Inf s = ∀ p ∈ s, p := rfl
 

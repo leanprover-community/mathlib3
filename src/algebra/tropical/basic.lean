@@ -24,7 +24,8 @@ well as the expected implementations of tropical addition and tropical multiplic
 
 ## Implementation notes
 
-The tropical structure relies on `has_top` and `min`. For the max-tropical numbers, use `Rᵒᵈ`.
+The tropical structure relies on `has_top` and `min`. For the max-tropical numbers, use
+`order_dual R`.
 
 Inspiration was drawn from the implementation of `additive`/`multiplicative`/`opposite`,
 where a type synonym is created with some barebones API, and quickly made irreducible.

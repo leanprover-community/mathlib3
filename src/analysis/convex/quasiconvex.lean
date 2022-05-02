@@ -31,7 +31,7 @@ not hard but quite a pain to go about as there are many cases to consider.
 * https://en.wikipedia.org/wiki/Quasiconvex_function
 -/
 
-open function order_dual set
+open function set
 
 variables {𝕜 E F β : Type*}
 
@@ -62,9 +62,17 @@ quasiconvex_on 𝕜 s f ∧ quasiconcave_on 𝕜 s f
 
 variables {𝕜 s f}
 
-lemma quasiconvex_on.dual : quasiconvex_on 𝕜 s f → quasiconcave_on 𝕜 s (to_dual ∘ f) := id
-lemma quasiconcave_on.dual : quasiconcave_on 𝕜 s f → quasiconvex_on 𝕜 s (to_dual ∘ f) := id
-lemma quasilinear_on.dual : quasilinear_on 𝕜 s f → quasilinear_on 𝕜 s (to_dual ∘ f) := and.swap
+lemma quasiconvex_on.dual (hf : quasiconvex_on 𝕜 s f) :
+  @quasiconcave_on 𝕜 E (order_dual β) _ _ _ _ s f :=
+hf
+
+lemma quasiconcave_on.dual (hf : quasiconcave_on 𝕜 s f) :
+  @quasiconvex_on 𝕜 E (order_dual β) _ _ _ _ s f :=
+hf
+
+lemma quasilinear_on.dual (hf : quasilinear_on 𝕜 s f) :
+  @quasilinear_on 𝕜 E (order_dual β) _ _ _ _ s f :=
+⟨hf.2, hf.1⟩
 
 lemma convex.quasiconvex_on_of_convex_le (hs : convex 𝕜 s) (h : ∀ r, convex 𝕜 {x | f x ≤ r}) :
   quasiconvex_on 𝕜 s f :=

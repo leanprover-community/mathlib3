@@ -14,7 +14,7 @@ classes and allows to transfer order instances.
 
 ## Type synonyms
 
-* `order_dual α` : A type synonym reversing the meaning of all inequalities.
+* `order_dual α` : A type synonym reversing the meaning of all inequalities, with notation `αᵒᵈ`.
 * `as_linear_order α`: A type synonym to promote `partial_order α` to `linear_order α` using
   `is_total α (≤)`.
 
@@ -389,7 +389,8 @@ instance order.preimage.decidable {α β} (f : α → β) (s : β → β → Pro
 
 /-! ### Order dual -/
 
-/-- Type synonym to equip a type with the dual order: `≤` means `≥` and `<` means `>`. -/
+/-- Type synonym to equip a type with the dual order: `≤` means `≥` and `<` means `>`. `αᵒᵈ` is
+notation for `order_dual α`. -/
 def order_dual (α : Type*) : Type* := α
 
 notation α `ᵒᵈ`:std.prec.max_plus := order_dual α

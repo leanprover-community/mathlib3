@@ -327,13 +327,13 @@ lemma inf_mono (h : s₁ ⊆ s₂) : s₂.inf f ≤ s₁.inf f :=
 le_inf $ assume b hb, inf_le (h hb)
 
 @[simp] lemma lt_inf_iff [is_total α (≤)] {a : α} (ha : a < ⊤) : a < s.inf f ↔ (∀ b ∈ s, a < f b) :=
-@sup_lt_iff αᵒᵈ _ _ _ _ _ _ _ ha
+@sup_lt_iff (order_dual α) _ _ _ _ _ _ _ ha
 
 @[simp] lemma inf_le_iff [is_total α (≤)] {a : α} (ha : a < ⊤) : s.inf f ≤ a ↔ (∃ b ∈ s, f b ≤ a) :=
-@le_sup_iff αᵒᵈ _ _ _ _ _ _ _ ha
+@le_sup_iff (order_dual α) _ _ _ _ _ _ _ ha
 
 @[simp] lemma inf_lt_iff [is_total α (≤)] {a : α} : s.inf f < a ↔ (∃ b ∈ s, f b < a) :=
-@lt_sup_iff αᵒᵈ _ _ _ _ _ _ _
+@lt_sup_iff (order_dual α) _ _ _ _ _ _ _
 
 lemma inf_attach (s : finset β) (f : β → α) : s.attach.inf (λ x, f x) = s.inf f :=
 @sup_attach αᵒᵈ _ _ _ _ _
@@ -626,13 +626,13 @@ lemma inf'_le (h : b ∈ s) : s.inf' ⟨b, h⟩ f ≤ f b := @le_sup' αᵒᵈ _
 @sup'_le_iff αᵒᵈ _ _ _ H f _
 
 @[simp] lemma lt_inf'_iff [is_total α (≤)] {a : α} : a < s.inf' H f ↔ (∀ b ∈ s, a < f b) :=
-@sup'_lt_iff αᵒᵈ _ _ _ H f _ _
+@sup'_lt_iff (order_dual α) _ _ _ H f _ _
 
 @[simp] lemma inf'_le_iff [is_total α (≤)] {a : α} : s.inf' H f ≤ a ↔ (∃ b ∈ s, f b ≤ a) :=
-@le_sup'_iff αᵒᵈ _ _ _ H f _ _
+@le_sup'_iff (order_dual α) _ _ _ H f _ _
 
 @[simp] lemma inf'_lt_iff [is_total α (≤)] {a : α} : s.inf' H f < a ↔ (∃ b ∈ s, f b < a) :=
-@lt_sup'_iff αᵒᵈ _ _ _ H f _ _
+@lt_sup'_iff (order_dual α) _ _ _ H f _ _
 
 lemma inf'_bUnion [decidable_eq β] {s : finset γ} (Hs : s.nonempty) {t : γ → finset β}
   (Ht : ∀ b, (t b).nonempty) :
@@ -693,7 +693,7 @@ lemma inf_closed_of_inf_closed {s : set α} (t : finset α) (htne : t.nonempty) 
 
 lemma exists_mem_eq_inf [is_total α (≤)] (s : finset β) (h : s.nonempty) (f : β → α) :
   ∃ a, a ∈ s ∧ s.inf f = f a :=
-@exists_mem_eq_sup αᵒᵈ _ _ _ _ _ h f
+@exists_mem_eq_sup (order_dual α) _ _ _ _ _ h f
 
 lemma coe_inf_of_nonempty {s : finset β} (h : s.nonempty) (f : β → α):
   (↑(s.inf f) : with_top α) = s.inf (λ i, f i) :=
@@ -904,7 +904,7 @@ lemma max'_eq_of_dual_min' {s : finset α} (hs : s.nonempty) :
   max' s hs = of_dual (min' (image to_dual s) (nonempty.image hs to_dual)) :=
 begin
   rw [of_dual, to_dual, equiv.coe_fn_mk, equiv.coe_fn_symm_mk, id.def],
-  simp_rw (@image_id αᵒᵈ (s : finset αᵒᵈ)),
+  simp_rw (@image_id (order_dual α) (s : finset (order_dual α))),
   refl,
 end
 
@@ -912,7 +912,7 @@ lemma min'_eq_of_dual_max' {s : finset α} (hs : s.nonempty) :
   min' s hs = of_dual (max' (image to_dual s) (nonempty.image hs to_dual)) :=
 begin
   rw [of_dual, to_dual, equiv.coe_fn_mk, equiv.coe_fn_symm_mk, id.def],
-  simp_rw (@image_id αᵒᵈ (s : finset αᵒᵈ)),
+  simp_rw (@image_id (order_dual α) (s : finset (order_dual α))),
   refl,
 end
 

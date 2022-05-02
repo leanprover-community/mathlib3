@@ -245,6 +245,56 @@ le_map₂_iff
 
 end div
 
+section monoid
+variables [monoid α] {f g : filter α} {s : set α} {a : α}
+
+/-- If `u` is a unit in `α`, then `{u}` is a unit in `set α`. -/
+@[to_additive "If `u` is an additive unit in `α`, then `{u}` is an additive unit in `set α`.",
+simps coe] protected def _root_.units.filter (u : αˣ) : (filter α)ˣ :=
+{ val := pure u,
+  inv := pure (u⁻¹ : αˣ),
+  val_inv := by rw [pure_mul_pure, units.mul_inv, pure_one],
+  inv_val := by rw [pure_mul_pure, units.inv_mul, pure_one] }
+
+@[simp, to_additive] lemma _root_.is_unit.inv_filter (u : αˣ) : u.filter⁻¹ = u⁻¹.filter := rfl
+
+@[to_additive]
+protected lemma _root_.is_unit.filter (ha : is_unit a) : is_unit (pure a : filter α) :=
+by { obtain ⟨u, rfl⟩ := ha, exact ⟨u.filter, rfl⟩ }
+
+@[simp, to_additive] lemma top_mul_top : (⊤ : filter α) * ⊤ = ⊤ :=
+begin
+  refine top_le_iff.1 _,
+  rintro s ⟨t₁, t₂, h₁, h₂, hs⟩,
+  rw mem_top at *,
+  rw [h₁, h₂, univ_mul_univ] at hs,
+  exact univ_subset_iff.1 hs,
+end
+
+@[to_additive] lemma pow_mem_pow (hs : s ∈ f) : ∀ n : ℕ, s ^ n ∈ f ^ n
+| 0 := by { rw pow_zero, exact one_mem_one }
+| (n + 1) := by { rw pow_succ, exact mul_mem_mul hs (pow_mem_pow _) }
+
+@[to_additive] lemma pow_le_pow (hfg : f ≤ g) : ∀ n : ℕ, f ^ n ≤ g ^ n
+| 0 := by { rw pow_zero, exact subset.rfl }
+| (n + 1) := by { rw pow_succ, exact mul_le_mul' hfg (pow_le_pow _) }
+
+@[to_additive nsmul_bot] lemma bot_pow (n : ℕ) (hn : n ≠ 0) : (⊥  : filter α) ^ n = ⊥ :=
+by rw [←tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, bot_mul]
+
+lemma nsmul_top {α : Type*} [add_monoid α] : ∀ {n : ℕ}, n ≠ 0 → n • (⊤ : filter α) = ⊤
+| 0 := λ h, (h rfl).elim
+| 1 := λ _, one_nsmul _
+| (n + 2) := λ _, by { rw [succ_nsmul, nsmul_top n.succ_ne_zero, top_add_top] }
+
+--TODO: Why is `to_additive` failing here?
+@[to_additive nsmul_top] lemma top_pow : ∀ {n : ℕ}, n ≠ 0 → (⊤ : filter α) ^ n = ⊤
+| 0 := λ h, (h rfl).elim
+| 1 := λ _, pow_one _
+| (n + 2) := λ _, by { rw [pow_succ, top_pow n.succ_ne_zero, top_mul_top] }
+
+end monoid
+
 section division_monoid
 variables [division_monoid α] {f g : filter α}
 

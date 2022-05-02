@@ -397,21 +397,6 @@ multiplication/division!) of a `finset`. -/
 localized "attribute [instance] finset.has_nsmul finset.has_npow finset.has_zsmul finset.has_zpow"
   in pointwise
 
-@[simp, to_additive]
-lemma coe_pow [monoid α] (s : finset α) (n : ℕ) : ↑(s ^ n) = (s ^ n : set α) :=
-begin
-  change ↑(npow_rec n s) = _,
-  induction n with n ih,
-  { rw [npow_rec, pow_zero, coe_one] },
-  { rw [npow_rec, pow_succ, coe_mul, ih] }
-end
-
-@[simp, to_additive] lemma coe_zpow [division_monoid α] (s : finset α) :
-  ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
-| (int.of_nat n) := coe_pow _ _
-| (int.neg_succ_of_nat n) :=
-  by { refine (coe_inv _).trans _, convert congr_arg has_inv.inv (coe_pow _ _) }
-
 /-- `finset α` is a `mul_one_class` under pointwise operations if `α` is. -/
 @[to_additive "`finset α` is an `add_zero_class` under pointwise operations if `α` is."]
 protected def mul_one_class [mul_one_class α] : mul_one_class (finset α) :=
@@ -427,27 +412,116 @@ coe_injective.semigroup _ coe_mul
 protected def comm_semigroup [comm_semigroup α] : comm_semigroup (finset α) :=
 coe_injective.comm_semigroup _ coe_mul
 
+section monoid
+variables [monoid α] {s t : finset α} {a : α}
+
+@[simp, to_additive]
+lemma coe_pow (s : finset α) (n : ℕ) : ↑(s ^ n) = (s ^ n : set α) :=
+begin
+  change ↑(npow_rec n s) = _,
+  induction n with n ih,
+  { rw [npow_rec, pow_zero, coe_one] },
+  { rw [npow_rec, pow_succ, coe_mul, ih] }
+end
+
 /-- `finset α` is a `monoid` under pointwise operations if `α` is. -/
 @[to_additive "`finset α` is an `add_monoid` under pointwise operations if `α` is. "]
-protected def monoid [monoid α] : monoid (finset α) :=
+protected def monoid : monoid (finset α) :=
 coe_injective.monoid _ coe_one coe_mul coe_pow
+
+localized "attribute [instance] finset.mul_one_class finset.add_zero_class finset.semigroup
+  finset.add_semigroup finset.monoid finset.add_monoid" in pointwise
+
+/-- If `u` is a unit in `α`, then `{u}` is a unit in `finset α`. -/
+@[to_additive "If `u` is an additive unit in `α`, then `{u}` is an additive unit in `finset α`.",
+simps coe] protected def _root_.units.finset (u : αˣ) : (finset α)ˣ :=
+{ val := {u},
+  inv := {(u⁻¹ : αˣ)},
+  val_inv := by rw [singleton_mul_singleton, units.mul_inv, singleton_one],
+  inv_val := by rw [singleton_mul_singleton, units.inv_mul, singleton_one] }
+
+@[simp, to_additive] lemma _root_.is_unit.inv_finset (u : αˣ) : u.finset⁻¹ = u⁻¹.finset := rfl
+
+@[to_additive] protected lemma _root_.is_unit.finset (ha : is_unit a) : is_unit ({a} : finset α) :=
+by { obtain ⟨u, rfl⟩ := ha, exact ⟨u.finset, rfl⟩ }
+
+@[to_additive] lemma pow_mem_pow (ha : a ∈ s) : ∀ n : ℕ, a ^ n ∈ s ^ n
+| 0 := by { rw pow_zero, exact one_mem_one }
+| (n + 1) := by { rw pow_succ, exact mul_mem_mul ha (pow_mem_pow _) }
+
+@[to_additive] lemma pow_subset_pow (hst : s ⊆ t) : ∀ n : ℕ, s ^ n ⊆ t ^ n
+| 0 := by { rw pow_zero, exact subset.rfl }
+| (n + 1) := by { rw pow_succ, exact mul_subset_mul hst (pow_subset_pow _) }
+
+@[to_additive] lemma empty_pow (n : ℕ) (hn : n ≠ 0) : (∅ : finset α) ^ n = ∅ :=
+by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
+
+@[simp, to_additive]
+lemma univ_mul_univ [fintype α] : (univ : finset α) * univ = univ :=
+begin
+  have : ∀ x, ∃ a b : α, a * b = x := λ x, ⟨x, 1, mul_one x⟩,
+  simpa only [mem_mul, eq_univ_iff_forall, mem_univ, true_and]
+end
+
+end monoid
 
 /-- `finset α` is a `comm_monoid` under pointwise operations if `α` is. -/
 @[to_additive "`finset α` is an `add_comm_monoid` under pointwise operations if `α` is. "]
 protected def comm_monoid [comm_monoid α] : comm_monoid (finset α) :=
 coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 
+open_locale pointwise
+
+section division_monoid
+variables [division_monoid α] {s t : finset α}
+
+@[simp, to_additive] lemma coe_zpow (s : finset α) : ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
+| (int.of_nat n) := coe_pow _ _
+| (int.neg_succ_of_nat n) :=
+  by { refine (coe_inv _).trans _, convert congr_arg has_inv.inv (coe_pow _ _) }
+
+@[to_additive] protected lemma mul_eq_one_iff : s * t = 1 ↔ ∃ a b, s = {a} ∧ t = {b} ∧ a * b = 1 :=
+by simp_rw [←coe_inj, coe_mul, coe_one, set.mul_eq_one_iff, coe_singleton]
+
 /-- `finset α` is a division monoid under pointwise operations if `α` is. -/
 @[to_additive subtraction_monoid "`finset α` is a subtraction monoid under pointwise operations if
 `α` is."]
-protected def division_monoid [division_monoid α] : division_monoid (finset α) :=
+protected def division_monoid : division_monoid (finset α) :=
 coe_injective.division_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
--- `finset α` is not a group because `s / s ≠ 1` in general
+@[simp, to_additive] lemma is_unit_iff : is_unit s ↔ ∃ a, s = {a} ∧ is_unit a :=
+begin
+  split,
+  { rintro ⟨u, rfl⟩,
+    obtain ⟨a, b, ha, hb, h⟩ := finset.mul_eq_one_iff.1 u.mul_inv,
+    refine ⟨a, ha, ⟨a, b, h, singleton_injective _⟩, rfl⟩,
+    rw [←singleton_mul_singleton, ←ha, ←hb],
+    exact u.inv_mul },
+  { rintro ⟨a, rfl, ha⟩,
+    exact ha.finset }
+end
+
+@[simp, to_additive] lemma is_unit_coe : is_unit (s : set α) ↔ is_unit s :=
+by simp_rw [is_unit_iff, set.is_unit_iff, coe_eq_singleton]
+
+end division_monoid
 
 localized "attribute [instance] finset.mul_one_class finset.add_zero_class finset.semigroup
   finset.add_semigroup finset.monoid finset.add_monoid finset.comm_monoid finset.add_comm_monoid
   finset.division_monoid finset.subtraction_monoid" in pointwise
+
+-- `finset α` is not a group because `s / s ≠ 1` in general
+
+section group
+variables [group α] {s : finset α}
+
+@[to_additive] lemma is_unit_singleton (a : α) : is_unit ({a} : finset α) :=
+(group.is_unit a).finset
+
+@[simp] lemma is_unit_iff_singleton : is_unit s ↔ ∃ a, s = {a} :=
+by simp only [is_unit_iff, group.is_unit, and_true]
+
+end group
 
 end instances
 

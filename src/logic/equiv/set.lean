@@ -516,21 +516,18 @@ end
 the type of all preimages of points under `f` and the total space `α`. -/
 -- See also `equiv.sigma_fiber_equiv`.
 @[simps] def sigma_preimage_equiv {α β} (f : α → β) : (Σ b, f ⁻¹' {b}) ≃ α :=
-{ to_fun := λ a, a.2.1,
-  inv_fun := λ a, ⟨f a, a, rfl⟩,
-  left_inv := λ ⟨a,b,rfl⟩, rfl,
-  right_inv := λ a, rfl }
+sigma_fiber_equiv f
 
 /-- A family of equivalences between preimages of points gives an equivalence between domains. -/
 -- See also `equiv.of_fiber_equiv`.
 @[simps]
 def of_preimage_equiv {α β γ} {f : α → γ} {g : β → γ} (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c})) :
   α ≃ β :=
-(sigma_preimage_equiv f).symm.trans $ (equiv.sigma_congr_right e).trans (sigma_preimage_equiv g)
+equiv.of_fiber_equiv e
 
 @[simp] lemma of_preimage_equiv_map {α β γ} {f : α → γ} {g : β → γ}
   (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c})) (a : α) : g (of_preimage_equiv e a) = f a :=
-(_ : g ⁻¹' {_}).prop
+equiv.of_fiber_equiv_map e a
 
 /-- An equation in the target type gives an equivalence between the corresponding preimages. -/
 @[simps]

@@ -19,7 +19,7 @@ Also `V.ρ` gives the homomorphism `G →* (V →ₗ[k] V)`.
 Conversely, given a homomorphism `ρ : G →* (V →ₗ[k] V)`,
 you can construct the bundled representation as `Rep.of ρ`.
 
-We verify that `Rep k G` is an abelian monoidal category with all (co)limits.
+We verify that `Rep k G` is an abelian symmetric monoidal category with all (co)limits.
 
 We construct the categorical equivalence `Rep k G ≌ Module (monoid_algebra k G)`.
 -/
@@ -179,8 +179,8 @@ def equivalence_Module_monoid_algebra : Rep k G ≌ Module.{u} (monoid_algebra k
   unit_iso := nat_iso.of_components (λ V, unit_iso V) (by tidy),
   counit_iso := nat_iso.of_components (λ M, counit_iso M) (by tidy), }
 
--- Verify that the monoidal structure is available.
-example : monoidal_category (Rep k G) := by apply_instance
+-- Verify that the symmetric monoidal structure is available.
+example : symmetric_category (Rep k G) := by apply_instance
 
 -- TODO Verify that the equivalence with `Module (monoid_algebra k G)` is a monoidal functor.
 

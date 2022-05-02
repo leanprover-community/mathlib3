@@ -52,7 +52,7 @@ well as their duals) which can be simpler in practice.
 
 Uniqueness of adjoints is shown in `category_theory.adjunction.opposites`.
 
-See https://stacks.math.columbia.edu/tag/0037.
+See <https://stacks.math.columbia.edu/tag/0037>.
 -/
 structure adjunction (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
@@ -331,7 +331,7 @@ variables {E : Type u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)
 /--
 Composition of adjunctions.
 
-See https://stacks.math.columbia.edu/tag/0DV0.
+See <https://stacks.math.columbia.edu/tag/0DV0>.
 -/
 def comp (adj₁ : F ⊣ G) (adj₂ : H ⊣ I) : F ⋙ H ⊣ I ⋙ G :=
 { hom_equiv := λ X Z, equiv.trans (adj₂.hom_equiv _ _) (adj₁.hom_equiv _ _),

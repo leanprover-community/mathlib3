@@ -74,7 +74,7 @@ A category `is_filtered` if
    are equal, and
 3. there exists some object.
 
-See https://stacks.math.columbia.edu/tag/002V. (They also define a diagram being filtered.)
+See <https://stacks.math.columbia.edu/tag/002V>. (They also define a diagram being filtered.)
 -/
 class is_filtered extends is_filtered_or_empty C : Prop :=
 [nonempty : nonempty C]
@@ -464,7 +464,7 @@ A category `is_cofiltered` if
    are equal, and
 3. there exists some object.
 
-See https://stacks.math.columbia.edu/tag/04AZ.
+See <https://stacks.math.columbia.edu/tag/04AZ>.
 -/
 class is_cofiltered extends is_cofiltered_or_empty C : Prop :=
 [nonempty : nonempty C]

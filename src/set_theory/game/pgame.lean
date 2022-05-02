@@ -109,7 +109,7 @@ open function
 universes u
 
 /-- The type of pre-games, before we have quotiented
-  by equivalence. In ZFC, a combinatorial game is constructed from
+  by equivalence (`pgame.setoid`). In ZFC, a combinatorial game is constructed from
   two sets of combinatorial games that have been constructed at an earlier
   stage. To do this in type theory, we say that a pre-game is built
   inductively from two families of pre-games indexed over any type

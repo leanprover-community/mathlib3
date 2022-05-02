@@ -207,6 +207,13 @@ lemma fact_finite_dimensional_of_finrank_eq_succ {K V : Type*} [field K] [add_co
   finite_dimensional K V :=
 finite_dimensional_of_finrank $ by convert nat.succ_pos n; apply fact.out
 
+lemma finite_dimensional_iff_of_rank_eq_nsmul
+  {K V W : Type*} [field K] [add_comm_group V] [add_comm_group W] [module K V] [module K W]
+  {n : ℕ} (hn : n ≠ 0) (hVW : module.rank K V = n • module.rank K W) :
+  finite_dimensional K V ↔ finite_dimensional K W :=
+by simp only [finite_dimensional, ← is_noetherian.iff_fg, is_noetherian.iff_dim_lt_omega, hVW,
+  cardinal.nsmul_lt_omega_iff_of_ne_zero hn]
+
 /-- If a vector space has a finite basis, then its dimension is equal to the cardinality of the
 basis. -/
 lemma finrank_eq_card_basis {ι : Type w} [fintype ι] (h : basis ι K V) :

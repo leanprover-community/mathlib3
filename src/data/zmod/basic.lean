@@ -88,7 +88,7 @@ int.infinite
 begin
   casesI n,
   { exact (not_fintype (zmod 0)).elim },
-  { convert fintype.card_fin (n+1) },
+  { convert fintype.card_fin (n+1) }
 end
 
 instance decidable_eq : Π (n : ℕ), decidable_eq (zmod n)

@@ -219,7 +219,11 @@ begin
   ring_nf,
 end
 
+variable (Γ : subgroup SL(2,ℤ))
+
 @[simp]lemma sl_moeb (A: SL(2,ℤ)) (z : ℍ) : A • z = (A : (GL(2, ℝ)⁺)) • z := rfl
+lemma subgroup_moeb (A: Γ) (z : ℍ) : A • z = (A : (GL(2, ℝ)⁺)) • z := rfl
+@[simp]lemma subgroup_to_sl_moeb (A : Γ) (z : ℍ) : A • z = (A : SL(2,ℤ)) • z := rfl
 
 @[simp] lemma SL_neg_smul (g : SL(2,ℤ)) (z : ℍ) : -g • z = g • z :=
 begin

@@ -10,7 +10,7 @@ import category_theory.discrete_category
 # Limits in `C` give colimits in `Cᵒᵖ`.
 
 We also give special cases for (co)products,
-but not yet for pullbacks / pushouts or for (co)equalizers.
+(co)equalizers, and pullbacks / pushouts.
 
 -/
 
@@ -314,5 +314,19 @@ lemma has_finite_colimits_opposite [has_finite_limits C] :
 lemma has_finite_limits_opposite [has_finite_colimits C] :
   has_finite_limits Cᵒᵖ :=
 { out := λ J 𝒟 𝒥, by { resetI, apply_instance, }, }
+
+lemma has_pullbacks_opposite [has_pushouts C] : has_pullbacks Cᵒᵖ :=
+begin
+  haveI : has_colimits_of_shape walking_cospan.{v₁}ᵒᵖ C :=
+    has_colimits_of_shape_of_equivalence walking_cospan_op_equiv.symm,
+  apply has_limits_of_shape_op_of_has_colimits_of_shape,
+end
+
+lemma has_pushouts_opposite [has_pullbacks C] : has_pushouts Cᵒᵖ :=
+begin
+  haveI : has_limits_of_shape walking_span.{v₁}ᵒᵖ C :=
+    has_limits_of_shape_of_equivalence walking_span_op_equiv.symm,
+  apply has_colimits_of_shape_op_of_has_limits_of_shape,
+end
 
 end category_theory.limits

@@ -432,6 +432,9 @@ begin
   exact ring.inverse_invertible _,
 end
 
+lemma commute.exp {x y : 𝔸} (h : commute x y) : commute (exp 𝕂 𝔸 x) (exp 𝕂 𝔸 y) :=
+(h.exp_left _).exp_right _
+
 end
 
 /-- In a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, if a family of elements `f i` mutually
@@ -439,7 +442,7 @@ commute then `exp 𝕂 𝔸 (∑ i, f i) = ∏ i, exp 𝕂 𝔸 (f i)`. -/
 lemma exp_sum_of_commute {ι} (s : finset ι) (f : ι → 𝔸)
   (h : ∀ (i ∈ s) (j ∈ s), commute (f i) (f j)) :
   exp 𝕂 𝔸 (∑ i in s, f i) = s.noncomm_prod (λ i, exp 𝕂 𝔸 (f i))
-    (λ i hi j hj, ((h i hi j hj).exp_left _).exp_right _) :=
+    (λ i hi j hj, (h i hi j hj).exp 𝕂) :=
 begin
   classical,
   induction s using finset.induction_on with a s ha ih,

@@ -119,6 +119,13 @@ begin
     exact subalgebra.sub_mem _ (self_mem_adjoin_singleton ℤ _) (subalgebra.one_mem _) }
 end
 
+instance [hcycl : is_cyclotomic_extension {p} ℚ K] (hζ : is_primitive_root ζ ↑p) :
+  is_integral_closure (adjoin ℤ ({ζ} : set K)) ℤ K :=
+begin
+  rw [← pow_one p] at hζ hcycl,
+  exactI is_integral_closure_adjoing_singleton_of_prime_pow hζ,
+end
+
 local attribute [-instance] cyclotomic_field.algebra
 local attribute [instance] algebra_rat_subsingleton
 
@@ -146,6 +153,12 @@ begin
       { exact ne_zero.char_zero } },
     rintro ⟨y, rfl⟩,
     exact is_integral.algebra_map ((is_cyclotomic_extension.integral {p ^ k} ℤ _) _) }
+end
+
+instance : is_integral_closure (cyclotomic_ring p ℤ ℚ) ℤ (cyclotomic_field p ℚ) :=
+begin
+  rw [← pow_one p],
+  exact cyclotomic_ring_is_integral_closure_of_prime_pow
 end
 
 end is_cyclotomic_extension.rat

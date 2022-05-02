@@ -60,6 +60,8 @@ by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, apply pgame.le_trans }
 theorem le_antisymm : ∀ x y : game, x ≤ y → y ≤ x → x = y :=
 by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ }
 
+/-- This instance is incompatible with that provided by `game_partial_order`, which is why it's made
+into a `def` instead. -/
 instance : has_lt game :=
 ⟨quotient.lift₂ (λ x y, x < y) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx hy))⟩
 
@@ -168,8 +170,8 @@ Hence we define them here. -/
 
 /-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
 `{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, x*yL + xR*y - xR*yL }`. -/
-def mul (x y : pgame) : pgame :=
-begin
+instance : has_mul pgame.{u} :=
+⟨λ x y, begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
   induction y with yl yr yL yR IHyl IHyr,
   have y := mk yl yr yL yR,
@@ -178,9 +180,7 @@ begin
   { exact IHxr i y + IHyr j - IHxr i (yR j) },
   { exact IHxl i y + IHyr j - IHxl i (yR j) },
   { exact IHxr i y + IHyl j - IHxr i (yL j) }
-end
-
-instance : has_mul pgame := ⟨mul⟩
+end⟩
 
 /-- An explicit description of the moves for Left in `x * y`. -/
 def left_moves_mul (x y : pgame) : (x * y).left_moves

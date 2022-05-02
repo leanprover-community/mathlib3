@@ -177,8 +177,7 @@ end
 
 lemma eq_principal_of_fintype (α : Type*) [fintype α] (f : ultrafilter α) :
   ∃ a, (f : filter α) = pure a :=
-(eq_principal_of_finite_mem (finite_univ : (univ : set α).finite) filter.univ_mem).imp $ λ a,
-  Exists.some_spec
+(eq_principal_of_finite_mem finite_univ univ_mem).imp $ λ a, Exists.some_spec
 
 /-- Monadic bind for ultrafilters, coming from the one on filters
 defined in terms of map and join.-/

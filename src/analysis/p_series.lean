@@ -236,8 +236,8 @@ open finset
 
 variables {α : Type*} [linear_ordered_field α]
 
-lemma sum_Ioc_div_sq_le_sub {k n : ℕ} (hk : k ≠ 0) (h : k ≤ n) :
-  ∑ i in Ioc k n, (1 : α) / i ^ 2 ≤ 1 / k - 1 / n :=
+lemma sum_Ioc_inv_sq_le_sub {k n : ℕ} (hk : k ≠ 0) (h : k ≤ n) :
+  ∑ i in Ioc k n, ((i ^ 2) ⁻¹ : α) ≤ k ⁻¹ - n ⁻¹ :=
 begin
   refine nat.le_induction _ _ n h,
   { simp only [Ioc_self, sum_empty, sub_self] },
@@ -254,33 +254,34 @@ begin
   { nlinarith },
 end
 
-lemma sum_Ioo_div_sq_le (k n : ℕ) :
-  ∑ i in Ioo k n, (1 : α) / i ^ 2 ≤ 2 / (k + 1) :=
+lemma sum_Ioo_inv_sq_le (k n : ℕ) :
+  ∑ i in Ioo k n, ((i ^ 2) ⁻¹ : α) ≤ 2 / (k + 1) :=
 calc
-∑ i in Ioo k n, (1 : α) / i ^ 2 ≤ ∑ i in Ioc k (max (k+1) n), 1 / i ^ 2 :
+∑ i in Ioo k n, ((i ^ 2) ⁻¹ : α) ≤ ∑ i in Ioc k (max (k+1) n), (i ^ 2) ⁻¹ :
 begin
   apply sum_le_sum_of_subset_of_nonneg,
   { assume x hx,
     simp only [mem_Ioo] at hx,
     simp only [hx, hx.2.le, mem_Ioc, le_max_iff, or_true, and_self] },
   { assume i hi hident,
-    exact div_nonneg zero_le_one (sq_nonneg _), }
+    exact inv_nonneg.2 (sq_nonneg _), }
 end
-... ≤ 1 / (k + 1) ^ 2 + ∑ i in Ioc k.succ (max (k + 1) n), 1 / i ^ 2 :
+... ≤ ((k + 1) ^ 2) ⁻¹ + ∑ i in Ioc k.succ (max (k + 1) n), (i ^ 2) ⁻¹ :
 begin
   rw [← nat.Icc_succ_left, ← nat.Ico_succ_right, sum_eq_sum_Ico_succ_bot],
   swap, { exact nat.succ_lt_succ ((nat.lt_succ_self k).trans_le (le_max_left _ _)) },
   rw [nat.Ico_succ_right, nat.Icc_succ_left, nat.cast_succ],
 end
-... ≤ 1 / (k + 1) ^ 2 + 1 / (k + 1) :
+... ≤ ((k + 1) ^ 2) ⁻¹ + (k + 1) ⁻¹ :
 begin
-  refine add_le_add le_rfl ((sum_Ioc_div_sq_le_sub _ (le_max_left _ _)).trans _),
+  refine add_le_add le_rfl ((sum_Ioc_inv_sq_le_sub _ (le_max_left _ _)).trans _),
   { simp only [ne.def, nat.succ_ne_zero, not_false_iff] },
   { simp only [nat.cast_succ, one_div, sub_le_self_iff, inv_nonneg, nat.cast_nonneg] }
 end
 ... ≤ 1 / (k + 1) + 1 / (k + 1) :
 begin
   have A : (1 : α) ≤ k + 1, by simp only [le_add_iff_nonneg_left, nat.cast_nonneg],
+  simp_rw ← one_div,
   apply add_le_add_right,
   refine div_le_div zero_le_one le_rfl (zero_lt_one.trans_le A) _,
   simpa using pow_le_pow A one_le_two,

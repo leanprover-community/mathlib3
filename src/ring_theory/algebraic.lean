@@ -101,7 +101,7 @@ by { rw ←ring_hom.map_int_cast (algebra_map R A), exact is_algebraic_algebra_m
 
 lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [char_zero R]
   [algebra R A] (n : ℚ) : is_algebraic R (n : A) :=
-by { rw ←ring_hom.map_rat_cast (algebra_map R A), exact is_algebraic_algebra_map n }
+by { rw ←map_rat_cast (algebra_map R A), exact is_algebraic_algebra_map n }
 
 lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :
   is_algebraic R a → is_algebraic R (algebra_map S A a) :=
@@ -324,12 +324,14 @@ variables [comm_semiring R'] [comm_semiring S'] [comm_semiring T'] [algebra R' S
 noncomputable def polynomial.algebra_pi :
   algebra (R'[X]) (S' → T') :=
 { to_fun := λ p z, algebra_map S' T' (aeval z p),
-  map_one' := funext $ λ z, by simp,
-  map_mul' := λ f g, funext $ λ z, by simp,
-  map_zero' := funext $ λ z, by simp,
-  map_add' := λ f g, funext $ λ z, by simp,
+  map_one' := funext $ λ z, by simp only [polynomial.aeval_one, pi.one_apply, map_one],
+  map_mul' := λ f g, funext $ λ z, by simp only [pi.mul_apply, map_mul],
+  map_zero' := funext $ λ z, by simp only [polynomial.aeval_zero, pi.zero_apply, map_zero],
+  map_add' := λ f g, funext $ λ z, by simp only [polynomial.aeval_add, pi.add_apply, map_add],
   commutes' := λ p f, funext $ λ z, mul_comm _ _,
-  smul_def' := λ p f, funext $ λ z, by simp [algebra.algebra_map_eq_smul_one],
+  smul_def' := λ p f, funext $ λ z, by
+    simp only [algebra.algebra_map_eq_smul_one, polynomial_smul_apply', one_mul,
+      pi.mul_apply, algebra.smul_mul_assoc],
   ..polynomial.has_scalar_pi' R' S' T' }
 
 local attribute [instance] polynomial.algebra_pi

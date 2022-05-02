@@ -276,15 +276,6 @@ def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
 
 @[simp] lemma coe_of_nnreal_hom : ⇑of_nnreal_hom = coe := rfl
 
-lemma ennreal_coe_comp_to_nnreal_comp {α : Type*} {f : α → ℝ} (f_nn : 0 ≤ f) :
-  (coe : ℝ≥0 → ℝ≥0∞) ∘ real.to_nnreal ∘ f = ennreal.of_real ∘ f :=
-begin
-  funext x,
-  simp only [ennreal.of_real_eq_coe_nnreal (f_nn x), function.comp_app, ennreal.coe_eq_coe],
-  apply subtype.coe_injective,
-  exact max_eq_left_iff.mpr (f_nn x),
-end
-
 section actions
 
 /-- A `mul_action` over `ℝ≥0∞` restricts to a `mul_action` over `ℝ≥0`. -/

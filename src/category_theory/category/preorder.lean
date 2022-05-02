@@ -39,7 +39,7 @@ Because we don't allow morphisms to live in `Prop`,
 we have to define `X ⟶ Y` as `ulift (plift (X ≤ Y))`.
 See `category_theory.hom_of_le` and `category_theory.le_of_hom`.
 
-See https://stacks.math.columbia.edu/tag/00D3.
+See <https://stacks.math.columbia.edu/tag/00D3>.
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance small_category (α : Type u) [preorder α] : small_category α :=

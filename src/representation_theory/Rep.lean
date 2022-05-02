@@ -18,7 +18,11 @@ Also `V.ρ` gives the homomorphism `G →* (V →ₗ[k] V)`.
 Conversely, given a homomorphism `ρ : G →* (V →ₗ[k] V)`,
 you can construct the bundled representation as `Rep.of ρ`.
 
+<<<<<<< HEAD
 We verify that `Rep k G` is a `k`-linear abelian monoidal category with all (co)limits.
+=======
+We verify that `Rep k G` is an abelian symmetric monoidal category with all (co)limits.
+>>>>>>> origin/master
 -/
 
 universes u
@@ -66,9 +70,14 @@ end Rep
 namespace Rep
 variables {k G : Type u} [comm_ring k] [monoid G]
 
+<<<<<<< HEAD
 -- Verify that the monoidal structure is available.
 example : monoidal_category (Rep k G) := by apply_instance
 example : monoidal_preadditive (Rep k G) := by apply_instance
 example : monoidal_linear k (Rep k G) := by apply_instance
+=======
+-- Verify that the symmetric monoidal structure is available.
+example : symmetric_category (Rep k G) := by apply_instance
+>>>>>>> origin/master
 
 end Rep

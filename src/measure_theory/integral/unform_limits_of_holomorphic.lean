@@ -24,30 +24,31 @@ variables {E : Type u} [normed_group E] [normed_space ℂ E]
 
 namespace complex
 
-/--Given a function `f : ℂ → E`, this gives the function whose integral from `0` to `2 * π` is the
-integral of `f`  around a circle of radius `R` around -- -/
-def circle_integral_transform (R : ℝ) (z : ℂ) (f : ℂ → E) (w : ℂ) : (ℝ → E) := λ θ,
+/--Given a function `f : ℂ → E`, this gives the function  $(2πi)^{-1}\frac{f(x)}{x-w}$ where `x`
+runs over a circle of radius `R` around `z`. If `f` is differntiable and `w` is in the interior of
+the ball, then the integral from `0` to `2 * π` of this gives the value `f(w)` -/
+def circle_integral_transform (R : ℝ) (z w: ℂ) (f : ℂ → E) : (ℝ → E) := λ θ,
  (2 * π * I : ℂ)⁻¹ • deriv (circle_map z R) θ • ((circle_map z R θ) - w)⁻¹ • f  (circle_map z R θ)
 
 /--The derivative of `circle_integral_transform` -/
-def circle_integral_transform_deriv (R : ℝ) (z : ℂ) (f : ℂ → E) (w : ℂ) : (ℝ → E) := λ θ,
+def circle_integral_transform_deriv (R : ℝ) (z w : ℂ) (f : ℂ → E) : (ℝ → E) := λ θ,
   (2 * π * I : ℂ)⁻¹ • deriv (circle_map z R) θ •
   (((circle_map z R θ) - w)^(2))⁻¹ • f  (circle_map z R θ)
 
-lemma circle_integral_transform_deriv_eq (R : ℝ) (z : ℂ) (f : ℂ → E) (w : ℂ) :
-  circle_integral_transform_deriv  R z f w = (λ θ,
-  ((circle_map z R θ) - w)⁻¹ • (circle_integral_transform R z f w θ)) :=
+lemma circle_integral_transform_deriv_eq (R : ℝ) (z w : ℂ) (f : ℂ → E)  :
+  circle_integral_transform_deriv  R z w f = (λ θ,
+  ((circle_map z R θ) - w)⁻¹ • (circle_integral_transform R z w f θ)) :=
 begin
   ext,
-  simp_rw [circle_integral_transform_deriv, circle_integral_transform, pow_two,←mul_smul,
+  simp_rw [circle_integral_transform_deriv, circle_integral_transform, pow_two, ←mul_smul,
    ←mul_assoc],
   ring_nf,
   congr',
-  rw [pow_two,mul_inv₀],
+  rw [pow_two, mul_inv₀],
 end
 
-lemma circle_integral_transform_circle_int [complete_space E] (R : ℝ) (z : ℂ) (f : ℂ → E) (w : ℂ) :
-  ∫ (θ : ℝ) in 0..2 * π, circle_integral_transform R z f w θ =
+lemma circle_integral_transform_circle_int [complete_space E] (R : ℝ) (z w : ℂ) (f : ℂ → E) :
+  ∫ (θ : ℝ) in 0..2 * π, circle_integral_transform R z w f θ =
  (2 * π * I : ℂ)⁻¹ •  ∮ z in C(z, R), (z - w)⁻¹ • f z :=
 begin
   simp_rw [circle_integral_transform,circle_integral,deriv_circle_map, circle_map],
@@ -79,7 +80,7 @@ end
 lemma circle_integral_transform_cont_on_ICC (R : ℝ) (hR : 0 < R)  (f : ℂ → E) (z w : ℂ)
   (hf : continuous_on f (sphere z R)  )
   (hw : w ∈ ball z R) :
-  continuous_on (circle_integral_transform R z f w) [0, 2*π] :=
+  continuous_on (circle_integral_transform R z w f ) [0, 2*π] :=
 begin
   rw circle_integral_transform,
   apply_rules [continuous_on.smul, continuous_const.continuous_on],
@@ -94,7 +95,7 @@ end
 lemma circle_integral_transform_deriv_cont_on_ICC (R : ℝ) (hR : 0 < R) (f : ℂ → E) (z w : ℂ)
   (hf : continuous_on f (sphere z R)  )
   (hw : w ∈ ball z R):
-  continuous_on (circle_integral_transform_deriv R z f w) [0, 2*π] :=
+  continuous_on (circle_integral_transform_deriv R z w f ) [0, 2*π] :=
 begin
   rw circle_integral_transform_deriv_eq,
   refine (circle_map_inv_continuous_on R hR z w hw).smul
@@ -104,7 +105,7 @@ end
 lemma circle_integral_transform_cont_on (R : ℝ) (hR: 0 < R) (f : ℂ → E) (z w : ℂ)
   (hf : continuous_on f (sphere z R))
   (hw : w ∈ ball z R):
-  continuous_on (circle_integral_transform R z f w) (Ι 0 (2 * π)) :=
+  continuous_on (circle_integral_transform R z w f ) (Ι 0 (2 * π)) :=
 begin
  apply (circle_integral_transform_cont_on_ICC R hR f z w hf hw).mono,
  simp_rw [interval_oc_of_le (real.two_pi_pos.le), interval_of_le (real.two_pi_pos.le),
@@ -113,7 +114,7 @@ end
 
 /--A useful bound for circle integrals-/
 def circle_integral_bounding_function (R : ℝ) (z : ℂ) : (ℂ × ℝ → ℂ) :=
-  λ w, circle_integral_transform_deriv R z (λ x, 1) w.1 w.2
+  λ w, circle_integral_transform_deriv R z w.1 (λ x, 1) w.2
 
 lemma circle_int_funct_cont_on_prod  (R r : ℝ) (hR: 0 < R) (hr : r < R) (z : ℂ) :
  continuous_on (λ (w : ℂ × ℝ), ((circle_map z R w.snd - w.fst)⁻¹)^2)
@@ -172,7 +173,7 @@ end
 
 lemma circle_integral_transform_deriv_cont_on (R : ℝ) (hR : 0 < R)  (f : ℂ → E) (z w : ℂ)
   (hf : continuous_on f (sphere z R)) (hw : w ∈ ball z R) :
-  continuous_on (circle_integral_transform_deriv R z f w) (Ι 0 (2*π)) :=
+  continuous_on (circle_integral_transform_deriv R z w f ) (Ι 0 (2*π)) :=
 begin
  apply (circle_integral_transform_deriv_cont_on_ICC R hR f z w hf hw).mono,
  simp_rw [interval_oc_of_le (real.two_pi_pos.le), interval_of_le (real.two_pi_pos.le),
@@ -185,7 +186,7 @@ def circle_integral_form [complete_space E] (R : ℝ) (z : ℂ) (f : ℂ → E) 
 
 lemma circle_intgral_form_eq_int [complete_space E] (R : ℝ) (z : ℂ) (f : ℂ → E) :
   circle_integral_form R z f =  λ w,
- ∫ (θ : ℝ) in 0..2 * π, (circle_integral_transform R z f w) θ :=
+ ∫ (θ : ℝ) in 0..2 * π, (circle_integral_transform R z w f ) θ :=
 begin
   simp_rw [circle_integral_form,circle_integral_transform, circle_integral,
   interval_integral.integral_smul],
@@ -195,7 +196,7 @@ lemma circle_integral_transform_deriv_bound (R r : ℝ)  (hR: 0 < R) (hr : r < R
   (z : ℂ) (f : ℂ → ℂ) (x : ℂ) (hx : x ∈ ball z r) (hf : continuous_on f (sphere z R)) :
   ∃ (bound : ℝ → ℝ) (ε : ℝ), 0 < ε ∧ ball x ε ⊆ ball z R ∧
   (∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε,
-  ∥circle_integral_transform_deriv R z f y t∥ ≤  bound t) ∧ continuous_on bound [0, 2*π] :=
+  ∥circle_integral_transform_deriv R z y f t∥ ≤  bound t) ∧ continuous_on bound [0, 2*π] :=
  begin
   have HBB := ball_subset_ball hr.le,
   have h2R : 0 < 2*R, by {linarith,},
@@ -205,7 +206,7 @@ lemma circle_integral_transform_deriv_bound (R r : ℝ)  (hR: 0 < R) (hr : r < R
   simp only [set_coe.forall, mem_prod, mem_closed_ball, subtype.coe_mk, and_imp, prod.forall,
   set_coe.exists, exists_prop, prod.exists] at fbb,
   obtain ⟨ a, b, hab⟩ := fbb,
-  set V: ℝ → (ℂ → ℂ) := λ θ, λ w, circle_integral_transform_deriv R z (λ x, 1) w θ,
+  set V: ℝ → (ℂ → ℂ) := λ θ, λ w, circle_integral_transform_deriv R z w (λ x, 1) θ,
   set bound : ℝ → ℝ := λ r, (complex.abs (V b a)) * complex.abs (f(circle_map z R r)),
   refine ⟨bound, ε', _⟩,
   simp only [gt_iff_lt] at hε',
@@ -238,8 +239,8 @@ lemma circle_integral_transform_deriv_bound (R r : ℝ)  (hR: 0 < R) (hr : r < R
 
 lemma ae_circle_integral_transform_has_deriv_at (R : ℝ) (z : ℂ) (hR : 0 < R) (f : ℂ → ℂ) :
   ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball z R,
-  has_deriv_at (λ y, (circle_integral_transform R z f) y t)
-  ((circle_integral_transform_deriv R z f) y t) y :=
+  has_deriv_at (λ y, (circle_integral_transform R z y f) t)
+  ((circle_integral_transform_deriv R z y f) t) y :=
 begin
   apply eventually_of_forall,
   intros y hy x hx,
@@ -255,7 +256,7 @@ end
 
 lemma circle_integral_transform_ae_measurable  (R r: ℝ) (hR: 0 < R) (hr : r < R)
   (z x : ℂ) (hx : x ∈ ball z r ) (f : ℂ → ℂ) (hf : continuous_on f (sphere z R)) :
-  ∀ᶠ y in 𝓝 x, ae_measurable (( λ w, (λ θ, (circle_integral_transform R z f w θ))) y)
+  ∀ᶠ y in 𝓝 x, ae_measurable (( λ w, (λ θ, (circle_integral_transform R z w f  θ))) y)
   (volume.restrict (Ι 0 (2 * π))):=
 begin
   rw filter.eventually_iff_exists_mem,
@@ -269,7 +270,7 @@ end
 
 lemma circle_integral_transform_Interval_integrable (R r : ℝ) (hR: 0 < R) (hr : r < R)
  (z x : ℂ) (hx : x ∈ ball z r ) (f : ℂ → ℂ) (hf : continuous_on f (sphere z R)) :
- interval_integrable ((λ w, (λ θ, (circle_integral_transform R z f w θ))) x) volume 0  (2 * π) :=
+ interval_integrable ((λ w, (λ θ, (circle_integral_transform R z w f  θ))) x) volume 0  (2 * π) :=
 begin
   have cts := circle_integral_transform_cont_on_ICC R hR f z x hf,
   apply (continuous_on.interval_integrable (cts ((ball_subset_ball hr.le) hx))),
@@ -278,7 +279,7 @@ end
 
 lemma circle_integral_transform_deriv_ae_measurable  (R r : ℝ) (hR: 0 < R) (hr : r < R)
   (z x : ℂ) (hx : x ∈ ball z r ) (f : ℂ → ℂ) (hf : continuous_on f (sphere z R)) :
-   ae_measurable (( λ w, (λ θ, (circle_integral_transform_deriv R z f w θ))) x)
+   ae_measurable (( λ w, (λ θ, (circle_integral_transform_deriv R z w f  θ))) x)
   (volume.restrict (Ι 0 (2 * π))):=
 begin
   apply_rules [continuous_on.ae_measurable (circle_integral_transform_deriv_cont_on R hR f z x hf _)
@@ -289,16 +290,16 @@ lemma circle_integral_differentiable_on (R r: ℝ) (hR: 0 < R) (hr : r < R) (hr'
   (f : ℂ → ℂ) (hf : continuous_on f (sphere z R)) :
   differentiable_on ℂ (circle_integral_form R z f) (ball z r) :=
 begin
-  simp_rw [circle_integral_form, ←circle_integral_transform_circle_int R z f,
+  simp_rw [circle_integral_form, ←circle_integral_transform_circle_int R z _ f,
   circle_integral_transform, differentiable_on, differentiable_within_at],
   intros x hx,
   have h4R: 0 < (4⁻¹*R), by {apply mul_pos, rw inv_pos, linarith, apply hR,},
-  set F : ℂ → ℝ → ℂ  := λ w, (λ θ, (circle_integral_transform R z f w θ)),
-  set F' : ℂ → ℝ → ℂ := circle_integral_transform_deriv R z f,
+  set F : ℂ → ℝ → ℂ  := λ w, (λ θ, (circle_integral_transform R z w f θ)),
+  set F' : ℂ → ℝ → ℂ := λ w, circle_integral_transform_deriv R z w f,
   have hF_meas : ∀ᶠ y in 𝓝 x, ae_strongly_measurable (F y) (volume.restrict (Ι 0 (2 * π))) ,
   by {simp_rw F, simp_rw _root_.ae_strongly_measurable_iff_ae_measurable,
   apply circle_integral_transform_ae_measurable R r hR hr  z x hx f hf},
-  have hF_int : interval_integrable (F x) volume 0  (2 * π),
+  have hF_int : interval_integrable (F x) volume 0 (2 * π),
   by {simp_rw F, apply  circle_integral_transform_Interval_integrable  R r hR hr z x hx f hf},
   have  hF'_meas : ae_strongly_measurable (F' x) (volume.restrict (Ι 0 (2 * π))) ,
   by {simp_rw F', simp_rw _root_.ae_strongly_measurable_iff_ae_measurable,
@@ -331,8 +332,8 @@ begin
 end
 
 lemma circle_integral_transform_sub  (R : ℝ) (f g : ℂ → ℂ) (z w : ℂ) : ∀ θ : ℝ,
-   complex.abs (((circle_integral_transform R z f w ) θ)-((circle_integral_transform R z g w) θ)) =
-   complex.abs (circle_integral_transform R z (f - g) w θ) :=
+   complex.abs (((circle_integral_transform R z w f  ) θ)-((circle_integral_transform R z w g) θ)) =
+   complex.abs (circle_integral_transform R z w (f - g) θ) :=
 begin
   intro θ,
   simp [circle_integral_transform],
@@ -342,8 +343,8 @@ end
 
 lemma circle_integral_transform_sub_bound  (R : ℝ) (hR: 0 < R)  (f : ℂ → ℂ) (z w : ℂ) (r : ℝ)
     (h : ∀ (x : sphere z R), (complex.abs (f x) ≤ abs r)) : ∀ θ : ℝ,
-    complex.abs (circle_integral_transform R z f w θ) ≤
-    complex.abs (circle_integral_transform R z (λ x, r) w θ) :=
+    complex.abs (circle_integral_transform R z w f  θ) ≤
+    complex.abs (circle_integral_transform R z w (λ x, r) θ) :=
 begin
   intro θ,
   simp only [circle_integral_transform, abs_of_real, mul_one, algebra.id.smul_eq_mul, abs_I,
@@ -365,7 +366,7 @@ end
 
 lemma circle_integral_transform_int (R : ℝ) (hR : 0 < R) (F : ℂ → ℂ) (z : ℂ)
   (F_cts :  continuous_on (F ) (sphere z R))
-  (w : ball z R): integrable (circle_integral_transform R z F w) (volume.restrict (Ioc 0 (2*π))) :=
+  (w : ball z R): integrable (circle_integral_transform R z w F) (volume.restrict (Ioc 0 (2*π))) :=
 begin
   apply integrable_on.integrable,
   rw ← (interval_integrable_iff_integrable_Ioc_of_le real.two_pi_pos.le),
@@ -377,11 +378,11 @@ end
 lemma circle_integral_transform_int_abs (R : ℝ) (hR : 0 < R) (F : ℂ → ℂ) (z : ℂ)
   (F_cts :  continuous_on (F ) (sphere z R))
   (w : ball z R) :
-  integrable (complex.abs ∘ (circle_integral_transform R z F w)) (volume.restrict (Ioc 0  (2*π))) :=
+  integrable (complex.abs ∘ (circle_integral_transform R z w F)) (volume.restrict (Ioc 0  (2*π))) :=
 begin
   apply integrable_on.integrable,
   rw ← (interval_integrable_iff_integrable_Ioc_of_le real.two_pi_pos.le),
-  have mapsto : maps_to (circle_integral_transform R z F ↑w) [0, 2 * π] (⊤ : set ℂ),
+  have mapsto : maps_to (circle_integral_transform R z ↑w F) [0, 2 * π] (⊤ : set ℂ),
   by {simp only [preimage_univ, top_eq_univ, subset_univ, maps_to_univ],},
   apply continuous_on.interval_integrable  (continuous_on.comp ( (continuous_abs.continuous_on))
  (circle_integral_transform_cont_on_ICC R hR F z w F_cts w.property) mapsto),
@@ -398,8 +399,8 @@ end
 
 lemma circle_integral_transform_of_unifom_limit (R : ℝ) (hR: 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ)
   (z : ℂ) (hlim : tendsto_uniformly_on F f filter.at_top (sphere z R)) (w : ball z R) :
-  ∀ (a : ℝ), tendsto (λ n, ((circle_integral_transform R z (F n) w)) a)
-  at_top (𝓝 (((circle_integral_transform R z f w)) a)) :=
+  ∀ (a : ℝ), tendsto (λ n, ((circle_integral_transform R z w (F n))) a)
+  at_top (𝓝 (((circle_integral_transform R z w f )) a)) :=
 begin
   rw metric.tendsto_uniformly_on_iff at hlim,
   simp only [metric.tendsto_nhds, dist_comm, circle_integral_transform, one_div,
@@ -439,7 +440,7 @@ lemma circle_integral_transform_of_uniform_exists_bounding_function (R : ℝ) (h
   (F_cts : ∀ n, continuous_on (F n) (sphere z R))
   (hlim : tendsto_uniformly_on F f filter.at_top (sphere z R) ):
   ∃ (bound : ℝ → ℝ), ((∀ n, ∀ᵐ r ∂(volume.restrict (Ioc 0  (2*π))),
-  ∥(circle_integral_transform R z (F n) w) r∥ ≤ bound r)
+  ∥(circle_integral_transform R z w (F n)) r∥ ≤ bound r)
   ∧ integrable bound (volume.restrict (Ioc 0 (2*π)))) :=
 begin
   have f_cont : continuous_on f (sphere z R) ,
@@ -449,9 +450,9 @@ begin
   have hlimb := hlim 1 (zero_lt_one),
   obtain ⟨a, ha⟩ := hlimb,
   set bound : ℝ → ℝ := λ θ, (∑ i in finset.range (a+1) ,
-  complex.abs ((circle_integral_transform R z (F i) w) θ))
-  + complex.abs ((circle_integral_transform R z (λ x, 1) w) θ)  +
-  complex.abs ((circle_integral_transform R z f  w) θ),
+  complex.abs ((circle_integral_transform R z w (F i)) θ))
+  + complex.abs ((circle_integral_transform R z w (λ x, 1)) θ)  +
+  complex.abs ((circle_integral_transform R z w f) θ),
   refine ⟨bound,_⟩,
   split,
   intro n,
@@ -462,13 +463,13 @@ begin
   simp_rw bound,
   have hnn : n ∈ finset.range(a + 1), by {simp only [finset.mem_range], linarith},
   have := finset.add_sum_erase (finset.range (a + 1))
-  (λ i , complex.abs ((circle_integral_transform R z (F i) w) y)) hnn,
+  (λ i , complex.abs ((circle_integral_transform R z w (F i)) y)) hnn,
   simp only [and_imp, mem_Ioc, finset.mem_range, mem_sphere_iff_norm, norm_eq_abs] at *,
   simp_rw [←this, add_assoc, le_add_iff_nonneg_right],
   {refine add_nonneg (finset.sum_nonneg (λ _ _, abs_nonneg _)) (add_nonneg (abs_nonneg _)
     (abs_nonneg _))},
-  apply abs_aux ((circle_integral_transform R z (F n) w) y) (bound y),
-  refine ⟨circle_integral_transform R z f ↑w y,_⟩,
+  apply abs_aux ((circle_integral_transform R z w (F n)) y) (bound y),
+  refine ⟨circle_integral_transform R z ↑w f y,_⟩,
   rw circle_integral_transform_sub,
   simp_rw bound,
   simp only [add_le_add_iff_right, finset.univ_eq_attach],
@@ -493,20 +494,20 @@ end
 lemma circle_int_uniform_lim_eq_lim_of_int (R : ℝ) (hR : 0 < R) (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ)
   (z : ℂ) (w : ball z R) (F_cts : ∀ n, continuous_on (F n) (sphere z R))
   (hlim : tendsto_uniformly_on F f filter.at_top (sphere z R)) :
-  tendsto (λn, ∫ (θ : ℝ) in 0..2 * π, (circle_integral_transform R z (F n) w) θ)
-  at_top (𝓝 $  ∫ (θ : ℝ) in 0..2 * π, (circle_integral_transform R z f w) θ) :=
+  tendsto (λn, ∫ (θ : ℝ) in 0..2 * π, (circle_integral_transform R z w (F n)) θ)
+  at_top (𝓝 $  ∫ (θ : ℝ) in 0..2 * π, (circle_integral_transform R z w f ) θ) :=
 begin
   have F_measurable : ∀ n,
-  ae_strongly_measurable (circle_integral_transform R z (F n) w) (volume.restrict (Ioc 0  (2*π))),
+  ae_strongly_measurable (circle_integral_transform R z w (F n)) (volume.restrict (Ioc 0  (2*π))),
   by {intro n, simp_rw _root_.ae_strongly_measurable_iff_ae_measurable,
   have := circle_integral_transform_int R hR  (F n) z (F_cts n) w,
   apply this.ae_measurable, },
-  have h_lim'' : ∀ (a : ℝ), tendsto (λ n, ((circle_integral_transform R z (F n) w)) a)
-  at_top (𝓝 (((circle_integral_transform R  z f w)) a)),
+  have h_lim'' : ∀ (a : ℝ), tendsto (λ n, ((circle_integral_transform R z w (F n))) a)
+  at_top (𝓝 (((circle_integral_transform R  z w f)) a)),
   by {apply circle_integral_transform_of_unifom_limit R hR F f z hlim},
   have h_lim' : ∀ᵐ a ∂(volume.restrict (Ioc 0  (2*π))),
-  tendsto (λ n, ((circle_integral_transform R z (F n)  w)) a)
-  at_top (𝓝 (((circle_integral_transform R z f w)) a)),
+  tendsto (λ n, ((circle_integral_transform R z w (F n))) a)
+  at_top (𝓝 (((circle_integral_transform R z w f )) a)),
   by {simp only [h_lim'', eventually_true],},
   have hboundlem := circle_integral_transform_of_uniform_exists_bounding_function R hR F f z w F_cts
   hlim,
@@ -598,14 +599,13 @@ begin
   apply Ineq2 _ _ _ _ _ _ hε h,
 end
 
-
 lemma circle_integral_unif_of_diff_has_fderiv (F : ℕ → ℂ → ℂ) (f : ℂ → ℂ) (z : ℂ) (R r : ℝ)
   (hr : r < R) (hlim : tendsto_uniformly_on F f filter.at_top (closed_ball z R))
   (F_alt : ∀ (n : ℕ) (c : ball z r ), F n c = (circle_integral_form R z (F n)) c) (x : ℂ)
   (hx : x ∈  ball z r)
   (keyb : ∀ (w : ↥(ball z R)),
-  tendsto (λ (n : ℕ), ∫ (θ : ℝ) in 0..2 * π, circle_integral_transform R z (F n) ↑w θ) at_top
-  (𝓝 (∫ (θ : ℝ) in 0..2 * π, circle_integral_transform R z f ↑w θ))  )
+  tendsto (λ (n : ℕ), ∫ (θ : ℝ) in 0..2 * π, circle_integral_transform R z ↑w (F n) θ) at_top
+  (𝓝 (∫ (θ : ℝ) in 0..2 * π, circle_integral_transform R z ↑w f θ)))
   (D : ℂ →L[ℂ] ℂ )
   (hD : has_fderiv_within_at (circle_integral_form R z f) D (ball z r) x ) :
   ∃ (f' : ℂ →L[ℂ] ℂ), has_fderiv_within_at f f' (ball z r) x :=

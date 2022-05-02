@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
 import data.fin.basic
-import data.nat.cast
-import logic.embedding
+import data.list.basic
 
 /-!
 # Combinatorial (pre-)games.
@@ -145,7 +144,7 @@ Construct a pre-game from list of pre-games describing the available moves for L
 -- TODO define this at the level of games, as well, and perhaps also for finsets of games.
 def of_lists (L R : list pgame.{u}) : pgame.{u} :=
 mk (ulift (fin L.length)) (ulift (fin R.length))
-  (λ i, L.nth_le i.down i.down.is_lt) (λ j, R.nth_le j.down.val j.down.is_lt)
+  (λ i, L.nth_le i.down i.down.is_lt) (λ j, R.nth_le j.down j.down.prop)
 
 lemma left_moves_of_lists (L R : list pgame) : (of_lists L R).left_moves = ulift (fin L.length) :=
 rfl
@@ -702,6 +701,21 @@ instance : has_involutive_neg pgame :=
 begin
   dsimp [has_zero.zero, has_neg.neg, neg],
   congr; funext i; cases i
+end
+
+@[simp] lemma neg_of_lists (L R : list pgame) :
+  -of_lists L R = of_lists (R.map (λ x, -x)) (L.map (λ x, -x)) :=
+begin
+  simp only [of_lists, neg_def, list.length_map, list.nth_le_map', eq_self_iff_true, true_and],
+  split, all_goals
+  { apply hfunext,
+    { simp },
+    { intros a a' ha,
+      congr' 2,
+      have : ∀ {m n} (h₁ : m = n) {b : ulift (fin m)} {c : ulift (fin n)} (h₂ : b == c),
+        (b.down : ℕ) = ↑c.down,
+      { rintros m n rfl b c rfl, refl },
+      exact this (list.length_map _ _).symm ha } }
 end
 
 /-- An explicit equivalence between the moves for Left in `-x` and the moves for Right in `x`. -/

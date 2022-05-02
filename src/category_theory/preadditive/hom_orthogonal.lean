@@ -49,9 +49,7 @@ the only morphism between distinct objects is the zero morphism. -/
 def hom_orthogonal {ι : Type*} (s : ι → C) : Prop :=
 ∀ i j, i ≠ j → subsingleton (s i ⟶ s j)
 
-example {α : Type} [fintype α] (s : set α) : fintype s := by {exact subtype.fintype (λ (x : α), x ∈ s)}
-
-namespace hom_orthogonaol
+namespace hom_orthogonal
 
 variables {ι : Type*} {s : ι → C}
 
@@ -189,5 +187,7 @@ begin
 end
 
 end
+
+end hom_orthogonal
 
 end category_theory

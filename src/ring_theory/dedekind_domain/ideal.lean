@@ -870,10 +870,8 @@ lemma ring.dimension_le_one.prime_le_prime_iff_eq (h : ring.dimension_le_one R)
   P ≤ Q ↔ P = Q :=
 ⟨(h P hP0 hP).eq_of_le hQ.ne_top, eq.le⟩
 
-variables {R} [is_domain R]
-
-lemma ideal.coprime_of_no_prime_ge {R : Type*} [comm_ring R] {I J : ideal R}
-  (h : ∀ P, I ≤ P → J ≤ P → ¬ is_prime P) : I ⊔ J = ⊤ :=
+lemma ideal.coprime_of_no_prime_ge {I J : ideal R} (h : ∀ P, I ≤ P → J ≤ P → ¬ is_prime P) :
+  I ⊔ J = ⊤ :=
 begin
   by_contra hIJ,
   obtain ⟨P, hP, hIJ⟩ := ideal.exists_le_maximal _ hIJ,
@@ -882,7 +880,7 @@ end
 
 section dedekind_domain
 
-variables [is_dedekind_domain R]
+variables {R} [is_domain R] [is_dedekind_domain R]
 
 lemma ideal.is_prime.mul_mem_pow (I : ideal R) [hI : I.is_prime] {a b : R} {n : ℕ}
   (h : a * b ∈ I^n) : a ∈ I ∨ b ∈ I^n :=

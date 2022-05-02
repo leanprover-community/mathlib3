@@ -950,27 +950,31 @@ end
 prime powers. -/
 lemma is_dedekind_domain.inf_prime_pow_eq_prod {ι : Type*}
   (s : finset ι) (f : ι → ideal R) (e : ι → ℕ)
-  (prime : ∀ i, prime (f i)) (coprime : ∀ i j, i ≠ j → f i ≠ f j) :
+  (prime : ∀ i ∈ s, prime (f i)) (coprime : ∀ i j ∈ s, i ≠ j → f i ≠ f j) :
   s.inf (λ i, f i ^ e i) = ∏ i in s, f i ^ e i :=
 begin
   letI := classical.dec_eq ι,
+  revert prime coprime,
   refine s.induction _ _,
   { simp },
-  intros a s ha ih,
+  intros a s ha ih prime coprime,
+  specialize ih (λ i hi, prime i (finset.mem_insert_of_mem hi))
+    (λ i hi j hj, coprime i (finset.mem_insert_of_mem hi) j (finset.mem_insert_of_mem hj)),
   rw [finset.inf_insert, finset.prod_insert ha, ih],
   refine le_antisymm (ideal.le_mul_of_no_prime_factors _ inf_le_left inf_le_right) ideal.mul_le_inf,
   intros P hPa hPs hPp,
   haveI := hPp,
   obtain ⟨b, hb, hPb⟩ := ideal.prod_le_prime.mp hPs,
-  haveI := ideal.is_prime_of_prime (prime a), haveI := ideal.is_prime_of_prime (prime b),
-  refine coprime a b _
+  haveI := ideal.is_prime_of_prime (prime a (finset.mem_insert_self a s)),
+  haveI := ideal.is_prime_of_prime (prime b (finset.mem_insert_of_mem hb)),
+  refine coprime a (finset.mem_insert_self a s) b (finset.mem_insert_of_mem hb) _
     (((is_dedekind_domain.dimension_le_one.prime_le_prime_iff_eq _).mp
         (ideal.le_of_pow_le_prime hPa)).trans
       ((is_dedekind_domain.dimension_le_one.prime_le_prime_iff_eq _).mp
         (ideal.le_of_pow_le_prime hPb)).symm),
   { unfreezingI { rintro rfl }, contradiction },
-  { exact (prime a).ne_zero },
-  { exact (prime b).ne_zero },
+  { exact (prime a (finset.mem_insert_self a s)).ne_zero },
+  { exact (prime b (finset.mem_insert_of_mem hb)).ne_zero },
 end
 
 /-- **Chinese remainder theorem** for a Dedekind domain: if the ideal `I` factors as
@@ -979,8 +983,8 @@ noncomputable def is_dedekind_domain.quotient_equiv_pi_of_prod_eq {ι : Type*} [
   (I : ideal R) (P : ι → ideal R) (e : ι → ℕ)
   (prime : ∀ i, prime (P i)) (coprime : ∀ i j, i ≠ j → P i ≠ P j) (prod_eq : (∏ i, P i ^ e i) = I) :
   R ⧸ I ≃+* Π i, R ⧸ (P i ^ e i) :=
-(ideal.quot_equiv_of_eq (by { simp only [← prod_eq, finset.inf_eq_infi,
-  ← is_dedekind_domain.inf_prime_pow_eq_prod _ _ _ prime coprime, finset.mem_univ, cinfi_pos] }))
+(ideal.quot_equiv_of_eq (by { simp only [← prod_eq, finset.inf_eq_infi, finset.mem_univ, cinfi_pos,
+  ← is_dedekind_domain.inf_prime_pow_eq_prod _ _ _ (λ i _, prime i) (λ i _ j _, coprime i j)] }))
     .trans $
 ideal.quotient_inf_ring_equiv_pi_quotient _ (λ i j hij, ideal.coprime_of_no_prime_ge (begin
   intros P hPi hPj hPp,

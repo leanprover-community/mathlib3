@@ -71,16 +71,26 @@ lemma nnnorm_entry_le_entrywise_sup_nnnorm (A : matrix m n α) {i : m} {j : n} :
   ∥A i j∥₊ ≤ ∥A∥₊ :=
 (nnnorm_le_pi_nnnorm (A i) j).trans (nnnorm_le_pi_nnnorm A i)
 
-@[simp] lemma nnnorm_transpose (A : matrix m n α) : ∥Aᵀ∥₊ = ∥A∥₊ :=
-by { simp_rw [pi.nnnorm_def], exact finset.sup_comm _ _ _ }
-@[simp] lemma norm_transpose (A : matrix m n α) : ∥Aᵀ∥ = ∥A∥ := congr_arg coe $ nnnorm_transpose A
-
 @[simp] lemma nnnorm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥₊ = ∥a∥₊) :
   ∥A.map f∥₊ = ∥A∥₊ :=
 by simp_rw [pi.nnnorm_def, matrix.map, hf]
 @[simp] lemma norm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥ = ∥a∥) :
   ∥A.map f∥ = ∥A∥ :=
 (congr_arg (coe : ℝ≥0 → ℝ) $ nnnorm_map_eq A f $ λ a, subtype.ext $ hf a : _)
+
+@[simp] lemma nnnorm_transpose (A : matrix m n α) : ∥Aᵀ∥₊ = ∥A∥₊ :=
+by { simp_rw [pi.nnnorm_def], exact finset.sup_comm _ _ _ }
+@[simp] lemma norm_transpose (A : matrix m n α) : ∥Aᵀ∥ = ∥A∥ := congr_arg coe $ nnnorm_transpose A
+
+@[simp] lemma nnnorm_conj_transpose [star_add_monoid α] [normed_star_group α] (A : matrix m n α) :
+  ∥Aᴴ∥₊ = ∥A∥₊ :=
+by rw [conj_transpose, nnnorm_map_eq Aᵀ _ nnnorm_star, nnnorm_transpose]
+@[simp] lemma norm_conj_transpose [star_add_monoid α] [normed_star_group α] (A : matrix m n α) :
+  ∥Aᴴ∥ = ∥A∥ :=
+congr_arg coe $ nnnorm_conj_transpose A
+
+instance [star_add_monoid α] [normed_star_group α] : normed_star_group (matrix m m α) :=
+⟨norm_conj_transpose⟩
 
 @[simp] lemma nnnorm_col (v : m → α) : ∥col v∥₊ = ∥v∥₊ := by simp [pi.nnnorm_def]
 @[simp] lemma norm_col (v : m → α) : ∥col v∥ = ∥v∥ := congr_arg coe $ nnnorm_col v
@@ -175,17 +185,28 @@ lemma frobenius_norm_def (A : matrix m n α) :
   ∥A∥ = (∑ i j, ∥A i j∥ ^ (2 : ℝ)) ^ (1/2 : ℝ) :=
 (congr_arg coe (frobenius_nnnorm_def A)).trans $ by simp [nnreal.coe_sum]
 
-@[simp] lemma frobenius_nnnorm_transpose (A : matrix m n α) : ∥Aᵀ∥₊ = ∥A∥₊ :=
-by { rw [frobenius_nnnorm_def, frobenius_nnnorm_def, finset.sum_comm], refl }
-@[simp] lemma frobenius_norm_transpose (A : matrix m n α) : ∥Aᵀ∥ = ∥A∥ :=
-congr_arg coe $ frobenius_nnnorm_transpose A
-
 @[simp] lemma frobenius_nnnorm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥₊ = ∥a∥₊) :
   ∥A.map f∥₊ = ∥A∥₊ :=
 by simp_rw [frobenius_nnnorm_def, matrix.map, hf]
 @[simp] lemma frobenius_norm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥ = ∥a∥) :
   ∥A.map f∥ = ∥A∥ :=
 (congr_arg (coe : ℝ≥0 → ℝ) $ frobenius_nnnorm_map_eq A f $ λ a, subtype.ext $ hf a : _)
+
+@[simp] lemma frobenius_nnnorm_transpose (A : matrix m n α) : ∥Aᵀ∥₊ = ∥A∥₊ :=
+by { rw [frobenius_nnnorm_def, frobenius_nnnorm_def, finset.sum_comm], refl }
+@[simp] lemma frobenius_norm_transpose (A : matrix m n α) : ∥Aᵀ∥ = ∥A∥ :=
+congr_arg coe $ frobenius_nnnorm_transpose A
+
+@[simp] lemma frobenius_nnnorm_conj_transpose [star_add_monoid α] [normed_star_group α]
+  (A : matrix m n α) : ∥Aᴴ∥₊ = ∥A∥₊ :=
+by rw [conj_transpose, frobenius_nnnorm_map_eq Aᵀ _ nnnorm_star, frobenius_nnnorm_transpose]
+@[simp] lemma frobenius_norm_conj_transpose [star_add_monoid α] [normed_star_group α]
+  (A : matrix m n α) : ∥Aᴴ∥ = ∥A∥ :=
+congr_arg coe $ frobenius_nnnorm_conj_transpose A
+
+instance frobenius_normed_star_group [star_add_monoid α] [normed_star_group α] :
+  normed_star_group (matrix m m α) :=
+⟨frobenius_norm_conj_transpose⟩
 
 @[simp] lemma frobenius_norm_row (v : m → α) : ∥row v∥ = ∥(pi_Lp.equiv 2 _).symm v∥ :=
 by { rw [frobenius_norm_def, fintype.sum_unique], refl }

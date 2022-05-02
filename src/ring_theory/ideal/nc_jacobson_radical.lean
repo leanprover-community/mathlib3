@@ -36,12 +36,10 @@ variables {M : Type u} {a : M} {b : M} [monoid M]
 /-! ### Some lemmas on inverses in monoids -/
 
 lemma is_unit.op (h : is_unit a) : is_unit (op a) :=
-let ⟨⟨_, _, hab, hba⟩, rfl⟩ := h in ⟨⟨_, _, by rw [←op_mul, ←op_one, hba],
-  by rw [←op_mul, ←op_one, hab]⟩, rfl⟩
+let ⟨a, _⟩ := h in ⟨units.op_equiv.symm (op a), by simpa⟩
 
 lemma is_unit.unop {x : Mᵐᵒᵖ} (h : is_unit x) : is_unit (unop x) :=
-let ⟨⟨_, _, hxa, hax⟩, rfl⟩ := h in ⟨⟨_, _, by rw [←unop_mul, ←unop_one, hax],
-  by rw [←unop_mul, ←unop_one, hxa]⟩, rfl⟩
+let ⟨a, _⟩ := h in ⟨unop a.op_equiv, by simpa⟩
 
 lemma is_unit_op_iff_is_unit {a : M} : is_unit (op a) ↔ is_unit a :=
 ⟨λ h, unop_op a ▸ h.unop, is_unit.op⟩

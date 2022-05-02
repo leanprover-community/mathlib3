@@ -82,10 +82,6 @@ instance : inhabited (self_adjoint R) := ⟨0⟩
 lemma bit0_mem {x : R} (hx : x ∈ self_adjoint R) : bit0 x ∈ self_adjoint R :=
 by simp only [mem_iff, star_bit0, mem_iff.mp hx]
 
-instance [add_comm_group R] [star_add_monoid R] : add_comm_group (self_adjoint R) :=
-{ add_comm := add_comm,
-  ..add_subgroup_class.to_add_group (self_adjoint R) }
-
 end add_group
 
 section ring
@@ -131,8 +127,9 @@ instance : has_mul (self_adjoint R) :=
 
 instance : comm_ring (self_adjoint R) :=
 function.injective.comm_ring _ subtype.coe_injective
-  (self_adjoint R).coe_zero coe_one (self_adjoint R).coe_add coe_mul (self_adjoint R).coe_neg
-  (self_adjoint R).coe_sub (self_adjoint R).coe_nsmul (self_adjoint R).coe_zsmul coe_pow
+  (add_submonoid_class.coe_zero _) coe_one add_submonoid_class.coe_add coe_mul
+  add_subgroup_class.coe_neg add_subgroup_class.coe_sub add_submonoid_class.coe_nsmul
+  add_subgroup_class.coe_zsmul coe_pow
 
 end comm_ring
 
@@ -157,9 +154,9 @@ instance : has_pow (self_adjoint R) ℤ :=
 
 instance : field (self_adjoint R) :=
 function.injective.field _ subtype.coe_injective
-  (self_adjoint R).coe_zero coe_one (self_adjoint R).coe_add coe_mul (self_adjoint R).coe_neg
-  (self_adjoint R).coe_sub coe_inv coe_div (self_adjoint R).coe_nsmul (self_adjoint R).coe_zsmul
-  coe_pow coe_zpow
+  (add_submonoid_class.coe_zero _) coe_one add_submonoid_class.coe_add coe_mul
+  add_subgroup_class.coe_neg add_subgroup_class.coe_sub coe_inv coe_div
+  add_submonoid_class.coe_nsmul add_subgroup_class.coe_zsmul coe_pow coe_zpow
 
 end field
 

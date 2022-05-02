@@ -227,13 +227,12 @@ end
 theorem squarefree_iff_prime_squarefree {n : ℕ} : squarefree n ↔ ∀ x, prime x → ¬ x * x ∣ n :=
 squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible ⟨_, prime_two⟩
 
-lemma squarefree.factorization_le_one {n : ℕ} (hn : squarefree n) :
-  ∀ p, n.factorization p ≤ 1 :=
+lemma squarefree.factorization_le_one {n : ℕ} (p : ℕ) (hn : squarefree n) :
+  n.factorization p ≤ 1 :=
 begin
   rcases eq_or_ne n 0 with rfl | hn',
   { simp },
   rw [multiplicity.squarefree_iff_multiplicity_le_one] at hn,
-  intros p,
   by_cases hp : p.prime,
   { have := hn p,
     simp only [multiplicity_eq_factorization hp hn', nat.is_unit_iff, hp.ne_one, or_false] at this,
@@ -253,22 +252,18 @@ end
 
 lemma squarefree_iff_factorization_le_one {n : ℕ} (hn : n ≠ 0) :
   squarefree n ↔ ∀ p, n.factorization p ≤ 1 :=
-⟨squarefree.factorization_le_one, squarefree_of_factorization_le_one hn⟩
+⟨λ p hn, squarefree.factorization_le_one hn p, squarefree_of_factorization_le_one hn⟩
 
 lemma squarefree.ext_iff {n m : ℕ} (hn : squarefree n) (hm : squarefree m) :
   n = m ↔ ∀ p, prime p → (p ∣ n ↔ p ∣ m) :=
 begin
-  split,
-  { rintro rfl, simp },
-  intro h,
-  apply eq_of_factorization_eq hn.ne_zero hm.ne_zero,
-  intro p,
+  refine ⟨by { rintro rfl, simp }, λ h, eq_of_factorization_eq hn.ne_zero hm.ne_zero (λ p, _)⟩,
   by_cases hp : p.prime,
   { have h₁ := h _ hp,
     rw [←not_iff_not, hp.dvd_iff_one_le_factorization hn.ne_zero, not_le, lt_one_iff,
       hp.dvd_iff_one_le_factorization hm.ne_zero, not_le, lt_one_iff] at h₁,
-    have h₂ := squarefree.factorization_le_one hn p,
-    have h₃ := squarefree.factorization_le_one hm p,
+    have h₂ := squarefree.factorization_le_one p hn,
+    have h₃ := squarefree.factorization_le_one p hm,
     rw [nat.le_add_one_iff, le_zero_iff] at h₂ h₃,
     cases h₂,
     { rwa [h₂, eq_comm, ←h₁] },
@@ -281,20 +276,11 @@ end
 lemma squarefree_pow_iff {n k : ℕ} (hn : n ≠ 1) (hk : k ≠ 0) :
   squarefree (n ^ k) ↔ squarefree n ∧ k = 1 :=
 begin
-  symmetry,
-  split,
-  { rintro ⟨hn, rfl⟩,
-    simpa },
-  intro h,
+  refine ⟨λ h, _, by { rintro ⟨hn, rfl⟩, simpa }⟩,
   rcases eq_or_ne n 0 with rfl | hn₀,
-  { rw zero_pow hk.bot_lt at h,
-    simpa using h },
-  split,
-  { exact squarefree_of_dvd_of_squarefree (dvd_pow_self _ hk) h },
-  by_contra h₁,
-  have : 2 ≤ k,
-  { rw [nat.two_le_iff],
-    exact ⟨hk, h₁⟩ },
+  { simpa [zero_pow hk.bot_lt] using h },
+  refine ⟨squarefree_of_dvd_of_squarefree (dvd_pow_self _ hk) h, by_contradiction $ λ h₁, _⟩,
+  have : 2 ≤ k := k.two_le_iff.mpr ⟨hk, h₁⟩,
   apply hn (nat.is_unit_iff.1 (h _ _)),
   rw ←sq,
   exact pow_dvd_pow _ this

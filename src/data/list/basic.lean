@@ -3365,6 +3365,16 @@ by rw [← diff_cons_right, diff_cons]
 @[simp] theorem nil_diff (l : list α) : [].diff l = [] :=
 by induction l; [refl, simp only [*, diff_cons, erase_of_not_mem (not_mem_nil _)]]
 
+lemma cons_diff (a : α) (l₁ l₂ : list α) :
+  (a :: l₁).diff l₂ = if a ∈ l₂ then l₁.diff (l₂.erase a) else a :: l₁.diff l₂ :=
+begin
+  induction l₂ with b l₂ ih, { refl },
+  rcases eq_or_ne a b with rfl|hne,
+  { simp },
+  { simp only [mem_cons_iff, *, false_or, diff_cons_right],
+    split_ifs with h₂; simp [diff_erase, list.erase, hne, hne.symm] }
+end
+
 theorem diff_eq_foldl : ∀ (l₁ l₂ : list α), l₁.diff l₂ = foldl list.erase l₁ l₂
 | l₁ []      := rfl
 | l₁ (a::l₂) := (diff_cons l₁ l₂ a).trans (diff_eq_foldl _ _)

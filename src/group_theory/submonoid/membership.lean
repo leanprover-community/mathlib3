@@ -70,6 +70,16 @@ lemma multiset_prod_mem {M} [comm_monoid M] [set_like B M] [submonoid_class B M]
   (hm : ∀ a ∈ m, a ∈ S) : m.prod ∈ S :=
 by { lift m to multiset S using hm, rw ← coe_multiset_prod, exact m.prod.coe_prop }
 
+@[to_additive]
+lemma multiset_noncomm_prod_mem (m : multiset M)
+  (comm : ∀ (x ∈ m) (y ∈ m), commute x y) (h : ∀ (x ∈ m), x ∈ S) :
+  m.noncomm_prod comm ∈ S :=
+begin
+  induction m using quotient.induction_on with l,
+  simp only [multiset.quot_mk_to_coe, multiset.noncomm_prod_coe],
+  exact list_prod_mem h
+end
+
 /-- Product of elements of a submonoid of a `comm_monoid` indexed by a `finset` is in the
     submonoid. -/
 @[to_additive "Sum of elements in an `add_submonoid` of an `add_comm_monoid` indexed by a `finset`
@@ -79,56 +89,8 @@ lemma prod_mem {M : Type*} [comm_monoid M] [set_like B M] [submonoid_class B M]
   ∏ c in t, f c ∈ S :=
 multiset_prod_mem (t.1.map f) $ λ x hx, let ⟨i, hi, hix⟩ := multiset.mem_map.1 hx in hix ▸ h i hi
 
-namespace submonoid
-
-variables (s : submonoid M)
-
-@[simp, norm_cast, to_additive] theorem coe_list_prod (l : list s) :
-  (l.prod : M) = (l.map coe).prod :=
-s.subtype.map_list_prod l
-
-@[simp, norm_cast, to_additive] theorem coe_multiset_prod {M} [comm_monoid M] (S : submonoid M)
-  (m : multiset S) : (m.prod : M) = (m.map coe).prod :=
-S.subtype.map_multiset_prod m
-
-@[simp, norm_cast, to_additive] theorem coe_finset_prod {ι M} [comm_monoid M] (S : submonoid M)
-  (f : ι → S) (s : finset ι) :
-  ↑(∏ i in s, f i) = (∏ i in s, f i : M) :=
-S.subtype.map_prod f s
-
-/-- Product of a list of elements in a submonoid is in the submonoid. -/
-@[to_additive "Sum of a list of elements in an `add_submonoid` is in the `add_submonoid`."]
-lemma list_prod_mem {l : list M} (hl : ∀ x ∈ l, x ∈ s) : l.prod ∈ s :=
-by { lift l to list s using hl, rw ← coe_list_prod, exact l.prod.coe_prop }
-
-/-- Product of a multiset of elements in a submonoid of a `comm_monoid` is in the submonoid. -/
-@[to_additive "Sum of a multiset of elements in an `add_submonoid` of an `add_comm_monoid` is
-in the `add_submonoid`."]
-lemma multiset_prod_mem {M} [comm_monoid M] (S : submonoid M) (m : multiset M)
-  (hm : ∀ a ∈ m, a ∈ S) : m.prod ∈ S :=
-by { lift m to multiset S using hm, rw ← coe_multiset_prod, exact m.prod.coe_prop }
-
 @[to_additive]
-lemma multiset_noncomm_prod_mem (S : submonoid M) (m : multiset M)
-  (comm : ∀ (x ∈ m) (y ∈ m), commute x y) (h : ∀ (x ∈ m), x ∈ S) :
-  m.noncomm_prod comm ∈ S :=
-begin
-  induction m using quotient.induction_on with l,
-  simp only [multiset.quot_mk_to_coe, multiset.noncomm_prod_coe],
-  exact submonoid.list_prod_mem _ h,
-end
-
-/-- Product of elements of a submonoid of a `comm_monoid` indexed by a `finset` is in the
-    submonoid. -/
-@[to_additive "Sum of elements in an `add_submonoid` of an `add_comm_monoid` indexed by a `finset`
-is in the `add_submonoid`."]
-lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
-  {ι : Type*} {t : finset ι} {f : ι → M} (h : ∀c ∈ t, f c ∈ S) :
-  ∏ c in t, f c ∈ S :=
-S.multiset_prod_mem (t.1.map f) $ λ x hx, let ⟨i, hi, hix⟩ := multiset.mem_map.1 hx in hix ▸ h i hi
-
-@[to_additive]
-lemma noncomm_prod_mem (S : submonoid M) {ι : Type*} (t : finset ι) (f : ι → M)
+lemma noncomm_prod_mem {ι : Type*} (t : finset ι) (f : ι → M)
   (comm : ∀ (x ∈ t) (y ∈ t), commute (f x) (f y)) (h : ∀ c ∈ t, f c ∈ S) :
   t.noncomm_prod f comm ∈ S :=
 begin
@@ -138,6 +100,43 @@ begin
   rintros ⟨x, ⟨hx, rfl⟩⟩,
   exact h x hx,
 end
+
+namespace submonoid
+
+variables (s : submonoid M)
+
+/-- Product of a list of elements in a submonoid is in the submonoid. -/
+@[to_additive "Sum of a list of elements in an `add_submonoid` is in the `add_submonoid`."]
+protected lemma list_prod_mem {l : list M} (hl : ∀ x ∈ l, x ∈ s) : l.prod ∈ s :=
+list_prod_mem hl
+
+/-- Product of a multiset of elements in a submonoid of a `comm_monoid` is in the submonoid. -/
+@[to_additive "Sum of a multiset of elements in an `add_submonoid` of an `add_comm_monoid` is
+in the `add_submonoid`."]
+protected lemma multiset_prod_mem {M} [comm_monoid M] (S : submonoid M) (m : multiset M)
+  (hm : ∀ a ∈ m, a ∈ S) : m.prod ∈ S :=
+multiset_prod_mem m hm
+
+@[to_additive]
+protected lemma multiset_noncomm_prod_mem (S : submonoid M) (m : multiset M)
+  (comm : ∀ (x ∈ m) (y ∈ m), commute x y) (h : ∀ (x ∈ m), x ∈ S) :
+  m.noncomm_prod comm ∈ S :=
+multiset_noncomm_prod_mem m comm h
+
+/-- Product of elements of a submonoid of a `comm_monoid` indexed by a `finset` is in the
+    submonoid. -/
+@[to_additive "Sum of elements in an `add_submonoid` of an `add_comm_monoid` indexed by a `finset`
+is in the `add_submonoid`."]
+protected lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
+  {ι : Type*} {t : finset ι} {f : ι → M} (h : ∀c ∈ t, f c ∈ S) :
+  ∏ c in t, f c ∈ S :=
+prod_mem h
+
+@[to_additive]
+protected lemma noncomm_prod_mem (S : submonoid M) {ι : Type*} (t : finset ι) (f : ι → M)
+  (comm : ∀ (x ∈ t) (y ∈ t), commute (f x) (f y)) (h : ∀ c ∈ t, f c ∈ S) :
+  t.noncomm_prod f comm ∈ S :=
+noncomm_prod_mem t f comm h
 
 end submonoid
 

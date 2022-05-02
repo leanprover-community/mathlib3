@@ -432,6 +432,10 @@ instance to_mul_one_class {M : Type*} [mul_one_class M] {A : Type*} [set_like A 
   [submonoid_class A M] (S : A) : mul_one_class S :=
 subtype.coe_injective.mul_one_class _ rfl (λ _ _, rfl)
 
+@[simp, norm_cast, to_additive] lemma coe_mul {M} [monoid M] {A : Type*} [set_like A M]
+  [submonoid_class A M] {S : A} (x y : S) : (↑(x * y) : M) = x * y :=
+rfl
+
 /-- A submonoid of a monoid inherits a monoid structure. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits an `add_monoid`
 structure.",

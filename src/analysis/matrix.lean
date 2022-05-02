@@ -84,7 +84,7 @@ by { simp_rw [pi.nnnorm_def], exact finset.sup_comm _ _ _ }
 
 @[simp] lemma nnnorm_conj_transpose [star_add_monoid α] [normed_star_group α] (A : matrix m n α) :
   ∥Aᴴ∥₊ = ∥A∥₊ :=
-by rw [conj_transpose, nnnorm_map_eq Aᵀ _ nnnorm_star, nnnorm_transpose]
+(nnnorm_map_eq _ _ nnnorm_star).trans A.nnnorm_transpose
 @[simp] lemma norm_conj_transpose [star_add_monoid α] [normed_star_group α] (A : matrix m n α) :
   ∥Aᴴ∥ = ∥A∥ :=
 congr_arg coe $ nnnorm_conj_transpose A
@@ -199,7 +199,7 @@ congr_arg coe $ frobenius_nnnorm_transpose A
 
 @[simp] lemma frobenius_nnnorm_conj_transpose [star_add_monoid α] [normed_star_group α]
   (A : matrix m n α) : ∥Aᴴ∥₊ = ∥A∥₊ :=
-by rw [conj_transpose, frobenius_nnnorm_map_eq Aᵀ _ nnnorm_star, frobenius_nnnorm_transpose]
+(frobenius_nnnorm_map_eq _ _ nnnorm_star).trans A.frobenius_nnnorm_transpose
 @[simp] lemma frobenius_norm_conj_transpose [star_add_monoid α] [normed_star_group α]
   (A : matrix m n α) : ∥Aᴴ∥ = ∥A∥ :=
 congr_arg coe $ frobenius_nnnorm_conj_transpose A

@@ -73,7 +73,7 @@ variables {D : Type v} [small_category D]
 A functor `F : C ⥤ D` is final if for every `d : D`, the comma category of morphisms `d ⟶ F.obj c`
 is connected.
 
-See https://stacks.math.columbia.edu/tag/04E6
+See <https://stacks.math.columbia.edu/tag/04E6>
 -/
 class final (F : C ⥤ D) : Prop :=
 (out (d : D) : is_connected (structured_arrow d F))

@@ -105,7 +105,7 @@ has_limit.mk
 /--
 Any category with products and equalizers has all limits.
 
-See https://stacks.math.columbia.edu/tag/002N.
+See <https://stacks.math.columbia.edu/tag/002N>.
 -/
 lemma limits_from_equalizers_and_products
   [has_products C] [has_equalizers C] : has_limits C :=
@@ -115,7 +115,7 @@ lemma limits_from_equalizers_and_products
 /--
 Any category with finite products and equalizers has all finite limits.
 
-See https://stacks.math.columbia.edu/tag/002O.
+See <https://stacks.math.columbia.edu/tag/002O>.
 -/
 lemma finite_limits_from_equalizers_and_finite_products
   [has_finite_products C] [has_equalizers C] : has_finite_limits C :=
@@ -266,7 +266,7 @@ has_colimit.mk
 /--
 Any category with coproducts and coequalizers has all colimits.
 
-See https://stacks.math.columbia.edu/tag/002P.
+See <https://stacks.math.columbia.edu/tag/002P>.
 -/
 lemma colimits_from_coequalizers_and_coproducts
   [has_coproducts C] [has_coequalizers C] : has_colimits C :=
@@ -276,7 +276,7 @@ lemma colimits_from_coequalizers_and_coproducts
 /--
 Any category with finite coproducts and coequalizers has all finite colimits.
 
-See https://stacks.math.columbia.edu/tag/002Q.
+See <https://stacks.math.columbia.edu/tag/002Q>.
 -/
 lemma finite_colimits_from_coequalizers_and_finite_coproducts
   [has_finite_coproducts C] [has_coequalizers C] : has_finite_colimits C :=

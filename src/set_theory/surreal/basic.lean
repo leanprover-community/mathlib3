@@ -263,35 +263,25 @@ def lift₂ {α} (f : ∀ x y, numeric x → numeric y → α)
 lift (λ x ox, lift (λ y oy, f x y ox oy) (λ y₁ y₂ oy₁ oy₂ h, H _ _ _ _ (equiv_refl _) h))
   (λ x₁ x₂ ox₁ ox₂ h, funext $ quotient.ind $ by exact λ ⟨y, oy⟩, H _ _ _ _ h (equiv_refl _))
 
-/-- The relation `x ≤ y` on surreals. -/
-def le : surreal → surreal → Prop :=
-lift₂ (λ x y _ _, x ≤ y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext (le_congr hx hy))
+instance : has_le surreal :=
+⟨lift₂ (λ x y _ _, x ≤ y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext (le_congr hx hy))⟩
 
-/-- The relation `x < y` on surreals. -/
-def lt : surreal → surreal → Prop :=
-lift₂ (λ x y _ _, x < y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext (lt_congr hx hy))
-
-theorem not_le : ∀ {x y : surreal}, ¬ le x y ↔ lt y x :=
-by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; exact not_le
+instance : has_lt surreal :=
+⟨lift₂ (λ x y _ _, x < y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext (lt_congr hx hy))⟩
 
 /-- Addition on surreals is inherited from pre-game addition:
 the sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
-def add : surreal → surreal → surreal :=
-surreal.lift₂
+instance : has_add surreal  :=
+⟨surreal.lift₂
   (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, ox.add oy⟩⟧)
-  (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound (pgame.add_congr hx hy))
+  (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound (pgame.add_congr hx hy))⟩
 
 /-- Negation for surreal numbers is inherited from pre-game negation:
 the negation of `{L | R}` is `{-R | -L}`. -/
-def neg : surreal → surreal :=
-surreal.lift
+instance : has_neg surreal  :=
+⟨surreal.lift
   (λ x ox, ⟦⟨-x, ox.neg⟩⟧)
-  (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))
-
-instance : has_le surreal   := ⟨le⟩
-instance : has_lt surreal   := ⟨lt⟩
-instance : has_add surreal  := ⟨add⟩
-instance : has_neg surreal  := ⟨neg⟩
+  (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))⟩
 
 instance : ordered_add_comm_group surreal :=
 { add               := (+),

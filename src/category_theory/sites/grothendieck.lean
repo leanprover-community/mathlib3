@@ -65,7 +65,7 @@ three axioms:
 
 A sieve `S` on `X` is referred to as `J`-covering, (or just covering), if `S ∈ J X`.
 
-See https://stacks.math.columbia.edu/tag/00Z4, or [nlab], or [MM92][] Chapter III, Section 2,
+See <https://stacks.math.columbia.edu/tag/00Z4>, or [nlab], or [MM92][] Chapter III, Section 2,
 Definition 1.
 -/
 structure grothendieck_topology :=
@@ -108,7 +108,7 @@ lemma covering_of_eq_top : S = ⊤ → S ∈ J X := λ h, h.symm ▸ J.top_mem X
 /--
 If `S` is a subset of `R`, and `S` is covering, then `R` is covering as well.
 
-See https://stacks.math.columbia.edu/tag/00Z5 (2), or discussion after [MM92] Chapter III,
+See <https://stacks.math.columbia.edu/tag/00Z5> (2), or discussion after [MM92] Chapter III,
 Section 2, Definition 1.
 -/
 lemma superset_covering (Hss : S ≤ R) (sjx : S ∈ J X) : R ∈ J X :=
@@ -122,7 +122,7 @@ end
 /--
 The intersection of two covering sieves is covering.
 
-See https://stacks.math.columbia.edu/tag/00Z5 (1), or [MM92] Chapter III,
+See <https://stacks.math.columbia.edu/tag/00Z5> (1), or [MM92] Chapter III,
 Section 2, Definition 1 (iv).
 -/
 lemma intersection_covering (rj : R ∈ J X) (sj : S ∈ J X) : R ⊓ S ∈ J X :=
@@ -223,21 +223,21 @@ variable {C}
 
 lemma trivial_covering : S ∈ trivial C X ↔ S = ⊤ := set.mem_singleton_iff
 
-/-- See https://stacks.math.columbia.edu/tag/00Z6 -/
+/-- See <https://stacks.math.columbia.edu/tag/00Z6> -/
 instance : has_le (grothendieck_topology C) :=
 { le := λ J₁ J₂, (J₁ : Π (X : C), set (sieve X)) ≤ (J₂ : Π (X : C), set (sieve X)) }
 
 lemma le_def {J₁ J₂ : grothendieck_topology C} :
   J₁ ≤ J₂ ↔ (J₁ : Π (X : C), set (sieve X)) ≤ J₂ := iff.rfl
 
-/-- See https://stacks.math.columbia.edu/tag/00Z6 -/
+/-- See <https://stacks.math.columbia.edu/tag/00Z6> -/
 instance : partial_order (grothendieck_topology C) :=
 { le_refl := λ J₁, le_def.mpr le_rfl,
   le_trans := λ J₁ J₂ J₃ h₁₂ h₂₃, le_def.mpr (le_trans h₁₂ h₂₃),
   le_antisymm := λ J₁ J₂ h₁₂ h₂₁, grothendieck_topology.ext (le_antisymm h₁₂ h₂₁),
   ..grothendieck_topology.has_le }
 
-/-- See https://stacks.math.columbia.edu/tag/00Z7 -/
+/-- See <https://stacks.math.columbia.edu/tag/00Z7> -/
 instance : has_Inf (grothendieck_topology C) :=
 { Inf := λ T,
   { sieves := Inf (sieves '' T),
@@ -257,7 +257,7 @@ instance : has_Inf (grothendieck_topology C) :=
       apply J.transitive (hS _ ⟨⟨_, _, hJ, rfl⟩, rfl⟩) _ (λ Y f hf, h hf _ ⟨⟨_, _, hJ, rfl⟩, rfl⟩),
     end } }
 
-/-- See https://stacks.math.columbia.edu/tag/00Z7 -/
+/-- See <https://stacks.math.columbia.edu/tag/00Z7> -/
 lemma is_glb_Inf (s : set (grothendieck_topology C)) : is_glb s (Inf s) :=
 begin
   refine @is_glb.of_image _ _ _ _ sieves _ _ _ _,

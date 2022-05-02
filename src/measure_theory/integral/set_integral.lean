@@ -144,11 +144,9 @@ end
 lemma integral_piecewise [decidable_pred (∈ s)] (hs : measurable_set s)
   {f g : α → E} (hf : integrable_on f s μ) (hg : integrable_on g sᶜ μ) :
   ∫ x, s.piecewise f g x ∂μ = ∫ x in s, f x ∂μ + ∫ x in sᶜ, g x ∂μ :=
-begin
-  rw [← set.indicator_add_compl_eq_piecewise,
-    integral_add' (hf.indicator hs) (hg.indicator hs.compl),
-    integral_indicator hs, integral_indicator hs.compl],
-end
+by rw [← set.indicator_add_compl_eq_piecewise,
+  integral_add' (hf.indicator hs) (hg.indicator hs.compl),
+  integral_indicator hs, integral_indicator hs.compl]
 
 lemma tendsto_set_integral_of_monotone {ι : Type*} [encodable ι] [semilattice_sup ι]
   {s : ι → set α} {f : α → E} (hsm : ∀ i, measurable_set (s i))

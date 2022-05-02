@@ -17,7 +17,7 @@ we have `F : C ⥤ D` `G : D ⥤ C` (both preserving zero morphisms),
 and further we have `adj : G ⊣ F` and `i : F ⋙ G ≅ 𝟭 C`,
 then `C` is also abelian.
 
-See https://stacks.math.columbia.edu/tag/03A3
+See <https://stacks.math.columbia.edu/tag/03A3>
 
 ## Notes
 The hypotheses, following the statement from the Stacks project,
@@ -153,7 +153,7 @@ we have `F : C ⥤ D` `G : D ⥤ C` (both preserving zero morphisms),
 and further we have `adj : G ⊣ F` and `i : F ⋙ G ≅ 𝟭 C`,
 then `C` is also abelian.
 
-See https://stacks.math.columbia.edu/tag/03A3
+See <https://stacks.math.columbia.edu/tag/03A3>
 -/
 def abelian_of_adjunction
   {C : Type u₁} [category.{v} C] [preadditive C] [has_finite_products C]

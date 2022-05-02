@@ -2138,7 +2138,7 @@ variables (C)
 /--
 `has_pullbacks` represents a choice of pullback for every pair of morphisms
 
-See https://stacks.math.columbia.edu/tag/001W
+See <https://stacks.math.columbia.edu/tag/001W>
 -/
 abbreviation has_pullbacks := has_limits_of_shape walking_cospan.{v} C
 

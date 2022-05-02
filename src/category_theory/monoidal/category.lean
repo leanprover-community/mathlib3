@@ -42,7 +42,7 @@ This is far from completely effective, but seems to prove a useful principle.
 ## References
 * Tensor categories, Etingof, Gelaki, Nikshych, Ostrik,
   http://www-math.mit.edu/~etingof/egnobookfinal.pdf
-* https://stacks.math.columbia.edu/tag/0FFK.
+* <https://stacks.math.columbia.edu/tag/0FFK>.
 -/
 
 open category_theory
@@ -62,7 +62,7 @@ specified associator, `α_ X Y Z : (X ⊗ Y) ⊗ Z ≅ X ⊗ (Y ⊗ Z)`. There i
 with specified left and right unitor isomorphisms `λ_ X : 𝟙_ C ⊗ X ≅ X` and `ρ_ X : X ⊗ 𝟙_ C ≅ X`.
 These associators and unitors satisfy the pentagon and triangle equations.
 
-See https://stacks.math.columbia.edu/tag/0FFK.
+See <https://stacks.math.columbia.edu/tag/0FFK>.
 -/
 class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
 -- curried tensor product of objects:

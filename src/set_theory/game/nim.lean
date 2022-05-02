@@ -77,11 +77,11 @@ noncomputable def to_right_moves_nim {O : ordinal} : {O' // O' < O} ≃ (nim O).
 (out_equiv_lt O).trans (equiv.cast (right_moves_nim O).symm)
 
 @[simp] theorem to_left_moves_nim_symm_lt {O : ordinal} (i : (nim O).left_moves) :
-  (to_left_moves_nim.symm i).val < O :=
+  ↑(to_left_moves_nim.symm i) < O :=
 (to_left_moves_nim.symm i).prop
 
 @[simp] theorem to_right_moves_nim_symm_lt {O : ordinal} (i : (nim O).right_moves) :
-  (to_right_moves_nim.symm i).val < O :=
+  ↑(to_right_moves_nim.symm i) < O :=
 (to_right_moves_nim.symm i).prop
 
 @[simp] lemma move_left_nim' {O : ordinal.{u}} (i) :

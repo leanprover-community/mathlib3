@@ -58,9 +58,9 @@ lemma nim_def (O : ordinal) : nim O = pgame.mk O.out.α O.out.α
   (λ O₂, nim (ordinal.typein (<) O₂)) :=
 by { rw nim, refl }
 
-@[simp] lemma left_moves_nim (O : ordinal) : (nim O).left_moves = O.out.α :=
+lemma left_moves_nim (O : ordinal) : (nim O).left_moves = O.out.α :=
 by { rw nim_def, refl }
-@[simp] lemma right_moves_nim (O : ordinal) : (nim O).right_moves = O.out.α :=
+lemma right_moves_nim (O : ordinal) : (nim O).right_moves = O.out.α :=
 by { rw nim_def, refl }
 
 lemma move_left_nim_heq (O : ordinal) : (nim O).move_left == λ i : O.out.α, nim (typein (<) i) :=

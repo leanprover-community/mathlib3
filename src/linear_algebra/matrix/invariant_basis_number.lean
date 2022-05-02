@@ -18,4 +18,4 @@ open_locale matrix
 lemma matrix.square_of_invertible
   (M : matrix n m R) (N : matrix m n R) (h : M ⬝ N = 1) (h' : N ⬝ M = 1) :
   fintype.card n = fintype.card m :=
-card_eq_of_lequiv R (matrix.to_linear_map_right'_of_inv h h')
+card_eq_of_lequiv R (matrix.to_linear_map_right'_of_inv h' h)

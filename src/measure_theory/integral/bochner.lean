@@ -1085,15 +1085,14 @@ begin
   simp [ha]
 end
 
-lemma mem_ℒp.snorm_eq_rpow_integral_rpow_norm {f : α → H} {p : ℝ≥0∞} (hp1 : p ≠ 0) (hp2 : p ≠ ∞)
+lemma mem_ℒp.snorm_eq_integral_rpow_norm {f : α → H} {p : ℝ≥0∞} (hp1 : p ≠ 0) (hp2 : p ≠ ∞)
   (hf : mem_ℒp f p μ) :
   snorm f p μ = ennreal.of_real ((∫ a, ∥f a∥ ^ p.to_real ∂μ) ^ (p.to_real ⁻¹)) :=
 begin
-  have A : ∫⁻ (a : α), ennreal.of_real (∥f a∥ ^ p.to_real) ∂μ
-    = ∫⁻ (a : α), ∥f a∥₊ ^ p.to_real ∂μ,
+  have A : ∫⁻ (a : α), ennreal.of_real (∥f a∥ ^ p.to_real) ∂μ = ∫⁻ (a : α), ∥f a∥₊ ^ p.to_real ∂μ,
   { apply lintegral_congr (λ x, _),
     rw [← of_real_rpow_of_nonneg (norm_nonneg _) to_real_nonneg, of_real_norm_eq_coe_nnnorm] },
-  simp only [snorm_eq_snorm' hp1 hp2, snorm', one_div],
+  simp only [snorm_eq_lintegral_rpow_nnnorm hp1 hp2, one_div],
   rw integral_eq_lintegral_of_nonneg_ae, rotate,
   { exact eventually_of_forall (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) },
   { exact (hf.ae_strongly_measurable.norm.ae_measurable.pow_const _).ae_strongly_measurable },

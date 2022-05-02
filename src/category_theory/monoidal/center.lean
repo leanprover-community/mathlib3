@@ -127,10 +127,10 @@ def tensor_obj (X Y : center C) : center C :=
       slice_rhs 6 7 { rw [tensor_id, tensor_id, tensor_id_comp_id_tensor, ←id_tensor_comp_tensor_id,
         ←tensor_id, ←tensor_id], },
       -- Now insert associators as needed to make the four half-braidings look identical
-      slice_rhs 10 10 { rw ←associator_inv_conjugation, },
-      slice_rhs 7 7 { rw ←associator_inv_conjugation, },
-      slice_rhs 6 6 { rw ←associator_conjugation, },
-      slice_rhs 3 3 { rw ←associator_conjugation, },
+      slice_rhs 10 10 { rw associator_inv_conjugation, },
+      slice_rhs 7 7 { rw associator_inv_conjugation, },
+      slice_rhs 6 6 { rw associator_conjugation, },
+      slice_rhs 3 3 { rw associator_conjugation, },
       -- Finish with an application of the coherence theorem.
       coherence,
     end,
@@ -175,7 +175,7 @@ def tensor_unit : center C :=
 def associator (X Y Z : center C) : tensor_obj (tensor_obj X Y) Z ≅ tensor_obj X (tensor_obj Y Z) :=
 iso_mk ⟨(α_ X.1 Y.1 Z.1).hom, λ U, begin
   dsimp,
-  simp only [comp_tensor_id, id_tensor_comp, ←tensor_id, ←associator_conjugation],
+  simp only [comp_tensor_id, id_tensor_comp, ←tensor_id, associator_conjugation],
   coherence,
 end⟩
 

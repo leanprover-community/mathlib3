@@ -48,7 +48,7 @@ variables {F : J ⥤ C}
 A cone `t` on `F` is a limit cone if each cone on `F` admits a unique
 cone morphism to `t`.
 
-See https://stacks.math.columbia.edu/tag/002E.
+See <https://stacks.math.columbia.edu/tag/002E>.
   -/
 @[nolint has_inhabited_instance]
 structure is_limit (t : cone F) :=
@@ -502,7 +502,7 @@ end is_limit
 A cocone `t` on `F` is a colimit cocone if each cocone on `F` admits a unique
 cocone morphism from `t`.
 
-See https://stacks.math.columbia.edu/tag/002F.
+See <https://stacks.math.columbia.edu/tag/002F>.
 -/
 @[nolint has_inhabited_instance]
 structure is_colimit (t : cocone F) :=

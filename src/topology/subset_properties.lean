@@ -947,7 +947,7 @@ prod.noncompact_space_iff.2 (or.inr ⟨‹_›, ‹_›⟩)
 section tychonoff
 variables [Π i, topological_space (π i)]
 
-/-- **Tychonoff's theorem** -/
+/-- **Tychonoff's theorem**: product of compact sets is compact. -/
 lemma is_compact_pi_infinite {s : Π i, set (π i)} :
   (∀ i, is_compact (s i)) → is_compact {x : Π i, π i | ∀ i, x i ∈ s i} :=
 begin
@@ -961,7 +961,7 @@ begin
   exact ⟨a, assume i, (ha i).left, assume i, (ha i).right.le_comap⟩
 end
 
-/-- A version of Tychonoff's theorem that uses `set.pi`. -/
+/-- **Tychonoff's theorem** formulated using `set.pi`: product of compact sets is compact. -/
 lemma is_compact_univ_pi {s : Π i, set (π i)} (h : ∀ i, is_compact (s i)) :
   is_compact (pi univ s) :=
 by { convert is_compact_pi_infinite h, simp only [← mem_univ_pi, set_of_mem_eq] }
@@ -969,18 +969,16 @@ by { convert is_compact_pi_infinite h, simp only [← mem_univ_pi, set_of_mem_eq
 instance pi.compact_space [∀ i, compact_space (π i)] : compact_space (Πi, π i) :=
 ⟨by { rw [← pi_univ univ], exact is_compact_univ_pi (λ i, compact_univ) }⟩
 
-/-- Product of compact sets is compact -/
+/-- **Tychonoff's theorem** formulated in terms of filters: `filter.cocompact` on an indexed product
+type `Π d, κ d` the `filter.Coprod` of filters `filter.cocompact` on `κ d`. -/
 lemma filter.Coprod_cocompact {δ : Type*} {κ : δ → Type*} [Π d, topological_space (κ d)] :
   filter.Coprod (λ d, filter.cocompact (κ d)) = filter.cocompact (Π d, κ d) :=
 begin
-  ext S, rcases compl_surjective S with ⟨S, rfl⟩,
-  simp_rw [compl_mem_Coprod_iff, filter.mem_cocompact, compl_subset_compl],
-  split,
-  { rintro ⟨t, H, hSt⟩, choose K hKc htK using H,
-    exact ⟨set.pi univ K, is_compact_univ_pi hKc, hSt.trans $ pi_mono $ λ i _, htK i⟩ },
-  { rintro ⟨K, hKc, hSK⟩,
-    exact ⟨λ i, function.eval i '' K, λ i, ⟨_, hKc.image (continuous_apply i), subset.rfl⟩,
-      hSK.trans $ subset_pi_eval_image _ _⟩ }
+  refine le_antisymm (supr_le $ λ i, filter.comap_cocompact (continuous_apply i)) _,
+  refine compl_surjective.forall.2 (λ s H, _),
+  simp only [compl_mem_Coprod, filter.mem_cocompact, compl_subset_compl, image_subset_iff] at H ⊢,
+  choose K hKc htK using H,
+  exact ⟨set.pi univ K, is_compact_univ_pi hKc, λ f hf i hi, htK i hf⟩
 end
 
 end tychonoff

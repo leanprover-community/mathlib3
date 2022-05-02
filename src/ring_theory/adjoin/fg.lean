@@ -108,7 +108,7 @@ lemma fg_of_submodule_fg (h : (⊤ : submodule R A).fg) : (⊤ : subalgebra R A)
 let ⟨s, hs⟩ := h in ⟨s, to_submodule_injective $
 by { rw [algebra.top_to_submodule, eq_top_iff, ← hs, span_le], exact algebra.subset_adjoin }⟩
 
-lemma fg_prod {S : subalgebra R A} {T : subalgebra R B} (hS : S.fg) (hT : T.fg) : (S.prod T).fg :=
+lemma fg.prod {S : subalgebra R A} {T : subalgebra R B} (hS : S.fg) (hT : T.fg) : (S.prod T).fg :=
 begin
   obtain ⟨s, hs⟩ := fg_def.1 hS,
   obtain ⟨t, ht⟩ := fg_def.1 hT,
@@ -121,7 +121,7 @@ end
 
 section
 open_locale classical
-lemma fg_map (S : subalgebra R A) (f : A →ₐ[R] B) (hs : S.fg) : (S.map f).fg :=
+lemma fg.map {S : subalgebra R A} (f : A →ₐ[R] B) (hs : S.fg) : (S.map f).fg :=
 let ⟨s, hs⟩ := hs in ⟨s.image f, by rw [finset.coe_image, algebra.adjoin_image, hs]⟩
 end
 
@@ -132,7 +132,7 @@ by { rw [← algebra.adjoin_image, finset.coe_preimage, set.image_preimage_eq_of
   rw [← alg_hom.coe_range, ← algebra.adjoin_le_iff, hs, ← algebra.map_top], exact map_mono le_top }⟩
 
 lemma fg_top (S : subalgebra R A) : (⊤ : subalgebra R S).fg ↔ S.fg :=
-⟨λ h, by { rw [← S.range_val, ← algebra.map_top], exact fg_map _ _ h },
+⟨λ h, by { rw [← S.range_val, ← algebra.map_top], exact fg.map _ h },
 λ h, fg_of_fg_map _ S.val subtype.val_injective $ by { rw [algebra.map_top, range_val], exact h }⟩
 
 lemma induction_on_adjoin [is_noetherian R A] (P : subalgebra R A → Prop)

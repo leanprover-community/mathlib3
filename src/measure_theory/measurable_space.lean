@@ -484,11 +484,11 @@ m₁.comap prod.fst ⊔ m₂.comap prod.snd
 instance {α β} [m₁ : measurable_space α] [m₂ : measurable_space β] : measurable_space (α × β) :=
 m₁.prod m₂
 
-@[measurability] lemma measurable_fst [measurable_space α] [measurable_space β] :
+@[measurability] lemma measurable_fst {ma : measurable_space α} {mb : measurable_space β} :
   measurable (prod.fst : α × β → α) :=
 measurable.of_comap_le le_sup_left
 
-@[measurability] lemma measurable_snd [measurable_space α] [measurable_space β] :
+@[measurability] lemma measurable_snd {ma : measurable_space α} {mb : measurable_space β} :
   measurable (prod.snd : α × β → β) :=
 measurable.of_comap_le le_sup_right
 
@@ -561,8 +561,8 @@ lemma measurable_set_prod_of_nonempty {s : set α} {t : set β} (h : (s ×ˢ t :
 begin
   rcases h with ⟨⟨x, y⟩, hx, hy⟩,
   refine ⟨λ hst, _, λ h, h.1.prod h.2⟩,
-  have : measurable_set ((λ x, (x, y)) ⁻¹' (s ×ˢ t)) := measurable_id.prod_mk measurable_const hst,
-  have : measurable_set (prod.mk x ⁻¹' (s ×ˢ t)) := measurable_const.prod_mk measurable_id hst,
+  have : measurable_set ((λ x, (x, y)) ⁻¹' s ×ˢ t) := measurable_prod_mk_right hst,
+  have : measurable_set (prod.mk x ⁻¹' s ×ˢ t) := measurable_prod_mk_left hst,
   simp * at *
 end
 
@@ -1325,10 +1325,10 @@ lemma eventually.exists_measurable_mem {f : filter α} [is_measurably_generated 
   ∃ s ∈ f, measurable_set s ∧ ∀ x ∈ s, p x :=
 is_measurably_generated.exists_measurable_subset h
 
-lemma eventually.exists_measurable_mem_of_lift' {f : filter α} [is_measurably_generated f]
-  {p : set α → Prop} (h : ∀ᶠ s in f.lift' powerset, p s) :
+lemma eventually.exists_measurable_mem_of_small_sets {f : filter α} [is_measurably_generated f]
+  {p : set α → Prop} (h : ∀ᶠ s in f.small_sets, p s) :
   ∃ s ∈ f, measurable_set s ∧ p s :=
-let ⟨s, hsf, hs⟩ := eventually_lift'_powerset.1 h,
+let ⟨s, hsf, hs⟩ := eventually_small_sets.1 h,
   ⟨t, htf, htm, hts⟩ := is_measurably_generated.exists_measurable_subset hsf
 in ⟨t, htf, htm, hs t hts⟩
 

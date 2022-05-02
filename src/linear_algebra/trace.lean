@@ -41,29 +41,29 @@ variables (b : basis ι R M) (c : basis κ R M)
 /-- The trace of an endomorphism given a basis. -/
 def trace_aux :
   (M →ₗ[R] M) →ₗ[R] R :=
-(matrix.trace ι R R) ∘ₗ ↑(linear_map.to_matrix b b)
+(matrix.trace_linear_map ι R R) ∘ₗ ↑(linear_map.to_matrix b b)
 
 -- Can't be `simp` because it would cause a loop.
 lemma trace_aux_def (b : basis ι R M) (f : M →ₗ[R] M) :
-  trace_aux R b f = matrix.trace ι R R (linear_map.to_matrix b b f) :=
+  trace_aux R b f = matrix.trace (linear_map.to_matrix b b f) :=
 rfl
 
 theorem trace_aux_eq : trace_aux R b = trace_aux R c :=
 linear_map.ext $ λ f,
-calc  matrix.trace ι R R (linear_map.to_matrix b b f)
-    = matrix.trace ι R R (linear_map.to_matrix b b ((linear_map.id.comp f).comp linear_map.id)) :
+calc  matrix.trace (linear_map.to_matrix b b f)
+    = matrix.trace (linear_map.to_matrix b b ((linear_map.id.comp f).comp linear_map.id)) :
   by rw [linear_map.id_comp, linear_map.comp_id]
-... = matrix.trace ι R R (linear_map.to_matrix c b linear_map.id ⬝
+... = matrix.trace (linear_map.to_matrix c b linear_map.id ⬝
         linear_map.to_matrix c c f ⬝
         linear_map.to_matrix b c linear_map.id) :
   by rw [linear_map.to_matrix_comp _ c, linear_map.to_matrix_comp _ c]
-... = matrix.trace κ R R (linear_map.to_matrix c c f ⬝
+... = matrix.trace (linear_map.to_matrix c c f ⬝
         linear_map.to_matrix b c linear_map.id ⬝
         linear_map.to_matrix c b linear_map.id) :
   by rw [matrix.mul_assoc, matrix.trace_mul_comm]
-... = matrix.trace κ R R (linear_map.to_matrix c c ((f.comp linear_map.id).comp linear_map.id)) :
+... = matrix.trace (linear_map.to_matrix c c ((f.comp linear_map.id).comp linear_map.id)) :
   by rw [linear_map.to_matrix_comp _ b, linear_map.to_matrix_comp _ c]
-... = matrix.trace κ R R (linear_map.to_matrix c c f) :
+... = matrix.trace (linear_map.to_matrix c c f) :
   by rw [linear_map.comp_id, linear_map.comp_id]
 
 open_locale classical
@@ -81,13 +81,13 @@ variables (R) {M}
 /-- Auxiliary lemma for `trace_eq_matrix_trace`. -/
 theorem trace_eq_matrix_trace_of_finset {s : finset M} (b : basis s R M)
   (f : M →ₗ[R] M) :
-  trace R M f = matrix.trace s R R (linear_map.to_matrix b b f) :=
+  trace R M f = matrix.trace (linear_map.to_matrix b b f) :=
 have ∃ (s : finset M), nonempty (basis s R M),
 from ⟨s, ⟨b⟩⟩,
 by { rw [trace, dif_pos this, ← trace_aux_def], congr' 1, apply trace_aux_eq }
 
 theorem trace_eq_matrix_trace (f : M →ₗ[R] M) :
-  trace R M f = matrix.trace ι R R (linear_map.to_matrix b b f) :=
+  trace R M f = matrix.trace (linear_map.to_matrix b b f) :=
 by rw [trace_eq_matrix_trace_of_finset R b.reindex_finset_range,
     ← trace_aux_def, ← trace_aux_def, trace_aux_eq R b]
 
@@ -127,7 +127,7 @@ begin
   simp only [function.comp_app, basis.tensor_product_apply, basis.coe_dual_basis, coe_comp],
   rw [trace_eq_matrix_trace R b, to_matrix_dual_tensor_hom],
   by_cases hij : i = j,
-  { rw [hij], simp},
+  { rw [hij], simp },
   rw matrix.std_basis_matrix.trace_zero j i (1:R) hij,
   simp [finsupp.single_eq_pi_single, hij],
 end

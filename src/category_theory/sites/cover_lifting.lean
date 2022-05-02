@@ -78,7 +78,7 @@ end cover_lifting
 
 /-!
 We will now prove that `Ran G.op` (`ₚu`) maps sheaves to sheaves if `G` is cover-lifting. This can
-be found in https://stacks.math.columbia.edu/tag/00XK. However, the proof given here uses the
+be found in <https://stacks.math.columbia.edu/tag/00XK>. However, the proof given here uses the
 amalgamation definition of sheaves, and thus does not require that `C` or `D` has categorical
 pullbacks.
 

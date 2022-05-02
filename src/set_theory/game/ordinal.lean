@@ -67,7 +67,7 @@ by { rw to_pgame, refl }
 
 @[simp] theorem to_pgame_move_left' {o : ordinal} (i) :
   o.to_pgame.move_left i = (to_left_moves_to_pgame.symm i).val.to_pgame :=
-(congr_fun_heq _ to_pgame_move_left_heq.symm _).symm
+(congr_heq to_pgame_move_left_heq.symm (cast_heq _ i)).symm
 
 theorem to_pgame_move_left {o : ordinal} (i) :
   o.to_pgame.move_left (to_left_moves_to_pgame i) = i.val.to_pgame :=

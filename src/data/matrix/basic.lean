@@ -368,6 +368,18 @@ lemma diag_map {f : α → β} {A : matrix n n α} : diag (A.map f) = f ∘ diag
 @[simp] lemma diag_conj_transpose [add_monoid α] [star_add_monoid α] (A : matrix n n α) :
   diag Aᴴ = star (diag A) := rfl
 
+@[simp] lemma diag_list_sum [add_monoid α] (l : list (matrix n n α)) :
+  diag l.sum = (l.map diag).sum :=
+map_list_sum (diag_add_monoid_hom n α) l
+
+@[simp] lemma diag_multiset_sum [add_comm_monoid α] (s : multiset (matrix n n α)) :
+  diag s.sum = (s.map diag).sum :=
+map_multiset_sum (diag_add_monoid_hom n α) s
+
+@[simp] lemma diag_sum {ι} [add_comm_monoid α] (s : finset ι) (f : ι → matrix n n α) :
+  diag (∑ i in s, f i) = ∑ i in s, diag (f i) :=
+map_sum (diag_add_monoid_hom n α) f s
+
 end diag
 
 section dot_product
@@ -1746,14 +1758,33 @@ begin
 end
 
 @[simp] lemma update_row_eq_self [decidable_eq m]
-  (A : matrix m n α) {i : m} :
+  (A : matrix m n α) (i : m) :
   A.update_row i (A i) = A :=
 function.update_eq_self i A
 
 @[simp] lemma update_column_eq_self [decidable_eq n]
-  (A : matrix m n α) {i : n} :
+  (A : matrix m n α) (i : n) :
   A.update_column i (λ j, A j i) = A :=
 funext $ λ j, function.update_eq_self i (A j)
+
+lemma diagonal_update_column_single [decidable_eq n] [has_zero α] (v : n → α) (i : n) (x : α):
+  (diagonal v).update_column i (pi.single i x) = diagonal (function.update v i x) :=
+begin
+  ext j k,
+  obtain rfl | hjk := eq_or_ne j k,
+  { rw [diagonal_apply_eq],
+    obtain rfl | hji := eq_or_ne j i,
+    { rw [update_column_self, pi.single_eq_same, function.update_same], },
+    { rw [update_column_ne hji, diagonal_apply_eq, function.update_noteq hji], } },
+  { rw [diagonal_apply_ne _ hjk],
+    obtain rfl | hki := eq_or_ne k i,
+    { rw [update_column_self, pi.single_eq_of_ne hjk] },
+    { rw [update_column_ne hki, diagonal_apply_ne _ hjk] } }
+end
+
+lemma diagonal_update_row_single [decidable_eq n] [has_zero α] (v : n → α) (i : n) (x : α):
+  (diagonal v).update_row i (pi.single i x) = diagonal (function.update v i x) :=
+by rw [←diagonal_transpose, update_row_transpose, diagonal_update_column_single, diagonal_transpose]
 
 end update
 

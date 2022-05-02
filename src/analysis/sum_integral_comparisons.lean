@@ -34,7 +34,7 @@ At the moment it contains two lemmas in this direction: `antitone_on.integral_le
 analysis, comparison, asymptotics
 -/
 
-open set
+open set measure_theory.measure_space
 open_locale big_operators
 
 lemma antitone_on.integral_le_sum {x₀ : ℝ} {a : ℕ} {f : ℝ → ℝ}

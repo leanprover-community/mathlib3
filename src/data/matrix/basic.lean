@@ -368,6 +368,18 @@ lemma diag_map {f : α → β} {A : matrix n n α} : diag (A.map f) = f ∘ diag
 @[simp] lemma diag_conj_transpose [add_monoid α] [star_add_monoid α] (A : matrix n n α) :
   diag Aᴴ = star (diag A) := rfl
 
+@[simp] lemma diag_list_sum [add_monoid α] (l : list (matrix n n α)) :
+  diag l.sum = (l.map diag).sum :=
+map_list_sum (diag_add_monoid_hom n α) l
+
+@[simp] lemma diag_multiset_sum [add_comm_monoid α] (s : multiset (matrix n n α)) :
+  diag s.sum = (s.map diag).sum :=
+map_multiset_sum (diag_add_monoid_hom n α) s
+
+@[simp] lemma diag_sum {ι} [add_comm_monoid α] (s : finset ι) (f : ι → matrix n n α) :
+  diag (∑ i in s, f i) = ∑ i in s, diag (f i) :=
+map_sum (diag_add_monoid_hom n α) f s
+
 end diag
 
 section dot_product

@@ -959,7 +959,7 @@ def closure_comm_semiring_of_comm {s : set R'} (hcomm : ∀ (a ∈ s) (b ∈ s),
 { mul_comm := λ x y,
   begin
     ext,
-    simp only [subsemiring.coe_mul],
+    simp only [submonoid_class.coe_mul],
     refine closure_induction₂ x.prop y.prop hcomm
     (λ x, by simp only [zero_mul, mul_zero])
     (λ x, by simp only [zero_mul, mul_zero])
@@ -970,7 +970,7 @@ def closure_comm_semiring_of_comm {s : set R'} (hcomm : ∀ (a ∈ s) (b ∈ s),
     (λ x y z h₁ h₂, by rw [mul_assoc, h₂, ←mul_assoc, h₁, mul_assoc])
     (λ x y z h₁ h₂, by rw [←mul_assoc, h₁, mul_assoc, h₂, ←mul_assoc])
   end,
-  ..(closure s).to_semiring }
+  ..subsemiring_class.to_semiring (closure s) }
 
 end subsemiring
 

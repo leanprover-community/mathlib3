@@ -841,12 +841,7 @@ lemma tsum_mono_subtype (f : α → ℝ≥0∞) {s t : set α} (h : s ⊆ t) :
 begin
   simp only [tsum_subtype],
   apply ennreal.tsum_le_tsum,
-  assume x,
-  split_ifs,
-  { exact le_rfl },
-  { exact (h_2 (h h_1)).elim },
-  { exact zero_le _ },
-  { exact le_rfl }
+  exact indicator_le_indicator_of_subset h (λ _, zero_le _),
 end
 
 lemma tsum_union_le (f : α → ℝ≥0∞) (s t : set α) :

@@ -30,7 +30,7 @@ the ball, then the integral from `0` to `2 * π` of this gives the value `f(w)` 
 def circle_integral_transform (R : ℝ) (z w: ℂ) (f : ℂ → E) : (ℝ → E) := λ θ,
  (2 * π * I : ℂ)⁻¹ • deriv (circle_map z R) θ • ((circle_map z R θ) - w)⁻¹ • f  (circle_map z R θ)
 
-/--The derivative of `circle_integral_transform` -/
+/--The derivative of `circle_integral_transform` w.r.t `w` -/
 def circle_integral_transform_deriv (R : ℝ) (z w : ℂ) (f : ℂ → E) : (ℝ → E) := λ θ,
   (2 * π * I : ℂ)⁻¹ • deriv (circle_map z R) θ •
   (((circle_map z R θ) - w)^(2))⁻¹ • f  (circle_map z R θ)
@@ -56,7 +56,7 @@ begin
   interval_integral.integral_smul, zero_add],
 end
 
-lemma circle_map_ne_on_ball (R : ℝ) (hR: 0 < R) (z w : ℂ) (hw : w ∈ ball z R) :
+lemma circle_map_ne_on_ball (R : ℝ) (hR : 0 < R) (z w : ℂ) (hw : w ∈ ball z R) :
   ∀  x : ℝ, circle_map z R x - w ≠ 0 :=
 begin
   intros x hx,
@@ -68,7 +68,7 @@ begin
 end
 
 lemma circle_map_inv_continuous_on (R : ℝ) (hR : 0 < R) (z w : ℂ) (hw : w ∈ ball z R) :
- continuous_on (λ θ,  (circle_map z R θ - w)⁻¹) [0, 2*π] :=
+ continuous_on (λ θ, (circle_map z R θ - w)⁻¹) [0, 2*π] :=
 begin
   simp_rw ←one_div,
   apply_rules [continuous_on.div, continuous_const.continuous_on, continuous_on.sub,
@@ -92,8 +92,7 @@ begin
 end
 
 lemma circle_integral_transform_deriv_cont_on_ICC (R : ℝ) (hR : 0 < R) (f : ℂ → E) (z w : ℂ)
-  (hf : continuous_on f (sphere z R)  )
-  (hw : w ∈ ball z R):
+  (hf : continuous_on f (sphere z R)) (hw : w ∈ ball z R):
   continuous_on (circle_integral_transform_deriv R z w f ) [0, 2*π] :=
 begin
   rw circle_integral_transform_deriv_eq,
@@ -102,8 +101,7 @@ begin
 end
 
 lemma circle_integral_transform_cont_on (R : ℝ) (hR: 0 < R) (f : ℂ → E) (z w : ℂ)
-  (hf : continuous_on f (sphere z R))
-  (hw : w ∈ ball z R):
+  (hf : continuous_on f (sphere z R)) (hw : w ∈ ball z R):
   continuous_on (circle_integral_transform R z w f ) (Ι 0 (2 * π)) :=
 begin
  apply (circle_integral_transform_cont_on_ICC R hR f z w hf hw).mono,

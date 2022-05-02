@@ -46,6 +46,9 @@ namespace impartial
 instance impartial_zero : impartial 0 :=
 by { rw impartial_def, dsimp, simp }
 
+instance impartial_star : impartial star :=
+by { rw impartial_def, simpa using impartial.impartial_zero }
+
 lemma neg_equiv_self (G : pgame) [h : G.impartial] : G ≈ -G := (impartial_def.1 h).1
 
 instance move_left_impartial {G : pgame} [h : G.impartial] (i : G.left_moves) :

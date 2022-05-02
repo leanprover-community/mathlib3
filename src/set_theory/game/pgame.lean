@@ -678,11 +678,11 @@ begin
   congr; funext i; cases i
 end
 
-@[simp] theorem left_moves_neg (x : pgame) : (-x).left_moves = x.right_moves :=
-by { cases x, refl }
+theorem left_moves_neg : ∀ x : pgame, (-x).left_moves = x.right_moves
+| ⟨_, _, _, _⟩ := rfl
 
-@[simp] theorem right_moves_neg (x : pgame) : (-x).right_moves = x.left_moves :=
-by { cases x, refl }
+theorem right_moves_neg : ∀ x : pgame, (-x).right_moves = x.left_moves
+| ⟨_, _, _, _⟩ := rfl
 
 /-- Turns a right move for `x` into a left move for `-x` and vice versa.
 

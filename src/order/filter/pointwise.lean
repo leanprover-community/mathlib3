@@ -275,10 +275,6 @@ end
 | 0 := by { rw pow_zero, exact one_mem_one }
 | (n + 1) := by { rw pow_succ, exact mul_mem_mul hs (pow_mem_pow _) }
 
-@[to_additive] lemma pow_le_pow (hfg : f ≤ g) : ∀ n : ℕ, f ^ n ≤ g ^ n
-| 0 := by { rw pow_zero, exact subset.rfl }
-| (n + 1) := by { rw pow_succ, exact mul_le_mul' hfg (pow_le_pow _) }
-
 @[to_additive nsmul_bot] lemma bot_pow (n : ℕ) (hn : n ≠ 0) : (⊥  : filter α) ^ n = ⊥ :=
 by rw [←tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, bot_mul]
 

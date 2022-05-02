@@ -100,8 +100,7 @@ lemma thickened_indicator_aux_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (
 
 lemma thickened_indicator_aux_subset (δ : ℝ) {E₁ E₂ : set α} (subset : E₁ ⊆ E₂) :
   thickened_indicator_aux δ E₁ ≤ thickened_indicator_aux δ E₂ :=
-λ _, tsub_le_tsub (@rfl ℝ≥0∞ 1).le
-  (ennreal.div_le_div (inf_edist_le_inf_edist_of_subset subset) rfl.le)
+λ _, tsub_le_tsub (@rfl ℝ≥0∞ 1).le (ennreal.div_le_div (inf_edist_anti subset) rfl.le)
 
 /-- As the thickening radius δ tends to 0, the δ-thickened indicator of a set E (in α) tends
 pointwise (i.e., w.r.t. the product topology on `α → ℝ≥0∞`) to the indicator function of the

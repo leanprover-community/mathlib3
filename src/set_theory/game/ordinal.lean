@@ -57,6 +57,10 @@ versa. -/
 noncomputable def to_left_moves_to_pgame {o : ordinal} : {o' // o' < o} ≃ o.to_pgame.left_moves :=
 (out_equiv_lt o).trans (equiv.cast (to_pgame_left_moves o).symm)
 
+@[simp] theorem to_left_moves_to_pgame_symm_lt {o : ordinal} (i : o.to_pgame.left_moves) :
+  (to_left_moves_to_pgame.symm i).val < o :=
+(to_left_moves_to_pgame.symm i).prop
+
 theorem to_pgame_move_left_heq {o : ordinal} :
   o.to_pgame.move_left == λ x : o.out.α, (typein (<) x).to_pgame :=
 by { rw to_pgame, refl }
@@ -76,8 +80,7 @@ theorem to_pgame_le {a b : ordinal} (h : a ≤ b) : a.to_pgame ≤ b.to_pgame :=
 begin
   rw pgame.le_def,
   refine ⟨λ i, or.inl ⟨to_left_moves_to_pgame
-    ⟨(to_left_moves_to_pgame.symm i).val, (to_left_moves_to_pgame.symm i).prop.trans_le h⟩, _⟩,
-    is_empty_elim⟩,
+    ⟨_, (to_left_moves_to_pgame_symm_lt i).trans_le h⟩, _⟩, is_empty_elim⟩,
   simp
 end
 

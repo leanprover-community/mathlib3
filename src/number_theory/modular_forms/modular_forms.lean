@@ -270,30 +270,12 @@ structure is_modular_form_of_lvl_and_weight (Γ : subgroup SL(2,ℤ)) (k : ℤ) 
   (transf   : f ∈ weakly_modular_submodule k Γ )
   (infinity : ∀ (A : SL(2,ℤ)), is_bound_at_inf (f ∣[k] A))
 
--- lemma mk (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ)
---   (h : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑f : ℍ' → ℂ) )
---   (h2: f ∈ weakly_modular_submodule k Γ )
---   (h3 : ∀ (A : (⊤ : subgroup SL(2,ℤ))), (f ∣[k] A) ∈ is_bound_at_infinity ) :
---   is_modular_form_of_lvl_and_weight Γ k f :=
---   {hol := h,
---   transf := h2,
---   infinity := h3,}
-
 /-- A function `f : ℍ → ℂ` is a cusp form of level one and weight `k ∈ ℤ` if it is holomorphic,
  weakly modular, and zero at infinity -/
 structure is_cusp_form_of_lvl_and_weight (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ) : Prop :=
   (hol      : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑f : ℍ' → ℂ))
   (transf   : f ∈ weakly_modular_submodule k Γ)
   (infinity : ∀ (A : SL(2,ℤ)), is_zero_at_inf (f ∣[k] A) )
-
--- lemma is_cuspform_mk (Γ : subgroup SL(2,ℤ)) (k : ℤ) (f : ℍ → ℂ)
---   (h : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (↑f : ℍ' → ℂ) )
---   (h2 : f ∈ weakly_modular_submodule k Γ)
---   (h3 :  ∀ (A : (⊤ : subgroup SL(2,ℤ))), (f ∣[k] A) ∈ is_zero_at_infinity ) :
---   is_cusp_form_of_lvl_and_weight Γ k f :=
---   {hol := h,
---   transf := h2,
---   infinity := h3}
 
 /-- The zero modular form is a cusp form-/
 lemma zero_cusp_form : is_cusp_form_of_lvl_and_weight Γ k 0 :=

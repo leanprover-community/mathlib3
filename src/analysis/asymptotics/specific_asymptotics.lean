@@ -111,9 +111,7 @@ lemma asymptotics.is_o.sum_range {α : Type*} [normed_group α]
 begin
   have A : ∀ i, ∥g i∥ = g i := λ i, real.norm_of_nonneg (hg i),
   have B : ∀ n, ∥∑ i in range n, g i∥ = ∑ i in range n, g i,
-  { assume n,
-    rw [real.norm_eq_abs, abs_sum_of_nonneg'],
-    exact hg },
+    from λ n, by rwa [real.norm_eq_abs, abs_sum_of_nonneg'],
   apply is_o_iff.2 (λ ε εpos, _),
   obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (b : ℕ), N ≤ b → ∥f b∥ ≤ ε / 2 * g b,
     by simpa only [A, eventually_at_top] using is_o_iff.mp h (half_pos εpos),

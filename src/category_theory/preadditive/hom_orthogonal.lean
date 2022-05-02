@@ -13,7 +13,7 @@ import linear_algebra.matrix.invariant_basis_number
 A family of objects in a category with zero morphisms is "hom orthogonal" if the only
 morphism between distinct objects is the zero morphism.
 
-We should that in any category with zero morphisms and finite biproducts,
+We show that in any category with zero morphisms and finite biproducts,
 a morphism between biproducts drawn from a hom orthogonal family `s : ι → C`
 can be decomposed into a block diagonal matrix with entries in the endomorphism rings of the `s i`.
 

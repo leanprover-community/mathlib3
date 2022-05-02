@@ -44,7 +44,7 @@ by rw [to_pgame, pgame.left_moves]
 @[simp] theorem to_pgame_right_moves (o : ordinal) : o.to_pgame.right_moves = pempty :=
 by rw [to_pgame, pgame.right_moves]
 
-instance : is_empty (0 : ordinal).to_pgame.left_moves :=
+instance : is_empty (to_pgame 0).left_moves :=
 by { rw to_pgame_left_moves, apply_instance }
 
 instance (o : ordinal) : is_empty o.to_pgame.right_moves :=
@@ -74,13 +74,9 @@ theorem to_pgame_le {a b : ordinal} (h : a ≤ b) : a.to_pgame ≤ b.to_pgame :=
 begin
   rw pgame.le_def,
   refine ⟨λ i, or.inl ⟨to_left_moves_to_pgame
-    (enum (<) (typein (<) (to_left_moves_to_pgame.symm i)) _), _⟩, is_empty_elim⟩,
-  { rw type_lt,
-    apply lt_of_lt_of_le _ h,
-    simp_rw ←type_lt a,
-    apply typein_lt_type },
-  { rw [←to_left_moves_to_pgame.apply_symm_apply i, to_pgame_move_left],
-    simp }
+    ⟨(to_left_moves_to_pgame.symm i).val, (to_left_moves_to_pgame.symm i).prop.trans_le h⟩, _⟩,
+    is_empty_elim⟩,
+  simp
 end
 
 @[simp] theorem to_pgame_lt_iff {a b : ordinal} : a.to_pgame < b.to_pgame ↔ a < b :=

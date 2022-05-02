@@ -710,6 +710,23 @@ lemma prod_subtype {p : α → Prop} {F : fintype (subtype p)} (s : finset α)
   ∏ a in s, f a = ∏ a : subtype p, f a :=
 have (∈ s) = p, from set.ext h, by { substI p, rw ← prod_coe_sort, congr }
 
+/-- The product of a function `g` defined only on a set `s` is equal to
+the product of a function `f` defined everywhere,
+as long as `f` and `g` agree on `s`, and `f = 1` off `s`. -/
+@[to_additive]
+lemma finset.prod_congr_set
+  {α : Type*} [comm_monoid α] {β : Type*} [fintype β] (s : set β) (f : β → α) (g : s → α)
+  (w : ∀ (x : β) (h : x ∈ s), f x = g ⟨x, h⟩) (w' : ∀ (x : β), x ∉ s → f x = 1) :
+  finset.univ.prod f = finset.univ.prod g :=
+begin
+  rw ←@finset.prod_subset _ _ s.to_finset finset.univ f _ (by simp),
+  { rw finset.prod_subtype,
+    { apply finset.prod_congr rfl,
+      exact λ ⟨x, h⟩ _, w x h, },
+    { simp, }, },
+  { rintro x _ h, exact w' x (by simpa using h), },
+end
+
 @[to_additive] lemma prod_apply_dite {s : finset α} {p : α → Prop} {hp : decidable_pred p}
   [decidable_pred (λ x, ¬ p x)] (f : Π (x : α), p x → γ) (g : Π (x : α), ¬p x → γ)
   (h : γ → β) :

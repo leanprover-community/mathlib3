@@ -36,10 +36,11 @@ This is preliminary to defining semisimple categories.
 
 open_locale classical matrix
 
-open category_theory
 open category_theory.limits
 
 universes v u
+
+namespace category_theory
 
 variables {C : Type u} [category.{v} C]
 
@@ -48,9 +49,11 @@ the only morphism between distinct objects is the zero morphism. -/
 def hom_orthogonal {ι : Type*} (s : ι → C) : Prop :=
 ∀ i j, i ≠ j → subsingleton (s i ⟶ s j)
 
+namespace hom_orthogonaol
+
 variables {ι : Type*} {s : ι → C}
 
-lemma hom_orthogonal.eq_zero [has_zero_morphisms C] (o : hom_orthogonal s)
+lemma eq_zero [has_zero_morphisms C] (o : hom_orthogonal s)
   {i j : ι} (w : i ≠ j) (f : s i ⟶ s j) : f = 0 :=
 by { haveI := o i j w, apply subsingleton.elim, }
 
@@ -62,7 +65,7 @@ are equivalent to block diagonal matrices,
 with blocks indexed by `ι`,
 and matrix entries in `i`-th block living in the endomorphisms of `s i`. -/
 @[simps] noncomputable
-def hom_orthogonal.matrix_decomposition
+def matrix_decomposition
   (o : hom_orthogonal s) {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι} :
   (⨁ (λ a, s (f a)) ⟶ ⨁ (λ b, s (g b))) ≃
     Π (i : ι), matrix (g ⁻¹' {i}) (f ⁻¹' {i}) (End (s i)) :=
@@ -93,30 +96,15 @@ variables [preadditive C] [has_finite_biproducts C]
 
 /-- `hom_orthogonal.matrix_decomposition` as an additive equivalence. -/
 @[simps] noncomputable
-def hom_orthogonal.matrix_decomposition_add_equiv
+def matrix_decomposition_add_equiv
   (o : hom_orthogonal s) {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι} :
   (⨁ (λ a, s (f a)) ⟶ ⨁ (λ b, s (g b))) ≃+
     Π (i : ι), matrix (g ⁻¹' {i}) (f ⁻¹' {i}) (End (s i)) :=
 { map_add' := λ w z, by { ext, dsimp [biproduct.components], simp, },
   ..o.matrix_decomposition, }.
 
--- TODO move
-@[to_additive]
-lemma finset.prod_congr_set
-  {α : Type*} [comm_monoid α] {β : Type*} [fintype β] (s : set β) (f : β → α) (g : s → α)
-  (w : ∀ (x : β) (h : x ∈ s), f x = g ⟨x, h⟩) (w' : ∀ (x : β), x ∉ s → f x = 1) :
-  finset.univ.prod f = finset.univ.prod g :=
-begin
-  rw ←@finset.prod_subset _ _ s.to_finset finset.univ f _ (by simp),
-  { rw finset.prod_subtype,
-    { apply finset.prod_congr rfl,
-      exact λ ⟨x, h⟩ _, w x h, },
-    { simp, }, },
-  { rintro x _ h, exact w' x (by simpa using h), },
-end
-
 @[simp]
-lemma hom_orthogonal.matrix_decomposition_id
+lemma matrix_decomposition_id
   (o : hom_orthogonal s) {α : Type*} [fintype α] {f : α → ι} (i : ι) :
   o.matrix_decomposition (𝟙 (⨁ (λ a, s (f a)))) i = 1 :=
 begin
@@ -130,7 +118,7 @@ begin
     simpa using biproduct.ι_π_ne _ (ne.symm h), },
 end
 
-lemma hom_orthogonal.matrix_decomposition_comp
+lemma matrix_decomposition_comp
   (o : hom_orthogonal s)
   {α β γ : Type*} [fintype α] [fintype β] [fintype γ] {f : α → ι} {g : β → ι} {h : γ → ι}
   (z : (⨁ (λ a, s (f a)) ⟶ ⨁ (λ b, s (g b)))) (w : (⨁ (λ b, s (g b)) ⟶ ⨁ (λ c, s (h c))))
@@ -161,7 +149,7 @@ variables {R : Type*} [semiring R] [linear R C]
 
 /-- `hom_orthogonal.matrix_decomposition` as an `R`-linear equivalence. -/
 @[simps] noncomputable
-def hom_orthogonal.matrix_decomposition_linear_equiv
+def matrix_decomposition_linear_equiv
 (o : hom_orthogonal s)
   {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι} :
   (⨁ (λ a, s (f a)) ⟶ ⨁ (λ b, s (g b))) ≃ₗ[R]
@@ -177,26 +165,27 @@ if `s i` is simple (as then `End (s i)` is a division ring).
 -/
 variables [∀ i, invariant_basis_number (End (s i))]
 
-open_locale classical
-
 /--
 Given a hom orthogonal family `s : ι → C`
 for which each `End (s i)` is a ring with invariant basis number (e.g. if each `s i` is simple),
 if two direct sums over `s` are isomorphic, then they have the same multiplicities.
 -/
-lemma hom_orthogonal.equiv_of_iso (o : hom_orthogonal s)
+lemma equiv_of_iso (o : hom_orthogonal s)
   {α β : Type*} [fintype α] [fintype β] {f : α → ι} {g : β → ι}
   (i : ⨁ (λ a, s (f a)) ≅ ⨁ (λ b, s (g b))) :
   ∃ e : α ≃ β, ∀ a, g (e a) = f a :=
 begin
-  refine ⟨equiv.equiv_of_preimage_equiv _, λ a, equiv.equiv_of_preimage_equiv_property _ _⟩,
+  refine ⟨equiv.of_preimage_equiv _, λ a, equiv.of_preimage_equiv_map _ _⟩,
   intro c,
   apply nonempty.some,
   apply cardinal.eq.1,
   simp only [cardinal.mk_fintype, nat.cast_inj],
-  fapply matrix.square_of_invertible (o.matrix_decomposition i.inv c) (o.matrix_decomposition i.hom c),
-  { rw ←o.matrix_decomposition_comp, simp, },
-  { rw ←o.matrix_decomposition_comp, simp, },
+  exact matrix.square_of_invertible
+    (o.matrix_decomposition i.inv c) (o.matrix_decomposition i.hom c)
+    (by { rw ←o.matrix_decomposition_comp, simp, })
+    (by { rw ←o.matrix_decomposition_comp, simp, })
 end
 
 end
+
+end category_theory

@@ -713,6 +713,19 @@ let e₁ := tensor_product.assoc R M N (P ⊗[R] Q),
     e₃ := (tensor_product.assoc R M P (N ⊗[R] Q)).symm in
 e₁ ≪≫ₗ (e₂ ≪≫ₗ e₃)
 
+variables {M N P Q}
+
+@[simp] lemma tensor_tensor_tensor_comm_tmul (m : M) (n : N) (p : P) (q : Q) :
+  tensor_tensor_tensor_comm R M N P Q ((m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q)) = (m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q) :=
+rfl
+
+@[simp] lemma tensor_tensor_tensor_comm_symm_tmul (m : M) (n : N) (p : P) (q : Q) :
+  (tensor_tensor_tensor_comm R M N P Q).symm ((m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q)) = (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) :=
+rfl
+
+variables (M N P Q)
+
+
 /-- This special case is useful for describing the interplay between `dual_tensor_hom_equiv` and
 composition of linear maps.
 
@@ -726,14 +739,6 @@ def tensor_tensor_tensor_assoc : (M ⊗[R] N) ⊗[R] (P ⊗[R] Q) ≃ₗ[R] M �
 congr (tensor_product.assoc R M N P) (1 : Q ≃ₗ[R] Q)
 
 variables {M N P Q}
-
-@[simp] lemma tensor_tensor_tensor_comm_tmul (m : M) (n : N) (p : P) (q : Q) :
-  tensor_tensor_tensor_comm R M N P Q ((m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q)) = (m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q) :=
-rfl
-
-@[simp] lemma tensor_tensor_tensor_comm_symm_tmul (m : M) (n : N) (p : P) (q : Q) :
-  (tensor_tensor_tensor_comm R M N P Q).symm ((m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q)) = (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) :=
-rfl
 
 @[simp] lemma tensor_tensor_tensor_assoc_tmul (m : M) (n : N) (p : P) (q : Q) :
   tensor_tensor_tensor_assoc R M N P Q ((m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q)) = m ⊗ₜ (n ⊗ₜ p) ⊗ₜ q := rfl

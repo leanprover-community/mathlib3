@@ -219,13 +219,13 @@ end
 
 instance : has_mul pgame := ⟨mul⟩
 
-@[simp] theorem left_moves_mul (x y : pgame.{u}) : (x * y).left_moves
-  = (x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves) :=
-by { cases x, cases y, refl }
+theorem left_moves_mul : ∀ (x y : pgame.{u}), (x * y).left_moves
+  = (x.left_moves × y.left_moves ⊕ x.right_moves × y.right_moves)
+| ⟨_, _, _, _⟩ ⟨_, _, _, _⟩ := rfl
 
-@[simp] theorem right_moves_mul (x y : pgame.{u}) : (x * y).right_moves
-  = (x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves) :=
-by { cases x, cases y, refl }
+theorem right_moves_mul : ∀ (x y : pgame.{u}), (x * y).right_moves
+  = (x.left_moves × y.right_moves ⊕ x.right_moves × y.left_moves)
+| ⟨_, _, _, _⟩ ⟨_, _, _, _⟩ := rfl
 
 /-- Turns two left or right moves for `x` and `y` into a left move for `x * y` and vice versa.
 

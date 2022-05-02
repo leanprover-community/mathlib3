@@ -25,11 +25,12 @@ section contraction
 open tensor_product linear_map matrix
 open_locale tensor_product big_operators
 
-variables (R M N : Type*) [add_comm_group M] [add_comm_group N]
+variables (R M N P Q : Type*) [add_comm_group M]
+variables [add_comm_group N] [add_comm_group P] [add_comm_group Q]
 
 section comm_ring
 
-variables [comm_ring R] [module R M] [module R N]
+variables [comm_ring R] [module R M] [module R N] [module R P] [module R Q]
 variables {ι : Type*} [decidable_eq ι] [fintype ι] (b : basis ι R M)
 
 /-- The natural left-handed pairing between a module and its dual. -/
@@ -44,7 +45,7 @@ def dual_tensor_hom : (module.dual R M) ⊗ N →ₗ[R] M →ₗ[R] N :=
   let M' := module.dual R M in
   (uncurry R M' N (M →ₗ[R] N) : _ → M' ⊗ N →ₗ[R] M →ₗ[R] N) linear_map.smul_rightₗ
 
-variables {R M N}
+variables {R M N P Q}
 
 @[simp] lemma contract_left_apply (f : module.dual R M) (m : M) :
   contract_left R M (f ⊗ₜ m) = f m := by apply uncurry_apply
@@ -55,6 +56,16 @@ variables {R M N}
 @[simp] lemma dual_tensor_hom_apply (f : module.dual R M) (m : M) (n : N) :
   dual_tensor_hom R M N (f ⊗ₜ n) m = (f m) • n :=
 by { dunfold dual_tensor_hom, rw uncurry_apply, refl, }
+
+lemma dual_tensor_hom_prod_map_zero (f : module.dual R M) (p : P) :
+  ((dual_tensor_hom R M P) (f ⊗ₜ[R] p)).prod_map (0 : N →ₗ[R] Q) =
+  dual_tensor_hom R (M × N) (P × Q) ((f ∘ₗ fst R M N) ⊗ₜ inl R P Q p) :=
+by {ext; simp}
+
+lemma zero_prod_map_dual_tensor_hom (g : module.dual R N) (q : Q) :
+  (0 : M →ₗ[R] P).prod_map ((dual_tensor_hom R N Q) (g ⊗ₜ[R] q)) =
+  dual_tensor_hom R (M × N) (P × Q) ((g ∘ₗ snd R M N) ⊗ₜ inr R P Q q) :=
+by {ext; simp}
 
 /-- As a matrix, `dual_tensor_hom` evaluated on a basis element of `M* ⊗ N` is a matrix with a
 single one and zeros elsewhere -/
@@ -97,6 +108,8 @@ end)
   (dual_tensor_hom_equiv_of_basis b : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N).to_linear_map =
   dual_tensor_hom R M N :=
 rfl
+
+variables (R M N)
 
 variables [module.free R M] [module.finite R M] [nontrivial R]
 

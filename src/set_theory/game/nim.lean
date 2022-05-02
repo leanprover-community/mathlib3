@@ -173,7 +173,7 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-@[simp] lemma equiv_nim_iff_grundy_value_eq (G : pgame) [G.impartial] (O : ordinal) :
+@[simp] lemma grundy_value_eq_iff_equiv_nim (G : pgame) [G.impartial] (O : ordinal) :
   grundy_value G = O ↔ G ≈ nim O :=
 ⟨by { rintro rfl, exact equiv_nim_grundy_value G },
   by { intro h, rw ←nim.equiv_iff_eq, exact equiv_trans (equiv_symm (equiv_nim_grundy_value G)) h }⟩
@@ -183,7 +183,7 @@ by simp
 
 @[simp] lemma grundy_value_eq_iff_equiv (G H : pgame) [G.impartial] [H.impartial] :
   grundy_value G = grundy_value H ↔ G ≈ H :=
-(equiv_nim_iff_grundy_value_eq _ _).trans (equiv_congr_left.1 (equiv_nim_grundy_value H) _).symm
+(grundy_value_eq_iff_equiv_nim _ _).trans (equiv_congr_left.1 (equiv_nim_grundy_value H) _).symm
 
 @[simp] lemma grundy_value_zero : grundy_value 0 = 0 :=
 by rw [(grundy_value_eq_iff_equiv 0 (nim 0)).2 (equiv_symm nim.zero_first_loses), nim.grundy_value]
@@ -263,7 +263,7 @@ begin
 end
 
 lemma nim_add_nim_equiv {n m : ℕ} : nim n + nim m ≈ nim (nat.lxor n m) :=
-by rw [←equiv_nim_iff_grundy_value_eq, grundy_value_nim_add_nim]
+by rw [←grundy_value_eq_iff_equiv_nim, grundy_value_nim_add_nim]
 
 lemma grundy_value_add (G H : pgame) [G.impartial] [H.impartial] {n m : ℕ} (hG : grundy_value G = n)
   (hH : grundy_value H = m) : grundy_value (G + H) = nat.lxor n m :=

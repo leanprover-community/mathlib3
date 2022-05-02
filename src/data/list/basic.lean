@@ -3375,6 +3375,14 @@ begin
     split_ifs with h₂; simp [diff_erase, list.erase, hne, hne.symm] }
 end
 
+lemma cons_diff_of_mem {a : α} {l₂ : list α} (h : a ∈ l₂) (l₁ : list α) :
+  (a :: l₁).diff l₂ = l₁.diff (l₂.erase a) :=
+by rw [cons_diff, if_pos h]
+
+lemma cons_diff_of_not_mem {a : α} {l₂ : list α} (h : a ∉ l₂) (l₁ : list α) :
+  (a :: l₁).diff l₂ = a :: l₁.diff l₂ :=
+by rw [cons_diff, if_neg h]
+
 theorem diff_eq_foldl : ∀ (l₁ l₂ : list α), l₁.diff l₂ = foldl list.erase l₁ l₂
 | l₁ []      := rfl
 | l₁ (a::l₂) := (diff_cons l₁ l₂ a).trans (diff_eq_foldl _ _)

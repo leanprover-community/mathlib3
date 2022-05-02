@@ -725,7 +725,6 @@ rfl
 
 variables (M N P Q)
 
-
 /-- This special case is useful for describing the interplay between `dual_tensor_hom_equiv` and
 composition of linear maps.
 

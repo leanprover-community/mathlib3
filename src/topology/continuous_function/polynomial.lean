@@ -153,7 +153,7 @@ begin
       simp only [neg_mul,
         ring_hom.map_neg, ring_hom.map_mul, alg_hom.coe_to_ring_hom,
         polynomial.eval_X, polynomial.eval_neg, polynomial.eval_C, polynomial.eval_smul,
-        polynomial.eval_mul, polynomial.eval_add, polynomial.coe_aeval_eq_eval,
+        smul_eq_mul, polynomial.eval_mul, polynomial.eval_add, polynomial.coe_aeval_eq_eval,
         polynomial.eval_comp, polynomial.to_continuous_map_on_alg_hom_apply,
         polynomial.to_continuous_map_on_to_fun, polynomial.to_continuous_map_to_fun],
       convert w ⟨_, _⟩; clear w,

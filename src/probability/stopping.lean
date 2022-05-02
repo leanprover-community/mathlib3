@@ -45,7 +45,7 @@ filtration, stopping time, stochastic process
 
 -/
 
-open topological_space filter
+open filter order topological_space
 open_locale classical measure_theory nnreal ennreal topological_space big_operators
 
 namespace measure_theory
@@ -267,7 +267,7 @@ begin
   intro i,
   have : u i = (λ p : set.Iic i × α, u p.1 p.2) ∘ (λ x, (⟨i, set.mem_Iic.mpr le_rfl⟩, x)) := rfl,
   rw this,
-  exact (h i).comp_measurable ((@measurable_const _ _ _ (f i) _).prod_mk (@measurable_id _ (f i))),
+  exact (h i).comp_measurable measurable_prod_mk_left,
 end
 
 protected lemma comp {t : ι → α → ι} [topological_space ι] [borel_space ι] [metrizable_space ι]
@@ -280,7 +280,7 @@ begin
     = (λ p : ↥(set.Iic i) × α, u (p.fst : ι) p.snd) ∘ (λ p : ↥(set.Iic i) × α,
       (⟨t (p.fst : ι) p.snd, set.mem_Iic.mpr ((ht_le _ _).trans p.fst.prop)⟩, p.snd)) := rfl,
   rw this,
-  exact (h i).comp_measurable ((ht i).measurable.subtype_mk.prod_mk (@measurable_snd _ _ _ (f i))),
+  exact (h i).comp_measurable ((ht i).measurable.subtype_mk.prod_mk measurable_snd),
 end
 
 section arithmetic
@@ -358,10 +358,10 @@ of σ-algebras such that that sequence of functions is measurable with respect t
 the filtration. -/
 def natural (u : ι → α → β) (hum : ∀ i, strongly_measurable (u i)) : filtration ι m :=
 { seq   := λ i, ⨆ j ≤ i, measurable_space.comap (u j) mβ,
-  mono' := λ i j hij, bsupr_le_bsupr' $ λ k hk, le_trans hk hij,
+  mono' := λ i j hij, bsupr_mono $ λ k, ge_trans hij,
   le'   := λ i,
   begin
-    refine bsupr_le _,
+    refine supr₂_le _,
     rintros j hj s ⟨t, ht, rfl⟩,
     exact (hum j).measurable ht,
   end }
@@ -370,7 +370,7 @@ lemma adapted_natural {u : ι → α → β} (hum : ∀ i, strongly_measurable[m
   adapted (natural u hum) u :=
 begin
   assume i,
-  refine strongly_measurable.mono _ (le_bsupr_of_le i (le_refl i) le_rfl),
+  refine strongly_measurable.mono _ (le_supr₂_of_le i (le_refl i) le_rfl),
   rw strongly_measurable_iff_measurable_separable,
   exact ⟨measurable_iff_comap_le.2 le_rfl, (hum i).is_separable_range⟩
 end
@@ -411,13 +411,9 @@ begin
     simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
     rw is_min_iff_forall_not_lt at hi_min,
     exact hi_min (τ x), },
-  have : {x : α | τ x < i} = τ ⁻¹' (set.Iio i),
-  { ext1 x, simp only [set.mem_set_of_eq, set.mem_preimage, set.mem_Iio], },
-  rw [this, pred_order.Iio_eq_Iic_pred' hi_min],
-  have : τ ⁻¹' set.Iic (pred_order.pred i) = {x : α | τ x ≤ pred_order.pred i},
-  { ext1 x, simp only [set.mem_preimage, set.mem_Iic, set.mem_set_of_eq], },
-  rw this,
-  exact f.mono (pred_order.pred_le i) _ (hτ.measurable_set_le (pred_order.pred i)),
+  have : {x : α | τ x < i} = τ ⁻¹' (set.Iio i) := rfl,
+  rw [this, ←Iic_pred_of_not_is_min hi_min],
+  exact f.mono (pred_le i) _ (hτ.measurable_set_le $ pred i),
 end
 
 end preorder
@@ -719,7 +715,7 @@ begin
     rw h_set_eq,
     suffices h_meas : @measurable _ _ (m_set s) (f i) (λ x : s, (x : set.Iic i × α).snd),
       from h_meas (f.mono (min_le_left _ _) _ (hτ.measurable_set_le (min i j))),
-    exact (@measurable_snd _ _ _ (f i)).comp (@measurable_subtype_coe _ m_prod _), },
+    exact measurable_snd.comp (@measurable_subtype_coe _ m_prod _), },
   { suffices h_min_eq_left : (λ x : sᶜ, min ↑((x : set.Iic i × α).fst) (τ (x : set.Iic i × α).snd))
       = λ x : sᶜ, ↑((x : set.Iic i × α).fst),
     { rw [set.restrict, h_min_eq_left],
@@ -802,10 +798,9 @@ begin
   { suffices h_meas : measurable[measurable_space.prod _ (f i)]
         (λ a : ↥(set.Iic i) × α, (a.fst : ℕ)),
       from h_meas (measurable_set_singleton j),
-    exact (@measurable_fst _ α _ (f i)).subtype_coe, },
+    exact measurable_fst.subtype_coe, },
   { have h_le : j ≤ i, from finset.mem_range_succ_iff.mp hj,
-    exact (strongly_measurable.mono (h j) (f.mono h_le)).comp_measurable
-      (@measurable_snd _ α _ (f i)), },
+    exact (strongly_measurable.mono (h j) (f.mono h_le)).comp_measurable measurable_snd, },
   { exact strongly_measurable_const, },
 end
 

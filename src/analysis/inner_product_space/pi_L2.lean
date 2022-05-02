@@ -57,17 +57,11 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   norm_sq_eq_inner :=
   begin
     intro x,
-    have h₁ : ∑ (i : ι), ∥x i∥ ^ (2 : ℕ) = ∑ (i : ι), ∥x i∥ ^ (2 : ℝ),
-    { apply finset.sum_congr rfl,
-      intros j hj,
-      simp [←rpow_nat_cast] },
-    have h₂ : 0 ≤ ∑ (i : ι), ∥x i∥ ^ (2 : ℝ),
-    { rw [←h₁],
-      exact finset.sum_nonneg (λ j (hj : j ∈ finset.univ), pow_nonneg (norm_nonneg (x j)) 2) },
-    simp [norm, add_monoid_hom.map_sum, ←norm_sq_eq_inner],
-    rw [←rpow_nat_cast ((∑ (i : ι), ∥x i∥ ^ (2 : ℝ)) ^ (2 : ℝ)⁻¹) 2],
-    rw [←rpow_mul h₂],
-    norm_num [h₁],
+    have h₂ : 0 ≤ ∑ (i : ι), ∥x i∥ ^ (2 : ℝ) :=
+      finset.sum_nonneg (λ j hj, rpow_nonneg_of_nonneg (norm_nonneg (x j)) 2),
+    simp only [norm, add_monoid_hom.map_sum, ← norm_sq_eq_inner, one_div],
+    rw [← rpow_nat_cast ((∑ (i : ι), ∥x i∥ ^ (2 : ℝ)) ^ (2 : ℝ)⁻¹) 2, ← rpow_mul h₂],
+    norm_num,
   end,
   conj_sym :=
   begin
@@ -483,4 +477,3 @@ lemma inner_matrix_col_col (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin m)) :
   ⟪Aᵀ i, Bᵀ j⟫ₙ = (Aᴴ ⬝ B) i j := rfl
 
 end matrix
-

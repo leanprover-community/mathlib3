@@ -93,6 +93,7 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
 
 @[to_additive] instance [h : has_inv α] : has_inv (order_dual α) := h
 @[to_additive] instance [h : has_div α] : has_div (order_dual α) := h
+@[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv (order_dual α) := h
 @[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid (order_dual α) := h
 @[to_additive] instance [h : group α] : group (order_dual α) := h
 @[to_additive] instance [h : comm_group α] : comm_group (order_dual α) := h
@@ -1090,6 +1091,9 @@ begin
             ... ≤ a     : (neg_neg a).le }
 end
 
+lemma neg_abs_le_neg (a : α) : -|a| ≤ -a :=
+by simpa using neg_abs_le_self (-a)
+
 lemma abs_nonneg (a : α) : 0 ≤ |a| :=
 (le_total 0 a).elim (λ h, h.trans (le_abs_self a)) (λ h, (neg_nonneg.2 h).trans $ neg_le_abs_self a)
 
@@ -1144,6 +1148,9 @@ lemma abs_add (a b : α) : |a + b| ≤ |a| + |b| :=
 abs_le.2 ⟨(neg_add (|a|) (|b|)).symm ▸
   add_le_add (neg_le.2 $ neg_le_abs_self _) (neg_le.2 $ neg_le_abs_self _),
   add_le_add (le_abs_self _) (le_abs_self _)⟩
+
+lemma abs_add' (a b : α) : |a| ≤ |b| + |b + a| :=
+by simpa using abs_add (-b) (b + a)
 
 theorem abs_sub (a b : α) :
   |a - b| ≤ |a| + |b| :=

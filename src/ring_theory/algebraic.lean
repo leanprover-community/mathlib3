@@ -68,7 +68,7 @@ end
 
 lemma is_algebraic_iff_not_injective {x : A} : is_algebraic R x ↔
   ¬ function.injective (polynomial.aeval x : R[X] →ₐ[R] A) :=
-by simp only [is_algebraic, alg_hom.injective_iff, not_forall, and.comm, exists_prop]
+by simp only [is_algebraic, injective_iff_map_eq_zero, not_forall, and.comm, exists_prop]
 
 end
 
@@ -94,7 +94,14 @@ lemma is_algebraic_one [nontrivial R] : is_algebraic R (1 : A) :=
 by { rw ←_root_.map_one _, exact is_algebraic_algebra_map 1 }
 
 lemma is_algebraic_nat [nontrivial R] (n : ℕ) : is_algebraic R (n : A) :=
-by { rw ←map_nat_cast _ n, exact is_algebraic_algebra_map n }
+by { rw ←map_nat_cast _, exact is_algebraic_algebra_map n }
+
+lemma is_algebraic_int [nontrivial R] (n : ℤ) : is_algebraic R (n : A) :=
+by { rw ←ring_hom.map_int_cast (algebra_map R A), exact is_algebraic_algebra_map n }
+
+lemma is_algebraic_rat (R : Type u) {A : Type v} [division_ring A] [field R] [char_zero R]
+  [algebra R A] (n : ℚ) : is_algebraic R (n : A) :=
+by { rw ←map_rat_cast (algebra_map R A), exact is_algebraic_algebra_map n }
 
 lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :
   is_algebraic R a → is_algebraic R (algebra_map S A a) :=
@@ -203,13 +210,13 @@ lemma is_integral_closure.exists_smul_eq_mul {L : Type*} [field L]
 begin
   obtain ⟨c, d, d_ne, hx⟩ := exists_integral_multiple
     (h (algebra_map _ L a / algebra_map _ L b))
-    ((ring_hom.injective_iff _).mp inj),
+    ((injective_iff_map_eq_zero _).mp inj),
   refine ⟨is_integral_closure.mk' S (c : L) c.2, d, d_ne,
     is_integral_closure.algebra_map_injective S R L _⟩,
   simp only [algebra.smul_def, ring_hom.map_mul, is_integral_closure.algebra_map_mk', ← hx,
     ← is_scalar_tower.algebra_map_apply],
   rw [← mul_assoc _ (_ / _), mul_div_cancel' (algebra_map S L a), mul_comm],
-  exact mt ((ring_hom.injective_iff _).mp (is_integral_closure.algebra_map_injective S R L) _) hb
+  exact mt ((injective_iff_map_eq_zero _).mp (is_integral_closure.algebra_map_injective S R L) _) hb
 end
 
 section field

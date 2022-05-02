@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Yury Kudryashov, Floris van Doorn
 import tactic.transform_decl
 import tactic.algebra
 import tactic.lint.basic
+import tactic.alias
 
 /-!
 # Transport multiplicative to additive
@@ -217,7 +218,12 @@ meta def tr : bool → list string → list string
 | is_comm ("pow" :: s)                := add_comm_prefix is_comm "nsmul"     :: tr ff s
 | is_comm ("npow" :: s)               := add_comm_prefix is_comm "nsmul"     :: tr ff s
 | is_comm ("zpow" :: s)               := add_comm_prefix is_comm "zsmul"     :: tr ff s
-| is_comm ("is" :: "square" :: s)             := add_comm_prefix is_comm "even"      :: tr ff s
+| is_comm ("is" :: "square" :: s)     := add_comm_prefix is_comm "even"      :: tr ff s
+| is_comm ("is" :: "regular" :: s)    := add_comm_prefix is_comm "is_add_regular"   :: tr ff s
+| is_comm ("is" :: "left" :: "regular" :: s)  :=
+  add_comm_prefix is_comm "is_add_left_regular"  :: tr ff s
+| is_comm ("is" :: "right" :: "regular" :: s) :=
+  add_comm_prefix is_comm "is_add_right_regular" :: tr ff s
 | is_comm ("monoid" :: s)      := ("add_" ++ add_comm_prefix is_comm "monoid")    :: tr ff s
 | is_comm ("submonoid" :: s)   := ("add_" ++ add_comm_prefix is_comm "submonoid") :: tr ff s
 | is_comm ("group" :: s)       := ("add_" ++ add_comm_prefix is_comm "group")     :: tr ff s
@@ -546,7 +552,10 @@ protected meta def attr : user_attribute unit value_type :=
           "versions after"),
       match val.doc with
       | some doc := add_doc_string tgt doc
-      | none := skip
+      | none := do
+        some alias_name ← tactic.alias.get_alias_target src | skip,
+        some add_alias_name ← pure (dict.find alias_name) | skip,
+        add_doc_string tgt ("**Alias** of `" ++ to_string add_alias_name ++ "`.")
       end }
 
 add_tactic_doc

@@ -273,20 +273,24 @@ lemma quadratic_char_dichotomy {a : F} (ha : a ≠ 0) :
   quadratic_char F a = 1 ∨ quadratic_char F a = -1 :=
 (sq_eq_one_iff (quadratic_char F a)).mp (quadratic_char_sq_one ha)
 
+/-- A variant -/
+lemma quadratic_char_eq_neg_one_iff_not_one {a : F} (ha : a ≠ 0) :
+  quadratic_char F a = -1 ↔ ¬ quadratic_char F a = 1 :=
+begin
+  split,
+  { intro h,
+    rw h,
+    norm_num, },
+  { exact λ h₂, (or_iff_right h₂).mp (quadratic_char_dichotomy ha), }
+end
+
 /-- For `a : F`, `quadratic_char F a = -1 ↔ ¬ is_square a`. -/
 lemma quadratic_char_neg_one_iff_not_is_square {a : F} :
   quadratic_char F a = -1 ↔ ¬ is_square a :=
 begin
   by_cases ha : a = 0,
   { simp only [ha, is_square_zero, quadratic_char_zero, zero_eq_neg, one_ne_zero, not_true], },
-  { have h : quadratic_char F a = -1 ↔ ¬ quadratic_char F a = 1,
-    { split,
-      { intro h,
-        rw h,
-        norm_num, },
-      { exact λ (h₂ : ¬ quadratic_char F a = 1),
-                (or_iff_right h₂).mp (quadratic_char_dichotomy ha), }, },
-    rw h,
+  { rw quadratic_char_eq_neg_one_iff_not_one ha,
     exact not_iff_not.mpr (quadratic_char_one_iff_is_square ha), },
 end
 
@@ -296,7 +300,7 @@ Exists.dcases_on (finite_field.exists_nonsquare hF)
   (λ (b : F) (h₁ : ¬is_square b), ⟨b, (quadratic_char_neg_one_iff_not_is_square.mpr h₁)⟩)
 
 /-- The number of solutions to `x^2 = a` is determined by the quadratic character. -/
-lemma quadratic_char_number_of_sqrts (hF : ring_char F ≠ 2) (a : F) :
+lemma quadratic_char_card_sqrts (hF : ring_char F ≠ 2) (a : F) :
   ↑{x : F | x^2 = a}.to_finset.card = 1 + quadratic_char F a :=
 begin
   -- we consider the cases `a = 0`, `a` is a nonzero square and `a` is a nonsquare in turn

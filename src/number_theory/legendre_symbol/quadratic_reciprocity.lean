@@ -62,6 +62,7 @@ begin
     refine ⟨units.mk0 y hy, _⟩, simp, }
 end
 
+-- The following is used by number_theory/zsqrtd/gaussian_int.lean and archive/imo/imo2008_q3.lean
 lemma exists_sq_eq_neg_one_iff :
   (∃ y : zmod p, y ^ 2 = -1) ↔ p % 4 ≠ 3 :=
 begin
@@ -148,6 +149,10 @@ lemma legendre_sym_eq_one_or_neg_one (p : ℕ) [fact p.prime] (a : ℤ) (ha : (a
   legendre_sym p a = 1 ∨ legendre_sym p a = -1 :=
 quadratic_char_dichotomy ha
 
+lemma legendre_sym_eq_neg_one_iff_not_one {a : ℤ} (ha : (a : zmod p) ≠ 0) :
+  legendre_sym p a = -1 ↔ ¬ legendre_sym p a = 1 :=
+quadratic_char_eq_neg_one_iff_not_one ha
+
 /-- The Legendre symbol of `p` and `a` is zero iff `p ∣ a`. -/
 lemma legendre_sym_eq_zero_iff (p : ℕ) [fact p.prime] (a : ℤ) :
   legendre_sym p a = 0 ↔ (a : zmod p) = 0 :=
@@ -228,11 +233,11 @@ lemma legendre_sym_eq_neg_one_iff {a : ℤ} :
 quadratic_char_neg_one_iff_not_is_square
 
 /-- The number of square roots of `a` modulo `p` is determined by the Legendre symbol. -/
-lemma legendre_sym_number_of_sqrts (hp : p ≠ 2) (a : ℤ) :
+lemma legendre_sym_card_sqrts (hp : p ≠ 2) (a : ℤ) :
   ↑{x : zmod p | x^2 = a}.to_finset.card = 1 + legendre_sym p a :=
 begin
   have h : ring_char (zmod p) ≠ 2 := by { rw ring_char_zmod_n, exact hp, },
-  exact quadratic_char_number_of_sqrts h a,
+  exact quadratic_char_card_sqrts h a,
 end
 
 open_locale big_operators

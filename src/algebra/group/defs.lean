@@ -620,19 +620,23 @@ alias div_eq_mul_inv ← division_def
 end div_inv_monoid
 
 /-- A `subtraction_monoid` is a `sub_neg_monoid` with involutive negation and such that
-`-(a + b) = -b + -a`. -/
+`-(a + b) = -b + -a` and `a + b = 0 → -a = b`. -/
 @[protect_proj, ancestor sub_neg_monoid has_involutive_neg]
 class subtraction_monoid (G : Type u) extends sub_neg_monoid G, has_involutive_neg G :=
 (neg_add_rev (a b : G) : -(a + b) = -b + -a)
+/- Despite the asymmetry of `neg_eq_of_add`, the symmetric version is true thanks to the
+involutivity of negation. -/
 (neg_eq_of_add (a b : G) : a + b = 0 → -a = b)
 
 /-- A `division_monoid` is a `div_inv_monoid` with involutive inversion and such that
-`(a * b)⁻¹ = b⁻¹ * a⁻¹`.
+`(a * b)⁻¹ = b⁻¹ * a⁻¹` and `a * b = 1 → a⁻¹ = b`.
 
 This is the immediate common ancestor of `group` and `group_with_zero`. -/
 @[protect_proj, ancestor div_inv_monoid has_involutive_inv, to_additive subtraction_monoid]
 class division_monoid (G : Type u) extends div_inv_monoid G, has_involutive_inv G :=
 (mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹)
+/- Despite the asymmetry of `inv_eq_of_mul`, the symmetric version is true thanks to the
+involutivity of inversion. -/
 (inv_eq_of_mul (a b : G) : a * b = 1 → a⁻¹ = b)
 
 section division_monoid

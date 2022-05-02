@@ -87,7 +87,7 @@ int.infinite
 @[simp] lemma card (n : ℕ) [fintype (zmod n)] : fintype.card (zmod n) = n :=
 begin
   casesI n,
-  { exact (not_fintype (zmod 0)).elim },
+  { exfalso, exact not_fintype (zmod 0) },
   { convert fintype.card_fin (n+1) }
 end
 

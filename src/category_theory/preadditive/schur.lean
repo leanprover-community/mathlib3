@@ -149,7 +149,7 @@ Endomorphisms of a simple object form a field if they are finite dimensional.
 This can't be an instance as `𝕜` would be undetermined.
 -/
 noncomputable
-def (X : C) [simple X] [decidable_eq (End X)] [I : finite_dimensional 𝕜 (X ⟶ X)] :
+def End_simple_field (X : C) [simple X] [decidable_eq (End X)] [I : finite_dimensional 𝕜 (X ⟶ X)] :
   field (End X) :=
 { mul_comm := λ f g, begin
     obtain ⟨c, rfl⟩ := endomorphism_simple_eq_smul_id 𝕜 f,

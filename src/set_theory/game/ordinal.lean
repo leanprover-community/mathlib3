@@ -50,27 +50,25 @@ by { rw to_pgame_left_moves, apply_instance }
 instance (o : ordinal) : is_empty o.to_pgame.right_moves :=
 by { rw to_pgame_right_moves, apply_instance }
 
-/-- Converts a member of `o.out.α` into a move for the `pgame` corresponding to `o`, and vice versa.
-
-Even though these types are the same (not definitionally so), this is the preferred way to convert
-between them. -/
-def to_left_moves_to_pgame {o : ordinal} : o.out.α ≃ o.to_pgame.left_moves :=
-equiv.cast (to_pgame_left_moves o).symm
+/-- Converts an ordinal less than `o` into a move for the `pgame` corresponding to `o`, and vice
+versa. -/
+noncomputable def to_left_moves_to_pgame {o : ordinal} : {o' // o' < o} ≃ o.to_pgame.left_moves :=
+(out_equiv_lt o).trans (equiv.cast (to_pgame_left_moves o).symm)
 
 theorem to_pgame_move_left_heq {o : ordinal} :
   o.to_pgame.move_left == λ x : o.out.α, (typein (<) x).to_pgame :=
 by { rw to_pgame, refl }
 
-@[simp] theorem to_pgame_move_left {o : ordinal} (i : o.out.α) :
-  o.to_pgame.move_left (to_left_moves_to_pgame i) = (typein (<) i).to_pgame :=
-by { rw to_left_moves_to_pgame, exact congr_fun_heq _ to_pgame_move_left_heq i }
+@[simp] theorem to_pgame_move_left' {o : ordinal} (i) :
+  o.to_pgame.move_left i = (to_left_moves_to_pgame.symm i).val.to_pgame :=
+(congr_fun_heq _ to_pgame_move_left_heq.symm _).symm
+
+theorem to_pgame_move_left {o : ordinal} (i) :
+  o.to_pgame.move_left (to_left_moves_to_pgame i) = i.val.to_pgame :=
+by simp
 
 theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
-begin
-  convert pgame.move_left_lt (to_left_moves_to_pgame (enum (<) a _)),
-  { rw [to_pgame_move_left, typein_enum] },
-  { rwa type_lt }
-end
+by { convert pgame.move_left_lt (to_left_moves_to_pgame ⟨a, h⟩), rw to_pgame_move_left }
 
 theorem to_pgame_le {a b : ordinal} (h : a ≤ b) : a.to_pgame ≤ b.to_pgame :=
 begin

@@ -5,6 +5,8 @@ Authors: Scott Morrison
 -/
 import data.fintype.basic
 import set_theory.game.basic
+import set_theory.game.birthday
+import set_theory.cardinal.cofinality
 
 /-!
 # Short games
@@ -90,11 +92,28 @@ def move_right_short' {xl xr} (xL xR) [S : short (mk xl xr xL xR)] (j : xr) : sh
 by { casesI S with _ _ _ _ _ R _ _, apply R }
 local attribute [instance] move_right_short'
 
-instance short.of_pempty {xL} {xR} : short (mk pempty pempty xL xR) :=
-short.mk (λ i, pempty.elim i) (λ j, pempty.elim j)
+theorem short_birthday : ∀ (x : pgame.{u}) [short x], x.birthday < ordinal.omega
+| ⟨xl, xr, xL, xR⟩ hs :=
+begin
+  haveI := hs,
+  unfreezingI { rcases hs with ⟨_, _, _, _, sL, sR, hl, hr⟩ },
+  rw [birthday, max_lt_iff],
+  split, all_goals
+  { rw ←cardinal.ord_omega,
+    refine cardinal.lsub_lt_ord_of_is_regular.{u u} cardinal.is_regular_omega
+      (cardinal.lt_omega_of_fintype _) (λ i, _),
+    rw cardinal.ord_omega,
+    apply short_birthday _ },
+  { exact move_left_short' xL xR i },
+  { exact move_right_short' xL xR i }
+end
+
+/-- This leads to infinite loops if made into an instance. -/
+def short.of_is_empty {l r xL xR} [is_empty l] [is_empty r] : short (mk l r xL xR) :=
+short.mk is_empty_elim is_empty_elim
 
 instance short_0 : short 0 :=
-short.mk (λ i, by cases i) (λ j, by cases j)
+short.of_is_empty
 
 instance short_1 : short 1 :=
 short.mk (λ i, begin cases i, apply_instance, end) (λ j, by cases j)
@@ -125,43 +144,26 @@ def short_of_relabelling : Π {x y : pgame.{u}} (R : relabelling x y) (S : short
 | x y ⟨L, R, rL, rR⟩ S :=
 begin
   resetI,
-  haveI := (fintype.of_equiv _ L),
-  haveI := (fintype.of_equiv _ R),
+  haveI := fintype.of_equiv _ L,
+  haveI := fintype.of_equiv _ R,
   exact short.mk'
     (λ i, by { rw ←(L.right_inv i), apply short_of_relabelling (rL (L.symm i)) infer_instance, })
     (λ j, short_of_relabelling (rR j) infer_instance)
 end
 
-/-- If `x` has no left move or right moves, it is (very!) short. -/
-def short_of_equiv_empty {x : pgame.{u}}
-  (el : x.left_moves ≃ pempty) (er : x.right_moves ≃ pempty) : short x :=
-short_of_relabelling (relabel_relabelling el er).symm short.of_pempty
-
 instance short_neg : Π (x : pgame.{u}) [short x], short (-x)
 | (mk xl xr xL xR) _ :=
-begin
-  resetI,
-  apply short.mk,
-  { rintro i,
-    apply short_neg _,
-    apply_instance, },
-  { rintro j,
-    apply short_neg _,
-    apply_instance, }
-end
+by { resetI, exact short.mk (λ i, short_neg _) (λ i, short_neg _) }
 using_well_founded { dec_tac := pgame_wf_tac }
 
 instance short_add : Π (x y : pgame.{u}) [short x] [short y], short (x + y)
 | (mk xl xr xL xR) (mk yl yr yL yR) _ _ :=
 begin
   resetI,
-  apply short.mk,
+  apply short.mk, all_goals
   { rintro ⟨i⟩,
-    { apply short_add, },
-    { change short (mk xl xr xL xR + yL i), apply short_add, } },
-  { rintro ⟨j⟩,
-    { apply short_add, },
-    { change short (mk xl xr xL xR + yR j), apply short_add, } },
+    { apply short_add },
+    { change short (mk xl xr xL xR + _), apply short_add } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

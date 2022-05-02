@@ -244,7 +244,7 @@ in which the coimage-image comparison morphism is always an isomorphism,
 is an abelian category.
 
 The Stacks project uses this characterisation at the definition of an abelian category.
-See https://stacks.math.columbia.edu/tag/0109.
+See <https://stacks.math.columbia.edu/tag/0109>.
 -/
 def of_coimage_image_comparison_is_iso : abelian C := {}
 

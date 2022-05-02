@@ -79,43 +79,44 @@ lemma is_integral_closure_adjoing_singleton_of_prime_pow
   is_integral_closure (adjoin ℤ ({ζ} : set K)) ℤ K :=
 begin
   refine ⟨subtype.val_injective, λ x, ⟨λ h, ⟨⟨x, _⟩, rfl⟩, _⟩⟩,
-  { let B := hζ.sub_one_power_basis ℚ,
-    have hint : is_integral ℤ B.gen :=  is_integral_sub (hζ.is_integral (p ^ k).pos)
-      is_integral_one,
-    have H := discr_mul_is_integral_mem_adjoin ℚ hint h,
-    obtain ⟨u, n, hun⟩ := discr_prime_pow_eq_unit_mul_pow' hζ,
-    rw [hun] at H,
-    replace H := subalgebra.smul_mem _ H u.inv,
-    rw [← smul_assoc, ← smul_mul_assoc, units.inv_eq_coe_inv, coe_coe, zsmul_eq_mul,
-      ← int.cast_mul, units.inv_mul, int.cast_one, one_mul,
-      show (p : ℚ) ^ n • x = ((p : ℕ) : ℤ) ^ n • x, by simp [smul_def]] at H,
-    unfreezingI { cases k },
-    { haveI : is_cyclotomic_extension {1} ℚ K := by simpa using hcycl,
-      have : x ∈ (⊥ : subalgebra ℚ K),
-      { rw [singleton_one ℚ K],
-        exact mem_top },
-      obtain ⟨y, rfl⟩ := mem_bot.1 this,
-      replace h := (is_integral_algebra_map_iff (algebra_map ℚ K).injective).1 h,
-      obtain ⟨z, hz⟩ := is_integrally_closed.is_integral_iff.1 h,
-      rw [← hz, ← is_scalar_tower.algebra_map_apply],
-      exact subalgebra.algebra_map_mem  _ _ },
-    { have hmin : (minpoly ℤ B.gen).is_eisenstein_at (submodule.span ℤ {((p : ℕ) : ℤ)}),
-      { have h₁ := minpoly.gcd_domain_eq_field_fractions ℚ hint,
-        have h₂ := hζ.minpoly_sub_one_eq_cyclotomic_comp
-          (cyclotomic.irreducible_rat (p ^ _).pos),
-        rw [is_primitive_root.sub_one_power_basis_gen] at h₁,
-        rw [h₁, ← map_cyclotomic_int, show int.cast_ring_hom ℚ = algebra_map ℤ ℚ, by refl,
-          show ((X + 1)) = map (algebra_map ℤ ℚ) (X + 1), by simp, ← map_comp] at h₂,
-        rw [is_primitive_root.sub_one_power_basis_gen, map_injective (algebra_map ℤ ℚ)
-          ((algebra_map ℤ ℚ).injective_int) h₂],
-        exact cyclotomic_prime_pow_comp_X_add_one_is_eisenstein_at _ _ },
-      refine adjoin_le _ (mem_adjoin_of_smul_prime_pow_smul_of_minpoly_is_eiseinstein_at
-        (nat.prime_iff_prime_int.1 hp.out) hint h H hmin),
-      simp only [set.singleton_subset_iff, set_like.mem_coe],
-      exact subalgebra.sub_mem _ (self_mem_adjoin_singleton ℤ _) (subalgebra.one_mem _) } },
+  swap,
   { rintro ⟨y, rfl⟩,
     exact is_integral.algebra_map (le_integral_closure_iff_is_integral.1
       (adjoin_le_integral_closure (hζ.is_integral (p ^ k).pos)) _) },
+  let B := hζ.sub_one_power_basis ℚ,
+  have hint : is_integral ℤ B.gen :=  is_integral_sub (hζ.is_integral (p ^ k).pos)
+    is_integral_one,
+  have H := discr_mul_is_integral_mem_adjoin ℚ hint h,
+  obtain ⟨u, n, hun⟩ := discr_prime_pow_eq_unit_mul_pow' hζ,
+  rw [hun] at H,
+  replace H := subalgebra.smul_mem _ H u.inv,
+  rw [← smul_assoc, ← smul_mul_assoc, units.inv_eq_coe_inv, coe_coe, zsmul_eq_mul,
+    ← int.cast_mul, units.inv_mul, int.cast_one, one_mul,
+    show (p : ℚ) ^ n • x = ((p : ℕ) : ℤ) ^ n • x, by simp [smul_def]] at H,
+  unfreezingI { cases k },
+  { haveI : is_cyclotomic_extension {1} ℚ K := by simpa using hcycl,
+    have : x ∈ (⊥ : subalgebra ℚ K),
+    { rw [singleton_one ℚ K],
+      exact mem_top },
+    obtain ⟨y, rfl⟩ := mem_bot.1 this,
+    replace h := (is_integral_algebra_map_iff (algebra_map ℚ K).injective).1 h,
+    obtain ⟨z, hz⟩ := is_integrally_closed.is_integral_iff.1 h,
+    rw [← hz, ← is_scalar_tower.algebra_map_apply],
+    exact subalgebra.algebra_map_mem  _ _ },
+  { have hmin : (minpoly ℤ B.gen).is_eisenstein_at (submodule.span ℤ {((p : ℕ) : ℤ)}),
+    { have h₁ := minpoly.gcd_domain_eq_field_fractions ℚ hint,
+      have h₂ := hζ.minpoly_sub_one_eq_cyclotomic_comp
+        (cyclotomic.irreducible_rat (p ^ _).pos),
+      rw [is_primitive_root.sub_one_power_basis_gen] at h₁,
+      rw [h₁, ← map_cyclotomic_int, show int.cast_ring_hom ℚ = algebra_map ℤ ℚ, by refl,
+        show ((X + 1)) = map (algebra_map ℤ ℚ) (X + 1), by simp, ← map_comp] at h₂,
+      rw [is_primitive_root.sub_one_power_basis_gen, map_injective (algebra_map ℤ ℚ)
+        ((algebra_map ℤ ℚ).injective_int) h₂],
+      exact cyclotomic_prime_pow_comp_X_add_one_is_eisenstein_at _ _ },
+    refine adjoin_le _ (mem_adjoin_of_smul_prime_pow_smul_of_minpoly_is_eiseinstein_at
+      (nat.prime_iff_prime_int.1 hp.out) hint h H hmin),
+    simp only [set.singleton_subset_iff, set_like.mem_coe],
+    exact subalgebra.sub_mem _ (self_mem_adjoin_singleton ℤ _) (subalgebra.one_mem _) }
 end
 
 local attribute [-instance] cyclotomic_field.algebra

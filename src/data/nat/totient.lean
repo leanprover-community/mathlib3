@@ -39,7 +39,7 @@ by simp [totient]
 lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter n.coprime).card := rfl
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
-by { nth_rewrite_rhs 0 ←card_range n, apply (range n).card_filter_le }
+((range n).card_filter_le _).trans_eq (card_range n)
 
 lemma totient_lt (n : ℕ) (hn : 1 < n) : φ n < n :=
 begin

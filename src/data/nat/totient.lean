@@ -39,19 +39,15 @@ by simp [totient]
 lemma totient_eq_card_coprime (n : ℕ) : φ n = ((range n).filter n.coprime).card := rfl
 
 lemma totient_le (n : ℕ) : φ n ≤ n :=
-calc totient n ≤ (range n).card : card_filter_le _ _
-           ... = n              : card_range _
+by { nth_rewrite_rhs 0 ←card_range n, apply (range n).card_filter_le }
 
 lemma totient_lt (n : ℕ) (hn : 1 < n) : φ n < n :=
-calc totient n ≤ ((range n).filter (≠ 0)).card :
-  begin
-    apply card_le_of_subset (monotone_filter_right _ _),
-    intros n1 hn1 hn1',
-    simpa only [hn1', coprime_zero_right, hn.ne'] using hn1,
-  end
-... = n - 1
-    : by simp only [filter_ne' (range n) 0, card_erase_of_mem, card_range, pos_of_gt hn, mem_range]
-... < n : nat.sub_lt (pos_of_gt hn) zero_lt_one
+begin
+  nth_rewrite_rhs 0 ←card_range n,
+  refine card_lt_card (filter_ssubset.mpr ⟨0, _⟩),
+  rw [mem_range, coprime_zero_right],
+  exact ⟨pos_of_gt hn, ne_of_gt hn⟩,
+end
 
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 0 := dec_trivial
@@ -135,9 +131,8 @@ if hmn0 : m * n = 0
     haveI : fact (0 < (m * n)) := ⟨nat.pos_of_ne_zero hmn0⟩,
     haveI : fact (0 < m) := ⟨nat.pos_of_ne_zero $ left_ne_zero_of_mul hmn0⟩,
     haveI : fact (0 < n) := ⟨nat.pos_of_ne_zero $ right_ne_zero_of_mul hmn0⟩,
-    rw [← zmod.card_units_eq_totient, ← zmod.card_units_eq_totient,
-      ← zmod.card_units_eq_totient, fintype.card_congr
-      (units.map_equiv (zmod.chinese_remainder h).to_mul_equiv).to_equiv,
+    simp only [← zmod.card_units_eq_totient],
+    rw [fintype.card_congr (units.map_equiv (zmod.chinese_remainder h).to_mul_equiv).to_equiv,
       fintype.card_congr (@mul_equiv.prod_units (zmod m) (zmod n) _ _).to_equiv,
       fintype.card_prod]
   end

@@ -24,7 +24,8 @@ all maximal *right* ideals, so it is a two-sided ideal.
 * `mem_nc_jacobson_tfae`: some equivalent conditions for an element in a ring
   to be contained in the Jacobson radical.
 
-* `nc_jacobson_symm`: the definition of the Jacobson radical is left-right symmetric, that is,
+* `nc_jacobson_op`: the Jacobson radical of a ring coincides with that of its opposite ring.
+  This essentially says that the definition of the Jacobson radical is left-right symmetric:
   the intersection of all maximal left ideals coincides with that of all maximal right ideals.
 -/
 
@@ -223,13 +224,8 @@ begin
   tfae_finish,
 end
 
-/--
-The definition of the Jacobson radical of a ring is left-right symmetric, that is,
-the intersection of all maximal left ideals coincides with that of all maximal right ideals.
-We express this by using the opposite ring `Rᵐᵒᵖ`, that is,
-the Jacobson radical of `R` coincides with that of `Rᵐᵒᵖ`,
--/
-theorem nc_jacobson_symm {x : R} :
+/-- The Jacobson radical of `R` coincides with that of its opposite ring `Rᵐᵒᵖ`. -/
+theorem nc_jacobson_op {x : R} :
   x ∈ nc_jacobson R ↔ op x ∈ nc_jacobson Rᵐᵒᵖ :=
 begin
   split,
@@ -244,6 +240,8 @@ begin
     rw [←is_unit_op_iff_is_unit, op_add, op_one, op_mul],
     apply ((mem_nc_jacobson_tfae $ op x).out 0 2).mp hx },
 end
+-- TODO: state and prove more direct statement saying that the intersection of maximal left ideals
+-- coincides with that of maximal right ideals.
 
 end nc_jacobson_radical
 end ideal

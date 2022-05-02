@@ -142,7 +142,7 @@ Bochner integral, simple function, function space, Lebesgue dominated convergenc
 -/
 
 noncomputable theory
-open_locale classical topological_space big_operators nnreal ennreal measure_theory
+open_locale topological_space big_operators nnreal ennreal measure_theory
 open set filter topological_space ennreal emetric
 
 namespace measure_theory
@@ -294,12 +294,13 @@ lemma integral_eq {m : measurable_space α} (μ : measure α) (f : α →ₛ F) 
   f.integral μ = ∑ x in f.range, (μ (f ⁻¹' {x})).to_real • x :=
 by simp [integral, set_to_simple_func, weighted_smul_apply]
 
-lemma integral_eq_sum_filter {m : measurable_space α} (f : α →ₛ F) (μ : measure α) :
+lemma integral_eq_sum_filter [decidable_pred (λ x : F, x ≠ 0)] {m : measurable_space α} (f : α →ₛ F)
+  (μ : measure α) :
   f.integral μ = ∑ x in f.range.filter (λ x, x ≠ 0), (μ (f ⁻¹' {x})).to_real • x :=
-by { rw [integral_def, set_to_simple_func_eq_sum_filter], simp_rw weighted_smul_apply, }
+by { rw [integral_def, set_to_simple_func_eq_sum_filter], simp_rw weighted_smul_apply, congr }
 
 /-- The Bochner integral is equal to a sum over any set that includes `f.range` (except `0`). -/
-lemma integral_eq_sum_of_subset {f : α →ₛ F} {s : finset F}
+lemma integral_eq_sum_of_subset [decidable_pred (λ x : F, x ≠ 0)] {f : α →ₛ F} {s : finset F}
   (hs : f.range.filter (λ x, x ≠ 0) ⊆ s) : f.integral μ = ∑ x in s, (μ (f ⁻¹' {x})).to_real • x :=
 begin
   rw [simple_func.integral_eq_sum_filter, finset.sum_subset hs],
@@ -310,7 +311,7 @@ end
 
 @[simp] lemma integral_const {m : measurable_space α} (μ : measure α) (y : F) :
   (const α y).integral μ = (μ univ).to_real • y :=
-calc (const α y).integral μ = ∑ z in {y}, (μ ((const α y) ⁻¹' {z})).to_real • z :
+by classical; calc (const α y).integral μ = ∑ z in {y}, (μ ((const α y) ⁻¹' {z})).to_real • z :
   integral_eq_sum_of_subset $ (filter_subset _ _).trans (range_const_subset _ _)
 ... = (μ univ).to_real • y : by simp
 
@@ -318,6 +319,7 @@ calc (const α y).integral μ = ∑ z in {y}, (μ ((const α y) ⁻¹' {z})).to_
   {s : set α} (hs : measurable_set s) :
   (piecewise s hs f 0).integral μ = f.integral (μ.restrict s) :=
 begin
+  classical,
   refine (integral_eq_sum_of_subset _).trans
     ((sum_congr rfl $ λ y hy, _).trans (integral_eq_sum_filter _ _).symm),
   { intros y hy,
@@ -326,7 +328,8 @@ begin
     rcases hy with ⟨⟨rfl, -⟩|⟨x, hxs, rfl⟩, h₀⟩,
     exacts [(h₀ rfl).elim, ⟨set.mem_range_self _, h₀⟩] },
   { dsimp,
-    rw [indicator_preimage_of_not_mem, measure.restrict_apply (f.measurable_set_preimage _)],
+    rw [set.piecewise_eq_indicator, indicator_preimage_of_not_mem,
+      measure.restrict_apply (f.measurable_set_preimage _)],
     exact λ h₀, (mem_filter.1 hy).2 (eq.symm h₀) }
 end
 
@@ -687,9 +690,14 @@ variables [normed_group E] [normed_space ℝ E] [complete_space E]
           [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
           [normed_group F] [normed_space ℝ F] [complete_space F]
 
+section
+open_locale classical
+
 /-- The Bochner integral -/
 def integral {m : measurable_space α} (μ : measure α) (f : α → E) : E :=
 if hf : integrable f μ then L1.integral (hf.to_L1 f) else 0
+
+end
 
 /-! In the notation for integrals, an expression like `∫ x, g ∥x∥ ∂μ` will not be parsed correctly,
   and needs parentheses. We do not set the binding power of `r` to `0`, because then
@@ -707,7 +715,7 @@ variables {f g : α → E} {m : measurable_space α} {μ : measure α}
 
 lemma integral_eq (f : α → E) (hf : integrable f μ) :
   ∫ a, f a ∂μ = L1.integral (hf.to_L1 f) :=
-dif_pos hf
+@dif_pos _ (id _) hf _ _ _
 
 lemma integral_eq_set_to_fun (f : α → E) :
   ∫ a, f a ∂μ = set_to_fun μ (weighted_smul μ) (dominated_fin_meas_additive_weighted_smul μ) f :=
@@ -717,7 +725,7 @@ lemma L1.integral_eq_integral (f : α →₁[μ] E) : L1.integral f = ∫ a, f a
 (L1.set_to_fun_eq_set_to_L1 (dominated_fin_meas_additive_weighted_smul μ) f).symm
 
 lemma integral_undef (h : ¬ integrable f μ) : ∫ a, f a ∂μ = 0 :=
-dif_neg h
+@dif_neg _ (id _) h _ _ _
 
 lemma integral_non_ae_strongly_measurable (h : ¬ ae_strongly_measurable f μ) : ∫ a, f a ∂μ = 0 :=
 integral_undef $ not_and_of_not_left _ h
@@ -1003,6 +1011,18 @@ begin
   simp_rw [integral_eq_lintegral_of_nonneg_ae (eventually_of_forall (λ x, (f x).coe_nonneg))
     hfi.ae_strongly_measurable, ← ennreal.coe_nnreal_eq], rw [ennreal.of_real_to_real],
   rw [← lt_top_iff_ne_top], convert hfi.has_finite_integral, ext1 x, rw [nnreal.nnnorm_eq]
+end
+
+lemma of_real_integral_eq_lintegral_of_real {f : α → ℝ} (hfi : integrable f μ) (f_nn : 0 ≤ᵐ[μ] f) :
+  ennreal.of_real (∫ x, f x ∂μ) = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+begin
+  simp_rw [integral_congr_ae (show f =ᵐ[μ] λ x, ∥f x∥,
+             by { filter_upwards [f_nn] with x hx,
+                  rw [real.norm_eq_abs, abs_eq_self.mpr hx], }),
+           of_real_integral_norm_eq_lintegral_nnnorm hfi, ←of_real_norm_eq_coe_nnnorm],
+  apply lintegral_congr_ae,
+  filter_upwards [f_nn] with x hx,
+  exact congr_arg ennreal.of_real (by rw [real.norm_eq_abs, abs_eq_self.mpr hx]),
 end
 
 lemma integral_to_real {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hf : ∀ᵐ x ∂μ, f x < ∞) :
@@ -1456,13 +1476,29 @@ lemma ae_eq_trim_of_strongly_measurable
   f =ᵐ[μ.trim hm] g :=
 begin
   rwa [eventually_eq, ae_iff, trim_measurable_set_eq hm _],
-  exact measurable_set.compl (hf.measurable_set_eq_fun hg)
+  exact (hf.measurable_set_eq_fun hg).compl
 end
 
 lemma ae_eq_trim_iff [topological_space γ] [metrizable_space γ]
   (hm : m ≤ m0) {f g : β → γ} (hf : strongly_measurable[m] f) (hg : strongly_measurable[m] g) :
   f =ᵐ[μ.trim hm] g ↔ f =ᵐ[μ] g :=
 ⟨ae_eq_of_ae_eq_trim, ae_eq_trim_of_strongly_measurable hm hf hg⟩
+
+lemma ae_le_trim_of_strongly_measurable
+  [linear_order γ] [topological_space γ] [order_closed_topology γ] [metrizable_space γ]
+  (hm : m ≤ m0) {f g : β → γ} (hf : strongly_measurable[m] f) (hg : strongly_measurable[m] g)
+  (hfg : f ≤ᵐ[μ] g) :
+  f ≤ᵐ[μ.trim hm] g :=
+begin
+  rwa [eventually_le, ae_iff, trim_measurable_set_eq hm _],
+  exact (hf.measurable_set_le hg).compl,
+end
+
+lemma ae_le_trim_iff
+  [linear_order γ] [topological_space γ] [order_closed_topology γ] [metrizable_space γ]
+  (hm : m ≤ m0) {f g : β → γ} (hf : strongly_measurable[m] f) (hg : strongly_measurable[m] g) :
+  f ≤ᵐ[μ.trim hm] g ↔ f ≤ᵐ[μ] g :=
+⟨ae_le_of_ae_le_trim, ae_le_trim_of_strongly_measurable hm hf hg⟩
 
 end integral_trim
 

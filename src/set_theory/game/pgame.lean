@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
 import data.fin.basic
-import data.nat.cast
-import logic.embedding
+import data.list.basic
 
 /-!
 # Combinatorial (pre-)games.
@@ -109,7 +108,7 @@ open function
 universes u
 
 /-- The type of pre-games, before we have quotiented
-  by extensionality. In ZFC, a combinatorial game is constructed from
+  by equivalence (`pgame.setoid`). In ZFC, a combinatorial game is constructed from
   two sets of combinatorial games that have been constructed at an earlier
   stage. To do this in type theory, we say that a pre-game is built
   inductively from two families of pre-games indexed over any type
@@ -145,7 +144,7 @@ Construct a pre-game from list of pre-games describing the available moves for L
 -- TODO define this at the level of games, as well, and perhaps also for finsets of games.
 def of_lists (L R : list pgame.{u}) : pgame.{u} :=
 mk (ulift (fin L.length)) (ulift (fin R.length))
-  (λ i, L.nth_le i.down i.down.is_lt) (λ j, R.nth_le j.down.val j.down.is_lt)
+  (λ i, L.nth_le i.down i.down.is_lt) (λ j, R.nth_le j.down j.down.prop)
 
 lemma left_moves_of_lists (L R : list pgame) : (of_lists L R).left_moves = ulift (fin L.length) :=
 rfl
@@ -704,6 +703,21 @@ begin
   congr; funext i; cases i
 end
 
+@[simp] lemma neg_of_lists (L R : list pgame) :
+  -of_lists L R = of_lists (R.map (λ x, -x)) (L.map (λ x, -x)) :=
+begin
+  simp only [of_lists, neg_def, list.length_map, list.nth_le_map', eq_self_iff_true, true_and],
+  split, all_goals
+  { apply hfunext,
+    { simp },
+    { intros a a' ha,
+      congr' 2,
+      have : ∀ {m n} (h₁ : m = n) {b : ulift (fin m)} {c : ulift (fin n)} (h₂ : b == c),
+        (b.down : ℕ) = ↑c.down,
+      { rintros m n rfl b c rfl, refl },
+      exact this (list.length_map _ _).symm ha } }
+end
+
 /-- An explicit equivalence between the moves for Left in `-x` and the moves for Right in `x`. -/
 -- This equivalence is useful to avoid having to use `cases` unnecessarily.
 def left_moves_neg (x : pgame) : (-x).left_moves ≃ x.right_moves :=
@@ -1126,25 +1140,24 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
      ... ≤ y : (add_zero_relabelling y).le⟩
 
 /-- The pre-game `star`, which is fuzzy/confused with zero. -/
-def star : pgame.{u} := of_lists [0] [0]
+def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩
 
-@[simp] theorem star_left_moves : star.left_moves = ulift (fin 1) := rfl
-@[simp] theorem star_right_moves : star.right_moves = ulift (fin 1) := rfl
+@[simp] theorem star_left_moves : star.left_moves = punit := rfl
+@[simp] theorem star_right_moves : star.right_moves = punit := rfl
 
-@[simp] theorem star_move_left (x) : star.move_left x = 0 :=
-show (of_lists _ _).move_left x = 0, by simp
-@[simp] theorem star_move_right (x) : star.move_right x = 0 :=
-show (of_lists _ _).move_right x = 0, by simp
+@[simp] theorem star_move_left (x) : star.move_left x = 0 := rfl
+@[simp] theorem star_move_right (x) : star.move_right x = 0 := rfl
 
-instance unique_star_left_moves : unique star.left_moves :=
-@equiv.unique _ (fin 1) _ equiv.ulift
-instance unique_star_right_moves : unique star.right_moves :=
-@equiv.unique _ (fin 1) _ equiv.ulift
+instance unique_star_left_moves : unique star.left_moves := punit.unique
+instance unique_star_right_moves : unique star.right_moves := punit.unique
 
 theorem star_lt_zero : star < 0 :=
 by { rw lt_zero, use default, rintros ⟨⟩ }
 theorem zero_lt_star : 0 < star :=
 by { rw zero_lt, use default, rintros ⟨⟩ }
+
+@[simp] theorem neg_star : -star = star :=
+by simp [star]
 
 /-- The pre-game `ω`. (In fact all ordinals have game and surreal representatives.) -/
 def omega : pgame := ⟨ulift ℕ, pempty, λ n, ↑n.1, pempty.elim⟩

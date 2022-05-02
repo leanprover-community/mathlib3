@@ -114,30 +114,26 @@ ne_of_gt (norm_sq_denom_pos g z)
 /-- Fractional linear transformation, also known as the Moebius transformation -/
 def smul_aux' (g : GL(2, ℝ)⁺) (z : ℍ) : ℂ := num g z / denom g z
 
-lemma smul_aux'_im (g : GL(2, ℝ)⁺) (z : ℍ) :
+lemma smul_aux'_im (g :  GL(2, ℝ)⁺) (z : ℍ) :
   (smul_aux' g z).im = ((det ↑ₘg) * z.im) / (denom g z).norm_sq :=
 begin
   rw [smul_aux', complex.div_im],
   set NsqBot := (denom g z).norm_sq,
   have : NsqBot ≠ 0,
   { simp only [denom_ne_zero g z, monoid_with_zero_hom.map_eq_zero, ne.def, not_false_iff], },
-  field_simp [smul_aux'],
-  ring_nf,
-  rw [←coe_coe,  matrix.det_fin_two (↑g : matrix (fin 2) (fin 2) ℝ)],
+  field_simp [smul_aux', -coe_coe],
+  rw (matrix.det_fin_two (↑ₘg)),
   ring,
 end
 
 /-- Fractional linear transformation,  also known as the Moebius transformation -/
-def smul_aux (g :  GL(2, ℝ)⁺) (z : ℍ) : ℍ :=
+def smul_aux (g : GL(2, ℝ)⁺) (z : ℍ) : ℍ :=
   ⟨smul_aux' g z,
     by { rw smul_aux'_im,
-    simp only [denom, coe_coe],
-    have h1 := div_pos z.im_pos (complex.norm_sq_pos.mpr (denom_ne_zero g z)),
-    have h2 := g.property,
-    simp only [denom, coe_coe, subtype.val_eq_coe, mem_GL_pos,
-    general_linear_group.coe_det_apply] at *,
-    convert (mul_pos h2 h1),
-    ring, }⟩
+    convert (mul_pos ((mem_GL_pos _).1 g.property)
+      (div_pos z.im_pos (complex.norm_sq_pos.mpr (denom_ne_zero g z)))),
+    simp only [ subtype.val_eq_coe, general_linear_group.coe_det_apply, coe_coe],
+    ring}⟩
 
 lemma denom_cocycle (x y : GL(2, ℝ)⁺) (z : ℍ) :
   denom (x * y) z = denom x (smul_aux y z) * denom y z :=
@@ -224,15 +220,12 @@ begin
   ring_nf,
 end
 
-
 section SL_modular_action
 
-variables (g : SL(2, ℤ)) (z : ℍ)(Γ : subgroup SL(2,ℤ))
+variables (g : SL(2, ℤ)) (z : ℍ) (Γ : subgroup SL(2,ℤ))
 
 @[simp]lemma sl_moeb (A: SL(2,ℤ)) (z : ℍ) : A • z = (A : (GL(2, ℝ)⁺)) • z := rfl
-
 lemma subgroup_moeb (A: Γ) (z : ℍ) : A • z = (A : (GL(2, ℝ)⁺)) • z := rfl
-
 @[simp]lemma subgroup_to_sl_moeb (A : Γ) (z : ℍ) : A • z = (A : SL(2,ℤ)) • z := rfl
 
 @[simp] lemma SL_neg_smul (g : SL(2,ℤ)) (z : ℍ) : -g • z = g • z :=

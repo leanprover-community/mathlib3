@@ -7,7 +7,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébas
 import data.int.interval
 import topology.algebra.order.compact
 import topology.metric_space.emetric_space
-import topology.bornology.basic
+import topology.bornology.constructions
 import topology.uniform_space.complete_separated
 
 /-!
@@ -48,7 +48,7 @@ to `metric_space` at the end.
 metric, pseudo_metric, dist
 -/
 
-open set filter topological_space
+open set filter topological_space bornology
 
 open_locale uniformity topological_space big_operators filter nnreal ennreal
 
@@ -90,14 +90,14 @@ private lemma bounded_iff_aux {α : Type*} (dist : α → α → ℝ)
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
   (s : set α) (a : α) :
-  (∃ c, ∀ ⦃x y⦄, x ∈ s → y ∈ s → dist x y ≤ c) ↔ (∃ r, ∀ ⦃x⦄, x ∈ s → dist x a ≤ r) :=
+  (∃ c, ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → dist x y ≤ c) ↔ (∃ r, ∀ ⦃x⦄, x ∈ s → dist x a ≤ r) :=
 begin
   split; rintro ⟨C, hC⟩,
   { rcases s.eq_empty_or_nonempty with rfl | ⟨x, hx⟩,
     { exact ⟨0, by simp⟩ },
     { exact ⟨C + dist x a, λ y hy,
              (dist_triangle y x a).trans (add_le_add_right (hC hy hx) _)⟩ } },
-  { exact ⟨C + C, λ x y hx hy,
+  { exact ⟨C + C, λ x hx y hy,
            (dist_triangle x a y).trans (add_le_add (hC hx) (by {rw dist_comm, exact hC hy}))⟩ }
 end
 
@@ -108,9 +108,9 @@ def bornology.of_dist {α : Type*} (dist : α → α → ℝ)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z) :
   bornology α :=
 bornology.of_bounded
-  { s : set α | ∃ C, ∀ ⦃x y⦄, x ∈ s → y ∈ s → dist x y ≤ C }
-  ⟨0, λ x y hx, hx.elim⟩
-  (λ s ⟨c, hc⟩ t h, ⟨c, λ x y hx hy, hc (h hx) (h hy)⟩)
+  { s : set α | ∃ C, ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → dist x y ≤ C }
+  ⟨0, λ x hx y, hx.elim⟩
+  (λ s ⟨c, hc⟩ t h, ⟨c, λ x hx y hy, hc (h hx) (h hy)⟩)
   (λ s hs t ht,
     begin
       rcases s.eq_empty_or_nonempty with rfl | ⟨z, hz⟩,
@@ -121,7 +121,7 @@ bornology.of_bounded
           (λ hx', (hr₁ hx').trans (le_max_left _ _))
           (λ hx', (hr₂ hx').trans (le_max_right _ _))⟩ }
     end)
-  (λ z, ⟨0, λ x y hx hy,
+  (λ z, ⟨0, λ x hx y hy,
     by { rw [eq_of_mem_singleton hx, eq_of_mem_singleton hy], exact (dist_self z).le }⟩)
 
 /-- The distance function (given an ambient metric space on `α`), which returns
@@ -168,7 +168,7 @@ class pseudo_metric_space (α : Type u) extends has_dist α : Type u :=
 (uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
 (to_bornology : bornology α := bornology.of_dist dist dist_self dist_comm dist_triangle)
 (cobounded_sets : (bornology.cobounded α).sets =
-  { s | ∃ C, ∀ ⦃x y⦄, x ∈ sᶜ → y ∈ sᶜ → dist x y ≤ C } . control_laws_tac)
+  { s | ∃ C, ∀ ⦃x⦄, x ∈ sᶜ → ∀ ⦃y⦄, y ∈ sᶜ → dist x y ≤ C } . control_laws_tac)
 
 /-- Two pseudo metric space structures with the same distance function coincide. -/
 @[ext] lemma pseudo_metric_space.ext {α : Type*} {m m' : pseudo_metric_space α}
@@ -195,6 +195,10 @@ variables [pseudo_metric_space α]
 @[priority 100] -- see Note [lower instance priority]
 instance metric_space.to_uniform_space' : uniform_space α :=
 pseudo_metric_space.to_uniform_space
+
+@[priority 100] -- see Note [lower instance priority]
+instance pseudo_metric_space.to_bornology' {α : Type u} [pseudo_metric_space α] : bornology α :=
+pseudo_metric_space.to_bornology
 
 @[priority 200] -- see Note [lower instance priority]
 instance pseudo_metric_space.to_has_edist : has_edist α := ⟨pseudo_metric_space.edist⟩
@@ -592,6 +596,26 @@ begin
     frequently_iff.1 H (Ioi_mem_at_top (dist y x)),
   exact h _ hR
 end
+
+theorem is_bounded_iff {s : set α} :
+  is_bounded s ↔ ∃ C : ℝ, ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → dist x y ≤ C :=
+by rw [is_bounded_def, ← filter.mem_sets, (@pseudo_metric_space.cobounded_sets α _).out,
+  mem_set_of_eq, compl_compl]
+
+theorem is_bounded_iff_eventually {s : set α} :
+  is_bounded s ↔ ∀ᶠ C in at_top, ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → dist x y ≤ C :=
+is_bounded_iff.trans ⟨λ ⟨C, h⟩, eventually_at_top.2 ⟨C, λ C' hC' x hx y hy, (h hx hy).trans hC'⟩,
+  eventually.exists⟩
+
+theorem is_bounded_iff_exists_ge {s : set α} (c : ℝ) :
+  is_bounded s ↔ ∃ C, c ≤ C ∧ ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → dist x y ≤ C :=
+⟨λ h, ((eventually_ge_at_top c).and (is_bounded_iff_eventually.1 h)).exists,
+  λ h, is_bounded_iff.2 $ h.imp $ λ _, and.right⟩
+
+theorem is_bounded_iff_nndist {s : set α} :
+  is_bounded s ↔ ∃ C : ℝ≥0, ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → nndist x y ≤ C :=
+by simp only [is_bounded_iff_exists_ge 0, nnreal.exists, ← nnreal.coe_le_coe, ← dist_nndist,
+  nnreal.coe_mk, exists_prop]
 
 theorem uniformity_basis_dist :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 < ε}) :=
@@ -1077,6 +1101,18 @@ def pseudo_emetric_space.to_pseudo_metric_space {α : Type u} [e : pseudo_emetri
 pseudo_emetric_space.to_pseudo_metric_space_of_dist
   (λx y, ennreal.to_real (edist x y)) h (λx y, rfl)
 
+/-- Build a new pseudometric space from an old one where the bundled bornology structure is provably
+(but typically non-definitionaly) equal to some given bornology structure.
+See Note [forgetful inheritance].
+-/
+def pseudo_metric_space.replace_bornology {α} [B : bornology α] (m : pseudo_metric_space α)
+  (H : ∀ s, @is_bounded _ B s ↔ @is_bounded _ pseudo_metric_space.to_bornology' s) :
+  pseudo_metric_space α :=
+{ to_bornology := B,
+  cobounded_sets := set.ext $ compl_surjective.forall.2 $ λ s, (H s).trans $
+    by rw [is_bounded_iff, mem_set_of_eq, compl_compl],
+  .. m }
+
 /-- A very useful criterion to show that a space is complete is to show that all sequences
 which satisfy a bound of the form `dist (u n) (u m) < B N` for all `n m ≥ N` are
 converging. This is often applied for `B N = 2^{-N}`, i.e., with a very fast convergence to
@@ -1086,17 +1122,8 @@ theorem metric.complete_of_convergent_controlled_sequences (B : ℕ → real) (h
   (H : ∀u : ℕ → α, (∀N n m : ℕ, N ≤ n → N ≤ m → dist (u n) (u m) < B N) →
     ∃x, tendsto u at_top (𝓝 x)) :
   complete_space α :=
-begin
-  -- this follows from the same criterion in emetric spaces. We just need to translate
-  -- the convergence assumption from `dist` to `edist`
-  apply emetric.complete_of_convergent_controlled_sequences (λn, ennreal.of_real (B n)),
-  { simp [hB] },
-  { assume u Hu,
-    apply H,
-    assume N n m hn hm,
-    rw [← ennreal.of_real_lt_of_real_iff (hB N), ← edist_dist],
-    exact Hu N n m hn hm }
-end
+uniform_space.complete_of_convergent_controlled_sequences
+  (λ n, {p:α×α | dist p.1 p.2 < B n}) (λ n, dist_mem_uniformity $ hB n) H
 
 theorem metric.complete_of_cauchy_seq_tendsto :
   (∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) → complete_space α :=
@@ -1347,7 +1374,8 @@ def uniform_inducing.comap_pseudo_metric_space {α β} [uniform_space α] [pseud
 (pseudo_metric_space.induced f ‹_›).replace_uniformity h.comap_uniformity.symm
 
 instance subtype.pseudo_metric_space {p : α → Prop} : pseudo_metric_space (subtype p) :=
-pseudo_metric_space.induced coe ‹_›
+(pseudo_metric_space.induced coe ‹_›).replace_bornology $ λ s,
+  by { simp only [← is_bounded_image_subtype_coe, is_bounded_iff, ball_image_iff], refl }
 
 theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x : α) y := rfl
 theorem subtype.nndist_eq {p : α → Prop} (x y : subtype p) : nndist x y = nndist (x : α) y := rfl
@@ -1402,11 +1430,13 @@ variables [pseudo_metric_space β]
 
 noncomputable instance prod.pseudo_metric_space_max :
   pseudo_metric_space (α × β) :=
-pseudo_emetric_space.to_pseudo_metric_space_of_dist
+(pseudo_emetric_space.to_pseudo_metric_space_of_dist
   (λ x y : α × β, max (dist x.1 y.1) (dist x.2 y.2))
-  (λ x y, (max_lt (edist_lt_top _ _) (edist_lt_top _ _)).ne) $
-  λ x y, by rw [dist_edist, dist_edist, prod.edist_eq,
-    ← ennreal.to_real_max (edist_ne_top _ _) (edist_ne_top _ _)]
+  (λ x y, (max_lt (edist_lt_top _ _) (edist_lt_top _ _)).ne)
+  (λ x y, by simp only [dist_edist, ← ennreal.to_real_max (edist_ne_top _ _) (edist_ne_top _ _),
+    prod.edist_eq])).replace_bornology $
+  λ s, by { simp only [← is_bounded_image_fst_and_snd, is_bounded_iff_eventually, ball_image_iff,
+    ← eventually_and, ← forall_and_distrib, ← max_le_iff], refl }
 
 lemma prod.dist_eq {x y : α × β} :
   dist x y = max (dist x.1 y.1) (dist x.2 y.2) := rfl
@@ -1642,16 +1672,25 @@ begin
   /- we construct the instance from the pseudoemetric space instance to avoid checking again that
   the uniformity is the same as the product uniformity, but we register nevertheless a nice formula
   for the distance -/
-  refine pseudo_emetric_space.to_pseudo_metric_space_of_dist
-    (λf g, ((sup univ (λb, nndist (f b) (g b)) : ℝ≥0) : ℝ)) (λ f g, _) (λ f g, _),
+  refine (pseudo_emetric_space.to_pseudo_metric_space_of_dist
+    (λf g : Π b, π b, ((sup univ (λb, nndist (f b) (g b)) : ℝ≥0) : ℝ))
+    (λ f g, _) (λ f g, _)).replace_bornology (λ s, _),
   show edist f g ≠ ⊤,
     from ne_of_lt ((finset.sup_lt_iff bot_lt_top).2 $ λ b hb, edist_lt_top _ _),
   show ↑(sup univ (λ b, nndist (f b) (g b))) = (sup univ (λ b, edist (f b) (g b))).to_real,
-    by simp only [edist_nndist, ← ennreal.coe_finset_sup, ennreal.coe_to_real]
+    by simp only [edist_nndist, ← ennreal.coe_finset_sup, ennreal.coe_to_real],
+  show (@is_bounded _ pi.bornology s ↔ @is_bounded _ pseudo_metric_space.to_bornology' _),
+  { simp only [← is_bounded_def, is_bounded_iff_eventually, ← forall_is_bounded_image_eval_iff,
+      ball_image_iff, ← eventually_all, function.eval_apply, @dist_nndist (π _)],
+    refine eventually_congr ((eventually_ge_at_top 0).mono $ λ C hC, _),
+    lift C to ℝ≥0 using hC,
+    refine ⟨λ H x hx y hy, nnreal.coe_le_coe.2 $ finset.sup_le $ λ b hb, H b x hx y hy,
+      λ H b x hx y hy, nnreal.coe_le_coe.2 _⟩,
+    simpa only using finset.sup_le_iff.1 (nnreal.coe_le_coe.1 $ H hx hy) b (finset.mem_univ b) }
 end
 
 lemma nndist_pi_def (f g : Πb, π b) : nndist f g = sup univ (λb, nndist (f b) (g b)) :=
-subtype.eta _ _
+nnreal.eq rfl
 
 lemma dist_pi_def (f g : Πb, π b) :
   dist f g = (sup univ (λb, nndist (f b) (g b)) : ℝ≥0) := rfl

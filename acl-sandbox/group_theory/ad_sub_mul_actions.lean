@@ -744,8 +744,7 @@ to_monoid_hom := {
 map_smul' := λ m x, rfl
 }
 
-
-lemma sub_mul_action_of_fixing_subgroup_of_stabilizer_bihom_bijective'
+lemma sub_mul_action_of_fixing_subgroup_of_stabilizer_bihom'_bijective
   (a : α) (s : set (sub_mul_action_of_stabilizer M α a)) :
   function.bijective (sub_mul_action_of_fixing_subgroup_of_stabilizer_bihom' M a s).to_fun :=
 begin

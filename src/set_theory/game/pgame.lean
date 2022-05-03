@@ -513,7 +513,8 @@ def equiv : pgame → pgame → Prop := @antisymm_rel pgame (≤)
 
 local infix ` ≈ ` := pgame.equiv
 
-@[refl, simp] theorem equiv_refl : ∀ x, x ≈ x := antisymm_rel_refl _
+@[refl, simp] theorem equiv_rfl : ∀ {x}, x ≈ x := antisymm_rel_refl _
+theorem equiv_refl (x) : x ≈ x := equiv_rfl
 @[symm] theorem equiv_symm {x y} : x ≈ y → y ≈ x := antisymm_rel.symm
 @[trans] theorem equiv_trans {x y z} : x ≈ y → y ≈ z → x ≈ z := antisymm_rel.trans
 
@@ -534,11 +535,11 @@ not_le.symm.trans $ (not_congr (le_congr hy hx)).trans not_le
 
 theorem equiv_congr_left {y₁ y₂} : y₁ ≈ y₂ ↔ ∀ x₁, x₁ ≈ y₁ ↔ x₁ ≈ y₂ :=
 ⟨λ h x₁, ⟨λ h', equiv_trans h' h, λ h', equiv_trans h' (equiv_symm h)⟩,
- λ h, (h y₁).1 $ equiv_refl _⟩
+ λ h, (h y₁).1 $ equiv_rfl⟩
 
 theorem equiv_congr_right {x₁ x₂} : x₁ ≈ x₂ ↔ ∀ y₁, x₁ ≈ y₁ ↔ x₂ ≈ y₁ :=
 ⟨λ h y₁, ⟨λ h', equiv_trans (equiv_symm h) h', λ h', equiv_trans h h'⟩,
- λ h, (h x₂).2 $ equiv_refl _⟩
+ λ h, (h x₂).2 $ equiv_rfl⟩
 
 theorem equiv_of_mk_equiv {x y : pgame}
   (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves)

@@ -388,6 +388,8 @@ instance : omega_complete_partial_order (α × β) :=
 
 end prod
 
+open omega_complete_partial_order
+
 namespace complete_lattice
 variables (α : Type u)
 
@@ -402,26 +404,6 @@ instance [complete_lattice α] : omega_complete_partial_order α :=
   le_ωSup := assume ⟨c, _⟩ i, by simp only [order_hom.coe_fun_mk]; apply le_supr_of_le i; refl }
 
 variables {α} {β : Type v} [omega_complete_partial_order α] [complete_lattice β]
-open omega_complete_partial_order
-
-lemma inf_continuous [is_total β (≤)] (f g : α →o β) (hf : continuous f) (hg : continuous g) :
-  continuous (f ⊓ g) :=
-begin
-  intro c,
-  apply eq_of_forall_ge_iff, intro z,
-  simp only [inf_le_iff, hf c, hg c, ωSup_le_iff, ←forall_or_distrib_left, ←forall_or_distrib_right,
-             function.comp_app, chain.map_coe, order_hom.has_inf_inf_coe],
-  split,
-  { introv h, apply h },
-  { intros h i j,
-    apply or.imp _ _ (h (max i j)); apply le_trans; mono*; try { exact le_rfl },
-    { apply le_max_left },
-    { apply le_max_right }, },
-end
-
-lemma inf_continuous' [is_total β (≤)] {f g : α → β} (hf : continuous' f) (hg : continuous' g) :
-  continuous' (f ⊓ g) :=
-⟨_, inf_continuous _ _ hf.snd hg.snd⟩
 
 lemma Sup_continuous (s : set $ α →o β) (hs : ∀ f ∈ s, continuous f) :
   continuous (Sup s) :=
@@ -467,6 +449,24 @@ begin
   rw ← Sup_empty,
   exact Sup_continuous _ (λ f hf, hf.elim),
 end
+
+end complete_lattice
+
+namespace complete_lattice
+variables {α β : Type*} [omega_complete_partial_order α] [complete_linear_order β]
+
+lemma inf_continuous (f g : α →o β) (hf : continuous f) (hg : continuous g) : continuous (f ⊓ g) :=
+begin
+  refine λ c, eq_of_forall_ge_iff (λ z, _),
+  simp only [inf_le_iff, hf c, hg c, ωSup_le_iff, ←forall_or_distrib_left, ←forall_or_distrib_right,
+             function.comp_app, chain.map_coe, order_hom.has_inf_inf_coe],
+  exact ⟨λ h _, h _ _, λ h i j, (h (max i j)).imp (le_trans $ f.mono $ c.mono $ le_max_left _ _)
+    (le_trans $ g.mono $ c.mono $ le_max_right _ _)⟩,
+end
+
+lemma inf_continuous' {f g : α → β} (hf : continuous' f) (hg : continuous' g) :
+  continuous' (f ⊓ g) :=
+⟨_, inf_continuous _ _ hf.snd hg.snd⟩
 
 end complete_lattice
 

@@ -558,9 +558,8 @@ begin
 end
 
 /-- The span of a finite set is compact in the lattice of submodules. -/
-lemma finite_span_is_compact_element (S : finset M)  :
-  complete_lattice.is_compact_element
-  (span R S : submodule R M) :=
+lemma finite_span_is_compact_element (S : finset M) :
+  complete_lattice.is_compact_element (span R S : submodule R M) :=
 begin
   rw span_eq_supr_of_singleton_spans,
   simp only [finset.mem_coe],

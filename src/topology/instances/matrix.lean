@@ -24,6 +24,8 @@ This file is a place to collect topological results about matrices.
 * Infinite sums
   * `matrix.transpose_tsum`: transpose commutes with infinite sums
   * `matrix.diagonal_tsum`: diagonal commutes with infinite sums
+  * `matrix.block_diagonal_tsum`: block diagonal commutes with infinite sums
+  * `matrix.block_diagonal'_tsum`: non-uniform block diagonal commutes with infinite sums
 -/
 
 open matrix
@@ -343,7 +345,8 @@ lemma has_sum.matrix_block_diag {f : X → matrix (m × p) (n × p) R}
   has_sum (λ x, block_diag (f x)) (block_diag a) :=
 (hf.map (block_diag_add_monoid_hom m n p R) $ continuous.matrix_block_diag continuous_id : _)
 
-lemma summable.matrix_block_diag {f : X → matrix n n R} (hf : summable f) : summable (λ x, diag (f x)) :=
+lemma summable.matrix_block_diag {f : X → matrix n n R} (hf : summable f) :
+  summable (λ x, diag (f x)) :=
 hf.has_sum.matrix_diag.summable
 
 lemma has_sum.matrix_block_diagonal' [decidable_eq l]

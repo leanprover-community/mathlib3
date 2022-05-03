@@ -80,6 +80,9 @@ iff.intro nnreal.eq (congr_arg coe)
 lemma ne_iff {x y : ℝ≥0} : (x : ℝ) ≠ (y : ℝ) ↔ x ≠ y :=
 not_iff_not_of_iff $ nnreal.eq_iff
 
+protected lemma «forall» {p : ℝ≥0 → Prop} : (∀ x : ℝ≥0, p x) ↔ ∀ (x : ℝ) (hx : 0 ≤ x), p ⟨x, hx⟩ :=
+subtype.forall
+
 protected lemma «exists» {p : ℝ≥0 → Prop} : (∃ x : ℝ≥0, p x) ↔ ∃ (x : ℝ) (hx : 0 ≤ x), p ⟨x, hx⟩ :=
 subtype.exists
 
@@ -411,7 +414,7 @@ by simp [nnreal.coe_le_coe.symm, real.to_nnreal, hp]
 
 @[simp] lemma to_nnreal_lt_to_nnreal_iff' {r p : ℝ} :
   real.to_nnreal r < real.to_nnreal p ↔ r < p ∧ 0 < p :=
-by simp [nnreal.coe_lt_coe.symm, real.to_nnreal, lt_irrefl]
+nnreal.coe_lt_coe.symm.trans max_lt_max_left_iff
 
 lemma to_nnreal_lt_to_nnreal_iff {r p : ℝ} (h : 0 < p) :
   real.to_nnreal r < real.to_nnreal p ↔ r < p :=

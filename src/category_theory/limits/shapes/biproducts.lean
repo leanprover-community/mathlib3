@@ -1081,7 +1081,7 @@ begin
   split,
   { introI h,
     have := (cancel_epi (inv biprod.inl : X ⊞ Y ⟶ X)).2 biprod.inl_fst,
-    rw [is_iso.inv_hom_id_assoc, comp_id] at this,
+    rw [is_iso.inv_hom_id_assoc, category.comp_id] at this,
     rw [this, is_iso.inv_hom_id], },
   { intro h, exact ⟨⟨biprod.fst, biprod.inl_fst, h.symm⟩⟩, },
 end

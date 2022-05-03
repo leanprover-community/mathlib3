@@ -60,7 +60,7 @@ by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, apply pgame.le_trans }
 theorem le_antisymm : ∀ x y : game, x ≤ y → y ≤ x → x = y :=
 by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ }
 
-/-- This instance is incompatible with that provided by `game_partial_order`, which is why it's made
+/-- This instance is incompatible with that provided by `game.partial_order`, which is why it's made
 into a `def` instead. -/
 instance : has_lt game :=
 ⟨quotient.lift₂ (λ x y, x < y) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx hy))⟩
@@ -131,17 +131,17 @@ instance covariant_class_swap_add_lt : covariant_class game game (swap (+)) (<) 
 -- but do not actually mark them as instances, for safety.
 
 /-- The `<` operation provided by this partial order is not the usual `<` on games! -/
-def game_partial_order : partial_order game :=
+def partial_order : partial_order game :=
 { le_refl := le_refl,
   le_trans := le_trans,
   le_antisymm := le_antisymm,
   ..game.has_le }
 
 /-- The `<` operation provided by this `ordered_add_comm_group` is not the usual `<` on games! -/
-def ordered_add_comm_group_game : ordered_add_comm_group game :=
+def ordered_add_comm_group : ordered_add_comm_group game :=
 { add_le_add_left := @add_le_add_left _ _ _ game.covariant_class_add_le,
   ..game.add_comm_group,
-  ..game_partial_order }
+  ..game.partial_order }
 
 end game
 

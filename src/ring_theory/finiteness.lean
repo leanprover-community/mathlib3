@@ -109,7 +109,7 @@ variables {R M}
 instance prod [hM : finite R M] [hN : finite R N] : finite R (M × N) :=
 ⟨begin
   rw ← submodule.prod_top,
-  exact submodule.fg_prod hM.1 hN.1
+  exact hM.1.prod hN.1
 end⟩
 
 instance pi {ι : Type*} {M : ι → Type*} [fintype ι] [Π i, add_comm_monoid (M i)]
@@ -186,7 +186,7 @@ variables {R A B}
 lemma of_surjective (hRA : finite_type R A) (f : A →ₐ[R] B) (hf : surjective f) :
   finite_type R B :=
 ⟨begin
-  convert subalgebra.fg_map _ f hRA.1,
+  convert hRA.1.map f,
   simpa only [map_top f, @eq_comm _ ⊤, eq_top_iff, alg_hom.mem_range] using hf
 end⟩
 
@@ -255,7 +255,7 @@ end
 instance prod [hA : finite_type R A] [hB : finite_type R B] : finite_type R (A × B) :=
 ⟨begin
   rw ← subalgebra.prod_top,
-  exact subalgebra.fg_prod hA.1 hB.1
+  exact hA.1.prod hB.1
 end⟩
 
 end finite_type

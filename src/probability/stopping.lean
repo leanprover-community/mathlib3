@@ -686,36 +686,19 @@ lemma le_measurable_space_of_const_le (hτ : is_stopping_time f τ) {i : ι} (h�
   f i ≤ hτ.measurable_space :=
 (is_stopping_time.measurable_space_const _ _).symm.le.trans (measurable_space_mono _ hτ hτ_le)
 
-section nat
-
-lemma measurable_set_eq_const {f : filtration ℕ m}
-  {τ : α → ℕ} (hτ : is_stopping_time f τ) (i : ℕ) :
-  measurable_set[hτ.measurable_space] {x | τ x = i} :=
-begin
-  rw hτ.measurable_set,
-  intro j,
-  by_cases i ≤ j,
-  { rw (_ : {x | τ x = i} ∩ {x | τ x ≤ j} = {x | τ x = i}),
-    { exact hτ.measurable_set_eq_le h },
-    { ext,
-      simp only [set.mem_inter_eq, and_iff_left_iff_imp, set.mem_set_of_eq],
-      rintro rfl,
-      assumption } },
-  { rw (_ : {x | τ x = i} ∩ {x | τ x ≤ j} = ∅),
-    { exact @measurable_set.empty _ (f j) },
-    { ext,
-      simp only [set.mem_empty_eq, set.mem_inter_eq, not_and, not_le, set.mem_set_of_eq, iff_false],
-      rintro rfl,
-      rwa not_le at h } }
-end
-
-end nat
-
 end preorder
 
 section linear_order
 
 variables [linear_order ι] {f : filtration ι m} {τ π : α → ι}
+
+lemma measurable_set_eq_const [topological_space ι] [order_topology ι] [first_countable_topology ι]
+  (hτ : is_stopping_time f τ) (i : ι) :
+  measurable_set[hτ.measurable_space] {x | τ x = i} :=
+begin
+  rw [← set.univ_inter {x | τ x = i}, measurable_set_inter_eq_iff, set.univ_inter],
+  exact hτ.measurable_set_eq i,
+end
 
 protected lemma measurable [topological_space ι] [measurable_space ι]
   [borel_space ι] [order_topology ι] [second_countable_topology ι]
@@ -1068,7 +1051,8 @@ end
 
 lemma is_stopping_time_piecewise_const (hij : i ≤ j) (hs : measurable_set[𝒢 i] s) :
   is_stopping_time 𝒢 (s.piecewise (λ _, i) (λ _, j)) :=
-(is_stopping_time_const i).piecewise_of_le (is_stopping_time_const j) (λ x, le_rfl) (λ _, hij) hs
+(is_stopping_time_const 𝒢 i).piecewise_of_le (is_stopping_time_const 𝒢 j)
+  (λ x, le_rfl) (λ _, hij) hs
 
 lemma stopped_value_piecewise_const {ι' : Type*} {i j : ι'} {f : ι' → α → ℝ} :
   stopped_value f (s.piecewise (λ _, i) (λ _, j)) = s.piecewise (f i) (f j) :=

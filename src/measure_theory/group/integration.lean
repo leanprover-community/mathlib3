@@ -69,15 +69,15 @@ begin
   simp [map_mul_right_eq_self μ g]
 end
 
-@[to_additive]
+@[simp, to_additive]
 lemma lintegral_div_right_eq_self [is_mul_right_invariant μ] (f : G → ℝ≥0∞) (g : G) :
   ∫⁻ x, f (x / g) ∂μ = ∫⁻ x, f x ∂μ :=
 by simp_rw [div_eq_mul_inv, lintegral_mul_right_eq_self f g⁻¹]
 
 /-- Translating a function by left-multiplication does not change its integral with respect to a
 left-invariant measure. -/
-@[to_additive "Translating a function by left-addition does not change its integral with respect to
-a left-invariant measure."]
+@[simp, to_additive "Translating a function by left-addition does not change its integral with
+  respect to a left-invariant measure."]
 lemma integral_mul_left_eq_self [is_mul_left_invariant μ] (f : G → E) (g : G) :
   ∫ x, f (g * x) ∂μ = ∫ x, f x ∂μ :=
 begin
@@ -88,8 +88,8 @@ end
 
 /-- Translating a function by right-multiplication does not change its integral with respect to a
 right-invariant measure. -/
-@[to_additive "Translating a function by right-addition does not change its integral with respect to
-a right-invariant measure."]
+@[simp, to_additive "Translating a function by right-addition does not change its integral with
+  respect to a right-invariant measure."]
 lemma integral_mul_right_eq_self [is_mul_right_invariant μ] (f : G → E) (g : G) :
   ∫ x, f (x * g) ∂μ = ∫ x, f x ∂μ :=
 begin
@@ -98,7 +98,7 @@ begin
   rw [← h_mul.integral_map, map_mul_right_eq_self]
 end
 
-@[to_additive]
+@[simp, to_additive]
 lemma integral_div_right_eq_self [is_mul_right_invariant μ] (f : G → E) (g : G) :
   ∫ x, f (x / g) ∂μ = ∫ x, f x ∂μ :=
 by simp_rw [div_eq_mul_inv, integral_mul_right_eq_self f g⁻¹]
@@ -150,7 +150,7 @@ begin
   { exact (measurable_id'.const_mul g⁻¹).inv.ae_measurable }
 end
 
-@[to_additive]
+@[simp, to_additive]
 lemma integrable_comp_div_left (f : G → F)
   [is_inv_invariant μ] [is_mul_left_invariant μ] (g : G) :
   integrable (λ t, f (g / t)) μ ↔ integrable f μ :=
@@ -160,7 +160,7 @@ begin
   simp_rw [div_inv_eq_mul, mul_inv_cancel_left]
 end
 
-@[to_additive]
+@[simp, to_additive]
 lemma integral_div_left_eq_self (f : G → E) (μ : measure G) [is_inv_invariant μ]
   [is_mul_left_invariant μ] (x' : G) : ∫ x, f (x' / x) ∂μ = ∫ x, f x ∂μ :=
 by simp_rw [div_eq_mul_inv, integral_inv_eq_self (λ x, f (x' * x)) μ,
@@ -172,7 +172,7 @@ section smul
 
 variables [group G] [measurable_space α] [mul_action G α] [has_measurable_smul G α]
 
-@[to_additive]
+@[simp, to_additive]
 lemma integral_smul_eq_self {μ : measure α} [smul_invariant_measure G α μ] (f : α → E) {g : G} :
   ∫ x, f (g • x) ∂μ = ∫ x, f x ∂μ :=
 begin

@@ -77,7 +77,7 @@ instance [is_mul_right_invariant μ] (c : ℝ≥0∞) : is_mul_right_invariant (
 
 section has_measurable_mul
 
-variables  [has_measurable_mul G]
+variables [has_measurable_mul G]
 
 @[to_additive]
 lemma measure_preserving_mul_left (μ : measure G) [is_mul_left_invariant μ] (g : G) :

@@ -63,21 +63,30 @@ begin
   simpa [(hE i).ne', sub_eq_zero] using h.1 i (mem_univ _),
 end
 
-lemma oddtown {ι α : Type*} [fintype ι] [fintype α] [decidable_eq α] (t : ℕ)
-  (E : ι → finset α) (hE : ∀ i, odd (E i).card) (hE' : pairwise (λ i j, even (E i ∩ E j).card)) :
+lemma mod_p_town {ι α : Type*} [fintype ι] [fintype α] [decidable_eq α] {p : ℕ} (hp : p.prime)
+  (E : ι → finset α) (hE : ∀ i, ¬ p ∣ (E i).card)
+  (hE' : pairwise (λ i j, p ∣ (E i ∩ E j).card)) :
   fintype.card ι ≤ fintype.card α :=
 begin
-  let ind : ι → α → zmod 2 := λ i a, ite (a ∈ E i) 1 0,
-  suffices : linear_independent (zmod 2) ind,
+  let ind : ι → α → zmod p := λ i a, ite (a ∈ E i) 1 0,
+  haveI : fact p.prime := ⟨hp⟩,
+  suffices : linear_independent (zmod p) ind,
   { simpa using fintype_card_le_finrank_of_linear_independent this },
   rw [fintype.linear_independent_iff],
   intros g hg j,
-  suffices : matrix.dot_product (∑ i, g i • ind i) (ind j) = g j,
-  { rw [←this, hg, matrix.zero_dot_product] },
+  suffices : (↑(E j).card)⁻¹ * matrix.dot_product (∑ i, g i • ind i) (ind j) = g j,
+  { rw [←this, hg, matrix.zero_dot_product, mul_zero] },
   simp_rw [matrix.dot_product, fintype.sum_apply, sum_mul, @sum_comm _ _ α, pi.smul_apply,
     algebra.id.smul_eq_mul, mul_assoc, ←ite_and_mul_zero, ←mem_inter, one_mul, mul_boole,
-    ←sum_filter, filter_mem_eq_inter, univ_inter, sum_const, nsmul_eq_mul],
+    ←sum_filter, filter_mem_eq_inter, univ_inter, sum_const, nsmul_eq_mul, mul_sum],
   refine (sum_eq_single j (λ i _ h, _) (by simp)).trans _,
-  { rw [zmod.eq_zero_iff_even.2 (hE' _ _ h), zero_mul] },
-  rw [inter_self, zmod.eq_one_iff_odd.2 (hE _), one_mul],
+  { rw [(zmod.nat_coe_zmod_eq_zero_iff_dvd _ _).2 (hE' _ _ h), zero_mul, mul_zero] },
+  rw [inter_self, inv_mul_cancel_left₀ ((zmod.nat_coe_zmod_eq_zero_iff_dvd _ _).not.2 (hE j))],
 end
+
+lemma oddtown {ι α : Type*} [fintype ι] [fintype α] [decidable_eq α]
+  (E : ι → finset α) (hE : ∀ i, odd (E i).card) (hE' : pairwise (λ i j, even (E i ∩ E j).card)) :
+  fintype.card ι ≤ fintype.card α :=
+mod_p_town nat.prime_two E
+  (λ i, by simpa [nat.odd_iff] using hE i)
+  (λ i j h, even_iff_two_dvd.1 (hE' _ _ h))

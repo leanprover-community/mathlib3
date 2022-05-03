@@ -185,6 +185,19 @@ lemma map_bind (g : β → list γ) (f : α → β) :
 | [] := rfl
 | (a::l) := by simp only [cons_bind, map_cons, map_bind l]
 
+lemma range_map (f : α → β) : set.range (map f) = {l | ∀ x ∈ l, x ∈ set.range f} :=
+begin
+  refine set.subset.antisymm (set.range_subset_iff.2 $
+    λ l, forall_mem_map_iff.2 $ λ y _, set.mem_range_self _) (λ l hl, _),
+  induction l with a l ihl, { exact ⟨[], rfl⟩ },
+  rcases ihl (λ x hx, hl x $ subset_cons _ _ hx) with ⟨l, rfl⟩,
+  rcases hl a (mem_cons_self _ _) with ⟨a, rfl⟩,
+  exact ⟨a :: l, map_cons _ _ _⟩
+end
+
+lemma range_map_coe (s : set α) : set.range (map (coe : s → α)) = {l | ∀ x ∈ l, x ∈ s} :=
+by rw [range_map, subtype.range_coe]
+
 /-- If each element of a list can be lifted to some type, then the whole list can be lifted to this
 type. -/
 instance [h : can_lift α β] : can_lift (list α) (list β) :=
@@ -192,10 +205,8 @@ instance [h : can_lift α β] : can_lift (list α) (list β) :=
   cond := λ l, ∀ x ∈ l, can_lift.cond β x,
   prf  := λ l H,
     begin
-      induction l with a l ihl, { exact ⟨[], rfl⟩ },
-      rcases ihl (λ x hx, H x (or.inr hx)) with ⟨l, rfl⟩,
-      rcases can_lift.prf a (H a (or.inl rfl)) with ⟨a, rfl⟩,
-      exact ⟨a :: l, rfl⟩
+      rw [← set.mem_range, range_map],
+      exact λ a ha, can_lift.prf a (H a ha),
     end}
 
 /-! ### length -/
@@ -1983,6 +1994,15 @@ up to `i` in `l₂`. -/
 lemma drop_append {l₁ l₂ : list α} (i : ℕ) :
   drop (l₁.length + i) (l₁ ++ l₂) = drop i l₂ :=
 by simp [drop_append_eq_append_drop, take_all_of_le le_self_add]
+
+lemma drop_sizeof_le [has_sizeof α] (l : list α) : ∀ (n : ℕ), (l.drop n).sizeof ≤ l.sizeof :=
+begin
+  induction l with _ _ lih; intro n,
+  { rw [drop_nil] },
+  { induction n with n nih,
+    { refl, },
+    { exact trans (lih _) le_add_self } }
+end
 
 /-- The `i + j`-th element of a list coincides with the `j`-th element of the list obtained by
 dropping the first `i` elements. Version designed to rewrite from the big list to the small list. -/

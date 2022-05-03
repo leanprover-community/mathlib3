@@ -33,70 +33,12 @@ We provide many variations to stricten the result under more assumptions on the 
 * `0 < δ → convex ℝ s → interior (cthickening δ s) = thickening δ s`
 -/
 
-open function metric set
-open_locale pointwise
+open filter function metric set
+open_locale pointwise topological_space
 
 variables {𝕜 E : Type*}
 
 section
-open filter
-open_locale topological_space
-
-lemma linear_map.exists_ne_zero {R₁ R₂ : Type*} [semiring R₁] [semiring R₂] {σ₁₂ : R₁ →+* R₂}
-  {M₁ : Type*} [add_comm_monoid M₁] {M₂ : Type*} [add_comm_monoid M₂] [module R₁ M₁] [module R₂ M₂]
-  {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : f ≠ 0) :
-  ∃ x, f x ≠ 0 :=
-by { by_contra' h, exact hf (linear_map.ext h) }
-
-lemma continuous_linear_map.exists_ne_zero {R₁ R₂ : Type*} [semiring R₁]
-  [semiring R₂] {σ₁₂ : R₁ →+* R₂} {M₁ : Type*} [topological_space M₁] [add_comm_monoid M₁]
-  {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂] [module R₁ M₁] [module R₂ M₂]
-  {f : M₁ →SL[σ₁₂] M₂} (hf : f ≠ 0) :
-  ∃ x, f x ≠ 0 :=
-by { by_contra' h, exact hf (continuous_linear_map.ext h) }
-
-lemma nhds_le_map_nhds [topological_space 𝕜] [topological_space E] {f : E → 𝕜} {g : 𝕜 → E} {a : E}
-  (hg : continuous_at g (f a)) (hcomp : f ∘ g = id) (hgfa : g (f a) = a) :
-  𝓝 (f a) ≤ map f (𝓝 a) :=
-calc 𝓝 (f a) = ((𝓝 (f a)).map g).map f : by rw [map_map, hcomp, map_id]
-  ... ≤ (𝓝 $ g (f a)).map f             : map_mono hg
-  ... = (𝓝 a).map f                     : by rw hgfa
-
-lemma linear_map.nhds_le_map_nhds [topological_space 𝕜] [division_ring 𝕜] [topological_ring 𝕜]
-  [add_comm_group E] [topological_space E] [topological_add_group E] [module 𝕜 E]
-  [has_continuous_smul 𝕜 E] {f : E →ₗ[𝕜] 𝕜} (hf : f ≠ 0) (a : E) :
-  𝓝 (f a) ≤ map f (𝓝 a) :=
-begin
-  obtain ⟨x₀, hx₀⟩ := linear_map.exists_ne_zero hf,
-  let g : 𝕜 → E := λ x, a + (x - f a) • (f x₀)⁻¹ • x₀,
-  have hg : continuous g, by continuity,
-  have hcomp : f ∘ g = id, by { ext, simp [hx₀] },
-  have hgfa : g (f a) = a, by simp [hx₀],
-  exact nhds_le_map_nhds hg.continuous_at hcomp hgfa,
-end
-
-/-- A nonzero continuous linear functional is open. -/
-lemma continuous_linear_map.is_open_map [topological_space 𝕜] [division_ring 𝕜]
-  [topological_ring 𝕜] [add_comm_group E] [topological_space E] [topological_add_group E]
-  [module 𝕜 E] [has_continuous_smul 𝕜 E] (f : E →L[𝕜] 𝕜) (hf : f ≠ 0) :
-  is_open_map f :=
-begin
-  refine is_open_map.of_nhds_le (λ a, _),
-  obtain ⟨x₀, hx₀⟩ := continuous_linear_map.exists_ne_zero hf,
-  let g : 𝕜 → E := λ x, a + (x - f a) • (f x₀)⁻¹ • x₀,
-  have hg : continuous g, by continuity,
-  have hcomp : f ∘ g = id, by { ext, simp [hx₀] },
-  have hgfa : g (f a) = a, by simp [hx₀],
-  exact nhds_le_map_nhds hg.continuous_at hcomp hgfa,
-end
-
-variables [normed_group E] [normed_space ℝ E]
-
-lemma seminorm.exists_extension (f : linear_pmap ℝ E ℝ) (p : seminorm ℝ E)
-  (hf : ∀ x : f.domain, f x ≤ p x) :
-  ∃ g : E →ₗ[ℝ] ℝ, (∀ x : f.domain, g x = f x) ∧ ∀ x, g x ≤ p x :=
-exists_extension_of_le_sublinear f p (λ c hc x, by rw [p.smul, real.norm_of_nonneg hc.le])
-  p.triangle hf
 
 /-- Given a set `s` which is a convex neighbourhood of `0` and a point `x₀` outside of it, there is
 a continuous linear functional `f` separating `x₀` and `s`, in the sense that it sends `x₀` to 1 and
@@ -220,9 +162,6 @@ begin
   rintro _ ⟨_, _, rfl⟩,
   exact hf₂ _ ‹_›,
 end
-
-open filter
-open_locale topological_space
 
 /-- A version of the Hahn-Banach theorem: given disjoint convex sets `s`, `t` where `s` is compact
 and `t` is closed, there is a continuous linear functional which strongly separates them. -/

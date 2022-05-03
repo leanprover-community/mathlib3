@@ -597,11 +597,15 @@ end
       apply ((result (P2 _ _ _) ox₂ (ox₁.move_right jx₁) oy).2
         (lt_of_le_of_lt h.2 (lt_move_right jx₁))).1 } },
 
-  refine (λ h, ⟨λ iy, _, λ jy, _⟩);
+  -- Deduce numeric games from inductive hypothesis.
+  have HN₁ := result (P1 x₁ y) ox₁ oy,
+  have HN₂ := result (P1 x₂ y) ox₂ oy,
+
+  intro h;
   rcases lt_def_le.1 h with ⟨ix₂, h⟩ | ⟨j, h⟩;
   cases lt_or_equiv_of_le h with h h,
-  {
-
+  { have H₁ := (result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) oy).2 h,
+    have H₂ := HN₂.left_lt_right,
   }
 end
 using_well_founded { dec_tac := sorry }

@@ -65,18 +65,19 @@ in more details below in the paragraph on associativity.
 
 noncomputable theory
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
-{G : Type*} [normed_group G] [normed_space 𝕜 G]
-{H : Type*} [normed_group H] [normed_space 𝕜 H]
-
+variables {𝕜 : Type*} {E F G H : Type*}
 open filter list
 open_locale topological_space big_operators classical nnreal ennreal
 
 /-! ### Composing formal multilinear series -/
 
 namespace formal_multilinear_series
+
+variables [comm_ring 𝕜] [add_comm_group E] [add_comm_group F] [add_comm_group G]
+variables [module 𝕜 E] [module 𝕜 F] [module 𝕜 G]
+variables [topological_space E] [topological_add_group E] [has_continuous_const_smul 𝕜 E]
+variables [topological_space F] [topological_add_group F] [has_continuous_const_smul 𝕜 F]
+variables [topological_space G] [topological_add_group G] [has_continuous_const_smul 𝕜 G]
 
 /-!
 In this paragraph, we define the composition of formal multilinear series, by summing over all
@@ -163,6 +164,12 @@ end
 by simp [apply_composition]
 
 end formal_multilinear_series
+
+variables [nondiscrete_normed_field 𝕜]
+  [normed_group E] [normed_space 𝕜 E]
+  [normed_group F] [normed_space 𝕜 F]
+  [normed_group G] [normed_space 𝕜 G]
+  [normed_group H] [normed_space 𝕜 H]
 
 namespace continuous_multilinear_map
 open formal_multilinear_series

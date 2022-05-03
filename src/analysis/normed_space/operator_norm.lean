@@ -26,13 +26,12 @@ noncomputable theory
 open_locale classical nnreal topological_space
 
 -- the `ₗ` subscript variables are for special cases about linear (as opposed to semilinear) maps
-variables {𝕜 : Type*} {𝕜₂ : Type*} {𝕜₃ : Type*} {E : Type*} {F : Type*} {Fₗ : Type*} {G : Type*}
-  {Gₗ : Type*}
+variables {𝕜 𝕜₂ 𝕜₃ E Eₗ F Fₗ G Gₗ : Type*}
 
 section semi_normed
 
-variables [semi_normed_group E] [semi_normed_group F] [semi_normed_group Fₗ] [semi_normed_group G]
-  [semi_normed_group Gₗ]
+variables [semi_normed_group E] [semi_normed_group Eₗ] [semi_normed_group F] [semi_normed_group Fₗ]
+variables [semi_normed_group G] [semi_normed_group Gₗ]
 
 open metric continuous_linear_map
 
@@ -126,7 +125,7 @@ rfl
 end normed_field
 
 variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
-  [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜 Fₗ]
+  [normed_space 𝕜 E] [normed_space 𝕜 Eₗ] [normed_space 𝕜₂ F] [normed_space 𝕜 Fₗ]
   [normed_space 𝕜₃ G] [normed_space 𝕜 Gₗ]
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
   [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
@@ -307,6 +306,9 @@ begin
     (div_le_iff hlt).mpr $ by { apply hc })),
 end
 
+theorem dist_le_op_norm (x y : E) : dist (f x) (f y) ≤ ∥f∥ * dist x y :=
+by simp_rw [dist_eq_norm, ← map_sub, f.le_op_norm]
+
 theorem le_op_norm_of_le {c : ℝ} {x} (h : ∥x∥ ≤ c) : ∥f x∥ ≤ ∥f∥ * c :=
 le_trans (f.le_op_norm x) (mul_le_mul_of_nonneg_left h f.op_norm_nonneg)
 
@@ -443,6 +445,9 @@ instance to_normed_algebra : normed_algebra 𝕜 (E →L[𝕜] E) :=
   .. continuous_linear_map.algebra }
 
 theorem le_op_nnnorm : ∥f x∥₊ ≤ ∥f∥₊ * ∥x∥₊ := f.le_op_norm x
+
+theorem nndist_le_op_nnnorm (x y : E) : nndist (f x) (f y) ≤ ∥f∥₊ * nndist x y :=
+dist_le_op_norm f x y
 
 /-- continuous linear maps are Lipschitz continuous. -/
 theorem lipschitz : lipschitz_with ∥f∥₊ f :=
@@ -731,6 +736,16 @@ def compL : (Fₗ →L[𝕜] Gₗ) →L[𝕜] (E →L[𝕜] Fₗ) →L[𝕜] (E 
 
 @[simp] lemma compL_apply (f : Fₗ →L[𝕜] Gₗ) (g : E →L[𝕜] Fₗ) : compL 𝕜 E Fₗ Gₗ f g = f.comp g := rfl
 
+variables (Eₗ) {𝕜 E Fₗ Gₗ}
+/-- Apply `L(x,-)` pointwise to bilinear maps, as a continuous bilinear map -/
+@[simps apply]
+def precompR (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : E →L[𝕜] (Eₗ →L[𝕜] Fₗ) →L[𝕜] (Eₗ →L[𝕜] Gₗ) :=
+(compL 𝕜 Eₗ Fₗ Gₗ).comp L
+
+/-- Apply `L(-,y)` pointwise to bilinear maps, as a continuous bilinear map -/
+def precompL (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : (Eₗ →L[𝕜] E) →L[𝕜] Fₗ →L[𝕜] (Eₗ →L[𝕜] Gₗ) :=
+(precompR Eₗ (flip L)).flip
+
 section prod
 
 universes u₁ u₂ u₃ u₄
@@ -739,6 +754,7 @@ variables (M₁ : Type u₁) [semi_normed_group M₁] [normed_space 𝕜 M₁]
           (M₃ : Type u₃) [semi_normed_group M₃] [normed_space 𝕜 M₃]
           (M₄ : Type u₄) [semi_normed_group M₄] [normed_space 𝕜 M₄]
 
+variables {Eₗ} (𝕜)
 /-- `continuous_linear_map.prod_map` as a continuous linear map. -/
 def prod_mapL : ((M₁ →L[𝕜] M₂) × (M₃ →L[𝕜] M₄)) →L[𝕜] ((M₁ × M₃) →L[𝕜] (M₂ × M₄)) :=
 continuous_linear_map.copy
@@ -1129,7 +1145,7 @@ f.bilinear_comp (fst _ _ _) (snd _ _ _) + f.flip.bilinear_comp (snd _ _ _) (fst 
 @[simp] lemma coe_deriv₂ (f : E →L[𝕜] Fₗ →L[𝕜] Gₗ) (p : E × Fₗ) :
   ⇑(f.deriv₂ p) = λ q : E × Fₗ, f p.1 q.2 + f q.1 p.2 := rfl
 
-lemma map_add₂ (f : E →L[𝕜] Fₗ →L[𝕜] Gₗ) (x x' : E) (y y' : Fₗ) :
+lemma map_add_add (f : E →L[𝕜] Fₗ →L[𝕜] Gₗ) (x x' : E) (y y' : Fₗ) :
   f (x + x') (y + y') = f x y + f.deriv₂ (x, y) (x', y') + f x' y' :=
 by simp only [map_add, add_apply, coe_deriv₂, add_assoc]
 

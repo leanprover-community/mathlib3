@@ -3,9 +3,9 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
-import algebra.group.hom_instances
-import topology.uniform_space.completion
+import algebra.hom.group_instances
 import topology.algebra.uniform_group
+import topology.uniform_space.completion
 
 /-!
 # Completion of topological groups:
@@ -85,7 +85,7 @@ instance : add_monoid (completion α) :=
 instance : sub_neg_monoid (completion α) :=
 { sub_eq_add_neg := λ a b, completion.induction_on₂ a b
     (is_closed_eq (continuous_map₂ continuous_fst continuous_snd)
-      (continuous_map₂ continuous_fst (continuous_map.comp continuous_snd)))
+      (continuous_map₂ continuous_fst (completion.continuous_map.comp continuous_snd)))
    (λ a b, by exact_mod_cast congr_arg coe (sub_eq_add_neg a b)),
   .. completion.add_monoid, .. completion.has_neg, .. completion.has_sub }
 

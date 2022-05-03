@@ -115,6 +115,12 @@ alias nat.sq_sub_sq ← nat.pow_two_sub_pow_two
 
 /-! ### `pow` and `mod` / `dvd` -/
 
+theorem pow_mod (a b n : ℕ) : a ^ b % n = (a % n) ^ b % n :=
+begin
+  induction b with b ih,
+  refl, simp [pow_succ, nat.mul_mod, ih],
+end
+
 theorem mod_pow_succ {b : ℕ} (w m : ℕ) :
   m % (b^succ w) = b * (m/b % b^w) + m % b :=
 begin
@@ -256,12 +262,11 @@ begin
   cases b, {exact absurd rfl h},
   have : shiftl' tt m n + 1 = 1 := congr_arg (+1) s0,
   rw [shiftl'_tt_eq_mul_pow] at this,
-  have m0 := succ.inj (eq_one_of_dvd_one ⟨_, this.symm⟩),
-  subst m0,
-  simp at this,
-  have : n = 0 := nat.eq_zero_of_le_zero (le_of_not_gt $ λ hn,
+  obtain rfl := succ.inj (eq_one_of_dvd_one ⟨_, this.symm⟩),
+  rw one_mul at this,
+  obtain rfl : n = 0 := nat.eq_zero_of_le_zero (le_of_not_gt $ λ hn,
     ne_of_gt (pow_lt_pow_of_lt_right dec_trivial hn) this),
-  subst n, refl
+  refl
 end
 
 @[simp] theorem size_shiftl {m} (h : m ≠ 0) (n) :
@@ -307,7 +312,7 @@ by have := @size_pos n; simp [pos_iff_ne_zero] at this;
 theorem size_pow {n : ℕ} : size (2^n) = n+1 :=
 le_antisymm
   (size_le.2 $ pow_lt_pow_of_lt_right dec_trivial (lt_succ_self _))
-  (lt_size.2 $ le_refl _)
+  (lt_size.2 $ le_rfl)
 
 theorem size_le_size {m n : ℕ} (h : m ≤ n) : size m ≤ size n :=
 size_le.2 $ lt_of_le_of_lt h (lt_size_self _)

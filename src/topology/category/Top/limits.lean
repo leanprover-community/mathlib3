@@ -56,8 +56,8 @@ def limit_cone_infi (F : J ⥤ Top.{u}) : cone F :=
   π :=
   { app := λ j, ⟨(types.limit_cone (F ⋙ forget)).π.app j,
                  continuous_iff_le_induced.mpr (infi_le _ _)⟩,
-    naturality' := λ j j' f,
-                   continuous_map.coe_inj ((types.limit_cone (F ⋙ forget)).π.naturality f) } }
+    naturality' := λ j j' f, continuous_map.coe_injective
+      ((types.limit_cone (F ⋙ forget)).π.naturality f) } }
 
 /--
 The chosen cone `Top.limit_cone F` for a functor `F : J ⥤ Top` is a limit cone.
@@ -100,8 +100,8 @@ def colimit_cocone (F : J ⥤ Top.{u}) : cocone F :=
   ι :=
   { app := λ j, ⟨(types.colimit_cocone (F ⋙ forget)).ι.app j,
                  continuous_iff_coinduced_le.mpr (le_supr _ j)⟩,
-    naturality' := λ j j' f,
-                   continuous_map.coe_inj ((types.colimit_cocone (F ⋙ forget)).ι.naturality f) } }
+    naturality' := λ j j' f, continuous_map.coe_injective
+      ((types.colimit_cocone (F ⋙ forget)).ι.naturality f) } }
 
 /--
 The chosen cocone `Top.colimit_cocone F` for a functor `F : J ⥤ Top` is a colimit cocone.
@@ -823,7 +823,7 @@ The theorem is specialized to nonempty finite types (which are compact Hausdorff
 discrete topology) in `nonempty_sections_of_fintype_cofiltered_system` and
 `nonempty_sections_of_fintype_inverse_system`.
 
-(See https://stacks.math.columbia.edu/tag/086J for the Set version.)
+(See <https://stacks.math.columbia.edu/tag/086J> for the Set version.)
 -/
 
 variables {J : Type u} [small_category J]

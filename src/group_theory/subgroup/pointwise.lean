@@ -93,6 +93,24 @@ subset_set_smul_iff
 @[simps] def equiv_smul (a : α) (H : subgroup G) : H ≃* (a • H : subgroup G) :=
 (mul_distrib_mul_action.to_mul_equiv G a).subgroup_map H
 
+lemma subgroup_mul_singleton {H : subgroup G} {h : G} (hh : h ∈ H) :
+  (H : set G) * {h} = H :=
+begin
+  refine le_antisymm _ (λ h' hh',
+    ⟨h' * h⁻¹, h, H.mul_mem hh' (H.inv_mem hh), rfl, inv_mul_cancel_right h' h⟩),
+  rintros _ ⟨h', h, hh', rfl : _ = _, rfl⟩,
+  exact H.mul_mem hh' hh,
+end
+
+lemma singleton_mul_subgroup {H : subgroup G} {h : G} (hh : h ∈ H) :
+  {h} * (H : set G) = H :=
+begin
+  refine le_antisymm _ (λ h' hh', ⟨h, h⁻¹ * h', rfl, H.mul_mem (H.inv_mem hh) hh',
+    mul_inv_cancel_left h h'⟩),
+  rintros _ ⟨h, h', rfl : _ = _, hh', rfl⟩,
+  exact H.mul_mem hh hh',
+end
+
 end group
 
 section group_with_zero

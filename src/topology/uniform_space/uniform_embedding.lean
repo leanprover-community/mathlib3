@@ -90,6 +90,49 @@ by simp only [uniform_embedding_def, uniform_continuous_def]; exact
  λ ⟨I, H₁, H₂⟩, ⟨I, λ s, ⟨H₂ s,
    λ ⟨t, tu, h⟩, mem_of_superset (H₁ t tu) (λ ⟨a, b⟩, h a b)⟩⟩⟩
 
+lemma equiv.uniform_embedding {α β : Type*} [uniform_space α] [uniform_space β] (f : α ≃ β)
+  (h₁ : uniform_continuous f) (h₂ : uniform_continuous f.symm) : uniform_embedding f :=
+{ comap_uniformity :=
+  begin
+    refine le_antisymm _ _,
+    { change comap (f.prod_congr f) _ ≤ _,
+      rw ← map_equiv_symm (f.prod_congr f),
+      exact h₂ },
+    { rw ← map_le_iff_le_comap,
+      exact h₁ }
+  end,
+  inj := f.injective }
+
+theorem uniform_embedding_inl : uniform_embedding (sum.inl : α → α ⊕ β) :=
+begin
+  apply uniform_embedding_def.2 ⟨sum.inl_injective, λ s, ⟨_, _⟩⟩,
+  { assume hs,
+    refine ⟨(λ p : α × α, (sum.inl p.1, sum.inl p.2)) '' s ∪
+      (λ p : β × β, (sum.inr p.1, sum.inr p.2)) '' univ, _, _⟩,
+    { exact union_mem_uniformity_sum hs univ_mem },
+    { simp } },
+  { rintros ⟨t, ht, h't⟩,
+    simp only [sum.uniformity, mem_sup, mem_map] at ht,
+    apply filter.mem_of_superset ht.1,
+    rintros ⟨x, y⟩ hx,
+    exact h't _ _ hx }
+end
+
+theorem uniform_embedding_inr : uniform_embedding (sum.inr : β → α ⊕ β) :=
+begin
+  apply uniform_embedding_def.2 ⟨sum.inr_injective, λ s, ⟨_, _⟩⟩,
+  { assume hs,
+    refine ⟨(λ p : α × α, (sum.inl p.1, sum.inl p.2)) '' univ ∪
+      (λ p : β × β, (sum.inr p.1, sum.inr p.2)) '' s, _, _⟩,
+    { exact union_mem_uniformity_sum univ_mem hs },
+    { simp } },
+  { rintros ⟨t, ht, h't⟩,
+    simp only [sum.uniformity, mem_sup, mem_map] at ht,
+    apply filter.mem_of_superset ht.2,
+    rintros ⟨x, y⟩ hx,
+    exact h't _ _ hx }
+end
+
 /-- If the domain of a `uniform_inducing` map `f` is a `separated_space`, then `f` is injective,
 hence it is a `uniform_embedding`. -/
 protected theorem uniform_inducing.uniform_embedding [separated_space α] {f : α → β}
@@ -355,12 +398,39 @@ lemma totally_bounded_preimage {f : α → β} {s : set β} (hf : uniform_embedd
   exact ⟨y, zc, ts (by exact zt)⟩
 end
 
+instance complete_space.sum [complete_space α] [complete_space β] :
+  complete_space (α ⊕ β) :=
+begin
+  rw complete_space_iff_is_complete_univ,
+  have A : is_complete (range (sum.inl : α → α ⊕ β)) :=
+    uniform_embedding_inl.to_uniform_inducing.is_complete_range,
+  have B : is_complete (range (sum.inr : β → α ⊕ β)) :=
+    uniform_embedding_inr.to_uniform_inducing.is_complete_range,
+  convert A.union B,
+  apply (eq_univ_of_forall (λ x, _)).symm,
+  cases x,
+  { left, exact mem_range_self _ },
+  { right, exact mem_range_self _ }
+end
+
 end
 
 lemma uniform_embedding_comap {α : Type*} {β : Type*} {f : α → β} [u : uniform_space β]
   (hf : function.injective f) : @uniform_embedding α β (uniform_space.comap f u) u f :=
 @uniform_embedding.mk _ _ (uniform_space.comap f u) _ _
   (@uniform_inducing.mk _ _ (uniform_space.comap f u) _ _ rfl) hf
+
+/-- Pull back a uniform space structure by an embedding, adjusting the new uniform structure to
+make sure that its topology is defeq to the original one. -/
+def embedding.comap_uniform_space {α β} [topological_space α] [u : uniform_space β] (f : α → β)
+  (h : embedding f) : uniform_space α :=
+(u.comap f).replace_topology h.induced
+
+lemma embedding.to_uniform_embedding {α β} [topological_space α] [u : uniform_space β] (f : α → β)
+  (h : embedding f) :
+  @uniform_embedding α β (h.comap_uniform_space f) u f :=
+{ comap_uniformity := rfl,
+  inj := h.inj }
 
 section uniform_extension
 
@@ -455,9 +525,9 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
     from calc _ ⊆ preimage (λp:(β×β), (e p.1, e p.2)) (interior t) : preimage_mono hm
     ... ⊆ preimage (λp:(β×β), (e p.1, e p.2)) t : preimage_mono interior_subset
     ... ⊆ preimage (λp:(β×β), (f p.1, f p.2)) s : ts,
-  have f '' (e ⁻¹' m₁) ×ˢ f '' (e ⁻¹' m₂) ⊆ s,
+  have (f '' (e ⁻¹' m₁)) ×ˢ (f '' (e ⁻¹' m₂)) ⊆ s,
     from calc (f '' (e ⁻¹' m₁)) ×ˢ (f '' (e ⁻¹' m₂)) =
-      (λp:(β×β), (f p.1, f p.2)) '' (e ⁻¹' m₁ ×ˢ e ⁻¹' m₂) : prod_image_image_eq
+      (λp:(β×β), (f p.1, f p.2)) '' ((e ⁻¹' m₁) ×ˢ (e ⁻¹' m₂)) : prod_image_image_eq
     ... ⊆ (λp:(β×β), (f p.1, f p.2)) '' ((λp:(β×β), (f p.1, f p.2)) ⁻¹' s) : monotone_image this
     ... ⊆ s : image_preimage_subset _ _,
   have (a, b) ∈ s, from @this (a, b) ⟨ha₁, hb₁⟩,

@@ -5,7 +5,7 @@ Authors: Johan Commelin, Bhavik Mehta
 -/
 import category_theory.structured_arrow
 import category_theory.punit
-import category_theory.reflects_isomorphisms
+import category_theory.functor.reflects_isomorphisms
 import category_theory.epi_mono
 
 /-!
@@ -31,7 +31,7 @@ variables {T : Type u₁} [category.{v₁} T]
 The over category has as objects arrows in `T` with codomain `X` and as morphisms commutative
 triangles.
 
-See https://stacks.math.columbia.edu/tag/001G.
+See <https://stacks.math.columbia.edu/tag/001G>.
 -/
 @[derive category]
 def over (X : T) := costructured_arrow (𝟭 T) X
@@ -96,7 +96,7 @@ variable (X)
 /--
 The forgetful functor mapping an arrow to its domain.
 
-See https://stacks.math.columbia.edu/tag/001G.
+See <https://stacks.math.columbia.edu/tag/001G>.
 -/
 def forget : over X ⥤ T := comma.fst _ _
 
@@ -105,10 +105,14 @@ end
 @[simp] lemma forget_obj {U : over X} : (forget X).obj U = U.left := rfl
 @[simp] lemma forget_map {U V : over X} {f : U ⟶ V} : (forget X).map f = f.left := rfl
 
+/-- The natural cocone over the forgetful functor `over X ⥤ T` with cocone point `X`. -/
+@[simps] def forget_cocone (X : T) : limits.cocone (forget X) :=
+{ X := X, ι := { app := comma.hom } }
+
 /--
 A morphism `f : X ⟶ Y` induces a functor `over X ⥤ over Y` in the obvious way.
 
-See https://stacks.math.columbia.edu/tag/001G.
+See <https://stacks.math.columbia.edu/tag/001G>.
 -/
 def map {Y : T} (f : X ⟶ Y) : over X ⥤ over Y := comma.map_right _ $ discrete.nat_trans (λ _, f)
 
@@ -289,6 +293,10 @@ end
 
 @[simp] lemma forget_obj {U : under X} : (forget X).obj U = U.right := rfl
 @[simp] lemma forget_map {U V : under X} {f : U ⟶ V} : (forget X).map f = f.right := rfl
+
+/-- The natural cone over the forgetful functor `under X ⥤ T` with cone point `X`. -/
+@[simps] def forget_cone (X : T) : limits.cone (forget X) :=
+{ X := X, π := { app := comma.hom } }
 
 /-- A morphism `X ⟶ Y` induces a functor `under Y ⥤ under X` in the obvious way. -/
 def map {Y : T} (f : X ⟶ Y) : under Y ⥤ under X := comma.map_left _ $ discrete.nat_trans (λ _, f)

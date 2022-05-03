@@ -12,6 +12,7 @@ import ring_theory.ideal.quotient
 -/
 
 open submodule
+open_locale polynomial
 
 variables {R : Type*} [ring R]
 variables {M : Type*} [add_comm_group M] [module R M] (U U₁ U₂ : submodule R M)
@@ -67,7 +68,7 @@ theorem comap {f : M →ₗ[R] N} (hxy : f x ≡ f y [SMOD V]) : x ≡ y [SMOD V
 from (f.map_sub x y).symm ▸ (submodule.quotient.eq _).1 hxy
 
 lemma eval {R : Type*} [comm_ring R] {I : ideal R} {x y : R} (h : x ≡ y [SMOD I])
-  (f : polynomial R) : f.eval x ≡ f.eval y [SMOD I] :=
+  (f : R[X]) : f.eval x ≡ f.eval y [SMOD I] :=
 begin
   rw [smodeq.def] at h ⊢,
   show ideal.quotient.mk I (f.eval x) = ideal.quotient.mk I (f.eval y),

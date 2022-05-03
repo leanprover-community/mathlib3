@@ -1066,12 +1066,12 @@ def iso_restrict {X Y : LocallyRingedSpace} {f : X ⟶ Y}
   (H : LocallyRingedSpace.is_open_immersion f) : X ≅ Y.restrict H.base_open :=
 begin
   apply LocallyRingedSpace.iso_of_SheafedSpace_iso,
-  apply @preimage_iso _ _ _ _ SheafedSpace.forget_to_PresheafedSpace,
+  refine SheafedSpace.forget_to_PresheafedSpace.preimage_iso _,
   exact H.iso_restrict
 end
 
 /-- To show that a locally ringed space is a scheme, it suffices to show that it has a jointly
-sujective family of open immersions from affine schemes. -/
+surjective family of open immersions from affine schemes. -/
 protected def Scheme (X : LocallyRingedSpace)
   (h : ∀ (x : X), ∃ (R : CommRing) (f : Spec.to_LocallyRingedSpace.obj (op R) ⟶ X),
     (x ∈ set.range f.1.base : _) ∧ LocallyRingedSpace.is_open_immersion f) : Scheme :=
@@ -1082,7 +1082,7 @@ protected def Scheme (X : LocallyRingedSpace)
     obtain ⟨R, f, h₁, h₂⟩ := h x,
     refine ⟨⟨⟨_, h₂.base_open.open_range⟩, h₁⟩, R, ⟨_⟩⟩,
     apply LocallyRingedSpace.iso_of_SheafedSpace_iso,
-    apply @preimage_iso _ _ _ _ SheafedSpace.forget_to_PresheafedSpace,
+    refine SheafedSpace.forget_to_PresheafedSpace.preimage_iso _,
     resetI,
     apply PresheafedSpace.is_open_immersion.iso_of_range_eq (PresheafedSpace.of_restrict _ _) f.1,
     { exact subtype.range_coe_subtype },
@@ -1149,6 +1149,7 @@ instance : inhabited X.open_cover := ⟨X.affine_cover⟩
 
 /-- Given an open cover `{ Uᵢ }` of `X`, and for each `Uᵢ` an open cover, we may combine these
 open covers to form an open cover of `X`.  -/
+@[simps J obj map]
 def open_cover.bind (f : Π (x : 𝒰.J), open_cover (𝒰.obj x)) : open_cover X :=
 { J := Σ (i : 𝒰.J), (f i).J,
   obj := λ x, (f x.1).obj x.2,
@@ -1164,6 +1165,46 @@ def open_cover.bind (f : Π (x : 𝒰.J), open_cover (𝒰.obj x)) : open_cover 
     erw comp_apply,
     rw [hz, hy],
   end }
+
+/-- An isomorphism `X ⟶ Y` is an open cover of `Y`. -/
+@[simps J obj map]
+def open_cover_of_is_iso {X Y : Scheme.{u}} (f : X ⟶ Y) [is_iso f] :
+  open_cover Y :=
+{ J := punit.{v+1},
+  obj := λ _, X,
+  map := λ _, f,
+  f := λ _, punit.star,
+  covers := λ x, by { rw set.range_iff_surjective.mpr, { trivial }, rw ← Top.epi_iff_surjective,
+    apply_instance } }
+
+/-- We construct an open cover from another, by providing the needed fields and showing that the
+provided fields are isomorphic with the original open cover. -/
+@[simps J obj map]
+def open_cover.copy {X : Scheme} (𝒰 : open_cover X)
+  (J : Type*) (obj : J → Scheme) (map : ∀ i, obj i ⟶ X)
+  (e₁ : J ≃ 𝒰.J) (e₂ : ∀ i, obj i ≅ 𝒰.obj (e₁ i))
+  (e₂ : ∀ i, map i = (e₂ i).hom ≫ 𝒰.map (e₁ i)) : open_cover X :=
+{ J := J,
+  obj := obj,
+  map := map,
+  f := λ x, e₁.symm (𝒰.f x),
+  covers := λ x, begin
+    rw [e₂, Scheme.comp_val_base, coe_comp, set.range_comp, set.range_iff_surjective.mpr,
+      set.image_univ,  e₁.right_inverse_symm],
+    { exact 𝒰.covers x },
+    { rw ← Top.epi_iff_surjective, apply_instance }
+  end,
+  is_open := λ i, by { rw e₂, apply_instance } }
+
+/-- The pushforward of an open cover along an isomorphism. -/
+@[simps J obj map]
+def open_cover.pushforward_iso {X Y : Scheme} (𝒰 : open_cover X)
+  (f : X ⟶ Y) [is_iso f] :
+  open_cover Y :=
+((open_cover_of_is_iso f).bind (λ _, 𝒰)).copy 𝒰.J _ _
+  ((equiv.punit_prod _).symm.trans (equiv.sigma_equiv_prod punit 𝒰.J).symm)
+  (λ _, iso.refl _)
+  (λ _, (category.id_comp _).symm)
 
 -- Related result : `open_cover.pullback_cover`, where we pullback an open cover on `X` along a
 -- morphism `W ⟶ X`. This is provided at the end of the file since it needs some more results

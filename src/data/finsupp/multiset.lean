@@ -31,7 +31,7 @@ def to_multiset : (α →₀ ℕ) ≃+ multiset α :=
         mem_support_iff, multiset.count_nsmul, finset.sum_ite_eq, ite_not, ite_eq_right_iff],
       exact eq.symm },
   right_inv := λ s, by simp only [sum, coe_mk, multiset.to_finset_sum_count_nsmul_eq],
-  map_add' := λ f g, sum_add_index (λ a, zero_nsmul _) (λ a, add_nsmul _) }
+  map_add' := λ f g, sum_add_index' (λ a, zero_nsmul _) (λ a, add_nsmul _) }
 
 lemma to_multiset_zero : (0 : α →₀ ℕ).to_multiset = 0 := rfl
 
@@ -77,11 +77,9 @@ begin
   refine f.induction _ _,
   { rw [to_multiset_zero, multiset.prod_zero, finsupp.prod_zero_index] },
   { assume a n f _ _ ih,
-    rw [to_multiset_add, multiset.prod_add, ih, to_multiset_single, finsupp.prod_add_index,
-      finsupp.prod_single_index, multiset.prod_nsmul, multiset.prod_singleton],
-    { exact pow_zero a },
-    { exact pow_zero },
-    { exact pow_add } }
+    rw [to_multiset_add, multiset.prod_add, ih, to_multiset_single, multiset.prod_nsmul,
+      finsupp.prod_add_index' pow_zero pow_add, finsupp.prod_single_index, multiset.prod_singleton],
+    { exact pow_zero a } }
 end
 
 @[simp] lemma to_finset_to_multiset [decidable_eq α] (f : α →₀ ℕ) :

@@ -60,16 +60,16 @@ else (has_deriv_at_log hx).deriv
 
 @[simp] lemma deriv_log' : deriv log = has_inv.inv := funext deriv_log
 
-lemma times_cont_diff_on_log {n : with_top ℕ} : times_cont_diff_on ℝ n log {0}ᶜ :=
+lemma cont_diff_on_log {n : with_top ℕ} : cont_diff_on ℝ n log {0}ᶜ :=
 begin
-  suffices : times_cont_diff_on ℝ ⊤ log {0}ᶜ, from this.of_le le_top,
-  refine (times_cont_diff_on_top_iff_deriv_of_open is_open_compl_singleton).2 _,
-  simp [differentiable_on_log, times_cont_diff_on_inv]
+  suffices : cont_diff_on ℝ ⊤ log {0}ᶜ, from this.of_le le_top,
+  refine (cont_diff_on_top_iff_deriv_of_open is_open_compl_singleton).2 _,
+  simp [differentiable_on_log, cont_diff_on_inv]
 end
 
-lemma times_cont_diff_at_log {n : with_top ℕ} : times_cont_diff_at ℝ n log x ↔ x ≠ 0 :=
+lemma cont_diff_at_log {n : with_top ℕ} : cont_diff_at ℝ n log x ↔ x ≠ 0 :=
 ⟨λ h, continuous_at_log_iff.1 h.continuous_at,
-  λ hx, (times_cont_diff_on_log x hx).times_cont_diff_at $
+  λ hx, (cont_diff_on_log x hx).cont_diff_at $
     is_open.mem_nhds is_open_compl_singleton hx⟩
 
 end real
@@ -138,21 +138,21 @@ lemma differentiable_within_at.log (hf : differentiable_within_at ℝ f s x) (hx
   differentiable_at ℝ (λx, log (f x)) x :=
 (hf.has_fderiv_at.log hx).differentiable_at
 
-lemma times_cont_diff_at.log {n} (hf : times_cont_diff_at ℝ n f x) (hx : f x ≠ 0) :
-  times_cont_diff_at ℝ n (λ x, log (f x)) x :=
-(times_cont_diff_at_log.2 hx).comp x hf
+lemma cont_diff_at.log {n} (hf : cont_diff_at ℝ n f x) (hx : f x ≠ 0) :
+  cont_diff_at ℝ n (λ x, log (f x)) x :=
+(cont_diff_at_log.2 hx).comp x hf
 
-lemma times_cont_diff_within_at.log {n} (hf : times_cont_diff_within_at ℝ n f s x) (hx : f x ≠ 0) :
-  times_cont_diff_within_at ℝ n (λ x, log (f x)) s x :=
-(times_cont_diff_at_log.2 hx).comp_times_cont_diff_within_at x hf
+lemma cont_diff_within_at.log {n} (hf : cont_diff_within_at ℝ n f s x) (hx : f x ≠ 0) :
+  cont_diff_within_at ℝ n (λ x, log (f x)) s x :=
+(cont_diff_at_log.2 hx).comp_cont_diff_within_at x hf
 
-lemma times_cont_diff_on.log {n} (hf : times_cont_diff_on ℝ n f s) (hs : ∀ x ∈ s, f x ≠ 0) :
-  times_cont_diff_on ℝ n (λ x, log (f x)) s :=
+lemma cont_diff_on.log {n} (hf : cont_diff_on ℝ n f s) (hs : ∀ x ∈ s, f x ≠ 0) :
+  cont_diff_on ℝ n (λ x, log (f x)) s :=
 λ x hx, (hf x hx).log (hs x hx)
 
-lemma times_cont_diff.log {n} (hf : times_cont_diff ℝ n f) (h : ∀ x, f x ≠ 0) :
-  times_cont_diff ℝ n (λ x, log (f x)) :=
-times_cont_diff_iff_times_cont_diff_at.2 $ λ x, hf.times_cont_diff_at.log (h x)
+lemma cont_diff.log {n} (hf : cont_diff ℝ n f) (h : ∀ x, f x ≠ 0) :
+  cont_diff ℝ n (λ x, log (f x)) :=
+cont_diff_iff_cont_diff_at.2 $ λ x, hf.cont_diff_at.log (h x)
 
 lemma differentiable_on.log (hf : differentiable_on ℝ f s) (hx : ∀ x ∈ s, f x ≠ 0) :
   differentiable_on ℝ (λx, log (f x)) s :=
@@ -186,7 +186,7 @@ begin
       (((has_deriv_at_id (0 : ℝ)).const_mul t).const_add 1).log (by simp) },
   have h₂ : tendsto (λ x : ℝ, x⁻¹) at_top (𝓝[≠] 0) :=
     tendsto_inv_at_top_zero'.mono_right (nhds_within_mono _ (λ x hx, (set.mem_Ioi.mp hx).ne')),
-  simpa only [(∘), inv_inv₀] using h₁.comp h₂
+  simpa only [(∘), inv_inv] using h₁.comp h₂
 end
 
 open_locale big_operators

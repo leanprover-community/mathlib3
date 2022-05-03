@@ -46,6 +46,7 @@ namespace module
 namespace End
 
 open module principal_ideal_ring polynomial finite_dimensional
+open_locale polynomial
 
 variables {K R : Type v} {V M : Type w}
   [comm_ring R] [add_comm_group M] [module R M] [field K] [add_comm_group V] [module K V]
@@ -114,7 +115,7 @@ calc
   ... = (b • f - algebra_map K (End K V) a).ker : by rw [smul_sub, smul_inv_smul₀ hb]
 
 lemma eigenspace_aeval_polynomial_degree_1
-  (f : End K V) (q : polynomial K) (hq : degree q = 1) :
+  (f : End K V) (q : K[X]) (hq : degree q = 1) :
   eigenspace f (- q.coeff 0 / q.leading_coeff) = (aeval f q).ker :=
 calc
   eigenspace f (- q.coeff 0 / q.leading_coeff)
@@ -126,8 +127,8 @@ calc
      : by { congr, apply (eq_X_add_C_of_degree_eq_one hq).symm }
 
 lemma ker_aeval_ring_hom'_unit_polynomial
-  (f : End K V) (c : (polynomial K)ˣ) :
-  (aeval f (c : polynomial K)).ker = ⊥ :=
+  (f : End K V) (c : (K[X])ˣ) :
+  (aeval f (c : K[X])).ker = ⊥ :=
 begin
   rw polynomial.eq_C_of_degree_eq_zero (degree_coe_units c),
   simp only [aeval_def, eval₂_C],
@@ -136,7 +137,7 @@ begin
 end
 
 theorem aeval_apply_of_has_eigenvector {f : End K V}
-  {p : polynomial K} {μ : K} {x : V} (h : f.has_eigenvector μ x) :
+  {p : K[X]} {μ : K} {x : V} (h : f.has_eigenvector μ x) :
   aeval f p x = (p.eval μ) • x :=
 begin
   apply p.induction_on,
@@ -144,7 +145,8 @@ begin
   { intros p q hp hq, simp [hp, hq, add_smul] },
   { intros n a hna,
     rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_apply, mul_comm, hna],
-    simp [algebra_map_End_apply, mem_eigenspace_iff.1 h.1, smul_smul, mul_comm] }
+    simp only [mem_eigenspace_iff.1 h.1, smul_smul, aeval_X, eval_mul, eval_C, eval_pow, eval_X,
+      linear_map.map_smulₛₗ, ring_hom.id_apply, mul_comm] }
 end
 
 section minpoly
@@ -247,11 +249,9 @@ begin
       (λ μ, (μ - μ₀) • @linear_map.id K (f.eigenspace μ) _ _ _) l,
     -- The support of `l'` is the support of `l` without `μ₀`.
     have h_l_support' : l'.support = l_support',
-    { have : l_support' = finset.erase l.support μ₀,
-      { rw [h_l_support, finset.erase_insert hμ₀] },
-      rw this,
+    { rw [← finset.erase_insert hμ₀, ← h_l_support],
       ext a,
-      have : ¬(a = μ₀ ∨ l a = 0) ↔ ¬a = μ₀ ∧ ¬l a = 0 := by tauto,
+      have : ¬(a = μ₀ ∨ l a = 0) ↔ ¬a = μ₀ ∧ ¬l a = 0 := not_or_distrib,
       simp only [l', dfinsupp.map_range.linear_map_apply, dfinsupp.map_range_apply,
         dfinsupp.mem_support_iff, finset.mem_erase, id.def, linear_map.id_coe,
         linear_map.smul_apply, ne.def, smul_eq_zero, sub_eq_zero, this] },
@@ -266,7 +266,7 @@ begin
       ... = g (dfinsupp.lsum ℕ (λ μ, (linear_map.id : V →ₗ[K] V)) a) : _
       ... = g (S l) : _
       ... = 0 : by rw [hl, g.map_zero],
-      { rw dfinsupp.sum_map_range_index.linear_map },
+      { exact dfinsupp.sum_map_range_index.linear_map },
       { congr,
         ext μ v,
         simp only [g, eq_self_iff_true, function.comp_app, id.def, linear_map.coe_comp,
@@ -296,24 +296,21 @@ begin
     { rw ←finset.sum_const_zero,
       apply finset.sum_congr rfl,
       intros μ hμ,
-      norm_cast,
-      rw h_lμ_eq_0,
-      intro h,
-      rw h at hμ,
-      contradiction },
+      rw [submodule.coe_eq_zero, h_lμ_eq_0],
+      rintro rfl,
+      exact hμ₀ hμ },
     -- The only potentially nonzero eigenspace-representative in `l` is the one corresponding to
     -- `μ₀`. But since the overall sum is `0` by assumption, this representative must also be `0`.
     have : l μ₀ = 0,
     { simp only [S, dfinsupp.lsum_apply_apply, dfinsupp.sum_add_hom_apply,
         linear_map.to_add_monoid_hom_coe, dfinsupp.sum, h_l_support, submodule.subtype_apply,
         submodule.coe_eq_zero, finset.sum_insert hμ₀, h_sum_l_support'_eq_0, add_zero] at hl,
-      exact_mod_cast hl },
+      exact hl },
     -- Thus, all coefficients in `l` are `0`.
     show l = 0,
     { ext μ,
       by_cases h_cases : μ = μ₀,
-      { rw h_cases,
-        exact_mod_cast this },
+      { rwa [h_cases, set_like.coe_eq_coe, dfinsupp.coe_zero, pi.zero_apply] },
       exact congr_arg (coe : _ → V) (h_lμ_eq_0 μ h_cases) }}
 end
 
@@ -579,8 +576,7 @@ begin
     -- It follows that `ER` is contained in the span of all generalized eigenvectors.
     have hER : ER ≤ ⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k,
     { rw ← ih_ER',
-      apply supr_le_supr _,
-      exact λ μ, supr_le_supr (λ k, hff' μ k), },
+      exact supr₂_mono hff' },
     -- `ES` is contained in this span by definition.
     have hES : ES ≤ ⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k,
       from le_trans

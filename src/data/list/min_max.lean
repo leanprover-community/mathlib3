@@ -38,7 +38,7 @@ def argmin (f : α → β) (l : list α) :=
 @argmax _ (order_dual β) _ f l
 
 @[simp] lemma argmax_two_self (f : α → β) (a : α) : argmax₂ f (some a) a = a :=
-if_pos (le_refl _)
+if_pos le_rfl
 
 @[simp] lemma argmax_nil (f : α → β) : argmax f [] = none := rfl
 

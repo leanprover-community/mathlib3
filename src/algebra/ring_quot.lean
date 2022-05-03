@@ -232,7 +232,7 @@ def ring_quot_to_ideal_quotient (r : B → B → Prop) :
   ring_quot r →+* B ⧸ ideal.of_rel r :=
 lift
   ⟨ideal.quotient.mk (ideal.of_rel r),
-   λ x y h, quot.sound (submodule.mem_Inf.mpr (λ p w, w ⟨x, y, h, sub_add_cancel x y⟩))⟩
+    λ x y h, ideal.quotient.eq.2 $ submodule.mem_Inf.mpr (λ p w, w ⟨x, y, h, sub_add_cancel x y⟩)⟩
 
 @[simp] lemma ring_quot_to_ideal_quotient_apply (r : B → B → Prop) (x : B) :
   ring_quot_to_ideal_quotient r (mk_ring_hom r x) = ideal.quotient.mk _ x := rfl

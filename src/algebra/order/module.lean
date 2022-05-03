@@ -3,13 +3,11 @@ Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis, Yaël Dillies
 -/
-
 import algebra.module.pi
 import algebra.module.prod
-import algebra.order.field
 import algebra.order.pi
 import algebra.order.smul
-import algebra.pointwise
+import data.set.pointwise
 
 /-!
 # Ordered module

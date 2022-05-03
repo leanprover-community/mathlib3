@@ -84,6 +84,9 @@ subtype.linear_order _
 
 @[simp] theorem pos (n : ℕ+) : 0 < (n : ℕ) := n.2
 
+-- see note [fact non_instances]
+lemma fact_pos (n : ℕ+) : fact (0 < ↑n) := ⟨n.pos⟩
+
 theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
 
 @[simp] lemma coe_inj {m n : ℕ+} : (m : ℕ) = n ↔ m = n := set_coe.ext_iff
@@ -109,6 +112,10 @@ coe_injective.add_left_cancel_semigroup coe (λ _ _, rfl)
 instance : add_right_cancel_semigroup ℕ+ :=
 coe_injective.add_right_cancel_semigroup coe (λ _ _, rfl)
 
+@[priority 10]
+instance : covariant_class ℕ+ ℕ+ ((+)) (≤) :=
+⟨by { rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, simp [←pnat.coe_le_coe] }⟩
+
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := n.2.ne'
 
 theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
@@ -117,8 +124,9 @@ theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_e
 
 instance : has_mul ℕ+ := ⟨λ m n, ⟨m.1 * n.1, mul_pos m.2 n.2⟩⟩
 instance : has_one ℕ+ := ⟨succ_pnat 0⟩
+instance : has_pow ℕ+ ℕ := ⟨λ x n, ⟨x ^ n, pow_pos x.2 n⟩⟩
 
-instance : comm_monoid ℕ+ := coe_injective.comm_monoid coe rfl (λ _ _, rfl)
+instance : comm_monoid ℕ+ := coe_injective.comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 theorem lt_add_one_iff : ∀ {a b : ℕ+}, a < b + 1 ↔ a ≤ b :=
 λ a b, nat.lt_add_one_iff
@@ -127,6 +135,8 @@ theorem add_one_le_iff : ∀ {a b : ℕ+}, a + 1 ≤ b ↔ a < b :=
 λ a b, nat.add_one_le_iff
 
 @[simp] lemma one_le (n : ℕ+) : (1 : ℕ+) ≤ n := n.2
+
+@[simp] lemma not_lt_one (n : ℕ+) : ¬ n < 1 := not_lt_of_le n.one_le
 
 instance : order_bot ℕ+ :=
 { bot := 1,
@@ -172,13 +182,29 @@ def coe_monoid_hom : ℕ+ →* ℕ :=
 lemma coe_eq_one_iff {m : ℕ+} :
 (m : ℕ) = 1 ↔ m = 1 := by { split; intro h; try { apply pnat.eq}; rw h; simp }
 
+@[simp] lemma le_one_iff {n : ℕ+} :
+  n ≤ 1 ↔ n = 1 :=
+begin
+  rcases n with ⟨_|n, hn⟩,
+  { exact absurd hn (lt_irrefl _) },
+  { simp [←pnat.coe_le_coe, subtype.ext_iff, nat.succ_le_succ_iff, nat.succ_inj'], }
+end
+
+lemma lt_add_left (n m : ℕ+) : n < m + n :=
+begin
+  rcases m with ⟨_|m, hm⟩,
+  { exact absurd hm (lt_irrefl _) },
+  { simp [←pnat.coe_lt_coe] }
+end
+
+lemma lt_add_right (n m : ℕ+) : n < n + m :=
+(lt_add_left n m).trans_le (add_comm _ _).le
 
 @[simp] lemma coe_bit0 (a : ℕ+) : ((bit0 a : ℕ+) : ℕ) = bit0 (a : ℕ) := rfl
 @[simp] lemma coe_bit1 (a : ℕ+) : ((bit1 a : ℕ+) : ℕ) = bit1 (a : ℕ) := rfl
 
 @[simp] theorem pow_coe (m : ℕ+) (n : ℕ) : ((m ^ n : ℕ+) : ℕ) = (m : ℕ) ^ n :=
-by induction n with n ih;
- [refl, rw [pow_succ', pow_succ, mul_coe, mul_comm, ih]]
+rfl
 
 instance : ordered_cancel_comm_monoid ℕ+ :=
 { mul_le_mul_left := by { intros, apply nat.mul_le_mul_left, assumption },
@@ -198,11 +224,10 @@ instance : has_sub ℕ+ := ⟨λ a b, to_pnat' (a - b : ℕ)⟩
 
 theorem sub_coe (a b : ℕ+) : ((a - b : ℕ+) : ℕ) = ite (b < a) (a - b : ℕ) 1 :=
 begin
-  change ((to_pnat' ((a : ℕ) - (b :  ℕ)) : ℕ)) =
-    ite ((a : ℕ) > (b : ℕ)) ((a : ℕ) - (b : ℕ)) 1,
+  change (to_pnat' _ : ℕ) = ite _ _ _,
   split_ifs with h,
   { exact to_pnat'_coe (tsub_pos_of_lt h) },
-  { rw [tsub_eq_zero_iff_le.mpr (le_of_not_gt h)], refl }
+  { rw tsub_eq_zero_iff_le.mpr (le_of_not_gt h : (a : ℕ) ≤ b), refl }
 end
 
 theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=

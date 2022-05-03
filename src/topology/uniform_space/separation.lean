@@ -194,7 +194,7 @@ instance separated_regular [separated_space α] : regular_space α :=
     begin
       rw [←closure_prod_eq, closure_eq_inter_uniformity],
       change (⨅d' ∈ 𝓤 α, _) ≤ comp_rel d (comp_rel _ d),
-      exact (infi_le_of_le d $ infi_le_of_le hd $ le_refl _)
+      exact (infi_le_of_le d $ infi_le_of_le hd $ le_rfl)
     end,
     have e_subset : closure e ⊆ sᶜ,
       from assume a' ha',
@@ -373,7 +373,7 @@ rfl
 
 lemma uniform_continuous_quotient_mk :
   uniform_continuous (quotient.mk : α → quotient (separation_setoid α)) :=
-le_refl _
+le_rfl
 
 lemma uniform_continuous_quotient {f : quotient (separation_setoid α) → β}
   (hf : uniform_continuous (λx, f ⟦x⟧)) : uniform_continuous f :=
@@ -444,11 +444,10 @@ lemma _root_.is_separated.eq_of_uniform_continuous {f : α → β} {x y : α} {s
 def separation_quotient (α : Type*) [uniform_space α] := quotient (separation_setoid α)
 
 namespace separation_quotient
-instance : uniform_space (separation_quotient α) := by dunfold separation_quotient ; apply_instance
-instance : separated_space (separation_quotient α) :=
-  by dunfold separation_quotient ; apply_instance
+instance : uniform_space (separation_quotient α) := separation_setoid.uniform_space
+instance : separated_space (separation_quotient α) := uniform_space.separated_separation
 instance [inhabited α] : inhabited (separation_quotient α) :=
-by unfold separation_quotient; apply_instance
+quotient.inhabited (separation_setoid α)
 
 /-- Factoring functions to a separated space through the separation quotient. -/
 def lift [separated_space β] (f : α → β) : (separation_quotient α → β) :=

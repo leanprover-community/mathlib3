@@ -26,8 +26,8 @@ types used for indexing.
  * `linear_map.to_matrix`: given bases `v₁ : ι → M₁` and `v₂ : κ → M₂`,
    the `R`-linear equivalence from `M₁ →ₗ[R] M₂` to `matrix κ ι R`
  * `matrix.to_lin`: the inverse of `linear_map.to_matrix`
- * `linear_map.to_matrix'`: the `R`-linear equivalence from `(n → R) →ₗ[R] (m → R)`
-   to `matrix n m R` (with the standard basis on `n → R` and `m → R`)
+ * `linear_map.to_matrix'`: the `R`-linear equivalence from `(m → R) →ₗ[R] (n → R)`
+   to `matrix m n R` (with the standard basis on `m → R` and `n → R`)
  * `matrix.to_lin'`: the inverse of `linear_map.to_matrix'`
  * `alg_equiv_matrix`: given a basis indexed by `n`, the `R`-algebra equivalence between
    `R`-endomorphisms of `M` and `matrix n n R`

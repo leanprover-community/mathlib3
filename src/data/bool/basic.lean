@@ -138,6 +138,11 @@ theorem eq_tt_of_bnot_eq_ff : ∀ {a : bool}, bnot a = ff → a = tt := dec_triv
 
 theorem eq_ff_of_bnot_eq_tt : ∀ {a : bool}, bnot a = tt → a = ff := dec_trivial
 
+@[simp] lemma band_bnot_self : ∀ x, x && !x = ff := dec_trivial
+@[simp] lemma bnot_band_self : ∀ x, !x && x = ff := dec_trivial
+@[simp] lemma bor_bnot_self : ∀ x, x || !x = tt := dec_trivial
+@[simp] lemma bnot_bor_self : ∀ x, !x || x = tt := dec_trivial
+
 theorem bxor_comm : ∀ a b, bxor a b = bxor b a := dec_trivial
 @[simp] theorem bxor_assoc : ∀ a b c, bxor (bxor a b) c = bxor a (bxor b c) := dec_trivial
 theorem bxor_left_comm : ∀ a b c, bxor a (bxor b c) = bxor b (bxor a c) := dec_trivial

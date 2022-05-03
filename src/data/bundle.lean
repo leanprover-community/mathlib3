@@ -33,7 +33,7 @@ instance [inhabited B] [inhabited (E default)] :
   inhabited (total_space E) := ⟨⟨default, default⟩⟩
 
 /-- `bundle.proj E` is the canonical projection `total_space E → B` on the base space. -/
-@[simp] def proj : total_space E → B := sigma.fst
+@[simp, reducible] def proj : total_space E → B := sigma.fst
 
 /-- Constructor for the total space of a `topological_fiber_bundle_core`. -/
 @[simp, reducible] def total_space_mk (E : B → Type*) (b : B) (a : E b) :
@@ -44,6 +44,9 @@ instance {x : B} : has_coe_t (E x) (total_space E) := ⟨sigma.mk x⟩
 @[simp] lemma coe_fst (x : B) (v : E x) : (v : total_space E).fst = x := rfl
 
 lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = ⟨x, v⟩ := rfl
+
+-- notation for the direct sum of two bundles over the same base
+notation E₁ `×ᵇ`:100 E₂ := λ x, E₁ x × E₂ x
 
 /-- `bundle.trivial B F` is the trivial bundle over `B` of fiber `F`. -/
 def trivial (B : Type*) (F : Type*) : B → Type* := function.const B F

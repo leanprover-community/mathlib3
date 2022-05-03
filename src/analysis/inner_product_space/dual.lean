@@ -5,7 +5,7 @@ Authors: Frédéric Dupuis
 -/
 import analysis.inner_product_space.projection
 import analysis.normed_space.dual
-import analysis.normed_space.star
+import analysis.normed_space.star.basic
 
 /-!
 # The Fréchet-Riesz representation theorem
@@ -18,6 +18,11 @@ Under the hypothesis of completeness (i.e., for Hilbert spaces), we upgrade this
 conjugate-linear isometric *equivalence* of `E` onto its dual; that is, we establish the
 surjectivity of `to_dual_map`.  This is the Fréchet-Riesz representation theorem: every element of
 the dual of a Hilbert space `E` has the form `λ u, ⟪x, u⟫` for some `x : E`.
+
+For a bounded sesquilinear form `B : E →L⋆[𝕜] E →L[𝕜] 𝕜`,
+we define a map `inner_product_space.continuous_linear_map_of_bilin B : E →L[𝕜] E`,
+given by substituting `E →L[𝕜] 𝕜` with `E` using `to_dual`.
+
 
 ## References
 
@@ -163,6 +168,34 @@ variables {𝕜} {E}
 begin
   rw ← to_dual_apply,
   simp only [linear_isometry_equiv.apply_symm_apply],
+end
+
+variables {E 𝕜}
+
+/--
+Maps a bounded sesquilinear form to its continuous linear map,
+given by interpreting the form as a map `B : E →L⋆[𝕜] normed_space.dual 𝕜 E`
+and dualizing the result using `to_dual`.
+-/
+def continuous_linear_map_of_bilin (B : E →L⋆[𝕜] E →L[𝕜] 𝕜) : E →L[𝕜] E :=
+comp (to_dual 𝕜 E).symm.to_continuous_linear_equiv.to_continuous_linear_map B
+
+local postfix `♯`:1025 := continuous_linear_map_of_bilin
+
+variables (B : E →L⋆[𝕜] E →L[𝕜] 𝕜)
+
+@[simp]
+lemma continuous_linear_map_of_bilin_apply (v w : E) : ⟪(B♯ v), w⟫ = B v w :=
+by simp [continuous_linear_map_of_bilin]
+
+lemma unique_continuous_linear_map_of_bilin {v f : E}
+  (is_lax_milgram : (∀ w, ⟪f, w⟫ = B v w)) :
+  f = B♯ v :=
+begin
+  refine ext_inner_right 𝕜 _,
+  intro w,
+  rw continuous_linear_map_of_bilin_apply,
+  exact is_lax_milgram w,
 end
 
 end inner_product_space

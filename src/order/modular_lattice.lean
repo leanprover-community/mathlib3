@@ -68,11 +68,11 @@ le_antisymm hxy $
   have h : y ≤ x ⊔ z,
     from calc y ≤ y ⊔ z : le_sup_left
       ... ≤ x ⊔ z : hsup,
-  calc y ≤ (x ⊔ z) ⊓ y : le_inf h (le_refl _)
+  calc y ≤ (x ⊔ z) ⊓ y : le_inf h le_rfl
     ... = x ⊔ (z ⊓ y) : sup_inf_assoc_of_le _ hxy
     ... ≤ x ⊔ (z ⊓ x) : sup_le_sup_left
       (by rw [inf_comm, @inf_comm _ _ z]; exact hinf) _
-    ... ≤ x : sup_le (le_refl _) inf_le_right
+    ... ≤ x : sup_le le_rfl inf_le_right
 
 theorem sup_lt_sup_of_lt_of_inf_le_inf (hxy : x < y) (hinf : y ⊓ z ≤ x ⊓ z) : x ⊔ z < y ⊔ z :=
 lt_of_le_of_ne
@@ -86,7 +86,7 @@ theorem inf_lt_inf_of_lt_of_sup_le_sup (hxy : x < y) (hinf : y ⊔ z ≤ x ⊔ z
 /-- A generalization of the theorem that if `N` is a submodule of `M` and
   `N` and `M / N` are both Artinian, then `M` is Artinian. -/
 theorem well_founded_lt_exact_sequence
-  {β γ : Type*} [partial_order β] [partial_order γ]
+  {β γ : Type*} [partial_order β] [preorder γ]
   (h₁ : well_founded ((<) : β → β → Prop))
   (h₂ : well_founded ((<) : γ → γ → Prop))
   (K : α) (f₁ : β → α) (f₂ : α → β) (g₁ : γ → α) (g₂ : α → γ)
@@ -110,7 +110,7 @@ subrelation.wf
 /-- A generalization of the theorem that if `N` is a submodule of `M` and
   `N` and `M / N` are both Noetherian, then `M` is Noetherian.  -/
 theorem well_founded_gt_exact_sequence
-  {β γ : Type*} [partial_order β] [partial_order γ]
+  {β γ : Type*} [preorder β] [partial_order γ]
   (h₁ : well_founded ((>) : β → β → Prop))
   (h₂ : well_founded ((>) : γ → γ → Prop))
   (K : α) (f₁ : β → α) (f₂ : α → β) (g₁ : γ → α) (g₂ : α → γ)
@@ -165,7 +165,7 @@ instance [distrib_lattice α] : is_modular_lattice α :=
 end distrib_lattice
 
 theorem disjoint.disjoint_sup_right_of_disjoint_sup_left
-  [lattice α] [bounded_order α] [is_modular_lattice α] {a b c : α}
+  [lattice α] [order_bot α] [is_modular_lattice α] {a b c : α}
   (h : disjoint a b) (hsup : disjoint (a ⊔ b) c) :
   disjoint a (b ⊔ c) :=
 begin
@@ -176,7 +176,7 @@ begin
 end
 
 theorem disjoint.disjoint_sup_left_of_disjoint_sup_right
-  [lattice α] [bounded_order α] [is_modular_lattice α] {a b c : α}
+  [lattice α] [order_bot α] [is_modular_lattice α] {a b c : α}
   (h : disjoint b c) (hsup : disjoint a (b ⊔ c)) :
   disjoint (a ⊔ b) c :=
 begin

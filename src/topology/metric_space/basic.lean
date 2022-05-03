@@ -1532,12 +1532,8 @@ subset.antisymm
 
 lemma dense_iff {s : set α} :
   dense s ↔ ∀ x, ∀ r > 0, (ball x r ∩ s).nonempty :=
-begin
-  apply forall_congr (λ x, _),
-  rw mem_closure_iff,
-  refine forall_congr (λ ε, forall_congr (λ h, exists_congr (λ y, _))),
-  rw [mem_inter_iff, mem_ball', exists_prop, and_comm]
-end
+forall_congr $ λ x, by simp only [mem_closure_iff, set.nonempty, exists_prop, mem_inter_eq,
+  mem_ball', and_comm]
 
 lemma dense_range_iff {f : β → α} :
   dense_range f ↔ ∀ x, ∀ r > 0, ∃ y, dist x (f y) < r :=

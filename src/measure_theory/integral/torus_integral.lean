@@ -21,7 +21,7 @@ We also define a predicate saying that `f ∘ torus_map c R` is integrable on th
 ## Main definitions
 
 * `torus_map c R`: the generalized multidimensional exponential map from `ℝⁿ` to `ℂⁿ` that sends
-  $θ=(θ_0,…,θ_{n-1})$ to $z=(z_0,…,z_{n-1})$, where as $z_k= c_k + R_ke^{θ_k i}$;
+  $θ=(θ_0,…,θ_{n-1})$ to $z=(z_0,…,z_{n-1})$, where $z_k= c_k + R_ke^{θ_k i}$;
 
 * `torus_integrable f c R`: a function `f : ℂⁿ → E` is integrable over the generalized torus
   with center `c : ℂⁿ` and radius `R : ℝⁿ` if `f ∘ torus_map c R` is integrable on the
@@ -77,7 +77,7 @@ local notation `ℂⁿ⁺¹`:= fin (n + 1) → ℂ
 a torus in `ℂⁿ` with center `c ∈ ℂⁿ` and generalized radius `R ∈ ℝⁿ`, so we can adjust
 it to every n axis. -/
 def torus_map (c : ℂⁿ) (R : ℝⁿ) : ℝⁿ → ℂⁿ :=
-  λ θ i, c i + R i * exp(θ i * I)
+λ θ i, c i + R i * exp(θ i * I)
 
 lemma torus_map_sub_center (c : ℂⁿ) (R : ℝⁿ) (θ : ℝⁿ) :
   torus_map c R θ - c = torus_map 0 R θ :=
@@ -128,7 +128,7 @@ begin
   apply torus_integrable_const (f c) c 0,
 end
 
-/--The function given in the definition of `torus_integral` is integrable-/
+/--The function given in the definition of `torus_integral` is integrable. -/
 lemma function_integrable [normed_space ℂ E] (hf : torus_integrable f c R) :
   integrable_on (λ (θ : ℝⁿ), (∏ i, R i * exp(θ i * I) * I : ℂ) • f (torus_map c R θ))
                 (Icc (0 : ℝⁿ) (λ _, 2 * π)) volume :=

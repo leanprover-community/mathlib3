@@ -682,7 +682,7 @@ let ⟨a, e⟩ := typein_surj r h in
 by clear _let_match; subst e; rw enum_typein
 
 /-- The equivalence between ordinals less than `o` and `o.out.α`. -/
-@[simps] def out_equiv_lt (o : ordinal) : {o' : ordinal // o' < o} ≃ o.out.α :=
+@[simps] noncomputable def out_equiv_lt (o : ordinal) : {o' : ordinal // o' < o} ≃ o.out.α :=
 { to_fun := λ ⟨o', h⟩, enum (<) o' (by rwa type_lt),
   inv_fun := λ x, ⟨typein (<) x, typein_lt_self x⟩,
   left_inv := λ ⟨o', h⟩, subtype.ext_val (typein_enum _ _),

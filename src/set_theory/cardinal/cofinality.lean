@@ -345,8 +345,7 @@ bsup_lt_ord_lift (by rwa (o.card).lift_id)
     (mk_eq_zero_iff.1 (e.trans z)).elim' ⟨_, h⟩⟩,
 λ e, by simp [e]⟩
 
-theorem cof_ne_zero {o} : cof o ≠ 0 ↔ o ≠ 0 :=
-by simp only [ne.def, cof_eq_zero]
+theorem cof_ne_zero {o} : cof o ≠ 0 ↔ o ≠ 0 := cof_eq_zero.not
 
 @[simp] theorem cof_succ (o) : cof (succ o) = 1 :=
 begin

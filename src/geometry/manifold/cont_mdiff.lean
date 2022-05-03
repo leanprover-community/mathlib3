@@ -1903,7 +1903,7 @@ variables {V : Type*} [normed_group V] [normed_space 𝕜 V]
 
 /-- On any vector space, multiplication by a scalar is a smooth operation. -/
 lemma smooth_smul : smooth (𝓘(𝕜).prod 𝓘(𝕜, V)) 𝓘(𝕜, V) (λp : 𝕜 × V, p.1 • p.2) :=
-smooth_iff.2 ⟨continuous_smul, λ x y, cont_diff_smul.cont_diff_on⟩
+smooth_iff.2 ⟨continuous_smul, λ x y, (@cont_diff_smul 𝕜 _ _ _ _ _).cont_diff_on⟩
 
 lemma smooth.smul {N : Type*} [topological_space N] [charted_space H N]
   {f : N → 𝕜} {g : N → V} (hf : smooth I 𝓘(𝕜) f) (hg : smooth I 𝓘(𝕜, V) g) :

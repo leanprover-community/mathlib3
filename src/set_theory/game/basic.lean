@@ -48,12 +48,8 @@ open pgame
 
 namespace game
 
-/-- The relation `x ≤ y` on games. -/
-def le : game → game → Prop :=
-quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx hy))
-
 instance : has_le game :=
-{ le := le }
+⟨quotient.lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx hy))⟩
 
 -- Adding `@[refl]` and `@[trans]` attributes here would override the ones on
 -- `preorder.le_refl` and `preorder.le_trans`, which breaks all non-`game` uses of `≤`!
@@ -66,83 +62,46 @@ by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, apply pgame.le_trans }
 theorem le_antisymm : ∀ x y : game, x ≤ y → y ≤ x → x = y :=
 by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ }
 
-/-- The relation `x < y` on games. -/
--- We don't yet make this into an instance, because it will conflict with the (incorrect) notion
--- of `<` provided by `partial_order` later.
-def lt : game → game → Prop :=
-quotient.lift₂ (λ x y, x < y) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx hy))
+/-- This instance is incompatible with that provided by `game.partial_order`, which is why it's made
+into a `def` instead. -/
+instance : has_lt game :=
+⟨quotient.lift₂ (λ x y, x < y) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx hy))⟩
 
-theorem not_le : ∀ {x y : game}, ¬ (x ≤ y) ↔ (lt y x) :=
+@[simp] theorem not_le : ∀ {x y : game}, ¬ x ≤ y ↔ y < x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact not_le }
+
+@[simp] theorem not_lt : ∀ {x y : game}, ¬ x < y ↔ y ≤ x :=
+by { rintro ⟨x⟩ ⟨y⟩, exact not_lt }
 
 instance : has_zero game := ⟨⟦0⟧⟩
 instance : inhabited game := ⟨0⟩
 instance : has_one game := ⟨⟦1⟧⟩
 
 /-- The negation of `{L | R}` is `{-R | -L}`. -/
-def neg : game → game :=
-quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound (@neg_congr x y h))
-
 instance : has_neg game :=
-{ neg := neg }
+⟨quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound (@neg_congr x y h))⟩
 
 /-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
-def add : game → game → game :=
-quotient.lift₂ (λ x y : pgame, ⟦x + y⟧) (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy))
-
-instance : has_add game := ⟨add⟩
-
-theorem add_assoc : ∀ (x y z : game), (x + y) + z = x + (y + z) :=
-begin
-  rintros ⟨x⟩ ⟨y⟩ ⟨z⟩,
-  apply quot.sound,
-  exact add_assoc_equiv
-end
+instance : has_add game :=
+⟨quotient.lift₂ (λ x y : pgame, ⟦x + y⟧) (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy))⟩
 
 instance : add_semigroup game.{u} :=
-{ add_assoc := add_assoc,
+{ add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quot.sound add_assoc_equiv },
   ..game.has_add }
 
-theorem add_zero : ∀ (x : game), x + 0 = x :=
-begin
-  rintro ⟨x⟩,
-  apply quot.sound,
-  apply add_zero_equiv
-end
-theorem zero_add : ∀ (x : game), 0 + x = x :=
-begin
-  rintro ⟨x⟩,
-  apply quot.sound,
-  apply zero_add_equiv
-end
-
 instance : add_monoid game :=
-{ add_zero := add_zero,
-  zero_add := zero_add,
+{ add_zero := by { rintro ⟨x⟩, exact quot.sound (add_zero_equiv x) },
+  zero_add := by { rintro ⟨x⟩, exact quot.sound (zero_add_equiv x) },
   ..game.has_zero,
   ..game.add_semigroup }
 
-theorem add_left_neg : ∀ (x : game), (-x) + x = 0 :=
-begin
-  rintro ⟨x⟩,
-  apply quot.sound,
-  apply add_left_neg_equiv
-end
-
 instance : add_group game :=
-{ add_left_neg := add_left_neg,
+{ add_left_neg := by { rintro ⟨x⟩, exact quot.sound (add_left_neg_equiv x) },
   ..game.has_neg,
   ..game.add_monoid }
 
-theorem add_comm : ∀ (x y : game), x + y = y + x :=
-begin
-  rintros ⟨x⟩ ⟨y⟩,
-  apply quot.sound,
-  exact add_comm_equiv
-end
-
 instance : add_comm_semigroup game :=
-{ add_comm := add_comm,
+{ add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact quot.sound add_comm_equiv },
   ..game.add_semigroup }
 
 instance : add_comm_group game :=
@@ -150,10 +109,16 @@ instance : add_comm_group game :=
   ..game.add_group }
 
 instance covariant_class_add_le : covariant_class game game (+) (≤) :=
-⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a end⟩
+⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a }⟩
 
 instance covariant_class_swap_add_le : covariant_class game game (swap (+)) (≤) :=
-⟨begin rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_right _ _ _ _ b c h a end⟩
+⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_right _ _ _ _ b c h a }⟩
+
+instance covariant_class_add_lt : covariant_class game game (+) (<) :=
+⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_lt_add_left _ _ _ _ b c h a }⟩
+
+instance covariant_class_swap_add_lt : covariant_class game game (swap (+)) (<) :=
+⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_lt_add_right _ _ _ _ b c h a }⟩
 
 -- While it is very tempting to define a `partial_order` on games, and prove
 -- that games form an `ordered_add_comm_group`, it is a bit dangerous.
@@ -168,17 +133,17 @@ instance covariant_class_swap_add_le : covariant_class game game (swap (+)) (≤
 -- but do not actually mark them as instances, for safety.
 
 /-- The `<` operation provided by this partial order is not the usual `<` on games! -/
-def game_partial_order : partial_order game :=
+def partial_order : partial_order game :=
 { le_refl := le_refl,
   le_trans := le_trans,
   le_antisymm := le_antisymm,
   ..game.has_le }
 
 /-- The `<` operation provided by this `ordered_add_comm_group` is not the usual `<` on games! -/
-def ordered_add_comm_group_game : ordered_add_comm_group game :=
+def ordered_add_comm_group : ordered_add_comm_group game :=
 { add_le_add_left := @add_le_add_left _ _ _ game.covariant_class_add_le,
   ..game.add_comm_group,
-  ..game_partial_order }
+  ..game.partial_order }
 
 end game
 
@@ -207,8 +172,8 @@ Hence we define them here. -/
 
 /-- The product of `x = {xL | xR}` and `y = {yL | yR}` is
 `{xL*y + x*yL - xL*yL, xR*y + x*yR - xR*yR | xL*y + x*yR - xL*yR, x*yL + xR*y - xR*yL }`. -/
-def mul (x y : pgame) : pgame :=
-begin
+instance : has_mul pgame.{u} :=
+⟨λ x y, begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
   induction y with yl yr yL yR IHyl IHyr,
   have y := mk yl yr yL yR,
@@ -217,9 +182,7 @@ begin
   { exact IHxr i y + IHyr j - IHxr i (yR j) },
   { exact IHxl i y + IHyr j - IHxl i (yR j) },
   { exact IHxr i y + IHyl j - IHxr i (yL j) }
-end
-
-instance : has_mul pgame := ⟨mul⟩
+end⟩
 
 /-- An explicit description of the moves for Left in `x * y`. -/
 def left_moves_mul (x y : pgame) : (x * y).left_moves
@@ -607,10 +570,9 @@ end
 theorem inv'_one_equiv : inv' 1 ≈ 1 := inv'_one.equiv
 
 /-- The inverse of a pre-game in terms of the inverse on positive pre-games. -/
-noncomputable def inv (x : pgame) : pgame :=
-by { classical, exact if x ≈ 0 then 0 else if 0 < x then inv' x else inv' (-x) }
+noncomputable instance : has_inv pgame :=
+⟨by { classical, exact λ x, if x ≈ 0 then 0 else if 0 < x then inv' x else inv' (-x) }⟩
 
-noncomputable instance : has_inv pgame := ⟨inv⟩
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 
 theorem inv_eq_of_equiv_zero {x : pgame} (h : x ≈ 0) : x⁻¹ = 0 :=

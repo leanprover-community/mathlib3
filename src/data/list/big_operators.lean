@@ -202,9 +202,15 @@ begin
   { simpa only [prod_cons] using mul_le_mul' hab ih' }
 end
 
-@[to_additive sum_le_sum] lemma sublist.prod_le_prod' [preorder M]
-  [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
-  {l₁ l₂ : list M} (h : l₁ <+ l₂) (h₁ : ∀ a ∈ l₂, (1 : M) ≤ a) : l₁.prod ≤ l₂.prod :=
+/-- If `l₁` is a sublist of `l₂` and all elements of `l₂` are greater than or equal to one, then
+`l₁.prod ≤ l₂.prod`. One can prove a stronger version assuming `∀ a ∈ l₂.diff l₁, 1 ≤ a` instead
+of `∀ a ∈ l₂, 1 ≤ a` but this lemma is not yet in `mathlib`. -/
+@[to_additive sum_le_sum "If `l₁` is a sublist of `l₂` and all elements of `l₂` are nonnegative,
+then `l₁.sum ≤ l₂.sum`. One can prove a stronger version assuming `∀ a ∈ l₂.diff l₁, 0 ≤ a` instead
+of `∀ a ∈ l₂, 0 ≤ a` but this lemma is not yet in `mathlib`."]
+lemma sublist.prod_le_prod' [preorder M] [covariant_class M M (function.swap (*)) (≤)]
+  [covariant_class M M (*) (≤)] {l₁ l₂ : list M} (h : l₁ <+ l₂) (h₁ : ∀ a ∈ l₂, (1 : M) ≤ a) :
+  l₁.prod ≤ l₂.prod :=
 begin
   induction h, { refl },
   case cons : l₁ l₂ a ih ih'

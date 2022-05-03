@@ -59,8 +59,9 @@ by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, apply pgame.le_trans }
 theorem le_antisymm : ∀ x y : game, x ≤ y → y ≤ x → x = y :=
 by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ }
 
-instance : is_preorder game (≤) :=
+instance : is_partial_order game (≤) :=
 { refl := le_refl,
+  antisymm := le_antisymm,
   trans := le_trans }
 
 /-- This instance is incompatible with that provided by `game.partial_order`, which is why it's made

@@ -45,10 +45,7 @@ lemma zero : is_idempotent_elem (0 : M₀) := mul_zero _
 lemma one : is_idempotent_elem (1 : M₁) := mul_one _
 
 lemma one_sub {p : R} (h : is_idempotent_elem p) : is_idempotent_elem (1 - p) :=
-begin
-  rw is_idempotent_elem at h,
-  rw [is_idempotent_elem, mul_sub_left_distrib, mul_one, sub_mul, one_mul, h, sub_self, sub_zero],
-end
+by rw [is_idempotent_elem, mul_sub, mul_one, sub_mul, one_mul, h.eq, sub_self, sub_zero]
 
 @[simp] lemma one_sub_iff {p : R} : is_idempotent_elem (1 - p) ↔ is_idempotent_elem p :=
 ⟨ λ h, sub_sub_cancel 1 p ▸ h.one_sub, is_idempotent_elem.one_sub ⟩

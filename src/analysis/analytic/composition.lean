@@ -192,14 +192,6 @@ def comp_along_composition {n : ℕ}
 
 end continuous_multilinear_map
 
-end topological
-
-variables [nondiscrete_normed_field 𝕜]
-  [normed_group E] [normed_space 𝕜 E]
-  [normed_group F] [normed_space 𝕜 F]
-  [normed_group G] [normed_space 𝕜 G]
-  [normed_group H] [normed_space 𝕜 H]
-
 namespace formal_multilinear_series
 
 /-- Given two formal multilinear series `q` and `p` and a composition `c` of `n`, one may
@@ -215,45 +207,6 @@ def comp_along_composition {n : ℕ}
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (c : composition n) (v : fin n → E) :
   (q.comp_along_composition p c) v = q c.length (p.apply_composition c v) := rfl
-
-/-- The norm of `f.comp_along_composition p c` is controlled by the product of
-the norms of the relevant bits of `f` and `p`. -/
-lemma comp_along_composition_bound {n : ℕ}
-  (p : formal_multilinear_series 𝕜 E F) (c : composition n)
-  (f : continuous_multilinear_map 𝕜 (λ (i : fin c.length), F) G) (v : fin n → E) :
-  ∥f.comp_along_composition p c v∥ ≤
-    ∥f∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :=
-calc ∥f.comp_along_composition p c v∥ = ∥f (p.apply_composition c v)∥ : rfl
-... ≤ ∥f∥ * ∏ i, ∥p.apply_composition c v i∥ : continuous_multilinear_map.le_op_norm _ _
-... ≤ ∥f∥ * ∏ i, ∥p (c.blocks_fun i)∥ *
-        ∏ j : fin (c.blocks_fun i), ∥(v ∘ (c.embedding i)) j∥ :
-  begin
-    apply mul_le_mul_of_nonneg_left _ (norm_nonneg _),
-    refine finset.prod_le_prod (λ i hi, norm_nonneg _) (λ i hi, _),
-    apply continuous_multilinear_map.le_op_norm,
-  end
-... = ∥f∥ * (∏ i, ∥p (c.blocks_fun i)∥) *
-        ∏ i (j : fin (c.blocks_fun i)), ∥(v ∘ (c.embedding i)) j∥ :
-  by rw [finset.prod_mul_distrib, mul_assoc]
-... = ∥f∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :
-  by { rw [← c.blocks_fin_equiv.prod_comp, ← finset.univ_sigma_univ, finset.prod_sigma],
-       congr }
-
-/-- The norm of `q.comp_along_composition p c` is controlled by the product of
-the norms of the relevant bits of `q` and `p`. -/
-lemma comp_along_composition_norm {n : ℕ}
-  (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
-  (c : composition n) :
-  ∥q.comp_along_composition p c∥ ≤ ∥q c.length∥ * ∏ i, ∥p (c.blocks_fun i)∥ :=
-continuous_multilinear_map.op_norm_le_bound _
-  (mul_nonneg (norm_nonneg _) (finset.prod_nonneg (λ i hi, norm_nonneg _)))
-    (comp_along_composition_bound _ _ _)
-
-lemma comp_along_composition_nnnorm {n : ℕ}
-  (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
-  (c : composition n) :
-  nnnorm (q.comp_along_composition p c) ≤ nnnorm (q c.length) * ∏ i, nnnorm (p (c.blocks_fun i)) :=
-by { rw ← nnreal.coe_le_coe, push_cast, exact q.comp_along_composition_norm p c }
 
 /-- Formal composition of two formal multilinear series. The `n`-th coefficient in the composition
 is defined to be the sum of `q.comp_along_composition p c` over all compositions of
@@ -324,6 +277,57 @@ end
   (p : formal_multilinear_series 𝕜 E F) :
   q.comp p.remove_zero = q.comp p :=
 by { ext n, simp [formal_multilinear_series.comp] }
+
+end formal_multilinear_series
+
+end topological
+
+variables [nondiscrete_normed_field 𝕜]
+  [normed_group E] [normed_space 𝕜 E]
+  [normed_group F] [normed_space 𝕜 F]
+  [normed_group G] [normed_space 𝕜 G]
+  [normed_group H] [normed_space 𝕜 H]
+
+namespace formal_multilinear_series
+
+/-- The norm of `f.comp_along_composition p c` is controlled by the product of
+the norms of the relevant bits of `f` and `p`. -/
+lemma comp_along_composition_bound {n : ℕ}
+  (p : formal_multilinear_series 𝕜 E F) (c : composition n)
+  (f : continuous_multilinear_map 𝕜 (λ (i : fin c.length), F) G) (v : fin n → E) :
+  ∥f.comp_along_composition p c v∥ ≤
+    ∥f∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :=
+calc ∥f.comp_along_composition p c v∥ = ∥f (p.apply_composition c v)∥ : rfl
+... ≤ ∥f∥ * ∏ i, ∥p.apply_composition c v i∥ : continuous_multilinear_map.le_op_norm _ _
+... ≤ ∥f∥ * ∏ i, ∥p (c.blocks_fun i)∥ *
+        ∏ j : fin (c.blocks_fun i), ∥(v ∘ (c.embedding i)) j∥ :
+  begin
+    apply mul_le_mul_of_nonneg_left _ (norm_nonneg _),
+    refine finset.prod_le_prod (λ i hi, norm_nonneg _) (λ i hi, _),
+    apply continuous_multilinear_map.le_op_norm,
+  end
+... = ∥f∥ * (∏ i, ∥p (c.blocks_fun i)∥) *
+        ∏ i (j : fin (c.blocks_fun i)), ∥(v ∘ (c.embedding i)) j∥ :
+  by rw [finset.prod_mul_distrib, mul_assoc]
+... = ∥f∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :
+  by { rw [← c.blocks_fin_equiv.prod_comp, ← finset.univ_sigma_univ, finset.prod_sigma],
+       congr }
+
+/-- The norm of `q.comp_along_composition p c` is controlled by the product of
+the norms of the relevant bits of `q` and `p`. -/
+lemma comp_along_composition_norm {n : ℕ}
+  (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
+  (c : composition n) :
+  ∥q.comp_along_composition p c∥ ≤ ∥q c.length∥ * ∏ i, ∥p (c.blocks_fun i)∥ :=
+continuous_multilinear_map.op_norm_le_bound _
+  (mul_nonneg (norm_nonneg _) (finset.prod_nonneg (λ i hi, norm_nonneg _)))
+    (comp_along_composition_bound _ _ _)
+
+lemma comp_along_composition_nnnorm {n : ℕ}
+  (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
+  (c : composition n) :
+  nnnorm (q.comp_along_composition p c) ≤ nnnorm (q c.length) * ∏ i, nnnorm (p (c.blocks_fun i)) :=
+by { rw ← nnreal.coe_le_coe, push_cast, exact q.comp_along_composition_norm p c }
 
 /-!
 ### The identity formal power series

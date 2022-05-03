@@ -2157,4 +2157,12 @@ lemma has_pushouts_of_has_colimit_span
   has_pushouts C :=
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_span F) }
 
+/-- The duality equivalence `walking_spanᵒᵖ ≌ walking_cospan` -/
+def walking_span_op_equiv : walking_spanᵒᵖ ≌ walking_cospan :=
+wide_pushout_shape_op_equiv _
+
+/-- The duality equivalence `walking_cospanᵒᵖ ≌ walking_span` -/
+def walking_cospan_op_equiv : walking_cospanᵒᵖ ≌ walking_span :=
+wide_pullback_shape_op_equiv _
+
 end category_theory.limits

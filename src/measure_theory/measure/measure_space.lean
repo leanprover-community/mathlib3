@@ -2106,6 +2106,10 @@ instance restrict.is_finite_measure (μ : measure α) [hs : fact (μ s < ∞)] :
 lemma measure_lt_top (μ : measure α) [is_finite_measure μ] (s : set α) : μ s < ∞ :=
 (measure_mono (subset_univ s)).trans_lt is_finite_measure.measure_univ_lt_top
 
+instance is_finite_measure_restrict (μ : measure α) (s : set α) [h : is_finite_measure μ] :
+  is_finite_measure (μ.restrict s) :=
+⟨by simp [measure_lt_top μ s]⟩
+
 lemma measure_ne_top (μ : measure α) [is_finite_measure μ] (s : set α) : μ s ≠ ∞ :=
 ne_of_lt (measure_lt_top μ s)
 
@@ -2216,6 +2220,7 @@ include m0
 class is_probability_measure (μ : measure α) : Prop := (measure_univ : μ univ = 1)
 
 export is_probability_measure (measure_univ)
+attribute [simp] is_probability_measure.measure_univ
 
 @[priority 100]
 instance is_probability_measure.to_is_finite_measure (μ : measure α) [is_probability_measure μ] :
@@ -2250,6 +2255,10 @@ begin
   { rwa [ne, measure_univ_eq_zero] },
   { exact measure_ne_top _ _ }
 end
+
+lemma is_probability_measure_map [is_probability_measure μ] {f : α → β} (hf : ae_measurable f μ) :
+  is_probability_measure (map f μ) :=
+⟨by simp [map_apply_of_ae_measurable, hf]⟩
 
 end is_probability_measure
 
@@ -3095,9 +3104,18 @@ lemma measure_trim_to_measurable_eq_zero {hm : m ≤ m0} (hs : μ.trim hm s = 0)
   μ (@to_measurable α m (μ.trim hm) s) = 0 :=
 measure_eq_zero_of_trim_eq_zero hm (by rwa measure_to_measurable)
 
+lemma ae_of_ae_trim (hm : m ≤ m0) {μ : measure α} {P : α → Prop} (h : ∀ᵐ x ∂(μ.trim hm), P x) :
+  ∀ᵐ x ∂μ, P x :=
+measure_eq_zero_of_trim_eq_zero hm h
+
 lemma ae_eq_of_ae_eq_trim {E} {hm : m ≤ m0} {f₁ f₂ : α → E}
   (h12 : f₁ =ᶠ[@measure.ae α m (μ.trim hm)] f₂) :
   f₁ =ᵐ[μ] f₂ :=
+measure_eq_zero_of_trim_eq_zero hm h12
+
+lemma ae_le_of_ae_le_trim {E} [has_le E] {hm : m ≤ m0} {f₁ f₂ : α → E}
+  (h12 : f₁ ≤ᶠ[@measure.ae α m (μ.trim hm)] f₂) :
+  f₁ ≤ᵐ[μ] f₂ :=
 measure_eq_zero_of_trim_eq_zero hm h12
 
 lemma trim_trim {m₁ m₂ : measurable_space α} {hm₁₂ : m₁ ≤ m₂} {hm₂ : m₂ ≤ m0} :

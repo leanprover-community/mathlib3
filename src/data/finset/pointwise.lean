@@ -55,6 +55,15 @@ open_locale pointwise
 variables {F α β γ : Type*}
 
 namespace finset
+variables [decidable_eq α] [decidable_eq β]
+
+lemma image_inter_subset (f : α → β) (s t : finset α) : (s ∩ t).image f ⊆ s.image f ∩ t.image f :=
+subset_inter (image_subset_image $ inter_subset_left _ _) $
+  image_subset_image $ inter_subset_right _ _
+
+end finset
+
+namespace finset
 
 /-! ### `0`/`1` as sets -/
 
@@ -155,23 +164,33 @@ lemma coe_mul (s t : finset α) : (↑(s * t) : set α) = ↑s * ↑t := coe_ima
 
 @[simp, to_additive] lemma empty_mul (s : finset α) : ∅ * s = ∅ := image₂_empty_left
 @[simp, to_additive] lemma mul_empty (s : finset α) : s * ∅ = ∅ := image₂_empty_right
-
-@[simp, to_additive]
-lemma mul_nonempty_iff (s t : finset α) : (s * t).nonempty ↔ s.nonempty ∧ t.nonempty :=
+@[simp, to_additive] lemma mul_eq_empty : s * t = ∅ ↔ s = ∅ ∨ t = ∅ := image₂_eq_empty_iff
+@[simp, to_additive] lemma mul_nonempty : (s * t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 image₂_nonempty_iff
-
 @[to_additive] lemma nonempty.mul : s.nonempty → t.nonempty → (s * t).nonempty := nonempty.image₂
+@[to_additive] lemma nonempty.of_mul_left : (s * t).nonempty → s.nonempty := nonempty.of_image₂_left
+@[to_additive] lemma nonempty.of_mul_right : (s * t).nonempty → t.nonempty :=
+nonempty.of_image₂_right
+
+@[simp, to_additive] lemma mul_singleton (a : α) : s * {a} = s.image (* a) := image₂_singleton_right
+@[simp, to_additive] lemma singleton_mul (a : α) : {a} * s = s.image ((*) a) :=
+image₂_singleton_left
+@[simp, to_additive] lemma singleton_mul_singleton (a b : α) : ({a} : finset α) * {b} = {a * b} :=
+image₂_singleton
 
 @[to_additive, mono] lemma mul_subset_mul : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ * t₁ ⊆ s₂ * t₂ := image₂_subset
 
 attribute [mono] add_subset_add
 
-@[simp, to_additive] lemma mul_singleton (a : α) : s * {a} = s.image (* a) := image₂_singleton_right
-@[simp, to_additive] lemma singleton_mul (a : α) : {a} * s = s.image ((*) a) :=
-image₂_singleton_left
+@[to_additive] lemma mul_subset_mul_left : t₁ ⊆ t₂ → s * t₁ ⊆ s * t₂ := image₂_subset_left
+@[to_additive] lemma mul_subset_mul_right : s₁ ⊆ s₂ → s₁ * t ⊆ s₂ * t := image₂_subset_right
 
-@[simp, to_additive]
-lemma singleton_mul_singleton (a b : α) : ({a} : finset α) * {b} = {a * b} := image₂_singleton
+@[to_additive] lemma union_mul : (s₁ ∪ s₂) * t = s₁ * t ∪ s₂ * t := image₂_union_left
+@[to_additive] lemma mul_union : s * (t₁ ∪ t₂) = s * t₁ ∪ s * t₂ := image₂_union_right
+@[to_additive] lemma inter_mul_subset : (s₁ ∩ s₂) * t ⊆ s₁ * t ∩ (s₂ * t) :=
+image₂_inter_subset_left
+@[to_additive] lemma mul_inter_subset : s * (t₁ ∩ t₂) ⊆ s * t₁ ∩ (s * t₂) :=
+image₂_inter_subset_right
 
 /-- If a finset `u` is contained in the product of two sets `s * t`, we can find two finsets `s'`,
 `t'` such that `s' ⊆ s`, `t' ⊆ t` and `u ⊆ s' * t'`. -/
@@ -282,14 +301,24 @@ lemma coe_div (s t : finset α) : (↑(s / t) : set α) = ↑s / ↑t := coe_ima
 
 @[simp, to_additive] lemma empty_div (s : finset α) : ∅ / s = ∅ := image₂_empty_left
 @[simp, to_additive] lemma div_empty (s : finset α) : s / ∅ = ∅ := image₂_empty_right
-
-@[simp, to_additive]
-lemma div_nonempty_iff (s t : finset α) : (s / t).nonempty ↔ s.nonempty ∧ t.nonempty :=
+@[simp, to_additive] lemma div_eq_empty : s / t = ∅ ↔ s = ∅ ∨ t = ∅ := image₂_eq_empty_iff
+@[simp, to_additive] lemma div_nonempty : (s / t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 image₂_nonempty_iff
-
 @[to_additive] lemma nonempty.div : s.nonempty → t.nonempty → (s / t).nonempty := nonempty.image₂
+@[to_additive] lemma nonempty.of_div_left : (s / t).nonempty → s.nonempty := nonempty.of_image₂_left
+@[to_additive] lemma nonempty.of_div_right : (s / t).nonempty → t.nonempty :=
+nonempty.of_image₂_right
 
 @[to_additive, mono] lemma div_subset_div : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ / t₁ ⊆ s₂ / t₂ := image₂_subset
+@[to_additive] lemma div_subset_div_left : t₁ ⊆ t₂ → s / t₁ ⊆ s / t₂ := image₂_subset_left
+@[to_additive] lemma div_subset_div_right : s₁ ⊆ s₂ → s₁ / t ⊆ s₂ / t := image₂_subset_right
+
+@[to_additive] lemma union_div : (s₁ ∪ s₂) / t = s₁ / t ∪ s₂ / t := image₂_union_left
+@[to_additive] lemma div_union : s / (t₁ ∪ t₂) = s / t₁ ∪ s / t₂ := image₂_union_right
+@[to_additive] lemma inter_div_subset : (s₁ ∩ s₂) / t ⊆ s₁ / t ∩ (s₂ / t) :=
+image₂_inter_subset_left
+@[to_additive] lemma div_inter_subset : s / (t₁ ∩ t₂) ⊆ s / t₁ ∩ (s / t₂) :=
+image₂_inter_subset_right
 
 attribute [mono] add_subset_add
 
@@ -353,28 +382,6 @@ multiplication/division!) of a `finset`. -/
 localized "attribute [instance] finset.has_nsmul finset.has_npow finset.has_zsmul finset.has_zpow"
   in pointwise
 
-@[simp, to_additive]
-lemma coe_pow [monoid α] (s : finset α) (n : ℕ) : ↑(s ^ n) = (s ^ n : set α) :=
-begin
-  change ↑(npow_rec n s) = _,
-  induction n with n ih,
-  { rw [npow_rec, pow_zero, coe_one] },
-  { rw [npow_rec, pow_succ, coe_mul, ih] }
-end
-
-/- TODO: The below lemmas are duplicate because there is no typeclass greater than
-`div_inv_monoid` and `has_involutive_inv` but smaller than `group` and `group_with_zero`. -/
-
-@[simp, to_additive] lemma coe_zpow [group α] (s : finset α) : ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
-| (int.of_nat n) := coe_pow _ _
-| (int.neg_succ_of_nat n) :=
-  by { refine (coe_inv _).trans _, convert congr_arg has_inv.inv (coe_pow _ _) }
-
-@[simp] lemma coe_zpow' [group_with_zero α] (s : finset α) : ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
-| (int.of_nat n) := coe_pow _ _
-| (int.neg_succ_of_nat n) :=
-  by { refine (coe_inv _).trans _, convert congr_arg has_inv.inv (coe_pow _ _) }
-
 /-- `finset α` is a `mul_one_class` under pointwise operations if `α` is. -/
 @[to_additive "`finset α` is an `add_zero_class` under pointwise operations if `α` is."]
 protected def mul_one_class [mul_one_class α] : mul_one_class (finset α) :=
@@ -390,18 +397,75 @@ coe_injective.semigroup _ coe_mul
 protected def comm_semigroup [comm_semigroup α] : comm_semigroup (finset α) :=
 coe_injective.comm_semigroup _ coe_mul
 
+section monoid
+variables [monoid α] {s t : finset α} {a : α}
+
+@[simp, to_additive]
+lemma coe_pow (s : finset α) (n : ℕ) : ↑(s ^ n) = (s ^ n : set α) :=
+begin
+  change ↑(npow_rec n s) = _,
+  induction n with n ih,
+  { rw [npow_rec, pow_zero, coe_one] },
+  { rw [npow_rec, pow_succ, coe_mul, ih] }
+end
+
 /-- `finset α` is a `monoid` under pointwise operations if `α` is. -/
 @[to_additive "`finset α` is an `add_monoid` under pointwise operations if `α` is. "]
-protected def monoid [monoid α] : monoid (finset α) :=
-coe_injective.monoid _ coe_one coe_mul coe_pow
+protected def monoid : monoid (finset α) := coe_injective.monoid _ coe_one coe_mul coe_pow
+
+localized "attribute [instance] finset.mul_one_class finset.add_zero_class finset.semigroup
+  finset.add_semigroup finset.monoid finset.add_monoid" in pointwise
+
+/-- If `u` is a unit in `α`, then `{u}` is a unit in `finset α`. -/
+@[to_additive "If `u` is an additive unit in `α`, then `{u}` is an additive unit in `finset α`.",
+simps coe] protected def _root_.units.finset (u : αˣ) : (finset α)ˣ :=
+{ val := {u},
+  inv := {(u⁻¹ : αˣ)},
+  val_inv := by rw [singleton_mul_singleton, units.mul_inv, singleton_one],
+  inv_val := by rw [singleton_mul_singleton, units.inv_mul, singleton_one] }
+
+@[simp, to_additive] lemma _root_.is_unit.inv_finset (u : αˣ) : u.finset⁻¹ = u⁻¹.finset := rfl
+
+@[to_additive] protected lemma _root_.is_unit.finset (ha : is_unit a) : is_unit ({a} : finset α) :=
+by { obtain ⟨u, rfl⟩ := ha, exact ⟨u.finset, rfl⟩ }
+
+@[to_additive] lemma pow_mem_pow (ha : a ∈ s) : ∀ n : ℕ, a ^ n ∈ s ^ n
+| 0 := by { rw pow_zero, exact one_mem_one }
+| (n + 1) := by { rw pow_succ, exact mul_mem_mul ha (pow_mem_pow _) }
+
+@[to_additive] lemma pow_subset_pow (hst : s ⊆ t) : ∀ n : ℕ, s ^ n ⊆ t ^ n
+| 0 := by { rw pow_zero, exact subset.rfl }
+| (n + 1) := by { rw pow_succ, exact mul_subset_mul hst (pow_subset_pow _) }
+
+@[to_additive] lemma empty_pow (n : ℕ) (hn : n ≠ 0) : (∅ : finset α) ^ n = ∅ :=
+by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
+
+@[simp, to_additive]
+lemma univ_mul_univ [fintype α] : (univ : finset α) * univ = univ :=
+begin
+  have : ∀ x, ∃ a b : α, a * b = x := λ x, ⟨x, 1, mul_one x⟩,
+  simpa only [mem_mul, eq_univ_iff_forall, mem_univ, true_and]
+end
+
+end monoid
 
 /-- `finset α` is a `comm_monoid` under pointwise operations if `α` is. -/
 @[to_additive "`finset α` is an `add_comm_monoid` under pointwise operations if `α` is. "]
 protected def comm_monoid [comm_monoid α] : comm_monoid (finset α) :=
 coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 
-/- TODO: The below instances are duplicate because there is no typeclass greater than
+/- TODO: The below lemmas and instances are duplicate because there is no typeclass greater than
 `div_inv_monoid` and `has_involutive_inv` but smaller than `group` and `group_with_zero`. -/
+
+@[simp, to_additive] lemma coe_zpow [group α] (s : finset α) : ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
+| (int.of_nat n) := coe_pow _ _
+| (int.neg_succ_of_nat n) :=
+  by { refine (coe_inv _).trans _, convert congr_arg has_inv.inv (coe_pow _ _) }
+
+@[simp] lemma coe_zpow' [group_with_zero α] (s : finset α) : ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
+| (int.of_nat n) := coe_pow _ _
+| (int.neg_succ_of_nat n) :=
+  by { refine (coe_inv _).trans _, convert congr_arg has_inv.inv (coe_pow _ _) }
 
 /-- `finset α` is a `div_inv_monoid` under pointwise operations if `α` is. -/
 @[to_additive "`finset α` is an `sub_neg_add_monoid` under pointwise operations if `α` is."]
@@ -416,6 +480,36 @@ localized "attribute [instance] finset.mul_one_class finset.add_zero_class finse
   finset.add_semigroup finset.monoid finset.add_monoid finset.comm_monoid finset.add_comm_monoid
   finset.div_inv_monoid finset.sub_neg_add_monoid finset.div_inv_monoid'"
   in pointwise
+
+section group
+variables [group α] {s t : finset α}
+
+@[to_additive] protected lemma mul_eq_one_iff : s * t = 1 ↔ ∃ a b, s = {a} ∧ t = {b} ∧ a * b = 1 :=
+by simp_rw [←coe_inj, coe_mul, coe_one, set.mul_eq_one_iff, coe_singleton]
+
+--TODO: Generalize to division monoids (#13860)
+@[to_additive] lemma is_unit_iff : is_unit s ↔ ∃ a, s = {a} ∧ is_unit a :=
+begin
+  split,
+  { rintro ⟨u, rfl⟩,
+    obtain ⟨a, b, ha, hb, h⟩ := finset.mul_eq_one_iff.1 u.mul_inv,
+    refine ⟨a, ha, ⟨a, b, h, singleton_injective _⟩, rfl⟩,
+    rw [←singleton_mul_singleton, ←ha, ←hb],
+    exact u.inv_mul },
+  { rintro ⟨a, rfl, ha⟩,
+    exact ha.finset }
+end
+
+@[simp, to_additive] lemma is_unit_coe : is_unit (s : set α) ↔ is_unit s :=
+by simp_rw [is_unit_iff, set.is_unit_iff, coe_eq_singleton]
+
+@[to_additive] lemma is_unit_singleton (a : α) : is_unit ({a} : finset α) :=
+(group.is_unit a).finset
+
+@[simp] lemma is_unit_iff_singleton : is_unit s ↔ ∃ a, s = {a} :=
+by simp only [is_unit_iff, group.is_unit, and_true]
+
+end group
 
 end instances
 
@@ -448,25 +542,35 @@ coe_image₂ _ _ _
 
 @[simp, to_additive] lemma empty_smul (t : finset β) : (∅ : finset α) • t = ∅ := image₂_empty_left
 @[simp, to_additive] lemma smul_empty (s : finset α) : s • (∅ : finset β) = ∅ := image₂_empty_right
-
-@[simp, to_additive]
-lemma smul_nonempty_iff : (s • t).nonempty ↔ s.nonempty ∧ t.nonempty := image₂_nonempty_iff
-
+@[simp, to_additive] lemma smul_eq_empty : s • t = ∅ ↔ s = ∅ ∨ t = ∅ := image₂_eq_empty_iff
+@[simp, to_additive] lemma smul_nonempty_iff : (s • t).nonempty ↔ s.nonempty ∧ t.nonempty :=
+image₂_nonempty_iff
 @[to_additive] lemma nonempty.smul : s.nonempty → t.nonempty → (s • t).nonempty := nonempty.image₂
+@[to_additive] lemma nonempty.of_smul_left : (s • t).nonempty → s.nonempty :=
+nonempty.of_image₂_left
+@[to_additive] lemma nonempty.of_smul_right : (s • t).nonempty → t.nonempty :=
+nonempty.of_image₂_right
+@[simp, to_additive] lemma smul_singleton (b : β) : s • ({b} : finset β) = s.image (• b) :=
+image₂_singleton_right
+@[simp, to_additive] lemma singleton_smul (a : α) : ({a} : finset α) • t = t.image ((•) a) :=
+image₂_singleton_left
+@[simp, to_additive] lemma singleton_smul_singleton (a : α) (b : β) :
+  ({a} : finset α) • ({b} : finset β) = {a • b} :=
+image₂_singleton
 
 @[to_additive, mono] lemma smul_subset_smul : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ • t₁ ⊆ s₂ • t₂ := image₂_subset
+@[to_additive] lemma smul_subset_smul_left : t₁ ⊆ t₂ → s • t₁ ⊆ s • t₂ := image₂_subset_left
+@[to_additive] lemma smul_subset_smul_right : s₁ ⊆ s₂ → s₁ • t ⊆ s₂ • t := image₂_subset_right
 
 attribute [mono] add_subset_add
 
-@[simp, to_additive]
-lemma smul_singleton (b : β) : s • ({b} : finset β) = s.image (• b) := image₂_singleton_right
-
-@[simp, to_additive]
-lemma singleton_smul (a : α) : ({a} : finset α) • t = t.image ((•) a) := image₂_singleton_left
-
-@[simp, to_additive]
-lemma singleton_smul_singleton (a : α) (b : β) : ({a} : finset α) • ({b} : finset β) = {a • b} :=
-image₂_singleton
+@[to_additive] lemma union_smul [decidable_eq α] : (s₁ ∪ s₂) • t = s₁ • t ∪ s₂ • t :=
+image₂_union_left
+@[to_additive] lemma smul_union : s • (t₁ ∪ t₂) = s • t₁ ∪ s • t₂ := image₂_union_right
+@[to_additive] lemma inter_smul_subset [decidable_eq α] : (s₁ ∩ s₂) • t ⊆ s₁ • t ∩ s₂ • t :=
+image₂_inter_subset_left
+@[to_additive] lemma smul_inter_subset : s • (t₁ ∩ t₂) ⊆ s • t₁ ∩ s • t₂ :=
+image₂_inter_subset_right
 
 /-- If a finset `u` is contained in the scalar product of two sets `s • t`, we can find two finsets
 `s'`, `t'` such that `s' ⊆ s`, `t' ⊆ t` and `u ⊆ s' • t'`. -/
@@ -502,22 +606,32 @@ lemma vsub_card_le : (s -ᵥ t : finset α).card ≤ s.card * t.card := card_ima
 
 @[simp] lemma empty_vsub (t : finset β) : (∅ : finset β) -ᵥ t = ∅ := image₂_empty_left
 @[simp] lemma vsub_empty (s : finset β) : s -ᵥ (∅ : finset β) = ∅ := image₂_empty_right
-
-@[simp] lemma vsub_nonempty_iff : (s -ᵥ t : finset α).nonempty ↔ s.nonempty ∧ t.nonempty :=
+@[simp] lemma vsub_eq_empty : s -ᵥ t = ∅ ↔ s = ∅ ∨ t = ∅ := image₂_eq_empty_iff
+@[simp] lemma vsub_nonempty : (s -ᵥ t : finset α).nonempty ↔ s.nonempty ∧ t.nonempty :=
 image₂_nonempty_iff
-
 lemma nonempty.vsub : s.nonempty → t.nonempty → (s -ᵥ t : finset α).nonempty := nonempty.image₂
-
-@[mono] lemma vsub_subset_vsub : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ -ᵥ t₁ ⊆ s₂ -ᵥ t₂ := image₂_subset
-
+lemma nonempty.of_vsub_left : (s -ᵥ t : finset α).nonempty → s.nonempty := nonempty.of_image₂_left
+lemma nonempty.of_vsub_right : (s -ᵥ t : finset α).nonempty → t.nonempty := nonempty.of_image₂_right
 @[simp] lemma vsub_singleton (b : β) : s -ᵥ ({b} : finset β) = s.image (-ᵥ b) :=
 image₂_singleton_right
-
 @[simp] lemma singleton_vsub (a : β) : ({a} : finset β) -ᵥ t = t.image ((-ᵥ) a) :=
 image₂_singleton_left
+@[simp] lemma singleton_vsub_singleton (a b : β) : ({a} : finset β) -ᵥ {b} = {a -ᵥ b} :=
+image₂_singleton
 
-@[simp]
-lemma singleton_vsub_singleton (a b : β) : ({a} : finset β) -ᵥ {b} = {a -ᵥ b} := image₂_singleton
+@[mono] lemma vsub_subset_vsub : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ -ᵥ t₁ ⊆ s₂ -ᵥ t₂ := image₂_subset
+lemma vsub_subset_vsub_left : t₁ ⊆ t₂ → s -ᵥ t₁ ⊆ s -ᵥ t₂ := image₂_subset_left
+lemma vsub_subset_vsub_right : s₁ ⊆ s₂ → s₁ -ᵥ t ⊆ s₂ -ᵥ t := image₂_subset_right
+
+section
+variables [decidable_eq β]
+
+lemma union_vsub : (s₁ ∪ s₂) -ᵥ t = (s₁ -ᵥ t) ∪ (s₂ -ᵥ t) := image₂_union_left
+lemma vsub_union : s -ᵥ (t₁ ∪ t₂) = (s -ᵥ t₁) ∪ (s -ᵥ t₂) := image₂_union_right
+lemma inter_vsub_subset : (s₁ ∩ s₂) -ᵥ t ⊆ (s₁ -ᵥ t) ∩ (s₂ -ᵥ t) := image₂_inter_subset_left
+lemma vsub_inter_subset : s -ᵥ (t₁ ∩ t₂) ⊆ (s -ᵥ t₁) ∩ (s -ᵥ t₂) := image₂_inter_subset_right
+
+end
 
 /-- If a finset `u` is contained in the pointwise subtraction of two sets `s -ᵥ t`, we can find two
 finsets `s'`, `t'` such that `s' ⊆ s`, `t' ⊆ t` and `u ⊆ s' -ᵥ t'`. -/
@@ -555,10 +669,9 @@ lemma coe_smul_finset (s : finset β) : (↑(a • s) : set β) = a • s := coe
 @[to_additive] lemma smul_finset_card_le : (a • s).card ≤ s.card := card_image_le
 
 @[simp, to_additive] lemma smul_finset_empty (a : α) : a • (∅ : finset β) = ∅ := image_empty _
-
-@[simp, to_additive]
-lemma smul_finset_nonempty_iff : (a • s).nonempty ↔ s.nonempty := nonempty.image_iff _
-
+@[simp, to_additive] lemma smul_finset_eq_empty : a • s = ∅ ↔ s = ∅ := image_eq_empty
+@[simp, to_additive] lemma smul_finset_nonempty : (a • s).nonempty ↔ s.nonempty :=
+nonempty.image_iff _
 @[to_additive] lemma nonempty.smul_finset (hs : s.nonempty) : (a • s).nonempty := hs.image _
 
 @[to_additive, mono]
@@ -568,6 +681,10 @@ attribute [mono] add_subset_add
 
 @[simp, to_additive]
 lemma smul_finset_singleton (b : β) : a • ({b} : finset β) = {a • b} := image_singleton _ _
+
+@[to_additive] lemma smul_finset_union : a • (s₁ ∪ s₂) = a • s₁ ∪ a • s₂ := image_union _ _
+@[to_additive] lemma smul_finset_inter_subset : a • (s₁ ∩ s₂) ⊆ a • s₁ ∩ (a • s₂) :=
+image_inter_subset _ _ _
 
 end has_scalar
 

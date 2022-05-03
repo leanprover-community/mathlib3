@@ -301,7 +301,7 @@ Exists.dcases_on (finite_field.exists_nonsquare hF)
 
 /-- The number of solutions to `x^2 = a` is determined by the quadratic character. -/
 lemma quadratic_char_card_sqrts (hF : ring_char F ≠ 2) (a : F) :
-  ↑{x : F | x^2 = a}.to_finset.card = 1 + quadratic_char F a :=
+  ↑{x : F | x^2 = a}.to_finset.card = quadratic_char F a + 1 :=
 begin
   -- we consider the cases `a = 0`, `a` is a nonzero square and `a` is a nonsquare in turn
   by_cases h₀ : a = 0,
@@ -329,10 +329,10 @@ begin
                  list.to_finset_cons, list.to_finset_nil, insert_emptyc_eq, int.coe_nat_succ,
                  int.coe_nat_zero, zero_add], },
     { rw quadratic_char_neg_one_iff_not_is_square.mpr h,
-      simp only [int.add_neg_one, sub_self, int.coe_nat_eq_zero, finset.card_eq_zero,
-                 set.to_finset_eq_empty_iff, set.empty_def],
+      simp only [int.coe_nat_eq_zero, finset.card_eq_zero, set.to_finset_card,
+                 fintype.card_of_finset, set.mem_set_of_eq, add_left_neg],
       ext x,
-      simp only [iff_false, set.mem_set_of_eq],
+      simp only [iff_false, finset.mem_filter, finset.mem_univ, true_and, finset.not_mem_empty],
       rw is_square_iff_exists_sq at h,
       push_neg at h,
       exact (h x).symm, }, },

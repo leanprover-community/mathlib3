@@ -109,7 +109,7 @@ end
 @[simp] lemma log_zero_left (n : R) : log 0 n = 0 :=
 log_of_left_le_one zero_le_one
 
-@[simp] lemma log_zero_right (b : ℕ) : log b 0 = 0 :=
+@[simp] lemma log_zero_right (b : ℕ) : log b (0 : R) = 0 :=
 begin
   cases b,
   { exact log_zero_left _},
@@ -119,11 +119,11 @@ end
 @[simp] lemma log_one_left (n : R) : log 1 n = 0 :=
 log_of_left_le_one le_rfl
 
-@[simp] lemma log_one_right (b : ℕ) : log b 1 = 0 :=
+@[simp] lemma log_one_right (b : ℕ) : log b (1 : R) = 0 :=
 if h : b ≤ 1 then
   log_of_left_le_one h
 else
-  log_of_lt $ nat.cast_lt.mpr $ not_le.mp $ h
+  log_of_lt $ nat.cast_one.symm.trans_lt $ nat.cast_lt.mpr $ not_le.mp $ h
 
 lemma pow_le_iff_le_log {b : ℕ} (hb : 1 < b) {x : ℕ} {y : ℕ} (hy : 1 ≤ y) :
   b^x ≤ y ↔ x ≤ log b y :=
@@ -304,13 +304,13 @@ by rw [clog, clog_aux,
 @[simp] lemma clog_zero_left (n : R) : clog 0 n = 0 :=
 clog_of_left_le_one zero_le_one _
 
-@[simp] lemma clog_zero_right (b : ℕ) : clog b 0 = 0 :=
+@[simp] lemma clog_zero_right (b : ℕ) : clog b (0 : R) = 0 :=
 clog_of_right_le_one zero_le_one _
 
 @[simp] lemma clog_one_left (n : R) : clog 1 n = 0 :=
 clog_of_left_le_one le_rfl _
 
-@[simp] lemma clog_one_right (b : ℕ) : clog b 1 = 0 :=
+@[simp] lemma clog_one_right (b : ℕ) : clog b (1 : R) = 0 :=
 clog_of_right_le_one le_rfl _
 
 lemma clog_of_one_lt {b : ℕ} {n : R} (hb : 1 < b) (hn : 1 < n) :

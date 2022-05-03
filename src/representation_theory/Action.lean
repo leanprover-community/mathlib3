@@ -317,6 +317,7 @@ variables [monoidal_category V]
 instance : monoidal_category (Action V G) :=
 monoidal.transport (Action.functor_category_equivalence _ _).symm
 
+@[simp] lemma tensor_V {X Y : Action V G} : (X ⊗ Y).V = X.V ⊗ Y.V := rfl
 @[simp] lemma tensor_rho {X Y : Action V G} {g : G} : (X ⊗ Y).ρ g = X.ρ g ⊗ Y.ρ g := rfl
 @[simp] lemma tensor_hom {W X Y Z : Action V G} (f : W ⟶ X) (g : Y ⟶ Z) :
   (f ⊗ g).hom = f.hom ⊗ g.hom := rfl
@@ -369,29 +370,21 @@ def forget_monoidal : monoidal_functor (Action V G) V :=
 instance forget_monoidal_faithful : faithful (forget_monoidal V G).to_functor :=
 by { change faithful (forget V G), apply_instance, }
 
-instance [braided_category V] : braided_category (Action V G) :=
-braided_category_of_faithful (forget_monoidal V G) (λ X Y, mk_iso (β_ _ _) (by tidy)) (by tidy)
+section
+variables [braided_category V]
 
-@[simp] lemma braiding_hom_hom {X Y : Action V G} :
-  hom.hom (β_ X Y).hom = (β_ X.V Y.V).hom :=
-begin
-  dsimp [monoidal.transport_right_unitor],
-  simp,
-end
-@[simp] lemma braiding_inv_hom {X Y : Action V G} :
-  hom.hom (β_ X Y).inv = (β_ X.V Y.V).inv :=
-begin
-  dsimp [monoidal.transport_right_unitor],
-  simp,
-end
+instance : braided_category (Action V G) :=
+braided_category_of_faithful (forget_monoidal V G) (λ X Y, mk_iso (β_ _ _) (by tidy)) (by tidy)
 
 /-- When `V` is braided the forgetful functor `Action V G` to `V` is braided. -/
 @[simps]
-def forget_braided [braided_category V] : braided_functor (Action V G) V :=
+def forget_braided : braided_functor (Action V G) V :=
 { ..forget_monoidal _ _, }
 
-instance forget_braided_faithful [braided_category V] : faithful (forget_braided V G).to_functor :=
+instance forget_braided_faithful : faithful (forget_braided V G).to_functor :=
 by { change faithful (forget V G), apply_instance, }
+
+end
 
 instance [symmetric_category V] : symmetric_category (Action V G) :=
 symmetric_category_of_faithful (forget_braided V G)

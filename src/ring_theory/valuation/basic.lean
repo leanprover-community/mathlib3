@@ -367,7 +367,7 @@ lemma is_equiv_iff_val_le_one
   v.is_equiv v' ↔ ∀ {x : K}, v x ≤ 1 ↔ v' x ≤ 1 :=
 ⟨λ h x, by  simpa using h x 1, is_equiv_of_val_le_one _ _⟩
 
-lemma is_equiv_iff_one_plus_eq_one
+lemma is_equiv_iff_val_eq_one
   [linear_ordered_comm_group_with_zero Γ₀]
   [linear_ordered_comm_group_with_zero Γ'₀]
   {K : Type*} [division_ring K]

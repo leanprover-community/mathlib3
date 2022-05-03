@@ -696,10 +696,8 @@ lemma int.floor_to_nat (a : α) : ⌊a⌋.to_nat = ⌊a⌋₊ := rfl
 
 lemma int.ceil_to_nat  (a : α) : ⌈a⌉.to_nat = ⌈a⌉₊ := rfl
 
-@[simp] lemma nat.floor_int: (nat.floor : ℤ → ℕ) = int.to_nat :=
-funext $ by simp [←int.floor_to_nat]
-@[simp] lemma nat.ceil_int : (nat.ceil : ℤ → ℕ) = int.to_nat :=
-funext $ by simp [←int.ceil_to_nat]
+@[simp] lemma nat.floor_int : (nat.floor : ℤ → ℕ) = int.to_nat := rfl
+@[simp] lemma nat.ceil_int : (nat.ceil : ℤ → ℕ) = int.to_nat := rfl
 
 variables {a : α}
 

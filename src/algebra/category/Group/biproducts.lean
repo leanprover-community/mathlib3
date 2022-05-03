@@ -21,6 +21,16 @@ universe u
 
 namespace AddCommGroup
 
+-- As `AddCommGroup` is preadditive, and has all limits, it automatically has biproducts.
+instance : has_binary_biproducts AddCommGroup :=
+has_binary_biproducts.of_has_binary_products
+
+instance : has_finite_biproducts AddCommGroup :=
+has_finite_biproducts.of_has_finite_products
+
+-- We now construct explicit limit data,
+-- so we can compare the biproducts to the usual unbundled constructions.
+
 /--
 Construct limit data for a binary product in `AddCommGroup`, using `AddCommGroup.of (G × H)`.
 -/
@@ -35,13 +45,6 @@ def binary_product_limit_cone (G H : AddCommGroup.{u}) : limits.limit_cone (pair
     begin
       ext; [rw ← w walking_pair.left, rw ← w walking_pair.right]; refl,
     end, } }
-
-
-instance has_binary_product (G H : AddCommGroup.{u}) : has_binary_product G H :=
-has_limit.mk (binary_product_limit_cone G H)
-
-instance (G H : AddCommGroup.{u}) : has_binary_biproduct G H :=
-has_binary_biproduct.of_has_binary_product _ _
 
 /--
 We verify that the biproduct in AddCommGroup is isomorphic to
@@ -92,29 +95,17 @@ def product_limit_cone : limits.limit_cone F :=
 
 end has_limit
 
-section
-
 open has_limit
-
-variables [decidable_eq J] [fintype J]
-
-instance (f : J → AddCommGroup.{u}) : has_biproduct f :=
-has_biproduct.of_has_product _
 
 /--
 We verify that the biproduct we've just defined is isomorphic to the AddCommGroup structure
 on the dependent function type
 -/
 noncomputable
-def biproduct_iso_pi (f : J → AddCommGroup.{u}) :
+def biproduct_iso_pi [decidable_eq J] [fintype J] (f : J → AddCommGroup.{u}) :
   (⨁ f : AddCommGroup) ≅ AddCommGroup.of (Π j, f j) :=
 is_limit.cone_point_unique_up_to_iso
   (biproduct.is_limit f)
   (product_limit_cone (discrete.functor f)).is_limit
-
-end
-
-instance : has_finite_biproducts AddCommGroup :=
-⟨λ J _ _, by exactI { has_biproduct := λ f, by apply_instance }⟩
 
 end AddCommGroup

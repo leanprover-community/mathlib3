@@ -3,6 +3,7 @@ Copyright (c) 2021 Aaron Anderson, Jesse Michael Han, Floris van Doorn. All righ
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
+import data.list.prod_sigma
 import logic.equiv.fin
 import model_theory.language_map
 
@@ -23,6 +24,8 @@ This file defines first-order terms, formulas, sentences, and theories in a styl
 * `first_order.language.bounded_formula.cast_le` adds more `fin`-indexed variables.
 * `first_order.language.bounded_formula.lift_at` raises the indexes of the `fin`-indexed variables
 above a particular index.
+* `first_order.language.term.subst` and `first_order.language.bounded_formula.subst` substitute
+variables with given terms.
 * Language maps can act on syntactic objects with functions such as
 `first_order.language.Lhom.on_formula`.
 
@@ -64,15 +67,37 @@ variable {L}
 
 namespace term
 
-open list
+open finset
+
+/-- The `finset` of variables used in a given term. -/
+@[simp] def var_finset [decidable_eq α] : L.term α → finset α
+| (var i) := {i}
+| (func f ts) := univ.bUnion (λ i, (ts i).var_finset)
+
+/-- The `finset` of variables from the left side of a sum used in a given term. -/
+@[simp] def var_finset_left [decidable_eq α] : L.term (α ⊕ β) → finset α
+| (var (sum.inl i)) := {i}
+| (var (sum.inr i)) := ∅
+| (func f ts) := univ.bUnion (λ i, (ts i).var_finset_left)
 
 /-- Relabels a term's variables along a particular function. -/
 @[simp] def relabel (g : α → β) : L.term α → L.term β
 | (var i) := var (g i)
 | (func f ts) := func f (λ i, (ts i).relabel)
 
-instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
-⟨var default⟩
+/-- Restricts a term to use only a set of the given variables. -/
+def restrict_var [decidable_eq α] : Π (t : L.term α) (f : t.var_finset → β), L.term β
+| (var a) f := var (f ⟨a, mem_singleton_self a⟩)
+| (func F ts) f := func F (λ i, (ts i).restrict_var
+  (f ∘ (set.inclusion (subset_bUnion_of_mem _ (mem_univ i)))))
+
+/-- Restricts a term to use only a set of the given variables on the left side of a sum. -/
+def restrict_var_left [decidable_eq α] {γ : Type*} :
+  Π (t : L.term (α ⊕ γ)) (f : t.var_finset_left → β), L.term (β ⊕ γ)
+| (var (sum.inl a)) f := var (sum.inl (f ⟨a, mem_singleton_self a⟩))
+| (var (sum.inr a)) f := var (sum.inr a)
+| (func F ts) f := func F (λ i, (ts i).restrict_var_left
+  (f ∘ (set.inclusion (subset_bUnion_of_mem _ (mem_univ i)))))
 
 end term
 
@@ -94,6 +119,11 @@ instance inhabited_of_constant [inhabited L.constants] : inhabited (L.term α) :
 /-- Raises all of the `fin`-indexed variables of a term greater than or equal to `m` by `n'`. -/
 def lift_at {n : ℕ} (n' m : ℕ) : L.term (α ⊕ fin n) → L.term (α ⊕ fin (n + n')) :=
 relabel (sum.map id (λ i, if ↑i < m then fin.cast_add n' i else fin.add_nat n' i))
+
+/-- Substitutes the variables in a given term with terms. -/
+@[simp] def subst : L.term α → (α → L.term β) → L.term β
+| (var a) tf := tf a
+| (func f ts) tf := (func f (λ i, (ts i).subst tf))
 
 end term
 
@@ -217,6 +247,17 @@ instance : has_sup (L.bounded_formula α n) := ⟨λ f g, f.not.imp g⟩
 /-- The biimplication between two bounded formulas. -/
 protected def iff (φ ψ : L.bounded_formula α n) := φ.imp ψ ⊓ ψ.imp φ
 
+open finset
+
+/-- The `finset` of variables used in a given formula. -/
+@[simp] def free_var_finset [decidable_eq α] :
+  ∀ {n}, L.bounded_formula α n → finset α
+| n falsum := ∅
+| n (equal t₁ t₂) := t₁.var_finset_left ∪ t₂.var_finset_left
+| n (rel R ts) := univ.bUnion (λ i, (ts i).var_finset_left)
+| n (imp f₁ f₂) := f₁.free_var_finset ∪ f₂.free_var_finset
+| n (all f) := f.free_var_finset
+
 /-- Casts `L.bounded_formula α m` as `L.bounded_formula α n`, where `m ≤ n`. -/
 def cast_le : ∀ {m n : ℕ} (h : m ≤ n), L.bounded_formula α m → L.bounded_formula α n
 | m n h falsum := falsum
@@ -253,6 +294,20 @@ def relabel (g : α → (β ⊕ fin n)) :
 | k (imp f₁ f₂) := f₁.relabel.imp f₂.relabel
 | k (all f) := f.relabel.all
 
+/-- Restricts a bounded formula to only use a particular set of free variables. -/
+def restrict_free_var [decidable_eq α] : Π {n : ℕ} (φ : L.bounded_formula α n)
+  (f : φ.free_var_finset → β), L.bounded_formula β n
+| n falsum f := falsum
+| n (equal t₁ t₂) f := equal
+  (t₁.restrict_var_left (f ∘ (set.inclusion (subset_union_left _ _))))
+  (t₂.restrict_var_left (f ∘ (set.inclusion (subset_union_right _ _))))
+| n (rel R ts) f := rel R (λ i, (ts i).restrict_var_left
+  (f ∘ set.inclusion (subset_bUnion_of_mem _ (mem_univ i))))
+| n (imp φ₁ φ₂) f :=
+  (φ₁.restrict_free_var (f ∘ (set.inclusion (subset_union_left _ _)))).imp
+  (φ₂.restrict_free_var (f ∘ (set.inclusion (subset_union_right _ _))))
+| n (all φ) f := (φ.restrict_free_var f).all
+
 /-- Places universal quantifiers on all extra variables of a bounded formula. -/
 def alls : ∀ {n}, L.bounded_formula α n → L.formula α
 | 0 φ := φ
@@ -270,6 +325,16 @@ def lift_at : ∀ {n : ℕ} (n' m : ℕ), L.bounded_formula α n → L.bounded_f
 | n n' m (rel R ts) := R.bounded_formula (term.lift_at n' m ∘ ts)
 | n n' m (imp f₁ f₂) := (f₁.lift_at n' m).imp (f₂.lift_at n' m)
 | n n' m (all f) := ((f.lift_at n' m).cast_le (by rw [add_assoc, add_comm 1, ← add_assoc])).all
+
+/-- Substitutes the variables in a given formula with terms. -/
+@[simp] def subst : ∀ {n : ℕ}, L.bounded_formula α n → (α → L.term β) → L.bounded_formula β n
+| n falsum tf := falsum
+| n (equal t₁ t₂) tf := equal (t₁.subst (sum.elim (term.relabel sum.inl ∘ tf) (var ∘ sum.inr)))
+  (t₂.subst (sum.elim (term.relabel sum.inl ∘ tf) (var ∘ sum.inr)))
+| n (rel R ts) tf := rel R
+  (λ i, (ts i).subst (sum.elim (term.relabel sum.inl ∘ tf) (var ∘ sum.inr)))
+| n (imp φ₁ φ₂) tf := (φ₁.subst tf).imp (φ₂.subst tf)
+| n (all φ) tf := (φ.subst tf).all
 
 variables {l : ℕ} {φ ψ : L.bounded_formula α l} {θ : L.bounded_formula α l.succ}
 variables {v : α → M} {xs : fin l → M}
@@ -621,17 +686,22 @@ protected def total : L.sentence :=
 
 end relations
 
-section nonempty
+section cardinality
 
 variable (L)
 
-/-- A sentence that indicates a structure is nonempty. -/
-protected def sentence.nonempty : L.sentence := ∃' (&0 =' &0)
+/-- A sentence indicating that a structure has `n` distinct elements. -/
+protected def sentence.card_ge (n) : L.sentence :=
+(((((list.fin_range n).product (list.fin_range n)).filter (λ ij : _ × _, ij.1 ≠ ij.2)).map
+  (λ (ij : _ × _), ∼ ((& ij.1).bd_equal (& ij.2)))).foldr (⊓) ⊤).exs
+
+/-- A theory indicating that a structure is infinite. -/
+def infinite_theory : L.Theory := set.range (sentence.card_ge L)
 
 /-- A theory that indicates a structure is nonempty. -/
-protected def Theory.nonempty : L.Theory := {sentence.nonempty L}
+def nonempty_theory : L.Theory := {sentence.card_ge L 1}
 
-end nonempty
+end cardinality
 
 end language
 end first_order

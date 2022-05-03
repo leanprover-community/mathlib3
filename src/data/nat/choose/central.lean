@@ -141,13 +141,13 @@ begin
     { have v : log p (2 * n) = 2 := by linarith,
       cases le_or_lt p (2 * n) with h h,
       { exfalso,
-        rw [log_of_one_lt_of_le hp.one_lt h, succ_inj', log_eq_one_iff] at v,
+        rw [log_of_one_lt_of_le' hp.one_lt h, succ_inj', log_eq_one_iff, nat.cast_id] at v,
         have bad : p ^ 2 ≤ 2 * n,
         { rw pow_two,
           exact (nat.le_div_iff_mul_le _ _ (prime.pos hp)).1 v.2.2, },
         exact lt_irrefl _ (lt_of_le_of_lt bad p_large), },
-      { rw log_eq_zero (or.inl h),
-        exact zero_le 1, }, }, },
+      { refine (log_of_lt _).trans_le (zero_le _),
+        rwa nat.cast_id, }, }, },
 
   exact le_trans (padic_val_nat_central_binom_le hp) log_bound,
 end

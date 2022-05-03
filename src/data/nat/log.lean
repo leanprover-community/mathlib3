@@ -64,6 +64,11 @@ begin
   exact if_pos ⟨le_floor hn, h⟩,
 end
 
+/-- A special case of `log_of_one_lt_of_le` for `R = ℕ` -/
+lemma log_of_one_lt_of_le' {b n : ℕ} (h : 1 < b) (hn : b ≤ n) :
+  log b n = log b (n / b) + 1 :=
+log_of_one_lt_of_le h $ (nat.cast_le.mpr hn).trans_eq (nat.cast_id _)
+
 lemma log_of_lt {b : ℕ} {n : R} (hnb : n < b) : log b n = 0 :=
 log_eq_zero (or.inl hnb)
 
@@ -163,7 +168,6 @@ lemma log_pow_cast {b : ℕ} (hb : 1 < b) (x : ℕ) : log b ((b : R) ^ x) = x :=
 by exact_mod_cast log_pow hb x
 
 variables {R}
-
 
 lemma log_pos {b : ℕ} {n : R} (hb : 1 < b) (hn : ↑b ≤ n) : 0 < log b n :=
 begin

@@ -5,7 +5,6 @@ Authors: Violeta Hernández Palacios
 -/
 
 import set_theory.game.pgame
-import tactic.abel
 
 /-! # Pre-games up to relabelling
 

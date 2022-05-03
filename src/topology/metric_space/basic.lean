@@ -1357,14 +1357,13 @@ def pseudo_metric_space.induced {α β} (f : α → β)
   to_uniform_space   := uniform_space.comap f m.to_uniform_space,
   uniformity_dist    := begin
     apply @uniformity_dist_of_mem_uniformity _ _ _ _ _ (λ x y, dist (f x) (f y)),
-    refine λ s, mem_comap.trans _,
-    split; intro H,
-    { rcases H with ⟨r, ru, rs⟩,
-      rcases mem_uniformity_dist.1 ru with ⟨ε, ε0, hε⟩,
-      refine ⟨ε, ε0, λ a b h, rs (hε _)⟩, exact h },
-    { rcases H with ⟨ε, ε0, hε⟩,
-      exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
-  end }
+    refine compl_surjective.forall.2 (λ s, compl_mem_comap.trans $ mem_uniformity_dist.trans _),
+    simp only [mem_compl_iff, @imp_not_comm _ (_ ∈ _), ← prod.forall', prod.mk.eta, ball_image_iff]
+  end,
+  to_bornology       := bornology.induced f,
+  cobounded_sets     := set.ext $ compl_surjective.forall.2 $ λ s,
+    by simp only [compl_mem_comap, filter.mem_sets, ← is_bounded_def, mem_set_of_eq, compl_compl,
+      is_bounded_iff, ball_image_iff] }
 
 /-- Pull back a pseudometric space structure by a uniform inducing map. This is a version of
 `pseudo_metric_space.induced` useful in case if the domain already has a `uniform_space`
@@ -1374,8 +1373,7 @@ def uniform_inducing.comap_pseudo_metric_space {α β} [uniform_space α] [pseud
 (pseudo_metric_space.induced f ‹_›).replace_uniformity h.comap_uniformity.symm
 
 instance subtype.pseudo_metric_space {p : α → Prop} : pseudo_metric_space (subtype p) :=
-(pseudo_metric_space.induced coe ‹_›).replace_bornology $ λ s,
-  by { simp only [← is_bounded_image_subtype_coe, is_bounded_iff, ball_image_iff], refl }
+pseudo_metric_space.induced coe ‹_›
 
 theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x : α) y := rfl
 theorem subtype.nndist_eq {p : α → Prop} (x y : subtype p) : nndist x y = nndist (x : α) y := rfl

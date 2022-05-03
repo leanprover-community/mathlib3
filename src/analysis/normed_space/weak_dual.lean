@@ -102,7 +102,7 @@ def weak_dual.to_normed_dual : weak_dual 𝕜 E ≃ₗ[𝕜] dual 𝕜 E :=
 end
 
 @[simp] lemma weak_dual.coe_to_fun_eq_normed_coe_to_fun (x' : dual 𝕜 E) :
-  normed_space.dual.to_weak_dual 𝕜 x' = x' := rfl
+  ⇑(normed_space.dual.to_weak_dual 𝕜 x') = x' := rfl
 
 namespace normed_space.dual
 

@@ -218,7 +218,7 @@ instance sigma_finite_tprod (l : list δ) (μ : Π i, measure (π i)) [∀ i, si
   sigma_finite (measure.tprod l μ) :=
 begin
   induction l with i l ih,
-  { rw [tprod_nil], apply_instance },
+  { rw [tprod_nil], exact is_finite_measure.to_sigma_finite _ },
   { rw [tprod_cons], resetI, apply_instance }
 end
 

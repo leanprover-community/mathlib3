@@ -6,7 +6,8 @@ Authors: Violeta Hernández Palacios
 
 import set_theory.game.pgame
 
-/-! # Pre-games up to relabelling
+/-!
+# Pre-games up to relabelling
 
 In `set_theory/pgame.lean`, we define combinatorial pre-games as arising from a left and right
 family of pre-games. Despite being the most natural definition in type theory, this leads to a major
@@ -15,8 +16,14 @@ instance, pre-game addition isn't commutative, since the indexing types for the 
 
 Here, we define the quotient `rgame` of `pgame` by relabellings. Two games are relabellings of one
 another if there exists a bijection between their left and right moves, and the same is true for
-their left and right options. We prove that `rgame` is both an `add_comm_monoid` and a
-`mul_comm_monoid`. -/
+their left and right options. We prove that `rgame` is an `add_comm_monoid`.
+
+## Todo
+
+- Move the definition of `pgame.mul` here.
+- Define the relation of subsequency up to relabelling, prove basic results.
+- Prove that `rgame` is a `mul_comm_monoid`.
+-/
 
 open pgame function
 
@@ -123,6 +130,10 @@ instance : add_monoid rgame :=
 instance : add_comm_semigroup rgame :=
 { add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact quot.sound ⟨add_comm_relabelling x y⟩ },
   ..rgame.add_semigroup }
+
+instance : add_comm_monoid rgame :=
+{ ..rgame.add_monoid,
+  ..rgame.add_comm_semigroup }
 
 instance covariant_class_add_le : covariant_class rgame rgame (+) (≤) :=
 ⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a }⟩

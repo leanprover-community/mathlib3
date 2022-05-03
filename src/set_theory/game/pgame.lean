@@ -660,30 +660,34 @@ def relabel_relabelling {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : 
   relabelling x (relabel el er) :=
 relabelling.mk el er (λ i, by simp) (λ j, by simp)
 
-/-- `is_option' x y` means that `x` is either a either a left or right option of `y`, up to
-relabelling. Contrast with `is_option`. -/
-@[mk_iff] inductive is_option' : pgame → pgame → Prop
-| relabelling_left {x₁ x₂ y : pgame} (h : is_option x₁ y) (e : x₁.relabelling x₂) : is_option' x₂ y
+/-- `is_relabelled_option x y` means that `x` is either a either a left or right option of `y`, up
+to relabelling. Contrast with `is_option`. -/
+@[mk_iff is_relabelled_option_iff_left] inductive is_relabelled_option : pgame → pgame → Prop
+| relabelling_left {x₁ x₂ y : pgame} (h : is_option x₁ y) (e : x₁.relabelling x₂) :
+    is_relabelled_option x₂ y
 
-theorem is_option.is_option' {x y : pgame} (h : is_option x y) : is_option' x y :=
+theorem is_option.is_relabelled_option {x y : pgame} (h : is_option x y) :
+  is_relabelled_option x y :=
 ⟨h, relabelling.refl x⟩
 
-theorem is_option'.move_left {x : pgame} (i : x.left_moves) : is_option' (x.move_left i) x :=
-(is_option.move_left i).is_option'
+theorem is_relabelled_option.move_left {x : pgame} (i : x.left_moves) :
+  is_relabelled_option (x.move_left i) x :=
+(is_option.move_left i).is_relabelled_option
 
-theorem is_option'.move_right {x : pgame} (j : x.right_moves) : is_option' (x.move_right j) x :=
-(is_option.move_right j).is_option'
+theorem is_relabelled_option.move_right {x : pgame} (j : x.right_moves) :
+  is_relabelled_option (x.move_right j) x :=
+(is_option.move_right j).is_relabelled_option
 
-theorem is_option'.mk_left {xl xr : Type u} (xL : xl → pgame) (xR : xr → pgame) (i : xl) :
-  is_option' (xL i) (mk xl xr xL xR) :=
-@is_option'.move_left (mk _ _ _ _) i
+theorem is_relabelled_option.mk_left {xl xr : Type u} (xL : xl → pgame) (xR : xr → pgame)
+  (i : xl) : is_relabelled_option (xL i) (mk xl xr xL xR) :=
+@is_relabelled_option.move_left (mk _ _ _ _) i
 
-theorem is_option'.mk_right {xl xr : Type u} (xL : xl → pgame) (xR : xr → pgame) (j : xr) :
-  is_option' (xR j) (mk xl xr xL xR) :=
-@is_option'.move_right (mk _ _ _ _) j
+theorem is_relabelled_option.mk_right {xl xr : Type u} (xL : xl → pgame) (xR : xr → pgame)
+  (j : xr) : is_relabelled_option (xR j) (mk xl xr xL xR) :=
+@is_relabelled_option.move_right (mk _ _ _ _) j
 
-theorem is_option'.congr_left {x₁ x₂ y : pgame} (e : x₁.relabelling x₂) :
-  is_option' x₁ y ↔ is_option' x₂ y :=
+theorem is_relabelled_option.congr_left {x₁ x₂ y : pgame} (e : x₁.relabelling x₂) :
+  is_relabelled_option x₁ y ↔ is_relabelled_option x₂ y :=
 begin
   split,
   { rintro ⟨w, _, _, h, e'⟩,
@@ -692,8 +696,8 @@ begin
     exact ⟨h, e'.trans e.symm⟩ },
 end
 
-theorem is_option'.relabelling_right {x y₁ y₂ : pgame} :
-  is_option x y₁ → y₁.relabelling y₂ → is_option' x y₂ :=
+theorem is_relabelled_option.relabelling_right {x y₁ y₂ : pgame} :
+  is_option x y₁ → y₁.relabelling y₂ → is_relabelled_option x y₂ :=
 begin
   rintro (⟨_, i⟩ | ⟨_, j⟩) ⟨_, _, L, R, hL, hR⟩,
   { exact ⟨is_option.move_left _, (hL i).symm⟩ },
@@ -702,9 +706,10 @@ begin
     exact ⟨is_option.move_right _, this⟩ }
 end
 
-/-- Contrast with `is_option'_iff`, which asks for a relabelling of the left argument. -/
-theorem is_option'_iff' {x y₂ : pgame} :
-  x.is_option' y₂ ↔ ∃ {y₁ : pgame} (e : y₁.relabelling y₂), x.is_option y₁ :=
+/-- Contrast with `is_relabelled_option_iff_left`, which asks for a relabelling of the left
+argument. -/
+theorem is_relabelled_option_iff_right {x y₂ : pgame} :
+  x.is_relabelled_option y₂ ↔ ∃ {y₁ : pgame} (e : y₁.relabelling y₂), x.is_option y₁ :=
 begin
   classical,
   cases y₂ with zl zr zL zR,
@@ -727,23 +732,23 @@ begin
       { convert is_option.mk_right zL (λ j', if j' = j then x else zR j') j,
         rw if_pos rfl } } },
   { rintro ⟨y, e, h⟩,
-    exact is_option'.relabelling_right h e }
+    exact is_relabelled_option.relabelling_right h e }
 end
 
-theorem is_option'.congr_right {x y₁ y₂ : pgame} (e : y₁.relabelling y₂) :
-  is_option' x y₁ ↔ is_option' x y₂ :=
+theorem is_relabelled_option.congr_right {x y₁ y₂ : pgame} (e : y₁.relabelling y₂) :
+  is_relabelled_option x y₁ ↔ is_relabelled_option x y₂ :=
 begin
-  rw [is_option'_iff', is_option'_iff'],
+  rw [is_relabelled_option_iff_right, is_relabelled_option_iff_right],
   exact ⟨λ ⟨w, e', h⟩, ⟨w, e'.trans e, h⟩, λ ⟨w, e', h⟩, ⟨w, e'.trans e.symm, h⟩⟩
 end
 
-theorem is_option'.congr {x₁ x₂ y₁ y₂ : pgame} (e₁ : x₁.relabelling x₂) (e₂ : y₁.relabelling y₂) :
-  is_option' x₁ y₁ ↔ is_option' x₂ y₂ :=
-by rw [is_option'.congr_left e₁, is_option'.congr_right e₂]
+theorem is_relabelled_option.congr {x₁ x₂ y₁ y₂ : pgame} (e₁ : x₁.relabelling x₂)
+  (e₂ : y₁.relabelling y₂) : is_relabelled_option x₁ y₁ ↔ is_relabelled_option x₂ y₂ :=
+by rw [is_relabelled_option.congr_left e₁, is_relabelled_option.congr_right e₂]
 
-theorem wf_is_option' : well_founded is_option' :=
+theorem wf_is_relabelled_option : well_founded is_relabelled_option :=
 begin
-  suffices : ∀ {x y : pgame} (e : y.relabelling x), acc is_option' y,
+  suffices : ∀ {x y : pgame} (e : y.relabelling x), acc is_relabelled_option y,
   { exact ⟨λ x, this (relabelling.refl x)⟩ },
   { intro x,
     apply x.move_rec_on,

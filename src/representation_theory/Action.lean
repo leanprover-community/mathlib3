@@ -337,6 +337,7 @@ variables [monoidal_category V]
 instance : monoidal_category (Action V G) :=
 monoidal.transport (Action.functor_category_equivalence _ _).symm
 
+@[simp] lemma tensor_rho {X Y : Action V G} {g : G} : (X ⊗ Y).ρ g = X.ρ g ⊗ Y.ρ g := rfl
 @[simp] lemma tensor_hom {W X Y Z : Action V G} (f : W ⟶ X) (g : Y ⟶ Z) :
   (f ⊗ g).hom = f.hom ⊗ g.hom := rfl
 @[simp] lemma associator_hom_hom {X Y Z : Action V G} :

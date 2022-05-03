@@ -455,19 +455,19 @@ lemma comp_inf_eq_inf_comp_of_is_total [semilattice_inf β] [order_top β] (g : 
 comp_inf_eq_inf_comp g mono_g.map_inf top
 
 @[simp] protected lemma inf_le_iff (ha : a < ⊤) : s.inf f ≤ a ↔ ∃ b ∈ s, f b ≤ a :=
-@finset.le_sup_iff (order_dual α) _ _ _ _ _ _ ha
+@finset.le_sup_iff αᵒᵈ _ _ _ _ _ _ ha
 
-@[simp] protected lemma inf_lt_iff : s.inf f < a ↔ (∃ b ∈ s, f b < a) :=
-@finset.lt_sup_iff (order_dual α) _ _ _ _ _ _
+@[simp] protected lemma inf_lt_iff : s.inf f < a ↔ ∃ b ∈ s, f b < a :=
+@finset.lt_sup_iff αᵒᵈ _ _ _ _ _ _
 
 @[simp] protected lemma lt_inf_iff (ha : a < ⊤) : a < s.inf f ↔ ∀ b ∈ s, a < f b :=
-@finset.sup_lt_iff (order_dual α) _ _ _ _ _ _ ha
+@finset.sup_lt_iff αᵒᵈ _ _ _ _ _ _ ha
 
 end order_top
 end linear_order
 
-lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf f = (⨅a∈s, f a) :=
-@sup_eq_supr _ (order_dual β) _ _ _
+lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf f = ⨅ a ∈ s, f a :=
+@sup_eq_supr _ βᵒᵈ _ _ _
 
 lemma inf_id_eq_Inf [complete_lattice α] (s : finset α) : s.inf id = Inf s := @sup_id_eq_Sup αᵒᵈ _ _
 
@@ -724,14 +724,9 @@ begin
   exact ball_congr (λ b hb, with_bot.coe_lt_coe),
 end
 
-@[simp] lemma inf'_le_iff : s.inf' H f ≤ a ↔ ∃ i ∈ s, f i ≤ a :=
-@le_sup'_iff (order_dual α) _ _ _ H f _
-
-@[simp] lemma inf'_lt_iff : s.inf' H f < a ↔ ∃ i ∈ s, f i < a :=
-@lt_sup'_iff (order_dual α) _ _ _ H f _
-
-@[simp] lemma lt_inf'_iff : a < s.inf' H f ↔ ∀ i ∈ s, a < f i :=
-@sup'_lt_iff (order_dual α) _ _ _ H f _
+@[simp] lemma inf'_le_iff : s.inf' H f ≤ a ↔ ∃ i ∈ s, f i ≤ a := @le_sup'_iff αᵒᵈ _ _ _ H f _
+@[simp] lemma inf'_lt_iff : s.inf' H f < a ↔ ∃ i ∈ s, f i < a := @lt_sup'_iff αᵒᵈ _ _ _ H f _
+@[simp] lemma lt_inf'_iff : a < s.inf' H f ↔ ∀ i ∈ s, a < f i := @sup'_lt_iff αᵒᵈ _ _ _ H f _
 
 lemma exists_mem_eq_sup' (f : ι → α) : ∃ i, i ∈ s ∧ s.sup' H f = f i :=
 begin
@@ -745,7 +740,7 @@ begin
 end
 
 lemma exists_mem_eq_inf' (f : ι → α) : ∃ i, i ∈ s ∧ s.inf' H f = f i :=
-@exists_mem_eq_sup' (order_dual α) _ _ _ H f
+@exists_mem_eq_sup' αᵒᵈ _ _ _ H f
 
 lemma exists_mem_eq_sup [order_bot α] (s : finset ι) (h : s.nonempty) (f : ι → α) :
   ∃ i, i ∈ s ∧ s.sup f = f i :=
@@ -753,7 +748,7 @@ sup'_eq_sup h f ▸ exists_mem_eq_sup' h f
 
 lemma exists_mem_eq_inf [order_top α] (s : finset ι) (h : s.nonempty) (f : ι → α) :
   ∃ i, i ∈ s ∧ s.inf f = f i :=
-@exists_mem_eq_sup (order_dual α) _ _ _ _ h f
+@exists_mem_eq_sup αᵒᵈ _ _ _ _ h f
 
 end linear_order
 

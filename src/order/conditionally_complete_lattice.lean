@@ -504,7 +504,7 @@ have ∀ i, s i = s default := λ i, congr_arg s (unique.eq_default i),
 by simp only [this, csupr_const]
 
 @[simp] theorem infi_unique [unique ι] {s : ι → α} : (⨅ i, s i) = s default :=
-@supr_unique (order_dual α) _ _ _ _
+@supr_unique αᵒᵈ _ _ _ _
 
 @[simp] lemma csupr_pos {p : Prop} {f : p → α} (hp : p) : (⨆ h : p, f h) = f hp :=
 by haveI := unique_prop hp; exact supr_unique

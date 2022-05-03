@@ -659,12 +659,11 @@ lemma sup_ind (a b : α) {p : α → Prop} (ha : p a) (hb : p b) : p (a ⊔ b) :
 @[simp] lemma sup_lt_iff : b ⊔ c < a ↔ b < a ∧ c < a :=
 ⟨λ h, ⟨le_sup_left.trans_lt h, le_sup_right.trans_lt h⟩, λ h, sup_ind b c h.1 h.2⟩
 
-lemma inf_ind (a b : α) {p : α → Prop} (ha : p a) (hb : p b) : p (a ⊓ b) :=
-@sup_ind (order_dual α) _ _ _ _ ha hb
+lemma inf_ind (a b : α) {p : α → Prop} : p a → p b → p (a ⊓ b) := @sup_ind αᵒᵈ _ _ _ _
 
-@[simp] lemma inf_le_iff : b ⊓ c ≤ a ↔ b ≤ a ∨ c ≤ a := @le_sup_iff (order_dual α) _ _ _ _
-@[simp] lemma inf_lt_iff : b ⊓ c < a ↔ b < a ∨ c < a := @lt_sup_iff (order_dual α) _ _ _ _
-@[simp] lemma lt_inf_iff : a < b ⊓ c ↔ a < b ∧ a < c := @sup_lt_iff (order_dual α) _ _ _ _
+@[simp] lemma inf_le_iff : b ⊓ c ≤ a ↔ b ≤ a ∨ c ≤ a := @le_sup_iff αᵒᵈ _ _ _ _
+@[simp] lemma inf_lt_iff : b ⊓ c < a ↔ b < a ∨ c < a := @lt_sup_iff αᵒᵈ _ _ _ _
+@[simp] lemma lt_inf_iff : a < b ⊓ c ↔ a < b ∧ a < c := @sup_lt_iff αᵒᵈ _ _ _ _
 
 end linear_order
 

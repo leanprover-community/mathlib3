@@ -32,8 +32,8 @@ When possible, instead of parametrizing results over `(f : α →ᵇ β)`,
 you should parametrize over `(F : Type*) [bounded_continuous_map_class F α β] (f : F)`.
 
 When you extend this structure, make sure to extend `bounded_continuous_map_class`. -/
-structure bounded_continuous_function
-  (α : Type u) (β : Type v) [topological_space α] [pseudo_metric_space β] extends continuous_map α β :
+structure bounded_continuous_function (α : Type u) (β : Type v)
+  [topological_space α] [pseudo_metric_space β] extends continuous_map α β :
   Type (max u v) :=
 (map_bounded' : ∃ C, ∀ x y, dist (to_fun x) (to_fun y) ≤ C)
 

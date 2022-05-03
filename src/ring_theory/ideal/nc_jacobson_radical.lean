@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Haruhisa Enomoto
 -/
 import ring_theory.ideal.basic
+import ring_theory.jacobson_ideal
 import tactic.noncomm_ring
 /-!
 # Noncommutative Jacobson radical
@@ -117,11 +118,13 @@ variables {R : Type u} [ring R]
 /-! ### Jacobson radical of a ring -/
 
 /--
-For a semiring `R`, `nc_jacobson R` is the Jacobson radical of `R`, that is,
+For a ring `R`, `nc_jacobson R` is the Jacobson radical of `R`, that is,
 the intersection of all maximal left ideals of of `R`. Note that we use left ideals.
 -/
-def nc_jacobson (R : Type u) [semiring R] : ideal R :=
-Inf {I : ideal R | I.is_maximal }
+def nc_jacobson (R : Type u) [ring R] : ideal R := jacobson ⊥
+
+lemma nc_jacobson_def : nc_jacobson R = Inf {I : ideal R | I.is_maximal } :=
+congr_arg Inf $ by simp
 
 lemma has_left_inv_iff_span_top {x : R} :
   has_left_inv x ↔ span ({x} : set R) = ⊤ :=
@@ -156,7 +159,7 @@ begin
   rintro ⟨I, hImax, hxxI⟩ hx,
   refine hImax.ne_top _,
   rw eq_top_iff_one,
-  have hxI : x ∈ I := by { rw [nc_jacobson, mem_Inf] at hx, apply hx hImax },
+  have hxI : x ∈ I := by { rw [nc_jacobson_def, mem_Inf] at hx, apply hx hImax },
   exact (add_mem_cancel_right hxI).mp hxxI,
 end
 
@@ -211,7 +214,7 @@ begin
   tfae_have : 5 → 1,
   { intro h,
     by_contra hx,
-    rw [nc_jacobson, submodule.mem_Inf] at hx,
+    rw [nc_jacobson_def, submodule.mem_Inf] at hx,
     simp only [not_forall] at hx,
     rcases hx with ⟨I, hImax, hxI⟩,
     refine hImax.ne_top _,

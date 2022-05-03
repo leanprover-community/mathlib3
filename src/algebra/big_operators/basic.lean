@@ -343,6 +343,26 @@ begin
     cases H }
 end
 
+@[simp, to_additive]
+lemma prod_on_sum [fintype α] [fintype γ] (f : α ⊕ γ → β) :
+  ∏ (x : α ⊕ γ), f x  =
+    (∏ (x : α), f (sum.inl x)) * (∏ (x : γ), f (sum.inr x)) :=
+begin
+  haveI := classical.dec_eq (α ⊕ γ),
+  convert prod_sum_elim univ univ (λ x, f (sum.inl x)) (λ x, f (sum.inr x)),
+  { ext a,
+    split,
+    { intro x,
+      cases a,
+      { simp only [mem_union, mem_map, mem_univ, function.embedding.inl_apply, or_false,
+          exists_true_left, exists_apply_eq_apply, function.embedding.inr_apply, exists_false], },
+      { simp only [mem_union, mem_map, mem_univ, function.embedding.inl_apply, false_or,
+          exists_true_left, exists_false, function.embedding.inr_apply,
+          exists_apply_eq_apply], }, },
+    { simp only [mem_univ, implies_true_iff], }, },
+  { simp only [sum.elim_comp_inl_inr], },
+end
+
 @[to_additive]
 lemma prod_bUnion [decidable_eq α] {s : finset γ} {t : γ → finset α}
   (hs : set.pairwise_disjoint ↑s t) :
@@ -1652,6 +1672,11 @@ end multiset
 @[simp, norm_cast] lemma units.coe_prod {M : Type*} [comm_monoid M] (f : α → Mˣ)
   (s : finset α) : (↑∏ i in s, f i : M) = ∏ i in s, f i :=
 (units.coe_hom M).map_prod _ _
+
+lemma units.mk0_prod [comm_group_with_zero β] (s : finset α) (f : α → β) (h) :
+  units.mk0 (∏ b in s, f b) h =
+  ∏ b in s.attach, units.mk0 (f b) (λ hh, h (finset.prod_eq_zero b.2 hh)) :=
+by { classical, induction s using finset.induction_on; simp* }
 
 lemma nat_abs_sum_le {ι : Type*} (s : finset ι) (f : ι → ℤ) :
   (∑ i in s, f i).nat_abs ≤ ∑ i in s, (f i).nat_abs :=

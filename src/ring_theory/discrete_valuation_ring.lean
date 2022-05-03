@@ -371,8 +371,8 @@ begin
   have := multiset.card_eq_card_of_rel (unique_factorization_monoid.factors_unique _ _ key),
   { simpa only [multiset.card_repeat] },
   all_goals
-  { intros x hx, replace hx := multiset.eq_of_mem_repeat hx,
-    unfreezingI { subst hx, assumption } },
+  { intros x hx,
+    unfreezingI { obtain rfl := multiset.eq_of_mem_repeat hx, assumption } },
 end
 
 lemma unit_mul_pow_congr_unit {ϖ : R} (hirr : irreducible ϖ) (u v : Rˣ) (m n : ℕ)

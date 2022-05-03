@@ -109,6 +109,15 @@ lemma mem_resolvent_set_iff {r : R} {a : A} :
   r ∈ resolvent_set R a ↔ is_unit (↑ₐr - a) :=
 iff.rfl
 
+@[simp] lemma resolvent_set_of_subsingleton [subsingleton A] (a : A) :
+  resolvent_set R a = set.univ :=
+by simp_rw [resolvent_set, subsingleton.elim (algebra_map R A _ - a) 1, is_unit_one,
+  set.set_of_true]
+
+@[simp] lemma of_subsingleton [subsingleton A] (a : A) :
+  spectrum R a = ∅ :=
+by rw [spectrum, resolvent_set_of_subsingleton, set.compl_univ]
+
 lemma resolvent_eq {a : A} {r : R} (h : r ∈ resolvent_set R a) :
   resolvent a r = ↑h.unit⁻¹ :=
 ring.inverse_unit h.unit

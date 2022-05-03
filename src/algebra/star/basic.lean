@@ -264,7 +264,7 @@ def star_ring_equiv [non_unital_semiring R] [star_ring R] : R ≃+* Rᵐᵒᵖ :
 
 @[simp, norm_cast] lemma star_rat_cast [division_ring R] [char_zero R] [star_ring R] (r : ℚ) :
   star (r : R) = r :=
-(congr_arg unop ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_rat_cast r)).trans (unop_rat_cast _)
+(congr_arg unop $ map_rat_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) r).trans (unop_rat_cast _)
 
 /-- `star` as a ring automorphism, for commutative `R`. -/
 @[simps apply]

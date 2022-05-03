@@ -185,14 +185,23 @@ namespace tactic
 open tactic
 setup_tactic_parser
 
+/--
+Auxilliary definition of `monoidal_coherence`,
+being careful with namespaces to avoid shadowing.
+-/
+meta def mk_project_map_expr (e : expr) : tactic expr :=
+  to_expr ``(category_theory.free_monoidal_category.project_map _root_.id _ _
+    (category_theory.monoidal_category.lift_hom.lift %%e))
+
 /-- Coherence tactic for monoidal categories. -/
 meta def monoidal_coherence : tactic unit :=
 do
   o ← get_options, set_options $ o.set_nat `class.instance_max_depth 128,
   try `[dsimp],
   `(%%lhs = %%rhs) ← target,
-  to_expr  ``(project_map id _ _ (lift_hom.lift %%lhs) = project_map id _ _ (lift_hom.lift %%rhs))
-    >>= tactic.change,
+  project_map_lhs ← mk_project_map_expr lhs,
+  project_map_rhs ← mk_project_map_expr rhs,
+  to_expr  ``(%%project_map_lhs = %%project_map_rhs) >>= tactic.change,
   congr
 
 /--
@@ -254,6 +263,11 @@ begin
   cases w,
 end
 
+lemma insert_id_lhs {C : Type*} [category C] {X Y : C} (f g : X ⟶ Y) (w : f ≫ 𝟙 _ = g) : f = g :=
+by simpa using w
+lemma insert_id_rhs {C : Type*} [category C] {X Y : C} (f g : X ⟶ Y) (w : f = g ≫ 𝟙 _) : f = g :=
+by simpa using w
+
 end coherence
 
 open coherence
@@ -291,6 +305,8 @@ do
   -- Then check that either `g₀` is identically `g₁`,
   reflexivity <|> (do
     -- or that both are compositions,
+    (do `(_ ≫ _ = _) ← target, skip) <|> `[apply tactic.coherence.insert_id_lhs],
+    (do `(_ = _ ≫ _) ← target, skip) <|> `[apply tactic.coherence.insert_id_rhs],
     `(_ ≫ _ = _ ≫ _) ← target |
       fail "`coherence` tactic failed, non-structural morphisms don't match",
     tactic.congr_core',
@@ -312,6 +328,9 @@ by coherence
 
 example {U V W X Y : C} (f : U ⟶ V ⊗ (W ⊗ X)) (g : (V ⊗ W) ⊗ X ⟶ Y) :
   f ⊗≫ g = f ≫ (α_ _ _ _).inv ≫ g :=
+by coherence
+
+example {U : C} (f : U ⟶ 𝟙_ C) : f ≫ (ρ_ (𝟙_ C)).inv ≫ (λ_ (𝟙_ C)).hom = f :=
 by coherence
 
 example (W X Y Z : C) (f) :

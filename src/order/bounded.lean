@@ -240,7 +240,7 @@ by simp_rw [← not_le, bounded_le_inter_not_le]
 
 theorem unbounded_le_inter_lt [linear_order α] (a : α) :
   unbounded (≤) (s ∩ {b | a < b}) ↔ unbounded (≤) s :=
-by { convert unbounded_le_inter_not_le a, ext, exact lt_iff_not_ge' }
+by { convert unbounded_le_inter_not_le a, ext, exact lt_iff_not_le }
 
 theorem bounded_le_inter_le [linear_order α] (a : α) :
   bounded (≤) (s ∩ {b | a ≤ b}) ↔ bounded (≤) s :=

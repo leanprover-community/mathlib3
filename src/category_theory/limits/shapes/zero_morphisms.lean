@@ -27,6 +27,7 @@ zero object provides zero morphisms, as the unique morphisms factoring through t
 noncomputable theory
 
 universes v u
+universes v' u'
 
 open category_theory
 open category_theory.category
@@ -34,6 +35,7 @@ open category_theory.category
 namespace category_theory.limits
 
 variables (C : Type u) [category.{v} C]
+variables (D : Type u') [category.{v'} D]
 
 /-- A category "has zero morphisms" if there is a designated "zero morphism" in each morphism space,
 and compositions of zero morphisms with anything give the zero morphism. -/
@@ -120,8 +122,6 @@ lemma nonzero_image_of_nonzero {X Y : C} {f : X ⟶ Y} [has_image f] (w : f ≠ 
 end
 
 section
-universes v' u'
-variables (D : Type u') [category.{v'} D]
 
 variables [has_zero_morphisms D]
 
@@ -200,17 +200,26 @@ end has_zero_morphisms
 
 open_locale zero_object
 
-instance {B : Type*} [category B] [has_zero_morphisms C] : has_zero_object (B ⥤ C) :=
-{ zero := { obj := λ X, 0, map := λ X Y f, 0, },
-  unique_to := λ F, ⟨⟨{ app := λ X, 0, }⟩, by tidy⟩,
-  unique_from := λ F, ⟨⟨{ app := λ X, 0, }⟩, by tidy⟩ }
-
-@[simp] lemma functor.zero_obj {B : Type*} [category B] [has_zero_morphisms C] (X : B) :
-  (0 : B ⥤ C).obj X = 0 := rfl
-@[simp] lemma functor.zero_map {B : Type*} [category B] [has_zero_morphisms C]
-  {X Y : B} (f : X ⟶ Y) : (0 : B ⥤ C).map f = 0 := rfl
+instance {B : Type*} [category B] : has_zero_object (B ⥤ C) :=
+(((category_theory.functor.const B).obj (0 : C)).is_zero $ λ X, is_zero_zero _).has_zero_object
 
 end has_zero_object
+
+open_locale zero_object
+
+variables {D}
+
+@[simp] lemma is_zero.map [has_zero_object D] [has_zero_morphisms D] {F : C ⥤ D} (hF : is_zero F)
+  {X Y : C} (f : X ⟶ Y) : F.map f = 0 :=
+(hF.obj _).eq_of_src _ _
+
+@[simp] lemma _root_.category_theory.functor.zero_obj [has_zero_object D]
+  (X : C) : is_zero ((0 : C ⥤ D).obj X) :=
+(is_zero_zero _).obj _
+
+@[simp] lemma _root_.category_theory.zero_map [has_zero_object D] [has_zero_morphisms D]
+  {X Y : C} (f : X ⟶ Y) : (0 : C ⥤ D).map f = 0 :=
+(is_zero_zero _).map _
 
 section
 variables [has_zero_object C] [has_zero_morphisms C]
@@ -362,28 +371,26 @@ def is_iso_zero_self_equiv_iso_zero (X : C) : is_iso (0 : X ⟶ X) ≃ (X ≅ 0)
 end is_iso
 
 /-- If there are zero morphisms, any initial object is a zero object. -/
-def has_zero_object_of_has_initial_object
+lemma has_zero_object_of_has_initial_object
   [has_zero_morphisms C] [has_initial C] : has_zero_object C :=
-{ zero := ⊥_ C,
-  unique_to := λ X, ⟨⟨0⟩, by tidy⟩,
-  unique_from := λ X, ⟨⟨0⟩, λ f,
+begin
+  refine ⟨⟨⊥_ C, λ X, ⟨⟨⟨0⟩, by tidy⟩⟩, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩⟩⟩,
   calc
     f = f ≫ 𝟙 _ : (category.comp_id _).symm
     ... = f ≫ 0 : by congr
     ... = 0     : has_zero_morphisms.comp_zero _ _
-  ⟩ }
+end
 
 /-- If there are zero morphisms, any terminal object is a zero object. -/
-def has_zero_object_of_has_terminal_object
+lemma has_zero_object_of_has_terminal_object
   [has_zero_morphisms C] [has_terminal C] : has_zero_object C :=
-{ zero := ⊤_ C,
-  unique_from := λ X, ⟨⟨0⟩, by tidy⟩,
-  unique_to := λ X, ⟨⟨0⟩, λ f,
+begin
+  refine ⟨⟨⊤_ C, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨0⟩, by tidy⟩⟩⟩⟩,
   calc
     f = 𝟙 _ ≫ f : (category.id_comp _).symm
     ... = 0 ≫ f : by congr
     ... = 0     : zero_comp
-  ⟩ }
+end
 
 
 section image

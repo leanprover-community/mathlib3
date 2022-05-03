@@ -559,6 +559,22 @@ lemma continuous.if_le [topological_space γ] [Π x, decidable (f x ≤ g x)] {f
   continuous (λ x, if f x ≤ g x then f' x else g' x) :=
 continuous_if_le hf hg hf'.continuous_on hg'.continuous_on hfg
 
+lemma tendsto.eventually_lt {l : filter γ} {f g : γ → α} {y z : α}
+  (hf : tendsto f l (𝓝 y)) (hg : tendsto g l (𝓝 z)) (hyz : y < z) : ∀ᶠ x in l, f x < g x :=
+begin
+  by_cases h : y ⋖ z,
+  { filter_upwards [hf (Iio_mem_nhds hyz), hg (Ioi_mem_nhds hyz)],
+    rw [h.Iio_eq],
+    exact λ x hfx hgx, lt_of_le_of_lt hfx hgx },
+  { obtain ⟨w, hyw, hwz⟩ := (not_covby_iff hyz).mp h,
+    filter_upwards [hf (Iio_mem_nhds hyw), hg (Ioi_mem_nhds hwz)],
+    exact λ x, lt_trans },
+end
+
+lemma continuous_at.eventually_lt {x₀ : β} (hf : continuous_at f x₀)
+  (hg : continuous_at g x₀) (hfg : f x₀ < g x₀) : ∀ᶠ x in 𝓝 x₀, f x < g x :=
+tendsto.eventually_lt hf hg hfg
+
 @[continuity] lemma continuous.min (hf : continuous f) (hg : continuous g) :
   continuous (λb, min (f b) (g b)) :=
 by { simp only [min_def], exact hf.if_le hg hf hg (λ x, id) }
@@ -612,6 +628,48 @@ hs.order_dual.exists_le' htop x
 lemma dense.exists_between [densely_ordered α] {s : set α} (hs : dense s) {x y : α} (h : x < y) :
   ∃ z ∈ s, z ∈ Ioo x y :=
 hs.exists_mem_open is_open_Ioo (nonempty_Ioo.2 h)
+
+variables [nonempty α] [topological_space β]
+
+/-- A compact set is bounded below -/
+lemma is_compact.bdd_below {s : set α} (hs : is_compact s) : bdd_below s :=
+begin
+  by_contra H,
+  rcases hs.elim_finite_subcover_image (λ x (_ : x ∈ s), @is_open_Ioi _ _ _ _ x) _
+    with ⟨t, st, ft, ht⟩,
+  { refine H (ft.bdd_below.imp $ λ C hC y hy, _),
+    rcases mem_Union₂.1 (ht hy) with ⟨x, hx, xy⟩,
+    exact le_trans (hC hx) (le_of_lt xy) },
+  { refine λ x hx, mem_Union₂.2 (not_imp_comm.1 _ H),
+    exact λ h, ⟨x, λ y hy, le_of_not_lt (h.imp $ λ ys, ⟨_, hy, ys⟩)⟩ }
+end
+
+/-- A compact set is bounded above -/
+lemma is_compact.bdd_above {s : set α} (hs : is_compact s) : bdd_above s :=
+@is_compact.bdd_below (order_dual α) _ _ _ _ _ hs
+
+/-- A continuous function is bounded below on a compact set. -/
+lemma is_compact.bdd_below_image {f : β → α} {K : set β}
+  (hK : is_compact K) (hf : continuous_on f K) : bdd_below (f '' K) :=
+(hK.image_of_continuous_on hf).bdd_below
+
+/-- A continuous function is bounded above on a compact set. -/
+lemma is_compact.bdd_above_image {f : β → α} {K : set β}
+  (hK : is_compact K) (hf : continuous_on f K) : bdd_above (f '' K) :=
+@is_compact.bdd_below_image (order_dual α) _ _ _ _ _ _ _ _ hK hf
+
+/-- A continuous function with compact support is bounded below. -/
+@[to_additive /-" A continuous function with compact support is bounded below. "-/]
+lemma continuous.bdd_below_range_of_has_compact_mul_support [has_one α] {f : β → α}
+  (hf : continuous f) (h : has_compact_mul_support f) : bdd_below (range f) :=
+(h.is_compact_range hf).bdd_below
+
+/-- A continuous function with compact support is bounded above. -/
+@[to_additive /-" A continuous function with compact support is bounded above. "-/]
+lemma continuous.bdd_above_range_of_has_compact_mul_support [has_one α]
+  {f : β → α} (hf : continuous f) (h : has_compact_mul_support f) :
+  bdd_above (range f) :=
+@continuous.bdd_below_range_of_has_compact_mul_support (order_dual α) _ _ _ _ _ _ _ _ hf h
 
 end linear_order
 
@@ -766,9 +824,8 @@ instance tendsto_Icc_class_nhds_pi {ι : Type*} {α : ι → Type*}
   tendsto_Ixx_class Icc (𝓝 f) (𝓝 f) :=
 begin
   constructor,
-  conv in ((𝓝 f).lift' powerset) { rw [nhds_pi, filter.pi] },
-  simp only [lift'_infi_powerset, comap_lift'_eq2 monotone_powerset, tendsto_infi, tendsto_lift',
-    mem_powerset_iff, subset_def, mem_preimage],
+  conv in ((𝓝 f).small_sets) { rw [nhds_pi, filter.pi] },
+  simp only [small_sets_infi, small_sets_comap, tendsto_infi, tendsto_lift', (∘), mem_powerset_iff],
   intros i s hs,
   have : tendsto (λ g : Π i, α i, g i) (𝓝 f) (𝓝 (f i)) := ((continuous_apply i).tendsto f),
   refine (tendsto_lift'.1 ((this.comp tendsto_fst).Icc (this.comp tendsto_snd)) s hs).mono _,
@@ -870,8 +927,8 @@ lemma nhds_bot_order [topological_space α] [partial_order α] [order_bot α] [o
   𝓝 (⊥:α) = (⨅l (h₂ : ⊥ < l), 𝓟 (Iio l)) :=
 by simp [nhds_eq_order (⊥:α)]
 
-lemma nhds_top_basis [topological_space α] [semilattice_sup α] [order_top α] [is_total α has_le.le]
-  [order_topology α] [nontrivial α] :
+lemma nhds_top_basis [topological_space α] [linear_order α] [order_top α] [order_topology α]
+  [nontrivial α] :
   (𝓝 ⊤).has_basis (λ a : α, a < ⊤) (λ a : α, Ioi a) :=
 ⟨ begin
     simp only [nhds_top_order],
@@ -884,22 +941,22 @@ lemma nhds_top_basis [topological_space α] [semilattice_sup α] [order_top α] 
       exact ⟨a, lt_top_iff_ne_top.mpr ha⟩ }
   end ⟩
 
-lemma nhds_bot_basis [topological_space α] [semilattice_inf α] [order_bot α] [is_total α has_le.le]
-  [order_topology α] [nontrivial α] :
+lemma nhds_bot_basis [topological_space α] [linear_order α] [order_bot α] [order_topology α]
+  [nontrivial α] :
   (𝓝 ⊥).has_basis (λ a : α, ⊥ < a) (λ a : α, Iio a) :=
-@nhds_top_basis (order_dual α) _ _ _ _ _ _
+@nhds_top_basis (order_dual α) _ _ _ _ _
 
-lemma nhds_top_basis_Ici [topological_space α] [semilattice_sup α] [order_top α]
-  [is_total α has_le.le] [order_topology α] [nontrivial α] [densely_ordered α] :
+lemma nhds_top_basis_Ici [topological_space α] [linear_order α] [order_top α] [order_topology α]
+  [nontrivial α] [densely_ordered α] :
   (𝓝 ⊤).has_basis (λ a : α, a < ⊤) Ici :=
 nhds_top_basis.to_has_basis
   (λ a ha, let ⟨b, hab, hb⟩ := exists_between ha in ⟨b, hb, Ici_subset_Ioi.mpr hab⟩)
   (λ a ha, ⟨a, ha, Ioi_subset_Ici_self⟩)
 
-lemma nhds_bot_basis_Iic [topological_space α] [semilattice_inf α] [order_bot α]
-  [is_total α has_le.le] [order_topology α] [nontrivial α] [densely_ordered α] :
+lemma nhds_bot_basis_Iic [topological_space α] [linear_order α] [order_bot α] [order_topology α]
+  [nontrivial α] [densely_ordered α] :
   (𝓝 ⊥).has_basis (λ a : α, ⊥ < a) Iic :=
-@nhds_top_basis_Ici (order_dual α) _ _ _ _ _ _ _
+@nhds_top_basis_Ici (order_dual α) _ _ _ _ _ _
 
 lemma tendsto_nhds_top_mono [topological_space β] [partial_order β] [order_top β] [order_topology β]
   {l : filter α} {f g : α → β} (hf : tendsto f l (𝓝 ⊤)) (hg : f ≤ᶠ[l] g) :
@@ -2168,37 +2225,6 @@ lemma exists_seq_tendsto_Inf {α : Type*} [conditionally_complete_linear_order �
   {S : set α} (hS : S.nonempty) (hS' : bdd_below S) :
   ∃ (u : ℕ → α), antitone u ∧ tendsto u at_top (𝓝 (Inf S)) ∧ (∀ n, u n ∈ S) :=
 @exists_seq_tendsto_Sup (order_dual α) _ _ _ _ S hS hS'
-
-/-- A compact set is bounded below -/
-lemma is_compact.bdd_below {α : Type u} [topological_space α] [linear_order α]
-  [order_closed_topology α] [nonempty α] {s : set α} (hs : is_compact s) : bdd_below s :=
-begin
-  by_contra H,
-  rcases hs.elim_finite_subcover_image (λ x (_ : x ∈ s), @is_open_Ioi _ _ _ _ x) _
-    with ⟨t, st, ft, ht⟩,
-  { refine H (ft.bdd_below.imp $ λ C hC y hy, _),
-    rcases mem_Union₂.1 (ht hy) with ⟨x, hx, xy⟩,
-    exact le_trans (hC hx) (le_of_lt xy) },
-  { refine λ x hx, mem_Union₂.2 (not_imp_comm.1 _ H),
-    exact λ h, ⟨x, λ y hy, le_of_not_lt (h.imp $ λ ys, ⟨_, hy, ys⟩)⟩ }
-end
-
-/-- A compact set is bounded above -/
-lemma is_compact.bdd_above {α : Type u} [topological_space α] [linear_order α]
-  [order_closed_topology α] : Π [nonempty α] {s : set α}, is_compact s → bdd_above s :=
-@is_compact.bdd_below (order_dual α) _ _ _
-
-/-- A continuous function is bounded below on a compact set. -/
-lemma is_compact.bdd_below_image {α : Type u} [topological_space α] [linear_order α]
-  [order_closed_topology α] [nonempty α] [topological_space γ] {f : γ → α} {K : set γ}
-  (hK : is_compact K) (hf : continuous_on f K) : bdd_below (f '' K) :=
-(hK.image_of_continuous_on hf).bdd_below
-
-/-- A continuous function is bounded above on a compact set. -/
-lemma is_compact.bdd_above_image {α : Type u} [topological_space α] [linear_order α]
-  [order_closed_topology α] [nonempty α] [topological_space γ] {f : γ → α} {K : set γ}
-  (hK : is_compact K) (hf : continuous_on f K) : bdd_above (f '' K) :=
-@is_compact.bdd_below_image _ (order_dual α) _ _ _ _ _ _ _ hK hf
 
 end order_topology
 

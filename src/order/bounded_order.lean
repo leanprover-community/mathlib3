@@ -183,8 +183,8 @@ variables [partial_order α] [order_bot α] [preorder β] {f : α → β} {a b :
 lemma not_is_min_iff_ne_bot : ¬ is_min a ↔ a ≠ ⊥ := is_min_iff_eq_bot.not
 lemma not_is_bot_iff_ne_bot : ¬ is_bot a ↔ a ≠ ⊥ := is_bot_iff_eq_bot.not
 
-alias is_min_iff_eq_bot ↔ _ is_min.eq_bot
-alias is_bot_iff_eq_bot ↔ _ is_bot.eq_bot
+alias is_min_iff_eq_bot ↔ is_min.eq_bot _
+alias is_bot_iff_eq_bot ↔ is_bot.eq_bot _
 
 @[simp] lemma le_bot_iff : a ≤ ⊥ ↔ a = ⊥ := bot_le.le_iff_eq
 lemma bot_unique (h : a ≤ ⊥) : a = ⊥ := h.antisymm bot_le
@@ -638,6 +638,17 @@ lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a
 lemma get_or_else_bot_le_iff [has_le α] [order_bot α] {a : with_bot α} {b : α} :
   a.get_or_else ⊥ ≤ b ↔ a ≤ b :=
 by cases a; simp [none_eq_bot, some_eq_coe]
+
+lemma get_or_else_bot_lt_iff [partial_order α] [order_bot α] {a : with_bot α} {b : α}
+  (ha : a ≠ ⊥) :
+  a.get_or_else ⊥ < b ↔ a < b :=
+begin
+  obtain ⟨a, rfl⟩ := ne_bot_iff_exists.mp ha,
+  simp only [lt_iff_le_and_ne, get_or_else_bot_le_iff, and.congr_right_iff],
+  intro h,
+  apply iff.not,
+  simp only [with_bot.coe_eq_coe, option.get_or_else_coe, iff_self],
+end
 
 instance [semilattice_sup α] : semilattice_sup (with_bot α) :=
 { sup          := option.lift_or_get (⊔),

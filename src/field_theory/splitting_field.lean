@@ -68,7 +68,7 @@ f = 0 ∨ ∀ {g : L[X]}, irreducible g → g ∣ f.map i → degree g = 1
 @[simp] lemma splits_C (a : K) : splits i (C a) :=
 if ha : a = 0 then ha.symm ▸ (@C_0 K _).symm ▸ splits_zero i
 else
-have hia : i a ≠ 0, from mt ((i.injective_iff).1
+have hia : i a ≠ 0, from mt ((injective_iff_map_eq_zero i).1
   i.injective _) ha,
 or.inr $ λ g hg ⟨p, hp⟩, absurd hg.1 (not_not.2 (is_unit_iff_degree_eq_zero.2 $
   by have := congr_arg degree hp;
@@ -546,7 +546,7 @@ alg_equiv.symm $ alg_equiv.of_bijective
     (λ p, adjoin_root.induction_on _ p $ λ p,
       (algebra.adjoin_singleton_eq_range_aeval F x).symm ▸
         (polynomial.aeval _).mem_range.mpr ⟨p, rfl⟩))
-  ⟨(alg_hom.injective_cod_restrict _ _ _).2 $ (alg_hom.injective_iff _).2 $ λ p,
+  ⟨(alg_hom.injective_cod_restrict _ _ _).2 $ (injective_iff_map_eq_zero _).2 $ λ p,
     adjoin_root.induction_on _ p $ λ p hp, ideal.quotient.eq_zero_iff_mem.2 $
     ideal.mem_span_singleton.2 $ minpoly.dvd F x hp,
   λ y,

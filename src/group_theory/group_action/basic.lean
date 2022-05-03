@@ -331,6 +331,10 @@ attribute [to_additive add_action.quotient_action] mul_action.quotient_action
 ⟨λ b c _ _, by rwa [smul_def, smul_def, smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev, ←mul_assoc,
   mem_normalizer_iff'.mp b.prop, mul_assoc, mul_inv_cancel_left]⟩
 
+@[to_additive] instance right_quotient_action' [hH : H.normal] : quotient_action αᵐᵒᵖ H :=
+⟨λ _ _ _ _, by rwa [smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev, mul_assoc, hH.mem_comm_iff,
+  mul_assoc, mul_inv_cancel_right]⟩
+
 @[to_additive] instance quotient [quotient_action β H] : mul_action β (α ⧸ H) :=
 { smul := λ b, quotient.map' ((•) b) (λ a a' h, quotient_action.inv_mul_mem b h),
   one_smul := λ q, quotient.induction_on' q (λ a, congr_arg quotient.mk' (one_smul β a)),
@@ -338,11 +342,19 @@ attribute [to_additive add_action.quotient_action] mul_action.quotient_action
 
 variables {β}
 
-@[simp, to_additive] lemma quotient.smul_mk [quotient_action β H] (a : β) (x : α) :
-  (a • quotient_group.mk x : α ⧸ H) = quotient_group.mk (a • x) := rfl
+@[simp, to_additive] lemma quotient.smul_mk [quotient_action β H] (b : β) (a : α) :
+  (b • quotient_group.mk a : α ⧸ H) = quotient_group.mk (b • a) := rfl
 
-@[simp, to_additive] lemma quotient.smul_coe [quotient_action β H] (a : β) (x : α) :
-  (a • x : α ⧸ H) = ↑(a • x) := rfl
+@[simp, to_additive] lemma quotient.smul_coe [quotient_action β H] (b : β) (a : α) :
+  (b • a : α ⧸ H) = ↑(b • a) := rfl
+
+@[simp, to_additive] lemma quotient.mk_smul_out' [quotient_action β H] (b : β) (q : α ⧸ H) :
+  quotient_group.mk (b • q.out') = b • q :=
+by rw [←quotient.smul_mk, quotient_group.out_eq']
+
+@[simp, to_additive] lemma quotient.coe_smul_out' [quotient_action β H] (b : β) (q : α ⧸ H) :
+  ↑(b • q.out') = b • q :=
+quotient.mk_smul_out' H b q
 
 end quotient_action
 

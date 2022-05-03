@@ -116,8 +116,7 @@ instance nat.subtype.semilattice_sup (s : set ℕ) :
 lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
   [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
 
-theorem nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n :=
-rfl
+protected lemma nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n := rfl
 
 theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
 by rw [mul_comm n m, mul_comm k m] at H; exact nat.eq_of_mul_eq_mul_left Hm H

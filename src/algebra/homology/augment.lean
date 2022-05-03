@@ -10,6 +10,8 @@ import tactic.linarith
 # Augmentation and truncation of `ℕ`-indexed (co)chain complexes.
 -/
 
+noncomputable theory
+
 open category_theory
 open category_theory.limits
 open homological_complex

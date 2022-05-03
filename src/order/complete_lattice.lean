@@ -428,7 +428,7 @@ by { convert h1.supr_comp g, exact (funext h2).symm }
 @[congr] lemma supr_congr_Prop {p q : Prop} {f₁ : p → α} {f₂ : q → α} (pq : p ↔ q)
   (f : ∀ x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
 begin
-  have := propext pq, subst this,
+  obtain rfl := propext pq,
   congr' with x,
   apply f
 end
@@ -1176,6 +1176,9 @@ instance Prop.complete_lattice : complete_lattice Prop :=
   le_Inf := λ s a h p b hb, h b hb p,
   .. Prop.bounded_order,
   .. Prop.distrib_lattice }
+
+noncomputable instance Prop.complete_linear_order : complete_linear_order Prop :=
+{ ..Prop.complete_lattice, ..Prop.linear_order }
 
 @[simp] lemma Sup_Prop_eq {s : set Prop} : Sup s = ∃ p ∈ s, p := rfl
 @[simp] lemma Inf_Prop_eq {s : set Prop} : Inf s = ∀ p ∈ s, p := rfl

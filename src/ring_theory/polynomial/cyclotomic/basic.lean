@@ -316,6 +316,10 @@ begin
   simp only [coeff_map, ring_hom.eq_int_cast, ring_hom.map_int_cast]
 end
 
+lemma cyclotomic.eval_apply {R S : Type*} (q : R) (n : ℕ) [ring R] [ring S] (f : R →+* S) :
+  eval (f q) (cyclotomic n S) = f (eval q (cyclotomic n R)) :=
+by rw [← map_cyclotomic n f, eval_map, eval₂_at_apply]
+
 /-- The zeroth cyclotomic polyomial is `1`. -/
 @[simp] lemma cyclotomic_zero (R : Type*) [ring R] : cyclotomic 0 R = 1 :=
 by simp only [cyclotomic, dif_pos]

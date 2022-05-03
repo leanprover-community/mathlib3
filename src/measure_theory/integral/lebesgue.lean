@@ -313,7 +313,7 @@ def pair (f : α →ₛ β) (g : α →ₛ γ) : α →ₛ (β × γ) := (f.map 
 @[simp] lemma pair_apply (f : α →ₛ β) (g : α →ₛ γ) (a) : pair f g a = (f a, g a) := rfl
 
 lemma pair_preimage (f : α →ₛ β) (g : α →ₛ γ) (s : set β) (t : set γ) :
-  (pair f g) ⁻¹' (s ×ˢ t) = (f ⁻¹' s) ∩ (g ⁻¹' t) := rfl
+  pair f g ⁻¹' s ×ˢ t = (f ⁻¹' s) ∩ (g ⁻¹' t) := rfl
 
 /- A special form of `pair_preimage` -/
 lemma pair_preimage_singleton (f : α →ₛ β) (g : α →ₛ γ) (b : β) (c : γ) :

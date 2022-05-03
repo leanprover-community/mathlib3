@@ -372,6 +372,19 @@ by { change faithful (forget V G), apply_instance, }
 instance [braided_category V] : braided_category (Action V G) :=
 braided_category_of_faithful (forget_monoidal V G) (λ X Y, mk_iso (β_ _ _) (by tidy)) (by tidy)
 
+@[simp] lemma braiding_hom_hom {X Y : Action V G} :
+  hom.hom (β_ X Y).hom = (β_ X.V Y.V).hom :=
+begin
+  dsimp [monoidal.transport_right_unitor],
+  simp,
+end
+@[simp] lemma braiding_inv_hom {X Y : Action V G} :
+  hom.hom (β_ X Y).inv = (β_ X.V Y.V).inv :=
+begin
+  dsimp [monoidal.transport_right_unitor],
+  simp,
+end
+
 /-- When `V` is braided the forgetful functor `Action V G` to `V` is braided. -/
 @[simps]
 def forget_braided [braided_category V] : braided_functor (Action V G) V :=

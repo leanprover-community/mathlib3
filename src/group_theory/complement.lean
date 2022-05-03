@@ -241,8 +241,8 @@ noncomputable def to_equiv (hS : S ∈ subgroup.left_transversals (H : set G)) :
   quotient.mk' (to_equiv hS q : G) = q :=
 (to_equiv hS).symm_apply_apply q
 
-@[to_additive] lemma range_to_equiv_apply {f : G ⧸ H → G} (hf : ∀ q, ↑(f q) = q) (q : G ⧸ H) :
-  ↑(to_equiv (range_mem_left_transversals hf) q) = f q :=
+@[to_additive] lemma to_equiv_apply {f : G ⧸ H → G} (hf : ∀ q, (f q : G ⧸ H) = q) (q : G ⧸ H) :
+  (to_equiv (range_mem_left_transversals hf) q : G) = f q :=
 begin
   refine (subtype.ext_iff.mp _).trans (subtype.coe_mk (f q) ⟨q, rfl⟩),
   exact (to_equiv (range_mem_left_transversals hf)).apply_eq_iff_eq_symm_apply.mpr (hf q).symm,
@@ -277,9 +277,9 @@ noncomputable def to_equiv (hS : S ∈ subgroup.right_transversals (H : set G)) 
   (q : quotient (quotient_group.right_rel H)) : quotient.mk' (to_equiv hS q : G) = q :=
 (to_equiv hS).symm_apply_apply q
 
-@[to_additive] lemma range_to_equiv_apply {f : quotient (quotient_group.right_rel H) → G}
+@[to_additive] lemma to_equiv_apply {f : quotient (quotient_group.right_rel H) → G}
   (hf : ∀ q, quotient.mk' (f q) = q) (q : quotient (quotient_group.right_rel H)) :
-  ↑(to_equiv (range_mem_right_transversals hf) q) = f q :=
+  (to_equiv (range_mem_right_transversals hf) q : G) = f q :=
 begin
   refine (subtype.ext_iff.mp _).trans (subtype.coe_mk (f q) ⟨q, rfl⟩),
   exact (to_equiv (range_mem_right_transversals hf)).apply_eq_iff_eq_symm_apply.mpr (hf q).symm,

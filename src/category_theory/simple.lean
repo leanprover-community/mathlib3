@@ -94,6 +94,10 @@ instance (X : C) [simple.{v} X] : nontrivial (End X) :=
 nontrivial_of_ne 1 0 (id_nonzero X)
 
 section
+
+lemma simple.not_is_zero (X : C) [simple X] : ¬ is_zero X :=
+by simpa [limits.is_zero.iff_id_eq_zero] using id_nonzero X
+
 variable [has_zero_object C]
 open_locale zero_object
 
@@ -175,6 +179,7 @@ end
 
 /-- Any simple object in a preadditive category is indecomposable. -/
 lemma indecomposable_of_simple (X : C) [simple X] : indecomposable X :=
+⟨simple.not_is_zero X,
 λ Y Z i, begin
   refine or_iff_not_imp_left.mpr (λ h, _),
   rw is_zero.iff_split_mono_eq_zero (biprod.inl : Y ⟶ Y ⊞ Z) at h,
@@ -183,7 +188,7 @@ lemma indecomposable_of_simple (X : C) [simple X] : indecomposable X :=
   { rwa biprod.is_iso_inl_iff_is_zero at h, },
   { exact simple.of_iso i.symm, },
   { apply_instance, },
-end
+end⟩
 
 end
 

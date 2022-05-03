@@ -10,10 +10,15 @@ import tactic.nth_rewrite.default
 /-!
 # Idempotents
 
-This file defines idempotents for an arbitary multiplication and proves some basic results:
+This file defines idempotents for an arbitary multiplication and proves some basic results,
+including:
 
-* In a semigroup, the product of two commuting idempotents is an idempotent;
-* In a (non-associative) ring, p is an idempotent if and only if 1-p is an idempotent.
+* `is_idempotent_elem.mul_of_commute`: In a semigroup, the product of two commuting idempotents is
+  an idempotent;
+* `is_idempotent_elem.one_sub_iff`: In a (non-associative) ring, `p` is an idempotent if and only if
+  `1-p` is an idempotent.
+* `is_idempotent_elem.pow_succ_eq`: In a monoid `p ^ (n+1) = p` for `p` an idempotent and `n` a
+  natural number.
 
 ## Tags
 

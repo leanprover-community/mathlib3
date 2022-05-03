@@ -505,6 +505,11 @@ lemma integrable.smul_measure {f : α → β} (h : integrable f μ) {c : ℝ≥0
   integrable f (c • μ) :=
 by { rw ← mem_ℒp_one_iff_integrable at h ⊢, exact h.smul_measure hc, }
 
+lemma integrable_smul_measure {f : α → β} {c : ℝ≥0∞} (h₁ : c ≠ 0) (h₂ : c ≠ ∞) :
+  integrable f (c • μ) ↔ integrable f μ :=
+⟨λ h, by simpa only [smul_smul, ennreal.inv_mul_cancel h₁ h₂, one_smul]
+  using h.smul_measure (ennreal.inv_ne_top.2 h₁), λ h, h.smul_measure h₂⟩
+
 lemma integrable.to_average {f : α → β} (h : integrable f μ) :
   integrable f ((μ univ)⁻¹ • μ) :=
 begin
@@ -512,6 +517,12 @@ begin
   { rwa smul_zero },
   { apply h.smul_measure, simpa }
 end
+
+lemma integrable_average [is_finite_measure μ] {f : α → β} :
+  integrable f ((μ univ)⁻¹ • μ) ↔ integrable f μ :=
+(eq_or_ne μ 0).by_cases (λ h, by simp [h]) $ λ h,
+  integrable_smul_measure (ennreal.inv_ne_zero.2 $ measure_ne_top _ _)
+    (ennreal.inv_ne_top.2 $ mt measure.measure_univ_eq_zero.1 h)
 
 lemma integrable_map_measure {f : α → δ} {g : δ → β}
   (hg : ae_strongly_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :

@@ -171,7 +171,7 @@ variables (β : Type*) [ring β] (abv : β → α) [is_absolute_value abv]
 
 /-- A class stating that a ring with an absolute value is complete, i.e. every Cauchy
 sequence has a limit. -/
-class is_complete :=
+class is_complete : Prop :=
 (is_complete : ∀ s : cau_seq β abv, ∃ b : β, s ≈ const abv b)
 end
 

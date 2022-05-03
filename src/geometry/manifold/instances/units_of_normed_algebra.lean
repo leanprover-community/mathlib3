@@ -33,13 +33,13 @@ instance : lie_group 𝓘(𝕜, R) Rˣ :=
 
 The ingredients needed for the construction are
 * smoothness of multiplication and inversion in the charts, i.e. as functions on the normed
-  `𝕜`-space `R`:  see `times_cont_diff_at_ring_inverse` for the inversion result, and
-  `times_cont_diff_mul` (needs to be generalized from field to algebra) for the multiplication
+  `𝕜`-space `R`:  see `cont_diff_at_ring_inverse` for the inversion result, and
+  `cont_diff_mul` (needs to be generalized from field to algebra) for the multiplication
   result
 * for an open embedding `f`, whose domain is equipped with the induced manifold structure
   `f.singleton_smooth_manifold_with_corners`, characterization of smoothness of functions to/from
   this manifold in terms of smoothness in the target space.  See the pair of lemmas
-  `times_cont_mdiff_coe_sphere` and `times_cont_mdiff.cod_restrict_sphere` for a model.
+  `cont_mdiff_coe_sphere` and `cont_mdiff.cod_restrict_sphere` for a model.
 None of this should be particularly difficult.
 
 -/

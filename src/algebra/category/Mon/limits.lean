@@ -96,18 +96,19 @@ end has_limits
 open has_limits
 
 /-- The category of monoids has all limits. -/
-@[to_additive]
+@[to_additive "The category of additive monoids has all limits."]
 instance has_limits : has_limits Mon :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit.mk
     { cone     := limit_cone F,
       is_limit := limit_cone_is_limit F } } }
 
-/--
-The forgetful functor from monoids to types preserves all limits. (That is, the underlying
-types could have been computed instead as limits in the category of types.)
--/
-@[to_additive]
+/-- The forgetful functor from monoids to types preserves all limits.
+
+This means the underlying type of a limit can be computed as a limit in the category of types. -/
+@[to_additive "The forgetful functor from additive monoids to types preserves all limits.
+
+This means the underlying type of a limit can be computed as a limit in the category of types."]
 instance forget_preserves_limits : preserves_limits (forget Mon) :=
 { preserves_limits_of_shape := λ J 𝒥, by exactI
   { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
@@ -130,13 +131,14 @@ instance limit_comm_monoid (F : J ⥤ CommMon) :
 @submonoid.to_comm_monoid (Π j, F.obj j) _
   (Mon.sections_submonoid (F ⋙ forget₂ CommMon Mon.{u}))
 
-/--
-We show that the forgetful functor `CommMon ⥤ Mon` creates limits.
+/-- We show that the forgetful functor `CommMon ⥤ Mon` creates limits.
 
 All we need to do is notice that the limit point has a `comm_monoid` instance available,
-and then reuse the existing limit.
--/
-@[to_additive]
+and then reuse the existing limit. -/
+@[to_additive "We show that the forgetful functor `AddCommMon ⥤ AddMon` creates limits.
+
+All we need to do is notice that the limit point has an `add_comm_monoid` instance available,
+and then reuse the existing limit."]
 instance (F : J ⥤ CommMon) : creates_limit F (forget₂ CommMon Mon.{u}) :=
 creates_limit_of_reflects_iso (λ c' t,
 { lifted_cone :=
@@ -167,26 +169,30 @@ def limit_cone_is_limit (F : J ⥤ CommMon) : is_limit (limit_cone F) :=
 lifted_limit_is_limit _
 
 /-- The category of commutative monoids has all limits. -/
-@[to_additive]
+@[to_additive "The category of commutative monoids has all limits."]
 instance has_limits : has_limits CommMon :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ CommMon Mon) } }
 
-/--
-The forgetful functor from commutative monoids to monoids preserves all limits.
-(That is, the underlying monoid could have been computed instead as limits in the category
-of monoids.)
--/
-@[to_additive AddCommMon.forget₂_AddMon_preserves_limits]
+/-- The forgetful functor from commutative monoids to monoids preserves all limits.
+
+This means the underlying type of a limit can be computed as a limit in the category of monoids. -/
+@[to_additive AddCommMon.forget₂_AddMon_preserves_limits "The forgetful functor from additive
+commutative monoids to additive monoids preserves all limits.
+
+This means the underlying type of a limit can be computed as a limit in the category of additive
+monoids."]
 instance forget₂_Mon_preserves_limits : preserves_limits (forget₂ CommMon Mon) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F, by apply_instance } }
 
-/--
-The forgetful functor from commutative monoids to types preserves all limits. (That is, the
-underlying types could have been computed instead as limits in the category of types.)
--/
-@[to_additive]
+/-- The forgetful functor from commutative monoids to types preserves all limits.
+
+This means the underlying type of a limit can be computed as a limit in the category of types. -/
+@[to_additive "The forgetful functor from additive commutative monoids to types preserves all
+limits.
+
+This means the underlying type of a limit can be computed as a limit in the category of types."]
 instance forget_preserves_limits : preserves_limits (forget CommMon) :=
 { preserves_limits_of_shape := λ J 𝒥, by exactI
   { preserves_limit := λ F, limits.comp_preserves_limit (forget₂ CommMon Mon) (forget Mon) } }

@@ -3,8 +3,8 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
+import data.set.pointwise
 import group_theory.submonoid.operations
-import algebra.pointwise
 
 /-! # Pointwise instances on `submonoid`s and `add_submonoid`s
 
@@ -59,8 +59,10 @@ open_locale pointwise
 
 @[simp, to_additive] lemma mem_inv {g : G} {S : submonoid G} : g ∈ S⁻¹ ↔ g⁻¹ ∈ S := iff.rfl
 
-@[simp, to_additive] protected lemma inv_inv (S : submonoid G) : S⁻¹⁻¹ = S :=
-set_like.coe_injective set.inv_inv
+@[to_additive]
+instance : has_involutive_inv (submonoid G) :=
+{ inv := has_inv.inv,
+  inv_inv := λ S, set_like.coe_injective $ inv_inv _ }
 
 @[simp, to_additive] lemma inv_le_inv (S T : submonoid G) : S⁻¹ ≤ T⁻¹ ↔ S ≤ T :=
 set_like.coe_subset_coe.symm.trans set.inv_subset_inv
@@ -71,16 +73,13 @@ set_like.coe_subset_coe.symm.trans set.inv_subset
 /-- `submonoid.has_inv` as an order isomorphism. -/
 @[to_additive /-" `add_submonoid.has_neg` as an order isomorphism "-/, simps]
 def inv_order_iso : submonoid G ≃o submonoid G :=
-{ to_fun := has_inv.inv,
-  inv_fun := has_inv.inv,
-  left_inv := submonoid.inv_inv,
-  right_inv := submonoid.inv_inv,
+{ to_equiv := equiv.inv _,
   map_rel_iff' := inv_le_inv }
 
 @[to_additive] lemma closure_inv (s : set G) : closure s⁻¹ = (closure s)⁻¹ :=
 begin
   apply le_antisymm,
-  { rw [closure_le, coe_inv, ←set.inv_subset, set.inv_inv],
+  { rw [closure_le, coe_inv, ←set.inv_subset, inv_inv],
     exact subset_closure },
   { rw [inv_le, closure_le, coe_inv, ←set.inv_subset],
     exact subset_closure }
@@ -330,7 +329,7 @@ theorem mul_le {M N P : add_submonoid R} : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ 
   {C : R → Prop} {r : R} (hr : r ∈ M * N)
   (hm : ∀ (m ∈ M) (n ∈ N), C (m * n))
   (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
-(@mul_le _ _ _ _ ⟨C, by simpa only [zero_mul] using hm _ (zero_mem _) _ (zero_mem _), ha⟩).2 hm hr
+(@mul_le _ _ _ _ ⟨C, ha, by simpa only [zero_mul] using hm _ (zero_mem _) _ (zero_mem _)⟩).2 hm hr
 
 open_locale pointwise
 
@@ -341,11 +340,12 @@ begin
   apply le_antisymm,
   { rw mul_le, intros a ha b hb,
     apply closure_induction ha,
-    work_on_goal 0 { intros, apply closure_induction hb,
-      work_on_goal 0 { intros, exact subset_closure ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
+    work_on_goal 1 { intros, apply closure_induction hb,
+      work_on_goal 1 { intros, exact subset_closure ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
     all_goals { intros, simp only [mul_zero, zero_mul, zero_mem,
         left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc],
-      try {apply add_mem _ _ _}, try {apply smul_mem _ _ _} }, assumption' },
+      solve_by_elim [add_mem _ _, zero_mem _]
+        { max_depth := 4, discharger := tactic.interactive.apply_instance } } },
   { rw closure_le, rintros _ ⟨a, b, ha, hb, rfl⟩,
     exact mul_mem_mul (subset_closure ha) (subset_closure hb) }
 end

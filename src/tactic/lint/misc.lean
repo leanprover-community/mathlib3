@@ -132,7 +132,7 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
   no_errors_found := "No declarations have a duplicate namespace.",
   errors_found := "DUPLICATED NAMESPACES IN NAME:" }
 
-
+attribute [nolint dup_namespace] iff.iff
 
 /-!
 ## Linter for unused arguments
@@ -448,3 +448,36 @@ meta def linter.unused_haves_suffices : linter :=
 "`proof_of_goal`, in addition to being ineffectual, they may make unnecessary assumptions in " ++
 "proofs appear as if they are used. ",
   is_fast := ff }
+
+/-!
+## Linter for unprintable interactive tactics
+-/
+
+/--
+Ensures that every interactive tactic has arguments for which `interactive.param_desc` succeeds.
+This is used to generate the parser documentation that appears in hovers on interactive tactics.
+-/
+meta def unprintable_interactive (d : declaration) : tactic (option string) :=
+match d.to_name with
+| name.mk_string _ (name.mk_string "interactive" (name.mk_string _ name.anonymous)) := do
+  (ds, _) ← mk_local_pis d.type,
+  ds ← ds.mfilter $ λ d, bnot <$> succeeds (interactive.param_desc d.local_type),
+  ff ← return ds.empty | return none,
+  ds ← ds.mmap (pp ∘ to_binder),
+  return $ some $ ds.to_string_aux tt
+| _ := return none
+end
+
+/-- A linter for checking that interactive tactics have parser documentation. -/
+@[linter]
+meta def linter.unprintable_interactive : linter :=
+{ test := unprintable_interactive,
+  auto_decls := tt,
+  no_errors_found := "No tactics are unprintable.",
+  errors_found := "THE FOLLOWING TACTICS ARE UNPRINTABLE. " ++
+"This means that an interactive tactic is using `parse p` where `p` does not have " ++
+"an associated description. You can fix this by wrapping `p` as `with_desc \"p\" p`, " ++
+"and provide the description there, or you can stick to \"approved\" tactic combinators " ++
+"like `?` `*>` `<*` `<*>` `<|>` and `<$>` (but not `>>=` or `do` blocks) " ++
+"that automatically generate a description.",
+  is_fast := tt }

@@ -284,7 +284,7 @@ archimedean_iff_rat_lt.trans
  λ H x, let ⟨n, h⟩ := H x in ⟨n+1,
    lt_of_le_of_lt h (rat.cast_lt.2 (lt_add_one _))⟩⟩
 
-variable [archimedean α]
+variables [archimedean α] {x y : α}
 
 theorem exists_rat_lt (x : α) : ∃ q : ℚ, (q : α) < x :=
 let ⟨n, h⟩ := exists_int_lt x in ⟨n, by rwa rat.cast_coe_int⟩
@@ -300,13 +300,27 @@ begin
   refine ⟨(lt_div_iff n0').2 $
     (lt_iff_lt_of_le_iff_le (zh _)).1 (lt_add_one _), _⟩,
   rw [int.cast_add, int.cast_one],
-  refine lt_of_le_of_lt (add_le_add_right ((zh _).1 (le_refl _)) _) _,
+  refine lt_of_le_of_lt (add_le_add_right ((zh _).1 le_rfl) _) _,
   rwa [← lt_sub_iff_add_lt', ← sub_mul,
        ← div_lt_iff' (sub_pos.2 h), one_div],
   { rw [rat.coe_int_denom, nat.cast_one], exact one_ne_zero },
   { intro H, rw [rat.coe_nat_num, ← coe_coe, nat.cast_eq_zero] at H, subst H, cases n0 },
   { rw [rat.coe_nat_denom, nat.cast_one], exact one_ne_zero }
 end
+
+lemma le_of_forall_rat_lt_imp_le (h : ∀ q : ℚ, (q : α) < x → (q : α) ≤ y) : x ≤ y :=
+le_of_not_lt $ λ hyx, let ⟨q, hy, hx⟩ := exists_rat_btwn hyx in hy.not_le $ h _ hx
+
+lemma le_of_forall_lt_rat_imp_le (h : ∀ q : ℚ, y < q → x ≤ q) : x ≤ y :=
+le_of_not_lt $ λ hyx, let ⟨q, hy, hx⟩ := exists_rat_btwn hyx in hx.not_le $ h _ hy
+
+lemma eq_of_forall_rat_lt_iff_lt (h : ∀ q : ℚ, (q : α) < x ↔ (q : α) < y) : x = y :=
+(le_of_forall_rat_lt_imp_le $ λ q hq, ((h q).1 hq).le).antisymm $ le_of_forall_rat_lt_imp_le $
+  λ q hq, ((h q).2 hq).le
+
+lemma eq_of_forall_lt_rat_iff_lt (h : ∀ q : ℚ, x < q ↔ y < q) : x = y :=
+(le_of_forall_lt_rat_imp_le $ λ q hq, ((h q).2 hq).le).antisymm $ le_of_forall_lt_rat_imp_le $
+  λ q hq, ((h q).1 hq).le
 
 theorem exists_nat_one_div_lt {ε : α} (hε : 0 < ε) : ∃ n : ℕ, 1 / (n + 1: α) < ε :=
 begin

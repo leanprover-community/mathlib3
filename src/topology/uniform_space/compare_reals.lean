@@ -5,6 +5,7 @@ Authors: Patrick Massot
 -/
 import topology.uniform_space.absolute_value
 import topology.instances.real
+import topology.instances.rat
 import topology.uniform_space.completion
 
 /-!

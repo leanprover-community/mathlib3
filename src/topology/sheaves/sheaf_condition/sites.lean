@@ -243,12 +243,24 @@ begin
 end
 
 /--
-Given a family of opens `U : ι → opens X`, we obtain a presieve on `supr U` by declaring that a
-morphism `f : V ⟶ supr U` is a member of the presieve if and only if there exists an index `i : ι`
-such that `V = U i`.
+Given a family of opens `U : ι → opens X` and any open `Y : opens X`, we obtain a presieve
+on `Y` by declaring that a morphism `f : V ⟶ Y` is a member of the presieve if and only if
+there exists an index `i : ι` such that `V = U i`.
 -/
-def presieve_of_covering {ι : Type v} (U : ι → opens X) : presieve (supr U) :=
+def presieve_of_covering_aux {ι : Type v} (U : ι → opens X) (Y : opens X) : presieve Y :=
 λ V f, ∃ i, V = U i
+
+/-- Take `Y` to be `supr U` and obtain a presieve over `supr U`. -/
+def presieve_of_covering {ι : Type v} (U : ι → opens X) : presieve (supr U) :=
+presieve_of_covering_aux U (supr U)
+
+/-- Given a presieve `R` on `Y`, if we take its associated family of opens via
+    `covering_of_presieve` (which may not cover `Y` if `R` is not covering), and take
+    the presieve on `Y` associated to the family of opens via `presieve_of_covering_aux`,
+    then we get back the original presieve `R`. -/
+@[simp] lemma covering_presieve_eq_self {Y : opens X} (R : presieve Y) :
+  presieve_of_covering_aux (covering_of_presieve Y R) Y = R :=
+by { ext Z f, exact ⟨λ ⟨⟨_,_,h⟩,rfl⟩, by convert h, λ h, ⟨⟨Z,f,h⟩,rfl⟩⟩ }
 
 namespace presieve_of_covering
 

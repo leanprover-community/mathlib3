@@ -14,7 +14,7 @@ import data.set.intervals.monotone
 In this file we prove the Divergence theorem for Bochner integral on a box in
 `ℝⁿ⁺¹ = fin (n + 1) → ℝ`. More precisely, we prove the following theorem.
 
-Let `E` be a complete normed space with second countably topology. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is
+Let `E` be a complete normed space. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is
 continuous on a rectangular box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, differentiable on its interior with
 derivative `f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹`, and the divergence `λ x, ∑ i, f' x eᵢ i` is integrable on
 `[a, b]`, where `eᵢ = pi.single i 1` is the `i`-th basis vector, then its integral is equal to the
@@ -53,8 +53,7 @@ universes u
 
 namespace measure_theory
 
-variables {E : Type u} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] [complete_space E]
+variables {E : Type u} [normed_group E] [normed_space ℝ E] [complete_space E]
 
 section
 variables {n : ℕ}
@@ -329,8 +328,7 @@ calc ∫ x in Icc a b, DF x = ∫ x in Icc a b, ∑ i, f' i x (eL.symm $ e i) : 
       ((he_ord _ _).2 hle) (λ i x, f i (eL.symm x))
       (λ i x, f' i (eL.symm x) ∘L (eL.symm : ℝⁿ⁺¹ →L[ℝ] F))
       (eL.symm ⁻¹' s) (hs.preimage eL.symm.injective) _ _ _,
-    { refine λ i, (Hc i).comp eL.symm.continuous_on _,
-      rw hIcc' },
+    { exact λ i, (Hc i).comp eL.symm.continuous_on hIcc'.subset },
     { refine λ x hx i, (Hd (eL.symm x) ⟨_, hx.2⟩ i).comp x eL.symm.has_fderiv_at,
       rw ← hIcc,
       refine preimage_interior_subset_interior_preimage eL.continuous _,

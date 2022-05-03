@@ -165,15 +165,15 @@ The following facts are true more generally in a (linearly) ordered commutative 
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
-  [has_zero β] [has_one β] [has_mul β]
+  [has_zero β] [has_one β] [has_mul β] [has_pow β ℕ]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) :
+  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   linear_ordered_comm_monoid_with_zero β :=
 { zero_le_one := show f 0 ≤ f 1, by simp only [zero, one,
     linear_ordered_comm_monoid_with_zero.zero_le_one],
   ..linear_order.lift f hf,
-  ..hf.ordered_comm_monoid f one mul,
-  ..hf.comm_monoid_with_zero f zero one mul }
+  ..hf.ordered_comm_monoid f one mul npow,
+  ..hf.comm_monoid_with_zero f zero one mul npow }
 
 lemma zero_le_one' : (0 : α) ≤ 1 :=
 linear_ordered_comm_monoid_with_zero.zero_le_one
@@ -185,7 +185,7 @@ by simpa only [mul_zero, mul_one] using mul_le_mul_left' (@zero_le_one' α _) a
 not_lt_of_le zero_le'
 
 @[simp] lemma le_zero_iff : a ≤ 0 ↔ a = 0 :=
-⟨λ h, le_antisymm h zero_le', λ h, h ▸ le_refl _⟩
+⟨λ h, le_antisymm h zero_le', λ h, h ▸ le_rfl⟩
 
 lemma zero_lt_iff : 0 < a ↔ a ≠ 0 :=
 ⟨ne_of_gt, λ h, lt_of_le_of_ne zero_le' h.symm⟩
@@ -216,14 +216,18 @@ by simpa only [mul_inv_cancel_right₀ h] using (mul_le_mul_right' hab c⁻¹)
 lemma le_mul_inv_of_mul_le (h : c ≠ 0) (hab : a * c ≤ b) : a ≤ b * c⁻¹ :=
 le_of_le_mul_right h (by simpa [h] using hab)
 
-lemma mul_inv_le_of_le_mul (h : c ≠ 0) (hab : a ≤ b * c) : a * c⁻¹ ≤ b :=
-le_of_le_mul_right h (by simpa [h] using hab)
+lemma mul_inv_le_of_le_mul (hab : a ≤ b * c) : a * c⁻¹ ≤ b :=
+begin
+  by_cases h : c = 0,
+  { simp [h], },
+  { exact le_of_le_mul_right h (by simpa [h] using hab), },
+end
 
 lemma le_mul_inv_iff₀ (hc : c ≠ 0) : a ≤ b * c⁻¹ ↔ a * c ≤ b :=
-⟨λ h, inv_inv₀ c ▸ mul_inv_le_of_le_mul (inv_ne_zero hc) h, le_mul_inv_of_mul_le hc⟩
+⟨λ h, inv_inv c ▸ mul_inv_le_of_le_mul h, le_mul_inv_of_mul_le hc⟩
 
 lemma mul_inv_le_iff₀ (hc : c ≠ 0) : a * c⁻¹ ≤ b ↔ a ≤ b * c :=
-⟨λ h, inv_inv₀ c ▸ le_mul_inv_of_mul_le (inv_ne_zero hc) h, mul_inv_le_of_le_mul hc⟩
+⟨λ h, inv_inv c ▸ le_mul_inv_of_mul_le (inv_ne_zero hc) h, mul_inv_le_of_le_mul⟩
 
 lemma div_le_div₀ (a b c d : α) (hb : b ≠ 0) (hd : d ≠ 0) :
   a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
@@ -247,8 +251,7 @@ lemma mul_lt_mul₀ (hab : a < b) (hcd : c < d) : a * c < b * d :=
 mul_lt_mul_of_lt_of_le₀ hab.le (ne_zero_of_lt hab) hcd
 
 lemma mul_inv_lt_of_lt_mul₀ (h : x < y * z) : x * z⁻¹ < y :=
-have hz : z ≠ 0 := (mul_ne_zero_iff.1 $ ne_zero_of_lt h).2,
-by { contrapose! h, simpa only [inv_inv₀] using mul_inv_le_of_le_mul (inv_ne_zero hz) h }
+by { contrapose! h, simpa only [inv_inv] using mul_inv_le_of_le_mul h }
 
 lemma inv_mul_lt_of_lt_mul₀ (h : x < y * z) : y⁻¹ * x < z :=
 by { rw mul_comm at *, exact mul_inv_lt_of_lt_mul₀ h }

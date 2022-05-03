@@ -24,12 +24,14 @@ open_locale big_operators classical affine
 
 section affine_space'
 
-variables (k : Type*) {V : Type*} {P : Type*} [field k] [add_comm_group V] [module k V]
-          [affine_space V P]
+variables (k : Type*) {V : Type*} {P : Type*}
 variables {ι : Type*}
 include V
 
 open affine_subspace finite_dimensional module
+
+section
+variables [division_ring k] [add_comm_group V] [module k V] [affine_space V P]
 
 /-- The `vector_span` of a finite set is finite-dimensional. -/
 lemma finite_dimensional_vector_span_of_finite {s : set P} (h : set.finite s) :
@@ -82,6 +84,11 @@ lemma finite_of_fin_dim_affine_independent [finite_dimensional k V]
   {s : set P} (hi : affine_independent k (coe : s → P)) : s.finite :=
 ⟨fintype_of_fin_dim_affine_independent k hi⟩
 
+end
+
+section
+
+variables [field k] [add_comm_group V] [module k V] [affine_space V P]
 variables {k}
 
 /-- The `vector_span` of a finite subset of an affinely independent
@@ -204,7 +211,7 @@ begin
   rw [vector_span_eq_span_vsub_finset_right_ne k hp₁],
   refine le_trans (finrank_span_finset_le_card (((s.image p).erase p₁).image (λ p, p -ᵥ p₁))) _,
   rw [finset.card_image_of_injective _ (vsub_left_injective p₁), finset.card_erase_of_mem hp₁,
-      nat.pred_le_iff, nat.succ_eq_add_one, ← hc],
+      tsub_le_iff_right, ← hc],
   apply finset.card_image_le
 end
 
@@ -261,6 +268,11 @@ lemma finrank_vector_span_le_iff_not_affine_independent [fintype ι] (p : ι →
   (hc : fintype.card ι = n + 2) :
   finrank k (vector_span k (set.range p)) ≤ n ↔ ¬ affine_independent k p :=
 (not_iff_comm.1 (affine_independent_iff_not_finrank_vector_span_le k p hc).symm).symm
+
+end
+
+section division_ring
+variables [division_ring k] [add_comm_group V] [module k V] [affine_space V P]
 
 /-- A set of points is collinear if their `vector_span` has dimension
 at most `1`. -/
@@ -364,6 +376,11 @@ begin
     simp [hp] }
 end
 
+end division_ring
+
+section field
+variables [field k] [add_comm_group V] [module k V] [affine_space V P]
+
 /-- Three points are affinely independent if and only if they are not
 collinear. -/
 lemma affine_independent_iff_not_collinear (p : fin 3 → P) :
@@ -377,5 +394,7 @@ lemma collinear_iff_not_affine_independent (p : fin 3 → P) :
   collinear k (set.range p) ↔ ¬ affine_independent k p :=
 by rw [collinear_iff_finrank_le_one,
        finrank_vector_span_le_iff_not_affine_independent k p (fintype.card_fin 3)]
+
+end field
 
 end affine_space'

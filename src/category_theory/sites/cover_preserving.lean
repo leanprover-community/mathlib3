@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import category_theory.sites.limits
-import category_theory.flat_functors
+import category_theory.functor.flat
 import category_theory.limits.preserves.filtered
 import category_theory.sites.left_exact
 
@@ -166,7 +166,7 @@ end
 If `G` is cover-preserving and compatible-preserving,
 then `G.op ⋙ _` pulls sheaves back to sheaves.
 
-This result is basically https://stacks.math.columbia.edu/tag/00WW.
+This result is basically <https://stacks.math.columbia.edu/tag/00WW>.
 -/
 theorem pullback_is_sheaf_of_cover_preserving {G : C ⥤ D} (hG₁ : compatible_preserving.{v₃} K G)
   (hG₂ : cover_preserving J K G) (ℱ : Sheaf K A) :

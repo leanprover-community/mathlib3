@@ -15,12 +15,10 @@ object `X` to the group of morphisms `X ⟶ Y`. At each point, we get an additio
 structure.
 
 We also show that this presheaf is additive and that it is compatible with the normal Yoneda
-embedding in the expected way.
+embedding in the expected way and deduce that the preadditive Yoneda embedding is fully faithful.
 
 ## TODO
 * The Yoneda embedding is additive itself
-* The Yoneda embedding for preadditive categories relates to the Yoneda embedding for linear
-  categories.
 
 -/
 
@@ -110,5 +108,25 @@ Yoneda embedding.
 @[simp] lemma whiskering_preadditive_coyoneda : preadditive_coyoneda ⋙
   (whiskering_right C AddCommGroup (Type v)).obj (forget AddCommGroup) = coyoneda :=
 rfl
+
+instance preadditive_yoneda_full : full (preadditive_yoneda : C ⥤ Cᵒᵖ ⥤ AddCommGroup) :=
+let yoneda_full : full (preadditive_yoneda ⋙
+  (whiskering_right Cᵒᵖ AddCommGroup (Type v)).obj (forget AddCommGroup)) := yoneda.yoneda_full in
+by exactI full.of_comp_faithful preadditive_yoneda
+  ((whiskering_right Cᵒᵖ AddCommGroup (Type v)).obj (forget AddCommGroup))
+
+instance preadditive_coyoneda_full : full (preadditive_coyoneda : Cᵒᵖ ⥤ C ⥤ AddCommGroup) :=
+let coyoneda_full : full (preadditive_coyoneda ⋙
+  (whiskering_right C AddCommGroup (Type v)).obj (forget AddCommGroup)) :=
+    coyoneda.coyoneda_full in
+by exactI full.of_comp_faithful preadditive_coyoneda
+  ((whiskering_right C AddCommGroup (Type v)).obj (forget AddCommGroup))
+
+instance preadditive_yoneda_faithful : faithful (preadditive_yoneda : C ⥤ Cᵒᵖ ⥤ AddCommGroup) :=
+faithful.of_comp_eq whiskering_preadditive_yoneda
+
+instance preadditive_coyoneda_faithful :
+  faithful (preadditive_coyoneda : Cᵒᵖ ⥤ C ⥤ AddCommGroup) :=
+faithful.of_comp_eq whiskering_preadditive_coyoneda
 
 end category_theory

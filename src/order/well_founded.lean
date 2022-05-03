@@ -3,6 +3,7 @@ Copyright (c) 2020 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
+import tactic.by_contra
 import data.set.basic
 
 /-!
@@ -27,19 +28,19 @@ theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
   ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
 
 /-- A minimal element of a nonempty set in a well-founded order -/
-noncomputable def min {α} {r : α → α → Prop} (H : well_founded r)
+noncomputable def min {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) : α :=
 classical.some (H.has_min p h)
 
-theorem min_mem {α} {r : α → α → Prop} (H : well_founded r)
+theorem min_mem {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) : H.min p h ∈ p :=
 let ⟨h, _⟩ := classical.some_spec (H.has_min p h) in h
 
-theorem not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
+theorem not_lt_min {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
 
-theorem well_founded_iff_has_min  {α} {r : α → α → Prop} : (well_founded r) ↔
+theorem well_founded_iff_has_min {r : α → α → Prop} : (well_founded r) ↔
   ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, ¬ r x m :=
 begin
   classical,
@@ -78,11 +79,11 @@ theorem well_founded_iff_has_min' [partial_order α] : (well_founded (has_lt.lt 
 
 open set
 /-- The supremum of a bounded, well-founded order -/
-protected noncomputable def sup {α} {r : α → α → Prop} (wf : well_founded r) (s : set α)
+protected noncomputable def sup {r : α → α → Prop} (wf : well_founded r) (s : set α)
   (h : bounded r s) : α :=
 wf.min { x | ∀a ∈ s, r a x } h
 
-protected lemma lt_sup {α} {r : α → α → Prop} (wf : well_founded r) {s : set α} (h : bounded r s)
+protected lemma lt_sup {r : α → α → Prop} (wf : well_founded r) {s : set α} (h : bounded r s)
   {x} (hx : x ∈ s) : r x (wf.sup s h) :=
 min_mem wf { x | ∀a ∈ s, r a x } h x hx
 
@@ -90,15 +91,15 @@ section
 open_locale classical
 /-- A successor of an element `x` in a well-founded order is a minimal element `y` such that
 `x < y` if one exists. Otherwise it is `x` itself. -/
-protected noncomputable def succ {α} {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
+protected noncomputable def succ {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
 if h : ∃y, r x y then wf.min { y | r x y } h else x
 
-protected lemma lt_succ {α} {r : α → α → Prop} (wf : well_founded r) {x : α} (h : ∃y, r x y) :
+protected lemma lt_succ {r : α → α → Prop} (wf : well_founded r) {x : α} (h : ∃y, r x y) :
   r x (wf.succ x) :=
 by { rw [well_founded.succ, dif_pos h], apply min_mem }
 end
 
-protected lemma lt_succ_iff {α} {r : α → α → Prop} [wo : is_well_order α r] {x : α} (h : ∃y, r x y)
+protected lemma lt_succ_iff {r : α → α → Prop} [wo : is_well_order α r] {x : α} (h : ∃y, r x y)
   (y : α) : r y (wo.wf.succ x) ↔ r y x ∨ y = x :=
 begin
   split,
@@ -111,6 +112,40 @@ begin
     left, exact hy },
   rintro (hy | rfl), exact trans hy (wo.wf.lt_succ h), exact wo.wf.lt_succ h
 end
+
+section linear_order
+
+variables {β : Type*} [linear_order β] (h : well_founded ((<) : β → β → Prop))
+  {γ : Type*} [partial_order γ]
+
+private theorem eq_strict_mono_iff_eq_range_aux {f g : β → γ} (hf : strict_mono f)
+  (hg : strict_mono g) (hfg : set.range f = set.range g) {b : β} (H : ∀ a < b, f a = g a) :
+  f b ≤ g b :=
+begin
+  obtain ⟨c, hc⟩ : g b ∈ set.range f := by { rw hfg, exact set.mem_range_self b },
+  cases lt_or_le c b with hcb hbc,
+  { rw [H c hcb] at hc,
+    rw hg.injective hc at hcb,
+    exact hcb.false.elim },
+  { rw ←hc,
+    exact hf.monotone hbc }
+end
+
+include h
+theorem eq_strict_mono_iff_eq_range {f g : β → γ} (hf : strict_mono f)
+  (hg : strict_mono g) : set.range f = set.range g ↔ f = g :=
+⟨λ hfg, begin
+  funext a,
+  apply h.induction a,
+  exact λ b H, le_antisymm
+    (eq_strict_mono_iff_eq_range_aux hf hg hfg H)
+    (eq_strict_mono_iff_eq_range_aux hg hf hfg.symm (λ a hab, (H a hab).symm))
+end, congr_arg _⟩
+
+theorem self_le_of_strict_mono {φ : β → β} (hφ : strict_mono φ) : ∀ n, n ≤ φ n :=
+by { by_contra' h₁, have h₂ := h.min_mem _ h₁, exact h.not_lt_min _ h₁ (hφ h₂) h₂ }
+
+end linear_order
 
 end well_founded
 
@@ -157,14 +192,6 @@ not_lt.mp $ not_lt_argmin f h a
 @[simp] lemma argmin_on_le (s : set α) {a : α} (ha : a ∈ s)
   (hs : s.nonempty := set.nonempty_of_mem ha) : f (argmin_on f h s hs) ≤ f a :=
 not_lt.mp $ not_lt_argmin_on f h s ha hs
-
-include h
-theorem well_founded.self_le_of_strict_mono {φ : β → β} (hφ : strict_mono φ) : ∀ n, n ≤ φ n :=
-begin
-  by_contra h',
-  push_neg at h',
-  exact h.not_lt_min _ h' (@hφ _ (h.min _ h') (h.min_mem _ h')) (h.min_mem _ h')
-end
 
 end linear_order
 

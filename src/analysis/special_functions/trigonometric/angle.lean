@@ -36,6 +36,12 @@ def coe_hom : ℝ →+ angle := quotient_add_group.mk' _
 
 @[simp] lemma coe_coe_hom : (coe_hom : ℝ → angle) = coe := rfl
 
+/-- An induction principle to deduce results for `angle` from those for `ℝ`, used with
+`induction θ using real.angle.induction_on`. -/
+@[elab_as_eliminator]
+protected lemma induction_on {p : angle → Prop} (θ : angle) (h : ∀ x : ℝ, p x) : p θ :=
+quotient.induction_on' θ h
+
 @[simp] lemma coe_zero : ↑(0 : ℝ) = (0 : angle) := rfl
 @[simp] lemma coe_add (x y : ℝ) : ↑(x + y : ℝ) = (↑x + ↑y : angle) := rfl
 @[simp] lemma coe_neg (x : ℝ) : ↑(-x : ℝ) = -(↑x : angle) := rfl
@@ -71,6 +77,9 @@ by simp [←coe_nat_mul_eq_nsmul]
 
 @[simp] lemma two_zsmul_coe_pi : (2 : ℤ) • (π : angle) = 0 :=
 by simp [←coe_int_mul_eq_zsmul]
+
+@[simp] lemma coe_pi_add_coe_pi : (π : real.angle) + π = 0 :=
+by rw [←two_nsmul, two_nsmul_coe_pi]
 
 theorem cos_eq_iff_eq_or_eq_neg {θ ψ : ℝ} : cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
 begin
@@ -133,6 +142,18 @@ begin
   rw [add_comm, int.add_mul_mod_self] at this,
   exact absurd this one_ne_zero
 end
+
+/-- The sine of a `real.angle`. -/
+def sin (θ : angle) : ℝ := sin_periodic.lift θ
+
+@[simp] lemma sin_coe (x : ℝ) : sin (x : angle) = real.sin x :=
+rfl
+
+/-- The cosine of a `real.angle`. -/
+def cos (θ : angle) : ℝ := cos_periodic.lift θ
+
+@[simp] lemma cos_coe (x : ℝ) : cos (x : angle) = real.cos x :=
+rfl
 
 end angle
 

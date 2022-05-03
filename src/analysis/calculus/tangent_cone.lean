@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.convex.basic
-import analysis.specific_limits
+import analysis.normed_space.basic
+import analysis.specific_limits.basic
 
 /-!
 # Tangent cone

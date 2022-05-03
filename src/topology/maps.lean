@@ -105,6 +105,14 @@ by { simp_rw [continuous_at, filter.tendsto, ← hf.map_nhds_of_mem _ h, filter.
 protected lemma inducing.continuous {f : α → β} (hf : inducing f) : continuous f :=
 hf.continuous_iff.mp continuous_id
 
+protected lemma inducing.inducing_iff {f : α → β} {g : β → γ} (hg : inducing g) :
+  inducing f ↔ inducing (g ∘ f) :=
+begin
+  refine ⟨λ h, hg.comp h, λ hgf, inducing_of_inducing_compose _ hg.continuous hgf⟩,
+  rw hg.continuous_iff,
+  exact hgf.continuous
+end
+
 lemma inducing.closure_eq_preimage_closure_image {f : α → β} (hf : inducing f) (s : set α) :
   closure s = f ⁻¹' closure (f '' s) :=
 by { ext x, rw [set.mem_preimage, ← closure_induced, hf.induced] }

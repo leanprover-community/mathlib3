@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import measure_theory.measure.measure_space
+import measure_theory.measure.ae_measurable
 
 /-!
 # Typeclasses for measurability of operations
@@ -44,7 +44,7 @@ measurable function, arithmetic operator
 
 universes u v
 
-open_locale big_operators pointwise
+open_locale big_operators pointwise measure_theory
 open measure_theory
 
 /-!
@@ -136,6 +136,19 @@ instance has_measurable_mul₂.to_has_measurable_mul [has_measurable_mul₂ M] :
   has_measurable_mul M :=
 ⟨λ c, measurable_const.mul measurable_id, λ c, measurable_id.mul measurable_const⟩
 
+@[to_additive]
+instance pi.has_measurable_mul {ι : Type*} {α : ι → Type*} [∀ i, has_mul (α i)]
+  [∀ i, measurable_space (α i)] [∀ i, has_measurable_mul (α i)] :
+  has_measurable_mul (Π i, α i) :=
+⟨λ g, measurable_pi_iff.mpr $ λ i, (measurable_pi_apply i).const_mul _,
+ λ g, measurable_pi_iff.mpr $ λ i, (measurable_pi_apply i).mul_const _⟩
+
+@[to_additive pi.has_measurable_add₂]
+instance pi.has_measurable_mul₂ {ι : Type*} {α : ι → Type*} [∀ i, has_mul (α i)]
+  [∀ i, measurable_space (α i)] [∀ i, has_measurable_mul₂ (α i)] :
+  has_measurable_mul₂ (Π i, α i) :=
+⟨measurable_pi_iff.mpr $ λ i, measurable_fst.eval.mul measurable_snd.eval⟩
+
 attribute [measurability] measurable.add' measurable.add ae_measurable.add ae_measurable.add'
   measurable.const_add ae_measurable.const_add measurable.add_const ae_measurable.add_const
 
@@ -148,13 +161,12 @@ class has_measurable_pow (β γ : Type*) [measurable_space β] [measurable_space
 
 export has_measurable_pow (measurable_pow)
 
-instance has_measurable_mul.has_measurable_pow (M : Type*) [monoid M] [measurable_space M]
+/-- `monoid.has_pow` is measurable. -/
+instance monoid.has_measurable_pow (M : Type*) [monoid M] [measurable_space M]
   [has_measurable_mul₂ M] : has_measurable_pow M ℕ :=
-⟨begin
-  haveI : measurable_singleton_class ℕ := ⟨λ _, trivial⟩,
-  refine measurable_from_prod_encodable (λ n, _),
+⟨measurable_from_prod_encodable $ λ n, begin
   induction n with n ih,
-  { simp [pow_zero, measurable_one] },
+  { simp only [pow_zero, ←pi.one_def, measurable_one] },
   { simp only [pow_succ], exact measurable_id.mul ih }
 end⟩
 
@@ -284,6 +296,19 @@ instance has_measurable_div₂.to_has_measurable_div [has_measurable_div₂ G] :
   has_measurable_div G :=
 ⟨λ c, measurable_const.div measurable_id, λ c, measurable_id.div measurable_const⟩
 
+@[to_additive]
+instance pi.has_measurable_div {ι : Type*} {α : ι → Type*} [∀ i, has_div (α i)]
+  [∀ i, measurable_space (α i)] [∀ i, has_measurable_div (α i)] :
+  has_measurable_div (Π i, α i) :=
+⟨λ g, measurable_pi_iff.mpr $ λ i, (measurable_pi_apply i).const_div _,
+ λ g, measurable_pi_iff.mpr $ λ i, (measurable_pi_apply i).div_const _⟩
+
+@[to_additive pi.has_measurable_sub₂]
+instance pi.has_measurable_div₂ {ι : Type*} {α : ι → Type*} [∀ i, has_div (α i)]
+  [∀ i, measurable_space (α i)] [∀ i, has_measurable_div₂ (α i)] :
+  has_measurable_div₂ (Π i, α i) :=
+⟨measurable_pi_iff.mpr $ λ i, measurable_fst.eval.div measurable_snd.eval⟩
+
 @[measurability]
 lemma measurable_set_eq_fun {m : measurable_space α} {E} [measurable_space E] [add_group E]
   [measurable_singleton_class E] [has_measurable_sub₂ E] {f g : α → E}
@@ -299,7 +324,7 @@ end
 
 lemma ae_eq_trim_of_measurable {α E} {m m0 : measurable_space α} {μ : measure α}
   [measurable_space E] [add_group E] [measurable_singleton_class E] [has_measurable_sub₂ E]
-  (hm : m ≤ m0) {f g : α → E} (hf : @measurable _ _ m _ f) (hg : @measurable _ _ m _ g)
+  (hm : m ≤ m0) {f g : α → E} (hf : measurable[m] f) (hg : measurable[m] g)
   (hfg : f =ᵐ[μ] g) :
   f =ᶠ[@measure.ae α m (μ.trim hm)] g :=
 begin
@@ -357,43 +382,35 @@ attribute [measurability] measurable.neg ae_measurable.neg
 @[simp] lemma measurable_inv_iff₀ {G₀ : Type*} [group_with_zero G₀]
   [measurable_space G₀] [has_measurable_inv G₀] {f : α → G₀} :
   measurable (λ x, (f x)⁻¹) ↔ measurable f :=
-⟨λ h, by simpa only [inv_inv₀] using h.inv, λ h, h.inv⟩
+⟨λ h, by simpa only [inv_inv] using h.inv, λ h, h.inv⟩
 
 @[simp] lemma ae_measurable_inv_iff₀ {G₀ : Type*} [group_with_zero G₀]
   [measurable_space G₀] [has_measurable_inv G₀] {f : α → G₀} :
   ae_measurable (λ x, (f x)⁻¹) μ ↔ ae_measurable f μ :=
-⟨λ h, by simpa only [inv_inv₀] using h.inv, λ h, h.inv⟩
+⟨λ h, by simpa only [inv_inv] using h.inv, λ h, h.inv⟩
 
 omit m
+
+@[to_additive]
+instance pi.has_measurable_inv {ι : Type*} {α : ι → Type*} [∀ i, has_inv (α i)]
+  [∀ i, measurable_space (α i)] [∀ i, has_measurable_inv (α i)] :
+  has_measurable_inv (Π i, α i) :=
+⟨measurable_pi_iff.mpr $ λ i, (measurable_pi_apply i).inv⟩
 
 @[to_additive] lemma measurable_set.inv {s : set G} (hs : measurable_set s) : measurable_set s⁻¹ :=
 measurable_inv hs
 
 end inv
 
-/- There is something extremely strange here: copy-pasting the proof of this lemma in the proof
-of `has_measurable_zpow` fails, while `pp.all` does not show any difference in the goal.
-Keep it as a separate lemmas as a workaround. -/
-private lemma has_measurable_zpow_aux (G : Type u) [div_inv_monoid G] [measurable_space G]
-  [has_measurable_mul₂ G] [has_measurable_inv G] (k : ℕ) :
-  measurable (λ (x : G), x ^(-[1+ k])) :=
-begin
-  simp_rw [zpow_neg_succ_of_nat],
-  exact (measurable_id.pow_const (k + 1)).inv
-end
-
-instance has_measurable_zpow (G : Type u) [div_inv_monoid G] [measurable_space G]
+/-- `div_inv_monoid.has_pow` is measurable. -/
+instance div_inv_monoid.has_measurable_zpow (G : Type u) [div_inv_monoid G] [measurable_space G]
   [has_measurable_mul₂ G] [has_measurable_inv G] :
   has_measurable_pow G ℤ :=
-begin
-  letI : measurable_singleton_class ℤ := ⟨λ _, trivial⟩,
-  constructor,
-  refine measurable_from_prod_encodable (λ n, _),
-  dsimp,
-  apply int.cases_on n,
-  { simpa using measurable_id.pow_const },
-  { exact has_measurable_zpow_aux G }
-end
+⟨measurable_from_prod_encodable $ λ n, begin
+  cases n with n n,
+  { simp_rw zpow_of_nat, exact measurable_id.pow_const _ },
+  { simp_rw zpow_neg_succ_of_nat, exact (measurable_id.pow_const (n + 1)).inv }
+end⟩
 
 @[priority 100, to_additive]
 instance has_measurable_div₂_of_mul_inv (G : Type*) [measurable_space G]
@@ -518,6 +535,37 @@ hf.const_smul' c
 
 omit m
 
+@[to_additive]
+instance pi.has_measurable_smul {ι : Type*} {α : ι → Type*} [∀ i, has_scalar M (α i)]
+  [∀ i, measurable_space (α i)] [∀ i, has_measurable_smul M (α i)] :
+  has_measurable_smul M (Π i, α i) :=
+⟨λ g, measurable_pi_iff.mpr $ λ i, (measurable_pi_apply i).const_smul _,
+ λ g, measurable_pi_iff.mpr $ λ i, measurable_smul_const _⟩
+
+/-- `add_monoid.has_scalar_nat` is measurable. -/
+instance add_monoid.has_measurable_smul_nat₂ (M : Type*) [add_monoid M] [measurable_space M]
+  [has_measurable_add₂ M] : has_measurable_smul₂ ℕ M :=
+⟨begin
+  suffices : measurable (λ p : M × ℕ, p.2 • p.1),
+  { apply this.comp measurable_swap, },
+  refine measurable_from_prod_encodable (λ n, _),
+  induction n with n ih,
+  { simp only [zero_smul, ←pi.zero_def, measurable_zero] },
+  { simp only [succ_nsmul], exact measurable_id.add ih }
+end⟩
+
+/-- `sub_neg_monoid.has_scalar_int` is measurable. -/
+instance sub_neg_monoid.has_measurable_smul_int₂ (M : Type*) [sub_neg_monoid M] [measurable_space M]
+  [has_measurable_add₂ M] [has_measurable_neg M] : has_measurable_smul₂ ℤ M :=
+⟨begin
+  suffices : measurable (λ p : M × ℤ, p.2 • p.1),
+  { apply this.comp measurable_swap, },
+  refine measurable_from_prod_encodable (λ n, _),
+  induction n with n n ih,
+  { simp only [of_nat_zsmul], exact measurable_const_smul _, },
+  { simp only [zsmul_neg_succ_of_nat], exact (measurable_const_smul _).neg }
+end⟩
+
 end smul
 
 section mul_action
@@ -577,29 +625,54 @@ end mul_action
 section opposite
 open mul_opposite
 
+@[to_additive]
 instance {α : Type*} [h : measurable_space α] : measurable_space αᵐᵒᵖ := measurable_space.map op h
 
-lemma measurable_op {α : Type*} [measurable_space α] : measurable (op : α → αᵐᵒᵖ) := λ s, id
+@[to_additive]
+lemma measurable_mul_op {α : Type*} [measurable_space α] : measurable (op : α → αᵐᵒᵖ) := λ s, id
 
-lemma measurable_unop {α : Type*} [measurable_space α] : measurable (unop : αᵐᵒᵖ → α) := λ s, id
+@[to_additive]
+lemma measurable_mul_unop {α : Type*} [measurable_space α] : measurable (unop : αᵐᵒᵖ → α) := λ s, id
 
+@[to_additive]
 instance {M : Type*} [has_mul M] [measurable_space M] [has_measurable_mul M] :
   has_measurable_mul Mᵐᵒᵖ :=
-⟨λ c, measurable_op.comp (measurable_unop.mul_const _),
-  λ c, measurable_op.comp (measurable_unop.const_mul _)⟩
+⟨λ c, measurable_mul_op.comp (measurable_mul_unop.mul_const _),
+  λ c, measurable_mul_op.comp (measurable_mul_unop.const_mul _)⟩
 
+@[to_additive]
 instance {M : Type*} [has_mul M] [measurable_space M] [has_measurable_mul₂ M] :
   has_measurable_mul₂ Mᵐᵒᵖ :=
-⟨measurable_op.comp ((measurable_unop.comp measurable_snd).mul
-  (measurable_unop.comp measurable_fst))⟩
+⟨measurable_mul_op.comp ((measurable_mul_unop.comp measurable_snd).mul
+  (measurable_mul_unop.comp measurable_fst))⟩
 
+/-- If a scalar is central, then its right action is measurable when its left action is. -/
+instance has_measurable_smul.op {M α} [measurable_space M]
+  [measurable_space α] [has_scalar M α] [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α]
+  [has_measurable_smul M α] : has_measurable_smul Mᵐᵒᵖ α :=
+⟨ mul_opposite.rec $ λ c, show measurable (λ x, op c • x),
+                          by simpa only [op_smul_eq_smul] using measurable_const_smul c,
+  λ x, show measurable (λ c, op (unop c) • x),
+       by simpa only [op_smul_eq_smul] using (measurable_smul_const x).comp measurable_mul_unop⟩
+
+/-- If a scalar is central, then its right action is measurable when its left action is. -/
+instance has_measurable_smul₂.op {M α} [measurable_space M]
+  [measurable_space α] [has_scalar M α] [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α]
+  [has_measurable_smul₂ M α] : has_measurable_smul₂ Mᵐᵒᵖ α :=
+⟨show measurable (λ x : Mᵐᵒᵖ × α, op (unop x.1) • x.2), begin
+  simp_rw op_smul_eq_smul,
+  refine (measurable_mul_unop.comp measurable_fst).smul measurable_snd,
+end⟩
+
+@[to_additive]
 instance has_measurable_smul_opposite_of_mul {M : Type*} [has_mul M] [measurable_space M]
   [has_measurable_mul M] : has_measurable_smul Mᵐᵒᵖ M :=
-⟨λ c, measurable_mul_const (unop c), λ x, measurable_unop.const_mul x⟩
+⟨λ c, measurable_mul_const (unop c), λ x, measurable_mul_unop.const_mul x⟩
 
+@[to_additive]
 instance has_measurable_smul₂_opposite_of_mul {M : Type*} [has_mul M] [measurable_space M]
   [has_measurable_mul₂ M] : has_measurable_smul₂ Mᵐᵒᵖ M :=
-⟨measurable_snd.mul (measurable_unop.comp measurable_fst)⟩
+⟨measurable_snd.mul (measurable_mul_unop.comp measurable_fst)⟩
 
 end opposite
 

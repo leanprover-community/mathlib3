@@ -20,8 +20,7 @@ open topological_space metric set filter asymptotics function
 open_locale topological_space filter nnreal
 
 universe u
-variables {E : Type u} [normed_group E] [normed_space ℂ E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] [complete_space E]
+variables {E : Type u} [normed_group E] [normed_space ℂ E] [complete_space E]
 
 namespace complex
 
@@ -38,7 +37,7 @@ begin
     rcases eq_or_ne z c with rfl | hne,
     exacts [hc, (hRs ⟨hz, hne⟩).continuous_at] },
   exact (has_fpower_series_on_ball_of_differentiable_off_countable (countable_singleton c) hc
-    (λ z hz, hRs (diff_subset_diff_left ball_subset_closed_ball hz)) hR0).analytic_at 
+    (λ z hz, hRs (diff_subset_diff_left ball_subset_closed_ball hz)) hR0).analytic_at
 end
 
 lemma differentiable_on_compl_singleton_and_continuous_at_iff {f : ℂ → E} {s : set ℂ} {c : ℂ}

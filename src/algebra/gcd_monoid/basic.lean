@@ -557,9 +557,11 @@ begin
       mul_dvd_mul_iff_left h1, mul_dvd_mul_iff_right h2, and_comm] }
 end
 
-lemma dvd_lcm_left [gcd_monoid α] (a b : α) : a ∣ lcm a b := (lcm_dvd_iff.1 dvd_rfl).1
+lemma dvd_lcm_left [gcd_monoid α] (a b : α) : a ∣ lcm a b :=
+(lcm_dvd_iff.1 (dvd_refl (lcm a b))).1
 
-lemma dvd_lcm_right [gcd_monoid α] (a b : α) : b ∣ lcm a b := (lcm_dvd_iff.1 dvd_rfl).2
+lemma dvd_lcm_right [gcd_monoid α] (a b : α) : b ∣ lcm a b :=
+(lcm_dvd_iff.1 (dvd_refl (lcm a b))).2
 
 lemma lcm_dvd [gcd_monoid α] {a b c : α} (hab : a ∣ b) (hcb : c ∣ b) : lcm a c ∣ b :=
 lcm_dvd_iff.2 ⟨hab, hcb⟩

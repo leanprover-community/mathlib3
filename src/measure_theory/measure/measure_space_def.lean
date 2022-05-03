@@ -268,7 +268,7 @@ not_iff_not.1 $ by simp only [← lt_top_iff_ne_top, ← ne.def, not_or_distrib,
 lemma exists_measure_pos_of_not_measure_Union_null [encodable β] {s : β → set α}
   (hs : μ (⋃ n, s n) ≠ 0) : ∃ n, 0 < μ (s n) :=
 begin
-  by_contra, push_neg at h,
+  by_contra' h,
   simp_rw nonpos_iff_eq_zero at h,
   exact hs (measure_Union_null h),
 end
@@ -393,13 +393,7 @@ h.inter h'
 @[to_additive]
 lemma _root_.set.mul_indicator_ae_eq_one {M : Type*} [has_one M] {f : α → M} {s : set α}
   (h : s.mul_indicator f =ᵐ[μ] 1) : μ (s ∩ function.mul_support f) = 0 :=
-begin
-  rw [filter.eventually_eq, ae_iff] at h,
-  convert h,
-  ext a,
-  rw ← set.mul_indicator_eq_one_iff,
-  refl
-end
+by simpa [filter.eventually_eq, ae_iff] using h
 
 /-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
 @[mono] lemma measure_mono_ae (H : s ≤ᵐ[μ] t) : μ s ≤ μ t :=

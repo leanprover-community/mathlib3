@@ -151,16 +151,23 @@ instance : inhabited (multilinear_map R M₁ M₂) := ⟨0⟩
 
 @[simp] lemma zero_apply (m : Πi, M₁ i) : (0 : multilinear_map R M₁ M₂) m = 0 := rfl
 
+section has_scalar
+variables {R' A : Type*} [monoid R'] [semiring A]
+  [Π i, module A (M₁ i)] [distrib_mul_action R' M₂] [module A M₂] [smul_comm_class A R' M₂]
+
+instance : has_scalar R' (multilinear_map A M₁ M₂) := ⟨λ c f,
+  ⟨λ m, c • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x c] ⟩⟩
+
+@[simp] lemma smul_apply (f : multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
+  (c • f) m = c • f m := rfl
+
+lemma coe_smul (c : R') (f : multilinear_map A M₁ M₂) : ⇑(c • f) = c • f :=
+rfl
+
+end has_scalar
+
 instance : add_comm_monoid (multilinear_map R M₁ M₂) :=
-{ zero := (0 : multilinear_map R M₁ M₂),
-  add := (+),
-  add_assoc := by intros; ext; simp [add_comm, add_left_comm],
-  zero_add := by intros; ext; simp [add_comm, add_left_comm],
-  add_zero := by intros; ext; simp [add_comm, add_left_comm],
-  add_comm := by intros; ext; simp [add_comm, add_left_comm],
-  nsmul := λ n f, ⟨λ m, n • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x n] ⟩,
-  nsmul_zero' := λ f, by { ext, simp },
-  nsmul_succ' := λ n f, by { ext, simp [add_smul, nat.succ_eq_one_add] } }
+coe_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 @[simp] lemma sum_apply {α : Type*} (f : α → multilinear_map R M₁ M₂)
   (m : Πi, M₁ i) : ∀ {s : finset α}, (∑ a in s, f a) m = ∑ a in s, f a m :=
@@ -668,18 +675,8 @@ begin
 end
 
 section distrib_mul_action
-
 variables {R' A : Type*} [monoid R'] [semiring A]
   [Π i, module A (M₁ i)] [distrib_mul_action R' M₂] [module A M₂] [smul_comm_class A R' M₂]
-
-instance : has_scalar R' (multilinear_map A M₁ M₂) := ⟨λ c f,
-  ⟨λ m, c • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x c] ⟩⟩
-
-@[simp] lemma smul_apply (f : multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
-  (c • f) m = c • f m := rfl
-
-lemma coe_smul (c : R') (f : multilinear_map A M₁ M₂) : ⇑(c • f) = c • f :=
-rfl
 
 instance : distrib_mul_action R' (multilinear_map A M₁ M₂) :=
 { one_smul := λ f, ext $ λ x, one_smul _ _,

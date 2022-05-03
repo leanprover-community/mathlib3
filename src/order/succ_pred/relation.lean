@@ -11,7 +11,7 @@ This file contains properties about relations on types with a `succ_order`
 and their closure operations (like the transitive closure).
 -/
 
-open set relation succ_order pred_order function
+open function order relation set
 
 section partial_succ
 variables {α : Type*} [partial_order α] [succ_order α] [is_succ_archimedean α]

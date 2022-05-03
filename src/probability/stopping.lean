@@ -531,6 +531,11 @@ begin
   exact (hτ i).inter (hπ i),
 end
 
+protected lemma max_const [linear_order ι] {f : filtration ι m} {τ : α → ι}
+  (hτ : is_stopping_time f τ) (i : ι) :
+  is_stopping_time f (λ x, max (τ x) i) :=
+hτ.max (is_stopping_time_const f i)
+
 protected lemma min [linear_order ι] {f : filtration ι m} {τ π : α → ι}
   (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
   is_stopping_time f (λ x, min (τ x) (π x)) :=
@@ -539,6 +544,11 @@ begin
   simp_rw [min_le_iff, set.set_of_or],
   exact (hτ i).union (hπ i),
 end
+
+protected lemma min_const [linear_order ι] {f : filtration ι m} {τ : α → ι}
+  (hτ : is_stopping_time f τ) (i : ι) :
+  is_stopping_time f (λ x, min (τ x) i) :=
+hτ.min (is_stopping_time_const f i)
 
 lemma add_const [add_group ι] [preorder ι] [covariant_class ι ι (function.swap (+)) (≤)]
   [covariant_class ι ι (+) (≤)]
@@ -801,13 +811,10 @@ begin
     rw ← not_le,
     exact hτi, },
   rw this,
-  refine measurable_set.inter (measurable_set.inter (hs i) ((hτ.min hπ) i)) _,
+  refine ((hs i).inter ((hτ.min hπ) i)).inter _,
   apply measurable_set_le,
-  { have h_stop : is_stopping_time f (λ x, min (τ x) i) := hτ.min (is_stopping_time_const f i),
-    exact h_stop.measurable_of_le (λ _, min_le_right _ _), },
-  { have h_stop : is_stopping_time f (λ x, min (min (τ x) (π x)) i),
-      from (hτ.min hπ).min (is_stopping_time_const f i),
-    exact h_stop.measurable_of_le (λ _, min_le_right _ _),  },
+  { exact (hτ.min_const i).measurable_of_le (λ _, min_le_right _ _), },
+  { exact ((hτ.min hπ).min_const i).measurable_of_le (λ _, min_le_right _ _),  },
 end
 
 end linear_order

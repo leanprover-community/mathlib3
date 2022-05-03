@@ -58,14 +58,7 @@ lemma pow_succ_eq {p : N} (n : ℕ) (h : is_idempotent_elem p) : p^(n + 1) = p :
 nat.rec_on n ((nat.zero_add 1).symm ▸ pow_one p) (λ n ih, by rw [pow_succ, ih, h.eq])
 
 @[simp] lemma iff_eq_one {p : G} : is_idempotent_elem p ↔ p = 1 :=
-begin
-  split,
-  { intro h,
-    rw ← mul_left_inv p,
-    nth_rewrite_rhs 1 ← h.eq,
-    rw [← mul_assoc, mul_left_inv, one_mul] },
-  { intro h, rw h, apply one, }
-end
+iff.intro (λ h, mul_left_cancel ((mul_one p).symm ▸ h.eq : p * p = p * 1)) (λ h, h.symm ▸ one)
 
 @[simp] lemma iff_eq_zero_or_one {p : G₀}  : is_idempotent_elem p ↔ p = 0 ∨ p = 1 :=
 begin

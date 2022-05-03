@@ -25,7 +25,7 @@ for some statements it should be `linear_order` or `densely_ordered`).
 TODO: This is just the beginning; a lot of rules are missing
 -/
 
-universe u
+variables {α β : Type*}
 
 namespace set
 
@@ -33,7 +33,7 @@ open set
 open order_dual (to_dual of_dual)
 
 section preorder
-variables {α : Type u} [preorder α] {a a₁ a₂ b b₁ b₂ c x : α}
+variables [preorder α] {a a₁ a₂ b b₁ b₂ c x : α}
 
 /-- Left-open right-open interval -/
 def Ioo (a b : α) := {x | a < x ∧ x < b}
@@ -384,7 +384,7 @@ ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
 end preorder
 
 section partial_order
-variables {α : Type u} [partial_order α] {a b c : α}
+variables [partial_order α] {a b c : α}
 
 @[simp] lemma Icc_self (a : α) : Icc a a = {a} :=
 set.ext $ by simp [Icc, le_antisymm_iff, and_comm]
@@ -528,10 +528,9 @@ end partial_order
 
 section order_top
 
-@[simp] lemma Ici_top {α : Type u} [partial_order α] [order_top α] : Ici (⊤ : α) = {⊤} :=
-is_max_top.Ici_eq
+@[simp] lemma Ici_top [partial_order α] [order_top α] : Ici (⊤ : α) = {⊤} := is_max_top.Ici_eq
 
-variables {α : Type u} [preorder α] [order_top α] {a : α}
+variables [preorder α] [order_top α] {a : α}
 
 @[simp] lemma Ioi_top : Ioi (⊤ : α) = ∅ := is_max_top.Ioi_eq
 @[simp] lemma Iic_top : Iic (⊤ : α) = univ := is_top_top.Iic_eq
@@ -542,10 +541,10 @@ end order_top
 
 section order_bot
 
-@[simp] lemma Iic_bot {α : Type u} [partial_order α] [order_bot α] : Iic (⊥ : α) = {⊥} :=
+@[simp] lemma Iic_bot [partial_order α] [order_bot α] : Iic (⊥ : α) = {⊥} :=
 is_min_bot.Iic_eq
 
-variables {α : Type u} [preorder α] [order_bot α] {a : α}
+variables [preorder α] [order_bot α] {a : α}
 
 @[simp] lemma Iio_bot : Iio (⊥ : α) = ∅ := is_min_bot.Iio_eq
 @[simp] lemma Ici_bot : Ici (⊥ : α) = univ := is_bot_bot.Ici_eq
@@ -554,8 +553,10 @@ variables {α : Type u} [preorder α] [order_bot α] {a : α}
 
 end order_bot
 
+lemma Icc_bot_top [partial_order α] [bounded_order α] : Icc (⊥ : α) ⊤ = univ := by simp
+
 section linear_order
-variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
+variables [linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
 
 lemma not_mem_Ici : c ∉ Ici a ↔ c < a := not_le
 
@@ -1131,13 +1132,10 @@ section lattice
 
 section inf
 
-variables {α : Type u} [semilattice_inf α]
+variables [semilattice_inf α]
 
 @[simp] lemma Iic_inter_Iic {a b : α} : Iic a ∩ Iic b = Iic (a ⊓ b) :=
 by { ext x, simp [Iic] }
-
-@[simp] lemma Iio_inter_Iio [is_total α (≤)] {a b : α} : Iio a ∩ Iio b = Iio (a ⊓ b) :=
-by { ext x, simp [Iio] }
 
 @[simp] lemma Ioc_inter_Iic (a b c : α) : Ioc a b ∩ Iic c = Ioc a (b ⊓ c) :=
 by rw [← Ioi_inter_Iic, ← Ioi_inter_Iic, inter_assoc, Iic_inter_Iic]
@@ -1146,7 +1144,7 @@ end inf
 
 section sup
 
-variables {α : Type u} [semilattice_sup α]
+variables [semilattice_sup α]
 
 @[simp] lemma Ici_inter_Ici {a b : α} : Ici a ∩ Ici b = Ici (a ⊔ b) :=
 by { ext x, simp [Ici] }
@@ -1154,18 +1152,11 @@ by { ext x, simp [Ici] }
 @[simp] lemma Ico_inter_Ici (a b c : α) : Ico a b ∩ Ici c = Ico (a ⊔ c) b :=
 by rw [← Ici_inter_Iio, ← Ici_inter_Iio, ← Ici_inter_Ici, inter_right_comm]
 
-@[simp] lemma Ioi_inter_Ioi [is_total α (≤)] {a b : α} : Ioi a ∩ Ioi b = Ioi (a ⊔ b) :=
-by { ext x, simp [Ioi] }
-
-@[simp] lemma Ioc_inter_Ioi [is_total α (≤)] {a b c : α} : Ioc a b ∩ Ioi c = Ioc (a ⊔ c) b :=
-by rw [← Ioi_inter_Iic, inter_assoc, inter_comm, inter_assoc, Ioi_inter_Ioi, inter_comm,
-  Ioi_inter_Iic, sup_comm]
-
 end sup
 
 section both
 
-variables {α : Type u} [lattice α] [ht : is_total α (≤)] {a b c a₁ a₂ b₁ b₂ : α}
+variables [lattice α] {a b c a₁ a₂ b₁ b₂ : α}
 
 lemma Icc_inter_Icc : Icc a₁ b₁ ∩ Icc a₂ b₂ = Icc (a₁ ⊔ a₂) (b₁ ⊓ b₂) :=
 by simp only [Ici_inter_Iic.symm, Ici_inter_Ici.symm, Iic_inter_Iic.symm]; ac_refl
@@ -1174,7 +1165,14 @@ by simp only [Ici_inter_Iic.symm, Ici_inter_Ici.symm, Iic_inter_Iic.symm]; ac_re
   Icc a b ∩ Icc b c = {b} :=
 by rw [Icc_inter_Icc, sup_of_le_right hab, inf_of_le_left hbc, Icc_self]
 
-include ht
+end both
+end lattice
+
+section linear_order
+variables [linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
+
+@[simp] lemma Ioi_inter_Ioi : Ioi a ∩ Ioi b = Ioi (a ⊔ b) := ext $ λ _, sup_lt_iff.symm
+@[simp] lemma Iio_inter_Iio : Iio a ∩ Iio b = Iio (a ⊓ b) := ext $ λ _, lt_inf_iff.symm
 
 lemma Ico_inter_Ico : Ico a₁ b₁ ∩ Ico a₂ b₂ = Ico (a₁ ⊔ a₂) (b₁ ⊓ b₂) :=
 by simp only [Ici_inter_Iio.symm, Ici_inter_Ici.symm, Iio_inter_Iio.symm]; ac_refl
@@ -1184,15 +1182,6 @@ by simp only [Ioi_inter_Iic.symm, Ioi_inter_Ioi.symm, Iic_inter_Iic.symm]; ac_re
 
 lemma Ioo_inter_Ioo : Ioo a₁ b₁ ∩ Ioo a₂ b₂ = Ioo (a₁ ⊔ a₂) (b₁ ⊓ b₂) :=
 by simp only [Ioi_inter_Iio.symm, Ioi_inter_Ioi.symm, Iio_inter_Iio.symm]; ac_refl
-
-end both
-
-lemma Icc_bot_top {α} [partial_order α] [bounded_order α] : Icc (⊥ : α) ⊤ = univ := by simp
-
-end lattice
-
-section linear_order
-variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
 
 lemma Ioc_inter_Ioo_of_left_lt (h : b₁ < b₂) : Ioc a₁ b₁ ∩ Ioo a₂ b₂ = Ioc (max a₁ a₂) b₁ :=
 ext $ λ x, by simp [and_assoc, @and.left_comm (x ≤ _),
@@ -1213,6 +1202,10 @@ by rw [diff_eq, compl_Iio, Ico_inter_Ici, sup_eq_max]
 
 @[simp] lemma Ioc_diff_Ioi : Ioc a b \ Ioi c = Ioc a (min b c) :=
 ext $ by simp [iff_def] {contextual:=tt}
+
+@[simp] lemma Ioc_inter_Ioi : Ioc a b ∩ Ioi c = Ioc (a ⊔ c) b :=
+by rw [← Ioi_inter_Iic, inter_assoc, inter_comm, inter_assoc, Ioi_inter_Ioi, inter_comm,
+  Ioi_inter_Iic, sup_comm]
 
 @[simp] lemma Ico_inter_Iio : Ico a b ∩ Iio c = Ico a (min b c) :=
 ext $ by simp [iff_def] {contextual:=tt}
@@ -1246,7 +1239,7 @@ end linear_order
 
 section prod
 
-variables {α β : Type*} [preorder α] [preorder β]
+variables [preorder α] [preorder β]
 
 @[simp] lemma Iic_prod_Iic (a : α) (b : β) : Iic a ×ˢ Iic b = Iic (a, b) := rfl
 
@@ -1270,7 +1263,7 @@ end prod
 
 section ordered_comm_group
 
-variables {α : Type*} [ordered_comm_group α] {a b c d : α}
+variables [ordered_comm_group α] {a b c d : α}
 
 /-! `inv_mem_Ixx_iff`, `sub_mem_Ixx_iff` -/
 @[to_additive] lemma inv_mem_Icc_iff : a⁻¹ ∈ set.Icc c d ↔ a ∈ set.Icc (d⁻¹) (c⁻¹) :=
@@ -1286,7 +1279,7 @@ end ordered_comm_group
 
 section ordered_add_comm_group
 
-variables {α : Type*} [ordered_add_comm_group α] {a b c d : α}
+variables [ordered_add_comm_group α] {a b c d : α}
 
 /-! `add_mem_Ixx_iff_left` -/
 lemma add_mem_Icc_iff_left : a + b ∈ set.Icc c d ↔ a ∈ set.Icc (c - b) (d - b) :=
@@ -1338,7 +1331,7 @@ end ordered_add_comm_group
 
 section linear_ordered_add_comm_group
 
-variables {α : Type u} [linear_ordered_add_comm_group α]
+variables [linear_ordered_add_comm_group α]
 
 /-- If we remove a smaller interval from a larger, the result is nonempty -/
 lemma nonempty_Ico_sdiff {x dx y dy : α} (h : dy < dx) (hx : 0 < dx) :
@@ -1356,7 +1349,6 @@ end set
 open set
 
 namespace order_iso
-variables {α β : Type*}
 
 section preorder
 variables [preorder α] [preorder β]
@@ -1427,7 +1419,7 @@ end order_iso
 
 section dense
 
-variables (α : Type*) [preorder α] [densely_ordered α] {x y : α}
+variables (α) [preorder α] [densely_ordered α] {x y : α}
 
 instance : no_min_order (set.Ioo x y) :=
 ⟨λ ⟨a, ha₁, ha₂⟩, begin

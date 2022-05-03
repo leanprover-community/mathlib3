@@ -499,14 +499,12 @@ by rw [supr, range_const, cSup_singleton]
 
 @[simp] theorem cinfi_const [hι : nonempty ι] {a : α} : (⨅ b:ι, a) = a := @csupr_const αᵒᵈ _ _ _ _
 
-theorem supr_unique [unique ι] {s : ι → α} : (⨆ i, s i) = s default :=
+@[simp] theorem supr_unique [unique ι] {s : ι → α} : (⨆ i, s i) = s default :=
 have ∀ i, s i = s default := λ i, congr_arg s (unique.eq_default i),
 by simp only [this, csupr_const]
 
-theorem infi_unique [unique ι] {s : ι → α} : (⨅ i, s i) = s default := @supr_unique αᵒᵈ _ _ _ _
-
-@[simp] lemma supr_unit {f : unit → α} : (⨆ x, f x) = f () := @supr_unique _ unit _ _ _
-@[simp] lemma infi_unit {f : unit → α} : (⨅ x, f x) = f () := @infi_unique _ unit _ _ _
+@[simp] theorem infi_unique [unique ι] {s : ι → α} : (⨅ i, s i) = s default :=
+@supr_unique (order_dual α) _ _ _ _
 
 @[simp] lemma csupr_pos {p : Prop} {f : p → α} (hp : p) : (⨆ h : p, f h) = f hp :=
 by haveI := unique_prop hp; exact supr_unique

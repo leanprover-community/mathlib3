@@ -8,11 +8,12 @@ setup_tactic_parser
 #check monoid.npow
 #check @has_pow.pow
 
-
+/-
 example {n : ℕ} : 0 = n :=
 by do
   `(%%tl = %%tr) ← target,
   trace tl.to_nat
+-/
 --#exit
 --
 --  unify tl `(has_zero.zero.{0} nat nat.has_zero),
@@ -59,7 +60,7 @@ a polynomial ring. -/
 meta def guess_deg (e : expr) : tactic expr :=
 do
   n0 ← to_expr ``(nat.zero),
-  n1 ← to_expr ``(bit1 nat.zero),
+  n1 ← to_expr ``(nat.zero.succ),
   pX ← to_expr ``(polynomial.X),
   match e.app_fn with
   | `(coe_fn $ polynomial.monomial %%n) := return n
@@ -85,27 +86,37 @@ meta def get_factors_add : expr → tactic expr
                               mk_app `has_add.add [ga, gb] >>= return
 | e := guess_deg e >>= return
 
-meta def produce_equalities : list expr →  (list expr)
-| [] := []
-| (e::es) := --do n0 ← to_expr ``(nat.zero),
-          let ca := mk_app `eq [e, e],
-          let res := produce_equalities es,
-          (ca :: res)
+--set_option trace.eqn_compiler.elim_match true
+meta def produce_equalities : list expr → list expr → list expr
+| _ [] := []
+| [] _ := []
+| (n::ns) (f::fs) := (`(mk_app `eq [n, f]).to_expr::produce_equalities ns fs)
+--ll.map (λ f : expr, `(mk_app `eq [f, f]).to_expr)
+-- the next two lines work
+--| [] := []
+--| (e::es) := (`(mk_app `eq [e, e]).to_expr::produce_equalities es)
+--do n0 ← to_expr ``(nat.zero),
+--          let ca := mk_app `eq [e, e],
+--          let res := produce_equalities es,
+--          (ca :: res)
 
 /--  My work-in-progress `tactic`.  Using `fina` shows the effect of the tactic-so-far. -/
 meta def fina : tactic unit :=
 do `(polynomial.nat_degree %%tl = %%tr) ← target,
   n0 ← to_expr ``(nat.zero),
   let summ := (get_summands tl),
-  let rere := summ.mmap get_factors_add,-- (get_factors_add t),
+  rere ← summ.mmap get_factors_add,-- (get_factors_add t),
+  let preq : list expr := produce_equalities summ rere,
 -- does not work yet
-  do let preq : list expr := produce_equalities rere,
-
+  match preq with
+  | _ := trace preq
+--  | (ee::es) := let ns := get_unused_name, return ()
+--end
 --  do meq : list expr ← rere.mmap (λ f : expr, mk_app `eq [f, n0]),
   --assert
 --  let le : expr → expr → bool := λ e1 e2, e1.to_string ≤ e2.to_string,
 --  res ← rere.qsort le,
-  trace rere
+  trace preq
 --  ret ← rere.foldl guess_deg t,
 
 

@@ -56,6 +56,19 @@ begin
   exact w (eq_zero_of_epi_kernel f),
 end
 
+/--
+A nonzero morphism `f` to a simple object is an epimorphism
+(assuming `f` has an image, and `C` has equalizers).
+-/
+-- See also `mono_of_nonzero_from_simple`, which requires `preadditive C`.
+lemma epi_of_nonzero_to_simple [has_equalizers C] {X Y : C} [simple Y]
+  {f : X ⟶ Y} [has_image f] (w : f ≠ 0) : epi f :=
+begin
+  rw ←image.fac f,
+  haveI : is_iso (image.ι f) := is_iso_of_mono_of_nonzero (λ h, w (eq_zero_of_image_eq_zero h)),
+  apply epi_comp,
+end
+
 lemma mono_to_simple_zero_of_not_iso
   {X Y : C} [simple Y] {f : X ⟶ Y} [mono f] (w : is_iso f → false) : f = 0 :=
 begin

@@ -334,6 +334,7 @@ begin
     rw [IH _ this h, log_div_base, tsub_add_cancel_of_le],
     rw [succ_le_iff],
     refine log_pos hb' _,
+    rw nat.cast_id,
     contrapose! h,
     rw div_eq_of_lt h }
 end

@@ -63,8 +63,10 @@ calc
         { rw [zero_pow, zero_dvd_iff] at h,
           exact (hn.ne' h.2).elim,
           { exact h.1 } },
-        exact ((pow_le_iff_le_log (succ_lt_succ $ nat.pos_of_ne_zero $ succ_ne_succ.1 hm) hn).1 $
-          le_of_dvd hn h.2).trans_lt hb,
+        refine lt_of_le_of_lt _ hb,
+        have hm : 1 < m.succ := (succ_lt_succ $ nat.pos_of_ne_zero $ succ_ne_succ.1 hm),
+        rw [←pow_le_iff_le_log hm (succ_le_of_lt hn)],
+        exact le_of_dvd hn h.2,
       end
 
 namespace prime

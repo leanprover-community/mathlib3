@@ -29,10 +29,7 @@ universes u
 local infix ` ≈ ` := pgame.equiv
 
 instance pgame.setoid : setoid pgame :=
-⟨λ x y, x ≈ y,
- λ x, pgame.equiv_refl _,
- λ x y, pgame.equiv_symm,
- λ x y z, pgame.equiv_trans⟩
+antisymm_rel.setoid pgame (≤)
 
 /-- The type of combinatorial games. In ZFC, a combinatorial game is constructed from
   two sets of combinatorial games that have been constructed at an earlier
@@ -65,6 +62,10 @@ theorem le_trans : ∀ x y z : game, x ≤ y → y ≤ z → x ≤ z :=
 by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, apply pgame.le_trans }
 theorem le_antisymm : ∀ x y : game, x ≤ y → y ≤ x → x = y :=
 by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ }
+
+instance : is_preorder game (≤) :=
+{ refl := le_refl,
+  trans := le_trans }
 
 /-- The relation `x < y` on games. -/
 -- We don't yet make this into an instance, because it will conflict with the (incorrect) notion

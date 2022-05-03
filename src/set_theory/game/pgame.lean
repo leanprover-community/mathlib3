@@ -5,6 +5,7 @@ Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
 import data.fin.basic
 import data.list.basic
+import order.antisymmetrization
 
 /-!
 # Combinatorial (pre-)games.
@@ -508,14 +509,13 @@ end
 
 /-- Define the equivalence relation on pre-games. Two pre-games
   `x`, `y` are equivalent if `x ≤ y` and `y ≤ x`. -/
-def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
+def equiv : pgame → pgame → Prop := @antisymm_rel pgame (≤)
 
 local infix ` ≈ ` := pgame.equiv
 
-@[refl, simp] theorem equiv_refl (x) : x ≈ x := ⟨pgame.le_refl _, pgame.le_refl _⟩
-@[symm] theorem equiv_symm {x y} : x ≈ y → y ≈ x | ⟨xy, yx⟩ := ⟨yx, xy⟩
-@[trans] theorem equiv_trans {x y z} : x ≈ y → y ≈ z → x ≈ z
-| ⟨xy, yx⟩ ⟨yz, zy⟩ := ⟨le_trans xy yz, le_trans zy yx⟩
+@[refl, simp] theorem equiv_refl : ∀ x, x ≈ x := antisymm_rel_refl _
+@[symm] theorem equiv_symm {x y} : x ≈ y → y ≈ x := antisymm_rel.symm
+@[trans] theorem equiv_trans {x y z} : x ≈ y → y ≈ z → x ≈ z := antisymm_rel.trans
 
 @[trans]
 theorem lt_of_lt_of_equiv {x y z} (h₁ : x < y) (h₂ : y ≈ z) : x < z := lt_of_lt_of_le h₁ h₂.1

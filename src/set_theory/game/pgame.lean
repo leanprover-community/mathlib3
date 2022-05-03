@@ -490,6 +490,10 @@ from this.1, begin
     le_trans_aux (λ i, (IHzl _).1) (λ i, (IHyr _).2.1)⟩,
 end
 
+instance : is_preorder pgame (≤) :=
+{ refl := pgame.le_refl,
+  trans := @le_trans }
+
 @[trans] theorem lt_of_le_of_lt {x y z : pgame} (hxy : x ≤ y) (hyz : y < z) : x < z :=
 begin
   rw ←not_le at ⊢ hyz,

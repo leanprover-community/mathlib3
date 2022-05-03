@@ -85,9 +85,6 @@ open normed_space
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
-section
-variable (𝕜)
-
 /-- For normed spaces `E`, there is a canonical map `dual 𝕜 E → weak_dual 𝕜 E` (the "identity"
 mapping). It is a linear equivalence. -/
 def normed_space.dual.to_weak_dual : dual 𝕜 E ≃ₗ[𝕜] weak_dual 𝕜 E :=
@@ -97,25 +94,23 @@ linear_equiv.refl 𝕜 (E →L[𝕜] 𝕜)
 mapping). It is a linear equivalence. Here it is implemented as the inverse of the linear
 equivalence `normed_space.dual.to_weak_dual` in the other direction. -/
 def weak_dual.to_normed_dual : weak_dual 𝕜 E ≃ₗ[𝕜] dual 𝕜 E :=
-(normed_space.dual.to_weak_dual 𝕜).symm
-
-end
+normed_space.dual.to_weak_dual.symm
 
 @[simp] lemma weak_dual.coe_to_fun_eq_normed_coe_to_fun (x' : dual 𝕜 E) :
-  normed_space.dual.to_weak_dual 𝕜 x' = x' := rfl
+  (x'.to_weak_dual : E → 𝕜) = x' := rfl
 
 namespace normed_space.dual
 
 @[simp] lemma to_weak_dual_eq_iff (x' y' : dual 𝕜 E) :
-  to_weak_dual 𝕜 x' = to_weak_dual 𝕜 y' ↔ x' = y' :=
-(to_weak_dual 𝕜).injective.eq_iff
+  x'.to_weak_dual = y'.to_weak_dual ↔ x' = y' :=
+to_weak_dual.injective.eq_iff
 
 @[simp] lemma _root_.weak_dual.to_normed_dual_eq_iff (x' y' : weak_dual 𝕜 E) :
-  weak_dual.to_normed_dual 𝕜 x' = weak_dual.to_normed_dual 𝕜 y' ↔ x' = y' :=
-(weak_dual.to_normed_dual 𝕜).injective.eq_iff
+  x'.to_normed_dual = y'.to_normed_dual ↔ x' = y' :=
+weak_dual.to_normed_dual.injective.eq_iff
 
 theorem to_weak_dual_continuous :
-  continuous (λ (x' : dual 𝕜 E), to_weak_dual 𝕜 x') :=
+  continuous (λ (x' : dual 𝕜 E), x'.to_weak_dual) :=
 begin
   apply continuous_of_continuous_eval,
   intros z,
@@ -126,7 +121,7 @@ end
 `dual 𝕜 E → weak_dual 𝕜 E` is continuous. This definition implements it as a continuous linear
 map. -/
 def continuous_linear_map_to_weak_dual : dual 𝕜 E →L[𝕜] weak_dual 𝕜 E :=
-{ cont := to_weak_dual_continuous, .. to_weak_dual 𝕜, }
+{ cont := to_weak_dual_continuous, .. to_weak_dual, }
 
 /-- The weak-star topology is coarser than the dual-norm topology. -/
 theorem dual_norm_topology_le_weak_dual_topology :
@@ -144,8 +139,8 @@ end normed_space.dual
 namespace weak_dual
 
 lemma to_normed_dual.preimage_closed_unit_ball :
-  (to_normed_dual 𝕜 ⁻¹' metric.closed_ball (0 : dual 𝕜 E) 1) =
-    {x' : weak_dual 𝕜 E | ∥ to_normed_dual 𝕜 x' ∥ ≤ 1} :=
+  (to_normed_dual ⁻¹' metric.closed_ball (0 : dual 𝕜 E) 1) =
+    {x' : weak_dual 𝕜 E | ∥ x'.to_normed_dual ∥ ≤ 1} :=
 begin
   have eq : metric.closed_ball (0 : dual 𝕜 E) 1 = {x' : dual 𝕜 E | ∥ x' ∥ ≤ 1},
   { ext x', simp only [dist_zero_right, metric.mem_closed_ball, set.mem_set_of_eq], },

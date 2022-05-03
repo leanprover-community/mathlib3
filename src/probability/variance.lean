@@ -32,7 +32,7 @@ namespace probability_theory
 
 /-- The variance of a random variable is `𝔼[X^2] - 𝔼[X]^2` or, equivalently, `𝔼[(X - 𝔼[X])^2]`. We
 use the latter as the definition, to ensure better behavior even in garbage situations. -/
-def variance {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) :=
+def variance {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) : ℝ :=
 μ[(f - (λ x, μ[f])) ^ 2]
 
 @[simp] lemma variance_zero {Ω : Type*} {m : measurable_space Ω} (μ : measure Ω) :
@@ -42,6 +42,20 @@ by simp [variance]
 lemma variance_nonneg {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) :
   0 ≤ variance f μ :=
 integral_nonneg (λ x, sq_nonneg _)
+
+lemma variance_mul {Ω : Type*} {m : measurable_space Ω} (c : ℝ) (f : Ω → ℝ) (μ : measure Ω) :
+  variance (λ x, c * f x) μ = c^2 * variance f μ :=
+calc
+variance (λ x, c * f x) μ
+    = ∫ x, (c * f x - ∫ y, c * f y ∂μ)^2 ∂μ : rfl
+... = ∫ x, (c * (f x - ∫ y, f y ∂μ))^2 ∂μ :
+  by { congr' 1 with x, simp_rw [integral_mul_left, mul_sub] }
+... = c^2 * variance f μ :
+  by { simp_rw [mul_pow, integral_mul_left], refl }
+
+lemma variance_smul {Ω : Type*} {m : measurable_space Ω} (c : ℝ) (f : Ω → ℝ) (μ : measure Ω) :
+  variance (c • f) μ = c^2 * variance f μ :=
+variance_mul c f μ
 
 localized
 "notation `Var[` X `]` := probability_theory.variance X measure_theory.measure_space.volume"
@@ -122,7 +136,8 @@ begin
 end
 
 /-- The variance of the sum of two independent random variables is the sum of the variances. -/
-theorem indep_fun.Var_add {X Y : Ω → ℝ} (hX : mem_ℒp X 2) (hY : mem_ℒp Y 2) (h : indep_fun X Y) :
+theorem indep_fun.variance_add {X Y : Ω → ℝ}
+  (hX : mem_ℒp X 2) (hY : mem_ℒp Y 2) (h : indep_fun X Y) :
   Var[X + Y] = Var[X] + Var[Y] :=
 calc
 Var[X + Y] = 𝔼[λ a, (X a)^2 + (Y a)^2 + 2 * X a * Y a] - 𝔼[X+Y]^2 :
@@ -150,7 +165,7 @@ end
 
 /-- The variance of a finite sum of pairwise independent random variables is the sum of the
 variances. -/
-theorem indep_fun.Var_sum {ι : Type*} {X : ι → Ω → ℝ} {s : finset ι}
+theorem indep_fun.variance_sum {ι : Type*} {X : ι → Ω → ℝ} {s : finset ι}
   (hs : ∀ i ∈ s, mem_ℒp (X i) 2) (h : set.pairwise ↑s (λ i j, indep_fun (X i) (X j))) :
   Var[∑ i in s, X i] = ∑ i in s, Var[X i] :=
 begin

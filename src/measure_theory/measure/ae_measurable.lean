@@ -133,6 +133,23 @@ lemma comp_measurable' {ν : measure δ} {f : α → δ} {g : δ → β} (hg : a
   (hf : measurable f) (h : μ.map f ≪ ν) : ae_measurable (g ∘ f) μ :=
 (hg.mono' h).comp_measurable hf
 
+lemma map_map_of_ae_measurable {g : β → γ} {f : α → β}
+  (hg : ae_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
+  (μ.map f).map g = μ.map (g ∘ f) :=
+begin
+  ext1 s hs,
+  let g' := hg.mk g,
+  have A : map g (map f μ) = map g' (map f μ),
+  { apply measure_theory.measure.map_congr,
+    exact hg.ae_eq_mk },
+  have B : map (g ∘ f) μ = map (g' ∘ f) μ,
+  { apply measure_theory.measure.map_congr,
+    exact ae_of_ae_map hf hg.ae_eq_mk },
+  simp only [A, B, hs, hg.measurable_mk.ae_measurable.comp_ae_measurable hf, hg.measurable_mk,
+    hg.measurable_mk hs, hf, map_apply, map_apply_of_ae_measurable],
+  refl,
+end
+
 @[measurability]
 lemma prod_mk {f : α → β} {g : α → γ} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
   ae_measurable (λ x, (f x, g x)) μ :=

@@ -420,7 +420,6 @@ private theorem not_le_lt {x y : pgame} :
 begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
   induction y with yl yr yL yR IHyl IHyr,
-  classical,
   simp only [mk_le_mk, mk_lt_mk,
     not_and_distrib, not_or_distrib, not_forall, not_exists,
     and_comm, or_comm, IHxl, IHxr, IHyl, IHyr, iff_self, and_self]
@@ -790,25 +789,14 @@ using_well_founded { dec_tac := pgame_wf_tac }
 theorem neg_congr {x y : pgame} (h : x ≈ y) : -x ≈ -y :=
 ⟨le_iff_neg_ge.1 h.2, le_iff_neg_ge.1 h.1⟩
 
-theorem lt_iff_neg_gt : Π {x y : pgame}, x < y ↔ -y < -x :=
-begin
-  classical,
-  intros,
-  rw [←not_le, ←not_le, not_iff_not],
-  apply le_iff_neg_ge
-end
+theorem lt_iff_neg_gt {x y : pgame} : x < y ↔ -y < -x :=
+by rw [←not_le, ←not_le, not_iff_not, le_iff_neg_ge]
 
 theorem zero_le_iff_neg_le_zero {x : pgame} : 0 ≤ x ↔ -x ≤ 0 :=
-begin
-  convert le_iff_neg_ge,
-  rw pgame.neg_zero
-end
+by rw [le_iff_neg_ge, pgame.neg_zero]
 
 theorem le_zero_iff_zero_le_neg {x : pgame} : x ≤ 0 ↔ 0 ≤ -x :=
-begin
-  convert le_iff_neg_ge,
-  rw pgame.neg_zero
-end
+by rw [le_iff_neg_ge, pgame.neg_zero]
 
 /-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 def add (x y : pgame) : pgame :=

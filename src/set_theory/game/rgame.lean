@@ -20,9 +20,8 @@ their left and right options. We prove that `rgame` is an `add_comm_monoid`.
 
 ## Todo
 
-- Move the definition of `pgame.mul` here.
-- Define the relation of subsequency up to relabelling, prove basic results.
-- Prove that `rgame` is a `mul_comm_monoid`.
+- Move the definition of `pgame.mul` here, prove basic results about `rgame.mul`.
+- Define the relation of subsequency up to relabelling.
 -/
 
 open pgame function

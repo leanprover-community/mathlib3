@@ -353,14 +353,14 @@ end
   (Wielandt, th. 9.1, 1st part)-/
 theorem stabilizer.is_multiply_pretransitive
   (hα' : is_pretransitive M α)
-  {n : ℕ} (a : α) :
+  {n : ℕ} :
   -- (hα0 : ↑n ≤ #α) /- (hα : card_ge α n.succ) -/  :
   is_multiply_pretransitive M α n.succ ↔
-  is_multiply_pretransitive (stabilizer M a) (sub_mul_action_of_stabilizer M α a) n :=
+  ∀ (a : α), is_multiply_pretransitive (stabilizer M a) (sub_mul_action_of_stabilizer M α a) n :=
 begin
   let hα'eq := hα'.exists_smul_eq,
   split,
-  { intro hn, let hn_eq := hn.exists_smul_eq,
+  { intros hn a, let hn_eq := hn.exists_smul_eq,
     apply is_pretransitive.mk,
     intros x y,
 
@@ -391,15 +391,14 @@ begin
       function.embedding.coe_subtype] at hx' hy',
     rw [← hx', ← hy', ← hg'], refl, },
     --
-  { intro hn, let hn_eq := hn.exists_smul_eq,
-    apply is_pretransitive.mk,
+  { intro hn,
 
-    have aux_fun : ∀ (x : fin n.succ ↪ α),
+    have aux_fun : ∀ (a : α) (x : fin n.succ ↪ α),
       ∃ (g : M) (x1 : fin n ↪ ↥(sub_mul_action_of_stabilizer M α a)),
         (fin.cast_le (nat.le_succ n)).to_embedding.trans (g • x)
           = function.embedding.trans x1 (subtype _)
         ∧ g • (x ⟨n, nat.lt_succ_self n⟩) = a,
-    { intro x,
+    { intros a x,
       obtain ⟨g, hgx⟩ := hα'eq (x ⟨n, nat.lt_succ_self n⟩) a,
       use g,
       have zgx : ∀ (i : fin n),
@@ -423,12 +422,18 @@ begin
       refine and.intro _ hgx,
       { ext i, simp, refl, } },
 
+
+    apply is_pretransitive.mk,
     intro x, -- gx • x = x1 :: a
-    obtain ⟨gx, x1, hgx, hga⟩ := aux_fun x,
+    let a := x ⟨n, lt_add_one n⟩,
+    obtain ⟨gx, x1, hgx, hga⟩ := aux_fun a x,
     intro y, -- gy • y = y1 :: a
-    obtain ⟨gy, y1, hgy, hgb⟩ := aux_fun y,
+    obtain ⟨gy, y1, hgy, hgb⟩ := aux_fun a y,
     -- g • x1 = y1,
-    obtain ⟨g, hg⟩ := hn_eq x1 y1,
+
+    let hna_eq := (hn a).exists_smul_eq,
+
+    obtain ⟨g, hg⟩ := hna_eq x1 y1,
 
     use gy⁻¹ * g * gx,
     ext ⟨i, hi⟩,

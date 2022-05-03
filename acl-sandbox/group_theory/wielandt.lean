@@ -1048,14 +1048,14 @@ end
 
 /-- Order equivalence between blocks in X containing a point a
  and subgroups of G containing the stabilizer of a (Wielandt, th. 7.5)-/
-noncomputable
-theorem stabilizer_block_equiv [htGX : is_pretransitive G X] (a : X) :
-  { B : set X // a ∈ B ∧ is_block G X B } ≃o set.Ici (stabilizer G a) :=
-{ to_fun := λ ⟨B, ha, hB⟩, ⟨stabilizer G B, stabilizer_of_block G X hB ha⟩,
-  inv_fun := λ ⟨H, hH⟩, ⟨mul_action.orbit H a, mul_action.mem_orbit_self a, is_block_of_suborbit G X hH⟩,
-  left_inv := λ ⟨B, ha, hB⟩, (id (propext subtype.mk_eq_mk)).mpr (block_of_stabilizer_of_block G X hB ha),
-  right_inv := λ ⟨H, hH⟩, (id (propext subtype.mk_eq_mk)).mpr (stabilizer_of_block_of_stabilizer G X hH),
-  map_rel_iff' := begin
+def stabilizer_block_equiv [htGX : is_pretransitive G X] (a : X) :
+  { B : set X // a ∈ B ∧ is_block G X B } ≃o set.Ici (stabilizer G a) := {
+to_fun := λ ⟨B, ha, hB⟩, ⟨stabilizer G B, stabilizer_of_block G X hB ha⟩,
+inv_fun := λ ⟨H, hH⟩, ⟨mul_action.orbit H a, mul_action.mem_orbit_self a, is_block_of_suborbit G X hH⟩,
+left_inv := λ ⟨B, ha, hB⟩, (id (propext subtype.mk_eq_mk)).mpr (block_of_stabilizer_of_block G X hB ha),
+right_inv := λ ⟨H, hH⟩, (id (propext subtype.mk_eq_mk)).mpr (stabilizer_of_block_of_stabilizer G X hH),
+map_rel_iff' :=
+begin
 rintro ⟨B, ha, hB⟩, rintro ⟨B', ha', hB'⟩,
 simp only [equiv.coe_fn_mk, subtype.mk_le_mk, set.le_eq_subset],
 split,
@@ -1065,11 +1065,15 @@ split,
   intro x, rintro ⟨k, rfl⟩, use k, apply hBB', exact set_like.coe_mem k,
   refl },
 { intro hBB',
-  intro g, simp only [mem_stabilizer_iff],
+  intro g,
+  change g ∈ stabilizer G B → g ∈ stabilizer G B',
+  simp only [mem_stabilizer_iff],
   intro hgB,
-  apply is_block.def_mem G X hB' a g ha', apply hBB', rw ← hgB,
-  simp only [smul_mem_smul_set_iff], exact ha }, end,
-}
+  apply is_block.def_mem G X hB' a g ha',
+  apply hBB',
+  rw ← hgB,
+  simp_rw [smul_mem_smul_set_iff], exact ha },
+end }
 
 /- Couldn't use in a straightforward way the order equivalence
 for proving the next theorem — what a pity ! -/
@@ -1167,6 +1171,24 @@ begin
       { use h, exact hH,  simp, refl, },
       exact mem_orbit_self a },
     exact hyp },
+end
+
+lemma test1 (p q : Prop) : p ∨ q ↔ ¬ p → q :=
+begin
+  exact or_iff_not_imp_left,
+end
+
+lemma is_preprimitive_iff_is_pretransitive_of_stabilizer (hGX : is_pretransitive G X) (a : X) :
+  is_pretransitive (stabilizer G a) (sub_mul_action_of_stabilizer G X a)
+  ↔ is_preprimitive G X :=
+begin
+  split,
+  { intro hGXa, apply is_preprimitive.mk hGX,
+
+  sorry },
+  { intro hG, apply is_pretransitive.mk,
+
+  sorry },
 end
 
 /-- Theorem 8.4 : if the action of a subgroup H on an orbit is primitive,

@@ -197,7 +197,7 @@ let ⟨x, hxs, hx, _⟩ := hs.exists_Inf_image_eq_and_le ne_s hf in ⟨x, hxs, h
 lemma is_compact.exists_Sup_image_eq :
   ∀ {s : set β}, is_compact s → s.nonempty → ∀ {f : β → α}, continuous_on f s →
   ∃ x ∈ s, Sup (f '' s) = f x :=
-@is_compact.exists_Inf_image_eq $1ᵒᵈ _ _ _ _ _
+@is_compact.exists_Inf_image_eq αᵒᵈ _ _ _ _ _
 
 lemma eq_Icc_of_connected_compact {s : set α} (h₁ : is_connected s) (h₂ : is_compact s) :
   s = Icc (Inf s) (Sup s) :=

@@ -315,7 +315,7 @@ equal to `μ s` times the absolute value of the determinant of `f`. -/
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (f : E ≃L[ℝ] E) (s : set E) :
   μ (f '' s) = ennreal.of_real (abs (f : E →ₗ[ℝ] E).det) * μ s :=
-add_haar_image_linear_map μ _ s
+μ.add_haar_image_linear_map (f : E →ₗ[ℝ] E) s
 
 /-!
 ### Basic properties of Haar measures on real vector spaces

@@ -237,6 +237,7 @@ begin
     { refine supr_le _,
       rintros i x ⟨x, rfl⟩,
       use lp.single 2 i x,
+      rw [linear_isometry.coe_to_linear_map],
       convert hV.linear_isometry_apply_single _ },
     exact hV.linear_isometry.isometry.uniform_inducing.is_complete_range.is_closed }
 end
@@ -252,6 +253,7 @@ linear_isometry_equiv.symm $
 linear_isometry_equiv.of_surjective
 hV.linear_isometry
 begin
+  rw [←linear_isometry.coe_to_linear_map],
   refine linear_map.range_eq_top.mp _,
   rw ← hV',
   rw hV.range_linear_isometry,

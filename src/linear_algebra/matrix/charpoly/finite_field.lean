@@ -42,7 +42,7 @@ begin
     exact congr_arg _ (subsingleton.elim _ _), },
 end
 
-@[simp] lemma zmod.charpoly_pow_card (M : matrix n n (zmod p)) :
+@[simp] lemma zmod.charpoly_pow_card {p : ℕ} [fact p.prime] (M : matrix n n (zmod p)) :
   (M ^ p).charpoly = M.charpoly :=
 by { have h := finite_field.matrix.charpoly_pow_card M, rwa zmod.card at h, }
 

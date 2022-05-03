@@ -32,6 +32,8 @@ open_locale big_operators
 open_locale matrix
 open finite_dimensional
 
+open_locale tensor_product
+
 section
 variables (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
 variables {ι : Type w} [decidable_eq ι] [fintype ι]
@@ -147,6 +149,10 @@ the isomorphism `End(M) ≃ M* ⊗ M`-/
   (linear_map.trace R M) ∘ₗ (dual_tensor_hom R M M) = contract_left R M :=
 trace_eq_contract_of_basis R (module.free.choose_basis R M)
 
+@[simp] theorem trace_eq_contract_apply (x : module.dual R M ⊗[R] M) :
+  (linear_map.trace R M) ((dual_tensor_hom R M M) x) = contract_left R M x :=
+by rw [←comp_apply, trace_eq_contract]
+
 open_locale classical
 
 /-- When `M` is finite free, the trace of a linear map correspond to the contraction pairing under
@@ -162,6 +168,21 @@ begin
   have b := module.free.choose_basis R M,
   rw [trace_eq_matrix_trace R b, to_matrix_one, module.free.finrank_eq_card_choose_basis_index],
   simp,
+end
+
+variables (R M)
+
+--temporary until this is made an instance by PR #13896
+variables [module.free R (module.dual R M)] [module.finite R (module.dual R M)]
+
+theorem trace_dual_map : trace R (module.dual R M) ∘ₗ module.dual.transpose = trace R M :=
+begin
+  refine (cancel_right dual_tensor_hom_equiv.surjective).1 _,
+  ext f m,
+  simp only [tensor_product.algebra_tensor_module.curry_apply, to_fun_eq_coe,
+  tensor_product.curry_apply, coe_restrict_scalars_eq_coe, coe_comp, function.comp_app,
+  transpose_dual_tensor_hom, trace_eq_contract, contract_left_apply, trace_eq_contract_apply,
+  module.dual.eval_apply],
 end
 
 end

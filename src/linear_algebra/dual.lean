@@ -633,17 +633,6 @@ lemma linear_map.dual_map_comp_dual_map {M₃ : Type*} [add_comm_group M₃] [mo
   f.dual_map.comp g.dual_map = (g.comp f).dual_map :=
 rfl
 
-variables (R M₁ M₂)
-
-/-- A linear version of `linear_map.dual_map`. -/
-def linear_map.dual_map_linear : (M₁ →ₗ[R] M₂) →ₗ[R] (dual R M₂ →ₗ[R] dual R M₁) :=
-(linear_map.llcomp R M₁ M₂ R).flip
-
-variables {R M₁ M₂}
-
-@[simp] lemma linear_map.dual_map_linear_apply (f : M₁ →ₗ[R] M₂) :
-  linear_map.dual_map_linear R M₁ M₂ f = f.dual_map := rfl
-
 /-- The `linear_equiv` version of `linear_map.dual_map`. -/
 def linear_equiv.dual_map (f : M₁ ≃ₗ[R] M₂) : dual R M₂ ≃ₗ[R] dual R M₁ :=
 { inv_fun := f.symm.to_linear_map.dual_map,

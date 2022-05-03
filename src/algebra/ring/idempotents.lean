@@ -37,8 +37,8 @@ is_idempotent.idempotent a
 lemma eq {p : M} (h : is_idempotent_elem p) : p * p = p := h
 
 lemma mul_of_commute {p q : S} (h : commute p q) (h₁ : is_idempotent_elem p)
-  (h₂ : is_idempotent_elem q) : is_idempotent_elem (p * q)  := by rw [is_idempotent_elem, mul_assoc,
-    ← mul_assoc q, ←h.eq, mul_assoc p, h₂.eq, ← mul_assoc, h₁.eq]
+  (h₂ : is_idempotent_elem q) : is_idempotent_elem (p * q)  :=
+by rw [is_idempotent_elem, mul_assoc, ← mul_assoc q, ←h.eq, mul_assoc p, h₂.eq, ← mul_assoc, h₁.eq]
 
 lemma zero : is_idempotent_elem (0 : M₀) := mul_zero _
 

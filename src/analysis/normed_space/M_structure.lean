@@ -272,7 +272,7 @@ instance : boolean_algebra {P : X →L[𝕜] X // is_Lprojection P} :=
     (Q.prop.commute P.prop).eq, mul_assoc ↑P ↑Q, ← coe_compl, compl_orthog, mul_zero, mul_zero,
     sub_zero, ← mul_add, coe_compl, add_sub_cancel'_right, mul_one]),
   inf_inf_sdiff := λ P Q,
-  subtype.ext (by rw [coe_inf, coe_inf, coe_sdiff, coe_bot, mul_assoc, ← mul_assoc ↑Q,
+    subtype.ext (by rw [coe_inf, coe_inf, coe_sdiff, coe_bot, mul_assoc, ← mul_assoc ↑Q,
     (Q.prop.commute P.prop).eq, ← coe_compl, mul_assoc, compl_orthog, mul_zero, mul_zero]),
   inf_compl_le_bot := λ P,
   eq.le

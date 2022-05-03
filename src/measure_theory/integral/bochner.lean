@@ -573,8 +573,8 @@ begin
     have := (to_simple_func f).pos_part_sub_neg_part,
     conv_lhs {rw ← this},
     refl, },
-  { exact (simple_func.integrable f).max_zero.congr ae_eq₁ },
-  { exact (simple_func.integrable f).neg.max_zero.congr ae_eq₂ }
+  { exact (simple_func.integrable f).pos_part.congr ae_eq₁ },
+  { exact (simple_func.integrable f).neg_part.congr ae_eq₂ }
 end
 
 end pos_part
@@ -1013,6 +1013,18 @@ begin
   rw [← lt_top_iff_ne_top], convert hfi.has_finite_integral, ext1 x, rw [nnreal.nnnorm_eq]
 end
 
+lemma of_real_integral_eq_lintegral_of_real {f : α → ℝ} (hfi : integrable f μ) (f_nn : 0 ≤ᵐ[μ] f) :
+  ennreal.of_real (∫ x, f x ∂μ) = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+begin
+  simp_rw [integral_congr_ae (show f =ᵐ[μ] λ x, ∥f x∥,
+             by { filter_upwards [f_nn] with x hx,
+                  rw [real.norm_eq_abs, abs_eq_self.mpr hx], }),
+           of_real_integral_norm_eq_lintegral_nnnorm hfi, ←of_real_norm_eq_coe_nnnorm],
+  apply lintegral_congr_ae,
+  filter_upwards [f_nn] with x hx,
+  exact congr_arg ennreal.of_real (by rw [real.norm_eq_abs, abs_eq_self.mpr hx]),
+end
+
 lemma integral_to_real {f : α → ℝ≥0∞} (hfm : ae_measurable f μ) (hf : ∀ᵐ x ∂μ, f x < ∞) :
   ∫ a, (f a).to_real ∂μ = (∫⁻ a, f a ∂μ).to_real :=
 begin
@@ -1091,6 +1103,21 @@ begin
   apply hf.coe_fn_to_L1.mono,
   intros a ha,
   simp [ha]
+end
+
+lemma mem_ℒp.snorm_eq_integral_rpow_norm {f : α → H} {p : ℝ≥0∞} (hp1 : p ≠ 0) (hp2 : p ≠ ∞)
+  (hf : mem_ℒp f p μ) :
+  snorm f p μ = ennreal.of_real ((∫ a, ∥f a∥ ^ p.to_real ∂μ) ^ (p.to_real ⁻¹)) :=
+begin
+  have A : ∫⁻ (a : α), ennreal.of_real (∥f a∥ ^ p.to_real) ∂μ = ∫⁻ (a : α), ∥f a∥₊ ^ p.to_real ∂μ,
+  { apply lintegral_congr (λ x, _),
+    rw [← of_real_rpow_of_nonneg (norm_nonneg _) to_real_nonneg, of_real_norm_eq_coe_nnnorm] },
+  simp only [snorm_eq_lintegral_rpow_nnnorm hp1 hp2, one_div],
+  rw integral_eq_lintegral_of_nonneg_ae, rotate,
+  { exact eventually_of_forall (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) },
+  { exact (hf.ae_strongly_measurable.norm.ae_measurable.pow_const _).ae_strongly_measurable },
+  rw [A, ← of_real_rpow_of_nonneg to_real_nonneg (inv_nonneg.2 to_real_nonneg), of_real_to_real],
+  exact (lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp1 hp2 hf.2).ne
 end
 
 end normed_group

@@ -468,7 +468,7 @@ begin
   exact ord_injective ((hf.trans hg).cof_eq.symm)
 end
 
-theorem is_normal.is_fundamental_sequence {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) {a o}
+protected theorem is_normal.is_fundamental_sequence {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) {a o}
   (ha : is_limit a) {g} (hg : is_fundamental_sequence a o g) :
   is_fundamental_sequence (f a) o (λ b hb, f (g b hb)) :=
 begin

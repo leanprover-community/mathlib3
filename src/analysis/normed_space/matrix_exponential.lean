@@ -12,17 +12,19 @@ import topology.uniform_space.matrix
 # Lemmas about the matrix exponential
 
 In this file, we provide results about `exp` on `matrix`s over a topological or normed algebra.
-The topological results are:
+Note that generic results over all topological spaces such as `exp_zero` can be used on matrices
+without issue. The topological results specific to matrices are:
 
 * `matrix.exp_transpose`
 * `matrix.exp_diagonal`
 
-Lemmas `exp_add_of_commute` require a canonical norm on the type, but for matrices there are
-multiple sensible choices of norm, none of which are canonical. In an application where you choose
-a particular norm using `local attribute [instance]`, then the usual lemmas about `exp` are fine.
+Lemmas like `exp_add_of_commute` require a canonical norm on the type, which matrices do not have
+as there are multiple sensible choices of norm, none of which are canonical. In an application where
+you choose a particular norm using `local attribute [instance]`, then the usual lemmas about `exp`
+are fine. When choosing a norm is unecessary, the results in this file can be used.
 
-In this file, we copy across the lemmas about a `exp` and instantiate a non-canonical norm in the
-proof.
+In this file, we copy across the lemmas about a `exp` and instantiate an arbitrary non-canonical
+norm in the proof.
 
 * `matrix.exp_add_of_commute`
 * `matrix.exp_nsmul`
@@ -32,6 +34,20 @@ After this, we prove some additional results about matrix operations:
 * `matrix.exp_block_diagonal`
 * `matrix.exp_block_diagonal'`
 
+## Implementation notes
+
+This file runs into some sharp edges on typeclass search in lean 3, especially regarding pi types.
+To work around this, we copy a handful of instances for when lean can't find them by itself.
+Hopefully we will be able to remove these in Lean 4.
+
+## TODO
+
+* Generalize the results about block diagonals to not require a normed space
+* Show that `matrix.det (exp 𝕂 (matrix m m 𝔸) A) = exp 𝕂 𝔸 (matrix.trace A)`
+
+## References
+
+* https://en.wikipedia.org/wiki/Matrix_exponential
 -/
 open_locale matrix
 
@@ -49,7 +65,7 @@ instance function.has_continuous_const_smul (I : Type*) (R : Type*) (M : Type*) 
   has_continuous_const_smul R (I → M) :=
 pi.has_continuous_const_smul
 
-/-- A special case of `function.algebra` for when A is a ring not a semiring -/
+/-- A special case of `function.algebra` for when A is a `ring` not a `semiring` -/
 instance function.algebra_ring (I : Type*) {R : Type*} (A : Type*) [comm_semiring R]
   [ring A] [algebra R A] : algebra R (I → A) :=
 pi.algebra _ _

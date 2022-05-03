@@ -229,20 +229,6 @@ lemma tendsto.inv_inv [monoid_hom_class F α β] (m : F) {f₁  : filter α} {f�
 
 end group
 
-/-TODO: The below instances are duplicate because there is no typeclass greater than
-`div_inv_monoid` and `has_involutive_inv` but smaller than `group` and `group_with_zero`. -/
-
-/-- `f / g = f * g⁻¹` for all `f g : filter α` if `a / b = a * b⁻¹` for all `a b : α`. -/
-@[to_additive "`f - g = f + -g` for all `f g : filter α` if `a - b = a + -b` for all `a b : α`."]
-instance div_inv_monoid [group α] : div_inv_monoid (filter α) :=
-{ div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
-  ..filter.monoid, ..filter.has_inv, ..filter.has_div }
-
-/-- `f / g = f * g⁻¹` for all `f g : filter α` if `a / b = a * b⁻¹` for all `a b : α`. -/
-instance div_inv_monoid' [group_with_zero α] : div_inv_monoid (filter α) :=
-{ div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
-  ..filter.monoid, ..filter.has_inv, ..filter.has_div }
-
 /-! ### Filter subtraction/division -/
 
 section div
@@ -366,6 +352,20 @@ end
 by simp only [is_unit_iff, group.is_unit, and_true]
 
 end group
+
+/-TODO: The below instances are duplicate because there is no typeclass greater than
+`div_inv_monoid` and `has_involutive_inv` but smaller than `group` and `group_with_zero`. -/
+
+/-- `f / g = f * g⁻¹` for all `f g : filter α` if `a / b = a * b⁻¹` for all `a b : α`. -/
+@[to_additive "`f - g = f + -g` for all `f g : filter α` if `a - b = a + -b` for all `a b : α`."]
+instance div_inv_monoid [group α] : div_inv_monoid (filter α) :=
+{ div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
+  ..filter.monoid, ..filter.has_inv, ..filter.has_div }
+
+/-- `f / g = f * g⁻¹` for all `f g : filter α` if `a / b = a * b⁻¹` for all `a b : α`. -/
+instance div_inv_monoid' [group_with_zero α] : div_inv_monoid (filter α) :=
+{ div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
+  ..filter.monoid, ..filter.has_inv, ..filter.has_div }
 
 open_locale pointwise
 

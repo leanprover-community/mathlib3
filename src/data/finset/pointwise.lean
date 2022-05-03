@@ -55,15 +55,6 @@ open_locale pointwise
 variables {F α β γ : Type*}
 
 namespace finset
-variables [decidable_eq α] [decidable_eq β]
-
-lemma image_inter_subset (f : α → β) (s t : finset α) : (s ∩ t).image f ⊆ s.image f ∩ t.image f :=
-subset_inter (image_subset_image $ inter_subset_left _ _) $
-  image_subset_image $ inter_subset_right _ _
-
-end finset
-
-namespace finset
 
 /-! ### `0`/`1` as sets -/
 

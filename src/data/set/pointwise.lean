@@ -527,6 +527,13 @@ open mul_opposite
 lemma image_op_inv : op '' s⁻¹ = (op '' s)⁻¹ := by simp_rw [←image_inv, image_comm op_inv]
 
 end has_involutive_inv
+
+@[to_additive] protected lemma mul_inv_rev [group α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
+by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev }
+
+protected lemma mul_inv_rev₀ [group_with_zero α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
+by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev₀ }
+
 end inv
 
 open_locale pointwise
@@ -676,8 +683,8 @@ begin
     have H : ∀ {a b}, a ∈ s → b ∈ t → a * b = (1 : α) :=
       λ a b ha hb, (h.subset $ mem_image2_of_mem ha hb),
     refine ⟨a, b, _, _, H ha hb⟩; refine eq_singleton_iff_unique_mem.2 ⟨‹_›, λ x hx, _⟩,
-    { exact (eq_inv_of_mul_eq_one_left $ H hx hb).trans (inv_eq_of_mul_eq_one_right $ H ha hb) },
-    { exact (eq_inv_of_mul_eq_one_right $ H ha hx).trans (inv_eq_of_mul_eq_one_left $ H ha hb) } },
+    { exact (eq_inv_of_mul_eq_one $ H hx hb).trans (eq_inv_of_mul_eq_one $ H ha hb).symm },
+    { exact (inv_eq_of_mul_eq_one $ H ha hx).symm.trans (inv_eq_of_mul_eq_one $ H ha hb) } },
   { rintro ⟨b, c, rfl, rfl, h⟩,
     rw [singleton_mul_singleton, h, singleton_one] }
 end

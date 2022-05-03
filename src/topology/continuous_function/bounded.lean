@@ -17,7 +17,6 @@ the uniform distance.
 
 -/
 
-noncomputable theory
 open_locale topological_space classical nnreal
 
 open set filter metric function
@@ -110,7 +109,7 @@ and therefore gives rise to an element of the type of bounded continuous functio
 ⟨⟨f, continuous_of_discrete_topology⟩, ⟨C, h⟩⟩
 
 /-- The uniform distance between two bounded continuous functions -/
-instance : has_dist (α →ᵇ β) :=
+noncomputable instance : has_dist (α →ᵇ β) :=
 ⟨λf g, Inf {C | 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C}⟩
 
 lemma dist_eq : dist f g = Inf {C | 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C} := rfl
@@ -171,7 +170,7 @@ lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
 ⟨λ w x, lt_of_le_of_lt (dist_coe_le_dist x) w, dist_lt_of_nonempty_compact⟩
 
 /-- The type of bounded continuous functions, with the uniform distance, is a metric space. -/
-instance : metric_space (α →ᵇ β) :=
+noncomputable instance : metric_space (α →ᵇ β) :=
 { dist_self := λ f, le_antisymm ((dist_le le_rfl).2 $ λ x, by simp) dist_nonneg',
   eq_of_dist_eq_zero := λ f g hfg, by ext x; exact
     eq_of_dist_eq_zero (le_antisymm (hfg ▸ dist_coe_le_dist _) dist_nonneg),
@@ -341,7 +340,7 @@ variables {δ : Type*} [topological_space δ] [discrete_topology δ]
 
 /-- A version of `function.extend` for bounded continuous maps. We assume that the domain has
 discrete topology, so we only need to verify boundedness. -/
-def extend (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) : δ →ᵇ β :=
+noncomputable def extend (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) : δ →ᵇ β :=
 { to_fun := extend f g h,
   continuous_to_fun := continuous_of_discrete_topology,
   map_bounded' :=
@@ -584,17 +583,14 @@ variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 /-- The pointwise sum of two bounded continuous functions is again bounded continuous. -/
 instance : has_add (α →ᵇ β) :=
 { add := λ f g,
-  bounded_continuous_function.mk_of_bound (f.to_continuous_map + g.to_continuous_map)
-    (↑(has_lipschitz_add.C β) * max (classical.some f.bounded) (classical.some g.bounded))
-    begin
-      intros x y,
-      refine le_trans (lipschitz_with_lipschitz_const_add ⟨f x, g x⟩ ⟨f y, g y⟩) _,
-      rw prod.dist_eq,
-      refine mul_le_mul_of_nonneg_left _ (has_lipschitz_add.C β).coe_nonneg,
-      apply max_le_max,
-      exact classical.some_spec f.bounded x y,
-      exact classical.some_spec g.bounded x y,
-    end }
+  { to_continuous_map := f.to_continuous_map + g.to_continuous_map,
+    map_bounded' := let ⟨fb, hfb⟩ := f.bounded, ⟨gb, hgb⟩ := g.bounded in
+      ⟨↑(has_lipschitz_add.C β) * max fb gb, λ x y, begin
+        refine le_trans (lipschitz_with_lipschitz_const_add ⟨f x, g x⟩ ⟨f y, g y⟩) _,
+        rw prod.dist_eq,
+        refine mul_le_mul_of_nonneg_left _ (has_lipschitz_add.C β).coe_nonneg,
+        exact max_le_max (hfb x y) (hgb x y),
+      end⟩ } }
 
 @[simp] lemma coe_add : ⇑(f + g) = f + g := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
@@ -675,7 +671,7 @@ pointwise operations and checking that they are compatible with the uniform dist
 variables [topological_space α] [normed_group β]
 variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 
-instance : has_norm (α →ᵇ β) := ⟨λu, dist u 0⟩
+noncomputable instance : has_norm (α →ᵇ β) := ⟨λu, dist u 0⟩
 
 lemma norm_def : ∥f∥ = dist f 0 := rfl
 
@@ -753,7 +749,7 @@ le_antisymm (norm_const_le b) $ h.elim $ λ x, (const α b).norm_coe_le_norm x
 
 /-- Constructing a bounded continuous function from a uniformly bounded continuous
 function taking values in a normed group. -/
-def of_normed_group {α : Type u} {β : Type v} [topological_space α] [normed_group β]
+@[inline] def of_normed_group {α : Type u} {β : Type v} [topological_space α] [normed_group β]
   (f : α → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) : α →ᵇ β :=
 ⟨⟨λn, f n, Hf⟩, ⟨_, dist_le_two_norm' H⟩⟩
 
@@ -780,7 +776,7 @@ of_normed_group f continuous_of_discrete_topology C H
 
 /-- Taking the pointwise norm of a bounded continuous function with values in a `normed_group`,
 yields a bounded continuous function with values in ℝ. -/
-def norm_comp : α →ᵇ ℝ :=
+noncomputable def norm_comp : α →ᵇ ℝ :=
 f.comp norm lipschitz_with_one_norm
 
 @[simp] lemma coe_norm_comp : (f.norm_comp : α → ℝ) = norm ∘ f := rfl
@@ -796,15 +792,15 @@ by simp_rw [norm_def, dist_eq_supr, coe_zero, pi.zero_apply, dist_zero_right]
 
 /-- The pointwise opposite of a bounded continuous function is again bounded continuous. -/
 instance : has_neg (α →ᵇ β) :=
-⟨λf, of_normed_group (-f) f.continuous.neg ∥f∥ $ λ x,
-  trans_rel_right _ (norm_neg _) (f.norm_coe_le_norm x)⟩
+{ neg := λ f,
+  { to_continuous_map := -f.to_continuous_map,
+    map_bounded' := f.bounded.imp $ λ b hb _ _, (dist_neg_neg _ _).trans_le (hb _ _) } }
 
 /-- The pointwise difference of two bounded continuous functions is again bounded continuous. -/
 instance : has_sub (α →ᵇ β) :=
-⟨λf g, of_normed_group (f - g) (f.continuous.sub g.continuous) (∥f∥ + ∥g∥) $ λ x,
-  by { simp only [sub_eq_add_neg],
-       exact le_trans (norm_add_le _ _) (add_le_add (f.norm_coe_le_norm x) $
-         trans_rel_right _ (norm_neg _) (g.norm_coe_le_norm x)) }⟩
+{ sub := λ f g,
+  { to_continuous_map := f.to_continuous_map - g.to_continuous_map,
+    map_bounded' := by { rw sub_eq_add_neg, exact (f + -g).bounded, }} }
 
 @[simp] lemma coe_neg : ⇑(-f) = -f := rfl
 lemma neg_apply : (-f) x = -f x := rfl
@@ -834,7 +830,7 @@ instance : add_comm_group (α →ᵇ β) :=
 fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _)
   (λ _ _, coe_zsmul _ _)
 
-instance : normed_group (α →ᵇ β) :=
+noncomputable instance : normed_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
 
 lemma nnnorm_def : ∥f∥₊ = nndist f 0 := rfl
@@ -976,7 +972,8 @@ variables {𝕜 : Type*}
 variables [topological_space α] [normed_group β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
-instance [normed_field 𝕜] [normed_space 𝕜 β] : normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, begin
+instance [normed_field 𝕜] [normed_space 𝕜 β] : normed_space 𝕜 (α →ᵇ β) :=
+⟨λ c f, begin
   refine norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
   exact (λ x, trans_rel_right _ (norm_smul _ _)
     (mul_le_mul_of_nonneg_left (f.norm_coe_le_norm _) (norm_nonneg _))) end⟩

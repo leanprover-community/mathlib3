@@ -57,8 +57,10 @@ instance : has_le game :=
 
 -- Adding `@[refl]` and `@[trans]` attributes here would override the ones on
 -- `preorder.le_refl` and `preorder.le_trans`, which breaks all non-`game` uses of `≤`!
-theorem le_refl : ∀ x : game, x ≤ x :=
-by { rintro ⟨x⟩, apply pgame.le_refl }
+theorem le_rfl : ∀ {x : game}, x ≤ x :=
+by { rintro ⟨x⟩, exact pgame.le_rfl }
+theorem le_refl (x : game) : x ≤ x :=
+le_rfl
 theorem le_trans : ∀ x y z : game, x ≤ y → y ≤ z → x ≤ z :=
 by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, apply pgame.le_trans }
 theorem le_antisymm : ∀ x y : game, x ≤ y → y ≤ x → x = y :=

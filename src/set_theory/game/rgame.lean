@@ -74,6 +74,10 @@ le_rfl
 theorem le_trans : ∀ x y z : rgame, x ≤ y → y ≤ z → x ≤ z :=
 by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, apply pgame.le_trans }
 
+instance : is_preorder rgame (≤) :=
+{ refl := le_refl,
+  trans := @le_trans }
+
 /-- This instance is incompatible with that provided by `game.partial_order`, which is why it's made
 into a `def` instead. -/
 instance : has_lt rgame :=
@@ -113,7 +117,7 @@ instance : has_sub rgame :=
 
 @[simp] lemma mk_sub (a b : pgame) : mk (a - b) = mk a - mk b := rfl
 
-@[simp] theorem sub_zero (x : rgame) : x - 0 = x + 0 :=
+@[simp] lemma sub_zero (x : rgame) : x - 0 = x + 0 :=
 show x + -0 = x + 0, by rw neg_zero
 
 instance : add_semigroup rgame :=

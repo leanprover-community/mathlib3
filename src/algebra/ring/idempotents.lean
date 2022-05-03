@@ -51,13 +51,8 @@ by rw [is_idempotent_elem, mul_sub, mul_one, sub_mul, one_mul, h.eq, sub_self, s
 ⟨ λ h, sub_sub_cancel 1 p ▸ h.one_sub, is_idempotent_elem.one_sub ⟩
 
 lemma pow {p : N} (n : ℕ) (h : is_idempotent_elem p) : is_idempotent_elem (p ^ n) :=
-begin
-  induction n with n ih,
-  { rw pow_zero, apply one, },
-  { unfold is_idempotent_elem,
-    rw [pow_succ, ← mul_assoc, ← pow_mul_comm', mul_assoc (p^n), h.eq, pow_mul_comm', mul_assoc,
-      ih.eq], }
-end
+nat.rec_on n ((pow_zero p).symm ▸ one) (λ n ih, show p ^ n.succ * p ^ n.succ = p ^ n.succ, 
+  by { nth_rewrite 2 ←h.eq, rw [←sq, ←sq, ←pow_mul, ←pow_mul'] })
 
 lemma pow_succ_eq {p : N} (n : ℕ) (h : is_idempotent_elem p) : p^(n + 1) = p :=
 begin

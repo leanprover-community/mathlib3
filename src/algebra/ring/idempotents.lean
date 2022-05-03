@@ -55,11 +55,7 @@ nat.rec_on n ((pow_zero p).symm ▸ one) (λ n ih, show p ^ n.succ * p ^ n.succ 
   by { nth_rewrite 2 ←h.eq, rw [←sq, ←sq, ←pow_mul, ←pow_mul'] })
 
 lemma pow_succ_eq {p : N} (n : ℕ) (h : is_idempotent_elem p) : p^(n + 1) = p :=
-begin
-  induction n with n ih,
-  { rw [nat.zero_add, pow_one], },
-  { rw [pow_succ, ih, h.eq], }
-end
+nat.rec_on n ((nat.zero_add 1).symm ▸ pow_one p) (λ n ih, by rw [pow_succ, ih, h.eq])
 
 @[simp] lemma iff_eq_one {p : G} : is_idempotent_elem p ↔ p = 1 :=
 begin

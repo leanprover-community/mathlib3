@@ -215,7 +215,7 @@ lemma to_span_singleton_add (x y : E) :
   to_span_singleton 𝕜 (x + y) = to_span_singleton 𝕜 x + to_span_singleton 𝕜 y :=
 by { ext1, simp [to_span_singleton_apply], }
 
-lemma to_span_singleton_smul' (𝕜') [nondiscrete_normed_field 𝕜'] [normed_space 𝕜' E]
+lemma to_span_singleton_smul' (𝕜') [normed_field 𝕜'] [normed_space 𝕜' E]
   [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
   to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
 by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smul_comm], }
@@ -731,11 +731,13 @@ def compL : (Fₗ →L[𝕜] Gₗ) →L[𝕜] (E →L[𝕜] Fₗ) →L[𝕜] (E 
 
 @[simp] lemma compL_apply (f : Fₗ →L[𝕜] Gₗ) (g : E →L[𝕜] Fₗ) : compL 𝕜 E Fₗ Gₗ f g = f.comp g := rfl
 
+section prod
+
 universes u₁ u₂ u₃ u₄
-variables (M₁ : Type u₁) [normed_group M₁] [normed_space 𝕜 M₁]
-          (M₂ : Type u₂) [normed_group M₂] [normed_space 𝕜 M₂]
-          (M₃ : Type u₃) [normed_group M₃] [normed_space 𝕜 M₃]
-          (M₄ : Type u₄) [normed_group M₄] [normed_space 𝕜 M₄]
+variables (M₁ : Type u₁) [semi_normed_group M₁] [normed_space 𝕜 M₁]
+          (M₂ : Type u₂) [semi_normed_group M₂] [normed_space 𝕜 M₂]
+          (M₃ : Type u₃) [semi_normed_group M₃] [normed_space 𝕜 M₃]
+          (M₄ : Type u₄) [semi_normed_group M₄] [normed_space 𝕜 M₄]
 
 /-- `continuous_linear_map.prod_map` as a continuous linear map. -/
 def prod_mapL : ((M₁ →L[𝕜] M₂) × (M₃ →L[𝕜] M₄)) →L[𝕜] ((M₁ × M₃) →L[𝕜] (M₂ × M₄)) :=
@@ -791,6 +793,8 @@ lemma _root_.continuous_on.prod_map_equivL {f : X → M₁ ≃L[𝕜] M₂} {g :
   (hg : continuous_on (λ x, (g x : M₃ →L[𝕜] M₄)) s) :
   continuous_on (λ x, ((f x).prod (g x) : M₁ × M₃ →L[𝕜] M₂ × M₄)) s :=
 (prod_mapL 𝕜 M₁ M₂ M₃ M₄).continuous.comp_continuous_on (hf.prod hg)
+
+end prod
 
 variables {𝕜 E Fₗ Gₗ}
 
@@ -870,7 +874,6 @@ section smul_linear
 
 variables (𝕜) (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
   [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
-  [normed_space 𝕜' M₁] [is_scalar_tower 𝕜 𝕜' M₁]
 
 /-- Scalar multiplication as a continuous bilinear map. -/
 def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
@@ -892,27 +895,15 @@ end
 
 variables {𝕜}
 
+lemma op_norm_lsmul_apply_le (x : 𝕜') : ∥(lsmul 𝕜 𝕜' x : E →L[𝕜] E)∥ ≤ ∥x∥ :=
+continuous_linear_map.op_norm_le_bound _ (norm_nonneg x) $ λ y, (norm_smul x y).le
+
 /-- The norm of `lsmul` is at most 1 in any semi-normed group. -/
 lemma op_norm_lsmul_le : ∥(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] E →L[𝕜] E)∥ ≤ 1 :=
 begin
   refine continuous_linear_map.op_norm_le_bound _ zero_le_one (λ x, _),
   simp_rw [one_mul],
-  refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg x) (λ y, _),
-  simp_rw [lsmul_apply, norm_smul],
-end
-
-/-- The norm of `lsmul` equals 1 in any nontrivial normed group. -/
-@[simp] lemma op_norm_lsmul [nontrivial M₁] : ∥(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] M₁ →L[𝕜] M₁)∥ = 1 :=
-begin
-  refine continuous_linear_map.op_norm_eq_of_bounds zero_le_one (λ x, _) (λ N hN h, _),
-  { simp_rw [one_mul],
-    refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg x) (λ y, _),
-    simp_rw [lsmul_apply, norm_smul] },
-  obtain ⟨y, hy⟩ := exists_ne (0 : M₁),
-  have := le_of_op_norm_le _ (h 1) y,
-  simp_rw [lsmul_apply, one_smul, norm_one, mul_one] at this,
-  refine le_of_mul_le_mul_right _ (norm_pos_iff.mpr hy),
-  simp_rw [one_mul, this]
+  exact op_norm_lsmul_apply_le _,
 end
 
 end smul_linear
@@ -1612,13 +1603,34 @@ norm_smul_right_apply c f
   ∥smul_rightL 𝕜 E Fₗ c∥ = ∥c∥ :=
 continuous_linear_map.homothety_norm _ c.norm_smul_right_apply
 
-variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
+variables (𝕜) (𝕜' : Type*)
+
+section
+variables [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
 @[simp] lemma op_norm_lmul [norm_one_class 𝕜'] : ∥lmul 𝕜 𝕜'∥ = 1 :=
 by haveI := norm_one_class.nontrivial 𝕜'; exact (lmulₗᵢ 𝕜 𝕜').norm_to_continuous_linear_map
 
 @[simp] lemma op_norm_lmul_right [norm_one_class 𝕜'] : ∥lmul_right 𝕜 𝕜'∥ = 1 :=
 (op_norm_flip (@lmul 𝕜 _ 𝕜' _ _)).trans (op_norm_lmul _ _)
+end
+
+/-- The norm of `lsmul` equals 1 in any nontrivial normed group.
+
+This is `continuous_linear_map.op_norm_lsmul_le` as an equality. -/
+@[simp] lemma op_norm_lsmul [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+  [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E] [nontrivial E] :
+  ∥(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] E →L[𝕜] E)∥ = 1 :=
+begin
+  refine continuous_linear_map.op_norm_eq_of_bounds zero_le_one (λ x, _) (λ N hN h, _),
+  { rw one_mul,
+    exact op_norm_lsmul_apply_le _, },
+  obtain ⟨y, hy⟩ := exists_ne (0 : E),
+  have := le_of_op_norm_le _ (h 1) y,
+  simp_rw [lsmul_apply, one_smul, norm_one, mul_one] at this,
+  refine le_of_mul_le_mul_right _ (norm_pos_iff.mpr hy),
+  simp_rw [one_mul, this]
+end
 
 end continuous_linear_map
 

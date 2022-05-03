@@ -18,7 +18,8 @@ operations on filters.
 
 ## Notes
 
-This file is very similar to the n-ary section of `data.set.basic`. Please keep them in sync.
+This file is very similar to the n-ary section of `data.set.basic` and to `data.finset.n_ary`.
+Please keep them in sync.
 -/
 
 open function set

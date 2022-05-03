@@ -62,8 +62,8 @@ instance : has_one (filter α) := ⟨principal 1⟩
 @[to_additive] lemma one_mem_one : (1 : set α) ∈ (1 : filter α) := mem_principal_self _
 
 @[simp, to_additive] lemma principal_one : 𝓟 1 = (1 : filter α) := rfl
-@[simp, to_additive] lemma pure_one : pure 1 = (1 : filter α) := (principal_singleton _).symm
 @[simp, to_additive] lemma le_one_iff : f ≤ 1 ↔ (1 : set α) ∈ f := le_principal_iff
+@[simp, to_additive] lemma pure_one : pure 1 = (1 : filter α) := (principal_singleton _).symm
 @[simp, to_additive] lemma eventually_one {p : α → Prop} : (∀ᶠ x in 1, p x) ↔ p 1 :=
 by rw [←pure_one, eventually_pure]
 @[simp, to_additive] lemma tendsto_one {a : filter β} {f : β → α} :
@@ -92,14 +92,14 @@ variables [has_mul α] [has_mul β] {f f₁ f₂ g g₁ g₂ h : filter α} {s t
 @[to_additive] lemma mul_mem_mul : s ∈ f → t ∈ g → s * t ∈ f * g := image2_mem_map₂
 @[simp, to_additive] lemma bot_mul : ⊥ * g = ⊥ := map₂_bot_left
 @[simp, to_additive] lemma mul_bot : f * ⊥ = ⊥ := map₂_bot_right
-@[simp, to_additive] lemma pure_mul : pure a * g = g.map ((*) a)  := map₂_pure_left
-@[simp, to_additive] lemma mul_pure : f * pure b = f.map (* b)  := map₂_pure_right
-@[simp, to_additive] lemma pure_mul_pure : (pure a : filter α) * pure b = pure (a * b) := map₂_pure
 @[simp, to_additive] lemma mul_eq_bot_iff : f * g = ⊥ ↔ f = ⊥ ∨ g = ⊥ := map₂_eq_bot_iff
 @[simp, to_additive] lemma mul_ne_bot_iff : (f * g).ne_bot ↔ f.ne_bot ∧ g.ne_bot := map₂_ne_bot_iff
 @[to_additive] lemma ne_bot.mul : ne_bot f → ne_bot g → ne_bot (f * g) := ne_bot.map₂
 @[to_additive] lemma ne_bot.of_mul_left : (f * g).ne_bot → f.ne_bot := ne_bot.of_map₂_left
 @[to_additive] lemma ne_bot.of_mul_right : (f * g).ne_bot → g.ne_bot := ne_bot.of_map₂_right
+@[simp, to_additive] lemma pure_mul : pure a * g = g.map ((*) a)  := map₂_pure_left
+@[simp, to_additive] lemma mul_pure : f * pure b = f.map (* b)  := map₂_pure_right
+@[simp, to_additive] lemma pure_mul_pure : (pure a : filter α) * pure b = pure (a * b) := map₂_pure
 @[simp, to_additive] lemma le_mul_iff : h ≤ f * g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s * t ∈ h :=
 le_map₂_iff
 
@@ -224,20 +224,20 @@ variables [has_div α] {f f₁ f₂ g g₁ g₂ h : filter α} {s t : set α} {a
 @[to_additive] lemma div_mem_div : s ∈ f → t ∈ g → s / t ∈ f / g := image2_mem_map₂
 @[simp, to_additive] lemma bot_div : ⊥ / g = ⊥ := map₂_bot_left
 @[simp, to_additive] lemma div_bot : f / ⊥ = ⊥ := map₂_bot_right
-@[simp, to_additive] lemma pure_div : pure a / g = g.map ((/) a)  := map₂_pure_left
-@[simp, to_additive] lemma div_pure : f / pure b = f.map (/ b)  := map₂_pure_right
-@[simp, to_additive] lemma pure_div_pure : (pure a : filter α) / pure b = pure (a / b) := map₂_pure
 @[simp, to_additive] lemma div_eq_bot_iff : f / g = ⊥ ↔ f = ⊥ ∨ g = ⊥ := map₂_eq_bot_iff
 @[simp, to_additive] lemma div_ne_bot_iff : (f / g).ne_bot ↔ f.ne_bot ∧ g.ne_bot := map₂_ne_bot_iff
 @[to_additive] lemma ne_bot.div : ne_bot f → ne_bot g → ne_bot (f / g) := ne_bot.map₂
 @[to_additive] lemma ne_bot.of_div_left : (f / g).ne_bot → f.ne_bot := ne_bot.of_map₂_left
 @[to_additive] lemma ne_bot.of_div_right : (f / g).ne_bot → g.ne_bot := ne_bot.of_map₂_right
-@[simp, to_additive] protected lemma le_div_iff :
-  h ≤ f / g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s / t ∈ h :=
-le_map₂_iff
+@[simp, to_additive] lemma pure_div : pure a / g = g.map ((/) a)  := map₂_pure_left
+@[simp, to_additive] lemma div_pure : f / pure b = f.map (/ b)  := map₂_pure_right
+@[simp, to_additive] lemma pure_div_pure : (pure a : filter α) / pure b = pure (a / b) := map₂_pure
 @[to_additive] protected lemma div_le_div : f₁ ≤ f₂ → g₁ ≤ g₂ → f₁ / g₁ ≤ f₂ / g₂ := map₂_mono
 @[to_additive] protected lemma div_le_div_left : g₁ ≤ g₂ → f / g₁ ≤ f / g₂ := map₂_mono_left
 @[to_additive] protected lemma div_le_div_right : f₁ ≤ f₂ → f₁ / g ≤ f₂ / g := map₂_mono_right
+@[simp, to_additive] protected lemma le_div_iff :
+  h ≤ f / g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s / t ∈ h :=
+le_map₂_iff
 
 @[to_additive] instance covariant_div : covariant_class (filter α) (filter α) (/) (≤) :=
 ⟨λ f g h, map₂_mono_left⟩
@@ -261,10 +261,25 @@ lemma tendsto.div_div [monoid_hom_class F α β] (m : F) {f₁ g₁ : filter α}
 
 end group
 
+/-TODO: The below instances are duplicate because there is no typeclass greater than
+`div_inv_monoid` and `has_involutive_inv` but smaller than `group` and `group_with_zero`. -/
+
+/-- `f / g = f * g⁻¹` for all `f g : filter α` if `a / b = a * b⁻¹` for all `a b : α`. -/
+@[to_additive "`f - g = f + -g` for all `f g : filter α` if `a - b = a + -b` for all `a b : α`."]
+instance div_inv_monoid [group α] : div_inv_monoid (filter α) :=
+{ div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
+  ..filter.monoid, ..filter.has_inv, ..filter.has_div }
+
+/-- `f / g = f * g⁻¹` for all `f g : filter α` if `a / b = a * b⁻¹` for all `a b : α`. -/
+instance div_inv_monoid' [group_with_zero α] : div_inv_monoid (filter α) :=
+{ div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
+  ..filter.monoid, ..filter.has_inv, ..filter.has_div }
+
 /-! ### Scalar addition/multiplication of filters -/
 
 section smul
 variables [has_scalar α β] {f f₁ f₂ : filter α} {g g₁ g₂ h : filter β} {s : set α} {t : set β}
+  {a : α} {b : β}
 
 @[to_additive filter.has_vadd] instance : has_scalar (filter α) (filter β) := ⟨map₂ (•)⟩
 
@@ -276,11 +291,17 @@ variables [has_scalar α β] {f f₁ f₂ : filter α} {g g₁ g₂ h : filter �
 @[simp, to_additive] lemma smul_eq_bot_iff : f • g = ⊥ ↔ f = ⊥ ∨ g = ⊥ := map₂_eq_bot_iff
 @[simp, to_additive] lemma smul_ne_bot_iff : (f • g).ne_bot ↔ f.ne_bot ∧ g.ne_bot := map₂_ne_bot_iff
 @[to_additive] lemma ne_bot.smul : ne_bot f → ne_bot g → ne_bot (f • g) := ne_bot.map₂
-@[simp, to_additive] lemma le_smul_iff : h ≤ f • g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s • t ∈ h :=
-le_map₂_iff
+@[to_additive] lemma ne_bot.of_smul_left : (f • g).ne_bot → f.ne_bot := ne_bot.of_map₂_left
+@[to_additive] lemma ne_bot.of_smul_right : (f • g).ne_bot → g.ne_bot := ne_bot.of_map₂_right
+@[simp, to_additive] lemma pure_smul : (pure a : filter α) • g = g.map ((•) a)  := map₂_pure_left
+@[simp, to_additive] lemma smul_pure : f • pure b = f.map (• b)  := map₂_pure_right
+@[simp, to_additive] lemma pure_smul_pure :
+  (pure a : filter α) • (pure b : filter β) = pure (a • b) := map₂_pure
 @[to_additive] lemma smul_le_smul : f₁ ≤ f₂ → g₁ ≤ g₂ → f₁ • g₁ ≤ f₂ • g₂ := map₂_mono
 @[to_additive] lemma smul_le_smul_left : g₁ ≤ g₂ → f • g₁ ≤ f • g₂ := map₂_mono_left
 @[to_additive] lemma smul_le_smul_right : f₁ ≤ f₂ → f₁ • g ≤ f₂ • g := map₂_mono_right
+@[simp, to_additive] lemma le_smul_iff : h ≤ f • g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s • t ∈ h :=
+le_map₂_iff
 
 @[to_additive] instance covariant_smul : covariant_class (filter α) (filter β) (•) (≤) :=
 ⟨λ f g h, map₂_mono_left⟩
@@ -295,7 +316,7 @@ instance [monoid α] [mul_action α β] : mul_action (filter α) (filter β) :=
 /-! ### Scalar subtraction of filters -/
 
 section vsub
-variables [has_vsub α β] {f f₁ f₂ g g₁ g₂ : filter β} {h : filter α} {s t : set β}
+variables [has_vsub α β] {f f₁ f₂ g g₁ g₂ : filter β} {h : filter α} {s t : set β} {a b : β}
 include α
 
 instance : has_vsub (filter α) (filter β) := ⟨map₂ (-ᵥ)⟩
@@ -308,10 +329,16 @@ lemma vsub_mem_vsub : s ∈ f → t ∈ g → s -ᵥ t ∈ f -ᵥ g :=  image2_m
 @[simp] lemma vsub_eq_bot_iff : f -ᵥ g = ⊥ ↔ f = ⊥ ∨ g = ⊥ := map₂_eq_bot_iff
 @[simp] lemma vsub_ne_bot_iff : (f -ᵥ g : filter α).ne_bot ↔ f.ne_bot ∧ g.ne_bot := map₂_ne_bot_iff
 lemma ne_bot.vsub : ne_bot f → ne_bot g → ne_bot (f -ᵥ g) := ne_bot.map₂
-@[simp] lemma le_vsub_iff : h ≤ f -ᵥ g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s -ᵥ t ∈ h := le_map₂_iff
+lemma ne_bot.of_vsub_left : (f -ᵥ g : filter α).ne_bot → f.ne_bot := ne_bot.of_map₂_left
+lemma ne_bot.of_vsub_right : (f -ᵥ g : filter α).ne_bot → g.ne_bot := ne_bot.of_map₂_right
+@[simp] lemma pure_vsub : (pure a : filter β) -ᵥ g = g.map ((-ᵥ) a)  := map₂_pure_left
+@[simp] lemma vsub_pure : f -ᵥ pure b = f.map (-ᵥ b)  := map₂_pure_right
+@[simp] lemma pure_vsub_pure : (pure a : filter β) -ᵥ pure b = (pure (a -ᵥ b) : filter α) :=
+map₂_pure
 lemma vsub_le_vsub : f₁ ≤ f₂ → g₁ ≤ g₂ → f₁ -ᵥ g₁ ≤ f₂ -ᵥ g₂ := map₂_mono
 lemma vsub_le_vsub_left : g₁ ≤ g₂ → f -ᵥ g₁ ≤ f -ᵥ g₂ := map₂_mono_left
 lemma vsub_le_vsub_right : f₁ ≤ f₂ → f₁ -ᵥ g ≤ f₂ -ᵥ g := map₂_mono_right
+@[simp] lemma le_vsub_iff : h ≤ f -ᵥ g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s -ᵥ t ∈ h := le_map₂_iff
 
 end vsub
 

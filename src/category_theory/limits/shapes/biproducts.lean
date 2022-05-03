@@ -1068,6 +1068,26 @@ def biprod.unique_up_to_iso (X Y : C) [has_binary_biproduct X Y] {b : binary_bic
   inv_hom_id' := by rw [← biprod.cone_point_unique_up_to_iso_hom X Y hb,
     ← biprod.cone_point_unique_up_to_iso_inv X Y hb, iso.inv_hom_id] }
 
+section
+variables (X Y : C) [has_binary_biproduct X Y]
+
+-- There are three further variations,
+-- about `is_iso biprod.inr`, `is_iso biprod.fst` and `is_iso biprod.snd`,
+-- but any one suffices to prove `indecomposable_of_simple`
+-- and they are likely not separately useful.
+lemma biprod.is_iso_inl_iff_id_eq_fst_comp_inl :
+  is_iso (biprod.inl : X ⟶ X ⊞ Y) ↔ 𝟙 (X ⊞ Y) = biprod.fst ≫ biprod.inl :=
+begin
+  split,
+  { introI h,
+    have := (cancel_epi (inv biprod.inl : X ⊞ Y ⟶ X)).2 biprod.inl_fst,
+    rw [is_iso.inv_hom_id_assoc, comp_id] at this,
+    rw [this, is_iso.inv_hom_id], },
+  { intro h, exact ⟨⟨biprod.fst, biprod.inl_fst, h.symm⟩⟩, },
+end
+
+end
+
 section biprod_kernel
 
 variables (X Y : C) [has_binary_biproduct X Y]
@@ -1665,6 +1685,8 @@ end
 end
 
 variables {C : Type u} [category.{v} C] [has_zero_morphisms C] [has_binary_biproducts C]
+
+
 
 /-- An object is indecomposable if it cannot be written as the biproduct of two nonzero objects. -/
 def indecomposable (X : C) : Prop := ∀ Y Z, (X ≅ Y ⊞ Z) → is_zero Y ∨ is_zero Z

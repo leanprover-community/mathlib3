@@ -16,6 +16,8 @@ is either an isomorphism or zero (but not both).
 
 This is formalized as a `Prop` valued typeclass `simple X`.
 
+In some contexts, especially representation theory, simple objects are called "irreducibles".
+
 If a morphism `f` out of a simple object is nonzero and has a kernel, then that kernel is zero.
 (We state this as `kernel.ι f = 0`, but should add `kernel f ≅ 0`.)
 
@@ -23,6 +25,8 @@ When the category is abelian, being simple is the same as being cosimple (althou
 state a separate typeclass for this).
 As a consequence, any nonzero epimorphism out of a simple object is an isomorphism,
 and any nonzero morphism into a simple object has trivial cokernel.
+
+We show that any simple object is indecomposable.
 -/
 
 noncomputable theory
@@ -156,74 +160,13 @@ end
 end abelian
 
 section
-variables [has_zero_morphisms C] [has_binary_biproducts C]
-
-open category
-
-lemma is_zero_iff_id_eq_zero (X : C) : is_zero X ↔ (𝟙 X = 0) :=
-begin
-  fsplit,
-  exact λ h, h.eq_of_src _ _,
-  intro h,
-  split,
-  exact λ Y, ⟨⟨⟨0⟩, λ f, by { rw [←id_comp f, ←id_comp default, h, zero_comp, zero_comp], }⟩⟩,
-  exact λ Y, ⟨⟨⟨0⟩, λ f, by { rw [←comp_id f, ←comp_id default, h, comp_zero, comp_zero], }⟩⟩,
-end
-
-lemma biprod.inl_eq_zero_iff_is_zero (X Y : C) : (biprod.inl : X ⟶ X ⊞ Y) = 0 ↔ is_zero X :=
-begin
-  rw is_zero_iff_id_eq_zero,
-  split,
-  { intro h, rw [←biprod.inl_fst, h, zero_comp], },
-  { intro h, rw [←id_comp biprod.inl, h, zero_comp], },
-end
-
-lemma biprod.inr_eq_zero_iff_is_zero (X Y : C) : (biprod.inr : Y ⟶ X ⊞ Y) = 0 ↔ is_zero Y :=
-begin
-  rw is_zero_iff_id_eq_zero,
-  split,
-  { intro h, rw [←biprod.inr_snd, h, zero_comp], },
-  { intro h, rw [←id_comp biprod.inr, h, zero_comp], },
-end
-
-lemma biprod.fst_eq_zero_iff_is_zero (X Y : C) : (biprod.fst : X ⊞ Y ⟶ X) = 0 ↔ is_zero X :=
-begin
-  rw is_zero_iff_id_eq_zero,
-  split,
-  { intro h, rw [←biprod.inl_fst, h, comp_zero], },
-  { intro h, rw [←comp_id biprod.fst, h, comp_zero], },
-end
-
-lemma biprod.snd_eq_zero_iff_is_zero (X Y : C) : (biprod.snd : X ⊞ Y ⟶ Y) = 0 ↔ is_zero Y :=
-begin
-  rw is_zero_iff_id_eq_zero,
-  split,
-  { intro h, rw [←biprod.inr_snd, h, comp_zero], },
-  { intro h, rw [←comp_id biprod.snd, h, comp_zero], },
-end
-
--- TODO there are three further variations,
--- about `is_iso biprod.inr`, `is_iso biprod.fst` and `is_iso biprod.snd`.
-lemma biprod.is_iso_inl_iff_fst_comp_inl_eq_id (X Y : C) :
-  is_iso (biprod.inl : X ⟶ X ⊞ Y) ↔ 𝟙 (X ⊞ Y) = biprod.fst ≫ biprod.inl :=
-begin
-  split,
-  { introI h,
-    have := (cancel_epi (inv biprod.inl : X ⊞ Y ⟶ X)).2 biprod.inl_fst,
-    rw [is_iso.inv_hom_id_assoc, comp_id] at this,
-    rw [this, is_iso.inv_hom_id], },
-  { intro h, exact ⟨⟨biprod.fst, biprod.inl_fst, h.symm⟩⟩, },
-end
-
-end
-
-section
 variables [preadditive C] [has_binary_biproducts C]
 
--- TODO, again, there are another three variations of this lemma.
+-- There are another three potential variations of this lemma,
+-- but as any one suffices to prove `indecomposable_of_simple` we will not give them all.
 lemma biprod.is_iso_inl_iff_is_zero (X Y : C) : is_iso (biprod.inl : X ⟶ X ⊞ Y) ↔ is_zero Y :=
 begin
-  rw [biprod.is_iso_inl_iff_fst_comp_inl_eq_id, ←biprod.total, add_right_eq_self],
+  rw [biprod.is_iso_inl_iff_id_eq_fst_comp_inl, ←biprod.total, add_right_eq_self],
   split,
   { intro h, replace h := h =≫ biprod.snd,
     simpa [biprod.snd_eq_zero_iff_is_zero] using h, },

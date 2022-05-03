@@ -230,8 +230,7 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
   le_sup_right := λ P Q,
   begin
     rw [le_def, coe_inf, coe_sup, ← add_sub, mul_add, mul_sub, commute.eq (commute P.prop Q.prop),
-      ← mul_assoc, Q.prop.proj.eq],
-    abel,
+      ← mul_assoc, Q.prop.proj.eq, add_sub_cancel'_right],
   end,
   sup_le := λ P Q R,
   begin

@@ -108,7 +108,7 @@ instance : has_involutive_neg rgame.{u} :=
 
 /-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 instance : has_add rgame :=
-⟨lift₂ (λ x y, mk (x + y)) (λ x₁ y₁ x₂ y₂ hx hy, quot.sound ⟨relabelling.add_congr hx hy⟩)⟩
+⟨lift₂ (λ x y, mk (x + y)) (λ x₁ y₁ x₂ y₂ hx hy, sound (relabelling.add_congr hx hy))⟩
 
 @[simp] lemma mk_add (a b : pgame) : mk (a + b) = mk a + mk b := rfl
 
@@ -121,17 +121,17 @@ instance : has_sub rgame :=
 show x + -0 = x + 0, by rw neg_zero
 
 instance : add_semigroup rgame :=
-{ add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quot.sound ⟨add_assoc_relabelling x y z⟩ },
+{ add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, exact sound (add_assoc_relabelling x y z) },
   ..rgame.has_add }
 
 instance : add_monoid rgame :=
-{ add_zero := by { rintro ⟨x⟩, exact quot.sound ⟨add_zero_relabelling x⟩ },
-  zero_add := by { rintro ⟨x⟩, exact quot.sound ⟨zero_add_relabelling x⟩ },
+{ add_zero := by { rintro ⟨x⟩, exact sound (add_zero_relabelling x) },
+  zero_add := by { rintro ⟨x⟩, exact sound (zero_add_relabelling x) },
   ..rgame.has_zero,
   ..rgame.add_semigroup }
 
 instance : add_comm_semigroup rgame :=
-{ add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact quot.sound ⟨add_comm_relabelling x y⟩ },
+{ add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact sound (add_comm_relabelling x y) },
   ..rgame.add_semigroup }
 
 instance : add_comm_monoid rgame :=

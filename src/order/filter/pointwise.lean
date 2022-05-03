@@ -53,21 +53,19 @@ namespace filter
 section one
 variables [has_one α] {f : filter α} {s : set α}
 
-/-- `1 : filter α` is defined as the filter of sets containing `1 : α` in locale `pointwise`. -/
-@[to_additive "`0 : filter α` is defined as the filter of sets containing `0 : α` in locale
-`pointwise`."]
-protected def has_one : has_one (filter α) := ⟨pure 1⟩
+/-- `1 : filter α` is the set of sets containing `1 : α`. -/
+@[to_additive "`0 : filter α` is the set of sets containing `0 : α`."]
+instance : has_one (filter α) := ⟨principal 1⟩
 
-localized "attribute [instance] filter.has_one filter.has_zero" in pointwise
+@[simp, to_additive] lemma mem_one : s ∈ (1 : filter α) ↔ (1 : α) ∈ s := one_subset
 
-@[simp, to_additive] lemma mem_one : s ∈ (1 : filter α) ↔ (1 : α) ∈ s := mem_pure
-@[to_additive] lemma one_mem_one : (1 : set α) ∈ (1 : filter α) := mem_pure.2 one_mem_one
-@[simp, to_additive] lemma pure_one : pure 1 = (1 : filter α) := rfl
-@[simp, to_additive] lemma principal_one : 𝓟 1 = (1 : filter α) := principal_singleton _
-@[to_additive] lemma one_ne_bot : (1 : filter α).ne_bot := filter.pure_ne_bot
-@[simp, to_additive] protected lemma map_one' (f : α → β) : (1 : filter α).map f = pure (f 1) := rfl
-@[simp, to_additive] lemma le_one_iff : f ≤ 1 ↔ (1 : set α) ∈ f := le_pure_iff
-@[simp, to_additive] lemma eventually_one {p : α → Prop} : (∀ᶠ x in 1, p x) ↔ p 1 := eventually_pure
+@[to_additive] lemma one_mem_one : (1 : set α) ∈ (1 : filter α) := mem_principal_self _
+
+@[simp, to_additive] lemma principal_one : 𝓟 1 = (1 : filter α) := rfl
+@[simp, to_additive] lemma pure_one : pure 1 = (1 : filter α) := (principal_singleton _).symm
+@[simp, to_additive] lemma le_one_iff : f ≤ 1 ↔ (1 : set α) ∈ f := le_principal_iff
+@[simp, to_additive] lemma eventually_one {p : α → Prop} : (∀ᶠ x in 1, p x) ↔ p 1 :=
+by rw [←pure_one, eventually_pure]
 @[simp, to_additive] lemma tendsto_one {a : filter β} {f : β → α} :
    tendsto f a 1 ↔ ∀ᶠ x in a, f x = 1 :=
 by rw [←pure_one, tendsto_pure]
@@ -76,7 +74,9 @@ variables [has_one β]
 
 @[simp, to_additive]
 protected lemma map_one [one_hom_class F α β] (φ : F) : map φ 1 = 1 :=
-by rw [filter.map_one', map_one, pure_one]
+le_antisymm
+  (le_principal_iff.2 $ mem_map_iff_exists_image.2 ⟨1, one_mem_one, λ x, by simp [map_one φ]⟩)
+  (le_map $ λ s hs, mem_one.2 ⟨1, mem_one.1 hs, map_one φ⟩)
 
 end one
 
@@ -215,7 +215,7 @@ end group
 /-! ### Filter subtraction/division -/
 
 section div
-variables [has_div α] {f f₁ f₂ g g₁ g₂ h : filter α} {s t : set α}
+variables [has_div α] {f f₁ f₂ g g₁ g₂ h : filter α} {s t : set α} {a b : α}
 
 @[to_additive] instance : has_div (filter α) := ⟨map₂ (/)⟩
 

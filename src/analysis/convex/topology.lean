@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudryashov
 -/
 import analysis.convex.jensen
-import analysis.convex.star
 import analysis.normed.group.pointwise
 import analysis.normed_space.finite_dimension
 import analysis.normed_space.ray
@@ -290,11 +289,11 @@ end has_continuous_smul
 /-! ### Normed vector space -/
 
 section normed_space
-variables [semi_normed_group E] [normed_space ℝ E]
+variables [semi_normed_group E] [normed_space ℝ E] {s t : set E}
 
 /-- The norm on a real normed space is convex on any convex set. See also `seminorm.convex_on`
 and `convex_on_univ_norm`. -/
-lemma convex_on_norm {s : set E} (hs : convex ℝ s) : convex_on ℝ s norm :=
+lemma convex_on_norm (hs : convex ℝ s) : convex_on ℝ s norm :=
 ⟨hs, λ x y hx hy a b ha hb hab,
   calc ∥a • x + b • y∥ ≤ ∥a • x∥ + ∥b • y∥ : norm_add_le _ _
     ... = a * ∥x∥ + b * ∥y∥
@@ -304,7 +303,7 @@ lemma convex_on_norm {s : set E} (hs : convex ℝ s) : convex_on ℝ s norm :=
 and `convex_on_norm`. -/
 lemma convex_on_univ_norm : convex_on ℝ univ (norm : E → ℝ) := convex_on_norm convex_univ
 
-lemma convex_on_dist (z : E) {s : set E} (hs : convex ℝ s) : convex_on ℝ s (λz', dist z' z) :=
+lemma convex_on_dist (z : E) (hs : convex ℝ s) : convex_on ℝ s (λz', dist z' z) :=
 by simpa [dist_eq_norm, preimage_preimage]
   using (convex_on_norm (hs.translate (-z))).comp_affine_map
     (affine_map.id ℝ E - affine_map.const ℝ E z)
@@ -318,24 +317,15 @@ by simpa only [metric.ball, sep_univ] using (convex_on_univ_dist a).convex_lt r
 lemma convex_closed_ball (a : E) (r : ℝ) : convex ℝ (metric.closed_ball a r) :=
 by simpa only [metric.closed_ball, sep_univ] using (convex_on_univ_dist a).convex_le r
 
-lemma star_convex_ball_self {E : Type u_2} [normed_group E] [normed_space ℝ E] (a : E) (r : ℝ) :
-  star_convex ℝ a (metric.ball a r) :=
-begin
-  obtain hr | hr := le_or_lt r 0,
-  { rw metric.ball_eq_empty.2 hr,
-    exact star_convex_empty _ },
-  { exact (convex_ball _ _).star_convex (mem_ball_self hr) }
-end
+lemma convex.thickening (hs : convex ℝ s) (δ : ℝ) : convex ℝ (thickening δ s) :=
+by { rw ←add_ball_zero, exact hs.add (convex_ball 0 _) }
 
-lemma convex.thickening (hs : convex ℝ s) (ε : ℝ) : convex ℝ (thickening ε s) :=
-by { rw ←add_ball, exact hs.add (convex_ball 0 _) }
-
-lemma convex.cthickening (hs : convex ℝ s) (ε : ℝ) : convex ℝ (cthickening ε s) :=
+lemma convex.cthickening (hs : convex ℝ s) (δ : ℝ) : convex ℝ (cthickening δ s) :=
 begin
-  obtain hε | hε := le_total 0 ε,
-  { rw cthickening_eq_Inter_thickening hε,
-    exact convex_bInter (λ _ _, hs.thickening _) },
-  { rw cthickening_of_nonpos hε,
+  obtain hδ | hδ := le_total 0 δ,
+  { rw cthickening_eq_Inter_thickening hδ,
+    exact convex_Inter₂ (λ _ _, hs.thickening _) },
+  { rw cthickening_of_nonpos hδ,
     exact hs.closure }
 end
 
@@ -344,12 +334,12 @@ disjoint convex sets containing them. -/
 -- TODO: This proof uses the normed space structure of `E`, but it could work for locally convex
 -- topological vector spaces: instead of looking at thickenings, we could show there must be some
 -- convex neighbourhood `u` of 0 which make `s + u` and `t + u` disjoint?
-lemma exists_disjoint_open_convexes {s t : set E} (hs₁ : convex ℝ s) (hs₂ : is_compact s)
+lemma disjoint.exists_open_convexes (hs₁ : convex ℝ s) (hs₂ : is_compact s)
   (ht₁ : convex ℝ t) (ht₂ : is_closed t) (disj : disjoint s t) :
   ∃ u v, is_open u ∧ is_open v ∧ convex ℝ u ∧ convex ℝ v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
-let ⟨ε, hε, hst⟩ := exists_disjoint_thickenings hs₂ ht₂ disj in
+let ⟨δ, hδ, hst⟩ := disj.exists_thickenings hs₂ ht₂ in
   ⟨_, _, is_open_thickening, is_open_thickening, hs₁.thickening _, ht₁.thickening _,
-    self_subset_thickening hε _, self_subset_thickening hε _, hst⟩
+    self_subset_thickening hδ _, self_subset_thickening hδ _, hst⟩
 
 /-- Given a point `x` in the convex hull of `s` and a point `y`, there exists a point
 of `s` at distance at least `dist x y` from `y`. -/

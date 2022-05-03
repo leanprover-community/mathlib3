@@ -111,11 +111,12 @@ begin
 end
 
 theorem trace_eq_neg_charpoly_coeff [nonempty n] (M : matrix n n R) :
-  (trace n R R) M = -M.charpoly.coeff (fintype.card n - 1) :=
+  trace M = -M.charpoly.coeff (fintype.card n - 1) :=
 begin
   rw charpoly_coeff_eq_prod_coeff_of_le, swap, refl,
-  rw [fintype.card, prod_X_sub_C_coeff_card_pred univ (λ i : n, M i i)], simp,
-  rw [← fintype.card, fintype.card_pos_iff], apply_instance,
+  rw [fintype.card, prod_X_sub_C_coeff_card_pred univ (λ i : n, M i i) fintype.card_pos, neg_neg,
+    trace],
+  refl
 end
 
 -- I feel like this should use polynomial.alg_hom_eval₂_algebra_map

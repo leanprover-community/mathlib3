@@ -98,7 +98,7 @@ variables {R}
 
 -- Can't be a `simp` lemma because it depends on a choice of basis
 lemma trace_eq_matrix_trace [decidable_eq ι] (b : basis ι R S) (s : S) :
-  trace R S s = matrix.trace _ R _ (algebra.left_mul_matrix b s) :=
+  trace R S s = matrix.trace (algebra.left_mul_matrix b s) :=
 by rw [trace_apply, linear_map.trace_eq_matrix_trace _ b, to_matrix_lmul_eq]
 
 /-- If `x` is in the base field `K`, then the trace is `[L : K] * x`. -/
@@ -106,7 +106,7 @@ lemma trace_algebra_map_of_basis (x : R) :
   trace R S (algebra_map R S x) = fintype.card ι • x :=
 begin
   haveI := classical.dec_eq ι,
-  rw [trace_apply, linear_map.trace_eq_matrix_trace R b, trace_diag],
+  rw [trace_apply, linear_map.trace_eq_matrix_trace R b, matrix.trace],
   convert finset.sum_const _,
   ext i,
   simp,
@@ -133,10 +133,10 @@ begin
   haveI := classical.dec_eq ι,
   haveI := classical.dec_eq κ,
   rw [trace_eq_matrix_trace (b.smul c), trace_eq_matrix_trace b, trace_eq_matrix_trace c,
-      matrix.trace_apply, matrix.trace_apply, matrix.trace_apply,
+      matrix.trace, matrix.trace, matrix.trace,
       ← finset.univ_product_univ, finset.sum_product],
   refine finset.sum_congr rfl (λ i _, _),
-  simp only [alg_hom.map_sum, smul_left_mul_matrix, finset.sum_apply,
+  simp only [alg_hom.map_sum, smul_left_mul_matrix, finset.sum_apply, matrix.diag,
       -- The unifier is not smart enough to apply this one by itself:
       finset.sum_apply i _ (λ y, left_mul_matrix b (left_mul_matrix c x y y))]
 end

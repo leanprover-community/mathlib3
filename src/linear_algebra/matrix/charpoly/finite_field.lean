@@ -42,21 +42,19 @@ begin
     exact congr_arg _ (subsingleton.elim _ _), },
 end
 
-lemma finite_field.trace_pow_card {K : Type*} [field K] [fintype K]
-  (M : matrix n n K) : trace n K K (M ^ (fintype.card K)) = (trace n K K M) ^ (fintype.card K) :=
-begin
-  casesI is_empty_or_nonempty n,
-  { simp [zero_pow fintype.card_pos], },
-  rw [matrix.trace_eq_neg_charpoly_coeff, matrix.trace_eq_neg_charpoly_coeff,
-       finite_field.matrix.charpoly_pow_card, finite_field.pow_card]
-end
-
-variables {p : ℕ} [fact p.prime]
-
 @[simp] lemma zmod.charpoly_pow_card (M : matrix n n (zmod p)) :
   (M ^ p).charpoly = M.charpoly :=
 by { have h := finite_field.matrix.charpoly_pow_card M, rwa zmod.card at h, }
 
-lemma zmod.trace_pow_card (M : matrix n n (zmod p)) :
-  trace n (zmod p) (zmod p) (M ^ p) = (trace n (zmod p) (zmod p) M)^p :=
+lemma finite_field.trace_pow_card {K : Type*} [field K] [fintype K]
+  (M : matrix n n K) : trace (M ^ (fintype.card K)) = trace M ^ (fintype.card K) :=
+begin
+  casesI is_empty_or_nonempty n,
+  { simp [zero_pow fintype.card_pos, matrix.trace], },
+  rw [matrix.trace_eq_neg_charpoly_coeff, matrix.trace_eq_neg_charpoly_coeff,
+       finite_field.matrix.charpoly_pow_card, finite_field.pow_card]
+end
+
+lemma zmod.trace_pow_card {p : ℕ} [fact p.prime] (M : matrix n n (zmod p)) :
+  trace (M ^ p) = (trace M)^p :=
 by { have h := finite_field.trace_pow_card M, rwa zmod.card at h, }

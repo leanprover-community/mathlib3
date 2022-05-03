@@ -28,9 +28,12 @@ instance : bornology (Π i, π i) :=
 { cobounded := filter.Coprod (λ i, cobounded (π i)),
   le_cofinite := @Coprod_cofinite ι π _ ▸ (filter.Coprod_mono $ λ i, bornology.le_cofinite _) }
 
-instance {p : α → Prop} : bornology (subtype p) :=
-{ cobounded := comap coe (cobounded α),
-  le_cofinite := (comap_mono (bornology.le_cofinite α)).trans (comap_cofinite_le _) }
+/-- Inverse image of a bornology. -/
+@[reducible] def bornology.induced {α β : Type*} [bornology β] (f : α → β) : bornology α :=
+{ cobounded := comap f (cobounded β),
+  le_cofinite := (comap_mono (bornology.le_cofinite β)).trans (comap_cofinite_le _) }
+
+instance {p : α → Prop} : bornology (subtype p) := bornology.induced (coe : subtype p → α)
 
 namespace bornology
 
@@ -105,9 +108,13 @@ end
 ### Bounded sets in `{x // p x}`
 -/
 
+lemma is_bounded_induced {α β : Type*} [bornology β] {f : α → β} {s : set α} :
+  @is_bounded α (bornology.induced f) s ↔ is_bounded (f '' s) :=
+compl_mem_comap
+
 lemma is_bounded_image_subtype_coe {p : α → Prop} {s : set {x // p x}} :
   is_bounded (coe '' s : set α) ↔ is_bounded s :=
-compl_mem_comap.symm
+is_bounded_induced.symm
 
 end bornology
 
@@ -123,8 +130,12 @@ by simp [← cobounded_eq_bot_iff, cobounded_prod]
 instance [∀ i, bounded_space (π i)] : bounded_space (Π i, π i) :=
 by simp [← cobounded_eq_bot_iff, cobounded_pi]
 
+lemma bounded_space_induced_iff {α β : Type*} [bornology β] {f : α → β} :
+  @bounded_space α (bornology.induced f) ↔ is_bounded (range f) :=
+by rw [← is_bounded_univ, is_bounded_induced, image_univ]
+
 lemma bounded_space_subtype_iff {p : α → Prop} : bounded_space (subtype p) ↔ is_bounded {x | p x} :=
-by rw [← is_bounded_univ, ← is_bounded_image_subtype_coe, image_univ, subtype.range_coe_subtype]
+by rw [bounded_space_induced_iff, subtype.range_coe_subtype]
 
 lemma bounded_space_coe_set_iff {s : set α} : bounded_space s ↔ is_bounded s :=
 bounded_space_subtype_iff

@@ -66,8 +66,8 @@ variables [is_domain k] [char_p k p] [perfect_ring k p]
 /-! ### Frobenius-linear maps -/
 
 /-- The Frobenius automorphism of `k` induces an automorphism of `K`. -/
-def fraction_ring.frobenius : K(p, k) ≃+* K(p, k) := is_fraction_ring.field_equiv_of_ring_equiv
-  (ring_equiv.of_bijective _ (witt_vector.frobenius_bijective p k))
+def fraction_ring.frobenius : K(p, k) ≃+* K(p, k) :=
+is_fraction_ring.field_equiv_of_ring_equiv (frobenius_equiv p k)
 
 /-- The Frobenius automorphism of `k` induces an endomorphism of `K`. For notation purposes. -/
 def fraction_ring.frobenius_ring_hom : K(p, k) →+* K(p, k) := fraction_ring.frobenius p k

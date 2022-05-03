@@ -286,7 +286,18 @@ begin
 end
 
 @[simp] lemma totient_two : φ 2 = 1 :=
-(totient_prime prime_two).trans (by norm_num)
+(totient_prime prime_two).trans rfl
+
+lemma totient_eq_one_iff : ∀ {n : ℕ}, n.totient = 1 ↔ n = 1 ∨ n = 2
+| 0 := by simp
+| 1 := by simp
+| 2 := by simp
+| (n+3) :=
+begin
+  have : 3 ≤ n + 3 := le_add_self,
+  simp only [succ_succ_ne_one, false_or],
+  exact ⟨λ h, not_even_one.elim $ h ▸ totient_even this, by rintro ⟨⟩⟩,
+end
 
 /-! ### Euler's product formula for the totient function
 

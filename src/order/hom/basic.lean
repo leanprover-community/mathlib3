@@ -508,7 +508,7 @@ def refl (α : Type*) [has_le α] : α ≃o α := rel_iso.refl (≤)
 
 @[simp] lemma coe_refl : ⇑(refl α) = id := rfl
 
-lemma refl_apply (x : α) : refl α x = x := rfl
+@[simp] lemma refl_apply (x : α) : refl α x = x := rfl
 
 @[simp] lemma refl_to_equiv : (refl α).to_equiv = equiv.refl α := rfl
 
@@ -562,7 +562,7 @@ e.to_equiv.preimage_image s
 
 @[simp] lemma coe_trans (e : α ≃o β) (e' : β ≃o γ) : ⇑(e.trans e') = e' ∘ e := rfl
 
-lemma trans_apply (e : α ≃o β) (e' : β ≃o γ) (x : α) : e.trans e' x = e' (e x) := rfl
+@[simp] lemma trans_apply (e : α ≃o β) (e' : β ≃o γ) (x : α) : e.trans e' x = e' (e x) := rfl
 
 @[simp] lemma refl_trans (e : α ≃o β) : (refl α).trans e = e := by { ext x, refl }
 

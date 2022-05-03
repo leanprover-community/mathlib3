@@ -101,11 +101,13 @@ instance [h : non_unital_non_assoc_semiring α] : non_unital_non_assoc_semiring 
 instance [h : non_unital_semiring α] : non_unital_semiring (order_dual α) := h
 instance [h : non_assoc_semiring α] : non_assoc_semiring (order_dual α) := h
 instance [h : semiring α] : semiring (order_dual α) := h
+instance [h : non_unital_comm_semiring α] : non_unital_comm_semiring (order_dual α) := h
 instance [h : comm_semiring α] : comm_semiring (order_dual α) := h
 instance [h : non_unital_non_assoc_ring α] : non_unital_non_assoc_ring (order_dual α) := h
 instance [h : non_unital_ring α] : non_unital_ring (order_dual α) := h
 instance [h : non_assoc_ring α] : non_assoc_ring (order_dual α) := h
 instance [h : ring α] : ring (order_dual α) := h
+instance [h : non_unital_comm_ring α] : non_unital_comm_ring (order_dual α) := h
 instance [h : comm_ring α] : comm_ring (order_dual α) := h
 
 end order_dual

@@ -36,6 +36,9 @@ continuous_induced_dom
 @[continuity, to_additive] lemma continuous_op : continuous (op : M → Mᵐᵒᵖ) :=
 continuous_induced_rng continuous_id
 
+@[to_additive] instance [t2_space M] : t2_space Mᵐᵒᵖ :=
+⟨λ x y h, separated_by_continuous mul_opposite.continuous_unop $ unop_injective.ne h⟩
+
 /-- `mul_opposite.op` as a homeomorphism. -/
 @[to_additive "`add_opposite.op` as a homeomorphism."]
 def op_homeomorph : M ≃ₜ Mᵐᵒᵖ :=

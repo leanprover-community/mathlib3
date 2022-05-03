@@ -190,12 +190,12 @@ by rw [←diag_union_off_diag, union_comm, union_sdiff_self,
 lemma product_sdiff_off_diag : s.product s \ s.off_diag = s.diag :=
 by rw [←diag_union_off_diag, union_sdiff_self, sdiff_eq_self_of_disjoint (disjoint_diag_off_diag _)]
 
-lemma union_diag : (s ∪ t).diag = s.diag ∪ t.diag :=
+lemma diag_union : (s ∪ t).diag = s.diag ∪ t.diag :=
 by { ext ⟨i, j⟩, simp only [mem_diag, mem_union, or_and_distrib_right] }
 
 variables {s t}
 
-lemma union_off_diag (h : disjoint s t) :
+lemma off_diag_union (h : disjoint s t) :
   (s ∪ t).off_diag = s.off_diag ∪ t.off_diag ∪ s.product t ∪ t.product s :=
 begin
   rw [off_diag, union_product, product_union, product_union, union_comm _ (t.product t),
@@ -207,20 +207,20 @@ begin
   { exact h.symm.forall_ne_finset hi hj },
 end
 
-variables {a : α}
+variables (a : α)
 
-@[simp] lemma singleton_off_diag : ({a} : finset α).off_diag = ∅ :=
+@[simp] lemma off_diag_singleton : ({a} : finset α).off_diag = ∅ :=
 by simp [←finset.card_eq_zero]
 
-lemma singleton_diag : ({a} : finset α).diag = {(a, a)} :=
-by rw [←product_sdiff_off_diag, singleton_off_diag, sdiff_empty, singleton_product_singleton]
+lemma diag_singleton : ({a} : finset α).diag = {(a, a)} :=
+by rw [←product_sdiff_off_diag, off_diag_singleton, sdiff_empty, singleton_product_singleton]
 
-lemma insert_diag : (insert a s).diag = insert (a, a) s.diag :=
-by rw [insert_eq, insert_eq, union_diag, singleton_diag]
+lemma diag_insert : (insert a s).diag = insert (a, a) s.diag :=
+by rw [insert_eq, insert_eq, diag_union, diag_singleton]
 
-lemma insert_off_diag (has : a ∉ s) :
+lemma off_diag_insert (has : a ∉ s) :
   (insert a s).off_diag = s.off_diag ∪ ({a} : finset α).product s ∪ s.product {a} :=
-by rw [insert_eq, union_comm, union_off_diag (disjoint_singleton_right.2 has), singleton_off_diag,
+by rw [insert_eq, union_comm, off_diag_union (disjoint_singleton_right.2 has), off_diag_singleton,
   union_empty, union_right_comm]
 
 end diag

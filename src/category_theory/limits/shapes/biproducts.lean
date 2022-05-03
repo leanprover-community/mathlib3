@@ -1686,9 +1686,7 @@ end
 
 variables {C : Type u} [category.{v} C] [has_zero_morphisms C] [has_binary_biproducts C]
 
-
-
 /-- An object is indecomposable if it cannot be written as the biproduct of two nonzero objects. -/
-def indecomposable (X : C) : Prop := ∀ Y Z, (X ≅ Y ⊞ Z) → is_zero Y ∨ is_zero Z
+def indecomposable (X : C) : Prop := ¬ is_zero X ∧ ∀ Y Z, (X ≅ Y ⊞ Z) → is_zero Y ∨ is_zero Z
 
 end category_theory

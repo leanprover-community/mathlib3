@@ -681,7 +681,7 @@ def relabel_relabelling {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : 
 relabelling.mk el er (λ i, by simp) (λ j, by simp)
 
 /-- `is_relabelled_option x y` means that `x` is either a either a left or right option of `y`, up
-to relabelling. Contrast with `is_option`. -/
+to relabelling. Contrast with `pgame.is_option`. -/
 @[mk_iff is_relabelled_option_iff_left] inductive is_relabelled_option : pgame → pgame → Prop
 | relabelling_left {x₁ x₂ y : pgame} (h : is_option x₁ y) (e : x₁.relabelling x₂) :
     is_relabelled_option x₂ y

@@ -136,7 +136,7 @@ begin
       continuous_linear_map.sub_apply, continuous_linear_map.one_apply,
       continuous_linear_map.sub_apply, continuous_linear_map.one_apply, add_assoc]
     ... ≥ ∥P (Q x)∥ + ∥(Q x - P (Q x)) + (x - Q x)∥ :
-      by apply (add_le_add_iff_left (∥P(Q x)∥)).mpr (norm_add_le (Q x - P (Q x)) (x - Q x))
+      (add_le_add_iff_left (∥P(Q x)∥)).mpr (norm_add_le (Q x - P (Q x)) (x - Q x))
     ... = ∥(P * Q) x∥ + ∥(1 - P * Q) x∥ : by rw [sub_add_sub_cancel',
       continuous_linear_map.sub_apply, continuous_linear_map.one_apply,
       continuous_linear_map.coe_mul] }

@@ -373,7 +373,7 @@ inv_eq_left_inv (by simp [h, smul_smul])
 lemma inv_smul' (k : αˣ) (h : is_unit A.det) : (k • A)⁻¹ = k⁻¹ • A⁻¹ :=
 inv_eq_left_inv (by simp [h, smul_smul])
 
-/-- `diagonal` is invertible -/
+/-- `diagonal v` is invertible if `v` is -/
 def diagonal_invertible (v : n → α) [invertible v] : invertible (diagonal v) :=
 { inv_of := diagonal (⅟v),
   inv_of_mul_self := by simp_rw [mul_eq_mul, diagonal_mul_diagonal, ←pi.mul_def, inv_of_mul_self,
@@ -385,15 +385,42 @@ lemma inv_of_diagonal_eq (v : n → α) [invertible v] [invertible (diagonal v)]
   ⅟(diagonal v) = diagonal (⅟v) :=
 by { letI := diagonal_invertible v, convert (rfl : ⅟(diagonal v) = _) }
 
+/-- `v` is invertible if `diagonal v` is -/
 def invertible_of_diagonal_invertible (v : n → α) [invertible (diagonal v)] : invertible v :=
 { inv_of := diag (⅟(diagonal v)),
-  inv_of_mul_self := begin
+  inv_of_mul_self := funext $ λ i, begin
     letI : invertible (diagonal v).det := det_invertible_of_invertible _,
-    rw [inv_of_eq, diag_smul, adjugate_diagonal],
-    apply diagonal_injective,
-    simp,
+    rw [inv_of_eq, diag_smul, adjugate_diagonal, diag_diagonal],
+    dsimp,
+    rw [mul_assoc, prod_erase_mul _ _ (finset.mem_univ _), ←det_diagonal],
+    exact mul_inv_of_self _,
   end,
-  mul_inv_of_self := _ }
+  mul_inv_of_self := funext $ λ i, begin
+    letI : invertible (diagonal v).det := det_invertible_of_invertible _,
+    rw [inv_of_eq, diag_smul, adjugate_diagonal, diag_diagonal],
+    dsimp,
+    rw [mul_left_comm, mul_prod_erase _ _ (finset.mem_univ _), ←det_diagonal],
+    exact mul_inv_of_self _,
+  end }
+
+/-- Together `matrix.diagonal_invertible` and `matrix.invertible_of_diagonal_invertible` form an
+equivalence, although both sides of the equiv are subsingleton anyway. -/
+@[simps]
+def diagonal_invertible_equiv_invertible (v : n → α) : invertible (diagonal v) ≃ invertible v :=
+{ to_fun := @invertible_of_diagonal_invertible _ _ _ _ _ _,
+  inv_fun := @diagonal_invertible _ _ _ _ _ _,
+  left_inv := λ _, subsingleton.elim _ _,
+  right_inv := λ _, subsingleton.elim _ _ }
+
+/-- When lowered to a prop, `matrix.diagonal_invertible_equiv_invertible` forms an `iff`. -/
+lemma is_unit_iff_is_unit_det : is_unit A ↔ is_unit A.det :=
+begin
+  split; rintros ⟨x, hx⟩; refine @is_unit_of_invertible _ _ _ (id _),
+  { haveI : invertible A := hx.rec x.invertible,
+    apply det_invertible_of_invertible, },
+  { haveI : invertible A.det := hx.rec x.invertible,
+    apply invertible_of_det_invertible, },
+end
 
 lemma inv_diagonal_of_invertible (v : n → α) [invertible v] : (diagonal v)⁻¹ = diagonal (⅟v) :=
 inv_eq_left_inv $

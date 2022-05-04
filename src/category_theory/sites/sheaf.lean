@@ -472,7 +472,7 @@ begin
         simp } } },
   { refine fork.ext (iso.refl _) _,
     dsimp [equalizer.fork_map, fork_map],
-    simp }
+    simp [fork.ι] }
 end
 
 /-- The equalizer definition of a sheaf given by `is_sheaf'` is equivalent to `is_sheaf`. -/

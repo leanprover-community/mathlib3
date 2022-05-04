@@ -3,7 +3,7 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison
 -/
-import set_theory.pgame
+import set_theory.game.pgame
 
 /-!
 # Surreal numbers
@@ -51,6 +51,10 @@ and all the elements of L and R are also numeric. -/
 def numeric : pgame → Prop
 | ⟨l, r, L, R⟩ :=
   (∀ i j, L i < R j) ∧ (∀ i, numeric (L i)) ∧ (∀ i, numeric (R i))
+
+lemma numeric_def (x : pgame) : numeric x ↔ (∀ i j, x.move_left i < x.move_right j) ∧
+  (∀ i, numeric (x.move_left i)) ∧ (∀ i, numeric (x.move_right i)) :=
+by { cases x, refl }
 
 lemma numeric.move_left {x : pgame} (o : numeric x) (i : x.left_moves) :
   numeric (x.move_left i) :=
@@ -144,27 +148,27 @@ begin
   { left,
     use (left_moves_add x z).symm (sum.inl ix),
     simp only [add_move_left_inl],
-    calc w + y ≤ move_left x ix + y : add_le_add_right hix
-            ... ≤ move_left x ix + move_left z iz : add_le_add_left hiz
-            ... ≤ move_left x ix + z : add_le_add_left (oz.move_left_le iz) },
+    calc w + y ≤ move_left x ix + y : add_le_add_right hix _
+            ... ≤ move_left x ix + move_left z iz : add_le_add_left hiz _
+            ... ≤ move_left x ix + z : add_le_add_left (oz.move_left_le iz) _ },
   { left,
     use (left_moves_add x z).symm (sum.inl ix),
     simp only [add_move_left_inl],
-    calc w + y ≤ move_left x ix + y : add_le_add_right hix
-            ... ≤ move_left x ix + move_right y jy : add_le_add_left (oy.le_move_right jy)
-            ... ≤ move_left x ix + z : add_le_add_left hjy },
+    calc w + y ≤ move_left x ix + y : add_le_add_right hix _
+            ... ≤ move_left x ix + move_right y jy : add_le_add_left (oy.le_move_right jy) _
+            ... ≤ move_left x ix + z : add_le_add_left hjy _ },
   { right,
     use (right_moves_add w y).symm (sum.inl jw),
     simp only [add_move_right_inl],
-    calc move_right w jw + y ≤ x + y : add_le_add_right hjw
-            ... ≤ x + move_left z iz : add_le_add_left hiz
-            ... ≤ x + z : add_le_add_left (oz.move_left_le iz), },
+    calc move_right w jw + y ≤ x + y : add_le_add_right hjw _
+            ... ≤ x + move_left z iz : add_le_add_left hiz _
+            ... ≤ x + z : add_le_add_left (oz.move_left_le iz) _ },
   { right,
     use (right_moves_add w y).symm (sum.inl jw),
     simp only [add_move_right_inl],
-    calc move_right w jw + y ≤ x + y : add_le_add_right hjw
-            ... ≤ x + move_right y jy : add_le_add_left (oy.le_move_right jy)
-            ... ≤ x + z : add_le_add_left hjy, },
+    calc move_right w jw + y ≤ x + y : add_le_add_right hjw _
+            ... ≤ x + move_right y jy : add_le_add_left (oy.le_move_right jy) _
+            ... ≤ x + z : add_le_add_left hjy _ },
 end
 
 theorem numeric_add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeric (x + y)
@@ -172,13 +176,13 @@ theorem numeric_add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeri
 ⟨begin
    rintros (ix|iy) (jx|jy),
    { show xL ix + ⟨yl, yr, yL, yR⟩ < xR jx + ⟨yl, yr, yL, yR⟩,
-     exact add_lt_add_right (ox.1 ix jx), },
+     exact add_lt_add_right (ox.1 ix jx) _ },
    { show xL ix + ⟨yl, yr, yL, yR⟩ < ⟨xl, xr, xL, xR⟩ + yR jy,
      exact add_lt_add oy (oy.move_right jy) (ox.move_left_lt _) (oy.lt_move_right _), },
    { --  show ⟨xl, xr, xL, xR⟩ + yL iy < xR jx + ⟨yl, yr, yL, yR⟩, -- fails?
      exact add_lt_add (oy.move_left iy) oy (ox.lt_move_right _) (oy.move_left_lt _), },
    { --  show ⟨xl, xr, xL, xR⟩ + yL iy < ⟨xl, xr, xL, xR⟩ + yR jy, -- fails?
-     exact @add_lt_add_left ⟨xl, xr, xL, xR⟩ _ _ (oy.1 iy jy), }
+     exact @add_lt_add_left pgame _ _ _ _ _ (oy.1 iy jy) ⟨xl, xr, xL, xR⟩ }
  end,
  begin
    split,
@@ -233,7 +237,7 @@ begin
   { rintro ⟨ ⟩,
     left,
     use (sum.inl punit.star),
-    calc 0 ≤ half : le_of_lt numeric_zero numeric_half zero_lt_half
+    calc 0 ≤ half : le_of_lt numeric_zero numeric_half pgame.zero_lt_half
     ... ≈ 0 + half : (zero_add_equiv half).symm
     ... = (half + half).move_left (sum.inl punit.star) : by fsplit },
   { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); left,
@@ -316,10 +320,10 @@ instance : ordered_add_comm_group surreal :=
 { add               := (+),
   add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
   zero              := 0,
-  zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv _) },
-  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv _) },
+  zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv a) },
+  add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv a) },
   neg               := has_neg.neg,
-  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound pgame.add_left_neg_equiv },
+  add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_left_neg_equiv a) },
   add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
   le                := (≤),
   lt                := (<),
@@ -327,7 +331,7 @@ instance : ordered_add_comm_group surreal :=
   le_trans          := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact pgame.le_trans },
   lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact pgame.lt_iff_le_not_le ox oy },
   le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
-  add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact pgame.add_le_add_left hx } }
+  add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact @add_le_add_left pgame _ _ _ _ _ hx _ } }
 
 noncomputable instance : linear_ordered_add_comm_group surreal :=
 { le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact

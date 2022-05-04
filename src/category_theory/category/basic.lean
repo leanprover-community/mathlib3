@@ -182,10 +182,10 @@ instance (X : C) : epi (𝟙 X) :=
 instance (X : C) : mono (𝟙 X) :=
 ⟨λ Z g h w, by simpa using w⟩
 
-lemma cancel_epi (f : X ⟶ Y) [epi f]  {g h : Y ⟶ Z} : (f ≫ g = f ≫ h) ↔ g = h :=
-⟨ λ p, epi.left_cancellation g h p, begin intro a, subst a end ⟩
+lemma cancel_epi (f : X ⟶ Y) [epi f] {g h : Y ⟶ Z} : (f ≫ g = f ≫ h) ↔ g = h :=
+⟨λ p, epi.left_cancellation g h p, congr_arg _⟩
 lemma cancel_mono (f : X ⟶ Y) [mono f] {g h : Z ⟶ X} : (g ≫ f = h ≫ f) ↔ g = h :=
-⟨ λ p, mono.right_cancellation g h p, begin intro a, subst a end ⟩
+⟨λ p, mono.right_cancellation g h p, congr_arg _⟩
 
 lemma cancel_epi_id (f : X ⟶ Y) [epi f] {h : Y ⟶ Y} : (f ≫ h = f) ↔ h = 𝟙 Y :=
 by { convert cancel_epi f, simp, }

@@ -1363,10 +1363,10 @@ section ring
 variables [ring R] [semiring S] (f : R →+* S)
 
 lemma injective_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
-by { rw [set_like.ext'_iff, ker_eq, set.ext_iff], exact f.injective_iff' }
+by { rw [set_like.ext'_iff, ker_eq, set.ext_iff], exact injective_iff_map_eq_zero' f }
 
 lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
-by { rw [← f.injective_iff, injective_iff_ker_eq_bot] }
+by { rw [← injective_iff_map_eq_zero f, injective_iff_ker_eq_bot] }
 
 @[simp] lemma ker_coe_equiv (f : R ≃+* S) : ker (f : R →+* S) = ⊥ :=
 by simpa only [←injective_iff_ker_eq_bot] using f.injective
@@ -1730,7 +1730,7 @@ lemma quotient_equiv_symm_mk (I : ideal R) (J : ideal S) (f : R ≃+* S)
 lemma quotient_map_injective' {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}
   (h : I.comap f ≤ J) : function.injective (quotient_map I f H) :=
 begin
-  refine (quotient_map I f H).injective_iff.2 (λ a ha, _),
+  refine (injective_iff_map_eq_zero (quotient_map I f H)).2 (λ a ha, _),
   obtain ⟨r, rfl⟩ := quotient.mk_surjective a,
   rw [quotient_map_mk, quotient.eq_zero_iff_mem] at ha,
   exact (quotient.eq_zero_iff_mem).mpr (h ha),

@@ -545,7 +545,7 @@ begin
     (well_founded_submodule_gt R M)).elim' _),
   have f : ℕ ↪ s, from @infinite.nat_embedding s ⟨λ f, hf ⟨f⟩⟩,
   have : ∀ n, (coe ∘ f) '' {m | m ≤ n} ⊆ s,
-  { rintros n x ⟨y, hy₁, hy₂⟩, subst hy₂, exact (f y).2 },
+  { rintros n x ⟨y, hy₁, rfl⟩, exact (f y).2 },
   have : ∀ a b : ℕ, a ≤ b ↔
     span R ((coe ∘ f) '' {m | m ≤ a}) ≤ span R ((coe ∘ f) '' {m | m ≤ b}),
   { assume a b,

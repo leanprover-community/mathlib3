@@ -202,6 +202,8 @@ instance {n : ℕ} : linear_order (fin n) :=
 
 instance {n : ℕ}  : partial_order (fin n) := linear_order.to_partial_order (fin n)
 
+lemma coe_strict_mono : strict_mono (coe : fin n → ℕ) := λ _ _, id
+
 /-- The inclusion map `fin n → ℕ` is a relation embedding. -/
 def coe_embedding (n) : (fin n) ↪o ℕ :=
 ⟨⟨coe, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩

@@ -7,7 +7,7 @@ import data.real.basic
 import data.real.sqrt
 import data.nat.prime
 import number_theory.primes_congruent_one
-import number_theory.quadratic_reciprocity
+import number_theory.legendre_symbol.quadratic_reciprocity
 import tactic.linear_combination
 
 /-!

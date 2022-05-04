@@ -455,8 +455,7 @@ begin
   intros y hy,
   rcases h₁ hy.1 with ⟨x₁, hx₁, rfl⟩,
   rcases h₂ hy.2 with ⟨x₂, hx₂, heq⟩,
-  have : x₁ = x₂, from h (or.inl hx₁) (or.inr hx₂) heq.symm,
-  subst x₂,
+  obtain rfl : x₁ = x₂ := h (or.inl hx₁) (or.inr hx₂) heq.symm,
   exact mem_image_of_mem f ⟨hx₁, hx₂⟩
 end
 

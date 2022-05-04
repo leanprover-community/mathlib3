@@ -368,7 +368,7 @@ variables (R)
 
 lemma cast_hom_injective : function.injective (zmod.cast_hom (dvd_refl n) R) :=
 begin
-  rw ring_hom.injective_iff,
+  rw injective_iff_map_eq_zero,
   intro x,
   obtain ⟨k, rfl⟩ := zmod.int_cast_surjective x,
   rw [ring_hom.map_int_cast, char_p.int_cast_eq_zero_iff R n,

@@ -465,7 +465,7 @@ section lift
 
 open cau_seq padic_seq
 
-variables {R : Type*} [comm_ring R] (f : Π k : ℕ, R →+* zmod (p^k))
+variables {R : Type*} [non_assoc_semiring R] (f : Π k : ℕ, R →+* zmod (p^k))
   (f_compat : ∀ k1 k2 (hk : k1 ≤ k2), (zmod.cast_hom (pow_dvd_pow p hk) _).comp (f k2) = f k1)
 
 omit hp_prime
@@ -687,7 +687,7 @@ begin
   { rintro rfl _, refl }
 end
 
-lemma to_zmod_pow_eq_iff_ext {R : Type*} [comm_ring R] {g g' : R →+* ℤ_[p]} :
+lemma to_zmod_pow_eq_iff_ext {R : Type*} [non_assoc_semiring R] {g g' : R →+* ℤ_[p]} :
   (∀ n, (to_zmod_pow n).comp g = (to_zmod_pow n).comp g') ↔ g = g' :=
 begin
   split,

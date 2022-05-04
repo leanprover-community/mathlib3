@@ -603,15 +603,13 @@ lemma find_min : Π {n : ℕ} {p : fin n → Prop} [decidable_pred p] {i : fin n
   cases h : find (λ i : fin n, (p (i.cast_lt (nat.lt_succ_of_lt i.2)))) with k,
   { rw [h] at hi,
     split_ifs at hi with hl hl,
-    { have := option.some_inj.1 hi,
-      subst this,
+    { obtain rfl := option.some_inj.1 hi,
       rw [find_eq_none_iff] at h,
       exact h ⟨j, hj⟩ hpj },
     { exact option.no_confusion hi } },
   { rw h at hi,
     dsimp at hi,
-    have := option.some_inj.1 hi,
-    subst this,
+    obtain rfl := option.some_inj.1 hi,
     exact find_min h (show (⟨j, lt_trans hj k.2⟩ : fin n) < k, from hj) hpj }
 end
 

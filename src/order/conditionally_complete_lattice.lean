@@ -226,6 +226,14 @@ cSup_le ‹_› (assume (a) (ha : a ∈ s), le_cSup ‹bdd_above t› (h ha))
 theorem cInf_le_cInf (_ : bdd_below t) (_ : s.nonempty) (h : s ⊆ t) : Inf t ≤ Inf s :=
 le_cInf ‹_› (assume (a) (ha : a ∈ s), cInf_le ‹bdd_below t› (h ha))
 
+theorem le_cSup_iff (h : bdd_above s) (hs : s.nonempty) :
+  a ≤ Sup s ↔ ∀ b, b ∈ upper_bounds s → a ≤ b :=
+⟨λ h b hb, le_trans h (cSup_le hs hb), λ hb, hb _ (λ x, le_cSup h)⟩
+
+theorem cInf_le_iff (h : bdd_below s) (hs : s.nonempty) :
+  Inf s ≤ a ↔ ∀ b ∈ lower_bounds s, b ≤ a :=
+⟨λ h b hb, le_trans (le_cInf hs hb) h, λ hb, hb _ (λ x, cInf_le h)⟩
+
 lemma is_lub_cSup (ne : s.nonempty) (H : bdd_above s) : is_lub s (Sup s) :=
 ⟨assume x, le_cSup H, assume x, cSup_le ne⟩
 
@@ -694,6 +702,10 @@ is_lub_le_iff (is_lub_cSup' hs)
 
 lemma cSup_le' {s : set α} {a : α} (h : a ∈ upper_bounds s) : Sup s ≤ a :=
 (cSup_le_iff' ⟨a, h⟩).2 h
+
+theorem le_cSup_iff' {s : set α} {a : α} (h : bdd_above s) :
+  a ≤ Sup s ↔ ∀ b, b ∈ upper_bounds s → a ≤ b :=
+⟨λ h b hb, le_trans h (cSup_le' hb), λ hb, hb _ (λ x, le_cSup h)⟩
 
 theorem le_cInf_iff'' {s : set α} {a : α} (ne : s.nonempty) :
   a ≤ Inf s ↔ ∀ (b : α), b ∈ s → a ≤ b :=

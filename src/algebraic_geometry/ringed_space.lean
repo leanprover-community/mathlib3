@@ -148,13 +148,12 @@ begin
   induction V using opposite.rec,
   let g := i.unop, have : i = g.op := rfl, clear_value g, subst this,
   ext, split,
-  { rintro ⟨x, (hx : is_unit _), rfl⟩, rw germ_res_apply at hx,
+  { rintro ⟨x, (hx : is_unit _), rfl⟩,
+    rw germ_res_apply at hx,
     exact ⟨x.2, g x, hx, rfl⟩ },
   { rintros ⟨hxV, x, hx, rfl⟩,
-    use ⟨x, hxV⟩,
-    split,
-    { change is_unit _, rw germ_res_apply, exact hx },
-    { refl } }
+    refine ⟨⟨x, hxV⟩, (_ : is_unit _), rfl⟩,
+    rwa germ_res_apply }
 end
 
 -- This should fire before `basic_open_res`.

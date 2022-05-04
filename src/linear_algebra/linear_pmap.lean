@@ -153,8 +153,8 @@ begin
   rcases g with ⟨g_dom, g⟩,
   change f_dom = g_dom at heq,
   subst g_dom,
-  have : f = g, from linear_map.ext (λ x, hle.2 rfl),
-  subst g
+  obtain rfl : f = g := linear_map.ext (λ x, hle.2 rfl),
+  refl,
 end
 
 /-- Given two partial linear maps `f`, `g`, the set of points `x` such that

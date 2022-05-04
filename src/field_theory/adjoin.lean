@@ -653,8 +653,7 @@ instance : partial_order (lifts F E K) :=
   le_antisymm :=
   begin
     rintros ⟨x1, x2⟩ ⟨y1, y2⟩ ⟨hxy1, hxy2⟩ ⟨hyx1, hyx2⟩,
-    have : x1 = y1 := le_antisymm hxy1 hyx1,
-    subst this,
+    obtain rfl : x1 = y1 := le_antisymm hxy1 hyx1,
     congr,
     exact alg_hom.ext (λ s, hxy2 s s rfl),
   end }

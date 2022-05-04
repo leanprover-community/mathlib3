@@ -177,6 +177,12 @@ ordered_semiring.mul_lt_mul_of_pos_left a b c h₁ h₂
 lemma mul_lt_mul_of_pos_right (h₁ : a < b) (h₂ : 0 < c) : a * c < b * c :=
 ordered_semiring.mul_lt_mul_of_pos_right a b c h₁ h₂
 
+lemma mul_lt_of_lt_one_left (hb : 0 < b) (ha : a < 1) : a * b < b :=
+(mul_lt_mul_of_pos_right ha hb).trans_le (one_mul _).le
+
+lemma mul_lt_of_lt_one_right (ha : 0 < a) (hb : b < 1) : a * b < a :=
+(mul_lt_mul_of_pos_left hb ha).trans_le (mul_one _).le
+
 -- See Note [decidable namespace]
 protected lemma decidable.mul_le_mul_of_nonneg_left [@decidable_rel α (≤)]
   (h₁ : a ≤ b) (h₂ : 0 ≤ c) : c * a ≤ c * b :=

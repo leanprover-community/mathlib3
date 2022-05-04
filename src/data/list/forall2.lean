@@ -54,7 +54,7 @@ begin
   funext a b, apply propext,
   split,
   { intro h, induction h, {refl}, simp only [*]; split; refl },
-  { intro h, subst h, exact forall₂_refl _ }
+  { rintro rfl, exact forall₂_refl _ }
 end
 
 @[simp, priority 900] lemma forall₂_nil_left_iff {l} : forall₂ r nil l ↔ l = nil :=

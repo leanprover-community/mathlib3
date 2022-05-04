@@ -559,6 +559,22 @@ lemma continuous.if_le [topological_space γ] [Π x, decidable (f x ≤ g x)] {f
   continuous (λ x, if f x ≤ g x then f' x else g' x) :=
 continuous_if_le hf hg hf'.continuous_on hg'.continuous_on hfg
 
+lemma tendsto.eventually_lt {l : filter γ} {f g : γ → α} {y z : α}
+  (hf : tendsto f l (𝓝 y)) (hg : tendsto g l (𝓝 z)) (hyz : y < z) : ∀ᶠ x in l, f x < g x :=
+begin
+  by_cases h : y ⋖ z,
+  { filter_upwards [hf (Iio_mem_nhds hyz), hg (Ioi_mem_nhds hyz)],
+    rw [h.Iio_eq],
+    exact λ x hfx hgx, lt_of_le_of_lt hfx hgx },
+  { obtain ⟨w, hyw, hwz⟩ := (not_covby_iff hyz).mp h,
+    filter_upwards [hf (Iio_mem_nhds hyw), hg (Ioi_mem_nhds hwz)],
+    exact λ x, lt_trans },
+end
+
+lemma continuous_at.eventually_lt {x₀ : β} (hf : continuous_at f x₀)
+  (hg : continuous_at g x₀) (hfg : f x₀ < g x₀) : ∀ᶠ x in 𝓝 x₀, f x < g x :=
+tendsto.eventually_lt hf hg hfg
+
 @[continuity] lemma continuous.min (hf : continuous f) (hg : continuous g) :
   continuous (λb, min (f b) (g b)) :=
 by { simp only [min_def], exact hf.if_le hg hf hg (λ x, id) }
@@ -766,9 +782,8 @@ instance tendsto_Icc_class_nhds_pi {ι : Type*} {α : ι → Type*}
   tendsto_Ixx_class Icc (𝓝 f) (𝓝 f) :=
 begin
   constructor,
-  conv in ((𝓝 f).lift' powerset) { rw [nhds_pi, filter.pi] },
-  simp only [lift'_infi_powerset, comap_lift'_eq2 monotone_powerset, tendsto_infi, tendsto_lift',
-    mem_powerset_iff, subset_def, mem_preimage],
+  conv in ((𝓝 f).small_sets) { rw [nhds_pi, filter.pi] },
+  simp only [small_sets_infi, small_sets_comap, tendsto_infi, tendsto_lift', (∘), mem_powerset_iff],
   intros i s hs,
   have : tendsto (λ g : Π i, α i, g i) (𝓝 f) (𝓝 (f i)) := ((continuous_apply i).tendsto f),
   refine (tendsto_lift'.1 ((this.comp tendsto_fst).Icc (this.comp tendsto_snd)) s hs).mono _,
@@ -2187,6 +2202,18 @@ end
 lemma is_compact.bdd_above {α : Type u} [topological_space α] [linear_order α]
   [order_closed_topology α] : Π [nonempty α] {s : set α}, is_compact s → bdd_above s :=
 @is_compact.bdd_below (order_dual α) _ _ _
+
+/-- A continuous function is bounded below on a compact set. -/
+lemma is_compact.bdd_below_image {α : Type u} [topological_space α] [linear_order α]
+  [order_closed_topology α] [nonempty α] [topological_space γ] {f : γ → α} {K : set γ}
+  (hK : is_compact K) (hf : continuous_on f K) : bdd_below (f '' K) :=
+(hK.image_of_continuous_on hf).bdd_below
+
+/-- A continuous function is bounded above on a compact set. -/
+lemma is_compact.bdd_above_image {α : Type u} [topological_space α] [linear_order α]
+  [order_closed_topology α] [nonempty α] [topological_space γ] {f : γ → α} {K : set γ}
+  (hK : is_compact K) (hf : continuous_on f K) : bdd_above (f '' K) :=
+@is_compact.bdd_below_image _ (order_dual α) _ _ _ _ _ _ _ hK hf
 
 end order_topology
 

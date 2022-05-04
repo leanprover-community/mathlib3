@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Yaël Dillies
 -/
 import order.compare
-import order.order_dual
+import order.max
 import order.rel_classes
 
 /-!
@@ -339,7 +339,19 @@ lemma injective_of_le_imp_le [partial_order α] [preorder β] (f : α → β)
 λ x y hxy, (h hxy.le).antisymm (h hxy.ge)
 
 section preorder
-variables [preorder α] [preorder β] {f g : α → β}
+variables [preorder α] [preorder β] {f g : α → β} {a : α}
+
+lemma strict_mono.is_max_of_apply (hf : strict_mono f) (ha : is_max (f a)) : is_max a :=
+of_not_not $ λ h, let ⟨b, hb⟩ := not_is_max_iff.1 h in (hf hb).not_is_max ha
+
+lemma strict_mono.is_min_of_apply (hf : strict_mono f) (ha : is_min (f a)) : is_min a :=
+of_not_not $ λ h, let ⟨b, hb⟩ := not_is_min_iff.1 h in (hf hb).not_is_min ha
+
+lemma strict_anti.is_max_of_apply (hf : strict_anti f) (ha : is_min (f a)) : is_max a :=
+of_not_not $ λ h, let ⟨b, hb⟩ := not_is_max_iff.1 h in (hf hb).not_is_min ha
+
+lemma strict_anti.is_min_of_apply (hf : strict_anti f) (ha : is_max (f a)) : is_min a :=
+of_not_not $ λ h, let ⟨b, hb⟩ := not_is_min_iff.1 h in (hf hb).not_is_max ha
 
 protected lemma strict_mono.ite' (hf : strict_mono f) (hg : strict_mono g) {p : α → Prop}
   [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)

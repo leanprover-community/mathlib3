@@ -140,7 +140,7 @@ by { rw compl_Inter, exact measurable_set.Union (λ b, (h b).compl) }
 
 section fintype
 
-local attribute [instance] fintype.encodable
+local attribute [instance] fintype.to_encodable
 
 lemma measurable_set.Union_fintype [fintype β] {f : β → set α} (h : ∀ b, measurable_set (f b)) :
   measurable_set (⋃ b, f b) :=

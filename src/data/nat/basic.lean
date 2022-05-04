@@ -116,8 +116,7 @@ instance nat.subtype.semilattice_sup (s : set ℕ) :
 lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
   [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
 
-theorem nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n :=
-rfl
+protected lemma nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n := rfl
 
 theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
 by rw [mul_comm n m, mul_comm k m] at H; exact nat.eq_of_mul_eq_mul_left Hm H
@@ -435,11 +434,9 @@ iff.intro
 
 lemma add_eq_one_iff : ∀ {a b : ℕ}, a + b = 1 ↔ (a = 0 ∧ b = 1) ∨ (a = 1 ∧ b = 0)
 | 0     0     := dec_trivial
-| 0     1     := dec_trivial
 | 1     0     := dec_trivial
-| 1     1     := dec_trivial
 | (a+2) _     := by rw add_right_comm; exact dec_trivial
-| _     (b+2) := by rw [← add_assoc]; simp only [nat.succ_inj', nat.succ_ne_zero]; simp
+| _     (b+1) := by rw [← add_assoc]; simp only [nat.succ_inj', nat.succ_ne_zero]; simp
 
 theorem le_add_one_iff {i j : ℕ} : i ≤ j + 1 ↔ (i ≤ j ∨ i = j + 1) :=
 ⟨λ h,

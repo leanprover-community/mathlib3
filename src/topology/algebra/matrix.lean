@@ -45,19 +45,19 @@ lemma continuous.matrix_elem {A : X → matrix m n R} (hA : continuous A) (i : m
 (continuous_apply_apply i j).comp hA
 
 @[continuity]
-lemma continuous.matrix_map [topological_space S] {A : X → matrix n m S} {f : S → R}
+lemma continuous.matrix_map [topological_space S] {A : X → matrix m n S} {f : S → R}
    (hA : continuous A) (hf : continuous f) :
   continuous (λ x, (A x).map f) :=
 continuous_matrix $ λ i j, hf.comp $ hA.matrix_elem _ _
 
 @[continuity]
-lemma continuous.matrix_transpose {A : X → matrix n m R} (hA : continuous A) :
+lemma continuous.matrix_transpose {A : X → matrix m n R} (hA : continuous A) :
   continuous (λ x, (A x)ᵀ) :=
 continuous_matrix $ λ i j, hA.matrix_elem j i
 
 /-! TODO: add a `has_continuous_star` typeclass so we can write
 ```
-lemma continuous.matrix.conj_transpose [has_star R] {A : X → matrix n m R} (hA : continuous A) :
+lemma continuous.matrix.conj_transpose [has_star R] {A : X → matrix m n R} (hA : continuous A) :
   continuous (λ x, (A x)ᴴ) :=
 hA.matrix_transpose.matrix_map continuous_star
 ```
@@ -72,7 +72,7 @@ lemma continuous.matrix_row {A : X → n → R} (hA : continuous A) : continuous
 continuous_matrix $ λ i j, (continuous_apply _).comp hA
 
 @[continuity]
-lemma continuous_matrix.diagonal [has_zero R] [decidable_eq n] {A : X → n → R} (hA : continuous A) :
+lemma continuous.matrix_diagonal [has_zero R] [decidable_eq n] {A : X → n → R} (hA : continuous A) :
   continuous (λ x, diagonal (A x)) :=
 continuous_matrix $ λ i j, ((continuous_apply i).comp hA).if_const _ continuous_zero
 

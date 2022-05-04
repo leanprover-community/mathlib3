@@ -6,7 +6,7 @@ Authors: Chris Hughes
 import number_theory.zsqrtd.basic
 import data.complex.basic
 import ring_theory.principal_ideal_domain
-import number_theory.quadratic_reciprocity
+import number_theory.legendre_symbol.quadratic_reciprocity
 /-!
 # Gaussian integers
 
@@ -37,6 +37,7 @@ and definitions about `zsqrtd` can easily be used.
 
 open zsqrtd complex
 
+/-- The Gaussian integers, defined as `ℤ√(-1)`. -/
 @[reducible] def gaussian_int : Type := zsqrtd (-1)
 
 local notation `ℤ[i]` := gaussian_int
@@ -106,12 +107,9 @@ lemma nat_abs_norm_eq (x : ℤ[i]) : x.norm.nat_abs =
   x.re.nat_abs * x.re.nat_abs + x.im.nat_abs * x.im.nat_abs :=
 int.coe_nat_inj $ begin simp, simp [norm] end
 
-protected def div (x y : ℤ[i]) : ℤ[i] :=
-let n := (rat.of_int (norm y))⁻¹ in let c := y.conj in
-⟨round (rat.of_int (x * c).re * n : ℚ),
- round (rat.of_int (x * c).im * n : ℚ)⟩
-
-instance : has_div ℤ[i] := ⟨gaussian_int.div⟩
+instance : has_div ℤ[i] :=
+⟨λ x y, let n := (rat.of_int (norm y))⁻¹, c := y.conj in
+  ⟨round (rat.of_int (x * c).re * n : ℚ), round (rat.of_int (x * c).im * n : ℚ)⟩⟩
 
 lemma div_def (x y : ℤ[i]) : x / y = ⟨round ((x * conj y).re / norm y : ℚ),
   round ((x * conj y).im / norm y : ℚ)⟩ :=
@@ -149,9 +147,7 @@ calc ((x / y : ℂ) - ((x / y : ℤ[i]) : ℂ)).norm_sq =
       simpa using abs_sub_round (x / y : ℂ).im)
   ... < 1 : by simp [norm_sq]; norm_num
 
-protected def mod (x y : ℤ[i]) : ℤ[i] := x - y * (x / y)
-
-instance : has_mod ℤ[i] := ⟨gaussian_int.mod⟩
+instance : has_mod ℤ[i] := ⟨λ x y, x - y * (x / y)⟩
 
 lemma mod_def (x y : ℤ[i]) : x % y = x - y * (x / y) := rfl
 

@@ -68,23 +68,34 @@ lemma is_of_fin_order_iff_pow_eq_one (x : G) :
   is_of_fin_order x ↔ ∃ n, 0 < n ∧ x ^ n = 1 :=
 by { convert iff.rfl, simp [is_periodic_pt_mul_iff_pow_eq_one] }
 
-/-- Elements of finite order are of finite order in subgroups.-/
+/-- Elements of finite order are of finite order in submonoids.-/
 @[to_additive is_of_fin_add_order_iff_coe]
-lemma is_of_fin_order_iff_coe {G : Type u} [group G] (H : subgroup G) (x : H) :
+lemma is_of_fin_order_iff_coe (H : submonoid G) (x : H) :
   is_of_fin_order x ↔ is_of_fin_order (x : G) :=
 by { rw [is_of_fin_order_iff_pow_eq_one, is_of_fin_order_iff_pow_eq_one], norm_cast }
 
-/-- Elements of finite order are of finite order in quotient groups.-/
-@[to_additive is_of_fin_add_order_iff_quotient]
-lemma is_of_fin_order.quotient {G : Type u} [group G] (N : subgroup G) [N.normal] (x : G) :
-  is_of_fin_order x → is_of_fin_order (x : G ⧸ N) := begin
-  rw [is_of_fin_order_iff_pow_eq_one, is_of_fin_order_iff_pow_eq_one],
-  rintros ⟨n, ⟨npos, hn⟩⟩,
-  exact ⟨n, ⟨npos, (quotient_group.con N).eq.mpr $ hn ▸ (quotient_group.con N).eq.mp rfl⟩⟩,
+/-- The image of an element of finite order has finite order. -/
+@[to_additive add_monoid_hom.is_of_fin_order
+  "The image of an element of finite additive order has finite additive order."]
+lemma monoid_hom.is_of_fin_order
+  {H : Type v} [monoid H] (f : G →* H) {x : G} (h : is_of_fin_order x) :
+  is_of_fin_order $ f x :=
+(is_of_fin_order_iff_pow_eq_one _).mpr $ begin
+  rcases (is_of_fin_order_iff_pow_eq_one _).mp h with ⟨n, npos, hn⟩,
+  exact ⟨n, npos, by rw [←f.map_pow, hn, f.map_one]⟩,
 end
 
-/-- 1 is of finite order in any group. -/
-@[to_additive "0 is of finite order in any additive group."]
+/-- If a direct product has finite order then so does each component. -/
+@[to_additive "If a direct product has finite additive order then so does each component."]
+lemma is_of_fin_order.apply
+  {η : Type*} {Gs : η → Type*} [∀ i, monoid (Gs i)] {x : Π i, Gs i} (h : is_of_fin_order x) :
+∀ i, is_of_fin_order (x i) := begin
+  rcases (is_of_fin_order_iff_pow_eq_one _).mp h with ⟨n, npos, hn⟩,
+  exact λ _, (is_of_fin_order_iff_pow_eq_one _).mpr ⟨n, npos, (congr_fun hn.symm _).symm⟩,
+end
+
+/-- 1 is of finite order in any monoid. -/
+@[to_additive "0 is of finite order in any additive monoid."]
 lemma is_of_fin_order_one : is_of_fin_order (1 : G) :=
 (is_of_fin_order_iff_pow_eq_one 1).mpr ⟨1, _root_.one_pos, one_pow 1⟩
 

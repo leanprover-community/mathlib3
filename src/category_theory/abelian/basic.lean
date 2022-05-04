@@ -190,7 +190,7 @@ def normal_mono_category : normal_mono_category C :=
     is_limit := begin
       haveI : limits.has_images C := has_images,
       haveI : has_equalizers C := preadditive.has_equalizers_of_has_kernels,
-      letI : has_zero_object C := has_zero_object_of_has_finite_biproducts _,
+      haveI : has_zero_object C := limits.has_zero_object_of_has_finite_biproducts _,
       have aux : _ := _,
       refine is_limit_aux _ (λ A, limit.lift _ _ ≫ inv (image_mono_factorisation f).e) aux _,
       { intros A g hg,
@@ -215,7 +215,7 @@ def normal_epi_category : normal_epi_category C :=
     is_colimit := begin
       haveI : limits.has_images C := has_images,
       haveI : has_equalizers C := preadditive.has_equalizers_of_has_kernels,
-      letI : has_zero_object C := has_zero_object_of_has_finite_biproducts _,
+      haveI : has_zero_object C := limits.has_zero_object_of_has_finite_biproducts _,
       have aux : _ := _,
       refine is_colimit_aux _
         (λ A, inv (image_mono_factorisation f).m ≫
@@ -498,7 +498,7 @@ fork.is_limit.mk _
     { rw [biprod.lift_fst, pullback.lift_fst] },
     { rw [biprod.lift_snd, pullback.lift_snd] }
   end)
-  (λ s m h, by ext; simp [fork.ι_eq_app_zero, ←h walking_parallel_pair.zero])
+  (λ s m h, by ext; simp [←h])
 
 end pullback_to_biproduct_is_kernel
 
@@ -523,7 +523,7 @@ cofork.is_colimit.mk _
     sub_eq_zero.1 $ by rw [←category.assoc, ←category.assoc, ←sub_comp, sub_eq_add_neg, ←neg_comp,
       ←biprod.lift_eq, cofork.condition s, zero_comp])
   (λ s, by ext; simp)
-  (λ s m h, by ext; simp [cofork.π_eq_app_one, ←h walking_parallel_pair.one] )
+  (λ s m h, by ext; simp [←h] )
 
 end biproduct_to_pushout_is_cokernel
 

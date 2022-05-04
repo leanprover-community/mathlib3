@@ -5,7 +5,7 @@ Authors: Fox Thomson, Markus Himmel
 -/
 import data.nat.bitwise
 import set_theory.game.impartial
-import set_theory.ordinal_arithmetic
+import set_theory.ordinal.arithmetic
 
 /-!
 # Nim and the Sprague-Grundy theorem

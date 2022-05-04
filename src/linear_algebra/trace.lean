@@ -1,11 +1,13 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
+Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen, Antoine Labelle
 -/
 import linear_algebra.matrix.to_lin
 import linear_algebra.matrix.trace
-
+import linear_algebra.contraction
+import linear_algebra.tensor_product_basis
+import linear_algebra.free_module.strong_rank_condition
 
 /-!
 # Trace of a linear map
@@ -110,18 +112,56 @@ by { rw trace_mul_comm, simp }
 end
 
 section
-variables (R : Type u) [field R] {M : Type v} [add_comm_group M] [module R M]
 
-/-- The trace of the identity endomorphism is the dimension of the vector space -/
-@[simp] theorem trace_one : trace R M 1 = (finrank R M : R) :=
+variables (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+variables {ι : Type w} [fintype ι]
+
+/-- The trace of a linear map correspond to the contraction pairing under the isomorphism
+ `End(M) ≃ M* ⊗ M`-/
+lemma trace_eq_contract_of_basis (b : basis ι R M) :
+  (linear_map.trace R M) ∘ₗ (dual_tensor_hom R M M) = contract_left R M :=
 begin
   classical,
-  by_cases H : ∃ (s : finset M), nonempty (basis s R M),
-  { obtain ⟨s, ⟨b⟩⟩ := H,
-    rw [trace_eq_matrix_trace R b, to_matrix_one, finrank_eq_card_finset_basis b],
-    simp, },
-  { suffices : (finrank R M : R) = 0, { simp [this, trace, H], },
-    simp [finrank_eq_zero_of_not_exists_basis H], },
+  apply basis.ext (basis.tensor_product (basis.dual_basis b) b),
+  rintros ⟨i, j⟩,
+  simp only [function.comp_app, basis.tensor_product_apply, basis.coe_dual_basis, coe_comp],
+  rw [trace_eq_matrix_trace R b, to_matrix_dual_tensor_hom],
+  by_cases hij : i = j,
+  { rw [hij], simp},
+  rw matrix.std_basis_matrix.trace_zero j i (1:R) hij,
+  simp [finsupp.single_eq_pi_single, hij],
+end
+
+/-- The trace of a linear map correspond to the contraction pairing under the isomorphism
+ `End(M) ≃ M* ⊗ M`-/
+lemma trace_eq_contract_of_basis' [decidable_eq ι] (b : basis ι R M) :
+  (linear_map.trace R M) =
+  (contract_left R M) ∘ₗ (dual_tensor_hom_equiv_of_basis b).symm.to_linear_map :=
+by simp [linear_equiv.eq_comp_to_linear_map_symm, trace_eq_contract_of_basis R b]
+
+variables [module.free R M] [module.finite R M] [nontrivial R]
+
+/-- When `M` is finite free, the trace of a linear map correspond to the contraction pairing under
+the isomorphism `End(M) ≃ M* ⊗ M`-/
+@[simp] theorem trace_eq_contract :
+  (linear_map.trace R M) ∘ₗ (dual_tensor_hom R M M) = contract_left R M :=
+trace_eq_contract_of_basis R (module.free.choose_basis R M)
+
+open_locale classical
+
+/-- When `M` is finite free, the trace of a linear map correspond to the contraction pairing under
+the isomorphism `End(M) ≃ M* ⊗ M`-/
+theorem trace_eq_contract' :
+  (linear_map.trace R M) =
+  (contract_left R M) ∘ₗ (dual_tensor_hom_equiv).symm.to_linear_map :=
+trace_eq_contract_of_basis' R (module.free.choose_basis R M)
+
+/-- The trace of the identity endomorphism is the dimension of the free module -/
+@[simp] theorem trace_one : trace R M 1 = (finrank R M : R) :=
+begin
+  have b := module.free.choose_basis R M,
+  rw [trace_eq_matrix_trace R b, to_matrix_one, module.free.finrank_eq_card_choose_basis_index],
+  simp,
 end
 
 end

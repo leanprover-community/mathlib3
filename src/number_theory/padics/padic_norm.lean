@@ -52,131 +52,185 @@ open_locale rat
 open multiplicity
 
 /--
-For `p ≠ 1`, the p-adic valuation of an integer `z ≠ 0` is the largest natural number `n` such that
-p^n divides z.
+For `p ≠ 1`, the p-adic valuation of a natural `n ≠ 0` is the largest natural number `k` such that
+p^k divides z.
 
+If `n = 0` or `p = 1`, then `padic_val_nat p q` defaults to 0.
+-/
+def padic_val_nat (p : ℕ) (n : ℕ) : ℕ :=
+if h : p ≠ 1 ∧ 0 < n
+then (multiplicity p n).get (multiplicity.finite_nat_iff.2 h)
+else 0
+
+namespace padic_val_nat
+open multiplicity
+variables {p : ℕ}
+
+/-- `padic_val_nat p 0` is 0 for any `p`. -/
+@[simp] protected lemma zero : padic_val_nat p 0 = 0 :=
+by simp [padic_val_nat]
+
+/-- `padic_val_nat p 1` is 0 for any `p`. -/
+@[simp] protected lemma one : padic_val_nat p 1 = 0 :=
+by unfold padic_val_nat; split_ifs; simp *
+
+/-- For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1. -/
+@[simp] lemma self (hp : 1 < p) : padic_val_nat p p = 1 :=
+begin
+  have neq_one : (¬ p = 1) ↔ true,
+  { exact iff_of_true ((ne_of_lt hp).symm) trivial, },
+  have eq_zero_false : (p = 0) ↔ false,
+  { exact iff_false_intro ((ne_of_lt (trans zero_lt_one hp)).symm) },
+  simp [padic_val_nat, neq_one, eq_zero_false],
+end
+
+lemma eq_zero_of_not_dvd {n : ℕ} (h : ¬ p ∣ n) : padic_val_nat p n = 0 :=
+begin
+  rw padic_val_nat,
+  split_ifs,
+  { simp [multiplicity_eq_zero_of_not_dvd h], },
+  refl,
+end
+
+end padic_val_nat
+
+/--
+For `p ≠ 1`, the p-adic valuation of an integer `z ≠ 0` is the largest natural number `k` such that
+p^k divides z.
+
+If `x = 0` or `p = 1`, then `padic_val_int p q` defaults to 0.
+-/
+def padic_val_int (p : ℕ) (z : ℤ) : ℕ :=
+padic_val_nat p (z.nat_abs)
+
+namespace padic_val_int
+open multiplicity
+variables {p : ℕ}
+
+lemma of_ne_one_ne_zero {z : ℤ} (hp : p ≠ 1) (hz : z ≠ 0) : padic_val_int p z =
+  (multiplicity (p : ℤ) z).get (by {apply multiplicity.finite_int_iff.2, simp [hp, hz]}) :=
+begin
+  rw [padic_val_int, padic_val_nat, dif_pos],
+  simp_rw multiplicity.int.nat_abs p z,
+  refl,
+  simp [hp, hz],
+  exact int.nat_abs_pos_of_ne_zero hz,
+end
+
+/-- `padic_val_int p 0` is 0 for any `p`. -/
+@[simp] protected lemma zero : padic_val_int p 0 = 0 :=
+by simp [padic_val_int]
+
+/-- `padic_val_int p 1` is 0 for any `p`. -/
+@[simp] protected lemma one : padic_val_int p 1 = 0 :=
+by simp [padic_val_int]
+
+/-- The p-adic value of an natural is its p-adic_value as an integer -/
+@[simp] lemma of_nat {n : ℕ} : padic_val_int p (n : ℤ) = padic_val_nat p n :=
+by simp [padic_val_int]
+
+/-- For `p ≠ 0, p ≠ 1, `padic_val_int p p` is 1. -/
+lemma self (hp : 1 < p) : padic_val_int p p = 1 :=
+by simp [padic_val_nat.self hp]
+
+lemma eq_zero_of_not_dvd {z : ℤ} (h : ¬ (p : ℤ) ∣ z) : padic_val_int p z = 0 :=
+begin
+  rw [padic_val_int, padic_val_nat],
+  split_ifs,
+  { simp_rw multiplicity.int.nat_abs,
+    simp [multiplicity_eq_zero_of_not_dvd h], },
+  refl,
+end
+
+end padic_val_int
+
+/--
 `padic_val_rat` defines the valuation of a rational `q` to be the valuation of `q.num` minus the
 valuation of `q.denom`.
 If `q = 0` or `p = 1`, then `padic_val_rat p q` defaults to 0.
 -/
 def padic_val_rat (p : ℕ) (q : ℚ) : ℤ :=
-if h : q ≠ 0 ∧ p ≠ 1
-then (multiplicity (p : ℤ) q.num).get
-    (multiplicity.finite_int_iff.2 ⟨h.2, rat.num_ne_zero_of_ne_zero h.1⟩) -
-  (multiplicity (p : ℤ) q.denom).get
-    (multiplicity.finite_int_iff.2 ⟨h.2, by exact_mod_cast rat.denom_ne_zero _⟩)
-else 0
-
-/--
-A simplification of the definition of `padic_val_rat p q` when `q ≠ 0` and `p` is prime.
--/
-lemma padic_val_rat_def (p : ℕ) [hp : fact p.prime] {q : ℚ} (hq : q ≠ 0) : padic_val_rat p q =
-  (multiplicity (p : ℤ) q.num).get (finite_int_iff.2 ⟨hp.1.ne_one, rat.num_ne_zero_of_ne_zero hq⟩) -
-  (multiplicity (p : ℤ) q.denom).get
-    (finite_int_iff.2 ⟨hp.1.ne_one, by exact_mod_cast rat.denom_ne_zero _⟩) :=
-dif_pos ⟨hq, hp.1.ne_one⟩
+padic_val_int p q.num - padic_val_nat p q.denom
 
 namespace padic_val_rat
 open multiplicity
 variables {p : ℕ}
 
-/--
-`padic_val_rat p q` is symmetric in `q`.
--/
+/-- `padic_val_rat p q` is symmetric in `q`. -/
 @[simp] protected lemma neg (q : ℚ) : padic_val_rat p (-q) = padic_val_rat p q :=
-begin
-  unfold padic_val_rat,
-  split_ifs,
-  { simp [-add_comm]; refl },
-  { exfalso, simp * at * },
-  { exfalso, simp * at * },
-  { refl }
-end
+by simp [padic_val_rat, padic_val_int]
 
-/--
-`padic_val_rat p 0` is 0 for any `p`.
--/
+/-- `padic_val_rat p 0` is 0 for any `p`. -/
 @[simp]
-protected lemma zero (m : nat) : padic_val_rat m 0 = 0 := rfl
+protected lemma zero (m : nat) : padic_val_rat m 0 = 0 := by simp [padic_val_rat, padic_val_int]
 
-/--
-`padic_val_rat p 1` is 0 for any `p`.
--/
-@[simp] protected lemma one : padic_val_rat p 1 = 0 :=
-by unfold padic_val_rat; split_ifs; simp *
+/-- `padic_val_rat p 1` is 0 for any `p`. -/
+@[simp] protected lemma one : padic_val_rat p 1 = 0 := by simp [padic_val_rat, padic_val_int]
 
-/--
-For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1.
--/
-@[simp] lemma padic_val_rat_self (hp : 1 < p) : padic_val_rat p p = 1 :=
-by unfold padic_val_rat; split_ifs; simp [*, nat.one_lt_iff_ne_zero_and_ne_one] at *
+/-- The p-adic value of an integer `z ≠ 0` is its p-adic_value as a rational -/
+@[simp] lemma of_int {z : ℤ} : padic_val_rat p (z : ℚ) = padic_val_int p z :=
+by simp [padic_val_rat]
 
-/--
-The p-adic value of an integer `z ≠ 0` is the multiplicity of `p` in `z`.
--/
-lemma padic_val_rat_of_int (z : ℤ) (hp : p ≠ 1) (hz : z ≠ 0) :
+/-- The p-adic value of an integer `z ≠ 0` is the multiplicity of `p` in `z`. -/
+lemma of_int_multiplicity (z : ℤ) (hp : p ≠ 1) (hz : z ≠ 0) :
   padic_val_rat p (z : ℚ) = (multiplicity (p : ℤ) z).get
     (finite_int_iff.2 ⟨hp, hz⟩) :=
-by rw [padic_val_rat, dif_pos]; simp *; refl
+by rw [of_int, padic_val_int.of_ne_one_ne_zero hp hz]
+
+lemma multiplicity_sub_multiplicity {q : ℚ} (hp : p ≠ 1) (hq : q ≠ 0) :
+  padic_val_rat p q =
+  (multiplicity (p : ℤ) q.num).get (finite_int_iff.2 ⟨hp, rat.num_ne_zero_of_ne_zero hq⟩) -
+  (multiplicity p q.denom).get
+    (by { rw [←finite_iff_dom, finite_nat_iff, and_iff_right hp], exact q.pos }) :=
+begin
+  rw [padic_val_rat, padic_val_int.of_ne_one_ne_zero hp, padic_val_nat, dif_pos],
+  refl,
+  simp only [hp, ne.def, not_false_iff, true_and],
+  exact q.pos,
+  exact rat.num_ne_zero_of_ne_zero hq,
+end
+
+/-- The p-adic value of an integer `z ≠ 0` is its p-adic_value as a rational -/
+@[simp] lemma of_nat {n : ℕ} : padic_val_rat p (n : ℚ) = padic_val_nat p n :=
+by simp [padic_val_rat, padic_val_int]
+
+/-- For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1. -/
+lemma self (hp : 1 < p) : padic_val_rat p p = 1 := by simp [of_nat, hp]
 
 end padic_val_rat
 
-/--
-A convenience function for the case of `padic_val_rat` when both inputs are natural numbers.
--/
-def padic_val_nat (p : ℕ) (n : ℕ) : ℕ :=
-int.to_nat (padic_val_rat p n)
-
 section padic_val_nat
 
-/--
-`padic_val_nat` is defined as an `int.to_nat` cast;
-this lemma ensures that the cast is well-behaved.
--/
-lemma zero_le_padic_val_rat_of_nat (p n : ℕ) : 0 ≤ padic_val_rat p n :=
-begin
-  unfold padic_val_rat,
-  split_ifs,
-  { simp, },
-  { trivial, },
-end
+lemma zero_le_padic_val_rat_of_nat (p n : ℕ) : 0 ≤ padic_val_rat p n := by simp
 
-/--
-`padic_val_rat` coincides with `padic_val_nat`.
--/
-@[simp, norm_cast] lemma padic_val_rat_of_nat (p n : ℕ) :
+-- /-- `padic_val_rat` coincides with `padic_val_nat`. -/
+@[norm_cast] lemma padic_val_rat_of_nat (p n : ℕ) :
   ↑(padic_val_nat p n) = padic_val_rat p n :=
-begin
-  unfold padic_val_nat,
-  rw int.to_nat_of_nonneg (zero_le_padic_val_rat_of_nat p n),
-end
+by simp [padic_val_rat, padic_val_int]
 
 /--
 A simplification of `padic_val_nat` when one input is prime, by analogy with `padic_val_rat_def`.
 -/
-lemma padic_val_nat_def {p : ℕ} [hp : fact p.prime] {n : ℕ} (hn : n ≠ 0) :
+lemma padic_val_nat_def {p : ℕ} [hp : fact p.prime] {n : ℕ} (hn : 0 < n) :
   padic_val_nat p n =
   (multiplicity p n).get
-    (multiplicity.finite_nat_iff.2 ⟨nat.prime.ne_one hp.1, bot_lt_iff_ne_bot.mpr hn⟩) :=
+    (multiplicity.finite_nat_iff.2 ⟨nat.prime.ne_one hp.1, hn⟩) :=
 begin
-  have n_nonzero : (n : ℚ) ≠ 0, by simpa only [cast_eq_zero, ne.def],
-  -- Infinite loop with @simp padic_val_rat_of_nat unless we restrict the available lemmas here,
-  -- hence the very long list
-  simpa only
-    [ int.coe_nat_multiplicity p n, rat.coe_nat_denom n, (padic_val_rat_of_nat p n).symm,
-      int.coe_nat_zero, int.coe_nat_inj', sub_zero, get_one_right, int.coe_nat_succ, zero_add,
-      rat.coe_nat_num ]
-    using padic_val_rat_def p n_nonzero,
+  simp [padic_val_nat],
+  split_ifs,
+  { refl, },
+  { exfalso,
+    apply h ⟨(hp.out).ne_one, hn⟩, }
 end
 
 @[simp] lemma padic_val_nat_self (p : ℕ) [fact p.prime] : padic_val_nat p p = 1 :=
-by simp [padic_val_nat_def (fact.out p.prime).ne_zero]
+by simp [padic_val_nat_def (fact.out p.prime).pos]
 
 lemma one_le_padic_val_nat_of_dvd
-  {n p : nat} [prime : fact p.prime] (nonzero : n ≠ 0) (div : p ∣ n) :
+  {n p : nat} [prime : fact p.prime] (n_pos : 0 < n) (div : p ∣ n) :
   1 ≤ padic_val_nat p n :=
 begin
-  rw @padic_val_nat_def _ prime _ nonzero,
+  rw @padic_val_nat_def _ prime _ n_pos,
   let one_le_mul : _ ≤ multiplicity p n :=
     @multiplicity.le_multiplicity_of_pow_dvd _ _ _ p n 1 (begin norm_num, exact div end),
   simp only [nat.cast_one] at one_le_mul,
@@ -185,12 +239,6 @@ begin
   solve_by_elim,
 end
 
-@[simp]
-lemma padic_val_nat_zero (m : nat) : padic_val_nat m 0 = 0 := rfl
-
-@[simp]
-lemma padic_val_nat_one (m : nat) : padic_val_nat m 1 = 0 := by simp [padic_val_nat]
-
 end padic_val_nat
 
 namespace padic_val_rat
@@ -198,15 +246,11 @@ open multiplicity
 variables (p : ℕ) [p_prime : fact p.prime]
 include p_prime
 
-/--
-The multiplicity of `p : ℕ` in `a : ℤ` is finite exactly when `a ≠ 0`.
--/
+/-- The multiplicity of `p : ℕ` in `a : ℤ` is finite exactly when `a ≠ 0`. -/
 lemma finite_int_prime_iff {p : ℕ} [p_prime : fact p.prime] {a : ℤ} : finite (p : ℤ) a ↔ a ≠ 0 :=
 by simp [finite_int_iff, ne.symm (ne_of_lt (p_prime.1.one_lt))]
 
-/--
-A rewrite lemma for `padic_val_rat p q` when `q` is expressed in terms of `rat.mk`.
--/
+/-- A rewrite lemma for `padic_val_rat p q` when `q` is expressed in terms of `rat.mk`. -/
 protected lemma defn {q : ℚ} {n d : ℤ} (hqz : q ≠ 0) (qdf : q = n /. d) :
   padic_val_rat p q = (multiplicity (p : ℤ) n).get (finite_int_iff.2
     ⟨ne.symm $ ne_of_lt p_prime.1.one_lt, λ hn, by simp * at *⟩) -
@@ -214,13 +258,14 @@ protected lemma defn {q : ℚ} {n d : ℤ} (hqz : q ≠ 0) (qdf : q = n /. d) :
     λ hd, by simp * at *⟩) :=
 have hd : d ≠ 0, from rat.mk_denom_ne_zero_of_ne_zero hqz qdf,
 let ⟨c, hc1, hc2⟩ := rat.num_denom_mk hd qdf in
-by rw [padic_val_rat, dif_pos];
+begin
+  rw [padic_val_rat.multiplicity_sub_multiplicity];
   simp [hc1, hc2, multiplicity.mul' (nat.prime_iff_prime_int.1 p_prime.1),
-    (ne.symm (ne_of_lt p_prime.1.one_lt)), hqz]
+    (ne.symm (ne_of_lt p_prime.1.one_lt)), hqz, pos_iff_ne_zero],
+  simp_rw [int.coe_nat_multiplicity p q.denom],
+end
 
-/--
-A rewrite lemma for `padic_val_rat p (q * r)` with conditions `q ≠ 0`, `r ≠ 0`.
--/
+/-- A rewrite lemma for `padic_val_rat p (q * r)` with conditions `q ≠ 0`, `r ≠ 0`. -/
 protected lemma mul {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) :
   padic_val_rat p (q * r) = padic_val_rat p q + padic_val_rat p r :=
 have q*r = (q.num * r.num) /. (↑q.denom * ↑r.denom), by rw_mod_cast rat.mul_num_denom,
@@ -234,9 +279,7 @@ begin
   rw [multiplicity.mul' hp', multiplicity.mul' hp']; simp [add_comm, add_left_comm, sub_eq_add_neg]
 end
 
-/--
-A rewrite lemma for `padic_val_rat p (q^k)` with condition `q ≠ 0`.
--/
+/-- A rewrite lemma for `padic_val_rat p (q^k)` with condition `q ≠ 0`. -/
 protected lemma pow {q : ℚ} (hq : q ≠ 0) {k : ℕ} :
     padic_val_rat p (q ^ k) = k * padic_val_rat p q :=
 by induction k; simp [*, padic_val_rat.mul _ hq (pow_ne_zero _ hq),
@@ -254,9 +297,7 @@ begin
       inv_mul_cancel hq, padic_val_rat.one] },
 end
 
-/--
-A rewrite lemma for `padic_val_rat p (q / r)` with conditions `q ≠ 0`, `r ≠ 0`.
--/
+/-- A rewrite lemma for `padic_val_rat p (q / r)` with conditions `q ≠ 0`, `r ≠ 0`. -/
 protected lemma div {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) :
   padic_val_rat p (q / r) = padic_val_rat p q - padic_val_rat p r :=
 by rw [div_eq_mul_inv, padic_val_rat.mul p hq (inv_ne_zero hr),
@@ -353,9 +394,7 @@ end padic_val_rat
 
 namespace padic_val_nat
 
-/--
-A rewrite lemma for `padic_val_nat p (q * r)` with conditions `q ≠ 0`, `r ≠ 0`.
--/
+/-- A rewrite lemma for `padic_val_nat p (q * r)` with conditions `q ≠ 0`, `r ≠ 0`. -/
 protected lemma mul (p : ℕ) [p_prime : fact p.prime] {q r : ℕ} (hq : q ≠ 0) (hr : r ≠ 0) :
   padic_val_nat p (q * r) = padic_val_nat p q + padic_val_nat p r :=
 begin
@@ -377,9 +416,7 @@ begin
   rw [mul_comm, k.mul_div_cancel hb.bot_lt, padic_val_nat.mul p hk hb, nat.add_sub_cancel]
 end
 
-/--
-Dividing out by a prime factor reduces the padic_val_nat by 1.
--/
+/-- Dividing out by a prime factor reduces the padic_val_nat by 1. -/
 protected lemma div {p : ℕ} [p_prime : fact p.prime] {b : ℕ} (dvd : p ∣ b) :
   (padic_val_nat p (b / p)) = (padic_val_nat p b) - 1 :=
 begin
@@ -410,24 +447,11 @@ end padic_val_nat
 
 section padic_val_nat
 
-/--
-If a prime doesn't appear in `n`, `padic_val_nat p n` is `0`.
--/
-lemma padic_val_nat_of_not_dvd {p : ℕ} [fact p.prime] {n : ℕ} (not_dvd : ¬(p ∣ n)) :
-  padic_val_nat p n = 0 :=
-begin
-  by_cases hn : n = 0,
-  { subst hn, simp at not_dvd, trivial, },
-  { rw padic_val_nat_def hn,
-    exact (@multiplicity.unique' _ _ _ p n 0 (by simp) (by simpa using not_dvd)).symm,
-    assumption, },
-end
-
-lemma dvd_of_one_le_padic_val_nat {n p : nat} [prime : fact p.prime] (hp : 1 ≤ padic_val_nat p n) :
+lemma dvd_of_one_le_padic_val_nat {n p : nat} (hp : 1 ≤ padic_val_nat p n) :
   p ∣ n :=
 begin
   by_contra h,
-  rw padic_val_nat_of_not_dvd h at hp,
+  rw padic_val_nat.eq_zero_of_not_dvd h at hp,
   exact lt_irrefl 0 (lt_of_lt_of_le zero_lt_one hp),
 end
 
@@ -437,7 +461,7 @@ begin
   { rw hn, exact dvd_zero (p ^ padic_val_nat p 0) },
   { rw multiplicity.pow_dvd_iff_le_multiplicity,
     apply le_of_eq,
-    rw padic_val_nat_def (ne_of_gt hn),
+    rw padic_val_nat_def hn,
     { apply enat.coe_get },
     { apply_instance } }
 end
@@ -446,16 +470,38 @@ lemma pow_succ_padic_val_nat_not_dvd {p n : ℕ} [hp : fact (nat.prime p)] (hn :
   ¬ p ^ (padic_val_nat p n + 1) ∣ n :=
 begin
   rw multiplicity.pow_dvd_iff_le_multiplicity,
-  rw padic_val_nat_def (ne_of_gt hn),
+  rw padic_val_nat_def hn,
   { rw [nat.cast_add, enat.coe_get],
     simp only [nat.cast_one, not_le],
-    apply enat.lt_add_one (ne_top_iff_finite.2 (finite_nat_iff.2 ⟨hp.elim.ne_one, hn⟩)) },
+    exact enat.lt_add_one (ne_top_iff_finite.mpr
+      (finite_nat_iff.mpr ⟨(fact.elim hp).ne_one, hn⟩)), },
   { apply_instance }
+end
+
+lemma padic_val_nat_dvd_iff (p : ℕ) [hp :fact p.prime] (n : ℕ) (a : ℕ) :
+  p^n ∣ a ↔ a = 0 ∨ n ≤ padic_val_nat p a :=
+begin
+  split,
+  { rw pow_dvd_iff_le_multiplicity,
+    rw padic_val_nat,
+    split_ifs,
+    rw enat.coe_le_iff,
+    intro hn,
+    right,
+    apply hn,
+    simp [hp.out.ne_one] at h,
+    rw h,
+    simp, },
+  { intro h,
+    cases h,
+    rw h,
+    exact dvd_zero (p ^ n),
+    exact dvd_trans (pow_dvd_pow p h) pow_padic_val_nat_dvd, },
 end
 
 lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime]
   (neq : p ≠ q) : padic_val_nat p q = 0 :=
-@padic_val_nat_of_not_dvd p p_prime q $
+@padic_val_nat.eq_zero_of_not_dvd p q $
 (not_congr (iff.symm (prime_dvd_prime_iff_eq p_prime.1 q_prime.1))).mp neq
 
 protected lemma padic_val_nat.div' {p : ℕ} [p_prime : fact p.prime] :
@@ -469,7 +515,7 @@ protected lemma padic_val_nat.div' {p : ℕ} [p_prime : fact p.prime] :
     { rw [hc, mul_zero] },
     { rw padic_val_nat.mul,
       { suffices : ¬ p ∣ (n+1),
-        { rw [padic_val_nat_of_not_dvd this, zero_add] },
+        { rw [padic_val_nat.eq_zero_of_not_dvd this, zero_add] },
         contrapose! cpm,
         exact p_prime.1.dvd_iff_not_coprime.mp cpm },
       { exact nat.succ_ne_zero _ },
@@ -480,7 +526,7 @@ lemma padic_val_nat_eq_factorization (p n : ℕ) [hp : fact p.prime] :
   padic_val_nat p n = n.factorization p :=
 begin
   by_cases hn : n = 0, { subst hn, simp },
-  rw @padic_val_nat_def p _ n hn,
+  rw @padic_val_nat_def p _ n (nat.pos_of_ne_zero hn),
   simp [@multiplicity_eq_factorization n p hp.elim hn],
 end
 
@@ -532,6 +578,49 @@ end
 
 end padic_val_nat
 
+section padic_val_int
+variables (p : ℕ) [p_prime : fact p.prime]
+
+lemma padic_val_int_dvd_iff (p : ℕ) [fact p.prime] (n : ℕ) (a : ℤ) :
+  ↑p^n ∣ a ↔ a = 0 ∨ n ≤ padic_val_int p a :=
+by rw [padic_val_int, ←int.nat_abs_eq_zero, ←padic_val_nat_dvd_iff, ←int.coe_nat_dvd_left,
+       int.coe_nat_pow]
+
+lemma padic_val_int_dvd (p : ℕ) [fact p.prime] (a : ℤ) : ↑p^(padic_val_int p a) ∣ a :=
+begin
+  rw padic_val_int_dvd_iff,
+  simp only [le_refl, or_true],
+end
+
+lemma padic_val_int_self (p : ℕ) [pp : fact p.prime] : padic_val_int p p = 1 :=
+begin
+  apply padic_val_int.self,
+  exact pp.out.one_lt,
+end
+
+lemma padic_val_int.mul (p : ℕ) [fact p.prime] {a b : ℤ} (ha : a ≠ 0) (hb : b ≠ 0) :
+  padic_val_int p (a*b) = padic_val_int p a + padic_val_int p b :=
+begin
+  simp_rw padic_val_int,
+  rw int.nat_abs_mul,
+  rw padic_val_nat.mul;
+  rwa int.nat_abs_ne_zero,
+end
+
+lemma padic_val_int_mul_eq_succ (p : ℕ) [pp : fact p.prime] (a : ℤ) (ha : a ≠ 0) :
+  padic_val_int p (a * p) = (padic_val_int p a) + 1 :=
+begin
+  rw padic_val_int.mul,
+  congr,
+  simp only [eq_self_iff_true, padic_val_int.of_nat, padic_val_nat_self],
+  assumption,
+  simp only [int.coe_nat_eq_zero, ne.def],
+  exact (pp.out).ne_zero,
+end
+
+end padic_val_int
+
+
 /--
 If `q ≠ 0`, the p-adic norm of a rational `q` is `p ^ (-(padic_val_rat p q))`.
 If `q = 0`, the p-adic norm of `q` is 0.
@@ -545,16 +634,12 @@ section padic_norm
 open padic_val_rat
 variables (p : ℕ)
 
-/--
-Unfolds the definition of the p-adic norm of `q` when `q ≠ 0`.
--/
+/-- Unfolds the definition of the p-adic norm of `q` when `q ≠ 0`. -/
 @[simp] protected lemma eq_zpow_of_nonzero {q : ℚ} (hq : q ≠ 0) :
   padic_norm p q = p ^ (-(padic_val_rat p q)) :=
 by simp [hq, padic_norm]
 
-/--
-The p-adic norm is nonnegative.
--/
+/-- The p-adic norm is nonnegative. -/
 protected lemma nonneg (q : ℚ) : 0 ≤ padic_norm p q :=
 if hq : q = 0 then by simp [hq, padic_norm]
 else
@@ -564,14 +649,10 @@ else
     exact_mod_cast nat.zero_le _
   end
 
-/--
-The p-adic norm of 0 is 0.
--/
+/-- The p-adic norm of 0 is 0. -/
 @[simp] protected lemma zero : padic_norm p 0 = 0 := by simp [padic_norm]
 
-/--
-The p-adic norm of 1 is 1.
--/
+/-- The p-adic norm of 1 is 1. -/
 @[simp] protected lemma one : padic_norm p 1 = 1 := by simp [padic_norm]
 
 /--
@@ -580,7 +661,7 @@ The p-adic norm of `p` is `1/p` if `p > 1`.
 See also `padic_norm.padic_norm_p_of_prime` for a version that assumes `p` is prime.
 -/
 lemma padic_norm_p {p : ℕ} (hp : 1 < p) : padic_norm p p = 1 / p :=
-by simp [padic_norm, (show p ≠ 0, by linarith), padic_val_rat.padic_val_rat_self hp]
+by simp [padic_norm, (show p ≠ 0, by linarith), padic_val_nat.self hp]
 
 /--
 The p-adic norm of `p` is `1/p` if `p` is prime.
@@ -619,15 +700,11 @@ See also `padic_norm.padic_norm_p_lt_one` for a version assuming `1 < p`.
 lemma padic_norm_p_lt_one_of_prime (p : ℕ) [fact p.prime] : padic_norm p p < 1 :=
 padic_norm_p_lt_one $ nat.prime.one_lt (fact.out _)
 
-/--
-`padic_norm p q` takes discrete values `p ^ -z` for `z : ℤ`.
--/
+/-- `padic_norm p q` takes discrete values `p ^ -z` for `z : ℤ`. -/
 protected theorem values_discrete {q : ℚ} (hq : q ≠ 0) : ∃ z : ℤ, padic_norm p q = p ^ (-z) :=
 ⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩
 
-/--
-`padic_norm p` is symmetric.
--/
+/-- `padic_norm p` is symmetric. -/
 @[simp] protected lemma neg (q : ℚ) : padic_norm p (-q) = padic_norm p q :=
 if hq : q = 0 then by simp [hq]
 else by simp [padic_norm, hq]
@@ -635,9 +712,7 @@ else by simp [padic_norm, hq]
 variable [hp : fact p.prime]
 include hp
 
-/--
-If `q ≠ 0`, then `padic_norm p q ≠ 0`.
--/
+/-- If `q ≠ 0`, then `padic_norm p q ≠ 0`. -/
 protected lemma nonzero {q : ℚ} (hq : q ≠ 0) : padic_norm p q ≠ 0 :=
 begin
   rw padic_norm.eq_zpow_of_nonzero p hq,
@@ -645,9 +720,7 @@ begin
   exact_mod_cast ne_of_gt hp.1.pos
 end
 
-/--
-If the p-adic norm of `q` is 0, then `q` is 0.
--/
+/-- If the p-adic norm of `q` is 0, then `q` is 0. -/
 lemma zero_of_padic_norm_eq_zero {q : ℚ} (h : padic_norm p q = 0) : q = 0 :=
 begin
   apply by_contradiction, intro hq,
@@ -657,9 +730,7 @@ begin
   exact_mod_cast hp.1.ne_zero
 end
 
-/--
-The p-adic norm is multiplicative.
--/
+/-- The p-adic norm is multiplicative. -/
 @[simp] protected theorem mul (q r : ℚ) : padic_norm p (q*r) = padic_norm p q * padic_norm p r :=
 if hq : q = 0 then
   by simp [hq]
@@ -670,16 +741,12 @@ else
   have (↑p : ℚ) ≠ 0, by simp [hp.1.ne_zero],
   by simp [padic_norm, *, padic_val_rat.mul, zpow_add₀ this, mul_comm]
 
-/--
-The p-adic norm respects division.
--/
+/-- The p-adic norm respects division. -/
 @[simp] protected theorem div (q r : ℚ) : padic_norm p (q / r) = padic_norm p q / padic_norm p r :=
 if hr : r = 0 then by simp [hr] else
 eq_div_of_mul_eq (padic_norm.nonzero _ hr) (by rw [←padic_norm.mul, div_mul_cancel _ hr])
 
-/--
-The p-adic norm of an integer is at most 1.
--/
+/-- The p-adic norm of an integer is at most 1. -/
 protected theorem of_int (z : ℤ) : padic_norm p ↑z ≤ 1 :=
 if hz : z = 0 then by simp [hz, zero_le_one] else
 begin
@@ -687,9 +754,9 @@ begin
   rw [if_neg _],
   { refine zpow_le_one_of_nonpos _ _,
     { exact_mod_cast le_of_lt hp.1.one_lt, },
-    { rw [padic_val_rat_of_int _ hp.1.ne_one hz, neg_nonpos],
+    { rw [padic_val_rat.of_int, neg_nonpos],
       norm_cast, simp }},
-  exact_mod_cast hz
+  exact_mod_cast hz,
 end
 
 private lemma nonarchimedean_aux {q r : ℚ} (h : padic_val_rat p q ≤ padic_val_rat p r) :
@@ -794,7 +861,8 @@ begin
   { norm_cast at hz,
     have : 0 ≤ (p^n : ℚ), {apply pow_nonneg, exact_mod_cast le_of_lt hp.1.pos },
     simp [hz, this] },
-  { rw [zpow_le_iff_le, neg_le_neg_iff, padic_val_rat_of_int _ hp.1.ne_one _],
+  { rw [zpow_le_iff_le, neg_le_neg_iff, padic_val_rat.of_int,
+      padic_val_int.of_ne_one_ne_zero hp.1.ne_one _],
     { norm_cast,
       rw [← enat.coe_le_coe, enat.coe_get, ← multiplicity.pow_dvd_iff_le_multiplicity],
       simp },

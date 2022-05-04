@@ -89,7 +89,7 @@ end
 (If `L` is not finite-dimensional over `K`, then `norm = 1 = x ^ 0 = x ^ (finrank L K)`.)
 -/
 @[simp]
-lemma norm_algebra_map (x : K) : norm K (algebra_map K L x) = x ^ finrank K L :=
+protected lemma norm_algebra_map (x : K) : norm K (algebra_map K L x) = x ^ finrank K L :=
 begin
   by_cases H : ∃ (s : finset L), nonempty (basis s K L),
   { rw [norm_algebra_map_of_basis H.some_spec.some, finrank_eq_card_basis H.some_spec.some] },

@@ -237,8 +237,8 @@ variables (A : Type u) [comm_ring A] [is_domain A] [valuation_ring A]
 
 @[priority 100]
 instance : local_ring A :=
+local_ring.of_is_unit_or_is_unit_one_sub_self
 begin
-  constructor,
   intros a,
   obtain ⟨c,(h|h)⟩ := valuation_ring.cond a (1-a),
   { left,

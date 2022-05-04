@@ -110,10 +110,9 @@ is_cau_series_of_abv_le_cau 0 (λ n h, le_rfl)
 end no_archimedean
 
 section
-variables {α : Type*} {β : Type*} [ring β]
-  [linear_ordered_field α] [archimedean α] {abv : β → α} [is_absolute_value abv]
+variables {α : Type*} [linear_ordered_field α] [archimedean α]
 
-lemma is_cau_geo_series {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
+lemma is_cau_geo_series {β : Type*} [ring β] [nontrivial β] {abv : β → α} [is_absolute_value abv]
    (x : β) (hx1 : abv x < 1) : is_cau_seq abv (λ n, ∑ m in range n, x ^ m) :=
 have hx1' : abv x ≠ 1 := λ h, by simpa [h, lt_irrefl] using hx1,
 is_cau_series_of_abv_cau
@@ -145,6 +144,8 @@ lemma is_cau_geo_series_const (a : α) {x : α} (hx1 : |x| < 1) :
 have is_cau_seq abs (λ m, a * ∑ n in range m, x ^ n) :=
   (cau_seq.const abs a * ⟨_, is_cau_geo_series x hx1⟩).2,
 by simpa only [mul_sum]
+
+variables {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv]
 
 lemma series_ratio_test {f : ℕ → β} (n : ℕ) (r : α)
   (hr0 : 0 ≤ r) (hr1 : r < 1) (h : ∀ m, n ≤ m → abv (f m.succ) ≤ r * abv (f m)) :
@@ -200,8 +201,10 @@ by rw [sum_sigma', sum_sigma']; exact sum_bij
 end
 
 section no_archimedean
-variables {α : Type*} {β : Type*} [ring β]
-  [linear_ordered_field α] {abv : β → α} [is_absolute_value abv]
+variables {α : Type*} {β : Type*} [linear_ordered_field α] {abv : β → α}
+
+section
+variables [semiring β] [is_absolute_value abv]
 
 lemma abv_sum_le_sum_abv {γ : Type*} (f : γ → β) (s : finset γ) :
   abv (∑ k in s, f k) ≤ ∑ k in s, abv (f k) :=
@@ -209,6 +212,11 @@ by haveI := classical.dec_eq γ; exact
 finset.induction_on s (by simp [abv_zero abv])
   (λ a s has ih, by rw [sum_insert has, sum_insert has];
     exact le_trans (abv_add abv _ _) (add_le_add_left ih _))
+
+end
+
+section
+variables [ring β] [is_absolute_value abv]
 
 lemma cauchy_product {a b : ℕ → β}
   (ha : is_cau_seq abs (λ m, ∑ n in range m, abv (a n)))
@@ -292,6 +300,8 @@ begin
           (hM _ (le_trans (nat.le_succ_of_le (le_max_right _ _)) (le_of_lt hNMK)) _
             (nat.le_succ_of_le (le_max_right _ _))))
 end⟩
+
+end
 
 end no_archimedean
 

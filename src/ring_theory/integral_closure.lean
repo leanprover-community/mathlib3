@@ -837,7 +837,7 @@ begin
   -- `q(a) = 0`, because multiplying everything with `a_inv^n` gives `p(a_inv) = 0`.
   -- TODO: this could be a lemma for `polynomial.reverse`.
   have hq : ∑ (i : ℕ) in finset.range (p.nat_degree + 1), (p.coeff i) * a ^ (p.nat_degree - i) = 0,
-  { apply (algebra_map R S).injective_iff.mp hRS,
+  { apply (injective_iff_map_eq_zero (algebra_map R S)).mp hRS,
     have a_inv_ne_zero : a_inv ≠ 0 := right_ne_zero_of_mul (mt ha_inv.symm.trans one_ne_zero),
     refine (mul_eq_zero.mp _).resolve_right (pow_ne_zero p.nat_degree a_inv_ne_zero),
     rw [eval₂_eq_sum_range] at hp,

@@ -219,7 +219,7 @@ begin
   cases nat.eq_zero_or_pos k with hzero hpos,
   { use 1,
     simp only [hzero, cyclotomic'_zero, set.mem_univ, subsemiring.coe_top, eq_self_iff_true,
-    coe_map_ring_hom, map_one, and_self] },
+    coe_map_ring_hom, polynomial.map_one, and_self] },
   let B : K[X] := ∏ i in nat.proper_divisors k, cyclotomic' i K,
   have Bmo : B.monic,
   { apply monic_prod_of_monic,
@@ -286,7 +286,7 @@ lemma map_cyclotomic_int (n : ℕ) (R : Type*) [ring R] :
   map (int.cast_ring_hom R) (cyclotomic n ℤ) = cyclotomic n R :=
 begin
   by_cases hzero : n = 0,
-  { simp only [hzero, cyclotomic, dif_pos, map_one] },
+  { simp only [hzero, cyclotomic, dif_pos, polynomial.map_one] },
   simp only [cyclotomic, int_cyclotomic_rw, hzero, ne.def, dif_neg, not_false_iff]
 end
 
@@ -295,7 +295,7 @@ lemma int_cyclotomic_spec (n : ℕ) : map (int.cast_ring_hom ℂ) (cyclotomic n 
 begin
   by_cases hzero : n = 0,
   { simp only [hzero, cyclotomic, degree_one, monic_one, cyclotomic'_zero, dif_pos,
-  eq_self_iff_true, map_one, and_self] },
+  eq_self_iff_true, polynomial.map_one, and_self] },
   rw int_cyclotomic_rw hzero,
   exact (int_coeff_of_cyclotomic' (complex.is_primitive_root_exp n hzero)).some_spec
 end
@@ -316,6 +316,10 @@ begin
   simp only [coeff_map, ring_hom.eq_int_cast, ring_hom.map_int_cast]
 end
 
+lemma cyclotomic.eval_apply {R S : Type*} (q : R) (n : ℕ) [ring R] [ring S] (f : R →+* S) :
+  eval (f q) (cyclotomic n S) = f (eval q (cyclotomic n R)) :=
+by rw [← map_cyclotomic n f, eval_map, eval₂_at_apply]
+
 /-- The zeroth cyclotomic polyomial is `1`. -/
 @[simp] lemma cyclotomic_zero (R : Type*) [ring R] : cyclotomic 0 R = 1 :=
 by simp only [cyclotomic, dif_pos]
@@ -324,20 +328,21 @@ by simp only [cyclotomic, dif_pos]
 @[simp] lemma cyclotomic_one (R : Type*) [ring R] : cyclotomic 1 R = X - 1 :=
 begin
   have hspec : map (int.cast_ring_hom ℂ) (X - 1) = cyclotomic' 1 ℂ,
-  { simp only [cyclotomic'_one, pnat.one_coe, map_X, map_one, map_sub] },
+  { simp only [cyclotomic'_one, pnat.one_coe, map_X, polynomial.map_one, polynomial.map_sub] },
   symmetry,
   rw [←map_cyclotomic_int, ←(int_cyclotomic_unique hspec)],
-  simp only [map_X, map_one, map_sub]
+  simp only [map_X, polynomial.map_one, polynomial.map_sub]
 end
 
 /-- The second cyclotomic polyomial is `X + 1`. -/
 @[simp] lemma cyclotomic_two (R : Type*) [ring R] : cyclotomic 2 R = X + 1 :=
 begin
   have hspec : map (int.cast_ring_hom ℂ) (X + 1) = cyclotomic' 2 ℂ,
-  { simp only [cyclotomic'_two ℂ 0 two_ne_zero.symm, map_add, map_X, map_one] },
+  { simp only [cyclotomic'_two ℂ 0 two_ne_zero.symm, polynomial.map_add, map_X,
+               polynomial.map_one], },
   symmetry,
   rw [←map_cyclotomic_int, ←(int_cyclotomic_unique hspec)],
-  simp only [map_add, map_X, map_one]
+  simp only [polynomial.map_add, map_X, polynomial.map_one]
 end
 
 /-- `cyclotomic n` is monic. -/
@@ -390,7 +395,8 @@ begin
   have integer : ∏ i in nat.divisors n, cyclotomic i ℤ = X ^ n - 1,
   { apply map_injective (int.cast_ring_hom ℂ) int.cast_injective,
     rw polynomial.map_prod (int.cast_ring_hom ℂ) (λ i, cyclotomic i ℤ),
-    simp only [int_cyclotomic_spec, polynomial.map_pow, nat.cast_id, map_X, map_one, map_sub],
+    simp only [int_cyclotomic_spec, polynomial.map_pow, nat.cast_id, map_X, polynomial.map_one,
+               polynomial.map_sub],
     exact prod_cyclotomic'_eq_X_pow_sub_one hpos
           (complex.is_primitive_root_exp n (ne_of_lt hpos).symm) },
   have coerc : X ^ n - 1 = map (int.cast_ring_hom R) (X ^ n - 1),
@@ -893,13 +899,13 @@ begin
   { simp },
   haveI := ne_zero.of_pos hnpos,
   suffices : expand ℤ p (cyclotomic n ℤ) = (cyclotomic (n * p) ℤ) * (cyclotomic n ℤ),
-  { rw [← map_cyclotomic_int, ← map_expand, this, map_mul, map_cyclotomic_int] },
+  { rw [← map_cyclotomic_int, ← map_expand, this, polynomial.map_mul, map_cyclotomic_int] },
   refine eq_of_monic_of_dvd_of_nat_degree_le ((cyclotomic.monic _ _).mul
     (cyclotomic.monic _ _)) ((cyclotomic.monic n ℤ).expand hp.pos) _ _,
   { refine (is_primitive.int.dvd_iff_map_cast_dvd_map_cast _ _ (is_primitive.mul
       (cyclotomic.is_primitive (n * p) ℤ) (cyclotomic.is_primitive n ℤ))
       ((cyclotomic.monic n ℤ).expand hp.pos).is_primitive).2 _,
-    rw [map_mul, map_cyclotomic_int, map_cyclotomic_int, map_expand, map_cyclotomic_int],
+    rw [polynomial.map_mul, map_cyclotomic_int, map_cyclotomic_int, map_expand, map_cyclotomic_int],
     refine is_coprime.mul_dvd (cyclotomic.is_coprime_rat (λ h, _)) _ _,
     { replace h : n * p = n * 1 := by simp [h],
       exact nat.prime.ne_one hp (nat.eq_of_mul_eq_mul_left hnpos h) },

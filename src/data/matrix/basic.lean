@@ -9,6 +9,7 @@ import algebra.big_operators.ring
 import algebra.module.linear_map
 import algebra.module.pi
 import algebra.ring.equiv
+import algebra.star.module
 import algebra.star.pi
 import data.fintype.card
 
@@ -1334,8 +1335,38 @@ matrix.ext $ by simp
   (M - N)ᴴ = Mᴴ - Nᴴ :=
 matrix.ext $ by simp
 
-@[simp] lemma conj_transpose_smul [comm_semigroup α] [star_semigroup α] (c : α) (M : matrix m n α) :
-  (c • M)ᴴ = (star c) • Mᴴ :=
+/-- Note that `star_module` is quite a strong requirement; as such we also provide the following
+variants which this lemma would not apply to:
+* `matrix.conj_transpose_smul_non_comm`
+* `matrix.conj_transpose_nsmul`
+* `matrix.conj_transpose_zsmul`
+* `matrix.conj_transpose_rat_smul`
+-/
+@[simp] lemma conj_transpose_smul [semigroup α] [has_star R] [has_star α] [has_scalar R α]
+  [star_module R α] (c : R) (M : matrix m n α) :
+  (c • M)ᴴ = star c • Mᴴ :=
+matrix.ext $ λ i j, star_smul _ _
+
+@[simp] lemma conj_transpose_smul_non_comm [has_star R] [has_star α]
+  [has_scalar R α] [has_scalar Rᵐᵒᵖ α] (c : R) (M : matrix m n α)
+  (h : ∀ (r : R) (a : α), star (r • a) = mul_opposite.op (star r) • star a) :
+  (c • M)ᴴ = mul_opposite.op (star c) • Mᴴ :=
+matrix.ext $ by simp [h]
+
+@[simp] lemma conj_transpose_smul_self [semigroup α] [star_semigroup α] (c : α)
+  (M : matrix m n α) : (c • M)ᴴ = mul_opposite.op (star c) • Mᴴ :=
+conj_transpose_smul_non_comm c M star_mul
+
+@[simp] lemma conj_transpose_nsmul [add_monoid α] [star_add_monoid α] (c : ℕ) (M : matrix m n α) :
+  (c • M)ᴴ = c • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_zsmul [add_group α] [star_add_monoid α] (c : ℤ) (M : matrix m n α) :
+  (c • M)ᴴ = c • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_rat_smul [add_comm_group α] [star_add_monoid α] [module ℚ α] (c : ℚ)
+  (M : matrix m n α) : (c • M)ᴴ = c • Mᴴ :=
 matrix.ext $ by simp
 
 @[simp] lemma conj_transpose_mul [fintype n] [non_unital_semiring α] [star_ring α]

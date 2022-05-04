@@ -25,6 +25,10 @@ It is defined on a star algebra `A` over the base ring `R`.
   equivalence.
 -/
 
+@[simp] lemma star_rat_smul {R : Type*} [add_comm_group R] [star_add_monoid R] [module ℚ R]
+  (x : R) (n : ℚ) : star (n • x) = n • star x :=
+map_rat_smul (star_add_equiv : R ≃+ R) _ _
+
 /-- If `A` is a module over a commutative `R` with compatible actions,
 then `star` is a semilinear equivalence. -/
 @[simps]

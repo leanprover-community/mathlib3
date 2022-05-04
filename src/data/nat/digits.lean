@@ -5,7 +5,9 @@ Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 -/
 import data.int.modeq
 import data.nat.log
+import data.nat.parity
 import data.list.indexes
+import data.list.palindrome
 import tactic.interval_cases
 import tactic.linarith
 
@@ -23,6 +25,7 @@ A basic `norm_digits` tactic is also provided for proving goals of the form
 -/
 
 namespace nat
+variables {n : ℕ}
 
 /-- (Impl.) An auxiliary definition for `digits`, to help get the desired definitional unfolding. -/
 def digits_aux_0 : ℕ → list ℕ
@@ -585,12 +588,22 @@ begin
     (zmodeq_of_digits_digits b b' c (int.modeq_iff_dvd.2 h).symm _).symm.dvd,
 end
 
-lemma eleven_dvd_iff (n : ℕ) :
-  11 ∣ n ↔ (11 : ℤ) ∣ ((digits 10 n).map (λ n : ℕ, (n : ℤ))).alternating_sum :=
+lemma eleven_dvd_iff : 11 ∣ n ↔ (11 : ℤ) ∣ ((digits 10 n).map (λ n : ℕ, (n : ℤ))).alternating_sum :=
 begin
   have t := dvd_iff_dvd_of_digits 11 10 (-1 : ℤ) (by norm_num) n,
   rw of_digits_neg_one at t,
   exact t,
+end
+
+lemma eleven_dvd_of_palindrome (p : (digits 10 n).palindrome) (h : even (digits 10 n).length) :
+  11 ∣ n :=
+begin
+  let dig := (digits 10 n).map (coe : ℕ → ℤ),
+  replace h : even dig.length := by rwa list.length_map,
+  refine eleven_dvd_iff.2 ⟨0, (_ : dig.alternating_sum = 0)⟩,
+  have := dig.alternating_sum_reverse,
+  rw [(p.map _).reverse_eq, pow_succ, h.neg_one_pow, mul_one, neg_one_zsmul] at this,
+  exact eq_zero_of_neg_eq this.symm,
 end
 
 /-! ### `norm_digits` tactic -/

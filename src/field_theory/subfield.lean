@@ -181,66 +181,45 @@ namespace subfield
 
 variables (s t : subfield K)
 
-/-- A subfield contains the ring's 1. -/
-theorem one_mem : (1 : K) ∈ s := s.one_mem'
+section derived_from_subfield_class
 
-/-- A subfield contains the ring's 0. -/
-theorem zero_mem : (0 : K) ∈ s := s.zero_mem'
-
+/-- A subfield contains the field's 1. -/
+protected theorem one_mem : (1 : K) ∈ s := one_mem s
+/-- A subfield contains the field's 0. -/
+protected theorem zero_mem : (0 : K) ∈ s := zero_mem s
 /-- A subfield is closed under multiplication. -/
-theorem mul_mem : ∀ {x y : K}, x ∈ s → y ∈ s → x * y ∈ s := s.mul_mem'
-
+protected theorem mul_mem {x y : K} : x ∈ s → y ∈ s → x * y ∈ s := mul_mem
 /-- A subfield is closed under addition. -/
-theorem add_mem : ∀ {x y : K}, x ∈ s → y ∈ s → x + y ∈ s := s.add_mem'
-
+protected theorem add_mem {x y : K} : x ∈ s → y ∈ s → x + y ∈ s := add_mem
 /-- A subfield is closed under negation. -/
-theorem neg_mem : ∀ {x : K}, x ∈ s → -x ∈ s := s.neg_mem'
-
+protected theorem neg_mem {x : K} : x ∈ s → -x ∈ s := neg_mem
 /-- A subfield is closed under subtraction. -/
-theorem sub_mem {x y : K} : x ∈ s → y ∈ s → x - y ∈ s := s.to_subring.sub_mem
-
+protected theorem sub_mem {x y : K} : x ∈ s → y ∈ s → x - y ∈ s := sub_mem
 /-- A subfield is closed under inverses. -/
-theorem inv_mem : ∀ {x : K}, x ∈ s → x⁻¹ ∈ s := s.inv_mem'
-
+protected theorem inv_mem {x : K} : x ∈ s → x⁻¹ ∈ s := inv_mem
 /-- A subfield is closed under division. -/
-theorem div_mem {x y : K} (hx : x ∈ s) (hy : y ∈ s) : x / y ∈ s :=
-by { rw div_eq_mul_inv, exact s.mul_mem hx (s.inv_mem hy) }
-
+protected theorem div_mem {x y : K} : x ∈ s → y ∈ s → x / y ∈ s := div_mem
 /-- Product of a list of elements in a subfield is in the subfield. -/
-lemma list_prod_mem {l : list K} : (∀ x ∈ l, x ∈ s) → l.prod ∈ s :=
-s.to_submonoid.list_prod_mem
-
+protected lemma list_prod_mem {l : list K} : (∀ x ∈ l, x ∈ s) → l.prod ∈ s := list_prod_mem
 /-- Sum of a list of elements in a subfield is in the subfield. -/
-lemma list_sum_mem {l : list K} : (∀ x ∈ l, x ∈ s) → l.sum ∈ s :=
-s.to_add_subgroup.list_sum_mem
-
+protected lemma list_sum_mem {l : list K} : (∀ x ∈ l, x ∈ s) → l.sum ∈ s := list_sum_mem
 /-- Product of a multiset of elements in a subfield is in the subfield. -/
-lemma multiset_prod_mem (m : multiset K) :
-  (∀ a ∈ m, a ∈ s) → m.prod ∈ s :=
-s.to_submonoid.multiset_prod_mem m
-
+protected lemma multiset_prod_mem (m : multiset K) : (∀ a ∈ m, a ∈ s) → m.prod ∈ s :=
+multiset_prod_mem m
 /-- Sum of a multiset of elements in a `subfield` is in the `subfield`. -/
-lemma multiset_sum_mem (m : multiset K) :
-  (∀ a ∈ m, a ∈ s) → m.sum ∈ s :=
-s.to_add_subgroup.multiset_sum_mem m
-
+protected lemma multiset_sum_mem (m : multiset K) : (∀ a ∈ m, a ∈ s) → m.sum ∈ s :=
+multiset_sum_mem m
 /-- Product of elements of a subfield indexed by a `finset` is in the subfield. -/
-lemma prod_mem {ι : Type*} {t : finset ι} {f : ι → K} (h : ∀ c ∈ t, f c ∈ s) :
+protected lemma prod_mem {ι : Type*} {t : finset ι} {f : ι → K} (h : ∀ c ∈ t, f c ∈ s) :
   ∏ i in t, f i ∈ s :=
-s.to_submonoid.prod_mem h
-
+prod_mem h
 /-- Sum of elements in a `subfield` indexed by a `finset` is in the `subfield`. -/
-lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → K} (h : ∀ c ∈ t, f c ∈ s) :
+protected lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → K} (h : ∀ c ∈ t, f c ∈ s) :
   ∑ i in t, f i ∈ s :=
-s.to_add_subgroup.sum_mem h
-
-lemma pow_mem {x : K} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
-
-lemma zsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) :
-  n • x ∈ s := s.to_add_subgroup.zsmul_mem hx n
-
-lemma coe_int_mem (n : ℤ) : (n : K) ∈ s :=
-by simp only [← zsmul_one, zsmul_mem, one_mem]
+sum_mem h
+protected lemma pow_mem {x : K} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := pow_mem hx n
+protected lemma zsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) : n • x ∈ s := zsmul_mem hx n
+protected lemma coe_int_mem (n : ℤ) : (n : K) ∈ s := coe_int_mem s n
 
 lemma zpow_mem {x : K} (hx : x ∈ s) (n : ℤ) : x^n ∈ s :=
 begin
@@ -275,6 +254,8 @@ subtype.coe_injective.linear_ordered_field coe
 @[simp, norm_cast] lemma coe_inv (x : s) : (↑(x⁻¹) : K) = (↑x)⁻¹ := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : s) : K) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : s) : K) = 1 := rfl
+
+end derived_from_subfield_class
 
 /-- The embedding from a subfield of the field `K` to `K`. -/
 def subtype (s : subfield K) : s →+* K :=

@@ -408,7 +408,7 @@ lemma ae_ae_of_ae_prod {p : α × β → Prop} (h : ∀ᵐ z ∂μ.prod ν, p z)
 measure_ae_null_of_prod_null h
 
 /-- `μ.prod ν` has finite spanning sets in rectangles of finite spanning sets. -/
-def finite_spanning_sets_in.prod {ν : measure β} {C : set (set α)} {D : set (set β)}
+noncomputable! def finite_spanning_sets_in.prod {ν : measure β} {C : set (set α)} {D : set (set β)}
   (hμ : μ.finite_spanning_sets_in C) (hν : ν.finite_spanning_sets_in D) :
   (μ.prod ν).finite_spanning_sets_in (image2 (×ˢ) C D) :=
 begin
@@ -549,7 +549,7 @@ lemma map_prod_map {δ} [measurable_space δ] {f : α → β} {g : γ → δ}
   (hgc : sigma_finite (map g μc)) (hf : measurable f) (hg : measurable g) :
   (map f μa).prod (map g μc) = map (prod.map f g) (μa.prod μc) :=
 begin
-  haveI := hgc.of_map μc hg,
+  haveI := hgc.of_map μc hg.ae_measurable,
   refine prod_eq (λ s t hs ht, _),
   rw [map_apply (hf.prod_map hg) (hs.prod ht), map_apply hf hs, map_apply hg ht],
   exact prod_prod (f ⁻¹' s) (g ⁻¹' t)
@@ -575,15 +575,15 @@ begin
   to deduce `sigma_finite μc`. -/
   rcases eq_or_ne μa 0 with (rfl|ha),
   { rw [← hf.map_eq, zero_prod, measure.map_zero, zero_prod],
-    exact ⟨this, (mapₗ _).map_zero⟩ },
+    exact ⟨this, by simp only [measure.map_zero]⟩ },
   haveI : sigma_finite μc,
   { rcases (ae_ne_bot.2 ha).nonempty_of_mem hg with ⟨x, hx : map (g x) μc = μd⟩,
-    exact sigma_finite.of_map _ hgm.of_uncurry_left (by rwa hx) },
+    exact sigma_finite.of_map _ hgm.of_uncurry_left.ae_measurable (by rwa hx) },
   -- Thus we can apply `measure.prod_eq` to prove equality of measures.
   refine ⟨this, (prod_eq $ λ s t hs ht, _).symm⟩,
   rw [map_apply this (hs.prod ht)],
   refine (prod_apply (this $ hs.prod ht)).trans _,
-  have : ∀ᵐ x ∂μa, μc ((λ y, (f x, g x y)) ⁻¹' (s ×ˢ t)) = indicator (f ⁻¹' s) (λ y, μd t) x,
+  have : ∀ᵐ x ∂μa, μc ((λ y, (f x, g x y)) ⁻¹' s ×ˢ t) = indicator (f ⁻¹' s) (λ y, μd t) x,
   { refine hg.mono (λ x hx, _), unfreezingI { subst hx },
     simp only [mk_preimage_prod_right_fn_eq_if, indicator_apply, mem_preimage],
     split_ifs,
@@ -654,7 +654,7 @@ variables [sigma_finite ν]
 
 lemma lintegral_prod_swap [sigma_finite μ] (f : α × β → ℝ≥0∞)
   (hf : ae_measurable f (μ.prod ν)) : ∫⁻ z, f z.swap ∂(ν.prod μ) = ∫⁻ z, f z ∂(μ.prod ν) :=
-by { rw ← prod_swap at hf, rw [← lintegral_map' hf measurable_swap, prod_swap] }
+by { rw ← prod_swap at hf, rw [← lintegral_map' hf measurable_swap.ae_measurable, prod_swap] }
 
 /-- **Tonelli's Theorem**: For `ℝ≥0∞`-valued measurable functions on `α × β`,
   the integral of `f` is equal to the iterated integral. -/
@@ -831,7 +831,7 @@ lemma integral_prod_swap (f : α × β → E)
   (hf : ae_strongly_measurable f (μ.prod ν)) : ∫ z, f z.swap ∂(ν.prod μ) = ∫ z, f z ∂(μ.prod ν) :=
 begin
   rw ← prod_swap at hf,
-  rw [← integral_map measurable_swap hf, prod_swap]
+  rw [← integral_map measurable_swap.ae_measurable hf, prod_swap]
 end
 
 variables {E' : Type*} [normed_group E'] [complete_space E'] [normed_space ℝ E']
@@ -906,14 +906,14 @@ begin
   rw [continuous_iff_continuous_at], intro g,
   refine tendsto_integral_of_L1 _ (L1.integrable_coe_fn g).integral_prod_left
     (eventually_of_forall $ λ h, (L1.integrable_coe_fn h).integral_prod_left) _,
-  simp_rw [← lintegral_fn_integral_sub (λ x, (nnnorm x : ℝ≥0∞)) (L1.integrable_coe_fn _)
+  simp_rw [← lintegral_fn_integral_sub (λ x, (∥x∥₊ : ℝ≥0∞)) (L1.integrable_coe_fn _)
     (L1.integrable_coe_fn g)],
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds _ (λ i, zero_le _) _,
-  { exact λ i, ∫⁻ x, ∫⁻ y, nnnorm (i (x, y) - g (x, y)) ∂ν ∂μ },
+  { exact λ i, ∫⁻ x, ∫⁻ y, ∥i (x, y) - g (x, y)∥₊ ∂ν ∂μ },
   swap, { exact λ i, lintegral_mono (λ x, ennnorm_integral_le_lintegral_ennnorm _) },
   show tendsto (λ (i : α × β →₁[μ.prod ν] E),
-    ∫⁻ x, ∫⁻ (y : β), nnnorm (i (x, y) - g (x, y)) ∂ν ∂μ) (𝓝 g) (𝓝 0),
-  have : ∀ (i : α × β →₁[μ.prod ν] E), measurable (λ z, (nnnorm (i z - g z) : ℝ≥0∞)) :=
+    ∫⁻ x, ∫⁻ (y : β), ∥i (x, y) - g (x, y)∥₊ ∂ν ∂μ) (𝓝 g) (𝓝 0),
+  have : ∀ (i : α × β →₁[μ.prod ν] E), measurable (λ z, (∥i z - g z∥₊ : ℝ≥0∞)) :=
   λ i, ((Lp.strongly_measurable i).sub (Lp.strongly_measurable g)).ennnorm,
   simp_rw [← lintegral_prod_of_measurable _ (this _), ← L1.of_real_norm_sub_eq_lintegral,
     ← of_real_zero],

@@ -147,6 +147,13 @@ have h₁ : (leading_coeff q)⁻¹ ≠ 0 :=
   inv_ne_zero (mt leading_coeff_eq_zero.1 h),
 by rw [degree_mul, degree_C h₁, add_zero]
 
+@[simp] lemma map_eq_zero [semiring S] [nontrivial S] (f : R →+* S) :
+  p.map f = 0 ↔ p = 0 :=
+by simp only [polynomial.ext_iff, f.map_eq_zero, coeff_map, coeff_zero]
+
+lemma map_ne_zero [semiring S] [nontrivial S] {f : R →+* S} (hp : p ≠ 0) : p.map f ≠ 0 :=
+mt (map_eq_zero f).1 hp
+
 end division_ring
 
 section field
@@ -268,19 +275,19 @@ by rw [div_def, mul_comm, degree_mul_leading_coeff_inv _ hq0];
   exact degree_div_by_monic_lt _ (monic_mul_leading_coeff_inv hq0) hp
     (by rw degree_mul_leading_coeff_inv _ hq0; exact hq)
 
-@[simp] lemma degree_map [field k] (p : R[X]) (f : R →+* k) :
+@[simp] lemma degree_map [division_ring k] (p : R[X]) (f : R →+* k) :
   degree (p.map f) = degree p :=
 p.degree_map_eq_of_injective f.injective
 
-@[simp] lemma nat_degree_map [field k] (f : R →+* k) :
+@[simp] lemma nat_degree_map [division_ring k] (f : R →+* k) :
   nat_degree (p.map f) = nat_degree p :=
 nat_degree_eq_of_degree_eq (degree_map _ f)
 
-@[simp] lemma leading_coeff_map [field k] (f : R →+* k) :
+@[simp] lemma leading_coeff_map [division_ring k] (f : R →+* k) :
   leading_coeff (p.map f) = f (leading_coeff p) :=
 by simp only [← coeff_nat_degree, coeff_map f, nat_degree_map]
 
-theorem monic_map_iff [field k] {f : R →+* k} {p : R[X]} :
+theorem monic_map_iff [division_ring k] {f : R →+* k} {p : R[X]} :
   (p.map f).monic ↔ p.monic :=
 by rw [monic, leading_coeff_map, ← f.map_one, function.injective.eq_iff f.injective, monic]
 
@@ -292,20 +299,21 @@ lemma map_div [field k] (f : R →+* k) :
   (p / q).map f = p.map f / q.map f :=
 if hq0 : q = 0 then by simp [hq0]
 else
-by rw [div_def, div_def, map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
+by rw [div_def, div_def, polynomial.map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
   simp [f.map_inv, coeff_map f]
 
 lemma map_mod [field k] (f : R →+* k) :
   (p % q).map f = p.map f % q.map f :=
 if hq0 : q = 0 then by simp [hq0]
 else by rw [mod_def, mod_def, leading_coeff_map f, ← f.map_inv, ← map_C f,
-  ← map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
+  ← polynomial.map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
 
 section
 open euclidean_domain
 theorem gcd_map [field k] (f : R →+* k) :
   gcd (p.map f) (q.map f) = (gcd p q).map f :=
-gcd.induction p q (λ x, by simp_rw [map_zero, euclidean_domain.gcd_zero_left]) $ λ x y hx ih,
+gcd.induction p q (λ x, by simp_rw [polynomial.map_zero, euclidean_domain.gcd_zero_left]) $
+                    λ x y hx ih,
 by rw [gcd_val, ← map_mod, ih, ← gcd_val]
 end
 
@@ -338,13 +346,6 @@ root_gcd_iff_root_left_right
 theorem is_coprime_map [field k] (f : R →+* k) :
   is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=
 by rw [← euclidean_domain.gcd_is_unit_iff, ← euclidean_domain.gcd_is_unit_iff, gcd_map, is_unit_map]
-
-@[simp] lemma map_eq_zero [semiring S] [nontrivial S] (f : R →+* S) :
-  p.map f = 0 ↔ p = 0 :=
-by simp only [polynomial.ext_iff, f.map_eq_zero, coeff_map, coeff_zero]
-
-lemma map_ne_zero [semiring S] [nontrivial S] {f : R →+* S} (hp : p ≠ 0) : p.map f ≠ 0 :=
-mt (map_eq_zero f).1 hp
 
 lemma mem_roots_map [field k] {f : R →+* k} {x : k} (hp : p ≠ 0) :
   x ∈ (p.map f).roots ↔ p.eval₂ f x = 0 :=
@@ -442,11 +443,11 @@ by simp [comm_group_with_zero.coe_norm_unit _ this]
 lemma normalize_monic (h : monic p) : normalize p = p := by simp [h]
 
 theorem map_dvd_map' [field k] (f : R →+* k) {x y : R[X]} : x.map f ∣ y.map f ↔ x ∣ y :=
-if H : x = 0 then by rw [H, map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
+if H : x = 0 then by rw [H, polynomial.map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
 else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff R[X],
     normalize_apply, normalize_apply,
     coe_norm_unit_of_ne_zero H, coe_norm_unit_of_ne_zero (mt (map_eq_zero f).1 H),
-    leading_coeff_map, ← f.map_inv, ← map_C, ← map_mul,
+    leading_coeff_map, ← f.map_inv, ← map_C, ← polynomial.map_mul,
     map_dvd_map _ f.injective (monic_mul_leading_coeff_inv H)]
 
 lemma degree_normalize : degree (normalize p) = degree p := by simp

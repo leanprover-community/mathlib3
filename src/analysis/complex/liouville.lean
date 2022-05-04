@@ -31,14 +31,15 @@ local postfix `̂`:100 := uniform_space.completion
 
 namespace complex
 
-/-- If `f` is complex differentiable on a closed disc with center `c` and radius `R > 0`, then
-`f' c` can be represented as an integral over the corresponding circle.
+/-- If `f` is complex differentiable on an open disc with center `c` and radius `R > 0` and is
+continuous on its closure, then `f' c` can be represented as an integral over the corresponding
+circle.
 
 TODO: add a version for `w ∈ metric.ball c R`.
 
 TODO: add a version for higher derivatives. -/
-lemma deriv_eq_smul_circle_integral [complete_space F]
-  {R : ℝ} {c : ℂ} {f : ℂ → F} (hR : 0 < R) (hf : diff_on_int_cont ℂ f (closed_ball c R)) :
+lemma deriv_eq_smul_circle_integral [complete_space F] {R : ℝ} {c : ℂ} {f : ℂ → F} (hR : 0 < R)
+  (hf : diff_cont_on_cl ℂ f (ball c R)) :
   deriv f c = (2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) ^ (-2 : ℤ) • f z :=
 begin
   lift R to ℝ≥0 using hR.le,
@@ -48,7 +49,7 @@ begin
 end
 
 lemma norm_deriv_le_aux [complete_space F] {c : ℂ} {R C : ℝ} {f : ℂ → F} (hR : 0 < R)
-  (hf : diff_on_int_cont ℂ f (closed_ball c R)) (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
+  (hf : diff_cont_on_cl ℂ f (ball c R)) (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
   ∥deriv f c∥ ≤ C / R :=
 begin
   have : ∀ z ∈ sphere c R, ∥(z - c) ^ (-2 : ℤ) • f z∥ ≤ C / (R * R),
@@ -61,21 +62,21 @@ begin
   ... = C / R : by rw [mul_div_comm, div_self_mul_self', div_eq_mul_inv]
 end
 
-/-- If `f` is continuous on a closed disc of radius `R`, is complex differentiable on its interior,
-and its values on the boundary circle of this disc are bounded from above by `C`, then the norm of
-its derivative at the center is at most `C / R`. -/
+/-- If `f` is complex differentiable on an open disc of radius `R > 0`, is continuous on its
+closure, and its values on the boundary circle of this disc are bounded from above by `C`, then the
+norm of its derivative at the center is at most `C / R`. -/
 lemma norm_deriv_le_of_forall_mem_sphere_norm_le {c : ℂ} {R C : ℝ} {f : ℂ → F} (hR : 0 < R)
-  (hd : diff_on_int_cont ℂ f (closed_ball c R)) (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
+  (hd : diff_cont_on_cl ℂ f (ball c R)) (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
   ∥deriv f c∥ ≤ C / R :=
 begin
   set e : F →L[ℂ] F̂ := uniform_space.completion.to_complL,
   have : has_deriv_at (e ∘ f) (e (deriv f c)) c,
     from e.has_fderiv_at.comp_has_deriv_at c
-      (hd.differentiable_at' $ closed_ball_mem_nhds _ hR).has_deriv_at,
+      (hd.differentiable_at is_open_ball $ mem_ball_self hR).has_deriv_at,
   calc ∥deriv f c∥ = ∥deriv (e ∘ f) c∥ :
     by { rw this.deriv, exact (uniform_space.completion.norm_coe _).symm }
   ... ≤ C / R :
-    norm_deriv_le_aux hR (e.differentiable.comp_diff_on_int_cont hd)
+    norm_deriv_le_aux hR (e.differentiable.comp_diff_cont_on_cl hd)
       (λ z hz, (uniform_space.completion.norm_coe _).trans_le (hC z hz))
 end
 
@@ -91,7 +92,7 @@ begin
       λ z, (hC (f z) (mem_range_self _)).trans (le_max_left _ _)⟩ },
   refine norm_le_zero_iff.1 (le_of_forall_le_of_dense $ λ ε ε₀, _),
   calc ∥deriv f c∥ ≤ C / (C / ε) :
-    norm_deriv_le_of_forall_mem_sphere_norm_le (div_pos C₀ ε₀) hf.diff_on_int_cont (λ z _, hC z)
+    norm_deriv_le_of_forall_mem_sphere_norm_le (div_pos C₀ ε₀) hf.diff_cont_on_cl (λ z _, hC z)
   ... = ε : div_div_cancel' C₀.lt.ne'
 end
 

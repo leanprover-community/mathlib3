@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
+import group_theory.group_action.conj_act
 import group_theory.quotient_group
 import order.filter.pointwise
 import topology.algebra.monoid
@@ -341,11 +342,15 @@ class topological_group (G : Type*) [topological_space G] [group G]
 
 section conj
 
+instance conj_act.units_has_continuous_const_smul {M} [monoid M] [topological_space M]
+  [has_continuous_mul M] :
+  has_continuous_const_smul (conj_act Mˣ) M :=
+⟨λ m, (continuous_const.mul continuous_id).mul continuous_const⟩
+
 /-- we slightly weaken the type class assumptions here so that it will also apply to `ennreal`, but
 we nevertheless leave it in the `topological_group` namespace. -/
 
-variables [topological_space G] [has_inv G] [has_mul G]
-[has_continuous_mul G]
+variables [topological_space G] [has_inv G] [has_mul G] [has_continuous_mul G]
 
 /-- Conjugation is jointly continuous on `G × G` when both `mul` and `inv` are continuous. -/
 @[to_additive "Conjugation is jointly continuous on `G × G` when both `mul` and `inv` are
@@ -530,7 +535,7 @@ begin
   rintro _ ⟨a, b, ha, hb, rfl⟩,
   rw mem_closure_iff at hb,
   have hbU : b ∈ U⁻¹ * {a * b},
-    from ⟨a⁻¹, a * b, inv_mem_inv.2 ha, rfl, inv_mul_cancel_left _ _⟩,
+    from ⟨a⁻¹, a * b, set.inv_mem_inv.2 ha, rfl, inv_mul_cancel_left _ _⟩,
   rcases hb _ hU.inv.mul_right hbU with ⟨_, ⟨c, d, hc, (rfl : d = _), rfl⟩, hcs⟩,
   exact ⟨c⁻¹, _, hc, hcs, inv_mul_cancel_left _ _⟩
 end
@@ -559,7 +564,7 @@ itself a subgroup. -/
 `has_continuous_add` is itself an additive subgroup."]
 def subgroup.topological_closure (s : subgroup G) : subgroup G :=
 { carrier := closure (s : set G),
-  inv_mem' := λ g m, by simpa [←mem_inv, inv_closure] using m,
+  inv_mem' := λ g m, by simpa [←set.mem_inv, inv_closure] using m,
   ..s.to_submonoid.topological_closure }
 
 @[simp, to_additive] lemma subgroup.topological_closure_coe {s : subgroup G} :
@@ -889,6 +894,15 @@ lemma is_open_map_div_right (a : G) : is_open_map (λ x, x / a) :=
 lemma is_closed_map_div_right (a : G) : is_closed_map (λ x, x / a) :=
 (homeomorph.div_right a).is_closed_map
 
+@[to_additive]
+lemma tendsto_div_nhds_one_iff
+  {α : Type*} {l : filter α} {x : G} {u : α → G} :
+  tendsto (λ n, u n / x) l (𝓝 1) ↔ tendsto u l (𝓝 x) :=
+begin
+  have A : tendsto (λ (n : α), x) l (𝓝 x) := tendsto_const_nhds,
+  exact ⟨λ h, by simpa using h.mul A, λ h, by simpa using h.div' A⟩
+end
+
 end div_in_topological_group
 
 @[to_additive]
@@ -935,10 +949,21 @@ lemma topological_group.regular_space [t1_space G] : regular_space G :=
    contradiction
  end⟩
 
-local attribute [instance] topological_group.regular_space
+@[to_additive]
+lemma topological_group.t2_space [t1_space G] : t2_space G :=
+@regular_space.t2_space G _ (topological_group.regular_space G)
+
+variables {G} (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)]
 
 @[to_additive]
-lemma topological_group.t2_space [t1_space G] : t2_space G := regular_space.t2_space G
+instance subgroup.regular_quotient_of_is_closed
+  (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)] : regular_space (G ⧸ S) :=
+begin
+  suffices : t1_space (G ⧸ S), { exact @topological_group.regular_space _ _ _ _ this, },
+  have hS : is_closed (S : set G) := infer_instance,
+  rw ← quotient_group.ker_mk S at hS,
+  exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS),
+end
 
 end
 
@@ -1069,7 +1094,7 @@ end
 /-- On a topological group, `𝓝 : G → filter G` can be promoted to a `mul_hom`. -/
 @[to_additive "On an additive topological group, `𝓝 : G → filter G` can be promoted to an
 `add_hom`.", simps]
-def nhds_mul_hom : mul_hom G (filter G) :=
+def nhds_mul_hom : G →ₙ* (filter G) :=
 { to_fun := 𝓝,
   map_mul' := λ_ _, nhds_mul _ _ }
 

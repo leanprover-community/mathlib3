@@ -6,7 +6,7 @@ Authors: Aaron Anderson
 
 import order.closure
 import model_theory.semantics
-import set_theory.cardinal_ordinal
+import model_theory.encoding
 
 /-!
 # First-Order Substructures
@@ -263,7 +263,7 @@ begin
 end
 
 theorem lift_card_closure_le : cardinal.lift.{(max u w) w} (# (closure L s)) ≤
-  cardinal.lift.{(max u w) w} (#s) + cardinal.lift.{(max u w) u} (#(Σ i, L.functions i)) + ω :=
+  max ω (cardinal.lift.{(max u w) w} (#s) + cardinal.lift.{(max u w) u} (#(Σ i, L.functions i))) :=
 begin
   refine lift_card_closure_le_card_term.trans (term.card_le.trans _),
   rw [mk_sum, lift_umax', lift_umax],

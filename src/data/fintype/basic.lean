@@ -218,7 +218,7 @@ lemma sup_univ_eq_supr [complete_lattice β] (f : α → β) : finset.univ.sup f
 
 /-- A special case of `finset.inf_eq_infi` that omits the useless `x ∈ univ` binder. -/
 lemma inf_univ_eq_infi [complete_lattice β] (f : α → β) : finset.univ.inf f = infi f :=
-sup_univ_eq_supr (by exact f : α → order_dual β)
+sup_univ_eq_supr (by exact f : α → βᵒᵈ)
 
 @[simp] lemma fold_inf_univ [semilattice_inf α] [order_bot α] (a : α) :
   finset.univ.fold (⊓) a (λ x, x) = ⊥ :=
@@ -227,7 +227,7 @@ eq_bot_iff.2 $ ((finset.fold_op_rel_iff_and $ @_root_.le_inf_iff α _).1 le_rfl)
 
 @[simp] lemma fold_sup_univ [semilattice_sup α] [order_top α] (a : α) :
   finset.univ.fold (⊔) a (λ x, x) = ⊤ :=
-@fold_inf_univ (order_dual α) ‹fintype α› _ _ _
+@fold_inf_univ αᵒᵈ ‹fintype α› _ _ _
 
 end finset
 
@@ -269,7 +269,7 @@ instance decidable_eq_one_hom_fintype [decidable_eq β] [fintype α] [has_one α
 
 @[to_additive]
 instance decidable_eq_mul_hom_fintype [decidable_eq β] [fintype α] [has_mul α] [has_mul β]:
-  decidable_eq (mul_hom α β) :=
+  decidable_eq (α →ₙ* β) :=
 λ a b, decidable_of_iff ((a : α → β) = b) (injective.eq_iff mul_hom.coe_inj)
 
 @[to_additive]
@@ -841,6 +841,14 @@ lemma univ_option (α : Type*) [fintype α] : (univ : finset (option α)) = inse
   fintype.card (option α) = fintype.card α + 1 :=
 (finset.card_cons _).trans $ congr_arg2 _ (card_map _) rfl
 
+/-- If `option α` is a `fintype` then so is `α` -/
+def fintype_of_option {α : Type*} [fintype (option α)] : fintype α :=
+⟨finset.erase_none (fintype.elems (option α)), λ x, mem_erase_none.mpr (fintype.complete (some x))⟩
+
+/-- A type is a `fintype` if its successor (using `option`) is a `fintype`. -/
+def fintype_of_option_equiv [fintype α] (f : α ≃ option β) : fintype β :=
+by { haveI := fintype.of_equiv _ f, exact fintype_of_option }
+
 instance {α : Type*} (β : α → Type*)
   [fintype α] [∀ a, fintype (β a)] : fintype (sigma β) :=
 ⟨univ.sigma (λ _, univ), λ ⟨a, b⟩, by simp⟩
@@ -883,10 +891,10 @@ fintype.of_equiv _ equiv.plift.symm
   fintype.card (plift α) = fintype.card α :=
 fintype.of_equiv_card _
 
-instance (α : Type*) [fintype α] : fintype (order_dual α) := ‹fintype α›
+instance (α : Type*) [fintype α] : fintype αᵒᵈ := ‹fintype α›
 
-@[simp] lemma fintype.card_order_dual (α : Type*) [fintype α] :
-  fintype.card (order_dual α) = fintype.card α := rfl
+@[simp] lemma fintype.card_order_dual (α : Type*) [fintype α] : fintype.card αᵒᵈ = fintype.card α :=
+rfl
 
 instance (α : Type*) [fintype α] : fintype (lex α) := ‹fintype α›
 
@@ -1719,12 +1727,19 @@ have ∀ x y, r x y → (univ.filter (λ z, r z x)).card < (univ.filter (λ z, r
     exact ⟨λ z hzx, trans hzx hxy, not_forall_of_exists_not ⟨x, not_imp.2 ⟨hxy, irrefl x⟩⟩⟩,
 subrelation.wf this (measure_wf _)
 
-lemma preorder.well_founded [fintype α] [preorder α] : well_founded ((<) : α → α → Prop) :=
+lemma preorder.well_founded_lt [fintype α] [preorder α] : well_founded ((<) : α → α → Prop) :=
 well_founded_of_trans_of_irrefl _
 
-@[instance, priority 10] lemma linear_order.is_well_order [fintype α] [linear_order α] :
+lemma preorder.well_founded_gt [fintype α] [preorder α] : well_founded ((>) : α → α → Prop) :=
+well_founded_of_trans_of_irrefl _
+
+@[instance, priority 10] lemma linear_order.is_well_order_lt [fintype α] [linear_order α] :
   is_well_order α (<) :=
-{ wf := preorder.well_founded }
+{ wf := preorder.well_founded_lt }
+
+@[instance, priority 10] lemma linear_order.is_well_order_gt [fintype α] [linear_order α] :
+  is_well_order α (>) :=
+{ wf := preorder.well_founded_gt }
 
 end fintype
 
@@ -1773,7 +1788,7 @@ end
 
 lemma finset.exists_maximal {α : Type*} [preorder α] (s : finset α) (h : s.nonempty) :
   ∃ m ∈ s, ∀ x ∈ s, ¬ (m < x) :=
-@finset.exists_minimal (order_dual α) _ s h
+@finset.exists_minimal αᵒᵈ _ s h
 
 namespace infinite
 

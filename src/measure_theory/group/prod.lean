@@ -160,7 +160,7 @@ begin
   simp_rw [lintegral_lintegral h2f, lintegral_lintegral hf],
   conv_rhs { rw [← map_prod_mul_inv_eq μ ν] },
   symmetry,
-  exact lintegral_map' (hf.mono' (map_prod_mul_inv_eq μ ν).absolutely_continuous) h,
+  exact lintegral_map' (hf.mono' (map_prod_mul_inv_eq μ ν).absolutely_continuous) h.ae_measurable,
 end
 
 @[to_additive]

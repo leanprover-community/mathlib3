@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import data.polynomial.algebra_map
 import data.polynomial.hasse_deriv
 
 /-!
@@ -88,6 +89,10 @@ end
 @[simp] lemma taylor_mul {R} [comm_semiring R] (r : R) (p q : R[X]) :
   taylor r (p * q) = taylor r p * taylor r q :=
 by simp only [taylor_apply, mul_comp]
+
+/-- `polynomial.taylor` as a `alg_hom` for commutative semirings -/
+@[simps apply] def taylor_alg_hom {R} [comm_semiring R] (r : R) : R[X] →ₐ[R] R[X] :=
+alg_hom.of_linear_map (taylor r) (taylor_one r) (taylor_mul r)
 
 lemma taylor_taylor {R} [comm_semiring R] (f : R[X]) (r s : R) :
   taylor r (taylor s f) = taylor (r + s) f :=

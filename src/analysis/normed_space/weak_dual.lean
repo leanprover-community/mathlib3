@@ -165,7 +165,7 @@ def polar (s : set E) : set (weak_dual 𝕜 E) := to_normed_dual ⁻¹' polar �
 lemma polar_def (s : set E) : polar 𝕜 s = {f : weak_dual 𝕜 E | ∀ x ∈ s, ∥f x∥ ≤ 1} := rfl
 
 /-- The polar `polar 𝕜 s` of a set `s : E` is a closed subset when the weak star topology
-is used, i.e., when `polar 𝕜 s` is interpreted as a subset of `weak_dual 𝕜 E`. -/
+is used. -/
 lemma is_closed_polar (s : set E) : is_closed (polar 𝕜 s) :=
 begin
   simp only [polar_def, set_of_forall],
@@ -174,7 +174,7 @@ end
 
 variable {𝕜}
 
-/-- While coercion `coe_fn : weak_dual 𝕜 E → (E → 𝕜)` is not a closed map, it sends *bounded*
+/-- While the coercion `coe_fn : weak_dual 𝕜 E → (E → 𝕜)` is not a closed map, it sends *bounded*
 closed sets to closed sets. -/
 lemma is_closed_image_coe_bounded_closed {s : set (weak_dual 𝕜 E)}
   (hb : bounded (dual.to_weak_dual ⁻¹' s)) (hc : is_closed s) :

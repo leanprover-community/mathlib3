@@ -573,7 +573,7 @@ end
 
 /-- The fixator of a subset of cardinal d in a k-transitive action
 acts (k-d) transitively on the remaining -/
-lemma remaining_transitivity (d : ℕ) (s : set α) (hs : ↑d = #s)
+lemma remaining_transitivity (d : ℕ) (s : set α) (hs : #s = d)
   (n : ℕ) -- (hα : ↑n ≤ #α)
   (h : is_multiply_pretransitive M α n) :
   is_multiply_pretransitive (fixing_subgroup M s) (sub_mul_action_of_fixing_subgroup M s) (n-d) :=

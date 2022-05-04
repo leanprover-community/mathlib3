@@ -1173,21 +1173,15 @@ begin
     exact hyp },
 end
 
-lemma test1 (p q : Prop) : p ∨ q ↔ ¬ p → q :=
-begin
-  exact or_iff_not_imp_left,
-end
-
+-- The following lemma is probably wrong
 lemma is_preprimitive_iff_is_pretransitive_of_stabilizer (hGX : is_pretransitive G X) (a : X) :
   is_pretransitive (stabilizer G a) (sub_mul_action_of_stabilizer G X a)
   ↔ is_preprimitive G X :=
 begin
   split,
   { intro hGXa, apply is_preprimitive.mk hGX,
-
   sorry },
   { intro hG, apply is_pretransitive.mk,
-
   sorry },
 end
 

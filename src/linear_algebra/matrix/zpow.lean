@@ -312,6 +312,16 @@ theorem one_div_zpow {A : M} (n : ℤ) :
   (1 / A) ^ n = 1 / A ^ n :=
 by simp only [one_div, inv_zpow]
 
+@[simp] theorem transpose_zpow (A : M) : ∀ (n : ℤ), (A ^ n)ᵀ = Aᵀ ^ n
+| (n : ℕ) := by rw [zpow_coe_nat, zpow_coe_nat, transpose_pow]
+| -[1+ n] := by
+  rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, transpose_nonsing_inv, transpose_pow]
+
+@[simp] theorem conj_transpose_zpow [star_ring R] (A : M) : ∀ (n : ℤ), (A ^ n)ᴴ = Aᴴ ^ n
+| (n : ℕ) := by rw [zpow_coe_nat, zpow_coe_nat, conj_transpose_pow]
+| -[1+ n] := by
+  rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, conj_transpose_nonsing_inv, conj_transpose_pow]
+
 end zpow
 
 end matrix

@@ -1399,6 +1399,8 @@ lemma nnreal.dist_eq (a b : ℝ≥0) : dist a b = |(a:ℝ) - b| := rfl
 lemma nnreal.nndist_eq (a b : ℝ≥0) :
   nndist a b = max (a - b) (b - a) :=
 begin
+  /- WLOG, `b ≤ a`. `wlog h : b ≤ a` works too but it is much slower because Lean tries to prove one
+  case from the other and fails; `tactic.skip` tells Lean not to try. -/
   wlog h : b ≤ a := le_total b a using [a b, b a] tactic.skip,
   { rw [← nnreal.coe_eq, ← dist_nndist, nnreal.dist_eq, tsub_eq_zero_iff_le.2 h,
       max_eq_left (zero_le $ a - b), ← nnreal.coe_sub h, abs_of_nonneg (a - b).coe_nonneg] },
@@ -1569,12 +1571,8 @@ subset.antisymm
 
 lemma dense_iff {s : set α} :
   dense s ↔ ∀ x, ∀ r > 0, (ball x r ∩ s).nonempty :=
-begin
-  apply forall_congr (λ x, _),
-  rw mem_closure_iff,
-  refine forall_congr (λ ε, forall_congr (λ h, exists_congr (λ y, _))),
-  rw [mem_inter_iff, mem_ball', exists_prop, and_comm]
-end
+forall_congr $ λ x, by simp only [mem_closure_iff, set.nonempty, exists_prop, mem_inter_eq,
+  mem_ball', and_comm]
 
 lemma dense_range_iff {f : β → α} :
   dense_range f ↔ ∀ x, ∀ r > 0, ∃ y, dist x (f y) < r :=

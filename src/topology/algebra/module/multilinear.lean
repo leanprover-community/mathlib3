@@ -409,6 +409,52 @@ def pi_linear_equiv {ι' : Type*} {M' : ι' → Type*}
 
 end module
 
+
+section currying
+
+variables {R': Type*}
+variables [semiring R'] [semiring R] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [module R M₂] [module R M₃] [module R' M₃]
+variables [topological_space M₂] [topological_space M₃] [has_continuous_const_smul R' M₃]
+  [smul_comm_class R R' M₃]
+
+/-!
+### Currying with `0` variables
+
+The space of multilinear maps with `0` variables is trivial: such a multilinear map is just an
+arbitrary constant (note that multilinear maps in `0` variables need not map `0` to `0`!). -/
+
+local attribute [instance] unique.subsingleton
+
+/-- Associating to a continuous multilinear map in `0` variables the unique value it takes. -/
+def uncurry0 (f : continuous_multilinear_map R (λ (i : fin 0), M₂) M₃) : M₃ := f 0
+
+variables (R M₂)
+/-- Associating to an element `x` of a vector space `E₂` the continuous multilinear map in `0`
+variables taking the (unique) value `x` -/
+def curry0 (x : M₃) : M₂ [×0]→L[R] M₃ :=
+{ to_fun    := λm, x,
+  map_add'  := λ m i, fin.elim0 i,
+  map_smul' := λ m i, fin.elim0 i,
+  cont      := continuous_const }
+
+variable {M₂}
+@[simp] lemma curry0_apply (x : M₃) (m : (fin 0) → M₂) : curry0 R M₂ x m = x := rfl
+
+variable {R}
+@[simp] lemma uncurry0_apply (f : M₂ [×0]→L[R] M₃) : f.uncurry0 = f 0 := rfl
+
+@[simp] lemma apply_zero_curry0 (f : M₂ [×0]→L[R] M₃) {x : fin 0 → M₂} : curry0 R M₂ (f x) = f :=
+by { ext m, simp [(subsingleton.elim _ _ : x = m)] }
+
+lemma uncurry0_curry0 (f : M₂ [×0]→L[R] M₃) : curry0 R M₂ (f.uncurry0) = f :=
+by simp
+
+variables (R M₂)
+@[simp] lemma curry0_uncurry0 (x : M₃) : (curry0 R M₂ x).uncurry0 = x := rfl
+
+end currying
+
 section comm_algebra
 
 variables (R ι) (A : Type*) [fintype ι] [comm_semiring R] [comm_semiring A] [algebra R A]

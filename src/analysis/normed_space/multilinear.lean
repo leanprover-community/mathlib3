@@ -1227,40 +1227,7 @@ derivatives, we register this isomorphism. -/
 section
 local attribute [instance] unique.subsingleton
 
-variables {𝕜 G G'}
-
-/-- Associating to a continuous multilinear map in `0` variables the unique value it takes. -/
-def continuous_multilinear_map.uncurry0
-  (f : continuous_multilinear_map 𝕜 (λ (i : fin 0), G) G') : G' := f 0
-
 variables (𝕜 G)
-/-- Associating to an element `x` of a vector space `E₂` the continuous multilinear map in `0`
-variables taking the (unique) value `x` -/
-def continuous_multilinear_map.curry0 (x : G') : G [×0]→L[𝕜] G' :=
-{ to_fun    := λm, x,
-  map_add'  := λ m i, fin.elim0 i,
-  map_smul' := λ m i, fin.elim0 i,
-  cont      := continuous_const }
-
-variable {G}
-@[simp] lemma continuous_multilinear_map.curry0_apply (x : G') (m : (fin 0) → G) :
-  continuous_multilinear_map.curry0 𝕜 G x m = x := rfl
-
-variable {𝕜}
-@[simp] lemma continuous_multilinear_map.uncurry0_apply (f : G [×0]→L[𝕜] G') :
-  f.uncurry0 = f 0 := rfl
-
-@[simp] lemma continuous_multilinear_map.apply_zero_curry0 (f : G [×0]→L[𝕜] G') {x : fin 0 → G} :
-  continuous_multilinear_map.curry0 𝕜 G (f x) = f :=
-by { ext m, simp [(subsingleton.elim _ _ : x = m)] }
-
-lemma continuous_multilinear_map.uncurry0_curry0 (f : G [×0]→L[𝕜] G') :
-  continuous_multilinear_map.curry0 𝕜 G (f.uncurry0) = f :=
-by simp
-
-variables (𝕜 G)
-@[simp] lemma continuous_multilinear_map.curry0_uncurry0 (x : G') :
-  (continuous_multilinear_map.curry0 𝕜 G x).uncurry0 = x := rfl
 
 @[simp] lemma continuous_multilinear_map.curry0_norm (x : G')  :
   ∥continuous_multilinear_map.curry0 𝕜 G x∥ = ∥x∥ :=

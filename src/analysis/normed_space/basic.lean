@@ -474,11 +474,17 @@ instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : semi_normed_group E] :
 instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : normed_group E] :
   normed_group (restrict_scalars 𝕜 𝕜' E) := I
 
-instance module.restrict_scalars.normed_space_orig {𝕜 : Type*} {𝕜' : Type*} {E : Type*}
-  [normed_field 𝕜'] [semi_normed_group E] [I : normed_space 𝕜' E] :
-  normed_space 𝕜' (restrict_scalars 𝕜 𝕜' E) := I
-
 instance : normed_space 𝕜 (restrict_scalars 𝕜 𝕜' E) :=
 (normed_space.restrict_scalars 𝕜 𝕜' E : normed_space 𝕜 E)
+
+/--
+The action of the original normed_field on `restrict_scalars 𝕜 𝕜' E`.
+This is not an instance as it would be contrary to the purpose of `restrict_scalars`.
+-/
+-- If you think you need this, consider instead reproducing `restrict_scalars.lsmul`
+-- appropriately modified here.
+def module.restrict_scalars.normed_space_orig {𝕜 : Type*} {𝕜' : Type*} {E : Type*}
+  [normed_field 𝕜'] [semi_normed_group E] [I : normed_space 𝕜' E] :
+  normed_space 𝕜' (restrict_scalars 𝕜 𝕜' E) := I
 
 end restrict_scalars

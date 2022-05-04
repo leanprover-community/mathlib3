@@ -14,7 +14,7 @@ We define the variance of a real-valued random variable as `Var[X] = 𝔼[(X - �
 
 We prove the basic properties of the variance:
 * `variance_le_expectation_sq`: the inequality `Var[X] ≤ 𝔼[X^2]`.
-* `meas_ge_le_mul_variance`: Chebyshev's inequality, i.e.,
+* `meas_ge_le_variance_div_sq`: Chebyshev's inequality, i.e.,
       `ℙ {ω | c ≤ |X ω - 𝔼[X]|} ≤ ennreal.of_real (Var[X] / c ^ 2)`.
 * `indep_fun.variance_add`: the variance of the sum of two independent random variables is the sum
   of the variances.
@@ -105,7 +105,7 @@ end
 
 /-- *Chebyshev's inequality* : one can control the deviation probability of a real random variable
 from its expectation in terms of the variance. -/
-theorem meas_ge_le_mul_variance {X : Ω → ℝ} (hX : mem_ℒp X 2) {c : ℝ} (hc : 0 < c) :
+theorem meas_ge_le_variance_div_sq {X : Ω → ℝ} (hX : mem_ℒp X 2) {c : ℝ} (hc : 0 < c) :
   ℙ {ω | c ≤ |X ω - 𝔼[X]|} ≤ ennreal.of_real (Var[X] / c ^ 2) :=
 begin
   have A : (ennreal.of_real c : ℝ≥0∞) ≠ 0,

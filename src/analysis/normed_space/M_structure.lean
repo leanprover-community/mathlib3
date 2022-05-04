@@ -112,13 +112,11 @@ begin
     refine ⟨_, norm_nonneg _⟩,
     rwa [←mul_zero (2 : ℝ), mul_le_mul_left (show (0 : ℝ) < 2, by norm_num)] at e1
   end,
-  have QP_eq_QPQ : Q * P = Q * P * Q :=
-  begin
-    have e1 : P * (1 - Q) = P * (1 - Q) - (Q * P - Q * P * Q) :=
+  have QP_eq_QPQ : Q * P = Q * P * Q,
+  { have e1 : P * (1 - Q) = P * (1 - Q) - (Q * P - Q * P * Q) :=
     calc P * (1 - Q) = (1 - Q) * P * (1 - Q) : by rw PR_eq_RPR (1 - Q) h₂.Lcomplement
     ... = P * (1 - Q) - (Q * P - Q * P * Q) : by noncomm_ring,
-    rwa [eq_sub_iff_add_eq, add_right_eq_self, sub_eq_zero] at e1
-  end,
+    rwa [eq_sub_iff_add_eq, add_right_eq_self, sub_eq_zero] at e1 },
   show P * Q = Q * P, by rw [QP_eq_QPQ, PR_eq_RPR Q h₂]
 end
 
@@ -128,7 +126,7 @@ begin
   refine ⟨is_idempotent_elem.mul_of_commute (h₁.commute h₂) h₁.proj h₂.proj, _⟩,
   intro x,
   refine le_antisymm _ _,
-  { calc ∥ x ∥ = ∥(P * Q) x + (x - (P * Q) x)∥ : by abel
+  { calc ∥ x ∥ = ∥(P * Q) x + (x - (P * Q) x)∥ : by rw add_sub_cancel'_right ((P * Q) x) x
     ... ≤ ∥(P * Q) x∥ + ∥ x - (P * Q) x ∥ : by apply norm_add_le
     ... = ∥(P * Q) x∥ + ∥(1 - P * Q) x∥ : by rw [continuous_linear_map.sub_apply,
       continuous_linear_map.one_apply] },

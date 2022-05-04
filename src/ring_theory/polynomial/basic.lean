@@ -527,19 +527,16 @@ variables [ring R]
 /-- `polynomial R` is never a field for any ring `R`. -/
 lemma polynomial_not_is_field : ¬ is_field R[X] :=
 begin
-  by_contradiction hR,
-  by_cases hR' : ∃ (x y : R), x ≠ y,
-  { haveI : nontrivial R := let ⟨x, y, hxy⟩ := hR' in nontrivial_of_ne x y hxy,
-    obtain ⟨p, hp⟩ := hR.mul_inv_cancel X_ne_zero,
-    by_cases hp0 : p = 0,
-    { replace hp := congr_arg degree hp,
-      rw [hp0, mul_zero, degree_zero, degree_one] at hp,
-      contradiction },
-    { have : p.degree < (X * p).degree := (X_mul.symm : p * X = _) ▸ degree_lt_degree_mul_X hp0,
-      rw [congr_arg degree hp, degree_one, nat.with_bot.lt_zero_iff, degree_eq_bot] at this,
-      exact hp0 this } },
-  { push_neg at hR',
-    exact let ⟨x, y, hxy⟩ := hR.exists_pair_ne in hxy (polynomial.ext (λ n, hR' _ _)) }
+  nontriviality R,
+  intro hR,
+  obtain ⟨p, hp⟩ := hR.mul_inv_cancel X_ne_zero,
+  have hp0 : p ≠ 0,
+  { rintro rfl,
+    rw [mul_zero] at hp,
+    exact zero_ne_one hp },
+  have := degree_lt_degree_mul_X hp0,
+  rw [←X_mul, congr_arg degree hp, degree_one, nat.with_bot.lt_zero_iff, degree_eq_bot] at this,
+  exact hp0 this,
 end
 
 /-- The only constant in a maximal ideal over a field is `0`. -/

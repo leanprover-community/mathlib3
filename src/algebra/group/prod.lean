@@ -106,6 +106,11 @@ instance [semigroup M] [semigroup N] : semigroup (M × N) :=
 { mul_assoc := assume a b c, mk.inj_iff.mpr ⟨mul_assoc _ _ _, mul_assoc _ _ _⟩,
   .. prod.has_mul }
 
+@[to_additive]
+instance [comm_semigroup G] [comm_semigroup H] : comm_semigroup (G × H) :=
+{ mul_comm := assume a b, mk.inj_iff.mpr ⟨mul_comm _ _, mul_comm _ _⟩,
+  .. prod.semigroup }
+
 instance [semigroup_with_zero M] [semigroup_with_zero N] : semigroup_with_zero (M × N) :=
 { .. prod.mul_zero_class, .. prod.semigroup }
 
@@ -138,15 +143,14 @@ instance [division_monoid G] [division_monoid H] : division_monoid (G × H) :=
     (inv_eq_of_mul_eq_one $ congr_arg snd h),
   .. prod.div_inv_monoid, .. prod.has_involutive_inv }
 
+@[to_additive subtraction_comm_monoid]
+instance [division_comm_monoid G] [division_comm_monoid H] : division_comm_monoid (G × H) :=
+{ .. prod.division_monoid, .. prod.comm_semigroup }
+
 @[to_additive]
 instance [group G] [group H] : group (G × H) :=
 { mul_left_inv := assume a, mk.inj_iff.mpr ⟨mul_left_inv _, mul_left_inv _⟩,
   .. prod.div_inv_monoid }
-
-@[to_additive]
-instance [comm_semigroup G] [comm_semigroup H] : comm_semigroup (G × H) :=
-{ mul_comm := assume a b, mk.inj_iff.mpr ⟨mul_comm _ _, mul_comm _ _⟩,
-  .. prod.semigroup }
 
 @[to_additive]
 instance [left_cancel_semigroup G] [left_cancel_semigroup H] :

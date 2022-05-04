@@ -261,6 +261,12 @@ instance [subtraction_monoid α] : division_monoid (multiplicative α) :=
   inv_eq_of_mul := @neg_eq_of_add_eq_zero _ _,
   .. multiplicative.div_inv_monoid, .. multiplicative.has_involutive_inv }
 
+instance [division_comm_monoid α] : subtraction_comm_monoid (additive α) :=
+{ .. additive.subtraction_monoid, .. additive.add_comm_semigroup }
+
+instance [subtraction_comm_monoid α] : division_comm_monoid (multiplicative α) :=
+{ .. multiplicative.division_monoid, .. multiplicative.comm_semigroup }
+
 instance [group α] : add_group (additive α) :=
 { add_left_neg := @mul_left_inv α _,
   .. additive.sub_neg_monoid }

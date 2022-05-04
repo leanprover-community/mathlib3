@@ -515,11 +515,43 @@ class has_involutive_neg (A : Type*) extends has_neg A :=
 @[ancestor has_inv, to_additive]
 class has_involutive_inv (G : Type*) extends has_inv G :=
 (inv_inv : ∀ x : G, x⁻¹⁻¹ = x)
+
 variables [has_involutive_inv G]
 
 @[simp, to_additive] lemma inv_inv (a : G) : a⁻¹⁻¹ = a := has_involutive_inv.inv_inv _
 
 end has_involutive_inv
+
+/-!
+### Design note on `div_inv_monoid`/`sub_neg_monoid` and `division_monoid`/`subtraction_monoid`
+
+Those two pairs of made-up classes fulfill slightly different roles.
+
+`div_inv_monoid`/`sub_neg_monoid` provides the minimum amount of information to define the
+`ℤ` action (`zpow` or `zsmul`). Further, it provides a `div` field to allow fixing diamonds. This is
+useful to shorten extension clauses of stronger structures (`group`, `group_with_zero`,
+`division_ring`, `field`) and for a few structures with a rather weak pseudo-inverse (`matrix`).
+
+`division_monoid`/`subtraction_monoid` is targeted at structures with stronger pseudo-inverses. It
+is an ad hoc collection of axioms that are mainly respected by three things:
+* Groups
+* Groups with zero
+* The pointwise monoids `set α`, `finset α`, `filter α`
+
+It acts as a middle ground for structures with an inversion operator that plays well with
+multiplication, except for the fact that it might not be a true inverse (`a / a ≠ 1` in general).
+The axioms are pretty arbitrary (many other combinations are equivalent to it), but they are
+independent:
+* Without `division_monoid.div_eq_mul_inv`, you can define `/` arbitrarily.
+* Without `division_monoid.inv_inv`, you can consider `with_top unit` with `a⁻¹ = ⊤` for all `a`.
+* Without `division_monoid.mul_inv_rev`, you can consider `with_top α` with `a⁻¹ = a` for all `a`
+  where `α` non commutative.
+* Without `division_monoid.inv_eq_of_mul`, you can consider any `comm_monoid` with `a⁻¹ = a` for all
+  `a`.
+
+As a consequence, a few natural structures do not fit in this framework. For example, `ennreal`
+respects everything except for the fact that `(0 * ∞)⁻¹ = 0⁻¹ = ∞` while `∞⁻¹ * 0⁻¹ = 0 * ∞ = 0`.
+-/
 
 /-- A `div_inv_monoid` is a `monoid` with operations `/` and `⁻¹` satisfying
 `div_eq_mul_inv : ∀ a b, a / b = a * b⁻¹`.

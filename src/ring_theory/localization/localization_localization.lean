@@ -79,7 +79,8 @@ begin
   use z * t', use z' * t, -- x = y / s = (z * t') / (z' * t)
   { rw mem_localization_localization_submodule,
     refine ⟨s, t * t', _⟩,
-    rw [ring_hom.map_mul, ← eq₃, mul_assoc, ← ring_hom.map_mul, mul_comm t, submonoid.coe_mul] },
+    rw [ring_hom.map_mul, ← eq₃, mul_assoc, ← ring_hom.map_mul, mul_comm t,
+        submonoid_class.coe_mul] },
   { simp only [subtype.coe_mk, ring_hom.map_mul, is_scalar_tower.algebra_map_apply R S T,
       ← eq₃, ← eq₂, ← eq₁],
     ring },
@@ -100,7 +101,7 @@ begin
     use z' * c,
     { rw mem_localization_localization_submodule,
       refine ⟨z, s * c, _⟩,
-      rw [ring_hom.map_mul, ← eq₂, mul_assoc, ← ring_hom.map_mul, submonoid.coe_mul] },
+      rw [ring_hom.map_mul, ← eq₂, mul_assoc, ← ring_hom.map_mul, submonoid_class.coe_mul] },
     { simpa only [mul_assoc] using eq₃ } },
   { rintro ⟨⟨c, hc⟩, eq₁ : x * c = y * c⟩,
     rw mem_localization_localization_submodule at hc,

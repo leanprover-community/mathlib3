@@ -22,9 +22,6 @@ stub and only provides rudimentary support.
   a product on nonempty lists, powers where the exponent is a positive natural, et cetera.
   Another option would be to define the `free_semigroup` as the subsemigroup (pushed to be a
   semigroup) of the `free_monoid` consisting of non-identity elements.
-* Define the subsemigroup closure of a set in a semigroup. For submonoids, this works by passing
-  through the `free_monoid`. This is why it might be nice to develop the `free_semigroup`,
-  although there are other approaches we could take.
 
 ## Tags
 subsemigroup

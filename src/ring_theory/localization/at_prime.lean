@@ -59,15 +59,15 @@ protected abbreviation localization.at_prime := localization I.prime_compl
 namespace is_localization
 
 theorem at_prime.local_ring [is_localization.at_prime S I] : local_ring S :=
-local_of_nonunits_ideal
+@local_ring.mk _ _ (nontrivial_of_ne (0 : S) 1
   (λ hze, begin
       rw [←(algebra_map R S).map_one, ←(algebra_map R S).map_zero] at hze,
       obtain ⟨t, ht⟩ := (eq_iff_exists I.prime_compl S).1 hze,
       exact ((show (t : R) ∉ I, from t.2) (have htz : (t : R) = 0, by simpa using ht.symm,
         htz.symm ▸ I.zero_mem))
-    end)
+    end))
   (begin
-    intros x hx y hy hu,
+    intros x y hx hy hu,
     cases is_unit_iff_exists_inv.1 hu with z hxyz,
     have : ∀ {r : R} {s : I.prime_compl}, mk' S r s ∈ nonunits S → r ∈ I, from
       λ (r : R) (s : I.prime_compl), not_imp_comm.1

@@ -36,7 +36,7 @@ interior. This basically means "convex and not flat on the boundary". -/
 def strict_convex : Prop :=
 s.pairwise $ λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ interior s
 
-variables {𝕜 s} {x y : E}
+variables {𝕜 s} {x y : E} {a b : 𝕜}
 
 lemma strict_convex_iff_open_segment_subset :
   strict_convex 𝕜 s ↔ s.pairwise (λ x y, open_segment 𝕜 x y ⊆ interior s) :=
@@ -55,6 +55,10 @@ begin
   rw interior_univ,
   exact mem_univ _,
 end
+
+protected lemma strict_convex.eq (hs : strict_convex 𝕜 s) (hx : x ∈ s) (hy : y ∈ s) (ha : 0 < a)
+  (hb : 0 < b) (hab : a + b = 1) (h : a • x + b • y ∉ interior s) : x = y :=
+hs.eq hx hy $ λ H, h $ H ha hb hab
 
 protected lemma strict_convex.inter {t : set E} (hs : strict_convex 𝕜 s) (ht : strict_convex 𝕜 t) :
   strict_convex 𝕜 (s ∩ t) :=

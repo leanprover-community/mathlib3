@@ -181,6 +181,10 @@ def comap {S : Type*} [ring S] (f : S →+* R) (v : valuation R Γ₀) :
   map_add_le_max' := λ x y, by simp only [comp_app, map_add, f.map_add],
   .. v.to_monoid_with_zero_hom.comp f.to_monoid_with_zero_hom, }
 
+@[simp]
+lemma comap_apply {S : Type*} [ring S] (f : S →+* R) (v : valuation R Γ₀) (s : S) :
+  v.comap f s = v (f s) := rfl
+
 @[simp] lemma comap_id : v.comap (ring_hom.id R) = v := ext $ λ r, rfl
 
 lemma comap_comp {S₁ : Type*} {S₂ : Type*} [ring S₁] [ring S₂] (f : S₁ →+* S₂) (g : S₂ →+* R) :
@@ -391,8 +395,8 @@ Note: it's just the function; the valuation is `on_quot hJ`. -/
 def on_quot_val {J : ideal R} (hJ : J ≤ supp v) :
   R ⧸ J → Γ₀ :=
 λ q, quotient.lift_on' q v $ λ a b h,
-calc v a = v (b + (a - b)) : by simp
-     ... = v b             : v.map_add_supp b (hJ h)
+calc v a = v (b + -(-a + b)) : by simp
+     ... = v b             : v.map_add_supp b ((ideal.neg_mem_iff _).2 $ hJ h)
 
 /-- The extension of valuation v on R to valuation on R/J if J ⊆ supp v -/
 def on_quot {J : ideal R} (hJ : J ≤ supp v) :
@@ -405,12 +409,7 @@ def on_quot {J : ideal R} (hJ : J ≤ supp v) :
 
 @[simp] lemma on_quot_comap_eq {J : ideal R} (hJ : J ≤ supp v) :
   (v.on_quot hJ).comap (ideal.quotient.mk J) = v :=
-ext $ λ r,
-begin
-  refine @quotient.lift_on_mk _ _ (J.quotient_rel) v (λ a b h, _) _,
-  calc v a = v (b + (a - b)) : by simp
-       ... = v b             : v.map_add_supp b (hJ h)
-end
+ext $ λ r, rfl
 
 lemma comap_supp {S : Type*} [comm_ring S] (f : S →+* R) :
   supp (v.comap f) = ideal.comap f v.supp :=

@@ -97,12 +97,11 @@ lemma smul_lt_smul_of_pos : a < b → 0 < c → c • a < c • b := ordered_smu
 
 lemma smul_le_smul_of_nonneg (h₁ : a ≤ b) (h₂ : 0 ≤ c) : c • a ≤ c • b :=
 begin
-  by_cases H₁ : c = 0,
-  { simp [H₁, zero_smul] },
-  { by_cases H₂ : a = b,
-    { rw H₂ },
-    { exact le_of_lt
-        (smul_lt_smul_of_pos (lt_of_le_of_ne h₁ H₂) (lt_of_le_of_ne h₂ (ne.symm H₁))), } }
+  rcases h₁.eq_or_lt with rfl|hab,
+  { refl },
+  { rcases h₂.eq_or_lt with rfl|hc,
+    { rw [zero_smul, zero_smul] },
+    { exact (smul_lt_smul_of_pos hab hc).le } }
 end
 
 lemma smul_nonneg (hc : 0 ≤ c) (ha : 0 ≤ a) : 0 ≤ c • a :=

@@ -10,8 +10,7 @@ import data.list.big_operators
 
 This file proves basic properties of `list.product` and `list.sigma`, which are list constructions
 living in `prod` and `sigma` types respectively. Their definitions can be found in
-[`data.list.defs`](./data/list/defs). Beware, this is not about `list.prod`, the multiplicative
-product.
+[`data.list.defs`](./defs). Beware, this is not about `list.prod`, the multiplicative product.
 -/
 
 variables {α β : Type*}

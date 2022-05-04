@@ -187,9 +187,7 @@ by rw [←nnreal.coe_eq, coe_tsum, nnreal.coe_add, coe_sum, coe_tsum,
 
 lemma infi_real_pos_eq_infi_nnreal_pos [complete_lattice α] {f : ℝ → α} :
   (⨅ (n : ℝ) (h : 0 < n), f n) = (⨅ (n : ℝ≥0) (h : 0 < n), f n) :=
-le_antisymm
-  (infi_le_infi2 $ assume r, ⟨r, infi_le_infi $ assume hr, le_rfl⟩)
-  (le_infi $ assume r, le_infi $ assume hr, infi_le_of_le ⟨r, hr.le⟩ $ infi_le _ hr)
+le_antisymm (infi_mono' $ λ r, ⟨r, le_rfl⟩) (infi₂_mono' $ λ r hr, ⟨⟨r, hr.le⟩, hr, le_rfl⟩)
 
 end coe
 

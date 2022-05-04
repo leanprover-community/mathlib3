@@ -57,6 +57,8 @@ cons_injective.eq_iff
 theorem exists_cons_of_ne_nil {l : list α} (h : l ≠ nil) : ∃ b L, l = b :: L :=
 by { induction l with c l',  contradiction,  use [c,l'], }
 
+lemma set_of_mem_cons (l : list α) (a : α) : {x | x ∈ a :: l} = insert a {x | x ∈ l} := rfl
+
 /-! ### mem -/
 
 theorem mem_singleton_self (a : α) : a ∈ [a] := mem_cons_self _ _
@@ -183,6 +185,19 @@ lemma map_bind (g : β → list γ) (f : α → β) :
 | [] := rfl
 | (a::l) := by simp only [cons_bind, map_cons, map_bind l]
 
+lemma range_map (f : α → β) : set.range (map f) = {l | ∀ x ∈ l, x ∈ set.range f} :=
+begin
+  refine set.subset.antisymm (set.range_subset_iff.2 $
+    λ l, forall_mem_map_iff.2 $ λ y _, set.mem_range_self _) (λ l hl, _),
+  induction l with a l ihl, { exact ⟨[], rfl⟩ },
+  rcases ihl (λ x hx, hl x $ subset_cons _ _ hx) with ⟨l, rfl⟩,
+  rcases hl a (mem_cons_self _ _) with ⟨a, rfl⟩,
+  exact ⟨a :: l, map_cons _ _ _⟩
+end
+
+lemma range_map_coe (s : set α) : set.range (map (coe : s → α)) = {l | ∀ x ∈ l, x ∈ s} :=
+by rw [range_map, subtype.range_coe]
+
 /-- If each element of a list can be lifted to some type, then the whole list can be lifted to this
 type. -/
 instance [h : can_lift α β] : can_lift (list α) (list β) :=
@@ -190,10 +205,8 @@ instance [h : can_lift α β] : can_lift (list α) (list β) :=
   cond := λ l, ∀ x ∈ l, can_lift.cond β x,
   prf  := λ l H,
     begin
-      induction l with a l ihl, { exact ⟨[], rfl⟩ },
-      rcases ihl (λ x hx, H x (or.inr hx)) with ⟨l, rfl⟩,
-      rcases can_lift.prf a (H a (or.inl rfl)) with ⟨a, rfl⟩,
-      exact ⟨a :: l, rfl⟩
+      rw [← set.mem_range, range_map],
+      exact λ a ha, can_lift.prf a (H a ha),
     end}
 
 /-! ### length -/
@@ -679,13 +692,21 @@ end
   ∀ (h : l ≠ nil), last (a :: l) (cons_ne_nil a l) = last l h :=
 by {induction l; intros, contradiction, reflexivity}
 
-@[simp] theorem last_append {a : α} (l : list α) :
+@[simp] theorem last_append_singleton {a : α} (l : list α) :
   last (l ++ [a]) (append_ne_nil_of_ne_nil_right l _ (cons_ne_nil a _)) = a :=
 by induction l;
   [refl, simp only [cons_append, last_cons (λ H, cons_ne_nil _ _ (append_eq_nil.1 H).2), *]]
 
+theorem last_append (l₁ l₂ : list α) (h : l₂ ≠ []) :
+  last (l₁ ++ l₂) (append_ne_nil_of_ne_nil_right l₁ l₂ h) = last l₂ h :=
+begin
+  induction l₁ with _ _ ih,
+  { simp },
+  { simp only [cons_append], rw list.last_cons, exact ih },
+end
+
 theorem last_concat {a : α} (l : list α) : last (concat l a) (concat_ne_nil a l) = a :=
-by simp only [concat_eq_append, last_append]
+by simp only [concat_eq_append, last_append_singleton]
 
 @[simp] theorem last_singleton (a : α) : last [a] (cons_ne_nil a []) = a := rfl
 
@@ -1231,8 +1252,8 @@ lemma nth_le_append_right_aux {l₁ l₂ : list α} {n : ℕ}
   (h₁ : l₁.length ≤ n) (h₂ : n < (l₁ ++ l₂).length) : n - l₁.length < l₂.length :=
 begin
   rw list.length_append at h₂,
-  convert (tsub_lt_tsub_iff_right h₁).mpr h₂,
-  simp,
+  apply lt_of_add_lt_add_right,
+  rwa [nat.sub_add_cancel h₁, nat.add_comm],
 end
 
 lemma nth_le_append_right : ∀ {l₁ l₂ : list α} {n : ℕ} (h₁ : l₁.length ≤ n) (h₂),
@@ -1241,8 +1262,7 @@ lemma nth_le_append_right : ∀ {l₁ l₂ : list α} {n : ℕ} (h₁ : l₁.len
 | (a :: l) _ (n+1) h₁ h₂ :=
   begin
     dsimp,
-    conv { to_rhs, congr, skip,
-      rw [tsub_add_eq_tsub_tsub, tsub_right_comm, add_tsub_cancel_right], },
+    conv { to_rhs, congr, skip, rw [nat.add_sub_add_right], },
     rw nth_le_append_right (nat.lt_succ_iff.mp h₁),
   end
 
@@ -1974,6 +1994,15 @@ up to `i` in `l₂`. -/
 lemma drop_append {l₁ l₂ : list α} (i : ℕ) :
   drop (l₁.length + i) (l₁ ++ l₂) = drop i l₂ :=
 by simp [drop_append_eq_append_drop, take_all_of_le le_self_add]
+
+lemma drop_sizeof_le [has_sizeof α] (l : list α) : ∀ (n : ℕ), (l.drop n).sizeof ≤ l.sizeof :=
+begin
+  induction l with _ _ lih; intro n,
+  { rw [drop_nil] },
+  { induction n with n nih,
+    { refl, },
+    { exact trans (lih _) le_add_self } }
+end
 
 /-- The `i + j`-th element of a list coincides with the `j`-th element of the list obtained by
 dropping the first `i` elements. Version designed to rewrite from the big list to the small list. -/
@@ -3699,6 +3728,31 @@ theorem to_chunks_length_le : ∀ n xs, n ≠ 0 → ∀ l : list α,
 end
 
 end to_chunks
+
+/-! ### all₂ -/
+
+section all₂
+variables {p q : α → Prop} {l : list α}
+
+@[simp] lemma all₂_cons (p : α → Prop) (x : α) : ∀ (l : list α), all₂ p (x :: l) ↔ p x ∧ all₂ p l
+| []       := (and_true _).symm
+| (x :: l) := iff.rfl
+
+lemma all₂_iff_forall : ∀ {l : list α}, all₂ p l ↔ ∀ x ∈ l, p x
+| []       := (iff_true_intro $ ball_nil _).symm
+| (x :: l) := by rw [ball_cons, all₂_cons, all₂_iff_forall]
+
+lemma all₂.imp (h : ∀ x, p x → q x) : ∀ {l : list α}, all₂ p l → all₂ q l
+| []       := id
+| (x :: l) := by simpa using and.imp (h x) all₂.imp
+
+@[simp] lemma all₂_map_iff {p : β → Prop} (f : α → β) : all₂ p (l.map f) ↔ all₂ (p ∘ f) l :=
+by induction l; simp *
+
+instance (p : α → Prop) [decidable_pred p] : decidable_pred (all₂ p) :=
+λ l, decidable_of_iff' _ all₂_iff_forall
+
+end all₂
 
 /-! ### Retroattributes
 

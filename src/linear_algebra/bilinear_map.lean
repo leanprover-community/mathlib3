@@ -168,12 +168,13 @@ section comm_semiring
 variables {R : Type*} [comm_semiring R] {R₂ : Type*} [comm_semiring R₂]
 variables {R₃ : Type*} [comm_semiring R₃] {R₄ : Type*} [comm_semiring R₄]
 variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*}
-variables {Nₗ : Type*} {Pₗ : Type*} {Qₗ : Type*}
+variables {Mₗ : Type*} {Nₗ : Type*} {Pₗ : Type*} {Qₗ Qₗ': Type*}
 
 variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
-variables [add_comm_monoid Nₗ] [add_comm_monoid Pₗ] [add_comm_monoid Qₗ]
+variables [add_comm_monoid Mₗ] [add_comm_monoid Nₗ] [add_comm_monoid Pₗ]
+variables [add_comm_monoid Qₗ] [add_comm_monoid Qₗ']
 variables [module R M] [module R₂ N] [module R₃ P] [module R₄ Q]
-variables [module R Nₗ] [module R Pₗ] [module R Qₗ]
+variables [module R Mₗ] [module R Nₗ] [module R Pₗ] [module R Qₗ] [module R Qₗ']
 variables {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃}
 variables {σ₄₂ : R₄ →+* R₂} {σ₄₃ : R₄ →+* R₃}
 variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₄₂ σ₂₃ σ₄₃]
@@ -248,6 +249,29 @@ include σ₄₃
 @[simp] theorem compl₂_apply (g : Q →ₛₗ[σ₄₂] N) (m : M) (q : Q) :
   f.compl₂ g m q = f m (g q) := rfl
 omit σ₄₃
+
+/-- Composing linear maps `Q → M` and `Q' → N` with a bilinear map `M → N → P` to
+form a bilinear map `Q → Q' → P`. -/
+def compl₁₂ (f : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ) (g : Qₗ →ₗ[R] Mₗ) (g' : Qₗ' →ₗ[R] Nₗ) :
+  Qₗ →ₗ[R] Qₗ' →ₗ[R] Pₗ :=
+(f.comp g).compl₂ g'
+
+@[simp] theorem compl₁₂_apply (f : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ) (g : Qₗ →ₗ[R] Mₗ) (g' : Qₗ' →ₗ[R] Nₗ)
+  (x : Qₗ) (y : Qₗ') : f.compl₁₂ g g' x y = f (g x) (g' y) := rfl
+
+lemma compl₁₂_inj {f₁ f₂ : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ} {g : Qₗ →ₗ[R] Mₗ} {g' : Qₗ' →ₗ[R] Nₗ}
+  (hₗ : function.surjective g) (hᵣ : function.surjective g') :
+  f₁.compl₁₂ g g' = f₂.compl₁₂ g g' ↔ f₁ = f₂ :=
+begin
+  split; intros h,
+  { -- B₁.comp l r = B₂.comp l r → B₁ = B₂
+    ext x y,
+    cases hₗ x with x' hx, subst hx,
+    cases hᵣ y with y' hy, subst hy,
+    convert linear_map.congr_fun₂ h x' y' },
+  { -- B₁ = B₂ → B₁.comp l r = B₂.comp l r
+    subst h },
+end
 
 /-- Composing a linear map `P → Q` and a bilinear map `M → N → P` to
 form a bilinear map `M → N → Q`. -/

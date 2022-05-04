@@ -33,7 +33,7 @@ It contains theorems relating these to each other, as well as to `submodule.prod
 universes u v w x y z u' v' w' y'
 variables {R : Type u} {K : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}
 variables {M₃ : Type y} {V₃ : Type y'} {M₄ : Type z} {ι : Type x}
-
+variables {M₅ M₆ : Type*}
 
 section prod
 
@@ -41,7 +41,9 @@ namespace linear_map
 
 variables (S : Type*) [semiring R] [semiring S]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
+variables [add_comm_monoid M₅] [add_comm_monoid M₆]
 variables [module R M] [module R M₂] [module R M₃] [module R M₄]
+variables [module R M₅] [module R M₆]
 variables (f : M →ₗ[R] M₂)
 
 section
@@ -233,6 +235,27 @@ begin
   dsimp only [ker],
   rw [←prod_map_comap_prod, submodule.prod_bot],
 end
+
+@[simp]
+lemma prod_map_id : (id : M →ₗ[R] M).prod_map (id : M₂ →ₗ[R] M₂) = id :=
+linear_map.ext $ λ _, prod.mk.eta
+
+@[simp]
+lemma prod_map_one : (1 : M →ₗ[R] M).prod_map (1 : M₂ →ₗ[R] M₂) = 1 :=
+linear_map.ext $ λ _, prod.mk.eta
+
+lemma prod_map_comp (f₁₂ : M →ₗ[R] M₂) (f₂₃ : M₂ →ₗ[R] M₃) (g₁₂ : M₄ →ₗ[R] M₅) (g₂₃ : M₅ →ₗ[R] M₆) :
+  f₂₃.prod_map g₂₃ ∘ₗ f₁₂.prod_map g₁₂ = (f₂₃ ∘ₗ f₁₂).prod_map (g₂₃ ∘ₗ g₁₂) := rfl
+
+lemma prod_map_mul (f₁₂ : M →ₗ[R] M) (f₂₃ : M →ₗ[R] M) (g₁₂ : M₂ →ₗ[R] M₂) (g₂₃ : M₂ →ₗ[R] M₂) :
+  f₂₃.prod_map g₂₃ * f₁₂.prod_map g₁₂ = (f₂₃ * f₁₂).prod_map (g₂₃ * g₁₂) := rfl
+
+/-- `linear_map.prod_map` as a `monoid_hom` -/
+@[simps]
+def prod_map_monoid_hom : (M →ₗ[R] M) × (M₂ →ₗ[R] M₂) →* ((M × M₂) →ₗ[R] (M × M₂)) :=
+{ to_fun := λ f, prod_map f.1 f.2,
+  map_one' := prod_map_one,
+  map_mul' := λ _ _, prod_map_mul _ _ _ _ }
 
 section map_mul
 
@@ -459,12 +482,12 @@ begin
   split,
   { intros h,
     split,
-    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨hx, (zero_mem _)⟩, },
-    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨zero_mem _, hx⟩, }, },
+    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨hx, zero_mem p₂⟩, },
+    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨zero_mem p₁, hx⟩, }, },
   { rintros ⟨hH, hK⟩ ⟨x1, x2⟩ ⟨h1, h2⟩,
     have h1' : (linear_map.inl R _ _) x1 ∈ q, { apply hH, simpa using h1, },
     have h2' : (linear_map.inr R _ _) x2 ∈ q, { apply hK, simpa using h2, },
-    simpa using add_mem _ h1' h2', }
+    simpa using add_mem h1' h2', }
 end
 
 lemma prod_eq_bot_iff {p₁ : submodule R M} {p₂ : submodule R M₂} :

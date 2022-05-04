@@ -5,6 +5,7 @@ Authors: Yaël Dillies
 -/
 import data.finset.lattice
 import order.hom.bounded
+import order.symm_diff
 
 /-!
 # Lattice homomorphisms
@@ -213,6 +214,33 @@ finset.cons_induction_on s (map_bot f) $ λ i s _ h,
   f (s.inf g) = s.inf (f ∘ g) :=
 finset.cons_induction_on s (map_top f) $ λ i s _ h,
   by rw [finset.inf_cons, finset.inf_cons, map_inf, h]
+
+section bounded_lattice
+variables [lattice α] [bounded_order α] [lattice β] [bounded_order β]
+  [bounded_lattice_hom_class F α β] (f : F) {a b : α}
+include β
+
+lemma disjoint.map (h : disjoint a b) : disjoint (f a) (f b) :=
+by rw [disjoint_iff, ←map_inf, h.eq_bot, map_bot]
+
+lemma is_compl.map (h : is_compl a b) : is_compl (f a) (f b) :=
+{ inf_le_bot := h.disjoint.map _,
+  top_le_sup := by rw [←map_sup, h.sup_eq_top, map_top] }
+
+end bounded_lattice
+
+section boolean_algebra
+variables [boolean_algebra α] [boolean_algebra β] [bounded_lattice_hom_class F α β] (f : F)
+include β
+
+lemma map_compl (a : α) : f aᶜ = (f a)ᶜ := (is_compl_compl.map _).compl_eq.symm
+
+lemma map_sdiff (a b : α) : f (a \ b) = f a \ f b := by rw [sdiff_eq, sdiff_eq, map_inf, map_compl]
+
+lemma map_symm_diff (a b : α) : f (a ∆ b) = f a ∆ f b :=
+by rw [symm_diff, symm_diff, map_sup, map_sdiff, map_sdiff]
+
+end boolean_algebra
 
 instance [has_sup α] [has_sup β] [sup_hom_class F α β] : has_coe_t F (sup_hom α β) :=
 ⟨λ f, ⟨f, map_sup f⟩⟩

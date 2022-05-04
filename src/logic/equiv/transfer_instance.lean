@@ -206,6 +206,11 @@ let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul,
   nsmul := e.has_scalar ℕ, npow := e.has_pow ℕ in
 by resetI; apply e.injective.semiring _; intros; exact e.apply_symm_apply _
 
+/-- Transfer `non_unital_comm_semiring` across an `equiv` -/
+protected def non_unital_comm_semiring [non_unital_comm_semiring β] : non_unital_comm_semiring α :=
+let zero := e.has_zero, add := e.has_add, mul := e.has_mul, nsmul := e.has_scalar ℕ in
+by resetI; apply e.injective.non_unital_comm_semiring _; intros; exact e.apply_symm_apply _
+
 /-- Transfer `comm_semiring` across an `equiv` -/
 protected def comm_semiring [comm_semiring β] : comm_semiring α :=
 let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul,
@@ -238,6 +243,12 @@ protected def ring [ring β] : ring α :=
 let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
   sub := e.has_sub, nsmul := e.has_scalar ℕ, zsmul := e.has_scalar ℤ, npow := e.has_pow ℕ in
 by resetI; apply e.injective.ring _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `non_unital_comm_ring` across an `equiv` -/
+protected def non_unital_comm_ring [non_unital_comm_ring β] : non_unital_comm_ring α :=
+let zero := e.has_zero, add := e.has_add, mul := e.has_mul, neg := e.has_neg,
+  sub := e.has_sub, nsmul := e.has_scalar ℕ, zsmul := e.has_scalar ℤ in
+by resetI; apply e.injective.non_unital_comm_ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `comm_ring` across an `equiv` -/
 protected def comm_ring [comm_ring β] : comm_ring α :=
@@ -387,7 +398,7 @@ protected lemma local_ring {A B : Type*} [comm_ring A] [local_ring A] [comm_ring
   local_ring B :=
 begin
   haveI := e.symm.to_equiv.nontrivial,
-  refine @local_of_surjective A B _ _ _ _ e e.to_equiv.surjective,
+  refine @local_ring.of_surjective A B _ _ _ _ e e.to_equiv.surjective,
 end
 
 end ring_equiv

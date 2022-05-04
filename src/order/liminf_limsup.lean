@@ -380,9 +380,9 @@ lemma liminf_const_top {f : filter β} : liminf f (λ x : β, (⊤ : α)) = (⊤
 theorem has_basis.Limsup_eq_infi_Sup {ι} {p : ι → Prop} {s} {f : filter α} (h : f.has_basis p s) :
   f.Limsup = ⨅ i (hi : p i), Sup (s i) :=
 le_antisymm
-  (le_binfi $ λ i hi, Inf_le $ h.eventually_iff.2 ⟨i, hi, λ x, le_Sup⟩)
+  (le_infi₂ $ λ i hi, Inf_le $ h.eventually_iff.2 ⟨i, hi, λ x, le_Sup⟩)
   (le_Inf $ assume a ha, let ⟨i, hi, ha⟩ := h.eventually_iff.1 ha in
-    infi_le_of_le _ $ infi_le_of_le hi $ Sup_le ha)
+    infi₂_le_of_le _ hi $ Sup_le ha)
 
 theorem has_basis.Liminf_eq_supr_Inf {p : ι → Prop} {s : ι → set α} {f : filter α}
   (h : f.has_basis p s) : f.Liminf = ⨆ i (hi : p i), Inf (s i) :=

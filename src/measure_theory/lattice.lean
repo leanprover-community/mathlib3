@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 
-import measure_theory.measure.measure_space
+import measure_theory.measure.ae_measurable
 
 /-!
 # Typeclasses for measurability of lattice operations

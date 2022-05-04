@@ -227,7 +227,10 @@ include σ'
 omit σ'
 
 include σ₃₁ σ₂₁ σ₃₂
-@[simp] lemma symm_trans_apply
+@[simp] lemma trans_symm : (e₁₂.trans e₂₃ : M₁ ≃ₛₗ[σ₁₃] M₃).symm = e₂₃.symm.trans e₁₂.symm :=
+rfl
+
+lemma symm_trans_apply
   (c : M₃) : (e₁₂.trans e₂₃ : M₁ ≃ₛₗ[σ₁₃] M₃).symm c = e₁₂.symm (e₂₃.symm c) := rfl
 omit σ₃₁ σ₂₁ σ₃₂
 

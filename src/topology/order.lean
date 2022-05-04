@@ -70,7 +70,7 @@ generate_open.basic s hs
 lemma nhds_generate_from {g : set (set α)} {a : α} :
   @nhds α (generate_from g) a = (⨅s∈{s | a ∈ s ∧ s ∈ g}, 𝓟 s) :=
 by rw nhds_def; exact le_antisymm
-  (infi_le_infi $ assume s, infi_le_infi_const $ assume ⟨as, sg⟩, ⟨as, generate_open.basic _ sg⟩)
+  (binfi_mono $ λ s ⟨as, sg⟩, ⟨as, generate_open.basic _ sg⟩)
   (le_infi $ assume s, le_infi $ assume ⟨as, hs⟩,
     begin
       revert as, clear_, induction hs,
@@ -425,6 +425,23 @@ topological_space_eq rfl
 lemma coinduced_compose [tα : topological_space α]
   {f : α → β} {g : β → γ} : (tα.coinduced f).coinduced g = tα.coinduced (g ∘ f) :=
 topological_space_eq rfl
+
+lemma equiv.induced_symm {α β : Type*} (e : α ≃ β) :
+  topological_space.induced e.symm = topological_space.coinduced e :=
+begin
+  ext t U,
+  split,
+  { rintros ⟨V, hV, rfl⟩,
+    change t.is_open (e ⁻¹' _),
+    rwa [← preimage_comp, ← equiv.coe_trans, equiv.self_trans_symm] },
+  { intros hU,
+    refine ⟨e ⁻¹' U, hU, _⟩,
+    rw [← preimage_comp, ← equiv.coe_trans, equiv.symm_trans_self, equiv.coe_refl, preimage_id] }
+end
+
+lemma equiv.coinduced_symm {α β : Type*} (e : α ≃ β) :
+  topological_space.coinduced e.symm = topological_space.induced e :=
+by rw [← e.symm.induced_symm, e.symm_symm]
 
 end galois_connection
 

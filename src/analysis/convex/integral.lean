@@ -256,7 +256,7 @@ begin
   by_cases h0' : μ (to_measurable μ t)ᶜ = 0,
   { rw ← ae_eq_univ at h0',
     rwa [restrict_congr_set h0', restrict_univ] at ht },
-  exact hs.open_segment_subset_interior_left ht
+  exact hs.open_segment_interior_self_subset_interior ht
     (hs.set_average_mem hsc h0' (measure_ne_top _ _) (ae_restrict_of_ae hfs) hfi.integrable_on)
     (average_mem_open_segment_compl_self (measurable_set_to_measurable μ t).null_measurable_set
       h0 h0' hfi)

@@ -93,7 +93,7 @@ lemma le_floor (h : (n : α) ≤ a) : n ≤ ⌊a⌋₊ := (le_floor_iff $ n.cast
 
 lemma floor_lt (ha : 0 ≤ a) : ⌊a⌋₊ < n ↔ a < n := lt_iff_lt_of_le_iff_le $ le_floor_iff ha
 
-lemma lt_of_floor_lt (h : ⌊a⌋₊ < n) : a < n := lt_of_not_ge' $ λ h', (le_floor h').not_lt h
+lemma lt_of_floor_lt (h : ⌊a⌋₊ < n) : a < n := lt_of_not_le $ λ h', (le_floor h').not_lt h
 
 lemma floor_le (ha : 0 ≤ a) : (⌊a⌋₊ : α) ≤ a := (le_floor_iff ha).1 le_rfl
 
@@ -126,6 +126,9 @@ begin
       (not_le_of_lt $ ha.trans_lt $ cast_pos.2 $ nat.pos_of_ne_zero hn) },
   { exact le_floor_iff ha }
 end
+
+@[simp] lemma one_le_floor_iff (x : α) : 1 ≤ ⌊x⌋₊ ↔ 1 ≤ x :=
+by exact_mod_cast (@le_floor_iff' α _ _ x 1 one_ne_zero)
 
 lemma floor_lt' (hn : n ≠ 0) : ⌊a⌋₊ < n ↔ a < n := lt_iff_lt_of_le_iff_le $ le_floor_iff' hn
 

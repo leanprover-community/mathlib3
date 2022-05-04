@@ -195,9 +195,8 @@ begin
   /- We have already proved the result for the Lebesgue product measure, using matrices.
   We deduce it for any Haar measure by uniqueness (up to scalar multiplication). -/
   have := add_haar_measure_unique μ (pi_Icc01 ι),
-  rw this,
-  simp [add_haar_measure_eq_volume_pi, real.map_linear_map_volume_pi_eq_smul_volume_pi hf,
-    smul_smul, mul_comm],
+  rw [this, add_haar_measure_eq_volume_pi, map_smul,
+    real.map_linear_map_volume_pi_eq_smul_volume_pi hf, smul_comm],
 end
 
 lemma map_linear_map_add_haar_eq_smul_add_haar

@@ -282,7 +282,17 @@ end distrib_mul_action
 
 end is_unit
 
-@[simp] lemma is_unit_smul_iff [group α] [monoid β] [mul_action α β]
-  [smul_comm_class α β β] [is_scalar_tower α β β] {g : α} {m : β} :
-  is_unit (g • m) ↔ is_unit m :=
+section smul
+
+variables [group α] [monoid β]
+
+@[simp] lemma is_unit_smul_iff [mul_action α β] [smul_comm_class α β β] [is_scalar_tower α β β]
+  (g : α) (m : β) : is_unit (g • m) ↔ is_unit m :=
 ⟨λ h, inv_smul_smul g m ▸ h.smul g⁻¹, is_unit.smul g⟩
+
+lemma is_unit.smul_sub_iff_sub_inv_smul
+  [add_group β] [distrib_mul_action α β] [is_scalar_tower α β β] [smul_comm_class α β β]
+  (r : α) (a : β) : is_unit (r • 1 - a) ↔ is_unit (1 - r⁻¹ • a) :=
+by rw [←is_unit_smul_iff r (1 - r⁻¹ • a), smul_sub, smul_inv_smul]
+
+end smul

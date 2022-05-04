@@ -93,7 +93,7 @@ lemma bsupr_inf_bsupr {ι ι' : Type*} {f : ι → α} {g : ι' → α} {s : set
   (⨆ i ∈ s, f i) ⊓ (⨆ j ∈ t, g j) = ⨆ p ∈ s ×ˢ t, f (p : ι × ι').1 ⊓ g p.2 :=
 begin
   simp only [supr_subtype', supr_inf_supr],
-  exact supr_congr (equiv.set.prod s t).symm (equiv.surjective _) (λ x, rfl)
+  exact (equiv.surjective _).supr_congr (equiv.set.prod s t).symm (λ x, rfl)
 end
 
 lemma Sup_inf_Sup : Sup s ⊓ Sup t = ⨆ p ∈ s ×ˢ t, (p : α × α).1 ⊓ p.2 :=

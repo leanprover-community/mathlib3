@@ -644,7 +644,7 @@ begin
   apply σ.induction_on' (λ σ, _),
   dsimp only [quotient.lift_on'_mk', quotient.map'_mk', mul_action.quotient.smul_mk,
     dom_coprod.summand],
-  rw [perm.sign_mul, perm.sign_swap hij],
+  rw [smul_eq_mul, perm.sign_mul, perm.sign_swap hij],
   simp only [one_mul, neg_mul, function.comp_app, units.neg_smul, perm.coe_mul,
     units.coe_neg, multilinear_map.smul_apply, multilinear_map.neg_apply,
     multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply],
@@ -675,7 +675,7 @@ begin
     work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
     work_on_goal 2 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
     all_goals
-    { rw [←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv, inv_mul_cancel_right] at hσ,
+    { rw [smul_eq_mul, ←mul_swap_eq_swap_mul, mul_inv_rev, swap_inv, inv_mul_cancel_right] at hσ,
       simpa using hσ, }, },
   case [sum.inr sum.inr : i' j', sum.inl sum.inl : i' j']
   { -- the term does not pair but is zero

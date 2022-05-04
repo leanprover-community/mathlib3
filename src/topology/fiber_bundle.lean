@@ -240,6 +240,22 @@ begin
   rw [e.proj_symm_apply' h]
 end
 
+lemma symm_trans_symm (e e' : pretrivialization F proj) :
+  (e.to_local_equiv.symm.trans e'.to_local_equiv).symm =
+  e'.to_local_equiv.symm.trans e.to_local_equiv :=
+by rw [local_equiv.trans_symm_eq_symm_trans_symm,local_equiv.symm_symm]
+
+lemma symm_trans_source_eq (e e' : pretrivialization F proj) :
+  (e.to_local_equiv.symm.trans e'.to_local_equiv).source =
+  (e.base_set ∩ e'.base_set) ×ˢ (univ : set F) :=
+by rw [local_equiv.trans_source, e'.source_eq, local_equiv.symm_source, e.target_eq, inter_comm,
+  e.preimage_symm_proj_inter, inter_comm]
+
+lemma symm_trans_target_eq (e e' : pretrivialization F proj) :
+  (e.to_local_equiv.symm.trans e'.to_local_equiv).target =
+  (e.base_set ∩ e'.base_set) ×ˢ (univ : set F) :=
+by rw [← local_equiv.symm_source, symm_trans_symm, symm_trans_source_eq, inter_comm]
+
 end topological_fiber_bundle.pretrivialization
 
 variable [topological_space Z]
@@ -313,6 +329,16 @@ e.to_pretrivialization.apply_symm_apply' hx
 @[simp, mfld_simps] lemma symm_apply_mk_proj (ex : x ∈ e.source) :
   e.to_local_homeomorph.symm (proj x, (e x).2) = x :=
 e.to_pretrivialization.symm_apply_mk_proj ex
+
+lemma symm_trans_source_eq (e e' : trivialization F proj) :
+  (e.to_local_equiv.symm.trans e'.to_local_equiv).source
+  = (e.base_set ∩ e'.base_set) ×ˢ (univ : set F) :=
+pretrivialization.symm_trans_source_eq e.to_pretrivialization e'
+
+lemma symm_trans_target_eq (e e' : trivialization F proj) :
+  (e.to_local_equiv.symm.trans e'.to_local_equiv).target
+  = (e.base_set ∩ e'.base_set) ×ˢ (univ : set F) :=
+pretrivialization.symm_trans_target_eq e.to_pretrivialization e'
 
 lemma coe_fst_eventually_eq_proj (ex : x ∈ e.source) : prod.fst ∘ e =ᶠ[𝓝 x] proj  :=
 mem_nhds_iff.2 ⟨e.source, λ y hy, e.coe_fst hy, e.open_source, ex⟩
@@ -1109,7 +1135,7 @@ lemma continuous_symm_of_mem_pretrivialization_atlas (he : e ∈ a.pretrivializa
 begin
   refine id (λ z H, id (λ U h, preimage_nhds_within_coinduced' H
     e.open_target (le_def.1 (nhds_mono _) U h))),
-  exact le_bsupr e he,
+  exact le_supr₂ e he,
 end
 
 lemma is_open_source (e : pretrivialization F proj) : @is_open _ a.total_space_topology e.source :=

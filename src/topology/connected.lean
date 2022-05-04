@@ -216,7 +216,7 @@ theorem is_connected.Union_of_refl_trans_gen {ι : Type*} [nonempty ι] {s : ι 
   is_preconnected.Union_of_refl_trans_gen (λ i, (H i).is_preconnected) K⟩
 
 section succ_order
-open succ_order
+open order
 
 variables [linear_order β] [succ_order β] [is_succ_archimedean β]
 
@@ -639,6 +639,9 @@ class connected_space (α : Type u) [topological_space α] extends preconnected_
 (to_nonempty : nonempty α)
 
 attribute [instance, priority 50] connected_space.to_nonempty -- see Note [lower instance priority]
+
+lemma is_connected_univ [connected_space α] : is_connected (univ : set α) :=
+⟨univ_nonempty, is_preconnected_univ⟩
 
 lemma is_preconnected_range [topological_space β] [preconnected_space α] {f : α → β}
   (h : continuous f) : is_preconnected (range f) :=

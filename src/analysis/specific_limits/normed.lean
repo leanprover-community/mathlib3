@@ -551,9 +551,9 @@ variables {b : ℝ} {f : ℕ → ℝ} {z : ℕ → E}
 /-- **Dirichlet's Test** for monotone sequences. -/
 theorem monotone.cauchy_seq_series_mul_of_tendsto_zero_of_bounded
   (hfa : monotone f) (hf0 : tendsto f at_top (𝓝 0)) (hgb : ∀ n, ∥∑ i in range n, z i∥ ≤ b) :
-  cauchy_seq (λ n, ∑ i in range (n+1), (f i) • z i) :=
+  cauchy_seq (λ n, ∑ i in range (n + 1), (f i) • z i) :=
 begin
-  simp_rw [finset.sum_range_by_parts _ _ (nat.succ_pos _), sub_eq_add_neg,
+  simp_rw [finset.sum_range_by_parts _ _ (nat.succ _), sub_eq_add_neg,
            nat.succ_sub_succ_eq_sub, tsub_zero],
   apply (normed_field.tendsto_zero_smul_of_tendsto_zero_of_bounded hf0
     ⟨b, eventually_map.mpr $ eventually_of_forall $ λ n, hgb $ n+1⟩).cauchy_seq.add,

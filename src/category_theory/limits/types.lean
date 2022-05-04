@@ -33,7 +33,7 @@ def limit_cone_is_limit (F : J ⥤ Type u) : is_limit (limit_cone F) :=
 /--
 The category of types has all limits.
 
-See https://stacks.math.columbia.edu/tag/002U.
+See <https://stacks.math.columbia.edu/tag/002U>.
 -/
 instance : has_limits (Type u) :=
 { has_limits_of_shape := λ J 𝒥, by exactI
@@ -166,7 +166,7 @@ def colimit_cocone_is_colimit (F : J ⥤ Type u) : is_colimit (colimit_cocone F)
 /--
 The category of types has all colimits.
 
-See https://stacks.math.columbia.edu/tag/002U.
+See <https://stacks.math.columbia.edu/tag/002U>.
 -/
 instance : has_colimits (Type u) :=
 { has_colimits_of_shape := λ J 𝒥, by exactI

@@ -147,6 +147,11 @@ lemma is_max.mono (ha : is_max a) (h : a ≤ b) : is_max b := λ c hc, (ha $ h.t
 
 lemma is_min.not_lt (h : is_min a) : ¬ b < a := λ hb, hb.not_le $ h hb.le
 lemma is_max.not_lt (h : is_max a) : ¬ a < b := λ hb, hb.not_le $ h hb.le
+@[simp] lemma not_is_min_of_lt (h : b < a) : ¬ is_min a := λ ha, ha.not_lt h
+@[simp] lemma not_is_max_of_lt (h : a < b) : ¬ is_max a := λ ha, ha.not_lt h
+
+alias not_is_min_of_lt ← has_lt.lt.not_is_min
+alias not_is_max_of_lt ← has_lt.lt.not_is_max
 
 lemma is_min_iff_forall_not_lt : is_min a ↔ ∀ b, ¬ b < a :=
 ⟨λ h _, h.not_lt, λ h b hba, of_not_not $ λ hab, h _ $ hba.lt_of_not_le hab⟩

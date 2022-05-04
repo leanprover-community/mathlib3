@@ -122,7 +122,8 @@ begin
   dunfold even_odd,
   calc    (⨆ (i : zmod 2) (j : {n // ↑n = i}), (ι Q).range ^ ↑j)
         = (⨆ (i : Σ i : zmod 2, {n : ℕ // ↑n = i}), (ι Q).range ^ (i.2 : ℕ)) : by rw supr_sigma
-    ... = (⨆ (i : ℕ), (ι Q).range ^ i) : supr_congr (λ i, i.2) (λ i, ⟨⟨_, i, rfl⟩, rfl⟩) (λ _, rfl),
+    ... = (⨆ (i : ℕ), (ι Q).range ^ i)
+        : function.surjective.supr_congr (λ i, i.2) (λ i, ⟨⟨_, i, rfl⟩, rfl⟩) (λ _, rfl),
 end
 
 lemma even_odd_is_compl : is_compl (even_odd Q 0) (even_odd Q 1) :=

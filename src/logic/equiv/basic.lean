@@ -132,8 +132,7 @@ initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
 
 /-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
 @[trans] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
-⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm,
-  e₂.left_inv.comp e₁.left_inv, e₂.right_inv.comp e₁.right_inv⟩
+⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm, e₂.left_inv.comp e₁.left_inv, e₂.right_inv.comp e₁.right_inv⟩
 
 @[simp]
 lemma to_fun_as_coe (e : α ≃ β) : e.to_fun = e := rfl
@@ -1214,6 +1213,14 @@ calc α × (β ⊕ γ) ≃ (β ⊕ γ) × α       : prod_comm _ _
    prod_sum_distrib α β γ (a, sum.inl b) = sum.inl (a, b) := rfl
 @[simp] theorem prod_sum_distrib_apply_right {α β γ} (a : α) (c : γ) :
    prod_sum_distrib α β γ (a, sum.inr c) = sum.inr (a, c) := rfl
+
+/-- An indexed sum of disjoint sums of types is equivalent to the sum of the indexed sums. -/
+@[simps] def sigma_sum_distrib {ι : Type*} (α β : ι → Type*) :
+  (Σ i, α i ⊕ β i) ≃ (Σ i, α i) ⊕ Σ i, β i :=
+⟨λ p, sum.cases_on p.2 (λ x, sum.inl ⟨_, x⟩) (λ x, sum.inr ⟨_, x⟩),
+  sum.elim (sigma.map id (λ _, sum.inl)) (sigma.map id (λ _, sum.inr)),
+  λ p, by { rcases p with ⟨i, (a | b)⟩; refl },
+  λ p, by { rcases p with (⟨i, a⟩ | ⟨i, b⟩); refl }⟩
 
 /-- The product of an indexed sum of types (formally, a `sigma`-type `Σ i, α i`) by a type `β` is
 equivalent to the sum of products `Σ i, (α i × β)`. -/

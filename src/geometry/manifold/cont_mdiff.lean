@@ -1513,7 +1513,7 @@ basic_smooth_vector_bundle_core.smooth_within_at_proj _
 
 variables (I M)
 /-- The zero section of the tangent bundle -/
-noncomputable def zero_section : M → tangent_bundle I M := λ x, ⟨x, 0⟩
+def zero_section : M → tangent_bundle I M := λ x, ⟨x, 0⟩
 variables {I M}
 
 lemma smooth_zero_section : smooth I I.tangent (zero_section I M) :=

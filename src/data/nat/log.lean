@@ -128,9 +128,12 @@ begin
   simp [hn, this]
 end
 
-lemma lt_pow_succ_log_self {b : ℕ} (hb : 1 < b) {x : ℕ} (hx : 0 < x) :
+lemma lt_pow_succ_log_self {b : ℕ} (hb : 1 < b) (x : ℕ) :
   x < b ^ (log b x).succ :=
 begin
+  cases x.eq_zero_or_pos with hx hx,
+  { simp only [hx, log_zero_right, pow_one],
+    exact pos_of_gt hb },
   rw [←not_le, pow_le_iff_le_log hb hx, not_le],
   exact lt_succ_self _,
 end
@@ -300,11 +303,10 @@ end
 
 lemma clog_le_clog_of_left_ge {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : clog b n ≤ clog c n :=
 begin
-  cases n, { simp },
   rw ← le_pow_iff_clog_le (lt_of_lt_of_le hc hb),
   calc
-    n.succ ≤ c ^ clog c n.succ : le_pow_clog hc _
-       ... ≤ b ^ clog c n.succ : pow_le_pow_of_le_left (le_of_lt $ zero_lt_one.trans hc) hb _
+    n ≤ c ^ clog c n : le_pow_clog hc _
+  ... ≤ b ^ clog c n : pow_le_pow_of_le_left (le_of_lt $ zero_lt_one.trans hc) hb _
 end
 
 lemma clog_monotone (b : ℕ) : monotone (clog b) :=

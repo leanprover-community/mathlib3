@@ -116,8 +116,7 @@ instance nat.subtype.semilattice_sup (s : set ℕ) :
 lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
   [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
 
-theorem nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n :=
-rfl
+protected lemma nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n := rfl
 
 theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
 by rw [mul_comm n m, mul_comm k m] at H; exact nat.eq_of_mul_eq_mul_left Hm H
@@ -378,6 +377,17 @@ lemma two_lt_of_ne : ∀ {n}, n ≠ 0 → n ≠ 1 → n ≠ 2 → 2 < n
 | 2 _ _ h := (h rfl).elim
 | (n+3) _ _ _ := dec_trivial
 
+theorem forall_lt_succ {P : ℕ → Prop} {n : ℕ} : (∀ m < n.succ, P m) ↔ (∀ m < n, P m) ∧ P n :=
+⟨λ H, ⟨λ m hm, H m (lt_succ_iff.2 hm.le), H n (lt_succ_self n)⟩, begin
+  rintro ⟨H, hn⟩ m hm,
+  rcases eq_or_lt_of_le (lt_succ_iff.1 hm) with rfl | hmn,
+  { exact hn },
+  { exact H m hmn }
+end⟩
+
+theorem exists_lt_succ {P : ℕ → Prop} {n : ℕ} : (∃ m < n.succ, P m) ↔ (∃ m < n, P m) ∨ P n :=
+by { rw ←not_iff_not, push_neg, exact forall_lt_succ }
+
 /-! ### `add` -/
 
 -- Sometimes a bare `nat.add` or similar appears as a consequence of unfolding
@@ -424,11 +434,9 @@ iff.intro
 
 lemma add_eq_one_iff : ∀ {a b : ℕ}, a + b = 1 ↔ (a = 0 ∧ b = 1) ∨ (a = 1 ∧ b = 0)
 | 0     0     := dec_trivial
-| 0     1     := dec_trivial
 | 1     0     := dec_trivial
-| 1     1     := dec_trivial
 | (a+2) _     := by rw add_right_comm; exact dec_trivial
-| _     (b+2) := by rw [← add_assoc]; simp only [nat.succ_inj', nat.succ_ne_zero]; simp
+| _     (b+1) := by rw [← add_assoc]; simp only [nat.succ_inj', nat.succ_ne_zero]; simp
 
 theorem le_add_one_iff {i j : ℕ} : i ≤ j + 1 ↔ (i ≤ j ∨ i = j + 1) :=
 ⟨λ h,

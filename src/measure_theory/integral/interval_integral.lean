@@ -233,8 +233,8 @@ h.symm
 @[refl] lemma refl : interval_integrable f μ a a :=
 by split; simp
 
-@[trans] lemma trans (hab : interval_integrable f μ a b) (hbc : interval_integrable f μ b c) :
-  interval_integrable f μ a c :=
+@[trans] lemma trans {a b c : ℝ} (hab : interval_integrable f μ a b)
+  (hbc : interval_integrable f μ b c) : interval_integrable f μ a c :=
 ⟨(hab.1.union hbc.1).mono_set Ioc_subset_Ioc_union_Ioc,
   (hbc.2.union hab.2).mono_set Ioc_subset_Ioc_union_Ioc⟩
 

@@ -1,13 +1,13 @@
 /-
-Copyright (c) 2018  Patrick Massot. All rights reserved.
+Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Chris Hughes, Michael Howes
 -/
-import algebra.group.semiconj
-import algebra.group_with_zero.basic
+import data.fintype.basic
 import algebra.hom.aut
 import algebra.hom.group
-import data.fintype.basic
+import algebra.group.semiconj
+import algebra.group_with_zero.basic
 
 /-!
 # Conjugacy of group elements
@@ -31,6 +31,9 @@ def is_conj (a b : α) := ∃ c : αˣ, semiconj_by ↑c a b
 @[symm] lemma is_conj.symm {a b : α} : is_conj a b → is_conj b a
 | ⟨c, hc⟩ := ⟨c⁻¹, hc.units_inv_symm_left⟩
 
+lemma is_conj.comm (g h : α) : is_conj g h ↔ is_conj h g :=
+⟨is_conj.symm, is_conj.symm⟩
+
 @[trans] lemma is_conj.trans {a b c : α} : is_conj a b → is_conj b c → is_conj a c
 | ⟨c₁, hc₁⟩ ⟨c₂, hc₂⟩ := ⟨c₂ * c₁, hc₂.mul_left hc₁⟩
 
@@ -46,9 +49,9 @@ protected lemma monoid_hom.map_is_conj (f : α →* β) {a b : α} : is_conj a b
 end monoid
 
 section cancel_monoid
-variables [cancel_monoid α]
--- These lemmas hold for either `left_cancel_monoid` or `right_cancel_monoid`,
--- with slightly different proofs; so far these don't seem necessary.
+
+variables [right_cancel_monoid α]
+-- These lemmas also hold for `left_cancel_monoid` - so far this is not necessary.
 
 @[simp] lemma is_conj_one_right {a : α} : is_conj 1 a  ↔ a = 1 :=
 ⟨λ ⟨c, hc⟩, mul_right_cancel (hc.symm.trans ((mul_one _).trans (one_mul _).symm)), λ h, by rw [h]⟩
@@ -172,6 +175,13 @@ instance [fintype α] [decidable_rel (is_conj : α → α → Prop)] :
   fintype (conj_classes α) :=
 quotient.fintype (is_conj.setoid α)
 
+@[priority 900]
+instance [decidable_rel (is_conj : α → α → Prop)] : decidable_eq (conj_classes α) :=
+quotient.decidable_eq
+
+instance [decidable_eq α] [fintype α] : decidable_rel (is_conj : α → α → Prop) :=
+λ a b, by { delta is_conj semiconj_by, apply_instance }
+
 end monoid
 
 section comm_monoid
@@ -215,6 +225,9 @@ lemma is_conj_iff_conjugates_of_eq {a b : α} :
   rwa ← h at ha,
 end⟩
 
+instance [fintype α] [decidable_rel (is_conj : α → α → Prop)] {a : α} : fintype (conjugates_of a) :=
+@subtype.fintype _ _ (‹decidable_rel is_conj› a) _
+
 end monoid
 
 namespace conj_classes
@@ -242,5 +255,14 @@ end
 lemma carrier_eq_preimage_mk {a : conj_classes α} :
   a.carrier = conj_classes.mk ⁻¹' {a} :=
 set.ext (λ x, mem_carrier_iff_mk_eq)
+
+section fintype
+
+variables [fintype α] [decidable_rel (is_conj : α → α → Prop)]
+
+instance {x : conj_classes α} : fintype (carrier x) :=
+quotient.rec_on_subsingleton x $ λ a, conjugates_of.fintype
+
+end fintype
 
 end conj_classes

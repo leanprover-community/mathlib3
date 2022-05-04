@@ -35,6 +35,13 @@ distribute over pointwise operations. For example,
 * `a +ᵥ f` (`filter.has_vadd_filter`): Translation, filter of all `a +ᵥ x` where `s ∈ f`.
 * `a • f` (`filter.has_scalar_filter`): Scaling, filter of all `a • s` where `s ∈ f`.
 
+## Implementation notes
+
+We put all instances in the locale `pointwise`, so that these instances are not available by
+default. Note that we do not mark them as reducible (as argued by note [reducible non-instances])
+since we expect the locale to be open whenever the instances are actually used (and making the
+instances reducible changes the behavior of `simp`.
+
 ## Tags
 
 filter multiplication, filter addition, pointwise addition, pointwise multiplication,

@@ -10,9 +10,9 @@ import category_theory.limits.preserves.basic
 import category_theory.adjunction.limits
 import category_theory.monoidal.functor_category
 import category_theory.monoidal.transport
-import category_theory.monoidal.linear
 import category_theory.monoidal.rigid.of_equivalence
 import category_theory.monoidal.rigid.functor_category
+import category_theory.monoidal.linear
 import category_theory.monoidal.braided
 import category_theory.abelian.functor_category
 import category_theory.abelian.transfer
@@ -293,6 +293,10 @@ instance functor_category_equivalence_additive :
 @[simp] lemma neg_hom {X Y : Action V G} (f : X ⟶ Y) : (-f).hom = -f.hom := rfl
 @[simp] lemma add_hom {X Y : Action V G} (f g : X ⟶ Y) : (f + g).hom = f.hom + g.hom := rfl
 
+@[simp] lemma zero_hom {X Y : Action V G} : (0 : X ⟶ Y).hom = 0 := rfl
+@[simp] lemma neg_hom {X Y : Action V G} (f : X ⟶ Y) : (-f).hom = -f.hom := rfl
+@[simp] lemma add_hom {X Y : Action V G} (f g : X ⟶ Y) : (f + g).hom = f.hom + g.hom := rfl
+
 end preadditive
 
 section linear
@@ -419,6 +423,7 @@ instance : monoidal_preadditive (Action V G) := {}
 variables {R : Type*} [semiring R] [linear R V] [monoidal_linear R V]
 
 instance : monoidal_linear R (Action V G) := {}
+
 end
 
 variables (V G)

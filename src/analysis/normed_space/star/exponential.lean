@@ -52,7 +52,8 @@ begin
   ext,
   have hcomm : commute (I • (a : A)) (I • (b : A)),
   calc _ = _ : by simp only [h.eq, algebra.smul_mul_assoc, algebra.mul_smul_comm],
-  simpa only [exp_unitary_coe, add_subgroup.coe_add, smul_add] using exp_add_of_commute hcomm,
+  simpa only [exp_unitary_coe, add_submonoid_class.coe_add, smul_add]
+    using exp_add_of_commute hcomm,
 end
 
 lemma commute.exp_unitary {a b : self_adjoint A} (h : commute (a : A) (b : A)) :

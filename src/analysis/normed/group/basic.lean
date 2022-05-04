@@ -568,7 +568,7 @@ class has_nnnorm (E : Type*) := (nnnorm : E → ℝ≥0)
 
 export has_nnnorm (nnnorm)
 
-notation `∥`e`∥₊` := nnnorm e
+notation `∥`e`∥₊` := ∥e∥₊
 
 @[priority 100] -- see Note [lower instance priority]
 instance semi_normed_group.to_has_nnnorm : has_nnnorm E := ⟨λ a, ⟨norm a, norm_nonneg a⟩⟩
@@ -957,25 +957,25 @@ variables [topological_space α] {f : α → E} {s : set α} {a : α} {b : E}
 
 lemma continuous.norm (h : continuous f) : continuous (λ x, ∥f x∥) := continuous_norm.comp h
 
-lemma continuous.nnnorm (h : continuous f) : continuous (λ x, ∥f x∥₊) :=
+lemma continuous.∥h : continuous f∥₊ : continuous (λ x, ∥f x∥₊) :=
 continuous_nnnorm.comp h
 
 lemma continuous_at.norm (h : continuous_at f a) : continuous_at (λ x, ∥f x∥) a := h.norm
 
-lemma continuous_at.nnnorm (h : continuous_at f a) : continuous_at (λ x, ∥f x∥₊) a := h.nnnorm
+lemma continuous_at.∥h : continuous_at f a∥₊ : continuous_at (λ x, ∥f x∥₊) a := h.nnnorm
 
 lemma continuous_within_at.norm (h : continuous_within_at f s a) :
   continuous_within_at (λ x, ∥f x∥) s a :=
 h.norm
 
-lemma continuous_within_at.nnnorm (h : continuous_within_at f s a) :
+lemma continuous_within_at.∥h : continuous_within_at f s a∥₊ :
   continuous_within_at (λ x, ∥f x∥₊) s a :=
 h.nnnorm
 
 lemma continuous_on.norm (h : continuous_on f s) : continuous_on (λ x, ∥f x∥) s :=
 λ x hx, (h x hx).norm
 
-lemma continuous_on.nnnorm (h : continuous_on f s) : continuous_on (λ x, ∥f x∥₊) s :=
+lemma continuous_on.∥h : continuous_on f s∥₊ : continuous_on (λ x, ∥f x∥₊) s :=
 λ x hx, (h x hx).nnnorm
 
 end

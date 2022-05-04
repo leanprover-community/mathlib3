@@ -1328,7 +1328,7 @@ begin
       exact hx.trans_lt (half_lt_self εpos) },
     simpa using this },
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  refine ⟨⟨δ⁻¹, _⟩ * nnnorm c, f.to_linear_map.antilipschitz_of_bound $ λx, _⟩,
+  refine ⟨⟨δ⁻¹, _⟩ * ∥c∥₊, f.to_linear_map.antilipschitz_of_bound $ λx, _⟩,
   exact inv_nonneg.2 (le_of_lt δ_pos),
   by_cases hx : f x = 0,
   { have : f x = f 0, by { simp [hx] },
@@ -1668,7 +1668,7 @@ section
 variables [ring_hom_isometric σ₂₁]
 
 protected lemma antilipschitz (e : E ≃SL[σ₁₂] F) :
-  antilipschitz_with (nnnorm (e.symm : F →SL[σ₂₁] E)) e :=
+  antilipschitz_with (∥e.symm : F →SL[σ₂₁] E∥₊) e :=
 e.symm.lipschitz.to_right_inverse e.left_inv
 
 lemma one_le_norm_mul_norm_symm [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ₁₂] F) :
@@ -1690,7 +1690,7 @@ lemma norm_symm_pos [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ
 pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one e.one_le_norm_mul_norm_symm) (norm_nonneg _)
 
 lemma nnnorm_symm_pos [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ₁₂] F) :
-  0 < nnnorm (e.symm : F →SL[σ₂₁] E) :=
+  0 < ∥e.symm : F →SL[σ₂₁] E∥₊ :=
 e.norm_symm_pos
 
 lemma subsingleton_or_norm_symm_pos [ring_hom_isometric σ₁₂] (e : E ≃SL[σ₁₂] F) :
@@ -1702,7 +1702,7 @@ begin
 end
 
 lemma subsingleton_or_nnnorm_symm_pos [ring_hom_isometric σ₁₂] (e : E ≃SL[σ₁₂] F) :
-  subsingleton E ∨ 0 < (nnnorm $ (e.symm : F →SL[σ₂₁] E)) :=
+  subsingleton E ∨ 0 < ∥(e.symm : F →SL[σ₂₁] E)∥₊ :=
 subsingleton_or_norm_symm_pos e
 
 variable (𝕜)

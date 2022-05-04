@@ -178,7 +178,7 @@ protected lemma nonempty : (p : set M).nonempty := ⟨0, p.zero_mem⟩
 variables {p}
 @[simp, norm_cast] lemma coe_eq_zero {x : p} : (x : M) = 0 ↔ x = 0 :=
 (set_like.coe_eq_coe : (x : M) = (0 : p) ↔ x = 0)
-protected lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := add_submonoid_class.coe_add _ _ _
+protected lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := add_submonoid_class.coe_add _ _
 protected lemma coe_zero : ((0 : p) : M) = 0 := add_submonoid_class.coe_zero _
 @[norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_smul_of_tower [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M]

@@ -179,13 +179,13 @@ closed sets to closed sets. -/
 lemma is_closed_image_coe_of_bounded_of_closed {s : set (weak_dual 𝕜 E)}
   (hb : bounded (dual.to_weak_dual ⁻¹' s)) (hc : is_closed s) :
   is_closed ((coe_fn : weak_dual 𝕜 E → E → 𝕜) '' s) :=
-continuous_linear_map.is_closed_image_coe_bounded_weak_closed hb (is_closed_induced_iff'.1 hc)
+continuous_linear_map.is_closed_image_coe_of_bounded_of_weak_closed hb (is_closed_induced_iff'.1 hc)
 
 lemma is_compact_of_bounded_of_closed [proper_space 𝕜] {s : set (weak_dual 𝕜 E)}
   (hb : bounded (dual.to_weak_dual ⁻¹' s)) (hc : is_closed s) :
   is_compact s :=
 (embedding.is_compact_iff_is_compact_image fun_like.coe_injective.embedding_induced).mpr $
-  continuous_linear_map.is_compact_image_coe_bounded_of_closed_image hb $
+  continuous_linear_map.is_compact_image_coe_of_bounded_of_closed_image hb $
   is_closed_image_coe_of_bounded_of_closed hb hc
 
 variable (𝕜)

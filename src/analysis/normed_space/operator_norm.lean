@@ -1366,7 +1366,7 @@ end
 /-- Let `s` be a bounded set in the space of continuous (semi)linear maps `E →SL[σ] F` taking values
 in a proper space. Then `s` interpreted as a set in the space of maps `E → F` with topology of
 pointwise convergence is precompact: its closure is a compact set. -/
-lemma is_compact_closure_image_coe_bounded [proper_space F] {s : set (E' →SL[σ₁₂] F)}
+lemma is_compact_closure_image_coe_of_bounded [proper_space F] {s : set (E' →SL[σ₁₂] F)}
   (hb : bounded s) :
   is_compact (closure ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s)) :=
 have ∀ x, is_compact (closure (apply' F σ₁₂ x '' s)),
@@ -1379,10 +1379,10 @@ in a proper space. If `s` interpreted as a set in the space of maps `E → F` wi
 pointwise convergence is closed, then it is compact.
 
 TODO: reformulate this in terms of a type synonym with the right topology. -/
-lemma is_compact_image_coe_bounded_of_closed_image [proper_space F] {s : set (E' →SL[σ₁₂] F)}
+lemma is_compact_image_coe_of_bounded_of_closed_image [proper_space F] {s : set (E' →SL[σ₁₂] F)}
   (hb : bounded s) (hc : is_closed ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s)) :
   is_compact ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s) :=
-hc.closure_eq ▸ is_compact_closure_image_coe_bounded hb
+hc.closure_eq ▸ is_compact_closure_image_coe_of_bounded hb
 
 /-- If a set `s` of semilinear functions is bounded and is closed in the weak-* topology, then its
 image under coercion to functions `E → F` is a closed set. We don't have a name for `E →SL[σ] F`
@@ -1403,7 +1403,7 @@ lemma is_compact_image_coe_of_bounded_of_weak_closed [proper_space F] {s : set (
   (hb : bounded s)
   (hc : ∀ f, (⇑f : E' → F) ∈ closure ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s) → f ∈ s) :
   is_compact ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s) :=
-is_compact_image_coe_bounded_of_closed_image hb $
+is_compact_image_coe_of_bounded_of_closed_image hb $
   is_closed_image_coe_of_bounded_of_weak_closed hb hc
 
 /-- A closed ball is closed in the weak-* topology. We don't have a name for `E →SL[σ] F` with

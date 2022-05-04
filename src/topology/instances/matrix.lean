@@ -345,9 +345,9 @@ lemma has_sum.matrix_block_diag {f : X → matrix (m × p) (n × p) R}
   has_sum (λ x, block_diag (f x)) (block_diag a) :=
 (hf.map (block_diag_add_monoid_hom m n p R) $ continuous.matrix_block_diag continuous_id : _)
 
-lemma summable.matrix_block_diag {f : X → matrix n n R} (hf : summable f) :
-  summable (λ x, diag (f x)) :=
-hf.has_sum.matrix_diag.summable
+lemma summable.matrix_block_diag {f : X → matrix (m × p) (n × p) R} (hf : summable f) :
+  summable (λ x, block_diag (f x)) :=
+hf.has_sum.matrix_block_diag.summable
 
 lemma has_sum.matrix_block_diagonal' [decidable_eq l]
   {f : X → Π i, matrix (m' i) (n' i) R} {a : Π i, matrix (m' i) (n' i) R} (hf : has_sum f a) :

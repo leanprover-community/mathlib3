@@ -155,13 +155,7 @@ def unit_of_det_invertible [invertible A.det] : (matrix n n α)ˣ :=
 
 /-- When lowered to a prop, `matrix.invertible_equiv_det_invertible` forms an `iff`. -/
 lemma is_unit_iff_is_unit_det : is_unit A ↔ is_unit A.det :=
-begin
-  split; rintros ⟨x, hx⟩; refine @is_unit_of_invertible _ _ _ (id _),
-  { haveI : invertible A := hx.rec x.invertible,
-    apply det_invertible_of_invertible, },
-  { haveI : invertible A.det := hx.rec x.invertible,
-    apply invertible_of_det_invertible, },
-end
+by simp only [← nonempty_invertible_iff_is_unit, (invertible_equiv_det_invertible A).nonempty_congr]
 
 /-! #### Variants of the statements above with `is_unit`-/
 
@@ -373,6 +367,13 @@ inv_eq_left_inv (by simp [h, smul_smul])
 lemma inv_smul' (k : αˣ) (h : is_unit A.det) : (k • A)⁻¹ = k⁻¹ • A⁻¹ :=
 inv_eq_left_inv (by simp [h, smul_smul])
 
+lemma inv_adjugate (A : matrix n n α) (h : is_unit A.det) :
+  (adjugate A)⁻¹ = h.unit⁻¹ • A :=
+begin
+  refine inv_eq_left_inv _,
+  rw [smul_mul, mul_adjugate, units.smul_def, smul_smul, h.coe_inv_mul, one_smul]
+end
+
 /-- `diagonal v` is invertible if `v` is -/
 def diagonal_invertible {α} [non_assoc_semiring α] (v : n → α) [invertible v] :
   invertible (diagonal v) :=
@@ -415,13 +416,8 @@ def diagonal_invertible_equiv_invertible (v : n → α) : invertible (diagonal v
 
 /-- When lowered to a prop, `matrix.diagonal_invertible_equiv_invertible` forms an `iff`. -/
 @[simp] lemma is_unit_diagonal {v : n → α} : is_unit (diagonal v) ↔ is_unit v :=
-begin
-  split; rintros ⟨x, hx⟩; refine @is_unit_of_invertible _ _ _ (id _),
-  { haveI : invertible (diagonal v) := hx.rec x.invertible,
-    apply invertible_of_diagonal_invertible, },
-  { haveI : invertible v := hx.rec x.invertible,
-    apply diagonal_invertible, },
-end
+by simp only [← nonempty_invertible_iff_is_unit,
+  (diagonal_invertible_equiv_invertible v).nonempty_congr]
 
 lemma inv_diagonal (v : n → α) : (diagonal v)⁻¹ = diagonal (ring.inverse v) :=
 begin

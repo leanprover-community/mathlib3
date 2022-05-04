@@ -269,7 +269,7 @@ begin
   rw subgroup.mem_bot,
   obtain ⟨n₁, hn₁⟩ := iff_order_of.mp hH₁ ⟨x, hx₁⟩,
   obtain ⟨n₂, hn₂⟩ := iff_order_of.mp hH₂ ⟨x, hx₂⟩,
-  rw [← order_of_subgroup, subgroup.coe_mk] at hn₁ hn₂,
+  rw [← order_of_subgroup, subtype.coe_mk] at hn₁ hn₂,
   have : p₁ ^ n₁ = p₂ ^ n₂, by rw [← hn₁, ← hn₂],
   have : n₁ = 0,
   { contrapose! hne with h,

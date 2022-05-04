@@ -1376,7 +1376,9 @@ compact_closure_of_subset_compact (is_compact_pi_infinite this)
 
 /-- Let `s` be a bounded set in the space of continuous (semi)linear maps `E →SL[σ] F` taking values
 in a proper space. If `s` interpreted as a set in the space of maps `E → F` with topology of
-pointwise convergence is closed, then it is compact. -/
+pointwise convergence is closed, then it is compact.
+
+TODO: reformulate this in terms of a type synonym with the right topology. -/
 lemma is_compact_image_coe_bounded_of_closed_image [proper_space F] {s : set (E' →SL[σ₁₂] F)}
   (hb : bounded s) (hc : is_closed ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s)) :
   is_compact ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s) :=
@@ -1385,7 +1387,8 @@ hc.closure_eq ▸ is_compact_closure_image_coe_bounded hb
 /-- If a set `s` of semilinear functions is bounded and is closed in the weak-* topology, then its
 image under coercion to functions `E → F` is a closed set. We don't have a name for `E →SL[σ] F`
 with weak-* topology in `mathlib`, so we use an equivalent condition (see `is_closed_induced_iff'`).
--/
+
+TODO: reformulate this in terms of a type synonym with the right topology. -/
 lemma is_closed_image_coe_bounded_weak_closed {s : set (E' →SL[σ₁₂] F)} (hb : bounded s)
   (hc : ∀ f, (⇑f : E' → F) ∈ closure ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s) → f ∈ s) :
   is_closed ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s) :=

@@ -391,13 +391,18 @@ end
 instance [symmetric_category V] : symmetric_category (Action V G) :=
 symmetric_category_of_faithful (forget_braided V G)
 
+section
 local attribute [simp] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
+
+variables [preadditive V] [monoidal_preadditive V]
 
 instance : monoidal_preadditive (Action V G) := {}
 
 variables {R : Type*} [semiring R] [linear R V] [monoidal_linear R V]
 
 instance : monoidal_linear R (Action V G) := {}
+
+end
 
 variables (V G)
 noncomputable theory
@@ -417,7 +422,6 @@ by { change rigid_category (single_obj H ⥤ V), apply_instance }
 /-- If `V` is rigid, so is `Action V G`. -/
 instance [rigid_category V] : rigid_category (Action V H) :=
 rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
-variables [preadditive V] [monoidal_preadditive V]
 
 end monoidal
 

@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2022 Praneeth Kolichala. All rights reserved.
+Copyright (c) 2020 Pim Spelier. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Praneeth Kolichala
+Authors: Daan van Gent, Praneeth Kolichala, Pim Spelier
 -/
 import data.num.lemmas
 import data.nat.log
@@ -46,7 +46,7 @@ lemma to_trailing_bits_len (n : pos_num) : (equiv_list_bool n).length = nat.log 
 begin
   induction n with b ih b ih, { erw equiv_list_bool_one, simp, },
   { simp [cast_bit1, nat.bit1_val b, ih], },
-  { simp [cast_bit0, nat.bit0_val b, ih], }
+  { simp [cast_bit0, nat.bit0_val b, ih, nat.one_add], }
 end
 
 lemma equiv_list_bool_symm_lt (ls : list bool) : (equiv_list_bool.symm ls : ℕ) < 2^(ls.length+1) :=

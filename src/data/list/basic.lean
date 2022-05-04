@@ -911,9 +911,9 @@ begin
   { rw reverse_cons, exact H1 _ _ ih }
 end
 
-/-- Take cases on the last element of the list. Like `reverse_rec_on`, this can be used
+/-- Take cases on the last element of the list. Like `list.reverse_rec_on`, this can be used
 for constructing data as well. -/
-def reverse_cases_on {α : Type*} {C : list α → Sort*} (l : list α) (h₀ : C [])
+@[elab_as_eliminator] def reverse_cases_on {α : Type*} {C : list α → Sort*} (l : list α) (h₀ : C [])
   (case : ∀ st lt, C (st ++ [lt])) : C l :=
 by { induction l using list.reverse_rec_on, { exact h₀, }, { apply case, } }
 

@@ -128,8 +128,8 @@ begin
   simp [hn, this]
 end
 
-@[simp] lemma log_base_mul (b n : ℕ) (hb : 1 < b) (hn : 0 < n) : log b (b * n) = log b n + 1 :=
-by { rw mul_comm, simp [hb, hn], }
+@[simp] lemma log_base_mul (b n : ℕ) (hb : 1 < b) (hn : 0 < n) : log b (b * n) = 1 + log b n :=
+by { rw [mul_comm, add_comm], simp [hb, hn], }
 
 lemma lt_pow_succ_log_self {b : ℕ} (hb : 1 < b) (x : ℕ) :
   x < b ^ (log b x).succ :=

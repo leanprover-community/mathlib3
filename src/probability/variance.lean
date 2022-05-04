@@ -57,6 +57,15 @@ lemma variance_smul {Ω : Type*} {m : measurable_space Ω} (c : ℝ) (f : Ω →
   variance (c • f) μ = c^2 * variance f μ :=
 variance_mul c f μ
 
+lemma variance_smul' {A : Type*} [comm_semiring A] [algebra A ℝ]
+  {Ω : Type*} {m : measurable_space Ω} (c : A) (f : Ω → ℝ) (μ : measure Ω) :
+  variance (c • f) μ = c^2 • variance f μ :=
+begin
+  convert variance_smul (algebra_map A ℝ c) f μ,
+  { ext1 x, simp only [algebra_map_smul], },
+  { simp only [algebra.smul_def, map_pow], }
+end
+
 localized
 "notation `Var[` X `]` := probability_theory.variance X measure_theory.measure_space.volume"
 in probability_theory

@@ -836,7 +836,7 @@ begin
   nth_rewrite 0 [x_decomp],
   simp only [sq, norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero ((p1 x) : E) (p2 x) x_orth,
              add_left_inj, mul_eq_mul_left_iff, norm_eq_zero, true_or, eq_self_iff_true,
-             submodule.coe_norm, submodule.coe_eq_zero]
+             add_subgroup.coe_norm, submodule.coe_eq_zero]
 end
 
 /-- In a complete space `E`, the projection maps onto a complete subspace `K` and its orthogonal

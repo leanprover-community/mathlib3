@@ -377,11 +377,7 @@ end
 /-- `diagonal v` is invertible if `v` is -/
 def diagonal_invertible {α} [non_assoc_semiring α] (v : n → α) [invertible v] :
   invertible (diagonal v) :=
-{ inv_of := diagonal (⅟v),
-  inv_of_mul_self := by simp_rw [mul_eq_mul, diagonal_mul_diagonal, ←pi.mul_def, inv_of_mul_self,
-                                 pi.one_def, diagonal_one],
-  mul_inv_of_self := by simp_rw [mul_eq_mul, diagonal_mul_diagonal, ←pi.mul_def, mul_inv_of_self,
-                                 pi.one_def, diagonal_one] }
+invertible.map (diagonal_ring_hom n α) v
 
 lemma inv_of_diagonal_eq {α} [semiring α] (v : n → α) [invertible v] [invertible (diagonal v)] :
   ⅟(diagonal v) = diagonal (⅟v) :=

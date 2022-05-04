@@ -11,7 +11,8 @@ import algebra.ring.equiv
 # Semiring, ring etc structures on `R × S`
 
 In this file we define two-binop (`semiring`, `ring` etc) structures on `R × S`. We also prove
-trivial `simp` lemmas, and define the following operations on `ring_hom`s:
+trivial `simp` lemmas, and define the following operations on `ring_hom`s and similarly for
+`non_unital_ring_hom`s:
 
 * `fst R S : R × S →+* R`, `snd R S : R × S →+* S`: projections `prod.fst` and `prod.snd`
   as `ring_hom`s;

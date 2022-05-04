@@ -101,32 +101,31 @@ lemma eq_preimage_iff_image_eq {α β} (e : α ≃ β) (s t) : s = e ⁻¹' t �
 set.eq_preimage_iff_image_eq e.bijective
 
 @[simp] lemma prod_comm_preimage {α β} {s : set α} {t : set β} :
-  equiv.prod_comm α β ⁻¹' (t ×ˢ s) = (s ×ˢ t) :=
+  equiv.prod_comm α β ⁻¹' t ×ˢ s = s ×ˢ t :=
 set.preimage_swap_prod
 
-lemma prod_comm_image {α β} {s : set α} {t : set β} :
-  equiv.prod_comm α β '' (s ×ˢ t) = (t ×ˢ s) :=
+lemma prod_comm_image {α β} {s : set α} {t : set β} : equiv.prod_comm α β '' s ×ˢ t = t ×ˢ s :=
 set.image_swap_prod
 
 @[simp]
 lemma prod_assoc_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
-  equiv.prod_assoc α β γ ⁻¹' (s ×ˢ (t ×ˢ u)) = (s ×ˢ t) ×ˢ u :=
+  equiv.prod_assoc α β γ ⁻¹' s ×ˢ (t ×ˢ u) = (s ×ˢ t) ×ˢ u :=
 by { ext, simp [and_assoc] }
 
 @[simp]
 lemma prod_assoc_symm_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
-  (equiv.prod_assoc α β γ).symm ⁻¹' ((s ×ˢ t) ×ˢ u) = s ×ˢ (t ×ˢ u) :=
+  (equiv.prod_assoc α β γ).symm ⁻¹' (s ×ˢ t) ×ˢ u = s ×ˢ (t ×ˢ u) :=
 by { ext, simp [and_assoc] }
 
 -- `@[simp]` doesn't like these lemmas, as it uses `set.image_congr'` to turn `equiv.prod_assoc`
 -- into a lambda expression and then unfold it.
 
 lemma prod_assoc_image {α β γ} {s : set α} {t : set β} {u : set γ} :
-  equiv.prod_assoc α β γ '' ((s ×ˢ t) ×ˢ u) = s ×ˢ (t ×ˢ u) :=
+  equiv.prod_assoc α β γ '' (s ×ˢ t) ×ˢ u = s ×ˢ (t ×ˢ u) :=
 by simpa only [equiv.image_eq_preimage] using prod_assoc_symm_preimage
 
 lemma prod_assoc_symm_image {α β γ} {s : set α} {t : set β} {u : set γ} :
-  (equiv.prod_assoc α β γ).symm '' (s ×ˢ (t ×ˢ u)) = (s ×ˢ t) ×ˢ u :=
+  (equiv.prod_assoc α β γ).symm '' s ×ˢ (t ×ˢ u) = (s ×ˢ t) ×ˢ u :=
 by simpa only [equiv.image_eq_preimage] using prod_assoc_preimage
 
 /-- A set `s` in `α × β` is equivalent to the sigma-type `Σ x, {y | (x, y) ∈ s}`. -/
@@ -499,6 +498,19 @@ by simpa [equiv.image_eq_preimage] using (equiv.set.congr e).forall_congr_left'
 protected lemma preimage_sUnion {α β} (f : α ≃ β) {s : set (set β)} :
   f ⁻¹' (⋃₀ s) = ⋃₀ (_root_.set.image f ⁻¹' s) :=
 by { ext x, simp [(equiv.set.congr f).symm.exists_congr_left] }
+
+lemma preimage_pi_equiv_pi_subtype_prod_symm_pi {α : Type*} {β : α → Type*}
+  (p : α → Prop) [decidable_pred p] (s : Π i, set (β i)) :
+  (pi_equiv_pi_subtype_prod p β).symm ⁻¹' set.pi univ s =
+    (set.pi univ (λ i : {i // p i}, s i)) ×ˢ (set.pi univ (λ i : {i // ¬p i}, s i)) :=
+begin
+  ext ⟨f, g⟩,
+  simp only [mem_preimage, mem_univ_pi, prod_mk_mem_set_prod_eq, subtype.forall,
+    ← forall_and_distrib],
+  refine forall_congr (λ i, _),
+  dsimp only [subtype.coe_mk],
+  by_cases hi : p i; simp [hi]
+end
 
 end equiv
 

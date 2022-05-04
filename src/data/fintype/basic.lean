@@ -269,7 +269,7 @@ instance decidable_eq_one_hom_fintype [decidable_eq β] [fintype α] [has_one α
 
 @[to_additive]
 instance decidable_eq_mul_hom_fintype [decidable_eq β] [fintype α] [has_mul α] [has_mul β]:
-  decidable_eq (mul_hom α β) :=
+  decidable_eq (α →ₙ* β) :=
 λ a b, decidable_of_iff ((a : α → β) = b) (injective.eq_iff mul_hom.coe_inj)
 
 @[to_additive]
@@ -846,8 +846,8 @@ def fintype_of_option {α : Type*} [fintype (option α)] : fintype α :=
 ⟨finset.erase_none (fintype.elems (option α)), λ x, mem_erase_none.mpr (fintype.complete (some x))⟩
 
 /-- A type is a `fintype` if its successor (using `option`) is a `fintype`. -/
-def fintype_of_option_equiv [fintype α] (f : option α ≃ β) : fintype β :=
-by { haveI := fintype.of_equiv (option α) f, exact fintype_of_option }
+def fintype_of_option_equiv [fintype α] (f : α ≃ option β) : fintype β :=
+by { haveI := fintype.of_equiv _ f, exact fintype_of_option }
 
 instance {α : Type*} (β : α → Type*)
   [fintype α] [∀ a, fintype (β a)] : fintype (sigma β) :=
@@ -1727,12 +1727,19 @@ have ∀ x y, r x y → (univ.filter (λ z, r z x)).card < (univ.filter (λ z, r
     exact ⟨λ z hzx, trans hzx hxy, not_forall_of_exists_not ⟨x, not_imp.2 ⟨hxy, irrefl x⟩⟩⟩,
 subrelation.wf this (measure_wf _)
 
-lemma preorder.well_founded [fintype α] [preorder α] : well_founded ((<) : α → α → Prop) :=
+lemma preorder.well_founded_lt [fintype α] [preorder α] : well_founded ((<) : α → α → Prop) :=
 well_founded_of_trans_of_irrefl _
 
-@[instance, priority 10] lemma linear_order.is_well_order [fintype α] [linear_order α] :
+lemma preorder.well_founded_gt [fintype α] [preorder α] : well_founded ((>) : α → α → Prop) :=
+well_founded_of_trans_of_irrefl _
+
+@[instance, priority 10] lemma linear_order.is_well_order_lt [fintype α] [linear_order α] :
   is_well_order α (<) :=
-{ wf := preorder.well_founded }
+{ wf := preorder.well_founded_lt }
+
+@[instance, priority 10] lemma linear_order.is_well_order_gt [fintype α] [linear_order α] :
+  is_well_order α (>) :=
+{ wf := preorder.well_founded_gt }
 
 end fintype
 

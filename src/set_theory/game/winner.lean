@@ -3,7 +3,7 @@ Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
-import set_theory.pgame
+import set_theory.game.pgame
 
 /-!
 # Basic definitions about who has a winning stratergy

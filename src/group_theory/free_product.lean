@@ -8,8 +8,7 @@ import group_theory.congruence
 import group_theory.is_free_group
 import group_theory.subgroup.pointwise
 import data.list.chain
-import set_theory.cardinal
-import set_theory.cardinal_ordinal
+import set_theory.cardinal.ordinal
 /-!
 # The free product of groups or monoids
 
@@ -688,7 +687,7 @@ theorem lift_injective_of_ping_pong:
   function.injective (lift f) :=
 begin
   classical,
-  apply (monoid_hom.injective_iff (lift f)).mpr,
+  apply (injective_iff_map_eq_one (lift f)).mpr,
   rw free_product.word.equiv.forall_congr_left',
   { intros w Heq,
     dsimp [word.equiv] at *,

@@ -1091,6 +1091,9 @@ begin
             ... ≤ a     : (neg_neg a).le }
 end
 
+lemma neg_abs_le_neg (a : α) : -|a| ≤ -a :=
+by simpa using neg_abs_le_self (-a)
+
 lemma abs_nonneg (a : α) : 0 ≤ |a| :=
 (le_total 0 a).elim (λ h, h.trans (le_abs_self a)) (λ h, (neg_nonneg.2 h).trans $ neg_le_abs_self a)
 
@@ -1145,6 +1148,9 @@ lemma abs_add (a b : α) : |a + b| ≤ |a| + |b| :=
 abs_le.2 ⟨(neg_add (|a|) (|b|)).symm ▸
   add_le_add (neg_le.2 $ neg_le_abs_self _) (neg_le.2 $ neg_le_abs_self _),
   add_le_add (le_abs_self _) (le_abs_self _)⟩
+
+lemma abs_add' (a b : α) : |a| ≤ |b| + |b + a| :=
+by simpa using abs_add (-b) (b + a)
 
 theorem abs_sub (a b : α) :
   |a - b| ≤ |a| + |b| :=

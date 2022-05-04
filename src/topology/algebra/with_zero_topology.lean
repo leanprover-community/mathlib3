@@ -160,6 +160,12 @@ lemma has_basis_nhds_of_ne_zero {x : Γ₀} (h : x ≠ 0) :
   has_basis (𝓝 x) (λ i : unit, true) (λ i, {x}) :=
 has_basis_nhds_units (units.mk0 x h)
 
+lemma singleton_mem_nhds_of_ne_zero {x : Γ₀} (h : x ≠ 0) : {x} ∈ 𝓝 x :=
+begin
+  apply (has_basis_nhds_of_ne_zero h).mem_of_mem true.intro,
+  exact unit.star,
+end
+
 lemma tendsto_units {α : Type*} {F : filter α} {f : α → Γ₀} {γ₀ : Γ₀ˣ} :
   tendsto f F (𝓝 (γ₀ : Γ₀)) ↔ { x : α | f x = γ₀ } ∈ F :=
 begin

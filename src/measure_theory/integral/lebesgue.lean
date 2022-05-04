@@ -313,7 +313,7 @@ def pair (f : α →ₛ β) (g : α →ₛ γ) : α →ₛ (β × γ) := (f.map 
 @[simp] lemma pair_apply (f : α →ₛ β) (g : α →ₛ γ) (a) : pair f g a = (f a, g a) := rfl
 
 lemma pair_preimage (f : α →ₛ β) (g : α →ₛ γ) (s : set β) (t : set γ) :
-  (pair f g) ⁻¹' (s ×ˢ t) = (f ⁻¹' s) ∩ (g ⁻¹' t) := rfl
+  pair f g ⁻¹' s ×ˢ t = (f ⁻¹' s) ∩ (g ⁻¹' t) := rfl
 
 /- A special form of `pair_preimage` -/
 lemma pair_preimage_singleton (f : α →ₛ β) (g : α →ₛ γ) (b : β) (c : γ) :
@@ -1116,7 +1116,7 @@ begin
   rcases this with ⟨φ, hle : ∀ x, ↑(φ x) ≤ f x, b, hbφ, hb⟩,
   refine ⟨φ, hle, λ ψ hψ, _⟩,
   have : (map coe φ).lintegral μ ≠ ∞, from ne_top_of_le_ne_top h (le_supr₂ φ hle),
-  rw [← add_lt_add_iff_left this, ← add_lintegral, ← map_add @ennreal.coe_add],
+  rw [← ennreal.add_lt_add_iff_left this, ← add_lintegral, ← map_add @ennreal.coe_add],
   refine (hb _ (λ x, le_trans _ (max_le (hle x) (hψ x)))).trans_lt hbφ,
   norm_cast,
   simp only [add_apply, sub_apply, add_tsub_eq_max]

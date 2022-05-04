@@ -1501,6 +1501,7 @@ section continuous_linear_map_nondiscrete_normed_field
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
 lemma _root_.strongly_measurable.apply_continuous_linear_map
   {m : measurable_space α} {φ : α → F →L[𝕜] E} (hφ : strongly_measurable φ) (v : F) :
@@ -1512,6 +1513,10 @@ lemma apply_continuous_linear_map {φ : α → F →L[𝕜] E}
   ae_strongly_measurable (λ a, φ a v) μ :=
 (continuous_linear_map.apply 𝕜 E v).continuous.comp_ae_strongly_measurable hφ
 
+lemma ae_strongly_measurable_comp₂ (L : E →L[𝕜] F →L[𝕜] G) {f : α → E} {g : α → F}
+  (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
+  ae_strongly_measurable (λ x, L (f x) (g x)) μ :=
+L.continuous₂.comp_ae_strongly_measurable $ hf.prod_mk hg
 end continuous_linear_map_nondiscrete_normed_field
 
 lemma _root_.ae_strongly_measurable_with_density_iff {E : Type*} [normed_group E] [normed_space ℝ E]
@@ -1693,7 +1698,7 @@ begin
   { rw tendsto_pi_nhds,
     exact λ p, ht_sf p.fst p.snd, },
   refine measurable_of_tendsto_metric (λ n, _) h_tendsto,
-  haveI : encodable (t_sf n).range, from fintype.encodable ↥(t_sf n).range,
+  haveI : encodable (t_sf n).range, from fintype.to_encodable ↥(t_sf n).range,
   have h_meas : measurable (λ (p : (t_sf n).range × α), u ↑p.fst p.snd),
   { have : (λ (p : ↥((t_sf n).range) × α), u ↑(p.fst) p.snd)
         = (λ (p : α × ((t_sf n).range)), u ↑(p.snd) p.fst) ∘ prod.swap := rfl,
@@ -1725,7 +1730,7 @@ begin
   { rw tendsto_pi_nhds,
     exact λ p, ht_sf p.fst p.snd, },
   refine strongly_measurable_of_tendsto _ (λ n, _) h_tendsto,
-  haveI : encodable (t_sf n).range, from fintype.encodable ↥(t_sf n).range,
+  haveI : encodable (t_sf n).range, from fintype.to_encodable ↥(t_sf n).range,
   have h_str_meas : strongly_measurable (λ (p : (t_sf n).range × α), u ↑p.fst p.snd),
   { refine strongly_measurable_iff_measurable_separable.2 ⟨_, _⟩,
     { have : (λ (p : ↥((t_sf n).range) × α), u ↑(p.fst) p.snd)

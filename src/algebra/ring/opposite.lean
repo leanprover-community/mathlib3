@@ -47,6 +47,9 @@ instance [semiring α] : semiring αᵐᵒᵖ :=
 { .. mul_opposite.non_unital_semiring α, .. mul_opposite.non_assoc_semiring α,
   .. mul_opposite.monoid_with_zero α }
 
+instance [non_unital_comm_semiring α] : non_unital_comm_semiring αᵐᵒᵖ :=
+{ .. mul_opposite.non_unital_semiring α, .. mul_opposite.comm_semigroup α }
+
 instance [comm_semiring α] : comm_semiring αᵐᵒᵖ :=
 { .. mul_opposite.semiring α, .. mul_opposite.comm_semigroup α }
 
@@ -62,6 +65,9 @@ instance [non_assoc_ring α] : non_assoc_ring αᵐᵒᵖ :=
 
 instance [ring α] : ring αᵐᵒᵖ :=
 { .. mul_opposite.add_comm_group α, .. mul_opposite.monoid α, .. mul_opposite.semiring α }
+
+instance [non_unital_comm_ring α] : non_unital_comm_ring αᵐᵒᵖ :=
+{ .. mul_opposite.non_unital_ring α, .. mul_opposite.non_unital_comm_semiring α }
 
 instance [comm_ring α] : comm_ring αᵐᵒᵖ :=
 { .. mul_opposite.ring α, .. mul_opposite.comm_semiring α }
@@ -117,6 +123,9 @@ instance [semiring α] : semiring αᵃᵒᵖ :=
 { .. add_opposite.non_unital_semiring α, .. add_opposite.non_assoc_semiring α,
   .. add_opposite.monoid_with_zero α }
 
+instance [non_unital_comm_semiring α] : non_unital_comm_semiring αᵃᵒᵖ :=
+{ .. add_opposite.non_unital_semiring α, .. add_opposite.comm_semigroup α }
+
 instance [comm_semiring α] : comm_semiring αᵃᵒᵖ :=
 { .. add_opposite.semiring α, .. add_opposite.comm_semigroup α }
 
@@ -132,6 +141,9 @@ instance [non_assoc_ring α] : non_assoc_ring αᵃᵒᵖ :=
 
 instance [ring α] : ring αᵃᵒᵖ :=
 { .. add_opposite.add_comm_group α, .. add_opposite.monoid α, .. add_opposite.semiring α }
+
+instance [non_unital_comm_ring α] : non_unital_comm_ring αᵃᵒᵖ :=
+{ .. add_opposite.non_unital_ring α, .. add_opposite.non_unital_comm_semiring α }
 
 instance [comm_ring α] : comm_ring αᵃᵒᵖ :=
 { .. add_opposite.ring α, .. add_opposite.comm_semiring α }

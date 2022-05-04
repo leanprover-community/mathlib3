@@ -425,7 +425,7 @@ begin
       ((continuous_apply i).tendsto _).sub tendsto_const_nhds),
   simp only [sub_self, norm_zero, finset.sum_const_zero] at this,
   refine (this.eventually (gt_mem_nhds $ inv_pos.2 K0)).mono (λ g hg, _),
-  replace hg : ∑ i, nnnorm (g i - f i) < K⁻¹, by { rw ← nnreal.coe_lt_coe, push_cast, exact hg },
+  replace hg : ∑ i, ∥g i - f i∥₊ < K⁻¹, by { rw ← nnreal.coe_lt_coe, push_cast, exact hg },
   rw linear_map.ker_eq_bot,
   refine (hK.add_sub_lipschitz_with (lipschitz_with.of_dist_le_mul $ λ v u, _) hg).injective,
   simp only [dist_eq_norm, linear_map.lsum_apply, pi.sub_apply, linear_map.sum_apply,
@@ -858,7 +858,7 @@ begin
     set e := v.equiv_funL,
     have : summable (λ x, ∥e (f x)∥) := this (e.summable.2 hf),
     refine summable_of_norm_bounded _ (this.mul_left
-      ↑(nnnorm (e.symm : (fin (finrank ℝ E) → ℝ) →L[ℝ] E))) (λ i, _),
+      ↑(∥(e.symm : (fin (finrank ℝ E) → ℝ) →L[ℝ] E)∥₊)) (λ i, _),
     simpa using (e.symm : (fin (finrank ℝ E) → ℝ) →L[ℝ] E).le_op_norm (e $ f i) },
   unfreezingI { clear_dependent E },
   -- Now we deal with `g : α → fin N → ℝ`

@@ -964,7 +964,7 @@ begin
   unfreezingI
   { rcases m.eq_zero_or_pos with rfl | hm,
     { simpa using irreducible_X_sub_C (1 : R) },
-    obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le hmn ,
+    obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le hmn,
     induction k with k hk },
   { simpa using h },
   have : m + k ≠ 0 := (add_pos_of_pos_of_nonneg hm k.zero_le).ne',

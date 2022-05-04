@@ -32,6 +32,8 @@ open_locale big_operators
 open_locale matrix
 open finite_dimensional
 
+open_locale tensor_product
+
 section
 variables (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
 variables {ι : Type w} [decidable_eq ι] [fintype ι]
@@ -103,18 +105,13 @@ theorem trace_conj (g : M →ₗ[R] M) (f : (M →ₗ[R] M)ˣ) :
   trace R M (↑f * g * ↑f⁻¹) = trace R M g :=
 by { rw trace_mul_comm, simp }
 
-/-- The trace of an endomorphism is invariant under conjugation -/
-@[simp]
-theorem trace_conj' (f g : M →ₗ[R] M) [invertible f] :
-  trace R M (f * g * ⅟ f) = trace R M g :=
-by { rw trace_mul_comm, simp }
-
 end
 
 section
 
-variables (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-variables {ι : Type w} [fintype ι]
+variables {R : Type*} [comm_ring R] {M : Type*} [add_comm_group M] [module R M]
+variables (N : Type*) [add_comm_group N] [module R N]
+variables {ι : Type*} [fintype ι]
 
 /-- The trace of a linear map correspond to the contraction pairing under the isomorphism
  `End(M) ≃ M* ⊗ M`-/
@@ -137,15 +134,20 @@ end
 lemma trace_eq_contract_of_basis' [decidable_eq ι] (b : basis ι R M) :
   (linear_map.trace R M) =
   (contract_left R M) ∘ₗ (dual_tensor_hom_equiv_of_basis b).symm.to_linear_map :=
-by simp [linear_equiv.eq_comp_to_linear_map_symm, trace_eq_contract_of_basis R b]
+by simp [linear_equiv.eq_comp_to_linear_map_symm, trace_eq_contract_of_basis b]
 
-variables [module.free R M] [module.finite R M] [nontrivial R]
+variables (R M)
+variables [module.free R M] [module.finite R M] [module.free R N] [module.finite R N] [nontrivial R]
 
 /-- When `M` is finite free, the trace of a linear map correspond to the contraction pairing under
 the isomorphism `End(M) ≃ M* ⊗ M`-/
 @[simp] theorem trace_eq_contract :
   (linear_map.trace R M) ∘ₗ (dual_tensor_hom R M M) = contract_left R M :=
-trace_eq_contract_of_basis R (module.free.choose_basis R M)
+trace_eq_contract_of_basis (module.free.choose_basis R M)
+
+@[simp] theorem trace_eq_contract_apply (x : module.dual R M ⊗[R] M) :
+  (linear_map.trace R M) ((dual_tensor_hom R M M) x) = contract_left R M x :=
+by rw [←comp_apply, trace_eq_contract]
 
 open_locale classical
 
@@ -153,8 +155,8 @@ open_locale classical
 the isomorphism `End(M) ≃ M* ⊗ M`-/
 theorem trace_eq_contract' :
   (linear_map.trace R M) =
-  (contract_left R M) ∘ₗ (dual_tensor_hom_equiv).symm.to_linear_map :=
-trace_eq_contract_of_basis' R (module.free.choose_basis R M)
+  (contract_left R M) ∘ₗ (dual_tensor_hom_equiv R M M).symm.to_linear_map :=
+trace_eq_contract_of_basis' (module.free.choose_basis R M)
 
 /-- The trace of the identity endomorphism is the dimension of the free module -/
 @[simp] theorem trace_one : trace R M 1 = (finrank R M : R) :=
@@ -163,6 +165,34 @@ begin
   rw [trace_eq_matrix_trace R b, to_matrix_one, module.free.finrank_eq_card_choose_basis_index],
   simp,
 end
+
+variables (M)
+
+theorem trace_comp_comm :
+  compr₂ (llcomp R M N M) (trace R M) = compr₂ (llcomp R N M N).flip (trace R N) :=
+begin
+  apply (compl₁₂_inj
+    (dual_tensor_hom_equiv R N M).surjective (dual_tensor_hom_equiv R M N).surjective).1,
+  ext g m f n,
+  simp only [tensor_product.algebra_tensor_module.curry_apply, to_fun_eq_coe,
+  tensor_product.curry_apply, coe_restrict_scalars_eq_coe, compl₁₂_apply, compr₂_apply, flip_apply,
+  llcomp_apply', comp_dual_tensor_hom, map_smul, trace_eq_contract_apply, contract_left_apply,
+  smul_eq_mul, mul_comm],
+end
+
+variables {R M}
+
+theorem trace_comp_comm' (f : M →ₗ[R] N) (g : N →ₗ[R] M) :
+  trace R M (g ∘ₗ f) = trace R N (f ∘ₗ g) :=
+begin
+  have h := ext_iff.1 (ext_iff.1 (trace_comp_comm R M N) g) f,
+  simp only [llcomp_apply', compr₂_apply, flip_apply] at h,
+  exact h,
+end
+
+@[simp] theorem trace_conj' (f : M →ₗ[R] M) (e : M ≃ₗ[R] N) : trace R N (e.conj f) = trace R M f :=
+by rw [e.conj_apply, trace_comp_comm', ←comp_assoc, linear_equiv.comp_coe,
+  linear_equiv.self_trans_symm, linear_equiv.refl_to_linear_map, id_comp]
 
 end
 

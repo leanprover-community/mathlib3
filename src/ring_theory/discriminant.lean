@@ -203,7 +203,7 @@ begin
   have hle : 1 ≤ pb.dim,
   { rw [← hn, nat.one_le_iff_ne_zero, ← zero_lt_iff, finite_dimensional.finrank_pos_iff],
     apply_instance },
-  rw [hn, nat.cast_dvd h₂ hne, nat.cast_mul, nat.cast_sub hle],
+  rw [hn, nat.cast_div h₂ hne, nat.cast_mul, nat.cast_sub hle],
   field_simp,
   ring,
 end

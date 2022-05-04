@@ -316,7 +316,7 @@ def submonoid.comm_monoid_topological_closure [t2_space M] (s : submonoid M)
     rw [closure_prod_eq, set.mem_prod],
     exact ⟨by simp [←h₁], by simp [←h₁]⟩
   end,
-  ..s.topological_closure.to_monoid }
+  ..submonoid_class.to_monoid (s.topological_closure) }
 
 @[to_additive exists_open_nhds_zero_half]
 lemma exists_open_nhds_one_split {s : set M} (hs : s ∈ 𝓝 (1 : M)) :

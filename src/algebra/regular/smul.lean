@@ -76,6 +76,14 @@ lemma is_left_regular [has_mul R] {a : R} (h : is_smul_regular R a) :
 lemma is_right_regular [has_mul R] {a : R} (h : is_smul_regular R (mul_opposite.op a)) :
   is_right_regular a := h
 
+lemma mul [has_mul R] [is_scalar_tower R R M]
+  (ra : is_smul_regular M a) (rb : is_smul_regular M b) : is_smul_regular M (a * b) :=
+ra.smul rb
+
+lemma of_mul [has_mul R] [is_scalar_tower R R M] (ab : is_smul_regular M (a * b)) :
+  is_smul_regular M b :=
+by { rw ← smul_eq_mul at ab, exact ab.of_smul _ }
+
 end has_scalar
 
 section monoid
@@ -90,13 +98,9 @@ variable (M)
 
 variable {M}
 
-lemma mul (ra : is_smul_regular M a) (rb : is_smul_regular M b) :
-  is_smul_regular M (a * b) :=
-ra.smul rb
-
-lemma of_mul (ab : is_smul_regular M (a * b)) :
-  is_smul_regular M b :=
-by { rw ← smul_eq_mul at ab, exact ab.of_smul _ }
+/-- An element of `R` admitting a left inverse is `M`-regular. -/
+lemma of_mul_eq_one (h : a * b = 1) : is_smul_regular M b :=
+of_mul (by { rw h, exact one M })
 
 @[simp] lemma mul_iff_right  (ha : is_smul_regular M a) :
   is_smul_regular M (a * b) ↔ is_smul_regular M b :=
@@ -133,10 +137,21 @@ end
 
 end monoid
 
+section monoid_smul
+
+variables [monoid S] [has_scalar R M] [has_scalar R S] [mul_action S M] [is_scalar_tower R S M]
+
+/-- An element of `S` admitting a left inverse in `R` is `M`-regular. -/
+lemma of_smul_eq_one (h : a • s = 1) : is_smul_regular M s :=
+of_smul a (by { rw h, exact one M })
+
+end monoid_smul
+
 section monoid_with_zero
 
-variables [monoid_with_zero R] [monoid_with_zero S] [has_zero M] [mul_action_with_zero R M]
-  [mul_action_with_zero R S] [mul_action_with_zero S M] [is_scalar_tower R S M]
+variables [monoid_with_zero R] [monoid_with_zero S] [has_zero M]
+          [mul_action_with_zero R M] [mul_action_with_zero R S] [mul_action_with_zero S M]
+          [is_scalar_tower R S M]
 
 /-- The element `0` is `M`-regular if and only if `M` is trivial. -/
 protected lemma subsingleton (h : is_smul_regular M (0 : R)) : subsingleton M :=
@@ -161,14 +176,6 @@ zero_iff_subsingleton.mpr sM
 /-- The `0` element is not `M`-regular, on a non-trivial module. -/
 lemma not_zero [nM : nontrivial M] : ¬ is_smul_regular M (0 : R) :=
 not_zero_iff.mpr nM
-
-/-- An element of `S` admitting a left inverse in `R` is `M`-regular. -/
-lemma of_smul_eq_one (h : a • s = 1) : is_smul_regular M s :=
-of_smul a (by { rw h, exact one M })
-
-/-- An element of `R` admitting a left inverse is `M`-regular. -/
-lemma of_mul_eq_one (h : a * b = 1) : is_smul_regular M b :=
-of_mul (by { rw h, exact one M })
 
 end monoid_with_zero
 

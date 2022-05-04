@@ -250,9 +250,9 @@ begin
   rw [←map_zero (algebra_map ℚ A), ←zero_div (n.succ! : ℚ), ←hite2, ← bernoulli_spec', sum_div],
   refine congr_arg (algebra_map ℚ A) (sum_congr rfl $ λ x h, eq_div_of_mul_eq (hfact n.succ) _),
   rw mem_antidiagonal at h,
-  have hj : (j.succ : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero j,
-  field_simp [← h, mul_ne_zero hj (hfact j), hfact i, mul_comm _ (bernoulli i), mul_assoc],
-  rw_mod_cast [mul_comm (j + 1), mul_div_assoc, ← mul_assoc],
+  have hj : (x.2.succ : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero _,
+  field_simp [← h, mul_ne_zero hj (hfact x.2), hfact x.1, mul_comm _ (bernoulli x.1), mul_assoc],
+  rw_mod_cast [mul_comm (x.2 + 1), mul_div_assoc, ← mul_assoc],
   rw [cast_mul, cast_mul, mul_div_mul_right _ _ hj, add_choose, cast_div_char_zero],
   apply factorial_mul_factorial_dvd_factorial_add,
 end

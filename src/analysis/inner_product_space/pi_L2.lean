@@ -437,7 +437,7 @@ begin
     rw norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero (L (p1 x)) (L3 (p2 x)) Mx_orth,
     simp only [linear_isometry.norm_map, p1, p2, continuous_linear_map.to_linear_map_eq_coe,
       add_left_inj, mul_eq_mul_left_iff, norm_eq_zero, true_or, eq_self_iff_true,
-      continuous_linear_map.coe_coe, submodule.coe_norm, submodule.coe_eq_zero] },
+      continuous_linear_map.coe_coe, add_subgroup.coe_norm, submodule.coe_eq_zero] },
   exact { to_linear_map := M, norm_map' := M_norm_map },
 end
 

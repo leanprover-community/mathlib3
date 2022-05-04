@@ -929,11 +929,12 @@ begin
   { -- Base case: `n = 0`, the fixed subspace is the whole space, so `φ = id`
     refine ⟨[], rfl.le, show φ = 1, from _⟩,
     have : (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).ker = ⊤,
-    { rwa [nat.le_zero_iff, finrank_eq_zero, submodule.orthogonal_eq_bot_iff] at hn },
+    { rwa [nat.le_zero_iff, @finrank_eq_zero ℝ _ _ _ _ _ᗮ, submodule.orthogonal_eq_bot_iff] at hn },
     symmetry,
     ext x,
     have := linear_map.congr_fun (linear_map.ker_eq_top.mp this) x,
-    rwa [continuous_linear_map.coe_sub, linear_map.zero_apply, linear_map.sub_apply, sub_eq_zero]
+    rwa [continuous_linear_map.coe_sub, linear_map.zero_apply, linear_map.sub_apply, sub_eq_zero,
+         continuous_linear_map.coe_id, linear_map.id_apply]
       at this },
   { -- Inductive step.  Let `W` be the fixed subspace of `φ`.  We suppose its complement to have
     -- dimension at most n + 1.
@@ -968,7 +969,7 @@ begin
       rw hW w hw,
       refine reflection_mem_subspace_eq_self _,
       apply mem_orthogonal_singleton_of_inner_left,
-      exact submodule.sub_mem _ v.prop hφv _ hw },
+      exact sub_mem v.prop hφv _ hw },
     -- `v` is also fixed by `φ.trans ρ`
     have H₁V : (v : F) ∈ V,
     { apply hV,
@@ -979,8 +980,8 @@ begin
     -- most `n`
     have : finrank ℝ Vᗮ ≤ n,
     { change finrank ℝ Wᗮ ≤ n + 1 at hn,
-      have : finrank ℝ W + 1 ≤ finrank ℝ V :=
-        submodule.finrank_lt_finrank_of_lt (set_like.lt_iff_le_and_exists.2 ⟨H₂V, v, H₁V, hv'⟩),
+      have : finrank ℝ W + 1 ≤ finrank ℝ V := nat.succ_le_of_lt
+        (submodule.finrank_lt_finrank_of_lt (set_like.lt_iff_le_and_exists.2 ⟨H₂V, v, H₁V, hv'⟩)),
       have : finrank ℝ V + finrank ℝ Vᗮ = finrank ℝ F := V.finrank_add_finrank_orthogonal,
       have : finrank ℝ W + finrank ℝ Wᗮ = finrank ℝ F := W.finrank_add_finrank_orthogonal,
       linarith },

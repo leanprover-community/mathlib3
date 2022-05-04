@@ -27,8 +27,8 @@ sentence of `T` is realized in `M`. Also denoted `T ⊨ φ`.
 * `first_order.language.bounded_formula.realize_to_prenex` shows that the prenex normal form of a
 formula has the same realization as the original formula.
 * Several results in this file show that syntactic constructions such as `relabel`, `cast_le`,
-`lift_at`, and the actions of language maps commute with realization of terms, formulas, sentences,
-and theories.
+`lift_at`, `subst`, and the actions of language maps commute with realization of terms, formulas,
+sentences, and theories.
 
 ## Implementation Notes
 * Formulas use a modified version of de Bruijn variables. Specifically, a `L.bounded_formula α n`
@@ -102,6 +102,14 @@ end
 
 lemma realize_con {A : set M} {a : A} {v : α → M} :
   (L.con a).term.realize v = a := rfl
+
+@[simp] lemma realize_subst {t : L.term α} {tf : α → L.term β} {v : β → M} :
+  (t.subst tf).realize v = t.realize (λ a, (tf a).realize v) :=
+begin
+  induction t with _ _ _ _ ih,
+  { refl },
+  { simp [ih] }
+end
 
 end term
 
@@ -222,12 +230,8 @@ end
 begin
   induction l with φ l ih,
   { simp },
-  { simp only [ih, list.foldr_cons, realize_sup, exists_prop, list.mem_cons_iff],
-    refine ⟨λ h, or.elim h (λ h, ⟨φ, or.intro_left _ rfl, h⟩)
-      (Exists.imp (λ φ, and.imp_left (or.intro_right _))), _⟩,
-    rintro ⟨ψ, (rfl | h1), h2⟩,
-    { exact or.intro_left _ h2 },
-    { exact or.intro_right _ ⟨ψ, h1, h2⟩ } }
+  { simp_rw [list.foldr_cons, realize_sup, ih, exists_prop, list.mem_cons_iff,
+      or_and_distrib_right, exists_or_distrib, exists_eq_left] }
 end
 
 @[simp] lemma realize_all : (all θ).realize v xs ↔ ∀ (a : M), (θ.realize v (fin.snoc xs a)) :=
@@ -327,7 +331,26 @@ begin
   rw [if_pos i.is_lt],
 end
 
-lemma realize_all_lift_at_one_self [nonempty M] {n : ℕ} {φ : L.bounded_formula α n}
+@[simp] lemma realize_subst_aux {tf : α → L.term β} {v : β → M} {xs : fin n → M} :
+  (λ x, term.realize (sum.elim v xs) (sum.elim (term.relabel sum.inl ∘ tf) (var ∘ sum.inr) x)) =
+    sum.elim (λ (a : α), term.realize v (tf a)) xs :=
+funext (λ x, sum.cases_on x (λ x,
+  by simp only [sum.elim_inl, term.realize_relabel, sum.elim_comp_inl]) (λ x, rfl))
+
+lemma realize_subst {φ : L.bounded_formula α n} {tf : α → L.term β} {v : β → M} {xs : fin n → M} :
+  (φ.subst tf).realize v xs ↔ φ.realize (λ a, (tf a).realize v) xs :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih,
+  { refl },
+  { simp only [subst, bounded_formula.realize, realize_subst, realize_subst_aux] },
+  { simp only [subst, bounded_formula.realize, realize_subst, realize_subst_aux] },
+  { simp only [subst, realize_imp, ih1, ih2] },
+  { simp only [ih, subst, realize_all] }
+end
+
+variables [nonempty M]
+
+lemma realize_all_lift_at_one_self {n : ℕ} {φ : L.bounded_formula α n}
   {v : α → M} {xs : fin n → M} :
   (φ.lift_at 1 n).all.realize v xs ↔ φ.realize v xs :=
 begin
@@ -339,8 +362,6 @@ begin
   { refine (congr rfl (funext (λ i, _))).mp h,
     simp }
 end
-
-variables [nonempty M]
 
 lemma realize_to_prenex_imp_right {φ ψ : L.bounded_formula α n}
   (hφ : is_qf φ) (hψ : is_prenex ψ) {v : α → M} {xs : fin n → M} :
@@ -532,10 +553,21 @@ def sentence.realize (φ : L.sentence) : Prop :=
 
 infix ` ⊨ `:51 := sentence.realize -- input using \|= or \vDash, but not using \models
 
+@[simp] lemma sentence.realize_not {φ : L.sentence} :
+  M ⊨ φ.not ↔ ¬ M ⊨ φ :=
+iff.rfl
+
 @[simp] lemma Lhom.realize_on_sentence [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
   (ψ : L.sentence) :
   M ⊨ φ.on_sentence ψ ↔ M ⊨ ψ :=
 φ.realize_on_formula ψ
+
+variables (L)
+
+/-- The complete theory of a structure `M` is the set of all sentences `M` satisfies. -/
+def complete_theory : L.Theory := { φ | M ⊨ φ }
+
+variables {L}
 
 /-- A model of a theory is a structure in which every sentence is realized as true. -/
 class Theory.model (T : L.Theory) : Prop :=
@@ -581,7 +613,27 @@ lemma model_singleton_iff {φ : L.sentence} :
   M ⊨ ({φ} : L.Theory) ↔ M ⊨ φ :=
 by simp
 
+theorem model_iff_subset_complete_theory :
+  M ⊨ T ↔ T ⊆ L.complete_theory M :=
+T.model_iff
+
 end Theory
+
+instance model_complete_theory : M ⊨ L.complete_theory M :=
+Theory.model_iff_subset_complete_theory.2 (subset_refl _)
+
+variables (M N)
+
+theorem realize_iff_of_model_complete_theory [N ⊨ L.complete_theory M] (φ : L.sentence) :
+  N ⊨ φ ↔ M ⊨ φ :=
+begin
+  refine ⟨λ h, _, Theory.realize_sentence_of_mem (L.complete_theory M)⟩,
+  contrapose! h,
+  rw [← sentence.realize_not] at *,
+  exact Theory.realize_sentence_of_mem (L.complete_theory M) h,
+end
+
+variables {M N}
 
 namespace bounded_formula
 

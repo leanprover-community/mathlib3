@@ -149,7 +149,7 @@ theorem fg_span {s : set M} (hs : finite s) : fg (span R s) :=
 theorem fg_span_singleton (x : M) : fg (R ∙ x) :=
 fg_span (finite_singleton x)
 
-theorem fg_sup {N₁ N₂ : submodule R M}
+theorem fg.sup {N₁ N₂ : submodule R M}
   (hN₁ : N₁.fg) (hN₂ : N₂.fg) : (N₁ ⊔ N₂).fg :=
 let ⟨t₁, ht₁⟩ := fg_def.1 hN₁, ⟨t₂, ht₂⟩ := fg_def.1 hN₂ in
 fg_def.2 ⟨t₁ ∪ t₂, ht₁.1.union ht₂.1, by rw [span_union, ht₁.2, ht₂.2]⟩
@@ -182,7 +182,7 @@ lemma fg_of_linear_equiv (e : M ≃ₗ[R] P) (h : (⊤ : submodule R P).fg) :
   (⊤ : submodule R M).fg :=
 e.symm.range ▸ map_top (e.symm : P →ₗ[R] M) ▸ h.map _
 
-theorem fg_prod {sb : submodule R M} {sc : submodule R P}
+theorem fg.prod {sb : submodule R M} {sc : submodule R P}
   (hsb : sb.fg) (hsc : sc.fg) : (sb.prod sc).fg :=
 let ⟨tb, htb⟩ := fg_def.1 hsb, ⟨tc, htc⟩ := fg_def.1 hsc in
 fg_def.2 ⟨linear_map.inl R M P '' tb ∪ linear_map.inr R M P '' tc,
@@ -775,15 +775,15 @@ is_noetherian_ring_of_surjective R S f.to_ring_hom f.to_equiv.surjective
 
 namespace submodule
 variables {R : Type*} {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
-variables (M N : submodule R A)
+variables {M N : submodule R A}
 
-theorem fg_mul (hm : M.fg) (hn : N.fg) : (M * N).fg :=
+theorem fg.mul (hm : M.fg) (hn : N.fg) : (M * N).fg :=
 let ⟨m, hfm, hm⟩ := fg_def.1 hm, ⟨n, hfn, hn⟩ := fg_def.1 hn in
 fg_def.2 ⟨m * n, hfm.mul hfn, span_mul_span R m n ▸ hm ▸ hn ▸ rfl⟩
 
-lemma fg_pow (h : M.fg) (n : ℕ) : (M ^ n).fg :=
+lemma fg.pow (h : M.fg) (n : ℕ) : (M ^ n).fg :=
 nat.rec_on n
-(⟨{1}, by simp [one_eq_span]⟩)
-(λ n ih, by simpa [pow_succ] using fg_mul _ _ h ih)
+  (⟨{1}, by simp [one_eq_span]⟩)
+  (λ n ih, by simpa [pow_succ] using h.mul ih)
 
 end submodule

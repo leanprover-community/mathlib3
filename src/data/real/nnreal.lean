@@ -732,13 +732,11 @@ variables {ι : Sort*} {f : ι → ℝ≥0}
 lemma mul_csupr (hf : bdd_above (set.range f)) (a : ℝ≥0) :
   a * (⨆ i, f i) = ⨆ i, a * f i :=
 begin
-  by_cases hι : nonempty ι,
-  { haveI : nonempty ι := hι,
-    by_cases ha : a = 0,
+  casesI is_empty_or_nonempty ι,
+  { simp only [csupr_of_empty, bot_eq_zero, mul_zero] },
+  { by_cases ha : a = 0,
     { simp_rw [ha, zero_mul, csupr_const] },
     { exact order_iso.map_csupr (order_iso.mul_left₀' _ (zero_lt_iff.mpr ha)) hf }},
-  { haveI : is_empty ι := not_nonempty_iff.mp hι,
-    simp only [csupr_of_empty, bot_eq_zero, mul_zero], }
 end
 
 lemma csupr_mul (hf : bdd_above (set.range f)) (a : ℝ≥0) :

@@ -22,7 +22,7 @@ universes u
 
 variables {ι α R S : Type*}
 
-/-- Basic hypothesis to talk about a topological spaces with a continuous `star` operator. -/
+/-- Basic hypothesis to talk about a topological space with a continuous `star` operator. -/
 class has_continuous_star (R : Type u) [topological_space R] [has_star R] : Prop :=
 (continuous_star : continuous (star : R → R))
 

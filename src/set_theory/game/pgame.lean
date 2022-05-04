@@ -5,6 +5,7 @@ Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
 import data.fin.basic
 import data.list.basic
+import logic.relation
 
 /-!
 # Combinatorial (pre-)games.
@@ -103,7 +104,7 @@ An interested reader may like to formalise some of the material from
 * [André Joyal, *Remarques sur la théorie des jeux à deux personnes*][joyal1997]
 -/
 
-open function
+open function relation
 
 universes u
 
@@ -204,43 +205,39 @@ theorem wf_is_option : well_founded is_option :=
   { exact IHr j }
 end⟩
 
-/-- `subsequent p q` says that `p` can be obtained by playing
-  some nonempty sequence of moves from `q`. -/
-inductive subsequent : pgame → pgame → Prop
-| left : Π (x : pgame) (i : x.left_moves), subsequent (x.move_left i) x
-| right : Π (x : pgame) (j : x.right_moves), subsequent (x.move_right j) x
-| trans : Π (x y z : pgame), subsequent x y → subsequent y z → subsequent x z
+/-- `subsequent x y` says that `x` can be obtained by playing some nonempty sequence of moves from
+`y`. It is the transitive closure of `is_option`. -/
+def subsequent : pgame → pgame → Prop :=
+trans_gen is_option
 
-theorem wf_subsequent : well_founded subsequent :=
-⟨λ x, begin
-  induction x with l r L R IHl IHr,
-  refine ⟨_, λ y h, _⟩,
-  generalize_hyp e : mk l r L R = x at h,
-  induction h with _ i _ j a b _ h1 h2 IH1 IH2; subst e,
-  { apply IHl },
-  { apply IHr },
-  { exact acc.inv (IH2 rfl) h1 }
-end⟩
+instance : is_trans _ subsequent := trans_gen.is_trans
 
-instance : has_well_founded pgame :=
-{ r := subsequent,
-  wf := wf_subsequent }
+@[trans] theorem subsequent.trans : ∀ {x y z}, subsequent x y → subsequent y z → subsequent x z :=
+@trans_gen.trans _ _
 
-/-- A move by Left produces a subsequent game. (For use in pgame_wf_tac.) -/
-lemma subsequent.left_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {i : xl} :
+theorem wf_subsequent : well_founded subsequent := well_founded.trans_gen wf_is_option
+
+instance : has_well_founded pgame := ⟨_, wf_subsequent⟩
+
+lemma subsequent.move_left {x : pgame} (i : x.left_moves) : subsequent (x.move_left i) x :=
+trans_gen.single (is_option.move_left i)
+
+lemma subsequent.move_right {x : pgame} (j : x.right_moves) : subsequent (x.move_right j) x :=
+trans_gen.single (is_option.move_right j)
+
+lemma subsequent.mk_left {xl xr} (xL : xl → pgame) (xR : xr → pgame) (i : xl) :
   subsequent (xL i) (mk xl xr xL xR) :=
-subsequent.left (mk xl xr xL xR) i
-/-- A move by Right produces a subsequent game. (For use in pgame_wf_tac.) -/
-lemma subsequent.right_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {j : xr} :
+@subsequent.move_left (mk _ _ _ _) i
+
+lemma subsequent.mk_right {xl xr} (xL : xl → pgame) (xR : xr → pgame) (j : xr) :
   subsequent (xR j) (mk xl xr xL xR) :=
-subsequent.right (mk xl xr xL xR) j
+@subsequent.move_right (mk _ _ _ _) j
 
 /-- A local tactic for proving well-foundedness of recursive definitions involving pregames. -/
 meta def pgame_wf_tac :=
 `[solve_by_elim
-  [psigma.lex.left, psigma.lex.right,
-   subsequent.left_move, subsequent.right_move,
-   subsequent.left, subsequent.right, subsequent.trans]
+  [psigma.lex.left, psigma.lex.right, subsequent.move_left, subsequent.move_right,
+   subsequent.mk_left, subsequent.mk_right, subsequent.trans]
   { max_depth := 6 }]
 
 /-- The pre-game `zero` is defined by `0 = { | }`. -/

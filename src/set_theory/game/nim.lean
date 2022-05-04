@@ -57,6 +57,35 @@ lemma nim_def (O : ordinal) : nim O = pgame.mk O.out.α O.out.α
   (λ O₂, nim (ordinal.typein (<) O₂)) :=
 by { rw nim, refl }
 
+instance : is_empty (left_moves (nim 0)) :=
+by { rw nim_def, exact α.is_empty }
+
+instance : is_empty (right_moves (nim 0)) :=
+by { rw nim_def, exact α.is_empty }
+
+noncomputable instance : unique (left_moves (nim 1)) :=
+by { rw nim_def, exact α.unique }
+
+noncomputable instance : unique (right_moves (nim 1)) :=
+by { rw nim_def, exact α.unique }
+
+/-- `0` has exactly the same moves as `nim 0`. -/
+def nim_zero_relabelling : relabelling 0 (nim 0) :=
+(relabelling.is_empty _).symm
+
+@[simp] theorem nim_zero_equiv : 0 ≈ nim 0 := nim_zero_relabelling.equiv
+
+/-- `nim 1` has exactly the same moves as `star`. -/
+noncomputable def nim_one_relabelling : relabelling star (nim 1) :=
+begin
+  rw nim_def,
+  refine ⟨_, _, λ i,  _, λ j, _⟩,
+  any_goals { dsimp, apply equiv_of_unique_of_unique },
+  all_goals { simp, exact nim_zero_relabelling }
+end
+
+@[simp] theorem nim_one_equiv : star ≈ nim 1 := nim_one_relabelling.equiv
+
 @[simp] lemma nim_birthday (O : ordinal) : (nim O).birthday = O :=
 begin
   induction O using ordinal.induction with O IH,
@@ -100,7 +129,7 @@ lemma non_zero_first_wins {O : ordinal} (hO : O ≠ 0) : (nim O).first_wins :=
 begin
   rw [impartial.first_wins_symm, nim_def, lt_def_le],
   rw ←ordinal.pos_iff_ne_zero at hO,
-  exact or.inr ⟨(ordinal.principal_seg_out hO).top, by simpa using zero_first_loses.1⟩
+  exact or.inr ⟨(ordinal.principal_seg_out hO).top, by simp⟩
 end
 
 @[simp] lemma sum_first_loses_iff_eq (O₁ O₂ : ordinal) : (nim O₁ + nim O₂).first_loses ↔ O₁ = O₂ :=
@@ -194,11 +223,14 @@ by simp
   grundy_value G = grundy_value H ↔ G ≈ H :=
 (grundy_value_eq_iff_equiv_nim _ _).trans (equiv_congr_left.1 (equiv_nim_grundy_value H) _).symm
 
-@[simp] lemma grundy_value_zero : grundy_value 0 = 0 :=
-by rw [(grundy_value_eq_iff_equiv 0 (nim 0)).2 (equiv_symm nim.zero_first_loses), nim.grundy_value]
+lemma grundy_value_zero : grundy_value 0 = 0 :=
+by simp
 
 @[simp] lemma grundy_value_iff_equiv_zero (G : pgame) [G.impartial] : grundy_value G = 0 ↔ G ≈ 0 :=
 by rw [←grundy_value_eq_iff_equiv, grundy_value_zero]
+
+lemma grundy_value_star : grundy_value star = 1 :=
+by simp
 
 @[simp] lemma grundy_value_nim_add_nim (n m : ℕ) :
   grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=

@@ -423,13 +423,13 @@ open order_dual
 variables [locally_finite_order α] (a b : α)
 
 /-- Note we define `Icc (to_dual a) (to_dual b)` as `Icc α _ _ b a` (which has type `finset α` not
-`finset (order_dual α)`!) instead of `(Icc b a).map to_dual.to_embedding` as this means the
+`finset αᵒᵈ`!) instead of `(Icc b a).map to_dual.to_embedding` as this means the
 following is defeq:
 ```
 lemma this : (Icc (to_dual (to_dual a)) (to_dual (to_dual b)) : _) = (Icc a b : _) := rfl
 ```
 -/
-instance : locally_finite_order (order_dual α) :=
+instance : locally_finite_order αᵒᵈ :=
 { finset_Icc := λ a b, @Icc α _ _ (of_dual b) (of_dual a),
   finset_Ico := λ a b, @Ioc α _ _ (of_dual b) (of_dual a),
   finset_Ioc := λ a b, @Ico α _ _ (of_dual b) (of_dual a),
@@ -570,7 +570,7 @@ namespace with_bot
 variables (α) [partial_order α] [order_bot α] [locally_finite_order α]
 
 instance : locally_finite_order (with_bot α) :=
-@order_dual.locally_finite_order (with_top (order_dual α)) _ _
+@order_dual.locally_finite_order (with_top αᵒᵈ) _ _
 
 variables (a b : α)
 

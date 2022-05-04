@@ -316,7 +316,7 @@ begin
 end
 
 lemma card_Ioc_eq_card_Icc_sub_one (a b : α) : (Ioc a b).card = (Icc a b).card - 1 :=
-@card_Ico_eq_card_Icc_sub_one (order_dual α) _ _ _ _
+@card_Ico_eq_card_Icc_sub_one αᵒᵈ _ _ _ _
 
 lemma card_Ioo_eq_card_Ico_sub_one (a b : α) : (Ioo a b).card = (Ico a b).card - 1 :=
 begin
@@ -330,7 +330,7 @@ begin
 end
 
 lemma card_Ioo_eq_card_Ioc_sub_one (a b : α) : (Ioo a b).card = (Ioc a b).card - 1 :=
-@card_Ioo_eq_card_Ico_sub_one (order_dual α) _ _ _ _
+@card_Ioo_eq_card_Ico_sub_one αᵒᵈ _ _ _ _
 
 lemma card_Ioo_eq_card_Icc_sub_two (a b : α) : (Ioo a b).card = (Icc a b).card - 2 :=
 by { rw [card_Ioo_eq_card_Ico_sub_one, card_Ico_eq_card_Icc_sub_one], refl }
@@ -372,6 +372,10 @@ by rw [←coe_subset, coe_Ico, coe_Ico, set.Ico_subset_Ico_iff h]
 lemma Ico_union_Ico_eq_Ico {a b c : α} (hab : a ≤ b) (hbc : b ≤ c) :
   Ico a b ∪ Ico b c = Ico a c :=
 by rw [←coe_inj, coe_union, coe_Ico, coe_Ico, coe_Ico, set.Ico_union_Ico_eq_Ico hab hbc]
+
+@[simp] lemma Ioc_union_Ioc_eq_Ioc {a b c : α} (h₁ : a ≤ b) (h₂ : b ≤ c) :
+  Ioc a b ∪ Ioc b c = Ioc a c :=
+by rw [←coe_inj, coe_union, coe_Ioc, coe_Ioc, coe_Ioc, set.Ioc_union_Ioc_eq_Ioc h₁ h₂]
 
 lemma Ico_subset_Ico_union_Ico {a b c : α} :
   Ico a c ⊆ Ico a b ∪ Ico b c :=

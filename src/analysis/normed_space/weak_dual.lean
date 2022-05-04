@@ -83,7 +83,7 @@ by the dual-norm (i.e. the operator-norm).
 open normed_space
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {E : Type*} [semi_normed_group E] [normed_space 𝕜 E]
 
 /-- For normed spaces `E`, there is a canonical map `dual 𝕜 E → weak_dual 𝕜 E` (the "identity"
 mapping). It is a linear equivalence. -/

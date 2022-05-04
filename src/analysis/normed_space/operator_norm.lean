@@ -26,13 +26,12 @@ noncomputable theory
 open_locale classical nnreal topological_space
 
 -- the `ₗ` subscript variables are for special cases about linear (as opposed to semilinear) maps
-variables {𝕜 : Type*} {𝕜₂ : Type*} {𝕜₃ : Type*} {E : Type*} {F : Type*} {Fₗ : Type*} {G : Type*}
-  {Gₗ : Type*}
+variables {𝕜 𝕜₂ 𝕜₃ E Eₗ F Fₗ G Gₗ : Type*}
 
 section semi_normed
 
-variables [semi_normed_group E] [semi_normed_group F] [semi_normed_group Fₗ] [semi_normed_group G]
-  [semi_normed_group Gₗ]
+variables [semi_normed_group E] [semi_normed_group Eₗ] [semi_normed_group F] [semi_normed_group Fₗ]
+variables [semi_normed_group G] [semi_normed_group Gₗ]
 
 open metric continuous_linear_map
 
@@ -126,7 +125,7 @@ rfl
 end normed_field
 
 variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
-  [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜 Fₗ]
+  [normed_space 𝕜 E] [normed_space 𝕜 Eₗ] [normed_space 𝕜₂ F] [normed_space 𝕜 Fₗ]
   [normed_space 𝕜₃ G] [normed_space 𝕜 Gₗ]
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
   [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
@@ -215,7 +214,7 @@ lemma to_span_singleton_add (x y : E) :
   to_span_singleton 𝕜 (x + y) = to_span_singleton 𝕜 x + to_span_singleton 𝕜 y :=
 by { ext1, simp [to_span_singleton_apply], }
 
-lemma to_span_singleton_smul' (𝕜') [nondiscrete_normed_field 𝕜'] [normed_space 𝕜' E]
+lemma to_span_singleton_smul' (𝕜') [normed_field 𝕜'] [normed_space 𝕜' E]
   [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
   to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
 by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smul_comm], }
@@ -306,6 +305,9 @@ begin
   exact  (div_le_iff hlt).mp (le_cInf bounds_nonempty (λ c ⟨_, hc⟩,
     (div_le_iff hlt).mpr $ by { apply hc })),
 end
+
+theorem dist_le_op_norm (x y : E) : dist (f x) (f y) ≤ ∥f∥ * dist x y :=
+by simp_rw [dist_eq_norm, ← map_sub, f.le_op_norm]
 
 theorem le_op_norm_of_le {c : ℝ} {x} (h : ∥x∥ ≤ c) : ∥f x∥ ≤ ∥f∥ * c :=
 le_trans (f.le_op_norm x) (mul_le_mul_of_nonneg_left h f.op_norm_nonneg)
@@ -443,6 +445,9 @@ instance to_normed_algebra : normed_algebra 𝕜 (E →L[𝕜] E) :=
   .. continuous_linear_map.algebra }
 
 theorem le_op_nnnorm : ∥f x∥₊ ≤ ∥f∥₊ * ∥x∥₊ := f.le_op_norm x
+
+theorem nndist_le_op_nnnorm (x y : E) : nndist (f x) (f y) ≤ ∥f∥₊ * nndist x y :=
+dist_le_op_norm f x y
 
 /-- continuous linear maps are Lipschitz continuous. -/
 theorem lipschitz : lipschitz_with ∥f∥₊ f :=
@@ -731,12 +736,25 @@ def compL : (Fₗ →L[𝕜] Gₗ) →L[𝕜] (E →L[𝕜] Fₗ) →L[𝕜] (E 
 
 @[simp] lemma compL_apply (f : Fₗ →L[𝕜] Gₗ) (g : E →L[𝕜] Fₗ) : compL 𝕜 E Fₗ Gₗ f g = f.comp g := rfl
 
-universes u₁ u₂ u₃ u₄
-variables (M₁ : Type u₁) [normed_group M₁] [normed_space 𝕜 M₁]
-          (M₂ : Type u₂) [normed_group M₂] [normed_space 𝕜 M₂]
-          (M₃ : Type u₃) [normed_group M₃] [normed_space 𝕜 M₃]
-          (M₄ : Type u₄) [normed_group M₄] [normed_space 𝕜 M₄]
+variables (Eₗ) {𝕜 E Fₗ Gₗ}
+/-- Apply `L(x,-)` pointwise to bilinear maps, as a continuous bilinear map -/
+@[simps apply]
+def precompR (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : E →L[𝕜] (Eₗ →L[𝕜] Fₗ) →L[𝕜] (Eₗ →L[𝕜] Gₗ) :=
+(compL 𝕜 Eₗ Fₗ Gₗ).comp L
 
+/-- Apply `L(-,y)` pointwise to bilinear maps, as a continuous bilinear map -/
+def precompL (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : (Eₗ →L[𝕜] E) →L[𝕜] Fₗ →L[𝕜] (Eₗ →L[𝕜] Gₗ) :=
+(precompR Eₗ (flip L)).flip
+
+section prod
+
+universes u₁ u₂ u₃ u₄
+variables (M₁ : Type u₁) [semi_normed_group M₁] [normed_space 𝕜 M₁]
+          (M₂ : Type u₂) [semi_normed_group M₂] [normed_space 𝕜 M₂]
+          (M₃ : Type u₃) [semi_normed_group M₃] [normed_space 𝕜 M₃]
+          (M₄ : Type u₄) [semi_normed_group M₄] [normed_space 𝕜 M₄]
+
+variables {Eₗ} (𝕜)
 /-- `continuous_linear_map.prod_map` as a continuous linear map. -/
 def prod_mapL : ((M₁ →L[𝕜] M₂) × (M₃ →L[𝕜] M₄)) →L[𝕜] ((M₁ × M₃) →L[𝕜] (M₂ × M₄)) :=
 continuous_linear_map.copy
@@ -791,6 +809,8 @@ lemma _root_.continuous_on.prod_map_equivL {f : X → M₁ ≃L[𝕜] M₂} {g :
   (hg : continuous_on (λ x, (g x : M₃ →L[𝕜] M₄)) s) :
   continuous_on (λ x, ((f x).prod (g x) : M₁ × M₃ →L[𝕜] M₂ × M₄)) s :=
 (prod_mapL 𝕜 M₁ M₂ M₃ M₄).continuous.comp_continuous_on (hf.prod hg)
+
+end prod
 
 variables {𝕜 E Fₗ Gₗ}
 
@@ -870,7 +890,6 @@ section smul_linear
 
 variables (𝕜) (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
   [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
-  [normed_space 𝕜' M₁] [is_scalar_tower 𝕜 𝕜' M₁]
 
 /-- Scalar multiplication as a continuous bilinear map. -/
 def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
@@ -892,27 +911,15 @@ end
 
 variables {𝕜}
 
+lemma op_norm_lsmul_apply_le (x : 𝕜') : ∥(lsmul 𝕜 𝕜' x : E →L[𝕜] E)∥ ≤ ∥x∥ :=
+continuous_linear_map.op_norm_le_bound _ (norm_nonneg x) $ λ y, (norm_smul x y).le
+
 /-- The norm of `lsmul` is at most 1 in any semi-normed group. -/
 lemma op_norm_lsmul_le : ∥(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] E →L[𝕜] E)∥ ≤ 1 :=
 begin
   refine continuous_linear_map.op_norm_le_bound _ zero_le_one (λ x, _),
   simp_rw [one_mul],
-  refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg x) (λ y, _),
-  simp_rw [lsmul_apply, norm_smul],
-end
-
-/-- The norm of `lsmul` equals 1 in any nontrivial normed group. -/
-@[simp] lemma op_norm_lsmul [nontrivial M₁] : ∥(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] M₁ →L[𝕜] M₁)∥ = 1 :=
-begin
-  refine continuous_linear_map.op_norm_eq_of_bounds zero_le_one (λ x, _) (λ N hN h, _),
-  { simp_rw [one_mul],
-    refine continuous_linear_map.op_norm_le_bound _ (norm_nonneg x) (λ y, _),
-    simp_rw [lsmul_apply, norm_smul] },
-  obtain ⟨y, hy⟩ := exists_ne (0 : M₁),
-  have := le_of_op_norm_le _ (h 1) y,
-  simp_rw [lsmul_apply, one_smul, norm_one, mul_one] at this,
-  refine le_of_mul_le_mul_right _ (norm_pos_iff.mpr hy),
-  simp_rw [one_mul, this]
+  exact op_norm_lsmul_apply_le _,
 end
 
 end smul_linear
@@ -1138,7 +1145,7 @@ f.bilinear_comp (fst _ _ _) (snd _ _ _) + f.flip.bilinear_comp (snd _ _ _) (fst 
 @[simp] lemma coe_deriv₂ (f : E →L[𝕜] Fₗ →L[𝕜] Gₗ) (p : E × Fₗ) :
   ⇑(f.deriv₂ p) = λ q : E × Fₗ, f p.1 q.2 + f q.1 p.2 := rfl
 
-lemma map_add₂ (f : E →L[𝕜] Fₗ →L[𝕜] Gₗ) (x x' : E) (y y' : Fₗ) :
+lemma map_add_add (f : E →L[𝕜] Fₗ →L[𝕜] Gₗ) (x x' : E) (y y' : Fₗ) :
   f (x + x') (y + y') = f x y + f.deriv₂ (x, y) (x', y') + f x' y' :=
 by simp only [map_add, add_apply, coe_deriv₂, add_assoc]
 
@@ -1321,7 +1328,7 @@ begin
       exact hx.trans_lt (half_lt_self εpos) },
     simpa using this },
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  refine ⟨⟨δ⁻¹, _⟩ * nnnorm c, f.to_linear_map.antilipschitz_of_bound $ λx, _⟩,
+  refine ⟨⟨δ⁻¹, _⟩ * ∥c∥₊, f.to_linear_map.antilipschitz_of_bound $ λx, _⟩,
   exact inv_nonneg.2 (le_of_lt δ_pos),
   by_cases hx : f x = 0,
   { have : f x = f 0, by { simp [hx] },
@@ -1612,13 +1619,34 @@ norm_smul_right_apply c f
   ∥smul_rightL 𝕜 E Fₗ c∥ = ∥c∥ :=
 continuous_linear_map.homothety_norm _ c.norm_smul_right_apply
 
-variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
+variables (𝕜) (𝕜' : Type*)
+
+section
+variables [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 
 @[simp] lemma op_norm_lmul [norm_one_class 𝕜'] : ∥lmul 𝕜 𝕜'∥ = 1 :=
 by haveI := norm_one_class.nontrivial 𝕜'; exact (lmulₗᵢ 𝕜 𝕜').norm_to_continuous_linear_map
 
 @[simp] lemma op_norm_lmul_right [norm_one_class 𝕜'] : ∥lmul_right 𝕜 𝕜'∥ = 1 :=
 (op_norm_flip (@lmul 𝕜 _ 𝕜' _ _)).trans (op_norm_lmul _ _)
+end
+
+/-- The norm of `lsmul` equals 1 in any nontrivial normed group.
+
+This is `continuous_linear_map.op_norm_lsmul_le` as an equality. -/
+@[simp] lemma op_norm_lsmul [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+  [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E] [nontrivial E] :
+  ∥(lsmul 𝕜 𝕜' : 𝕜' →L[𝕜] E →L[𝕜] E)∥ = 1 :=
+begin
+  refine continuous_linear_map.op_norm_eq_of_bounds zero_le_one (λ x, _) (λ N hN h, _),
+  { rw one_mul,
+    exact op_norm_lsmul_apply_le _, },
+  obtain ⟨y, hy⟩ := exists_ne (0 : E),
+  have := le_of_op_norm_le _ (h 1) y,
+  simp_rw [lsmul_apply, one_smul, norm_one, mul_one] at this,
+  refine le_of_mul_le_mul_right _ (norm_pos_iff.mpr hy),
+  simp_rw [one_mul, this]
+end
 
 end continuous_linear_map
 
@@ -1640,7 +1668,7 @@ section
 variables [ring_hom_isometric σ₂₁]
 
 protected lemma antilipschitz (e : E ≃SL[σ₁₂] F) :
-  antilipschitz_with (nnnorm (e.symm : F →SL[σ₂₁] E)) e :=
+  antilipschitz_with ∥(e.symm : F →SL[σ₂₁] E)∥₊ e :=
 e.symm.lipschitz.to_right_inverse e.left_inv
 
 lemma one_le_norm_mul_norm_symm [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ₁₂] F) :
@@ -1662,7 +1690,7 @@ lemma norm_symm_pos [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ
 pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one e.one_le_norm_mul_norm_symm) (norm_nonneg _)
 
 lemma nnnorm_symm_pos [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ₁₂] F) :
-  0 < nnnorm (e.symm : F →SL[σ₂₁] E) :=
+  0 < ∥(e.symm : F →SL[σ₂₁] E)∥₊ :=
 e.norm_symm_pos
 
 lemma subsingleton_or_norm_symm_pos [ring_hom_isometric σ₁₂] (e : E ≃SL[σ₁₂] F) :
@@ -1674,7 +1702,7 @@ begin
 end
 
 lemma subsingleton_or_nnnorm_symm_pos [ring_hom_isometric σ₁₂] (e : E ≃SL[σ₁₂] F) :
-  subsingleton E ∨ 0 < (nnnorm $ (e.symm : F →SL[σ₂₁] E)) :=
+  subsingleton E ∨ 0 < ∥(e.symm : F →SL[σ₂₁] E)∥₊ :=
 subsingleton_or_norm_symm_pos e
 
 variable (𝕜)
@@ -1714,6 +1742,44 @@ end
 @[simp] lemma coord_self (x : E) (h : x ≠ 0) :
   (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : 𝕜 ∙ x) = 1 :=
 linear_equiv.coord_self 𝕜 E x h
+
+variables {𝕜} {𝕜₄ : Type*} [nondiscrete_normed_field 𝕜₄]
+variables {H : Type*} [normed_group H] [normed_space 𝕜₄ H] [normed_space 𝕜₃ G]
+variables {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
+variables {σ₃₄ : 𝕜₃ →+* 𝕜₄} {σ₄₃ : 𝕜₄ →+* 𝕜₃}
+variables {σ₂₄ : 𝕜₂ →+* 𝕜₄} {σ₁₄ : 𝕜 →+* 𝕜₄}
+variables [ring_hom_inv_pair σ₃₄ σ₄₃] [ring_hom_inv_pair σ₄₃ σ₃₄]
+variables [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
+variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
+variables [ring_hom_isometric σ₁₄] [ring_hom_isometric σ₂₃]
+variables [ring_hom_isometric σ₄₃] [ring_hom_isometric σ₂₄]
+variables [ring_hom_isometric σ₁₃] [ring_hom_isometric σ₁₂]
+variables [ring_hom_isometric σ₃₄]
+
+include σ₂₁ σ₃₄ σ₁₃ σ₂₄
+/-- A pair of continuous (semi)linear equivalences generates an continuous (semi)linear equivalence
+between the spaces of continuous (semi)linear maps. -/
+def arrow_congrSL (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
+  (E →SL[σ₁₄] H) ≃SL[σ₄₃] (F →SL[σ₂₃] G) :=
+{ map_add' := λ f g, by simp only [equiv.to_fun_as_coe, add_comp, comp_add,
+    continuous_linear_equiv.arrow_congr_equiv_apply],
+  map_smul' := λ t f, by simp only [equiv.to_fun_as_coe, smul_comp, comp_smulₛₗ,
+    continuous_linear_equiv.arrow_congr_equiv_apply],
+  continuous_to_fun := (compSL F H G σ₂₄ σ₄₃ e₄₃).continuous.comp
+    (continuous_linear_map.flip (compSL F E H σ₂₁ σ₁₄) e₁₂.symm).continuous,
+  continuous_inv_fun := (compSL E G H σ₁₃ σ₃₄ e₄₃.symm).continuous.comp
+    (continuous_linear_map.flip (compSL E F G σ₁₂ σ₂₃) e₁₂).continuous,
+  .. e₁₂.arrow_congr_equiv e₄₃, }
+
+omit σ₂₁ σ₃₄ σ₁₃ σ₂₄
+
+/-- A pair of continuous linear equivalences generates an continuous linear equivalence between
+the spaces of continuous linear maps. -/
+def arrow_congr {F H : Type*} [normed_group F] [normed_group H]
+  [normed_space 𝕜 F] [normed_space 𝕜 G] [normed_space 𝕜 H]
+  (e₁ : E ≃L[𝕜] F) (e₂ : H ≃L[𝕜] G) :
+  (E →L[𝕜] H) ≃L[𝕜] (F →L[𝕜] G) :=
+arrow_congrSL e₁ e₂
 
 end
 

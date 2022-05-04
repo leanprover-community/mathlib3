@@ -60,12 +60,14 @@ by { dunfold dual_tensor_hom, rw uncurry_apply, refl, }
 lemma dual_tensor_hom_prod_map_zero (f : module.dual R M) (p : P) :
   ((dual_tensor_hom R M P) (f ⊗ₜ[R] p)).prod_map (0 : N →ₗ[R] Q) =
   dual_tensor_hom R (M × N) (P × Q) ((f ∘ₗ fst R M N) ⊗ₜ inl R P Q p) :=
-by {ext; simp}
+by {ext; simp only [coe_comp, coe_inl, function.comp_app, prod_map_apply, dual_tensor_hom_apply,
+fst_apply, prod.smul_mk, zero_apply, smul_zero]}
 
 lemma zero_prod_map_dual_tensor_hom (g : module.dual R N) (q : Q) :
   (0 : M →ₗ[R] P).prod_map ((dual_tensor_hom R N Q) (g ⊗ₜ[R] q)) =
   dual_tensor_hom R (M × N) (P × Q) ((g ∘ₗ snd R M N) ⊗ₜ inr R P Q q) :=
-by {ext; simp}
+by {ext; simp only [coe_comp, coe_inr, function.comp_app, prod_map_apply, dual_tensor_hom_apply,
+  snd_apply, prod.smul_mk, zero_apply, smul_zero]}
 
 @[simp] lemma comp_dual_tensor_hom (f : module.dual R M) (n : N) (g : module.dual R N) (p : P) :
   (dual_tensor_hom R N P (g ⊗ₜ[R] p)) ∘ₗ (dual_tensor_hom R M N (f ⊗ₜ[R] n)) =

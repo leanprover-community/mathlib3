@@ -30,15 +30,13 @@ We provide many variations to stricten the result under more assumptions on the 
 ## TODO
 
 * Eidelheit's theorem
-* `0 < δ → convex ℝ s → interior (cthickening δ s) = thickening δ s`
+* `convex ℝ s → interior (closure s) ⊆ s`
 -/
 
 open filter function metric set
 open_locale pointwise topological_space
 
 variables {𝕜 E : Type*}
-
-section
 
 /-- Given a set `s` which is a convex neighbourhood of `0` and a point `x₀` outside of it, there is
 a continuous linear functional `f` separating `x₀` and `s`, in the sense that it sends `x₀` to 1 and
@@ -76,8 +74,6 @@ begin
       exact one_le_gauge_of_not_mem (hs₁.star_convex hs₀)
         ((absorbent_ball_zero hr).subset $ hrs.trans $ inter_subset_left _ _).absorbs hx₀,
       apply_instance } }
-end
-
 end
 
 variables [normed_group E] [normed_space ℝ E] {s t : set E} {x : E}

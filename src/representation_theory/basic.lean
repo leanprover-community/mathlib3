@@ -203,12 +203,4 @@ lemma dual_apply (g : G) (f : module.dual k V) : (dual ρV) g f = f ∘ₗ (ρV 
 
 end linear_hom
 
-section equiv
-
-variables {k G V W : Type*} [comm_semiring k] [group G]
-variables [add_comm_monoid V] [module k V] [add_comm_monoid W] [module k W]
-variables (ρV : representation k G V) (ρW : representation k G W)
-
-end equiv
-
 end representation

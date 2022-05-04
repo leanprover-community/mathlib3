@@ -498,7 +498,7 @@ def map [monoid_hom_class F R[X] S[X]] (φ : F)
   map_one' := begin
     rw [←of_fraction_ring_one, ←localization.mk_one, lift_on_of_fraction_ring_mk, dif_pos],
     { simpa using of_fraction_ring_one },
-    { simpa using submonoid.one_mem _}
+    { simpa using one_mem _ }
   end,
   map_mul' := λ x y, begin
     cases x, cases y, induction x with p q, induction y with p' q',
@@ -507,8 +507,8 @@ def map [monoid_hom_class F R[X] S[X]] (φ : F)
       have hqq' : φ ↑(q * q') ∈ S[X]⁰,
       { simpa using submonoid.mul_mem _ hq hq' },
       simp_rw [←of_fraction_ring_mul, localization.mk_mul, lift_on_of_fraction_ring_mk, dif_pos hq,
-               dif_pos hq', dif_pos hqq', ←of_fraction_ring_mul, submonoid.coe_mul, map_mul,
-               localization.mk_mul, submonoid.mk_mul_mk] },
+               dif_pos hq', dif_pos hqq', ←of_fraction_ring_mul, submonoid_class.coe_mul, map_mul,
+               localization.mk_mul, mul_mem_class.mk_mul_mk] },
     { refl },
     { refl }
   end }
@@ -550,8 +550,8 @@ def map_ring_hom [ring_hom_class F R[X] S[X]] (φ : F)
   map_add' := begin
     rintro ⟨x⟩ ⟨y⟩, induction x, induction y,
     { simp only [←of_fraction_ring_add, localization.add_mk, map_add, set_like.coe_mk, map_mul,
-                 monoid_hom.to_fun_eq_coe, map_apply_of_fraction_ring_mk, submonoid.mk_mul_mk,
-                 submonoid.coe_mul] },
+                 monoid_hom.to_fun_eq_coe, map_apply_of_fraction_ring_mk,
+                 mul_mem_class.mk_mul_mk, submonoid_class.coe_mul] },
     { refl },
     { refl }
   end,
@@ -574,10 +574,11 @@ def lift_monoid_with_zero_hom (φ : R[X] →*₀ G₀) (hφ : R[X]⁰ ≤ G₀�
     exact non_zero_divisors.ne_zero (hφ ‹_›),
   end,
   map_one' := by { rw [←of_fraction_ring_one, ←localization.mk_one, lift_on_of_fraction_ring_mk],
-                   simp only [map_one, submonoid.coe_one, div_one] },
+                   simp only [map_one, submonoid_class.coe_one, div_one] },
   map_mul' := λ x y, by { cases x, cases y, induction x with p q, induction y with p' q',
     { rw [←of_fraction_ring_mul, localization.mk_mul],
-      simp only [lift_on_of_fraction_ring_mk, div_mul_div_comm, map_mul, submonoid.coe_mul] },
+      simp only [lift_on_of_fraction_ring_mk, div_mul_div_comm, map_mul,
+                submonoid_class.coe_mul] },
     { refl },
     { refl } },
   map_zero' := by { rw [←of_fraction_ring_zero, ←localization.mk_zero (1 : R[X]⁰),
@@ -617,9 +618,9 @@ def lift_ring_hom (φ : R[X] →+* L) (hφ : R[X]⁰ ≤ L⁰.comap φ) : ratfun
                  lift_monoid_with_zero_hom_apply_of_fraction_ring_mk],
       rw [div_add_div, div_eq_div_iff],
       { rw [mul_comm _ p, mul_comm _ p', mul_comm _ (φ p'), add_comm],
-        simp only [map_add, map_mul, submonoid.coe_mul] },
+        simp only [map_add, map_mul, submonoid_class.coe_mul] },
       all_goals {
-        try { simp only [←map_mul, ←submonoid.coe_mul] },
+        try { simp only [←map_mul, ←submonoid_class.coe_mul] },
         exact non_zero_divisors.ne_zero (hφ (set_like.coe_mem _)) } },
     { refl },
     { refl } },

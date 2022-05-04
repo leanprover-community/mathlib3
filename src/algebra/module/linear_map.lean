@@ -843,4 +843,18 @@ def to_module_End : S →+* module.End R M :=
   map_add' := λ f g, linear_map.ext $ add_smul _ _,
   ..distrib_mul_action.to_module_End R M }
 
+/-- The canonical (semi)ring isomorphism between between `Rᵐᵒᵖ` and
+`module.End R R` induced by the right multiplication.
+-/
+def module_End_self : Rᵐᵒᵖ ≃+* module.End R R :=
+{ to_fun := λ a, ⟨λ x, x * mul_opposite.unop a, λ _ _, add_mul _ _ _, by simp only [mul_assoc,
+    smul_eq_mul, ring_hom.id_apply, eq_self_iff_true, forall_const] ⟩,
+  inv_fun := λ f, mul_opposite.op (f 1),
+  left_inv := λ _, by simp only [linear_map.coe_mk, one_mul, mul_opposite.op_unop],
+  right_inv := λ _, by { ext1, simp only [mul_opposite.unop_op, linear_map.coe_mk, one_mul] },
+  map_mul' := λ _ _, by { ext1, simp only [mul_opposite.unop_mul,
+    linear_map.coe_mk, one_mul, linear_map.mul_apply] },
+  map_add' := λ _ _, by { ext1, simp only [mul_opposite.unop_add,
+    linear_map.coe_mk, one_mul, linear_map.add_apply] } }
+
 end module

@@ -178,10 +178,11 @@ by { dsimp [bit1], apply_instance }
 
 /--
 Auxiliary construction of decidability instances.
-We build `decidable (x ≤ y)` and `decidable (x < y)` in a simultaneous induction.
+We build `decidable (x ≤ y)` and `decidable (x ⧏ y)` in a simultaneous induction.
 Instances for the two projections separately are provided below.
 -/
-def le_lt_decidable : Π (x y : pgame.{u}) [short x] [short y], decidable (x ≤ y) × decidable (x < y)
+def le_lf_decidable : Π (x y : pgame.{u}) [short x] [short y],
+  decidable (x ≤ y) × decidable (lf x y)
 | (mk xl xr xL xR) (mk yl yr yL yR) shortx shorty :=
 begin
   resetI,
@@ -190,26 +191,29 @@ begin
     apply @and.decidable _ _ _ _,
     { apply @fintype.decidable_forall_fintype xl _ _ (by apply_instance),
       intro i,
-      apply (@le_lt_decidable _ _ _ _).2; apply_instance, },
+      apply (@le_lf_decidable _ _ _ _).2; apply_instance, },
     { apply @fintype.decidable_forall_fintype yr _ _ (by apply_instance),
       intro i,
-      apply (@le_lt_decidable _ _ _ _).2; apply_instance, }, },
-  { refine @decidable_of_iff' _ _ mk_lt_mk (id _),
+      apply (@le_lf_decidable _ _ _ _).2; apply_instance, }, },
+  { refine @decidable_of_iff' _ _ mk_lf_mk (id _),
     apply @or.decidable _ _ _ _,
     { apply @fintype.decidable_exists_fintype yl _ _ (by apply_instance),
       intro i,
-      apply (@le_lt_decidable _ _ _ _).1; apply_instance, },
+      apply (@le_lf_decidable _ _ _ _).1; apply_instance, },
     { apply @fintype.decidable_exists_fintype xr _ _ (by apply_instance),
       intro i,
-      apply (@le_lt_decidable _ _ _ _).1; apply_instance, }, },
+      apply (@le_lf_decidable _ _ _ _).1; apply_instance, }, },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
 instance le_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ≤ y) :=
-(le_lt_decidable x y).1
+(le_lf_decidable x y).1
+
+instance lf_decidable (x y : pgame.{u}) [short x] [short y] : decidable (lf x y) :=
+(le_lf_decidable x y).2
 
 instance lt_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x < y) :=
-(le_lt_decidable x y).2
+by { rw lt_iff_le_and_lf, exact and.decidable }
 
 instance equiv_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ≈ y) :=
 and.decidable

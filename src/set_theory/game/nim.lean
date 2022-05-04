@@ -150,7 +150,7 @@ instance nim_impartial (O : ordinal) : impartial (nim O) :=
 begin
   induction O using ordinal.induction with O IH,
   rw [impartial_def, neg_nim],
-  refine ⟨equiv_refl _, λ i, _, λ i, _⟩;
+  refine ⟨refl _, λ i, _, λ i, _⟩;
   simpa using IH _ (typein_lt_self _)
 end
 

@@ -317,6 +317,9 @@ end
 @[simp] protected theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y ⧏ x := not_le_lf.1
 @[simp] theorem not_lf {x y : pgame} : ¬ x ⧏ y ↔ y ≤ x := not_le_lf.2
 
+theorem le_or_gf (x y : pgame) : x ≤ y ∨ y ⧏ x :=
+by { rw ←pgame.not_le, apply em }
+
 theorem move_left_lf_of_le {x y : pgame} (i) : x ≤ y → x.move_left i ⧏ y :=
 by { cases x, cases y, rw mk_le_mk, tauto }
 
@@ -378,6 +381,9 @@ lf_move_right_of_le j le_rfl
 
 theorem lt_iff_le_and_lf {x y : pgame} : x < y ↔ x ≤ y ∧ x ⧏ y :=
 by rw [lt_iff_le_not_le, pgame.not_le]
+
+theorem lt_of_le_of_lf {x y : pgame} (h₁ : x ≤ y) (h₂ : x ⧏ y) : x < y :=
+lt_iff_le_and_lf.2 ⟨h₁, h₂⟩
 
 theorem lf_of_lt {x y : pgame} (h : x < y) : x ⧏ y :=
 (lt_iff_le_and_lf.1 h).2
@@ -456,8 +462,10 @@ lemma left_response_spec {x : pgame} (h : 0 ≤ x) (j : x.right_moves) :
   0 ≤ (x.move_right j).move_left (left_response h j) :=
 classical.some_spec $ (zero_le.1 h) j
 
-/-- Define the equivalence relation on pre-games. Two pre-games
-  `x`, `y` are equivalent if `x ≤ y` and `y ≤ x`. -/
+/-- Define the equivalence relation on pre-games. Two pre-games `x`, `y` are equivalent if `x ≤ y`
+and `y ≤ x`.
+
+If `x ≈ 0`, then the second player can always win `x`. -/
 def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
 
 local infix ` ≈ ` := pgame.equiv
@@ -521,6 +529,24 @@ begin
       specialize hr (R j),
       simp only [move_right_mk, equiv.symm_apply_apply] at hr,
       use ⟨R j, hr.2⟩ } }
+end
+
+/-- If `x ∥ 0`, then the second player can always win `x`. -/
+def fuzzy (x y : pgame) : Prop := x ⧏ y ∧ y ⧏ x
+
+local infix ` ∥ `:50 := fuzzy
+
+instance : is_irrefl _ (∥) := ⟨λ x h, (@irrefl _ (⧏) _ x) h.1⟩
+instance : is_symm _ (∥) := ⟨λ x y h, h.swap⟩
+
+theorem lt_or_equiv_or_gt_or_fuzzy (x y : pgame) : x < y ∨ x ≈ y ∨ y < x ∨ x ∥ y :=
+begin
+  cases le_or_gf x y with h₁ h₁;
+  cases le_or_gf y x with h₂ h₂,
+  { right, left, exact ⟨h₁, h₂⟩ },
+  { left, exact lt_of_le_of_lf h₁ h₂ },
+  { right, right, left, exact lt_of_le_of_lf h₂ h₁ },
+  { right, right, right, exact ⟨h₂, h₁⟩ }
 end
 
 /-- `restricted x y` says that Left always has no more moves in `x` than in `y`,
@@ -1149,10 +1175,8 @@ def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩
 instance unique_star_left_moves : unique star.left_moves := punit.unique
 instance unique_star_right_moves : unique star.right_moves := punit.unique
 
-theorem star_lf_zero : star ⧏ 0 :=
-by { rw lf_zero, use default, rintros ⟨⟩ }
-theorem zero_lf_star : 0 ⧏ star :=
-by { rw zero_lf, use default, rintros ⟨⟩ }
+theorem star_fuzzy_zero : star ∥ 0 :=
+⟨by { rw lf_zero, use default, rintros ⟨⟩ }, by { rw zero_lf, use default, rintros ⟨⟩ }⟩
 
 @[simp] theorem neg_star : -star = star :=
 by simp [star]
@@ -1161,7 +1185,7 @@ by simp [star]
 def omega : pgame := ⟨ulift ℕ, pempty, λ n, ↑n.1, pempty.elim⟩
 
 @[simp] theorem zero_lt_one : (0 : pgame) < 1 :=
-lt_iff_le_and_lf.2 ⟨zero_le_of_is_empty_right_moves 1, zero_lf_le.2 ⟨default, le_rfl⟩⟩
+lt_of_le_of_lf (zero_le_of_is_empty_right_moves 1) (zero_lf_le.2 ⟨default, le_rfl⟩)
 
 @[simp] theorem zero_le_one : (0 : pgame) ≤ 1 :=
 le_of_lt zero_lt_one
@@ -1181,10 +1205,10 @@ instance unique_half_left_moves : unique half.left_moves := punit.unique
 instance unique_half_right_moves : unique half.right_moves := punit.unique
 
 protected theorem zero_lt_half : 0 < half :=
-lt_iff_le_and_lf.2 ⟨zero_le.2 (λ j, ⟨punit.star, le_rfl⟩),
-  zero_lf.2 ⟨default, is_empty.elim pempty.is_empty⟩⟩
+lt_of_le_of_lf (zero_le.2 (λ j, ⟨punit.star, le_rfl⟩))
+  (zero_lf.2 ⟨default, is_empty.elim pempty.is_empty⟩)
 
 theorem half_lt_one : half < 1 :=
-lt_iff_le_and_lf.2 ⟨le_def_lf.2 ⟨by simp, is_empty_elim⟩, lf_def_le.2 (or.inr ⟨default, le_rfl⟩)⟩
+lt_of_le_of_lf (le_def_lf.2 ⟨by simp, is_empty_elim⟩) (lf_def_le.2 (or.inr ⟨default, le_rfl⟩))
 
 end pgame

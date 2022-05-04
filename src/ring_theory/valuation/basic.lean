@@ -254,6 +254,18 @@ begin
     rwa [add_comm, max_comm] at h' }
 end
 
+lemma map_add_eq_of_lt_right (h : v x < v y) : v (x + y) = v y :=
+begin
+  convert v.map_add_of_distinct_val _,
+  { symmetry, rw max_eq_right_iff, exact le_of_lt h },
+  { exact ne_of_lt h }
+end
+
+lemma map_add_eq_of_lt_left (h : v y < v x) : v (x + y) = v x :=
+begin
+  rw add_comm, exact map_add_eq_of_lt_right _ h,
+end
+
 lemma map_eq_of_sub_lt (h : v (y - x) < v x) : v y = v x :=
 begin
   have := valuation.map_add_of_distinct_val v (ne_of_gt h).symm,
@@ -345,6 +357,46 @@ begin
     replace hy := v'.ne_zero_iff.mpr hy,
     replace H := le_of_le_mul_right hy H,
     rwa h, },
+end
+
+lemma is_equiv_iff_val_le_one
+  [linear_ordered_comm_group_with_zero Γ₀]
+  [linear_ordered_comm_group_with_zero Γ'₀]
+  {K : Type*} [division_ring K]
+  (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
+  v.is_equiv v' ↔ ∀ {x : K}, v x ≤ 1 ↔ v' x ≤ 1 :=
+⟨λ h x, by  simpa using h x 1, is_equiv_of_val_le_one _ _⟩
+
+lemma is_equiv_iff_val_eq_one
+  [linear_ordered_comm_group_with_zero Γ₀]
+  [linear_ordered_comm_group_with_zero Γ'₀]
+  {K : Type*} [division_ring K]
+  (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
+  v.is_equiv v' ↔ ∀ {x : K}, v x = 1 ↔ v' x = 1 :=
+begin
+  split,
+  { intros h x,
+    simpa using @is_equiv.val_eq _ _ _ _ _ _ v v' h x 1 },
+  { intros h, apply is_equiv_of_val_le_one, intros x,
+    split,
+    { intros hx,
+      cases lt_or_eq_of_le hx with hx' hx',
+      { have : v (1 + x) = 1,
+        { rw ← v.map_one, apply map_add_eq_of_lt_left, simpa },
+        rw h at this,
+        rw (show x = (-1) + (1 + x), by simp),
+        refine le_trans (v'.map_add _ _) _,
+        simp [this] },
+      { rw h at hx', exact le_of_eq hx' } },
+    { intros hx,
+      cases lt_or_eq_of_le hx with hx' hx',
+      { have : v' (1 + x) = 1,
+        { rw ← v'.map_one, apply map_add_eq_of_lt_left, simpa },
+        rw ← h at this,
+        rw (show x = (-1) + (1 + x), by simp),
+        refine le_trans (v.map_add _ _) _,
+        simp [this] },
+      { rw ← h at hx', exact le_of_eq hx' } } }
 end
 
 end

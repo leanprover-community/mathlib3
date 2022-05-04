@@ -5,6 +5,7 @@ Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
 import data.fin.basic
 import data.list.basic
+import logic.relation
 
 /-!
 # Combinatorial (pre-)games.
@@ -103,7 +104,7 @@ An interested reader may like to formalise some of the material from
 * [André Joyal, *Remarques sur la théorie des jeux à deux personnes*][joyal1997]
 -/
 
-open function
+open function relation
 
 universes u
 
@@ -204,43 +205,39 @@ theorem wf_is_option : well_founded is_option :=
   { exact IHr j }
 end⟩
 
-/-- `subsequent p q` says that `p` can be obtained by playing
-  some nonempty sequence of moves from `q`. -/
-inductive subsequent : pgame → pgame → Prop
-| left : Π (x : pgame) (i : x.left_moves), subsequent (x.move_left i) x
-| right : Π (x : pgame) (j : x.right_moves), subsequent (x.move_right j) x
-| trans : Π (x y z : pgame), subsequent x y → subsequent y z → subsequent x z
+/-- `subsequent x y` says that `x` can be obtained by playing some nonempty sequence of moves from
+`y`. It is the transitive closure of `is_option`. -/
+def subsequent : pgame → pgame → Prop :=
+trans_gen is_option
 
-theorem wf_subsequent : well_founded subsequent :=
-⟨λ x, begin
-  induction x with l r L R IHl IHr,
-  refine ⟨_, λ y h, _⟩,
-  generalize_hyp e : mk l r L R = x at h,
-  induction h with _ i _ j a b _ h1 h2 IH1 IH2; subst e,
-  { apply IHl },
-  { apply IHr },
-  { exact acc.inv (IH2 rfl) h1 }
-end⟩
+instance : is_trans _ subsequent := trans_gen.is_trans
 
-instance : has_well_founded pgame :=
-{ r := subsequent,
-  wf := wf_subsequent }
+@[trans] theorem subsequent.trans : ∀ {x y z}, subsequent x y → subsequent y z → subsequent x z :=
+@trans_gen.trans _ _
 
-/-- A move by Left produces a subsequent game. (For use in pgame_wf_tac.) -/
-lemma subsequent.left_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {i : xl} :
+theorem wf_subsequent : well_founded subsequent := well_founded.trans_gen wf_is_option
+
+instance : has_well_founded pgame := ⟨_, wf_subsequent⟩
+
+lemma subsequent.move_left {x : pgame} (i : x.left_moves) : subsequent (x.move_left i) x :=
+trans_gen.single (is_option.move_left i)
+
+lemma subsequent.move_right {x : pgame} (j : x.right_moves) : subsequent (x.move_right j) x :=
+trans_gen.single (is_option.move_right j)
+
+lemma subsequent.mk_left {xl xr} (xL : xl → pgame) (xR : xr → pgame) (i : xl) :
   subsequent (xL i) (mk xl xr xL xR) :=
-subsequent.left (mk xl xr xL xR) i
-/-- A move by Right produces a subsequent game. (For use in pgame_wf_tac.) -/
-lemma subsequent.right_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {j : xr} :
+@subsequent.move_left (mk _ _ _ _) i
+
+lemma subsequent.mk_right {xl xr} (xL : xl → pgame) (xR : xr → pgame) (j : xr) :
   subsequent (xR j) (mk xl xr xL xR) :=
-subsequent.right (mk xl xr xL xR) j
+@subsequent.move_right (mk _ _ _ _) j
 
 /-- A local tactic for proving well-foundedness of recursive definitions involving pregames. -/
 meta def pgame_wf_tac :=
 `[solve_by_elim
-  [psigma.lex.left, psigma.lex.right,
-   subsequent.left_move, subsequent.right_move,
-   subsequent.left, subsequent.right, subsequent.trans]
+  [psigma.lex.left, psigma.lex.right, subsequent.move_left, subsequent.move_right,
+   subsequent.mk_left, subsequent.mk_right, subsequent.trans]
   { max_depth := 6 }]
 
 /-- The pre-game `zero` is defined by `0 = { | }`. -/
@@ -499,7 +496,8 @@ def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
 
 local infix ` ≈ ` := pgame.equiv
 
-@[refl, simp] theorem equiv_refl (x) : x ≈ x := ⟨pgame.le_refl _, pgame.le_refl _⟩
+@[refl, simp] theorem equiv_rfl {x} : x ≈ x := ⟨pgame.le_rfl, pgame.le_rfl⟩
+theorem equiv_refl (x) : x ≈ x := equiv_rfl
 @[symm] theorem equiv_symm {x y} : x ≈ y → y ≈ x | ⟨xy, yx⟩ := ⟨yx, xy⟩
 @[trans] theorem equiv_trans {x y z} : x ≈ y → y ≈ z → x ≈ z
 | ⟨xy, yx⟩ ⟨yz, zy⟩ := ⟨le_trans xy yz, le_trans zy yx⟩
@@ -518,6 +516,19 @@ theorem le_congr {x₁ y₁ x₂ y₂} : x₁ ≈ x₂ → y₁ ≈ y₂ → (x�
 
 theorem lt_congr {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ < y₁ ↔ x₂ < y₂ :=
 not_le.symm.trans $ (not_congr (le_congr hy hx)).trans not_le
+
+theorem lt_or_equiv_of_le {x y : pgame} (h : x ≤ y) : x < y ∨ x ≈ y :=
+or_iff_not_imp_left.2 $ λ h', ⟨h, not_lt.1 h'⟩
+
+theorem lt_or_equiv_or_gt (x y : pgame) : x < y ∨ x ≈ y ∨ y < x :=
+begin
+  by_cases h : x < y,
+  { exact or.inl h },
+  { right,
+    cases (lt_or_equiv_of_le (not_lt.1 h)) with h' h',
+    { exact or.inr h' },
+    { exact or.inl h'.symm } }
+end
 
 theorem equiv_congr_left {y₁ y₂} : y₁ ≈ y₂ ↔ ∀ x₁, x₁ ≈ y₁ ↔ x₁ ≈ y₂ :=
 ⟨λ h x₁, ⟨λ h', equiv_trans h' h, λ h', equiv_trans h' (equiv_symm h)⟩,
@@ -709,33 +720,57 @@ begin
       exact this (list.length_map _ _).symm ha } }
 end
 
-/-- An explicit equivalence between the moves for Left in `-x` and the moves for Right in `x`. -/
--- This equivalence is useful to avoid having to use `cases` unnecessarily.
-def left_moves_neg (x : pgame) : (-x).left_moves ≃ x.right_moves :=
+theorem left_moves_neg : ∀ x : pgame, (-x).left_moves = x.right_moves
+| ⟨_, _, _, _⟩ := rfl
+
+theorem right_moves_neg : ∀ x : pgame, (-x).right_moves = x.left_moves
+| ⟨_, _, _, _⟩ := rfl
+
+/-- Turns a right move for `x` into a left move for `-x` and vice versa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_left_moves_neg {x : pgame} : x.right_moves ≃ (-x).left_moves :=
+equiv.cast (left_moves_neg x).symm
+
+/-- Turns a left move for `x` into a right move for `-x` and vice versa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_right_moves_neg {x : pgame} : x.left_moves ≃ (-x).right_moves :=
+equiv.cast (right_moves_neg x).symm
+
+lemma move_left_neg {x : pgame} (i) :
+  (-x).move_left (to_left_moves_neg i) = -x.move_right i :=
 by { cases x, refl }
 
-/-- An explicit equivalence between the moves for Right in `-x` and the moves for Left in `x`. -/
-def right_moves_neg (x : pgame) : (-x).right_moves ≃ x.left_moves :=
+@[simp] lemma move_left_neg' {x : pgame} (i) :
+  (-x).move_left i = -x.move_right (to_left_moves_neg.symm i) :=
 by { cases x, refl }
 
-@[simp] lemma move_right_left_moves_neg {x : pgame} (i : left_moves (-x)) :
-  move_right x ((left_moves_neg x) i) = -(move_left (-x) i) :=
-begin
-  induction x,
-  exact (neg_neg _).symm
-end
-@[simp] lemma move_left_left_moves_neg_symm {x : pgame} (i : right_moves x) :
-  move_left (-x) ((left_moves_neg x).symm i) = -(move_right x i) :=
+lemma move_right_neg {x : pgame} (i) :
+  (-x).move_right (to_right_moves_neg i) = -(x.move_left i) :=
 by { cases x, refl }
-@[simp] lemma move_left_right_moves_neg {x : pgame} (i : right_moves (-x)) :
-  move_left x ((right_moves_neg x) i) = -(move_right (-x) i) :=
-begin
-  induction x,
-  exact (neg_neg _).symm
-end
-@[simp] lemma move_right_right_moves_neg_symm {x : pgame} (i : left_moves x) :
-  move_right (-x) ((right_moves_neg x).symm i) = -(move_left x i) :=
+
+@[simp] lemma move_right_neg' {x : pgame} (i) :
+  (-x).move_right i = -x.move_left (to_right_moves_neg.symm i) :=
 by { cases x, refl }
+
+lemma move_left_neg_symm {x : pgame} (i) :
+  x.move_left (to_right_moves_neg.symm i) = -(-x).move_right i :=
+by simp
+
+lemma move_left_neg_symm' {x : pgame} (i) :
+  x.move_left i = -(-x).move_right (to_right_moves_neg i) :=
+by simp
+
+lemma move_right_neg_symm {x : pgame} (i) :
+  x.move_right (to_left_moves_neg.symm i) = -(-x).move_left i :=
+by simp
+
+lemma move_right_neg_symm' {x : pgame} (i) :
+  x.move_right i = -(-x).move_left (to_left_moves_neg i) :=
+by simp
 
 /-- If `x` has the same moves as `y`, then `-x` has the sames moves as `-y`. -/
 def relabelling.neg_congr : ∀ {x y : pgame}, x.relabelling y → (-x).relabelling (-y)
@@ -747,34 +782,27 @@ def relabelling.neg_congr : ∀ {x y : pgame}, x.relabelling y → (-x).relabell
 theorem le_iff_neg_ge : Π {x y : pgame}, x ≤ y ↔ -y ≤ -x
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
-  rw [le_def],
-  rw [le_def],
+  rw [le_def, le_def],
   dsimp [neg],
-  split,
-  { intro h,
-    split,
-    { intro i, have t := h.right i, cases t,
-      { right, cases t,
-        use (@right_moves_neg (yR i)).symm t_w, convert le_iff_neg_ge.1 t_h, simp },
-      { left, cases t,
-        use t_w, exact le_iff_neg_ge.1 t_h, } },
-    { intro j, have t := h.left j, cases t,
-      { right, cases t,
-        use t_w, exact le_iff_neg_ge.1 t_h, },
-      { left, cases t,
-        use (@left_moves_neg (xL j)).symm t_w, convert le_iff_neg_ge.1 t_h, simp, } } },
-  { intro h,
-    split,
-    { intro i, have t := h.right i, cases t,
-      { right, cases t,
-        use (@left_moves_neg (xL i)) t_w, convert le_iff_neg_ge.2 _, convert t_h, simp, },
-      { left, cases t,
-        use t_w, exact le_iff_neg_ge.2 t_h, } },
-    { intro j, have t := h.left j, cases t,
-      { right, cases t,
-        use t_w, exact le_iff_neg_ge.2 t_h, },
-      { left, cases t,
-        use (@right_moves_neg (yR j)) t_w, convert le_iff_neg_ge.2 _, convert t_h, simp } } },
+  refine ⟨λ h, ⟨λ i, _, λ j, _⟩, λ h, ⟨λ i, _, λ j, _⟩⟩,
+  { rcases h.right i with ⟨w, h⟩ | ⟨w, h⟩,
+    { refine or.inr ⟨to_right_moves_neg w, _⟩,
+      convert le_iff_neg_ge.1 h,
+      rw move_right_neg },
+    { exact or.inl ⟨w, le_iff_neg_ge.1 h⟩ } },
+  { rcases h.left j with ⟨w, h⟩ | ⟨w, h⟩,
+    { exact or.inr ⟨w, le_iff_neg_ge.1 h⟩ },
+    { refine or.inl ⟨to_left_moves_neg w, _⟩,
+      convert le_iff_neg_ge.1 h,
+      rw move_left_neg } },
+  { rcases h.right i with ⟨w, h⟩ | ⟨w, h⟩,
+    { refine or.inr ⟨to_left_moves_neg.symm w, le_iff_neg_ge.2 _⟩,
+      rwa [move_right_neg_symm, neg_neg] },
+    { exact or.inl ⟨w, le_iff_neg_ge.2 h⟩ } },
+  { rcases h.left j with ⟨w, h⟩ | ⟨w, h⟩,
+    { exact or.inr ⟨w, le_iff_neg_ge.2 h⟩ },
+    { refine or.inl ⟨to_right_moves_neg.symm w, le_iff_neg_ge.2 _⟩,
+      rwa [move_left_neg_symm, neg_neg] } },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -815,6 +843,8 @@ begin
 end
 
 instance : has_add pgame := ⟨add⟩
+
+@[simp] theorem nat_one : ((1 : ℕ) : pgame) = 0 + 1 := rfl
 
 /-- `x + 0` has exactly the same moves as `x`. -/
 def add_zero_relabelling : Π (x : pgame.{u}), relabelling (x + 0) x
@@ -948,7 +978,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 theorem neg_add_le {x y : pgame} : -(x + y) ≤ -x + -y :=
 (neg_add_relabelling x y).le
 
-/-- `x+y` has exactly the same moves as `y+x`. -/
+/-- `x + y` has exactly the same moves as `y + x`. -/
 def add_comm_relabelling : Π (x y : pgame.{u}), relabelling (x + y) (y + x)
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
@@ -1049,13 +1079,23 @@ instance covariant_class_add_le : covariant_class pgame pgame (+) (≤) :=
                    ... ≤ x + z : add_comm_le⟩
 
 theorem add_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w + y ≈ x + z :=
-⟨calc w + y ≤ w + z : add_le_add_left h₂.1 _
-        ... ≤ x + z : add_le_add_right h₁.1 _,
- calc x + z ≤ x + y : add_le_add_left h₂.2 _
-        ... ≤ w + y : add_le_add_right h₁.2 _⟩
+⟨le_trans (add_le_add_left h₂.1 w) (add_le_add_right h₁.1 z),
+  le_trans (add_le_add_left h₂.2 x) (add_le_add_right h₁.2 y)⟩
+
+theorem add_congr_left {x y z : pgame} (h : x ≈ y) : x + z ≈ y + z :=
+add_congr h equiv_rfl
+
+theorem add_congr_right {x y z : pgame} : y ≈ z → x + y ≈ x + z :=
+add_congr equiv_rfl
 
 theorem sub_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w - y ≈ x - z :=
 add_congr h₁ (neg_congr h₂)
+
+theorem sub_congr_left {x y z : pgame} (h : x ≈ y) : x - z ≈ y - z :=
+sub_congr h equiv_rfl
+
+theorem sub_congr_right {x y z : pgame} : y ≈ z → x - y ≈ x - z :=
+sub_congr equiv_rfl
 
 theorem add_left_neg_le_zero : ∀ (x : pgame), -x + x ≤ 0
 | ⟨xl, xr, xL, xR⟩ :=

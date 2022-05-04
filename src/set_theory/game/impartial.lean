@@ -96,16 +96,13 @@ instance impartial_neg : ∀ (G : pgame) [G.impartial], (-G).impartial
 begin
   introI hG,
   rw impartial_def,
-  split,
+  refine ⟨_, λ i, _, λ i, _⟩,
   { rw neg_neg,
-    symmetry,
-    exact neg_equiv_self G },
-  split,
-  all_goals
-  { intro i,
-    equiv_rw G.left_moves_neg at i <|> equiv_rw G.right_moves_neg at i,
-    simp only [move_left_left_moves_neg_symm, move_right_right_moves_neg_symm],
-    exact impartial_neg _ }
+    exact (neg_equiv_self G).symm },
+  { rw move_left_neg',
+    apply impartial_neg },
+  { rw move_right_neg',
+    apply impartial_neg }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -196,10 +193,12 @@ lemma no_good_right_moves_iff_first_loses (G : pgame) [G.impartial] :
 begin
   rw [first_loses_of_equiv_iff (neg_equiv_self G), ←no_good_left_moves_iff_first_loses],
   refine ⟨λ h i, _, λ h i, _⟩,
-  { simpa [first_wins_of_equiv_iff (neg_equiv_self ((-G).move_left i))]
-    using h (left_moves_neg _ i) },
-  { simpa [first_wins_of_equiv_iff (neg_equiv_self (G.move_right i))]
-      using h ((left_moves_neg _).symm i) }
+  { rw [move_left_neg',
+      ←first_wins_of_equiv_iff (neg_equiv_self (G.move_right (to_left_moves_neg.symm i)))],
+    apply h },
+  { rw [move_right_neg_symm',
+      ←first_wins_of_equiv_iff (neg_equiv_self ((-G).move_left (to_left_moves_neg i)))],
+    apply h }
 end
 
 lemma good_left_move_iff_first_wins (G : pgame) [G.impartial] :

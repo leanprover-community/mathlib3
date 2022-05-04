@@ -19,9 +19,8 @@ Also `V.ρ` gives the homomorphism `G →* (V →ₗ[k] V)`.
 Conversely, given a homomorphism `ρ : G →* (V →ₗ[k] V)`,
 you can construct the bundled representation as `Rep.of ρ`.
 
-We verify that `Rep k G` is an abelian symmetric monoidal category with all (co)limits.
-
 We construct the categorical equivalence `Rep k G ≌ Module (monoid_algebra k G)`.
+We verify that `Rep k G` is a `k`-linear abelian symmetric monoidal category with all (co)limits.
 -/
 
 universes u
@@ -30,9 +29,13 @@ open category_theory
 open category_theory.limits
 
 /-- The category of `k`-linear representations of a monoid `G`. -/
-@[derive [large_category, concrete_category, has_limits, has_colimits, abelian]]
+@[derive [large_category, concrete_category, has_limits, has_colimits,
+  preadditive, abelian]]
 abbreviation Rep (k G : Type u) [ring k] [monoid G] :=
 Action (Module.{u} k) (Mon.of G)
+
+instance (k G : Type u) [comm_ring k] [monoid G] : linear k (Rep k G) :=
+by apply_instance
 
 namespace Rep
 
@@ -181,6 +184,8 @@ def equivalence_Module_monoid_algebra : Rep k G ≌ Module.{u} (monoid_algebra k
 
 -- Verify that the symmetric monoidal structure is available.
 example : symmetric_category (Rep k G) := by apply_instance
+example : monoidal_preadditive (Rep k G) := by apply_instance
+example : monoidal_linear k (Rep k G) := by apply_instance
 
 -- TODO Verify that the equivalence with `Module (monoid_algebra k G)` is a monoidal functor.
 

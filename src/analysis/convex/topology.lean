@@ -303,7 +303,7 @@ lemma convex_on_norm (hs : convex ℝ s) : convex_on ℝ s norm :=
 and `convex_on_norm`. -/
 lemma convex_on_univ_norm : convex_on ℝ univ (norm : E → ℝ) := convex_on_norm convex_univ
 
-lemma convex_on_dist (z : E) (hs : convex ℝ s) : convex_on ℝ s (λz', dist z' z) :=
+lemma convex_on_dist (z : E) (hs : convex ℝ s) : convex_on ℝ s (λ z', dist z' z) :=
 by simpa [dist_eq_norm, preimage_preimage]
   using (convex_on_norm (hs.translate (-z))).comp_affine_map
     (affine_map.id ℝ E - affine_map.const ℝ E z)
@@ -331,11 +331,8 @@ end
 
 /-- If `s`, `t` are disjoint convex sets, `s` is compact and `t` is closed then we can find open
 disjoint convex sets containing them. -/
--- TODO: This proof uses the normed space structure of `E`, but it could work for locally convex
--- topological vector spaces: instead of looking at thickenings, we could show there must be some
--- convex neighbourhood `u` of 0 which make `s + u` and `t + u` disjoint?
-lemma disjoint.exists_open_convexes (hs₁ : convex ℝ s) (hs₂ : is_compact s)
-  (ht₁ : convex ℝ t) (ht₂ : is_closed t) (disj : disjoint s t) :
+lemma disjoint.exists_open_convexes (disj : disjoint s t) (hs₁ : convex ℝ s) (hs₂ : is_compact s)
+  (ht₁ : convex ℝ t) (ht₂ : is_closed t) :
   ∃ u v, is_open u ∧ is_open v ∧ convex ℝ u ∧ convex ℝ v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
 let ⟨δ, hδ, hst⟩ := disj.exists_thickenings hs₂ ht₂ in
   ⟨_, _, is_open_thickening, is_open_thickening, hs₁.thickening _, ht₁.thickening _,

@@ -1036,8 +1036,8 @@ by simp_rw [cthickening, inf_edist_closure]
 
 open ennreal
 
-lemma _root_.disjoint.exists_thickenings (hs : is_compact s) (ht : is_closed t)
-  (hst : disjoint s t) :
+lemma _root_.disjoint.exists_thickenings (hst : disjoint s t) (hs : is_compact s)
+  (ht : is_closed t) :
   ∃ δ, 0 < δ ∧ disjoint (thickening δ s) (thickening δ t) :=
 begin
   obtain rfl | hs' := s.eq_empty_or_nonempty,
@@ -1056,8 +1056,8 @@ begin
   exact ennreal.mul_le_of_le_div' (of_real_to_real_le.trans $ min_le_right _ _),
 end
 
-lemma _root_.disjoint.exists_cthickenings (hs : is_compact s) (ht : is_closed t)
- (hst : disjoint s t) :
+lemma _root_.disjoint.exists_cthickenings (hst : disjoint s t) (hs : is_compact s)
+  (ht : is_closed t) :
   ∃ δ, 0 < δ ∧ disjoint (cthickening δ s) (cthickening δ t) :=
 begin
   obtain ⟨δ, hδ, h⟩ := hst.exists_thickenings hs ht,

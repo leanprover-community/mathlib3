@@ -112,7 +112,7 @@ namespace SemilatticeSup
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : SemilatticeSup ⥤ SemilatticeInf :=
-{ obj := λ X, SemilatticeInf.of (order_dual X), map := λ X Y, sup_bot_hom.dual }
+{ obj := λ X, SemilatticeInf.of Xᵒᵈ, map := λ X Y, sup_bot_hom.dual }
 
 end SemilatticeSup
 
@@ -127,7 +127,7 @@ namespace SemilatticeInf
 
 /-- `order_dual` as a functor. -/
 @[simps] def dual : SemilatticeInf ⥤ SemilatticeSup :=
-{ obj := λ X, SemilatticeSup.of (order_dual X), map := λ X Y, inf_top_hom.dual }
+{ obj := λ X, SemilatticeSup.of Xᵒᵈ, map := λ X Y, inf_top_hom.dual }
 
 end SemilatticeInf
 

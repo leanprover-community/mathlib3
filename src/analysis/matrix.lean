@@ -317,7 +317,7 @@ end linfty_op
 
 /-! ### The Frobenius norm
 
-This is defined as $\|A\| = \sqrt{\sum_ij \|A_ij\|^2}$.
+This is defined as $\|A\| = \sqrt{\sum_{i,j} \|A_{ij}\|^2}$.
 When the matrix is over the real or complex numbers, this norm is submultiplicative.
 -/
 

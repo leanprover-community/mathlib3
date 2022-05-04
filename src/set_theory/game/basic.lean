@@ -67,6 +67,12 @@ into a `def` instead. -/
 instance : has_lt game :=
 ⟨quotient.lift₂ (λ x y, x < y) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx hy))⟩
 
+theorem lt_or_eq_of_le : ∀ {x y : game}, x ≤ y → x < y ∨ x = y :=
+by { rintro ⟨x⟩ ⟨y⟩, change _ → _ ∨ ⟦x⟧ = ⟦y⟧, rw quotient.eq, exact lt_or_equiv_of_le }
+
+instance : is_trichotomous game (<) :=
+⟨by { rintro ⟨x⟩ ⟨y⟩, change _ ∨ ⟦x⟧ = ⟦y⟧ ∨ _, rw quotient.eq, apply lt_or_equiv_or_gt }⟩
+
 @[simp] theorem not_le : ∀ {x y : game}, ¬ x ≤ y ↔ y < x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact not_le }
 

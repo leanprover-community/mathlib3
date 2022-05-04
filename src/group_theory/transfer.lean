@@ -102,7 +102,7 @@ def key_transversal {G : Type*} [group G] (H : subgroup G) (g : G) : subgroup.le
 lemma key_transversal_apply {G : Type*} [group G] (H : subgroup G) (g : G) (q : G ⧸ H) :
   ↑(subgroup.mem_left_transversals.to_equiv (key_transversal H g).2 q) =
     g ^ ((key_equiv H g q).2 : ℤ) * (key_equiv H g q).1.out'.out' :=
-subgroup.mem_left_transversals.range_to_equiv_apply (λ q, by rw [←smul_eq_mul,  mul_action.quotient.coe_smul_out',
+subgroup.mem_left_transversals.to_equiv_apply (λ q, by rw [←smul_eq_mul, mul_action.quotient.coe_smul_out',
   ←key_equiv_symm_apply, sigma.eta, equiv.symm_apply_apply]) q
 
 lemma key_transversal_apply' {G : Type*} [group G] (H : subgroup G)

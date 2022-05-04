@@ -746,28 +746,26 @@ lemma srange_top_of_surjective (f : F) (hf : function.surjective (f : R → S)) 
   srange f = (⊤ : non_unital_subsemiring S) :=
 srange_top_iff_surjective.2 hf
 
-/-
 /-- The non-unital subsemiring of elements `x : R` such that `f x = g x` -/
 def eq_slocus (f g : F) : non_unital_subsemiring R :=
 { carrier := {x | f x = g x},
   .. (f : R →ₙ* S).eq_mlocus (g : R →ₙ* S),
   .. (f : R →+ S).eq_mlocus g }
 
-/-- If two ring homomorphisms are equal on a set, then they are equal on its subsemiring closure. -/
-lemma eq_on_sclosure {f g : R →ₙ+* S} {s : set R} (h : set.eq_on f g s) :
+/-- If two non-unital ring homomorphisms are equal on a set, then they are equal on its
+non-unital subsemiring closure. -/
+lemma eq_on_sclosure {f g : F} {s : set R} (h : set.eq_on (f : R → S) (g : R → S) s) :
   set.eq_on f g (closure s) :=
-show closure s ≤ f.eq_slocus g, from closure_le.2 h
--/
+show closure s ≤ eq_slocus f g, from closure_le.2 h
 
 lemma eq_of_eq_on_stop {f g : F} (h : set.eq_on (f : R → S) (g : R → S)
   (⊤ : non_unital_subsemiring R)) : f = g :=
 fun_like.ext _ _ (λ x, h trivial)
 
-/-
-lemma eq_of_eq_on_sdense {s : set R} (hs : closure s = ⊤) {f g : R →+* S} (h : s.eq_on f g) :
+lemma eq_of_eq_on_sdense {s : set R} (hs : closure s = ⊤) {f g : F}
+  (h : s.eq_on (f : R → S) (g : R → S)) :
   f = g :=
 eq_of_eq_on_stop $ hs ▸ eq_on_sclosure h
--/
 
 lemma sclosure_preimage_le (f : F) (s : set S) :
   closure ((f : R → S) ⁻¹' s) ≤ (closure s).comap f :=

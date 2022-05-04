@@ -539,6 +539,17 @@ local infix ` ∥ `:50 := fuzzy
 instance : is_irrefl _ (∥) := ⟨λ x h, (@irrefl _ (⧏) _ x) h.1⟩
 instance : is_symm _ (∥) := ⟨λ x y h, h.swap⟩
 
+theorem lf_iff_lt_or_fuzzy {x y : pgame} : x ⧏ y ↔ x < y ∨ x ∥ y :=
+by { simp only [lt_iff_le_and_lf, fuzzy, ←pgame.not_le], tauto! }
+
+theorem fuzzy_congr {x₁ y₁ x₂ y₂ : pgame} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) (h : x₁ ∥ y₁) : x₂ ∥ y₂ :=
+begin
+  cases h,
+  split,
+  { rwa [lf_congr hx.symm (refl _), lf_congr (refl _) hy.symm] },
+  { rwa [lf_congr (refl _) hx.symm, lf_congr hy.symm (refl _) ] },
+end
+
 theorem lt_or_equiv_or_gt_or_fuzzy (x y : pgame) : x < y ∨ x ≈ y ∨ y < x ∨ x ∥ y :=
 begin
   cases le_or_gf x y with h₁ h₁;

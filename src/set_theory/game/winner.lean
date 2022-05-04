@@ -35,29 +35,18 @@ theorem zero_first_loses : first_loses 0 := refl 0
 theorem one_left_wins : left_wins 1 := zero_lt_one
 
 theorem star_first_wins : first_wins star := star_fuzzy_zero
-theorem omega_left_wins : left_wins omega :=
-⟨by { rw lf_def_le, exact or.inl ⟨ulift.up 0, by tidy⟩ }, by rw le_def; tidy⟩
 
-lemma winner_cases (G : pgame) : G.left_wins ∨ G.right_wins ∨ G.first_loses ∨ G.first_wins :=
-begin
-  by_cases hpos : 0 ⧏ G;
-  by_cases hneg : G ⧏ 0;
-  { try { rw not_lf at hpos },
-    try { rw not_lf at hneg },
-    try { left, exact ⟨hpos, hneg⟩ },
-    try { right, left, exact ⟨hpos, hneg⟩ },
-    try { right, right, left, exact ⟨hpos, hneg⟩ },
-    try { right, right, right, exact ⟨hpos, hneg⟩ } }
-end
+lemma winner_cases (G : pgame) : G.right_wins ∨ G.first_loses ∨ G.left_wins ∨ G.first_wins :=
+lt_or_equiv_or_gt_or_fuzzy G 0
 
 lemma first_loses_is_zero {G : pgame} : G.first_loses ↔ G ≈ 0 := by refl
 
 lemma first_loses_of_equiv {G H : pgame} (h : G ≈ H) : G.first_loses → H.first_loses :=
-λ hGp, ⟨le_of_equiv_of_le h.symm hGp.1, le_of_le_of_equiv hGp.2 h⟩
+trans (symm h)
 lemma first_wins_of_equiv {G H : pgame} (h : G ≈ H) : G.first_wins → H.first_wins :=
-λ hGn, ⟨lf_of_lf_of_equiv hGn.1 h, lf_of_equiv_of_lf h.symm hGn.2⟩
+fuzzy_congr h (refl _)
 lemma left_wins_of_equiv {G H : pgame} (h : G ≈ H) : G.left_wins → H.left_wins :=
-λ hGl, ⟨lt_of_lt_of_equiv hGl.1 h, le_of_le_of_equiv hGl.2 h⟩
+lt_congr h (refl _)
 lemma right_wins_of_equiv {G H : pgame} (h : G ≈ H) : G.right_wins → H.right_wins :=
 λ hGr, ⟨le_of_equiv_of_le h.symm hGr.1, lt_of_equiv_of_lt h.symm hGr.2⟩
 

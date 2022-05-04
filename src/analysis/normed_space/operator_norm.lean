@@ -1668,7 +1668,7 @@ section
 variables [ring_hom_isometric σ₂₁]
 
 protected lemma antilipschitz (e : E ≃SL[σ₁₂] F) :
-  antilipschitz_with (∥e.symm : F →SL[σ₂₁] E∥₊) e :=
+  antilipschitz_with ∥(e.symm : F →SL[σ₂₁] E)∥₊ e :=
 e.symm.lipschitz.to_right_inverse e.left_inv
 
 lemma one_le_norm_mul_norm_symm [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ₁₂] F) :

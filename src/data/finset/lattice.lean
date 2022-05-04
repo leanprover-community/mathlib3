@@ -383,9 +383,9 @@ end inf
   to_dual (s.sup f) = s.inf (to_dual ∘ f) := rfl
 @[simp] lemma to_dual_inf [semilattice_inf α] [order_top α] (s : finset β) (f : β → α) :
   to_dual (s.inf f) = s.sup (to_dual ∘ f) := rfl
-@[simp] lemma of_dual_sup [semilattice_inf α] [order_top α] (s : finset β) (f : β → order_dual α) :
+@[simp] lemma of_dual_sup [semilattice_inf α] [order_top α] (s : finset β) (f : β → αᵒᵈ) :
   of_dual (s.sup f) = s.inf (of_dual ∘ f) := rfl
-@[simp] lemma of_dual_inf [semilattice_sup α] [order_bot α] (s : finset β) (f : β → order_dual α) :
+@[simp] lemma of_dual_inf [semilattice_sup α] [order_bot α] (s : finset β) (f : β → αᵒᵈ) :
   of_dual (s.inf f) = s.sup (of_dual ∘ f) := rfl
 
 section distrib_lattice
@@ -716,10 +716,10 @@ end inf'
   to_dual (s.sup' hs f) = s.inf' hs (to_dual ∘ f) := rfl
 @[simp] lemma to_dual_inf' [semilattice_inf α] {s : finset ι} (hs : s.nonempty) (f : ι → α) :
   to_dual (s.inf' hs f) = s.sup' hs (to_dual ∘ f) := rfl
-@[simp] lemma of_dual_sup' [semilattice_inf α] {s : finset ι} (hs : s.nonempty)
-  (f : ι → order_dual α) : of_dual (s.sup' hs f) = s.inf' hs (of_dual ∘ f) := rfl
-@[simp] lemma of_dual_inf' [semilattice_sup α] {s : finset ι} (hs : s.nonempty)
-  (f : ι → order_dual α) : of_dual (s.inf' hs f) = s.sup' hs (of_dual ∘ f) := rfl
+@[simp] lemma of_dual_sup' [semilattice_inf α] {s : finset ι} (hs : s.nonempty) (f : ι → αᵒᵈ) :
+  of_dual (s.sup' hs f) = s.inf' hs (of_dual ∘ f) := rfl
+@[simp] lemma of_dual_inf' [semilattice_sup α] {s : finset ι} (hs : s.nonempty) (f : ι → αᵒᵈ) :
+  of_dual (s.inf' hs f) = s.sup' hs (of_dual ∘ f) := rfl
 
 section linear_order
 variables [linear_order α] {s : finset ι} (H : s.nonempty) {f : ι → α} {a : α}
@@ -929,10 +929,10 @@ begin
   exact s.min'_lt_max' ha hb hab
 end
 
-lemma map_of_dual_min (s : finset (order_dual α)) : s.min.map of_dual = (s.image of_dual).max :=
+lemma map_of_dual_min (s : finset αᵒᵈ) : s.min.map of_dual = (s.image of_dual).max :=
 by { rw [max_eq_sup_with_bot, sup_image], exact congr_fun option.map_id _ }
 
-lemma map_of_dual_max (s : finset (order_dual α)) : s.max.map of_dual = (s.image of_dual).min :=
+lemma map_of_dual_max (s : finset αᵒᵈ) : s.max.map of_dual = (s.image of_dual).min :=
 by { rw [min_eq_inf_with_top, inf_image], exact congr_fun option.map_id _ }
 
 lemma map_to_dual_min (s : finset α) : s.min.map to_dual  = (s.image to_dual).max :=
@@ -941,11 +941,11 @@ by { rw [max_eq_sup_with_bot, sup_image], exact congr_fun option.map_id _ }
 lemma map_to_dual_max (s : finset α) : s.max.map to_dual  = (s.image to_dual).min :=
 by { rw [min_eq_inf_with_top, inf_image], exact congr_fun option.map_id _ }
 
-lemma of_dual_min' {s : finset (order_dual α)} (hs : s.nonempty) :
+lemma of_dual_min' {s : finset αᵒᵈ} (hs : s.nonempty) :
   of_dual (min' s hs) = max' (s.image of_dual) (hs.image _) :=
 by { convert rfl, exact image_id }
 
-lemma of_dual_max' {s : finset (order_dual α)} (hs : s.nonempty) :
+lemma of_dual_max' {s : finset αᵒᵈ} (hs : s.nonempty) :
   of_dual (max' s hs) = min' (s.image of_dual) (hs.image _) :=
 by { convert rfl, exact image_id }
 

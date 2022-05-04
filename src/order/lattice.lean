@@ -712,16 +712,16 @@ by apply_instance
 
 open order_dual
 
-@[simp] lemma of_dual_inf [has_sup α] (a b) : of_dual (a ⊓ b) = (of_dual a : α) ⊔ of_dual b := rfl
-@[simp] lemma of_dual_sup [has_inf α] (a b) : of_dual (a ⊔ b) = (of_dual a : α) ⊓ of_dual b := rfl
+@[simp] lemma of_dual_inf [has_sup α] (a b:  αᵒᵈ) : of_dual (a ⊓ b) = of_dual a ⊔ of_dual b := rfl
+@[simp] lemma of_dual_sup [has_inf α] (a b : αᵒᵈ) : of_dual (a ⊔ b) = of_dual a ⊓ of_dual b := rfl
 @[simp] lemma to_dual_inf [has_inf α] (a b : α) : to_dual (a ⊓ b) = to_dual a ⊔ to_dual b := rfl
 @[simp] lemma to_dual_sup [has_sup α] (a b : α) : to_dual (a ⊔ b) = to_dual a ⊓ to_dual b := rfl
 
 section linear_order
 variables [linear_order α]
 
-@[simp] lemma of_dual_min (a b) : of_dual (min a b) = max (of_dual a : α) (of_dual b) := rfl
-@[simp] lemma of_dual_max (a b) : of_dual (max a b) = min (of_dual a : α) (of_dual b) := rfl
+@[simp] lemma of_dual_min (a b : αᵒᵈ) : of_dual (min a b) = max (of_dual a) (of_dual b) := rfl
+@[simp] lemma of_dual_max (a b : αᵒᵈ) : of_dual (max a b) = min (of_dual a) (of_dual b) := rfl
 @[simp] lemma to_dual_min (a b : α) : to_dual (min a b) = max (to_dual a) (to_dual b) := rfl
 @[simp] lemma to_dual_max (a b : α) : to_dual (max a b) = min (to_dual a) (to_dual b) := rfl
 

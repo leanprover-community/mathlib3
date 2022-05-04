@@ -108,6 +108,14 @@ variables (K V)
 instance finite_dimensional_pi {ι} [fintype ι] : finite_dimensional K (ι → K) :=
 iff_fg.1 is_noetherian_pi
 
+instance finite_dimensional_pi' {ι} [fintype ι] (M : ι → Type*)
+  [∀ i, add_comm_group (M i)] [∀ i, module K (M i)] [I : ∀ i, finite_dimensional K (M i)] :
+  finite_dimensional K (Π i, M i) :=
+begin
+  haveI : ∀ i : ι, is_noetherian K (M i) := λ i, iff_fg.2 (I i),
+  exact iff_fg.1 is_noetherian_pi
+end
+
 /-- A finite dimensional vector space over a finite field is finite -/
 noncomputable def fintype_of_fintype [fintype K] [finite_dimensional K V] : fintype V :=
 module.fintype_of_fintype (@finset_basis K V _ _ _ (iff_fg.2 infer_instance))

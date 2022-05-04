@@ -72,14 +72,14 @@ variables {α : Type*}
 (le_pred_of_lt {a b} : a < b → a ≤ pred b)
 (le_of_pred_lt {a b} : pred a < b → a ≤ b)
 
-instance [preorder α] [succ_order α] : pred_order (order_dual α) :=
+instance [preorder α] [succ_order α] : pred_order αᵒᵈ :=
 { pred := to_dual ∘ succ_order.succ ∘ of_dual,
   pred_le := succ_order.le_succ,
   min_of_le_pred := λ _, succ_order.max_of_succ_le,
   le_pred_of_lt := λ a b h, succ_order.succ_le_of_lt h,
   le_of_pred_lt := λ a b, succ_order.le_of_lt_succ }
 
-instance [preorder α] [pred_order α] : succ_order (order_dual α) :=
+instance [preorder α] [pred_order α] : succ_order αᵒᵈ :=
 { succ := to_dual ∘ pred_order.pred ∘ of_dual,
   le_succ := pred_order.pred_le,
   max_of_succ_le := λ _, pred_order.min_of_le_pred,
@@ -532,8 +532,8 @@ variables [order_bot α]
 
 @[simp] lemma pred_bot : pred (⊥ : α) = ⊥ := is_min_bot.pred_eq
 
-@[simp] lemma le_pred_iff_eq_bot : a ≤ pred a ↔ a = ⊥ := @succ_le_iff_eq_top (order_dual α) _ _ _ _
-@[simp] lemma pred_lt_iff_ne_bot : pred a < a ↔ a ≠ ⊥ := @lt_succ_iff_ne_top (order_dual α) _ _ _ _
+@[simp] lemma le_pred_iff_eq_bot : a ≤ pred a ↔ a = ⊥ := @succ_le_iff_eq_top αᵒᵈ _ _ _ _
+@[simp] lemma pred_lt_iff_ne_bot : pred a < a ↔ a ≠ ⊥ := @lt_succ_iff_ne_top αᵒᵈ _ _ _ _
 
 end order_bot
 
@@ -880,8 +880,7 @@ variables [preorder α]
 section succ_order
 variables [succ_order α] [is_succ_archimedean α] {a b : α}
 
-instance : is_pred_archimedean (order_dual α) :=
-⟨λ a b h, by convert exists_succ_iterate_of_le h.of_dual⟩
+instance : is_pred_archimedean αᵒᵈ := ⟨λ a b h, by convert exists_succ_iterate_of_le h.of_dual⟩
 
 lemma has_le.le.exists_succ_iterate (h : a ≤ b) : ∃ n, succ^[n] a = b :=
 exists_succ_iterate_of_le h
@@ -915,23 +914,22 @@ end succ_order
 section pred_order
 variables [pred_order α] [is_pred_archimedean α] {a b : α}
 
-instance : is_succ_archimedean (order_dual α) :=
-⟨λ a b h, by convert exists_pred_iterate_of_le h.of_dual⟩
+instance : is_succ_archimedean αᵒᵈ := ⟨λ a b h, by convert exists_pred_iterate_of_le h.of_dual⟩
 
 lemma has_le.le.exists_pred_iterate (h : a ≤ b) : ∃ n, pred^[n] b = a :=
 exists_pred_iterate_of_le h
 
 lemma exists_pred_iterate_iff_le : (∃ n, pred^[n] b = a) ↔ a ≤ b :=
-@exists_succ_iterate_iff_le (order_dual α) _ _ _ _ _
+@exists_succ_iterate_iff_le αᵒᵈ _ _ _ _ _
 
 /-- Induction principle on a type with a `pred_order` for all elements below a given element `m`. -/
 @[elab_as_eliminator] lemma pred.rec {P : α → Prop} {m : α}
   (h0 : P m) (h1 : ∀ n, n ≤ m → P n → P (pred n)) ⦃n : α⦄ (hmn : n ≤ m) : P n :=
-@succ.rec (order_dual α) _ _ _ _ _ h0 h1 _ hmn
+@succ.rec αᵒᵈ _ _ _ _ _ h0 h1 _ hmn
 
 lemma pred.rec_iff {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) {a b : α} (h : a ≤ b) :
   p a ↔ p b :=
-(@succ.rec_iff (order_dual α) _ _ _ _ hsucc _ _ h).symm
+(@succ.rec_iff αᵒᵈ _ _ _ _ hsucc _ _ h).symm
 
 end pred_order
 end preorder
@@ -983,7 +981,7 @@ end⟩
 @[priority 100]
 instance is_well_order.to_is_succ_archimedean [h : is_well_order α (>)] [succ_order α] :
   is_succ_archimedean α :=
-by convert @order_dual.is_succ_archimedean (order_dual α) _ _ _
+by convert @order_dual.is_succ_archimedean αᵒᵈ _ _ _
 
 end is_well_order
 

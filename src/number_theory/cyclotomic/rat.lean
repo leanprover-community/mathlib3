@@ -51,7 +51,7 @@ end
 
 /-- The discriminant of the power basis given by `ζ - 1`. Beware that in the cases `p ^ k = 1` and
 `p ^ k = 2` the formula uses `1 / 2 = 0` and `0 - 1 = 0`. It is useful only to have a uniform
-result. -/
+result. See also `is_cyclotomic_extension.rat.discr_prime_pow_eq_unit_mul_pow'`. -/
 lemma discr_prime_pow' [is_cyclotomic_extension {p ^ k} ℚ K]
   (hζ : is_primitive_root ζ ↑(p ^ k)) :
   discr ℚ (hζ.sub_one_power_basis ℚ).basis =
@@ -63,7 +63,7 @@ end
 
 /-- If `p` is a prime and `is_cyclotomic_extension {p ^ k} K L`, then there are `u : ℤˣ` and
 `n : ℕ` such that the discriminant of the power basis given by `ζ - 1` is `u * p ^ n`. Often this is
-enough and less cumbersome to use than the previous lemmas. -/
+enough and less cumbersome to use than `is_cyclotomic_extension.rat.discr_prime_pow'`. -/
 lemma discr_prime_pow_eq_unit_mul_pow' [is_cyclotomic_extension {p ^ k} ℚ K]
   (hζ : is_primitive_root ζ ↑(p ^ k)) :
   ∃ (u : ℤˣ) (n : ℕ), discr ℚ (hζ.sub_one_power_basis ℚ).basis = u * p ^ n :=

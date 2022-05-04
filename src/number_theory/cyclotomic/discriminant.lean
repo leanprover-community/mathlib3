@@ -196,7 +196,7 @@ end
 
 /-- If `p` is a prime and `is_cyclotomic_extension {p ^ k} K L`, then there are `u : ℤˣ` and
 `n : ℕ` such that the discriminant of `hζ.power_basis K` is `u * p ^ n`. Often this is enough and
-less cumbersome to use than the previous lemmas. -/
+less cumbersome to use than `is_cyclotomic_extension.discr_prime_pow`. -/
 lemma discr_prime_pow_eq_unit_mul_pow [is_cyclotomic_extension {p ^ k} K L]
   [hp : fact (p : ℕ).prime] [ne_zero ((p : ℕ) : K)] (hζ : is_primitive_root ζ ↑(p ^ k))
   (hirr : irreducible (cyclotomic (↑(p ^ k) : ℕ) K)) :

@@ -76,6 +76,8 @@ finitely many vertices.
 open finset
 universes u v w
 
+variables {α : Type*}
+
 /--
 A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
 The relation describes which pairs of vertices are adjacent.
@@ -88,6 +90,9 @@ structure simple_graph (V : Type u) :=
 (symm : symmetric adj . obviously)
 (loopless : irreflexive adj . obviously)
 
+noncomputable instance {V : Type u} [fintype V] : fintype (simple_graph V) :=
+by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
+
 /--
 Construct the simple graph induced by the given relation. It
 symmetrizes the relation and makes it irreflexive.
@@ -97,12 +102,20 @@ def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :
   symm := λ a b ⟨hn, hr⟩, ⟨hn.symm, hr.symm⟩,
   loopless := λ a ⟨hn, _⟩, hn rfl }
 
-noncomputable instance {V : Type u} [fintype V] : fintype (simple_graph V) :=
-by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
+/-- Construct the simple graph induced by a given irreflexive relation. It symmetrizes the relation.
+-/
+def simple_graph.from_irrefl_rel (r : α → α → Prop) [is_irrefl α r] : simple_graph α :=
+{ adj := λ a b, r a b ∨ r b a,
+  symm := λ a b, or.symm,
+  loopless := λ a h, h.elim (irrefl _) (irrefl _) }
 
 @[simp]
 lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
   (simple_graph.from_rel r).adj v w ↔ v ≠ w ∧ (r v w ∨ r w v) :=
+iff.rfl
+
+@[simp] lemma simple_graph.from_irrefl_rel_adj {r : α → α → Prop} [is_irrefl α r] {a b : α} :
+  (simple_graph.from_irrefl_rel r).adj a b ↔ r a b ∨ r b a :=
 iff.rfl
 
 /-- The complete graph on a type `V` is the simple graph with all pairs of distinct vertices
@@ -137,7 +150,7 @@ namespace simple_graph
 variables {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V) (G' : simple_graph W)
   {a b c u v w : V} {e : sym2 V}
 
-@[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
+@[simp] protected lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
 lemma adj_comm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.symm x, λ x, G.symm x⟩
 

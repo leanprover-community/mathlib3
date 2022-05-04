@@ -523,7 +523,7 @@ variables [semi_normed_group V] [semi_normed_group W] [semi_normed_group V₁] [
 /-- The inclusion of an `add_subgroup`, as bounded group homomorphism. -/
 @[simps] def incl (s : add_subgroup V) : normed_group_hom s V :=
 { to_fun := (coe : s → V),
-  map_add' := λ v w, add_submonoid_class.coe_add _ _ _,
+  map_add' := λ v w, add_submonoid_class.coe_add _ _,
   bound' := ⟨1, λ v, by { rw one_mul, refl }⟩ }
 
 lemma norm_incl {V' : add_subgroup V} (x : V') : ∥incl _ x∥ = ∥x∥ :=

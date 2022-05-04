@@ -421,15 +421,14 @@ by simp only [← nonempty_invertible_iff_is_unit,
 
 lemma inv_diagonal (v : n → α) : (diagonal v)⁻¹ = diagonal (ring.inverse v) :=
 begin
+  rw nonsing_inv_eq_ring_inverse,
   by_cases h : is_unit v,
   { have := is_unit_diagonal.mpr h,
-    obtain ⟨u, rfl⟩ := h,
-    letI := u.invertible,
-    letI := diagonal_invertible (↑u : n → α),
-    rw [←inv_of_eq_nonsing_inv, inv_of_diagonal_eq, inv_of_units, ring.inverse_unit], },
+    casesI this.nonempty_invertible,
+    casesI h.nonempty_invertible,
+    rw [ring.inverse_invertible, ring.inverse_invertible, inv_of_diagonal_eq], },
   { have := is_unit_diagonal.not.mpr h,
-    rw [ring.inverse_non_unit _ h, pi.zero_def, diagonal_zero,
-      nonsing_inv_eq_ring_inverse, ring.inverse_non_unit _ this] }
+    rw [ring.inverse_non_unit _ h, pi.zero_def, diagonal_zero, ring.inverse_non_unit _ this] }
 end
 
 @[simp] lemma inv_inv_inv (A : matrix n n α) : A⁻¹⁻¹⁻¹ = A⁻¹ :=

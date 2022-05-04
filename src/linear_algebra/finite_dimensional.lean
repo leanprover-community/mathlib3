@@ -1539,6 +1539,19 @@ begin
     exact finrank_le_one v p, }
 end
 
+-- This includes the case `A = K`.
+lemma surjective_of_nonzero_of_finrank_eq_one {A : Type*} [semiring A] [algebra K A]
+  [module A V] [is_scalar_tower K A V] [module A V₂] [is_scalar_tower K A V₂]
+  [finite_dimensional K V₂] (h : finrank K V₂ = 1)
+  {f : V →ₗ[A] V₂} (w : f ≠ 0) : surjective f :=
+begin
+  change surjective (f.restrict_scalars K),
+  obtain ⟨v, n⟩ := fun_like.ne_iff.mp w,
+  intro z,
+  obtain ⟨c, rfl⟩ := (finrank_eq_one_iff_of_nonzero' (f v) n).mp h z,
+  exact ⟨c • v, by simp⟩,
+end
+
 end finrank_eq_one
 
 section subalgebra_dim

@@ -7,11 +7,13 @@ import category_theory.simple
 import category_theory.subobject.basic
 import category_theory.preadditive.schur
 import algebra.algebra.restrict_scalars
+import algebra.algebra.tower
 import algebra.category.Module.algebra
 import algebra.category.Module.images
 import algebra.category.Module.biproducts
 import data.mv_polynomial.basic
 import algebra.free_algebra
+import data.complex.module
 
 /-!
 # "Introduction to representation theory" by Etingof
@@ -31,10 +33,11 @@ Our intention is (sadly) to skip all the problems, and many of the examples.
 Often results are proved by reference to (much) more general facts in mathlib.
 -/
 
-axiom skipped {p : Type*} : p
+axiom skipped {p : Sort*} : p
 
 universes u
-open category_theory
+open category_theory finite_dimensional
+
 noncomputable theory
 
 /-!
@@ -114,20 +117,23 @@ variables (S'' : subobject N)
 
 -- Definition 2.3.5: We express that a representation is "irreducible" using `simple`.
 example (N : Module A) : Prop := simple N
+-- TODO: note the existence of `simple_module`, and improve interoperability!
 
--- Definition 2.3.6.
+-- Definition 2.3.6: homomorphisms, intertwiners, isomorphisms
 -- For unbundled representations, we use linear maps:
 variables {M' : Type*} [add_comm_group M'] [module k M'] [module A M'] [is_scalar_tower k A M']
 variables (f : M →ₗ[A] M')
 -- while for bundled representations we use the categorical morphism arrow:
 variables (N₁ N₂ : Module.{u} A) (g : N₁ ⟶ N₂)
+-- For isomorphisms, use one of
+variables (e : M ≃ₗ[A] M') (j : N₁ ≅ N₂)
 
 -- Definition 2.3.7: direct sum
 example : module A (M × M') := by apply_instance
 example (N₁ N₂ : Module.{u} A) : Module.{u} A := N₁ ⊞ N₂
 example (N₁ N₂ : Module.{u} A) : N₁ ⊞ N₂ ≅ Module.of A (N₁ × N₂) := Module.biprod_iso_prod N₁ N₂
 
--- Definition 2.3.8
+-- Definition 2.3.8: indecomposable
 example (N : Module A) : Prop := indecomposable N
 example (N : Module A) [simple N] : indecomposable N := indecomposable_of_simple N
 
@@ -141,12 +147,50 @@ is_iso_of_hom_simple w
 
 -- Corollary 2.3.10 (Schur's lemma over an algebraically closed field)
 example [is_alg_closed k] (V : Module.{u} A) [simple V] [finite_dimensional k V] (f : V ⟶ V) :
-  ∃ φ : k, φ • 𝟙 V = f:=
+  ∃ φ : k, φ • 𝟙 V = f :=
 endomorphism_simple_eq_smul_id k f
 -- Note that some magic is going on behind the scenes in this proof.
 -- We're using a version of Schur's lemma that applies to any `k`-linear category,
 -- and its hypotheses include `finite_dimensional k (V ⟶ V)`
--- rather than `finite_dimensional k V` (because `V` needed even be a vector space).
+-- rather than `finite_dimensional k V` (because `V` need not even be a vector space).
 -- Typeclass inference is automatically generating this fact.
+
+-- Remark 2.3.11 (Schur's lemma doesn't hold over a non-algebraically closed field)
+example : simple (Module.of ℂ ℂ) := skipped
+example : finite_dimensional ℝ (Module.of ℂ ℂ) := skipped
+example :
+  let V := Module.of ℂ ℂ in
+  ∃ (f : V ⟶ V), ∀ φ : ℝ, (φ : ℂ) • 𝟙 V ≠ f :=
+⟨algebra.lsmul ℂ ℂ complex.I,
+  λ φ w, by simpa using congr_arg complex.im (linear_map.congr_fun w 1)⟩
+
+-- Corollary 2.3.12
+-- Every irreducible finite dimensional representation of a commutative algebra is 1-dimensional
+example (A : Type*) [comm_ring A] [algebra k A] (V : Module A) [finite_dimensional k V] [simple V] :
+  finrank k V = 1 :=
+skipped
+
+-- Remark 2.3.13: Every 1-dimensional representation is irreducible
+-- TODO this belongs in mathlib
+example (V : Module A) [finite_dimensional k V] (h : finrank k V = 1) : simple V :=
+⟨λ Y f _, begin
+  split,
+  { intro i, rintro rfl,
+    resetI,
+    rw finrank_eq_one_iff' at h,
+    obtain ⟨v, n, -⟩ := h,
+    obtain ⟨w, rfl⟩ := (Module.epi_iff_surjective (0 : Y ⟶ V)).mp infer_instance v,
+    simpa using n, },
+  { intro r,
+    haveI := (Module.epi_iff_surjective _).mpr (surjective_of_nonzero_of_finrank_eq_one h r),
+    rw is_iso_iff_mono_and_epi,
+    split; apply_instance, }
+end⟩
+
+-- Example 2.3.14: skipped (1 and 3 we can do, 2 requires Jordan normal form)
+
+/-!
+## 2.4 "Ideals"
+-/
 
 -- To be continued...

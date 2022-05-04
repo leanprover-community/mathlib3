@@ -224,6 +224,7 @@ protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) :=
 
 @[simp] lemma one_lt_two : (1 : ℝ≥0∞) < 2 :=
 coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
+lemma one_le_two : (1 : ℝ≥0∞) ≤ 2 := one_lt_two.le
 @[simp] lemma zero_lt_two : (0:ℝ≥0∞) < 2 := lt_trans ennreal.zero_lt_one one_lt_two
 lemma two_ne_zero : (2:ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
 lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
@@ -777,6 +778,12 @@ begin
   { exact (cancel_of_ne hc).lt_add_of_tsub_lt_right }
 end
 
+lemma le_sub_of_add_le_left (ha : a ≠ ∞) : a + b ≤ c → b ≤ c - a :=
+(cancel_of_ne ha).le_tsub_of_add_le_left
+
+lemma le_sub_of_add_le_right (hb : b ≠ ∞) : a + b ≤ c → a ≤ c - b :=
+(cancel_of_ne hb).le_tsub_of_add_le_right
+
 protected lemma sub_lt_of_lt_add (hac : c ≤ a) (h : a < b + c) : a - c < b :=
 ((cancel_of_lt' $ hac.trans_lt h).tsub_lt_iff_right hac).mpr h
 
@@ -1173,6 +1180,9 @@ begin
   exact le_div_iff_mul_le (or.inl (mt coe_eq_coe.1 h)) (or.inl coe_ne_top)
 end
 
+lemma div_le_div {a b c d : ℝ≥0∞} (hab : a ≤ b) (hdc : d ≤ c) : a / c ≤ b / d :=
+div_eq_mul_inv b d ▸ div_eq_mul_inv a c ▸ ennreal.mul_le_mul hab (ennreal.inv_le_inv.mpr hdc)
+
 lemma mul_inv_cancel (h0 : a ≠ 0) (ht : a ≠ ∞) : a * a⁻¹ = 1 :=
 begin
   lift a to ℝ≥0 using ht,
@@ -1560,6 +1570,15 @@ by simp [ennreal.of_real]
 eq_comm.trans of_real_eq_zero
 
 alias ennreal.of_real_eq_zero ↔ _ ennreal.of_real_of_nonpos
+
+lemma of_real_sub (p : ℝ) (hq : 0 ≤ q) :
+  ennreal.of_real (p - q) = ennreal.of_real p - ennreal.of_real q :=
+begin
+  obtain h | h := le_total p q,
+  { rw [of_real_of_nonpos (sub_nonpos_of_le h), tsub_eq_zero_of_le (of_real_le_of_real h)] },
+  refine ennreal.eq_sub_of_add_eq of_real_ne_top _,
+  rw [←of_real_add (sub_nonneg_of_le h) hq, sub_add_cancel],
+end
 
 lemma of_real_le_iff_le_to_real {a : ℝ} {b : ℝ≥0∞} (hb : b ≠ ∞) :
   ennreal.of_real a ≤ b ↔ a ≤ ennreal.to_real b :=

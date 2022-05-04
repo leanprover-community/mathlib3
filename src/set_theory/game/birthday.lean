@@ -88,7 +88,11 @@ theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, relabelling x y → 
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
+@[simp] theorem birthday_eq_zero (x : pgame) :
+  birthday x = 0 ↔ is_empty x.left_moves ∧ is_empty x.right_moves :=
+by rw [birthday_def, ordinal.max_eq_zero, ordinal.lsub_eq_zero_iff, ordinal.lsub_eq_zero_iff]
+
 @[simp] theorem birthday_zero : birthday 0 = 0 :=
-by rw [birthday_def, ordinal.lsub_empty, ordinal.lsub_empty, max_self]
+by { rw birthday_eq_zero, split; apply_instance }
 
 end pgame

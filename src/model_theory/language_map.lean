@@ -57,6 +57,11 @@ protected def mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
 
 variables (ϕ : L →ᴸ L')
 
+/-- Pulls a structure back along a language map. -/
+def reduct (M : Type*) [L'.Structure M] : L.Structure M :=
+{ fun_map := λ n f xs, fun_map (ϕ.on_function f) xs,
+  rel_map := λ n r xs, rel_map (ϕ.on_relation r) xs }
+
 /-- The identity language homomorphism. -/
 @[simps] protected def id (L : language) : L →ᴸ L :=
 ⟨λn, id, λ n, id⟩
@@ -205,6 +210,13 @@ instance sum_inr_is_expansion_on (M : Type*)
   (Lhom.sum_inr : L' →ᴸ L.sum L').is_expansion_on M :=
 ⟨λ _ f _, rfl, λ _ R _, rfl⟩
 
+@[priority 100] instance is_expansion_on_reduct (ϕ : L →ᴸ L') (M : Type*) [L'.Structure M] :
+  @is_expansion_on L L' ϕ M (ϕ.reduct M) _ :=
+begin
+  letI := ϕ.reduct M,
+  exact ⟨λ _ f _, rfl, λ _ R _, rfl⟩,
+end
+
 end Lhom
 
 /-- A language equivalence maps the symbols of one language to symbols of another bijectively. -/
@@ -340,6 +352,16 @@ by ext n f R; refl
 end
 
 open_locale first_order
+
+instance constants_on_self_Structure : (constants_on M).Structure M :=
+constants_on.Structure id
+
+instance with_constants_self_Structure : L[[M]].Structure M :=
+language.sum_Structure _ _ M
+
+instance with_constants_self_expansion : (Lhom_with_constants L M).is_expansion_on M :=
+⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
+
 variables (A : set M)
 
 instance with_constants_Structure : L[[A]].Structure M :=

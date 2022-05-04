@@ -567,9 +567,13 @@ lemma convex_sInter {S : set (set E)} (h : ∀ s ∈ S, convex 𝕜 s) : convex 
 assume x y hx hy a b ha hb hab s hs,
 h s hs (hx s hs) (hy s hs) ha hb hab
 
-lemma convex_Inter {ι : Sort*} {s : ι → set E} (h : ∀ i : ι, convex 𝕜 (s i)) :
-  convex 𝕜 (⋂ i, s i) :=
+lemma convex_Inter {ι : Sort*} {s : ι → set E} (h : ∀ i, convex 𝕜 (s i)) : convex 𝕜 (⋂ i, s i) :=
 (sInter_range s) ▸ convex_sInter $ forall_range_iff.2 h
+
+lemma convex_Inter₂ {ι : Sort*} {κ : ι → Sort*} {s : Π i, κ i → set E}
+  (h : ∀ i j, convex 𝕜 (s i j)) :
+  convex 𝕜 (⋂ i j, s i j) :=
+convex_Inter $ λ i, convex_Inter $ h i
 
 lemma convex.prod {s : set E} {t : set F} (hs : convex 𝕜 s) (ht : convex 𝕜 t) :
   convex 𝕜 (s ×ˢ t) :=
@@ -696,8 +700,7 @@ calc
       : add_le_add (smul_le_smul_of_nonneg hx ha) (smul_le_smul_of_nonneg hy hb)
   ... = r : convex.combo_self hab _
 
-lemma convex_Ici (r : β) : convex 𝕜 (Ici r) :=
-@convex_Iic 𝕜 (order_dual β) _ _ _ _ r
+lemma convex_Ici (r : β) : convex 𝕜 (Ici r) := @convex_Iic 𝕜 βᵒᵈ _ _ _ _ r
 
 lemma convex_Icc (r s : β) : convex 𝕜 (Icc r s) :=
 Ici_inter_Iic.subst ((convex_Ici r).inter $ convex_Iic s)
@@ -736,8 +739,7 @@ begin
     ... = r : convex.combo_self hab _
 end
 
-lemma convex_Ioi (r : β) : convex 𝕜 (Ioi r) :=
-@convex_Iio 𝕜 (order_dual β) _ _ _ _ r
+lemma convex_Ioi (r : β) : convex 𝕜 (Ioi r) := @convex_Iio 𝕜 βᵒᵈ _ _ _ _ r
 
 lemma convex_Ioo (r s : β) : convex 𝕜 (Ioo r s) :=
 Ioi_inter_Iio.subst ((convex_Ioi r).inter $ convex_Iio s)
@@ -786,27 +788,27 @@ lemma monotone_on.convex_lt (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β)
 
 lemma monotone_on.convex_ge (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | r ≤ f x} :=
-@monotone_on.convex_le 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ _ _ hf.dual hs r
+@monotone_on.convex_le 𝕜 Eᵒᵈ βᵒᵈ _ _ _ _ _ _ _ hf.dual hs r
 
 lemma monotone_on.convex_gt (hf : monotone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | r < f x} :=
-@monotone_on.convex_lt 𝕜 (order_dual E) (order_dual β) _ _ _ _ _ _ _ hf.dual hs r
+@monotone_on.convex_lt 𝕜 Eᵒᵈ βᵒᵈ _ _ _ _ _ _ _ hf.dual hs r
 
 lemma antitone_on.convex_le (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | f x ≤ r} :=
-@monotone_on.convex_ge 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
+@monotone_on.convex_ge 𝕜 E βᵒᵈ _ _ _ _ _ _ _ hf hs r
 
 lemma antitone_on.convex_lt (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | f x < r} :=
-@monotone_on.convex_gt 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
+@monotone_on.convex_gt 𝕜 E βᵒᵈ _ _ _ _ _ _ _ hf hs r
 
 lemma antitone_on.convex_ge (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | r ≤ f x} :=
-@monotone_on.convex_le 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
+@monotone_on.convex_le 𝕜 E βᵒᵈ _ _ _ _ _ _ _ hf hs r
 
 lemma antitone_on.convex_gt (hf : antitone_on f s) (hs : convex 𝕜 s) (r : β) :
   convex 𝕜 {x ∈ s | r < f x} :=
-@monotone_on.convex_lt 𝕜 E (order_dual β) _ _ _ _ _ _ _ hf hs r
+@monotone_on.convex_lt 𝕜 E βᵒᵈ _ _ _ _ _ _ _ hf hs r
 
 lemma monotone.convex_le (hf : monotone f) (r : β) :
   convex 𝕜 {x | f x ≤ r} :=
@@ -965,8 +967,8 @@ begin
   rw [convex.combo_affine_apply hab, hx'f, hy'f]
 end
 
-lemma convex.neg (hs : convex 𝕜 s) : convex 𝕜 ((λ z, -z) '' s) :=
-hs.is_linear_image is_linear_map.is_linear_map_neg
+lemma convex.neg (hs : convex 𝕜 s) : convex 𝕜 (-s) :=
+by { rw ←set.image_neg, exact hs.is_linear_image is_linear_map.is_linear_map_neg }
 
 lemma convex.neg_preimage (hs : convex 𝕜 s) : convex 𝕜 ((λ z, -z) ⁻¹' s) :=
 hs.is_linear_preimage is_linear_map.is_linear_map_neg

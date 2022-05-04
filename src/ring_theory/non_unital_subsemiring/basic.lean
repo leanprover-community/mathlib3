@@ -13,11 +13,11 @@ import group_theory.submonoid.membership
 import group_theory.subsemigroup.membership
 
 /-!
-# Bundled subsemirings
+# Bundled non-unital subsemirings
 
 We define bundled non-unital subsemirings and some standard constructions:
-`complete_lattice` structure, `subtype` and `inclusion` ring homomorphisms, subsemiring `map`,
-`comap` and range (`srange`) of a `non_unital_ring_hom` etc.
+`complete_lattice` structure, `subtype` and `inclusion` ring homomorphisms, non-unital subsemiring
+`map`, `comap` and range (`srange`) of a `non_unital_ring_hom` etc.
 -/
 
 open_locale big_operators
@@ -94,10 +94,10 @@ submonoid and a semigroup. -/
 structure non_unital_subsemiring (R : Type u) [non_unital_non_assoc_semiring R]
   extends add_submonoid R, subsemigroup R
 
-/-- Reinterpret a `subsemiring` as a `subsemigroup`. -/
+/-- Reinterpret a `non_unital_subsemiring` as a `subsemigroup`. -/
 add_decl_doc non_unital_subsemiring.to_subsemigroup
 
-/-- Reinterpret a `subsemiring` as an `add_submonoid`. -/
+/-- Reinterpret a `non_unital_subsemiring` as an `add_submonoid`. -/
 add_decl_doc non_unital_subsemiring.to_add_submonoid
 
 namespace non_unital_subsemiring
@@ -234,7 +234,7 @@ lemma comap_comap (s : non_unital_subsemiring T) (g : G) (f : F) :
   s.comap ((g : S →ₙ+* T).comp (f : R →ₙ+* S)) :=
 rfl
 
-/-- The image of a subsemiring along a ring homomorphism is a subsemiring. -/
+/-- The image of a non-unital subsemiring along a ring homomorphism is a non-unital subsemiring. -/
 def map (f : F) (s : non_unital_subsemiring R) : non_unital_subsemiring S :=
 { carrier := f '' s,
   .. s.to_subsemigroup.map (f : R →ₙ* S), .. s.to_add_submonoid.map (f : R →+ S) }
@@ -260,7 +260,7 @@ set.image_subset_iff
 lemma gc_map_comap (f : F) :
   @galois_connection (non_unital_subsemiring R) (non_unital_subsemiring S) _ _ (map f) (comap f) :=
 λ S T, map_le_iff_le_comap
-/-- A subsemiring is isomorphic to its image under an injective function -/
+/-- A non-unital subsemiring is isomorphic to its image under an injective function -/
 
 noncomputable def equiv_map_of_injective
   (f : F) (hf : function.injective (f : R → S)) : s ≃+* s.map f :=

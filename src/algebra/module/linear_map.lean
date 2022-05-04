@@ -314,6 +314,9 @@ ext $ λ x, by rw [← mul_one x, ← smul_eq_mul, f.map_smulₛₗ, g.map_smul�
 theorem ext_ring_iff {σ : R →+* R} {f g : R →ₛₗ[σ] M} : f = g ↔ f 1 = g 1 :=
 ⟨λ h, h ▸ rfl, ext_ring⟩
 
+@[ext] theorem ext_ring_op {σ : Rᵐᵒᵖ →+* S} {f g : R →ₛₗ[σ] M₃} (h : f 1 = g 1) : f = g :=
+ext $ λ x, by rw [← one_mul x, ← op_smul_eq_mul, f.map_smulₛₗ, g.map_smulₛₗ, h]
+
 end
 
 /-- Interpret a `ring_hom` `f` as an `f`-semilinear map. -/
@@ -852,5 +855,15 @@ def module_End_self : Rᵐᵒᵖ ≃+* module.End R R :=
   left_inv := mul_one,
   right_inv := λ f, linear_map.ext_ring $ one_mul _,
   ..module.to_module_End R R }
+
+/-- The canonical (semi)ring isomorphism from `R` to `module.End Rᵐᵒᵖ R` induced by the left
+multiplication. -/
+@[simps]
+def module_End_self_op : R ≃+* module.End Rᵐᵒᵖ R :=
+{ to_fun := distrib_mul_action.to_linear_map _ _,
+  inv_fun := λ f, f 1,
+  left_inv := mul_one,
+  right_inv := λ f, linear_map.ext_ring_op $ mul_one _,
+  ..module.to_module_End _ _ }
 
 end module

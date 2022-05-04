@@ -8,8 +8,10 @@ import .ad_sub_mul_actions
 import .wielandt
 import .ad_to_ulift
 import .multiply_trans
+import .multiple_prim
 
 import group_theory.group_action.embedding
+import group_theory.perm.support
 import group_theory.specific_groups.alternating
 
 section finite_groups
@@ -17,7 +19,7 @@ section finite_groups
 open mul_action
 open_locale classical
 
-variables (α : Type*) [fintype α]
+variables (α : Type*) [fintype α] [decidable_eq α]
 
 lemma unnamed :
   mul_action.is_multiply_pretransitive (equiv.perm α) α (fintype.card α):=
@@ -95,8 +97,6 @@ begin
   rw ← zi,
   refl
 end
-
-
 
 lemma unnamed' :
   mul_action.is_multiply_pretransitive (alternating_group α) α (fintype.card α - 2) :=
@@ -187,5 +187,38 @@ lemma unnamed'_iff {G : Type*} [G : subgroup (equiv.perm α)]
 begin
   sorry
 end
+
+
+section Jordan
+
+variables (G : subgroup (equiv.perm α))
+
+-- α = Ω, s = Δ
+theorem jordan1 (hG : is_preprimitive G α)
+  {s : set α} (hs : 1 ≤ fintype.card s) (hs' : 2 + fintype.card (s) ≤ fintype.card α)
+  (hs_trans : is_pretransitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
+  is_multiply_pretransitive G α 2 := sorry
+
+theorem jordan1' (hG : is_preprimitive G α)
+  {s : set α} (hs : 1 ≤ fintype.card s) (hs' : 2 + fintype.card (s) ≤ fintype.card α)
+  (hs_trans : is_preprimitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
+  is_multiply_preprimitive G α 2 := sorry
+
+theorem jordan2 (hG : is_preprimitive G α)
+  {s : set α} (hs : 1 ≤ fintype.card s) (hs' : 2 + fintype.card s ≤ fintype.card α) :
+  is_multiply_preprimitive G α (fintype.card s + 1) := sorry
+
+theorem jordan_perm (hG : is_preprimitive G α)
+  {g : equiv.perm α} (h2g : equiv.perm.is_swap g) (hg : g ∈ G) : G = ⊤  :=
+sorry
+
+theorem jordan_alternating (hG : is_preprimitive G α)
+  {g : equiv.perm α} (h3g : equiv.perm.is_three_cycle g) (hg : g ∈ G) :
+  alternating_group α ≤ G = ⊤  :=
+sorry
+
+end Jordan
+
+
 
 end finite_groups

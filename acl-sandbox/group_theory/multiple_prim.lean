@@ -348,6 +348,8 @@ end
 
 end MultiplePrimitivity
 
+#exit
+
 section MultiplePrimitivity'
 
 variables (M α : Type*) [group M] [mul_action M α]

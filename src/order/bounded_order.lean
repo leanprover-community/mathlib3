@@ -958,10 +958,10 @@ instance [lattice α] : lattice (with_top α) :=
 { ..with_top.semilattice_sup, ..with_top.semilattice_inf }
 
 instance decidable_le [has_le α] [@decidable_rel α (≤)] : @decidable_rel (with_top α) (≤) :=
-λ x y, @with_bot.decidable_le (order_dual α) _ _ y x
+λ x y, @with_bot.decidable_le αᵒᵈ _ _ y x
 
 instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with_top α) (<) :=
-λ x y, @with_bot.decidable_lt (order_dual α) _ _ y x
+λ x y, @with_bot.decidable_lt αᵒᵈ _ _ y x
 
 instance is_total_le [has_le α] [is_total α (≤)] : is_total (with_top α) (≤) :=
 ⟨λ a b, match a, b with
@@ -989,11 +989,11 @@ have acc_some : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (so
   (λ _ _, acc_some _))) acc_some⟩
 
 lemma well_founded_gt [preorder α] (h : @well_founded α (>)) : @well_founded (with_top α) (>) :=
-@with_bot.well_founded_lt (order_dual α) _ h
+@with_bot.well_founded_lt αᵒᵈ _ h
 
 lemma _root_.with_bot.well_founded_gt [preorder α] (h : @well_founded α (>)) :
   @well_founded (with_bot α) (>) :=
-@with_top.well_founded_lt (order_dual α) _ h
+@with_top.well_founded_lt αᵒᵈ _ h
 
 instance [has_lt α] [densely_ordered α] [no_max_order α] : densely_ordered (with_top α) :=
 ⟨ λ a b,
@@ -1087,18 +1087,18 @@ end subtype
 namespace order_dual
 variable (α)
 
-instance [has_bot α] : has_top (order_dual α) := ⟨(⊥ : α)⟩
-instance [has_top α] : has_bot (order_dual α) := ⟨(⊤ : α)⟩
+instance [has_bot α] : has_top αᵒᵈ := ⟨(⊥ : α)⟩
+instance [has_top α] : has_bot αᵒᵈ := ⟨(⊤ : α)⟩
 
-instance [has_le α] [order_bot α] : order_top (order_dual α) :=
+instance [has_le α] [order_bot α] : order_top αᵒᵈ :=
 { le_top := @bot_le α _ _,
   .. order_dual.has_top α }
 
-instance [has_le α] [order_top α] : order_bot (order_dual α) :=
+instance [has_le α] [order_top α] : order_bot αᵒᵈ :=
 { bot_le := @le_top α _ _,
   .. order_dual.has_bot α }
 
-instance [has_le α] [bounded_order α] : bounded_order (order_dual α) :=
+instance [has_le α] [bounded_order α] : bounded_order αᵒᵈ :=
 { .. order_dual.order_top α, .. order_dual.order_bot α }
 
 end order_dual
@@ -1221,7 +1221,7 @@ lemma max_top_right [order_top α] (a : α) : max a ⊤ = ⊤ := max_eq_right le
 by { symmetry, cases le_total a b; simpa [*, min_eq_left, min_eq_right] using eq_bot_mono h }
 
 @[simp] lemma max_eq_top [order_top α] {a b : α} : max a b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
-@min_eq_bot (order_dual α) _ _ a b
+@min_eq_bot αᵒᵈ _ _ a b
 
 @[simp] lemma max_eq_bot [order_bot α] {a b : α} : max a b = ⊥ ↔ a = ⊥ ∧ b = ⊥ := sup_eq_bot_iff
 @[simp] lemma min_eq_top [order_top α] {a b : α} : min a b = ⊤ ↔ a = ⊤ ∧ b = ⊤ := inf_eq_top_iff
@@ -1408,7 +1408,7 @@ export is_complemented (exists_is_compl)
 namespace is_complemented
 variables [lattice α] [bounded_order α] [is_complemented α]
 
-instance : is_complemented (order_dual α) :=
+instance : is_complemented αᵒᵈ :=
 ⟨λ a, let ⟨b, hb⟩ := exists_is_compl (show α, from a) in ⟨b, hb.to_order_dual⟩⟩
 
 end is_complemented

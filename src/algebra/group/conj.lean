@@ -3,11 +3,11 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Chris Hughes, Michael Howes
 -/
-import algebra.group.semiconj
-import algebra.group_with_zero.basic
+import data.fintype.basic
 import algebra.hom.aut
 import algebra.hom.group
-import data.fintype.basic
+import algebra.group.semiconj
+import algebra.group_with_zero.basic
 
 /-!
 # Conjugacy of group elements
@@ -49,9 +49,9 @@ protected lemma monoid_hom.map_is_conj (f : α →* β) {a b : α} : is_conj a b
 end monoid
 
 section cancel_monoid
-variables [cancel_monoid α]
--- These lemmas hold for either `left_cancel_monoid` or `right_cancel_monoid`,
--- with slightly different proofs; so far these don't seem necessary.
+
+variables [right_cancel_monoid α]
+-- These lemmas also hold for `left_cancel_monoid` - so far this is not necessary.
 
 @[simp] lemma is_conj_one_right {a : α} : is_conj 1 a  ↔ a = 1 :=
 ⟨λ ⟨c, hc⟩, mul_right_cancel (hc.symm.trans ((mul_one _).trans (one_mul _).symm)), λ h, by rw [h]⟩
@@ -175,6 +175,7 @@ instance [fintype α] [decidable_rel (is_conj : α → α → Prop)] :
   fintype (conj_classes α) :=
 quotient.fintype (is_conj.setoid α)
 
+@[priority 900]
 instance [decidable_rel (is_conj : α → α → Prop)] : decidable_eq (conj_classes α) :=
 quotient.decidable_eq
 
@@ -224,9 +225,8 @@ lemma is_conj_iff_conjugates_of_eq {a b : α} :
   rwa ← h at ha,
 end⟩
 
-instance [fintype α] [h : decidable_rel (is_conj : α → α → Prop)] {a : α} :
-  fintype (conjugates_of a) :=
-@subtype.fintype _ _ (h a) _
+instance [fintype α] [decidable_rel (is_conj : α → α → Prop)] {a : α} : fintype (conjugates_of a) :=
+@subtype.fintype _ _ (‹decidable_rel is_conj› a) _
 
 end monoid
 
@@ -261,7 +261,7 @@ section fintype
 variables [fintype α] [decidable_rel (is_conj : α → α → Prop)]
 
 instance {x : conj_classes α} : fintype (carrier x) :=
-quotient.rec_on_subsingleton x $ @conjugates_of.fintype _ _ _ _
+quotient.rec_on_subsingleton x $ λ a, conjugates_of.fintype
 
 end fintype
 

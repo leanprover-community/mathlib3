@@ -2203,7 +2203,7 @@ variables (𝕜 E)
 /-- `submodule.orthogonal` gives a `galois_connection` between
 `submodule 𝕜 E` and its `order_dual`. -/
 lemma submodule.orthogonal_gc :
-  @galois_connection (submodule 𝕜 E) (order_dual $ submodule 𝕜 E) _ _
+  @galois_connection (submodule 𝕜 E) (submodule 𝕜 E)ᵒᵈ _ _
     submodule.orthogonal submodule.orthogonal :=
 λ K₁ K₂, ⟨λ h v hv u hu, submodule.inner_left_of_mem_orthogonal hv (h hu),
           λ h v hv u hu, submodule.inner_left_of_mem_orthogonal hv (h hu)⟩

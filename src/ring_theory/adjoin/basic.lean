@@ -224,7 +224,7 @@ def adjoin_comm_semiring_of_comm {s : set A} (hcomm : ∀ (a ∈ s) (b ∈ s), a
 { mul_comm := λ x y,
   begin
     ext,
-    simp only [subalgebra.coe_mul],
+    simp only [submonoid_class.coe_mul],
     exact adjoin_induction₂ x.prop y.prop
       hcomm
       (λ _ _, by rw [commutes])
@@ -234,7 +234,7 @@ def adjoin_comm_semiring_of_comm {s : set A} (hcomm : ∀ (a ∈ s) (b ∈ s), a
       (λ x₁ x₂ y₁ h₁ h₂, by rw [mul_assoc, h₂, ←mul_assoc y₁, ←h₁, mul_assoc x₁])
       (λ x₁ x₂ y₁ h₁ h₂, by rw [mul_assoc x₂, ←h₂, ←mul_assoc x₂, ←h₁, ←mul_assoc])
   end,
-  ..(adjoin R s).to_semiring }
+  ..subsemiring_class.to_semiring (adjoin R s) }
 
 lemma adjoin_singleton_one : adjoin R ({1} : set A) = ⊥ :=
 eq_bot_iff.2 $ adjoin_le $ set.singleton_subset_iff.2 $ set_like.mem_coe.2 $ one_mem _
@@ -314,7 +314,7 @@ variables (R)
 ring.  -/
 def adjoin_comm_ring_of_comm {s : set A} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
   comm_ring (adjoin R s) :=
-{ ..(adjoin R s).to_ring,
+{ ..subring_class.to_ring (adjoin R s),
   ..adjoin_comm_semiring_of_comm R hcomm }
 
 end ring

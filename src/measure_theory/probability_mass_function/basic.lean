@@ -58,6 +58,18 @@ lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
 has_sum_le (by { intro b, split_ifs; simp only [h, zero_le'] })
   (has_sum_ite_eq a (p a)) (has_sum_coe_one p)
 
+def const (a : α) : pmf α :=
+{ val := λ s, if s = a then 1 else 0,
+  property := has_sum_ite_eq a 1 }
+
+lemma support_const (a : α) : support (const a) = {a} :=
+begin
+  unfold const support,
+  ext,
+  unfold_coes,
+  simp,
+end
+
 section outer_measure
 
 open measure_theory measure_theory.outer_measure

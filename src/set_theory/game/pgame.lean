@@ -1199,9 +1199,6 @@ by { rw zero_lt, use default, rintros ⟨⟩ }
 @[simp] theorem neg_star : -star = star :=
 by simp [star]
 
-/-- The pre-game `ω`. (In fact all ordinals have game and surreal representatives.) -/
-def omega : pgame := ⟨ulift ℕ, pempty, λ n, ↑n.1, pempty.elim⟩
-
 @[simp] theorem zero_lt_one : (0 : pgame) < 1 :=
 by { rw zero_lt, use default, rintro ⟨⟩ }
 

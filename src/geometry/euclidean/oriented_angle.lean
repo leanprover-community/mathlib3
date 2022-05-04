@@ -776,7 +776,7 @@ begin
              inv_inv, real.angle.exp_map_circle_neg, ←mul_assoc],
   congr' 1,
   simp only [mul_comm (real.angle.exp_map_circle θ₂ : ℂ), mul_assoc],
-  rw [←submonoid.coe_mul, mul_left_inv, submonoid.coe_one, mul_one]
+  rw [←submonoid_class.coe_mul, mul_left_inv, submonoid_class.coe_one, mul_one]
 end
 
 end orthonormal

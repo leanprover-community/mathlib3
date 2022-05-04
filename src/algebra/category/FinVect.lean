@@ -58,6 +58,9 @@ instance (V W : FinVect K) : finite_dimensional K (V ⟶ W) :=
 instance : has_forget₂ (FinVect.{u} K) (Module.{u} K) :=
 by { dsimp [FinVect], apply_instance, }
 
+instance : full (forget₂ (FinVect K) (Module.{u} K)) :=
+{ preimage := λ X Y f, f, }
+
 instance monoidal_category : monoidal_category (FinVect K) :=
 monoidal_category.full_monoidal_subcategory
   (λ V, finite_dimensional K V)

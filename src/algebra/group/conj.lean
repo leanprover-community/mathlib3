@@ -3,11 +3,11 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Chris Hughes, Michael Howes
 -/
-import data.fintype.basic
-import algebra.hom.aut
-import algebra.hom.group
 import algebra.group.semiconj
 import algebra.group_with_zero.basic
+import algebra.hom.aut
+import algebra.hom.group
+import data.fintype.basic
 
 /-!
 # Conjugacy of group elements
@@ -31,7 +31,7 @@ def is_conj (a b : α) := ∃ c : αˣ, semiconj_by ↑c a b
 @[symm] lemma is_conj.symm {a b : α} : is_conj a b → is_conj b a
 | ⟨c, hc⟩ := ⟨c⁻¹, hc.units_inv_symm_left⟩
 
-lemma is_conj.comm (g h : α) : is_conj g h ↔ is_conj h g :=
+lemma is_conj_comm {g h : α} : is_conj g h ↔ is_conj h g :=
 ⟨is_conj.symm, is_conj.symm⟩
 
 @[trans] lemma is_conj.trans {a b c : α} : is_conj a b → is_conj b c → is_conj a c

@@ -130,11 +130,9 @@ instance {𝕜 E F : Type*} [field 𝕜] [topological_space 𝕜]
   [topological_space F] [add_comm_group F] [module 𝕜 F] [topological_add_group F]
   [has_continuous_smul 𝕜 F] [finite_dimensional 𝕜 F] :
   finite_dimensional 𝕜 (E →L[𝕜] F) :=
-begin
-  haveI : is_noetherian 𝕜 (E →ₗ[𝕜] F) := is_noetherian.iff_fg.mpr (by apply_instance),
-  let I : (E →L[𝕜] F) →ₗ[𝕜] (E →ₗ[𝕜] F) := continuous_linear_map.coe_lm 𝕜,
-  exact module.finite.of_injective I continuous_linear_map.coe_injective
-end
+finite_dimensional.of_injective
+  (continuous_linear_map.coe_lm 𝕜 : (E →L[𝕜] F) →ₗ[𝕜] (E →ₗ[𝕜] F))
+  continuous_linear_map.coe_injective
 
 section complete_field
 
@@ -497,7 +495,6 @@ def basis.equiv_funL (v : basis ι 𝕜 E) : E ≃L[𝕜] (ι → 𝕜) :=
   end,
   ..v.equiv_fun }
 
-
 @[simp] lemma basis.constrL_apply (v : basis ι 𝕜 E) (f : ι → F) (e : E) :
   (v.constrL f) e = ∑ i, (v.equiv_fun e i) • f i :=
 v.constr_apply_fintype 𝕜 _ _
@@ -740,6 +737,53 @@ begin
   { simp_rw [hc, smul_zero], exact is_closed_map_const },
   { exact (closed_embedding_smul_left hc).is_closed_map }
 end
+
+open continuous_linear_map
+/-- Continuous linear equivalence between continuous linear functions `𝕜ⁿ → E` and `Eⁿ`.
+The spaces `𝕜ⁿ` and `Eⁿ` are represented as `ι → 𝕜` and `ι → E`, respectively,
+where `ι` is a finite type. -/
+def continuous_linear_equiv.pi_ring (ι : Type*) [fintype ι] [decidable_eq ι] :
+  ((ι → 𝕜) →L[𝕜] E) ≃L[𝕜] (ι → E) :=
+{ continuous_to_fun :=
+  begin
+    refine continuous_pi (λ i, _),
+    exact (continuous_linear_map.apply 𝕜 E (pi.single i 1)).continuous,
+  end,
+  continuous_inv_fun :=
+  begin
+    simp_rw [linear_equiv.inv_fun_eq_symm, linear_equiv.trans_symm, linear_equiv.symm_symm],
+    apply linear_map.continuous_of_bound _ (fintype.card ι : ℝ) (λ g, _),
+    rw ← nsmul_eq_mul,
+    apply op_norm_le_bound _ (nsmul_nonneg (norm_nonneg g) (fintype.card ι)) (λ t, _),
+    simp_rw [linear_map.coe_comp, linear_equiv.coe_to_linear_map, function.comp_app,
+      linear_map.coe_to_continuous_linear_map', linear_equiv.pi_ring_symm_apply],
+    apply le_trans (norm_sum_le _ _),
+    rw smul_mul_assoc,
+    refine finset.sum_le_card_nsmul _ _ _ (λ i hi, _),
+    rw [norm_smul, mul_comm],
+    exact mul_le_mul (norm_le_pi_norm g i) (norm_le_pi_norm t i) (norm_nonneg _) (norm_nonneg g),
+  end,
+  .. linear_map.to_continuous_linear_map.symm.trans (linear_equiv.pi_ring 𝕜 E ι 𝕜) }
+
+/-- A family of continuous linear maps is continuous on `s` if all its applications are. -/
+lemma continuous_on_clm_apply {X : Type*} [topological_space X]
+  [finite_dimensional 𝕜 E] {f : X → E →L[𝕜] F} {s : set X} :
+  continuous_on f s ↔ ∀ y, continuous_on (λ x, f x y) s :=
+begin
+  refine ⟨λ h y, (continuous_linear_map.apply 𝕜 F y).continuous.comp_continuous_on h, λ h, _⟩,
+  let d := finrank 𝕜 E,
+  have hd : d = finrank 𝕜 (fin d → 𝕜) := (finrank_fin_fun 𝕜).symm,
+  let e₁ : E ≃L[𝕜] fin d → 𝕜 := continuous_linear_equiv.of_finrank_eq hd,
+  let e₂ : (E →L[𝕜] F) ≃L[𝕜] fin d → F :=
+    (e₁.arrow_congr (1 : F ≃L[𝕜] F)).trans (continuous_linear_equiv.pi_ring (fin d)),
+  rw [← function.comp.left_id f, ← e₂.symm_comp_self],
+  exact e₂.symm.continuous.comp_continuous_on (continuous_on_pi.mpr (λ i, h _))
+end
+
+lemma continuous_clm_apply {X : Type*} [topological_space X] [finite_dimensional 𝕜 E]
+  {f : X → E →L[𝕜] F} :
+  continuous f ↔ ∀ y, continuous (λ x, f x y) :=
+by simp_rw [continuous_iff_continuous_on_univ, continuous_on_clm_apply]
 
 end complete_field
 

@@ -59,18 +59,14 @@ let f := zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b in
 noncomputable def orbit_zpowers_equiv
   {α β : Type*} [group α] (a : α) [mul_action α β] (b : β) :
   mul_action.orbit (subgroup.zpowers a) b ≃ zmod (function.minimal_period ((•) a) b) :=
-begin
-  refine (mul_action.orbit_equiv_quotient_stabilizer (subgroup.zpowers a) b).trans _,
-  exact (zpowers_quotient_stabilizer_equiv a b).to_equiv,
-end
+(mul_action.orbit_equiv_quotient_stabilizer (subgroup.zpowers a) b).trans
+  (zpowers_quotient_stabilizer_equiv a b).to_equiv
 
 noncomputable def orbit_zmultiples_equiv
   {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β) :
   add_action.orbit (add_subgroup.zmultiples a) b ≃ zmod (function.minimal_period ((+ᵥ) a) b) :=
-begin
-  refine (add_action.orbit_equiv_quotient_stabilizer (add_subgroup.zmultiples a) b).trans _,
-  exact (zmultiples_quotient_stabilizer_equiv a b).to_equiv,
-end
+(add_action.orbit_equiv_quotient_stabilizer (add_subgroup.zmultiples a) b).trans
+  (zmultiples_quotient_stabilizer_equiv a b).to_equiv
 
 attribute [to_additive orbit_zmultiples_equiv] orbit_zpowers_equiv
 
@@ -141,21 +137,6 @@ lemma key_transversal_apply' {G : Type*} [group G] (H : subgroup G)
   ↑(subgroup.mem_left_transversals.to_equiv (key_transversal H g).2 (g ^ (k : ℤ) • q.out')) =
     g ^ (k : ℤ) * q.out'.out' :=
 by rw [key_transversal_apply, ←key_equiv_symm_apply, equiv.apply_symm_apply]
-
--- PRed
-lemma zmod.cast_sub_one {R : Type*} [ring R] {n : ℕ} (k : zmod n) :
-  ((k - 1 : zmod n) : R) = (if k = 0 then n else k) - 1 :=
-begin
-  by_cases hk : k = 0,
-  { rw [if_pos hk, hk, zero_sub, zmod.cast_neg_one] },
-  { rw [if_neg hk],
-    cases n,
-    { rw [int.cast_sub, int.cast_one] },
-    { rw [←zmod.nat_cast_val, zmod.val, fin.coe_sub_one, if_neg],
-      { rw [nat.cast_sub, nat.cast_one, coe_coe],
-        exact nat.one_le_iff_ne_zero.mpr (mt k.val_eq_zero.mp hk) },
-      { exact hk } } },
-end
 
 lemma key_transversal_apply'' {G : Type*} [group G] (H : subgroup G)
   (g : G) (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))

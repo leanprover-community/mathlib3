@@ -98,7 +98,7 @@ variables {A} [invertible (2 : R)]
     by simp only [skew_adjoint.mem_iff, star_smul, star_sub, star_star, star_trivial, ←smul_neg,
                   neg_sub]⟩,
   map_add' := λ x y, by { ext, simp only [sub_add, ←smul_add, sub_sub_eq_add_sub, star_add,
-                                          add_subgroup.coe_mk, add_subgroup.coe_add] },
+                                          set_like.coe_mk, add_submonoid_class.coe_add] },
   map_smul' := λ r x, by { ext, simp [←mul_smul, ←smul_sub,
             show r * ⅟ 2 = ⅟ 2 * r, from commute.inv_of_right (commute.one_right r).bit0_right] } }
 

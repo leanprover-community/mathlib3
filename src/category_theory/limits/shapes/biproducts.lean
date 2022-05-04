@@ -667,6 +667,14 @@ rfl
 lemma binary_cofan_inr_to_cocone (c : binary_bicone P Q) : binary_cofan.inr c.to_cocone = c.inr :=
 rfl
 
+instance (c : binary_bicone P Q) : split_mono c.inl := { retraction := c.fst, id' := c.inl_fst }
+
+instance (c : binary_bicone P Q) : split_mono c.inr := { retraction := c.snd, id' := c.inr_snd }
+
+instance (c : binary_bicone P Q) : split_epi c.fst := { section_ := c.inl, id' := c.inl_fst }
+
+instance (c : binary_bicone P Q) : split_epi c.snd := { section_ := c.inr, id' := c.inr_snd }
+
 /-- Convert a `binary_bicone` into a `bicone` over a pair. -/
 @[simps]
 def to_bicone {X Y : C} (b : binary_bicone X Y) : bicone (pair X Y).obj :=
@@ -977,22 +985,6 @@ begin
       ←binary_bicone.to_cocone_ι_app_right, ←binary_biproduct.bicone_inr],
     simp }
 end
-
-instance biprod.inl_mono {X Y : C} [has_binary_biproduct X Y] :
-  split_mono (biprod.inl : X ⟶ X ⊞ Y) :=
-{ retraction := biprod.desc (𝟙 X) (biprod.inr ≫ biprod.fst) }
-
-instance biprod.inr_mono {X Y : C} [has_binary_biproduct X Y] :
-  split_mono (biprod.inr : Y ⟶ X ⊞ Y) :=
-{ retraction := biprod.desc (biprod.inl ≫ biprod.snd) (𝟙 Y)}
-
-instance biprod.fst_epi {X Y : C} [has_binary_biproduct X Y] :
-  split_epi (biprod.fst : X ⊞ Y ⟶ X) :=
-{ section_ := biprod.lift (𝟙 X) (biprod.inl ≫ biprod.snd) }
-
-instance biprod.snd_epi {X Y : C} [has_binary_biproduct X Y] :
-  split_epi (biprod.snd : X ⊞ Y ⟶ Y) :=
-{ section_ := biprod.lift (biprod.inr ≫ biprod.fst) (𝟙 Y) }
 
 @[simp,reassoc]
 lemma biprod.map_fst {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]

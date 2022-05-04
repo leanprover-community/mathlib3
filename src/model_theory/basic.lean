@@ -117,9 +117,9 @@ countable_functions.card_functions_le_omega'
 variables {L} {L' : language.{u' v'}}
 
 lemma card_eq_card_functions_add_card_relations :
-  L.card = cardinal.lift.{v} (# (Σl, L.functions l)) +
-    cardinal.lift.{u} (# (Σl, L.relations l)) :=
-by rw [card, symbols, mk_sum]
+  L.card = cardinal.sum (λ l, (cardinal.lift.{v} (#(L.functions l)))) +
+    cardinal.sum (λ l, cardinal.lift.{u} (#(L.relations l))) :=
+by simp [card, symbols]
 
 instance [L.is_relational] {n : ℕ} : is_empty (L.functions n) := is_relational.empty_functions n
 
@@ -191,21 +191,21 @@ lemma encodable.countable_functions [h : encodable (Σl, L.functions l)] :
   L.countable_functions :=
 encodable.countable_functions
 
-@[simp] lemma card_functions_sum :
-  # (Σ n, (L.sum L').functions n) = # ((Σ n, L.functions n) ⊕ (Σ n, L'.functions n)) :=
-(equiv.sigma_sum_distrib _ _).cardinal_eq
+@[simp] lemma card_functions_sum (i : ℕ) :
+  #((L.sum L').functions i) = (#(L.functions i)).lift + cardinal.lift.{u} (#(L'.functions i)) :=
+by simp [language.sum]
 
-@[simp] lemma card_relations_sum :
-  # (Σ n, (L.sum L').relations n) = # ((Σ n, L.relations n) ⊕ (Σ n, L'.relations n)) :=
-(equiv.sigma_sum_distrib _ _).cardinal_eq
+@[simp] lemma card_relations_sum (i : ℕ) :
+  #((L.sum L').relations i) = (#(L.relations i)).lift + cardinal.lift.{v} (#(L'.relations i)) :=
+by simp [language.sum]
 
-lemma card_sum :
+@[simp] lemma card_sum :
   (L.sum L').card = cardinal.lift.{max u' v'} L.card + cardinal.lift.{max u v} L'.card :=
 begin
-  simp only [card_eq_card_functions_add_card_relations, lift_add, lift_lift,
-    card_functions_sum, card_relations_sum, mk_sum, add_assoc],
-  rw [← add_assoc (# (sigma L'.functions)).lift, add_comm (# (sigma L'.functions)).lift],
-  simp only [add_assoc],
+  simp only [card_eq_card_functions_add_card_relations, card_functions_sum, card_relations_sum,
+    sum_add_distrib', lift_add, lift_sum, lift_lift],
+  rw [add_assoc, ←add_assoc (cardinal.sum (λ i, (# (L'.functions i)).lift)),
+    add_comm (cardinal.sum (λ i, (# (L'.functions i)).lift)), add_assoc, add_assoc]
 end
 
 variables (L) (M : Type w)

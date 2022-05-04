@@ -40,15 +40,15 @@ variables {L}
 theorem card_functions_sum_skolem₁ :
   # (Σ n, (L.sum L.skolem₁).functions n) = # (Σ n, L.bounded_formula empty (n + 1)) :=
 begin
-  simp only [card_functions_sum, skolem₁_functions, mk_sum, lift_id'],
+  simp only [card_functions_sum, skolem₁_functions, lift_id', mk_sigma, sum_add_distrib'],
   rw [add_comm, add_eq_max, max_eq_left],
-  { rw [← lift_le, lift_lift, lift_mk_le],
-    refine ⟨⟨sigma.map id (λ _ f, (func f default).bd_equal (func f default)),
-      function.injective_id.sigma_map (λ a f g h, _)⟩⟩,
-    simp only [sigma.map, sigma.ext_iff, id.def, pi.default_def] at h,
+  { refine sum_le_sum _ _ (λ n, _),
+    rw [← lift_le, lift_lift, lift_mk_le],
+    refine ⟨⟨λ f, (func f default).bd_equal (func f default), λ f g h, _⟩⟩,
     rcases h with ⟨rfl, ⟨rfl⟩⟩,
     refl },
-  { exact infinite_iff.1 (infinite.of_injective (λ n, ⟨n, ⊥⟩) (λ x y xy, (sigma.mk.inj xy).1)) }
+  { rw ← mk_sigma,
+    exact infinite_iff.1 (infinite.of_injective (λ n, ⟨n, ⊥⟩) (λ x y xy, (sigma.mk.inj xy).1)) }
 end
 
 theorem card_functions_sum_skolem₁_le :

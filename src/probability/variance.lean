@@ -16,9 +16,9 @@ We prove the basic properties of the variance:
 * `variance_le_expectation_sq`: the inequality `Var[X] ≤ 𝔼[X^2]`.
 * `meas_ge_le_mul_variance`: Chebyshev's inequality, i.e.,
       `ℙ {ω | c ≤ |X ω - 𝔼[X]|} ≤ ennreal.of_real (Var[X] / c ^ 2)`.
-* `indep_fun.Var_add`: the variance of the sum of two independent random variables is the sum of
-  the variances.
-* `indep_fun.Var_sum`: the variance of a finite sum of pairwise independent random variables is
+* `indep_fun.variance_add`: the variance of the sum of two independent random variables is the sum
+  of the variances.
+* `indep_fun.variance_sum`: the variance of a finite sum of pairwise independent random variables is
   the sum of the variances.
 -/
 
@@ -47,8 +47,8 @@ lemma variance_mul {Ω : Type*} {m : measurable_space Ω} (c : ℝ) (f : Ω → 
   variance (λ x, c * f x) μ = c^2 * variance f μ :=
 calc
 variance (λ x, c * f x) μ
-    = ∫ x, (c * f x - ∫ y, c * f y ∂μ)^2 ∂μ : rfl
-... = ∫ x, (c * (f x - ∫ y, f y ∂μ))^2 ∂μ :
+    = ∫ x, (c * f x - ∫ y, c * f y ∂μ) ^ 2 ∂μ : rfl
+... = ∫ x, (c * (f x - ∫ y, f y ∂μ)) ^ 2 ∂μ :
   by { congr' 1 with x, simp_rw [integral_mul_left, mul_sub] }
 ... = c^2 * variance f μ :
   by { simp_rw [mul_pow, integral_mul_left], refl }

@@ -621,6 +621,15 @@ theorem sum_const' (ι : Type u) (a : cardinal.{u}) : sum (λ _:ι, a) = #ι * a
 by simpa only [mk_sigma, mk_sum, mk_out, lift_id] using
   mk_congr (equiv.sigma_sum_distrib (quotient.out ∘ f) (quotient.out ∘ g))
 
+@[simp] theorem sum_add_distrib' {ι} (f g : ι → cardinal) :
+  cardinal.sum (λ i, f i + g i) = sum f + sum g :=
+sum_add_distrib f g
+
+@[simp] theorem lift_sum {ι : Type u} (f : ι → cardinal.{v}) :
+  cardinal.lift.{w} (cardinal.sum f) = cardinal.sum (λ i, cardinal.lift.{w} (f i)) :=
+equiv.cardinal_eq $ equiv.ulift.trans $ equiv.sigma_congr_right $ λ a, nonempty.some $
+  by rw [←lift_mk_eq, mk_out, mk_out, lift_lift]
+
 theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=
 ⟨(embedding.refl _).sigma_map $ λ i, classical.choice $
   by have := H i; rwa [← quot.out_eq (f i), ← quot.out_eq (g i)] at this⟩
@@ -978,6 +987,21 @@ lemma add_lt_omega_iff {a b : cardinal} : a + b < ω ↔ a < ω ∧ b < ω :=
 
 lemma omega_le_add_iff {a b : cardinal} : ω ≤ a + b ↔ ω ≤ a ∨ ω ≤ b :=
 by simp only [← not_lt, add_lt_omega_iff, not_and_distrib]
+
+/-- See also `cardinal.nsmul_lt_omega_iff_of_ne_zero` if you already have `n ≠ 0`. -/
+lemma nsmul_lt_omega_iff {n : ℕ} {a : cardinal} : n • a < ω ↔ n = 0 ∨ a < ω :=
+begin
+  cases n,
+  { simpa using nat_lt_omega 0 },
+  simp only [nat.succ_ne_zero, false_or],
+  induction n with n ih,
+  { simp },
+  rw [succ_nsmul, add_lt_omega_iff, ih, and_self]
+end
+
+/-- See also `cardinal.nsmul_lt_omega_iff` for a hypothesis-free version. -/
+lemma nsmul_lt_omega_iff_of_ne_zero {n : ℕ} {a : cardinal} (h : n ≠ 0) : n • a < ω ↔ a < ω :=
+nsmul_lt_omega_iff.trans $ or_iff_right h
 
 theorem mul_lt_omega {a b : cardinal} (ha : a < ω) (hb : b < ω) : a * b < ω :=
 match a, b, lt_omega.1 ha, lt_omega.1 hb with

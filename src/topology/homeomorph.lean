@@ -174,6 +174,14 @@ h.embedding.is_compact_iff_is_compact_image.symm
 lemma compact_preimage {s : set β} (h : α ≃ₜ β) : is_compact (h ⁻¹' s) ↔ is_compact s :=
 by rw ← image_symm; exact h.symm.compact_image
 
+@[simp] lemma comap_cocompact (h : α ≃ₜ β) : comap h (cocompact β) = cocompact α :=
+(comap_cocompact_le h.continuous).antisymm $
+  (has_basis_cocompact.le_basis_iff (has_basis_cocompact.comap h)).2 $ λ K hK,
+    ⟨h ⁻¹' K, h.compact_preimage.2 hK, subset.rfl⟩
+
+@[simp] lemma map_cocompact (h : α ≃ₜ β) : map h (cocompact α) = cocompact β :=
+by rw [← h.comap_cocompact, map_comap_of_surjective h.surjective]
+
 protected lemma compact_space [compact_space α] (h : α ≃ₜ β) : compact_space β :=
 { compact_univ := by { rw [← image_univ_of_surjective h.surjective, h.compact_image],
     apply compact_space.compact_univ } }

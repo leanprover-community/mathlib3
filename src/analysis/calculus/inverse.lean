@@ -153,7 +153,7 @@ begin
 end
 
 protected lemma lipschitz (hf : approximates_linear_on f f' s c) :
-  lipschitz_with (∥f∥₊' + c) (s.restrict f) :=
+  lipschitz_with (∥f'∥₊ + c) (s.restrict f) :=
 by simpa only [restrict_apply, add_sub_cancel'_right]
   using (f'.lipschitz.restrict s).add hf.lipschitz_sub
 

@@ -80,8 +80,8 @@ by { rw [← zero_smul 𝕜 (0:V), e.map_smul], norm_num }
 ⟨e.eq_zero' x, λ h, h.symm ▸ e.map_zero⟩
 
 @[simp] lemma map_neg (x : V) : e (-x) = e x :=
-calc e (-x) = ∥-1:𝕜∥₊ * e x : by rw [← map_smul, neg_one_smul]
-        ... = e x                 : by simp
+calc e (-x) = ∥(-1 : 𝕜)∥₊ * e x : by rw [← map_smul, neg_one_smul]
+        ... = e x               : by simp
 
 lemma map_sub_rev (x y : V) : e (x - y) = e (y - x) :=
 by rw [← neg_sub, e.map_neg]

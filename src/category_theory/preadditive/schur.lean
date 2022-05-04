@@ -28,6 +28,11 @@ open category_theory.limits
 variables {C : Type*} [category C]
 variables [preadditive C]
 
+-- See also `epi_of_nonzero_to_simple`, which does not require `preadditive C`.
+lemma mono_of_nonzero_from_simple [has_kernels C] {X Y : C} [simple X] {f : X ⟶ Y} (w : f ≠ 0) :
+  mono f :=
+preadditive.mono_of_kernel_zero (kernel_zero_of_nonzero_from_simple w)
+
 /--
 The part of **Schur's lemma** that holds in any preadditive category with kernels:
 that a nonzero morphism between simple objects is an isomorphism.
@@ -35,7 +40,7 @@ that a nonzero morphism between simple objects is an isomorphism.
 lemma is_iso_of_hom_simple [has_kernels C] {X Y : C} [simple X] [simple Y] {f : X ⟶ Y} (w : f ≠ 0) :
   is_iso f :=
 begin
-  haveI : mono f := preadditive.mono_of_kernel_zero (kernel_zero_of_nonzero_from_simple w),
+  haveI := mono_of_nonzero_from_simple w,
   exact is_iso_of_mono_of_nonzero w
 end
 

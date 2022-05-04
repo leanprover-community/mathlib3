@@ -16,6 +16,8 @@ is either an isomorphism or zero (but not both).
 
 This is formalized as a `Prop` valued typeclass `simple X`.
 
+In some contexts, especially representation theory, simple objects are called "irreducibles".
+
 If a morphism `f` out of a simple object is nonzero and has a kernel, then that kernel is zero.
 (We state this as `kernel.ι f = 0`, but should add `kernel f ≅ 0`.)
 
@@ -23,6 +25,8 @@ When the category is abelian, being simple is the same as being cosimple (althou
 state a separate typeclass for this).
 As a consequence, any nonzero epimorphism out of a simple object is an isomorphism,
 and any nonzero morphism into a simple object has trivial cokernel.
+
+We show that any simple object is indecomposable.
 -/
 
 noncomputable theory
@@ -45,6 +49,25 @@ class simple (X : C) : Prop :=
 lemma is_iso_of_mono_of_nonzero {X Y : C} [simple Y] {f : X ⟶ Y} [mono f] (w : f ≠ 0) :
   is_iso f :=
 (simple.mono_is_iso_iff_nonzero f).mpr w
+
+lemma simple.of_iso {X Y : C} [simple Y] (i : X ≅ Y) : simple X :=
+{ mono_is_iso_iff_nonzero := λ Z f m, begin
+    resetI,
+    haveI : mono (f ≫ i.hom) := mono_comp _ _,
+    split,
+    { introsI h w,
+      haveI j : is_iso (f ≫ i.hom), apply_instance,
+      rw simple.mono_is_iso_iff_nonzero at j,
+      unfreezingI { subst w, },
+      simpa using j, },
+    { intro h,
+      haveI j : is_iso (f ≫ i.hom),
+      { apply is_iso_of_mono_of_nonzero,
+        intro w, apply h,
+        simpa using (cancel_mono i.inv).2 w, },
+      rw [←category.comp_id f, ←i.hom_inv_id, ←category.assoc],
+      apply_instance, },
+  end }
 
 lemma kernel_zero_of_nonzero_from_simple
   {X Y : C} [simple X] {f : X ⟶ Y} [has_kernel f] (w : f ≠ 0) :
@@ -71,6 +94,10 @@ instance (X : C) [simple.{v} X] : nontrivial (End X) :=
 nontrivial_of_ne 1 0 (id_nonzero X)
 
 section
+
+lemma simple.not_is_zero (X : C) [simple X] : ¬ is_zero X :=
+by simpa [limits.is_zero.iff_id_eq_zero] using id_nonzero X
+
 variable [has_zero_object C]
 open_locale zero_object
 
@@ -135,5 +162,34 @@ begin
 end
 
 end abelian
+
+section
+variables [preadditive C] [has_binary_biproducts C]
+
+-- There are another three potential variations of this lemma,
+-- but as any one suffices to prove `indecomposable_of_simple` we will not give them all.
+lemma biprod.is_iso_inl_iff_is_zero (X Y : C) : is_iso (biprod.inl : X ⟶ X ⊞ Y) ↔ is_zero Y :=
+begin
+  rw [biprod.is_iso_inl_iff_id_eq_fst_comp_inl, ←biprod.total, add_right_eq_self],
+  split,
+  { intro h, replace h := h =≫ biprod.snd,
+    simpa [←is_zero.iff_split_epi_eq_zero (biprod.snd : X ⊞ Y ⟶ Y)] using h, },
+  { intro h, rw is_zero.iff_split_epi_eq_zero (biprod.snd : X ⊞ Y ⟶ Y) at h, rw [h, zero_comp], },
+end
+
+/-- Any simple object in a preadditive category is indecomposable. -/
+lemma indecomposable_of_simple (X : C) [simple X] : indecomposable X :=
+⟨simple.not_is_zero X,
+λ Y Z i, begin
+  refine or_iff_not_imp_left.mpr (λ h, _),
+  rw is_zero.iff_split_mono_eq_zero (biprod.inl : Y ⟶ Y ⊞ Z) at h,
+  change biprod.inl ≠ 0 at h,
+  rw ←(simple.mono_is_iso_iff_nonzero biprod.inl) at h,
+  { rwa biprod.is_iso_inl_iff_is_zero at h, },
+  { exact simple.of_iso i.symm, },
+  { apply_instance, },
+end⟩
+
+end
 
 end category_theory

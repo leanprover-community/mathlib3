@@ -605,7 +605,7 @@ def subgroup.connected_component_of_one (G : Type*) [topological_space G] [group
 topological closure."]
 def subgroup.comm_group_topological_closure [t2_space G] (s : subgroup G)
   (hs : ∀ (x y : s), x * y = y * x) : comm_group s.topological_closure :=
-{ ..s.topological_closure.to_group,
+{ ..subgroup_class.to_group (s.topological_closure),
   ..s.to_submonoid.comm_monoid_topological_closure hs }
 
 @[to_additive exists_nhds_half_neg]

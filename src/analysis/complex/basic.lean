@@ -197,7 +197,9 @@ det_conj_ae
 @[simp] lemma linear_equiv_det_conj_lie : conj_lie.to_linear_equiv.det = -1 :=
 linear_equiv_det_conj_ae
 
-@[continuity] lemma continuous_conj : continuous (conj : ℂ → ℂ) := conj_lie.continuous
+instance : has_continuous_star ℂ := ⟨conj_lie.continuous⟩
+
+@[continuity] lemma continuous_conj : continuous (conj : ℂ → ℂ) := continuous_star
 
 /-- Continuous linear equiv version of the conj function, from `ℂ` to `ℂ`. -/
 def conj_cle : ℂ ≃L[ℝ] ℂ := conj_lie

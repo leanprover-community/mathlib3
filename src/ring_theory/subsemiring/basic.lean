@@ -873,7 +873,7 @@ namespace subsemiring
 open ring_hom
 
 /-- The ring homomorphism associated to an inclusion of subsemirings. -/
-def inclusion {S T : subsemiring R} (h : S ≤ T) : S →* T :=
+def inclusion {S T : subsemiring R} (h : S ≤ T) : S →+* T :=
 S.subtype.cod_srestrict _ (λ x, h x.2)
 
 @[simp] lemma srange_subtype (s : subsemiring R) : s.subtype.srange = s :=

@@ -1068,6 +1068,26 @@ def biprod.unique_up_to_iso (X Y : C) [has_binary_biproduct X Y] {b : binary_bic
   inv_hom_id' := by rw [← biprod.cone_point_unique_up_to_iso_hom X Y hb,
     ← biprod.cone_point_unique_up_to_iso_inv X Y hb, iso.inv_hom_id] }
 
+section
+variables (X Y : C) [has_binary_biproduct X Y]
+
+-- There are three further variations,
+-- about `is_iso biprod.inr`, `is_iso biprod.fst` and `is_iso biprod.snd`,
+-- but any one suffices to prove `indecomposable_of_simple`
+-- and they are likely not separately useful.
+lemma biprod.is_iso_inl_iff_id_eq_fst_comp_inl :
+  is_iso (biprod.inl : X ⟶ X ⊞ Y) ↔ 𝟙 (X ⊞ Y) = biprod.fst ≫ biprod.inl :=
+begin
+  split,
+  { introI h,
+    have := (cancel_epi (inv biprod.inl : X ⊞ Y ⟶ X)).2 biprod.inl_fst,
+    rw [is_iso.inv_hom_id_assoc, category.comp_id] at this,
+    rw [this, is_iso.inv_hom_id], },
+  { intro h, exact ⟨⟨biprod.fst, biprod.inl_fst, h.symm⟩⟩, },
+end
+
+end
+
 section biprod_kernel
 
 variables (X Y : C) [has_binary_biproduct X Y]
@@ -1570,7 +1590,7 @@ begin
     split_epi_of_idempotent_of_is_colimit_cofork_section_],
   dsimp only [binary_bicone_of_split_mono_of_cokernel_X],
   rw [is_colimit_cofork_of_cokernel_cofork_desc, is_cokernel_epi_comp_desc],
-  simp only [binary_bicone_of_split_mono_of_cokernel_inl, cofork.is_colimit.π_comp_desc, 
+  simp only [binary_bicone_of_split_mono_of_cokernel_inl, cofork.is_colimit.π_comp_desc,
     cokernel_cofork_of_cofork_π, cofork.π_of_π, add_sub_cancel'_right]
 end
 
@@ -1645,6 +1665,7 @@ end limits
 
 open category_theory.limits
 
+section
 local attribute [ext] preadditive
 
 /-- The existence of binary biproducts implies that there is at most one preadditive structure. -/
@@ -1661,5 +1682,11 @@ begin
   congr' 2;
   exact subsingleton.elim _ _
 end
+end
+
+variables {C : Type u} [category.{v} C] [has_zero_morphisms C] [has_binary_biproducts C]
+
+/-- An object is indecomposable if it cannot be written as the biproduct of two nonzero objects. -/
+def indecomposable (X : C) : Prop := ¬ is_zero X ∧ ∀ Y Z, (X ≅ Y ⊞ Z) → is_zero Y ∨ is_zero Z
 
 end category_theory

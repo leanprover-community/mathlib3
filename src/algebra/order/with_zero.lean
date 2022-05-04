@@ -285,14 +285,30 @@ end
 lemma mul_le_mul_right₀ (hc : c ≠ 0) : a * c ≤ b * c ↔ a ≤ b :=
 ⟨le_of_le_mul_right hc, λ hab, mul_le_mul_right' hab _⟩
 
+lemma mul_le_mul_left₀ (ha : a ≠ 0) : a * b ≤ a * c ↔ b ≤ c :=
+by {simp only [mul_comm a], exact mul_le_mul_right₀ ha }
+
 lemma div_le_div_right₀ (hc : c ≠ 0) : a/c ≤ b/c ↔ a ≤ b :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, mul_le_mul_right₀ (inv_ne_zero hc)]
+
+lemma div_le_div_left₀ (ha : a ≠ 0) (hb : b ≠ 0) (hc : c ≠ 0) : a/b ≤ a/c ↔ c ≤ b :=
+by simp only [div_eq_mul_inv, mul_le_mul_left₀ ha, inv_le_inv₀ hb hc]
 
 lemma le_div_iff₀ (hc : c ≠ 0) : a ≤ b/c ↔ a*c ≤ b :=
 by rw [div_eq_mul_inv, le_mul_inv_iff₀ hc]
 
 lemma div_le_iff₀ (hc : c ≠ 0) : a/c ≤ b ↔ a ≤ b*c :=
 by rw [div_eq_mul_inv, mul_inv_le_iff₀ hc]
+
+/-- `equiv.mul_left₀` as an order_iso. -/
+@[simps {simp_rhs := tt}]
+def order_iso.mul_left₀' (a : α) (ha : 0 < a) : α ≃o α :=
+{ map_rel_iff' := λ x y,  mul_le_mul_left₀ (ne_of_gt ha), ..equiv.mul_left₀ a ha.ne' }
+
+/-- `equiv.mul_right₀` as an order_iso. -/
+@[simps {simp_rhs := tt}]
+def order_iso.mul_right₀' (a : α) (ha : 0 < a) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_right₀ (ne_of_gt ha), ..equiv.mul_right₀ a ha.ne' }
 
 instance : linear_ordered_add_comm_group_with_top (additive (order_dual α)) :=
 { neg_top := inv_zero,

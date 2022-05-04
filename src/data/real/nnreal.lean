@@ -725,6 +725,77 @@ end inv
 @[simp] lemma abs_eq (x : ℝ≥0) : |(x : ℝ)| = x :=
 abs_of_nonneg x.property
 
+section csupr
+
+
+variables {ι : Sort*} [nonempty ι] {f : ι → ℝ≥0}
+
+lemma mul_csupr (hf : bdd_above (set.range f)) (a : ℝ≥0) :
+  a * (⨆ i, f i) = ⨆ i, a * f i :=
+begin
+  by_cases ha : a = 0,
+  { simp_rw [ha, zero_mul, csupr_const] },
+  { exact order_iso.map_csupr (order_iso.mul_left₀' _ (zero_lt_iff.mpr ha)) hf }
+end
+
+lemma csupr_mul (hf : bdd_above (set.range f)) (a : ℝ≥0) :
+  (⨆ i, f i) * a = ⨆ i, f i * a :=
+by { rw [mul_comm, mul_csupr hf], simp_rw [mul_comm] }
+
+lemma csupr_div (hf : bdd_above (set.range f)) (a : ℝ≥0) :
+  (⨆ i, f i) / a = ⨆ i, f i / a :=
+by simp only [div_eq_mul_inv, csupr_mul hf]
+
+lemma le_mul_cinfi {a : ℝ≥0} {g : ℝ≥0} {h : ι → ℝ≥0} (H : ∀ j, a ≤ g * h j) : a ≤ g * infi h :=
+begin
+  by_cases hg : g = 0,
+  { simp_rw [hg, zero_mul] at H ⊢,
+    exact H (nonempty.some _inst_1) },
+  { rw [mul_comm, ← mul_inv_le_iff₀ hg],
+    apply le_cinfi,
+    simp_rw [mul_inv_le_iff₀ hg, mul_comm],
+    exact H }
+end
+
+lemma mul_csupr_le {a : ℝ≥0} {g : ℝ≥0} {h : ι → ℝ≥0} (H : ∀ j, g * h j ≤ a) : g * supr h ≤ a :=
+begin
+  by_cases hg : g = 0,
+  { simp_rw [hg, zero_mul] at H ⊢,
+    exact H (nonempty.some _inst_1) },
+  { rw [mul_comm, ← le_div_iff₀ hg],
+    apply csupr_le,
+    simp_rw [le_div_iff₀ hg, mul_comm],
+    exact H }
+end
+
+lemma le_cinfi_mul {a : ℝ≥0} {g : ι → ℝ≥0} {h : ℝ≥0} (H : ∀ i, a ≤ g i * h) : a ≤ infi g * h :=
+begin
+  by_cases hh : h = 0,
+  { simp_rw [hh, mul_zero] at H ⊢,
+    exact H (nonempty.some _inst_1) },
+  { simp_rw ← mul_inv_le_iff₀ hh at H ⊢,
+    exact le_cinfi H }
+end
+
+lemma csupr_mul_le {a : ℝ≥0} {g : ι → ℝ≥0} {h : ℝ≥0} (H : ∀ i, g i * h ≤ a) : supr g * h ≤ a :=
+begin
+  by_cases hh : h = 0,
+  { simp_rw [hh, mul_zero] at H ⊢,
+    exact H (nonempty.some _inst_1) },
+  { simp_rw ← le_div_iff₀ hh at H ⊢,
+    exact csupr_le H }
+end
+
+lemma le_cinfi_mul_cinfi {a : ℝ≥0} {g h : ι → ℝ≥0} (H : ∀ i j, a ≤ g i * h j) :
+  a ≤ infi g * infi h :=
+le_cinfi_mul  $ λ i, le_mul_cinfi $ H i
+
+lemma csupr_mul_csupr_le {a : ℝ≥0} {g h : ι → ℝ≥0} (H : ∀ i j, g i * h j ≤ a) :
+  supr g * supr h ≤ a :=
+csupr_mul_le $ λ i, mul_csupr_le $ H _
+
+end csupr
+
 end nnreal
 
 namespace real

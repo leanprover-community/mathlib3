@@ -133,7 +133,7 @@ closure_minimal h ht
 topological closure. -/
 def subsemiring.comm_semiring_topological_closure [t2_space α] (s : subsemiring α)
   (hs : ∀ (x y : s), x * y = y * x) : comm_semiring s.topological_closure :=
-{ ..s.topological_closure.to_semiring,
+{ ..subsemiring_class.to_semiring (s.topological_closure),
   ..s.to_submonoid.comm_monoid_topological_closure hs }
 end
 
@@ -290,7 +290,7 @@ lemma subring.topological_closure_minimal
 /-- If a subring of a topological ring is commutative, then so is its topological closure. -/
 def subring.comm_ring_topological_closure [t2_space α] (s : subring α)
   (hs : ∀ (x y : s), x * y = y * x) : comm_ring s.topological_closure :=
-{ ..s.topological_closure.to_ring,
+{ ..subring_class.to_ring (s.topological_closure),
   ..s.to_submonoid.comm_monoid_topological_closure hs }
 
 end topological_semiring

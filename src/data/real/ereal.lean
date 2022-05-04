@@ -415,7 +415,7 @@ by conv_lhs { rw [ereal.neg_le, neg_neg] }
 @[simp, norm_cast] lemma coe_neg (x : ℝ) : ((- x : ℝ) : ereal) = - (x : ereal) := rfl
 
 /-- Negation as an order reversing isomorphism on `ereal`. -/
-def neg_order_iso : ereal ≃o (order_dual ereal) :=
+def neg_order_iso : ereal ≃o erealᵒᵈ :=
 { to_fun := λ x, order_dual.to_dual (-x),
   inv_fun := λ x, -x.of_dual,
   map_rel_iff' := λ x y, neg_le_neg_iff,

@@ -37,8 +37,7 @@ such that `0 < y` there exists a natural number `n` such that `x ≤ n • y`. -
 class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
 (arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)
 
-instance order_dual.archimedean [ordered_add_comm_group α] [archimedean α] :
-  archimedean (order_dual α) :=
+instance order_dual.archimedean [ordered_add_comm_group α] [archimedean α] : archimedean αᵒᵈ :=
 ⟨λ x y hy, let ⟨n, hn⟩ := archimedean.arch (-x : α) (neg_pos.2 hy) in
   ⟨n, by rwa [neg_nsmul, neg_le_neg_iff] at hn⟩⟩
 

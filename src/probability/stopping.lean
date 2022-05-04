@@ -267,7 +267,7 @@ begin
   intro i,
   have : u i = (λ p : set.Iic i × α, u p.1 p.2) ∘ (λ x, (⟨i, set.mem_Iic.mpr le_rfl⟩, x)) := rfl,
   rw this,
-  exact (h i).comp_measurable ((@measurable_const _ _ _ (f i) _).prod_mk (@measurable_id _ (f i))),
+  exact (h i).comp_measurable measurable_prod_mk_left,
 end
 
 protected lemma comp {t : ι → α → ι} [topological_space ι] [borel_space ι] [metrizable_space ι]
@@ -280,7 +280,7 @@ begin
     = (λ p : ↥(set.Iic i) × α, u (p.fst : ι) p.snd) ∘ (λ p : ↥(set.Iic i) × α,
       (⟨t (p.fst : ι) p.snd, set.mem_Iic.mpr ((ht_le _ _).trans p.fst.prop)⟩, p.snd)) := rfl,
   rw this,
-  exact (h i).comp_measurable ((ht i).measurable.subtype_mk.prod_mk (@measurable_snd _ _ _ (f i))),
+  exact (h i).comp_measurable ((ht i).measurable.subtype_mk.prod_mk measurable_snd),
 end
 
 section arithmetic
@@ -550,6 +550,38 @@ begin
   exact f.mono (sub_le_self j hi) _ (hτ (j - i)),
 end
 
+lemma add_const_nat
+  {f : filtration ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) {i : ℕ} :
+  is_stopping_time f (λ x, τ x + i) :=
+begin
+  refine is_stopping_time_of_measurable_set_eq (λ j, _),
+  by_cases hij : i ≤ j,
+  { simp_rw [eq_comm, ← nat.sub_eq_iff_eq_add hij, eq_comm],
+    exact f.mono (j.sub_le i) _ (hτ.measurable_set_eq (j - i)) },
+  { rw not_le at hij,
+    convert measurable_set.empty,
+    ext x,
+    simp only [set.mem_empty_eq, iff_false],
+    rintro (hx : τ x + i = j),
+    linarith },
+end
+
+-- generalize to certain encodable type?
+lemma add
+  {f : filtration ℕ m} {τ π : α → ℕ} (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
+  is_stopping_time f (τ + π) :=
+begin
+  intro i,
+  rw (_ : {x | (τ + π) x ≤ i} = ⋃ k ≤ i, {x | π x = k} ∩ {x | τ x + k ≤ i}),
+  { exact measurable_set.Union (λ k, measurable_set.Union_Prop
+      (λ hk, (hπ.measurable_set_eq_le hk).inter (hτ.add_const_nat i))) },
+  ext,
+  simp only [pi.add_apply, set.mem_set_of_eq, set.mem_Union, set.mem_inter_eq, exists_prop],
+  refine ⟨λ h, ⟨π x, by linarith, rfl, h⟩, _⟩,
+  rintro ⟨j, hj, rfl, h⟩,
+  assumption
+end
+
 section preorder
 
 variables [preorder ι] {f : filtration ι m}
@@ -667,6 +699,9 @@ time `τ` is the map `x ↦ u (τ x) x`. -/
 def stopped_value (u : ι → α → β) (τ : α → ι) : α → β :=
 λ x, u (τ x) x
 
+lemma stopped_value_const (u : ι → α → β) (i : ι) : stopped_value u (λ x, i) = u i :=
+rfl
+
 variable [linear_order ι]
 
 /-- Given a map `u : ι → α → E`, the stopped process with respect to `τ` is `u i x` if
@@ -715,7 +750,7 @@ begin
     rw h_set_eq,
     suffices h_meas : @measurable _ _ (m_set s) (f i) (λ x : s, (x : set.Iic i × α).snd),
       from h_meas (f.mono (min_le_left _ _) _ (hτ.measurable_set_le (min i j))),
-    exact (@measurable_snd _ _ _ (f i)).comp (@measurable_subtype_coe _ m_prod _), },
+    exact measurable_snd.comp (@measurable_subtype_coe _ m_prod _), },
   { suffices h_min_eq_left : (λ x : sᶜ, min ↑((x : set.Iic i × α).fst) (τ (x : set.Iic i × α).snd))
       = λ x : sᶜ, ↑((x : set.Iic i × α).fst),
     { rw [set.restrict, h_min_eq_left],
@@ -798,10 +833,9 @@ begin
   { suffices h_meas : measurable[measurable_space.prod _ (f i)]
         (λ a : ↥(set.Iic i) × α, (a.fst : ℕ)),
       from h_meas (measurable_set_singleton j),
-    exact (@measurable_fst _ α _ (f i)).subtype_coe, },
+    exact measurable_fst.subtype_coe, },
   { have h_le : j ≤ i, from finset.mem_range_succ_iff.mp hj,
-    exact (strongly_measurable.mono (h j) (f.mono h_le)).comp_measurable
-      (@measurable_snd _ α _ (f i)), },
+    exact (strongly_measurable.mono (h j) (f.mono h_le)).comp_measurable measurable_snd, },
   { exact strongly_measurable_const, },
 end
 
@@ -897,5 +931,46 @@ by { simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢, exact mem_ℒp_stopped_v
 end normed_group
 
 end nat
+
+section piecewise_const
+
+variables [preorder ι] {𝒢 : filtration ι m} {τ η : α → ι} {i j : ι} {s : set α}
+  [decidable_pred (∈ s)]
+
+/-- Given stopping times `τ` and `η` which are bounded below, `set.piecewise s τ η` is also
+a stopping time with respect to the same filtration. -/
+lemma is_stopping_time.piecewise_of_le (hτ_st : is_stopping_time 𝒢 τ)
+  (hη_st : is_stopping_time 𝒢 η) (hτ : ∀ x, i ≤ τ x) (hη : ∀ x, i ≤ η x)
+  (hs : measurable_set[𝒢 i] s) :
+  is_stopping_time 𝒢 (s.piecewise τ η) :=
+begin
+  intro n,
+  have : {x | s.piecewise τ η x ≤ n}
+    = (s ∩ {x | τ x ≤ n}) ∪ (sᶜ ∩ {x | η x ≤ n}),
+  { ext1 x,
+    simp only [set.piecewise, set.mem_inter_eq, set.mem_set_of_eq, and.congr_right_iff],
+    by_cases hx : x ∈ s; simp [hx], },
+  rw this,
+  by_cases hin : i ≤ n,
+  { have hs_n : measurable_set[𝒢 n] s, from 𝒢.mono hin _ hs,
+    exact (hs_n.inter (hτ_st n)).union (hs_n.compl.inter (hη_st n)), },
+  { have hτn : ∀ x, ¬ τ x ≤ n := λ x hτn, hin ((hτ x).trans hτn),
+    have hηn : ∀ x, ¬ η x ≤ n := λ x hηn, hin ((hη x).trans hηn),
+    simp [hτn, hηn], },
+end
+
+lemma is_stopping_time_piecewise_const (hij : i ≤ j) (hs : measurable_set[𝒢 i] s) :
+  is_stopping_time 𝒢 (s.piecewise (λ _, i) (λ _, j)) :=
+(is_stopping_time_const i).piecewise_of_le (is_stopping_time_const j) (λ x, le_rfl) (λ _, hij) hs
+
+lemma stopped_value_piecewise_const {ι' : Type*} {i j : ι'} {f : ι' → α → ℝ} :
+  stopped_value f (s.piecewise (λ _, i) (λ _, j)) = s.piecewise (f i) (f j) :=
+by { ext x, rw stopped_value, by_cases hx : x ∈ s; simp [hx] }
+
+lemma stopped_value_piecewise_const' {ι' : Type*} {i j : ι'} {f : ι' → α → ℝ} :
+  stopped_value f (s.piecewise (λ _, i) (λ _, j)) = s.indicator (f i) + sᶜ.indicator (f j) :=
+by { ext x, rw stopped_value, by_cases hx : x ∈ s; simp [hx] }
+
+end piecewise_const
 
 end measure_theory

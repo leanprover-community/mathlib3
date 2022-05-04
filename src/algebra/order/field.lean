@@ -706,11 +706,11 @@ eq.symm $ monotone.map_max (λ x y, div_le_div_of_le hc)
 
 lemma min_div_div_right_of_nonpos {c : α} (hc : c ≤ 0) (a b : α) :
   min (a / c) (b / c) = (max a b) / c :=
-eq.symm $ @monotone.map_max α (order_dual α) _ _ _ _ _ (λ x y, div_le_div_of_nonpos_of_le hc)
+eq.symm $ @monotone.map_max α αᵒᵈ _ _ _ _ _ (λ x y, div_le_div_of_nonpos_of_le hc)
 
 lemma max_div_div_right_of_nonpos {c : α} (hc : c ≤ 0) (a b : α) :
   max (a / c) (b / c) = (min a b) / c :=
-eq.symm $ @monotone.map_min α (order_dual α) _ _ _ _ _ (λ x y, div_le_div_of_nonpos_of_le hc)
+eq.symm $ @monotone.map_min α αᵒᵈ _ _ _ _ _ (λ x y, div_le_div_of_nonpos_of_le hc)
 
 lemma abs_div (a b : α) : |a / b| = |a| / |b| := (abs_hom : α →*₀ α).map_div a b
 

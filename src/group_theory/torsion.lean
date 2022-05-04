@@ -102,9 +102,10 @@ lemma is_torsion.extension_closed
   obtain ⟨ngn, ngnpos, hngn⟩ := (is_of_fin_order_iff_pow_eq_one _).mp (tH $ f g),
   have hmem := f.mem_ker.mpr ((f.map_pow g ngn).trans hngn),
   lift g ^ ngn to N using hN.symm ▸ hmem with gn,
+  dsimp at gn, -- `lift` produces `gn : ↥(↑N : set G)`, convert it to `↥N`
   obtain ⟨nn, nnpos, hnn⟩ := (is_of_fin_order_iff_pow_eq_one _).mp (tN gn),
-  exact ⟨ngn * nn, mul_pos ngnpos nnpos, by rw [pow_mul, ←h, ←subgroup.coe_pow,
-                                                hnn, subgroup.coe_one]⟩
+  exact ⟨ngn * nn, mul_pos ngnpos nnpos, by rw [pow_mul, ←h, ← submonoid_class.coe_pow,
+                                                hnn, submonoid_class.coe_one]⟩
 end
 
 /-- The image of a quotient is torsion iff the group is torsion. -/
@@ -185,8 +186,8 @@ variable {G}
 lemma torsion.is_torsion : is_torsion $ torsion G :=
 λ ⟨_, n, npos, hn⟩,
   ⟨n, npos, subtype.ext $
-    by rw [mul_left_iterate, _root_.mul_one, submonoid.coe_pow,
-           subtype.coe_mk, submonoid.coe_one, (is_periodic_pt_mul_iff_pow_eq_one _).mp hn]⟩
+    by rw [mul_left_iterate, _root_.mul_one, submonoid_class.coe_pow,
+           subtype.coe_mk, submonoid_class.coe_one, (is_periodic_pt_mul_iff_pow_eq_one _).mp hn]⟩
 
 end comm_monoid
 

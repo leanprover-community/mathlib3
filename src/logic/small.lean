@@ -136,7 +136,7 @@ small_of_injective (equiv.vector_equiv_fin α n).injective
 instance small_list {α : Type v} [small.{u} α] :
   small.{u} (list α) :=
 begin
-  let e : (Σ n, vector α n) ≃ list α := equiv.sigma_preimage_equiv list.length,
+  let e : (Σ n, vector α n) ≃ list α := equiv.sigma_fiber_equiv list.length,
   exact small_of_surjective e.surjective,
 end
 

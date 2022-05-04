@@ -67,6 +67,14 @@ lemma zero_prod_map_dual_tensor_hom (g : module.dual R N) (q : Q) :
   dual_tensor_hom R (M × N) (P × Q) ((g ∘ₗ snd R M N) ⊗ₜ inr R P Q q) :=
 by {ext; simp}
 
+@[simp] lemma comp_dual_tensor_hom (f : module.dual R M) (n : N) (g : module.dual R N) (p : P) :
+  (dual_tensor_hom R N P (g ⊗ₜ[R] p)) ∘ₗ (dual_tensor_hom R M N (f ⊗ₜ[R] n)) =
+  g n • dual_tensor_hom R M P (f ⊗ₜ p) :=
+begin
+  ext m, simp only [coe_comp, function.comp_app, dual_tensor_hom_apply, map_smulₛₗ,
+  ring_hom.id_apply, smul_apply], rw smul_comm,
+end
+
 /-- As a matrix, `dual_tensor_hom` evaluated on a basis element of `M* ⊗ N` is a matrix with a
 single one and zeros elsewhere -/
 theorem to_matrix_dual_tensor_hom

@@ -37,7 +37,7 @@ private def map_ideal (I : ideal R) : ideal S :=
     rintros a b ⟨a', ha⟩ ⟨b', hb⟩,
     use ⟨a'.2 * b'.1 + b'.2 * a'.1, I.add_mem (I.mul_mem_left _ b'.1.2) (I.mul_mem_left _ a'.1.2)⟩,
     use a'.2 * b'.2,
-    simp only [ring_hom.map_add, submodule.coe_mk, submonoid.coe_mul, ring_hom.map_mul],
+    simp only [ring_hom.map_add, set_like.coe_mk, submonoid_class.coe_mul, ring_hom.map_mul],
     rw [add_mul, ← mul_assoc a, ha, mul_comm (algebra_map R S a'.2) (algebra_map R S b'.2),
         ← mul_assoc b, hb],
     ring
@@ -47,7 +47,7 @@ private def map_ideal (I : ideal R) : ideal S :=
     obtain ⟨c', hc⟩ := is_localization.surj M c,
     use ⟨c'.1 * x'.1, I.mul_mem_left c'.1 x'.1.2⟩,
     use c'.2 * x'.2,
-    simp only [←hx, ←hc, smul_eq_mul, submodule.coe_mk, submonoid.coe_mul, ring_hom.map_mul],
+    simp only [←hx, ←hc, smul_eq_mul, set_like.coe_mk, submonoid_class.coe_mul, ring_hom.map_mul],
     ring
   end }
 

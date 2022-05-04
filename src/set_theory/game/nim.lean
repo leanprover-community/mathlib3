@@ -96,28 +96,69 @@ begin
   exact funext (λ i, IH _ (typein_lt_self i))
 end
 
-instance nim_impartial : ∀ (O : ordinal), impartial (nim O)
-| O :=
+lemma left_moves_nim (O : ordinal) : (nim O).left_moves = O.out.α :=
+by { rw nim_def, refl }
+lemma right_moves_nim (O : ordinal) : (nim O).right_moves = O.out.α :=
+by { rw nim_def, refl }
+
+lemma move_left_nim_heq (O : ordinal) : (nim O).move_left == λ i : O.out.α, nim (typein (<) i) :=
+by { rw nim_def, refl }
+lemma move_right_nim_heq (O : ordinal) : (nim O).move_right == λ i : O.out.α, nim (typein (<) i) :=
+by { rw nim_def, refl }
+
+/-- Turns an ordinal less than `O` into a left move for `nim O` and viceversa. -/
+noncomputable def to_left_moves_nim {O : ordinal} : {O' // O' < O} ≃ (nim O).left_moves :=
+(out_equiv_lt O).trans (equiv.cast (left_moves_nim O).symm)
+
+/-- Turns an ordinal less than `O` into a right move for `nim O` and viceversa. -/
+noncomputable def to_right_moves_nim {O : ordinal} : {O' // O' < O} ≃ (nim O).right_moves :=
+(out_equiv_lt O).trans (equiv.cast (right_moves_nim O).symm)
+
+@[simp] theorem to_left_moves_nim_symm_lt {O : ordinal} (i : (nim O).left_moves) :
+  ↑(to_left_moves_nim.symm i) < O :=
+(to_left_moves_nim.symm i).prop
+
+@[simp] theorem to_right_moves_nim_symm_lt {O : ordinal} (i : (nim O).right_moves) :
+  ↑(to_right_moves_nim.symm i) < O :=
+(to_right_moves_nim.symm i).prop
+
+@[simp] lemma move_left_nim' {O : ordinal.{u}} (i) :
+  (nim O).move_left i = nim (to_left_moves_nim.symm i).val :=
+(congr_heq (move_left_nim_heq O).symm (cast_heq _ i)).symm
+
+lemma move_left_nim {O : ordinal} (i) :
+  (nim O).move_left (to_left_moves_nim i) = nim i :=
+by simp
+
+@[simp] lemma move_right_nim' {O : ordinal} (i) :
+  (nim O).move_right i = nim (to_right_moves_nim.symm i).val :=
+(congr_heq (move_right_nim_heq O).symm (cast_heq _ i)).symm
+
+lemma move_right_nim {O : ordinal} (i) :
+  (nim O).move_right (to_right_moves_nim i) = nim i :=
+by simp
+
+@[simp] lemma neg_nim (O : ordinal) : -nim O = nim O :=
 begin
-  rw [impartial_def, nim_def, neg_def],
-  split, split;
-  rw pgame.le_def,
-  all_goals { refine ⟨λ i, let hwf := ordinal.typein_lt_self i in _,
-    λ j, let hwf := ordinal.typein_lt_self j in _⟩ },
-  { exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) i).1⟩ },
-  { exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) j).1⟩ },
-  { exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) i).2⟩ },
-  { exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) j).2⟩ },
-  { exact nim_impartial (typein (<) i) },
-  { exact nim_impartial (typein (<) j) }
+  induction O using ordinal.induction with O IH,
+  rw nim_def, dsimp; congr;
+  funext i;
+  exact IH _ (ordinal.typein_lt_self i)
 end
-using_well_founded { dec_tac := tactic.assumption }
 
-lemma exists_ordinal_move_left_eq (O : ordinal) : ∀ i, ∃ O' < O, (nim O).move_left i = nim O' :=
-by { rw nim_def, exact λ i, ⟨_, ⟨ordinal.typein_lt_self i, rfl⟩⟩ }
+instance nim_impartial (O : ordinal) : impartial (nim O) :=
+begin
+  induction O using ordinal.induction with O IH,
+  rw [impartial_def, neg_nim],
+  refine ⟨equiv_refl _, λ i, _, λ i, _⟩;
+  simpa using IH _ (typein_lt_self _)
+end
 
-lemma exists_move_left_eq {O : ordinal} : ∀ O' < O, ∃ i, (nim O).move_left i = nim O' :=
-by { rw nim_def, exact λ _ h, ⟨(ordinal.principal_seg_out h).top, by simp⟩ }
+lemma exists_ordinal_move_left_eq {O : ordinal} (i) : ∃ O' < O, (nim O).move_left i = nim O' :=
+⟨_, typein_lt_self _, move_left_nim' i⟩
+
+lemma exists_move_left_eq {O O' : ordinal} (h : O' < O) : ∃ i, (nim O).move_left i = nim O' :=
+⟨to_left_moves_nim ⟨O', h⟩, by simp⟩
 
 @[simp] lemma zero_first_loses : (nim (0 : ordinal)).first_loses :=
 begin
@@ -254,7 +295,7 @@ begin
 
     all_goals
     { -- One of the piles is reduced to `k` stones, with `k < n` or `k < m`.
-      obtain ⟨ok, ⟨hk, hk'⟩⟩ := nim.exists_ordinal_move_left_eq _ a,
+      obtain ⟨ok, hk, hk'⟩ := nim.exists_ordinal_move_left_eq a,
       obtain ⟨k, rfl⟩ := ordinal.lt_omega.1 (lt_trans hk (ordinal.nat_lt_omega _)),
       replace hk := ordinal.nat_cast_lt.1 hk,
 
@@ -288,11 +329,11 @@ begin
 
     -- Therefore, we can play the corresponding move, and by the inductive hypothesis the new state
     -- is `(u xor m) xor m = u` or `n xor (u xor n) = u` as required.
-    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq _ (ordinal.nat_cast_lt.2 h),
+    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq (ordinal.nat_cast_lt.2 h),
       refine ⟨(left_moves_add _ _).symm (sum.inl i), _⟩,
       simp only [hi, add_move_left_inl],
       rw [hn _ h, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] },
-    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq _ (ordinal.nat_cast_lt.2 h),
+    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq (ordinal.nat_cast_lt.2 h),
       refine ⟨(left_moves_add _ _).symm (sum.inr i), _⟩,
       simp only [hi, add_move_left_inr],
       rw [hm _ h, nat.lxor_comm, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] } },

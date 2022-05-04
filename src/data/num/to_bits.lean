@@ -138,8 +138,8 @@ end
 lemma of_bits_strict_mono (l₁ l₂ : list bool) (h : l₁.length < l₂.length) :
   (of_bits l₁ : ℕ) < of_bits l₂ :=
 calc (of_bits l₁ : ℕ) < 2^l₁.length : of_bits_lt l₁
-                    ...  ≤ 2^(l₂.length - 1) : pow_mono (show 1 ≤ 2, by simp) (nat.le_pred_of_lt h)
-                    ...  ≤ of_bits l₂ : le_of_bits l₂ (λ H, by { subst H, simpa using h, })
+                 ...  ≤ 2^(l₂.length - 1) : pow_mono (show 1 ≤ 2, by simp) (nat.le_pred_of_lt h)
+                 ...  ≤ of_bits l₂ : le_of_bits l₂ (λ H, by { subst H, simpa using h, })
 
 @[simp] lemma to_bits_nil_iff (n : num) : to_bits n = [] ↔ n = 0 :=
 ⟨λ h, by simpa using congr_arg of_bits h, λ h, by { rw h, refl, }⟩

@@ -93,7 +93,7 @@ closure_minimal h ht
 /-- If a subalgebra of a topological algebra is commutative, then so is its topological closure. -/
 def subalgebra.comm_semiring_topological_closure [t2_space A] (s : subalgebra R A)
   (hs : ∀ (x y : s), x * y = y * x) : comm_semiring s.topological_closure :=
-{ ..s.topological_closure.to_semiring,
+{ ..subsemiring_class.to_semiring (s.topological_closure),
   ..s.to_submonoid.comm_monoid_topological_closure hs }
 
 /--
@@ -127,7 +127,7 @@ variables [algebra R A] [topological_ring A]
 See note [reducible non-instances]. -/
 @[reducible] def subalgebra.comm_ring_topological_closure [t2_space A] (s : subalgebra R A)
   (hs : ∀ (x y : s), x * y = y * x) : comm_ring s.topological_closure :=
-{ ..s.topological_closure.to_ring,
+{ ..subring_class.to_ring (s.topological_closure),
   ..s.to_submonoid.comm_monoid_topological_closure hs }
 
 variables (R)

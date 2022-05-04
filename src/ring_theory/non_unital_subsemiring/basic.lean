@@ -557,25 +557,6 @@ closure_induction hx
   (λ x₁ x₁s, closure_induction hy (Hs x₁ x₁s) (H0_right x₁) (Hadd_right x₁) (Hmul_right x₁))
   (H0_left y) (λ z z', Hadd_left z z' y) (λ z z', Hmul_left z z' y)
 
-/- Is this recoverable in any way?
-lemma mem_closure_iff_exists_list {R} [non_unital_semiring R] {s : set R} {x} : x ∈ closure s ↔
-  ∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s) ∧ (L.map list.prod).sum = x :=
-⟨λ hx, add_submonoid.closure_induction (mem_closure_iff.1 hx)
-  (λ x hx, suffices ∃ t : list R, (∀ y ∈ t, y ∈ s) ∧ t.prod = x,
-    from let ⟨t, ht1, ht2⟩ := this in ⟨[t], list.forall_mem_singleton.2 ht1,
-      by rw [list.map_singleton, list.sum_singleton, ht2]⟩,
-    subsemigroup.closure_induction hx
-      (λ x hx, ⟨[x], list.forall_mem_singleton.2 hx, one_mul x⟩)
-      ⟨[], list.forall_mem_nil _, rfl⟩
-      (λ x y ⟨t, ht1, ht2⟩ ⟨u, hu1, hu2⟩, ⟨t ++ u, list.forall_mem_append.2 ⟨ht1, hu1⟩,
-        by rw [list.prod_append, ht2, hu2]⟩))
-  ⟨[], list.forall_mem_nil _, rfl⟩
-  (λ x y ⟨L, HL1, HL2⟩ ⟨M, HM1, HM2⟩, ⟨L ++ M, list.forall_mem_append.2 ⟨HL1, HM1⟩,
-    by rw [list.map_append, list.sum_append, HL2, HM2]⟩),
-λ ⟨L, HL1, HL2⟩, HL2 ▸ list_sum_mem _ (λ r hr, let ⟨t, ht1, ht2⟩ := list.mem_map.1 hr in
-  ht2 ▸ list_prod_mem _ (λ y hy, subset_closure $ HL1 t ht1 y hy))⟩
--/
-
 variable (R)
 
 /-- `closure` forms a Galois insertion with the coercion to set. -/

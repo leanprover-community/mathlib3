@@ -686,7 +686,7 @@ def closure_comm_ring_of_comm {s : set R} (hcomm : ∀ (a ∈ s) (b ∈ s), a * 
 { mul_comm := λ x y,
   begin
     ext,
-    simp only [subring.coe_mul],
+    simp only [submonoid_class.coe_mul],
     refine closure_induction₂ x.prop y.prop
     hcomm
     (λ x, by simp only [mul_zero, zero_mul])
@@ -700,7 +700,7 @@ def closure_comm_ring_of_comm {s : set R} (hcomm : ∀ (a ∈ s) (b ∈ s), a * 
     (λ x₁ x₂ y h₁ h₂, by rw [←mul_assoc, ←h₁, mul_assoc x₁ y x₂, ←h₂, mul_assoc])
     (λ x₁ x₂ y h₁ h₂, by rw [←mul_assoc, h₁, mul_assoc, h₂, ←mul_assoc])
   end,
-  ..(closure s).to_ring }
+  ..subring_class.to_ring (closure s) }
 
 
 theorem exists_list_of_mem_closure {s : set R} {x : R} (h : x ∈ closure s) :

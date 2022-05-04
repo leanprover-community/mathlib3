@@ -718,33 +718,57 @@ begin
       exact this (list.length_map _ _).symm ha } }
 end
 
-/-- An explicit equivalence between the moves for Left in `-x` and the moves for Right in `x`. -/
--- This equivalence is useful to avoid having to use `cases` unnecessarily.
-def left_moves_neg (x : pgame) : (-x).left_moves ≃ x.right_moves :=
+theorem left_moves_neg : ∀ x : pgame, (-x).left_moves = x.right_moves
+| ⟨_, _, _, _⟩ := rfl
+
+theorem right_moves_neg : ∀ x : pgame, (-x).right_moves = x.left_moves
+| ⟨_, _, _, _⟩ := rfl
+
+/-- Turns a right move for `x` into a left move for `-x` and vice versa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_left_moves_neg {x : pgame} : x.right_moves ≃ (-x).left_moves :=
+equiv.cast (left_moves_neg x).symm
+
+/-- Turns a left move for `x` into a right move for `-x` and vice versa.
+
+Even though these types are the same (not definitionally so), this is the preferred way to convert
+between them. -/
+def to_right_moves_neg {x : pgame} : x.left_moves ≃ (-x).right_moves :=
+equiv.cast (right_moves_neg x).symm
+
+lemma move_left_neg {x : pgame} (i) :
+  (-x).move_left (to_left_moves_neg i) = -x.move_right i :=
 by { cases x, refl }
 
-/-- An explicit equivalence between the moves for Right in `-x` and the moves for Left in `x`. -/
-def right_moves_neg (x : pgame) : (-x).right_moves ≃ x.left_moves :=
+@[simp] lemma move_left_neg' {x : pgame} (i) :
+  (-x).move_left i = -x.move_right (to_left_moves_neg.symm i) :=
 by { cases x, refl }
 
-@[simp] lemma move_right_left_moves_neg {x : pgame} (i : left_moves (-x)) :
-  move_right x ((left_moves_neg x) i) = -(move_left (-x) i) :=
-begin
-  induction x,
-  exact (neg_neg _).symm
-end
-@[simp] lemma move_left_left_moves_neg_symm {x : pgame} (i : right_moves x) :
-  move_left (-x) ((left_moves_neg x).symm i) = -(move_right x i) :=
+lemma move_right_neg {x : pgame} (i) :
+  (-x).move_right (to_right_moves_neg i) = -(x.move_left i) :=
 by { cases x, refl }
-@[simp] lemma move_left_right_moves_neg {x : pgame} (i : right_moves (-x)) :
-  move_left x ((right_moves_neg x) i) = -(move_right (-x) i) :=
-begin
-  induction x,
-  exact (neg_neg _).symm
-end
-@[simp] lemma move_right_right_moves_neg_symm {x : pgame} (i : left_moves x) :
-  move_right (-x) ((right_moves_neg x).symm i) = -(move_left x i) :=
+
+@[simp] lemma move_right_neg' {x : pgame} (i) :
+  (-x).move_right i = -x.move_left (to_right_moves_neg.symm i) :=
 by { cases x, refl }
+
+lemma move_left_neg_symm {x : pgame} (i) :
+  x.move_left (to_right_moves_neg.symm i) = -(-x).move_right i :=
+by simp
+
+lemma move_left_neg_symm' {x : pgame} (i) :
+  x.move_left i = -(-x).move_right (to_right_moves_neg i) :=
+by simp
+
+lemma move_right_neg_symm {x : pgame} (i) :
+  x.move_right (to_left_moves_neg.symm i) = -(-x).move_left i :=
+by simp
+
+lemma move_right_neg_symm' {x : pgame} (i) :
+  x.move_right i = -(-x).move_left (to_left_moves_neg i) :=
+by simp
 
 /-- If `x` has the same moves as `y`, then `-x` has the sames moves as `-y`. -/
 def relabelling.neg_congr : ∀ {x y : pgame}, x.relabelling y → (-x).relabelling (-y)
@@ -756,34 +780,27 @@ def relabelling.neg_congr : ∀ {x y : pgame}, x.relabelling y → (-x).relabell
 theorem le_iff_neg_ge : Π {x y : pgame}, x ≤ y ↔ -y ≤ -x
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
-  rw [le_def],
-  rw [le_def],
+  rw [le_def, le_def],
   dsimp [neg],
-  split,
-  { intro h,
-    split,
-    { intro i, have t := h.right i, cases t,
-      { right, cases t,
-        use (@right_moves_neg (yR i)).symm t_w, convert le_iff_neg_ge.1 t_h, simp },
-      { left, cases t,
-        use t_w, exact le_iff_neg_ge.1 t_h, } },
-    { intro j, have t := h.left j, cases t,
-      { right, cases t,
-        use t_w, exact le_iff_neg_ge.1 t_h, },
-      { left, cases t,
-        use (@left_moves_neg (xL j)).symm t_w, convert le_iff_neg_ge.1 t_h, simp, } } },
-  { intro h,
-    split,
-    { intro i, have t := h.right i, cases t,
-      { right, cases t,
-        use (@left_moves_neg (xL i)) t_w, convert le_iff_neg_ge.2 _, convert t_h, simp, },
-      { left, cases t,
-        use t_w, exact le_iff_neg_ge.2 t_h, } },
-    { intro j, have t := h.left j, cases t,
-      { right, cases t,
-        use t_w, exact le_iff_neg_ge.2 t_h, },
-      { left, cases t,
-        use (@right_moves_neg (yR j)) t_w, convert le_iff_neg_ge.2 _, convert t_h, simp } } },
+  refine ⟨λ h, ⟨λ i, _, λ j, _⟩, λ h, ⟨λ i, _, λ j, _⟩⟩,
+  { rcases h.right i with ⟨w, h⟩ | ⟨w, h⟩,
+    { refine or.inr ⟨to_right_moves_neg w, _⟩,
+      convert le_iff_neg_ge.1 h,
+      rw move_right_neg },
+    { exact or.inl ⟨w, le_iff_neg_ge.1 h⟩ } },
+  { rcases h.left j with ⟨w, h⟩ | ⟨w, h⟩,
+    { exact or.inr ⟨w, le_iff_neg_ge.1 h⟩ },
+    { refine or.inl ⟨to_left_moves_neg w, _⟩,
+      convert le_iff_neg_ge.1 h,
+      rw move_left_neg } },
+  { rcases h.right i with ⟨w, h⟩ | ⟨w, h⟩,
+    { refine or.inr ⟨to_left_moves_neg.symm w, le_iff_neg_ge.2 _⟩,
+      rwa [move_right_neg_symm, neg_neg] },
+    { exact or.inl ⟨w, le_iff_neg_ge.2 h⟩ } },
+  { rcases h.left j with ⟨w, h⟩ | ⟨w, h⟩,
+    { exact or.inr ⟨w, le_iff_neg_ge.2 h⟩ },
+    { refine or.inl ⟨to_right_moves_neg.symm w, le_iff_neg_ge.2 _⟩,
+      rwa [move_left_neg_symm, neg_neg] } },
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 

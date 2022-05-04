@@ -77,7 +77,7 @@ begin
   apply edist_triangle_right
 end
 
-lemma lintegral_nnnorm_zero : ∫⁻ a : α, ∥0 : β∥₊ ∂μ = 0 := by simp
+lemma lintegral_nnnorm_zero : ∫⁻ a : α, ∥(0 : β)∥₊ ∂μ = 0 := by simp
 
 lemma lintegral_nnnorm_add
   {f : α → β} {g : α → γ} (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :

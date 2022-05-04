@@ -356,7 +356,7 @@ We also assume that either `E = {0}`, or `c < ∥f'⁻¹∥⁻¹`. We use `N` as
 
 variables {f' : E ≃L[𝕜] F} {s : set E} {c : ℝ≥0}
 
-local notation `N` := ∥f'.symm : F →L[𝕜] E∥₊
+local notation `N` := ∥(f'.symm : F →L[𝕜] E)∥₊
 
 protected lemma antilipschitz (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c)
   (hc : subsingleton E ∨ c < N⁻¹) :

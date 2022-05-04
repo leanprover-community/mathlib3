@@ -1690,7 +1690,7 @@ lemma norm_symm_pos [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ
 pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one e.one_le_norm_mul_norm_symm) (norm_nonneg _)
 
 lemma nnnorm_symm_pos [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ₁₂] F) :
-  0 < ∥e.symm : F →SL[σ₂₁] E∥₊ :=
+  0 < ∥(e.symm : F →SL[σ₂₁] E)∥₊ :=
 e.norm_symm_pos
 
 lemma subsingleton_or_norm_symm_pos [ring_hom_isometric σ₁₂] (e : E ≃SL[σ₁₂] F) :

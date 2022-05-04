@@ -300,12 +300,17 @@ by rw [div_eq_mul_inv, le_mul_inv_iff₀ hc]
 lemma div_le_iff₀ (hc : c ≠ 0) : a/c ≤ b ↔ a ≤ b*c :=
 by rw [div_eq_mul_inv, mul_inv_le_iff₀ hc]
 
-/-- `equiv.mul_left₀` as an order_iso. -/
+
+/-- `equiv.mul_left₀` as an order_iso.
+
+Note that `order_iso.mul_left₀` refers to the `linear_ordered_field` version. -/
 @[simps {simp_rhs := tt}]
 def order_iso.mul_left₀' (a : α) (ha : 0 < a) : α ≃o α :=
 { map_rel_iff' := λ x y,  mul_le_mul_left₀ (ne_of_gt ha), ..equiv.mul_left₀ a ha.ne' }
 
-/-- `equiv.mul_right₀` as an order_iso. -/
+/-- `equiv.mul_right₀` as an order_iso.
+
+Note that `order_iso.mul_right₀` refers to the `linear_ordered_field` version. -/
 @[simps {simp_rhs := tt}]
 def order_iso.mul_right₀' (a : α) (ha : 0 < a) : α ≃o α :=
 { map_rel_iff' := λ _ _, mul_le_mul_right₀ (ne_of_gt ha), ..equiv.mul_right₀ a ha.ne' }

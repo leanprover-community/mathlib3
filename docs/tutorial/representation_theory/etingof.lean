@@ -7,6 +7,7 @@ import category_theory.simple
 import category_theory.subobject.basic
 import category_theory.preadditive.schur
 import algebra.algebra.restrict_scalars
+import algebra.category.Module.algebra
 import algebra.category.Module.images
 import algebra.category.Module.biproducts
 import data.mv_polynomial.basic
@@ -29,6 +30,8 @@ Our intention is (sadly) to skip all the problems, and many of the examples.
 
 Often results are proved by reference to (much) more general facts in mathlib.
 -/
+
+axiom skipped {p : Type*} : p
 
 universes u
 open category_theory
@@ -85,15 +88,21 @@ example : module A N := by apply_instance
 
 -- Remark 2.3.2: Right `A`-modules are handled as left `Aᵐᵒᵖ`-modules:
 example : Module Aᵐᵒᵖ := Module.of Aᵐᵒᵖ A
+-- Right modules are not extensively developed in mathlib at this point,
+-- and you may run into difficulty using them.
 
--- Example 2.3.3 (1)-(3)
+-- Example 2.3.3
+-- (1) The zero module
 example : Module A := Module.of A punit
+-- (2) The left regular module
 example : Module A := Module.of A A
+-- (3) Modules over a field are vector spaces.
+-- (Because we handle vector spaces as modules in mathlib, this is empty of content.)
 example (V : Type*) [add_comm_group V] [module k V] : Module k := Module.of k V
--- The fourth example is trickier,
+-- (4) is trickier,
 -- and we would probably want to formalise as an equivalence of categories,
--- because "it's hard to get back exactly to where we started".
-example (X : Type*) : Module (free_algebra k X) ≃ Σ (V : Module k), X → (V ⟶ V) := sorry
+-- because "it's hard to get back to where we started".
+example (X : Type*) : Module (free_algebra k X) ≃ Σ (V : Module k), X → (V ⟶ V) := skipped
 
 -- Definition 2.3.4
 -- A subrepresentation can be described using `submodule`,
@@ -116,6 +125,7 @@ variables (N₁ N₂ : Module.{u} A) (g : N₁ ⟶ N₂)
 -- Definition 2.3.7: direct sum
 example : module A (M × M') := by apply_instance
 example (N₁ N₂ : Module.{u} A) : Module.{u} A := N₁ ⊞ N₂
+example (N₁ N₂ : Module.{u} A) : N₁ ⊞ N₂ ≅ Module.of A (N₁ × N₂) := Module.biprod_iso_prod N₁ N₂
 
 -- Definition 2.3.8
 example (N : Module A) : Prop := indecomposable N
@@ -128,5 +138,15 @@ example (N₁ N₂ : Module.{u} A) [simple N₂] (f : N₁ ⟶ N₂) (w : f ≠ 
 epi_of_nonzero_to_simple w
 example (N₁ N₂ : Module.{u} A) [simple N₁] [simple N₂] (f : N₁ ⟶ N₂) (w : f ≠ 0) : is_iso f :=
 is_iso_of_hom_simple w
+
+-- Corollary 2.3.10 (Schur's lemma over an algebraically closed field)
+example [is_alg_closed k] (V : Module.{u} A) [simple V] [finite_dimensional k V] (f : V ⟶ V) :
+  ∃ φ : k, φ • 𝟙 V = f:=
+endomorphism_simple_eq_smul_id k f
+-- Note that some magic is going on behind the scenes in this proof.
+-- We're using a version of Schur's lemma that applies to any `k`-linear category,
+-- and its hypotheses include `finite_dimensional k (V ⟶ V)`
+-- rather than `finite_dimensional k V` (because `V` needed even be a vector space).
+-- Typeclass inference is automatically generating this fact.
 
 -- To be continued...

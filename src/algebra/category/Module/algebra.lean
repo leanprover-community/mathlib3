@@ -28,23 +28,24 @@ that carries these typeclasses, this seems hard to achieve.
 requiring users to write `Module' ℤ A` when `A` is merely a ring.)
 -/
 
+universes v u w
 open category_theory
 
 namespace Module
 
-variables {k : Type*} [field k]
-variables {A : Type*} [ring A] [algebra k A]
+variables {k : Type w} [field k]
+variables {A : Type u} [ring A] [algebra k A]
 
-instance (M : Module A) : module k M :=
+instance (M : Module.{v} A) : module k M :=
 by { change module k (restrict_scalars k A M), apply_instance, }
 
-instance (M : Module A) : is_scalar_tower k A M :=
+instance (M : Module.{v} A) : is_scalar_tower k A M :=
 by { change is_scalar_tower k A (restrict_scalars k A M), apply_instance, }
 
 -- We verify that the morphism spaces become `k`-modules.
-example (M N : Module A) : module k (M ⟶ N) := by apply_instance
+example (M N : Module.{v} A) : module k (M ⟶ N) := by apply_instance
 
-instance linear_over_field : linear k (Module A) :=
+instance linear_over_field : linear k (Module.{v} A) :=
 { hom_module := λ M N, by apply_instance, }
 
 end Module

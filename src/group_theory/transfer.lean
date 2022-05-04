@@ -22,38 +22,12 @@ In this file we construct the transfer homomorphism.
 
 section equiv_stuff
 
-open add_subgroup add_monoid_hom add_equiv add_action quotient_add_group quotient function
-
-variables {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β)
-
 -- PRed
-noncomputable def zmultiples_quotient_stabilizer_equiv :
-  zmultiples a ⧸ stabilizer (zmultiples a) b ≃+ zmod (minimal_period ((+ᵥ) a) b) :=
-(symm (of_bijective (map _ (stabilizer (zmultiples a) b)
-  (zmultiples_hom (zmultiples a) ⟨a, mem_zmultiples a⟩) (by
-  { rw [zmultiples_le, mem_comap, mem_stabilizer_iff,
-        zmultiples_hom_apply, coe_nat_zsmul, ←vadd_iterate],
-    exact is_periodic_pt_minimal_period ((+ᵥ) a) b })) ⟨(ker_eq_bot_iff _).mp (le_bot_iff.mp
-    (λ q, induction_on' q (λ n hn, (eq_zero_iff n).mpr (int.mem_zmultiples_iff.mpr
-    (zsmul_vadd_eq_iff_minimal_period_dvd.mp ((eq_zero_iff _).mp hn)))))),
-    λ q, induction_on' q (λ ⟨_, n, rfl⟩, ⟨n, rfl⟩)⟩)).trans
-  (int.quotient_zmultiples_nat_equiv_zmod (minimal_period ((+ᵥ) a) b))
-
--- PRed
-lemma zmultiples_quotient_stabilizer_equiv_symm_apply (n : zmod (minimal_period ((+ᵥ) a) b)) :
-  (zmultiples_quotient_stabilizer_equiv a b).symm n =
-    (n : ℤ) • (⟨a, mem_zmultiples a⟩ : zmultiples a) :=
-rfl
-
-end equiv_stuff
-
-section equiv_stuff
-
 noncomputable def zpowers_quotient_stabilizer_equiv
   {α β : Type*} [group α] (a : α) [mul_action α β] (b : β) :
   subgroup.zpowers a ⧸ mul_action.stabilizer (subgroup.zpowers a) b ≃*
   multiplicative (zmod (function.minimal_period ((•) a) b)) :=
-let f := zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b in
+let f := add_action.zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b in
 ⟨f.to_fun, f.inv_fun, f.left_inv, f.right_inv, f.map_add'⟩
 
 noncomputable def orbit_zpowers_equiv
@@ -66,7 +40,7 @@ noncomputable def orbit_zmultiples_equiv
   {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β) :
   add_action.orbit (add_subgroup.zmultiples a) b ≃ zmod (function.minimal_period ((+ᵥ) a) b) :=
 (add_action.orbit_equiv_quotient_stabilizer (add_subgroup.zmultiples a) b).trans
-  (zmultiples_quotient_stabilizer_equiv a b).to_equiv
+  (add_action.zmultiples_quotient_stabilizer_equiv a b).to_equiv
 
 attribute [to_additive orbit_zmultiples_equiv] orbit_zpowers_equiv
 

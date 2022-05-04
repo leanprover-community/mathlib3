@@ -572,7 +572,7 @@ variables [cs : complete_space E] {f : E → F} {f' : E ≃L[𝕜] F} {a : E}
 
 lemma approximates_deriv_on_open_nhds (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) :
   ∃ (s : set E) (hs : a ∈ s ∧ is_open s),
-    approximates_linear_on f (f' : E →L[𝕜] F) s ((∥f'.symm : F →L[𝕜] E∥₊)⁻¹ / 2) :=
+    approximates_linear_on f (f' : E →L[𝕜] F) s (∥(f'.symm : F →L[𝕜] E)∥₊⁻¹ / 2) :=
 begin
   refine ((nhds_basis_opens a).exists_iff _).1 _,
   exact (λ s t, approximates_linear_on.mono_set),

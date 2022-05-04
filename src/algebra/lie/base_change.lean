@@ -149,7 +149,10 @@ instance restrict_scalars.lie_algebra_op_module_orig : module Aᵐᵒᵖ (restri
 
 instance restrict_scalars.lie_algebra_op_module [comm_ring R] [algebra R A] :
   module Rᵐᵒᵖ (restrict_scalars R A L) :=
-module.comp_hom L (algebra_map R A).op
+begin
+  haveI : module Aᵐᵒᵖ (restrict_scalars R A L) := by apply_instance : module Aᵐᵒᵖ L,
+  exact module.comp_hom L (algebra_map R A).op
+end
 
 instance restrict_scalars.lie_algebra_is_central_scalar [comm_ring R] [algebra R A]:
   is_central_scalar R (restrict_scalars R A L) :=
@@ -157,8 +160,8 @@ instance restrict_scalars.lie_algebra_is_central_scalar [comm_ring R] [algebra R
 
 @[nolint unused_arguments]
 instance lie_algebra [comm_ring R] [algebra R A] : lie_algebra R (restrict_scalars R A L) :=
-{ lie_smul := λ t x y, (lie_smul _ (show L, from x) (show L, from y) : _),
-  .. (by apply_instance : module R (restrict_scalars R A L)), }
+{ lie_smul := λ t x y, (lie_smul (algebra_map R A t)
+    (restrict_scalars.add_equiv R A L x) (restrict_scalars.add_equiv R A L y) : _) }
 
 end restrict_scalars
 

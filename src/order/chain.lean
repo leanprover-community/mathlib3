@@ -53,6 +53,10 @@ lemma set.subsingleton.is_chain (hs : s.subsingleton) : is_chain r s := hs.pairw
 
 lemma is_chain.mono : s ⊆ t → is_chain r t → is_chain r s := set.pairwise.mono
 
+lemma is_chain.mono_rel {r' : α → α → Prop} (h : is_chain r s)
+  (h_imp : ∀ x y, r x y → r' x y) : is_chain r' s :=
+h.mono' $ λ x y, or.imp (h_imp x y) (h_imp y x)
+
 /-- This can be used to turn `is_chain (≥)` into `is_chain (≤)` and vice-versa. -/
 lemma is_chain.symm (h : is_chain r s) : is_chain (flip r) s := h.mono' $ λ _ _, or.symm
 

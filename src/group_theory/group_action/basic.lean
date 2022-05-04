@@ -243,7 +243,7 @@ as a special case."]
 def self_equiv_sigma_orbits' {φ : Ω → β} (hφ : right_inverse φ quotient.mk') :
   β ≃ Σ (ω : Ω), orbit α (φ ω) :=
 calc  β
-    ≃ Σ (ω : Ω), {b // quotient.mk' b = ω} : (equiv.sigma_preimage_equiv quotient.mk').symm
+    ≃ Σ (ω : Ω), {b // quotient.mk' b = ω} : (equiv.sigma_fiber_equiv quotient.mk').symm
 ... ≃ Σ (ω : Ω), orbit α (φ ω) :
         equiv.sigma_congr_right (λ ω, equiv.subtype_equiv_right $
           λ x, by {rw [← hφ ω, quotient.eq', hφ ω], refl })
@@ -342,11 +342,19 @@ attribute [to_additive add_action.quotient_action] mul_action.quotient_action
 
 variables {β}
 
-@[simp, to_additive] lemma quotient.smul_mk [quotient_action β H] (a : β) (x : α) :
-  (a • quotient_group.mk x : α ⧸ H) = quotient_group.mk (a • x) := rfl
+@[simp, to_additive] lemma quotient.smul_mk [quotient_action β H] (b : β) (a : α) :
+  (b • quotient_group.mk a : α ⧸ H) = quotient_group.mk (b • a) := rfl
 
-@[simp, to_additive] lemma quotient.smul_coe [quotient_action β H] (a : β) (x : α) :
-  (a • x : α ⧸ H) = ↑(a • x) := rfl
+@[simp, to_additive] lemma quotient.smul_coe [quotient_action β H] (b : β) (a : α) :
+  (b • a : α ⧸ H) = ↑(b • a) := rfl
+
+@[simp, to_additive] lemma quotient.mk_smul_out' [quotient_action β H] (b : β) (q : α ⧸ H) :
+  quotient_group.mk (b • q.out') = b • q :=
+by rw [←quotient.smul_mk, quotient_group.out_eq']
+
+@[simp, to_additive] lemma quotient.coe_smul_out' [quotient_action β H] (b : β) (q : α ⧸ H) :
+  ↑(b • q.out') = b • q :=
+quotient.mk_smul_out' H b q
 
 end quotient_action
 

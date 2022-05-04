@@ -199,8 +199,8 @@ is_closed_image_coe_of_bounded_of_closed (bounded_polar_of_mem_nhds_zero 𝕜 s_
 
 /-- The image under `coe_fn : normed_space.dual 𝕜 E → (E → 𝕜)` of a polar `polar 𝕜 s` of a
 neighborhood `s` of the origin is a closed set. -/
-lemma _root_.normed_space.is_closed_image_polar {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
-  is_closed ((coe_fn : weak_dual 𝕜 E → E → 𝕜) '' polar 𝕜 s) :=
+lemma _root_.normed_space.dual.is_closed_image_polar_of_mem_nhds {s : set E}
+  (s_nhd : s ∈ 𝓝 (0 : E)) : is_closed ((coe_fn : dual 𝕜 E → E → 𝕜) '' normed_space.polar 𝕜 s) :=
 is_closed_image_polar_of_mem_nhds 𝕜 s_nhd
 
 /-- The **Banach-Alaoglu theorem**: the polar set of a neighborhood `s` of the origin in a

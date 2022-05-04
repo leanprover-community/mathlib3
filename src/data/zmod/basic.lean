@@ -84,11 +84,11 @@ instance fintype : Π (n : ℕ) [fact (0 < n)], fintype (zmod n)
 instance infinite : infinite (zmod 0) :=
 int.infinite
 
-@[simp] lemma card (n : ℕ) [fact (0 < n)] : fintype.card (zmod n) = n :=
+@[simp] lemma card (n : ℕ) [fintype (zmod n)] : fintype.card (zmod n) = n :=
 begin
   casesI n,
-  { exfalso, exact nat.not_lt_zero 0 (fact.out _) },
-  { exact fintype.card_fin (n+1) }
+  { exfalso, exact not_fintype (zmod 0) },
+  { convert fintype.card_fin (n+1) }
 end
 
 instance decidable_eq : Π (n : ℕ), decidable_eq (zmod n)
@@ -471,6 +471,19 @@ begin
   cases n,
   { rw [int.cast_neg, int.cast_one, nat.cast_zero, zero_sub] },
   { rw [←nat_cast_val, val_neg_one, nat.cast_succ, add_sub_cancel] },
+end
+
+lemma cast_sub_one {R : Type*} [ring R] {n : ℕ} (k : zmod n) :
+  ((k - 1 : zmod n) : R) = (if k = 0 then n else k) - 1 :=
+begin
+  split_ifs with hk,
+  { rw [hk, zero_sub, zmod.cast_neg_one] },
+  { cases n,
+    { rw [int.cast_sub, int.cast_one] },
+    { rw [←zmod.nat_cast_val, zmod.val, fin.coe_sub_one, if_neg],
+      { rw [nat.cast_sub, nat.cast_one, coe_coe],
+        rwa [fin.ext_iff, fin.coe_zero, ←ne, ←nat.one_le_iff_ne_zero] at hk },
+      { exact hk } } },
 end
 
 lemma nat_coe_zmod_eq_iff (p : ℕ) (n : ℕ) (z : zmod p) [fact (0 < p)] :

@@ -503,7 +503,7 @@ lemma inv_subset_inv : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :=
 
 @[to_additive] lemma inv_subset : s⁻¹ ⊆ t ↔ s ⊆ t⁻¹ := by { rw [← inv_subset_inv, inv_inv] }
 
-@[to_additive] lemma inv_singleton (a : α) : ({a} : set α)⁻¹ = {a⁻¹} :=
+@[simp, to_additive] lemma inv_singleton (a : α) : ({a} : set α)⁻¹ = {a⁻¹} :=
 by rw [←image_inv, image_singleton]
 
 open mul_opposite
@@ -1041,6 +1041,10 @@ instance set_semiring.non_unital_semiring [semigroup α] : non_unital_semiring (
 
 instance set_semiring.semiring [monoid α] : semiring (set_semiring α) :=
 { ..set_semiring.non_assoc_semiring, ..set_semiring.non_unital_semiring }
+
+instance set_semiring.non_unital_comm_semiring [comm_semigroup α] :
+  non_unital_comm_semiring (set_semiring α) :=
+{ ..set_semiring.non_unital_semiring, ..set.comm_semigroup }
 
 instance set_semiring.comm_semiring [comm_monoid α] : comm_semiring (set_semiring α) :=
 { ..set.comm_monoid, ..set_semiring.semiring }

@@ -2046,8 +2046,7 @@ variables [partial_order α] {a b : α}
 lemma Iio_ae_eq_Iic' (ha : μ {a} = 0) : Iio a =ᵐ[μ] Iic a :=
 by rw [←Iic_diff_right, diff_ae_eq_self, measure_mono_null (set.inter_subset_right _ _) ha]
 
-lemma Ioi_ae_eq_Ici' (ha : μ {a} = 0) : Ioi a =ᵐ[μ] Ici a :=
-@Iio_ae_eq_Iic' (order_dual α) ‹_› ‹_› _ _ ha
+lemma Ioi_ae_eq_Ici' (ha : μ {a} = 0) : Ioi a =ᵐ[μ] Ici a := @Iio_ae_eq_Iic' αᵒᵈ ‹_› ‹_› _ _ ha
 
 lemma Ioo_ae_eq_Ioc' (hb : μ {b} = 0) : Ioo a b =ᵐ[μ] Ioc a b :=
 (ae_eq_refl _).inter (Iio_ae_eq_Iic' hb)
@@ -2105,6 +2104,10 @@ instance restrict.is_finite_measure (μ : measure α) [hs : fact (μ s < ∞)] :
 
 lemma measure_lt_top (μ : measure α) [is_finite_measure μ] (s : set α) : μ s < ∞ :=
 (measure_mono (subset_univ s)).trans_lt is_finite_measure.measure_univ_lt_top
+
+instance is_finite_measure_restrict (μ : measure α) (s : set α) [h : is_finite_measure μ] :
+  is_finite_measure (μ.restrict s) :=
+⟨by simp [measure_lt_top μ s]⟩
 
 lemma measure_ne_top (μ : measure α) [is_finite_measure μ] (s : set α) : μ s ≠ ∞ :=
 ne_of_lt (measure_lt_top μ s)
@@ -2216,6 +2219,7 @@ include m0
 class is_probability_measure (μ : measure α) : Prop := (measure_univ : μ univ = 1)
 
 export is_probability_measure (measure_univ)
+attribute [simp] is_probability_measure.measure_univ
 
 @[priority 100]
 instance is_probability_measure.to_is_finite_measure (μ : measure α) [is_probability_measure μ] :
@@ -2250,6 +2254,10 @@ begin
   { rwa [ne, measure_univ_eq_zero] },
   { exact measure_ne_top _ _ }
 end
+
+lemma is_probability_measure_map [is_probability_measure μ] {f : α → β} (hf : ae_measurable f μ) :
+  is_probability_measure (map f μ) :=
+⟨by simp [map_apply_of_ae_measurable, hf]⟩
 
 end is_probability_measure
 
@@ -2357,7 +2365,7 @@ by { filter_upwards [hs_zero], intros, split_ifs, refl }
 namespace measure
 
 /-- A measure is called finite at filter `f` if it is finite at some set `s ∈ f`.
-Equivalently, it is eventually finite at `s` in `f.lift' powerset`. -/
+Equivalently, it is eventually finite at `s` in `f.small_sets`. -/
 def finite_at_filter {m0 : measurable_space α} (μ : measure α) (f : filter α) : Prop :=
 ∃ s ∈ f, μ s < ∞
 
@@ -2908,8 +2916,8 @@ protected lemma measure_mono (h : μ ≤ ν) : ν.finite_at_filter f → μ.fini
   ν.finite_at_filter g → μ.finite_at_filter f :=
 λ h, (h.filter_mono hf).measure_mono hμ
 
-protected lemma eventually (h : μ.finite_at_filter f) : ∀ᶠ s in f.lift' powerset, μ s < ∞ :=
-(eventually_lift'_powerset' $ λ s t hst ht, (measure_mono hst).trans_lt ht).2 h
+protected lemma eventually (h : μ.finite_at_filter f) : ∀ᶠ s in f.small_sets, μ s < ∞ :=
+(eventually_small_sets' $ λ s t hst ht, (measure_mono hst).trans_lt ht).2 h
 
 lemma filter_sup : μ.finite_at_filter f → μ.finite_at_filter g → μ.finite_at_filter (f ⊔ g) :=
 λ ⟨s, hsf, hsμ⟩ ⟨t, htg, htμ⟩,
@@ -3095,9 +3103,18 @@ lemma measure_trim_to_measurable_eq_zero {hm : m ≤ m0} (hs : μ.trim hm s = 0)
   μ (@to_measurable α m (μ.trim hm) s) = 0 :=
 measure_eq_zero_of_trim_eq_zero hm (by rwa measure_to_measurable)
 
+lemma ae_of_ae_trim (hm : m ≤ m0) {μ : measure α} {P : α → Prop} (h : ∀ᵐ x ∂(μ.trim hm), P x) :
+  ∀ᵐ x ∂μ, P x :=
+measure_eq_zero_of_trim_eq_zero hm h
+
 lemma ae_eq_of_ae_eq_trim {E} {hm : m ≤ m0} {f₁ f₂ : α → E}
   (h12 : f₁ =ᶠ[@measure.ae α m (μ.trim hm)] f₂) :
   f₁ =ᵐ[μ] f₂ :=
+measure_eq_zero_of_trim_eq_zero hm h12
+
+lemma ae_le_of_ae_le_trim {E} [has_le E] {hm : m ≤ m0} {f₁ f₂ : α → E}
+  (h12 : f₁ ≤ᶠ[@measure.ae α m (μ.trim hm)] f₂) :
+  f₁ ≤ᵐ[μ] f₂ :=
 measure_eq_zero_of_trim_eq_zero hm h12
 
 lemma trim_trim {m₁ m₂ : measurable_space α} {hm₁₂ : m₁ ≤ m₂} {hm₂ : m₂ ≤ m0} :

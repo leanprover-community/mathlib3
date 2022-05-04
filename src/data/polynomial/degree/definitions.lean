@@ -155,7 +155,7 @@ lemma nat_degree_lt_iff_degree_lt (hp : p ≠ 0) :
   p.nat_degree < n ↔ p.degree < ↑n :=
 with_bot.get_or_else_bot_lt_iff $ degree_eq_bot.not.mpr hp
 
-alias polynomial.nat_degree_le_iff_degree_le ↔ . .
+alias polynomial.nat_degree_le_iff_degree_le ↔ ..
 
 lemma nat_degree_le_nat_degree [semiring S] {q : S[X]} (hpq : p.degree ≤ q.degree) :
   p.nat_degree ≤ q.nat_degree :=
@@ -1189,7 +1189,7 @@ def degree_monoid_hom [nontrivial R] : R[X] →* multiplicative (with_bot ℕ) :
 
 @[simp] lemma degree_pow [nontrivial R] (p : R[X]) (n : ℕ) :
   degree (p ^ n) = n • (degree p) :=
-map_pow (degree_monoid_hom : R[X] →* _) _ _
+map_pow (@degree_monoid_hom R _ _ _) _ _
 
 @[simp] lemma leading_coeff_mul (p q : R[X]) : leading_coeff (p * q) =
   leading_coeff p * leading_coeff q :=

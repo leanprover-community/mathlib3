@@ -127,6 +127,9 @@ begin
   { exact le_floor_iff ha }
 end
 
+@[simp] lemma one_le_floor_iff (x : α) : 1 ≤ ⌊x⌋₊ ↔ 1 ≤ x :=
+by exact_mod_cast (@le_floor_iff' α _ _ x 1 one_ne_zero)
+
 lemma floor_lt' (hn : n ≠ 0) : ⌊a⌋₊ < n ↔ a < n := lt_iff_lt_of_le_iff_le $ le_floor_iff' hn
 
 lemma floor_pos : 0 < ⌊a⌋₊ ↔ 1 ≤ a :=

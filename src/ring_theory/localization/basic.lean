@@ -385,7 +385,7 @@ begin
   rw [mul_comm (_ + _), mul_add, mul_mk'_eq_mk'_of_mul, mk'_add_eq_iff_add_mul_eq_mul,
     mul_comm (_ * _), ←mul_assoc, add_comm, ←map_mul, mul_mk'_eq_mk'_of_mul,
     mk'_add_eq_iff_add_mul_eq_mul],
-  simp only [map_add, submonoid.coe_mul, map_mul],
+  simp only [map_add, submonoid_class.coe_mul, map_mul],
   ring
 end
 
@@ -711,7 +711,7 @@ begin
   rw [← @mk'_one R _ M, ← mk'_mul, ← (algebra_map R S).map_zero, ← @mk'_one R _ M,
     is_localization.eq] at e,
   obtain ⟨c, e⟩ := e,
-  rw [zero_mul, zero_mul, submonoid.coe_one, mul_one, mul_comm x a, mul_assoc, mul_comm] at e,
+  rw [zero_mul, zero_mul, submonoid_class.coe_one, mul_one, mul_comm x a, mul_assoc, mul_comm] at e,
   rw mk'_eq_zero_iff,
   exact ⟨c, ha _ e⟩
 end
@@ -763,7 +763,7 @@ lemma add_mk_self (a b c) : (mk a b : localization M) + mk c b = mk (a + c) b :=
 begin
   rw [add_mk, mk_eq_mk_iff, r_eq_r'],
   refine (r' M).symm ⟨1, _⟩,
-  simp only [submonoid.coe_one, submonoid.coe_mul],
+  simp only [submonoid_class.coe_one, submonoid_class.coe_mul],
   ring
 end
 
@@ -771,7 +771,7 @@ private meta def tac := `[
 { intros,
   simp only [add_mk, localization.mk_mul, ← localization.mk_zero 1],
   refine mk_eq_mk_iff.mpr (r_of_eq _),
-  simp only [submonoid.coe_mul],
+  simp only [submonoid_class.coe_mul],
   ring }]
 
 instance : comm_semiring (localization M) :=
@@ -819,7 +819,7 @@ instance {S : Type*} [comm_semiring S] [algebra S R] : algebra S (localization M
   { to_fun := (monoid_of M).to_map,
     map_zero' := by rw [← mk_zero (1 : M), mk_one_eq_monoid_of_mk],
     map_add' := λ x y,
-      by simp only [← mk_one_eq_monoid_of_mk, add_mk, submonoid.coe_one, one_mul, add_comm],
+      by simp only [← mk_one_eq_monoid_of_mk, add_mk, submonoid_class.coe_one, one_mul, add_comm],
     .. localization.monoid_of M } (algebra_map S R),
   smul_def' := λ s, localization.ind $ prod.rec $ begin
     intros r x,
@@ -857,7 +857,7 @@ mk_eq_monoid_of_mk'
 
 lemma mk_algebra_map {A : Type*} [comm_semiring A] [algebra A R] (m : A) :
   mk (algebra_map A R m) 1 = algebra_map A (localization M) m :=
-by rw [mk_eq_mk', mk'_eq_iff_eq_mul, submonoid.coe_one, map_one, mul_one]; refl
+by rw [mk_eq_mk', mk'_eq_iff_eq_mul, submonoid_class.coe_one, map_one, mul_one]; refl
 
 lemma mk_nat_cast (m : ℕ) : (mk m 1 : localization M) = m :=
 by simpa using @mk_algebra_map R _ M ℕ _ _ m
@@ -940,7 +940,7 @@ instance : comm_ring (localization M) :=
     intros,
     simp only [add_mk, localization.mk_mul, neg_mk, ← mk_zero 1],
     refine mk_eq_mk_iff.mpr (r_of_eq _),
-    simp only [submonoid.coe_mul],
+    simp only [submonoid_class.coe_mul],
     ring
   end,
    .. localization.comm_semiring }

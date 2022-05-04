@@ -107,8 +107,7 @@ lemma image2_mul : image2 has_mul.mul s t = s * t := rfl
 @[to_additive]
 lemma mem_mul : a ∈ s * t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x * y = a := iff.rfl
 
-@[to_additive]
-lemma mul_mem_mul (ha : a ∈ s) (hb : b ∈ t) : a * b ∈ s * t := mem_image2_of_mem ha hb
+@[to_additive] lemma mul_mem_mul : a ∈ s → b ∈ t → a * b ∈ s * t := mem_image2_of_mem
 
 @[to_additive add_image_prod]
 lemma image_mul_prod : (λ x : α × α, x.fst * x.snd) '' s ×ˢ t = s * t := image_prod _
@@ -533,8 +532,7 @@ lemma image2_div : image2 has_div.div s t = s / t := rfl
 @[to_additive]
 lemma mem_div : a ∈ s / t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x / y = a := iff.rfl
 
-@[to_additive]
-lemma div_mem_div (ha : a ∈ s) (hb : b ∈ t) : a / b ∈ s / t := mem_image2_of_mem ha hb
+@[to_additive] lemma div_mem_div : a ∈ s → b ∈ t → a / b ∈ s / t := mem_image2_of_mem
 
 @[to_additive add_image_prod]
 lemma image_div_prod : (λ x : α × α, x.fst / x.snd) '' s ×ˢ t = s / t := image_prod _
@@ -675,8 +673,7 @@ lemma image_smul_prod : (λ x : α × β, x.fst • x.snd) '' s ×ˢ t = s • t
 @[to_additive]
 lemma mem_smul : b ∈ s • t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x • y = b := iff.rfl
 
-@[to_additive]
-lemma smul_mem_smul (ha : a ∈ s) (hb : b ∈ t) : a • b ∈ s • t := mem_image2_of_mem ha hb
+@[to_additive] lemma smul_mem_smul : a ∈ s → b ∈ t → a • b ∈ s • t := mem_image2_of_mem
 
 @[simp, to_additive] lemma empty_smul : (∅ : set α) • t = ∅ := image2_empty_left
 @[simp, to_additive] lemma smul_empty : s • (∅ : set β) = ∅ := image2_empty_right

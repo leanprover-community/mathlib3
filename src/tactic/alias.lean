@@ -138,7 +138,7 @@ do old ← ident,
   do
   { tk "↔" <|> tk "<->",
     (left, right) ←
-      mcond ((tk "." *> tk "." >> pure tt) <|> pure ff)
+      mcond ((tk ".." >> pure tt) <|> pure ff)
         (make_left_right old <|> fail "invalid name for automatic name generation")
         (prod.mk <$> types.ident_ <*> types.ident_),
     alias_iff d (doc left) left `iff.mp,

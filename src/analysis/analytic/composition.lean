@@ -72,13 +72,14 @@ open_locale topological_space big_operators classical nnreal ennreal
 section topological
 variables [comm_ring 𝕜] [add_comm_group E] [add_comm_group F] [add_comm_group G]
 variables [module 𝕜 E] [module 𝕜 F] [module 𝕜 G]
-variables [topological_space E] [topological_add_group E] [has_continuous_const_smul 𝕜 E]
-variables [topological_space F] [topological_add_group F] [has_continuous_const_smul 𝕜 F]
-variables [topological_space G] [topological_add_group G] [has_continuous_const_smul 𝕜 G]
+variables [topological_space E] [topological_space F] [topological_space G]
 
 /-! ### Composing formal multilinear series -/
 
 namespace formal_multilinear_series
+variables [topological_add_group E] [has_continuous_const_smul 𝕜 E]
+variables [topological_add_group F] [has_continuous_const_smul 𝕜 F]
+variables [topological_add_group G] [has_continuous_const_smul 𝕜 G]
 
 /-!
 In this paragraph, we define the composition of formal multilinear series, by summing over all
@@ -168,6 +169,8 @@ end formal_multilinear_series
 
 namespace continuous_multilinear_map
 open formal_multilinear_series
+variables [topological_add_group E] [has_continuous_const_smul 𝕜 E]
+variables [topological_add_group F] [has_continuous_const_smul 𝕜 F]
 
 /-- Given a formal multilinear series `p`, a composition `c` of `n` and a continuous multilinear
 map `f` in `c.length` variables, one may form a continuous multilinear map in `n` variables by
@@ -193,6 +196,9 @@ def comp_along_composition {n : ℕ}
 end continuous_multilinear_map
 
 namespace formal_multilinear_series
+variables [topological_add_group E] [has_continuous_const_smul 𝕜 E]
+variables [topological_add_group F] [has_continuous_const_smul 𝕜 F]
+variables [topological_add_group G] [has_continuous_const_smul 𝕜 G]
 
 /-- Given two formal multilinear series `q` and `p` and a composition `c` of `n`, one may
 form a continuous multilinear map in `n` variables by applying the right coefficient of `p` to each

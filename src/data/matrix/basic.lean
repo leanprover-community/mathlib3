@@ -1342,8 +1342,8 @@ variants which this lemma would not apply to:
 * `matrix.conj_transpose_zsmul`
 * `matrix.conj_transpose_rat_smul`
 -/
-@[simp] lemma conj_transpose_smul [semigroup α] [has_star R] [has_star α] [has_scalar R α]
-  [star_module R α] (c : R) (M : matrix m n α) :
+@[simp] lemma conj_transpose_smul [has_star R] [has_star α] [has_scalar R α] [star_module R α]
+  (c : R) (M : matrix m n α) :
   (c • M)ᴴ = star c • Mᴴ :=
 matrix.ext $ λ i j, star_smul _ _
 

@@ -155,7 +155,7 @@ begin
   use mk H K x,
   obtain ⟨h, k, h3, h4, h5⟩ := mk_out'_eq_mul H K x,
   refine ⟨h⁻¹, H.inv_mem h3, k⁻¹, K.inv_mem h4, _⟩,
-  simp only [h5, subgroup.coe_mk, ←mul_assoc, one_mul, mul_left_inv, mul_inv_cancel_right],
+  simp only [h5, set_like.coe_mk, ←mul_assoc, one_mul, mul_left_inv, mul_inv_cancel_right],
 end
 
 lemma doset_union_right_coset (H K : subgroup G) (a : G) :
@@ -167,10 +167,10 @@ begin
   split,
   {rintro ⟨y, h_h⟩,
     refine ⟨x * (y⁻¹ * a⁻¹), h_h, y, y.2, _⟩,
-    simp only [← mul_assoc, subgroup.coe_mk, inv_mul_cancel_right]},
+    simp only [← mul_assoc, set_like.coe_mk, inv_mul_cancel_right]},
   {rintros ⟨x, hx, y, hy, hxy⟩,
     refine ⟨⟨y,hy⟩,_⟩,
-    simp only [hxy, ←mul_assoc, hx, mul_inv_cancel_right, subgroup.coe_mk]},
+    simp only [hxy, ←mul_assoc, hx, mul_inv_cancel_right, set_like.coe_mk]},
 end
 
 lemma doset_union_left_coset (H K : subgroup G) (a : G) :
@@ -184,7 +184,7 @@ begin
     simp only [←mul_assoc, one_mul, mul_right_inv, mul_inv_cancel_right]},
   { rintros ⟨x, hx, y, hy, hxy⟩,
     refine ⟨⟨x, hx⟩, _⟩,
-    simp only [hxy, ←mul_assoc, hy, one_mul, mul_left_inv, subgroup.coe_mk, inv_mul_cancel_right]},
+    simp only [hxy, ←mul_assoc, hy, one_mul, mul_left_inv, subtype.coe_mk, inv_mul_cancel_right] },
   end
 
 lemma left_bot_eq_left_quot (H : subgroup G) :

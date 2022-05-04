@@ -413,39 +413,26 @@ def diagonal_invertible_equiv_invertible (v : n → α) : invertible (diagonal v
   right_inv := λ _, subsingleton.elim _ _ }
 
 /-- When lowered to a prop, `matrix.diagonal_invertible_equiv_invertible` forms an `iff`. -/
-lemma is_unit_iff_is_unit_det : is_unit A ↔ is_unit A.det :=
+@[simp] lemma is_unit_diagonal {v : n → α} : is_unit (diagonal v) ↔ is_unit v :=
 begin
   split; rintros ⟨x, hx⟩; refine @is_unit_of_invertible _ _ _ (id _),
-  { haveI : invertible A := hx.rec x.invertible,
-    apply det_invertible_of_invertible, },
-  { haveI : invertible A.det := hx.rec x.invertible,
-    apply invertible_of_det_invertible, },
+  { haveI : invertible (diagonal v) := hx.rec x.invertible,
+    apply invertible_of_diagonal_invertible, },
+  { haveI : invertible v := hx.rec x.invertible,
+    apply diagonal_invertible, },
 end
 
-lemma inv_diagonal_of_invertible (v : n → α) [invertible v] : (diagonal v)⁻¹ = diagonal (⅟v) :=
-inv_eq_left_inv $
-  by rw [diagonal_mul_diagonal, ←pi.mul_def, inv_of_mul_self, pi.one_def, diagonal_one]
-
-lemma is_unit_diagonal_iff (v : n → α) : is_unit (diagonal v) ↔ is_unit v :=
-begin
-  split; rintros ⟨x, hx⟩; refine @is_unit_of_invertible _ _ _ (id _),
-  { haveI : invertible A := hx.rec x.invertible,
-    apply det_invertible_of_invertible, },
-  { haveI : invertible A.det := hx.rec x.invertible,
-    apply invertible_of_det_invertible, },
-end
-
-
-lemma inv_diagonal (v : n → α) :
-  (diagonal v)⁻¹ = diagonal (ring.inverse v) :=
+lemma inv_diagonal (v : n → α) : (diagonal v)⁻¹ = diagonal (ring.inverse v) :=
 begin
   by_cases h : is_unit v,
-  { obtain ⟨u, rfl⟩ := h,
+  { have := is_unit_diagonal.mpr h,
+    obtain ⟨u, rfl⟩ := h,
     letI := u.invertible,
-    rw [inv_diagonal_of_invertible (↑u : n → α), inv_of_units, ring.inverse_unit], },
-  { rw [ring.inverse_non_unit _ h, pi.zero_def, diagonal_zero,
-      nonsing_inv_apply_not_is_unit _ (mt (λ h, _) h)],
-    rw [det_diagonal, commute.is_unit_mul_iff] at h }
+    letI := diagonal_invertible (↑u : n → α),
+    rw [←inv_of_eq_nonsing_inv, inv_of_diagonal_eq, inv_of_units, ring.inverse_unit], },
+  { have := is_unit_diagonal.not.mpr h,
+    rw [ring.inverse_non_unit _ h, pi.zero_def, diagonal_zero,
+      nonsing_inv_eq_ring_inverse, ring.inverse_non_unit _ this] }
 end
 
 @[simp] lemma inv_inv_inv (A : matrix n n α) : A⁻¹⁻¹⁻¹ = A⁻¹ :=

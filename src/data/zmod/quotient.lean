@@ -91,3 +91,22 @@ lemma zmultiples_quotient_stabilizer_equiv_symm_apply (n : zmod (minimal_period 
 rfl
 
 end add_action
+
+namespace mul_action
+
+open subgroup function
+
+variables {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
+
+/-- The quotient `(a ^ ℤ) ⧸ (stabilizer b)` is cyclic of order `minimal_period ((•) a) b`. -/
+noncomputable def zpowers_quotient_stabilizer_equiv :
+  zpowers a ⧸ stabilizer (zpowers a) b ≃* multiplicative (zmod (minimal_period ((•) a) b)) :=
+let f := add_action.zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b in
+⟨f.to_fun, f.inv_fun, f.left_inv, f.right_inv, f.map_add'⟩
+
+lemma zpowers_quotient_stabilizer_equiv_symm_apply (n : zmod (minimal_period ((•) a) b)) :
+  (zpowers_quotient_stabilizer_equiv a b).symm n =
+    (⟨a, mem_zpowers a⟩ : zpowers a) ^ (n : ℤ) :=
+rfl
+
+end mul_action

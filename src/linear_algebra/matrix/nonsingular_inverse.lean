@@ -373,16 +373,52 @@ inv_eq_left_inv (by simp [h, smul_smul])
 lemma inv_smul' (k : αˣ) (h : is_unit A.det) : (k • A)⁻¹ = k⁻¹ • A⁻¹ :=
 inv_eq_left_inv (by simp [h, smul_smul])
 
+/-- `diagonal` is invertible -/
+def diagonal_invertible (v : n → α) [invertible v] : invertible (diagonal v) :=
+{ inv_of := diagonal (⅟v),
+  inv_of_mul_self := by simp_rw [mul_eq_mul, diagonal_mul_diagonal, ←pi.mul_def, inv_of_mul_self,
+                                 pi.one_def, diagonal_one],
+  mul_inv_of_self := by simp_rw [mul_eq_mul, diagonal_mul_diagonal, ←pi.mul_def, mul_inv_of_self,
+                                 pi.one_def, diagonal_one] }
+
+lemma inv_of_diagonal_eq (v : n → α) [invertible v] [invertible (diagonal v)] :
+  ⅟(diagonal v) = diagonal (⅟v) :=
+by { letI := diagonal_invertible v, convert (rfl : ⅟(diagonal v) = _) }
+
+def invertible_of_diagonal_invertible (v : n → α) [invertible (diagonal v)] : invertible v :=
+{ inv_of := diag (⅟(diagonal v)),
+  inv_of_mul_self := begin
+    letI : invertible (diagonal v).det := det_invertible_of_invertible _,
+    rw [inv_of_eq, diag_smul, adjugate_diagonal],
+    apply diagonal_injective,
+    simp,
+  end,
+  mul_inv_of_self := _ }
+
 lemma inv_diagonal_of_invertible (v : n → α) [invertible v] : (diagonal v)⁻¹ = diagonal (⅟v) :=
 inv_eq_left_inv $
   by rw [diagonal_mul_diagonal, ←pi.mul_def, inv_of_mul_self, pi.one_def, diagonal_one]
 
-lemma inv_diagonal_of_is_unit {v : n → α} (h : is_unit v):
-  (diagonal v)⁻¹ = diagonal ↑(h.unit⁻¹) :=
+lemma is_unit_diagonal_iff (v : n → α) : is_unit (diagonal v) ↔ is_unit v :=
 begin
-  obtain ⟨u, rfl⟩ := h,
-  letI := u.invertible,
-  rw [inv_diagonal_of_invertible (↑u : n → α), inv_of_units, is_unit.unit_of_coe_units],
+  split; rintros ⟨x, hx⟩; refine @is_unit_of_invertible _ _ _ (id _),
+  { haveI : invertible A := hx.rec x.invertible,
+    apply det_invertible_of_invertible, },
+  { haveI : invertible A.det := hx.rec x.invertible,
+    apply invertible_of_det_invertible, },
+end
+
+
+lemma inv_diagonal (v : n → α) :
+  (diagonal v)⁻¹ = diagonal (ring.inverse v) :=
+begin
+  by_cases h : is_unit v,
+  { obtain ⟨u, rfl⟩ := h,
+    letI := u.invertible,
+    rw [inv_diagonal_of_invertible (↑u : n → α), inv_of_units, ring.inverse_unit], },
+  { rw [ring.inverse_non_unit _ h, pi.zero_def, diagonal_zero,
+      nonsing_inv_apply_not_is_unit _ (mt (λ h, _) h)],
+    rw [det_diagonal, commute.is_unit_mul_iff] at h }
 end
 
 @[simp] lemma inv_inv_inv (A : matrix n n α) : A⁻¹⁻¹⁻¹ = A⁻¹ :=

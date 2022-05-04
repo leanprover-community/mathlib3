@@ -817,7 +817,7 @@ variables {F : Type*} [non_unital_ring_hom_class F R S]
 
 /-- Makes the identity isomorphism from a proof two non-unital subsemirings of a multiplicative
 monoid are equal. -/
-def subsemiring_congr (h : s = t) : s ≃+* t :=
+def non_unital_subsemiring_congr (h : s = t) : s ≃+* t :=
 { map_mul' :=  λ _ _, rfl, map_add' := λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
 
 /-- Restrict a non-unital ring homomorphism with a left inverse to a ring isomorphism to its

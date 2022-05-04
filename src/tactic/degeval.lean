@@ -47,6 +47,12 @@ end
 -/
 #check list.erase
 #check expr.to_nat
+
+meta def prepare : expr → expr
+| `(@bit0 _ _ %%a) := prepare a
+| `(@bit1 _ _ %%a) := prepare a
+| a := a
+
 /--  Given an expression `e`, assuming it is a polyomial, `guess_deg e` tries to guess the
 `nat_degree` of `e`.  Currently, it supports:
 * `monomial n r`, guessing `n`,
@@ -59,17 +65,20 @@ The expectation is that the argument of `guess_deg` is a factor of a summand of 
 a polynomial ring. -/
 meta def guess_deg (e : expr) : tactic expr :=
 do
-  n0 ← to_expr ``(nat.zero),
-  n1 ← to_expr ``(nat.zero.succ),
+  let n0 := to_expr ``(nat.zero),
+  let n1 := to_expr ``(nat.zero.succ),
   pX ← to_expr ``(polynomial.X),
   match e.app_fn with
   | `(coe_fn $ polynomial.monomial %%n) := return n
-  | `(coe_fn $ polynomial.C) := return n0
+  | `(coe_fn $ polynomial.C) := n0
+--  | `(bit0 ) := let aargs := e.get_app_args in
+--                  do li ← aargs.mmap guess_deg,
+----    match li with
+--    | [] := return n0
+
   | a := do
           bo ← succeeds $ unify e pX,
-          if bo then
-            return n1
-          else
+          if bo then n1 else
             ( do let margs := e.get_app_args,
               margs.nth 4 >>= return ) <|>
             ( do val ← to_expr ``(polynomial.nat_degree),
@@ -103,21 +112,40 @@ meta def produce_equalities : list expr → list expr → list expr
 /--  My work-in-progress `tactic`.  Using `fina` shows the effect of the tactic-so-far. -/
 meta def fina : tactic unit :=
 do `(polynomial.nat_degree %%tl = %%tr) ← target,
-  n0 ← to_expr ``(nat.zero),
-  let summ := (get_summands tl),
+  let n0 := to_expr ``(nat.zero),
+  let summ := (get_summands (prepare tl)),
   rere ← summ.mmap get_factors_add,-- (get_factors_add t),
   let preq : list expr := produce_equalities summ rere,
+--  let tadd : expr := to_expr (has_add.add).to_string,
+--  trace tadd,
+--  trace $ expr.replace_with tl `(has_add.add) ``(has_mul.mul),
+  trace rere
+  --,trace $ rere.map to_string
+/-
+  let prnat : list (option ℕ) := rere.map expr.to_nat,
+  trace prnat,
+  trace preq,
 -- does not work yet
-  match preq with
-  | _ := trace preq
---  | (ee::es) := let ns := get_unused_name, return ()
+  do match preq with
+  | [] := skip --trace preq,
+  | (ee::es) := do ns ← get_unused_name,
+    --let neq :=
+    assert ns ee,
+    --trace neq
+--    end
+    reflexivity <|>
+      `[{ simp only [add_comm, add_assoc, add_left_comm], done, }] <|>
+      fail "failed", --format!"failed to prove:\n\n{e_eq_fmt}",
+      trace preq
+      end
 --end
 --  do meq : list expr ← rere.mmap (λ f : expr, mk_app `eq [f, n0]),
   --assert
 --  let le : expr → expr → bool := λ e1 e2, e1.to_string ≤ e2.to_string,
 --  res ← rere.qsort le,
-  trace preq
+--  trace preq
 --  ret ← rere.foldl guess_deg t,
+-/
 
 
 end tactic.interactive
@@ -127,11 +155,13 @@ open_locale polynomial
 variables {R : Type*} [semiring R] {f g h : R[X]} {a b c d e : R}
 
 lemma pro {h : C d ≠ 0} (f10 : f.nat_degree ≤ 10) :
-  nat_degree (monomial 5 c * monomial 1 c + f + monomial 7 d + C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + C d * X ^ 10 + C e * X + bit0 0 : R[X]) = 10 :=
+  nat_degree (monomial 5 c * monomial 1 c + f + monomial 7 d +
+    C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + C d * X ^ 10 + C e * X + bit0 0 : R[X]) = 10 :=
 begin
   fina,
 end
 
+#exit
 
 meta def rec_ret_fac_add : expr → tactic (list (list expr))
 | e@`(%%_ + %%_)     := return_factors e

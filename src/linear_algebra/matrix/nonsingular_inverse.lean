@@ -374,14 +374,15 @@ lemma inv_smul' (k : αˣ) (h : is_unit A.det) : (k • A)⁻¹ = k⁻¹ • A�
 inv_eq_left_inv (by simp [h, smul_smul])
 
 /-- `diagonal v` is invertible if `v` is -/
-def diagonal_invertible (v : n → α) [invertible v] : invertible (diagonal v) :=
+def diagonal_invertible {α} [non_assoc_semiring α] (v : n → α) [invertible v] :
+  invertible (diagonal v) :=
 { inv_of := diagonal (⅟v),
   inv_of_mul_self := by simp_rw [mul_eq_mul, diagonal_mul_diagonal, ←pi.mul_def, inv_of_mul_self,
                                  pi.one_def, diagonal_one],
   mul_inv_of_self := by simp_rw [mul_eq_mul, diagonal_mul_diagonal, ←pi.mul_def, mul_inv_of_self,
                                  pi.one_def, diagonal_one] }
 
-lemma inv_of_diagonal_eq (v : n → α) [invertible v] [invertible (diagonal v)] :
+lemma inv_of_diagonal_eq {α} [semiring α] (v : n → α) [invertible v] [invertible (diagonal v)] :
   ⅟(diagonal v) = diagonal (⅟v) :=
 by { letI := diagonal_invertible v, convert (rfl : ⅟(diagonal v) = _) }
 

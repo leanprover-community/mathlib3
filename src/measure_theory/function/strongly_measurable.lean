@@ -1518,10 +1518,12 @@ lemma apply_continuous_linear_map {φ : α → F →L[𝕜] E}
   ae_strongly_measurable (λ a, φ a v) μ :=
 (continuous_linear_map.apply 𝕜 E v).continuous.comp_ae_strongly_measurable hφ
 
-lemma ae_strongly_measurable_comp₂ (L : E →L[𝕜] F →L[𝕜] G) {f : α → E} {g : α → F}
+lemma _root_.continuous_linear_map.ae_strongly_measurable_comp₂ (L : E →L[𝕜] F →L[𝕜] G)
+  {f : α → E} {g : α → F}
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
   ae_strongly_measurable (λ x, L (f x) (g x)) μ :=
 L.continuous₂.comp_ae_strongly_measurable $ hf.prod_mk hg
+
 end continuous_linear_map_nondiscrete_normed_field
 
 lemma _root_.ae_strongly_measurable_with_density_iff {E : Type*} [normed_group E] [normed_space ℝ E]

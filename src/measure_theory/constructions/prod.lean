@@ -655,12 +655,14 @@ lemma ae_measurable.snd [sigma_finite ν] {f : β → γ}
   (hf : ae_measurable f ν) : ae_measurable (λ (z : α × β), f z.2) (μ.prod ν) :=
 hf.comp_measurable' measurable_snd prod_snd_absolutely_continuous
 
-lemma ae_strongly_measurable.fst {γ} [topological_space γ] [sigma_finite ν] {f : α → γ}
-  (hf : ae_strongly_measurable f μ) : ae_strongly_measurable (λ (z : α × β), f z.1) (μ.prod ν) :=
+lemma measure_theory.ae_strongly_measurable.fst {γ} [topological_space γ] [sigma_finite ν]
+  {f : α → γ} (hf : ae_strongly_measurable f μ) :
+  ae_strongly_measurable (λ (z : α × β), f z.1) (μ.prod ν) :=
 hf.comp_measurable' measurable_fst prod_fst_absolutely_continuous
 
-lemma ae_strongly_measurable.snd {γ} [topological_space γ] [sigma_finite ν] {f : β → γ}
-  (hf : ae_strongly_measurable f ν) : ae_strongly_measurable (λ (z : α × β), f z.2) (μ.prod ν) :=
+lemma measure_theory.ae_strongly_measurable.snd {γ} [topological_space γ] [sigma_finite ν]
+  {f : β → γ} (hf : ae_strongly_measurable f ν) :
+  ae_strongly_measurable (λ (z : α × β), f z.2) (μ.prod ν) :=
 hf.comp_measurable' measurable_snd prod_snd_absolutely_continuous
 
 /-- The Bochner integral is a.e.-measurable.

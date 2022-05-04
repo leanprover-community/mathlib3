@@ -268,6 +268,10 @@ lemma subtype_comp_inclusion {H K : S} (hH : H ≤ K) :
   (subtype K).comp (inclusion hH) = subtype H :=
 by { ext, simp only [monoid_hom.comp_apply, coe_subtype, coe_inclusion] }
 
+@[to_additive] lemma inclusion_injective {H K : S} (h : H ≤ K) :
+  function.injective $ inclusion h :=
+set.inclusion_injective h
+
 end subgroup_class
 
 end subgroup_class

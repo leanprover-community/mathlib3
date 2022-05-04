@@ -465,7 +465,7 @@ variables (f : F →* G) (g : G →* H)
 @[to_additive "If `F` and `H` are finite such that `ker(G →+ H) ≤ im(F →+ G)`, then `G` is finite."]
 noncomputable def fintype_of_ker_le_range (h : g.ker ≤ f.range) : fintype G :=
 @fintype.of_equiv _ _ (@prod.fintype _ _ (fintype.of_injective _ $ ker_lift_injective g) $
-                                          fintype.of_injective _ $ inclusion_injective h)
+    fintype.of_injective _ $ subgroup_class.inclusion_injective h)
   group_equiv_quotient_times_subgroup.symm
 
 /-- If `F` and `H` are finite such that `ker(G →* H) = im(F →* G)`, then `G` is finite. -/

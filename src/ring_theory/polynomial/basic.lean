@@ -105,7 +105,7 @@ begin
 end
 
 /-- The first `n` coefficients on `degree_lt n` form a linear equivalence with `fin n → R`. -/
-def degree_lt_equiv (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n → R) :=
+def degree_lt_equiv (R) [semiring R] (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n → R) :=
 { to_fun := λ p n, (↑p : R[X]).coeff n,
   inv_fun := λ f, ⟨∑ i : fin n, monomial i (f i),
     (degree_lt R n).sum_mem (λ i _, mem_degree_lt.mpr (lt_of_le_of_lt
@@ -212,8 +212,7 @@ the ring closure of the original coefficients. -/
 def restriction (p : R[X]) : polynomial (subring.closure (↑p.frange : set R)) :=
 ∑ i in p.support, monomial i (⟨p.coeff i,
   if H : p.coeff i = 0 then H.symm ▸ (subring.closure _).zero_mem
-  else subring.subset_closure (p.coeff_mem_frange _ H)⟩ :
-    (subring.closure (↑p.frange : set R)))
+  else subring.subset_closure (p.coeff_mem_frange _ H)⟩ : (subring.closure (↑p.frange : set R)))
 
 @[simp] theorem coeff_restriction {p : R[X]} {n : ℕ} :
   ↑(coeff (restriction p) n) = coeff p n :=
@@ -277,7 +276,7 @@ section to_subring
 variables (p : R[X]) (T : subring R)
 
 /-- Given a polynomial `p` and a subring `T` that contains the coefficients of `p`,
-return the corresponding polynomial whose coefficients are in `T. -/
+return the corresponding polynomial whose coefficients are in `T`. -/
 def to_subring (hp : (↑p.frange : set R) ⊆ T) : T[X] :=
 ∑ i in p.support, monomial i (⟨p.coeff i,
   if H : p.coeff i = 0 then H.symm ▸ T.zero_mem

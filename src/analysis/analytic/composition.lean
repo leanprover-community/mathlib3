@@ -332,7 +332,7 @@ continuous_multilinear_map.op_norm_le_bound _
 lemma comp_along_composition_nnnorm {n : ℕ}
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (c : composition n) :
-  nnnorm (q.comp_along_composition p c) ≤ nnnorm (q c.length) * ∏ i, nnnorm (p (c.blocks_fun i)) :=
+  ∥q.comp_along_composition p c∥₊ ≤ ∥q c.length∥₊ * ∏ i, ∥p (c.blocks_fun i)∥₊ :=
 by { rw ← nnreal.coe_le_coe, push_cast, exact q.comp_along_composition_norm p c }
 
 /-!
@@ -438,7 +438,7 @@ theorem comp_summable_nnreal
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (hq : 0 < q.radius) (hp : 0 < p.radius) :
   ∃ r > (0 : ℝ≥0),
-    summable (λ i : Σ n, composition n, nnnorm (q.comp_along_composition p i.2) * r ^ i.1) :=
+    summable (λ i : Σ n, composition n, ∥q.comp_along_composition p i.2∥₊ * r ^ i.1) :=
 begin
   /- This follows from the fact that the growth rate of `∥qₙ∥` and `∥pₙ∥` is at most geometric,
   giving a geometric bound on each `∥q.comp_along_composition p op∥`, together with the
@@ -446,9 +446,9 @@ begin
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 (lt_min ennreal.zero_lt_one hq) with ⟨rq, rq_pos, hrq⟩,
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 (lt_min ennreal.zero_lt_one hp) with ⟨rp, rp_pos, hrp⟩,
   simp only [lt_min_iff, ennreal.coe_lt_one_iff, ennreal.coe_pos] at hrp hrq rp_pos rq_pos,
-  obtain ⟨Cq, hCq0, hCq⟩ : ∃ Cq > 0, ∀ n, nnnorm (q n) * rq^n ≤ Cq :=
+  obtain ⟨Cq, hCq0, hCq⟩ : ∃ Cq > 0, ∀ n, ∥q n∥₊ * rq^n ≤ Cq :=
     q.nnnorm_mul_pow_le_of_lt_radius hrq.2,
-  obtain ⟨Cp, hCp1, hCp⟩ : ∃ Cp ≥ 1, ∀ n, nnnorm (p n) * rp^n ≤ Cp,
+  obtain ⟨Cp, hCp1, hCp⟩ : ∃ Cp ≥ 1, ∀ n, ∥p n∥₊ * rp^n ≤ Cp,
   { rcases p.nnnorm_mul_pow_le_of_lt_radius hrp.2 with ⟨Cp, -, hCp⟩,
     exact ⟨max Cp 1, le_max_right _ _, λ n, (hCp n).trans (le_max_left _ _)⟩ },
   let r0 : ℝ≥0 := (4 * Cp)⁻¹,
@@ -456,23 +456,23 @@ begin
   set r : ℝ≥0 := rp * rq * r0,
   have r_pos : 0 < r := mul_pos (mul_pos rp_pos rq_pos) r0_pos,
   have I : ∀ (i : Σ (n : ℕ), composition n),
-    nnnorm (q.comp_along_composition p i.2) * r ^ i.1 ≤ Cq / 4 ^ i.1,
+    ∥q.comp_along_composition p i.2∥₊ * r ^ i.1 ≤ Cq / 4 ^ i.1,
   { rintros ⟨n, c⟩,
     have A,
-    calc nnnorm (q c.length) * rq ^ n ≤ nnnorm (q c.length)* rq ^ c.length :
+    calc ∥q c.length∥₊ * rq ^ n ≤ ∥q c.length∥₊* rq ^ c.length :
       mul_le_mul' le_rfl (pow_le_pow_of_le_one rq.2 hrq.1.le c.length_le)
     ... ≤ Cq : hCq _,
     have B,
-    calc ((∏ i, nnnorm (p (c.blocks_fun i))) * rp ^ n)
-        = ∏ i, nnnorm (p (c.blocks_fun i)) * rp ^ c.blocks_fun i :
+    calc ((∏ i, ∥p (c.blocks_fun i)∥₊) * rp ^ n)
+        = ∏ i, ∥p (c.blocks_fun i)∥₊ * rp ^ c.blocks_fun i :
       by simp only [finset.prod_mul_distrib, finset.prod_pow_eq_pow_sum, c.sum_blocks_fun]
     ... ≤ ∏ i : fin c.length, Cp : finset.prod_le_prod' (λ i _, hCp _)
     ... = Cp ^ c.length : by simp
     ... ≤ Cp ^ n : pow_le_pow hCp1 c.length_le,
-    calc nnnorm (q.comp_along_composition p c) * r ^ n
-        ≤ (nnnorm (q c.length) * ∏ i, nnnorm (p (c.blocks_fun i))) * r ^ n :
+    calc ∥q.comp_along_composition p c∥₊ * r ^ n
+        ≤ (∥q c.length∥₊ * ∏ i, ∥p (c.blocks_fun i)∥₊) * r ^ n :
           mul_le_mul' (q.comp_along_composition_nnnorm p c) le_rfl
-    ... = (nnnorm (q c.length) * rq ^ n) * ((∏ i, nnnorm (p (c.blocks_fun i))) * rp ^ n) * r0 ^ n :
+    ... = (∥q c.length∥₊ * rq ^ n) * ((∏ i, ∥p (c.blocks_fun i)∥₊) * rp ^ n) * r0 ^ n :
           by { simp only [r, mul_pow], ring }
     ... ≤ Cq * Cp ^ n * r0 ^ n : mul_le_mul' (mul_le_mul' A B) le_rfl
     ... = Cq / 4 ^ n :
@@ -502,18 +502,18 @@ end
 summability over all compositions. -/
 theorem le_comp_radius_of_summable
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F) (r : ℝ≥0)
-  (hr : summable (λ i : (Σ n, composition n), nnnorm (q.comp_along_composition p i.2) * r ^ i.1)) :
+  (hr : summable (λ i : (Σ n, composition n), ∥q.comp_along_composition p i.2∥₊ * r ^ i.1)) :
   (r : ℝ≥0∞) ≤ (q.comp p).radius :=
 begin
   refine le_radius_of_bound_nnreal _
-    (∑' i : (Σ n, composition n), nnnorm (comp_along_composition q p i.snd) * r ^ i.fst) (λ n, _),
-  calc nnnorm (formal_multilinear_series.comp q p n) * r ^ n ≤
-  ∑' (c : composition n), nnnorm (comp_along_composition q p c) * r ^ n :
+    (∑' i : (Σ n, composition n), ∥comp_along_composition q p i.snd∥₊ * r ^ i.fst) (λ n, _),
+  calc ∥formal_multilinear_series.comp q p n∥₊ * r ^ n ≤
+  ∑' (c : composition n), ∥comp_along_composition q p c∥₊ * r ^ n :
     begin
       rw [tsum_fintype, ← finset.sum_mul],
       exact mul_le_mul' (nnnorm_sum_le _ _) le_rfl
     end
-  ... ≤ ∑' (i : Σ (n : ℕ), composition n), nnnorm (comp_along_composition q p i.snd) * r ^ i.fst :
+  ... ≤ ∑' (i : Σ (n : ℕ), composition n), ∥comp_along_composition q p i.snd∥₊ * r ^ i.fst :
     nnreal.tsum_comp_le_tsum_of_inj hr sigma_mk_injective
 end
 

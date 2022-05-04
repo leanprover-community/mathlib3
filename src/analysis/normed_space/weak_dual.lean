@@ -176,42 +176,43 @@ variable {𝕜}
 
 /-- While the coercion `coe_fn : weak_dual 𝕜 E → (E → 𝕜)` is not a closed map, it sends *bounded*
 closed sets to closed sets. -/
-lemma is_closed_image_coe_bounded_closed {s : set (weak_dual 𝕜 E)}
+lemma is_closed_image_coe_of_bounded_of_closed {s : set (weak_dual 𝕜 E)}
   (hb : bounded (dual.to_weak_dual ⁻¹' s)) (hc : is_closed s) :
   is_closed ((coe_fn : weak_dual 𝕜 E → E → 𝕜) '' s) :=
 continuous_linear_map.is_closed_image_coe_bounded_weak_closed hb (is_closed_induced_iff'.1 hc)
 
-lemma is_compact_of_bounded_closed [proper_space 𝕜] {s : set (weak_dual 𝕜 E)}
+lemma is_compact_of_bounded_of_closed [proper_space 𝕜] {s : set (weak_dual 𝕜 E)}
   (hb : bounded (dual.to_weak_dual ⁻¹' s)) (hc : is_closed s) :
   is_compact s :=
 (embedding.is_compact_iff_is_compact_image fun_like.coe_injective.embedding_induced).mpr $
   continuous_linear_map.is_compact_image_coe_bounded_of_closed_image hb $
-  is_closed_image_coe_bounded_closed hb hc
+  is_closed_image_coe_of_bounded_of_closed hb hc
 
 variable (𝕜)
 
 /-- The image under `coe_fn : weak_dual 𝕜 E → (E → 𝕜)` of a polar `weak_dual.polar 𝕜 s` of a
 neighborhood `s` of the origin is a closed set. -/
-lemma is_closed_image_polar {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
+lemma is_closed_image_polar_of_mem_nhds {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   is_closed ((coe_fn : weak_dual 𝕜 E → E → 𝕜) '' polar 𝕜 s) :=
-is_closed_image_coe_bounded_closed (bounded_polar_of_mem_nhds_zero 𝕜 s_nhd) (is_closed_polar _ _)
+is_closed_image_coe_of_bounded_of_closed (bounded_polar_of_mem_nhds_zero 𝕜 s_nhd)
+  (is_closed_polar _ _)
 
 /-- The image under `coe_fn : normed_space.dual 𝕜 E → (E → 𝕜)` of a polar `polar 𝕜 s` of a
 neighborhood `s` of the origin is a closed set. -/
 lemma _root_.normed_space.is_closed_image_polar {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   is_closed ((coe_fn : weak_dual 𝕜 E → E → 𝕜) '' polar 𝕜 s) :=
-is_closed_image_polar 𝕜 s_nhd
+is_closed_image_polar_of_mem_nhds 𝕜 s_nhd
 
 /-- The **Banach-Alaoglu theorem**: the polar set of a neighborhood `s` of the origin in a
 normed space `E` is a compact subset of `weak_dual 𝕜 E`. -/
 theorem is_compact_polar [proper_space 𝕜] {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   is_compact (polar 𝕜 s) :=
-is_compact_of_bounded_closed (bounded_polar_of_mem_nhds_zero 𝕜 s_nhd) (is_closed_polar _ _)
+is_compact_of_bounded_of_closed (bounded_polar_of_mem_nhds_zero 𝕜 s_nhd) (is_closed_polar _ _)
 
 /-- The **Banach-Alaoglu theorem**: closed balls of the dual of a normed space `E` are compact in
 the weak-star topology. -/
 theorem is_compact_closed_ball [proper_space 𝕜] (x' : dual 𝕜 E) (r : ℝ) :
   is_compact (to_normed_dual ⁻¹' (closed_ball x' r)) :=
-is_compact_of_bounded_closed bounded_closed_ball (is_closed_closed_ball x' r)
+is_compact_of_bounded_of_closed bounded_closed_ball (is_closed_closed_ball x' r)
 
 end weak_dual

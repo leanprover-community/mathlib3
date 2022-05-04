@@ -676,8 +676,14 @@ end
 section tsum
 variables [t2_space α]
 
-lemma tsum_neg (hf : summable f) : ∑'b, - f b = - ∑'b, f b :=
-hf.has_sum.neg.tsum_eq
+lemma tsum_neg : ∑'b, - f b = - ∑'b, f b :=
+begin
+  by_cases hf : summable f,
+  { exact hf.has_sum.neg.tsum_eq, },
+  { rw [tsum_eq_zero_of_not_summable hf, neg_zero],
+    rw ← summable_neg_iff at hf,
+    rw tsum_eq_zero_of_not_summable hf },
+end
 
 lemma tsum_sub (hf : summable f) (hg : summable g) : ∑'b, (f b - g b) = ∑'b, f b - ∑'b, g b :=
 (hf.has_sum.sub hg.has_sum).tsum_eq

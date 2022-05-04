@@ -6,6 +6,7 @@ Authors: Kevin H. Wilson
 import measure_theory.measure.measure_space_def
 import measure_theory.integral.interval_integral
 import algebra.order.floor
+import data.set.function
 import analysis.special_functions.integrals
 
 /-!
@@ -36,6 +37,38 @@ analysis, comparison, asymptotics
 
 open set measure_theory.measure_space
 open_locale big_operators
+
+lemma antitone.monotone_of_neg_arg { f : ℝ → ℝ } (hf : antitone f) :
+  monotone (λ x, f (-x)) :=
+(λ x y hxy, hf (neg_le_neg_iff.mpr hxy))
+
+lemma antitone.monotone_of_neg { f : ℝ → ℝ } (hf : antitone f) :
+  monotone (λ x, -(f x)) :=
+(λ x y hxy, neg_le_neg_iff.mpr (hf hxy))
+
+lemma antitone_on.monotone_on_of_neg_arg { f : ℝ → ℝ } {s : set ℝ} (hf : antitone_on f s) :
+  monotone_on (λ x, f (-x)) (-s) :=
+(λ x hx y hy hxy, hf (mem_neg.mp hy) (mem_neg.mp hx) (neg_le_neg_iff.mpr hxy))
+
+lemma antitone_on.monotone_on_of_neg { f : ℝ → ℝ } {s : set ℝ} (hf : antitone_on f s) :
+  monotone_on (λ x, -(f x)) s :=
+(λ x hx y hy hxy, neg_le_neg_iff.mpr (hf hx hy hxy))
+
+lemma monotone.antitone_of_neg_arg { f : ℝ → ℝ } (hf : monotone f) :
+  antitone (λ x, f (-x)) :=
+(λ x y hxy, hf (neg_le_neg_iff.mpr hxy))
+
+lemma monotone.antitone_of_neg { f : ℝ → ℝ } (hf : monotone f) :
+  antitone (λ x, -(f x)) :=
+(λ x y hxy, neg_le_neg_iff.mpr (hf hxy))
+
+lemma monotone_on.antitone_on_of_neg_arg { f : ℝ → ℝ } {s : set ℝ} (hf : monotone_on f s) :
+  antitone_on (λ x, f (-x)) (-s) :=
+(λ x hx y hy hxy, hf (mem_neg.mp hy) (mem_neg.mp hx) (neg_le_neg_iff.mpr hxy))
+
+lemma monotone_on.antitone_on_of_neg { f : ℝ → ℝ } {s : set ℝ} (hf : monotone_on f s) :
+  antitone_on (λ x, -(f x)) s :=
+(λ x hx y hy hxy, neg_le_neg_iff.mpr (hf hx hy hxy))
 
 lemma antitone_on.integral_le_sum {x₀ : ℝ} {a : ℕ} {f : ℝ → ℝ}
   (hf : antitone_on f (Icc x₀ (x₀ + a))) :
@@ -83,70 +116,82 @@ begin
   rwa ←bb',
 end
 
-lemma antitone_on.sum_le_integral
-  {x₀ : ℝ} {a : ℕ} {f : ℝ → ℝ}
+private lemma sub_comm {a b : ℝ} : -a - b = -b - a := by ring
+
+private lemma finset.sum_bij_on
+  {f : ℕ → ℝ} {g : ℕ → ℕ} {s t : finset ℕ} (hg : set.bij_on g t s) :
+  ∑ i in t, f (g i) = ∑ i in s, f i :=
+begin
+  rw [←finsum_mem_coe_finset, ←finsum_mem_coe_finset],
+  exact finsum_mem_eq_of_bij_on g hg (λ _ _, rfl),
+end
+
+lemma antitone_on.sum_le_integral {x₀ : ℝ} {a : ℕ} {f : ℝ → ℝ}
   (hf : antitone_on f (Icc x₀ (x₀ + a))) :
   ∑ i in finset.range a, f (x₀ + i + 1) ≤ ∫ x in x₀..(x₀ + a), f x :=
 begin
-  have : ∫ x in x₀..(x₀ + a), f x = ∫ x in 0..↑a, f (x₀ + x),
-  { simp only [interval_integral.integral_comp_add_left, add_zero], },
-  rw this,
-  conv
-  { to_lhs, congr, skip, funext, rw ←@integral_const_on_unit_interval (x₀ + i) (f (x₀ + i + 1)), },
-  have hint : ∀ (k : ℕ), k < a → interval_integrable (λ x, f (x₀ + x))
-    real.measure_space.volume k (k + 1),
-  { intros k hk,
-    apply antitone_on.interval_integrable,
-    rw interval_of_le,
+  have hneg : -(set.Icc x₀ (x₀ + a)) = set.Icc ((-x₀ - a)) ((-x₀ - a) + a) , {
+    simp only [set.has_involutive_neg, preimage_neg_Icc, neg_add_rev, sub_add_cancel],
+    have : -↑a + -x₀ = -x₀ - a, ring,
+    rw this,
+  },
+  have := hf.monotone_on_of_neg_arg.antitone_on_of_neg,
+  rw hneg at this,
+  have := this.integral_le_sum,
+  conv at this
+  { congr, congr, simp only,
+    skip, rw sub_comm,
+    skip, skip, skip, congr, skip, simp only, },
+  rw [interval_integral.integral_neg, finset.sum_neg_distrib, neg_le_neg_iff,
+    interval_integral.integral_comp_neg] at this,
+  simp only [neg_add_rev, neg_sub, sub_neg_eq_add, sub_add_cancel, neg_neg] at this,
+  have : set.bij_on (λ i : ℕ, a - 1 - i) (finset.range a) (finset.range a),
+  { split,
+    { intros x hx,
+      simp only [finset.mem_coe, finset.mem_range] at hx ⊢,
+      have : 0 < a, calc 0 ≤ x : by simp ... < a : hx,
+      calc a - 1 - x ≤ a - 1 : by simp ... < a : nat.pred_lt (zero_lt_iff.mp this), },
+    split,
     { intros x hx y hy hxy,
-      refine hf _ _ (by simp [hxy]),
-      { split,
-        { rw le_add_iff_nonneg_right, calc (0 : ℝ) ≤ k : by simp ... ≤ x : hx.left, },
-        { rw add_le_add_iff_left,
-          refine le_trans hx.right _,
-          norm_cast,
-          exact nat.succ_le_of_lt hk, }, },
-      { split,
-        { rw le_add_iff_nonneg_right, calc (0 : ℝ) ≤ k : by simp ... ≤ y : hy.left,},
-        { rw add_le_add_iff_left,
-          refine le_trans hy.right _,
-          norm_cast,
-          exact nat.succ_le_of_lt hk, }, }, },
-    { linarith, }, },
-  rw [←nat.cast_zero, ←interval_integral.sum_integral_adjacent_intervals hint],
-  refine finset.sum_le_sum (λ i hi, _),
-  rw finset.mem_range at hi,
-  simp only [interval_integral.integral_const, add_tsub_cancel_left, algebra.id.smul_eq_mul,
-    one_mul, nat.cast_add, nat.cast_one, interval_integral.integral_comp_add_left],
-  rw [←@integral_const_on_unit_interval (x₀ + i) (f (x₀ + i + 1)), add_assoc],
-  refine interval_integral.integral_mono_on (by simp) (by simp) _ _,
-  apply antitone_on.interval_integrable,
-  rw interval_of_le,
-  { intros x hx y hy hxy,
-    refine hf _ _ (by simp [hxy]),
-    { split,
-      { exact le_trans (by simp) hx.left, },
-      { refine le_trans hx.right _,
-        rw add_le_add_iff_left,
-        norm_cast,
-        exact nat.succ_le_of_lt hi, }, },
-    { split,
-      { exact le_trans (by simp) hy.left, },
-      { refine le_trans hy.right _,
-        rw add_le_add_iff_left,
-        norm_cast,
-        exact nat.succ_le_of_lt hi, }, }, },
-  { simp, },
-  { intros x hx,
-    refine hf _ _ hx.right,
-    { refine ⟨le_trans (by simp) hx.left, le_trans hx.right _⟩,
-      rw add_le_add_iff_left,
-      norm_cast,
-      exact nat.succ_le_of_lt hi, },
-    { refine ⟨by { rw le_add_iff_nonneg_right, norm_cast, simp, }, _⟩,
-      rw add_le_add_iff_left,
-      norm_cast,
-      exact nat.succ_le_of_lt hi, }, },
+      simp only [finset.mem_coe, finset.mem_range] at hx hy hxy,
+      rw [tsub_tsub a 1 x, tsub_tsub a 1 y] at hxy,
+      -- Prep for zify
+      have : 1 + x ≤ a, { rw add_comm 1 x, exact nat.succ_le_iff.mp hx, },
+      have : 1 + y ≤ a, { rw add_comm 1 y, exact nat.succ_le_iff.mp hy, },
+      zify at ⊢ hxy,
+      linarith [hxy], },
+    { refine λ x hx, ⟨a - 1 - x, _⟩,
+      simp only [finset.mem_coe, finset.mem_range] at hx ⊢,
+      split,
+      { have : 0 < a, calc 0 ≤ x : by simp ... < a : hx,
+        calc a - 1 - x ≤ a - 1 : by simp ... < a : nat.pred_lt (zero_lt_iff.mp this), },
+      { -- This section of the proof is trying to turn a lot of ℕ-subtraction into ℤ-subtraction
+        -- so we can just invoke `ring`. To do so, we need to provide assumptions that various
+        -- terms are `≤` other terms, but _in the right order_. This is extremely odd and likely
+        -- brittle.
+        have : a - 1 - x ≤ a - 1, simp,
+        have := calc 0 ≤ x : by simp ... < a : hx,
+        have : 1 ≤ a, exact nat.one_le_iff_ne_zero.mpr (zero_lt_iff.mp this),
+        zify,
+        rw tsub_tsub a 1 x,
+        have : 1 + x ≤ a, { rw add_comm 1 x, exact nat.succ_le_iff.mp hx, },
+        zify,
+        ring_nf,
+        have : ↑(1 + x) = (1 : ℤ) + ↑x, simp,
+        rw this,
+        ring, }, }, },
+  have : ∑ (x : ℕ) in finset.range a, f (-↑x + (↑a + x₀)) =
+    ∑ (i : ℕ) in finset.range a, f (x₀ + ↑i + 1),
+  { rw ←finset.sum_bij_on this,
+    refine finset.sum_congr rfl _,
+    intros x hx,
+    congr' 1,
+    simp only [finset.mem_coe, finset.mem_range] at hx ⊢,
+    rw tsub_tsub a 1 x,
+    have : 1 + x ≤ a, { rw add_comm 1 x, exact nat.succ_le_iff.mp hx, },
+    simp only [this, nat.cast_sub, nat.cast_add, nat.cast_one, neg_sub],
+    ring, },
+  rwa ←this,
 end
 
 lemma antitone_on.sum_le_integral_Ico {a b : ℕ} {f : ℝ → ℝ} (hab : a ≤ b)

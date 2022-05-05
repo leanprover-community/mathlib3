@@ -66,7 +66,6 @@ lemma discr_prime_pow_ne_two [is_cyclotomic_extension {p ^ (k + 1)} K L] [hp : f
   discr K (hζ.power_basis K).basis =
   (-1) ^ (((p ^ (k + 1) : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ k * ((p - 1) * (k + 1) - 1)) :=
 begin
-  have hirr₁ := cyclotomic_irreducible_of_irreducible_pow hp.1 k.succ_ne_zero hirr,
   haveI : ne_zero ((↑(p ^ (k + 1)) : ℕ) : K),
   { refine ⟨λ hzero, _⟩,
     rw [pnat.pow_coe] at hzero,
@@ -116,8 +115,8 @@ begin
     replace H := congr_arg (algebra.norm K) H,
     have hnorm : (norm K) (ζ ^ (p : ℕ) ^ k - 1) = p ^ ((p : ℕ) ^ k),
     { by_cases hp : p = 2,
-      { exact hζ.pow_sub_one_norm_prime_pow_of_one_le hirr (by simpa using hirr₁) rfl.le (hp2 hp) },
-      { exact hζ.pow_sub_one_norm_prime_ne_two hirr (by simpa using hirr₁) rfl.le hp } },
+      { exact hζ.pow_sub_one_norm_prime_pow_of_one_le hirr rfl.le (hp2 hp) },
+      { exact hζ.pow_sub_one_norm_prime_ne_two hirr rfl.le hp } },
     rw [monoid_hom.map_mul, hnorm, monoid_hom.map_mul, ← map_nat_cast (algebra_map K L),
       algebra.norm_algebra_map, finrank _ hirr, pnat.pow_coe, totient_prime_pow hp.out (succ_pos k),
       nat.sub_one, nat.pred_succ, ← hζ.minpoly_eq_cyclotomic_of_irreducible hirr, map_pow,

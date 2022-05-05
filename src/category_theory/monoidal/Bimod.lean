@@ -3,6 +3,7 @@ Copyright (c) 2022 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import category_theory.bicategory.basic
 import category_theory.monoidal.Mon_
 import category_theory.limits.preserves.shapes.equalizers
 
@@ -353,5 +354,157 @@ begin
   simp only [comp_hom', tensor_comp, tensor_hom_hom, ι_colim_map, parallel_pair_hom_app_one,
     category.assoc, ι_colim_map_assoc]
 end
+
+def associator_Bimod {W X Y Z : Mon_ C} (L : Bimod W X) (M : Bimod X Y) (N : Bimod Y Z) :
+  tensor_Bimod (tensor_Bimod L M) N ≅ tensor_Bimod L (tensor_Bimod M N) := sorry
+
+namespace left_unitor_Bimod
+variables {R S : Mon_ C} (P : Bimod R S)
+
+noncomputable
+def hom : tensor_Bimod (regular R) P ⟶ P :=
+{ hom := begin
+    dsimp, dunfold tensor_Bimod.X coequalizer, dsimp,
+    refine colimit.desc (parallel_pair _ _) {X := _, ι := {app := _, naturality' := _}},
+    { rintro (_ | _),
+      { dsimp, exact (R.mul ⊗ (𝟙 _)) ≫ P.act_left, },
+      { dsimp, exact P.act_left } },
+    { rintros (_ | _) (_ | _) (_ | _ | _); dsimp; simp; dsimp; simp },
+  end,
+  left_act_hom' := begin
+    dsimp, dunfold tensor_Bimod.act_left,
+    refine (cancel_epi (preserves_coequalizer.iso (tensor_left R.X) _ _).hom).1 _,
+    slice_lhs 1 3 { rw iso.hom_inv_id_assoc },
+    ext,
+    dsimp,
+    slice_lhs 1 2 { rw [ι_colim_map, parallel_pair_hom_app_one] },
+    slice_lhs 3 4 { rw [colimit.ι_desc] },
+    -- Why do I need this?
+    have :
+        coequalizer.π
+          (𝟙 R.X ⊗ R.mul ⊗ 𝟙 P.X)
+          (𝟙 R.X ⊗ (α_ R.X R.X P.X).hom ≫ (𝟙 R.X ⊗ P.act_left))
+      = coequalizer.π
+          ((tensor_left R.X).map (R.mul ⊗ 𝟙 P.X))
+          ((tensor_left R.X).map ((α_ R.X R.X P.X).hom ≫ (𝟙 R.X ⊗ P.act_left))) := rfl,
+    slice_rhs 1 2 { rw [this, ι_comp_coequalizer_comparison] },
+    dsimp,
+    slice_rhs 1 2 { rw [←id_tensor_comp, colimit.ι_desc] },
+    dsimp,
+    slice_lhs 2 3 { rw left_assoc },
+    slice_lhs 1 3 { rw iso.inv_hom_id_assoc },
+  end,
+  right_act_hom' := begin
+    dsimp, dunfold tensor_Bimod.act_right,
+    refine (cancel_epi (preserves_coequalizer.iso (tensor_right S.X) _ _).hom).1 _,
+    slice_lhs 1 3 { rw iso.hom_inv_id_assoc },
+    ext,
+    dsimp,
+    slice_lhs 1 2 { rw [ι_colim_map, parallel_pair_hom_app_one] },
+    slice_lhs 3 4 { rw [colimit.ι_desc] },
+    have :
+        coequalizer.π
+          ((R.mul ⊗ 𝟙 P.X) ⊗ 𝟙 S.X)
+          ((α_ R.X R.X P.X).hom ≫ (𝟙 R.X ⊗ P.act_left) ⊗ 𝟙 S.X)
+      = coequalizer.π
+          ((tensor_right S.X).map (R.mul ⊗ 𝟙 P.X))
+          ((tensor_right S.X).map ((α_ R.X R.X P.X).hom ≫ (𝟙 R.X ⊗ P.act_left))) := rfl,
+    slice_rhs 1 2 { rw [this, ι_comp_coequalizer_comparison] },
+    dsimp,
+    slice_rhs 1 2 { rw [←comp_tensor_id, colimit.ι_desc] },
+    dsimp,
+    slice_lhs 1 3 { rw ←middle_assoc },
+  end }
+
+noncomputable
+def inv : P ⟶ tensor_Bimod (regular R) P :=
+{ hom := (λ_ P.X).inv ≫ (R.one ⊗ 𝟙 _) ≫ coequalizer.π _ _,
+  left_act_hom' := begin
+    dsimp, dunfold tensor_Bimod.act_left regular, dsimp,
+    rw [id_tensor_comp, id_tensor_comp],
+    slice_rhs 3 5 { rw id_tensor_π_comp_preserves_coequalizer_inv_comp_colim_map },
+    slice_rhs 4 5 { rw coequalizer.condition },
+    slice_rhs 3 5 { rw iso.inv_hom_id_assoc },
+    slice_rhs 1 3 { rw [←id_tensor_comp, one_act_left] },
+    slice_rhs 1 2 { rw [←id_tensor_comp, iso.inv_hom_id] },
+    slice_rhs 1 2 { rw [monoidal_category.tensor_id, category.id_comp] },
+    slice_lhs 1 2 { rw left_unitor_inv_naturality },
+    slice_lhs 2 3 { rw [id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor] },
+    slice_lhs 3 3 { rw ←(iso.inv_hom_id_assoc (α_ R.X R.X P.X) (𝟙 R.X ⊗ P.act_left)) },
+    slice_lhs 4 6 { rw [←category.assoc, ←coequalizer.condition] },
+    slice_lhs 2 3 { rw [←monoidal_category.tensor_id, associator_inv_naturality] },
+    slice_lhs 3 4 { rw [←comp_tensor_id, Mon_.one_mul] },
+    coherence,
+  end,
+  right_act_hom' := begin
+    dsimp, dunfold tensor_Bimod.act_right regular, dsimp,
+    rw [comp_tensor_id, comp_tensor_id],
+    slice_rhs 3 5 { rw π_tensor_id_comp_preserves_coequalizer_inv_comp_colim_map },
+    slice_rhs 2 3 { rw associator_naturality },
+    slice_lhs 1 2 { rw left_unitor_inv_naturality },
+    slice_lhs 2 3 { rw [id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor,
+                        ←monoidal_category.tensor_id] },
+    coherence,
+  end }
+
+def hom_inv_id' : hom P ≫ inv P = 𝟙 (tensor_Bimod (regular R) P) :=
+begin
+  dunfold hom inv regular, dsimp,
+  ext, dsimp,
+  dunfold tensor_Bimod.X, dsimp,
+  rw category.comp_id,
+  slice_lhs 1 2 { rw colimit.ι_desc },
+  dsimp,
+  slice_lhs 1 2 { rw left_unitor_inv_naturality },
+  slice_lhs 2 3 { rw [id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor] },
+  slice_lhs 3 3 { rw ←(iso.inv_hom_id_assoc (α_ R.X R.X P.X) (𝟙 R.X ⊗ P.act_left)) },
+  slice_lhs 4 6 { rw [←category.assoc, ←coequalizer.condition] },
+  slice_lhs 2 3 { rw [←monoidal_category.tensor_id, associator_inv_naturality] },
+  slice_lhs 3 4 { rw [←comp_tensor_id, Mon_.one_mul] },
+  coherence,
+end
+
+def inv_hom_id' : inv P ≫ hom P = 𝟙 P :=
+begin
+  dunfold hom inv, ext, dsimp,
+  slice_lhs 3 4 { rw colimit.ι_desc },
+  dsimp,
+  rw [one_act_left, iso.inv_hom_id],
+end
+
+end left_unitor_Bimod
+
+noncomputable
+def left_unitor_Bimod {X Y : Mon_ C} (M : Bimod X Y) : tensor_Bimod (regular X) M ≅ M :=
+{ hom := left_unitor_Bimod.hom M,
+  inv := left_unitor_Bimod.inv M,
+  hom_inv_id' := left_unitor_Bimod.hom_inv_id' M,
+  inv_hom_id' := left_unitor_Bimod.inv_hom_id' M }
+
+def right_unitor_Bimod {X Y : Mon_ C} (M : Bimod X Y) : tensor_Bimod M (regular Y) ≅ M := sorry
+
+noncomputable
+def Mon_bicategory : bicategory (Mon_ C) :=
+{ hom := λ X Y, Bimod X Y,
+  id := λ X, regular X,
+  comp := λ X Y Z M N, tensor_Bimod M N,
+  hom_category := λ X Y, infer_instance,
+  whisker_left := λ X Y Z L M N f, tensor_hom (𝟙 L) f,
+  whisker_right := λ X Y Z L M f N, tensor_hom f (𝟙 N),
+  associator := sorry,
+  left_unitor := sorry,
+  right_unitor := sorry,
+  whisker_left_id' := sorry,
+  whisker_left_comp' := sorry,
+  id_whisker_left' := sorry,
+  comp_whisker_left' := sorry,
+  id_whisker_right' := sorry,
+  comp_whisker_right' := sorry,
+  whisker_right_id' := sorry,
+  whisker_right_comp' := sorry,
+  whisker_assoc' := sorry,
+  whisker_exchange' := sorry,
+  pentagon' := sorry,
+  triangle' := sorry }
 
 end Bimod

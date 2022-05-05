@@ -582,7 +582,7 @@ namespace submonoid
 /-- The additive closure of a submonoid is a subsemiring. -/
 def subsemiring_closure (M : submonoid R) : subsemiring R :=
 { one_mem' := add_submonoid.mem_closure.mpr (λ y hy, hy M.one_mem),
-  mul_mem' := λ x y, M.mul_mem_add_closure,
+  mul_mem' := λ x y, mul_mem_class.mul_mem_add_closure,
   ..add_submonoid.closure (M : set R)}
 
 lemma subsemiring_closure_coe :
@@ -873,7 +873,7 @@ namespace subsemiring
 open ring_hom
 
 /-- The ring homomorphism associated to an inclusion of subsemirings. -/
-def inclusion {S T : subsemiring R} (h : S ≤ T) : S →* T :=
+def inclusion {S T : subsemiring R} (h : S ≤ T) : S →+* T :=
 S.subtype.cod_srestrict _ (λ x, h x.2)
 
 @[simp] lemma srange_subtype (s : subsemiring R) : s.subtype.srange = s :=

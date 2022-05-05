@@ -474,8 +474,7 @@ lemma ball_zero_eq_preimage_ball {r : ℝ} :
   p.ball 0 r = p ⁻¹' (metric.ball 0 r) :=
 begin
   ext x,
-  change (_ < _) ↔ (_ < _),
-  rw [sub_zero, dist_zero_right, real.norm_of_nonneg (p.nonneg x)]
+  simp only [mem_ball, sub_zero, mem_preimage, mem_ball_zero_iff, real.norm_of_nonneg (p.nonneg x)],
 end
 
 @[simp] lemma ball_bot {r : ℝ} (x : E) (hr : 0 < r) : ball (⊥ : seminorm 𝕜 E) x r = set.univ :=

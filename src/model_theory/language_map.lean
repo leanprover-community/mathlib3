@@ -31,7 +31,8 @@ universes u v u' v' w
 
 namespace first_order
 namespace language
-open Structure
+open Structure cardinal
+open_locale cardinal
 
 variables (L : language.{u v}) (L' : language.{u' v'}) {M : Type w} [L.Structure M]
 
@@ -277,6 +278,23 @@ language.is_algebraic_of_empty_relations
 instance is_relational_constants_on [ie : is_empty α] : is_relational (constants_on α) :=
 ⟨λ n, nat.cases_on n ie (λ _, pempty.is_empty)⟩
 
+@[simp] lemma card_constants_on : (constants_on α).card = # α :=
+begin
+  rw card_eq_card_functions_add_card_relations,
+  simp only [constants_on, lift_uzero, mk_empty, lift_zero, sum_const, mul_zero, add_zero],
+  rw [← mk_sigma],
+  refine equiv.cardinal_eq ⟨_, λ a, sigma.mk 0 a, _, λ _, _⟩,
+  { rintro ⟨n, a⟩,
+    cases n,
+    { exact a },
+    { exact a.elim } },
+  { rintro ⟨n, a⟩,
+    cases n,
+    { simp },
+    { exact a.elim } },
+  { refl }
+end
+
 /-- Gives a `constants_on α` structure to a type by assigning each constant a value. -/
 def constants_on.Structure (f : α → M) : (constants_on α).Structure M :=
 { fun_map := λ n, nat.cases_on n (λ a _, f a) (λ _, pempty.elim),
@@ -312,6 +330,10 @@ variables (α : Type w)
 def with_constants : language.{(max u w) v} := L.sum (constants_on α)
 
 localized "notation L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
+
+@[simp] lemma card_with_constants :
+  (L[[α]]).card = cardinal.lift.{w} L.card + cardinal.lift.{max u v} (# α) :=
+by rw [with_constants, card_sum, card_constants_on]
 
 /-- The language map adding constants.  -/
 @[simps] def Lhom_with_constants : L →ᴸ L[[α]] := Lhom.sum_inl

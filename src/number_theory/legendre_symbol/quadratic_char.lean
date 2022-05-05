@@ -46,7 +46,7 @@ lemma odd_card_of_char_ne_two (hF : ring_char F ≠ 2) : fintype.card F % 2 = 1 
 begin
   rcases finite_field.card F (ring_char F) with ⟨ n, hp, h ⟩,
   have h₁ : odd ((ring_char F) ^ (n : ℕ)) :=
-  odd.pow ((or_iff_right hF).mp (nat.prime.eq_two_or_odd' hp)),
+    odd.pow ((or_iff_right hF).mp (nat.prime.eq_two_or_odd' hp)),
   rwa [← h, nat.odd_iff] at h₁,
 end
 
@@ -62,10 +62,10 @@ end
 lemma neg_ne_self_of_char_ne_two (hF : ring_char F ≠ 2) {a : F} (ha : a ≠ 0) : a ≠ -a :=
 begin
   intro hf,
-  rw [eq_neg_iff_add_eq_zero, (by ring : a + a = 2 * a), mul_eq_zero] at hf,
-  have h := mt eq_neg_iff_add_eq_zero.mpr (neg_one_ne_one_of_char_ne_two hF).symm,
-  norm_num at h,
-  exact or.dcases_on hf (λ (hf : 2 = 0), h hf) (λ (hf : a = 0), ha hf),
+  apply (neg_one_ne_one_of_char_ne_two hF).symm,
+  rw [eq_neg_iff_add_eq_zero, ←two_mul, mul_one],
+  rw [eq_neg_iff_add_eq_zero, ←two_mul, mul_eq_zero] at hf,
+  exact hf.resolve_right ha,
 end
 
 /-- If `F` has odd characteristic, then for nonzero `a : F`, we have that `a ^ (#F / 2) = ±1`. -/
@@ -277,11 +277,9 @@ lemma quadratic_char_dichotomy {a : F} (ha : a ≠ 0) :
 lemma quadratic_char_eq_neg_one_iff_not_one {a : F} (ha : a ≠ 0) :
   quadratic_char F a = -1 ↔ ¬ quadratic_char F a = 1 :=
 begin
-  split,
-  { intro h,
-    rw h,
-    norm_num, },
-  { exact λ h₂, (or_iff_right h₂).mp (quadratic_char_dichotomy ha), }
+  refine ⟨λ h, _, λ h₂, (or_iff_right h₂).mp (quadratic_char_dichotomy ha)⟩,
+  rw h,
+  norm_num,
 end
 
 /-- For `a : F`, `quadratic_char F a = -1 ↔ ¬ is_square a`. -/
@@ -290,14 +288,12 @@ lemma quadratic_char_neg_one_iff_not_is_square {a : F} :
 begin
   by_cases ha : a = 0,
   { simp only [ha, is_square_zero, quadratic_char_zero, zero_eq_neg, one_ne_zero, not_true], },
-  { rw quadratic_char_eq_neg_one_iff_not_one ha,
-    exact not_iff_not.mpr (quadratic_char_one_iff_is_square ha), },
+  { rw [quadratic_char_eq_neg_one_iff_not_one ha, quadratic_char_one_iff_is_square ha] },
 end
 
 /-- If `F` has odd characteristic, then `quadratic_char F` takes the value `-1`. -/
 lemma quadratic_char_exists_neg_one (hF : ring_char F ≠ 2) : ∃ a, quadratic_char F a = -1 :=
-Exists.dcases_on (finite_field.exists_nonsquare hF)
-  (λ (b : F) (h₁ : ¬is_square b), ⟨b, (quadratic_char_neg_one_iff_not_is_square.mpr h₁)⟩)
+(finite_field.exists_nonsquare hF).imp (λ b h₁, quadratic_char_neg_one_iff_not_is_square.mpr h₁)
 
 /-- The number of solutions to `x^2 = a` is determined by the quadratic character. -/
 lemma quadratic_char_card_sqrts (hF : ring_char F ≠ 2) (a : F) :
@@ -312,20 +308,18 @@ begin
     by_cases h : is_square a,
     { rw (quadratic_char_one_iff_is_square h₀).mpr h,
       rcases h with ⟨b, h⟩,
-      have hb₀ : b ≠ 0 := by { intro hb, rw [hb, mul_zero] at h, exact h₀ h, },
+      rw [h, mul_self_eq_zero] at h₀,
       have h₁ : s = [b, -b].to_finset := by
       { ext x,
         simp only [finset.mem_filter, finset.mem_univ, true_and, list.to_finset_cons,
                    list.to_finset_nil, insert_emptyc_eq, finset.mem_insert, finset.mem_singleton],
         rw ← pow_two at h,
-        rw hs,
-        simp only [set.mem_to_finset, set.mem_set_of_eq],
-        rw h,
+        simp only [hs, set.mem_to_finset, set.mem_set_of_eq, h],
         split,
         { exact eq_or_eq_neg_of_sq_eq_sq _ _, },
         { rintro (h₂ | h₂); rw h₂,
           simp only [neg_sq], }, },
-      simp only [h₁, finset.card_doubleton (finite_field.neg_ne_self_of_char_ne_two hF hb₀),
+      simp only [h₁, finset.card_doubleton (finite_field.neg_ne_self_of_char_ne_two hF h₀),
                  list.to_finset_cons, list.to_finset_nil, insert_emptyc_eq, int.coe_nat_succ,
                  int.coe_nat_zero, zero_add], },
     { rw quadratic_char_neg_one_iff_not_is_square.mpr h,
@@ -334,8 +328,7 @@ begin
       ext x,
       simp only [iff_false, finset.mem_filter, finset.mem_univ, true_and, finset.not_mem_empty],
       rw is_square_iff_exists_sq at h,
-      push_neg at h,
-      exact (h x).symm, }, },
+      exact λ h', h ⟨_, h'.symm⟩, }, },
 end
 
 open_locale big_operators
@@ -348,9 +341,8 @@ begin
   { intro hf,
     rw [hf, quadratic_char_zero, zero_eq_neg] at hb,
     exact one_ne_zero hb, },
-  let mul_b : F → F := λ x, b * x,
   have h₁ : ∑ (a : F), quadratic_char F (b * a) = ∑ (a : F), quadratic_char F a :=
-  by refine fintype.sum_bijective _ (mul_left_bijective₀ b h₀) _ _ (λ x, rfl),
+    fintype.sum_bijective _ (mul_left_bijective₀ b h₀) _ _ (λ x, rfl),
   simp only [quadratic_char_mul] at h₁,
   rw [← finset.mul_sum, hb, neg_mul, one_mul] at h₁,
   exact eq_zero_of_neg_eq h₁,

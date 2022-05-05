@@ -65,13 +65,6 @@ end is_scalar_tower
 
 namespace algebra
 
-theorem adjoin_algebra_map' {R : Type u} {S : Type v} {A : Type w}
-  [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A] (s : set S) :
-  adjoin R (algebra_map S (restrict_scalars R S A) '' s) = (adjoin R s).map
-  ((algebra.of_id S (restrict_scalars R S A)).restrict_scalars R) :=
-le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
-  (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
-
 theorem adjoin_algebra_map (R : Type u) (S : Type v) (A : Type w)
   [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A] [algebra R A]
   [is_scalar_tower R S A] (s : set S) :

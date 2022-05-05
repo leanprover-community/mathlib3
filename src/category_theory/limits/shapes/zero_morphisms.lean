@@ -351,6 +351,12 @@ def iso_zero_of_epi_zero {X Y : C} (h : epi (0 : X ⟶ Y)) : Y ≅ 0 :=
   inv := 0,
   hom_inv_id' := (cancel_epi (0 : X ⟶ Y)).mp (by simp) }
 
+lemma iso_zero_of_mono_eq_zero {X Y : C} {f : X ⟶ Y} [mono f] (h : f = 0) : X ≅ 0 :=
+by { unfreezingI { subst h, }, apply iso_zero_of_mono_zero ‹_›, }
+
+lemma iso_zero_of_epi_eq_zero {X Y : C} {f : X ⟶ Y} [epi f] (h : f = 0) : Y ≅ 0 :=
+by { unfreezingI { subst h, }, apply iso_zero_of_epi_zero ‹_›, }
+
 /-- If an object `X` is isomorphic to 0, there's no need to use choice to construct
 an explicit isomorphism: the zero morphism suffices. -/
 def iso_of_is_isomorphic_zero {X : C} (P : is_isomorphic X 0) : X ≅ 0 :=

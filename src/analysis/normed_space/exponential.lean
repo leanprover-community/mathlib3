@@ -339,8 +339,8 @@ begin
   refine (exp_series 𝕂 𝔸).radius_eq_top_of_summable_norm (λ r, _),
   refine summable_of_norm_bounded_eventually _ (real.summable_pow_div_factorial r) _,
   filter_upwards [eventually_cofinite_ne 0] with n hn,
-  rw [norm_mul, norm_norm (exp_series 𝕂 𝔸 n), exp_series, norm_smul, norm_div, norm_one, norm_pow,
-      nnreal.norm_eq, norm_eq_abs, abs_cast_nat, mul_comm, ←mul_assoc, ←mul_div_assoc, mul_one],
+  rw [norm_mul, norm_norm (exp_series 𝕂 𝔸 n), exp_series, norm_smul, norm_inv, norm_pow,
+      nnreal.norm_eq, norm_eq_abs, abs_cast_nat, mul_comm, ←mul_assoc, ←div_eq_mul_inv],
   have : ∥continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸∥ ≤ 1 :=
     norm_mk_pi_algebra_fin_le_of_pos (nat.pos_of_ne_zero hn),
   exact mul_le_of_le_one_right (div_nonneg (pow_nonneg r.coe_nonneg n) n!.cast_nonneg) this
@@ -582,10 +582,7 @@ variables (𝕂 𝕂' 𝔸 : Type*) [field 𝕂] [field 𝕂'] [ring 𝔸] [alge
 `exp_series` on `𝔸`. -/
 lemma exp_series_eq_exp_series (n : ℕ) (x : 𝔸) :
   (exp_series 𝕂 𝔸 n (λ _, x)) = (exp_series 𝕂' 𝔸 n (λ _, x)) :=
-by rw [exp_series, exp_series,
-       smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,
-       smul_apply, mk_pi_algebra_fin_apply, list.of_fn_const, list.prod_repeat,
-       one_div, one_div, inv_nat_cast_smul_eq 𝕂 𝕂']
+by rw [exp_series_apply_eq, exp_series_apply_eq, inv_nat_cast_smul_eq 𝕂 𝕂']
 
 /-- If a normed ring `𝔸` is a normed algebra over two fields, then they define the same
 exponential function on `𝔸`. -/

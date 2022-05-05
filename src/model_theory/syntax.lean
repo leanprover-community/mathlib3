@@ -114,6 +114,9 @@ def functions.apply₂ (f : L.functions 2) (t₁ t₂ : L.term α) : L.term α :
 
 namespace term
 
+instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
+⟨var default⟩
+
 instance inhabited_of_constant [inhabited L.constants] : inhabited (L.term α) :=
 ⟨(default : L.constants).term⟩
 

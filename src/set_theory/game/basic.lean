@@ -77,7 +77,7 @@ by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_le }
 @[simp] theorem not_lf : ∀ {x y : game}, ¬ x ⧏ y ↔ y ≤ x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_lf }
 
-/-- The fuzzy, confused, or incomparable relation on pre-games.
+/-- The fuzzy, confused, or incomparable relation on games.
 
 If `x ∥ 0`, then the second player can always win `x`. -/
 def fuzzy : game → game → Prop :=

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import algebra.category.Module.epi_mono
+import category_theory.limits.concrete_category
 
 /-!
 # The concrete (co)kernels in the category of modules are (co)kernels in the categorical sense.
@@ -101,5 +102,9 @@ by { convert colimit.iso_colimit_cocone_ι_hom _ _; refl, }
 @[simp, elementwise] lemma range_mkq_cokernel_iso_range_quotient_inv :
   ↿f.range.mkq ≫ (cokernel_iso_range_quotient f).inv = cokernel.π f :=
 by { convert colimit.iso_colimit_cocone_ι_inv ⟨_, cokernel_is_colimit f⟩ _; refl, }
+
+lemma cokernel_π_ext {M N : Module.{u} R} (f : M ⟶ N) {x y : N} (m : M) (w : x = y + f m) :
+  cokernel.π f x = cokernel.π f y :=
+by { subst w, simp, }
 
 end Module

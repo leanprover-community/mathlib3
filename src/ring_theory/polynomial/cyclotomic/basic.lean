@@ -956,6 +956,20 @@ begin
         nat.totient_mul_of_prime_of_dvd hp hdiv, mul_comm] }
 end
 
+/-- If `irreducible (cyclotomic (p ^ n) R)` then `irreducible (cyclotomic p R).` -/
+--TODO: add `irreducible (cyclotomic (p ^ m) R)` if `m ≤ n`.
+lemma cyclotomic_irreducible_of_irreducible_pow {p : ℕ} (hp : nat.prime p)
+  {R} [comm_ring R] [is_domain R] :
+  ∀ {n : ℕ}, n ≠ 0 → irreducible (cyclotomic (p ^ n) R) → irreducible (cyclotomic p R)
+| 0     hn _ := by contradiction
+| 1     hn h := by rwa pow_one at h
+| (n+2) hn h :=
+begin
+  rw [pow_succ', ←cyclotomic_expand_eq_cyclotomic hp $ dvd_pow_self p n.succ_ne_zero] at h,
+  replace h := of_irreducible_expand hp.ne_zero h,
+  refine cyclotomic_irreducible_of_irreducible_pow n.succ_ne_zero h
+end
+
 end expand
 
 section char_p

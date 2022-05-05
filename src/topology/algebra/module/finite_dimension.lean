@@ -53,11 +53,9 @@ end
 /-- The space of continuous linear maps between finite-dimensional spaces is finite-dimensional. -/
 instance [finite_dimensional 𝕜 E] [finite_dimensional 𝕜 F] :
   finite_dimensional 𝕜 (E →L[𝕜] F) :=
-begin
-  haveI : is_noetherian 𝕜 (E →ₗ[𝕜] F) := is_noetherian.iff_fg.mpr (by apply_instance),
-  let I : (E →L[𝕜] F) →ₗ[𝕜] (E →ₗ[𝕜] F) := continuous_linear_map.coe_lm 𝕜,
-  exact module.finite.of_injective I continuous_linear_map.coe_injective
-end
+finite_dimensional.of_injective
+  (continuous_linear_map.coe_lm 𝕜 : (E →L[𝕜] F) →ₗ[𝕜] (E →ₗ[𝕜] F))
+  continuous_linear_map.coe_injective
 
 end any_field
 

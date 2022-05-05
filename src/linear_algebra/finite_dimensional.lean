@@ -1649,8 +1649,7 @@ lemma surjective_of_nonzero_of_finrank_eq_one
   {K : Type*} [division_ring K] {A : Type*} [semiring A]
   [module K V] [module A V]
   {W : Type*} [add_comm_group W] [module K W] [module A W] [linear_map.compatible_smul V W K A]
-  [finite_dimensional K W] (h : finrank K W = 1)
-  {f : V →ₗ[A] W} (w : f ≠ 0) : surjective f :=
+  (h : finrank K W = 1) {f : V →ₗ[A] W} (w : f ≠ 0) : surjective f :=
 begin
   change surjective (f.restrict_scalars K),
   obtain ⟨v, n⟩ := fun_like.ne_iff.mp w,

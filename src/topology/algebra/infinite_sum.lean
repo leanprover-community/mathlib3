@@ -680,9 +680,8 @@ lemma tsum_neg : ∑'b, - f b = - ∑'b, f b :=
 begin
   by_cases hf : summable f,
   { exact hf.has_sum.neg.tsum_eq, },
-  { rw [tsum_eq_zero_of_not_summable hf, neg_zero],
-    rw ← summable_neg_iff at hf,
-    rw tsum_eq_zero_of_not_summable hf },
+  { rw [tsum_eq_zero_of_not_summable hf, neg_zero,
+    tsum_eq_zero_of_not_summable ((not_iff_not_of_iff summable_neg_iff).mpr hf)] },
 end
 
 lemma tsum_sub (hf : summable f) (hg : summable g) : ∑'b, (f b - g b) = ∑'b, f b - ∑'b, g b :=

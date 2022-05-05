@@ -246,12 +246,6 @@ end explicit_computation
 
 section center_transfer
 
--- PRed
-lemma _root_.subgroup.pow_index_mem
-  {G : Type*} [group G] (H : subgroup G) [H.normal] [fintype (G ⧸ H)] (g : G) :
-  g ^ H.index ∈ H :=
-by rw [←quotient_group.eq_one_iff, quotient_group.coe_pow, index_eq_card, pow_card_eq_one]
-
 lemma transfer_eq_pow [fintype (G ⧸ center G)] (g : G) :
   transfer (monoid_hom.id (center G)) g = ⟨g ^ (center G).index, (center G).pow_index_mem g⟩ :=
 begin
@@ -262,19 +256,22 @@ begin
     (⟨q.out'.out'⁻¹ * g ^ function.minimal_period ((•) g) q.out' * q.out'.out', _⟩ : center G) =
     (⟨g ^ (center G).index, (center G).pow_index_mem g⟩ : center G),
   have key : Π (h : G) (k : ℕ) (hg : h⁻¹ * g ^ k * h ∈ center G),
-    (center G).subtype ⟨h⁻¹ * g ^ k * h, hg⟩ = (zpowers g).subtype (⟨g, mem_zpowers g⟩ ^ k) := sorry,
+    (center G).subtype ⟨h⁻¹ * g ^ k * h, hg⟩ = (zpowers g).subtype (⟨g, mem_zpowers g⟩ ^ k),
+  { intros h k hg,
+    rw [normal.mem_comm_iff, mul_inv_cancel_left] at hg,
+    { simp_rw [mul_assoc, ←hg h, inv_mul_cancel_left],
+      refl },
+    { apply_instance } },
   simp only [key],
   apply (show function.injective (center G).subtype, from subtype.coe_injective),
-  rw [←finset.prod_to_list],
-  rw [←list.prod_map_hom],
+  rw [←finset.prod_to_list, ←list.prod_map_hom],
   change (list.map (λ q, _) _).prod = (zpowers g).subtype (⟨g, mem_zpowers g⟩ ^ (center G).index),
   simp only [key],
   rw [list.prod_map_hom, finset.prod_to_list],
   apply congr_arg (zpowers g).subtype,
   rw finset.prod_pow_eq_pow_sum,
   congr,
-  simp only [lem0],
-  simp only [←fintype.card_sigma],
+  simp only [lem0, ←fintype.card_sigma],
   rw [index_eq_card],
   have key := mul_action.self_equiv_sigma_orbits (zpowers g) (G ⧸ center G),
   convert fintype.card_congr key.symm,

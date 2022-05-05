@@ -426,9 +426,11 @@ end
 
 namespace complex
 
-/-- The `Γ` function is complex-differentiable at any `s ∈ ℂ` with `1 < re s`. -/
-theorem differentiable_at_Gamma_integral {s : ℂ} (hs : 1 < s.re) :
-  differentiable_at ℂ Gamma_integral s :=
+/-- The derivative of the `Γ` integral, at any `s ∈ ℂ` with `1 < re s`, is given by the integral
+of `exp (-x) * log x * x ^ (s - 1)` over `[0, ∞)`. -/
+theorem has_deriv_at_Gamma_integral {s : ℂ} (hs : 1 < s.re) :
+  (integrable_on (λ x, (-x).exp * x.log * x ^ (s - 1) : ℝ → ℂ) (Ioi 0) volume) ∧
+  (has_deriv_at Gamma_integral (∫ x:ℝ in Ioi 0, (-x).exp * x.log * x ^ (s - 1)) s) :=
 begin
   let ε := (s.re - 1) / 2,
   let μ := volume.restrict (Ioi (0:ℝ)),
@@ -475,14 +477,14 @@ begin
     have := ((has_deriv_at_id t).sub_const 1).const_cpow (or.inl (of_real_ne_zero.mpr hx.ne')),
     rwa mul_one at this },
   exact (has_deriv_at_integral_of_dominated_loc_of_deriv_le eps_pos hF_meas
-    (Gamma_integral_convergent hs.le) hF'_meas h_bound bound_integrable h_diff).2.differentiable_at,
+    (Gamma_integral_convergent hs.le) hF'_meas h_bound bound_integrable h_diff),
 end
 
 lemma differentiable_at_Gamma_aux (s : ℂ) (n : ℕ) (h1 : (1 - s.re) < n ) (h2 : ∀ m:ℕ, s + m ≠ 0) :
   differentiable_at ℂ (Gamma_aux n) s :=
 begin
   induction n with n hn generalizing s,
-  { apply differentiable_at_Gamma_integral,
+  { refine (has_deriv_at_Gamma_integral _).2.differentiable_at,
     rw nat.cast_zero at h1, linarith },
   { dsimp only [Gamma_aux],
     specialize hn (s + 1),

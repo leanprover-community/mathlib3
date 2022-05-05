@@ -46,18 +46,21 @@ open lean.parser tactic interactive
 
 namespace tactic.alias
 
+/-- An alias can be in one of three forms -/
 @[derive has_reflect]
 meta inductive target
 | plain : name -> target
 | forward : name -> target
 | backwards : name -> target
 
+/-- The name underlying an alias target -/
 meta def target.to_name (t : target) : name := match t with
 | target.plain n := n
 | target.forward n := n
 | target.backwards n := n
 end
 
+/-- The docstring for an alias. Used by `alias` _and_ by `to_additive` -/
 meta def target.to_string (t : target) : string := match t with
 | target.plain n := sformat!"**Alias** of {n}`."
 | target.forward n := sformat!"**Alias** of the forward direction of {n}`."

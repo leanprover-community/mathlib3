@@ -198,7 +198,7 @@ end divisor_chain
 
 variables {N : Type*} [cancel_comm_monoid_with_zero N]
 
-lemma map_is_unit_of_monotone_is_unit {m u : associates M} {n : associates N}
+lemma is_unit.factor_order_iso_map {m u : associates M} {n : associates N}
   (hu : is_unit u) (hu' : u ≤ m) (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   is_unit (d ⟨u, hu'⟩ : associates N) :=
 begin
@@ -213,7 +213,7 @@ begin
   exact bot_le,
 end
 
-lemma map_is_unit_iff_is_unit {m u : associates M} {n : associates N}
+lemma is_unit.factor_order_iso_map_iff {m u : associates M} {n : associates N}
   (hu' : u ≤ m) (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   is_unit u ↔ is_unit (d ⟨u, hu'⟩ : associates N) :=
 ⟨λ hu, map_is_unit_of_monotone_is_unit hu hu' d, λ hu, by
@@ -274,7 +274,7 @@ begin
     haveI : order_bot {l : associates M // l ≤ m} := subtype.order_bot bot_le,
     haveI : order_bot {l : associates N // l ≤ n} := subtype.order_bot bot_le,
     suffices : x = ⊥,
-    { rw [this, order_iso.map_bot d ] at hx,
+    { rw [this, order_iso.map_bot d] at hx,
       refine (subtype.mk_eq_bot_iff _ _).mp hx.symm,
       exact bot_le },
     obtain ⟨a, ha⟩ := x,
@@ -291,10 +291,10 @@ lemma mem_normalized_factors_factor_order_iso_of_mem_normalized_factors
   ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) ∈ normalized_factors n :=
 begin
   obtain ⟨q, hq, hq'⟩ := exists_mem_normalized_factors_of_dvd hn
-      (map_prime_of_monotone_equiv hn hp d).irreducible
-      (d ⟨p, dvd_of_mem_normalized_factors hp⟩).prop,
-    rw associated_iff_eq at hq',
-    rwa hq'
+    (map_prime_of_monotone_equiv hn hp d).irreducible
+    (d ⟨p, dvd_of_mem_normalized_factors hp⟩).prop,
+  rw associated_iff_eq at hq',
+  rwa hq'
 end
 
 variables [decidable_rel ((∣) : M → M → Prop)] [decidable_rel ((∣) : N → N → Prop)]
@@ -335,22 +335,22 @@ end
 
 variables [unique (Mˣ)] [unique (Nˣ)]
 
-/-- The order isomorphism between the factors of `mk m` and the of factors of `mk m` induced by a
+/-- The order isomorphism between the factors of `mk m` and the factors of `mk n` induced by a
   bijection between the factors of `m` and the factors of `n` that preserves `∣` -/
 @[simps]
 noncomputable def mk_factor_order_iso_of_factor_dvd_equiv
   {m : M} {n : N} (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}) (hd : ∀ l l',
   ((d l) : N) ∣ (d l') ↔ (l : M) ∣ (l' : M)) :
    {l : associates M // l ≤ associates.mk m} ≃o {l : associates N // l ≤ associates.mk n} :=
-{ to_fun := λ l, ⟨associates.mk (d ⟨mk_monoid_equiv.symm ↑l ,
-    by obtain ⟨x, hx⟩ := l ;
+{ to_fun := λ l, ⟨associates.mk (d ⟨mk_monoid_equiv.symm ↑l,
+    by obtain ⟨x, hx⟩ := l;
       rw [subtype.coe_mk, ← mk_monoid_equiv.symm_apply_apply m, mk_monoid_equiv_apply,
-      associates.mk_monoid_equiv_symm_dvd_iff_le] ; exact hx⟩),
+      associates.mk_monoid_equiv_symm_dvd_iff_le]; exact hx⟩),
     mk_le_mk_iff_dvd_iff.mpr (subtype.prop (d ⟨mk_monoid_equiv.symm ↑l,_⟩))⟩,
   inv_fun := λ l, ⟨associates.mk (d.symm (⟨(mk_monoid_equiv.symm ↑l),
-    by obtain ⟨x, hx⟩ := l ;
+    by obtain ⟨x, hx⟩ := l;
       rw [subtype.coe_mk, ← mk_monoid_equiv.symm_apply_apply n, mk_monoid_equiv_apply,
-      associates.mk_monoid_equiv_symm_dvd_iff_le] ; exact hx⟩)),
+      associates.mk_monoid_equiv_symm_dvd_iff_le]; exact hx⟩)),
     mk_le_mk_iff_dvd_iff.mpr (subtype.prop (d.symm ⟨mk_monoid_equiv.symm ↑l,_⟩)) ⟩,
   left_inv := λ ⟨l, hl⟩, by simp only [associates.mk_monoid_equiv_apply_symm_mk, subtype.coe_eta,
     equiv.symm_apply_apply, subtype.coe_mk, associates.mk_monoid_equiv_apply_symm'],

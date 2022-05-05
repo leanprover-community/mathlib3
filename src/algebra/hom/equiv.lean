@@ -372,7 +372,7 @@ lemma of_bijective_apply_symm_apply {M N} [mul_one_class M] [mul_one_class N] {n
 @[simp]
 lemma of_bijective_apply_symm {M N} [mul_one_class M] [mul_one_class N] {n : N} (f : M →* N)
   (hf : function.bijective f) :
-    (mul_equiv.of_bijective f hf).symm n = (equiv.of_bijective f hf).symm n := rfl
+  (mul_equiv.of_bijective f hf).symm n = (equiv.of_bijective f hf).symm n := rfl
 
 
 /--

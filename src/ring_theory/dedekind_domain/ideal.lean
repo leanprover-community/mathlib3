@@ -868,7 +868,7 @@ variables {R } {A} [is_domain R] [is_dedekind_domain R] [is_dedekind_domain A]
 /-- The bijection between ideals of `R` dividing `I` and the ideals of `A` dividing `J` induced by
   an isomorphism `f : R/I ≅ A/J` -/
 @[simps]
-def ideal_factors_equiv_of_quot_equiv (f : R ⧸I ≃+* A ⧸J) :
+def ideal_factors_equiv_of_quot_equiv (f : R ⧸ I ≃+* A ⧸ J) :
   {p : ideal R | p ∣ I} ≃ {p : ideal A | p ∣ J} :=
 { to_fun := λ X, ⟨comap J^.quotient.mk (map ↑f (map I^.quotient.mk X)),
     begin

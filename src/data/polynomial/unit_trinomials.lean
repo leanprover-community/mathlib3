@@ -173,7 +173,7 @@ section domain
 variables {R : Type*} [comm_ring R] [is_domain R] (p : R[X])
 
 lemma coeff_mul_mirror :
-  coeff (p * mirror p) (nat_degree p + nat_trailing_degree p) = p.sum (λ n, (^ 2)) :=
+  (p * p.mirror).coeff (p.nat_degree + p.nat_trailing_degree) = p.sum (λ n, (^ 2)) :=
 begin
   rw [coeff_mul, nat.sum_antidiagonal_eq_sum_range_succ_mk],
   refine (sum_congr rfl (λ n hn, _)).trans (p.sum_eq_of_subset (λ n, (^ 2))
@@ -182,7 +182,7 @@ begin
   rw [coeff_mirror, ←rev_at_le (mem_range_succ_iff.mp hn), rev_at_invol, ←sq],
 end
 
-lemma nat_degree_mul_mirror : nat_degree (p * mirror p) = 2 * nat_degree p :=
+lemma nat_degree_mul_mirror : (p * p.mirror).nat_degree = 2 * p.nat_degree :=
 begin
   by_cases hp : p = 0,
   { rw [hp, zero_mul, nat_degree_zero, mul_zero] },
@@ -190,7 +190,7 @@ begin
 end
 
 lemma nat_trailing_degree_mul_mirror :
-  nat_trailing_degree (p * mirror p) = 2 * nat_trailing_degree p :=
+  (p * p.mirror).nat_trailing_degree = 2 * p.nat_trailing_degree :=
 begin
   by_cases hp : p = 0,
   { rw [hp, zero_mul, nat_trailing_degree_zero, mul_zero] },
@@ -199,7 +199,7 @@ end
 
 variables {p}
 
-lemma is_unit_trinomial.not_is_unit (hp : is_unit_trinomial p) : ¬ is_unit p :=
+lemma is_unit_trinomial.not_is_unit (hp : p.is_unit_trinomial) : ¬ is_unit p :=
 begin
   obtain ⟨k, m, n, hkm, hmn, u, v, w, hu, hv, hw, rfl⟩ := hp,
   exact λ h, ne_zero_of_lt hmn ((trinomial_nat_degree hkm hmn hw.ne_zero).symm.trans
@@ -230,8 +230,8 @@ begin
   norm_num,
 end
 
-lemma is_unit_trinomial_iff' : is_unit_trinomial p ↔ coeff (p * mirror p)
-  ((nat_degree (p * mirror p) + nat_trailing_degree (p * mirror p)) / 2) = 3 :=
+lemma is_unit_trinomial_iff' : p.is_unit_trinomial ↔ (p * p.mirror).coeff
+  (((p * p.mirror).nat_degree + (p * p.mirror).nat_trailing_degree) / 2) = 3 :=
 begin
   rw [nat_degree_mul_mirror, nat_trailing_degree_mul_mirror, ←mul_add,
       nat.mul_div_right _ zero_lt_two, coeff_mul_mirror],
@@ -251,16 +251,40 @@ begin
     exact nat.cast_injective hp },
 end
 
-lemma is_unit_trinomial.irreducible1_aux (hp : is_unit_trinomial p) (hq : is_unit_trinomial q)
-  (h : ∀ q : ℤ[X], q ∣ p → q ∣ mirror p → is_unit q) :
-  irreducible p :=
+lemma is_unit_trinomial.irreducible1_aux1 {k m n : ℕ} {u v w x y : ℤ} (hkm : k < m) (hmn : m < n)
+  (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n)
+  (hq : q = C x * X ^ k + C y * X ^ m + C w * X ^ n)
+  (h : p * p.mirror = q * q.mirror) :
+  q = p ∨ q = -p ∨ q = p.mirror ∨ q = -p.mirror :=
 begin
-  -- TODO: Update lemma statement to involve kmn
+  -- first deduce u = x (leading coeff)
   sorry
 end
 
-lemma is_unit_trinomial.irreducible1 (hp : is_unit_trinomial p)
-  (h : ∀ q : ℤ[X], q ∣ p → q ∣ mirror p → is_unit q) :
+lemma is_unit_trinomial.irreducible1_aux {k m n : ℕ} {u v w x y z : ℤ} (hkm : k < m) (hmn : m < n)
+  (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n)
+  (hq : q = C x * X ^ k + C y * X ^ m + C z * X ^ n)
+  (h : p * p.mirror = q * q.mirror) :
+  q = p ∨ q = -p ∨ q = p.mirror ∨ q = -p.mirror :=
+begin
+  -- WLOG w = z (after negating)
+  -- Another intriguing option would be to make the middle coefficients match
+  sorry
+end
+
+lemma is_unit_trinomial.irreducible1_aux2 {k m m' n : ℕ} {u v w x z : ℤ}
+  (hkm : k < m) (hmn : m < n) (hkm' : k < m') (hmn' : m' < n)
+  (hu : is_unit u) (hv : is_unit v) (hw : is_unit w) (hx : is_unit x) (hz : is_unit z)
+  (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n)
+  (hq : q = C x * X ^ k + C v * X ^ m' + C z * X ^ n)
+  (h : p * p.mirror = q * q.mirror) :
+  q = p ∨ q = p.mirror :=
+begin
+  sorry
+end
+
+lemma is_unit_trinomial.irreducible1 (hp : p.is_unit_trinomial)
+  (h : ∀ q : ℤ[X], q ∣ p → q ∣ p.mirror → is_unit q) :
   irreducible p :=
 begin
   refine irreducible_of_mirror hp.not_is_unit (λ q hpq, _) h,
@@ -276,11 +300,31 @@ begin
   { rw [←mul_right_inj' (show 2 ≠ 0, from two_ne_zero),
         ←trinomial_nat_degree hkm hmn hw.ne_zero, ←hp, ←nat_degree_mul_mirror,
         ←trinomial_nat_degree hkm' hmn' hz.ne_zero, ←hq, ←nat_degree_mul_mirror, hpq] },
-  -- WLOG m = m' (after mirroring)
-  -- (go to prev lemma)
-  -- WLOG w = w' (after negating)
-  -- then u = u' (leading coeff)
-  sorry,
+  subst hk,
+  subst hn,
+  rcases eq_or_eq_neg_of_sq_eq_sq y v ((int.is_unit_sq hy).trans (int.is_unit_sq hv).symm) with rfl | rfl,
+  { rcases is_unit_trinomial.irreducible1_aux2 hkm hmn hkm' hmn' hu hv hw hx hz hp hq hpq with rfl | rfl,
+    { exact or.inl rfl },
+    { exact or.inr (or.inr (or.inl rfl)) } },
+  { rw [←neg_inj, neg_add, neg_add, ←neg_mul, ←neg_mul, ←neg_mul, ←C_neg, ←C_neg, ←C_neg] at hp,
+    rcases is_unit_trinomial.irreducible1_aux2 hkm hmn hkm' hmn' hu.neg hv.neg hw.neg hx hz hp hq _ with rfl | rfl,
+    { exact or.inr (or.inl rfl) },
+    { exact or.inr (or.inr (or.inr p.mirror_neg)) },
+    { rwa [mirror_neg, neg_mul_neg] } },
+
+  -- In fact, could fix the middle coefficients right here!
+
+  /-have hm : m' = m ∨ m' = n - m + k,
+  { sorry },
+  cases hm,
+  { rw [hk, hm, hn] at hq,
+    exact is_unit_trinomial.irreducible1_aux hkm hmn hp hq hpq },
+  { rw [hk, hm, hn, ←trinomial_mirror hkm hmn hz.ne_zero hx.ne_zero] at hq,
+    replace hq := congr_arg mirror hq,
+    rw [mirror_mirror] at hq,
+    have key := is_unit_trinomial.irreducible1_aux hkm hmn hp hq,
+    -- not bad, maybe need a couple more mirror rw lemmas?
+    sorry },-/
 end
 
 lemma is_unit_trinomial.irreducible2 (hp : is_unit_trinomial p)

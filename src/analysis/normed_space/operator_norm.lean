@@ -1357,7 +1357,7 @@ that it belongs to the closure of the image of a bounded set `s : set (E →SL[�
 to function. Coercion to function of the result is definitionally equal to `f`. -/
 @[simps apply { fully_applied := ff }]
 def of_mem_closure_image_coe_bounded (f : E' → F) {s : set (E' →SL[σ₁₂] F)} (hs : bounded s)
-  (hf : f ∈ closure ((λ g x, g x : (E' →SL[σ₁₂] F) → E' → F) '' s)) :
+  (hf : f ∈ closure ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s)) :
   E' →SL[σ₁₂] F :=
 begin
   -- `f` is a linear map due to `linear_map_of_mem_closure_range_coe`
@@ -1427,6 +1427,80 @@ begin
   -- `continuous_linear_map.tendsto_of_tendsto_pointwise_of_cauchy_seq`
   exact ⟨Glin, tendsto_of_tendsto_pointwise_of_cauchy_seq (tendsto_pi_nhds.2 hG) hf⟩
 end
+
+/-- Let `s` be a bounded set in the space of continuous (semi)linear maps `E →SL[σ] F` taking values
+in a proper space. Then `s` interpreted as a set in the space of maps `E → F` with topology of
+pointwise convergence is precompact: its closure is a compact set. -/
+lemma is_compact_closure_image_coe_of_bounded [proper_space F] {s : set (E' →SL[σ₁₂] F)}
+  (hb : bounded s) :
+  is_compact (closure ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s)) :=
+have ∀ x, is_compact (closure (apply' F σ₁₂ x '' s)),
+  from λ x, ((apply' F σ₁₂ x).lipschitz.bounded_image hb).is_compact_closure,
+compact_closure_of_subset_compact (is_compact_pi_infinite this)
+  (image_subset_iff.2 $ λ g hg x, subset_closure $ mem_image_of_mem _ hg)
+
+/-- Let `s` be a bounded set in the space of continuous (semi)linear maps `E →SL[σ] F` taking values
+in a proper space. If `s` interpreted as a set in the space of maps `E → F` with topology of
+pointwise convergence is closed, then it is compact.
+
+TODO: reformulate this in terms of a type synonym with the right topology. -/
+lemma is_compact_image_coe_of_bounded_of_closed_image [proper_space F] {s : set (E' →SL[σ₁₂] F)}
+  (hb : bounded s) (hc : is_closed ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s)) :
+  is_compact ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s) :=
+hc.closure_eq ▸ is_compact_closure_image_coe_of_bounded hb
+
+/-- If a set `s` of semilinear functions is bounded and is closed in the weak-* topology, then its
+image under coercion to functions `E → F` is a closed set. We don't have a name for `E →SL[σ] F`
+with weak-* topology in `mathlib`, so we use an equivalent condition (see `is_closed_induced_iff'`).
+
+TODO: reformulate this in terms of a type synonym with the right topology. -/
+lemma is_closed_image_coe_of_bounded_of_weak_closed {s : set (E' →SL[σ₁₂] F)} (hb : bounded s)
+  (hc : ∀ f, (⇑f : E' → F) ∈ closure ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s) → f ∈ s) :
+  is_closed ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s) :=
+is_closed_of_closure_subset $ λ f hf,
+  ⟨of_mem_closure_image_coe_bounded f hb hf, hc (of_mem_closure_image_coe_bounded f hb hf) hf, rfl⟩
+
+/-- If a set `s` of semilinear functions is bounded and is closed in the weak-* topology, then its
+image under coercion to functions `E → F` is a compact set. We don't have a name for `E →SL[σ] F`
+with weak-* topology in `mathlib`, so we use an equivalent condition (see `is_closed_induced_iff'`).
+-/
+lemma is_compact_image_coe_of_bounded_of_weak_closed [proper_space F] {s : set (E' →SL[σ₁₂] F)}
+  (hb : bounded s)
+  (hc : ∀ f, (⇑f : E' → F) ∈ closure ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s) → f ∈ s) :
+  is_compact ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s) :=
+is_compact_image_coe_of_bounded_of_closed_image hb $
+  is_closed_image_coe_of_bounded_of_weak_closed hb hc
+
+/-- A closed ball is closed in the weak-* topology. We don't have a name for `E →SL[σ] F` with
+weak-* topology in `mathlib`, so we use an equivalent condition (see `is_closed_induced_iff'`). -/
+lemma is_weak_closed_closed_ball (f₀ : E' →SL[σ₁₂] F) (r : ℝ) ⦃f : E' →SL[σ₁₂] F⦄
+  (hf : ⇑f ∈ closure ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' (closed_ball f₀ r))) :
+  f ∈ closed_ball f₀ r :=
+begin
+  have hr : 0 ≤ r,
+    from nonempty_closed_ball.1 (nonempty_image_iff.1 (closure_nonempty_iff.1 ⟨_, hf⟩)),
+  refine mem_closed_ball_iff_norm.2 (op_norm_le_bound _ hr $ λ x, _),
+  have : is_closed {g : E' → F | ∥g x - f₀ x∥ ≤ r * ∥x∥},
+    from is_closed_Iic.preimage ((@continuous_apply E' (λ _, F) _ x).sub continuous_const).norm,
+  refine this.closure_subset_iff.2 (image_subset_iff.2 $ λ g hg, _) hf,
+  exact (g - f₀).le_of_op_norm_le (mem_closed_ball_iff_norm.1 hg) _
+end
+
+/-- The set of functions `f : E → F` that represent continuous linear maps `f : E →SL[σ₁₂] F`
+at distance `≤ r` from `f₀ : E →SL[σ₁₂] F` is closed in the topology of pointwise convergence.
+This is one of the key steps in the proof of the **Banach-Alaoglu** theorem. -/
+lemma is_closed_image_coe_closed_ball (f₀ : E →SL[σ₁₂] F) (r : ℝ) :
+  is_closed ((coe_fn : (E →SL[σ₁₂] F) → E → F) '' closed_ball f₀ r) :=
+is_closed_image_coe_of_bounded_of_weak_closed bounded_closed_ball (is_weak_closed_closed_ball f₀ r)
+
+/-- **Banach-Alaoglu** theorem. The set of functions `f : E → F` that represent continuous linear
+maps `f : E →SL[σ₁₂] F` at distance `≤ r` from `f₀ : E →SL[σ₁₂] F` is compact in the topology of
+pointwise convergence. Other versions of this theorem can be found in
+`analysis.normed_space.weak_dual`. -/
+lemma is_compact_image_coe_closed_ball [proper_space F] (f₀ : E →SL[σ₁₂] F) (r : ℝ) :
+  is_compact ((coe_fn : (E →SL[σ₁₂] F) → E → F) '' closed_ball f₀ r) :=
+is_compact_image_coe_of_bounded_of_weak_closed bounded_closed_ball $
+  is_weak_closed_closed_ball f₀ r
 
 end completeness
 

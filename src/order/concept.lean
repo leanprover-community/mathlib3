@@ -255,7 +255,7 @@ instance : inhabited (concept α β r) := ⟨⊥⟩
 @[simp] lemma swap_lt_swap_iff : c.swap < d.swap ↔ d < c := snd_ssubset_snd_iff
 
 /-- The dual of a concept lattice is isomorphic to the concept lattice of the dual context. -/
-@[simps] def swap_equiv : order_dual (concept α β r) ≃o concept β α (function.swap r) :=
+@[simps] def swap_equiv : (concept α β r)ᵒᵈ ≃o concept β α (function.swap r) :=
 { to_fun := swap ∘ of_dual,
   inv_fun := to_dual ∘ swap,
   left_inv := swap_swap,

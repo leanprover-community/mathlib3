@@ -37,11 +37,10 @@ in the implementation details section.
 * `is_primitive_root.sub_one_norm_eq_eval_cyclotomic`: if `irreducible (cyclotomic n K)`
   (in particular for `K = ℚ`), then the norm of `ζ - 1` is `eval 1 (cyclotomic n ℤ)`, for a
   primitive root ζ. We also prove the analogous of this result for `zeta`.
-* `is_primitive_root.pow_prime_pow_sub_one_norm` : if
-  `irreducible (cyclotomic (p ^ (k + 1)) K)` and `irreducible (cyclotomic (p ^ (k - s + 1)) K))`
-  (in particular for `K = ℚ`) and `p` is a prime, then the norm of `ζ ^ (p ^ s) - 1` is
-  `p ^ (p ^ s)` `p ^ (k - s + 1) ≠ 2`. See the following lemmas for similar results. We  also prove
-  the analogous of this result for `zeta`.
+* `is_primitive_root.pow_sub_one_norm_prime_pow_ne_two` : if
+  `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is a prime,
+  then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)` `p ^ (k - s + 1) ≠ 2`. See the following
+  lemmas for similar results. We also prove the analogous of this result for `zeta`.
 * `is_primitive_root.sub_one_norm_prime_ne_two` : if `irreducible (cyclotomic (p ^ (k + 1)) K)`
   (in particular for `K = ℚ`) and `p` is an odd prime, then the norm of `ζ - 1` is `p`. We also
   prove the analogous of this result for `zeta`.

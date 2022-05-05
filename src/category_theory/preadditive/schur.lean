@@ -222,7 +222,7 @@ end
 open_locale classical
 
 lemma finrank_hom_simple_simple
-  (X Y : C) [∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)] [simple.{v} X] [simple.{v} Y] :
+  (X Y : C) [∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)] [simple X] [simple Y] :
   finrank 𝕜 (X ⟶ Y) = if nonempty (X ≅ Y) then 1 else 0 :=
 begin
   split_ifs,

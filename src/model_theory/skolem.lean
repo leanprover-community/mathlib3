@@ -107,7 +107,7 @@ theorem exists_small_elementary_substructure :
 
 variables {L M}
 
-/-- The Downward Löwenheim–Skolem theorem :
+/-- The Downward Löwenheim–Skolem Theorem :
   If `s` is a set in an `L`-structure `M` and `κ` an infinite cardinal such that
   `max (# s, L.card) ≤ κ` and `κ ≤ # M`, then `M` has an elementary substructure containing `s` of
   cardinality `κ`.  -/

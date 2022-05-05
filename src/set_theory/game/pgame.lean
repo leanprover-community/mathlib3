@@ -264,10 +264,14 @@ def le_lf : Π (x y : pgame.{u}), Prop × Prop
  (∃ i, (le_lf ⟨xl, xr, xL, xR⟩ (yL i)).1) ∨ ∃ j, (le_lf (xR j) ⟨yl, yr, yL, yR⟩).1)
 using_well_founded { dec_tac := pgame_wf_tac }
 
-/-- If `0 ≤ x`, then Left can win `x` as the second player. -/
+/-- The less or equal relation on pre-games.
+
+If `0 ≤ x`, then Left can win `x` as the second player. -/
 instance : has_le pgame := ⟨λ x y, (le_lf x y).1⟩
 
-/-- If `0 ⧏ x` (less or fuzzy with), then Left can win `x` as the first player. -/
+/-- The less or fuzzy relation on pre-games.
+
+If `0 ⧏ x`, then Left can win `x` as the first player. -/
 def lf (x y : pgame) : Prop := (le_lf x y).2
 
 local infix ` ⧏ `:50 := lf
@@ -450,8 +454,8 @@ lemma left_response_spec {x : pgame} (h : 0 ≤ x) (j : x.right_moves) :
   0 ≤ (x.move_right j).move_left (left_response h j) :=
 classical.some_spec $ (zero_le.1 h) j
 
-/-- Define the equivalence relation on pre-games. Two pre-games `x`, `y` are equivalent if `x ≤ y`
-and `y ≤ x`.
+/-- The equivalence relation on pre-games. Two pre-games `x`, `y` are equivalent if `x ≤ y` and
+`y ≤ x`.
 
 If `x ≈ 0`, then the second player can always win `x`. -/
 def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
@@ -545,7 +549,9 @@ begin
       use ⟨R j, hr.2⟩ } }
 end
 
-/-- If `x ∥ 0`, then the second player can always win `x`. -/
+/-- The fuzzy, confused, or incomparable relation on pre-games.
+
+If `x ∥ 0`, then the second player can always win `x`. -/
 def fuzzy (x y : pgame) : Prop := x ⧏ y ∧ y ⧏ x
 
 local infix ` ∥ `:50 := fuzzy
@@ -1234,7 +1240,7 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
      ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
      ... ≤ y : (add_zero_relabelling y).le⟩
 
-/-- The pre-game `star`, which is fuzzy/confused with zero. -/
+/-- The pre-game `star`, which is fuzzy with zero. -/
 def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩
 
 @[simp] theorem star_left_moves : star.left_moves = punit := rfl

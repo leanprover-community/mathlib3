@@ -676,8 +676,12 @@ end
 section tsum
 variables [t2_space α]
 
-lemma tsum_neg (hf : summable f) : ∑'b, - f b = - ∑'b, f b :=
-hf.has_sum.neg.tsum_eq
+lemma tsum_neg : ∑'b, - f b = - ∑'b, f b :=
+begin
+  by_cases hf : summable f,
+  { exact hf.has_sum.neg.tsum_eq, },
+  { simp [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable (mt summable.of_neg hf)] },
+end
 
 lemma tsum_sub (hf : summable f) (hg : summable g) : ∑'b, (f b - g b) = ∑'b, f b - ∑'b, g b :=
 (hf.has_sum.sub hg.has_sum).tsum_eq
@@ -776,6 +780,15 @@ lemma summable.tsum_mul_left (a) (hf : summable f) : ∑'b, a * f b = a * ∑'b,
 
 lemma summable.tsum_mul_right (a) (hf : summable f) : (∑'b, f b * a) = (∑'b, f b) * a :=
 (hf.has_sum.mul_right _).tsum_eq
+
+lemma commute.tsum_right (a) (h : ∀ b, commute a (f b)) : commute a (∑' b, f b) :=
+if hf : summable f then
+  (hf.tsum_mul_left a).symm.trans ((congr_arg _ $ funext h).trans (hf.tsum_mul_right a))
+else
+  (tsum_eq_zero_of_not_summable hf).symm ▸ commute.zero_right _
+
+lemma commute.tsum_left (a) (h : ∀ b, commute (f b) a) : commute (∑' b, f b) a :=
+(commute.tsum_right _ $ λ b, (h b).symm).symm
 
 end tsum
 

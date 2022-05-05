@@ -7,6 +7,7 @@ import algebra.big_operators.ring
 import data.real.basic
 import algebra.indicator_function
 import algebra.algebra.basic
+import algebra.order.module
 import algebra.order.nonneg
 
 /-!
@@ -48,6 +49,39 @@ This file defines `ℝ≥0` as a localized notation for `nnreal`.
 -/
 
 open_locale classical big_operators
+
+namespace real
+variables {ι : Sort*} {f : ι → ℝ}
+
+open set
+
+lemma supr_of_not_bdd_above (hf : ¬ bdd_above (range f)) : (⨆ i, f i) = 0 := Sup_of_not_bdd_above hf
+lemma infi_of_not_bdd_below (hf : ¬ bdd_below (range f)) : (⨅ i, f i) = 0 := Inf_of_not_bdd_below hf
+
+end real
+
+section
+variables {ι : Sort*} {α β : Type*}
+
+open set
+open_locale pointwise
+
+section
+variables [has_scalar α β] {a : α} {f : ι → β}
+
+@[to_additive] lemma smul_set_range : a • range f = range (λ i, a • f i) := (range_comp _ _).symm
+
+end
+
+section
+variables [has_involutive_inv α] {f : ι → α}
+
+@[to_additive] lemma inv_range : (range f)⁻¹ = range (λ i, (f i)⁻¹) :=
+by { rw ←image_inv, exact (range_comp _ _).symm }
+
+end
+
+end
 
 /-- Nonnegative real numbers. -/
 @[derive [
@@ -726,30 +760,48 @@ end inv
 abs_of_nonneg x.property
 
 section csupr
+open set
 
 variables {ι : Sort*} {f : ι → ℝ≥0}
 
-lemma mul_csupr (hf : bdd_above (set.range f)) (a : ℝ≥0) :
-  a * (⨆ i, f i) = ⨆ i, a * f i :=
+lemma le_to_nnreal_of_coe_le {x : ℝ≥0} {y : ℝ} (h : ↑x ≤ y) : x ≤ y.to_nnreal :=
+(le_to_nnreal_iff_coe_le $ x.2.trans h).2 h
+
+lemma supr_of_not_bdd_above (hf : ¬ bdd_above (range f)) : (⨆ i, f i) = 0 :=
+begin
+  ext,
+  rw coe_supr,
+  refine supr_of_not_bdd_above _,
+  rintro ⟨r, hr⟩,
+  exact hf ⟨r.to_nnreal, forall_range_iff.2 $ λ i, le_to_nnreal_of_coe_le $ hr $ mem_range_self _⟩,
+end
+
+-- generalize `bdd_above_smul_iff_of_pos` to linear semifields
+
+lemma mul_supr (f : ι → ℝ≥0) (a : ℝ≥0) : a * (⨆ i, f i) = ⨆ i, a * f i :=
 begin
   casesI is_empty_or_nonempty ι,
   { simp only [csupr_of_empty, bot_eq_zero, mul_zero] },
-  { by_cases ha : a = 0,
-    { simp_rw [ha, zero_mul, csupr_const] },
-    { exact order_iso.map_csupr (order_iso.mul_left₀' _ (zero_lt_iff.mpr ha)) hf }},
+  by_cases ha : a = 0,
+  { simp_rw [ha, zero_mul, csupr_const] },
+  by_cases hf : bdd_above (set.range f),
+  { exact order_iso.map_csupr (order_iso.mul_left₀' _ (zero_lt_iff.mpr ha)) hf },
+  { rw [supr_of_not_bdd_above hf, mul_zero, supr_of_not_bdd_above],
+    simp_rw [←smul_eq_mul, ←smul_set_range, bdd_above_smul_iff_of_pos (pos_iff_ne_zero.2 ha)],
+    exact hf }
 end
 
-lemma csupr_mul (hf : bdd_above (set.range f)) (a : ℝ≥0) :
-  (⨆ i, f i) * a = ⨆ i, f i * a :=
-by { rw [mul_comm, mul_csupr hf], simp_rw [mul_comm] }
+lemma supr_mul (f : ι → ℝ≥0) (a : ℝ≥0) : (⨆ i, f i) * a = ⨆ i, f i * a :=
+by { rw [mul_comm, mul_supr], simp_rw [mul_comm] }
 
-lemma csupr_div (hf : bdd_above (set.range f)) (a : ℝ≥0) :
-  (⨆ i, f i) / a = ⨆ i, f i / a :=
-by simp only [div_eq_mul_inv, csupr_mul hf]
+lemma supr_div (f : ι → ℝ≥0) (a : ℝ≥0) : (⨆ i, f i) / a = ⨆ i, f i / a :=
+by simp only [div_eq_mul_inv, supr_mul]
+
+lemma div_infi (f : ι → ℝ≥0) (a : ℝ≥0) : a / (⨅ i, f i) = ⨆ i, a / f i := sorry
 
 variable [nonempty ι]
 
-lemma le_mul_cinfi {a : ℝ≥0} {g : ℝ≥0} {h : ι → ℝ≥0} (H : ∀ j, a ≤ g * h j) : a ≤ g * infi h :=
+lemma le_mul_infi {a : ℝ≥0} {g : ℝ≥0} {h : ι → ℝ≥0} (H : ∀ j, a ≤ g * h j) : a ≤ g * infi h :=
 begin
   by_cases hg : g = 0,
   { simp_rw [hg, zero_mul] at H ⊢,
@@ -760,7 +812,7 @@ begin
     exact H }
 end
 
-lemma mul_csupr_le {a : ℝ≥0} {g : ℝ≥0} {h : ι → ℝ≥0} (H : ∀ j, g * h j ≤ a) : g * supr h ≤ a :=
+lemma mul_supr_le {a : ℝ≥0} {g : ℝ≥0} {h : ι → ℝ≥0} (H : ∀ j, g * h j ≤ a) : g * supr h ≤ a :=
 begin
   by_cases hg : g = 0,
   { simp_rw [hg, zero_mul] at H ⊢,
@@ -771,7 +823,7 @@ begin
     exact H }
 end
 
-lemma le_cinfi_mul {a : ℝ≥0} {g : ι → ℝ≥0} {h : ℝ≥0} (H : ∀ i, a ≤ g i * h) : a ≤ infi g * h :=
+lemma le_infi_mul {a : ℝ≥0} {g : ι → ℝ≥0} {h : ℝ≥0} (H : ∀ i, a ≤ g i * h) : a ≤ infi g * h :=
 begin
   by_cases hh : h = 0,
   { simp_rw [hh, mul_zero] at H ⊢,
@@ -780,7 +832,7 @@ begin
     exact le_cinfi H }
 end
 
-lemma csupr_mul_le {a : ℝ≥0} {g : ι → ℝ≥0} {h : ℝ≥0} (H : ∀ i, g i * h ≤ a) : supr g * h ≤ a :=
+lemma supr_mul_le {a : ℝ≥0} {g : ι → ℝ≥0} {h : ℝ≥0} (H : ∀ i, g i * h ≤ a) : supr g * h ≤ a :=
 begin
   by_cases hh : h = 0,
   { simp_rw [hh, mul_zero] at H ⊢,
@@ -789,13 +841,13 @@ begin
     exact csupr_le H }
 end
 
-lemma le_cinfi_mul_cinfi {a : ℝ≥0} {g h : ι → ℝ≥0} (H : ∀ i j, a ≤ g i * h j) :
+lemma le_infi_mul_infi {a : ℝ≥0} {g h : ι → ℝ≥0} (H : ∀ i j, a ≤ g i * h j) :
   a ≤ infi g * infi h :=
-le_cinfi_mul  $ λ i, le_mul_cinfi $ H i
+le_infi_mul  $ λ i, le_mul_infi $ H i
 
-lemma csupr_mul_csupr_le {a : ℝ≥0} {g h : ι → ℝ≥0} (H : ∀ i j, g i * h j ≤ a) :
+lemma supr_mul_supr_le {a : ℝ≥0} {g h : ι → ℝ≥0} (H : ∀ i j, g i * h j ≤ a) :
   supr g * supr h ≤ a :=
-csupr_mul_le $ λ i, mul_csupr_le $ H _
+supr_mul_le $ λ i, mul_supr_le $ H _
 
 end csupr
 

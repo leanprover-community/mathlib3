@@ -8,6 +8,7 @@ import category_theory.limits.preserves.functor_category
 import category_theory.limits.preserves.finite
 import category_theory.limits.shapes.finite_limits
 import category_theory.limits.preserves.filtered
+import category_theory.concrete_category.basic
 
 /-!
 # Filtered colimits commute with finite limits.

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
 import algebra.hom.group_instances
-import data.pi
+import data.pi.algebra
 import data.set.function
 import data.set.pairwise
 import tactic.pi_instances
@@ -126,8 +126,48 @@ end pi
 namespace mul_hom
 
 @[to_additive] lemma coe_mul {M N} {mM : has_mul M} {mN : comm_semigroup N}
-  (f g : mul_hom M N) :
+  (f g : M →ₙ* N) :
   (f * g : M → N) = λ x, f x * g x := rfl
+
+end mul_hom
+
+section mul_hom
+
+variables (f) [Π i, has_mul (f i)]
+
+/-- Evaluation of functions into an indexed collection of semigroups at a point is a semigroup
+homomorphism.
+This is `function.eval i` as a `mul_hom`. -/
+@[to_additive "Evaluation of functions into an indexed collection of additive semigroups at a
+point is an additive semigroup homomorphism.
+This is `function.eval i` as an `add_hom`.", simps]
+def pi.eval_mul_hom (i : I) : (Π i, f i) →ₙ* f i :=
+{ to_fun := λ g, g i,
+  map_mul' := λ x y, pi.mul_apply _ _ i, }
+
+/-- `function.const` as a `mul_hom`. -/
+@[to_additive "`function.const` as an `add_hom`.", simps]
+def pi.const_mul_hom (α β : Type*) [has_mul β] : β →ₙ* (α → β) :=
+{ to_fun := function.const α,
+  map_mul' := λ _ _, rfl }
+
+/-- Coercion of a `mul_hom` into a function is itself a `mul_hom`.
+See also `mul_hom.eval`. -/
+@[to_additive "Coercion of an `add_hom` into a function is itself a `add_hom`.
+See also `add_hom.eval`. ", simps]
+def mul_hom.coe_fn (α β : Type*) [has_mul α] [comm_semigroup β] : (α →ₙ* β) →ₙ* (α → β) :=
+{ to_fun := λ g, g,
+  map_mul' := λ x y, rfl, }
+
+/-- Semigroup homomorphism between the function spaces `I → α` and `I → β`, induced by a semigroup
+homomorphism `f` between `α` and `β`. -/
+@[to_additive "Additive semigroup homomorphism between the function spaces `I → α` and `I → β`,
+induced by an additive semigroup homomorphism `f` between `α` and `β`", simps]
+protected def mul_hom.comp_left {α β : Type*} [has_mul α] [has_mul β] (f : α →ₙ* β)
+  (I : Type*) :
+  (I → α) →ₙ* (I → β) :=
+{ to_fun := λ h, f ∘ h,
+  map_mul' := λ _ _, by ext; simp }
 
 end mul_hom
 
@@ -219,7 +259,7 @@ lemma monoid_hom.single_apply [Π i, mul_one_class $ f i] (i : I) (x : f i) :
 into a dependent family of `mul_zero_class`es, as functions supported at a point.
 
 This is the `mul_hom` version of `pi.single`. -/
-@[simps] def mul_hom.single [Π i, mul_zero_class $ f i] (i : I) : mul_hom (f i) (Π i, f i) :=
+@[simps] def mul_hom.single [Π i, mul_zero_class $ f i] (i : I) : (f i) →ₙ* (Π i, f i) :=
 { to_fun := single i,
   map_mul' := pi.single_op₂ (λ _, (*)) (λ _, zero_mul _) _, }
 

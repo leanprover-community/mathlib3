@@ -185,7 +185,7 @@ lemma countable.insert {s : set α} (a : α) (h : countable s) : countable (inse
 countable_insert.2 h
 
 lemma finite.countable {s : set α} : finite s → countable s
-| ⟨h⟩ := trunc.nonempty (by exactI trunc_encodable_of_fintype s)
+| ⟨h⟩ := trunc.nonempty (by exactI fintype.trunc_encodable s)
 
 lemma subsingleton.countable {s : set α} (hs : s.subsingleton) : countable s :=
 hs.finite.countable

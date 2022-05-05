@@ -835,25 +835,35 @@ begin
   exact union_of singletons (symm hi),
 end
 
-lemma exists_mem_subset_of_subset_bUnion_of_directed_on {α ι : Type*}
-  {f : ι → set α}  {c : set ι} {a : ι} (hac : a ∈ c) (hc : directed_on (λ i j, f i ⊆ f j) c)
-  {s : finset α} (hs : (s : set α) ⊆ ⋃ i ∈ c, f i) : ∃ i ∈ c, (s : set α) ⊆ f i :=
+lemma _root_.directed.exists_mem_subset_of_finset_subset_bUnion {α ι : Type*} [hn : nonempty ι]
+  {f : ι → set α} (h : directed (⊆) f)
+  {s : finset α} (hs : (s : set α) ⊆ ⋃ i, f i) : ∃ i, (s : set α) ⊆ f i :=
 begin
   classical,
   revert hs,
   apply s.induction_on,
-  { intros,
-    use [a, hac],
-    simp },
+  { refine λ _, ⟨hn.some, _⟩,
+    simp only [coe_empty, set.empty_subset], },
   { intros b t hbt htc hbtc,
-    obtain ⟨i : ι , hic : i ∈ c, hti : (t : set α) ⊆ f i⟩ :=
+    obtain ⟨i : ι , hti : (t : set α) ⊆ f i⟩ :=
       htc (set.subset.trans (t.subset_insert b) hbtc),
-    obtain ⟨j, hjc, hbj⟩ : ∃ j ∈ c, b ∈ f j,
+    obtain ⟨j, hbj⟩ : ∃ j, b ∈ f j,
       by simpa [set.mem_Union₂] using hbtc (t.mem_insert_self b),
-    rcases hc j hjc i hic with ⟨k, hkc, hk, hk'⟩,
-    use [k, hkc],
+    rcases h j i with ⟨k, hk, hk'⟩,
+    use k,
     rw [coe_insert, set.insert_subset],
     exact ⟨hk hbj, trans hti hk'⟩ }
+end
+
+lemma _root_.directed_on.exists_mem_subset_of_finset_subset_bUnion {α ι : Type*}
+  {f : ι → set α}  {c : set ι} (hn : c.nonempty) (hc : directed_on (λ i j, f i ⊆ f j) c)
+  {s : finset α} (hs : (s : set α) ⊆ ⋃ i ∈ c, f i) : ∃ i ∈ c, (s : set α) ⊆ f i :=
+begin
+  rw set.bUnion_eq_Union at hs,
+  haveI := c.nonempty_coe_sort.2 hn,
+  obtain ⟨⟨i, hic⟩, hi⟩ :=
+    (directed_comp.2 hc.directed_coe).exists_mem_subset_of_finset_subset_bUnion hs,
+  exact ⟨i, hic, hi⟩
 end
 
 /-! #### inter -/
@@ -1738,7 +1748,7 @@ finset.ext $ by simp
 @[simp] lemma to_finset_union (s t : multiset α) : (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
 by ext; simp
 
-theorem to_finset_eq_empty {m : multiset α} : m.to_finset = ∅ ↔ m = 0 :=
+@[simp] theorem to_finset_eq_empty {m : multiset α} : m.to_finset = ∅ ↔ m = 0 :=
 finset.val_inj.symm.trans multiset.dedup_eq_zero
 
 @[simp] lemma to_finset_subset (s t : multiset α) : s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=

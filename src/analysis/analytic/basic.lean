@@ -69,15 +69,41 @@ build the general theory. We do not define it here.
 
 noncomputable theory
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
-{G : Type*} [normed_group G] [normed_space 𝕜 G]
+variables {𝕜 E F G : Type*}
 
 open_locale topological_space classical big_operators nnreal filter ennreal
 open set filter asymptotics
 
+namespace formal_multilinear_series
+
+variables [ring 𝕜] [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
+variables [topological_space E] [topological_space F]
+variables [topological_add_group E] [topological_add_group F]
+variables [has_continuous_const_smul 𝕜 E] [has_continuous_const_smul 𝕜 F]
+
+/-- Given a formal multilinear series `p` and a vector `x`, then `p.sum x` is the sum `Σ pₙ xⁿ`. A
+priori, it only behaves well when `∥x∥ < p.radius`. -/
+protected def sum (p : formal_multilinear_series 𝕜 E F) (x : E) : F := ∑' n : ℕ , p n (λ i, x)
+
+/-- Given a formal multilinear series `p` and a vector `x`, then `p.partial_sum n x` is the sum
+`Σ pₖ xᵏ` for `k ∈ {0,..., n-1}`. -/
+def partial_sum (p : formal_multilinear_series 𝕜 E F) (n : ℕ) (x : E) : F :=
+∑ k in finset.range n, p k (λ(i : fin k), x)
+
+/-- The partial sums of a formal multilinear series are continuous. -/
+lemma partial_sum_continuous (p : formal_multilinear_series 𝕜 E F) (n : ℕ) :
+  continuous (p.partial_sum n) :=
+by continuity
+
+end formal_multilinear_series
+
 /-! ### The radius of a formal multilinear series -/
+
+
+variables [nondiscrete_normed_field 𝕜]
+[normed_group E] [normed_space 𝕜 E]
+[normed_group F] [normed_space 𝕜 F]
+[normed_group G] [normed_space 𝕜 G]
 
 namespace formal_multilinear_series
 
@@ -281,24 +307,10 @@ end
 @[simp] lemma radius_neg (p : formal_multilinear_series 𝕜 E F) : (-p).radius = p.radius :=
 by simp [radius]
 
-/-- Given a formal multilinear series `p` and a vector `x`, then `p.sum x` is the sum `Σ pₙ xⁿ`. A
-priori, it only behaves well when `∥x∥ < p.radius`. -/
-protected def sum (p : formal_multilinear_series 𝕜 E F) (x : E) : F := ∑' n : ℕ , p n (λ i, x)
-
 protected lemma has_sum [complete_space F]
   (p : formal_multilinear_series 𝕜 E F) {x : E} (hx : x ∈ emetric.ball (0 : E) p.radius) :
   has_sum (λ n : ℕ, p n (λ _, x)) (p.sum x) :=
 (p.summable hx).has_sum
-
-/-- Given a formal multilinear series `p` and a vector `x`, then `p.partial_sum n x` is the sum
-`Σ pₖ xᵏ` for `k ∈ {0,..., n-1}`. -/
-def partial_sum (p : formal_multilinear_series 𝕜 E F) (n : ℕ) (x : E) : F :=
-∑ k in finset.range n, p k (λ(i : fin k), x)
-
-/-- The partial sums of a formal multilinear series are continuous. -/
-lemma partial_sum_continuous (p : formal_multilinear_series 𝕜 E F) (n : ℕ) :
-  continuous (p.partial_sum n) :=
-by continuity
 
 lemma radius_le_radius_continuous_linear_map_comp
   (p : formal_multilinear_series 𝕜 E F) (f : F →L[𝕜] G) :

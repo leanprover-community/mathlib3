@@ -621,8 +621,6 @@ instance sub_neg_monoid.has_scalar_int {M} [sub_neg_monoid M] : has_scalar ℤ M
 
 attribute [to_additive sub_neg_monoid.has_scalar_int] div_inv_monoid.has_pow
 
-export div_inv_monoid (div_eq_mul_inv) sub_neg_monoid (sub_eq_add_neg)
-
 section div_inv_monoid
 variables [div_inv_monoid G] {a b : G}
 
@@ -647,6 +645,15 @@ zpow_coe_nat a n
 @[simp, to_additive]
 theorem zpow_neg_succ_of_nat (a : G) (n : ℕ) : a ^ -[1+n] = (a ^ (n + 1))⁻¹ :=
 by { rw ← zpow_coe_nat, exact div_inv_monoid.zpow_neg' n a }
+
+/-- Dividing by an element is the same as multiplying by its inverse.
+
+This is a duplicate of `div_inv_monoid.div_eq_mul_inv` ensuring that the types unfold better.
+-/
+@[to_additive "Subtracting an element is the same as adding by its negative.
+
+This is a duplicate of `sub_neg_monoid.sub_eq_mul_neg` ensuring that the types unfold better."]
+lemma div_eq_mul_inv (a b : G) : a / b = a * b⁻¹ := div_inv_monoid.div_eq_mul_inv _ _
 
 alias div_eq_mul_inv ← division_def
 

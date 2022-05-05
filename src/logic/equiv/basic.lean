@@ -1198,7 +1198,6 @@ def sum_prod_distrib (α β γ : Sort*) : (α ⊕ β) × γ ≃ (α × γ) ⊕ (
  λ p, by rcases p with ⟨_ | _, _⟩; refl,
  λ s, by rcases s with ⟨_, _⟩ | ⟨_, _⟩; refl⟩
 
-
 @[simp] theorem sum_prod_distrib_apply_left {α β γ} (a : α) (c : γ) :
    sum_prod_distrib α β γ (sum.inl a, c) = sum.inl (a, c) := rfl
 @[simp] theorem sum_prod_distrib_apply_right {α β γ} (b : β) (c : γ) :

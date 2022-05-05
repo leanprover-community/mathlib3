@@ -231,7 +231,7 @@ instance {X : C} [simple X] : is_simple_order (subobject X) :=
 end, }
 
 /-- If `X` has subobject lattice `{⊥, ⊤}`, then `X` is simple. -/
-def simple_of_is_simple_order_subobject (X : C) [is_simple_order (subobject X)] : simple X :=
+lemma simple_of_is_simple_order_subobject (X : C) [is_simple_order (subobject X)] : simple X :=
 begin
   split, introsI, split,
   { introI i,

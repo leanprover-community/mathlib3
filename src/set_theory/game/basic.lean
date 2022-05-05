@@ -10,9 +10,7 @@ import tactic.abel
 # Combinatorial games.
 
 In this file we define the quotient of pre-games by the equivalence relation `p ≈ q ↔ p ≤ q ∧ q ≤
-p`, and construct an instance `add_comm_group game`, as well as an instance `partial_order game`
-(although note carefully the warning that the `<` field in this instance is not the usual relation
-on combinatorial games).
+p`, and construct an instance `add_comm_group game`, as well as an instance `partial_order game`.
 
 ## Multiplication on pre-games
 
@@ -48,7 +46,8 @@ namespace game
 instance : add_comm_group game :=
 { zero := ⟦0⟧,
   neg := quot.lift (λ x, ⟦-x⟧) (λ x y h, quot.sound (@neg_congr x y h)),
-  add := quotient.lift₂ (λ x y : pgame, ⟦x + y⟧) (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy)),
+  add := quotient.lift₂ (λ x y : pgame, ⟦x + y⟧)
+    (λ x₁ y₁ x₂ y₂ hx hy, quot.sound (pgame.add_congr hx hy)),
   add_zero := by { rintro ⟨x⟩, exact quot.sound (add_zero_equiv x) },
   zero_add := by { rintro ⟨x⟩, exact quot.sound (zero_add_equiv x) },
   add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, exact quot.sound add_assoc_equiv },

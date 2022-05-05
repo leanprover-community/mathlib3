@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Jakob von Raumer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jakob von Raumer
+Authors: Jakob von Raumer, Scott Morrison
 -/
 import category_theory.monoidal.rigid.basic
 import linear_algebra.tensor_product_basis
@@ -12,19 +12,21 @@ import algebra.category.Module.monoidal
 # The category of finitely generated modules over a ring
 
 This introduces `fgModule R`, the category of finitely generated modules over a ring `R`.
-It is implemented as a full subcategory on a subtype of `fgModule R`.
+It is implemented as a full subcategory on a subtype of `Module R`.
 
-We first create the instance as a `R`-linear category.
-When `R` is commutative we then give the structure as an `R`-linear monoidal category
+When `K` is a field, `fgModule K` is the category of finite dimensional vector spaces over `K`.
+
+We first create the instance as a preadditive category.
+When `R` is commutative we then give the structure as an `R`-linear category.
+When `R` is a field we give it the structure of a monoidal category
 and then as a right-rigid monoidal category.
 
 ## Future work
 
 * Show that `fgModule R` is abelian when `R` is (left)-noetherian.
 * Generalize the `monoidal_category` instance to any commutative ring.
-* Show that `fgModule R` is a symmetric monoidal category (it is already monoidal)
-  when `R` is commutative.
-* Show that `fgModule R` is rigid (it is already right rigid).
+* Show that `fgModule R` is a symmetric monoidal category when `R` is commutative.
+* Show that `fgModule R` is rigid (it is already right rigid) when `R` is a field.
 
 -/
 noncomputable theory

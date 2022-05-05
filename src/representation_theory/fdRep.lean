@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import representation_theory.Rep
-import algebra.category.FinVect.limits
+import algebra.category.fgModule.limits
 import category_theory.preadditive.schur
 
 /-!

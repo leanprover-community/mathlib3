@@ -63,7 +63,9 @@ instance : partial_order game :=
   le_trans := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, exact @le_trans _ _ x y z },
   le_antisymm := by { rintro ⟨x⟩ ⟨y⟩ h₁ h₂, apply quot.sound, exact ⟨h₁, h₂⟩ } }
 
-/-- If `0 ⧏ x` (less or fuzzy with), then Left can win `x` as the first player. -/
+/-- The less or fuzzy relation on games.
+
+If `0 ⧏ x` (less or fuzzy with), then Left can win `x` as the first player. -/
 def lf : game → game → Prop :=
 quotient.lift₂ lf (λ x₁ y₁ x₂ y₂ hx hy, propext (lf_congr hx hy))
 
@@ -74,6 +76,12 @@ by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_le }
 
 @[simp] theorem not_lf : ∀ {x y : game}, ¬ x ⧏ y ↔ y ≤ x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_lf }
+
+/-- The fuzzy, confused, or incomparable relation on pre-games.
+
+If `x ∥ 0`, then the second player can always win `x`. -/
+def fuzzy : game → game → Prop :=
+quotient.lift₂ fuzzy (λ x₁ y₁ x₂ y₂ hx hy, propext (fuzzy_congr hx hy))
 
 instance covariant_class_add_le : covariant_class game game (+) (≤) :=
 ⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a }⟩

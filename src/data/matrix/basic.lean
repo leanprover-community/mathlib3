@@ -1370,8 +1370,6 @@ matrix.ext $ by simp
   (c • M)ᴴ = c • Mᴴ :=
 matrix.ext $ by simp
 
-<<<<<<< HEAD
-=======
 @[simp] lemma conj_transpose_nat_cast_smul [semiring R] [add_comm_monoid α]
   [star_add_monoid α] [module R α] (c : ℕ) (M : matrix m n α) : ((c : R) • M)ᴴ = (c : R) • Mᴴ :=
 matrix.ext $ by simp
@@ -1392,7 +1390,6 @@ matrix.ext $ by simp
   [module R α] (c : ℚ) (M : matrix m n α) : ((c : R) • M)ᴴ = (c : R) • Mᴴ :=
 matrix.ext $ by simp
 
->>>>>>> origin/eric-wieser/conj_transpose_inv_nat_smul
 @[simp] lemma conj_transpose_rat_smul [add_comm_group α] [star_add_monoid α] [module ℚ α] (c : ℚ)
   (M : matrix m n α) : (c • M)ᴴ = c • Mᴴ :=
 matrix.ext $ by simp

@@ -187,7 +187,6 @@ begin
     rintros U (hU : U ∈ p.basis_sets),
     rcases p.basis_sets_iff.mp hU with ⟨s, r, hr, rfl⟩,
     rw [id, seminorm.ball_finset_sup_eq_Inter _ _ _ hr, s.Inter_mem_sets],
-    intros i hi,
     exact λ i hi, filter.mem_infi_of_mem i ⟨metric.ball 0 r, metric.ball_mem_nhds 0 hr,
       eq.subset ((p i).ball_zero_eq_preimage_ball).symm⟩, },
 end

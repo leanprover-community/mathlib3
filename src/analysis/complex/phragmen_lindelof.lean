@@ -7,6 +7,10 @@ import analysis.complex.abs_max
 import analysis.asymptotics.superpolynomial_decay
 
 /-!
+# Phragmen-Lindelöf principle
+
+In this file we prove several versions of the Phragmen-Lindelöf principle, a version of the maximum
+modulus principle for an unbounded domain. Lemmas are named `phragmen_lindelof.shape` (e.g., `phragmen_lindelof.horizontal_strip`, `phragmen_lindelof.quadrant_I` etc).
 -/
 
 open set function filter asymptotics metric complex
@@ -47,7 +51,8 @@ begin
       rw [mul_I_im, of_real_re] },
     exacts [(hle_a _ hw).trans hC'.le, (hle_b _ hw).trans hC'.le] },
   clear_dependent C, intros C hC₀ hle_a hle_b,
-  -- After a change of variables, we deal with an interval `(a - b, a + b)` instead of `(a, b)`
+  -- After a change of variables, we deal with the strip `a - b < im z < a + b` instead
+  -- of `a < im z < b`
   obtain ⟨a, b, rfl, rfl⟩ : ∃ a' b', a = a' - b' ∧ b = a' + b',
   { refine ⟨(a + b) / 2, (b - a) / 2, _, _⟩,
     { rw [← sub_div, ← sub_add, add_sub_cancel, ← two_mul, mul_div_cancel_left a two_ne_zero] },
@@ -58,7 +63,7 @@ begin
     by simpa only [sub_eq_add_neg, add_lt_add_iff_left, neg_lt_self_iff] using hab,
   rw [add_sub_sub_cancel, ← two_mul, ← div_div_eq_div_mul] at hB,
   have hπb : 0 < π / 2 / b, from div_pos real.pi_div_two_pos hb,
-  -- Choose some `c B : ℝ` satisfying `hB`, then choose `max c 0 < r < π / (b - a)`.
+  -- Choose some `c B : ℝ` satisfying `hB`, then choose `max c 0 < d < π / 2 / b`.
   rcases hB with ⟨c, hc, B, hO⟩,
   obtain ⟨d, ⟨hcd, hd₀⟩, hd⟩ : ∃ d, (c < d ∧ 0 < d) ∧ d < π / 2 / b,
     by simpa only [max_lt_iff] using exists_between (max_lt hc hπb),
@@ -75,10 +80,8 @@ begin
   -- An upper estimate on `∥g ε w∥` that will be used in two branches of the proof.
   obtain ⟨δ, δ₀, hδ⟩ : ∃ δ : ℝ, δ < 0 ∧ ∀ ⦃w⦄, im w ∈ Icc (a - b) (a + b) →
     abs (g ε w) ≤ expR (δ * expR (d * |re w|)),
-  { have H : ε * real.cos (d * b) < 0,
-      from mul_neg_of_neg_of_pos ε₀ (real.cos_pos_of_mem_Ioo $ abs_lt.1 $
-        (abs_of_pos (mul_pos hd₀ hb)).symm ▸ hb'),
-    refine ⟨_, H, λ w hw, _⟩,
+  { refine ⟨ε * real.cos (d * b), mul_neg_of_neg_of_pos ε₀ (real.cos_pos_of_mem_Ioo $ abs_lt.1 $
+      (abs_of_pos (mul_pos hd₀ hb)).symm ▸ hb'), λ w hw, _⟩,
     replace hw : |im (aff w)| ≤ d * b,
     { rw [← real.closed_ball_eq_Icc] at hw,
       rwa [of_real_mul_im, sub_im, mul_I_im, of_real_re, _root_.abs_mul, abs_of_pos hd₀,
@@ -88,8 +91,7 @@ begin
       using abs_exp_mul_exp_add_exp_neg_le_of_abs_im_le ε₀.le hw hb'.le },
   -- `abs (g ε w) ≤ 1` on the lines `w.im = ±π` (actually, it holds everywhere in the strip)
   have hg₁ : ∀ w, (im w = a - b ∨ im w = a + b) → abs (g ε w) ≤ 1,
-  { intros w hw,
-    refine (hδ $ hw.by_cases _ _).trans (real.exp_le_one_iff.2 _),
+  { refine λ w hw, (hδ $ hw.by_cases _ _).trans (real.exp_le_one_iff.2 _),
     exacts [λ h, h.symm ▸ left_mem_Icc.2 hab.le, λ h, h.symm ▸ right_mem_Icc.2 hab.le,
       mul_nonpos_of_nonpos_of_nonneg δ₀.le (real.exp_pos _).le] },
   /- Our apriori estimate on `f` implies that `g ε w • f w → 0` as `|w.re| → ∞`. In particular,
@@ -120,13 +122,13 @@ begin
       tendsto_const_nhds.mul_at_top (sub_pos.2 hcd) tendsto_id) },
   have hR₀ : 0 < R, from (_root_.abs_nonneg _).trans_lt hzR,
   /- Finally, we apply the bounded version of the maximum modulus principle to the rectangle
-  `(-R, R) × (-π / 2, π / 2)`. The function is bounded by `C` on the horizontal sides by assumption
+  `(-R, R) × (a - b, a + b)`. The function is bounded by `C` on the horizontal sides by assumption
   (and because `∥g ε w∥ ≤ 1`) and on the vertical sides by the choice of `R`. -/
   have hgd : differentiable ℂ (g ε),
-    by convert ((((differentiable_id.sub_const _).const_mul _).cexp.add
+    from ((((differentiable_id.sub_const _).const_mul _).cexp.add
       ((differentiable_id.sub_const _).const_mul _).neg.cexp).const_mul _).cexp,
   replace hd : diff_cont_on_cl ℂ (λ w, g ε w • f w) (Ioo (-R) R ×ℂ Ioo (a - b) (a + b)),
-    from (hgd.diff_cont_on_cl.smul hfd).mono (λ w hw, hw.2),
+    from (hgd.diff_cont_on_cl.smul hfd).mono (inter_subset_right _ _),
   convert norm_le_of_forall_mem_frontier_norm_le ((bounded_Ioo _ _).re_prod_im (bounded_Ioo _ _))
     hd (λ w hw, _) _,
   { have hwc := frontier_subset_closure hw,
@@ -159,6 +161,37 @@ lemma eq_zero_on_horizontal_strip (hd : diff_cont_on_cl ℂ f (im ⁻¹' Ioo a b
   eq_on f 0 (im ⁻¹' Icc a b) :=
 λ z hz, norm_le_zero_iff.1 $ horizontal_strip hd hB
   (λ z hz, (ha z hz).symm ▸ norm_zero.le) (λ z hz, (hb z hz).symm ▸ norm_zero.le) hz
+
+lemma eq_on_horizontal_strip {g : ℂ → E} (hdf : diff_cont_on_cl ℂ f (im ⁻¹' Ioo a b))
+  (hBf : ∃ (c < π / (b - a)) B, is_O f (λ z, expR (B * expR (c * |z.re|)))
+    (comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b)))
+  (hdg : diff_cont_on_cl ℂ g (im ⁻¹' Ioo a b))
+  (hBg : ∃ (c < π / (b - a)) B, is_O g (λ z, expR (B * expR (c * |z.re|)))
+    (comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b)))
+  (ha : ∀ z : ℂ, z.im = a → f z = g z) (hb : ∀ z : ℂ, z.im = b → f z = g z) :
+  eq_on f g (im ⁻¹' Icc a b) :=
+begin
+  intros z hz,
+  rcases eq_endpoints_or_mem_Ioo_of_mem_Icc hz with rfl|rfl|hz',
+  { exact ha _ rfl }, { exact hb _ rfl },
+  refine sub_eq_zero.1 (eq_zero_on_horizontal_strip (hdf.sub hdg) _
+    (λ w hw, sub_eq_zero.2 (ha w hw)) (λ w hw, sub_eq_zero.2 (hb w hw)) hz),
+  rcases hBf with ⟨cf, hcf, Bf, hOf⟩, rcases hBg with ⟨cg, hcg, Bg, hOg⟩,
+  have hab : a < b := hz'.1.trans hz'.2,
+  have hπab : 0 < π / (b - a), from div_pos real.pi_pos (sub_pos.2 hab),
+  refine ⟨max cf cg, max_lt hcf hcg, max 0 (max Bf Bg), _⟩,
+  refine (hOf.trans_le $ λ w, _).sub (hOg.trans_le $ λ w, _),
+  { rw [real.norm_eq_abs, real.norm_eq_abs, abs_of_pos (real.exp_pos _),
+      abs_of_pos (real.exp_pos _), real.exp_le_exp],
+    exact mul_le_mul ((le_max_left _ _).trans (le_max_right _ _))
+      (real.exp_le_exp.2 $ mul_le_mul_of_nonneg_right (le_max_left _ _) $ abs_nonneg _)
+      (real.exp_pos _).le (le_max_left _ _) },
+  { rw [real.norm_eq_abs, real.norm_eq_abs, abs_of_pos (real.exp_pos _),
+      abs_of_pos (real.exp_pos _), real.exp_le_exp],
+    exact mul_le_mul ((le_max_right _ _).trans (le_max_right _ _))
+      (real.exp_le_exp.2 $ mul_le_mul_of_nonneg_right (le_max_right _ _) $ abs_nonneg _)
+      (real.exp_pos _).le (le_max_left _ _) }
+end
 
 /-- **Phragmen-Lindelöf principle** in the first quadrant. Let `f : ℂ → E` be a function such that
 

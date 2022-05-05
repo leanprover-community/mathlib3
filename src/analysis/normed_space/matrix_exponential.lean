@@ -189,7 +189,7 @@ begin
 end
 
 lemma exp_units_conj (U : (matrix m m 𝔸)ˣ) (A : matrix m m 𝔸)  :
-  exp 𝕂 _ (↑U * A * ↑(U⁻¹)) = U * exp 𝕂 _ A * ↑(U⁻¹) :=
+  exp 𝕂 _ (↑U ⬝ A ⬝ ↑(U⁻¹)) = U ⬝ exp 𝕂 _ A ⬝ ↑(U⁻¹) :=
 begin
   letI : semi_normed_ring (matrix m m 𝔸) := matrix.linfty_op_semi_normed_ring,
   letI : normed_ring (matrix m m 𝔸) := matrix.linfty_op_normed_ring,
@@ -198,7 +198,7 @@ begin
 end
 
 lemma exp_units_conj' (U : (matrix m m 𝔸)ˣ) (A : matrix m m 𝔸)  :
-  exp 𝕂 _ (↑(U⁻¹) * A * U) = ↑(U⁻¹) * exp 𝕂 _ A * U :=
+  exp 𝕂 _ (↑(U⁻¹) ⬝ A ⬝ U) = ↑(U⁻¹) ⬝ exp 𝕂 _ A ⬝ U :=
 exp_units_conj 𝕂 U⁻¹ A
 
 end normed

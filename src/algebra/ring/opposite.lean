@@ -176,8 +176,8 @@ def ring_hom.to_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
   .. ((op_add_equiv : S ≃+ Sᵐᵒᵖ).to_add_monoid_hom.comp ↑f : R →+ Sᵐᵒᵖ),
   .. f.to_monoid_hom.to_opposite hf }
 
-/-- A monoid homomorphism `f : R →* S` such that `f x` commutes with `f y` for all `x, y` defines
-a monoid homomorphism from `Rᵐᵒᵖ`. -/
+/-- A ring homomorphism `f : R →+* S` such that `f x` commutes with `f y` for all `x, y` defines
+a ring homomorphism from `Rᵐᵒᵖ`. -/
 @[simps {fully_applied := ff}]
 def ring_hom.from_opposite {R S : Type*} [semiring R] [semiring S] (f : R →+* S)
   (hf : ∀ x y, commute (f x) (f y)) : Rᵐᵒᵖ →+* S :=

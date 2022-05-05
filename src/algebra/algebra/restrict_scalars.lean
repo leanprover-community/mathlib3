@@ -89,16 +89,10 @@ variables [semiring S] [add_comm_monoid M]
 def restrict_scalars.module_orig [I : module S M] :
   module S (restrict_scalars R S M) := I
 
-<<<<<<< HEAD
-local attribute [instance] restrict_scalars.module_orig
-
-variables [comm_semiring R] [algebra R S] [module S M]
-=======
 variables [comm_semiring R] [algebra R S] [module S M]
 
 section
 local attribute [instance] restrict_scalars.module_orig
->>>>>>> origin/master
 
 /--
 When `M` is a module over a ring `S`, and `S` is an algebra over `R`, then `M` inherits a
@@ -109,11 +103,6 @@ The preferred way of setting this up is `[module R M] [module S M] [is_scalar_to
 instance : module R (restrict_scalars R S M) :=
 module.comp_hom M (algebra_map R S)
 
-<<<<<<< HEAD
-instance : is_scalar_tower R S (restrict_scalars R S M) :=
-⟨λ r S M, by { rw [algebra.smul_def, mul_smul], refl }⟩
-
-=======
 /--
 This instance is only relevant when `restrict_scalars.module_orig` is available as an instance.
 -/
@@ -122,15 +111,10 @@ instance : is_scalar_tower R S (restrict_scalars R S M) :=
 
 end
 
->>>>>>> origin/master
 /--
 The `R`-algebra homomorphism from the original coefficient algebra `S` to endomorphisms
 of `restrict_scalars R S M`.
 -/
-<<<<<<< HEAD
-def restrict_scalars.lsmul : S →ₐ[R] (module.End R (restrict_scalars R S M)) :=
-algebra.lsmul R (restrict_scalars R S M)
-=======
 def restrict_scalars.lsmul : S →ₐ[R] module.End R (restrict_scalars R S M) :=
 begin
   -- We use `restrict_scalars.module_orig` in the implementation,
@@ -138,23 +122,17 @@ begin
   letI : module S (restrict_scalars R S M) := restrict_scalars.module_orig R S M,
   exact algebra.lsmul R (restrict_scalars R S M),
 end
->>>>>>> origin/master
 
 end
 
 variables [add_comm_monoid M]
 
 /-- `restrict_scalars.add_equiv` is the additive equivalence with the original module. -/
-<<<<<<< HEAD
-def restrict_scalars.add_equiv : restrict_scalars R S M ≃+ M :=
-=======
 @[simps] def restrict_scalars.add_equiv : restrict_scalars R S M ≃+ M :=
->>>>>>> origin/master
 add_equiv.refl M
 
 variables [comm_semiring R] [semiring S] [algebra R S] [module S M]
 
-<<<<<<< HEAD
 -- Note that this lemma relies on the definitional equality `restrict_scalars R S M = M`,
 -- so usage may result in instance leakage.
 -- `restrict_scalars.add_equiv_map_smul` is the "hygienic" version.
@@ -181,16 +159,6 @@ lemma restrict_scalars.lsmul_apply_apply (s : S) (x : restrict_scalars R S M) :
     (restrict_scalars.add_equiv R S M).symm (s • (restrict_scalars.add_equiv R S M x)) :=
 rfl
 
-=======
-lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R S M) :
-  c • x = ((algebra_map R S c) • x : M) := rfl
-
-@[simp] lemma restrict_scalars.add_equiv_map_smul (t : R) (x : restrict_scalars R S M) :
-  restrict_scalars.add_equiv R S M (t • x)
-  = (algebra_map R S t) • restrict_scalars.add_equiv R S M x :=
-rfl
-
->>>>>>> origin/master
 end module
 
 section algebra
@@ -201,13 +169,6 @@ instance [I : comm_semiring A] : comm_semiring (restrict_scalars R S A) := I
 instance [I : comm_ring A] : comm_ring (restrict_scalars R S A) := I
 
 variables [semiring A]
-<<<<<<< HEAD
-
-/-- Tautological ring isomorphism `restrict_scalars R S A ≃+* A`. -/
-def restrict_scalars.ring_equiv : restrict_scalars R S A ≃+* A := ring_equiv.refl _
-
-variables [comm_semiring S] [algebra S A] [comm_semiring R] [algebra R S]
-=======
 
 /-- Tautological ring isomorphism `restrict_scalars R S A ≃+* A`. -/
 def restrict_scalars.ring_equiv : restrict_scalars R S A ≃+* A := ring_equiv.refl _
@@ -218,7 +179,6 @@ variables [comm_semiring S] [algebra S A] [comm_semiring R] [algebra R S]
   restrict_scalars.ring_equiv R S A (r • x)
   = (algebra_map R S r) • restrict_scalars.ring_equiv R S A x :=
 rfl
->>>>>>> origin/master
 
 /-- `R ⟶ S` induces `S-Alg ⥤ R-Alg` -/
 instance : algebra R (restrict_scalars R S A) :=

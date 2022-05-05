@@ -345,7 +345,7 @@ section Gamma_has_deriv
 private def dGamma_integrand (s : ℂ) (x : ℝ) : ℂ := exp (-x) * log x * x ^ (s - 1)
 
 /-- Integrand for the absolute value of the derivative of the `Γ` function -/
-private def dGamma_integrand_real (s x : ℝ) : ℝ := | exp (-x) * log x * x ^ (s - 1) |
+private def dGamma_integrand_real (s x : ℝ) : ℝ := |exp (-x) * log x * x ^ (s - 1)|
 
 lemma dGamma_integrand_is_O_at_top (s : ℝ) : is_O (λ x:ℝ, exp (-x) * log x * x ^ (s - 1))
   (λ x:ℝ, exp (-(1/2) * x) ) at_top :=
@@ -370,7 +370,7 @@ end
 /-- Absolute convergence of the integral which will give the derivative of the `Γ` function on
 `1 < re s`. -/
 lemma dGamma_integral_abs_convergent (s : ℝ) (hs : 1 < s) :
-  integrable_on (λ x:ℝ, ∥ exp (-x) * log x * x ^ (s-1) ∥ ) (Ioi 0) :=
+  integrable_on (λ x:ℝ, ∥exp (-x) * log x * x ^ (s-1)∥ ) (Ioi 0) :=
 begin
   have : Ioi (0:ℝ) = Ioc 0 1 ∪ Ioi 1 := by simp,
   rw [this, integrable_on_union],
@@ -400,10 +400,10 @@ end
 /-- A uniform bound for the `s`-derivative of the `Γ` integrand for `s` in vertical strips. -/
 private lemma loc_unif_bound_dGamma_integrand {t : ℂ} {s1 s2 x : ℝ} (ht : s1 ≤ t.re ∧ t.re ≤ s2)
   (hx : 0 < x) :
-  ∥ dGamma_integrand t x ∥ ≤ (dGamma_integrand_real s1 x) + (dGamma_integrand_real s2 x) :=
+  ∥dGamma_integrand t x∥ ≤ (dGamma_integrand_real s1 x) + (dGamma_integrand_real s2 x) :=
 begin
   by_cases (1 ≤ x),
-  { suffices: ∥ dGamma_integrand t x ∥ ≤ dGamma_integrand_real s2 x, -- case 1 ≤ x
+  { suffices: ∥dGamma_integrand t x∥ ≤ dGamma_integrand_real s2 x, -- case 1 ≤ x
     { have: 0 ≤ dGamma_integrand_real s1 x := by apply abs_nonneg, linarith, },
     rw [dGamma_integrand, dGamma_integrand_real, complex.norm_eq_abs, complex.abs_mul, abs_mul,
       ←complex.of_real_mul, complex.abs_of_real],
@@ -413,7 +413,7 @@ begin
     apply rpow_le_rpow_of_exponent_le h,
     rw [complex.sub_re, complex.one_re], linarith, },
   { push_neg at h, -- case x < 1
-    suffices: ∥ dGamma_integrand t x ∥ ≤ dGamma_integrand_real s1 x,
+    suffices: ∥dGamma_integrand t x∥ ≤ dGamma_integrand_real s1 x,
     { have : 0 ≤ dGamma_integrand_real s2 x := by apply abs_nonneg, linarith, },
     rw [dGamma_integrand, dGamma_integrand_real, complex.norm_eq_abs, complex.abs_mul, abs_mul,
       ←complex.of_real_mul, complex.abs_of_real],

@@ -148,7 +148,7 @@ begin
   have := factorial_mul_factorial_dvd_factorial_add i j,
   field_simp [mul_comm _ (bernoulli' i), mul_assoc, add_choose],
   rw_mod_cast [mul_comm (j + 1), mul_div_assoc, ← mul_assoc],
-  rw [cast_mul, cast_mul, mul_div_mul_right, cast_dvd_char_zero, cast_mul],
+  rw [cast_mul, cast_mul, mul_div_mul_right, cast_div_char_zero, cast_mul],
   assumption',
 end
 
@@ -256,7 +256,7 @@ begin
   have hj : (j.succ : ℚ) ≠ 0 := by exact_mod_cast succ_ne_zero j,
   field_simp [← h, mul_ne_zero hj (hfact j), hfact i, mul_comm _ (bernoulli i), mul_assoc],
   rw_mod_cast [mul_comm (j + 1), mul_div_assoc, ← mul_assoc],
-  rw [cast_mul, cast_mul, mul_div_mul_right _ _ hj, add_choose, cast_dvd_char_zero],
+  rw [cast_mul, cast_mul, mul_div_mul_right _ _ hj, add_choose, cast_div_char_zero],
   apply factorial_mul_factorial_dvd_factorial_add,
 end
 
@@ -287,7 +287,7 @@ begin
     rw [choose_eq_factorial_div_factorial h.le, eq_comm, div_eq_iff (hne q.succ), succ_eq_add_one,
         mul_assoc _ _ ↑q.succ!, mul_comm _ ↑q.succ!, ← mul_assoc, div_mul_eq_mul_div,
         mul_comm (↑n ^ (q - m + 1)), ← mul_assoc _ _ (↑n ^ (q - m + 1)), ← one_div, mul_one_div,
-        div_div_eq_div_mul, tsub_add_eq_add_tsub (le_of_lt_succ h), cast_dvd, cast_mul],
+        div_div_eq_div_mul, tsub_add_eq_add_tsub (le_of_lt_succ h), cast_div, cast_mul],
     { ring },
     { exact factorial_mul_factorial_dvd_factorial h.le },
     { simp [hne] } },

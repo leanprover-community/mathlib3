@@ -87,14 +87,17 @@ begin
   { exact IHxr _ _ (oyr _) (lf_move_right_of_le _ h₁) (lf_move_right_of_le _ h₂) },
 end
 
-theorem le_of_lf {x y : pgame} (ox : numeric x) (oy : numeric y) : x ⧏ y → x ≤ y :=
-by { rw ←not_lf, exact lf_asymm ox oy }
+theorem le_of_lf {x y : pgame} (ox : numeric x) (oy : numeric y) (h : x ⧏ y) : x ≤ y :=
+not_lf.1 (lf_asymm ox oy h)
 
 theorem lt_of_lf {x y : pgame} (ox : numeric x) (oy : numeric y) (h : x ⧏ y) : x < y :=
 (lt_or_fuzzy_of_lf h).resolve_right (not_fuzzy_of_le (le_of_lf ox oy h))
 
 theorem lf_iff_lt {x y : pgame} (ox : numeric x) (oy : numeric y) : x ⧏ y ↔ x < y :=
 ⟨lt_of_lf ox oy, lf_of_lt⟩
+
+theorem not_fuzzy {x y : pgame} (ox : numeric x) (oy : numeric y) : ¬ fuzzy x y :=
+λ h, not_lf.2 (le_of_lf ox oy (lf_of_fuzzy h)) h.2
 
 theorem numeric_zero : numeric 0 :=
 ⟨by rintros ⟨⟩ ⟨⟩, ⟨by rintros ⟨⟩, by rintros ⟨⟩⟩⟩

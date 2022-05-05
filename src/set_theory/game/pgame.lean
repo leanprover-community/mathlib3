@@ -556,6 +556,9 @@ instance : is_symm _ (∥) := ⟨λ x y h, h.swap⟩
 theorem lf_iff_lt_or_fuzzy {x y : pgame} : x ⧏ y ↔ x < y ∨ x ∥ y :=
 by { simp only [lt_iff_le_and_lf, fuzzy, ←pgame.not_le], tauto! }
 
+theorem lf_of_fuzzy {x y : pgame} (h : x ∥ y) : x ⧏ y :=
+lf_iff_lt_or_fuzzy.2 (or.inr h)
+
 theorem lt_or_fuzzy_of_lf {x y : pgame} : x ⧏ y → x < y ∨ x ∥ y :=
 lf_iff_lt_or_fuzzy.1
 

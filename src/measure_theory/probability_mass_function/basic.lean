@@ -63,7 +63,7 @@ def const (a : α) : pmf α :=
 { val := λ s, if s = a then 1 else 0,
   property := has_sum_ite_eq a 1 }
 
-lemma support_const (a : α) : support (const a) = {a} :=
+@[simp] lemma support_const (a : α) : support (const a) = {a} :=
 begin
   unfold const support,
   unfold_coes,

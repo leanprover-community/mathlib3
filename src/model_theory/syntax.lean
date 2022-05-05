@@ -709,7 +709,7 @@ def nonempty_theory : L.Theory := {sentence.card_ge L 1}
 def distinct_constants_theory (s : set α) : L[[α]].Theory :=
 ((s ×ˢ s) ∩ (set.diagonal α).compl).image (λ ab, (((L.con ab.1).term.equal (L.con ab.2).term).not))
 
-variable {L}
+variables {L} {α}
 
 open set
 
@@ -719,7 +719,7 @@ lemma monotone_distinct_constants_theory :
 
 lemma directed_distinct_constants_theory :
   directed (⊆) (L.distinct_constants_theory : set α → L[[α]].Theory) :=
-monotone_distinct_constants_theory.directed_le
+monotone.directed_le monotone_distinct_constants_theory
 
 lemma distinct_constants_theory_eq_Union (s : set α) :
   L.distinct_constants_theory s = ⋃ (t : finset s), L.distinct_constants_theory

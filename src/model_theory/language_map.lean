@@ -362,8 +362,6 @@ language.sum_Structure _ _ M
 instance with_constants_self_expansion : (Lhom_with_constants L M).is_expansion_on M :=
 ⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
 
-variables (A : set M)
-
 variables (α : Type*) [(constants_on α).Structure M]
 
 instance with_constants_Structure : L[[α]].Structure M :=

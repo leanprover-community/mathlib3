@@ -14,6 +14,7 @@ import category_theory.monoidal.linear
 import category_theory.monoidal.braided
 import category_theory.abelian.functor_category
 import category_theory.abelian.transfer
+import category_theory.conj
 import category_theory.linear.functor_category
 
 /-!
@@ -245,6 +246,10 @@ preserves_colimits_of_nat_iso
 -- TODO construct categorical images?
 
 end forget
+
+lemma iso.conj_ρ {M N : Action V G} (f : M ≅ N) (g : G) :
+   N.ρ g = (((forget V G).map_iso f).conj (M.ρ g)) :=
+by { rw [iso.conj_apply, iso.eq_inv_comp], simp [f.hom.comm'] }
 
 section has_zero_morphisms
 variables [has_zero_morphisms V]

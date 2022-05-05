@@ -35,7 +35,7 @@ of `L`. By Löwenheim-Skolem, this is equivalent to satisfiability in any univer
 
 universes u v w w'
 
-open cardinal
+open cardinal category_theory
 open_locale cardinal first_order
 
 namespace first_order
@@ -134,6 +134,7 @@ begin
     exact set.monotone_image.comp (λ _ _, finset.coe_subset.2) }
 end
 
+/-- Any theory with an infinite model has arbitrarily large models. -/
 lemma exists_large_model_of_infinite_model (T : L.Theory) (κ : cardinal.{w})
   (M : Type w') [L.Structure M] [M ⊨ T] [infinite M] :
   ∃ (N : Model.{_ _ (max u v w)} T), cardinal.lift.{max u v w} κ ≤ # N :=
@@ -147,6 +148,33 @@ begin
   rw [← mk_univ],
   refine (card_le_of_model_distinct_constants_theory L set.univ N).trans (lift_le.1 _),
   rw lift_lift,
+end
+
+/-- The Upward Löwenheim–Skolem Theorem: If `κ` is a cardinal greater than the cardinalities of `L`
+and an infinite `L`-structure `M`, then `M` has an elementary extension of cardinality `κ`. -/
+theorem exists_elementary_embedding_card_eq (M : Type w') [L.Structure M] [iM : infinite M]
+  (κ : cardinal.{max u v w'})
+  (h1 : cardinal.lift.{w'} L.card ≤ κ)
+  (h2 : cardinal.lift.{max u v} (# M) ≤ κ) :
+  ∃ (N : bundled L.Structure),
+    nonempty (M ↪ₑ[L] N) ∧ # N = κ :=
+begin
+  obtain ⟨N0, hN0⟩ := exists_large_model_of_infinite_model (L.elementary_diagram M) κ M,
+  let f0 := elementary_embedding.of_models_elementary_diagram L M N0,
+  rw lift_id at hN0,
+  obtain ⟨N, hN1, hN2⟩ := exists_elementary_substructure_card_eq (L[[M]]) (set.range f0) κ
+    ((omega_le_lift.2 (infinite_iff.1 iM)).trans h2) _ _ (hN0.trans (le_of_eq (lift_id _).symm)),
+  { letI := (Lhom_with_constants L M).reduct N,
+    rw lift_id at hN2,
+    refine ⟨bundled.of N, ⟨_⟩, hN2⟩,
+    { have f := elementary_embedding.of_models_elementary_diagram L M N,
+      exact f } },
+  { refine trans (_) h2,
+    rw [lift_id, ← lift_le, lift_lift],
+    exact mk_range_le_lift },
+  { simp only [card_with_constants, lift_add, lift_id],
+    rw [add_comm, add_eq_max (omega_le_lift.2 (infinite_iff.1 iM)), max_le_iff],
+    exact ⟨h2, h1⟩ },
 end
 
 variable (T)

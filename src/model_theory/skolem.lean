@@ -105,7 +105,7 @@ theorem exists_small_elementary_substructure :
   ∃ (S : L.elementary_substructure M), small.{max u v} S :=
 ⟨substructure.elementary_skolem₁_reduct ⊥, infer_instance⟩
 
-variables {L M}
+variables {M}
 
 /-- The Downward Löwenheim–Skolem theorem :
   If `s` is a set in an `L`-structure `M` and `κ` an infinite cardinal such that

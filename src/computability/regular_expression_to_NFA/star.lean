@@ -1,18 +1,33 @@
 /-
+Copyright (c) 2022 Russell Emerine. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Author: Russell Emerine
-Based on: https://courses.engr.illinois.edu/cs373/sp2013/Lectures/lec07.pdf
-TODO: write comments and TODOs, organize, etc.
 -/
 import computability.regular_expression_to_NFA.defs
 
+/-!
+# Proof That Converting `r*` to NFA is Correct
+
+Proves that given that `r` converts to an NFA correctly, then `r*` converts to an NFA correctly.
+This is done by induction using the stronger condition that the number of "resets" in the machine
+matches the exponent in `r ^ n`.
+
+TODO: possibly merge the files in regular_expression_to_NFA together?
+-/
+
 universe u
 
-variables {α : Type u} [dec : decidable_eq α]
+variables {α : Type u}
 
 namespace regular_expression
 
-include dec
+/--
+Raises a regular expression to a power.
 
+TODO:
+ * probably move this into computability/regular_expression
+ * maybe change the order to `pow n * r`?
+-/
 def pow (r : regular_expression α) : ℕ → regular_expression α
 | 0 := epsilon
 | (nat.succ n) := r * pow n
@@ -128,12 +143,18 @@ variables (r : regular_expression α)
 
 include r
 
+/--
+`r.trace x q n` represents a way to get to state q using transitions that recognise x. `q` looks
+like a state in `r.to_NFA`, but it really represents the state `some q` in `r.star.to_NFA`. `n`
+represents the number of resets, which corresponds to the exponent of `r`.
+-/
 inductive trace : list α → r.state → ℕ → Prop
 | nil : ∀ {q}, q ∈ r.to_NFA.start → trace list.nil q 0
 | step : ∀ {p a q x n}, q ∈ r.to_NFA.step p a → trace x p n → trace (a :: x) q n
 | reset : ∀ {p q x n}, p ∈ r.to_NFA.accept → q ∈ r.to_NFA.start → trace x p n → trace x q n.succ
 
-lemma star_eval (x : list α) (q : r.state) : some q ∈ r.star.to_NFA.eval x ↔ ∃ n, r.trace x.reverse q n :=
+lemma star_eval (x : list α) (q : r.state) :
+  some q ∈ r.star.to_NFA.eval x ↔ ∃ n, r.trace x.reverse q n :=
 begin
   split,
   { rw ← x.reverse_reverse,

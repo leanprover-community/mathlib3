@@ -1,10 +1,25 @@
 /-
+Copyright (c) 2022 Russell Emerine. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Author: Russell Emerine
-Based on: https://courses.engr.illinois.edu/cs373/sp2013/Lectures/lec07.pdf
-TODO: write comments and TODOs, organize, etc.
 -/
 import computability.regular_expressions
 import computability.NFA
+
+/-!
+# Definitions for Converting Regular Expressions to NFA's
+
+Definitions of the state types of NFA's corresponding to regular expressions, and some required
+instances for those state types. Then, definitions of NFA's corresponding to regular expressions,
+and some required instances for those NFA's.
+
+This is based on the referenced link. The link uses ε-NFA's, but it was hard to deal with
+ε-closures when proving things, so I used equivalent one-character transition NFA's instead.
+
+## References
+
+* <https://courses.engr.illinois.edu/cs373/sp2013/Lectures/lec07.pdf>
+-/
 
 universe u
 
@@ -12,8 +27,13 @@ variables {α : Type u} [dec : decidable_eq α]
 
 namespace regular_expression
 
-include dec
+/--
+The NFA state type for a particular regular expression.
 
+TODO: The linter wants an inhabited instance for `state`, but it is simply not true for most cases.
+It is possible to use a value other than `empty` for the `zero` case, but that would make things a
+lot less clean. Should I just disable the lint here if there's a way to?
+-/
 def state : regular_expression α → Type _
 | zero := empty
 | epsilon := unit
@@ -22,7 +42,7 @@ def state : regular_expression α → Type _
 | (comp r₁ r₂) := state r₁ ⊕ state r₂
 | (star r) := option (state r)
 
--- Because NFAs are only real NFAs when the states are fintypes, also needed for the proofs
+-- NFAs are only real NFAs when the states are fintypes, and the instance is needed for the proofs
 instance {r : regular_expression α} : fintype r.state :=
 begin
   induction r,
@@ -70,7 +90,10 @@ begin
   },
 end
 
-def to_NFA : Π (r : regular_expression α), NFA α (state r)
+/--
+Recursively converts a regular expression to its corresponding NFA.
+-/
+def to_NFA : Π (r : regular_expression α), NFA α r.state
 | zero := ⟨(λ _ _ _, false), (λ _, false), (λ _, false)⟩
 | epsilon := ⟨(λ _ _ _, false), (λ _, true), (λ _, true)⟩
 | (char a) :=
@@ -145,6 +168,12 @@ def to_NFA : Π (r : regular_expression α), NFA α (state r)
       end)
   ⟩
 
+include dec
+
+/--
+All three functions in an NFA constructed from `to_NFA` are decidable. Since the functions rely on
+each other, the class is proven here, and the instance declarations use this.
+-/
 def regular_expression_to_NFA_decidable {r : regular_expression α} :
   (∀ p a q, decidable (q ∈ r.to_NFA.step p a))
   × decidable_pred (r.to_NFA.start)
@@ -152,11 +181,10 @@ def regular_expression_to_NFA_decidable {r : regular_expression α} :
 begin
   induction r,
   case zero {
-    split,
+    refine ⟨_, _, _⟩,
     { assume p a q,
       exact decidable.false,
     },
-    split,
     { assume q,
       exact decidable.false,
     },
@@ -165,11 +193,10 @@ begin
     },
   },
   case epsilon {
-    split,
+    refine ⟨_, _, _⟩,
     { assume p a q,
       exact decidable.false,
     },
-    split,
     { assume q,
       exact decidable.true,
     },
@@ -178,11 +205,10 @@ begin
     },
   },
   case char : a {
-    split,
+    refine ⟨_, _, _⟩,
     { assume p c q,
       exact and.decidable,
     },
-    split,
     { assume q,
       exact set.decidable_set_of ff (eq q),
     },
@@ -193,7 +219,7 @@ begin
   case plus : r₁ r₂ hr₁ hr₂ {
     rcases hr₁ with ⟨hr₁_step, hr₁_start, hr₁_accept⟩,
     rcases hr₂ with ⟨hr₂_step, hr₂_start, hr₂_accept⟩,
-    split,
+    refine ⟨_, _, _⟩,
     { assume p a q,
       cases p; cases q,
       case inl inl {
@@ -209,7 +235,6 @@ begin
         exact hr₂_step p a q,
       },
     },
-    split,
     { assume q,
       cases q,
       case inl {
@@ -232,7 +257,7 @@ begin
   case comp : r₁ r₂ hr₁ hr₂ {
     rcases hr₁ with ⟨hr₁_step, hr₁_start, hr₁_accept⟩,
     rcases hr₂ with ⟨hr₂_step, hr₂_start, hr₂_accept⟩,
-    split,
+    refine ⟨_, _, _⟩,
     { assume p a q,
       cases p; cases q,
       case inl inl {
@@ -258,7 +283,6 @@ begin
         exact hr₂_step p a q,
       },
     },
-    split,
     { assume q,
       cases q,
       case inl {
@@ -280,7 +304,7 @@ begin
   },
   case star : r hr {
     rcases hr with ⟨hr_step, hr_start, hr_accept⟩,
-    split,
+    refine ⟨_, _, _⟩,
     { assume p a q,
       cases p; cases q,
       case some some {
@@ -306,7 +330,6 @@ begin
         exact decidable.false,
       },
     },
-    split,
     { assume q,
       cases q,
       case none {

@@ -1,18 +1,29 @@
 /-
+Copyright (c) 2022 Russell Emerine. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Author: Russell Emerine
-Based on: https://courses.engr.illinois.edu/cs373/sp2013/Lectures/lec07.pdf
-TODO: write comments and TODOs, organize, etc.
 -/
 import computability.regular_expression_to_NFA.defs
 import computability.regular_expression_to_NFA.star
 
+/-!
+# Proof That Converting Regular Expressions to NFA's is Correct
+
+Inductively proves that `regular_expression.to_NFA` converts a regular expression to an NFA with
+the same accepting language.
+
+TODO: 
+ * possibly merge the files into computability/regular_expression? or change filenames?
+ * mark things as @simp?
+ * clean up non-terminal simps
+ * clean up other things if necessary
+-/
+
 universe u
 
-variables {α : Type u} [dec : decidable_eq α]
+variables {α : Type u}
 
 namespace regular_expression
-
-include dec
 
 lemma zero_to_NFA_correct : (zero : regular_expression α).matches = zero.to_NFA.accepts :=
 begin
@@ -287,7 +298,7 @@ begin
     assume h,
     simp at *,
     rcases accepts with ⟨p, accept, eval⟩,
-    rw @comp_to_NFA_eval₁ _ _ _ r₂ _ p at eval,
+    rw @comp_to_NFA_eval₁ _ _ r₂ _ p at eval,
     revert eval,
     rw ← x.reverse_reverse at *,
     cases x.reverse,
@@ -526,4 +537,3 @@ begin
 end
 
 end regular_expression
-

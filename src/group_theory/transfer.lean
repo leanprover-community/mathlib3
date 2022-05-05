@@ -30,20 +30,24 @@ noncomputable def zpowers_quotient_stabilizer_equiv
 let f := add_action.zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b in
 ⟨f.to_fun, f.inv_fun, f.left_inv, f.right_inv, f.map_add'⟩
 
+-- PR1
 noncomputable def orbit_zpowers_equiv
   {α β : Type*} [group α] (a : α) [mul_action α β] (b : β) :
   mul_action.orbit (subgroup.zpowers a) b ≃ zmod (function.minimal_period ((•) a) b) :=
 (mul_action.orbit_equiv_quotient_stabilizer (subgroup.zpowers a) b).trans
   (zpowers_quotient_stabilizer_equiv a b).to_equiv
 
+-- PR1
 noncomputable def orbit_zmultiples_equiv
   {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β) :
   add_action.orbit (add_subgroup.zmultiples a) b ≃ zmod (function.minimal_period ((+ᵥ) a) b) :=
 (add_action.orbit_equiv_quotient_stabilizer (add_subgroup.zmultiples a) b).trans
   (add_action.zmultiples_quotient_stabilizer_equiv a b).to_equiv
 
+-- PR1
 attribute [to_additive orbit_zmultiples_equiv] orbit_zpowers_equiv
 
+-- PR1
 @[to_additive orbit_zmultiples_equiv_symm_apply']
 lemma orbit_zpowers_equiv_symm_apply' {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
   (k : zmod (function.minimal_period ((•) a) b)) :
@@ -51,6 +55,7 @@ lemma orbit_zpowers_equiv_symm_apply' {α β : Type*} [group α] (a : α) [mul_a
   (⟨a, subgroup.mem_zpowers a⟩ : subgroup.zpowers a) ^ (k : ℤ) • ⟨b, mul_action.mem_orbit_self b⟩ :=
 rfl
 
+-- Auxillary PR
 lemma orbit_zpowers_equiv_symm_apply {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
   (k : ℤ) :
   (orbit_zpowers_equiv a b).symm k =
@@ -65,18 +70,21 @@ end
 
 universe u
 
+-- PR2
 noncomputable def key_equiv {G : Type u} [group G] (H : subgroup G) (g : G) :
   G ⧸ H ≃ Σ (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H))),
   zmod (function.minimal_period ((•) g) q.out') :=
 (mul_action.self_equiv_sigma_orbits (subgroup.zpowers g) (G ⧸ H)).trans
   (equiv.sigma_congr_right (λ q, orbit_zpowers_equiv g q.out'))
 
+-- PR2
 lemma key_equiv_symm_apply {G : Type u} [group G] (H : subgroup G) (g : G)
   (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
   (k : zmod (function.minimal_period ((•) g) q.out')) :
   (key_equiv H g).symm ⟨q, k⟩ = g ^ (k : ℤ) • q.out' :=
 rfl
 
+-- PR2
 lemma key_equiv_apply {G : Type u} [group G] (H : subgroup G) (g : G)
   (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
   (k : ℤ) :
@@ -92,19 +100,23 @@ end equiv_stuff
 
 section transversal_stuff
 
+-- PR3
 def key_transversal_set {G : Type*} [group G] (H : subgroup G) (g : G) : set G :=
 set.range (λ q, g ^ ((key_equiv H g q).2 : ℤ)  * (key_equiv H g q).1.out'.out')
 
+-- PR3
 def key_transversal {G : Type*} [group G] (H : subgroup G) (g : G) : subgroup.left_transversals (H : set G) :=
 ⟨key_transversal_set H g, subgroup.range_mem_left_transversals (λ q, by rw [←smul_eq_mul,
   mul_action.quotient.coe_smul_out', ←key_equiv_symm_apply, sigma.eta, equiv.symm_apply_apply])⟩
 
+-- PR3
 lemma key_transversal_apply {G : Type*} [group G] (H : subgroup G) (g : G) (q : G ⧸ H) :
   ↑(subgroup.mem_left_transversals.to_equiv (key_transversal H g).2 q) =
     g ^ ((key_equiv H g q).2 : ℤ) * (key_equiv H g q).1.out'.out' :=
 subgroup.mem_left_transversals.to_equiv_apply (λ q, by rw [←smul_eq_mul, mul_action.quotient.coe_smul_out',
   ←key_equiv_symm_apply, sigma.eta, equiv.symm_apply_apply]) q
 
+-- PR3
 lemma key_transversal_apply' {G : Type*} [group G] (H : subgroup G)
   (g : G) (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
   (k : zmod (function.minimal_period ((•) g) q.out')) :
@@ -112,6 +124,7 @@ lemma key_transversal_apply' {G : Type*} [group G] (H : subgroup G)
     g ^ (k : ℤ) * q.out'.out' :=
 by rw [key_transversal_apply, ←key_equiv_symm_apply, equiv.apply_symm_apply]
 
+-- PR4
 lemma key_transversal_apply'' {G : Type*} [group G] (H : subgroup G)
   (g : G) (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
   (k : zmod (function.minimal_period ((•) g) q.out')) :

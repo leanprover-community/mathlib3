@@ -479,7 +479,7 @@ instance (o : ordinal) : has_well_founded o.out.α := ⟨o.out.r, o.out.wo.wf⟩
 instance (o : ordinal) : linear_order o.out.α :=
 is_well_order.linear_order o.out.r
 
-instance (o : ordinal) : is_well_order o.out.α (<) :=
+instance ordinal.is_well_order_lt (o : ordinal) : is_well_order o.out.α (<) :=
 o.out.wo
 
 namespace ordinal

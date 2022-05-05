@@ -270,8 +270,8 @@ iff.rfl
 
 instance [inhabited α] : inhabited (as_boolring α) := ‹inhabited α›
 
-/-- Every generalized Boolean algebra has the structure of a non unital ring with the following
-data:
+/-- Every generalized Boolean algebra has the structure of a non unital commutative ring with the
+following data:
 
 * `a + b` unfolds to `a ∆ b` (symmetric difference)
 * `a * b` unfolds to `a ⊓ b`
@@ -279,8 +279,8 @@ data:
 * `0` unfolds to `⊥`
 -/
 @[reducible] -- See note [reducible non-instances]
-def generalized_boolean_algebra.to_non_unital_ring [generalized_boolean_algebra α] :
-  non_unital_ring α :=
+def generalized_boolean_algebra.to_non_unital_comm_ring [generalized_boolean_algebra α] :
+  non_unital_comm_ring α :=
 { add := (∆),
   add_assoc := symm_diff_assoc,
   zero := ⊥,
@@ -293,11 +293,12 @@ def generalized_boolean_algebra.to_non_unital_ring [generalized_boolean_algebra 
   add_comm := symm_diff_comm,
   mul := (⊓),
   mul_assoc := λ _ _ _, inf_assoc,
+  mul_comm := λ _ _, inf_comm,
   left_distrib := inf_symm_diff_distrib_left,
   right_distrib := inf_symm_diff_distrib_right }
 
-instance [generalized_boolean_algebra α] : non_unital_ring (as_boolring α) :=
-@generalized_boolean_algebra.to_non_unital_ring α _
+instance [generalized_boolean_algebra α] : non_unital_comm_ring (as_boolring α) :=
+@generalized_boolean_algebra.to_non_unital_comm_ring α _
 
 variables [boolean_algebra α] [boolean_algebra β] [boolean_algebra γ]
 
@@ -315,9 +316,9 @@ def boolean_algebra.to_boolean_ring : boolean_ring α :=
   one_mul := λ _, top_inf_eq,
   mul_one := λ _, inf_top_eq,
   mul_self := λ b, inf_idem,
-  ..generalized_boolean_algebra.to_non_unital_ring }
+  ..generalized_boolean_algebra.to_non_unital_comm_ring }
 
-localized "attribute [instance, priority 100] generalized_boolean_algebra.to_non_unital_ring
+localized "attribute [instance, priority 100] generalized_boolean_algebra.to_non_unital_comm_ring
   boolean_algebra.to_boolean_ring" in boolean_ring_of_boolean_algebra
 
 instance : boolean_ring (as_boolring α) := @boolean_algebra.to_boolean_ring α _

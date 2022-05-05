@@ -443,6 +443,22 @@ begin
   rw [←zmod.int_coe_eq_int_coe_iff', int.cast_coe_nat, zmod.nat_cast_val, zmod.cast_id],
 end
 
+@[simp] lemma val_neg_one (n : ℕ) : (-1 : zmod n.succ).val = n :=
+begin
+  rw [val, fin.coe_neg],
+  cases n,
+  { rw [nat.mod_one] },
+  { rw [fin.coe_one, nat.succ_add_sub_one, nat.mod_eq_of_lt (nat.lt.base _)] },
+end
+
+/-- `-1 : zmod n` lifts to `n - 1 : R`. This avoids the characteristic assumption in `cast_neg`. -/
+lemma cast_neg_one {R : Type*} [ring R] (n : ℕ) : ↑(-1 : zmod n) = (n - 1 : R) :=
+begin
+  cases n,
+  { rw [int.cast_neg, int.cast_one, nat.cast_zero, zero_sub] },
+  { rw [←nat_cast_val, val_neg_one, nat.cast_succ, add_sub_cancel] },
+end
+
 lemma nat_coe_zmod_eq_iff (p : ℕ) (n : ℕ) (z : zmod p) [fact (0 < p)] :
   ↑n = z ↔ ∃ k, n = z.val + p * k :=
 begin

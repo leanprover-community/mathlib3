@@ -204,14 +204,14 @@ Note that bundled versions exist as:
 def diagonal [has_zero α] (d : n → α) : matrix n n α
 | i j := if i = j then d i else 0
 
-@[simp] theorem diagonal_apply_eq [has_zero α] {d : n → α} (i : n) : (diagonal d) i i = d i :=
+@[simp] theorem diagonal_apply_eq [has_zero α] (d : n → α) (i : n) : (diagonal d) i i = d i :=
 by simp [diagonal]
 
-@[simp] theorem diagonal_apply_ne [has_zero α] {d : n → α} {i j : n} (h : i ≠ j) :
+@[simp] theorem diagonal_apply_ne [has_zero α] (d : n → α) {i j : n} (h : i ≠ j) :
   (diagonal d) i j = 0 := by simp [diagonal, h]
 
-theorem diagonal_apply_ne' [has_zero α] {d : n → α} {i j : n} (h : j ≠ i) :
-  (diagonal d) i j = 0 := diagonal_apply_ne h.symm
+theorem diagonal_apply_ne' [has_zero α] (d : n → α) {i j : n} (h : j ≠ i) :
+  (diagonal d) i j = 0 := diagonal_apply_ne d h.symm
 
 lemma diagonal_injective [has_zero α] : function.injective (diagonal : (n → α) → matrix n n α) :=
 λ d₁ d₂ h, funext $ λ i, by simpa using matrix.ext_iff.mpr h i i
@@ -225,7 +225,7 @@ begin
   ext i j,
   by_cases h : i = j,
   { simp [h, transpose] },
-  { simp [h, transpose, diagonal_apply_ne' h] }
+  { simp [h, transpose, diagonal_apply_ne' _ h] }
 end
 
 @[simp] theorem diagonal_add [add_zero_class α] (d₁ d₂ : n → α) :
@@ -277,13 +277,13 @@ instance : has_one (matrix n n α) := ⟨diagonal (λ _, 1)⟩
 
 theorem one_apply {i j} : (1 : matrix n n α) i j = if i = j then 1 else 0 := rfl
 
-@[simp] theorem one_apply_eq (i) : (1 : matrix n n α) i i = 1 := diagonal_apply_eq i
+@[simp] theorem one_apply_eq (i) : (1 : matrix n n α) i i = 1 := diagonal_apply_eq _ i
 
 @[simp] theorem one_apply_ne {i j} : i ≠ j → (1 : matrix n n α) i j = 0 :=
-diagonal_apply_ne
+diagonal_apply_ne _
 
 theorem one_apply_ne' {i j} : j ≠ i → (1 : matrix n n α) i j = 0 :=
-diagonal_apply_ne'
+diagonal_apply_ne' _
 
 @[simp] lemma map_one [has_zero β] [has_one β]
   (f : α → β) (h₀ : f 0 = 0) (h₁ : f 1 = 1) :
@@ -319,6 +319,56 @@ by simp [bit1_apply, h]
 end numeral
 
 end diagonal
+
+section diag
+
+/-- The diagonal of a square matrix. -/
+@[simp] def diag (A : matrix n n α) (i : n) : α := A i i
+
+@[simp] lemma diag_diagonal [decidable_eq n] [has_zero α] (a : n → α) : diag (diagonal a) = a :=
+funext $ @diagonal_apply_eq _ _ _ _ a
+
+@[simp] lemma diag_transpose (A : matrix n n α) : diag Aᵀ = diag A := rfl
+
+@[simp] theorem diag_zero [has_zero α] : diag (0 : matrix n n α) = 0 := rfl
+
+@[simp] theorem diag_add [has_add α] (A B : matrix n n α) : diag (A + B) = diag A + diag B := rfl
+
+@[simp] theorem diag_sub [has_sub α] (A B : matrix n n α) : diag (A - B) = diag A - diag B := rfl
+
+@[simp] theorem diag_neg [has_neg α] (A : matrix n n α) : diag (-A) = -diag A := rfl
+
+@[simp] theorem diag_smul [has_scalar R α] (r : R) (A : matrix n n α) : diag (r • A) = r • diag A :=
+rfl
+
+@[simp] theorem diag_one [decidable_eq n] [has_zero α] [has_one α] : diag (1 : matrix n n α) = 1 :=
+diag_diagonal _
+
+variables (n α)
+
+/-- `matrix.diag` as an `add_monoid_hom`. -/
+@[simps]
+def diag_add_monoid_hom [add_zero_class α] : matrix n n α →+ (n → α) :=
+{ to_fun := diag,
+  map_zero' := diag_zero,
+  map_add' := diag_add,}
+
+variables (R)
+
+/-- `matrix.diag` as a `linear_map`. -/
+@[simps]
+def diag_linear_map [semiring R] [add_comm_monoid α] [module R α] : matrix n n α →ₗ[R] (n → α) :=
+{ map_smul' := diag_smul,
+  .. diag_add_monoid_hom n α,}
+
+variables {n α R}
+
+lemma diag_map {f : α → β} {A : matrix n n α} : diag (A.map f) = f ∘ diag A := rfl
+
+@[simp] lemma diag_conj_transpose [add_monoid α] [star_add_monoid α] (A : matrix n n α) :
+  diag Aᴴ = star (diag A) := rfl
+
+end diag
 
 section dot_product
 
@@ -368,15 +418,15 @@ section non_unital_non_assoc_semiring_decidable
 variables [decidable_eq m] [non_unital_non_assoc_semiring α] (u v w : m → α)
 
 @[simp] lemma diagonal_dot_product (i : m) : diagonal v i ⬝ᵥ w = v i * w i :=
-have ∀ j ≠ i, diagonal v i j * w j = 0 := λ j hij, by simp [diagonal_apply_ne' hij],
+have ∀ j ≠ i, diagonal v i j * w j = 0 := λ j hij, by simp [diagonal_apply_ne' _ hij],
 by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
 @[simp] lemma dot_product_diagonal (i : m) : v ⬝ᵥ diagonal w i = v i * w i :=
-have ∀ j ≠ i, v j * diagonal w i j = 0 := λ j hij, by simp [diagonal_apply_ne' hij],
+have ∀ j ≠ i, v j * diagonal w i j = 0 := λ j hij, by simp [diagonal_apply_ne' _ hij],
 by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
 @[simp] lemma dot_product_diagonal' (i : m) : v ⬝ᵥ (λ j, diagonal w j i) = v i * w i :=
-have ∀ j ≠ i, v j * diagonal w j i = 0 := λ j hij, by simp [diagonal_apply_ne hij],
+have ∀ j ≠ i, v j * diagonal w j i = 0 := λ j hij, by simp [diagonal_apply_ne _ hij],
 by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
 @[simp] lemma single_dot_product (x : α) (i : m) : pi.single i x ⬝ᵥ v = x * v i :=
@@ -524,6 +574,9 @@ diagonal_mul_diagonal _ _
 lemma smul_eq_diagonal_mul [fintype m] [decidable_eq m] (M : matrix m n α) (a : α) :
   a • M = diagonal (λ _, a) ⬝ M :=
 by { ext, simp }
+
+@[simp] lemma diag_col_mul_row (a b : n → α) : diag (col a ⬝ row b) = a * b :=
+by { ext, simp [matrix.mul_apply, col, row] }
 
 /-- Left multiplication by a matrix, as an `add_monoid_hom` from matrices to matrices. -/
 @[simps] def add_monoid_hom_mul_left [fintype m] (M : matrix l m α) :
@@ -1153,7 +1206,7 @@ begin
   unfold has_one.one transpose,
   by_cases i = j,
   { simp only [h, diagonal_apply_eq] },
-  { simp only [diagonal_apply_ne h, diagonal_apply_ne (λ p, h (symm p))] }
+  { simp only [diagonal_apply_ne _ h, diagonal_apply_ne' _ h] }
 end
 
 @[simp] lemma transpose_add [has_add α] (M : matrix m n α) (N : matrix m n α) :
@@ -1392,7 +1445,7 @@ ext $ λ i j, begin
   rw minor_apply,
   by_cases h : i = j,
   { rw [h, diagonal_apply_eq, diagonal_apply_eq], },
-  { rw [diagonal_apply_ne h, diagonal_apply_ne (he.ne h)], },
+  { rw [diagonal_apply_ne _ h, diagonal_apply_ne _ (he.ne h)], },
 end
 
 lemma minor_one [has_zero α] [has_one α] [decidable_eq m] [decidable_eq l] (e : l → m)
@@ -1406,6 +1459,7 @@ lemma minor_mul [fintype n] [fintype o] [has_mul α] [add_comm_monoid α] {p q :
   (M ⬝ N).minor e₁ e₃ = (M.minor e₁ e₂) ⬝ (N.minor e₂ e₃) :=
 ext $ λ _ _, (he₂.sum_comp _).symm
 
+lemma diag_minor (A : matrix m m α) (e : l → m) : diag (A.minor e e) = A.diag ∘ e := rfl
 
 /-! `simp` lemmas for `matrix.minor`s interaction with `matrix.diagonal`, `1`, and `matrix.mul` for
 when the mappings are bundled. -/

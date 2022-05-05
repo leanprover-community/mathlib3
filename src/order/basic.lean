@@ -244,6 +244,9 @@ alias eq_of_ge_of_not_gt ← has_le.le.eq_of_not_gt
 lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a < b :=
 ⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩
 
+lemma ne.not_le_or_not_le [partial_order α] {a b : α} (h : a ≠ b) : ¬ a ≤ b ∨ ¬ b ≤ a :=
+not_and_distrib.1 $ le_antisymm_iff.not.1 h
+
 -- See Note [decidable namespace]
 protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [decidable_eq α] {a b : α} :
   (a ≠ b ↔ a < b) ↔ a ≤ b :=

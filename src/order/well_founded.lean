@@ -28,19 +28,19 @@ theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
   ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
 
 /-- A minimal element of a nonempty set in a well-founded order -/
-noncomputable def min {α} {r : α → α → Prop} (H : well_founded r)
+noncomputable def min {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) : α :=
 classical.some (H.has_min p h)
 
-theorem min_mem {α} {r : α → α → Prop} (H : well_founded r)
+theorem min_mem {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) : H.min p h ∈ p :=
 let ⟨h, _⟩ := classical.some_spec (H.has_min p h) in h
 
-theorem not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
+theorem not_lt_min {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
 
-theorem well_founded_iff_has_min  {α} {r : α → α → Prop} : (well_founded r) ↔
+theorem well_founded_iff_has_min {r : α → α → Prop} : (well_founded r) ↔
   ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, ¬ r x m :=
 begin
   classical,
@@ -79,11 +79,11 @@ theorem well_founded_iff_has_min' [partial_order α] : (well_founded (has_lt.lt 
 
 open set
 /-- The supremum of a bounded, well-founded order -/
-protected noncomputable def sup {α} {r : α → α → Prop} (wf : well_founded r) (s : set α)
+protected noncomputable def sup {r : α → α → Prop} (wf : well_founded r) (s : set α)
   (h : bounded r s) : α :=
 wf.min { x | ∀a ∈ s, r a x } h
 
-protected lemma lt_sup {α} {r : α → α → Prop} (wf : well_founded r) {s : set α} (h : bounded r s)
+protected lemma lt_sup {r : α → α → Prop} (wf : well_founded r) {s : set α} (h : bounded r s)
   {x} (hx : x ∈ s) : r x (wf.sup s h) :=
 min_mem wf { x | ∀a ∈ s, r a x } h x hx
 
@@ -91,15 +91,15 @@ section
 open_locale classical
 /-- A successor of an element `x` in a well-founded order is a minimal element `y` such that
 `x < y` if one exists. Otherwise it is `x` itself. -/
-protected noncomputable def succ {α} {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
+protected noncomputable def succ {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
 if h : ∃y, r x y then wf.min { y | r x y } h else x
 
-protected lemma lt_succ {α} {r : α → α → Prop} (wf : well_founded r) {x : α} (h : ∃y, r x y) :
+protected lemma lt_succ {r : α → α → Prop} (wf : well_founded r) {x : α} (h : ∃y, r x y) :
   r x (wf.succ x) :=
 by { rw [well_founded.succ, dif_pos h], apply min_mem }
 end
 
-protected lemma lt_succ_iff {α} {r : α → α → Prop} [wo : is_well_order α r] {x : α} (h : ∃y, r x y)
+protected lemma lt_succ_iff {r : α → α → Prop} [wo : is_well_order α r] {x : α} (h : ∃y, r x y)
   (y : α) : r y (wo.wf.succ x) ↔ r y x ∨ y = x :=
 begin
   split,

@@ -137,9 +137,8 @@ lemma continuous.matrix_reindex {A : X → matrix l n R}
 hA.matrix_minor _ _
 
 @[continuity]
-lemma continuous.matrix_diag [semiring S] [add_comm_monoid R] [module S R]
-  {A : X → matrix n n R} (hA : continuous A) :
-  continuous (λ x, matrix.diag n S R (A x)) :=
+lemma continuous.matrix_diag {A : X → matrix n n R} (hA : continuous A) :
+  continuous (λ x, matrix.diag (A x)) :=
 continuous_pi $ λ _, hA.matrix_elem _ _
 
 @[continuity]

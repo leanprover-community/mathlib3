@@ -442,12 +442,6 @@ apply_nolint is_subfield doc_blame
 -- deprecated/subring.lean
 apply_nolint ring.closure doc_blame
 
--- field_theory/finite/polynomial.lean
-apply_nolint mv_polynomial.R doc_blame unused_arguments
-apply_nolint mv_polynomial.evalᵢ doc_blame
-apply_nolint mv_polynomial.evalₗ doc_blame unused_arguments
-apply_nolint mv_polynomial.indicator doc_blame
-
 -- group_theory/coset.lean
 apply_nolint subgroup.card_subgroup_dvd_card to_additive_doc
 

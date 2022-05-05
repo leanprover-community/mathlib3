@@ -330,6 +330,9 @@ lemma pow_ne_zero_iff [monoid_with_zero R] [no_zero_divisors R] {a : R} {n : ℕ
   {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
+theorem sq_eq_zero_iff [monoid_with_zero R] [no_zero_divisors R] {a : R} : a ^ 2 = 0 ↔ a = 0 :=
+pow_eq_zero_iff two_pos
+
 lemma pow_dvd_pow_iff [cancel_comm_monoid_with_zero R]
   {x : R} {n m : ℕ} (h0 : x ≠ 0) (h1 : ¬ is_unit x) :
   x ^ n ∣ x ^ m ↔ n ≤ m :=

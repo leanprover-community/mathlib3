@@ -62,7 +62,7 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
 section monotone_def
-variables [preorder α] [preorder β]
+variables [has_le α] [has_le β]
 
 /-- A function `f` is monotone if `a ≤ b` implies `f a ≤ f b`. -/
 def monotone (f : α → β) : Prop := ∀ ⦃a b⦄, a ≤ b → f a ≤ f b
@@ -77,6 +77,11 @@ def monotone_on (f : α → β) (s : set α) : Prop :=
 /-- A function `f` is antitone on `s` if, for all `a, b ∈ s`, `a ≤ b` implies `f b ≤ f a`. -/
 def antitone_on (f : α → β) (s : set α) : Prop :=
 ∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a ≤ b → f b ≤ f a
+
+end monotone_def
+
+section strict_mono_def
+variables [has_lt α] [has_lt β]
 
 /-- A function `f` is strictly monotone if `a < b` implies `f a < f b`. -/
 def strict_mono (f : α → β) : Prop :=
@@ -96,7 +101,7 @@ def strict_mono_on (f : α → β) (s : set α) : Prop :=
 def strict_anti_on (f : α → β) (s : set α) : Prop :=
 ∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a < b → f b < f a
 
-end monotone_def
+end strict_mono_def
 
 /-! ### Monotonicity on the dual order
 

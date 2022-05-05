@@ -1913,7 +1913,7 @@ lemma is_open_map_mkq [topological_add_group M] : is_open_map S.mkq :=
 quotient_add_group.is_open_map_coe S.to_add_subgroup
 
 instance topological_add_group_quotient [topological_add_group M] :
-    topological_add_group (M ⧸ S) :=
+  topological_add_group (M ⧸ S) :=
 topological_add_group_quotient S.to_add_subgroup
 
 instance has_continuous_smul_quotient [topological_space R] [topological_add_group M]

@@ -26,6 +26,8 @@ that `φ` and `ψ` are equivalent formulas or sentences in models of `T`.
 shows that a theory is satisfiable iff it is finitely satisfiable.
 * `first_order.language.complete_theory.is_complete`: The complete theory of a structure is
 complete.
+* `first_order.language.Theory.exists_large_model_of_infinite_model` shows that any theory with an
+infinite model has arbitrarily large models.
 
 ## Implementation Details
 * Satisfiability of an `L.Theory` `T` is defined in the minimal universe containing all the symbols

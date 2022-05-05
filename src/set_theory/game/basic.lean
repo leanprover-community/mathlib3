@@ -67,10 +67,12 @@ instance : partial_order game :=
 def lf : game → game → Prop :=
 quotient.lift₂ lf (λ x₁ y₁ x₂ y₂ hx hy, propext (lf_congr hx hy))
 
-@[simp] theorem not_le : ∀ {x y : game}, ¬ x ≤ y ↔ lf y x :=
+local infix ` ⧏ `:50 := lf
+
+@[simp] theorem not_le : ∀ {x y : game}, ¬ x ≤ y ↔ y ⧏ x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_le }
 
-@[simp] theorem not_lf : ∀ {x y : game}, ¬ lf x y ↔ y ≤ x :=
+@[simp] theorem not_lf : ∀ {x y : game}, ¬ x ⧏ y ↔ y ≤ x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_lf }
 
 instance covariant_class_add_le : covariant_class game game (+) (≤) :=
@@ -84,6 +86,12 @@ instance covariant_class_add_lt : covariant_class game game (+) (<) :=
 
 instance covariant_class_swap_add_lt : covariant_class game game (swap (+)) (<) :=
 ⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_lt_add_right _ _ _ _ b c h a }⟩
+
+theorem add_lf_add_right : ∀ {b c : game} (h : b ⧏ c) (a), b + a ⧏ c + a :=
+by { rintro ⟨b⟩ ⟨c⟩ h ⟨a⟩, apply add_lf_add_right h }
+
+theorem add_lf_add_left : ∀ {b c : game} (h : b ⧏ c) (a), a + b ⧏ a + c :=
+by { rintro ⟨b⟩ ⟨c⟩ h ⟨a⟩, apply add_lf_add_left h }
 
 instance ordered_add_comm_group : ordered_add_comm_group game :=
 { add_le_add_left := @add_le_add_left _ _ _ game.covariant_class_add_le,

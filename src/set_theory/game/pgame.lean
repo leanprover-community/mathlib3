@@ -39,35 +39,22 @@ obligations in inductive proofs relying on this relation.
 
 ## Order properties
 
-Pregames have both a `≤` and a `<` relation, which are related in quite a subtle way. In particular,
-it is worth noting that in Lean's (perhaps unfortunate?) definition of a `preorder`, we have
-`lt_iff_le_not_le : ∀ a b : α, a < b ↔ (a ≤ b ∧ ¬ b ≤ a)`, but this is _not_ satisfied by the usual
-`≤` and `<` relations on pregames. (It is satisfied once we restrict to the surreal numbers.) In
-particular, `<` is not transitive; there is an example below showing `0 < star ∧ star < 0`.
+Pregames have both a `≤` and a `<` relation, satisfying the usual properties of a `preorder`. The
+relation `0 < x` means that `x` can always be won by Left, while `0 ≤ x` means that `x` can be won
+by Left as the second player.
 
-We do have
-```
-theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y < x := ...
-theorem not_lt {x y : pgame} : ¬ x < y ↔ y ≤ x := ...
-```
+It turns out to be quite convenient to define various relations on top of these. We define the less
+or fuzzy relation `x ⧏ y` as `¬ y ≤ x`, the equivalence relation `x ≈ y` as `x ≤ y ∧ y ≤ x`, and
+the fuzzy relation `x ∥ y` as `x ⧏ y ∧ y ⧏ x`. If `0 ⧏ x`, then `x` can be won by Left as the
+first player. If `x ≈ 0`, then `x` can be won by the second player. If `x ∥ 0`, then `x` can be won
+by the the first player.
 
-The statement `0 ≤ x` means that Left has a good response to any move by Right; in particular, the
-theorem `zero_le` below states
-```
-0 ≤ x ↔ ∀ j : x.right_moves, ∃ i : (x.move_right j).left_moves, 0 ≤ (x.move_right j).move_left i
-```
-On the other hand the statement `0 < x` means that Left has a good move right now; in particular the
-theorem `zero_lt` below states
-```
-0 < x ↔ ∃ i : left_moves x, ∀ j : right_moves (x.move_left i), 0 < (x.move_left i).move_right j
-```
+Statements like `zero_le`, `zero_lf`, etc. unfold these definitions. The theorems `le_def` and
+`lf_def` give a recursive characterisation of each relation in terms of
+themselves two moves later.
 
-The theorems `le_def`, `lt_def`, give a recursive characterisation of each relation, in terms of
-themselves two moves later. The theorems `le_def_lt` and `lt_def_lt` give recursive
-characterisations of each relation in terms of the other relation one move later.
-
-We define an equivalence relation `equiv p q ↔ p ≤ q ∧ q ≤ p`. Later, games will be defined as the
-quotient by this relation.
+Later, games will be defined as the quotient by the `≈` relation; that is to say, the
+`antisymmetrization` of `pgame`.
 
 ## Algebraic structures
 
@@ -87,6 +74,7 @@ equivalence relations at the level of pregames, we introduce the notion of a `re
 game, and show, for example, that there is a relabelling between `x + (y + z)` and `(x + y) + z`.
 
 ## Future work
+
 * The theory of dominated and reversible positions, and unique normal form for short games.
 * Analysis of basic domineering positions.
 * Hex.

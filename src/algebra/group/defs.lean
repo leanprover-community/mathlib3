@@ -528,9 +528,10 @@ end has_involutive_inv
 Those two pairs of made-up classes fulfill slightly different roles.
 
 `div_inv_monoid`/`sub_neg_monoid` provides the minimum amount of information to define the
-`ℤ` action (`zpow` or `zsmul`). Further, it provides a `div` field to allow fixing diamonds. This is
-useful to shorten extension clauses of stronger structures (`group`, `group_with_zero`,
-`division_ring`, `field`) and for a few structures with a rather weak pseudo-inverse (`matrix`).
+`ℤ` action (`zpow` or `zsmul`). Further, it provides a `div` field, matching the forgetful
+inheritance pattern. This is useful to shorten extension clauses of stronger structures (`group`,
+`group_with_zero`, `division_ring`, `field`) and for a few structures with a rather weak
+pseudo-inverse (`matrix`).
 
 `division_monoid`/`subtraction_monoid` is targeted at structures with stronger pseudo-inverses. It
 is an ad hoc collection of axioms that are mainly respected by three things:
@@ -620,6 +621,8 @@ instance sub_neg_monoid.has_scalar_int {M} [sub_neg_monoid M] : has_scalar ℤ M
 
 attribute [to_additive sub_neg_monoid.has_scalar_int] div_inv_monoid.has_pow
 
+export div_inv_monoid (div_eq_mul_inv) sub_neg_monoid (sub_eq_add_neg)
+
 section div_inv_monoid
 variables [div_inv_monoid G] {a b : G}
 
@@ -644,8 +647,6 @@ zpow_coe_nat a n
 @[simp, to_additive]
 theorem zpow_neg_succ_of_nat (a : G) (n : ℕ) : a ^ -[1+n] = (a ^ (n + 1))⁻¹ :=
 by { rw ← zpow_coe_nat, exact div_inv_monoid.zpow_neg' n a }
-
-@[to_additive] lemma div_eq_mul_inv (a b : G) : a / b = a * b⁻¹ := div_inv_monoid.div_eq_mul_inv _ _
 
 alias div_eq_mul_inv ← division_def
 

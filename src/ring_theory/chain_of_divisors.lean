@@ -216,9 +216,10 @@ end
 lemma is_unit.factor_order_iso_map_iff {m u : associates M} {n : associates N}
   (hu' : u ≤ m) (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   is_unit u ↔ is_unit (d ⟨u, hu'⟩ : associates N) :=
-⟨λ hu, map_is_unit_of_monotone_is_unit hu hu' d, λ hu, by
-  { rw (show u = ↑(d.symm ⟨↑(d ⟨u, hu'⟩), (d ⟨u, hu'⟩).prop⟩), from by simp),
-    exact map_is_unit_of_monotone_is_unit hu _ d.symm }⟩
+⟨λ hu, hu.factor_order_iso_map  hu' d, λ hu, by
+  { rw (show u = ↑(d.symm ⟨↑(d ⟨u, hu'⟩), (d ⟨u, hu'⟩).prop⟩), from by simp only [subtype.coe_eta,
+      order_iso.symm_apply_apply, subtype.coe_mk]),
+    exact hu.factor_order_iso_map _ d.symm }⟩
 
 section
 
@@ -266,7 +267,7 @@ begin
   rw ← irreducible_iff_prime,
   refine (associates.is_atom_iff $ ne_zero_of_dvd_ne_zero hn (d ⟨p, _⟩).prop).mp ⟨_, λ b hb, _⟩,
   { classical,
-    rw [ne.def, ← associates.is_unit_iff_eq_bot, ← map_is_unit_iff_is_unit _ d],
+    rw [ne.def, ← associates.is_unit_iff_eq_bot, ← is_unit.factor_order_iso_map_iff _ d],
     exact prime.not_unit (prime_of_normalized_factor p (by convert hp)) },
   { obtain ⟨x, hx⟩ := d.surjective ⟨b, le_trans (le_of_lt hb)
       (d ⟨p, dvd_of_mem_normalized_factors hp⟩).prop⟩,

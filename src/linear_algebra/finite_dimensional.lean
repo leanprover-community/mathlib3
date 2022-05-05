@@ -1642,11 +1642,15 @@ begin
     exact finrank_le_one v p, }
 end
 
--- This includes the case `A = K`.
-lemma surjective_of_nonzero_of_finrank_eq_one {A : Type*} [semiring A] [algebra K A]
-  [module A V] [is_scalar_tower K A V] [module A V₂] [is_scalar_tower K A V₂]
-  [finite_dimensional K V₂] (h : finrank K V₂ = 1)
-  {f : V →ₗ[A] V₂} (w : f ≠ 0) : surjective f :=
+-- We use the `linear_map.compatible_smul` typeclass here, to encompass two situations:
+-- * `A = K`
+-- * `[field K] [algebra K A] [is_scalar_tower K A V] [is_scalar_tower K A W]`
+lemma surjective_of_nonzero_of_finrank_eq_one
+  {K : Type*} [division_ring K] {A : Type*} [semiring A]
+  [module K V] [module A V]
+  {W : Type*} [add_comm_group W] [module K W] [module A W] [linear_map.compatible_smul V W K A]
+  [finite_dimensional K W] (h : finrank K W = 1)
+  {f : V →ₗ[A] W} (w : f ≠ 0) : surjective f :=
 begin
   change surjective (f.restrict_scalars K),
   obtain ⟨v, n⟩ := fun_like.ne_iff.mp w,

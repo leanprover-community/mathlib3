@@ -16,17 +16,20 @@ This file deals with the satisfiability of first-order theories, as well as equi
 model.
 * `first_order.language.Theory.is_finitely_satisfiable`: `T.is_finitely_satisfiable` indicates that
 every finite subset of `T` is satisfiable.
+* `first_order.language.Theory.is_complete`: `T.is_complete` indicates that `T` is satisfiable and
+models each sentence or its negation.
 * `first_order.language.Theory.semantically_equivalent`: `T.semantically_equivalent φ ψ` indicates
 that `φ` and `ψ` are equivalent formulas or sentences in models of `T`.
 
 ## Main Results
 * The Compactness Theorem, `first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable`,
 shows that a theory is satisfiable iff it is finitely satisfiable.
+* `first_order.language.complete_theory.is_complete`: The complete theory of a structure is
+complete.
 
 ## Implementation Details
 * Satisfiability of an `L.Theory` `T` is defined in the minimal universe containing all the symbols
-of `L`. By Löwenheim-Skolem, this is equivalent to satisfiability in any universe, but this is not
-yet proven in mathlib.
+of `L`. By Löwenheim-Skolem, this is equivalent to satisfiability in any universe.
 
 -/
 
@@ -84,6 +87,17 @@ theorem is_satisfiable_iff_is_finitely_satisfiable {T : L.Theory} :
   exact ⟨Model.of T M'⟩,
 end⟩
 
+theorem is_satisfiable_directed_union_iff {ι : Type*} [nonempty ι]
+  {T : ι → L.Theory} (h : directed (⊆) T) :
+  Theory.is_satisfiable (⋃ i, T i) ↔ ∀ i, (T i).is_satisfiable :=
+begin
+  refine ⟨λ h' i, h'.mono (set.subset_Union _ _), λ h', _⟩,
+  rw [is_satisfiable_iff_is_finitely_satisfiable, is_finitely_satisfiable],
+  intros T0 hT0,
+  obtain ⟨i, hi⟩ := h.exists_mem_subset_of_finset_subset_bUnion hT0,
+  exact (h' i).mono hi,
+end
+
 variable (T)
 
 /-- A theory models a (bounded) formula when any of its nonempty models realizes that formula on all
@@ -102,6 +116,14 @@ forall_congr (λ M, forall_congr (λ v, unique.forall_iff))
 lemma models_sentence_iff {φ : L.sentence} :
   T ⊨ φ ↔ ∀ (M : Model.{u v (max u v)} T), M ⊨ φ :=
 models_formula_iff.trans (forall_congr (λ M, unique.forall_iff))
+
+lemma models_sentence_of_mem {φ : L.sentence} (h : φ ∈ T) :
+  T ⊨ φ :=
+models_sentence_iff.2 (λ _, realize_sentence_of_mem T h)
+
+/-- A theory is complete when it is satisfiable and models each sentence or its negation. -/
+def is_complete (T : L.Theory) : Prop :=
+T.is_satisfiable ∧ ∀ (φ : L.sentence), (T ⊨ φ) ∨ (T ⊨ φ.not)
 
 /-- Two (bounded) formulas are semantically equivalent over a theory `T` when they have the same
 interpretation in every model of `T`. (This is also known as logical equivalence, which also has a
@@ -185,6 +207,23 @@ begin
 end
 
 end Theory
+
+namespace complete_theory
+
+variables (L) (M : Type w) [L.Structure M]
+
+lemma is_satisfiable [nonempty M] : (L.complete_theory M).is_satisfiable :=
+Theory.model.is_satisfiable M
+
+lemma mem_or_not_mem (φ : L.sentence) :
+  φ ∈ L.complete_theory M ∨ φ.not ∈ L.complete_theory M :=
+by simp_rw [complete_theory, set.mem_set_of_eq, sentence.realize, formula.realize_not, or_not]
+
+lemma is_complete [nonempty M] : (L.complete_theory M).is_complete :=
+⟨is_satisfiable L M,
+  λ φ, ((mem_or_not_mem L M φ).imp Theory.models_sentence_of_mem Theory.models_sentence_of_mem)⟩
+
+end complete_theory
 
 namespace bounded_formula
 variables (φ ψ : L.bounded_formula α n)

@@ -475,8 +475,8 @@ lemma le_root_multiplicity_map {K L : Type*} [comm_ring K]
   [comm_ring L] {p : K[X]} {f : K →+* L} (hf : function.injective f) (a : K) :
   root_multiplicity a p ≤ root_multiplicity (f a) (map f p) :=
 begin
-  by_cases hp0 : p = 0, { simp only [hp0, root_multiplicity_zero, map_zero], },
-  have hmap : map f p ≠ 0, { simpa only [map_zero] using (map_injective f hf).ne hp0, },
+  by_cases hp0 : p = 0, { simp only [hp0, root_multiplicity_zero, polynomial.map_zero], },
+  have hmap : map f p ≠ 0, { simpa only [polynomial.map_zero] using (map_injective f hf).ne hp0, },
   rw [root_multiplicity, root_multiplicity, dif_neg hp0, dif_neg hmap],
   simp only [not_not, nat.lt_find_iff, nat.le_find_iff],
   intros m hm,
@@ -505,8 +505,8 @@ lemma roots_map_of_injective_card_eq_total_degree {K L : Type*} [comm_ring K] [i
   (hroots : p.roots.card = p.nat_degree) :
   multiset.map f p.roots = (map f p).roots :=
 begin
-  by_cases hp0 : p = 0, { simp only [hp0, roots_zero, multiset.map_zero, map_zero], },
-  have hmap : map f p ≠ 0, { simpa only [map_zero] using (map_injective f hf).ne hp0, },
+  by_cases hp0 : p = 0, { simp only [hp0, roots_zero, multiset.map_zero, polynomial.map_zero], },
+  have hmap : map f p ≠ 0, { simpa only [polynomial.map_zero] using (map_injective f hf).ne hp0, },
   apply multiset.eq_of_le_of_card_le,
   { simpa only [multiset.le_iff_count, count_roots] using count_map_roots hf },
   { simpa only [multiset.card_map, hroots] using (card_roots' _).trans (nat_degree_map_le f p) },
@@ -638,7 +638,7 @@ begin
   rw [mem_root_set_iff', ←eval₂_eq_eval_map],
   { refl },
   intro h,
-  rw ←map_zero (algebra_map T S) at h,
+  rw ←polynomial.map_zero (algebra_map T S) at h,
   exact hp (map_injective _ (no_zero_smul_divisors.algebra_map_injective T S) h)
 end
 
@@ -773,7 +773,7 @@ begin
     clear q h_mon,
 
     have h' := congr_arg (map φ) h,
-    simp only [map_mul] at h',
+    simp only [polynomial.map_mul] at h',
     cases h_irr.is_unit_or_is_unit h' with w w,
     { left,
       exact is_unit_of_is_unit_leading_coeff_of_is_unit_map _ _ au w, },

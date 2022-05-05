@@ -33,7 +33,7 @@ variables [comm_monoid α] {s t : multiset α} {a : α} {m : multiset ι} {f g :
 def prod : multiset α → α := foldr (*) (λ x y z, by simp [mul_left_comm]) 1
 
 @[to_additive]
-lemma prod_eq_foldr (s : multiset α) :  prod s = foldr (*) (λ x y z, by simp [mul_left_comm]) 1 s :=
+lemma prod_eq_foldr (s : multiset α) : prod s = foldr (*) (λ x y z, by simp [mul_left_comm]) 1 s :=
 rfl
 
 @[to_additive]
@@ -55,8 +55,16 @@ end
 lemma prod_cons (a : α) (s) : prod (a ::ₘ s) = a * prod s := foldr_cons _ _ _ _ _
 
 @[simp, to_additive]
+lemma prod_erase [decidable_eq α] (h : a ∈ s) : a * (s.erase a).prod = s.prod :=
+by rw [← s.coe_to_list, coe_erase, coe_prod, coe_prod, list.prod_erase ((s.mem_to_list a).2 h)]
+
+@[simp, to_additive]
 lemma prod_singleton (a : α) : prod {a} = a :=
 by simp only [mul_one, prod_cons, singleton_eq_cons, eq_self_iff_true, prod_zero]
+
+@[to_additive]
+lemma prod_pair (a b : α) : ({a, b} : multiset α).prod = a * b :=
+by rw [insert_eq_cons, prod_cons, prod_singleton]
 
 @[simp, to_additive]
 lemma prod_add (s t : multiset α) : prod (s + t) = prod s * prod t :=
@@ -310,7 +318,7 @@ prod_le_prod_of_rel_le $ rel_map_left.2 $ rel_refl_of_refl_on h
 
 @[to_additive]
 lemma prod_le_sum_prod (f : α → α) (h : ∀ x, x ∈ s → x ≤ f x) : s.prod ≤ (s.map f).prod :=
-@prod_map_le_prod (order_dual α) _ _ f h
+@prod_map_le_prod αᵒᵈ _ _ f h
 
 @[to_additive card_nsmul_le_sum]
 lemma pow_card_le_prod (h : ∀ x ∈ s, a ≤ x) : a ^ s.card ≤ s.prod :=

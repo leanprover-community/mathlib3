@@ -74,7 +74,11 @@ def exp_series : formal_multilinear_series 𝕂 𝔸 𝔸 :=
 λ n, (n!⁻¹ : 𝕂) • continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸
 
 /-- `exp 𝕂 𝔸 : 𝔸 → 𝔸` is the exponential map determined by the action of `𝕂` on `𝔸`.
-It is defined as the sum of the `formal_multilinear_series` `exp_series 𝕂 𝔸`. -/
+It is defined as the sum of the `formal_multilinear_series` `exp_series 𝕂 𝔸`.
+
+Note that when `𝔸 = matrix n n 𝕂`, this is the **Matrix Exponential**; see
+[`analysis.normed_space.matrix_exponential`](../matrix_exponential) for lemmas specific to that
+case. -/
 noncomputable def exp (x : 𝔸) : 𝔸 := (exp_series 𝕂 𝔸).sum x
 
 variables {𝕂 𝔸}

@@ -14,21 +14,22 @@ import topology.uniform_space.matrix
 
 In this file, we provide results about `exp` on `matrix`s over a topological or normed algebra.
 Note that generic results over all topological spaces such as `exp_zero` can be used on matrices
-without issue. The topological results specific to matrices are:
+without issue, so are not repeated here. The topological results specific to matrices are:
 
 * `matrix.exp_transpose`
+* `matrix.exp_conj_transpose`
 * `matrix.exp_diagonal`
 * `matrix.exp_block_diagonal`
 * `matrix.exp_block_diagonal'`
-* `matrix.exp_conj_transpose`
 
-Lemmas like `exp_add_of_commute` require a canonical norm on the type, which matrices do not have
-as there are multiple sensible choices of norm, none of which are canonical. In an application where
-you choose a particular norm using `local attribute [instance]`, then the usual lemmas about `exp`
-are fine. When choosing a norm is unecessary, the results in this file can be used.
+Lemmas like `exp_add_of_commute` require a canonical norm on the type; while there are multiple
+sensible choices for the norm of a `matrix` (`matrix.normed_group`, `matrix.frobenius_normed_group`,
+`matrix.linfty_op_normed_group`), none of the are canonical. In an application where a particular
+norm is chosen using `local attribute [instance]`, then the usual lemmas about `exp` are fine. When
+choosing a norm is undesirable, the results in this file can be used.
 
-In this file, we copy across the lemmas about a `exp` and instantiate an arbitrary non-canonical
-norm in the proof.
+In this file, we copy across the lemmas about `exp`, but hide the requirement for a norm inside the
+proof.
 
 * `matrix.exp_add_of_commute`
 * `matrix.exp_sum_of_commute`
@@ -189,7 +190,7 @@ begin
 end
 
 lemma exp_units_conj (U : (matrix m m 𝔸)ˣ) (A : matrix m m 𝔸)  :
-  exp 𝕂 _ (↑U ⬝ A ⬝ ↑(U⁻¹)) = U ⬝ exp 𝕂 _ A ⬝ ↑(U⁻¹) :=
+  exp 𝕂 _ (↑U ⬝ A ⬝ ↑(U⁻¹) : matrix m m 𝔸) = ↑U ⬝ exp 𝕂 _ A ⬝ ↑(U⁻¹) :=
 begin
   letI : semi_normed_ring (matrix m m 𝔸) := matrix.linfty_op_semi_normed_ring,
   letI : normed_ring (matrix m m 𝔸) := matrix.linfty_op_normed_ring,
@@ -198,7 +199,7 @@ begin
 end
 
 lemma exp_units_conj' (U : (matrix m m 𝔸)ˣ) (A : matrix m m 𝔸)  :
-  exp 𝕂 _ (↑(U⁻¹) ⬝ A ⬝ U) = ↑(U⁻¹) ⬝ exp 𝕂 _ A ⬝ U :=
+  exp 𝕂 _ (↑(U⁻¹) ⬝ A ⬝ U : matrix m m 𝔸) = ↑(U⁻¹) ⬝ exp 𝕂 _ A ⬝ U :=
 exp_units_conj 𝕂 U⁻¹ A
 
 end normed

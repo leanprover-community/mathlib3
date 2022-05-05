@@ -98,6 +98,10 @@ the constant Laurent polynomials. -/
 def C : R →+* R[T;T⁻¹] :=
 single_zero_ring_hom
 
+lemma algebra_map_apply {R A : Type*} [comm_semiring R] [semiring A] [algebra R A] (r : R) :
+  algebra_map R (laurent_polynomial A) r = C (algebra_map R A r) :=
+rfl
+
 lemma single_eq_C (r : R) : single 0 r = C r := rfl
 
 /--  The function `n ↦ T ^ n`, implemented as a sequence `ℤ → R[T;T⁻¹]`.

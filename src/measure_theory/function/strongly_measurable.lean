@@ -698,12 +698,12 @@ continuous_norm.comp_strongly_measurable hf
 
 protected lemma nnnorm {m : measurable_space α} {β : Type*} [normed_group β] {f : α → β}
   (hf : strongly_measurable f) :
-  strongly_measurable (λ x, nnnorm (f x)) :=
+  strongly_measurable (λ x, ∥f x∥₊) :=
 continuous_nnnorm.comp_strongly_measurable hf
 
 protected lemma ennnorm {m : measurable_space α} {β : Type*} [normed_group β] {f : α → β}
   (hf : strongly_measurable f) :
-  measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) :=
+  measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) :=
 (ennreal.continuous_coe.comp_strongly_measurable hf.nnnorm).measurable
 
 protected lemma real_to_nnreal {m : measurable_space α} {f : α → ℝ}
@@ -1227,11 +1227,11 @@ protected lemma norm {β : Type*} [normed_group β] {f : α → β} (hf : ae_str
 continuous_norm.comp_ae_strongly_measurable hf
 
 protected lemma nnnorm {β : Type*} [normed_group β] {f : α → β} (hf : ae_strongly_measurable f μ) :
-  ae_strongly_measurable (λ x, nnnorm (f x)) μ :=
+  ae_strongly_measurable (λ x, ∥f x∥₊) μ :=
 continuous_nnnorm.comp_ae_strongly_measurable hf
 
 protected lemma ennnorm {β : Type*} [normed_group β] {f : α → β} (hf : ae_strongly_measurable f μ) :
-  ae_measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) μ :=
+  ae_measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) μ :=
 (ennreal.continuous_coe.comp_ae_strongly_measurable hf.nnnorm).ae_measurable
 
 protected lemma edist {β : Type*} [normed_group β] {f g : α → β}

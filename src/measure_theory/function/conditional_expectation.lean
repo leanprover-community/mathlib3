@@ -1206,7 +1206,7 @@ begin
     of_real_integral_norm_eq_lintegral_nnnorm],
   swap, { rw [← mem_ℒp_one_iff_integrable], exact Lp.mem_ℒp _, },
   have h_eq : ∫⁻ a, ∥condexp_ind_L1_fin hm hs hμs x a∥₊ ∂μ
-    = ∫⁻ a, nnnorm (condexp_ind_smul hm hs hμs x a) ∂μ,
+    = ∫⁻ a, ∥condexp_ind_smul hm hs hμs x a∥₊ ∂μ,
   { refine lintegral_congr_ae _,
     refine (condexp_ind_L1_fin_ae_eq_condexp_ind_smul hm hs hμs x).mono (λ z hz, _),
     dsimp only,

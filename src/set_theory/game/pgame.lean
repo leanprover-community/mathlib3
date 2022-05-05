@@ -475,6 +475,8 @@ instance : is_equiv _ equiv :=
   symm := λ x y ⟨xy, yx⟩, ⟨yx, xy⟩,
   trans := λ x y z ⟨xy, yx⟩ ⟨yz, zy⟩, ⟨xy.trans yz, zy.trans yx⟩ }
 
+@[simp] theorem equiv_rfl {x : pgame} : x ≈ x := refl _
+
 @[trans] theorem lt_of_lt_of_equiv {x y z} (h₁ : x < y) (h₂ : y ≈ z) : x < z := h₁.trans_le h₂.1
 @[trans] theorem le_of_le_of_equiv {x y z} (h₁ : x ≤ y) (h₂ : y ≈ z) : x ≤ z := h₁.trans h₂.1
 @[trans] theorem lt_of_equiv_of_lt {x y z} (h₁ : x ≈ y) : y < z → x < z := h₁.1.trans_lt
@@ -542,12 +544,19 @@ instance : is_symm _ (∥) := ⟨λ x y h, h.swap⟩
 theorem lf_iff_lt_or_fuzzy {x y : pgame} : x ⧏ y ↔ x < y ∨ x ∥ y :=
 by { simp only [lt_iff_le_and_lf, fuzzy, ←pgame.not_le], tauto! }
 
-theorem fuzzy_congr {x₁ y₁ x₂ y₂ : pgame} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) (h : x₁ ∥ y₁) : x₂ ∥ y₂ :=
+theorem fuzzy.not_equiv {x y : pgame} (h : x ∥ y) : ¬ x ≈ y :=
+λ h', not_lf.2 h'.1 h.2
+
+theorem equiv.not_fuzzy {x y : pgame} (h : x ≈ y) : ¬ x ∥ y :=
+λ h', pgame.not_le.2 h'.1 h.2
+
+theorem fuzzy_congr {x₁ y₁ x₂ y₂ : pgame} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ ∥ y₁ ↔ x₂ ∥ y₂ :=
 begin
-  cases h,
-  split,
+  split; rintro ⟨_, _⟩; split,
   { rwa [lf_congr hx.symm (refl _), lf_congr (refl _) hy.symm] },
   { rwa [lf_congr (refl _) hx.symm, lf_congr hy.symm (refl _) ] },
+  { rwa [lf_congr hx (refl _), lf_congr (refl _) hy] },
+  { rwa [lf_congr (refl _) hx, lf_congr hy (refl _) ] }
 end
 
 theorem lt_or_equiv_or_gt_or_fuzzy (x y : pgame) : x < y ∨ x ≈ y ∨ y < x ∨ x ∥ y :=

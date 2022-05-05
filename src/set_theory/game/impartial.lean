@@ -63,7 +63,7 @@ theorem impartial_congr : ∀ {G H : pgame} (e : relabelling G H) [G.impartial],
 | G H e := begin
   introI h,
   rw impartial_def,
-  refine ⟨equiv_trans e.symm.equiv (equiv_trans (neg_equiv_self G) (neg_congr e.equiv)),
+  refine ⟨trans e.symm.equiv (trans (neg_equiv_self G) (neg_congr e.equiv)),
     λ i, _, λ j, _⟩;
   cases e with _ _ L R hL hR,
   { convert impartial_congr (hL (L.symm i)),
@@ -78,7 +78,7 @@ begin
   introsI hG hH,
   rw impartial_def,
   split,
-  { apply equiv_trans _ (neg_add_relabelling G H).equiv.symm,
+  { apply trans _ (symm (neg_add_relabelling G H).equiv),
     exact add_congr (neg_equiv_self _) (neg_equiv_self _) },
   split,
   all_goals
@@ -110,8 +110,8 @@ lemma winner_cases (G : pgame) [G.impartial] : G.first_loses ∨ G.first_wins :=
 begin
   rcases G.winner_cases with hl | hr | hp | hn,
   { cases hl with hpos hnonneg,
-    rw ←not_lt at hnonneg,
-    have hneg := lt_of_lt_of_equiv hpos (neg_equiv_self G),
+    rw ←not_lf at hnonneg,
+    have hneg := lf_of_lf_of_equiv hpos (neg_equiv_self G),
     rw [lt_iff_neg_gt, neg_neg, pgame.neg_zero] at hneg,
     contradiction },
   { cases hr with hnonpos hneg,
@@ -133,7 +133,7 @@ lemma not_first_loses (G : pgame) [G.impartial] : ¬G.first_loses ↔ G.first_wi
 iff.symm $ iff_not_comm.1 $ iff.symm $ not_first_wins G
 
 lemma add_self (G : pgame) [G.impartial] : (G + G).first_loses :=
-  first_loses_is_zero.2 $ equiv_trans (add_congr (neg_equiv_self G) G.equiv_refl)
+  first_loses_is_zero.2 $ trans (add_congr (neg_equiv_self G) G.equiv_refl)
   (add_left_neg_equiv G)
 
 lemma equiv_iff_sum_first_loses (G H : pgame) [G.impartial] [H.impartial] :

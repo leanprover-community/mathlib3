@@ -5,6 +5,7 @@ Authors: Michael Stoll
 -/
 import tactic.basic
 import field_theory.finite.basic
+import data.int.range
 
 /-!
 # Quadratic characters of finite fields
@@ -18,10 +19,21 @@ quadratic character
 -/
 
 /-!
-### Some general results on finite fields
+### Some general results, mostly on finite fields
+
+We collect some results here that are not specific to quadratic characters
+but are needed below. They will be moved to appropriate places eventually.
 -/
 
 section general
+
+/-- An odd natural number has residue `1` or `3` mod `4`-/
+lemma odd_mod_four {n : ℕ} (hn : n % 2 = 1) : n % 4 = 1 ∨ n % 4 = 3 :=
+begin
+  have help : ∀ (m : ℕ), 0 ≤ m → m < 4 → m % 2 = 1 → m = 1 ∨ m = 3 := dec_trivial,
+  rw [← nat.mod_mod_of_dvd n (by norm_num : 2 ∣ 4)] at hn,
+  exact help (n % 4) zero_le' (nat.mod_lt n (by norm_num)) hn,
+end
 
 /-- If `ring_char R = 2`, where `R` is a finite reduced commutative ring,
 then every `a : R` is a square. -/
@@ -41,7 +53,16 @@ begin
   exact is_square_of_char_two' a,
 end
 
-/-- If the finite field `F` has characteristic `≠ 2`, then it has odd cardinatlity. -/
+/-- If the finite field `F` has characteristic `2`, then it has even cardinality. -/
+lemma even_card_of_char_two (hF : ring_char F = 2) : fintype.card F % 2 = 0 :=
+begin
+  rcases finite_field.card F (ring_char F) with ⟨ n, hp, h ⟩,
+  rw hF at h,
+  rw [h, nat.pow_mod],
+  simp only [nat.bit0_mod_two, zero_pow', ne.def, pnat.ne_zero, not_false_iff, nat.zero_mod],
+end
+
+/-- If the finite field `F` has characteristic `≠ 2`, then it has odd cardinality. -/
 lemma odd_card_of_char_ne_two (hF : ring_char F ≠ 2) : fintype.card F % 2 = 1 :=
 begin
   rcases finite_field.card F (ring_char F) with ⟨ n, hp, h ⟩,
@@ -365,10 +386,45 @@ section quad_char_mod_p
 
 /-- Define the nontrivial quadratic character on `zmod 4`, `χ₄`.
 It corresponds to the extension `ℚ(√-1)/ℚ`. -/
-
 @[simps] def χ₄ : (zmod 4) →*₀ ℤ :=
 { to_fun := (![0,1,0,-1] : (zmod 4 → ℤ)),
-  map_zero' := rfl, map_one' := rfl, map_mul' := by dec_trivial }
+  map_zero' := rfl, map_one' := rfl, map_mul' := dec_trivial }
+
+/-- An explicit description of `χ₄` on integers / naturals -/
+lemma χ₄_of_mod_four_int (n : ℤ) : χ₄ n = if n % 2 = 0 then 0 else if n % 4 = 1 then 1 else -1 :=
+begin
+  have help : ∀ (m : ℤ), 0 ≤ m → m < 4 → χ₄ m = if m % 2 = 0 then 0 else if m = 1 then 1 else -1 :=
+  dec_trivial,
+  rw [← int.mod_mod_of_dvd n (by norm_num : (2 : ℤ) ∣ 4), ← zmod.int_cast_mod n 4],
+  exact help (n % 4) (int.mod_nonneg n (by norm_num)) (int.mod_lt n (by norm_num)),
+end
+
+lemma χ₄_of_mod_four_nat (n : ℕ) : χ₄ n = if n % 2 = 0 then 0 else if n % 4 = 1 then 1 else -1 :=
+by exact_mod_cast χ₄_of_mod_four_int n
+
+/-- Alternative description for odd `n : ℕ` in terms of powers of `-1` -/
+lemma χ₄_of_neg_one_pow {n : ℕ} (hn : n % 2 = 1) : χ₄ n = (-1)^(n / 2) :=
+begin
+  rw χ₄_of_mod_four_nat,
+  simp only [hn, nat.one_ne_zero, if_false],
+  have h := (nat.div_add_mod n 4).symm,
+  cases (odd_mod_four hn) with h4 h4,
+  { split_ifs,
+    rw h4 at h,
+    rw [h],
+    nth_rewrite 0 (by norm_num : 4 = 2 * 2),
+    rw [mul_assoc, add_comm, nat.add_mul_div_left _ _ (by norm_num : 0 < 2), pow_add, pow_mul],
+    norm_num, },
+  { split_ifs,
+    { exfalso,
+      rw h4 at h_1,
+      norm_num at h_1, },
+    { rw h4 at h,
+      rw [h],
+      nth_rewrite 0 (by norm_num : 4 = 2 * 2),
+      rw [mul_assoc, add_comm, nat.add_mul_div_left _ _ (by norm_num : 0 < 2), pow_add, pow_mul],
+      norm_num, }, },
+end
 
 /-- Define the first primitive quadratic character on `zmod 8`, `χ₈`.
 It corresponds to the extension `ℚ(√2)/ℚ`. -/
@@ -385,3 +441,58 @@ It corresponds to the extension `ℚ(√-2)/ℚ`. -/
 end quad_char_mod_p
 
 end zmod
+
+/-!
+### Sepcial values of the quadratic character
+
+We express `quadratic_char F (-1)` in terms of `χ₄`.
+-/
+
+section special_values
+
+namespace char
+
+open zmod
+
+variables {F : Type*} [field F] [fintype F]
+
+/-- The value of the quadratic character at `-1` -/
+lemma quadratic_char_neg_one [decidable_eq F] (hF : ring_char F ≠ 2) :
+  quadratic_char F (-1) = χ₄ (fintype.card F) :=
+begin
+  have h₁ : (-1 : F) ≠ 0 := by { rw neg_ne_zero, exact one_ne_zero },
+  have h := quadratic_char_eq_pow_of_char_ne_two hF h₁,
+  rw [h, χ₄_of_neg_one_pow (finite_field.odd_card_of_char_ne_two hF)],
+  set n := fintype.card F / 2,
+  cases (nat.even_or_odd n) with h₂ h₂,
+  { simp only [even.neg_one_pow h₂, eq_self_iff_true, if_true], },
+  { simp only [odd.neg_one_pow h₂, ite_eq_right_iff],
+    exact λ (hf : -1 = 1),
+            false.rec (1 = -1) (finite_field.neg_one_ne_one_of_char_ne_two hF hf), },
+end
+
+/-- The interpretation in terms of whether `-1` is a square in `F` -/
+lemma is_square_neg_one_iff : is_square (-1 : F) ↔ fintype.card F % 4 ≠ 3 :=
+begin
+  classical, -- suggested by the linter (instead of `[decidable_eq F]`)
+  by_cases hF : (ring_char F = 2),
+  { simp only [finite_field.is_square_of_char_two hF, ne.def, true_iff],
+    exact (λ hf, one_ne_zero ((nat.odd_of_mod_four_eq_three hf).symm.trans
+                                (finite_field.even_card_of_char_two hF)))},
+  { have h₁ : (-1 : F) ≠ 0 := by { rw neg_ne_zero, exact one_ne_zero },
+    have h₂ := finite_field.odd_card_of_char_ne_two hF,
+    rw [← quadratic_char_one_iff_is_square h₁, quadratic_char_neg_one hF,
+        χ₄_of_mod_four_nat, h₂],
+    have h₃ := odd_mod_four h₂,
+    simp only [nat.one_ne_zero, if_false, ite_eq_left_iff, ne.def],
+    norm_num,
+    split,
+    { intros h h',
+      have t := (of_not_not h).symm.trans h',
+      norm_num at t, },
+    exact λ h h', h' ((or_iff_left h).mp h₃), },
+end
+
+end char
+
+end special_values

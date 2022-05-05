@@ -211,7 +211,8 @@ hp.1.eq_two_or_odd.elim
       obtain ⟨k, k_lt_p, rfl⟩ : ∃ (k' : ℕ) (h : k' < p), (k' : zmod p) = k,
       { refine ⟨k.val, k.val_lt, zmod.nat_cast_zmod_val k⟩ },
       have hpk : p ∣ k ^ 2 + 1,
-        by rw [← char_p.cast_eq_zero_iff (zmod p) p]; simp *,
+        by { rw [pow_two, ← char_p.cast_eq_zero_iff (zmod p) p, nat.cast_add, nat.cast_mul,
+                 nat.cast_one, ← hk, add_left_neg], },
       have hkmul : (k ^ 2 + 1 : ℤ[i]) = ⟨k, 1⟩ * ⟨k, -1⟩ :=
         by simp [sq, zsqrtd.ext],
       have hpne1 : p ≠ 1 := ne_of_gt hp.1.one_lt,

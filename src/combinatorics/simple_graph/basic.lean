@@ -76,8 +76,6 @@ finitely many vertices.
 open finset
 universes u v w
 
-variables {α : Type*}
-
 /--
 A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
 The relation describes which pairs of vertices are adjacent.
@@ -102,20 +100,9 @@ def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :
   symm := λ a b ⟨hn, hr⟩, ⟨hn.symm, hr.symm⟩,
   loopless := λ a ⟨hn, _⟩, hn rfl }
 
-/-- Construct the simple graph induced by a given irreflexive relation. It symmetrizes the relation.
--/
-def simple_graph.from_irrefl_rel (r : α → α → Prop) [is_irrefl α r] : simple_graph α :=
-{ adj := λ a b, r a b ∨ r b a,
-  symm := λ a b, or.symm,
-  loopless := λ a h, h.elim (irrefl _) (irrefl _) }
-
 @[simp]
 lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
   (simple_graph.from_rel r).adj v w ↔ v ≠ w ∧ (r v w ∨ r w v) :=
-iff.rfl
-
-@[simp] lemma simple_graph.from_irrefl_rel_adj {r : α → α → Prop} [is_irrefl α r] {a b : α} :
-  (simple_graph.from_irrefl_rel r).adj a b ↔ r a b ∨ r b a :=
 iff.rfl
 
 /-- The complete graph on a type `V` is the simple graph with all pairs of distinct vertices

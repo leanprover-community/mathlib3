@@ -28,7 +28,10 @@ section preorder
 variables [preorder α] [preorder β]
 
 /-- The Hasse diagram of an order as a simple graph. The graph of the covering relation. -/
-def hasse : simple_graph α := from_irrefl_rel covby
+def hasse : simple_graph α :=
+{ adj := λ a b, a ⋖ b ∨ b ⋖ a,
+  symm := λ a b, or.symm,
+  loopless := λ a h, h.elim (irrefl _) (irrefl _) }
 
 variables {α β} {a b : α}
 

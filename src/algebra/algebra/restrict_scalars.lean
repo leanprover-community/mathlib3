@@ -128,7 +128,7 @@ end
 variables [add_comm_monoid M]
 
 /-- `restrict_scalars.add_equiv` is the additive equivalence with the original module. -/
-@[simps] def restrict_scalars.add_equiv : restrict_scalars R S M ≃+ M :=
+def restrict_scalars.add_equiv : restrict_scalars R S M ≃+ M :=
 add_equiv.refl M
 
 variables [comm_semiring R] [semiring S] [algebra R S] [module S M]
@@ -144,12 +144,12 @@ lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R S M) :
   = (algebra_map R S c) • restrict_scalars.add_equiv R S M x :=
 rfl
 
-@[simp] lemma restrict_scalars.add_equiv_symm_map_algebra_map_smul (r : R) (x : M) :
+lemma restrict_scalars.add_equiv_symm_map_algebra_map_smul (r : R) (x : M) :
   (restrict_scalars.add_equiv R S M).symm (algebra_map R S r • x)
-  = r • (restrict_scalars.add_equiv R S M ).symm x :=
+  = r • (restrict_scalars.add_equiv R S M).symm x :=
 rfl
 
-@[simp] lemma restrict_scalars.add_equiv_symm_map_smul_smul (r : R) (s : S) (x : M) :
+lemma restrict_scalars.add_equiv_symm_map_smul_smul (r : R) (s : S) (x : M) :
   (restrict_scalars.add_equiv R S M).symm ((r • s) • x)
   = r • (restrict_scalars.add_equiv R S M ).symm (s • x) :=
 by { rw [algebra.smul_def, mul_smul], refl, }

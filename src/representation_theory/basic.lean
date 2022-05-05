@@ -214,7 +214,7 @@ begin
     (restrict_scalars.add_equiv _ _ _).injective,
   dsimp [of_module, restrict_scalars.lsmul_apply_apply],
   simp,
-end.
+end
 
 lemma smul_of_module_as_module (r : monoid_algebra k G)
   (m : (of_module k G M).as_module) :

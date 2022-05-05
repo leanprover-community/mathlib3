@@ -588,6 +588,7 @@ fuzzy_congr (refl _) hy
 @[trans] theorem fuzzy_of_equiv_of_fuzzy {x y z} (h₁ : x ≈ y) (h₂ : y ∥ z) : x ∥ z :=
 (fuzzy_congr_left h₁).2 h₂
 
+/-- Exactly one of the following is true (although we don't prove this here). -/
 theorem lt_or_equiv_or_gt_or_fuzzy (x y : pgame) : x < y ∨ x ≈ y ∨ y < x ∨ x ∥ y :=
 begin
   cases le_or_gf x y with h₁ h₁;

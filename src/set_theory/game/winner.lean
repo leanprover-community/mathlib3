@@ -44,20 +44,20 @@ lemma first_loses_is_zero {G : pgame} : G.first_loses ↔ G ≈ 0 := by refl
 lemma first_loses_of_equiv {G H : pgame} (h : G ≈ H) : G.first_loses → H.first_loses :=
 trans (symm h)
 lemma first_wins_of_equiv {G H : pgame} (h : G ≈ H) : G.first_wins → H.first_wins :=
-(fuzzy_congr h (refl _)).1
+(fuzzy_congr_left h).1
 lemma left_wins_of_equiv {G H : pgame} (h : G ≈ H) : G.left_wins → H.left_wins :=
-(lt_congr (refl _) h).1
+(lt_congr_right h).1
 lemma right_wins_of_equiv {G H : pgame} (h : G ≈ H) : G.right_wins → H.right_wins :=
-(lt_congr h (refl _)).1
+(lt_congr_left h).1
 
 lemma first_loses_of_equiv_iff {G H : pgame} (h : G ≈ H) : G.first_loses ↔ H.first_loses :=
 ⟨trans (symm h), trans h⟩
-lemma first_wins_of_equiv_iff {G H : pgame} (h : G ≈ H) : G.first_wins ↔ H.first_wins :=
-fuzzy_congr h (refl _)
-lemma left_wins_of_equiv_iff {G H : pgame} (h : G ≈ H) : G.left_wins ↔ H.left_wins :=
-lt_congr (refl _) h
-lemma right_wins_of_equiv_iff {G H : pgame} (h : G ≈ H) : G.right_wins ↔ H.right_wins :=
-lt_congr h (refl _)
+lemma first_wins_of_equiv_iff {G H : pgame} : G ≈ H → (G.first_wins ↔ H.first_wins) :=
+fuzzy_congr_left
+lemma left_wins_of_equiv_iff {G H : pgame} : G ≈ H → (G.left_wins ↔ H.left_wins) :=
+lt_congr_right
+lemma right_wins_of_equiv_iff {G H : pgame} : G ≈ H → (G.right_wins ↔ H.right_wins) :=
+lt_congr_left
 
 lemma not_first_wins_of_first_loses {G : pgame} : G.first_loses → ¬G.first_wins :=
 equiv.not_fuzzy

@@ -129,20 +129,20 @@ input theorem has the form `A_iff_B` or `A_iff_B_left` etc.
 do old ← ident,
   d ← (do old ← resolve_constant old, get_decl old) <|>
     fail ("declaration " ++ to_string old ++ " not found"),
-  let doc := λ al : name, meta_info.doc_string.get_or_else $
-    "**Alias** of `" ++ to_string old ++ "`.",
+  let doc := λ (al : name) (inf : string), meta_info.doc_string.get_or_else $
+    sformat!"**Alias** of {inf}`{old}`.",
   do
   { tk "←" <|> tk "<-",
     aliases ← many ident,
-    ↑(aliases.mmap' $ λ al, alias_direct d (doc al) al) } <|>
+    ↑(aliases.mmap' $ λ al, alias_direct d (doc al "") al) } <|>
   do
   { tk "↔" <|> tk "<->",
     (left, right) ←
       mcond ((tk ".." >> pure tt) <|> pure ff)
         (make_left_right old <|> fail "invalid name for automatic name generation")
         (prod.mk <$> types.ident_ <*> types.ident_),
-    alias_iff d (doc left) left `iff.mp,
-    alias_iff d (doc right) right `iff.mpr }
+    alias_iff d (doc left "the forward direction of ") left `iff.mp,
+    alias_iff d (doc right "the reverse direction of ") right `iff.mpr }
 
 add_tactic_doc
 { name                     := "alias",

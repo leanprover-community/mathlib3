@@ -206,9 +206,7 @@ lemma is_atomic_of_order_bot_well_founded_lt [order_bot α]
 
 lemma is_coatomic_of_order_top_gt_well_founded [order_top α]
   (h : well_founded ((>) : α → α → Prop)) : is_coatomic α :=
-⟨λ a, or_iff_not_imp_left.2 $
-  λ ha, let ⟨b, hb, hm⟩ := h.has_min { b | b ≠ ⊤ ∧ a ≤ b } ⟨a, ha, le_rfl⟩ in
-  ⟨b, ⟨hb.1, λ c, not_imp_not.1 $ λ hc hl, hm c ⟨hc, hb.2.trans hl.le⟩ hl⟩, hb.2⟩⟩
+is_atomic_dual_iff_is_coatomic.1 (@is_atomic_of_order_bot_well_founded_lt αᵒᵈ _ _ h)
 
 end well_founded
 

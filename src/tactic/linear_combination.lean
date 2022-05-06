@@ -332,10 +332,11 @@ was given a `pexpr ` of ``(1) along with the identifier.
 * Output: a `lean.parser (name × pexpr)`
 -/
 meta def parse_name_pexpr_pair : lean.parser (pexpr × pexpr) :=
-tk "(" >>
-  parser.pexpr 0 >>= λ pe,
-    (tk ")" >> return (pe, ``(1))) <|>
-    (tk "," >> parser.pexpr 0 >>= (λ cf, tk ")" >> return (pe, cf)))
+with_desc "(pexpr, pexpr) <|> (pexpr)" $ do
+  tk "(",
+  pe ← parser.pexpr 0,
+  (tk ")" >> return (pe, ``(1))) <|>
+  (do tk ",", cf ← parser.pexpr 0, tk ")", return (pe, cf))
 
 /--
 `linear_combination` attempts to prove the target by creating and applying a
@@ -402,3 +403,5 @@ add_tactic_doc
 
 end interactive_mode
 end linear_combo
+
+#lint

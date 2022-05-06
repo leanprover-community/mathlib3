@@ -308,10 +308,16 @@ noncomputable def polynomial.has_scalar_pi' [comm_semiring R'] [semiring S'] [al
 
 open mul_opposite
 
+/-- This is not an instance as it forms a diamond with `pi.has_scalar`.
+
+See the `instance_diamonds` test for details. -/
 def polynomial.has_op_scalar_pi [semiring R'] [has_scalar R'ᵐᵒᵖ S'] :
   has_scalar (R'[X]ᵐᵒᵖ) (R' → S') :=
 ⟨λ p f x, op (eval x p.unop) • f x⟩
 
+/-- This is not an instance as it forms a diamond with `pi.has_scalar`.
+
+See the `instance_diamonds` test for details. -/
 noncomputable def polynomial.has_op_scalar_pi' [comm_semiring R'] [semiring S'] [algebra R' S']
   [has_scalar S'ᵐᵒᵖ T'] :
   has_scalar (R'[X]ᵐᵒᵖ) (S' → T') :=

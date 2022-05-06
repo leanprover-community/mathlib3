@@ -455,6 +455,8 @@ protected def module : module 𝕜 (Lp.simple_func E p μ) :=
   add_smul  := λx y f, by { ext1, exact add_smul _ _ _ },
   zero_smul := λf, by { ext1, exact zero_smul _ _ } }
 
+/-- If `E` is a normed space, `Lp.simple_func E p μ` is a right-module. Not declared as an
+instance as it is (as of writing) used only in the construction of the Bochner integral. -/
 protected def op_module : module 𝕜ᵐᵒᵖ (Lp.simple_func E p μ) :=
 { one_smul  := λf, by { ext1, exact one_smul _ _ },
   mul_smul  := λx y f, by { ext1, exact mul_smul _ _ _ },

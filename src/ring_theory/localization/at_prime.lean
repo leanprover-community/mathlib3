@@ -59,7 +59,7 @@ protected abbreviation localization.at_prime := localization I.prime_compl
 namespace is_localization
 
 theorem at_prime.local_ring [is_localization.at_prime S I] : local_ring S :=
-@local_ring.mk _ _ (nontrivial_of_ne (0 : S) 1
+@local_ring.of_nonunits_add _ _ (nontrivial_of_ne (0 : S) 1
   (λ hze, begin
       rw [←(algebra_map R S).map_one, ←(algebra_map R S).map_zero] at hze,
       obtain ⟨t, ht⟩ := (eq_iff_exists I.prime_compl S).1 hze,

@@ -438,8 +438,7 @@ rfl
 @[simp] lemma sum_assoc_symm_apply_inr_inr : (sum_assoc α β γ).symm (inr (inr c)) = inr c := rfl
 
 /-- `order_dual` is distributive over `⊕` up to an order isomorphism. -/
-def sum_dual_distrib (α β : Type*) [has_le α] [has_le β] :
-  order_dual (α ⊕ β) ≃o order_dual α ⊕ order_dual β :=
+def sum_dual_distrib (α β : Type*) [has_le α] [has_le β] : (α ⊕ β)ᵒᵈ ≃o αᵒᵈ ⊕ βᵒᵈ :=
 { map_rel_iff' := begin
   rintro (a | a) (b | b),
   { change inl (to_dual a) ≤ inl (to_dual b) ↔ to_dual (inl a) ≤ to_dual (inl b),
@@ -501,8 +500,7 @@ def sum_lex_assoc (α β γ : Type*) [has_le α] [has_le β] [has_le γ] : (α �
   (sum_lex_assoc α β γ).symm (inr (inr c)) = inr c := rfl
 
 /-- `order_dual` is antidistributive over `⊕ₗ` up to an order isomorphism. -/
-def sum_lex_dual_antidistrib (α β : Type*) [has_le α] [has_le β] :
-  order_dual (α ⊕ₗ β) ≃o order_dual β ⊕ₗ order_dual α :=
+def sum_lex_dual_antidistrib (α β : Type*) [has_le α] [has_le β] : (α ⊕ₗ β)ᵒᵈ ≃o βᵒᵈ ⊕ₗ αᵒᵈ :=
 { map_rel_iff' := begin
   rintro (a | a) (b | b), simp,
   { change to_lex (inr $ to_dual a) ≤ to_lex (inr $ to_dual b) ↔

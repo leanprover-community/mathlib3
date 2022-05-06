@@ -51,7 +51,7 @@ non-dependent version and `prod_equiv_pi_fin_two` for a version with inputs `α 
   right_inv := λ ⟨x, y⟩, rfl }
 
 lemma fin.preimage_apply_01_prod {α : fin 2 → Type u} (s : set (α 0)) (t : set (α 1)) :
-  (λ f : Π i, α i, (f 0, f 1)) ⁻¹' (s ×ˢ t) =
+  (λ f : Π i, α i, (f 0, f 1)) ⁻¹' s ×ˢ t =
     set.pi set.univ (fin.cons s $ fin.cons t fin.elim0) :=
 begin
   ext f,
@@ -60,7 +60,7 @@ begin
 end
 
 lemma fin.preimage_apply_01_prod' {α : Type u} (s t : set α) :
-  (λ f : fin 2 → α, (f 0, f 1)) ⁻¹' (s ×ˢ t) = set.pi set.univ ![s, t] :=
+  (λ f : fin 2 → α, (f 0, f 1)) ⁻¹' s ×ˢ t = set.pi set.univ ![s, t] :=
 fin.preimage_apply_01_prod s t
 
 /-- A product space `α × β` is equivalent to the space `Π i : fin 2, γ i`, where

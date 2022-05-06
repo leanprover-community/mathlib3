@@ -7,7 +7,8 @@ import data.fin.tuple
 import data.real.basic
 import data.set.intervals
 import data.set.pairwise
-import set_theory.cardinal
+import set_theory.cardinal.basic
+
 /-!
 Proof that a cube (in dimension n ≥ 3) cannot be cubed:
 There does not exist a partition of a cube into finitely many smaller cubes (at least two)

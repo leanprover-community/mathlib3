@@ -135,7 +135,6 @@ begin
     exact continuous_zero },
   { -- In the case where `l` is surjective, we factor it as `φ : (E ⧸ l.ker) ≃ₗ[𝕜] 𝕜`. Note that
     -- `E ⧸ l.ker` is T2 since `l.ker` is closed.
-    letI : t2_space (E ⧸ l.ker) := l.ker.t2_quotient_of_is_closed hl,
     have : finrank 𝕜 l.range = 1,
       from le_antisymm (finrank_self 𝕜 ▸ l.range.finrank_le) (zero_lt_iff.mpr H),
     have hi : function.injective (l.ker.liftq l (le_refl _)),

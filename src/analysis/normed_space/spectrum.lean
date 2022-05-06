@@ -371,7 +371,7 @@ section exp_mapping
 
 local notation `↑ₐ` := algebra_map 𝕜 A
 
-/-- For `𝕜 = ℝ` or `𝕜 = ℂ`, `exp 𝕜 𝕜` maps the spectrum of `a` into the spectrum of `exp 𝕜 A a`. -/
+/-- For `𝕜 = ℝ` or `𝕜 = ℂ`, `exp 𝕜` maps the spectrum of `a` into the spectrum of `exp 𝕜 a`. -/
 theorem exp_mem_exp [is_R_or_C 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
   (a : A) {z : 𝕜} (hz : z ∈ spectrum 𝕜 a) : exp 𝕜 z ∈ spectrum 𝕜 (exp 𝕜 a) :=
 begin

@@ -70,12 +70,6 @@ instance function.topological_ring (I : Type*) (R : Type*)
   topological_ring (I → R) :=
 pi.topological_ring
 
-/-- A special case of `pi.has_continuous_const_smul` for when `M` is not dependently typed. -/
-instance function.has_continuous_const_smul (I : Type*) (R : Type*) (M : Type*) [has_scalar R M]
-  [topological_space M] [has_continuous_const_smul R M] :
-  has_continuous_const_smul R (I → M) :=
-pi.has_continuous_const_smul
-
 /-- A special case of `function.algebra` for when A is a `ring` not a `semiring` -/
 instance function.algebra_ring (I : Type*) {R : Type*} (A : Type*) [comm_semiring R]
   [ring A] [algebra R A] : algebra R (I → A) :=
@@ -95,12 +89,6 @@ instance pi.matrix_topological_ring (I A : Type*) (m : I → Type*)
   topological_ring (Π i, matrix (m i) (m i) A) :=
 @pi.topological_ring _ (λ i, matrix (m i) (m i) A) _ _ (λ i, matrix.topological_ring)
 
-instance pi.matrix_has_continuous_const_smul (I R A : Type*) (m : I → Type*)
-  [topological_space A] [has_scalar R A] [has_continuous_const_smul R A] :
-  has_continuous_const_smul R (Π i, matrix (m i) (m i) A) :=
-@pi.has_continuous_const_smul _ _ (λ i, matrix (m i) (m i) A) _ _
-  (λ i, matrix.has_continuous_const_smul)
-
 end hacks_for_pi_instance_search
 
 variables (𝕂 : Type*) {m n p : Type*} {n' : m → Type*} {𝔸 : Type*}
@@ -112,8 +100,7 @@ section topological
 section ring
 variables [fintype m] [decidable_eq m] [fintype n] [decidable_eq n]
   [Π i, fintype (n' i)] [Π i, decidable_eq (n' i)]
-  [field 𝕂] [ring 𝔸] [topological_space 𝔸] [topological_ring 𝔸] [algebra 𝕂 𝔸]
-  [has_continuous_const_smul 𝕂 𝔸] [t2_space 𝔸]
+  [field 𝕂] [ring 𝔸] [topological_space 𝔸] [topological_ring 𝔸] [algebra 𝕂 𝔸] [t2_space 𝔸]
 
 lemma exp_diagonal (v : m → 𝔸) : exp 𝕂 _ (diagonal v) = diagonal (exp 𝕂 (m → 𝔸) v) :=
 by simp_rw [exp_eq_tsum, diagonal_pow, ←diagonal_smul, ←diagonal_tsum]
@@ -134,8 +121,7 @@ end ring
 
 section comm_ring
 variables [fintype m] [decidable_eq m] [field 𝕂]
-  [comm_ring 𝔸] [topological_space 𝔸] [topological_ring 𝔸] [algebra 𝕂 𝔸]
-  [has_continuous_const_smul 𝕂 𝔸] [t2_space 𝔸]
+  [comm_ring 𝔸] [topological_space 𝔸] [topological_ring 𝔸] [algebra 𝕂 𝔸] [t2_space 𝔸]
 
 lemma exp_transpose (A : matrix m m 𝔸) : exp 𝕂 (matrix m m 𝔸) Aᵀ = (exp 𝕂 _ A)ᵀ :=
 by simp_rw [exp_eq_tsum, transpose_tsum, transpose_smul, transpose_pow]

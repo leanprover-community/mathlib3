@@ -91,7 +91,6 @@ funext (exp_series_apply_eq x)
 lemma exp_series_sum_eq (x : 𝔸) : (exp_series 𝕂 𝔸).sum x = ∑' (n : ℕ), (n!⁻¹ : 𝕂) • x^n :=
 tsum_congr (λ n, exp_series_apply_eq x n)
 
-
 lemma exp_eq_tsum : exp 𝕂 = (λ x : 𝔸, ∑' (n : ℕ), (n!⁻¹ : 𝕂) • x^n) :=
 funext exp_series_sum_eq
 

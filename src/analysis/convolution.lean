@@ -80,7 +80,7 @@ open set function filter measure_theory measure_theory.measure topological_space
 open continuous_linear_map metric
 open_locale pointwise topological_space
 
-variables {𝕜 G E E' E'' F : Type*}
+variables {𝕜 G E E' E'' F F' F'' : Type*}
 variables [normed_group E] [normed_group E'] [normed_group E''] [normed_group F]
 variables {f f' : G → E} {g g' : G → E'} {x x' : G} {y y' : E}
 
@@ -430,12 +430,7 @@ compact_of_is_closed_subset (hcg.is_compact.add hcf) is_closed_closure $ closure
   ((support_convolution_subset_swap L).trans $ add_subset_add subset_closure subset_closure)
   (hcg.is_compact.add hcf).is_closed
 
-variables [borel_space G] [second_countable_topology G] [sigma_finite μ]
-variables [is_add_right_invariant μ]
-
-lemma integrable.integrable_convolution (hf : integrable f μ) (hg : integrable g μ) :
-  integrable (f ⋆[L, μ] g) μ :=
-(hf.convolution_integrand L hg).integral_prod_left
+variables [borel_space G] [second_countable_topology G]
 
 /-- The convolution is continuous if one function is locally integrable and the other has compact
   support and is continuous. -/
@@ -481,6 +476,12 @@ begin
       hg.comp $ continuous_id.sub $ by apply continuous_const).continuous_at) }
 end
 
+variables [sigma_finite μ] [is_add_right_invariant μ]
+
+lemma integrable.integrable_convolution (hf : integrable f μ) (hg : integrable g μ) :
+  integrable (f ⋆[L, μ] g) μ :=
+(hf.convolution_integrand L hg).integral_prod_left
+
 end group
 
 section comm_group
@@ -519,7 +520,7 @@ lemma convolution_lmul_swap [normed_space ℝ 𝕜] [complete_space 𝕜] {f : G
   (f ⋆[lmul 𝕜 𝕜, μ] g) x = ∫ t, f (x - t) * g t ∂μ :=
 convolution_eq_swap _
 
-variables [second_countable_topology G] [sigma_finite μ]
+variables [second_countable_topology G]
 
 lemma has_compact_support.continuous_convolution_left [locally_compact_space G] [t2_space G]
   (hcf : has_compact_support f) (hf : continuous f) (hg : locally_integrable g μ) :
@@ -566,17 +567,14 @@ end
 variables [borel_space G] [second_countable_topology G]
 variables [is_add_left_invariant μ] [sigma_finite μ]
 
---measurable_set_ball can be pseudo_metric_space
-
 lemma dist_convolution_le' {x₀ : G} {R ε : ℝ}
+  (hε : 0 ≤ ε)
   (hif : integrable f μ)
-  (hR : 0 < R) -- todo: remove this assumption(?)
   (hf : support f ⊆ ball (0 : G) R)
   (hmg : ae_strongly_measurable g μ)
   (hg : ∀ x ∈ ball x₀ R, dist (g x) (g x₀) ≤ ε) :
   dist ((f ⋆[L, μ] g : G → F) x₀) (∫ (t : G), (L (f t)) (g x₀) ∂μ) ≤ ∥L∥ * ∫ x, ∥f x∥ ∂μ * ε :=
 begin
-  have hε : 0 ≤ ε, { convert hg x₀ (mem_ball_self hR), rw dist_self },
   have hfg : convolution_exists_at f g x₀ L μ,
   { refine bdd_above.convolution_exists_at L metric.is_open_ball.measurable_set (subset_trans _ hf)
       hif.integrable_on hif.ae_strongly_measurable _ hmg,
@@ -611,7 +609,7 @@ end
 variables [normed_space ℝ E] [normed_space ℝ E'] [complete_space E']
 
 lemma dist_convolution_le {f : G → ℝ} {x₀ : G} {R ε : ℝ}
-  (hR : 0 < R) -- todo: remove this assumption(?)
+  (hε : 0 ≤ ε)
   (hf : support f ⊆ ball (0 : G) R)
   (hnf : ∀ x, 0 ≤ f x)
   (hintf : ∫ x, f x ∂μ = 1)
@@ -619,10 +617,9 @@ lemma dist_convolution_le {f : G → ℝ} {x₀ : G} {R ε : ℝ}
   (hg : ∀ x ∈ ball x₀ R, dist (g x) (g x₀) ≤ ε) :
   dist ((f ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) (g x₀) ≤ ε :=
 begin
-  have hε : 0 ≤ ε, { convert hg x₀ (mem_ball_self hR), rw dist_self },
   have hif : integrable f μ,
   { by_contra hif, exact zero_ne_one ((integral_undef hif).symm.trans hintf) },
-  convert (dist_convolution_le' _ hif hR hf hmg hg).trans _,
+  convert (dist_convolution_le' _ hε hif hf hmg hg).trans _,
   { simp_rw [lsmul_apply, integral_smul_const, hintf, one_smul] },
   { simp_rw [real.norm_of_nonneg (hnf _), hintf, mul_one],
     convert (mul_le_mul_of_nonneg_right op_norm_lsmul_le hε).trans_eq (one_mul ε) }
@@ -641,8 +638,8 @@ begin
   intros ε hε,
   rcases hcg (ε / 2) (half_pos hε) with ⟨δ, hδ, hgδ⟩,
   refine (hφ (ball (0 : G) δ) $ ball_mem_nhds _ hδ).mono (λ i hi, _),
-  exact (dist_convolution_le hδ hi (hnφ i) (hiφ i) hmg (λ x hx, (hgδ hx.out).le)).trans_lt
-    (half_lt_self hε)
+  exact (dist_convolution_le (half_pos hε).le hi (hnφ i) (hiφ i) hmg (λ x hx, (hgδ hx.out).le))
+    .trans_lt (half_lt_self hε)
 end
 
 end normed_group
@@ -674,7 +671,8 @@ lemma dist_normed_convolution_le {x₀ : G} {ε : ℝ}
   (hmg : ae_strongly_measurable g μ)
   (hg : ∀ x ∈ ball x₀ φ.R, dist (g x) (g x₀) ≤ ε) :
   dist ((φ.normed μ ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) (g x₀) ≤ ε :=
-dist_convolution_le φ.R_pos φ.support_normed_eq.subset φ.nonneg_normed φ.integral_normed hmg hg
+dist_convolution_le (by simp_rw [← dist_self (g x₀), hg x₀ (mem_ball_self φ.R_pos)])
+  φ.support_normed_eq.subset φ.nonneg_normed φ.integral_normed hmg hg
 
 lemma convolution_tendsto_right' {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
   {l : filter ι} (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
@@ -708,20 +706,52 @@ end nondiscrete_normed_field
 open_locale convolution
 
 
-section normed_space
--- (`𝕜` cannot be nondiscrete_normed_field, because of `continuous_linear_map.integral_apply`)
+section is_R_or_C
+
 variables [is_R_or_C 𝕜]
 variables [normed_space 𝕜 E]
 variables [normed_space 𝕜 E']
 variables [normed_space 𝕜 E'']
 variables [normed_space ℝ F] [normed_space 𝕜 F]
-variables [normed_group G]
 variables {n : with_top ℕ}
 variables [complete_space F]
-variables [measurable_space G] [borel_space G] {μ : measure G} [second_countable_topology G]
+variables [measurable_space G] {μ : measure G}
 variables (L : E →L[𝕜] E' →L[𝕜] F)
-variables [sigma_finite μ] [sigma_compact_space G]
-variables [is_add_left_invariant μ]
+
+section assoc
+variables [normed_group F'] [normed_space ℝ F'] [normed_space 𝕜 F'] [complete_space F']
+variables [normed_group F''] [normed_space ℝ F''] [normed_space 𝕜 F''] [complete_space F'']
+variables {k : G → E''}
+variables (L₂ : F →L[𝕜] E'' →L[𝕜] F')
+variables (L₃ : E →L[𝕜] F'' →L[𝕜] F')
+variables (L₄ : E' →L[𝕜] E'' →L[𝕜] F'')
+variables [add_group G] [has_measurable_add G]
+variables [sigma_finite μ]
+variables {ν : measure G} [sigma_finite ν] [is_add_right_invariant ν]
+
+/-- Convolution is associative.
+To do: prove that `hi` follows from simpler conditions. -/
+lemma convolution_assoc (hL : ∀ (x : E) (y : E') (z : E''), L₂ (L x y) z = L₃ x (L₄ y z))
+  {x₀ : G}
+  (h₄ : convolution_exists g k L₄ ν)
+  (h₁ : convolution_exists f g L μ)
+  (hi : integrable (uncurry (λ x y, (L₃ (f y)) ((L₄ (g (x - y))) (k (x₀ - x))))) (ν.prod μ)) :
+  ((f ⋆[L, μ] g) ⋆[L₂, ν] k) x₀ = (f ⋆[L₃, μ] (g ⋆[L₄, ν] k)) x₀ :=
+begin
+  have h1 := λ t, (L₂.flip (k (x₀ - t))).integral_comp_comm (h₁ t),
+  dsimp only [flip_apply] at h1,
+  simp_rw [convolution_def, ← (L₃ (f _)).integral_comp_comm (h₄ (x₀ - _)), ← h1, hL],
+  rw [integral_integral_swap hi],
+  congr', ext t,
+  rw [eq_comm, ← integral_sub_right_eq_self _ t],
+  { simp_rw [sub_sub_sub_cancel_right] },
+  { apply_instance },
+end
+
+end assoc
+
+variables [normed_group G] [borel_space G]
+variables [second_countable_topology G] [sigma_compact_space G]
 
 lemma convolution_precompR_apply {g : G → E'' →L[𝕜] E'}
   (hf : locally_integrable f μ) (hcg : has_compact_support g) (hg : continuous g)
@@ -732,6 +762,7 @@ begin
   refl,
 end
 
+variables [sigma_finite μ] [is_add_left_invariant μ]
 variables [normed_space 𝕜 G] [proper_space G]
 
 lemma has_compact_support.has_fderiv_at_convolution_right
@@ -802,35 +833,7 @@ begin
   exact hcf.cont_diff_convolution_right L.flip hg hf,
 end
 
-variables {F' F'' : Type*}
-variables [normed_group E''] [normed_space 𝕜 E'']
-variables [normed_group F'] [normed_space ℝ F'] [normed_space 𝕜 F'] [complete_space F']
-variables [normed_group F''] [normed_space ℝ F''] [normed_space 𝕜 F''] [complete_space F'']
-variables {k : G → E''}
-variables (L₂ : F →L[𝕜] E'' →L[𝕜] F')
-variables (L₃ : E →L[𝕜] F'' →L[𝕜] F')
-variables (L₄ : E' →L[𝕜] E'' →L[𝕜] F'')
-
-/-- Convolution is associative.
-To do: prove that `hi` follows from simpler conditions. -/
-lemma convolution_assoc (hL : ∀ (x : E) (y : E') (z : E''), L₂ (L x y) z = L₃ x (L₄ y z))
-  {x₀ : G}
-  (h₄ : convolution_exists g k L₄ μ)
-  (h₁ : convolution_exists f g L μ)
-  (hi : integrable (uncurry (λ x y, (L₃ (f y)) ((L₄ (g (x - y))) (k (x₀ - x))))) (μ.prod μ)) :
-  ((f ⋆[L, μ] g) ⋆[L₂, μ] k) x₀ = (f ⋆[L₃, μ] (g ⋆[L₄, μ] k)) x₀ :=
-begin
-  have h1 := λ t, (L₂.flip (k (x₀ - t))).integral_comp_comm (h₁ t),
-  dsimp only [flip_apply] at h1,
-  simp_rw [convolution_def, ← (L₃ (f _)).integral_comp_comm (h₄ (x₀ - _)), ← h1, hL],
-  rw [integral_integral_swap hi],
-  congr', ext t,
-  rw [eq_comm, ← integral_sub_right_eq_self _ t],
-  { simp_rw [sub_sub_sub_cancel_right] },
-  { apply_instance },
-end
-
-end normed_space
+end is_R_or_C
 
 section real
 /-! The one-variable case -/

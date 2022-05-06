@@ -126,6 +126,8 @@ by cases o₁; cases o₂; exact dec_trivial
 
 end ordering
 
+open ordering order_dual
+
 lemma order_dual.dual_compares [has_lt α] {a b : α} {o : ordering} :
   compares o (to_dual a) (to_dual b) ↔ compares o b a :=
 by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
@@ -134,14 +136,14 @@ lemma cmp_compares [linear_order α] (a b : α) : (cmp a b).compares a b :=
 begin
   unfold cmp cmp_using,
   by_cases a < b; simp [h],
-  by_cases h₂ : b < a; simp [h₂, gt],
+  by_cases h₂ : b < a; simp [h₂],
   exact (decidable.lt_or_eq_of_le (le_of_not_gt h₂)).resolve_left h
 end
 
 lemma cmp_swap [preorder α] [@decidable_rel α (<)] (a b : α) : (cmp a b).swap = cmp b a :=
 begin
   unfold cmp cmp_using,
-  by_cases a < b; by_cases h₂ : b < a; simp [h, h₂, gt, ordering.swap],
+  by_cases a < b; by_cases h₂ : b < a; simp [h, h₂, ordering.swap],
   exact lt_asymm h h₂
 end
 

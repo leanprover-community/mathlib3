@@ -306,9 +306,27 @@ noncomputable def polynomial.has_scalar_pi' [comm_semiring R'] [semiring S'] [al
   has_scalar (R'[X]) (S' → T') :=
 ⟨λ p f x, aeval x p • f x⟩
 
+open mul_opposite
+
+/-- This is not an instance as it forms a diamond with `pi.has_scalar`.
+
+See the `instance_diamonds` test for details. -/
+def polynomial.has_op_scalar_pi [semiring R'] [has_scalar R'ᵐᵒᵖ S'] :
+  has_scalar (R'[X]ᵐᵒᵖ) (R' → S') :=
+⟨λ p f x, op (eval x p.unop) • f x⟩
+
+/-- This is not an instance as it forms a diamond with `pi.has_scalar`.
+
+See the `instance_diamonds` test for details. -/
+noncomputable def polynomial.has_op_scalar_pi' [comm_semiring R'] [semiring S'] [algebra R' S']
+  [has_scalar S'ᵐᵒᵖ T'] :
+  has_scalar (R'[X]ᵐᵒᵖ) (S' → T') :=
+⟨λ p f x, op (aeval x p.unop) • f x⟩
+
 variables {R} {S}
 
 local attribute [instance] polynomial.has_scalar_pi polynomial.has_scalar_pi'
+local attribute [instance] polynomial.has_op_scalar_pi polynomial.has_op_scalar_pi'
 
 @[simp] lemma polynomial_smul_apply [semiring R'] [has_scalar R' S']
   (p : R'[X]) (f : R' → S') (x : R') :
@@ -317,6 +335,14 @@ local attribute [instance] polynomial.has_scalar_pi polynomial.has_scalar_pi'
 @[simp] lemma polynomial_smul_apply' [comm_semiring R'] [semiring S'] [algebra R' S']
   [has_scalar S' T'] (p : R'[X]) (f : S' → T') (x : S') :
   (p • f) x = aeval x p • f x := rfl
+
+@[simp] lemma polynomial_op_smul_apply [semiring R'] [has_scalar R'ᵐᵒᵖ S']
+  (p : R'[X]) (f : R' → S') (x : R') :
+  (op p • f) x = op (eval x p) • f x := rfl
+
+@[simp] lemma polynomial_op_smul_apply' [comm_semiring R'] [semiring S'] [algebra R' S']
+  [has_scalar S'ᵐᵒᵖ T'] (p : R'[X]) (f : S' → T') (x : S') :
+  (op p • f) x = op (aeval x p) • f x := rfl
 
 variables [comm_semiring R'] [comm_semiring S'] [comm_semiring T'] [algebra R' S'] [algebra S' T']
 

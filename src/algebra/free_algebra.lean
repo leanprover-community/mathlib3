@@ -163,6 +163,9 @@ instance : inhabited (free_algebra R X) := ⟨0⟩
 instance : has_scalar R (free_algebra R X) :=
 { smul := λ r, quot.map ((*) ↑r) (λ a b, rel.mul_compat_right) }
 
+instance has_op_scalar : has_scalar Rᵐᵒᵖ (free_algebra R X) :=
+{ smul := λ r x, x * quot.mk _ r.unop }
+
 instance : algebra R (free_algebra R X) :=
 { to_fun := λ r, quot.mk _ r,
   map_one' := rfl,

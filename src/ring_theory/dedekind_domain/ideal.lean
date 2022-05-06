@@ -888,68 +888,29 @@ def ideal_factors_fun_of_quot_hom (f : R ⧸ I →+* A ⧸ J) (hf : function.sur
         ← ring_hom.ker_eq_comap_bot, mk_ker, sup_eq_left.mpr $ le_of_dvd hY],
     end }
 
-/-
-def of_hom_inv (f : α →o β) (g : β →o α) (h₁ : function.left_inverse g f)
-   (h₂ : function.left_inverse f g) :
-  α ≃o β :=
-{ to_fun := f,
-  inv_fun := g,
-  left_inv := h₁,
-  right_inv := h₂,
-  map_rel_iff' := begin intros a b, split, intro h, simp at h, sorry   end  }
--/
+lemma ideal_factors_fun_of_quot_hom_inv_of_equiv (f : R ⧸ I ≃+* A ⧸ J) :
+  function.left_inverse (ideal_factors_fun_of_quot_hom (f : R ⧸ I →+* A ⧸ J)  f.surjective)
+  (ideal_factors_fun_of_quot_hom (f.symm :  A ⧸ J →+* R ⧸ I) f.symm.surjective) :=
+λ ⟨p, hp⟩,
+begin
+  rw [ideal_factors_fun_of_quot_hom,  order_hom.coe_fun_mk, ideal_factors_fun_of_quot_hom,
+    order_hom.coe_fun_mk, subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk,
+    map_comap_of_surjective I^.quotient.mk quotient.mk_surjective],
+  nth_rewrite 0 ← ring_equiv.symm_symm f,
+  rw [map_of_equiv _ f.symm, comap_map_of_surjective _ quotient.mk_surjective,
+    ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left],
+  exact dvd_iff_le.1 hp
+end
 
 /-- The bijection between ideals of `R` dividing `I` and the ideals of `A` dividing `J` induced by
   an isomorphism `f : R/I ≅ A/J` -/
-@[simps]
+@[simp]
 def ideal_factors_equiv_of_quot_equiv (f : R ⧸ I ≃+* A ⧸ J) :
-  {p : ideal R | p ∣ I} ≃ {p : ideal A | p ∣ J} :=
-{ to_fun := λ X, ⟨comap J^.quotient.mk (map ↑f (map I^.quotient.mk X)),
-    begin
-      have : (J^.quotient.mk).ker ≤ comap J^.quotient.mk (map ↑f (map I^.quotient.mk X)),
-      { exact ker_le_comap J^.quotient.mk },
-      rw mk_ker at this,
-      exact dvd_iff_le.mpr this,
-    end ⟩,
-  inv_fun := λ X, ⟨comap I^.quotient.mk (map ↑(f.symm) (map J^.quotient.mk X)),
-    begin
-      have : (I^.quotient.mk).ker ≤ comap I^.quotient.mk (map ↑(f.symm) (map J^.quotient.mk X)),
-      { exact ker_le_comap I^.quotient.mk },
-      rw mk_ker at this,
-      exact dvd_iff_le.mpr this,
-    end⟩,
-  left_inv := λ ⟨p, hp⟩,
-    begin
-      rw [subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk,
-        map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, map_of_equiv _ f,
-        comap_map_of_surjective _ quotient.mk_surjective,
-        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left] ;
-      exact dvd_iff_le.mp hp,
-    end,
-  right_inv := λ ⟨p, hp⟩,
-    begin
-      rw [subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk, map_comap_of_surjective
-      I^.quotient.mk quotient.mk_surjective],
-      nth_rewrite 0 ← ring_equiv.symm_symm f,
-      rw [map_of_equiv _ f.symm, comap_map_of_surjective _ quotient.mk_surjective,
-        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left],
-      exact dvd_iff_le.1 hp
-    end }
-
-lemma strict_mono_ideal_factors_equiv_of_quot_equiv_le :
-  strict_mono (ideal_factors_equiv_of_quot_equiv f) :=
-begin
-  apply strict_mono_of_le_iff_le,
-  rintros ⟨X, hX⟩ ⟨Y, hY⟩,
-  apply iff.symm,
-  rw [← subtype.coe_le_coe, ← subtype.coe_le_coe, subtype.coe_mk,
-    ideal_factors_equiv_of_quot_equiv_apply_coe, subtype.coe_mk,
-    ideal_factors_equiv_of_quot_equiv_apply_coe, subtype.coe_mk, comap_le_comap_iff_of_surjective
-    J^.quotient.mk quotient.mk_surjective, map_comap_of_equiv _ f, map_comap_of_equiv _ f,
-    comap_le_comap_iff_of_surjective (f.symm : A ⧸ J →+* R ⧸ I) f.symm.surjective,
-    map_le_iff_le_comap, comap_map_of_surjective _ quotient.mk_surjective,
-    ← ring_hom.ker_eq_comap_bot, mk_ker, sup_eq_left.mpr $ le_of_dvd hY],
-end
+  {p : ideal R | p ∣ I} ≃o {p : ideal A | p ∣ J} :=
+order_iso.of_hom_inv (ideal_factors_fun_of_quot_hom f f.surjective)
+  (ideal_factors_fun_of_quot_hom f.symm f.symm.surjective)
+  (ideal_factors_fun_of_quot_hom_inv_of_equiv f.symm)
+  (ideal_factors_fun_of_quot_hom_inv_of_equiv f)
 
 end
 

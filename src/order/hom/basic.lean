@@ -623,6 +623,16 @@ have gf : ∀ (a : α), a = g (f a) := by { intro, rw [←cmp_eq_eq_iff, h, cmp_
   right_inv := by { intro, rw [←cmp_eq_eq_iff, ←h, cmp_self_eq_eq] },
   map_rel_iff' := by { intros, apply le_iff_le_of_cmp_eq_cmp, convert (h _ _).symm, apply gf } }
 
+/-- To show that `f : α →o β` and `g : β →o α` make up an order isomorphism it is enough to show
+    that `g` is the inverse of `f`-/
+def order_iso.of_hom_inv (f : α →o β) (g : β →o α) (h₁ : function.left_inverse g f)
+   (h₂ : function.left_inverse f g) : α ≃o β :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := h₁,
+  right_inv := h₂,
+  map_rel_iff' := λ a b, ⟨λ h, by rw [← h₁ a, ← h₁ b] ; exact g.monotone h, λ h, f.monotone h⟩ }
+
 /-- Order isomorphism between two equal sets. -/
 def set_congr (s t : set α) (h : s = t) : s ≃o t :=
 { to_equiv := equiv.set_congr h,

@@ -598,8 +598,8 @@ begin
     exact is_closed.preimage (linear_isometry_equiv.continuous _) h_closed, },
 end
 
-/-- To prove something for an `Lp` function strongly measurable with respect to a sub-σ-algebra `m`
-in a normed space, it suffices to show that
+/-- To prove something for an `Lp` function a.e. strongly measurable with respect to a
+sub-σ-algebra `m` in a normed space, it suffices to show that
 * the property holds for (multiples of) characteristic functions which are measurable w.r.t. `m`;
 * is closed under addition;
 * the set of functions in `Lp` strongly measurable w.r.t. `m` for which the property holds is

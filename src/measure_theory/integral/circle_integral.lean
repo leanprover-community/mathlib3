@@ -181,7 +181,7 @@ begin
   simp_rw ←one_div,
   apply_rules [continuous_on.div, continuous_const.continuous_on, continuous_on.sub,
     (continuous_circle_map z R).continuous_on, continuous_const.continuous_on],
-  refine (λ _ _, (circle_map_ne_on_ball hR hw) _),
+  exact (λ _ _, (circle_map_ne_on_ball hR hw) _),
 end
 
 /-!

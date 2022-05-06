@@ -95,6 +95,19 @@ meta def get_factors_add : expr → tactic expr
                               mk_app `has_add.add [ga, gb] >>= return
 | e := guess_deg e >>= return
 
+#check polynomial.monomial_eq_C_mul_X
+lemma _root_.polynomial.nat_degree_monomial_le {R : Type*} [semiring R] (a : R) (n : ℕ) :
+  (polynomial.monomial n a).nat_degree ≤ n :=
+begin
+  classical,
+  rw polynomial.nat_degree_monomial,
+  split_ifs; simp,
+end
+open polynomial
+lemma _root_.polynomial.nat_degree_C_mul_X_le {R : Type*} [semiring R] (a : R) :
+  ((C a : polynomial R) * (X : polynomial R)).nat_degree ≤ 1 :=
+(nat_degree_C_mul_le _ _).trans nat_degree_X_le
+
 --set_option trace.eqn_compiler.elim_match true
 meta def produce_equalities : list expr → list expr → list expr
 | _ [] := []
@@ -115,13 +128,43 @@ do `(polynomial.nat_degree %%tl = %%tr) ← target,
   let n0 := to_expr ``(nat.zero),
   let summ := (get_summands (prepare tl)),
   rere ← summ.mmap get_factors_add,-- (get_factors_add t),
+  mario ← rere.mmap (eval_expr ℕ),
+  --mario ← rere.mmap (λ e, do (e', _) ← norm_num.derive e <|> (trace "or_else" *> trace e *> refl_conv e), trace "direct", trace e', e'.to_nat),
+  --*  trace mario,
+  let m := mario.maximum,
+  let m' := m.get_or_else 0,
+  let szd := summ.zip mario,
+  --*  trace szd,
+  --*  trace "filtered",
+  let fil : list pexpr := ((szd.filter (λ e : expr × ℕ, e.2 = m')).map (λ e, pexpr.of_expr e.1)),
+  let ffil : list (bool × pexpr) := ([ff].zip fil),
+  move_add_with_errors ffil none,
+  `[rw [polynomial.nat_degree_add_eq_right_of_nat_degree_lt, polynomial.nat_degree_X_pow],
+    rw [polynomial.nat_degree_X_pow],
+    refine nat.lt_succ_of_le _,
+    repeat { refine (polynomial.nat_degree_add_le _ _).trans _,
+             refine max_le _ _ },
+    repeat { rw ← polynomial.monomial_eq_C_mul_X },
+--    repeat { rw polynomial.nat_degree_X_pow },
+--    repeat { rw polynomial.nat_degree_X },
+    repeat { rw polynomial.monomial_mul_monomial },
+    repeat { refine (polynomial.nat_degree_monomial_le _ _).trans _ },
+    repeat { refine (polynomial.nat_degree_C_mul_le _ _).trans _ },
+    repeat { norm_num },  -- norm_num could be used earlier, but is *slightly* slower
+    repeat { assumption } -- these assumptions are
+                          -- the type of the semiring and
+                          -- the instance that it is a semiring.
+                          -- They appear to arise from `pX` in `guess_deg`,
+                          -- which has no way of figuring out what `R` is.
+     ]
+
+/-
   let preq : list expr := produce_equalities summ rere,
 --  let tadd : expr := to_expr (has_add.add).to_string,
 --  trace tadd,
 --  trace $ expr.replace_with tl `(has_add.add) ``(has_mul.mul),
   trace rere
   --,trace $ rere.map to_string
-/-
   let prnat : list (option ℕ) := rere.map expr.to_nat,
   trace prnat,
   trace preq,
@@ -152,7 +195,14 @@ end tactic.interactive
 
 open polynomial
 open_locale polynomial
-variables {R : Type*} [semiring R] {f g h : R[X]} {a b c d e : R}
+variables {R : Type*} [semiring R] [nontrivial R] {f g h : R[X]} {a b c d e : R}
+#check nat_degree_monomial
+example {h : C d ≠ 0} (f10 : f.nat_degree ≤ 10) :
+  nat_degree (monomial 5 c * monomial 1 c + monomial 7 d + monomial 9 1 +
+    C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X) = 10 :=
+begin
+  fina,
+end
 
 lemma pro {h : C d ≠ 0} (f10 : f.nat_degree ≤ 10) :
   nat_degree (monomial 5 c * monomial 1 c + f + monomial 7 d +

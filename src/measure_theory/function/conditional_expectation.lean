@@ -665,8 +665,8 @@ begin
   exact h_add hf'_Lp hg'_Lp hf'_meas hg'_meas h_disj hPf hPg,
 end
 
-/-- To prove something for an arbitrary `mem_ℒp` function strongly measurable with respect to a
-sub-σ-algebra `m` in a normed space, it suffices to show that
+/-- To prove something for an arbitrary `mem_ℒp` function a.e. strongly measurable with respect
+to a sub-σ-algebra `m` in a normed space, it suffices to show that
 * the property holds for (multiples of) characteristic functions which are measurable w.r.t. `m`;
 * is closed under addition;
 * the set of functions in the `Lᵖ` space strongly measurable w.r.t. `m` for which the property

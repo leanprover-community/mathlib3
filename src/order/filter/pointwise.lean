@@ -283,8 +283,8 @@ end div
 section monoid
 variables [monoid α] {f g : filter α} {s : set α} {a : α}
 
-/-- If `u` is a unit in `α`, then `{u}` is a unit in `set α`. -/
-@[to_additive "If `u` is an additive unit in `α`, then `{u}` is an additive unit in `set α`.",
+/-- If `u` is a unit in `α`, then `pure u` is a unit in `filter α`. -/
+@[to_additive "If `u` is an additive unit in `α`, then `pure u` is an additive unit in `filter α`.",
 simps coe] protected def _root_.units.filter (u : αˣ) : (filter α)ˣ :=
 { val := pure u,
   inv := pure (u⁻¹ : αˣ),

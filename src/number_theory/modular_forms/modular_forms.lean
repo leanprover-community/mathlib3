@@ -261,7 +261,6 @@ begin
   simp,
 end
 
-
 /--The extension of a function from `ℍ` to `ℍ'`-/
 def hol_extn (f : ℍ → ℂ) : ℍ' → ℂ := λ (z : ℍ'), (f (z : ℍ))
 

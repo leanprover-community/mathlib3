@@ -1038,12 +1038,13 @@ lemma is_lub_pi {π : α → Type*} [Π a, preorder (π a)] {s : set (Π a, π a
   is_lub s f ↔ ∀ a, is_lub (function.eval a '' s) (f a) :=
 begin
   classical,
-  refine ⟨λ H a, ⟨(function.monotone_eval a).mem_upper_bounds_image H.1, λ b hb, _⟩, λ H, ⟨_, _⟩⟩,
+  refine ⟨λ H a, ⟨monotone.mem_upper_bounds_image (function.monotone_eval a) H.1, λ b hb, _⟩,
+    λ H, ⟨_, _⟩⟩,
   { suffices : function.update f a b ∈ upper_bounds s,
       from function.update_same a b f ▸ H.2 this a,
     refine λ g hg, le_update_iff.2 ⟨hb $ mem_image_of_mem _ hg, λ i hi, H.1 hg i⟩ },
   { exact λ g hg a, (H a).1 (mem_image_of_mem _ hg) },
-  { exact λ g hg a, (H a).2 ((function.monotone_eval a).mem_upper_bounds_image hg) }
+  { exact λ g hg a, (H a).2 (monotone.mem_upper_bounds_image (function.monotone_eval a) hg) }
 end
 
 lemma is_glb_pi {π : α → Type*} [Π a, preorder (π a)] {s : set (Π a, π a)} {f : Π a, π a} :
@@ -1053,15 +1054,15 @@ lemma is_glb_pi {π : α → Type*} [Π a, preorder (π a)] {s : set (Π a, π a
 lemma is_lub_prod [preorder α] [preorder β] {s : set (α × β)} (p : α × β) :
   is_lub s p ↔ is_lub (prod.fst '' s) p.1 ∧ is_lub (prod.snd '' s) p.2 :=
 begin
-  refine ⟨λ H, ⟨⟨monotone_fst.mem_upper_bounds_image H.1, λ a ha, _⟩,
-    ⟨monotone_snd.mem_upper_bounds_image H.1, λ a ha, _⟩⟩, λ H, ⟨_, _⟩⟩,
+  refine ⟨λ H, ⟨⟨monotone.mem_upper_bounds_image monotone_fst H.1, λ a ha, _⟩,
+    ⟨monotone.mem_upper_bounds_image monotone_snd H.1, λ a ha, _⟩⟩, λ H, ⟨_, _⟩⟩,
   { suffices : (a, p.2) ∈ upper_bounds s, from (H.2 this).1,
     exact λ q hq, ⟨ha $ mem_image_of_mem _ hq, (H.1 hq).2⟩ },
   { suffices : (p.1, a) ∈ upper_bounds s, from (H.2 this).2,
     exact λ q hq, ⟨(H.1 hq).1, ha $ mem_image_of_mem _ hq⟩ },
   { exact λ q hq, ⟨H.1.1 $ mem_image_of_mem _ hq, H.2.1 $ mem_image_of_mem _ hq⟩ },
-  { exact λ q hq, ⟨H.1.2 $ monotone_fst.mem_upper_bounds_image hq,
-      H.2.2 $ monotone_snd.mem_upper_bounds_image hq⟩ }
+  { exact λ q hq, ⟨H.1.2 $ monotone.mem_upper_bounds_image monotone_fst hq,
+      H.2.2 $ monotone.mem_upper_bounds_image monotone_snd hq⟩ }
 end
 
 lemma is_glb_prod [preorder α] [preorder β] {s : set (α × β)} (p : α × β) :

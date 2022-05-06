@@ -104,6 +104,15 @@ lemma algebra_map_apply {R A : Type*} [comm_semiring R] [semiring A] [algebra R 
   algebra_map R (laurent_polynomial A) r = C (algebra_map R A r) :=
 rfl
 
+/--
+When we have `[comm_semiring R]`, the function `C` is the same as `algebra_map R R[T;T⁻¹]`.
+(But note that `C` is defined when `R` is not necessarily commutative, in which case
+`algebra_map` is not available.)
+-/
+lemma C_eq_algebra_map {R : Type*} [comm_semiring R] (r : R) :
+  C r = algebra_map R R[T;T⁻¹] r :=
+rfl
+
 lemma single_eq_C (r : R) : single 0 r = C r := rfl
 
 /--  The function `n ↦ T ^ n`, implemented as a sequence `ℤ → R[T;T⁻¹]`.

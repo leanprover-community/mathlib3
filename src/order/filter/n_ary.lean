@@ -18,10 +18,12 @@ operations on filters.
 
 ## Notes
 
-This file is very similar to the n-ary section of `data.set.basic`. Please keep them in sync.
+This file is very similar to the n-ary section of `data.set.basic` and to `data.finset.n_ary`.
+Please keep them in sync.
 -/
 
 open function set
+open_locale filter
 
 namespace filter
 variables {α α' β β' γ γ' δ δ' ε ε' : Type*} {m : α → β → γ} {f f₁ f₂ : filter α}
@@ -48,6 +50,31 @@ def map₂ (m : α → β → γ) (f : filter α) (g : filter β) : filter γ :=
 
 lemma image2_mem_map₂ (hs : s ∈ f) (ht : t ∈ g) : image2 m s t ∈ map₂ m f g :=
 ⟨_, _, hs, ht, subset.rfl⟩
+
+lemma map_prod_eq_map₂ (m : α → β → γ) (f : filter α) (g : filter β) :
+  filter.map (λ p : α × β, m p.1 p.2) (f ×ᶠ g) = map₂ m f g :=
+begin
+  ext s,
+  split,
+  { intro hmem,
+    rw filter.mem_map_iff_exists_image at hmem,
+    obtain ⟨s', hs', hsub⟩ := hmem,
+    rw filter.mem_prod_iff at hs',
+    obtain ⟨t, ht, t', ht', hsub'⟩ := hs',
+    refine ⟨t, t', ht, ht', _⟩,
+    rw ← set.image_prod,
+    exact subset_trans (set.image_subset (λ (p : α × β), m p.fst p.snd) hsub') hsub },
+  { intro hmem,
+    rw mem_map₂_iff at hmem,
+    obtain ⟨t, t', ht, ht', hsub⟩ := hmem,
+    rw ← set.image_prod at hsub,
+    rw filter.mem_map_iff_exists_image,
+    exact ⟨t ×ˢ t', filter.prod_mem_prod ht ht', hsub⟩ },
+end
+
+lemma map_prod_eq_map₂' (m : α × β → γ) (f : filter α) (g : filter β) :
+  filter.map m (f ×ᶠ g) = map₂ (λ a b, m (a, b)) f g :=
+by { refine eq.trans _ (map_prod_eq_map₂ (curry m) f g), ext, simp }
 
 -- lemma image2_mem_map₂_iff (hm : injective2 m) : image2 m s t ∈ map₂ m f g ↔ s ∈ f ∧ t ∈ g :=
 -- ⟨by { rintro ⟨u, v, hu, hv, h⟩, rw image2_subset_image2_iff hm at h,
@@ -86,6 +113,9 @@ by { simp_rw ne_bot_iff, exact map₂_eq_bot_iff.not.trans not_or_distrib }
 
 lemma ne_bot.map₂ (hf : f.ne_bot) (hg : g.ne_bot) : (map₂ m f g).ne_bot :=
 map₂_ne_bot_iff.2 ⟨hf, hg⟩
+
+lemma ne_bot.of_map₂_left (h : (map₂ m f g).ne_bot) : f.ne_bot := (map₂_ne_bot_iff.1 h).1
+lemma ne_bot.of_map₂_right (h : (map₂ m f g).ne_bot) : g.ne_bot := (map₂_ne_bot_iff.1 h).2
 
 lemma map₂_sup_left : map₂ m (f₁ ⊔ f₂) g = map₂ m f₁ g ⊔ map₂ m f₂ g :=
 begin

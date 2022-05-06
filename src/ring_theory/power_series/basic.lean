@@ -514,7 +514,7 @@ begin
   { subst m, simp },
   { symmetry, rw mv_polynomial.coeff_one, exact if_neg (ne.symm H'), },
   { symmetry, rw mv_polynomial.coeff_one, refine if_neg _,
-    intro H', apply H, subst m, exact ne.bot_lt hnn, }
+    rintro rfl, apply H, exact ne.bot_lt hnn, }
 end
 
 @[simp] lemma trunc_C (hnn : n ≠ 0) (a : R) : trunc R n (C σ R a) = mv_polynomial.C a :=
@@ -649,10 +649,12 @@ variable [comm_ring R]
 
 /-- Multivariate formal power series over a local ring form a local ring. -/
 instance [local_ring R] : local_ring (mv_power_series σ R) :=
-{ is_local := by { intro φ, rcases local_ring.is_local (constant_coeff σ R φ) with ⟨u,h⟩|⟨u,h⟩;
+local_ring.of_is_unit_or_is_unit_one_sub_self $ by
+{ intro φ,
+  rcases local_ring.is_unit_or_is_unit_one_sub_self (constant_coeff σ R φ) with ⟨u,h⟩|⟨u,h⟩;
     [left, right];
     { refine is_unit_of_mul_eq_one _ _ (mul_inv_of_unit _ u _),
-      simpa using h.symm } } }
+      simpa using h.symm } }
 
 -- TODO(jmc): once adic topology lands, show that this is complete
 
@@ -1307,7 +1309,7 @@ begin
   { subst m, rw [if_pos rfl] },
   { symmetry, exact if_neg (ne.elim (ne.symm H')) },
   { symmetry, refine if_neg _,
-    intro H', apply H, subst m, exact nat.zero_lt_succ _ }
+    rintro rfl, apply H, exact nat.zero_lt_succ _ }
 end
 
 @[simp] lemma trunc_C (n) (a : R) : trunc (n + 1) (C R a) = polynomial.C a :=
@@ -1441,7 +1443,8 @@ begin
     suffices : m < i,
     { have : m + n < i + j := add_lt_add_of_lt_of_le this hj,
       exfalso, exact ne_of_lt this hij.symm },
-    contrapose! hne, have : i = m := le_antisymm hne hi, subst i, clear hi hne,
+    contrapose! hne,
+    obtain rfl := le_antisymm hi hne,
     simpa [ne.def, prod.mk.inj_iff] using (add_right_inj m).mp hij },
   { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end

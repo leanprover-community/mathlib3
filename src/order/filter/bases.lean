@@ -702,11 +702,15 @@ begin
   { intros i j,
     simp only [true_and, forall_true_left],
     exact ⟨max i j, hf.antitone (le_max_left _ _), hg.antitone (le_max_right _ _)⟩, },
-  refine ⟨h, λ n m hn_le_m, _⟩,
-  intros x hx,
-  rw mem_prod at hx ⊢,
-  exact ⟨hf.antitone hn_le_m hx.1, hg.antitone hn_le_m hx.2⟩,
+  refine ⟨h, λ n m hn_le_m, set.prod_mono _ _⟩,
+  exacts [hf.antitone hn_le_m, hg.antitone hn_le_m]
 end
+
+lemma has_basis.coprod {ι ι' : Type*} {pa : ι → Prop} {sa : ι → set α} {pb : ι' → Prop}
+  {sb : ι' → set β} (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
+  (la.coprod lb).has_basis (λ i : ι × ι', pa i.1 ∧ pb i.2)
+    (λ i, prod.fst ⁻¹' sa i.1 ∪ prod.snd ⁻¹' sb i.2) :=
+(hla.comap prod.fst).sup (hlb.comap prod.snd)
 
 end two_types
 

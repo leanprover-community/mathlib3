@@ -484,11 +484,11 @@ m₁.comap prod.fst ⊔ m₂.comap prod.snd
 instance {α β} [m₁ : measurable_space α] [m₂ : measurable_space β] : measurable_space (α × β) :=
 m₁.prod m₂
 
-@[measurability] lemma measurable_fst [measurable_space α] [measurable_space β] :
+@[measurability] lemma measurable_fst {ma : measurable_space α} {mb : measurable_space β} :
   measurable (prod.fst : α × β → α) :=
 measurable.of_comap_le le_sup_left
 
-@[measurability] lemma measurable_snd [measurable_space α] [measurable_space β] :
+@[measurability] lemma measurable_snd {ma : measurable_space α} {mb : measurable_space β} :
   measurable (prod.snd : α × β → β) :=
 measurable.of_comap_le le_sup_right
 
@@ -561,8 +561,8 @@ lemma measurable_set_prod_of_nonempty {s : set α} {t : set β} (h : (s ×ˢ t :
 begin
   rcases h with ⟨⟨x, y⟩, hx, hy⟩,
   refine ⟨λ hst, _, λ h, h.1.prod h.2⟩,
-  have : measurable_set ((λ x, (x, y)) ⁻¹' (s ×ˢ t)) := measurable_id.prod_mk measurable_const hst,
-  have : measurable_set (prod.mk x ⁻¹' (s ×ˢ t)) := measurable_const.prod_mk measurable_id hst,
+  have : measurable_set ((λ x, (x, y)) ⁻¹' s ×ˢ t) := measurable_prod_mk_right hst,
+  have : measurable_set (prod.mk x ⁻¹' s ×ˢ t) := measurable_prod_mk_left hst,
   simp * at *
 end
 
@@ -735,7 +735,7 @@ end
 
 section fintype
 
-local attribute [instance] fintype.encodable
+local attribute [instance] fintype.to_encodable
 
 lemma measurable_set.pi_fintype [fintype δ] {s : set δ} {t : Π i, set (π i)}
   (ht : ∀ i ∈ s, measurable_set (t i)) : measurable_set (pi s t) :=
@@ -1251,6 +1251,29 @@ def pi_measurable_equiv_tprod [decidable_eq δ']
 /-- The space `fin 2 → α` is measurably equivalent to `α × α`. -/
 @[simps {fully_applied := ff}] def fin_two_arrow : (fin 2 → α) ≃ᵐ α × α := pi_fin_two (λ _, α)
 
+/-- Measurable equivalence between `Π j : fin (n + 1), α j` and
+`α i × Π j : fin n, α (fin.succ_above i j)`. -/
+@[simps {fully_applied := ff}]
+def pi_fin_succ_above_equiv {n : ℕ} (α : fin (n + 1) → Type*) [Π i, measurable_space (α i)]
+  (i : fin (n + 1)) :
+  (Π j, α j) ≃ᵐ α i × (Π j, α (i.succ_above j)) :=
+{ to_equiv := pi_fin_succ_above_equiv α i,
+  measurable_to_fun := (measurable_pi_apply i).prod_mk $ measurable_pi_iff.2 $
+    λ j, measurable_pi_apply _,
+  measurable_inv_fun := by simp [measurable_pi_iff, i.forall_iff_succ_above, measurable_fst,
+    (measurable_pi_apply _).comp measurable_snd]  }
+
+variable (π)
+
+/-- Measurable equivalence between (dependent) functions on a type and pairs of functions on
+`{i // p i}` and `{i // ¬p i}`. See also `equiv.pi_equiv_pi_subtype_prod`. -/
+@[simps {fully_applied := ff}]
+def pi_equiv_pi_subtype_prod (p : δ' → Prop) [decidable_pred p] :
+  (Π i, π i) ≃ᵐ ((Π i : subtype p, π i) × (Π i : {i // ¬p i}, π i)) :=
+{ to_equiv := pi_equiv_pi_subtype_prod p π,
+  measurable_to_fun := measurable_pi_equiv_pi_subtype_prod π p,
+  measurable_inv_fun := measurable_pi_equiv_pi_subtype_prod_symm π p }
+
 end measurable_equiv
 
 namespace measurable_embedding
@@ -1302,10 +1325,10 @@ lemma eventually.exists_measurable_mem {f : filter α} [is_measurably_generated 
   ∃ s ∈ f, measurable_set s ∧ ∀ x ∈ s, p x :=
 is_measurably_generated.exists_measurable_subset h
 
-lemma eventually.exists_measurable_mem_of_lift' {f : filter α} [is_measurably_generated f]
-  {p : set α → Prop} (h : ∀ᶠ s in f.lift' powerset, p s) :
+lemma eventually.exists_measurable_mem_of_small_sets {f : filter α} [is_measurably_generated f]
+  {p : set α → Prop} (h : ∀ᶠ s in f.small_sets, p s) :
   ∃ s ∈ f, measurable_set s ∧ p s :=
-let ⟨s, hsf, hs⟩ := eventually_lift'_powerset.1 h,
+let ⟨s, hsf, hs⟩ := eventually_small_sets.1 h,
   ⟨t, htf, htm, hts⟩ := is_measurably_generated.exists_measurable_subset hsf
 in ⟨t, htf, htm, hs t hts⟩
 

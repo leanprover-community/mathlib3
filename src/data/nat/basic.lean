@@ -913,6 +913,13 @@ begin
   { intros h, rw h },
 end
 
+@[simp]
+lemma div_by_eq_iff_eq_of_dvd_dvd {a b d : ℕ} (hda : d ∣ a) (hdb : d ∣ b) : a / d = b / d ↔ a = b :=
+begin
+  refine ⟨λ h, _, congr_arg _⟩,
+  rw [←nat.mul_div_cancel' hda, ←nat.mul_div_cancel' hdb, h],
+end
+
 /-! ### `mod`, `dvd` -/
 
 lemma div_add_mod (m k : ℕ) : k * (m / k) + m % k = m :=

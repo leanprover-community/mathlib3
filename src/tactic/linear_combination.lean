@@ -369,7 +369,7 @@ by linear_combination (h1, 1) (h2, -2)
 
 example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
   x*y = -2*y + 1 :=
-by linear_combination h1 (h2, -2)
+by linear_combination (h1) (h2, -2)
 
 example (x y z : ℝ) (ha : x + 2*y - z = 4) (hb : 2*x + y + z = -2)
     (hc : x + 2*y + z = 2) :

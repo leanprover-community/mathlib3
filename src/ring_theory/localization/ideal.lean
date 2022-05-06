@@ -22,8 +22,7 @@ namespace is_localization
 
 section comm_semiring
 variables {R : Type*} [comm_semiring R] (M : submonoid R) (S : Type*) [comm_semiring S]
-variables [algebra R S] {P : Type*} [comm_semiring P]
-variables [is_localization M S]
+variables [algebra R S] [is_localization M S]
 
 include M
 
@@ -152,8 +151,7 @@ end comm_semiring
 
 section comm_ring
 variables {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*) [comm_ring S]
-variables [algebra R S] {P : Type*} [comm_ring P]
-variables [is_localization M S]
+variables [algebra R S] [is_localization M S]
 
 include M
 

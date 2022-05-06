@@ -46,7 +46,7 @@ def circle_integral_transform_deriv (R : ℝ) (z w : ℂ) (f : ℂ → E) : (ℝ
 def circle_integral_form [complete_space E] (R : ℝ) (z : ℂ) (f : ℂ → E) : (ℂ → E) :=
   λ w, (2 * π * I : ℂ)⁻¹ • (∮ z in C(z, R), (z - w)⁻¹ • f z)
 
-lemma circle_intgral_form_eq_int [complete_space E] (R : ℝ) (z : ℂ) (f : ℂ → E) :
+lemma circle_integral_form_eq_int [complete_space E] (R : ℝ) (z : ℂ) (f : ℂ → E) :
   circle_integral_form R z f =  λ w,
  ∫ (θ : ℝ) in 0..2 * π, (circle_integral_transform R z w f ) θ :=
 begin

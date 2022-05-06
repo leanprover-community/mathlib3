@@ -130,7 +130,7 @@ lemma circle_map_ne_center {c : ℂ} {R : ℝ} (hR : R ≠ 0) {θ : ℝ} : circl
 mt circle_map_eq_center_iff.1 hR
 
 lemma circle_map_ne_on_ball {R : ℝ} (hR : 0 < R) {z w : ℂ} (hw : w ∈ ball z R) :
-  ∀  (x : ℝ), circle_map z R x - w ≠ 0 :=
+  ∀ (x : ℝ), circle_map z R x - w ≠ 0 :=
 begin
   intros x hx,
   rw ←(sub_eq_zero.mp hx) at hw,

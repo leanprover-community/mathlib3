@@ -826,7 +826,8 @@ begin
   rw [integral_integral_swap hi],
   congr', ext t,
   rw [eq_comm, ← integral_sub_right_eq_self _ t],
-  simp_rw [sub_sub_sub_cancel_right],
+  { simp_rw [sub_sub_sub_cancel_right] },
+  { apply_instance },
 end
 
 end normed_space

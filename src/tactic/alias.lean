@@ -55,17 +55,15 @@ meta inductive target
 
 /-- The name underlying an alias target -/
 meta def target.to_name : target → name
-| target.plain n := n
-| target.forward n := n
-| target.backwards n := n
-end
+| (target.plain n) := n
+| (target.forward n) := n
+| (target.backwards n) := n
 
 /-- The docstring for an alias. Used by `alias` _and_ by `to_additive` -/
 meta def target.to_string : target → string
-| target.plain n := sformat!"**Alias** of {n}`."
-| target.forward n := sformat!"**Alias** of the forward direction of {n}`."
-| target.backwards n := sformat!"**Alias** of the reverse direction of {n}`."
-end
+| (target.plain n) := sformat!"**Alias** of {n}`."
+| (target.forward n) := sformat!"**Alias** of the forward direction of {n}`."
+| (target.backwards n) := sformat!"**Alias** of the reverse direction of {n}`."
 
 @[user_attribute] meta def alias_attr : user_attribute unit target :=
 { name := `alias, descr := "This definition is an alias of another.", parser := failed }

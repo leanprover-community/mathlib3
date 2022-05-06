@@ -205,7 +205,7 @@ hp.1.eq_two_or_odd.elim
         revert this hp3 hp1,
         generalize : p % 4 = m, dec_trivial!,
       end,
-    let ⟨k, hk⟩ := (zmod.exists_sq_eq_neg_one_iff_mod_four_ne_three p).2 $
+    let ⟨k, hk⟩ := (zmod.exists_sq_eq_neg_one_iff p).2 $
       by rw hp41; exact dec_trivial in
     begin
       obtain ⟨k, k_lt_p, rfl⟩ : ∃ (k' : ℕ) (h : k' < p), (k' : zmod p) = k,
@@ -262,7 +262,7 @@ lemma prime_of_nat_prime_of_mod_four_eq_three (p : ℕ) [hp : fact p.prime] (hp3
   prime (p : ℤ[i]) :=
 irreducible_iff_prime.1 $ classical.by_contradiction $ λ hpi,
   let ⟨a, b, hab⟩ := sq_add_sq_of_nat_prime_of_not_irreducible p hpi in
-have ∀ a b : zmod 4, a^2 + b^2 ≠ p, by erw [← zmod.nat_cast_mod 4 p, hp3]; exact dec_trivial,
+have ∀ a b : zmod 4, a^2 + b^2 ≠ p, by erw [← zmod.nat_cast_mod p 4, hp3]; exact dec_trivial,
 this a b (hab ▸ by simp)
 
 /-- A prime natural number is prime in `ℤ[i]` if and only if it is `3` mod `4` -/

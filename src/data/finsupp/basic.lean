@@ -195,6 +195,12 @@ by simp only [set.subset_def, mem_coe, mem_support_iff];
   equiv_fun_on_fintype.symm f = f :=
 by { ext, simp [equiv_fun_on_fintype], }
 
+/-- If `α` has a unique term,
+then the type of finitely supported functions `α →₀ β` is equivalent to `β`. -/
+@[simps] noncomputable
+def _root_.equiv.finsupp_unique {ι : Type*} [unique ι] : (ι →₀ M) ≃ M :=
+finsupp.equiv_fun_on_fintype.trans (equiv.fun_unique ι M)
+
 end basic
 
 /-! ### Declarations about `single` -/
@@ -334,10 +340,11 @@ end
 lemma unique_single [unique α] (x : α →₀ M) : x = single default (x default) :=
 ext $ unique.forall_iff.2 single_eq_same.symm
 
+@[ext]
 lemma unique_ext [unique α] {f g : α →₀ M} (h : f default = g default) : f = g :=
 ext $ λ a, by rwa [unique.eq_default a]
 
-lemma unique_ext_iff [unique α] {f g : α →₀ M} : f = g ↔  f default = g default :=
+lemma unique_ext_iff [unique α] {f g : α →₀ M} : f = g ↔ f default = g default :=
 ⟨λ h, h ▸ rfl, unique_ext⟩
 
 @[simp] lemma unique_single_eq_iff [unique α] {b' : M} :
@@ -1296,6 +1303,14 @@ lift_add_hom.to_equiv.apply_eq_iff_eq_symm_apply.2 rfl
 @[simp] lemma sum_single [add_comm_monoid M] (f : α →₀ M) :
   f.sum single = f :=
 add_monoid_hom.congr_fun lift_add_hom_single_add_hom f
+
+@[simp] lemma sum_univ_single [add_comm_monoid M] [fintype α] (i : α) (m : M) :
+  ∑ (j : α), (single i m) j = m :=
+by simp [single]
+
+@[simp] lemma sum_univ_single' [add_comm_monoid M] [fintype α] (i : α) (m : M) :
+  ∑ (j : α), (single j m) i = m :=
+by simp [single]
 
 @[simp] lemma lift_add_hom_apply_single [add_comm_monoid M] [add_comm_monoid N]
   (f : α → M →+ N) (a : α) (b : M) :
@@ -2324,6 +2339,15 @@ lemma sum_finsupp_add_equiv_prod_finsupp_symm_inr {α β : Type*}
 rfl
 
 end sum
+
+section
+variables [has_zero M] [monoid_with_zero R] [mul_action_with_zero R M]
+
+@[simp] lemma single_smul (a b : α) (f : α → M) (r : R) :
+  (single a r b) • (f a) = single a (r • f b) b :=
+by by_cases a = b; simp [h]
+
+end
 
 section
 variables [monoid G] [mul_action G α] [add_comm_monoid M]

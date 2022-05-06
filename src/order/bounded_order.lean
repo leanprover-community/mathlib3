@@ -88,7 +88,7 @@ alias ne_top_of_lt ← has_lt.lt.ne_top
 
 end preorder
 
-variables [partial_order α] [order_top α] {a b : α}
+variables [partial_order α] [order_top α] [preorder β] {f : α → β} {a b : α}
 
 @[simp] lemma is_max_iff_eq_top : is_max a ↔ a = ⊤ :=
 ⟨λ h, h.eq_of_le le_top, λ h b _, h.symm ▸ le_top⟩
@@ -99,21 +99,25 @@ variables [partial_order α] [order_top α] {a b : α}
 lemma not_is_max_iff_ne_top : ¬ is_max a ↔ a ≠ ⊤ := is_max_iff_eq_top.not
 lemma not_is_top_iff_ne_top : ¬ is_top a ↔ a ≠ ⊤ := is_top_iff_eq_top.not
 
-alias is_max_iff_eq_top ↔ _ is_max.eq_top
-alias is_top_iff_eq_top ↔ _ is_top.eq_top
+alias is_max_iff_eq_top ↔ is_max.eq_top _
+alias is_top_iff_eq_top ↔ is_top.eq_top _
 
 @[simp] lemma top_le_iff : ⊤ ≤ a ↔ a = ⊤ := le_top.le_iff_eq.trans eq_comm
 lemma top_unique (h : ⊤ ≤ a) : a = ⊤ := le_top.antisymm h
 lemma eq_top_iff : a = ⊤ ↔ ⊤ ≤ a := top_le_iff.symm
 lemma eq_top_mono (h : a ≤ b) (h₂ : a = ⊤) : b = ⊤ := top_unique $ h₂ ▸ h
 lemma lt_top_iff_ne_top : a < ⊤ ↔ a ≠ ⊤ := le_top.lt_iff_ne
+@[simp] lemma not_lt_top_iff : ¬ a < ⊤ ↔ a = ⊤ := lt_top_iff_ne_top.not_left
 lemma eq_top_or_lt_top (a : α) : a = ⊤ ∨ a < ⊤ := le_top.eq_or_lt
 lemma ne.lt_top (h : a ≠ ⊤) : a < ⊤ := lt_top_iff_ne_top.mpr h
 lemma ne.lt_top' (h : ⊤ ≠ a) : a < ⊤ := h.symm.lt_top
 lemma ne_top_of_le_ne_top (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ := (hab.trans_lt hb.lt_top).ne
 
-lemma eq_top_of_maximal (h : ∀ b, ¬ a < b) : a = ⊤ :=
-or.elim (lt_or_eq_of_le le_top) (λ hlt, absurd hlt (h ⊤)) (λ he, he)
+lemma strict_mono.apply_eq_top_iff (hf : strict_mono f) : f a = f ⊤ ↔ a = ⊤ :=
+⟨λ h, not_lt_top_iff.1 $ λ ha, (hf ha).ne h, congr_arg _⟩
+
+lemma strict_anti.apply_eq_top_iff (hf : strict_anti f) : f a = f ⊤ ↔ a = ⊤ :=
+⟨λ h, not_lt_top_iff.1 $ λ ha, (hf ha).ne' h, congr_arg _⟩
 
 variables [nontrivial α]
 
@@ -168,7 +172,7 @@ alias ne_bot_of_gt ← has_lt.lt.ne_bot
 
 end preorder
 
-variables [partial_order α] [order_bot α] {a b : α}
+variables [partial_order α] [order_bot α] [preorder β] {f : α → β} {a b : α}
 
 @[simp] lemma is_min_iff_eq_bot : is_min a ↔ a = ⊥ :=
 ⟨λ h, h.eq_of_ge bot_le, λ h b _, h.symm ▸ bot_le⟩
@@ -179,19 +183,26 @@ variables [partial_order α] [order_bot α] {a b : α}
 lemma not_is_min_iff_ne_bot : ¬ is_min a ↔ a ≠ ⊥ := is_min_iff_eq_bot.not
 lemma not_is_bot_iff_ne_bot : ¬ is_bot a ↔ a ≠ ⊥ := is_bot_iff_eq_bot.not
 
-alias is_min_iff_eq_bot ↔ _ is_min.eq_bot
-alias is_bot_iff_eq_bot ↔ _ is_bot.eq_bot
+alias is_min_iff_eq_bot ↔ is_min.eq_bot _
+alias is_bot_iff_eq_bot ↔ is_bot.eq_bot _
 
 @[simp] lemma le_bot_iff : a ≤ ⊥ ↔ a = ⊥ := bot_le.le_iff_eq
 lemma bot_unique (h : a ≤ ⊥) : a = ⊥ := h.antisymm bot_le
 lemma eq_bot_iff : a = ⊥ ↔ a ≤ ⊥ := le_bot_iff.symm
 lemma eq_bot_mono (h : a ≤ b) (h₂ : b = ⊥) : a = ⊥ := bot_unique $ h₂ ▸ h
 lemma bot_lt_iff_ne_bot : ⊥ < a ↔ a ≠ ⊥ := bot_le.lt_iff_ne.trans ne_comm
+@[simp] lemma not_bot_lt_iff : ¬ ⊥ < a ↔ a = ⊥ := bot_lt_iff_ne_bot.not_left
 lemma eq_bot_or_bot_lt (a : α) : a = ⊥ ∨ ⊥ < a := bot_le.eq_or_gt
 lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ := (eq_bot_or_bot_lt a).resolve_right (h ⊥)
 lemma ne.bot_lt (h : a ≠ ⊥) : ⊥ < a := bot_lt_iff_ne_bot.mpr h
 lemma ne.bot_lt' (h : ⊥ ≠ a) : ⊥ < a := h.symm.bot_lt
 lemma ne_bot_of_le_ne_bot (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ := (hb.bot_lt.trans_le hab).ne'
+
+lemma strict_mono.apply_eq_bot_iff (hf : strict_mono f) : f a = f ⊥ ↔ a = ⊥ :=
+⟨λ h, not_bot_lt_iff.1 $ λ ha, (hf ha).ne' h, congr_arg _⟩
+
+lemma strict_anti.apply_eq_bot_iff (hf : strict_anti f) : f a = f ⊥ ↔ a = ⊥ :=
+⟨λ h, not_bot_lt_iff.1 $ λ ha, (hf ha).ne h, congr_arg _⟩
 
 variables [nontrivial α]
 
@@ -628,6 +639,17 @@ lemma get_or_else_bot_le_iff [has_le α] [order_bot α] {a : with_bot α} {b : �
   a.get_or_else ⊥ ≤ b ↔ a ≤ b :=
 by cases a; simp [none_eq_bot, some_eq_coe]
 
+lemma get_or_else_bot_lt_iff [partial_order α] [order_bot α] {a : with_bot α} {b : α}
+  (ha : a ≠ ⊥) :
+  a.get_or_else ⊥ < b ↔ a < b :=
+begin
+  obtain ⟨a, rfl⟩ := ne_bot_iff_exists.mp ha,
+  simp only [lt_iff_le_and_ne, get_or_else_bot_le_iff, and.congr_right_iff],
+  intro h,
+  apply iff.not,
+  simp only [with_bot.coe_eq_coe, option.get_or_else_coe, iff_self],
+end
+
 instance [semilattice_sup α] : semilattice_sup (with_bot α) :=
 { sup          := option.lift_or_get (⊔),
   le_sup_left  := λ o₁ o₂ a ha,
@@ -936,10 +958,10 @@ instance [lattice α] : lattice (with_top α) :=
 { ..with_top.semilattice_sup, ..with_top.semilattice_inf }
 
 instance decidable_le [has_le α] [@decidable_rel α (≤)] : @decidable_rel (with_top α) (≤) :=
-λ x y, @with_bot.decidable_le (order_dual α) _ _ y x
+λ x y, @with_bot.decidable_le αᵒᵈ _ _ y x
 
 instance decidable_lt [has_lt α] [@decidable_rel α (<)] : @decidable_rel (with_top α) (<) :=
-λ x y, @with_bot.decidable_lt (order_dual α) _ _ y x
+λ x y, @with_bot.decidable_lt αᵒᵈ _ _ y x
 
 instance is_total_le [has_le α] [is_total α (≤)] : is_total (with_top α) (≤) :=
 ⟨λ a b, match a, b with
@@ -967,11 +989,11 @@ have acc_some : ∀ a : α, acc ((<) : with_top α → with_top α → Prop) (so
   (λ _ _, acc_some _))) acc_some⟩
 
 lemma well_founded_gt [preorder α] (h : @well_founded α (>)) : @well_founded (with_top α) (>) :=
-@with_bot.well_founded_lt (order_dual α) _ h
+@with_bot.well_founded_lt αᵒᵈ _ h
 
 lemma _root_.with_bot.well_founded_gt [preorder α] (h : @well_founded α (>)) :
   @well_founded (with_bot α) (>) :=
-@with_top.well_founded_lt (order_dual α) _ h
+@with_top.well_founded_lt αᵒᵈ _ h
 
 instance [has_lt α] [densely_ordered α] [no_max_order α] : densely_ordered (with_top α) :=
 ⟨ λ a b,
@@ -1065,18 +1087,18 @@ end subtype
 namespace order_dual
 variable (α)
 
-instance [has_bot α] : has_top (order_dual α) := ⟨(⊥ : α)⟩
-instance [has_top α] : has_bot (order_dual α) := ⟨(⊤ : α)⟩
+instance [has_bot α] : has_top αᵒᵈ := ⟨(⊥ : α)⟩
+instance [has_top α] : has_bot αᵒᵈ := ⟨(⊤ : α)⟩
 
-instance [has_le α] [order_bot α] : order_top (order_dual α) :=
+instance [has_le α] [order_bot α] : order_top αᵒᵈ :=
 { le_top := @bot_le α _ _,
   .. order_dual.has_top α }
 
-instance [has_le α] [order_top α] : order_bot (order_dual α) :=
+instance [has_le α] [order_top α] : order_bot αᵒᵈ :=
 { bot_le := @le_top α _ _,
   .. order_dual.has_bot α }
 
-instance [has_le α] [bounded_order α] : bounded_order (order_dual α) :=
+instance [has_le α] [bounded_order α] : bounded_order αᵒᵈ :=
 { .. order_dual.order_top α, .. order_dual.order_bot α }
 
 end order_dual
@@ -1199,7 +1221,7 @@ lemma max_top_right [order_top α] (a : α) : max a ⊤ = ⊤ := max_eq_right le
 by { symmetry, cases le_total a b; simpa [*, min_eq_left, min_eq_right] using eq_bot_mono h }
 
 @[simp] lemma max_eq_top [order_top α] {a b : α} : max a b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
-@min_eq_bot (order_dual α) _ _ a b
+@min_eq_bot αᵒᵈ _ _ a b
 
 @[simp] lemma max_eq_bot [order_bot α] {a b : α} : max a b = ⊥ ↔ a = ⊥ ∧ b = ⊥ := sup_eq_bot_iff
 @[simp] lemma min_eq_top [order_top α] {a b : α} : min a b = ⊤ ↔ a = ⊤ ∧ b = ⊤ := inf_eq_top_iff
@@ -1386,7 +1408,7 @@ export is_complemented (exists_is_compl)
 namespace is_complemented
 variables [lattice α] [bounded_order α] [is_complemented α]
 
-instance : is_complemented (order_dual α) :=
+instance : is_complemented αᵒᵈ :=
 ⟨λ a, let ⟨b, hb⟩ := exists_is_compl (show α, from a) in ⟨b, hb.to_order_dual⟩⟩
 
 end is_complemented

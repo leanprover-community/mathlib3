@@ -751,7 +751,7 @@ end
 
 @[simp] lemma algebra_map_eq_zero_iff {x : K[X]} :
   algebra_map K[X] (ratfunc K) x = 0 ↔ x = 0 :=
-⟨(ring_hom.injective_iff _).mp (algebra_map_injective K) _, λ hx, by rw [hx, ring_hom.map_zero]⟩
+⟨(injective_iff_map_eq_zero _).mp (algebra_map_injective K) _, λ hx, by rw [hx, ring_hom.map_zero]⟩
 
 variables {K}
 

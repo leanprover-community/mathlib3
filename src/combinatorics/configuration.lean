@@ -6,7 +6,7 @@ Authors: Thomas Browning
 import algebra.big_operators.order
 import combinatorics.hall.basic
 import data.fintype.card
-import set_theory.fincard
+import set_theory.cardinal.finite
 
 /-!
 # Configurations of Points and lines

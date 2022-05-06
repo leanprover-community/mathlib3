@@ -3,7 +3,7 @@ Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
-import set_theory.pgame
+import set_theory.game.pgame
 
 /-!
 # Basic definitions about who has a winning stratergy
@@ -34,8 +34,6 @@ theorem one_left_wins : left_wins 1 :=
 ⟨by { rw lt_def_le, tidy }, by rw le_def; tidy⟩
 
 theorem star_first_wins : first_wins star := ⟨zero_lt_star, star_lt_zero⟩
-theorem omega_left_wins : left_wins omega :=
-⟨by { rw lt_def_le, exact or.inl ⟨ulift.up 0, by tidy⟩ }, by rw le_def; tidy⟩
 
 lemma winner_cases (G : pgame) : G.left_wins ∨ G.right_wins ∨ G.first_loses ∨ G.first_wins :=
 begin

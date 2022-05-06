@@ -29,7 +29,7 @@ include M
 
 /-- Explicit characterization of the ideal given by `ideal.map (algebra_map R S) I`.
 In practice, this ideal differs only in that the carrier set is defined explicitly.
-This definition is only meant to be used in proving `mem_map_to_map_iff`,
+This definition is only meant to be used in proving `mem_map_algebra_map_iff`,
 and any proof that needs to refer to the explicit carrier set should use that theorem. -/
 private def map_ideal (I : ideal R) : ideal S :=
 { carrier := { z : S | ∃ x : I × M, z * algebra_map R S x.2 = algebra_map R S x.1},

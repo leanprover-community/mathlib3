@@ -143,14 +143,14 @@ begin
   simp_rw ←inv_pow₀,
   apply (circle_int_funct_cont_on_prod R r hR hr z),
   all_goals{apply_instance}},
-  have C: maps_to (circle_integral_bounding_function R z) (closed_ball z r ×ˢ [0, 2 * π])
+  have C : maps_to (circle_integral_bounding_function R z) (closed_ball z r ×ˢ [0, 2 * π])
   (⊤ : set ℂ), by {simp [maps_to],},
   apply continuous_on.comp (continuous_abs.continuous_on) c3 C,
 end
 
 lemma circle_integral_bounding_function_bound (R r : ℝ) (hR: 0 < R) (hr : r < R) (hr' : 0 ≤  r)
   (z : ℂ) : ∃ (x :  ((closed_ball z r) ×ˢ (interval 0 (2 * π)) : set (ℂ × ℝ)) ),
-  ∀ (y :  ((closed_ball z r) ×ˢ (interval 0 (2*π)) : set (ℂ × ℝ)) ),
+  ∀ (y : ((closed_ball z r) ×ˢ (interval 0 (2*π)) : set (ℂ × ℝ)) ),
   complex.abs (circle_integral_bounding_function R z y) ≤
   complex.abs(circle_integral_bounding_function R z x) :=
 begin
@@ -174,7 +174,7 @@ begin
  Ioc_subset_Icc_self],
 end
 
-/--The derivative of a `circle_integral_transform` is bounded -/
+/--The derivative of a `circle_integral_transform` is bounded by a continuous function -/
 lemma circle_integral_transform_deriv_bound (R r : ℝ)  (hR: 0 < R) (hr : r < R) (hr' : 0 ≤  r)
   (z : ℂ) (f : ℂ → ℂ) (x : ℂ) (hx : x ∈ ball z r) (hf : continuous_on f (sphere z R)) :
   ∃ (bound : ℝ → ℝ) (ε : ℝ), 0 < ε ∧ ball x ε ⊆ ball z R ∧

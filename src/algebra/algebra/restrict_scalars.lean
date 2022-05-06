@@ -108,7 +108,6 @@ This instance is only relevant when `restrict_scalars.module_orig` is available 
 instance [module S M] : is_scalar_tower R S (restrict_scalars R S M) :=
 ⟨λ r S M, by { rw [algebra.smul_def, mul_smul], refl }⟩
 
-
 end
 
 instance restrict_scalars.op_module [module Sᵐᵒᵖ M] : module Rᵐᵒᵖ (restrict_scalars R S M) :=

@@ -420,10 +420,8 @@ lemma valued_adic_completion_def {x : v.adic_completion K} :
 instance adic_completion_complete_space : complete_space (v.adic_completion K) :=
 @uniform_space.completion.complete_space K v.adic_valued_uniform_space
 
-instance : has_lift_t K (@uniform_space.completion K v.adic_valued_uniform_space) := infer_instance
-
 instance adic_completion.has_lift_t : has_lift_t K (v.adic_completion K) :=
-uniform_space.completion.has_lift_t v
+(infer_instance : has_lift_t K (@uniform_space.completion K v.adic_valued_uniform_space))
 
 variables (K)
 /-- The ring of integers of `adic_completion`. -/

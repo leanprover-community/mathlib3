@@ -303,133 +303,6 @@ instance linear_order_overring : linear_order { S | A ≤ S } :=
 
 end order
 
-section unit_group
-
-def unit_group : subgroup Kˣ :=
-{ carrier := { x | A.valuation x = 1 },
-  mul_mem' := begin
-    intros a b ha hb,
-    dsimp at *,
-    rw [A.valuation.map_mul, ha, hb, one_mul],
-  end,
-  one_mem' := A.valuation.map_one,
-  inv_mem' := begin
-    intros a ha,
-    dsimp at *,
-    push_cast,
-    rw [A.valuation.map_inv, ha, inv_one],
-  end }
-
-lemma mem_iff_unit_group_auxtwo (a : A) : A.valuation a < 1 → A.valuation (1 + a) = 1 :=
-begin
-  intros h,
-  rw [← valuation_lt_one_iff, local_ring.mem_maximal_ideal] at h,
-  have k := local_ring.is_unit_of_mem_nonunits_one_sub_self (1 + a),
-  simp at k h,
-  rw is_unit.neg_iff at k,
-  have f := k h,
-  rw valuation_eq_one_iff at f,
-  push_cast at f,
-  exact f,
-
-  /-
-  wanted to use this but can't figure it out
-  `rw ← valuation_eq_one_iff,`
-  -/
-end
-
-lemma mem_iff_unit_group_auxthree (x : K) : A.valuation x < 1 → A.valuation (1 + x) = 1 :=
-begin
-  intro h,
-  have k : A.valuation x < 1 ∨ A.valuation x = 1, left, exact h,
-  rw [← le_iff_lt_or_eq, valuation_le_one_iff] at k,
-  have p := A.valuation.map_add 1 x,
-  have l : max ((A.valuation) 1) ((A.valuation) x) = 1, simp, rw le_iff_lt_or_eq, left, exact h,
-  rw [l, le_iff_lt_or_eq] at p,
-
-  cases p with plt peq,
-  sorry,
-
-  exact peq,
-end
-
-lemma mem_iff_unit_group_aux (x : K) : x ∈ A ↔
-  A.valuation x = 1 ∨ A.valuation (1 + x) = 1 :=
-begin
-  split,
-  { intro h,
-  rw [← valuation_le_one_iff, le_iff_lt_or_eq] at h,
-  cases h with hlt heq,
-  right, apply mem_iff_unit_group_auxthree, exact hlt,
-  left, exact heq },
-
-  { intro h,
-  cases h with hx h1x,
-  rw [← valuation_le_one_iff, le_iff_lt_or_eq],
-  right, exact hx,
-
-  have k : A.valuation (1 + x) < 1 ∨ A.valuation (1 + x) = 1, exact or.inr h1x,
-  rw [← le_iff_lt_or_eq, valuation_le_one_iff] at k,
-  have p := A.add_mem (1+x) (-1),
-  have l := A.neg_mem 1 A.one_mem,
-  simp at p,
-  exact p k l },
-
-  /- goal is `⇑(A.valuation) (1 + x) = 1` and previous lemma works for `⇑(A.valuation) (1 + ↑a) = 1`.
-  apply mem_iff_unit_group_auxtwo,
-  -/
-
-end
-
-lemma mem_iff_unit_group (x : Kˣ) : (x : K) ∈ A ↔
-  x ∈ A.unit_group ∨ ∃ (h : 1 + (x : K) ≠ 0), units.mk0 _ h ∈ A.unit_group :=
-begin
-  split,
-  { intro h,
-  rw mem_iff_unit_group_aux at h,
-  cases h with hx h1x,
-  left, exact hx,
-  right,
-    split,
-    { rw unit_group, simp, exact h1x },
-    { by_contra,
-    have k := A.valuation.map_zero,
-    rw [← h, h1x] at k,
-    exact one_ne_zero k} ,
-  },
-
-  { intro h,
-  cases h with hx h1x,
-  rw unit_group at hx,
-  simp at hx,
-  have k : A.valuation ↑x = 1 ∨ A.valuation (1 + ↑x) = 1, exact or.inl hx,
-  rw ← mem_iff_unit_group_aux at k,
-  exact k,
-
-  cases h1x with ha hb,
-  rw unit_group at hb, simp at hb,
-  have k : A.valuation ↑x = 1 ∨ A.valuation (1 + ↑x) = 1, exact or.inr hb,
-  rw ← mem_iff_unit_group_aux at k,
-  exact k
-  },
-
-end
-
-lemma unit_group_eq_iff (A B : valuation_subring K) :
-  A.unit_group = B.unit_group ↔ A = B :=
-begin
-  split,
-  { intros h, ext x,
-    by_cases hx : x = 0, { simp [hx, A.zero_mem, B.zero_mem] },
-    let y : Kˣ := units.mk0 x hx,
-    change (y : K) ∈ A ↔ (y : K) ∈ B,
-    rw [A.mem_iff_unit_group, B.mem_iff_unit_group],
-    simp only [h] },
-  { intros h, rw h },
-end
-
-end unit_group
-
 end valuation_subring
 
 namespace valuation
@@ -488,5 +361,106 @@ variables {K} (A : valuation_subring K)
 @[simp]
 lemma valuation_subring_valuation : A.valuation.valuation_subring = A :=
 by { ext, rw ← A.valuation_le_one_iff, refl }
+
+section unit_group
+
+/-- The unit group of a valuation subring, as a subgroup of `Kˣ`. -/
+def unit_group : subgroup Kˣ :=
+{ carrier := { x | A.valuation x = 1 },
+  mul_mem' := begin
+    intros a b ha hb,
+    dsimp at *,
+    rw [A.valuation.map_mul, ha, hb, one_mul],
+  end,
+  one_mem' := A.valuation.map_one,
+  inv_mem' := begin
+    intros a ha,
+    dsimp at *,
+    push_cast,
+    rw [A.valuation.map_inv, ha, inv_one],
+  end }
+
+lemma eq_iff_unit_group (A B : valuation_subring K) :
+  A = B ↔ A.unit_group = B.unit_group :=
+begin
+  rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
+    ← valuation.is_equiv_iff_valuation_subring,
+    A.valuation_subring_valuation, B.valuation_subring_valuation,
+    valuation.is_equiv_iff_val_eq_one, set_like.ext_iff],
+  split,
+  { intros h x, apply h },
+  { intros h x,
+    by_cases hx : x = 0, { simp only [hx, valuation.map_zero, zero_ne_one] },
+    exact h (units.mk0 x hx) }
+end
+
+/-- `A.unit_group` agrees with the units of `A`. -/
+def unit_group_equiv : A.unit_group ≃* Aˣ :=
+{ to_fun := λ x, ⟨⟨x,sorry⟩,⟨x⁻¹,sorry⟩,sorry,sorry⟩,
+  inv_fun := λ x, ⟨⟨x,(x : K)⁻¹,sorry,sorry⟩,sorry⟩,
+  left_inv := λ a, by { ext, refl },
+  right_inv := λ a, by { ext, refl },
+  map_mul' := λ a b, by { ext, refl } }
+
+@[simp]
+lemma coe_unit_group_equiv_apply (a : A.unit_group) :
+  (A.unit_group_equiv a : K) = a := rfl
+
+@[simp]
+lemma coe_unit_group_equiv_symm_apply (a : Aˣ) :
+  (A.unit_group_equiv.symm a : K) = a := rfl
+
+def maximal_ideal : subsemigroup K :=
+{ carrier := { x | A.valuation x < 1 },
+  mul_mem' := sorry }
+
+lemma eq_iff_maximal_ideal (A B : valuation_subring K) :
+  A = B ↔ A.maximal_ideal = B.maximal_ideal := sorry
+
+/-- `A.maximal_ideal` agrees with the maximal ideal of `A`. -/
+def maximal_ideal_equiv : A.maximal_ideal ≃ local_ring.maximal_ideal A :=
+{ to_fun := λ a, ⟨⟨a,sorry⟩,sorry⟩,
+  inv_fun := λ a, ⟨a,sorry⟩,
+  left_inv := λ a, by { ext, refl },
+  right_inv := λ a, by { ext, refl } }
+
+@[simp]
+lemma coe_maximal_ideal_equiv_apply (a : A.maximal_ideal) :
+  (A.maximal_ideal_equiv a : K) = a := rfl
+
+@[simp]
+lemma coe_maximal_ideal_equiv_symm_apply (a : local_ring.maximal_ideal A) :
+  (A.maximal_ideal_equiv.symm a : K) = a := rfl
+
+@[simp]
+lemma maximal_ideal_equiv_map_mul (a b : A.maximal_ideal) :
+  A.maximal_ideal_equiv (a * b) = (A.maximal_ideal_equiv a : A) • A.maximal_ideal_equiv b := rfl
+
+@[simp]
+lemma maximal_ideal_equiv_symm_map_smul (a b : local_ring.maximal_ideal A) :
+  A.maximal_ideal_equiv.symm ((a : A) • b) =
+  A.maximal_ideal_equiv.symm a * A.maximal_ideal_equiv.symm b := rfl
+
+def principal_unit_group : subgroup Kˣ :=
+{ carrier := { x | A.valuation (x - 1) < 1 },
+  mul_mem' := sorry,
+  one_mem' := sorry,
+  inv_mem' := sorry }
+
+lemma eq_iff_principal_unit_group (A B : valuation_subring K) :
+  A = B ↔ A.principal_unit_group = B.principal_unit_group := sorry
+
+lemma principal_units_le_units : A.principal_unit_group ≤ A.unit_group :=
+sorry
+
+/-
+TODO:
+def units_residue_field_equiv :
+  (local_ring.residue_field A)ˣ ≃*
+  (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) :=
+sorry
+-/
+
+end unit_group
 
 end valuation_subring

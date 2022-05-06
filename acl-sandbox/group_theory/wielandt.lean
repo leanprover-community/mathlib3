@@ -863,6 +863,26 @@ begin
 end
 -/
 
+lemma is_pretransitive_of_subgroup {H : subgroup G} (hG : is_pretransitive H X) :
+  is_pretransitive G X :=
+begin
+  let hG_eq := hG.exists_smul_eq,
+  apply is_pretransitive.mk,
+  intros x y,
+  obtain ⟨h, hh⟩ := hG_eq x y,
+  exact ⟨h,hh⟩
+end
+
+lemma is_preprimitive_of_subgroup {H : subgroup G} (hG : is_preprimitive H X) :
+  is_preprimitive G X :=
+begin
+  apply is_preprimitive.mk,
+  { apply is_pretransitive_of_subgroup,
+    exact hG.to_is_pretransitive, },
+  { intros B hB,
+    exact hG.has_trivial_blocks (subgroup.is_block G X hB) }
+end
+
 /-- In a preprimitive action,
   any normal subgroup that acts nontrivially is pretransitive
   (Wielandt, th. 7.1)-/
@@ -1178,9 +1198,36 @@ lemma is_preprimitive_iff_is_pretransitive_of_stabilizer (hGX : is_pretransitive
   is_pretransitive (stabilizer G a) (sub_mul_action_of_stabilizer G X a)
   ↔ is_preprimitive G X :=
 begin
+  let hGX_eq := hGX.exists_smul_eq,
   split,
-  { intro hGXa, apply is_preprimitive.mk hGX,
-  sorry },
+  { intro hGXa, let hGXa_eq := hGXa.exists_smul_eq,
+    apply is_preprimitive.mk hGX,
+    intros B hB,
+    rw or_iff_not_imp_left,
+    intro hB',
+    rw eq_top_iff,
+    intros z _,
+    rw [← not_nontrivial_iff_subsingleton, not_not] at hB',
+    obtain ⟨⟨x, hx⟩,⟨y, hy⟩, hxy⟩ := hB',
+    simp at hxy,
+    cases dec_em (z = x) with hzx hzx,
+    { rw hzx, exact hx },
+    cases dec_em (z = y) with hzy hzy,
+    { rw hzy, exact hy },
+    obtain ⟨g, hgax⟩ := hGX_eq x a,
+    have hgy : g • y ≠ a,
+    { rw ← hgax, simp only [ne.def, smul_left_cancel_iff],
+      exact ne_comm.mp hxy, },
+    have hgz : g • z ≠ a,
+    { rw ← hgax, simp only [ne.def, smul_left_cancel_iff],
+      exact hzx, },
+    obtain ⟨⟨h, hha⟩, hhgy⟩ := hGXa_eq ⟨_, hgz⟩ ⟨_, hgy⟩,
+
+    suffices : h • (g • z) = g • y,
+    sorry,
+
+    exact set_like.coe_eq_coe.mpr hhgy,
+     },
   { intro hG, apply is_pretransitive.mk,
   sorry },
 end

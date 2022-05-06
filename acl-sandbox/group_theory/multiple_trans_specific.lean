@@ -194,15 +194,33 @@ section Jordan
 variables (G : subgroup (equiv.perm α))
 
 -- α = Ω, s = Δ
+theorem jordan0 (hG : is_preprimitive G α)
+  {s : set α} (hs : 1 ≤ fintype.card s) (hs' : 2 + fintype.card (s) ≤ fintype.card α)
+  (hs_trans : is_pretransitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
+  is_multiply_pretransitive (subgroup.normal_closure (fixing_subgroup G s).carrier) α 2 := sorry
+
+theorem jordan0' (hG : is_preprimitive G α)
+  {s : set α} (hs : 1 ≤ fintype.card s) (hs' : 2 + fintype.card (s) ≤ fintype.card α)
+  (hs_trans : is_preprimitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
+  is_multiply_preprimitive (subgroup.normal_closure (fixing_subgroup G s).carrier) α 2 := sorry
+
 theorem jordan1 (hG : is_preprimitive G α)
   {s : set α} (hs : 1 ≤ fintype.card s) (hs' : 2 + fintype.card (s) ≤ fintype.card α)
   (hs_trans : is_pretransitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
-  is_multiply_pretransitive G α 2 := sorry
+  is_multiply_pretransitive G α 2 :=
+begin
+  apply is_pretransitive_of_subgroup,
+  apply jordan0 α G hG hs hs' hs_trans,
+end
 
 theorem jordan1' (hG : is_preprimitive G α)
   {s : set α} (hs : 1 ≤ fintype.card s) (hs' : 2 + fintype.card (s) ≤ fintype.card α)
   (hs_trans : is_preprimitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
-  is_multiply_preprimitive G α 2 := sorry
+  is_multiply_preprimitive G α 2 :=
+begin
+    apply is_multiply_preprimitive_of_subgroup,
+  apply jordan0' α G hG hs hs' hs_trans,
+end
 
 theorem jordan2 (hG : is_preprimitive G α)
   {s : set α} (hs : 1 ≤ fintype.card s) (hs' : 2 + fintype.card s ≤ fintype.card α) :

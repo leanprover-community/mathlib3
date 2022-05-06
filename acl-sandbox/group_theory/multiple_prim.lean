@@ -284,6 +284,59 @@ begin
       rw cardinal.mk_image_eq  subtype.coe_injective }  },
 end
 
+lemma a (n : ℕ) (hn : n ≥ 1) : 1 = n - (n - 1) :=
+begin
+exact (nat.sub_sub_self hn).symm,
+end
+
+lemma is_multiply_preprimitive_of_subgroup {H : subgroup M}
+  {n : ℕ} (hn : n ≥ 1) (hH : is_multiply_preprimitive H α n) :
+  is_multiply_preprimitive M α n :=
+begin
+  let j : mul_action_bihom H α M α :=
+  { to_fun := id,
+    to_monoid_hom := subgroup_class.subtype H,
+    map_smul' := λ m x, rfl },
+
+  split,
+  apply is_pretransitive_of_subgroup,
+  exact hH.left,
+
+  intros s hs,
+  apply is_preprimitive.mk,
+  rw is_pretransitive_iff_is_one_pretransitive,
+  have hn1 : n = (n - 1) + 1,
+  by rw ← (nat.sub_eq_iff_eq_add hn),
+
+  suffices : #s = ↑(n - 1) ∧ 1 = n - (n-1),
+  { rw this.right,
+    apply remaining_transitivity M α (n-1) s this.left,
+    apply is_pretransitive_of_subgroup,
+    exact hH.left, },
+  split,
+  { apply cardinal.add_cancel,
+    swap, exact 1,
+    rw [nat.cast_one, hs],
+    suffices : n = (n - 1) + 1,
+    conv_lhs { rw this },
+    simp only [nat.cast_add, nat.cast_one],
+    exact hn1 },
+  suffices : n ≥ (n - 1),
+  rw add_comm at hn1, apply symm,
+  exact (nat.sub_eq_iff_eq_add this).mpr hn1,
+  exact nat.sub_le n 1,
+
+  intros B hB,
+  apply  (hH.right s hs).has_trivial_blocks,
+  rw is_block.mk_mem at hB ⊢,
+  rintros ⟨⟨g, hgH⟩, hgs⟩ ⟨a, ha⟩ haB hga,
+  suffices : (⟨g, _⟩ : fixing_subgroup M s) • B = B,
+  exact this,
+  apply hB ⟨g, begin simpa only using hgs end⟩ ⟨a, begin simpa only using ha end⟩,
+  simpa only using haB,
+  simpa only using hga,
+end
+
 
 -- PROBABLEMENT FAUX !
 lemma is_multiply_preprimitive_of_higher {n : ℕ}

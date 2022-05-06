@@ -1265,6 +1265,9 @@ lemma dvd_left_iff_eq {m n : ℕ} : (∀ a : ℕ, a ∣ m ↔ a ∣ n) ↔ m = n
 lemma dvd_left_injective : function.injective ((∣) : ℕ → ℕ → Prop) :=
 λ m n h, dvd_right_iff_eq.mp $ λ a, iff_of_eq (congr_fun h a)
 
+lemma div_lt_div_of_lt_of_dvd {a b d : ℕ} (hdb : d ∣ b) (h : a < b) : a / d < b / d :=
+by { rw lt_div_iff_mul_lt hdb, exact lt_of_le_of_lt (mul_div_le a d) h }
+
 /-! ### `find` -/
 section find
 

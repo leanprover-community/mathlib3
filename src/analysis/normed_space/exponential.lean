@@ -331,20 +331,22 @@ section is_R_or_C
 
 section any_algebra
 
-variables (𝕂 𝔸 𝔹 : Type*) [is_R_or_C 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables (𝕂 𝔸 𝔹 : Type*) [nondiscrete_normed_field 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
 variables [normed_ring 𝔹] [normed_algebra 𝕂 𝔹]
 
 /-- In a normed algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, the series defining the exponential map
 has an infinite radius of convergence. -/
-lemma exp_series_radius_eq_top : (exp_series 𝕂 𝔸).radius = ∞ :=
+lemma exp_series_radius_eq_top [normed_algebra ℚ 𝔸] :
+  @formal_multilinear_series.radius ℚ 𝔸 𝔸 _ _ _ _ _ (exp_series ℚ 𝔸) = ∞ :=
 begin
-  refine (exp_series 𝕂 𝔸).radius_eq_top_of_summable_norm (λ r, _),
+  refine (exp_series ℚ 𝔸).radius_eq_top_of_summable_norm (λ r, _),
   refine summable_of_norm_bounded_eventually _ (real.summable_pow_div_factorial r) _,
   filter_upwards [eventually_cofinite_ne 0] with n hn,
-  rw [norm_mul, norm_norm (exp_series 𝕂 𝔸 n), exp_series, norm_smul, norm_inv, norm_pow,
-      nnreal.norm_eq, norm_eq_abs, abs_cast_nat, mul_comm, ←mul_assoc, ←div_eq_mul_inv],
-  have : ∥continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸∥ ≤ 1 :=
+  rw [norm_mul, norm_norm (exp_series ℚ 𝔸 n), exp_series, norm_smul, norm_inv, norm_pow,
+      nnreal.norm_eq, mul_comm, ←mul_assoc, ←div_eq_mul_inv],
+  have : ∥continuous_multilinear_map.mk_pi_algebra_fin ℚ n 𝔸∥ ≤ 1 :=
     norm_mk_pi_algebra_fin_le_of_pos (nat.pos_of_ne_zero hn),
+  rw [←rat.norm_cast_real, rat.cast_coe_nat],
   exact mul_le_of_le_one_right (div_nonneg (pow_nonneg r.coe_nonneg n) n!.cast_nonneg) this
 end
 
@@ -576,6 +578,8 @@ end normed
 
 section scalar_tower
 
+section topological
+
 variables (𝕂 𝕂' 𝔸 : Type*) [field 𝕂] [field 𝕂'] [ring 𝔸] [algebra 𝕂 𝔸] [algebra 𝕂' 𝔸]
   [topological_space 𝔸] [topological_ring 𝔸]
 
@@ -597,6 +601,37 @@ end
 
 lemma exp_ℝ_ℂ_eq_exp_ℂ_ℂ : (exp ℝ : ℂ → ℂ) = exp ℂ :=
 exp_eq_exp ℝ ℂ ℂ
+
+end topological
+
+section normed
+
+variables (𝕂 𝕂' 𝔸 : Type*) [nondiscrete_normed_field 𝕂] [nondiscrete_normed_field 𝕂']
+  [normed_ring 𝔸] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂' 𝔸]
+
+lemma exp_series_radius_eq_rat :
+  (exp_series 𝕂 𝔸).radius = (exp_series 𝕂' 𝔸).radius :=
+begin
+  simp_rw formal_multilinear_series.radius,
+  apply supr_congr (λ r, _),
+  apply supr_congr (λ C, _),
+  apply supr_congr_Prop _ (λ _, rfl),
+  apply forall_congr (λ a, _),
+  apply iff_of_eq,
+  congr' 2,
+  change Inf _ = Inf _,
+  congr' 2 with c : 1,
+  congr',
+  apply eq_iff_iff.mpr,
+  apply forall_congr,
+  intros,
+  apply iff_of_eq,
+  congr,
+  simp_rw [exp_series, continuous_multilinear_map.smul_apply, inv_nat_cast_smul_eq 𝕂 𝕂'],
+  refl,
+end
+
+end normed
 
 end scalar_tower
 

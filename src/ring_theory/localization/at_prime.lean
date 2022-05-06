@@ -58,8 +58,7 @@ protected abbreviation localization.at_prime := localization I.prime_compl
 
 namespace is_localization
 
-@[priority 100] -- see Note [lower instance priority]
-instance at_prime.nontrivial [is_localization.at_prime S I] : nontrivial S :=
+lemma at_prime.nontrivial [is_localization.at_prime S I] : nontrivial S :=
 nontrivial_of_ne (0 : S) 1 $ λ hze,
 begin
   rw [←(algebra_map R S).map_one, ←(algebra_map R S).map_zero] at hze,
@@ -68,8 +67,9 @@ begin
   exact t.2 (htz.symm ▸ I.zero_mem : ↑t ∈ I)
 end
 
-@[priority 100] -- see Note [lower instance priority]
-instance at_prime.local_ring [is_localization.at_prime S I] : local_ring S :=
+local attribute [instance] at_prime.nontrivial
+
+theorem at_prime.local_ring [is_localization.at_prime S I] : local_ring S :=
 local_ring.of_nonunits_add
 begin
   intros x y hx hy hu,
@@ -131,7 +131,7 @@ lemma is_unit_to_map_iff (x : R) :
 
 -- Can't use typeclasses to infer the `local_ring` instance, so use an `opt_param` instead
 -- (since `local_ring` is a `Prop`, there should be no unification issues.)
-lemma to_map_mem_maximal_iff (x : R) :
+lemma to_map_mem_maximal_iff (x : R) (h : _root_.local_ring S := local_ring S I) :
   algebra_map R S x ∈ local_ring.maximal_ideal S ↔ x ∈ I :=
 not_iff_not.mp $ by
 simpa only [local_ring.mem_maximal_ideal, mem_nonunits_iff, not_not]
@@ -142,7 +142,7 @@ lemma is_unit_mk'_iff (x : R) (y : I.prime_compl) :
 ⟨λ h hx, mk'_mem_iff.mpr ((to_map_mem_maximal_iff S I x).mpr hx) h,
 λ h, is_unit_iff_exists_inv.mpr ⟨mk' S ↑y ⟨x, h⟩, mk'_mul_mk'_eq_one ⟨x, h⟩ y⟩⟩
 
-lemma mk'_mem_maximal_iff (x : R) (y : I.prime_compl) :
+lemma mk'_mem_maximal_iff (x : R) (y : I.prime_compl) (h : _root_.local_ring S := local_ring S I) :
   mk' S x y ∈ local_ring.maximal_ideal S ↔ x ∈ I :=
 not_iff_not.mp $ by
 simpa only [local_ring.mem_maximal_ideal, mem_nonunits_iff, not_not]

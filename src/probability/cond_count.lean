@@ -27,7 +27,7 @@ for that purpose.
 The original aim of this file is to provide a measure theoretic method of describing the
 probability an element of a set `s` satisfies some predicate `P`. Our current formulation still
 allow us to describe this by abusing the definitional equality of sets and predicates by simply
-writting `cond_count s P`. We should avoid this however as none of the lemmas are written for
+writing `cond_count s P`. We should avoid this however as none of the lemmas are written for
 predicates.
 -/
 
@@ -51,8 +51,8 @@ def cond_count (s : set α) : measure α := measure.count[|s]
 @[simp] lemma cond_count_empty_meas : (cond_count ∅ : measure α) = 0 :=
 by simp [cond_count]
 
-@[simp] lemma cond_count_empty {s : set α} : cond_count s ∅ = 0 :=
-by { ext x, simp [cond_count] }
+lemma cond_count_empty {s : set α} : cond_count s ∅ = 0 :=
+by simp
 
 variables [measurable_singleton_class α]
 
@@ -81,7 +81,7 @@ lemma cond_count_inter_self (hs : s.finite):
   cond_count s (s ∩ t) = cond_count s t :=
 by rw [cond_count, cond_inter_self _ hs.measurable_set]
 
-lemma cond_count_cond (hs : s.finite) (hs' : s.nonempty) :
+lemma cond_count_self (hs : s.finite) (hs' : s.nonempty) :
   cond_count s s = 1 :=
 begin
   rw [cond_count, cond_apply _ hs.measurable_set, set.inter_self, ennreal.inv_mul_cancel],

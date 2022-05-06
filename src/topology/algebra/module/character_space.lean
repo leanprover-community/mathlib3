@@ -131,27 +131,6 @@ end character_space
 
 end weak_dual
 
-section non_unital_gelfand_transform
-
-open weak_dual
-
-variables [comm_semiring 𝕜] [topological_space 𝕜] [topological_semiring 𝕜]
-  [has_continuous_const_smul 𝕜 𝕜] [non_unital_semiring A] [topological_space A] [module 𝕜 A]
-
-variables (𝕜) (A)
-
-def non_unital_gelfand_transform : non_unital_alg_hom 𝕜 A C₀(character_space 𝕜 A, 𝕜) :=
-{ to_fun := λ a,
-  { to_fun := λ φ, φ a,
-    continuous_to_fun := (weak_dual.eval_continuous a).comp (continuous_subtype_coe),
-    zero_at_infty' := sorry },
-  map_smul' := λ _ _, by { ext, exact character_space.map_smul _ _ _ },
-  map_mul' := λ _ _, by { ext, exact character_space.map_mul _ _ _ },
-  map_zero' := by { ext, exact character_space.map_zero _ },
-  map_add' := λ _ _, by { ext, exact character_space.map_add _ _ _} }
-
-end non_unital_gelfand_transform
-
 section gelfand_transform
 
 open weak_dual

@@ -4,8 +4,11 @@ import data.nat.succ_pred
 import linear_algebra.basis
 import ring_theory.adjoin_root
 import ring_theory.power_basis
+import tactic.norm_fin
 
 open_locale big_operators
+
+local attribute [-instance] rat.semiring rat.comm_semiring rat.comm_ring
 
 -- TODO: generalize this so we don't assume a multiplication on `S`
 -- or even no structure on `S` at all
@@ -300,6 +303,42 @@ by rw [_root_.map_sub, finsupp.sub_apply, e₁_eq, e₂_eq, e_eq]
 
 end ring
 
+section matrix
+
+open matrix
+
+lemma eval_vec_cons_pf_zero {α : Type*} {n : ℕ} (x : α) (xs : fin n → α) :
+  vec_cons x xs has_zero.zero = x := rfl
+lemma eval_vec_cons_pf_succ {α : Type*} {n : ℕ} (i : fin n) (x y : α) (xs : fin n → α)
+  (h : xs i = y) : vec_cons x xs (fin.succ i) = y :=
+by rw [cons_val_succ, h]
+
+/-- `eval_vec_cons n x xs` returns `(y, ⊢ vec_cons x xs n = y)` -/
+meta def eval_vec_cons : ℕ → expr → expr → tactic (expr × expr)
+| 0 x xs := do
+  eq ← i_to_expr ``(eval_vec_cons_pf_zero %%x %%xs),
+  pure (x, eq)
+| (n + 1) x' xxs@`(vec_cons %%x %%xs) := do
+  (result, eq') ← eval_vec_cons n x xs,
+  trace result,
+  eq ← i_to_expr ``(eval_vec_cons_pf_succ _ %%x' %%result %%xxs %%eq'),
+  infer_type eq >>= trace,
+  pure (result, eq)
+| (n + 1) x xs := trace xs >> fail "Expected vector of the form `vec_cons x y`"
+
+open tactic.norm_fin
+
+@[norm_num]
+meta def norm_vec_cons : expr → tactic (expr × expr)
+| `(vec_cons %%x %%xs %%i) := trace_error "Internal error in `norm_vec_cons`" $ do
+  n ← i.to_nat,
+  eval_vec_cons n x xs
+| _ := failed
+
+lemma foo' : ![1, 2, 3] 1 = 2 := by norm_num1
+
+end matrix
+
 section comm_ring
 
 variables {R S ι : Type*} [comm_ring R] [comm_ring S] [algebra R S]
@@ -307,6 +346,7 @@ end comm_ring
 
 /-- Simplify expressions of the form `(t : times_table).basis.repr x k` using lemmas tagged
 `@[times_table_simps]`. -/
+@[norm_num]
 meta def simp_times_table : expr → tactic (expr × expr)
 | e := do
   simps ← mk_simp_set tt [`times_table_simps] [],
@@ -447,6 +487,7 @@ end tactic.times_table
 namespace sqrt_2_sqrt_3
 
 set_option profiler true
+-- set_option trace.type_context.is_def_eq_detail true
 
 example (x y : sqrt_2_sqrt_3) : x * y = y * x :=
 begin
@@ -461,6 +502,8 @@ begin
   fin_cases k; ring
   -/
 end
+
+#exit
 
 example (x y z : sqrt_2_sqrt_3) : x * y * z = x * (y * z) :=
 begin

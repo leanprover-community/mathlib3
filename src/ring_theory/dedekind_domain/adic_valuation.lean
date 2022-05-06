@@ -337,12 +337,11 @@ instance : inhabited (v.adic_completion K) := ⟨0⟩
 
 variables {K}
 instance valued_adic_completion : valued (v.adic_completion K) (with_zero (multiplicative ℤ)) :=
-valued.mk' (@valued.extension_valuation K _ _ _ v.adic_valued)
+@valued.valued_completion _ _ _ _ v.adic_valued
 
 lemma valued_adic_completion_def {x : v.adic_completion K} :
   valued.v x = @valued.extension K _ _ _ (adic_valued v)  x := rfl
 
---Fails
 instance adic_completion_complete_space : complete_space (v.adic_completion K) :=
 @uniform_space.completion.complete_space K v.adic_valued_uniform_space
 

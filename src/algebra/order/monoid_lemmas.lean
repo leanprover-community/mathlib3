@@ -320,8 +320,8 @@ end has_lt
 section preorder
 variable [preorder α]
 
--- Lemmas in the form of `b ≤ c → a ≤ 1 → b * a ≤ c`,
--- which assume left covariance.
+/-! Lemmas in the form of `b ≤ c → a ≤ 1 → b * a ≤ c`,
+which assume left covariance. -/
 
 @[to_additive]
 lemma mul_le_of_le_of_le_one [covariant_class α α (*) (≤)]
@@ -362,8 +362,8 @@ calc  a * b < a * 1 : mul_lt_mul_left' hb a
         ... = a     : mul_one a
         ... < 1     : ha
 
--- Lemmas in the form of `b ≤ c → 1 ≤ a → b ≤ c * a`,
--- which assume left covariance.
+/-! Lemmas in the form of `b ≤ c → 1 ≤ a → b ≤ c * a`,
+which assume left covariance. -/
 
 @[to_additive]
 lemma le_mul_of_le_of_le_one [covariant_class α α (*) (≤)]
@@ -433,8 +433,8 @@ lemma one_lt_mul' [covariant_class α α (*) (≤)]
   {a b : α} (ha : 1 < a) (hb : 1 < b) : 1 < a * b :=
 one_lt_mul_of_lt_of_le' ha hb.le
 
--- Lemmas in the form of `a ≤ 1 → b ≤ c → a * b ≤ c`,
--- which assume right covariance.
+/-! Lemmas in the form of `a ≤ 1 → b ≤ c → a * b ≤ c`,
+which assume right covariance. -/
 
 @[to_additive]
 lemma mul_le_of_le_one_of_le [covariant_class α α (swap (*)) (≤)]
@@ -478,8 +478,8 @@ calc  a * b < 1 * b : mul_lt_mul_right' ha b
         ... = b     : one_mul b
         ... < 1     : hb
 
--- Lemmas in the form of `1 ≤ a → b ≤ c → b ≤ a * c`,
--- which assume right covariance.
+/-! Lemmas in the form of `1 ≤ a → b ≤ c → b ≤ a * c`,
+which assume right covariance. -/
 
 @[to_additive]
 lemma le_mul_of_one_le_of_le [covariant_class α α (swap (*)) (≤)]

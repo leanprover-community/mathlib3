@@ -89,6 +89,8 @@ by {ext, simp [function.is_fixed_pt]}
 
 variables [fintype G] [invertible (fintype.card G : k)]
 
+variables [module kᵐᵒᵖ V] [is_central_scalar k V]
+
 /--
 The action of `average k G` gives a projection map onto the subspace of invariants.
 -/

@@ -61,7 +61,8 @@ end trivial
 
 section monoid_algebra
 
-variables {k G V : Type*} [comm_semiring k] [monoid G] [add_comm_monoid V] [module k V]
+variables {k G V : Type*} [comm_semiring k] [monoid G] [add_comm_monoid V]
+variables [module k V] [module kᵐᵒᵖ V] [is_central_scalar k V]
 variables (ρ : representation k G V)
 
 /--

@@ -1206,15 +1206,17 @@ begin
     rw or_iff_not_imp_left,
     intro hB',
     rw eq_top_iff,
-    intros z _,
+
     rw [← not_nontrivial_iff_subsingleton, not_not] at hB',
     obtain ⟨⟨x, hx⟩,⟨y, hy⟩, hxy⟩ := hB',
     simp at hxy,
+    obtain ⟨g, hgax⟩ := hGX_eq x a,
+
+    intros z _,
     cases dec_em (z = x) with hzx hzx,
     { rw hzx, exact hx },
     cases dec_em (z = y) with hzy hzy,
     { rw hzy, exact hy },
-    obtain ⟨g, hgax⟩ := hGX_eq x a,
     have hgy : g • y ≠ a,
     { rw ← hgax, simp only [ne.def, smul_left_cancel_iff],
       exact ne_comm.mp hxy, },
@@ -1223,11 +1225,34 @@ begin
       exact hzx, },
     obtain ⟨⟨h, hha⟩, hhgy⟩ := hGXa_eq ⟨_, hgz⟩ ⟨_, hgy⟩,
 
-    suffices : h • (g • z) = g • y,
-    sorry,
 
+    -- h • (g • x) = a
+    -- g • x = a
+    -- B bloc, donc (h * g) • B = g • B
+    -- donc g • y ∈ g • B = (h * g) • B
+    -- donc (h * g) • z ∈ (h * g) • B
+    -- donc z ∈ B
+
+    suffices: (h * g) • B = g • B,
+    rw ← @smul_mem_smul_set_iff _ _ _ _ B (h * g) _,
+    rw this,
+
+    suffices : h • (g • z) = g • y,
+    rw ← mul_smul at this,
+    rw this, use ⟨y,hy,rfl⟩,
     exact set_like.coe_eq_coe.mpr hhgy,
-     },
+
+    refine or.resolve_right (is_block.def G X hB (h * g) g) _,
+
+    rw set.not_disjoint_iff,
+    use a,
+    suffices : a ∈ g • B,
+    apply and.intro _ this,
+    rw mul_smul,
+    use a, exact and.intro this (mem_stabilizer_iff.mp hha),
+
+    use x, exact ⟨hx, hgax⟩ },
+
   { intro hG, apply is_pretransitive.mk,
   sorry },
 end

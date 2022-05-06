@@ -99,6 +99,13 @@ or.elim (nat.eq_zero_or_pos k)
     nat.div_mul_cancel (dvd_gcd H1 H2), ←gcd_mul_right,
     nat.div_mul_cancel H1, nat.div_mul_cancel H2])
 
+lemma gcd_div_of_dvd {n d : ℕ} (hnd : d ∣ n) (a : ℕ) : n.gcd (d * a) = d * (n / d).gcd a :=
+begin
+  rcases d.eq_zero_or_pos with rfl | hd0, { simp [zero_dvd_iff.1 hnd] },
+  rcases hnd with ⟨k, rfl⟩,
+  rw [nat.mul_div_cancel_left k hd0, gcd_mul_left],
+end
+
 theorem gcd_greatest {a b d : ℕ} (hda : d ∣ a) (hdb : d ∣ b)
   (hd : ∀ e : ℕ, e ∣ a → e ∣ b → e ∣ d) : d = a.gcd b :=
 (dvd_antisymm (hd _ (gcd_dvd_left a b) (gcd_dvd_right a b)) (dvd_gcd hda hdb)).symm

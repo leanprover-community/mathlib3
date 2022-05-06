@@ -336,6 +336,28 @@ begin
       (abelian.is_colimit_of_exact_of_epi (F.map bc.inl) (F.map bc.snd) hex)).is_limit
 end
 
+/--
+A functor from preadditive category to an abelian category which preserves cokernels,
+preserves arbitrary coproducts.
+-/
+def is_colimit_map_cocone_binary_cofan_of_preserves_cokernels
+  {X Y Z : C} (ι₁ : X ⟶ Z) (ι₂ : Y ⟶ Z)
+  (i : is_colimit (binary_cofan.mk ι₁ ι₂)) [preserves_colimit (parallel_pair ι₁ 0) F] :
+  is_colimit (F.map_cocone (binary_cofan.mk ι₁ ι₂)) :=
+let bc := binary_bicone.of_colimit_cocone i in
+let ibc := bicone_is_bilimit_of_colimit_cocone_of_is_colimit i in
+begin
+  haveI : preserves_colimit (parallel_pair bc.inl 0) F, { simpa },
+  let i_f : is_colimit bc.inl_cokernel_cofork := binary_bicone.is_colimit_inl_cokernel_cofork i,
+  have hex : exact (F.map bc.inl) (F.map bc.snd),
+  { fapply abelian.exact_of_is_cokernel,
+    { rw [←F.map_comp, bc.inl_snd, F.map_zero] },
+    { exact (is_colimit_map_cocone_cofork_equiv' F _).to_fun (is_colimit_of_preserves F i_f) } },
+  exact (is_colimit_map_cocone_binary_cofan_equiv F ι₁ ι₂).inv_fun
+    (is_bilimit_binary_bicone_of_split_epi_of_kernel
+      (abelian.is_limit_of_exact_of_mono (F.map bc.inl) (F.map bc.snd) hex)).is_colimit
+end
+
 end
 
 end functor

@@ -65,18 +65,21 @@ in more details below in the paragraph on associativity.
 
 noncomputable theory
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
-{G : Type*} [normed_group G] [normed_space 𝕜 G]
-{H : Type*} [normed_group H] [normed_space 𝕜 H]
-
+variables {𝕜 : Type*} {E F G H : Type*}
 open filter list
 open_locale topological_space big_operators classical nnreal ennreal
+
+section topological
+variables [comm_ring 𝕜] [add_comm_group E] [add_comm_group F] [add_comm_group G]
+variables [module 𝕜 E] [module 𝕜 F] [module 𝕜 G]
+variables [topological_space E] [topological_space F] [topological_space G]
 
 /-! ### Composing formal multilinear series -/
 
 namespace formal_multilinear_series
+variables [topological_add_group E] [has_continuous_const_smul 𝕜 E]
+variables [topological_add_group F] [has_continuous_const_smul 𝕜 F]
+variables [topological_add_group G] [has_continuous_const_smul 𝕜 G]
 
 /-!
 In this paragraph, we define the composition of formal multilinear series, by summing over all
@@ -166,58 +169,24 @@ end formal_multilinear_series
 
 namespace continuous_multilinear_map
 open formal_multilinear_series
-
-/-- Given a formal multilinear series `p`, a composition `c` of `n` and a continuous multilinear
-map `f` in `c.length` variables, one may form a multilinear map in `n` variables by applying
-the right coefficient of `p` to each block of the composition, and then applying `f` to the
-resulting vector. It is called `f.comp_along_composition_aux p c`.
-This function admits a version as a continuous multilinear map, called
-`f.comp_along_composition p c` below. -/
-def comp_along_composition_aux {n : ℕ}
-  (p : formal_multilinear_series 𝕜 E F) (c : composition n)
-  (f : continuous_multilinear_map 𝕜 (λ (i : fin c.length), F) G) :
-  multilinear_map 𝕜 (λ i : fin n, E) G :=
-{ to_fun    := λ v, f (p.apply_composition c v),
-  map_add'  := λ v i x y, by simp only [apply_composition_update,
-    continuous_multilinear_map.map_add],
-  map_smul' := λ v i c x, by simp only [apply_composition_update,
-    continuous_multilinear_map.map_smul] }
-
-/-- The norm of `f.comp_along_composition_aux p c` is controlled by the product of
-the norms of the relevant bits of `f` and `p`. -/
-lemma comp_along_composition_aux_bound {n : ℕ}
-  (p : formal_multilinear_series 𝕜 E F) (c : composition n)
-  (f : continuous_multilinear_map 𝕜 (λ (i : fin c.length), F) G) (v : fin n → E) :
-  ∥f.comp_along_composition_aux p c v∥ ≤
-    ∥f∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :=
-calc ∥f.comp_along_composition_aux p c v∥ = ∥f (p.apply_composition c v)∥ : rfl
-... ≤ ∥f∥ * ∏ i, ∥p.apply_composition c v i∥ : continuous_multilinear_map.le_op_norm _ _
-... ≤ ∥f∥ * ∏ i, ∥p (c.blocks_fun i)∥ *
-        ∏ j : fin (c.blocks_fun i), ∥(v ∘ (c.embedding i)) j∥ :
-  begin
-    apply mul_le_mul_of_nonneg_left _ (norm_nonneg _),
-    refine finset.prod_le_prod (λ i hi, norm_nonneg _) (λ i hi, _),
-    apply continuous_multilinear_map.le_op_norm,
-  end
-... = ∥f∥ * (∏ i, ∥p (c.blocks_fun i)∥) *
-        ∏ i (j : fin (c.blocks_fun i)), ∥(v ∘ (c.embedding i)) j∥ :
-  by rw [finset.prod_mul_distrib, mul_assoc]
-... = ∥f∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :
-  by { rw [← c.blocks_fin_equiv.prod_comp, ← finset.univ_sigma_univ, finset.prod_sigma],
-       congr }
+variables [topological_add_group E] [has_continuous_const_smul 𝕜 E]
+variables [topological_add_group F] [has_continuous_const_smul 𝕜 F]
 
 /-- Given a formal multilinear series `p`, a composition `c` of `n` and a continuous multilinear
 map `f` in `c.length` variables, one may form a continuous multilinear map in `n` variables by
 applying the right coefficient of `p` to each block of the composition, and then applying `f` to
-the resulting vector. It is called `f.comp_along_composition p c`. It is constructed from the
-analogous multilinear function `f.comp_along_composition_aux p c`, together with a norm
-control to get the continuity. -/
+the resulting vector. It is called `f.comp_along_composition p c`. -/
 def comp_along_composition {n : ℕ}
   (p : formal_multilinear_series 𝕜 E F) (c : composition n)
   (f : continuous_multilinear_map 𝕜 (λ (i : fin c.length), F) G) :
   continuous_multilinear_map 𝕜 (λ i : fin n, E) G :=
-(f.comp_along_composition_aux p c).mk_continuous _
-  (f.comp_along_composition_aux_bound p c)
+{ to_fun    := λ v, f (p.apply_composition c v),
+  map_add'  := λ v i x y, by simp only [apply_composition_update,
+    continuous_multilinear_map.map_add],
+  map_smul' := λ v i c x, by simp only [apply_composition_update,
+    continuous_multilinear_map.map_smul],
+  cont := f.cont.comp $ continuous_pi $ λ i, (coe_continuous _).comp $ continuous_pi $ λ j,
+    continuous_apply _, }
 
 @[simp] lemma comp_along_composition_apply {n : ℕ}
   (p : formal_multilinear_series 𝕜 E F) (c : composition n)
@@ -227,13 +196,14 @@ def comp_along_composition {n : ℕ}
 end continuous_multilinear_map
 
 namespace formal_multilinear_series
+variables [topological_add_group E] [has_continuous_const_smul 𝕜 E]
+variables [topological_add_group F] [has_continuous_const_smul 𝕜 F]
+variables [topological_add_group G] [has_continuous_const_smul 𝕜 G]
 
 /-- Given two formal multilinear series `q` and `p` and a composition `c` of `n`, one may
 form a continuous multilinear map in `n` variables by applying the right coefficient of `p` to each
 block of the composition, and then applying `q c.length` to the resulting vector. It is
-called `q.comp_along_composition p c`. It is constructed from the analogous multilinear
-function `q.comp_along_composition_aux p c`, together with a norm control to get
-the continuity. -/
+called `q.comp_along_composition p c`. -/
 def comp_along_composition {n : ℕ}
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (c : composition n) : continuous_multilinear_map 𝕜 (λ i : fin n, E) G :=
@@ -243,21 +213,6 @@ def comp_along_composition {n : ℕ}
   (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
   (c : composition n) (v : fin n → E) :
   (q.comp_along_composition p c) v = q c.length (p.apply_composition c v) := rfl
-
-/-- The norm of `q.comp_along_composition p c` is controlled by the product of
-the norms of the relevant bits of `q` and `p`. -/
-lemma comp_along_composition_norm {n : ℕ}
-  (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
-  (c : composition n) :
-  ∥q.comp_along_composition p c∥ ≤ ∥q c.length∥ * ∏ i, ∥p (c.blocks_fun i)∥ :=
-multilinear_map.mk_continuous_norm_le _
-  (mul_nonneg (norm_nonneg _) (finset.prod_nonneg (λ i hi, norm_nonneg _))) _
-
-lemma comp_along_composition_nnnorm {n : ℕ}
-  (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
-  (c : composition n) :
-  ∥q.comp_along_composition p c∥₊ ≤ ∥q c.length∥₊ * ∏ i, ∥p (c.blocks_fun i)∥₊ :=
-by { rw ← nnreal.coe_le_coe, push_cast, exact q.comp_along_composition_norm p c }
 
 /-- Formal composition of two formal multilinear series. The `n`-th coefficient in the composition
 is defined to be the sum of `q.comp_along_composition p c` over all compositions of
@@ -328,6 +283,57 @@ end
   (p : formal_multilinear_series 𝕜 E F) :
   q.comp p.remove_zero = q.comp p :=
 by { ext n, simp [formal_multilinear_series.comp] }
+
+end formal_multilinear_series
+
+end topological
+
+variables [nondiscrete_normed_field 𝕜]
+  [normed_group E] [normed_space 𝕜 E]
+  [normed_group F] [normed_space 𝕜 F]
+  [normed_group G] [normed_space 𝕜 G]
+  [normed_group H] [normed_space 𝕜 H]
+
+namespace formal_multilinear_series
+
+/-- The norm of `f.comp_along_composition p c` is controlled by the product of
+the norms of the relevant bits of `f` and `p`. -/
+lemma comp_along_composition_bound {n : ℕ}
+  (p : formal_multilinear_series 𝕜 E F) (c : composition n)
+  (f : continuous_multilinear_map 𝕜 (λ (i : fin c.length), F) G) (v : fin n → E) :
+  ∥f.comp_along_composition p c v∥ ≤
+    ∥f∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :=
+calc ∥f.comp_along_composition p c v∥ = ∥f (p.apply_composition c v)∥ : rfl
+... ≤ ∥f∥ * ∏ i, ∥p.apply_composition c v i∥ : continuous_multilinear_map.le_op_norm _ _
+... ≤ ∥f∥ * ∏ i, ∥p (c.blocks_fun i)∥ *
+        ∏ j : fin (c.blocks_fun i), ∥(v ∘ (c.embedding i)) j∥ :
+  begin
+    apply mul_le_mul_of_nonneg_left _ (norm_nonneg _),
+    refine finset.prod_le_prod (λ i hi, norm_nonneg _) (λ i hi, _),
+    apply continuous_multilinear_map.le_op_norm,
+  end
+... = ∥f∥ * (∏ i, ∥p (c.blocks_fun i)∥) *
+        ∏ i (j : fin (c.blocks_fun i)), ∥(v ∘ (c.embedding i)) j∥ :
+  by rw [finset.prod_mul_distrib, mul_assoc]
+... = ∥f∥ * (∏ i, ∥p (c.blocks_fun i)∥) * (∏ i : fin n, ∥v i∥) :
+  by { rw [← c.blocks_fin_equiv.prod_comp, ← finset.univ_sigma_univ, finset.prod_sigma],
+       congr }
+
+/-- The norm of `q.comp_along_composition p c` is controlled by the product of
+the norms of the relevant bits of `q` and `p`. -/
+lemma comp_along_composition_norm {n : ℕ}
+  (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
+  (c : composition n) :
+  ∥q.comp_along_composition p c∥ ≤ ∥q c.length∥ * ∏ i, ∥p (c.blocks_fun i)∥ :=
+continuous_multilinear_map.op_norm_le_bound _
+  (mul_nonneg (norm_nonneg _) (finset.prod_nonneg (λ i hi, norm_nonneg _)))
+    (comp_along_composition_bound _ _ _)
+
+lemma comp_along_composition_nnnorm {n : ℕ}
+  (q : formal_multilinear_series 𝕜 F G) (p : formal_multilinear_series 𝕜 E F)
+  (c : composition n) :
+  ∥q.comp_along_composition p c∥₊ ≤ ∥q c.length∥₊ * ∏ i, ∥p (c.blocks_fun i)∥₊ :=
+by { rw ← nnreal.coe_le_coe, push_cast, exact q.comp_along_composition_norm p c }
 
 /-!
 ### The identity formal power series

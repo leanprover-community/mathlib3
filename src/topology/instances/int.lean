@@ -54,8 +54,8 @@ instance : proper_space ℤ :=
   end ⟩
 
 @[simp] lemma cocompact_eq : cocompact ℤ = at_bot ⊔ at_top :=
-by simp only [← comap_dist_right_at_top_eq_cocompact (0 : ℤ), dist_eq, sub_zero, cast_zero,
-  ← cast_abs, ← @comap_comap _ _ _ _ abs, int.comap_coe_at_top, comap_abs_at_top]
+by simp only [← cobounded_eq_cocompact, ← comap_dist_right_at_top (0 : ℤ), dist_eq, sub_zero,
+  cast_zero, ← cast_abs, ← @comap_comap _ _ _ _ abs, int.comap_coe_at_top, comap_abs_at_top]
 
 @[simp] lemma cofinite_eq : (cofinite : filter ℤ) = at_bot ⊔ at_top :=
 by rw [← cocompact_eq_cofinite, cocompact_eq]

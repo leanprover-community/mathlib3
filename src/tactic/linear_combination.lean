@@ -403,5 +403,3 @@ add_tactic_doc
 
 end interactive_mode
 end linear_combo
-
-#lint

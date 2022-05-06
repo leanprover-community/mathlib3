@@ -223,7 +223,7 @@ begin
       ← re_to_complex, ← re_clm_apply, re_clm.map_tsum (exp_series_summable' (x : ℂ))],
   refine tsum_congr (λ n, _),
   rw [re_clm.map_smul, ← complex.of_real_pow, re_clm_apply, re_to_complex, complex.of_real_re,
-      smul_eq_mul, one_div, mul_comm, div_eq_mul_inv]
+      smul_eq_mul, div_eq_inv_mul]
 end
 
 end real

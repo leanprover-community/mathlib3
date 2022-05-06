@@ -418,6 +418,9 @@ by { ext, refl }
 @[simp] lemma symm_apply_apply (e : L₁ ≃ₗ⁅R⁆ L₂) : ∀ x, e.symm (e x) = x :=
   e.to_linear_equiv.symm_apply_apply
 
+@[simp]
+theorem refl_symm : (refl : L₁ ≃ₗ⁅R⁆ L₁).symm = refl := rfl
+
 /-- Lie algebra equivalences are transitive. -/
 @[trans]
 def trans (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) : L₁ ≃ₗ⁅R⁆ L₃ :=

@@ -14,6 +14,10 @@ import model_theory.substructures
   realizations of formulas.
 * A `first_order.language.elementary_substructure` is a substructure where the realization of each
   formula agrees with the realization in the larger model.
+* The `first_order.language.elementary_diagram` of a structure is the set of all sentences with
+  parameters that the structure satisfies.
+* `first_order.language.elementary_embedding.of_models_elementary_diagram` is the canonical
+elementary embedding of any structure into a model of its elementary diagram.
 
 ## Main Results
 * The Tarski-Vaught Test for embeddings: `first_order.language.embedding.is_elementary_of_exists`
@@ -155,6 +159,30 @@ lemma comp_assoc (f : M ↪ₑ[L] N) (g : N ↪ₑ[L] P) (h : P ↪ₑ[L] Q) :
   (h.comp g).comp f = h.comp (g.comp f) := rfl
 
 end elementary_embedding
+
+variables (L) (M)
+
+/-- The elementary diagram of an `L`-structure is the set of all sentences with parameters it
+  satisfies. -/
+abbreviation elementary_diagram : L[[M]].Theory := L[[M]].complete_theory M
+
+/-- The canonical elementary embedding of an `L`-structure into any model of its elementary diagram
+-/
+@[simps] def elementary_embedding.of_models_elementary_diagram
+  (N : Type*) [L.Structure N] [L[[M]].Structure N]
+  [(Lhom_with_constants L M).is_expansion_on N] [N ⊨ L.elementary_diagram M] :
+  M ↪ₑ[L] N :=
+⟨(coe : L[[M]].constants → N) ∘ sum.inr, λ n φ x, begin
+  refine trans _ ((realize_iff_of_model_complete_theory M N (((L.Lhom_with_constants
+    M).on_bounded_formula φ).subst (constants.term ∘ sum.inr ∘ x)).alls).trans _),
+  { simp_rw [sentence.realize, bounded_formula.realize_alls, bounded_formula.realize_subst,
+      Lhom.realize_on_bounded_formula, formula.realize, unique.forall_iff, realize_constants] },
+  { simp_rw [sentence.realize, bounded_formula.realize_alls, bounded_formula.realize_subst,
+    Lhom.realize_on_bounded_formula, formula.realize, unique.forall_iff],
+    refl }
+end⟩
+
+variables {L M}
 
 namespace embedding
 
@@ -301,7 +329,7 @@ instance Theory_model {T : L.Theory} [h : M ⊨ T] {S : L.elementary_substructur
 (Theory_model_iff S T).2 h
 
 instance [h : nonempty M] {S : L.elementary_substructure M} : nonempty S :=
-(Theory.model_nonempty_iff L).1 infer_instance
+(model_nonempty_theory_iff L).1 infer_instance
 
 end elementary_substructure
 

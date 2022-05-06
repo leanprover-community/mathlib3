@@ -50,7 +50,8 @@ namespace list.nat
 
 /-- `list.antidiagonal_tuple k n` is a list of all `k`-tuples which sum to `n`.
 
-This list contains no duplicates, and is sorted lexicographically, starting with `![0, ..., n]`
+This list contains no duplicates (`list.nat.nodup_antidiagonal_tuple`), and is sorted
+lexicographically (`list.nat.antidiagonal_tuple_pairwise_pi_lex`), starting with `![0, ..., n]`
 and ending with `![n, ..., 0]`.
 
 ```
@@ -113,6 +114,14 @@ begin
       exact h (list.mem_map_of_mem _ hx₁) (list.mem_map_of_mem _ hx₂) }, },
 end
 
+lemma antidiagonal_tuple_zero_right : ∀ k, antidiagonal_tuple k 0 = [0]
+| 0 := congr_arg (λ x, [x]) $ subsingleton.elim _ _
+| (k + 1) := begin
+  rw [antidiagonal_tuple, antidiagonal_zero, list.bind_singleton, antidiagonal_tuple_zero_right k,
+    list.map_singleton],
+  exact congr_arg (λ x, [x]) matrix.cons_zero_zero
+end
+
 @[simp] lemma antidiagonal_tuple_one (n : ℕ) : antidiagonal_tuple 1 n = [![n]] :=
 begin
   simp_rw [antidiagonal_tuple, antidiagonal, list.range_succ, list.map_append, list.map_singleton,
@@ -135,6 +144,29 @@ begin
   refl,
 end
 
+lemma antidiagonal_tuple_pairwise_pi_lex : ∀ k n,
+  (antidiagonal_tuple k n).pairwise (pi.lex (<) (λ _, (<)))
+| 0 0 := list.pairwise_singleton _ _
+| 0 (n + 1) := list.pairwise.nil
+| (k + 1) n := begin
+  simp_rw [antidiagonal_tuple, list.pairwise_bind, list.pairwise_map, list.mem_map,
+    forall_exists_index, and_imp, forall_apply_eq_imp_iff₂],
+  simp only [mem_antidiagonal, prod.forall, and_imp, forall_apply_eq_imp_iff₂],
+  simp only [fin.pi_lex_lt_cons_cons, eq_self_iff_true, true_and, lt_self_iff_false, false_or],
+  refine ⟨λ _ _ _, antidiagonal_tuple_pairwise_pi_lex k _, _⟩,
+  induction n,
+  { rw [antidiagonal_zero],
+    exact list.pairwise_singleton _ _ },
+  { rw [antidiagonal_succ, list.pairwise_cons, list.pairwise_map],
+    refine ⟨λ p hp x hx y hy, _, _⟩,
+    { rw [list.mem_map, prod.exists] at hp,
+      obtain ⟨a, b, hab, (rfl : (nat.succ a, b) = p)⟩ := hp,
+      exact or.inl (nat.zero_lt_succ _), },
+    dsimp,
+    simp_rw [nat.succ_inj', nat.succ_lt_succ_iff],
+    exact n_ih },
+end
+
 end list.nat
 
 /-! ### Multisets -/
@@ -153,6 +185,9 @@ list.nat.mem_antidiagonal_tuple
 
 lemma nodup_antidiagonal_tuple (k n : ℕ) : (antidiagonal_tuple k n).nodup :=
 list.nat.nodup_antidiagonal_tuple _ _
+
+lemma antidiagonal_tuple_zero_right (k : ℕ) : antidiagonal_tuple k 0 = {0} :=
+congr_arg _ (list.nat.antidiagonal_tuple_zero_right k)
 
 @[simp] lemma antidiagonal_tuple_one (n : ℕ) : antidiagonal_tuple 1 n = { ![n]} :=
 congr_arg _ (list.nat.antidiagonal_tuple_one n)
@@ -176,6 +211,9 @@ def antidiagonal_tuple (k n : ℕ) : finset (fin k → ℕ) :=
 lemma mem_antidiagonal_tuple {n : ℕ} {k : ℕ} {x : fin k → ℕ} :
   x ∈ antidiagonal_tuple k n ↔ ∑ i, x i = n :=
 list.nat.mem_antidiagonal_tuple
+
+lemma antidiagonal_tuple_zero_right (k : ℕ) : antidiagonal_tuple k 0 = {0} :=
+finset.eq_of_veq (multiset.nat.antidiagonal_tuple_zero_right k)
 
 @[simp] lemma antidiagonal_tuple_one (n : ℕ) : antidiagonal_tuple 1 n = { ![n]} :=
 finset.eq_of_veq (multiset.nat.antidiagonal_tuple_one n)

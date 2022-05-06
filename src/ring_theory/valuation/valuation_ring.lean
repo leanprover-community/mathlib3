@@ -205,12 +205,11 @@ end
 
 /-- The valuation ring `A` is isomorphic to the ring of integers of its associated valuation. -/
 noncomputable def equiv_integer : A ≃+* (valuation A K).integer :=
-ring_equiv.of_bijective
+ring_equiv.of_bijective (show A →ₙ+* (valuation A K).integer, from
 { to_fun := λ a, ⟨algebra_map A K a, (mem_integer_iff _ _ _).mpr ⟨a,rfl⟩⟩,
-  map_one' := by { ext1, exact (algebra_map A K).map_one },
   map_mul' := λ _ _, by { ext1, exact (algebra_map A K).map_mul _ _ },
   map_zero' := by { ext1, exact (algebra_map A K).map_zero },
-  map_add' := λ _ _, by { ext1, exact (algebra_map A K).map_add _ _ } }
+  map_add' := λ _ _, by { ext1, exact (algebra_map A K).map_add _ _ } })
 begin
   split,
   { intros x y h,
@@ -237,8 +236,8 @@ variables (A : Type u) [comm_ring A] [is_domain A] [valuation_ring A]
 
 @[priority 100]
 instance : local_ring A :=
+local_ring.of_is_unit_or_is_unit_one_sub_self
 begin
-  constructor,
   intros a,
   obtain ⟨c,(h|h)⟩ := valuation_ring.cond a (1-a),
   { left,

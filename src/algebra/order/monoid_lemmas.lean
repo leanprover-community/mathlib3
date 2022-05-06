@@ -366,8 +366,8 @@ end has_lt
 section preorder
 variable [preorder α]
 
--- Lemmas in the form of `b ≤ c → a ≤ 1 → b * a ≤ c`,
--- which assume left covariance.
+/-! Lemmas in the form of `b ≤ c → a ≤ 1 → b * a ≤ c`,
+which assume left covariance. -/
 
 @[to_additive]
 lemma mul_le_of_le_of_le_one [covariant_class α α (*) (≤)]
@@ -442,8 +442,8 @@ lemma left.mul_lt_one' [covariant_class α α (*) (≤)]
   {a b : α} (ha : a < 1) (hb : b < 1) : a * b < 1 :=
 mul_lt_of_lt_of_lt_one' ha hb
 
--- Lemmas in the form of `b ≤ c → 1 ≤ a → b ≤ c * a`,
--- which assume left covariance.
+/-! Lemmas in the form of `b ≤ c → 1 ≤ a → b ≤ c * a`,
+which assume left covariance. -/
 
 @[to_additive]
 lemma le_mul_of_le_of_one_le [covariant_class α α (*) (≤)]
@@ -518,8 +518,8 @@ lemma left.one_lt_mul' [covariant_class α α (*) (≤)]
   {a b : α} (ha : 1 < a) (hb : 1 < b) : 1 < a * b :=
 lt_mul_of_lt_of_one_lt' ha hb
 
--- Lemmas in the form of `a ≤ 1 → b ≤ c → a * b ≤ c`,
--- which assume right covariance.
+/-! Lemmas in the form of `a ≤ 1 → b ≤ c → a * b ≤ c`,
+which assume right covariance. -/
 
 @[to_additive]
 lemma mul_le_of_le_one_of_le [covariant_class α α (swap (*)) (≤)]
@@ -594,8 +594,8 @@ lemma right.mul_lt_one' [covariant_class α α (swap (*)) (≤)]
   {a b : α} (ha : a < 1) (hb : b < 1) : a * b < 1 :=
 mul_lt_of_lt_one_of_lt' ha hb
 
--- Lemmas in the form of `1 ≤ a → b ≤ c → b ≤ a * c`,
--- which assume right covariance.
+/-! Lemmas in the form of `1 ≤ a → b ≤ c → b ≤ a * c`,
+which assume right covariance. -/
 
 @[to_additive]
 lemma le_mul_of_one_le_of_le [covariant_class α α (swap (*)) (≤)]

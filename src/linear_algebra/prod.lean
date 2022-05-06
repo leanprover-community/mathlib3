@@ -308,7 +308,8 @@ variables (R M M₂)
 
 variables [comm_semiring R]
 variables [add_comm_monoid M] [add_comm_monoid M₂]
-variables [module R M] [module R M₂]
+variables [module R M] [module R M₂] [module Rᵐᵒᵖ M] [module Rᵐᵒᵖ M₂]
+variables [is_central_scalar R M] [is_central_scalar R M₂]
 
 /-- `linear_map.prod_map` as an `algebra_hom` -/
 @[simps]

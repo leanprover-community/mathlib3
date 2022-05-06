@@ -94,7 +94,7 @@ lemma cond_count_eq_one_of (hs : s.finite) (hs' : s.nonempty) (ht : s ⊆ t) :
 begin
   haveI := cond_count_is_probability_measure hs hs',
   refine eq_of_le_of_not_lt prob_le_one _,
-  rw [not_lt, ← cond_count_cond hs hs'],
+  rw [not_lt, ← cond_count_self hs hs'],
   exact measure_mono ht,
 end
 
@@ -164,8 +164,8 @@ begin
   rcases s.eq_empty_or_nonempty with (rfl | hs');
   rcases t.eq_empty_or_nonempty with (rfl | ht'),
   { simp },
-  { simp [cond_count_cond ht ht'] },
-  { simp [cond_count_cond hs hs'] },
+  { simp [cond_count_self ht ht'] },
+  { simp [cond_count_self hs hs'] },
   rw [cond_count, cond_count, cond_count, cond_apply _ hs.measurable_set,
     cond_apply _ ht.measurable_set, cond_apply _ (hs.union ht).measurable_set,
     cond_apply _ (hs.union ht).measurable_set, cond_apply _ (hs.union ht).measurable_set],

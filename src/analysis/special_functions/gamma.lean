@@ -345,7 +345,7 @@ section Gamma_has_deriv
 def dGamma_integrand (s : ℂ) (x : ℝ) : ℂ := exp (-x) * log x * x ^ (s - 1)
 
 /-- Integrand for the absolute value of the derivative of the `Γ` function -/
-private def dGamma_integrand_real (s x : ℝ) : ℝ := |exp (-x) * log x * x ^ (s - 1)|
+def dGamma_integrand_real (s x : ℝ) : ℝ := |exp (-x) * log x * x ^ (s - 1)|
 
 lemma dGamma_integrand_is_O_at_top (s : ℝ) : is_O (λ x:ℝ, exp (-x) * log x * x ^ (s - 1))
   (λ x:ℝ, exp (-(1/2) * x)) at_top :=
@@ -374,20 +374,19 @@ lemma dGamma_integral_abs_convergent (s : ℝ) (hs : 1 < s) :
 begin
   have : Ioi (0:ℝ) = Ioc 0 1 ∪ Ioi 1 := by simp,
   rw [this, integrable_on_union],
-  split,
-  { split,
-    { refine continuous_on.ae_strongly_measurable (continuous_on.mul _ _).norm measurable_set_Ioc,
-      { apply (continuous_exp.comp continuous_neg).continuous_on.mul,
-        apply continuous_on.mono continuous_on_log, simp, },
-      { apply continuous_on_id.rpow_const, intros x hx, right, linarith }, },
-    { apply has_finite_integral_of_bounded,
-      swap, { exact 1 / (s - 1), },
-      refine (ae_restrict_iff' measurable_set_Ioc).mpr (ae_of_all _ (λ x hx, _)),
-      rw [norm_norm, norm_eq_abs, mul_assoc, abs_mul],
-      have : 1/(s-1) = 1 * (1 / (s-1)) := by ring, rw this,
-      refine mul_le_mul _ _ (by apply abs_nonneg) zero_le_one,
-      { rw [abs_of_pos (exp_pos(-x)), exp_le_one_iff, neg_le, neg_zero], exact hx.1.le },
-      { apply le_of_lt, refine abs_log_mul_self_rpow_lt x (s-1) hx.1 hx.2 (by linarith), }, }, },
+  refine ⟨⟨_, _⟩, _⟩,
+  { refine continuous_on.ae_strongly_measurable (continuous_on.mul _ _).norm measurable_set_Ioc,
+    { refine (continuous_exp.comp continuous_neg).continuous_on.mul (continuous_on_log.mono _),
+      simp, },
+    { apply continuous_on_id.rpow_const, intros x hx, right, linarith }, },
+  { apply has_finite_integral_of_bounded,
+    swap, { exact 1 / (s - 1), },
+    refine (ae_restrict_iff' measurable_set_Ioc).mpr (ae_of_all _ (λ x hx, _)),
+    rw [norm_norm, norm_eq_abs, mul_assoc, abs_mul],
+    have : 1/(s-1) = 1 * (1 / (s-1)) := by ring, rw this,
+    refine mul_le_mul _ _ (by apply abs_nonneg) zero_le_one,
+    { rw [abs_of_pos (exp_pos(-x)), exp_le_one_iff, neg_le, neg_zero], exact hx.1.le },
+    { apply le_of_lt, refine abs_log_mul_self_rpow_lt x (s-1) hx.1 hx.2 (by linarith), }, },
   { have := is_O.norm_left (dGamma_integrand_is_O_at_top s),
     refine integrable_of_is_O_exp_neg one_half_pos (continuous_on.mul _ _).norm this,
     { refine (continuous_exp.comp continuous_neg).continuous_on.mul (continuous_on_log.mono _),
@@ -398,8 +397,8 @@ begin
 end
 
 /-- A uniform bound for the `s`-derivative of the `Γ` integrand for `s` in vertical strips. -/
-private lemma loc_unif_bound_dGamma_integrand {t : ℂ} {s1 s2 x : ℝ} (ht : s1 ≤ t.re ∧ t.re ≤ s2)
-  (hx : 0 < x) :
+lemma loc_unif_bound_dGamma_integrand {t : ℂ} {s1 s2 x : ℝ} (ht1 : s1 ≤ t.re)
+  (ht2: t.re ≤ s2) (hx : 0 < x) :
   ∥dGamma_integrand t x∥ ≤ dGamma_integrand_real s1 x + dGamma_integrand_real s2 x :=
 begin
   rcases le_or_lt 1 x with h|h,
@@ -412,8 +411,7 @@ begin
     refine le_trans _ (le_abs_self _),
     apply rpow_le_rpow_of_exponent_le h,
     rw [complex.sub_re, complex.one_re], linarith, },
-  { push_neg at h, -- case x < 1
-    suffices: ∥dGamma_integrand t x∥ ≤ dGamma_integrand_real s1 x,
+  { suffices: ∥dGamma_integrand t x∥ ≤ dGamma_integrand_real s1 x,
     { have : 0 ≤ dGamma_integrand_real s2 x := by apply abs_nonneg, linarith, },
     rw [dGamma_integrand, dGamma_integrand_real, complex.norm_eq_abs, complex.abs_mul, abs_mul,
       ←complex.of_real_mul, complex.abs_of_real],
@@ -430,36 +428,36 @@ namespace complex
 of `exp (-x) * log x * x ^ (s - 1)` over `[0, ∞)`. -/
 theorem has_deriv_at_Gamma_integral {s : ℂ} (hs : 1 < s.re) :
   (integrable_on (λ x, real.exp (-x) * real.log x * x ^ (s - 1) : ℝ → ℂ) (Ioi 0) volume) ∧
-  (has_deriv_at Gamma_integral (∫ x:ℝ in Ioi 0, (-x).exp * x.log * x ^ (s - 1)) s) :=
+  (has_deriv_at Gamma_integral (∫ x:ℝ in Ioi 0, real.exp (-x) * real.log x * x ^ (s - 1)) s) :=
 begin
   let ε := (s.re - 1) / 2,
   let μ := volume.restrict (Ioi (0:ℝ)),
   let bound := (λ x:ℝ, dGamma_integrand_real (s.re - ε) x + dGamma_integrand_real (s.re + ε) x),
-  have cont : ∀ (t : ℂ), continuous_on (λ x, (-x).exp * x ^ (t - 1) : ℝ → ℂ) (Ioi (0:ℝ)),
+  have cont : ∀ (t : ℂ), continuous_on (λ x, real.exp (-x) * x ^ (t - 1) : ℝ → ℂ) (Ioi 0),
   { intro t, apply (continuous_of_real.comp continuous_neg.exp).continuous_on.mul,
     apply continuous_at.continuous_on, intros x hx,
     refine (continuous_at_cpow_const _).comp continuous_of_real.continuous_at,
     exact or.inl hx, },
   have eps_pos: 0 < ε := by { refine div_pos _ zero_lt_two, linarith },
-  have hF_meas : ∀ᶠ (t : ℂ) in 𝓝 s, ae_strongly_measurable (λ x, (-x).exp * x ^ (t - 1) : ℝ → ℂ) μ,
+  have hF_meas : ∀ᶠ (t : ℂ) in 𝓝 s,
+    ae_strongly_measurable (λ x, real.exp(-x) * x ^ (t - 1) : ℝ → ℂ) μ,
   { apply eventually_of_forall, intro t,
     exact (cont t).ae_strongly_measurable measurable_set_Ioi, },
   have hF'_meas : ae_strongly_measurable (dGamma_integrand s) μ,
   { refine continuous_on.ae_strongly_measurable _ measurable_set_Ioi,
-    have : dGamma_integrand s = (λ x:ℝ, (-x).exp * x ^ (s - 1) * x.log : ℝ → ℂ),
+    have : dGamma_integrand s = (λ x, real.exp (-x) * x ^ (s - 1) * real.log x : ℝ → ℂ),
     { ext1, simp only [dGamma_integrand], ring },
     rw this,
-    refine continuous_on.mul (cont s) _,
-    apply continuous_at.continuous_on, intros x hx,
-    exact continuous_of_real.continuous_at.comp (continuous_at_log (mem_Ioi.mp hx).ne'),},
-  have h_bound: ∀ᵐ (x : ℝ) ∂μ, ∀ (t : ℂ), t ∈ metric.ball s ε → ∥ dGamma_integrand t x ∥ ≤ bound x,
+    refine continuous_on.mul (cont s) (continuous_at.continuous_on _),
+    exact λ x hx, continuous_of_real.continuous_at.comp (continuous_at_log (mem_Ioi.mp hx).ne'), },
+  have h_bound : ∀ᵐ (x : ℝ) ∂μ, ∀ (t : ℂ), t ∈ metric.ball s ε → ∥ dGamma_integrand t x ∥ ≤ bound x,
   { refine (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (λ x hx, _)),
     intros t ht,
-    refine loc_unif_bound_dGamma_integrand _ hx,
     rw [metric.mem_ball, complex.dist_eq] at ht,
     replace ht := lt_of_le_of_lt (complex.abs_re_le_abs $ t - s ) ht,
     rw [complex.sub_re, @abs_sub_lt_iff ℝ _ t.re s.re ((s.re - 1) / 2) ] at ht,
-    simp only [ε], split, linarith, linarith, },
+    refine loc_unif_bound_dGamma_integrand _ _ hx,
+    all_goals { simp only [ε], linarith } },
   have bound_integrable : integrable bound μ,
   { apply integrable.add,
     { refine dGamma_integral_abs_convergent (s.re - ε) _,
@@ -467,7 +465,7 @@ begin
       { linarith }, { exact zero_lt_two }, },
     { refine dGamma_integral_abs_convergent (s.re + ε) _, linarith, }, },
   have h_diff : ∀ᵐ (x : ℝ) ∂μ, ∀ (t : ℂ), t ∈ metric.ball s ε
-    → has_deriv_at (λ (u : ℂ), ↑(-x).exp * ↑x ^ (u - 1)) (dGamma_integrand t x) t,
+    → has_deriv_at (λ u, real.exp (-x) * x ^ (u - 1) : ℂ → ℂ) (dGamma_integrand t x) t,
   { refine (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (λ x hx, _)),
     intros t ht, rw mem_Ioi at hx,
     simp only [dGamma_integrand],
@@ -505,7 +503,7 @@ begin
   have : S ∈ 𝓝 s,
   { rw mem_nhds_iff, use S,
     refine ⟨by refl, _, hn⟩,
-    have: S = re⁻¹' (Ioi (1-n : ℝ)),
+    have: S = re⁻¹' Ioi (1 - n : ℝ),
     { ext, rw [preimage,Ioi, mem_set_of_eq, mem_set_of_eq, mem_set_of_eq], exact sub_lt },
     rw this,
     refine continuous.is_open_preimage continuous_re _ is_open_Ioi, },

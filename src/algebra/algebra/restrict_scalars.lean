@@ -89,8 +89,7 @@ variables [semiring S] [add_comm_monoid M]
 def restrict_scalars.module_orig [I : module S M] :
   module S (restrict_scalars R S M) := I
 
-variables [comm_semiring R] [algebra R S] [module S M]
-
+variables [comm_semiring R] [algebra R S]
 section
 local attribute [instance] restrict_scalars.module_orig
 
@@ -100,22 +99,34 @@ module structure over `R`.
 
 The preferred way of setting this up is `[module R M] [module S M] [is_scalar_tower R S M]`.
 -/
-instance : module R (restrict_scalars R S M) :=
+instance [module S M] : module R (restrict_scalars R S M) :=
 module.comp_hom M (algebra_map R S)
 
 /--
 This instance is only relevant when `restrict_scalars.module_orig` is available as an instance.
 -/
-instance : is_scalar_tower R S (restrict_scalars R S M) :=
+instance [module S M] : is_scalar_tower R S (restrict_scalars R S M) :=
 ⟨λ r S M, by { rw [algebra.smul_def, mul_smul], refl }⟩
 
+
 end
+
+instance restrict_scalars.op_module [module Sᵐᵒᵖ M] : module Rᵐᵒᵖ (restrict_scalars R S M) :=
+begin
+  letI : module Sᵐᵒᵖ (restrict_scalars R S M) := ‹module Sᵐᵒᵖ M›,
+  exact module.comp_hom M (algebra_map R S).op
+end
+
+instance restrict_scalars.is_central_scalar [module S M] [module Sᵐᵒᵖ M] [is_central_scalar S M] :
+  is_central_scalar R (restrict_scalars R S M) :=
+{ op_smul_eq_smul := λ r x, (op_smul_eq_smul (algebra_map R S r) (_ : M) : _)}
 
 /--
 The `R`-algebra homomorphism from the original coefficient algebra `S` to endomorphisms
 of `restrict_scalars R S M`.
 -/
-def restrict_scalars.lsmul : S →ₐ[R] module.End R (restrict_scalars R S M) :=
+def restrict_scalars.lsmul [module S M] [module Sᵐᵒᵖ M] [is_central_scalar S M] :
+  S →ₐ[R] module.End R (restrict_scalars R S M) :=
 begin
   -- We use `restrict_scalars.module_orig` in the implementation,
   -- but not in the type.
@@ -161,9 +172,6 @@ variables [comm_semiring S] [algebra S A] [comm_semiring R] [algebra R S]
   restrict_scalars.ring_equiv R S A (r • x)
   = (algebra_map R S r) • restrict_scalars.ring_equiv R S A x :=
 rfl
-
-instance restrict_scalars.op_module : module Rᵐᵒᵖ (restrict_scalars R S A) :=
-module.comp_hom A (algebra_map R S).op
 
 /-- `R ⟶ S` induces `S-Alg ⥤ R-Alg` -/
 instance : algebra R (restrict_scalars R S A) :=

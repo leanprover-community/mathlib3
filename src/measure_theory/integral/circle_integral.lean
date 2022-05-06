@@ -130,7 +130,7 @@ lemma circle_map_ne_center {c : ℂ} {R : ℝ} (hR : R ≠ 0) {θ : ℝ} : circl
 mt circle_map_eq_center_iff.1 hR
 
 lemma circle_map_ne_on_ball {R : ℝ} (hR : 0 < R) {z w : ℂ} (hw : w ∈ ball z R) :
-  ∀  (x : ℝ), circle_map z R x - w ≠ 0 :=
+  ∀ (x : ℝ), circle_map z R x - w ≠ 0 :=
 begin
   intros x hx,
   rw ←(sub_eq_zero.mp hx) at hw,
@@ -181,7 +181,7 @@ begin
   simp_rw ←one_div,
   apply_rules [continuous_on.div, continuous_const.continuous_on, continuous_on.sub,
     (continuous_circle_map z R).continuous_on, continuous_const.continuous_on],
-  refine (λ _ _,  (circle_map_ne_on_ball hR hw) _),
+  refine (λ _ _, (circle_map_ne_on_ball hR hw) _),
 end
 
 /-!

@@ -12,7 +12,7 @@ import measure_theory.integral.circle_integral
 # Circle integral transform
 
 In this file we define the circle integral transform of a function `f` with complex domain. This is
-defined $(2πi)^{-1}\frac{f(x)}{x-w}$ where `x` moves along a circle. We then prove some basic facts
+defined as $(2πi)^{-1}\frac{f(x)}{x-w}$ where `x` moves along a circle. We then prove some basic facts
 about these functions.
 
 These functions are useful for proving that the uniform limit of a sequence of holomorphic functions
@@ -32,8 +32,8 @@ variables {E : Type u} [normed_group E] [normed_space ℂ E]
 namespace complex
 
 /--Given a function `f : ℂ → E`, this gives the function  $(2πi)^{-1}\frac{f(x)}{x-w}$ where `x`
-runs over a circle of radius `R` around `z`. If `f` is differntiable and `w` is in the interior of
-the ball, then the integral from `0` to `2 * π` of this gives the value `f(w)` -/
+runs over a circle of radius `R` around `z`. If `f` is differentiable and `w` is in the interior of
+the ball, then the integral from `0` to `2 * π` of this gives the value `f(w)`. -/
 def circle_integral_transform (R : ℝ) (z w: ℂ) (f : ℂ → E) : (ℝ → E) := λ θ,
  (2 * π * I : ℂ)⁻¹ • deriv (circle_map z R) θ • ((circle_map z R θ) - w)⁻¹ • f  (circle_map z R θ)
 
@@ -50,7 +50,7 @@ lemma circle_intgral_form_eq_int [complete_space E] (R : ℝ) (z : ℂ) (f : ℂ
   circle_integral_form R z f =  λ w,
  ∫ (θ : ℝ) in 0..2 * π, (circle_integral_transform R z w f ) θ :=
 begin
-  simp_rw [circle_integral_form,circle_integral_transform, circle_integral,
+  simp_rw [circle_integral_form, circle_integral_transform, circle_integral,
   interval_integral.integral_smul],
 end
 
@@ -70,7 +70,7 @@ lemma circle_integral_transform_circle_int [complete_space E] (R : ℝ) (z w : �
   ∫ (θ : ℝ) in 0..2 * π, circle_integral_transform R z w f θ =
  (2 * π * I : ℂ)⁻¹ •  ∮ z in C(z, R), (z - w)⁻¹ • f z :=
 begin
-  simp_rw [circle_integral_transform,circle_integral,deriv_circle_map, circle_map],
+  simp_rw [circle_integral_transform, circle_integral,deriv_circle_map, circle_map],
   simp only [real_smul, nsmul_eq_mul, nat.cast_bit0, nat.cast_one, one_div,
   interval_integral.integral_smul, zero_add],
 end
@@ -96,7 +96,7 @@ lemma circle_integral_transform_deriv_cont_on_ICC (R : ℝ) (hR : 0 < R) (f : �
 begin
   rw circle_integral_transform_deriv_eq,
   refine (circle_map_inv_continuous_on R hR z w hw).smul
-  (circle_integral_transform_cont_on_ICC R hR f z w hf hw),
+    (circle_integral_transform_cont_on_ICC R hR f z w hf hw),
 end
 
 lemma circle_integral_transform_cont_on (R : ℝ) (hR : 0 < R) (f : ℂ → E) (z w : ℂ)
@@ -123,7 +123,7 @@ begin
   (λ _, and.left))],
   simp only [mem_prod, mem_closed_ball, ne.def, and_imp, prod.forall],
   intros a b ha hb,
-  apply (circle_map_ne_on_ball _ hR),
+  apply (circle_map_ne_on_ball hR),
   simp only [mem_ball],
   linarith,
 end

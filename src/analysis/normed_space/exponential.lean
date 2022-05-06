@@ -66,7 +66,7 @@ open_locale nat topological_space big_operators ennreal
 section topological_algebra
 
 variables (𝕂 𝔸 : Type*) [field 𝕂] [ring 𝔸] [algebra 𝕂 𝔸] [topological_space 𝔸]
-  [topological_ring 𝔸] [has_continuous_const_smul 𝕂 𝔸]
+  [topological_ring 𝔸]
 
 /-- `exp_series 𝕂 𝔸` is the `formal_multilinear_series` whose `n`-th term is the map
 `(xᵢ) : 𝔸ⁿ ↦ (1/n! : 𝕂) • ∏ xᵢ`. Its sum is the exponential map `exp 𝕂 𝔸 : 𝔸 → 𝔸`. -/
@@ -576,7 +576,6 @@ section scalar_tower
 
 variables (𝕂 𝕂' 𝔸 : Type*) [field 𝕂] [field 𝕂'] [ring 𝔸] [algebra 𝕂 𝔸] [algebra 𝕂' 𝔸]
   [topological_space 𝔸] [topological_ring 𝔸]
-  [has_continuous_const_smul 𝕂 𝔸] [has_continuous_const_smul 𝕂' 𝔸]
 
 /-- If a normed ring `𝔸` is a normed algebra over two fields, then they define the same
 `exp_series` on `𝔸`. -/

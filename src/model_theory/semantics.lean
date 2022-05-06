@@ -592,17 +592,32 @@ variables {M} {T}
 
 instance model_empty : M ⊨ (∅ : L.Theory) := ⟨λ φ hφ, (set.not_mem_empty φ hφ).elim⟩
 
-lemma Theory.model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
+namespace Theory
+
+lemma model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
   M ⊨ T :=
 ⟨λ φ hφ, T'.realize_sentence_of_mem (hs hφ)⟩
 
-lemma Theory.model_singleton_iff {φ : L.sentence} :
+lemma model.union {T' : L.Theory} (h : M ⊨ T) (h' : M ⊨ T') :
+  M ⊨ T ∪ T' :=
+begin
+  simp only [model_iff, set.mem_union_eq] at *,
+  exact λ φ hφ, hφ.elim (h _) (h' _),
+end
+
+@[simp] lemma model_union_iff {T' : L.Theory} :
+  M ⊨ T ∪ T' ↔ M ⊨ T ∧ M ⊨ T' :=
+⟨λ h, ⟨h.mono (T.subset_union_left T'), h.mono (T.subset_union_right T')⟩, λ h, h.1.union h.2⟩
+
+lemma model_singleton_iff {φ : L.sentence} :
   M ⊨ ({φ} : L.Theory) ↔ M ⊨ φ :=
 by simp
 
-theorem Theory.model_iff_subset_complete_theory :
+theorem model_iff_subset_complete_theory :
   M ⊨ T ↔ T ⊆ L.complete_theory M :=
 T.model_iff
+
+end Theory
 
 instance model_complete_theory : M ⊨ L.complete_theory M :=
 Theory.model_iff_subset_complete_theory.2 (subset_refl _)
@@ -761,6 +776,28 @@ by simp only [nonempty_theory, Theory.model_iff, set.mem_singleton_iff, forall_e
 instance model_nonempty [h : nonempty M] :
   M ⊨ L.nonempty_theory :=
 L.model_nonempty_theory_iff.2 h
+
+lemma model_distinct_constants_theory {M : Type w} [L[[α]].Structure M] (s : set α) :
+  M ⊨ L.distinct_constants_theory s ↔ set.inj_on (λ (i : α), (L.con i : M)) s :=
+begin
+  simp only [distinct_constants_theory, set.compl_eq_compl, Theory.model_iff, set.mem_image,
+    set.mem_inter_eq, set.mem_prod, set.mem_compl_eq, prod.exists, forall_exists_index, and_imp],
+  refine ⟨λ h a as b bs ab, _, _⟩,
+  { contrapose! ab,
+    have h' := h _ a b as bs ab rfl,
+    simp only [sentence.realize, formula.realize_not, formula.realize_equal,
+      term.realize_constants] at h',
+    exact h', },
+  { rintros h φ a b as bs ab rfl,
+    simp only [sentence.realize, formula.realize_not, formula.realize_equal,
+      term.realize_constants],
+    exact λ contra, ab (h as bs contra) }
+end
+
+lemma card_le_of_model_distinct_constants_theory (s : set α) (M : Type w) [L[[α]].Structure M]
+  [h : M ⊨ L.distinct_constants_theory s] :
+  cardinal.lift.{w} (# s) ≤ cardinal.lift.{u'} (# M) :=
+lift_mk_le'.2 ⟨⟨_, set.inj_on_iff_injective.1 ((L.model_distinct_constants_theory s).1 h)⟩⟩
 
 end cardinality
 

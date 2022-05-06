@@ -920,6 +920,9 @@ def range [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) : subm
 theorem range_coe [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) :
   (range f : set M₂) = set.range f := rfl
 
+lemma range_to_add_submonoid [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) :
+  f.range.to_add_submonoid = f.to_add_monoid_hom.mrange := rfl
+
 @[simp] theorem mem_range [ring_hom_surjective τ₁₂]
   {f : M →ₛₗ[τ₁₂] M₂} {x} : x ∈ range f ↔ ∃ y, f y = x :=
 iff.rfl
@@ -1118,6 +1121,9 @@ variables [ring_hom_comp_triple τ₁₂ τ₂₃ τ₁₃]
 variables {f : M →ₛₗ[τ₁₂] M₂}
 include R
 open submodule
+
+lemma range_to_add_subgroup [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) :
+  f.range.to_add_subgroup = f.to_add_monoid_hom.range := rfl
 
 lemma ker_to_add_subgroup (f : M →ₛₗ[τ₁₂] M₂) :
   f.ker.to_add_subgroup = f.to_add_monoid_hom.ker := rfl

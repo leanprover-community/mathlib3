@@ -43,8 +43,13 @@ instance [non_unital_semiring α] : non_unital_semiring αᵐᵒᵖ :=
 instance [non_assoc_semiring α] : non_assoc_semiring αᵐᵒᵖ :=
 { .. mul_opposite.mul_zero_one_class α, .. mul_opposite.non_unital_non_assoc_semiring α }
 
+-- if we don't repeat these fields, then we get a timeout in instance search elsewhere!
 instance [semiring α] : semiring αᵐᵒᵖ :=
-{ .. mul_opposite.non_unital_semiring α, .. mul_opposite.non_assoc_semiring α,
+{ one := 1,
+  zero := 0,
+  add := (+),
+  mul := (*),
+  .. mul_opposite.non_unital_semiring α, .. mul_opposite.non_assoc_semiring α,
   .. mul_opposite.monoid_with_zero α }
 
 instance [non_unital_comm_semiring α] : non_unital_comm_semiring αᵐᵒᵖ :=

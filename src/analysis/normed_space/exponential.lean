@@ -88,30 +88,12 @@ lemma exp_series_apply_eq' (x : 𝔸) :
   (λ n, exp_series 𝕂 𝔸 n (λ _, x)) = (λ n, (n!⁻¹ : 𝕂) • x^n) :=
 funext (exp_series_apply_eq x)
 
-lemma exp_series_apply_eq_field [topological_space 𝕂] [topological_ring 𝕂] (x : 𝕂) (n : ℕ) :
-  exp_series 𝕂 𝕂 n (λ _, x) = x^n / n! :=
-begin
-  rw [div_eq_inv_mul, ←smul_eq_mul],
-  exact exp_series_apply_eq x n,
-end
-
-lemma exp_series_apply_eq_field' [topological_space 𝕂] [topological_ring 𝕂] (x : 𝕂) :
-  (λ n, exp_series 𝕂 𝕂 n (λ _, x)) = (λ n, x^n / n!) :=
-funext (exp_series_apply_eq_field x)
-
 lemma exp_series_sum_eq (x : 𝔸) : (exp_series 𝕂 𝔸).sum x = ∑' (n : ℕ), (n!⁻¹ : 𝕂) • x^n :=
 tsum_congr (λ n, exp_series_apply_eq x n)
 
-lemma exp_series_sum_eq_field [topological_space 𝕂] [topological_ring 𝕂] (x : 𝕂) :
-  (exp_series 𝕂 𝕂).sum x = ∑' (n : ℕ), x^n / n! :=
-tsum_congr (λ n, exp_series_apply_eq_field x n)
 
 lemma exp_eq_tsum : exp 𝕂 = (λ x : 𝔸, ∑' (n : ℕ), (n!⁻¹ : 𝕂) • x^n) :=
 funext exp_series_sum_eq
-
-lemma exp_eq_tsum_field [topological_space 𝕂] [topological_ring 𝕂] :
-  exp 𝕂 = (λ x : 𝕂, ∑' (n : ℕ), x^n / n!) :=
-funext exp_series_sum_eq_field
 
 @[simp] lemma exp_zero [t2_space 𝔸] : exp 𝕂 (0 : 𝔸) = 1 :=
 begin
@@ -141,6 +123,25 @@ lemma commute.exp [t2_space 𝔸] {x y : 𝔸} (h : commute x y) : commute (exp 
 
 end topological_algebra
 
+section topological_division_algebra
+variables {𝕂 𝔸 : Type*} [field 𝕂] [division_ring 𝔸] [algebra 𝕂 𝔸] [topological_space 𝔸]
+  [topological_ring 𝔸]
+
+lemma exp_series_apply_eq_div (x : 𝔸) (n : ℕ) : exp_series 𝕂 𝔸 n (λ _, x) = x^n / n! :=
+by rw [div_eq_mul_inv, ←(nat.cast_commute n! (x ^ n)).inv_left₀.eq, ←smul_eq_mul,
+    exp_series_apply_eq, inv_nat_cast_smul_eq _ _ _ _]
+
+lemma exp_series_apply_eq_div' (x : 𝔸) : (λ n, exp_series 𝕂 𝔸 n (λ _, x)) = (λ n, x^n / n!) :=
+funext (exp_series_apply_eq_div x)
+
+lemma exp_series_sum_eq_div (x : 𝔸) : (exp_series 𝕂 𝔸).sum x = ∑' (n : ℕ), x^n / n! :=
+tsum_congr (exp_series_apply_eq_div x)
+
+lemma exp_eq_tsum_div : exp 𝕂 = (λ x : 𝔸, ∑' (n : ℕ), x^n / n!) :=
+funext exp_series_sum_eq_div
+
+end topological_division_algebra
+
 section normed
 
 section any_field_any_algebra
@@ -162,15 +163,6 @@ begin
   exact norm_exp_series_summable_of_mem_ball x hx
 end
 
-lemma norm_exp_series_field_summable_of_mem_ball (x : 𝕂)
-  (hx : x ∈ emetric.ball (0 : 𝕂) (exp_series 𝕂 𝕂).radius) :
-  summable (λ n, ∥x^n / n!∥) :=
-begin
-  change summable (norm ∘ _),
-  rw ← exp_series_apply_eq_field',
-  exact norm_exp_series_summable_of_mem_ball x hx
-end
-
 section complete_algebra
 
 variables [complete_space 𝔸]
@@ -185,10 +177,6 @@ lemma exp_series_summable_of_mem_ball' (x : 𝔸)
   summable (λ n, (n!⁻¹ : 𝕂) • x^n) :=
 summable_of_summable_norm (norm_exp_series_summable_of_mem_ball' x hx)
 
-lemma exp_series_field_summable_of_mem_ball [complete_space 𝕂] (x : 𝕂)
-  (hx : x ∈ emetric.ball (0 : 𝕂) (exp_series 𝕂 𝕂).radius) : summable (λ n, x^n / n!) :=
-summable_of_summable_norm (norm_exp_series_field_summable_of_mem_ball x hx)
-
 lemma exp_series_has_sum_exp_of_mem_ball (x : 𝔸)
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
   has_sum (λ n, exp_series 𝕂 𝔸 n (λ _, x)) (exp 𝕂 x) :=
@@ -199,13 +187,6 @@ lemma exp_series_has_sum_exp_of_mem_ball' (x : 𝔸)
   has_sum (λ n, (n!⁻¹ : 𝕂) • x^n) (exp 𝕂 x):=
 begin
   rw ← exp_series_apply_eq',
-  exact exp_series_has_sum_exp_of_mem_ball x hx
-end
-
-lemma exp_series_field_has_sum_exp_of_mem_ball [complete_space 𝕂] (x : 𝕂)
-  (hx : x ∈ emetric.ball (0 : 𝕂) (exp_series 𝕂 𝕂).radius) : has_sum (λ n, x^n / n!) (exp 𝕂 x) :=
-begin
-  rw ← exp_series_apply_eq_field',
   exact exp_series_has_sum_exp_of_mem_ball x hx
 end
 
@@ -301,6 +282,30 @@ section any_field_division_algebra
 
 variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_division_ring 𝔸] [normed_algebra 𝕂 𝔸]
 
+variables (𝕂)
+
+lemma norm_exp_series_div_summable_of_mem_ball (x : 𝔸)
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  summable (λ n, ∥x^n / n!∥) :=
+begin
+  change summable (norm ∘ _),
+  rw ← exp_series_apply_eq_div' x,
+  exact norm_exp_series_summable_of_mem_ball x hx
+end
+
+lemma exp_series_div_summable_of_mem_ball [complete_space 𝔸] (x : 𝔸)
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) : summable (λ n, x^n / n!) :=
+summable_of_summable_norm (norm_exp_series_div_summable_of_mem_ball 𝕂 x hx)
+
+lemma exp_series_div_has_sum_exp_of_mem_ball [complete_space 𝔸] (x : 𝔸)
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) : has_sum (λ n, x^n / n!) (exp 𝕂 x) :=
+begin
+  rw ← exp_series_apply_eq_div' x,
+  exact exp_series_has_sum_exp_of_mem_ball x hx
+end
+
+variables {𝕂}
+
 lemma exp_neg_of_mem_ball [char_zero 𝕂] [complete_space 𝔸] {x : 𝔸}
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
   exp 𝕂 (-x) = (exp 𝕂 x)⁻¹ :=
@@ -356,17 +361,13 @@ end
 
 variables {𝕂 𝔸 𝔹}
 
-section complete_algebra
-
 lemma norm_exp_series_summable (x : 𝔸) : summable (λ n, ∥exp_series 𝕂 𝔸 n (λ _, x)∥) :=
 norm_exp_series_summable_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
 lemma norm_exp_series_summable' (x : 𝔸) : summable (λ n, ∥(n!⁻¹ : 𝕂) • x^n∥) :=
 norm_exp_series_summable_of_mem_ball' x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
-lemma norm_exp_series_field_summable (x : 𝕂) : summable (λ n, ∥x^n / n!∥) :=
-norm_exp_series_field_summable_of_mem_ball x
-  ((exp_series_radius_eq_top 𝕂 𝕂).symm ▸ edist_lt_top _ _)
+section complete_algebra
 
 variables [complete_space 𝔸]
 
@@ -376,17 +377,11 @@ summable_of_summable_norm (norm_exp_series_summable x)
 lemma exp_series_summable' (x : 𝔸) : summable (λ n, (n!⁻¹ : 𝕂) • x^n) :=
 summable_of_summable_norm (norm_exp_series_summable' x)
 
-lemma exp_series_field_summable (x : 𝕂) : summable (λ n, x^n / n!) :=
-summable_of_summable_norm (norm_exp_series_field_summable x)
-
 lemma exp_series_has_sum_exp (x : 𝔸) : has_sum (λ n, exp_series 𝕂 𝔸 n (λ _, x)) (exp 𝕂 x) :=
 exp_series_has_sum_exp_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
 lemma exp_series_has_sum_exp' (x : 𝔸) : has_sum (λ n, (n!⁻¹ : 𝕂) • x^n) (exp 𝕂 x):=
 exp_series_has_sum_exp_of_mem_ball' x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
-
-lemma exp_series_field_has_sum_exp (x : 𝕂) : has_sum (λ n, x^n / n!) (exp 𝕂 x):=
-exp_series_field_has_sum_exp_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝕂).symm ▸ edist_lt_top _ _)
 
 lemma exp_has_fpower_series_on_ball :
   has_fpower_series_on_ball (exp 𝕂) (exp_series 𝕂 𝔸) 0 ∞ :=
@@ -397,8 +392,7 @@ lemma exp_has_fpower_series_at_zero :
   has_fpower_series_at (exp 𝕂) (exp_series 𝕂 𝔸) 0 :=
 exp_has_fpower_series_on_ball.has_fpower_series_at
 
-lemma exp_continuous :
-  continuous (exp 𝕂 : 𝔸 → 𝔸) :=
+lemma exp_continuous : continuous (exp 𝕂 : 𝔸 → 𝔸) :=
 begin
   rw [continuous_iff_continuous_on_univ, ← metric.eball_top_eq_univ (0 : 𝔸),
       ← exp_series_radius_eq_top 𝕂 𝔸],
@@ -528,7 +522,23 @@ end any_algebra
 section division_algebra
 
 variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_division_ring 𝔸] [normed_algebra 𝕂 𝔸]
+
+variables (𝕂)
+
+lemma norm_exp_series_div_summable (x : 𝔸) : summable (λ n, ∥x^n / n!∥) :=
+norm_exp_series_div_summable_of_mem_ball 𝕂 x
+  ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
+
 variables [complete_space 𝔸]
+
+lemma exp_series_div_summable (x : 𝔸) : summable (λ n, x^n / n!) :=
+summable_of_summable_norm (norm_exp_series_div_summable 𝕂 x)
+
+lemma exp_series_div_has_sum_exp (x : 𝔸) : has_sum (λ n, x^n / n!) (exp 𝕂 x):=
+exp_series_div_has_sum_exp_of_mem_ball 𝕂 x
+  ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
+
+variables {𝕂}
 
 lemma exp_neg (x : 𝔸) : exp 𝕂 (-x) = (exp 𝕂 x)⁻¹ :=
 exp_neg_of_mem_ball $ (exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _

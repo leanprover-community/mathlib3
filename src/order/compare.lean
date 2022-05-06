@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import order.basic
+import order.order_dual
 
 /-!
 # Comparison
@@ -127,7 +127,7 @@ by cases o₁; cases o₂; exact dec_trivial
 end ordering
 
 lemma order_dual.dual_compares [has_lt α] {a b : α} {o : ordering} :
-  @ordering.compares αᵒᵈ _ o a b ↔ @ordering.compares α _ o b a :=
+  compares o (to_dual a) (to_dual b) ↔ compares o b a :=
 by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
 
 lemma cmp_compares [linear_order α] (a b : α) : (cmp a b).compares a b :=

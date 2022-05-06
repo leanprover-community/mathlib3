@@ -460,7 +460,7 @@ instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : normed_group E] :
   normed_group (restrict_scalars 𝕜 𝕜' E) := I
 
 /-- If `E` is a normed space over `𝕜'` and `𝕜` is a normed algebra over `𝕜'`, then
-`restrict_scalars.module` is additionally a normed-/
+`restrict_scalars.module` is additionally a `normed_space`. -/
 instance : normed_space 𝕜 (restrict_scalars 𝕜 𝕜' E) :=
 { norm_smul_le := λ c x, (normed_space.norm_smul_le (algebra_map 𝕜 𝕜' c) (_ : E)).trans_eq $
     by rw norm_algebra_map',

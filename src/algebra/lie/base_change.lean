@@ -141,7 +141,6 @@ instance : lie_ring (restrict_scalars R A L) := h
 
 variables [comm_ring A] [lie_algebra A L]
 
-@[nolint unused_arguments]
 instance lie_algebra [comm_ring R] [algebra R A] : lie_algebra R (restrict_scalars R A L) :=
 { lie_smul := λ t x y, (lie_smul (algebra_map R A t)
     (restrict_scalars.add_equiv R A L x) (restrict_scalars.add_equiv R A L y) : _) }

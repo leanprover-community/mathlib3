@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Joseph Myers
 -/
 
 import data.complex.exponential
-import analysis.special_functions.log_deriv
+import analysis.special_functions.log.deriv
 
 /-!
 # Bounds on specific values of the exponential

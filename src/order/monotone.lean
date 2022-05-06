@@ -62,7 +62,7 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
 section monotone_def
-variables [has_le α] [has_le β]
+variables [preorder α] [preorder β]
 
 /-- A function `f` is monotone if `a ≤ b` implies `f a ≤ f b`. -/
 def monotone (f : α → β) : Prop := ∀ ⦃a b⦄, a ≤ b → f a ≤ f b
@@ -77,11 +77,6 @@ def monotone_on (f : α → β) (s : set α) : Prop :=
 /-- A function `f` is antitone on `s` if, for all `a, b ∈ s`, `a ≤ b` implies `f b ≤ f a`. -/
 def antitone_on (f : α → β) (s : set α) : Prop :=
 ∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a ≤ b → f b ≤ f a
-
-end monotone_def
-
-section strict_mono_def
-variables [has_lt α] [has_lt β]
 
 /-- A function `f` is strictly monotone if `a < b` implies `f a < f b`. -/
 def strict_mono (f : α → β) : Prop :=
@@ -101,7 +96,7 @@ def strict_mono_on (f : α → β) (s : set α) : Prop :=
 def strict_anti_on (f : α → β) (s : set α) : Prop :=
 ∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a < b → f b < f a
 
-end strict_mono_def
+end monotone_def
 
 /-! ### Monotonicity on the dual order
 
@@ -316,14 +311,14 @@ end subsingleton
 
 /-! ### Miscellaneous monotonicity results -/
 
-lemma monotone_id [has_le α] : monotone (id : α → α) := λ a b, id
+lemma monotone_id [preorder α] : monotone (id : α → α) := λ a b, id
 
-lemma strict_mono_id [has_lt α] : strict_mono (id : α → α) := λ a b, id
+lemma strict_mono_id [preorder α] : strict_mono (id : α → α) := λ a b, id
 
-theorem monotone_const [has_le α] [preorder β] {c : β} : monotone (λ (a : α), c) :=
+theorem monotone_const [preorder α] [preorder β] {c : β} : monotone (λ (a : α), c) :=
 λ a b _, le_refl c
 
-theorem antitone_const [has_le α] [preorder β] {c : β} : antitone (λ (a : α), c) :=
+theorem antitone_const [preorder α] [preorder β] {c : β} : antitone (λ (a : α), c) :=
 λ a b _, le_refl c
 
 lemma strict_mono_of_le_iff_le [preorder α] [preorder β] {f : α → β}
@@ -393,7 +388,7 @@ end preorder
 /-! ### Monotonicity under composition -/
 
 section composition
-variables [has_le α] [has_le β] [has_le γ] {g : β → γ} {f : α → β} {s : set α}
+variables [preorder α] [preorder β] [preorder γ] {g : β → γ} {f : α → β} {s : set α}
 
 protected lemma monotone.comp (hg : monotone g) (hf : monotone f) :
   monotone (g ∘ f) :=
@@ -429,11 +424,6 @@ protected lemma antitone.comp_antitone_on (hg : antitone g) (hf : antitone_on f 
 lemma antitone.comp_monotone_on (hg : antitone g) (hf : monotone_on f s) :
   antitone_on (g ∘ f) s :=
 λ a ha b hb h, hg (hf ha hb h)
-
-end composition
-
-section composition_lt
-variables [has_lt α] [has_lt β] [has_lt γ] {g : β → γ} {f : α → β} {s : set α}
 
 protected lemma strict_mono.comp (hg : strict_mono g) (hf : strict_mono f) :
   strict_mono (g ∘ f) :=
@@ -471,7 +461,7 @@ lemma strict_anti.comp_strict_mono_on (hg : strict_anti g) (hf : strict_mono_on 
   strict_anti_on (g ∘ f) s :=
 λ a ha b hb h, hg (hf ha hb h)
 
-end composition_lt
+end composition
 
 namespace list
 

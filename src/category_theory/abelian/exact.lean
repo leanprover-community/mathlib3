@@ -6,6 +6,7 @@ Authors: Markus Himmel, Adam Topaz, Johan Commelin
 import category_theory.abelian.opposite
 import category_theory.limits.preserves.shapes.zero
 import category_theory.limits.preserves.shapes.kernels
+import category_theory.limits.preserves.shapes.binary_products
 import category_theory.adjunction.limits
 import algebra.homology.exact
 import tactic.tfae
@@ -288,11 +289,15 @@ end opposite
 end abelian
 
 namespace functor
+
+section
+
 variables {D : Type u₂} [category.{v₂} D] [abelian D]
+variables (F : C ⥤ D) [preserves_zero_morphisms F]
 
 @[priority 100]
-instance reflects_exact_sequences_of_preserves_zero_morphisms_of_faithful (F : C ⥤ D)
-  [preserves_zero_morphisms F] [faithful F] : reflects_exact_sequences F :=
+instance reflects_exact_sequences_of_preserves_zero_morphisms_of_faithful [faithful F] :
+  reflects_exact_sequences F :=
 { reflects := λ X Y Z f g hfg,
   begin
     rw [abelian.exact_iff, ← F.map_comp, F.map_eq_zero_iff] at hfg,
@@ -303,6 +308,34 @@ instance reflects_exact_sequences_of_preserves_zero_morphisms_of_faithful (F : C
       (by simp only [← F.map_comp, cokernel.condition, category_theory.functor.map_zero]),
     rw [F.map_comp, ← hk, ← hl, category.assoc, reassoc_of hfg.2, zero_comp, comp_zero]
   end }
+
+end
+
+section
+variables {D : Type u₂} [category.{v₁} D] [abelian D]  -- TODO: Generalize universe level
+variables (F : C ⥤ D) [preserves_zero_morphisms F]
+
+/--
+A functor from preadditive category to an abelian category which preserves kernels,
+preserves arbitrary products.
+-/
+def is_limit_map_cone_binary_fan_of_preserves_kernels {X Y Z : C} (π₁ : Z ⟶ X) (π₂ : Z ⟶ Y) (i : is_limit (binary_fan.mk π₁ π₂))
+ [preserves_limit (parallel_pair π₂ 0) F] : is_limit (F.map_cone (binary_fan.mk π₁ π₂)) :=
+let bc := binary_bicone.of_limit_cone i in
+let ibc := bicone_is_bilimit_of_limit_cone_of_is_limit i in
+begin
+  haveI : preserves_limit (parallel_pair bc.snd 0) F, { simpa },
+  let i_f : is_limit bc.snd_kernel_fork := binary_bicone.is_limit_snd_kernel_fork i,
+  have hex : exact (F.map bc.inl) (F.map bc.snd),
+  { fapply abelian.exact_of_is_kernel,
+    { rw [←F.map_comp, bc.inl_snd, F.map_zero] },
+    { exact (is_limit_map_cone_fork_equiv' F _).to_fun (is_limit_of_preserves F i_f) } },
+  exact (is_limit_map_cone_binary_fan_equiv F π₁ π₂).inv_fun
+    (is_bilimit_binary_bicone_of_split_mono_of_cokernel
+      (abelian.is_colimit_of_exact_of_epi (F.map bc.inl) (F.map bc.snd) hex)).is_limit
+end
+
+end
 
 end functor
 

@@ -336,6 +336,12 @@ begin
       (abelian.is_colimit_of_exact_of_epi (F.map bc.inl) (F.map bc.snd) hex)).is_limit
 end
 
+instance [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] :
+  preserves_limits_of_shape (discrete walking_pair) F :=
+{ preserves_limit := λ p,
+  { preserves := λ c i,
+    sorry } }
+
 /--
 A functor from preadditive category to an abelian category which preserves cokernels,
 preserves arbitrary coproducts.
@@ -357,6 +363,12 @@ begin
     (is_bilimit_binary_bicone_of_split_epi_of_kernel
       (abelian.is_limit_of_exact_of_mono (F.map bc.inl) (F.map bc.snd) hex)).is_colimit
 end
+
+instance [pres_cokernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] :
+  preserves_colimits_of_shape (discrete walking_pair) F :=
+{ preserves_colimit := λ p,
+  { preserves := λ c i,
+    sorry } }
 
 end
 

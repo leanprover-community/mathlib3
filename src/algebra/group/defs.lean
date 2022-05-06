@@ -521,27 +521,6 @@ variables [has_involutive_inv G]
 
 end has_involutive_inv
 
-section has_involutive_inv
-
--- ensure that we don't go via these typeclasses to find `has_inv` on groups and groups with zero
-set_option extends_priority 50
-
-/-- Auxiliary typeclass for types with an involutive `has_neg`. -/
-@[ancestor has_neg]
-class has_involutive_neg (A : Type*) extends has_neg A :=
-(neg_neg : ∀ x : A, - -x = x)
-
-/-- Auxiliary typeclass for types with an involutive `has_inv`. -/
-@[ancestor has_inv, to_additive]
-class has_involutive_inv (G : Type*) extends has_inv G :=
-(inv_inv : ∀ x : G, x⁻¹⁻¹ = x)
-
-variables [has_involutive_inv G]
-
-@[simp, to_additive] lemma inv_inv (a : G) : a⁻¹⁻¹ = a := has_involutive_inv.inv_inv _
-
-end has_involutive_inv
-
 /-!
 ### Design note on `div_inv_monoid`/`sub_neg_monoid` and `division_monoid`/`subtraction_monoid`
 

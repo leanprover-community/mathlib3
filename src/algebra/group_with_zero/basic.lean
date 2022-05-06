@@ -573,9 +573,6 @@ calc a⁻¹ * (a * b) = (a⁻¹ * a) * b : (mul_assoc _ _ _).symm
 private lemma inv_eq_of_mul (h : a * b = 1) : a⁻¹ = b :=
 by rw [← inv_mul_cancel_left₀ (left_ne_zero_of_mul_eq_one h) b, h, mul_one]
 
-private lemma inv_eq_of_mul (h : a * b = 1) : a⁻¹ = b :=
-by rw [← inv_mul_cancel_left₀ (left_ne_zero_of_mul_eq_one h) b, h, mul_one]
-
 @[priority 100] -- See note [lower instance priority]
 instance group_with_zero.to_division_monoid : division_monoid G₀ :=
 { inv := has_inv.inv,

@@ -1193,7 +1193,6 @@ end
 lemma inv_mul_cancel (h0 : a ≠ 0) (ht : a ≠ ∞) : a⁻¹ * a = 1 :=
 mul_comm a a⁻¹ ▸ mul_inv_cancel h0 ht
 
--- TOODOO
 lemma eq_inv_of_mul_eq_one (h : a * b = 1) : a = b⁻¹ :=
 begin
   rcases eq_or_ne b ∞ with rfl|hb,

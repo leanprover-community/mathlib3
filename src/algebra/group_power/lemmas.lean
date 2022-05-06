@@ -127,22 +127,22 @@ by rw [mul_comm, zpow_mul]
 end division_monoid
 
 section group
-variables [group α]
+variables [group G]
 
 @[to_additive add_one_zsmul]
-lemma zpow_add_one (a : α) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
+lemma zpow_add_one (a : G) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
 | (of_nat n) := by simp [← int.coe_nat_succ, pow_succ']
 | -[1+n] := by rw [int.neg_succ_of_nat_eq, zpow_neg, neg_add, neg_add_cancel_right, zpow_neg,
   ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ n, mul_inv_rev,
   inv_mul_cancel_right]
 
 @[to_additive zsmul_sub_one]
-lemma zpow_sub_one (a : α) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
+lemma zpow_sub_one (a : G) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
 calc a ^ (n - 1) = a ^ (n - 1) * a * a⁻¹ : (mul_inv_cancel_right _ _).symm
              ... = a^n * a⁻¹             : by rw [← zpow_add_one, sub_add_cancel]
 
 @[to_additive add_zsmul]
-lemma zpow_add (a : α) (m n : ℤ) : a ^ (m + n) = a ^ m * a ^ n :=
+lemma zpow_add (a : G) (m n : ℤ) : a ^ (m + n) = a ^ m * a ^ n :=
 begin
   induction n using int.induction_on with n ihn n ihn,
   case hz : { simp },
@@ -151,30 +151,29 @@ begin
 end
 
 @[to_additive add_zsmul_self]
-lemma mul_self_zpow (b : α) (m : ℤ) : b*b^m = b^(m+1) :=
+lemma mul_self_zpow (b : G) (m : ℤ) : b*b^m = b^(m+1) :=
 by { conv_lhs {congr, rw ← zpow_one b }, rw [← zpow_add, add_comm] }
 
 @[to_additive add_self_zsmul]
-lemma mul_zpow_self (b : α) (m : ℤ) : b^m*b = b^(m+1) :=
+lemma mul_zpow_self (b : G) (m : ℤ) : b^m*b = b^(m+1) :=
 by { conv_lhs {congr, skip, rw ← zpow_one b }, rw [← zpow_add, add_comm] }
 
 @[to_additive sub_zsmul]
-lemma zpow_sub (a : α) (m n : ℤ) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
+lemma zpow_sub (a : G) (m n : ℤ) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
 by rw [sub_eq_add_neg, zpow_add, zpow_neg]
 
 @[to_additive one_add_zsmul]
-lemma zpow_one_add (a : α) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
+lemma zpow_one_add (a : G) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
 by rw [zpow_add, zpow_one]
 
-@[to_additive]
-lemma zpow_mul_comm (a : α) (i j : ℤ) : a ^ i * a ^ j = a ^ j * a ^ i :=
+@[to_additive] lemma zpow_mul_comm (a : G) (i j : ℤ) : a ^ i * a ^ j = a ^ j * a ^ i :=
 (commute.refl _).zpow_zpow _ _
 
 @[to_additive bit0_zsmul]
-lemma zpow_bit0 (a : α) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n := zpow_add _ _ _
+theorem zpow_bit0 (a : G) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n := zpow_add _ _ _
 
 @[to_additive bit1_zsmul]
-lemma zpow_bit1 (a : α) (n : ℤ) : a ^ bit1 n = a ^ n * a ^ n * a :=
+theorem zpow_bit1 (a : G) (n : ℤ) : a ^ bit1 n = a ^ n * a ^ n * a :=
 by rw [bit1, zpow_add, zpow_bit0, zpow_one]
 
 end group

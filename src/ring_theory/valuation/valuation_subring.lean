@@ -321,13 +321,99 @@ def unit_group : subgroup Kˣ :=
     rw [A.valuation.map_inv, ha, inv_one],
   end }
 
+lemma mem_iff_unit_group_auxtwo (a : A) : A.valuation a < 1 → A.valuation (1 + a) = 1 :=
+begin
+  intros h,
+  rw [← valuation_lt_one_iff, local_ring.mem_maximal_ideal] at h,
+  have k := local_ring.is_unit_of_mem_nonunits_one_sub_self (1 + a),
+  simp at k h,
+  rw is_unit.neg_iff at k,
+  have f := k h,
+  rw valuation_eq_one_iff at f,
+  push_cast at f,
+  exact f,
+
+  /-
+  wanted to use this but can't figure it out
+  `rw ← valuation_eq_one_iff,`
+  -/
+end
+
+lemma mem_iff_unit_group_auxthree (x : K) : A.valuation x < 1 → A.valuation (1 + x) = 1 :=
+begin
+  intro h,
+  have k : A.valuation x < 1 ∨ A.valuation x = 1, left, exact h,
+  rw [← le_iff_lt_or_eq, valuation_le_one_iff] at k,
+  have p := A.valuation.map_add 1 x,
+  have l : max ((A.valuation) 1) ((A.valuation) x) = 1, simp, rw le_iff_lt_or_eq, left, exact h,
+  rw [l, le_iff_lt_or_eq] at p,
+
+  cases p with plt peq,
+  sorry,
+
+  exact peq,
+end
+
 lemma mem_iff_unit_group_aux (x : K) : x ∈ A ↔
-  A.valuation x = 1 ∨ A.valuation (1 + x) = 1 := sorry
+  A.valuation x = 1 ∨ A.valuation (1 + x) = 1 :=
+begin
+  split,
+  { intro h,
+  rw [← valuation_le_one_iff, le_iff_lt_or_eq] at h,
+  cases h with hlt heq,
+  right, apply mem_iff_unit_group_auxthree, exact hlt,
+  left, exact heq },
+
+  { intro h,
+  cases h with hx h1x,
+  rw [← valuation_le_one_iff, le_iff_lt_or_eq],
+  right, exact hx,
+
+  have k : A.valuation (1 + x) < 1 ∨ A.valuation (1 + x) = 1, exact or.inr h1x,
+  rw [← le_iff_lt_or_eq, valuation_le_one_iff] at k,
+  have p := A.add_mem (1+x) (-1),
+  have l := A.neg_mem 1 A.one_mem,
+  simp at p,
+  exact p k l },
+
+  /- goal is `⇑(A.valuation) (1 + x) = 1` and previous lemma works for `⇑(A.valuation) (1 + ↑a) = 1`.
+  apply mem_iff_unit_group_auxtwo,
+  -/
+
+end
 
 lemma mem_iff_unit_group (x : Kˣ) : (x : K) ∈ A ↔
   x ∈ A.unit_group ∨ ∃ (h : 1 + (x : K) ≠ 0), units.mk0 _ h ∈ A.unit_group :=
 begin
-  sorry
+  split,
+  { intro h,
+  rw mem_iff_unit_group_aux at h,
+  cases h with hx h1x,
+  left, exact hx,
+  right,
+    split,
+    { rw unit_group, simp, exact h1x },
+    { by_contra,
+    have k := A.valuation.map_zero,
+    rw [← h, h1x] at k,
+    exact one_ne_zero k} ,
+  },
+
+  { intro h,
+  cases h with hx h1x,
+  rw unit_group at hx,
+  simp at hx,
+  have k : A.valuation ↑x = 1 ∨ A.valuation (1 + ↑x) = 1, exact or.inl hx,
+  rw ← mem_iff_unit_group_aux at k,
+  exact k,
+
+  cases h1x with ha hb,
+  rw unit_group at hb, simp at hb,
+  have k : A.valuation ↑x = 1 ∨ A.valuation (1 + ↑x) = 1, exact or.inr hb,
+  rw ← mem_iff_unit_group_aux at k,
+  exact k
+  },
+
 end
 
 lemma unit_group_eq_iff (A B : valuation_subring K) :

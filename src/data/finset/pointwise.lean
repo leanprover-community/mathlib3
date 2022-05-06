@@ -162,7 +162,6 @@ image₂_nonempty_iff
 @[to_additive] lemma nonempty.of_mul_left : (s * t).nonempty → s.nonempty := nonempty.of_image₂_left
 @[to_additive] lemma nonempty.of_mul_right : (s * t).nonempty → t.nonempty :=
 nonempty.of_image₂_right
-
 @[simp, to_additive] lemma mul_singleton (a : α) : s * {a} = s.image (* a) := image₂_singleton_right
 @[simp, to_additive] lemma singleton_mul (a : α) : {a} * s = s.image ((*) a) :=
 image₂_singleton_left
@@ -170,11 +169,11 @@ image₂_singleton_left
 image₂_singleton
 
 @[to_additive, mono] lemma mul_subset_mul : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ * t₁ ⊆ s₂ * t₂ := image₂_subset
-
-attribute [mono] add_subset_add
-
 @[to_additive] lemma mul_subset_mul_left : t₁ ⊆ t₂ → s * t₁ ⊆ s * t₂ := image₂_subset_left
 @[to_additive] lemma mul_subset_mul_right : s₁ ⊆ s₂ → s₁ * t ⊆ s₂ * t := image₂_subset_right
+@[to_additive] lemma mul_subset_iff : s * t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), x * y ∈ u := image₂_subset_iff
+
+attribute [mono] add_subset_add
 
 @[to_additive] lemma union_mul : (s₁ ∪ s₂) * t = s₁ * t ∪ s₂ * t := image₂_union_left
 @[to_additive] lemma mul_union : s * (t₁ ∪ t₂) = s * t₁ ∪ s * t₂ := image₂_union_right
@@ -299,10 +298,18 @@ image₂_nonempty_iff
 @[to_additive] lemma nonempty.of_div_left : (s / t).nonempty → s.nonempty := nonempty.of_image₂_left
 @[to_additive] lemma nonempty.of_div_right : (s / t).nonempty → t.nonempty :=
 nonempty.of_image₂_right
+@[simp, to_additive] lemma div_singleton (a : α) : s / {a} = s.image (/ a) := image₂_singleton_right
+@[simp, to_additive] lemma singleton_div (a : α) : {a} / s = s.image ((/) a) :=
+image₂_singleton_left
+@[simp, to_additive] lemma singleton_div_singleton (a b : α) : ({a} : finset α) / {b} = {a / b} :=
+image₂_singleton
 
 @[to_additive, mono] lemma div_subset_div : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ / t₁ ⊆ s₂ / t₂ := image₂_subset
 @[to_additive] lemma div_subset_div_left : t₁ ⊆ t₂ → s / t₁ ⊆ s / t₂ := image₂_subset_left
 @[to_additive] lemma div_subset_div_right : s₁ ⊆ s₂ → s₁ / t ⊆ s₂ / t := image₂_subset_right
+@[to_additive] lemma div_subset_iff : s / t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), x / y ∈ u := image₂_subset_iff
+
+attribute [mono] sub_subset_sub
 
 @[to_additive] lemma union_div : (s₁ ∪ s₂) / t = s₁ / t ∪ s₂ / t := image₂_union_left
 @[to_additive] lemma div_union : s / (t₁ ∪ t₂) = s / t₁ ∪ s / t₂ := image₂_union_right
@@ -310,15 +317,6 @@ nonempty.of_image₂_right
 image₂_inter_subset_left
 @[to_additive] lemma div_inter_subset : s / (t₁ ∩ t₂) ⊆ s / t₁ ∩ (s / t₂) :=
 image₂_inter_subset_right
-
-attribute [mono] add_subset_add
-
-@[simp, to_additive] lemma div_singleton (a : α) : s / {a} = s.image (/ a) := image₂_singleton_right
-@[simp, to_additive] lemma singleton_div (a : α) : {a} / s = s.image ((/) a) :=
-image₂_singleton_left
-
-@[simp, to_additive]
-lemma singleton_div_singleton (a b : α) : ({a} : finset α) / {b} = {a / b} := image₂_singleton
 
 /-- If a finset `u` is contained in the product of two sets `s / t`, we can find two finsets `s'`,
 `t'` such that `s' ⊆ s`, `t' ⊆ t` and `u ⊆ s' / t'`. -/
@@ -552,8 +550,9 @@ image₂_singleton
 @[to_additive, mono] lemma smul_subset_smul : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ • t₁ ⊆ s₂ • t₂ := image₂_subset
 @[to_additive] lemma smul_subset_smul_left : t₁ ⊆ t₂ → s • t₁ ⊆ s • t₂ := image₂_subset_left
 @[to_additive] lemma smul_subset_smul_right : s₁ ⊆ s₂ → s₁ • t ⊆ s₂ • t := image₂_subset_right
+@[to_additive] lemma smul_subset_iff : s • t ⊆ u ↔ ∀ (a ∈ s) (b ∈ t), a • b ∈ u := image₂_subset_iff
 
-attribute [mono] add_subset_add
+attribute [mono] vadd_subset_vadd
 
 @[to_additive] lemma union_smul [decidable_eq α] : (s₁ ∪ s₂) • t = s₁ • t ∪ s₂ • t :=
 image₂_union_left
@@ -576,7 +575,8 @@ end has_scalar
 /-! ### Finset addition/multiplication -/
 
 section has_vsub
-variables [decidable_eq α] [has_vsub α β] {s s₁ s₂ t t₁ t₂ u : finset β} {a : α} {b c : β}
+variables [decidable_eq α] [has_vsub α β] {s s₁ s₂ t t₁ t₂ : finset β} {u : finset α} {a : α}
+  {b c : β}
 include α
 
 /-- The pointwise product of two finsets `s` and `t`: `s -ᵥ t = {x -ᵥ y | x ∈ s, y ∈ t}`. -/
@@ -613,6 +613,7 @@ image₂_singleton
 @[mono] lemma vsub_subset_vsub : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ -ᵥ t₁ ⊆ s₂ -ᵥ t₂ := image₂_subset
 lemma vsub_subset_vsub_left : t₁ ⊆ t₂ → s -ᵥ t₁ ⊆ s -ᵥ t₂ := image₂_subset_left
 lemma vsub_subset_vsub_right : s₁ ⊆ s₂ → s₁ -ᵥ t ⊆ s₂ -ᵥ t := image₂_subset_right
+lemma vsub_subset_iff : s -ᵥ t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), x -ᵥ y ∈ u := image₂_subset_iff
 
 section
 variables [decidable_eq β]
@@ -626,7 +627,7 @@ end
 
 /-- If a finset `u` is contained in the pointwise subtraction of two sets `s -ᵥ t`, we can find two
 finsets `s'`, `t'` such that `s' ⊆ s`, `t' ⊆ t` and `u ⊆ s' -ᵥ t'`. -/
-lemma subset_vsub {s t : set β} {u : finset α} :
+lemma subset_vsub {s t : set β} :
   ↑u ⊆ s -ᵥ t → ∃ s' t' : finset β, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' -ᵥ t' :=
 subset_image₂
 

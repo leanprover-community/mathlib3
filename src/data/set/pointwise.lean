@@ -107,8 +107,7 @@ lemma image2_mul : image2 has_mul.mul s t = s * t := rfl
 @[to_additive]
 lemma mem_mul : a ∈ s * t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x * y = a := iff.rfl
 
-@[to_additive]
-lemma mul_mem_mul (ha : a ∈ s) (hb : b ∈ t) : a * b ∈ s * t := mem_image2_of_mem ha hb
+@[to_additive] lemma mul_mem_mul : a ∈ s → b ∈ t → a * b ∈ s * t := mem_image2_of_mem
 
 @[to_additive add_image_prod]
 lemma image_mul_prod : (λ x : α × α, x.fst * x.snd) '' s ×ˢ t = s * t := image_prod _
@@ -122,38 +121,31 @@ image2_nonempty_iff
 @[to_additive] lemma nonempty.of_mul_left : (s * t).nonempty → s.nonempty := nonempty.of_image2_left
 @[to_additive] lemma nonempty.of_mul_right : (s * t).nonempty → t.nonempty :=
 nonempty.of_image2_right
-
 @[simp, to_additive] lemma mul_singleton : s * {b} = (* b) '' s := image2_singleton_right
 @[simp, to_additive] lemma singleton_mul : {a} * t = ((*) a) '' t := image2_singleton_left
+@[simp, to_additive] lemma singleton_mul_singleton : ({a} : set α) * {b} = {a * b} :=
+image2_singleton
 
-@[simp, to_additive]
-lemma singleton_mul_singleton : ({a} : set α) * {b} = {a * b} := image2_singleton
-
-@[to_additive] lemma mul_subset_mul : s₁ ⊆ t₁ → s₂ ⊆ t₂ → s₁ * s₂ ⊆ t₁ * t₂ := image2_subset
+@[to_additive, mono] lemma mul_subset_mul : s₁ ⊆ t₁ → s₂ ⊆ t₂ → s₁ * s₂ ⊆ t₁ * t₂ := image2_subset
 @[to_additive] lemma mul_subset_mul_left : t₁ ⊆ t₂ → s * t₁ ⊆ s * t₂ := image2_subset_left
 @[to_additive] lemma mul_subset_mul_right : s₁ ⊆ s₂ → s₁ * t ⊆ s₂ * t := image2_subset_right
+@[to_additive] lemma mul_subset_iff : s * t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), x * y ∈ u := image2_subset_iff
+
+attribute [mono] add_subset_add
 
 @[to_additive] lemma union_mul : (s₁ ∪ s₂) * t = s₁ * t ∪ s₂ * t := image2_union_left
 @[to_additive] lemma mul_union : s * (t₁ ∪ t₂) = s * t₁ ∪ s * t₂ := image2_union_right
+@[to_additive] lemma inter_mul_subset : (s₁ ∩ s₂) * t ⊆ s₁ * t ∩ (s₂ * t) :=
+image2_inter_subset_left
+@[to_additive] lemma mul_inter_subset : s * (t₁ ∩ t₂) ⊆ s * t₁ ∩ (s * t₂) :=
+image2_inter_subset_right
 
-@[to_additive]
-lemma inter_mul_subset : (s₁ ∩ s₂) * t ⊆ s₁ * t ∩ (s₂ * t) := image2_inter_subset_left
+@[to_additive] lemma Union_mul_left_image : (⋃ a ∈ s, ((*) a) '' t) = s * t := Union_image_left _
+@[to_additive] lemma Union_mul_right_image : (⋃ a ∈ t, (* a) '' s) = s * t := Union_image_right _
 
-@[to_additive]
-lemma mul_inter_subset : s * (t₁ ∩ t₂) ⊆ s * t₁ ∩ (s * t₂) := image2_inter_subset_right
-
-@[to_additive]
-lemma Union_mul_left_image : (⋃ a ∈ s, (λ x, a * x) '' t) = s * t := Union_image_left _
-
-@[to_additive]
-lemma Union_mul_right_image : (⋃ a ∈ t, (λ x, x * a) '' s) = s * t := Union_image_right _
-
-@[to_additive]
-lemma Union_mul (s : ι → set α) (t : set α) : (⋃ i, s i) * t = ⋃ i, s i * t :=
+@[to_additive] lemma Union_mul (s : ι → set α) (t : set α) : (⋃ i, s i) * t = ⋃ i, s i * t :=
 image2_Union_left _ _ _
-
-@[to_additive]
-lemma mul_Union (s : set α) (t : ι → set α) : s * (⋃ i, t i) = ⋃ i, s * t i :=
+@[to_additive] lemma mul_Union (s : set α) (t : ι → set α) : s * (⋃ i, t i) = ⋃ i, s * t i :=
 image2_Union_right _ _ _
 
 @[to_additive]
@@ -559,8 +551,7 @@ lemma image2_div : image2 has_div.div s t = s / t := rfl
 @[to_additive]
 lemma mem_div : a ∈ s / t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x / y = a := iff.rfl
 
-@[to_additive]
-lemma div_mem_div (ha : a ∈ s) (hb : b ∈ t) : a / b ∈ s / t := mem_image2_of_mem ha hb
+@[to_additive] lemma div_mem_div : a ∈ s → b ∈ t → a / b ∈ s / t := mem_image2_of_mem
 
 @[to_additive add_image_prod]
 lemma image_div_prod : (λ x : α × α, x.fst / x.snd) '' s ×ˢ t = s / t := image_prod _
@@ -574,15 +565,17 @@ image2_nonempty_iff
 @[to_additive] lemma nonempty.of_div_left : (s / t).nonempty → s.nonempty := nonempty.of_image2_left
 @[to_additive] lemma nonempty.of_div_right : (s / t).nonempty → t.nonempty :=
 nonempty.of_image2_right
-
 @[simp, to_additive] lemma div_singleton : s / {b} = (/ b) '' s := image2_singleton_right
 @[simp, to_additive] lemma singleton_div : {a} / t = ((/) a) '' t := image2_singleton_left
 @[simp, to_additive] lemma singleton_div_singleton : ({a} : set α) / {b} = {a / b} :=
 image2_singleton
 
-@[to_additive] lemma div_subset_div : s₁ ⊆ t₁ → s₂ ⊆ t₂ → s₁ / s₂ ⊆ t₁ / t₂ := image2_subset
-@[to_additive] lemma div_subset_div_left (h : t₁ ⊆ t₂) : s / t₁ ⊆ s / t₂ := image2_subset_left h
-@[to_additive] lemma div_subset_div_right (h : s₁ ⊆ s₂) : s₁ / t ⊆ s₂ / t := image2_subset_right h
+@[to_additive, mono] lemma div_subset_div : s₁ ⊆ t₁ → s₂ ⊆ t₂ → s₁ / s₂ ⊆ t₁ / t₂ := image2_subset
+@[to_additive] lemma div_subset_div_left : t₁ ⊆ t₂ → s / t₁ ⊆ s / t₂ := image2_subset_left
+@[to_additive] lemma div_subset_div_right : s₁ ⊆ s₂ → s₁ / t ⊆ s₂ / t := image2_subset_right
+@[to_additive] lemma div_subset_iff : s / t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), x / y ∈ u := image2_subset_iff
+
+attribute [mono] sub_subset_sub
 
 @[to_additive] lemma union_div : (s₁ ∪ s₂) / t = s₁ / t ∪ s₂ / t := image2_union_left
 @[to_additive] lemma div_union : s / (t₁ ∪ t₂) = s / t₁ ∪ s / t₂ := image2_union_right
@@ -591,18 +584,12 @@ image2_inter_subset_left
 @[to_additive] lemma div_inter_subset : s / (t₁ ∩ t₂) ⊆ s / t₁ ∩ (s / t₂) :=
 image2_inter_subset_right
 
-@[to_additive]
-lemma Union_div_left_image : (⋃ a ∈ s, (λ x, a / x) '' t) = s / t := Union_image_left _
+@[to_additive] lemma Union_div_left_image : (⋃ a ∈ s, ((/) a) '' t) = s / t := Union_image_left _
+@[to_additive] lemma Union_div_right_image : (⋃ a ∈ t, (/ a) '' s) = s / t := Union_image_right _
 
-@[to_additive]
-lemma Union_div_right_image : (⋃ a ∈ t, (λ x, x / a) '' s) = s / t := Union_image_right _
-
-@[to_additive]
-lemma Union_div (s : ι → set α) (t : set α) : (⋃ i, s i) / t = ⋃ i, s i / t :=
+@[to_additive] lemma Union_div (s : ι → set α) (t : set α) : (⋃ i, s i) / t = ⋃ i, s i / t :=
 image2_Union_left _ _ _
-
-@[to_additive]
-lemma div_Union (s : set α) (t : ι → set α) : s / (⋃ i, t i) = ⋃ i, s / t i :=
+@[to_additive] lemma div_Union (s : set α) (t : ι → set α) : s / (⋃ i, t i) = ⋃ i, s / t i :=
 image2_Union_right _ _ _
 
 @[to_additive]
@@ -743,10 +730,7 @@ lemma image_smul_prod : (λ x : α × β, x.fst • x.snd) '' s ×ˢ t = s • t
 @[to_additive]
 lemma mem_smul : b ∈ s • t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x • y = b := iff.rfl
 
-@[to_additive]
-lemma smul_mem_smul (ha : a ∈ s) (hb : b ∈ t) : a • b ∈ s • t := mem_image2_of_mem ha hb
-
-@[to_additive] lemma smul_subset_iff : s • t ⊆ u ↔ ∀ (a ∈ s) (b ∈ t), a • b ∈ u := image2_subset_iff
+@[to_additive] lemma smul_mem_smul : a ∈ s → b ∈ t → a • b ∈ s • t := mem_image2_of_mem
 
 @[simp, to_additive] lemma empty_smul : (∅ : set α) • t = ∅ := image2_empty_left
 @[simp, to_additive] lemma smul_empty : s • (∅ : set β) = ∅ := image2_empty_right
@@ -758,15 +742,17 @@ image2_nonempty_iff
 nonempty.of_image2_left
 @[to_additive] lemma nonempty.of_smul_right : (s • t).nonempty → t.nonempty :=
 nonempty.of_image2_right
-
 @[simp, to_additive] lemma smul_singleton : s • {b} = (• b) '' s := image2_singleton_right
 @[simp, to_additive] lemma singleton_smul : ({a} : set α) • t = a • t := image2_singleton_left
 @[simp, to_additive] lemma singleton_smul_singleton : ({a} : set α) • ({b} : set β) = {a • b} :=
 image2_singleton
 
-@[to_additive] lemma smul_subset_smul : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ • t₁ ⊆ s₂ • t₂ := image2_subset
+@[to_additive, mono] lemma smul_subset_smul : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ • t₁ ⊆ s₂ • t₂ := image2_subset
 @[to_additive] lemma smul_subset_smul_left : t₁ ⊆ t₂ → s • t₁ ⊆ s • t₂ := image2_subset_left
 @[to_additive] lemma smul_subset_smul_right : s₁ ⊆ s₂ → s₁ • t ⊆ s₂ • t := image2_subset_right
+@[to_additive] lemma smul_subset_iff : s • t ⊆ u ↔ ∀ (a ∈ s) (b ∈ t), a • b ∈ u := image2_subset_iff
+
+attribute [mono] vadd_subset_vadd
 
 @[to_additive] lemma union_smul : (s₁ ∪ s₂) • t = s₁ • t ∪ s₂ • t := image2_union_left
 @[to_additive] lemma smul_union : s • (t₁ ∪ t₂) = s • t₁ ∪ s • t₂ := image2_union_right
@@ -774,18 +760,12 @@ image2_singleton
 @[to_additive] lemma smul_inter_subset : s • (t₁ ∩ t₂) ⊆ s • t₁ ∩ s • t₂ :=
 image2_inter_subset_right
 
-@[to_additive]
-lemma Union_smul_left_image : (⋃ a ∈ s, a • t) = s • t := Union_image_left _
+@[to_additive] lemma Union_smul_left_image : (⋃ a ∈ s, a • t) = s • t := Union_image_left _
+@[to_additive] lemma Union_smul_right_image : (⋃ a ∈ t, (• a) '' s) = s • t := Union_image_right _
 
-@[to_additive]
-lemma Union_smul_right_image : (⋃ a ∈ t, (λ x, x • a) '' s) = s • t := Union_image_right _
-
-@[to_additive]
-lemma Union_smul (s : ι → set α) (t : set β) : (⋃ i, s i) • t = ⋃ i, s i • t :=
+@[to_additive] lemma Union_smul (s : ι → set α) (t : set β) : (⋃ i, s i) • t = ⋃ i, s i • t :=
 image2_Union_left _ _ _
-
-@[to_additive]
-lemma smul_Union (s : set α) (t : ι → set β) : s • (⋃ i, t i) = ⋃ i, s • t i :=
+@[to_additive] lemma smul_Union (s : set α) (t : ι → set β) : s • (⋃ i, t i) = ⋃ i, s • t i :=
 image2_Union_right _ _ _
 
 @[to_additive]
@@ -959,7 +939,8 @@ localized "attribute [instance] set.distrib_mul_action_set set.mul_distrib_mul_a
 end smul
 
 section vsub
-variables {ι : Sort*} {κ : ι → Sort*} [has_vsub α β] {s s₁ s₂ t t₁ t₂ : set β} {a : α} {b c : β}
+variables {ι : Sort*} {κ : ι → Sort*} [has_vsub α β] {s s₁ s₂ t t₁ t₂ : set β} {u : set α} {a : α}
+  {b c : β}
 include α
 
 instance has_vsub : has_vsub (set α) (set β) := ⟨image2 (-ᵥ)⟩
@@ -972,8 +953,6 @@ lemma mem_vsub : a ∈ s -ᵥ t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x -ᵥ y = 
 
 lemma vsub_mem_vsub (hb : b ∈ s) (hc : c ∈ t) : b -ᵥ c ∈ s -ᵥ t := mem_image2_of_mem hb hc
 
-lemma vsub_subset_iff {u : set α} : s -ᵥ t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), x -ᵥ y ∈ u := image2_subset_iff
-
 @[simp] lemma empty_vsub (t : set β) : ∅ -ᵥ t = ∅ := image2_empty_left
 @[simp] lemma vsub_empty (s : set β) : s -ᵥ ∅ = ∅ := image2_empty_right
 @[simp] lemma vsub_eq_empty : s -ᵥ t = ∅ ↔ s = ∅ ∨ t = ∅ := image2_eq_empty_iff
@@ -982,19 +961,18 @@ image2_nonempty_iff
 lemma nonempty.vsub : s.nonempty → t.nonempty → (s -ᵥ t : set α).nonempty := nonempty.image2
 lemma nonempty.of_vsub_left : (s -ᵥ t :set α).nonempty → s.nonempty := nonempty.of_image2_left
 lemma nonempty.of_vsub_right : (s -ᵥ t : set α).nonempty → t.nonempty := nonempty.of_image2_right
-
 @[simp] lemma vsub_singleton (s : set β) (b : β) : s -ᵥ {b} = (-ᵥ b) '' s := image2_singleton_right
 @[simp] lemma singleton_vsub (t : set β) (b : β) : {b} -ᵥ t = ((-ᵥ) b) '' t := image2_singleton_left
 @[simp] lemma singleton_vsub_singleton : ({b} : set β) -ᵥ {c} = {b -ᵥ c} := image2_singleton
 
-lemma vsub_subset_vsub : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ -ᵥ t₁ ⊆ s₂ -ᵥ t₂ := image2_subset
+@[mono] lemma vsub_subset_vsub : s₁ ⊆ s₂ → t₁ ⊆ t₂ → s₁ -ᵥ t₁ ⊆ s₂ -ᵥ t₂ := image2_subset
 lemma vsub_subset_vsub_left : t₁ ⊆ t₂ → s -ᵥ t₁ ⊆ s -ᵥ t₂ := image2_subset_left
 lemma vsub_subset_vsub_right : s₁ ⊆ s₂ → s₁ -ᵥ t ⊆ s₂ -ᵥ t := image2_subset_right
+lemma vsub_subset_iff : s -ᵥ t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), x -ᵥ y ∈ u := image2_subset_iff
 lemma vsub_self_mono (h : s ⊆ t) : s -ᵥ s ⊆ t -ᵥ t := vsub_subset_vsub h h
 
 lemma union_vsub : (s₁ ∪ s₂) -ᵥ t = s₁ -ᵥ t ∪ (s₂ -ᵥ t) := image2_union_left
 lemma vsub_union : s -ᵥ (t₁ ∪ t₂) = s -ᵥ t₁ ∪ (s -ᵥ t₂) := image2_union_right
-
 lemma inter_vsub_subset : s₁ ∩ s₂ -ᵥ t ⊆ (s₁ -ᵥ t) ∩ (s₂ -ᵥ t) := image2_inter_subset_left
 lemma vsub_inter_subset : s -ᵥ t₁ ∩ t₂ ⊆ (s -ᵥ t₁) ∩ (s -ᵥ t₂) := image2_inter_subset_right
 
@@ -1003,7 +981,6 @@ lemma Union_vsub_right_image : (⋃ a ∈ t, (-ᵥ a) '' s) = s -ᵥ t := Union_
 
 lemma Union_vsub (s : ι → set β) (t : set β) : (⋃ i, s i) -ᵥ t = ⋃ i, s i -ᵥ t :=
 image2_Union_left _ _ _
-
 lemma vsub_Union (s : set β) (t : ι → set β) : s -ᵥ (⋃ i, t i) = ⋃ i, s -ᵥ t i :=
 image2_Union_right _ _ _
 

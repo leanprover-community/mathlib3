@@ -1340,7 +1340,12 @@ variants which this lemma would not apply to:
 * `matrix.conj_transpose_smul_non_comm`
 * `matrix.conj_transpose_nsmul`
 * `matrix.conj_transpose_zsmul`
+* `matrix.conj_transpose_nat_cast_smul`
+* `matrix.conj_transpose_int_cast_smul`
+* `matrix.conj_transpose_inv_nat_cast_smul`
+* `matrix.conj_transpose_inv_int_cast_smul`
 * `matrix.conj_transpose_rat_smul`
+* `matrix.conj_transpose_rat_cast_smul`
 -/
 @[simp] lemma conj_transpose_smul [has_star R] [has_star α] [has_scalar R α] [star_module R α]
   (c : R) (M : matrix m n α) :
@@ -1363,6 +1368,26 @@ matrix.ext $ by simp
 
 @[simp] lemma conj_transpose_zsmul [add_group α] [star_add_monoid α] (c : ℤ) (M : matrix m n α) :
   (c • M)ᴴ = c • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_nat_cast_smul [semiring R] [add_comm_monoid α]
+  [star_add_monoid α] [module R α] (c : ℕ) (M : matrix m n α) : ((c : R) • M)ᴴ = (c : R) • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_int_cast_smul [ring R] [add_comm_group α]
+  [star_add_monoid α] [module R α] (c : ℤ) (M : matrix m n α) : ((c : R) • M)ᴴ = (c : R) • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_inv_nat_cast_smul [division_ring R] [add_comm_group α]
+  [star_add_monoid α] [module R α] (c : ℕ) (M : matrix m n α) : ((c : R)⁻¹ • M)ᴴ = (c : R)⁻¹ • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_inv_int_cast_smul [division_ring R] [add_comm_group α]
+  [star_add_monoid α] [module R α] (c : ℤ) (M : matrix m n α) : ((c : R)⁻¹ • M)ᴴ = (c : R)⁻¹ • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_rat_cast_smul [division_ring R] [add_comm_group α] [star_add_monoid α]
+  [module R α] (c : ℚ) (M : matrix m n α) : ((c : R) • M)ᴴ = (c : R) • Mᴴ :=
 matrix.ext $ by simp
 
 @[simp] lemma conj_transpose_rat_smul [add_comm_group α] [star_add_monoid α] [module ℚ α] (c : ℚ)

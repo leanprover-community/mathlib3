@@ -122,7 +122,7 @@ instance of_unique {X : Type v} [add_comm_group X] [module R X] [i : unique X] :
   unique (of R X) := i
 
 @[simp]
-lemma coe_of (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
+lemma coe_of (X : Type v) [add_comm_group X] [module R X] : (of R X : Type v) = X := rfl
 
 variables {R}
 

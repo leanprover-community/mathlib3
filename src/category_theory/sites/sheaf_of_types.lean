@@ -817,7 +817,7 @@ def first_obj_eq_family : first_obj P R ≅ R.family_of_elements P :=
   inv_hom_id' :=
   begin
     ext x Y f hf,
-    apply limits.types.limit.lift_π_apply,
+    apply limits.types.limit.lift_π_apply',
   end }
 
 instance : inhabited (first_obj P (⊥ : presieve X)) :=
@@ -860,6 +860,7 @@ begin
   simp [first_map, second_map, fork_map],
 end
 
+set_option pp.all true
 /--
 The family of elements given by `x : first_obj P S` is compatible iff `first_map` and `second_map`
 map it to the same point.
@@ -873,7 +874,7 @@ begin
     ext ⟨Y, Z, g, f, hf⟩,
     simpa [first_map, second_map] using t _ g hf },
   { intros t Y Z f g hf,
-    rw types.limit_ext_iff at t,
+    rw types.limit_ext_iff' at t,
     simpa [first_map, second_map] using t ⟨Y, Z, g, f, hf⟩ }
 end
 
@@ -952,7 +953,7 @@ begin
     ext ⟨⟨Y, f, hf⟩, Z, g, hg⟩,
     simpa [first_map, second_map] using t hf hg },
   { intros t Y Z f g hf hg,
-    rw types.limit_ext_iff at t,
+    rw types.limit_ext_iff' at t,
     simpa [first_map, second_map] using t ⟨⟨Y, f, hf⟩, Z, g, hg⟩ }
 end
 

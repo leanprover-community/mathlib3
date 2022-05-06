@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Markus Himmel, Adam Topaz, Johan Commelin
+Authors: Markus Himmel, Adam Topaz, Johan Commelin, Jakob von Raumer
 -/
 import category_theory.abelian.opposite
 import category_theory.limits.preserves.shapes.zero
@@ -319,8 +319,9 @@ variables (F : C ⥤ D) [preserves_zero_morphisms F]
 A functor from preadditive category to an abelian category which preserves kernels,
 preserves arbitrary products.
 -/
-def is_limit_map_cone_binary_fan_of_preserves_kernels {X Y Z : C} (π₁ : Z ⟶ X) (π₂ : Z ⟶ Y) (i : is_limit (binary_fan.mk π₁ π₂))
- [preserves_limit (parallel_pair π₂ 0) F] : is_limit (F.map_cone (binary_fan.mk π₁ π₂)) :=
+def is_limit_map_cone_binary_fan_of_preserves_kernels {X Y Z : C} (π₁ : Z ⟶ X) (π₂ : Z ⟶ Y)
+  (i : is_limit (binary_fan.mk π₁ π₂)) [preserves_limit (parallel_pair π₂ 0) F] :
+  is_limit (F.map_cone (binary_fan.mk π₁ π₂)) :=
 let bc := binary_bicone.of_limit_cone i in
 let ibc := bicone_is_bilimit_of_limit_cone_of_is_limit i in
 begin

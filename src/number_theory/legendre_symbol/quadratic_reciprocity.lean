@@ -63,8 +63,7 @@ begin
 end
 
 -- The following is used by number_theory/zsqrtd/gaussian_int.lean and archive/imo/imo2008_q3.lean
-lemma exists_sq_eq_neg_one_iff :
-  is_square (-1 : zmod p) ↔ p % 4 ≠ 3 :=
+lemma exists_sq_eq_neg_one_iff : is_square (-1 : zmod p) ↔ p % 4 ≠ 3 :=
 begin
   have h := @is_square_neg_one_iff (zmod p) _ _,
   rw card p at h,

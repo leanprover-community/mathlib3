@@ -27,12 +27,18 @@ but are needed below. They will be moved to appropriate places eventually.
 
 section general
 
-/-- An odd natural number has residue `1` or `3` mod `4`-/
-lemma odd_mod_four {n : ℕ} (hn : n % 2 = 1) : n % 4 = 1 ∨ n % 4 = 3 :=
+/-- A natural number is odd iff it has residue `1` or `3` mod `4`-/
+lemma nat.odd_mod_four_iff {n : ℕ} : n % 2 = 1 ↔ n % 4 = 1 ∨ n % 4 = 3 :=
 begin
-  have help : ∀ (m : ℕ), 0 ≤ m → m < 4 → m % 2 = 1 → m = 1 ∨ m = 3 := dec_trivial,
-  rw [← nat.mod_mod_of_dvd n (by norm_num : 2 ∣ 4)] at hn,
-  exact help (n % 4) zero_le' (nat.mod_lt n (by norm_num)) hn,
+  split,
+  { have help : ∀ (m : ℕ), 0 ≤ m → m < 4 → m % 2 = 1 → m = 1 ∨ m = 3 := dec_trivial,
+    intro hn,
+    rw [← nat.mod_mod_of_dvd n (by norm_num : 2 ∣ 4)] at hn,
+    exact help (n % 4) zero_le' (nat.mod_lt n (by norm_num)) hn, },
+  { intro h,
+    cases h with h h,
+    { exact nat.odd_of_mod_four_eq_one h, },
+    { exact nat.odd_of_mod_four_eq_three h }, },
 end
 
 /-- If `ring_char R = 2`, where `R` is a finite reduced commutative ring,
@@ -53,23 +59,28 @@ begin
   exact is_square_of_char_two' a,
 end
 
-/-- If the finite field `F` has characteristic `2`, then it has even cardinality. -/
-lemma even_card_of_char_two (hF : ring_char F = 2) : fintype.card F % 2 = 0 :=
+/-- The finite field `F` has even cardinality iff it has characteristic `2`. -/
+lemma even_card_iff_char_two : ring_char F = 2 ↔ fintype.card F % 2 = 0 :=
 begin
-  rcases finite_field.card F (ring_char F) with ⟨ n, hp, h ⟩,
-  rw hF at h,
+  rcases finite_field.card F (ring_char F) with ⟨n, hp, h⟩,
   rw [h, nat.pow_mod],
-  simp only [nat.bit0_mod_two, zero_pow', ne.def, pnat.ne_zero, not_false_iff, nat.zero_mod],
+  split,
+  { intro hF,
+    rw hF,
+    simp only [nat.bit0_mod_two, zero_pow', ne.def, pnat.ne_zero, not_false_iff, nat.zero_mod], },
+  { rw [← nat.even_iff, nat.even_pow],
+    rintros ⟨hev, hnz⟩,
+    rw [nat.even_iff, nat.mod_mod] at hev,
+    cases (nat.prime.eq_two_or_odd hp) with h₁ h₁,
+    { exact h₁, },
+    { exact false.rec (ring_char F = 2) (one_ne_zero ((eq.symm h₁).trans hev)), }, },
 end
 
-/-- If the finite field `F` has characteristic `≠ 2`, then it has odd cardinality. -/
+lemma even_card_of_char_two (hF : ring_char F = 2) : fintype.card F % 2 = 0 :=
+even_card_iff_char_two.mp hF
+
 lemma odd_card_of_char_ne_two (hF : ring_char F ≠ 2) : fintype.card F % 2 = 1 :=
-begin
-  rcases finite_field.card F (ring_char F) with ⟨ n, hp, h ⟩,
-  have h₁ : odd ((ring_char F) ^ (n : ℕ)) :=
-    odd.pow ((or_iff_right hF).mp (nat.prime.eq_two_or_odd' hp)),
-  rwa [← h, nat.odd_iff] at h₁,
-end
+nat.mod_two_ne_zero.mp (mt even_card_iff_char_two.mpr hF)
 
 /-- Characteristic `≠ 2` implies that `-1 ≠ 1`. -/
 lemma neg_one_ne_one_of_char_ne_two (hF : ring_char F ≠ 2) : (-1 : F) ≠ 1 :=
@@ -391,7 +402,7 @@ It corresponds to the extension `ℚ(√-1)/ℚ`. -/
   map_zero' := rfl, map_one' := rfl, map_mul' := dec_trivial }
 
 /-- An explicit description of `χ₄` on integers / naturals -/
-lemma χ₄_of_mod_four_int (n : ℤ) : χ₄ n = if n % 2 = 0 then 0 else if n % 4 = 1 then 1 else -1 :=
+lemma χ₄_int_eq_if_mod_four (n : ℤ) : χ₄ n = if n % 2 = 0 then 0 else if n % 4 = 1 then 1 else -1 :=
 begin
   have help : ∀ (m : ℤ), 0 ≤ m → m < 4 → χ₄ m = if m % 2 = 0 then 0 else if m = 1 then 1 else -1 :=
   dec_trivial,
@@ -399,16 +410,16 @@ begin
   exact help (n % 4) (int.mod_nonneg n (by norm_num)) (int.mod_lt n (by norm_num)),
 end
 
-lemma χ₄_of_mod_four_nat (n : ℕ) : χ₄ n = if n % 2 = 0 then 0 else if n % 4 = 1 then 1 else -1 :=
-by exact_mod_cast χ₄_of_mod_four_int n
+lemma χ₄_nat_eq_if_mod_four (n : ℕ) : χ₄ n = if n % 2 = 0 then 0 else if n % 4 = 1 then 1 else -1 :=
+by exact_mod_cast χ₄_int_eq_if_mod_four n
 
 /-- Alternative description for odd `n : ℕ` in terms of powers of `-1` -/
-lemma χ₄_of_neg_one_pow {n : ℕ} (hn : n % 2 = 1) : χ₄ n = (-1)^(n / 2) :=
+lemma χ₄_eq_neg_one_pow {n : ℕ} (hn : n % 2 = 1) : χ₄ n = (-1)^(n / 2) :=
 begin
-  rw χ₄_of_mod_four_nat,
+  rw χ₄_nat_eq_if_mod_four,
   simp only [hn, nat.one_ne_zero, if_false],
   have h := (nat.div_add_mod n 4).symm,
-  cases (odd_mod_four hn) with h4 h4,
+  cases (nat.odd_mod_four_iff.mp hn) with h4 h4,
   { split_ifs,
     rw h4 at h,
     rw [h],
@@ -443,7 +454,7 @@ end quad_char_mod_p
 end zmod
 
 /-!
-### Sepcial values of the quadratic character
+### Special values of the quadratic character
 
 We express `quadratic_char F (-1)` in terms of `χ₄`.
 -/
@@ -462,7 +473,7 @@ lemma quadratic_char_neg_one [decidable_eq F] (hF : ring_char F ≠ 2) :
 begin
   have h₁ : (-1 : F) ≠ 0 := by { rw neg_ne_zero, exact one_ne_zero },
   have h := quadratic_char_eq_pow_of_char_ne_two hF h₁,
-  rw [h, χ₄_of_neg_one_pow (finite_field.odd_card_of_char_ne_two hF)],
+  rw [h, χ₄_eq_neg_one_pow (finite_field.odd_card_of_char_ne_two hF)],
   set n := fintype.card F / 2,
   cases (nat.even_or_odd n) with h₂ h₂,
   { simp only [even.neg_one_pow h₂, eq_self_iff_true, if_true], },
@@ -482,8 +493,8 @@ begin
   { have h₁ : (-1 : F) ≠ 0 := by { rw neg_ne_zero, exact one_ne_zero },
     have h₂ := finite_field.odd_card_of_char_ne_two hF,
     rw [← quadratic_char_one_iff_is_square h₁, quadratic_char_neg_one hF,
-        χ₄_of_mod_four_nat, h₂],
-    have h₃ := odd_mod_four h₂,
+        χ₄_nat_eq_if_mod_four, h₂],
+    have h₃ := nat.odd_mod_four_iff.mp h₂,
     simp only [nat.one_ne_zero, if_false, ite_eq_left_iff, ne.def],
     norm_num,
     split,

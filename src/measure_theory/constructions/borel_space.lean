@@ -1364,9 +1364,9 @@ begin
   rw [A, B, C, add_assoc],
 end
 
-section metric_space
+section pseudo_metric_space
 
-variables [metric_space α] [measurable_space α] [opens_measurable_space α]
+variables [measurable_space α] [pseudo_metric_space α] [opens_measurable_space α]
 variables [measurable_space β] {x : α} {ε : ℝ}
 
 open metric
@@ -1447,6 +1447,15 @@ begin
   convert tendsto_measure_cthickening hs,
   exact h's.closure_eq.symm
 end
+
+end pseudo_metric_space
+
+section metric_space
+
+variables [measurable_space α] [metric_space α] [opens_measurable_space α]
+variables [measurable_space β] {x : α} {ε : ℝ}
+
+open metric
 
 /-- Given a compact set in a proper space, the measure of its `r`-closed thickenings converges to
 its measure as `r` tends to `0`. -/

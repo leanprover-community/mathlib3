@@ -469,12 +469,10 @@ instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : normed_group E] :
 
 instance : normed_space 𝕜 (restrict_scalars 𝕜 𝕜' E) :=
 { norm_smul_le := λc x, le_of_eq $ begin
-    change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
+    change ∥(algebra_map 𝕜 𝕜' c) • (_ : E)∥ = ∥c∥ * ∥x∥,
     simp [norm_smul, -algebra_map_smul],
   end,
-  to_opposite_module := module.comp_hom E (algebra_map 𝕜 𝕜').op,
   to_is_central_scalar := begin
-    letI : module 𝕜ᵐᵒᵖ (restrict_scalars 𝕜 𝕜' E) := module.comp_hom E (algebra_map 𝕜 𝕜').op,
     refine ⟨λ _ _, (op_smul_eq_smul (algebra_map _ _ _) _ : _)⟩,
   end,
   ..restrict_scalars.module 𝕜 𝕜' E }

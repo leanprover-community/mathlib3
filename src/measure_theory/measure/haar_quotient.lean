@@ -44,17 +44,139 @@ begin
   refine ⟨g₁, hg₁, h.ae_eq hg₁'⟩,
 end
 
-theorem measure_theory.integral_count {α : Type*} {β : Type*} [measurable_space α]
-  [measurable_singleton_class α] [encodable β]
-  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [complete_space E] {f : α → E} (hf : integrable f measure_theory.measure.count)  :
-∫ (a : α), f a ∂measure_theory.measure.count = ∑' (a : α), f a :=
+theorem measure_theory.measure.empty_of_count_eq_zero {α : Type*} {s : set α} [measurable_space α]
+[measurable_singleton_class α] (hsc : measure_theory.measure.count s = 0) :
+s = ∅ := sorry
+
+theorem measure_theory.L1.tsum_eq_set_to_L1 {α : Type*} {E : Type*} [normed_group E]
+  {m : measurable_space α} [normed_space ℝ E] [complete_space E]
+  (f : (Lp E 1 measure.count)) :
+∑' (a : α), f a = (L1.set_to_L1 (dominated_fin_meas_additive_weighted_smul measure.count)) f :=
 begin
-  rw measure_theory.integral_eq f hf,
-  rw measure_theory.L1.integral_eq,
-  rw ← measure_theory.mem_ℒp_one_iff_integrable  at hf,
-  have := (measure_theory.Lp.simple_func.dense_range (ennreal.one_ne_top)).induction_on
-    (measure_theory.Lp.mk f hf) ,
+
+  sorry,
+end
+
+example (f : ℝ → ℝ) (s : finset ℝ) : ∃ g : simple_func ℝ ℝ, (g : ℝ → ℝ) = (s : set ℝ).indicator f :=
+begin
+  sorry,
+end
+
+theorem measure_theory.integral_count {α : Type*} [measurable_space α]
+  [measurable_singleton_class α] [encodable α]
+  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  [complete_space E] {f : α → E} (hf : integrable f measure.count)  :
+∫ (a : α), f a ∂measure.count = ∑' (a : α), f a :=
+begin
+  rw integral_eq f hf,
+  rw L1.integral_eq,
+  rw ← mem_ℒp_one_iff_integrable  at hf,
+  --have : summable f := sorry,
+  symmetry,
+  apply has_sum.tsum_eq,
+  dsimp [has_sum],
+  have hF : ∀ s : finset α, mem_ℒp ((s : set α).indicator f) 1 measure.count := λ s,
+    measure_theory.mem_ℒp.indicator (finset.measurable_set s) hf,
+  let F : finset α → Lp E 1 (measure.count : measure α) := λ s, (hF s).to_Lp _,
+  have hh : ∀ s : finset α, L1.integral_clm (F s) = s.sum f,
+  {
+    intros s,
+    rw ←  measure_theory.L1.integral_eq,
+    let g : Lp.simple_func E 1 (measure.count : measure α) :=
+    { val :=
+    begin
+
+    end,
+  property := _ },
+    have : F s = g := sorry,
+    rw this,
+    rw L1.simple_func.integral_L1_eq_integral g,
+--    rw measure_theory.L1.integral_eq_integral,
+
+--    rw measure_theory.simple_func.integral_eq_sum,
+    dsimp [L1.simple_func.integral],
+
+    rw measure_theory.simple_func.integral_eq,
+
+
+    sorry,
+  },
+  -- ADD TO LIBRARY
+  -- f is limit of
+  have : filter.tendsto F (filter.at_top : filter (finset α)) (nhds (hf.to_Lp f)),
+  {
+    dsimp [F],
+    sorry,
+  },
+  convert L1.integral_clm.continuous.continuous_at.tendsto.comp this,
+  ext s,
+  exact (hh s).symm,
+
+
+  sorry,
+
+  ------------------------------------------------
+
+
+
+
+--  rw ← this,
+--  have : tendsto (λ s : finset α, L1.integral_clm (integrable.to_L1 f hf)))
+
+
+  have := this.has_sum ,
+  have := this.tsum_eq,
+
+
+
+
+
+
+
+  --rw L1.integral_eq_set_to_L1 ,
+  --rw measure_theory.L1.tsum_eq_set_to_L1,
+
+
+
+  --dsimp [L1.integral_clm, L1.integral_clm', tsum],
+
+
+
+
+
+
+
+
+
+
+
+
+  ---------------------------------------
+
+  let P : Lp E 1 measure.count → Prop := λ f, L1.integral_clm f = ∑' (a : α), f a ,
+  have : P (hf.to_Lp f),
+  {
+    apply (Lp.simple_func.dense_range (ennreal.one_ne_top)).induction_on
+      (hf.to_Lp f) ,
+    {
+      have := measure_theory.weighted_smul,
+      let T : set α → E →L[ℝ] E := λ s, measure.count s • continuous_linear_map.id,
+
+      sorry,
+    },
+    sorry,
+  },
+  dsimp [P] at this,
+  convert this,
+  have := measure_theory.measure.empty_of_count_eq_zero,
+
+
+
+
+
+
+--------------------------------------------
+
 --  have := @dense_range.induction_on,
   --refine dense_range.induction_on (measure_theory.Lp.simple_func.dense_range _) _ _ _,
 

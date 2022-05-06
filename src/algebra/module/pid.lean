@@ -8,7 +8,7 @@ import linear_algebra.free_module.pid
 import algebra.module.projective
 
 /-!
-# Classification of finitely generated modules over a PID
+# Structure of finitely generated modules over a PID
 
 ## Main statements
 
@@ -38,7 +38,7 @@ Then we get the general result using that a torsion free module is free (which h
 
 ## Tags
 
-Finitely generated module, principal ideal domain, classification
+Finitely generated module, principal ideal domain, classification, structure theorem
 -/
 
 universes u v
@@ -279,7 +279,7 @@ end
 
 variables {N : Type (max u v)} [add_comm_group N] [module R N]
 
-/--**Classification theorem of finitely generated modules over a PID** : A finitely generated
+/--**Structure theorem of finitely generated modules over a PID** : A finitely generated
   module over a PID is isomorphic to the product of a free module and a direct sum of some
   `R ⧸ R ∙ (p i ^ e i)` where the `p i ^ e i` are prime powers.-/
 theorem equiv_free_prod_direct_sum [h' : module.finite R N] :

@@ -381,12 +381,6 @@ torsion module. -/
 
 /-- The torsion submodule is always a torsion module. -/
 lemma torsion_is_torsion : module.is_torsion R (torsion R M) := torsion'_is_torsion' R⁰
-
-lemma is_torsion'_powers_iff (p : R) :
-  is_torsion' M (submonoid.powers p) ↔ ∀ x : M, ∃ n : ℕ, p ^ n • x = 0 :=
-⟨λ h x, let ⟨⟨a, ⟨n, rfl⟩⟩, hx⟩ := @h x in ⟨n, hx⟩,
-λ h x, let ⟨n, hn⟩ := h x in ⟨⟨_, ⟨n, rfl⟩⟩, hn⟩⟩
-
 end torsion'
 
 section torsion
@@ -440,6 +434,7 @@ no_zero_smul_divisors_iff_torsion_eq_bot.mpr torsion_eq_bot
 end quotient_torsion
 
 section p_torsion
+open module
 section
 variables [monoid R] [add_comm_monoid M] [distrib_mul_action R M]
 

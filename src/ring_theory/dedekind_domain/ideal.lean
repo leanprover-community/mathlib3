@@ -7,6 +7,7 @@ import algebra.algebra.subalgebra.pointwise
 import algebraic_geometry.prime_spectrum.noetherian
 import ring_theory.dedekind_domain.basic
 import ring_theory.fractional_ideal
+import order.hom.bounded
 
 /-!
 # Dedekind domains and ideals
@@ -863,7 +864,40 @@ section
 open ideal
 
 variables {R } {A} [is_domain R] [is_dedekind_domain R] [is_dedekind_domain A]
-  {I : ideal R} {J : ideal A} (f : R ⧸I ≃+* A ⧸J)
+  {I : ideal R} {J : ideal A}
+
+@[simps]
+def ideal_factors_fun_of_quot_hom (f : R ⧸ I →+* A ⧸ J) (hf : function.surjective f) :
+  {p : ideal R | p ∣ I} →o {p : ideal A | p ∣ J} :=
+{ to_fun := λ X, ⟨comap J^.quotient.mk (map f (map I^.quotient.mk X)),
+    begin
+      have : (J^.quotient.mk).ker ≤ comap J^.quotient.mk (map f (map I^.quotient.mk X)),
+      { exact ker_le_comap J^.quotient.mk },
+      rw mk_ker at this,
+      exact dvd_iff_le.mpr this,
+    end ⟩,
+  monotone' :=
+    begin
+      rintros ⟨X, hX⟩ ⟨Y, hY⟩ h,
+      rw [← subtype.coe_le_coe, subtype.coe_mk, subtype.coe_mk] at h ⊢,
+      rw [subtype.coe_mk, comap_le_comap_iff_of_surjective J^.quotient.mk quotient.mk_surjective,
+        map_le_iff_le_comap, subtype.coe_mk, comap_map_of_surjective _ hf (map I^.quotient.mk Y)],
+      suffices : map I^.quotient.mk X ≤ map I^.quotient.mk Y,
+      { exact le_sup_of_le_left this },
+      rwa [map_le_iff_le_comap, comap_map_of_surjective _ quotient.mk_surjective,
+        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_eq_left.mpr $ le_of_dvd hY],
+    end }
+
+/-
+def of_hom_inv (f : α →o β) (g : β →o α) (h₁ : function.left_inverse g f)
+   (h₂ : function.left_inverse f g) :
+  α ≃o β :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := h₁,
+  right_inv := h₂,
+  map_rel_iff' := begin intros a b, split, intro h, simp at h, sorry   end  }
+-/
 
 /-- The bijection between ideals of `R` dividing `I` and the ideals of `A` dividing `J` induced by
   an isomorphism `f : R/I ≅ A/J` -/

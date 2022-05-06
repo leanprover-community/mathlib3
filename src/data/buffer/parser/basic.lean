@@ -1466,11 +1466,9 @@ begin
     haveI := hr,
     intros cb n,
     obtain ⟨np, a, h⟩ := p.exists_done cb n,
-    have : n = np := static.of_done h,
-    subst this,
+    obtain rfl : n = np := static.of_done h,
     obtain ⟨np, b', hf⟩ := exists_done (foldr_core f p b (reps + 1)) cb n,
-    have : n = np := static.of_done hf,
-    subst this,
+    obtain rfl : n = np := static.of_done hf,
     refine ⟨n, f a b', _⟩,
     rw foldr_core_eq_done,
     simp [h, hf, and.comm, and.left_comm, and.assoc] }
@@ -1861,8 +1859,7 @@ begin
     { rw ←@IH hd' tl' at hm, swap, refl,
       simp only [many1_eq_done, many, foldr] at hm,
       obtain ⟨np, hp', hf⟩ := hm,
-      have : np = n + 1 + 1 := step.of_done hp',
-      subst this,
+      obtain rfl : np = n + 1 + 1 := step.of_done hp',
       simpa [nat.sub_succ, many_eq_done, hp, hk, foldr_core_eq_done, hp'] using hf } },
   { simp only [many_eq_done, many1_eq_done, and_imp, exists_imp_distrib],
     intros np hp hm,
@@ -1883,8 +1880,7 @@ begin
       { simpa using hm },
       simp only at hm,
       obtain ⟨rfl, rfl⟩ := hm,
-      have : np = n + 1 + 1 := step.of_done hp',
-      subst this,
+      obtain rfl : np = n + 1 + 1 := step.of_done hp',
       simp [nat.sub_succ, many, many1_eq_done, hp, hk, foldr_core_eq_done, hp', ←hf, foldr] } }
 end
 
@@ -2111,8 +2107,7 @@ begin
     subst hk,
     simp only [many1_eq_done] at h,
     obtain ⟨_, hp, h⟩ := h,
-    have := step.of_done hp,
-    subst this,
+    obtain rfl := step.of_done hp,
     cases tl,
     { simp only [many_eq_done_nil, add_left_inj, exists_and_distrib_right, self_eq_add_right] at h,
       rcases h with ⟨rfl, -⟩,
@@ -2130,8 +2125,7 @@ begin
   { simpa using h },
   { simp only [many1_eq_done] at h,
     obtain ⟨np, hp, h⟩ := h,
-    have := step.of_done hp,
-    subst this,
+    obtain rfl := step.of_done hp,
     cases tl,
     { simp only [many_eq_done_nil, exists_and_distrib_right] at h,
       simpa [←h.left] using bounded.of_done hp },
@@ -2223,8 +2217,7 @@ begin
       -- In fact, we know that this new position is `n + 1`, by the `step` property of
       -- `parser.digit`.
       obtain ⟨_, hp, -⟩ := hp,
-      have := step.of_done hp,
-      subst this,
+      obtain rfl := step.of_done hp,
       -- We now unfold what it means for `parser.digit` to succeed, which means that the character
       -- parsed in was "numeric" (for some definition of that property), and, more importantly,
       -- that the `n`th character of `cb`, let's say `c`, when converted to a `ℕ` via
@@ -2269,8 +2262,7 @@ begin
     -- This means we must have failed parsing with `parser.digit` at some other position,
     -- which we prove must be `n + 1` via the `step` property.
     obtain ⟨_, hp, rfl, hp'⟩ := hp,
-    have := step.of_done hp,
-    subst this,
+    obtain rfl := step.of_done hp,
     -- Now we rely on the simplifier, which simplfies the LHS, which is a fold over a singleton
     -- list. On the RHS, `list.take (n + 1 - n)` also produces a singleton list, which, when
     -- reversed, is the same list. `nat.of_digits` of a singleton list is precisely the value in
@@ -2655,8 +2647,7 @@ begin
       -- `n + m + 1 - n = m + 1` proof and `mul_comm`.
       simp [this, hpow, nat.of_digits_append, mul_comm, ←pow_succ 10, hml, ltll] },
     { -- Consider the case that `n' ≤ n + 1`. But then since `n < n' ≤ n + 1`, `n' = n + 1`.
-      have : n' = n + 1 := le_antisymm hn'' (nat.succ_le_of_lt hn),
-      subst this,
+      obtain rfl : n' = n + 1 := le_antisymm hn'' (nat.succ_le_of_lt hn),
       -- This means we have only parsed in a single character, so the resulting parsed in list
       -- is explicitly formed from an expression we can construct from `hd`.
       use [[hd.to_nat - '0'.to_nat]],

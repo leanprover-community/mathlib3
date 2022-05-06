@@ -53,13 +53,11 @@ by simp [is_square, pow_two]
 
 alias is_square_iff_exists_sq ↔ is_square.exists_sq is_square_of_exists_sq
 
-attribute [to_additive even.exists_two_nsmul] is_square.exists_sq
-/-- Alias of the forwards direction of `even_iff_exists_two_nsmul`. -/
-add_decl_doc even.exists_two_nsmul
+attribute [to_additive even.exists_two_nsmul "Alias of the forwards direction of
+`even_iff_exists_two_nsmul`."] is_square.exists_sq
 
-attribute [to_additive even_of_exists_two_nsmul] is_square_of_exists_sq
-/-- Alias of the backwards direction of `even_iff_exists_two_nsmul`. -/
-add_decl_doc even_of_exists_two_nsmul
+attribute [to_additive even_of_exists_two_nsmul "Alias of the backwards direction of
+`even_iff_exists_two_nsmul`."] is_square_of_exists_sq
 
 @[simp, to_additive]
 lemma is_square_one [mul_one_class α] : is_square (1 : α) := ⟨1, (mul_one _).symm⟩
@@ -68,6 +66,11 @@ lemma is_square_one [mul_one_class α] : is_square (1 : α) := ⟨1, (mul_one _)
 lemma is_square.map [mul_one_class α] [mul_one_class β] [monoid_hom_class F α β] {m : α} (f : F) :
   is_square m → is_square (f m) :=
 by { rintro ⟨m, rfl⟩, exact ⟨f m, by simp⟩ }
+
+/-- Create a decidability instance for `is_square` on `fintype`s. -/
+instance is_square_decidable [fintype α] [has_mul α] [decidable_eq α] :
+  decidable_pred (is_square : α → Prop) :=
+λ a, fintype.decidable_exists_fintype
 
 section monoid
 variables [monoid α]
@@ -81,6 +84,10 @@ lemma even.neg_pow : even n → ∀ a : α, (-a) ^ n = a ^ n :=
 by { rintro ⟨c, rfl⟩ a, simp_rw [←two_mul, pow_mul, neg_sq] }
 
 lemma even.neg_one_pow (h : even n) : (-1 : α) ^ n = 1 := by rw [h.neg_pow, one_pow]
+
+/-- `0` is always a square (in a monoid with zero). -/
+lemma is_square_zero (M : Type*) [monoid_with_zero M] : is_square (0 : M) :=
+by { use 0, simp only [mul_zero] }
 
 end monoid
 

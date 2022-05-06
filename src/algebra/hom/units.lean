@@ -113,8 +113,7 @@ units.lift_right f (λ x, (hf x).unit) $ λ x, rfl
 
 @[to_additive] lemma is_unit.coe_lift_right [monoid M] [monoid N] (f : M →* N)
   (hf : ∀ x, is_unit (f x)) (x) :
-  (is_unit.lift_right f hf x : N) = f x :=
-units.coe_lift_right _ x
+  (is_unit.lift_right f hf x : N) = f x := rfl
 
 @[simp, to_additive] lemma is_unit.mul_lift_right_inv [monoid M] [monoid N] (f : M →* N)
   (h : ∀ x, is_unit (f x)) (x) : f x * ↑(is_unit.lift_right f h x)⁻¹ = 1 :=

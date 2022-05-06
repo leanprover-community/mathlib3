@@ -514,7 +514,7 @@ begin
   { subst m, simp },
   { symmetry, rw mv_polynomial.coeff_one, exact if_neg (ne.symm H'), },
   { symmetry, rw mv_polynomial.coeff_one, refine if_neg _,
-    intro H', apply H, subst m, exact ne.bot_lt hnn, }
+    rintro rfl, apply H, exact ne.bot_lt hnn, }
 end
 
 @[simp] lemma trunc_C (hnn : n ≠ 0) (a : R) : trunc R n (C σ R a) = mv_polynomial.C a :=
@@ -1309,7 +1309,7 @@ begin
   { subst m, rw [if_pos rfl] },
   { symmetry, exact if_neg (ne.elim (ne.symm H')) },
   { symmetry, refine if_neg _,
-    intro H', apply H, subst m, exact nat.zero_lt_succ _ }
+    rintro rfl, apply H, exact nat.zero_lt_succ _ }
 end
 
 @[simp] lemma trunc_C (n) (a : R) : trunc (n + 1) (C R a) = polynomial.C a :=
@@ -1443,7 +1443,8 @@ begin
     suffices : m < i,
     { have : m + n < i + j := add_lt_add_of_lt_of_le this hj,
       exfalso, exact ne_of_lt this hij.symm },
-    contrapose! hne, have : i = m := le_antisymm hne hi, subst i, clear hi hne,
+    contrapose! hne,
+    obtain rfl := le_antisymm hi hne,
     simpa [ne.def, prod.mk.inj_iff] using (add_right_inj m).mp hij },
   { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end

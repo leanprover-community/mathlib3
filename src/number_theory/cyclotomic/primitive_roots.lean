@@ -37,11 +37,10 @@ in the implementation details section.
 * `is_primitive_root.sub_one_norm_eq_eval_cyclotomic`: if `irreducible (cyclotomic n K)`
   (in particular for `K = ℚ`), then the norm of `ζ - 1` is `eval 1 (cyclotomic n ℤ)`, for a
   primitive root ζ. We also prove the analogous of this result for `zeta`.
-* `is_primitive_root.pow_prime_pow_sub_one_norm` : if
-  `irreducible (cyclotomic (p ^ (k + 1)) K)` and `irreducible (cyclotomic (p ^ (k - s + 1)) K))`
-  (in particular for `K = ℚ`) and `p` is a prime, then the norm of `ζ ^ (p ^ s) - 1` is
-  `p ^ (p ^ s)` `p ^ (k - s + 1) ≠ 2`. See the following lemmas for similar results. We  also prove
-  the analogous of this result for `zeta`.
+* `is_primitive_root.pow_sub_one_norm_prime_pow_ne_two` : if
+  `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is a prime,
+  then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)` `p ^ (k - s + 1) ≠ 2`. See the following
+  lemmas for similar results. We also prove the analogous of this result for `zeta`.
 * `is_primitive_root.sub_one_norm_prime_ne_two` : if `irreducible (cyclotomic (p ^ (k + 1)) K)`
   (in particular for `K = ℚ`) and `p` is an odd prime, then the norm of `ζ - 1` is `p`. We also
   prove the analogous of this result for `zeta`.
@@ -184,7 +183,8 @@ variables {K} [field K] [algebra K L] [ne_zero ((n : ℕ) : K)]
 
 /-- This mathematically trivial result is complementary to `norm_eq_one` below. -/
 lemma norm_eq_neg_one_pow (hζ : is_primitive_root ζ 2) : norm K ζ = (-1) ^ finrank K L :=
-by rw [hζ.eq_neg_one_of_two_right , show -1 = algebra_map K L (-1), by simp, norm_algebra_map]
+by rw [hζ.eq_neg_one_of_two_right , show -1 = algebra_map K L (-1), by simp,
+  algebra.norm_algebra_map]
 
 include hζ
 
@@ -195,7 +195,7 @@ lemma norm_eq_one [is_cyclotomic_extension {n} K L] (hn : n ≠ 2)
 begin
   by_cases h1 : n = 1,
   { rw [h1, one_coe, one_right_iff] at hζ,
-    rw [hζ, show 1 = algebra_map K L 1, by simp, norm_algebra_map, one_pow] },
+    rw [hζ, show 1 = algebra_map K L 1, by simp, algebra.norm_algebra_map, one_pow] },
   { replace h1 : 2 ≤ n,
     { by_contra' h,
       exact h1 (pnat.eq_one_of_lt_two h) },
@@ -211,7 +211,7 @@ lemma norm_eq_one_of_linearly_ordered {K : Type*} [linear_ordered_field K] [alge
 begin
   haveI := ne_zero.of_no_zero_smul_divisors K L n,
   have hz := congr_arg (norm K) ((is_primitive_root.iff_def _ n).1 hζ).1,
-  rw [←(algebra_map K L).map_one , norm_algebra_map, one_pow, map_pow, ←one_pow ↑n] at hz,
+  rw [←(algebra_map K L).map_one , algebra.norm_algebra_map, one_pow, map_pow, ←one_pow ↑n] at hz,
   exact strict_mono.injective hodd.strict_mono_pow hz
 end
 
@@ -284,15 +284,13 @@ omit hζ
 local attribute [instance] is_cyclotomic_extension.finite_dimensional
 local attribute [instance] is_cyclotomic_extension.is_galois
 
-/-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` and
-`irreducible (cyclotomic (p ^ (k - s + 1)) K))` (in particular for `K = ℚ`) and `p` is a prime,
+/-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is a prime,
 then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)` if `p ^ (k - s + 1) ≠ 2`. See the next lemmas
 for similar results. -/
 lemma pow_sub_one_norm_prime_pow_ne_two [ne_zero ((p : ℕ) : K)] {k s : ℕ}
   (hζ : is_primitive_root ζ ↑(p ^ (k + 1))) [hpri : fact (p : ℕ).prime]
   [is_cyclotomic_extension {p ^ (k + 1)} K L]
-  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))
-  (hirr₁ : irreducible (cyclotomic (↑(p ^ (k - s + 1)) : ℕ) K)) (hs : s ≤ k)
+  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K)) (hs : s ≤ k)
   (htwo : p ^ (k - s + 1) ≠ 2) : norm K (ζ ^ ((p : ℕ) ^ s) - 1) = p ^ ((p : ℕ) ^ s) :=
 begin
   haveI : ne_zero ((↑(p ^ (k + 1)) : ℕ) : K),
@@ -304,6 +302,9 @@ begin
     rw [pnat.pow_coe] at hzero,
     simpa [ne_zero.ne ((p : ℕ) : K)] using hzero },
 
+  have hirr₁ : irreducible (cyclotomic (p ^ (k - s + 1)) K) :=
+  cyclotomic_irreducible_pow_of_irreducible_pow hpri.1 (by linarith) hirr,
+  rw ←pnat.pow_coe at hirr₁,
   let η := ζ ^ ((p : ℕ) ^ s) - 1,
   let η₁ : K⟮η⟯ := intermediate_field.adjoin_simple.gen K η,
   have hη : is_primitive_root (η + 1) (p ^ (k + 1 - s)),
@@ -353,17 +354,15 @@ begin
   all_goals { apply_instance }
 end
 
-/-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` and
-`irreducible (cyclotomic (p ^ (k - s + 1)) K))` (in particular for `K = ℚ`) and `p` is a prime,
+/-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is a prime,
 then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)` if `p ≠ 2`. -/
 lemma pow_sub_one_norm_prime_ne_two [ne_zero ((p : ℕ) : K)] {k : ℕ}
   (hζ : is_primitive_root ζ ↑(p ^ (k + 1))) [hpri : fact (p : ℕ).prime]
   [is_cyclotomic_extension {p ^ (k + 1)} K L]
-  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))  {s : ℕ}
-  (hirr₁ : irreducible (cyclotomic (↑(p ^ (k - s + 1)) : ℕ) K)) (hs : s ≤ k)
+  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K)) {s : ℕ} (hs : s ≤ k)
   (hodd : p ≠ 2) : norm K (ζ ^ ((p : ℕ) ^ s) - 1) = p ^ ((p : ℕ) ^ s) :=
 begin
-  refine hζ.pow_sub_one_norm_prime_pow_ne_two hirr hirr₁ hs (λ h, _),
+  refine hζ.pow_sub_one_norm_prime_pow_ne_two hirr hs (λ h, _),
   rw [← pnat.coe_inj, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe, ← pow_one 2] at h,
   replace h := eq_of_prime_pow_eq (prime_iff.1 hpri.out) (prime_iff.1 nat.prime_two)
     ((k - s).succ_pos) h,
@@ -378,7 +377,7 @@ lemma sub_one_norm_prime_ne_two [ne_zero ((p : ℕ) : K)] {k : ℕ}
   [is_cyclotomic_extension {p ^ (k + 1)} K L]
   (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K)) (h : p ≠ 2) :
   norm K (ζ - 1) = p :=
-by simpa using hζ.pow_sub_one_norm_prime_ne_two hirr (by exact hirr) (zero_le k) h
+by simpa using hζ.pow_sub_one_norm_prime_ne_two hirr k.zero_le h
 
 /-- If `irreducible (cyclotomic p K)` (in particular for `K = ℚ`) and `p` is an odd prime,
 then the norm of `ζ - 1` is `p`. -/
@@ -412,7 +411,8 @@ begin
   { simp only [_root_.map_neg, map_bit0, _root_.map_one],
     ring },
   replace hirr : irreducible (cyclotomic (2 ^ (k + 1) : ℕ+) K) := by simp [hirr],
-  rw [this.eq_neg_one_of_two_right, H, norm_algebra_map, is_cyclotomic_extension.finrank L hirr,
+  rw [this.eq_neg_one_of_two_right, H, algebra.norm_algebra_map,
+    is_cyclotomic_extension.finrank L hirr,
     pow_coe, pnat.coe_bit0, one_coe, totient_prime_pow nat.prime_two (zero_lt_succ k),
     succ_sub_succ_eq_sub, tsub_zero, mul_one]
 end
@@ -439,14 +439,12 @@ begin
   simpa [hk₁] using sub_one_norm_eq_eval_cyclotomic hζ this hirr,
 end
 
-/-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` and
-`irreducible (cyclotomic (p ^ (k - s + 1)) K))` (in particular for `K = ℚ`) and `p` is a prime,
+/-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is a prime,
 then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)` if `1 ≤ k`. -/
 lemma pow_sub_one_norm_prime_pow_of_one_le [hne : ne_zero ((p : ℕ) : K)] {k s : ℕ}
   (hζ : is_primitive_root ζ ↑(p ^ (k + 1))) [hpri : fact (p : ℕ).prime]
   [hcycl : is_cyclotomic_extension {p ^ (k + 1)} K L]
-  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))
-  (hirr₁ : irreducible (cyclotomic (↑(p ^ (k - s + 1)) : ℕ) K)) (hs : s ≤ k)
+  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K)) (hs : s ≤ k)
   (hk : 1 ≤ k) : norm K (ζ ^ ((p : ℕ) ^ s) - 1) = p ^ ((p : ℕ) ^ s) :=
 begin
   by_cases htwo : p ^ (k - s + 1) = 2,
@@ -472,7 +470,7 @@ begin
     rw [hζ.pow_sub_one_norm_two hirr],
     rw [hk₁, pow_succ, pow_mul, neg_eq_neg_one_mul, mul_pow, neg_one_sq, one_mul, ← pow_mul,
       ← pow_succ] },
-  { exact hζ.pow_sub_one_norm_prime_pow_ne_two hirr hirr₁ hs htwo }
+  { exact hζ.pow_sub_one_norm_prime_pow_ne_two hirr hs htwo }
 end
 
 end is_primitive_root
@@ -503,14 +501,13 @@ begin
   exact (zeta_primitive_root n K L).sub_one_norm_is_prime_pow hn hirr h,
 end
 
-/-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` and `irreducible (cyclotomic (p ^ (k - s + 1)) K)`
-(in particular for `K = ℚ`) and `p` is a prime, then the norm of
-`(zeta (p ^ (k + 1)) K L) ^ (p ^ s) - 1` is `p ^ (p ^ s)` if `p ^ (k - s + 1) ≠ 2`. -/
+/-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is a prime,
+then the norm of `(zeta (p ^ (k + 1)) K L) ^ (p ^ s) - 1` is `p ^ (p ^ s)`
+if `p ^ (k - s + 1) ≠ 2`. -/
 lemma prime_ne_two_pow_norm_zeta_pow_sub_one [ne_zero ((p : ℕ) : K)] {k : ℕ}
   [hpri : fact (p : ℕ).prime]
   [is_cyclotomic_extension {p ^ (k + 1)} K L]
-  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))  {s : ℕ}
-  (hirr₁ : irreducible (cyclotomic (↑(p ^ (k - s + 1)) : ℕ) K)) (hs : s ≤ k)
+  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))  {s : ℕ} (hs : s ≤ k)
   (htwo : p ^ (k - s + 1) ≠ 2) :
   norm K ((zeta (p ^ (k + 1)) K L) ^ ((p : ℕ) ^ s) - 1) = p ^ ((p : ℕ) ^ s) :=
 begin
@@ -519,7 +516,7 @@ begin
   { refine ⟨λ hzero, _⟩,
     rw [pow_coe] at hzero,
     simpa [ne_zero.ne ((p : ℕ) : L)] using hzero },
-  exact (zeta_primitive_root _ K L).pow_sub_one_norm_prime_pow_ne_two hirr hirr₁ hs htwo
+  exact (zeta_primitive_root _ K L).pow_sub_one_norm_prime_pow_ne_two hirr hs htwo
 end
 
 /-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is an odd

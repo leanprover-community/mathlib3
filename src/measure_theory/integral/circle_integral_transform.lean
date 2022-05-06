@@ -142,11 +142,11 @@ begin
   simp only [maps_to, top_eq_univ, mem_univ, implies_true_iff],
 end
 
-lemma circle_integral_bounding_function_bound (R r : ℝ) (hR: 0 < R) (hr : r < R) (hr' : 0 ≤ r)
-  (z : ℂ) : ∃ (x : ((closed_ball z r) ×ˢ (interval 0 (2 * π)) : set (ℂ × ℝ)) ),
-  ∀ (y : ((closed_ball z r) ×ˢ (interval 0 (2 * π)) : set (ℂ × ℝ)) ),
-  abs (circle_integral_bounding_function R z y) ≤
-  abs(circle_integral_bounding_function R z x) :=
+lemma circle_integral_bounding_function_bound {R r : ℝ} (hR: 0 < R) (hr : r < R) (hr' : 0 ≤ r)
+  (z : ℂ) :
+  ∃ (x : ((closed_ball z r) ×ˢ (interval 0 $ 2 * π) : set $ ℂ × ℝ)),
+  ∀ (y : ((closed_ball z r) ×ˢ (interval 0 $ 2 * π) : set $ ℂ × ℝ)),
+  abs (circle_integral_bounding_function R z y) ≤ abs (circle_integral_bounding_function R z x) :=
 begin
   have cts := circle_integral_bounding_function_continuous_on hR hr z,
   have comp : is_compact (((closed_ball z r) ×ˢ (interval 0 (2 * π))) : set (ℂ × ℝ)),
@@ -176,7 +176,7 @@ lemma circle_integral_transform_deriv_bound {R r : ℝ} (hR: 0 < R) (hr : r < R)
   ∥circle_integral_transform_deriv R z y f t∥ ≤ bound t) ∧ continuous_on bound [0, 2 * π] :=
 begin
   obtain ⟨ε', hε', H⟩ := exists_ball_subset_ball hx,
-  have fbb := circle_integral_bounding_function_bound R r hR hr hr' z,
+  have fbb := circle_integral_bounding_function_bound hR hr hr' z,
   simp only [set_coe.forall, mem_prod, mem_closed_ball, subtype.coe_mk, and_imp, prod.forall,
     set_coe.exists, exists_prop, prod.exists] at fbb,
   obtain ⟨a, b, hab⟩ := fbb,

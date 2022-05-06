@@ -332,16 +332,10 @@ was given a `pexpr ` of ``(1) along with the identifier.
 * Output: a `lean.parser (name × pexpr)`
 -/
 meta def parse_name_pexpr_pair : lean.parser (pexpr × pexpr) :=
-do tk "(",
-   pe ← parser.pexpr 0,
-   (tk ")" >> return (pe, ``(1))) <|>
-   (do tk ",", cf ← parser.pexpr 0, tk ")", return (pe, cf))
-
--- (tk "(" *> prod.mk <$> parser.pexpr 0 <*> (tk "," *> parser.pexpr 0 <* tk ")"))
---  <|>
--- (tk "(" *> ((λ pe, (pe, ``(1))) <$> parser.pexpr 0) <* tk ")")
-
--- ((λ id, (``(%%(mk_local id)), ``(1))) <$> pexpr)
+tk "(" >>
+  parser.pexpr 0 >>= λ pe,
+    (tk ")" >> return (pe, ``(1))) <|>
+    (tk "," >> parser.pexpr 0 >>= (λ cf, tk ")" >> return (pe, cf)))
 
 /--
 `linear_combination` attempts to prove the target by creating and applying a

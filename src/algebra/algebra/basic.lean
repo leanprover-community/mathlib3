@@ -348,6 +348,15 @@ instance of_subsemiring (S : subsemiring R) : algebra S A :=
   smul_def' := λ r x, algebra.smul_def r x,
   .. (algebra_map R A).comp S.subtype }
 
+lemma algebra_map_of_subsemiring (S : subsemiring R) :
+  (algebra_map S R : S →+* R) = subsemiring.subtype S := rfl
+
+lemma coe_algebra_map_of_subsemiring (S : subsemiring R) :
+  (algebra_map S R : S → R) = subtype.val := rfl
+
+lemma algebra_map_of_subsemiring_apply (S : subsemiring R) (x : S) :
+  algebra_map S R x = x := rfl
+
 /-- Algebra over a subring. This builds upon `subring.module`. -/
 instance of_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A]
   (S : subring R) : algebra S A :=
@@ -942,7 +951,7 @@ def trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) : A₁ ≃�
 @[simp] lemma coe_trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) :
   ⇑(e₁.trans e₂) = e₂ ∘ e₁ := rfl
 
-lemma trans_apply (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) (x : A₁) :
+@[simp] lemma trans_apply (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) (x : A₁) :
   (e₁.trans e₂) x = e₂ (e₁ x) := rfl
 
 @[simp] lemma comp_symm (e : A₁ ≃ₐ[R] A₂) :

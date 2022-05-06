@@ -9,6 +9,7 @@ import algebra.big_operators.ring
 import algebra.module.linear_map
 import algebra.module.pi
 import algebra.ring.equiv
+import algebra.star.module
 import algebra.star.pi
 import data.fintype.card
 
@@ -83,6 +84,10 @@ by { ext, refl, }
 lemma map_map {M : matrix m n α} {β γ : Type*} {f : α → β} {g : β → γ} :
   (M.map f).map g = M.map (g ∘ f) :=
 by { ext, refl, }
+
+lemma map_injective {f : α → β} (hf : function.injective f) :
+  function.injective (λ M : matrix m n α, M.map f) :=
+λ M N h, ext $ λ i j, hf $ ext_iff.mpr h i j
 
 /-- The transpose of a matrix. -/
 def transpose (M : matrix m n α) : matrix n m α
@@ -714,6 +719,10 @@ instance [fintype n] [decidable_eq n] [ring α] : ring (matrix n n α) :=
 section semiring
 variables [semiring α]
 
+lemma diagonal_pow [fintype n] [decidable_eq n] (v : n → α) (k : ℕ) :
+  diagonal v ^ k = diagonal (v ^ k) :=
+(map_pow (diagonal_ring_hom n α) v k).symm
+
 @[simp] lemma mul_mul_left [fintype n] (M : matrix m n α) (N : matrix n o α) (a : α) :
   (λ i j, a * M i j) ⬝ N = a • (M ⬝ N) :=
 smul_mul a M N
@@ -1271,6 +1280,8 @@ lemma transpose_sum [add_comm_monoid α] {ι : Type*} (s : finset ι) (M : ι �
   (∑ i in s, M i)ᵀ = ∑ i in s, (M i)ᵀ :=
 (transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_sum _ s
 
+variables (m α)
+
 /-- `matrix.transpose` as a `ring_equiv` to the opposite ring -/
 @[simps]
 def transpose_ring_equiv [add_comm_monoid α] [comm_semigroup α] [fintype m] :
@@ -1281,9 +1292,15 @@ def transpose_ring_equiv [add_comm_monoid α] [comm_semigroup α] [fintype m] :
     (mul_opposite.op_mul _ _),
   ..transpose_add_equiv.trans mul_opposite.op_add_equiv }
 
+variables {m α}
+
+@[simp] lemma transpose_pow [comm_semiring α] [fintype m] [decidable_eq m] (M : matrix m m α)
+  (k : ℕ) : (M ^ k)ᵀ = Mᵀ ^ k :=
+mul_opposite.op_injective $ map_pow (transpose_ring_equiv m α) M k
+
 lemma transpose_list_prod [comm_semiring α] [fintype m] [decidable_eq m] (l : list (matrix m m α)) :
   l.prodᵀ = (l.map transpose).reverse.prod :=
-(transpose_ring_equiv : matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ).unop_map_list_prod l
+(transpose_ring_equiv m α).unop_map_list_prod l
 
 end transpose
 
@@ -1318,8 +1335,63 @@ matrix.ext $ by simp
   (M - N)ᴴ = Mᴴ - Nᴴ :=
 matrix.ext $ by simp
 
-@[simp] lemma conj_transpose_smul [comm_semigroup α] [star_semigroup α] (c : α) (M : matrix m n α) :
-  (c • M)ᴴ = (star c) • Mᴴ :=
+/-- Note that `star_module` is quite a strong requirement; as such we also provide the following
+variants which this lemma would not apply to:
+* `matrix.conj_transpose_smul_non_comm`
+* `matrix.conj_transpose_nsmul`
+* `matrix.conj_transpose_zsmul`
+* `matrix.conj_transpose_nat_cast_smul`
+* `matrix.conj_transpose_int_cast_smul`
+* `matrix.conj_transpose_inv_nat_cast_smul`
+* `matrix.conj_transpose_inv_int_cast_smul`
+* `matrix.conj_transpose_rat_smul`
+* `matrix.conj_transpose_rat_cast_smul`
+-/
+@[simp] lemma conj_transpose_smul [has_star R] [has_star α] [has_scalar R α] [star_module R α]
+  (c : R) (M : matrix m n α) :
+  (c • M)ᴴ = star c • Mᴴ :=
+matrix.ext $ λ i j, star_smul _ _
+
+@[simp] lemma conj_transpose_smul_non_comm [has_star R] [has_star α]
+  [has_scalar R α] [has_scalar Rᵐᵒᵖ α] (c : R) (M : matrix m n α)
+  (h : ∀ (r : R) (a : α), star (r • a) = mul_opposite.op (star r) • star a) :
+  (c • M)ᴴ = mul_opposite.op (star c) • Mᴴ :=
+matrix.ext $ by simp [h]
+
+@[simp] lemma conj_transpose_smul_self [semigroup α] [star_semigroup α] (c : α)
+  (M : matrix m n α) : (c • M)ᴴ = mul_opposite.op (star c) • Mᴴ :=
+conj_transpose_smul_non_comm c M star_mul
+
+@[simp] lemma conj_transpose_nsmul [add_monoid α] [star_add_monoid α] (c : ℕ) (M : matrix m n α) :
+  (c • M)ᴴ = c • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_zsmul [add_group α] [star_add_monoid α] (c : ℤ) (M : matrix m n α) :
+  (c • M)ᴴ = c • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_nat_cast_smul [semiring R] [add_comm_monoid α]
+  [star_add_monoid α] [module R α] (c : ℕ) (M : matrix m n α) : ((c : R) • M)ᴴ = (c : R) • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_int_cast_smul [ring R] [add_comm_group α]
+  [star_add_monoid α] [module R α] (c : ℤ) (M : matrix m n α) : ((c : R) • M)ᴴ = (c : R) • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_inv_nat_cast_smul [division_ring R] [add_comm_group α]
+  [star_add_monoid α] [module R α] (c : ℕ) (M : matrix m n α) : ((c : R)⁻¹ • M)ᴴ = (c : R)⁻¹ • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_inv_int_cast_smul [division_ring R] [add_comm_group α]
+  [star_add_monoid α] [module R α] (c : ℤ) (M : matrix m n α) : ((c : R)⁻¹ • M)ᴴ = (c : R)⁻¹ • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_rat_cast_smul [division_ring R] [add_comm_group α] [star_add_monoid α]
+  [module R α] (c : ℚ) (M : matrix m n α) : ((c : R) • M)ᴴ = (c : R) • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_rat_smul [add_comm_group α] [star_add_monoid α] [module ℚ α] (c : ℚ)
+  (M : matrix m n α) : (c • M)ᴴ = c • Mᴴ :=
 matrix.ext $ by simp
 
 @[simp] lemma conj_transpose_mul [fintype n] [non_unital_semiring α] [star_ring α]
@@ -1356,9 +1428,11 @@ lemma conj_transpose_sum [add_comm_monoid α] [star_add_monoid α] {ι : Type*} 
   (∑ i in s, M i)ᴴ = ∑ i in s, (M i)ᴴ :=
 (conj_transpose_add_equiv : matrix m n α ≃+ matrix n m α).to_add_monoid_hom.map_sum _ s
 
+variables (m α)
+
 /-- `matrix.conj_transpose` as a `ring_equiv` to the opposite ring -/
 @[simps]
-def conj_transpose_ring_equiv [comm_semiring α] [star_ring α] [fintype m] :
+def conj_transpose_ring_equiv [semiring α] [star_ring α] [fintype m] :
   matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ :=
 { to_fun := λ M, mul_opposite.op (Mᴴ),
   inv_fun := λ M, M.unopᴴ,
@@ -1366,10 +1440,16 @@ def conj_transpose_ring_equiv [comm_semiring α] [star_ring α] [fintype m] :
     (mul_opposite.op_mul _ _),
   ..conj_transpose_add_equiv.trans mul_opposite.op_add_equiv }
 
-lemma conj_transpose_list_prod [comm_semiring α] [star_ring α] [fintype m] [decidable_eq m]
+variables {m α}
+
+@[simp] lemma conj_transpose_pow [semiring α] [star_ring α] [fintype m] [decidable_eq m]
+  (M : matrix m m α) (k : ℕ) : (M ^ k)ᴴ = Mᴴ ^ k :=
+mul_opposite.op_injective $ map_pow (conj_transpose_ring_equiv m α) M k
+
+lemma conj_transpose_list_prod [semiring α] [star_ring α] [fintype m] [decidable_eq m]
   (l : list (matrix m m α)) :
   l.prodᴴ = (l.map conj_transpose).reverse.prod :=
-(conj_transpose_ring_equiv : matrix m m α ≃+* (matrix m m α)ᵐᵒᵖ).unop_map_list_prod l
+(conj_transpose_ring_equiv m α).unop_map_list_prod l
 
 end conj_transpose
 

@@ -342,13 +342,13 @@ end complex
 section Gamma_has_deriv
 
 /-- Integrand for the derivative of the `Γ` function -/
-private def dGamma_integrand (s : ℂ) (x : ℝ) : ℂ := exp (-x) * log x * x ^ (s - 1)
+def dGamma_integrand (s : ℂ) (x : ℝ) : ℂ := exp (-x) * log x * x ^ (s - 1)
 
 /-- Integrand for the absolute value of the derivative of the `Γ` function -/
 private def dGamma_integrand_real (s x : ℝ) : ℝ := |exp (-x) * log x * x ^ (s - 1)|
 
 lemma dGamma_integrand_is_O_at_top (s : ℝ) : is_O (λ x:ℝ, exp (-x) * log x * x ^ (s - 1))
-  (λ x:ℝ, exp (-(1/2) * x) ) at_top :=
+  (λ x:ℝ, exp (-(1/2) * x)) at_top :=
 begin
   refine is_o.is_O (is_o_of_tendsto _ _),
   { intros x hx, exfalso, exact (-(1/2) * x).exp_pos.ne' hx, },
@@ -370,7 +370,7 @@ end
 /-- Absolute convergence of the integral which will give the derivative of the `Γ` function on
 `1 < re s`. -/
 lemma dGamma_integral_abs_convergent (s : ℝ) (hs : 1 < s) :
-  integrable_on (λ x:ℝ, ∥exp (-x) * log x * x ^ (s-1)∥ ) (Ioi 0) :=
+  integrable_on (λ x:ℝ, ∥exp (-x) * log x * x ^ (s-1)∥) (Ioi 0) :=
 begin
   have : Ioi (0:ℝ) = Ioc 0 1 ∪ Ioi 1 := by simp,
   rw [this, integrable_on_union],
@@ -392,7 +392,7 @@ begin
     refine integrable_of_is_O_exp_neg one_half_pos (continuous_on.mul _ _).norm this,
     { refine (continuous_exp.comp continuous_neg).continuous_on.mul (continuous_on_log.mono _),
       simp, },
-    { apply continuous_at.continuous_on, intros x hx,
+    { apply continuous_at.continuous_on (λ x hx, _),
       apply continuous_at_id.rpow continuous_at_const,
       dsimp, right, linarith, }, }
 end
@@ -400,9 +400,9 @@ end
 /-- A uniform bound for the `s`-derivative of the `Γ` integrand for `s` in vertical strips. -/
 private lemma loc_unif_bound_dGamma_integrand {t : ℂ} {s1 s2 x : ℝ} (ht : s1 ≤ t.re ∧ t.re ≤ s2)
   (hx : 0 < x) :
-  ∥dGamma_integrand t x∥ ≤ (dGamma_integrand_real s1 x) + (dGamma_integrand_real s2 x) :=
+  ∥dGamma_integrand t x∥ ≤ dGamma_integrand_real s1 x + dGamma_integrand_real s2 x :=
 begin
-  by_cases (1 ≤ x),
+  rcases le_or_lt 1 x with h|h,
   { suffices: ∥dGamma_integrand t x∥ ≤ dGamma_integrand_real s2 x, -- case 1 ≤ x
     { have: 0 ≤ dGamma_integrand_real s1 x := by apply abs_nonneg, linarith, },
     rw [dGamma_integrand, dGamma_integrand_real, complex.norm_eq_abs, complex.abs_mul, abs_mul,
@@ -429,7 +429,7 @@ namespace complex
 /-- The derivative of the `Γ` integral, at any `s ∈ ℂ` with `1 < re s`, is given by the integral
 of `exp (-x) * log x * x ^ (s - 1)` over `[0, ∞)`. -/
 theorem has_deriv_at_Gamma_integral {s : ℂ} (hs : 1 < s.re) :
-  (integrable_on (λ x, (-x).exp * x.log * x ^ (s - 1) : ℝ → ℂ) (Ioi 0) volume) ∧
+  (integrable_on (λ x, real.exp (-x) * real.log x * x ^ (s - 1) : ℝ → ℂ) (Ioi 0) volume) ∧
   (has_deriv_at Gamma_integral (∫ x:ℝ in Ioi 0, (-x).exp * x.log * x ^ (s - 1)) s) :=
 begin
   let ε := (s.re - 1) / 2,

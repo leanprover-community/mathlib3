@@ -260,3 +260,20 @@ by simpa [is_o_iff_tendsto (λ x hx, ((exp_pos x).ne' hx).elim)]
   using tendsto_div_pow_mul_exp_add_at_top 1 0 n zero_ne_one
 
 end real
+
+namespace complex
+
+/-- `complex.abs (complex.exp z) → ∞` as `complex.re z → ∞`. TODO: use `bornology.cobounded`. -/
+lemma tendsto_exp_comap_re_at_top : tendsto exp (comap re at_top) (comap abs at_top) :=
+by simpa only [tendsto_comap_iff, (∘), abs_exp] using real.tendsto_exp_at_top.comp tendsto_comap
+
+/-- `complex.exp z → 0` as `complex.re z → -∞`.-/
+lemma tendsto_exp_comap_re_at_bot : tendsto exp (comap re at_bot) (𝓝 0) :=
+tendsto_zero_iff_norm_tendsto_zero.2 $
+  by simpa only [norm_eq_abs, abs_exp] using real.tendsto_exp_at_bot.comp tendsto_comap
+
+lemma tendsto_exp_comap_re_at_bot_nhds_within : tendsto exp (comap re at_bot) (𝓝[≠] 0) :=
+tendsto_inf.2 ⟨tendsto_exp_comap_re_at_bot,
+  tendsto_principal.2 $ eventually_of_forall $ exp_ne_zero⟩
+
+end complex

@@ -205,23 +205,37 @@ protected def div_inv_monoid [div_inv_monoid M₂]
   .. hf.monoid f one mul npow, .. ‹has_inv M₁›, .. ‹has_div M₁› }
 
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `division_monoid`
-if it admits an injective map that preserves `1`, `*`, `⁻¹`, and `/` to a `division_monoid`.
-See note [reducible non-instances]. -/
+if it admits an injective map that preserves `1`, `*`, `⁻¹`, and `/` to a `division_monoid`. -/
 @[reducible, to_additive subtraction_monoid
 "A type endowed with `0`, `+`, unary `-`, and binary `-` is a `subtraction_monoid`
 if it admits an injective map that preserves `0`, `+`, unary `-`, and binary `-` to
-a `sub_neg_monoid`.
+a `subtraction_monoid`.
 This version takes custom `nsmul` and `zsmul` as `[has_scalar ℕ M₁]` and
-`[has_scalar ℤ M₁]` arguments."]
-protected def division_monoid [division_monoid M₂]
-  (f : M₁ → M₂) (hf : injective f)
+`[has_scalar ℤ M₁]` arguments."] -- See note [reducible non-instances]
+protected def division_monoid [division_monoid M₂] (f : M₁ → M₂) (hf : injective f)
   (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹)
   (div : ∀ x y, f (x / y) = f x / f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
   (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
   division_monoid M₁ :=
 { mul_inv_rev := λ x y, hf $ by erw [inv, mul, mul_inv_rev, mul, inv, inv],
   inv_eq_of_mul := λ x y h, hf $ by erw [inv, inv_eq_of_mul_eq_one_left (by erw [←mul, h, one])],
-  .. hf.div_inv_monoid f one mul inv div npow zpow, .. hf.has_involutive_inv f inv  }
+  ..hf.div_inv_monoid f one mul inv div npow zpow, ..hf.has_involutive_inv f inv  }
+
+/-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `division_comm_monoid`
+if it admits an injective map that preserves `1`, `*`, `⁻¹`, and `/` to a `division_comm_monoid`.
+See note [reducible non-instances]. -/
+@[reducible, to_additive subtraction_comm_monoid
+"A type endowed with `0`, `+`, unary `-`, and binary `-` is a `subtraction_comm_monoid`
+if it admits an injective map that preserves `0`, `+`, unary `-`, and binary `-` to
+a `subtraction_comm_monoid`.
+This version takes custom `nsmul` and `zsmul` as `[has_scalar ℕ M₁]` and
+`[has_scalar ℤ M₁]` arguments."] -- See note [reducible non-instances]
+protected def division_comm_monoid [division_comm_monoid M₂] (f : M₁ → M₂) (hf : injective f)
+  (one : f 1 = 1) (mul : ∀ x y, f (x * y) = f x * f y) (inv : ∀ x, f x⁻¹ = (f x)⁻¹)
+  (div : ∀ x y, f (x / y) = f x / f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
+  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
+  division_comm_monoid M₁ :=
+{ ..hf.division_monoid f one mul inv div npow zpow, .. hf.comm_semigroup f mul }
 
 /-- A type endowed with `1`, `*` and `⁻¹` is a group,
 if it admits an injective map that preserves `1`, `*` and `⁻¹` to a group.

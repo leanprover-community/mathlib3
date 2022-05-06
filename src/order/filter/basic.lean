@@ -351,7 +351,7 @@ show u ∈ (filter.mk_of_closure s hs).sets ↔ u ∈ (generate s).sets, from hs
 
 /-- Galois insertion from sets of sets into filters. -/
 def gi_generate (α : Type*) :
-  @galois_insertion (set (set α)) (order_dual (filter α)) _ _ filter.generate filter.sets :=
+  @galois_insertion (set (set α)) (filter α)ᵒᵈ _ _ filter.generate filter.sets :=
 { gc        := λ s f, sets_iff_generate,
   le_l_u    := λ f u h, generate_sets.basic h,
   choice    := λ s hs, filter.mk_of_closure s (le_antisymm hs $ sets_iff_generate.1 $ le_rfl),

@@ -160,9 +160,13 @@ end
 
 /-- **Bayes' Theorem** -/
 theorem cond_eq_inv_mul_cond_mul [is_finite_measure μ]
-  (hms : measurable_set s) (hmt : measurable_set t) (ht : μ t ≠ 0) :
+  (hms : measurable_set s) (hmt : measurable_set t) :
   μ[t|s] = (μ s)⁻¹ * μ[s|t] * (μ t) :=
-by rw [mul_assoc, cond_mul_eq_inter μ hmt ht s, set.inter_comm, cond_apply _ hms]
+begin
+  by_cases ht : μ t = 0,
+  { simp [cond, ht, measure.restrict_apply hmt, or.inr (measure_inter_null_of_null_left s ht)] },
+  { rw [mul_assoc, cond_mul_eq_inter μ hmt ht s, set.inter_comm, cond_apply _ hms] }
+end
 
 end bayes
 

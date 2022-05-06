@@ -43,6 +43,7 @@ local notation `SL(` n `, ` R `)`:= matrix.special_linear_group (fin n) R
 
 variable (M : GL(2, ℝ)⁺)
 
+/--The weight `k` action of `GL(2, ℝ)⁺` on functions `f : ℍ → ℂ`. -/
 def slash_k : ℤ → GL(2, ℝ)⁺ → (ℍ → ℂ) → (ℍ → ℂ) := λ k γ f,
   (λ (x : ℍ), f (γ • x) * (((↑ₘ γ).det ) : ℝ)^(k-1) * (upper_half_plane.denom γ x)^(-k))
 
@@ -212,7 +213,8 @@ begin
     upper_half_plane.coe_im],
   split,
   {intro h, cases h with a h, refine ⟨a, (λ  z hz, by {apply  h (im z) hz , refl})⟩},
-  {refine (λ h, by {cases h with A h, refine ⟨A, (λ b hb x hx, by {apply (h x), rw hx, exact hb})⟩})}
+  {refine (λ h, by {cases h with A h,
+    refine ⟨A, (λ b hb x hx, by {apply (h x), rw hx, exact hb})⟩})}
 end
 
 /--A function ` f : ℍ → ℂ` is bounded at infinity if there exist real numbers `M,A` such that
@@ -235,12 +237,14 @@ end
 lemma zero_form_is_bound : is_bound_at_inf 0 :=
   is_zero_at_inf_is_bound _ zero_form_is_zero_at_inf
 
+/--Module of funcitons that are zero at infinity.-/
 def zero_at_infty_submodule : submodule ℂ (ℍ → ℂ) :=
 { carrier := is_zero_at_inf,
   zero_mem' := zero_form_is_zero_at_inf,
   add_mem' := by { intros a b ha hb, simpa using ha.add hb },
   smul_mem' := by { intros c f hf, simpa using hf.const_mul c }, }
 
+/--Module of funcitons that are bounded at infinity.-/
 def bounded_at_infty_submodule : submodule ℂ (ℍ → ℂ) :=
 { carrier := is_bound_at_inf,
   zero_mem' := zero_form_is_bound,

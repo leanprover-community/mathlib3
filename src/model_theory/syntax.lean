@@ -140,7 +140,7 @@ def constants_to_vars : L[[γ]].term α → L.term (γ ⊕ α)
 | (@func _ _ 0 f ts) := sum.cases_on f (λ f, func f (λ i, (ts i).constants_to_vars))
     (λ c, var (sum.inl c))
 | (@func _ _ (n + 1) f ts) := sum.cases_on f (λ f, func f (λ i, (ts i).constants_to_vars))
-    (λ c, pempty.elim c)
+    (λ c, is_empty_elim c)
 
 /-- Sends a term with extra variables to a term with constants. -/
 def vars_to_constants : L.term (γ ⊕ α) → L[[γ]].term α
@@ -160,7 +160,7 @@ def constants_vars_equiv : L[[γ]].term α ≃ L.term (γ ⊕ α) :=
       { simp [constants_to_vars, vars_to_constants, constants.term] } },
     { cases f,
       { simp [constants_to_vars, vars_to_constants, ih] },
-      { exact pempty.elim f } } }
+      { exact is_empty_elim f } } }
 end, begin
   intro t,
   induction t with x n f _ ih,

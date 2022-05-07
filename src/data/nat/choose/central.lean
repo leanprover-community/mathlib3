@@ -32,6 +32,8 @@ This file proves properties of the central binomial coefficients (that is, `nat.
   appear in the factorisation of the central binomial coefficient.
 -/
 
+open_locale big_operators
+
 namespace nat
 
 /--
@@ -203,5 +205,57 @@ begin
     rw [i_zero, pow_zero, nat.mod_one, mul_zero],
     exact zero_lt_one, },
 end
+
+-- TODO very similar to padic_val_nat_central_binom_le in central.lean,
+-- we probably ought to move this there
+lemma pow_padic_val_nat_central_binom_le_two_mul {p n : ℕ} (hp : p.prime) (n_pos : 0 < n) :
+  p ^ (padic_val_nat p (central_binom n)) ≤ 2 * n :=
+trans (pow_le_pow (le_of_lt (hp).one_lt) (padic_val_nat_central_binom_le (hp)))
+  (pow_log_le_self (hp).one_lt (by linarith))
+
+-- No analogy in in central.lean, TODO can we move this there?
+-- TODO generalize to any binomial coefficient, not just central ones, then prove this from that
+-- more general theorem
+/--
+If a prime `p` has positive multiplicity i n the `n`th central binomial coefficient,
+`p` is no more than `2 * n`
+-/
+lemma multiplicity_implies_small (p : ℕ) (hp : p.prime) (n : ℕ)
+  (h_pos : 0 < padic_val_nat p (central_binom n)) : p ≤ 2 * n :=
+begin
+  -- unfold α at h_pos,
+  rw central_binom_eq_two_mul_choose at h_pos,
+  rw @padic_val_nat_def p ⟨hp⟩ ((2 * n).choose n) (nat.pos_of_ne_zero (central_binom_ne_zero n)) at
+    h_pos,
+  simp only [prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two)
+              (lt_add_one (p.log (2 * n)))]
+    at h_pos,
+  have r : 2 * n - n = n,
+  { calc 2 * n - n = n + n - n : congr_arg (flip (has_sub.sub) n) (two_mul n)
+      ... = n : nat.add_sub_cancel n n, },
+  simp only [r, ←two_mul, gt_iff_lt, enat.get_coe', finset.filter_congr_decidable]
+    at h_pos,
+  rw finset.card_pos at h_pos,
+  cases h_pos with m hm,
+  simp only [finset.mem_Ico, finset.mem_filter] at hm,
+  calc p = p ^ 1 : (pow_one _).symm
+    ... ≤ p ^ m : pow_le_pow_of_le_right (trans zero_lt_one hp.one_lt) hm.left.left
+    ... ≤ 2 * (n % p ^ m) : hm.right
+    ... ≤ 2 * n : nat.mul_le_mul_left _ (mod_le n _),
+end
+
+-- < works here too, but this is more golfed and either is loose anyway
+lemma two_n_div_3_le_central_binom (n : ℕ) : 2 * n / 3 ≤ central_binom n :=
+calc 2 * (n) / 3 ≤ 2 * (n)          : nat.div_le_self (2 * n) 3
+    ... = (2 * n).choose(1)         : by norm_num
+    ... ≤ (2 * n).choose(2 * n / 2) : choose_le_middle 1 (2 * (n))
+    ... = (2 * n).choose(n)         : by {congr, rw [nat.mul_div_right], norm_num, }
+
+-- TODO aesthetically, I think this theorem would be better if the range was 2 * n + 1
+lemma central_binom_factorization (n : ℕ) :
+  ∏ p in finset.filter nat.prime (finset.range (central_binom n + 1)),
+    p ^ (padic_val_nat p (central_binom n))
+  = central_binom n :=
+  prod_pow_prime_padic_val_nat _ (central_binom_ne_zero n) _ (lt_add_one _)
 
 end nat

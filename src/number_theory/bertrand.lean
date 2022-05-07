@@ -114,13 +114,14 @@ begin
     ... ≤ 2 * n : nat.mul_le_mul_left _ (mod_le n _),
 end
 
--- lt works too, but this is more golfed and either is loose anyway
+-- < works here too, but this is more golfed and either is loose anyway
 lemma two_n_div_3_le_central_binom (n : ℕ) : 2 * n / 3 ≤ central_binom n :=
-calc 2 * (n) / 3 ≤ 2 * (n)            : nat.div_le_self (2 * n) 3
-    ... = (2 * n).choose(1)               : by norm_num
+calc 2 * (n) / 3 ≤ 2 * (n)          : nat.div_le_self (2 * n) 3
+    ... = (2 * n).choose(1)         : by norm_num
     ... ≤ (2 * n).choose(2 * n / 2) : choose_le_middle 1 (2 * (n))
-    ... = (2 * n).choose(n)           : by {congr, rw [nat.mul_div_right], norm_num, }
+    ... = (2 * n).choose(n)         : by {congr, rw [nat.mul_div_right], norm_num, }
 
+-- TODO aesthetically, I think this theorem would be better if the range was 2 * n + 1
 lemma central_binom_factorization (n : ℕ) :
   ∏ p in finset.filter nat.prime (finset.range (central_binom n + 1)),
     p ^ (padic_val_nat p (central_binom n))
@@ -649,7 +650,7 @@ theorem bertrand (n : nat) (n_pos : 0 < n) : ∃ p, nat.prime p ∧ n < p ∧ p 
 begin
   -- Split into cases whether `n` is large or small
   cases lt_or_le 721 n,
-  -- If `n` is large, apply the theorem derived from the inequalities on the central binomial
+  -- If `n` is large, apply the lemma derived from the inequalities on the central binomial
   -- coefficient.
   { exact bertrand_eventually n h },
   -- For small `n`, supply a list of primes to cover the initial cases.

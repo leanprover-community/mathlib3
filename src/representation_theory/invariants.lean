@@ -116,24 +116,31 @@ end
 
 end invariants
 
-section lin_hom
+namespace lin_hom
 
 universes u
 
-open linear_map
+open category_theory Action
 
-variables {k G V W : Type u} [comm_ring k] [group G]
-variables [add_comm_group V] [module k V] [add_comm_group W] [module k W]
-variables (ρV : representation k G V) (ρW : representation k G W)
+variables {k : Type u} [comm_ring k] {G : Group.{u}}
 
-def lin_hom_invariants : (lin_hom ρV ρW).invariants ≃ (Rep.of ρV ⟶ Rep.of ρW) :=
-{ to_fun := λ ⟨f, hf⟩, ⟨f, λ g,
-  by
-    {nth_rewrite 0 ←hf g, simp [Module.comp_def, comp_assoc, ←mul_eq_comp, ←map_mul, one_eq_id]}
-  ⟩,
-  inv_fun := sorry,
-  left_inv := sorry,
-  right_inv := sorry}
+lemma mem_invariants_iff_comm {X Y : Rep k G} (f : X.V →ₗ[k] Y.V) (g : G) :
+  (lin_hom X.ρ Y.ρ) g f = f ↔ X.ρ g ≫ f = f ≫ Y.ρ g :=
+begin
+  rw [lin_hom_apply, ←ρ_Aut_apply_inv, ←linear_map.comp_assoc, ←Module.comp_def, ←Module.comp_def,
+  iso.inv_comp_eq, ρ_Aut_apply_hom], exact comm,
+end
+
+/-- The invariants of the representation `lin_hom X.ρ Y.ρ` correspond to the the representation
+homomorphisms from `X` to `Y` -/
+@[simps]
+def invariants_equiv_Rep_hom (X Y : Rep k G) : (lin_hom X.ρ Y.ρ).invariants ≃ₗ[k] (X ⟶ Y) :=
+{ to_fun := λ f, ⟨f.val, λ g, (mem_invariants_iff_comm _ g).1 (f.property g)⟩,
+  map_add' := λ _ _, rfl,
+  map_smul' := λ _ _, rfl,
+  inv_fun := λ f, ⟨f.hom, λ g, (mem_invariants_iff_comm _ g).2 (f.comm g)⟩,
+  left_inv := λ _, by { ext, refl },
+  right_inv := λ _, by { ext, refl } }
 
 end lin_hom
 

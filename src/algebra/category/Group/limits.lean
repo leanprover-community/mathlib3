@@ -191,7 +191,7 @@ def limit_cone_is_limit (F : J ⥤ CommGroup.{max v u}) : is_limit (limit_cone F
 lifted_limit_is_limit _
 
 /-- The category of commutative groups has all limits. -/
-@[to_additive]
+@[to_additive "The category of additive commutative groups has all limits."]
 instance has_limits_of_size : has_limits_of_size.{v v} CommGroup.{max v u} :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ CommGroup Group.{max v u}) } }
@@ -204,7 +204,10 @@ The forgetful functor from commutative groups to groups preserves all limits.
 (That is, the underlying group could have been computed instead as limits in the category
 of groups.)
 -/
-@[to_additive AddCommGroup.forget₂_AddGroup_preserves_limits]
+@[to_additive AddCommGroup.forget₂_AddGroup_preserves_limits
+"The forgetful functor from additive commutative groups to groups preserves all limits.
+(That is, the underlying group could have been computed instead as limits in the category
+of additive groups.)"]
 instance forget₂_Group_preserves_limits_of_size :
   preserves_limits_of_size.{v v} (forget₂ CommGroup Group.{max v u}) :=
 { preserves_limits_of_shape := λ J 𝒥,
@@ -228,7 +231,10 @@ The forgetful functor from commutative groups to commutative monoids preserves a
 (That is, the underlying commutative monoids could have been computed instead as limits
 in the category of commutative monoids.)
 -/
-@[to_additive AddCommGroup.forget₂_AddCommMon_preserves_limits]
+@[to_additive AddCommGroup.forget₂_AddCommMon_preserves_limits
+"The forgetful functor from additive commutative groups to additive commutative monoids preserves all limits.
+(That is, the underlying additive commutative monoids could have been computed instead as limits
+in the category of additive commutative monoids.)"]
 instance forget₂_CommMon_preserves_limits_of_size :
   preserves_limits_of_size.{v v} (forget₂ CommGroup CommMon.{max v u}) :=
 { preserves_limits_of_shape := λ J 𝒥, by exactI
@@ -239,7 +245,9 @@ instance forget₂_CommMon_preserves_limits_of_size :
 The forgetful functor from commutative groups to types preserves all limits. (That is, the
 underlying types could have been computed instead as limits in the category of types.)
 -/
-@[to_additive AddCommGroup.forget_preserves_limits]
+@[to_additive AddCommGroup.forget_preserves_limits
+"The forgetful functor from additive commutative groups to types preserves all limits. (That is, the
+underlying types could have been computed instead as limits in the category of types.)"]
 instance forget_preserves_limits_of_size :
   preserves_limits_of_size.{v v} (forget CommGroup.{max v u}) :=
 { preserves_limits_of_shape := λ J 𝒥, by exactI

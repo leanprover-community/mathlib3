@@ -214,6 +214,10 @@ instance sigma_finite_of_sigma_finite_filtration [preorder ι] (μ : measure α)
   sigma_finite (μ.trim (f.le i)) :=
 by apply hf.sigma_finite -- can't exact here
 
+instance is_finite_measure.sigma_finite_filtration [preorder ι] (μ : measure α) (f : filtration ι m)
+  [is_finite_measure μ] :
+  sigma_finite_filtration μ f :=
+⟨λ n, by apply_instance⟩
 
 section adapted_process
 

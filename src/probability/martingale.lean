@@ -333,7 +333,7 @@ end submartingale
 
 section nat
 
-variables {𝒢 : filtration ℕ m0} [sigma_finite_filtration μ 𝒢]
+variables {𝒢 : filtration ℕ m0}
 
 namespace submartingale
 
@@ -348,7 +348,8 @@ integrable_stopped_value hτ hf.integrable hbdd
 /-- Given a submartingale `f` and bounded stopping times `τ` and `π` such that `τ ≤ π`, the
 expectation of `stopped_value f τ` is less than or equal to the expectation of `stopped_value f π`.
 This is the forward direction of the optional stopping theorem. -/
-lemma expected_stopped_value_mono {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ π : α → ℕ}
+lemma expected_stopped_value_mono [sigma_finite_filtration μ 𝒢]
+  {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ π : α → ℕ}
   (hτ : is_stopping_time 𝒢 τ) (hπ : is_stopping_time 𝒢 π) (hle : τ ≤ π)
   {N : ℕ} (hbdd : ∀ x, π x ≤ N) :
   μ[stopped_value f τ] ≤ μ[stopped_value f π] :=

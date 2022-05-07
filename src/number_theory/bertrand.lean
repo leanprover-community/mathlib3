@@ -138,23 +138,6 @@ lemma central_binom_factorization (n : ℕ) :
   = central_binom n :=
   prod_pow_prime_padic_val_nat _ (central_binom_ne_zero n) _ (lt_add_one _)
 
--- Unused TODO remove or move
-lemma intervening_sqrt {a n : ℕ} (small : (sqrt n) ^ 2 ≤ a ^ 2) (big : a ^ 2 ≤ n)
-  : a = sqrt n :=
-begin
-  rcases lt_trichotomy a (sqrt n) with H|rfl|H,
-  { refine (lt_irrefl (a ^ 2) _).elim,
-    calc a ^ 2 = a * a      : sq _
-      ... < n.sqrt * n.sqrt : mul_self_lt_mul_self H
-      ... = (sqrt n) ^ 2    : (sq _).symm
-      ... ≤ a ^ 2           : small, },
-  { refl, },
-  { refine (lt_irrefl (a ^ 2) _).elim,
-    calc a ^ 2 ≤ n : big
-      ... < a * a : sqrt_lt.1 H
-      ... = a ^ 2 : (sq _).symm, },
-end
-
 lemma sq_prime_is_small {p n : ℕ} (hp : nat.prime p) (n_big : 2 < n) (small : p ≤ sqrt (2 * n)) :
   p ^ 2 < 2 * n :=
 begin

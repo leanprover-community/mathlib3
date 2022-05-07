@@ -110,7 +110,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
           (B _ _),
         intros x y hx, simpa },
       rw [this, comp],
-      refine cinfi_le_cinfi (B _ _) (λp, _),
+      refine cinfi_mono (B _ _) (λp, _),
       calc
         dist z (Φ p) + dist x (Ψ p) ≤ (dist y z + dist y (Φ p)) + dist x (Ψ p) :
           add_le_add (dist_triangle_left _ _ _) le_rfl
@@ -128,7 +128,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
           (B _ _),
         intros x y hx, simpa },
       rw [this, comp],
-      refine cinfi_le_cinfi (B _ _) (λp, _),
+      refine cinfi_mono (B _ _) (λp, _),
       calc
         dist z (Φ p) + dist x (Ψ p) ≤ dist z (Φ p) + (dist x y + dist y (Ψ p)) :
           add_le_add le_rfl (dist_triangle _ _ _)
@@ -146,7 +146,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
           (B _ _),
         intros x y hx, simpa },
       rw [this, comp],
-      refine cinfi_le_cinfi (B _ _) (λp, _),
+      refine cinfi_mono (B _ _) (λp, _),
       calc
         dist x (Φ p) + dist z (Ψ p) ≤ (dist x y + dist y (Φ p)) + dist z (Ψ p) :
           add_le_add (dist_triangle _ _ _) le_rfl
@@ -164,7 +164,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
           (B _ _),
         intros x y hx, simpa },
       rw [this, comp],
-      refine cinfi_le_cinfi (B _ _) (λp, _),
+      refine cinfi_mono (B _ _) (λp, _),
       calc
         dist x (Φ p) + dist z (Ψ p) ≤ dist x (Φ p) + (dist y z + dist y (Ψ p)) :
           add_le_add le_rfl (dist_triangle_left _ _ _)

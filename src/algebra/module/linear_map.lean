@@ -314,6 +314,9 @@ ext $ λ x, by rw [← mul_one x, ← smul_eq_mul, f.map_smulₛₗ, g.map_smul�
 theorem ext_ring_iff {σ : R →+* R} {f g : R →ₛₗ[σ] M} : f = g ↔ f 1 = g 1 :=
 ⟨λ h, h ▸ rfl, ext_ring⟩
 
+@[ext] theorem ext_ring_op {σ : Rᵐᵒᵖ →+* S} {f g : R →ₛₗ[σ] M₃} (h : f 1 = g 1) : f = g :=
+ext $ λ x, by rw [← one_mul x, ← op_smul_eq_mul, f.map_smulₛₗ, g.map_smulₛₗ, h]
+
 end
 
 /-- Interpret a `ring_hom` `f` as an `f`-semilinear map. -/
@@ -356,6 +359,18 @@ linear_map.ext $ λ x, rfl
 
 @[simp] theorem id_comp : id.comp f = f :=
 linear_map.ext $ λ x, rfl
+
+variables {f g} {f' : M₂ →ₛₗ[σ₂₃] M₃} {g' : M₁ →ₛₗ[σ₁₂] M₂}
+
+include σ₁₃
+theorem cancel_right (hg : function.surjective g) :
+  f.comp g = f'.comp g ↔ f = f' :=
+⟨λ h, ext $ hg.forall.2 (ext_iff.1 h), λ h, h ▸ rfl⟩
+
+theorem cancel_left (hf : function.injective f) :
+  f.comp g = f.comp g' ↔ g = g' :=
+⟨λ h, ext $ λ x, hf $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
+omit σ₁₃
 
 end
 
@@ -500,7 +515,7 @@ abbreviation module.End (R : Type u) (M : Type v)
 /-- Reinterpret an additive homomorphism as a `ℕ`-linear map. -/
 def add_monoid_hom.to_nat_linear_map [add_comm_monoid M] [add_comm_monoid M₂] (f : M →+ M₂) :
   M →ₗ[ℕ] M₂ :=
-{ to_fun := f, map_add' := f.map_add, map_smul' := f.map_nat_module_smul }
+{ to_fun := f, map_add' := f.map_add, map_smul' := map_nsmul f }
 
 lemma add_monoid_hom.to_nat_linear_map_injective [add_comm_monoid M] [add_comm_monoid M₂] :
   function.injective (@add_monoid_hom.to_nat_linear_map M M₂ _ _) :=
@@ -509,7 +524,7 @@ by { intros f g h, ext, exact linear_map.congr_fun h x }
 /-- Reinterpret an additive homomorphism as a `ℤ`-linear map. -/
 def add_monoid_hom.to_int_linear_map [add_comm_group M] [add_comm_group M₂] (f : M →+ M₂) :
   M →ₗ[ℤ] M₂ :=
-{ to_fun := f, map_add' := f.map_add, map_smul' := f.map_int_module_smul }
+{ to_fun := f, map_add' := f.map_add, map_smul' := map_zsmul f }
 
 lemma add_monoid_hom.to_int_linear_map_injective [add_comm_group M] [add_comm_group M₂] :
   function.injective (@add_monoid_hom.to_int_linear_map M M₂ _ _) :=
@@ -523,7 +538,7 @@ by { intros f g h, ext, exact linear_map.congr_fun h x }
 def add_monoid_hom.to_rat_linear_map [add_comm_group M] [module ℚ M]
   [add_comm_group M₂] [module ℚ M₂] (f : M →+ M₂) :
   M →ₗ[ℚ] M₂ :=
-{ map_smul' := f.map_rat_module_smul, ..f }
+{ map_smul' := map_rat_smul f, ..f }
 
 lemma add_monoid_hom.to_rat_linear_map_injective
   [add_comm_group M] [module ℚ M] [add_comm_group M₂] [module ℚ M₂] :
@@ -830,5 +845,25 @@ def to_module_End : S →+* module.End R M :=
   map_zero' := linear_map.ext $ zero_smul _,
   map_add' := λ f g, linear_map.ext $ add_smul _ _,
   ..distrib_mul_action.to_module_End R M }
+
+/-- The canonical (semi)ring isomorphism from `Rᵐᵒᵖ` to `module.End R R` induced by the right
+multiplication. -/
+@[simps]
+def module_End_self : Rᵐᵒᵖ ≃+* module.End R R :=
+{ to_fun := distrib_mul_action.to_linear_map R R,
+  inv_fun := λ f, mul_opposite.op (f 1),
+  left_inv := mul_one,
+  right_inv := λ f, linear_map.ext_ring $ one_mul _,
+  ..module.to_module_End R R }
+
+/-- The canonical (semi)ring isomorphism from `R` to `module.End Rᵐᵒᵖ R` induced by the left
+multiplication. -/
+@[simps]
+def module_End_self_op : R ≃+* module.End Rᵐᵒᵖ R :=
+{ to_fun := distrib_mul_action.to_linear_map _ _,
+  inv_fun := λ f, f 1,
+  left_inv := mul_one,
+  right_inv := λ f, linear_map.ext_ring_op $ mul_one _,
+  ..module.to_module_End _ _ }
 
 end module

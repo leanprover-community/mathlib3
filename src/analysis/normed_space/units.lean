@@ -247,9 +247,8 @@ end
 /-- The function `inverse` is continuous at each unit of `R`. -/
 lemma inverse_continuous_at (x : Rˣ) : continuous_at inverse (x : R) :=
 begin
-  have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹) (λ _, 1 : R → ℝ) (𝓝 0),
-    from ((inverse_add_norm_diff_first_order x).trans_is_o
-      (is_o_id_const (@one_ne_zero ℝ _ _)).norm_left),
+  have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹) (λ _, 1 : R → ℝ) (𝓝 0) :=
+    (inverse_add_norm_diff_first_order x).trans_is_o (is_o.norm_left $ is_o_id_const one_ne_zero),
   have h_lim : tendsto (λ (y:R), y - x) (𝓝 x) (𝓝 0),
   { refine tendsto_zero_iff_norm_tendsto_zero.mpr _,
     exact tendsto_iff_norm_tendsto_zero.mp tendsto_id },

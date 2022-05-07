@@ -92,7 +92,7 @@ variables [fun_like F α (λ _, β)]
 
 section comm_monoid
 variables [comm_monoid α] [comm_monoid β] [comm_monoid γ] [comm_monoid δ] [comm_group G] {A : set α}
-  {B : set β} {C : set γ} {n : ℕ}
+  {B : set β} {C : set γ} {n : ℕ} {a b c d : α}
 
 @[to_additive]
 lemma map_prod_eq_map_prod [freiman_hom_class F A β n] (f : F) {s t : multiset α}
@@ -100,6 +100,15 @@ lemma map_prod_eq_map_prod [freiman_hom_class F A β n] (f : F) {s t : multiset 
   (h : s.prod = t.prod) :
   (s.map f).prod = (t.map f).prod :=
 freiman_hom_class.map_prod_eq_map_prod' f hsA htA hs ht h
+
+@[to_additive]
+lemma map_mul_map_eq_map_mul_map [freiman_hom_class F A β 2] (f : F) (ha : a ∈ A) (hb : b ∈ A)
+  (hc : c ∈ A) (hd : d ∈ A) (h : a * b = c * d) :
+  f a * f b = f c * f d :=
+begin
+  simp_rw ←prod_pair at ⊢ h,
+  refine map_prod_eq_map_prod f _ _ (card_pair _ _) (card_pair _ _) h; simp [ha, hb, hc, hd],
+end
 
 namespace freiman_hom
 

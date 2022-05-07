@@ -57,6 +57,11 @@ protected def mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
 
 variables (ϕ : L →ᴸ L')
 
+/-- Pulls a structure back along a language map. -/
+def reduct (M : Type*) [L'.Structure M] : L.Structure M :=
+{ fun_map := λ n f xs, fun_map (ϕ.on_function f) xs,
+  rel_map := λ n r xs, rel_map (ϕ.on_relation r) xs }
+
 /-- The identity language homomorphism. -/
 @[simps] protected def id (L : language) : L →ᴸ L :=
 ⟨λn, id, λ n, id⟩
@@ -195,6 +200,23 @@ instance sum_map_is_expansion_on {L₁ L₂ : language} (ψ : L₁ →ᴸ L₂) 
   (ϕ.sum_map ψ).is_expansion_on M :=
 ⟨λ _ f _, sum.cases_on f (by simp) (by simp), λ _ R _, sum.cases_on R (by simp) (by simp)⟩
 
+instance sum_inl_is_expansion_on (M : Type*)
+  [L.Structure M] [L'.Structure M] :
+  (Lhom.sum_inl : L →ᴸ L.sum L').is_expansion_on M :=
+⟨λ _ f _, rfl, λ _ R _, rfl⟩
+
+instance sum_inr_is_expansion_on (M : Type*)
+  [L.Structure M] [L'.Structure M] :
+  (Lhom.sum_inr : L' →ᴸ L.sum L').is_expansion_on M :=
+⟨λ _ f _, rfl, λ _ R _, rfl⟩
+
+@[priority 100] instance is_expansion_on_reduct (ϕ : L →ᴸ L') (M : Type*) [L'.Structure M] :
+  @is_expansion_on L L' ϕ M (ϕ.reduct M) _ :=
+begin
+  letI := ϕ.reduct M,
+  exact ⟨λ _ f _, rfl, λ _ R _, rfl⟩,
+end
+
 end Lhom
 
 /-- A language equivalence maps the symbols of one language to symbols of another bijectively. -/
@@ -243,7 +265,7 @@ def constants_on_functions : ℕ → Type u'
 instance [h : inhabited α] : inhabited (constants_on_functions α 0) := h
 
 /-- A language with constants indexed by a type. -/
-def constants_on : language.{u' 0} := ⟨constants_on_functions α, λ _, pempty⟩
+def constants_on : language.{u' 0} := ⟨constants_on_functions α, λ _, empty⟩
 
 variables {α}
 
@@ -258,13 +280,13 @@ instance is_relational_constants_on [ie : is_empty α] : is_relational (constant
 /-- Gives a `constants_on α` structure to a type by assigning each constant a value. -/
 def constants_on.Structure (f : α → M) : (constants_on α).Structure M :=
 { fun_map := λ n, nat.cases_on n (λ a _, f a) (λ _, pempty.elim),
-  rel_map := λ _, pempty.elim }
+  rel_map := λ _, empty.elim }
 
 variables {β : Type v'}
 
 /-- A map between index types induces a map between constant languages. -/
 def Lhom.constants_on_map (f : α → β) : (constants_on α) →ᴸ (constants_on β) :=
-⟨λ n, nat.cases_on n f (λ _, pempty.elim), λ n, pempty.elim⟩
+⟨λ n, nat.cases_on n f (λ _, pempty.elim), λ n, empty.elim⟩
 
 lemma constants_on_map_is_expansion_on {f : α → β} {fα : α → M} {fβ : β → M}
   (h : fβ ∘ f = fα) :
@@ -274,7 +296,7 @@ begin
   letI := constants_on.Structure fα,
   letI := constants_on.Structure fβ,
   exact ⟨λ n, nat.cases_on n (λ F x, (congr_fun h F : _)) (λ n F, pempty.elim F),
-    λ _ R, pempty.elim R⟩,
+    λ _ R, empty.elim R⟩,
 end
 
 end constants_on
@@ -330,12 +352,22 @@ by ext n f R; refl
 end
 
 open_locale first_order
-variables (A : set M)
 
-instance with_constants_Structure : L[[A]].Structure M :=
+instance constants_on_self_Structure : (constants_on M).Structure M :=
+constants_on.Structure id
+
+instance with_constants_self_Structure : L[[M]].Structure M :=
+language.sum_Structure _ _ M
+
+instance with_constants_self_expansion : (Lhom_with_constants L M).is_expansion_on M :=
+⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
+
+variables (α : Type*) [(constants_on α).Structure M]
+
+instance with_constants_Structure : L[[α]].Structure M :=
 language.sum_Structure _ _ _
 
-instance with_constants_expansion : (L.Lhom_with_constants A).is_expansion_on M :=
+instance with_constants_expansion : (L.Lhom_with_constants α).is_expansion_on M :=
 ⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
 
 instance add_empty_constants_is_expansion_on' :
@@ -348,8 +380,10 @@ Lhom.sum_elim_is_expansion_on _ _ _
 
 instance add_constants_expansion {L' : language} [L'.Structure M] (φ : L →ᴸ L')
   [φ.is_expansion_on M] :
-  (φ.add_constants A).is_expansion_on M :=
+  (φ.add_constants α).is_expansion_on M :=
 Lhom.sum_map_is_expansion_on _ _ M
+
+variables {α} (A : set M)
 
 @[simp] lemma coe_con {a : A} : ((L.con a) : M) = a := rfl
 

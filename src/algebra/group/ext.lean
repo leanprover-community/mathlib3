@@ -114,7 +114,7 @@ begin
     exact @monoid_hom.map_zpow' M M m₁ m₂ f (congr_fun h_inv) x m },
   have hdiv : m₁.div = m₂.div,
   { ext a b,
-    exact @monoid_hom.map_div' M M m₁ m₂ f (congr_fun h_inv) a b },
+    exact @map_div' M M _ m₁ m₂ _ f (congr_fun h_inv) a b },
   unfreezingI { cases m₁, cases m₂ },
   congr, exacts [h_mul, h₁, hpow, h_inv, hdiv, hzpow]
 end

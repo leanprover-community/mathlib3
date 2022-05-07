@@ -88,6 +88,9 @@ structure simple_graph (V : Type u) :=
 (symm : symmetric adj . obviously)
 (loopless : irreflexive adj . obviously)
 
+noncomputable instance {V : Type u} [fintype V] : fintype (simple_graph V) :=
+by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
+
 /--
 Construct the simple graph induced by the given relation. It
 symmetrizes the relation and makes it irreflexive.
@@ -96,9 +99,6 @@ def simple_graph.from_rel {V : Type u} (r : V → V → Prop) : simple_graph V :
 { adj := λ a b, (a ≠ b) ∧ (r a b ∨ r b a),
   symm := λ a b ⟨hn, hr⟩, ⟨hn.symm, hr.symm⟩,
   loopless := λ a ⟨hn, _⟩, hn rfl }
-
-noncomputable instance {V : Type u} [fintype V] : fintype (simple_graph V) :=
-by { classical, exact fintype.of_injective simple_graph.adj simple_graph.ext }
 
 @[simp]
 lemma simple_graph.from_rel_adj {V : Type u} (r : V → V → Prop) (v w : V) :
@@ -137,7 +137,7 @@ namespace simple_graph
 variables {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V) (G' : simple_graph W)
   {a b c u v w : V} {e : sym2 V}
 
-@[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
+@[simp] protected lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
 lemma adj_comm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.symm x, λ x, G.symm x⟩
 

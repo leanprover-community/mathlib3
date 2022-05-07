@@ -34,7 +34,7 @@ variables {α : Type*}
 variables {a b c d x y z : α}
 
 instance [linear_ordered_add_comm_monoid_with_top α] :
-  linear_ordered_comm_monoid_with_zero (multiplicative (order_dual α)) :=
+  linear_ordered_comm_monoid_with_zero (multiplicative αᵒᵈ) :=
 { zero := multiplicative.of_add (⊤ : α),
   zero_mul := top_add,
   mul_zero := add_top,
@@ -43,7 +43,7 @@ instance [linear_ordered_add_comm_monoid_with_top α] :
   ..multiplicative.linear_order }
 
 instance [linear_ordered_add_comm_group_with_top α] :
-  linear_ordered_comm_group_with_zero (multiplicative (order_dual α)) :=
+  linear_ordered_comm_group_with_zero (multiplicative αᵒᵈ) :=
 { inv_zero := linear_ordered_add_comm_group_with_top.neg_top,
   mul_inv_cancel := linear_ordered_add_comm_group_with_top.add_neg_cancel,
   ..multiplicative.div_inv_monoid,
@@ -196,7 +196,7 @@ lemma ne_zero_of_lt (h : b < a) : a ≠ 0 :=
 lemma pow_pos_iff [no_zero_divisors α] {n : ℕ} (hn : 0 < n) : 0 < a ^ n ↔ 0 < a :=
 by simp_rw [zero_lt_iff, pow_ne_zero_iff hn]
 
-instance : linear_ordered_add_comm_monoid_with_top (additive (order_dual α)) :=
+instance : linear_ordered_add_comm_monoid_with_top (additive αᵒᵈ) :=
 { top := (0 : α),
   top_add' := λ a, (zero_mul a : (0 : α) * a = 0),
   le_top := λ _, zero_le',
@@ -294,7 +294,7 @@ by rw [div_eq_mul_inv, le_mul_inv_iff₀ hc]
 lemma div_le_iff₀ (hc : c ≠ 0) : a/c ≤ b ↔ a ≤ b*c :=
 by rw [div_eq_mul_inv, mul_inv_le_iff₀ hc]
 
-instance : linear_ordered_add_comm_group_with_top (additive (order_dual α)) :=
+instance : linear_ordered_add_comm_group_with_top (additive αᵒᵈ) :=
 { neg_top := inv_zero,
   add_neg_cancel := λ a ha, mul_inv_cancel ha,
   ..additive.sub_neg_monoid,

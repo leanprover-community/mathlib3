@@ -31,7 +31,6 @@ src/deprecated/subfield.lean : line 8 : ERR_MOD : Module docstring missing, or t
 src/deprecated/subring.lean : line 10 : ERR_MOD : Module docstring missing, or too late
 src/logic/relator.lean : line 11 : ERR_MOD : Module docstring missing, or too late
 src/meta/coinductive_predicates.lean : line 8 : ERR_MOD : Module docstring missing, or too late
-src/tactic/algebra.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/apply_fun.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/auto_cases.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/chain.lean : line 8 : ERR_MOD : Module docstring missing, or too late

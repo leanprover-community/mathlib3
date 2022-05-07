@@ -49,13 +49,13 @@ variables (C)
 
 /-- A category is noetherian if it is essentially small and all objects are noetherian. -/
 class noetherian extends essentially_small C :=
-(noetherian_object : ∀ (X : C), noetherian_object C)
+(noetherian_object : ∀ (X : C), noetherian_object X)
 
 attribute [priority 100, instance] noetherian.noetherian_object
 
 /-- A category is artinian if it is essentially small and all objects are artinian. -/
 class artinian extends essentially_small C :=
-(artinian_object : ∀ (X : C), artinian_object C)
+(artinian_object : ∀ (X : C), artinian_object X)
 
 attribute [priority 100, instance] artinian.artinian_object
 

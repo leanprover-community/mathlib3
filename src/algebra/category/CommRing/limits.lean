@@ -173,7 +173,8 @@ We show that the forgetful functor `CommSemiRing ⥤ SemiRing` creates limits.
 All we need to do is notice that the limit point has a `comm_semiring` instance available,
 and then reuse the existing limit.
 -/
-instance (F : J ⥤ CommSemiRing.{max v u}) : creates_limit F (forget₂ CommSemiRing SemiRing.{max v u}) :=
+instance (F : J ⥤ CommSemiRing.{max v u}) :
+  creates_limit F (forget₂ CommSemiRing SemiRing.{max v u}) :=
 creates_limit_of_reflects_iso (λ c' t,
 { lifted_cone :=
   { X := CommSemiRing.of (types.limit_cone (F ⋙ forget _)).X,

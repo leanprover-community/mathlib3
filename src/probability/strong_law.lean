@@ -145,7 +145,8 @@ begin
   { linarith },
   { apply measurable.ae_strongly_measurable,
     convert (measurable_id.pow_const n).indicator M,
-    simp only [indicator, zero_pow' _ hn, ite_pow] }
+    ext z,
+    simp only [indicator, zero_pow' _ hn, ite_pow], }
 end
 
 lemma moment_truncation_eq_interval_integral_of_nonneg (hf : ae_strongly_measurable f μ) {A : ℝ}
@@ -162,6 +163,7 @@ begin
     { simp only [indicator, zero_pow' _ hn, id.def, ite_pow] },
     { apply measurable.ae_strongly_measurable,
       convert (measurable_id.pow_const n).indicator M,
+      ext z,
       simp only [indicator, zero_pow' _ hn, ite_pow] } },
   { rw [← integral_map hf.ae_measurable, interval_integral.integral_of_ge hA.le,
         ← integral_indicator M'],
@@ -171,12 +173,13 @@ begin
       have : ∀ᵐ x ∂(measure.map f μ), (0 : ℝ) ≤ x :=
         (ae_map_iff hf.ae_measurable measurable_set_Ici).2 (eventually_of_forall h'f),
       filter_upwards [this] with x hx,
-      simp only [set.mem_Ioc, pi.zero_apply, ite_eq_right_iff, and_imp],
+      simp only [indicator, set.mem_Ioc, pi.zero_apply, ite_eq_right_iff, and_imp],
       assume h'x h''x,
       have : x = 0, by linarith,
       simp [this, zero_pow' _ hn] },
     { apply measurable.ae_strongly_measurable,
       convert (measurable_id.pow_const n).indicator M,
+      ext z,
       simp only [indicator, zero_pow' _ hn, ite_pow] } }
 end
 
@@ -510,7 +513,7 @@ begin
       begin
         congr' 1 with i,
         congr' 1,
-        rw [hS, indep_fun.Var_sum],
+        rw [hS, indep_fun.variance_sum],
         { assume j hj,
           exact (hident j).ae_strongly_measurable.mem_ℒp_truncation },
         { assume k hk l hl hkl,
@@ -559,7 +562,7 @@ begin
         ≤ ∑ i in range N, ennreal.of_real (Var[S (u i)] / (u i * ε) ^ 2) :
       begin
         refine sum_le_sum (λ i hi, _),
-        apply meas_ge_le_mul_variance,
+        apply meas_ge_le_variance_div_sq,
         { exact mem_ℒp_finset_sum' _
             (λ j hj, (hident j).ae_strongly_measurable.mem_ℒp_truncation) },
         { apply mul_pos (nat.cast_pos.2 _) εpos,

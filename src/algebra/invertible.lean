@@ -260,12 +260,10 @@ def invertible_inv {a : α} [invertible a] : invertible (a⁻¹) :=
 
 end group_with_zero
 
-/--
-Monoid homs preserve invertibility.
--/
-def invertible.map {R : Type*} {S : Type*} [monoid R] [monoid S] (f : R →* S)
-  (r : R) [invertible r] :
+/-- Monoid homs preserve invertibility. -/
+def invertible.map {R : Type*} {S : Type*} {F : Type*} [mul_one_class R] [mul_one_class S]
+  [monoid_hom_class F R S] (f : F) (r : R) [invertible r] :
   invertible (f r) :=
 { inv_of := f (⅟r),
-  inv_of_mul_self := by rw [← f.map_mul, inv_of_mul_self, f.map_one],
-  mul_inv_of_self := by rw [← f.map_mul, mul_inv_of_self, f.map_one] }
+  inv_of_mul_self := by rw [←map_mul, inv_of_mul_self, map_one],
+  mul_inv_of_self := by rw [←map_mul, mul_inv_of_self, map_one] }

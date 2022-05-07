@@ -76,6 +76,7 @@ open nat
 private def α (n p : nat) [hp : fact p.prime] : nat :=
 padic_val_nat p (central_binom n)
 
+-- TODO very similar to padic_val_nat_central_binom_le in central.lean, can we replace this with that in the proof?
 lemma pow_α_le_two_mul (p : nat) [hp : fact p.prime] (n : nat) (n_big : 3 ≤ n) :
   p ^ (α n p) ≤ 2 * n :=
 begin
@@ -96,6 +97,7 @@ begin
     linarith, }
 end
 
+-- No analogy in in central.lean, TODO can we move this there?
 lemma multiplicity_implies_small (p : nat) [hp : fact p.prime] (n : nat)
   (multiplicity_pos : 0 < α n p) : p ≤ 2 * n :=
 begin
@@ -136,6 +138,7 @@ lemma central_binom_factorization (n : ℕ) :
   = central_binom n :=
   prod_pow_prime_padic_val_nat _ (central_binom_ne_zero n) _ (lt_add_one _)
 
+-- Unused TODO remove or move
 lemma intervening_sqrt {a n : ℕ} (small : (sqrt n) ^ 2 ≤ a ^ 2) (big : a ^ 2 ≤ n)
   : a = sqrt n :=
 begin

@@ -10,7 +10,31 @@ import analysis.asymptotics.superpolynomial_decay
 # Phragmen-Lindelöf principle
 
 In this file we prove several versions of the Phragmen-Lindelöf principle, a version of the maximum
-modulus principle for an unbounded domain. Lemmas are named `phragmen_lindelof.shape` (e.g., `phragmen_lindelof.horizontal_strip`, `phragmen_lindelof.quadrant_I` etc).
+modulus principle for an unbounded domain.
+
+## Main statements
+
+* `phragmen_lindelof.horizontal_strip`: the Phragmen-Lindelöf principle in a horizontal strip
+  `{z : ℂ | a < complex.im z < b}`;
+
+* `phragmen_lindelof.eq_zero_on_horizontal_strip`, `phragmen_lindelof.eq_on_horizontal_strip`:
+  extensionality lemmas based in the Phragmen-Lindelöf principle in a horizontal strip;
+
+* `phragmen_lindelof.quadrant_I`, `phragmen_lindelof.quadrant_II`, `phragmen_lindelof.quadrant_III`,
+  `phragmen_lindelof.quadrant_IV`: the Phragmen-Lindelöf principle in the coordinate quadrants;
+
+* `phragmen_lindelof.right_half_plane_of_tendsto_zero_on_real`,
+  `phragmen_lindelof.right_half_plane_of_bounded_on_real`: two versions of the Phragmen-Lindelöf
+  principle in the right half-plane;
+
+* `phragmen_lindelof.eq_zero_on_right_half_plane_of_superexponential_decay`,
+  `phragmen_lindelof.eq_on_right_half_plane_of_superexponential_decay`: extensionality lemmas based
+  on the Phragmen-Lindelöf principle in the right half-plane.
+
+In the case of the right half-plane, we prove a version of the Phragmen-Lindelöf principle that is
+useful for Ilyashenko's proof of the individual finiteness theorem (a polynomial vector field on the
+real plane has only finitely many limit cycles).
+
 -/
 
 open set function filter asymptotics metric complex
@@ -162,6 +186,16 @@ lemma eq_zero_on_horizontal_strip (hd : diff_cont_on_cl ℂ f (im ⁻¹' Ioo a b
 λ z hz, norm_le_zero_iff.1 $ horizontal_strip hd hB
   (λ z hz, (ha z hz).symm ▸ norm_zero.le) (λ z hz, (hb z hz).symm ▸ norm_zero.le) hz
 
+/-- **Phragmen-Lindelöf principle** in a strip `U = {z : ℂ | a < im z < b}`.
+Let `f g : ℂ → E` be functions such that
+
+* `f` and `g` are differentiable on `U` and are continuous on its closure;
+* `∥f z∥` and `∥g z∥` are bounded from above by `A * exp(B * exp(c * |re z|))` on `U` for some
+  `c < π / (b - a)`;
+* `f z = g z` on the boundary of `U`.
+
+Then `f` is equal to `g` on the closed strip `{z : ℂ | a ≤ im z ≤ b}`.
+-/
 lemma eq_on_horizontal_strip {g : ℂ → E} (hdf : diff_cont_on_cl ℂ f (im ⁻¹' Ioo a b))
   (hBf : ∃ (c < π / (b - a)) B, is_O f (λ z, expR (B * expR (c * |z.re|)))
     (comap (has_abs.abs ∘ re) at_top ⊓ 𝓟 (im ⁻¹' Ioo a b)))
@@ -459,11 +493,10 @@ lemma eq_zero_on_right_half_plane_of_superexponential_decay
   (hexp : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
     (comap abs at_top ⊓ 𝓟 {z | 0 < z.re}))
   (hre : superpolynomial_decay at_top expR (λ x, ∥f x∥))
-  (him : ∃ C, ∀ x : ℝ, ∥f (x * I)∥ ≤ C) (hz : 0 ≤ z.re) :
-  f z = 0 :=
+  (him : ∃ C, ∀ x : ℝ, ∥f (x * I)∥ ≤ C) :
+  eq_on f 0 {z : ℂ | 0 ≤ z.re} :=
 begin
   rcases him with ⟨C, hC⟩,
-  revert z,
   suffices : ∀ z : ℂ, 0 < z.re → f z = 0,
   { simpa only [closure_set_of_lt_re] using eq_on.of_subset_closure this hd.continuous_on
       continuous_on_const subset_closure subset.rfl },
@@ -496,6 +529,51 @@ begin
     exact hre n },
   { rw [hg, of_real_mul_re, I_re, mul_zero, real.exp_zero, one_pow, one_mul],
     exact hC y }
+end
+
+/-- **Phragmen-Lindelöf principle** in the right half-plane. Let `f g : ℂ → E` be functions such
+that
+
+* `f` and `g` are differentiable in the open right half-plane and are continuous on its closure;
+* `∥f z∥` and `∥g z∥` are bounded from above by `A * exp(B * (abs z) ^ c)` on the open right
+  half-plane for some `c < 2`;
+* `∥f z∥` anre `∥g z∥` are bounded from above by constants on the imaginary axis;
+* `f x` and `g x`, `x : ℝ`, tend to zero superexponentially fast as `x → ∞`:
+  for any natural `n`, `exp (n * x) * ∥f x∥` and `exp (n * x) * ∥g x∥` tend to zero as `x → ∞`.
+
+Then `f` is equal to `g` on the closed right half-plane. -/
+lemma eq_on_right_half_plane_of_superexponential_decay {g : ℂ → E}
+  (hfd : diff_cont_on_cl ℂ f {z | 0 < z.re}) (hgd : diff_cont_on_cl ℂ g {z | 0 < z.re})
+  (hfexp : ∃ (c < (2 : ℝ)) B, is_O f (λ z, expR (B * (abs z) ^ c))
+    (comap abs at_top ⊓ 𝓟 {z | 0 < z.re}))
+  (hgexp : ∃ (c < (2 : ℝ)) B, is_O g (λ z, expR (B * (abs z) ^ c))
+    (comap abs at_top ⊓ 𝓟 {z | 0 < z.re}))
+  (hfre : superpolynomial_decay at_top expR (λ x, ∥f x∥))
+  (hgre : superpolynomial_decay at_top expR (λ x, ∥g x∥))
+  (hfim : ∃ C, ∀ x : ℝ, ∥f (x * I)∥ ≤ C) (hgim : ∃ C, ∀ x : ℝ, ∥g (x * I)∥ ≤ C) :
+  eq_on f g {z : ℂ | 0 ≤ z.re} :=
+begin
+  suffices : eq_on (f - g) 0 {z : ℂ | 0 ≤ z.re},
+    by simpa only [eq_on, pi.sub_apply, pi.zero_apply, sub_eq_zero] using this,
+  refine eq_zero_on_right_half_plane_of_superexponential_decay (hfd.sub hgd) _ _ _,
+  { set l : filter ℂ := comap abs at_top ⊓ 𝓟 {z : ℂ | 0 < z.re},
+    suffices : ∀ {c₁ c₂ B₁ B₂ : ℝ}, c₁ ≤ c₂ → B₁ ≤ B₂ → 0 ≤ B₂ →
+      is_O (λ z : ℂ, expR (B₁ * abs z ^ c₁)) (λ z, expR (B₂ * abs z ^ c₂)) l,
+    { rcases hfexp with ⟨cf, hcf, Bf, hOf⟩, rcases hgexp with ⟨cg, hcg, Bg, hOg⟩,
+      refine ⟨max cf cg, max_lt hcf hcg, max 0 (max Bf Bg), _⟩,
+      refine is_O.sub (hOf.trans $ this _ _ _) (hOg.trans $ this _ _ _); simp },
+    intros c₁ c₂ B₁ B₂ hc hB hB₂,
+    have : ∀ᶠ z : ℂ in l, 1 ≤ abs z,
+      from ((eventually_ge_at_top 1).comap _).filter_mono inf_le_left,
+    refine is_O.of_bound 1 (this.mono $ λ z hz, _),
+    simp only [real.norm_of_nonneg (real.exp_pos _).le, real.exp_le_exp, one_mul],
+    exact mul_le_mul hB (real.rpow_le_rpow_of_exponent_le hz hc)
+      (real.rpow_nonneg_of_nonneg (abs_nonneg _) _) hB₂ },
+  { refine (hfre.add hgre).trans_abs_le (λ x, _),
+    rw [_root_.abs_of_nonneg (norm_nonneg _)],
+    exact (norm_sub_le _ _).trans (le_abs_self _) },
+  { rcases hfim with ⟨Cf, hCf⟩, rcases hgim with ⟨Cg, hCg⟩,
+    exact ⟨Cf + Cg, λ x, norm_sub_le_of_le (hCf x) (hCg x)⟩ }
 end
 
 end phragmen_lindelof

@@ -34,7 +34,7 @@ such that `b^k ≤ n`, so if `b^k = n`, it returns exactly `k`. -/
 private lemma log_eq_zero_aux {b n : ℕ} (hnb : n < b ∨ b ≤ 1) : log b n = 0 :=
 begin
   rw [or_iff_not_and_not, not_lt, not_le] at hnb,
-  rw [log, ←ite_not, if_pos hnb],
+  rw [log, ←ite_not, if_pos hnb]
 end
 
 lemma log_of_lt {b n : ℕ} (hb : n < b) : log b n = 0 :=
@@ -74,13 +74,13 @@ begin
     exact or.inl h, },
 end
 
-@[simp] lemma log_zero_left (n : ℕ) : log 0 n = 0 :=
+@[simp] lemma log_zero_left : ∀ n, log 0 n = 0 :=
 log_of_left_le_one zero_le_one
 
 @[simp] lemma log_zero_right (b : ℕ) : log b 0 = 0 :=
 by { rw log, cases b; refl }
 
-@[simp] lemma log_one_left (n : ℕ) : log 1 n = 0 :=
+@[simp] lemma log_one_left : ∀ n, log 1 n = 0 :=
 log_of_left_le_one le_rfl
 
 @[simp] lemma log_one_right (b : ℕ) : log b 1 = 0 :=
@@ -149,19 +149,21 @@ begin
       exact (pow_log_le_self hb hn).trans h } }
 end
 
-lemma log_le_log_of_left_ge {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : log b n ≤ log c n :=
+lemma log_mono_left {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : log b n ≤ log c n :=
 begin
   cases n, { rw [log_zero_right, log_zero_right] },
   rw ←pow_le_iff_le_log hc (zero_lt_succ n),
-  exact (pow_le_pow_of_le_left (zero_lt_one.trans hc).le hb _).trans
-    (pow_log_le_self (hc.trans_le hb) (zero_lt_succ n))
+  calc c ^ log b n.succ ≤ b ^ log b n.succ : pow_le_pow_of_le_left
+                                             (le_of_lt $ zero_lt_one.trans hc) hb _
+                    ... ≤ n.succ           : pow_log_le_self (lt_of_lt_of_le hc hb)
+                                             (zero_lt_succ n)
 end
 
 lemma log_monotone {b : ℕ} : monotone (λ n : ℕ, log b n) :=
 λ x y, log_mono_right
 
 lemma log_antitone_left {n : ℕ} : antitone_on (λ b, log b n) (set.Ioi 1) :=
-λ _ hc _ _ hb, log_le_log_of_left_ge (set.mem_Iio.1 hc) hb
+λ _ hc _ _ hb, log_mono_left (set.mem_Iio.1 hc) hb
 
 @[simp] lemma log_div_mul_self (b n : ℕ) : log b (n / b * b) = log b n :=
 eq_of_forall_le_iff (λ z, ⟨λ h, h.trans (log_monotone (div_mul_le_self _ _)), λ h, begin

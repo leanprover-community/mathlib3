@@ -6,6 +6,7 @@ Authors: Yury Kudryashov, Anne Baanen
 import algebra.big_operators.basic
 import data.fintype.fin
 import data.fintype.card
+import logic.equiv.fin
 /-!
 # Big operators and `fin`
 
@@ -28,15 +29,14 @@ namespace finset
 @[to_additive]
 theorem prod_range [comm_monoid β] {n : ℕ} (f : ℕ → β) :
   ∏ i in finset.range n, f i = ∏ i : fin n, f i :=
-begin
-  fapply @finset.prod_bij' _ _ _ _ _ _,
-  exact λ k w, ⟨k, (by simpa using w)⟩,
-  swap 3,
-  exact λ a m, a,
-  swap 3,
-  exact λ a m, by simpa using a.2,
-  all_goals { tidy, },
-end
+prod_bij'
+  (λ k w, ⟨k, mem_range.mp w⟩)
+  (λ a ha, mem_univ _)
+  (λ a ha, congr_arg _ (fin.coe_mk _).symm)
+  (λ a m, a)
+  (λ a m, mem_range.mpr a.prop)
+  (λ a ha, fin.coe_mk _)
+  (λ a ha, fin.eta _ _)
 
 end finset
 
@@ -114,6 +114,29 @@ lemma prod_filter_succ_lt {M : Type*} [comm_monoid M] {n : ℕ} (j : fin n) (v :
     ∏ j in univ.filter (λ i, j < i), v j.succ :=
 by rw [univ_filter_succ_lt, finset.prod_map, rel_embedding.coe_fn_to_embedding, coe_succ_embedding]
 
+@[to_additive]
+lemma prod_congr' {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin b → M) (h : a = b) :
+  ∏ (i : fin a), f (cast h i) = ∏ (i : fin b), f i :=
+by { subst h, congr, ext, congr, ext, rw coe_cast, }
+
+@[to_additive]
+lemma prod_univ_add {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin (a+b) → M) :
+  ∏ (i : fin (a+b)), f i =
+  (∏ (i : fin a), f (cast_add b i)) * ∏ (i : fin b), f (nat_add a i) :=
+begin
+  rw fintype.prod_equiv fin_sum_fin_equiv.symm f (λ i, f (fin_sum_fin_equiv.to_fun i)), swap,
+  { intro x,
+    simp only [equiv.to_fun_as_coe, equiv.apply_symm_apply], },
+  apply prod_on_sum,
+end
+
+@[to_additive]
+lemma prod_trunc {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin (a+b) → M)
+  (hf : ∀ (j : fin b), f (nat_add a j) = 1) :
+  ∏ (i : fin (a+b)), f i =
+  ∏ (i : fin a), f (cast_le (nat.le.intro rfl) i) :=
+by simpa only [prod_univ_add, fintype.prod_eq_one _ hf, mul_one]
+
 end fin
 
 namespace list
@@ -158,11 +181,7 @@ end
 lemma alternating_sum_eq_finset_sum {G : Type*} [add_comm_group G] :
   ∀ (L : list G), alternating_sum L = ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) • L.nth_le i i.is_lt
 | [] := by { rw [alternating_sum, finset.sum_eq_zero], rintro ⟨i, ⟨⟩⟩ }
-| (g :: []) :=
-begin
-  show g = ∑ i : fin 1, (-1 : ℤ) ^ (i : ℕ) • [g].nth_le i i.2,
-  rw [fin.sum_univ_succ], simp,
-end
+| (g :: []) := by simp
 | (g :: h :: L) :=
 calc g + -h + L.alternating_sum
     = g + -h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) • L.nth_le i i.2 :

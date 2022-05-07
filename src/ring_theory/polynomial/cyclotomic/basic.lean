@@ -316,6 +316,10 @@ begin
   simp only [coeff_map, ring_hom.eq_int_cast, ring_hom.map_int_cast]
 end
 
+lemma cyclotomic.eval_apply {R S : Type*} (q : R) (n : ℕ) [ring R] [ring S] (f : R →+* S) :
+  eval (f q) (cyclotomic n S) = f (eval q (cyclotomic n R)) :=
+by rw [← map_cyclotomic n f, eval_map, eval₂_at_apply]
+
 /-- The zeroth cyclotomic polyomial is `1`. -/
 @[simp] lemma cyclotomic_zero (R : Type*) [ring R] : cyclotomic 0 R = 1 :=
 by simp only [cyclotomic, dif_pos]
@@ -951,6 +955,28 @@ begin
   { rw [nat_degree_expand, nat_degree_cyclotomic, nat_degree_cyclotomic, mul_comm n,
         nat.totient_mul_of_prime_of_dvd hp hdiv, mul_comm] }
 end
+
+/-- If the `p ^ n`th cyclotomic polynomial is irreducible, so is the `p ^ m`th, for `m ≤ n`. -/
+lemma cyclotomic_irreducible_pow_of_irreducible_pow {p : ℕ} (hp : nat.prime p)
+  {R} [comm_ring R] [is_domain R] {n m : ℕ} (hmn : m ≤ n)
+  (h : irreducible (cyclotomic (p ^ n) R)) : irreducible (cyclotomic (p ^ m) R) :=
+begin
+  unfreezingI
+  { rcases m.eq_zero_or_pos with rfl | hm,
+    { simpa using irreducible_X_sub_C (1 : R) },
+    obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le hmn,
+    induction k with k hk },
+  { simpa using h },
+  have : m + k ≠ 0 := (add_pos_of_pos_of_nonneg hm k.zero_le).ne',
+  rw [nat.add_succ, pow_succ', ←cyclotomic_expand_eq_cyclotomic hp $ dvd_pow_self p this] at h,
+  exact hk (by linarith) (of_irreducible_expand hp.ne_zero h)
+end
+
+/-- If `irreducible (cyclotomic (p ^ n) R)` then `irreducible (cyclotomic p R).` -/
+lemma cyclotomic_irreducible_of_irreducible_pow {p : ℕ} (hp : nat.prime p) {R} [comm_ring R]
+  [is_domain R] {n : ℕ} (hn : n ≠ 0) (h : irreducible (cyclotomic (p ^ n) R)) :
+  irreducible (cyclotomic p R) :=
+pow_one p ▸ cyclotomic_irreducible_pow_of_irreducible_pow hp hn.bot_lt h
 
 end expand
 

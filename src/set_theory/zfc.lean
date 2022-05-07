@@ -587,31 +587,27 @@ begin
   { rintro (rfl|rfl); [left, right]; assumption }
 end
 
-theorem pair_inj {x y x' y' : Set.{u}} (H : pair x y = pair x' y') : x = x' ∧ y = y' := begin
+theorem pair_inj {x y x' y' : Set.{u}} (H : pair x y = pair x' y') : x = x' ∧ y = y' :=
+begin
   have ae := ext_iff.2 H,
-  simp [pair] at ae,
-  have : x = x',
+  simp only [pair, mem_pair] at ae,
+  obtain rfl : x = x',
   { cases (ae {x}).1 (by simp) with h h,
     { exact singleton_inj h },
     { have m : x' ∈ ({x} : Set),
-      { rw h, simp },
-      simp at m, simp [*] } },
-  subst x',
-  have he : y = x → y = y',
-  { intro yx, subst y,
+      { simp [h] },
+      rw mem_singleton.mp m } },
+  have he : x = y → y = y',
+  { rintro rfl,
     cases (ae {x, y'}).2 (by simp only [eq_self_iff_true, or_true]) with xy'x xy'xx,
     { rw [eq_comm, ←mem_singleton, ←xy'x, mem_pair],
       exact or.inr rfl },
-    { have yxx := (ext_iff.2 xy'xx y').1 (by simp),
-      simp at yxx, subst y' } },
-  have xyxy' := (ae {x, y}).1 (by simp),
-  cases xyxy' with xyx xyy',
-  { have yx := (ext_iff.2 xyx y).1 (by simp),
-    simp at yx, simp [he yx] },
-  { have yxy' := (ext_iff.2 xyy' y).1 (by simp),
-    simp at yxy',
-    cases yxy' with yx yy',
-    { simp [he yx] },
+    { simpa [eq_comm] using (ext_iff.2 xy'xx y').1 (by simp) } },
+  obtain xyx | xyy' := (ae {x, y}).1 (by simp),
+  { obtain rfl := mem_singleton.mp ((ext_iff.2 xyx y).1 $ by simp),
+    simp [he rfl] },
+  { obtain rfl | yy' := mem_pair.mp ((ext_iff.2 xyy' y).1 $ by simp),
+    { simp [he rfl] },
     { simp [yy'] } }
 end
 

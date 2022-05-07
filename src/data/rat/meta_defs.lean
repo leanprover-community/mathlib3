@@ -53,6 +53,12 @@ local attribute [semireducible] reflected
 meta instance : has_reflect ℚ := rat.reflect
 end
 
+meta def rat.to_pexpr (q : ℚ) : pexpr :=
+let n := q.num,
+    d := q.denom in
+if d = 1 ∨ n = 0 then n.to_pexpr
+else ``(%%n.to_pexpr / %%d.to_pexpr)
+
 /-- Evaluates an expression as a rational number,
 if that expression represents a numeral or the quotient of two numerals. -/
 protected meta def expr.to_nonneg_rat : expr → option ℚ

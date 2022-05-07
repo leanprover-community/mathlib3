@@ -183,7 +183,7 @@ inv_of_eq_right_inv (inv_of_mul_self _)
 
 @[simp] lemma inv_of_inj [monoid α] {a b : α} [invertible a] [invertible b] :
   ⅟ a = ⅟ b ↔ a = b :=
-⟨λ h, invertible_unique _ _ h, λ h, invertible_unique a b h⟩
+⟨λ h, invertible_unique _ _ h, λ h, invertible_unique _ _ h⟩
 
 /-- `⅟b * ⅟a` is the inverse of `a * b` -/
 def invertible_mul [monoid α] (a b : α) [invertible a] [invertible b] : invertible (a * b) :=

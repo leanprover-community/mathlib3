@@ -153,7 +153,7 @@ begin
     rwa [gcd_mul_left, mul_right_eq_self_iff hd0] at hb2 },
 end
 
-lemma sum_totient' (n : ℕ) : n.divisors.sum φ = n :=
+lemma sum_totient (n : ℕ) : n.divisors.sum φ = n :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn, { simp },
   rw ←sum_div_divisors n φ,
@@ -165,10 +165,10 @@ begin
   exact sum_congr rfl (λ x hx, totient_div_of_dvd (dvd_of_mem_divisors hx)),
 end
 
-lemma sum_totient (n : ℕ) : ∑ m in (range n.succ).filter (∣ n), φ m = n :=
+lemma sum_totient' (n : ℕ) : ∑ m in (range n.succ).filter (∣ n), φ m = n :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn0, { simp },
-  nth_rewrite_rhs 0 ←sum_totient' n,
+  nth_rewrite_rhs 0 ←sum_totient n,
   apply sum_congr _ (λ x hx, rfl),
   ext,
   simp only [divisors, mem_filter, mem_range, mem_Ico, and.congr_left_iff, iff_and_self],

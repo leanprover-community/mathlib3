@@ -137,9 +137,7 @@ open_locale zero_object
 
 instance has_zero_object [has_zero_object C] [has_zero_morphisms C] (β : Type w) :
   has_zero_object.{(max w v)} (graded_object β C) :=
-{ zero := λ b, (0 : C),
-  unique_to := λ X, ⟨⟨λ b, 0⟩, λ f, (by ext)⟩,
-  unique_from := λ X, ⟨⟨λ b, 0⟩, λ f, (by ext)⟩, }
+by { refine ⟨⟨λ b, 0, λ X, ⟨⟨⟨λ b, 0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨λ b, 0⟩, λ f, _⟩⟩⟩⟩; ext, }
 end
 
 end graded_object

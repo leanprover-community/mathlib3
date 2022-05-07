@@ -129,6 +129,8 @@ theorem coe_nat_lt {m n : ℕ} : (↑m : ℤ) < ↑n ↔ m < n := coe_nat_lt_coe
 @[simp, norm_cast]
 theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n := int.coe_nat_eq_coe_nat_iff m n
 
+lemma coe_nat_strict_mono : strict_mono (coe : ℕ → ℤ) := λ _ _, int.coe_nat_lt.2
+
 @[simp] theorem coe_nat_pos {n : ℕ} : (0 : ℤ) < n ↔ 0 < n :=
 by rw [← int.coe_nat_zero, coe_nat_lt]
 
@@ -221,6 +223,9 @@ le_sub_iff_add_le
 lemma abs_le_one_iff {a : ℤ} : |a| ≤ 1 ↔ a = 0 ∨ a = 1 ∨ a = -1 :=
 by rw [le_iff_lt_or_eq, abs_lt_one_iff, abs_eq (@zero_le_one ℤ _)]
 
+lemma one_le_abs {z : ℤ} (h₀: z ≠ 0) : 1 ≤ |z| :=
+add_one_le_iff.mpr (abs_pos.mpr h₀)
+
 @[elab_as_eliminator] protected lemma induction_on {p : ℤ → Prop}
   (i : ℤ) (hz : p 0) (hp : ∀ i : ℕ, p i → p (i + 1)) (hn : ∀ i : ℕ, p (-i) → p (-i - 1)) : p i :=
 begin
@@ -293,9 +298,9 @@ theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :
 begin
   have : ∀ (a b : ℕ), nat_abs (sub_nat_nat a (nat.succ b)) ≤ nat.succ (a + b),
   { refine (λ a b : ℕ, sub_nat_nat_elim a b.succ
-      (λ m n i, n = b.succ → nat_abs i ≤ (m + b).succ) _ _ rfl);
-    intros i n e,
-    { subst e, rw [add_comm _ i, add_assoc],
+      (λ m n i, n = b.succ → nat_abs i ≤ (m + b).succ) _ (λ i n e, _) rfl),
+    { rintro i n rfl,
+      rw [add_comm _ i, add_assoc],
       exact nat.le_add_right i (b.succ + b).succ },
     { apply succ_le_succ,
       rw [← succ.inj e, ← add_assoc, add_comm],
@@ -1290,6 +1295,18 @@ begin
   { exact is_unit_one.neg }
 end
 
+lemma eq_one_or_neg_one_of_mul_eq_one {z w : ℤ} (h : z * w = 1) : z = 1 ∨ z = -1 :=
+is_unit_iff.mp (is_unit_of_mul_eq_one z w h)
+
+lemma eq_one_or_neg_one_of_mul_eq_one' {z w : ℤ} (h : z * w = 1) :
+  (z = 1 ∧ w = 1) ∨ (z = -1 ∧ w = -1) :=
+begin
+  have h' : w * z = 1 := (mul_comm z w) ▸ h,
+  rcases eq_one_or_neg_one_of_mul_eq_one h with rfl | rfl;
+  rcases eq_one_or_neg_one_of_mul_eq_one h' with rfl | rfl;
+  tauto,
+end
+
 theorem is_unit_iff_nat_abs_eq {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
 by simp [nat_abs_eq_iff, is_unit_iff]
 
@@ -1300,11 +1317,20 @@ by rw [is_unit_iff_nat_abs_eq, abs_eq_nat_abs, ←int.coe_nat_one, coe_nat_inj']
 lemma of_nat_is_unit {n : ℕ} : is_unit (n : ℤ) ↔ is_unit n :=
 by rw [nat.is_unit_iff, is_unit_iff_nat_abs_eq, nat_abs_of_nat]
 
-lemma units_inv_eq_self (u : ℤˣ) : u⁻¹ = u :=
-(units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+lemma is_unit_mul_self {a : ℤ} (ha : is_unit a) : a * a = 1 :=
+(is_unit_eq_one_or ha).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+
+lemma is_unit_sq {a : ℤ} (ha : is_unit a) : a ^ 2 = 1 :=
+by rw [sq, is_unit_mul_self ha]
+
+@[simp] lemma units_sq (u : ℤˣ) : u ^ 2 = 1 :=
+by rw [units.ext_iff, units.coe_pow, units.coe_one, is_unit_sq u.is_unit]
 
 @[simp] lemma units_mul_self (u : ℤˣ) : u * u = 1 :=
-(units_eq_one_or u).elim (λ h, h.symm ▸ rfl) (λ h, h.symm ▸ rfl)
+by rw [←sq, units_sq]
+
+@[simp] lemma units_inv_eq_self (u : ℤˣ) : u⁻¹ = u :=
+by rw [inv_eq_iff_mul_eq_one, units_mul_self]
 
 -- `units.coe_mul` is a "wrong turn" for the simplifier, this undoes it and simplifies further
 @[simp] lemma units_coe_mul_self (u : ℤˣ) : (u * u : ℤ) = 1 :=

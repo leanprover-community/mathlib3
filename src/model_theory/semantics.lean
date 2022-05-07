@@ -379,6 +379,19 @@ begin
   { simp only [ih, subst, realize_all] }
 end
 
+@[simp] lemma realize_restrict_free_var [decidable_eq α] {n : ℕ} {φ : L.bounded_formula α n}
+  {s : set α} (h : ↑φ.free_var_finset ⊆ s) {v : α → M} {xs : fin n → M} :
+  (φ.restrict_free_var (set.inclusion h)).realize (v ∘ coe) xs ↔
+    φ.realize v xs :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp [restrict_free_var, realize] },
+  { simp [restrict_free_var, realize] },
+  { simp [restrict_free_var, realize, ih1, ih2] },
+  { simp [restrict_free_var, realize, ih3] },
+end
+
 variables [nonempty M]
 
 lemma realize_all_lift_at_one_self {n : ℕ} {φ : L.bounded_formula α n}
@@ -454,19 +467,6 @@ begin
     apply_instance },
   { rw [realize_all, to_prenex, realize_all],
     exact forall_congr (λ a, h) },
-end
-
-@[simp] lemma realize_restrict_free_var [decidable_eq α] {n : ℕ} {φ : L.bounded_formula α n}
-  {s : set α} (h : ↑φ.free_var_finset ⊆ s) {v : α → M} {xs : fin n → M} :
-  (φ.restrict_free_var (set.inclusion h)).realize (v ∘ coe) xs ↔
-    φ.realize v xs :=
-begin
-  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
-  { refl },
-  { simp [restrict_free_var, realize] },
-  { simp [restrict_free_var, realize] },
-  { simp [restrict_free_var, realize, ih1, ih2] },
-  { simp [restrict_free_var, realize, ih3] },
 end
 
 end bounded_formula

@@ -223,9 +223,9 @@ by simp [mul_apply, neighbor_finset_eq_filter, sum_filter, adj_comm]
 
 variable (α)
 
-theorem trace_adj_matrix [non_assoc_semiring α] [semiring β] [module β α]:
-  matrix.trace _ β _ (G.adj_matrix α) = 0 :=
-by simp
+@[simp] theorem trace_adj_matrix [add_comm_monoid α] [has_one α] :
+  matrix.trace (G.adj_matrix α) = 0 :=
+by simp [matrix.trace]
 
 variable {α}
 

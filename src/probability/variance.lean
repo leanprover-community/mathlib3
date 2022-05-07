@@ -82,9 +82,7 @@ begin
   { apply hX.integrable_sq.add,
     convert integrable_const (𝔼[X] ^ 2),
     apply_instance },
-  { apply integrable.mul_const',
-    apply integrable.const_mul _ 2,
-    exact hX.integrable ennreal.one_le_two },
+  { exact ((hX.integrable ennreal.one_le_two).const_mul 2).mul_const' _ },
   simp only [integral_mul_right, pi.pow_apply, pi.mul_apply, pi.bit0_apply, pi.one_apply,
     integral_const (integral ℙ X ^ 2), integral_mul_left (2 : ℝ), one_mul,
     variance, pi.pow_apply, measure_univ, ennreal.one_to_real, algebra.id.smul_eq_mul],
@@ -100,9 +98,7 @@ begin
   { rw variance_def' hX,
     simp only [sq_nonneg, sub_le_self_iff] },
   { rw [variance, integral_undef],
-    { apply integral_nonneg,
-      assume a,
-      exact sq_nonneg _ },
+    { exact integral_nonneg (λ a, sq_nonneg _) },
     { assume h,
       have A : mem_ℒp (X - λ (x : Ω), 𝔼[X]) 2 ℙ := (mem_ℒp_two_iff_integrable_sq
         (h_int.ae_strongly_measurable.sub ae_strongly_measurable_const)).2 h,
@@ -132,12 +128,10 @@ begin
     simp only [pi.sub_apply, ennreal.to_real_bit0, ennreal.one_to_real],
     rw ennreal.of_real_rpow_of_nonneg _ zero_le_two, rotate,
     { apply real.rpow_nonneg_of_nonneg,
-      apply integral_nonneg (λ x, _),
-      apply real.rpow_nonneg_of_nonneg (norm_nonneg _) },
+      exact integral_nonneg (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) },
     rw [variance, ← real.rpow_mul, inv_mul_cancel], rotate,
     { exact two_ne_zero },
-    { apply integral_nonneg (λ x, _),
-      apply real.rpow_nonneg_of_nonneg (norm_nonneg _) },
+    { exact integral_nonneg (λ x, real.rpow_nonneg_of_nonneg (norm_nonneg _) _) },
     simp only [pi.pow_apply, pi.sub_apply, real.rpow_two, real.rpow_one, real.norm_eq_abs,
       pow_bit0_abs, ennreal.of_real_inv_of_pos hc, ennreal.rpow_two],
     rw [← ennreal.of_real_pow (inv_nonneg.2 hc.le), ← ennreal.of_real_mul (sq_nonneg _),
@@ -206,9 +200,7 @@ begin
         (mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_self _ _)))
         (mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_of_mem hi))),
       apply h (mem_insert_self _ _) (mem_insert_of_mem hi),
-      assume hki,
-      rw hki at ks,
-      exact ks hi }
+      exact (λ hki, ks (hki.symm ▸ hi)) }
   end
   ... = Var[X k] + Var[∑ i in s, X i] +
     (𝔼[2 * X k * ∑ i in s, X i] - 2 * 𝔼[X k] * 𝔼[∑ i in s, X i]) :
@@ -227,18 +219,14 @@ begin
         (mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_self _ _)))
         (mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_of_mem hi))),
       apply h (mem_insert_self _ _) (mem_insert_of_mem hi),
-      assume hki,
-      rw hki at ks,
-      exact ks hi },
+      exact (λ hki, ks (hki.symm ▸ hi)) },
     rw [integral_finset_sum s
       (λ i hi, (mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_of_mem hi)))),
       mul_sum, mul_sum, ← sum_sub_distrib],
     apply finset.sum_eq_zero (λ i hi, _),
     rw [integral_mul_left, indep_fun.integral_mul_of_integrable', sub_self],
     { apply h (mem_insert_self _ _) (mem_insert_of_mem hi),
-      assume hki,
-      rw hki at ks,
-      exact ks hi },
+      exact (λ hki, ks (hki.symm ▸ hi)) },
     { exact mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_self _ _)) },
     { exact mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_of_mem hi)) }
   end

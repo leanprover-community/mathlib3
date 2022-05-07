@@ -252,7 +252,7 @@ begin
         rcases hd with ⟨y, hy, hy'⟩,
         use [x + y, hb hx hy],
         rw mul_add,
-        exact left.add_lt_add hx' hy' },
+        exact add_lt_add hx' hy' },
       assumption' } }
 end
 

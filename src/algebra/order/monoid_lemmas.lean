@@ -529,11 +529,11 @@ calc  a * b ≤ 1 * b : mul_le_mul_right' ha b
         ... ≤ c     : hbc
 
 @[to_additive]
-lemma le_mul_of_one_le_of_le [covariant_class α α (swap (*)) (≤)]
-  {a b c : α} (ha : 1 ≤ a) (hbc : b ≤ c) : b ≤ a * c :=
-calc  b ≤ c     : hbc
-    ... = 1 * c : (one_mul c).symm
-    ... ≤ a * c : mul_le_mul_right' ha c
+lemma mul_lt_of_lt_one_of_le [covariant_class α α (swap (*)) (<)]
+  {a b c : α} (ha : a < 1) (hbc : b ≤ c) : a * b < c :=
+calc  a * b < 1 * b : mul_lt_mul_right' ha b
+        ... = b     : one_mul b
+        ... ≤ c     : hbc
 
 @[to_additive]
 lemma mul_lt_of_le_one_of_lt [covariant_class α α (swap (*)) (≤)]

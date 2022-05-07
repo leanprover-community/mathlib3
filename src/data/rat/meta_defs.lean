@@ -61,7 +61,7 @@ The `pexpr` does not hold any typing information:
 meta def rat.to_pexpr (q : ℚ) : pexpr :=
 let n := q.num,
     d := q.denom in
-if d = 1 ∨ n = 0 then n.to_pexpr
+if d = 1 then n.to_pexpr
 else ``(%%n.to_pexpr / %%d.to_pexpr)
 
 /-- Evaluates an expression as a rational number,

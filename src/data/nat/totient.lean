@@ -132,6 +132,38 @@ if hmn0 : m * n = 0
       fintype.card_prod]
   end
 
+/-- For `d ∣ n`, the totient of `n/d` equals the number of values `k < n` such that `gcd n k = d` -/
+lemma totient_div_of_dvd {n d : ℕ} (hnd : d ∣ n) :
+  φ (n/d) = (filter (λ (k : ℕ), n.gcd k = d) (range n)).card :=
+begin
+  rcases d.eq_zero_or_pos with rfl | hd0, { simp [zero_dvd_iff.1 hnd] },
+  rcases hnd with ⟨x, rfl⟩,
+  rw nat.mul_div_cancel_left x hd0,
+  apply card_congr (λ k _, d * k),
+  { simp only [mem_filter, mem_range, and_imp, coprime],
+    refine λ a ha1 ha2, ⟨(mul_lt_mul_left hd0).2 ha1, _⟩,
+    rw [gcd_mul_left, ha2, mul_one] },
+  { simp [hd0.ne'] },
+  { simp only [mem_filter, mem_range, exists_prop, and_imp],
+    refine λ b hb1 hb2, _,
+    have : d ∣ b, { rw ←hb2, apply gcd_dvd_right },
+    rcases this with ⟨q, rfl⟩,
+    refine ⟨q, ⟨⟨(mul_lt_mul_left hd0).1 hb1, _⟩, rfl⟩⟩,
+    rwa [gcd_mul_left, mul_right_eq_self_iff hd0] at hb2 },
+end
+
+lemma sum_totient' (n : ℕ) : n.divisors.sum φ = n :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn, { simp },
+  rw ←sum_div_divisors n φ,
+  have : n = ∑ (d : ℕ) in n.divisors, (filter (λ (k : ℕ), n.gcd k = d) (range n)).card,
+  { nth_rewrite_lhs 0 ←card_range n,
+    refine card_eq_sum_card_fiberwise (λ x hx, mem_divisors.2 ⟨_, hn.ne'⟩),
+    apply gcd_dvd_left },
+  nth_rewrite_rhs 0 this,
+  exact sum_congr rfl (λ x hx, totient_div_of_dvd (dvd_of_mem_divisors hx)),
+end
+
 lemma sum_totient (n : ℕ) : ∑ m in (range n.succ).filter (∣ n), φ m = n :=
 if hn0 : n = 0 then by simp [hn0]
 else

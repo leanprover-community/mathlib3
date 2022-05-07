@@ -264,7 +264,7 @@ variables (α : Type u')
 
 variables {α}
 
-@[simp] lemma constants_on_constants : (constants_on α).constants = α := rfl
+lemma constants_on_constants : (constants_on α).constants = α := rfl
 
 instance is_algebraic_constants_on : is_algebraic (constants_on α) :=
 language.is_algebraic_mk₂

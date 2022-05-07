@@ -128,17 +128,16 @@ end ordering
 
 open ordering order_dual
 
-lemma order_dual.dual_compares [has_lt α] {a b : α} {o : ordering} :
+@[simp] lemma to_dual_compares_to_dual [has_lt α] {a b : α} {o : ordering} :
   compares o (to_dual a) (to_dual b) ↔ compares o b a :=
 by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
 
+@[simp] lemma of_dual_compares_of_dual [has_lt α] {a b : αᵒᵈ} {o : ordering} :
+  compares o (of_dual a) (of_dual b) ↔ compares o b a :=
+by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
+
 lemma cmp_compares [linear_order α] (a b : α) : (cmp a b).compares a b :=
-begin
-  unfold cmp cmp_using,
-  by_cases a < b; simp [h],
-  by_cases h₂ : b < a; simp [h₂],
-  exact (decidable.lt_or_eq_of_le (le_of_not_gt h₂)).resolve_left h
-end
+by obtain h | h | h := lt_trichotomy a b; simp [cmp, cmp_using, h, h.not_lt]
 
 lemma cmp_swap [preorder α] [@decidable_rel α (<)] (a b : α) : (cmp a b).swap = cmp b a :=
 begin

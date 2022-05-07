@@ -932,8 +932,8 @@ instance is_empty_nat_right_moves : ∀ n : ℕ, is_empty (right_moves n)
 | 0 := pempty.is_empty
 | (n + 1) := begin
   haveI := is_empty_nat_right_moves n,
-  rw nat.cast_succ,
-  exact (right_moves_add _ _).is_empty
+  rw [nat.cast_succ, right_moves_add],
+  apply_instance
 end
 
 /-- If `w` has the same moves as `x` and `y` has the same moves as `z`,

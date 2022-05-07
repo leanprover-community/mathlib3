@@ -363,13 +363,14 @@ begin
   exact congr_arg _ (inv_inj.mpr (units.ext h))
 end
 
+/--  Laurent polynomials are an algebra over polynomials.  This is not an instance since it might
+create typeclass diamonds. -/
 def algebra_polynomial (R : Type*) [comm_semiring R] : algebra R[X] R[T;T⁻¹] :=
 { commutes' := λ f l, by simp [mul_comm],
   smul_def' := λ f l, rfl,
   .. ((map_domain_ring_hom R int.of_nat_hom).comp
     (to_finsupp_iso R).to_ring_hom : R[X] →+* R[T;T⁻¹]) }
 
-@[simp]
 lemma algebra_map_X_pow (n : ℕ) :
   @algebra_map R[X] R[T;T⁻¹] _ _ (algebra_polynomial R) (X ^ n) = T n :=
 polynomial.to_laurent_X_pow n
@@ -393,8 +394,7 @@ lemma is_localization :
     refine ⟨(f', ⟨_, this⟩), _⟩,
     simp only [set_like.coe_mk, algebra_map_X_pow, mul_T_assoc, add_left_neg, T_zero, mul_one],
     refl,
-  end
-  ,
+  end,
   eq_iff_exists := λ f g, begin
     refine ⟨λ h, _, _⟩,
     { rw [algebra_map_eq_to_laurent, algebra_map_eq_to_laurent, polynomial.to_laurent_inj] at h,

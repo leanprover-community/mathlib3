@@ -84,6 +84,12 @@ trans (pow_le_pow (le_of_lt (hp).one_lt) (padic_val_nat_central_binom_le (hp)))
   (pow_log_le_self (hp).one_lt (by linarith))
 
 -- No analogy in in central.lean, TODO can we move this there?
+-- TODO generalize to any binomial coefficient, not just central ones, then prove this from that
+-- more general theorem
+/--
+If a prime `p` has positive multiplicity i n the `n`th central binomial coefficient,
+`p` is no mor ethen `2 * n`
+-/
 lemma multiplicity_implies_small (p : ℕ) [hp : fact p.prime] (n : ℕ)
   (multiplicity_pos : 0 < α n p) : p ≤ 2 * n :=
 begin
@@ -108,15 +114,19 @@ begin
     ... ≤ 2 * n : nat.mul_le_mul_left _ (mod_le n _),
 end
 
-lemma two_n_div_3_le_central_binom (n : ℕ) : 2 * n / 3 < central_binom n :=
-begin
-  cases n,
-  { simp only [succ_pos', choose_self, nat.zero_div, mul_zero, central_binom_zero], },
-  calc 2 * (n + 1) / 3 < 2 * (n + 1)            : nat.div_lt_self (by norm_num) (by norm_num)
-    ... = (2 * (n + 1)).choose(1)               : by norm_num
-    ... ≤ (2 * (n + 1)).choose(2 * (n + 1) / 2) : choose_le_middle 1 (2 * (n + 1))
-    ... = (2 * (n + 1)).choose(n + 1)           : by simp only [succ_pos', mul_div_right],
-end
+lemma two_n_div_3_le_central_binom (n : ℕ) : 2 * n / 3 ≤ central_binom n :=
+calc 2 * (n) / 3 ≤ 2 * (n)            : nat.div_le_self (2 * n) 3
+    ... = (2 * n).choose(1)               : by norm_num
+    ... ≤ (2 * n).choose(2 * n / 2) : choose_le_middle 1 (2 * (n))
+    ... = (2 * n).choose(n)           : by {congr, rw [nat.mul_div_right], norm_num, }
+-- begin
+--   cases n,
+--   { simp only [succ_pos', choose_self, nat.zero_div, mul_zero, central_binom_zero], },
+--   calc 2 * (n + 1) / 3 < 2 * (n + 1)            : nat.div_lt_self (by norm_num) (by norm_num)
+--     ... = (2 * (n + 1)).choose(1)               : by norm_num
+--     ... ≤ (2 * (n + 1)).choose(2 * (n + 1) / 2) : choose_le_middle 1 (2 * (n + 1))
+--     ... = (2 * (n + 1)).choose(n + 1)           : by simp only [succ_pos', mul_div_right],
+-- end
 
 lemma central_binom_factorization (n : ℕ) :
   ∏ p in finset.filter nat.prime (finset.range (central_binom n + 1)),
@@ -416,7 +426,7 @@ begin
   { apply finset.filter_subset_filter,
     rw finset.range_subset,
     rw [add_le_add_iff_right],
-    exact le_of_lt (two_n_div_3_le_central_binom n), },
+    exact (two_n_div_3_le_central_binom n), },
   intro x,
   rw [finset.mem_filter, finset.mem_filter, finset.mem_range, finset.mem_range],
   intros hx h2x,

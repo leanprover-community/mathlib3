@@ -134,7 +134,7 @@ lemma trans {R : Type*} (A B : Type*) [comm_semiring R] [comm_semiring A] [algeb
       ht, submodule.restrict_scalars_top]⟩⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance finite_type {R : Type*} (A : Type*) [comm_semiring R] [comm_semiring A]
+instance finite_type {R : Type*} (A : Type*) [comm_semiring R] [semiring A]
   [algebra R A] [hRA : finite R A] : algebra.finite_type R A :=
 ⟨subalgebra.fg_of_submodule_fg hRA.1⟩
 

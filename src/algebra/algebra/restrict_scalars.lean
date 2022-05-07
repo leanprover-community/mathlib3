@@ -110,6 +110,12 @@ instance [module S M] : is_scalar_tower R S (restrict_scalars R S M) :=
 
 end
 
+/--
+When `M` is a right-module over a ring `S`, and `S` is an algebra over `R`, then `M` inherits a
+right-module structure over `R`.
+The preferred way of setting this up is
+`[module Rᵐᵒᵖ M] [module Sᵐᵒᵖ M] [is_scalar_tower Rᵐᵒᵖ Sᵐᵒᵖ M]`.
+-/
 instance restrict_scalars.op_module [module Sᵐᵒᵖ M] : module Rᵐᵒᵖ (restrict_scalars R S M) :=
 begin
   letI : module Sᵐᵒᵖ (restrict_scalars R S M) := ‹module Sᵐᵒᵖ M›,

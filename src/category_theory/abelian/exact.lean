@@ -320,7 +320,7 @@ A functor from preadditive category to an abelian category which preserves kerne
 preserves arbitrary products.
 -/
 def is_limit_map_cone_binary_fan_of_preserves_kernels {X Y Z : C} (π₁ : Z ⟶ X) (π₂ : Z ⟶ Y)
-  (i : is_limit (binary_fan.mk π₁ π₂)) [preserves_limit (parallel_pair π₂ 0) F] :
+  [preserves_limit (parallel_pair π₂ 0) F] (i : is_limit (binary_fan.mk π₁ π₂)) :
   is_limit (F.map_cone (binary_fan.mk π₁ π₂)) :=
 let bc := binary_bicone.of_limit_cone i in
 let ibc := bicone_is_bilimit_of_limit_cone_of_is_limit i in
@@ -336,11 +336,37 @@ begin
       (abelian.is_colimit_of_exact_of_epi (F.map bc.inl) (F.map bc.snd) hex)).is_limit
 end
 
+def binary_fan.rec {X Y : C} {P : binary_fan X Y → Type*}
+  (p : ∀ {Z : C} (f : Z ⟶ X) (g : Z ⟶ Y), P (binary_fan.mk f g)) (c : binary_fan X Y) :
+  P c :=
+begin
+  have : c = binary_fan.mk c.fst c.snd,
+  { cases c, simp [binary_fan.mk], ext, cases x; refl },
+  rw this, apply p
+end
+
+@[simp] lemma binary_fan.rec_beta {X Y : C} {P : binary_fan X Y → Type*}
+  {p : ∀ {Z : C} (f : Z ⟶ X) (g : Z ⟶ Y), P (binary_fan.mk f g)}
+  {Z : C} (f : Z ⟶ X) (g : Z ⟶ Y) :
+  binary_fan.rec @p (binary_fan.mk f g) = p f g := rfl
+
+instance preserves_product_of_preserves_kernels
+  [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] {X Y : C} :
+  preserves_limit (pair X Y) F :=
+{ preserves := λ c,
+  begin
+    refine binary_fan.rec _ c,
+    intros Z f g,
+    exact is_limit_map_cone_binary_fan_of_preserves_kernels F f g,
+  end }
+
+/-
+Still not easy to prove this one..
+
 instance [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] :
   preserves_limits_of_shape (discrete walking_pair) F :=
-{ preserves_limit := λ p,
-  { preserves := λ c i,
-    sorry } }
+{ preserves_limit := λ p, by {  } }
+-/
 
 /--
 A functor from preadditive category to an abelian category which preserves cokernels,
@@ -348,7 +374,7 @@ preserves arbitrary coproducts.
 -/
 def is_colimit_map_cocone_binary_cofan_of_preserves_cokernels
   {X Y Z : C} (ι₁ : X ⟶ Z) (ι₂ : Y ⟶ Z)
-  (i : is_colimit (binary_cofan.mk ι₁ ι₂)) [preserves_colimit (parallel_pair ι₁ 0) F] :
+  [preserves_colimit (parallel_pair ι₁ 0) F] (i : is_colimit (binary_cofan.mk ι₁ ι₂)) :
   is_colimit (F.map_cocone (binary_cofan.mk ι₁ ι₂)) :=
 let bc := binary_bicone.of_colimit_cocone i in
 let ibc := bicone_is_bilimit_of_colimit_cocone_of_is_colimit i in
@@ -364,11 +390,31 @@ begin
       (abelian.is_limit_of_exact_of_mono (F.map bc.inl) (F.map bc.snd) hex)).is_colimit
 end
 
-instance [pres_cokernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] :
-  preserves_colimits_of_shape (discrete walking_pair) F :=
-{ preserves_colimit := λ p,
-  { preserves := λ c i,
-    sorry } }
+def binary_cofan.rec {X Y : C} {P : binary_cofan X Y → Type*}
+  (p : ∀ {Z : C} (f : X ⟶ Z) (g : Y ⟶ Z), P (binary_cofan.mk f g)) (c : binary_cofan X Y) :
+  P c :=
+begin
+  have : c = binary_cofan.mk c.inl c.inr,
+  { cases c, simp only [binary_cofan.mk, const.obj_obj, eq_self_iff_true, heq_iff_eq, true_and],
+    ext, cases x; refl },
+  rw this, apply p
+end
+
+@[simp] lemma binary_cofan.rec_beta {X Y : C} {P : binary_cofan X Y → Type*}
+  {p : ∀ {Z : C} (f : X ⟶ Z) (g : Y ⟶ Z), P (binary_cofan.mk f g)}
+  {Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
+  binary_cofan.rec @p (binary_cofan.mk f g) = p f g := rfl
+
+
+instance preserves_coproduct_of_preserves_cokernels
+  [pres_cokernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] {X Y : C} :
+  preserves_colimit (pair X Y) F :=
+{ preserves := λ c,
+  begin
+    refine binary_cofan.rec _ c,
+    intros Z f g,
+    exact is_colimit_map_cocone_binary_cofan_of_preserves_cokernels F f g,
+  end }
 
 end
 

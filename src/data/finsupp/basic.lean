@@ -1821,30 +1821,17 @@ end
 
 section f_injective
 
-variables [add_comm_monoid M] (f : α → β) (hf : function.injective f)
-
-lemma map_domain_comap_domain (l : β →₀ M) (hl : ↑l.support ⊆ set.range f):
-  map_domain f (comap_domain f l (hf.inj_on _)) = l :=
-begin
-  ext a,
-  by_cases h_cases: a ∈ set.range f,
-  { rcases set.mem_range.1 h_cases with ⟨b, hb⟩,
-    rw [hb.symm, map_domain_apply hf, comap_domain_apply] },
-  { rw map_domain_notin_range _ _ h_cases,
-    by_contra h_contr,
-    apply h_cases (hl $ finset.mem_coe.2 $ mem_support_iff.2 $ λ h, h_contr h.symm) }
-end
+section has_zero
+variables [has_zero M]
 
 /-- Note the `hif` argument is needed for this to work in `rw`. -/
-@[simp] lemma comap_domain_zero {M : Type*} [has_zero M]
+@[simp] lemma comap_domain_zero (f : α → β)
   (hif : set.inj_on f (f ⁻¹' ↑((0 : β →₀ M).support)) := set.inj_on_empty _) :
   comap_domain f (0 : β →₀ M) hif = (0 : α →₀ M) :=
 by { ext, refl }
 
-variable {f}
-
-@[simp]
-lemma comap_domain_single {a : α} {m : M} (hif : set.inj_on f (f ⁻¹' (single (f a) m).support)) :
+@[simp] lemma comap_domain_single (f : α → β) (a : α) (m : M)
+  (hif : set.inj_on f (f ⁻¹' (single (f a) m).support)) :
   comap_domain f (finsupp.single (f a) m) hif = finsupp.single a m :=
 begin
   obtain rfl | hm := eq_or_ne m 0,
@@ -1859,24 +1846,45 @@ begin
       refine hif rfl ax.symm ax } },
 end
 
-lemma comap_domain_add (v₁ v₂ : β →₀ M) (hv₁ : set.inj_on f (f ⁻¹' ↑(v₁.support)))
-  (hv₂ : set.inj_on f (f ⁻¹' ↑(v₂.support)))
+end has_zero
+
+section add_zero_class
+variables [add_zero_class M] {f : α → β}
+
+lemma comap_domain_add (v₁ v₂ : β →₀ M)
+  (hv₁ : set.inj_on f (f ⁻¹' ↑(v₁.support))) (hv₂ : set.inj_on f (f ⁻¹' ↑(v₂.support)))
   (hv₁₂ : set.inj_on f (f ⁻¹' ↑((v₁ + v₂).support))) :
   comap_domain f (v₁ + v₂) hv₁₂ = comap_domain f v₁ hv₁ + comap_domain f v₂ hv₂ :=
 by { ext, simp only [comap_domain_apply, coe_add, pi.add_apply] }
 
 /-- A version of `finsupp.comap_domain_add` that's easier to use. -/
-lemma comap_domain_add_of_injective (v₁ v₂ : β →₀ M) :
+lemma comap_domain_add_of_injective (hf : function.injective f) (v₁ v₂ : β →₀ M) :
   comap_domain f (v₁ + v₂) (hf.inj_on _)
     = comap_domain f v₁ (hf.inj_on _) + comap_domain f v₂ (hf.inj_on _) :=
 comap_domain_add _ _ _ _ _
 
 /-- `finsupp.comap_domain` is an `add_monoid_hom`. -/
 @[simps]
-def comap_domain.add_monoid_hom : (β →₀ M) →+ (α →₀ M) :=
+def comap_domain.add_monoid_hom (hf : function.injective f) : (β →₀ M) →+ (α →₀ M) :=
 { to_fun := λ x, comap_domain f x (hf.inj_on _),
   map_zero' := comap_domain_zero f,
   map_add' := comap_domain_add_of_injective hf }
+
+end add_zero_class
+
+variables [add_comm_monoid M] (f : α → β)
+
+lemma map_domain_comap_domain (hf : function.injective f) (l : β →₀ M) (hl : ↑l.support ⊆ set.range f):
+  map_domain f (comap_domain f l (hf.inj_on _)) = l :=
+begin
+  ext a,
+  by_cases h_cases: a ∈ set.range f,
+  { rcases set.mem_range.1 h_cases with ⟨b, hb⟩,
+    rw [hb.symm, map_domain_apply hf, comap_domain_apply] },
+  { rw map_domain_notin_range _ _ h_cases,
+    by_contra h_contr,
+    apply h_cases (hl $ finset.mem_coe.2 $ mem_support_iff.2 $ λ h, h_contr h.symm) }
+end
 
 end f_injective
 

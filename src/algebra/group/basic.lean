@@ -249,48 +249,38 @@ by rw [eq_inv_of_mul_eq_one_left h,  one_div]
 @[to_additive] lemma eq_one_div_of_mul_eq_one_right (h : a * b = 1) : b = 1 / a :=
 by rw [eq_inv_of_mul_eq_one_right h, one_div]
 
+@[to_additive] lemma eq_of_div_eq_one (h : a / b = 1) : a = b :=
+inv_injective $ inv_eq_of_mul_eq_one_right $ by rwa ←div_eq_mul_inv
+
+@[to_additive] lemma div_ne_one_of_ne : a ≠ b → a / b ≠ 1 := mt eq_of_div_eq_one
+
 variables (a b c)
 
 @[to_additive] lemma one_div_mul_one_div_rev : (1 / a) * (1 / b) =  1 / (b * a) := by simp
-
 @[to_additive] lemma inv_div_left : a⁻¹ / b = (b * a)⁻¹ := by simp
-
 @[simp, to_additive] lemma inv_div : (a / b)⁻¹ = b / a := by simp
-
-@[simp, to_additive]
-lemma inv_one : (1 : α)⁻¹ = 1 := by simpa only [one_div, inv_inv] using (inv_div (1 : α) 1).symm
+@[simp, to_additive] lemma one_div_div : 1 / (a / b) = b / a := by simp
+@[simp, to_additive] lemma inv_one : (1 : α)⁻¹ = 1 :=
+by simpa only [one_div, inv_inv] using (inv_div (1 : α) 1).symm
+@[simp, to_additive] lemma div_one : a / 1 = a := by simp
+@[to_additive] lemma one_div_one : (1 : α) / 1 = 1 := div_one _
+@[to_additive] lemma one_div_one_div : 1 / (1 / a) = a := by simp
 
 variables {a b c}
 
 @[simp, to_additive] lemma inv_eq_one : a⁻¹ = 1 ↔ a = 1 := inv_injective.eq_iff' inv_one
 @[simp, to_additive] lemma one_eq_inv : 1 = a⁻¹ ↔ a = 1 := eq_comm.trans inv_eq_one
-
 @[to_additive] lemma inv_ne_one : a⁻¹ ≠ 1 ↔ a ≠ 1 := inv_eq_one.not
-
-@[simp, to_additive] lemma div_one (a : α) : a / 1 = a := by rw [div_eq_mul_inv, inv_one, mul_one]
-
-@[to_additive] lemma one_div_one : (1 : α) / 1 = 1 := div_one _
-
-@[simp, to_additive] lemma one_div_div (a b : α) : 1 / (a / b) = b / a := by rw [one_div, inv_div]
-
-@[to_additive] lemma one_div_one_div (a : α) : 1 / (1 / a) = a := by rw [one_div_div, div_one]
 
 @[to_additive] lemma eq_of_one_div_eq_one_div (h : 1 / a = 1 / b) : a = b :=
 by rw [←one_div_one_div a, h, one_div_one_div]
 
-@[to_additive, field_simps] -- The attributes are out of order on purpose
-lemma div_div_eq_mul_div (a b c : α) : a / (b / c) = (a * c) / b :=
-by rw [div_eq_mul_one_div, one_div_div, ←mul_div_assoc]
+variables (a b c)
 
-@[to_additive] lemma eq_of_div_eq_one (h : a / b = 1) : a = b :=
-by rw [eq_inv_of_mul_eq_one_left (by rwa ←div_eq_mul_inv), inv_inv]
-
-@[to_additive] lemma div_ne_one_of_ne (h : a ≠ b) : a / b ≠ 1 := mt eq_of_div_eq_one h
-
-@[simp, to_additive]
-lemma div_inv_eq_mul (a b : α) : a / b⁻¹ = a * b := by rw [div_eq_mul_inv, inv_inv]
-
-@[to_additive] lemma div_mul_eq_div_div_swap (a b c : α) : a / (b * c) = a / c / b :=
+ -- The attributes are out of order on purpose
+@[to_additive, field_simps] lemma div_div_eq_mul_div : a / (b / c) = a * c / b := by simp
+@[simp, to_additive] lemma div_inv_eq_mul : a / b⁻¹ = a * b := by simp
+@[to_additive] lemma div_mul_eq_div_div_swap : a / (b * c) = a / c / b :=
 by simp only [mul_assoc, mul_inv_rev, div_eq_mul_inv]
 
 end division_monoid
@@ -317,7 +307,6 @@ local attribute [simp] mul_assoc mul_comm mul_left_comm div_eq_mul_inv
 @[to_additive, field_simps] lemma div_mul_eq_mul_div : a / b * c = a * c / b := by simp
 @[to_additive] lemma mul_comm_div : a / b * c = a * (c / b) := by simp
 @[to_additive] lemma div_mul_comm : a / b * c = c / b * a := by simp
-@[to_additive] lemma div_mul_eq_mul_div' : a / c * b = a * (b / c) := by simp
 @[to_additive] lemma div_mul_eq_div_mul_one_div : a / (b * c) = (a / b) * (1 / c) := by simp
 
 @[to_additive] lemma div_div_div_eq : a / b / (c / d) = a * d / (b * c) := by simp
@@ -330,18 +319,11 @@ end division_comm_monoid
 section group
 variables [group G] {a b c d : G}
 
-@[simp, to_additive neg_zero]
-lemma one_inv : 1⁻¹ = (1 : G) :=
-inv_eq_of_mul_eq_one (one_mul 1)
+@[to_additive neg_zero] lemma one_inv : 1⁻¹ = (1 : G) := division_monoid.inv_one
 
-@[simp, to_additive]
-theorem inv_eq_one : a⁻¹ = 1 ↔ a = 1 := division_monoid.inv_eq_one
-
-@[simp, to_additive]
-theorem one_eq_inv : 1 = a⁻¹ ↔ a = 1 := division_monoid.one_eq_inv
-
-@[to_additive]
-theorem inv_ne_one : a⁻¹ ≠ 1 ↔ a ≠ 1 := division_monoid.inv_ne_one
+@[to_additive] theorem inv_eq_one : a⁻¹ = 1 ↔ a = 1 := division_monoid.inv_eq_one
+@[to_additive] theorem one_eq_inv : 1 = a⁻¹ ↔ a = 1 := division_monoid.one_eq_inv
+@[to_additive] theorem inv_ne_one : a⁻¹ ≠ 1 ↔ a ≠ 1 := division_monoid.inv_ne_one
 
 @[simp, to_additive] theorem div_eq_inv_self : a / b = b⁻¹ ↔ a = 1 :=
 by rw [div_eq_mul_inv, mul_left_eq_self]
@@ -437,7 +419,7 @@ by simpa only [div_eq_mul_inv] using λ a a' h, mul_left_injective (b⁻¹) h
 lemma div_right_injective : function.injective (λ a, b / a) :=
 by simpa only [div_eq_mul_inv] using λ a a' h, inv_injective (mul_right_injective b h)
 
-@[simp, to_additive neg_sub]
+@[to_additive neg_sub]
 lemma inv_div' (a b : G) : (a / b)⁻¹ = b / a := division_monoid.inv_div _ _
 
 @[simp, to_additive sub_add_cancel]
@@ -457,7 +439,7 @@ lemma eq_of_div_eq_one' : a / b = 1 → a = b := division_monoid.eq_of_div_eq_on
 
 @[to_additive] lemma div_ne_one_of_ne : a ≠ b → a / b ≠ 1 := division_monoid.div_ne_one_of_ne
 
-@[simp, to_additive]
+@[to_additive]
 lemma div_inv_eq_mul (a b : G) : a / (b⁻¹) = a * b := division_monoid.div_inv_eq_mul _ _
 
 @[to_additive]
@@ -520,8 +502,7 @@ by rw [div_eq_mul_inv, mul_right_eq_self, inv_eq_one]
 
 -- The unprimed version is used by `group_with_zero`.  This is the preferred choice.
 -- See https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/.60div_one'.60
-@[simp, to_additive sub_zero]
-lemma div_one' (a : G) : a / 1 = a := division_monoid.div_one _
+@[to_additive sub_zero] lemma div_one' (a : G) : a / 1 = a := division_monoid.div_one _
 
 @[to_additive eq_sub_iff_add_eq]
 theorem eq_div_iff_mul_eq' : a = b / c ↔ a * c = b :=

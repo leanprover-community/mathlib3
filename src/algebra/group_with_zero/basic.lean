@@ -632,7 +632,7 @@ by rw [div_eq_mul_inv, mul_inv_mul_self a]
 lemma eq_inv_of_mul_right_eq_one : a * b = 1 → b = a⁻¹ := division_monoid.eq_inv_of_mul_eq_one_right
 lemma eq_inv_of_mul_left_eq_one : a * b = 1 → a = b⁻¹ := division_monoid.eq_inv_of_mul_eq_one_left
 
-@[simp] lemma inv_eq_one₀ : g⁻¹ = 1 ↔ g = 1 := division_monoid.inv_eq_one
+lemma inv_eq_one₀ : g⁻¹ = 1 ↔ g = 1 := division_monoid.inv_eq_one
 
 lemma eq_mul_inv_iff_mul_eq₀ (hc : c ≠ 0) : a = b * c⁻¹ ↔ a * c = b :=
 by split; rintro rfl; [rw inv_mul_cancel_right₀ hc, rw mul_inv_cancel_right₀ hc]
@@ -753,7 +753,7 @@ lemma mul_inv_rev₀ (x y : G₀) : (x * y)⁻¹ = y⁻¹ * x⁻¹ := mul_inv_re
 @[simp] lemma div_self {a : G₀} (h : a ≠ 0) : a / a = 1 :=
 by rw [div_eq_mul_inv, mul_inv_cancel h]
 
-@[simp] lemma div_one (a : G₀) : a / 1 = a := division_monoid.div_one _
+lemma div_one (a : G₀) : a / 1 = a := division_monoid.div_one _
 
 @[simp] lemma zero_div (a : G₀) : 0 / a = 0 :=
 by rw [div_eq_mul_inv, zero_mul]
@@ -776,7 +776,7 @@ classical.by_cases (λ hb : b = 0, by simp [*]) (mul_div_cancel a)
 local attribute [simp] div_eq_mul_inv mul_comm mul_assoc mul_left_comm
 
 @[simp] lemma div_self_mul_self' (a : G₀) : a / (a * a) = a⁻¹ :=
-calc a / (a * a) = a⁻¹⁻¹ * a⁻¹ * a⁻¹ : by simp [mul_inv_rev]
+calc a / (a * a) = a⁻¹⁻¹ * a⁻¹ * a⁻¹ : by simp [mul_inv_rev₀]
 ... = a⁻¹ : inv_mul_mul_self _
 
 lemma mul_one_div_cancel {a : G₀} (h : a ≠ 0) : a * (1 / a) = 1 :=
@@ -796,7 +796,7 @@ division_monoid.eq_one_div_of_mul_eq_one_right
 lemma eq_one_div_of_mul_eq_one_left {a b : G₀} : b * a = 1 → b = 1 / a :=
 division_monoid.eq_one_div_of_mul_eq_one_left
 
-@[simp] lemma one_div_div (a b : G₀) : 1 / (a / b) = b / a := division_monoid.one_div_div _ _
+lemma one_div_div (a b : G₀) : 1 / (a / b) = b / a := division_monoid.one_div_div _ _
 
 lemma one_div_one_div (a : G₀) : 1 / (1 / a) = a := division_monoid.one_div_one_div _
 

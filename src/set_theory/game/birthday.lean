@@ -119,28 +119,18 @@ end
 @[simp] theorem to_pgame_birthday (o : ordinal) : o.to_pgame.birthday = o :=
 begin
   induction o using ordinal.induction with o IH,
-  rw pgame.birthday_def,
+  rw [to_pgame_def, pgame.birthday],
   convert max_eq_left_iff.2 (ordinal.zero_le _),
   { apply lsub_empty },
-  { nth_rewrite_lhs 0 ←lsub_typein o,
+  { nth_rewrite 0 ←lsub_typein o,
     congr,
-    { exact (to_pgame_left_moves o).symm },
-    { apply function.hfunext (to_pgame_left_moves o).symm,
-      rintro a b h,
-      simp,
-      rw IH _ (to_left_moves_to_pgame_symm_lt b),
-      apply congr_heq _ h,
-      unfold to_left_moves_to_pgame,
-      simp, } }
+    exact funext (λ x, (IH _ (typein_lt_self x)).symm) }
 end
 
 theorem le_birthday : ∀ x : pgame, x ≤ x.birthday.to_pgame
 | ⟨xl, _, xL, _⟩ :=
-le_def.2 ⟨λ i, or.inl begin
-  have := birthday_move_left_lt i,
-  use to_left_moves_to_pgame (enum (<) (xL i).birthday (by rwa type_lt)),
-  simp [le_birthday (xL i)]
-end, is_empty_elim⟩
+le_def.2 ⟨λ i, or.inl ⟨to_left_moves_to_pgame ⟨_, birthday_move_left_lt i⟩,
+  by simp [le_birthday (xL i)]⟩, is_empty_elim⟩
 
 theorem neg_birthday_le (x : pgame) : -x.birthday.to_pgame ≤ x :=
 let h := le_birthday (-x) in by rwa [neg_birthday, le_iff_neg_ge, neg_neg] at h

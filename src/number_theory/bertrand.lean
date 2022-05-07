@@ -73,18 +73,18 @@ section nat
 open nat
 
 /-- The multiplicity of p in the nth central binomial coefficient-/
-private def α (n p : nat) [hp : fact p.prime] : nat :=
+private def α (n p : ℕ) [hp : fact p.prime] : ℕ :=
 padic_val_nat p (central_binom n)
 
 -- TODO very similar to padic_val_nat_central_binom_le in central.lean,
 -- we probably ought to move this there
-lemma pow_padic_val_nat_central_binom_le_two_mul {p n : nat} (hp : p.prime) (n_pos : 0 < n) :
+lemma pow_padic_val_nat_central_binom_le_two_mul {p n : ℕ} (hp : p.prime) (n_pos : 0 < n) :
   p ^ (padic_val_nat p (central_binom n)) ≤ 2 * n :=
 trans (pow_le_pow (le_of_lt (hp).one_lt) (padic_val_nat_central_binom_le (hp)))
   (pow_log_le_self (hp).one_lt (by linarith))
 
 -- No analogy in in central.lean, TODO can we move this there?
-lemma multiplicity_implies_small (p : nat) [hp : fact p.prime] (n : nat)
+lemma multiplicity_implies_small (p : ℕ) [hp : fact p.prime] (n : ℕ)
   (multiplicity_pos : 0 < α n p) : p ≤ 2 * n :=
 begin
   unfold α at multiplicity_pos,

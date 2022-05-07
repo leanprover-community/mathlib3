@@ -47,7 +47,7 @@ on R / J = `ideal.quotient J` is `on_quot v h`.
 
 ## Implementation Details
 
-`add_valuation R Γ₀` is implemented as `valuation R (multiplicative (order_dual Γ₀))`.
+`add_valuation R Γ₀` is implemented as `valuation R (multiplicative Γ₀)ᵒᵈ`.
 
 ## TODO
 
@@ -254,6 +254,18 @@ begin
     rwa [add_comm, max_comm] at h' }
 end
 
+lemma map_add_eq_of_lt_right (h : v x < v y) : v (x + y) = v y :=
+begin
+  convert v.map_add_of_distinct_val _,
+  { symmetry, rw max_eq_right_iff, exact le_of_lt h },
+  { exact ne_of_lt h }
+end
+
+lemma map_add_eq_of_lt_left (h : v y < v x) : v (x + y) = v x :=
+begin
+  rw add_comm, exact map_add_eq_of_lt_right _ h,
+end
+
 lemma map_eq_of_sub_lt (h : v (y - x) < v x) : v y = v x :=
 begin
   have := valuation.map_add_of_distinct_val v (ne_of_gt h).symm,
@@ -345,6 +357,46 @@ begin
     replace hy := v'.ne_zero_iff.mpr hy,
     replace H := le_of_le_mul_right hy H,
     rwa h, },
+end
+
+lemma is_equiv_iff_val_le_one
+  [linear_ordered_comm_group_with_zero Γ₀]
+  [linear_ordered_comm_group_with_zero Γ'₀]
+  {K : Type*} [division_ring K]
+  (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
+  v.is_equiv v' ↔ ∀ {x : K}, v x ≤ 1 ↔ v' x ≤ 1 :=
+⟨λ h x, by  simpa using h x 1, is_equiv_of_val_le_one _ _⟩
+
+lemma is_equiv_iff_val_eq_one
+  [linear_ordered_comm_group_with_zero Γ₀]
+  [linear_ordered_comm_group_with_zero Γ'₀]
+  {K : Type*} [division_ring K]
+  (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
+  v.is_equiv v' ↔ ∀ {x : K}, v x = 1 ↔ v' x = 1 :=
+begin
+  split,
+  { intros h x,
+    simpa using @is_equiv.val_eq _ _ _ _ _ _ v v' h x 1 },
+  { intros h, apply is_equiv_of_val_le_one, intros x,
+    split,
+    { intros hx,
+      cases lt_or_eq_of_le hx with hx' hx',
+      { have : v (1 + x) = 1,
+        { rw ← v.map_one, apply map_add_eq_of_lt_left, simpa },
+        rw h at this,
+        rw (show x = (-1) + (1 + x), by simp),
+        refine le_trans (v'.map_add _ _) _,
+        simp [this] },
+      { rw h at hx', exact le_of_eq hx' } },
+    { intros hx,
+      cases lt_or_eq_of_le hx with hx' hx',
+      { have : v' (1 + x) = 1,
+        { rw ← v'.map_one, apply map_add_eq_of_lt_left, simpa },
+        rw ← h at this,
+        rw (show x = (-1) + (1 + x), by simp),
+        refine le_trans (v.map_add _ _) _,
+        simp [this] },
+      { rw ← h at hx', exact le_of_eq hx' } } }
 end
 
 end
@@ -452,7 +504,7 @@ variables (R) [ring R] (Γ₀ : Type*) [linear_ordered_add_comm_monoid_with_top 
 
 /-- The type of `Γ₀`-valued additive valuations on `R`. -/
 @[nolint has_inhabited_instance]
-def add_valuation := valuation R (multiplicative (order_dual Γ₀))
+def add_valuation := valuation R (multiplicative Γ₀ᵒᵈ)
 
 end add_monoid
 
@@ -477,8 +529,7 @@ section
 variables (f : R → Γ₀) (h0 : f 0 = ⊤) (h1 : f 1 = 0)
 variables (hadd : ∀ x y, min (f x) (f y) ≤ f (x + y)) (hmul : ∀ x y, f (x * y) = f x + f y)
 
-/-- An alternate constructor of `add_valuation`, that doesn't reference
-  `multiplicative (order_dual Γ₀)` -/
+/-- An alternate constructor of `add_valuation`, that doesn't reference `multiplicative Γ₀ᵒᵈ` -/
 def of : add_valuation R Γ₀ :=
 { to_fun := f,
   map_one' := h1,
@@ -493,7 +544,7 @@ theorem of_apply : (of f h0 h1 hadd hmul) r = f r := rfl
 
 /-- The `valuation` associated to an `add_valuation` (useful if the latter is constructed using
 `add_valuation.of`). -/
-def valuation : valuation R (multiplicative (order_dual Γ₀)) := v
+def valuation : valuation R (multiplicative Γ₀ᵒᵈ) := v
 
 @[simp] lemma valuation_apply (r : R) :
   v.valuation r = multiplicative.of_add (order_dual.to_dual (v r)) := rfl

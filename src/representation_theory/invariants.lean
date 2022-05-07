@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Antoine Labelle
 -/
 import representation_theory.basic
+import representation_theory.Rep
 
 /-!
 # Subspace of invariants a group representation
@@ -66,6 +67,8 @@ end group_algebra
 
 namespace representation
 
+section invariants
+
 open group_algebra
 
 variables {k G V : Type*} [comm_semiring k] [group G] [add_comm_monoid V] [module k V]
@@ -110,5 +113,28 @@ begin
   rw mem_invariants at hv,
   simp [average_def, map_sum, hv, finset.card_univ, nsmul_eq_smul_cast k _ v, smul_smul],
 end
+
+end invariants
+
+section lin_hom
+
+universes u
+
+open linear_map
+
+variables {k G V W : Type u} [comm_ring k] [group G]
+variables [add_comm_group V] [module k V] [add_comm_group W] [module k W]
+variables (ρV : representation k G V) (ρW : representation k G W)
+
+def lin_hom_invariants : (lin_hom ρV ρW).invariants ≃ (Rep.of ρV ⟶ Rep.of ρW) :=
+{ to_fun := λ ⟨f, hf⟩, ⟨f, λ g,
+  by
+    {nth_rewrite 0 ←hf g, simp [Module.comp_def, comp_assoc, ←mul_eq_comp, ←map_mul, one_eq_id]}
+  ⟩,
+  inv_fun := sorry,
+  left_inv := sorry,
+  right_inv := sorry}
+
+end lin_hom
 
 end representation

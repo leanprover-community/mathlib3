@@ -364,7 +364,7 @@ begin
 end
 
 lemma star_convex.neg (hs : star_convex 𝕜 x s) : star_convex 𝕜 (-x) (-s) :=
-by { rw ←neg_neg x at hs, exact hs.is_linear_preimage is_linear_map.is_linear_map_neg }
+by { rw ←image_neg, exact hs.is_linear_image is_linear_map.is_linear_map_neg }
 
 lemma star_convex.sub (hs : star_convex 𝕜 x s) (ht : star_convex 𝕜 y t) :
   star_convex 𝕜 (x - y) (s - t) :=

@@ -1874,7 +1874,8 @@ end add_zero_class
 
 variables [add_comm_monoid M] (f : α → β)
 
-lemma map_domain_comap_domain (hf : function.injective f) (l : β →₀ M) (hl : ↑l.support ⊆ set.range f):
+lemma map_domain_comap_domain
+  (hf : function.injective f) (l : β →₀ M) (hl : ↑l.support ⊆ set.range f) :
   map_domain f (comap_domain f l (hf.inj_on _)) = l :=
 begin
   ext a,

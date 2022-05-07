@@ -114,19 +114,12 @@ begin
     ... ≤ 2 * n : nat.mul_le_mul_left _ (mod_le n _),
 end
 
+-- lt works too, but this is more golfed and either is loose anyway
 lemma two_n_div_3_le_central_binom (n : ℕ) : 2 * n / 3 ≤ central_binom n :=
 calc 2 * (n) / 3 ≤ 2 * (n)            : nat.div_le_self (2 * n) 3
     ... = (2 * n).choose(1)               : by norm_num
     ... ≤ (2 * n).choose(2 * n / 2) : choose_le_middle 1 (2 * (n))
     ... = (2 * n).choose(n)           : by {congr, rw [nat.mul_div_right], norm_num, }
--- begin
---   cases n,
---   { simp only [succ_pos', choose_self, nat.zero_div, mul_zero, central_binom_zero], },
---   calc 2 * (n + 1) / 3 < 2 * (n + 1)            : nat.div_lt_self (by norm_num) (by norm_num)
---     ... = (2 * (n + 1)).choose(1)               : by norm_num
---     ... ≤ (2 * (n + 1)).choose(2 * (n + 1) / 2) : choose_le_middle 1 (2 * (n + 1))
---     ... = (2 * (n + 1)).choose(n + 1)           : by simp only [succ_pos', mul_div_right],
--- end
 
 lemma central_binom_factorization (n : ℕ) :
   ∏ p in finset.filter nat.prime (finset.range (central_binom n + 1)),

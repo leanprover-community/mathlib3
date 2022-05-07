@@ -96,7 +96,7 @@ begin
   delta category_theory.glue_data.ι,
   simp_rw ← multicoequalizer.ι_sigma_π 𝖣 .diagram,
   rw ← (homeo_of_iso (multicoequalizer.iso_coequalizer 𝖣 .diagram).symm).is_open_preimage,
-  rw [coequalizer_is_open_iff.{u u}, colimit_is_open_iff.{u}],
+  rw [coequalizer_is_open_iff, colimit_is_open_iff.{u}],
   refl
 end
 

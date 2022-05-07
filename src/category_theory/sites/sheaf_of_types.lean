@@ -860,7 +860,6 @@ begin
   simp [first_map, second_map, fork_map],
 end
 
-set_option pp.all true
 /--
 The family of elements given by `x : first_obj P S` is compatible iff `first_map` and `second_map`
 map it to the same point.

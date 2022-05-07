@@ -693,7 +693,7 @@ lemma colimit_topology (F : J ⥤ Top.{max v u}) :
   (colimit F).topological_space = ⨆ j, (F.obj j).topological_space.coinduced (colimit.ι F j) :=
 coinduced_of_is_colimit _ (colimit.is_colimit F)
 
-lemma colimit_is_open_iff (F : J ⥤ Top.{max v u}) (U : set ((colimit F : _) : Type u)) :
+lemma colimit_is_open_iff (F : J ⥤ Top.{max v u}) (U : set ((colimit F : _) : Type (max v u))) :
   is_open U ↔ ∀ j, is_open (colimit.ι F j ⁻¹' U) :=
 begin
   conv_lhs { rw colimit_topology F },

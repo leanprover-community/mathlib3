@@ -76,26 +76,12 @@ open nat
 private def α (n p : nat) [hp : fact p.prime] : nat :=
 padic_val_nat p (central_binom n)
 
--- TODO very similar to padic_val_nat_central_binom_le in central.lean, can we replace this with that in the proof?
-lemma pow_α_le_two_mul (p : nat) [hp : fact p.prime] (n : nat) (n_big : 3 ≤ n) :
-  p ^ (α n p) ≤ 2 * n :=
-begin
-  unfold α,
-  rw @padic_val_nat_def p hp (central_binom n) (nat.pos_of_ne_zero (central_binom_ne_zero n)),
-  simp only [central_binom_eq_two_mul_choose n,
-    prime.multiplicity_choose hp.out
-      (le_mul_of_pos_left zero_lt_two) (lt_add_one (p.log (2 * n)))],
-  have r : 2 * n - n = n,
-  { calc 2 * n - n = n + n - n : congr_arg (flip (has_sub.sub) n) (two_mul n)
-      ... = n : nat.add_sub_cancel n n, },
-  simp [r, ←two_mul],
-  apply trans (pow_le_pow (trans one_le_two hp.out.two_le) _) (_ : p ^ p.log (2 * n) ≤ 2 * n),
-  { calc _ ≤ (finset.Ico 1 (log p (2 * n) + 1)).card : finset.card_filter_le _ _
-      ... = (p.log (2 * n) + 1) - 1                  : card_Ico _ _ },
-  { apply pow_log_le_self,
-    exact hp.out.one_lt,
-    linarith, }
-end
+-- TODO very similar to padic_val_nat_central_binom_le in central.lean,
+-- we probably ought to move this there
+lemma pow_α_le_two_mul (p : nat) (hp : p.prime) (n : nat) (n_pos : 0 < n) :
+  p ^ (padic_val_nat p (central_binom n)) ≤ 2 * n :=
+trans (pow_le_pow (le_of_lt (hp).one_lt) (padic_val_nat_central_binom_le (hp)))
+  (pow_log_le_self (hp).one_lt (by linarith))
 
 -- No analogy in in central.lean, TODO can we move this there?
 lemma multiplicity_implies_small (p : nat) [hp : fact p.prime] (n : nat)
@@ -505,7 +491,7 @@ nat.central_binom n
           refine finset.prod_le_prod'' _,
           intros i hyp,
           simp only [finset.mem_filter, finset.mem_range] at hyp,
-          exact @pow_α_le_two_mul i (fact_iff.2 hyp.1.2) n (by linarith),
+          exact @pow_α_le_two_mul i (hyp.1.2) n (by linarith),
         end
 ... = (2 * n) ^ (((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n))).card
       *

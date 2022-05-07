@@ -9,6 +9,7 @@ import data.zmod.basic
 import ring_theory.multiplicity
 import data.nat.periodic
 import algebra.char_p.two
+import number_theory.divisors
 
 /-!
 # Euler's totient function

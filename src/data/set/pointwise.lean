@@ -82,6 +82,14 @@ localized "attribute [instance] set.has_one set.has_zero" in pointwise
 @[to_additive] lemma nonempty.subset_one_iff (h : s.nonempty) : s ⊆ 1 ↔ s = 1 :=
 h.subset_singleton_iff
 
+/-- The singleton operation as a `one_hom`. -/
+@[to_additive "The singleton operation as a `zero_hom`."]
+def singleton_one_hom : one_hom α (set α) := ⟨singleton, singleton_one⟩
+
+@[simp, to_additive] lemma coe_singleton_one_hom : (singleton_one_hom : α → set α) = singleton :=
+rfl
+@[simp, to_additive] lemma singleton_one_hom_apply (a : α) : singleton_one_hom a = {a} := rfl
+
 end one
 
 open_locale pointwise
@@ -176,13 +184,13 @@ image2_Inter₂_subset_right _ _ _
 
 @[to_additive] lemma finite.mul : finite s → finite t → finite (s * t) := finite.image2 _
 
-/-- Under `[has_mul M]`, the `singleton` map from `M` to `set M` as a `mul_hom`, that is, a map
-which preserves multiplication. -/
-@[to_additive "Under `[has_add A]`, the `singleton` map from `A` to `set A` as an `add_hom`,
-that is, a map which preserves addition.", simps]
-def singleton_mul_hom : α →ₙ* (set α) :=
-{ to_fun := singleton,
-  map_mul' := λ a b, singleton_mul_singleton.symm }
+/-- The singleton operation as a `mul_hom`. -/
+@[to_additive "The singleton operation as an `add_hom`."]
+def singleton_mul_hom : α →ₙ* set α := ⟨singleton, λ a b, singleton_mul_singleton.symm⟩
+
+@[simp, to_additive] lemma coe_singleton_mul_hom : (singleton_mul_hom : α → set α) = singleton :=
+rfl
+@[simp, to_additive] lemma singleton_mul_hom_apply (a : α) : singleton_mul_hom a = {a} := rfl
 
 open mul_opposite
 
@@ -190,49 +198,6 @@ open mul_opposite
 lemma image_op_mul : op '' (s * t) = op '' t * op '' s := image_image2_antidistrib op_mul
 
 end has_mul
-
-@[simp, to_additive]
-lemma image_mul_left [group α] : ((*) a) '' t = ((*) a⁻¹) ⁻¹' t :=
-by { rw image_eq_preimage_of_inverse; intro c; simp }
-
-@[simp, to_additive]
-lemma image_mul_right [group α] : (* b) '' t = (* b⁻¹) ⁻¹' t :=
-by { rw image_eq_preimage_of_inverse; intro c; simp }
-
-@[to_additive]
-lemma image_mul_left' [group α] : (λ b, a⁻¹ * b) '' t = (λ b, a * b) ⁻¹' t := by simp
-
-@[to_additive]
-lemma image_mul_right' [group α] : (* b⁻¹) '' t = (* b) ⁻¹' t := by simp
-
-@[simp, to_additive]
-lemma preimage_mul_left_singleton [group α] : ((*) a) ⁻¹' {b} = {a⁻¹ * b} :=
-by rw [← image_mul_left', image_singleton]
-
-@[simp, to_additive]
-lemma preimage_mul_right_singleton [group α] : (* a) ⁻¹' {b} = {b * a⁻¹} :=
-by rw [← image_mul_right', image_singleton]
-
-@[simp, to_additive]
-lemma preimage_mul_left_one [group α] : ((*) a) ⁻¹' 1 = {a⁻¹} :=
-by rw [← image_mul_left', image_one, mul_one]
-
-@[simp, to_additive]
-lemma preimage_mul_right_one [group α] : (* b) ⁻¹' 1 = {b⁻¹} :=
-by rw [← image_mul_right', image_one, one_mul]
-
-@[to_additive]
-lemma preimage_mul_left_one' [group α] : (λ b, a⁻¹ * b) ⁻¹' 1 = {a} := by simp
-
-@[to_additive]
-lemma preimage_mul_right_one' [group α] : (* b⁻¹) ⁻¹' 1 = {b} := by simp
-
-/-- `set α` is a `mul_one_class` under pointwise operations if `α` is. -/
-@[to_additive /-"`set α` is an `add_zero_class` under pointwise operations if `α` is."-/]
-protected def mul_one_class [mul_one_class α] : mul_one_class (set α) :=
-{ mul_one := λ s, by { simp only [← singleton_one, mul_singleton, mul_one, image_id'] },
-  one_mul := λ s, by { simp only [← singleton_one, singleton_mul, one_mul, image_id'] },
-  ..set.has_one, ..set.has_mul }
 
 /-- `set α` is a `semigroup` under pointwise operations if `α` is. -/
 @[to_additive /-"`set α` is an `add_semigroup` under pointwise operations if `α` is. "-/]
@@ -246,23 +211,18 @@ protected def comm_semigroup [comm_semigroup α] : comm_semigroup (set α) :=
 { mul_comm := λ s t, image2_comm mul_comm
   ..set.semigroup }
 
-/-- `set α` is a `monoid` under pointwise operations if `α` is. -/
-@[to_additive /-"`set α` is an `add_monoid` under pointwise operations if `α` is. "-/]
-protected def monoid [monoid α] : monoid (set α) :=
-{ ..set.semigroup,
-  ..set.mul_one_class }
-
-/-- `set α` is a `comm_monoid` under pointwise operations if `α` is. -/
-@[to_additive /-"`set α` is an `add_comm_monoid` under pointwise operations if `α` is. "-/]
-protected def comm_monoid [comm_monoid α] : comm_monoid (set α) :=
-{ ..set.monoid, ..set.comm_semigroup }
-
-localized "attribute [instance] set.mul_one_class set.add_zero_class set.semigroup set.add_semigroup
-  set.comm_semigroup set.add_comm_semigroup set.monoid set.add_monoid set.comm_monoid
-  set.add_comm_monoid" in pointwise
-
 section mul_one_class
 variables [mul_one_class α]
+
+/-- `set α` is a `mul_one_class` under pointwise operations if `α` is. -/
+@[to_additive "`set α` is an `add_zero_class` under pointwise operations if `α` is."]
+protected def mul_one_class : mul_one_class (set α) :=
+{ mul_one := λ s, by { simp only [← singleton_one, mul_singleton, mul_one, image_id'] },
+  one_mul := λ s, by { simp only [← singleton_one, singleton_mul, one_mul, image_id'] },
+  ..set.has_one, ..set.has_mul }
+
+localized "attribute [instance] set.mul_one_class set.add_zero_class set.semigroup set.add_semigroup
+  set.comm_semigroup set.add_comm_semigroup" in pointwise
 
 @[to_additive] lemma subset_mul_left (s : set α) {t : set α} (ht : (1 : α) ∈ t) : s ⊆ s * t :=
 λ x hx, ⟨x, 1, hx, ht, mul_one _⟩
@@ -270,23 +230,27 @@ variables [mul_one_class α]
 @[to_additive] lemma subset_mul_right {s : set α} (t : set α) (hs : (1 : α) ∈ s) : t ⊆ s * t :=
 λ x hx, ⟨1, x, hs, hx, one_mul _⟩
 
+/-- The singleton operation as a `monoid_hom`. -/
+@[to_additive "The singleton operation as an `add_monoid_hom`."]
+def singleton_monoid_hom : α →* set α := { ..singleton_mul_hom, ..singleton_one_hom }
+
+@[simp, to_additive] lemma coe_singleton_monoid_hom :
+  (singleton_monoid_hom : α → set α) = singleton := rfl
+@[simp, to_additive] lemma singleton_monoid_hom_apply (a : α) : singleton_monoid_hom a = {a} := rfl
+
 end mul_one_class
 
 section monoid
 variables [monoid α]
 
-/-- If `u` is a unit in `α`, then `{u}` is a unit in `set α`. -/
-@[to_additive "If `u` is an additive unit in `α`, then `{u}` is an additive unit in `set α`.",
-simps coe] protected def _root_.units.set (u : αˣ) : (set α)ˣ :=
-{ val := {u},
-  inv := {(u⁻¹ : αˣ)},
-  val_inv := by rw [singleton_mul_singleton, units.mul_inv, singleton_one],
-  inv_val := by rw [singleton_mul_singleton, units.inv_mul, singleton_one] }
+/-- `set α` is a `monoid` under pointwise operations if `α` is. -/
+@[to_additive "`set α` is an `add_monoid` under pointwise operations if `α` is. "]
+protected def monoid [monoid α] : monoid (set α) := { ..set.semigroup, ..set.mul_one_class }
 
-@[simp, to_additive] lemma _root_.is_unit.inv_set (u : αˣ) : u.set⁻¹ = u⁻¹.set := rfl
+localized "attribute [instance] set.monoid set.add_monoid" in pointwise
 
-@[to_additive] protected lemma _root_.is_unit.set (ha : is_unit a) : is_unit ({a} : set α) :=
-by { obtain ⟨u, rfl⟩ := ha, exact ⟨u.set, rfl⟩ }
+@[to_additive] protected lemma _root_.is_unit.set : is_unit a → is_unit ({a} : set α) :=
+is_unit.map (singleton_monoid_hom : α →* set α)
 
 @[to_additive] lemma pow_mem_pow (ha : a ∈ s) : ∀ n : ℕ, a ^ n ∈ s ^ n
 | 0 := by { rw pow_zero, exact one_mem_one }
@@ -334,18 +298,47 @@ end
 
 end monoid
 
-@[simp, to_additive]
-lemma mul_univ [group α] (hs : s.nonempty) : s * (univ : set α) = univ :=
+/-- `set α` is a `comm_monoid` under pointwise operations if `α` is. -/
+@[to_additive /-"`set α` is an `add_comm_monoid` under pointwise operations if `α` is. "-/]
+protected def comm_monoid [comm_monoid α] : comm_monoid (set α) :=
+{ ..set.monoid, ..set.comm_semigroup }
+
+localized "attribute [instance] set.comm_monoid set.add_comm_monoid" in pointwise
+
+section group
+variables [group α]
+
+@[simp, to_additive] lemma image_mul_left : ((*) a) '' t = ((*) a⁻¹) ⁻¹' t :=
+by { rw image_eq_preimage_of_inverse; intro c; simp }
+
+@[simp, to_additive] lemma image_mul_right : (* b) '' t = (* b⁻¹) ⁻¹' t :=
+by { rw image_eq_preimage_of_inverse; intro c; simp }
+
+@[to_additive] lemma image_mul_left' : (λ b, a⁻¹ * b) '' t = (λ b, a * b) ⁻¹' t := by simp
+@[to_additive] lemma image_mul_right' : (* b⁻¹) '' t = (* b) ⁻¹' t := by simp
+
+@[simp, to_additive] lemma preimage_mul_left_singleton : ((*) a) ⁻¹' {b} = {a⁻¹ * b} :=
+by rw [← image_mul_left', image_singleton]
+
+@[simp, to_additive] lemma preimage_mul_right_singleton : (* a) ⁻¹' {b} = {b * a⁻¹} :=
+by rw [← image_mul_right', image_singleton]
+
+@[simp, to_additive] lemma preimage_mul_left_one : ((*) a) ⁻¹' 1 = {a⁻¹} :=
+by rw [← image_mul_left', image_one, mul_one]
+
+@[simp, to_additive] lemma preimage_mul_right_one : (* b) ⁻¹' 1 = {b⁻¹} :=
+by rw [← image_mul_right', image_one, one_mul]
+
+@[to_additive] lemma preimage_mul_left_one' : (λ b, a⁻¹ * b) ⁻¹' 1 = {a} := by simp
+@[to_additive] lemma preimage_mul_right_one' : (* b⁻¹) ⁻¹' 1 = {b} := by simp
+
+@[simp, to_additive] lemma mul_univ (hs : s.nonempty) : s * (univ : set α) = univ :=
 let ⟨a, ha⟩ := hs in eq_univ_of_forall $ λ b, ⟨a, a⁻¹ * b, ha, trivial, mul_inv_cancel_left _ _⟩
 
-@[simp, to_additive]
-lemma univ_mul [group α] (ht : t.nonempty) : (univ : set α) * t = univ :=
+@[simp, to_additive] lemma univ_mul (ht : t.nonempty) : (univ : set α) * t = univ :=
 let ⟨a, ha⟩ := ht in eq_univ_of_forall $ λ b, ⟨b * a⁻¹, a, trivial, ha, inv_mul_cancel_right _ _⟩
 
-/-- `singleton` is a monoid hom. -/
-@[to_additive singleton_add_hom "singleton is an add monoid hom"]
-def singleton_hom [monoid α] : α →* set α :=
-{ to_fun := singleton, map_one' := rfl, map_mul' := λ a b, singleton_mul_singleton.symm }
+end group
 
 /-- multiplication preserves finiteness -/
 @[to_additive "addition preserves finiteness"]

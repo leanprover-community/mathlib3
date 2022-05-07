@@ -78,6 +78,14 @@ localized "attribute [instance] finset.has_one finset.has_zero" in pointwise
 @[simp, to_additive]
 lemma image_one [decidable_eq β] {f : α → β} : image f 1 = {f 1} := image_singleton f 1
 
+/-- The singleton operation as a `one_hom`. -/
+@[to_additive "The singleton operation as a `zero_hom`."]
+def singleton_one_hom : one_hom α (finset α) := ⟨singleton, singleton_one⟩
+
+@[simp, to_additive] lemma coe_singleton_one_hom : (singleton_one_hom : α → finset α) = singleton :=
+rfl
+@[simp, to_additive] lemma singleton_one_hom_apply (a : α) : singleton_one_hom a = {a} := rfl
+
 end has_one
 
 open_locale pointwise
@@ -188,6 +196,14 @@ image₂_inter_subset_right
 `s'`, `t'` such that `s' ⊆ s`, `t' ⊆ t` and `u ⊆ s' + t'`."]
 lemma subset_mul {s t : set α} : ↑u ⊆ s * t → ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' * t' :=
 subset_image₂
+
+/-- The singleton operation as a `mul_hom`. -/
+@[to_additive "The singleton operation as an `add_hom`."]
+def singleton_mul_hom : α →ₙ* finset α := ⟨singleton, λ a b, (singleton_mul_singleton _ _).symm⟩
+
+@[simp, to_additive] lemma coe_singleton_mul_hom : (singleton_mul_hom : α → finset α) = singleton :=
+rfl
+@[simp, to_additive] lemma singleton_mul_hom_apply (a : α) : singleton_mul_hom a = {a} := rfl
 
 end has_mul
 
@@ -371,11 +387,6 @@ multiplication/division!) of a `finset`. -/
 localized "attribute [instance] finset.has_nsmul finset.has_npow finset.has_zsmul finset.has_zpow"
   in pointwise
 
-/-- `finset α` is a `mul_one_class` under pointwise operations if `α` is. -/
-@[to_additive "`finset α` is an `add_zero_class` under pointwise operations if `α` is."]
-protected def mul_one_class [mul_one_class α] : mul_one_class (finset α) :=
-coe_injective.mul_one_class _ (coe_singleton 1) (by simp)
-
 /-- `finset α` is a `semigroup` under pointwise operations if `α` is. -/
 @[to_additive "`finset α` is an `add_semigroup` under pointwise operations if `α` is. "]
 protected def semigroup [semigroup α] : semigroup (finset α) :=
@@ -385,6 +396,27 @@ coe_injective.semigroup _ coe_mul
 @[to_additive "`finset α` is an `add_comm_semigroup` under pointwise operations if `α` is. "]
 protected def comm_semigroup [comm_semigroup α] : comm_semigroup (finset α) :=
 coe_injective.comm_semigroup _ coe_mul
+
+section mul_one_class
+variables [mul_one_class α]
+
+/-- `finset α` is a `mul_one_class` under pointwise operations if `α` is. -/
+@[to_additive "`finset α` is an `add_zero_class` under pointwise operations if `α` is."]
+protected def mul_one_class : mul_one_class (finset α) :=
+coe_injective.mul_one_class _ (coe_singleton 1) coe_mul
+
+localized "attribute [instance] finset.mul_one_class finset.add_zero_class finset.semigroup
+  finset.add_semigroup" in pointwise
+
+/-- The singleton operation as a `monoid_hom`. -/
+@[to_additive "The singleton operation as an `add_monoid_hom`."]
+def singleton_monoid_hom : α →* finset α := { ..singleton_mul_hom, ..singleton_one_hom }
+
+@[simp, to_additive] lemma coe_singleton_monoid_hom :
+  (singleton_monoid_hom : α → finset α) = singleton := rfl
+@[simp, to_additive] lemma singleton_monoid_hom_apply (a : α) : singleton_monoid_hom a = {a} := rfl
+
+end mul_one_class
 
 section monoid
 variables [monoid α] {s t : finset α} {a : α}
@@ -402,21 +434,10 @@ end
 @[to_additive "`finset α` is an `add_monoid` under pointwise operations if `α` is. "]
 protected def monoid : monoid (finset α) := coe_injective.monoid _ coe_one coe_mul coe_pow
 
-localized "attribute [instance] finset.mul_one_class finset.add_zero_class finset.semigroup
-  finset.add_semigroup finset.monoid finset.add_monoid" in pointwise
+localized "attribute [instance] finset.monoid finset.add_monoid" in pointwise
 
-/-- If `u` is a unit in `α`, then `{u}` is a unit in `finset α`. -/
-@[to_additive "If `u` is an additive unit in `α`, then `{u}` is an additive unit in `finset α`.",
-simps coe] protected def _root_.units.finset (u : αˣ) : (finset α)ˣ :=
-{ val := {u},
-  inv := {(u⁻¹ : αˣ)},
-  val_inv := by rw [singleton_mul_singleton, units.mul_inv, singleton_one],
-  inv_val := by rw [singleton_mul_singleton, units.inv_mul, singleton_one] }
-
-@[simp, to_additive] lemma _root_.is_unit.inv_finset (u : αˣ) : u.finset⁻¹ = u⁻¹.finset := rfl
-
-@[to_additive] protected lemma _root_.is_unit.finset (ha : is_unit a) : is_unit ({a} : finset α) :=
-by { obtain ⟨u, rfl⟩ := ha, exact ⟨u.finset, rfl⟩ }
+@[to_additive] protected lemma _root_.is_unit.finset : is_unit a → is_unit ({a} : finset α) :=
+is_unit.map (singleton_monoid_hom : α →* finset α)
 
 @[to_additive] lemma pow_mem_pow (ha : a ∈ s) : ∀ n : ℕ, a ^ n ∈ s ^ n
 | 0 := by { rw pow_zero, exact one_mem_one }
@@ -465,10 +486,8 @@ coe_injective.div_inv_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 protected def div_inv_monoid' [group_with_zero α] : div_inv_monoid (finset α) :=
 coe_injective.div_inv_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow'
 
-localized "attribute [instance] finset.mul_one_class finset.add_zero_class finset.semigroup
-  finset.add_semigroup finset.monoid finset.add_monoid finset.comm_monoid finset.add_comm_monoid
-  finset.div_inv_monoid finset.sub_neg_add_monoid finset.div_inv_monoid'"
-  in pointwise
+localized "attribute [instance] finset.comm_monoid finset.add_comm_monoid finset.div_inv_monoid
+  finset.sub_neg_add_monoid finset.div_inv_monoid'" in pointwise
 
 section group
 variables [group α] {s t : finset α}

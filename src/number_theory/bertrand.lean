@@ -88,7 +88,7 @@ trans (pow_le_pow (le_of_lt (hp).one_lt) (padic_val_nat_central_binom_le (hp)))
 -- more general theorem
 /--
 If a prime `p` has positive multiplicity i n the `n`th central binomial coefficient,
-`p` is no mor ethen `2 * n`
+`p` is no more than `2 * n`
 -/
 lemma multiplicity_implies_small (p : ℕ) [hp : fact p.prime] (n : ℕ)
   (multiplicity_pos : 0 < α n p) : p ≤ 2 * n :=
@@ -207,39 +207,35 @@ calc exp 2 = (exp 1) ^ 2 : by rw [←exp_nat_mul 1 2]; simp
 
 -- This is best possible; it is false for x = 99.
 lemma inequality1 {x : ℝ} (n_large : 100 ≤ x) : log x / (x * log 4) ≤ 1/30 :=
-begin
-  have h4 : 0 < x := by linarith only [n_large],
-  have x_ne_zero := ne_of_gt h4,
-  calc log x / (x * log 4) = (log x / x) / log 4 : by field_simp
-    ... ≤ log 100 / 100 / log 4 :
-            begin
-              rw div_le_div_right log_four_pos,
-              apply log_div_self_antitone_on,
-              { simp only [set.mem_set_of_eq],
-                linarith only [exp_one_lt_d9], },
-              { simp only [set.mem_set_of_eq],
-                linarith only [exp_one_lt_d9, n_large], },
-              { exact n_large, },
-            end
-    ... = log 100 / log 4 / 100 : by ring_nf
-    ... = log (10 ^ (2 : ℝ)) / log (2 ^ (2 : ℝ)) / 100 : by norm_num
-    ... = (2 * log 10) / log (2 ^ (2 : ℝ)) / 100 : by rw @log_rpow 10 (by norm_num) 2
-    ... = ((2 * log 10) / (2 * log 2)) / 100 : by rw @log_rpow 2 (by norm_num) 2
-    ... = (log 10 / log 2) / 100 : by { rw mul_div_mul_left (log 10) (log 2), norm_num, }
-    ... ≤ 1 / 30 :
-            begin
-              have thousand_pos : 0 < (1000 : ℝ) := by norm_num,
-              cancel_denoms,
-              rw mul_div,
-              have log_2_pos : 0 < log 2 := log_pos (by norm_num),
-              rw div_le_iff log_2_pos,
-              calc 3 * log 10 = log (10 ^ 3) : eq.symm (log_rpow (by norm_num) 3)
-                ... = log 1000 : by norm_num
-                ... ≤ log 1024 : (log_le_log thousand_pos (by norm_num)).2 (by norm_num)
-                ... = log (2 ^ (10 : ℝ)) : by norm_num
-                ... = 10 * log 2 : log_rpow (by norm_num) 10
-            end,
-end
+calc log x / (x * log 4) = (log x / x) / log 4 : by field_simp
+  ... ≤ log 100 / 100 / log 4 :
+          begin
+            rw div_le_div_right log_four_pos,
+            apply log_div_self_antitone_on,
+            { simp only [set.mem_set_of_eq],
+              linarith only [exp_one_lt_d9], },
+            { simp only [set.mem_set_of_eq],
+              linarith only [exp_one_lt_d9, n_large], },
+            { exact n_large, },
+          end
+  ... = log 100 / log 4 / 100 : by ring_nf
+  ... = log (10 ^ (2 : ℝ)) / log (2 ^ (2 : ℝ)) / 100 : by norm_num
+  ... = (2 * log 10) / log (2 ^ (2 : ℝ)) / 100 : by rw @log_rpow 10 (by norm_num) 2
+  ... = ((2 * log 10) / (2 * log 2)) / 100 : by rw @log_rpow 2 (by norm_num) 2
+  ... = (log 10 / log 2) / 100 : by { rw mul_div_mul_left (log 10) (log 2), norm_num, }
+  ... ≤ 1 / 30 :
+          begin
+            have thousand_pos : 0 < (1000 : ℝ) := by norm_num,
+            cancel_denoms,
+            rw mul_div,
+            have log_2_pos : 0 < log 2 := log_pos (by norm_num),
+            rw div_le_iff log_2_pos,
+            calc 3 * log 10 = log (10 ^ 3) : eq.symm (log_rpow (by norm_num) 3)
+              ... = log 1000 : by norm_num
+              ... ≤ log 1024 : (log_le_log thousand_pos (by norm_num)).2 (by norm_num)
+              ... = log (2 ^ (10 : ℝ)) : by norm_num
+              ... = 10 * log 2 : log_rpow (by norm_num) 10
+          end
 
 -- This is best possible: it is false for x = 312.
 lemma inequality2 {x : ℝ} (n_large : 313 ≤ x) : sqrt 2 * sqrt x * log 2 / (x * log 4) ≤ 0.04 :=

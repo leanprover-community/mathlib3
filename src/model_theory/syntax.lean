@@ -53,7 +53,7 @@ namespace language
 
 variables (L : language.{u v}) {L' : language}
 variables {M : Type w} {N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
-variables {α : Type u'} {β : Type v'}
+variables {α : Type u'} {β : Type v'} {γ : Type*}
 open_locale first_order
 open Structure fin
 
@@ -86,6 +86,26 @@ open finset
 | (var i) := var (g i)
 | (func f ts) := func f (λ i, (ts i).relabel)
 
+@[simp] lemma relabel_id (t : L.term α) :
+  t.relabel id = t :=
+begin
+  induction t with _ _ _ _ ih,
+  { refl, },
+  { simp [ih] },
+end
+
+@[simp] lemma relabel_relabel (f : α → β) (g : β → γ) (t : L.term α) :
+  (t.relabel f).relabel g = t.relabel (g ∘ f) :=
+begin
+  induction t with _ _ _ _ ih,
+  { refl, },
+  { simp [ih] },
+end
+
+/-- Relabels a term's variables along a bijection. -/
+@[simps] def relabel_equiv (g : α ≃ β) : L.term α ≃ L.term β :=
+⟨relabel g, relabel g.symm, λ t, by simp, λ t, by simp⟩
+
 /-- Restricts a term to use only a set of the given variables. -/
 def restrict_var [decidable_eq α] : Π (t : L.term α) (f : t.var_finset → β), L.term β
 | (var a) f := var (f ⟨a, mem_singleton_self a⟩)
@@ -113,6 +133,46 @@ def functions.apply₁ (f : L.functions 1) (t : L.term α) : L.term α := func f
 def functions.apply₂ (f : L.functions 2) (t₁ t₂ : L.term α) : L.term α := func f ![t₁, t₂]
 
 namespace term
+
+/-- Sends a term with constants to a term with extra variables. -/
+def constants_to_vars : L[[γ]].term α → L.term (γ ⊕ α)
+| (var a) := var (sum.inr a)
+| (@func _ _ 0 f ts) := sum.cases_on f (λ f, func f (λ i, (ts i).constants_to_vars))
+    (λ c, var (sum.inl c))
+| (@func _ _ (n + 1) f ts) := sum.cases_on f (λ f, func f (λ i, (ts i).constants_to_vars))
+    (λ c, pempty.elim c)
+
+/-- Sends a term with extra variables to a term with constants. -/
+def vars_to_constants : L.term (γ ⊕ α) → L[[γ]].term α
+| (var (sum.inr a)) := var a
+| (var (sum.inl c)) := constants.term (sum.inr c)
+| (func f ts) := func (sum.inl f) (λ i, (ts i).vars_to_constants)
+
+/-- A bijection between terms with constants and terms with extra variables. -/
+def constants_vars_equiv : L[[γ]].term α ≃ L.term (γ ⊕ α) :=
+⟨constants_to_vars, vars_to_constants, begin
+  intro t,
+  induction t with _ n f _ ih,
+  { refl },
+  { cases n,
+    { cases f,
+      { simp [constants_to_vars, vars_to_constants, ih] },
+      { simp [constants_to_vars, vars_to_constants, constants.term] } },
+    { cases f,
+      { simp [constants_to_vars, vars_to_constants, ih] },
+      { exact pempty.elim f } } }
+end, begin
+  intro t,
+  induction t with x n f _ ih,
+  { cases x;
+    refl },
+  { cases n;
+    { simp [vars_to_constants, constants_to_vars, ih] } }
+end⟩
+
+/-- A bijection between terms with constants and terms with extra variables. -/
+def constants_vars_equiv_left : L[[γ]].term (α ⊕ β) ≃ L.term ((γ ⊕ α) ⊕ β) :=
+constants_vars_equiv.trans (relabel_equiv (equiv.sum_assoc _ _ _)).symm
 
 instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
@@ -339,6 +399,46 @@ def lift_at : ∀ {n : ℕ} (n' m : ℕ), L.bounded_formula α n → L.bounded_f
   (λ i, (ts i).subst (sum.elim (term.relabel sum.inl ∘ tf) (var ∘ sum.inr)))
 | n (imp φ₁ φ₂) tf := (φ₁.subst tf).imp (φ₂.subst tf)
 | n (all φ) tf := (φ.subst tf).all
+
+/-- Sends a formula with constants to a formula with extra variables. -/
+def constants_to_vars : ∀ {n}, L[[γ]].bounded_formula α n → L.bounded_formula (γ ⊕ α) n
+| n falsum := falsum
+| n (equal t₁ t₂) := equal (term.constants_vars_equiv_left t₁) (term.constants_vars_equiv_left t₂)
+| n (rel (sum.inl R) ts) := rel R (λ i, term.constants_vars_equiv_left (ts i))
+| n (rel (sum.inr R) ts) := (is_algebraic.empty_relations _).elim R
+| n (imp φ₁ φ₂) := φ₁.constants_to_vars.imp φ₂.constants_to_vars
+| n (all φ) := φ.constants_to_vars.all
+
+/-- Sends a formula with extra variables to a formula with constants. -/
+def vars_to_constants : ∀ {n}, L.bounded_formula (γ ⊕ α) n → L[[γ]].bounded_formula α n
+| n falsum := falsum
+| n (equal t₁ t₂) := equal (term.constants_vars_equiv_left.symm t₁)
+  (term.constants_vars_equiv_left.symm t₂)
+| n (rel R ts) := rel (sum.inl R) (λ i, term.constants_vars_equiv_left.symm (ts i))
+| n (imp φ₁ φ₂) := φ₁.vars_to_constants.imp φ₂.vars_to_constants
+| n (all φ) := φ.vars_to_constants.all
+
+/-- A bijection sending formulas with constants to formulas with extra variables. -/
+def constants_vars_equiv : L[[γ]].bounded_formula α n ≃ L.bounded_formula (γ ⊕ α) n :=
+⟨constants_to_vars, vars_to_constants, begin
+  intro φ,
+  induction φ with _ _ _ _ _ _ R _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp [constants_to_vars, vars_to_constants] },
+  { cases R,
+    { simp [constants_to_vars, vars_to_constants] },
+    { exact (is_algebraic.empty_relations _).elim R } },
+  { simp [constants_to_vars, vars_to_constants, ih1, ih2] },
+  { simp [constants_to_vars, vars_to_constants, ih3] }
+end, begin
+  intro φ,
+  induction φ with _ _ _ _ _ _ R _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp [constants_to_vars, vars_to_constants] },
+  { simp [constants_to_vars, vars_to_constants] },
+  { simp [constants_to_vars, vars_to_constants, ih1, ih2] },
+  { simp [constants_to_vars, vars_to_constants, ih3] }
+end⟩
 
 variables {l : ℕ} {φ ψ : L.bounded_formula α l} {θ : L.bounded_formula α l.succ}
 variables {v : α → M} {xs : fin l → M}

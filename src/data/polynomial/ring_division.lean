@@ -26,7 +26,8 @@ variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {a b : R} {n : ℕ
 section comm_ring
 variables [comm_ring R] {p q : R[X]}
 
-variables [ring S]
+section
+variables [semiring S]
 
 lemma nat_degree_pos_of_aeval_root [algebra R S] {p : R[X]} (hp : p ≠ 0)
   {z : S} (hz : aeval z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
@@ -37,12 +38,6 @@ lemma degree_pos_of_aeval_root [algebra R S] {p : R[X]} (hp : p ≠ 0)
   {z : S} (hz : aeval z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
   0 < p.degree :=
 nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_aeval_root hp hz inj)
-
-lemma aeval_mod_by_monic_eq_self_of_root [algebra R S]
-  {p q : R[X]} (hq : q.monic) {x : S} (hx : aeval x q = 0) :
-  aeval x (p %ₘ q) = aeval x p :=
--- `eval₂_mod_by_monic_eq_self_of_root` doesn't work here as it needs commutativity
-by rw [mod_by_monic_eq_sub_mul_div p hq, _root_.map_sub, _root_.map_mul, hx, zero_mul, sub_zero]
 
 lemma mod_by_monic_eq_of_dvd_sub (hq : q.monic) {p₁ p₂ : R[X]}
   (h : q ∣ (p₁ - p₂)) :
@@ -84,10 +79,23 @@ def mod_by_monic_hom (q : R[X]) : R[X] →ₗ[R] R[X] :=
   map_add' := add_mod_by_monic,
   map_smul' := smul_mod_by_monic }
 
+end
+
+section
+variables [ring S]
+
+lemma aeval_mod_by_monic_eq_self_of_root [algebra R S]
+  {p q : R[X]} (hq : q.monic) {x : S} (hx : aeval x q = 0) :
+  aeval x (p %ₘ q) = aeval x p :=
+-- `eval₂_mod_by_monic_eq_self_of_root` doesn't work here as it needs commutativity
+by rw [mod_by_monic_eq_sub_mul_div p hq, _root_.map_sub, _root_.map_mul, hx, zero_mul, sub_zero]
+
+end
+
 end comm_ring
 
 section no_zero_divisors
-variables [ring R] [no_zero_divisors R] {p q : R[X]}
+variables [semiring R] [no_zero_divisors R] {p q : R[X]}
 
 instance : no_zero_divisors R[X] :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h, begin
@@ -136,7 +144,7 @@ end
 end no_zero_divisors
 
 section no_zero_divisors
-variables [comm_ring R] [no_zero_divisors R] {p q : R[X]}
+variables [comm_semiring R] [no_zero_divisors R] {p q : R[X]}
 
 lemma root_mul : is_root (p * q) a ↔ is_root p a ∨ is_root q a :=
 by simp_rw [is_root, eval_mul, mul_eq_zero]
@@ -467,8 +475,8 @@ lemma le_root_multiplicity_map {K L : Type*} [comm_ring K]
   [comm_ring L] {p : K[X]} {f : K →+* L} (hf : function.injective f) (a : K) :
   root_multiplicity a p ≤ root_multiplicity (f a) (map f p) :=
 begin
-  by_cases hp0 : p = 0, { simp only [hp0, root_multiplicity_zero, map_zero], },
-  have hmap : map f p ≠ 0, { simpa only [map_zero] using (map_injective f hf).ne hp0, },
+  by_cases hp0 : p = 0, { simp only [hp0, root_multiplicity_zero, polynomial.map_zero], },
+  have hmap : map f p ≠ 0, { simpa only [polynomial.map_zero] using (map_injective f hf).ne hp0, },
   rw [root_multiplicity, root_multiplicity, dif_neg hp0, dif_neg hmap],
   simp only [not_not, nat.lt_find_iff, nat.le_find_iff],
   intros m hm,
@@ -497,8 +505,8 @@ lemma roots_map_of_injective_card_eq_total_degree {K L : Type*} [comm_ring K] [i
   (hroots : p.roots.card = p.nat_degree) :
   multiset.map f p.roots = (map f p).roots :=
 begin
-  by_cases hp0 : p = 0, { simp only [hp0, roots_zero, multiset.map_zero, map_zero], },
-  have hmap : map f p ≠ 0, { simpa only [map_zero] using (map_injective f hf).ne hp0, },
+  by_cases hp0 : p = 0, { simp only [hp0, roots_zero, multiset.map_zero, polynomial.map_zero], },
+  have hmap : map f p ≠ 0, { simpa only [polynomial.map_zero] using (map_injective f hf).ne hp0, },
   apply multiset.eq_of_le_of_card_le,
   { simpa only [multiset.le_iff_count, count_roots] using count_map_roots hf },
   { simpa only [multiset.card_map, hroots] using (card_roots' _).trans (nat_degree_map_le f p) },
@@ -630,7 +638,7 @@ begin
   rw [mem_root_set_iff', ←eval₂_eq_eval_map],
   { refl },
   intro h,
-  rw ←map_zero (algebra_map T S) at h,
+  rw ←polynomial.map_zero (algebra_map T S) at h,
   exact hp (map_injective _ (no_zero_smul_divisors.algebra_map_injective T S) h)
 end
 
@@ -765,7 +773,7 @@ begin
     clear q h_mon,
 
     have h' := congr_arg (map φ) h,
-    simp only [map_mul] at h',
+    simp only [polynomial.map_mul] at h',
     cases h_irr.is_unit_or_is_unit h' with w w,
     { left,
       exact is_unit_of_is_unit_leading_coeff_of_is_unit_map _ _ au w, },

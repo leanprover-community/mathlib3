@@ -124,7 +124,7 @@ Group Theory:
 Ring Theory:
   Fundamentals:
     ring: 'ring'
-    subrings: 'is_subring'
+    subrings: 'subring'
     ring morphisms: 'ring_hom'
     ring structure $\Z$: 'int.comm_ring'
     product of rings: 'pi.ring'
@@ -209,7 +209,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     Sylvester's law of inertia: 'https://en.wikipedia.org/wiki/Sylvester%27s_law_of_inertia'
     real classification: 'https://en.wikipedia.org/wiki/Sylvester%27s_law_of_inertia'
     complex classification: ''
-    Gram-Schmidt orthogonalisation: 'https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process'
+    Gram-Schmidt orthogonalisation: 'gram_schmidt_orthogonal'
   Euclidean and Hermitian spaces:
     Euclidean vector spaces: 'inner_product_space'
     Hermitian vector spaces: 'inner_product_space'

@@ -48,6 +48,14 @@ the continuum hypothesis*][flypitch_itp]
 
 universes u v w u' v'
 
+namespace set
+
+@[simp] lemma inclusion_comp_inclusion {α} {s t u : set α} (hst : s ⊆ t) (htu : t ⊆ u) :
+  inclusion htu ∘ inclusion hst = inclusion (hst.trans htu) :=
+funext (inclusion_inclusion hst htu)
+
+end set
+
 namespace first_order
 namespace language
 
@@ -109,6 +117,28 @@ begin
   induction t with _ _ _ _ ih,
   { refl },
   { simp [ih] }
+end
+
+@[simp] lemma realize_restrict_var [decidable_eq α] {t : L.term α} {s : set α}
+  (h : ↑t.var_finset ⊆ s) {v : α → M} :
+  (t.restrict_var (set.inclusion h)).realize (v ∘ coe) = t.realize v :=
+begin
+  induction t with _ _ _ _ ih,
+  { refl },
+  { simp_rw [var_finset, finset.coe_bUnion, set.Union_subset_iff] at h,
+    exact congr rfl (funext (λ i, ih i (h i (finset.mem_univ i)))) },
+end
+
+@[simp] lemma realize_restrict_var_left [decidable_eq α] {γ : Type*} {t : L.term (α ⊕ γ)} {s : set α}
+  (h : ↑t.var_finset_left ⊆ s) {v : α → M} {xs : γ → M} :
+  (t.restrict_var_left (set.inclusion h)).realize (sum.elim (v ∘ coe) xs) =
+    t.realize (sum.elim v xs) :=
+begin
+  induction t with a _ _ _ ih,
+  { cases a;
+    refl },
+  { simp_rw [var_finset_left, finset.coe_bUnion, set.Union_subset_iff] at h,
+    exact congr rfl (funext (λ i, ih i (h i (finset.mem_univ i)))) },
 end
 
 end term
@@ -423,6 +453,19 @@ begin
     apply_instance },
   { rw [realize_all, to_prenex, realize_all],
     exact forall_congr (λ a, h) },
+end
+
+lemma realize_restrict_free_var [decidable_eq α] {n : ℕ} {φ : L.bounded_formula α n}
+  {s : set α} (h : ↑φ.free_var_finset ⊆ s) {v : α → M} {xs : fin n → M} :
+  (φ.restrict_free_var (set.inclusion h)).realize (v ∘ coe) xs ↔
+    φ.realize v xs :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp [restrict_free_var, realize] },
+  { simp [restrict_free_var, realize] },
+  { simp [restrict_free_var, realize, ih1, ih2] },
+  { simp [restrict_free_var, realize, ih3] },
 end
 
 end bounded_formula

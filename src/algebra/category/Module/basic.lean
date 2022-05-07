@@ -269,7 +269,7 @@ variables {X Y X' Y' : Module.{v} S}
 lemma iso.hom_congr_eq_arrow_congr (i : X ≅ X') (j : Y ≅ Y') (f : X ⟶ Y) :
   iso.hom_congr i j f = linear_equiv.arrow_congr i.to_linear_equiv j.to_linear_equiv f := rfl
 
-lemma iso.conj_eq_conj (i : X ≅ X') (f : End X):
+lemma iso.conj_eq_conj (i : X ≅ X') (f : End X) :
   iso.conj i f = linear_equiv.conj i.to_linear_equiv f := rfl
 
 end

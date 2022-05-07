@@ -219,8 +219,7 @@ begin
     refl }
 end
 
-local notation `φ` := is_fraction_ring.field_equiv_of_ring_equiv
-  (ring_equiv.of_bijective _ (frobenius_bijective p k))
+local notation `φ` := is_fraction_ring.field_equiv_of_ring_equiv (frobenius_equiv p k)
 
 lemma exists_frobenius_solution_fraction_ring {a : fraction_ring (𝕎 k)} (ha : a ≠ 0) :
   ∃ (b : fraction_ring (𝕎 k)) (hb : b ≠ 0) (m : ℤ), φ b * a = p ^ m * b :=
@@ -250,7 +249,7 @@ begin
   simp only [is_fraction_ring.field_equiv_of_ring_equiv,
     is_localization.ring_equiv_of_ring_equiv_eq, ring_equiv.coe_of_bijective],
   convert congr_arg (λ x, algebra_map (𝕎 k) (fraction_ring (𝕎 k)) x) key using 1,
-  { simp only [ring_hom.map_mul, ring_hom.map_pow, map_nat_cast],
+  { simp only [ring_hom.map_mul, ring_hom.map_pow, map_nat_cast, frobenius_equiv_apply],
     ring },
   { simp only [ring_hom.map_mul, ring_hom.map_pow, map_nat_cast] }
 end

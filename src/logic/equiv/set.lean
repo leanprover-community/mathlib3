@@ -101,32 +101,31 @@ lemma eq_preimage_iff_image_eq {α β} (e : α ≃ β) (s t) : s = e ⁻¹' t �
 set.eq_preimage_iff_image_eq e.bijective
 
 @[simp] lemma prod_comm_preimage {α β} {s : set α} {t : set β} :
-  equiv.prod_comm α β ⁻¹' (t ×ˢ s) = (s ×ˢ t) :=
+  equiv.prod_comm α β ⁻¹' t ×ˢ s = s ×ˢ t :=
 set.preimage_swap_prod
 
-lemma prod_comm_image {α β} {s : set α} {t : set β} :
-  equiv.prod_comm α β '' (s ×ˢ t) = (t ×ˢ s) :=
+lemma prod_comm_image {α β} {s : set α} {t : set β} : equiv.prod_comm α β '' s ×ˢ t = t ×ˢ s :=
 set.image_swap_prod
 
 @[simp]
 lemma prod_assoc_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
-  equiv.prod_assoc α β γ ⁻¹' (s ×ˢ (t ×ˢ u)) = (s ×ˢ t) ×ˢ u :=
+  equiv.prod_assoc α β γ ⁻¹' s ×ˢ (t ×ˢ u) = (s ×ˢ t) ×ˢ u :=
 by { ext, simp [and_assoc] }
 
 @[simp]
 lemma prod_assoc_symm_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
-  (equiv.prod_assoc α β γ).symm ⁻¹' ((s ×ˢ t) ×ˢ u) = s ×ˢ (t ×ˢ u) :=
+  (equiv.prod_assoc α β γ).symm ⁻¹' (s ×ˢ t) ×ˢ u = s ×ˢ (t ×ˢ u) :=
 by { ext, simp [and_assoc] }
 
 -- `@[simp]` doesn't like these lemmas, as it uses `set.image_congr'` to turn `equiv.prod_assoc`
 -- into a lambda expression and then unfold it.
 
 lemma prod_assoc_image {α β γ} {s : set α} {t : set β} {u : set γ} :
-  equiv.prod_assoc α β γ '' ((s ×ˢ t) ×ˢ u) = s ×ˢ (t ×ˢ u) :=
+  equiv.prod_assoc α β γ '' (s ×ˢ t) ×ˢ u = s ×ˢ (t ×ˢ u) :=
 by simpa only [equiv.image_eq_preimage] using prod_assoc_symm_preimage
 
 lemma prod_assoc_symm_image {α β γ} {s : set α} {t : set β} {u : set γ} :
-  (equiv.prod_assoc α β γ).symm '' (s ×ˢ (t ×ˢ u)) = (s ×ˢ t) ×ˢ u :=
+  (equiv.prod_assoc α β γ).symm '' s ×ˢ (t ×ˢ u) = (s ×ˢ t) ×ˢ u :=
 by simpa only [equiv.image_eq_preimage] using prod_assoc_preimage
 
 /-- A set `s` in `α × β` is equivalent to the sigma-type `Σ x, {y | (x, y) ∈ s}`. -/
@@ -512,6 +511,23 @@ begin
   dsimp only [subtype.coe_mk],
   by_cases hi : p i; simp [hi]
 end
+
+/-- `sigma_fiber_equiv f` for `f : α → β` is the natural equivalence between
+the type of all preimages of points under `f` and the total space `α`. -/
+-- See also `equiv.sigma_fiber_equiv`.
+@[simps] def sigma_preimage_equiv {α β} (f : α → β) : (Σ b, f ⁻¹' {b}) ≃ α :=
+sigma_fiber_equiv f
+
+/-- A family of equivalences between preimages of points gives an equivalence between domains. -/
+-- See also `equiv.of_fiber_equiv`.
+@[simps]
+def of_preimage_equiv {α β γ} {f : α → γ} {g : β → γ} (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c})) :
+  α ≃ β :=
+equiv.of_fiber_equiv e
+
+lemma of_preimage_equiv_map {α β γ} {f : α → γ} {g : β → γ}
+  (e : Π c, (f ⁻¹' {c}) ≃ (g ⁻¹' {c})) (a : α) : g (of_preimage_equiv e a) = f a :=
+equiv.of_fiber_equiv_map e a
 
 end equiv
 

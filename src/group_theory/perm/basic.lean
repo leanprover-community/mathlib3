@@ -208,12 +208,12 @@ extend_domain_trans _ _ _
   map_mul' := λ e e', (extend_domain_mul f e e').symm }
 
 lemma extend_domain_hom_injective : function.injective (extend_domain_hom f) :=
-((extend_domain_hom f).injective_iff).mpr (λ e he, ext (λ x, f.injective (subtype.ext
+(injective_iff_map_eq_one (extend_domain_hom f)).mpr (λ e he, ext (λ x, f.injective (subtype.ext
   ((extend_domain_apply_image e f x).symm.trans (ext_iff.mp he (f x))))))
 
 @[simp] lemma extend_domain_eq_one_iff {e : perm α} {f : α ≃ subtype p} :
   e.extend_domain f = 1 ↔ e = 1 :=
-(extend_domain_hom f).injective_iff'.mp (extend_domain_hom_injective f) e
+(injective_iff_map_eq_one' (extend_domain_hom f)).mp (extend_domain_hom_injective f) e
 
 end extend_domain
 

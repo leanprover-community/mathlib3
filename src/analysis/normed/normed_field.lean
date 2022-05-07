@@ -111,6 +111,10 @@ attribute [simp] norm_one
 @[simp] lemma nnnorm_one [semi_normed_group α] [has_one α] [norm_one_class α] : ∥(1 : α)∥₊ = 1 :=
 nnreal.eq norm_one
 
+lemma norm_one_class.nontrivial (α : Type*) [semi_normed_group α] [has_one α] [norm_one_class α] :
+  nontrivial α :=
+nontrivial_of_ne 0 1 $ ne_of_apply_ne norm $ by simp
+
 @[priority 100] -- see Note [lower instance priority]
 instance semi_normed_comm_ring.to_comm_ring [β : semi_normed_comm_ring α] : comm_ring α := { ..β }
 
@@ -126,6 +130,11 @@ instance prod.norm_one_class [semi_normed_group α] [has_one α] [norm_one_class
   [semi_normed_group β] [has_one β] [norm_one_class β] :
   norm_one_class (α × β) :=
 ⟨by simp [prod.norm_def]⟩
+
+instance pi.norm_one_class {ι : Type*} {α : ι → Type*} [nonempty ι] [fintype ι]
+  [Π i, semi_normed_group (α i)] [Π i, has_one (α i)] [∀ i, norm_one_class (α i)] :
+  norm_one_class (Π i, α i) :=
+⟨by simp [pi.norm_def, finset.sup_const finset.univ_nonempty]⟩
 
 section non_unital_semi_normed_ring
 variables [non_unital_semi_normed_ring α]
@@ -326,7 +335,7 @@ variables [normed_ring α]
 lemma units.norm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥ :=
 norm_pos_iff.mpr (units.ne_zero x)
 
-lemma units.nnorm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥₊ :=
+lemma units.nnnorm_pos [nontrivial α] (x : αˣ) : 0 < ∥(x:α)∥₊ :=
 x.norm_pos
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
@@ -376,8 +385,6 @@ instance normed_division_ring.to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
 
-export norm_one_class (norm_one)
-
 @[simp] lemma nnnorm_mul (a b : α) : ∥a * b∥₊ = ∥a∥₊ * ∥b∥₊ :=
 nnreal.eq $ norm_mul a b
 
@@ -412,6 +419,20 @@ nnreal.eq $ by simp
 
 @[simp] lemma nnnorm_zpow : ∀ (a : α) (n : ℤ), ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
 (nnnorm_hom : α →*₀ ℝ≥0).map_zpow
+
+/-- Multiplication on the left by a nonzero element of a normed division ring tends to infinity at
+infinity. TODO: use `bornology.cobounded` instead of `filter.comap has_norm.norm filter.at_top`. -/
+lemma filter.tendsto_mul_left_cobounded {a : α} (ha : a ≠ 0) :
+  tendsto ((*) a) (comap norm at_top) (comap norm at_top) :=
+by simpa only [tendsto_comap_iff, (∘), norm_mul]
+  using tendsto_const_nhds.mul_at_top (norm_pos_iff.2 ha) tendsto_comap
+
+/-- Multiplication on the right by a nonzero element of a normed division ring tends to infinity at
+infinity. TODO: use `bornology.cobounded` instead of `filter.comap has_norm.norm filter.at_top`. -/
+lemma filter.tendsto_mul_right_cobounded {a : α} (ha : a ≠ 0) :
+  tendsto (λ x, x * a) (comap norm at_top) (comap norm at_top) :=
+by simpa only [tendsto_comap_iff, (∘), norm_mul]
+  using tendsto_comap.at_top_mul (norm_pos_iff.2 ha) tendsto_const_nhds
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_division_ring.to_has_continuous_inv₀ : has_continuous_inv₀ α :=

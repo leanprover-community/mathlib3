@@ -687,7 +687,7 @@ theorem lift_injective_of_ping_pong:
   function.injective (lift f) :=
 begin
   classical,
-  apply (monoid_hom.injective_iff (lift f)).mpr,
+  apply (injective_iff_map_eq_one (lift f)).mpr,
   rw free_product.word.equiv.forall_congr_left',
   { intros w Heq,
     dsimp [word.equiv] at *,
@@ -704,15 +704,16 @@ end ping_pong_lemma
 instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] [hG : ∀ i, is_free_group (G i)] :
   is_free_group (free_product G) :=
 { generators := Σ i, is_free_group.generators (G i),
-  of := λ x, free_product.of (is_free_group.of x.2),
-  unique_lift' :=
-  begin
-    introsI X _ f,
-    refine ⟨free_product.lift (λ i, is_free_group.lift (λ x, f ⟨i, x⟩)), _ ⟩,
-    split,
-    { simp, },
-    { intros g hfg, ext i x, simpa using hfg ⟨i, x⟩, }
-  end, }
+  mul_equiv :=
+  monoid_hom.to_mul_equiv
+    (free_group.lift (λ (x : Σ i, is_free_group.generators (G i)),
+      free_product.of (is_free_group.of x.2 : G x.1)))
+    (free_product.lift (λ (i : ι),
+      (is_free_group.lift (λ (x : is_free_group.generators (G i)),
+        free_group.of (⟨i, x⟩ : Σ i, is_free_group.generators (G i)))
+        : G i →* (free_group (Σ i, is_free_group.generators (G i))))))
+    (by {ext, simp, })
+   (by {ext, simp, }) }
 
 /-- A free group is a free product of copies of the free_group over one generator. -/
 

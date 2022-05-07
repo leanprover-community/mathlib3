@@ -865,8 +865,8 @@ begin
     rw [hd, pow_mul, ha.pow_eq_one, one_pow] },
   { apply le_of_eq,
     rw [h.card_nth_roots_finset, finset.card_bUnion],
-    { rw [← nat.sum_totient' n, nat.filter_dvd_eq_divisors (pnat.ne_zero n), sum_congr rfl]
-        { occs := occurrences.pos [1] },
+    { nth_rewrite_lhs 0 ← nat.sum_totient n,
+      refine sum_congr rfl _,
       simp only [finset.mem_filter, finset.mem_range, nat.mem_divisors],
       rintro k ⟨H, hk⟩,
       have hdvd := H,

@@ -6,6 +6,7 @@ Authors: Robert A. Spencer, Markus Himmel
 import algebra.category.Group.basic
 import category_theory.limits.shapes.kernels
 import category_theory.linear
+import category_theory.elementwise
 import linear_algebra.basic
 
 /-!

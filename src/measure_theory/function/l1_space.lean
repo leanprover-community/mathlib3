@@ -591,10 +591,6 @@ lemma integrable_finset_sum {ι} (s : finset ι)
   {f : ι → α → β} (hf : ∀ i ∈ s, integrable (f i) μ) : integrable (λ a, ∑ i in s, f i a) μ :=
 by simpa only [← finset.sum_apply] using integrable_finset_sum' s hf
 
-lemma integrable_finset_sum' {ι} (s : finset ι)
-  {f : ι → α → β} (hf : ∀ i ∈ s, integrable (f i) μ) : integrable (∑ i in s, f i) μ :=
-by { convert integrable_finset_sum s hf, ext x, simp }
-
 lemma integrable.neg {f : α → β} (hf : integrable f μ) : integrable (-f) μ :=
 ⟨hf.ae_strongly_measurable.neg, hf.has_finite_integral.neg⟩
 

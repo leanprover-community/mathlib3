@@ -625,7 +625,7 @@ have gf : ∀ (a : α), a = g (f a) := by { intro, rw [←cmp_eq_eq_iff, h, cmp_
 
 /-- To show that `f : α →o β` and `g : β →o α` make up an order isomorphism it is enough to show
     that `g` is the inverse of `f`-/
-def order_iso.of_hom_inv (f : α →o β) (g : β →o α) (h₁ : function.left_inverse g f)
+def of_hom_inv (f : α →o β) (g : β →o α) (h₁ : function.left_inverse g f)
    (h₂ : function.left_inverse f g) : α ≃o β :=
 { to_fun := f,
   inv_fun := g,

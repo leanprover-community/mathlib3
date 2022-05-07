@@ -7,7 +7,7 @@ import algebra.algebra.subalgebra.pointwise
 import algebraic_geometry.prime_spectrum.noetherian
 import ring_theory.dedekind_domain.basic
 import ring_theory.fractional_ideal
-import order.hom.bounded
+import order.hom.basic
 
 /-!
 # Dedekind domains and ideals

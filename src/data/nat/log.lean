@@ -74,13 +74,13 @@ begin
     exact or.inl h, },
 end
 
-@[simp] lemma log_zero_left : ∀ n : ℕ, log 0 n = 0 :=
+@[simp] lemma log_zero_left (n : ℕ) : log 0 n = 0 :=
 log_of_left_le_one zero_le_one
 
 @[simp] lemma log_zero_right (b : ℕ) : log b 0 = 0 :=
 by { rw log, cases b; refl }
 
-@[simp] lemma log_one_left : ∀ n : ℕ, log 1 n = 0 :=
+@[simp] lemma log_one_left (n : ℕ) : log 1 n = 0 :=
 log_of_left_le_one le_rfl
 
 @[simp] lemma log_one_right (b : ℕ) : log b 1 = 0 :=

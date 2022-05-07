@@ -37,10 +37,10 @@ variables {k : Type u} [field k]
 variables {A : Type u} [ring A] [algebra k A]
 
 instance (M : Module.{v} A) : module k M :=
-by { change module k (restrict_scalars k A M), apply_instance, }
+restrict_scalars.module k A M
 
 instance (M : Module.{v} A) : is_scalar_tower k A M :=
-by { change is_scalar_tower k A (restrict_scalars k A M), apply_instance, }
+restrict_scalars.is_scalar_tower k A M
 
 -- We verify that the morphism spaces become `k`-modules.
 example (M N : Module.{v} A) : module k (M ⟶ N) := by apply_instance

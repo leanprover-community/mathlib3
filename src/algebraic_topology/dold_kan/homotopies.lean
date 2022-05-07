@@ -189,7 +189,7 @@ end
 lemma map_Hσ {D : Type*} [category D] [preadditive D]
   (G : C ⥤ D) [G.additive] (X : simplicial_object C) (q n : ℕ) :
   (Hσ q : K[((whiskering C D).obj G).obj X] ⟶ _).f n =
-  G.map ((Hσ q : K[X] ⟶ _).f n) :=
+    G.map ((Hσ q : K[X] ⟶ _).f n) :=
 begin
   unfold Hσ,
   have eq := homological_complex.congr_hom (map_null_homotopic_map' G (hσ' q)) n,

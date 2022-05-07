@@ -320,7 +320,7 @@ variables [left_cancel_monoid G] (x y)
 @[to_additive nsmul_injective_of_lt_add_order_of]
 lemma pow_injective_of_lt_order_of
   (hn : n < order_of x) (hm : m < order_of x) (eq : x ^ n = x ^ m) : n = m :=
-iterate_injective_of_lt_minimal_period hn hm (by simpa only [mul_left_iterate, mul_one])
+eq_of_lt_minimal_period_of_iterate_eq hn hm (by simpa only [mul_left_iterate, mul_one])
 
 @[to_additive mem_multiples_iff_mem_range_add_order_of']
 lemma mem_powers_iff_mem_range_order_of' [decidable_eq G] (hx : 0 < order_of x) :

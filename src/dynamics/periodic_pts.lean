@@ -302,10 +302,14 @@ begin
     (nat.sub_le m n)).not_lt hm
 end
 
+lemma eq_of_lt_minimal_period_of_iterate_eq {m n : ℕ} (hm : m < minimal_period f x)
+  (hn : n < minimal_period f x) (hmn : f^[m] x = (f^[n] x)) : m = n :=
+(le_of_lt_minimal_period_of_iterate_eq hm hmn).antisymm
+  (le_of_lt_minimal_period_of_iterate_eq hn hmn.symm)
+
 lemma eq_iff_lt_minimal_period_of_iterate_eq {m n : ℕ} (hm : m < minimal_period f x)
   (hn : n < minimal_period f x) : f^[m] x = (f^[n] x) ↔ m = n :=
-⟨λ hmn, (le_of_lt_minimal_period_of_iterate_eq hm hmn).antisymm
-  (le_of_lt_minimal_period_of_iterate_eq hn hmn.symm), congr_arg _⟩
+⟨eq_of_lt_minimal_period_of_iterate_eq hm hn, congr_arg _⟩
 
 lemma minimal_period_id : minimal_period id x = 1 :=
 ((is_periodic_id _ _ ).minimal_period_le nat.one_pos).antisymm

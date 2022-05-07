@@ -26,6 +26,8 @@ that `φ` and `ψ` are equivalent formulas or sentences in models of `T`.
 shows that a theory is satisfiable iff it is finitely satisfiable.
 * `first_order.language.complete_theory.is_complete`: The complete theory of a structure is
 complete.
+* `first_order.language.Theory.exists_large_model_of_infinite_model` shows that any theory with an
+infinite model has arbitrarily large models.
 
 ## Implementation Details
 * Satisfiability of an `L.Theory` `T` is defined in the minimal universe containing all the symbols
@@ -33,12 +35,15 @@ of `L`. By Löwenheim-Skolem, this is equivalent to satisfiability in any univer
 
 -/
 
-universes u v w
+universes u v w w'
+
+open cardinal
+open_locale cardinal first_order
 
 namespace first_order
 namespace language
 
-variables {L : language.{u v}} {T : L.Theory} {α : Type*} {n : ℕ}
+variables {L : language.{u v}} {T : L.Theory} {α : Type w} {n : ℕ}
 
 namespace Theory
 
@@ -86,6 +91,66 @@ theorem is_satisfiable_iff_is_finitely_satisfiable {T : L.Theory} :
     exact ⟨hφ, h' (finset.mem_singleton_self _)⟩ },
   exact ⟨Model.of T M'⟩,
 end⟩
+
+theorem is_satisfiable_directed_union_iff {ι : Type*} [nonempty ι]
+  {T : ι → L.Theory} (h : directed (⊆) T) :
+  Theory.is_satisfiable (⋃ i, T i) ↔ ∀ i, (T i).is_satisfiable :=
+begin
+  refine ⟨λ h' i, h'.mono (set.subset_Union _ _), λ h', _⟩,
+  rw [is_satisfiable_iff_is_finitely_satisfiable, is_finitely_satisfiable],
+  intros T0 hT0,
+  obtain ⟨i, hi⟩ := h.exists_mem_subset_of_finset_subset_bUnion hT0,
+  exact (h' i).mono hi,
+end
+
+theorem is_satisfiable_union_distinct_constants_theory_of_card_le (T : L.Theory) (s : set α)
+  (M : Type w') [nonempty M] [L.Structure M] [M ⊨ T]
+  (h : cardinal.lift.{w'} (# s) ≤ cardinal.lift.{w} (# M)) :
+  ((L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s).is_satisfiable :=
+begin
+  haveI : inhabited M := classical.inhabited_of_nonempty infer_instance,
+  rw [cardinal.lift_mk_le'] at h,
+  letI : (constants_on α).Structure M :=
+    constants_on.Structure (function.extend coe h.some default),
+  haveI : M ⊨ (L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s,
+  { refine ((Lhom.on_Theory_model _ _).2 infer_instance).union _,
+    rw [model_distinct_constants_theory],
+    refine λ a as b bs ab, _,
+    rw [← subtype.coe_mk a as, ← subtype.coe_mk b bs, ← subtype.ext_iff],
+    exact h.some.injective
+      ((function.extend_apply subtype.coe_injective h.some default ⟨a, as⟩).symm.trans
+      (ab.trans (function.extend_apply subtype.coe_injective h.some default ⟨b, bs⟩))), },
+  exact model.is_satisfiable M,
+end
+
+theorem is_satisfiable_union_distinct_constants_theory_of_infinite (T : L.Theory) (s : set α)
+  (M : Type w') [L.Structure M] [M ⊨ T] [infinite M] :
+  ((L.Lhom_with_constants α).on_Theory T ∪ L.distinct_constants_theory s).is_satisfiable :=
+begin
+  classical,
+  rw [distinct_constants_theory_eq_Union, set.union_Union, is_satisfiable_directed_union_iff],
+  { exact λ t, is_satisfiable_union_distinct_constants_theory_of_card_le T _ M ((lift_le_omega.2
+      (le_of_lt (finset_card_lt_omega _))).trans (omega_le_lift.2 (omega_le_mk M))), },
+  { refine (monotone_const.union (monotone_distinct_constants_theory.comp _)).directed_le,
+    simp only [finset.coe_map, function.embedding.coe_subtype],
+    exact set.monotone_image.comp (λ _ _, finset.coe_subset.2) }
+end
+
+/-- Any theory with an infinite model has arbitrarily large models. -/
+lemma exists_large_model_of_infinite_model (T : L.Theory) (κ : cardinal.{w})
+  (M : Type w') [L.Structure M] [M ⊨ T] [infinite M] :
+  ∃ (N : Model.{_ _ (max u v w)} T), cardinal.lift.{max u v w} κ ≤ # N :=
+begin
+  obtain ⟨N⟩ :=
+    is_satisfiable_union_distinct_constants_theory_of_infinite T (set.univ : set κ.out) M,
+  refine ⟨(N.is_model.mono (set.subset_union_left _ _)).bundled.reduct _, _⟩,
+  haveI : N ⊨ distinct_constants_theory _ _ := N.is_model.mono (set.subset_union_right _ _),
+  simp only [Model.reduct_carrier, coe_of, Model.carrier_eq_coe],
+  refine trans (lift_le.2 (le_of_eq (cardinal.mk_out κ).symm)) _,
+  rw [← mk_univ],
+  refine (card_le_of_model_distinct_constants_theory L set.univ N).trans (lift_le.1 _),
+  rw lift_lift,
+end
 
 variable (T)
 

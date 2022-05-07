@@ -72,9 +72,9 @@ section nat
 
 open nat
 
-/-- The multiplicity of p in the nth central binomial coefficient-/
-private def α (n p : ℕ) : ℕ :=
-padic_val_nat p (central_binom n)
+-- /-- The multiplicity of p in the nth central binomial coefficient-/
+-- private def α (n p : ℕ) : ℕ :=
+-- padic_val_nat p (central_binom n)
 
 -- TODO very similar to padic_val_nat_central_binom_le in central.lean,
 -- we probably ought to move this there
@@ -91,22 +91,22 @@ If a prime `p` has positive multiplicity i n the `n`th central binomial coeffici
 `p` is no more than `2 * n`
 -/
 lemma multiplicity_implies_small (p : ℕ) (hp : p.prime) (n : ℕ)
-  (multiplicity_pos : 0 < α n p) : p ≤ 2 * n :=
+  (h_pos : 0 < padic_val_nat p (central_binom n)) : p ≤ 2 * n :=
 begin
-  unfold α at multiplicity_pos,
-  rw central_binom_eq_two_mul_choose at multiplicity_pos,
+  -- unfold α at h_pos,
+  rw central_binom_eq_two_mul_choose at h_pos,
   rw @padic_val_nat_def p ⟨hp⟩ ((2 * n).choose n) (nat.pos_of_ne_zero (central_binom_ne_zero n)) at
-    multiplicity_pos,
+    h_pos,
   simp only [prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two)
               (lt_add_one (p.log (2 * n)))]
-    at multiplicity_pos,
+    at h_pos,
   have r : 2 * n - n = n,
   { calc 2 * n - n = n + n - n : congr_arg (flip (has_sub.sub) n) (two_mul n)
       ... = n : nat.add_sub_cancel n n, },
   simp only [r, ←two_mul, gt_iff_lt, enat.get_coe', finset.filter_congr_decidable]
-    at multiplicity_pos,
-  rw finset.card_pos at multiplicity_pos,
-  cases multiplicity_pos with m hm,
+    at h_pos,
+  rw finset.card_pos at h_pos,
+  cases h_pos with m hm,
   simp only [finset.mem_Ico, finset.mem_filter] at hm,
   calc p = p ^ 1 : (pow_one _).symm
     ... ≤ p ^ m : pow_le_pow_of_le_right (trans zero_lt_one hp.one_lt) hm.left.left
@@ -424,7 +424,7 @@ begin
   by_contradiction,
   have x_le_two_mul_n : x ≤ 2 * n,
   { apply (@multiplicity_implies_small x hx.right n),
-    unfold α,
+    -- unfold α,
     by_contradiction h1,
     rw [not_lt, le_zero_iff] at h1,
     rw h1 at h,

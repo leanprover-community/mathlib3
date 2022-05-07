@@ -279,23 +279,6 @@ nat.cases_on n pempty.is_empty (λ n, nat.cases_on n pempty.is_empty (λ _, pemp
 lemma card_constants_on : (constants_on α).card = # α :=
 by simp
 
-@[simp] lemma card_constants_on : (constants_on α).card = # α :=
-begin
-  rw card_eq_card_functions_add_card_relations,
-  simp only [constants_on, lift_uzero, mk_empty, lift_zero, sum_const, mul_zero, add_zero],
-  rw [← mk_sigma],
-  refine equiv.cardinal_eq ⟨_, λ a, sigma.mk 0 a, _, λ _, _⟩,
-  { rintro ⟨n, a⟩,
-    cases n,
-    { exact a },
-    { exact a.elim } },
-  { rintro ⟨n, a⟩,
-    cases n,
-    { simp },
-    { exact a.elim } },
-  { refl }
-end
-
 /-- Gives a `constants_on α` structure to a type by assigning each constant a value. -/
 def constants_on.Structure (f : α → M) : (constants_on α).Structure M :=
 Structure.mk₂ f pempty.elim pempty.elim pempty.elim pempty.elim

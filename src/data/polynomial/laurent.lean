@@ -3,7 +3,7 @@ Copyright (c) 2022 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-
+import ring_theory.localization.basic
 import data.polynomial.algebra_map
 
 /-!  # Laurent polynomials
@@ -45,10 +45,9 @@ I made a *heavy* use of `simp` lemmas, aiming to bring Laurent polynomials to th
 Any comments or suggestions for improvements is greatly appreciated!
 
 ##  Future work
-Lots is missing!  I would certainly like to show that `R[T;T⁻¹]` is the localization of `R[X]`
-inverting `X`.  This should be mostly in place, given `exists_T_pow`.
-(Riccardo) giving a morphism (as `R`-alg, so in the commutative case)
-from `R[T,T⁻¹]` to `S` is the same as choosing a unit of `S`.
+Lots is missing!
+(Riccardo) giving a morphism (as `R`-alg, so in the commutative case) from `R[T,T⁻¹]` to `S` is
+the same as choosing a unit of `S`.
 -/
 
 open_locale polynomial big_operators
@@ -231,7 +230,7 @@ end
   M p :=
 begin
   refine p.induction_on (λ a, _) h_add _ _;
-  try { exact λ n f Mf, h_C_mul_T _ f },
+  try { exact λ n f _, h_C_mul_T _ f },
   convert h_C_mul_T 0 a,
   exact (mul_one _).symm,
 end
@@ -344,17 +343,68 @@ instance : module R[X] R[T;T⁻¹] :=
 
 end semiring
 
-/-
 section comm_semiring
 variable [comm_semiring R]
 
-instance : algebra R[X] R[T;T⁻¹] :=
+instance {M : Type*} [monoid M] : has_involutive_inv Mˣ :=
+division_monoid.to_has_involutive_inv Mˣ
+
+--lemma units.coe_inj
+
+lemma inv_of_inj {R : Type*} [monoid R] {a b : R} [invertible a] [invertible b] :
+  ⅟ a = ⅟ b ↔ a = b :=
+begin
+  refine ⟨λ h, _, λ h, invertible_unique a b h⟩,
+  unfreezingI
+  { rcases is_unit_of_invertible a with ⟨au, rfl⟩,
+    rcases is_unit_of_invertible b with ⟨bu, rfl⟩ },
+  rw [inv_of_units, inv_of_units] at h,
+  rw [← inv_inv au, ← inv_inv bu],
+  exact congr_arg _ (inv_inj.mpr (units.ext h))
+end
+
+def algebra_polynomial (R : Type*) [comm_semiring R] : algebra R[X] R[T;T⁻¹] :=
 { commutes' := λ f l, by simp [mul_comm],
   smul_def' := λ f l, rfl,
-  .. ((add_monoid_alg_hom_map R (nat.cast_add_monoid_hom ℤ)).to_ring_hom.comp
+  .. ((map_domain_ring_hom R int.of_nat_hom).comp
     (to_finsupp_iso R).to_ring_hom : R[X] →+* R[T;T⁻¹]) }
 
+@[simp]
+lemma algebra_map_X_pow (n : ℕ) :
+  @algebra_map R[X] R[T;T⁻¹] _ _ (algebra_polynomial R) (X ^ n) = T n :=
+polynomial.to_laurent_X_pow n
+
+@[simp]
+lemma algebra_map_eq_to_laurent (f : R[X]) :
+  @algebra_map R[X] R[T;T⁻¹] _ _ (algebra_polynomial R) f = f.to_laurent :=
+rfl
+
+def loca :
+  @is_localization _ _ (submonoid.closure ({X} : set R[X])) R[T;T⁻¹] _ (algebra_polynomial R) :=
+{ map_units := λ t, begin
+    cases t with t ht,
+    rcases submonoid.mem_closure_singleton.mp ht with ⟨n, rfl⟩,
+    convert is_unit_T n,
+    exact polynomial.to_laurent_X_pow n,
+  end,
+  surj := λ f, begin
+    rcases f.exists_T_pow' with ⟨n, f', rfl⟩,
+    have := (submonoid.closure ({X} : set R[X])).pow_mem (submonoid.mem_closure_singleton_self) n,
+    refine ⟨(f', ⟨_, this⟩), _⟩,
+    simp only [set_like.coe_mk, algebra_map_X_pow, mul_T_assoc, add_left_neg, T_zero, mul_one],
+    refl,
+  end
+  ,
+  eq_iff_exists := λ f g, begin
+    refine ⟨λ h, _, _⟩,
+    { rw [algebra_map_eq_to_laurent, algebra_map_eq_to_laurent, polynomial.to_laurent_inj] at h,
+      exact ⟨1, by simp [h]⟩ },
+    { rintro ⟨⟨h, hX⟩, h⟩,
+      rcases submonoid.mem_closure_singleton.mp hX with ⟨n, rfl⟩,
+      rw [set_like.coe_mk, mul_comm, mul_comm _ (X ^ n)] at h,
+      simp only [algebra_map_eq_to_laurent, polynomial.to_laurent_inj, mul_X_pow_injective n h] }
+  end }
+
 end comm_semiring
--/
 
 end laurent_polynomial

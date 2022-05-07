@@ -392,7 +392,7 @@ begin
   classical,
   specialize hf (s.piecewise (λ _, i) (λ _, j)) _
     (is_stopping_time_piecewise_const hij hs)
-    (is_stopping_time_const j) (λ x, (ite_le_sup _ _ _).trans (max_eq_right hij).le)
+    (is_stopping_time_const 𝒢 j) (λ x, (ite_le_sup _ _ _).trans (max_eq_right hij).le)
     ⟨j, λ x, le_rfl⟩,
   rwa [stopped_value_const, stopped_value_piecewise_const,
     integral_piecewise (𝒢.le _ _ hs) (hint _).integrable_on (hint _).integrable_on,

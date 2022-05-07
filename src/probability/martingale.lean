@@ -43,30 +43,27 @@ namespace measure_theory
 variables {α E ι : Type*} [preorder ι]
   {m0 : measurable_space α} {μ : measure α}
   [normed_group E] [normed_space ℝ E] [complete_space E]
-  {f g : ι → α → E} {ℱ : filtration ι m0} [sigma_finite_filtration μ ℱ]
+  {f g : ι → α → E} {ℱ : filtration ι m0}
 
 /-- A family of functions `f : ι → α → E` is a martingale with respect to a filtration `ℱ` if `f`
 is adapted with respect to `ℱ` and for all `i ≤ j`, `μ[f j | ℱ i] =ᵐ[μ] f i`. -/
-def martingale (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α)
-  [sigma_finite_filtration μ ℱ] : Prop :=
+def martingale (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α) : Prop :=
 adapted ℱ f ∧ ∀ i j, i ≤ j → μ[f j | ℱ i] =ᵐ[μ] f i
 
 /-- A family of integrable functions `f : ι → α → E` is a supermartingale with respect to a
 filtration `ℱ` if `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
 `μ[f j | ℱ.le i] ≤ᵐ[μ] f i`. -/
-def supermartingale [has_le E] (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α)
-  [sigma_finite_filtration μ ℱ] : Prop :=
+def supermartingale [has_le E] (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α) : Prop :=
 adapted ℱ f ∧ (∀ i j, i ≤ j → μ[f j | ℱ i] ≤ᵐ[μ] f i) ∧ ∀ i, integrable (f i) μ
 
 /-- A family of integrable functions `f : ι → α → E` is a submartingale with respect to a
 filtration `ℱ` if `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
 `f i ≤ᵐ[μ] μ[f j | ℱ.le i]`. -/
-def submartingale [has_le E] (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α)
-  [sigma_finite_filtration μ ℱ] : Prop :=
+def submartingale [has_le E] (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α) : Prop :=
 adapted ℱ f ∧ (∀ i j, i ≤ j → f i ≤ᵐ[μ] μ[f j | ℱ i]) ∧ ∀ i, integrable (f i) μ
 
 variables (E)
-lemma martingale_zero (ℱ : filtration ι m0) (μ : measure α) [sigma_finite_filtration μ ℱ] :
+lemma martingale_zero (ℱ : filtration ι m0) (μ : measure α) :
   martingale (0 : ι → α → E) ℱ μ :=
 ⟨adapted_zero E ℱ, λ i j hij, by { rw [pi.zero_apply, condexp_zero], simp, }⟩
 variables {E}
@@ -88,8 +85,8 @@ hf.2 i j hij
 lemma integrable (hf : martingale f ℱ μ) (i : ι) : integrable (f i) μ :=
 integrable_condexp.congr (hf.condexp_ae_eq (le_refl i))
 
-lemma set_integral_eq (hf : martingale f ℱ μ) {i j : ι} (hij : i ≤ j) {s : set α}
-  (hs : measurable_set[ℱ i] s) :
+lemma set_integral_eq [sigma_finite_filtration μ ℱ] (hf : martingale f ℱ μ) {i j : ι} (hij : i ≤ j)
+  {s : set α} (hs : measurable_set[ℱ i] s) :
   ∫ x in s, f i x ∂μ = ∫ x in s, f j x ∂μ :=
 begin
   rw ← @set_integral_condexp _ _ _ _ _ (ℱ i) m0 _ _ _ (ℱ.le i) _ (hf.integrable j) hs,
@@ -152,7 +149,7 @@ lemma condexp_ae_le [has_le E] (hf : supermartingale f ℱ μ) {i j : ι} (hij :
   μ[f j | ℱ i] ≤ᵐ[μ] f i :=
 hf.2.1 i j hij
 
-lemma set_integral_le {f : ι → α → ℝ} (hf : supermartingale f ℱ μ)
+lemma set_integral_le [sigma_finite_filtration μ ℱ] {f : ι → α → ℝ} (hf : supermartingale f ℱ μ)
   {i j : ι} (hij : i ≤ j) {s : set α} (hs : measurable_set[ℱ i] s) :
   ∫ x in s, f j x ∂μ ≤ ∫ x in s, f i x ∂μ :=
 begin
@@ -226,7 +223,7 @@ begin
 end
 
 /-- The converse of this lemma is `measure_theory.submartingale_of_set_integral_le`. -/
-lemma set_integral_le {f : ι → α → ℝ} (hf : submartingale f ℱ μ)
+lemma set_integral_le [sigma_finite_filtration μ ℱ] {f : ι → α → ℝ} (hf : submartingale f ℱ μ)
   {i j : ι} (hij : i ≤ j) {s : set α} (hs : measurable_set[ℱ i] s) :
   ∫ x in s, f i x ∂μ ≤ ∫ x in s, f j x ∂μ :=
 begin

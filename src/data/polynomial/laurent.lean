@@ -379,7 +379,7 @@ lemma algebra_map_eq_to_laurent (f : R[X]) :
   @algebra_map R[X] R[T;T⁻¹] _ _ (algebra_polynomial R) f = f.to_laurent :=
 rfl
 
-def loca :
+lemma is_localization :
   @is_localization _ _ (submonoid.closure ({X} : set R[X])) R[T;T⁻¹] _ (algebra_polynomial R) :=
 { map_units := λ t, begin
     cases t with t ht,

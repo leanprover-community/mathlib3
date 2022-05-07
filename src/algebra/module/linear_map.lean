@@ -357,6 +357,18 @@ linear_map.ext $ λ x, rfl
 @[simp] theorem id_comp : id.comp f = f :=
 linear_map.ext $ λ x, rfl
 
+variables {f g} {f' : M₂ →ₛₗ[σ₂₃] M₃} {g' : M₁ →ₛₗ[σ₁₂] M₂}
+
+include σ₁₃
+theorem cancel_right (hg : function.surjective g) :
+  f.comp g = f'.comp g ↔ f = f' :=
+⟨λ h, ext $ hg.forall.2 (ext_iff.1 h), λ h, h ▸ rfl⟩
+
+theorem cancel_left (hf : function.injective f) :
+  f.comp g = f.comp g' ↔ g = g' :=
+⟨λ h, ext $ λ x, hf $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
+omit σ₁₃
+
 end
 
 variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₃]

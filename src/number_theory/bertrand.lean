@@ -78,7 +78,7 @@ padic_val_nat p (central_binom n)
 
 -- TODO very similar to padic_val_nat_central_binom_le in central.lean,
 -- we probably ought to move this there
-lemma pow_α_le_two_mul (p : nat) (hp : p.prime) (n : nat) (n_pos : 0 < n) :
+lemma pow_padic_val_nat_central_binom_le_two_mul {p n : nat} (hp : p.prime) (n_pos : 0 < n) :
   p ^ (padic_val_nat p (central_binom n)) ≤ 2 * n :=
 trans (pow_le_pow (le_of_lt (hp).one_lt) (padic_val_nat_central_binom_le (hp)))
   (pow_log_le_self (hp).one_lt (by linarith))
@@ -491,7 +491,7 @@ nat.central_binom n
           refine finset.prod_le_prod'' _,
           intros i hyp,
           simp only [finset.mem_filter, finset.mem_range] at hyp,
-          exact @pow_α_le_two_mul i (hyp.1.2) n (by linarith),
+          exact pow_padic_val_nat_central_binom_le_two_mul (hyp.1.2) (by linarith),
         end
 ... = (2 * n) ^ (((finset.range (2 * n / 3 + 1)).filter nat.prime).filter (≤ nat.sqrt (2 * n))).card
       *

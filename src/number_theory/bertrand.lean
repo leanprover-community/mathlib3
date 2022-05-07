@@ -9,6 +9,7 @@ import number_theory.padics.padic_norm
 import data.complex.exponential_bounds
 import number_theory.primorial
 import analysis.special_functions.pow
+import analysis.special_functions.log.monotone
 
 /-!
 # Bertrand's Postulate
@@ -220,6 +221,14 @@ begin
     ... = 19 * log 2 : @log_rpow 2 two_pos 19,
 end
 
+lemma exp_two_le_722 : exp 2 ≤ 722 :=
+calc exp 2 = (exp 1) ^ 2 : by rw [←exp_nat_mul 1 2]; simp
+  ... ≤ 2.7182818286 ^ 2 :
+      pow_le_pow_of_le_left (le_of_lt (exp_pos 1)) (le_of_lt exp_one_lt_d9) _
+  ... = 7.38905609969695977796 : by norm_num
+  ... ≤ 722 : by linarith
+
+
 -- This is best possible; it is false for x = 99.
 lemma inequality1 {x : ℝ} (n_large : 100 ≤ x) : log x / (x * log 4) ≤ 1/30 :=
 begin
@@ -284,76 +293,13 @@ begin
   ring_nf,
 end
 
-lemma exp_rpow (x a : ℝ) (hx : 0 < x) : (exp x) ^ a = exp (x * a) :=
-begin
-  exact (exp_mul x a).symm,
-end
-
--- I would like to move this and the below near log_div_self_antitone_on, but that file doesn't
--- know about rpow TODO
--- This could also be made into an antitone_on statemnt
-lemma log_div_self_rpow_antitone_on {x y a : ℝ} (ha : 0 < a) (hex : exp (1 / a) ≤ x) (hxy : x ≤ y) :
-  log y / y ^ a ≤ log x / x ^ a :=
-begin
-  have x_pos : 0 < x := lt_of_lt_of_le (exp_pos (1 / a)) hex,
-  have y_pos : 0 < y := by linarith,
-  have x_nonneg : 0 ≤ x := le_trans (le_of_lt (exp_pos (1 / a))) hex,
-  have y_nonneg : 0 ≤ y := by linarith,
-  nth_rewrite 0 ←rpow_one y,
-  nth_rewrite 0 ←rpow_one x,
-  rw ←div_self (ne_of_lt ha).symm,
-  rw div_eq_mul_one_div a a,
-  rw rpow_mul y_nonneg,
-  rw rpow_mul x_nonneg,
-  rw log_rpow (rpow_pos_of_pos y_pos a),
-  rw log_rpow (rpow_pos_of_pos x_pos a),
-  rw mul_div_assoc,
-  rw mul_div_assoc,
-  rw mul_le_mul_left (one_div_pos.mpr ha),
-  { refine log_div_self_antitone_on _ _ _,
-    { simp only [set.mem_set_of_eq],
-      convert rpow_le_rpow _ hex (le_of_lt ha),
-      rw ←exp_mul,
-      simp only [real.exp_eq_exp],
-      field_simp [(ne_of_lt ha).symm],
-      exact le_of_lt (exp_pos (1 / a)), },
-    { simp only [set.mem_set_of_eq],
-      convert rpow_le_rpow _ (trans hex hxy) (le_of_lt ha),
-      rw ←exp_mul,
-      simp only [real.exp_eq_exp],
-      field_simp [(ne_of_lt ha).symm],
-      exact le_of_lt (exp_pos (1 / a)), },
-    apply rpow_le_rpow,
-    exact x_nonneg,
-    exact hxy,
-    exact le_of_lt ha, },
-end
-
--- This could also be made into an antitone_on statemnt
-lemma log_div_sqrt_decreasing {x y : ℝ} (hex : exp 2 ≤ x) (hxy : x ≤ y) :
-  log y / sqrt y ≤ log x / sqrt x :=
-begin
-  rw sqrt_eq_rpow,
-  rw sqrt_eq_rpow,
-  apply log_div_self_rpow_antitone_on,
-  norm_num,
-  simp only [one_div, inv_inv],
-  assumption,
-  assumption,
-end
-
 -- This is best possible: it's false for x = 721.
 lemma inequality3 {x : ℝ} (n_large : 722 ≤ x) : sqrt 2 * sqrt x * log x / (x * log 4) ≤ 1/4 :=
 begin
   have x_pos : 0 < x := by linarith,
   rw [inequality3' x_pos],
   have bound : log x / sqrt x ≤ log 722 / sqrt 722,
-  { refine log_div_sqrt_decreasing _ n_large,
-    calc exp 2 = (exp 1) ^ 2 : by rw [←exp_nat_mul 1 2]; simp
-      ... ≤ 2.7182818286 ^ 2 :
-          pow_le_pow_of_le_left (le_of_lt (exp_pos 1)) (le_of_lt exp_one_lt_d9) _
-      ... = 7.38905609969695977796 : by norm_num
-      ... ≤ 722 : by linarith, },
+  { exact log_div_sqrt_antitone_on exp_two_le_722 (le_trans exp_two_le_722 n_large) n_large, },
   calc sqrt 2 / log 4 * log x / sqrt x
       = sqrt 2 / log 4 * (log x / sqrt x) : by rw mul_div_assoc
   ... ≤ sqrt 2 / log 4 * (log 722 / sqrt 722) :

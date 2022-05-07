@@ -354,9 +354,9 @@ noncomputable def mk_factor_order_iso_of_factor_dvd_equiv
       associates.mk_monoid_equiv_symm_dvd_iff_le]; exact hx⟩)),
     mk_le_mk_iff_dvd_iff.mpr (subtype.prop (d.symm ⟨mk_monoid_equiv.symm ↑l,_⟩)) ⟩,
   left_inv := λ ⟨l, hl⟩, by simp only [associates.mk_monoid_equiv_apply_symm_mk, subtype.coe_eta,
-    equiv.symm_apply_apply, subtype.coe_mk, associates.mk_monoid_equiv_apply_symm'],
+    equiv.symm_apply_apply, subtype.coe_mk, associates.mk_monoid_equiv_apply_symm],
   right_inv := λ ⟨l, hl⟩, by simp only [associates.mk_monoid_equiv_apply_symm_mk, subtype.coe_eta,
-    equiv.apply_symm_apply, subtype.coe_mk, associates.mk_monoid_equiv_apply_symm'],
+    equiv.apply_symm_apply, subtype.coe_mk, associates.mk_monoid_equiv_apply_symm],
   map_rel_iff' :=
     by rintros ⟨a, ha⟩ ⟨b, hb⟩ ; simp only [subtype.val_eq_coe, subtype.coe_mk,
     equiv.coe_fn_mk, subtype.mk_le_mk, associates.mk_le_mk_iff_dvd_iff, hd, subtype.coe_mk,

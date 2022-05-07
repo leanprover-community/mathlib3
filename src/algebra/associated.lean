@@ -642,14 +642,10 @@ lemma mk_monoid_equiv_apply {a : α} :
 
 @[simp]
 lemma mk_monoid_equiv_apply_symm {a : associates α} :
-  associates.mk_monoid_hom (associates.mk_monoid_equiv.symm a) = a :=
-mul_equiv.of_bijective_apply_symm_apply associates.mk_monoid_hom
-  ⟨associates.mk_injective, associates.mk_surjective⟩
-
-@[simp]
-lemma mk_monoid_equiv_apply_symm' {a : associates α} :
   associates.mk (associates.mk_monoid_equiv.symm a) = a :=
-by rw [← associates.mk_monoid_hom_apply, associates.mk_monoid_equiv_apply_symm]
+by simp only [←associates.mk_monoid_equiv_apply, mk_monoid_equiv,
+  mul_equiv.of_bijective_apply_symm_apply, mul_equiv.of_bijective_apply_symm,
+  mul_equiv.of_bijective_apply]
 
 @[simp]
 lemma mk_monoid_equiv_apply_symm_mk {a : α} :

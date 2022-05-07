@@ -811,21 +811,20 @@ begin
   apply le_antisymm,
   { refine (coe_le_iff.2 $ λ b hb, cSup_le hs $ λ a has, coe_le_coe.1 $ hb ▸ _),
     exact le_supr₂_of_le a has le_rfl },
-  { exact (supr_le $ λ a, supr_le $ λ ha, coe_le_coe.2 $ le_cSup hb ha) }
+  { exact supr₂_le (λ a ha, coe_le_coe.2 $ le_cSup hb ha) }
 end
 
 lemma coe_Inf {s : set α} (hs : s.nonempty) : (↑(Inf s) : with_top α) = ⨅ a ∈ s, ↑a :=
 begin
   obtain ⟨x, hx⟩ := hs,
-  have : (⨅ a ∈ s, ↑a : with_top α) ≤ x := (infi_le_of_le x (infi_le_of_le hx le_rfl)),
+  have : (⨅ a ∈ s, ↑a : with_top α) ≤ x := infi₂_le_of_le x hx le_rfl,
   rcases le_coe_iff.1 this with ⟨r, r_eq, hr⟩,
   refine le_antisymm
     (le_infi₂ $ λ a ha, coe_le_coe.2 $ cInf_le (order_bot.bdd_below s) ha) _,
   { rw r_eq,
     apply coe_le_coe.2 (le_cInf ⟨x, hx⟩ (λ a has, coe_le_coe.1 _)),
     rw ←r_eq,
-    apply @infi_le_of_le (with_top α) _ _,
-    exact infi_le_of_le has le_rfl }
+    exact infi₂_le_of_le a has le_rfl }
 end
 
 end with_top

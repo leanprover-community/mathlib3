@@ -151,7 +151,7 @@ each element. -/
 instance : has_neg (GL_pos n R) :=
 ⟨λ g, ⟨-g, begin
     rw [mem_GL_pos, general_linear_group.coe_det_apply, units.coe_neg, det_neg,
-      nat.neg_one_pow_of_even (fact.out (even (fintype.card n))), one_mul],
+      (fact.out $ even $ fintype.card n).neg_one_pow, one_mul],
     exact g.prop,
   end⟩⟩
 

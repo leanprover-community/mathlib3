@@ -57,10 +57,6 @@ instance mul_zero_class.to_opposite_smul_with_zero [mul_zero_class R] : smul_wit
   smul_zero := λ r, zero_mul _,
   zero_smul := mul_zero }
 
-instance add_monoid.to_smul_with_zero [add_monoid M] : smul_with_zero ℕ M :=
-{ smul_zero := nsmul_zero,
-  zero_smul := zero_nsmul }
-
 variables (R) {M} [has_zero R] [has_zero M] [smul_with_zero R M]
 
 @[simp] lemma zero_smul (m : M) : (0 : R) • m = 0 := smul_with_zero.zero_smul m
@@ -100,6 +96,14 @@ def smul_with_zero.comp_hom (f : zero_hom R' R) : smul_with_zero R' M :=
   zero_smul := λ m, by simp }
 
 end has_zero
+
+instance add_monoid.nat_smul_with_zero [add_monoid M] : smul_with_zero ℕ M :=
+{ smul_zero := nsmul_zero,
+  zero_smul := zero_nsmul }
+
+instance add_group.int_smul_with_zero [add_group M] : smul_with_zero ℤ M :=
+{ smul_zero := zsmul_zero,
+  zero_smul := zero_zsmul }
 
 section monoid_with_zero
 

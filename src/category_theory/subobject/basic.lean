@@ -6,6 +6,7 @@ Authors: Bhavik Mehta, Scott Morrison
 import category_theory.subobject.mono_over
 import category_theory.skeletal
 import tactic.elementwise
+import tactic.apply_fun
 
 /-!
 # Subobjects

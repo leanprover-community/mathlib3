@@ -150,7 +150,7 @@ begin
     refine ⟨V, H₁, _⟩,
     cases V, dsimp at H₂, subst H₂, exact hsV },
   { refine is_topological_basis_of_open_of_nhds _ _,
-    { rintros sU ⟨U, ⟨H₁, H₂⟩⟩, subst H₂, exact U.property },
+    { rintros sU ⟨U, ⟨H₁, rfl⟩⟩, exact U.property },
     { intros x sU hx hsU,
       rcases @h (⟨sU, hsU⟩ : opens α) x hx with ⟨V, hV, H⟩,
       exact ⟨V, ⟨V, hV, rfl⟩, H⟩ } }

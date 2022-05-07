@@ -24,11 +24,12 @@ In this file we define Galois extensions as extensions which are both separable 
 
 ## Main results
 
-- `fixing_subgroup_of_fixed_field` : If `E/F` is finite dimensional (but not necessarily Galois)
-  then `fixing_subgroup (fixed_field H) = H`
-- `fixed_field_of_fixing_subgroup`: If `E/F` is finite dimensional and Galois
+- `intermediate_field.fixing_subgroup_fixed_field` : If `E/F` is finite dimensional (but not
+  necessarily Galois) then `fixing_subgroup (fixed_field H) = H`
+- `intermediate_field.fixed_field_fixing_subgroup`: If `E/F` is finite dimensional and Galois
   then `fixed_field (fixing_subgroup K) = K`
-Together, these two result prove the Galois correspondence
+
+Together, these two results prove the Galois correspondence.
 
 - `is_galois.tfae` : Equivalent characterizations of a Galois extension of finite degree
 -/
@@ -250,7 +251,7 @@ by conv { to_rhs, rw [←fixed_field_fixing_subgroup K,
 
 /-- The Galois correspondence from intermediate fields to subgroups -/
 def intermediate_field_equiv_subgroup [finite_dimensional F E] [is_galois F E] :
-  intermediate_field F E ≃o order_dual (subgroup (E ≃ₐ[F] E)) :=
+  intermediate_field F E ≃o (subgroup (E ≃ₐ[F] E))ᵒᵈ :=
 { to_fun := intermediate_field.fixing_subgroup,
   inv_fun := intermediate_field.fixed_field,
   left_inv := λ K, fixed_field_fixing_subgroup K,

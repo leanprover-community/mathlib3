@@ -839,7 +839,7 @@ begin
   -- Now we apply `cSup_div_semiconj` and go back to `f₁` and `f₂`.
   refine ⟨⟨_, λ x y hxy, _, λ x, _⟩, cSup_div_semiconj F₂ F₁ (λ x, _)⟩;
     simp only [hF₁, hF₂, ← monoid_hom.map_inv, coe_mk],
-  { refine csupr_le_csupr (this y) (λ g, _),
+  { refine csupr_mono (this y) (λ g, _),
     exact mono _ (mono _ hxy) },
   { simp only [map_add_one],
     exact (map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const)

@@ -812,8 +812,6 @@ begin
       (hint n n.lt_succ_self) }
 end
 
-
-
 lemma integral_interval_sub_left (hab : interval_integrable f μ a b)
   (hac : interval_integrable f μ a c) :
   ∫ x in a..b, f x ∂μ - ∫ x in a..c, f x ∂μ = ∫ x in c..b, f x ∂μ :=

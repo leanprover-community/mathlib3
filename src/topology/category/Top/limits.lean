@@ -700,7 +700,7 @@ begin
   exact is_open_supr_iff
 end
 
-lemma coequalizer_is_open_iff (F : walking_parallel_pair.{max v u} ⥤ Top.{max v u})
+lemma coequalizer_is_open_iff (F : walking_parallel_pair.{u} ⥤ Top.{u})
   (U : set ((colimit F : _) : Type u)) :
   is_open U ↔ is_open (colimit.ι F walking_parallel_pair.one ⁻¹' U) :=
 begin

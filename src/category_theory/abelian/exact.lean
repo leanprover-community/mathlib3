@@ -360,13 +360,9 @@ instance preserves_product_of_preserves_kernels
     exact is_limit_map_cone_binary_fan_of_preserves_kernels F f g,
   end }
 
-/-
-Still not easy to prove this one..
-
 instance [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] :
   preserves_limits_of_shape (discrete walking_pair) F :=
-{ preserves_limit := λ p, by {  } }
--/
+{ preserves_limit := λ p, preserves_limit_of_iso_diagram F (diagram_iso_pair p).symm }
 
 /--
 A functor from preadditive category to an abelian category which preserves cokernels,
@@ -415,6 +411,10 @@ instance preserves_coproduct_of_preserves_cokernels
     intros Z f g,
     exact is_colimit_map_cocone_binary_cofan_of_preserves_cokernels F f g,
   end }
+
+instance [pres_cokernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] :
+  preserves_colimits_of_shape (discrete walking_pair) F :=
+{ preserves_colimit := λ p, preserves_colimit_of_iso_diagram F (diagram_iso_pair p).symm }
 
 end
 

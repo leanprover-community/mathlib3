@@ -24,12 +24,6 @@ This file proves properties of the central binomial coefficients (that is, `nat.
   coefficients.
 * `nat.four_pow_lt_mul_central_binom`: an exponential lower bound on the central binomial
   coefficient.
-* `nat.multiplicity_central_binom_le`: a logarithmic upper bound on the multiplicity of a prime in
-  the central binomial coefficient.
-* `nat.multiplicity_central_binom_of_large_le_one`: sufficiently large primes appear at most once
-  in the factorisation of the central binomial coefficient.
-* `nat.multiplicity_central_binom_of_large_eq_zero`: sufficiently large primes less than n do not
-  appear in the factorisation of the central binomial coefficient.
 -/
 
 open_locale big_operators
@@ -112,6 +106,26 @@ calc 4 ^ n ≤ n * central_binom n : (four_pow_lt_mul_central_binom _ le_add_sel
 
 variables {p n : ℕ}
 
+section padic_val_nat
+
+/-!
+## Arity of primes
+
+The `padic_val_nat` section describes a few results on the arity of primes within certain size
+bounds in the central binomial coeffcicient. These include:
+
+* `nat.multiplicity_central_binom_le`: a logarithmic upper bound on the multiplicity of a prime in
+  the central binomial coefficient.
+* `nat.multiplicity_central_binom_of_large_le_one`: Primes above `sqrt (2 * n)` appear at most once
+  in the factorisation of the `n`th central binomial coefficient.
+* `nat.prime_le_two_mul_of_padic_val_nat_central_binom_pos`: Primes from `2 * n / 3` to `n` appear
+  at most once in the factorization of the `n`th central binomial coefficient.
+* `nat.multiplicity_central_binom_of_large_eq_zero`: Primes greater than `2 * n` do not
+  appear in the factorisation of the `n`th central binomial coefficient.
+
+These results appear in the standard proof of Bertrand's postulate.
+-/
+
 /--
 A logarithmic upper bound on the multiplicity of a prime in the central binomial coefficient.
 -/
@@ -128,7 +142,16 @@ begin
 end
 
 /--
-Sufficiently large primes appear only to multiplicity 0 or 1 in the central binomial coefficient.
+A `pow` form of `nat.padic_val_nat_central_binom_le`
+-/
+lemma pow_padic_val_nat_central_binom_le_two_mul {p n : ℕ} (hp : p.prime) (n_pos : 0 < n) :
+  p ^ (padic_val_nat p (central_binom n)) ≤ 2 * n :=
+trans (pow_le_pow (le_of_lt (hp).one_lt) (padic_val_nat_central_binom_le (hp)))
+  (pow_log_le_self (hp).one_lt (by linarith))
+
+/--
+Primes greater than about `sqrt (2 * n)` appear only to multiplicity 0 or 1 in the central binomial
+coefficient.
 -/
 lemma padic_val_nat_central_binom_of_large_le_one (hp : p.prime) (p_large : 2 * n < p ^ 2) :
   (padic_val_nat p (central_binom n)) ≤ 1 :=
@@ -155,7 +178,8 @@ begin
 end
 
 /--
-Sufficiently large primes less than `n` do not appear in the factorisation of `central_binom n`.
+Primes greater than about `2 * n / 3` and less than `n` do not appear in the factorisation of
+`central_binom n`.
 -/
 lemma padic_val_nat_central_binom_of_large_eq_zero
   (hp : p.prime) (n_big : 2 < n) (p_le_n : p ≤ n) (big : 2 * n < 3 * p) :
@@ -206,24 +230,15 @@ begin
     exact zero_lt_one, },
 end
 
--- TODO very similar to padic_val_nat_central_binom_le in central.lean,
--- we probably ought to move this there
-lemma pow_padic_val_nat_central_binom_le_two_mul {p n : ℕ} (hp : p.prime) (n_pos : 0 < n) :
-  p ^ (padic_val_nat p (central_binom n)) ≤ 2 * n :=
-trans (pow_le_pow (le_of_lt (hp).one_lt) (padic_val_nat_central_binom_le (hp)))
-  (pow_log_le_self (hp).one_lt (by linarith))
-
--- No analogy in in central.lean, TODO can we move this there?
--- TODO generalize to any binomial coefficient, not just central ones, then prove this from that
--- more general theorem
 /--
 If a prime `p` has positive multiplicity i n the `n`th central binomial coefficient,
 `p` is no more than `2 * n`
 -/
-lemma multiplicity_implies_small (p : ℕ) (hp : p.prime) (n : ℕ)
+lemma prime_le_two_mul_of_padic_val_nat_central_binom_pos (p : ℕ) (hp : p.prime) (n : ℕ)
   (h_pos : 0 < padic_val_nat p (central_binom n)) : p ≤ 2 * n :=
 begin
-  -- unfold α at h_pos,
+  -- TODO generalize to any binomial coefficient, not just central ones, then prove this from that
+  -- more general theorem
   rw central_binom_eq_two_mul_choose at h_pos,
   rw @padic_val_nat_def p ⟨hp⟩ ((2 * n).choose n) (nat.pos_of_ne_zero (central_binom_ne_zero n)) at
     h_pos,
@@ -244,18 +259,6 @@ begin
     ... ≤ 2 * n : nat.mul_le_mul_left _ (mod_le n _),
 end
 
--- < works here too, but this is more golfed and either is loose anyway
-lemma two_n_div_3_le_central_binom (n : ℕ) : 2 * n / 3 ≤ central_binom n :=
-calc 2 * (n) / 3 ≤ 2 * (n)          : nat.div_le_self (2 * n) 3
-    ... = (2 * n).choose(1)         : by norm_num
-    ... ≤ (2 * n).choose(2 * n / 2) : choose_le_middle 1 (2 * (n))
-    ... = (2 * n).choose(n)         : by {congr, rw [nat.mul_div_right], norm_num, }
-
--- TODO aesthetically, I think this theorem would be better if the range was 2 * n + 1
-lemma central_binom_factorization (n : ℕ) :
-  ∏ p in finset.filter nat.prime (finset.range (central_binom n + 1)),
-    p ^ (padic_val_nat p (central_binom n))
-  = central_binom n :=
-  prod_pow_prime_padic_val_nat _ (central_binom_ne_zero n) _ (lt_add_one _)
+end padic_val_nat
 
 end nat

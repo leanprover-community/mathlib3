@@ -330,7 +330,7 @@ meta def nat.to_pexpr : ℕ → pexpr
 /--
 `int.to_pexpr n` creates a `pexpr` that will evaluate to `n`.
 The `pexpr` does not hold any typing information:
-`to_expr ``((%%(int.to_pexpr (-5)) : ℚ))` will create a native integer numeral `(-5 : ℚ)`.
+`to_expr ``((%%(int.to_pexpr (-5)) : ℚ))` will create a native `ℚ` numeral `(-5 : ℚ)`.
 -/
 meta def int.to_pexpr : ℤ → pexpr
 | (int.of_nat k) := k.to_pexpr

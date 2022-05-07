@@ -56,7 +56,7 @@ end
 /--
 `rat.to_pexpr q` creates a `pexpr` that will evaluate to `q`.
 The `pexpr` does not hold any typing information:
-`to_expr ``((%%(rat.to_pexpr (3/4)) : K))` will create a native integer numeral `(3/4 : K)`.
+`to_expr ``((%%(rat.to_pexpr (3/4)) : K))` will create a native `K` numeral `(3/4 : K)`.
 -/
 meta def rat.to_pexpr (q : ℚ) : pexpr :=
 let n := q.num,

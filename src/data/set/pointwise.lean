@@ -327,7 +327,7 @@ end
 | 1 := λ _, one_nsmul _
 | (n + 2) := λ _, by { rw [succ_nsmul, nsmul_univ n.succ_ne_zero, univ_add_univ] }
 
-@[simp] lemma univ_pow : ∀ {n : ℕ}, n ≠ 0 → (univ : set α) ^ n = univ
+@[simp, to_additive nsmul_univ] lemma univ_pow : ∀ {n : ℕ}, n ≠ 0 → (univ : set α) ^ n = univ
 | 0 := λ h, (h rfl).elim
 | 1 := λ _, pow_one _
 | (n + 2) := λ _, by { rw [pow_succ, univ_pow n.succ_ne_zero, univ_mul_univ] }
@@ -676,7 +676,7 @@ begin
     rw [singleton_mul_singleton, h, singleton_one] }
 end
 
---TODO: Generalize to division monoids (#13860)
+--TODO: Generalize to division monoids (#14000)
 @[to_additive] lemma is_unit_iff : is_unit s ↔ ∃ a, s = {a} ∧ is_unit a :=
 begin
   split,

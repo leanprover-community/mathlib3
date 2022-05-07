@@ -106,9 +106,6 @@ localized "attribute [instance] filter.has_mul filter.has_add" in pointwise
 @[to_additive] lemma mul_mem_mul : s ∈ f → t ∈ g → s * t ∈ f * g := image2_mem_map₂
 @[simp, to_additive] lemma bot_mul : ⊥ * g = ⊥ := map₂_bot_left
 @[simp, to_additive] lemma mul_bot : f * ⊥ = ⊥ := map₂_bot_right
-@[simp, to_additive] lemma pure_mul : pure a * g = g.map ((*) a)  := map₂_pure_left
-@[simp, to_additive] lemma mul_pure : f * pure b = f.map (* b)  := map₂_pure_right
-@[simp, to_additive] lemma pure_mul_pure : (pure a : filter α) * pure b = pure (a * b) := map₂_pure
 @[simp, to_additive] lemma mul_eq_bot_iff : f * g = ⊥ ↔ f = ⊥ ∨ g = ⊥ := map₂_eq_bot_iff
 @[simp, to_additive] lemma mul_ne_bot_iff : (f * g).ne_bot ↔ f.ne_bot ∧ g.ne_bot := map₂_ne_bot_iff
 @[to_additive] lemma ne_bot.mul : ne_bot f → ne_bot g → ne_bot (f * g) := ne_bot.map₂
@@ -261,9 +258,6 @@ localized "attribute [instance] filter.has_div filter.has_sub" in pointwise
 @[to_additive] lemma div_mem_div : s ∈ f → t ∈ g → s / t ∈ f / g := image2_mem_map₂
 @[simp, to_additive] lemma bot_div : ⊥ / g = ⊥ := map₂_bot_left
 @[simp, to_additive] lemma div_bot : f / ⊥ = ⊥ := map₂_bot_right
-@[simp, to_additive] lemma pure_div : pure a / g = g.map ((/) a)  := map₂_pure_left
-@[simp, to_additive] lemma div_pure : f / pure b = f.map (/ b)  := map₂_pure_right
-@[simp, to_additive] lemma pure_div_pure : (pure a : filter α) / pure b = pure (a / b) := map₂_pure
 @[simp, to_additive] lemma div_eq_bot_iff : f / g = ⊥ ↔ f = ⊥ ∨ g = ⊥ := map₂_eq_bot_iff
 @[simp, to_additive] lemma div_ne_bot_iff : (f / g).ne_bot ↔ f.ne_bot ∧ g.ne_bot := map₂_ne_bot_iff
 @[to_additive] lemma ne_bot.div : ne_bot f → ne_bot g → ne_bot (f / g) := ne_bot.map₂
@@ -353,7 +347,7 @@ begin
     rw [pure_mul_pure, h, pure_one] }
 end
 
---TODO: Generalize to division monoids (#13860)
+--TODO: Generalize to division monoids (#14000)
 @[simp, to_additive] lemma is_unit_iff : is_unit f ↔ ∃ a, f = pure a ∧ is_unit a :=
 begin
   split,
@@ -424,7 +418,6 @@ way to `set.image2 (•) t₁ t₂ ⊆ s`. -/
 ⟨λ f g, { sets := {s | ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ • t₂ ⊆ s}, ..map₂ (•) f g }⟩
 
 localized "attribute [instance] filter.has_scalar filter.has_vadd" in pointwise
-@[to_additive filter.has_vadd] instance : has_scalar (filter α) (filter β) :=
 
 @[simp, to_additive] lemma map₂_smul : map₂ (•) f g = f • g := rfl
 @[to_additive] lemma mem_smul : t ∈ f • g ↔ ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ • t₂ ⊆ t := iff.rfl

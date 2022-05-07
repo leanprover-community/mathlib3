@@ -154,10 +154,11 @@ nat_degree_pos_iff_degree_pos.mp (nat_degree_pos hx)
 
 /-- If `B/A` is an injective ring extension, and `a` is an element of `A`,
 then the minimal polynomial of `algebra_map A B a` is `X - C a`. -/
-lemma eq_X_sub_C_of_algebra_map_inj [nontrivial A]
+lemma eq_X_sub_C_of_algebra_map_inj
   (a : A) (hf : function.injective (algebra_map A B)) :
   minpoly A (algebra_map A B a) = X - C a :=
 begin
+  nontriviality A,
   have hdegle : (minpoly A (algebra_map A B a)).nat_degree ≤ 1,
   { apply with_bot.coe_le_coe.1,
     rw [←degree_eq_nat_degree (ne_zero (@is_integral_algebra_map A B _ _ _ a)),

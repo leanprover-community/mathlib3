@@ -106,6 +106,54 @@ begin
     smul_right_inj hb.ne'] using (h _ _ H).norm_smul_eq.symm
 end
 
+lemma strict_convex_space.of_norm_add_lt_aux {a b c d : ℝ} (ha : 0 < a) (hab : a + b = 1)
+  (hc : 0 < c) (hd : 0 < d) (hcd : c + d = 1) (hca : c ≤ a) {x y : E} (hy : ∥y∥ ≤ 1)
+  (hxy : ∥a • x + b • y∥ < 1) :
+  ∥c • x + d • y∥ < 1 :=
+begin
+  have hbd : b ≤ d,
+  { refine le_of_add_le_add_left (hab.trans_le _),
+    rw ←hcd,
+    exact add_le_add_right hca _ },
+  have h₁ : 0 < c / a := div_pos hc ha,
+  have h₂ : 0 ≤ d - c / a * b,
+  { rw [sub_nonneg, mul_comm_div', ←le_div_iff' hc],
+    exact div_le_div hd.le hbd hc hca },
+  calc ∥c • x + d • y∥ = ∥(c / a) • (a • x + b • y) + (d - c / a * b) • y∥
+        : by rw [smul_add, ←mul_smul, ←mul_smul, div_mul_cancel _ ha.ne', sub_smul,
+            add_add_sub_cancel]
+    ... ≤ ∥(c / a) • (a • x + b • y)∥ + ∥(d - c / a * b) • y∥ : norm_add_le _ _
+    ... = c / a * ∥a • x + b • y∥ + (d - c / a * b) * ∥y∥
+        : by rw [norm_smul_of_nonneg h₁.le, norm_smul_of_nonneg h₂]
+    ... < c / a * 1 + (d - c / a * b) * 1
+        : add_lt_add_of_lt_of_le (mul_lt_mul_of_pos_left hxy h₁) (mul_le_mul_of_nonneg_left hy h₂)
+    ... = 1 : begin
+      nth_rewrite 0 ←hab,
+      rw [mul_add, div_mul_cancel _ ha.ne', mul_one, add_add_sub_cancel, hcd],
+    end,
+end
+
+/-- Strict convexity is equivalent to `∥a • x + b • y∥ < 1` for all `x` and `y` of norm at most `1`
+and all strictly positive `a` and `b` such that `a + b = 1`. This shows that we only need to check
+it for fixed `a` and `b`. -/
+lemma strict_convex_space.of_norm_add_lt {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1)
+  (h : ∀ x y : E, ∥x∥ ≤ 1 → ∥y∥ ≤ 1 → x ≠ y → ∥a • x + b • y∥ < 1) :
+  strict_convex_space ℝ E :=
+begin
+  refine strict_convex_space.of_strict_convex_closed_unit_ball _ (λ x hx y hy hxy c d hc hd hcd, _),
+  rw [interior_closed_ball (0 : E) one_ne_zero, mem_ball_zero_iff],
+  rw mem_closed_ball_zero_iff at hx hy,
+  obtain hca | hac := le_total c a,
+  { exact strict_convex_space.of_norm_add_lt_aux ha hab hc hd hcd hca hy (h _ _ hx hy hxy) },
+  rw add_comm at ⊢ hab hcd,
+  refine strict_convex_space.of_norm_add_lt_aux hb hab hd hc hcd _ hx _,
+  { refine le_of_add_le_add_right (hcd.trans_le _),
+    rw ←hab,
+    exact add_le_add_left hac _ },
+  { rw add_comm,
+    exact h _ _ hx hy hxy }
+end
+
 variables [strict_convex_space ℝ E] {x y z : E} {a b r : ℝ}
 
 /-- If `x ≠ y` belong to the same closed ball, then a convex combination of `x` and `y` with
@@ -151,6 +199,19 @@ begin
     real.norm_of_nonneg (inv_pos.2 hxy).le, ← div_eq_inv_mul, div_lt_one hxy] at this
 end
 
+lemma lt_norm_sub_of_not_same_ray (h : ¬same_ray ℝ x y) : ∥x∥ - ∥y∥ < ∥x - y∥ :=
+begin
+  nth_rewrite 0 ←sub_add_cancel x y at ⊢ h,
+  exact sub_lt_iff_lt_add.2 (norm_add_lt_of_not_same_ray $ λ H', h $ H'.add_left same_ray.rfl),
+end
+
+lemma abs_lt_norm_sub_of_not_same_ray (h : ¬same_ray ℝ x y) : |∥x∥ - ∥y∥| < ∥x - y∥ :=
+begin
+  refine abs_sub_lt_iff.2 ⟨lt_norm_sub_of_not_same_ray h, _⟩,
+  rw norm_sub_rev,
+  exact lt_norm_sub_of_not_same_ray (mt same_ray.symm h),
+end
+
 /-- In a strictly convex space, two vectors `x`, `y` are in the same ray if and only if the triangle
 inequality for `x` and `y` becomes an equality. -/
 lemma same_ray_iff_norm_add : same_ray ℝ x y ↔ ∥x + y∥ = ∥x∥ + ∥y∥ :=
@@ -160,6 +221,12 @@ lemma same_ray_iff_norm_add : same_ray ℝ x y ↔ ∥x + y∥ = ∥x∥ + ∥y�
 triangle inequality for `x` and `y` is strict. -/
 lemma not_same_ray_iff_norm_add_lt : ¬ same_ray ℝ x y ↔ ∥x + y∥ < ∥x∥ + ∥y∥ :=
 same_ray_iff_norm_add.not.trans (norm_add_le _ _).lt_iff_ne.symm
+
+lemma same_ray_iff_norm_sub : same_ray ℝ x y ↔ ∥x - y∥ = |∥x∥ - ∥y∥| :=
+⟨same_ray.norm_sub, λ h, not_not.1 $ λ h', (abs_lt_norm_sub_of_not_same_ray h').ne' h⟩
+
+lemma not_same_ray_iff_abs_lt_norm_sub : ¬ same_ray ℝ x y ↔ |∥x∥ - ∥y∥| < ∥x - y∥ :=
+same_ray_iff_norm_sub.not.trans $ ne_comm.trans (abs_norm_sub_norm_le _ _).lt_iff_ne.symm
 
 /-- In a strictly convex space, the triangle inequality turns into an equality if and only if the
 middle point belongs to the segment joining two other points. -/

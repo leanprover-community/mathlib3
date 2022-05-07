@@ -86,8 +86,7 @@ namespace SemiNormedGroup
 section equalizers_and_kernels
 
 /-- The equalizer cone for a parallel pair of morphisms of seminormed groups. -/
-def parallel_pair_cone {V W : SemiNormedGroup.{u}} (f g : V ⟶ W) :
-  cone (parallel_pair f g) :=
+def fork {V W : SemiNormedGroup.{u}} (f g : V ⟶ W) : fork f g :=
 @fork.of_ι _ _ _ _ _ _ (of (f - g).ker) (normed_group_hom.incl (f - g).ker) $
 begin
   ext v,
@@ -100,7 +99,7 @@ end
 instance has_limit_parallel_pair {V W : SemiNormedGroup.{u}} (f g : V ⟶ W) :
   has_limit (parallel_pair f g) :=
 { exists_limit := nonempty.intro
-  { cone := parallel_pair_cone f g,
+  { cone := fork f g,
     is_limit := fork.is_limit.mk _
       (λ c, normed_group_hom.ker.lift (fork.ι c) _ $
       show normed_group_hom.comp_hom (f - g) c.ι = 0,
@@ -297,7 +296,7 @@ def explicit_cokernel_iso {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :
 @[simp]
 lemma explicit_cokernel_iso_hom_π {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :
   explicit_cokernel_π f ≫ (explicit_cokernel_iso f).hom = cokernel.π _ :=
-by simp [explicit_cokernel_π, explicit_cokernel_iso]
+by simp [explicit_cokernel_π, explicit_cokernel_iso, is_colimit.cocone_point_unique_up_to_iso]
 
 @[simp]
 lemma explicit_cokernel_iso_inv_π {X Y : SemiNormedGroup.{u}} (f : X ⟶ Y) :
@@ -310,7 +309,8 @@ lemma explicit_cokernel_iso_hom_desc {X Y Z : SemiNormedGroup.{u}} {f : X ⟶ Y}
   (explicit_cokernel_iso f).hom ≫ cokernel.desc f g w = explicit_cokernel_desc w :=
 begin
   ext1,
-  simp [explicit_cokernel_desc, explicit_cokernel_π, explicit_cokernel_iso],
+  simp [explicit_cokernel_desc, explicit_cokernel_π, explicit_cokernel_iso,
+    is_colimit.cocone_point_unique_up_to_iso],
 end
 
 /-- A special case of `category_theory.limits.cokernel.map` adapted to `explicit_cokernel`. -/

@@ -53,13 +53,11 @@ by simp [is_square, pow_two]
 
 alias is_square_iff_exists_sq ↔ is_square.exists_sq is_square_of_exists_sq
 
-attribute [to_additive even.exists_two_nsmul] is_square.exists_sq
-/-- Alias of the forwards direction of `even_iff_exists_two_nsmul`. -/
-add_decl_doc even.exists_two_nsmul
+attribute [to_additive even.exists_two_nsmul "Alias of the forwards direction of
+`even_iff_exists_two_nsmul`."] is_square.exists_sq
 
-attribute [to_additive even_of_exists_two_nsmul] is_square_of_exists_sq
-/-- Alias of the backwards direction of `even_iff_exists_two_nsmul`. -/
-add_decl_doc even_of_exists_two_nsmul
+attribute [to_additive even_of_exists_two_nsmul "Alias of the backwards direction of
+`even_iff_exists_two_nsmul`."] is_square_of_exists_sq
 
 @[simp, to_additive]
 lemma is_square_one [mul_one_class α] : is_square (1 : α) := ⟨1, (mul_one _).symm⟩

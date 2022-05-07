@@ -145,7 +145,7 @@ end
 A `pow` form of `nat.padic_val_nat_central_binom_le`
 -/
 lemma pow_padic_val_nat_central_binom_le_two_mul {p n : ℕ} (hp : p.prime) (n_pos : 0 < n) :
-  p ^ (padic_val_nat p (central_binom n)) ≤ 2 * n :=
+  p ^ padic_val_nat p (central_binom n) ≤ 2 * n :=
 trans (pow_le_pow (le_of_lt (hp).one_lt) (padic_val_nat_central_binom_le (hp)))
   (pow_log_le_self (hp).one_lt (by linarith))
 

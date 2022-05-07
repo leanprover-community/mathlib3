@@ -1238,6 +1238,33 @@ theorem metric.cauchy_seq_iff' {u : β → α} :
   cauchy_seq u ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) (u N) < ε :=
 uniformity_basis_dist.cauchy_seq_iff'
 
+/-- In a pseudometric space, unifom Cauchy sequences are characterized by the fact that, eventually,
+the distance between all its elements is uniformly, arbitrarily small -/
+def metric.uniform_cauchy_seq_on_iff [pseudo_metric_space β]
+  {F : ℕ → ℕ → β} {s : set ℕ} :
+  uniform_cauchy_seq_on F at_top s ↔
+    ∀ ε : ℝ, ε > 0 → ∃ (N : ℕ), ∀ m : ℕ, m ≥ N → ∀ n : ℕ, n ≥ N → ∀ x : ℕ, x ∈ s →
+    dist (F m x) (F n x) < ε :=
+begin
+  split,
+  { intros h ε hε,
+    let u := { a : β × β | dist a.fst a.snd < ε },
+    have hu : u ∈ 𝓤 β := metric.mem_uniformity_dist.mpr ⟨ε, hε, (λ a b, by simp)⟩,
+    rw ←@filter.eventually_at_top_prod_self' _ _ _
+      (λ m, ∀ x : ℕ, x ∈ s → dist (F m.fst x) (F m.snd x) < ε),
+    specialize h u hu,
+    rw prod_at_top_at_top_eq at h,
+    exact h.mono (λ n h x hx, set.mem_set_of_eq.mp (h x hx)), },
+  { intros h u hu,
+    rcases (metric.mem_uniformity_dist.mp hu) with ⟨ε, hε, hab⟩,
+    rcases h ε hε with ⟨N, hN⟩,
+    rw [prod_at_top_at_top_eq, eventually_at_top],
+    use (N, N),
+    intros b hb x hx,
+    rcases hb with ⟨hbl, hbr⟩,
+    exact hab (hN b.fst hbl.ge b.snd hbr.ge x hx), },
+end
+
 /-- If the distance between `s n` and `s m`, `n ≤ m` is bounded above by `b n`
 and `b` converges to zero, then `s` is a Cauchy sequence.  -/
 lemma cauchy_seq_of_le_tendsto_0' {s : β → α} (b : β → ℝ)

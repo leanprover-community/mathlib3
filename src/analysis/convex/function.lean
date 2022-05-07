@@ -738,7 +738,7 @@ lemma convex_on.sub (hf : convex_on 𝕜 s f) (hg : concave_on 𝕜 s g) : conve
 lemma concave_on.sub (hf : concave_on 𝕜 s f) (hg : convex_on 𝕜 s g) : concave_on 𝕜 s (f - g) :=
 (sub_eq_add_neg f g).symm ▸ hf.add hg.neg
 
-lemma strict_convex_on.sub (hf : strict_convex_on 𝕜 s f) (hg : strict_concave_on 𝕜 s g)
+lemma strict_convex_on.sub (hf : strict_convex_on 𝕜 s f) (hg : strict_concave_on 𝕜 s g) :
   strict_convex_on 𝕜 s (f - g) :=
 (sub_eq_add_neg f g).symm ▸ hf.add hg.neg
 

@@ -455,7 +455,7 @@ begin
     exact forall_congr (λ a, h) },
 end
 
-lemma realize_restrict_free_var [decidable_eq α] {n : ℕ} {φ : L.bounded_formula α n}
+@[simp] lemma realize_restrict_free_var [decidable_eq α] {n : ℕ} {φ : L.bounded_formula α n}
   {s : set α} (h : ↑φ.free_var_finset ⊆ s) {v : α → M} {xs : fin n → M} :
   (φ.restrict_free_var (set.inclusion h)).realize (v ∘ coe) xs ↔
     φ.realize v xs :=

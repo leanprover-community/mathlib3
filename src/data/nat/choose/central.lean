@@ -234,7 +234,7 @@ end
 If a prime `p` has positive multiplicity i n the `n`th central binomial coefficient,
 `p` is no more than `2 * n`
 -/
-lemma prime_le_two_mul_of_padic_val_nat_central_binom_pos (p : ℕ) (hp : p.prime) (n : ℕ)
+lemma prime_le_two_mul_of_padic_val_nat_central_binom_pos (hp : p.prime)
   (h_pos : 0 < padic_val_nat p (central_binom n)) : p ≤ 2 * n :=
 begin
   -- TODO generalize to any binomial coefficient, not just central ones, then prove this from that

@@ -232,9 +232,9 @@ The forgetful functor from commutative groups to commutative monoids preserves a
 in the category of commutative monoids.)
 -/
 @[to_additive AddCommGroup.forget₂_AddCommMon_preserves_limits
-"The forgetful functor from additive commutative groups to additive commutative monoids preserves all limits.
-(That is, the underlying additive commutative monoids could have been computed instead as limits
-in the category of additive commutative monoids.)"]
+"The forgetful functor from additive commutative groups to additive commutative monoids preserves
+all limits. (That is, the underlying additive commutative monoids could have been computed instead
+as limits in the category of additive commutative monoids.)"]
 instance forget₂_CommMon_preserves_limits_of_size :
   preserves_limits_of_size.{v v} (forget₂ CommGroup CommMon.{max v u}) :=
 { preserves_limits_of_shape := λ J 𝒥, by exactI
@@ -246,8 +246,8 @@ The forgetful functor from commutative groups to types preserves all limits. (Th
 underlying types could have been computed instead as limits in the category of types.)
 -/
 @[to_additive AddCommGroup.forget_preserves_limits
-"The forgetful functor from additive commutative groups to types preserves all limits. (That is, the
-underlying types could have been computed instead as limits in the category of types.)"]
+"The forgetful functor from additive commutative groups to types preserves all limits. (That is,
+the underlying types could have been computed instead as limits in the category of types.)"]
 instance forget_preserves_limits_of_size :
   preserves_limits_of_size.{v v} (forget CommGroup.{max v u}) :=
 { preserves_limits_of_shape := λ J 𝒥, by exactI

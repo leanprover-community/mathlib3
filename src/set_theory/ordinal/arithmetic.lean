@@ -1192,6 +1192,10 @@ by rw [bsup_eq_sup', bsup_eq_sup']
 @[simp] theorem bsup_eq_sup {ι} (f : ι → ordinal) : bsup _ (bfamily_of_family f) = sup f :=
 bsup_eq_sup' _ f
 
+@[congr] lemma bsup_congr {o₁ o₂ : ordinal} (f : Π a < o₁, ordinal) (ho : o₁ = o₂) :
+  bsup o₁ f = bsup o₂ (λ a h, f a (h.trans_eq ho.symm)) :=
+by subst ho
+
 theorem bsup_le_iff {o f a} : bsup.{u v} o f ≤ a ↔ ∀ i h, f i h ≤ a :=
 sup_le_iff.trans ⟨λ h i hi, by { rw ←family_of_bfamily_enum o f, exact h _ }, λ h i, h _ _⟩
 
@@ -1232,18 +1236,14 @@ theorem lt_bsup_of_limit {o : ordinal} {f : Π a < o, ordinal}
   (ho : ∀ a < o, succ a < o) (i h) : f i h < bsup o f :=
 (hf _ _ $ lt_succ_self i).trans_le (le_bsup f i.succ $ ho _ h)
 
-theorem bsup_zero {o : ordinal} (ho : o = 0) (f : Π a < o, ordinal) : bsup o f = 0 :=
-bsup_eq_zero_iff.2 (λ i hi, by { subst ho, exact (ordinal.not_lt_zero i hi).elim })
+@[simp] theorem bsup_zero (f : Π a < (0 : ordinal), ordinal) : bsup 0 f = 0 :=
+bsup_eq_zero_iff.2 (λ i hi, (ordinal.not_lt_zero i hi).elim)
 
 theorem bsup_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : bsup o (λ _ _, a) = a :=
 le_antisymm (bsup_le (λ _ _, le_rfl)) (le_bsup _ 0 (ordinal.pos_iff_ne_zero.2 ho))
 
-theorem bsup_unique {o : ordinal} (ho : o = 1) (f : Π a < o, ordinal) :
-  bsup o f = f 0 (by convert zero_lt_one) :=
-begin
-  subst ho,
-  simp_rw [←sup_eq_bsup, sup_unique, family_of_bfamily, family_of_bfamily', typein_lt_one_out]
-end
+@[simp] theorem bsup_one (f : Π a < (1 : ordinal), ordinal) : bsup 1 f = f 0 zero_lt_one :=
+by simp_rw [←sup_eq_bsup, sup_unique, family_of_bfamily, family_of_bfamily', typein_lt_one_out]
 
 theorem bsup_le_of_brange_subset {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
   (h : brange o f ⊆ brange o' g) : bsup.{u (max v w)} o f ≤ bsup.{v (max u w)} o' g :=
@@ -1412,6 +1412,10 @@ by rw [blsub_eq_lsub', blsub_eq_lsub']
 @[simp] theorem blsub_eq_lsub {ι} (f : ι → ordinal) : blsub _ (bfamily_of_family f) = lsub f :=
 blsub_eq_lsub' _ _
 
+@[congr] lemma blsub_congr {o₁ o₂ : ordinal} (f : Π a < o₁, ordinal) (ho : o₁ = o₂) :
+  blsub o₁ f = blsub o₂ (λ a h, f a (h.trans_eq ho.symm)) :=
+by subst ho
+
 theorem blsub_le_iff {o f a} : blsub o f ≤ a ↔ ∀ i h, f i h < a :=
 by { convert bsup_le_iff, apply propext, simp [succ_le] }
 
@@ -1468,7 +1472,7 @@ end
 @[simp] theorem blsub_eq_zero_iff {o} {f : Π a < o, ordinal} : blsub o f = 0 ↔ o = 0 :=
 by { rw [←lsub_eq_blsub, lsub_eq_zero_iff], exact out_empty_iff_eq_zero }
 
-lemma blsub_zero {o : ordinal} (ho : o = 0) (f : Π a < o, ordinal) : blsub o f = 0 :=
+@[simp] lemma blsub_zero (f : Π a < (0 : ordinal), ordinal) : blsub 0 f = 0 :=
 by rwa blsub_eq_zero_iff
 
 lemma blsub_pos {o : ordinal} (ho : 0 < o) (f : Π a < o, ordinal) : 0 < blsub o f :=
@@ -1483,9 +1487,8 @@ by rw [blsub_le_iff, lsub_le_iff]; exact
 theorem blsub_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : blsub.{u v} o (λ _ _, a) = a.succ :=
 bsup_const.{u v} ho a.succ
 
-theorem blsub_unique {o : ordinal} (ho : o = 1) (f : Π a < o, ordinal) :
-  blsub o f = (f 0 (by convert zero_lt_one)).succ :=
-bsup_unique ho _
+@[simp] theorem blsub_one (f : Π a < (1 : ordinal), ordinal) : blsub 1 f = (f 0 zero_lt_one).succ :=
+bsup_one _
 
 @[simp] theorem blsub_id : ∀ o, blsub.{u u} o (λ x _, x) = o :=
 lsub_typein

@@ -54,10 +54,6 @@ begin
   apply_instance
 end
 
-instance metrizable_space.subtype {α : Type*} [topological_space α] [metrizable_space α]
-  (s : set α) : metrizable_space s :=
-by { letI := metrizable_space_metric α, apply_instance }
-
 /-- Given an embedding of a topological space into a metrizable space, the source space is also
 metrizable. -/
 lemma _root_.embedding.metrizable_space {α β : Type*} [topological_space α] [topological_space β]
@@ -67,6 +63,10 @@ begin
   letI : metric_space β := metrizable_space_metric β,
   exact ⟨⟨hf.comap_metric_space f, rfl⟩⟩
 end
+
+instance metrizable_space.subtype {α : Type*} [topological_space α] [metrizable_space α]
+  (s : set α) : metrizable_space s :=
+embedding_subtype_coe.metrizable_space
 
 variables (X : Type*) [topological_space X] [normal_space X] [second_countable_topology X]
 

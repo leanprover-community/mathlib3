@@ -21,7 +21,7 @@ filters and the topology. In particular, we
   basis (in particular metric spaces).
 -/
 
-open set function filter bornology
+open set function filter bornology topological_space
 open_locale topological_space filter
 
 variables {α : Type*} {β : Type*}
@@ -59,12 +59,69 @@ subset.antisymm (λ p ⟨x, hx, hp⟩, hs hx hp) subset_seq_closure
 protected lemma is_closed.is_seq_closed {s : set α} (hc : is_closed s) : is_seq_closed s :=
 λ u x hu hx, hc.mem_of_tendsto hx (eventually_of_forall hu)
 
+/-- A topological space is called a *Fréchet-Urysohn space*, if the sequential closure of any set
+is equal to its closure. -/
+class frechet_urysohn_space (α : Type*) [topological_space α] : Prop :=
+(closure_subset_seq_closure : ∀ s : set α, closure s ⊆ seq_closure s)
+
+lemma seq_closure_eq_closure [frechet_urysohn_space α] (s : set α) :
+  seq_closure s = closure s :=
+seq_closure_subset_closure.antisymm $ frechet_urysohn_space.closure_subset_seq_closure s
+
+/-- If the domain of a function `f : α → β` is a Fréchet-Urysohn space, then convergence
+is equivalent to sequential convergence. See also `filter.tendsto_iff_seq_tendsto` for a version
+that works for any pair of filters assuming that the filter in the domain is countably generated.
+
+This property is equivalent to the definition of `frechet_urysohn_space`, see
+`frechet_urysohn_space.of_seq_tendsto_imp_tendsto`. -/
+lemma tendsto_nhds_iff_seq_tendsto [frechet_urysohn_space α] {f : α → β} {a : α} {b : β} :
+  tendsto f (𝓝 a) (𝓝 b) ↔ ∀ u : ℕ → α, (u ⟶ a) → (f ∘ u ⟶ b) :=
+begin
+  refine ⟨λ hf u hu, hf.comp hu,
+    λ h, ((nhds_basis_closeds _).tendsto_iff (nhds_basis_closeds _)).2 _⟩,
+  rintro s ⟨hbs, hsc⟩,
+  refine ⟨closure (f ⁻¹' s), ⟨mt _ hbs, is_closed_closure⟩, λ x, mt $ λ hx, subset_closure hx⟩,
+  rw [← seq_closure_eq_closure],
+  rintro ⟨u, hus, hu⟩,
+  exact hsc.mem_of_tendsto (h u hu) (eventually_of_forall hus)
+end
+
+/-- An alternative construction for `frechet_urysohn_space`: if sequential convergence implies
+convergence, then the space is a Fréchet-Urysohn space. -/
+lemma frechet_urysohn_space.of_seq_tendsto_imp_tendsto
+  (h : ∀ (f : α → Prop) (a : α), (∀ u : ℕ → α, (u ⟶ a) → (f ∘ u ⟶ f a)) → continuous_at f a) :
+  frechet_urysohn_space α :=
+begin
+  refine ⟨λ s x hcx, _⟩,
+  specialize h (∉ s) x,
+  by_cases hx : x ∈ s, { exact subset_seq_closure hx },
+  simp_rw [(∘), continuous_at, hx, not_false_iff, nhds_true, tendsto_pure, eq_true,
+    ← mem_compl_iff, eventually_mem_set, ← mem_interior_iff_mem_nhds, interior_compl] at h,
+  rw [mem_compl_iff, imp_not_comm] at h,
+  simp only [not_forall, not_eventually, mem_compl_iff, not_not] at h,
+  rcases h hcx with ⟨u, hux, hus⟩,
+  rcases extraction_of_frequently_at_top hus with ⟨φ, φ_mono, hφ⟩,
+  exact ⟨u ∘ φ, hφ, hux.comp φ_mono.tendsto_at_top⟩
+end
+
+/-- Every first-countable space is a Fréchet-Urysohn space. -/
+@[priority 100] -- see Note [lower instance priority]
+instance topological_space.first_countable_topology.frechet_urysohn_space
+  [first_countable_topology α] : frechet_urysohn_space α :=
+frechet_urysohn_space.of_seq_tendsto_imp_tendsto $ λ f a, tendsto_iff_seq_tendsto.2
+
 /-- A sequential space is a space in which 'sequences are enough to probe the topology'. This can be
  formalised by demanding that the sequential closure and the closure coincide. The following
  statements show that other topological properties can be deduced from sequences in sequential
  spaces. -/
 class sequential_space (α : Type*) [topological_space α] : Prop :=
 (is_closed_of_seq : ∀ s : set α, is_seq_closed s → is_closed s)
+
+/-- Every Fréchet-Urysohn space is a sequential space. -/
+@[priority 100] -- see Note [lower instance priority]
+instance frechet_urysohn_space.to_sequential_space [frechet_urysohn_space α] :
+  sequential_space α :=
+⟨λ s hs, by rw [← closure_eq_iff_is_closed, ← seq_closure_eq_closure, hs.seq_closure_eq]⟩
 
 /-- In a sequential space, a sequentially closed set is closed. -/
 protected lemma is_seq_closed.is_closed [sequential_space α] {s : set α} (hs : is_seq_closed s) :
@@ -75,21 +132,6 @@ sequential_space.is_closed_of_seq s hs
 lemma is_seq_closed_iff_is_closed [sequential_space α] {M : set α} :
   is_seq_closed M ↔ is_closed M :=
 ⟨is_seq_closed.is_closed, is_closed.is_seq_closed⟩
-
-/-
-TODO: add Fréchet-Urysohn spaces and this lemma?
-lemma tendsto_nhds_iff_seq_tendsto [frechet_urysohn_space α] {f : α → β} {a : α} {b : β} :
-  tendsto f (𝓝 a) (𝓝 b) ↔ ∀ u : ℕ → α, (u ⟶ a) → (f ∘ u ⟶ b) :=
-begin
-  refine ⟨λ hf u hu, hf.comp hu,
-    λ h, ((nhds_basis_closeds _).tendsto_iff (nhds_basis_closeds _)).2 _⟩,
-  rintro s ⟨hbs, hsc⟩,
-  refine ⟨closure (f ⁻¹' s), ⟨mt _ hbs, is_closed_closure⟩, λ x, mt $ λ hx, subset_closure hx⟩,
-  rw [← sequential_space.sequential_closure_eq_closure],
-  rintro ⟨u, hus, hu⟩,
-  exact hsc.mem_of_tendsto (h u hu) (eventually_of_forall hus)
-end
--/
 
 /-- A function between topological spaces is sequentially continuous if it commutes with limit of
  convergent sequences. -/
@@ -119,36 +161,13 @@ lemma continuous_iff_seq_continuous [sequential_space α] {f : α → β} :
   continuous f ↔ seq_continuous f :=
 ⟨continuous.seq_continuous, seq_continuous.continuous⟩
 
-end topological_space
+lemma quotient_map.sequential_space [sequential_space α] {f : α → β} (hf : quotient_map f) :
+  sequential_space β :=
+⟨λ s hs, hf.is_closed_preimage.mp $ (hs.preimage $ hf.continuous.seq_continuous).is_closed⟩
 
-namespace topological_space
-
-namespace first_countable_topology
-
-variables [topological_space α] [first_countable_topology α]
-
-/-- Every first-countable space is sequential. -/
-@[priority 100] -- see Note [lower instance priority]
-instance : sequential_space α :=
-begin
-  -- Consider a closed set `s`
-  refine ⟨λ s hs, _⟩,
-  -- It suffices to show that `s` contains every cluster point of `𝓟 s`.
-  -- Consider a cluster point `p` of `s`.
-  refine is_closed_iff_cluster_pt.mpr (λ p hp, _),
-  haveI := hp.ne_bot,
-  -- Fix an antitone basis `U : ℕ → set α` of `𝓝 p`, then choose a sequence `x : ℕ → α` such that
-  -- `x n ∈ U n ∩ s`.
-  rcases exists_antitone_basis (𝓝 p) with ⟨U, hU⟩,
-  have : ∀ n, (U n ∩ s).nonempty,
-    from λ n, filter.nonempty_of_mem ((hU.to_has_basis.inf_principal _).mem_of_mem trivial),
-  choose x hxU hxs,
-  -- Then `x ⟶ p`, thus `p ∈ s`
-  exact hs hxs (hU.tendsto hxU)
-end
-
-
-end first_countable_topology
+/-- The quotient of a sequential space is a sequential space. -/
+instance [sequential_space α] {s : setoid α} : sequential_space (quotient s) :=
+quotient_map_quot_mk.sequential_space
 
 end topological_space
 
@@ -296,7 +315,7 @@ end uniform_space_seq_compact
 
 section metric_seq_compact
 
-variables [metric_space β] {s : set β}
+variables [pseudo_metric_space β] {s : set β}
 open metric
 
 /-- A version of **Bolzano-Weistrass**: in a proper metric space (eg. $ℝ^n$),

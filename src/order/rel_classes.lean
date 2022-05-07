@@ -74,13 +74,21 @@ protected theorem is_asymm.is_irrefl [is_asymm α r] : is_irrefl α r :=
 protected theorem is_total.is_trichotomous (r) [is_total α r] : is_trichotomous α r :=
 ⟨λ a b, or.left_comm.1 (or.inr $ total_of r a b)⟩
 
+theorem is_refl_swap {α : Type u} (r : α → α → Prop) [is_refl α r] :
+  is_refl α (λ x y, r y x) :=
+⟨@refl α r _⟩
+
+theorem is_irrefl_swap {α : Type u} (r : α → α → Prop) [is_irrefl α r] :
+  is_irrefl α (λ x y, r y x) :=
+⟨@irrefl α r _⟩
+
 theorem is_refl_of_irrefl {α : Type u} (r : α → α → Prop) [is_irrefl α r] :
   is_refl α (λ x y, ¬ r x y) :=
-⟨@is_irrefl.irrefl α r _⟩
+⟨@irrefl α r _⟩
 
 theorem is_refl_swap_of_irrefl {α : Type u} (r : α → α → Prop) [is_irrefl α r] :
   is_refl α (λ x y, ¬ r y x) :=
-⟨@is_irrefl.irrefl α r _⟩
+⟨@irrefl α r _⟩
 
 theorem is_irrefl_of_refl {α : Type u} (r : α → α → Prop) [is_refl α r] :
   is_irrefl α (λ x y, ¬ r x y) :=

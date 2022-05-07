@@ -2057,6 +2057,11 @@ theorem image_union [decidable_eq α] {f : α → β} (s₁ s₂ : finset α) :
 ext $ λ _, by simp only [mem_image, mem_union, exists_prop, or_and_distrib_right,
   exists_or_distrib]
 
+lemma image_inter_subset [decidable_eq α] (f : α → β) (s t : finset α) :
+  (s ∩ t).image f ⊆ s.image f ∩ t.image f :=
+subset_inter (image_subset_image $ inter_subset_left _ _) $
+  image_subset_image $ inter_subset_right _ _
+
 lemma image_inter [decidable_eq α] (s₁ s₂ : finset α) (hf : ∀ x y, f x = f y → x = y) :
   (s₁ ∩ s₂).image f = s₁.image f ∩ s₂.image f :=
 ext $ by simp only [mem_image, exists_prop, mem_inter]; exact λ b,

@@ -202,16 +202,22 @@ begin
   { simpa only [prod_cons] using mul_le_mul' hab ih' }
 end
 
-@[to_additive sum_le_sum] lemma sublist.prod_le_prod' [preorder M]
-  [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
-  {l₁ l₂ : list M} (h : l₁ <+ l₂) (h₁ : ∀ a ∈ l₂, (1 : M) ≤ a) : l₁.prod ≤ l₂.prod :=
+/-- If `l₁` is a sublist of `l₂` and all elements of `l₂` are greater than or equal to one, then
+`l₁.prod ≤ l₂.prod`. One can prove a stronger version assuming `∀ a ∈ l₂.diff l₁, 1 ≤ a` instead
+of `∀ a ∈ l₂, 1 ≤ a` but this lemma is not yet in `mathlib`. -/
+@[to_additive sum_le_sum "If `l₁` is a sublist of `l₂` and all elements of `l₂` are nonnegative,
+then `l₁.sum ≤ l₂.sum`. One can prove a stronger version assuming `∀ a ∈ l₂.diff l₁, 0 ≤ a` instead
+of `∀ a ∈ l₂, 0 ≤ a` but this lemma is not yet in `mathlib`."]
+lemma sublist.prod_le_prod' [preorder M] [covariant_class M M (function.swap (*)) (≤)]
+  [covariant_class M M (*) (≤)] {l₁ l₂ : list M} (h : l₁ <+ l₂) (h₁ : ∀ a ∈ l₂, (1 : M) ≤ a) :
+  l₁.prod ≤ l₂.prod :=
 begin
   induction h, { refl },
-  case cons : l₁ l₂ a ih ih' {
-    simp only [prod_cons, forall_mem_cons] at h₁ ⊢,
+  case cons : l₁ l₂ a ih ih'
+  { simp only [prod_cons, forall_mem_cons] at h₁ ⊢,
     exact (ih' h₁.2).trans (le_mul_of_one_le_left' h₁.1) },
-  case cons2 : l₁ l₂ a ih ih' {
-    simp only [prod_cons, forall_mem_cons] at h₁ ⊢,
+  case cons2 : l₁ l₂ a ih ih'
+  { simp only [prod_cons, forall_mem_cons] at h₁ ⊢,
     exact mul_le_mul_left' (ih' h₁.2) _ }
 end
 
@@ -260,7 +266,7 @@ lemma pow_card_le_prod [preorder M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
   (l : list M) (n : M) (h : ∀ (x ∈ l), n ≤ x) :
   n ^ l.length ≤ l.prod :=
-@prod_le_pow_card (order_dual M) _ _ _ _ l n h
+@prod_le_pow_card Mᵒᵈ _ _ _ _ l n h
 
 @[to_additive exists_lt_of_sum_lt] lemma exists_lt_of_prod_lt' [linear_order M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)] {l : list ι}
@@ -426,14 +432,7 @@ le_antisymm (hl₂ ▸ single_le_prod hl₁ _ hx) (hl₁ x hx)
 @[to_additive] lemma prod_eq_one_iff [canonically_ordered_monoid M] (l : list M) :
   l.prod = 1 ↔ ∀ x ∈ l, x = (1 : M) :=
 ⟨all_one_of_le_one_le_of_prod_eq_one (λ _ _, one_le _),
-begin
-  induction l,
-  { simp },
-  { intro h,
-    rw [prod_cons, mul_eq_one_iff],
-    rw forall_mem_cons at h,
-    exact ⟨h.1, l_ih h.2⟩ },
-end⟩
+  λ h, by rw [eq_repeat.2 ⟨rfl, h⟩, prod_repeat, one_pow]⟩
 
 /-- If all elements in a list are bounded below by `1`, then the length of the list is bounded
 by the sum of the elements. -/

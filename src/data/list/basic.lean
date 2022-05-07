@@ -1995,6 +1995,15 @@ lemma drop_append {l₁ l₂ : list α} (i : ℕ) :
   drop (l₁.length + i) (l₁ ++ l₂) = drop i l₂ :=
 by simp [drop_append_eq_append_drop, take_all_of_le le_self_add]
 
+lemma drop_sizeof_le [has_sizeof α] (l : list α) : ∀ (n : ℕ), (l.drop n).sizeof ≤ l.sizeof :=
+begin
+  induction l with _ _ lih; intro n,
+  { rw [drop_nil] },
+  { induction n with n nih,
+    { refl, },
+    { exact trans (lih _) le_add_self } }
+end
+
 /-- The `i + j`-th element of a list coincides with the `j`-th element of the list obtained by
 dropping the first `i` elements. Version designed to rewrite from the big list to the small list. -/
 lemma nth_le_drop (L : list α) {i j : ℕ} (h : i + j < L.length) :
@@ -3355,6 +3364,24 @@ by rw [← diff_cons_right, diff_cons]
 
 @[simp] theorem nil_diff (l : list α) : [].diff l = [] :=
 by induction l; [refl, simp only [*, diff_cons, erase_of_not_mem (not_mem_nil _)]]
+
+lemma cons_diff (a : α) (l₁ l₂ : list α) :
+  (a :: l₁).diff l₂ = if a ∈ l₂ then l₁.diff (l₂.erase a) else a :: l₁.diff l₂ :=
+begin
+  induction l₂ with b l₂ ih, { refl },
+  rcases eq_or_ne a b with rfl|hne,
+  { simp },
+  { simp only [mem_cons_iff, *, false_or, diff_cons_right],
+    split_ifs with h₂; simp [diff_erase, list.erase, hne, hne.symm] }
+end
+
+lemma cons_diff_of_mem {a : α} {l₂ : list α} (h : a ∈ l₂) (l₁ : list α) :
+  (a :: l₁).diff l₂ = l₁.diff (l₂.erase a) :=
+by rw [cons_diff, if_pos h]
+
+lemma cons_diff_of_not_mem {a : α} {l₂ : list α} (h : a ∉ l₂) (l₁ : list α) :
+  (a :: l₁).diff l₂ = a :: l₁.diff l₂ :=
+by rw [cons_diff, if_neg h]
 
 theorem diff_eq_foldl : ∀ (l₁ l₂ : list α), l₁.diff l₂ = foldl list.erase l₁ l₂
 | l₁ []      := rfl

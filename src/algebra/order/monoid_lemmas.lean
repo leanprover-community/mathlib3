@@ -133,7 +133,7 @@ calc  a * c < a * d : mul_lt_mul_left' h₂ a
         ... < b * d : mul_lt_mul_right' h₁ d
 
 alias mul_lt_mul_of_lt_of_lt ← mul_lt_mul'''
-attribute [to_additive add_lt_add] mul_lt_mul'''
+attribute [to_additive add_lt_add "**Alias** of `add_lt_add_of_lt_of_lt`."] mul_lt_mul'''
 
 @[to_additive]
 lemma mul_lt_mul_of_le_of_lt [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (≤)]
@@ -146,13 +146,13 @@ lemma mul_lt_mul_of_lt_of_le [covariant_class α α (*) (≤)] [covariant_class 
 (mul_le_mul_left' h₂ _).trans_lt (mul_lt_mul_right' h₁ d)
 
 /-- Only assumes left strict covariance. -/
-@[to_additive]
+@[to_additive "Only assumes left strict covariance"]
 lemma left.mul_lt_mul [covariant_class α α (*) (<)] [covariant_class α α (swap (*)) (≤)]
   {a b c d : α} (h₁ : a < b) (h₂ : c < d) : a * c < b * d :=
 mul_lt_mul_of_le_of_lt h₁.le h₂
 
 /-- Only assumes right strict covariance. -/
-@[to_additive]
+@[to_additive "Only assumes right strict covariance"]
 lemma right.mul_lt_mul [covariant_class α α (*) (≤)] [covariant_class α α (swap (*)) (<)]
   {a b c d : α} (h₁ : a < b) (h₂ : c < d) : a * c < b * d :=
 mul_lt_mul_of_lt_of_le h₁ h₂.le
@@ -675,22 +675,32 @@ alias left.mul_lt_one_of_le_of_lt ← mul_lt_one_of_le_of_lt
 alias left.mul_lt_one_of_lt_of_le ← mul_lt_one_of_lt_of_le
 alias left.mul_lt_one             ← mul_lt_one
 alias left.mul_lt_one'            ← mul_lt_one'
-attribute [to_additive add_nonpos] mul_le_one'
-attribute [to_additive add_neg_of_nonpos_of_neg] mul_lt_one_of_le_of_lt
-attribute [to_additive add_neg_of_neg_of_nonpos] mul_lt_one_of_lt_of_le
-attribute [to_additive] mul_lt_one
-attribute [to_additive] mul_lt_one'
+attribute [to_additive add_nonpos "**Alias** of `left.add_nonpos`."]
+mul_le_one'
+attribute [to_additive add_neg_of_nonpos_of_neg "**Alias** of `left.add_neg_of_nonpos_of_neg`."]
+mul_lt_one_of_le_of_lt
+attribute [to_additive add_neg_of_neg_of_nonpos "**Alias** of `left.add_neg_of_neg_of_nonpos`."]
+mul_lt_one_of_lt_of_le
+attribute [to_additive "**Alias** of `left.add_neg`."]
+mul_lt_one
+attribute [to_additive "**Alias** of `left.add_neg'`."]
+mul_lt_one'
 
 alias left.one_le_mul             ← one_le_mul
 alias left.one_lt_mul_of_le_of_lt ← one_lt_mul_of_le_of_lt'
 alias left.one_lt_mul_of_lt_of_le ← one_lt_mul_of_lt_of_le'
 alias left.one_lt_mul             ← one_lt_mul'
 alias left.one_lt_mul'            ← one_lt_mul''
-attribute [to_additive add_nonneg] one_le_mul
-attribute [to_additive add_pos_of_nonneg_of_pos] one_lt_mul_of_le_of_lt'
-attribute [to_additive add_pos_of_pos_of_nonneg] one_lt_mul_of_lt_of_le'
-attribute [to_additive add_pos] one_lt_mul'
-attribute [to_additive add_pos'] one_lt_mul''
+attribute [to_additive add_nonneg "**Alias** of `left.add_nonneg`."]
+one_le_mul
+attribute [to_additive add_pos_of_nonneg_of_pos "**Alias** of `left.add_pos_of_nonneg_of_pos`."]
+one_lt_mul_of_le_of_lt'
+attribute [to_additive add_pos_of_pos_of_nonneg "**Alias** of `left.add_pos_of_pos_of_nonneg`."]
+one_lt_mul_of_lt_of_le'
+attribute [to_additive add_pos "**Alias** of `left.add_pos`."]
+one_lt_mul'
+attribute [to_additive add_pos' "**Alias** of `left.add_pos'`."]
+one_lt_mul''
 
 @[to_additive]
 lemma lt_of_mul_lt_of_one_le_left [covariant_class α α (*) (≤)]

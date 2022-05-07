@@ -39,6 +39,17 @@ class normed_space (α : Type*) (β : Type*) [normed_field α] [semi_normed_grou
 (norm_smul_le : ∀ (a:α) (b:β), ∥a • b∥ ≤ ∥a∥ * ∥b∥)
 end prio
 
+/- Extra instance to short-circuit type class resolution.
+
+For unknown reasons, this is necessary for certain inference problems. E.g., for this to succeed:
+```lean
+example (β X : Type*) [normed_group β] [normed_space ℝ β] : module ℝ (X → β) := by apply_instance
+```
+See: https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Typeclass.20resolution.20under.20binders/near/281296989
+-/
+instance normed_space.real.to_module [normed_group β] [normed_space ℝ β] : module ℝ β :=
+by apply_instance
+
 variables [normed_field α] [semi_normed_group β]
 
 @[priority 100] -- see Note [lower instance priority]

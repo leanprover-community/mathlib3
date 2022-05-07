@@ -333,12 +333,12 @@ end
 
 instance : module R[X] R[T;T⁻¹] :=
 { smul      := λ f l, f.to_laurent * l,
-  one_smul  := λ f, by simp only [map_one, one_mul],
+  one_smul  := λ f,     by simp only [map_one, one_mul],
   mul_smul  := λ f g l, by simp only [mul_assoc, _root_.map_mul],
   smul_add  := λ f x y, by simp only [mul_add],
-  smul_zero := λ f, by simp only [mul_zero],
+  smul_zero := λ f,     by simp only [mul_zero],
   add_smul  := λ f g x, by simp only [add_mul, _root_.map_add],
-  zero_smul := λ f, by simp only [_root_.map_zero, zero_mul] }
+  zero_smul := λ f,     by simp only [_root_.map_zero, zero_mul] }
 
 end semiring
 
@@ -348,19 +348,9 @@ variable [comm_semiring R]
 instance {M : Type*} [monoid M] : has_involutive_inv Mˣ :=
 division_monoid.to_has_involutive_inv Mˣ
 
---lemma units.coe_inj
-
 lemma inv_of_inj {R : Type*} [monoid R] {a b : R} [invertible a] [invertible b] :
   ⅟ a = ⅟ b ↔ a = b :=
-begin
-  refine ⟨λ h, _, λ h, invertible_unique a b h⟩,
-  unfreezingI
-  { rcases is_unit_of_invertible a with ⟨au, rfl⟩,
-    rcases is_unit_of_invertible b with ⟨bu, rfl⟩ },
-  rw [inv_of_units, inv_of_units] at h,
-  rw [← inv_inv au, ← inv_inv bu],
-  exact congr_arg _ (inv_inj.mpr (units.ext h))
-end
+⟨λ h, invertible_unique _ _ h, λ h, invertible_unique _ _ h⟩
 
 /--  Laurent polynomials are an algebra over polynomials.  This is not an instance since it might
 create typeclass diamonds. -/
@@ -384,24 +374,24 @@ lemma is_localization :
 { map_units := λ t, begin
     cases t with t ht,
     rcases submonoid.mem_closure_singleton.mp ht with ⟨n, rfl⟩,
-    convert is_unit_T n,
-    exact polynomial.to_laurent_X_pow n,
+    simp only [is_unit_T n, set_like.coe_mk, algebra_map_eq_to_laurent, polynomial.to_laurent_X_pow]
   end,
   surj := λ f, begin
     rcases f.exists_T_pow' with ⟨n, f', rfl⟩,
     have := (submonoid.closure ({X} : set R[X])).pow_mem (submonoid.mem_closure_singleton_self) n,
     refine ⟨(f', ⟨_, this⟩), _⟩,
-    simp only [set_like.coe_mk, algebra_map_X_pow, mul_T_assoc, add_left_neg, T_zero, mul_one],
-    refl,
+    simp only [set_like.coe_mk, algebra_map_eq_to_laurent, polynomial.to_laurent_X_pow, mul_T_assoc,
+      add_left_neg, T_zero, mul_one],
   end,
   eq_iff_exists := λ f g, begin
-    refine ⟨λ h, _, _⟩,
-    { rw [algebra_map_eq_to_laurent, algebra_map_eq_to_laurent, polynomial.to_laurent_inj] at h,
-      exact ⟨1, by simp [h]⟩ },
+    rw [algebra_map_eq_to_laurent, algebra_map_eq_to_laurent, polynomial.to_laurent_inj],
+    refine ⟨_, _⟩,
+    { rintro rfl,
+      exact ⟨1, rfl⟩ },
     { rintro ⟨⟨h, hX⟩, h⟩,
       rcases submonoid.mem_closure_singleton.mp hX with ⟨n, rfl⟩,
-      rw [set_like.coe_mk, mul_comm, mul_comm _ (X ^ n)] at h,
-      simp only [algebra_map_eq_to_laurent, polynomial.to_laurent_inj, mul_X_pow_injective n h] }
+      rw [mul_comm, mul_comm _ ↑_] at h,
+      exact mul_X_pow_injective n h }
   end }
 
 end comm_semiring

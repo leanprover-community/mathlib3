@@ -177,7 +177,7 @@ lemma map_hσ' {D : Type*} [category D] [preadditive D]
   (G : C ⥤ D) [G.additive] (X : simplicial_object C)
   (q n m : ℕ) (hnm : c.rel m n) :
   (hσ' q n m hnm : K[((whiskering _ _).obj G).obj X].X n ⟶ _) =
-  G.map (hσ' q n m hnm : K[X].X n ⟶ _) :=
+    G.map (hσ' q n m hnm : K[X].X n ⟶ _) :=
 begin
   unfold hσ' hσ,
   split_ifs,

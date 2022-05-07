@@ -180,17 +180,15 @@ begin
       (metric.nhds_basis_ball.comap _),
     intros ε hε,
     refine ⟨(p i).ball 0 ε, _, _⟩,
-    { convert p.basis_sets_mem {i} hε,
-      rw finset.sup_singleton },
+    { rw ← (finset.sup_singleton : _ = p i),
+      exact p.basis_sets_mem {i} hε, },
     { rw [id, (p i).ball_zero_eq_preimage_ball] } },
   { rw p.module_filter_basis.to_filter_basis.has_basis.ge_iff,
     rintros U (hU : U ∈ p.basis_sets),
-    rw p.basis_sets_iff at hU,
-    rcases hU with ⟨s, r, hr, rfl⟩,
+    rcases p.basis_sets_iff.mp hU with ⟨s, r, hr, rfl⟩,
     rw [id, seminorm.ball_finset_sup_eq_Inter _ _ _ hr, s.Inter_mem_sets],
-    intros i hi,
-    refine filter.mem_infi_of_mem i ⟨metric.ball 0 r, metric.ball_mem_nhds 0 hr, _⟩,
-    rw [(p i).ball_zero_eq_preimage_ball] }
+    exact λ i hi, filter.mem_infi_of_mem i ⟨metric.ball 0 r, metric.ball_mem_nhds 0 hr,
+      eq.subset ((p i).ball_zero_eq_preimage_ball).symm⟩, },
 end
 
 end seminorm_family
@@ -307,11 +305,9 @@ lemma seminorm_family.with_seminorms_iff_nhds_eq_infi (p : seminorm_family 𝕜 
   with_seminorms p ↔ (𝓝 0 : filter E) = ⨅ i, (𝓝 0).comap (p i) :=
 begin
   rw ← p.filter_eq_infi,
-  split,
-  { intro h,
-    rw h.topology_eq_with_seminorms,
-    exact add_group_filter_basis.nhds_zero_eq _ },
-  { exact p.with_seminorms_of_nhds }
+  refine ⟨λ h, _, p.with_seminorms_of_nhds⟩,
+  rw h.topology_eq_with_seminorms,
+  exact add_group_filter_basis.nhds_zero_eq _,
 end
 
 end topological_add_group

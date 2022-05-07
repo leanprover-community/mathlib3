@@ -163,7 +163,7 @@ begin
   { refine ⟨∅, empty_subset _, h0, _⟩,
     rwa [measure_empty, h₀, zero_add, pos_iff_ne_zero] },
   { rcases H hU _ (ennreal.sub_lt_self hμU h₀ hε) with ⟨K, hKU, hKc, hrK⟩,
-    exact ⟨K, hKU, hKc, ennreal.lt_add_of_sub_lt (or.inl hμU) hrK⟩ }
+    exact ⟨K, hKU, hKc, ennreal.lt_add_of_sub_lt_right (or.inl hμU) hrK⟩ }
 end
 
 lemma map {α β} [measurable_space α] [measurable_space β] {μ : measure α} {pa qa : set α → Prop}

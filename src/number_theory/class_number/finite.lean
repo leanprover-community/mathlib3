@@ -62,7 +62,8 @@ begin
   { by_contra' h,
     obtain ⟨i⟩ := bS.index_nonempty,
     apply bS.ne_zero i,
-    apply (algebra.left_mul_matrix bS).injective_iff.mp (algebra.left_mul_matrix_injective bS),
+    apply (injective_iff_map_eq_zero (algebra.left_mul_matrix bS)).mp
+      (algebra.left_mul_matrix_injective bS),
     ext j k,
     simp [h, dmatrix.zero_apply] },
   simp only [norm_bound, algebra.smul_def, eq_nat_cast, int.nat_cast_eq_coe_nat],
@@ -278,7 +279,7 @@ end real
 
 lemma prod_finset_approx_ne_zero : algebra_map R S (∏ m in finset_approx bS adm, m) ≠ 0 :=
 begin
-  refine mt ((ring_hom.injective_iff _).mp bS.algebra_map_injective _) _,
+  refine mt ((injective_iff_map_eq_zero _).mp bS.algebra_map_injective _) _,
   simp only [finset.prod_eq_zero_iff, not_exists],
   rintros x hx rfl,
   exact finset_approx.zero_not_mem bS adm hx

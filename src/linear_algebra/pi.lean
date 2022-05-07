@@ -427,21 +427,6 @@ lemma linear_map.vec_cons_apply {n} (f : M →ₗ[R] M₂) (g : M →ₗ[R] (fin
 
 end semiring
 
-/-- Non-dependent version of `pi.has_scalar`. Lean gets confused by the dependent instance if this
-is not present. -/
-@[to_additive function.has_vadd]
-instance function.has_scalar {ι R M : Type*} [has_scalar R M] :
-  has_scalar R (ι → M) :=
-pi.has_scalar
-
-/-- Non-dependent version of `pi.smul_comm_class`. Lean gets confused by the dependent instance if
-this is not present. -/
-@[to_additive]
-instance function.smul_comm_class {ι α β M : Type*}
-  [has_scalar α M] [has_scalar β M] [smul_comm_class α β M]:
-  smul_comm_class α β (ι → M) :=
-pi.smul_comm_class
-
 section comm_semiring
 
 variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]

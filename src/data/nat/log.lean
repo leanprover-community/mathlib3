@@ -136,7 +136,7 @@ end
 lemma pow_log_le_self {b : ℕ} (hb : 1 < b) {x : ℕ} (hx : 0 < x) : b ^ log b x ≤ x :=
 (pow_le_iff_le_log hb hx).2 le_rfl
 
-lemma log_le_log_of_le {b n m : ℕ} (h : n ≤ m) : log b n ≤ log b m :=
+lemma log_mono_right {b n m : ℕ} (h : n ≤ m) : log b n ≤ log b m :=
 begin
   cases le_or_lt b 1 with hb hb,
   { rw log_of_left_le_one hb, exact zero_le _ },
@@ -155,7 +155,7 @@ begin
 end
 
 lemma log_monotone {b : ℕ} : monotone (λ n : ℕ, log b n) :=
-λ x y, log_le_log_of_le
+λ x y, log_mono_right
 
 lemma log_antitone_left {n : ℕ} : antitone_on (λ b, log b n) (set.Ioi 1) :=
 λ _ hc _ _ hb, log_le_log_of_left_ge (set.mem_Iio.1 hc) hb

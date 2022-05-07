@@ -1890,7 +1890,7 @@ theorem opow_le_iff_le_log {b x c : ordinal} (b1 : 1 < b) (x0 : 0 < x) : b ^ c �
 theorem lt_opow_iff_log_lt {b x c : ordinal} (b1 : 1 < b) (x0 : 0 < x) : x < b ^ c ↔ log b x < c :=
 lt_iff_lt_of_le_iff_le (opow_le_iff_le_log b1 x0)
 
-theorem log_le_log_of_le (b) {x y : ordinal} (xy : x ≤ y) : log b x ≤ log b y :=
+theorem log_mono_right (b) {x y : ordinal} (xy : x ≤ y) : log b x ≤ log b y :=
 if x0 : x = 0 then by simp only [x0, log_zero_right, ordinal.zero_le] else
 have x0 : 0 < x, from ordinal.pos_iff_ne_zero.2 x0,
 if b1 : 1 < b then
@@ -2007,7 +2007,7 @@ begin
     intros o o0 IH, cases IH with IH₁ IH₂,
     simp only [CNF_ne_zero b0 o0, list.forall_mem_cons, list.pairwise_cons, IH₂, and_true],
     refine ⟨⟨le_rfl, λ p m, _⟩, λ p m, _⟩,
-    { exact le_trans (IH₁ p m) (log_le_log_of_le _ $ le_of_lt $ mod_opow_log_lt_self b0 o0) },
+    { exact le_trans (IH₁ p m) (log_mono_right _ $ le_of_lt $ mod_opow_log_lt_self b0 o0) },
     { refine (IH₁ p m).trans_lt ((lt_opow_iff_log_lt b1 _).1 _),
       { rw ordinal.pos_iff_ne_zero, intro e,
         rw e at m, simpa only [CNF_zero] using m },

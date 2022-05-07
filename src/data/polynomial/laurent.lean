@@ -196,6 +196,56 @@ lemma inv_of_T (n : ℤ) : ⅟ (T n : R[T;T⁻¹]) = T (- n) := rfl
 lemma is_unit_T (n : ℤ) : is_unit (T n : R[T;T⁻¹]) :=
 is_unit_of_invertible _
 
+@[elab_as_eliminator] protected lemma induction_on {M : R[T;T⁻¹] → Prop} (p : R[T;T⁻¹])
+  (h_C         : ∀ a, M (C a))
+  (h_add       : ∀ {p q}, M p → M q → M (p + q))
+  (h_C_mul_T   : ∀ (n : ℕ) (a : R), M (C a * T n) → M (C a * T (n + 1)))
+  (h_C_mul_T_Z : ∀ (n : ℕ) (a : R), M (C a * T (- n)) → M (C a * T (- n - 1))) :
+  M p :=
+begin
+  have A : ∀ {n : ℤ} {a : R}, M (C a * T n),
+  { assume n a,
+    apply n.induction_on,
+    { simpa only [T_zero, mul_one] using h_C a },
+    { exact λ m, h_C_mul_T m a },
+    { exact λ m, h_C_mul_T_Z m a } },
+  have B : ∀ (s : finset ℤ), M (s.sum (λ (n : ℤ), C (p.to_fun n) * T n)),
+  { apply finset.induction,
+    { convert h_C 0, simp only [finset.sum_empty, _root_.map_zero] },
+    { assume n s ns ih, rw finset.sum_insert ns, exact h_add A ih } },
+  convert B p.support,
+  ext a,
+  simp_rw [← single_eq_C_mul_T, finset.sum_apply', single_apply, finset.sum_ite_eq'],
+  split_ifs with h h,
+  { refl },
+  { exact finsupp.not_mem_support_iff.mp h }
+end
+
+/--  To prove something about Laurent polynomials, it suffices to show that
+* the condition is closed under taking sums, and
+* it holds for monomials.
+-/
+@[elab_as_eliminator] protected lemma induction_on' {M : R[T;T⁻¹] → Prop} (p : R[T;T⁻¹])
+  (h_add     : ∀p q, M p → M q → M (p + q))
+  (h_C_mul_T : ∀(n : ℤ) (a : R), M (C a * T n)) :
+  M p :=
+begin
+  refine p.induction_on (λ a, _) h_add _ _;
+  try { exact λ n f _, h_C_mul_T _ f },
+  convert h_C_mul_T 0 a,
+  exact (mul_one _).symm,
+end
+
+lemma commute_T (n : ℤ) (f : R[T;T⁻¹]) : commute (T n) f :=
+f.induction_on' (λ p q Tp Tq, commute.add_right Tp Tq) $ λ m a,
+show T n * _ = _, by
+{ rw [T, T, ← single_eq_C, single_mul_single, single_mul_single, single_mul_single],
+  simp [add_comm] }
+
+@[simp]
+lemma T_mul (n : ℤ) (f : R[T;T⁻¹]) : T n * f = f * T n :=
+(commute_T n f).eq
+
 end semiring
 
 end laurent_polynomial

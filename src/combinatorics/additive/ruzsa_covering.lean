@@ -68,11 +68,6 @@ section mul_action
 
 variables [group α] [decidable_eq β] [mul_action α β] (A : finset β) (a : α) (x : β)
 
-@[to_additive]
-instance : mul_action α (finset β) :=
-{ one_smul := λ s, by simp [finset.ext_iff, mem_smul_finset],
-  mul_smul := λ i j s, by simp only [←finset.coe_inj, coe_smul_finset, mul_smul] }
-
 @[simp, to_additive]
 lemma smul_mem_smul_same_iff : a • x ∈ a • A ↔ x ∈ A := by simp [mem_smul_finset]
 

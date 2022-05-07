@@ -173,12 +173,6 @@ image₂_singleton
 @[to_additive] lemma mul_subset_mul_right : s₁ ⊆ s₂ → s₁ * t ⊆ s₂ * t := image₂_subset_right
 @[to_additive] lemma mul_subset_iff : s * t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), x * y ∈ u := image₂_subset_iff
 
-@[to_additive, mono] lemma mul_subset_mul_left (ht : t₁ ⊆ t₂) : s * t₁ ⊆ s * t₂ :=
-image_subset_image $ product_subset_product_right ht
-
-@[to_additive, mono] lemma mul_subset_mul_right (hs : s₁ ⊆ s₂) : s₁ * t ⊆ s₂ * t :=
-image_subset_image $ product_subset_product_left hs
-
 attribute [mono] add_subset_add
 
 @[to_additive] lemma union_mul : (s₁ ∪ s₂) * t = s₁ * t ∪ s₂ * t := image₂_union_left
@@ -596,7 +590,7 @@ lemma mem_smul_finset {x : β} : x ∈ a • s ↔ ∃ y, y ∈ s ∧ a • y = 
 by simp only [finset.smul_finset_def, and.assoc, mem_image, exists_prop, prod.exists, mem_product]
 
 @[simp, norm_cast, to_additive]
-lemma coe_smul_finset (s : finset β) : (↑(a • s) : set β) = a • s := coe_image
+lemma coe_smul_finset (a : α) (s : finset β) : (↑(a • s) : set β) = a • s := coe_image
 
 @[to_additive] lemma smul_finset_mem_smul_finset : b ∈ s → a • b ∈ a • s := mem_image_of_mem _
 @[to_additive] lemma smul_finset_card_le : (a • s).card ≤ s.card := card_image_le
@@ -610,7 +604,7 @@ nonempty.image_iff _
 @[to_additive, mono]
 lemma smul_finset_subset_smul_finset : s ⊆ t → a • s ⊆ a • t := image_subset_image
 
-attribute [mono] add_subset_add
+attribute [mono] vadd_finset_subset_vadd_finset
 
 @[simp, to_additive]
 lemma smul_finset_singleton (b : β) : a • ({b} : finset β) = {a • b} := image_singleton _ _
@@ -627,12 +621,12 @@ section instances
 variables [decidable_eq γ]
 
 @[to_additive]
-instance smul_comm_class_set [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+instance smul_comm_class_finset [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class α (finset β) (finset γ) :=
 ⟨λ a s t, coe_injective $ by simp only [coe_smul_finset, coe_smul, smul_comm]⟩
 
 @[to_additive]
-instance smul_comm_class_set' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
+instance smul_comm_class_finset' [has_scalar α γ] [has_scalar β γ] [smul_comm_class α β γ] :
   smul_comm_class (finset α) β (finset γ) :=
 by haveI := smul_comm_class.symm α β γ; exact smul_comm_class.symm _ _ _
 
@@ -661,6 +655,38 @@ instance is_scalar_tower'' [has_scalar α β] [has_scalar α γ] [has_scalar β 
 instance is_central_scalar [has_scalar α β] [has_scalar αᵐᵒᵖ β] [is_central_scalar α β] :
   is_central_scalar α (finset β) :=
 ⟨λ a s, coe_injective $ by simp only [coe_smul_finset, coe_smul, op_smul_eq_smul]⟩
+
+/-- A multiplicative action of a monoid `α` on a type `β` gives a multiplicative action of
+`finset α` on `finset β`. -/
+@[to_additive "An additive action of an additive monoid `α` on a type `β` gives an additive action
+of `finset α` on `finset β`"]
+protected def mul_action [decidable_eq α] [monoid α] [mul_action α β] :
+  mul_action (finset α) (finset β) :=
+sorry
+
+/-- A multiplicative action of a monoid on a type `β` gives a multiplicative action on
+`finset β`. -/
+@[to_additive "An additive action of an additive monoid on a type `β` gives an additive action
+on `finset β`."]
+protected def mul_action_finset [monoid α] [mul_action α β] : mul_action α (finset β) :=
+coe_injective.mul_action _ coe_smul_finset
+
+localized "attribute [instance] finset.mul_action_finset finset.add_action_finset
+  finset.mul_action finset.add_action" in pointwise
+
+/-- A distributive multiplicative action of a monoid on an additive monoid `β` gives a distributive
+multiplicative action on `set β`. -/
+protected def distrib_mul_action_finset [monoid α] [add_monoid β] [distrib_mul_action α β] :
+  distrib_mul_action α (finset β) :=
+function.injective.distrib_mul_action ⟨coe, coe_zero, coe_add⟩ coe_injective coe_smul_finset
+
+/-- A multiplicative action of a monoid on a monoid `β` gives a multiplicative action on `set β`. -/
+protected def mul_distrib_mul_action_finset [monoid α] [monoid β] [mul_distrib_mul_action α β] :
+  mul_distrib_mul_action α (finset β) :=
+function.injective.mul_distrib_mul_action ⟨coe, coe_one, coe_mul⟩ coe_injective coe_smul_finset
+
+localized "attribute [instance] finset.distrib_mul_action_finset
+  finset.mul_distrib_mul_action_finset" in pointwise
 
 end instances
 end finset

@@ -74,7 +74,7 @@ calc (n + 1) * (2 * (n + 1)).choose (n + 1) = (2 * n + 2).choose (n + 1) * (n + 
 /--
 An exponential lower bound on the central binomial coefficient.
 This bound is of interest because it appears in
-[Tochiori's refinement of Erdős's proof of Bertrand's postulate](https://en.wikipedia.org/w/index.php?title=Proof_of_Bertrand%27s_postulate&oldid=859165151#Proof_by_Shigenori_Tochiori).
+[Tochiori's refinement of Erdős's proof of Bertrand's postulate](tochiori_bertrand).
 -/
 lemma four_pow_lt_mul_central_binom (n : ℕ) (n_big : 4 ≤ n) : 4 ^ n < n * central_binom n :=
 begin
@@ -123,7 +123,7 @@ bounds in the central binomial coeffcicient. These include:
 * `nat.multiplicity_central_binom_of_large_eq_zero`: Primes greater than `2 * n` do not
   appear in the factorisation of the `n`th central binomial coefficient.
 
-These results appear in the standard proof of Bertrand's postulate.
+These results appear in the [Erdős proof of Bertrand's postulate](aigner1999proofs).
 -/
 
 /--

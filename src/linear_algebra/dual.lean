@@ -5,6 +5,9 @@ Authors: Johan Commelin, Fabian Glöckle
 -/
 import linear_algebra.finite_dimensional
 import linear_algebra.projection
+import linear_algebra.sesquilinear_form
+import ring_theory.finiteness
+import linear_algebra.free_module.finite.rank
 
 /-!
 # Dual vector spaces
@@ -47,14 +50,20 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M]
 @[derive [add_comm_monoid, module R]] def dual := M →ₗ[R] R
 
 instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
-  add_comm_group (dual S N) := by {unfold dual, apply_instance}
+  add_comm_group (dual S N) := linear_map.add_comm_group
 
 instance : add_monoid_hom_class (dual R M) M R :=
 linear_map.add_monoid_hom_class
 
+/-- The canonical pairing of a vector space and its algebraic dual. -/
+def dual_pairing (R M) [comm_semiring R] [add_comm_monoid M] [module R M] :
+  module.dual R M →ₗ[R] M →ₗ[R] R := linear_map.id
+
+@[simp] lemma dual_pairing_apply (v x) : dual_pairing R M v x = v x := rfl
+
 namespace dual
 
-instance : inhabited (dual R M) := by dunfold dual; apply_instance
+instance : inhabited (dual R M) := linear_map.inhabited
 
 instance : has_coe_to_fun (dual R M) (λ _, M → R) := ⟨linear_map.to_fun⟩
 
@@ -91,6 +100,7 @@ namespace basis
 universes u v w
 
 open module module.dual submodule linear_map cardinal function
+open_locale big_operators
 
 variables {R M K V ι : Type*}
 
@@ -178,6 +188,20 @@ end
 
 end comm_semiring
 
+section
+
+variables [comm_semiring R] [add_comm_monoid M] [module R M] [fintype ι]
+variables (b : basis ι R M)
+
+@[simp] lemma sum_dual_apply_smul_coord (f : module.dual R M) : ∑ x, f (b x) • b.coord x = f :=
+begin
+  ext m,
+  simp_rw [linear_map.sum_apply, linear_map.smul_apply, smul_eq_mul, mul_comm (f _), ←smul_eq_mul,
+    ←f.map_smul, ←f.map_sum, basis.coord_apply, basis.sum_repr],
+end
+
+end
+
 section comm_ring
 
 variables [comm_ring R] [add_comm_group M] [module R M] [decidable_eq ι]
@@ -254,6 +278,18 @@ linear_equiv.of_bijective (eval R M)
 
 @[simp] lemma eval_equiv_to_linear_map {ι : Type*} [fintype ι] (b : basis ι R M) :
   (b.eval_equiv).to_linear_map = dual.eval R M := rfl
+
+section
+
+open_locale classical
+
+variables [finite R M] [free R M] [nontrivial R]
+
+instance dual_free : free R (dual R M) := free.of_basis (free.choose_basis R M).dual_basis
+
+instance dual_finite : finite R (dual R M) := finite.of_basis (free.choose_basis R M).dual_basis
+
+end
 
 end comm_ring
 
@@ -543,7 +579,7 @@ open finite_dimensional
 variables {V₁ : Type*} [add_comm_group V₁] [module K V₁]
 
 instance [H : finite_dimensional K V] : finite_dimensional K (module.dual K V) :=
-linear_equiv.finite_dimensional (basis.of_vector_space K V).to_dual_equiv
+by apply_instance
 
 variables [finite_dimensional K V] [finite_dimensional K V₁]
 
@@ -704,5 +740,29 @@ begin
 end
 
 end finite_dimensional
+
+section field
+
+variables {K V : Type*}
+variables [field K] [add_comm_group V] [module K V]
+
+lemma dual_pairing_nondegenerate : (dual_pairing K V).nondegenerate :=
+begin
+  refine ⟨separating_left_iff_ker_eq_bot.mpr ker_id, _⟩,
+  intros x,
+  contrapose,
+  rintros hx : x ≠ 0,
+  rw [not_forall],
+  let f : V →ₗ[K] K := classical.some (linear_pmap.mk_span_singleton x 1 hx).to_fun.exists_extend,
+  use [f],
+  refine ne_zero_of_eq_one _,
+  have h : f.comp (K ∙ x).subtype = (linear_pmap.mk_span_singleton x 1 hx).to_fun :=
+    classical.some_spec (linear_pmap.mk_span_singleton x (1 : K) hx).to_fun.exists_extend,
+  rw linear_map.ext_iff at h,
+  convert h ⟨x, submodule.mem_span_singleton_self x⟩,
+  exact (linear_pmap.mk_span_singleton_apply' K hx 1).symm,
+end
+
+end field
 
 end linear_map

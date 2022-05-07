@@ -71,7 +71,7 @@ lemma colex.eq_iff (A B : finset α) :
 
 /--
 `A` is less than `B` in the colex ordering if the largest thing that's not in both sets is in B.
-In other words, max (A Δ B) ∈ B (if the maximum exists).
+In other words, `max (A ∆ B) ∈ B` (if the maximum exists).
 -/
 instance [has_lt α] : has_lt (finset.colex α) :=
 ⟨λ (A B : finset α), ∃ (k : α), (∀ {x}, k < x → (x ∈ A ↔ x ∈ B)) ∧ k ∉ A ∧ k ∈ B⟩
@@ -131,24 +131,20 @@ instance [has_lt α] : is_irrefl (finset.colex α) (<) :=
 ⟨λ A h, exists.elim h (λ _ ⟨_,a,b⟩, a b)⟩
 
 @[trans]
-lemma lt_trans [linear_order α] {a b c : finset.colex α} :
-  a < b → b < c → a < c :=
+lemma lt_trans [linear_order α] {a b c : finset.colex α} : a < b → b < c → a < c :=
 begin
   rintros ⟨k₁, k₁z, notinA, inB⟩ ⟨k₂, k₂z, notinB, inC⟩,
   cases lt_or_gt_of_ne (ne_of_mem_of_not_mem inB notinB),
-  { refine ⟨k₂, _, by rwa k₁z h, inC⟩,
-    intros x hx,
+  { refine ⟨k₂, λ x hx, _, by rwa k₁z h, inC⟩,
     rw ← k₂z hx,
     apply k₁z (trans h hx) },
-  { refine ⟨k₁, _, notinA, by rwa ← k₂z h⟩,
-    intros x hx,
+  { refine ⟨k₁, λ x hx, _, notinA, by rwa ← k₂z h⟩,
     rw k₁z hx,
     apply k₂z (trans h hx) }
 end
 
 @[trans]
-lemma le_trans [linear_order α] (a b c : finset.colex α) :
-  a ≤ b → b ≤ c → a ≤ c :=
+lemma le_trans [linear_order α] (a b c : finset.colex α) : a ≤ b → b ≤ c → a ≤ c :=
 λ AB BC, AB.elim (λ k, BC.elim (λ t, or.inl (lt_trans k t)) (λ t, t ▸ AB)) (λ k, k.symm ▸ BC)
 
 instance [linear_order α] : is_trans (finset.colex α) (<) := ⟨λ _ _ _, colex.lt_trans⟩

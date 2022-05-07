@@ -22,7 +22,7 @@ In this file we define
 universes u v
 variables {α : Type u} {β : Type v}
 
-open set zorn filter function
+open set filter function
 open_locale classical filter
 
 /-- An ultrafilter is a minimal (maximal in the set order) proper filter. -/
@@ -195,13 +195,13 @@ begin
   let r : τ → τ → Prop := λt₁ t₂, t₂.val ≤ t₁.val,
   haveI                := nonempty_of_ne_bot f,
   let top : τ          := ⟨f, h, le_refl f⟩,
-  let sup : Π(c:set τ), chain r c → τ :=
+  let sup : Π(c:set τ), is_chain r c → τ :=
     λc hc, ⟨⨅a:{a:τ // a ∈ insert top c}, a.1,
       infi_ne_bot_of_directed
-        (directed_of_chain $ chain_insert hc $ λ ⟨b, _, hb⟩ _ _, or.inl hb)
+        (is_chain.directed $ hc.insert $ λ ⟨b, _, hb⟩ _ _, or.inl hb)
         (assume ⟨⟨a, ha, _⟩, _⟩, ha),
       infi_le_of_le ⟨top, mem_insert _ _⟩ le_rfl⟩,
-  have : ∀c (hc: chain r c) a (ha : a ∈ c), r a (sup c hc),
+  have : ∀ c (hc : is_chain r c) a (ha : a ∈ c), r a (sup c hc),
     from assume c hc a ha, infi_le_of_le ⟨a, mem_insert_of_mem _ ha⟩ le_rfl,
   have : (∃ (u : τ), ∀ (a : τ), r u a → r a u),
     from exists_maximal_of_chains_bounded (assume c hc, ⟨sup c hc, this c hc⟩)

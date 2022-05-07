@@ -112,8 +112,14 @@ rfl
 def of_hom {R : Type u} [ring R] {X Y : Type v} [add_comm_group X] [module R X] [add_comm_group Y]
   [module R Y] (f : X →ₗ[R] Y) : of R X ⟶ of R Y := f
 
-instance : has_zero (Module R) := ⟨of R punit⟩
-instance : inhabited (Module R) := ⟨0⟩
+@[simp] lemma of_hom_apply {R : Type u} [ring R]
+  {X Y : Type v} [add_comm_group X] [module R X] [add_comm_group Y] [module R Y] (f : X →ₗ[R] Y)
+  (x : X) : of_hom f x = f x := rfl
+
+instance : inhabited (Module R) := ⟨of R punit⟩
+
+instance of_unique {X : Type v} [add_comm_group X] [module R X] [i : unique X] :
+  unique (of R X) := i
 
 @[simp]
 lemma coe_of (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
@@ -126,19 +132,16 @@ module. -/
 def of_self_iso (M : Module R) : Module.of R M ≅ M :=
 { hom := 𝟙 M, inv := 𝟙 M }
 
-instance : subsingleton (of R punit) :=
-by { rw coe_of R punit, apply_instance }
+lemma is_zero_of_subsingleton (M : Module R) [subsingleton M] :
+  is_zero M :=
+begin
+  refine ⟨λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩, λ X, ⟨⟨⟨0⟩, λ f, _⟩⟩⟩,
+  { ext, have : x = 0 := subsingleton.elim _ _, rw [this, map_zero, map_zero], },
+  { ext, apply subsingleton.elim }
+end
 
 instance : has_zero_object (Module.{v} R) :=
-{ zero := 0,
-  unique_to := λ X,
-  { default := (0 : punit →ₗ[R] X),
-    uniq := λ _, linear_map.ext $ λ x,
-      have h : x = 0, from dec_trivial,
-      by simp only [h, linear_map.map_zero]},
-  unique_from := λ X,
-  { default := (0 : X →ₗ[R] punit),
-    uniq := λ _, linear_map.ext $ λ x, dec_trivial } }
+⟨⟨of R punit, is_zero_of_subsingleton _⟩⟩
 
 variables {R} {M N U : Module.{v} R}
 

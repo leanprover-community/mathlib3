@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.box_integral.box.basic
-import analysis.specific_limits
+import analysis.specific_limits.basic
 
 /-!
 # Induction on subboxes

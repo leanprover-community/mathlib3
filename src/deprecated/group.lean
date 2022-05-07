@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import algebra.group.type_tags
-import algebra.group.units_hom
+import algebra.hom.equiv
+import algebra.hom.units
 import algebra.ring.basic
-import data.equiv.mul_add
 
 /-!
 # Unbundled monoid and group homomorphisms

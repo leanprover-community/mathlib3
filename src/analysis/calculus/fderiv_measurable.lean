@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.deriv
 import measure_theory.constructions.borel_space
+import measure_theory.function.strongly_measurable
 import tactic.ring_exp
 
 /-!
@@ -407,6 +408,16 @@ variable {𝕜}
   [measurable_space F] [borel_space F] (f : 𝕜 → F) : measurable (deriv f) :=
 by simpa only [fderiv_deriv] using measurable_fderiv_apply_const 𝕜 f 1
 
+lemma strongly_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜]
+  [second_countable_topology F] (f : 𝕜 → F) :
+  strongly_measurable (deriv f) :=
+by { borelize F, exact (measurable_deriv f).strongly_measurable }
+
 lemma ae_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜] [measurable_space F]
   [borel_space F] (f : 𝕜 → F) (μ : measure 𝕜) : ae_measurable (deriv f) μ :=
 (measurable_deriv f).ae_measurable
+
+lemma ae_strongly_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜]
+  [second_countable_topology F] (f : 𝕜 → F) (μ : measure 𝕜) :
+  ae_strongly_measurable (deriv f) μ :=
+(strongly_measurable_deriv f).ae_strongly_measurable

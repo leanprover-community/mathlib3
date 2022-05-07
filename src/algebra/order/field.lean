@@ -408,6 +408,9 @@ by simpa only [div_one] using div_le_div_of_le_left ha zero_lt_one hb
 lemma div_lt_self (ha : 0 < a) (hb : 1 < b) : a / b < a :=
 by simpa only [div_one] using div_lt_div_of_lt_left ha zero_lt_one hb
 
+lemma le_div_self (ha : 0 ≤ a) (hb₀ : 0 < b) (hb₁ : b ≤ 1) : a ≤ a / b :=
+by simpa only [div_one] using div_le_div_of_le_left ha hb₀ hb₁
+
 lemma one_le_div (hb : 0 < b) : 1 ≤ a / b ↔ b ≤ a :=
 by rw [le_div_iff hb, one_mul]
 
@@ -703,11 +706,11 @@ eq.symm $ monotone.map_max (λ x y, div_le_div_of_le hc)
 
 lemma min_div_div_right_of_nonpos {c : α} (hc : c ≤ 0) (a b : α) :
   min (a / c) (b / c) = (max a b) / c :=
-eq.symm $ @monotone.map_max α (order_dual α) _ _ _ _ _ (λ x y, div_le_div_of_nonpos_of_le hc)
+eq.symm $ antitone.map_max $ λ x y, div_le_div_of_nonpos_of_le hc
 
 lemma max_div_div_right_of_nonpos {c : α} (hc : c ≤ 0) (a b : α) :
   max (a / c) (b / c) = (min a b) / c :=
-eq.symm $ @monotone.map_min α (order_dual α) _ _ _ _ _ (λ x y, div_le_div_of_nonpos_of_le hc)
+eq.symm $ antitone.map_min $ λ x y, div_le_div_of_nonpos_of_le hc
 
 lemma abs_div (a b : α) : |a / b| = |a| / |b| := (abs_hom : α →*₀ α).map_div a b
 
@@ -730,10 +733,10 @@ lemma one_div_pow_lt_one_div_pow_of_lt (a1 : 1 < a) {m n : ℕ} (mn : m < n) :
 by refine (one_div_lt_one_div _ _).mpr (pow_lt_pow a1 mn);
   exact pow_pos (trans zero_lt_one a1) _
 
-lemma one_div_pow_mono (a1 : 1 ≤ a) : monotone (λ n : ℕ, order_dual.to_dual 1 / a ^ n) :=
+lemma one_div_pow_anti (a1 : 1 ≤ a) : antitone (λ n : ℕ, 1 / a ^ n) :=
 λ m n, one_div_pow_le_one_div_pow_of_le a1
 
-lemma one_div_pow_strict_mono (a1 : 1 < a) : strict_mono (λ n : ℕ, order_dual.to_dual 1 / a ^ n) :=
+lemma one_div_pow_strict_anti (a1 : 1 < a) : strict_anti (λ n : ℕ, 1 / a ^ n) :=
 λ m n, one_div_pow_lt_one_div_pow_of_lt a1
 
 /-! ### Results about `is_lub` and `is_glb` -/

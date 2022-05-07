@@ -43,9 +43,9 @@ lemma is_equivalent_at_top_lead :
 begin
   by_cases h : P = 0,
   { simp [h] },
-  { conv_lhs
+  { conv_rhs
     { funext,
-      rw [polynomial.eval_eq_finset_sum, sum_range_succ] },
+      rw [polynomial.eval_eq_sum_range, sum_range_succ] },
     exact is_equivalent.refl.add_is_o (is_o.sum $ λ i hi, is_o.const_mul_left
       (is_o.const_mul_right (λ hz, h $ leading_coeff_eq_zero.mp hz) $
         is_o_pow_pow_at_top_of_lt (mem_range.mp hi)) _) }

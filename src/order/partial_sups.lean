@@ -148,9 +148,9 @@ end
 @[simp] lemma supr_partial_sups_eq (f : ℕ → α) :
   (⨆ n, partial_sups f n) = ⨆ n, f n :=
 begin
-  refine (supr_le $ λ n, _).antisymm (supr_le_supr $ le_partial_sups f),
+  refine (supr_le $ λ n, _).antisymm (supr_mono $ le_partial_sups f),
   rw partial_sups_eq_bsupr,
-  exact bsupr_le_supr _ _,
+  exact supr₂_le_supr _ _,
 end
 
 lemma supr_le_supr_of_partial_sups_le_partial_sups {f g : ℕ → α}
@@ -158,7 +158,7 @@ lemma supr_le_supr_of_partial_sups_le_partial_sups {f g : ℕ → α}
   (⨆ n, f n) ≤ ⨆ n, g n :=
 begin
   rw [←supr_partial_sups_eq f, ←supr_partial_sups_eq g],
-  exact supr_le_supr h,
+  exact supr_mono h,
 end
 
 lemma supr_eq_supr_of_partial_sups_eq_partial_sups {f g : ℕ → α}

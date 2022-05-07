@@ -36,8 +36,8 @@ noncomputable theory
 open topological_space set filter
 open_locale classical topological_space filter
 
-universes u v w x
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
+universes u v
+variables {α : Type u} {β : Type v} {γ δ ε ζ : Type*}
 
 section constructions
 
@@ -172,43 +172,94 @@ end constructions
 
 section prod
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
+  [topological_space ε] [topological_space ζ]
 
 @[continuity] lemma continuous_fst : continuous (@prod.fst α β) :=
 continuous_inf_dom_left continuous_induced_dom
 
-lemma continuous_at_fst {p : α × β} : continuous_at prod.fst p :=
-continuous_fst.continuous_at
-
+/-- Postcomposing `f` with `prod.fst` is continuous -/
 lemma continuous.fst {f : α → β × γ} (hf : continuous f) : continuous (λ a : α, (f a).1) :=
 continuous_fst.comp hf
 
+/-- Precomposing `f` with `prod.fst` is continuous -/
+lemma continuous.fst' {f : α → γ} (hf : continuous f) : continuous (λ x : α × β, f x.fst) :=
+hf.comp continuous_fst
+
+lemma continuous_at_fst {p : α × β} : continuous_at prod.fst p :=
+continuous_fst.continuous_at
+
+/-- Postcomposing `f` with `prod.fst` is continuous at `x` -/
 lemma continuous_at.fst {f : α → β × γ} {x : α} (hf : continuous_at f x) :
   continuous_at (λ a : α, (f a).1) x :=
 continuous_at_fst.comp hf
 
+/-- Precomposing `f` with `prod.fst` is continuous at `(x, y)` -/
+lemma continuous_at.fst' {f : α → γ} {x : α} {y : β} (hf : continuous_at f x) :
+  continuous_at (λ x : α × β, f x.fst) (x, y) :=
+continuous_at.comp hf continuous_at_fst
+
+/-- Precomposing `f` with `prod.fst` is continuous at `x : α × β` -/
+lemma continuous_at.fst'' {f : α → γ} {x : α × β} (hf : continuous_at f x.fst) :
+  continuous_at (λ x : α × β, f x.fst) x :=
+hf.comp continuous_at_fst
+
 @[continuity] lemma continuous_snd : continuous (@prod.snd α β) :=
 continuous_inf_dom_right continuous_induced_dom
+
+/-- Postcomposing `f` with `prod.snd` is continuous -/
+lemma continuous.snd {f : α → β × γ} (hf : continuous f) : continuous (λ a : α, (f a).2) :=
+continuous_snd.comp hf
+
+/-- Precomposing `f` with `prod.snd` is continuous -/
+lemma continuous.snd' {f : β → γ} (hf : continuous f) : continuous (λ x : α × β, f x.snd) :=
+hf.comp continuous_snd
 
 lemma continuous_at_snd {p : α × β} : continuous_at prod.snd p :=
 continuous_snd.continuous_at
 
-lemma continuous.snd {f : α → β × γ} (hf : continuous f) : continuous (λ a : α, (f a).2) :=
-continuous_snd.comp hf
-
+/-- Postcomposing `f` with `prod.snd` is continuous at `x` -/
 lemma continuous_at.snd {f : α → β × γ} {x : α} (hf : continuous_at f x) :
   continuous_at (λ a : α, (f a).2) x :=
 continuous_at_snd.comp hf
+
+/-- Precomposing `f` with `prod.snd` is continuous at `(x, y)` -/
+lemma continuous_at.snd' {f : β → γ} {x : α} {y : β} (hf : continuous_at f y) :
+  continuous_at (λ x : α × β, f x.snd) (x, y) :=
+continuous_at.comp hf continuous_at_snd
+
+/-- Precomposing `f` with `prod.snd` is continuous at `x : α × β` -/
+lemma continuous_at.snd'' {f : β → γ} {x : α × β} (hf : continuous_at f x.snd) :
+  continuous_at (λ x : α × β, f x.snd) x :=
+hf.comp continuous_at_snd
 
 @[continuity] lemma continuous.prod_mk {f : γ → α} {g : γ → β}
   (hf : continuous f) (hg : continuous g) : continuous (λx, (f x, g x)) :=
 continuous_inf_rng (continuous_induced_rng hf) (continuous_induced_rng hg)
 
-@[continuity] lemma continuous.prod.mk (a : α) : continuous (prod.mk a : β → α × β) :=
+@[continuity] lemma continuous.prod.mk (a : α) : continuous (λ b : β, (a, b)) :=
 continuous_const.prod_mk continuous_id'
+
+@[continuity] lemma continuous.prod.mk_left (b : β) : continuous (λ a : α, (a, b)) :=
+continuous_id'.prod_mk continuous_const
+
+lemma continuous.comp₂ {g : α × β → γ} (hg : continuous g) {e : δ → α} (he : continuous e)
+  {f : δ → β} (hf : continuous f) : continuous (λ x, g (e x, f x)) :=
+hg.comp $ he.prod_mk hf
+
+lemma continuous.comp₃ {g : α × β × γ → ε} (hg : continuous g)
+  {e : δ → α} (he : continuous e) {f : δ → β} (hf : continuous f)
+  {k : δ → γ} (hk : continuous k) : continuous (λ x, g (e x, f x, k x)) :=
+hg.comp₂ he $ hf.prod_mk hk
+
+lemma continuous.comp₄ {g : α × β × γ × ζ → ε} (hg : continuous g)
+  {e : δ → α} (he : continuous e) {f : δ → β} (hf : continuous f)
+  {k : δ → γ} (hk : continuous k) {l : δ → ζ} (hl : continuous l) :
+  continuous (λ x, g (e x, f x, k x, l x)) :=
+hg.comp₃ he hf $ hk.prod_mk hl
 
 lemma continuous.prod_map {f : γ → α} {g : δ → β} (hf : continuous f) (hg : continuous g) :
   continuous (λ x : γ × δ, (f x.1, g x.2)) :=
-(hf.comp continuous_fst).prod_mk (hg.comp continuous_snd)
+hf.fst'.prod_mk hg.snd'
 
 /-- A version of `continuous_inf_dom_left` for binary functions -/
 lemma continuous_inf_dom_left₂ {α β γ} {f : α → β → γ}
@@ -279,10 +330,22 @@ show continuous (g ∘ (λ b, (a, b))), from h.comp (by continuity)
 
 lemma is_open.prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
   is_open (s ×ˢ t) :=
-is_open.inter (hs.preimage continuous_fst) (ht.preimage continuous_snd)
+(hs.preimage continuous_fst).inter (ht.preimage continuous_snd)
 
 lemma nhds_prod_eq {a : α} {b : β} : 𝓝 (a, b) = 𝓝 a ×ᶠ 𝓝 b :=
 by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced]
+
+/-- If a function `f x y` is such that `y ↦ f x y` is continuous for all `x`, and `x` lives in a
+discrete space, then `f` is continuous. -/
+lemma continuous_uncurry_of_discrete_topology [discrete_topology α]
+  {f : α → β → γ} (hf : ∀ a, continuous (f a)) : continuous (function.uncurry f) :=
+begin
+  apply continuous_iff_continuous_at.2,
+  rintros ⟨a, x⟩,
+  change map _ _ ≤ _,
+  rw [nhds_prod_eq, nhds_discrete, filter.map_pure_prod],
+  exact (hf a).continuous_at
+end
 
 lemma mem_nhds_prod_iff {a : α} {b : β} {s : set (α × β)} :
   s ∈ 𝓝 (a, b) ↔ ∃ (u ∈ 𝓝 a) (v ∈ 𝓝 b), u ×ˢ v ⊆ s :=
@@ -349,47 +412,41 @@ hf.prod_mk_nhds hg
 lemma continuous_at.prod_map {f : α → γ} {g : β → δ} {p : α × β}
   (hf : continuous_at f p.fst) (hg : continuous_at g p.snd) :
   continuous_at (λ p : α × β, (f p.1, g p.2)) p :=
-(hf.comp continuous_at_fst).prod (hg.comp continuous_at_snd)
+hf.fst''.prod hg.snd''
 
 lemma continuous_at.prod_map' {f : α → γ} {g : β → δ} {x : α} {y : β}
   (hf : continuous_at f x) (hg : continuous_at g y) :
   continuous_at (λ p : α × β, (f p.1, g p.2)) (x, y) :=
-have hf : continuous_at f (x, y).fst, from hf,
-have hg : continuous_at g (x, y).snd, from hg,
-hf.prod_map hg
+hf.fst'.prod hg.snd'
 
 lemma prod_generate_from_generate_from_eq {α β : Type*} {s : set (set α)} {t : set (set β)}
   (hs : ⋃₀ s = univ) (ht : ⋃₀ t = univ) :
   @prod.topological_space α β (generate_from s) (generate_from t) =
-  generate_from {g | ∃u∈s, ∃v∈t, g = u ×ˢ v} :=
-let G := generate_from {g | ∃u∈s, ∃v∈t, g = u ×ˢ v} in
+  generate_from {g | ∃ u ∈ s, ∃ v ∈ t, g = u ×ˢ v} :=
+let G := generate_from {g | ∃ u ∈ s, ∃ v ∈ t, g = u ×ˢ v} in
 le_antisymm
-  (le_generate_from $ assume g ⟨u, hu, v, hv, g_eq⟩, g_eq.symm ▸
+  (le_generate_from $ λ g ⟨u, hu, v, hv, g_eq⟩, g_eq.symm ▸
     @is_open.prod _ _ (generate_from s) (generate_from t) _ _
       (generate_open.basic _ hu) (generate_open.basic _ hv))
   (le_inf
-    (coinduced_le_iff_le_induced.mp $ le_generate_from $ assume u hu,
-      have (⋃v∈t, u ×ˢ v) = prod.fst ⁻¹' u,
-        from calc (⋃v∈t, u ×ˢ v) = u ×ˢ (univ : set β) :
-            set.ext $ assume ⟨a, b⟩, by rw ← ht; simp [and.left_comm] {contextual:=tt}
-          ... = prod.fst ⁻¹' u : set.prod_univ,
+    (coinduced_le_iff_le_induced.mp $ le_generate_from $ λ u hu,
+      have (⋃ v ∈ t, u ×ˢ v) = prod.fst ⁻¹' u,
+      by simp_rw [← prod_Union, ← sUnion_eq_bUnion, ht, prod_univ],
       show G.is_open (prod.fst ⁻¹' u),
-        from this ▸ @is_open_Union _ _ G _ $ assume v, @is_open_Union _ _ G _ $ assume hv,
-          generate_open.basic _ ⟨_, hu, _, hv, rfl⟩)
-    (coinduced_le_iff_le_induced.mp $ le_generate_from $ assume v hv,
-      have (⋃u∈s, u ×ˢ v) = prod.snd ⁻¹' v,
-        from calc (⋃u∈s, u ×ˢ v) = (univ : set α) ×ˢ v:
-            set.ext $ assume ⟨a, b⟩, by rw [←hs]; by_cases b ∈ v; simp [h] {contextual:=tt}
-          ... = prod.snd ⁻¹' v : set.univ_prod,
+      by { rw [← this], exactI is_open_Union (λ v, is_open_Union $ λ hv,
+        generate_open.basic _ ⟨_, hu, _, hv, rfl⟩) })
+    (coinduced_le_iff_le_induced.mp $ le_generate_from $ λ v hv,
+      have (⋃ u ∈ s, u ×ˢ v) = prod.snd ⁻¹' v,
+      by simp_rw [← Union_prod_const, ← sUnion_eq_bUnion, hs, univ_prod],
       show G.is_open (prod.snd ⁻¹' v),
-        from this ▸ @is_open_Union _ _ G _ $ assume u, @is_open_Union _ _ G _ $ assume hu,
-          generate_open.basic _ ⟨_, hu, _, hv, rfl⟩))
+      by { rw [← this], exactI is_open_Union (λ u, is_open_Union $ λ hu,
+          generate_open.basic _ ⟨_, hu, _, hv, rfl⟩) }))
 
 lemma prod_eq_generate_from :
   prod.topological_space =
   generate_from {g | ∃(s:set α) (t:set β), is_open s ∧ is_open t ∧ g = s ×ˢ t} :=
 le_antisymm
-  (le_generate_from $ assume g ⟨s, t, hs, ht, g_eq⟩, g_eq.symm ▸ hs.prod ht)
+  (le_generate_from $ λ g ⟨s, t, hs, ht, g_eq⟩, g_eq.symm ▸ hs.prod ht)
   (le_inf
     (ball_image_of_ball $ λt ht, generate_open.basic _ ⟨t, univ, by simpa [set.prod_eq] using ht⟩)
     (ball_image_of_ball $ λt ht, generate_open.basic _ ⟨univ, t, by simpa [set.prod_eq] using ht⟩))
@@ -408,16 +465,7 @@ end
 lemma prod_induced_induced {α γ : Type*} (f : α → β) (g : γ → δ) :
   @prod.topological_space α γ (induced f ‹_›) (induced g ‹_›) =
   induced (λ p, (f p.1, g p.2)) prod.topological_space :=
-begin
-  set fxg := (λ p : α × γ, (f p.1, g p.2)),
-  have key1 : f ∘ (prod.fst : α × γ → α) = (prod.fst : β × δ → β) ∘ fxg, from rfl,
-  have key2 : g ∘ (prod.snd : α × γ → γ) = (prod.snd : β × δ → δ) ∘ fxg, from rfl,
-  unfold prod.topological_space,
-  conv_lhs
-  { rw [induced_compose, induced_compose, key1, key2],
-    congr, rw ← induced_compose, skip, rw ← induced_compose, },
-  rw induced_inf
-end
+by simp_rw [prod.topological_space, induced_inf, induced_compose]
 
 lemma continuous_uncurry_of_discrete_topology_left [discrete_topology α]
   {f : α → β → γ} (h : ∀ a, continuous (f a)) : continuous (function.uncurry f) :=
@@ -556,11 +604,11 @@ begin
 end
 
 protected lemma open_embedding.prod {f : α → β} {g : γ → δ}
-  (hf : open_embedding f) (hg : open_embedding g) : open_embedding (λx:α×γ, (f x.1, g x.2)) :=
+  (hf : open_embedding f) (hg : open_embedding g) : open_embedding (λ x : α × γ, (f x.1, g x.2)) :=
 open_embedding_of_embedding_open (hf.1.prod_mk hg.1)
   (hf.is_open_map.prod hg.is_open_map)
 
-lemma embedding_graph {f : α → β} (hf : continuous f) : embedding (λx, (x, f x)) :=
+lemma embedding_graph {f : α → β} (hf : continuous f) : embedding (λ x, (x, f x)) :=
 embedding_of_embedding_compose (continuous_id.prod_mk hf) continuous_fst embedding_id
 
 end prod
@@ -610,10 +658,7 @@ lemma embedding_inl : embedding (@inl α β) :=
         (is_open (inl ⁻¹' (@inl α β '' u)) ∧
          is_open (inr ⁻¹' (@inl α β '' u))) ∧
         inl ⁻¹' (inl '' u) = u,
-      have : inl ⁻¹' (@inl α β '' u) = u :=
-        preimage_image_eq u (λ _ _, inl.inj_iff.mp), rw this,
-      have : inr ⁻¹' (@inl α β '' u) = ∅ :=
-        eq_empty_iff_forall_not_mem.mpr (assume a ⟨b, _, h⟩, inl_ne_inr h), rw this,
+      rw [preimage_image_eq u sum.inl_injective, preimage_inr_image_inl],
       exact ⟨⟨hu, is_open_empty⟩, rfl⟩ }
   end,
   inj := λ _ _, inl.inj_iff.mp }
@@ -628,10 +673,7 @@ lemma embedding_inr : embedding (@inr α β) :=
         (is_open (inl ⁻¹' (@inr α β '' u)) ∧
          is_open (inr ⁻¹' (@inr α β '' u))) ∧
         inr ⁻¹' (inr '' u) = u,
-      have : inl ⁻¹' (@inr α β '' u) = ∅ :=
-        eq_empty_iff_forall_not_mem.mpr (assume b ⟨a, _, h⟩, inr_ne_inl h), rw this,
-      have : inr ⁻¹' (@inr α β '' u) = u :=
-        preimage_image_eq u (λ _ _, inr.inj_iff.mp), rw this,
+      rw [preimage_inl_image_inr, preimage_image_eq u sum.inr_injective],
       exact ⟨⟨is_open_empty, hu⟩, rfl⟩ }
   end,
   inj := λ _ _, inr.inj_iff.mp }
@@ -777,6 +819,14 @@ closure_induced
 
 @[continuity] lemma continuous.cod_restrict {f : α → β} {s : set β} (hf : continuous f)
   (hs : ∀ a, f a ∈ s) : continuous (s.cod_restrict f hs) := continuous_subtype_mk hs hf
+
+lemma inducing.cod_restrict {e : α → β} (he : inducing e) {s : set β} (hs : ∀ x, e x ∈ s) :
+  inducing (cod_restrict e s hs) :=
+inducing_of_inducing_compose (he.continuous.cod_restrict hs) continuous_subtype_coe he
+
+lemma embedding.cod_restrict {e : α → β} (he : embedding e) (s : set β) (hs : ∀ x, e x ∈ s) :
+  embedding (cod_restrict e s hs) :=
+embedding_of_embedding_compose (he.continuous.cod_restrict hs) continuous_subtype_coe he
 
 end subtype
 

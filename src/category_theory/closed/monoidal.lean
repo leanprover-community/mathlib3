@@ -23,6 +23,10 @@ namespace category_theory
 open category monoidal_category
 
 /-- An object `X` is (right) closed if `(X ⊗ -)` is a left adjoint. -/
+-- Note that this class carries a particular choice of right adjoint,
+-- (which is only unique up to isomorphism),
+-- not merely the existence of such, and
+-- so definitional properties of instances may be important.
 class closed {C : Type u} [category.{v} C] [monoidal_category.{v} C] (X : C) :=
 (is_adj : is_left_adjoint (tensor_left X))
 
@@ -71,12 +75,6 @@ variables [closed A]
 
 /--
 This is the internal hom `A ⟶[C] -`.
-Note that this is essentially an opaque definition,
-and so will not agree definitionally with any "native" internal hom the category has.
-
-TODO: we could introduce a `has_ihom` class
-that allows specifying a particular definition of the internal hom,
-and provide a low priority opaque instance.
 -/
 def ihom : C ⥤ C :=
 (@closed.is_adj _ _ _ A _).right

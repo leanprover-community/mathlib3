@@ -154,10 +154,11 @@ nat_degree_pos_iff_degree_pos.mp (nat_degree_pos hx)
 
 /-- If `B/A` is an injective ring extension, and `a` is an element of `A`,
 then the minimal polynomial of `algebra_map A B a` is `X - C a`. -/
-lemma eq_X_sub_C_of_algebra_map_inj [nontrivial A]
+lemma eq_X_sub_C_of_algebra_map_inj
   (a : A) (hf : function.injective (algebra_map A B)) :
   minpoly A (algebra_map A B a) = X - C a :=
 begin
+  nontriviality A,
   have hdegle : (minpoly A (algebra_map A B a)).nat_degree ≤ 1,
   { apply with_bot.coe_le_coe.1,
     rw [←degree_eq_nat_degree (ne_zero (@is_integral_algebra_map A B _ _ _ a)),
@@ -269,6 +270,9 @@ lemma degree_le_of_ne_zero
 calc degree (minpoly A x) ≤ degree (p * C (leading_coeff p)⁻¹) :
     min A x (monic_mul_leading_coeff_inv pnz) (by simp [hp])
   ... = degree p : degree_mul_leading_coeff_inv p pnz
+
+lemma ne_zero_of_finite_field_extension (e : B) [finite_dimensional A B] : minpoly A e ≠ 0 :=
+minpoly.ne_zero $ is_integral_of_noetherian (is_noetherian.iff_fg.2 infer_instance) _
 
 /-- The minimal polynomial of an element `x` is uniquely characterized by its defining property:
 if there is another monic polynomial of minimal degree that has `x` as a root,

@@ -95,8 +95,6 @@ le_antisymm (nat_degree_mul_C_le p a) (calc
 
 /-- Although not explicitly stated, the assumptions of lemma `nat_degree_mul_C_eq_of_mul_ne_zero`
 force the polynomial `p` to be non-zero, via `p.leading_coeff ≠ 0`.
-Lemma `nat_degree_mul_C_eq_of_no_zero_divisors` below separates cases, in order to overcome this
-hurdle.
 -/
 lemma nat_degree_mul_C_eq_of_mul_ne_zero (h : p.leading_coeff * a ≠ 0) :
   (p * C a).nat_degree = p.nat_degree :=
@@ -108,8 +106,6 @@ end
 
 /-- Although not explicitly stated, the assumptions of lemma `nat_degree_C_mul_eq_of_mul_ne_zero`
 force the polynomial `p` to be non-zero, via `p.leading_coeff ≠ 0`.
-Lemma `nat_degree_C_mul_eq_of_no_zero_divisors` below separates cases, in order to overcome this
-hurdle.
 -/
 lemma nat_degree_C_mul_eq_of_mul_ne_zero (h : a * p.leading_coeff ≠ 0) :
   (C a * p).nat_degree = p.nat_degree :=
@@ -217,21 +213,36 @@ end semiring
 section no_zero_divisors
 variables [semiring R] [no_zero_divisors R] {p q : R[X]}
 
-lemma nat_degree_mul_C_eq_of_no_zero_divisors (a0 : a ≠ 0) :
+lemma degree_mul_C (a0 : a ≠ 0) :
+  (p * C a).degree = p.degree :=
+by rw [degree_mul, degree_C a0, add_zero]
+
+lemma degree_C_mul (a0 : a ≠ 0) :
+  (C a * p).degree = p.degree :=
+by rw [degree_mul, degree_C a0, zero_add]
+
+lemma nat_degree_mul_C (a0 : a ≠ 0) :
   (p * C a).nat_degree = p.nat_degree :=
+by simp only [nat_degree, degree_mul_C a0]
+
+lemma nat_degree_C_mul (a0 : a ≠ 0) :
+  (C a * p).nat_degree = p.nat_degree :=
+by simp only [nat_degree, degree_C_mul a0]
+
+lemma nat_degree_comp : nat_degree (p.comp q) = nat_degree p * nat_degree q :=
 begin
-  by_cases p0 : p = 0,
-  { rw [p0, zero_mul] },
-  { exact nat_degree_mul_C_eq_of_mul_ne_zero (mul_ne_zero (leading_coeff_ne_zero.mpr p0) a0) }
+  by_cases q0 : q.nat_degree = 0,
+  { rw [degree_le_zero_iff.mp (nat_degree_eq_zero_iff_degree_le_zero.mp q0), comp_C, nat_degree_C,
+      nat_degree_C, mul_zero] },
+  { by_cases p0 : p = 0, { simp only [p0, zero_comp, nat_degree_zero, zero_mul] },
+    refine le_antisymm nat_degree_comp_le (le_nat_degree_of_ne_zero _),
+    simp only [coeff_comp_degree_mul_degree q0, p0, mul_eq_zero, leading_coeff_eq_zero, or_self,
+      ne_zero_of_nat_degree_gt (nat.pos_of_ne_zero q0), pow_ne_zero, ne.def, not_false_iff] }
 end
 
-lemma nat_degree_C_mul_eq_of_no_zero_divisors (a0 : a ≠ 0) :
-  (C a * p).nat_degree = p.nat_degree :=
-begin
-  by_cases p0 : p = 0,
-  { rw [p0, mul_zero] },
-  { exact nat_degree_C_mul_eq_of_mul_ne_zero (mul_ne_zero a0 (leading_coeff_ne_zero.mpr p0)) }
-end
+lemma leading_coeff_comp (hq : nat_degree q ≠ 0) :
+  leading_coeff (p.comp q) = leading_coeff p * leading_coeff q ^ nat_degree p :=
+by rw [← coeff_comp_degree_mul_degree hq, ← nat_degree_comp, coeff_nat_degree]
 
 end no_zero_divisors
 

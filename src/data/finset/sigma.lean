@@ -34,7 +34,7 @@ section sigma
 variables {α : ι → Type*} {β : Type*} (s s₁ s₂ : finset ι) (t t₁ t₂ : Π i, finset (α i))
 
 /-- `s.sigma t` is the finset of dependent pairs `⟨i, a⟩` such that `i ∈ s` and `a ∈ t i`. -/
-protected def sigma : finset (Σ i, α i) := ⟨_, nodup_sigma s.2 (λ i, (t i).2)⟩
+protected def sigma : finset (Σ i, α i) := ⟨_, s.nodup.sigma $ λ i, (t i).nodup⟩
 
 variables {s s₁ s₂ t t₁ t₂}
 
@@ -71,7 +71,7 @@ end
 
 lemma inf_sigma [semilattice_inf β] [order_top β] :
   (s.sigma t).inf f = s.inf (λ i, (t i).inf $ λ b, f ⟨i, b⟩) :=
-@sup_sigma _ _ (order_dual β) _ _ _ _ _
+@sup_sigma _ _ βᵒᵈ _ _ _ _ _
 
 end sigma
 

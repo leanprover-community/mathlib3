@@ -31,7 +31,7 @@ namespace list
 lemma rotate_mod (l : list α) (n : ℕ) : l.rotate (n % l.length) = l.rotate n :=
 by simp [rotate]
 
-@[simp] lemma rotate_nil (n : ℕ) : ([] : list α).rotate n = [] := by cases n; simp [rotate]
+@[simp] lemma rotate_nil (n : ℕ) : ([] : list α).rotate n = [] := by simp [rotate]
 
 @[simp] lemma rotate_zero (l : list α) : l.rotate 0 = l := by simp [rotate]
 
@@ -368,14 +368,8 @@ lemma is_rotated_comm : l ~r l' ↔ l' ~r l :=
 @[simp] protected lemma is_rotated.forall (l : list α) (n : ℕ) : l.rotate n ~r l :=
 is_rotated.symm ⟨n, rfl⟩
 
-@[trans] lemma is_rotated.trans {l'' : list α} (h : l ~r l') (h' : l' ~r l'') :
-  l ~r l'' :=
-begin
-  obtain ⟨n, rfl⟩ := h,
-  obtain ⟨m, rfl⟩ := h',
-  rw rotate_rotate,
-  use (n + m)
-end
+@[trans] lemma is_rotated.trans : ∀ {l l' l'' : list α}, l ~r l' → l' ~r l'' → l ~r l''
+| _ _ _ ⟨n, rfl⟩ ⟨m, rfl⟩ := ⟨n + m, by rw [rotate_rotate]⟩
 
 lemma is_rotated.eqv : equivalence (@is_rotated α) :=
 mk_equivalence _ is_rotated.refl (λ _ _, is_rotated.symm) (λ _ _ _, is_rotated.trans)

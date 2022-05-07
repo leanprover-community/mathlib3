@@ -3,10 +3,11 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import logic.nontrivial
-import algebra.group.units_hom
 import algebra.group.inj_surj
 import algebra.group_with_zero.defs
+import algebra.hom.units
+import logic.nontrivial
+import group_theory.group_action.units
 
 /-!
 # Groups with an adjoined zero element
@@ -39,12 +40,6 @@ open_locale classical
 open function
 
 variables {M₀ G₀ M₀' G₀' : Type*}
-
-mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `field_simp` to
-reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
-division-free."
-
-attribute [field_simps] mul_div_assoc'
 
 section
 
@@ -147,6 +142,8 @@ not_congr mul_eq_zero_comm
 
 lemma mul_self_eq_zero : a * a = 0 ↔ a = 0 := by simp
 lemma zero_eq_mul_self : 0 = a * a ↔ a = 0 := by simp
+lemma mul_self_ne_zero : a * a ≠ 0 ↔ a ≠ 0 := not_congr mul_self_eq_zero
+lemma zero_ne_mul_self : 0 ≠ a * a ↔ a ≠ 0 := not_congr zero_eq_mul_self
 
 end
 
@@ -268,8 +265,7 @@ section monoid_with_zero
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.monoid_with_zero [has_zero M₀'] [has_mul M₀'] [has_one M₀']
-  [has_pow M₀' ℕ]
-  [monoid_with_zero M₀]
+  [has_pow M₀' ℕ] [monoid_with_zero M₀]
   (f : M₀' → M₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   monoid_with_zero M₀' :=
@@ -505,8 +501,6 @@ end cancel_comm_monoid_with_zero
 section group_with_zero
 variables [group_with_zero G₀] {a b c g h x : G₀}
 
-alias div_eq_mul_inv ← division_def
-
 /-- Pullback a `group_with_zero` class along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
@@ -581,14 +575,25 @@ calc a⁻¹ * (a * b) = (a⁻¹ * a) * b : (mul_assoc _ _ _).symm
 calc 1⁻¹ = 1 * 1⁻¹ : by rw [one_mul]
      ... = (1:G₀)  : by simp
 
-@[priority 100]
-instance group_with_zero.to_has_involutive_inv : has_involutive_inv G₀ :=
+private lemma inv_eq_of_mul (h : a * b = 1) : a⁻¹ = b :=
+by rw [← inv_mul_cancel_left₀ (left_ne_zero_of_mul_eq_one h) b, h, mul_one]
+
+@[priority 100] -- See note [lower instance priority]
+instance group_with_zero.to_division_monoid : division_monoid G₀ :=
 { inv := has_inv.inv,
   inv_inv := λ a, begin
-    by_cases h : a = 0, { simp [h] },
-    calc a⁻¹⁻¹ = a * (a⁻¹ * a⁻¹⁻¹) : by simp [h]
-          ... = a                 : by simp [inv_ne_zero h]
-  end }
+    by_cases h : a = 0,
+    { simp [h] },
+    { exact left_inv_eq_right_inv (inv_mul_cancel $ inv_ne_zero h) (inv_mul_cancel h) }
+  end,
+  mul_inv_rev := λ a b, begin
+    by_cases ha : a = 0, { simp [ha] },
+    by_cases hb : b = 0, { simp [hb] },
+    refine inv_eq_of_mul _,
+    simp [mul_assoc, ha, hb]
+  end,
+  inv_eq_of_mul := λ a b, inv_eq_of_mul,
+  ..‹group_with_zero G₀› }
 
 /-- Multiplying `a` by itself and then by its inverse results in `a`
 (whether or not `a` is zero). -/
@@ -717,6 +722,10 @@ begin
   { right,
     simpa only [eq_comm] using units.exists_iff_ne_zero.mpr h }
 end
+
+@[simp] lemma smul_mk0 {α : Type*} [has_scalar G₀ α] {g : G₀} (hg : g ≠ 0) (a : α) :
+  (mk0 g hg) • a = g • a :=
+rfl
 
 end units
 
@@ -882,11 +891,11 @@ lemma div_eq_one_iff_eq (hb : b ≠ 0) : a / b = 1 ↔ a = b :=
 ⟨eq_of_div_eq_one, λ h, h.symm ▸ div_self hb⟩
 
 lemma div_mul_left {a b : G₀} (hb : b ≠ 0) : b / (a * b) = 1 / a :=
-by simp only [div_eq_mul_inv, mul_inv_rev₀, mul_inv_cancel_left₀ hb, one_mul]
+by simp only [div_eq_mul_inv, mul_inv_rev, mul_inv_cancel_left₀ hb, one_mul]
 
 lemma mul_div_mul_right (a b : G₀) {c : G₀} (hc : c ≠ 0) :
   (a * c) / (b * c) = a / b :=
-by simp only [div_eq_mul_inv, mul_inv_rev₀, mul_assoc, mul_inv_cancel_left₀ hc]
+by simp only [div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_inv_cancel_left₀ hc]
 
 lemma mul_mul_div (a : G₀) {b : G₀} (hb : b ≠ 0) : a = a * b * (1 / b) :=
 by simp [hb]
@@ -942,6 +951,10 @@ variables [comm_group_with_zero G₀] {a b c : G₀}
 instance comm_group_with_zero.cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero G₀ :=
 { ..group_with_zero.cancel_monoid_with_zero, ..comm_group_with_zero.to_comm_monoid_with_zero G₀ }
 
+@[priority 100] -- See note [lower instance priority]
+instance comm_group_with_zero.to_division_comm_monoid : division_comm_monoid G₀ :=
+{ ..‹comm_group_with_zero G₀›, ..group_with_zero.to_division_monoid }
+
 /-- Pullback a `comm_group_with_zero` class along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
@@ -990,6 +1003,9 @@ local attribute [simp] mul_assoc mul_comm mul_left_comm
 lemma div_mul_div_comm₀ (a b c d : G₀) :
       (a / b) * (c / d) = (a * c) / (b * d) :=
 by simp [div_eq_mul_inv, mul_inv₀]
+
+lemma div_div_div_comm₀ (a b c d : G₀) : (a / b) / (c / d) = (a / c) / (b / d) :=
+by simp_rw [div_eq_mul_inv, mul_inv₀, inv_inv, mul_mul_mul_comm]
 
 lemma mul_div_mul_left (a b : G₀) {c : G₀} (hc : c ≠ 0) :
       (c * a) / (c * b) = a / b :=

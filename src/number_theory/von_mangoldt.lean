@@ -6,7 +6,7 @@ Authors: Bhavik Mehta
 
 import algebra.is_prime_pow
 import number_theory.arithmetic_function
-import analysis.special_functions.log
+import analysis.special_functions.log.basic
 
 /-!
 # The von Mangoldt Function
@@ -93,7 +93,8 @@ begin
   simp only [von_mangoldt_apply, ←sum_filter] at ha hb ⊢,
   rw [mul_divisors_filter_prime_pow hab, filter_union,
     sum_union (disjoint_divisors_filter_prime_pow hab), ha, hb, nat.cast_mul,
-    real.log_mul (nat.cast_ne_zero.2 ha'.ne') (nat.cast_ne_zero.2 hb'.ne')],
+    real.log_mul (nat.cast_ne_zero.2 (pos_of_gt ha').ne')
+      (nat.cast_ne_zero.2 (pos_of_gt hb').ne')],
 end
 
 @[simp] lemma von_mangoldt_mul_zeta : Λ * ζ = log :=
@@ -123,7 +124,7 @@ begin
     { rw [cast_ne_zero],
       rintro rfl,
       exact hn (by simpa using mn) },
-    rw [nat.cast_dvd mn this, real.log_div (cast_ne_zero.2 hn) this, neg_sub, mul_sub] },
+    rw [nat.cast_div mn this, real.log_div (cast_ne_zero.2 hn) this, neg_sub, mul_sub] },
   rw [this, sum_sub_distrib, ←sum_mul, ←int.cast_sum, ←coe_mul_zeta_apply, eq_comm, sub_eq_self,
     moebius_mul_coe_zeta, mul_eq_zero, int.cast_eq_zero],
   rcases eq_or_ne n 1 with hn | hn;

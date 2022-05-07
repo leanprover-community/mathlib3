@@ -236,9 +236,3 @@ add_tactic_doc
   category                 := doc_category.tactic,
   decl_names               := [`category_theory.elementwise_of],
   tags                     := ["category theory"] }
-
-/-! We now add some `elementwise` attributes to lemmas that were proved earlier. -/
-open category_theory
-
--- This list is incomplete, and it would probably be useful to add more.
-attribute [elementwise] iso.hom_inv_id iso.inv_hom_id is_iso.hom_inv_id is_iso.inv_hom_id

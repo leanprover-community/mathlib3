@@ -6,7 +6,7 @@ Authors: Johan Commelin, Riccardo Brasca
 import analysis.normed.group.hom
 import category_theory.limits.shapes.zero_morphisms
 import category_theory.concrete_category.bundled_hom
-import tactic.elementwise
+import category_theory.elementwise
 
 /-!
 # The category of seminormed groups

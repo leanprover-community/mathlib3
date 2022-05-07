@@ -51,10 +51,8 @@ In this file `homotopies.lean`, we define the null homotopic maps
 compatible the application of additive functors (see `map_Hσ`).
 
 ## References
-* Albrecht Dold, Homology of Symmetric Products and Other Functors of Complexes,
-Annals of Mathematics, Second Series, Vol. 68 No. 1 (Jul. 1958), pp. 54-80.
-* Paul G. Goerss, John F. Jardine, Simplical Homotopy Theory, Modern Birkhäuser Classics,
-Reprint of the 1999 edition.
+* [Albrecht Dold, *Homology of Symmetric Products and Other Functors of Complexes*][dold1958]
+* [Paul G. Goerss, John F. Jardine, *Simplical Homotopy Theory*][goerss-jardine-2009]
 
 -/
 

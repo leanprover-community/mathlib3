@@ -129,7 +129,8 @@ begin
     exact congr rfl (funext (λ i, ih i (h i (finset.mem_univ i)))) },
 end
 
-@[simp] lemma realize_restrict_var_left [decidable_eq α] {γ : Type*} {t : L.term (α ⊕ γ)} {s : set α}
+@[simp] lemma realize_restrict_var_left [decidable_eq α] {γ : Type*}
+  {t : L.term (α ⊕ γ)} {s : set α}
   (h : ↑t.var_finset_left ⊆ s) {v : α → M} {xs : γ → M} :
   (t.restrict_var_left (set.inclusion h)).realize (sum.elim (v ∘ coe) xs) =
     t.realize (sum.elim v xs) :=

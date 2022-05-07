@@ -131,7 +131,7 @@ begin
 end
 
 /-- The product of two independent, integrable, real_valued random variables is integrable. -/
-lemma indep_fun.integrable_mul {β : Type*} {mβ : measurable_space β} {X Y : α → β}
+lemma indep_fun.integrable_mul {β : Type*} [measurable_space β] {X Y : α → β}
   [normed_division_ring β] [borel_space β]
   (hXY : indep_fun X Y μ) (hX : integrable X μ) (hY : integrable Y μ) :
   integrable (X * Y) μ :=
@@ -210,10 +210,10 @@ begin
   have hm3 : ae_measurable Ym μ := hY.1.ae_measurable.neg.max ae_measurable_const,
   have hm4 : ae_measurable Yp μ := hY.1.ae_measurable.max ae_measurable_const,
 
-  have hv1 : integrable Xm μ := hX.neg.max_zero,
-  have hv2 : integrable Xp μ := hX.max_zero,
-  have hv3 : integrable Ym μ := hY.neg.max_zero,
-  have hv4 : integrable Yp μ := hY.max_zero,
+  have hv1 : integrable Xm μ := hX.neg_part,
+  have hv2 : integrable Xp μ := hX.pos_part,
+  have hv3 : integrable Ym μ := hY.neg_part,
+  have hv4 : integrable Yp μ := hY.pos_part,
 
   have hi1 : indep_fun Xm Ym μ := hXY.comp negm negm,
   have hi2 : indep_fun Xp Ym μ := hXY.comp posm negm,
@@ -234,6 +234,11 @@ begin
     hi4.integral_mul_of_nonneg hp2 hp4 hm2 hm4],
   ring
 end
+
+theorem indep_fun.integral_mul_of_integrable' (hXY : indep_fun X Y μ)
+  (hX : integrable X μ) (hY : integrable Y μ) :
+  integral μ (λ x, X x * Y x) = integral μ X * integral μ Y :=
+hXY.integral_mul_of_integrable hX hY
 
 /-- Independence of functions `f` and `g` into arbitrary types is characterized by the relation
   `E[(φ ∘ f) * (ψ ∘ g)] = E[φ ∘ f] * E[ψ ∘ g]` for all measurable `φ` and `ψ` with values in `ℝ`

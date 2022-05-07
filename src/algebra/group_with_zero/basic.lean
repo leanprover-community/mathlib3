@@ -7,6 +7,7 @@ import algebra.group.inj_surj
 import algebra.group_with_zero.defs
 import algebra.hom.units
 import logic.nontrivial
+import group_theory.group_action.units
 
 /-!
 # Groups with an adjoined zero element
@@ -721,6 +722,10 @@ begin
   { right,
     simpa only [eq_comm] using units.exists_iff_ne_zero.mpr h }
 end
+
+@[simp] lemma smul_mk0 {α : Type*} [has_scalar G₀ α] {g : G₀} (hg : g ≠ 0) (a : α) :
+  (mk0 g hg) • a = g • a :=
+rfl
 
 end units
 

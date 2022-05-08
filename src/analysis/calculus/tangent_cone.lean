@@ -323,7 +323,6 @@ lemma unique_diff_within_at.univ_pi (ι : Type*) [fintype ι] (E : ι → Type*)
   (s : Π i, set (E i)) (x : Π i, E i) (h : ∀ i, unique_diff_within_at 𝕜 (s i) (x i)) :
   unique_diff_within_at 𝕜 (set.pi univ s) x :=
 begin
-  classical,
   simp only [unique_diff_within_at_iff, closure_pi_set] at h ⊢,
   refine ⟨(dense_pi univ (λ i _, (h i).1)).mono _, λ i _, (h i).2⟩,
   norm_cast,
@@ -338,7 +337,6 @@ lemma unique_diff_within_at.pi (ι : Type*) [fintype ι] (E : ι → Type*)
   (h : ∀ i ∈ I, unique_diff_within_at 𝕜 (s i) (x i)) :
   unique_diff_within_at 𝕜 (set.pi I s) x :=
 begin
-  classical,
   rw [← set.univ_pi_piecewise],
   refine unique_diff_within_at.univ_pi _ _ _ _ (λ i, _),
   by_cases hi : i ∈ I; simp [*, unique_diff_within_at_univ],

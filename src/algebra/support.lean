@@ -323,7 +323,6 @@ lemma support_single [decidable_eq B] :
 
 lemma support_single_subset : function.support (pi.single a b) ⊆ {a} :=
 begin
-  classical,
   rw support_single,
   split_ifs; simp
 end

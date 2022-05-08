@@ -640,6 +640,30 @@ lemma delete_edges_eq_inter_edge_set (s : set (sym2 V)) :
   G.delete_edges s = G.delete_edges (s ∩ G.edge_set) :=
 by { ext, simp [imp_false] { contextual := tt } }
 
+/-! ## Induced graphs -/
+
+/- Given a set `s` of vertices, we can restrict a graph to those vertices by restricting its
+adjacency relation. This gives a map between `simple_graph V` and `simple_graph s`.
+
+There is also a notion of induced subgraphs (see `simple_graph.subgraph.induce`). -/
+
+/-- Restrict a graph to the vertices in the set `s`. -/
+@[simps]
+def induce (s : set V) (G : simple_graph V) : simple_graph s :=
+{ adj := λ u v, G.adj u v }
+
+/-- Given a graph on a set of vertices, we can make it be a `simple_graph V` by
+adding in the remaining vertices without adding in any additional edges. -/
+@[simps]
+def spanning_coe {s : set V} (G : simple_graph s) : simple_graph V :=
+{ adj := λ u v, ∃ (hu : u ∈ s) (hv : v ∈ s), G.adj ⟨u, hu⟩ ⟨v, hv⟩ }
+
+lemma induce_spanning_coe {s : set V} {G : simple_graph s} : G.spanning_coe.induce s = G :=
+by { ext x, simp }
+
+lemma spanning_coe_induce_le (s : set V) : (G.induce s).spanning_coe ≤ G :=
+λ v w, by simp
+
 section finite_at
 
 /-!
@@ -998,6 +1022,14 @@ begin
   apply sym2.map.injective hinj,
 end
 
+/-- Every graph homomomorphism from a complete graph is injective. -/
+lemma injective_of_top_hom (f : (⊤ : simple_graph V) →g G') : function.injective f :=
+begin
+  intros v w h,
+  contrapose! h,
+  exact G'.ne_of_adj (map_adj _ ((top_adj _ _).mpr h)),
+end
+
 variable {G'' : simple_graph X}
 
 /-- Composition of graph homomorphisms. -/
@@ -1039,9 +1071,25 @@ map_adj_iff f
   end }
 
 /-- Embeddings of types induce embeddings of complete graphs on those types. -/
-def complete_graph.of_embedding {α β : Type*} (f : α ↪ β) : complete_graph α ↪g complete_graph β :=
+def complete_graph.of_embedding {α β : Type*} (f : α ↪ β) :
+  (⊤ : simple_graph α) ↪g (⊤ : simple_graph β) :=
 { to_fun := f,
   inj' := f.inj',
+  map_rel_iff' := by simp }
+
+/-- Induced graphs embed in the original graph.
+
+Note that if `G.induce s = ⊤` (i.e., if `s` is a clique) then this gives the embedding of a
+complete graph. -/
+@[simps] def induce (s : set V) : G.induce s ↪g G :=
+{ to_fun := coe,
+  inj' := subtype.coe_injective,
+  map_rel_iff' := by simp }
+
+/-- Graphs on a set of vertices embed in their `spanning_coe`. -/
+@[simps] def spanning_coe {s : set V} {G : simple_graph s} : G ↪g G.spanning_coe :=
+{ to_fun := coe,
+  inj' := subtype.coe_injective,
   map_rel_iff' := by simp }
 
 variables {G'' : simple_graph X}
@@ -1109,6 +1157,15 @@ map_adj_iff f
 
 lemma card_eq_of_iso [fintype V] [fintype W] (f : G ≃g G') : fintype.card V = fintype.card W :=
 by convert (fintype.of_equiv_card f.to_equiv).symm
+
+/-- Equivalences of types induce isomorphisms of complete graphs on those types. -/
+def complete_graph.of_equiv {α β : Type*} (f : α ≃ β) :
+  (⊤ : simple_graph α) ≃g (⊤ : simple_graph β) :=
+{ to_fun := f,
+  inv_fun := f.symm,
+  left_inv := λ w, by simp,
+  right_inv := λ w, by simp,
+  map_rel_iff' := by simp }
 
 variables {G'' : simple_graph X}
 

@@ -73,6 +73,8 @@ lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
 
 @[symm] lemma adj_symm (G' : subgraph G) {u v : V} (h : G'.adj u v) : G'.adj v u := G'.symm h
 
+protected lemma adj.symm {G' : subgraph G} {u v : V} (h : G'.adj u v) : G'.adj v u := G'.symm h
+
 /-- Coercion from `G' : subgraph G` to a `simple_graph ↥G'.verts`. -/
 @[simps] protected def coe (G' : subgraph G) : simple_graph G'.verts :=
 { adj := λ v w, G'.adj v w,
@@ -514,6 +516,113 @@ lemma spanning_coe_delete_edges_le (G' : G.subgraph) (s : set (sym2 V)) :
 spanning_coe_le_of_le (delete_edges_le s)
 
 end delete_edges
+
+/-! ## Induced subgraphs and vertex deletion -/
+
+/- Given a subgraph, we can change its vertex set while removing any invalid edges, and
+this leads to induced subgraphs and vertex deletion. See also `simple_graph.induce` for the
+`simple_graph` version, which, unlike for subgraphs, results in a graph with a different type. -/
+
+/-- The induced subgraph of a subgraph. The expectation is that `s ⊆ G'.verts` for the usual
+notion of an induced subgraph, but, in general, `s` is taken to be the new vertex set and edges
+are induced from the subgraph `G'`. -/
+@[simps]
+def induce (G' : G.subgraph) (s : set V) : G.subgraph :=
+{ verts := s,
+  adj := λ u v, u ∈ s ∧ v ∈ s ∧ G'.adj u v,
+  adj_sub := λ u v, by { rintro ⟨-, -, ha⟩, exact G'.adj_sub ha },
+  edge_vert := λ u v, by { rintro ⟨h, -, -⟩, exact h } }
+
+lemma _root_.simple_graph.induce_eq_coe_induce_top (s : set V) :
+  G.induce s = ((⊤ : G.subgraph).induce s).coe :=
+by { ext v w, simp }
+
+section induce
+variables {G' G'' : G.subgraph} {s s' : set V}
+
+lemma induce_mono (hg : G' ≤ G'') (hs : s ⊆ s') : G'.induce s ≤ G''.induce s' :=
+begin
+  split,
+  { simp [hs], },
+  { simp only [induce_adj, true_and, and_imp] {contextual := tt},
+    intros v w hv hw ha,
+    exact ⟨hs hv, hs hw, hg.2 ha⟩, },
+end
+
+@[simp] lemma induce_empty : G'.induce ∅ = ⊥ :=
+by ext; simp
+
+end induce
+
+/-- Given a subgraph and a set of vertices, delete all the vertices from the subgraph,
+if present. Any edges indicent to the deleted vertices are deleted as well. -/
+def delete_verts (G' : G.subgraph) (s : set V) : G.subgraph := G'.induce (G'.verts \ s)
+
+section delete_verts
+variables {G' : G.subgraph} {s : set V}
+
+@[simp] lemma delete_verts_verts : (G'.delete_verts s).verts = G'.verts \ s := rfl
+
+@[simp] lemma delete_verts_adj {u v : V} :
+  (G'.delete_verts s).adj u v ↔
+  u ∈ G'.verts ∧ ¬ u ∈ s ∧ v ∈ G'.verts ∧ ¬ v ∈ s ∧ G'.adj u v :=
+by simp [delete_verts, and_assoc]
+
+@[simp] lemma delete_verts_delete_verts (s s' : set V) :
+  (G'.delete_verts s).delete_verts s' = G'.delete_verts (s ∪ s') :=
+by ext; simp [not_or_distrib, and_assoc] { contextual := tt }
+
+@[simp] lemma delete_verts_empty : G'.delete_verts ∅ = G' :=
+begin
+  ext,
+  { simp },
+  { split;
+    simp only [delete_verts_adj, and_imp, implies_true_iff, set.mem_empty_eq,
+      not_false_iff, true_and, and_true] { contextual := tt },
+    exact λ ha, ⟨G'.edge_vert ha, G'.edge_vert ha.symm⟩ }
+end
+
+lemma delete_verts_le : G'.delete_verts s ≤ G' :=
+by split; simp [set.diff_subset]
+
+lemma delete_verts_mono {G' G'' : G.subgraph} (h : G' ≤ G'') :
+  G'.delete_verts s ≤ G''.delete_verts s :=
+begin
+  split;
+  simp only [delete_verts_verts, delete_verts_adj, and_imp, not_false_iff, true_and]
+    { contextual := tt },
+  { exact set.diff_subset_diff_left h.1, },
+  { intros v w hv hnv hw hnw ha,
+    simp [h.1 hv, h.1 hw, h.2 ha], }
+end
+
+lemma delete_verts_anti {s s' : set V} (h : s ⊆ s') :
+  G'.delete_verts s' ≤ G'.delete_verts s :=
+begin
+  split;
+  simp [delete_verts_verts, delete_verts_adj, true_and, and_imp, and_true] {contextual := tt},
+  { exact set.diff_subset_diff_right h, },
+  { intros v w hv hnv hw hnw ha,
+    split; intro hs; have := h hs; contradiction, },
+end
+
+@[simp] lemma delete_verts_inter_verts_left_eq :
+  G'.delete_verts (G'.verts ∩ s) = G'.delete_verts s :=
+by ext; simp [imp_false] { contextual := tt }
+
+@[simp] lemma delete_verts_inter_verts_set_right_eq :
+  G'.delete_verts (s ∩ G'.verts) = G'.delete_verts s :=
+by ext; simp [imp_false] { contextual := tt }
+
+lemma spanning_coe_delete_verts_le (G' : G.subgraph) (s : set V) :
+  (G'.delete_verts s).spanning_coe ≤ G'.spanning_coe :=
+spanning_coe_le_of_le
+begin
+  convert delete_verts_anti (set.empty_subset s),
+  exact delete_verts_empty.symm,
+end
+
+end delete_verts
 
 end subgraph
 

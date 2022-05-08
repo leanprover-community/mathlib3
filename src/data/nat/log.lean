@@ -149,7 +149,7 @@ begin
       exact (pow_log_le_self hb hn).trans h } }
 end
 
-lemma log_mono_left {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : log b n ≤ log c n :=
+lemma log_anti_left {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : log b n ≤ log c n :=
 begin
   cases n, { rw [log_zero_right, log_zero_right] },
   rw ←pow_le_iff_le_log hc (zero_lt_succ n),
@@ -163,7 +163,7 @@ lemma log_monotone {b : ℕ} : monotone (λ n : ℕ, log b n) :=
 λ x y, log_mono_right
 
 lemma log_antitone_left {n : ℕ} : antitone_on (λ b, log b n) (set.Ioi 1) :=
-λ _ hc _ _ hb, log_mono_left (set.mem_Iio.1 hc) hb
+λ _ hc _ _ hb, log_anti_left (set.mem_Iio.1 hc) hb
 
 @[simp] lemma log_div_mul_self (b n : ℕ) : log b (n / b * b) = log b n :=
 eq_of_forall_le_iff (λ z, ⟨λ h, h.trans (log_monotone (div_mul_le_self _ _)), λ h, begin
@@ -283,7 +283,7 @@ end
 lemma le_pow_clog {b : ℕ} (hb : 1 < b) (x : ℕ) : x ≤ b ^ clog b x :=
 (le_pow_iff_clog_le hb).2 le_rfl
 
-lemma clog_le_clog_of_le (b : ℕ) {n m : ℕ} (h : n ≤ m) : clog b n ≤ clog b m :=
+lemma clog_mono_right (b : ℕ) {n m : ℕ} (h : n ≤ m) : clog b n ≤ clog b m :=
 begin
   cases le_or_lt b 1 with hb hb,
   { rw clog_of_left_le_one hb, exact zero_le _ },
@@ -291,7 +291,7 @@ begin
     exact h.trans (le_pow_clog hb _) }
 end
 
-lemma clog_le_clog_of_left_ge {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : clog b n ≤ clog c n :=
+lemma clog_anti_left {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : clog b n ≤ clog c n :=
 begin
   rw ← le_pow_iff_clog_le (lt_of_lt_of_le hc hb),
   calc
@@ -300,10 +300,10 @@ begin
 end
 
 lemma clog_monotone (b : ℕ) : monotone (clog b) :=
-λ x y, clog_le_clog_of_le _
+λ x y, clog_mono_right _
 
 lemma clog_antitone_left {n : ℕ} : antitone_on (λ b : ℕ, clog b n) (set.Ioi 1) :=
-λ _ hc _ _ hb, clog_le_clog_of_left_ge (set.mem_Iio.1 hc) hb
+λ _ hc _ _ hb, clog_anti_left (set.mem_Iio.1 hc) hb
 
 lemma log_le_clog (b n : ℕ) : log b n ≤ clog b n :=
 begin

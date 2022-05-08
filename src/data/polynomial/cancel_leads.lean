@@ -24,7 +24,7 @@ open_locale polynomial
 variables {R : Type*}
 
 section comm_ring
-variables [comm_ring R] (p q : R[X])
+variables [ring R] (p q : R[X])
 
 /-- `cancel_leads p q` is formed by multiplying `p` and `q` by monomials so that they
   have the same leading term, and then subtracting. -/
@@ -35,6 +35,11 @@ C q.leading_coeff * X ^ (q.nat_degree - p.nat_degree) * p
 variables {p q}
 
 @[simp] lemma neg_cancel_leads : - p.cancel_leads q = q.cancel_leads p := neg_sub _ _
+
+end comm_ring
+
+section comm_ring
+variables [comm_ring R] {p q : R[X]}
 
 lemma dvd_cancel_leads_of_dvd_of_dvd {r : R[X]} (pq : p ∣ q) (pr : p ∣ r) :
   p ∣ q.cancel_leads r :=

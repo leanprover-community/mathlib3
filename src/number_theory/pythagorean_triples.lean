@@ -153,7 +153,7 @@ begin
     ∃ (k : ℕ) x0 y0, 0 < k ∧ int.gcd x0 y0 = 1 ∧ x = x0 * k ∧ y = y0 * k :=
     int.exists_gcd_one' (nat.pos_of_ne_zero h0),
   rw [int.gcd_mul_right, h2, int.nat_abs_of_nat, one_mul],
-  rw [← int.pow_dvd_pow_iff (dec_trivial : 0 < 2), sq z, ← h.eq],
+  rw [← int.pow_dvd_pow_iff zero_lt_two, sq z, ← h.eq],
   rw (by ring : x0 * k * (x0 * k) + y0 * k * (y0 * k) = k ^ 2 * (x0 * x0 + y0 * y0)),
   exact dvd_mul_right _ _
 end

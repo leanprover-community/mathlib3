@@ -5,7 +5,7 @@ Authors: Thomas Browning
 -/
 
 import group_theory.quotient_group
-import set_theory.fincard
+import set_theory.cardinal.finite
 
 /-!
 # Index of a Subgroup

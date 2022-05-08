@@ -9,7 +9,7 @@ import category_theory.limits.preserves.shapes.pullbacks
 import topology.sheaves.functors
 import algebraic_geometry.Scheme
 import category_theory.limits.shapes.strict_initial
-import algebra.category.CommRing.instances
+import algebra.category.Ring.instances
 
 /-!
 # Open immersions of structured spaces

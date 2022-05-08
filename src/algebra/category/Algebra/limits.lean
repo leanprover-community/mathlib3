@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.category.Algebra.basic
 import algebra.category.Module.limits
-import algebra.category.CommRing.limits
+import algebra.category.Ring.limits
 
 /-!
 # The category of R-algebras has all limits

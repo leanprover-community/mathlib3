@@ -493,13 +493,9 @@ apply_nolint relator.right_total doc_blame
 apply_nolint relator.right_unique doc_blame
 
 -- measure_theory/group/prod.lean
-apply_nolint measure_theory.absolutely_continuous_of_is_mul_left_invariant to_additive_doc
 apply_nolint measure_theory.map_prod_inv_mul_eq to_additive_doc
 apply_nolint measure_theory.map_prod_inv_mul_eq_swap to_additive_doc
-apply_nolint measure_theory.map_prod_mul_eq to_additive_doc
-apply_nolint measure_theory.map_prod_mul_eq_swap to_additive_doc
 apply_nolint measure_theory.map_prod_mul_inv_eq to_additive_doc
-apply_nolint measure_theory.measure_eq_div_smul to_additive_doc
 apply_nolint measure_theory.measure_lintegral_div_measure to_additive_doc
 apply_nolint measure_theory.measure_mul_lintegral_eq to_additive_doc
 

@@ -62,7 +62,7 @@ namespace probability_theory
 their image measures coincide. This only makes sense when the functions are ae measurable
 (as otherwise the image measures are not defined), so we require this as well in the definition. -/
 structure ident_distrib
-  (f : α → γ) (g : β → γ) (μ : measure α . volume_tac)  (ν : measure β . volume_tac) : Prop :=
+  (f : α → γ) (g : β → γ) (μ : measure α . volume_tac) (ν : measure β . volume_tac) : Prop :=
 (ae_measurable_fst : ae_measurable f μ)
 (ae_measurable_snd : ae_measurable g ν)
 (map_eq : measure.map f μ = measure.map g ν)
@@ -72,9 +72,6 @@ namespace ident_distrib
 open topological_space
 
 variables {μ : measure α} {ν : measure β} {f : α → γ} {g : β → γ}
-
-protected lemma ae_measurable (h : ident_distrib f g μ ν) :
-  ae_measurable f μ := h.ae_measurable_fst
 
 protected lemma refl (hf : ae_measurable f μ) :
   ident_distrib f f μ μ :=
@@ -96,13 +93,13 @@ protected lemma trans {ρ : measure δ} {h : δ → γ}
 protected lemma comp_of_ae_measurable {u : γ → δ} (h : ident_distrib f g μ ν)
   (hu : ae_measurable u (measure.map f μ)) :
   ident_distrib (u ∘ f) (u ∘ g) μ ν :=
-{ ae_measurable_fst := hu.comp_ae_measurable h.ae_measurable,
+{ ae_measurable_fst := hu.comp_ae_measurable h.ae_measurable_fst,
   ae_measurable_snd :=
-    by { rw h.map_eq at hu, exact hu.comp_ae_measurable h.symm.ae_measurable },
+    by { rw h.map_eq at hu, exact hu.comp_ae_measurable h.ae_measurable_snd },
   map_eq :=
   begin
-    rw [← ae_measurable.map_map_of_ae_measurable hu h.ae_measurable,
-      ← ae_measurable.map_map_of_ae_measurable _ h.symm.ae_measurable, h.map_eq],
+    rw [← ae_measurable.map_map_of_ae_measurable hu h.ae_measurable_fst,
+      ← ae_measurable.map_map_of_ae_measurable _ h.ae_measurable_snd, h.map_eq],
     rwa ← h.map_eq,
   end }
 
@@ -112,29 +109,40 @@ h.comp_of_ae_measurable hu.ae_measurable
 
 lemma measure_mem_eq (h : ident_distrib f g μ ν) {s : set γ} (hs : measurable_set s) :
   μ (f ⁻¹' s) = ν (g ⁻¹' s) :=
-by rw [← measure.map_apply_of_ae_measurable h.ae_measurable hs,
-  ← measure.map_apply_of_ae_measurable h.symm.ae_measurable hs, h.map_eq]
+by rw [← measure.map_apply_of_ae_measurable h.ae_measurable_fst hs,
+  ← measure.map_apply_of_ae_measurable h.ae_measurable_snd hs, h.map_eq]
+
+alias measure_mem_eq ← probability_theory.ident_distrib.measure_preimage_eq
+
+lemma ae_snd (h : ident_distrib f g μ ν) {p : γ → Prop}
+  (pmeas : measurable_set {x | p x}) (hp : ∀ᵐ x ∂μ, p (f x)) :
+   ∀ᵐ x ∂ν, p (g x) :=
+begin
+  apply (ae_map_iff h.ae_measurable_snd pmeas).1,
+  rw ← h.map_eq,
+  exact (ae_map_iff h.ae_measurable_fst pmeas).2 hp,
+end
 
 lemma ae_mem_snd (h : ident_distrib f g μ ν) {t : set γ}
   (tmeas : measurable_set t) (ht : ∀ᵐ x ∂μ, f x ∈ t) :
    ∀ᵐ x ∂ν, g x ∈ t :=
-begin
-  apply (ae_map_iff h.symm.ae_measurable tmeas).1,
-  rw ← h.map_eq,
-  exact (ae_map_iff h.ae_measurable tmeas).2 ht,
-end
+h.ae_snd tmeas ht
 
-protected lemma ae_strongly_measurable [topological_space γ]
+/-- In a second countable topology, the first function in an identically distributed pair is a.e.
+strongly measurable. So is the second function, but use `h.symm.ae_strongly_measurable_fst` as
+`h.ae_strongly_measurable_snd` has a different meaning.-/
+lemma ae_strongly_measurable_fst [topological_space γ]
   [metrizable_space γ] [opens_measurable_space γ] [second_countable_topology γ]
   (h : ident_distrib f g μ ν) :
   ae_strongly_measurable f μ :=
-h.ae_measurable.ae_strongly_measurable
+h.ae_measurable_fst.ae_strongly_measurable
 
+/-- If `f` and `g` are identically distributed and `f` is a.e. strongly measurable, so is `g`. -/
 lemma ae_strongly_measurable_snd [topological_space γ] [metrizable_space γ] [borel_space γ]
   (h : ident_distrib f g μ ν) (hf : ae_strongly_measurable f μ) :
   ae_strongly_measurable g ν :=
 begin
-  refine ae_strongly_measurable_iff_ae_measurable_separable.2 ⟨h.symm.ae_measurable, _⟩,
+  refine ae_strongly_measurable_iff_ae_measurable_separable.2 ⟨h.ae_measurable_snd, _⟩,
   rcases (ae_strongly_measurable_iff_ae_measurable_separable.1 hf).2 with ⟨t, t_sep, ht⟩,
   refine ⟨closure t, t_sep.closure, _⟩,
   apply h.ae_mem_snd is_closed_closure.measurable_set,
@@ -159,8 +167,8 @@ lemma lintegral_eq {f : α → ℝ≥0∞} {g : β → ℝ≥0∞} (h : ident_di
   ∫⁻ x, f x ∂μ = ∫⁻ x, g x ∂ν :=
 begin
   change ∫⁻ x, id (f x) ∂μ = ∫⁻ x, id (g x) ∂ν,
-  rw [← lintegral_map' ae_measurable_id h.ae_measurable,
-      ← lintegral_map' ae_measurable_id h.symm.ae_measurable, h.map_eq],
+  rw [← lintegral_map' ae_measurable_id h.ae_measurable_fst,
+      ← lintegral_map' ae_measurable_id h.ae_measurable_snd, h.map_eq],
 end
 
 lemma integral_eq [normed_group γ] [normed_space ℝ γ] [complete_space γ] [borel_space γ]
@@ -171,13 +179,13 @@ begin
     { rw ae_strongly_measurable_iff_ae_measurable_separable,
       rcases (ae_strongly_measurable_iff_ae_measurable_separable.1 hf).2 with ⟨t, t_sep, ht⟩,
       refine ⟨ae_measurable_id, ⟨closure t, t_sep.closure, _⟩⟩,
-      rw ae_map_iff h.ae_measurable,
+      rw ae_map_iff h.ae_measurable_fst,
       { filter_upwards [ht] with x hx using subset_closure hx },
       { exact is_closed_closure.measurable_set } },
     change ∫ x, id (f x) ∂μ = ∫ x, id (g x) ∂ν,
-    rw [← integral_map h.ae_measurable A],
+    rw [← integral_map h.ae_measurable_fst A],
     rw h.map_eq at A,
-    rw [← integral_map h.symm.ae_measurable A, h.map_eq] },
+    rw [← integral_map h.ae_measurable_snd A, h.map_eq] },
   { rw integral_non_ae_strongly_measurable hf,
     rw h.ae_strongly_measurable_iff at hf,
     rw integral_non_ae_strongly_measurable hf }

@@ -134,9 +134,9 @@ lemma padic_val_nat_central_binom_le (hp : p.prime) :
 begin
   rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_pos n),
   unfold central_binom,
-  have two_n_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
+  have two_mul_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
   simp only [nat.prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
-      two_n_sub, ←two_mul, enat.get_coe', finset.filter_congr_decidable],
+      two_mul_sub, ←two_mul, enat.get_coe', finset.filter_congr_decidable],
   calc _  ≤ (finset.Ico 1 (log p (2 * n) + 1)).card : finset.card_filter_le _ _
       ... = (log p (2 * n) + 1) - 1                 : nat.card_Ico _ _,
 end
@@ -187,10 +187,10 @@ lemma padic_val_nat_central_binom_of_large_eq_zero
 begin
   rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_pos n),
   unfold central_binom,
-  have two_n_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
+  have two_mul_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
   simp only [nat.prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two) (lt_add_one _),
-    two_n_sub, ←two_mul, finset.card_eq_zero, enat.get_coe', finset.filter_congr_decidable],
-  clear two_n_sub,
+    two_mul_sub, ←two_mul, finset.card_eq_zero, enat.get_coe', finset.filter_congr_decidable],
+  clear two_mul_sub,
 
   have three_lt_p : 3 ≤ p := by linarith,
   have p_pos : 0 < p := nat.prime.pos hp,
@@ -245,16 +245,13 @@ begin
   simp only [prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two)
               (lt_add_one (p.log (2 * n)))]
     at h_pos,
-  have r : 2 * n - n = n,
-  { calc 2 * n - n = n + n - n : congr_arg (flip (has_sub.sub) n) (two_mul n)
-      ... = n : nat.add_sub_cancel n n, },
-  simp only [r, ←two_mul, gt_iff_lt, enat.get_coe', finset.filter_congr_decidable]
+  have two_mul_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
+  simp only [two_mul_sub, ←two_mul, gt_iff_lt, enat.get_coe', finset.filter_congr_decidable]
     at h_pos,
   rw finset.card_pos at h_pos,
   cases h_pos with m hm,
   simp only [finset.mem_Ico, finset.mem_filter] at hm,
-  calc p = p ^ 1 : (pow_one _).symm
-    ... ≤ p ^ m : pow_le_pow_of_le_right (trans zero_lt_one hp.one_lt) hm.left.left
+  calc p ≤ p ^ m : le_self_pow (le_of_lt hp.one_lt) hm.left.left
     ... ≤ 2 * (n % p ^ m) : hm.right
     ... ≤ 2 * n : nat.mul_le_mul_left _ (mod_le n _),
 end

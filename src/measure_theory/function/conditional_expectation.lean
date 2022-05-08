@@ -1814,7 +1814,7 @@ section condexp
 
 open_locale classical
 
-variables {𝕜} {m m0 : measurable_space α} {μ : measure α} {f g : α → F'} {s : set α}
+variables {𝕜} {m m₂ m0 : measurable_space α} {μ : measure α} {f g : α → F'} {s : set α}
 
 variables (m)
 /-- Conditional expectation of a function. Its value is 0 if the function is not integrable, if
@@ -2046,11 +2046,11 @@ end real
 
 section indicator
 
-lemma condexp_ae_eq_restrict_zero {s : set α} {f : α → F'}
-  (hf_int : integrable f μ) (hs : measurable_set[m] s) (hf : f =ᵐ[μ.restrict s] 0) :
+lemma condexp_ae_eq_restrict_zero (hf_int : integrable f μ) (hs : measurable_set[m] s)
+  (hf : f =ᵐ[μ.restrict s] 0) :
   μ[f | m] =ᵐ[μ.restrict s] 0 :=
 begin
-  by_cases hm : m ≤ mα,
+  by_cases hm : m ≤ m0,
   swap, { simp_rw condexp_of_not_le hm, },
   by_cases hμm : sigma_finite (μ.trim hm),
   swap, { simp_rw condexp_of_not_sigma_finite hm hμm, },
@@ -2070,13 +2070,13 @@ begin
   { exact strongly_measurable_zero.ae_strongly_measurable', },
 end
 
-lemma condexp_L1_congr_ae (hm : m ≤ mα) [sigma_finite (μ.trim hm)] {f g : α → E} (h : f =ᵐ[μ] g) :
+lemma condexp_L1_congr_ae (hm : m ≤ m0) [sigma_finite (μ.trim hm)] (h : f =ᵐ[μ] g) :
   condexp_L1 hm μ f = condexp_L1 hm μ g :=
 set_to_fun_congr_ae _ h
 
-lemma condexp_congr_ae {f g : α → E} (h : f =ᵐ[μ] g) : μ[f | m] =ᵐ[μ] μ[g | m] :=
+lemma condexp_congr_ae (h : f =ᵐ[μ] g) : μ[f | m] =ᵐ[μ] μ[g | m] :=
 begin
-  by_cases hm : m ≤ mα,
+  by_cases hm : m ≤ m0,
   swap, { simp_rw condexp_of_not_le hm, },
   by_cases hμm : sigma_finite (μ.trim hm),
   swap, { simp_rw condexp_of_not_sigma_finite hm hμm, },
@@ -2086,7 +2086,7 @@ begin
     (condexp_ae_eq_condexp_L1 hm g).symm)
 end
 
-lemma indicator_ae_eq_of_restrict_compl_ae_eq_zero {E} [has_zero E] {s : set α} {f : α → E}
+lemma indicator_ae_eq_of_restrict_compl_ae_eq_zero {E} [has_zero E] {f : α → E}
   (hs : measurable_set s) (hf : f =ᵐ[μ.restrict sᶜ] 0) :
   s.indicator f =ᵐ[μ] f :=
 begin
@@ -2099,21 +2099,20 @@ begin
 end
 
 /-- Do not use. Auxiliary lemma for `condexp_indicator`. -/
-lemma condexp_indicator_aux (hm : m ≤ mα) {s : set α} {f : α → E}
+lemma condexp_indicator_aux (hm : m ≤ m0)
   (hf_int : integrable f μ) (hs : measurable_set[m] s) (hf : f =ᵐ[μ.restrict sᶜ] 0) :
   s.indicator (μ[f | m]) =ᵐ[μ] μ[s.indicator f | m] :=
 begin
-  have hsf_zero : ∀ g : α → E, g =ᵐ[μ.restrict sᶜ] 0 → s.indicator g =ᵐ[μ] g,
+  have hsf_zero : ∀ g : α → F', g =ᵐ[μ.restrict sᶜ] 0 → s.indicator g =ᵐ[μ] g,
     from λ g, indicator_ae_eq_of_restrict_compl_ae_eq_zero (hm _ hs),
   refine (hsf_zero (μ[f | m]) (condexp_ae_eq_restrict_zero hf_int hs.compl hf)).trans _,
   exact condexp_congr_ae (hsf_zero f hf).symm,
 end
 
-lemma condexp_indicator {s : set α} {f : α → E}
-  (hf_int : integrable f μ) (hs : measurable_set[m] s) :
+lemma condexp_indicator (hf_int : integrable f μ) (hs : measurable_set[m] s) :
   μ[s.indicator f | m] =ᵐ[μ] s.indicator (μ[f | m]) :=
 begin
-  by_cases hm : m ≤ mα,
+  by_cases hm : m ≤ m0,
   swap, { simp_rw [condexp_of_not_le hm, set.indicator_zero'], },
   by_cases hμm : sigma_finite (μ.trim hm),
   swap, { simp_rw [condexp_of_not_sigma_finite hm hμm, set.indicator_zero'], },
@@ -2206,7 +2205,7 @@ begin
     exact tendsto_const_nhds, },
 end
 
-lemma ae_strongly_measurable'_todo {E} [topological_space E] [has_zero E] (hm : m ≤ mα)
+lemma ae_strongly_measurable'_todo {E} [topological_space E] [has_zero E] (hm : m ≤ m0)
   {s : set α} {f : α → E}
   (hs_m : measurable_set[m] s) (hs : ∀ t, measurable_set[m] (s ∩ t) → measurable_set[m₂] (s ∩ t))
   (hf : ae_strongly_measurable' m f μ) (hf_zero : f =ᵐ[μ.restrict sᶜ] 0) :
@@ -2243,9 +2242,8 @@ end
 /-- TODO
 The hypothesis `(hs : ∀ t, measurable_set[m] (s ∩ t) ↔ measurable_set[m₂] (s ∩ t))` means that
 under the event `s`, the σ-algebras `m` and `m₂` are the same. -/
-lemma condexp_indicator_eq_todo (hm : m ≤ mα) (hm₂ : m₂ ≤ mα) [sigma_finite (μ.trim hm)]
-  [sigma_finite (μ.trim hm₂)] {s : set α} {f : α → E}
-  (hf_int : integrable f μ) (hs_m : measurable_set[m] s)
+lemma condexp_indicator_eq_todo (hm : m ≤ m0) (hm₂ : m₂ ≤ m0) [sigma_finite (μ.trim hm)]
+  [sigma_finite (μ.trim hm₂)] (hf_int : integrable f μ) (hs_m : measurable_set[m] s)
   (hs : ∀ t, measurable_set[m] (s ∩ t) ↔ measurable_set[m₂] (s ∩ t)) :
   μ[f | m] =ᵐ[μ.restrict s] μ[f | m₂] :=
 begin

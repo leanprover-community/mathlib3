@@ -19,10 +19,9 @@ instance : topological_space (Π(a : {u : set X | t.is_open u}), Prop) :=
   @Pi.topological_space _ (λ u, Prop) (λ a, sierpinski_space)
 
 def i (X :Type*) [t : topological_space X] : continuous_map X
-  (Π (a : {u : set X | t.is_open u}), Prop) := {
-  to_fun := λ x, (λ u, x ∈ (u:set X) ),
-  continuous_to_fun := continuous_pi_iff.2 (λ i, continuous_Prop.2 (by simpa using subtype.mem i))
-}
+  (Π (a : {u : set X | t.is_open u}), Prop) :=
+  { to_fun := λ x, (λ u, x ∈ (u:set X) ),
+  continuous_to_fun := continuous_pi_iff.2 (λ i, continuous_Prop.2 (by simpa using subtype.mem i)) }
 
 include t0
 lemma i_injective : function.injective

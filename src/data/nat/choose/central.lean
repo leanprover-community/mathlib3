@@ -146,7 +146,7 @@ begin
         { rw pow_two,
           exact (nat.le_div_iff_mul_le _ _ (prime.pos hp)).1 v.2.2, },
         exact lt_irrefl _ (lt_of_le_of_lt bad p_large), },
-      { rw log_eq_zero (or.inl h),
+      { rw log_of_lt h,
         exact zero_le 1, }, }, },
 
   exact le_trans (padic_val_nat_central_binom_le hp) log_bound,

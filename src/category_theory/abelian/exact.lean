@@ -336,31 +336,20 @@ begin
       (abelian.is_colimit_of_exact_of_epi (F.map bc.inl) (F.map bc.snd) hex)).is_limit
 end
 
-def binary_fan.rec {X Y : C} {P : binary_fan X Y → Type*}
-  (p : ∀ {Z : C} (f : Z ⟶ X) (g : Z ⟶ Y), P (binary_fan.mk f g)) (c : binary_fan X Y) :
-  P c :=
-begin
-  have : c = binary_fan.mk c.fst c.snd,
-  { cases c, simp [binary_fan.mk], ext, cases x; refl },
-  rw this, apply p
-end
-
-@[simp] lemma binary_fan.rec_beta {X Y : C} {P : binary_fan X Y → Type*}
-  {p : ∀ {Z : C} (f : Z ⟶ X) (g : Z ⟶ Y), P (binary_fan.mk f g)}
-  {Z : C} (f : Z ⟶ X) (g : Z ⟶ Y) :
-  binary_fan.rec @p (binary_fan.mk f g) = p f g := rfl
-
-instance preserves_product_of_preserves_kernels
+instance preserves_binary_product_of_preserves_kernels
   [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] {X Y : C} :
   preserves_limit (pair X Y) F :=
 { preserves := λ c,
   begin
-    refine binary_fan.rec _ c,
-    intros Z f g,
-    exact is_limit_map_cone_binary_fan_of_preserves_kernels F f g,
+    have : c = binary_fan.mk (binary_fan.fst c) (binary_fan.snd c),
+    { cases c, simp only [binary_fan.mk, const.obj_obj, eq_self_iff_true, heq_iff_eq, true_and],
+      ext, cases x; refl },
+    rw this,
+    apply is_limit_map_cone_binary_fan_of_preserves_kernels F
   end }
 
-instance [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] :
+instance preserves_binary_products_of_preserves_kernels
+  [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] :
   preserves_limits_of_shape (discrete walking_pair) F :=
 { preserves_limit := λ p, preserves_limit_of_iso_diagram F (diagram_iso_pair p).symm }
 
@@ -386,33 +375,20 @@ begin
       (abelian.is_limit_of_exact_of_mono (F.map bc.inl) (F.map bc.snd) hex)).is_colimit
 end
 
-def binary_cofan.rec {X Y : C} {P : binary_cofan X Y → Type*}
-  (p : ∀ {Z : C} (f : X ⟶ Z) (g : Y ⟶ Z), P (binary_cofan.mk f g)) (c : binary_cofan X Y) :
-  P c :=
-begin
-  have : c = binary_cofan.mk c.inl c.inr,
-  { cases c, simp only [binary_cofan.mk, const.obj_obj, eq_self_iff_true, heq_iff_eq, true_and],
-    ext, cases x; refl },
-  rw this, apply p
-end
-
-@[simp] lemma binary_cofan.rec_beta {X Y : C} {P : binary_cofan X Y → Type*}
-  {p : ∀ {Z : C} (f : X ⟶ Z) (g : Y ⟶ Z), P (binary_cofan.mk f g)}
-  {Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
-  binary_cofan.rec @p (binary_cofan.mk f g) = p f g := rfl
-
-
 instance preserves_coproduct_of_preserves_cokernels
   [pres_cokernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] {X Y : C} :
   preserves_colimit (pair X Y) F :=
 { preserves := λ c,
   begin
-    refine binary_cofan.rec _ c,
-    intros Z f g,
-    exact is_colimit_map_cocone_binary_cofan_of_preserves_cokernels F f g,
+    have : c = binary_cofan.mk (binary_cofan.inl c) (binary_cofan.inr c),
+    { cases c, simp only [binary_cofan.mk, const.obj_obj, eq_self_iff_true, heq_iff_eq, true_and],
+      ext, cases x; refl },
+    rw this,
+    apply is_colimit_map_cocone_binary_cofan_of_preserves_cokernels F
   end }
 
-instance [pres_cokernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] :
+instance preserves_binary_coproducts_of_preserves_cokernels
+  [pres_cokernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] :
   preserves_colimits_of_shape (discrete walking_pair) F :=
 { preserves_colimit := λ p, preserves_colimit_of_iso_diagram F (diagram_iso_pair p).symm }
 

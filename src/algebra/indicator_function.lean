@@ -405,6 +405,7 @@ end
   (s : ι → set α) {f : α → M} : (∀ (i ∈ I) (j ∈ I), i ≠ j → disjoint (s i) (s j)) →
   mul_indicator (⋃ i ∈ I, s i) f = λ a, ∏ i in I, mul_indicator (s i) f a :=
 begin
+  classical,
   refine finset.induction_on I _ _,
   { intro h, funext, simp },
   assume a I haI ih hI,

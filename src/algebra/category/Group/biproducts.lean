@@ -34,6 +34,7 @@ has_finite_biproducts.of_has_finite_products
 /--
 Construct limit data for a binary product in `AddCommGroup`, using `AddCommGroup.of (G × H)`.
 -/
+@[simps cone_X is_limit_lift]
 def binary_product_limit_cone (G H : AddCommGroup.{u}) : limits.limit_cone (pair G H) :=
 { cone :=
   { X := AddCommGroup.of (G × H),
@@ -46,11 +47,17 @@ def binary_product_limit_cone (G H : AddCommGroup.{u}) : limits.limit_cone (pair
       ext; [rw ← w walking_pair.left, rw ← w walking_pair.right]; refl,
     end, } }
 
+@[simp, elementwise] lemma binary_product_limit_cone_cone_π_app_left (G H : AddCommGroup.{u}) :
+  (binary_product_limit_cone G H).cone.π.app walking_pair.left = add_monoid_hom.fst G H := rfl
+
+@[simp, elementwise] lemma binary_product_limit_cone_cone_π_app_right (G H : AddCommGroup.{u}) :
+  (binary_product_limit_cone G H).cone.π.app walking_pair.right = add_monoid_hom.snd G H := rfl
+
 /--
 We verify that the biproduct in AddCommGroup is isomorphic to
 the cartesian product of the underlying types:
 -/
-noncomputable
+@[simps] noncomputable
 def biprod_iso_prod (G H : AddCommGroup.{u}) : (G ⊞ H : AddCommGroup) ≅ AddCommGroup.of (G × H) :=
 is_limit.cone_point_unique_up_to_iso
   (binary_biproduct.is_limit G H)
@@ -78,7 +85,7 @@ def lift (s : cone F) :
 /--
 Construct limit data for a product in `AddCommGroup`, using `AddCommGroup.of (Π j, F.obj j)`.
 -/
-def product_limit_cone : limits.limit_cone F :=
+@[simps] def product_limit_cone : limits.limit_cone F :=
 { cone :=
   { X := AddCommGroup.of (Π j, F.obj j),
     π := discrete.nat_trans (λ j, pi.eval_add_monoid_hom (λ j, F.obj j) j), },
@@ -101,11 +108,16 @@ open has_limit
 We verify that the biproduct we've just defined is isomorphic to the AddCommGroup structure
 on the dependent function type
 -/
-noncomputable
+@[simps hom_apply] noncomputable
 def biproduct_iso_pi [decidable_eq J] [fintype J] (f : J → AddCommGroup.{u}) :
   (⨁ f : AddCommGroup) ≅ AddCommGroup.of (Π j, f j) :=
 is_limit.cone_point_unique_up_to_iso
   (biproduct.is_limit f)
   (product_limit_cone (discrete.functor f)).is_limit
+
+@[simp, reassoc, elementwise] lemma biproduct_iso_pi_inv_comp_π [decidable_eq J] [fintype J]
+  (f : J → AddCommGroup.{u}) (j : J) :
+  (biproduct_iso_pi f).inv ≫ biproduct.π f j = pi.eval_add_monoid_hom (λ j, F.obj j) j :=
+is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _
 
 end AddCommGroup

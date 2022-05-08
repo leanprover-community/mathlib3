@@ -217,16 +217,16 @@ begin
   simp [list.eq_of_mem_repeat hq],
 end
 
-lemma pow_factorization_le {n : ℕ} (p : ℕ) (hn : 0 < n) : p ^ n.factorization p ≤ n :=
-le_of_dvd hn (nat.pow_factorization_dvd n p)
+lemma pow_factorization_le {n : ℕ} (p : ℕ) (hn : n ≠ 0) : p ^ n.factorization p ≤ n :=
+le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)
 
-lemma div_pow_factorization_ne_zero {n : ℕ} (p : ℕ) (hn : 0 < n) :
+lemma div_pow_factorization_ne_zero {n : ℕ} (p : ℕ) (hn : n ≠ 0) :
   n / p ^ n.factorization p ≠ 0 :=
 begin
   by_cases pp : nat.prime p,
   { apply mt (nat.div_eq_zero_iff (pow_pos (prime.pos pp) _)).1,
-    simp [le_of_dvd hn (nat.pow_factorization_dvd n p)] },
-  { simp [nat.factorization_eq_zero_of_non_prime n pp, hn.ne'] },
+    simp [le_of_dvd hn.bot_lt (nat.pow_factorization_dvd n p)] },
+  { simp [nat.factorization_eq_zero_of_non_prime n pp, hn] },
 end
 
 lemma pow_succ_factorization_not_dvd {n p : ℕ} (hn : n ≠ 0) (hp : p.prime) :
@@ -295,7 +295,7 @@ begin
       nat.div_mul_cancel h],
 end
 
-lemma not_dvd_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : 0 < n) :
+lemma not_dvd_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : n ≠ 0) :
   ¬p ∣ n / p ^ n.factorization p :=
 begin
   rw [nat.prime.dvd_iff_one_le_factorization hp (div_pow_factorization_ne_zero p hn),

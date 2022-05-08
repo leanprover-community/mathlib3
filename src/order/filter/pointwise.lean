@@ -278,7 +278,7 @@ protected def comm_monoid [comm_monoid α] : comm_monoid (filter α) :=
 
 localized "attribute [instance] filter.comm_monoid filter.add_comm_monoid" in pointwise
 
-/-TODO: Generalize the duplicated lemmas and instances below to `division_monoid`. -/
+-- TODO: Generalize the duplicated lemmas and instances below to `division_monoid`
 
 /-- `f / g = f * g⁻¹` for all `f g : filter α` if `a / b = a * b⁻¹` for all `a b : α`. -/
 @[to_additive filter.sub_neg_monoid "`f - g = f + -g` for all `f g : filter α` if `a - b = a + -b`
@@ -295,7 +295,7 @@ protected def div_inv_monoid' [group_with_zero α] : div_inv_monoid (filter α) 
 localized "attribute [instance] filter.div_inv_monoid filter.sub_neg_monoid filter.div_inv_monoid'"
   in pointwise
 
--- `filter α` is not a group because `f / f ≠ 1` in general
+/-! Note that `filter α` is not a group because `f / f ≠ 1` in general -/
 
 section group
 variables [group α] [group β] [monoid_hom_class F α β] (m : F) {f g f₁ g₁ : filter α}

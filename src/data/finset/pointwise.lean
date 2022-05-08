@@ -298,8 +298,8 @@ variables [mul_one_class α]
 protected def mul_one_class : mul_one_class (finset α) :=
 coe_injective.mul_one_class _ (coe_singleton 1) coe_mul
 
-localized "attribute [instance] finset.mul_one_class finset.add_zero_class finset.semigroup
-  finset.add_semigroup" in pointwise
+localized "attribute [instance] finset.semigroup finset.add_semigroup finset.comm_semigroup
+  finset.add_comm_semigroup finset.mul_one_class finset.add_zero_class" in pointwise
 
 end mul_one_class
 
@@ -357,6 +357,8 @@ end instances
 section mul_zero_class
 variables [decidable_eq α] [mul_zero_class α] {s t : finset α}
 
+/-! Note that `set` is not a `mul_zero_class` because `0 * ∅ ≠ 0`. -/
+
 lemma mul_zero_subset (s : finset α) : s * 0 ⊆ 0 := by simp [subset_iff, mem_mul]
 lemma zero_mul_subset (s : finset α) : 0 * s ⊆ 0 := by simp [subset_iff, mem_mul]
 
@@ -370,6 +372,8 @@ end mul_zero_class
 
 section group
 variables [group α] {s t : finset α} {a b : α}
+
+/-! Note that `set` is not a `group` because `s / s ≠ 1` in general. -/
 
 section decidable_eq
 variables [decidable_eq α]
@@ -405,7 +409,7 @@ lemma preimage_mul_right_singleton :
 by { classical, rw [← image_mul_right', image_singleton] }
 
 @[simp, to_additive]
-lemma preimage_mul_left_one : preimage 1 (λ b, a * b) ((mul_right_injective _).inj_on _) = {a⁻¹} :=
+lemma preimage_mul_left_one : preimage 1 ((*) a) ((mul_right_injective _).inj_on _) = {a⁻¹} :=
 by { classical, rw [← image_mul_left', image_one, mul_one] }
 
 @[simp, to_additive]
@@ -413,8 +417,7 @@ lemma preimage_mul_right_one : preimage 1 (* b) ((mul_left_injective _).inj_on _
 by { classical, rw [← image_mul_right', image_one, one_mul] }
 
 @[to_additive]
-lemma preimage_mul_left_one' :
-  preimage 1 (λ b, a⁻¹ * b) ((mul_right_injective _).inj_on _) = {a} :=
+lemma preimage_mul_left_one' : preimage 1 ((*) a⁻¹) ((mul_right_injective _).inj_on _) = {a} :=
 by rw [preimage_mul_left_one, inv_inv]
 
 @[to_additive]

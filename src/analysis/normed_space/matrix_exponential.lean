@@ -115,7 +115,7 @@ by simp_rw [exp_eq_tsum, ←block_diagonal'_pow, ←block_diagonal'_smul, ←blo
 
 lemma exp_conj_transpose [star_ring 𝔸] [has_continuous_star 𝔸] (A : matrix m m 𝔸) :
   exp 𝕂 Aᴴ = (exp 𝕂 A)ᴴ :=
-by simp_rw [exp_eq_tsum, conj_transpose_tsum, conj_transpose_inv_nat_cast_smul, conj_transpose_pow]
+(star_exp A).symm
 
 end ring
 

@@ -31,9 +31,9 @@ simple_iff_is_simple_module.mp (simple.of_iso (of_self_iso M))
 
 open finite_dimensional
 
-/-- Any 1-dimensional module over a division ring is simple. -/
-lemma simple_of_finrank_eq_one {k : Type*} [division_ring k]
-  (V : Module k) [finite_dimensional k V] (h : finrank k V = 1) : simple V :=
+/-- Any `k`-algebra module which is 1-dimensional over `k` is simple. -/
+lemma simple_of_finrank_eq_one {k : Type*} [field k] [algebra k R]
+  (V : Module R) [I : finite_dimensional k V] (h : finrank k V = 1) : simple V :=
 ⟨λ Y f _, begin
   split,
   { intro i, rintro rfl,

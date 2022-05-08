@@ -5,7 +5,7 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
 
 import algebra.algebra.basic
-import algebra.category.CommRing.basic
+import algebra.category.Ring.basic
 import ring_theory.ideal.operations
 
 /-!

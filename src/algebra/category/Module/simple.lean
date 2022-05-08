@@ -7,6 +7,7 @@ import category_theory.simple
 import algebra.category.Module.abelian
 import algebra.category.Module.subobject
 import ring_theory.simple_module
+import linear_algebra.finite_dimensional
 
 /-!
 # Simple objects in the category of `R`-modules
@@ -27,3 +28,22 @@ simple_iff_is_simple_module.mpr ‹_›
 /-- A simple object in the category of modules is a simple module. -/
 instance is_simple_module_of_simple (M : Module R) [simple M] : is_simple_module R M :=
 simple_iff_is_simple_module.mp (simple.of_iso (of_self_iso M))
+
+open finite_dimensional
+
+/-- Any 1-dimensional module over a division ring is simple. -/
+lemma simple_of_finrank_eq_one {k : Type*} [division_ring k]
+  (V : Module k) [finite_dimensional k V] (h : finrank k V = 1) : simple V :=
+⟨λ Y f _, begin
+  split,
+  { intro i, rintro rfl,
+    resetI,
+    rw finrank_eq_one_iff' at h,
+    obtain ⟨v, n, -⟩ := h,
+    obtain ⟨w, rfl⟩ := (Module.epi_iff_surjective (0 : Y ⟶ V)).mp infer_instance v,
+    simpa using n, },
+  { intro r,
+    haveI := (Module.epi_iff_surjective _).mpr (surjective_of_nonzero_of_finrank_eq_one h r),
+    rw is_iso_iff_mono_and_epi,
+    split; apply_instance, }
+end⟩

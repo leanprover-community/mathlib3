@@ -524,9 +524,8 @@ begin
       rw dfinsupp.single_eq_of_ne (ne.symm hij) at hci,
       rw dfinsupp.single_eq_of_ne (hij) at hcj,
       exact or.inr ⟨hci, hcj.symm⟩, }, },
-  { rintros (⟨hi, hxi⟩ | ⟨hi, hj⟩),
-    { subst hi,
-      rw eq_of_heq hxi, },
+  { rintros (⟨rfl, hxi⟩ | ⟨hi, hj⟩),
+    { rw eq_of_heq hxi, },
     { rw [hi, hj, dfinsupp.single_zero, dfinsupp.single_zero], }, },
 end
 
@@ -1042,7 +1041,7 @@ assume f g, decidable_of_iff (f.support = g.support ∧ (∀i∈f.support, f i =
         have hf : f i = 0, by rwa [mem_support_iff, not_not] at h,
         have hg : g i = 0, by rwa [h₁, mem_support_iff, not_not] at h,
         by rw [hf, hg],
-    by intro h; subst h; simp⟩
+    by { rintro rfl, simp }⟩
 
 section equiv
 open finset

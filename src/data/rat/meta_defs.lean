@@ -53,6 +53,17 @@ local attribute [semireducible] reflected
 meta instance : has_reflect ℚ := rat.reflect
 end
 
+/--
+`rat.to_pexpr q` creates a `pexpr` that will evaluate to `q`.
+The `pexpr` does not hold any typing information:
+`to_expr ``((%%(rat.to_pexpr (3/4)) : K))` will create a native `K` numeral `(3/4 : K)`.
+-/
+meta def rat.to_pexpr (q : ℚ) : pexpr :=
+let n := q.num,
+    d := q.denom in
+if d = 1 then n.to_pexpr
+else ``(%%n.to_pexpr / %%d.to_pexpr)
+
 /-- Evaluates an expression as a rational number,
 if that expression represents a numeral or the quotient of two numerals. -/
 protected meta def expr.to_nonneg_rat : expr → option ℚ

@@ -1272,7 +1272,7 @@ end
 variables (i : Z ⟶ W) [mono i]
 
 instance has_pullback_of_right_factors_mono (f : X ⟶ Z) : has_pullback i (f ≫ i) :=
-by { nth_rewrite 0 ← category.id_comp i, apply_instance }
+by { conv { congr, rw ←category.id_comp i, }, apply_instance }
 
 instance pullback_snd_iso_of_right_factors_mono (f : X ⟶ Z) :
   is_iso (pullback.snd : pullback i (f ≫ i) ⟶ _) :=
@@ -1334,7 +1334,7 @@ end
 variables (i : Z ⟶ W) [mono i]
 
 instance has_pullback_of_left_factors_mono (f : X ⟶ Z) : has_pullback (f ≫ i) i :=
-by { nth_rewrite 1 ← category.id_comp i, apply_instance }
+by { conv { congr, skip, rw ←category.id_comp i, }, apply_instance }
 
 instance pullback_snd_iso_of_left_factors_mono (f : X ⟶ Z) :
   is_iso (pullback.fst : pullback (f ≫ i) i ⟶ _) :=
@@ -1407,7 +1407,7 @@ end
 variables (h : W ⟶ X) [epi h]
 
 instance has_pushout_of_right_factors_epi (f : X ⟶ Y) : has_pushout h (h ≫ f) :=
-by { nth_rewrite 0 ← category.comp_id h, apply_instance }
+by { conv { congr, rw ←category.comp_id h, }, apply_instance }
 
 instance pushout_inr_iso_of_right_factors_epi (f : X ⟶ Y) :
   is_iso (pushout.inr : _ ⟶ pushout h (h ≫ f)) :=
@@ -1469,7 +1469,7 @@ end
 variables (h : W ⟶ X) [epi h]
 
 instance has_pushout_of_left_factors_epi (f : X ⟶ Y) : has_pushout (h ≫ f) h :=
-by { nth_rewrite 1 ← category.comp_id h, apply_instance }
+by { conv { congr, skip, rw ←category.comp_id h, }, apply_instance }
 
 instance pushout_inl_iso_of_left_factors_epi (f : X ⟶ Y) :
   is_iso (pushout.inl : _ ⟶ pushout (h ≫ f) h) :=
@@ -2138,7 +2138,7 @@ variables (C)
 /--
 `has_pullbacks` represents a choice of pullback for every pair of morphisms
 
-See https://stacks.math.columbia.edu/tag/001W
+See <https://stacks.math.columbia.edu/tag/001W>
 -/
 abbreviation has_pullbacks := has_limits_of_shape walking_cospan.{v} C
 
@@ -2156,5 +2156,13 @@ lemma has_pushouts_of_has_colimit_span
   [Π {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z}, has_colimit (span f g)] :
   has_pushouts C :=
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_span F) }
+
+/-- The duality equivalence `walking_spanᵒᵖ ≌ walking_cospan` -/
+def walking_span_op_equiv : walking_spanᵒᵖ ≌ walking_cospan :=
+wide_pushout_shape_op_equiv _
+
+/-- The duality equivalence `walking_cospanᵒᵖ ≌ walking_span` -/
+def walking_cospan_op_equiv : walking_cospanᵒᵖ ≌ walking_span :=
+wide_pullback_shape_op_equiv _
 
 end category_theory.limits

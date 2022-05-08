@@ -6,7 +6,7 @@ Authors: Joël Riou, Adam Topaz, Johan Commelin
 
 import algebra.homology.additive
 import algebraic_topology.Moore_complex
-import data.fintype.card
+import algebra.big_operators.fin
 
 /-!
 

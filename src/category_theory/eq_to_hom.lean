@@ -114,8 +114,7 @@ lemma ext {F G : C ⥤ D} (h_obj : ∀ X, F.obj X = G.obj X)
   F = G :=
 begin
   cases F with F_obj _ _ _, cases G with G_obj _ _ _,
-  have : F_obj = G_obj, by ext X; apply h_obj,
-  subst this,
+  obtain rfl : F_obj = G_obj, by { ext X, apply h_obj },
   congr,
   funext X Y f,
   simpa using h_map X Y f

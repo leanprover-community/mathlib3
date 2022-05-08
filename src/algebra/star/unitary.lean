@@ -121,7 +121,7 @@ by simp only [div_eq_mul_inv, coe_inv, submonoid.coe_mul]
 @[norm_cast] lemma coe_zpow (U : unitary R) (z : ℤ) : ↑(U ^ z) = (U ^ z : R) :=
 begin
   induction z,
-  { simp [submonoid.coe_pow], },
+  { simp [submonoid_class.coe_pow], },
   { simp [coe_inv] },
 end
 

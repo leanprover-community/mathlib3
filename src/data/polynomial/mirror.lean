@@ -11,19 +11,16 @@ import data.polynomial.ring_division
 
 In this file we define `polynomial.mirror`, a variant of `polynomial.reverse`. The difference
 between `reverse` and `mirror` is that `reverse` will decrease the degree if the polynomial is
-divisible by `X`. We also define `polynomial.norm2`, which is the sum of the squares of the
-coefficients of a polynomial. It is also a coefficient of `p * p.mirror`.
+divisible by `X`.
 
 ## Main definitions
 
 - `polynomial.mirror`
-- `polynomial.norm2`
 
 ## Main results
 
 - `polynomial.mirror_mul_of_domain`: `mirror` preserves multiplication.
 - `polynomial.irreducible_of_mirror`: an irreducibility criterion involving `mirror`
-- `polynomial.norm2_eq_mul_reverse_coeff`: `norm2` is a coefficient of `p * p.mirror`
 
 -/
 
@@ -59,13 +56,10 @@ lemma mirror_nat_degree : p.mirror.nat_degree = p.nat_degree :=
 begin
   by_cases hp : p = 0,
   { rw [hp, mirror_zero] },
-  by_cases hR : nontrivial R,
-  { haveI := hR,
-    rw [mirror, nat_degree_mul', reverse_nat_degree, nat_degree_X_pow,
-        tsub_add_cancel_of_le p.nat_trailing_degree_le_nat_degree],
-    rwa [leading_coeff_X_pow, mul_one, reverse_leading_coeff, ne, trailing_coeff_eq_zero] },
-  { haveI := not_nontrivial_iff_subsingleton.mp hR,
-    exact congr_arg nat_degree (subsingleton.elim p.mirror p) },
+  nontriviality R,
+  rw [mirror, nat_degree_mul', reverse_nat_degree, nat_degree_X_pow,
+      tsub_add_cancel_of_le p.nat_trailing_degree_le_nat_degree],
+  rwa [leading_coeff_X_pow, mul_one, reverse_leading_coeff, ne, trailing_coeff_eq_zero]
 end
 
 lemma mirror_nat_trailing_degree : p.mirror.nat_trailing_degree = p.nat_trailing_degree :=

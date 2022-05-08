@@ -8,7 +8,6 @@ import algebra.group.pi
 import group_theory.free_group
 import group_theory.abelianization
 import algebra.module.basic -- we use the ℤ-module structure on an add_comm_group in punit_equiv
-import deprecated.group -- someone who understands `seq` can remove this
 
 /-!
 # Free abelian groups
@@ -177,10 +176,6 @@ corresponding to the evaluation of the induced map `free_abelian_group X → A` 
 def lift_add_group_hom {α} (β) [add_comm_group β] (a : free_abelian_group α) : (α → β) →+ β :=
 add_monoid_hom.mk' (λ f, lift f a) (lift.add' a)
 
-lemma is_add_group_hom_lift' {α} (β) [add_comm_group β] (a : free_abelian_group α) :
-  is_add_group_hom (λf, (lift f a : β)) :=
-{ map_add := λ f g, lift.add' a f g }
-
 section monad
 
 variables {β : Type u}
@@ -254,25 +249,28 @@ neg_bind _ _
   f - g <*> x = (f <*> x) - (g <*> x) :=
 sub_bind _ _ _
 
-lemma is_add_group_hom_seq (f : free_abelian_group (α → β)) : is_add_group_hom ((<*>) f) :=
-{ map_add := λ x y, show lift (<$> (x+y)) _ = _, by simp only [map_add]; exact
-@@is_add_hom.map_add _ _ _
-  (@@free_abelian_group.is_add_group_hom_lift' (free_abelian_group β) _ _).to_is_add_hom _ _ }
+/-- If `f : free_abelian_group (α → β)`, then `f <*>` is an additive morphism
+`free_abelian_group α →+ free_abelian_group β`. -/
+def seq_add_group_hom (f : free_abelian_group (α → β)) :
+  free_abelian_group α →+ free_abelian_group β :=
+add_monoid_hom.mk' ((<*>) f)
+  (λ x y, show lift (<$> (x+y)) _ = _,
+    by { simp only [map_add], exact lift.add' f _ _, })
 
 @[simp] lemma seq_zero (f : free_abelian_group (α → β)) : f <*> 0 = 0 :=
-is_add_group_hom.map_zero (is_add_group_hom_seq f)
+(seq_add_group_hom f).map_zero
 
 @[simp] lemma seq_add (f : free_abelian_group (α → β)) (x y : free_abelian_group α) :
   f <*> (x + y) = (f <*> x) + (f <*> y) :=
-is_add_hom.map_add (is_add_group_hom_seq f).to_is_add_hom _ _
+(seq_add_group_hom f).map_add x y
 
 @[simp] lemma seq_neg (f : free_abelian_group (α → β)) (x : free_abelian_group α) :
   f <*> (-x) = -(f <*> x) :=
-is_add_group_hom.map_neg (is_add_group_hom_seq f) _
+(seq_add_group_hom f).map_neg x
 
 @[simp] lemma seq_sub (f : free_abelian_group (α → β)) (x y : free_abelian_group α) :
   f <*> (x - y) = (f <*> x) - (f <*> y) :=
-is_add_group_hom.map_sub (is_add_group_hom_seq f) _ _
+(seq_add_group_hom f).map_sub x y
 
 instance : is_lawful_monad free_abelian_group.{u} :=
 { id_map := λ α x, free_abelian_group.induction_on' x (map_zero id) (λ x, map_pure id x)
@@ -481,7 +479,7 @@ def punit_equiv (T : Type*) [unique T] : free_abelian_group T ≃+ ℤ :=
     (λ x y hx hy, by { simp only [add_monoid_hom.map_add, add_smul] at *, rw [hx, hy]}),
   right_inv := λ n,
   begin
-    rw [add_monoid_hom.map_int_module_smul, lift.of],
+    rw [add_monoid_hom.map_zsmul, lift.of],
     exact zsmul_int_one n
   end,
   map_add' := add_monoid_hom.map_add _ }

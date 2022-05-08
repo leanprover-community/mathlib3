@@ -5,6 +5,7 @@ Authors: Oliver Nash
 -/
 import analysis.normed_space.banach
 import analysis.normed_space.finite_dimension
+import analysis.calculus.affine_map
 import analysis.convex.combination
 import linear_algebra.affine_space.basis
 import linear_algebra.affine_space.finite_dimensional
@@ -39,6 +40,9 @@ local attribute [instance] finite_dimensional.complete
 lemma is_open_map_barycentric_coord [nontrivial ι] (i : ι) :
   is_open_map (b.coord i) :=
 (b.coord i).is_open_map (continuous_barycentric_coord b i) (b.surjective_coord i)
+
+lemma smooth_barycentric_coord (b : affine_basis ι 𝕜 E) (i : ι) : cont_diff 𝕜 ⊤ (b.coord i) :=
+(⟨b.coord i, continuous_barycentric_coord b i⟩ : E →A[𝕜] 𝕜).cont_diff
 
 end barycentric
 
@@ -151,3 +155,7 @@ begin
       (finset.sum_centroid_weights_eq_one_of_nonempty ℝ (finset.univ : finset t) htne),
       finset.centroid_weights_apply, nat.cast_pos, inv_pos, finset.card_pos.mpr htne], },
 end
+
+lemma convex.interior_nonempty_iff_affine_span_eq_top [finite_dimensional ℝ V] {s : set V}
+  (hs : convex ℝ s) : (interior s).nonempty ↔ affine_span ℝ s = ⊤ :=
+by rw [← interior_convex_hull_nonempty_iff_aff_span_eq_top, hs.convex_hull_eq]

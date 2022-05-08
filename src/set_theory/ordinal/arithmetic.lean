@@ -2065,7 +2065,7 @@ theorem opow_le_iff_le_log {b x c : ordinal} (b1 : 1 < b) (x0 : 0 < x) : b ^ c �
 theorem lt_opow_iff_log_lt {b x c : ordinal} (b1 : 1 < b) (x0 : 0 < x) : x < b ^ c ↔ log b x < c :=
 lt_iff_lt_of_le_iff_le (opow_le_iff_le_log b1 x0)
 
-theorem log_mono_right (b) {x y : ordinal} (xy : x ≤ y) : log b x ≤ log b y :=
+@[mono] theorem log_mono_right (b) {x y : ordinal} (xy : x ≤ y) : log b x ≤ log b y :=
 if x0 : x = 0 then by simp only [x0, log_zero_right, ordinal.zero_le] else
 have x0 : 0 < x, from ordinal.pos_iff_ne_zero.2 x0,
 if b1 : 1 < b then

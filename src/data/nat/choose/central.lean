@@ -146,8 +146,8 @@ A `pow` form of `nat.padic_val_nat_central_binom_le`
 -/
 lemma pow_padic_val_nat_central_binom_le_two_mul {p n : ℕ} (hp : p.prime) (n_pos : 0 < n) :
   p ^ padic_val_nat p (central_binom n) ≤ 2 * n :=
-trans (pow_le_pow (le_of_lt (hp).one_lt) (padic_val_nat_central_binom_le (hp)))
-  (pow_log_le_self (hp).one_lt (by linarith))
+(pow_le_pow hp.one_lt.le (padic_val_nat_central_binom_le hp)).trans
+  (pow_log_le_self hp.one_lt (by linarith))
 
 /--
 Primes greater than about `sqrt (2 * n)` appear only to multiplicity 0 or 1 in the central binomial

@@ -174,10 +174,7 @@ variables [normalization_monoid R]
 lemma squarefree_iff_nodup_normalized_factors [decidable_eq R] {x : R} (x0 : x ≠ 0) :
   squarefree x ↔ multiset.nodup (normalized_factors x) :=
 begin
-  have drel : decidable_rel (has_dvd.dvd : R → R → Prop),
-  { classical,
-    apply_instance, },
-  haveI := drel,
+  haveI := classical.dec_rel ((∣) : R → R → Prop),
   rw [multiplicity.squarefree_iff_multiplicity_le_one, multiset.nodup_iff_count_le_one],
   split; intros h a,
   { by_cases hmem : a ∈ normalized_factors x,

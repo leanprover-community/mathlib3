@@ -435,7 +435,7 @@ lemma ball_finset_sup' (p : ι → seminorm 𝕜 E) (s : finset ι) (H : s.nonem
   ball (s.sup' H p) e r = s.inf' H (λ i, ball (p i) e r) :=
 begin
   induction H using finset.nonempty.cons_induction with a a s ha hs ih,
-  { classical, simp },
+  { simp },
   { rw [finset.sup'_cons hs, finset.inf'_cons hs, ball_sup, inf_eq_inter, ih] },
 end
 

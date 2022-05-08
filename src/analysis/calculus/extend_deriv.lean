@@ -36,7 +36,6 @@ theorem has_fderiv_at_boundary_of_tendsto_fderiv {f : E → F} {s : set E} {x : 
   (h : tendsto (λy, fderiv ℝ f y) (𝓝[s] x) (𝓝 f')) :
   has_fderiv_within_at f f' (closure s) x :=
 begin
-  classical,
   -- one can assume without loss of generality that `x` belongs to the closure of `s`, as the
   -- statement is empty otherwise
   by_cases hx : x ∉ closure s,

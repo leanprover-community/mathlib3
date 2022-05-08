@@ -317,7 +317,7 @@ variables (F : C ⥤ D) [preserves_zero_morphisms F]
 
 /--
 A functor from preadditive category to an abelian category which preserves kernels,
-preserves arbitrary products.
+preserves finite products.
 -/
 def is_limit_map_cone_binary_fan_of_preserves_kernels {X Y Z : C} (π₁ : Z ⟶ X) (π₂ : Z ⟶ Y)
   [preserves_limit (parallel_pair π₂ 0) F] (i : is_limit (binary_fan.mk π₁ π₂)) :
@@ -355,7 +355,7 @@ instance preserves_binary_products_of_preserves_kernels
 
 /--
 A functor from preadditive category to an abelian category which preserves cokernels,
-preserves arbitrary coproducts.
+preserves finite coproducts.
 -/
 def is_colimit_map_cocone_binary_cofan_of_preserves_cokernels
   {X Y Z : C} (ι₁ : X ⟶ Z) (ι₂ : Y ⟶ Z)

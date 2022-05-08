@@ -525,7 +525,7 @@ rfl
   (H.map_cone_iso i).inv = H.map_cone_morphism i.inv :=
 rfl
 
-/- Given a cocone isomorphism `c ≅ c'`, construct a cocone isomorphism on the mapped cocones. -/
+/-- Given a cocone isomorphism `c ≅ c'`, construct a cocone isomorphism on the mapped cocones. -/
 def map_cocone_iso {c c' : cocone F} (i : c ≅ c') : H.map_cocone c ≅ H.map_cocone c' :=
 (cocones.functoriality F H).map_iso i
 

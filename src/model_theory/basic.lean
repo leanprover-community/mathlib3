@@ -77,8 +77,8 @@ instance inhabited₂ [h : inhabited a₂] : inhabited (sequence₂ a₀ a₁ a�
 
 instance {n : ℕ} : is_empty (sequence₂ a₀ a₁ a₂ (n + 3)) := pempty.is_empty
 
-@[simp] lemma card_apply_ulift {i : ℕ} :
-  # (sequence₂ (ulift a₀) (ulift a₁) (ulift a₂) i) = lift (# (sequence₂ a₀ a₁ a₂ i)) :=
+@[simp] lemma lift_mk {i : ℕ} :
+  cardinal.lift (# (sequence₂ a₀ a₁ a₂ i)) = # (sequence₂ (ulift a₀) (ulift a₁) (ulift a₂) i) :=
 begin
   rcases i with (_ | _ | _ | i);
   simp only [sequence₂, mk_ulift, mk_fintype, fintype.card_of_is_empty, nat.cast_zero, lift_zero],
@@ -90,11 +90,6 @@ begin
   rw [sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ],
   simp [add_assoc],
 end
-
-@[simp] lemma sum_lift_card :
-  (cardinal.sum (λ i, (# (sequence₂ a₀ a₁ a₂ i)).lift) : cardinal.{max u v}) =
-    (# a₀).lift + (# a₁).lift + (# a₂).lift :=
-trans (by simp only [card_apply_ulift]) (sum_card (ulift a₀) (ulift a₁) (ulift a₂))
 
 end sequence₂
 

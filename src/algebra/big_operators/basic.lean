@@ -561,7 +561,7 @@ by haveI := classical.dec_eq α; exact prod_subset_one_on_sdiff h (by simpa) (λ
 lemma prod_filter_of_ne {p : α → Prop} [decidable_pred p] (hp : ∀ x ∈ s, f x ≠ 1 → p x) :
   (∏ x in (s.filter p), f x) = (∏ x in s, f x) :=
 prod_subset (filter_subset _ _) $ λ x,
-  by { classical, rw [not_imp_comm, mem_filter], exact λ h₁ h₂, ⟨h₁, hp _ h₁ h₂⟩ }
+  by { rw [not_imp_comm, mem_filter], exact λ h₁ h₂, ⟨h₁, hp _ h₁ h₂⟩ }
 
 -- If we use `[decidable_eq β]` here, some rewrites fail because they find a wrong `decidable`
 -- instance first; `{∀ x, decidable (f x ≠ 1)}` doesn't work with `rw ← prod_filter_ne_one`
@@ -585,22 +585,18 @@ calc (∏ a in s.filter p, f a) = ∏ a in s.filter p, if p a then f a else 1 :
 @[to_additive]
 lemma prod_eq_single_of_mem {s : finset α} {f : α → β} (a : α) (h : a ∈ s)
   (h₀ : ∀ b ∈ s, b ≠ a → f b = 1) : (∏ x in s, f x) = f a :=
-begin
-  haveI := classical.dec_eq α,
-  calc (∏ x in s, f x) = ∏ x in {a}, f x :
-      begin
-        refine (prod_subset _ _).symm,
-        { intros _ H, rwa mem_singleton.1 H },
-        { simpa only [mem_singleton] }
-      end
-      ... = f a : prod_singleton
-end
+calc (∏ x in s, f x) = ∏ x in {a}, f x :
+  begin
+    refine (prod_subset _ _).symm,
+    { intros _ H, rwa mem_singleton.1 H },
+    { simpa only [mem_singleton] }
+  end
+  ... = f a : prod_singleton
 
 @[to_additive]
 lemma prod_eq_single {s : finset α} {f : α → β} (a : α)
   (h₀ : ∀ b ∈ s, b ≠ a → f b = 1) (h₁ : a ∉ s → f a = 1) : (∏ x in s, f x) = f a :=
-by haveI := classical.dec_eq α;
-from classical.by_cases
+classical.by_cases
   (assume : a ∈ s, prod_eq_single_of_mem a this h₀)
   (assume : a ∉ s,
     (prod_congr rfl $ λ b hb, h₀ b hb $ by rintro rfl; cc).trans $
@@ -632,7 +628,6 @@ lemma prod_eq_mul {s : finset α} {f : α → β} (a b : α) (hn : a ≠ b)
   (h₀ : ∀ c ∈ s, c ≠ a ∧ c ≠ b → f c = 1) (ha : a ∉ s → f a = 1) (hb : b ∉ s → f b = 1) :
   (∏ x in s, f x) = (f a) * (f b) :=
 begin
-  haveI := classical.dec_eq α;
   by_cases h₁ : a ∈ s; by_cases h₂ : b ∈ s,
   { exact prod_eq_mul_of_mem a b h₁ h₂ hn h₀ },
   { rw [hb h₂, mul_one],
@@ -1298,7 +1293,6 @@ lemma eq_one_of_prod_eq_one {s : finset α} {f : α → β} {a : α} (hp : ∏ x
     (h1 : ∀ x ∈ s, x ≠ a → f x = 1) : ∀ x ∈ s, f x = 1 :=
 begin
   intros x hx,
-  classical,
   by_cases h : x = a,
   { rw h,
     rw h at hx,
@@ -1495,7 +1489,6 @@ variables [comm_group_with_zero β]
 @[simp]
 lemma prod_inv_distrib' : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
 begin
-  classical,
   by_cases h : ∃ x ∈ s, f x = 0,
   { simpa [prod_eq_zero_iff.mpr h, prod_eq_zero_iff] using h },
   { push_neg at h,

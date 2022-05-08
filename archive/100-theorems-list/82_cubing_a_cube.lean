@@ -76,7 +76,7 @@ end
 def to_set_disjoint {c c' : cube n} : disjoint c.to_set c'.to_set ↔
   ∃j, disjoint (c.side j) (c'.side j) :=
 begin
-  split, intros h, classical, by_contra h',
+  split, intros h, by_contra h',
   simp only [not_disjoint_iff, classical.skolem, not_exists] at h',
   cases h' with f hf,
   apply not_disjoint_iff.mpr ⟨f, _, _⟩ h; intro j, exact (hf j).1, exact (hf j).2,
@@ -446,7 +446,7 @@ begin
   let i := mi h v, have hi : i ∈ bcubes cs c := mi_mem_bcubes,
   refine ⟨_, _, _⟩,
   { intro p, apply shift_up_bottom_subset_bottoms h mi_xm_ne_one },
-  { rintros i' hi' ⟨p2, hp2, h2p2⟩, simp only [head_shift_up] at hi', classical, by_contra h2i',
+  { rintros i' hi' ⟨p2, hp2, h2p2⟩, simp only [head_shift_up] at hi', by_contra h2i',
     rw [tail_shift_up] at h2p2, simp only [not_subset, tail_shift_up] at h2i',
     rcases h2i' with ⟨p1, hp1, h2p1⟩,
     have : ∃p3, p3 ∈ (cs i').tail.to_set ∧ p3 ∉ (cs i).tail.to_set ∧ p3 ∈ c.tail.to_set,

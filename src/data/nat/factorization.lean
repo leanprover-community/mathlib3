@@ -295,7 +295,7 @@ begin
       nat.div_mul_cancel h],
 end
 
-lemma not_dvd_div_pow_factorization {n p : ℕ} (hp : prime p) (h: p ∣ n) (hn : 0 < n) :
+lemma not_dvd_div_pow_factorization {n p : ℕ} (hp : prime p) (hn : 0 < n) :
   ¬p ∣ n / p ^ n.factorization p :=
 begin
   rw [nat.prime.dvd_iff_one_le_factorization hp (div_pow_factorization_ne_zero p hn),

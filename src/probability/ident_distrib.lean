@@ -17,7 +17,7 @@ in this file.
 
 * `ident_distrib f g μ ν` registers that the image of `μ` under `f` coincides with the image of `ν`
   under `g` (and that `f` and `g` are almost everywhere measurable, as otherwise the image measures
-  don't make sense). The measures can be kept implicit as in `ident_distrib f g` is the spaces
+  don't make sense). The measures can be kept implicit as in `ident_distrib f g` if the spaces
   are registered as measure spaces.
 * `ident_distrib.comp`: being identically distributed is stable under composition with measurable
   maps.
@@ -150,9 +150,8 @@ lemma ess_sup_eq [conditionally_complete_linear_order γ] [topological_space γ]
   [opens_measurable_space γ] [order_closed_topology γ] (h : ident_distrib f g μ ν) :
   ess_sup f μ = ess_sup g ν :=
 begin
-  have I : ∀ a, μ {x : α | a < f x} = ν {x : β | a < g x},
-  { assume a,
-    exact h.measure_mem_eq measurable_set_Ioi, },
+  have I : ∀ a, μ {x : α | a < f x} = ν {x : β | a < g x} :=
+    λ a, h.measure_mem_eq measurable_set_Ioi,
   simp_rw [ess_sup_eq_Inf, I],
 end
 

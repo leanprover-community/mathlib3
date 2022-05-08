@@ -128,6 +128,7 @@ abbreviation binary_fan.snd {X Y : C} (s : binary_fan X Y) := s.π.app walking_p
 @[simp] lemma binary_fan.π_app_right {X Y : C} (s : binary_fan X Y) :
   s.π.app walking_pair.right = s.snd := rfl
 
+
 /-- A convenient way to show that a `binary_fan` is a limit. -/
 @[simps] def binary_fan.is_limit.mk {X Y : C} (t : binary_fan X Y)
   (lift : ∀ (s : binary_fan X Y), s.X ⟶ t.X)
@@ -192,6 +193,14 @@ def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X
   (binary_cofan.mk ι₁ ι₂).inl = ι₁ := rfl
 @[simp] lemma binary_cofan.mk_inr {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
   (binary_cofan.mk ι₁ ι₂).inr = ι₂ := rfl
+
+/-- Every `binary_fan` is isomorphic to an application of `binary_fan.mk`. -/
+def iso_binary_fan_mk {X Y : C} (c : binary_fan X Y) : c ≅ binary_fan.mk c.fst c.snd :=
+cones.ext (iso.refl _) (λ j, by cases j; tidy)
+
+/-- Every `binary_fan` is isomorphic to an application of `binary_fan.mk`. -/
+def iso_binary_cofan_mk {X Y : C} (c : binary_cofan X Y) : c ≅ binary_cofan.mk c.inl c.inr :=
+cocones.ext (iso.refl _) (λ j, by cases j; tidy)
 
 /-- If `s` is a limit binary fan over `X` and `Y`, then every pair of morphisms `f : W ⟶ X` and
     `g : W ⟶ Y` induces a morphism `l : W ⟶ s.X` satisfying `l ≫ s.fst = f` and `l ≫ s.snd = g`.

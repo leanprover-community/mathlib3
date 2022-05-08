@@ -561,6 +561,7 @@ end canonically_ordered_monoid
 lemma indicator_le_indicator_nonneg {β} [linear_order β] [has_zero β] (s : set α) (f : α → β) :
   s.indicator f ≤ {x | 0 ≤ f x}.indicator f :=
 begin
+  classical,
   intro x,
   simp_rw indicator_apply,
   split_ifs,

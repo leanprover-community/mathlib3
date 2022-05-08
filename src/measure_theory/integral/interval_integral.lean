@@ -238,13 +238,20 @@ by split; simp
 ⟨(hab.1.union hbc.1).mono_set Ioc_subset_Ioc_union_Ioc,
   (hbc.2.union hab.2).mono_set Ioc_subset_Ioc_union_Ioc⟩
 
+lemma trans_iterate_Ico {a : ℕ → ℝ} {m n : ℕ} (hmn : m ≤ n)
+  (hint : ∀ k ∈ Ico m n, interval_integrable f μ (a k) (a $ k+1)) :
+  interval_integrable f μ (a m) (a n) :=
+begin
+  revert hint,
+  refine nat.le_induction _ _ n hmn,
+  { simp },
+  { assume p hp IH h,
+    exact (IH (λ k hk, h k (Ico_subset_Ico_right p.le_succ hk))).trans (h p (by simp [hp])) }
+end
+
 lemma trans_iterate {a : ℕ → ℝ} {n : ℕ} (hint : ∀ k < n, interval_integrable f μ (a k) (a $ k+1)) :
   interval_integrable f μ (a 0) (a n) :=
-begin
-  induction n with n hn,
-  { simp },
-  { exact (hn (λ k hk, hint k (hk.trans n.lt_succ_self))).trans (hint n n.lt_succ_self) }
-end
+trans_iterate_Ico bot_le (λ k hk, hint k hk.2)
 
 lemma neg (h : interval_integrable f μ a b) : interval_integrable (-f) μ a b :=
 ⟨h.1.neg, h.2.neg⟩
@@ -769,16 +776,29 @@ lemma integral_add_adjacent_intervals (hab : interval_integrable f μ a b)
   ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ = ∫ x in a..c, f x ∂μ :=
 by rw [← add_neg_eq_zero, ← integral_symm, integral_add_adjacent_intervals_cancel hab hbc]
 
+lemma sum_integral_adjacent_intervals_Ico {a : ℕ → ℝ} {m n : ℕ} (hmn : m ≤ n)
+  (hint : ∀ k ∈ Ico m n, interval_integrable f μ (a k) (a $ k+1)) :
+  ∑ (k : ℕ) in finset.Ico m n, ∫ x in (a k)..(a $ k+1), f x ∂μ = ∫ x in (a m)..(a n), f x ∂μ :=
+begin
+  revert hint,
+  refine nat.le_induction _ _ n hmn,
+  { simp },
+  { assume p hmp IH h,
+    rw [finset.sum_Ico_succ_top hmp, IH, integral_add_adjacent_intervals],
+    { apply interval_integrable.trans_iterate_Ico hmp (λ k hk, h k _),
+      exact (Ico_subset_Ico le_rfl (nat.le_succ _)) hk },
+    { apply h,
+      simp [hmp] },
+    { assume k hk,
+      exact h _ (Ico_subset_Ico_right p.le_succ hk) } }
+end
+
 lemma sum_integral_adjacent_intervals {a : ℕ → ℝ} {n : ℕ}
   (hint : ∀ k < n, interval_integrable f μ (a k) (a $ k+1)) :
   ∑ (k : ℕ) in finset.range n, ∫ x in (a k)..(a $ k+1), f x ∂μ = ∫ x in (a 0)..(a n), f x ∂μ :=
 begin
-  induction n with n hn,
-  { simp },
-  { rw [finset.sum_range_succ, hn (λ k hk, hint k (hk.trans n.lt_succ_self))],
-    exact integral_add_adjacent_intervals
-      (interval_integrable.trans_iterate $ λ k hk, hint k (hk.trans n.lt_succ_self))
-      (hint n n.lt_succ_self) }
+  rw ← nat.Ico_zero_eq_range,
+  exact sum_integral_adjacent_intervals_Ico (zero_le n) (λ k hk, hint k hk.2),
 end
 
 lemma integral_interval_sub_left (hab : interval_integrable f μ a b)

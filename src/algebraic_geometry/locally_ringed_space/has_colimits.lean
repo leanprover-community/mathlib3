@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import algebraic_geometry.locally_ringed_space
-import algebra.category.CommRing.constructions
+import algebra.category.Ring.constructions
 import algebraic_geometry.open_immersion
 import category_theory.limits.constructions.limits_of_products_and_equalizers
 

@@ -1145,23 +1145,6 @@ theorem map_is_prime_of_equiv (f : R ≃+* S) {I : ideal R} [hI : is_prime I] :
   is_prime (map (f : R →+* S) I) :=
 (I.map_comap_of_equiv f).symm ▸ comap_is_prime f.symm I
 
-/-- Special case of the correspondence theorem for isomorphic rings -/
-def rel_iso_of_equiv (f : R ≃+* S) : ideal S ≃o ideal R :=
-{ to_fun := comap f,
-  inv_fun := map f,
-  left_inv := λ I, ((comap ↑f I).map_comap_of_equiv f).symm ▸ I.comap_of_equiv f.symm,
-  right_inv := λ J, (J.map_comap_of_equiv f).symm ▸ J.comap_of_equiv f,
-  map_rel_iff' := λ I₁ I₂, ⟨λ h,
-    calc I₁ = map ↑f (comap ↑f I₁) : (map_comap_of_surjective (f : R →+* S) f.surjective I₁).symm
-        ... ≤ map ↑f (comap ↑f I₂) : map_mono h
-        ... = I₂                   : map_comap_of_surjective (f : R →+* S) f.surjective I₂,
-    comap_mono⟩ }
-
-lemma comap_le_iff_le_map (f : R ≃+* S) {I : ideal R} {K : ideal S} :
-  comap ↑f K ≤ I ↔ K ≤ map ↑f I :=
-⟨λ h, le_map_of_comap_le_of_surjective (f : R →+* S) f.surjective h,
- λ h, ((rel_iso_of_equiv f).right_inv I) ▸ comap_mono h⟩
-
 end semiring
 
 section ring

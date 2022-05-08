@@ -46,7 +46,7 @@ begin
     all_goals {show (x : ℕ) < _, by omega}},
   { by_cases hje : (x : ℕ) = j,
     { rw [F_eq_apply _ _ _ hje, F_lt_apply],
-      work_on_goal 1 {show (x : ℕ) < _, by omega},
+      work_on_goal 2 {show (x : ℕ) < _, by omega},
       by_cases (j = k),
       { iterate 3 {rw F_eq_apply},
         all_goals {simp only [*, fin.coe_cast_lt, fin.coe_add_nat] at *},
@@ -188,30 +188,22 @@ begin
   { rw [sum_range_succ, sum_range_succ, sum_range_zero],
     norm_num,
     rw [F_eq_apply 0 _ 0, F_lt_apply 1 _ 0],
-    { simp only [mul_smul, cochain_zero_eq φ _ (default (fin 0 → G)), ←sub_eq_neg_add, ←sub_eq_add_neg],
+    { simp only [mul_smul, cochain_zero_eq φ _ default, ←sub_eq_neg_add, ←sub_eq_add_neg],
       erw fin.cast_lt_zero,
-      abel },
+      simp only [fin.add_nat_one, fin.succ_zero_eq_one, sub_add_sub_cancel', sub_self] },
     { dec_trivial },
     { refl }},
   { rw [sum_add_distrib, sum_range_succ' _ (n + 2), F_eq_apply 0 _ 0],
   simp only [F_succ_zero, mul_smul, F_zero_succ, one_zsmul, pow_one, zero_add, neg_smul],
   erw [fin.cast_lt_zero, ←sub_eq_add_neg],
   abel,
-  simp only [distrib_mul_action.smul_zsmul, ←F_shift],
-  sorry, sorry
+  simp only [←distrib_mul_action.smul_zsmul],
+  simp only [←F_shift],
+  simp only [smul_sum],
+  erw ←sum_add_distrib,
+  sorry, refl,
+  }
 
-  /-erw [←smul_sum, ←smul_add, ←sum_add_distrib, @sum_eq_zero _ _ _ _ (range (n + 2)),
-    smul_zero, add_zero],
-  { simp only [smul_sum, ←mul_smul, ←pow_add],
-    have : ∀ i j : ℕ, (-1 : ℤ) ^ (i + 1 + (j + 1)) = (-1 : ℤ) ^ (i + j) := λ i j, by
-    { simp only [pow_add, pow_one],
-      norm_num },
-    simp only [this],
-    exact double_sum_zero1 n g φ },
-  { intros x hx,
-    rw [←add_smul, add_comm, neg_one_power] },
-  { refl }-/
-  },
 end
 
 /-
@@ -277,7 +269,7 @@ def cochain.d : ((fin n → G) → M) →+ ((fin (n + 1) → G) → M) :=
 variables {G M}
 
 lemma cochain.d_zero_apply (x : (fin 0 → G) → M) (g : fin 1 → G) :
-  cochain.d G M 0 x g = g 0 • x (default _) - x (default _) :=
+  cochain.d G M 0 x g = g 0 • x default - x default :=
 begin
   dsimp [cochain.d, d_to_fun],
   simp only [pow_one, one_zsmul, sum_singleton, neg_smul],
@@ -290,7 +282,7 @@ begin
   dsimp [cochain.d, d_to_fun],
   rw [finset.range_succ', finset.sum_insert],
   simp only [pow_one, image_singleton, one_zsmul,
-    sum_singleton, nat.neg_one_sq, neg_smul, range_one],
+    sum_singleton, neg_one_sq, neg_smul, range_one],
   rw [←add_assoc, sub_eq_add_neg],
   congr,
   { ext y,

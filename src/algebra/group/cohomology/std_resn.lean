@@ -276,8 +276,8 @@ begin
   congr,
   ext1 v, ext1 m,
   rw [finset.sum_insert, finset.sum_insert (@finset.not_mem_range_self 0)],
-  { simp only [neg_mul_eq_neg_mul_symm, finsupp.single_neg, add_zero, one_mul,
-     finset.sum_empty, finset.range_zero, pow_one, pow_zero, neg_add_eq_sub] },
+  { simp only [neg_one_mul, finsupp.single_neg, add_zero, one_mul,
+     finset.sum_empty, finset.range_zero, pow_one, pow_zero, neg_add_eq_sub], },
   { rw [←finset.range_add_one, zero_add],
     exact finset.not_mem_range_self }
 end
@@ -294,7 +294,7 @@ begin
   exact ulift.zero_down,
 end
 
-instance std_resn_exact₀ : exact (Module.as_hom $ d G (show 2 = 1 + 1, from rfl))
+lemma std_resn_exact₀ : exact (Module.as_hom $ d G (show 2 = 1 + 1, from rfl))
   (Module.as_hom ((coeff_sum G).comp (dom_one_equiv G).to_linear_map)) :=
 (Module.exact_iff _ _).2 $
 begin
@@ -435,7 +435,7 @@ end)
 /-- A complex on which 1 is nullhomotopic is homotopy equivalent to the zero complex. -/
 def homotopy_equiv_of_null_homotopic {ι : Type*}
   (c : complex_shape ι) (C : homological_complex AddCommGroup c)
-  (H : homotopy (𝟙 C) 0) : homotopy_equiv C limits.has_zero_object.zero :=
+  (H : homotopy (𝟙 C) 0) : homotopy_equiv C 0 :=
 ⟨0, 0, H.symm, homotopy.of_eq (limits.has_zero_object.to_zero_ext _ _)⟩
 
 /-- A chain complex (of `AddCommGroup`s) on which the identity is null-homotopic is exact. -/

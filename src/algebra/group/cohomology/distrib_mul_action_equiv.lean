@@ -1,4 +1,4 @@
-import algebra.group_action_hom
+import group_theory.group_action.basic
 import algebra.module.ulift
 
 variables (M : Type*) [monoid M]

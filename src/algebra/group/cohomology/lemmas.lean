@@ -17,9 +17,9 @@ begin
   simp only [finset.mem_insert, finset.mem_image, finset.mem_range],
   cases i with i,
   { exact ⟨λ h, or.inl rfl, λ h, nat.succ_pos _⟩ },
-  { exact ⟨λ h, or.inr ⟨i, ⟨finset.mem_range.2 $ nat.succ_lt_succ_iff.1 h, rfl⟩⟩,
+  { exact ⟨λ h, or.inr ⟨i, ⟨nat.succ_lt_succ_iff.1 h, rfl⟩⟩,
     λ h, by obtain ⟨j, ⟨hj, hj'⟩⟩ := h.resolve_left (nat.succ_ne_zero i);
-      rwa [←hj', nat.succ_lt_succ_iff, ←finset.mem_range]⟩}
+      rwa [←hj', nat.succ_lt_succ_iff]⟩}
 end
 
 @[to_additive] lemma ulift.prod_down {α : Type*} {β : Type*} [comm_monoid β] {s : finset α}
@@ -148,6 +148,11 @@ int.induction_on n
   (by simp)
   (λ _ _, by simp [add_zsmul, one_zsmul])
   (λ x, by {simp [sub_zsmul, ←sub_eq_add_neg] })
+
+lemma distrib_mul_action.smul_nsmul {G : Type*} [monoid G] {M : Type*}
+  [add_comm_monoid M] [distrib_mul_action G M] (g : G) (n : ℕ) (m : M) :
+  g • n • m = n • g • m :=
+nat.rec_on n (by simp) (λ n hn, by simp [nat.succ_eq_add_one, add_smul, smul_add, hn])
 
 lemma distrib_mul_action.smul_zsmul {G : Type*} [monoid G] {M : Type*}
   [add_comm_group M] [distrib_mul_action G M]

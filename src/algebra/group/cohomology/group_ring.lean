@@ -3,7 +3,7 @@ Copyright (c) 2021 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
-import algebra.group_action_hom
+import group_theory.group_action.basic
 import data.fin_simplicial_complex
 import algebra.monoid_algebra.basic
 import algebra.group.cohomology.lemmas

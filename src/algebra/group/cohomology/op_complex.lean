@@ -381,7 +381,7 @@ homology.desc _ _ _ (kernel.lift _ ((limits.kernel_subobject _).arrow ≫ cokern
   sorry ≫ (kernel_unop_unop _).hom) sorry
 
 instance {i j : ι} (hij : c.rel i j) : is_iso (C.homology_op_of_rel hij) :=
-@abelian.is_iso_of_mono_of_epi _ _ _ _ _ (C.homology_op_of_rel hij) sorry sorry
+sorry --@abelian.is_iso_of_mono_of_epi _ _ _ _ _ (C.homology_op_of_rel hij) sorry sorry
 
 -- there's two cases here. don't want to do them rn
 def homology_op_of_none {j : ι} (h : c.prev j = none) :
@@ -402,7 +402,7 @@ homology.desc _ _ _ (kernel.lift _ ((limits.kernel_subobject _).arrow ≫ cokern
   sorry ≫ (kernel_op_op _).hom) sorry
 
 instance {i j : ι} (hij : c.rel i j) : is_iso (D.homology_unop_of_rel hij) :=
-@abelian.is_iso_of_mono_of_epi _ _ _ _ _ (D.homology_unop_of_rel hij) sorry sorry
+sorry --@abelian.is_iso_of_mono_of_epi _ _ _ _ _ (D.homology_unop_of_rel hij) sorry sorry
 
 end homological_complex
 

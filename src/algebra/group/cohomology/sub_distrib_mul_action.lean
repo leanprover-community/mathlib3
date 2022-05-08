@@ -1,5 +1,5 @@
 import tactic
-import algebra.group_action_hom
+import group_theory.group_action.basic
 import group_theory.group_action.sub_mul_action
 import algebra.homology.exact
 import algebra.module.pi
@@ -192,8 +192,8 @@ def ker (φ : M →+[G] N) :
 by { refine_struct {carrier := {m : M | φ m = 0}},
   all_goals { intros, simp only [*, set.mem_set_of_eq] at * },
   { simp only [*, smul_zero, map_smul] },
-  { exact map_zero _ },
   { simp only [*, map_add, add_zero] },
+  { exact map_zero _ },
   { simp only [*, map_neg, neg_zero] }}
 
 def cod_restrict (A : sub_distrib_mul_action G N) (f : M →+[G] N) (h : ∀ m, f m ∈ A) :
@@ -220,9 +220,9 @@ def range (φ : M →+[G] N) :
 by { refine_struct {carrier := set.range φ},
   { rintros c x ⟨y, hy⟩,
     exact ⟨c • y, by rw [map_smul, hy]⟩ },
-  { exact ⟨0, map_zero _⟩ },
   { rintros a b ⟨x, hx⟩ ⟨y, hy⟩,
     exact ⟨x + y, by rw [map_add, hx, hy]⟩ },
+  { exact ⟨0, map_zero _⟩ },
   { rintros x ⟨y, hy⟩,
     exact ⟨-y, by rw [map_neg, hy]⟩ }}
 

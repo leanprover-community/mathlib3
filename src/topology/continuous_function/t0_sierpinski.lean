@@ -1,5 +1,15 @@
+/-
+Copyright (c) 2022 Ivan Sadofschi Costa. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Ivan Sadofschi Costa
+-/
 import topology.order
 import topology.continuous_function.basic
+
+/-!
+# Any T0 space embeds into a product of copies of the Sierpinski space
+
+-/
 
 noncomputable theory
 

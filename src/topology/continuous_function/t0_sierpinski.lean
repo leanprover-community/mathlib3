@@ -13,19 +13,19 @@ import topology.continuous_function.basic
 
 noncomputable theory
 
-variables {X:Type*} [t : topological_space X] [t0 : t0_space X]
+variables {X : Type*} [t : topological_space X] [t0 : t0_space X]
 
 instance : topological_space (Π(a : {u : set X | t.is_open u}), Prop) :=
   @Pi.topological_space _ (λ u, Prop) (λ a, sierpinski_space)
 
-def i (X :Type*) [t : topological_space X] : continuous_map X
+def i (X : Type*) [t : topological_space X] : continuous_map X
   (Π (a : {u : set X | t.is_open u}), Prop) :=
   { to_fun := λ x, (λ u, x ∈ (u:set X) ),
   continuous_to_fun := continuous_pi_iff.2 (λ i, continuous_Prop.2 (by simpa using subtype.mem i)) }
 
 include t0
 lemma i_injective : function.injective
-  (λ (x : X) (u : {u : set X | t.is_open u}), x ∈ (u: set X)) :=
+  (λ (x : X) (u : {u : set X | t.is_open u}), x ∈ (u : set X)) :=
 begin
   rw function.injective,
   intros x1 x2 h,

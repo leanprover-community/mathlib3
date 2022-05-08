@@ -206,19 +206,19 @@ lemma finite_dimensional_of_finrank {K V : Type*} [division_ring K] [add_comm_gr
   (h : 0 < finrank K V) : finite_dimensional K V :=
 by { contrapose h, simp [finrank_of_infinite_dimensional h] }
 
-lemma finite_dimensional_of_finrank_eq_succ {K V : Type*} [field K] [add_comm_group V] [module K V]
-  {n : ℕ} (hn : finrank K V = n.succ) : finite_dimensional K V :=
+lemma finite_dimensional_of_finrank_eq_succ {K V : Type*} [division_ring K] [add_comm_group V]
+  [module K V] {n : ℕ} (hn : finrank K V = n.succ) : finite_dimensional K V :=
 finite_dimensional_of_finrank $ by rw hn; exact n.succ_pos
 
 /-- We can infer `finite_dimensional K V` in the presence of `[fact (finrank K V = n + 1)]`. Declare
 this as a local instance where needed. -/
-lemma fact_finite_dimensional_of_finrank_eq_succ {K V : Type*} [field K] [add_comm_group V]
+lemma fact_finite_dimensional_of_finrank_eq_succ {K V : Type*} [division_ring K] [add_comm_group V]
   [module K V] (n : ℕ) [fact (finrank K V = n + 1)] :
   finite_dimensional K V :=
 finite_dimensional_of_finrank $ by convert nat.succ_pos n; apply fact.out
 
 lemma finite_dimensional_iff_of_rank_eq_nsmul
-  {K V W : Type*} [field K] [add_comm_group V] [add_comm_group W] [module K V] [module K W]
+  {K V W : Type*} [division_ring K] [add_comm_group V] [add_comm_group W] [module K V] [module K W]
   {n : ℕ} (hn : n ≠ 0) (hVW : module.rank K V = n • module.rank K W) :
   finite_dimensional K V ↔ finite_dimensional K W :=
 by simp only [finite_dimensional, ← is_noetherian.iff_fg, is_noetherian.iff_dim_lt_omega, hVW,

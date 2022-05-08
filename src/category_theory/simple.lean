@@ -71,6 +71,9 @@ lemma simple.of_iso {X Y : C} [simple Y] (i : X ≅ Y) : simple X :=
       apply_instance, },
   end }
 
+lemma simple.iff_of_iso {X Y : C} (i : X ≅ Y) : simple X ↔ simple Y :=
+⟨λ h, by exactI simple.of_iso i.symm, λ h, by exactI simple.of_iso i⟩
+
 lemma kernel_zero_of_nonzero_from_simple
   {X Y : C} [simple X] {f : X ⟶ Y} [has_kernel f] (w : f ≠ 0) :
   kernel.ι f = 0 :=

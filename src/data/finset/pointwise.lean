@@ -373,7 +373,7 @@ end mul_zero_class
 section group
 variables [group α] {s t : finset α} {a b : α}
 
-/-! Note that `set` is not a `group` because `s / s ≠ 1` in general. -/
+/-! Note that `finset` is not a `group` because `s / s ≠ 1` in general. -/
 
 section decidable_eq
 variables [decidable_eq α]

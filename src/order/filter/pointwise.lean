@@ -87,6 +87,38 @@ by rw [filter.map_one', map_one, pure_one]
 
 end has_one
 
+/-! ### Filter negation/inversion -/
+
+section has_inv
+variables [has_inv α] {f g : filter α} {s : set α} {a : α}
+
+/-- The inverse of a filter is the pointwise preimage under `⁻¹` of its sets. -/
+@[to_additive "The negation of a filter is the pointwise preimage under `-` of its sets."]
+instance : has_inv (filter α) := ⟨map has_inv.inv⟩
+
+@[simp, to_additive] protected lemma map_inv : f.map has_inv.inv = f⁻¹ := rfl
+@[to_additive] lemma mem_inv : s ∈ f⁻¹ ↔ has_inv.inv ⁻¹' s ∈ f := iff.rfl
+@[to_additive] protected lemma inv_le_inv (hf : f ≤ g) : f⁻¹ ≤ g⁻¹ := map_mono hf
+@[simp, to_additive] lemma inv_pure : (pure a : filter α)⁻¹ = pure a⁻¹ := rfl
+@[simp, to_additive] lemma inv_eq_bot_iff : f⁻¹ = ⊥ ↔ f = ⊥  := map_eq_bot_iff
+@[simp, to_additive] lemma ne_bot_inv_iff : f⁻¹.ne_bot ↔ ne_bot f := map_ne_bot_iff _
+@[to_additive] lemma ne_bot.inv : f.ne_bot → f⁻¹.ne_bot := λ h, h.map _
+
+end has_inv
+
+section has_involutive_inv
+variables [has_involutive_inv α] {f : filter α} {s : set α}
+
+@[to_additive] lemma inv_mem_inv (hs : s ∈ f) : s⁻¹ ∈ f⁻¹ := by rwa [mem_inv, inv_preimage, inv_inv]
+
+/-- Inversion is involutive on `filter α` if it is on `α`. -/
+@[to_additive "Negation is involutive on `filter α` if it is on `α`."]
+def has_involutive_inv : has_involutive_inv (filter α) :=
+{ inv_inv := λ f, map_map.trans $ by rw [inv_involutive.comp_self, map_id],
+  ..filter.has_inv }
+
+end has_involutive_inv
+
 /-! ### Filter addition/multiplication -/
 
 section has_mul
@@ -128,38 +160,6 @@ protected lemma map_mul [mul_hom_class F α β] (m : F) : (f₁ * f₂).map m = 
 map_map₂_distrib $ map_mul m
 
 end has_mul
-
-/-! ### Filter negation/inversion -/
-
-section has_inv
-variables [has_inv α] {f g : filter α} {s : set α} {a : α}
-
-/-- The inverse of a filter is the pointwise preimage under `⁻¹` of its sets. -/
-@[to_additive "The negation of a filter is the pointwise preimage under `-` of its sets."]
-instance : has_inv (filter α) := ⟨map has_inv.inv⟩
-
-@[simp, to_additive] protected lemma map_inv : f.map has_inv.inv = f⁻¹ := rfl
-@[to_additive] lemma mem_inv : s ∈ f⁻¹ ↔ has_inv.inv ⁻¹' s ∈ f := iff.rfl
-@[to_additive] protected lemma inv_le_inv (hf : f ≤ g) : f⁻¹ ≤ g⁻¹ := map_mono hf
-@[simp, to_additive] lemma inv_pure : (pure a : filter α)⁻¹ = pure a⁻¹ := rfl
-@[simp, to_additive] lemma inv_eq_bot_iff : f⁻¹ = ⊥ ↔ f = ⊥  := map_eq_bot_iff
-@[simp, to_additive] lemma ne_bot_inv_iff : f⁻¹.ne_bot ↔ ne_bot f := map_ne_bot_iff _
-@[to_additive] lemma ne_bot.inv : f.ne_bot → f⁻¹.ne_bot := λ h, h.map _
-
-end has_inv
-
-section has_involutive_inv
-variables [has_involutive_inv α] {f : filter α} {s : set α}
-
-@[to_additive] lemma inv_mem_inv (hs : s ∈ f) : s⁻¹ ∈ f⁻¹ := by rwa [mem_inv, inv_preimage, inv_inv]
-
-/-- Inversion is involutive on `filter α` if it is on `α`. -/
-@[to_additive "Negation is involutive on `filter α` if it is on `α`."]
-def has_involutive_inv : has_involutive_inv (filter α) :=
-{ inv_inv := λ f, map_map.trans $ by rw [inv_involutive.comp_self, map_id],
-  ..filter.has_inv }
-
-end has_involutive_inv
 
 /-! ### Filter subtraction/division -/
 

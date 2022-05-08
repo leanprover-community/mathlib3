@@ -30,7 +30,6 @@ example (f g : ℝ → ℝ)
   (y : ℝ) :
   ∥g(y)∥ ≤ 1 :=
 begin
-  classical,
   set S := set.range (λ x, ∥f x∥),
   -- Introduce `k`, the supremum of `f`.
   let k : ℝ := Sup (S),

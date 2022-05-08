@@ -874,7 +874,6 @@ s.eq_empty_or_nonempty.elim (λ H, false.elim $ h $ H.symm ▸ prod_empty) id
 @[to_additive]
 lemma exists_ne_one_of_prod_ne_one (h : (∏ x in s, f x) ≠ 1) : ∃ a ∈ s, f a ≠ 1 :=
 begin
-  classical,
   rw ← prod_filter_ne_one at h,
   rcases nonempty_of_prod_ne_one h with ⟨x, hx⟩,
   exact ⟨x, (mem_filter.1 hx).1, (mem_filter.1 hx).2⟩
@@ -1203,7 +1202,6 @@ prod_eq_prod_diff_singleton_mul (mem_univ a) f
 lemma dvd_prod_of_mem (f : α → β) {a : α} {s : finset α} (ha : a ∈ s) :
   f a ∣ ∏ i in s, f i :=
 begin
-  classical,
   rw finset.prod_eq_mul_prod_diff_singleton ha,
   exact dvd_mul_right _ _,
 end
@@ -1298,7 +1296,6 @@ lemma eq_one_of_prod_eq_one {s : finset α} {f : α → β} {a : α} (hp : ∏ x
     (h1 : ∀ x ∈ s, x ≠ a → f x = 1) : ∀ x ∈ s, f x = 1 :=
 begin
   intros x hx,
-  classical,
   by_cases h : x = a,
   { rw h,
     rw h at hx,
@@ -1448,7 +1445,6 @@ by simpa only [sub_eq_add_neg] using sum_add_distrib.trans (congr_arg _ sum_neg_
 lemma mem_sum {f : α → multiset β} (s : finset α) (b : β) :
   b ∈ ∑ x in s, f x ↔ ∃ a ∈ s, b ∈ f a :=
 begin
-  classical,
   refine s.induction_on (by simp) _,
   { intros a t hi ih,
     simp [sum_insert hi, ih, or_and_distrib_right, exists_or_distrib] }
@@ -1477,7 +1473,6 @@ variables [nontrivial β] [no_zero_divisors β]
 
 lemma prod_eq_zero_iff : (∏ x in s, f x) = 0 ↔ (∃ a ∈ s, f a = 0) :=
 begin
-  classical,
   apply finset.induction_on s,
   exact ⟨not.elim one_ne_zero, λ ⟨_, H, _⟩, H.elim⟩,
   assume a s ha ih,
@@ -1495,7 +1490,6 @@ variables [comm_group_with_zero β]
 @[simp]
 lemma prod_inv_distrib' : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
 begin
-  classical,
   by_cases h : ∃ x ∈ s, f x = 0,
   { simpa [prod_eq_zero_iff.mpr h, prod_eq_zero_iff] using h },
   { push_neg at h,
@@ -1669,7 +1663,6 @@ end
 lemma prod_sum {α : Type*} {ι : Type*} [comm_monoid α] (f : ι → multiset α) (s : finset ι) :
   (∑ x in s, f x).prod = ∏ x in s, (f x).prod :=
 begin
-  classical,
   induction s using finset.induction_on with a t hat ih,
   { rw [finset.sum_empty, finset.prod_empty, multiset.prod_zero] },
   { rw [finset.sum_insert hat, finset.prod_insert hat, multiset.prod_add, ih] }

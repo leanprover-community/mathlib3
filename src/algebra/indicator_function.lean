@@ -405,7 +405,6 @@ end
   (s : ι → set α) {f : α → M} : (∀ (i ∈ I) (j ∈ I), i ≠ j → disjoint (s i) (s j)) →
   mul_indicator (⋃ i ∈ I, s i) f = λ a, ∏ i in I, mul_indicator (s i) f a :=
 begin
-  classical,
   refine finset.induction_on I _ _,
   { intro h, funext, simp },
   assume a I haI ih hI,
@@ -562,7 +561,6 @@ lemma indicator_le_indicator_nonneg {β} [linear_order β] [has_zero β] (s : se
   s.indicator f ≤ {x | 0 ≤ f x}.indicator f :=
 begin
   intro x,
-  classical,
   simp_rw indicator_apply,
   split_ifs,
   { exact le_rfl, },

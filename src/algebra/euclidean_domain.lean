@@ -173,7 +173,7 @@ by rw [← h, mul_div_cancel_left _ ha]
 
 theorem mul_div_assoc (x : R) {y z : R} (h : z ∣ y) : x * y / z = x * (y / z) :=
 begin
-  classical, by_cases hz : z = 0,
+  by_cases hz : z = 0,
   { subst hz, rw [div_zero, div_zero, mul_zero] },
   rcases h with ⟨p, rfl⟩,
   rw [mul_div_cancel_left _ hz, mul_left_comm, mul_div_cancel_left _ hz]
@@ -470,7 +470,7 @@ instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :
   remainder := λ a b, a - a * b / b,
   quotient_zero := div_zero,
   quotient_mul_add_remainder_eq := λ a b,
-    by { classical, by_cases b = 0; simp [h, mul_div_cancel'] },
+    by { by_cases b = 0; simp [h, mul_div_cancel'] },
   r := λ a b, a = 0 ∧ b ≠ 0,
   r_well_founded := well_founded.intro $ λ a, acc.intro _ $ λ b ⟨hb, hna⟩,
     acc.intro _ $ λ c ⟨hc, hnb⟩, false.elim $ hnb hb,

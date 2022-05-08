@@ -76,7 +76,7 @@ end
 def to_set_disjoint {c c' : cube n} : disjoint c.to_set c'.to_set ↔
   ∃j, disjoint (c.side j) (c'.side j) :=
 begin
-  split, intros h, classical, by_contra h',
+  split, intros h, by_contra h',
   simp only [not_disjoint_iff, classical.skolem, not_exists] at h',
   cases h' with f hf,
   apply not_disjoint_iff.mpr ⟨f, _, _⟩ h; intro j, exact (hf j).1, exact (hf j).2,

@@ -109,7 +109,6 @@ variables [cancel_comm_monoid_with_zero R] [wf_dvd_monoid R]
 lemma finite_prime_left {a b : R} (ha : prime a) (hb : b ≠ 0) :
   multiplicity.finite a b :=
 begin
-  classical,
   revert hb,
   refine wf_dvd_monoid.induction_on_irreducible b (by contradiction) (λ u hu hu', _)
     (λ b p hb hp ih hpb, _),
@@ -201,7 +200,6 @@ end
 lemma dvd_pow_iff_dvd_of_squarefree {x y : R} {n : ℕ} (hsq : squarefree x) (h0 : n ≠ 0) :
   x ∣ y ^ n ↔ x ∣ y :=
 begin
-  classical,
   by_cases hx : x = 0,
   { simp [hx, pow_eq_zero_iff (nat.pos_of_ne_zero h0)] },
   by_cases hy : y = 0,

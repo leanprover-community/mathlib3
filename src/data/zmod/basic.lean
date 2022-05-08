@@ -473,6 +473,19 @@ begin
   { rw [←nat_cast_val, val_neg_one, nat.cast_succ, add_sub_cancel] },
 end
 
+lemma cast_sub_one {R : Type*} [ring R] {n : ℕ} (k : zmod n) :
+  ((k - 1 : zmod n) : R) = (if k = 0 then n else k) - 1 :=
+begin
+  split_ifs with hk,
+  { rw [hk, zero_sub, zmod.cast_neg_one] },
+  { cases n,
+    { rw [int.cast_sub, int.cast_one] },
+    { rw [←zmod.nat_cast_val, zmod.val, fin.coe_sub_one, if_neg],
+      { rw [nat.cast_sub, nat.cast_one, coe_coe],
+        rwa [fin.ext_iff, fin.coe_zero, ←ne, ←nat.one_le_iff_ne_zero] at hk },
+      { exact hk } } },
+end
+
 lemma nat_coe_zmod_eq_iff (p : ℕ) (n : ℕ) (z : zmod p) [fact (0 < p)] :
   ↑n = z ↔ ∃ k, n = z.val + p * k :=
 begin
@@ -584,7 +597,7 @@ begin
              ... = nat.gcd a.val k : (congr_arg coe (nat.gcd_eq_gcd_ab a.val k)).symm, }
 end
 
-@[simp] lemma nat_cast_mod (n : ℕ) (a : ℕ) : ((a % n : ℕ) : zmod n) = a :=
+@[simp] lemma nat_cast_mod (a : ℕ) (n : ℕ) : ((a % n : ℕ) : zmod n) = a :=
 by conv {to_rhs, rw ← nat.mod_add_div a n}; simp
 
 lemma eq_iff_modeq_nat (n : ℕ) {a b : ℕ} : (a : zmod n) = b ↔ a ≡ b [MOD n] :=

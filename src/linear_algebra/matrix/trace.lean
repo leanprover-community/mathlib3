@@ -49,6 +49,10 @@ finset.smul_sum.symm
 
 @[simp] lemma trace_transpose (A : matrix n n R) : trace Aᵀ = trace A := rfl
 
+@[simp] lemma trace_conj_transpose [star_add_monoid R] (A : matrix n n R) :
+  trace Aᴴ = star (trace A) :=
+(star_sum _ _).symm
+
 variables (n α R)
 /-- `matrix.trace` as an `add_monoid_hom` -/
 @[simps]

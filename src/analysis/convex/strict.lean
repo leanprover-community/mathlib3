@@ -287,6 +287,7 @@ lemma strict_convex.eq_of_open_segment_subset_frontier [nontrivial 𝕜] [densel
   (hs : strict_convex 𝕜 s) (hx : x ∈ s) (hy : y ∈ s) (h : open_segment 𝕜 x y ⊆ frontier s) :
   x = y :=
 begin
+  classical,
   obtain ⟨a, ha₀, ha₁⟩ := densely_ordered.dense (0 : 𝕜) 1 zero_lt_one,
   by_contra hxy,
   exact (h ⟨a, 1 - a, ha₀, sub_pos_of_lt ha₁, add_sub_cancel'_right _ _, rfl⟩).2

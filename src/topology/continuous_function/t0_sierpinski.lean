@@ -49,14 +49,13 @@ end
 include t
 lemma i_inducing : inducing (i X).to_fun :=
 begin
-  simp only [i],
-  let f : {u : set X | t.is_open u} → X → Prop := λ u, (λx, x∈ (u:set X)),
   refine {induced := _},
   apply (eq_induced_by_maps_to_sierpinski).trans,
   erw induced_infi, -- same steps as the proof of `inducing_infi_to_pi`
   congr' 1,
   funext,
   erw induced_compose,
+  refl
 end
 
 -- would `embedding_into_prod_sierpinski_of_t0` be good name?

@@ -11,6 +11,7 @@ import algebra.algebra.tower
 import algebra.category.Module.algebra
 import algebra.category.Module.images
 import algebra.category.Module.biproducts
+import algebra.category.Module.simple
 import data.mv_polynomial.basic
 import algebra.free_algebra
 import data.complex.module
@@ -156,8 +157,8 @@ endomorphism_simple_eq_smul_id k f
 -- Typeclass inference is automatically generating this fact.
 
 -- Remark 2.3.11 (Schur's lemma doesn't hold over a non-algebraically closed field)
-example : simple (Module.of ℂ ℂ) := skipped
-example : finite_dimensional ℝ (Module.of ℂ ℂ) := skipped
+example : simple (Module.of ℂ ℂ) := simple_of_finrank_eq_one (finrank_self ℂ)
+example : finite_dimensional ℝ (Module.of ℂ ℂ) := by { dsimp, apply_instance, }
 example :
   let V := Module.of ℂ ℂ in
   ∃ (f : V ⟶ V), ∀ φ : ℝ, (φ : ℂ) • 𝟙 V ≠ f :=
@@ -171,21 +172,8 @@ example (A : Type*) [comm_ring A] [algebra k A] (V : Module A) [finite_dimension
 skipped
 
 -- Remark 2.3.13: Every 1-dimensional representation is irreducible
--- TODO this belongs in mathlib
 example (V : Module A) [finite_dimensional k V] (h : finrank k V = 1) : simple V :=
-⟨λ Y f _, begin
-  split,
-  { intro i, rintro rfl,
-    resetI,
-    rw finrank_eq_one_iff' at h,
-    obtain ⟨v, n, -⟩ := h,
-    obtain ⟨w, rfl⟩ := (Module.epi_iff_surjective (0 : Y ⟶ V)).mp infer_instance v,
-    simpa using n, },
-  { intro r,
-    haveI := (Module.epi_iff_surjective _).mpr (surjective_of_nonzero_of_finrank_eq_one h r),
-    rw is_iso_iff_mono_and_epi,
-    split; apply_instance, }
-end⟩
+simple_of_finrank_eq_one h
 
 -- Example 2.3.14: skipped (1 and 3 we can do, 2 requires Jordan normal form)
 

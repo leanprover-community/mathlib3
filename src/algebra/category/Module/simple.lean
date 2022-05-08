@@ -6,6 +6,7 @@ Authors: Pierre-Alexandre Bazin, Scott Morrison
 import category_theory.simple
 import algebra.category.Module.abelian
 import algebra.category.Module.subobject
+import algebra.category.Module.algebra
 import ring_theory.simple_module
 import linear_algebra.finite_dimensional
 
@@ -31,9 +32,9 @@ simple_iff_is_simple_module.mp (simple.of_iso (of_self_iso M))
 
 open finite_dimensional
 
-/-- Any 1-dimensional module over a division ring is simple. -/
-lemma simple_of_finrank_eq_one {k : Type*} [division_ring k]
-  (V : Module k) [finite_dimensional k V] (h : finrank k V = 1) : simple V :=
+/-- Any `k`-algebra module which is 1-dimensional over `k` is simple. -/
+lemma simple_of_finrank_eq_one {k : Type*} [field k] [algebra k R]
+  {V : Module R} (h : finrank k V = 1) : simple V :=
 ⟨λ Y f _, begin
   split,
   { intro i, rintro rfl,

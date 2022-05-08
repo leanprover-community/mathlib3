@@ -118,7 +118,8 @@ variables (S'' : subobject N)
 
 -- Definition 2.3.5: We express that a representation is "irreducible" using `simple`.
 example (N : Module A) : Prop := simple N
--- TODO: note the existence of `simple_module`, and improve interoperability!
+-- there's also a predicate for unbundled modules:
+example : simple (Module.of A M) ↔ is_simple_module A M := simple_iff_is_simple_module
 
 -- Definition 2.3.6: homomorphisms, intertwiners, isomorphisms
 -- For unbundled representations, we use linear maps:

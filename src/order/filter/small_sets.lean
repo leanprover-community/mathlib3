@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Floris van Doorn, Yury Kudryashov
 -/
 import order.filter.lift
+import order.filter.at_top_bot
 
 /-!
 # The filter of small sets
@@ -13,9 +14,9 @@ containing all powersets of members of `f`.
 
 `g` converges to `f.small_sets` if for all `s ∈ f`, eventually we have `g x ⊆ s`.
 
-An example usage is that if `f : ι → ℝ` is a family of nonnegative functions with integral 1, then
-saying that `f` tendsto `(𝓝 0).small_sets` is a way of saying that `f` tends to the Dirac delta
-distribution.
+An example usage is that if `f : ι → E → ℝ` is a family of nonnegative functions with integral 1,
+then saying that `λ i, support (f i)` tendsto `(𝓝 0).small_sets` is a way of saying that 
+`f` tends to the Dirac delta distribution.
 -/
 
 open_locale filter
@@ -54,6 +55,10 @@ lemma eventually_small_sets' {p : set α → Prop} (hp : ∀ ⦃s t⦄, s ⊆ t 
   (∀ᶠ s in l.lift' powerset, p s) ↔ ∃ s ∈ l, p s :=
 eventually_small_sets.trans $ exists₂_congr $ λ s hsf,
   ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
+
+lemma has_antitone_basis.tendsto_small_sets {ι} [preorder ι] {s : ι → set α}
+  (hl : l.has_antitone_basis s) : tendsto s at_top l.small_sets :=
+tendsto_small_sets_iff.2 $ λ t ht, hl.eventually_subset ht
 
 @[mono] lemma monotone_small_sets : monotone (@small_sets α) :=
 monotone_lift' monotone_id monotone_const

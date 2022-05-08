@@ -228,6 +228,26 @@ def mul_equiv.inv' (G : Type*) [group G] : G ≃* Gᵐᵒᵖ :=
 { map_mul' := λ x y, unop_injective $ mul_inv_rev x y,
   .. (equiv.inv G).trans op_equiv }
 
+/-- A semigroup homomorphism `f : M →ₙ* N` such that `f x` commutes with `f y` for all `x, y`
+defines a semigroup homomorphism to `Nᵐᵒᵖ`. -/
+@[to_additive "An additive semigroup homomorphism `f : add_hom M N` such that `f x` additively
+commutes with `f y` for all `x, y` defines an additive semigroup homomorphism to `Sᵃᵒᵖ`.",
+  simps {fully_applied := ff}]
+def mul_hom.to_opposite {M N : Type*} [has_mul M] [has_mul N] (f : M →ₙ* N)
+  (hf : ∀ x y, commute (f x) (f y)) : M →ₙ* Nᵐᵒᵖ :=
+{ to_fun := mul_opposite.op ∘ f,
+  map_mul' := λ x y, by simp [(hf x y).eq] }
+
+/-- A semigroup homomorphism `f : M →ₙ* N` such that `f x` commutes with `f y` for all `x, y`
+defines a semigroup homomorphism from `Mᵐᵒᵖ`. -/
+@[to_additive "An additive semigroup homomorphism `f : add_hom M N` such that `f x` additively
+commutes with `f y` for all `x`, `y` defines an additive semigroup homomorphism from `Mᵃᵒᵖ`.",
+  simps {fully_applied := ff}]
+def mul_hom.from_opposite {M N : Type*} [has_mul M] [has_mul N] (f : M →ₙ* N)
+  (hf : ∀ x y, commute (f x) (f y)) : Mᵐᵒᵖ →ₙ* N :=
+{ to_fun := f ∘ mul_opposite.unop,
+  map_mul' := λ x y, (f.map_mul _ _).trans (hf _ _).eq }
+
 /-- A monoid homomorphism `f : M →* N` such that `f x` commutes with `f y` for all `x, y` defines
 a monoid homomorphism to `Nᵐᵒᵖ`. -/
 @[to_additive "An additive monoid homomorphism `f : M →+ N` such that `f x` additively commutes
@@ -269,6 +289,44 @@ rfl
 lemma units.coe_op_equiv_symm {M} [monoid M] (u : (Mˣ)ᵐᵒᵖ) :
   (units.op_equiv.symm u : Mᵐᵒᵖ) = op (u.unop : M) :=
 rfl
+
+/-- A semigroup homomorphism `M →ₙ* N` can equivalently be viewed as a semigroup homomorphism
+`Mᵐᵒᵖ →ₙ* Nᵐᵒᵖ`. This is the action of the (fully faithful) `ᵐᵒᵖ`-functor on morphisms. -/
+@[to_additive "An additive semigroup homomorphism `add_hom M N` can equivalently be viewed as an
+additive semigroup homomorphism `add_hom Mᵃᵒᵖ Nᵃᵒᵖ`. This is the action of the (fully faithful)
+`ᵃᵒᵖ`-functor on morphisms.", simps]
+def mul_hom.op {M N} [has_mul M] [has_mul N] :
+  (M →ₙ* N) ≃ (Mᵐᵒᵖ →ₙ* Nᵐᵒᵖ) :=
+{ to_fun    := λ f, { to_fun   := op ∘ f ∘ unop,
+                      map_mul' := λ x y, unop_injective (f.map_mul y.unop x.unop) },
+  inv_fun   := λ f, { to_fun   := unop ∘ f ∘ op,
+                      map_mul' := λ x y, congr_arg unop (f.map_mul (op y) (op x)) },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext x, simp } }
+
+/-- The 'unopposite' of a semigroup homomorphism `Mᵐᵒᵖ →ₙ* Nᵐᵒᵖ`. Inverse to `mul_hom.op`. -/
+@[simp, to_additive "The 'unopposite' of an additive semigroup homomorphism `Mᵃᵒᵖ →ₙ+ Nᵃᵒᵖ`. Inverse
+to `add_hom.op`."]
+def mul_hom.unop {M N} [has_mul M] [has_mul N] :
+  (Mᵐᵒᵖ →ₙ* Nᵐᵒᵖ) ≃ (M →ₙ* N) := mul_hom.op.symm
+
+/-- An additive semigroup homomorphism `add_hom M N` can equivalently be viewed as an additive
+homomorphism `add_hom Mᵐᵒᵖ Nᵐᵒᵖ`. This is the action of the (fully faithful) `ᵐᵒᵖ`-functor on
+morphisms. -/
+@[simps]
+def add_hom.mul_op {M N} [has_add M] [has_add N] :
+  (add_hom M N) ≃ (add_hom Mᵐᵒᵖ Nᵐᵒᵖ) :=
+{ to_fun    := λ f, { to_fun    := op ∘ f ∘ unop,
+                      map_add'  := λ x y, unop_injective (f.map_add x.unop y.unop) },
+  inv_fun   := λ f, { to_fun    := unop ∘ f ∘ op,
+                      map_add'  := λ x y, congr_arg unop (f.map_add (op x) (op y)) },
+  left_inv  := λ f, by { ext, refl },
+  right_inv := λ f, by { ext, simp } }
+
+/-- The 'unopposite' of an additive semigroup hom `αᵐᵒᵖ →+ βᵐᵒᵖ`. Inverse to
+`add_hom.mul_op`. -/
+@[simp] def add_hom.mul_unop {α β} [has_add α] [has_add β] :
+  (add_hom αᵐᵒᵖ βᵐᵒᵖ) ≃ (add_hom α β) := add_hom.mul_op.symm
 
 /-- A monoid homomorphism `M →* N` can equivalently be viewed as a monoid homomorphism
 `Mᵐᵒᵖ →* Nᵐᵒᵖ`. This is the action of the (fully faithful) `ᵐᵒᵖ`-functor on morphisms. -/

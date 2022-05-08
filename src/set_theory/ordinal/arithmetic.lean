@@ -352,24 +352,6 @@ by rw [limit_rec_on, wf.fix_eq, dif_neg h.1, dif_neg (not_succ_of_is_limit h)]; 
 instance (o : ordinal) : order_top o.succ.out.α :=
 ⟨_, le_enum_succ⟩
 
-instance : unique (1 : ordinal).out.α :=
-{ default := enum (<) 0 (by { rwa type_lt, exact zero_lt_one }),
-  uniq := λ a, begin
-    change _ = enum _ 0 _,
-    rw ←enum_typein (<) a,
-    congr,
-    rw ←lt_one_iff_zero,
-    convert typein_lt_type (<) a,
-    rw type_lt
-  end }
-
-@[simp] theorem one_default_eq_enum :
-  (default : (1 : ordinal).out.α) = enum (<) 0 (by { rwa type_lt, exact zero_lt_one }) :=
-rfl
-
-@[simp] theorem typein_lt_one_out (x : (1 : ordinal).out.α) : typein (<) x = 0 :=
-by simp [unique.eq_default x]
-
 theorem enum_succ_eq_top {o : ordinal} :
   enum (<) o (by { rw type_lt, apply lt_succ_self }) = (⊤ : o.succ.out.α) :=
 rfl
@@ -1254,7 +1236,7 @@ theorem bsup_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : bsup o (λ _ _, 
 le_antisymm (bsup_le (λ _ _, le_rfl)) (le_bsup _ 0 (ordinal.pos_iff_ne_zero.2 ho))
 
 @[simp] theorem bsup_one (f : Π a < (1 : ordinal), ordinal) : bsup 1 f = f 0 zero_lt_one :=
-by simp_rw [←sup_eq_bsup, sup_unique, family_of_bfamily, family_of_bfamily', typein_lt_one_out]
+by simp_rw [←sup_eq_bsup, sup_unique, family_of_bfamily, family_of_bfamily', typein_one_out]
 
 theorem bsup_le_of_brange_subset {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
   (h : brange o f ⊆ brange o' g) : bsup.{u (max v w)} o f ≤ bsup.{v (max u w)} o' g :=

@@ -316,7 +316,7 @@ variables {D : Type u₂} [category.{v₁} D] [abelian D]  -- TODO: Generalize u
 variables (F : C ⥤ D) [preserves_zero_morphisms F]
 
 /--
-A functor from preadditive category to an abelian category which preserves kernels,
+A functor from a preadditive category to an abelian category which preserves kernels
 preserves arbitrary products.
 -/
 def is_limit_map_cone_binary_fan_of_preserves_kernels {X Y Z : C} (π₁ : Z ⟶ X) (π₂ : Z ⟶ Y)

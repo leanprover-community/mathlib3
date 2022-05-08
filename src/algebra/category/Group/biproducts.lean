@@ -115,9 +115,9 @@ is_limit.cone_point_unique_up_to_iso
   (biproduct.is_limit f)
   (product_limit_cone (discrete.functor f)).is_limit
 
-@[simp, reassoc, elementwise] lemma biproduct_iso_pi_inv_comp_π [decidable_eq J] [fintype J]
+@[simp, elementwise] lemma biproduct_iso_pi_inv_comp_π [decidable_eq J] [fintype J]
   (f : J → AddCommGroup.{u}) (j : J) :
-  (biproduct_iso_pi f).inv ≫ biproduct.π f j = pi.eval_add_monoid_hom (λ j, F.obj j) j :=
+  (biproduct_iso_pi f).inv ≫ biproduct.π f j = pi.eval_add_monoid_hom (λ j, f j) j :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _
 
 end AddCommGroup

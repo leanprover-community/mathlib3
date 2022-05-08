@@ -116,7 +116,7 @@ def to_weak_dual : dual 𝕜 E ≃ₗ[𝕜] weak_dual 𝕜 E := linear_equiv.ref
 to_weak_dual.injective.eq_iff
 
 theorem to_weak_dual_continuous : continuous (λ (x' : dual 𝕜 E), x'.to_weak_dual) :=
-continuous_of_continuous_eval _ $ λ z, (inclusion_in_double_dual 𝕜 E z).continuous
+weak_bilin.continuous_of_continuous_eval _ $ λ z, (inclusion_in_double_dual 𝕜 E z).continuous
 
 /-- For a normed space `E`, according to `to_weak_dual_continuous` the "identity mapping"
 `dual 𝕜 E → weak_dual 𝕜 E` is continuous. This definition implements it as a continuous linear
@@ -169,7 +169,7 @@ is used. -/
 lemma is_closed_polar (s : set E) : is_closed (polar 𝕜 s) :=
 begin
   simp only [polar_def, set_of_forall],
-  exact is_closed_bInter (λ x hx, is_closed_Iic.preimage (eval_continuous _ _).norm)
+  exact is_closed_bInter (λ x hx, is_closed_Iic.preimage (weak_bilin.eval_continuous _ _).norm)
 end
 
 variable {𝕜}

@@ -942,7 +942,8 @@ begin
   exact h.elim (λ q, hp q.to_path),
 end
 
-@[refl] protected lemma reachable.refl {u : V} : G.reachable u u := by { fsplit, refl }
+@[refl] protected lemma reachable.refl (u : V) : G.reachable u u := by { fsplit, refl }
+protected lemma reachable.rfl {u : V} : G.reachable u u := reachable.refl _
 
 @[symm] protected lemma reachable.symm {u v : V} (huv : G.reachable u v) : G.reachable v u :=
 huv.elim (λ p, ⟨p.reverse⟩)
@@ -986,7 +987,7 @@ of `h.preconnected u v`. -/
 @[protect_proj]
 structure connected : Prop :=
 (preconnected : G.preconnected)
-(nonempty : nonempty V)
+[nonempty : nonempty V]
 
 instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
 ⟨λ h, h.preconnected⟩

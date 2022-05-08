@@ -341,31 +341,25 @@ have h0 : (univ.filter (λ a : α , order_of a = d)).card = 0 :=
 let c := fintype.card α in
 have hc0 : 0 < c, from fintype.card_pos_iff.2 ⟨1⟩,
 lt_irrefl c $
-  calc c = (univ.filter (λ a : α, a ^ c = 1)).card : by { _ }
-    -- congr_arg card $ by simp [finset.ext_iff, c]
-  ... = ∑ m in (range c.succ).filter (∣ c),
-      (univ.filter (λ a : α, order_of a = m)).card :
-    (sum_card_order_of_eq_card_pow_eq_one hc0).symm
-  ... = ∑ m in ((range c.succ).filter (∣ c)).erase d,
-      (univ.filter (λ a : α, order_of a = m)).card :
-    eq.symm (sum_subset (erase_subset _ _) (λ m hm₁ hm₂,
-      have m = d, by simp at *; cc,
-      by simp [*, finset.ext_iff] at *; exact h0))
-  ... ≤ ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m :
-    sum_le_sum (λ m hm,
-      have hmc : m ∣ c, by simp at hm; tauto,
-      (imp_iff_not_or.1 (card_order_of_eq_totient_aux₁ hn hmc)).elim
-        (λ h, by simp [nat.le_zero_iff.1 (le_of_not_gt h), nat.zero_le])
-        (λ h, by rw h))
-  ... < φ d + ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m :
-    lt_add_of_pos_left _ (totient_pos (nat.pos_of_ne_zero
-      (λ h, pos_iff_ne_zero.1 hc0 (eq_zero_of_zero_dvd $ h ▸ hd))))
-  ... = ∑ m in insert d (((range c.succ).filter (∣ c)).erase d), φ m :
-    eq.symm (sum_insert (by simp))
-  ... = ∑ m in (range c.succ).filter (∣ c), φ m : finset.sum_congr
-      (finset.insert_erase (mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd hc0 hd)), hd⟩))
-                           (λ _ _, rfl)
-  ... = c : sum_totient' _
+begin
+  calc c = (univ.filter (λ a : α, a ^ c = 1)).card : _
+  ... = ∑ m in c.divisors, (univ.filter (λ a : α, order_of a = m)).card : _
+  ... = ∑ m in (c.divisors).erase d,
+    (univ.filter (λ a : α, order_of a = m)).card : _
+  ... ≤ ∑ m in (c.divisors).erase d, φ m : _
+  ... < φ d + ∑ m in (c.divisors).erase d, φ m : _
+  ... = ∑ m in insert d ((c.divisors).erase d), φ m : _
+  ... = ∑ m in c.divisors, φ m : _
+  ... = c : sum_totient _,
+  {
+    apply congr_arg card, simp [finset.ext_iff, c] },
+  { sorry },
+  { sorry },
+  { sorry },
+  { sorry },
+  { sorry },
+  { sorry },
+end
 #exit
 
 

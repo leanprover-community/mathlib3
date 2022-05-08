@@ -46,6 +46,10 @@ two-sided ideals of `A`.
 The approach to showing that the L-projections form a Boolean algebra is inspired by
 `measure_theory.measurable_space`.
 
+Instead of using `P : X →L[𝕜] X` to represent projections, we use an arbitrary ring `M` with a
+faithful action on `X`. `continuous_linear_map.apply_module` can be used to recover the `X →L[𝕜] X`
+special case.
+
 ## References
 
 * [Behrends, M-structure and the Banach-Stone Theorem][behrends1979]
@@ -58,10 +62,6 @@ M-summand, M-projection, L-summand, L-projection, M-ideal, M-structure
 -/
 
 variables (X : Type*) [normed_group X]
-
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 X]
-
-
 variables {M : Type} [ring M] [module M X]
 /--
 A projection on a normed space `X` is said to be an L-projection if, for all `x` in `X`,

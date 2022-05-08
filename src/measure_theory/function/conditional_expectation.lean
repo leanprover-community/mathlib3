@@ -187,6 +187,30 @@ lemma ae_eq_trim_iff_of_ae_strongly_measurable' {α β} [topological_space β] [
 ⟨λ h, hfm.ae_eq_mk.trans (h.trans hgm.ae_eq_mk.symm),
   λ h, hfm.ae_eq_mk.symm.trans (h.trans hgm.ae_eq_mk)⟩
 
+/-- If the restriction to a set `s` of a σ-algebra `m` is included in the restriction to `s` of
+another σ-algebra `m₂` (hypothesis `hs`), the set `s` is `m` measurable and a function `f` almost
+everywhere supported on `s` is `m`-ae-strongly-measurable, then `f` is also
+`m₂`-ae-strongly-measurable. -/
+lemma ae_strongly_measurable'_todo {α E} {m m₂ m0 : measurable_space α} {μ : measure α}
+  [topological_space E] [has_zero E] (hm : m ≤ m0) {s : set α} {f : α → E}
+  (hs_m : measurable_set[m] s) (hs : ∀ t, measurable_set[m] (s ∩ t) → measurable_set[m₂] (s ∩ t))
+  (hf : ae_strongly_measurable' m f μ) (hf_zero : f =ᵐ[μ.restrict sᶜ] 0) :
+  ae_strongly_measurable' m₂ f μ :=
+begin
+  let f' := hf.mk f,
+  have h_ind_eq : s.indicator (hf.mk f) =ᵐ[μ] f,
+  { refine filter.eventually_eq.trans _
+      (indicator_ae_eq_of_restrict_compl_ae_eq_zero (hm _ hs_m) hf_zero),
+    filter_upwards [hf.ae_eq_mk] with x hx,
+    by_cases hxs : x ∈ s,
+    { simp [hxs, hx], },
+    { simp [hxs], }, },
+  suffices : strongly_measurable[m₂] (s.indicator (hf.mk f)),
+    from ae_strongly_measurable'.congr this.ae_strongly_measurable' h_ind_eq,
+  have hf_ind : strongly_measurable[m] (s.indicator (hf.mk f)),
+    from hf.strongly_measurable_mk.indicator hs_m,
+  exact strongly_measurable_todo hs_m hs hf_ind (λ x hxs, set.indicator_of_not_mem hxs _),
+end
 
 variables {α β γ E E' F F' G G' H 𝕜 : Type*} {p : ℝ≥0∞}
   [is_R_or_C 𝕜] -- 𝕜 for ℝ or ℂ
@@ -2153,77 +2177,6 @@ begin
       { exact indicator_ae_eq_restrict_compl (hm _ hs), },
       { rw [set.indicator_indicator, set.inter_self], },
     end
-end
-
-lemma strongly_measurable_todo {E} [topological_space E] [has_zero E] {s : set α} {f : α → E}
-  (hs_m : measurable_set[m] s)
-  (hs : ∀ t, measurable_set[m] (s ∩ t) → measurable_set[m₂] (s ∩ t))
-  (hf : strongly_measurable[m] f) (hf_zero : ∀ x ∉ s, f x = 0) :
-  strongly_measurable[m₂] f :=
-begin
-  have hs_m₂ : measurable_set[m₂] s,
-  { rw ← set.inter_univ s,
-    refine hs set.univ _,
-    rwa [set.inter_univ], },
-  let g_seq_s : ℕ → @simple_func α m₂ E := λ n,
-  { to_fun := s.indicator (hf.approx n),
-    measurable_set_fiber' := λ x, begin
-      classical,
-      by_cases hx : x = 0,
-      { rw [s.indicator_preimage, hx, pi.zero_def, set.preimage_const, set.mem_singleton_iff,
-          set.ite, set.inter_comm],
-        simp only [eq_self_iff_true, if_true],
-        rw ← set.compl_eq_univ_diff s,
-        refine measurable_set.union (hs _ (hs_m.inter _)) hs_m₂.compl,
-        exact @simple_func.measurable_set_fiber _ _ m (hf.approx n) _, },
-      { rw [s.indicator_preimage, pi.zero_def, set.preimage_const, set.mem_singleton_iff],
-        simp only [ne.symm hx, if_false, set.ite_empty_right],
-        rw set.inter_comm,
-        exact hs _ (hs_m.inter (@simple_func.measurable_set_fiber _ _ m (hf.approx n) x)), },
-    end,
-    finite_range' := begin
-      have : ((set.range (hf.approx n)) ∪ {0}).finite,
-        from (@simple_func.finite_range _ _ m (hf.approx n)).union (set.finite_singleton _),
-      refine set.finite.subset this (λ x h, _),
-      rw [set.mem_union, set.mem_singleton_iff, set.mem_range],
-      rw [set.mem_range_indicator, set.mem_image] at h,
-      rcases h with h | ⟨x, _, hx⟩,
-      { exact or.inr h.left, },
-      { exact or.inl ⟨x, hx⟩, },
-    end, },
-  have hg_eq : ∀ x ∈ s, ∀ n, g_seq_s n x = hf.approx n x,
-  { intros x hx n,
-    simp only [hx, simple_func.apply_mk, set.indicator_of_mem], },
-  have hg_zero : ∀ x ∉ s, ∀ n, g_seq_s n x = 0,
-  { intros x hx n,
-    simp only [simple_func.apply_mk, hx, set.indicator_of_not_mem, not_false_iff], },
-  refine ⟨g_seq_s, λ x, _⟩,
-  by_cases hx : x ∈ s,
-  { simp_rw hg_eq x hx,
-    exact hf.tendsto_approx x, },
-  { simp_rw [hg_zero x hx, hf_zero x hx],
-    exact tendsto_const_nhds, },
-end
-
-lemma ae_strongly_measurable'_todo {E} [topological_space E] [has_zero E] (hm : m ≤ m0)
-  {s : set α} {f : α → E}
-  (hs_m : measurable_set[m] s) (hs : ∀ t, measurable_set[m] (s ∩ t) → measurable_set[m₂] (s ∩ t))
-  (hf : ae_strongly_measurable' m f μ) (hf_zero : f =ᵐ[μ.restrict sᶜ] 0) :
-  ae_strongly_measurable' m₂ f μ :=
-begin
-  let f' := hf.mk f,
-  have h_ind_eq : s.indicator (hf.mk f) =ᵐ[μ] f,
-  { refine filter.eventually_eq.trans _
-      (indicator_ae_eq_of_restrict_compl_ae_eq_zero (hm _ hs_m) hf_zero),
-    filter_upwards [hf.ae_eq_mk] with x hx,
-    by_cases hxs : x ∈ s,
-    { simp [hxs, hx], },
-    { simp [hxs], }, },
-  suffices : strongly_measurable[m₂] (s.indicator (hf.mk f)),
-    from ae_strongly_measurable'.congr this.ae_strongly_measurable' h_ind_eq,
-  have hf_ind : strongly_measurable[m] (s.indicator (hf.mk f)),
-    from hf.strongly_measurable_mk.indicator hs_m,
-  exact strongly_measurable_todo hs_m hs hf_ind (λ x hxs, set.indicator_of_not_mem hxs _),
 end
 
 lemma ae_eq_restrict_iff_indicator_ae_eq {α E} [has_zero E] {m : measurable_space α} {μ : measure α}

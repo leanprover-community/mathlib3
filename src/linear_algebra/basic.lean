@@ -394,6 +394,10 @@ def comp_right (f : M₂ →ₗ[R] M₃) : (M →ₗ[R] M₂) →ₗ[R] (M →�
   map_add' := λ _ _, linear_map.ext $ λ _, f.map_add _ _,
   map_smul' := λ _ _, linear_map.ext $ λ _, f.map_smul _ _ }
 
+@[simp]
+lemma comp_right_apply (f : M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂) :
+  comp_right f g = f.comp g := rfl
+
 /-- Applying a linear map at `v : M`, seen as a linear map from `M →ₗ[R] M₂` to `M₂`.
 See also `linear_map.applyₗ'` for a version that works with two different semirings.
 
@@ -916,6 +920,9 @@ def range [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) : subm
 theorem range_coe [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) :
   (range f : set M₂) = set.range f := rfl
 
+lemma range_to_add_submonoid [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) :
+  f.range.to_add_submonoid = f.to_add_monoid_hom.mrange := rfl
+
 @[simp] theorem mem_range [ring_hom_surjective τ₁₂]
   {f : M →ₛₗ[τ₁₂] M₂} {x} : x ∈ range f ↔ ∃ y, f y = x :=
 iff.rfl
@@ -967,7 +974,7 @@ end
 The decreasing sequence of submodules consisting of the ranges of the iterates of a linear map.
 -/
 @[simps]
-def iterate_range (f : M →ₗ[R] M) : ℕ →o order_dual (submodule R M) :=
+def iterate_range (f : M →ₗ[R] M) : ℕ →o (submodule R M)ᵒᵈ :=
 ⟨λ n, (f ^ n).range, λ n m w x h, begin
   obtain ⟨c, rfl⟩ := le_iff_exists_add.mp w,
   rw linear_map.mem_range at h,
@@ -999,6 +1006,9 @@ def ker (f : M →ₛₗ[τ₁₂] M₂) : submodule R M := comap f ⊥
 @[simp] theorem ker_id : ker (linear_map.id : M →ₗ[R] M) = ⊥ := rfl
 
 @[simp] theorem map_coe_ker (f : M →ₛₗ[τ₁₂] M₂) (x : ker f) : f x = 0 := mem_ker.1 x.2
+
+lemma ker_to_add_submonoid (f : M →ₛₗ[τ₁₂] M₂) :
+  f.ker.to_add_submonoid = f.to_add_monoid_hom.mker := rfl
 
 lemma comp_ker_subtype (f : M →ₛₗ[τ₁₂] M₂) : f.comp f.ker.subtype = 0 :=
 linear_map.ext $ λ x, suffices f x = 0, by simp [this], mem_ker.1 x.2
@@ -1111,6 +1121,12 @@ variables [ring_hom_comp_triple τ₁₂ τ₂₃ τ₁₃]
 variables {f : M →ₛₗ[τ₁₂] M₂}
 include R
 open submodule
+
+lemma range_to_add_subgroup [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) :
+  f.range.to_add_subgroup = f.to_add_monoid_hom.range := rfl
+
+lemma ker_to_add_subgroup (f : M →ₛₗ[τ₁₂] M₂) :
+  f.ker.to_add_subgroup = f.to_add_monoid_hom.ker := rfl
 
 theorem sub_mem_ker_iff {x y} : x - y ∈ f.ker ↔ f x = f y :=
 by rw [mem_ker, map_sub, sub_eq_zero]

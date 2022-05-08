@@ -41,7 +41,7 @@ instance invertible_pow (m : M) [invertible m] (n : ℕ) : invertible (m ^ n) :=
 
 lemma inv_of_pow (m : M) [invertible m] (n : ℕ) [invertible (m ^ n)] :
   ⅟(m ^ n) = ⅟m ^ n :=
-@invertible_unique M _ (m ^ n) (m ^ n) rfl ‹_› (invertible_pow m n)
+@invertible_unique M _ (m ^ n) (m ^ n) _ (invertible_pow m n) rfl
 
 lemma is_unit.pow {m : M} (n : ℕ) : is_unit m → is_unit (m ^ n) :=
 λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
@@ -519,9 +519,6 @@ theorem nat.cast_le_pow_div_sub {K : Type*} [linear_ordered_field K] {a : K} (H 
   (sub_le_self _ zero_le_one)
 
 namespace int
-
-lemma units_sq (u : ℤˣ) : u ^ 2 = 1 :=
-(sq u).symm ▸ units_mul_self u
 
 alias int.units_sq ← int.units_pow_two
 

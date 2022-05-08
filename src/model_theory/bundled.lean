@@ -54,6 +54,8 @@ namespace Model
 
 instance : has_coe_to_sort T.Model (Type w) := ⟨Model.carrier⟩
 
+@[simp] lemma carrier_eq_coe (M : T.Model) : M.carrier = M := rfl
+
 /-- The object in the category of R-algebras associated to a type equipped with the appropriate
 typeclasses. -/
 def of (M : Type w) [L.Structure M] [M ⊨ T] [nonempty M] :
@@ -90,6 +92,14 @@ noncomputable def shrink (M : Model.{u v w} T) [small.{w'} M] :
 /-- Lifts a model to a particular universe. -/
 def ulift (M : Model.{u v w} T) : Model.{u v (max w w')} T :=
   equiv_induced (equiv.ulift.symm : M ≃ _)
+
+/-- The reduct of any model of `φ.on_Theory T` is a model of `T`. -/
+@[simps] def reduct {L' : language} (φ : L →ᴸ L') (M : (φ.on_Theory T).Model) :
+  T.Model :=
+{ carrier := M,
+  struc := φ.reduct M,
+  nonempty' := M.nonempty',
+  is_model := (@Lhom.on_Theory_model L L' M (φ.reduct M) _ φ _ T).1 M.is_model, }
 
 end Model
 

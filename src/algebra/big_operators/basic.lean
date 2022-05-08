@@ -1471,6 +1471,7 @@ variables [nontrivial β] [no_zero_divisors β]
 
 lemma prod_eq_zero_iff : (∏ x in s, f x) = 0 ↔ (∃ a ∈ s, f a = 0) :=
 begin
+  classical,
   apply finset.induction_on s,
   exact ⟨not.elim one_ne_zero, λ ⟨_, H, _⟩, H.elim⟩,
   assume a s ha ih,

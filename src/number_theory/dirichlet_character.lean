@@ -308,7 +308,8 @@ def equiv {a b : ℕ} (h : a = b) :
 lemma conductor_eq_zero_iff_level_eq_zero : χ.conductor = 0 ↔ n = 0 :=
 ⟨λ h, by {rw ←zero_dvd_iff, convert χ.conductor_dvd, rw h, },
   λ h, by {rw [conductor, nat.Inf_eq_zero], left, refine ⟨zero_dvd_iff.2 h,
-  begin refine ⟨χ.change_level _, _⟩,
+  begin
+    refine ⟨χ.change_level _, _⟩,
     { rw h, },
     { rw ←change_level_dvd _ _ _,
       rw change_level_self _, }, end⟩, }⟩

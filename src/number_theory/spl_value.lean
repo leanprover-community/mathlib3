@@ -452,16 +452,16 @@ begin
   convert this using 1,
 end
 
-theorem p_adic_L_function_eval_neg_int [semi_normed_algebra ℚ R] (n : ℕ) :
-  (n : R) * (p_adic_L_function' p d R m hd χ hc hc' na (neg_pow' p d R (n - 1))) =
-  -(1 - (χ (zmod.unit_of_coprime c (nat.coprime_mul_iff_right.2 ⟨hc', nat.coprime_pow_spl p c m hc⟩))
-  * (neg_pow' p d R n (zmod.unit_of_coprime c hc', is_unit.unit ((is_unit_iff_not_dvd p c)
-  ((nat.prime.coprime_iff_not_dvd (fact.out _)).1 (nat.coprime.symm hc))
-    )) ))) * (1 - ((asso_dirichlet_character (dirichlet_character.mul χ
-    ((teichmuller_character_mod_p_change_level p d R m)^n))) p * p^(n - 1)) ) *
-  (general_bernoulli_number (dirichlet_character.mul χ
-    ((teichmuller_character_mod_p_change_level p d R m)^n)) n) :=
-begin
-  sorry
-end
+-- theorem p_adic_L_function_eval_neg_int [semi_normed_algebra ℚ R] (n : ℕ) :
+--   (n : R) * (p_adic_L_function' p d R m hd χ hc hc' na (neg_pow' p d R (n - 1))) =
+--   -(1 - (χ (zmod.unit_of_coprime c (nat.coprime_mul_iff_right.2 ⟨hc', nat.coprime_pow_spl p c m hc⟩))
+--   * (neg_pow' p d R n (zmod.unit_of_coprime c hc', is_unit.unit ((is_unit_iff_not_dvd p c)
+--   ((nat.prime.coprime_iff_not_dvd (fact.out _)).1 (nat.coprime.symm hc))
+--     )) ))) * (1 - ((asso_dirichlet_character (dirichlet_character.mul χ
+--     ((teichmuller_character_mod_p_change_level p d R m)^n))) p * p^(n - 1)) ) *
+--   (general_bernoulli_number (dirichlet_character.mul χ
+--     ((teichmuller_character_mod_p_change_level p d R m)^n)) n) :=
+-- begin
+--   sorry
+-- end
 -- don't really need to change level to d*p^m for ω, right?

@@ -82,7 +82,8 @@ abbreviation c := complex_shape.down ℕ
 
 /-- Helper when we need some `c.rel i j` (i.e. `complex_shape.down ℕ`),
 e.g. `c_mk n (n+1) rfl` -/
-abbreviation c_mk := @complex_shape.down_mk ℕ infer_instance infer_instance
+lemma c_mk (i j : ℕ) (h : j+1 = i) : c.rel i j :=
+complex_shape.down_mk i j h
 
 /-- This lemma is meant to be used with `null_homotopic_map'_f_of_not_rel_left` -/
 lemma cs_down_0_not_rel_left (j : ℕ) : ¬c.rel 0 j :=

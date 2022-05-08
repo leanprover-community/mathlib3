@@ -400,9 +400,9 @@ begin
     rw [mul_assoc, opow_succ],
     refine mul_le_mul_left' (le_of_lt (hb (hbl.2 _ _) hcb)) _,
     rw [div_lt hbo₀, ←opow_succ],
-    exact lt_opow_succ_log hb₁ _ },
+    exact lt_opow_succ_log_self hb₁ _ },
   { rw opow_succ,
-    exact mul_le_mul_right' (opow_log_le b ha) b }
+    exact mul_le_mul_right' (opow_log_le_self b ha) b }
 end
 
 /-! #### Exponential principal ordinals -/

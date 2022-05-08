@@ -154,12 +154,12 @@ begin
   cases n, { rw [log_zero_right, log_zero_right] },
   rw ←pow_le_iff_le_log hc (zero_lt_succ n),
   calc c ^ log b n.succ ≤ b ^ log b n.succ : pow_le_pow_of_le_left
-                                             (le_of_lt $ zero_lt_one.trans hc) hb _
+                                              (le_of_lt $ zero_lt_one.trans hc) hb _
                     ... ≤ n.succ           : pow_log_le_self (lt_of_lt_of_le hc hb)
-                                             (zero_lt_succ n)
+                                              (zero_lt_succ n)
 end
 
-lemma log_monotone {b : ℕ} : monotone (λ n : ℕ, log b n) :=
+lemma log_monotone {b : ℕ} : monotone (log b) :=
 λ x y, log_mono_right
 
 lemma log_antitone_left {n : ℕ} : antitone_on (λ b, log b n) (set.Ioi 1) :=
@@ -250,8 +250,7 @@ begin
 end
 
 /--`clog b` and `pow b` form a Galois connection. -/
-lemma le_pow_iff_clog_le {b : ℕ} (hb : 1 < b) {x y : ℕ} :
-  x ≤ b^y ↔ clog b x ≤ y :=
+lemma le_pow_iff_clog_le {b : ℕ} (hb : 1 < b) {x y : ℕ} : x ≤ b ^ y ↔ clog b x ≤ y :=
 begin
   induction x using nat.strong_induction_on with x ih generalizing y,
   cases y,
@@ -268,6 +267,9 @@ begin
   { exact iff_of_true ((not_lt.1 (not_and.1 h hb)).trans $ succ_le_of_lt $ pow_pos b_pos _)
     (zero_le _) }
 end
+
+lemma pow_lt_iff_lt_clog {b : ℕ} (hb : 1 < b) {x y : ℕ} : b ^ y < x ↔ y < clog b x :=
+lt_iff_lt_of_le_iff_le (le_pow_iff_clog_le hb)
 
 lemma clog_pow (b x : ℕ) (hb : 1 < b) : clog b (b ^ x) = x :=
 eq_of_forall_ge_iff $ λ z,

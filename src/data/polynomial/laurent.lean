@@ -345,13 +345,6 @@ end semiring
 section comm_semiring
 variable [comm_semiring R]
 
-instance {M : Type*} [monoid M] : has_involutive_inv Mˣ :=
-division_monoid.to_has_involutive_inv Mˣ
-
-lemma inv_of_inj {R : Type*} [monoid R] {a b : R} [invertible a] [invertible b] :
-  ⅟ a = ⅟ b ↔ a = b :=
-⟨λ h, invertible_unique _ _ h, λ h, invertible_unique _ _ h⟩
-
 /--  Laurent polynomials are an algebra over polynomials.  This is not an instance since it might
 create typeclass diamonds. -/
 def algebra_polynomial (R : Type*) [comm_semiring R] : algebra R[X] R[T;T⁻¹] :=

@@ -47,10 +47,10 @@ def binary_product_limit_cone (G H : AddCommGroup.{u}) : limits.limit_cone (pair
       ext; [rw ← w walking_pair.left, rw ← w walking_pair.right]; refl,
     end, } }
 
-@[simp, elementwise] lemma binary_product_limit_cone_cone_π_app_left (G H : AddCommGroup.{u}) :
+@[simp] lemma binary_product_limit_cone_cone_π_app_left (G H : AddCommGroup.{u}) :
   (binary_product_limit_cone G H).cone.π.app walking_pair.left = add_monoid_hom.fst G H := rfl
 
-@[simp, elementwise] lemma binary_product_limit_cone_cone_π_app_right (G H : AddCommGroup.{u}) :
+@[simp] lemma binary_product_limit_cone_cone_π_app_right (G H : AddCommGroup.{u}) :
   (binary_product_limit_cone G H).cone.π.app walking_pair.right = add_monoid_hom.snd G H := rfl
 
 /--

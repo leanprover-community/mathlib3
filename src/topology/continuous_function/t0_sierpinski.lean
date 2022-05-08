@@ -62,23 +62,3 @@ end
 -- would `embedding_into_prod_sierpinski_of_t0` be good name?
 theorem i_embedding : embedding (i X) :=
   embedding.mk (i_inducing) (@i_injective X t t0)
-
-/-
-lemma aux1' {α : Type*} {ι : Type*} (t: ι → topological_space α) (i: ι)
-   : (⨅ i , t i) ≤ t i :=
-begin
-  refine infi_le_of_le i _,
-  exact le_of_eq (by refl),
-end
-
-lemma aux1 {α : Type*} {ι : Type*} {t: ι → topological_space α} {s : set α} {i:ι}
-  (h: (t i).is_open s) : (⨅ i , t i).is_open s :=
-begin
-  refine is_open_implies_is_open_iff.mpr _ s _,
-  exact t i,
-  apply aux1',
-  --refine infi_le_of_le i _,
-  --exact le_of_eq (by refl),
-  exact h,
-end
--/

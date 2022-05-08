@@ -246,18 +246,12 @@ begin
   refine nat.le_induction _ _ n hmn,
   { simp },
   { assume p hp IH h,
-    apply (IH (λ k hk, h k _)).trans (h p _),
-    { exact (Ico_subset_Ico le_rfl (nat.le_succ _)) hk },
-    { simp [hp] } }
+    exact (IH (λ k hk, h k (Ico_subset_Ico_right p.le_succ hk))).trans (h p (by simp [hp])) }
 end
 
 lemma trans_iterate {a : ℕ → ℝ} {n : ℕ} (hint : ∀ k < n, interval_integrable f μ (a k) (a $ k+1)) :
   interval_integrable f μ (a 0) (a n) :=
-begin
-  induction n with n hn,
-  { simp },
-  { exact (hn (λ k hk, hint k (hk.trans n.lt_succ_self))).trans (hint n n.lt_succ_self) }
-end
+trans_iterate_Ico bot_le (λ k hk, hint k hk.2)
 
 lemma neg (h : interval_integrable f μ a b) : interval_integrable (-f) μ a b :=
 ⟨h.1.neg, h.2.neg⟩
@@ -796,20 +790,15 @@ begin
     { apply h,
       simp [hmp] },
     { assume k hk,
-      apply h,
-      exact (Ico_subset_Ico le_rfl (nat.le_succ _)) hk } }
+      exact h _ (Ico_subset_Ico_right p.le_succ hk) } }
 end
 
 lemma sum_integral_adjacent_intervals {a : ℕ → ℝ} {n : ℕ}
   (hint : ∀ k < n, interval_integrable f μ (a k) (a $ k+1)) :
   ∑ (k : ℕ) in finset.range n, ∫ x in (a k)..(a $ k+1), f x ∂μ = ∫ x in (a 0)..(a n), f x ∂μ :=
 begin
-  induction n with n hn,
-  { simp },
-  { rw [finset.sum_range_succ, hn (λ k hk, hint k (hk.trans n.lt_succ_self))],
-    exact integral_add_adjacent_intervals
-      (interval_integrable.trans_iterate $ λ k hk, hint k (hk.trans n.lt_succ_self))
-      (hint n n.lt_succ_self) }
+  rw ← nat.Ico_zero_eq_range,
+  exact sum_integral_adjacent_intervals_Ico (zero_le n) (λ k hk, hint k hk.2),
 end
 
 lemma integral_interval_sub_left (hab : interval_integrable f μ a b)

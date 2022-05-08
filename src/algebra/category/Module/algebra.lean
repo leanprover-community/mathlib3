@@ -28,13 +28,13 @@ that carries these typeclasses, this seems hard to achieve.
 requiring users to write `Module' ℤ A` when `A` is merely a ring.)
 -/
 
-universes v u
+universes v u w
 open category_theory
 
 namespace Module
 
 variables {k : Type u} [field k]
-variables {A : Type u} [ring A] [algebra k A]
+variables {A : Type w} [ring A] [algebra k A]
 
 instance (M : Module.{v} A) : module k M :=
 restrict_scalars.module k A M

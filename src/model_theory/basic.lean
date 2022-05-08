@@ -65,9 +65,19 @@ structure language :=
 | 2 := a₂
 | _ := pempty
 
-instance {a₀ a₁ a₂ : Type u} [h : inhabited a₀] : inhabited (sequence₂ a₀ a₁ a₂ 0) := h
+namespace sequence₂
 
-instance {a₀ a₁ a₂ : Type u} {n : ℕ} : is_empty (sequence₂ a₀ a₁ a₂ (n + 3)) := pempty.is_empty
+variables {a₀ a₁ a₂ : Type u}
+
+instance inhabited₀ [h : inhabited a₀] : inhabited (sequence₂ a₀ a₁ a₂ 0) := h
+
+instance inhabited₁ [h : inhabited a₁] : inhabited (sequence₂ a₀ a₁ a₂ 1) := h
+
+instance inhabited₂ [h : inhabited a₂] : inhabited (sequence₂ a₀ a₁ a₂ 2) := h
+
+instance {n : ℕ} : is_empty (sequence₂ a₀ a₁ a₂ (n + 3)) := pempty.is_empty
+
+end sequence₂
 
 @[simp] lemma sum_card_sequence₂ (a₀ a₁ a₂ : Type u) :
   cardinal.sum (λ i, # (sequence₂ a₀ a₁ a₂ i)) = # a₀ + # a₁ + # a₂ :=

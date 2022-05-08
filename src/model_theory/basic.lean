@@ -67,7 +67,7 @@ structure language :=
 
 namespace sequence₂
 
-variables {a₀ a₁ a₂ : Type u}
+variables (a₀ a₁ a₂ : Type u)
 
 instance inhabited₀ [h : inhabited a₀] : inhabited (sequence₂ a₀ a₁ a₂ 0) := h
 
@@ -77,22 +77,26 @@ instance inhabited₂ [h : inhabited a₂] : inhabited (sequence₂ a₀ a₁ a�
 
 instance {n : ℕ} : is_empty (sequence₂ a₀ a₁ a₂ (n + 3)) := pempty.is_empty
 
-end sequence₂
+@[simp] lemma card_apply_ulift {i : ℕ} :
+  # (sequence₂ (ulift a₀) (ulift a₁) (ulift a₂) i) = lift (# (sequence₂ a₀ a₁ a₂ i)) :=
+begin
+  rcases i with (_ | _ | _ | i);
+  simp only [sequence₂, mk_ulift, mk_fintype, fintype.card_of_is_empty, nat.cast_zero, lift_zero],
+end
 
-@[simp] lemma sum_card_sequence₂ (a₀ a₁ a₂ : Type u) :
+@[simp] lemma sum_card :
   cardinal.sum (λ i, # (sequence₂ a₀ a₁ a₂ i)) = # a₀ + # a₁ + # a₂ :=
 begin
   rw [sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ],
   simp [add_assoc],
 end
 
-@[simp] lemma sum_lift_card_sequence₂ (a₀ a₁ a₂ : Type u) :
+@[simp] lemma sum_lift_card :
   (cardinal.sum (λ i, (# (sequence₂ a₀ a₁ a₂ i)).lift) : cardinal.{max u v}) =
     (# a₀).lift + (# a₁).lift + (# a₂).lift :=
-begin
-  rw [sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ],
-  simp [add_assoc],
-end
+trans (by simp only [card_apply_ulift]) (sum_card (ulift a₀) (ulift a₁) (ulift a₂))
+
+end sequence₂
 
 namespace language
 

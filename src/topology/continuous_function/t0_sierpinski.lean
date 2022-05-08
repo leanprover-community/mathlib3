@@ -16,11 +16,11 @@ noncomputable theory
 variables {X : Type*} [t : topological_space X] [t0 : t0_space X]
 
 instance : topological_space (Π(a : {u : set X | t.is_open u}), Prop) :=
-  @Pi.topological_space _ (λ u, Prop) (λ a, sierpinski_space)
+@Pi.topological_space _ (λ u, Prop) (λ a, sierpinski_space)
 
 def i (X : Type*) [t : topological_space X] : continuous_map X
   (Π (a : {u : set X | t.is_open u}), Prop) :=
-  { to_fun := λ x, (λ u, x ∈ (u:set X) ),
+{ to_fun := λ x, (λ u, x ∈ (u:set X) ),
   continuous_to_fun := continuous_pi_iff.2 (λ i, continuous_Prop.2 (by simpa using subtype.mem i)) }
 
 include t0
@@ -68,5 +68,4 @@ begin
 end
 
 -- would `embedding_into_prod_sierpinski_of_t0` be good name?
-theorem i_embedding : embedding (i X) :=
-  embedding.mk (i_inducing) (@i_injective X t t0)
+theorem i_embedding : embedding (i X) := embedding.mk (i_inducing) (@i_injective X t t0)

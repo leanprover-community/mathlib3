@@ -33,7 +33,7 @@ open finite_dimensional
 
 /-- Any `k`-algebra module which is 1-dimensional over `k` is simple. -/
 lemma simple_of_finrank_eq_one {k : Type*} [field k] [algebra k R]
-  {V : Module R} [I : finite_dimensional k V] (h : finrank k V = 1) : simple V :=
+  {V : Module R} (h : finrank k V = 1) : simple V :=
 ⟨λ Y f _, begin
   split,
   { intro i, rintro rfl,

@@ -149,10 +149,6 @@ trace_eq_contract_of_basis (module.free.choose_basis R M)
   (linear_map.trace R M) ((dual_tensor_hom R M M) x) = contract_left R M x :=
 by rw [←comp_apply, trace_eq_contract]
 
-@[simp] theorem trace_eq_contract_apply (x : module.dual R M ⊗[R] M) :
-  (linear_map.trace R M) ((dual_tensor_hom R M M) x) = contract_left R M x :=
-by rw [←comp_apply, trace_eq_contract]
-
 open_locale classical
 
 /-- When `M` is finite free, the trace of a linear map correspond to the contraction pairing under
@@ -174,7 +170,7 @@ variables (R M)
 
 theorem trace_dual_map : trace R (module.dual R M) ∘ₗ module.dual.transpose = trace R M :=
 begin
-  refine (cancel_right dual_tensor_hom_equiv.surjective).1 _,
+  refine (cancel_right (dual_tensor_hom_equiv R M M).surjective).1 _,
   ext f m,
   simp only [tensor_product.algebra_tensor_module.curry_apply, to_fun_eq_coe,
   tensor_product.curry_apply, coe_restrict_scalars_eq_coe, coe_comp, function.comp_app,

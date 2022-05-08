@@ -187,19 +187,6 @@ lemma ae_eq_trim_iff_of_ae_strongly_measurable' {α β} [topological_space β] [
 ⟨λ h, hfm.ae_eq_mk.trans (h.trans hgm.ae_eq_mk.symm),
   λ h, hfm.ae_eq_mk.symm.trans (h.trans hgm.ae_eq_mk)⟩
 
-lemma indicator_ae_eq_of_restrict_compl_ae_eq_zero {α E} {m : measurable_space α} {μ : measure α}
-  [has_zero E] {s : set α} {f : α → E}
-  (hs : measurable_set s) (hf : f =ᵐ[μ.restrict sᶜ] 0) :
-  s.indicator f =ᵐ[μ] f :=
-begin
-  rw [filter.eventually_eq, ae_restrict_iff' hs.compl] at hf,
-  filter_upwards [hf] with x hx,
-  by_cases hxs : x ∈ s,
-  { simp only [hxs, set.indicator_of_mem], },
-  { simp only [hx hxs, pi.zero_apply, set.indicator_apply_eq_zero, eq_self_iff_true,
-      implies_true_iff], },
-end
-
 /-- If the restriction to a set `s` of a σ-algebra `m` is included in the restriction to `s` of
 another σ-algebra `m₂` (hypothesis `hs`), the set `s` is `m` measurable and a function `f` almost
 everywhere supported on `s` is `m`-ae-strongly-measurable, then `f` is also

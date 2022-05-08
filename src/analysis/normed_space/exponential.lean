@@ -125,6 +125,10 @@ begin
   simp [h]
 end
 
+lemma star_exp [t2_space 𝔸] [star_ring 𝔸] [has_continuous_star 𝔸] (x : 𝔸) :
+  star (exp 𝕂 x) = exp 𝕂 (star x) :=
+by simp_rw [exp_eq_tsum, ←star_pow, ←star_inv_nat_cast_smul, ←tsum_star]
+
 variables (𝕂)
 
 lemma commute.exp_right [t2_space 𝔸] {x y : 𝔸} (h : commute x y) : commute x (exp 𝕂 y) :=
@@ -599,17 +603,3 @@ lemma exp_ℝ_ℂ_eq_exp_ℂ_ℂ : (exp ℝ : ℂ → ℂ) = exp ℂ :=
 exp_eq_exp ℝ ℂ ℂ
 
 end scalar_tower
-
-lemma star_exp {𝕜 A : Type*} [is_R_or_C 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
-  [star_ring A] [normed_star_group A] [complete_space A]
-  [star_module 𝕜 A] (a : A) : star (exp 𝕜 a) = exp 𝕜 (star a) :=
-begin
-  rw exp_eq_tsum,
-  have := continuous_linear_map.map_tsum
-    (starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A).to_linear_isometry.to_continuous_linear_map
-    (exp_series_summable' a),
-  dsimp at this,
-  convert this,
-  funext,
-  simp only [star_smul, star_pow, one_div, star_inv', star_nat_cast],
-end

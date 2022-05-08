@@ -332,34 +332,77 @@ have hinsert₁ : d.succ ∉ (range d.succ).filter (∣ d.succ),
       exact finset.sum_congr hinsert.symm (λ _ _, rfl))
 
 
+
+lemma card_order_of_eq_totient_aux₂ {d : ℕ} (hd : d ∣ fintype.card α) :
+  (univ.filter (λ a : α, order_of a = d)).card = φ d :=
+by_contradiction $ λ h,
+have h0 : (univ.filter (λ a : α , order_of a = d)).card = 0 :=
+  not_not.1 (mt pos_iff_ne_zero.2 (mt (card_order_of_eq_totient_aux₁ hn hd) h)),
+let c := fintype.card α in
+have hc0 : 0 < c, from fintype.card_pos_iff.2 ⟨1⟩,
+lt_irrefl c $
+  calc c = (univ.filter (λ a : α, a ^ c = 1)).card : by { _ }
+    -- congr_arg card $ by simp [finset.ext_iff, c]
+  ... = ∑ m in (range c.succ).filter (∣ c),
+      (univ.filter (λ a : α, order_of a = m)).card :
+    (sum_card_order_of_eq_card_pow_eq_one hc0).symm
+  ... = ∑ m in ((range c.succ).filter (∣ c)).erase d,
+      (univ.filter (λ a : α, order_of a = m)).card :
+    eq.symm (sum_subset (erase_subset _ _) (λ m hm₁ hm₂,
+      have m = d, by simp at *; cc,
+      by simp [*, finset.ext_iff] at *; exact h0))
+  ... ≤ ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m :
+    sum_le_sum (λ m hm,
+      have hmc : m ∣ c, by simp at hm; tauto,
+      (imp_iff_not_or.1 (card_order_of_eq_totient_aux₁ hn hmc)).elim
+        (λ h, by simp [nat.le_zero_iff.1 (le_of_not_gt h), nat.zero_le])
+        (λ h, by rw h))
+  ... < φ d + ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m :
+    lt_add_of_pos_left _ (totient_pos (nat.pos_of_ne_zero
+      (λ h, pos_iff_ne_zero.1 hc0 (eq_zero_of_zero_dvd $ h ▸ hd))))
+  ... = ∑ m in insert d (((range c.succ).filter (∣ c)).erase d), φ m :
+    eq.symm (sum_insert (by simp))
+  ... = ∑ m in (range c.succ).filter (∣ c), φ m : finset.sum_congr
+      (finset.insert_erase (mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd hc0 hd)), hd⟩))
+                           (λ _ _, rfl)
+  ... = c : sum_totient' _
+#exit
+
+
+
 -- Converting this proof from `calc` mode to `tactic` mode, to inspect it and work on it
 lemma card_order_of_eq_totient_aux₂' {d : ℕ} (hd : d ∣ fintype.card α) :
   (univ.filter (λ a : α, order_of a = d)).card = φ d :=
 begin
-  have := card_order_of_eq_totient_aux₁,
+  rcases d.eq_zero_or_pos with rfl | hd0,
+  { rw [zero_dvd_iff, fintype.card_eq_zero_iff] at hd, cases not_is_empty_of_nonempty α hd },
 
-  by_contradiction h,
   let c := fintype.card α,
   have hc0 : 0 < c, from fintype.card_pos_iff.2 ⟨1⟩,
-  have h0 : (univ.filter (λ a : α , order_of a = d)).card = 0, {
-    contrapose! h,
-    exact card_order_of_eq_totient_aux₁ hn hd h.bot_lt,
-  },
+
+  have := sum_totient c,
+
+  apply card_order_of_eq_totient_aux₁ hn hd,
+
+
+  by_contradiction h0',
+  simp only [not_lt, _root_.le_zero_iff, card_eq_zero] at h0',
+  have h0 : (univ.filter (λ a : α , order_of a = d)).card = 0, { simp [h0'] },
+  clear h0',
 
   apply lt_irrefl c,
-  have h1 : c = (univ.filter (λ a : α, a ^ c = 1)).card,
-  {
-    apply congr_arg card,
-    simp [finset.ext_iff, c] },
-  have h2 : (univ.filter (λ a : α, a ^ c = 1)).card =
-    ∑ m in (range c.succ).filter (∣ c), (univ.filter (λ a : α, order_of a = m)).card,
-  { rwa sum_card_order_of_eq_card_pow_eq_one hc0,
+  have h1 : c = (univ.filter (λ a : α, a ^ c = 1)).card, { apply congr_arg card, simp },
 
-    -- exact (sum_card_order_of_eq_card_pow_eq_one hc0).symm
-    },
-  have h3 : ∑ m in (range c.succ).filter (∣ c), (univ.filter (λ a : α, order_of a = m)).card
-      = ∑ m in ((range c.succ).filter (∣ c)).erase d, (univ.filter (λ a : α, order_of a = m)).card,
+  have h2 : c =
+    ∑ m in (range c.succ).filter (∣ c), (univ.filter (λ a : α, order_of a = m)).card,
+  { nth_rewrite_lhs 0 h1,
+    rwa sum_card_order_of_eq_card_pow_eq_one hc0 },
+
+  have h3 : c
+  = ∑ m in ((range c.succ).filter (∣ c)).erase d, (univ.filter (λ a : α, order_of a = m)).card,
   {
+
+    nth_rewrite_lhs 0 h2,
     rw eq_comm,
     refine (sum_subset (erase_subset _ _) (λ m hm₁ hm₂, _)),
     have : m = d, by {
@@ -368,6 +411,7 @@ begin
     rw this,
     exact h0,
   },
+
   have h4 :
     ∑ m in ((range c.succ).filter (∣ c)).erase d, (univ.filter (λ a : α, order_of a = m)).card
     ≤ ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m,
@@ -378,17 +422,31 @@ begin
     { simp [nat.le_zero_iff.1 (le_of_not_gt H), nat.zero_le] },
     { rw H },
   },
+
+  have h4' :
+    ∑ m in ((range c.succ).filter (∣ c)), (univ.filter (λ a : α, order_of a = m)).card
+    ≤ ∑ m in ((range c.succ).filter (∣ c)), φ m,
+  {
+    refine sum_le_sum (λ m hm, _),
+    have hmc : m ∣ c, { simp at hm, tauto },
+    refine (imp_iff_not_or.1 (card_order_of_eq_totient_aux₁ hn hmc)).elim (λ H, _) (λ H, _),
+    { simp [nat.le_zero_iff.1 (le_of_not_gt H), nat.zero_le] },
+    { rw H },
+  },
+
   have h5 : ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m
     < φ d + ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m,
   {
     exact lt_add_of_pos_left _ (totient_pos (nat.pos_of_ne_zero
      (λ h, pos_iff_ne_zero.1 hc0 (eq_zero_of_zero_dvd $ h ▸ hd)))),
   },
+
   have h6 : φ d + ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m
     = ∑ m in insert d (((range c.succ).filter (∣ c)).erase d), φ m,
   {
     exact eq.symm (sum_insert (by simp)),
   },
+
   have h7 : ∑ m in insert d (((range c.succ).filter (∣ c)).erase d), φ m
     = ∑ m in (range c.succ).filter (∣ c), φ m,
   {
@@ -396,13 +454,12 @@ begin
       (finset.insert_erase (mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd hc0 hd)), hd⟩))
                            (λ _ _, rfl),
                            },
+
   have h8 : ∑ m in (range c.succ).filter (∣ c), φ m
     = c,
   { exact sum_totient' _ },
 
-  nth_rewrite_lhs 0 h1,
-  rw h2,
-  rw h3,
+  nth_rewrite_lhs 0 h3,
 
   nth_rewrite_rhs 0 ←h8,
   nth_rewrite_rhs 0 ←h7,
@@ -410,6 +467,9 @@ begin
   apply lt_of_le_of_lt h4 h5,
 end
 #exit
+
+
+
 
 
 lemma card_order_of_eq_totient_aux₂ {d : ℕ} (hd : d ∣ fintype.card α) :

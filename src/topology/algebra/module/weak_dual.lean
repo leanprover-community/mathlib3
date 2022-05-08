@@ -226,7 +226,7 @@ lemma coe_fn_continuous : continuous (λ (x : weak_dual 𝕜 E) y, x y) :=
 continuous_induced_dom
 
 lemma eval_continuous (y : E) : continuous (λ x : weak_dual 𝕜 E, x y) :=
-( continuous_pi_iff.mp coe_fn_continuous) y
+continuous_pi_iff.mp coe_fn_continuous y
 
 lemma continuous_of_continuous_eval [topological_space α] {g : α → weak_dual 𝕜 E}
   (h : ∀ y, continuous (λ a, (g a) y)) : continuous g :=

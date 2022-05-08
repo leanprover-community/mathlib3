@@ -10,14 +10,12 @@ import tactic.noncomm_ring
 /-!
 # M-structure
 
-A continuous projection `P` on a normed space `X` is said to be an L-projection if, for all `x` in
-`X`,
+A projection P on a normed space X is said to be an L-projection if, for all `x` in `X`,
 $$
 ∥x∥ = ∥P x∥ + ∥(1 - P) x∥.
 $$
 
-A continuous projection `P` on a normed space `X` is said to be an M-projection if, for all `x` in
-`X`,
+A projection P on a normed space X is said to be an M-projection if, for all `x` in `X`,
 $$
 ∥x∥ = max(∥P x∥,∥(1 - P) x∥).
 $$
@@ -115,10 +113,11 @@ begin
       by rw [sub_mul, h₃.proj.eq, one_mul, sub_self, zero_smul, zero_sub,
         norm_neg]
     ... = ∥R • (P • (R • x))∥ + ∥R • x - R • (P • (R • x))∥ + 2•∥(1 - R) • (P • (R • x))∥  : by abel
-    ... ≥ ∥R • x∥ + 2 • ∥P • R • x - R • P • R • x∥ :
+    ... ≥ ∥R • x∥ + 2 • ∥ (P * R) • x - (R * P * R) • x∥ :
       by {
         rw ge,
-        exact add_le_add_right (norm_le_insert' (R • x) (R • (P • (R • x)))) (2•∥P • (R • x) - R • (P • (R • x))∥),
+        have := add_le_add_right (norm_le_insert' (R • x) (R • (P • (R • x)))) (2•∥(1 - R) • (P • (R • x))∥),
+        simpa only [mul_smul, sub_smul, one_smul] using this,
       },
     rw ge at e1,
     nth_rewrite_rhs 0 ← add_zero (∥R • x∥) at e1,
@@ -193,7 +192,8 @@ instance [has_faithful_scalar M X] : partial_order {P : M // is_Lprojection X P}
   le_trans := λ P Q R h₁ h₂, by { simp only [coe_inf] at ⊢ h₁ h₂, rw [h₁, mul_assoc, ←h₂] },
   le_antisymm := λ P Q h₁ h₂, subtype.eq (by convert (P.prop.commute Q.prop).eq) }
 
-lemma le_def (P Q : {P : M // is_Lprojection X P}) : P ≤ Q ↔ (P : M) = ↑(P ⊓ Q) :=
+lemma le_def [has_faithful_scalar M X] (P Q : {P : M // is_Lprojection X P}) :
+  P ≤ Q ↔ (P : M) = ↑(P ⊓ Q) :=
 iff.rfl
 
 instance : has_zero {P : M // is_Lprojection X P}  :=
@@ -210,16 +210,16 @@ instance : has_one {P : M // is_Lprojection X P}  :=
 @[simp] lemma coe_one : ↑(1 : {P : M // is_Lprojection X P}) = (1 : M) :=
 rfl
 
-instance : bounded_order {P : M // is_Lprojection X P} :=
+instance [has_faithful_scalar M X] : bounded_order {P : M // is_Lprojection X P} :=
 { top := 1,
-  le_top := λ P, (by rw mul_one : (↑P : X  →ₗ[𝕜] X) = ↑P * 1),
+  le_top := λ P, (mul_one (P : M)).symm,
   bot := 0,
-  bot_le := λ P, show 0 ≤ P, from zero_mul P, }
+  bot_le := λ P, (zero_mul (P : M)).symm, }
 
-@[simp] lemma coe_bot : ↑(bounded_order.bot : {P : M // is_Lprojection X P}) = (0 : M)
+@[simp] lemma coe_bot [has_faithful_scalar M X] : ↑(bounded_order.bot : {P : M // is_Lprojection X P}) = (0 : M)
   := rfl
 
-@[simp] lemma coe_top : ↑(bounded_order.top : {P : M // is_Lprojection X P}) = (1 : M)
+@[simp] lemma coe_top [has_faithful_scalar M X] : ↑(bounded_order.top : {P : M // is_Lprojection X P}) = (1 : M)
   := rfl
 
 lemma compl_mul_left {P : {P : M // is_Lprojection X P}} {Q : M} :
@@ -229,7 +229,7 @@ lemma compl_orthog {P : {P : M // is_Lprojection X P}} :
   (↑P : M) * (↑Pᶜ) = 0 :=
 by rw [coe_compl, mul_sub, mul_one, P.prop.proj.eq, sub_self]
 
-lemma distrib_lattice_lemma {P Q R : {P : M // is_Lprojection X P}} :
+lemma distrib_lattice_lemma [has_faithful_scalar M X] {P Q R : {P : M // is_Lprojection X P}} :
   ((↑P : M) + ↑Pᶜ * R) * (↑P + ↑Q * ↑R * ↑Pᶜ) = (↑P + ↑Q * ↑R * ↑Pᶜ) :=
 by rw [add_mul, mul_add, mul_add, mul_assoc ↑Pᶜ ↑R (↑Q * ↑R * ↑Pᶜ), ← mul_assoc ↑R (↑Q * ↑R)  ↑Pᶜ,
     ← coe_inf Q, (Pᶜ.prop.commute R.prop).eq, ((Q ⊓ R).prop.commute Pᶜ.prop).eq,
@@ -238,7 +238,7 @@ by rw [add_mul, mul_add, mul_add, mul_assoc ↑Pᶜ ↑R (↑Q * ↑R * ↑Pᶜ)
     P.prop.proj.eq, R.prop.proj.eq, ← coe_inf Q, mul_assoc, ((Q ⊓ R).prop.commute Pᶜ.prop).eq,
     ← mul_assoc, Pᶜ.prop.proj.eq]
 
-instance : distrib_lattice {P : M // is_Lprojection X P} :=
+instance [has_faithful_scalar M X] : distrib_lattice {P : M // is_Lprojection X P} :=
 { le_sup_left := λ P Q, by rw [le_def, coe_inf, coe_sup, ← add_sub, mul_add, mul_sub, ← mul_assoc,
     P.prop.proj.eq, sub_self, add_zero],
   le_sup_right := λ P Q,
@@ -280,7 +280,7 @@ instance : distrib_lattice {P : M // is_Lprojection X P} :=
   .. is_Lprojection.subtype.has_sup,
   .. is_Lprojection.subtype.partial_order }
 
-instance : boolean_algebra {P : M // is_Lprojection X P} :=
+instance [has_faithful_scalar M X] : boolean_algebra {P : M // is_Lprojection X P} :=
 { sup_inf_sdiff := λ P Q,
   subtype.ext (by rw [coe_sup, coe_inf, coe_sdiff, mul_assoc, ← mul_assoc ↑Q,
     (Q.prop.commute P.prop).eq, mul_assoc ↑P ↑Q, ← coe_compl, compl_orthog, mul_zero, mul_zero,

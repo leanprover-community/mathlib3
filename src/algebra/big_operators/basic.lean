@@ -561,7 +561,7 @@ by haveI := classical.dec_eq α; exact prod_subset_one_on_sdiff h (by simpa) (λ
 lemma prod_filter_of_ne {p : α → Prop} [decidable_pred p] (hp : ∀ x ∈ s, f x ≠ 1 → p x) :
   (∏ x in (s.filter p), f x) = (∏ x in s, f x) :=
 prod_subset (filter_subset _ _) $ λ x,
-  by { classical, rw [not_imp_comm, mem_filter], exact λ h₁ h₂, ⟨h₁, hp _ h₁ h₂⟩ }
+  by { rw [not_imp_comm, mem_filter], exact λ h₁ h₂, ⟨h₁, hp _ h₁ h₂⟩ }
 
 -- If we use `[decidable_eq β]` here, some rewrites fail because they find a wrong `decidable`
 -- instance first; `{∀ x, decidable (f x ≠ 1)}` doesn't work with `rw ← prod_filter_ne_one`
@@ -585,22 +585,18 @@ calc (∏ a in s.filter p, f a) = ∏ a in s.filter p, if p a then f a else 1 :
 @[to_additive]
 lemma prod_eq_single_of_mem {s : finset α} {f : α → β} (a : α) (h : a ∈ s)
   (h₀ : ∀ b ∈ s, b ≠ a → f b = 1) : (∏ x in s, f x) = f a :=
-begin
-  haveI := classical.dec_eq α,
-  calc (∏ x in s, f x) = ∏ x in {a}, f x :
-      begin
-        refine (prod_subset _ _).symm,
-        { intros _ H, rwa mem_singleton.1 H },
-        { simpa only [mem_singleton] }
-      end
-      ... = f a : prod_singleton
-end
+calc (∏ x in s, f x) = ∏ x in {a}, f x :
+  begin
+    refine (prod_subset _ _).symm,
+    { intros _ H, rwa mem_singleton.1 H },
+    { simpa only [mem_singleton] }
+  end
+  ... = f a : prod_singleton
 
 @[to_additive]
 lemma prod_eq_single {s : finset α} {f : α → β} (a : α)
   (h₀ : ∀ b ∈ s, b ≠ a → f b = 1) (h₁ : a ∉ s → f a = 1) : (∏ x in s, f x) = f a :=
-by haveI := classical.dec_eq α;
-from classical.by_cases
+classical.by_cases
   (assume : a ∈ s, prod_eq_single_of_mem a this h₀)
   (assume : a ∉ s,
     (prod_congr rfl $ λ b hb, h₀ b hb $ by rintro rfl; cc).trans $
@@ -632,7 +628,6 @@ lemma prod_eq_mul {s : finset α} {f : α → β} (a b : α) (hn : a ≠ b)
   (h₀ : ∀ c ∈ s, c ≠ a ∧ c ≠ b → f c = 1) (ha : a ∉ s → f a = 1) (hb : b ∉ s → f b = 1) :
   (∏ x in s, f x) = (f a) * (f b) :=
 begin
-  haveI := classical.dec_eq α;
   by_cases h₁ : a ∈ s; by_cases h₂ : b ∈ s,
   { exact prod_eq_mul_of_mem a b h₁ h₂ hn h₀ },
   { rw [hb h₂, mul_one],
@@ -874,6 +869,7 @@ s.eq_empty_or_nonempty.elim (λ H, false.elim $ h $ H.symm ▸ prod_empty) id
 @[to_additive]
 lemma exists_ne_one_of_prod_ne_one (h : (∏ x in s, f x) ≠ 1) : ∃ a ∈ s, f a ≠ 1 :=
 begin
+  classical,
   rw ← prod_filter_ne_one at h,
   rcases nonempty_of_prod_ne_one h with ⟨x, hx⟩,
   exact ⟨x, (mem_filter.1 hx).1, (mem_filter.1 hx).2⟩
@@ -1202,6 +1198,7 @@ prod_eq_prod_diff_singleton_mul (mem_univ a) f
 lemma dvd_prod_of_mem (f : α → β) {a : α} {s : finset α} (ha : a ∈ s) :
   f a ∣ ∏ i in s, f i :=
 begin
+  classical,
   rw finset.prod_eq_mul_prod_diff_singleton ha,
   exact dvd_mul_right _ _,
 end
@@ -1445,6 +1442,7 @@ by simpa only [sub_eq_add_neg] using sum_add_distrib.trans (congr_arg _ sum_neg_
 lemma mem_sum {f : α → multiset β} (s : finset α) (b : β) :
   b ∈ ∑ x in s, f x ↔ ∃ a ∈ s, b ∈ f a :=
 begin
+  classical,
   refine s.induction_on (by simp) _,
   { intros a t hi ih,
     simp [sum_insert hi, ih, or_and_distrib_right, exists_or_distrib] }

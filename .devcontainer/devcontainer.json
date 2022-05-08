@@ -11,7 +11,10 @@
 	},
 
 	// Add the IDs of extensions you want installed when the container is created.
-	"extensions": ["jroesch.lean"],
+	"extensions": [
+		"jroesch.lean",
+		"eamodio.gitlens"
+	],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "uname -a",

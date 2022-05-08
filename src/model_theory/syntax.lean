@@ -29,6 +29,9 @@ above a particular index.
 variables with given terms.
 * Language maps can act on syntactic objects with functions such as
 `first_order.language.Lhom.on_formula`.
+* `first_order.language.term.constants_vars_equiv` and
+`first_order.language.bounded_formula.constants_vars_equiv` switch terms and formulas between having
+constants in the language and having extra variables indexed by the same type.
 
 ## Implementation Notes
 * Formulas use a modified version of de Bruijn variables. Specifically, a `L.bounded_formula α n`

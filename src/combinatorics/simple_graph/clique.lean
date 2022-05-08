@@ -195,7 +195,7 @@ end
 lemma clique_free.anti (h : G ≤ H) : H.clique_free n → G.clique_free n :=
 forall_imp $ λ s, mt $ is_n_clique.mono h
 
-/-- See `simple_graph.clique_free_of_fintype` for a tighter bound. -/
+/-- See `simple_graph.clique_free_chromatic_number_succ` for a tighter bound. -/
 lemma clique_free_card_succ [fintype α] : G.clique_free (fintype.card α + 1) :=
 begin
   by_contra h,

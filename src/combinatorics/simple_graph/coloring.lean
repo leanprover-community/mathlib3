@@ -448,7 +448,7 @@ begin
   simpa [hs] using h.card_le_of_colorable hc
 end
 
-lemma clique_free_of_fintype [fintype V] : G.clique_free (G.chromatic_number + 1) :=
+lemma clique_free_chromatic_number_succ [fintype V] : G.clique_free (G.chromatic_number + 1) :=
 G.colorable_chromatic_number_of_fintype.clique_free
 
 end simple_graph

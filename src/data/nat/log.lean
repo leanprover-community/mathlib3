@@ -139,7 +139,7 @@ end
 lemma pow_log_le_self {b : ℕ} (hb : 1 < b) {x : ℕ} (hx : 0 < x) : b ^ log b x ≤ x :=
 (pow_le_iff_le_log hb hx).2 le_rfl
 
-lemma log_mono_right {b n m : ℕ} (h : n ≤ m) : log b n ≤ log b m :=
+@[mono] lemma log_mono_right {b n m : ℕ} (h : n ≤ m) : log b n ≤ log b m :=
 begin
   cases le_or_lt b 1 with hb hb,
   { rw log_of_left_le_one hb, exact zero_le _ },
@@ -149,13 +149,13 @@ begin
       exact (pow_log_le_self hb hn).trans h } }
 end
 
-lemma log_anti_left {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : log b n ≤ log c n :=
+@[mono] lemma log_anti_left {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : log b n ≤ log c n :=
 begin
   cases n, { rw [log_zero_right, log_zero_right] },
   rw ←pow_le_iff_le_log hc (zero_lt_succ n),
   calc c ^ log b n.succ ≤ b ^ log b n.succ : pow_le_pow_of_le_left
-                                              (le_of_lt $ zero_lt_one.trans hc) hb _
-                    ... ≤ n.succ           : pow_log_le_self (lt_of_lt_of_le hc hb)
+                                              (zero_lt_one.trans hc).le hb _
+                    ... ≤ n.succ           : pow_log_le_self (hc.trans_le hb)
                                               (zero_lt_succ n)
 end
 
@@ -285,7 +285,7 @@ end
 lemma le_pow_clog {b : ℕ} (hb : 1 < b) (x : ℕ) : x ≤ b ^ clog b x :=
 (le_pow_iff_clog_le hb).2 le_rfl
 
-lemma clog_mono_right (b : ℕ) {n m : ℕ} (h : n ≤ m) : clog b n ≤ clog b m :=
+@[mono] lemma clog_mono_right (b : ℕ) {n m : ℕ} (h : n ≤ m) : clog b n ≤ clog b m :=
 begin
   cases le_or_lt b 1 with hb hb,
   { rw clog_of_left_le_one hb, exact zero_le _ },
@@ -293,12 +293,12 @@ begin
     exact h.trans (le_pow_clog hb _) }
 end
 
-lemma clog_anti_left {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : clog b n ≤ clog c n :=
+@[mono] lemma clog_anti_left {b c n : ℕ} (hc : 1 < c) (hb : c ≤ b) : clog b n ≤ clog c n :=
 begin
   rw ← le_pow_iff_clog_le (lt_of_lt_of_le hc hb),
   calc
     n ≤ c ^ clog c n : le_pow_clog hc _
-  ... ≤ b ^ clog c n : pow_le_pow_of_le_left (le_of_lt $ zero_lt_one.trans hc) hb _
+  ... ≤ b ^ clog c n : pow_le_pow_of_le_left (zero_lt_one.trans hc).le hb _
 end
 
 lemma clog_monotone (b : ℕ) : monotone (clog b) :=

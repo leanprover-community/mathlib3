@@ -760,7 +760,7 @@ begin
     classical.some_spec (linear_pmap.mk_span_singleton x (1 : K) hx).to_fun.exists_extend,
   rw linear_map.ext_iff at h,
   convert h ⟨x, submodule.mem_span_singleton_self x⟩,
-  exact (linear_pmap.mk_span_singleton_apply' K hx 1).symm,
+  exact (linear_pmap.mk_span_singleton_apply K hx 1).symm,
 end
 
 end field

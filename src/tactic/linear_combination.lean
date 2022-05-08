@@ -317,6 +317,31 @@ do
   set_goal_to_hleft_eq_tleft hsum_on_left,
   prove_equal_if_desired config
 
+meta def _root_.expr.get_frozen_name (e : pexpr) : name :=
+match e.is_annotation with
+| some (`frozen_name, expr.const n _) := n
+| _ := name.anonymous
+end
+
+meta def pexpr.get_app_args : pexpr → opt_param (list pexpr) [] → pexpr × list pexpr
+| (expr.app e1 e2) r := pexpr.get_app_args e1 (e2::r)
+| e1 r := (e1, r)
+
+meta def mk_mul : list pexpr → pexpr
+| [] := ``(1)
+| [e] := e
+| (e::es) := ``(%%e * %%(mk_mul es))
+
+meta def as_linear_combo : bool → list pexpr → pexpr → list (pexpr × pexpr)
+| neg ms e :=
+  let (head, args) := pexpr.get_app_args e in
+  match head.get_frozen_name, args with
+  | ``has_add.add, [e1, e2] := as_linear_combo neg ms e1 ++ as_linear_combo neg ms e2
+  | ``has_sub.sub, [e1, e2] := as_linear_combo neg ms e1 ++ as_linear_combo (bnot neg) ms e2
+  | ``has_mul.mul, [e1, e2] := as_linear_combo neg (e1::ms) e2
+  | ``has_neg.neg, [e1] := as_linear_combo (bnot neg) ms e1
+  | _, _ := let m := mk_mul ms in [(e, if neg then ``(-%%m) else m)]
+  end
 
 section interactive_mode
 setup_tactic_parser
@@ -390,9 +415,11 @@ end
 ```
 -/
 meta def _root_.tactic.interactive.linear_combination
-  (input : parse parse_name_pexpr_pair*)
-  (config : linear_combination_config := {}) : tactic unit :=
-let (h_eqs_names, coeffs) := list.unzip input in
+  (input : parse (as_linear_combo ff [] <$> texpr)?)
+  (_ : parse (tk "with")?)
+  (config : linear_combination_config := {})
+  : tactic unit :=
+let (h_eqs_names, coeffs) := list.unzip (input.get_or_else []) in
 linear_combination h_eqs_names coeffs config
 
 add_tactic_doc

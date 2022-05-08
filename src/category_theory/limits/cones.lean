@@ -513,6 +513,30 @@ functorially. -/
 def map_cocone_morphism {c c' : cocone F} (f : c ⟶ c') :
   H.map_cocone c ⟶ H.map_cocone c' := (cocones.functoriality F H).map f
 
+/-- Given a cone isomorphism `c ≅ c'`, construct a cone isomorphism on the mapped cones. -/
+def map_cone_iso {c c' : cone F} (i : c ≅ c') : H.map_cone c ≅ H.map_cone c' :=
+(cones.functoriality F H).map_iso i
+
+@[simp] lemma map_cone_iso_hom {c c' : cone F} (i : c ≅ c') :
+  (H.map_cone_iso i).hom = H.map_cone_morphism i.hom :=
+rfl
+
+@[simp] lemma map_cone_iso_inv {c c' : cone F} (i : c ≅ c') :
+  (H.map_cone_iso i).inv = H.map_cone_morphism i.inv :=
+rfl
+
+/- Given a cocone isomorphism `c ≅ c'`, construct a cocone isomorphism on the mapped cocones. -/
+def map_cocone_iso {c c' : cocone F} (i : c ≅ c') : H.map_cocone c ≅ H.map_cocone c' :=
+(cocones.functoriality F H).map_iso i
+
+@[simp] lemma map_cocone_iso_hom {c c' : cocone F} (i : c ≅ c') :
+  (H.map_cocone_iso i).hom = H.map_cocone_morphism i.hom :=
+rfl
+
+@[simp] lemma map_cocone_iso_inv {c c' : cocone F} (i : c ≅ c') :
+  (H.map_cocone_iso i).inv = H.map_cocone_morphism i.inv :=
+rfl
+
 /-- If `H` is an equivalence, we invert `H.map_cone` and get a cone for `F` from a cone
 for `F ⋙ H`.-/
 def map_cone_inv [is_equivalence H]

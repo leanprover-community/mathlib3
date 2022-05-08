@@ -238,6 +238,19 @@ by split; simp
 ⟨(hab.1.union hbc.1).mono_set Ioc_subset_Ioc_union_Ioc,
   (hbc.2.union hab.2).mono_set Ioc_subset_Ioc_union_Ioc⟩
 
+lemma trans_iterate_Ico {a : ℕ → ℝ} {m n : ℕ} (hmn : m ≤ n)
+  (hint : ∀ k ∈ Ico m n, interval_integrable f μ (a k) (a $ k+1)) :
+  interval_integrable f μ (a m) (a n) :=
+begin
+  revert hint,
+  refine nat.le_induction _ _ n hmn,
+  { simp },
+  { assume p hp IH h,
+    apply (IH (λ k hk, h k _)).trans (h p _),
+    { exact (Ico_subset_Ico le_rfl (nat.le_succ _)) hk },
+    { simp [hp] } }
+end
+
 lemma trans_iterate {a : ℕ → ℝ} {n : ℕ} (hint : ∀ k < n, interval_integrable f μ (a k) (a $ k+1)) :
   interval_integrable f μ (a 0) (a n) :=
 begin
@@ -768,6 +781,24 @@ lemma integral_add_adjacent_intervals (hab : interval_integrable f μ a b)
   (hbc : interval_integrable f μ b c) :
   ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ = ∫ x in a..c, f x ∂μ :=
 by rw [← add_neg_eq_zero, ← integral_symm, integral_add_adjacent_intervals_cancel hab hbc]
+
+lemma sum_integral_adjacent_intervals_Ico {a : ℕ → ℝ} {m n : ℕ} (hmn : m ≤ n)
+  (hint : ∀ k ∈ Ico m n, interval_integrable f μ (a k) (a $ k+1)) :
+  ∑ (k : ℕ) in finset.Ico m n, ∫ x in (a k)..(a $ k+1), f x ∂μ = ∫ x in (a m)..(a n), f x ∂μ :=
+begin
+  revert hint,
+  refine nat.le_induction _ _ n hmn,
+  { simp },
+  { assume p hmp IH h,
+    rw [finset.sum_Ico_succ_top hmp, IH, integral_add_adjacent_intervals],
+    { apply interval_integrable.trans_iterate_Ico hmp (λ k hk, h k _),
+      exact (Ico_subset_Ico le_rfl (nat.le_succ _)) hk },
+    { apply h,
+      simp [hmp] },
+    { assume k hk,
+      apply h,
+      exact (Ico_subset_Ico le_rfl (nat.le_succ _)) hk } }
+end
 
 lemma sum_integral_adjacent_intervals {a : ℕ → ℝ} {n : ℕ}
   (hint : ∀ k < n, interval_integrable f μ (a k) (a $ k+1)) :

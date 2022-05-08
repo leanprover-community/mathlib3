@@ -1125,6 +1125,43 @@ end
 
 end injective
 
+/-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f (map f.symm) = I`. -/
+@[simp]
+lemma map_of_equiv (I : ideal R) (f : R ≃+* S) : (I.map (f : R →+* S)).map (f.symm : S →+* R) = I :=
+by simp [← ring_equiv.to_ring_hom_eq_coe, map_map]
+
+/-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `comap f.symm (comap f) = I`. -/
+@[simp]
+lemma comap_of_equiv (I : ideal R) (f : R ≃+* S) :
+  (I.comap (f.symm : S →+* R)).comap (f : R →+* S) = I :=
+by simp [← ring_equiv.to_ring_hom_eq_coe, comap_comap]
+
+/-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f I = comap f.symm I`. -/
+lemma map_comap_of_equiv (I : ideal R) (f : R ≃+* S) : I.map (f : R →+* S) = I.comap f.symm :=
+le_antisymm (le_comap_of_map_le (map_of_equiv I f).le)
+  (le_map_of_comap_le_of_surjective _ f.surjective (comap_of_equiv I f).le)
+
+theorem map_is_prime_of_equiv (f : R ≃+* S) {I : ideal R} [hI : is_prime I] :
+  is_prime (map (f : R →+* S) I) :=
+(I.map_comap_of_equiv f).symm ▸ comap_is_prime f.symm I
+
+/-- Special case of the correspondence theorem for isomorphic rings -/
+def rel_iso_of_equiv (f : R ≃+* S) : ideal S ≃o ideal R :=
+{ to_fun := comap f,
+  inv_fun := map f,
+  left_inv := λ I, ((comap ↑f I).map_comap_of_equiv f).symm ▸ I.comap_of_equiv f.symm,
+  right_inv := λ J, (J.map_comap_of_equiv f).symm ▸ J.comap_of_equiv f,
+  map_rel_iff' := λ I₁ I₂, ⟨λ h,
+    calc I₁ = map ↑f (comap ↑f I₁) : (map_comap_of_surjective (f : R →+* S) f.surjective I₁).symm
+        ... ≤ map ↑f (comap ↑f I₂) : map_mono h
+        ... = I₂                   : map_comap_of_surjective (f : R →+* S) f.surjective I₂,
+    comap_mono⟩ }
+
+lemma comap_le_iff_le_map (f : R ≃+* S) {I : ideal R} {K : ideal S} :
+  comap ↑f K ≤ I ↔ K ≤ map ↑f I :=
+⟨λ h, le_map_of_comap_le_of_surjective (f : R →+* S) f.surjective h,
+ λ h, ((rel_iso_of_equiv f).right_inv I) ▸ comap_mono h⟩
+
 end semiring
 
 section ring
@@ -1186,22 +1223,6 @@ theorem comap_le_comap_iff_of_surjective (I J : ideal S) : comap f I ≤ comap f
   λ h, le_comap_of_map_le ((map_comap_of_surjective f hf I).le.trans h)⟩
 
 end surjective
-
-/-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f (map f.symm) = I`. -/
-@[simp]
-lemma map_of_equiv (I : ideal R) (f : R ≃+* S) : (I.map (f : R →+* S)).map (f.symm : S →+* R) = I :=
-by simp [← ring_equiv.to_ring_hom_eq_coe, map_map]
-
-/-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `comap f.symm (comap f) = I`. -/
-@[simp]
-lemma comap_of_equiv (I : ideal R) (f : R ≃+* S) :
-  (I.comap (f.symm : S →+* R)).comap (f : R →+* S) = I :=
-by simp [← ring_equiv.to_ring_hom_eq_coe, comap_comap]
-
-/-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f I = comap f.symm I`. -/
-lemma map_comap_of_equiv (I : ideal R) (f : R ≃+* S) : I.map (f : R →+* S) = I.comap f.symm :=
-le_antisymm (le_comap_of_map_le (map_of_equiv I f).le)
-  (le_map_of_comap_le_of_surjective _ f.surjective (comap_of_equiv I f).le)
 
 section bijective
 variables (hf : function.bijective f)
@@ -1506,10 +1527,6 @@ begin
       abel },
     exact (H.mem_or_mem this).imp (λ h, ha ▸ mem_map_of_mem f h) (λ h, hb ▸ mem_map_of_mem f h) }
 end
-
-theorem map_is_prime_of_equiv (f : R ≃+* S) {I : ideal R} [is_prime I] :
-  is_prime (map (f : R →+* S) I) :=
-map_is_prime_of_surjective f.surjective $ by simp
 
 end ring
 

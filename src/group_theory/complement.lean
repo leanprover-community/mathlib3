@@ -404,7 +404,9 @@ begin
   rintros ⟨h', g, hg : g • a = a⟩ rfl,
   specialize h1 (h * h') (by rwa [mul_smul, smul_def h', ←hg, ←mul_smul, hg]),
   refine prod.ext (eq_inv_of_mul_eq_one_right h1) (subtype.ext _),
-  rwa [subtype.ext_iff, coe_one, coe_mul, ←self_eq_mul_left, mul_assoc ↑h ↑h' g] at h1,
+  rwa [subtype.ext_iff, submonoid_class.coe_one, submonoid_class.coe_mul, ←self_eq_mul_left,
+    mul_assoc ↑h ↑h' g]
+    at h1,
 end
 
 end subgroup

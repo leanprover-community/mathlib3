@@ -868,7 +868,7 @@ variables {R} {A} [is_domain R] [is_dedekind_domain A] {I : ideal R} {J : ideal 
 /-- The map from ideals of `R` dividing `I` to the ideals of `A` dividing `J` induced by
   a homomorphism `f : R/I →+* A/J` -/
 @[simps]
-def ideal_factors_fun_of_quot_hom (f : R ⧸ I →+* A ⧸ J) (hf : function.surjective f) :
+def ideal_factors_fun_of_quot_hom {f : R ⧸ I →+* A ⧸ J} (hf : function.surjective f) :
   {p : ideal R | p ∣ I} →o {p : ideal A | p ∣ J} :=
 { to_fun := λ X, ⟨comap J^.quotient.mk (map f (map I^.quotient.mk X)),
     begin
@@ -890,8 +890,8 @@ def ideal_factors_fun_of_quot_hom (f : R ⧸ I →+* A ⧸ J) (hf : function.sur
     end }
 
 lemma ideal_factors_fun_of_quot_hom_inv_of_equiv (f : R ⧸ I ≃+* A ⧸ J) :
-  function.left_inverse (ideal_factors_fun_of_quot_hom (f : R ⧸ I →+* A ⧸ J)  f.surjective)
-  (ideal_factors_fun_of_quot_hom (f.symm :  A ⧸ J →+* R ⧸ I) f.symm.surjective) :=
+  function.left_inverse (ideal_factors_fun_of_quot_hom f.surjective)
+  (ideal_factors_fun_of_quot_hom f.symm.surjective) :=
 λ ⟨p, hp⟩,
 begin
   rw [ideal_factors_fun_of_quot_hom,  order_hom.coe_fun_mk, ideal_factors_fun_of_quot_hom,
@@ -908,8 +908,8 @@ end
 @[simp]
 def ideal_factors_equiv_of_quot_equiv [is_dedekind_domain R] (f : R ⧸ I ≃+* A ⧸ J) :
   {p : ideal R | p ∣ I} ≃o {p : ideal A | p ∣ J} :=
-order_iso.of_hom_inv (ideal_factors_fun_of_quot_hom f f.surjective)
-  (ideal_factors_fun_of_quot_hom f.symm f.symm.surjective)
+order_iso.of_hom_inv (ideal_factors_fun_of_quot_hom f.surjective)
+  (ideal_factors_fun_of_quot_hom f.symm.surjective)
   (ideal_factors_fun_of_quot_hom_inv_of_equiv f.symm)
   (ideal_factors_fun_of_quot_hom_inv_of_equiv f)
 

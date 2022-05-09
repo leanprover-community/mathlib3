@@ -10,23 +10,30 @@ import tactic.noncomm_ring
 /-!
 # M-structure
 
-A continuous projection P on a normed space X is said to be an L-projection if, for all `x` in `X`,
+A continuous projection `P` on a normed space `X` is said to be an L-projection if, for all `x` in
+`X`,
 $$
 ∥x∥ = ∥P x∥ + ∥(1 - P) x∥.
 $$
-The range of an L-projection is said to be an L-summand of X.
 
-A continuous projection P on a normed space X is said to be an M-projection if, for all `x` in `X`,
+A continuous projection `P` on a normed space `X` is said to be an M-projection if, for all `x` in
+`X`,
 $$
 ∥x∥ = max(∥P x∥,∥(1 - P) x∥).
 $$
-The range of an M-projection is said to be an M-summand of X.
 
-The L-projections and M-projections form Boolean algebras. When X is a Banach space, the Boolean
-algebra of L-projections is complete.
+The L-projections on `X` form a Boolean algebra.
 
-Let `X` be a normed space with dual `X^*`. A closed subspace `M` of `X` is said to be an M-ideal if
-the topological annihilator `M^∘` is an L-summand of `X^*`.
+## TODO (Motivational background)
+
+The M-projections on a normed space form a Boolean algebra.
+
+The range of an L-projection on a normed space `X` is said to be an L-summand of `X`. The range of
+an M-projection is said to be an M-summand of `X`.
+
+When `X` is a Banach space, the Boolean algebra of L-projections is complete. Let `X` be a normed
+space with dual `X^*`. A closed subspace `M` of `X` is said to be an M-ideal if the topological
+annihilator `M^∘` is an L-summand of `X^*`.
 
 M-ideal, M-summands and L-summands were introduced by Alfsen and Effros in [alfseneffros1972] to
 study the structure of general Banach spaces. When `A` is a JB*-triple, the M-ideals of `A` are

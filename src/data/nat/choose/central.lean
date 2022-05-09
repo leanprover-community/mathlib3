@@ -114,13 +114,13 @@ section padic_val_nat
 The `padic_val_nat` section describes a few results on the arity of primes within certain size
 bounds in the central binomial coeffcicient. These include:
 
-* `nat.multiplicity_central_binom_le`: a logarithmic upper bound on the multiplicity of a prime in
+* `nat.factorization_central_binom_le`: a logarithmic upper bound on the multiplicity of a prime in
   the central binomial coefficient.
-* `nat.multiplicity_central_binom_of_large_le_one`: Primes above `sqrt (2 * n)` appear at most once
+* `nat.factorization_central_binom_of_large_le_one`: Primes above `sqrt (2 * n)` appear at most once
   in the factorisation of the `n`th central binomial coefficient.
-* `nat.prime_le_two_mul_of_padic_val_nat_central_binom_pos`: Primes from `2 * n / 3` to `n` appear
-  at most once in the factorization of the `n`th central binomial coefficient.
-* `nat.multiplicity_central_binom_of_large_eq_zero`: Primes greater than `2 * n` do not
+* `nat.factorization_central_binom_of_two_mul_self_lt_3_mul_prime`: Primes from `2 * n / 3` to `n`
+do not appear in the factorization of the `n`th central binomial coefficient.
+* `nat.factorization_central_binom_eq_zero_of_two_mul_lt_prime`: Primes greater than `2 * n` do not
   appear in the factorisation of the `n`th central binomial coefficient.
 
 These results appear in the [Erdős proof of Bertrand's postulate](aigner1999proofs).
@@ -129,7 +129,7 @@ These results appear in the [Erdős proof of Bertrand's postulate](aigner1999pro
 /--
 A logarithmic upper bound on the multiplicity of a prime in the central binomial coefficient.
 -/
-lemma padic_val_nat_central_binom_le (hp : p.prime) :
+lemma factorization_central_binom_le (hp : p.prime) :
   ((central_binom n).factorization p) ≤ log p (2 * n) :=
 begin
   rw ←@padic_val_nat_eq_factorization p (central_binom n) ⟨hp⟩,
@@ -143,18 +143,18 @@ begin
 end
 
 /--
-A `pow` form of `nat.padic_val_nat_central_binom_le`
+A `pow` form of `nat.factorization_central_binom_le`
 -/
-lemma pow_padic_val_nat_central_binom_le_two_mul {p n : ℕ} (hp : p.prime) (n_pos : 0 < n) :
+lemma pow_factorization_central_binom_le_two_mul {p n : ℕ} (hp : p.prime) (n_pos : 0 < n) :
   p ^ ((central_binom n).factorization p) ≤ 2 * n :=
-(pow_le_pow hp.one_lt.le (padic_val_nat_central_binom_le hp)).trans
+(pow_le_pow hp.one_lt.le (factorization_central_binom_le hp)).trans
   (pow_log_le_self hp.one_lt (by linarith))
 
 /--
 Primes greater than about `sqrt (2 * n)` appear only to multiplicity 0 or 1 in the central binomial
 coefficient.
 -/
-lemma padic_val_nat_central_binom_of_large_le_one (hp : p.prime) (p_large : 2 * n < p ^ 2) :
+lemma factorization_central_binom_of_large_le_one (hp : p.prime) (p_large : 2 * n < p ^ 2) :
   (((central_binom n).factorization p)) ≤ 1 :=
 begin
   have log_weak_bound : log p (2 * n) ≤ 2,
@@ -175,14 +175,14 @@ begin
       { rw log_of_lt h,
         exact zero_le 1, }, }, },
 
-  exact le_trans (padic_val_nat_central_binom_le hp) log_bound,
+  exact le_trans (factorization_central_binom_le hp) log_bound,
 end
 
 /--
 Primes greater than about `2 * n / 3` and less than `n` do not appear in the factorisation of
 `central_binom n`.
 -/
-lemma padic_val_nat_central_binom_of_large_eq_zero
+lemma factorization_central_binom_of_two_mul_self_lt_3_mul_prime
   (hp : p.prime) (n_big : 2 < n) (p_le_n : p ≤ n) (big : 2 * n < 3 * p) :
   ((central_binom n).factorization p) = 0 :=
 begin
@@ -233,30 +233,44 @@ begin
 end
 
 /--
-If a prime `p` has positive multiplicity i n the `n`th central binomial coefficient,
+If a prime `p` has positive multiplicity in the `n`th central binomial coefficient,
 `p` is no more than `2 * n`
 -/
-lemma prime_le_two_mul_of_padic_val_nat_central_binom_pos (hp : p.prime)
-  (h_pos : 0 < ((central_binom n).factorization p)) : p ≤ 2 * n :=
+lemma factorization_central_binom_eq_zero_of_two_mul_lt_prime (hp : p.prime) (h : 2 * n < p) :
+  ((central_binom n).factorization p) = 0 :=
 begin
   -- TODO generalize to any binomial coefficient, not just central ones, then prove this from that
   -- more general theorem
-  rw ←@padic_val_nat_eq_factorization p (central_binom n) ⟨hp⟩ at h_pos,
-  rw central_binom_eq_two_mul_choose at h_pos,
-  rw @padic_val_nat_def p ⟨hp⟩ ((2 * n).choose n) (nat.pos_of_ne_zero (central_binom_ne_zero n)) at
-    h_pos,
+  rw ←@padic_val_nat_eq_factorization p (central_binom n) ⟨hp⟩,
+  rw central_binom_eq_two_mul_choose,
+  rw @padic_val_nat_def p ⟨hp⟩ ((2 * n).choose n) (nat.pos_of_ne_zero (central_binom_ne_zero n)),
   simp only [prime.multiplicity_choose hp (le_mul_of_pos_left zero_lt_two)
-              (lt_add_one (p.log (2 * n)))]
-    at h_pos,
+              (lt_add_one (p.log (2 * n)))],
   have two_mul_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
-  simp only [two_mul_sub, ←two_mul, gt_iff_lt, enat.get_coe', finset.filter_congr_decidable]
-    at h_pos,
-  rw finset.card_pos at h_pos,
-  cases h_pos with m hm,
-  simp only [finset.mem_Ico, finset.mem_filter] at hm,
-  calc p ≤ p ^ m : le_self_pow (le_of_lt hp.one_lt) hm.left.left
-    ... ≤ 2 * (n % p ^ m) : hm.right
-    ... ≤ 2 * n : nat.mul_le_mul_left _ (mod_le n _),
+  simp only [two_mul_sub, ←two_mul, gt_iff_lt, enat.get_coe', finset.filter_congr_decidable],
+  rw finset.card_eq_zero,
+  ext,
+  simp only [and_imp, finset.not_mem_empty, not_and, finset.mem_filter, finset.mem_Ico, iff_false],
+  intros ha hap,
+  simp only [not_le],
+  -- cases h_pos with m hm,
+  -- simp only [finset.mem_Ico, finset.mem_filter] at hm,
+  calc 2 * (n % p ^ a) ≤ 2 * n : nat.mul_le_mul_left _ (mod_le n _)
+    ... < p : h
+    ... ≤ p ^ a : le_self_pow (le_of_lt hp.one_lt) ha,
+end
+
+/--
+Contrapositive form of `nat.factorization_central_binom_eq_zero_of_two_mul_lt_prime`
+-/
+lemma prime_le_two_mul_of_factorization_central_binom_pos (hp : p.prime)
+  (h_pos : 0 < ((central_binom n).factorization p)) : p ≤ 2 * n :=
+begin
+  by_contra,
+  rw pos_iff_ne_zero at h_pos,
+  apply h_pos,
+  simp only [not_le] at h,
+  exact factorization_central_binom_eq_zero_of_two_mul_lt_prime hp h,
 end
 
 end padic_val_nat

@@ -341,7 +341,6 @@ end
 lemma disjoint_range {i₁ i₂ : fin c.length} (h : i₁ ≠ i₂) :
   disjoint (set.range (c.embedding i₁)) (set.range (c.embedding i₂)) :=
 begin
-  classical,
   wlog h' : i₁ ≤ i₂ using i₁ i₂,
   swap, exact (this h.symm).symm,
   by_contradiction d,

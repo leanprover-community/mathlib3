@@ -1146,13 +1146,10 @@ variables {ι' : Sort*} [complete_lattice α]
 that works for `ι : Sort*`. -/
 lemma supr_eq_supr_finset (s : ι → α) :
   (⨆i, s i) = (⨆t:finset ι, ⨆i∈t, s i) :=
-begin
-  classical,
-  exact le_antisymm
-    (supr_le $ assume b, le_supr_of_le {b} $ le_supr_of_le b $ le_supr_of_le
-      (by simp) $ le_rfl)
-    (supr_le $ assume t, supr_le $ assume b, supr_le $ assume hb, le_supr _ _)
-end
+le_antisymm
+  (supr_le $ λ b, le_supr_of_le {b} $ le_supr_of_le b $ le_supr_of_le
+    (by simp) $ le_rfl)
+  (supr_le $ λ t, supr_le $ λ b, supr_le $ λ hb, le_supr _ _)
 
 /-- Supremum of `s i`, `i : ι`, is equal to the supremum over `t : finset ι` of suprema
 `⨆ i ∈ t, s i`. This version works for `ι : Sort*`. See `supr_eq_supr_finset` for a version

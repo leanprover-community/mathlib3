@@ -210,7 +210,6 @@ lemma _root_.is_antichain.sperner [fintype α] {𝒜 : finset (finset α)}
   (h𝒜 : is_antichain (⊆) (𝒜 : set (finset α))) :
   𝒜.card ≤ (fintype.card α).choose (fintype.card α / 2) :=
 begin
-  classical,
   suffices : ∑ r in Iic (fintype.card α),
     ((𝒜 # r).card : ℚ) / (fintype.card α).choose (fintype.card α / 2) ≤ 1,
   { rwa [←sum_div, ←nat.cast_sum, div_le_one, cast_le, sum_card_slice] at this,

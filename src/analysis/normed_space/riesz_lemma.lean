@@ -37,7 +37,6 @@ lemma riesz_lemma {F : subspace 𝕜 E} (hFc : is_closed (F : set E))
   (hF : ∃ x : E, x ∉ F) {r : ℝ} (hr : r < 1) :
   ∃ x₀ : E, x₀ ∉ F ∧ ∀ y ∈ F, r * ∥x₀∥ ≤ ∥x₀ - y∥ :=
 begin
-  classical,
   obtain ⟨x, hx⟩ : ∃ x : E, x ∉ F := hF,
   let d := metric.inf_dist x F,
   have hFn : (F : set E).nonempty, from ⟨_, F.zero_mem⟩,

@@ -180,7 +180,6 @@ protected def linear_isometry : lp G 2 →ₗᵢ[𝕜] E :=
   map_smul' := λ c f, by simpa only [linear_isometry.map_smul, pi.smul_apply, lp.coe_fn_smul]
     using tsum_const_smul (hV.summable_of_lp f),
   norm_map' := λ f, begin
-    classical, -- needed for lattice instance on `finset ι`, for `filter.at_top_ne_bot`
     have H : 0 < (2:ℝ≥0∞).to_real := by norm_num,
     suffices : ∥∑' (i : ι), V i (f i)∥ ^ ((2:ℝ≥0∞).to_real) = ∥f∥ ^ ((2:ℝ≥0∞).to_real),
     { exact real.rpow_left_inj_on H.ne' (norm_nonneg _) (norm_nonneg _) this },
@@ -374,7 +373,6 @@ by simpa using b.has_sum_repr_symm (b.repr x)
 @[simp] protected lemma dense_span (b : hilbert_basis ι 𝕜 E) :
   (span 𝕜 (set.range b)).topological_closure = ⊤ :=
 begin
-  classical,
   rw eq_top_iff,
   rintros x -,
   refine mem_closure_of_tendsto (b.has_sum_repr x) (eventually_of_forall _),

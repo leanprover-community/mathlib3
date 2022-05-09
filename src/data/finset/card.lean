@@ -241,7 +241,6 @@ lemma exists_ne_map_eq_of_card_lt_of_maps_to {t : finset β} (hc : t.card < s.ca
   {f : α → β} (hf : ∀ a ∈ s, f a ∈ t) :
   ∃ (x ∈ s) (y ∈ s), x ≠ y ∧ f x = f y :=
 begin
-  classical,
   by_contra' hz,
   refine hc.not_le (card_le_card_of_inj_on f hf _),
   intros x hx y hy, contrapose, exact hz x hx y hy,

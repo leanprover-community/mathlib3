@@ -75,7 +75,6 @@ lemma kernel_zero_of_nonzero_from_simple
   {X Y : C} [simple X] {f : X ⟶ Y} [has_kernel f] (w : f ≠ 0) :
   kernel.ι f = 0 :=
 begin
-  classical,
   by_contra,
   haveI := is_iso_of_mono_of_nonzero h,
   exact w (eq_zero_of_epi_kernel f),
@@ -96,11 +95,7 @@ end
 
 lemma mono_to_simple_zero_of_not_iso
   {X Y : C} [simple Y] {f : X ⟶ Y} [mono f] (w : is_iso f → false) : f = 0 :=
-begin
-  classical,
-  by_contra,
-  exact w (is_iso_of_mono_of_nonzero h)
-end
+by { by_contra, exact w (is_iso_of_mono_of_nonzero h) }
 
 lemma id_nonzero (X : C) [simple.{v} X] : 𝟙 X ≠ 0 :=
 (simple.mono_is_iso_iff_nonzero (𝟙 X)).mp (by apply_instance)
@@ -135,7 +130,6 @@ lemma simple_of_cosimple (X : C) (h : ∀ {Z : C} (f : X ⟶ Z) [epi f], is_iso 
   simple X :=
 ⟨λ Y f I,
  begin
-  classical,
   fsplit,
   { introsI,
     have hx := cokernel.π_of_epi f,
@@ -164,7 +158,6 @@ lemma cokernel_zero_of_nonzero_to_simple
   {X Y : C} [simple Y] {f : X ⟶ Y} (w : f ≠ 0) :
   cokernel.π f = 0 :=
 begin
-  classical,
   by_contradiction h,
   haveI := is_iso_of_epi_of_nonzero h,
   exact w (eq_zero_of_mono_cokernel f),
@@ -172,11 +165,7 @@ end
 
 lemma epi_from_simple_zero_of_not_iso
   {X Y : C} [simple X] {f : X ⟶ Y} [epi f] (w : is_iso f → false) : f = 0 :=
-begin
-  classical,
-  by_contra,
-  exact w (is_iso_of_epi_of_nonzero h),
-end
+by { by_contra, exact w (is_iso_of_epi_of_nonzero h) }
 
 end abelian
 

@@ -141,7 +141,6 @@ lemma injective_of_forall_ne_is_some (f : α ≃. β) (a₂ : α)
 has_left_inverse.injective
   ⟨λ b, option.rec_on b a₂ (λ b', option.rec_on (f.symm b') a₂ id),
     λ x, begin
-      classical,
       cases hfx : f x,
       { have : x = a₂, from not_imp_comm.1 (h x) (hfx.symm ▸ by simp), simp [this] },
       { simp only [hfx], rw [(eq_some_iff f).2 hfx], refl }

@@ -87,7 +87,6 @@ begin
   -- If `lm x ≠ 0`, `(lm x)⁻¹` satisfies the first requirement, and after normalizing, it
   -- satisfies the second.
   -- (If `lm x = 0`, the goal is trivial.)
-  classical,
   by_cases h : lm x = 0,
   { rw [h, norm_zero],
     apply mul_nonneg; exact norm_nonneg _ },

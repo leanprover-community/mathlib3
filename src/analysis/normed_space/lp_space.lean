@@ -413,13 +413,12 @@ end
 
 lemma norm_eq_zero_iff ⦃f : lp E p⦄ : ∥f∥ = 0 ↔ f = 0 :=
 begin
-  classical,
   refine ⟨λ h, _, by { rintros rfl, exact norm_zero }⟩,
   rcases p.trichotomy with rfl | rfl | hp,
   { ext i,
     have : {i : α | ¬f i = 0} = ∅ := by simpa [lp.norm_eq_card_dsupport f] using h,
     have : (¬ (f i = 0)) = false := congr_fun this i,
-    tauto },
+    tauto! },
   { cases is_empty_or_nonempty α with _i _i; resetI,
     { simp },
     have H : is_lub (set.range (λ i, ∥f i∥)) 0,

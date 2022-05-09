@@ -188,7 +188,7 @@ instance : has_coe_to_fun (orthonormal_basis ι 𝕜 E) (λ _, ι → E) :=
 
 @[simp] protected lemma repr_symm_single [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr.symm (euclidean_space.single i (1:𝕜)) = b i :=
-by { classical, congr, simp, }
+by { congr, simp, }
 
 @[simp] protected lemma repr_self [decidable_eq ι] (b : orthonormal_basis ι 𝕜 E) (i : ι) :
   b.repr (b i) = euclidean_space.single i (1:𝕜) :=
@@ -244,7 +244,7 @@ end
 
 protected lemma sum_repr_symm (b : orthonormal_basis ι 𝕜 E) (v : euclidean_space 𝕜 ι) :
   ∑ i , v i • b i = (b.repr.symm v) :=
-by { classical, simpa using (b.to_basis.equiv_fun_symm_apply v).symm }
+by simpa using (b.to_basis.equiv_fun_symm_apply v).symm
 
 variable {v : ι → E}
 
@@ -280,7 +280,7 @@ by simp [basis.to_orthonormal_basis, orthonormal_basis.to_basis]
 @[simp] lemma _root_.basis.coe_to_orthonormal_basis (v : basis ι 𝕜 E) (hv : orthonormal 𝕜 v) :
   (v.to_orthonormal_basis hv : ι → E) = (v : ι → E) :=
 calc (v.to_orthonormal_basis hv : ι → E) = ((v.to_orthonormal_basis hv).to_basis : ι → E) :
-  by { classical, rw orthonormal_basis.coe_to_basis }
+  by rw orthonormal_basis.coe_to_basis
 ... = (v : ι → E) : by simp
 
 /-- An orthonormal set that spans is an orthonormal basis -/

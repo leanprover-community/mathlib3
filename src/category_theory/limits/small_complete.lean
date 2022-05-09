@@ -44,7 +44,6 @@ rather than providing a `preorder C` instance.
 instance {X Y : C} : subsingleton (X ⟶ Y) :=
 ⟨λ r s,
 begin
-  classical,
   by_contra r_ne_s,
   have z : (2 : cardinal) ≤ #(X ⟶ Y),
   { rw cardinal.two_le_iff,

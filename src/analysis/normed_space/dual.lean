@@ -96,7 +96,6 @@ variables (𝕜 : Type v) [is_R_or_C 𝕜]
 lemma norm_le_dual_bound (x : E) {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ (f : dual 𝕜 E), ∥f x∥ ≤ M * ∥f∥) :
   ∥x∥ ≤ M :=
 begin
-  classical,
   by_cases h : x = 0,
   { simp only [h, hMp, norm_zero] },
   { obtain ⟨f, hf₁, hfx⟩ : ∃ f : E →L[𝕜] 𝕜, ∥f∥ = 1 ∧ f x = ∥x∥ := exists_dual_vector 𝕜 x h,

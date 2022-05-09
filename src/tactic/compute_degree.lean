@@ -37,9 +37,8 @@ end
 
 end polynomial
 
-open tactic interactive expr
-
 namespace tactic.interactive
+open tactic
 setup_tactic_parser
 
 /--  Given an expression `e`, assuming it is a polyomial, `extract_deg_single_term e` tries to guess

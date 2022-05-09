@@ -130,8 +130,9 @@ These results appear in the [Erdős proof of Bertrand's postulate](aigner1999pro
 A logarithmic upper bound on the multiplicity of a prime in the central binomial coefficient.
 -/
 lemma padic_val_nat_central_binom_le (hp : p.prime) :
-  padic_val_nat p (central_binom n) ≤ log p (2 * n) :=
+  ((central_binom n).factorization p) ≤ log p (2 * n) :=
 begin
+  rw ←@padic_val_nat_eq_factorization p (central_binom n) ⟨hp⟩,
   rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_pos n),
   unfold central_binom,
   have two_mul_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
@@ -145,7 +146,7 @@ end
 A `pow` form of `nat.padic_val_nat_central_binom_le`
 -/
 lemma pow_padic_val_nat_central_binom_le_two_mul {p n : ℕ} (hp : p.prime) (n_pos : 0 < n) :
-  p ^ padic_val_nat p (central_binom n) ≤ 2 * n :=
+  p ^ ((central_binom n).factorization p) ≤ 2 * n :=
 (pow_le_pow hp.one_lt.le (padic_val_nat_central_binom_le hp)).trans
   (pow_log_le_self hp.one_lt (by linarith))
 
@@ -154,7 +155,7 @@ Primes greater than about `sqrt (2 * n)` appear only to multiplicity 0 or 1 in t
 coefficient.
 -/
 lemma padic_val_nat_central_binom_of_large_le_one (hp : p.prime) (p_large : 2 * n < p ^ 2) :
-  (padic_val_nat p (central_binom n)) ≤ 1 :=
+  (((central_binom n).factorization p)) ≤ 1 :=
 begin
   have log_weak_bound : log p (2 * n) ≤ 2,
   { calc log p (2 * n) ≤ log p (p ^ 2) : log_le_log_of_le (le_of_lt p_large)
@@ -183,8 +184,9 @@ Primes greater than about `2 * n / 3` and less than `n` do not appear in the fac
 -/
 lemma padic_val_nat_central_binom_of_large_eq_zero
   (hp : p.prime) (n_big : 2 < n) (p_le_n : p ≤ n) (big : 2 * n < 3 * p) :
-  padic_val_nat p (central_binom n) = 0 :=
+  ((central_binom n).factorization p) = 0 :=
 begin
+  rw ←@padic_val_nat_eq_factorization p (central_binom n) ⟨hp⟩,
   rw @padic_val_nat_def _ ⟨hp⟩ _ (central_binom_pos n),
   unfold central_binom,
   have two_mul_sub : 2 * n - n = n, by rw [two_mul n, nat.add_sub_cancel n n],
@@ -216,8 +218,8 @@ begin
     exact two_n_lt_pow_p_i, },
 
   { rw [pow_one],
-    suffices h23 : 2 * (p * (n / p)) + 2 * (n % p) < 2 * (p * (n / p)) + p,
-    { exact (add_lt_add_iff_left (2 * (p * (n / p)))).mp h23, },
+    suffices h : 2 * (p * (n / p)) + 2 * (n % p) < 2 * (p * (n / p)) + p,
+    { exact (add_lt_add_iff_left (2 * (p * (n / p)))).mp h, },
     have n_big : 1 ≤ (n / p) := (nat.le_div_iff_mul_le' p_pos).2 (trans (one_mul _).le p_le_n),
     rw [←mul_add, nat.div_add_mod],
     calc  2 * n < 3 * p : big
@@ -235,10 +237,11 @@ If a prime `p` has positive multiplicity i n the `n`th central binomial coeffici
 `p` is no more than `2 * n`
 -/
 lemma prime_le_two_mul_of_padic_val_nat_central_binom_pos (hp : p.prime)
-  (h_pos : 0 < padic_val_nat p (central_binom n)) : p ≤ 2 * n :=
+  (h_pos : 0 < ((central_binom n).factorization p)) : p ≤ 2 * n :=
 begin
   -- TODO generalize to any binomial coefficient, not just central ones, then prove this from that
   -- more general theorem
+  rw ←@padic_val_nat_eq_factorization p (central_binom n) ⟨hp⟩ at h_pos,
   rw central_binom_eq_two_mul_choose at h_pos,
   rw @padic_val_nat_def p ⟨hp⟩ ((2 * n).choose n) (nat.pos_of_ne_zero (central_binom_ne_zero n)) at
     h_pos,

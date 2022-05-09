@@ -418,11 +418,18 @@ end
 lemma filter_dvd_eq_divisors {n : ℕ} (h : n ≠ 0) :
   finset.filter (λ (x : ℕ), x ∣ n) (finset.range (n : ℕ).succ) = (n : ℕ).divisors :=
 begin
-  apply finset.ext,
-  simp only [h, mem_filter, and_true, and_iff_right_iff_imp, cast_id, mem_range, ne.def,
-  not_false_iff, mem_divisors],
-  intros a ha,
-  exact nat.lt_succ_of_le (nat.divisor_le (nat.mem_divisors.2 ⟨ha, h⟩))
+  ext,
+  simp only [divisors, mem_filter, mem_range, mem_Ico, and.congr_left_iff, iff_and_self],
+  exact λ ha _, succ_le_iff.mpr (pos_of_dvd_of_pos ha h.bot_lt),
+end
+
+@[simp]
+lemma filter_dvd_eq_proper_divisors {n : ℕ} (h : n ≠ 0) :
+  finset.filter (λ (x : ℕ), x ∣ n) (finset.range (n : ℕ)) = (n : ℕ).proper_divisors :=
+begin
+  ext,
+  simp only [proper_divisors, mem_filter, mem_range, mem_Ico, and.congr_left_iff, iff_and_self],
+  exact λ ha _, succ_le_iff.mpr (pos_of_dvd_of_pos ha h.bot_lt),
 end
 
 /-- The factors of `n` are the prime divisors -/

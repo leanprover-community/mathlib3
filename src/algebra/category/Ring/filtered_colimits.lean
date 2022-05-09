@@ -3,7 +3,7 @@ Copyright (c) 2021 Justus Springer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Justus Springer
 -/
-import algebra.category.CommRing.basic
+import algebra.category.Ring.basic
 import algebra.category.Group.filtered_colimits
 
 /-!

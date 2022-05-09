@@ -21,7 +21,6 @@ set consists of all previous ordinals.
 # Todo
 
 - Extend this map to `game` and `surreal`.
-- Prove that `birthday o.to_pgame = o`.
 -/
 
 local infix ` ≈ ` := pgame.equiv

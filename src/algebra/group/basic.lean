@@ -290,6 +290,7 @@ variables [division_comm_monoid α] (a b c d : α)
 local attribute [simp] mul_assoc mul_comm mul_left_comm div_eq_mul_inv
 
 @[to_additive neg_add] lemma mul_inv : (a * b)⁻¹ = a⁻¹ * b⁻¹ := by simp
+@[to_additive] lemma inv_div' : (a / b)⁻¹ = a⁻¹ / b⁻¹ := by simp
 @[to_additive] lemma div_eq_inv_mul : a / b = b⁻¹ * a := by simp
 @[to_additive] lemma inv_mul_eq_div : a⁻¹ * b = b / a := by simp
 @[to_additive] lemma inv_mul' : (a * b)⁻¹ = a⁻¹ / b := by simp

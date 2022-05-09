@@ -48,7 +48,7 @@ Ideally this would conveniently interact with both `Mat_` and `matrix`.
 -/
 
 open category_theory category_theory.preadditive
-open_locale big_operators
+open_locale big_operators classical
 noncomputable theory
 
 namespace category_theory
@@ -144,7 +144,7 @@ even though the construction we give uses a sigma type.
 See however `iso_biproduct_embedding`.
 -/
 instance has_finite_biproducts : has_finite_biproducts (Mat_ C) :=
-{ has_biproducts_of_shape := λ J 𝒟 ℱ, by exactI
+{ has_biproducts_of_shape := λ J 𝒟, by exactI
   { has_biproduct := λ f,
     has_biproduct_of_total
     { X := ⟨Σ j : J, (f j).ι, λ p, (f p.1).X p.2⟩,

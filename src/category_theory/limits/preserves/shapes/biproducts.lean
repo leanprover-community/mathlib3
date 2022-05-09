@@ -120,7 +120,7 @@ attribute [instance, priority 100] preserves_biproducts.preserves
 @[priority 100]
 instance preserves_finite_biproducts_of_preserves_biproducts (F : C ⥤ D)
   [preserves_zero_morphisms F] [preserves_biproducts F] : preserves_finite_biproducts F :=
-{ preserves := λ J _ _, infer_instance }
+{ preserves := λ J _, infer_instance }
 
 /-- A functor `F` preserves binary biproducts of `X` and `Y` if `F` maps every bilimit bicone over
     `X` and `Y` to a bilimit bicone over `F.obj X` and `F.obj Y`. -/

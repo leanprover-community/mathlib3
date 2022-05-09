@@ -1296,12 +1296,12 @@ has_biproduct.mk
 /-- A preadditive category with finite products has finite biproducts. -/
 lemma has_finite_biproducts.of_has_finite_products [has_finite_products C] :
   has_finite_biproducts C :=
-⟨λ J _ _, { has_biproduct := λ F, by exactI has_biproduct.of_has_product _ }⟩
+⟨λ J _, { has_biproduct := λ F, by exactI has_biproduct.of_has_product _ }⟩
 
 /-- A preadditive category with finite coproducts has finite biproducts. -/
 lemma has_finite_biproducts.of_has_finite_coproducts [has_finite_coproducts C] :
   has_finite_biproducts C :=
-⟨λ J _ _, { has_biproduct := λ F, by exactI has_biproduct.of_has_coproduct _ }⟩
+⟨λ J _, { has_biproduct := λ F, by exactI has_biproduct.of_has_coproduct _ }⟩
 
 section
 variables {f : J → C} [has_biproduct f]

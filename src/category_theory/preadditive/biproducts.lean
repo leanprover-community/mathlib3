@@ -298,6 +298,7 @@ def biproduct.column_nonzero_of_iso
   (f : ⨁ S ⟶ ⨁ T) [is_iso f] :
   trunc (Σ' t : τ, biproduct.ι S s ≫ f ≫ biproduct.π T t ≠ 0) :=
 begin
+  classical,
   apply trunc_sigma_of_exists,
   have t := biproduct.column_nonzero_of_iso'.{v} s f,
   by_contradiction h,

@@ -79,7 +79,7 @@ variables {C}
 -- `tensor_left X` is a left adjoint and hence preserves all colimits.
 -- In any case it is true in any preadditive category.
 instance (X : C) : preserves_finite_biproducts (tensor_left X) :=
-{ preserves := λ J _ _, by exactI
+{ preserves := λ J _, by exactI
   { preserves := λ f,
     { preserves := λ b i, is_bilimit_of_total _ begin
       dsimp,
@@ -87,7 +87,7 @@ instance (X : C) : preserves_finite_biproducts (tensor_left X) :=
     end } } }
 
 instance (X : C) : preserves_finite_biproducts (tensor_right X) :=
-{ preserves := λ J _ _, by exactI
+{ preserves := λ J _, by exactI
   { preserves := λ f,
     { preserves := λ b i, is_bilimit_of_total _ begin
       dsimp,

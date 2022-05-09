@@ -415,7 +415,7 @@ begin
 end
 
 @[simp]
-lemma filter_dvd_eq_divisors {n : ℕ} (h : n ≠ 0) :
+lemma filter_dvd_eq_divisors (h : n ≠ 0) :
   finset.filter (λ (x : ℕ), x ∣ n) (finset.range (n : ℕ).succ) = (n : ℕ).divisors :=
 begin
   ext,
@@ -424,7 +424,7 @@ begin
 end
 
 @[simp]
-lemma filter_dvd_eq_proper_divisors {n : ℕ} (h : n ≠ 0) :
+lemma filter_dvd_eq_proper_divisors (h : n ≠ 0) :
   finset.filter (λ (x : ℕ), x ∣ n) (finset.range (n : ℕ)) = (n : ℕ).proper_divisors :=
 begin
   ext,

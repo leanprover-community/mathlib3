@@ -13,12 +13,12 @@ import linear_algebra.pi
 open category_theory
 open category_theory.limits
 
-universes u v
+universes u v w
 
 namespace Module
 variables {R : Type u} [ring R]
 
-variables {ι : Type v} (Z : ι → Module.{v} R)
+variables {ι : Type v} (Z : ι → Module.{max v w} R)
 
 /-- The product cone induced by the concrete product. -/
 def product_cone : fan Z :=
@@ -33,7 +33,7 @@ def product_cone_is_limit : is_limit (product_cone Z) :=
 -- While we could use this to construct a `has_products (Module R)` instance,
 -- we already have `has_limits (Module R)` in `algebra.category.Module.limits`.
 
-variables [has_products (Module.{v} R)]
+variables [has_product Z]
 
 /--
 The categorical product of a family of objects in `Module`

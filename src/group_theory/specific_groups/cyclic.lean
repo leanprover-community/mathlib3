@@ -451,17 +451,9 @@ begin
   ... = ∑ m in insert d ((c.divisors).erase d), φ m : _
   ... = ∑ m in c.divisors, φ m : _
   ... = c : sum_totient _,
-  {
-    apply congr_arg card, simp [finset.ext_iff, c] },
-  {
-    rw ←sum_card_order_of_eq_card_pow_eq_one hc0,
-    refine sum_congr _ (λ y hy, rfl),
-
-    unfold divisors,
-    ext,
-    simp,
-    -- have :=
-    sorry },
+  { apply congr_arg card, simp [finset.ext_iff, c] },
+  { rw ←sum_card_order_of_eq_card_pow_eq_one hc0,
+    exact sum_congr (filter_dvd_eq_divisors hc0.ne') (λ y hy, rfl) },
   {
     -- eq.symm (sum_subset (erase_subset _ _) (λ m hm₁ hm₂,
     --   have m = d, by simp at *; cc,

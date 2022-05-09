@@ -162,6 +162,14 @@ end is_precomplete
 
 namespace adic_completion
 
+/-- The default `submodule.module` instance goes via `add_subgroup_class.to_add_submonoid_class`,
+here we want to use `add_subgroup_class.to_add_comm_group` instead (to match `add_subgroup`).
+
+TODO: do this generically for `submodule_class` once we define that class.
+-/
+instance : module R (adic_completion I M) :=
+@@submodule.module _ (add_comm_group.to_add_comm_monoid _) _
+
 /-- The canonical linear map to the completion. -/
 def of : M →ₗ[R] adic_completion I M :=
 { to_fun    := λ x, ⟨λ n, mkq _ x, λ m n hmn, rfl⟩,

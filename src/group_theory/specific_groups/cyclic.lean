@@ -431,17 +431,25 @@ begin
   apply lt_of_le_of_lt h4 h5,
 end
 
+
+-- by_contradiction $ λ h,
+-- have h0 : (univ.filter (λ a : α , order_of a = d)).card = 0 :=
+--   not_not.1 (mt pos_iff_ne_zero.2 (mt (card_order_of_eq_totient_aux₁ hn hd) h)),
+-- let c := fintype.card α in
+-- have hc0 : 0 < c, from fintype.card_pos_iff.2 ⟨1⟩,
+-- lt_irrefl c $
+
 lemma card_order_of_eq_totient_aux₂'' {d : ℕ} (hd : d ∣ fintype.card α) :
   (univ.filter (λ a : α, order_of a = d)).card = φ d :=
-by_contradiction $ λ h,
-have h0 : (univ.filter (λ a : α , order_of a = d)).card = 0 :=
-  not_not.1 (mt pos_iff_ne_zero.2 (mt (card_order_of_eq_totient_aux₁ hn hd) h)),
-let c := fintype.card α in
-have hc0 : 0 < c, from fintype.card_pos_iff.2 ⟨1⟩,
-lt_irrefl c $
 begin
-  calc c = (univ.filter (λ a : α, a ^ c = 1)).card : by
-  { apply congr_arg card, simp [finset.ext_iff, c] }
+  let c := fintype.card α,
+  have hc0 : 0 < c := fintype.card_pos_iff.2 ⟨1⟩,
+  apply card_order_of_eq_totient_aux₁ hn hd,
+  by_contradiction h0,
+  simp only [not_lt, _root_.le_zero_iff, card_eq_zero] at h0,
+  apply lt_irrefl c,
+  calc
+    c = (univ.filter (λ a : α, a ^ c = 1)).card : by { apply congr_arg card, simp }
   ... = ∑ m in c.divisors, (univ.filter (λ a : α, order_of a = m)).card : by
   { rw ←sum_card_order_of_eq_card_pow_eq_one hc0,
     exact sum_congr (filter_dvd_eq_divisors hc0.ne') (λ y hy, rfl) }

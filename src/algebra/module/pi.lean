@@ -60,6 +60,17 @@ instance module (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i}
   zero_smul := λ f, funext $ λ i, zero_smul α _,
   ..pi.distrib_mul_action _ }
 
+/- Extra instance to short-circuit type class resolution.
+For unknown reasons, this is necessary for certain inference problems. E.g., for this to succeed:
+```lean
+example (β X : Type*) [normed_group β] [normed_space ℝ β] : module ℝ (X → β) := by apply_instance
+```
+See: https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Typeclass.20resolution.20under.20binders/near/281296989
+-/
+instance _root_.function.module (α β : Type*) [semiring α] [add_comm_monoid β] [module α β] :
+  module α (I → β) :=
+pi.module _ _ _
+
 variables {I f}
 
 instance module' {g : I → Type*} {r : Π i, semiring (f i)} {m : Π i, add_comm_monoid (g i)}

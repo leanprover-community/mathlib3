@@ -58,7 +58,7 @@ section truncation
 variables {α : Type*}
 
 /-- Truncating a real-valued function to the interval `(-A, A]`. -/
-def truncation {α : Type*} (f : α → ℝ) (A : ℝ) :=
+def truncation (f : α → ℝ) (A : ℝ) :=
 (indicator (set.Ioc (-A) A) id) ∘ f
 
 variables {m : measurable_space α} {μ : measure α} {f : α → ℝ}
@@ -237,6 +237,8 @@ section strong_law_ae
 
 variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)]
 
+section moment_estimates
+
 lemma sum_prob_mem_Ioc_le
   {X : Ω → ℝ} (hint : integrable X) (hnonneg : 0 ≤ X) {K : ℕ} {N : ℕ} (hKN : K ≤ N) :
   ∑ j in range K, ℙ {ω | X ω ∈ set.Ioc (j : ℝ) N} ≤ ennreal.of_real (𝔼[X] + 1) :=
@@ -333,7 +335,6 @@ begin
       congr' 1,
       refine sum_congr rfl (λ j hj, _),
       rw interval_integral.integral_of_le (nat.cast_le.2 ((mem_range.1 hj).le.trans hKN)),
-
     end
   ... ≤ ennreal.of_real (𝔼[X] + 1) : ennreal.of_real_le_of_real A
 end
@@ -343,8 +344,8 @@ lemma tsum_prob_mem_Ioi_lt_top
   ∑' (j : ℕ), ℙ {ω | X ω ∈ set.Ioi (j : ℝ)} < ∞ :=
 begin
   suffices : ∀ (K : ℕ), ∑ j in range K, ℙ {ω | X ω ∈ set.Ioi (j : ℝ)} ≤ ennreal.of_real (𝔼[X] + 1),
-  { apply (le_of_tendsto_of_tendsto (ennreal.tendsto_nat_tsum _) tendsto_const_nhds
-      (eventually_of_forall this)).trans_lt ennreal.of_real_lt_top },
+    from (le_of_tendsto_of_tendsto (ennreal.tendsto_nat_tsum _) tendsto_const_nhds
+      (eventually_of_forall this)).trans_lt ennreal.of_real_lt_top,
   assume K,
   have A : tendsto (λ (N : ℕ), ∑ j in range K, ℙ {ω | X ω ∈ set.Ioc (j : ℝ) N})
     at_top (𝓝 (∑ j in range K, ℙ {ω | X ω ∈ set.Ioi (j : ℝ)})),
@@ -412,16 +413,14 @@ begin
     begin
       apply sum_le_sum (λ k hk, _),
       have Ik : (k : ℝ) ≤ (k + 1 : ℕ), by simp,
-      rw ← interval_integral.integral_const_mul,
-      rw [interval_integral.integral_of_le Ik, interval_integral.integral_of_le Ik],
-      apply set_integral_mono_on,
+      rw [← interval_integral.integral_const_mul, interval_integral.integral_of_le Ik,
+        interval_integral.integral_of_le Ik],
+      refine set_integral_mono_on _ _ measurable_set_Ioc (λ x hx, _),
       { apply continuous.integrable_on_Ioc,
         exact continuous_const.mul (continuous_pow 2) },
       { apply continuous.integrable_on_Ioc,
         exact continuous_const.mul continuous_id' },
-      { exact measurable_set_Ioc },
-      { assume x hx,
-        calc 2 / (↑k + 1) * x ^ 2 = (x / (k+1)) * (2 * x) : by ring_exp
+      { calc 2 / (↑k + 1) * x ^ 2 = (x / (k+1)) * (2 * x) : by ring_exp
         ... ≤ 1 * (2 * x) :
           begin
             apply mul_le_mul_of_nonneg_right _
@@ -442,26 +441,14 @@ begin
   ... ≤ 2 * 𝔼[X] :
     begin
       apply mul_le_mul_of_nonneg_left _ zero_le_two,
-      calc ∫ x in 0..↑K, x ∂ρ = ∫ a, truncation X K a :
-        by rw integral_truncation_eq_interval_integral_of_nonneg hint.1 hnonneg
-      ... ≤ ∫ (a : Ω), X a :
-        begin
-          apply integral_mono_of_nonneg (eventually_of_forall (λ x, _)) hint
-            (eventually_of_forall (λ x, _)),
-          { simp only [truncation, indicator, pi.zero_apply, set.mem_Ioc, id.def,
-              function.comp_app],
-            split_ifs,
-            { exact hnonneg x },
-            { exact le_rfl } },
-          { simp only [truncation, indicator, set.mem_Ioc, id.def, function.comp_app],
-            split_ifs,
-            { exact le_rfl },
-            { exact hnonneg x } }
-        end
+      rw ← integral_truncation_eq_interval_integral_of_nonneg hint.1 hnonneg,
+      exact integral_truncation_le_integral_of_nonneg hint hnonneg,
     end
 end
 
-section strong_law_aux
+end moment_estimates
+
+section strong_law_nonneg
 
 /- This paragraph proves the strong law of large numbers (almost sure version, assuming only
 pairwise independence) for nonnegative random variables, following Etemadi's proof. -/
@@ -474,13 +461,22 @@ variables (X : ℕ → Ω → ℝ) (hint : integrable (X 0))
 include X hint hindep hident hnonneg
 
 /- The truncation of `Xᵢ` up to `i` satisfies the strong law of large numbers (with respect to
-the truncated expectation)along the sequence `c^n`, for any `c > 1`, up to a given `ε > 0`.
+the truncated expectation) along the sequence `c^n`, for any `c > 1`, up to a given `ε > 0`.
 This follows from a variance control. -/
 lemma strong_law_aux1 {c : ℝ} (c_one : 1 < c) {ε : ℝ} (εpos : 0 < ε) :
   ∀ᵐ ω, ∀ᶠ (n : ℕ) in at_top,
     |∑ i in range ⌊c^n⌋₊, truncation (X i) i ω - 𝔼[∑ i in range ⌊c^n⌋₊, truncation (X i) i]|
       < ε * ⌊c^n⌋₊ :=
 begin
+  /- Let `S n = ∑ i in range n, Y i` where `Y i = truncation (X i) i`. We should show that
+  `|S k - 𝔼[S k]| / k ≤ ε` along the sequence of powers of `c`. For this, we apply Borel-Cantelli:
+  it suffices to show that the converse probabilites are summable. From Chebyshev inequality, this
+  will follow from a variance control `∑' Var[S (c^i)] / (c^i)^2 < ∞`. This is checked in `I2` using
+  pairwise independence to expand the variance of the sum as the sum of the variances, and then
+  a straightforward but tedious computation (essentially boiling down to the fact that the sum of
+  `1/(c ^ i)^2` beyong a threshold `j` is comparable to `1/j^2`).
+  Note that we have written `c^i` in the above proof sketch, but rigorously one should put integer
+  parts everywhere, making things more painful. We write `u i = ⌊c^i⌋₊` for brevity. -/
   have c_pos : 0 < c := zero_lt_one.trans c_one,
   let ρ : measure ℝ := measure.map (X 0) ℙ,
   have hX : ∀ i, ae_strongly_measurable (X i) ℙ :=
@@ -490,8 +486,7 @@ begin
   set Y := λ (n : ℕ), truncation (X n) n with hY,
   set S := λ n, ∑ i in range n, Y i with hS,
   let u : ℕ → ℕ := λ n, ⌊c ^ n⌋₊,
-  have u_mono : monotone u :=
-    λ i j hij, nat.floor_mono (pow_le_pow c_one.le hij),
+  have u_mono : monotone u := λ i j hij, nat.floor_mono (pow_le_pow c_one.le hij),
   have I1 : ∀ K, ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * Var[Y j] ≤ 2 * 𝔼[X 0],
   { assume K,
     calc ∑ j in range K, ((j : ℝ) ^ 2) ⁻¹ * Var[Y j] ≤
@@ -547,7 +542,7 @@ begin
         { simp only [one_div] }
       end
     ... = (c ^ 5 * (c - 1) ⁻¹ ^ 3) * ∑ j in range (u (N - 1)), ((j : ℝ) ^ 2) ⁻¹ * Var[Y j] :
-        by { simp_rw [mul_sum, div_eq_mul_inv], ring_nf }
+      by { simp_rw [mul_sum, div_eq_mul_inv], ring_nf }
     ... ≤ (c ^ 5 * (c - 1) ⁻¹ ^ 3) * (2 * 𝔼[X 0]) :
       begin
         apply mul_le_mul_of_nonneg_left (I1 _),
@@ -601,8 +596,8 @@ lemma strong_law_aux2 {c : ℝ} (c_one : 1 < c) :
               - 𝔼[∑ i in range ⌊c^n⌋₊, truncation (X i) i]) (λ (n : ℕ), (⌊c^n⌋₊ : ℝ)) at_top :=
 begin
   obtain ⟨v, -, v_pos, v_lim⟩ :
-    ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧ tendsto u at_top (𝓝 0) :=
-    exists_seq_strict_anti_tendsto (0 : ℝ),
+    ∃ (v : ℕ → ℝ), strict_anti v ∧ (∀ (n : ℕ), 0 < v n) ∧ tendsto v at_top (𝓝 0) :=
+      exists_seq_strict_anti_tendsto (0 : ℝ),
   have := λ i, strong_law_aux1 X hint hindep hident hnonneg c_one (v_pos i),
   filter_upwards [ae_all_iff.2 this] with ω hω,
   apply asymptotics.is_o_iff.2 (λ ε εpos, _),
@@ -619,8 +614,6 @@ lemma strong_law_aux3 :
   asymptotics.is_o (λ n, 𝔼[∑ i in range n, truncation (X i) i] - n * 𝔼[X 0])
     (λ (n : ℕ), (n : ℝ)) at_top :=
 begin
-  have A : ∀ i, strongly_measurable (indicator (set.Ioc (-i : ℝ) i) id) :=
-    λ i, strongly_measurable_id.indicator measurable_set_Ioc,
   have A : tendsto (λ i, 𝔼[truncation (X i) i]) at_top (𝓝 (𝔼[X 0])),
   { convert (tendsto_integral_truncation hint).comp tendsto_coe_nat_at_top_at_top,
     ext i,
@@ -636,10 +629,9 @@ include hindep hnonneg
 /- The truncation of `Xᵢ` up to `i` satisfies the strong law of large numbers
 (with respect to the original expectation) along the sequence
 `c^n`, for any `c > 1`. This follows from the version from the truncated expectation, and the
-fact that truncated and original expectation have the same asymptotic behavior. -/
+fact that the truncated and the original expectations have the same asymptotic behavior. -/
 lemma strong_law_aux4 {c : ℝ} (c_one : 1 < c) :
-  ∀ᵐ ω, asymptotics.is_o
-  (λ (n : ℕ), ∑ i in range ⌊c^n⌋₊, truncation (X i) i ω - ⌊c^n⌋₊ * 𝔼[X 0])
+  ∀ᵐ ω, asymptotics.is_o (λ (n : ℕ), ∑ i in range ⌊c^n⌋₊, truncation (X i) i ω - ⌊c^n⌋₊ * 𝔼[X 0])
     (λ (n : ℕ), (⌊c^n⌋₊ : ℝ)) at_top :=
 begin
   filter_upwards [strong_law_aux2 X hint hindep hident hnonneg c_one] with ω hω,
@@ -655,9 +647,8 @@ omit hindep
 almost surely coincide at all but finitely many steps. This follows from a probability computation
 and Borel-Cantelli. -/
 lemma strong_law_aux5 :
-  ∀ᵐ ω, asymptotics.is_o
-  (λ (n : ℕ), ∑ i in range n, truncation (X i) i ω - ∑ i in range n, X i ω)
-  (λ (n : ℕ), (n : ℝ)) at_top :=
+  ∀ᵐ ω, asymptotics.is_o (λ (n : ℕ), ∑ i in range n, truncation (X i) i ω - ∑ i in range n, X i ω)
+    (λ (n : ℕ), (n : ℝ)) at_top :=
 begin
   have A : ∑' (j : ℕ), ℙ {ω | X j ω ∈ set.Ioi (j : ℝ)} < ∞,
   { convert tsum_prob_mem_Ioi_lt_top hint (hnonneg 0),
@@ -682,9 +673,8 @@ begin
 end
 include hindep
 
-
 /- `Xᵢ` satisfies the strong law of large numbers along the sequence
-`c^n`, for any `c > 1`. This follows from the version from the truncated `Xᵢ`, and the fact that
+`c^n`, for any `c > 1`. This follows from the version for the truncated `Xᵢ`, and the fact that
 `Xᵢ` and its truncated version have the same asymptotic behavior. -/
 lemma strong_law_aux6 {c : ℝ} (c_one : 1 < c) :
   ∀ᵐ ω, tendsto (λ (n : ℕ), (∑ i in range ⌊c^n⌋₊, X i ω) / ⌊c^n⌋₊) at_top (𝓝 (𝔼[X 0])) :=
@@ -727,7 +717,7 @@ begin
   { exact hω }
 end
 
-end strong_law_aux
+end strong_law_nonneg
 
 /-- *Strong law of large numbers*, almost sure version: if `X n` is a sequence of independent
 identically distributed integrable real-valued random variables, then `∑ i in range n, X i / n`

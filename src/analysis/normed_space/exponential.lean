@@ -75,11 +75,14 @@ def exp_series : formal_multilinear_series 𝕂 𝔸 𝔸 :=
 
 variables {𝔸}
 
-/-- `exp : 𝔸 → 𝔸` is the exponential map determined by the action of `𝕂` on `𝔸`.
-It is defined as the sum of the `formal_multilinear_series` `exp_series 𝕂 𝔸`. -/
+/-- `exp 𝕂 : 𝔸 → 𝔸` is the exponential map determined by the action of `𝕂` on `𝔸`.
+It is defined as the sum of the `formal_multilinear_series` `exp_series 𝕂 𝔸`.
+
+[`analysis.normed_space.matrix_exponential`](../matrix_exponential) for lemmas specific to that
+case. -/
 noncomputable def exp [algebra ℚ 𝔸] (x : 𝔸) : 𝔸 := (exp_series ℚ 𝔸).sum x
 
-variables {𝕂 𝔸}
+variables {𝕂}
 
 lemma exp_series_apply_eq (x : 𝔸) (n : ℕ) : exp_series 𝕂 𝔸 n (λ _, x) = (n!⁻¹ : 𝕂) • x^n :=
 by simp [exp_series]
@@ -113,6 +116,10 @@ begin
   split_ifs with h h;
   simp [h]
 end
+
+lemma star_exp [algebra ℚ 𝔸] [t2_space 𝔸] [star_ring 𝔸] [has_continuous_star 𝔸] (x : 𝔸) :
+  star (exp x) = exp (star x) :=
+by simp_rw [exp_eq_tsum, ←star_pow, ←star_inv_nat_cast_smul, ←tsum_star]
 
 variables (𝕂)
 
@@ -157,16 +164,16 @@ section normed
 section any_field_any_algebra
 
 variables {𝕂 𝔸 𝔹 : Type*} [nondiscrete_normed_field 𝕂]
-variables [normed_ring 𝔸] [normed_ring 𝔹] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝔹]
+variables [algebra ℚ 𝔸] [normed_ring 𝔸] [normed_ring 𝔹] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝔹]
 
 lemma norm_exp_series_summable_of_mem_ball (x : 𝔸)
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
-  summable (λ n, ∥exp_series 𝕂 𝔸 n (λ _, x)∥) :=
+  summable (λ n, ∥exp_series ℚ 𝔸 n (λ _, x)∥) :=
 (exp_series 𝕂 𝔸).summable_norm_apply hx
 
-lemma norm_exp_series_summable_of_mem_ball' (x : 𝔸)
+lemma norm_exp_series_summable_of_mem_ball' [algebra ℚ 𝔸] (x : 𝔸)
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
-  summable (λ n, ∥(n!⁻¹ : 𝕂) • x^n∥) :=
+  summable (λ n, ∥(n!⁻¹ : ℚ) • x^n∥) :=
 begin
   change summable (norm ∘ _),
   rw ← exp_series_apply_eq',
@@ -298,6 +305,28 @@ variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_division_r
 variables (𝕂)
 
 lemma norm_exp_series_div_summable_of_mem_ball (x : 𝔸)
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  summable (λ n, ∥x^n / n!∥) :=
+begin
+  change summable (norm ∘ _),
+  rw ← exp_series_apply_eq_div' x,
+  exact norm_exp_series_summable_of_mem_ball x hx
+end
+
+lemma exp_series_div_summable_of_mem_ball [complete_space 𝔸] (x : 𝔸)
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) : summable (λ n, x^n / n!) :=
+summable_of_summable_norm (norm_exp_series_div_summable_of_mem_ball 𝕂 x hx)
+
+lemma exp_series_div_has_sum_exp_of_mem_ball [complete_space 𝔸] (x : 𝔸)
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) : has_sum (λ n, x^n / n!) (exp 𝕂 x) :=
+begin
+  rw ← exp_series_apply_eq_div' x,
+  exact exp_series_has_sum_exp_of_mem_ball x hx
+end
+
+variables {𝕂}
+
+lemma exp_neg_of_mem_ball [char_zero 𝕂] [complete_space 𝔸] {x : 𝔸}
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
   summable (λ n, ∥x^n / n!∥) :=
 begin
@@ -618,17 +647,3 @@ lemma exp_series_eq_exp_series (n : ℕ) (x : 𝔸) :
 by rw [exp_series_apply_eq, exp_series_apply_eq, inv_nat_cast_smul_eq 𝕂 𝕂']
 
 end scalar_tower
-
-lemma star_exp {𝕜 A : Type*} [is_R_or_C 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
-  [star_ring A] [normed_star_group A] [complete_space A]  [algebra ℚ A]
-  [star_module 𝕜 A] (a : A) : star (exp a) = exp (star a) :=
-begin
-  rw exp_eq_tsum,
-  have := continuous_linear_map.map_tsum
-    (starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A).to_linear_isometry.to_continuous_linear_map
-    (exp_series_summable' a),
-  dsimp at this,
-  convert this,
-  funext,
-  simp only [star_smul, star_pow, one_div, star_inv', star_nat_cast],
-end

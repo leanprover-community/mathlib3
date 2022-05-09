@@ -123,7 +123,7 @@ def degree_zero_part {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) : subring (away f)
 local notation `A⁰_` f_deg := degree_zero_part f_deg
 
 instance (f : A) {m : ℕ} (f_deg : f ∈ 𝒜 m) : comm_ring (degree_zero_part f_deg) :=
-(degree_zero_part f_deg).to_comm_ring
+subring_class.to_comm_ring (degree_zero_part f_deg)
 
 /--
 Every element in the degree zero part of `Aₓ` can be written as `a/x^n` for some `a` and `n : ℕ`,

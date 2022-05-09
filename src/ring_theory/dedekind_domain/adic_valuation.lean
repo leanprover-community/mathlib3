@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: María Inés de Frutos-Fernández
 -/
 import ring_theory.dedekind_domain.ideal
-import ring_theory.valuation.integers
 import ring_theory.valuation.extend_to_localization
+import ring_theory.valuation.valuation_subring
 import topology.algebra.valued_field
 
 /-!
@@ -244,16 +244,16 @@ end
 /-- The `v`-adic valuation of `x ∈ K` is the valuation of `r` divided by the valuation of `s`,
 where `r` and `s` are chosen so that `x = r/s`. -/
 def valuation  (v : height_one_spectrum R) : valuation K (with_zero (multiplicative ℤ)) :=
-valuation.extend_to_localization v.int_valuation
+v.int_valuation.extend_to_localization
   (λ r hr, set.mem_compl (v.int_valuation_ne_zero' ⟨r, hr⟩)) K
 
 lemma valuation_def (x : K) : v.valuation x = valuation.extend_to_localization v.int_valuation
-  (λ r hr, set.mem_compl (v.int_valuation_ne_zero' ⟨r, hr⟩)) K  x :=
+  (λ r hr, set.mem_compl (v.int_valuation_ne_zero' ⟨r, hr⟩)) K x :=
 rfl
 
 /-- The `v`-adic valuation of `r/s ∈ K` is the valuation of `r` divided by the valuation of `s`. -/
 lemma valuation_of_mk' {r : R} {s : non_zero_divisors R} :
-  v.valuation (is_localization.mk' K r s) = (v.int_valuation_def r)/(v.int_valuation_def s) :=
+  v.valuation (is_localization.mk' K r s) = (v.int_valuation r)/(v.int_valuation s) :=
 begin
   erw [valuation_def, (is_localization.to_localization_map (non_zero_divisors R) K).lift_mk',
     div_eq_mul_inv, mul_eq_mul_left_iff],
@@ -264,8 +264,8 @@ end
 
 /-- The `v`-adic valuation on `K` extends the `v`-adic valuation on `R`. -/
 lemma valuation_of_algebra_map (r : R) :
-  v.valuation (algebra_map R K r) = v.int_valuation_def r :=
-by { rw [valuation_def, valuation.extend_to_localization_apply_map_apply], refl }
+  v.valuation (algebra_map R K r) = v.int_valuation r :=
+by rw [valuation_def, valuation.extend_to_localization_apply_map_apply]
 
 /-- The `v`-adic valuation on `R` is bounded above by 1. -/
 lemma valuation_le_one (r : R) : v.valuation (algebra_map R K r) ≤ 1 :=
@@ -305,33 +305,15 @@ variable {K}
 /-- `K` as a valued field with the `v`-adic valuation. -/
 def adic_valued : valued K (with_zero (multiplicative ℤ)) := valued.mk' v.valuation
 
-lemma adic_valued_def {x : K} : (v.adic_valued.v : _) x = v.valuation x := rfl
-
-/-- The uniform space structure on `K` corresponding to the `v`-adic valuation.
-This cannot be made an instance since it depends on the choice of `v`. -/
-def adic_valued_uniform_space : uniform_space K := v.adic_valued.to_uniform_space
-
-lemma adic_valued_uniform_add_group : @uniform_add_group K v.adic_valued_uniform_space _ :=
-v.adic_valued.to_uniform_add_group
-
-/-- The topological space structure on `K` corresponding to the `v`-adic valuation.
-  This cannot be made an instance since it depends on the choice of `v`. -/
-def adic_valued_topological_space : topological_space K :=
-v.adic_valued_uniform_space.to_topological_space
-
-lemma adic_valued_completable_top_field : @completable_top_field K _ v.adic_valued_uniform_space :=
-@valued.completable K _ _ _ (adic_valued v)
-
-lemma adic_valued_separated_space : @separated_space K v.adic_valued_uniform_space :=
-@valued_ring.separated K _ _ _ (adic_valued v)
+lemma adic_valued_apply {x : K} : (v.adic_valued.v : _) x = v.valuation x := rfl
 
 variables (K)
 
 /-- The completion of `K` with respect to its `v`-adic valuation. -/
-def adic_completion := @uniform_space.completion K v.adic_valued_uniform_space
+def adic_completion := @uniform_space.completion K v.adic_valued.to_uniform_space
 
 instance : field (v.adic_completion K) :=
-@field_completion K _ v.adic_valued_uniform_space _ _ v.adic_valued_uniform_add_group
+@field_completion K _ v.adic_valued.to_uniform_space _ _ v.adic_valued.to_uniform_add_group
 
 instance : inhabited (v.adic_completion K) := ⟨0⟩
 
@@ -343,15 +325,14 @@ lemma valued_adic_completion_def {x : v.adic_completion K} :
   valued.v x = @valued.extension K _ _ _ (adic_valued v)  x := rfl
 
 instance adic_completion_complete_space : complete_space (v.adic_completion K) :=
-@uniform_space.completion.complete_space K v.adic_valued_uniform_space
+@uniform_space.completion.complete_space K v.adic_valued.to_uniform_space
 
 instance adic_completion.has_lift_t : has_lift_t K (v.adic_completion K) :=
-(infer_instance : has_lift_t K (@uniform_space.completion K v.adic_valued_uniform_space))
+(infer_instance : has_lift_t K (@uniform_space.completion K v.adic_valued.to_uniform_space))
 
 variables (K)
 /-- The ring of integers of `adic_completion`. -/
-def adic_completion_integers : subring (v.adic_completion K) :=
-@valuation.integer (v.adic_completion K) (with_zero (multiplicative ℤ)) _ _
-  v.valued_adic_completion.v
+def adic_completion_integers : valuation_subring (v.adic_completion K) :=
+valuation.valuation_subring v.valued_adic_completion.v
 
 end is_dedekind_domain.height_one_spectrum

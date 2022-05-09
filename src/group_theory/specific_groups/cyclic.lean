@@ -449,10 +449,10 @@ begin
   simp only [not_lt, _root_.le_zero_iff, card_eq_zero] at h0,
   apply lt_irrefl c,
   calc
-    c = (univ.filter (λ a : α, a ^ c = 1)).card : by { apply congr_arg card, simp }
-  ... = ∑ m in c.divisors, (univ.filter (λ a : α, order_of a = m)).card : by
-  { rw ←sum_card_order_of_eq_card_pow_eq_one hc0,
-    exact sum_congr (filter_dvd_eq_divisors hc0.ne') (λ y hy, rfl) }
+    c = ∑ m in c.divisors, (univ.filter (λ a : α, order_of a = m)).card : by
+  { simp only [←filter_dvd_eq_divisors hc0.ne', sum_card_order_of_eq_card_pow_eq_one hc0],
+    apply congr_arg card,
+    simp }
   ... = ∑ m in (c.divisors).erase d,
     (univ.filter (λ a : α, order_of a = m)).card : by
   { rw eq_comm,

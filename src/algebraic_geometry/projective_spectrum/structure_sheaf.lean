@@ -181,7 +181,8 @@ def structure_sheaf_in_Type : sheaf Type* (projective_spectrum.Top 𝒜):=
 subsheaf_to_Types (is_locally_fraction 𝒜)
 
 instance comm_ring_structure_sheaf_in_Type_obj (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
-  comm_ring ((structure_sheaf_in_Type 𝒜).1.obj U) := (sections_subring U).to_comm_ring
+  comm_ring ((structure_sheaf_in_Type 𝒜).1.obj U) :=
+subring_class.to_comm_ring (sections_subring U)
 
 /--The structure presheaf, valued in `CommRing`, constructed by dressing up the `Type` valued
 structure presheaf.-/

@@ -460,7 +460,7 @@ begin
     have hmc : m ∣ c, { simp only [mem_erase, mem_divisors] at hm, tauto },
     rcases (filter (λ (a : α), order_of a = m) univ).card.eq_zero_or_pos with h1 | h1,
     { simp [h1] }, { simp [(card_order_of_eq_totient_aux₁ hn hmc) h1] } },
-  { sorry },
+  { exact lt_add_of_pos_left _ (totient_pos (pos_of_dvd_of_pos hd hc0)) },
   { sorry },
   { sorry },
 end

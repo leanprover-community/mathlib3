@@ -44,9 +44,7 @@ begin
 end
 
 example {F} [field F] : nat_degree (X ^ 4 + X + C 1 : F[X]) = 4 :=
-begin
-  compute_degree,
-end
+by compute_degree
 
 /-  This fails since there are non-closed `ℕ`-expressions.
 lemma pro {h : C d ≠ 0} (f10 : f.nat_degree ≤ 10) :

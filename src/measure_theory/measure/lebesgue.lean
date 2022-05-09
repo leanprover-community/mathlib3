@@ -334,7 +334,7 @@ begin
       exact this.comp measurable_fst },
     exact (measure_preserving.id _).skew_product g_meas
       (eventually_of_forall (λ a, map_add_left_eq_self _ _)) },
-  exact (A.symm.comp B).comp A,
+  exact ((A.symm e).comp B).comp A,
 end
 
 /-- Any invertible matrix rescales Lebesgue measure through the absolute value of its

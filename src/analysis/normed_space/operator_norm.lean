@@ -26,13 +26,12 @@ noncomputable theory
 open_locale classical nnreal topological_space
 
 -- the `ₗ` subscript variables are for special cases about linear (as opposed to semilinear) maps
-variables {𝕜 : Type*} {𝕜₂ : Type*} {𝕜₃ : Type*} {E : Type*} {F : Type*} {Fₗ : Type*} {G : Type*}
-  {Gₗ : Type*}
+variables {𝕜 𝕜₂ 𝕜₃ E Eₗ F Fₗ G Gₗ : Type*}
 
 section semi_normed
 
-variables [semi_normed_group E] [semi_normed_group F] [semi_normed_group Fₗ] [semi_normed_group G]
-  [semi_normed_group Gₗ]
+variables [semi_normed_group E] [semi_normed_group Eₗ] [semi_normed_group F] [semi_normed_group Fₗ]
+variables [semi_normed_group G] [semi_normed_group Gₗ]
 
 open metric continuous_linear_map
 
@@ -126,7 +125,7 @@ rfl
 end normed_field
 
 variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
-  [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜 Fₗ]
+  [normed_space 𝕜 E] [normed_space 𝕜 Eₗ] [normed_space 𝕜₂ F] [normed_space 𝕜 Fₗ]
   [normed_space 𝕜₃ G] [normed_space 𝕜 Gₗ]
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
   [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
@@ -307,6 +306,9 @@ begin
     (div_le_iff hlt).mpr $ by { apply hc })),
 end
 
+theorem dist_le_op_norm (x y : E) : dist (f x) (f y) ≤ ∥f∥ * dist x y :=
+by simp_rw [dist_eq_norm, ← map_sub, f.le_op_norm]
+
 theorem le_op_norm_of_le {c : ℝ} {x} (h : ∥x∥ ≤ c) : ∥f x∥ ≤ ∥f∥ * c :=
 le_trans (f.le_op_norm x) (mul_le_mul_of_nonneg_left h f.op_norm_nonneg)
 
@@ -443,6 +445,9 @@ instance to_normed_algebra : normed_algebra 𝕜 (E →L[𝕜] E) :=
   .. continuous_linear_map.algebra }
 
 theorem le_op_nnnorm : ∥f x∥₊ ≤ ∥f∥₊ * ∥x∥₊ := f.le_op_norm x
+
+theorem nndist_le_op_nnnorm (x y : E) : nndist (f x) (f y) ≤ ∥f∥₊ * nndist x y :=
+dist_le_op_norm f x y
 
 /-- continuous linear maps are Lipschitz continuous. -/
 theorem lipschitz : lipschitz_with ∥f∥₊ f :=
@@ -731,6 +736,16 @@ def compL : (Fₗ →L[𝕜] Gₗ) →L[𝕜] (E →L[𝕜] Fₗ) →L[𝕜] (E 
 
 @[simp] lemma compL_apply (f : Fₗ →L[𝕜] Gₗ) (g : E →L[𝕜] Fₗ) : compL 𝕜 E Fₗ Gₗ f g = f.comp g := rfl
 
+variables (Eₗ) {𝕜 E Fₗ Gₗ}
+/-- Apply `L(x,-)` pointwise to bilinear maps, as a continuous bilinear map -/
+@[simps apply]
+def precompR (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : E →L[𝕜] (Eₗ →L[𝕜] Fₗ) →L[𝕜] (Eₗ →L[𝕜] Gₗ) :=
+(compL 𝕜 Eₗ Fₗ Gₗ).comp L
+
+/-- Apply `L(-,y)` pointwise to bilinear maps, as a continuous bilinear map -/
+def precompL (L : E →L[𝕜] Fₗ →L[𝕜] Gₗ) : (Eₗ →L[𝕜] E) →L[𝕜] Fₗ →L[𝕜] (Eₗ →L[𝕜] Gₗ) :=
+(precompR Eₗ (flip L)).flip
+
 section prod
 
 universes u₁ u₂ u₃ u₄
@@ -739,6 +754,7 @@ variables (M₁ : Type u₁) [semi_normed_group M₁] [normed_space 𝕜 M₁]
           (M₃ : Type u₃) [semi_normed_group M₃] [normed_space 𝕜 M₃]
           (M₄ : Type u₄) [semi_normed_group M₄] [normed_space 𝕜 M₄]
 
+variables {Eₗ} (𝕜)
 /-- `continuous_linear_map.prod_map` as a continuous linear map. -/
 def prod_mapL : ((M₁ →L[𝕜] M₂) × (M₃ →L[𝕜] M₄)) →L[𝕜] ((M₁ × M₃) →L[𝕜] (M₂ × M₄)) :=
 continuous_linear_map.copy
@@ -1129,7 +1145,7 @@ f.bilinear_comp (fst _ _ _) (snd _ _ _) + f.flip.bilinear_comp (snd _ _ _) (fst 
 @[simp] lemma coe_deriv₂ (f : E →L[𝕜] Fₗ →L[𝕜] Gₗ) (p : E × Fₗ) :
   ⇑(f.deriv₂ p) = λ q : E × Fₗ, f p.1 q.2 + f q.1 p.2 := rfl
 
-lemma map_add₂ (f : E →L[𝕜] Fₗ →L[𝕜] Gₗ) (x x' : E) (y y' : Fₗ) :
+lemma map_add_add (f : E →L[𝕜] Fₗ →L[𝕜] Gₗ) (x x' : E) (y y' : Fₗ) :
   f (x + x') (y + y') = f x y + f.deriv₂ (x, y) (x', y') + f x' y' :=
 by simp only [map_add, add_apply, coe_deriv₂, add_assoc]
 
@@ -1312,7 +1328,7 @@ begin
       exact hx.trans_lt (half_lt_self εpos) },
     simpa using this },
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  refine ⟨⟨δ⁻¹, _⟩ * nnnorm c, f.to_linear_map.antilipschitz_of_bound $ λx, _⟩,
+  refine ⟨⟨δ⁻¹, _⟩ * ∥c∥₊, f.to_linear_map.antilipschitz_of_bound $ λx, _⟩,
   exact inv_nonneg.2 (le_of_lt δ_pos),
   by_cases hx : f x = 0,
   { have : f x = f 0, by { simp [hx] },
@@ -1341,7 +1357,7 @@ that it belongs to the closure of the image of a bounded set `s : set (E →SL[�
 to function. Coercion to function of the result is definitionally equal to `f`. -/
 @[simps apply { fully_applied := ff }]
 def of_mem_closure_image_coe_bounded (f : E' → F) {s : set (E' →SL[σ₁₂] F)} (hs : bounded s)
-  (hf : f ∈ closure ((λ g x, g x : (E' →SL[σ₁₂] F) → E' → F) '' s)) :
+  (hf : f ∈ closure ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s)) :
   E' →SL[σ₁₂] F :=
 begin
   -- `f` is a linear map due to `linear_map_of_mem_closure_range_coe`
@@ -1411,6 +1427,80 @@ begin
   -- `continuous_linear_map.tendsto_of_tendsto_pointwise_of_cauchy_seq`
   exact ⟨Glin, tendsto_of_tendsto_pointwise_of_cauchy_seq (tendsto_pi_nhds.2 hG) hf⟩
 end
+
+/-- Let `s` be a bounded set in the space of continuous (semi)linear maps `E →SL[σ] F` taking values
+in a proper space. Then `s` interpreted as a set in the space of maps `E → F` with topology of
+pointwise convergence is precompact: its closure is a compact set. -/
+lemma is_compact_closure_image_coe_of_bounded [proper_space F] {s : set (E' →SL[σ₁₂] F)}
+  (hb : bounded s) :
+  is_compact (closure ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s)) :=
+have ∀ x, is_compact (closure (apply' F σ₁₂ x '' s)),
+  from λ x, ((apply' F σ₁₂ x).lipschitz.bounded_image hb).is_compact_closure,
+compact_closure_of_subset_compact (is_compact_pi_infinite this)
+  (image_subset_iff.2 $ λ g hg x, subset_closure $ mem_image_of_mem _ hg)
+
+/-- Let `s` be a bounded set in the space of continuous (semi)linear maps `E →SL[σ] F` taking values
+in a proper space. If `s` interpreted as a set in the space of maps `E → F` with topology of
+pointwise convergence is closed, then it is compact.
+
+TODO: reformulate this in terms of a type synonym with the right topology. -/
+lemma is_compact_image_coe_of_bounded_of_closed_image [proper_space F] {s : set (E' →SL[σ₁₂] F)}
+  (hb : bounded s) (hc : is_closed ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s)) :
+  is_compact ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s) :=
+hc.closure_eq ▸ is_compact_closure_image_coe_of_bounded hb
+
+/-- If a set `s` of semilinear functions is bounded and is closed in the weak-* topology, then its
+image under coercion to functions `E → F` is a closed set. We don't have a name for `E →SL[σ] F`
+with weak-* topology in `mathlib`, so we use an equivalent condition (see `is_closed_induced_iff'`).
+
+TODO: reformulate this in terms of a type synonym with the right topology. -/
+lemma is_closed_image_coe_of_bounded_of_weak_closed {s : set (E' →SL[σ₁₂] F)} (hb : bounded s)
+  (hc : ∀ f, (⇑f : E' → F) ∈ closure ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s) → f ∈ s) :
+  is_closed ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s) :=
+is_closed_of_closure_subset $ λ f hf,
+  ⟨of_mem_closure_image_coe_bounded f hb hf, hc (of_mem_closure_image_coe_bounded f hb hf) hf, rfl⟩
+
+/-- If a set `s` of semilinear functions is bounded and is closed in the weak-* topology, then its
+image under coercion to functions `E → F` is a compact set. We don't have a name for `E →SL[σ] F`
+with weak-* topology in `mathlib`, so we use an equivalent condition (see `is_closed_induced_iff'`).
+-/
+lemma is_compact_image_coe_of_bounded_of_weak_closed [proper_space F] {s : set (E' →SL[σ₁₂] F)}
+  (hb : bounded s)
+  (hc : ∀ f, (⇑f : E' → F) ∈ closure ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s) → f ∈ s) :
+  is_compact ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s) :=
+is_compact_image_coe_of_bounded_of_closed_image hb $
+  is_closed_image_coe_of_bounded_of_weak_closed hb hc
+
+/-- A closed ball is closed in the weak-* topology. We don't have a name for `E →SL[σ] F` with
+weak-* topology in `mathlib`, so we use an equivalent condition (see `is_closed_induced_iff'`). -/
+lemma is_weak_closed_closed_ball (f₀ : E' →SL[σ₁₂] F) (r : ℝ) ⦃f : E' →SL[σ₁₂] F⦄
+  (hf : ⇑f ∈ closure ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' (closed_ball f₀ r))) :
+  f ∈ closed_ball f₀ r :=
+begin
+  have hr : 0 ≤ r,
+    from nonempty_closed_ball.1 (nonempty_image_iff.1 (closure_nonempty_iff.1 ⟨_, hf⟩)),
+  refine mem_closed_ball_iff_norm.2 (op_norm_le_bound _ hr $ λ x, _),
+  have : is_closed {g : E' → F | ∥g x - f₀ x∥ ≤ r * ∥x∥},
+    from is_closed_Iic.preimage ((@continuous_apply E' (λ _, F) _ x).sub continuous_const).norm,
+  refine this.closure_subset_iff.2 (image_subset_iff.2 $ λ g hg, _) hf,
+  exact (g - f₀).le_of_op_norm_le (mem_closed_ball_iff_norm.1 hg) _
+end
+
+/-- The set of functions `f : E → F` that represent continuous linear maps `f : E →SL[σ₁₂] F`
+at distance `≤ r` from `f₀ : E →SL[σ₁₂] F` is closed in the topology of pointwise convergence.
+This is one of the key steps in the proof of the **Banach-Alaoglu** theorem. -/
+lemma is_closed_image_coe_closed_ball (f₀ : E →SL[σ₁₂] F) (r : ℝ) :
+  is_closed ((coe_fn : (E →SL[σ₁₂] F) → E → F) '' closed_ball f₀ r) :=
+is_closed_image_coe_of_bounded_of_weak_closed bounded_closed_ball (is_weak_closed_closed_ball f₀ r)
+
+/-- **Banach-Alaoglu** theorem. The set of functions `f : E → F` that represent continuous linear
+maps `f : E →SL[σ₁₂] F` at distance `≤ r` from `f₀ : E →SL[σ₁₂] F` is compact in the topology of
+pointwise convergence. Other versions of this theorem can be found in
+`analysis.normed_space.weak_dual`. -/
+lemma is_compact_image_coe_closed_ball [proper_space F] (f₀ : E →SL[σ₁₂] F) (r : ℝ) :
+  is_compact ((coe_fn : (E →SL[σ₁₂] F) → E → F) '' closed_ball f₀ r) :=
+is_compact_image_coe_of_bounded_of_weak_closed bounded_closed_ball $
+  is_weak_closed_closed_ball f₀ r
 
 end completeness
 
@@ -1652,7 +1742,7 @@ section
 variables [ring_hom_isometric σ₂₁]
 
 protected lemma antilipschitz (e : E ≃SL[σ₁₂] F) :
-  antilipschitz_with (nnnorm (e.symm : F →SL[σ₂₁] E)) e :=
+  antilipschitz_with ∥(e.symm : F →SL[σ₂₁] E)∥₊ e :=
 e.symm.lipschitz.to_right_inverse e.left_inv
 
 lemma one_le_norm_mul_norm_symm [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ₁₂] F) :
@@ -1674,7 +1764,7 @@ lemma norm_symm_pos [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ
 pos_of_mul_pos_left (lt_of_lt_of_le zero_lt_one e.one_le_norm_mul_norm_symm) (norm_nonneg _)
 
 lemma nnnorm_symm_pos [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ₁₂] F) :
-  0 < nnnorm (e.symm : F →SL[σ₂₁] E) :=
+  0 < ∥(e.symm : F →SL[σ₂₁] E)∥₊ :=
 e.norm_symm_pos
 
 lemma subsingleton_or_norm_symm_pos [ring_hom_isometric σ₁₂] (e : E ≃SL[σ₁₂] F) :
@@ -1686,7 +1776,7 @@ begin
 end
 
 lemma subsingleton_or_nnnorm_symm_pos [ring_hom_isometric σ₁₂] (e : E ≃SL[σ₁₂] F) :
-  subsingleton E ∨ 0 < (nnnorm $ (e.symm : F →SL[σ₂₁] E)) :=
+  subsingleton E ∨ 0 < ∥(e.symm : F →SL[σ₂₁] E)∥₊ :=
 subsingleton_or_norm_symm_pos e
 
 variable (𝕜)
@@ -1726,6 +1816,44 @@ end
 @[simp] lemma coord_self (x : E) (h : x ≠ 0) :
   (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : 𝕜 ∙ x) = 1 :=
 linear_equiv.coord_self 𝕜 E x h
+
+variables {𝕜} {𝕜₄ : Type*} [nondiscrete_normed_field 𝕜₄]
+variables {H : Type*} [normed_group H] [normed_space 𝕜₄ H] [normed_space 𝕜₃ G]
+variables {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
+variables {σ₃₄ : 𝕜₃ →+* 𝕜₄} {σ₄₃ : 𝕜₄ →+* 𝕜₃}
+variables {σ₂₄ : 𝕜₂ →+* 𝕜₄} {σ₁₄ : 𝕜 →+* 𝕜₄}
+variables [ring_hom_inv_pair σ₃₄ σ₄₃] [ring_hom_inv_pair σ₄₃ σ₃₄]
+variables [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
+variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
+variables [ring_hom_isometric σ₁₄] [ring_hom_isometric σ₂₃]
+variables [ring_hom_isometric σ₄₃] [ring_hom_isometric σ₂₄]
+variables [ring_hom_isometric σ₁₃] [ring_hom_isometric σ₁₂]
+variables [ring_hom_isometric σ₃₄]
+
+include σ₂₁ σ₃₄ σ₁₃ σ₂₄
+/-- A pair of continuous (semi)linear equivalences generates an continuous (semi)linear equivalence
+between the spaces of continuous (semi)linear maps. -/
+def arrow_congrSL (e₁₂ : E ≃SL[σ₁₂] F) (e₄₃ : H ≃SL[σ₄₃] G) :
+  (E →SL[σ₁₄] H) ≃SL[σ₄₃] (F →SL[σ₂₃] G) :=
+{ map_add' := λ f g, by simp only [equiv.to_fun_as_coe, add_comp, comp_add,
+    continuous_linear_equiv.arrow_congr_equiv_apply],
+  map_smul' := λ t f, by simp only [equiv.to_fun_as_coe, smul_comp, comp_smulₛₗ,
+    continuous_linear_equiv.arrow_congr_equiv_apply],
+  continuous_to_fun := (compSL F H G σ₂₄ σ₄₃ e₄₃).continuous.comp
+    (continuous_linear_map.flip (compSL F E H σ₂₁ σ₁₄) e₁₂.symm).continuous,
+  continuous_inv_fun := (compSL E G H σ₁₃ σ₃₄ e₄₃.symm).continuous.comp
+    (continuous_linear_map.flip (compSL E F G σ₁₂ σ₂₃) e₁₂).continuous,
+  .. e₁₂.arrow_congr_equiv e₄₃, }
+
+omit σ₂₁ σ₃₄ σ₁₃ σ₂₄
+
+/-- A pair of continuous linear equivalences generates an continuous linear equivalence between
+the spaces of continuous linear maps. -/
+def arrow_congr {F H : Type*} [normed_group F] [normed_group H]
+  [normed_space 𝕜 F] [normed_space 𝕜 G] [normed_space 𝕜 H]
+  (e₁ : E ≃L[𝕜] F) (e₂ : H ≃L[𝕜] G) :
+  (E →L[𝕜] H) ≃L[𝕜] (F →L[𝕜] G) :=
+arrow_congrSL e₁ e₂
 
 end
 

@@ -25,7 +25,7 @@ begin
   split_ifs; simp [mn],
 end
 
-lemma nat_degree_add_le_of {m n : ℕ} (mn : m ≤ n) (f g : R[X]) (gm : g.nat_degree ≤ m) :
+lemma nat_degree_add_le_iff_left {m n : ℕ} (mn : m ≤ n) (f g : R[X]) (gm : g.nat_degree ≤ m) :
   (f + g).nat_degree ≤ n ↔ f.nat_degree ≤ n :=
 begin
   by_cases fm : f.nat_degree ≤ m,
@@ -107,7 +107,7 @@ then the tactic suggests the degree that it computed.
 
 The tactic also reports when it is used with non-closed natural numbers as exponents. -/
 meta def compute_degree_le : tactic unit :=
-`[repeat { refine (polynomial.nat_degree_add_le_of rfl.le _ _ _).mpr _ },
+`[repeat { refine (polynomial.nat_degree_add_le_iff_left rfl.le _ _ _).mpr _ },
   repeat { rw polynomial.monomial_mul_monomial },
   try { any_goals { refine polynomial.nat_degree_monomial_le _ _  } },
   try { any_goals { refine (polynomial.nat_degree_C_mul_le _ _).trans _ } },

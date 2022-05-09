@@ -42,7 +42,9 @@ _Heuristic:_ there is no cancellation among the terms, at least the ones of high
 
 Finally, `compute_degree` takes one extra step.  It isolates the term of highest guessed degree
 and assumes that all remaining terms have smaller degree.  It checks that the degree of the highest
-term is what it is claimed (and further assumes that the highest term is a pure `X`-power, `X ^ n`).
+term is what it is claimed (and further assumes that the highest term is a pure `X`-power, `X ^ n`,
+a pure `X` term or a product of one of these by `C a` and checks that the assumption `a ≠ 0` is in
+context).
 `compute_degree` then outsources the rest of the computation to `compute_degree_le`, once the goal
 has been appropriately replaced.
 
@@ -162,10 +164,12 @@ do `(polynomial.nat_degree %%tl ≤ %%tr) ← target,
 /--  `compute_degree` tries to solve a goal of the form `f.nat_degree = d`, where `d : ℕ` and `f`
 satisfies:
 * `f` is a sum of expression of the form
-  `C a * X ^ n, C a * X, C a, X ^ n, X, monomial n a, monomial n a * monomial m b`,
+  `C a * X ^ n, C a * X, C a, X ^ n, X, monomial n a, monomial n a * monomial m b`;
 * all exponents and the `n` in `monomial n a` are *closed* terms of type `ℕ`,
-* the term with largest exponent is `X ^ n` and is the unique term of its degree (repetitions are
-  allowed in terms of smaller degree).
+* the term with largest exponent is `C a * X ^ n, X ^ n, C a * X, X, C a` and is the unique term of
+  its degree (repetitions are allowed in terms of smaller degree);
+* if the leading term involves a product with `C a`, there must be in context the assumption
+  `a ≠ 0`.
 
 If the given degree does not match what the tactic computes,
 then the tactic suggests the degree that it computed.
@@ -178,8 +182,10 @@ do `(polynomial.nat_degree %%tl = %%tr) ← target,
   td ← eval_expr ℕ tr,
   if m' ≠ td then tactic.fail format!"should the degree be '{m'}'?\n\n" else
   move_add_with_errors [(ff, pexpr.of_expr lead)] none,
-  `[rw [polynomial.nat_degree_add_eq_right_of_nat_degree_lt, polynomial.nat_degree_X_pow],
-    rw [polynomial.nat_degree_X_pow],
+  `[rw [polynomial.nat_degree_add_eq_right_of_nat_degree_lt];
+    try { rw polynomial.nat_degree_C_mul_X_pow _ _ ‹_› };
+    try { rw polynomial.nat_degree_C_mul_X _ ‹_› };
+    try { rw [polynomial.nat_degree_X_pow] },
     refine nat.lt_succ_of_le _ ],
   compute_degree_le
 
@@ -194,6 +200,5 @@ add_tactic_doc
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.compute_degree],
   tags := ["arithmetic, finishing"] }
-
 
 end tactic.interactive

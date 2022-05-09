@@ -22,6 +22,12 @@ by compute_degree
 example {F} [field F] : nat_degree (X ^ 4 + X + C 1 : F[X]) = 4 :=
 by compute_degree
 
+example {F} [field F] {a : F} (a0 : a ≠ 0) : nat_degree (C a * X + C 1 : F[X]) = 1 :=
+by compute_degree
+
+example {F} [field F] {a : F} (a0 : a ≠ 0) : nat_degree (C a * X ^ 2 + C 1 : F[X]) = 2 :=
+by compute_degree
+
 /-
 --  This test produces a suggestion.  I would like to uncomment it, but do not know how to
 --  prevent a noisy file
@@ -67,7 +73,7 @@ by compute_degree_le
 --/
 
 example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
-  C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X : R[X]) ≤ 11 :=
+  C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + C 7 * X ^ 10 + C e * X : R[X]) ≤ 10 :=
 by compute_degree_le
 
 example : nat_degree (monomial 0 c * monomial 0 c + monomial 0 d + C 1 + C a * X ^ 0 : R[X]) ≤ 0 :=

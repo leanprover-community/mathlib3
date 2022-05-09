@@ -440,29 +440,29 @@ let c := fintype.card α in
 have hc0 : 0 < c, from fintype.card_pos_iff.2 ⟨1⟩,
 lt_irrefl c $
 begin
-  calc c = (univ.filter (λ a : α, a ^ c = 1)).card : _
-  ... = ∑ m in c.divisors, (univ.filter (λ a : α, order_of a = m)).card : _
-  ... = ∑ m in (c.divisors).erase d,
-    (univ.filter (λ a : α, order_of a = m)).card : _
-  ... ≤ ∑ m in (c.divisors).erase d, φ m : _
-  ... < φ d + ∑ m in (c.divisors).erase d, φ m : _
-  ... = ∑ m in insert d ((c.divisors).erase d), φ m : _
-  ... = ∑ m in c.divisors, φ m : _
-  ... = c : sum_totient _,
-  { apply congr_arg card, simp [finset.ext_iff, c] },
+  calc c = (univ.filter (λ a : α, a ^ c = 1)).card : by
+  { apply congr_arg card, simp [finset.ext_iff, c] }
+  ... = ∑ m in c.divisors, (univ.filter (λ a : α, order_of a = m)).card : by
   { rw ←sum_card_order_of_eq_card_pow_eq_one hc0,
-    exact sum_congr (filter_dvd_eq_divisors hc0.ne') (λ y hy, rfl) },
+    exact sum_congr (filter_dvd_eq_divisors hc0.ne') (λ y hy, rfl) }
+  ... = ∑ m in (c.divisors).erase d,
+    (univ.filter (λ a : α, order_of a = m)).card : by
   { rw eq_comm,
     refine (sum_subset (erase_subset _ _) (λ m hm₁ hm₂, _)),
     have : m = d, by { contrapose! hm₂, exact mem_erase_of_ne_of_mem hm₂ hm₁ },
-    rwa this },
+    simp [this, h0] }
+  ... ≤ ∑ m in (c.divisors).erase d, φ m : by
   { refine sum_le_sum (λ m hm, _),
     have hmc : m ∣ c, { simp only [mem_erase, mem_divisors] at hm, tauto },
     rcases (filter (λ (a : α), order_of a = m) univ).card.eq_zero_or_pos with h1 | h1,
-    { simp [h1] }, { simp [(card_order_of_eq_totient_aux₁ hn hmc) h1] } },
-  { exact lt_add_of_pos_left _ (totient_pos (pos_of_dvd_of_pos hd hc0)) },
-  { refine (sum_insert _).symm, simp },
-  { sorry },
+    { simp [h1] }, { simp [(card_order_of_eq_totient_aux₁ hn hmc) h1] } }
+  ... < φ d + ∑ m in (c.divisors).erase d, φ m : by
+  { exact lt_add_of_pos_left _ (totient_pos (pos_of_dvd_of_pos hd hc0)) }
+  ... = ∑ m in insert d ((c.divisors).erase d), φ m : by
+  { refine (sum_insert _).symm, simp }
+  ... = ∑ m in c.divisors, φ m : by
+  { refine finset.sum_congr (insert_erase _) (λ _ _, rfl), simp [hd, hc0.ne'] }
+  ... = c : sum_totient _
 end
 #exit
 

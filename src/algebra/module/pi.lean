@@ -67,6 +67,8 @@ example (β X : Type*) [normed_group β] [normed_space ℝ β] : module ℝ (X �
 ```
 See: https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Typeclass.20resolution.20under.20binders/near/281296989
 -/
+/-- A special case of `pi.module` for non-dependent types. Lean struggles to elaborate
+definitions elsewhere in the library without this. -/
 instance _root_.function.module (α β : Type*) [semiring α] [add_comm_monoid β] [module α β] :
   module α (I → β) :=
 pi.module _ _ _

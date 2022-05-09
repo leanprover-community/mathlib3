@@ -431,8 +431,6 @@ begin
   apply lt_of_le_of_lt h4 h5,
 end
 
-
-
 lemma card_order_of_eq_totient_aux₂'' {d : ℕ} (hd : d ∣ fintype.card α) :
   (univ.filter (λ a : α, order_of a = d)).card = φ d :=
 by_contradiction $ λ h,
@@ -458,7 +456,10 @@ begin
     refine (sum_subset (erase_subset _ _) (λ m hm₁ hm₂, _)),
     have : m = d, by { contrapose! hm₂, exact mem_erase_of_ne_of_mem hm₂ hm₁ },
     rwa this },
-  { sorry },
+  { refine sum_le_sum (λ m hm, _),
+    have hmc : m ∣ c, { simp only [mem_erase, mem_divisors] at hm, tauto },
+    rcases (filter (λ (a : α), order_of a = m) univ).card.eq_zero_or_pos with h1 | h1,
+    { simp [h1] }, { simp [(card_order_of_eq_totient_aux₁ hn hmc) h1] } },
   { sorry },
   { sorry },
   { sorry },

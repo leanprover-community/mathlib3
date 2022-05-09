@@ -470,6 +470,13 @@ end
 section norm_one_class
 variables [norm_one_class 𝕜] (p : seminorm 𝕜 E)
 
+lemma ball_zero_eq_preimage_ball {r : ℝ} :
+  p.ball 0 r = p ⁻¹' (metric.ball 0 r) :=
+begin
+  ext x,
+  simp only [mem_ball, sub_zero, mem_preimage, mem_ball_zero_iff, real.norm_of_nonneg (p.nonneg x)],
+end
+
 @[simp] lemma ball_bot {r : ℝ} (x : E) (hr : 0 < r) : ball (⊥ : seminorm 𝕜 E) x r = set.univ :=
 ball_zero' x hr
 

@@ -7,6 +7,7 @@ import algebra.group.inj_surj
 import algebra.group_with_zero.defs
 import algebra.hom.units
 import logic.nontrivial
+import group_theory.group_action.units
 
 /-!
 # Groups with an adjoined zero element
@@ -707,6 +708,10 @@ begin
     simpa only [eq_comm] using units.exists_iff_ne_zero.mpr h }
 end
 
+@[simp] lemma smul_mk0 {α : Type*} [has_scalar G₀ α] {g : G₀} (hg : g ≠ 0) (a : α) :
+  (mk0 g hg) • a = g • a :=
+rfl
+
 end units
 
 section group_with_zero
@@ -903,9 +908,6 @@ protected def function.surjective.comm_group_with_zero [has_zero G₀'] [has_mul
   comm_group_with_zero G₀' :=
 { .. hf.group_with_zero h01 f zero one mul inv div npow zpow, .. hf.comm_semigroup f mul }
 
-lemma one_div_mul_one_div (a b : G₀) : (1 / a) * (1 / b) = 1 / (a * b) :=
-by rw [one_div_mul_one_div_rev, mul_comm b]
-
 lemma div_mul_right {a : G₀} (b : G₀) (ha : a ≠ 0) : a / (a * b) = 1 / b :=
 by rw [mul_comm, div_mul_left ha]
 
@@ -923,37 +925,13 @@ by rw [mul_comm, (div_mul_cancel _ hb)]
 
 local attribute [simp] mul_assoc mul_comm mul_left_comm
 
-lemma div_mul_div_comm₀ (a b c d : G₀) :
-      (a / b) * (c / d) = (a * c) / (b * d) :=
-by simp [div_eq_mul_inv, mul_inv]
-
 lemma mul_div_mul_left (a b : G₀) {c : G₀} (hc : c ≠ 0) :
       (c * a) / (c * b) = a / b :=
 by rw [mul_comm c, mul_comm c, mul_div_mul_right _ _ hc]
 
-@[field_simps] lemma div_mul_eq_mul_div (a b c : G₀) : (b / c) * a = (b * a) / c :=
-by simp [div_eq_mul_inv]
-
-lemma div_mul_eq_mul_div_comm (a b c : G₀) :
-      (b / c) * a = b * (a / c) :=
-by rw [div_mul_eq_mul_div, ← one_mul c, ← div_mul_div_comm₀, div_one, one_mul]
-
-lemma mul_eq_mul_of_div_eq_div (a : G₀) {b : G₀} (c : G₀) {d : G₀} (hb : b ≠ 0)
-      (hd : d ≠ 0) (h : a / b = c / d) : a * d = c * b :=
-by rw [← mul_one (a*d), mul_assoc, mul_comm d, ← mul_assoc, ← div_self hb,
-       ← div_mul_eq_mul_div_comm, h, div_mul_eq_mul_div, div_mul_cancel _ hd]
-
-@[field_simps] lemma div_div_eq_div_mul (a b c : G₀) :
-      (a / b) / c = a / (b * c) :=
-by rw [div_eq_mul_one_div, div_mul_div_comm₀, mul_one]
-
-lemma div_div_div_div_eq (a : G₀) {b c d : G₀} :
-      (a / b) / (c / d) = (a * d) / (b * c) :=
-by rw [div_div_eq_mul_div, div_mul_eq_mul_div, div_div_eq_div_mul]
-
-lemma div_mul_eq_div_mul_one_div (a b c : G₀) :
-      a / (b * c) = (a / b) * (1 / c) :=
-by rw [← div_div_eq_div_mul, ← div_eq_mul_one_div]
+lemma mul_eq_mul_of_div_eq_div (a : G₀) {b : G₀} (c : G₀) {d : G₀} (hb : b ≠ 0) (hd : d ≠ 0)
+  (h : a / b = c / d) : a * d = c * b :=
+by rw [←mul_one a, ←div_self hb, ←mul_comm_div, h, div_mul_eq_mul_div, div_mul_cancel _ hd]
 
 lemma div_helper {a : G₀} (b : G₀) (h : a ≠ 0) : (1 / (a * b)) * a = 1 / b :=
 by rw [div_mul_eq_mul_div, one_mul, div_mul_right _ h]
@@ -962,24 +940,6 @@ end comm_group_with_zero
 
 section comm_group_with_zero
 variables [comm_group_with_zero G₀] {a b c d : G₀}
-
-lemma div_eq_inv_mul : a / b = b⁻¹ * a :=
-by rw [div_eq_mul_inv, mul_comm]
-
-lemma mul_div_right_comm (a b c : G₀) : (a * b) / c = (a / c) * b :=
-by rw [div_eq_mul_inv, mul_assoc, mul_comm b, ← mul_assoc, div_eq_mul_inv]
-
-lemma mul_comm_div' (a b c : G₀) : (a / b) * c = a * (c / b) :=
-by rw [← mul_div_assoc, mul_div_right_comm]
-
-lemma div_mul_comm' (a b c : G₀) : (a / b) * c = (c / b) * a :=
-by rw [div_mul_eq_mul_div, mul_comm, mul_div_right_comm]
-
-lemma mul_div_comm (a b c : G₀) : a * (b / c) = b * (a / c) :=
-by rw [← mul_div_assoc, mul_comm, mul_div_assoc]
-
-lemma div_right_comm (a : G₀) : (a / b) / c = (a / c) / b :=
-by rw [div_div_eq_div_mul, div_div_eq_div_mul, mul_comm]
 
 @[field_simps] lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
 calc a / b = c / d ↔ a / b * (b * d) = c / d * (b * d) :

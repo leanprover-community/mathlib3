@@ -82,7 +82,7 @@ le_of_pow_le_pow _ (mul_nonneg (sqrt_nonneg _) (sq_nonneg _)) nat.succ_pos' $
   ... ≤ 32 * ((2 * (x^2 + y^2 + (x + y)^2) + 2 * s^2)^4 / 4^4) :
           mul_le_mul_of_nonneg_left this zero_lt_32.le
   ... = (sqrt 2 * (x^2 + y^2 + z^2 + s^2)^2)^2 :
-          by rw [← div_mul_eq_mul_div_comm, mul_pow, sq_sqrt zero_le_two,
+          by rw [← mul_comm_div, mul_pow, sq_sqrt zero_le_two,
             hz, ← pow_mul, ← mul_add, mul_pow, ← mul_assoc];
             exact congr (congr_arg _ $ by norm_num) rfl
 

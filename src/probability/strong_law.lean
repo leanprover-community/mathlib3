@@ -404,8 +404,7 @@ begin
   ... ≤ ∑ k in range K, (2/ (k+1)) * ∫ x in k..(k+1 : ℕ), x ^ 2 ∂ρ :
     begin
       apply sum_le_sum (λ k hk, _),
-      simp_rw [← one_div],
-      refine mul_le_mul_of_nonneg_right (sum_Ioo_div_sq_le _ _) _,
+      refine mul_le_mul_of_nonneg_right (sum_Ioo_inv_sq_le _ _) _,
       refine interval_integral.integral_nonneg_of_forall _ (λ u, sq_nonneg _),
       simp only [nat.cast_add, nat.cast_one, le_add_iff_nonneg_right, zero_le_one],
     end
@@ -515,7 +514,7 @@ begin
         congr' 1,
         rw [hS, indep_fun.variance_sum],
         { assume j hj,
-          exact (hident j).ae_strongly_measurable.mem_ℒp_truncation },
+          exact (hident j).ae_strongly_measurable_fst.mem_ℒp_truncation },
         { assume k hk l hl hkl,
           exact (hindep k l hkl).comp (A k).measurable (A l).measurable }
       end
@@ -564,7 +563,7 @@ begin
         refine sum_le_sum (λ i hi, _),
         apply meas_ge_le_variance_div_sq,
         { exact mem_ℒp_finset_sum' _
-            (λ j hj, (hident j).ae_strongly_measurable.mem_ℒp_truncation) },
+            (λ j hj, (hident j).ae_strongly_measurable_fst.mem_ℒp_truncation) },
         { apply mul_pos (nat.cast_pos.2 _) εpos,
           refine zero_lt_one.trans_le _,
           apply nat.le_floor,

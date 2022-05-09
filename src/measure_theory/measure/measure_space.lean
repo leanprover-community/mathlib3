@@ -932,7 +932,7 @@ begin
     simp [map_of_not_ae_measurable, hf, hg] }
 end
 
-@[simp] lemma map_smul (c : ℝ≥0∞) (μ : measure α) (f : α → β) :
+@[simp] protected lemma map_smul (c : ℝ≥0∞) (μ : measure α) (f : α → β) :
   (c • μ).map f = c • μ.map f :=
 begin
   rcases eq_or_ne c 0 with rfl|hc, { simp },

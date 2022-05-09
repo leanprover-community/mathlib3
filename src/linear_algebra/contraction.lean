@@ -61,7 +61,7 @@ by { dunfold dual_tensor_hom, rw uncurry_apply, refl, }
 by { ext f' m', simp only [dual.transpose_apply, coe_comp, function.comp_app, dual_tensor_hom_apply,
   map_smulₛₗ, ring_hom.id_apply, algebra.id.smul_eq_mul, dual.eval_apply, smul_apply],
   exact mul_comm _ _ }
-  
+
 @[simp] lemma comp_dual_tensor_hom (f : module.dual R M) (n : N) (g : module.dual R N) (p : P) :
   (dual_tensor_hom R N P (g ⊗ₜ[R] p)) ∘ₗ (dual_tensor_hom R M N (f ⊗ₜ[R] n)) =
   g n • dual_tensor_hom R M P (f ⊗ₜ p) :=

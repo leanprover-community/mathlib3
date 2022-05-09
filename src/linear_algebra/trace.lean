@@ -168,14 +168,10 @@ end
 
 variables (R M)
 
-theorem trace_dual_map : trace R (module.dual R M) ∘ₗ module.dual.transpose = trace R M :=
+@[simp] theorem trace_transpose : trace R (module.dual R M) ∘ₗ module.dual.transpose = trace R M :=
 begin
   refine (cancel_right (dual_tensor_hom_equiv R M M).surjective).1 _,
-  ext f m,
-  simp only [tensor_product.algebra_tensor_module.curry_apply, to_fun_eq_coe,
-  tensor_product.curry_apply, coe_restrict_scalars_eq_coe, coe_comp, function.comp_app,
-  transpose_dual_tensor_hom, trace_eq_contract, contract_left_apply, trace_eq_contract_apply,
-  module.dual.eval_apply],
+  ext f m, simp,
 end
 
 theorem trace_comp_comm :
@@ -191,6 +187,10 @@ begin
 end
 
 variables {R M N}
+
+@[simp]
+theorem trace_transpose' (f : M →ₗ[R] M) : trace R _ (module.dual.transpose f) = trace R M f :=
+by { rw [←comp_apply, trace_transpose] }
 
 theorem trace_comp_comm' (f : M →ₗ[R] N) (g : N →ₗ[R] M) :
   trace R M (g ∘ₗ f) = trace R N (f ∘ₗ g) :=

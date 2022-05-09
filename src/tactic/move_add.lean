@@ -31,8 +31,6 @@ around a sum.
 
 ##  Future work
 
-* Currently, `_`s in user input generate side-goals that Lean should be able to close automatically.
-  Is it possible to get Lean to actually solve these goals right away and not display them?
 * Add support for `neg` and additive groups?
 * Add optional different operations than `+`, most notably `*`?
 * Add functionality for moving terms across the two sides of an in/dis/equality.
@@ -82,7 +80,7 @@ meta def list.unify_list : list (bool × expr) → list expr → list bool →
 /--  Given a list of pairs `bool × pexpr`, we convert it to a list of `bool × expr`. -/
 meta def list.convert_to_expr (lp : list (bool × pexpr)) : tactic (list (bool × expr)) :=
 lp.mmap $ λ x : bool × pexpr, do
-  e ← to_expr x.2,
+  e ← to_expr x.2 tt ff,
   return (x.1, e)
 
 /--  We combine the previous steps.

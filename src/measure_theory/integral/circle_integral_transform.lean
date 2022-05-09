@@ -99,15 +99,6 @@ begin
     (circle_integral_transform_cont_on_Icc R hR f z w hf hw),
 end
 
-lemma circle_integral_transform_cont_on (R : ℝ) (hR : 0 < R) (f : ℂ → E) (z w : ℂ)
-  (hf : continuous_on f (sphere z R)) (hw : w ∈ ball z R):
-  continuous_on (circle_integral_transform R z w f) (Ι 0 (2 * π)) :=
-begin
- apply (circle_integral_transform_cont_on_Icc R hR f z w hf hw).mono,
- simp_rw [interval_oc_of_le (real.two_pi_pos.le), interval_of_le (real.two_pi_pos.le),
- Ioc_subset_Icc_self],
-end
-
 /--A useful bound for circle integrals (with complex codomain)-/
 def circle_integral_bounding_function (R : ℝ) (z : ℂ) : (ℂ × ℝ → ℂ) :=
   λ w, circle_integral_transform_deriv R z w.1 (λ x, 1) w.2
@@ -163,15 +154,6 @@ begin
   simp only [set_coe.forall, mem_prod, mem_closed_ball, subtype.coe_mk, and_imp, prod.forall,
   set_coe.exists, exists_prop, prod.exists, comp_app] at *,
   apply this,
-end
-
-lemma circle_integral_transform_deriv_cont_on (R : ℝ) (hR : 0 < R) (f : ℂ → E) (z w : ℂ)
-  (hf : continuous_on f (sphere z R)) (hw : w ∈ ball z R) :
-  continuous_on (circle_integral_transform_deriv R z w f ) (Ι 0 (2*π)) :=
-begin
- apply (circle_integral_transform_deriv_cont_on_Icc R hR f z w hf hw).mono,
- simp_rw [interval_oc_of_le (real.two_pi_pos.le), interval_of_le (real.two_pi_pos.le),
- Ioc_subset_Icc_self],
 end
 
 /--The derivative of a `circle_integral_transform` is bounded by a continuous function -/

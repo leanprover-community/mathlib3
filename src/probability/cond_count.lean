@@ -8,7 +8,7 @@ import probability.conditional
 /-!
 # Classical probability
 
-The classical formulation of probability states that the probability of an event occuring is the
+The classical formulation of probability states that the probability of an event occurring is the
 ratio of that event to all possible events. This notion can be expressed with measure theory using
 the counting measure. In particular, given the sets `s` and `t`, we define the probability of `t`
 occuring in `s` to be `|s|⁻¹ * |s ∩ t|`. With this definition, we recover the the probability over

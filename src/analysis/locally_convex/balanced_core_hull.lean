@@ -266,8 +266,9 @@ end balanced_hull
 
 section topology
 
-variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
-  [has_continuous_smul 𝕜 E]
+section
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
+  [has_continuous_const_smul 𝕜 E]
 
 lemma balanced_core_is_closed {U : set E} (hU : is_closed U) : is_closed (balanced_core 𝕜 U) :=
 begin
@@ -282,6 +283,10 @@ begin
   contrapose! h,
   exact balanced_core_nonempty_iff.mp (set.ne_empty_iff_nonempty.mp h),
 end
+end
+
+variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
+  [has_continuous_smul 𝕜 E]
 
 lemma balanced_core_mem_nhds_zero {U : set E} (hU : U ∈ 𝓝 (0 : E)) :
   balanced_core 𝕜 U ∈ 𝓝 (0 : E) :=
@@ -316,8 +321,8 @@ end
 
 variables (𝕜 E)
 
-lemma nhds_basis_closed_balanced [regular_space E] : (𝓝 (0 : E)).has_basis
-  (λ (s : set E), s ∈ 𝓝 (0 : E) ∧ is_closed s ∧ balanced 𝕜 s) id :=
+lemma nhds_basis_closed_balanced [has_continuous_smul 𝕜 E] [regular_space E] :
+  (𝓝 (0 : E)).has_basis (λ (s : set E), s ∈ 𝓝 (0 : E) ∧ is_closed s ∧ balanced 𝕜 s) id :=
 begin
   refine (closed_nhds_basis 0).to_has_basis (λ s hs, _) (λ s hs, ⟨s, ⟨hs.1, hs.2.1⟩, rfl.subset⟩),
   refine ⟨balanced_core 𝕜 s, ⟨balanced_core_mem_nhds_zero hs.1, _⟩, balanced_core_subset s⟩,

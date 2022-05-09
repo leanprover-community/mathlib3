@@ -54,14 +54,11 @@ by simp [cond_count]
 lemma cond_count_empty {s : set α} : cond_count s ∅ = 0 :=
 by simp
 
-lemma finite_of_cond_count_ne_zero {s t : set α}
-  (hs : measurable_set s) (h : cond_count s t ≠ 0) :
+lemma finite_of_cond_count_ne_zero {s t : set α} (h : cond_count s t ≠ 0) :
   s.finite :=
 begin
   by_contra hs',
-  rw [cond_count, cond_apply _ hs, measure.count_apply_infinite hs',
-    ennreal.inv_top, zero_mul] at h,
-  simpa using h,
+  simpa [cond_count, cond, measure.count_apply_infinite hs'] using h,
 end
 
 variables [measurable_singleton_class α]
@@ -108,11 +105,11 @@ begin
   exact measure_mono ht,
 end
 
-lemma pred_true_of_cond_count_eq_one (hs : measurable_set s)
-  (h : cond_count s t = 1) : s ⊆ t :=
+lemma pred_true_of_cond_count_eq_one (h : cond_count s t = 1) :
+  s ⊆ t :=
 begin
-  have hsf := finite_of_cond_count_ne_zero hs (by { rw h, exact one_ne_zero }),
-  rw [cond_count, cond_apply _ hs, mul_comm] at h,
+  have hsf := finite_of_cond_count_ne_zero (by { rw h, exact one_ne_zero }),
+  rw [cond_count, cond_apply _ hsf.measurable_set, mul_comm] at h,
   replace h := ennreal.eq_inv_of_mul_eq_one h,
   rw [inv_inv, measure.count_apply_finite _ hsf,
     measure.count_apply_finite _ (hsf.inter_of_left _), nat.cast_inj] at h,

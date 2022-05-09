@@ -106,7 +106,6 @@ meta def get_summands : expr → list expr
 | `(%%a + %%b) := get_summands a ++ get_summands b
 | a            := [a]
 
---review the doc-string
 /-- `sorted_sum` takes an optional location name `hyp` for where it will be applied, a list `ll` of
 `bool × pexpr` (arising as the user-provided input to `move_add`) and an expression `e`.
 

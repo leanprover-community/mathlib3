@@ -25,8 +25,8 @@ We follow the proof by Etemadi, which goes as follows.
 
 It suffices to prove the result for nonnegative `X`, as one can prove the general result by
 splitting a general `X` into its positive part and negative part.
-Consider `Xₙ` a sequence of integrable identically distributed pairwise independent random
-variables. Let `Yₙ` be the truncation of `Xₙ` up to `n`. We claim that
+Consider `Xₙ` a sequence of nonnegative integrable identically distributed pairwise independent
+random variables. Let `Yₙ` be the truncation of `Xₙ` up to `n`. We claim that
 * Almost surely, `Xₙ = Yₙ` for all but finitely many indices. Indeed, `∑ ℙ (Xₙ ≠ Yₙ)` is bounded by
   `1 + 𝔼[X]` (see `sum_prob_mem_Ioc_le` and `tsum_prob_mem_Ioi_lt_top`).
 * Let `c > 1`. Along the sequence `n = c ^ k`, then `(∑_{i=0}^{n-1} Yᵢ - 𝔼[Yᵢ])/n` converges almost

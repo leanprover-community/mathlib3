@@ -299,7 +299,7 @@ local attribute [simp] mul_assoc mul_comm mul_left_comm div_eq_mul_inv
 @[to_additive] lemma one_div_mul_one_div : (1 / a) * (1 / b) =  1 / (a * b) := by simp
 
 @[to_additive] lemma div_right_comm : a / b / c = a / c / b := by simp
-@[to_additive] lemma div_div : a / b / c = a / (b * c) := by simp
+@[to_additive, field_simps] lemma div_div : a / b / c = a / (b * c) := by simp
 @[to_additive] lemma div_mul : a / b * c = a / (b / c) := by simp
 @[to_additive] lemma mul_div_left_comm : a * (b / c) = b * (a / c) := by simp
 @[to_additive] lemma mul_div_right_comm : a * b / c = a / c * b := by simp

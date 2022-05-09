@@ -109,8 +109,12 @@ We also generate additive structures on `αᵃᵒᵖ` using `to_additive`
 @[to_additive add_opposite.subtraction_monoid] instance [division_monoid α] :
   division_monoid αᵐᵒᵖ :=
 { mul_inv_rev := λ a b, unop_injective $ mul_inv_rev _ _,
-  inv_eq_of_mul := λ a b h, unop_injective $ inv_eq_of_mul_eq_one_right $ congr_arg unop h,
+  inv_eq_of_mul := λ a b h, unop_injective $ inv_eq_of_mul_eq_one_left $ congr_arg unop h,
   .. mul_opposite.div_inv_monoid α, .. mul_opposite.has_involutive_inv α }
+
+@[to_additive add_opposite.subtraction_comm_monoid] instance [division_comm_monoid α] :
+  division_comm_monoid αᵐᵒᵖ :=
+{ ..mul_opposite.division_monoid α, ..mul_opposite.comm_semigroup α }
 
 @[to_additive] instance [group α] : group αᵐᵒᵖ :=
 { mul_left_inv := λ x, unop_injective $ mul_inv_self $ unop x,

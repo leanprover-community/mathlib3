@@ -453,20 +453,19 @@ begin
   { simp only [←filter_dvd_eq_divisors hc0.ne', sum_card_order_of_eq_card_pow_eq_one hc0],
     apply congr_arg card,
     simp }
-  ... = ∑ m in (c.divisors).erase d,
-    (univ.filter (λ a : α, order_of a = m)).card : by
+  ... = ∑ m in c.divisors.erase d, (univ.filter (λ a : α, order_of a = m)).card : by
   { rw eq_comm,
     refine (sum_subset (erase_subset _ _) (λ m hm₁ hm₂, _)),
     have : m = d, by { contrapose! hm₂, exact mem_erase_of_ne_of_mem hm₂ hm₁ },
     simp [this, h0] }
-  ... ≤ ∑ m in (c.divisors).erase d, φ m : by
+  ... ≤ ∑ m in c.divisors.erase d, φ m : by
   { refine sum_le_sum (λ m hm, _),
     have hmc : m ∣ c, { simp only [mem_erase, mem_divisors] at hm, tauto },
     rcases (filter (λ (a : α), order_of a = m) univ).card.eq_zero_or_pos with h1 | h1,
-    { simp [h1] }, { simp [(card_order_of_eq_totient_aux₁ hn hmc) h1] } }
-  ... < φ d + ∑ m in (c.divisors).erase d, φ m : by
+    { simp [h1] }, { simp [card_order_of_eq_totient_aux₁ hn hmc h1] } }
+  ... < φ d + ∑ m in c.divisors.erase d, φ m : by
   { exact lt_add_of_pos_left _ (totient_pos (pos_of_dvd_of_pos hd hc0)) }
-  ... = ∑ m in insert d ((c.divisors).erase d), φ m : by
+  ... = ∑ m in insert d (c.divisors.erase d), φ m : by
   { refine (sum_insert _).symm, simp }
   ... = ∑ m in c.divisors, φ m : by
   { refine finset.sum_congr (insert_erase _) (λ _ _, rfl), simp [hd, hc0.ne'] }

@@ -1288,11 +1288,16 @@ by rw [map_at_top_eq, map_at_top_eq];
 from (le_infi $ assume b, let ⟨v, hv⟩ := h_eq b in infi_le_of_le v $
   by simp [set.image_subset_iff]; exact hv)
 
-lemma has_antitone_basis.tendsto [semilattice_sup ι] [nonempty ι] {l : filter α}
+lemma has_antitone_basis.eventually_subset [preorder ι] {l : filter α}
+  {s : ι → set α} (hl : l.has_antitone_basis s) {t : set α} (ht : t ∈ l) :
+  ∀ᶠ i in at_top, s i ⊆ t :=
+let ⟨i, _, hi⟩ := hl.to_has_basis.mem_iff.1 ht
+in (eventually_ge_at_top i).mono $ λ j hj, (hl.antitone hj).trans hi
+
+protected lemma has_antitone_basis.tendsto [preorder ι] {l : filter α}
   {s : ι → set α} (hl : l.has_antitone_basis s) {φ : ι → α}
   (h : ∀ i : ι, φ i ∈ s i) : tendsto φ at_top l  :=
-(at_top_basis.tendsto_iff hl.to_has_basis).2 $ assume i hi,
-  ⟨i, trivial, λ j hij, hl.antitone hij (h _)⟩
+λ t ht, mem_map.2 $ (hl.eventually_subset ht).mono $ λ i hi, hi (h i)
 
 /-- If `f` is a nontrivial countably generated filter, then there exists a sequence that converges
 to `f`. -/

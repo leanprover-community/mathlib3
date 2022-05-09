@@ -68,10 +68,10 @@ iff.intro (λ h, mul_left_cancel ((mul_one p).symm ▸ h.eq : p * p = p * 1)) (�
 @[simp] lemma iff_eq_zero_or_one {p : G₀}  : is_idempotent_elem p ↔ p = 0 ∨ p = 1 :=
 begin
   refine iff.intro
-    (λ h, or.elim (em (p = 0)) (λ hp, or.inl hp) (λ hp, _))
-    (λ h, or.elim h (λ hp, hp.symm ▸ zero) (λ hp, hp.symm ▸ one)),
-  lift p to G₀ˣ using is_unit_iff_ne_zero.mpr hp,
-  exact or.inr (by exact_mod_cast iff_eq_one.mp (by exact_mod_cast h.eq)),
+    (λ h, or_iff_not_imp_left.mpr (λ hp, _))
+    (λ h, h.elim (λ hp, hp.symm ▸ zero) (λ hp, hp.symm ▸ one)),
+  lift p to G₀ˣ using is_unit.mk0 _ hp,
+  exact_mod_cast iff_eq_one.mp (by exact_mod_cast h.eq),
 end
 
 /-! ### Instances on `subtype is_idempotent_elem` -/

@@ -50,7 +50,7 @@ example {F} [field F] : nat_degree (X : F[X]) = 1 :=
 begin
   compute_degree,
 end
--/
+--/
 
 --  The first `compute_degree` fails since there are non-closed `ℕ`-expressions.
 --  The second one works, since the non-closed expressions are gone.
@@ -65,3 +65,23 @@ begin
   refine ((le_of_eq (by simp : _ = 0)).trans_lt _),
   exact lt_of_lt_of_le nat.succ_pos' this.ge
 end
+
+example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
+  C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X : R[X]) ≤ 10 :=
+by compute_degree_le
+
+/-  fails with error message `should the degree bound be '10'?`
+example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
+  C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X : R[X]) ≤ 9 :=
+by compute_degree_le
+-/
+
+example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
+  C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X : R[X]) ≤ 11 :=
+by compute_degree_le
+
+example : nat_degree (monomial 0 c * monomial 0 c + monomial 0 d + C 1 + C a * X ^ 0 : R[X]) ≤ 0 :=
+by compute_degree_le
+
+example : nat_degree (C 1 : R[X]) ≤ 0 :=
+by compute_degree_le

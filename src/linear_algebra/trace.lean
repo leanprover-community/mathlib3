@@ -173,19 +173,7 @@ begin
   let e := ((dual_tensor_hom_equiv R M M).prod (dual_tensor_hom_equiv R N N)),
   have h : function.surjective e.to_linear_map := e.surjective,
   refine (cancel_right h).1 _,
-  ext,
-  { simp only [dual_tensor_hom_equiv, tensor_product.algebra_tensor_module.curry_apply,
-  to_fun_eq_coe, tensor_product.curry_apply, coe_restrict_scalars_eq_coe, coe_comp,
-  linear_equiv.coe_to_linear_map, coe_inl, function.comp_app, linear_equiv.prod_apply,
-  dual_tensor_hom_equiv_of_basis_apply, map_zero, prod_map_apply, coprod_apply, id_coe, id.def,
-  add_zero, prod_map_linear_apply, dual_tensor_hom_prod_map_zero, trace_eq_contract_apply,
-  contract_left_apply, fst_apply] },
-  { simp only [dual_tensor_hom_equiv, tensor_product.algebra_tensor_module.curry_apply,
-  to_fun_eq_coe, tensor_product.curry_apply, coe_restrict_scalars_eq_coe, coe_comp,
-  linear_equiv.coe_to_linear_map, coe_inr, function.comp_app, linear_equiv.prod_apply,
-  dual_tensor_hom_equiv_of_basis_apply, map_zero, prod_map_apply, coprod_apply, id_coe, id.def,
-  zero_add, prod_map_linear_apply, zero_prod_map_dual_tensor_hom, trace_eq_contract_apply,
-  contract_left_apply, snd_apply], },
+  ext; simp,
 end
 
 variables {R M N}

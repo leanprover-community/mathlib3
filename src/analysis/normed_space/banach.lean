@@ -52,7 +52,7 @@ end continuous_linear_map
 noncomputable def continuous_linear_equiv.to_nonlinear_right_inverse (f : E ≃L[𝕜] F) :
   continuous_linear_map.nonlinear_right_inverse (f : E →L[𝕜] F) :=
 { to_fun := f.inv_fun,
-  nnnorm := nnnorm (f.symm : F →L[𝕜] E),
+  nnnorm := ∥(f.symm : F →L[𝕜] E)∥₊,
   bound' := λ y, continuous_linear_map.le_op_norm (f.symm : F →L[𝕜] E) _,
   right_inv' := f.apply_symm_apply }
 

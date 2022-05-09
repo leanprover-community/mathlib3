@@ -118,19 +118,19 @@ limit.iso_limit_cone (binary_product_limit_cone X Y)
 
 @[simp, elementwise] lemma binary_product_iso_hom_comp_fst (X Y : Type u) :
   (binary_product_iso X Y).hom ≫ prod.fst = limits.prod.fst :=
-limit.iso_limit_cone_hom_π (binary_product_limit_cone X Y) walking_pair.left
+limit.iso_limit_cone_hom_π (binary_product_limit_cone X Y) ⟨walking_pair.left⟩
 
 @[simp, elementwise] lemma binary_product_iso_hom_comp_snd (X Y : Type u) :
   (binary_product_iso X Y).hom ≫ prod.snd = limits.prod.snd :=
-limit.iso_limit_cone_hom_π (binary_product_limit_cone X Y) walking_pair.right
+limit.iso_limit_cone_hom_π (binary_product_limit_cone X Y) ⟨walking_pair.right⟩
 
 @[simp, elementwise] lemma binary_product_iso_inv_comp_fst (X Y : Type u) :
   (binary_product_iso X Y).inv ≫ limits.prod.fst = prod.fst :=
-limit.iso_limit_cone_inv_π (binary_product_limit_cone X Y) walking_pair.left
+limit.iso_limit_cone_inv_π (binary_product_limit_cone X Y) ⟨walking_pair.left⟩
 
 @[simp, elementwise] lemma binary_product_iso_inv_comp_snd (X Y : Type u) :
   (binary_product_iso X Y).inv ≫ limits.prod.snd = prod.snd :=
-limit.iso_limit_cone_inv_π (binary_product_limit_cone X Y) walking_pair.right
+limit.iso_limit_cone_inv_π (binary_product_limit_cone X Y) ⟨walking_pair.right⟩
 
 /-- The functor which sends `X, Y` to the product type `X × Y`. -/
 -- We add the option `type_md` to tell `@[simps]` to not treat homomorphisms `X ⟶ Y` in `Type*` as
@@ -187,19 +187,19 @@ open_locale category_theory.Type
 
 @[simp, elementwise] lemma binary_coproduct_iso_inl_comp_hom (X Y : Type u) :
   limits.coprod.inl ≫ (binary_coproduct_iso X Y).hom = sum.inl :=
-colimit.iso_colimit_cocone_ι_hom (binary_coproduct_colimit_cocone X Y) walking_pair.left
+colimit.iso_colimit_cocone_ι_hom (binary_coproduct_colimit_cocone X Y) ⟨walking_pair.left⟩
 
 @[simp, elementwise] lemma binary_coproduct_iso_inr_comp_hom (X Y : Type u) :
   limits.coprod.inr ≫ (binary_coproduct_iso X Y).hom = sum.inr :=
-colimit.iso_colimit_cocone_ι_hom (binary_coproduct_colimit_cocone X Y) walking_pair.right
+colimit.iso_colimit_cocone_ι_hom (binary_coproduct_colimit_cocone X Y) ⟨walking_pair.right⟩
 
 @[simp, elementwise] lemma binary_coproduct_iso_inl_comp_inv (X Y : Type u) :
   ↾(sum.inl : X ⟶ X ⊕ Y) ≫ (binary_coproduct_iso X Y).inv = limits.coprod.inl :=
-colimit.iso_colimit_cocone_ι_inv (binary_coproduct_colimit_cocone X Y) walking_pair.left
+colimit.iso_colimit_cocone_ι_inv (binary_coproduct_colimit_cocone X Y) ⟨walking_pair.left⟩
 
 @[simp, elementwise] lemma binary_coproduct_iso_inr_comp_inv (X Y : Type u) :
   ↾(sum.inr : Y ⟶ X ⊕ Y) ≫ (binary_coproduct_iso X Y).inv = limits.coprod.inr :=
-colimit.iso_colimit_cocone_ι_inv (binary_coproduct_colimit_cocone X Y) walking_pair.right
+colimit.iso_colimit_cocone_ι_inv (binary_coproduct_colimit_cocone X Y) ⟨walking_pair.right⟩
 
 /--
 The category of types has `Π j, f j` as the product of a type family `f : J → Type`.
@@ -222,7 +222,7 @@ rfl
 
 @[simp, elementwise] lemma product_iso_inv_comp_π {J : Type u} (F : J → Type u) (j : J) :
   (product_iso F).inv ≫ pi.π F j = (λ f, f j) :=
-limit.iso_limit_cone_inv_π (product_limit_cone F) j
+limit.iso_limit_cone_inv_π (product_limit_cone F) ⟨j⟩
 
 /--
 The category of types has `Σ j, f j` as the coproduct of a type family `f : J → Type`.
@@ -248,7 +248,7 @@ colimit.iso_colimit_cocone (coproduct_colimit_cocone F)
 
 @[simp, elementwise] lemma coproduct_iso_ι_comp_hom {J : Type u} (F : J → Type u) (j : J) :
   sigma.ι F j ≫ (coproduct_iso F).hom = (λ x : F j, (⟨j, x⟩ : Σ j, F j)) :=
-colimit.iso_colimit_cocone_ι_hom (coproduct_colimit_cocone F) j
+colimit.iso_colimit_cocone_ι_hom (coproduct_colimit_cocone F) ⟨j⟩
 
 @[simp, elementwise] lemma coproduct_iso_mk_comp_inv {J : Type u} (F : J → Type u) (j : J) :
   ↾(λ x : F j, (⟨j, x⟩ : Σ j, F j)) ≫ (coproduct_iso F).inv = sigma.ι F j :=

@@ -196,6 +196,19 @@ begin
   rw exp_log hx,
 end
 
+/-- Bound for `|log x * x|` in the interval `(0, 1]`. -/
+lemma abs_log_mul_self_lt (x: ℝ) (h1 : 0 < x) (h2 : x ≤ 1) : |log x * x| < 1 :=
+begin
+  have : 0 < 1/x := by simpa only [one_div, inv_pos] using h1,
+  replace := log_le_sub_one_of_pos this,
+  replace : log (1 / x) < 1/x := by linarith,
+  rw [log_div one_ne_zero h1.ne', log_one, zero_sub, lt_div_iff h1] at this,
+  have aux : 0 ≤ -log x * x,
+  { refine mul_nonneg _ h1.le, rw ←log_inv, apply log_nonneg,
+    rw [←(le_inv h1 zero_lt_one), inv_one], exact h2, },
+  rw [←(abs_of_nonneg aux), neg_mul, abs_neg] at this, exact this,
+end
+
 /-- The real logarithm function tends to `+∞` at `+∞`. -/
 lemma tendsto_log_at_top : tendsto log at_top at_top :=
 tendsto_comp_exp_at_top.1 $ by simpa only [log_exp] using tendsto_id

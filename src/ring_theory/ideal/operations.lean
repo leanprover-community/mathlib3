@@ -879,7 +879,7 @@ variables {I J : ideal R} {K L : ideal S}
 
 /-- `I.map f` is the span of the image of the ideal `I` under `f`, which may be bigger than
   the image itself. -/
-def map (I : ideal R) : ideal S :=
+def map (f : R → S) (I : ideal R) : ideal S :=
 span (f '' I)
 
 /-- `I.comap f` is the preimage of `I` under `f`. -/

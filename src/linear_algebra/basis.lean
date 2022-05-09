@@ -1191,6 +1191,94 @@ end
 
 end exists_basis
 
+namespace strictly_triangular_basis
+
+lemma subset_next_ker_of_span_eq_ker {i : ℕ} {f : V →ₗ[K] V} {s : set V}
+  (hker : span K s = (f ^ i).ker) : s ⊆ (f ^ (i + 1)).ker :=
+begin
+  have h_ker_le_ker : (f ^ i).ker ≤ (f ^ (i + 1)).ker := linear_map.ker_le_ker_comp _ _,
+  show s ⊆ (f ^ (i + 1)).ker,
+  { refine subset_trans (subset_span : s ⊆ span K s) _,
+    rw [hker],
+    exact set_like.coe_subset_coe.2 h_ker_le_ker },
+end
+
+def basis_step {i : ℕ} {f : V →ₗ[K] V} {s : set V}
+  (hs : linear_independent K (coe : s → V))
+  (hker : span K s = (f ^ i).ker) : set V :=
+hs.extend (subset_next_ker_of_span_eq_ker hker)
+
+lemma linear_independent_basis_step {i : ℕ} {f : V →ₗ[K] V} {s : set V}
+  (hs : linear_independent K (coe : s → V))
+  (hker : span K s = (f ^ i).ker) :
+  linear_independent K (coe : basis_step hs hker → V) :=
+hs.linear_independent_extend (subset_next_ker_of_span_eq_ker hker)
+
+lemma span_basis_step {i : ℕ} {f : V →ₗ[K] V} {s : set V}
+  (hs : linear_independent K (coe : s → V))
+  (hker : span K s = (f ^ i).ker) :
+  span K (basis_step hs hker) = (f ^ (i + 1)).ker :=
+hs.span_extend_eq (subset_next_ker_of_span_eq_ker hker)
+
+lemma subset_basis_step {i : ℕ} {f : V →ₗ[K] V} {s : set V}
+  (hs : linear_independent K (coe : s → V))
+  (hker : span K s = (f ^ i).ker) :
+  s ⊆ basis_step hs hker :=
+hs.subset_extend (subset_next_ker_of_span_eq_ker hker)
+
+def basis_aux (f : V →ₗ[K] V) : Π (i : ℕ),
+  { s : set V // linear_independent K (coe : s → V) ∧ span K s = (f ^ i).ker}
+| 0 := ⟨∅, begin
+    refine ⟨linear_independent_empty _ _, _⟩,
+    simpa using linear_map.ker_id.symm
+  end⟩
+| (i + 1) := ⟨basis_step (basis_aux i).property.1 (basis_aux i).property.2,
+  begin
+    split,
+    { apply linear_independent_basis_step },
+    { apply span_basis_step }
+  end⟩
+
+lemma basis_aux_subset_add (f : V →ₗ[K] V) {i j : ℕ} :
+  (basis_aux f i).val ⊆ (basis_aux f (i + j)).val :=
+begin
+  induction j with j hj,
+  { exact subset_refl _ },
+  { refine (subset_trans hj) _,
+    rw [nat.add_succ],
+    exact subset_basis_step
+      (basis_aux f (i + j)).property.1
+      (basis_aux f (i + j)).property.2 }
+end
+
+def strictly_triangular_basis_set (f : V →ₗ[K] V) (n : ℕ) : set V :=
+  (basis_aux f n).val
+
+def strictly_triangular_basis {f : V →ₗ[K] V} {n : ℕ} (hf : f ^ n = 0) :
+  basis (strictly_triangular_basis_set f n) K V :=
+begin
+  refine basis.mk (basis_aux f n).property.1 _,
+  rw [subtype.range_coe, (basis_aux f n).property.2,
+    hf, linear_map.ker_zero]
+end
+
+lemma strictly_triangular_basis_set_subset_ker {f : V →ₗ[K] V} {n : ℕ} :
+  strictly_triangular_basis_set f n ⊆ (f ^ n).ker :=
+begin
+  rw [← (basis_aux f n).property.2],
+  apply subset_span
+end
+
+def smallest_ker
+#check Nat.find
+
+def strictly_triangular_order {f : V →ₗ[K] V} {n : ℕ}
+  (x y : strictly_triangular_basis_set f n) : Prop :=
+
+def
+
+end strictly_triangular_basis
+
 end basis
 
 open fintype

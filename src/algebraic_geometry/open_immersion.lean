@@ -778,15 +778,18 @@ lemma sigma_ι_open_embedding : open_embedding (colimit.ι F i).base :=
 begin
   rw ← (show _ = (colimit.ι F i).base,
     from ι_preserves_colimits_iso_inv (SheafedSpace.forget C) F i),
-  have : _ = _ ≫ colimit.ι (discrete.functor (F ⋙ SheafedSpace.forget C).obj) i :=
+  have : _ = _ ≫ colimit.ι (discrete.functor ((F ⋙ SheafedSpace.forget C).obj ∘ discrete.mk)) i :=
     has_colimit.iso_of_nat_iso_ι_hom discrete.nat_iso_functor i,
   rw ← iso.eq_comp_inv at this,
   rw this,
-  have : colimit.ι _ _ ≫ _ = _ := Top.sigma_iso_sigma_hom_ι (F ⋙ SheafedSpace.forget C).obj i,
+  have : colimit.ι _ _ ≫ _ = _ :=
+    Top.sigma_iso_sigma_hom_ι ((F ⋙ SheafedSpace.forget C).obj ∘ discrete.mk) i.as,
   rw ← iso.eq_comp_inv at this,
+  cases i,
   rw this,
   simp_rw [← category.assoc, Top.open_embedding_iff_comp_is_iso,
     Top.open_embedding_iff_is_iso_comp],
+  dsimp,
   exact open_embedding_sigma_mk
 end
 
@@ -805,10 +808,11 @@ begin
   rw ι_preserves_colimits_iso_inv at eq,
   change ((SheafedSpace.forget C).map (colimit.ι F i) ≫ _) y =
     ((SheafedSpace.forget C).map (colimit.ι F j) ≫ _) x at eq,
+  cases i, cases j,
   rw [ι_preserves_colimits_iso_hom_assoc, ι_preserves_colimits_iso_hom_assoc,
     has_colimit.iso_of_nat_iso_ι_hom_assoc, has_colimit.iso_of_nat_iso_ι_hom_assoc,
     Top.sigma_iso_sigma_hom_ι, Top.sigma_iso_sigma_hom_ι] at eq,
-  exact h (congr_arg sigma.fst eq)
+  exact h (congr_arg discrete.mk (congr_arg sigma.fst eq)),
 end
 
 instance sigma_ι_is_open_immersion [has_strict_terminal_objects C] :

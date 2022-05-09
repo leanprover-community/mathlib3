@@ -11,7 +11,47 @@ import data.polynomial.degree.lemmas
 This file defines two main tactics `compute_degree` and `compute_degree_le`.
 Applied when the goal is of the form `f.nat_degree = d` or `f.nat_degree ≤ d`, they try to solve it.
 
-See the corresponding doc-strings for more details. -/
+See the corresponding doc-strings for more details.
+
+##  Implementation details
+
+We start with a goal of the form `f.nat_degree = d` (the case `f.nat_degree ≤ d` follows a similar,
+easier pattern).
+
+First, we focus on an elementary term of the polynomial `f` and we extract the degree in easy cases:
+if `f` is
+* `monomial n r`, then we guess `n`,
+* `C a`, then we guess `0`,
+* `polynomial.X`, then we guess `1`,
+* `X ^ n`, then we guess `n`,
+* everything else, then we guess `f.nat_degree`.
+This happens in `extract_deg_single_term`.
+
+Second, with input a product, we sum the guesses made above on each factor and add them up.
+This happens in `extract_deg_single_summand`.
+
+Third, we scan the summands of `f`, searching for one with highest guessed degree.  Here, if a
+guess is not a closed term of type `ℕ`, the tactic fails.  This could be improved, but is not
+currently in scope.  We return the first term with highest degree and the guessed degree.
+This happens in `extract_top_degree_term_and_deg`.
+
+Now, `compute_degree_le` chains together a few lemmas to conclude.  It guesses that the degree of a
+sum of terms is at most the degree of each individual term.
+
+_Heuristic:_ there is no cancellation among the terms, at least the ones of highest degree.
+
+Finally, `compute_degree` takes one extra step.  It isolates the term of highest guessed degree
+and assumes that all remaining terms have smaller degree.  It checks that the degree of the highest
+term is what it is claimed (and further assumes that the highest term is a pure `X`-power, `X ^ n`).
+`compute_degree` then outsources the rest of the computation to `compute_degree_le`, once the goal
+has been appropriately replaced.
+
+###  Error reporting
+The tactics report that
+* naturals involving variables are not allowed in exponents;
+* when a simple lemma application would have sufficed (via a `Try this: ...`);
+* when the guessed degree is incompatible with the goal, suggesting a sharper value.
+-/
 
 namespace polynomial
 open_locale polynomial
@@ -142,6 +182,18 @@ do `(polynomial.nat_degree %%tl = %%tr) ← target,
     rw [polynomial.nat_degree_X_pow],
     refine nat.lt_succ_of_le _ ],
   compute_degree_le
+
+add_tactic_doc
+{ name := "compute_degree_le",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.compute_degree],
+  tags := ["arithmetic"] }
+
+add_tactic_doc
+{ name := "compute_degree",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.compute_degree],
+  tags := ["arithmetic, finishing"] }
 
 
 end tactic.interactive

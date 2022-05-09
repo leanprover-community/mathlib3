@@ -454,11 +454,10 @@ begin
   { apply congr_arg card, simp [finset.ext_iff, c] },
   { rw ←sum_card_order_of_eq_card_pow_eq_one hc0,
     exact sum_congr (filter_dvd_eq_divisors hc0.ne') (λ y hy, rfl) },
-  {
-    -- eq.symm (sum_subset (erase_subset _ _) (λ m hm₁ hm₂,
-    --   have m = d, by simp at *; cc,
-    --   by simp [*, finset.ext_iff] at *; exact h0))
-    sorry },
+  { rw eq_comm,
+    refine (sum_subset (erase_subset _ _) (λ m hm₁ hm₂, _)),
+    have : m = d, by { contrapose! hm₂, exact mem_erase_of_ne_of_mem hm₂ hm₁ },
+    rwa this },
   { sorry },
   { sorry },
   { sorry },

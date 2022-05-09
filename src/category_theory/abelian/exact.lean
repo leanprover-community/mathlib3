@@ -339,14 +339,10 @@ end
 instance preserves_binary_product_of_preserves_kernels
   [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] {X Y : C} :
   preserves_limit (pair X Y) F :=
-{ preserves := λ c,
-  begin
-    have : c = binary_fan.mk (binary_fan.fst c) (binary_fan.snd c),
-    { cases c, simp only [binary_fan.mk, const.obj_obj, eq_self_iff_true, heq_iff_eq, true_and],
-      ext, cases x; refl },
-    rw this,
-    apply is_limit_map_cone_binary_fan_of_preserves_kernels F
-  end }
+{ preserves := λ c hc, is_limit.of_iso_limit
+    (is_limit_map_cone_binary_fan_of_preserves_kernels F _ _
+      (is_limit.of_iso_limit hc (iso_binary_fan_mk c)))
+    ((cones.functoriality _ F).map_iso (iso_binary_fan_mk c).symm) }
 
 instance preserves_binary_products_of_preserves_kernels
   [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] :
@@ -378,14 +374,10 @@ end
 instance preserves_coproduct_of_preserves_cokernels
   [pres_cokernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] {X Y : C} :
   preserves_colimit (pair X Y) F :=
-{ preserves := λ c,
-  begin
-    have : c = binary_cofan.mk (binary_cofan.inl c) (binary_cofan.inr c),
-    { cases c, simp only [binary_cofan.mk, const.obj_obj, eq_self_iff_true, heq_iff_eq, true_and],
-      ext, cases x; refl },
-    rw this,
-    apply is_colimit_map_cocone_binary_cofan_of_preserves_cokernels F
-  end }
+{ preserves := λ c hc, is_colimit.of_iso_colimit
+    (is_colimit_map_cocone_binary_cofan_of_preserves_cokernels F _ _
+      (is_colimit.of_iso_colimit hc (iso_binary_cofan_mk c)))
+    ((cocones.functoriality _ F).map_iso (iso_binary_cofan_mk c).symm) }
 
 instance preserves_binary_coproducts_of_preserves_cokernels
   [pres_cokernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] :

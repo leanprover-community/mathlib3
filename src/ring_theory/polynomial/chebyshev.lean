@@ -252,7 +252,7 @@ lemma mul_T :
   have h₂ := T_add_two R (2 * m + k + 2),
   have h₃ := T_add_two R k,
   -- the desired identity is an appropriate linear combination of H₁, H₂, h₁, h₂, h₃
-  linear_combination (h₁, 2 * T R (m + k + 2)) (H₁, 2 * X) (H₂, -1) (h₂, -1) (h₃, -1),
+  linear_combination 2 * T R (m + k + 2) * h₁ + 2 * X * H₁ - H₂ - h₂ - h₃,
 end
 
 /-- The `(m * n)`-th Chebyshev polynomial is the composition of the `m`-th and `n`-th -/

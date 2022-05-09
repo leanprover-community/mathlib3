@@ -44,7 +44,7 @@ begin
       have hy2z2 : y ^ 2 + z ^ 2 ≠ 0 := ne_of_gt (add_pos (pow_pos hy 2) (pow_pos hz 2)),
       have hz2y2 : z ^ 2 + y ^ 2 ≠ 0 := ne_of_gt (add_pos (pow_pos hz 2) (pow_pos hy 2)),
       have hp2 : w ^ 2 * x ^ 2 = y ^ 2 * z ^ 2,
-      { linear_combination (hprod, w * x + y * z) },
+      { linear_combination (w * x + y * z)*hprod },
       field_simp [ne_of_gt hw, ne_of_gt hx, ne_of_gt hy, ne_of_gt hz, hy2z2, hz2y2, hp2],
       ring } },
 
@@ -66,7 +66,7 @@ begin
     have hx_ne_0 : x ≠ 0 := ne_of_gt hx,
     have hfx_ne_0 : f(x) ≠ 0, { specialize H₁ x hx, exact ne_of_gt H₁ },
     field_simp at H₂ ⊢,
-    linear_combination (H₂, 1/2) },
+    linear_combination 1/2 * H₂ },
 
   have h₃ : ∀ x > 0, f(x) = x ∨ f(x) = 1 / x, { simpa [sub_eq_zero] using h₂ },
 
@@ -90,7 +90,7 @@ begin
   -- f(ab) = ab → b^4 = 1 → b = 1 → f(b) = b → false
   { field_simp [hab₁] at H₂,
     field_simp [ne_of_gt hb] at H₂,
-    have hb₁ : b ^ 4 = 1 := by linear_combination (H₂, -1),
+    have hb₁ : b ^ 4 = 1 := by linear_combination -H₂,
     obtain hb₂ := abs_eq_one_of_pow_eq_one b 4 (show 4 ≠ 0, by norm_num) hb₁,
     rw abs_of_pos hb at hb₂, rw hb₂ at hfb₁, exact hfb₁ h₁ },
 

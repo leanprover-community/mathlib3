@@ -8,7 +8,8 @@ import algebraic_topology.dold_kan.homotopies
 import data.nat.parity
 import tactic.ring_exp
 
-/-
+/-!
+
 # Study of face maps for the Dold-Kan correspondence
 
 TODO (@joelriou) continue adding the various files references below

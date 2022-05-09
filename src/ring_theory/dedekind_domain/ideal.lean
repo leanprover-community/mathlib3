@@ -863,8 +863,7 @@ section
 
 open ideal
 
-variables {R } {A} [is_domain R] [is_dedekind_domain R] [is_dedekind_domain A]
-  {I : ideal R} {J : ideal A}
+variables {R } {A} [is_domain R] [is_dedekind_domain A] {I : ideal R} {J : ideal A}
 
 @[simps]
 def ideal_factors_fun_of_quot_hom (f : R ⧸ I →+* A ⧸ J) (hf : function.surjective f) :
@@ -887,6 +886,8 @@ def ideal_factors_fun_of_quot_hom (f : R ⧸ I →+* A ⧸ J) (hf : function.sur
       rwa [map_le_iff_le_comap, comap_map_of_surjective _ quotient.mk_surjective,
         ← ring_hom.ker_eq_comap_bot, mk_ker, sup_eq_left.mpr $ le_of_dvd hY],
     end }
+
+variable [is_dedekind_domain R]
 
 lemma ideal_factors_fun_of_quot_hom_inv_of_equiv (f : R ⧸ I ≃+* A ⧸ J) :
   function.left_inverse (ideal_factors_fun_of_quot_hom (f : R ⧸ I →+* A ⧸ J)  f.surjective)

@@ -1344,6 +1344,13 @@ def pseudo_metric_space.induced {α β} (f : α → β)
       exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
+/-- Pull back a pseudometric space structure by an inducing map. This is a version of
+`pseudo_metric_space.induced` useful in case if the domain already has a `topological_space`
+structure. -/
+def inducing.comap_pseudo_metric_space {α β} [topological_space α] [pseudo_metric_space β]
+  {f : α → β} (hf : inducing f) : pseudo_metric_space α :=
+(pseudo_metric_space.induced f ‹_›).replace_topology hf.induced
+
 /-- Pull back a pseudometric space structure by a uniform inducing map. This is a version of
 `pseudo_metric_space.induced` useful in case if the domain already has a `uniform_space`
 structure. -/

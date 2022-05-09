@@ -333,36 +333,6 @@ have hinsert₁ : d.succ ∉ (range d.succ).filter (∣ d.succ),
 
 
 
-lemma card_order_of_eq_totient_aux₂ {d : ℕ} (hd : d ∣ fintype.card α) :
-  (univ.filter (λ a : α, order_of a = d)).card = φ d :=
-by_contradiction $ λ h,
-have h0 : (univ.filter (λ a : α , order_of a = d)).card = 0 :=
-  not_not.1 (mt pos_iff_ne_zero.2 (mt (card_order_of_eq_totient_aux₁ hn hd) h)),
-let c := fintype.card α in
-have hc0 : 0 < c, from fintype.card_pos_iff.2 ⟨1⟩,
-lt_irrefl c $
-begin
-  calc c = (univ.filter (λ a : α, a ^ c = 1)).card : _
-  ... = ∑ m in c.divisors, (univ.filter (λ a : α, order_of a = m)).card : _
-  ... = ∑ m in (c.divisors).erase d,
-    (univ.filter (λ a : α, order_of a = m)).card : _
-  ... ≤ ∑ m in (c.divisors).erase d, φ m : _
-  ... < φ d + ∑ m in (c.divisors).erase d, φ m : _
-  ... = ∑ m in insert d ((c.divisors).erase d), φ m : _
-  ... = ∑ m in c.divisors, φ m : _
-  ... = c : sum_totient _,
-  {
-    apply congr_arg card, simp [finset.ext_iff, c] },
-  { sorry },
-  { sorry },
-  { sorry },
-  { sorry },
-  { sorry },
-  { sorry },
-end
-#exit
-
-
 
 -- Converting this proof from `calc` mode to `tactic` mode, to inspect it and work on it
 lemma card_order_of_eq_totient_aux₂' {d : ℕ} (hd : d ∣ fintype.card α) :
@@ -459,6 +429,48 @@ begin
   nth_rewrite_rhs 0 ←h7,
   nth_rewrite_rhs 0 ←h6,
   apply lt_of_le_of_lt h4 h5,
+end
+
+
+
+lemma card_order_of_eq_totient_aux₂'' {d : ℕ} (hd : d ∣ fintype.card α) :
+  (univ.filter (λ a : α, order_of a = d)).card = φ d :=
+by_contradiction $ λ h,
+have h0 : (univ.filter (λ a : α , order_of a = d)).card = 0 :=
+  not_not.1 (mt pos_iff_ne_zero.2 (mt (card_order_of_eq_totient_aux₁ hn hd) h)),
+let c := fintype.card α in
+have hc0 : 0 < c, from fintype.card_pos_iff.2 ⟨1⟩,
+lt_irrefl c $
+begin
+  calc c = (univ.filter (λ a : α, a ^ c = 1)).card : _
+  ... = ∑ m in c.divisors, (univ.filter (λ a : α, order_of a = m)).card : _
+  ... = ∑ m in (c.divisors).erase d,
+    (univ.filter (λ a : α, order_of a = m)).card : _
+  ... ≤ ∑ m in (c.divisors).erase d, φ m : _
+  ... < φ d + ∑ m in (c.divisors).erase d, φ m : _
+  ... = ∑ m in insert d ((c.divisors).erase d), φ m : _
+  ... = ∑ m in c.divisors, φ m : _
+  ... = c : sum_totient _,
+  {
+    apply congr_arg card, simp [finset.ext_iff, c] },
+  {
+    rw ←sum_card_order_of_eq_card_pow_eq_one hc0,
+    refine sum_congr _ (λ y hy, rfl),
+
+    unfold divisors,
+    ext,
+    simp,
+    -- have :=
+    sorry },
+  {
+    -- eq.symm (sum_subset (erase_subset _ _) (λ m hm₁ hm₂,
+    --   have m = d, by simp at *; cc,
+    --   by simp [*, finset.ext_iff] at *; exact h0))
+    sorry },
+  { sorry },
+  { sorry },
+  { sorry },
+  { sorry },
 end
 #exit
 

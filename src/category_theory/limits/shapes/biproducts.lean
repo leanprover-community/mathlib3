@@ -53,12 +53,13 @@ universes v u
 
 open category_theory
 open category_theory.functor
+open_locale classical
 
 namespace category_theory
 
 namespace limits
 
-variables {J : Type v} [decidable_eq J]
+variables {J : Type v}
 variables {C : Type u} [category.{v} C] [has_zero_morphisms C]
 
 /--
@@ -193,9 +194,9 @@ class has_biproducts_of_shape : Prop :=
 attribute [instance, priority 100] has_biproducts_of_shape.has_biproduct
 
 /-- `has_finite_biproducts C` represents a choice of biproduct for every family of objects in `C`
-indexed by a finite type with decidable equality. -/
+indexed by a finite type. -/
 class has_finite_biproducts : Prop :=
-(has_biproducts_of_shape : Π (J : Type v) [decidable_eq J] [fintype J],
+(has_biproducts_of_shape : Π (J : Type v) [fintype J],
   has_biproducts_of_shape J C)
 
 attribute [instance, priority 100] has_finite_biproducts.has_biproducts_of_shape
@@ -203,12 +204,12 @@ attribute [instance, priority 100] has_finite_biproducts.has_biproducts_of_shape
 @[priority 100]
 instance has_finite_products_of_has_finite_biproducts [has_finite_biproducts C] :
   has_finite_products C :=
-{ out := λ J _ _, ⟨λ F, by exactI has_limit_of_iso discrete.nat_iso_functor.symm⟩ }
+{ out := λ J _, ⟨λ F, by exactI has_limit_of_iso discrete.nat_iso_functor.symm⟩ }
 
 @[priority 100]
 instance has_finite_coproducts_of_has_finite_biproducts [has_finite_biproducts C] :
   has_finite_coproducts C :=
-{ out := λ J _ _, ⟨λ F, by exactI has_colimit_of_iso discrete.nat_iso_functor⟩ }
+{ out := λ J _, ⟨λ F, by exactI has_colimit_of_iso discrete.nat_iso_functor⟩ }
 
 variables {J C}
 
@@ -224,7 +225,7 @@ def biproduct_iso (F : J → C) [has_biproduct F] :
 end limits
 
 namespace limits
-variables {J : Type v} [decidable_eq J]
+variables {J : Type v}
 variables {C : Type u} [category.{v} C] [has_zero_morphisms C]
 
 /-- `biproduct f` computes the biproduct of a family of elements `f`. (It is defined as an
@@ -366,13 +367,13 @@ the full index type. -/
 def biproduct.from_subtype : ⨁ subtype.restrict p f ⟶ ⨁ f :=
 biproduct.desc $ λ j, biproduct.ι _ _
 
-/-- The canonical morophism from a biproduct to the biproduct over a restriction of its index
+/-- The canonical morphism from a biproduct to the biproduct over a restriction of its index
 type. -/
 def biproduct.to_subtype : ⨁ f ⟶ ⨁ subtype.restrict p f :=
 biproduct.lift $ λ j, biproduct.π _ _
 
 @[simp, reassoc]
-lemma biproduct.from_subtype_π (j : J) [decidable (p j)] :
+lemma biproduct.from_subtype_π (j : J) :
   biproduct.from_subtype f p ≫ biproduct.π f j =
     if h : p j then biproduct.π (subtype.restrict p f) ⟨j, h⟩ else 0 :=
 begin
@@ -386,7 +387,7 @@ begin
   { rw [dif_neg h, dif_neg (show (i : J) ≠ j, from λ h₂, h (h₂ ▸ i.2)), comp_zero] }
 end
 
-lemma biproduct.from_subtype_eq_lift [decidable_pred p] : biproduct.from_subtype f p =
+lemma biproduct.from_subtype_eq_lift : biproduct.from_subtype f p =
     biproduct.lift (λ j, if h : p j then biproduct.π (subtype.restrict p f) ⟨j, h⟩ else 0) :=
 biproduct.hom_ext _ _ (by simp)
 
@@ -406,7 +407,7 @@ lemma biproduct.to_subtype_π (j : subtype p) :
 biproduct.lift_π _ _
 
 @[simp, reassoc]
-lemma biproduct.ι_to_subtype (j : J) [decidable (p j)] :
+lemma biproduct.ι_to_subtype (j : J) :
   biproduct.ι f j ≫ biproduct.to_subtype f p =
     if h : p j then biproduct.ι (subtype.restrict p f) ⟨j, h⟩ else 0 :=
 begin
@@ -420,7 +421,7 @@ begin
   { rw [dif_neg h, dif_neg (show j ≠ i, from λ h₂, h (h₂.symm ▸ i.2)), zero_comp] }
 end
 
-lemma biproduct.to_subtype_eq_desc [decidable_pred p] : biproduct.to_subtype f p =
+lemma biproduct.to_subtype_eq_desc : biproduct.to_subtype f p =
   biproduct.desc (λ j, if h : p j then biproduct.ι (subtype.restrict p f) ⟨j, h⟩ else 0) :=
 biproduct.hom_ext' _ _ (by simp)
 
@@ -448,7 +449,7 @@ begin
 end
 
 @[simp, reassoc]
-lemma biproduct.to_subtype_from_subtype [decidable_pred p] :
+lemma biproduct.to_subtype_from_subtype :
   biproduct.to_subtype f p ≫ biproduct.from_subtype f p =
     biproduct.map (λ j, if p j then 𝟙 (f j) else 0) :=
 begin
@@ -475,7 +476,7 @@ fork.is_limit.mk' _ $ λ s,
      biproduct.to_subtype_from_subtype_assoc, biproduct.map_π],
    rcases em (i = j) with (rfl|h),
    { rw [if_neg (not_not.2 rfl), comp_zero, comp_zero, kernel_fork.condition] },
-   { rw [if_pos h, category.comp_id] }
+   { rw [if_pos, category.comp_id], exact h, }
  end,
  begin
    intros m hm,
@@ -496,7 +497,7 @@ cofork.is_colimit.mk' _ $ λ s,
      biproduct.ι_map_assoc],
    rcases em (i = j) with (rfl|h),
    { rw [if_neg (not_not.2 rfl), zero_comp, cokernel_cofork.condition] },
-   { rw [if_pos h, category.id_comp] }
+   { rw [if_pos, category.id_comp], exact h, }
  end,
  begin
    intros m hm,
@@ -507,7 +508,7 @@ cofork.is_colimit.mk' _ $ λ s,
 end π_kernel
 
 section
-variables [fintype J] {K : Type v} [fintype K] [decidable_eq K] {f : J → C} {g : K → C}
+variables [fintype J] {K : Type v} [fintype K] {f : J → C} {g : K → C}
   [has_finite_biproducts C]
 
 /--
@@ -1197,7 +1198,7 @@ namespace limits
 
 section preadditive
 variables {C : Type u} [category.{v} C] [preadditive C]
-variables {J : Type v} [decidable_eq J] [fintype J]
+variables {J : Type v} [fintype J]
 
 open category_theory.preadditive
 open_locale big_operators
@@ -1340,28 +1341,28 @@ end
 
 @[simp, reassoc]
 lemma biproduct.matrix_desc
-  {K : Type v} [fintype K] [decidable_eq K] [has_finite_biproducts C]
+  {K : Type v} [fintype K] [has_finite_biproducts C]
   {f : J → C} {g : K → C} (m : Π j k, f j ⟶ g k) {P} (x : Π k, g k ⟶ P) :
   biproduct.matrix m ≫ biproduct.desc x = biproduct.desc (λ j, ∑ k, m j k ≫ x k) :=
 by { ext, simp, }
 
 @[simp, reassoc]
 lemma biproduct.lift_matrix
-  {K : Type v} [fintype K] [decidable_eq K] [has_finite_biproducts C]
+  {K : Type v} [fintype K] [has_finite_biproducts C]
   {f : J → C} {g : K → C} {P} (x : Π j, P ⟶ f j) (m : Π j k, f j ⟶ g k)  :
   biproduct.lift x ≫ biproduct.matrix m = biproduct.lift (λ k, ∑ j, x j ≫ m j k) :=
 by { ext, simp, }
 
 @[reassoc]
 lemma biproduct.matrix_map
-  {K : Type v} [fintype K] [decidable_eq K] [has_finite_biproducts C]
+  {K : Type v} [fintype K] [has_finite_biproducts C]
   {f : J → C} {g : K → C} {h : K → C} (m : Π j k, f j ⟶ g k) (n : Π k, g k ⟶ h k) :
   biproduct.matrix m ≫ biproduct.map n = biproduct.matrix (λ j k, m j k ≫ n k) :=
 by { ext, simp, }
 
 @[reassoc]
 lemma biproduct.map_matrix
-  {K : Type v} [fintype K] [decidable_eq K] [has_finite_biproducts C]
+  {K : Type v} [fintype K] [has_finite_biproducts C]
   {f : J → C} {g : J → C} {h : K → C} (m : Π k, f k ⟶ g k) (n : Π j k, g j ⟶ h k) :
   biproduct.map m ≫ biproduct.matrix n = biproduct.matrix (λ j k, m j ≫ n j k) :=
 by { ext, simp, }

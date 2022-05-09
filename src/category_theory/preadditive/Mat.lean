@@ -62,10 +62,9 @@ An object in `Mat_ C` is a finite tuple of objects in `C`.
 structure Mat_ : Type (max (v₁+1) u₁) :=
 (ι : Type v₁)
 [F : fintype ι]
-[D : decidable_eq ι]
 (X : ι → C)
 
-attribute [instance] Mat_.F Mat_.D
+attribute [instance] Mat_.F
 
 namespace Mat_
 

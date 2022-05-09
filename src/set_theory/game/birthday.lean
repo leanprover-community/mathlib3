@@ -106,8 +106,7 @@ by { rw birthday_eq_zero, split; apply_instance }
 @[simp] theorem birthday_one : birthday 1 = 1 :=
 begin
   have : (λ i, (move_left 1 i).birthday) = λ i, 0 := funext (λ x, by simp),
-  rw [birthday_def, @lsub_empty (right_moves 1), this, lsub_const, succ_zero],
-  exact max_bot_right 1
+  rw [birthday_def, @lsub_empty (right_moves 1), this, lsub_const, succ_zero, max_zero_right]
 end
 
 @[simp] theorem neg_birthday : ∀ x : pgame, (-x).birthday = x.birthday

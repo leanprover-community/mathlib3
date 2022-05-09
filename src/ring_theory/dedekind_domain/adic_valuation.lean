@@ -234,26 +234,25 @@ begin
   apply congr_arg,
   rw [neg_inj, ← int.coe_nat_one, int.coe_nat_inj'],
   rw [← ideal.dvd_span_singleton, ← associates.mk_le_mk_iff_dvd_iff] at mem nmem,
-  rw [← pow_one ( associates.mk v.as_ideal),
-    associates.prime_pow_dvd_iff_le hπ hv]  at mem,
+  rw [← pow_one (associates.mk v.as_ideal), associates.prime_pow_dvd_iff_le hπ hv] at mem,
   rw [associates.mk_pow, associates.prime_pow_dvd_iff_le hπ hv, not_le] at nmem,
   exact nat.eq_of_le_of_lt_succ mem nmem,
 end
 
 /-! ### Adic valuations on the field of fractions `K` -/
+
 /-- The `v`-adic valuation of `x ∈ K` is the valuation of `r` divided by the valuation of `s`,
 where `r` and `s` are chosen so that `x = r/s`. -/
-def valuation  (v : height_one_spectrum R) : valuation K (with_zero (multiplicative ℤ)) :=
-v.int_valuation.extend_to_localization
-  (λ r hr, set.mem_compl (v.int_valuation_ne_zero' ⟨r, hr⟩)) K
+def valuation (v : height_one_spectrum R) : valuation K (with_zero (multiplicative ℤ)) :=
+v.int_valuation.extend_to_localization (λ r hr, set.mem_compl $ v.int_valuation_ne_zero' ⟨r, hr⟩) K
 
-lemma valuation_def (x : K) : v.valuation x = valuation.extend_to_localization v.int_valuation
+lemma valuation_def (x : K) : v.valuation x = v.int_valuation.extend_to_localization
   (λ r hr, set.mem_compl (v.int_valuation_ne_zero' ⟨r, hr⟩)) K x :=
 rfl
 
 /-- The `v`-adic valuation of `r/s ∈ K` is the valuation of `r` divided by the valuation of `s`. -/
 lemma valuation_of_mk' {r : R} {s : non_zero_divisors R} :
-  v.valuation (is_localization.mk' K r s) = (v.int_valuation r)/(v.int_valuation s) :=
+  v.valuation (is_localization.mk' K r s) = v.int_valuation r / v.int_valuation s :=
 begin
   erw [valuation_def, (is_localization.to_localization_map (non_zero_divisors R) K).lift_mk',
     div_eq_mul_inv, mul_eq_mul_left_iff],
@@ -291,11 +290,12 @@ end
 lemma valuation_uniformizer_ne_zero :
   (classical.some (v.valuation_exists_uniformizer K)) ≠ 0 :=
 begin
-  have hu := (classical.some_spec (v.valuation_exists_uniformizer K)),
+  have hu := classical.some_spec (v.valuation_exists_uniformizer K),
   exact (valuation.ne_zero_iff _).mp (ne_of_eq_of_ne hu with_zero.coe_ne_zero),
 end
 
 /-! ### Completions with respect to adic valuations
+
 Given a Dedekind domain `R` with field of fractions `K` and a maximal ideal `v` of `R`, we define
 the completion of `K` with respect to its `v`-adic valuation, denoted `v.adic_completion`, and its
 ring of integers, denoted `v.adic_completion_integers`. -/
@@ -317,12 +317,11 @@ instance : field (v.adic_completion K) :=
 
 instance : inhabited (v.adic_completion K) := ⟨0⟩
 
-variables {K}
 instance valued_adic_completion : valued (v.adic_completion K) (with_zero (multiplicative ℤ)) :=
 @valued.valued_completion _ _ _ _ v.adic_valued
 
 lemma valued_adic_completion_def {x : v.adic_completion K} :
-  valued.v x = @valued.extension K _ _ _ (adic_valued v)  x := rfl
+  valued.v x = @valued.extension K _ _ _ (adic_valued v) x := rfl
 
 instance adic_completion_complete_space : complete_space (v.adic_completion K) :=
 @uniform_space.completion.complete_space K v.adic_valued.to_uniform_space
@@ -330,9 +329,7 @@ instance adic_completion_complete_space : complete_space (v.adic_completion K) :
 instance adic_completion.has_lift_t : has_lift_t K (v.adic_completion K) :=
 (infer_instance : has_lift_t K (@uniform_space.completion K v.adic_valued.to_uniform_space))
 
-variables (K)
 /-- The ring of integers of `adic_completion`. -/
-def adic_completion_integers : valuation_subring (v.adic_completion K) :=
-valuation.valuation_subring v.valued_adic_completion.v
+def adic_completion_integers : valuation_subring (v.adic_completion K) := valued.v.valuation_subring
 
 end is_dedekind_domain.height_one_spectrum

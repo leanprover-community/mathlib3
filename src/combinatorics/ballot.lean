@@ -275,7 +275,7 @@ begin
   have := cond_count_compl {l : list ℤ | l.head = 1}ᶜ
     (counted_sequence_finite p q) (counted_sequence_nonempty p q),
   rw [compl_compl, first_vote_pos _ _ h] at this,
-  rw [(_ : (q / (p + q) : ennreal) = 1 - p / (p + q)), ← this, ennreal.add_sub_self],
+  rw [(_ : (q / (p + q) : ennreal) = 1 - p / (p + q)), ← this, ennreal.add_sub_cancel_right],
   { simp only [ne.def, ennreal.div_eq_top, nat.cast_eq_zero, add_eq_zero_iff,
       ennreal.nat_ne_top, false_and, or_false, not_and],
     intros,
@@ -408,7 +408,7 @@ begin
     haveI := cond_count_is_probability_measure
       (counted_sequence_finite (p + 1) q) (counted_sequence_nonempty _ _),
     have h₃ : p + 1 + (q + 1) > 0 := nat.add_pos_left (nat.succ_pos _) _,
-    rw [← cond_count_add_compl_eq _ {l : list ℤ | l.head = 1} _ (counted_sequence_finite _ _),
+    rw [← cond_count_add_compl_eq {l : list ℤ | l.head = 1} _ (counted_sequence_finite _ _),
       first_vote_pos _ _ h₃, first_vote_neg _ _ h₃, ballot_pos, ballot_neg _ _ qp],
     rw [ennreal.to_real_add, ennreal.to_real_mul, ennreal.to_real_mul, ← nat.cast_add,
       ennreal.to_real_div, ennreal.to_real_div, ennreal.to_real_nat, ennreal.to_real_nat,

@@ -48,14 +48,6 @@ the continuum hypothesis*][flypitch_itp]
 
 universes u v w u' v'
 
-namespace set
-
-@[simp] lemma inclusion_comp_inclusion {α} {s t u : set α} (hst : s ⊆ t) (htu : t ⊆ u) :
-  inclusion htu ∘ inclusion hst = inclusion (hst.trans htu) :=
-funext (inclusion_inclusion hst htu)
-
-end set
-
 namespace first_order
 namespace language
 

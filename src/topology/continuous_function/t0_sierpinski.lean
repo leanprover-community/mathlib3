@@ -9,16 +9,17 @@ import topology.continuous_function.basic
 /-!
 # Any T0 space embeds in a product of copies of the Sierpinski space
 
-We consider `Prop` with the Sierpinski topology. If `(X,t)` is a topological space, there is a
-continuous map `i` defined as the product of the maps `iᵤ : X → Prop` defined by `iᵤ x = x ∈ u`.
-This map is always inducing and whenever `X` is T0 it is also injective and therefore an embedding.
+We consider `Prop` with the Sierpinski topology. If `(X, t)` is a topological space, there is a
+continuous map `i : X → Π u ∈ t, Prop` defined as the product of the maps `iᵤ : X → Prop` defined by
+`iᵤ x = x ∈ u`. The map `i` is always inducing. Whenever `X` is T0, `i` is also injective and
+therefore an embedding.
 -/
 
 noncomputable theory
 
 variables {X : Type*} [t : topological_space X] [t0 : t0_space X]
 
-instance : topological_space (Π(u : {u : set X | t.is_open u}), Prop) :=
+instance : topological_space (Π (u : {s : set X | t.is_open s}), Prop) :=
 @Pi.topological_space _ (λ u, Prop) (λ u, sierpinski_space)
 
 /--
@@ -26,13 +27,13 @@ instance : topological_space (Π(u : {u : set X | t.is_open u}), Prop) :=
   open subset `u` of `X`). The `u` coordinate of  `i x` is given by `x ∈ u`.
 -/
 def i (X : Type*) [t : topological_space X] : continuous_map X
-  (Π (u : {u : set X | t.is_open u}), Prop) :=
-{ to_fun := λ x u, x ∈ (u:set X),
-  continuous_to_fun := continuous_pi_iff.2 (λ i, continuous_Prop.2 (by simpa using subtype.mem i)) }
+  (Π (u : {s : set X | t.is_open s}), Prop) :=
+{ to_fun := λ x u, x ∈ (u : set X),
+  continuous_to_fun := continuous_pi_iff.2 (λ u, continuous_Prop.2 (by simpa using subtype.mem u)) }
 
 include t0
 lemma i_injective : function.injective
-  (λ (x : X) (u : {u : set X | t.is_open u}), x ∈ (u : set X)) :=
+  (λ (x : X) (u : {s : set X | t.is_open s}), x ∈ (u : set X)) :=
 begin
   rw function.injective,
   intros x1 x2 h,
@@ -45,8 +46,8 @@ begin
  end
  omit t0
 
-lemma eq_induced_by_maps_to_sierpinski : t = ⨅ (u : {u : set X | t.is_open u}),
-   topological_space.induced ((λ x, x ∈ (u:set X)) : X → Prop) sierpinski_space :=
+lemma eq_induced_by_maps_to_sierpinski : t = ⨅ (u : {s : set X | t.is_open s}),
+   topological_space.induced (λ x, x ∈ (u : set X)) sierpinski_space :=
 begin
   apply le_antisymm,
   { apply le_infi_iff.2 _,

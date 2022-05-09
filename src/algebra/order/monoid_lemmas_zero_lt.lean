@@ -200,6 +200,84 @@ lemma mul_le_mul_iff_right [mul_pos_mono α] [mul_pos_mono_rev α]
   b * a ≤ c * a ↔ b ≤ c :=
 @rel_iff_cov α>0 α (λ x y, y * x) (≤) _ _ ⟨a, a0⟩ _ _
 
+-- proven with `a0 : 0 ≤ a` `d0 : 0 ≤ d` as `mul_le_mul_of_le_of_le''`
+lemma mul_le_mul_of_le_of_le [pos_mul_mono α] [mul_pos_mono α]
+  (h₁ : a ≤ b) (h₂ : c ≤ d) (a0 : 0 < a) (d0 : 0 < d) : a * c ≤ b * d :=
+(mul_le_mul_left' h₂ a0).trans (mul_le_mul_right' h₁ d0)
+
+-- proven with `b0 : 0 ≤ b` `c0 : 0 ≤ c` as `mul_le_mul_of_le_of_le'''`
+lemma mul_le_mul_of_le_of_le' [pos_mul_mono α] [mul_pos_mono α]
+  (h₁ : a ≤ b) (h₂ : c ≤ d) (b0 : 0 < b) (c0 : 0 < c) : a * c ≤ b * d :=
+(mul_le_mul_right' h₁ c0).trans (mul_le_mul_left' h₂ b0)
+
+lemma mul_lt_mul_of_le_of_lt [pos_mul_strict_mono α] [mul_pos_mono α]
+  (h₁ : a ≤ b) (h₂ : c < d) (a0 : 0 < a) (d0 : 0 < d) : a * c < b * d :=
+(mul_lt_mul_left' h₂ a0).trans_le (mul_le_mul_right' h₁ d0)
+
+lemma mul_lt_mul_of_le_of_lt' [pos_mul_strict_mono α] [mul_pos_mono α]
+  (h₁ : a ≤ b) (h₂ : c < d) (b0 : 0 < b) (c0 : 0 < c) : a * c < b * d :=
+(mul_le_mul_right' h₁ c0).trans_lt (mul_lt_mul_left' h₂ b0)
+
+lemma mul_lt_mul_of_lt_of_le [pos_mul_mono α] [mul_pos_strict_mono α]
+  (h₁ : a < b) (h₂ : c ≤ d) (a0 : 0 < a) (d0 : 0 < d) : a * c < b * d :=
+(mul_le_mul_left' h₂ a0).trans_lt (mul_lt_mul_right' h₁ d0)
+
+lemma mul_lt_mul_of_lt_of_le' [pos_mul_mono α] [mul_pos_strict_mono α]
+  (h₁ : a < b) (h₂ : c ≤ d) (b0 : 0 < b) (c0 : 0 < c) : a * c < b * d :=
+(mul_lt_mul_right' h₁ c0).trans_le (mul_le_mul_left' h₂ b0)
+
+lemma mul_lt_mul_of_lt_of_lt [pos_mul_strict_mono α] [mul_pos_strict_mono α]
+  (h₁ : a < b) (h₂ : c < d) (a0 : 0 < a) (d0 : 0 < d) : a * c < b * d :=
+(mul_lt_mul_left' h₂ a0).trans (mul_lt_mul_right' h₁ d0)
+
+lemma mul_lt_mul_of_lt_of_lt' [pos_mul_strict_mono α] [mul_pos_strict_mono α]
+  (h₁ : a < b) (h₂ : c < d) (b0 : 0 < b) (c0 : 0 < c) : a * c < b * d :=
+(mul_lt_mul_right' h₁ c0).trans (mul_lt_mul_left' h₂ b0)
+
+-- proven with `a0 : 0 ≤ a` as `mul_le_of_mul_le_left'`
+lemma mul_le_of_mul_le_left [pos_mul_mono α]
+  (h : a * b ≤ c) (hle : d ≤ b) (a0 : 0 < a) :
+  a * d ≤ c :=
+(mul_le_mul_left' hle a0).trans h
+
+lemma mul_lt_of_mul_lt_left [pos_mul_mono α]
+  (h : a * b < c) (hle : d ≤ b) (a0 : 0 < a) :
+  a * d < c :=
+(mul_le_mul_left' hle a0).trans_lt h
+
+-- proven with `b0 : 0 ≤ b` as `le_mul_of_le_mul_left'`
+lemma le_mul_of_le_mul_left [pos_mul_mono α]
+  (h : a ≤ b * c) (hle : c ≤ d) (b0 : 0 < b) :
+  a ≤ b * d :=
+h.trans (mul_le_mul_left' hle b0)
+
+lemma lt_mul_of_lt_mul_left [pos_mul_mono α]
+  (h : a < b * c) (hle : c ≤ d) (b0 : 0 < b) :
+  a < b * d :=
+h.trans_le (mul_le_mul_left' hle b0)
+
+-- proven with `b0 : 0 ≤ b` as `mul_le_of_mul_le_right'`
+lemma mul_le_of_mul_le_right [mul_pos_mono α]
+  (h : a * b ≤ c) (hle : d ≤ a) (b0 : 0 < b) :
+  d * b ≤ c :=
+(mul_le_mul_right' hle b0).trans h
+
+lemma mul_lt_of_mul_lt_right [mul_pos_mono α]
+  (h : a * b < c) (hle : d ≤ a) (b0 : 0 < b) :
+  d * b < c :=
+(mul_le_mul_right' hle b0).trans_lt h
+
+-- proven with `c0 : 0 ≤ c` as `le_mul_of_le_mul_right'`
+lemma le_mul_of_le_mul_right [mul_pos_mono α]
+  (h : a ≤ b * c) (hle : b ≤ d) (c0 : 0 < c) :
+  a ≤ d * c :=
+h.trans (mul_le_mul_right' hle c0)
+
+lemma lt_mul_of_lt_mul_right [mul_pos_mono α]
+  (h : a < b * c) (hle : b ≤ d) (c0 : 0 < c) :
+  a < d * c :=
+h.trans_le (mul_le_mul_right' hle c0)
+
 end preorder
 
 section partial_order

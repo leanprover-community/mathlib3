@@ -46,10 +46,29 @@ open lean.parser tactic interactive
 
 namespace tactic.alias
 
-@[user_attribute] meta def alias_attr : user_attribute unit name :=
+/-- An alias can be in one of three forms -/
+@[derive has_reflect]
+meta inductive target
+| plain : name -> target
+| forward : name -> target
+| backwards : name -> target
+
+/-- The name underlying an alias target -/
+meta def target.to_name : target → name
+| (target.plain n) := n
+| (target.forward n) := n
+| (target.backwards n) := n
+
+/-- The docstring for an alias. Used by `alias` _and_ by `to_additive` -/
+meta def target.to_string : target → string
+| (target.plain n) := sformat!"**Alias** of {n}`."
+| (target.forward n) := sformat!"**Alias** of the forward direction of {n}`."
+| (target.backwards n) := sformat!"**Alias** of the reverse direction of {n}`."
+
+@[user_attribute] meta def alias_attr : user_attribute unit target :=
 { name := `alias, descr := "This definition is an alias of another.", parser := failed }
 
-meta def alias_direct (d : declaration) (doc : string) (al : name) : tactic unit :=
+meta def alias_direct (d : declaration) (al : name) : tactic unit :=
 do updateex_env $ λ env,
   env.add (match d.to_definition with
   | declaration.defn n ls t _ _ _ :=
@@ -59,23 +78,26 @@ do updateex_env $ λ env,
     declaration.thm al ls t $ task.pure $ expr.const n (level.param <$> ls)
   | _ := undefined
   end),
-  alias_attr.set al d.to_name tt,
-  add_doc_string al doc
+  let target := target.plain d.to_name,
+  alias_attr.set al target tt,
+  add_doc_string al target.to_string
 
 meta def mk_iff_mp_app (iffmp : name) : expr → (ℕ → expr) → tactic expr
 | (expr.pi n bi e t) f := expr.lam n bi e <$> mk_iff_mp_app t (λ n, f (n+1) (expr.var n))
 | `(%%a ↔ %%b) f := pure $ @expr.const tt iffmp [] a b (f 0)
 | _ f := fail "Target theorem must have the form `Π x y z, a ↔ b`"
 
-meta def alias_iff (d : declaration) (doc : string) (al : name) (iffmp : name) : tactic unit :=
+meta def alias_iff (d : declaration) (al : name) (is_forward : bool) : tactic unit :=
 (if al = `_ then skip else get_decl al >> skip) <|> do
   let ls := d.univ_params,
   let t := d.type,
+  let target := if is_forward then target.forward d.to_name else target.backwards d.to_name,
+  let iffmp := if is_forward then `iff.mp else `iff.mpr,
   v ← mk_iff_mp_app iffmp t (λ_, expr.const d.to_name (level.param <$> ls)),
   t' ← infer_type v,
   updateex_env $ λ env, env.add (declaration.thm al ls t' $ task.pure v),
-  alias_attr.set al d.to_name tt,
-  add_doc_string al doc
+  alias_attr.set al target tt,
+  add_doc_string al target.to_string
 
 meta def make_left_right : name → tactic (name × name)
 | (name.mk_string s p) := do
@@ -134,15 +156,15 @@ do old ← ident,
   do
   { tk "←" <|> tk "<-",
     aliases ← many ident,
-    ↑(aliases.mmap' $ λ al, alias_direct d (doc al "") al) } <|>
+    ↑(aliases.mmap' $ λ al, alias_direct d al) } <|>
   do
   { tk "↔" <|> tk "<->",
     (left, right) ←
       mcond ((tk ".." >> pure tt) <|> pure ff)
         (make_left_right old <|> fail "invalid name for automatic name generation")
         (prod.mk <$> types.ident_ <*> types.ident_),
-    alias_iff d (doc left "the forward direction of ") left `iff.mp,
-    alias_iff d (doc right "the reverse direction of ") right `iff.mpr }
+    alias_iff d left tt,
+    alias_iff d right ff }
 
 add_tactic_doc
 { name                     := "alias",
@@ -154,7 +176,7 @@ meta def get_lambda_body : expr → expr
 | (expr.lam _ _ _ b) := get_lambda_body b
 | a                  := a
 
-meta def get_alias_target (n : name) : tactic (option name) :=
+meta def get_alias_target (n : name) : tactic (option target) :=
 do tt ← has_attribute' `alias n | pure none,
    v ← alias_attr.get_param n,
    pure $ some v

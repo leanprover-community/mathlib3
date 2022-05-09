@@ -622,7 +622,7 @@ end
 ### Factorial
 -/
 
-/-- The series `∑' n, x ^ n / n!` is summable of any `x : ℝ`. See also `exp_series_field_summable`
+/-- The series `∑' n, x ^ n / n!` is summable of any `x : ℝ`. See also `exp_series_div_summable`
 for a version that also works in `ℂ`, and `exp_series_summable'` for a version that works in
 any normed algebra over `ℝ` or `ℂ`. -/
 lemma real.summable_pow_div_factorial (x : ℝ) :

@@ -571,10 +571,6 @@ calc (a * b⁻¹) * b = a * (b⁻¹ * b) : mul_assoc _ _ _
 calc a⁻¹ * (a * b) = (a⁻¹ * a) * b : (mul_assoc _ _ _).symm
                ... = b             : by simp [h]
 
-@[simp] lemma inv_one : 1⁻¹ = (1:G₀) :=
-calc 1⁻¹ = 1 * 1⁻¹ : by rw [one_mul]
-     ... = (1:G₀)  : by simp
-
 private lemma inv_eq_of_mul (h : a * b = 1) : a⁻¹ = b :=
 by rw [← inv_mul_cancel_left₀ (left_ne_zero_of_mul_eq_one h) b, h, mul_one]
 
@@ -594,6 +590,8 @@ instance group_with_zero.to_division_monoid : division_monoid G₀ :=
   end,
   inv_eq_of_mul := λ a b, inv_eq_of_mul,
   ..‹group_with_zero G₀› }
+
+@[simp] lemma inv_one : 1⁻¹ = (1:G₀) := division_monoid.inv_one
 
 /-- Multiplying `a` by itself and then by its inverse results in `a`
 (whether or not `a` is zero). -/
@@ -632,16 +630,10 @@ by rw [div_eq_mul_inv, mul_self_mul_inv a]
 @[simp] lemma div_self_mul_self (a : G₀) : a / a * a = a :=
 by rw [div_eq_mul_inv, mul_inv_mul_self a]
 
-lemma eq_inv_of_mul_right_eq_one (h : a * b = 1) :
-  b = a⁻¹ :=
-by rw [← inv_mul_cancel_left₀ (left_ne_zero_of_mul_eq_one h) b, h, mul_one]
+lemma eq_inv_of_mul_right_eq_one : a * b = 1 → b = a⁻¹ := division_monoid.eq_inv_of_mul_eq_one_right
+lemma eq_inv_of_mul_left_eq_one : a * b = 1 → a = b⁻¹ := division_monoid.eq_inv_of_mul_eq_one_left
 
-lemma eq_inv_of_mul_left_eq_one (h : a * b = 1) :
-  a = b⁻¹ :=
-by rw [← mul_inv_cancel_right₀ (right_ne_zero_of_mul_eq_one h) a, h, one_mul]
-
-@[simp] lemma inv_eq_one₀ : g⁻¹ = 1 ↔ g = 1 :=
-by rw [inv_eq_iff_inv_eq, inv_one, eq_comm]
+lemma inv_eq_one₀ : g⁻¹ = 1 ↔ g = 1 := division_monoid.inv_eq_one
 
 lemma eq_mul_inv_iff_mul_eq₀ (hc : c ≠ 0) : a = b * c⁻¹ ↔ a * c = b :=
 by split; rintro rfl; [rw inv_mul_cancel_right₀ hc, rw mul_inv_cancel_right₀ hc]
@@ -761,20 +753,12 @@ instance group_with_zero.cancel_monoid_with_zero : cancel_monoid_with_zero G₀ 
     units.mk0 x (mul_ne_zero_iff.mp hxy).1 * units.mk0 y (mul_ne_zero_iff.mp hxy).2 :=
 by { ext, refl }
 
-lemma mul_inv_rev₀ (x y : G₀) : (x * y)⁻¹ = y⁻¹ * x⁻¹ :=
-begin
-  by_cases hx : x = 0, { simp [hx] },
-  by_cases hy : y = 0, { simp [hy] },
-  symmetry,
-  apply eq_inv_of_mul_left_eq_one,
-  simp [mul_assoc, hx, hy]
-end
+lemma mul_inv_rev₀ (x y : G₀) : (x * y)⁻¹ = y⁻¹ * x⁻¹ := mul_inv_rev _ _
 
 @[simp] lemma div_self {a : G₀} (h : a ≠ 0) : a / a = 1 :=
 by rw [div_eq_mul_inv, mul_inv_cancel h]
 
-@[simp] lemma div_one (a : G₀) : a / 1 = a :=
-by simp [div_eq_mul_inv a 1]
+lemma div_one (a : G₀) : a / 1 = a := division_monoid.div_one _
 
 @[simp] lemma zero_div (a : G₀) : 0 / a = 0 :=
 by rw [div_eq_mul_inv, zero_mul]
@@ -800,35 +784,29 @@ local attribute [simp] div_eq_mul_inv mul_comm mul_assoc mul_left_comm
 calc a / (a * a) = a⁻¹⁻¹ * a⁻¹ * a⁻¹ : by simp [mul_inv_rev₀]
 ... = a⁻¹ : inv_mul_mul_self _
 
-lemma div_eq_mul_one_div (a b : G₀) : a / b = a * (1 / b) :=
-by simp
-
 lemma mul_one_div_cancel {a : G₀} (h : a ≠ 0) : a * (1 / a) = 1 :=
 by simp [h]
 
 lemma one_div_mul_cancel {a : G₀} (h : a ≠ 0) : (1 / a) * a = 1 :=
 by simp [h]
 
-lemma one_div_one : 1 / 1 = (1:G₀) :=
-div_self (ne.symm zero_ne_one)
+lemma one_div_one : 1 / 1 = (1:G₀) := division_monoid.one_div_one
 
 lemma one_div_ne_zero {a : G₀} (h : a ≠ 0) : 1 / a ≠ 0 :=
 by simpa only [one_div] using inv_ne_zero h
 
-lemma eq_one_div_of_mul_eq_one {a b : G₀} (h : a * b = 1) : b = 1 / a :=
-by simpa only [one_div] using eq_inv_of_mul_right_eq_one h
+lemma eq_one_div_of_mul_eq_one {a b : G₀} : a * b = 1 → b = 1 / a :=
+division_monoid.eq_one_div_of_mul_eq_one_right
 
-lemma eq_one_div_of_mul_eq_one_left {a b : G₀} (h : b * a = 1) : b = 1 / a :=
-by simpa only [one_div] using eq_inv_of_mul_left_eq_one h
+lemma eq_one_div_of_mul_eq_one_left {a b : G₀} : b * a = 1 → b = 1 / a :=
+division_monoid.eq_one_div_of_mul_eq_one_left
 
-@[simp] lemma one_div_div (a b : G₀) : 1 / (a / b) = b / a :=
-by rw [one_div, div_eq_mul_inv, mul_inv_rev₀, inv_inv, div_eq_mul_inv]
+lemma one_div_div (a b : G₀) : 1 / (a / b) = b / a := division_monoid.one_div_div _ _
 
-lemma one_div_one_div (a : G₀) : 1 / (1 / a) = a :=
-by simp
+lemma one_div_one_div (a : G₀) : 1 / (1 / a) = a := division_monoid.one_div_one_div _
 
-lemma eq_of_one_div_eq_one_div {a b : G₀} (h : 1 / a = 1 / b) : a = b :=
-by rw [← one_div_one_div a, h, one_div_one_div]
+lemma eq_of_one_div_eq_one_div {a b : G₀} : 1 / a = 1 / b → a = b :=
+division_monoid.eq_of_one_div_eq_one_div
 
 variables {a b c : G₀}
 
@@ -839,7 +817,7 @@ by rw [inv_eq_iff_inv_eq, inv_zero, eq_comm]
 eq_comm.trans $ inv_eq_zero.trans eq_comm
 
 lemma one_div_mul_one_div_rev (a b : G₀) : (1 / a) * (1 / b) =  1 / (b * a) :=
-by simp only [div_eq_mul_inv, one_mul, mul_inv_rev₀]
+division_monoid.one_div_mul_one_div_rev _ _
 
 theorem divp_eq_div (a : G₀) (u : G₀ˣ) : a /ₚ u = a / u :=
 by simpa only [div_eq_mul_inv] using congr_arg ((*) a) u.coe_inv'
@@ -848,11 +826,9 @@ by simpa only [div_eq_mul_inv] using congr_arg ((*) a) u.coe_inv'
   a /ₚ units.mk0 b hb = a / b :=
 divp_eq_div _ _
 
-lemma inv_div : (a / b)⁻¹ = b / a :=
-by rw [div_eq_mul_inv, mul_inv_rev₀, div_eq_mul_inv, inv_inv]
+lemma inv_div : (a / b)⁻¹ = b / a := division_monoid.inv_div _ _
 
-lemma inv_div_left : a⁻¹ / b = (b * a)⁻¹ :=
-by rw [mul_inv_rev₀, div_eq_mul_inv]
+lemma inv_div_left : a⁻¹ / b = (b * a)⁻¹ := division_monoid.inv_div_left _ _
 
 lemma div_ne_zero (ha : a ≠ 0) (hb : b ≠ 0) : a / b ≠ 0 :=
 by { rw div_eq_mul_inv, exact mul_ne_zero ha (inv_ne_zero hb) }
@@ -879,13 +855,7 @@ lemma div_eq_of_eq_mul {x : G₀} (hx : x ≠ 0) {y z : G₀} (h : y = z * x) : 
 lemma eq_div_of_mul_eq {x : G₀} (hx : x ≠ 0) {y z : G₀} (h : z * x = y) : z = y / x :=
 eq.symm $ div_eq_of_eq_mul hx h.symm
 
-lemma eq_of_div_eq_one (h : a / b = 1) : a = b :=
-begin
-  by_cases hb : b = 0,
-  { rw [hb, div_zero] at h,
-    exact eq_of_zero_eq_one h a b },
-  { rwa [div_eq_iff_mul_eq hb, one_mul, eq_comm] at h }
-end
+lemma eq_of_div_eq_one : a / b = 1 → a = b := division_monoid.eq_of_div_eq_one
 
 lemma div_eq_one_iff_eq (hb : b ≠ 0) : a / b = 1 ↔ a = b :=
 ⟨eq_of_div_eq_one, λ h, h.symm ▸ div_self hb⟩
@@ -912,7 +882,7 @@ funext ring.inverse_eq_inv
 
 @[field_simps] lemma div_div_eq_mul_div (a b c : G₀) :
   a / (b / c) = (a * c) / b :=
-by rw [div_eq_mul_one_div, one_div_div, ← mul_div_assoc]
+division_monoid.div_div_eq_mul_div _ _ _
 
 /-- Dividing `a` by the result of dividing `a` by itself results in
 `a` (whether or not `a` is zero). -/
@@ -977,11 +947,10 @@ protected def function.surjective.comm_group_with_zero [has_zero G₀'] [has_mul
   comm_group_with_zero G₀' :=
 { .. hf.group_with_zero h01 f zero one mul inv div npow zpow, .. hf.comm_semigroup f mul }
 
-lemma mul_inv₀ : (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
-by rw [mul_inv_rev₀, mul_comm]
+lemma mul_inv₀ : (a * b)⁻¹ = a⁻¹ * b⁻¹ := division_comm_monoid.mul_inv _ _
 
 lemma one_div_mul_one_div (a b : G₀) : (1 / a) * (1 / b) = 1 / (a * b) :=
-by rw [one_div_mul_one_div_rev, mul_comm b]
+division_comm_monoid.one_div_mul_one_div _ _
 
 lemma div_mul_right {a : G₀} (b : G₀) (ha : a ≠ 0) : a / (a * b) = 1 / b :=
 by rw [mul_comm, div_mul_left ha]
@@ -1002,21 +971,21 @@ local attribute [simp] mul_assoc mul_comm mul_left_comm
 
 lemma div_mul_div_comm₀ (a b c d : G₀) :
       (a / b) * (c / d) = (a * c) / (b * d) :=
-by simp [div_eq_mul_inv, mul_inv₀]
+division_comm_monoid.div_mul_div_comm _ _ _ _
 
 lemma div_div_div_comm₀ (a b c d : G₀) : (a / b) / (c / d) = (a / c) / (b / d) :=
-by simp_rw [div_eq_mul_inv, mul_inv₀, inv_inv, mul_mul_mul_comm]
+division_comm_monoid.div_div_div_comm _ _ _ _
 
 lemma mul_div_mul_left (a b : G₀) {c : G₀} (hc : c ≠ 0) :
       (c * a) / (c * b) = a / b :=
 by rw [mul_comm c, mul_comm c, mul_div_mul_right _ _ hc]
 
 @[field_simps] lemma div_mul_eq_mul_div (a b c : G₀) : (b / c) * a = (b * a) / c :=
-by simp [div_eq_mul_inv]
+division_comm_monoid.div_mul_eq_mul_div _ _ _
 
 lemma div_mul_eq_mul_div_comm (a b c : G₀) :
       (b / c) * a = b * (a / c) :=
-by rw [div_mul_eq_mul_div, ← one_mul c, ← div_mul_div_comm₀, div_one, one_mul]
+division_comm_monoid.mul_comm_div _ _ _
 
 lemma mul_eq_mul_of_div_eq_div (a : G₀) {b : G₀} (c : G₀) {d : G₀} (hb : b ≠ 0)
       (hd : d ≠ 0) (h : a / b = c / d) : a * d = c * b :=
@@ -1025,15 +994,15 @@ by rw [← mul_one (a*d), mul_assoc, mul_comm d, ← mul_assoc, ← div_self hb,
 
 @[field_simps] lemma div_div_eq_div_mul (a b c : G₀) :
       (a / b) / c = a / (b * c) :=
-by rw [div_eq_mul_one_div, div_mul_div_comm₀, mul_one]
+division_comm_monoid.div_div _ _ _
 
 lemma div_div_div_div_eq (a : G₀) {b c d : G₀} :
       (a / b) / (c / d) = (a * d) / (b * c) :=
-by rw [div_div_eq_mul_div, div_mul_eq_mul_div, div_div_eq_div_mul]
+division_comm_monoid.div_div_div_eq _ _ _  _
 
 lemma div_mul_eq_div_mul_one_div (a b c : G₀) :
       a / (b * c) = (a / b) * (1 / c) :=
-by rw [← div_div_eq_div_mul, ← div_eq_mul_one_div]
+division_comm_monoid.div_mul_eq_div_mul_one_div _ _ _
 
 lemma div_helper {a : G₀} (b : G₀) (h : a ≠ 0) : (1 / (a * b)) * a = 1 / b :=
 by rw [div_mul_eq_mul_div, one_mul, div_mul_right _ h]
@@ -1043,23 +1012,22 @@ end comm_group_with_zero
 section comm_group_with_zero
 variables [comm_group_with_zero G₀] {a b c d : G₀}
 
-lemma div_eq_inv_mul : a / b = b⁻¹ * a :=
-by rw [div_eq_mul_inv, mul_comm]
+lemma div_eq_inv_mul : a / b = b⁻¹ * a := division_comm_monoid.div_eq_inv_mul _ _
 
 lemma mul_div_right_comm (a b c : G₀) : (a * b) / c = (a / c) * b :=
-by rw [div_eq_mul_inv, mul_assoc, mul_comm b, ← mul_assoc, div_eq_mul_inv]
+division_comm_monoid.mul_div_right_comm _ _ _
 
-lemma mul_comm_div' (a b c : G₀) : (a / b) * c = a * (c / b) :=
-by rw [← mul_div_assoc, mul_div_right_comm]
+lemma mul_comm_div' (a b c : G₀) : a / b * c = a * (c / b) :=
+division_comm_monoid.mul_comm_div _ _ _
 
 lemma div_mul_comm' (a b c : G₀) : (a / b) * c = (c / b) * a :=
-by rw [div_mul_eq_mul_div, mul_comm, mul_div_right_comm]
+division_comm_monoid.div_mul_comm _ _ _
 
 lemma mul_div_comm (a b c : G₀) : a * (b / c) = b * (a / c) :=
-by rw [← mul_div_assoc, mul_comm, mul_div_assoc]
+division_comm_monoid.mul_div_left_comm _ _ _
 
 lemma div_right_comm (a : G₀) : (a / b) / c = (a / c) / b :=
-by rw [div_div_eq_div_mul, div_div_eq_div_mul, mul_comm]
+division_comm_monoid.div_right_comm _ _ _
 
 @[field_simps] lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c * b :=
 calc a / b = c / d ↔ a / b * (b * d) = c / d * (b * d) :

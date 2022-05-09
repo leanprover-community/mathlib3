@@ -551,7 +551,7 @@ end
 
 /-- The fuzzy, confused, or incomparable relation on pre-games.
 
-If `x ∥ 0`, then the second player can always win `x`. -/
+If `x ∥ 0`, then the first player can always win `x`. -/
 def fuzzy (x y : pgame) : Prop := x ⧏ y ∧ y ⧏ x
 
 local infix ` ∥ `:50 := fuzzy

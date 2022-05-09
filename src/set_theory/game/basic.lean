@@ -79,7 +79,7 @@ by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_lf }
 
 /-- The fuzzy, confused, or incomparable relation on games.
 
-If `x ∥ 0`, then the second player can always win `x`. -/
+If `x ∥ 0`, then the first player can always win `x`. -/
 def fuzzy : game → game → Prop :=
 quotient.lift₂ fuzzy (λ x₁ y₁ x₂ y₂ hx hy, propext (fuzzy_congr hx hy))
 

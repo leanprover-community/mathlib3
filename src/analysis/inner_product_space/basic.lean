@@ -1360,8 +1360,8 @@ begin
   have hr' : abs r ≠ 0 := by simp [is_R_or_C.abs_eq_zero, hr],
   rw [inner_smul_right, is_R_or_C.abs_mul, ←inner_self_re_abs, inner_self_eq_norm_mul_norm,
       norm_smul],
-  rw [is_R_or_C.norm_eq_abs, ←mul_assoc, ←div_div_eq_div_mul, mul_div_cancel _ hx',
-     ←div_div_eq_div_mul, mul_comm, mul_div_cancel _ hr', div_self hx'],
+  rw [is_R_or_C.norm_eq_abs, ←mul_assoc, ←div_div, mul_div_cancel _ hx',
+     ←div_div, mul_comm, mul_div_cancel _ hr', div_self hx'],
 end
 
 /-- The inner product of a nonzero vector with a nonzero multiple of

@@ -505,7 +505,7 @@ end has_involutive_inv
 by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev }
 
 protected lemma mul_inv_rev₀ [group_with_zero α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
-by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev₀ }
+by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev }
 
 end inv
 

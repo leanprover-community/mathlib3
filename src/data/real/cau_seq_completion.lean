@@ -204,7 +204,7 @@ lim_eq_of_equiv_const $ setoid.refl _
 
 lemma lim_add (f g : cau_seq β abv) : lim f + lim g = lim (f + g) :=
 eq_lim_of_const_equiv $ show lim_zero (const abv (lim f + lim g) - (f + g)),
-  by rw [const_add, add_sub_comm];
+  by rw [const_add, add_sub_add_comm];
   exact add_lim_zero (setoid.symm (equiv_lim f)) (setoid.symm (equiv_lim g))
 
 lemma lim_mul_lim (f g : cau_seq β abv) : lim f * lim g = lim (f * g) :=

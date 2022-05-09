@@ -99,7 +99,7 @@ rfl
 instance units_mul_distrib_mul_action : mul_distrib_mul_action (conj_act Mˣ) M :=
 { smul := (•),
   one_smul := by simp [units_smul_def],
-  mul_smul := by simp [units_smul_def, mul_assoc, mul_inv_rev₀],
+  mul_smul := by simp [units_smul_def, mul_assoc, mul_inv_rev],
   smul_mul := by simp [units_smul_def, mul_assoc],
   smul_one := by simp [units_smul_def], }
 
@@ -127,7 +127,7 @@ variable [group_with_zero G₀]
 instance mul_action₀ : mul_action (conj_act G₀) G₀ :=
 { smul := (•),
   one_smul := by simp [smul_def],
-  mul_smul := by simp [smul_def, mul_assoc, mul_inv_rev₀] }
+  mul_smul := by simp [smul_def, mul_assoc, mul_inv_rev] }
 
 end group_with_zero
 

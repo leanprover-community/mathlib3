@@ -111,7 +111,7 @@ calc (∑' i, 1 / m ^ (i + (n + 1))!)
       (summable_one_div_pow_of_le m1 (λ j, nat.le.intro rfl))
 ... = ∑' i, (1 / m) ^ i * (1 / m ^ (n + 1)!) :
     -- split the sum in the exponent and massage
-    by { congr, ext i, rw [pow_add, ← div_div_eq_div_mul, div_eq_mul_one_div, ← one_div_pow i] }
+    by { congr, ext i, rw [pow_add, ← div_div, div_eq_mul_one_div, ← one_div_pow i] }
 -- factor the constant `(1 / m ^ (n + 1)!)` out of the series
 ... = (∑' i, (1 / m) ^ i) * (1 / m ^ (n + 1)!) : tsum_mul_right
 ... = (1 - 1 / m)⁻¹ * (1 / m ^ (n + 1)!) :

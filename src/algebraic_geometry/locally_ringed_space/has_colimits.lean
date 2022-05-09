@@ -70,7 +70,9 @@ def coproduct : LocallyRingedSpace :=
 noncomputable
 def coproduct_cofan : cocone F :=
 { X := coproduct F,
-  ι := { app := λ j, ⟨colimit.ι (F ⋙ forget_to_SheafedSpace) j, infer_instance⟩ } }
+  ι :=
+  { app := λ j, ⟨colimit.ι (F ⋙ forget_to_SheafedSpace) j, infer_instance⟩,
+    naturality' := λ j j' f, by { cases j, cases j', tidy, }, } }
 
 /-- The explicit coproduct cofan constructed in `coproduct_cofan` is indeed a colimit. -/
 noncomputable

@@ -783,7 +783,7 @@ begin
   rw ← iso.eq_comp_inv at this,
   rw this,
   have : colimit.ι _ _ ≫ _ = _ :=
-    Top.sigma_iso_sigma_hom_ι ((F ⋙ SheafedSpace.forget C).obj ∘ discrete.mk) i.as,
+    Top.sigma_iso_sigma_hom_ι.{v} ((F ⋙ SheafedSpace.forget C).obj ∘ discrete.mk) i.as,
   rw ← iso.eq_comp_inv at this,
   cases i,
   rw this,
@@ -803,7 +803,7 @@ begin
   rintro ⟨y, hy, eq⟩,
   replace eq := concrete_category.congr_arg
     (preserves_colimit_iso (SheafedSpace.forget C) F ≪≫
-      has_colimit.iso_of_nat_iso discrete.nat_iso_functor ≪≫ Top.sigma_iso_sigma _).hom eq,
+      has_colimit.iso_of_nat_iso discrete.nat_iso_functor ≪≫ Top.sigma_iso_sigma.{v} _).hom eq,
   simp_rw [category_theory.iso.trans_hom, ← Top.comp_app, ← PresheafedSpace.comp_base] at eq,
   rw ι_preserves_colimits_iso_inv at eq,
   change ((SheafedSpace.forget C).map (colimit.ι F i) ≫ _) y =
@@ -811,7 +811,7 @@ begin
   cases i, cases j,
   rw [ι_preserves_colimits_iso_hom_assoc, ι_preserves_colimits_iso_hom_assoc,
     has_colimit.iso_of_nat_iso_ι_hom_assoc, has_colimit.iso_of_nat_iso_ι_hom_assoc,
-    Top.sigma_iso_sigma_hom_ι, Top.sigma_iso_sigma_hom_ι] at eq,
+    Top.sigma_iso_sigma_hom_ι.{v}, Top.sigma_iso_sigma_hom_ι.{v}] at eq,
   exact h (congr_arg discrete.mk (congr_arg sigma.fst eq)),
 end
 

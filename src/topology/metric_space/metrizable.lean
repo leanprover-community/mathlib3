@@ -23,6 +23,30 @@ open_locale bounded_continuous_function filter topological_space
 
 namespace topological_space
 
+class pseudo_metrizable_space (α : Type*) [t : topological_space α] : Prop :=
+(exists_pseudo_metric : ∃ (m : pseudo_metric_space α), m.to_uniform_space.to_topological_space = t)
+
+@[priority 100]
+instance _root_.pseudo_metric_space.to_pseudo_metrizable_space
+  {α : Type*} [m : pseudo_metric_space α] :
+  pseudo_metrizable_space α :=
+⟨⟨m, rfl⟩⟩
+
+/-- Construct on a metrizable space a metric compatible with the topology. -/
+noncomputable def pseudo_metrizable_space_pseudo_metric
+  (α : Type*) [topological_space α] [h : pseudo_metrizable_space α] :
+  pseudo_metric_space α :=
+h.exists_pseudo_metric.some.replace_topology h.exists_pseudo_metric.some_spec.symm
+
+instance pseudo_metrizable_space_prod (α : Type*) [topological_space α] [pseudo_metrizable_space α]
+  (β : Type*) [topological_space β] [pseudo_metrizable_space β] :
+  pseudo_metrizable_space (α × β) :=
+begin
+  letI : pseudo_metric_space α := pseudo_metrizable_space_pseudo_metric α,
+  letI : pseudo_metric_space β := pseudo_metrizable_space_pseudo_metric β,
+  apply_instance
+end
+
 /-- A topological space is metrizable if there exists a metric space structure compatible with the
 topology. To endow such a space with a compatible distance, use
 `letI : metric_space α := metrizable_space_metric α` -/
@@ -33,6 +57,11 @@ class metrizable_space (α : Type*) [t : topological_space α] : Prop :=
 instance _root_.metric_space.to_metrizable_space {α : Type*} [m : metric_space α] :
   metrizable_space α :=
 ⟨⟨m, rfl⟩⟩
+
+@[priority 100]
+instance metrizable_space.to_pseudo_metrizable_space {α : Type*} [topological_space α]
+  [h : metrizable_space α] : pseudo_metrizable_space α :=
+⟨let ⟨m, hm⟩ := h.1 in ⟨m.to_pseudo_metric_space, hm⟩⟩
 
 /-- Construct on a metrizable space a metric compatible with the topology. -/
 noncomputable def metrizable_space_metric

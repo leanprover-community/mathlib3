@@ -6,7 +6,12 @@ Authors: Damiano Testa
 import tactic.move_add
 import data.polynomial.degree.lemmas
 
-/-! # `compute_degree` a tactic for compute `nat_degree`s of polynomials -/
+/-! # `compute_degree` a tactic for compute `nat_degree`s of polynomials
+
+This file defines two main tactics `compute_degree` and `compute_degree_le`.
+Applied when the goal is of the form `f.nat_degree = d` or `f.nat_degree ≤ d`, they try to solve it.
+
+See the corresponding doc-strings for more details. -/
 
 namespace polynomial
 open_locale polynomial
@@ -84,14 +89,6 @@ do nat_degs ← summ.mmap extract_deg_single_summand,
       "'`compute_degree`' could not find summands: something has gone very wrong!\n\n"
   | (some first) := return first
   end
-
-/-  `extract_top_degree_term_and_deg e` returns the first element of
-`extract_sorted_list_terms_and_degs e` and fails if the relevant list is empty.
-meta def extract_top_degree_term_and_deg (e : expr) : tactic (expr × ℕ) :=
-do (first :: _) ← extract_sorted_list_terms_and_degs e |
-  tactic.fail "'`compute_degree`' could not find summands: something has gone very wrong!\n\n",
-return first
- -/
 
 /--  These are the cases in which an easy lemma computes the degree. -/
 meta def single_term_suggestions : tactic unit :=

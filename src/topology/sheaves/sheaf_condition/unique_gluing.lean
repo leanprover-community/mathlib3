@@ -109,8 +109,8 @@ lemma compatible_iff_left_res_eq_right_res (sf : pi_opens F U) :
 begin
   split ; intros h,
   { ext ⟨i, j⟩,
-    rw [left_res, types.limit.lift_π_apply, fan.mk_π_app,
-        right_res, types.limit.lift_π_apply, fan.mk_π_app],
+    rw [left_res, types.limit.lift_π_apply', fan.mk_π_app,
+        right_res, types.limit.lift_π_apply', fan.mk_π_app],
     exact h i j, },
   { intros i j,
     convert congr_arg (limits.pi.π (λ p : ι × ι, F.obj (op (U p.1 ⊓ U p.2))) (i,j)) h,
@@ -129,7 +129,7 @@ lemma is_gluing_iff_eq_res (sf : pi_opens F U) (s : F.obj (op (supr U))):
 begin
   split ; intros h,
   { ext i,
-    rw [res, types.limit.lift_π_apply, fan.mk_π_app],
+    rw [res, types.limit.lift_π_apply', fan.mk_π_app],
     exact h i, },
   { intro i,
     convert congr_arg (limits.pi.π (λ i : ι, F.obj (op (U i))) i) h,

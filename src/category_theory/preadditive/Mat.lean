@@ -406,9 +406,7 @@ nat_iso.of_components
   congr,
   ext j k ⟨⟩,
   dsimp, simp,
-  convert α.hom.naturality (f j k),
-  erw [biproduct.matrix_π],
-  simp,
+  exact α.hom.naturality (f j k),
 end).
 
 -- TODO is there some uniqueness statement for the natural isomorphism in `lift_unique`?

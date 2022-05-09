@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2022 Kexing Ying and Bhavik Mehta. All rights reserved.
+Copyright (c) 2022 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying, Bhavik Mehta
 -/
@@ -8,7 +8,7 @@ import probability.conditional
 /-!
 # Classical probability
 
-The classical formulation of probability states that the probability of an event occuring is the
+The classical formulation of probability states that the probability of an event occurring is the
 ratio of that event to all possible events. This notion can be expressed with measure theory using
 the counting measure. In particular, given the sets `s` and `t`, we define the probability of `t`
 occuring in `s` to be `|s|⁻¹ * |s ∩ t|`. With this definition, we recover the the probability over
@@ -27,7 +27,7 @@ for that purpose.
 The original aim of this file is to provide a measure theoretic method of describing the
 probability an element of a set `s` satisfies some predicate `P`. Our current formulation still
 allow us to describe this by abusing the definitional equality of sets and predicates by simply
-writting `cond_count s P`. We should avoid this however as none of the lemmas are written for
+writing `cond_count s P`. We should avoid this however as none of the lemmas are written for
 predicates.
 -/
 
@@ -51,8 +51,15 @@ def cond_count (s : set α) : measure α := measure.count[|s]
 @[simp] lemma cond_count_empty_meas : (cond_count ∅ : measure α) = 0 :=
 by simp [cond_count]
 
-@[simp] lemma cond_count_empty {s : set α} : cond_count s ∅ = 0 :=
-by { ext x, simp [cond_count] }
+lemma cond_count_empty {s : set α} : cond_count s ∅ = 0 :=
+by simp
+
+lemma finite_of_cond_count_ne_zero {s t : set α} (h : cond_count s t ≠ 0) :
+  s.finite :=
+begin
+  by_contra hs',
+  simpa [cond_count, cond, measure.count_apply_infinite hs'] using h,
+end
 
 variables [measurable_singleton_class α]
 
@@ -81,7 +88,7 @@ lemma cond_count_inter_self (hs : s.finite):
   cond_count s (s ∩ t) = cond_count s t :=
 by rw [cond_count, cond_inter_self _ hs.measurable_set]
 
-lemma cond_count_cond (hs : s.finite) (hs' : s.nonempty) :
+lemma cond_count_self (hs : s.finite) (hs' : s.nonempty) :
   cond_count s s = 1 :=
 begin
   rw [cond_count, cond_apply _ hs.measurable_set, set.inter_self, ennreal.inv_mul_cancel],
@@ -94,20 +101,21 @@ lemma cond_count_eq_one_of (hs : s.finite) (hs' : s.nonempty) (ht : s ⊆ t) :
 begin
   haveI := cond_count_is_probability_measure hs hs',
   refine eq_of_le_of_not_lt prob_le_one _,
-  rw [not_lt, ← cond_count_cond hs hs'],
+  rw [not_lt, ← cond_count_self hs hs'],
   exact measure_mono ht,
 end
 
-lemma pred_true_of_cond_count_eq_one (hs : s.finite)
-  (h : cond_count s t = 1) : s ⊆ t :=
+lemma pred_true_of_cond_count_eq_one (h : cond_count s t = 1) :
+  s ⊆ t :=
 begin
-  rw [cond_count, cond_apply _ hs.measurable_set, mul_comm] at h,
+  have hsf := finite_of_cond_count_ne_zero (by { rw h, exact one_ne_zero }),
+  rw [cond_count, cond_apply _ hsf.measurable_set, mul_comm] at h,
   replace h := ennreal.eq_inv_of_mul_eq_one h,
-  rw [inv_inv, measure.count_apply_finite _ hs,
-    measure.count_apply_finite _ (hs.inter_of_left _), nat.cast_inj] at h,
+  rw [inv_inv, measure.count_apply_finite _ hsf,
+    measure.count_apply_finite _ (hsf.inter_of_left _), nat.cast_inj] at h,
   suffices : s ∩ t = s,
   { exact this ▸ λ x hx, hx.2 },
-  rw ← @set.finite.to_finset_inj _ _ _ (hs.inter_of_left _) hs,
+  rw ← @set.finite.to_finset_inj _ _ _ (hsf.inter_of_left _) hsf,
   exact finset.eq_of_subset_of_card_le
     (set.finite.to_finset_mono.2 (s.inter_subset_left t)) h.symm.le
 end
@@ -150,7 +158,7 @@ begin
   exacts [htu.mono inf_le_right inf_le_right, (hs.inter_of_left _).measurable_set],
 end
 
-lemma cond_count_compl (t : set α) (hs : s.finite) (hs' : s.nonempty) :
+lemma cond_count_compl (hs : s.finite) (hs' : s.nonempty) :
   cond_count s t + cond_count s tᶜ = 1 :=
 begin
   rw [← cond_count_union hs disjoint_compl_right, set.union_compl_self,
@@ -164,8 +172,8 @@ begin
   rcases s.eq_empty_or_nonempty with (rfl | hs');
   rcases t.eq_empty_or_nonempty with (rfl | ht'),
   { simp },
-  { simp [cond_count_cond ht ht'] },
-  { simp [cond_count_cond hs hs'] },
+  { simp [cond_count_self ht ht'] },
+  { simp [cond_count_self hs hs'] },
   rw [cond_count, cond_count, cond_count, cond_apply _ hs.measurable_set,
     cond_apply _ ht.measurable_set, cond_apply _ (hs.union ht).measurable_set,
     cond_apply _ (hs.union ht).measurable_set, cond_apply _ (hs.union ht).measurable_set],
@@ -181,7 +189,7 @@ begin
 end
 
 /-- A version of the law of total probability for counting probabilites. -/
-lemma cond_count_add_compl_eq (s u t : set α) (hs : s.finite) :
+lemma cond_count_add_compl_eq (hs : s.finite) :
   cond_count (s ∩ u) t * cond_count s u + cond_count (s ∩ uᶜ) t * cond_count s uᶜ =
   cond_count s t :=
 begin

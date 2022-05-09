@@ -10,8 +10,8 @@ import data.set_like.basic
 /-!
 # Subsemigroups: definition and `complete_lattice` structure
 
-This file defines bundled multiplicative and additive subsemigrousp. We also define
-a `complete_lattice` structure on `subsemigroups`s,
+This file defines bundled multiplicative and additive subsemigroups. We also define
+a `complete_lattice` structure on `subsemigroup`s,
 and define the closure of a set as the minimal subsemigroup that includes this set.
 
 ## Main definitions
@@ -52,6 +52,20 @@ section non_assoc
 variables [has_mul M] {s : set M}
 variables [has_add A] {t : set A}
 
+/-- `mul_mem_class S M` says `S` is a type of subsets `s ≤ M` that are closed under `(*)` -/
+class mul_mem_class (S : Type*) (M : out_param $ Type*) [has_mul M] [set_like S M] :=
+(mul_mem : ∀ {s : S} {a b : M}, a ∈ s → b ∈ s → a * b ∈ s)
+
+export mul_mem_class (mul_mem)
+
+/-- `add_mem_class S M` says `S` is a type of subsets `s ≤ M` that are closed under `(+)` -/
+class add_mem_class (S : Type*) (M : out_param $ Type*) [has_add M] [set_like S M] :=
+(add_mem : ∀ {s : S} {a b : M}, a ∈ s → b ∈ s → a + b ∈ s)
+
+export add_mem_class (add_mem)
+
+attribute [to_additive] mul_mem_class
+
 /-- A subsemigroup of a magma `M` is a subset closed under multiplication. -/
 structure subsemigroup (M : Type*) [has_mul M] :=
 (carrier : set M)
@@ -69,6 +83,10 @@ namespace subsemigroup
 @[to_additive]
 instance : set_like (subsemigroup M) M :=
 ⟨subsemigroup.carrier, λ p q h, by cases p; cases q; congr'⟩
+
+@[to_additive]
+instance : mul_mem_class (subsemigroup M) M :=
+{ mul_mem := subsemigroup.mul_mem' }
 
 /-- See Note [custom simps projection] -/
 @[to_additive " See Note [custom simps projection]"]
@@ -114,7 +132,7 @@ variable (S)
 
 /-- A subsemigroup is closed under multiplication. -/
 @[to_additive "An `add_subsemigroup` is closed under addition."]
-theorem mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := subsemigroup.mul_mem' S
+protected theorem mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := subsemigroup.mul_mem' S
 
 /-- The subsemigroup `M` of the magma `M`. -/
 @[to_additive "The additive subsemigroup `M` of the magma `M`."]
@@ -256,7 +274,7 @@ lemma closure_induction {p : M → Prop} {x} (h : x ∈ closure s)
 @[elab_as_eliminator, to_additive "A dependent version of `add_subsemigroup.closure_induction`. "]
 lemma closure_induction' (s : set M) {p : Π x, x ∈ closure s → Prop}
   (Hs : ∀ x (h : x ∈ s), p x (subset_closure h))
-  (Hmul : ∀ x hx y hy, p x hx → p y hy → p (x * y) (mul_mem _ hx hy))
+  (Hmul : ∀ x hx y hy, p x hx → p y hy → p (x * y) (mul_mem hx hy))
   {x} (hx : x ∈ closure s) :
   p x hx :=
 begin
@@ -264,6 +282,17 @@ begin
   exact closure_induction hx
     (λ x hx, ⟨_, Hs x hx⟩) (λ x y ⟨hx', hx⟩ ⟨hy', hy⟩, ⟨_, Hmul _ _ _ _ hx hy⟩),
 end
+
+/-- An induction principle for closure membership for predicates with two arguments.  -/
+@[elab_as_eliminator, to_additive "An induction principle for additive closure membership for
+predicates with two arguments."]
+lemma closure_induction₂ {p : M → M → Prop} {x} {y : M} (hx : x ∈ closure s) (hy : y ∈ closure s)
+  (Hs : ∀ (x ∈ s) (y ∈ s), p x y)
+  (Hmul_left : ∀ x y z, p x z → p y z → p (x * y) z)
+  (Hmul_right : ∀ x y z, p z x → p z y → p z (x * y)) : p x y :=
+closure_induction hx
+  (λ x xs, closure_induction hy (Hs x xs) (λ z y h₁ h₂, Hmul_right z _ _ h₁ h₂))
+  (λ x z h₁ h₂, Hmul_left _ _ _ h₁ h₂)
 
 /-- If `s` is a dense set in a magma `M`, `subsemigroup.closure s = ⊤`, then in order to prove that
 some predicate `p` holds for all `x : M` it suffices to verify `p x` for `x ∈ s`,
@@ -330,7 +359,7 @@ end subsemigroup
 
 namespace mul_hom
 
-variables [mul_one_class N]
+variables [has_mul N]
 
 open subsemigroup
 

@@ -26,9 +26,11 @@ based on application: for any `s t : set α`, we have `μ[t|s] = (μ s)⁻¹ * �
 
 ## Notations
 
-This file uses the local notation `μ[|s]` the measure of `μ` conditioned on `s`,
+This file uses the notation `μ[|s]` the measure of `μ` conditioned on `s`,
 and `μ[t|s]` for the probability of `t` given `s` under `μ` (equivalent to the
 application `μ[|s] t`).
+
+These notations are contained in the locale `probability_theory`.
 
 ## Implementation notes
 
@@ -148,20 +150,23 @@ cond_mul_eq_inter' μ hms hcs (measure_ne_top _ s) t
 
 /-- A version of the law of total probability. -/
 lemma cond_add_cond_compl_eq [is_finite_measure μ]
-  (hms : measurable_set s) (hmt : measurable_set t) (hcs : μ s ≠ 0) (hcs' : μ sᶜ ≠ 0) :
+  (hms : measurable_set s) (hcs : μ s ≠ 0) (hcs' : μ sᶜ ≠ 0) :
   μ[t|s] * μ s + μ[t|sᶜ] * μ sᶜ = μ t :=
 begin
-  rw [cond_mul_eq_inter μ hms hcs, cond_mul_eq_inter μ hms.compl hcs',
-    ← measure_union _ (hms.compl.inter hmt), ← set.union_inter_distrib_right,
-    set.union_compl_self, set.univ_inter],
-  exact disjoint_compl_right.mono inf_le_left inf_le_left,
+  rw [cond_mul_eq_inter μ hms hcs, cond_mul_eq_inter μ hms.compl hcs', set.inter_comm _ t,
+    set.inter_comm _ t],
+  exact measure_inter_add_diff t hms,
 end
 
 /-- **Bayes' Theorem** -/
 theorem cond_eq_inv_mul_cond_mul [is_finite_measure μ]
-  (hms : measurable_set s) (hmt : measurable_set t) (ht : μ t ≠ 0) :
+  (hms : measurable_set s) (hmt : measurable_set t) :
   μ[t|s] = (μ s)⁻¹ * μ[s|t] * (μ t) :=
-by rw [mul_assoc, cond_mul_eq_inter μ hmt ht s, set.inter_comm, cond_apply _ hms]
+begin
+  by_cases ht : μ t = 0,
+  { simp [cond, ht, measure.restrict_apply hmt, or.inr (measure_inter_null_of_null_left s ht)] },
+  { rw [mul_assoc, cond_mul_eq_inter μ hmt ht s, set.inter_comm, cond_apply _ hms] }
+end
 
 end bayes
 

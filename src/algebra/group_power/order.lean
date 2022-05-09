@@ -34,8 +34,7 @@ theorem one_le_pow_of_one_le' {a : M} (H : 1 ≤ a) : ∀ n : ℕ, 1 ≤ a ^ n
 | (k + 1) := by { rw pow_succ, exact one_le_mul H (one_le_pow_of_one_le' k) }
 
 @[to_additive nsmul_nonpos]
-theorem pow_le_one' {a : M} (H : a ≤ 1) (n : ℕ) : a ^ n ≤ 1 :=
-@one_le_pow_of_one_le' (order_dual M) _ _ _ _ H n
+lemma pow_le_one' {a : M} (H : a ≤ 1) (n : ℕ) : a ^ n ≤ 1 := @one_le_pow_of_one_le' Mᵒᵈ _ _ _ _ H n
 
 @[to_additive nsmul_le_nsmul]
 theorem pow_le_pow' {a : M} {n m : ℕ} (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
@@ -45,7 +44,7 @@ calc a ^ n ≤ a ^ n * a ^ k : le_mul_of_one_le_right' (one_le_pow_of_one_le' ha
 
 @[to_additive nsmul_le_nsmul_of_nonpos]
 theorem pow_le_pow_of_le_one' {a : M} {n m : ℕ} (ha : a ≤ 1) (h : n ≤ m) : a ^ m ≤ a ^ n :=
-@pow_le_pow' (order_dual M) _ _ _ _ _ _  ha h
+@pow_le_pow' Mᵒᵈ _ _ _ _ _ _  ha h
 
 @[to_additive nsmul_pos]
 theorem one_lt_pow' {a : M} (ha : 1 < a) {k : ℕ} (hk : k ≠ 0) : 1 < a ^ k :=
@@ -59,8 +58,8 @@ begin
 end
 
 @[to_additive nsmul_neg]
-theorem pow_lt_one' {a : M} (ha : a < 1) {k : ℕ} (hk : k ≠ 0) : a ^ k < 1 :=
-@one_lt_pow' (order_dual M) _ _ _ _ ha k hk
+lemma pow_lt_one' {a : M} (ha : a < 1) {k : ℕ} (hk : k ≠ 0) : a ^ k < 1 :=
+@one_lt_pow' Mᵒᵈ _ _ _ _ ha k hk
 
 @[to_additive nsmul_lt_nsmul]
 theorem pow_lt_pow' [covariant_class M M (*) (<)] {a : M} {n m : ℕ} (ha : 1 < a) (h : n < m) :
@@ -70,6 +69,11 @@ begin
   rw [pow_add, pow_succ', mul_assoc, ← pow_succ],
   exact lt_mul_of_one_lt_right' _ (one_lt_pow' ha k.succ_ne_zero)
 end
+
+@[to_additive nsmul_strict_mono_right]
+lemma pow_strict_mono_left [covariant_class M M (*) (<)] {a : M} (ha : 1 < a) :
+  strict_mono ((^) a : ℕ → M) :=
+λ m n, pow_lt_pow' ha
 
 end preorder
 
@@ -83,7 +87,7 @@ lemma one_le_pow_iff {x : M} {n : ℕ} (hn : n ≠ 0) : 1 ≤ x ^ n ↔ 1 ≤ x 
 
 @[to_additive]
 lemma pow_le_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n ≤ 1 ↔ x ≤ 1 :=
-@one_le_pow_iff (order_dual M) _ _ _ _ _ hn
+@one_le_pow_iff Mᵒᵈ _ _ _ _ _ hn
 
 @[to_additive nsmul_pos_iff]
 lemma one_lt_pow_iff {x : M} {n : ℕ} (hn : n ≠ 0) : 1 < x ^ n ↔ 1 < x :=
@@ -96,6 +100,14 @@ lt_iff_lt_of_le_iff_le (one_le_pow_iff hn)
 @[to_additive]
 lemma pow_eq_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n = 1 ↔ x = 1 :=
 by simp only [le_antisymm_iff, pow_le_one_iff hn, one_le_pow_iff hn]
+
+variables [covariant_class M M (*) (<)] {a : M} {m n : ℕ}
+
+@[to_additive nsmul_le_nsmul_iff]
+lemma pow_le_pow_iff' (ha : 1 < a) : a ^ m ≤ a ^ n ↔ m ≤ n := (pow_strict_mono_left ha).le_iff_le
+
+@[to_additive nsmul_lt_nsmul_iff]
+lemma pow_lt_pow_iff' (ha : 1 < a) : a ^ m < a ^ n ↔ m < n := (pow_strict_mono_left ha).lt_iff_lt
 
 end linear_order
 
@@ -386,6 +398,9 @@ have t : 1^2 ≤ x^2 ↔ |1| ≤ |x| := ⟨abs_le_abs_of_sq_le_sq, sq_le_sq⟩, 
 
 @[simp] lemma one_lt_sq_iff_one_lt_abs (x : R) : 1 < x^2 ↔ 1 < |x| :=
 have t : 1^2 < x^2 ↔ |1| < |x| := ⟨abs_lt_abs_of_sq_lt_sq, sq_lt_sq⟩, by simpa using t
+
+lemma pow_four_le_pow_two_of_pow_two_le {x y : R} (h : x^2 ≤ y) : x^4 ≤ y^2 :=
+(pow_mul x 2 2).symm ▸ pow_le_pow_of_le_left (sq_nonneg x) h 2
 
 end linear_ordered_ring
 

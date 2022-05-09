@@ -322,6 +322,20 @@ theorem geom_sum_Ico' [division_ring α] {x : α} (hx : x ≠ 1) {m n : ℕ} (hm
   ∑ i in finset.Ico m n, x ^ i = (x ^ m - x ^ n) / (1 - x) :=
 by { simp only [geom_sum_Ico hx hmn], convert neg_div_neg_eq (x^m - x^n) (1-x); abel }
 
+lemma geom_sum_Ico_le_of_lt_one [linear_ordered_field α]
+  {x : α} (hx : 0 ≤ x) (h'x : x < 1) {m n : ℕ} :
+  ∑ i in Ico m n, x ^ i ≤ x ^ m / (1 - x) :=
+begin
+  rcases le_or_lt m n with hmn | hmn,
+  { rw geom_sum_Ico' h'x.ne hmn,
+    apply div_le_div (pow_nonneg hx _) _ (sub_pos.2 h'x) le_rfl,
+    simpa using pow_nonneg hx _ },
+  { rw [Ico_eq_empty, sum_empty],
+    { apply div_nonneg (pow_nonneg hx _),
+      simpa using h'x.le },
+    { simpa using hmn.le } },
+end
+
 lemma geom_sum_inv [division_ring α] {x : α} (hx1 : x ≠ 1) (hx0 : x ≠ 0) (n : ℕ) :
   (geom_sum x⁻¹ n) = (x - 1)⁻¹ * (x - x⁻¹ ^ n * x) :=
 have h₁ : x⁻¹ ≠ 1, by rwa [inv_eq_one_div, ne.def, div_eq_iff_mul_eq hx0, one_mul],

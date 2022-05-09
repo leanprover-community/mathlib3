@@ -30,9 +30,6 @@ begin
   -- the first `_ * c` unifies with `b * c` and moves it to the right
   -- the second `_ * c` unifies with `a * c` and moves it to the left
   move_add [_ * c, ← _ * c], -- Goal: `a * c + c + b * c = a * d + d + b * d`
-  --  creates two side-goals of `ℕ`, one for each `_`, even though they have been unified
-  --  correctly and disappear with the `assumption`s.
-  --  It is possible to not have them at all?
   congr,
   repeat { assumption }
 end
@@ -42,9 +39,6 @@ begin
   -- the first `_ * c` unifies with `b * c` and moves it to the right
   -- the second `_ * c` unifies with `a * c` and moves it to the left
   move_add [_ * c, ← _ * c], -- Goal: `a * c + c + b * c = a * d + d + b * d`
-  --  creates two side-goals of `ℕ`, one for each `_`, even though they have been unified
-  --  correctly and disappear with the `assumption`s.
-  --  Is it possible to not have them at all?
   congr,
   repeat { assumption }
 end

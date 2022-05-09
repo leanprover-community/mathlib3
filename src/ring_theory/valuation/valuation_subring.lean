@@ -35,17 +35,18 @@ instance : set_like (valuation_subring K) K :=
 { coe := λ A, A.to_subring,
   coe_injective' := by { rintro ⟨⟨⟩⟩ ⟨⟨⟩⟩ _, congr' } }
 
+instance : subring_class (valuation_subring K) K :=
+{ add_mem := λ s _ _ ha hb, s.add_mem' ha hb,
+  neg_mem := λ s _ ha, s.neg_mem' ha,
+  zero_mem := λ s, s.zero_mem',
+  mul_mem := λ s _ _ ha hb, s.mul_mem' ha hb,
+  one_mem := λ s, s.one_mem' }
+
 @[simp] lemma mem_carrier (x : K) : x ∈ A.carrier ↔ x ∈ A := iff.refl _
 @[simp] lemma mem_to_subring (x : K) : x ∈ A.to_subring ↔ x ∈ A := iff.refl _
 
 @[ext] lemma ext (A B : valuation_subring K)
   (h : ∀ x, x ∈ A ↔ x ∈ B) : A = B := set_like.ext h
-
-lemma zero_mem : (0 : K) ∈ A := A.to_subring.zero_mem
-lemma one_mem : (1 : K) ∈ A := A.to_subring.one_mem
-lemma add_mem (x y : K) : x ∈ A → y ∈ A → x + y ∈ A := A.to_subring.add_mem
-lemma mul_mem (x y : K) : x ∈ A → y ∈ A → x * y ∈ A := A.to_subring.mul_mem
-lemma neg_mem (x : K) : x ∈ A → (-x) ∈ A := A.to_subring.neg_mem
 
 lemma mem_or_inv_mem (x : K) : x ∈ A ∨ x⁻¹ ∈ A := A.mem_or_inv_mem' _
 
@@ -72,9 +73,9 @@ instance : valuation_ring A :=
     by_cases (b : K) = 0, { use 0, left, ext, simp [h] },
     by_cases (a : K) = 0, { use 0, right, ext, simp [h] },
     cases A.mem_or_inv_mem (a/b) with hh hh,
-    { use ⟨a/b,hh⟩, right, ext, field_simp, ring },
+    { use ⟨a/b, hh⟩, right, ext, field_simp, ring },
     { rw (show (a/b : K)⁻¹ = b/a, by field_simp) at hh,
-      use ⟨b/a,hh⟩, left, ext, field_simp, ring },
+      use ⟨b/a, hh⟩, left, ext, field_simp, ring },
   end }
 
 instance : algebra A K :=
@@ -250,7 +251,7 @@ begin
         apply hr, rw hh, apply ideal.zero_mem (R.ideal_of_le S h) },
       { exact one_ne_zero } } },
   { intro hx, by_cases hr : x ∈ R, { exact R.le_of_prime _ hr },
-    have : x ≠ 0 := λ h, hr (by { rw h, exact R.zero_mem }),
+    have : x ≠ 0 := λ h, hr (by { rw h, exact zero_mem R }),
     replace hr := (R.mem_or_inv_mem x).resolve_left hr,
     { use [1, x⁻¹, hr], split,
       { change (⟨x⁻¹, h hr⟩ : S) ∉ nonunits S,

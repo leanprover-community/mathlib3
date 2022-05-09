@@ -982,11 +982,13 @@ def comap (f : R →+* S) (U : opens (prime_spectrum.Top R))
       refl },
   map_add' := λ s t, subtype.ext $ funext $ λ p, by
     { rw [subtype.coe_mk, subtype.val_eq_coe, comap_fun,
-        add_submonoid_class.coe_add (sections_subring R (op U)), pi.add_apply, ring_hom.map_add],
+        @add_submonoid_class.coe_add _ _ _ _ _ (sections_subring R (op U)), pi.add_apply,
+        ring_hom.map_add],
       refl },
   map_mul' := λ s t, subtype.ext $ funext $ λ p, by
     { rw [subtype.coe_mk, subtype.val_eq_coe, comap_fun,
-        submonoid_class.coe_mul (sections_subring R (op U)), pi.mul_apply, ring_hom.map_mul],
+        @submonoid_class.coe_mul _ _ _ _ _ (sections_subring R (op U)), pi.mul_apply,
+        ring_hom.map_mul],
       refl } }
 
 @[simp]

@@ -168,16 +168,19 @@ end
 
 variables (M)
 
+open function
+
 theorem trace_comp_comm :
   compr₂ (llcomp R M N M) (trace R M) = compr₂ (llcomp R N M N).flip (trace R N) :=
 begin
   apply (compl₁₂_inj
-    (dual_tensor_hom_equiv R N M).surjective (dual_tensor_hom_equiv R M N).surjective).1,
+    (show surjective (dual_tensor_hom R N M), from (dual_tensor_hom_equiv R N M).surjective)
+    (show surjective (dual_tensor_hom R M N), from (dual_tensor_hom_equiv R M N).surjective)).1,
   ext g m f n,
   simp only [tensor_product.algebra_tensor_module.curry_apply, to_fun_eq_coe,
-  tensor_product.curry_apply, coe_restrict_scalars_eq_coe, compl₁₂_apply, compr₂_apply, flip_apply,
-  llcomp_apply', comp_dual_tensor_hom, map_smul, trace_eq_contract_apply, contract_left_apply,
-  smul_eq_mul, mul_comm],
+      linear_equiv.coe_to_linear_map, tensor_product.curry_apply, coe_restrict_scalars_eq_coe,
+      compl₁₂_apply, compr₂_apply, flip_apply, llcomp_apply', comp_dual_tensor_hom, map_smul,
+      trace_eq_contract_apply, contract_left_apply, smul_eq_mul, mul_comm],
 end
 
 variables {R M}

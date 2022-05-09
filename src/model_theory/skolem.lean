@@ -22,7 +22,7 @@ import model_theory.elementary_maps
 
 -/
 
-universes u v w
+universes u v w w'
 
 namespace first_order
 namespace language

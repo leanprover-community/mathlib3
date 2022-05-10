@@ -379,7 +379,7 @@ def biproduct.to_subtype : ⨁ f ⟶ ⨁ subtype.restrict p f :=
 biproduct.lift $ λ j, biproduct.π _ _
 
 @[simp, reassoc]
-lemma biproduct.from_subtype_π (j : J) :
+lemma biproduct.from_subtype_π [decidable_pred p] (j : J) :
   biproduct.from_subtype f p ≫ biproduct.π f j =
     if h : p j then biproduct.π (subtype.restrict p f) ⟨j, h⟩ else 0 :=
 begin
@@ -393,7 +393,7 @@ begin
   { rw [dif_neg h, dif_neg (show (i : J) ≠ j, from λ h₂, h (h₂ ▸ i.2)), comp_zero] }
 end
 
-lemma biproduct.from_subtype_eq_lift : biproduct.from_subtype f p =
+lemma biproduct.from_subtype_eq_lift [decidable_pred p] : biproduct.from_subtype f p =
     biproduct.lift (λ j, if h : p j then biproduct.π (subtype.restrict p f) ⟨j, h⟩ else 0) :=
 biproduct.hom_ext _ _ (by simp)
 
@@ -413,7 +413,7 @@ lemma biproduct.to_subtype_π (j : subtype p) :
 biproduct.lift_π _ _
 
 @[simp, reassoc]
-lemma biproduct.ι_to_subtype (j : J) :
+lemma biproduct.ι_to_subtype [decidable_pred p] (j : J) :
   biproduct.ι f j ≫ biproduct.to_subtype f p =
     if h : p j then biproduct.ι (subtype.restrict p f) ⟨j, h⟩ else 0 :=
 begin
@@ -427,7 +427,7 @@ begin
   { rw [dif_neg h, dif_neg (show j ≠ i, from λ h₂, h (h₂.symm ▸ i.2)), zero_comp] }
 end
 
-lemma biproduct.to_subtype_eq_desc : biproduct.to_subtype f p =
+lemma biproduct.to_subtype_eq_desc [decidable_pred p] : biproduct.to_subtype f p =
   biproduct.desc (λ j, if h : p j then biproduct.ι (subtype.restrict p f) ⟨j, h⟩ else 0) :=
 biproduct.hom_ext' _ _ (by simp)
 
@@ -455,7 +455,7 @@ begin
 end
 
 @[simp, reassoc]
-lemma biproduct.to_subtype_from_subtype :
+lemma biproduct.to_subtype_from_subtype [decidable_pred p] :
   biproduct.to_subtype f p ≫ biproduct.from_subtype f p =
     biproduct.map (λ j, if p j then 𝟙 (f j) else 0) :=
 begin

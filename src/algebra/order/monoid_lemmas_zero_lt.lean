@@ -168,11 +168,13 @@ end has_lt
 section preorder
 variables [preorder α]
 
+-- proven with `a0 : 0 ≤ a` as `mul_le_mul_left''`
 lemma mul_le_mul_left' [pos_mul_mono α]
   (bc : b ≤ c) (a0 : 0 < a) :
   a * b ≤ a * c :=
 @covariant_class.elim α>0 α (λ x y, x * y) (≤) _ ⟨a, a0⟩ _ _ bc
 
+-- proven with `a0 : 0 ≤ a` as `mul_le_mul_right''`
 lemma mul_le_mul_right' [mul_pos_mono α]
   (bc : b ≤ c) (a0 : 0 < a) :
   b * a ≤ c * a :=
@@ -419,6 +421,78 @@ lemma pos_iff_pos_of_mul_pos [pos_mul_reflect_lt α] [mul_pos_reflect_lt α] (ha
   0 < a ↔ 0 < b :=
 ⟨pos_of_mul_pos_left hab ∘ le_of_lt, pos_of_mul_pos_right hab ∘ le_of_lt⟩
 
+lemma mul_le_mul_of_le_of_le'' [pos_mul_mono α] [mul_pos_mono α]
+  (h₁ : a ≤ b) (h₂ : c ≤ d) (a0 : 0 ≤ a) (d0 : 0 ≤ d) : a * c ≤ b * d :=
+d0.lt_or_eq.elim
+  (a0.lt_or_eq.elim
+    (mul_le_mul_of_le_of_le h₁ h₂)
+    (λ ha hd, by rw [← ha, zero_mul] at *; exact left.mul_nonneg h₁ hd.le))
+  (λ hd, by rw [← hd, mul_zero] at *; exact mul_nonpos_of_nonneg_of_nonpos a0 h₂)
+
+lemma mul_le_mul_of_le_of_le''' [pos_mul_mono α] [mul_pos_mono α]
+  (h₁ : a ≤ b) (h₂ : c ≤ d) (b0 : 0 ≤ b) (c0 : 0 ≤ c) : a * c ≤ b * d :=
+c0.lt_or_eq.elim
+  (b0.lt_or_eq.elim
+    (mul_le_mul_of_le_of_le' h₁ h₂)
+    (λ hb hc, by rw [← hb, zero_mul] at *; exact mul_nonpos_of_nonpos_of_nonneg h₁ hc.le))
+  (λ hc, by rw [← hc, mul_zero] at *; exact right.mul_nonneg b0 h₂)
+
+lemma mul_le_of_mul_le_left' [pos_mul_mono α]
+  (h : a * b ≤ c) (hle : d ≤ b) (a0 : 0 ≤ a) :
+  a * d ≤ c :=
+a0.lt_or_eq.elim (mul_le_of_mul_le_left h hle) (λ h', by rw [← h', zero_mul] at *; exact h)
+
+lemma le_mul_of_le_mul_left' [pos_mul_mono α]
+  (h : a ≤ b * c) (hle : c ≤ d) (b0 : 0 ≤ b) :
+  a ≤ b * d :=
+b0.lt_or_eq.elim (le_mul_of_le_mul_left h hle) (λ h', by rw [← h', zero_mul] at *; exact h)
+
+lemma mul_le_of_mul_le_right' [mul_pos_mono α]
+  (h : a * b ≤ c) (hle : d ≤ a) (b0 : 0 ≤ b) :
+  d * b ≤ c :=
+b0.lt_or_eq.elim (mul_le_of_mul_le_right h hle) (λ h', by rw [← h', mul_zero] at *; exact h)
+
+lemma le_mul_of_le_mul_right' [mul_pos_mono α]
+  (h : a ≤ b * c) (hle : b ≤ d) (c0 : 0 ≤ c) :
+  a ≤ d * c :=
+c0.lt_or_eq.elim (le_mul_of_le_mul_right h hle) (λ h', by rw [← h', mul_zero] at *; exact h)
+
+lemma mul_left_cancel [pos_mul_mono_rev α]
+  (h : a * b = a * c) (a0 : 0 < a) :
+  b = c :=
+(le_of_mul_le_mul_left' h.le a0).antisymm (le_of_mul_le_mul_left' h.ge a0)
+
+lemma mul_right_cancel [mul_pos_mono_rev α]
+  (h : a * b = c * b) (b0 : 0 < b) :
+  a = c :=
+(le_of_mul_le_mul_right' h.le b0).antisymm (le_of_mul_le_mul_right' h.ge b0)
+
+lemma mul_eq_mul_iff_eq_and_eq [pos_mul_strict_mono α] [mul_pos_strict_mono α]
+  [pos_mul_mono_rev α] [mul_pos_mono_rev α]
+  (hac : a ≤ b) (hbd : c ≤ d) (a0 : 0 < a) (d0 : 0 < d) :
+  a * c = b * d ↔ a = b ∧ c = d :=
+begin
+  refine ⟨λ h, _, λ h, congr_arg2 (*) h.1 h.2⟩,
+  rcases hac.eq_or_lt with rfl | hac,
+  { exact ⟨rfl, mul_left_cancel h a0⟩ },
+  rcases eq_or_lt_of_le hbd with rfl | hbd,
+  { exact ⟨mul_right_cancel h d0, rfl⟩ },
+  exact ((mul_lt_mul_of_lt_of_lt hac hbd a0 d0).ne h).elim,
+end
+
+lemma mul_eq_mul_iff_eq_and_eq' [pos_mul_strict_mono α] [mul_pos_strict_mono α]
+  [pos_mul_mono_rev α] [mul_pos_mono_rev α]
+  (hac : a ≤ b) (hbd : c ≤ d) (b0 : 0 < b) (c0 : 0 < c) :
+  a * c = b * d ↔ a = b ∧ c = d :=
+begin
+  refine ⟨λ h, _, λ h, congr_arg2 (*) h.1 h.2⟩,
+  rcases hac.eq_or_lt with rfl | hac,
+  { exact ⟨rfl, mul_left_cancel h b0⟩ },
+  rcases eq_or_lt_of_le hbd with rfl | hbd,
+  { exact ⟨mul_right_cancel h c0, rfl⟩ },
+  exact ((mul_lt_mul_of_lt_of_lt' hac hbd b0 c0).ne h).elim,
+end
+
 end partial_order
 
 section linear_order
@@ -479,8 +553,8 @@ variables [mul_one_class α] [has_zero α]
 section preorder
 variables [preorder α]
 
--- Lemmas in the form of `a ≤ a * b ↔ 1 ≤ b` and `a * b ≤ a ↔ b ≤ 1`,
--- which assume left covariance.
+/-! Lemmas in the form of `a ≤ a * b ↔ 1 ≤ b` and `a * b ≤ a ↔ b ≤ 1`,
+which assume left covariance. -/
 
 @[simp]
 lemma le_mul_iff_one_le_right
@@ -510,8 +584,8 @@ lemma mul_lt_iff_lt_one_right
   a * b < a ↔ b < 1 :=
 iff.trans (by rw [mul_one]) (mul_lt_mul_iff_left a0)
 
--- Lemmas in the form of `a ≤ b * a ↔ 1 ≤ b` and `a * b ≤ b ↔ a ≤ 1`,
--- which assume right covariance.
+/-! Lemmas in the form of `a ≤ b * a ↔ 1 ≤ b` and `a * b ≤ b ↔ a ≤ 1`,
+which assume right covariance. -/
 
 @[simp]
 lemma le_mul_iff_one_le_left
@@ -541,8 +615,8 @@ lemma mul_lt_iff_lt_one_left
   a * b < b ↔ a < 1 :=
 iff.trans (by rw [one_mul]) (mul_lt_mul_iff_right b0)
 
--- Lemmas in the form of `b ≤ c → a ≤ 1 → 0 < b → b * a ≤ c`,
--- which assume left covariance.
+/-! Lemmas in the form of `b ≤ c → a ≤ 1 → 0 < b → b * a ≤ c`,
+which assume left covariance. -/
 
 -- proven with `b0 : 0 ≤ b` as `mul_le_of_le_of_le_one'`
 lemma mul_le_of_le_of_le_one [pos_mul_mono α]
@@ -589,8 +663,8 @@ lemma left.mul_lt_one_of_lt_of_lt [pos_mul_strict_mono α]
   (ha : a < 1) (hb : b < 1) (a0 : 0 < a) : a * b < 1 :=
 mul_lt_of_lt_of_lt_one ha hb a0
 
--- Lemmas in the form of `b ≤ c → 1 ≤ a → 0 < c → b ≤ c * a`,
--- which assume left covariance.
+/-! Lemmas in the form of `b ≤ c → 1 ≤ a → 0 < c → b ≤ c * a`,
+which assume left covariance. -/
 
 -- proven with `c0 : 0 ≤ c` as `le_mul_of_le_of_one_le'`
 lemma le_mul_of_le_of_one_le [pos_mul_mono α]
@@ -637,8 +711,8 @@ lemma left.one_lt_mul_of_lt_of_lt [pos_mul_strict_mono α]
   (ha : 1 < a) (hb : 1 < b) (a0 : 0 < a) : 1 < a * b :=
 lt_mul_of_lt_of_one_lt ha hb a0
 
--- Lemmas in the form of `a ≤ 1 → b ≤ c → 0 < b → a * b ≤ c`,
--- which assume right covariance.
+/-! Lemmas in the form of `a ≤ 1 → b ≤ c → 0 < b → a * b ≤ c`,
+which assume right covariance. -/
 
 -- proven with `b0 : 0 ≤ b` as `mul_le_of_le_one_of_le'`
 lemma mul_le_of_le_one_of_le [mul_pos_mono α]
@@ -685,8 +759,8 @@ lemma right.mul_lt_one_of_lt_of_lt [mul_pos_strict_mono α]
   (ha : a < 1) (hb : b < 1) (b0 : 0 < b) : a * b < 1 :=
 mul_lt_of_lt_one_of_lt ha hb b0
 
--- Lemmas in the form of `1 ≤ a → b ≤ c → 0 < c → b ≤ a * c`,
--- which assume right covariance.
+/-! Lemmas in the form of `1 ≤ a → b ≤ c → 0 < c → b ≤ a * c`,
+which assume right covariance. -/
 
 -- proven with `c0 : 0 ≤ c` as `le_mul_of_one_le_of_le'`
 lemma le_mul_of_one_le_of_le [mul_pos_mono α]

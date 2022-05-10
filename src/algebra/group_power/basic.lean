@@ -243,7 +243,7 @@ variables [division_comm_monoid α]
 @[to_additive zsmul_add] lemma mul_zpow (a b : α) : ∀ n : ℤ, (a * b) ^ n = a ^ n * b ^ n :=
 (commute.all a b).mul_zpow
 
-@[simp, to_additive nsmul_sub] lemma div_pow (a b : α) (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
+@[simp, to_additive "nsmul_sub"] lemma div_pow (a b : α) (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
 by simp only [div_eq_mul_inv, mul_pow, inv_pow]
 
 @[simp, to_additive "zsmul_sub"] lemma div_zpow (a b : α) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
@@ -253,7 +253,7 @@ by simp only [div_eq_mul_inv, mul_zpow, inv_zpow]
 homomorphism. -/
 @[to_additive "Multiplication by an integer `n` on a commutative additive group, considered as an
 additive group homomorphism.", simps]
-def zpow_group_hom (n : ℤ) : G →* G :=
+def zpow_group_hom (n : ℤ) : α →* α :=
 { to_fun := (^ n),
   map_one' := one_zpow n,
   map_mul' := λ a b, mul_zpow a b n }

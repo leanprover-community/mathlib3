@@ -93,13 +93,13 @@ by { rintro ⟨c, rfl⟩ a, simp_rw [←two_mul, pow_mul, neg_sq] }
 
 lemma even.neg_one_pow (h : even n) : (-1 : α) ^ n = 1 := by rw [h.neg_pow, one_pow]
 
+end monoid
+
 /-- `0` is always a square (in a monoid with zero). -/
 lemma is_square_zero (M : Type*) [monoid_with_zero M] : is_square (0 : M) :=
 by { use 0, simp only [mul_zero] }
 
-end monoid
-
-@[to_additive] lemma is_square.mul_is_square [comm_monoid α] {a b : α} :
+@[to_additive] lemma is_square.mul [comm_semigroup α] {a b : α} :
   is_square a → is_square b → is_square (a * b) :=
 by { rintro ⟨a, rfl⟩ ⟨b, rfl⟩, exact ⟨m * n, mul_mul_mul_comm m m n n⟩ }
 

@@ -731,17 +731,16 @@ CompHaus :=
 { to_Top := Top.of (L ≃ₐ[K] L),
   is_compact := {
     compact_univ := krull_topology_compact h_int h_splits},
-  is_hausdorff := krull_topology_t2 h_int,
-}
+  is_hausdorff := krull_topology_t2 h_int }
 
 def krull_topology_totally_disconnected_space {K L : Type*} [field K] [field L] [algebra K L]
 (h_int : ∀ (x : L), is_integral K x) :
 totally_disconnected_space (L ≃ₐ[K] L) :=
-{ is_totally_disconnected_univ := krull_topology_totally_disconnected h_int}
+{ is_totally_disconnected_univ := krull_topology_totally_disconnected h_int }
 
 def krull_topology_profinite {K L : Type*} [field K] [field L] [algebra K L]
 (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L), polynomial.splits (algebra_map K L)
 (minpoly K x)) :
 Profinite :=
 { to_CompHaus := krull_topology_comphaus h_int h_splits,
-  is_totally_disconnected := krull_topology_totally_disconnected_space h_int}
+  is_totally_disconnected := krull_topology_totally_disconnected_space h_int }

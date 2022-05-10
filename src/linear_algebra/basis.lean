@@ -1200,6 +1200,7 @@ end
 end exists_basis
 
 namespace strictly_triangular_basis
+/- In this section we construct a basis that triangulates a nilpotent linear map. -/
 
 lemma subset_next_ker_of_span_eq_ker {i : ℕ} {f : V →ₗ[K] V} {s : set V}
   (hker : span K s = (f ^ i).ker) : s ⊆ (f ^ (i + 1)).ker :=
@@ -1211,6 +1212,8 @@ begin
     exact set_like.coe_subset_coe.2 h_ker_le_ker },
 end
 
+/-- A single step of the triangulation construction: We extend a given basis of `(f ^ i).ker` to a
+basis of `(f ^ (i + 1)).ker`-/
 def basis_step {i : ℕ} {f : V →ₗ[K] V} {s : set V}
   (hs : linear_independent K (coe : s → V))
   (hker : span K s = (f ^ i).ker) : set V :=
@@ -1234,6 +1237,7 @@ lemma subset_basis_step {i : ℕ} {f : V →ₗ[K] V} {s : set V}
   s ⊆ basis_step hs hker :=
 hs.subset_extend (subset_next_ker_of_span_eq_ker hker)
 
+/-- This definition recursively constructs a basis of `(f ^ i).ker` triangulating `f`. -/
 def basis_aux (f : V →ₗ[K] V) : Π (i : ℕ),
   { s : set V // linear_independent K (coe : s → V) ∧ span K s = (f ^ i).ker}
 | 0 := ⟨∅, begin
@@ -1247,6 +1251,7 @@ def basis_aux (f : V →ₗ[K] V) : Π (i : ℕ),
     { apply span_basis_step }
   end⟩
 
+/-- A basis of `(f ^ i).ker` triangulating `f` as a `set` -/
 def basis_set (f : V →ₗ[K] V) (n : ℕ) : set V :=
   (basis_aux f n).val
 
@@ -1270,6 +1275,8 @@ begin
       (basis_aux f (i + j)).property.2 }
 end
 
+/-- A basis of `V` triangulating a nilpotent linear map `f`. Due to the nilpotency the main diagonal
+of the matrix representation of `f` under this basis is zero, making it *strictly* triangular. -/
 def strictly_triangular_basis {f : V →ₗ[K] V} {n : ℕ} (hf : f ^ n = 0) :
   basis (basis_set f n) K V :=
 begin
@@ -1285,6 +1292,8 @@ begin
   apply subset_span
 end
 
+/-- The smallest exponent `i` of `f` such that `x` is contained in `(f ^ i).ker`. This gives us the
+iteration of the construction in which the vector `x` was added to the basis. -/
 def smallest_ker {f : V →ₗ[K] V} {n : ℕ} {x : V} (hx : x ∈ basis_set f n) : ℕ :=
 nat.find (exists.intro n (basis_set_subset_ker f n hx))
 
@@ -1333,7 +1342,9 @@ begin
   apply basis.mk_apply,
 end
 
-lemma repr_strictly_triangular_basis {f : V →ₗ[K] V} {n : ℕ} (hf : f ^ n = 0)
+/-- If we order the `strictly_triangular_basis` elements by `smallest_ker`, we obtain a strictly
+triangular matrix (i.e., it is triangular and the diagonal is also zero). -/
+theorem repr_strictly_triangular_basis {f : V →ₗ[K] V} {n : ℕ} (hf : f ^ n = 0)
   {x y : V} (hx : x ∈ basis_set f n) (hy : y ∈ basis_set f n)
   (h : smallest_ker hx ≤ smallest_ker hy) :
     (strictly_triangular_basis hf).repr (f x) ⟨y, hy⟩ = 0 :=

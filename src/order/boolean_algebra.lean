@@ -761,12 +761,15 @@ section boolean_algebra
 variables [boolean_algebra α]
 
 --TODO@Yaël: Once we have co-Heyting algebras, we won't need to go through `boolean_algebra.of_core`
-instance : boolean_algebra (order_dual α) :=
+instance : boolean_algebra αᵒᵈ :=
 boolean_algebra.of_core
 { compl := λ a, to_dual (of_dual a)ᶜ,
   inf_compl_le_bot := λ _, sup_compl_eq_top.ge,
   top_le_sup_compl := λ _, inf_compl_eq_bot.ge,
   ..order_dual.distrib_lattice α, ..order_dual.bounded_order α }
+
+@[simp] lemma of_dual_compl (a : αᵒᵈ) : of_dual aᶜ = (of_dual a)ᶜ := rfl
+@[simp] lemma to_dual_compl (a : α) : to_dual aᶜ = (to_dual a)ᶜ := rfl
 
 theorem sdiff_eq : x \ y = x ⊓ yᶜ := boolean_algebra.sdiff_eq x y
 

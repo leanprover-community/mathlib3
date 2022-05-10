@@ -119,6 +119,10 @@ lemma has_sum_subtype_iff_indicator {s : set β} :
 by rw [← set.indicator_range_comp, subtype.range_coe,
   has_sum_subtype_iff_of_support_subset set.support_indicator_subset]
 
+lemma summable_subtype_iff_indicator {s : set β} :
+  summable (f ∘ coe : s → α) ↔ summable (s.indicator f) :=
+exists_congr (λ _, has_sum_subtype_iff_indicator)
+
 @[simp] lemma has_sum_subtype_support : has_sum (f ∘ coe : support f → α) a ↔ has_sum f a :=
 has_sum_subtype_iff_of_support_subset $ set.subset.refl _
 
@@ -208,6 +212,22 @@ protected lemma summable.map [add_comm_monoid γ] [topological_space γ] (hf : s
   summable (g ∘ f) :=
 (hf.has_sum.map g hg).summable
 
+protected lemma summable.map_iff_of_left_inverse [add_comm_monoid γ] [topological_space γ]
+  {G G'} [add_monoid_hom_class G α γ] [add_monoid_hom_class G' γ α] (g : G) (g' : G')
+  (hg : continuous g) (hg' : continuous g') (hinv : function.left_inverse g' g) :
+  summable (g ∘ f) ↔ summable f :=
+⟨λ h, begin
+  have := h.map _ hg',
+  rwa [←function.comp.assoc, hinv.id] at this,
+end, λ h, h.map _ hg⟩
+
+/-- A special case of `summable.map_iff_of_left_inverse` for convenience -/
+protected lemma summable.map_iff_of_equiv [add_comm_monoid γ] [topological_space γ]
+  {G} [add_equiv_class G α γ] (g : G)
+  (hg : continuous g) (hg' : continuous (add_equiv_class.inv g : γ → α)) :
+  summable (g ∘ f) ↔ summable f :=
+summable.map_iff_of_left_inverse g (g : α ≃+ γ).symm hg hg' (add_equiv_class.left_inv g)
+
 /-- If `f : ℕ → α` has sum `a`, then the partial sums `∑_{i=0}^{n-1} f i` converge to `a`. -/
 lemma has_sum.tendsto_sum_nat {f : ℕ → α} (h : has_sum f a) :
   tendsto (λn:ℕ, ∑ i in range n, f i) at_top (𝓝 a) :=
@@ -229,6 +249,26 @@ lemma function.surjective.summable_iff_of_has_sum_iff {α' : Type*} [add_comm_mo
   (he : ∀ {a}, has_sum f (e a) ↔ has_sum g a) :
   summable f ↔ summable g :=
 hes.exists.trans $ exists_congr $ @he
+
+section has_continuous_star
+variables [star_add_monoid α] [has_continuous_star α]
+
+lemma has_sum.star (h : has_sum f a) : has_sum (λ b, star (f b)) (star a) :=
+by simpa only using h.map (star_add_equiv : α ≃+ α) continuous_star
+
+lemma summable.star (hf : summable f) : summable (λ b, star (f b)) :=
+hf.has_sum.star.summable
+
+lemma summable.of_star (hf : summable (λ b, star (f b))) : summable f :=
+by simpa only [star_star] using hf.star
+
+@[simp] lemma summable_star_iff : summable (λ b, star (f b)) ↔ summable f :=
+⟨summable.of_star, summable.star⟩
+
+@[simp] lemma summable_star_iff' : summable (star f) ↔ summable f :=
+summable_star_iff
+
+end has_continuous_star
 
 variable [has_continuous_add α]
 
@@ -458,6 +498,19 @@ end
 
 end has_continuous_add
 
+section has_continuous_star
+variables [star_add_monoid α] [has_continuous_star α]
+
+lemma tsum_star : star (∑' b, f b) = ∑' b, star (f b) :=
+begin
+  by_cases hf : summable f,
+  { exact hf.has_sum.star.tsum_eq.symm, },
+  { rw [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable (mt summable.of_star hf),
+        star_zero] },
+end
+
+end has_continuous_star
+
 section encodable
 open encodable
 variable [encodable γ]
@@ -660,8 +713,12 @@ end
 section tsum
 variables [t2_space α]
 
-lemma tsum_neg (hf : summable f) : ∑'b, - f b = - ∑'b, f b :=
-hf.has_sum.neg.tsum_eq
+lemma tsum_neg : ∑'b, - f b = - ∑'b, f b :=
+begin
+  by_cases hf : summable f,
+  { exact hf.has_sum.neg.tsum_eq, },
+  { simp [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable (mt summable.of_neg hf)] },
+end
 
 lemma tsum_sub (hf : summable f) (hg : summable g) : ∑'b, (f b - g b) = ∑'b, f b - ∑'b, g b :=
 (hf.has_sum.sub hg.has_sum).tsum_eq
@@ -760,6 +817,15 @@ lemma summable.tsum_mul_left (a) (hf : summable f) : ∑'b, a * f b = a * ∑'b,
 
 lemma summable.tsum_mul_right (a) (hf : summable f) : (∑'b, f b * a) = (∑'b, f b) * a :=
 (hf.has_sum.mul_right _).tsum_eq
+
+lemma commute.tsum_right (a) (h : ∀ b, commute a (f b)) : commute a (∑' b, f b) :=
+if hf : summable f then
+  (hf.tsum_mul_left a).symm.trans ((congr_arg _ $ funext h).trans (hf.tsum_mul_right a))
+else
+  (tsum_eq_zero_of_not_summable hf).symm ▸ commute.zero_right _
+
+lemma commute.tsum_left (a) (h : ∀ b, commute (f b) a) : commute (∑' b, f b) a :=
+(commute.tsum_right _ $ λ b, (h b).symm).symm
 
 end tsum
 

@@ -99,13 +99,16 @@ by rw [sub_eq_add_neg, cpow_add _ _ hx, cpow_neg, div_eq_mul_inv]
 lemma cpow_neg_one (x : ℂ) : x ^ (-1 : ℂ) = x⁻¹ :=
 by simpa using cpow_neg x 1
 
-@[simp] lemma cpow_nat_cast (x : ℂ) : ∀ (n : ℕ), x ^ (n : ℂ) = x ^ n
+@[simp, norm_cast] lemma cpow_nat_cast (x : ℂ) : ∀ (n : ℕ), x ^ (n : ℂ) = x ^ n
 | 0       := by simp
 | (n + 1) := if hx : x = 0 then by simp only [hx, pow_succ,
     complex.zero_cpow (nat.cast_ne_zero.2 (nat.succ_ne_zero _)), zero_mul]
   else by simp [cpow_add, hx, pow_add, cpow_nat_cast n]
 
-@[simp] lemma cpow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = x ^ n
+@[simp] lemma cpow_two (x : ℂ) : x ^ (2 : ℂ) = x ^ 2 :=
+by { rw ← cpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
+
+@[simp, norm_cast] lemma cpow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = x ^ n
 | (n : ℕ) := by simp; refl
 | -[1+ n] := by rw zpow_neg_succ_of_nat;
   simp only [int.neg_succ_of_nat_coe, int.cast_neg, complex.cpow_neg, inv_eq_one_div,
@@ -529,6 +532,9 @@ by simp only [rpow_def, ← complex.of_real_zpow, complex.cpow_int_cast,
 @[simp, norm_cast] lemma rpow_nat_cast (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
 rpow_int_cast x n
 
+@[simp] lemma rpow_two (x : ℝ) : x ^ (2 : ℝ) = x ^ 2 :=
+by { rw ← rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
+
 lemma rpow_neg_one (x : ℝ) : x ^ (-1 : ℝ) = x⁻¹ :=
 begin
   suffices H : x ^ ((-1 : ℤ) : ℝ) = x⁻¹, by exact_mod_cast H,
@@ -719,6 +725,15 @@ end
 
 lemma rpow_le_one_iff_of_pos (hx : 0 < x) : x ^ y ≤ 1 ↔ 1 ≤ x ∧ y ≤ 0 ∨ x ≤ 1 ∧ 0 ≤ y :=
 by rw [rpow_def_of_pos hx, exp_le_one_iff, mul_nonpos_iff, log_nonneg_iff hx, log_nonpos_iff hx]
+
+/-- Bound for `|log x * x ^ t|` in the interval `(0, 1]`, for positive real `t`. -/
+lemma abs_log_mul_self_rpow_lt (x t : ℝ) (h1 : 0 < x) (h2 : x ≤ 1) (ht : 0 < t) :
+  |log x * x ^ t| < 1 / t :=
+begin
+  rw lt_div_iff ht,
+  have := abs_log_mul_self_lt (x ^ t) (rpow_pos_of_pos h1 t) (rpow_le_one h1.le h2 ht.le),
+  rwa [log_rpow h1, mul_assoc, abs_mul, abs_of_pos ht, mul_comm] at this
+end
 
 lemma pow_nat_rpow_nat_inv {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
   (x ^ n) ^ (n⁻¹ : ℝ) = x :=
@@ -1109,6 +1124,9 @@ end
 @[simp, norm_cast] lemma rpow_nat_cast (x : ℝ≥0) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
 nnreal.eq $ by simpa only [coe_rpow, coe_pow] using real.rpow_nat_cast x n
 
+@[simp] lemma rpow_two (x : ℝ≥0) : x ^ (2 : ℝ) = x ^ 2 :=
+by { rw ← rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
+
 lemma mul_rpow {x y : ℝ≥0} {z : ℝ}  : (x*y)^z = x^z * y^z :=
 nnreal.eq $ real.mul_rpow x.2 y.2
 
@@ -1444,6 +1462,9 @@ begin
     simp [top_rpow_of_pos (nat.cast_add_one_pos _), top_pow (nat.succ_pos _)] },
   { simp [coe_rpow_of_nonneg _ (nat.cast_nonneg n)] }
 end
+
+@[simp] lemma rpow_two (x : ℝ≥0∞) : x ^ (2 : ℝ) = x ^ 2 :=
+by { rw ← rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
 
 lemma mul_rpow_eq_ite (x y : ℝ≥0∞) (z : ℝ) :
   (x * y) ^ z = if (x = 0 ∧ y = ⊤ ∨ x = ⊤ ∧ y = 0) ∧ z < 0 then ⊤ else x ^ z * y ^ z :=

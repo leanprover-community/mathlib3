@@ -71,10 +71,12 @@ def walking_pair.equiv_bool : walking_pair ≃ bool :=
 @[simp] lemma walking_pair.equiv_bool_symm_apply_tt : walking_pair.equiv_bool.symm tt = left := rfl
 @[simp] lemma walking_pair.equiv_bool_symm_apply_ff : walking_pair.equiv_bool.symm ff = right := rfl
 
-variables {C : Type u} [category.{v} C]
+variables {C : Type u}
 
 /-- The function on the walking pair, sending the two points to `X` and `Y`. -/
 def pair_function (X Y : C) : walking_pair → C := λ j, walking_pair.cases_on j X Y
+
+variables [category.{v} C]
 
 @[simp] lemma pair_function_left (X Y : C) : pair_function X Y left = X := rfl
 @[simp] lemma pair_function_right (X Y : C) : pair_function X Y right = Y := rfl
@@ -90,7 +92,7 @@ section
 variables {F G : discrete walking_pair.{v} ⥤ C} (f : F.obj ⟨left⟩ ⟶ G.obj ⟨left⟩)
   (g : F.obj ⟨right⟩ ⟶ G.obj ⟨right⟩)
 
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
 /-- The natural transformation between two functors out of the
  walking pair, specified by its
@@ -162,7 +164,7 @@ h.hom_ext $ λ j, discrete.rec_on j (λ j, walking_pair.cases_on j h₁ h₂)
 variables {X Y : C}
 
 section
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
 /-- A binary fan with vertex `P` consists of the two projections `π₁ : P ⟶ X` and `π₂ : P ⟶ Y`. -/
 @[simps X]

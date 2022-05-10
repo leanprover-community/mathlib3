@@ -112,7 +112,7 @@ instance proj_reflects_iso : reflects_isomorphisms (proj S T) :=
 
 open category_theory.limits
 
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
 /-- The identity structured arrow is initial. -/
 def mk_id_initial [full T] [faithful T] : is_initial (mk (𝟙 (T.obj Y))) :=
@@ -221,7 +221,7 @@ instance proj_reflects_iso : reflects_isomorphisms (proj S T) :=
 
 open category_theory.limits
 
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
 /-- The identity costructured arrow is terminal. -/
 def mk_id_terminal [full S] [faithful S] : is_terminal (mk (𝟙 (S.obj Y))) :=

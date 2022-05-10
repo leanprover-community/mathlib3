@@ -69,7 +69,7 @@ end
 namespace limits
 
 section
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
 /--
 A `c : cone F` is:

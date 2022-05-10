@@ -268,7 +268,7 @@ namespace limits
 section fintype
 variables {J : Type v} [decidable_eq J] [fintype J]
 
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
 /-- A functor between preadditive categories that preserves (zero morphisms and) finite biproducts
     preserves finite products. -/

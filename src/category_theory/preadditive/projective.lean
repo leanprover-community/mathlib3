@@ -106,7 +106,7 @@ instance {P Q : C} [has_binary_coproduct P Q] [projective P] [projective Q] :
   ⟨coprod.desc (factor_thru (coprod.inl ≫ f) e) (factor_thru (coprod.inr ≫ f) e), by tidy⟩, }
 
 section
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
 instance {β : Type v} (g : β → C) [has_coproduct g] [∀ b, projective (g b)] :
   projective (∐ g) :=

@@ -42,7 +42,7 @@ open category_theory.limits
 
 namespace category_theory.limits.types
 
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
 /-- A restatement of `types.lift_π_apply` that uses `pi.π` and `pi.lift`. -/
 @[simp]

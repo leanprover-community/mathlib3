@@ -25,7 +25,7 @@ namespace category_theory.limits
 
 variables {C : Type u₁} [category.{v₁} C]
 
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
 /-- Construct a cone for the empty diagram given an object. -/
 @[simps] def as_empty_cone (X : C) : cone (functor.empty.{w} C) := { X := X, π := by tidy }

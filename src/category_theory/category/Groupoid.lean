@@ -79,11 +79,13 @@ lemma id_to_functor {C : Groupoid.{v u}} : 𝟭 C = 𝟙 C := rfl
 
 section products
 
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
+/-- Construct the product over an indexed family of groupoids, as a fan. -/
 def pi_limit_fan ⦃J : Type u⦄ (F : J → Groupoid.{u u}) : limits.fan F :=
 limits.fan.mk (@of (Π j : J, F j) _) (λ j, category_theory.pi.eval _ j)
 
+/-- The product fan over an indexed family of groupoids, is a limit cone. -/
 def pi_limit_fan_is_limit ⦃J : Type u⦄ (F : J → Groupoid.{u u}) :
   limits.is_limit (pi_limit_fan F) :=
 limits.mk_fan_limit (pi_limit_fan F)

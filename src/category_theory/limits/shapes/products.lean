@@ -45,7 +45,7 @@ variables {C : Type u} [category.{v} C]
 -- We don't need an analogue of `pair` (for binary products), `parallel_pair` (for equalizers),
 -- or `(co)span`, since we already have `discrete.functor`.
 
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
 /-- A fan over `f : β → C` consists of a collection of maps from an object `P` to every `f b`. -/
 abbreviation fan (f : β → C) := cone (discrete.functor f)

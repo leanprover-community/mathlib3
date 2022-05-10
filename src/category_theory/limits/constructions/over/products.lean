@@ -69,7 +69,7 @@ def cones_equiv_inverse (B : C) {J : Type v} (F : discrete J ⥤ over B) :
         refl }
     end } }
 
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
 /-- (Impl) A preliminary definition to avoid timeouts. -/
 @[simps]
@@ -143,7 +143,7 @@ lemma over_finite_products_of_finite_wide_pullbacks [has_finite_wide_pullbacks C
 
 end construct_products
 
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
 /--
 Construct terminal object in the over category. This isn't an instance as it's not typically the

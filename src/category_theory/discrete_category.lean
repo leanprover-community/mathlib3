@@ -45,6 +45,7 @@ with the only morphisms being equalities.
 @[simp] lemma discrete.mk_as {α : Type u₁} (X : discrete α) : discrete.mk X.as = X :=
 by { ext, refl, }
 
+/-- `discrete α` is equivalent to the original type `α`.-/
 @[simps] def discrete_equiv {α : Type u₁} : discrete α ≃ α :=
 { to_fun := discrete.as,
   inv_fun := discrete.mk,
@@ -77,23 +78,32 @@ instance [inhabited α] : inhabited (discrete α) :=
 instance [subsingleton α] : subsingleton (discrete α) :=
 ⟨by { intros, ext, apply subsingleton.elim, }⟩
 
-meta def discrete_cases : tactic unit :=
+/-- A simple tactic to run `cases` on any `discrete α` hypotheses. -/
+meta def _root_.tactic.discrete_cases : tactic unit :=
 `[cases_matching* [discrete _, (_ : discrete _) ⟶ (_ : discrete _), plift _]]
 
-local attribute [tidy] discrete_cases
+run_cmd add_interactive [``tactic.discrete_cases]
+
+local attribute [tidy] tactic.discrete_cases
 
 /-- Extract the equation from a morphism in a discrete category. -/
 lemma eq_of_hom {X Y : discrete α} (i : X ⟶ Y) : X.as = Y.as := i.down.down
 
+/-- Promote an equation between the wrapped terms in `X Y : discrete α` to a morphism `X ⟶ Y`
+in the discrete category. -/
 abbreviation eq_to_hom {X Y : discrete α} (h : X.as = Y.as) : X ⟶ Y :=
 eq_to_hom (by { ext, exact h, })
 
+/-- Promote an equation between the wrapped terms in `X Y : discrete α` to an isomorphism `X ≅ Y`
+in the discrete category. -/
 abbreviation eq_to_iso {X Y : discrete α} (h : X.as = Y.as) : X ≅ Y :=
 eq_to_iso (by { ext, exact h, })
 
+/-- A variant of `eq_to_hom` that lifts terms to the discrete category. -/
 abbreviation eq_to_hom' {a b : α} (h : a = b) : discrete.mk a ⟶ discrete.mk b :=
 eq_to_hom h
 
+/-- A variant of `eq_to_iso` that lifts terms to the discrete category. -/
 abbreviation eq_to_iso' {a b : α} (h : a = b) : discrete.mk a ≅ discrete.mk b :=
 eq_to_iso h
 

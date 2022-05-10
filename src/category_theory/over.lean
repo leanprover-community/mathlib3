@@ -60,7 +60,7 @@ by tidy
 by have := f.w; tidy
 
 /-- To give an object in the over category, it suffices to give a morphism with codomain `X`. -/
-@[simps]
+@[simps left hom]
 def mk {X Y : T} (f : Y ⟶ X) : over X :=
 costructured_arrow.mk f
 
@@ -258,7 +258,7 @@ by tidy
 by have := f.w; tidy
 
 /-- To give an object in the under category, it suffices to give an arrow with domain `X`. -/
-@[simps]
+@[simps right hom]
 def mk {X Y : T} (f : X ⟶ Y) : under X :=
 structured_arrow.mk f
 

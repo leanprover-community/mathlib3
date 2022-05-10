@@ -167,7 +167,7 @@ binary_fan.associator
   (L X Y).is_limit (L Y Z).is_limit
   (L (L X Y).cone.X Z).is_limit (L X (L Y Z).cone.X).is_limit
 
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
 /--
 Construct a left unitor from specified limit cones.

@@ -129,7 +129,7 @@ end of_terminals
 section
 variables {F : C ⥤ D}
 
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
 /-- Given a left adjoint to `G`, we can construct an initial object in each structured arrow
 category on `G`. -/

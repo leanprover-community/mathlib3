@@ -151,7 +151,7 @@ variables (C : Type u) [category.{v} C]
 variables [has_coproducts C]
 
 section
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
 /--
 The total object of a graded object is the coproduct of the graded components.

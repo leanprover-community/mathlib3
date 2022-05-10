@@ -58,7 +58,7 @@ def binary_product_limit_cone (G H : AddCommGroup.{u}) : limits.limit_cone (pair
 We verify that the biproduct in AddCommGroup is isomorphic to
 the cartesian product of the underlying types:
 -/
-@[simps] noncomputable
+@[simps hom_apply] noncomputable
 def biprod_iso_prod (G H : AddCommGroup.{u}) : (G ⊞ H : AddCommGroup) ≅ AddCommGroup.of (G × H) :=
 is_limit.cone_point_unique_up_to_iso
   (binary_biproduct.is_limit G H)

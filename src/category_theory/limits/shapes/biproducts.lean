@@ -86,7 +86,7 @@ variables {F : J → C}
 
 namespace bicone
 
-local attribute [tidy] discrete.discrete_cases
+local attribute [tidy] tactic.discrete_cases
 
 /-- Extract the cone from a bicone. -/
 def to_cone (B : bicone F) : cone (discrete.functor F) :=

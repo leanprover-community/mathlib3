@@ -621,13 +621,22 @@ theorem sum_const' (ι : Type u) (a : cardinal.{u}) : sum (λ _:ι, a) = #ι * a
 by simpa only [mk_sigma, mk_sum, mk_out, lift_id] using
   mk_congr (equiv.sigma_sum_distrib (quotient.out ∘ f) (quotient.out ∘ g))
 
+@[simp] theorem sum_add_distrib' {ι} (f g : ι → cardinal) :
+  cardinal.sum (λ i, f i + g i) = sum f + sum g :=
+sum_add_distrib f g
+
+@[simp] theorem lift_sum {ι : Type u} (f : ι → cardinal.{v}) :
+  cardinal.lift.{w} (cardinal.sum f) = cardinal.sum (λ i, cardinal.lift.{w} (f i)) :=
+equiv.cardinal_eq $ equiv.ulift.trans $ equiv.sigma_congr_right $ λ a, nonempty.some $
+  by rw [←lift_mk_eq, mk_out, mk_out, lift_lift]
+
 theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f ≤ sum g :=
 ⟨(embedding.refl _).sigma_map $ λ i, classical.choice $
   by have := H i; rwa [← quot.out_eq (f i), ← quot.out_eq (g i)] at this⟩
 
 lemma mk_le_mk_mul_of_mk_preimage_le {c : cardinal} (f : α → β) (hf : ∀ b : β, #(f ⁻¹' {b}) ≤ c) :
   #α ≤ #β * c :=
-by simpa only [←mk_congr (@equiv.sigma_preimage_equiv α β f), mk_sigma, ←sum_const']
+by simpa only [←mk_congr (@equiv.sigma_fiber_equiv α β f), mk_sigma, ←sum_const']
   using sum_le_sum _ _ hf
 
 /-- The range of an indexed cardinal function, whose outputs live in a higher universe than the
@@ -685,6 +694,13 @@ theorem sum_le_sup_lift {ι : Type u} (f : ι → cardinal.{max u v}) :
 begin
   rw [←(sup f).lift_id, ←lift_umax, lift_umax.{(max u v) u}, ←sum_const],
   exact sum_le_sum _ _ (le_sup _)
+end
+
+theorem sum_nat_eq_add_sum_succ (f : ℕ → cardinal.{u}) :
+  cardinal.sum f = f 0 + cardinal.sum (λ i, f (i + 1)) :=
+begin
+  refine (equiv.sigma_nat_succ (λ i, quotient.out (f i))).cardinal_eq.trans _,
+  simp only [mk_sum, mk_out, lift_id, mk_sigma],
 end
 
 theorem sup_eq_zero {ι} {f : ι → cardinal} [is_empty ι] : sup f = 0 :=
@@ -979,6 +995,21 @@ lemma add_lt_omega_iff {a b : cardinal} : a + b < ω ↔ a < ω ∧ b < ω :=
 lemma omega_le_add_iff {a b : cardinal} : ω ≤ a + b ↔ ω ≤ a ∨ ω ≤ b :=
 by simp only [← not_lt, add_lt_omega_iff, not_and_distrib]
 
+/-- See also `cardinal.nsmul_lt_omega_iff_of_ne_zero` if you already have `n ≠ 0`. -/
+lemma nsmul_lt_omega_iff {n : ℕ} {a : cardinal} : n • a < ω ↔ n = 0 ∨ a < ω :=
+begin
+  cases n,
+  { simpa using nat_lt_omega 0 },
+  simp only [nat.succ_ne_zero, false_or],
+  induction n with n ih,
+  { simp },
+  rw [succ_nsmul, add_lt_omega_iff, ih, and_self]
+end
+
+/-- See also `cardinal.nsmul_lt_omega_iff` for a hypothesis-free version. -/
+lemma nsmul_lt_omega_iff_of_ne_zero {n : ℕ} {a : cardinal} (h : n ≠ 0) : n • a < ω ↔ a < ω :=
+nsmul_lt_omega_iff.trans $ or_iff_right h
+
 theorem mul_lt_omega {a b : cardinal} (ha : a < ω) (hb : b < ω) : a * b < ω :=
 match a, b, lt_omega.1 ha, lt_omega.1 hb with
 | _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat.cast_mul]; apply nat_lt_omega
@@ -1258,7 +1289,7 @@ mk_eq_one _
 (mk_congr (equiv.vector_equiv_fin α n)).trans $ by simp
 
 theorem mk_list_eq_sum_pow (α : Type u) : #(list α) = sum (λ n : ℕ, (#α) ^ℕ n) :=
-calc #(list α) = #(Σ n, vector α n) : mk_congr (equiv.sigma_preimage_equiv list.length).symm
+calc #(list α) = #(Σ n, vector α n) : mk_congr (equiv.sigma_fiber_equiv list.length).symm
 ... = sum (λ n : ℕ, (#α) ^ℕ n) : by simp
 
 theorem mk_quot_le {α : Type u} {r : α → α → Prop} : #(quot r) ≤ #α :=

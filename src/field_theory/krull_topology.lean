@@ -729,8 +729,7 @@ def krull_topology_comphaus {K L : Type*} [field K] [field L] [algebra K L]
 (minpoly K x)) :
 CompHaus :=
 { to_Top := Top.of (L ≃ₐ[K] L),
-  is_compact := {
-    compact_univ := krull_topology_compact h_int h_splits},
+  is_compact := { compact_univ := krull_topology_compact h_int h_splits },
   is_hausdorff := krull_topology_t2 h_int }
 
 def krull_topology_totally_disconnected_space {K L : Type*} [field K] [field L] [algebra K L]

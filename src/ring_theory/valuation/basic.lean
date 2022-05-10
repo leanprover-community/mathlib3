@@ -743,3 +743,10 @@ end supp -- end of section
 attribute [irreducible] add_valuation
 
 end add_valuation
+
+section valuation_notation
+
+localized "notation `ℕₘ₀` := with_zero (multiplicative ℕ)" in discrete_valuation
+localized "notation `ℤₘ₀` := with_zero (multiplicative ℤ)" in discrete_valuation
+
+end valuation_notation

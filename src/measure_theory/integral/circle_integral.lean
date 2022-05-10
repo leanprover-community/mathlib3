@@ -175,13 +175,12 @@ lemma lipschitz_with_circle_map (c : ℂ) (R : ℝ) :
 lipschitz_with_of_nnnorm_deriv_le (differentiable_circle_map _ _) $ λ θ,
   nnreal.coe_le_coe.1 $ by simp
 
-lemma circle_map_inv_continuous_on {R : ℝ} (hR : 0 < R) {z w : ℂ} (hw : w ∈ ball z R) :
- continuous_on (λ θ, (circle_map z R θ - w)⁻¹) [0, 2 * π] :=
+lemma circle_map_inv_continuous {R : ℝ} (hR : 0 < R) {z w : ℂ} (hw : w ∈ ball z R) :
+ continuous (λ θ, (circle_map z R θ - w)⁻¹) :=
 begin
   simp_rw ←one_div,
-  apply_rules [continuous_on.div, continuous_const.continuous_on, continuous_on.sub,
-    (continuous_circle_map z R).continuous_on, continuous_const.continuous_on],
-  exact (λ _ _, circle_map_ne_on_ball hR hw _),
+  apply_rules [continuous.div, continuous_const, continuous.sub, continuous_circle_map z R],
+  apply circle_map_ne_on_ball hR hw,
 end
 
 /-!

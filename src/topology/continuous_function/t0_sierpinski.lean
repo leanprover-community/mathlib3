@@ -48,18 +48,16 @@ begin
 
 lemma eq_induced_by_maps_to_sierpinski : t = ⨅ (u : {s : set X | t.is_open s}),
    topological_space.induced (λ x, x ∈ (u : set X)) sierpinski_space :=
+le_antisymm
+(le_infi_iff.2 (λ u, continuous.le_induced (is_open_iff_continuous_mem.1 (by exact u.2))))
+(is_open_implies_is_open_iff.mp
 begin
-  apply le_antisymm,
-  { apply le_infi_iff.2 _,
-    exact λ u, continuous.le_induced (is_open_iff_continuous_mem.1 u.2) },
-  { apply is_open_implies_is_open_iff.mp,
-    intros u h,
-    apply is_open_implies_is_open_iff.mpr _ u _,
-    { exact topological_space.induced (λ (x : X), x ∈ u) sierpinski_space },
-    { exact infi_le_of_le ⟨u,h⟩ (by simp) },
-    { apply is_open_induced_iff'.mpr,
-      exact ⟨{true}, ⟨is_open_singleton_true,by simp [set.preimage]⟩⟩ } }
-end
+  intros u h,
+  apply is_open_implies_is_open_iff.mpr _ u _,
+  { exact (topological_space.induced (λ (x : X), x ∈ u) sierpinski_space) },
+  { exact (infi_le_of_le ⟨u,h⟩ (by simp)) },
+  { exact is_open_induced_iff'.mpr ⟨{true}, ⟨is_open_singleton_true,by simp [set.preimage]⟩⟩},
+end)
 
 include t
 lemma i_inducing : inducing (i X).to_fun :=
@@ -71,7 +69,7 @@ begin
   funext,
   erw induced_compose,
   refl
-end
+end⟩
 
 -- would `embedding_into_prod_sierpinski_of_t0` be a good name?
 theorem i_embedding : embedding (i X) := embedding.mk (i_inducing) (@i_injective X t t0)

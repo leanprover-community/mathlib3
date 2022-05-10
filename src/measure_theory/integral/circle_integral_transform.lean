@@ -68,25 +68,25 @@ begin
   simp,
 end
 
-lemma circle_integral_transform_cont_on_Icc {R : ℝ} (hR : 0 < R) {f : ℂ → E} {z w : ℂ}
+lemma circle_integral_transform_continuous {R : ℝ} (hR : 0 < R) {f : ℂ → E} {z w : ℂ}
   (hf : continuous_on f $ sphere z R) (hw : w ∈ ball z R) :
-  continuous_on (circle_integral_transform R z w f) [0, 2 * π] :=
+  continuous (circle_integral_transform R z w f) :=
 begin
   rw circle_integral_transform,
-  apply_rules [continuous_on.smul, continuous_on_const],
+  apply_rules [continuous.smul, continuous_const],
   simp_rw deriv_circle_map,
-  apply_rules [continuous_on.mul, (continuous_circle_map 0 R).continuous_on, continuous_on_const],
-  { apply circle_map_inv_continuous_on hR hw },
-  { apply continuous_on.comp hf (continuous_circle_map z R).continuous_on,
-    exact (λ _ _, (circle_map_mem_sphere _ hR.le) _) },
+  apply_rules [continuous.mul, (continuous_circle_map 0 R), continuous_const],
+  { apply circle_map_inv_continuous hR hw },
+  { apply continuous_on.comp_continuous hf (continuous_circle_map z R),
+    exact (λ _, (circle_map_mem_sphere _ hR.le) _) },
 end
 
-lemma circle_integral_transform_deriv_cont_on_Icc {R : ℝ} (hR : 0 < R) {f : ℂ → E} {z w : ℂ}
+lemma circle_integral_transform_deriv_continuous {R : ℝ} (hR : 0 < R) {f : ℂ → E} {z w : ℂ}
   (hf : continuous_on f (sphere z R)) (hw : w ∈ ball z R) :
-  continuous_on (circle_integral_transform_deriv R z w f) [0, 2 * π] :=
+  continuous (circle_integral_transform_deriv R z w f) :=
 begin
   rw circle_integral_transform_deriv_eq,
-  exact (circle_map_inv_continuous_on hR hw).smul (circle_integral_transform_cont_on_Icc hR hf hw),
+  exact (circle_map_inv_continuous hR hw).smul (circle_integral_transform_continuous hR hf hw),
 end
 
 /--A useful bound for circle integrals (with complex codomain)-/
@@ -95,7 +95,7 @@ def circle_integral_bounding_function (R : ℝ) (z : ℂ) : (ℂ × ℝ → ℂ)
 
 lemma circle_int_funct_cont_on_prod {R r : ℝ} (hR : 0 < R) (hr : r < R) {z : ℂ} :
  continuous_on (λ (w : ℂ × ℝ), ((circle_map z R w.snd - w.fst)⁻¹) ^ 2)
-  (((closed_ball z r) ×ˢ [0, 2 * π]) : set (ℂ × ℝ)) :=
+  ((closed_ball z r) ×ˢ (⊤ : set ℝ)) :=
 begin
   simp_rw ←one_div,
   apply_rules [continuous_on.pow, continuous_on.div, continuous_on_const],
@@ -108,11 +108,11 @@ begin
   linarith,
 end
 
-lemma circle_integral_bounding_function_continuous_on {R r : ℝ} (hR : 0 < R) (hr : r < R) (z : ℂ) :
+lemma circle_integral_bounding_function_continuous {R r : ℝ} (hR : 0 < R) (hr : r < R) (z : ℂ) :
   continuous_on (abs ∘ (circle_integral_bounding_function R z))
-  ((closed_ball z r) ×ˢ [0, 2 * π] : set $ ℂ × ℝ) :=
+  ((closed_ball z r) ×ˢ (⊤ : set ℝ) : set $ ℂ × ℝ) :=
 begin
-  have : continuous_on (circle_integral_bounding_function R z) (closed_ball z r ×ˢ [0, 2 * π]),
+  have : continuous_on (circle_integral_bounding_function R z) (closed_ball z r ×ˢ (⊤ : set ℝ)),
   { simp_rw [circle_integral_bounding_function],
     apply_rules [continuous_on.smul, continuous_on_const],
     simp only [deriv_circle_map],
@@ -131,15 +131,11 @@ lemma circle_integral_bounding_function_bound {R r : ℝ} (hR: 0 < R) (hr : r < 
   ∀ (y : ((closed_ball z r) ×ˢ [0, 2 * π] : set $ ℂ × ℝ)),
   abs (circle_integral_bounding_function R z y) ≤ abs (circle_integral_bounding_function R z x) :=
 begin
-  have cts := circle_integral_bounding_function_continuous_on hR hr z,
-  have comp : is_compact (((closed_ball z r) ×ˢ[0, 2 * π]) : set (ℂ × ℝ)),
+  have cts := circle_integral_bounding_function_continuous hR hr z,
+  have comp : is_compact (((closed_ball z r) ×ˢ [0, 2 * π]) : set (ℂ × ℝ)),
   { apply_rules [is_compact.prod, proper_space.is_compact_closed_ball z r, is_compact_interval], },
-  have none : (((closed_ball z r) ×ˢ [0, 2 * π]) : set (ℂ × ℝ)).nonempty ,
-  { apply (nonempty_closed_ball.2 hr').prod nonempty_interval },
-  have := is_compact.exists_forall_ge comp none cts,
-  simp only [set_coe.forall, mem_prod, mem_closed_ball, subtype.coe_mk, and_imp, prod.forall,
-    set_coe.exists, exists_prop, prod.exists, comp_app] at *,
-  apply this,
+  have none := (nonempty_closed_ball.2 hr').prod nonempty_interval,
+  simpa using is_compact.exists_forall_ge comp none (cts.mono (by { intro z, simp, tauto })),
 end
 
 /-- The derivative of a `circle_integral_transform` is bounded by a continuous function -/
@@ -150,29 +146,23 @@ lemma circle_integral_transform_deriv_bound {R r : ℝ} (hR: 0 < R) (hr : r < R)
   ∥circle_integral_transform_deriv R z y f t∥ ≤ bound t) ∧ continuous_on bound [0, 2 * π] :=
 begin
   obtain ⟨ε', hε', H⟩ := exists_ball_subset_ball hx,
-  have fbb := circle_integral_bounding_function_bound hR hr hr' z,
-  simp only [set_coe.forall, mem_prod, mem_closed_ball, subtype.coe_mk, and_imp, prod.forall,
-    set_coe.exists, exists_prop, prod.exists] at fbb,
-  obtain ⟨a, b, hab⟩ := fbb,
+  obtain ⟨⟨⟨a, b⟩, ⟨ha, hb⟩⟩, hab⟩ := circle_integral_bounding_function_bound hR hr hr' z,
   let V : ℝ → (ℂ → ℂ) := λ θ w, circle_integral_transform_deriv R z w (λ x, 1) θ,
   refine ⟨λ r, abs (V b a) * abs (f $ circle_map z R r), ε', _⟩,
   refine ⟨hε', subset.trans H (ball_subset_ball hr.le), eventually_of_forall _, _⟩,
   { intros y hy v hv,
-    have hvv : v ∈ ball x ε' := by simpa using hv,
-    simp only [circle_integral_bounding_function, circle_integral_transform_deriv,
-      V, one_div, abs_of_real, abs_exp_of_real_mul_I, mem_ball, norm_eq_abs, abs_div,
-      mul_one, algebra.id.smul_eq_mul, abs_I, nat.cast_bit0, real_smul, abs_mul, nsmul_eq_mul,
-      zero_lt_bit0, abs_inv, zero_lt_mul_left, nat.cast_one, abs_two, abs_pow, zero_lt_one] at *,
-    have := mul_le_mul_of_nonneg_right (hab.2 v y (mem_ball.1 $ H hvv).le $ hy)
+    simp only [circle_integral_bounding_function, circle_integral_transform_deriv, V, norm_eq_abs,
+      mul_one, algebra.id.smul_eq_mul] at *,
+    have := mul_le_mul_of_nonneg_right (hab ⟨⟨v, y⟩, ⟨ball_subset_closed_ball (H hv), hy⟩⟩)
       (abs_nonneg $ f $ circle_map z R y),
     simp_rw [deriv_circle_map, abs_mul, abs_circle_map_zero, abs_I, mul_one, ←mul_assoc] at *,
     apply this, },
   { have cabs : continuous_on abs ⊤ := by apply continuous_abs.continuous_on,
     simp_rw ←abs_mul,
-    apply_rules [cabs.comp, continuous_const.continuous_on.mul, continuous_on.comp hf,
+    apply_rules [cabs.comp, continuous_on_const.mul, continuous_on.comp hf,
       (continuous_circle_map z R).continuous_on, semi_normed_ring_top_monoid],
     { rw maps_to, intros x hx, apply circle_map_mem_sphere _ hR.le, },
-    { rw maps_to, tauto, }, }
+    { rw maps_to, tauto, }, },
 end
 
 end complex

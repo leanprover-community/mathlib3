@@ -37,12 +37,22 @@ For the concrete cyclic group of order `n`, see `data.zmod.basic`.
 cyclic group
 -/
 
+
+
 universe u
 variables {α : Type u} {a : α}
 
 section cyclic
 
 open_locale big_operators
+
+lemma finset.sum_erase_lt_of_pos {s : finset ℕ} {d : ℕ} (hd : d ∈ s) {f : ℕ → ℕ} (hdf : 0 < f d) :
+  ∑ (m : ℕ) in s.erase d, f m < ∑ (m : ℕ) in s, f m :=
+begin
+  nth_rewrite_rhs 0 ←finset.insert_erase hd,
+  rw finset.sum_insert (finset.not_mem_erase d s),
+  exact lt_add_of_pos_left _ hdf,
+end
 
 local attribute [instance] set_fintype
 
@@ -331,7 +341,6 @@ have hinsert₁ : d.succ ∉ (range d.succ).filter (∣ d.succ),
   ... = _ : by rw [h, ← sum_insert hinsert₁];
       exact finset.sum_congr hinsert.symm (λ _ _, rfl))
 
-
 lemma card_order_of_eq_totient_aux₂'' {d : ℕ} (hd : d ∣ fintype.card α) :
   (univ.filter (λ a : α, order_of a = d)).card = φ d :=
 begin
@@ -356,11 +365,9 @@ begin
     have hmc : m ∣ c, { simp only [mem_erase, mem_divisors] at hm, tauto },
     rcases (filter (λ (a : α), order_of a = m) univ).card.eq_zero_or_pos with h1 | h1,
     { simp [h1] }, { simp [card_order_of_eq_totient_aux₁ hn hmc h1] } }
-  ... < ∑ m in insert d (c.divisors.erase d), φ m : by
-  { simp [totient_pos (pos_of_dvd_of_pos hd hc0)] }
-  ... = ∑ m in c.divisors, φ m : by
-  { refine finset.sum_congr (insert_erase _) (λ _ _, rfl), simp [hd, hc0.ne'] }
-  ... = c : sum_totient _
+  ... < ∑ m in c.divisors, φ m :
+  sum_erase_lt_of_pos (mem_divisors.2 ⟨hd, hc0.ne'⟩) (totient_pos (pos_of_dvd_of_pos hd hc0))
+   ... = c : sum_totient _
 end
 #exit
 

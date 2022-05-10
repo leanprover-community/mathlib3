@@ -276,7 +276,7 @@ begin
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
                   : by field_simp [-mul_re, inner_conj_sym, hT, ring_hom.map_div, h₁, h₃]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
-                  : by rw [div_mul_eq_mul_div_comm, ←mul_div_assoc]
+                  : by rw ←mul_div_right_comm
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)
                   : by conv_lhs { rw [h₄] }
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫) / re ⟪y, y⟫
@@ -635,7 +635,7 @@ begin
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
                   : by field_simp [-mul_re, hT, ring_hom.map_div, h₁, h₃, inner_conj_sym]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
-                  : by rw [div_mul_eq_mul_div_comm, ←mul_div_assoc]
+                  : by rw ←mul_div_right_comm
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)
                   : by conv_lhs { rw [h₄] }
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫) / re ⟪y, y⟫

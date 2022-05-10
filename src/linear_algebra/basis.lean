@@ -146,6 +146,14 @@ lemma mem_span_repr_support {ι : Type*} (b : basis ι R M) (m : M) :
   m ∈ span R (b '' (b.repr m).support) :=
 (finsupp.mem_span_image_iff_total _).2 ⟨b.repr m, (by simp [finsupp.mem_supported_support])⟩
 
+lemma support_subset_of_mem_span {ι : Type*} (b : basis ι R M) (m : M) (s : set ι):
+  m ∈ span R (b '' s) → b.repr m ∈ finsupp.supported R R s :=
+begin
+  rw [finsupp.mem_span_image_iff_total],
+  rintro ⟨l, h, rfl⟩,
+  rwa [repr_total]
+end
+
 end repr
 
 section coord
@@ -1239,8 +1247,19 @@ def basis_aux (f : V →ₗ[K] V) : Π (i : ℕ),
     { apply span_basis_step }
   end⟩
 
-lemma basis_aux_subset_add (f : V →ₗ[K] V) {i j : ℕ} :
-  (basis_aux f i).val ⊆ (basis_aux f (i + j)).val :=
+def basis_set (f : V →ₗ[K] V) (n : ℕ) : set V :=
+  (basis_aux f n).val
+
+lemma linear_independent_basis_set (f : V →ₗ[K] V) (n : ℕ) :
+  linear_independent K (coe : basis_set f n → V) :=
+(basis_aux f n).property.1
+
+lemma span_basis_set (f : V →ₗ[K] V) (n : ℕ) :
+  span K (basis_set f n) = (f ^ n).ker :=
+(basis_aux f n).property.2
+
+lemma basis_set_subset_add (f : V →ₗ[K] V) {i j : ℕ} :
+  basis_set f i ⊆ basis_set f (i + j) :=
 begin
   induction j with j hj,
   { exact subset_refl _ },
@@ -1251,31 +1270,96 @@ begin
       (basis_aux f (i + j)).property.2 }
 end
 
-def strictly_triangular_basis_set (f : V →ₗ[K] V) (n : ℕ) : set V :=
-  (basis_aux f n).val
-
 def strictly_triangular_basis {f : V →ₗ[K] V} {n : ℕ} (hf : f ^ n = 0) :
-  basis (strictly_triangular_basis_set f n) K V :=
+  basis (basis_set f n) K V :=
 begin
   refine basis.mk (basis_aux f n).property.1 _,
   rw [subtype.range_coe, (basis_aux f n).property.2,
     hf, linear_map.ker_zero]
 end
 
-lemma strictly_triangular_basis_set_subset_ker {f : V →ₗ[K] V} {n : ℕ} :
-  strictly_triangular_basis_set f n ⊆ (f ^ n).ker :=
+lemma basis_set_subset_ker (f : V →ₗ[K] V) (n : ℕ) :
+  basis_set f n ⊆ (f ^ n).ker :=
 begin
   rw [← (basis_aux f n).property.2],
   apply subset_span
 end
 
-def smallest_ker
-#check Nat.find
+def smallest_ker {f : V →ₗ[K] V} {n : ℕ} {x : V} (hx : x ∈ basis_set f n) : ℕ :=
+nat.find (exists.intro n (basis_set_subset_ker f n hx))
 
-def strictly_triangular_order {f : V →ₗ[K] V} {n : ℕ}
-  (x y : strictly_triangular_basis_set f n) : Prop :=
+lemma smallest_ker_spec {f : V →ₗ[K] V} {n : ℕ} {x : V} (hx : x ∈ basis_set f n) :
+  x ∈ (f ^ (smallest_ker hx)).ker :=
+nat.find_spec (exists.intro n (basis_set_subset_ker f n hx))
 
-def
+lemma smallest_ker_min {f : V →ₗ[K] V} {n : ℕ} {x : V} (hx : x ∈ basis_set f n) :
+  ∀ i, i < smallest_ker hx → x ∉ (f ^ i).ker :=
+λ i, nat.find_min (exists.intro n (basis_set_subset_ker f n hx))
+
+lemma smallest_ker_le {f : V →ₗ[K] V} {n : ℕ} {x : V} (hx : x ∈ basis_set f n) :
+  smallest_ker hx ≤ n :=
+nat.find_min' (exists.intro n (basis_set_subset_ker f n hx)) (basis_set_subset_ker f n hx)
+
+lemma pos_smallest_ker {f : V →ₗ[K] V} {n : ℕ} {x : V} (hx : x ∈ basis_set f n) :
+  0 < smallest_ker hx :=
+begin
+  have h_x_mem_ker : x ∈ (f ^ (smallest_ker hx)).ker := smallest_ker_spec hx,
+  apply nat.pos_of_ne_zero,
+  intro h,
+  simp [h] at h_x_mem_ker,
+  exact
+    (linear_independent.ne_zero (subtype.mk x hx) (linear_independent_basis_set f n)) h_x_mem_ker
+end
+
+lemma mem_basis_set_pred_smallest_ker {f : V →ₗ[K] V} {n : ℕ}
+  {x : V} (hx : x ∈ basis_set f n) :
+    f x ∈ span K (basis_set f (smallest_ker hx).pred) :=
+begin
+  have h_x_mem_ker : x ∈ (f ^ (smallest_ker hx)).ker := smallest_ker_spec hx,
+  have h_pos_smallest_ker : 0 < smallest_ker hx, by apply pos_smallest_ker,
+  have : x ∈ (f ^ (smallest_ker hx).pred.succ).ker,
+    by rwa [nat.succ_pred_eq_of_pos h_pos_smallest_ker],
+  have : f x ∈ (f ^ (smallest_ker hx).pred).ker,
+    by rwa [linear_map.mem_ker, ←linear_map.comp_apply, ←linear_map.mul_eq_comp, ←pow_succ',
+      ←linear_map.mem_ker],
+  show f x ∈ span K (basis_set f (smallest_ker hx).pred),
+    by rwa [span_basis_set],
+end
+
+lemma coe_strictly_triangular_basis {f : V →ₗ[K] V} {n : ℕ} (hf : f ^ n = 0) :
+  ⇑(strictly_triangular_basis hf) = coe :=
+begin
+  apply funext,
+  apply basis.mk_apply,
+end
+
+lemma repr_strictly_triangular_basis {f : V →ₗ[K] V} {n : ℕ} (hf : f ^ n = 0)
+  {x y : V} (hx : x ∈ basis_set f n) (hy : y ∈ basis_set f n)
+  (h : smallest_ker hx ≤ smallest_ker hy) :
+    (strictly_triangular_basis hf).repr (f x) ⟨y, hy⟩ = 0 :=
+begin
+  have h_mem_span : f x ∈ span K (basis_set f (smallest_ker hx).pred),
+    by apply mem_basis_set_pred_smallest_ker,
+  have h_mem_span': f x ∈ submodule.span K ((strictly_triangular_basis hf) ''
+    (coe ⁻¹' basis_set f (smallest_ker hx).pred)),
+  { rwa [coe_strictly_triangular_basis, image_preimage_eq_of_subset],
+    rw [subtype.range_coe],
+    convert basis_set_subset_add f,
+    rw [nat.add_sub_of_le],
+    exact le_trans (nat.pred_le _) (smallest_ker_le _), },
+  have h_not_mem_ker : y ∉ (f ^ (smallest_ker hx).pred).ker,
+  { apply smallest_ker_min hy _ (lt_of_lt_of_le (nat.pred_lt _) h),
+    intro hx0,
+    have := pos_smallest_ker hx,
+    linarith },
+  have h_not_mem_basis_set : subtype.mk y hy ∉ coe ⁻¹' basis_set f (smallest_ker hx).pred,
+    from λ h, h_not_mem_ker (basis_set_subset_ker f _ (mem_preimage.1 h)),
+  show ((strictly_triangular_basis hf).repr (f x)) ⟨y, hy⟩ = 0,
+  { apply (finsupp.mem_supported' K ((strictly_triangular_basis hf).repr (f x))).1
+      _ _ h_not_mem_basis_set,
+    apply support_subset_of_mem_span (strictly_triangular_basis hf) (f x)
+    (coe ⁻¹' (basis_set f (smallest_ker hx).pred)) h_mem_span' }
+end
 
 end strictly_triangular_basis
 

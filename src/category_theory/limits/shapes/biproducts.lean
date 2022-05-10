@@ -258,10 +258,12 @@ abbreviation biproduct.ι (f : J → C) [has_biproduct f] (b : J) : f b ⟶ ⨁ 
 lemma biproduct.bicone_ι (f : J → C) [has_biproduct f] (b : J) :
   (biproduct.bicone f).ι b = biproduct.ι f b := rfl
 
+/-- Note that as this lemma has a `if` in the statement, we include a `decidable_eq` argument.
+This means you may not be able to `simp` using this lemma unless you `open_locale classical`. -/
 @[reassoc]
-lemma biproduct.ι_π (f : J → C) [has_biproduct f] (j j' : J) :
+lemma biproduct.ι_π [decidable_eq J] (f : J → C) [has_biproduct f] (j j' : J) :
   biproduct.ι f j ≫ biproduct.π f j' = if h : j = j' then eq_to_hom (congr_arg f h) else 0 :=
-(biproduct.bicone f).ι_π j j'
+by convert (biproduct.bicone f).ι_π j j'
 
 @[simp,reassoc]
 lemma biproduct.ι_π_self (f : J → C) [has_biproduct f] (j : J) :

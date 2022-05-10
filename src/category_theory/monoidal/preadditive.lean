@@ -14,6 +14,7 @@ is linear in both factors.
 -/
 
 noncomputable theory
+open_locale classical
 
 namespace category_theory
 

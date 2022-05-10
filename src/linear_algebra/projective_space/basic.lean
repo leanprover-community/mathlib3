@@ -1,9 +1,13 @@
 /-
 Copyright (c) 2022 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Adam Topaz
+Authors: Adam Topaz, Vincent Beffara
 -/
 import linear_algebra.finite_dimensional
+import topology.algebra.group_with_zero
+import topology.algebra.group
+import topology.constructions
+import topology.separation
 
 /-!
 
@@ -58,12 +62,22 @@ def mk (v : V) (hv : v ≠ 0) : ℙ K V := quotient.mk' ⟨v,hv⟩
 /-- A variant of `projectivization.mk` in terms of a subtype. `mk` is preferred. -/
 def mk' (v : { v : V // v ≠ 0 }) : ℙ K V := quotient.mk' v
 
-@[simp] lemma mk'_eq_mk (v : { v : V // v ≠ 0}) :
+@[simp]
+lemma mk'_eq_mk (v : { v : V // v ≠ 0}) :
   mk' K v = mk K v v.2 :=
 by { dsimp [mk, mk'], congr' 1, simp }
 
+/- Since `mk` is the preferred representation, we can `simp` others to it. -/
+
+@[simp]
+lemma quotient_mk_eq_mk (z : V) (h : z ≠ 0) :
+  @quotient.mk _ (projectivization_setoid _ _) ⟨z, h⟩ = mk K z h := rfl
+
 instance [nontrivial V] : nonempty (ℙ K V) :=
 let ⟨v, hv⟩ := exists_ne (0 : V) in ⟨mk K v hv⟩
+
+instance [topological_space V] : topological_space (ℙ K V) :=
+quotient.topological_space
 
 variable {K}
 
@@ -76,6 +90,20 @@ lemma rep_nonzero (v : ℙ K V) : v.rep ≠ 0 := v.out'.2
 lemma mk_rep (v : ℙ K V) :
   mk K v.rep v.rep_nonzero = v :=
 by { dsimp [mk, projectivization.rep], simp }
+
+/-- Wrapper around `quotient.lift_on' with more convenient interface in terms of `mk`. -/
+def lift_on {K V α : Type*} [field K] [add_comm_group V] [module K V]
+  (z : ℙ K V) (f : {w : V // w ≠ 0} → α)
+  (hf : ∀ (x y : V) (hx : x ≠ 0) (hy : y ≠ 0), mk K x hx = mk K y hy → f ⟨x,hx⟩ = f ⟨y,hy⟩) : α :=
+quotient.lift_on' z f (λ ⟨x, hx⟩ ⟨y, hy⟩ h, hf x y hx hy (quotient.eq'.mpr h))
+
+@[simp]
+lemma lift_on_mk {α : Type*} {z : V} (h : z ≠ 0) (f : {w : V // w ≠ 0} → α) (hf) :
+  lift_on (mk K z h) f hf = f ⟨z, h⟩ := rfl
+
+@[simp]
+lemma lift_on_mk' {α : Type*} {z : V} (h : z ≠ 0) (f : {w : V // w ≠ 0} → α) (hf) :
+  quotient.lift_on' (mk K z h) f hf = f ⟨z, h⟩ := rfl
 
 open finite_dimensional
 
@@ -92,11 +120,46 @@ lemma mk_eq_mk_iff (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) :
   mk K v hv = mk K w hw ↔ ∃ (a : Kˣ), a • w = v :=
 quotient.eq'
 
+/-- A specialization of `mk_eq_mk_iff` that is sometimes more convenient to use. -/
+lemma mk_eq_mk_iff_mul_eq_mul (x y : K × K) (hx : x ≠ 0) (hy : y ≠ 0) :
+  mk K x hx = mk K y hy ↔ x.1 * y.2 = x.2 * y.1 :=
+begin
+  rw [mk_eq_mk_iff],
+  split,
+  { rintro ⟨a, rfl⟩,
+    simp [units.smul_def, mul_assoc, mul_comm y.1 _] },
+  { intro hxy,
+    rcases x with ⟨x1, x2⟩,
+    rcases y with ⟨y1, y2⟩,
+    rcases eq_or_ne y1 0 with (rfl | h),
+    { simp only [ne.def, prod.mk_eq_zero, eq_self_iff_true, true_and] at hy,
+      simp only [hy, mul_zero, mul_eq_zero, or_false] at hxy,
+      simp only [hxy, ne.def, prod.mk_eq_zero, eq_self_iff_true, true_and] at hx,
+      use units.mk0 (x2/y2) (div_ne_zero hx hy),
+      simp [units.smul_def, hy, hxy] },
+    { rcases eq_or_ne x1 0 with (rfl | h'),
+      { simp only [ne.def, prod.mk_eq_zero, eq_self_iff_true, true_and] at hx,
+        simp only [hx, h, zero_mul, zero_eq_mul, false_or] at hxy,
+        contradiction },
+      { use units.mk0 (x1/y1) (div_ne_zero h' h),
+        simp [units.smul_def, div_mul_cancel, h, mul_comm_div', ← mul_div_assoc, hxy] } } }
+end
+
 lemma exists_smul_eq_mk_rep
   (v : V) (hv : v ≠ 0) : ∃ (a : Kˣ), a • v = (mk K v hv).rep :=
 show (projectivization_setoid K V).rel _ _, from quotient.mk_out' ⟨v, hv⟩
 
 variable {K}
+
+/-- Define a function on the projective line from a function of the ratio of projective
+coordinates. -/
+def lift_of_div {α K : Type*} [field K] (f : K → α) (z : ℙ K (K × K)) : α :=
+lift_on z (λ w, f (w.val.1 / w.val.2))
+begin
+  intros x y hx hy hxy,
+  obtain ⟨a, rfl⟩ := (mk_eq_mk_iff _ _ _ _ _).mp hxy,
+  exact congr_arg f (mul_div_mul_left y.1 y.2 a.ne_zero)
+end
 
 /-- An induction principle for `projectivization`.
 Use as `induction v using projectivization.ind`. -/
@@ -104,6 +167,41 @@ Use as `induction v using projectivization.ind`. -/
 lemma ind {P : ℙ K V → Prop} (h : ∀ (v : V) (h : v ≠ 0), P (mk K v h)) :
   ∀ p, P p :=
 quotient.ind' $ subtype.rec $ by exact h
+
+instance [topological_space K] [t1_space K] [has_continuous_sub K] [has_continuous_mul K] :
+  t1_space (ℙ K (K × K)) :=
+begin
+  refine ⟨λ x, _⟩,
+  induction x using projectivization.ind with x hx,
+  have hc : continuous (λ z : {w : K × K // w ≠ 0}, z.val.1 * x.2 - z.val.2 * x.1) :=
+    ((continuous_fst.comp continuous_induced_dom).mul continuous_const).sub
+    ((continuous_snd.comp continuous_induced_dom).mul continuous_const),
+  apply is_open_compl_iff.mp,
+  change is_open {z | ¬ mk' K z = mk K x hx},
+  simp_rw [mk'_eq_mk, mk_eq_mk_iff_mul_eq_mul],
+  convert ← is_open_compl_singleton.preimage hc,
+  ext,
+  exact sub_ne_zero
+end
+
+@[continuity]
+lemma continuous_lift_of_div {K α : Type*} [field K]
+  [topological_space K] [t1_space K] [has_continuous_inv₀ K] [has_continuous_mul K]
+  [topological_space α] {f : K → α} (hf : continuous f) :
+  continuous_on (lift_of_div f) {mk K (1,0) (by simp)}ᶜ :=
+begin
+  rw continuous_on_iff,
+  intros z hz t ht hzt,
+  refine ⟨lift_of_div f ⁻¹' t ∩ {mk K (1,0) (by simp)}ᶜ, _, ⟨hzt, hz⟩,
+    by simp [set.inter_assoc, set.inter_subset_left]⟩,
+  refine ⟨{z | z.2 ≠ 0 ∧ f (z.1 / z.2) ∈ t}, _, _⟩,
+  { suffices : continuous_on (λ z : K × K, f (z.1 / z.2)) {z | z.2 ≠ 0},
+      exact this.preimage_open_of_open (is_open_compl_singleton.preimage continuous_snd) ht,
+    refine continuous.comp_continuous_on hf _,
+    exact continuous_fst.continuous_on.div continuous_snd.continuous_on (λ _, id) },
+  { ext ⟨x, hx⟩,
+    simp [lift_of_div, mk_eq_mk_iff_mul_eq_mul, and_comm, eq_comm] }
+end
 
 @[simp]
 lemma submodule_mk (v : V) (hv : v ≠ 0) : (mk K v hv).submodule = K ∙ v := rfl

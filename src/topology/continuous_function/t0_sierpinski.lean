@@ -48,13 +48,13 @@ begin
 lemma eq_induced_by_maps_to_sierpinski : t = ⨅ (u : {s : set X | t.is_open s}),
    topological_space.induced (λ x, x ∈ (u : set X)) sierpinski_space :=
 le_antisymm
-(le_infi_iff.2 (λ u, continuous.le_induced (is_open_iff_continuous_mem.1 (by exact u.2))))
+(le_infi_iff.2 (λ u, continuous.le_induced $ is_open_iff_continuous_mem.1 u.2))
 (is_open_implies_is_open_iff.mp $ λ u h,
 begin
   apply is_open_implies_is_open_iff.mpr _ u _,
-  { exact (topological_space.induced (λ (x : X), x ∈ u) sierpinski_space) },
-  { exact (infi_le_of_le ⟨u,h⟩ (by simp)) },
-  { exact is_open_induced_iff'.mpr ⟨{true}, ⟨is_open_singleton_true,by simp [set.preimage]⟩⟩},
+  { exact topological_space.induced (λ (x : X), x ∈ u) sierpinski_space },
+  { exact infi_le_of_le ⟨u,h⟩ (by simp) },
+  { exact is_open_induced_iff'.mpr ⟨{true}, ⟨is_open_singleton_true, by simp [set.preimage]⟩⟩},
 end)
 
 include t

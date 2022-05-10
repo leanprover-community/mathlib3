@@ -803,6 +803,10 @@ countable_binfi_eq_infi_seq' Bcbl 𝓟 principal_univ
 
 section is_countably_generated
 
+protected lemma has_antitone_basis.mem [preorder ι] {l : filter α} {s : ι → set α}
+  (hs : l.has_antitone_basis s) (i : ι) : s i ∈ l :=
+hs.to_has_basis.mem_of_mem trivial
+
 /-- If `f` is countably generated and `f.has_basis p s`, then `f` admits a decreasing basis
 enumerated by natural numbers such that all sets have the form `s i`. More precisely, there is a
 sequence `i n` such that `p (i n)` for all `n` and `s (i n)` is a decreasing sequence of sets which

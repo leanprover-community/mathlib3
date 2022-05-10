@@ -790,7 +790,6 @@ end map₂
 
 section mul
 variables {R : Type*} {A : Type*} [comm_semiring R] [semiring A] [algebra R A]
-
 variables {M N : submodule R A}
 
 theorem fg.mul (hm : M.fg) (hn : N.fg) : (M * N).fg := hm.map₂ _ hn

@@ -462,10 +462,86 @@ localized "attribute [instance] set.comm_monoid set.add_comm_monoid" in pointwis
 
 open_locale pointwise
 
+/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. -/
+protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (set α) := ⟨nsmul_rec⟩
+
+/-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
+`set`. -/
+@[to_additive]
+protected def has_npow [has_one α] [has_mul α] : has_pow (set α) ℕ := ⟨λ s n, npow_rec n s⟩
+
+/-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
+addition/subtraction!) of a `set`. -/
+protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (set α) := ⟨zsmul_rec⟩
+
+/-- Repeated pointwise multiplication/division (not the same as pointwise repeated
+multiplication/division!) of a `set`. -/
+@[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (set α) ℤ :=
+⟨λ s n, zpow_rec n s⟩
+
+section division_monoid
+variables [division_monoid α] {s t : set α}
+
+@[to_additive] protected lemma mul_eq_one_iff : s * t = 1 ↔ ∃ a b, s = {a} ∧ t = {b} ∧ a * b = 1 :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { have hst : (s * t).nonempty := h.symm.subst one_nonempty,
+    obtain ⟨a, ha⟩ := hst.of_image2_left,
+    obtain ⟨b, hb⟩ := hst.of_image2_right,
+    have H : ∀ {a b}, a ∈ s → b ∈ t → a * b = (1 : α) :=
+      λ a b ha hb, (h.subset $ mem_image2_of_mem ha hb),
+    refine ⟨a, b, _, _, H ha hb⟩; refine eq_singleton_iff_unique_mem.2 ⟨‹_›, λ x hx, _⟩,
+    { exact (eq_inv_of_mul_eq_one_left $ H hx hb).trans (inv_eq_of_mul_eq_one_left $ H ha hb) },
+    { exact (eq_inv_of_mul_eq_one_right $ H ha hx).trans (inv_eq_of_mul_eq_one_right $ H ha hb) } },
+  { rintro ⟨b, c, rfl, rfl, h⟩,
+    rw [singleton_mul_singleton, h, singleton_one] }
+end
+
+/-- `set α` is a division monoid under pointwise operations if `α` is. -/
+@[to_additive subtraction_monoid "`set α` is a subtraction monoid under pointwise operations if `α`
+is."]
+protected def division_monoid : division_monoid (set α) :=
+{ mul_inv_rev := λ s t, by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev },
+  inv_eq_of_mul := λ s t h, begin
+    obtain ⟨a, b, rfl, rfl, hab⟩ := set.mul_eq_one_iff.1 h,
+    rw [inv_singleton, inv_eq_of_mul_eq_one_right hab],
+  end,
+  div_eq_mul_inv := λ s t,
+    by { rw [←image_id (s / t), ←image_inv], exact image_image2_distrib_right div_eq_mul_inv },
+  ..set.monoid, ..set.has_involutive_inv, ..set.has_div }
+
+@[simp, to_additive] lemma is_unit_iff : is_unit s ↔ ∃ a, s = {a} ∧ is_unit a :=
+begin
+  split,
+  { rintro ⟨u, rfl⟩,
+    obtain ⟨a, b, ha, hb, h⟩ := set.mul_eq_one_iff.1 u.mul_inv,
+    refine ⟨a, ha, ⟨a, b, h, singleton_injective _⟩, rfl⟩,
+    rw [←singleton_mul_singleton, ←ha, ←hb],
+    exact u.inv_mul },
+  { rintro ⟨a, rfl, ha⟩,
+    exact ha.set }
+end
+
+end division_monoid
+
+/-- `set α` is a commutative division monoid under pointwise operations if `α` is. -/
+@[to_additive subtraction_comm_monoid "`set α` is a commutative subtraction monoid under pointwise
+operations if `α` is."]
+protected def division_comm_monoid [division_comm_monoid α] : division_comm_monoid (set α) :=
+{ ..set.division_monoid, ..set.comm_semigroup }
+
+localized "attribute [instance] set.division_monoid set.subtraction_monoid set.division_comm_monoid
+  set.subtraction_comm_monoid" in pointwise
+
 section group
 variables [group α] {s t : set α} {a b : α}
 
 /-! Note that `set` is not a `group` because `s / s ≠ 1` in general. -/
+
+@[to_additive] lemma is_unit_singleton (a : α) : is_unit ({a} : set α) := (group.is_unit a).set
+
+@[simp, to_additive] lemma is_unit_iff_singleton : is_unit s ↔ ∃ a, s = {a} :=
+by simp only [is_unit_iff, group.is_unit, and_true]
 
 @[simp, to_additive] lemma image_mul_left : ((*) a) '' t = ((*) a⁻¹) ⁻¹' t :=
 by { rw image_eq_preimage_of_inverse; intro c; simp }
@@ -580,87 +656,6 @@ end
 /-! TODO: define `decidable_mem_finset_prod` and `decidable_mem_finset_sum`. -/
 
 end big_operators
-
-open_locale pointwise
-
-/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. -/
-protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (set α) := ⟨nsmul_rec⟩
-
-/-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
-`set`. -/
-@[to_additive]
-protected def has_npow [has_one α] [has_mul α] : has_pow (set α) ℕ := ⟨λ s n, npow_rec n s⟩
-
-/-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
-addition/subtraction!) of a `set`. -/
-protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (set α) := ⟨zsmul_rec⟩
-
-/-- Repeated pointwise multiplication/division (not the same as pointwise repeated
-multiplication/division!) of a `set`. -/
-@[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (set α) ℤ :=
-⟨λ s n, zpow_rec n s⟩
-
--- TODO: Generalize the duplicated lemmas and instances below to `division_monoid`
-
-@[to_additive] protected lemma mul_inv_rev [group α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
-by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev }
-
-protected lemma mul_inv_rev₀ [group_with_zero α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
-by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev }
-
-/-- `s / t = s * t⁻¹` for all `s t : set α` if `a / b = a * b⁻¹` for all `a b : α`. -/
-@[to_additive "`s - t = s + -t` for all `s t : set α` if `a - b = a + -b` for all `a b : α`."]
-protected def div_inv_monoid [group α] : div_inv_monoid (set α) :=
-{ div_eq_mul_inv := λ s t,
-    by { rw [←image_id (s / t), ←image_inv], exact image_image2_distrib_right div_eq_mul_inv },
-  ..set.monoid, ..set.has_inv, ..set.has_div }
-
-/-- `s / t = s * t⁻¹` for all `s t : set α` if `a / b = a * b⁻¹` for all `a b : α`. -/
-protected def div_inv_monoid' [group_with_zero α] : div_inv_monoid (set α) :=
-{ div_eq_mul_inv := λ s t,
-    by { rw [←image_id (s / t), ←image_inv], exact image_image2_distrib_right div_eq_mul_inv },
-  ..set.monoid, ..set.has_inv, ..set.has_div }
-
-localized "attribute [instance] set.has_nsmul set.has_npow set.has_zsmul set.has_zpow
-  set.div_inv_monoid set.div_inv_monoid' set.sub_neg_add_monoid" in pointwise
-
-section group
-variables [group α] {s t : set α}
-
-@[to_additive] protected lemma mul_eq_one_iff : s * t = 1 ↔ ∃ a b, s = {a} ∧ t = {b} ∧ a * b = 1 :=
-begin
-  refine ⟨λ h, _, _⟩,
-  { have hst : (s * t).nonempty := h.symm.subst one_nonempty,
-    obtain ⟨a, ha⟩ := hst.of_image2_left,
-    obtain ⟨b, hb⟩ := hst.of_image2_right,
-    have H : ∀ {a b}, a ∈ s → b ∈ t → a * b = (1 : α) :=
-      λ a b ha hb, (h.subset $ mem_image2_of_mem ha hb),
-    refine ⟨a, b, _, _, H ha hb⟩; refine eq_singleton_iff_unique_mem.2 ⟨‹_›, λ x hx, _⟩,
-    { exact (eq_inv_of_mul_eq_one $ H hx hb).trans (eq_inv_of_mul_eq_one $ H ha hb).symm },
-    { exact (inv_eq_of_mul_eq_one $ H ha hx).symm.trans (inv_eq_of_mul_eq_one $ H ha hb) } },
-  { rintro ⟨b, c, rfl, rfl, h⟩,
-    rw [singleton_mul_singleton, h, singleton_one] }
-end
-
---TODO: Generalize to division monoids (#14042)
-@[to_additive] lemma is_unit_iff : is_unit s ↔ ∃ a, s = {a} ∧ is_unit a :=
-begin
-  split,
-  { rintro ⟨u, rfl⟩,
-    obtain ⟨a, b, ha, hb, h⟩ := set.mul_eq_one_iff.1 u.mul_inv,
-    refine ⟨a, ha, ⟨a, b, h, singleton_injective _⟩, rfl⟩,
-    rw [←singleton_mul_singleton, ←ha, ←hb],
-    exact u.inv_mul },
-  { rintro ⟨a, rfl, ha⟩,
-    exact ha.set }
-end
-
-@[to_additive] lemma is_unit_singleton (a : α) : is_unit ({a} : set α) := (group.is_unit a).set
-
-@[simp, to_additive] lemma is_unit_iff_singleton : is_unit s ↔ ∃ a, s = {a} :=
-by simp only [is_unit_iff, group.is_unit, and_true]
-
-end group
 
 /-! ### Translation/scaling of sets -/
 

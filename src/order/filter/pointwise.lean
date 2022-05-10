@@ -323,30 +323,10 @@ end monoid
 protected def comm_monoid [comm_monoid α] : comm_monoid (filter α) :=
 { ..filter.mul_one_class, ..filter.comm_semigroup }
 
-localized "attribute [instance] filter.comm_monoid filter.add_comm_monoid" in pointwise
+open_locale pointwise
 
--- TODO: Generalize the duplicated lemmas and instances below to `division_monoid`
-
-/-- `f / g = f * g⁻¹` for all `f g : filter α` if `a / b = a * b⁻¹` for all `a b : α`. -/
-@[to_additive filter.sub_neg_monoid "`f - g = f + -g` for all `f g : filter α` if `a - b = a + -b`
-for all `a b : α`."]
-protected def div_inv_monoid [group α] : div_inv_monoid (filter α) :=
-{ div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
-  ..filter.monoid, ..filter.has_inv, ..filter.has_div }
-
-/-- `f / g = f * g⁻¹` for all `f g : filter α` if `a / b = a * b⁻¹` for all `a b : α`. -/
-protected def div_inv_monoid' [group_with_zero α] : div_inv_monoid (filter α) :=
-{ div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
-  ..filter.monoid, ..filter.has_inv, ..filter.has_div }
-
-localized "attribute [instance] filter.div_inv_monoid filter.sub_neg_monoid filter.div_inv_monoid'"
-  in pointwise
-
-/-! Note that `filter α` is not a group because `f / f ≠ 1` in general -/
-
-section group
-variables [group α] [group β] [monoid_hom_class F α β] (m : F) {f g f₁ g₁ : filter α}
-  {f₂ g₂ : filter β}
+section division_monoid
+variables [division_monoid α] {f g : filter α}
 
 @[to_additive]
 protected lemma mul_eq_one_iff : f * g = 1 ↔ ∃ a b, f = pure a ∧ g = pure b ∧ a * b = 1 :=
@@ -363,7 +343,18 @@ begin
     rw [pure_mul_pure, h, pure_one] }
 end
 
---TODO: Generalize to division monoids (#14042)
+/-- `filter α` is a division monoid under pointwise operations if `α` is. -/
+@[to_additive subtraction_monoid "`filter α` is a subtraction monoid under pointwise
+operations if `α` is."]
+protected def division_monoid : division_monoid (filter α) :=
+{ mul_inv_rev := λ s t, map_map₂_antidistrib mul_inv_rev,
+  inv_eq_of_mul := λ s t h, begin
+    obtain ⟨a, b, rfl, rfl, hab⟩ := filter.mul_eq_one_iff.1 h,
+    rw [inv_pure, inv_eq_of_mul_eq_one_right hab],
+  end,
+  div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
+  ..filter.monoid, ..filter.has_involutive_inv, ..filter.has_div }
+
 @[to_additive] lemma is_unit_iff : is_unit f ↔ ∃ a, f = pure a ∧ is_unit a :=
 begin
   split,
@@ -375,6 +366,23 @@ begin
   { rintro ⟨a, rfl, ha⟩,
     exact ha.filter }
 end
+
+end division_monoid
+
+/-- `filter α` is a commutative division monoid under pointwise operations if `α` is. -/
+@[to_additive subtraction_comm_monoid "`filter α` is a commutative subtraction monoid under
+pointwise operations if `α` is."]
+protected def division_comm_monoid [division_comm_monoid α] : division_comm_monoid (filter α) :=
+{ ..filter.division_monoid, ..filter.comm_semigroup }
+
+localized "attribute [instance] filter.comm_monoid filter.add_comm_monoid filter.division_monoid
+  filter.subtraction_monoid filter.division_comm_monoid filter.subtraction_comm_monoid" in pointwise
+
+section group
+variables [group α] [group β] [monoid_hom_class F α β] (m : F) {f g f₁ g₁ : filter α}
+  {f₂ g₂ : filter β}
+
+/-! Note that `filter α` is not a group because `f / f ≠ 1` in general -/
 
 @[to_additive] lemma is_unit_pure (a : α) : is_unit (pure a : filter α) := (group.is_unit a).filter
 

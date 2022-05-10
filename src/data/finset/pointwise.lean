@@ -61,8 +61,8 @@ namespace finset
 section has_one
 variables [has_one α] {s : finset α} {a : α}
 
-/-- The finset `(1 : finset α)` is defined as `{1}` in locale `pointwise`. -/
-@[to_additive "The finset `(0 : finset α)` is defined as `{0}` in locale `pointwise`."]
+/-- The finset `1 : finset α` is defined as `{1}` in locale `pointwise`. -/
+@[to_additive "The finset `0 : finset α` is defined as `{0}` in locale `pointwise`."]
 protected def has_one : has_one (finset α) := ⟨{1}⟩
 
 localized "attribute [instance] finset.has_one finset.has_zero" in pointwise
@@ -88,15 +88,14 @@ rfl
 
 end has_one
 
-open_locale pointwise
-
 /-! ### Finset negation/inversion -/
 
 section has_inv
 variables [decidable_eq α] [has_inv α] {s s₁ s₂ t t₁ t₂ u : finset α} {a b : α}
 
-/-- The pointwise inverse of a finset `s`: `s⁻¹ = {x⁻¹ | x ∈ s}`. -/
-@[to_additive "The pointwise negation of a finset `s`: `-s = {-x | x ∈ s}`."]
+/-- The pointwise inversion of finset `s⁻¹` is defined as `{x⁻¹ | x ∈ s}` in locale `pointwise`. -/
+@[to_additive "The pointwise negation of finset `-s` is defined as `{-x | x ∈ s}` in locale
+`pointwise`."]
 protected def has_inv : has_inv (finset α) := ⟨image has_inv.inv⟩
 
 localized "attribute [instance] finset.has_inv finset.has_neg" in pointwise
@@ -140,8 +139,10 @@ end has_involutive_inv
 section has_mul
 variables [decidable_eq α] [has_mul α] {s s₁ s₂ t t₁ t₂ u : finset α} {a b : α}
 
-/-- The pointwise product of two finsets `s` and `t`: `s * t = {x * y | x ∈ s, y ∈ t}`. -/
-@[to_additive "The pointwise sum of two finsets `s` and `t`: `s + t = {x + y | x ∈ s, y ∈ t}`."]
+/-- The pointwise multiplication of finsets `s * t` and `t` is defined as `{x * y | x ∈ s, y ∈ t}`
+in locale `pointwise`. -/
+@[to_additive "The pointwise addition of finsets `s + t` is defined as `{x + y | x ∈ s, y ∈ t}` in
+locale `pointwise`."]
 protected def has_mul : has_mul (finset α) := ⟨image₂ (*)⟩
 
 localized "attribute [instance] finset.has_mul finset.has_add" in pointwise
@@ -207,87 +208,16 @@ rfl
 
 end has_mul
 
-open_locale pointwise
-
-section mul_zero_class
-variables [decidable_eq α] [mul_zero_class α] {s t : finset α}
-
-lemma mul_zero_subset (s : finset α) : s * 0 ⊆ 0 := by simp [subset_iff, mem_mul]
-lemma zero_mul_subset (s : finset α) : 0 * s ⊆ 0 := by simp [subset_iff, mem_mul]
-
-lemma nonempty.mul_zero (hs : s.nonempty) : s * 0 = 0 :=
-s.mul_zero_subset.antisymm $ by simpa [mem_mul] using hs
-
-lemma nonempty.zero_mul (hs : s.nonempty) : 0 * s = 0 :=
-s.zero_mul_subset.antisymm $ by simpa [mem_mul] using hs
-
-end mul_zero_class
-
-section group
-variables [group α] {s t : finset α} {a b : α}
-
-section decidable_eq
-variables [decidable_eq α]
-
-@[simp, to_additive]
-lemma image_mul_left :
-  image (λ b, a * b) t = preimage t (λ b, a⁻¹ * b) (λ x hx y hy, (mul_right_inj a⁻¹).mp) :=
-coe_injective $ by simp
-
-@[simp, to_additive]
-lemma image_mul_right : image (* b) t = preimage t (* b⁻¹) (λ x hx y hy, (mul_left_inj b⁻¹).mp) :=
-coe_injective $ by simp
-
-@[to_additive]
-lemma image_mul_left' :
-  image (λ b, a⁻¹ * b) t = preimage t (λ b, a * b) (λ x hx y hy, (mul_right_inj a).mp) :=
-by simp
-
-@[to_additive]
-lemma image_mul_right' : image (* b⁻¹) t = preimage t (* b) (λ x hx y hy, (mul_left_inj b).mp) :=
-by simp
-
-end decidable_eq
-
-@[simp, to_additive]
-lemma preimage_mul_left_singleton :
-  preimage {b} ((*) a) (λ x hx y hy, (mul_right_inj a).mp) = {a⁻¹ * b} :=
-by { classical, rw [← image_mul_left', image_singleton] }
-
-@[simp, to_additive]
-lemma preimage_mul_right_singleton :
-  preimage {b} (* a) (λ x hx y hy, (mul_left_inj a).mp) = {b * a⁻¹} :=
-by { classical, rw [← image_mul_right', image_singleton] }
-
-@[simp, to_additive]
-lemma preimage_mul_left_one : preimage 1 (λ b, a * b) (λ x hx y hy, (mul_right_inj a).mp) = {a⁻¹} :=
-by { classical, rw [← image_mul_left', image_one, mul_one] }
-
-@[simp, to_additive]
-lemma preimage_mul_right_one : preimage 1 (* b) (λ x hx y hy, (mul_left_inj b).mp) = {b⁻¹} :=
-by { classical, rw [← image_mul_right', image_one, one_mul] }
-
-@[to_additive]
-lemma preimage_mul_left_one' :
-  preimage 1 (λ b, a⁻¹ * b) (λ x hx y hy, (mul_right_inj _).mp) = {a} :=
-by rw [preimage_mul_left_one, inv_inv]
-
-@[to_additive]
-lemma preimage_mul_right_one' : preimage 1 (* b⁻¹) (λ x hx y hy, (mul_left_inj _).mp) = {b} :=
-by rw [preimage_mul_right_one, inv_inv]
-
-end group
-
-open_locale pointwise
-
 /-! ### Finset subtraction/division -/
 
 section has_div
 variables [decidable_eq α] [has_div α] {s s₁ s₂ t t₁ t₂ u : finset α} {a b : α}
 
-/-- The pointwise product of two finsets `s` and `t`: `s / t = {x / y | x ∈ s, y ∈ t}`. -/
-@[to_additive "The pointwise sum of two finsets `s` and `t`: `s - t = {x - y | x ∈ s, y ∈ t}`."]
-protected def has_div : has_div (finset α) := ⟨λ s t, (s.product t).image $ λ p : α × α, p.1 / p.2⟩
+/-- The pointwise division of sfinets `s / t` is defined as `{x / y | x ∈ s, y ∈ t}` in locale
+`pointwise`. -/
+@[to_additive "The pointwise subtraction of finsets `s - t` is defined as `{x - y | x ∈ s, y ∈ t}`
+in locale `pointwise`."]
+protected def has_div : has_div (finset α) := ⟨image₂ (/)⟩
 
 localized "attribute [instance] finset.has_div finset.has_add" in pointwise
 
@@ -343,22 +273,6 @@ subset_image₂
 
 end has_div
 
-open_locale pointwise
-
-section group_with_zero
-variables [decidable_eq α] [group_with_zero α] {s t : finset α}
-
-lemma div_zero_subset (s : finset α) : s / 0 ⊆ 0 := by simp [subset_iff, mem_div]
-lemma zero_div_subset (s : finset α) : 0 / s ⊆ 0 := by simp [subset_iff, mem_div]
-
-lemma nonempty.div_zero (hs : s.nonempty) : s / 0 = 0 :=
-s.div_zero_subset.antisymm $ by simpa [mem_div] using hs
-
-lemma nonempty.zero_div (hs : s.nonempty) : 0 / s = 0 :=
-s.zero_div_subset.antisymm $ by simpa [mem_div] using hs
-
-end group_with_zero
-
 /-! ### Instances -/
 
 open_locale pointwise
@@ -405,8 +319,8 @@ variables [mul_one_class α]
 protected def mul_one_class : mul_one_class (finset α) :=
 coe_injective.mul_one_class _ (coe_singleton 1) coe_mul
 
-localized "attribute [instance] finset.mul_one_class finset.add_zero_class finset.semigroup
-  finset.add_semigroup" in pointwise
+localized "attribute [instance] finset.semigroup finset.add_semigroup finset.comm_semigroup
+  finset.add_comm_semigroup finset.mul_one_class finset.add_zero_class" in pointwise
 
 /-- The singleton operation as a `monoid_hom`. -/
 @[to_additive "The singleton operation as an `add_monoid_hom`."]
@@ -450,13 +364,11 @@ is_unit.map (singleton_monoid_hom : α →* finset α)
 @[to_additive] lemma empty_pow (n : ℕ) (hn : n ≠ 0) : (∅ : finset α) ^ n = ∅ :=
 by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
 
-@[simp, to_additive]
-lemma univ_mul_univ [fintype α] : (univ : finset α) * univ = univ :=
+@[simp, to_additive] lemma univ_mul_univ [fintype α] : (univ : finset α) * univ = univ :=
 begin
   have : ∀ x, ∃ a b : α, a * b = x := λ x, ⟨x, 1, mul_one x⟩,
   simpa only [mem_mul, eq_univ_iff_forall, mem_univ, true_and]
 end
-
 end monoid
 
 /-- `finset α` is a `comm_monoid` under pointwise operations if `α` is. -/
@@ -464,8 +376,17 @@ end monoid
 protected def comm_monoid [comm_monoid α] : comm_monoid (finset α) :=
 coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 
-/- TODO: The below lemmas and instances are duplicate because there is no typeclass greater than
-`div_inv_monoid` and `has_involutive_inv` but smaller than `group` and `group_with_zero`. -/
+-- TODO: Generalize the duplicated lemmas and instances below to `division_monoid`
+
+@[simp, to_additive] lemma coe_zpow [group α] (s : finset α) : ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
+| (int.of_nat n) := coe_pow _ _
+| (int.neg_succ_of_nat n) :=
+  by { refine (coe_inv _).trans _, convert congr_arg has_inv.inv (coe_pow _ _) }
+
+@[simp] lemma coe_zpow' [group_with_zero α] (s : finset α) : ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
+| (int.of_nat n) := coe_pow _ _
+| (int.neg_succ_of_nat n) :=
+  by { refine (coe_inv _).trans _, convert congr_arg has_inv.inv (coe_pow _ _) }
 
 @[simp, to_additive] lemma coe_zpow [group α] (s : finset α) : ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
 | (int.of_nat n) := coe_pow _ _
@@ -491,6 +412,8 @@ localized "attribute [instance] finset.comm_monoid finset.add_comm_monoid finset
 
 section group
 variables [group α] {s t : finset α}
+
+/-! Note that `set` is not a `group` because `s / s ≠ 1` in general. -/
 
 @[to_additive] protected lemma mul_eq_one_iff : s * t = 1 ↔ ∃ a b, s = {a} ∧ t = {b} ∧ a * b = 1 :=
 by simp_rw [←coe_inj, coe_mul, coe_one, set.mul_eq_one_iff, coe_singleton]
@@ -521,7 +444,93 @@ end group
 
 end instances
 
-/-! ### Finset addition/multiplication -/
+section mul_zero_class
+variables [decidable_eq α] [mul_zero_class α] {s t : finset α}
+
+/-! Note that `set` is not a `mul_zero_class` because `0 * ∅ ≠ 0`. -/
+
+lemma mul_zero_subset (s : finset α) : s * 0 ⊆ 0 := by simp [subset_iff, mem_mul]
+lemma zero_mul_subset (s : finset α) : 0 * s ⊆ 0 := by simp [subset_iff, mem_mul]
+
+lemma nonempty.mul_zero (hs : s.nonempty) : s * 0 = 0 :=
+s.mul_zero_subset.antisymm $ by simpa [mem_mul] using hs
+
+lemma nonempty.zero_mul (hs : s.nonempty) : 0 * s = 0 :=
+s.zero_mul_subset.antisymm $ by simpa [mem_mul] using hs
+
+end mul_zero_class
+
+section group
+variables [group α] {s t : finset α} {a b : α}
+
+/-! Note that `finset` is not a `group` because `s / s ≠ 1` in general. -/
+
+section decidable_eq
+variables [decidable_eq α]
+
+@[simp, to_additive]
+lemma image_mul_left :
+  image (λ b, a * b) t = preimage t (λ b, a⁻¹ * b) ((mul_right_injective _).inj_on _) :=
+coe_injective $ by simp
+
+@[simp, to_additive]
+lemma image_mul_right : image (* b) t = preimage t (* b⁻¹) ((mul_left_injective _).inj_on _) :=
+coe_injective $ by simp
+
+@[to_additive]
+lemma image_mul_left' :
+  image (λ b, a⁻¹ * b) t = preimage t (λ b, a * b) ((mul_right_injective _).inj_on _) :=
+by simp
+
+@[to_additive]
+lemma image_mul_right' : image (* b⁻¹) t = preimage t (* b) ((mul_left_injective _).inj_on _) :=
+by simp
+
+end decidable_eq
+
+@[simp, to_additive]
+lemma preimage_mul_left_singleton :
+  preimage {b} ((*) a) ((mul_right_injective _).inj_on _) = {a⁻¹ * b} :=
+by { classical, rw [← image_mul_left', image_singleton] }
+
+@[simp, to_additive]
+lemma preimage_mul_right_singleton :
+  preimage {b} (* a) ((mul_left_injective _).inj_on _) = {b * a⁻¹} :=
+by { classical, rw [← image_mul_right', image_singleton] }
+
+@[simp, to_additive]
+lemma preimage_mul_left_one : preimage 1 ((*) a) ((mul_right_injective _).inj_on _) = {a⁻¹} :=
+by { classical, rw [← image_mul_left', image_one, mul_one] }
+
+@[simp, to_additive]
+lemma preimage_mul_right_one : preimage 1 (* b) ((mul_left_injective _).inj_on _) = {b⁻¹} :=
+by { classical, rw [← image_mul_right', image_one, one_mul] }
+
+@[to_additive]
+lemma preimage_mul_left_one' : preimage 1 ((*) a⁻¹) ((mul_right_injective _).inj_on _) = {a} :=
+by rw [preimage_mul_left_one, inv_inv]
+
+@[to_additive]
+lemma preimage_mul_right_one' : preimage 1 (* b⁻¹) ((mul_left_injective _).inj_on _) = {b} :=
+by rw [preimage_mul_right_one, inv_inv]
+
+end group
+
+section group_with_zero
+variables [decidable_eq α] [group_with_zero α] {s t : finset α}
+
+lemma div_zero_subset (s : finset α) : s / 0 ⊆ 0 := by simp [subset_iff, mem_div]
+lemma zero_div_subset (s : finset α) : 0 / s ⊆ 0 := by simp [subset_iff, mem_div]
+
+lemma nonempty.div_zero (hs : s.nonempty) : s / 0 = 0 :=
+s.div_zero_subset.antisymm $ by simpa [mem_div] using hs
+
+lemma nonempty.zero_div (hs : s.nonempty) : 0 / s = 0 :=
+s.zero_div_subset.antisymm $ by simpa [mem_div] using hs
+
+end group_with_zero
+
+/-! ### Scalar addition/multiplication of finsets -/
 
 section has_scalar
 variables [decidable_eq β] [has_scalar α β] {s s₁ s₂ : finset α} {t t₁ t₂ u : finset β} {a : α}
@@ -651,8 +660,6 @@ lemma subset_vsub {s t : set β} :
 subset_image₂
 
 end has_vsub
-
-open_locale pointwise
 
 /-! ### Translation/scaling of finsets -/
 

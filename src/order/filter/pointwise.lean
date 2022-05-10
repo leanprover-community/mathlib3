@@ -94,6 +94,38 @@ by rw [filter.map_one', map_one, pure_one]
 
 end has_one
 
+/-! ### Filter negation/inversion -/
+
+section has_inv
+variables [has_inv α] {f g : filter α} {s : set α} {a : α}
+
+/-- The inverse of a filter is the pointwise preimage under `⁻¹` of its sets. -/
+@[to_additive "The negation of a filter is the pointwise preimage under `-` of its sets."]
+instance : has_inv (filter α) := ⟨map has_inv.inv⟩
+
+@[simp, to_additive] protected lemma map_inv : f.map has_inv.inv = f⁻¹ := rfl
+@[to_additive] lemma mem_inv : s ∈ f⁻¹ ↔ has_inv.inv ⁻¹' s ∈ f := iff.rfl
+@[to_additive] protected lemma inv_le_inv (hf : f ≤ g) : f⁻¹ ≤ g⁻¹ := map_mono hf
+@[simp, to_additive] lemma inv_pure : (pure a : filter α)⁻¹ = pure a⁻¹ := rfl
+@[simp, to_additive] lemma inv_eq_bot_iff : f⁻¹ = ⊥ ↔ f = ⊥  := map_eq_bot_iff
+@[simp, to_additive] lemma ne_bot_inv_iff : f⁻¹.ne_bot ↔ ne_bot f := map_ne_bot_iff _
+@[to_additive] lemma ne_bot.inv : f.ne_bot → f⁻¹.ne_bot := λ h, h.map _
+
+end has_inv
+
+section has_involutive_inv
+variables [has_involutive_inv α] {f : filter α} {s : set α}
+
+@[to_additive] lemma inv_mem_inv (hs : s ∈ f) : s⁻¹ ∈ f⁻¹ := by rwa [mem_inv, inv_preimage, inv_inv]
+
+/-- Inversion is involutive on `filter α` if it is on `α`. -/
+@[to_additive "Negation is involutive on `filter α` if it is on `α`."]
+def has_involutive_inv : has_involutive_inv (filter α) :=
+{ inv_inv := λ f, map_map.trans $ by rw [inv_involutive.comp_self, map_id],
+  ..filter.has_inv }
+
+end has_involutive_inv
+
 /-! ### Filter addition/multiplication -/
 
 section has_mul
@@ -143,116 +175,6 @@ def pure_mul_hom : α →ₙ* filter α := ⟨pure, λ a b, pure_mul_pure.symm�
 
 end has_mul
 
-open_locale pointwise
-
-/-- `filter α` is a `semigroup` under pointwise operations if `α` is.-/
-@[to_additive "`filter α` is an `add_semigroup` under pointwise operations if `α` is."]
-protected def semigroup [semigroup α] : semigroup (filter α) :=
-{ mul := (*),
-  mul_assoc := λ f g h, map₂_assoc mul_assoc }
-
-/-- `filter α` is a `comm_semigroup` under pointwise operations if `α` is. -/
-@[to_additive "`filter α` is an `add_comm_semigroup` under pointwise operations if `α` is."]
-protected def comm_semigroup [comm_semigroup α] : comm_semigroup (filter α) :=
-{ mul_comm := λ f g, map₂_comm mul_comm,
-  ..filter.semigroup }
-
-/-- `filter α` is a `mul_one_class` under pointwise operations if `α` is. -/
-@[to_additive "`filter α` is an `add_zero_class` under pointwise operations if `α` is."]
-protected def mul_one_class [mul_one_class α] : mul_one_class (filter α) :=
-{ one := 1,
-  mul := (*),
-  one_mul := λ f, by simp only [←pure_one, ←map₂_mul, map₂_pure_left, one_mul, map_id'],
-  mul_one := λ f, by simp only [←pure_one, ←map₂_mul, map₂_pure_right, mul_one, map_id'] }
-
-/-- `filter α` is a `monoid` under pointwise operations if `α` is. -/
-@[to_additive "`filter α` is an `add_monoid` under pointwise operations if `α` is."]
-protected def monoid [monoid α] : monoid (filter α) :=
-{ ..filter.mul_one_class, ..filter.semigroup }
-
-/-- `filter α` is a `comm_monoid` under pointwise operations if `α` is. -/
-@[to_additive "`filter α` is an `add_comm_monoid` under pointwise operations if `α` is."]
-protected def comm_monoid [comm_monoid α] : comm_monoid (filter α) :=
-{ ..filter.mul_one_class, ..filter.comm_semigroup }
-
-localized "attribute [instance] filter.mul_one_class filter.add_zero_class filter.semigroup
-  filter.add_semigroup filter.comm_semigroup filter.add_comm_semigroup filter.monoid
-  filter.add_monoid filter.comm_monoid filter.add_comm_monoid" in pointwise
-
-section map
-
-variables [mul_one_class α] [mul_one_class β]
-
-/-- If `φ : α →* β` then `map_monoid_hom φ` is the monoid homomorphism
-`filter α →* filter β` induced by `map φ`. -/
-@[to_additive "If `φ : α →+ β` then `map_add_monoid_hom φ` is the monoid homomorphism
-`filter α →+ filter β` induced by `map φ`."]
-def map_monoid_hom [monoid_hom_class F α β] (φ : F) : filter α →* filter β :=
-{ to_fun := map φ,
-  map_one' := filter.map_one φ,
-  map_mul' := λ _ _, filter.map_mul φ }
-
--- The other direction does not hold in general.
-@[to_additive]
-lemma comap_mul_comap_le [mul_hom_class F α β] (m : F) {f₁ f₂ : filter β} :
-  f₁.comap m * f₂.comap m ≤ (f₁ * f₂).comap m  :=
-λ s ⟨t, ⟨t₁, t₂, ht₁, ht₂, t₁t₂⟩, mt⟩,
-  ⟨m ⁻¹' t₁, m ⁻¹' t₂, ⟨t₁, ht₁, subset.rfl⟩, ⟨t₂, ht₂, subset.rfl⟩,
-    (preimage_mul_preimage_subset _).trans $ (preimage_mono t₁t₂).trans mt⟩
-
-@[to_additive]
-lemma tendsto.mul_mul [mul_hom_class F α β] (m : F) {f₁ g₁ : filter α} {f₂ g₂ : filter β} :
-  tendsto m f₁ f₂ → tendsto m g₁ g₂ → tendsto m (f₁ * g₁) (f₂ * g₂) :=
-λ hf hg, (filter.map_mul m).trans_le $ mul_le_mul' hf hg
-
-end map
-
-/-! ### Filter negation/inversion -/
-
-section has_inv
-variables [has_inv α] {f g : filter α} {s : set α} {a : α}
-
-/-- The inverse of a filter is the pointwise preimage under `⁻¹` of its sets. -/
-@[to_additive "The negation of a filter is the pointwise preimage under `-` of its sets."]
-instance : has_inv (filter α) := ⟨map has_inv.inv⟩
-
-@[simp, to_additive] protected lemma map_inv : f.map has_inv.inv = f⁻¹ := rfl
-@[to_additive] lemma mem_inv : s ∈ f⁻¹ ↔ has_inv.inv ⁻¹' s ∈ f := iff.rfl
-@[to_additive] protected lemma inv_le_inv (hf : f ≤ g) : f⁻¹ ≤ g⁻¹ := map_mono hf
-@[simp, to_additive] lemma inv_pure : (pure a : filter α)⁻¹ = pure a⁻¹ := rfl
-@[simp, to_additive] lemma inv_eq_bot_iff : f⁻¹ = ⊥ ↔ f = ⊥  := map_eq_bot_iff
-@[simp, to_additive] lemma ne_bot_inv_iff : f⁻¹.ne_bot ↔ ne_bot f := map_ne_bot_iff _
-@[to_additive] lemma ne_bot.inv : f.ne_bot → f⁻¹.ne_bot := λ h, h.map _
-
-end has_inv
-
-section has_involutive_inv
-variables [has_involutive_inv α] {f : filter α} {s : set α}
-
-@[to_additive] lemma inv_mem_inv (hs : s ∈ f) : s⁻¹ ∈ f⁻¹ := by rwa [mem_inv, inv_preimage, inv_inv]
-
-/-- Inversion is involutive on `filter α` if it is on `α`. -/
-@[to_additive "Negation is involutive on `filter α` if it is on `α`."]
-def has_involutive_inv : has_involutive_inv (filter α) :=
-{ inv_inv := λ f, map_map.trans $ by rw [inv_involutive.comp_self, map_id],
-  ..filter.has_inv }
-
-end has_involutive_inv
-
-section group
-variables [group α] [group β]
-
-@[to_additive]
-lemma map_inv' [monoid_hom_class F α β] (m : F) {f : filter α} : f⁻¹.map m = (f.map m)⁻¹ :=
-map_comm (funext $ map_inv m) _
-
-@[to_additive]
-lemma tendsto.inv_inv [monoid_hom_class F α β] (m : F) {f₁  : filter α} {f₂ : filter β} :
-  tendsto m f₁ f₂ → tendsto m f₁⁻¹ f₂⁻¹ :=
-λ hf, (filter.map_inv' m).trans_le $ filter.inv_le_inv hf
-
-end group
-
 /-! ### Filter subtraction/division -/
 
 section div
@@ -297,8 +219,65 @@ end div
 
 open_locale pointwise
 
+/-- `filter α` is a `semigroup` under pointwise operations if `α` is.-/
+@[to_additive "`filter α` is an `add_semigroup` under pointwise operations if `α` is."]
+protected def semigroup [semigroup α] : semigroup (filter α) :=
+{ mul := (*),
+  mul_assoc := λ f g h, map₂_assoc mul_assoc }
+
+/-- `filter α` is a `comm_semigroup` under pointwise operations if `α` is. -/
+@[to_additive "`filter α` is an `add_comm_semigroup` under pointwise operations if `α` is."]
+protected def comm_semigroup [comm_semigroup α] : comm_semigroup (filter α) :=
+{ mul_comm := λ f g, map₂_comm mul_comm,
+  ..filter.semigroup }
+
+section mul_one_class
+variables [mul_one_class α] [mul_one_class β]
+
+/-- `filter α` is a `mul_one_class` under pointwise operations if `α` is. -/
+@[to_additive "`filter α` is an `add_zero_class` under pointwise operations if `α` is."]
+protected def mul_one_class : mul_one_class (filter α) :=
+{ one := 1,
+  mul := (*),
+  one_mul := λ f, by simp only [←pure_one, ←map₂_mul, map₂_pure_left, one_mul, map_id'],
+  mul_one := λ f, by simp only [←pure_one, ←map₂_mul, map₂_pure_right, mul_one, map_id'] }
+
+localized "attribute [instance] filter.semigroup filter.add_semigroup filter.comm_semigroup
+  filter.add_comm_semigroup filter.mul_one_class filter.add_zero_class" in pointwise
+
+/-- If `φ : α →* β` then `map_monoid_hom φ` is the monoid homomorphism
+`filter α →* filter β` induced by `map φ`. -/
+@[to_additive "If `φ : α →+ β` then `map_add_monoid_hom φ` is the monoid homomorphism
+`filter α →+ filter β` induced by `map φ`."]
+def map_monoid_hom [monoid_hom_class F α β] (φ : F) : filter α →* filter β :=
+{ to_fun := map φ,
+  map_one' := filter.map_one φ,
+  map_mul' := λ _ _, filter.map_mul φ }
+
+-- The other direction does not hold in general
+@[to_additive]
+lemma comap_mul_comap_le [mul_hom_class F α β] (m : F) {f g : filter β} :
+  f.comap m * g.comap m ≤ (f * g).comap m  :=
+λ s ⟨t, ⟨t₁, t₂, ht₁, ht₂, t₁t₂⟩, mt⟩,
+  ⟨m ⁻¹' t₁, m ⁻¹' t₂, ⟨t₁, ht₁, subset.rfl⟩, ⟨t₂, ht₂, subset.rfl⟩,
+    (preimage_mul_preimage_subset _).trans $ (preimage_mono t₁t₂).trans mt⟩
+
+@[to_additive]
+lemma tendsto.mul_mul [mul_hom_class F α β] (m : F) {f₁ g₁ : filter α} {f₂ g₂ : filter β} :
+  tendsto m f₁ f₂ → tendsto m g₁ g₂ → tendsto m (f₁ * g₁) (f₂ * g₂) :=
+λ hf hg, (filter.map_mul m).trans_le $ mul_le_mul' hf hg
+
+end mul_one_class
+
 section monoid
 variables [monoid α] {f g : filter α} {s : set α} {a : α}
+
+/-- `filter α` is a `monoid` under pointwise operations if `α` is. -/
+@[to_additive "`filter α` is an `add_monoid` under pointwise operations if `α` is."]
+protected def monoid : monoid (filter α) :=
+{ ..filter.mul_one_class, ..filter.semigroup }
+
+localized "attribute [instance] filter.monoid filter.add_monoid" in pointwise
 
 /-- `pure` as a `monoid_hom`. -/
 @[to_additive "`pure` as an `add_monoid_hom`."]
@@ -339,8 +318,35 @@ lemma nsmul_top {α : Type*} [add_monoid α] : ∀ {n : ℕ}, n ≠ 0 → n • 
 
 end monoid
 
+/-- `filter α` is a `comm_monoid` under pointwise operations if `α` is. -/
+@[to_additive "`filter α` is an `add_comm_monoid` under pointwise operations if `α` is."]
+protected def comm_monoid [comm_monoid α] : comm_monoid (filter α) :=
+{ ..filter.mul_one_class, ..filter.comm_semigroup }
+
+localized "attribute [instance] filter.comm_monoid filter.add_comm_monoid" in pointwise
+
+-- TODO: Generalize the duplicated lemmas and instances below to `division_monoid`
+
+/-- `f / g = f * g⁻¹` for all `f g : filter α` if `a / b = a * b⁻¹` for all `a b : α`. -/
+@[to_additive filter.sub_neg_monoid "`f - g = f + -g` for all `f g : filter α` if `a - b = a + -b`
+for all `a b : α`."]
+protected def div_inv_monoid [group α] : div_inv_monoid (filter α) :=
+{ div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
+  ..filter.monoid, ..filter.has_inv, ..filter.has_div }
+
+/-- `f / g = f * g⁻¹` for all `f g : filter α` if `a / b = a * b⁻¹` for all `a b : α`. -/
+protected def div_inv_monoid' [group_with_zero α] : div_inv_monoid (filter α) :=
+{ div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
+  ..filter.monoid, ..filter.has_inv, ..filter.has_div }
+
+localized "attribute [instance] filter.div_inv_monoid filter.sub_neg_monoid filter.div_inv_monoid'"
+  in pointwise
+
+/-! Note that `filter α` is not a group because `f / f ≠ 1` in general -/
+
 section group
-variables [group α] {f g : filter α}
+variables [group α] [group β] [monoid_hom_class F α β] (m : F) {f g f₁ g₁ : filter α}
+  {f₂ g₂ : filter β}
 
 @[to_additive]
 protected lemma mul_eq_one_iff : f * g = 1 ↔ ∃ a b, f = pure a ∧ g = pure b ∧ a * b = 1 :=
@@ -375,40 +381,18 @@ end
 @[simp] lemma is_unit_iff_singleton : is_unit f ↔ ∃ a, f = pure a :=
 by simp only [is_unit_iff, group.is_unit, and_true]
 
-end group
+include β
 
-/-TODO: The below instances are duplicate because there is no typeclass greater than
-`div_inv_monoid` and `has_involutive_inv` but smaller than `group` and `group_with_zero`. -/
+@[to_additive] lemma map_inv' : f⁻¹.map m = (f.map m)⁻¹ := map_comm (funext $ map_inv m) _
 
-/-- `f / g = f * g⁻¹` for all `f g : filter α` if `a / b = a * b⁻¹` for all `a b : α`. -/
-@[to_additive filter.sub_neg_monoid "`f - g = f + -g` for all `f g : filter α` if `a - b = a + -b`
-for all `a b : α`."]
-protected def div_inv_monoid [group α] : div_inv_monoid (filter α) :=
-{ div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
-  ..filter.monoid, ..filter.has_inv, ..filter.has_div }
+@[to_additive] lemma tendsto.inv_inv : tendsto m f₁ f₂ → tendsto m f₁⁻¹ f₂⁻¹ :=
+λ hf, (filter.map_inv' m).trans_le $ filter.inv_le_inv hf
 
-/-- `f / g = f * g⁻¹` for all `f g : filter α` if `a / b = a * b⁻¹` for all `a b : α`. -/
-protected def div_inv_monoid' [group_with_zero α] : div_inv_monoid (filter α) :=
-{ div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
-  ..filter.monoid, ..filter.has_inv, ..filter.has_div }
-
-localized "attribute [instance] filter.div_inv_monoid filter.sub_neg_monoid filter.div_inv_monoid'"
-  in pointwise
-
-open_locale pointwise
-
--- `filter α` is not a group because `f / f ≠ 1` in general
-
-section group
-variables [group α] [group β] {f g  : filter α} {f₂ : filter β}
-
-@[to_additive]
-protected lemma map_div [monoid_hom_class F α β] (m : F) : (f / g).map m = f.map m / g.map m :=
+@[to_additive] protected lemma map_div : (f / g).map m = f.map m / g.map m :=
 map_map₂_distrib $ map_div m
 
 @[to_additive]
-lemma tendsto.div_div [monoid_hom_class F α β] (m : F) {f₁ g₁ : filter α} {f₂ g₂ : filter β} :
-  tendsto m f₁ f₂ → tendsto m g₁ g₂ → tendsto m (f₁ / g₁) (f₂ / g₂) :=
+lemma tendsto.div_div : tendsto m f₁ f₂ → tendsto m g₁ g₂ → tendsto m (f₁ / g₁) (f₂ / g₂) :=
 λ hf hg, (filter.map_div m).trans_le $ filter.div_le_div hf hg
 
 end group
@@ -453,13 +437,6 @@ le_map₂_iff
 ⟨λ f g h, map₂_mono_left⟩
 
 end smul
-
-open_locale pointwise
-
-@[to_additive]
-instance [monoid α] [mul_action α β] : mul_action (filter α) (filter β) :=
-{ one_smul := λ f, by simp only [←pure_one, ←map₂_smul, map₂_pure_left, one_smul, map_id'],
-  mul_smul := λ f g h, map₂_assoc mul_smul }
 
 /-! ### Scalar subtraction of filters -/
 
@@ -559,5 +536,10 @@ instance is_scalar_tower'' [has_scalar α β] [has_scalar α γ] [has_scalar β 
 instance is_central_scalar [has_scalar α β] [has_scalar αᵐᵒᵖ β] [is_central_scalar α β] :
   is_central_scalar α (filter β) :=
 ⟨λ a f, congr_arg (λ m, map m f) $ by exact funext (λ _, op_smul_eq_smul _ _)⟩
+
+@[to_additive]
+instance [monoid α] [mul_action α β] : mul_action (filter α) (filter β) :=
+{ one_smul := λ f, by simp only [←pure_one, ←map₂_smul, map₂_pure_left, one_smul, map_id'],
+  mul_smul := λ f g h, map₂_assoc mul_smul }
 
 end filter

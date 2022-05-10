@@ -267,6 +267,13 @@ lemma tendsto.mul_mul [mul_hom_class F α β] (m : F) {f₁ g₁ : filter α} {f
   tendsto m f₁ f₂ → tendsto m g₁ g₂ → tendsto m (f₁ * g₁) (f₂ * g₂) :=
 λ hf hg, (filter.map_mul m).trans_le $ mul_le_mul' hf hg
 
+/-- `pure` as a `monoid_hom`. -/
+@[to_additive "`pure` as an `add_monoid_hom`."]
+def pure_monoid_hom : α →* filter α := { ..pure_mul_hom, ..pure_one_hom }
+
+@[simp, to_additive] lemma coe_pure_monoid_hom : (pure_monoid_hom : α → filter α) = pure := rfl
+@[simp, to_additive] lemma pure_monoid_hom_apply (a : α) : pure_monoid_hom a = pure a := rfl
+
 end mul_one_class
 
 section monoid
@@ -279,15 +286,12 @@ protected def monoid : monoid (filter α) :=
 
 localized "attribute [instance] filter.monoid filter.add_monoid" in pointwise
 
-/-- `pure` as a `monoid_hom`. -/
-@[to_additive "`pure` as an `add_monoid_hom`."]
-def pure_monoid_hom : α →* filter α := { ..pure_mul_hom, ..pure_one_hom }
+@[to_additive] lemma pow_mem_pow (hs : s ∈ f) : ∀ n : ℕ, s ^ n ∈ f ^ n
+| 0 := by { rw pow_zero, exact one_mem_one }
+| (n + 1) := by { rw pow_succ, exact mul_mem_mul hs (pow_mem_pow _) }
 
-@[simp, to_additive] lemma coe_pure_monoid_hom : (pure_monoid_hom : α → filter α) = pure := rfl
-@[simp, to_additive] lemma pure_monoid_hom_apply (a : α) : pure_monoid_hom a = pure a := rfl
-
-@[to_additive] protected lemma _root_.is_unit.filter : is_unit a → is_unit (pure a : filter α) :=
-is_unit.map (pure_monoid_hom : α →* filter α)
+@[to_additive nsmul_bot] lemma bot_pow (n : ℕ) (hn : n ≠ 0) : (⊥  : filter α) ^ n = ⊥ :=
+by rw [←tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, bot_mul]
 
 @[simp, to_additive] lemma top_mul_top : (⊤ : filter α) * ⊤ = ⊤ :=
 begin
@@ -297,13 +301,6 @@ begin
   rw [h₁, h₂, univ_mul_univ] at hs,
   exact univ_subset_iff.1 hs,
 end
-
-@[to_additive] lemma pow_mem_pow (hs : s ∈ f) : ∀ n : ℕ, s ^ n ∈ f ^ n
-| 0 := by { rw pow_zero, exact one_mem_one }
-| (n + 1) := by { rw pow_succ, exact mul_mem_mul hs (pow_mem_pow _) }
-
-@[to_additive nsmul_bot] lemma bot_pow (n : ℕ) (hn : n ≠ 0) : (⊥  : filter α) ^ n = ⊥ :=
-by rw [←tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, bot_mul]
 
 lemma nsmul_top {α : Type*} [add_monoid α] : ∀ {n : ℕ}, n ≠ 0 → n • (⊤ : filter α) = ⊤
 | 0 := λ h, (h rfl).elim
@@ -315,6 +312,9 @@ lemma nsmul_top {α : Type*} [add_monoid α] : ∀ {n : ℕ}, n ≠ 0 → n • 
 | 0 := λ h, (h rfl).elim
 | 1 := λ _, pow_one _
 | (n + 2) := λ _, by { rw [pow_succ, top_pow n.succ_ne_zero, top_mul_top] }
+
+@[to_additive] protected lemma _root_.is_unit.filter : is_unit a → is_unit (pure a : filter α) :=
+is_unit.map (pure_monoid_hom : α →* filter α)
 
 end monoid
 

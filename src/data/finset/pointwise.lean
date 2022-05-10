@@ -350,9 +350,6 @@ protected def monoid : monoid (finset α) := coe_injective.monoid _ coe_one coe_
 
 localized "attribute [instance] finset.monoid finset.add_monoid" in pointwise
 
-@[to_additive] protected lemma _root_.is_unit.finset : is_unit a → is_unit ({a} : finset α) :=
-is_unit.map (singleton_monoid_hom : α →* finset α)
-
 @[to_additive] lemma pow_mem_pow (ha : a ∈ s) : ∀ n : ℕ, a ^ n ∈ s ^ n
 | 0 := by { rw pow_zero, exact one_mem_one }
 | (n + 1) := by { rw pow_succ, exact mul_mem_mul ha (pow_mem_pow _) }
@@ -369,6 +366,14 @@ begin
   have : ∀ x, ∃ a b : α, a * b = x := λ x, ⟨x, 1, mul_one x⟩,
   simpa only [mem_mul, eq_univ_iff_forall, mem_univ, true_and]
 end
+
+@[simp, to_additive nsmul_univ] lemma univ_pow [fintype α] {n : ℕ} (hn : n ≠ 0) :
+  (univ : finset α) ^ n = univ :=
+coe_injective $ by rw [coe_pow, coe_univ, set.univ_pow hn]
+
+@[to_additive] protected lemma _root_.is_unit.finset : is_unit a → is_unit ({a} : finset α) :=
+is_unit.map (singleton_monoid_hom : α →* finset α)
+
 end monoid
 
 /-- `finset α` is a `comm_monoid` under pointwise operations if `α` is. -/
@@ -377,16 +382,6 @@ protected def comm_monoid [comm_monoid α] : comm_monoid (finset α) :=
 coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 
 -- TODO: Generalize the duplicated lemmas and instances below to `division_monoid`
-
-@[simp, to_additive] lemma coe_zpow [group α] (s : finset α) : ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
-| (int.of_nat n) := coe_pow _ _
-| (int.neg_succ_of_nat n) :=
-  by { refine (coe_inv _).trans _, convert congr_arg has_inv.inv (coe_pow _ _) }
-
-@[simp] lemma coe_zpow' [group_with_zero α] (s : finset α) : ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
-| (int.of_nat n) := coe_pow _ _
-| (int.neg_succ_of_nat n) :=
-  by { refine (coe_inv _).trans _, convert congr_arg has_inv.inv (coe_pow _ _) }
 
 @[simp, to_additive] lemma coe_zpow [group α] (s : finset α) : ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
 | (int.of_nat n) := coe_pow _ _

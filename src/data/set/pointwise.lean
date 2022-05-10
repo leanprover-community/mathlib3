@@ -405,20 +405,6 @@ protected def monoid : monoid (set α) := { ..set.semigroup, ..set.mul_one_class
 
 localized "attribute [instance] set.monoid set.add_monoid" in pointwise
 
-@[to_additive] protected lemma _root_.is_unit.set : is_unit a → is_unit ({a} : set α) :=
-is_unit.map (singleton_monoid_hom : α →* set α)
-
-@[to_additive] lemma pow_mem_pow (ha : a ∈ s) : ∀ n : ℕ, a ^ n ∈ s ^ n
-| 0 := by { rw pow_zero, exact one_mem_one }
-| (n + 1) := by { rw pow_succ, exact mul_mem_mul ha (pow_mem_pow _) }
-
-@[to_additive] lemma pow_subset_pow (hst : s ⊆ t) : ∀ n : ℕ, s ^ n ⊆ t ^ n
-| 0 := by { rw pow_zero, exact subset.rfl }
-| (n + 1) := by { rw pow_succ, exact mul_subset_mul hst (pow_subset_pow _) }
-
-@[to_additive] lemma empty_pow (n : ℕ) (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
-by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
-
 -- can be generalized to `[fintype s] [fintype t]`
 @[to_additive]
 instance decidable_mem_mul [fintype α] [decidable_eq α] [decidable_pred (∈ s)]
@@ -434,6 +420,17 @@ begin
   { simp_rw [pow_zero, mem_one], apply_instance },
   { letI := ih, rw pow_succ, apply_instance }
 end
+
+@[to_additive] lemma pow_mem_pow (ha : a ∈ s) : ∀ n : ℕ, a ^ n ∈ s ^ n
+| 0 := by { rw pow_zero, exact one_mem_one }
+| (n + 1) := by { rw pow_succ, exact mul_mem_mul ha (pow_mem_pow _) }
+
+@[to_additive] lemma pow_subset_pow (hst : s ⊆ t) : ∀ n : ℕ, s ^ n ⊆ t ^ n
+| 0 := by { rw pow_zero, exact subset.rfl }
+| (n + 1) := by { rw pow_succ, exact mul_subset_mul hst (pow_subset_pow _) }
+
+@[to_additive] lemma empty_pow (n : ℕ) (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
+by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
 
 @[simp, to_additive] lemma univ_mul_univ : (univ : set α) * univ = univ :=
 begin
@@ -451,6 +448,9 @@ end
 | 0 := λ h, (h rfl).elim
 | 1 := λ _, pow_one _
 | (n + 2) := λ _, by { rw [pow_succ, univ_pow n.succ_ne_zero, univ_mul_univ] }
+
+@[to_additive] protected lemma _root_.is_unit.set : is_unit a → is_unit ({a} : set α) :=
+is_unit.map (singleton_monoid_hom : α →* set α)
 
 end monoid
 
@@ -626,8 +626,6 @@ protected def div_inv_monoid' [group_with_zero α] : div_inv_monoid (set α) :=
 
 localized "attribute [instance] set.has_nsmul set.has_npow set.has_zsmul set.has_zpow
   set.div_inv_monoid set.div_inv_monoid' set.sub_neg_add_monoid" in pointwise
-
-end div
 
 section group
 variables [group α] {s t : set α}

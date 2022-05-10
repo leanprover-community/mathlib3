@@ -48,43 +48,6 @@ attribute [to_additive] disjoint.one_not_mem_div_set
 
 end set
 
-section
-variables {α : Type*} [topological_space α] [group α] [topological_group α] {s t : set α}
-
-open set
-open_locale pointwise
-
-@[to_additive]
-lemma is_open_map_div_left (a : α) : is_open_map ((/) a) := (homeomorph.div_left a).is_open_map
-
-@[to_additive]
-lemma is_open.div_left (ht : is_open t) : is_open (s / t) :=
-begin
-  rw ←Union_div_left_image,
-  exact is_open_Union (λ a, is_open_Union $ λ ha, is_open_map_div_left a t ht),
-end
-
-@[to_additive]
-lemma is_open.div_right (hs : is_open s) : is_open (s / t) :=
-begin
-  rw ←Union_div_right_image,
-  exact is_open_Union (λ a, is_open_Union $ λ ha, is_open_map_div_right a s hs),
-end
-
-@[to_additive]
-lemma subset_interior_div_left : interior s / t ⊆ interior (s / t) :=
-interior_maximal (div_subset_div_right interior_subset) is_open_interior.div_right
-
-@[to_additive]
-lemma subset_interior_div_right : s / interior t ⊆ interior (s / t) :=
-interior_maximal (div_subset_div_left interior_subset) is_open_interior.div_left
-
-@[to_additive]
-lemma subset_interior_div : interior s / interior t ⊆ interior (s / t) :=
-(div_subset_div_left interior_subset).trans subset_interior_div_left
-
-end
-
 open function metric set
 open_locale pointwise topological_space
 
@@ -114,11 +77,11 @@ begin
       exact gauge_mono (absorbent_ball_zero hr) (hrs.trans $ inter_subset_left _ _) x },
     { dsimp,
       rw [←submodule.coe_mk x₀ (submodule.mem_span_singleton_self _), hφ₁,
-        linear_pmap.mk_span_singleton_apply_self] },
+        linear_pmap.mk_span_singleton'_apply_self] },
     { exact λ x hx, (hφ₂ x).trans_lt (gauge_lt_one_of_mem_of_open hs₁ hs₀ hs₂ hx) } },
   rintro ⟨x, hx⟩,
   obtain ⟨y, rfl⟩ := submodule.mem_span_singleton.1 hx,
-  rw linear_pmap.mk_span_singleton_apply,
+  rw linear_pmap.mk_span_singleton'_apply,
   simp only [mul_one, algebra.id.smul_eq_mul, submodule.coe_mk],
   obtain h | h := le_or_lt y 0,
   { exact h.trans (gauge_nonneg _) },
@@ -130,7 +93,7 @@ end
 
 variables [normed_group E] [normed_space ℝ E] {s t : set E} {x y : E}
 
-/-- A version of the Hahn-Banach theorem: given disjoint convex sets `s`, `t` where `s` is open,
+/-- A version of the **Hahn-Banach theorem**: given disjoint convex sets `s`, `t` where `s` is open,
 there is a continuous linear functional which separates them. -/
 theorem geometric_hahn_banach_open (hs₁ : convex ℝ s) (hs₂ : is_open s) (ht : convex ℝ t)
   (disj : disjoint s t) :
@@ -195,8 +158,8 @@ begin
   exact (hf₁ _ ha₀).not_le (hf₂ _ hb₀),
 end
 
-/-- A version of the Hahn-Banach theorem: given disjoint convex sets `s`, `t` where `s` is compact
-and `t` is closed, there is a continuous linear functional which strongly separates them. -/
+/-- A version of the **Hahn-Banach theorem**: given disjoint convex sets `s`, `t` where `s` is
+compact and `t` is closed, there is a continuous linear functional which strongly separates them. -/
 theorem geometric_hahn_banach_compact_closed (hs₁ : convex ℝ s) (hs₂ : is_compact s)
   (ht₁ : convex ℝ t) (ht₂ : is_closed t) (disj : disjoint s t) :
   ∃ (f : E →L[ℝ] ℝ) (u v : ℝ), (∀ a ∈ s, f a < u) ∧ u < v ∧ ∀ b ∈ t, v < f b :=
@@ -212,8 +175,9 @@ begin
   exact ⟨f, (f x + u)/2, u, λ a ha, by linarith [hx₂ a ha], by linarith, λ b hb, hf₂ b (tV hb)⟩,
 end
 
-/-- A version of the Hahn-Banach theorem: given disjoint convex sets `s`, `t` where `s` is closed,
-and `t` is compact, there is a continuous linear functional which strongly separates them. -/
+/-- A version of the **Hahn-Banach theorem**: given disjoint convex sets `s`, `t` where `s` is
+closed, and `t` is compact, there is a continuous linear functional which strongly separates them.
+-/
 theorem geometric_hahn_banach_closed_compact (hs₁ : convex ℝ s) (hs₂ : is_closed s)
   (ht₁ : convex ℝ t) (ht₂ : is_compact t) (disj : disjoint s t) :
   ∃ (f : E →L[ℝ] ℝ) (u v : ℝ), (∀ a ∈ s, f a < u) ∧ u < v ∧ ∀ b ∈ t, v < f b :=

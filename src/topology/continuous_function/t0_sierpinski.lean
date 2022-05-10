@@ -9,10 +9,12 @@ import topology.continuous_function.basic
 /-!
 # Any T0 space embeds in a product of copies of the Sierpinski space
 
-We consider `Prop` with the Sierpinski topology. If `(X, t)` is a topological space, there is a
-continuous map `i : X → Π u ∈ t, Prop` defined as the product of the maps `iᵤ : X → Prop` defined by
-`iᵤ x = x ∈ u`. The map `i` is always inducing. Whenever `X` is T0, `i` is also injective and
-therefore an embedding.
+We consider `Prop` with the Sierpinski topology. If `t` is a topology on `X`, there is a continuous
+map `product_of_mem_opens : X → Π u ∈ t, Prop` defined as the product of the maps `X → Prop` defined
+by `x ↦ x ∈ u`.
+
+The map `product_of_mem_opens` is always inducing. Whenever `X` is T0, `product_of_mem_opens` is
+also injective and therefore an embedding.
 -/
 
 noncomputable theory
@@ -24,16 +26,15 @@ instance : topological_space (Π (u : {s : set X | t.is_open s}), Prop) :=
 
 /--
   The continuous map from `X` to the product of copies of the Sierpinski space, (one copy for each
-  open subset `u` of `X`). The `u` coordinate of  `i x` is given by `x ∈ u`.
+  open subset `u` of `X`). The `u` coordinate of  `product_of_mem_opens x` is given by `x ∈ u`.
 -/
-def i (X : Type*) [t : topological_space X] : continuous_map X
+def product_of_mem_opens (X : Type*) [t : topological_space X] : continuous_map X
   (Π (u : {s : set X | t.is_open s}), Prop) :=
 { to_fun := λ x u, x ∈ (u : set X),
   continuous_to_fun := continuous_pi_iff.2 (λ u, continuous_Prop.2 (by simpa using subtype.mem u)) }
 
 include t0
-lemma i_injective : function.injective
-  (λ (x : X) (u : {s : set X | t.is_open s}), x ∈ (u : set X)) :=
+lemma product_of_mem_opens_injective : function.injective (product_of_mem_opens X) :=
 begin
   rw function.injective,
   intros x1 x2 h,
@@ -58,7 +59,7 @@ begin
 end)
 
 include t
-lemma i_inducing : inducing (i X).to_fun :=
+lemma product_of_mem_opens_inducing : inducing (product_of_mem_opens X).to_fun :=
 ⟨(eq_induced_by_maps_to_sierpinski).trans begin
   erw induced_infi, -- same steps as in the proof of `inducing_infi_to_pi`
   congr' 1,
@@ -67,5 +68,5 @@ lemma i_inducing : inducing (i X).to_fun :=
   refl
 end⟩
 
--- would `embedding_into_prod_sierpinski_of_t0` be a good name?
-theorem i_embedding : embedding (i X) := embedding.mk (i_inducing) (@i_injective X t t0)
+theorem product_of_mem_opens_embedding : embedding (product_of_mem_opens X) :=
+embedding.mk (product_of_mem_opens_inducing) (@product_of_mem_opens_injective X t t0)

@@ -783,7 +783,7 @@ begin
   rw ← iso.eq_comp_inv at this,
   rw this,
   have : colimit.ι _ _ ≫ _ = _ :=
-    Top.sigma_iso_sigma_hom_ι.{v} ((F ⋙ SheafedSpace.forget C).obj ∘ discrete.mk) i.as,
+    Top.sigma_iso_sigma_hom_ι.{v v} ((F ⋙ SheafedSpace.forget C).obj ∘ discrete.mk) i.as,
   rw ← iso.eq_comp_inv at this,
   cases i,
   rw this,

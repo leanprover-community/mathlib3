@@ -176,9 +176,12 @@ end
 
 /-! ### Cases without any arguments provided -/
 
--- the corner case is "just apply the normalization procedure"
+-- the corner case is "just apply the normalization procedure".
+-- an empty `linear_combination` at the end of a declaration is a bad edge case for the parser.
 example {x y z w : ℤ} (h₁ : 3 * x = 4 + y) (h₂ : x + 2 * y = 1) : z + w = w + z :=
 by linear_combination
+
+.
 
 -- this interacts as expected with options
 example {x y z w : ℤ} (h₁ : 3 * x = 4 + y) (h₂ : x + 2 * y = 1) : z + w = w + z :=

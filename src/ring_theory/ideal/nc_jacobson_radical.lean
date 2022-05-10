@@ -31,52 +31,6 @@ all maximal *right* ideals, so it is a two-sided ideal.
 -/
 
 universe u
-open mul_opposite
-
-section monoid
-variables {M : Type u} {a : M} {b : M} [monoid M]
-/-! ### Some lemmas on inverses in monoids -/
-
-lemma is_unit.op (h : is_unit a) : is_unit (op a) :=
-let ⟨a, _⟩ := h in ⟨units.op_equiv.symm (op a), by simpa⟩
-
-lemma is_unit.unop {x : Mᵐᵒᵖ} (h : is_unit x) : is_unit (unop x) :=
-let ⟨a, _⟩ := h in ⟨unop a.op_equiv, by simpa⟩
-
-lemma is_unit_op_iff_is_unit {a : M} : is_unit (op a) ↔ is_unit a :=
-⟨λ h, unop_op a ▸ h.unop, is_unit.op⟩
-
-lemma is_unit_unop_iff_is_unit {x : Mᵐᵒᵖ} : is_unit (unop x) ↔ is_unit x :=
-⟨λ h, op_unop x ▸ h.op, is_unit.unop⟩
-
-lemma is_unit_iff_has_two_sided_inv :
-  is_unit a ↔ ∃ x : M, a * x = 1 ∧ x * a = 1 :=
-⟨λ ⟨⟨a, x, hax, hxa⟩, rfl⟩, ⟨x, hax, hxa⟩, λ ⟨x, hax, hxa⟩, ⟨⟨a, x, hax, hxa⟩, rfl⟩⟩
-
-/-- An element `a : M` of a monoid has a left inverse
-if there is some `x : M` satisfying `x * a = 1`. -/
-def has_left_inv (a : M) : Prop := ∃ x : M, x * a = 1
-
-/-- An element `a : M` of a monoid has a right inverse
-if there is some `x : M` satisfying `a * x = 1`. -/
-def has_right_inv (a : M) : Prop := ∃ x : M, a * x = 1
-
-/-- An element of a monoid is a unit
-if and only if it has both a left inverse and a right inverse. -/
-theorem is_unit_iff_has_left_inv_right_inv :
-  is_unit a ↔ has_left_inv a ∧ has_right_inv a :=
-⟨λ h, ⟨h.exists_left_inv, h.exists_right_inv⟩,
-  λ ⟨⟨x, hxa⟩, ⟨y, hay⟩⟩, ⟨⟨a, x, by { convert hay,
-  rw [←mul_one x, ←hay, ←mul_assoc, hxa, one_mul] }, hxa⟩, rfl⟩⟩
-
-/-- An element of a monoid is a unit
-if it has a left inverse which also has a left inverse. -/
-theorem is_unit_of_has_left_inv_of_has_left_inv
-  (h₁ : b * a = 1) (h₂ : has_left_inv b) : is_unit a :=
-let ⟨c, hcb⟩ := h₂ in ⟨⟨a, b, by { convert hcb,
-  rw [←one_mul a, ←hcb, mul_assoc, h₁, mul_one] }, h₁⟩, rfl⟩
-
-end monoid
 
 section ring
 variables {R : Type u} {a : R} {b : R} [ring R]

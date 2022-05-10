@@ -572,6 +572,7 @@ begin
     exact h' },
 end
 
+
 lemma top_group_map_nhds_eq {G : Type*} [group G] [topological_space G]
 [topological_group G] (g x : G) :
 filter.map (λ y, g * y) (nhds x) = nhds (g * x) :=

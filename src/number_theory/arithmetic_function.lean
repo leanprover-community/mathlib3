@@ -657,7 +657,7 @@ lemma sigma_one_apply {n : ℕ} : σ 1 n = ∑ d in divisors n, d := by simp [si
 
 lemma sigma_zero_apply {n : ℕ} : σ 0 n = (divisors n).card := by simp [sigma_apply]
 
-lemma sigma_zero_apply_prime_pow {k p i : ℕ} (hp : p.prime) :
+lemma sigma_zero_apply_prime_pow {p i : ℕ} (hp : p.prime) :
   σ 0 (p ^ i) = i + 1 :=
 by rw [sigma_zero_apply, divisors_prime_pow hp, card_map, card_range]
 

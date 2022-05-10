@@ -235,6 +235,10 @@ protected lemma commute.mul_zpow (h : commute a b) : ∀ (i : ℤ), (a * b) ^ i 
 | (n : ℕ) := by simp [h.mul_pow n]
 | -[1+n]  := by simp [h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev]
 
+@[simp, norm_cast] lemma units.coe_zpow (u : αˣ) : ∀ (n : ℤ), ((u ^ n : α) : α) = u ^ n
+| (n : ℕ) := by { rw [zpow_coe_nat, zpow_coe_nat], exact u.coe_pow n }
+| -[1+k] := by rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, units.coe_inv, u.coe_pow]
+
 end division_monoid
 
 section division_comm_monoid
@@ -243,10 +247,10 @@ variables [division_comm_monoid α]
 @[to_additive zsmul_add] lemma mul_zpow (a b : α) : ∀ n : ℤ, (a * b) ^ n = a ^ n * b ^ n :=
 (commute.all a b).mul_zpow
 
-@[simp, to_additive "nsmul_sub"] lemma div_pow (a b : α) (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
+@[simp, to_additive nsmul_sub] lemma div_pow (a b : α) (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
 by simp only [div_eq_mul_inv, mul_pow, inv_pow]
 
-@[simp, to_additive "zsmul_sub"] lemma div_zpow (a b : α) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
+@[simp, to_additive zsmul_sub] lemma div_zpow (a b : α) (n : ℤ) : (a / b) ^ n = a ^ n / b ^ n :=
 by simp only [div_eq_mul_inv, mul_zpow, inv_zpow]
 
 /-- The `n`-th power map (for an integer `n`) on a commutative group, considered as a group
@@ -265,8 +269,7 @@ variables [group G] [group H] [add_group A] [add_group B]
 
 open int
 
-@[to_additive "sub_nsmul"]
-theorem pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a^(m - n) = a^m * (a^n)⁻¹ :=
+@[to_additive sub_nsmul] lemma pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a^(m - n) = a^m * (a^n)⁻¹ :=
 have h1 : m - n + n = m, from tsub_add_cancel_of_le h,
 have h2 : a^(m - n) * a^n = a^m, by rw [←pow_add, h1],
 eq_mul_inv_of_mul_eq h2

@@ -296,19 +296,19 @@ by rw [← map_mul, h, map_one]
 
 /-- Group homomorphisms preserve inverse. -/
 @[simp, to_additive "Additive group homomorphisms preserve negation."]
-theorem map_inv [group G] [group H] [monoid_hom_class F G H]
+theorem map_inv [group G] [division_monoid H] [monoid_hom_class F G H]
   (f : F) (g : G) : f g⁻¹ = (f g)⁻¹ :=
 eq_inv_of_mul_eq_one_left $ map_mul_eq_one f $ inv_mul_self g
 
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive "Additive group homomorphisms preserve subtraction."]
-theorem map_mul_inv [group G] [group H] [monoid_hom_class F G H]
+theorem map_mul_inv [group G] [division_monoid H] [monoid_hom_class F G H]
   (f : F) (g h : G) : f (g * h⁻¹) = f g * (f h)⁻¹ :=
 by rw [map_mul, map_inv]
 
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive "Additive group homomorphisms preserve subtraction."]
-lemma map_div [group G] [group H] [monoid_hom_class F G H]
+lemma map_div [group G] [division_monoid H] [monoid_hom_class F G H]
   (f : F) (x y : G) : f (x / y) = f x / f y :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul_inv]
 
@@ -342,12 +342,13 @@ theorem map_zpow' [div_inv_monoid G] [div_inv_monoid H] [monoid_hom_class F G H]
 -- swap its arguments.
 /-- Group homomorphisms preserve integer power. -/
 @[to_additive map_zsmul.aux, simp]
-theorem map_zpow [group G] [group H] [monoid_hom_class F G H] (f : F) (g : G) (n : ℤ) :
+theorem map_zpow [group G] [division_monoid H] [monoid_hom_class F G H] (f : F) (g : G) (n : ℤ) :
   f (g ^ n) = (f g) ^ n :=
 map_zpow' f (map_inv f) g n
 
 /-- Additive group homomorphisms preserve integer scaling. -/
-theorem map_zsmul [add_group G] [add_group H] [add_monoid_hom_class F G H] (f : F) (n : ℤ) (g : G) :
+theorem map_zsmul [add_group G] [subtraction_monoid H] [add_monoid_hom_class F G H] (f : F)
+  (n : ℤ) (g : G) :
   f (n • g) = n • f g :=
 map_zsmul.aux f g n
 
@@ -671,8 +672,7 @@ protected lemma monoid_with_zero_hom.map_mul [mul_zero_one_class M] [mul_zero_on
 add_decl_doc add_monoid_hom.map_add
 
 namespace monoid_hom
-variables {mM : mul_one_class M} {mN : mul_one_class N} {mP : mul_one_class P}
-variables [group G] [comm_group H] [monoid_hom_class F M N]
+variables {mM : mul_one_class M} {mN : mul_one_class N} [monoid_hom_class F M N]
 
 include mM mN
 
@@ -1070,25 +1070,25 @@ left_inv_eq_right_inv (map_mul_eq_one f $ inv_mul_self x) $
   h.symm ▸ map_mul_eq_one g $ mul_inv_self x
 
 /-- Group homomorphisms preserve inverse. -/
-@[to_additive]
-protected theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g⁻¹ = (f g)⁻¹ :=
+@[to_additive] protected lemma map_inv {G H} [group G] [division_monoid H] (f : G →* H) (g : G) :
+  f g⁻¹ = (f g)⁻¹ :=
 map_inv f g
 
 /-- Group homomorphisms preserve integer power. -/
 @[to_additive "Additive group homomorphisms preserve integer scaling."]
-protected theorem map_zpow {G H} [group G] [group H] (f : G →* H) (g : G) (n : ℤ) :
+protected theorem map_zpow {G H} [group G] [division_monoid H] (f : G →* H) (g : G) (n : ℤ) :
   f (g ^ n) = (f g) ^ n :=
 map_zpow f g n
 
 /-- Group homomorphisms preserve division. -/
 @[to_additive "Additive group homomorphisms preserve subtraction."]
-protected theorem map_div {G H} [group G] [group H] (f : G →* H) (g h : G) :
+protected theorem map_div {G H} [group G] [division_monoid H] (f : G →* H) (g h : G) :
   f (g / h) = f g / f h :=
 map_div f g h
 
 /-- Group homomorphisms preserve division. -/
 @[to_additive]
-protected theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
+protected theorem map_mul_inv {G H} [group G] [division_monoid H] (f : G →* H) (g h : G) :
   f (g * h⁻¹) = (f g) * (f h)⁻¹ :=
 map_mul_inv f g h
 

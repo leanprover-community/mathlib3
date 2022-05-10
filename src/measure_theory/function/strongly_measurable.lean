@@ -834,7 +834,7 @@ end
 /-- If the restriction to a set `s` of a σ-algebra `m` is included in the restriction to `s` of
 another σ-algebra `m₂` (hypothesis `hs`), the set `s` is `m` measurable and a function `f` supported
 on `s` is `m`-strongly-measurable, then `f` is also `m₂`-strongly-measurable. -/
-lemma strongly_measurable_todo {α E} {m m₂ : measurable_space α}
+lemma strongly_measurable_of_measurable_space_le_on {α E} {m m₂ : measurable_space α}
   [topological_space E] [has_zero E] {s : set α} {f : α → E}
   (hs_m : measurable_set[m] s) (hs : ∀ t, measurable_set[m] (s ∩ t) → measurable_set[m₂] (s ∩ t))
   (hf : strongly_measurable[m] f) (hf_zero : ∀ x ∉ s, f x = 0) :

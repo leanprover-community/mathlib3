@@ -191,7 +191,8 @@ lemma ae_eq_trim_iff_of_ae_strongly_measurable' {α β} [topological_space β] [
 another σ-algebra `m₂` (hypothesis `hs`), the set `s` is `m` measurable and a function `f` almost
 everywhere supported on `s` is `m`-ae-strongly-measurable, then `f` is also
 `m₂`-ae-strongly-measurable. -/
-lemma ae_strongly_measurable'_todo {α E} {m m₂ m0 : measurable_space α} {μ : measure α}
+lemma ae_strongly_measurable'.ae_strongly_measurable'_of_measurable_space_le_on
+  {α E} {m m₂ m0 : measurable_space α} {μ : measure α}
   [topological_space E] [has_zero E] (hm : m ≤ m0) {s : set α} {f : α → E}
   (hs_m : measurable_set[m] s) (hs : ∀ t, measurable_set[m] (s ∩ t) → measurable_set[m₂] (s ∩ t))
   (hf : ae_strongly_measurable' m f μ) (hf_zero : f =ᵐ[μ.restrict sᶜ] 0) :
@@ -209,7 +210,8 @@ begin
     from ae_strongly_measurable'.congr this.ae_strongly_measurable' h_ind_eq,
   have hf_ind : strongly_measurable[m] (s.indicator (hf.mk f)),
     from hf.strongly_measurable_mk.indicator hs_m,
-  exact hf_ind.strongly_measurable_todo hs_m hs (λ x hxs, set.indicator_of_not_mem hxs _),
+  exact hf_ind.strongly_measurable_of_measurable_space_le_on hs_m hs
+    (λ x hxs, set.indicator_of_not_mem hxs _),
 end
 
 variables {α β γ E E' F F' G G' H 𝕜 : Type*} {p : ℝ≥0∞}
@@ -2183,7 +2185,8 @@ end
 /-- TODO
 The hypothesis `(hs : ∀ t, measurable_set[m] (s ∩ t) ↔ measurable_set[m₂] (s ∩ t))` means that
 under the event `s`, the σ-algebras `m` and `m₂` are the same. -/
-lemma condexp_indicator_eq_todo (hm : m ≤ m0) (hm₂ : m₂ ≤ m0) [sigma_finite (μ.trim hm)]
+lemma condexp_ae_eq_restrict_of_measurable_space_eq_on
+  (hm : m ≤ m0) (hm₂ : m₂ ≤ m0) [sigma_finite (μ.trim hm)]
   [sigma_finite (μ.trim hm₂)] (hf_int : integrable f μ) (hs_m : measurable_set[m] s)
   (hs : ∀ t, measurable_set[m] (s ∩ t) ↔ measurable_set[m₂] (s ∩ t)) :
   μ[f | m] =ᵐ[μ.restrict s] μ[f | m₂] :=
@@ -2218,7 +2221,8 @@ begin
       integral_indicator (hm _ hs_m), measure.restrict_restrict (hm _ hs_m),
        ← set.inter_assoc, set.inter_self], },
   { have : strongly_measurable[m] (μ[s.indicator f | m]) := strongly_measurable_condexp,
-    refine ae_strongly_measurable'_todo hm hs_m (λ t, (hs t).mp) this.ae_strongly_measurable' _,
+    refine ae_strongly_measurable'_of_measurable_space_le_on hm hs_m (λ t, (hs t).mp)
+      this.ae_strongly_measurable' _,
     refine condexp_ae_eq_restrict_zero (hf_int.indicator (hm _ hs_m)) hs_m.compl _,
     exact indicator_ae_eq_restrict_compl (hm _ hs_m), },
   { exact strongly_measurable_condexp.ae_strongly_measurable', },

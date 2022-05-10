@@ -476,7 +476,7 @@ variable (G)
 
 @[to_additive]
 lemma nhds_one_symm : comap has_inv.inv (𝓝 (1 : G)) = 𝓝 (1 : G) :=
-((homeomorph.inv G).comap_nhds_eq _).trans (congr_arg nhds one_inv)
+((homeomorph.inv G).comap_nhds_eq _).trans (congr_arg nhds inv_one)
 
 /-- The map `(x, y) ↦ (x, xy)` as a homeomorphism. This is a shear mapping. -/
 @[to_additive "The map `(x, y) ↦ (x, x + y)` as a homeomorphism.
@@ -586,7 +586,7 @@ end
   [topological_group G] {g : G} (hg : g ∈ connected_component (1 : G)) :
   g⁻¹ ∈ connected_component (1 : G) :=
 begin
-  rw ← one_inv,
+  rw ← inv_one,
   exact continuous.image_connected_component_subset continuous_inv _
     ((set.mem_image _ _ _).mp ⟨g, hg, rfl⟩)
 end

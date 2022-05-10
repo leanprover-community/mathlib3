@@ -45,6 +45,12 @@ In a preadditive category,
 ## Notation
 As `⊕` is already taken for the sum of types, we introduce the notation `X ⊞ Y` for
 a binary biproduct. We introduce `⨁ f` for the indexed biproduct.
+
+## Implementation
+Prior to #14046, `has_finite_biproducts` required a `decidable_eq` instance on the indexing type.
+As this had no pay-off (everything about limits is non-constructive in mathlib), and occasional cost
+(constructing decidability instances appropriate for constructions involving the indexing type),
+we made everything classical.
 -/
 
 noncomputable theory

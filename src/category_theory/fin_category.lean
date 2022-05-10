@@ -12,6 +12,11 @@ import category_theory.opposites
 
 A category is finite in this sense if it has finitely many objects, and finitely many morphisms.
 
+## Implementation
+Prior to #14046, `fin_category` required a `decidable_eq` instance on the object and morphism types.
+This does not seem to have had any practical payoff (i.e. making some definition constructive)
+so we have removed these requirements to avoid
+having to supply instances or delay with non-defeq conflicts between instances.
 -/
 
 universes v u

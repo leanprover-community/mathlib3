@@ -726,11 +726,11 @@ end
 
 lemma measurable_space_le_of_le_const (hτ : is_stopping_time f τ) {i : ι} (hτ_le : ∀ x, τ x ≤ i) :
   hτ.measurable_space ≤ f i :=
-(measurable_space_mono hτ _ hτ_le).trans (is_stopping_time.measurable_space_const _ _).le
+(measurable_space_mono hτ _ hτ_le).trans (measurable_space_const _ _).le
 
 lemma le_measurable_space_of_const_le (hτ : is_stopping_time f τ) {i : ι} (hτ_le : ∀ x, i ≤ τ x) :
   f i ≤ hτ.measurable_space :=
-(is_stopping_time.measurable_space_const _ _).symm.le.trans (measurable_space_mono _ hτ hτ_le)
+(measurable_space_const _ _).symm.le.trans (measurable_space_mono _ hτ hτ_le)
 
 end preorder
 
@@ -806,8 +806,8 @@ lemma measurable_space_min (hτ : is_stopping_time f τ) (hπ : is_stopping_time
   (hτ.min hπ).measurable_space = hτ.measurable_space ⊓ hπ.measurable_space :=
 begin
   refine le_antisymm _ _,
-  { exact le_inf (is_stopping_time.measurable_space_mono _ hτ (λ _, min_le_left _ _))
-      (is_stopping_time.measurable_space_mono _ hπ (λ _, min_le_right _ _)), },
+  { exact le_inf (measurable_space_mono _ hτ (λ _, min_le_left _ _))
+      (measurable_space_mono _ hπ (λ _, min_le_right _ _)), },
   { intro s,
     change measurable_set[hτ.measurable_space] s ∧ measurable_set[hπ.measurable_space] s
       → measurable_set[(hτ.min hπ).measurable_space] s,
@@ -823,16 +823,15 @@ lemma measurable_set_min_iff (hτ : is_stopping_time f τ) (hπ : is_stopping_ti
     ↔ measurable_set[hτ.measurable_space] s ∧ measurable_set[hπ.measurable_space] s :=
 by { rw measurable_space_min, refl, }
 
-lemma is_stopping_time.measurable_space_min_const (hτ : is_stopping_time f τ) {i : ι} :
+lemma measurable_space_min_const (hτ : is_stopping_time f τ) {i : ι} :
   (hτ.min_const i).measurable_space = hτ.measurable_space ⊓ f i :=
-by rw [hτ.measurable_space_min (is_stopping_time_const _ i),
-  is_stopping_time.measurable_space_const]
+by rw [hτ.measurable_space_min (is_stopping_time_const _ i), measurable_space_const]
 
-lemma is_stopping_time.measurable_set_min_const_iff (hτ : is_stopping_time f τ) (s : set α)
+lemma measurable_set_min_const_iff (hτ : is_stopping_time f τ) (s : set α)
   {i : ι} :
   measurable_set[(hτ.min_const i).measurable_space] s
     ↔ measurable_set[hτ.measurable_space] s ∧ measurable_set[f i] s :=
-by rw [is_stopping_time.measurable_space_min_const, measurable_space.measurable_set_inf]
+by rw [measurable_space_min_const, measurable_space.measurable_set_inf]
 
 lemma measurable_set_inter_le [topological_space ι] [second_countable_topology ι] [order_topology ι]
   [measurable_space ι] [borel_space ι]
@@ -877,8 +876,8 @@ begin
   { have : s ∩ {x | τ x ≤ π x} = s ∩ {x | τ x ≤ π x} ∩ {x | τ x ≤ π x},
       by rw [set.inter_assoc, set.inter_self],
     rw this,
-    exact is_stopping_time.measurable_set_inter_le _ _ _ h, },
-  { rw is_stopping_time.measurable_set_min_iff at h,
+    exact measurable_set_inter_le _ _ _ h, },
+  { rw measurable_set_min_iff at h,
     exact h.1, },
 end
 
@@ -911,7 +910,7 @@ lemma measurable_set_stopping_time_le [topological_space ι]
   measurable_set[hπ.measurable_space] {x | τ x ≤ π x} :=
 begin
   suffices : measurable_set[(hτ.min hπ).measurable_space] {x : α | τ x ≤ π x},
-    by { rw is_stopping_time.measurable_set_min_iff hτ hπ at this, exact this.2, },
+    by { rw measurable_set_min_iff hτ hπ at this, exact this.2, },
   rw [← set.univ_inter {x : α | τ x ≤ π x}, ← hτ.measurable_set_inter_le_iff hπ, set.univ_inter],
   exact measurable_set_le_stopping_time hτ hπ,
 end

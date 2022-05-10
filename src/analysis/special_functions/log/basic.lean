@@ -196,20 +196,17 @@ begin
   rw exp_log hx,
 end
 
-lemma log_div_self_antitone_on : antitone_on (λ x : ℝ, log x / x) {x | exp 1 ≤ x} :=
+/-- Bound for `|log x * x|` in the interval `(0, 1]`. -/
+lemma abs_log_mul_self_lt (x: ℝ) (h1 : 0 < x) (h2 : x ≤ 1) : |log x * x| < 1 :=
 begin
-  simp only [antitone_on, mem_set_of_eq],
-  intros x hex y hey hxy,
-  have x_pos : 0 < x := (exp_pos 1).trans_le hex,
-  have y_pos : 0 < y := (exp_pos 1).trans_le hey,
-  have hlogx : 1 ≤ log x := by rwa le_log_iff_exp_le x_pos,
-  have hyx : 0 ≤ y / x - 1 := by rwa [le_sub_iff_add_le, le_div_iff x_pos, zero_add, one_mul],
-  rw [div_le_iff y_pos, ←sub_le_sub_iff_right (log x)],
-  calc
-    log y - log x = log (y / x)           : by rw [log_div (y_pos.ne') (x_pos.ne')]
-    ...           ≤ (y / x) - 1           : log_le_sub_one_of_pos (div_pos y_pos x_pos)
-    ...           ≤ log x * (y / x - 1)   : le_mul_of_one_le_left hyx hlogx
-    ...           = log x / x * y - log x : by ring,
+  have : 0 < 1/x := by simpa only [one_div, inv_pos] using h1,
+  replace := log_le_sub_one_of_pos this,
+  replace : log (1 / x) < 1/x := by linarith,
+  rw [log_div one_ne_zero h1.ne', log_one, zero_sub, lt_div_iff h1] at this,
+  have aux : 0 ≤ -log x * x,
+  { refine mul_nonneg _ h1.le, rw ←log_inv, apply log_nonneg,
+    rw [←(le_inv h1 zero_lt_one), inv_one], exact h2, },
+  rw [←(abs_of_nonneg aux), neg_mul, abs_neg] at this, exact this,
 end
 
 /-- The real logarithm function tends to `+∞` at `+∞`. -/

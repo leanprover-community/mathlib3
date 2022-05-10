@@ -6,7 +6,7 @@ Authors: Bhavik Mehta
 
 import algebra.is_prime_pow
 import number_theory.arithmetic_function
-import analysis.special_functions.log
+import analysis.special_functions.log.basic
 
 /-!
 # The von Mangoldt Function

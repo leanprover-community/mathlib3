@@ -1089,6 +1089,29 @@ instance covariant_class_add_le : covariant_class pgame pgame (+) (≤) :=
                    ... ≤ z + x : add_le_add_right h _
                    ... ≤ x + z : add_comm_le⟩
 
+theorem add_lf_add_of_lf_of_lt {w x y z : pgame.{u}} (hwx : w ⧏ x) (hyz : y < z) : w + y ⧏ x + z :=
+begin
+  rw lt_iff_le_and_lf at hyz,
+  rw lf_def_le at *,
+  rcases hwx with ⟨ix, hix⟩|⟨jw, hjw⟩;
+  rcases hyz with ⟨hyz, ⟨iz, hiz⟩|⟨jy, hjy⟩⟩,
+  { refine or.inl ⟨(left_moves_add x z).symm (sum.inl ix), _⟩,
+    simp only [add_move_left_inl],
+    exact (add_le_add_right hix y).trans (add_le_add_left hyz _) },
+  { refine or.inl ⟨(left_moves_add x z).symm (sum.inl ix), _⟩,
+    simp only [add_move_left_inl],
+    exact (add_le_add_right hix y).trans (add_le_add_left hyz _) },
+  { refine or.inr ⟨(right_moves_add w y).symm (sum.inl jw), _⟩,
+    simp only [add_move_right_inl],
+    exact (add_le_add_right hjw y).trans (add_le_add_left hyz x) },
+  { refine or.inr ⟨(right_moves_add w y).symm (sum.inl jw), _⟩,
+    simp only [add_move_right_inl],
+    exact (add_le_add_right hjw y).trans (add_le_add_left hyz x) }
+end
+
+theorem add_lf_add_of_lt_of_lf {w x y z : pgame.{u}} (hwx : w < x) (hyz : y ⧏ z) : w + y ⧏ x + z :=
+(lf_congr add_comm_equiv add_comm_equiv).1 $ add_lf_add_of_lf_of_lt hyz hwx
+
 theorem add_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w + y ≈ x + z :=
 ⟨le_trans (add_le_add_left h₂.1 w) (add_le_add_right h₁.1 z),
   le_trans (add_le_add_left h₂.2 x) (add_le_add_right h₁.2 y)⟩

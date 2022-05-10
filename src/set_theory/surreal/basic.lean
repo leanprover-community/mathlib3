@@ -123,51 +123,16 @@ theorem numeric.le_move_right {x : pgame} (o : numeric x) (j : x.right_moves) :
   x ≤ x.move_right j :=
 le_of_lt o (o.move_right j) (pgame.lt_move_right j)
 
-theorem add_lt_add
-  {w x y z : pgame.{u}} (oy : numeric y) (oz : numeric z)
-  (hwx : w < x) (hyz : y < z) : w + y < x + z :=
-begin
-  rw lt_def_le at *,
-  rcases hwx with ⟨ix, hix⟩|⟨jw, hjw⟩;
-  rcases hyz with ⟨iz, hiz⟩|⟨jy, hjy⟩,
-  { left,
-    use (left_moves_add x z).symm (sum.inl ix),
-    simp only [add_move_left_inl],
-    calc w + y ≤ move_left x ix + y : add_le_add_right hix _
-            ... ≤ move_left x ix + move_left z iz : add_le_add_left hiz _
-            ... ≤ move_left x ix + z : add_le_add_left (oz.move_left_le iz) _ },
-  { left,
-    use (left_moves_add x z).symm (sum.inl ix),
-    simp only [add_move_left_inl],
-    calc w + y ≤ move_left x ix + y : add_le_add_right hix _
-            ... ≤ move_left x ix + move_right y jy : add_le_add_left (oy.le_move_right jy) _
-            ... ≤ move_left x ix + z : add_le_add_left hjy _ },
-  { right,
-    use (right_moves_add w y).symm (sum.inl jw),
-    simp only [add_move_right_inl],
-    calc move_right w jw + y ≤ x + y : add_le_add_right hjw _
-            ... ≤ x + move_left z iz : add_le_add_left hiz _
-            ... ≤ x + z : add_le_add_left (oz.move_left_le iz) _ },
-  { right,
-    use (right_moves_add w y).symm (sum.inl jw),
-    simp only [add_move_right_inl],
-    calc move_right w jw + y ≤ x + y : add_le_add_right hjw _
-            ... ≤ x + move_right y jy : add_le_add_left (oy.le_move_right jy) _
-            ... ≤ x + z : add_le_add_left hjy _ },
-end
-
 theorem numeric.add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeric (x + y)
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ox oy :=
 ⟨begin
    rintros (ix|iy) (jx|jy),
-   { show xL ix + ⟨yl, yr, yL, yR⟩ < xR jx + ⟨yl, yr, yL, yR⟩,
-     exact add_lt_add_right (ox.1 ix jx) _ },
-   { show xL ix + ⟨yl, yr, yL, yR⟩ < ⟨xl, xr, xL, xR⟩ + yR jy,
-     exact add_lt_add oy (oy.move_right jy) (pgame.lt_mk ix) (pgame.mk_lt jy), },
-   { -- show ⟨xl, xr, xL, xR⟩ + yL iy < xR jx + ⟨yl, yr, yL, yR⟩, -- fails?
-     exact add_lt_add (oy.move_left iy) oy (pgame.mk_lt jx) (pgame.lt_mk iy), },
-   { -- show ⟨xl, xr, xL, xR⟩ + yL iy < ⟨xl, xr, xL, xR⟩ + yR jy, -- fails?
-     exact @add_lt_add_left pgame _ _ _ _ _ (oy.1 iy jy) ⟨xl, xr, xL, xR⟩ }
+   { exact add_lt_add_right (ox.1 ix jx) _ },
+   { apply lt_of_lf ((ox.move_left ix).add oy) (ox.add (oy.move_right jy))
+      (add_lf_add_of_lf_of_lt (move_left_lf ix) (oy.lt_move_right jy)) },
+   { apply lt_of_lf (ox.add (oy.move_left iy)) ((ox.move_right jx).add oy)
+      (add_lf_add_of_lf_of_lt (lf_move_right jx) (oy.move_left_lt iy)) },
+   { exact add_lt_add_left (oy.1 iy jy) ⟨xl, xr, xL, xR⟩ }
  end,
  begin
    split,

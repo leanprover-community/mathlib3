@@ -2169,19 +2169,6 @@ begin
     end
 end
 
-lemma ae_eq_restrict_iff_indicator_ae_eq {α E} [has_zero E] {m : measurable_space α} {μ : measure α}
-  {s : set α} {f g : α → E} (hs : measurable_set s) :
-  f =ᵐ[μ.restrict s] g ↔ s.indicator f =ᵐ[μ] s.indicator g :=
-begin
-  rw [filter.eventually_eq, ae_restrict_iff' hs],
-  refine ⟨λ h, _, λ h, _⟩; filter_upwards [h] with x hx,
-  { by_cases hxs : x ∈ s,
-    { simp [hxs, hx hxs], },
-    { simp [hxs], }, },
-  { intros hxs,
-    simpa [hxs] using hx, },
-end
-
 /-- TODO
 The hypothesis `(hs : ∀ t, measurable_set[m] (s ∩ t) ↔ measurable_set[m₂] (s ∩ t))` means that
 under the event `s`, the σ-algebras `m` and `m₂` are the same. -/

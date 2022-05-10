@@ -3331,6 +3331,16 @@ piecewise_ae_eq_of_ae_eq_set hst
 lemma indicator_meas_zero (hs : μ s = 0) : indicator s f =ᵐ[μ] 0 :=
 (indicator_empty' f) ▸ indicator_ae_eq_of_ae_eq_set (ae_eq_empty.2 hs)
 
-variables [measurable_space β]
+lemma ae_eq_restrict_iff_indicator_ae_eq {g : α → β} (hs : measurable_set s) :
+  f =ᵐ[μ.restrict s] g ↔ s.indicator f =ᵐ[μ] s.indicator g :=
+begin
+  rw [filter.eventually_eq, ae_restrict_iff' hs],
+  refine ⟨λ h, _, λ h, _⟩; filter_upwards [h] with x hx,
+  { by_cases hxs : x ∈ s,
+    { simp [hxs, hx hxs], },
+    { simp [hxs], }, },
+  { intros hxs,
+    simpa [hxs] using hx, },
+end
 
 end indicator_function

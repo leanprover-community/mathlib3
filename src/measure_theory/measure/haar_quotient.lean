@@ -57,10 +57,34 @@ begin
   sorry,
 end
 
-example (f : ℝ → ℝ) (s : finset ℝ) : ∃ g : simple_func ℝ ℝ, (g : ℝ → ℝ) = (s : set ℝ).indicator f :=
-begin
-  sorry,
-end
+structure measure_theory.ae_cover {α : Type*} {ι : Type*} [measurable_space α]
+(μ : measure_theory.measure α) (l : filter ι) (φ : ι → set α) :
+Prop :=
+(ae_eventually_mem : ∀ᵐ (x : α) ∂μ, ∀ᶠ (i : ι) in l, x ∈ φ i)
+(measurable : ∀ (i : ι), measurable_set (φ i))
+
+
+theorem measure_theory.ae_cover.integral_tendsto_of_countably_generated {α : Type*} {ι : Type*}
+{E : Type*} [measurable_space α] {μ : measure_theory.measure α} {l : filter ι} [normed_group E]
+[normed_space ℝ E] [complete_space E] [l.is_countably_generated] {φ : ι → set α}
+(hφ : measure_theory.ae_cover μ l φ) {f : α → E} (hfi : measure_theory.integrable f μ) :
+filter.tendsto (λ (i : ι), ∫ (x : α) in φ i, f x ∂μ) l (nhds (∫ (x : α), f x ∂μ)) := sorry
+
+theorem measure_theory.measure.count_singleton {α : Type*} [measurable_space α]
+[measurable_singleton_class α] (a : α) :
+measure.count ({a} : set α) = 1
+:= sorry
+
+theorem measure_theory.ae_cover.lintegral_tendsto_of_countably_generated {α : Type*} {ι : Type*}
+[measurable_space α] {μ : measure_theory.measure α} {l : filter ι} [l.is_countably_generated]
+{φ : ι → set α} (hφ : measure_theory.ae_cover μ l φ) {f : α → ennreal} (hfm : ae_measurable f μ) :
+filter.tendsto (λ (i : ι), ∫⁻ (x : α) in φ i, f x ∂μ) l (nhds (∫⁻ (x : α), f x ∂μ)) := sorry
+
+def foo (f : ℝ → ℝ) (s : finset ℝ) : simple_func ℝ ℝ :=
+∑ i in s, (simple_func.const ℝ (f i)).piecewise
+  {i} (measurable_set_singleton i) (simple_func.const ℝ 0)
+
+open_locale big_operators
 
 theorem measure_theory.integral_count {α : Type*} [measurable_space α]
   [measurable_singleton_class α] [encodable α]
@@ -82,162 +106,64 @@ begin
   {
     intros s,
     rw ←  measure_theory.L1.integral_eq,
-    let g : Lp.simple_func E 1 (measure.count : measure α) :=
-    { val :=
-    begin
+    have single_not_top : ∀ i, measure.count ({i} : set α) ≠ ⊤,
+    {
+      intros i,
+      rw measure_theory.measure.count_singleton,
+      exact ennreal.one_ne_top ,
+    },
+    let g : Lp E 1 (measure.count : measure α) := ∑ i in s,
+      (indicator_const_Lp 1 (measurable_set_singleton i) (single_not_top i) (f i)),
+    have : F s = g,
+    {
+      ext i,
+      simp only [option.mem_def, ennreal.some_eq_coe, ennreal.zero_eq_coe],
+      by_cases hi : i = 0,
+      {
+        simp only [hi, ennreal.coe_zero, eq_self_iff_true, iff_true],
 
-    end,
-  property := _ },
-    have : F s = g := sorry,
+        sorry,
+      },
+      {
+        --push_neg at hi,
+--        simp [hi],
+        sorry,
+      },
+
+
+
+
+      dsimp [F, g],
+
+      -- ALEX HOMEWORK
+      sorry,
+    },
     rw this,
-    rw L1.simple_func.integral_L1_eq_integral g,
---    rw measure_theory.L1.integral_eq_integral,
-
---    rw measure_theory.simple_func.integral_eq_sum,
-    dsimp [L1.simple_func.integral],
-
-    rw measure_theory.simple_func.integral_eq,
-
-
-    sorry,
+    rw L1.integral_eq,
+    simp only [continuous_linear_map.map_sum],
+    rw finset.sum_congr rfl,
+    intros i hi,
+    rw ← L1.integral_eq,
+    rw measure_theory.L1.integral_eq_integral,
+    have : indicator_const_Lp 1 (measurable_set_singleton i) (single_not_top i) (f i)
+      =ᵐ[measure.count] _ :=  indicator_const_Lp_coe_fn,
+    rw integral_congr_ae this,
+    simp [measure_theory.measure.count_singleton],
   },
   -- ADD TO LIBRARY
   -- f is limit of
   have : filter.tendsto F (filter.at_top : filter (finset α)) (nhds (hf.to_Lp f)),
   {
     dsimp [F],
+    have := @measure_theory.tendsto_lintegral_filter_of_dominated_convergence α _ measure.count
+      (finset α) filter.at_top _,
+    --have := @measure_theory.ae_cover.lintegral_tendsto_of_countably_generated α (finset α) _
+    --  measure.count filter.at_top _ coe _,
     sorry,
   },
   convert L1.integral_clm.continuous.continuous_at.tendsto.comp this,
   ext s,
   exact (hh s).symm,
-
-
-  sorry,
-
-  ------------------------------------------------
-
-
-
-
---  rw ← this,
---  have : tendsto (λ s : finset α, L1.integral_clm (integrable.to_L1 f hf)))
-
-
-  have := this.has_sum ,
-  have := this.tsum_eq,
-
-
-
-
-
-
-
-  --rw L1.integral_eq_set_to_L1 ,
-  --rw measure_theory.L1.tsum_eq_set_to_L1,
-
-
-
-  --dsimp [L1.integral_clm, L1.integral_clm', tsum],
-
-
-
-
-
-
-
-
-
-
-
-
-  ---------------------------------------
-
-  let P : Lp E 1 measure.count → Prop := λ f, L1.integral_clm f = ∑' (a : α), f a ,
-  have : P (hf.to_Lp f),
-  {
-    apply (Lp.simple_func.dense_range (ennreal.one_ne_top)).induction_on
-      (hf.to_Lp f) ,
-    {
-      have := measure_theory.weighted_smul,
-      let T : set α → E →L[ℝ] E := λ s, measure.count s • continuous_linear_map.id,
-
-      sorry,
-    },
-    sorry,
-  },
-  dsimp [P] at this,
-  convert this,
-  have := measure_theory.measure.empty_of_count_eq_zero,
-
-
-
-
-
-
---------------------------------------------
-
---  have := @dense_range.induction_on,
-  --refine dense_range.induction_on (measure_theory.Lp.simple_func.dense_range _) _ _ _,
-
---  rw measure_theory.measure.count,
---  let P : (α → E) → Prop := λ f, ∫ (a : α), f a ∂measure_theory.measure.count = ∑' (a : α), f a ,
-  refine @integrable.induction _ _ _ _ _ _ _ _ _ _ f hf,
-  {
-    intros c s hs hs',
-    let g := measure_theory.simple_func.piecewise s hs (measure_theory.simple_func.const α c)
-      (measure_theory.simple_func.const α 0),
-    convert (measure_theory.simple_func.integral_eq_integral g _).symm using 2,
-    {
-      rw measure_theory.measure.count_apply_lt_top at hs',
-      rw @tsum_eq_sum _ _ _ _ _ _ hs'.to_finset,
-      sorry, -- ALEX HOMEWORK
-      sorry, -- ALEX HOMEWORK
-      apply_instance,
---      simp [set.indicator, g],
-  --    simp,
---      rw tsum_ite_eq,
-
-      --library_search,
-    },
-    rw measure_theory.simple_func.integrable_iff_fin_meas_supp,
-
-    rw measure_theory.simple_func.fin_meas_supp_iff,
-    intros y hy,
-    simp [g, hs', set.indicator],
-    by_cases hy' : y = c,
-    {
-      rw hy',
---      rw if_pos,
-      sorry,
-    },
-
-    -- rw if_neg,
-    sorry, -- ALEX HOMEWORK
---    have := measure_theory.simple_func.integrable_of_is_finite_measure g,
---    rw ←  measure_theory.simple_func.integral_eq_integral ,
-  },
-  {
-    intros f g dfg hf hg hf' hg',
-  },
-
-
-
-  sorry,
-
-
-
-
-  apply integrable.induction P, -- _ _ _ hf hf,
-  intros c s t hs,
-  { sorry, },
-  {
-    intros f g hfg hf hg Pf Pg,
-    dsimp [P],
-    sorry, },
-  { sorry, },
-  { sorry, },
-  exact hf,
 end
 
 #exit

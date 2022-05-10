@@ -358,7 +358,7 @@ localized "attribute [instance] finset.monoid finset.add_monoid" in pointwise
 | 0 := by { rw pow_zero, exact subset.rfl }
 | (n + 1) := by { rw pow_succ, exact mul_subset_mul hst (pow_subset_pow _) }
 
-@[to_additive] lemma empty_pow (n : ℕ) (hn : n ≠ 0) : (∅ : finset α) ^ n = ∅ :=
+@[simp, to_additive] lemma empty_pow {n : ℕ} (hn : n ≠ 0) : (∅ : finset α) ^ n = ∅ :=
 by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
 
 @[simp, to_additive] lemma univ_mul_univ [fintype α] : (univ : finset α) * univ = univ :=
@@ -408,12 +408,12 @@ localized "attribute [instance] finset.comm_monoid finset.add_comm_monoid finset
 section group
 variables [group α] {s t : finset α}
 
-/-! Note that `set` is not a `group` because `s / s ≠ 1` in general. -/
+/-! Note that `finset` is not a `group` because `s / s ≠ 1` in general. -/
 
 @[to_additive] protected lemma mul_eq_one_iff : s * t = 1 ↔ ∃ a b, s = {a} ∧ t = {b} ∧ a * b = 1 :=
 by simp_rw [←coe_inj, coe_mul, coe_one, set.mul_eq_one_iff, coe_singleton]
 
---TODO: Generalize to division monoids (#14000)
+--TODO: Generalize to division monoids (#14042)
 @[to_additive] lemma is_unit_iff : is_unit s ↔ ∃ a, s = {a} ∧ is_unit a :=
 begin
   split,

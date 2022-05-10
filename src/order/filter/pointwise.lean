@@ -290,7 +290,7 @@ localized "attribute [instance] filter.monoid filter.add_monoid" in pointwise
 | 0 := by { rw pow_zero, exact one_mem_one }
 | (n + 1) := by { rw pow_succ, exact mul_mem_mul hs (pow_mem_pow _) }
 
-@[to_additive nsmul_bot] lemma bot_pow (n : ℕ) (hn : n ≠ 0) : (⊥  : filter α) ^ n = ⊥ :=
+@[simp, to_additive nsmul_bot] lemma bot_pow {n : ℕ} (hn : n ≠ 0) : (⊥  : filter α) ^ n = ⊥ :=
 by rw [←tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, bot_mul]
 
 @[simp, to_additive] lemma top_mul_top : (⊤ : filter α) * ⊤ = ⊤ :=
@@ -363,7 +363,7 @@ begin
     rw [pure_mul_pure, h, pure_one] }
 end
 
---TODO: Generalize to division monoids (#14000)
+--TODO: Generalize to division monoids (#14042)
 @[simp, to_additive] lemma is_unit_iff : is_unit f ↔ ∃ a, f = pure a ∧ is_unit a :=
 begin
   split,

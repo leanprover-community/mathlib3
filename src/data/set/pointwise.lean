@@ -87,7 +87,6 @@ def singleton_one_hom : one_hom α (set α) := ⟨singleton, singleton_one⟩
 
 @[simp, to_additive] lemma coe_singleton_one_hom : (singleton_one_hom : α → set α) = singleton :=
 rfl
-@[simp, to_additive] lemma singleton_one_hom_apply (a : α) : singleton_one_hom a = {a} := rfl
 
 end one
 
@@ -429,7 +428,7 @@ end
 | 0 := by { rw pow_zero, exact subset.rfl }
 | (n + 1) := by { rw pow_succ, exact mul_subset_mul hst (pow_subset_pow _) }
 
-@[to_additive] lemma empty_pow (n : ℕ) (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
+@[simp, to_additive] lemma empty_pow {n : ℕ} (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
 by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
 
 @[simp, to_additive] lemma univ_mul_univ : (univ : set α) * univ = univ :=
@@ -645,7 +644,7 @@ begin
     rw [singleton_mul_singleton, h, singleton_one] }
 end
 
---TODO: Generalize to division monoids (#14000)
+--TODO: Generalize to division monoids (#14042)
 @[to_additive] lemma is_unit_iff : is_unit s ↔ ∃ a, s = {a} ∧ is_unit a :=
 begin
   split,
@@ -1323,7 +1322,7 @@ begin
   have hG : 0 < fintype.card G := fintype.card_pos_iff.mpr ⟨1⟩,
   by_cases hS : S = ∅,
   { refine λ k hk, fintype.card_congr _,
-    rw [hS, empty_pow _ (ne_of_gt (lt_of_lt_of_le hG hk)), empty_pow _ (ne_of_gt hG)] },
+    rw [hS, empty_pow (ne_of_gt (lt_of_lt_of_le hG hk)), empty_pow (ne_of_gt hG)] },
   obtain ⟨a, ha⟩ := set.ne_empty_iff_nonempty.mp hS,
   classical,
   have key : ∀ a (s t : set G), (∀ b : G, b ∈ s → a * b ∈ t) → fintype.card s ≤ fintype.card t,

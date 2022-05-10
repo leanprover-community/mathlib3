@@ -2169,12 +2169,11 @@ begin
     end
 end
 
-/-- TODO
-The hypothesis `(hs : ∀ t, measurable_set[m] (s ∩ t) ↔ measurable_set[m₂] (s ∩ t))` means that
-under the event `s`, the σ-algebras `m` and `m₂` are the same. -/
+/-- If the restriction to a `m`-measurable set `s` of a σ-algebra `m` is equal to the restriction
+to `s` of another σ-algebra `m₂` (hypothesis `hs`), then `μ[f | m] =ᵐ[μ.restrict s] μ[f | m₂]`. -/
 lemma condexp_ae_eq_restrict_of_measurable_space_eq_on
-  (hm : m ≤ m0) (hm₂ : m₂ ≤ m0) [sigma_finite (μ.trim hm)]
-  [sigma_finite (μ.trim hm₂)] (hf_int : integrable f μ) (hs_m : measurable_set[m] s)
+  (hm : m ≤ m0) (hm₂ : m₂ ≤ m0) [sigma_finite (μ.trim hm)] [sigma_finite (μ.trim hm₂)]
+  (hf_int : integrable f μ) (hs_m : measurable_set[m] s)
   (hs : ∀ t, measurable_set[m] (s ∩ t) ↔ measurable_set[m₂] (s ∩ t)) :
   μ[f | m] =ᵐ[μ.restrict s] μ[f | m₂] :=
 begin

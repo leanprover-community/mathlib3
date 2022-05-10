@@ -503,12 +503,7 @@ begin
 end
 
 lemma tsum_unop {f : β → αᵐᵒᵖ} : ∑' x, mul_opposite.unop (f x) = mul_opposite.unop (∑' x, f x) :=
-begin
-  by_cases h : summable f,
-  { exact h.has_sum.unop.tsum_eq, },
-  { have ho := summable_unop.not.mpr h,
-    rw [tsum_eq_zero_of_not_summable h, tsum_eq_zero_of_not_summable ho, mul_opposite.unop_zero] },
-end
+mul_opposite.op_injective tsum_op.symm
 
 section has_continuous_add
 variable [has_continuous_add α]

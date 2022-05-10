@@ -61,8 +61,8 @@ namespace finset
 section has_one
 variables [has_one α] {s : finset α} {a : α}
 
-/-- The finset `(1 : finset α)` is defined as `{1}` in locale `pointwise`. -/
-@[to_additive "The finset `(0 : finset α)` is defined as `{0}` in locale `pointwise`."]
+/-- The finset `1 : finset α` is defined as `{1}` in locale `pointwise`. -/
+@[to_additive "The finset `0 : finset α` is defined as `{0}` in locale `pointwise`."]
 protected def has_one : has_one (finset α) := ⟨{1}⟩
 
 localized "attribute [instance] finset.has_one finset.has_zero" in pointwise
@@ -85,8 +85,9 @@ end has_one
 section has_inv
 variables [decidable_eq α] [has_inv α] {s s₁ s₂ t t₁ t₂ u : finset α} {a b : α}
 
-/-- The pointwise inverse of a finset `s`: `s⁻¹ = {x⁻¹ | x ∈ s}`. -/
-@[to_additive "The pointwise negation of a finset `s`: `-s = {-x | x ∈ s}`."]
+/-- The pointwise inversion of finset `s⁻¹` is defined as `{x⁻¹ | x ∈ s}` in locale `pointwise`. -/
+@[to_additive "The pointwise negation of finset `-s` is defined as `{-x | x ∈ s}` in locale
+`pointwise`."]
 protected def has_inv : has_inv (finset α) := ⟨image has_inv.inv⟩
 
 localized "attribute [instance] finset.has_inv finset.has_neg" in pointwise
@@ -130,8 +131,10 @@ end has_involutive_inv
 section has_mul
 variables [decidable_eq α] [has_mul α] {s s₁ s₂ t t₁ t₂ u : finset α} {a b : α}
 
-/-- The pointwise product of two finsets `s` and `t`: `s * t = {x * y | x ∈ s, y ∈ t}`. -/
-@[to_additive "The pointwise sum of two finsets `s` and `t`: `s + t = {x + y | x ∈ s, y ∈ t}`."]
+/-- The pointwise multiplication of finsets `s * t` and `t` is defined as `{x * y | x ∈ s, y ∈ t}`
+in locale `pointwise`. -/
+@[to_additive "The pointwise addition of finsets `s + t` is defined as `{x + y | x ∈ s, y ∈ t}` in
+locale `pointwise`."]
 protected def has_mul : has_mul (finset α) := ⟨image₂ (*)⟩
 
 localized "attribute [instance] finset.has_mul finset.has_add" in pointwise
@@ -194,9 +197,11 @@ end has_mul
 section has_div
 variables [decidable_eq α] [has_div α] {s s₁ s₂ t t₁ t₂ u : finset α} {a b : α}
 
-/-- The pointwise product of two finsets `s` and `t`: `s / t = {x / y | x ∈ s, y ∈ t}`. -/
-@[to_additive "The pointwise sum of two finsets `s` and `t`: `s - t = {x - y | x ∈ s, y ∈ t}`."]
-protected def has_div : has_div (finset α) := ⟨λ s t, (s.product t).image $ λ p : α × α, p.1 / p.2⟩
+/-- The pointwise division of sfinets `s / t` is defined as `{x / y | x ∈ s, y ∈ t}` in locale
+`pointwise`. -/
+@[to_additive "The pointwise subtraction of finsets `s - t` is defined as `{x - y | x ∈ s, y ∈ t}`
+in locale `pointwise`."]
+protected def has_div : has_div (finset α) := ⟨image₂ (/)⟩
 
 localized "attribute [instance] finset.has_div finset.has_add" in pointwise
 

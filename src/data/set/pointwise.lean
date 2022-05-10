@@ -65,9 +65,8 @@ namespace set
 section one
 variables [has_one α] {s : set α} {a : α}
 
-/-- The set `(1 : set α)` is defined as `{1}` in locale `pointwise`. -/
-@[to_additive
-/-"The set `(0 : set α)` is defined as `{0}` in locale `pointwise`. "-/]
+/-- The set `1 : set α` is defined as `{1}` in locale `pointwise`. -/
+@[to_additive "The set `0 : set α` is defined as `{0}` in locale `pointwise`."]
 protected def has_one : has_one (set α) := ⟨{1}⟩
 
 localized "attribute [instance] set.has_one set.has_zero" in pointwise
@@ -88,44 +87,26 @@ end one
 
 section inv
 
-/-- The set `(s⁻¹ : set α)` is defined as `{x | x⁻¹ ∈ s}` in locale `pointwise`.
-It is equal to `{x⁻¹ | x ∈ s}`, see `set.image_inv`. -/
-@[to_additive
-/-" The set `(-s : set α)` is defined as `{x | -x ∈ s}` in locale `pointwise`.
-It is equal to `{-x | x ∈ s}`, see `set.image_neg`. "-/]
-protected def has_inv [has_inv α] : has_inv (set α) :=
-⟨preimage has_inv.inv⟩
+/-- The pointwise inversion of set `s⁻¹` is defined as `{x | x⁻¹ ∈ s}` in locale `pointwise`. It i
+equal to `{x⁻¹ | x ∈ s}`, see `set.image_inv`. -/
+@[to_additive "The pointwise negation of set `-s` is defined as `{x | -x ∈ s}` in locale
+`pointwise`. It is equal to `{-x | x ∈ s}`, see `set.image_neg`."]
+protected def has_inv [has_inv α] : has_inv (set α) := ⟨preimage has_inv.inv⟩
 
 localized "attribute [instance] set.has_inv set.has_neg" in pointwise
 
 section has_inv
-variables [has_inv α] {s t : set α} {a : α}
+variables {ι : Sort*} [has_inv α] {s t : set α} {a : α}
 
+@[simp, to_additive] lemma mem_inv : a ∈ s⁻¹ ↔ a⁻¹ ∈ s := iff.rfl
+@[simp, to_additive] lemma inv_preimage : has_inv.inv ⁻¹' s = s⁻¹ := rfl
 @[simp, to_additive] lemma inv_empty : (∅ : set α)⁻¹ = ∅ := rfl
 @[simp, to_additive] lemma inv_univ : (univ : set α)⁻¹ = univ := rfl
-
-@[simp, to_additive]
-lemma mem_inv : a ∈ s⁻¹ ↔ a⁻¹ ∈ s := iff.rfl
-
-@[simp, to_additive]
-lemma inv_preimage : has_inv.inv ⁻¹' s = s⁻¹ := rfl
-
-@[simp, to_additive]
-lemma inter_inv : (s ∩ t)⁻¹ = s⁻¹ ∩ t⁻¹ := preimage_inter
-
-@[simp, to_additive]
-lemma union_inv : (s ∪ t)⁻¹ = s⁻¹ ∪ t⁻¹ := preimage_union
-
-@[simp, to_additive]
-lemma Inter_inv {ι : Sort*} (s : ι → set α) : (⋂ i, s i)⁻¹ = ⋂ i, (s i)⁻¹ :=
-preimage_Inter
-
-@[simp, to_additive]
-lemma Union_inv {ι : Sort*} (s : ι → set α) : (⋃ i, s i)⁻¹ = ⋃ i, (s i)⁻¹ :=
-preimage_Union
-
-@[simp, to_additive]
-lemma compl_inv : (sᶜ)⁻¹ = (s⁻¹)ᶜ := preimage_compl
+@[simp, to_additive] lemma inter_inv : (s ∩ t)⁻¹ = s⁻¹ ∩ t⁻¹ := preimage_inter
+@[simp, to_additive] lemma union_inv : (s ∪ t)⁻¹ = s⁻¹ ∪ t⁻¹ := preimage_union
+@[simp, to_additive] lemma Inter_inv (s : ι → set α) : (⋂ i, s i)⁻¹ = ⋂ i, (s i)⁻¹ := preimage_Inter
+@[simp, to_additive] lemma Union_inv (s : ι → set α) : (⋃ i, s i)⁻¹ = ⋃ i, (s i)⁻¹ := preimage_Union
+@[simp, to_additive] lemma compl_inv : (sᶜ)⁻¹ = (s⁻¹)ᶜ := preimage_compl
 
 end has_inv
 
@@ -175,10 +156,11 @@ open_locale pointwise
 section has_mul
 variables {ι : Sort*} {κ : ι → Sort*} [has_mul α] {s s₁ s₂ t t₁ t₂ u : set α} {a b : α}
 
-/-- The set `(s * t : set α)` is defined as `{x * y | x ∈ s, y ∈ t}` in locale `pointwise`. -/
-@[to_additive
-/-" The set `(s + t : set α)` is defined as `{x + y | x ∈ s, y ∈ t}` in locale `pointwise`."-/]
-protected def has_mul : has_mul (set α) := ⟨image2 has_mul.mul⟩
+/-- The pointwise multiplication of sets `s * t` and `t` is defined as `{x * y | x ∈ s, y ∈ t}` in
+locale `pointwise`. -/
+@[to_additive "The pointwise addition of sets `s + t` is defined as `{x + y | x ∈ s, y ∈ t}` in
+locale `pointwise`."]
+protected def has_mul : has_mul (set α) := ⟨image2 (*)⟩
 
 localized "attribute [instance] set.has_mul set.has_add" in pointwise
 
@@ -282,10 +264,11 @@ end has_mul
 section has_div
 variables {ι : Sort*} {κ : ι → Sort*} [has_div α] {s s₁ s₂ t t₁ t₂ u : set α} {a b : α}
 
-/-- The set `(s / t : set α)` is defined as `{x / y | x ∈ s, y ∈ t}` in locale `pointwise`. -/
-@[to_additive "The set `(s - t : set α)` is defined as `{x - y | x ∈ s, y ∈ t}` in locale
-`pointwise`."]
-protected def has_div : has_div (set α) := ⟨image2 has_div.div⟩
+/-- The pointwise division of sets `s / t` is defined as `{x / y | x ∈ s, y ∈ t}` in locale
+`pointwise`. -/
+@[to_additive "The pointwise subtraction of sets `s - t` is defined as `{x - y | x ∈ s, y ∈ t}` in
+locale `pointwise`."]
+protected def has_div : has_div (set α) := ⟨image2 (/)⟩
 
 localized "attribute [instance] set.has_div set.has_sub" in pointwise
 
@@ -365,7 +348,7 @@ image2_Inter₂_subset_right _ _ _
 end has_div
 
 /-- `set α` is a `semigroup` under pointwise operations if `α` is. -/
-@[to_additive /-"`set α` is an `add_semigroup` under pointwise operations if `α` is. "-/]
+@[to_additive "`set α` is an `add_semigroup` under pointwise operations if `α` is."]
 protected def semigroup [semigroup α] : semigroup (set α) :=
 { mul_assoc := λ _ _ _, image2_assoc mul_assoc,
   ..set.has_mul }
@@ -401,7 +384,7 @@ section monoid
 variables [monoid α] {s t : set α} {a : α}
 
 /-- `set α` is a `monoid` under pointwise operations if `α` is. -/
-@[to_additive "`set α` is an `add_monoid` under pointwise operations if `α` is. "]
+@[to_additive "`set α` is an `add_monoid` under pointwise operations if `α` is."]
 protected def monoid : monoid (set α) := { ..set.semigroup, ..set.mul_one_class }
 
 localized "attribute [instance] set.monoid set.add_monoid" in pointwise
@@ -441,7 +424,7 @@ end
 end monoid
 
 /-- `set α` is a `comm_monoid` under pointwise operations if `α` is. -/
-@[to_additive /-"`set α` is an `add_comm_monoid` under pointwise operations if `α` is. "-/]
+@[to_additive "`set α` is an `add_comm_monoid` under pointwise operations if `α` is."]
 protected def comm_monoid [comm_monoid α] : comm_monoid (set α) :=
 { ..set.monoid, ..set.comm_semigroup }
 
@@ -617,17 +600,16 @@ localized "attribute [instance] set.has_nsmul set.has_npow set.has_zsmul set.has
 
 section smul
 
-/-- The scaling of a set `(x • s : set β)` by a scalar `x ∶ α` is defined as `{x • y | y ∈ s}`
-in locale `pointwise`. -/
-@[to_additive has_vadd_set "The translation of a set `(x +ᵥ s : set β)` by a scalar `x ∶ α` is
-defined as `{x +ᵥ y | y ∈ s}` in locale `pointwise`."]
+/-- The dilation of set `x • s` is defined as `{x • y | y ∈ s}` in locale `pointwise`. -/
+@[to_additive has_vadd_set "The translation of set `x +ᵥ s` is defined as `{x +ᵥ y | y ∈ s}` in
+locale `pointwise`."]
 protected def has_scalar_set [has_scalar α β] : has_scalar α (set β) :=
 ⟨λ a, image (has_scalar.smul a)⟩
 
-/-- The pointwise scalar multiplication `(s • t : set β)` by a set of scalars `s ∶ set α`
-is defined as `{x • y | x ∈ s, y ∈ t}` in locale `pointwise`. -/
-@[to_additive has_vadd "The pointwise translation `(s +ᵥ t : set β)` by a set of constants
-`s ∶ set α` is defined as `{x +ᵥ y | x ∈ s, y ∈ t}` in locale `pointwise`."]
+/-- The pointwise scalar multiplication of sets `s • t` is defined as `{x • y | x ∈ s, y ∈ t}` in
+locale `pointwise`. -/
+@[to_additive has_vadd "The pointwise scalar addition of sets `s +ᵥ t` is defined as
+`{x +ᵥ y | x ∈ s, y ∈ t}` in locale `pointwise`."]
 protected def has_scalar [has_scalar α β] : has_scalar (set α) (set β) :=
 ⟨image2 has_scalar.smul⟩
 

@@ -33,6 +33,14 @@ def center : submonoid M :=
 
 @[to_additive] lemma coe_center : ↑(center M) = set.center M := rfl
 
+@[simp]
+lemma center_to_subsemigroup : (center M).to_subsemigroup = subsemigroup.center M := rfl
+
+lemma _root_.add_submonoid.center_to_add_subsemigroup (M) [add_monoid M] :
+  (add_submonoid.center M).to_add_subsemigroup = add_subsemigroup.center M := rfl
+
+attribute [to_additive add_submonoid.center_to_add_subsemigroup] submonoid.center_to_subsemigroup
+
 variables {M}
 
 @[to_additive] lemma mem_center_iff {z : M} : z ∈ center M ↔ ∀ g, g * z = z * g := iff.rfl

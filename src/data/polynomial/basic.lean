@@ -789,7 +789,7 @@ section nonzero_semiring
 variables [semiring R] [nontrivial R]
 instance : nontrivial R[X] :=
 begin
-  have h : nontrivial (add_monoid_algebra R ℕ) := by apply_instance,
+  have h : nontrivial (add_monoid_algebra R ℕ) := infer_instance,
   rcases h.exists_pair_ne with ⟨x, y, hxy⟩,
   refine ⟨⟨⟨x⟩, ⟨y⟩, _⟩⟩,
   simp [hxy],

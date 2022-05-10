@@ -133,7 +133,7 @@ equivalence.mk (swap C D) (swap D C)
   (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))
 
 instance swap_is_equivalence : is_equivalence (swap C D) :=
-(by apply_instance : is_equivalence (braiding C D).functor)
+(infer_instance : is_equivalence (braiding C D).functor)
 
 end prod
 

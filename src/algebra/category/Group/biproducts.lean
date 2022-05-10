@@ -64,7 +64,7 @@ is_limit.cone_point_unique_up_to_iso
   (binary_product_limit_cone G H).is_limit
 
 -- Furthermore, our biproduct will automatically function as a coproduct.
-example (G H : AddCommGroup.{u}) : has_colimit (pair G H) := by apply_instance
+example (G H : AddCommGroup.{u}) : has_colimit (pair G H) := infer_instance
 
 variables {J : Type u} (F : (discrete J) ⥤ AddCommGroup.{u})
 

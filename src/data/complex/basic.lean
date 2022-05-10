@@ -175,11 +175,11 @@ intros; try { refl }; apply ext_iff.2; split; simp; {ring1 <|> ring_nf}
 
 /-- This shortcut instance ensures we do not find `add_comm_group` via the noncomputable
 `complex.normed_group` instance. -/
-instance : add_comm_group ℂ := by apply_instance
+instance : add_comm_group ℂ := infer_instance
 
 /-- This shortcut instance ensures we do not find `ring` via the noncomputable `complex.field`
 instance. -/
-instance : ring ℂ := by apply_instance
+instance : ring ℂ := infer_instance
 
 /-- The "real part" map, considered as an additive group homomorphism. -/
 def re_add_group_hom : ℂ →+ ℝ :=

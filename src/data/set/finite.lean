@@ -347,7 +347,7 @@ fintype.of_finset (finset.univ.image $ f ∘ plift.down) $
   by simp [(@equiv.plift ι).exists_congr_left]
 
 theorem finite_range (f : ι → α) [fintype (plift ι)] : finite (range f) :=
-by haveI := classical.dec_eq α; exact ⟨by apply_instance⟩
+by haveI := classical.dec_eq α; exact ⟨infer_instance⟩
 
 theorem finite.image {s : set α} (f : α → β) : finite s → finite (f '' s)
 | ⟨h⟩ := ⟨@set.fintype_image _ _ (classical.dec_eq β) _ _ h⟩
@@ -646,7 +646,7 @@ lemma Union_Inter_of_monotone {ι ι' α : Type*} [fintype ι] [linear_order ι'
 begin
   ext x, refine ⟨λ hx, Union_Inter_subset hx, λ hx, _⟩,
   simp only [mem_Inter, mem_Union, mem_Inter] at hx ⊢, choose j hj using hx,
-  obtain ⟨j₀⟩ := show nonempty ι', by apply_instance,
+  obtain ⟨j₀⟩ := show nonempty ι', infer_instance,
   refine ⟨finset.univ.fold max j₀ j, λ i, hs i _ (hj i)⟩,
   rw [finset.fold_op_rel_iff_or (@le_max_iff _ _)],
   exact or.inr ⟨i, finset.mem_univ i, le_rfl⟩

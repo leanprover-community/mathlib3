@@ -54,7 +54,7 @@ noncomputable example [has_finite_products C] (X : C) : C := ∏ (λ (i : fin 5)
 If a category has all products then in particular it has finite products.
 -/
 lemma has_finite_products_of_has_products [has_products C] : has_finite_products C :=
-⟨by apply_instance⟩
+⟨infer_instance⟩
 
 /--
 A category has finite coproducts if there is a chosen colimit for every diagram
@@ -87,6 +87,6 @@ has_colimits_of_shape_of_equivalence
 If a category has all coproducts then in particular it has finite coproducts.
 -/
 lemma has_finite_coproducts_of_has_coproducts [has_coproducts C] : has_finite_coproducts C :=
-⟨by apply_instance⟩
+⟨infer_instance⟩
 
 end category_theory.limits

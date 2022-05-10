@@ -114,7 +114,7 @@ begin
   rcases h₁ with ⟨f, c, hf⟩,
   rw [show p = λ a, q (f a), from set.ext hf],
   rcases computable_iff.1 h₂ with ⟨g, hg, rfl⟩,
-  exact ⟨by apply_instance, by simpa using hg.comp c⟩
+  exact ⟨infer_instance, by simpa using hg.comp c⟩
 end
 
 theorem computable_of_one_one_reducible

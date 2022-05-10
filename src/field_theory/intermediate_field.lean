@@ -369,7 +369,7 @@ instance has_lift2 {F : intermediate_field K L} :
 
 /-- This was formerly an instance called `lift2_alg`, but an instance above already provides it. -/
 example {F : intermediate_field K L} {E : intermediate_field F L} : algebra K E :=
-by apply_instance
+infer_instance
 
 lemma lift2_algebra_map {F : intermediate_field K L} {E : intermediate_field F L} :
   algebra_map K E = (algebra_map F E).comp (algebra_map K F) := rfl

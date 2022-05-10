@@ -325,7 +325,7 @@ section is_simple_order
 variables [partial_order α] [bounded_order α] [is_simple_order α]
 
 instance {α} [has_le α] [bounded_order α] [is_simple_order α] : is_simple_order αᵒᵈ :=
-is_simple_order_iff_is_simple_order_order_dual.1 (by apply_instance)
+is_simple_order_iff_is_simple_order_order_dual.1 (infer_instance)
 
 /-- A simple `bounded_order` induces a preorder. This is not an instance to prevent loops. -/
 protected def is_simple_order.preorder {α} [has_le α] [bounded_order α] [is_simple_order α] :
@@ -453,7 +453,7 @@ protected def boolean_algebra {α} [decidable_eq α] [lattice α] [bounded_order
         split_ifs with h h;
         simpa [h] }
     end,
-  .. (show bounded_order α, by apply_instance),
+  .. (show bounded_order α, infer_instance),
   .. is_simple_order.distrib_lattice }
 
 end decidable_eq

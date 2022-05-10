@@ -147,7 +147,7 @@ begin
 end
 
 lemma borel_eq_generate_from_Ioi : borel α = generate_from (range Ioi) :=
-@borel_eq_generate_from_Iio αᵒᵈ _ (by apply_instance : second_countable_topology α) _ _
+@borel_eq_generate_from_Iio αᵒᵈ _ (infer_instance : second_countable_topology α) _ _
 
 end order_topology
 

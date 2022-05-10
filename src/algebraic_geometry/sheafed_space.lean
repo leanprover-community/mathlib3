@@ -62,7 +62,7 @@ instance : inhabited (SheafedSpace (discrete _root_.punit)) := ⟨punit (Top.of 
 
 instance : category (SheafedSpace C) :=
 show category (induced_category (PresheafedSpace C) SheafedSpace.to_PresheafedSpace),
-by apply_instance
+infer_instance
 
 /-- Forgetting the sheaf condition is a functor from `SheafedSpace C` to `PresheafedSpace C`. -/
 @[derive [full, faithful]]

@@ -130,7 +130,7 @@ def const (q : Q) : P →A[R] Q :=
 @[simp] lemma coe_const (q : Q) : (const R P q : P → Q) = function.const P q := rfl
 
 noncomputable instance : inhabited (P →A[R] Q) :=
-⟨const R P $ nonempty.some (by apply_instance : nonempty Q)⟩
+⟨const R P $ nonempty.some (infer_instance : nonempty Q)⟩
 
 variables {R P} {W₂ Q₂ : Type*}
 variables [add_comm_group W₂] [module R W₂] [topological_space Q₂] [add_torsor W₂ Q₂]

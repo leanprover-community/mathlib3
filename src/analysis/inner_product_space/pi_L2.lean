@@ -104,8 +104,8 @@ variables [fintype ι]
 section
 local attribute [reducible] pi_Lp
 
-instance : finite_dimensional 𝕜 (euclidean_space 𝕜 ι) := by apply_instance
-instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := by apply_instance
+instance : finite_dimensional 𝕜 (euclidean_space 𝕜 ι) := infer_instance
+instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := infer_instance
 
 @[simp] lemma finrank_euclidean_space :
   finite_dimensional.finrank 𝕜 (euclidean_space 𝕜 ι) = fintype.card ι := by simp

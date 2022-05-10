@@ -1596,7 +1596,7 @@ instance quotient.algebra {I : ideal A} : algebra R₁ (A ⧸ I) :=
 -- Lean can struggle to find this instance later if we don't provide this shortcut
 instance quotient.is_scalar_tower [has_scalar R₁ R₂] [is_scalar_tower R₁ R₂ A] (I : ideal A) :
   is_scalar_tower R₁ R₂ (A ⧸ I) :=
-by apply_instance
+infer_instance
 
 /-- The canonical morphism `A →ₐ[R₁] A ⧸ I` as morphism of `R₁`-algebras, for `I` an ideal of
 `A`, where `A` is an `R₁`-algebra. -/

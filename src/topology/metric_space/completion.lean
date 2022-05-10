@@ -139,7 +139,7 @@ protected lemma eq_of_dist_eq_zero (x y : completion α) (h : dist x y = 0) : x 
 begin
   /- This follows from the separation of `completion α` and from the description of
   entourages in terms of the distance. -/
-  have : separated_space (completion α) := by apply_instance,
+  have : separated_space (completion α) := infer_instance,
   refine separated_def.1 this x y (λs hs, _),
   rcases (completion.mem_uniformity_dist s).1 hs with ⟨ε, εpos, hε⟩,
   rw ← h at εpos,
@@ -167,7 +167,7 @@ instance : metric_space (completion α) :=
   eq_of_dist_eq_zero := completion.eq_of_dist_eq_zero,
   dist_comm          := completion.dist_comm,
   dist_triangle      := completion.dist_triangle,
-  to_uniform_space   := by apply_instance,
+  to_uniform_space   := infer_instance,
   uniformity_dist    := completion.uniformity_dist }
 
 /-- The embedding of a metric space in its completion is an isometry. -/

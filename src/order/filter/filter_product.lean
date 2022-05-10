@@ -47,7 +47,7 @@ instance [field β] : field β* :=
 noncomputable instance [linear_order β] : linear_order β* :=
 { le_total := λ f g, induction_on₂ f g $ λ f g, eventually_or.1 $ eventually_of_forall $
     λ x, le_total _ _,
-  decidable_le := by apply_instance,
+  decidable_le := infer_instance,
   .. germ.partial_order }
 
 @[simp, norm_cast] lemma const_div [division_ring β] (x y : β) : (↑(x / y) : β*) = ↑x / ↑y := rfl

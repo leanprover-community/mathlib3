@@ -326,7 +326,7 @@ by rw [nsmul_eq_smul_cast ℕ n x, nat.cast_id]
 /-- All `ℕ`-module structures are equal. Not an instance since in mathlib all `add_comm_monoid`
 should normally have exactly one `ℕ`-module structure by design. -/
 def add_comm_monoid.nat_module.unique : unique (module ℕ M) :=
-{ default := by apply_instance,
+{ default := infer_instance,
   uniq := λ P, module.ext' P _ $ λ n, nat_smul_eq_nsmul P n }
 
 instance add_comm_monoid.nat_is_scalar_tower :
@@ -359,7 +359,7 @@ by rw [zsmul_eq_smul_cast ℤ n x, int.cast_id]
 /-- All `ℤ`-module structures are equal. Not an instance since in mathlib all `add_comm_group`
 should normally have exactly one `ℤ`-module structure by design. -/
 def add_comm_group.int_module.unique : unique (module ℤ M) :=
-{ default := by apply_instance,
+{ default := infer_instance,
   uniq := λ P, module.ext' P _ $ λ n, int_smul_eq_zsmul P n }
 
 end add_comm_group

@@ -269,11 +269,11 @@ To debug:
 `set_option trace.class_instances true`
 (2) Recreate the state shown in the error message. You can do this easily by copying the type of
 the instance (the output of `#check @my_instance`), turning this into an example and removing the
-last argument in square brackets. Prove the example using `by apply_instance`.
+last argument in square brackets. Prove the example using `infer_instance`.
 For example, if `additive.topological_add_group` raises an error, run
 ```
 example {G : Type*} [topological_space G] [group G] : topological_add_group (additive G) :=
-by apply_instance
+infer_instance
 ```
 (3) What error do you get?
 (3a) If the error is \"tactic.mk_instance failed to generate instance\",

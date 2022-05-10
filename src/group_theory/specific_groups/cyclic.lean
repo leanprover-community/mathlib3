@@ -456,7 +456,7 @@ calc a * b = y ^ m * ((y ^ (-m) * a) * y ^ n) * (y ^ (-n) * b) : by simp [mul_as
 def comm_group_of_cycle_center_quotient [is_cyclic H] (f : G →* H)
   (hf : f.ker ≤ center G) : comm_group G :=
 { mul_comm := commutative_of_cyclic_center_quotient f hf,
-  ..show group G, by apply_instance }
+  ..show group G, infer_instance }
 
 end quotient_center
 
@@ -484,7 +484,7 @@ end
 @[to_additive]
 theorem prime_card [fintype α] : (fintype.card α).prime :=
 begin
-  have h0 : 0 < fintype.card α := fintype.card_pos_iff.2 (by apply_instance),
+  have h0 : 0 < fintype.card α := fintype.card_pos_iff.2 (infer_instance),
   obtain ⟨g, hg⟩ := is_cyclic.exists_generator α,
   rw nat.prime_def_lt'',
   refine ⟨fintype.one_lt_card_iff_nontrivial.2 infer_instance, λ n hn, _⟩,

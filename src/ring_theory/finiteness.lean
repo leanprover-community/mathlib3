@@ -221,7 +221,7 @@ begin
   split,
   { rw iff_quotient_mv_polynomial,
     rintro ⟨s, ⟨f, hsur⟩⟩,
-    use [{x // x ∈ s}, by apply_instance, f, hsur] },
+    use [{x // x ∈ s}, infer_instance, f, hsur] },
   { rintro ⟨ι, ⟨hfintype, ⟨f, hsur⟩⟩⟩,
     letI : fintype ι := hfintype,
     exact finite_type.of_surjective (finite_type.mv_polynomial R ι) f hsur }
@@ -271,7 +271,7 @@ begin
   refine ⟨λ h, _, algebra.finite_type.of_finite_presentation⟩,
   obtain ⟨n, f, hf⟩ := algebra.finite_type.iff_quotient_mv_polynomial''.1 h,
   refine ⟨n, f, hf, _⟩,
-  have hnoet : is_noetherian_ring (mv_polynomial (fin n) R) := by apply_instance,
+  have hnoet : is_noetherian_ring (mv_polynomial (fin n) R) := infer_instance,
   replace hnoet := (is_noetherian_ring_iff.1 hnoet).noetherian,
   exact hnoet f.to_ring_hom.ker,
 end
@@ -378,7 +378,7 @@ begin
   obtain ⟨ι', _, f, hf_surj, hf_ker⟩ := hfp,
   resetI,
   let g := (mv_polynomial.map_alg_hom f).comp (mv_polynomial.sum_alg_equiv R ι ι').to_alg_hom,
-  refine ⟨ι ⊕ ι', by apply_instance, g,
+  refine ⟨ι ⊕ ι', infer_instance, g,
     (mv_polynomial.map_surjective f.to_ring_hom hf_surj).comp (alg_equiv.surjective _),
     ideal.fg_ker_comp _ _ _ _ (alg_equiv.surjective _)⟩,
   { convert submodule.fg_bot,
@@ -702,7 +702,7 @@ lemma of'_mem_span [nontrivial R] {m : M} {S : set M} :
 begin
   refine ⟨λ h, _, λ h, submodule.subset_span $ set.mem_image_of_mem (of R M) h⟩,
   rw [of', ← finsupp.supported_eq_span_single, finsupp.mem_supported,
-    finsupp.support_single_ne_zero (@one_ne_zero R _ (by apply_instance))] at h,
+    finsupp.support_single_ne_zero (@one_ne_zero R _ (infer_instance))] at h,
   simpa using h
 end
 
@@ -858,7 +858,7 @@ lemma of_mem_span_of_iff [nontrivial R] {m : M} {S : set M} :
 begin
   refine ⟨λ h, _, λ h, submodule.subset_span $ set.mem_image_of_mem (of R M) h⟩,
   rw [of, monoid_hom.coe_mk, ← finsupp.supported_eq_span_single, finsupp.mem_supported,
-    finsupp.support_single_ne_zero (@one_ne_zero R _ (by apply_instance))] at h,
+    finsupp.support_single_ne_zero (@one_ne_zero R _ (infer_instance))] at h,
   simpa using h
 end
 

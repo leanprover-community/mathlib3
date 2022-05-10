@@ -84,7 +84,7 @@ protected def le (a b : ℚ) := rat.nonneg (b - a)
 instance : has_le ℚ := ⟨rat.le⟩
 
 instance decidable_le : decidable_rel ((≤) : ℚ → ℚ → Prop)
-| a b := show decidable (rat.nonneg (b - a)), by apply_instance
+| a b := show decidable (rat.nonneg (b - a)), infer_instance
 
 protected theorem le_def {a b c d : ℤ} (b0 : 0 < b) (d0 : 0 < d) :
   a /. b ≤ c /. d ↔ a * d ≤ c * b :=
@@ -114,19 +114,19 @@ instance : linear_order ℚ :=
   le_trans        := @rat.le_trans,
   le_antisymm     := @rat.le_antisymm,
   le_total        := rat.le_total,
-  decidable_eq    := by apply_instance,
+  decidable_eq    := infer_instance,
   decidable_le    := assume a b, rat.decidable_nonneg (b - a) }
 
 /- Extra instances to short-circuit type class resolution -/
-instance : has_lt ℚ          := by apply_instance
-instance : distrib_lattice ℚ := by apply_instance
-instance : lattice ℚ         := by apply_instance
-instance : semilattice_inf ℚ := by apply_instance
-instance : semilattice_sup ℚ := by apply_instance
-instance : has_inf ℚ         := by apply_instance
-instance : has_sup ℚ         := by apply_instance
-instance : partial_order ℚ   := by apply_instance
-instance : preorder ℚ        := by apply_instance
+instance : has_lt ℚ          := infer_instance
+instance : distrib_lattice ℚ := infer_instance
+instance : lattice ℚ         := infer_instance
+instance : semilattice_inf ℚ := infer_instance
+instance : semilattice_sup ℚ := infer_instance
+instance : has_inf ℚ         := infer_instance
+instance : has_sup ℚ         := infer_instance
+instance : partial_order ℚ   := infer_instance
+instance : preorder ℚ        := infer_instance
 
 protected lemma le_def' {p q : ℚ} : p ≤ q ↔ p.num * q.denom ≤ q.num * p.denom :=
 begin
@@ -168,15 +168,15 @@ instance : linear_ordered_field ℚ :=
   ..rat.semiring }
 
 /- Extra instances to short-circuit type class resolution -/
-instance : linear_ordered_comm_ring ℚ       := by apply_instance
-instance : linear_ordered_ring ℚ            := by apply_instance
-instance : ordered_ring ℚ                   := by apply_instance
-instance : linear_ordered_semiring ℚ        := by apply_instance
-instance : ordered_semiring ℚ               := by apply_instance
-instance : linear_ordered_add_comm_group ℚ  := by apply_instance
-instance : ordered_add_comm_group ℚ         := by apply_instance
-instance : ordered_cancel_add_comm_monoid ℚ := by apply_instance
-instance : ordered_add_comm_monoid ℚ        := by apply_instance
+instance : linear_ordered_comm_ring ℚ       := infer_instance
+instance : linear_ordered_ring ℚ            := infer_instance
+instance : ordered_ring ℚ                   := infer_instance
+instance : linear_ordered_semiring ℚ        := infer_instance
+instance : ordered_semiring ℚ               := infer_instance
+instance : linear_ordered_add_comm_group ℚ  := infer_instance
+instance : ordered_add_comm_group ℚ         := infer_instance
+instance : ordered_cancel_add_comm_monoid ℚ := infer_instance
+instance : ordered_add_comm_monoid ℚ        := infer_instance
 
 attribute [irreducible] rat.le
 

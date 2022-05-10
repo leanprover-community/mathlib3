@@ -95,7 +95,7 @@ variables (hv : algebraic_independent R v)
 lemma is_alg_closure_of_transcendence_basis [is_alg_closed K] (hv : is_transcendence_basis R v) :
   is_alg_closure (algebra.adjoin R (set.range v)) K :=
 by letI := ring_hom.domain_nontrivial (algebra_map R K); exact
-{ alg_closed := by apply_instance,
+{ alg_closed := infer_instance,
   algebraic := hv.is_algebraic }
 
 variables (hw : algebraic_independent R w)

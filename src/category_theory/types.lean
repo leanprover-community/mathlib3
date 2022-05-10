@@ -70,7 +70,7 @@ section -- We verify the expected type checking behaviour of `as_hom`.
 variables (α β γ : Type u) (f : α → β) (g : β → γ)
 
 example : α → γ := ↾f ≫ ↾g
-example [is_iso ↾f] : mono ↾f := by apply_instance
+example [is_iso ↾f] : mono ↾f := infer_instance
 example [is_iso ↾f] : ↾f ≫ inv ↾f = 𝟙 α := by simp
 end
 

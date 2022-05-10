@@ -83,14 +83,14 @@ lemma generic_point_eq_of_is_open_immersion {X Y : Scheme} (f : X ⟶ Y) [H : is
     f.1.base (generic_point X.carrier : _) = (generic_point Y.carrier : _) :=
 begin
   apply ((generic_point_spec _).eq _).symm,
-  show t0_space Y.carrier, by apply_instance,
+  show t0_space Y.carrier, infer_instance,
   convert (generic_point_spec X.carrier).image (show continuous f.1.base, by continuity),
   symmetry,
   rw [eq_top_iff, set.top_eq_univ, set.top_eq_univ],
   convert subset_closure_inter_of_is_preirreducible_of_is_open _ H.base_open.open_range _,
   rw [set.univ_inter, set.image_univ],
   apply_with preirreducible_space.is_preirreducible_univ { instances := ff },
-  show preirreducible_space Y.carrier, by apply_instance,
+  show preirreducible_space Y.carrier, infer_instance,
   exact ⟨_, trivial, set.mem_range_self hX.2.some⟩,
 end
 

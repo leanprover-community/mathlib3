@@ -579,7 +579,7 @@ open finite_dimensional
 variables {V₁ : Type*} [add_comm_group V₁] [module K V₁]
 
 instance [H : finite_dimensional K V] : finite_dimensional K (module.dual K V) :=
-by apply_instance
+infer_instance
 
 variables [finite_dimensional K V] [finite_dimensional K V₁]
 

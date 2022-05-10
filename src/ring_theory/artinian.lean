@@ -316,7 +316,7 @@ by haveI := subsingleton_of_zero_eq_one h01;
 
 theorem is_artinian_of_submodule_of_artinian (R M) [ring R] [add_comm_group M] [module R M]
   (N : submodule R M) (h : is_artinian R M) : is_artinian R N :=
-by apply_instance
+infer_instance
 
 theorem is_artinian_of_quotient_of_artinian (R) [ring R] (M) [add_comm_group M] [module R M]
   (N : submodule R M) (h : is_artinian R M) : is_artinian R (M ⧸ N) :=
@@ -338,7 +338,7 @@ let ⟨s, hs⟩ := hN in
 begin
   haveI := classical.dec_eq M,
   haveI := classical.dec_eq R,
-  letI : is_artinian R R := by apply_instance,
+  letI : is_artinian R R := infer_instance,
   have : ∀ x ∈ s, x ∈ N, from λ x hx, hs ▸ submodule.subset_span hx,
   refine @@is_artinian_of_surjective ((↑s : set M) → R) _ _ _ (pi.module _ _ _)
     _ _ _ is_artinian_pi,

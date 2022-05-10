@@ -706,7 +706,7 @@ instance linear_order.to_distrib_lattice {α : Type u} [o : linear_order α] :
   ..linear_order.to_lattice }
 
 instance nat.distrib_lattice : distrib_lattice ℕ :=
-by apply_instance
+infer_instance
 
 /-! ### Dual order -/
 

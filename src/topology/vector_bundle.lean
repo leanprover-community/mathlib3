@@ -466,13 +466,13 @@ section fiber_instances
 
 local attribute [reducible] fiber --just to record instances
 
-instance topological_space_fiber (x : B) : topological_space (Z.fiber x) := by apply_instance
-instance add_comm_monoid_fiber : ∀ (x : B), add_comm_monoid (Z.fiber x) := λ x, by apply_instance
-instance module_fiber : ∀ (x : B), module R (Z.fiber x) := λ x, by apply_instance
+instance topological_space_fiber (x : B) : topological_space (Z.fiber x) := infer_instance
+instance add_comm_monoid_fiber : ∀ (x : B), add_comm_monoid (Z.fiber x) := λ x, infer_instance
+instance module_fiber : ∀ (x : B), module R (Z.fiber x) := λ x, infer_instance
 
 variable [add_comm_group F]
 
-instance add_comm_group_fiber : ∀ (x : B), add_comm_group (Z.fiber x) := λ x, by apply_instance
+instance add_comm_group_fiber : ∀ (x : B), add_comm_group (Z.fiber x) := λ x, infer_instance
 
 end fiber_instances
 
@@ -756,7 +756,7 @@ instance prod.topological_space :
   topological_space (total_space (E₁ ×ᵇ E₂)) :=
 topological_space.induced
   (λ p, ((⟨p.1, p.2.1⟩ : total_space E₁), (⟨p.1, p.2.2⟩ : total_space E₂)))
-  (by apply_instance : topological_space ((total_space E₁) × (total_space E₂)))
+  (infer_instance : topological_space ((total_space E₁) × (total_space E₂)))
 
 /-- The diagonal map from the total space of the fibrewise product of two topological vector bundles
 `E₁`, `E₂` into `(total_space E₁) × (total_space E₂)` is `inducing`. -/

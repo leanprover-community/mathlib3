@@ -266,4 +266,4 @@ instance CommRing.forget_reflects_isos : reflects_isomorphisms (forget CommRing.
 -- which can cause typeclass loops:
 
 local attribute [priority 50,instance] reflects_isomorphisms_forget₂
-example : reflects_isomorphisms (forget₂ Ring AddCommGroup) := by apply_instance
+example : reflects_isomorphisms (forget₂ Ring AddCommGroup) := infer_instance

@@ -188,18 +188,18 @@ begin
   split,
   { refine @decidable_of_iff' _ _ mk_le_mk (id _),
     apply @and.decidable _ _ _ _,
-    { apply @fintype.decidable_forall_fintype xl _ _ (by apply_instance),
+    { apply @fintype.decidable_forall_fintype xl _ _ (infer_instance),
       intro i,
       apply (@le_lt_decidable _ _ _ _).2; apply_instance, },
-    { apply @fintype.decidable_forall_fintype yr _ _ (by apply_instance),
+    { apply @fintype.decidable_forall_fintype yr _ _ (infer_instance),
       intro i,
       apply (@le_lt_decidable _ _ _ _).2; apply_instance, }, },
   { refine @decidable_of_iff' _ _ mk_lt_mk (id _),
     apply @or.decidable _ _ _ _,
-    { apply @fintype.decidable_exists_fintype yl _ _ (by apply_instance),
+    { apply @fintype.decidable_exists_fintype yl _ _ (infer_instance),
       intro i,
       apply (@le_lt_decidable _ _ _ _).1; apply_instance, },
-    { apply @fintype.decidable_exists_fintype xr _ _ (by apply_instance),
+    { apply @fintype.decidable_exists_fintype xr _ _ (infer_instance),
       intro i,
       apply (@le_lt_decidable _ _ _ _).1; apply_instance, }, },
 end
@@ -214,17 +214,17 @@ instance lt_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x < y) 
 instance equiv_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ≈ y) :=
 and.decidable
 
-example : short 0 := by apply_instance
-example : short 1 := by apply_instance
-example : short 2 := by apply_instance
-example : short (-2) := by apply_instance
+example : short 0 := infer_instance
+example : short 1 := infer_instance
+example : short 2 := infer_instance
+example : short (-2) := infer_instance
 
-example : short (of_lists [0] [1]) := by apply_instance
-example : short (of_lists [-2, -1] [1]) := by apply_instance
+example : short (of_lists [0] [1]) := infer_instance
+example : short (of_lists [-2, -1] [1]) := infer_instance
 
-example : short (0 + 0) := by apply_instance
+example : short (0 + 0) := infer_instance
 
-example : decidable ((1 : pgame) ≤ 1) := by apply_instance
+example : decidable ((1 : pgame) ≤ 1) := infer_instance
 
 -- No longer works since definitional reduction of well-founded definitions has been restricted.
 -- example : (0 : pgame) ≤ 0 := dec_trivial

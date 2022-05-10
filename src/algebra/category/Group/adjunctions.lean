@@ -72,7 +72,7 @@ the monomorphisms in `AddCommGroup` are just the injective functions.
 (This proof works in all universes.)
 -/
 example {G H : AddCommGroup.{u}} (f : G ⟶ H) [mono f] : function.injective f :=
-(mono_iff_injective f).1 (right_adjoint_preserves_mono adj (by apply_instance : mono f))
+(mono_iff_injective f).1 (right_adjoint_preserves_mono adj (infer_instance : mono f))
 
 instance : is_right_adjoint (forget AddCommGroup.{u}) := ⟨_, adj⟩
 
@@ -104,7 +104,7 @@ section abelianization
 /-- The abelianization functor `Group ⥤ CommGroup` sending a group `G` to its abelianization `Gᵃᵇ`.
  -/
 def abelianize : Group.{u} ⥤ CommGroup.{u} :=
-{ obj := λ G, { α := abelianization G, str := by apply_instance },
+{ obj := λ G, { α := abelianization G, str := infer_instance },
   map := λ G H f, abelianization.lift ( { to_fun := λ x, abelianization.of (f x),
   map_one' := by simp,
   map_mul' := by simp } ),

@@ -368,7 +368,7 @@ begin
   use set.inter_subset_left _ _,
   split,
   { rw ← set.image_preimage_eq_inter_range,
-    apply (show is_open_immersion (𝒰.map (𝒰.f x)), by apply_instance).base_open.is_open_map,
+    apply (show is_open_immersion (𝒰.map (𝒰.f x)), infer_instance).base_open.is_open_map,
     convert hU (𝒰.f x) using 1,
     rw ← ι_from_glued, erw coe_comp, rw set.preimage_comp,
     congr' 1,

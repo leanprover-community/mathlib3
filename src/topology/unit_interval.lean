@@ -110,7 +110,7 @@ instance : connected_space I :=
 subtype.connected_space ⟨nonempty_Icc.mpr zero_le_one, is_preconnected_Icc⟩
 
 /-- Verify there is an instance for `compact_space I`. -/
-example : compact_space I := by apply_instance
+example : compact_space I := infer_instance
 
 lemma nonneg (x : I) : 0 ≤ (x : ℝ) := x.2.1
 lemma one_minus_nonneg (x : I) : 0 ≤ 1 - (x : ℝ) := by simpa using x.2.2

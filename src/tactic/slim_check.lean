@@ -219,7 +219,7 @@ Use `set_option trace.class_instances true` to understand what instances are mis
 
 Try this:
 set_option trace.class_instances true
-#check (by apply_instance : slim_check.testable ({tgt'}))"),
+#check (infer_instance : slim_check.testable ({tgt'}))"),
   e ← mk_mapp ``testable.check [tgt, `(cfg), tgt', inst],
   when_tracing `slim_check.decoration trace!"[testable decoration]\n  {tgt'}",
   when_tracing `slim_check.instance   $ do

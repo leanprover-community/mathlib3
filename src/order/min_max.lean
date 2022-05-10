@@ -93,10 +93,10 @@ lemma max_lt_max_left_iff : max a c < max b c ↔ a < b ∧ c < b := @min_lt_min
 lemma max_lt_max_right_iff : max a b < max a c ↔ b < c ∧ a < c := @min_lt_min_right_iff αᵒᵈ _ _ _ _
 
 /-- An instance asserting that `max a a = a` -/
-instance max_idem : is_idempotent α max := by apply_instance -- short-circuit type class inference
+instance max_idem : is_idempotent α max := infer_instance -- short-circuit type class inference
 
 /-- An instance asserting that `min a a = a` -/
-instance min_idem : is_idempotent α min := by apply_instance -- short-circuit type class inference
+instance min_idem : is_idempotent α min := infer_instance -- short-circuit type class inference
 
 lemma min_lt_max : min a b < max a b ↔ a ≠ b := inf_lt_sup
 

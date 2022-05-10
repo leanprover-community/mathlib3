@@ -174,7 +174,7 @@ instance M.inhabited [inhabited F.A] : inhabited (M F) :=
     consistent := M.default_consistent _ } ⟩
 
 instance M_intl.inhabited [inhabited F.A] : inhabited (M_intl F) :=
-show inhabited (M F), by apply_instance
+show inhabited (M F), infer_instance
 
 namespace M
 

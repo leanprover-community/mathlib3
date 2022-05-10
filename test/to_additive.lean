@@ -107,9 +107,9 @@ run_cmd do
   guard $ n = 5
 
 @[to_additive]
-def nat_pi_has_one {α : Type*} [has_one α] : has_one (Π x : ℕ, α) := by apply_instance
+def nat_pi_has_one {α : Type*} [has_one α] : has_one (Π x : ℕ, α) := infer_instance
 
 @[to_additive]
-def pi_nat_has_one {I : Type*} : has_one (Π x : I, ℕ) := by apply_instance
+def pi_nat_has_one {I : Type*} : has_one (Π x : I, ℕ) := infer_instance
 
 end test

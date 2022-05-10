@@ -112,9 +112,9 @@ eq_to_GH_space_iff.2 ⟨λ x, x, isometry_subtype_coe, subtype.range_coe⟩
 section
 local attribute [reducible] GH_space.rep
 
-instance rep_GH_space_metric_space {p : GH_space} : metric_space p.rep := by apply_instance
-instance rep_GH_space_compact_space {p : GH_space} : compact_space p.rep := by apply_instance
-instance rep_GH_space_nonempty {p : GH_space} : nonempty p.rep := by apply_instance
+instance rep_GH_space_metric_space {p : GH_space} : metric_space p.rep := infer_instance
+instance rep_GH_space_compact_space {p : GH_space} : compact_space p.rep := infer_instance
+instance rep_GH_space_nonempty {p : GH_space} : nonempty p.rep := infer_instance
 
 end
 
@@ -187,7 +187,7 @@ begin
   have IΦ' : isometry Φ' := λ x y, ha x y,
   have IΨ' : isometry Ψ' := λ x y, hb x y,
   have : is_compact s, from (is_compact_range ha.continuous).union (is_compact_range hb.continuous),
-  letI : metric_space (subtype s) := by apply_instance,
+  letI : metric_space (subtype s) := infer_instance,
   haveI : compact_space (subtype s) := ⟨is_compact_iff_is_compact_univ.1 ‹is_compact s›⟩,
   haveI : nonempty (subtype s) := ⟨Φ' xX⟩,
   have ΦΦ' : Φ = subtype.val ∘ Φ', by { funext, refl },
@@ -611,7 +611,7 @@ begin
   -- in the `ε`-dense set `s p`.
   let F : GH_space → Σn:ℕ, (fin n → fin n → ℤ) :=
     λp, ⟨N p, λa b, ⌊ε⁻¹ * dist ((E p).symm a) ((E p).symm b)⌋⟩,
-  refine ⟨Σ n, fin n → fin n → ℤ, by apply_instance, F, λp q hpq, _⟩,
+  refine ⟨Σ n, fin n → fin n → ℤ, infer_instance, F, λp q hpq, _⟩,
   /- As the target space of F is countable, it suffices to show that two points
   `p` and `q` with `F p = F q` are at distance `≤ δ`.
   For this, we construct a map `Φ` from `s p ⊆ p.rep` (representing `p`)
@@ -910,7 +910,7 @@ structure aux_gluing_struct (A : Type) [metric_space A] : Type 1 :=
 
 instance (A : Type) [metric_space A] : inhabited (aux_gluing_struct A) :=
 ⟨{ space := A,
-  metric := by apply_instance,
+  metric := infer_instance,
   embed := id,
   isom := λ x y, rfl }⟩
 
@@ -919,12 +919,12 @@ instance (A : Type) [metric_space A] : inhabited (aux_gluing_struct A) :=
 at step `n` by adding `X (n+1)`, glued in an optimal way to the `X n` already sitting there. -/
 def aux_gluing (n : ℕ) : aux_gluing_struct (X n) := nat.rec_on n
   { space  := X 0,
-    metric := by apply_instance,
+    metric := infer_instance,
     embed  := id,
     isom   := λ x y, rfl }
 (λ n Y, by letI : metric_space Y.space := Y.metric; exact
   { space  := glue_space Y.isom (isometry_optimal_GH_injl (X n) (X (n+1))),
-    metric := by apply_instance,
+    metric := infer_instance,
     embed  := (to_glue_r Y.isom (isometry_optimal_GH_injl (X n) (X (n+1))))
               ∘ (optimal_GH_injr (X n) (X (n+1))),
     isom   := (to_glue_r_isometry _ _).comp (isometry_optimal_GH_injr (X n) (X (n+1))) })

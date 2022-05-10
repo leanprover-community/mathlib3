@@ -172,7 +172,7 @@ begin
         exact b.equiv_fun.symm.uniform_embedding b.equiv_fun.symm.to_linear_map.continuous_on_pi
           this },
       have : is_complete (s : set E),
-        from complete_space_coe_iff_is_complete.1 ((complete_space_congr U).1 (by apply_instance)),
+        from complete_space_coe_iff_is_complete.1 ((complete_space_congr U).1 (infer_instance)),
       exact this.is_closed },
     -- second step: any linear form is continuous, as its kernel is closed by the first step
     have H₂ : ∀f : E →ₗ[𝕜] 𝕜, continuous f,
@@ -548,7 +548,7 @@ begin
   suffices :
     ∀ ε > (0 : ℝ), ∃ n : (E →L[𝕜] F) → fin d → ℕ, ∀ (f g : E →L[𝕜] F), n f = n g → dist f g ≤ ε,
   from metric.second_countable_of_countable_discretization
-    (λ ε ε_pos, ⟨fin d → ℕ, by apply_instance, this ε ε_pos⟩),
+    (λ ε ε_pos, ⟨fin d → ℕ, infer_instance, this ε ε_pos⟩),
   intros ε ε_pos,
   obtain ⟨u : ℕ → F, hu : dense_range u⟩ := exists_dense_seq F,
   let v := finite_dimensional.fin_basis 𝕜 E,
@@ -595,7 +595,7 @@ lemma finite_dimensional.complete [finite_dimensional 𝕜 E] : complete_space E
 begin
   set e := continuous_linear_equiv.of_finrank_eq (@finrank_fin_fun 𝕜 _ (finrank 𝕜 E)).symm,
   have : uniform_embedding e.to_linear_equiv.to_equiv.symm := e.symm.uniform_embedding,
-  exact (complete_space_congr this).1 (by apply_instance)
+  exact (complete_space_congr this).1 (infer_instance)
 end
 
 variables {𝕜 E}

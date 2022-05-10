@@ -243,7 +243,7 @@ begin
   rw set.eq_empty_iff_forall_not_mem,
   intros x hx,
   rw mem_zero_locus at hx,
-  have x_prime : x.as_ideal.is_prime := by apply_instance,
+  have x_prime : x.as_ideal.is_prime := infer_instance,
   have eq_top : x.as_ideal = ⊤, { rw ideal.eq_top_iff_one, exact hx h },
   apply x_prime.ne_top eq_top,
 end

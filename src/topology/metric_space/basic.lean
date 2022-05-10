@@ -2473,7 +2473,7 @@ closed_embedding_of_spaced_out (dist_mem_uniformity hε) $ by simpa using hf
 /-- If `f : β → α` sends any two distinct points to points at distance at least `ε > 0`, then
 `f` is a uniform embedding with respect to the discrete uniformity on `β`. -/
 lemma uniform_embedding_bot_of_pairwise_le_dist {β : Type*} {ε : ℝ} (hε : 0 < ε) {f : β → α}
-  (hf : pairwise (λ x y, ε ≤ dist (f x) (f y))) : @uniform_embedding _ _ ⊥ (by apply_instance) f :=
+  (hf : pairwise (λ x y, ε ≤ dist (f x) (f y))) : @uniform_embedding _ _ ⊥ (infer_instance) f :=
 uniform_embedding_of_spaced_out (dist_mem_uniformity hε) $ by simpa using hf
 
 end metric
@@ -2649,7 +2649,7 @@ lemma second_countable_of_countable_discretization {α : Type u} [metric_space �
   second_countable_topology α :=
 begin
   cases (univ : set α).eq_empty_or_nonempty with hs hs,
-  { haveI : compact_space α := ⟨by rw hs; exact is_compact_empty⟩, by apply_instance },
+  { haveI : compact_space α := ⟨by rw hs; exact is_compact_empty⟩, infer_instance },
   rcases hs with ⟨x0, hx0⟩,
   letI : inhabited α := ⟨x0⟩,
   refine second_countable_of_almost_dense_set (λε ε0, _),

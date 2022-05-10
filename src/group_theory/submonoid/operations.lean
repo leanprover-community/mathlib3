@@ -1087,7 +1087,7 @@ distrib_mul_action.comp_hom _ S.subtype
 instance [monoid α] [mul_distrib_mul_action M' α] (S : submonoid M') : mul_distrib_mul_action S α :=
 mul_distrib_mul_action.comp_hom _ S.subtype
 
-example {S : submonoid M'} : is_scalar_tower S M' M' := by apply_instance
+example {S : submonoid M'} : is_scalar_tower S M' M' := infer_instance
 
 end submonoid
 

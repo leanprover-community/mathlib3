@@ -176,7 +176,7 @@ instance monoidal_category : monoidal_category (Module.{u} R) :=
 
 /-- Remind ourselves that the monoidal unit, being just `R`, is still a commutative ring. -/
 instance : comm_ring ((𝟙_ (Module.{u} R) : Module.{u} R) : Type u) :=
-(by apply_instance : comm_ring R)
+(infer_instance : comm_ring R)
 
 namespace monoidal_category
 

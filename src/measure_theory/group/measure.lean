@@ -538,7 +538,7 @@ end
 finite-dimensional real vector space has no atom. -/
 example {E : Type*} [normed_group E] [normed_space ℝ E] [nontrivial E] [finite_dimensional ℝ E]
   [measurable_space E] [borel_space E] (μ : measure E) [is_add_haar_measure μ] :
-  has_no_atoms μ := by apply_instance
+  has_no_atoms μ := infer_instance
 
 end
 

@@ -433,7 +433,7 @@ assume _ h', h _ (H h')
 
 lemma eq_of_separated_of_uniform_continuous [separated_space β] {f : α → β} {x y : α}
   (H : uniform_continuous f) (h : x ≈ y) : f x = f y :=
-separated_def.1 (by apply_instance) _ _ $ separated_of_uniform_continuous H h
+separated_def.1 (infer_instance) _ _ $ separated_of_uniform_continuous H h
 
 lemma _root_.is_separated.eq_of_uniform_continuous {f : α → β} {x y : α} {s : set β}
   (hs : is_separated s) (hxs : f x ∈ s) (hys : f y ∈ s) (H : uniform_continuous f) (h : x ≈ y) :

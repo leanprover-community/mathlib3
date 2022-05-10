@@ -76,7 +76,7 @@ metric.uniform_continuous_iff.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
 instance : uniform_add_group ℚ :=
 uniform_add_group.mk' rat.uniform_continuous_add rat.uniform_continuous_neg
 
-instance : topological_add_group ℚ := by apply_instance
+instance : topological_add_group ℚ := infer_instance
 
 instance : order_topology ℚ :=
 induced_order_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)

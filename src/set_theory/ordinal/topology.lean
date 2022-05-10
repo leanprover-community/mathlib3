@@ -116,7 +116,7 @@ theorem mem_closure_iff_sup {s : set ordinal.{u}} {a : ordinal.{u}} :
 begin
   refine mem_closure_iff.trans ⟨λ h, _, _⟩,
   { by_cases has : a ∈ s,
-    { exact ⟨punit, by apply_instance, λ _, a, λ _, has, sup_const a⟩ },
+    { exact ⟨punit, infer_instance, λ _, a, λ _, has, sup_const a⟩ },
     { have H := λ b (hba : b < a), h _ (@is_open_Ioo _ _ _ _ b (a + 1)) ⟨hba, lt_succ_self a⟩,
       let f : a.out.α → ordinal := λ i, classical.some (H (typein (<) i) (typein_lt_self i)),
       have hf : ∀ i, f i ∈ set.Ioo (typein (<) i) (a + 1) ∩ s :=

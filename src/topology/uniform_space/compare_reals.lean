@@ -79,9 +79,9 @@ noncomputable
 def rational_cau_seq_pkg : @abstract_completion ℚ $ is_absolute_value.uniform_space (abs : ℚ → ℚ) :=
 { space := ℝ,
   coe := (coe : ℚ → ℝ),
-  uniform_struct := by apply_instance,
-  complete :=  by apply_instance,
-  separation :=  by apply_instance,
+  uniform_struct := infer_instance,
+  complete :=  infer_instance,
+  separation :=  infer_instance,
   uniform_inducing := by { rw rat.uniform_space_eq,
                            exact rat.uniform_embedding_coe_real.to_uniform_inducing },
   dense := rat.dense_embedding_coe_real.dense }

@@ -405,7 +405,7 @@ begin
         (no_zero_smul_divisors.algebra_map_injective _ _)
     end,
   letI : is_alg_closure R L :=
-  { alg_closed := by apply_instance,
+  { alg_closed := infer_instance,
     algebraic := hRL },
   exact is_alg_closure.equiv _ _ _
 end

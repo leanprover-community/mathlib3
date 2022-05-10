@@ -51,7 +51,7 @@ instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_m
   covariant_class M M (*) (≤) :=
 { elim := λ a b c bc, ordered_comm_monoid.mul_le_mul_left _ _ bc a }
 
-/- This instance can be proven with `by apply_instance`.  However, `with_bot ℕ` does not
+/- This instance can be proven with `infer_instance`.  However, `with_bot ℕ` does not
 pick up a `covariant_class M M (function.swap (*)) (≤)` instance without it (see PR #7940). -/
 @[to_additive]
 instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
@@ -522,7 +522,7 @@ instance ordered_cancel_comm_monoid.to_contravariant_class_left
   contravariant_class M M (*) (<) :=
 { elim := λ a b c, ordered_cancel_comm_monoid.lt_of_mul_lt_mul_left _ _ _ }
 
-/- This instance can be proven with `by apply_instance`.  However, by analogy with the
+/- This instance can be proven with `infer_instance`.  However, by analogy with the
 instance `ordered_cancel_comm_monoid.to_covariant_class_right` above, I imagine that without
 this instance, some Type would not have a `contravariant_class M M (function.swap (*)) (<)`
 instance. -/

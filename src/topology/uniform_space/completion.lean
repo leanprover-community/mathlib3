@@ -274,7 +274,7 @@ begin
     rw ← e at h₂,
     exact dt ⟨_, h₁, h₂⟩ },
   { intros H,
-    refine separated_def.1 (by apply_instance) _ _ (λ t tu, _),
+    refine separated_def.1 (infer_instance) _ _ (λ t tu, _),
     rcases mem_uniformity_is_closed tu with ⟨d, du, dc, dt⟩,
     refine H {p | (Lim p.1.1, Lim p.2.1) ∈ t}
       (Cauchy.mem_uniformity'.2 ⟨d, du, λ f g h, _⟩),
@@ -369,9 +369,9 @@ variables (α)
 def cpkg {α : Type*} [uniform_space α] : abstract_completion α :=
 { space := completion α,
   coe := coe,
-  uniform_struct := by apply_instance,
-  complete := by apply_instance,
-  separation := by apply_instance,
+  uniform_struct := infer_instance,
+  complete := infer_instance,
+  separation := infer_instance,
   uniform_inducing := completion.uniform_inducing_coe α,
   dense := completion.dense_range_coe }
 

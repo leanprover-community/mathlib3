@@ -79,7 +79,7 @@ instance (Z : C) : has_projective_resolution Z :=
 
 @[priority 100]
 instance : has_projective_resolutions C :=
-{ out := λ Z, by apply_instance }
+{ out := λ Z, infer_instance }
 
 end ProjectiveResolution
 

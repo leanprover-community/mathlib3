@@ -99,17 +99,17 @@ lemma coe_nonneg (r : ℝ≥0) : (0 : ℝ) ≤ r := r.2
 @[norm_cast]
 theorem coe_mk (a : ℝ) (ha) : ((⟨a, ha⟩ : ℝ≥0) : ℝ) = a := rfl
 
-example : has_zero ℝ≥0  := by apply_instance
-example : has_one ℝ≥0   := by apply_instance
-example : has_add ℝ≥0   := by apply_instance
-noncomputable example : has_sub ℝ≥0   := by apply_instance
-example : has_mul ℝ≥0   := by apply_instance
-noncomputable example : has_inv ℝ≥0   := by apply_instance
-noncomputable example : has_div ℝ≥0   := by apply_instance
-example : has_le ℝ≥0    := by apply_instance
-example : has_bot ℝ≥0   := by apply_instance
-example : inhabited ℝ≥0 := by apply_instance
-example : nontrivial ℝ≥0 := by apply_instance
+example : has_zero ℝ≥0  := infer_instance
+example : has_one ℝ≥0   := infer_instance
+example : has_add ℝ≥0   := infer_instance
+noncomputable example : has_sub ℝ≥0   := infer_instance
+example : has_mul ℝ≥0   := infer_instance
+noncomputable example : has_inv ℝ≥0   := infer_instance
+noncomputable example : has_div ℝ≥0   := infer_instance
+example : has_le ℝ≥0    := infer_instance
+example : has_bot ℝ≥0   := infer_instance
+example : inhabited ℝ≥0 := infer_instance
+example : nontrivial ℝ≥0 := infer_instance
 
 protected lemma coe_injective : function.injective (coe : ℝ≥0 → ℝ) := subtype.coe_injective
 @[simp, norm_cast] protected lemma coe_eq {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) = r₂ ↔ r₁ = r₂ :=
@@ -136,7 +136,7 @@ by rw [← nnreal.coe_one, nnreal.coe_eq]
 
 lemma coe_ne_zero {r : ℝ≥0} : (r : ℝ) ≠ 0 ↔ r ≠ 0 := by norm_cast
 
-example : comm_semiring ℝ≥0 := by apply_instance
+example : comm_semiring ℝ≥0 := infer_instance
 
 /-- Coercion `ℝ≥0 → ℝ` as a `ring_hom`. -/
 def to_real_hom : ℝ≥0 →+* ℝ :=
@@ -181,14 +181,14 @@ instance {A : Type*} [semiring A] [algebra ℝ A] : algebra ℝ≥0 A :=
   to_ring_hom := ((algebra_map ℝ A).comp (to_real_hom : ℝ≥0 →+* ℝ)) }
 
 -- verify that the above produces instances we might care about
-example : algebra ℝ≥0 ℝ := by apply_instance
-example : distrib_mul_action ℝ≥0ˣ ℝ := by apply_instance
+example : algebra ℝ≥0 ℝ := infer_instance
+example : distrib_mul_action ℝ≥0ˣ ℝ := infer_instance
 
 end actions
 
-example : monoid_with_zero ℝ≥0 := by apply_instance
-example : comm_monoid_with_zero ℝ≥0 := by apply_instance
-noncomputable example : comm_group_with_zero ℝ≥0 := by apply_instance
+example : monoid_with_zero ℝ≥0 := infer_instance
+example : comm_monoid_with_zero ℝ≥0 := infer_instance
+noncomputable example : comm_group_with_zero ℝ≥0 := infer_instance
 
 @[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
   ((s.indicator f a : ℝ≥0) : ℝ) = s.indicator (λ x, f x) a :=
@@ -246,7 +246,7 @@ by norm_cast
 @[simp, norm_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
 map_nat_cast to_real_hom n
 
-noncomputable example : linear_order ℝ≥0 := by apply_instance
+noncomputable example : linear_order ℝ≥0 := infer_instance
 
 @[simp, norm_cast] protected lemma coe_le_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
 @[simp, norm_cast] protected lemma coe_lt_coe {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
@@ -273,21 +273,21 @@ galois_insertion.monotone_intro nnreal.coe_mono real.to_nnreal_mono
 
 -- note that anything involving the (decidability of the) linear order, including `⊔`/`⊓` (min, max)
 -- will be noncomputable, everything else should not be.
-example : order_bot ℝ≥0 := by apply_instance
-example : partial_order ℝ≥0 := by apply_instance
-noncomputable example : canonically_linear_ordered_add_monoid ℝ≥0 := by apply_instance
-noncomputable example : linear_ordered_add_comm_monoid ℝ≥0 := by apply_instance
-noncomputable example : distrib_lattice ℝ≥0 := by apply_instance
-noncomputable example : semilattice_inf ℝ≥0 := by apply_instance
-noncomputable example : semilattice_sup ℝ≥0 := by apply_instance
-noncomputable example : linear_ordered_semiring ℝ≥0 := by apply_instance
-example : ordered_comm_semiring ℝ≥0 := by apply_instance
-noncomputable example : linear_ordered_comm_monoid  ℝ≥0 := by apply_instance
-noncomputable example : linear_ordered_comm_monoid_with_zero ℝ≥0 := by apply_instance
-noncomputable example : linear_ordered_comm_group_with_zero ℝ≥0 := by apply_instance
-example : canonically_ordered_comm_semiring ℝ≥0 := by apply_instance
-example : densely_ordered ℝ≥0 := by apply_instance
-example : no_max_order ℝ≥0 := by apply_instance
+example : order_bot ℝ≥0 := infer_instance
+example : partial_order ℝ≥0 := infer_instance
+noncomputable example : canonically_linear_ordered_add_monoid ℝ≥0 := infer_instance
+noncomputable example : linear_ordered_add_comm_monoid ℝ≥0 := infer_instance
+noncomputable example : distrib_lattice ℝ≥0 := infer_instance
+noncomputable example : semilattice_inf ℝ≥0 := infer_instance
+noncomputable example : semilattice_sup ℝ≥0 := infer_instance
+noncomputable example : linear_ordered_semiring ℝ≥0 := infer_instance
+example : ordered_comm_semiring ℝ≥0 := infer_instance
+noncomputable example : linear_ordered_comm_monoid  ℝ≥0 := infer_instance
+noncomputable example : linear_ordered_comm_monoid_with_zero ℝ≥0 := infer_instance
+noncomputable example : linear_ordered_comm_group_with_zero ℝ≥0 := infer_instance
+example : canonically_ordered_comm_semiring ℝ≥0 := infer_instance
+example : densely_ordered ℝ≥0 := infer_instance
+example : no_max_order ℝ≥0 := infer_instance
 
 -- note we need the `@` to make the `has_mem.mem` have a sensible type
 lemma coe_image {s : set ℝ≥0} : coe '' s = {x : ℝ | ∃ h : 0 ≤ x, @has_mem.mem (ℝ≥0) _ _ ⟨x, h⟩ s} :=
@@ -319,7 +319,7 @@ eq.symm $ @subset_Inf_of_within ℝ (set.Ici 0) _ ⟨(0 : ℝ≥0)⟩ s $
 @[norm_cast] lemma coe_infi {ι : Sort*} (s : ι → ℝ≥0) : (↑(⨅ i, s i) : ℝ) = ⨅ i, (s i) :=
 by rw [infi, infi, coe_Inf, set.range_comp]
 
-example : archimedean ℝ≥0 := by apply_instance
+example : archimedean ℝ≥0 := infer_instance
 
 -- TODO: why are these three instances necessary? why aren't they inferred?
 instance covariant_add : covariant_class ℝ≥0 ℝ≥0 (+) (≤) :=
@@ -544,7 +544,7 @@ lemma sub_def {r p : ℝ≥0} : r - p = real.to_nnreal (r - p) := rfl
 
 lemma coe_sub_def {r p : ℝ≥0} : ↑(r - p) = max (r - p : ℝ) 0 := rfl
 
-noncomputable example : has_ordered_sub ℝ≥0 := by apply_instance
+noncomputable example : has_ordered_sub ℝ≥0 := infer_instance
 
 lemma sub_div (a b c : ℝ≥0) : (a - b) / c = a / c - b / c :=
 by simp only [div_eq_mul_inv, tsub_mul]

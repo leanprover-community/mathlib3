@@ -255,7 +255,7 @@ begin
 end
 
 @[simp] lemma length_injective [subsingleton α] : injective (length : list α → ℕ) :=
-length_injective_iff.mpr $ by apply_instance
+length_injective_iff.mpr $ infer_instance
 
 lemma length_eq_two {l : list α} : l.length = 2 ↔ ∃ a b, l = [a, b] :=
 ⟨match l with [a, b], _ := ⟨a, b, rfl⟩ end, λ ⟨a, b, e⟩, e.symm ▸ rfl⟩

@@ -33,7 +33,7 @@ abbreviation Rep (k G : Type u) [ring k] [monoid G] :=
 Action (Module.{u} k) (Mon.of G)
 
 instance (k G : Type u) [comm_ring k] [monoid G] : linear k (Rep k G) :=
-by apply_instance
+infer_instance
 
 namespace Rep
 
@@ -57,9 +57,9 @@ def of {V : Type u} [add_comm_group V] [module k V] (ρ : G →* (V →ₗ[k] V)
 
 -- Verify that limits are calculated correctly.
 noncomputable example : preserves_limits (forget₂ (Rep k G) (Module.{u} k)) :=
-by apply_instance
+infer_instance
 noncomputable example : preserves_colimits (forget₂ (Rep k G) (Module.{u} k)) :=
-by apply_instance
+infer_instance
 
 end Rep
 
@@ -67,8 +67,8 @@ namespace Rep
 variables {k G : Type u} [comm_ring k] [monoid G]
 
 -- Verify that the symmetric monoidal structure is available.
-example : symmetric_category (Rep k G) := by apply_instance
-example : monoidal_preadditive (Rep k G) := by apply_instance
-example : monoidal_linear k (Rep k G) := by apply_instance
+example : symmetric_category (Rep k G) := infer_instance
+example : monoidal_preadditive (Rep k G) := infer_instance
+example : monoidal_linear k (Rep k G) := infer_instance
 
 end Rep

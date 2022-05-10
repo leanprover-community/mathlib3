@@ -466,7 +466,7 @@ instance : has_image f :=
 has_image.mk ⟨_, is_image f⟩
 
 instance : has_images (Type u) :=
-{ has_image := by apply_instance }
+{ has_image := infer_instance }
 
 instance : has_image_maps (Type u) :=
 { has_image_map := λ f g st, has_image_map.transport st (mono_factorisation f.hom) (is_image g.hom)

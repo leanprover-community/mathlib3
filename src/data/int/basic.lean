@@ -63,21 +63,21 @@ instance : comm_ring int :=
 These also prevent non-computable instances like `int.normed_comm_ring` being used to construct
 these instances non-computably.
 -/
--- instance : has_sub int            := by apply_instance -- This is in core
-instance : add_comm_monoid int    := by apply_instance
-instance : add_monoid int         := by apply_instance
-instance : monoid int             := by apply_instance
-instance : comm_monoid int        := by apply_instance
-instance : comm_semigroup int     := by apply_instance
-instance : semigroup int          := by apply_instance
-instance : add_comm_group int     := by apply_instance
-instance : add_group int          := by apply_instance
-instance : add_comm_semigroup int := by apply_instance
-instance : add_semigroup int      := by apply_instance
-instance : comm_semiring int      := by apply_instance
-instance : semiring int           := by apply_instance
-instance : ring int               := by apply_instance
-instance : distrib int            := by apply_instance
+-- instance : has_sub int            := infer_instance -- This is in core
+instance : add_comm_monoid int    := infer_instance
+instance : add_monoid int         := infer_instance
+instance : monoid int             := infer_instance
+instance : comm_monoid int        := infer_instance
+instance : comm_semigroup int     := infer_instance
+instance : semigroup int          := infer_instance
+instance : add_comm_group int     := infer_instance
+instance : add_group int          := infer_instance
+instance : add_comm_semigroup int := infer_instance
+instance : add_semigroup int      := infer_instance
+instance : comm_semiring int      := infer_instance
+instance : semiring int           := infer_instance
+instance : ring int               := infer_instance
+instance : distrib int            := infer_instance
 
 instance : linear_ordered_comm_ring int :=
 { add_le_add_left := @int.add_le_add_left,
@@ -86,7 +86,7 @@ instance : linear_ordered_comm_ring int :=
   .. int.comm_ring, .. int.linear_order, .. int.nontrivial }
 
 instance : linear_ordered_add_comm_group int :=
-by apply_instance
+infer_instance
 
 @[simp] lemma add_neg_one (i : ℤ) : i + -1 = i - 1 := rfl
 
@@ -848,7 +848,7 @@ theorem dvd_nat_abs {a b : ℤ} : a ∣ b.nat_abs ↔ a ∣ b :=
 (nat_abs_eq b).elim (λ e, by rw ← e) (λ e, by rw [← dvd_neg, ← e])
 
 instance decidable_dvd : @decidable_rel ℤ (∣) :=
-assume a n, decidable_of_decidable_of_iff (by apply_instance) (dvd_iff_mod_eq_zero _ _).symm
+assume a n, decidable_of_decidable_of_iff (infer_instance) (dvd_iff_mod_eq_zero _ _).symm
 
 protected theorem div_mul_cancel {a b : ℤ} (H : b ∣ a) : a / b * b = a :=
 div_mul_cancel_of_mod_eq_zero (mod_eq_zero_of_dvd H)

@@ -117,7 +117,7 @@ additive monoids."]
 instance forget₂_Mon_preserves_limits_of_size :
   preserves_limits_of_size.{v v} (forget₂ Group Mon.{max v u}) :=
 { preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F, by apply_instance } }
+  { preserves_limit := λ F, infer_instance } }
 
 @[to_additive]
 instance forget₂_Mon_preserves_limits : preserves_limits (forget₂ Group Mon.{u}) :=
@@ -211,7 +211,7 @@ of additive groups.)"]
 instance forget₂_Group_preserves_limits_of_size :
   preserves_limits_of_size.{v v} (forget₂ CommGroup Group.{max v u}) :=
 { preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F, by apply_instance } }
+  { preserves_limit := λ F, infer_instance } }
 
 @[to_additive]
 instance forget₂_Group_preserves_limits : preserves_limits (forget₂ CommGroup Group.{u}) :=
@@ -254,7 +254,7 @@ instance forget_preserves_limits_of_size :
   { preserves_limit := λ F, limits.comp_preserves_limit (forget₂ CommGroup Group) (forget Group) } }
 
 -- Verify we can form limits indexed over smaller categories.
-example (f : ℕ → AddCommGroup) : has_product f := by apply_instance
+example (f : ℕ → AddCommGroup) : has_product f := infer_instance
 
 end CommGroup
 

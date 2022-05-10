@@ -301,11 +301,11 @@ instance decidable_bijective_fintype [decidable_eq α] [decidable_eq β] [fintyp
 
 instance decidable_right_inverse_fintype [decidable_eq α] [fintype α] (f : α → β) (g : β → α) :
   decidable (function.right_inverse f g) :=
-show decidable (∀ x, g (f x) = x), by apply_instance
+show decidable (∀ x, g (f x) = x), infer_instance
 
 instance decidable_left_inverse_fintype [decidable_eq β] [fintype β] (f : α → β) (g : β → α) :
   decidable (function.left_inverse f g) :=
-show decidable (∀ x, f (g x) = x), by apply_instance
+show decidable (∀ x, f (g x) = x), infer_instance
 
 lemma exists_max [fintype α] [nonempty α] {β : Type*} [linear_order β] (f : α → β) :
   ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
@@ -1464,7 +1464,7 @@ corresponding quotient type, then there is a corresponding term in the
 quotient of the product of the setoids indexed by `l`. -/
 def quotient.fin_choice_aux {ι : Type*} [decidable_eq ι]
   {α : ι → Type*} [S : ∀ i, setoid (α i)] :
-  Π (l : list ι), (Π i ∈ l, quotient (S i)) → @quotient (Π i ∈ l, α i) (by apply_instance)
+  Π (l : list ι), (Π i ∈ l, quotient (S i)) → @quotient (Π i ∈ l, α i) (infer_instance)
 | []       f := ⟦λ i, false.elim⟧
 | (i :: l) f := begin
   refine quotient.lift_on₂ (f i (list.mem_cons_self _ _))
@@ -1496,9 +1496,9 @@ quotient type, then there is corresponding term in the quotient of the
 product of the setoids. -/
 def quotient.fin_choice {ι : Type*} [decidable_eq ι] [fintype ι]
   {α : ι → Type*} [S : ∀ i, setoid (α i)]
-  (f : Π i, quotient (S i)) : @quotient (Π i, α i) (by apply_instance) :=
+  (f : Π i, quotient (S i)) : @quotient (Π i, α i) (infer_instance) :=
 quotient.lift_on (@quotient.rec_on _ _ (λ l : multiset ι,
-    @quotient (Π i ∈ l, α i) (by apply_instance))
+    @quotient (Π i ∈ l, α i) (infer_instance))
     finset.univ.1
     (λ l, quotient.fin_choice_aux l (λ i _, f i))
     (λ a b h, begin
@@ -1802,7 +1802,7 @@ let ⟨y, hy⟩ := exists_not_mem_finset ({x} : finset α) in
 ⟨y, x, by simpa only [mem_singleton] using hy⟩⟩
 
 protected lemma nonempty (α : Type*) [infinite α] : nonempty α :=
-by apply_instance
+infer_instance
 
 lemma of_injective [infinite β] (f : β → α) (hf : injective f) : infinite α :=
 ⟨λ I, by exactI (fintype.of_injective f hf).false⟩

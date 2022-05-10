@@ -61,7 +61,7 @@ def tensoring_right_monoidal [monoidal_category.{v} C] : monoidal_functor C (C �
     rw [tensor_id, category.comp_id, right_unitor_tensor_inv, category.assoc, iso.inv_hom_id_assoc,
       ←id_tensor_comp, iso.inv_hom_id, tensor_id],
   end,
-  ε_is_iso := by apply_instance,
+  ε_is_iso := infer_instance,
   μ_is_iso := λ X Y,
     -- We could avoid needing to do this explicitly by
     -- constructing a partially applied analogue of `associator_nat_iso`.

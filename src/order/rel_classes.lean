@@ -205,22 +205,22 @@ instance is_extensional_of_is_strict_total_order'
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] :
-  is_strict_total_order α r := by apply_instance
+  is_strict_total_order α r := infer_instance
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_extensional {α} (r : α → α → Prop) [is_well_order α r] :
-  is_extensional α r := by apply_instance
+  is_extensional α r := infer_instance
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_trichotomous {α} (r : α → α → Prop) [is_well_order α r] :
-  is_trichotomous α r := by apply_instance
+  is_trichotomous α r := infer_instance
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_trans {α} (r : α → α → Prop) [is_well_order α r] :
-  is_trans α r := by apply_instance
+  is_trans α r := infer_instance
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α r] :
-  is_irrefl α r := by apply_instance
+  is_irrefl α r := infer_instance
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α r] :
-  is_asymm α r := by apply_instance
+  is_asymm α r := infer_instance
 
 /-- Construct a decidable linear order from a well-founded linear order. -/
 noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_order α r] :
@@ -439,7 +439,7 @@ instance [partial_order α] : is_partial_order α (≥) := {}
 instance [linear_order α] : is_total α (≤) := ⟨le_total⟩
 instance [linear_order α] : is_total α (≥) := is_total.swap _
 instance linear_order.is_total_preorder [linear_order α] : is_total_preorder α (≤) :=
-  by apply_instance
+  infer_instance
 instance [linear_order α] : is_total_preorder α (≥) := {}
 instance [linear_order α] : is_linear_order α (≤) := {}
 instance [linear_order α] : is_linear_order α (≥) := {}
@@ -447,11 +447,11 @@ instance [linear_order α] : is_trichotomous α (<) := ⟨lt_trichotomy⟩
 instance [linear_order α] : is_trichotomous α (>) := is_trichotomous.swap _
 instance [linear_order α] : is_trichotomous α (≤) := is_total.is_trichotomous _
 instance [linear_order α] : is_trichotomous α (≥) := is_total.is_trichotomous _
-instance [linear_order α] : is_strict_total_order α (<) := by apply_instance
+instance [linear_order α] : is_strict_total_order α (<) := infer_instance
 instance [linear_order α] : is_strict_total_order' α (<) := {}
-instance [linear_order α] : is_order_connected α (<) := by apply_instance
-instance [linear_order α] : is_incomp_trans α (<) := by apply_instance
-instance [linear_order α] : is_strict_weak_order α (<) := by apply_instance
+instance [linear_order α] : is_order_connected α (<) := infer_instance
+instance [linear_order α] : is_incomp_trans α (<) := infer_instance
+instance [linear_order α] : is_strict_weak_order α (<) := infer_instance
 
 lemma transitive_le [preorder α] : transitive (@has_le.le α _) := transitive_of_trans _
 lemma transitive_lt [preorder α] : transitive (@has_lt.lt α _) := transitive_of_trans _

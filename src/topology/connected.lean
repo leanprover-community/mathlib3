@@ -698,7 +698,7 @@ instance [Π i, topological_space (π i)] [∀ i, preconnected_space (π i)] :
 ⟨by { rw ← pi_univ univ, exact is_preconnected_univ_pi (λ i, is_preconnected_univ) }⟩
 
 instance [Π i, topological_space (π i)] [∀ i, connected_space (π i)] : connected_space (Π i, π i) :=
-⟨classical.nonempty_pi.2 $ λ i, by apply_instance⟩
+⟨classical.nonempty_pi.2 $ λ i, infer_instance⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance preirreducible_space.preconnected_space (α : Type u) [topological_space α]

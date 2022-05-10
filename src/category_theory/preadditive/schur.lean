@@ -122,7 +122,7 @@ lemma finrank_endomorphism_eq_one
   [I : finite_dimensional 𝕜 (X ⟶ X)] :
   finrank 𝕜 (X ⟶ X) = 1 :=
 begin
-  have id_nonzero := (is_iso_iff_nonzero (𝟙 X)).mp (by apply_instance),
+  have id_nonzero := (is_iso_iff_nonzero (𝟙 X)).mp (infer_instance),
   apply finrank_eq_one (𝟙 X),
   { exact id_nonzero, },
   { intro f,

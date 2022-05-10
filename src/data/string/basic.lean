@@ -32,7 +32,7 @@ instance has_lt' : has_lt string :=
 ⟨λ s₁ s₂, ltb s₁.mk_iterator s₂.mk_iterator⟩
 
 instance decidable_lt : @decidable_rel string (<) :=
-by apply_instance -- short-circuit type class inference
+infer_instance -- short-circuit type class inference
 
 @[simp] theorem lt_iff_to_list_lt :
   ∀ {s₁ s₂ : string}, s₁ < s₂ ↔ s₁.to_list < s₂.to_list
@@ -56,7 +56,7 @@ by apply_instance -- short-circuit type class inference
 instance has_le : has_le string := ⟨λ s₁ s₂, ¬ s₂ < s₁⟩
 
 instance decidable_le : @decidable_rel string (≤) :=
-by apply_instance -- short-circuit type class inference
+infer_instance -- short-circuit type class inference
 
 @[simp] theorem le_iff_to_list_le
   {s₁ s₂ : string} : s₁ ≤ s₂ ↔ s₁.to_list ≤ s₂.to_list :=
@@ -93,9 +93,9 @@ end
 
 instance : linear_order string :=
 { lt := (<), le := (≤),
-  decidable_lt := by apply_instance,
+  decidable_lt := infer_instance,
   decidable_le := string.decidable_le,
-  decidable_eq := by apply_instance,
+  decidable_eq := infer_instance,
   le_refl := λ a, le_iff_to_list_le.2 le_rfl,
   le_trans := λ a b c, by { simp only [le_iff_to_list_le], exact λ h₁ h₂, h₁.trans h₂ },
   le_total := λ a b, by { simp only [le_iff_to_list_le], exact le_total _ _ },

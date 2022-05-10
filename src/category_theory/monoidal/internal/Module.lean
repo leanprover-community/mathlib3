@@ -50,7 +50,7 @@ instance (A : Mon_ (Module.{u} R)) : ring A.X :=
     rw ←tensor_product.add_tmul,
     refl,
   end,
-  ..(by apply_instance : add_comm_group A.X) }
+  ..(infer_instance : add_comm_group A.X) }
 
 instance (A : Mon_ (Module.{u} R)) : algebra R A.X :=
 { map_zero' := A.one.map_zero,

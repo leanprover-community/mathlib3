@@ -235,13 +235,13 @@ noncomputable
 instance forget_creates_colimits_of_shape
   [preserves_colimits_of_shape J (T : C ⥤ C)] :
   creates_colimits_of_shape J (forget T) :=
-{ creates_colimit := λ K, by apply_instance }
+{ creates_colimit := λ K, infer_instance }
 
 noncomputable
 instance forget_creates_colimits
   [preserves_colimits_of_size.{v u} (T : C ⥤ C)] :
   creates_colimits_of_size.{v u} (forget T) :=
-{ creates_colimits_of_shape := λ J 𝒥₁, by apply_instance }
+{ creates_colimits_of_shape := λ J 𝒥₁, infer_instance }
 
 /--
 For `D : J ⥤ algebra T`, `D ⋙ forget T` has a colimit, then `D` has a colimit provided colimits

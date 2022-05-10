@@ -69,7 +69,7 @@ end
 
 lemma cau_seq.cauchy_seq (f : cau_seq β norm) : cauchy_seq f :=
 begin
-  refine cauchy_iff.2 ⟨by apply_instance, λ s hs, _⟩,
+  refine cauchy_iff.2 ⟨infer_instance, λ s hs, _⟩,
   rcases mem_uniformity_dist.1 hs with ⟨ε, ⟨hε, hεs⟩⟩,
   cases cau_seq.cauchy₂ f hε with N hN,
   existsi {n | n ≥ N}.image f,

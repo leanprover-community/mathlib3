@@ -152,7 +152,7 @@ instance field_completion : field (hat K) :=
                                    simp [if_neg x_ne, mul_hat_inv_cancel x_ne], },
   inv_zero := show ((0 : K) : hat K)⁻¹ = ((0 : K) : hat K), by rw [coe_inv, inv_zero],
   ..completion.has_inv,
-  ..(by apply_instance : comm_ring (hat K)) }
+  ..(infer_instance : comm_ring (hat K)) }
 
 instance topological_division_ring_completion : topological_division_ring (hat K) :=
 { continuous_at_inv₀ := begin

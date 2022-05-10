@@ -114,12 +114,12 @@ lemma strong_mono_of_strong_mono [strong_mono (f ≫ g)] : strong_mono f :=
 
 /-- An isomorphism is in particular a strong epimorphism. -/
 @[priority 100] instance strong_epi_of_is_iso [is_iso f] : strong_epi f :=
-{ epi := by apply_instance,
+{ epi := infer_instance,
   has_lift := λ X Y u v z _ h, arrow.has_lift.mk ⟨inv f ≫ u, by simp, by simp [h]⟩ }
 
 /-- An isomorphism is in particular a strong monomorphism. -/
 @[priority 100] instance strong_mono_of_is_iso [is_iso f] : strong_mono f :=
-{ mono := by apply_instance,
+{ mono := infer_instance,
   has_lift := λ X Y u v z _ h, arrow.has_lift.mk
     ⟨v ≫ inv f, by simp [← category.assoc, ← h], by simp⟩ }
 

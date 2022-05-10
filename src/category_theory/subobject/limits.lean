@@ -148,7 +148,7 @@ end
 
 @[simp]
 lemma kernel_subobject_zero {A B : C} : kernel_subobject (0 : A ⟶ B) = ⊤ :=
-(is_iso_iff_mk_eq_top _).mp (by apply_instance)
+(is_iso_iff_mk_eq_top _).mp (infer_instance)
 
 instance is_iso_kernel_subobject_zero_arrow : is_iso (kernel_subobject (0 : X ⟶ Y)).arrow :=
 (is_iso_arrow_iff_eq_top _).mpr kernel_subobject_zero

@@ -94,25 +94,25 @@ end
  These short-circuits have an additional property of ensuring that a computable path is found; if
  `field ℝ` is found first, then decaying it to these typeclasses would result in a `noncomputable`
  version of them. -/
-instance : ring ℝ               := by apply_instance
-instance : comm_semiring ℝ      := by apply_instance
-instance : semiring ℝ           := by apply_instance
-instance : comm_monoid_with_zero ℝ := by apply_instance
-instance : monoid_with_zero ℝ   := by apply_instance
-instance : add_comm_group ℝ     := by apply_instance
-instance : add_group ℝ          := by apply_instance
-instance : add_comm_monoid ℝ    := by apply_instance
-instance : add_monoid ℝ         := by apply_instance
-instance : add_left_cancel_semigroup ℝ := by apply_instance
-instance : add_right_cancel_semigroup ℝ := by apply_instance
-instance : add_comm_semigroup ℝ := by apply_instance
-instance : add_semigroup ℝ      := by apply_instance
-instance : comm_monoid ℝ        := by apply_instance
-instance : monoid ℝ             := by apply_instance
-instance : comm_semigroup ℝ     := by apply_instance
-instance : semigroup ℝ          := by apply_instance
-instance : has_sub ℝ            := by apply_instance
-instance : module ℝ ℝ           := by apply_instance
+instance : ring ℝ               := infer_instance
+instance : comm_semiring ℝ      := infer_instance
+instance : semiring ℝ           := infer_instance
+instance : comm_monoid_with_zero ℝ := infer_instance
+instance : monoid_with_zero ℝ   := infer_instance
+instance : add_comm_group ℝ     := infer_instance
+instance : add_group ℝ          := infer_instance
+instance : add_comm_monoid ℝ    := infer_instance
+instance : add_monoid ℝ         := infer_instance
+instance : add_left_cancel_semigroup ℝ := infer_instance
+instance : add_right_cancel_semigroup ℝ := infer_instance
+instance : add_comm_semigroup ℝ := infer_instance
+instance : add_semigroup ℝ      := infer_instance
+instance : comm_monoid ℝ        := infer_instance
+instance : monoid ℝ             := infer_instance
+instance : comm_semigroup ℝ     := infer_instance
+instance : semigroup ℝ          := infer_instance
+instance : has_sub ℝ            := infer_instance
+instance : module ℝ ℝ           := infer_instance
 instance : inhabited ℝ          := ⟨0⟩
 
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
@@ -193,7 +193,7 @@ instance : partial_order ℝ :=
   le_antisymm := λ a b, real.ind_mk a $ λ a, real.ind_mk b $ λ b,
     by simpa [mk_eq] using @cau_seq.le_antisymm _ _ a b }
 
-instance : preorder ℝ := by apply_instance
+instance : preorder ℝ := infer_instance
 
 theorem of_rat_lt {x y : ℚ} : of_rat x < of_rat y ↔ x < y :=
 begin
@@ -223,11 +223,11 @@ instance : ordered_comm_ring ℝ :=
   mul_pos     := @real.mul_pos,
   .. real.comm_ring, .. real.partial_order, .. real.semiring }
 
-instance : ordered_ring ℝ               := by apply_instance
-instance : ordered_semiring ℝ           := by apply_instance
-instance : ordered_add_comm_group ℝ     := by apply_instance
-instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance
-instance : ordered_add_comm_monoid ℝ    := by apply_instance
+instance : ordered_ring ℝ               := infer_instance
+instance : ordered_semiring ℝ           := infer_instance
+instance : ordered_add_comm_group ℝ     := infer_instance
+instance : ordered_cancel_add_comm_monoid ℝ := infer_instance
+instance : ordered_add_comm_monoid ℝ    := infer_instance
 instance : nontrivial ℝ := ⟨⟨0, 1, ne_of_lt real.zero_lt_one⟩⟩
 
 open_locale classical
@@ -239,15 +239,15 @@ noncomputable instance : linear_order ℝ :=
     induction b using real.ind_mk with b,
     simpa using le_total a b,
   end,
-  decidable_le := by apply_instance,
+  decidable_le := infer_instance,
   .. real.partial_order }
 
 noncomputable instance : linear_ordered_comm_ring ℝ :=
 { .. real.nontrivial, .. real.ordered_ring, .. real.comm_ring, .. real.linear_order }
 
 /- Extra instances to short-circuit type class resolution -/
-noncomputable instance : linear_ordered_ring ℝ        := by apply_instance
-noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
+noncomputable instance : linear_ordered_ring ℝ        := infer_instance
+noncomputable instance : linear_ordered_semiring ℝ    := infer_instance
 instance : is_domain ℝ :=
 { .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.is_domain }
 
@@ -270,18 +270,18 @@ noncomputable instance : linear_ordered_field ℝ :=
 
 /- Extra instances to short-circuit type class resolution -/
 
-noncomputable instance : linear_ordered_add_comm_group ℝ          := by apply_instance
-noncomputable instance field : field ℝ                            := by apply_instance
-noncomputable instance : division_ring ℝ                          := by apply_instance
-noncomputable instance : distrib_lattice ℝ                        := by apply_instance
-noncomputable instance : lattice ℝ                                := by apply_instance
-noncomputable instance : semilattice_inf ℝ                        := by apply_instance
-noncomputable instance : semilattice_sup ℝ                        := by apply_instance
-noncomputable instance : has_inf ℝ                                := by apply_instance
-noncomputable instance : has_sup ℝ                                := by apply_instance
-noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := by apply_instance
-noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := by apply_instance
-noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_instance
+noncomputable instance : linear_ordered_add_comm_group ℝ          := infer_instance
+noncomputable instance field : field ℝ                            := infer_instance
+noncomputable instance : division_ring ℝ                          := infer_instance
+noncomputable instance : distrib_lattice ℝ                        := infer_instance
+noncomputable instance : lattice ℝ                                := infer_instance
+noncomputable instance : semilattice_inf ℝ                        := infer_instance
+noncomputable instance : semilattice_sup ℝ                        := infer_instance
+noncomputable instance : has_inf ℝ                                := infer_instance
+noncomputable instance : has_sup ℝ                                := infer_instance
+noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := infer_instance
+noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := infer_instance
+noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := infer_instance
 
 open rat
 

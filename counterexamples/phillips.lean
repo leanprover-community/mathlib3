@@ -566,7 +566,7 @@ values in a complete space, is scalarly measurable, is everywhere bounded by `1`
 no Pettis integral.
 -/
 
-example : complete_space (discrete_copy ℝ →ᵇ ℝ) := by apply_instance
+example : complete_space (discrete_copy ℝ →ᵇ ℝ) := infer_instance
 
 /-- The function `f Hcont : ℝ → (discrete_copy ℝ →ᵇ ℝ)` is scalarly measurable. -/
 lemma measurable_comp (Hcont : #ℝ = aleph 1) (φ : (discrete_copy ℝ →ᵇ ℝ) →L[ℝ] ℝ) :

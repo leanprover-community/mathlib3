@@ -161,12 +161,12 @@ open nat.partrec (code) nat.partrec.code computable
 theorem computable_iff {p : α → Prop} :
   computable_pred p ↔ ∃ f : α → bool, computable f ∧ p = λ a, f a :=
 ⟨λ ⟨D, h⟩, by exactI ⟨_, h, funext $ λ a, propext (to_bool_iff _).symm⟩,
- by rintro ⟨f, h, rfl⟩; exact ⟨by apply_instance, by simpa using h⟩⟩
+ by rintro ⟨f, h, rfl⟩; exact ⟨infer_instance, by simpa using h⟩⟩
 
 protected theorem not {p : α → Prop}
   (hp : computable_pred p) : computable_pred (λ a, ¬ p a) :=
 by obtain ⟨f, hf, rfl⟩ := computable_iff.1 hp; exact
-  ⟨by apply_instance,
+  ⟨infer_instance,
     (cond hf (const ff) (const tt)).of_eq
       (λ n, by {dsimp, cases f n; refl})⟩
 
@@ -209,7 +209,7 @@ from λ f, ⟨set.mem_image_of_mem _, λ ⟨g, hg, e⟩, (H _ _ e).1 hg⟩,
     (partrec.nat_iff.1 $ eval_part.comp (const cg) computable.id)
     ((hC _).1 fC),
 λ h, by obtain rfl | rfl := h; simp [computable_pred, set.mem_empty_eq];
-  exact ⟨by apply_instance, computable.const _⟩⟩
+  exact ⟨infer_instance, computable.const _⟩⟩
 
 theorem halting_problem_re (n) : re_pred (λ c, (eval c n).dom) :=
 (eval_part.comp computable.id (computable.const _)).dom_re

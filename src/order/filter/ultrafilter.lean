@@ -296,7 +296,7 @@ lemma hyperfilter_le_cofinite : ↑(hyperfilter α) ≤ @cofinite α :=
 ultrafilter.of_le cofinite
 
 @[simp] lemma bot_ne_hyperfilter : (⊥ : filter α) ≠ hyperfilter α :=
-(by apply_instance : ne_bot ↑(hyperfilter α)).1.symm
+(infer_instance : ne_bot ↑(hyperfilter α)).1.symm
 
 theorem nmem_hyperfilter_of_finite {s : set α} (hf : s.finite) : s ∉ hyperfilter α :=
 λ hy, compl_not_mem hy $ hyperfilter_le_cofinite hf.compl_mem_cofinite

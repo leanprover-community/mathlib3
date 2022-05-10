@@ -157,7 +157,7 @@ subtype.mk f $ λ x,
 -- and isomorphisms are local ring homomorphisms.
 show is_local_ring_hom (PresheafedSpace.stalk_map
   (SheafedSpace.forget_to_PresheafedSpace.map f) x),
-by apply_instance
+infer_instance
 
 /--
 Given two locally ringed spaces `X` and `Y`, an isomorphism between `X` and `Y` as _sheafed_

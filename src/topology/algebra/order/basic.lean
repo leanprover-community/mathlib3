@@ -1055,7 +1055,7 @@ instance order_topology.to_order_closed_topology : order_closed_topology α :=
       let ⟨u, v, hu, hv, ha₁, ha₂, h⟩ := order_separated h in
       ⟨v, u, hv, hu, ha₂, ha₁, assume ⟨b₁, b₂⟩ ⟨h₁, h₂⟩, not_le_of_gt $ h b₂ h₂ b₁ h₁⟩ }
 
-lemma order_topology.t2_space : t2_space α := by apply_instance
+lemma order_topology.t2_space : t2_space α := infer_instance
 
 @[priority 100] -- see Note [lower instance priority]
 instance order_topology.regular_space : regular_space α :=

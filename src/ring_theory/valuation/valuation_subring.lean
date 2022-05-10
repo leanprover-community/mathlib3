@@ -49,8 +49,8 @@ lemma neg_mem (x : K) : x ∈ A → (-x) ∈ A := A.to_subring.neg_mem
 
 lemma mem_or_inv_mem (x : K) : x ∈ A ∨ x⁻¹ ∈ A := A.mem_or_inv_mem' _
 
-instance : comm_ring A := show comm_ring A.to_subring, by apply_instance
-instance : is_domain A := show is_domain A.to_subring, by apply_instance
+instance : comm_ring A := show comm_ring A.to_subring, infer_instance
+instance : is_domain A := show is_domain A.to_subring, infer_instance
 
 instance : has_top (valuation_subring K) := has_top.mk $
 { mem_or_inv_mem' := λ x, or.inl trivial,
@@ -78,7 +78,7 @@ instance : valuation_ring A :=
   end }
 
 instance : algebra A K :=
-show algebra A.to_subring K, by apply_instance
+show algebra A.to_subring K, infer_instance
 
 @[simp]
 lemma algebra_map_apply (a : A) : algebra_map A K a = a := rfl

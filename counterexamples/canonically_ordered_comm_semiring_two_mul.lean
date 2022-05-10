@@ -89,7 +89,7 @@ instance preN2 : partial_order (ℕ × zmod 2) :=
       { exact (nat.lt_asymm ab ba).elim } }
   end }
 
-instance csrN2 : comm_semiring (ℕ × zmod 2) := by apply_instance
+instance csrN2 : comm_semiring (ℕ × zmod 2) := infer_instance
 
 instance csrN2_1 : add_cancel_comm_monoid (ℕ × zmod 2) :=
 { add_left_cancel := λ a b c h, (add_right_inj a).mp h,

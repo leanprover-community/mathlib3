@@ -44,7 +44,7 @@ parameters {J : Type v} [small_category J] (F : J ⥤ SemiRing.{max v u})
 -- semiring axioms.
 instance semiring_obj (j : J) :
   semiring (((F ⋙ forget₂ SemiRing Mon.{max v u}) ⋙ forget Mon).obj j) :=
-show semiring (F.obj j), by apply_instance
+show semiring (F.obj j), infer_instance
 
 variables [is_filtered J]
 

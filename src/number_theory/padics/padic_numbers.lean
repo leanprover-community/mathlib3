@@ -446,15 +446,15 @@ instance : inhabited ℚ_[p] := ⟨0⟩
 
 -- short circuits
 
-instance : has_zero ℚ_[p] := by apply_instance
-instance : has_one ℚ_[p] := by apply_instance
-instance : has_add ℚ_[p] := by apply_instance
-instance : has_mul ℚ_[p] := by apply_instance
-instance : has_sub ℚ_[p] := by apply_instance
-instance : has_neg ℚ_[p] := by apply_instance
-instance : has_div ℚ_[p] := by apply_instance
-instance : add_comm_group ℚ_[p] := by apply_instance
-instance : comm_ring ℚ_[p] := by apply_instance
+instance : has_zero ℚ_[p] := infer_instance
+instance : has_one ℚ_[p] := infer_instance
+instance : has_add ℚ_[p] := infer_instance
+instance : has_mul ℚ_[p] := infer_instance
+instance : has_sub ℚ_[p] := infer_instance
+instance : has_neg ℚ_[p] := infer_instance
+instance : has_div ℚ_[p] := infer_instance
+instance : add_comm_group ℚ_[p] := infer_instance
+instance : comm_ring ℚ_[p] := infer_instance
 
 /-- Builds the equivalence class of a Cauchy sequence of rationals. -/
 def mk : padic_seq p → ℚ_[p] := quotient.mk

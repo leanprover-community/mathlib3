@@ -113,13 +113,13 @@ end
 
 /-- The point in the prime spectrum assosiated to a given point -/
 def point_to_point (x : σ → k) : prime_spectrum (mv_polynomial σ k) :=
-⟨(vanishing_ideal {x} : ideal (mv_polynomial σ k)), by apply_instance⟩
+⟨(vanishing_ideal {x} : ideal (mv_polynomial σ k)), infer_instance⟩
 
 @[simp] lemma vanishing_ideal_point_to_point (V : set (σ → k)) :
   prime_spectrum.vanishing_ideal (point_to_point '' V) = mv_polynomial.vanishing_ideal V :=
 le_antisymm
   (λ p hp x hx, (((prime_spectrum.mem_vanishing_ideal _ _).1 hp)
-    ⟨vanishing_ideal {x}, by apply_instance⟩ ⟨x, ⟨hx, rfl⟩⟩) x rfl)
+    ⟨vanishing_ideal {x}, infer_instance⟩ ⟨x, ⟨hx, rfl⟩⟩) x rfl)
   (λ p hp, (prime_spectrum.mem_vanishing_ideal _ _).2
     (λ I hI, let ⟨x, hx⟩ := hI in hx.2 ▸ λ x' hx', (set.mem_singleton_iff.1 hx').symm ▸ hp x hx.1))
 
@@ -144,7 +144,7 @@ begin
   obtain ⟨φ, hφ⟩ := function.surjective.has_right_inverse hϕ.2,
   let x : σ → k := λ s, φ ((ideal.quotient.mk I) (X s)),
   have hx : ∀ s : σ, ϕ (x s) = (ideal.quotient.mk I) (X s) := λ s, hφ ((ideal.quotient.mk I) (X s)),
-  refine ⟨x, (is_maximal.eq_of_le (by apply_instance) hI.ne_top _).symm⟩,
+  refine ⟨x, (is_maximal.eq_of_le (infer_instance) hI.ne_top _).symm⟩,
   intros p hp,
   rw [← quotient.eq_zero_iff_mem, map_mv_polynomial_eq_eval₂ (ideal.quotient.mk I) p, eval₂_eq'],
   rw [mem_vanishing_ideal_singleton_iff, eval_eq'] at hp,

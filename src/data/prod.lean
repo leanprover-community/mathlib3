@@ -152,7 +152,7 @@ theorem lex_def (r : α → α → Prop) (s : β → β → Prop)
 instance lex.decidable [decidable_eq α]
   (r : α → α → Prop) (s : β → β → Prop) [decidable_rel r] [decidable_rel s] :
   decidable_rel (prod.lex r s) :=
-λ p q, decidable_of_decidable_of_iff (by apply_instance) (lex_def r s).symm
+λ p q, decidable_of_decidable_of_iff (infer_instance) (lex_def r s).symm
 
 @[refl] lemma lex.refl_left (r : α → α → Prop) (s : β → β → Prop) [is_refl α r] :
   ∀ x, prod.lex r s x x

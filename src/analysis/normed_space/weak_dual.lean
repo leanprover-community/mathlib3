@@ -126,8 +126,8 @@ def continuous_linear_map_to_weak_dual : dual 𝕜 E →L[𝕜] weak_dual 𝕜 E
 
 /-- The weak-star topology is coarser than the dual-norm topology. -/
 theorem dual_norm_topology_le_weak_dual_topology :
-  (by apply_instance : topological_space (dual 𝕜 E)) ≤
-    (by apply_instance : topological_space (weak_dual 𝕜 E)) :=
+  (infer_instance : topological_space (dual 𝕜 E)) ≤
+    (infer_instance : topological_space (weak_dual 𝕜 E)) :=
 by { convert to_weak_dual_continuous.le_induced, exact induced_id.symm }
 
 end dual

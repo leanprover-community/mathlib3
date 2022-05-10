@@ -2417,7 +2417,7 @@ lemma disjoint_val : disjoint s t ↔ s.1.disjoint t.1 := disjoint_left
 lemma disjoint_iff_inter_eq_empty : disjoint s t ↔ s ∩ t = ∅ := disjoint_iff
 
 instance decidable_disjoint (U V : finset α) : decidable (disjoint U V) :=
-decidable_of_decidable_of_iff (by apply_instance) eq_bot_iff
+decidable_of_decidable_of_iff (infer_instance) eq_bot_iff
 
 lemma disjoint_right : disjoint s t ↔ ∀ {a}, a ∈ t → a ∉ s := by rw [disjoint.comm, disjoint_left]
 lemma disjoint_iff_ne : disjoint s t ↔ ∀ a ∈ s, ∀ b ∈ t, a ≠ b :=

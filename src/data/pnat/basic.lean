@@ -67,7 +67,7 @@ open nat
  subtraction, division and powers.
 -/
 
-instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
+instance : decidable_eq ℕ+ := λ (a b : ℕ+), infer_instance
 
 instance : linear_order ℕ+ :=
 subtype.linear_order _

@@ -42,7 +42,7 @@ instance : uniform_add_group ℝ :=
 uniform_add_group.mk' real.uniform_continuous_add real.uniform_continuous_neg
 
  -- short-circuit type class inference
-instance : topological_add_group ℝ := by apply_instance
+instance : topological_add_group ℝ := infer_instance
 
 instance : proper_space ℝ :=
 { is_compact_closed_ball := λx r, by { rw real.closed_ball_eq_Icc, apply is_compact_Icc } }

@@ -528,7 +528,7 @@ variables {C : Type u} [category.{v} C]
 section
 
 instance {X Y : C} (f : X ⟶ Y) [has_image f] : has_image (arrow.mk f).hom :=
-show has_image f, by apply_instance
+show has_image f, infer_instance
 
 end
 
@@ -777,7 +777,7 @@ instance has_image_maps_of_has_strong_epi_images [has_strong_epi_images C] :
 instance has_strong_epi_images_of_has_pullbacks_of_has_equalizers [has_pullbacks C]
   [has_equalizers C] : has_strong_epi_images C :=
 { strong_factor_thru_image := λ X Y f,
-  { epi := by apply_instance,
+  { epi := infer_instance,
     has_lift := λ A B x y h h_mono w, arrow.has_lift.mk
     { lift := image.lift
       { I := pullback h y,

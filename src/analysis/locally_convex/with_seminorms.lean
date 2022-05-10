@@ -289,7 +289,7 @@ lemma seminorm_family.with_seminorms_of_nhds (p : seminorm_family 𝕜 E ι)
   (h : 𝓝 (0 : E) = p.module_filter_basis.to_filter_basis.filter) :
   with_seminorms p :=
 begin
-  refine ⟨topological_add_group.ext (by apply_instance)
+  refine ⟨topological_add_group.ext (infer_instance)
     (p.add_group_filter_basis.is_topological_add_group) _⟩,
   rw add_group_filter_basis.nhds_zero_eq,
   exact h,

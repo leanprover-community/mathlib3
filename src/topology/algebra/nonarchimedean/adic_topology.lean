@@ -232,18 +232,18 @@ chaining.
 -/
 
 example : nonarchimedean_ring R :=
-by apply_instance
+infer_instance
 
 example : topological_ring (uniform_space.completion R) :=
-by apply_instance
+infer_instance
 
 example (M : Type*) [add_comm_group M] [module R M] :
   @topological_add_group M (with_ideal.topological_space_module R M) _:=
-by apply_instance
+infer_instance
 
 example (M : Type*) [add_comm_group M] [module R M] :
   @has_continuous_smul R M _ _ (with_ideal.topological_space_module R M) :=
-by apply_instance
+infer_instance
 
 example (M : Type*) [add_comm_group M] [module R M] :
   @nonarchimedean_add_group M _ (with_ideal.topological_space_module R M) :=

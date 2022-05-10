@@ -400,7 +400,7 @@ begin
 end
 
 instance finite_dimensional_self : finite_dimensional K K :=
-by apply_instance
+infer_instance
 
 /-- The vector space of functions on a fintype ι has finrank equal to the cardinality of ι. -/
 @[simp] lemma finrank_fintype_fun_eq_card {ι : Type v} [fintype ι] :
@@ -780,7 +780,7 @@ instance finite_dimensional_finset_sup {ι : Type*} (s : finset ι) (S : ι → 
   [Π i, finite_dimensional K (S i)] : finite_dimensional K (s.sup S : submodule K V) :=
 begin
   refine @finset.sup_induction _ _ _ _ s S (λ i, finite_dimensional K ↥i)
-    (finite_dimensional_bot K V) _ (λ i hi, by apply_instance),
+    (finite_dimensional_bot K V) _ (λ i hi, infer_instance),
   { introsI S₁ hS₁ S₂ hS₂,
     exact submodule.finite_dimensional_sup S₁ S₂ },
 end

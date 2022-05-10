@@ -151,7 +151,7 @@ instance monoid_colimit_type : monoid (colimit_type F) :=
   ((quot.mk setoid.r x) * (quot.mk setoid.r y) : colimit_type F) := rfl
 
 /-- The bundled monoid giving the colimit of a diagram. -/
-def colimit : Mon := ⟨colimit_type F, by apply_instance⟩
+def colimit : Mon := ⟨colimit_type F, infer_instance⟩
 
 /-- The function from a given monoid in the diagram to the colimit monoid. -/
 def cocone_fun (j : J) (x : F.obj j) : colimit_type F :=

@@ -192,7 +192,7 @@ lemma is_preconnected_of_equivalent {K : Type u₁} [category.{v₂} K] [is_prec
 lemma is_connected_of_equivalent {K : Type u₁} [category.{v₂} K]
   (e : J ≌ K) [is_connected J] :
   is_connected K :=
-{ is_nonempty := nonempty.map e.functor.obj (by apply_instance),
+{ is_nonempty := nonempty.map e.functor.obj (infer_instance),
   to_is_preconnected := is_preconnected_of_equivalent e }
 
 /-- If `J` is preconnected, then `Jᵒᵖ` is preconnected as well. -/

@@ -34,22 +34,22 @@ section abel_ruffini
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
 lemma gal_zero_is_solvable : is_solvable (0 : F[X]).gal :=
-by apply_instance
+infer_instance
 
 lemma gal_one_is_solvable : is_solvable (1 : F[X]).gal :=
-by apply_instance
+infer_instance
 
 lemma gal_C_is_solvable (x : F) : is_solvable (C x).gal :=
-by apply_instance
+infer_instance
 
 lemma gal_X_is_solvable : is_solvable (X : F[X]).gal :=
-by apply_instance
+infer_instance
 
 lemma gal_X_sub_C_is_solvable (x : F) : is_solvable (X - C x).gal :=
-by apply_instance
+infer_instance
 
 lemma gal_X_pow_is_solvable (n : ℕ) : is_solvable (X ^ n : F[X]).gal :=
-by apply_instance
+infer_instance
 
 lemma gal_mul_is_solvable {p q : F[X]}
   (hp : is_solvable p.gal) (hq : is_solvable q.gal) : is_solvable (p * q).gal :=

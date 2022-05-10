@@ -512,7 +512,7 @@ instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
   .. cardinal.linear_order }
 
 -- short-circuit type class inference
-instance : distrib_lattice cardinal.{u} := by apply_instance
+instance : distrib_lattice cardinal.{u} := infer_instance
 
 theorem one_lt_iff_nontrivial {α : Type u} : 1 < #α ↔ nontrivial α :=
 by rw [← not_le, le_one_iff_subsingleton, ← not_nontrivial_iff_subsingleton, not_not]

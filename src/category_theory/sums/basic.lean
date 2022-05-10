@@ -102,7 +102,7 @@ equivalence.mk (swap C D) (swap D C)
   (nat_iso.of_components (λ X, eq_to_iso (by { cases X; refl })) (by tidy))
 
 instance is_equivalence : is_equivalence (swap C D) :=
-(by apply_instance : is_equivalence (equivalence C D).functor)
+(infer_instance : is_equivalence (equivalence C D).functor)
 
 /-- The double swap on `C ⊕ D` is naturally isomorphic to the identity functor. -/
 def symmetry : swap C D ⋙ swap D C ≅ 𝟭 (C ⊕ D) :=

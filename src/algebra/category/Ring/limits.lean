@@ -216,7 +216,7 @@ The forgetful functor from rings to semirings preserves all limits.
 instance forget₂_SemiRing_preserves_limits_of_size :
   preserves_limits_of_size.{v v} (forget₂ CommSemiRing SemiRing.{max v u}) :=
 { preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F, by apply_instance } }
+  { preserves_limit := λ F, infer_instance } }
 
 instance forget₂_SemiRing_preserves_limits : preserves_limits (forget₂ CommSemiRing SemiRing.{u}) :=
 CommSemiRing.forget₂_SemiRing_preserves_limits_of_size.{u u}
@@ -305,7 +305,7 @@ The forgetful functor from rings to semirings preserves all limits.
 instance forget₂_SemiRing_preserves_limits_of_size :
   preserves_limits_of_size.{v v} (forget₂ Ring SemiRing.{max v u}) :=
 { preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F, by apply_instance } }
+  { preserves_limit := λ F, infer_instance } }
 
 instance forget₂_SemiRing_preserves_limits : preserves_limits (forget₂ Ring SemiRing.{u}) :=
 Ring.forget₂_SemiRing_preserves_limits_of_size.{u u}
@@ -414,7 +414,7 @@ The forgetful functor from commutative rings to rings preserves all limits.
 instance forget₂_Ring_preserves_limits_of_size :
   preserves_limits_of_size.{v v} (forget₂ CommRing Ring.{max v u}) :=
 { preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F, by apply_instance } }
+  { preserves_limit := λ F, infer_instance } }
 
 instance forget₂_Ring_preserves_limits : preserves_limits (forget₂ CommRing Ring.{u}) :=
 CommRing.forget₂_Ring_preserves_limits_of_size.{u u}

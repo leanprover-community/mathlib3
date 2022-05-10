@@ -42,10 +42,10 @@ equivalence.mk (associator C D E) (inverse_associator C D E)
   (nat_iso.of_components (λ X, eq_to_iso (by simp)) (by tidy))
 
 instance associator_is_equivalence : is_equivalence (associator C D E) :=
-(by apply_instance : is_equivalence (associativity C D E).functor)
+(infer_instance : is_equivalence (associativity C D E).functor)
 
 instance inverse_associator_is_equivalence : is_equivalence (inverse_associator C D E) :=
-(by apply_instance : is_equivalence (associativity C D E).inverse)
+(infer_instance : is_equivalence (associativity C D E).inverse)
 
 -- TODO unitors?
 -- TODO pentagon natural transformation? ...satisfying?

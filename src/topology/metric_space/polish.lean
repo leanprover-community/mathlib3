@@ -116,7 +116,7 @@ end
 /-- Without this instance, `polish_space (ℕ → ℕ)` is not found by typeclass inference. -/
 instance nat_fun [topological_space α] [polish_space α] :
   polish_space (ℕ → α) :=
-by apply_instance
+infer_instance
 
 /-- A countable disjoint union of Polish spaces is Polish. -/
 instance sigma {ι : Type*} [encodable ι]
@@ -198,7 +198,7 @@ begin
   diagonal embedding of `α`, one gets a Polish topology which is finer than all the `m n`. -/
   letI : ∀ (n : ι), topological_space (aux_copy α n) := λ n, m n,
   haveI : ∀ (n : ι), polish_space (aux_copy α n) := λ n, h'm n,
-  letI T : topological_space (Π (n : ι), aux_copy α n) := by apply_instance,
+  letI T : topological_space (Π (n : ι), aux_copy α n) := infer_instance,
   let f : α → Π (n : ι), aux_copy α n := λ x n, x,
   -- show that the induced topology is finer than all the `m n`.
   have T_le_m : ∀ n, T.induced f ≤ m n,
@@ -241,7 +241,7 @@ begin
   { split,
     { exact K },
     { exact f_closed } },
-  exact @closed_embedding.polish_space _ _ (T.induced f) T (by apply_instance) _ L
+  exact @closed_embedding.polish_space _ _ (T.induced f) T (infer_instance) _ L
 end
 
 /-!
@@ -426,7 +426,7 @@ begin
   let t : set α := sᶜ,
   haveI : polish_space t := hs.is_open_compl.polish_space,
   let f : α ≃ (s ⊕ t) := (equiv.set.sum_compl s).symm,
-  letI T : topological_space (s ⊕ t) := by apply_instance,
+  letI T : topological_space (s ⊕ t) := infer_instance,
   let t' : topological_space α := T.induced f,
   let g := @equiv.to_homeomorph_of_inducing  _ _ t' T f { induced := rfl },
   have A : g ⁻¹' (range (sum.inl : s → s ⊕ t)) = s,

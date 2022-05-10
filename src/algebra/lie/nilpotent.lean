@@ -232,7 +232,7 @@ lemma nilpotency_length_eq_zero_iff [is_nilpotent R L M] :
 begin
   let s := { k | lower_central_series R L M k = ⊥ },
   have hs : s.nonempty,
-  { unfreezingI { obtain ⟨k, hk⟩ := (by apply_instance : is_nilpotent R L M), },
+  { unfreezingI { obtain ⟨k, hk⟩ := (infer_instance : is_nilpotent R L M), },
     exact ⟨k, hk⟩, },
   change Inf s = 0 ↔ _,
   rw [← lie_submodule.subsingleton_iff R L M, ← subsingleton_iff_bot_eq_top,
@@ -355,7 +355,7 @@ end
 
 lemma function.surjective.lie_module_is_nilpotent [is_nilpotent R L M] : is_nilpotent R L₂ M₂ :=
 begin
-  obtain ⟨k, hk⟩ := id (by apply_instance : is_nilpotent R L M),
+  obtain ⟨k, hk⟩ := id (infer_instance : is_nilpotent R L M),
   use k,
   rw ← lie_submodule.coe_to_submodule_eq_iff at ⊢ hk,
   simp [← hf.lie_module_lcs_map_eq hg hfg k, hk],

@@ -1021,7 +1021,7 @@ class ordered_comm_ring (α : Type u) extends ordered_ring α, comm_ring α
 @[priority 100] -- See note [lower instance priority]
 instance ordered_comm_ring.to_ordered_comm_semiring {α : Type u} [ordered_comm_ring α] :
   ordered_comm_semiring α :=
-{ .. (by apply_instance : ordered_semiring α),
+{ .. (infer_instance : ordered_semiring α),
   .. ‹ordered_comm_ring α› }
 
 /-- Pullback an `ordered_comm_ring` under an injective map.

@@ -917,19 +917,19 @@ variable {R : Type*}
 section
 local attribute [reducible] power_series
 
-instance [inhabited R]       : inhabited       (power_series R) := by apply_instance
-instance [add_monoid R]      : add_monoid      (power_series R) := by apply_instance
-instance [add_group R]       : add_group       (power_series R) := by apply_instance
-instance [add_comm_monoid R] : add_comm_monoid (power_series R) := by apply_instance
-instance [add_comm_group R]  : add_comm_group  (power_series R) := by apply_instance
-instance [semiring R]        : semiring        (power_series R) := by apply_instance
-instance [comm_semiring R]   : comm_semiring   (power_series R) := by apply_instance
-instance [ring R]            : ring            (power_series R) := by apply_instance
-instance [comm_ring R]       : comm_ring       (power_series R) := by apply_instance
-instance [nontrivial R]      : nontrivial      (power_series R) := by apply_instance
+instance [inhabited R]       : inhabited       (power_series R) := infer_instance
+instance [add_monoid R]      : add_monoid      (power_series R) := infer_instance
+instance [add_group R]       : add_group       (power_series R) := infer_instance
+instance [add_comm_monoid R] : add_comm_monoid (power_series R) := infer_instance
+instance [add_comm_group R]  : add_comm_group  (power_series R) := infer_instance
+instance [semiring R]        : semiring        (power_series R) := infer_instance
+instance [comm_semiring R]   : comm_semiring   (power_series R) := infer_instance
+instance [ring R]            : ring            (power_series R) := infer_instance
+instance [comm_ring R]       : comm_ring       (power_series R) := infer_instance
+instance [nontrivial R]      : nontrivial      (power_series R) := infer_instance
 
 instance {A} [semiring R] [add_comm_monoid A] [module R A] :
-  module R (power_series A) := by apply_instance
+  module R (power_series A) := infer_instance
 
 instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [module R A] [module S A]
   [has_scalar R S] [is_scalar_tower R S A] :
@@ -937,7 +937,7 @@ instance {A S} [semiring R] [semiring S] [add_comm_monoid A] [module R A] [modul
 pi.is_scalar_tower
 
 instance {A} [semiring A] [comm_semiring R] [algebra R A] :
-  algebra R (power_series A) := by apply_instance
+  algebra R (power_series A) := infer_instance
 
 end
 

@@ -97,11 +97,11 @@ end
 instance : fin_category walking_parallel_pair := { }
 
 /-- Equalizers are finite limits, so if `C` has all finite limits, it also has all equalizers -/
-example [has_finite_limits C] : has_equalizers C := by apply_instance
+example [has_finite_limits C] : has_equalizers C := infer_instance
 
 /-- Coequalizers are finite colimits, of if `C` has all finite colimits, it also has all
     coequalizers -/
-example [has_finite_colimits C] : has_coequalizers C := by apply_instance
+example [has_finite_colimits C] : has_coequalizers C := infer_instance
 
 variables {J : Type v}
 
@@ -206,9 +206,9 @@ instance fintype_walking_pair : fintype walking_pair :=
   complete := λ x, by { cases x; simp } }
 
 /-- Pullbacks are finite limits, so if `C` has all finite limits, it also has all pullbacks -/
-example [has_finite_wide_pullbacks C] : has_pullbacks C := by apply_instance
+example [has_finite_wide_pullbacks C] : has_pullbacks C := infer_instance
 
 /-- Pushouts are finite colimits, so if `C` has all finite colimits, it also has all pushouts -/
-example [has_finite_wide_pushouts C] : has_pushouts C := by apply_instance
+example [has_finite_wide_pushouts C] : has_pushouts C := infer_instance
 
 end category_theory.limits

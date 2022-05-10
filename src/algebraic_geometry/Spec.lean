@@ -149,7 +149,7 @@ The spectrum of a commutative ring, as a `LocallyRingedSpace`.
 -/
 @[simps] def Spec.LocallyRingedSpace_obj (R : CommRing) : LocallyRingedSpace :=
 { local_ring := λ x, @@ring_equiv.local_ring _
-    (show local_ring (localization.at_prime _), by apply_instance) _
+    (show local_ring (localization.at_prime _), infer_instance) _
     (iso.CommRing_iso_to_ring_equiv $ stalk_iso R x).symm,
   .. Spec.SheafedSpace_obj R }
 
@@ -251,7 +251,7 @@ begin
   apply_with is_iso.comp_is_iso { instances := ff },
   /- I do not know why this is defeq to the goal, but I'm happy to accept that it is. -/
   exact (show is_iso (is_localization.localization_localization_at_prime_iso_localization
-    M x.as_ideal).to_ring_equiv.to_CommRing_iso.hom, by apply_instance),
+    M x.as_ideal).to_ring_equiv.to_CommRing_iso.hom, infer_instance),
   apply_instance
 end
 

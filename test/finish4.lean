@@ -47,7 +47,7 @@ constant real : Type
 @[instance] constant orreal : ordered_ring real
 
 -- TODO(Mario): suspicious fix
-@[irreducible] noncomputable instance : has_lt real := by apply_instance
+@[irreducible] noncomputable instance : has_lt real := infer_instance
 constants (log exp : real → real)
 constant  log_exp_eq : ∀ x, log (exp x) = x
 constant  exp_log_eq : ∀ {x}, x > 0 → exp (log x) = x

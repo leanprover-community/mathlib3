@@ -2015,7 +2015,7 @@ variables (R M)
 namespace general_linear_group
 variables {R M}
 
-instance : has_coe_to_fun (general_linear_group R M) (λ _, M → M) := by apply_instance
+instance : has_coe_to_fun (general_linear_group R M) (λ _, M → M) := infer_instance
 
 /-- An invertible linear map `f` determines an equivalence from `M` to itself. -/
 def to_linear_equiv (f : general_linear_group R M) : (M ≃ₗ[R] M) :=

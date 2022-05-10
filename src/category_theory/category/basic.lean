@@ -246,7 +246,7 @@ instance ulift_category : category.{v} (ulift.{u'} C) :=
   comp := λ _ _ _ f g, f ≫ g }
 
 -- We verify that this previous instance can lift small categories to large categories.
-example (D : Type u) [small_category D] : large_category (ulift.{u+1} D) := by apply_instance
+example (D : Type u) [small_category D] : large_category (ulift.{u+1} D) := infer_instance
 end
 
 end category_theory

@@ -499,10 +499,10 @@ local attribute [reducible] tangent_space
 
 variables {M} (x : M)
 
-instance : topological_space (tangent_space I x) := by apply_instance
-instance : add_comm_group (tangent_space I x) := by apply_instance
-instance : topological_add_group (tangent_space I x) := by apply_instance
-instance : module 𝕜 (tangent_space I x) := by apply_instance
+instance : topological_space (tangent_space I x) := infer_instance
+instance : add_comm_group (tangent_space I x) := infer_instance
+instance : topological_add_group (tangent_space I x) := infer_instance
+instance : module 𝕜 (tangent_space I x) := infer_instance
 instance : inhabited (tangent_space I x) := ⟨0⟩
 
 end

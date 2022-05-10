@@ -97,7 +97,7 @@ def pseudo_equal (P : C) (f g : over P) : Prop :=
 ∃ (R : C) (p : R ⟶ f.1) (q : R ⟶ g.1) (_ : epi p) (_ : epi q), p ≫ f.hom = q ≫ g.hom
 
 lemma pseudo_equal_refl {P : C} : reflexive (pseudo_equal P) :=
-λ f, ⟨f.1, 𝟙 f.1, 𝟙 f.1, by apply_instance, by apply_instance, by simp⟩
+λ f, ⟨f.1, 𝟙 f.1, 𝟙 f.1, infer_instance, infer_instance, by simp⟩
 
 lemma pseudo_equal_symm {P : C} : symmetric (pseudo_equal P) :=
 λ f g ⟨R, p, q, ep, eq, comm⟩, ⟨R, q, p, eq, ep, comm.symm⟩
@@ -193,7 +193,7 @@ local attribute [instance] has_binary_biproducts.of_has_binary_products
 /-- The arrows pseudo-equal to a zero morphism are precisely the zero morphisms -/
 lemma pseudo_zero_aux {P : C} (Q : C) (f : over P) : f ≈ (0 : Q ⟶ P) ↔ f.hom = 0 :=
 ⟨λ ⟨R, p, q, ep, eq, comm⟩, by exactI zero_of_epi_comp p (by simp [comm]),
-  λ hf, ⟨biprod f.1 Q, biprod.fst, biprod.snd, by apply_instance, by apply_instance,
+  λ hf, ⟨biprod f.1 Q, biprod.fst, biprod.snd, infer_instance, infer_instance,
     by rw [hf, over.coe_hom, has_zero_morphisms.comp_zero, has_zero_morphisms.comp_zero]⟩⟩
 
 end
@@ -271,8 +271,8 @@ section
 /-- An epimorphism is surjective on pseudoelements. -/
 theorem pseudo_surjective_of_epi {P Q : C} (f : P ⟶ Q) [epi f] : function.surjective f :=
 λ qbar, quotient.induction_on qbar $ λ q, ⟨((pullback.fst : pullback f q.hom ⟶ P) : over P),
-  quotient.sound $ ⟨pullback f q.hom, 𝟙 (pullback f q.hom), pullback.snd, by apply_instance,
-    by apply_instance, by rw [category.id_comp, ←pullback.condition, app_hom, over.coe_hom]⟩⟩
+  quotient.sound $ ⟨pullback f q.hom, 𝟙 (pullback f q.hom), pullback.snd, infer_instance,
+    infer_instance, by rw [category.id_comp, ←pullback.condition, app_hom, over.coe_hom]⟩⟩
 
 end
 
@@ -309,7 +309,7 @@ theorem pseudo_exact_of_exact {P Q R : C} {f : P ⟶ Q} {g : Q ⟶ R} (h : exact
 
       -- pullback.snd is an epimorphism because the map onto the image is!
       refine ⟨pullback (abelian.factor_thru_image f) c, 𝟙 _, pullback.snd,
-        by apply_instance, by apply_instance, _⟩,
+        infer_instance, infer_instance, _⟩,
 
       -- Now we can verify that the diagram commutes.
       calc 𝟙 (pullback (abelian.factor_thru_image f) c) ≫ pullback.fst ≫ f = pullback.fst ≫ f
@@ -392,7 +392,7 @@ match quotient.exact h with ⟨R, p, q, ep, eq, comm⟩ :=
         -- Can we prevent quotient.sound from giving us this weird `coe_b` thingy?
         change app g (a'' : over P) ≈ app g a,
 
-        exact ⟨R, 𝟙 R, p, by apply_instance, ep, by simp [sub_eq_add_neg, this]⟩
+        exact ⟨R, 𝟙 R, p, infer_instance, ep, by simp [sub_eq_add_neg, this]⟩
       end⟩⟩
 end
 
@@ -411,8 +411,8 @@ begin
   obtain ⟨l, hl₁, hl₂⟩ := @pullback.lift' _ _ _ _ _ _ f g _ (a ≫ x.hom) (b ≫ y.hom)
     (by { simp only [category.assoc], exact comm }),
 
-  exact ⟨l, ⟨quotient.sound ⟨Z, 𝟙 Z, a, by apply_instance, ea, by rwa category.id_comp⟩,
-    quotient.sound ⟨Z, 𝟙 Z, b, by apply_instance, eb, by rwa category.id_comp⟩⟩⟩
+  exact ⟨l, ⟨quotient.sound ⟨Z, 𝟙 Z, a, infer_instance, ea, by rwa category.id_comp⟩,
+    quotient.sound ⟨Z, 𝟙 Z, b, infer_instance, eb, by rwa category.id_comp⟩⟩⟩
 end
 
 section module

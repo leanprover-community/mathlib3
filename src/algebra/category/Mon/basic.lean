@@ -226,4 +226,4 @@ Once we've shown that the forgetful functors to type reflect isomorphisms,
 we automatically obtain that the `forget₂` functors between our concrete categories
 reflect isomorphisms.
 -/
-example : reflects_isomorphisms (forget₂ CommMon Mon) := by apply_instance
+example : reflects_isomorphisms (forget₂ CommMon Mon) := infer_instance

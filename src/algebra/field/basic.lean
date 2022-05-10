@@ -158,7 +158,7 @@ lemma add_div_eq_mul_add_div (a b : K) {c : K} (hc : c ≠ 0) : a + b / c = (a *
 @[priority 100] -- see Note [lower instance priority]
 instance division_ring.is_domain : is_domain K :=
 { ..‹division_ring K›,
-  ..(by apply_instance : no_zero_divisors K) }
+  ..(infer_instance : no_zero_divisors K) }
 
 end division_ring
 
@@ -174,7 +174,7 @@ variable [field K]
 
 @[priority 100] -- see Note [lower instance priority]
 instance field.to_division_ring : division_ring K :=
-{ ..show field K, by apply_instance }
+{ ..show field K, infer_instance }
 
 /-- Every field is a `comm_group_with_zero`. -/
 @[priority 100] -- see Note [lower instance priority]

@@ -467,26 +467,26 @@ instance : field ℚ :=
   inv_zero         := rfl }
 
 /- Extra instances to short-circuit type class resolution -/
-instance : division_ring ℚ      := by apply_instance
-instance : is_domain ℚ          := by apply_instance
+instance : division_ring ℚ      := infer_instance
+instance : is_domain ℚ          := infer_instance
 -- TODO(Mario): this instance slows down data.real.basic
-instance : nontrivial ℚ         := by apply_instance
-instance : comm_ring ℚ          := by apply_instance
---instance : ring ℚ             := by apply_instance
-instance : comm_semiring ℚ      := by apply_instance
-instance : semiring ℚ           := by apply_instance
-instance : add_comm_group ℚ     := by apply_instance
-instance : add_group ℚ          := by apply_instance
-instance : add_comm_monoid ℚ    := by apply_instance
-instance : add_monoid ℚ         := by apply_instance
-instance : add_left_cancel_semigroup ℚ := by apply_instance
-instance : add_right_cancel_semigroup ℚ := by apply_instance
-instance : add_comm_semigroup ℚ := by apply_instance
-instance : add_semigroup ℚ      := by apply_instance
-instance : comm_monoid ℚ        := by apply_instance
-instance : monoid ℚ             := by apply_instance
-instance : comm_semigroup ℚ     := by apply_instance
-instance : semigroup ℚ          := by apply_instance
+instance : nontrivial ℚ         := infer_instance
+instance : comm_ring ℚ          := infer_instance
+--instance : ring ℚ             := infer_instance
+instance : comm_semiring ℚ      := infer_instance
+instance : semiring ℚ           := infer_instance
+instance : add_comm_group ℚ     := infer_instance
+instance : add_group ℚ          := infer_instance
+instance : add_comm_monoid ℚ    := infer_instance
+instance : add_monoid ℚ         := infer_instance
+instance : add_left_cancel_semigroup ℚ := infer_instance
+instance : add_right_cancel_semigroup ℚ := infer_instance
+instance : add_comm_semigroup ℚ := infer_instance
+instance : add_semigroup ℚ      := infer_instance
+instance : comm_monoid ℚ        := infer_instance
+instance : monoid ℚ             := infer_instance
+instance : comm_semigroup ℚ     := infer_instance
+instance : semigroup ℚ          := infer_instance
 
 theorem sub_def {a b c d : ℤ} (b0 : b ≠ 0) (d0 : d ≠ 0) :
   a /. b - c /. d = (a * d - c * b) /. (b * d) :=

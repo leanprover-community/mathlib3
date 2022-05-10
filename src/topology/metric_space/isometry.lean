@@ -185,7 +185,7 @@ lemma uniform_embedding.to_isometry {α β} [uniform_space α] [metric_space β]
   @isometry α β
     (@pseudo_metric_space.to_pseudo_emetric_space α
       (@metric_space.to_pseudo_metric_space α (h.comap_metric_space f)))
-    (by apply_instance) f :=
+    (infer_instance) f :=
 begin
   apply isometry_emetric_iff_metric.2,
   assume x y,
@@ -199,7 +199,7 @@ lemma embedding.to_isometry {α β} [topological_space α] [metric_space β] {f 
   @isometry α β
     (@pseudo_metric_space.to_pseudo_emetric_space α
       (@metric_space.to_pseudo_metric_space α (h.comap_metric_space f)))
-    (by apply_instance) f :=
+    (infer_instance) f :=
 begin
   apply isometry_emetric_iff_metric.2,
   assume x y,

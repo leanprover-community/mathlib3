@@ -432,9 +432,9 @@ instance : linear_order pos_num :=
   le_trans        := by {intros a b c, transfer_rw, apply le_trans},
   le_antisymm     := by {intros a b, transfer_rw, apply le_antisymm},
   le_total        := by {intros a b, transfer_rw, apply le_total},
-  decidable_lt    := by apply_instance,
-  decidable_le    := by apply_instance,
-  decidable_eq    := by apply_instance }
+  decidable_lt    := infer_instance,
+  decidable_le    := infer_instance,
+  decidable_eq    := infer_instance }
 
 @[simp] theorem cast_to_num (n : pos_num) : ↑n = num.pos n :=
 by rw [← cast_to_nat, ← of_to_nat n]

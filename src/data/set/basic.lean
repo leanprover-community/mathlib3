@@ -2594,16 +2594,16 @@ namespace set
 variables {α : Type u} (s t : set α) (a : α)
 
 instance decidable_sdiff [decidable (a ∈ s)] [decidable (a ∈ t)] : decidable (a ∈ s \ t) :=
-(by apply_instance : decidable (a ∈ s ∧ a ∉ t))
+(infer_instance : decidable (a ∈ s ∧ a ∉ t))
 
 instance decidable_inter [decidable (a ∈ s)] [decidable (a ∈ t)] : decidable (a ∈ s ∩ t) :=
-(by apply_instance : decidable (a ∈ s ∧ a ∈ t))
+(infer_instance : decidable (a ∈ s ∧ a ∈ t))
 
 instance decidable_union [decidable (a ∈ s)] [decidable (a ∈ t)] : decidable (a ∈ s ∪ t) :=
-(by apply_instance : decidable (a ∈ s ∨ a ∈ t))
+(infer_instance : decidable (a ∈ s ∨ a ∈ t))
 
 instance decidable_compl [decidable (a ∈ s)] : decidable (a ∈ sᶜ) :=
-(by apply_instance : decidable (a ∉ s))
+(infer_instance : decidable (a ∉ s))
 
 instance decidable_emptyset : decidable_pred (∈ (∅ : set α)) :=
 λ _, decidable.is_false (by simp)

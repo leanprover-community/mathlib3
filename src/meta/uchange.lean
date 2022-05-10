@@ -43,7 +43,7 @@ namespace uchange
 variables {α : Type v} (a : α)
 
 meta instance [decidable_eq α] : decidable_eq (uchange α) :=
-unchecked_cast' (by apply_instance : _root_.decidable_eq α)
+unchecked_cast' (infer_instance : _root_.decidable_eq α)
 
 /--
 `uchange.down` embeds `α` to `uchange α`.

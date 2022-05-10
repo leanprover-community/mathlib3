@@ -720,7 +720,7 @@ let ⟨s, hs⟩ := hN in
 begin
   haveI := classical.dec_eq M,
   haveI := classical.dec_eq R,
-  letI : is_noetherian R R := by apply_instance,
+  letI : is_noetherian R R := infer_instance,
   have : ∀ x ∈ s, x ∈ N, from λ x hx, hs ▸ submodule.subset_span hx,
   refine @@is_noetherian_of_surjective ((↑s : set M) → R) _ _ _ (pi.module _ _ _)
     _ _ _ is_noetherian_pi,

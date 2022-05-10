@@ -96,18 +96,18 @@ by refine_struct
   zsmul          := @zsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
 intros; try { refl }; simp [ext, add_mul, mul_add, add_comm, add_left_comm, mul_comm, mul_left_comm]
 
-instance : add_comm_monoid ℤ√d    := by apply_instance
-instance : add_monoid ℤ√d         := by apply_instance
-instance : monoid ℤ√d             := by apply_instance
-instance : comm_monoid ℤ√d        := by apply_instance
-instance : comm_semigroup ℤ√d     := by apply_instance
-instance : semigroup ℤ√d          := by apply_instance
-instance : add_comm_semigroup ℤ√d := by apply_instance
-instance : add_semigroup ℤ√d      := by apply_instance
-instance : comm_semiring ℤ√d      := by apply_instance
-instance : semiring ℤ√d           := by apply_instance
-instance : ring ℤ√d               := by apply_instance
-instance : distrib ℤ√d            := by apply_instance
+instance : add_comm_monoid ℤ√d    := infer_instance
+instance : add_monoid ℤ√d         := infer_instance
+instance : monoid ℤ√d             := infer_instance
+instance : comm_monoid ℤ√d        := infer_instance
+instance : comm_semigroup ℤ√d     := infer_instance
+instance : semigroup ℤ√d          := infer_instance
+instance : add_comm_semigroup ℤ√d := infer_instance
+instance : add_semigroup ℤ√d      := infer_instance
+instance : comm_semiring ℤ√d      := infer_instance
+instance : semiring ℤ√d           := infer_instance
+instance : ring ℤ√d               := infer_instance
+instance : distrib ℤ√d            := infer_instance
 
 /-- Conjugation in `ℤ√d`. The conjugate of `a + b √d` is `a - b √d`. -/
 def conj (z : ℤ√d) : ℤ√d := ⟨z.1, -z.2⟩
@@ -703,8 +703,8 @@ instance : linear_ordered_comm_ring ℤ√d :=
   zero_le_one     := dec_trivial,
   .. zsqrtd.comm_ring, .. zsqrtd.linear_order, .. zsqrtd.nontrivial }
 
-instance : linear_ordered_ring ℤ√d := by apply_instance
-instance : ordered_ring ℤ√d        := by apply_instance
+instance : linear_ordered_ring ℤ√d := infer_instance
+instance : ordered_ring ℤ√d        := infer_instance
 
 end
 

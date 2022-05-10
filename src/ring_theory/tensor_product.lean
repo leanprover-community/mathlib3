@@ -344,7 +344,7 @@ instance : semiring (A ⊗[R] B) :=
   mul_zero := by simp,
   left_distrib := by simp,
   right_distrib := by simp,
-  .. (by apply_instance : add_comm_monoid (A ⊗[R] B)) }.
+  .. (infer_instance : add_comm_monoid (A ⊗[R] B)) }.
 
 lemma one_def : (1 : A ⊗[R] B) = (1 : A) ⊗ₜ (1 : B) := rfl
 
@@ -391,7 +391,7 @@ instance : algebra R (A ⊗[R] B) :=
     { intros, dsimp, simp [smul_add, mul_add, *], },
   end,
   .. tensor_algebra_map,
-  .. (by apply_instance : module R (A ⊗[R] B)) }.
+  .. (infer_instance : module R (A ⊗[R] B)) }.
 
 @[simp]
 lemma algebra_map_apply (r : R) :
@@ -447,8 +447,8 @@ variables {A : Type v₁} [ring A] [algebra R A]
 variables {B : Type v₂} [ring B] [algebra R B]
 
 instance : ring (A ⊗[R] B) :=
-{ .. (by apply_instance : add_comm_group (A ⊗[R] B)),
-  .. (by apply_instance : semiring (A ⊗[R] B)) }.
+{ .. (infer_instance : add_comm_group (A ⊗[R] B)),
+  .. (infer_instance : semiring (A ⊗[R] B)) }.
 
 end ring
 
@@ -473,7 +473,7 @@ instance : comm_ring (A ⊗[R] B) :=
     { intros x₁ x₂ h₁ h₂,
       simp [mul_add, add_mul, h₁, h₂], },
   end
-  .. (by apply_instance : ring (A ⊗[R] B)) }.
+  .. (infer_instance : ring (A ⊗[R] B)) }.
 
 end comm_ring
 
@@ -482,14 +482,14 @@ Verify that typeclass search finds the ring structure on `A ⊗[ℤ] B`
 when `A` and `B` are merely rings, by treating both as `ℤ`-algebras.
 -/
 example {A : Type v₁} [ring A] {B : Type v₂} [ring B] : ring (A ⊗[ℤ] B) :=
-by apply_instance
+infer_instance
 
 /--
 Verify that typeclass search finds the comm_ring structure on `A ⊗[ℤ] B`
 when `A` and `B` are merely comm_rings, by treating both as `ℤ`-algebras.
 -/
 example {A : Type v₁} [comm_ring A] {B : Type v₂} [comm_ring B] : comm_ring (A ⊗[ℤ] B) :=
-by apply_instance
+infer_instance
 
 /-!
 We now build the structure maps for the symmetric monoidal category of `R`-algebras.

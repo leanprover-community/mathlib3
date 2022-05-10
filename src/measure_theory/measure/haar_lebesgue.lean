@@ -208,7 +208,7 @@ begin
   -- we reduce to the case of `E = ι → ℝ`, for which we have already proved the result using
   -- matrices in `map_linear_map_add_haar_pi_eq_smul_add_haar`.
   let ι := fin (finrank ℝ E),
-  haveI : finite_dimensional ℝ (ι → ℝ) := by apply_instance,
+  haveI : finite_dimensional ℝ (ι → ℝ) := infer_instance,
   have : finrank ℝ E = finrank ℝ (ι → ℝ), by simp,
   have e : E ≃ₗ[ℝ] ι → ℝ := linear_equiv.of_finrank_eq E (ι → ℝ) this,
   -- next line is to avoid `g` getting reduced by `simp`.

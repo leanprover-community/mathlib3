@@ -1907,14 +1907,14 @@ begin
   continuous linear equiv to `continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) H`, and
   continuous linear equivs respect smoothness classes. -/
   let Eu := continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) E,
-  letI : normed_group Eu := by apply_instance,
-  letI : normed_space 𝕜 Eu := by apply_instance,
+  letI : normed_group Eu := infer_instance,
+  letI : normed_space 𝕜 Eu := infer_instance,
   let Fu := continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) F,
-  letI : normed_group Fu := by apply_instance,
-  letI : normed_space 𝕜 Fu := by apply_instance,
+  letI : normed_group Fu := infer_instance,
+  letI : normed_space 𝕜 Fu := infer_instance,
   let Gu := continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) G,
-  letI : normed_group Gu := by apply_instance,
-  letI : normed_space 𝕜 Gu := by apply_instance,
+  letI : normed_group Gu := infer_instance,
+  letI : normed_space 𝕜 Gu := infer_instance,
   -- declare the isomorphisms
   let isoE : Eu ≃L[𝕜] E := continuous_multilinear_curry_fin0 𝕜 (E × F × G) E,
   let isoF : Fu ≃L[𝕜] F := continuous_multilinear_curry_fin0 𝕜 (E × F × G) F,

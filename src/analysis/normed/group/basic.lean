@@ -1009,7 +1009,7 @@ instance normed_uniform_group : uniform_add_group E :=
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_group : topological_add_group E :=
-by apply_instance -- short-circuit type class inference
+infer_instance -- short-circuit type class inference
 
 lemma nat.norm_cast_le [has_one E] : ∀ n : ℕ, ∥(n : E)∥ ≤ n * ∥(1 : E)∥
 | 0 := by simp

@@ -148,13 +148,13 @@ end
 @[priority 100]
 instance has_reflexive_coequalizers_of_has_coequalizers [has_coequalizers C] :
   has_reflexive_coequalizers C :=
-{ has_coeq := λ A B f g i, by apply_instance }
+{ has_coeq := λ A B f g i, infer_instance }
 
 /-- If `C` has equalizers, then it has coreflexive equalizers. -/
 @[priority 100]
 instance has_coreflexive_equalizers_of_has_equalizers [has_equalizers C] :
   has_coreflexive_equalizers C :=
-{ has_eq := λ A B f g i, by apply_instance }
+{ has_eq := λ A B f g i, infer_instance }
 
 end limits
 

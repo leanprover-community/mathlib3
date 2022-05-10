@@ -37,7 +37,7 @@ section tuple
 
 /-- There is exactly one tuple of size zero. -/
 example (α : fin 0 → Sort u) : unique (Π i : fin 0, α i) :=
-by apply_instance
+infer_instance
 
 @[simp] lemma tuple0_le {α : Π i : fin 0, Type*} [Π i, preorder (α i)] (f g : Π i, α i) : f ≤ g :=
 fin_zero_elim

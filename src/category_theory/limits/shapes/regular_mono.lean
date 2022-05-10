@@ -118,7 +118,7 @@ regular_of_is_pullback_snd_of_regular comm.symm (pullback_cone.flip_is_limit t)
 
 @[priority 100]
 instance strong_mono_of_regular_mono (f : X ⟶ Y) [regular_mono f] : strong_mono f :=
-{ mono := by apply_instance,
+{ mono := infer_instance,
   has_lift :=
   begin
     introsI,
@@ -244,7 +244,7 @@ regular_of_is_pushout_snd_of_regular comm.symm (pushout_cocone.flip_is_colimit t
 
 @[priority 100]
 instance strong_epi_of_regular_epi (f : X ⟶ Y) [regular_epi f] : strong_epi f :=
-{ epi := by apply_instance,
+{ epi := infer_instance,
   has_lift :=
   begin
     introsI,

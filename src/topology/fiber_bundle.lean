@@ -825,7 +825,7 @@ def fiber (x : B) := F
 section fiber_instances
 local attribute [reducible] fiber
 
-instance topological_space_fiber (x : B) : topological_space (Z.fiber x) := by apply_instance
+instance topological_space_fiber (x : B) : topological_space (Z.fiber x) := infer_instance
 
 end fiber_instances
 

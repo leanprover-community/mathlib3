@@ -60,8 +60,8 @@ without the following reducibility attribute (which is only set in this section)
 local attribute [reducible] euclidean_half_space euclidean_quadrant
 variable {n : ℕ}
 
-instance [has_zero (fin n)] : topological_space (euclidean_half_space n) := by apply_instance
-instance : topological_space (euclidean_quadrant n) := by apply_instance
+instance [has_zero (fin n)] : topological_space (euclidean_half_space n) := infer_instance
+instance : topological_space (euclidean_quadrant n) := infer_instance
 instance [has_zero (fin n)] : inhabited (euclidean_half_space n) := ⟨⟨0, le_rfl⟩⟩
 instance : inhabited (euclidean_quadrant n) := ⟨⟨0, λ i, le_rfl⟩⟩
 
@@ -308,7 +308,7 @@ lemma fact_zero_lt_one : fact ((0 : ℝ) < 1) := ⟨zero_lt_one⟩
 
 local attribute [instance] fact_zero_lt_one
 
-instance : charted_space (euclidean_half_space 1) (Icc (0 : ℝ) 1) := by apply_instance
-instance : smooth_manifold_with_corners (𝓡∂ 1) (Icc (0 : ℝ) 1) := by apply_instance
+instance : charted_space (euclidean_half_space 1) (Icc (0 : ℝ) 1) := infer_instance
+instance : smooth_manifold_with_corners (𝓡∂ 1) (Icc (0 : ℝ) 1) := infer_instance
 
 end

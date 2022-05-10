@@ -32,7 +32,7 @@ instance : topological_space ℝ≥0∞ := preorder.topology ℝ≥0∞
 
 instance : order_topology ℝ≥0∞ := ⟨rfl⟩
 
-instance : t2_space ℝ≥0∞ := by apply_instance -- short-circuit type class inference
+instance : t2_space ℝ≥0∞ := infer_instance -- short-circuit type class inference
 
 instance : normal_space ℝ≥0∞ := normal_of_compact_t2
 

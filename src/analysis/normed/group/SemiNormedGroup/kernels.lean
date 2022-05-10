@@ -77,7 +77,7 @@ instance : has_cokernels SemiNormedGroup₁.{u} :=
         (normed_group_hom.lift_unique f.1.range _ _ _ (congr_arg subtype.val w : _))), } }
 
 -- Sanity check
-example : has_cokernels SemiNormedGroup₁ := by apply_instance
+example : has_cokernels SemiNormedGroup₁ := infer_instance
 
 end SemiNormedGroup₁
 
@@ -157,7 +157,7 @@ instance : has_cokernels SemiNormedGroup.{u} :=
     is_colimit := is_colimit_cokernel_cocone f } }
 
 -- Sanity check
-example : has_cokernels SemiNormedGroup := by apply_instance
+example : has_cokernels SemiNormedGroup := infer_instance
 
 section explicit_cokernel
 

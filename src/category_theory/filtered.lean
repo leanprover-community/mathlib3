@@ -102,8 +102,8 @@ instance is_filtered_of_directed_le_nonempty  (α : Type u) [preorder α] [is_di
   is_filtered α := {}
 
 -- Sanity checks
-example (α : Type u) [semilattice_sup α] [order_bot α] : is_filtered α := by apply_instance
-example (α : Type u) [semilattice_sup α] [order_top α] : is_filtered α := by apply_instance
+example (α : Type u) [semilattice_sup α] [order_bot α] : is_filtered α := infer_instance
+example (α : Type u) [semilattice_sup α] [order_top α] : is_filtered α := infer_instance
 
 namespace is_filtered
 
@@ -493,8 +493,8 @@ instance is_cofiltered_of_directed_ge_nonempty  (α : Type u) [preorder α] [is_
   is_cofiltered α := {}
 
 -- Sanity checks
-example (α : Type u) [semilattice_inf α] [order_bot α] : is_cofiltered α := by apply_instance
-example (α : Type u) [semilattice_inf α] [order_top α] : is_cofiltered α := by apply_instance
+example (α : Type u) [semilattice_inf α] [order_bot α] : is_cofiltered α := infer_instance
+example (α : Type u) [semilattice_inf α] [order_top α] : is_cofiltered α := infer_instance
 
 namespace is_cofiltered
 

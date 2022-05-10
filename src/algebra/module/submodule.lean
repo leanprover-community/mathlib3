@@ -256,7 +256,7 @@ lemma restrict_scalars_injective :
 /-- Even though `p.restrict_scalars S` has type `submodule S M`, it is still an `R`-module. -/
 instance restrict_scalars.orig_module (p : submodule R M) :
   module R (p.restrict_scalars S) :=
-(by apply_instance : module R p)
+(infer_instance : module R p)
 
 instance (p : submodule R M) : is_scalar_tower S R (p.restrict_scalars S) :=
 { smul_assoc := λ r s x, subtype.ext $ smul_assoc r s (x : M) }

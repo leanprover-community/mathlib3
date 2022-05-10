@@ -199,9 +199,9 @@ instance [linear_order α] : linear_order (finset.colex α) :=
   le_antisymm := λ A B AB BA, AB.elim (λ k, BA.elim (λ t, (asymm k t).elim) (λ t, t.symm)) id,
   le_total := λ A B,
           (lt_trichotomy A B).elim3 (or.inl ∘ or.inl) (or.inl ∘ or.inr) (or.inr ∘ or.inl),
-  decidable_le := λ A B, by apply_instance,
-  decidable_lt := λ A B, by apply_instance,
-  decidable_eq := λ A B, by apply_instance,
+  decidable_le := λ A B, infer_instance,
+  decidable_lt := λ A B, infer_instance,
+  decidable_eq := λ A B, infer_instance,
   lt_iff_le_not_le := λ A B,
   begin
     split,
@@ -357,12 +357,12 @@ instance [linear_order α] [fintype α] : order_top (finset.colex α) :=
   le_top := λ x, colex_le_of_subset (subset_univ _) }
 
 instance [linear_order α] : lattice (finset.colex α) :=
-{ ..(by apply_instance : semilattice_sup (finset.colex α)),
-  ..(by apply_instance : semilattice_inf (finset.colex α)) }
+{ ..(infer_instance : semilattice_sup (finset.colex α)),
+  ..(infer_instance : semilattice_inf (finset.colex α)) }
 
 instance [linear_order α] [fintype α] : bounded_order (finset.colex α) :=
-{ ..(by apply_instance : order_top (finset.colex α)),
-  ..(by apply_instance : order_bot (finset.colex α)) }
+{ ..(infer_instance : order_top (finset.colex α)),
+  ..(infer_instance : order_bot (finset.colex α)) }
 
 /-- For subsets of ℕ, we can show that colex is equivalent to binary. -/
 lemma sum_two_pow_lt_iff_lt (A B : finset ℕ) :

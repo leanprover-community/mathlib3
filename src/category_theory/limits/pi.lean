@@ -142,7 +142,7 @@ With the addition of
 we can use:
 ```
 local attribute [instance] has_limit_of_has_limit_comp_eval
-example : has_binary_products (I → Type v₁) := ⟨by apply_instance⟩
+example : has_binary_products (I → Type v₁) := ⟨infer_instance⟩
 ```
 -/
 

@@ -762,7 +762,7 @@ theorem card_le_card {o₁ o₂ : ordinal} : o₁ ≤ o₂ → card o₁ ≤ car
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _⟩⟩, ⟨f⟩
 
 instance : has_zero ordinal :=
-⟨⟦⟨pempty, empty_relation, by apply_instance⟩⟧⟩
+⟨⟦⟨pempty, empty_relation, infer_instance⟩⟧⟩
 
 instance : inhabited ordinal := ⟨0⟩
 
@@ -803,7 +803,7 @@ instance : is_empty (0 : ordinal).out.α :=
 out_empty_iff_eq_zero.2 rfl
 
 instance : has_one ordinal :=
-⟨⟦⟨punit, empty_relation, by apply_instance⟩⟧⟩
+⟨⟦⟨punit, empty_relation, infer_instance⟩⟧⟩
 
 theorem one_eq_type_unit : 1 = @type unit empty_relation _ :=
 quotient.sound ⟨⟨punit_equiv_punit, λ _ _, iff.rfl⟩⟩
@@ -1244,7 +1244,7 @@ by { convert (ordinal.card_type (<)).symm, exact (ordinal.type_lt o).symm }
 def ord (c : cardinal) : ordinal :=
 begin
   let ι := λ α, {r // is_well_order α r},
-  have : Π α, ι α := λ α, ⟨well_ordering_rel, by apply_instance⟩,
+  have : Π α, ι α := λ α, ⟨well_ordering_rel, infer_instance⟩,
   let F := λ α, ordinal.min ⟨this _⟩ (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧),
   refine quot.lift_on c F _,
   suffices : ∀ {α β}, α ≈ β → F α ≤ F β,
@@ -1258,19 +1258,19 @@ begin
 end
 
 lemma ord_eq_min (α : Type u) : ord (#α) =
-  @ordinal.min {r // is_well_order α r} ⟨⟨well_ordering_rel, by apply_instance⟩⟩
+  @ordinal.min {r // is_well_order α r} ⟨⟨well_ordering_rel, infer_instance⟩⟩
     (λ i, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 
 theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
   ord (#α) = @type α r wo :=
 let ⟨⟨r, wo⟩, h⟩ := @ordinal.min_eq {r // is_well_order α r}
-  ⟨⟨well_ordering_rel, by apply_instance⟩⟩
+  ⟨⟨well_ordering_rel, infer_instance⟩⟩
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) in
 ⟨r, wo, h⟩
 
 theorem ord_le_type (r : α → α → Prop) [is_well_order α r] : ord (#α) ≤ ordinal.type r :=
 @ordinal.min_le {r // is_well_order α r}
-  ⟨⟨well_ordering_rel, by apply_instance⟩⟩
+  ⟨⟨well_ordering_rel, infer_instance⟩⟩
   (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) ⟨r, _⟩
 
 theorem ord_le {c o} : ord c ≤ o ↔ c ≤ o.card :=

@@ -247,8 +247,8 @@ protected def prod : abstract_completion (α × β) :=
 { space := hatα × hatβ,
   coe := λ p, ⟨ι p.1, ι' p.2⟩,
   uniform_struct := prod.uniform_space,
-  complete := by apply_instance,
-  separation := by apply_instance,
+  complete := infer_instance,
+  separation := infer_instance,
   uniform_inducing := uniform_inducing.prod pkg.uniform_inducing pkg'.uniform_inducing,
   dense := pkg.dense.prod_map pkg'.dense }
 end prod

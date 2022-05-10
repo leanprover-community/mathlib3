@@ -39,7 +39,7 @@ begin
   haveI : finite_dimensional k (Module.of k (Π j, Z j)), { dsimp, apply_instance, },
   exact finite_dimensional.of_injective
     (Module.pi_iso_pi.{v v v} _).hom
-    ((Module.mono_iff_injective _).1 (by apply_instance)),
+    ((Module.mono_iff_injective _).1 (infer_instance)),
 end
 
 /-- Finite limits of finite finite dimensional vectors spaces are finite dimensional,
@@ -51,14 +51,14 @@ begin
   { intro j, change finite_dimensional k (F.obj j), apply_instance, },
   exact finite_dimensional.of_injective
     (limit_subobject_product (F ⋙ forget₂ (FinVect k) (Module.{v} k)))
-    ((Module.mono_iff_injective _).1 (by apply_instance)),
+    ((Module.mono_iff_injective _).1 (infer_instance)),
 end
 
 /-- The forgetful functor from `FinVect k` to `Module k` creates all finite limits. -/
 def forget₂_creates_limit (F : J ⥤ FinVect k) :
   creates_limit F (forget₂ (FinVect k) (Module.{v} k)) :=
 creates_limit_of_fully_faithful_of_iso
-  ⟨(limit (F ⋙ forget₂ (FinVect k) (Module.{v} k)) : Module.{v} k), by apply_instance⟩
+  ⟨(limit (F ⋙ forget₂ (FinVect k) (Module.{v} k)) : Module.{v} k), infer_instance⟩
   (iso.refl _)
 
 instance : creates_limits_of_shape J (forget₂ (FinVect k) (Module.{v} k)) :=

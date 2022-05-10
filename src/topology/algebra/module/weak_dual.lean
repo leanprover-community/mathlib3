@@ -147,7 +147,7 @@ variables (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜)
 /-- `weak_space B` is a `topological_add_group`, meaning that addition and negation are
 continuous. -/
 instance [has_continuous_add 𝕜] : topological_add_group (weak_bilin B) :=
-{ to_has_continuous_add := by apply_instance,
+{ to_has_continuous_add := infer_instance,
   continuous_neg := begin
     refine continuous_induced_rng (continuous_pi_iff.mpr (λ y, _)),
     refine cast (congr_arg _ _) (eval_continuous B (-y)),

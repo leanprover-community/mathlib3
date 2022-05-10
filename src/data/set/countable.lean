@@ -76,7 +76,7 @@ lemma countable_encodable' (s : set α) [H : encodable s] : countable s :=
 ⟨H⟩
 
 lemma countable_encodable [encodable α] (s : set α) : countable s :=
-⟨by apply_instance⟩
+⟨infer_instance⟩
 
 /-- If `s : set α` is a nonempty countable set, then there exists a map
 `f : ℕ → α` such that `s = range f`. -/

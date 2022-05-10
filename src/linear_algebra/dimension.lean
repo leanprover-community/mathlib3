@@ -722,7 +722,7 @@ begin
   by_contradiction,
   rw [not_le, ← cardinal.mk_finset_eq_mk ι] at h,
   let Φ := λ k : κ, (b.repr (v k)).support,
-  obtain ⟨s, w : infinite ↥(Φ ⁻¹' {s})⟩ := cardinal.exists_infinite_fiber Φ h (by apply_instance),
+  obtain ⟨s, w : infinite ↥(Φ ⁻¹' {s})⟩ := cardinal.exists_infinite_fiber Φ h (infer_instance),
   let v' := λ k : Φ ⁻¹' {s}, v k,
   have i' : linear_independent R v' := i.comp _ subtype.val_injective,
   have w' : fintype (Φ ⁻¹' {s}),

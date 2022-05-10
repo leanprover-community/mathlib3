@@ -825,8 +825,8 @@ have μ.to_outer_measure ≤ Inf (to_outer_measure '' m) :=
 instance [measurable_space α] : complete_semilattice_Inf (measure α) :=
 { Inf_le := λ s a, measure_Inf_le,
   le_Inf := λ s a, measure_le_Inf,
-  ..(by apply_instance : partial_order (measure α)),
-  ..(by apply_instance : has_Inf (measure α)), }
+  ..(infer_instance : partial_order (measure α)),
+  ..(infer_instance : has_Inf (measure α)), }
 
 instance [measurable_space α] : complete_lattice (measure α) :=
 { bot := 0,

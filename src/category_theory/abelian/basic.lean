@@ -281,16 +281,16 @@ local attribute [instance] non_preadditive_abelian
 variables {P Q : C} (f : P ⟶ Q)
 
 /-- The map `p : P ⟶ image f` is an epimorphism -/
-instance : epi (abelian.factor_thru_image f) := by apply_instance
+instance : epi (abelian.factor_thru_image f) := infer_instance
 
 instance is_iso_factor_thru_image [mono f] : is_iso (abelian.factor_thru_image f) :=
-by apply_instance
+infer_instance
 
 /-- The canonical morphism `i : coimage f ⟶ Q` is a monomorphism -/
-instance : mono (abelian.factor_thru_coimage f) := by apply_instance
+instance : mono (abelian.factor_thru_coimage f) := infer_instance
 
 instance is_iso_factor_thru_coimage [epi f] : is_iso (abelian.factor_thru_coimage f) :=
-by apply_instance
+infer_instance
 
 end
 
@@ -328,7 +328,7 @@ end
 @[simps] def image_strong_epi_mono_factorisation : strong_epi_mono_factorisation f :=
 { I := abelian.image f,
   m := image.ι f,
-  m_mono := by apply_instance,
+  m_mono := infer_instance,
   e := abelian.factor_thru_image f,
   e_strong_epi := strong_epi_of_epi _ }
 
@@ -336,7 +336,7 @@ end
 @[simps] def coimage_strong_epi_mono_factorisation : strong_epi_mono_factorisation f :=
 { I := abelian.coimage f,
   m := abelian.factor_thru_coimage f,
-  m_mono := by apply_instance,
+  m_mono := infer_instance,
   e := coimage.π f,
   e_strong_epi := strong_epi_of_epi _ }
 
@@ -349,8 +349,8 @@ section has_strong_epi_mono_factorisations
 has_strong_epi_mono_factorisations.mk $ λ X Y f, image_strong_epi_mono_factorisation f
 
 /- In particular, this means that it has well-behaved images. -/
-example : has_images C := by apply_instance
-example : has_image_maps C := by apply_instance
+example : has_images C := infer_instance
+example : has_image_maps C := infer_instance
 
 end has_strong_epi_mono_factorisations
 
@@ -706,7 +706,7 @@ variables (C : Type u) [category.{v} C] [non_preadditive_abelian C]
 
 /-- Every non_preadditive_abelian category can be promoted to an abelian category. -/
 def abelian : abelian C :=
-{ has_finite_products := by apply_instance,
+{ has_finite_products := infer_instance,
 /- We need the `convert`s here because the instances we have are slightly different from the
    instances we need: `has_kernels` depends on an instance of `has_zero_morphisms`. In the
    case of `non_preadditive_abelian`, this instance is an explicit argument. However, in the case
@@ -715,8 +715,8 @@ def abelian : abelian C :=
    instance of "has kernels with non_preadditive_abelian.preadditive.has_zero_morphisms". Luckily,
    we have a `subsingleton` instance for `has_zero_morphisms`, so `convert` can immediately close
    the goal it creates for the two instances of `has_zero_morphisms`, and the proof is complete. -/
-  has_kernels := by convert (by apply_instance : limits.has_kernels C),
-  has_cokernels := by convert (by apply_instance : limits.has_cokernels C),
+  has_kernels := by convert (infer_instance : limits.has_kernels C),
+  has_cokernels := by convert (infer_instance : limits.has_cokernels C),
   normal_mono_of_mono := by { introsI, convert normal_mono_of_mono f },
   normal_epi_of_epi := by { introsI, convert normal_epi_of_epi f },
   ..non_preadditive_abelian.preadditive }

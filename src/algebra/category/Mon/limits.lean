@@ -196,7 +196,7 @@ monoids."]
 instance forget₂_Mon_preserves_limits_of_size :
   preserves_limits_of_size.{v v} (forget₂ CommMon Mon.{max v u}) :=
 { preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F, by apply_instance } }
+  { preserves_limit := λ F, infer_instance } }
 
 @[to_additive]
 instance forget₂_Mon_preserves_limits : preserves_limits (forget₂ CommMon Mon.{u}) :=

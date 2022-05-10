@@ -174,7 +174,7 @@ matrix. -/
 local attribute [instance]
 protected def linfty_op_semi_normed_group [semi_normed_group α] :
   semi_normed_group (matrix m n α) :=
-(by apply_instance : semi_normed_group (m → pi_Lp 1 (λ j : n, α)))
+(infer_instance : semi_normed_group (m → pi_Lp 1 (λ j : n, α)))
 
 /-- Normed group instance (using sup norm of L1 norm) for matrices over a normed ring.  Not
 declared as an instance because there are several natural choices for defining the norm of a
@@ -182,7 +182,7 @@ matrix. -/
 local attribute [instance]
 protected def linfty_op_normed_group [normed_group α] :
   normed_group (matrix m n α) :=
-(by apply_instance : normed_group (m → pi_Lp 1 (λ j : n, α)))
+(infer_instance : normed_group (m → pi_Lp 1 (λ j : n, α)))
 
 /-- Normed space instance (using sup norm of L1 norm) for matrices over a normed space.  Not
 declared as an instance because there are several natural choices for defining the norm of a
@@ -190,7 +190,7 @@ matrix. -/
 local attribute [instance]
 protected def linfty_op_normed_space [normed_field R] [semi_normed_group α] [normed_space R α] :
   normed_space R (matrix m n α) :=
-(by apply_instance : normed_space R (m → pi_Lp 1 (λ j : n, α)))
+(infer_instance : normed_space R (m → pi_Lp 1 (λ j : n, α)))
 
 section semi_normed_group
 variables [semi_normed_group α]
@@ -341,7 +341,7 @@ matrix. -/
 local attribute [instance]
 def frobenius_semi_normed_group [semi_normed_group α] :
   semi_normed_group (matrix m n α) :=
-(by apply_instance : semi_normed_group (pi_Lp 2 (λ i : m, pi_Lp 2 (λ j : n, α))))
+(infer_instance : semi_normed_group (pi_Lp 2 (λ i : m, pi_Lp 2 (λ j : n, α))))
 
 /-- Normed group instance (using frobenius norm) for matrices over a normed group.  Not
 declared as an instance because there are several natural choices for defining the norm of a
@@ -349,7 +349,7 @@ matrix. -/
 local attribute [instance]
 def frobenius_normed_group [normed_group α] :
   normed_group (matrix m n α) :=
-(by apply_instance : normed_group (pi_Lp 2 (λ i : m, pi_Lp 2 (λ j : n, α))))
+(infer_instance : normed_group (pi_Lp 2 (λ i : m, pi_Lp 2 (λ j : n, α))))
 
 /-- Normed space instance (using frobenius norm) for matrices over a normed space.  Not
 declared as an instance because there are several natural choices for defining the norm of a
@@ -357,7 +357,7 @@ matrix. -/
 local attribute [instance]
 def frobenius_normed_space [normed_field R] [semi_normed_group α] [normed_space R α] :
   normed_space R (matrix m n α) :=
-(by apply_instance : normed_space R (pi_Lp 2 (λ i : m, pi_Lp 2 (λ j : n, α))))
+(infer_instance : normed_space R (pi_Lp 2 (λ i : m, pi_Lp 2 (λ j : n, α))))
 
 section semi_normed_group
 variables [semi_normed_group α] [semi_normed_group β]

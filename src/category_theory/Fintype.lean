@@ -125,6 +125,6 @@ end skeleton
 /-- `Fintype.skeleton` is a skeleton of `Fintype`. -/
 noncomputable def is_skeleton : is_skeleton_of Fintype skeleton skeleton.incl :=
 { skel := skeleton.is_skeletal,
-  eqv := by apply_instance }
+  eqv := infer_instance }
 
 end Fintype

@@ -172,7 +172,7 @@ end karoubi
 
 /-- The category `karoubi C` is preadditive if `C` is. -/
 instance [preadditive C] : preadditive (karoubi C) :=
-{ hom_group := λ P Q, by apply_instance,
+{ hom_group := λ P Q, infer_instance,
   add_comp' := λ P Q R f g h,
     by { ext, simp only [add_comp, quiver.hom.add_comm_group_add_f, karoubi.comp], },
   comp_add' := λ P Q R f g h,

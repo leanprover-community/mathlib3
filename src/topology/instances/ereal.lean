@@ -37,7 +37,7 @@ instance : topological_space ereal := preorder.topology ereal
 
 instance : order_topology ereal := ⟨rfl⟩
 
-instance : t2_space ereal := by apply_instance
+instance : t2_space ereal := infer_instance
 
 instance : second_countable_topology ereal :=
 ⟨begin

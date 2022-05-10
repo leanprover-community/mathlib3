@@ -59,7 +59,7 @@ dependent types. We register it explicitly. -/
 instance : module 𝕜 (formal_multilinear_series 𝕜 E F) :=
 begin
   letI : Π n, module 𝕜 (continuous_multilinear_map 𝕜 (λ (i : fin n), E) F) :=
-    λ n, by apply_instance,
+    λ n, infer_instance,
   refine pi.module _ _ _,
 end
 

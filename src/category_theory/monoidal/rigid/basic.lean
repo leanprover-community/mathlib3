@@ -622,7 +622,7 @@ attribute [instance, priority 100] left_rigid_category.left_dual
 instance monoidal_closed_of_left_rigid_category
   (C : Type u) [category.{v} C] [monoidal_category.{v} C] [left_rigid_category C] :
   monoidal_closed C :=
-{ closed' := λ X, by apply_instance, }
+{ closed' := λ X, infer_instance, }
 
 /-- A rigid monoidal category is a monoidal category which is left rigid and right rigid. -/
 class rigid_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]

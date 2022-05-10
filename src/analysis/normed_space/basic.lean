@@ -265,7 +265,7 @@ Specifically, the following instance cannot be found without this `normed_space.
 example
   (𝕜 ι : Type*) (E : ι → Type*)
   [normed_field 𝕜] [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)] :
-  Π i, module 𝕜 (E i) := by apply_instance
+  Π i, module 𝕜 (E i) := infer_instance
 ```
 
 [This Zulip thread](https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Typeclass.20resolution.20under.20binders/near/245151099)
@@ -365,13 +365,13 @@ Specifically, the following instance cannot be found without this `normed_space.
 example
   (𝕜 ι : Type*) (E : ι → Type*)
   [normed_field 𝕜] [Π i, normed_ring (E i)] [Π i, normed_algebra 𝕜 (E i)] :
-  Π i, module 𝕜 (E i) := by apply_instance
+  Π i, module 𝕜 (E i) := infer_instance
 ```
 
 See `normed_space.to_module'` for a similar situation. -/
 @[priority 100]
 instance normed_algebra.to_normed_space' {𝕜'} [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] :
-  normed_space 𝕜 𝕜' := by apply_instance
+  normed_space 𝕜 𝕜' := infer_instance
 
 lemma norm_algebra_map (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥ * ∥(1 : 𝕜')∥ :=
 begin

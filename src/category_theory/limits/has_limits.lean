@@ -829,7 +829,7 @@ variables (D : L ⥤ K) [has_colimit (D ⋙ E ⋙ F)]
 begin
   ext j,
   rw [←assoc, colimit.ι_pre, colimit.ι_pre],
-  letI : has_colimit ((D ⋙ E) ⋙ F) := show has_colimit (D ⋙ E ⋙ F), by apply_instance,
+  letI : has_colimit ((D ⋙ E) ⋙ F) := show has_colimit (D ⋙ E ⋙ F), infer_instance,
   exact (colimit.ι_pre F (D ⋙ E) j).symm
 end
 
@@ -890,7 +890,7 @@ lemma colimit.pre_post {D : Type u'} [category.{v'} D]
 begin
   ext,
   rw [←assoc, colimit.ι_post, ←G.map_comp, colimit.ι_pre, ←assoc],
-  letI : has_colimit (E ⋙ F ⋙ G) := show has_colimit ((E ⋙ F) ⋙ G), by apply_instance,
+  letI : has_colimit (E ⋙ F ⋙ G) := show has_colimit ((E ⋙ F) ⋙ G), infer_instance,
   erw [colimit.ι_pre (F ⋙ G) E j, colimit.ι_post]
 end
 

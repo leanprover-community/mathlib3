@@ -35,7 +35,7 @@ structure is_unital (m : X → X → X) (e : X) extends is_left_id _ m e, is_rig
 
 @[to_additive eckmann_hilton.add_zero_class.is_unital]
 lemma mul_one_class.is_unital [G : mul_one_class X] : is_unital (*) (1 : X) :=
-is_unital.mk (by apply_instance) (by apply_instance)
+is_unital.mk (infer_instance) (infer_instance)
 
 variables {m₁ m₂ : X → X → X} {e₁ e₂ : X}
 variables (h₁ : is_unital m₁ e₁) (h₂ : is_unital m₂ e₂)

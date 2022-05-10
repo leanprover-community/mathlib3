@@ -2208,8 +2208,8 @@ begin
       integral_indicator (hm _ hs_m), measure.restrict_restrict (hm _ hs_m),
        ← set.inter_assoc, set.inter_self], },
   { have : strongly_measurable[m] (μ[s.indicator f | m]) := strongly_measurable_condexp,
-    refine ae_strongly_measurable'_of_measurable_space_le_on hm hs_m (λ t, (hs t).mp)
-      this.ae_strongly_measurable' _,
+    refine this.ae_strongly_measurable'.ae_strongly_measurable'_of_measurable_space_le_on
+      hm hs_m (λ t, (hs t).mp) _,
     refine condexp_ae_eq_restrict_zero (hf_int.indicator (hm _ hs_m)) hs_m.compl _,
     exact indicator_ae_eq_restrict_compl (hm _ hs_m), },
   { exact strongly_measurable_condexp.ae_strongly_measurable', },

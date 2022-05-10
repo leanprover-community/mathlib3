@@ -119,6 +119,10 @@ lemma has_sum_subtype_iff_indicator {s : set β} :
 by rw [← set.indicator_range_comp, subtype.range_coe,
   has_sum_subtype_iff_of_support_subset set.support_indicator_subset]
 
+lemma summable_subtype_iff_indicator {s : set β} :
+  summable (f ∘ coe : s → α) ↔ summable (s.indicator f) :=
+exists_congr (λ _, has_sum_subtype_iff_indicator)
+
 @[simp] lemma has_sum_subtype_support : has_sum (f ∘ coe : support f → α) a ↔ has_sum f a :=
 has_sum_subtype_iff_of_support_subset $ set.subset.refl _
 

@@ -139,8 +139,8 @@ instance [div_inv_monoid G] [div_inv_monoid H] : div_inv_monoid (G × H) :=
 @[to_additive subtraction_monoid]
 instance [division_monoid G] [division_monoid H] : division_monoid (G × H) :=
 { mul_inv_rev := λ a b, ext (mul_inv_rev _ _) (mul_inv_rev _ _),
-  inv_eq_of_mul := λ a b h, ext (inv_eq_of_mul_eq_one_left $ congr_arg fst h)
-    (inv_eq_of_mul_eq_one_left $ congr_arg snd h),
+  inv_eq_of_mul := λ a b h, ext (inv_eq_of_mul_eq_one_right $ congr_arg fst h)
+    (inv_eq_of_mul_eq_one_right $ congr_arg snd h),
   .. prod.div_inv_monoid, .. prod.has_involutive_inv }
 
 @[to_additive subtraction_comm_monoid]

@@ -284,7 +284,7 @@ begin
     rw [choose_eq_factorial_div_factorial h.le, eq_comm, div_eq_iff (hne q.succ), succ_eq_add_one,
         mul_assoc _ _ ↑q.succ!, mul_comm _ ↑q.succ!, ← mul_assoc, div_mul_eq_mul_div,
         mul_comm (↑n ^ (q - m + 1)), ← mul_assoc _ _ (↑n ^ (q - m + 1)), ← one_div, mul_one_div,
-        div_div_eq_div_mul, tsub_add_eq_add_tsub (le_of_lt_succ h), cast_div, cast_mul],
+        div_div, tsub_add_eq_add_tsub (le_of_lt_succ h), cast_div, cast_mul],
     { ring },
     { exact factorial_mul_factorial_dvd_factorial h.le },
     { simp [hne] } },

@@ -54,7 +54,7 @@ instance : has_add Cauchy :=
 instance : has_neg Cauchy :=
 ⟨λ x, quotient.lift_on x (λ f, mk (-f)) $
   λ f₁ f₂ hf, quotient.sound $
-  by simpa [(≈), setoid.r] using neg_lim_zero hf⟩
+  by simpa [neg_sub', (≈), setoid.r] using neg_lim_zero hf⟩
 
 @[simp] theorem mk_neg (f : cau_seq β abv) : -mk f = mk (-f) := rfl
 

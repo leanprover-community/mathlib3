@@ -313,9 +313,9 @@ lemma one_lt_inv_iff : 1 < a⁻¹ ↔ 0 < a ∧ a < 1 :=
 
 lemma inv_le_one_iff : a⁻¹ ≤ 1 ↔ a ≤ 0 ∨ 1 ≤ a :=
 begin
-  obtain rfl | ha := eq_or_ne a 1,
+  rcases em (a = 1) with (rfl|ha),
   { simp [le_rfl] },
-  { simp only [ha.symm.le_iff_lt, (inv_ne_one.2 ha).le_iff_lt , inv_lt_one_iff] }
+  { simp only [ne.le_iff_lt (ne.symm ha), ne.le_iff_lt (mt inv_eq_one.1 ha), inv_lt_one_iff] }
 end
 
 lemma one_le_inv_iff : 1 ≤ a⁻¹ ↔ 0 < a ∧ a ≤ 1 :=

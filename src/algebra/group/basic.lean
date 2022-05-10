@@ -290,15 +290,16 @@ variables [division_comm_monoid α] (a b c d : α)
 local attribute [simp] mul_assoc mul_comm mul_left_comm div_eq_mul_inv
 
 @[to_additive neg_add] lemma mul_inv : (a * b)⁻¹ = a⁻¹ * b⁻¹ := by simp
+@[to_additive] lemma inv_div' : (a / b)⁻¹ = a⁻¹ / b⁻¹ := by simp
 @[to_additive] lemma div_eq_inv_mul : a / b = b⁻¹ * a := by simp
 @[to_additive] lemma inv_mul_eq_div : a⁻¹ * b = b / a := by simp
 @[to_additive] lemma inv_mul' : (a * b)⁻¹ = a⁻¹ / b := by simp
-@[to_additive] lemma inv_div_inv : (a⁻¹ / b⁻¹) = b / a := by simp
+@[simp, to_additive] lemma inv_div_inv : (a⁻¹ / b⁻¹) = b / a := by simp
 @[to_additive] lemma inv_inv_div_inv : (a⁻¹ / b⁻¹)⁻¹ = a / b := by simp
 @[to_additive] lemma one_div_mul_one_div : (1 / a) * (1 / b) =  1 / (a * b) := by simp
 
 @[to_additive] lemma div_right_comm : a / b / c = a / c / b := by simp
-@[to_additive] lemma div_div : a / b / c = a / (b * c) := by simp
+@[to_additive, field_simps] lemma div_div : a / b / c = a / (b * c) := by simp
 @[to_additive] lemma div_mul : a / b * c = a / (b / c) := by simp
 @[to_additive] lemma mul_div_left_comm : a * (b / c) = b * (a / c) := by simp
 @[to_additive] lemma mul_div_right_comm : a * b / c = a / c * b := by simp

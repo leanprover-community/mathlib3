@@ -247,8 +247,8 @@ have two_mul_two : (4 : α) = 2 * 2, by norm_num,
 have hQ0 : Q ≠ 0, from λ h, by simpa [h, lt_irrefl] using hQε0,
 have h2Q0 : 2 * Q ≠ 0, from mul_ne_zero two_ne_zero hQ0,
 have hε : ε / (2 * P) * P + ε / (4 * Q) * (2 * Q) = ε,
-  by rw [← div_div_eq_div_mul, div_mul_cancel _ (ne.symm (ne_of_lt hP0)),
-    two_mul_two, mul_assoc, ← div_div_eq_div_mul, div_mul_cancel _ h2Q0, add_halves],
+  by rw [← div_div, div_mul_cancel _ (ne.symm (ne_of_lt hP0)),
+    two_mul_two, mul_assoc, ← div_div, div_mul_cancel _ h2Q0, add_halves],
 have hNMK : max N M + 1 < K,
   from lt_of_lt_of_le (by rw two_mul; exact lt_add_of_pos_left _ (nat.succ_pos _)) hK,
 have hKN : N < K,
@@ -321,7 +321,7 @@ series_ratio_test n (complex.abs z / n) (div_nonneg (complex.abs_nonneg _) (le_o
   (by rwa [div_lt_iff hn0, one_mul])
   (λ m hm,
     by rw [abs_abs, abs_abs, nat.factorial_succ, pow_succ,
-      mul_comm m.succ, nat.cast_mul, ← div_div_eq_div_mul, mul_div_assoc,
+      mul_comm m.succ, nat.cast_mul, ← div_div, mul_div_assoc,
       mul_div_right_comm, abs_mul, abs_div, abs_cast_nat];
     exact mul_le_mul_of_nonneg_right
       (div_le_div_of_le_left (abs_nonneg _) hn0
@@ -1450,7 +1450,7 @@ calc |sin x - (x - x ^ 3 / 6)| = abs (complex.sin x - (x - x ^ 3 / 6)) :
   by rw ← abs_of_real; simp [of_real_bit0, of_real_one, of_real_inv]
 ... = abs (((complex.exp (-x * I) - complex.exp (x * I)) * I - (2 * x - x ^ 3 / 3)) / 2) :
   by simp [complex.sin, sub_div, add_div, neg_div, mul_div_cancel_left _ (@two_ne_zero' ℂ _ _ _),
-    div_div_eq_div_mul, show (3 : ℂ) * 2 = 6, by norm_num]
+    div_div, show (3 : ℂ) * 2 = 6, by norm_num]
 ... = abs ((((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m!) -
     (complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m!)) * I) / 2) :
   congr_arg abs (congr_arg (λ x : ℂ, x / 2) begin

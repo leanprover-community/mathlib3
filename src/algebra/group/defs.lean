@@ -487,18 +487,19 @@ instance cancel_comm_monoid.to_cancel_monoid (M : Type u) [cancel_comm_monoid M]
 
 end cancel_monoid
 
+/-- The fundamental power operation in a group. `zpow_rec n a = a*a*...*a` n times, for integer `n`.
+Use instead `a ^ n`,  which has better definitional behavior. -/
+def zpow_rec {M : Type*} [has_one M] [has_mul M] [has_inv M] : ℤ → M → M
+| (int.of_nat n) a := npow_rec n a
+| -[1+ n]    a := (npow_rec n.succ a) ⁻¹
+
 /-- The fundamental scalar multiplication in an additive group. `zsmul_rec n a = a+a+...+a` n
 times, for integer `n`. Use instead `n • a`, which has better definitional behavior. -/
 def zsmul_rec {M : Type*} [has_zero M] [has_add M] [has_neg M]: ℤ → M → M
 | (int.of_nat n) a := nsmul_rec n a
-| -[1+ n]        a := -nsmul_rec n.succ a
+| -[1+ n]    a := - (nsmul_rec n.succ a)
 
-/-- The fundamental power operation in a group. `zpow_rec n a = a*a*...*a` n times, for integer `n`.
-Use instead `a ^ n`,  which has better definitional behavior. -/
-@[to_additive]
-def zpow_rec {M : Type*} [has_one M] [has_mul M] [has_inv M] : ℤ → M → M
-| (int.of_nat n) a := npow_rec n a
-| -[1+ n]        a := (npow_rec n.succ a)⁻¹
+attribute [to_additive] zpow_rec
 
 section has_involutive_inv
 

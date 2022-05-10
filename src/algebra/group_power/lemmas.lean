@@ -163,7 +163,7 @@ lemma zpow_sub (a : G) (m n : ℤ) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
 by rw [sub_eq_add_neg, zpow_add, zpow_neg]
 
 @[to_additive one_add_zsmul]
-lemma zpow_one_add (a : G) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
+theorem zpow_one_add (a : G) (i : ℤ) : a ^ (1 + i) = a * a ^ i :=
 by rw [zpow_add, zpow_one]
 
 @[to_additive] lemma zpow_mul_comm (a : G) (i j : ℤ) : a ^ i * a ^ j = a ^ j * a ^ i :=

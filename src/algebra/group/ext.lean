@@ -22,7 +22,6 @@ monoid, group, extensionality
 -/
 
 universe u
-variables {G : Type*}
 
 @[ext, to_additive]
 lemma monoid.ext {M : Type u} ⦃m₁ m₂ : monoid M⦄ (h_mul : m₁.mul = m₂.mul) : m₁ = m₂ :=

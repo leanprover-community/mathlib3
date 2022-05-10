@@ -564,7 +564,7 @@ end subtype
 /-!
 ### Pointwise order on `α × β`
 
-The lexicographic order is defined in `order.lexicographic`, and the instances are available via the
+The lexicographic order is defined in `data.prod.lex`, and the instances are available via the
 type synonym `α ×ₗ β = α × β`.
 -/
 

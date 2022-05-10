@@ -176,7 +176,7 @@ lemma image_basic_open_image_open :
   is_open ((coequalizer.π f.1 g.1).base '' (image_basic_open f g U s).1) :=
 begin
   rw [← (Top.homeo_of_iso (preserves_coequalizer.iso (SheafedSpace.forget _) f.1 g.1))
-      .is_open_preimage, Top.coequalizer_is_open_iff, ← set.preimage_comp],
+      .is_open_preimage, Top.coequalizer_is_open_iff.{u}, ← set.preimage_comp],
   erw ← coe_comp,
   rw [preserves_coequalizer.iso_hom, ι_comp_coequalizer_comparison],
   dsimp only [SheafedSpace.forget],

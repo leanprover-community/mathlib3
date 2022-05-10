@@ -422,7 +422,7 @@ linear_map.mk_continuous
       have ho :
         ∀ w ∈ K, ⟪x + y - (orthogonal_projection_fn K x + orthogonal_projection_fn K y), w⟫ = 0,
       { intros w hw,
-        rw [add_sub_comm, inner_add_left, orthogonal_projection_fn_inner_eq_zero _ w hw,
+        rw [add_sub_add_comm, inner_add_left, orthogonal_projection_fn_inner_eq_zero _ w hw,
             orthogonal_projection_fn_inner_eq_zero _ w hw, add_zero] },
       ext,
       simp [eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hm ho]

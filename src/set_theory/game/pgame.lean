@@ -215,7 +215,7 @@ instance : is_trans _ subsequent := trans_gen.is_trans
 @[trans] theorem subsequent.trans : ∀ {x y z}, subsequent x y → subsequent y z → subsequent x z :=
 @trans_gen.trans _ _
 
-theorem wf_subsequent : well_founded subsequent := well_founded.trans_gen wf_is_option
+theorem wf_subsequent : well_founded subsequent := wf_is_option.trans_gen
 
 instance : has_well_founded pgame := ⟨_, wf_subsequent⟩
 
@@ -526,6 +526,19 @@ theorem le_congr {x₁ y₁ x₂ y₂} : x₁ ≈ x₂ → y₁ ≈ y₂ → (x�
 theorem lt_congr {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ < y₁ ↔ x₂ < y₂ :=
 not_le.symm.trans $ (not_congr (le_congr hy hx)).trans not_le
 
+theorem lt_or_equiv_of_le {x y : pgame} (h : x ≤ y) : x < y ∨ x ≈ y :=
+or_iff_not_imp_left.2 $ λ h', ⟨h, not_lt.1 h'⟩
+
+theorem lt_or_equiv_or_gt (x y : pgame) : x < y ∨ x ≈ y ∨ y < x :=
+begin
+  by_cases h : x < y,
+  { exact or.inl h },
+  { right,
+    cases (lt_or_equiv_of_le (not_lt.1 h)) with h' h',
+    { exact or.inr h' },
+    { exact or.inl h'.symm } }
+end
+
 theorem equiv_congr_left {y₁ y₂} : y₁ ≈ y₂ ↔ ∀ x₁, x₁ ≈ y₁ ↔ x₁ ≈ y₂ :=
 ⟨λ h x₁, ⟨λ h', equiv_trans h' h, λ h', equiv_trans h' (equiv_symm h)⟩,
  λ h, (h y₁).1 $ equiv_refl _⟩
@@ -588,6 +601,8 @@ end
 `relabelling x y` says that `x` and `y` are really the same game, just dressed up differently.
 Specifically, there is a bijection between the moves for Left in `x` and in `y`, and similarly
 for Right, and under these bijections we inductively have `relabelling`s for the consequent games.
+
+In ZFC, relabellings would indeed be the same games.
 -/
 inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
 | mk : Π {x y : pgame} (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves),
@@ -839,6 +854,8 @@ begin
 end
 
 instance : has_add pgame := ⟨add⟩
+
+@[simp] theorem nat_one : ((1 : ℕ) : pgame) = 0 + 1 := rfl
 
 /-- `x + 0` has exactly the same moves as `x`. -/
 def add_zero_relabelling : Π (x : pgame.{u}), relabelling (x + 0) x
@@ -1183,9 +1200,6 @@ by { rw zero_lt, use default, rintros ⟨⟩ }
 
 @[simp] theorem neg_star : -star = star :=
 by simp [star]
-
-/-- The pre-game `ω`. (In fact all ordinals have game and surreal representatives.) -/
-def omega : pgame := ⟨ulift ℕ, pempty, λ n, ↑n.1, pempty.elim⟩
 
 @[simp] theorem zero_lt_one : (0 : pgame) < 1 :=
 by { rw zero_lt, use default, rintro ⟨⟩ }

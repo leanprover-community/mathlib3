@@ -335,7 +335,7 @@ begin
   { rw [←cast_prod, cast_ne_zero, ←zero_lt_iff, ←prod_factorization_eq_prod_factors],
     exact prod_pos (λ p hp, pos_of_mem_factorization hp) },
   simp only [totient_eq_div_factors_mul n, prod_prime_factors_dvd n, cast_mul, cast_prod,
-      cast_dvd_char_zero, mul_comm_div', mul_right_inj' hn', div_eq_iff hpQ, ←prod_mul_distrib],
+      cast_div_char_zero, mul_comm_div, mul_right_inj' hn', div_eq_iff hpQ, ←prod_mul_distrib],
   refine prod_congr rfl (λ p hp, _),
   have hp := pos_of_mem_factors (list.mem_to_finset.mp hp),
   have hp' : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hp.ne.symm,

@@ -37,27 +37,28 @@ Odd elements are not unified with a multiplicative notion.
 open mul_opposite
 variables {F α β R : Type*}
 
+section has_mul
+variables [has_mul α]
+
 /--  An element `a` of a type `α` with multiplication satisfies `square a` if `a = r * r`,
 for some `r : α`. -/
 @[to_additive
 "An element `a` of a type `α` with addition satisfies `even a` if `a = r + r`,
 for some `r : α`."]
-def is_square [has_mul α] (a : α) : Prop := ∃ r, a = r * r
+def is_square (a : α) : Prop := ∃ r, a = r * r
 
 @[simp, to_additive]
 lemma is_square_mul_self [has_mul α] (m : α) : is_square (m * m) := ⟨m, rfl⟩
 
-@[to_additive even_iff_exists_two_nsmul]
-lemma is_square_iff_exists_sq [monoid α] (m : α) : is_square m ↔ ∃ c, m = c ^ 2 :=
-by simp [is_square, pow_two]
+@[to_additive]
+lemma is_square_op_iff (a : α) : is_square (op a) ↔ is_square a :=
+⟨λ ⟨c, hc⟩, ⟨unop c, by rw [← unop_mul, ← hc, unop_op]⟩, λ ⟨c, hc⟩, by simp [hc]⟩
 
-alias is_square_iff_exists_sq ↔ is_square.exists_sq is_square_of_exists_sq
+/-- Create a decidability instance for `is_square` on `fintype`s. -/
+instance is_square_decidable [fintype α] [decidable_eq α] : decidable_pred (is_square : α → Prop) :=
+λ a, fintype.decidable_exists_fintype
 
-attribute [to_additive even.exists_two_nsmul "Alias of the forwards direction of
-`even_iff_exists_two_nsmul`."] is_square.exists_sq
-
-attribute [to_additive even_of_exists_two_nsmul "Alias of the backwards direction of
-`even_iff_exists_two_nsmul`."] is_square_of_exists_sq
+end has_mul
 
 @[simp, to_additive]
 lemma is_square_one [mul_one_class α] : is_square (1 : α) := ⟨1, (mul_one _).symm⟩
@@ -67,13 +68,20 @@ lemma is_square.map [mul_one_class α] [mul_one_class β] [monoid_hom_class F α
   is_square m → is_square (f m) :=
 by { rintro ⟨m, rfl⟩, exact ⟨f m, by simp⟩ }
 
-/-- Create a decidability instance for `is_square` on `fintype`s. -/
-instance is_square_decidable [fintype α] [has_mul α] [decidable_eq α] :
-  decidable_pred (is_square : α → Prop) :=
-λ a, fintype.decidable_exists_fintype
-
 section monoid
 variables [monoid α]
+
+@[to_additive even_iff_exists_two_nsmul]
+lemma is_square_iff_exists_sq (m : α) : is_square m ↔ ∃ c, m = c ^ 2 :=
+by simp [is_square, pow_two]
+
+alias is_square_iff_exists_sq ↔ is_square.exists_sq is_square_of_exists_sq
+
+attribute [to_additive even.exists_two_nsmul "Alias of the forwards direction of
+`even_iff_exists_two_nsmul`."] is_square.exists_sq
+
+attribute [to_additive even_of_exists_two_nsmul "Alias of the backwards direction of
+`even_iff_exists_two_nsmul`."] is_square_of_exists_sq
 
 @[simp, to_additive even_two_nsmul]
 lemma is_square_sq (a : α) : is_square (a ^ 2) := ⟨a, pow_two _⟩
@@ -91,21 +99,12 @@ by { use 0, simp only [mul_zero] }
 
 end monoid
 
-@[to_additive]
-lemma is_square.mul_is_square [comm_monoid α] {m n : α} (hm : is_square m) (hn : is_square n) :
-  is_square (m * n) :=
-begin
-  rcases hm with ⟨m, rfl⟩,
-  rcases hn with ⟨n, rfl⟩,
-  refine ⟨m * n, mul_mul_mul_comm m m n n⟩,
-end
+@[to_additive] lemma is_square.mul_is_square [comm_monoid α] {a b : α} :
+  is_square a → is_square b → is_square (a * b) :=
+by { rintro ⟨a, rfl⟩ ⟨b, rfl⟩, exact ⟨m * n, mul_mul_mul_comm m m n n⟩ }
 
-section group
-variable [group α]
-
-@[to_additive]
-lemma is_square_op_iff (a : α) : is_square (op a) ↔ is_square a :=
-⟨λ ⟨c, hc⟩, ⟨unop c, by rw [← unop_mul, ← hc, unop_op]⟩, λ ⟨c, hc⟩, by simp [hc]⟩
+section division_monoid
+variable [division_monoid α]
 
 @[simp, to_additive] lemma is_square_inv (a : α) : is_square a⁻¹ ↔ is_square a :=
 begin
@@ -115,16 +114,18 @@ begin
   { exact ((is_square_op_iff a).mpr h).map (mul_equiv.inv' α).symm }
 end
 
-end group
+alias is_square_inv ↔ _ is_square.inv
 
-section comm_group
-variable [comm_group α]
+end division_monoid
+
+section division_comm_monoid
+variable [division_comm_monoid α] {a b : α}
 
 @[to_additive]
-lemma is_square.div_is_square {m n : α} (hm : is_square m) (hn : is_square n) : is_square (m / n) :=
-by { rw div_eq_mul_inv,  exact hm.mul_is_square ((is_square_inv n).mpr hn) }
+lemma is_square.div (ha : is_square m) (hb : is_square n) : is_square (a / b) :=
+by { rw div_eq_mul_inv, exact hm.mul hn.inv }
 
-end comm_group
+end division_comm_monoid
 
 -- `odd.tsub_odd` requires `canonically_linear_ordered_semiring`, which we don't have
 lemma  even.tsub_even [canonically_linear_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]

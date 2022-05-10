@@ -359,7 +359,7 @@ instance [division_monoid α] : division_monoid (with_zero α) :=
     | none,   none   := λ _, rfl
     | none,   some b := by contradiction
     | some a, none   := by contradiction
-    | some a, some b := λ h, congr_arg some $ inv_eq_of_mul_eq_one_left $ option.some_injective _ h
+    | some a, some b := λ h, congr_arg some $ inv_eq_of_mul_eq_one_right $ option.some_injective _ h
     end,
   .. with_zero.div_inv_monoid, .. with_zero.has_involutive_inv }
 

@@ -168,16 +168,11 @@ lemma zpow_ne_zero_of_ne_zero {a : G₀} (ha : a ≠ 0) : ∀ (z : ℤ), a ^ z �
 lemma zpow_sub₀ {a : G₀} (ha : a ≠ 0) (z1 z2 : ℤ) : a ^ (z1 - z2) = a ^ z1 / a ^ z2 :=
 by rw [sub_eq_add_neg, zpow_add₀ ha, zpow_neg, div_eq_mul_inv]
 
-lemma commute.mul_zpow₀ {a b : G₀} (h : commute a b) :
-  ∀ (i : ℤ), (a * b) ^ i = (a ^ i) * (b ^ i)
-| (n : ℕ) := by simp [h.mul_pow n]
-| -[1+n]  := by simp [h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev]
-
 theorem zpow_bit0' (a : G₀) (n : ℤ) : a ^ bit0 n = (a * a) ^ n :=
-(zpow_bit0₀ a n).trans ((commute.refl a).mul_zpow₀ n).symm
+(zpow_bit0₀ a n).trans ((commute.refl a).mul_zpow n).symm
 
 theorem zpow_bit1' (a : G₀) (n : ℤ) : a ^ bit1 n = (a * a) ^ n * a :=
-by rw [zpow_bit1₀, (commute.refl a).mul_zpow₀]
+by rw [zpow_bit1₀, (commute.refl a).mul_zpow]
 
 lemma zpow_eq_zero {x : G₀} {n : ℤ} (h : x ^ n = 0) : x = 0 :=
 classical.by_contradiction $ λ hx, zpow_ne_zero_of_ne_zero hx n h
@@ -205,17 +200,6 @@ end zpow
 section
 variables {G₀ : Type*} [comm_group_with_zero G₀]
 
-@[simp] theorem div_pow (a b : G₀) (n : ℕ) :
-  (a / b) ^ n = a ^ n / b ^ n :=
-by simp only [div_eq_mul_inv, mul_pow, inv_pow]
-
-lemma mul_zpow₀ (a b : G₀) (m : ℤ) : (a * b) ^ m = (a ^ m) * (b ^ m) :=
-(commute.all a b).mul_zpow₀ m
-
-@[simp] theorem div_zpow₀ (a : G₀) {b : G₀} (n : ℤ) :
-  (a / b) ^ n = a ^ n / b ^ n :=
-by simp only [div_eq_mul_inv, mul_zpow₀, inv_zpow]
-
 lemma div_sq_cancel (a b : G₀) : a ^ 2 * b / a = a * b :=
 begin
   by_cases ha : a = 0,
@@ -228,7 +212,7 @@ homomorphism. -/
 def zpow_group_hom₀ (n : ℤ) : G₀ →* G₀ :=
 { to_fun := (^ n),
   map_one' := one_zpow₀ n,
-  map_mul' := λ a b, mul_zpow₀ a b n }
+  map_mul' := λ a b, mul_zpow a b n }
 
 end
 

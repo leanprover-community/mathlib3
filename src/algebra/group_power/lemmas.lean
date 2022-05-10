@@ -110,8 +110,7 @@ variables [division_monoid α]
 
 -- note that `mul_zsmul` and `zpow_mul` have the primes swapped since their argument order
 -- and therefore the more "natural" choice of lemma is reversed.
-@[to_additive mul_zsmul']
-lemma zpow_mul (a : α) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
+@[to_additive mul_zsmul'] lemma zpow_mul (a : α) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 | (m : ℕ) (n : ℕ) := by { rw [zpow_coe_nat, zpow_coe_nat, ← pow_mul, ← zpow_coe_nat], refl }
 | (m : ℕ) -[1+ n] := by { rw [zpow_coe_nat, zpow_neg_succ_of_nat, ← pow_mul, coe_nat_mul_neg_succ,
     zpow_neg, inv_inj, ← zpow_coe_nat], refl }
@@ -120,8 +119,7 @@ lemma zpow_mul (a : α) : ∀ m n : ℤ, a ^ (m * n) = (a ^ m) ^ n
 | -[1+ m] -[1+ n] := by { rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, neg_succ_mul_neg_succ,
     inv_pow, inv_inv, ← pow_mul, ← zpow_coe_nat], refl }
 
-@[to_additive mul_zsmul]
-lemma zpow_mul' (a : α) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
+@[to_additive mul_zsmul] lemma zpow_mul' (a : α) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
 by rw [mul_comm, zpow_mul]
 
 end division_monoid

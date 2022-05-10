@@ -37,12 +37,10 @@ lemma i_injective : function.injective
 begin
   rw function.injective,
   intros x1 x2 h,
-  by_cases c : x1 = x2, -- `by_contradiction` was slow
-  { exact c },
-  { exfalso,
-    cases (t0_space_def X).1 t0 x1 x2 (by refine c) with u hu,
-    apply (xor_iff_not_iff _ _).1 hu.2,
-    simpa only [eq_iff_iff, subtype.coe_mk] using congr_fun h ⟨u, hu.1⟩ },
+  by_contra' c,
+  cases (t0_space_def X).1 t0 x1 x2 c with u hu,
+  apply (xor_iff_not_iff _ _).1 hu.2,
+  simpa only [eq_iff_iff, subtype.coe_mk] using congr_fun h ⟨u, hu.1⟩
  end
  omit t0
 
@@ -61,9 +59,7 @@ end)
 
 include t
 lemma i_inducing : inducing (i X).to_fun :=
-begin
-  refine {induced := _},
-  apply (eq_induced_by_maps_to_sierpinski).trans,
+⟨(eq_induced_by_maps_to_sierpinski).trans begin
   erw induced_infi, -- same steps as in the proof of `inducing_infi_to_pi`
   congr' 1,
   funext,

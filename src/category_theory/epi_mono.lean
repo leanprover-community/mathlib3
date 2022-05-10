@@ -171,6 +171,29 @@ begin
 end
 
 section
+variables (C)
+
+/-- A split mono category is a category in which every monomorphism is split. -/
+class split_mono_category :=
+(split_mono_of_mono : ∀ {X Y : C} (f : X ⟶ Y) [mono f], split_mono f)
+
+/-- A split epi category is a category in which every epimorphism is split. -/
+class split_epi_category :=
+(split_epi_of_epi : ∀ {X Y : C} (f : X ⟶ Y) [epi f], split_epi f)
+
+end
+
+/-- In a category in which every monomorphism is split, every monomorphism splits. This is not an
+    instance because it would create an instance loop. -/
+def split_mono_of_mono [split_mono_category C] {X Y : C} (f : X ⟶ Y) [mono f] : split_mono f :=
+split_mono_category.split_mono_of_mono _
+
+/-- In a category in which every epimorphism is split, every epimorphism splits. This is not an
+    instance because it would create an instance loop. -/
+def split_epi_of_epi [split_epi_category C] {X Y : C} (f : X ⟶ Y) [epi f] : split_epi f :=
+split_epi_category.split_epi_of_epi _
+
+section
 variables {D : Type u₂} [category.{v₂} D]
 
 /-- Split monomorphisms are also absolute monomorphisms. -/

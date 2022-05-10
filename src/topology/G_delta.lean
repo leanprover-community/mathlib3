@@ -109,7 +109,7 @@ end
 lemma is_closed.is_Gδ {α} [uniform_space α] [is_countably_generated (𝓤 α)]
   {s : set α} (hs : is_closed s) : is_Gδ s :=
 begin
-  rcases (@uniformity_has_basis_open α _).exists_antitone_subbasis  with ⟨U, hUo, hU, -, -⟩,
+  rcases (@uniformity_has_basis_open α _).exists_antitone_subbasis  with ⟨U, hUo, hU, -⟩,
   rw [← hs.closure_eq, ← hU.bInter_bUnion_ball],
   refine is_Gδ_bInter (countable_encodable _) (λ n hn, is_open.is_Gδ _),
   exact is_open_bUnion (λ x hx, uniform_space.is_open_ball _ (hUo _).2)
@@ -124,7 +124,7 @@ is_open_compl_singleton.is_Gδ
 
 lemma set.countable.is_Gδ_compl {s : set α} (hs : countable s) : is_Gδ sᶜ :=
 begin
-  rw [← bUnion_of_singleton s, compl_bUnion],
+  rw [← bUnion_of_singleton s, compl_Union₂],
   exact is_Gδ_bInter hs (λ x _, is_Gδ_compl_singleton x)
 end
 
@@ -172,9 +172,7 @@ begin
     set_of_forall, id],
   refine is_Gδ_Inter (λ k, is_open.is_Gδ $ is_open_iff_mem_nhds.2 $ λ x, _),
   rintros ⟨s, ⟨hsx, hso⟩, hsU⟩,
-  filter_upwards [is_open.mem_nhds hso hsx],
-  intros y hy,
-  exact ⟨s, ⟨hy, hso⟩, hsU⟩
+  filter_upwards [is_open.mem_nhds hso hsx] with _ hy using ⟨s, ⟨hy, hso⟩, hsU⟩,
 end
 
 end continuous_at

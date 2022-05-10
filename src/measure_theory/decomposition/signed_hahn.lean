@@ -9,9 +9,9 @@ import order.symm_diff
 /-!
 # Hahn decomposition
 
-This file prove the Hahn decomposition theorem (signed version). The Hahn decomposition theorem
-states that, given a signed measure `s`, there exist complement, measurable sets `i` and `j`,
-such that `i` is positive and `j` is negative with repsect to `s`; that is, `s` restricted on `i`
+This file proves the Hahn decomposition theorem (signed version). The Hahn decomposition theorem
+states that, given a signed measure `s`, there exist complementary, measurable sets `i` and `j`,
+such that `i` is positive and `j` is negative with respect to `s`; that is, `s` restricted on `i`
 is non-negative and `s` restricted on `j` is non-positive.
 
 The Hahn decomposition theorem leads to many other results in measure theory, most notably,
@@ -358,7 +358,7 @@ lemma bdd_below_measure_of_negatives :
   bdd_below s.measure_of_negatives :=
 begin
   simp_rw [bdd_below, set.nonempty, mem_lower_bounds],
-  by_contra, push_neg at h,
+  by_contra' h,
   have h' : ∀ n : ℕ, ∃ y : ℝ, y ∈ s.measure_of_negatives ∧ y < -n := λ n, h (-n),
   choose f hf using h',
   have hf' : ∀ n : ℕ, ∃ B, measurable_set B ∧ s ≤[B] 0 ∧ s B < -n,
@@ -412,7 +412,7 @@ begin
   refine ⟨Aᶜ, hA₁.compl, _, (compl_compl A).symm ▸ hA₂⟩,
   rw restrict_le_restrict_iff _ _ hA₁.compl,
   intros C hC hC₁,
-  by_contra hC₂, push_neg at hC₂,
+  by_contra' hC₂,
   rcases exists_subset_restrict_nonpos hC₂ with ⟨D, hD₁, hD, hD₂, hD₃⟩,
   have : s (A ∪ D) < Inf s.measure_of_negatives,
   { rw [← hA₃, of_union (set.disjoint_of_subset_right (set.subset.trans hD hC₁)
@@ -431,11 +431,11 @@ theorem exists_is_compl_positive_negative (s : signed_measure α) :
 let ⟨i, hi₁, hi₂, hi₃⟩ := exists_compl_positive_negative s in
   ⟨i, iᶜ, hi₁, hi₂, hi₁.compl, hi₃, is_compl_compl⟩
 
-/-- The symmetric difference of two Hahn decompositions have measure zero. -/
+/-- The symmetric difference of two Hahn decompositions has measure zero. -/
 lemma of_symm_diff_compl_positive_negative {s : signed_measure α}
   {i j : set α} (hi : measurable_set i) (hj : measurable_set j)
   (hi' : 0 ≤[i] s ∧ s ≤[iᶜ] 0) (hj' : 0 ≤[j] s ∧ s ≤[jᶜ] 0) :
-  s (i Δ j) = 0 ∧ s (iᶜ Δ jᶜ) = 0 :=
+  s (i ∆ j) = 0 ∧ s (iᶜ ∆ jᶜ) = 0 :=
 begin
   rw [restrict_le_restrict_iff s 0, restrict_le_restrict_iff 0 s] at hi' hj',
   split,

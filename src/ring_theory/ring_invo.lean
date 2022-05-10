@@ -3,8 +3,8 @@ Copyright (c) 2018 Andreas Swerdlow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andreas Swerdlow, Kenny Lau
 -/
-import data.equiv.ring
-import algebra.opposites
+import algebra.ring.equiv
+import algebra.ring.opposite
 
 /-!
 # Ring involutions

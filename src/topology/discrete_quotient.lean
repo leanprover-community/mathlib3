@@ -26,12 +26,12 @@ quotients as setoids whose equivalence classes are clopen.
   endowed with a `fintype` instance.
 
 ## Order structure
-The type `discrete_quotient X` is endowed with an instance of a `semilattice_inf_top`.
+The type `discrete_quotient X` is endowed with an instance of a `semilattice_inf` with `order_top`.
 The partial ordering `A ≤ B` mathematically means that `B.proj` factors through `A.proj`.
 The top element `⊤` is the trivial quotient, meaning that every element of `X` is collapsed
 to a point. Given `h : A ≤ B`, the map `A → B` is `discrete_quotient.of_le h`.
 Whenever `X` is discrete, the type `discrete_quotient X` is also endowed with an instance of a
-`semilattice_inf_bot`, where the bot element `⊥` is `X` itself.
+`semilattice_inf` with `order_bot`, where the bot element `⊥` is `X` itself.
 
 Given `f : X → Y` and `h : continuous f`, we define a predicate `le_comap h A B` for
 `A : discrete_quotient X` and `B : discrete_quotient Y`, asserting that `f` descends to `A → B`.
@@ -139,7 +139,7 @@ instance : order_top (discrete_quotient X) :=
 { top := ⟨λ a b, true, ⟨by tauto, by tauto, by tauto⟩, λ _, is_clopen_univ⟩,
   le_top := λ a, by tauto }
 
-instance : semilattice_inf_top (discrete_quotient X) :=
+instance : semilattice_inf (discrete_quotient X) :=
 { inf := λ A B,
   { rel := λ x y, A.rel x y ∧ B.rel x y,
     equiv := ⟨λ a, ⟨A.refl _,B.refl _⟩, λ a b h, ⟨A.symm _ _ h.1, B.symm _ _ h.2⟩,
@@ -148,7 +148,6 @@ instance : semilattice_inf_top (discrete_quotient X) :=
   inf_le_left := λ a b, by tauto,
   inf_le_right := λ a b, by tauto,
   le_inf := λ a b c h1 h2, by tauto,
-  ..discrete_quotient.order_top,
   ..discrete_quotient.partial_order }
 
 instance : inhabited (discrete_quotient X) := ⟨⊤⟩
@@ -207,15 +206,14 @@ lemma of_le_proj_apply {A B : discrete_quotient X} (h : A ≤ B) (x : X) :
 end of_le
 
 /--
-When X is discrete, there is a `semilattice_inf_bot` instance on `discrete_quotient X`
+When X is discrete, there is a `order_bot` instance on `discrete_quotient X`
 -/
-instance [discrete_topology X] : semilattice_inf_bot (discrete_quotient X) :=
+instance [discrete_topology X] : order_bot (discrete_quotient X) :=
 { bot :=
   { rel := (=),
     equiv := eq_equivalence,
     clopen := λ x, is_clopen_discrete _ },
-  bot_le := by { rintro S a b (h : a = b), rw h, exact S.refl _ },
-  ..(infer_instance : semilattice_inf _) }
+  bot_le := by { rintro S a b (h : a = b), rw h, exact S.refl _ } }
 
 lemma proj_bot_injective [discrete_topology X] :
   function.injective (⊥ : discrete_quotient X).proj := λ a b h, quotient.exact' h

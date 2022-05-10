@@ -64,16 +64,7 @@ theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
 by rw [Ico, Ico, map_add_range', add_tsub_add_eq_tsub_right, add_comm n k]
 
 theorem map_sub (n m k : ℕ) (h₁ : k ≤ n) : (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
-begin
-  by_cases h₂ : n < m,
-  { rw [Ico, Ico],
-    rw tsub_tsub_tsub_cancel_right h₁,
-    rw [map_sub_range' _ _ _ h₁] },
-  { simp at h₂,
-    rw [eq_nil_of_le h₂],
-    rw [eq_nil_of_le (tsub_le_tsub_right h₂ _)],
-    refl }
-end
+by rw [Ico, Ico, tsub_tsub_tsub_cancel_right h₁, map_sub_range' _ _ _ h₁]
 
 @[simp] theorem self_empty {n : ℕ} : Ico n n = [] :=
 eq_nil_of_le (le_refl n)
@@ -176,7 +167,7 @@ end
 @[simp] lemma filter_le_of_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x ≤ n) = [n] :=
 begin
   rw ←filter_lt_of_succ_bot hnm,
-  exact filter_congr (λ _ _, lt_succ_iff.symm),
+  exact filter_congr' (λ _ _, lt_succ_iff.symm),
 end
 
 /--

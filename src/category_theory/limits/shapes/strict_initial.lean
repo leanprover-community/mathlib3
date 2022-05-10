@@ -47,6 +47,8 @@ open category
 
 variables (C : Type u) [category.{v} C]
 
+section strict_initial
+
 /--
 We say `C` has strict initial objects if every initial object is strict, ie given any morphism
 `f : A ⟶ I` where `I` is initial, then `f` is an isomorphism.
@@ -153,5 +155,94 @@ lemma has_strict_initial_objects_of_initial_is_strict [has_initial C]
     exact ⟨⟨hI.to _ ≫ inv (f ≫ hI.to ⊥_ C), by rw [←assoc, is_iso.hom_inv_id], hI.hom_ext _ _⟩⟩,
   end }
 
+end strict_initial
+
+section strict_terminal
+
+/--
+We say `C` has strict terminal objects if every terminal object is strict, ie given any morphism
+`f : I ⟶ A` where `I` is terminal, then `f` is an isomorphism.
+
+Strictly speaking, this says that *any* terminal object must be strict, rather than that strict
+terminal objects exist.
+-/
+class has_strict_terminal_objects : Prop :=
+(out : ∀ {I A : C} (f : I ⟶ A), is_terminal I → is_iso f)
+
+variables {C}
+
+section
+variables [has_strict_terminal_objects C] {I : C}
+
+lemma is_terminal.is_iso_from (hI : is_terminal I) {A : C} (f : I ⟶ A) :
+  is_iso f :=
+has_strict_terminal_objects.out f hI
+
+lemma is_terminal.strict_hom_ext (hI : is_terminal I) {A : C} (f g : I ⟶ A) :
+  f = g :=
+begin
+  haveI := hI.is_iso_from f,
+  haveI := hI.is_iso_from g,
+  exact eq_of_inv_eq_inv (hI.hom_ext (inv f) (inv g)),
+end
+
+lemma is_terminal.subsingleton_to (hI : is_terminal I) {A : C} :
+  subsingleton (I ⟶ A) :=
+⟨hI.strict_hom_ext⟩
+
+variables {J : Type v} [small_category J]
+
+/-- If all but one object in a diagram is strict terminal, the the limit is isomorphic to the
+said object via `limit.π`. -/
+lemma limit_π_is_iso_of_is_strict_terminal (F : J ⥤ C) [has_limit F] (i : J)
+  (H : ∀ j ≠ i, is_terminal (F.obj j)) [subsingleton (i ⟶ i)] :
+  is_iso (limit.π F i) :=
+begin
+  classical,
+  refine ⟨⟨limit.lift _ ⟨_,⟨_,_⟩⟩,_,_⟩⟩,
+  { exact λ j, dite (j = i) (λ h, eq_to_hom (by { cases h, refl })) (λ h, (H _ h).from _) },
+  { intros j k f,
+    split_ifs,
+    { cases h, cases h_1, obtain rfl : f = 𝟙 _ := subsingleton.elim _ _, simpa },
+    { cases h, erw category.comp_id,
+      haveI : is_iso (F.map f) := (H _ h_1).is_iso_from _,
+      rw ← is_iso.comp_inv_eq,
+      apply (H _ h_1).hom_ext },
+    { cases h_1, apply (H _ h).hom_ext },
+    { apply (H _ h).hom_ext } },
+  { ext,
+    rw [assoc, limit.lift_π],
+    dsimp only,
+    split_ifs,
+    { cases h, rw [id_comp, eq_to_hom_refl], exact comp_id _ },
+    { apply (H _ h).hom_ext } },
+  { rw limit.lift_π, simpa }
+end
+
+variable [has_terminal C]
+
+instance terminal_is_iso_from {A : C} (f :  ⊤_ C ⟶ A) : is_iso f :=
+terminal_is_terminal.is_iso_from _
+
+@[ext] lemma terminal.hom_ext {A : C} (f g : ⊤_ C ⟶ A) : f = g :=
+terminal_is_terminal.strict_hom_ext _ _
+
+lemma terminal.subsingleton_to {A : C} : subsingleton (⊤_ C ⟶ A) :=
+terminal_is_terminal.subsingleton_to
+
+end
+
+/-- If `C` has an object such that every morphism *from* it is an isomorphism, then `C`
+has strict terminal objects. -/
+lemma has_strict_terminal_objects_of_terminal_is_strict (I : C) (h : ∀ A (f : I ⟶ A), is_iso f) :
+  has_strict_terminal_objects C :=
+{ out := λ I' A f hI',
+  begin
+    haveI := h A (hI'.from _ ≫ f),
+    exact ⟨⟨inv (hI'.from I ≫ f) ≫ hI'.from I,
+      hI'.hom_ext _ _, by rw [assoc, is_iso.inv_hom_id]⟩⟩,
+  end }
+
+end strict_terminal
 end limits
 end category_theory

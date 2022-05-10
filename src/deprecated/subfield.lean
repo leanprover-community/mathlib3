@@ -77,7 +77,7 @@ lemma closure.is_submonoid : is_submonoid (closure S) :=
           is_submonoid.mul_mem ring.closure.is_subring.to_is_submonoid hp hr,
           q * s,
           is_submonoid.mul_mem ring.closure.is_subring.to_is_submonoid hq hs,
-          (div_mul_div _ _ _ _).symm⟩,
+          (div_mul_div_comm₀ _ _ _ _).symm⟩,
   one_mem := ring_closure_subset $ is_submonoid.one_mem ring.closure.is_subring.to_is_submonoid }
 
 lemma closure.is_subfield : is_subfield (closure S) :=
@@ -102,7 +102,6 @@ have h0 : (0:F) ∈ closure S, from ring_closure_subset $
   end,
   inv_mem := begin
     rintros _ ⟨p, hp, q, hq, rfl⟩,
-    classical, by_cases hp0 : p = 0, by simp [hp0, h0],
     exact ⟨q, hq, p, hp, inv_div.symm⟩
   end,
   ..closure.is_submonoid }

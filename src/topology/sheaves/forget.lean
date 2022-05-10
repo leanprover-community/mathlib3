@@ -123,7 +123,7 @@ Then to check the sheaf condition it suffices to check it on the underlying shea
 
 Another useful example is the forgetful functor `TopCommRing ⥤ Top`.
 
-See https://stacks.math.columbia.edu/tag/0073.
+See <https://stacks.math.columbia.edu/tag/0073>.
 In fact we prove a stronger version with arbitrary complete target category.
 -/
 lemma is_sheaf_iff_is_sheaf_comp :
@@ -175,7 +175,7 @@ begin
       -- introduced above.
       let d' := (cones.postcompose (diagram_comp_preserves_limits G F U).hom).obj d,
       have hd' : is_limit d' :=
-        (is_limit.postcompose_hom_equiv (diagram_comp_preserves_limits G F U) d).symm hd,
+        (is_limit.postcompose_hom_equiv (diagram_comp_preserves_limits G F U : _) d).symm hd,
       -- Now everything works: we verify that `f` really is a morphism between these cones:
       let f' : c ⟶ d' :=
       fork.mk_hom (G.map f)
@@ -201,7 +201,7 @@ As an example, we now have everything we need to check the sheaf condition
 for a presheaf of commutative rings, merely by checking the sheaf condition
 for the underlying sheaf of types.
 ```
-import algebra.category.CommRing.limits
+import algebra.category.Ring.limits
 example (X : Top) (F : presheaf CommRing X) (h : presheaf.is_sheaf (F ⋙ (forget CommRing))) :
   F.is_sheaf :=
 (is_sheaf_iff_is_sheaf_comp (forget CommRing) F).mpr h

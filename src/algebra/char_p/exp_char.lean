@@ -52,16 +52,13 @@ theorem char_eq_exp_char_iff (p q : ℕ) [hp : char_p R p] [hq : exp_char R q] :
   p = q ↔ p.prime :=
 begin
   casesI hq with q hq_one hq_prime,
-  { split,
+  { apply iff_of_false,
     { unfreezingI {rintro rfl},
-      exact false.elim (one_ne_zero (hp.eq R (char_p.of_char_zero R))) },
+      exact one_ne_zero (hp.eq R (char_p.of_char_zero R)) },
     { intro pprime,
       rw (char_p.eq R hp infer_instance : p = 0) at pprime,
-      exact false.elim (nat.not_prime_zero pprime) } },
-  { split,
-    { intro hpq, rw hpq, exact hq_prime, },
-    { intro _,
-      exact char_p.eq R hp hq_hchar } },
+      exact nat.not_prime_zero pprime } },
+  { exact ⟨λ hpq, hpq.symm ▸ hq_prime, λ _, char_p.eq R hp hq_hchar⟩ },
 end
 
 section nontrivial
@@ -77,7 +74,7 @@ begin
   { exact false.elim (char_p.char_ne_one R 1 rfl), }
 end
 
-/-- The exponential characteristic is one if the characteristic is zero. -/
+/-- The characteristic is zero if the exponential characteristic is one. -/
 @[priority 100] -- see Note [lower instance priority]
 instance char_zero_of_exp_char_one' [hq : exp_char R 1] : char_zero R :=
 begin

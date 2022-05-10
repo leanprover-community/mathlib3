@@ -3,8 +3,9 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.algebra.module
+import topology.algebra.module.basic
 import topology.instances.real
+import topology.instances.rat
 
 /-!
 # Continuous additive maps are `ℝ`-linear
@@ -26,7 +27,7 @@ suffices (λ c : ℝ, f (c • x)) = λ c : ℝ, c • f x, from _root_.congr_fu
 rat.dense_embedding_coe_real.dense.equalizer
   (hf.comp $ continuous_id.smul continuous_const)
   (continuous_id.smul continuous_const)
-  (funext $ λ r, f.map_rat_cast_smul ℝ ℝ r x)
+  (funext $ λ r, map_rat_cast_smul f ℝ ℝ r x)
 
 /-- Reinterpret a continuous additive homomorphism between two real vector spaces
 as a continuous real-linear map. -/
@@ -37,3 +38,19 @@ def to_real_linear_map (f : E →+ F) (hf : continuous f) : E →L[ℝ] F :=
   ⇑(f.to_real_linear_map hf) = f := rfl
 
 end add_monoid_hom
+
+/-- Reinterpret a continuous additive equivalence between two real vector spaces
+as a continuous real-linear map. -/
+def add_equiv.to_real_linear_equiv (e : E ≃+ F) (h₁ : continuous e)
+  (h₂ : continuous e.symm) : E ≃L[ℝ] F :=
+{ .. e,
+  .. e.to_add_monoid_hom.to_real_linear_map h₁ }
+
+/-- A topological group carries at most one structure of a topological `ℝ`-module, so for any
+topological `ℝ`-algebra `A` (e.g. `A = ℂ`) and any topological group that is both a topological
+`ℝ`-module and a topological `A`-module, these structures agree. -/
+@[priority 900]
+instance real.is_scalar_tower [t2_space E] {A : Type*} [topological_space A]
+  [ring A] [algebra ℝ A] [module A E] [has_continuous_smul ℝ A]
+  [has_continuous_smul A E] : is_scalar_tower ℝ A E :=
+⟨λ r x y, ((smul_add_hom A E).flip y).map_real_smul (continuous_id.smul continuous_const) r x⟩

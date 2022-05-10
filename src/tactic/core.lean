@@ -43,9 +43,9 @@ meta def trans_conv (t₁ t₂ : expr → tactic (expr × expr)) (e : expr) :
   return (e₁, p₁)) <|> t₂ e
 
 end tactic
+open tactic
 
 namespace expr
-open tactic
 
 /-- Given an expr `α` representing a type with numeral structure,
 `of_nat α n` creates the `α`-valued numeral expression corresponding to `n`. -/
@@ -63,6 +63,13 @@ protected meta def of_int (α : expr) : ℤ → tactic expr
 | -[1+ n] := do
   e ← expr.of_nat α (n+1),
   tactic.mk_app ``has_neg.neg [e]
+
+/-- Convert a list of expressions to an expression denoting the list of those expressions. -/
+meta def of_list (α : expr) : list expr → tactic expr
+| [] := tactic.mk_app ``list.nil [α]
+| (x :: xs) := do
+  exs ← of_list xs,
+  tactic.mk_app ``list.cons [α, x, exs]
 
 /-- Generates an expression of the form `∃(args), inner`. `args` is assumed to be a list of local
 constants. When possible, `p ∧ q` is used instead of `∃(_ : p), q`. -/
@@ -106,6 +113,26 @@ meta def kreplace (e old new : expr) (md := semireducible) (unify := tt)
   pure $ e.instantiate_var new
 
 end expr
+
+namespace name
+
+/--
+`pre.contains_sorry_aux nm` checks whether `sorry` occurs in the value of the declaration `nm`
+or (recusively) in any declarations occurring in the value of `nm` with namespace `pre`.
+Auxiliary function for `name.contains_sorry`. -/
+meta def contains_sorry_aux (pre : name) : name → tactic bool | nm := do
+  env ← get_env,
+  decl ← get_decl nm,
+  ff ← return decl.value.contains_sorry | return tt,
+  (decl.value.list_names_with_prefix pre).mfold ff $
+    λ n b, if b then return tt else n.contains_sorry_aux
+
+/-- `nm.contains_sorry` checks whether `sorry` occurs in the value of the declaration `nm` or
+  in any declarations `nm._proof_i` (or to be more precise: any declaration in namespace `nm`).
+  See also `expr.contains_sorry`. -/
+meta def contains_sorry (nm : name) : tactic bool := nm.contains_sorry_aux nm
+
+end name
 
 namespace interaction_monad
 open result
@@ -221,7 +248,7 @@ private meta def add_local_consts_as_local_hyps_aux
 meta def add_local_consts_as_local_hyps (vars : list expr) : tactic (list (expr × expr)) :=
 /- The `list.reverse` below is a performance optimisation since the list of available variables
    reported by the system is often mostly the reverse of the order in which they are dependent. -/
-add_local_consts_as_local_hyps_aux [] vars.reverse.erase_dup
+add_local_consts_as_local_hyps_aux [] vars.reverse.dedup
 
 private meta def get_expl_pi_arity_aux : expr → tactic nat
 | (expr.pi n bi d b) :=
@@ -950,36 +977,29 @@ meta def apply_list_expr (opt : apply_cfg) : list (tactic expr) → tactic unit
 | (h::t) := (do e ← h, interactive.concat_tags (apply e opt)) <|> apply_list_expr t
 
 /--
-Constructs a list of `tactic expr` given a list of p-expressions, as follows:
-- if the p-expression is the name of a theorem, use `i_to_expr_for_apply` on it
-- if the p-expression is a user attribute, add all the theorems with this attribute
-  to the list.
-
-We need to return a list of `tactic expr`, rather than just `expr`, because these expressions
-will be repeatedly applied against goals, and we need to ensure that metavariables don't get stuck.
+Given the name of a user attribute, produces a list of `tactic expr`s, each of which is the
+application of `i_to_expr_for_apply` to a declaration with that attribute.
 -/
-meta def build_list_expr_for_apply : list pexpr → tactic (list (tactic expr))
-| [] := return []
-| (h::t) := do
-  tail ← build_list_expr_for_apply t,
-  a ← i_to_expr_for_apply h,
-  (do l ← attribute.get_instances (expr.const_name a),
-      m ← l.mmap (λ n, _root_.to_pexpr <$> mk_const n),
-      -- We reverse the list of lemmas marked with an attribute,
-      -- on the assumption that lemmas proved earlier are more often applicable
-      -- than lemmas proved later. This is a performance optimization.
-      build_list_expr_for_apply (m.reverse ++ t))
-  <|> return ((i_to_expr_for_apply h) :: tail)
+meta def resolve_attribute_expr_list (attr_name : name) : tactic (list (tactic expr)) := do
+  l ← attribute.get_instances attr_name,
+  list.map i_to_expr_for_apply <$> list.reverse <$> l.mmap resolve_name
 
-/--`apply_rules hs n`: apply the list of rules `hs` (given as pexpr) and `assumption` on the
-first goal and the resulting subgoals, iteratively, at most `n` times.
+
+/--`apply_rules args attrs n`: apply the lists of rules `args` (given as pexprs) and `attrs` (given
+as names of attributes) and `the tactic assumption` on the first goal and the resulting subgoals,
+iteratively, at most `n` times.
 
 Unlike `solve_by_elim`, `apply_rules` does not do any backtracking, and just greedily applies
 a lemma from the list until it can't.
  -/
-meta def apply_rules (hs : list pexpr) (n : nat) (opt : apply_cfg) : tactic unit :=
-do l ← lock_tactic_state $ build_list_expr_for_apply hs,
-   iterate_at_most_on_subgoals n (assumption <|> apply_list_expr opt l)
+meta def apply_rules (args : list pexpr) (attrs : list name) (n : nat) (opt : apply_cfg) :
+  tactic unit := do
+  attr_exprs ← lock_tactic_state $ attrs.mfoldl
+    (λ l n, list.append l <$> resolve_attribute_expr_list n) [],
+  let args_exprs := args.map i_to_expr_for_apply ++ attr_exprs,
+-- `args_exprs` is a list of `tactic expr`, rather than just `expr`, because these expressions will
+-- be repeatedly applied against goals, and we need to ensure that metavariables don't get stuck.
+   iterate_at_most_on_subgoals n (assumption <|> apply_list_expr opt args_exprs)
 
 /-- `replace h p` elaborates the pexpr `p`, clears the existing hypothesis named `h` from the local
 context, and adds a new hypothesis named `h`. The type of this hypothesis is the type of `p`.
@@ -1118,7 +1138,7 @@ and fail otherwise.
 meta def sorry_if_contains_sorry : tactic unit :=
 do
   g ← target,
-  guard g.contains_sorry <|> fail "goal does not contain `sorrry`",
+  guard g.contains_sorry <|> fail "goal does not contain `sorry`",
   tactic.admit
 
 /-- Fail if the target contains a metavariable. -/
@@ -1469,7 +1489,7 @@ instance : monad id :=
      fs ← expanded_field_list cl,
      let fs := fs.map prod.snd,
      let fs := format.intercalate (",\n  " : format) $ fs.map (λ fn, format!"{fn} := _"),
-     let out := format.to_string format!"{{ {fs} }",
+     let out := format.to_string format!"{{ {fs} }}",
      return [(out,"")] }
 
 add_tactic_doc
@@ -1688,7 +1708,7 @@ sum.inr : ℕ → ℤ ⊕ ℕ
             c ← strip_prefix c,
             pure format!"\n{c} : {t}\n" },
      fs ← format.intercalate ", " <$> cs.mmap (strip_prefix >=> pure ∘ to_fmt),
-     let out := format.to_string format!"{{! {fs} !}",
+     let out := format.to_string format!"{{! {fs} !}}",
      trace (format.join ts).to_string,
      return [(out,"")] }
 
@@ -2384,7 +2404,7 @@ then do
   user_attr_nm ← get_user_attribute_name attr_name,
   user_attr_const ← mk_const user_attr_nm,
   tac ← eval_pexpr (tactic unit)
-    ``(user_attribute.set %%user_attr_const %%c_name (default _) %%persistent) <|>
+    ``(user_attribute.set %%user_attr_const %%c_name default %%persistent) <|>
     fail! ("Cannot set attribute @[{attr_name}].\n" ++
       "The corresponding user attribute {user_attr_nm} " ++
       "has a parameter without a default value.\n" ++

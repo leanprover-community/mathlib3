@@ -6,6 +6,7 @@ Authors: Kenny Lau, Mario Carneiro
 
 import group_theory.congruence
 import linear_algebra.bilinear_map
+import linear_algebra.span
 
 /-!
 # Tensor product of modules over commutative semirings.
@@ -273,6 +274,13 @@ instance left_module : module R'' (M ⊗[R] N) :=
   ..tensor_product.left_distrib_mul_action }
 
 instance : module R (M ⊗[R] N) := tensor_product.left_module
+
+instance [module R''ᵐᵒᵖ M] [is_central_scalar R'' M] : is_central_scalar R'' (M ⊗[R] N) :=
+{ op_smul_eq_smul := λ r x,
+  tensor_product.induction_on x
+    (by rw [smul_zero, smul_zero])
+    (λ x y, by rw [smul_tmul', smul_tmul', op_smul_eq_smul])
+    (λ x y hx hy, by rw [smul_add, smul_add, hx, hy]) }
 
 section
 
@@ -643,7 +651,7 @@ lemma map_mul (f₁ f₂ : M →ₗ[R] M) (g₁ g₂ : N →ₗ[R] N) :
   map (f₁ * f₂) (g₁ * g₂) = (map f₁ g₁) * (map f₂ g₂) :=
 map_comp f₁ f₂ g₁ g₂
 
-@[simp] lemma map_pow (f : M →ₗ[R] M) (g : N →ₗ[R] N) (n : ℕ) :
+@[simp] protected lemma map_pow (f : M →ₗ[R] M) (g : N →ₗ[R] N) (n : ℕ) :
   (map f g)^n = map (f^n) (g^n) :=
 begin
   induction n with n ih,
@@ -713,6 +721,29 @@ rfl
 
 @[simp] lemma tensor_tensor_tensor_comm_symm_tmul (m : M) (n : N) (p : P) (q : Q) :
   (tensor_tensor_tensor_comm R M N P Q).symm ((m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q)) = (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) :=
+rfl
+
+variables (M N P Q)
+
+/-- This special case is useful for describing the interplay between `dual_tensor_hom_equiv` and
+composition of linear maps.
+
+E.g., composition of linear maps gives a map `(M → N) ⊗ (N → P) → (M → P)`, and applying
+`dual_tensor_hom_equiv.symm` to the three hom-modules gives a map
+`(M.dual ⊗ N) ⊗ (N.dual ⊗ P) → (M.dual ⊗ P)`, which agrees with the application of `contract_right`
+on `N ⊗ N.dual` after the suitable rebracketting.
+-/
+def tensor_tensor_tensor_assoc : (M ⊗[R] N) ⊗[R] (P ⊗[R] Q) ≃ₗ[R] M ⊗[R] (N ⊗[R] P) ⊗[R] Q :=
+(tensor_product.assoc R (M ⊗[R] N) P Q).symm ≪≫ₗ
+congr (tensor_product.assoc R M N P) (1 : Q ≃ₗ[R] Q)
+
+variables {M N P Q}
+
+@[simp] lemma tensor_tensor_tensor_assoc_tmul (m : M) (n : N) (p : P) (q : Q) :
+  tensor_tensor_tensor_assoc R M N P Q ((m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q)) = m ⊗ₜ (n ⊗ₜ p) ⊗ₜ q := rfl
+
+@[simp] lemma tensor_tensor_tensor_assoc_symm_tmul (m : M) (n : N) (p : P) (q : Q) :
+  (tensor_tensor_tensor_assoc R M N P Q).symm (m ⊗ₜ (n ⊗ₜ p) ⊗ₜ q) = (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) :=
 rfl
 
 end tensor_product
@@ -827,10 +858,10 @@ by simp only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
 variables {M}
 
 @[simp] lemma rtensor_pow (f : M →ₗ[R] M) (n : ℕ) : (f.rtensor N)^n = (f^n).rtensor N :=
-by { have h := map_pow f (id : N →ₗ[R] N) n, rwa id_pow at h, }
+by { have h := tensor_product.map_pow f (id : N →ₗ[R] N) n, rwa id_pow at h, }
 
 @[simp] lemma ltensor_pow (f : N →ₗ[R] N) (n : ℕ) : (f.ltensor M)^n = (f^n).ltensor M :=
-by { have h := map_pow (id : M →ₗ[R] M) f n, rwa id_pow at h, }
+by { have h := tensor_product.map_pow (id : M →ₗ[R] M) f n, rwa id_pow at h, }
 
 end linear_map
 
@@ -924,7 +955,7 @@ When `R` is a `ring` we get the required `tensor_product.compatible_smul` instan
 `is_scalar_tower`, but when it is only a `semiring` we need to build it from scratch.
 The instance diamond in `compatible_smul` doesn't matter because it's in `Prop`.
 -/
-instance compatible_smul.int [module ℤ M] [module ℤ N] : compatible_smul R ℤ M N :=
+instance compatible_smul.int : compatible_smul R ℤ M N :=
 ⟨λ r m n, int.induction_on r
   (by simp)
   (λ r ih, by simpa [add_smul, tmul_add, add_tmul] using ih)
@@ -932,7 +963,7 @@ instance compatible_smul.int [module ℤ M] [module ℤ N] : compatible_smul R �
 
 instance compatible_smul.unit {S} [monoid S] [distrib_mul_action S M] [distrib_mul_action S N]
   [compatible_smul R S M N] :
-  compatible_smul R (units S) M N :=
+  compatible_smul R Sˣ M N :=
 ⟨λ s m n, (compatible_smul.smul_tmul (s : S) m n : _)⟩
 
 end tensor_product

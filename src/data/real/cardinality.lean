@@ -3,10 +3,10 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import set_theory.continuum
-import analysis.specific_limits
+import analysis.specific_limits.basic
 import data.rat.denumerable
 import data.set.intervals.image_preimage
+import set_theory.cardinal.continuum
 
 /-!
 # The cardinality of the reals
@@ -127,7 +127,7 @@ begin
       { intros n hn, cases n, contradiction, refl } } },
   rw [cantor_function_succ f (le_of_lt h1) h3, cantor_function_succ g (le_of_lt h1) h3],
   rw [hn 0 $ zero_lt_succ n],
-  apply add_lt_add_left, rw mul_lt_mul_left h1, exact ih (λ k hk, hn _ $ succ_lt_succ hk) fn gn
+  apply add_lt_add_left, rw mul_lt_mul_left h1, exact ih (λ k hk, hn _ $ nat.succ_lt_succ hk) fn gn
 end
 
 /-- `cantor_function c` is injective if `0 < c < 1/2`. -/
@@ -213,7 +213,7 @@ begin
   replace h := sub_pos_of_lt h,
   have h2 : #(has_inv.inv '' Ioo 0 (b - a)) ≤ #(Ioo 0 (b - a)) := mk_image_le,
   refine le_trans _ h2,
-  rw [image_inv_Ioo_0_left h, mk_Ioi_real]
+  rw [image_inv, inv_Ioo_0_left h, mk_Ioi_real]
 end
 
 /-- The cardinality of the interval [a, b). -/

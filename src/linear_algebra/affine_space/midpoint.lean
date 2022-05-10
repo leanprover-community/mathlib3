@@ -134,6 +134,22 @@ lemma midpoint_eq_smul_add (x y : V) : midpoint R x y = (⅟2 : R) • (x + y) :
 by rw [midpoint_eq_iff, point_reflection_apply, vsub_eq_sub, vadd_eq_add, sub_add_eq_add_sub,
   ← two_smul R, smul_smul, mul_inv_of_self, one_smul, add_sub_cancel']
 
+@[simp] lemma midpoint_self_neg (x : V) :
+  midpoint R x (-x) = 0 :=
+by rw [midpoint_eq_smul_add, add_neg_self, smul_zero]
+
+@[simp] lemma midpoint_neg_self (x : V) :
+  midpoint R (-x) x = 0 :=
+by simpa using midpoint_self_neg R (-x)
+
+@[simp] lemma midpoint_sub_add (x y : V) :
+  midpoint R (x - y) (x + y) = x :=
+by rw [sub_eq_add_neg, ← vadd_eq_add, ← vadd_eq_add, ← midpoint_vadd_midpoint]; simp
+
+@[simp] lemma midpoint_add_sub (x y : V) :
+  midpoint R (x + y) (x - y) = x :=
+by rw midpoint_comm; simp
+
 end
 
 lemma line_map_inv_two {R : Type*} {V P : Type*} [division_ring R] [char_zero R]

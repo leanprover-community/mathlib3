@@ -7,6 +7,7 @@ import data.matrix.block
 import linear_algebra.matrix.finite_dimensional
 import linear_algebra.std_basis
 import ring_theory.algebra_tower
+import algebra.module.algebra
 
 /-!
 # Linear maps and matrices
@@ -26,8 +27,8 @@ types used for indexing.
  * `linear_map.to_matrix`: given bases `v₁ : ι → M₁` and `v₂ : κ → M₂`,
    the `R`-linear equivalence from `M₁ →ₗ[R] M₂` to `matrix κ ι R`
  * `matrix.to_lin`: the inverse of `linear_map.to_matrix`
- * `linear_map.to_matrix'`: the `R`-linear equivalence from `(n → R) →ₗ[R] (m → R)`
-   to `matrix n m R` (with the standard basis on `n → R` and `m → R`)
+ * `linear_map.to_matrix'`: the `R`-linear equivalence from `(m → R) →ₗ[R] (n → R)`
+   to `matrix m n R` (with the standard basis on `m → R` and `n → R`)
  * `matrix.to_lin'`: the inverse of `linear_map.to_matrix'`
  * `alg_equiv_matrix`: given a basis indexed by `n`, the `R`-algebra equivalence between
    `R`-endomorphisms of `M` and `matrix n n R`
@@ -270,7 +271,7 @@ def matrix.to_lin : matrix m n R ≃ₗ[R] (M₁ →ₗ[R] M₂) :=
 /-- `matrix.to_lin'` is a particular case of `matrix.to_lin`, for the standard basis
 `pi.basis_fun R n`. -/
 lemma matrix.to_lin_eq_to_lin' :
-  matrix.to_lin (pi.basis_fun R n) (pi.basis_fun R n) = matrix.to_lin' :=
+  matrix.to_lin (pi.basis_fun R n) (pi.basis_fun R m) = matrix.to_lin' :=
 rfl
 
 @[simp] lemma linear_map.to_matrix_symm :
@@ -593,9 +594,22 @@ variables {K : Type*} [field K]
 variables {V : Type*} [add_comm_group V] [module K V] [finite_dimensional K V]
 variables {W : Type*} [add_comm_group W] [module K W] [finite_dimensional K W]
 
-instance : finite_dimensional K (V →ₗ[K] W) :=
+instance finite_dimensional : finite_dimensional K (V →ₗ[K] W) :=
 linear_equiv.finite_dimensional
   (linear_map.to_matrix (basis.of_vector_space K V) (basis.of_vector_space K W)).symm
+
+section
+
+variables {A : Type*} [ring A] [algebra K A] [module A V] [is_scalar_tower K A V]
+  [module A W] [is_scalar_tower K A W]
+
+/-- Linear maps over a `k`-algebra are finite dimensional (over `k`) if both the source and
+target are, since they form a subspace of all `k`-linear maps. -/
+instance finite_dimensional' : finite_dimensional K (V →ₗ[A] W) :=
+finite_dimensional.of_injective (restrict_scalars_linear_map K A V W)
+  (restrict_scalars_injective _)
+
+end
 
 /--
 The dimension of the space of linear transformations is the product of the dimensions of the

@@ -3,8 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.equiv.list
 import data.set.finite
+import logic.equiv.list
 
 /-!
 # Countable sets
@@ -185,7 +185,7 @@ lemma countable.insert {s : set α} (a : α) (h : countable s) : countable (inse
 countable_insert.2 h
 
 lemma finite.countable {s : set α} : finite s → countable s
-| ⟨h⟩ := trunc.nonempty (by exactI trunc_encodable_of_fintype s)
+| ⟨h⟩ := trunc.nonempty (by exactI fintype.trunc_encodable s)
 
 lemma subsingleton.countable {s : set α} (hs : s.subsingleton) : countable s :=
 hs.finite.countable
@@ -221,15 +221,11 @@ trunc.induction_on this $ assume h,
 @countable_range _ _ h _
 
 protected lemma countable.prod {s : set α} {t : set β} (hs : countable s) (ht : countable t) :
-  countable (set.prod s t) :=
+  countable (s ×ˢ t) :=
 begin
   haveI : encodable s := hs.to_encodable,
   haveI : encodable t := ht.to_encodable,
-  haveI : encodable (s × t), { apply_instance },
-  have : range (prod.map coe coe : s × t → α × β) = set.prod s t,
-    by rw [range_prod_map, subtype.range_coe, subtype.range_coe],
-  rw ← this,
-  exact countable_range _
+  exact ⟨of_equiv (s × t) (equiv.set.prod _ _)⟩
 end
 
 lemma countable.image2 {s : set α} {t : set β} (hs : countable s) (ht : countable t)

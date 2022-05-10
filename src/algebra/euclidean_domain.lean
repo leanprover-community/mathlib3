@@ -5,7 +5,7 @@ Authors: Louis Carlin, Mario Carneiro
 -/
 
 import data.int.basic
-import algebra.field
+import algebra.field.basic
 
 /-!
 # Euclidean domains
@@ -193,6 +193,15 @@ begin
   use q,
   rw [mul_comm, ← euclidean_domain.mul_div_assoc _ hpq, mul_comm,
       euclidean_domain.mul_div_cancel _ hq]
+end
+
+lemma dvd_div_of_mul_dvd {a b c : R} (h : a * b ∣ c) : b ∣ c / a :=
+begin
+  rcases eq_or_ne a 0 with rfl | ha,
+  { simp only [div_zero, dvd_zero] },
+  rcases h with ⟨d, rfl⟩,
+  refine ⟨d, _⟩,
+  rw [mul_assoc, mul_div_cancel_left _ ha]
 end
 
 section

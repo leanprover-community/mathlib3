@@ -66,7 +66,7 @@ component'.
 
 This allows us to show that the functor X ⨯ - preserves connected limits.
 
-See https://stacks.math.columbia.edu/tag/002S
+See <https://stacks.math.columbia.edu/tag/002S>
 -/
 class is_connected (J : Type u₁) [category.{v₁} J] extends is_preconnected J : Prop :=
 [is_nonempty : nonempty J]
@@ -314,7 +314,7 @@ end
 
 /-- If `discrete α` is connected, then `α` is (type-)equivalent to `punit`. -/
 def discrete_is_connected_equiv_punit {α : Type u₁} [is_connected (discrete α)] : α ≃ punit :=
-discrete.equiv_of_equivalence
+discrete.equiv_of_equivalence.{u₁ u₁}
   { functor := functor.star α,
     inverse := discrete.functor (λ _, classical.arbitrary _),
     unit_iso := by { exact (iso_constant _ (classical.arbitrary _)), },

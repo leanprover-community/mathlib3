@@ -5,6 +5,7 @@ Authors: Eric Wieser, Kevin Buzzard, Jujian Zhang
 -/
 
 import algebra.algebra.operations
+import algebra.algebra.subalgebra.basic
 import algebra.direct_sum.algebra
 
 /-!
@@ -39,9 +40,20 @@ mapping `⨁ i, A i →+ ⨆ i, A i` can be obtained as
 internally graded ring
 -/
 
-open_locale direct_sum
+open_locale direct_sum big_operators
 
-variables {ι : Type*} {S R : Type*} [decidable_eq ι]
+variables {ι : Type*} {S R : Type*}
+
+lemma set_like.has_graded_one.algebra_map_mem [has_zero ι]
+  [comm_semiring S] [semiring R] [algebra S R]
+  (A : ι → submodule S R) [set_like.has_graded_one A] (s : S) : algebra_map S R s ∈ A 0 :=
+begin
+  rw algebra.algebra_map_eq_smul_one,
+  exact ((A 0).smul_mem s set_like.has_graded_one.one_mem),
+end
+
+section direct_sum
+variables [decidable_eq ι]
 
 /-! #### From `add_submonoid`s -/
 
@@ -77,6 +89,18 @@ direct_sum.to_semiring (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl)
   direct_sum.submonoid_coe_ring_hom A (direct_sum.of (λ i, A i) i x) = x :=
 direct_sum.to_semiring_of _ _ _ _ _
 
+lemma direct_sum.coe_mul_apply_add_submonoid [add_monoid ι] [semiring R]
+  (A : ι → add_submonoid R) [set_like.graded_monoid A]
+  [Π (i : ι) (x : A i), decidable (x ≠ 0)] (r r' : ⨁ i, A i) (i : ι) :
+  ((r * r') i : R) =
+    ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
+      r ij.1 * r' ij.2 :=
+begin
+  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
+    add_submonoid_class.coe_finset_sum],
+  simp_rw [direct_sum.coe_of_add_submonoid_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
+end
+
 /-! #### From `add_subgroup`s -/
 
 namespace add_subgroup
@@ -107,6 +131,18 @@ direct_sum.to_semiring (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl)
   direct_sum.subgroup_coe_ring_hom A (direct_sum.of (λ i, A i) i x) = x :=
 direct_sum.to_semiring_of _ _ _ _ _
 
+lemma direct_sum.coe_mul_apply_add_subgroup [add_monoid ι] [ring R]
+  (A : ι → add_subgroup R) [set_like.graded_monoid A] [Π (i : ι) (x : A i), decidable (x ≠ 0)]
+  (r r' : ⨁ i, A i) (i : ι) :
+  ((r * r') i : R) =
+    ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
+      r ij.1 * r' ij.2 :=
+begin
+  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
+    add_submonoid_class.coe_finset_sum],
+  simp_rw [direct_sum.coe_of_add_subgroup_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
+end
+
 /-! #### From `submodules`s -/
 
 namespace submodule
@@ -132,10 +168,8 @@ instance galgebra [add_monoid ι]
   [comm_semiring S] [semiring R] [algebra S R]
   (A : ι → submodule S R) [h : set_like.graded_monoid A] :
   direct_sum.galgebra S (λ i, A i) :=
-{ to_fun := begin
-    refine ((algebra.linear_map S R).cod_restrict (A 0) $ λ r, _).to_add_monoid_hom,
-    exact submodule.one_le.mpr set_like.has_graded_one.one_mem (submodule.algebra_map_mem _),
-  end,
+{ to_fun := ((algebra.linear_map S R).cod_restrict (A 0) $
+    set_like.has_graded_one.algebra_map_mem A).to_add_monoid_hom,
   map_one := subtype.ext $ by exact (algebra_map S R).map_one,
   map_mul := λ x y, sigma.subtype_ext (add_zero 0).symm $ (algebra_map S R).map_mul _ _,
   commutes := λ r ⟨i, xi⟩,
@@ -162,8 +196,43 @@ def direct_sum.submodule_coe_alg_hom [add_monoid ι]
   (A : ι → submodule S R) [h : set_like.graded_monoid A] : (⨁ i, A i) →ₐ[S] R :=
 direct_sum.to_algebra S _ (λ i, (A i).subtype) rfl (λ _ _ _ _, rfl) (λ _, rfl)
 
+/-- The supremum of submodules that form a graded monoid is a subalgebra, and equal to the range of
+`direct_sum.submodule_coe_alg_hom`. -/
+lemma submodule.supr_eq_to_submodule_range [add_monoid ι]
+  [comm_semiring S] [semiring R] [algebra S R] (A : ι → submodule S R) [set_like.graded_monoid A] :
+  (⨆ i, A i) = (direct_sum.submodule_coe_alg_hom A).range.to_submodule :=
+(submodule.supr_eq_range_dfinsupp_lsum A).trans $ set_like.coe_injective rfl
+
 @[simp] lemma direct_sum.submodule_coe_alg_hom_of [add_monoid ι]
   [comm_semiring S] [semiring R] [algebra S R]
   (A : ι → submodule S R) [h : set_like.graded_monoid A] (i : ι) (x : A i) :
   direct_sum.submodule_coe_alg_hom A (direct_sum.of (λ i, A i) i x) = x :=
 direct_sum.to_semiring_of _ rfl (λ _ _ _ _, rfl) _ _
+
+lemma direct_sum.coe_mul_apply_submodule [add_monoid ι]
+  [comm_semiring S] [semiring R] [algebra S R]
+  (A : ι → submodule S R) [Π (i : ι) (x : A i), decidable (x ≠ 0)]
+  [set_like.graded_monoid A] (r r' : ⨁ i, A i) (i : ι) :
+  ((r * r') i : R) =
+    ∑ ij in finset.filter (λ ij : ι × ι, ij.1 + ij.2 = i) (r.support.product r'.support),
+      r ij.1 * r' ij.2 :=
+begin
+  rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply, submodule.coe_sum],
+  simp_rw [direct_sum.coe_of_submodule_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
+end
+
+end direct_sum
+
+section homogeneous_element
+
+lemma set_like.is_homogeneous_zero_submodule [has_zero ι]
+  [semiring S] [add_comm_monoid R] [module S R]
+  (A : ι → submodule S R) : set_like.is_homogeneous A (0 : R) :=
+⟨0, submodule.zero_mem _⟩
+
+lemma set_like.is_homogeneous.smul [comm_semiring S] [semiring R] [algebra S R]
+  {A : ι → submodule S R} {s : S}
+  {r : R} (hr : set_like.is_homogeneous A r) : set_like.is_homogeneous A (s • r) :=
+let ⟨i, hi⟩ := hr in ⟨i, submodule.smul_mem _ _ hi⟩
+
+end homogeneous_element

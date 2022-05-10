@@ -3,11 +3,11 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import number_theory.padics.padic_integers
-import topology.metric_space.cau_seq_filter
-import analysis.specific_limits
+import analysis.specific_limits.basic
 import data.polynomial.identities
+import number_theory.padics.padic_integers
 import topology.algebra.polynomial
+import topology.metric_space.cau_seq_filter
 
 /-!
 # Hensel's lemma on ℤ_p
@@ -106,7 +106,7 @@ lt_of_le_of_ne (norm_nonneg _) (ne.symm deriv_norm_ne_zero)
 private lemma deriv_ne_zero : F.derivative.eval a ≠ 0 := mt norm_eq_zero.2 deriv_norm_ne_zero
 
 private lemma T_def : T = ∥F.eval a∥ / ∥F.derivative.eval a∥^2 :=
-calc T = ∥F.eval a∥ / ∥((F.derivative.eval a)^2 : ℚ_[p])∥ : normed_field.norm_div _ _
+calc T = ∥F.eval a∥ / ∥((F.derivative.eval a)^2 : ℚ_[p])∥ : norm_div _ _
    ... = ∥F.eval a∥ / ∥(F.derivative.eval a)^2∥ : by simp [norm, padic_int.norm_def]
    ... = ∥F.eval a∥ / ∥(F.derivative.eval a)∥^2 : by simp
 
@@ -133,11 +133,11 @@ private lemma ih_0 : ih 0 a :=
 private lemma calc_norm_le_one {n : ℕ} {z : ℤ_[p]} (hz : ih n z) :
          ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥ ≤ 1 :=
 calc ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥
-    = ∥(↑(F.eval z) : ℚ_[p])∥ / ∥(↑(F.derivative.eval z) : ℚ_[p])∥ : normed_field.norm_div _ _
+    = ∥(↑(F.eval z) : ℚ_[p])∥ / ∥(↑(F.derivative.eval z) : ℚ_[p])∥ : norm_div _ _
 ... = ∥F.eval z∥ / ∥F.derivative.eval a∥ : by simp [hz.1]
 ... ≤ ∥F.derivative.eval a∥^2 * T^(2^n) / ∥F.derivative.eval a∥ :
   (div_le_div_right deriv_norm_pos).2 hz.2
-... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel (ne_of_gt deriv_norm_pos) _
+... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel _ _
 ... ≤ 1 : mul_le_one (padic_int.norm_le_one _) (T_pow_nonneg _) (le_of_lt (T_pow' _))
 
 private lemma calc_deriv_dist {z z' z1 : ℤ_[p]} (hz' : z' = z - z1)
@@ -150,7 +150,7 @@ calc
 ... = ∥F.eval z∥ / ∥F.derivative.eval a∥ : hz1
 ... ≤ ∥F.derivative.eval a∥^2 * T^(2^n) / ∥F.derivative.eval a∥ :
   (div_le_div_right deriv_norm_pos).2 hz.2
-... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel deriv_norm_ne_zero _
+... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel _ _
 ... < ∥F.derivative.eval a∥ :
   (mul_lt_iff_lt_one_right deriv_norm_pos).2 (T_pow (pow_pos (by norm_num) _))
 
@@ -187,7 +187,7 @@ calc ∥F.eval z'∥
 ... ≤ (∥F.derivative.eval a∥^2 * T^(2^n))^2 / ∥F.derivative.eval a∥^2 :
   (div_le_div_right deriv_sq_norm_pos).2 (pow_le_pow_of_le_left (norm_nonneg _) hz.2 _)
 ... = (∥F.derivative.eval a∥^2)^2 * (T^(2^n))^2 / ∥F.derivative.eval a∥^2 : by simp only [mul_pow]
-... = ∥F.derivative.eval a∥^2 * (T^(2^n))^2 : div_sq_cancel deriv_sq_norm_ne_zero _
+... = ∥F.derivative.eval a∥^2 * (T^(2^n))^2 : div_sq_cancel _ _
 ... = ∥F.derivative.eval a∥^2 * T^(2^(n + 1)) : by rw [←pow_mul, pow_succ' 2]
 
 set_option eqn_compiler.zeta true
@@ -241,7 +241,7 @@ calc ∥newton_seq (n+1) - newton_seq n∥
 ... = ∥F.eval (newton_seq n)∥ / ∥F.derivative.eval a∥ : by rw newton_seq_deriv_norm
 ... ≤ ∥F.derivative.eval a∥^2 * T ^ (2^n) / ∥F.derivative.eval a∥ :
   (div_le_div_right deriv_norm_pos).2 (newton_seq_norm_le _)
-... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel (ne_of_gt deriv_norm_pos) _
+... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel _ _
 
 include hnsol
 private lemma T_pos : T > 0 :=
@@ -264,7 +264,7 @@ calc ∥newton_seq (n+2) - newton_seq (n+1)∥
   mul_lt_mul_of_pos_left (pow_lt_pow_of_lt_one T_pos T_lt_one (by norm_num)) deriv_norm_pos
 ... = ∥F.eval a∥ / ∥F.derivative.eval a∥ :
   begin
-    rw [T, sq, pow_one, normed_field.norm_div, ←mul_div_assoc, padic_norm_e.mul],
+    rw [T, sq, pow_one, norm_div, ←mul_div_assoc, padic_norm_e.mul],
     apply mul_div_mul_left,
     apply deriv_norm_ne_zero; assumption
   end
@@ -327,7 +327,7 @@ begin
   intros ε hε,
   cases this (ball 0 ε) (mem_ball_self hε) (is_open_ball) with N hN,
   existsi N, intros n hn,
-  simpa [normed_field.norm_mul, real.norm_eq_abs, abs_of_nonneg (mtn n)] using hN _ hn
+  simpa [norm_mul, real.norm_eq_abs, abs_of_nonneg (mtn n)] using hN _ hn
 end
 
 private lemma bound'_sq : tendsto (λ n : ℕ, ∥F.derivative.eval a∥^2 * T^(2^n)) at_top (𝓝 0) :=
@@ -347,7 +347,7 @@ begin
   intros j hj,
   apply lt_of_le_of_lt,
   { apply newton_seq_dist _ _ hj, assumption },
-  { apply hN, apply le_refl }
+  { apply hN, exact le_rfl }
 end
 
 private def newton_cau_seq : cau_seq ℤ_[p] norm := ⟨_, newton_seq_is_cauchy⟩

@@ -112,16 +112,15 @@ namespace add_monoid_algebra
 begin
   let to_hom : add_monoid_algebra M ι →+ (⨁ i : ι, M) :=
     ⟨to_direct_sum, to_direct_sum_zero, to_direct_sum_add⟩,
-  have : ⇑to_hom = to_direct_sum := rfl,
-  rw ←this,
+  show to_hom (f * g) = to_hom f * to_hom g,
   revert f g,
   rw add_monoid_hom.map_mul_iff,
   ext xi xv yi yv : 4,
   dsimp only [add_monoid_hom.comp_apply, add_monoid_hom.compl₂_apply,
     add_monoid_hom.compr₂_apply, add_monoid_hom.mul_apply, add_equiv.coe_to_add_monoid_hom,
     finsupp.single_add_hom_apply],
-  simp only [add_monoid_algebra.single_mul_single, this, add_monoid_algebra.to_direct_sum_single],
-  rw [direct_sum.of_mul_of, has_mul.ghas_mul_mul],
+  simp only [add_monoid_algebra.single_mul_single, to_hom, add_monoid_hom.coe_mk,
+      add_monoid_algebra.to_direct_sum_single, direct_sum.of_mul_of, has_mul.ghas_mul_mul]
 end
 
 end add_monoid_algebra
@@ -166,7 +165,7 @@ def add_monoid_algebra_equiv_direct_sum [decidable_eq ι] [semiring M] [Π m : M
 /-- The additive version of `add_monoid_algebra.to_add_monoid_algebra`. Note that this is
 `noncomputable` because `add_monoid_algebra.has_add` is noncomputable. -/
 @[simps {fully_applied := ff}]
-noncomputable def add_monoid_algebra_add_equiv_direct_sum
+def add_monoid_algebra_add_equiv_direct_sum
   [decidable_eq ι] [semiring M] [Π m : M, decidable (m ≠ 0)] :
   add_monoid_algebra M ι ≃+ (⨁ i : ι, M) :=
 { to_fun := add_monoid_algebra.to_direct_sum, inv_fun := direct_sum.to_add_monoid_algebra,
@@ -176,7 +175,7 @@ noncomputable def add_monoid_algebra_add_equiv_direct_sum
 /-- The ring version of `add_monoid_algebra.to_add_monoid_algebra`. Note that this is
 `noncomputable` because `add_monoid_algebra.has_add` is noncomputable. -/
 @[simps {fully_applied := ff}]
-noncomputable def add_monoid_algebra_ring_equiv_direct_sum
+def add_monoid_algebra_ring_equiv_direct_sum
   [decidable_eq ι] [add_monoid ι] [semiring M]
   [Π m : M, decidable (m ≠ 0)] :
   add_monoid_algebra M ι ≃+* ⨁ i : ι, M :=
@@ -187,7 +186,7 @@ noncomputable def add_monoid_algebra_ring_equiv_direct_sum
 /-- The algebra version of `add_monoid_algebra.to_add_monoid_algebra`. Note that this is
 `noncomputable` because `add_monoid_algebra.has_add` is noncomputable. -/
 @[simps {fully_applied := ff}]
-noncomputable def add_monoid_algebra_alg_equiv_direct_sum
+def add_monoid_algebra_alg_equiv_direct_sum
   [decidable_eq ι] [add_monoid ι] [comm_semiring R] [semiring A] [algebra R A]
   [Π m : A, decidable (m ≠ 0)] :
   add_monoid_algebra A ι ≃ₐ[R] ⨁ i : ι, A :=

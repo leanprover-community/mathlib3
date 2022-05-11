@@ -84,7 +84,7 @@ protected def le (a b : ℚ) := rat.nonneg (b - a)
 instance : has_le ℚ := ⟨rat.le⟩
 
 instance decidable_le : decidable_rel ((≤) : ℚ → ℚ → Prop)
-| a b := show decidable (rat.nonneg (b - a)), infer_instance
+| a b := (infer_instance : decidable (rat.nonneg (b - a)))
 
 protected theorem le_def {a b c d : ℤ} (b0 : 0 < b) (d0 : 0 < d) :
   a /. b ≤ c /. d ↔ a * d ≤ c * b :=

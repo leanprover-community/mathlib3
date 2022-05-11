@@ -145,9 +145,9 @@ end finite
 end module
 
 instance module.finite.tensor_product [comm_semiring R]
-  [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+  [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
   [hM : module.finite R M] [hN : module.finite R N] : module.finite R (tensor_product R M N) :=
-{ out := (tensor_product.map₂_mk_top_top_eq_top R M N).subst (submodule.fg_map₂ _ hM.out hN.out) }
+{ out := (tensor_product.map₂_mk_top_top_eq_top R M N).subst (hM.out.map₂ _ hN.out) }
 
 namespace algebra
 

@@ -368,7 +368,7 @@ end
 lemma map₂_mk_top_top_eq_top : submodule.map₂ (mk R M N) ⊤ ⊤ = ⊤ :=
 begin
   rw [← top_le_iff, ← span_tmul_eq_top, submodule.map₂_eq_span_image2],
-  exact submodule.span_mono (λ _ ⟨m,n,h⟩, ⟨m,n,trivial,trivial,h⟩),
+  exact submodule.span_mono (λ _ ⟨m, n, h⟩, ⟨m, n, trivial, trivial, h⟩),
 end
 
 end module

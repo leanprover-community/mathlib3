@@ -543,7 +543,7 @@ instance : partial_order ordinal :=
   le_antisymm := λ a b,
     quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨h₁⟩ ⟨h₂⟩,
     by exactI quot.sound ⟨initial_seg.antisymm h₁ h₂⟩ }
-    
+
 /-- Ordinal less-equal is defined such that
   well orders `r` and `s` satisfy `type r ≤ type s` if there exists
   a function embedding `r` as an initial segment of `s`. -/
@@ -562,7 +562,7 @@ theorem type_le' {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] : type r ≤ type s ↔ nonempty (r ↪r s) :=
 ⟨λ ⟨f⟩, ⟨f⟩, λ ⟨f⟩, ⟨f.collapse⟩⟩
 
-theorem type_lt_iff {α β} {r : α → α → Prop} {s : β → β → Prop}
+@[simp] theorem type_lt_iff {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
   type r < type s ↔ nonempty (r ≺i s) := iff.rfl
 

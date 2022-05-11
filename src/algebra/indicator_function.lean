@@ -405,6 +405,28 @@ by { rw [← set.indicator_indicator], simp [indicator] }
 
 end mul_zero_class
 
+section mul_zero_one_class
+
+variables (M) [mul_zero_one_class M] [nontrivial M]
+
+lemma indicator_eq_zero_iff_not_mem {U : set α} {x : α} :
+  x ∉ U ↔ indicator U 1 x = (0 : M) :=
+by simp [indicator_apply, imp_false]
+
+lemma indicator_eq_one_iff_mem {U : set α} {x : α} :
+  x ∈ U ↔ indicator U 1 x = (1 : M) :=
+by simp [indicator_apply, imp_false]
+
+lemma indicator_one_inj {U V : set α} (h : indicator U (1 : α → M) = indicator V 1) : U = V :=
+begin
+  ext,
+  refine ⟨(λ h', (indicator_eq_one_iff_mem M).2 _), λ h', (indicator_eq_one_iff_mem M).2 _⟩,
+  { rw ← h, apply (indicator_eq_one_iff_mem M).1 h', },
+  { rw h, apply (indicator_eq_one_iff_mem M).1 h', },
+end
+
+end mul_zero_one_class
+
 section monoid_with_zero
 
 variables [monoid_with_zero M]

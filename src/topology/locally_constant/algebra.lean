@@ -80,25 +80,22 @@ variables (Y) [mul_zero_one_class Y] {U V : set X}
   where `U` is a clopen set, and `0` otherwise. -/
 noncomputable def char_fn (hU : is_clopen U) : locally_constant X Y := indicator 1 hU
 
-lemma char_fn_one [nontrivial Y] (x : X) (hU : is_clopen U) :
+lemma char_fn_one [mul_zero_one_class X] [nontrivial X] [nontrivial Y] (x : X) (hU : is_clopen U) :
   x ∈ U ↔ char_fn Y hU x = (1 : Y) :=
 begin
-  rw char_fn,
-  split, any_goals { intro h, },
-  { apply indicator_of_mem _ _ h, },
-  { by_contra h', apply @one_ne_zero _ _ _,
-    swap, exact Y,
-    any_goals { apply_instance, },
-    { rw ←h, apply indicator_of_not_mem _ _ h', }, },
+  convert set.indicator_eq_one_iff_mem _,
+  apply_instance,
 end
 
 lemma char_fn_zero [nontrivial Y] (x : X) (hU : is_clopen U) :
-  x ∈ U → false ↔ char_fn Y hU x = (0 : Y) :=
-by { rw char_fn, simp, }
+  x ∉ U ↔ char_fn Y hU x = (0 : Y) :=
+by simp [char_fn, indicator_apply, imp_false]
 
 lemma char_fn_inj [nontrivial Y] (hU : is_clopen U) (hV : is_clopen V)
   (h : char_fn Y hU = char_fn Y hV) : U = V :=
 begin
+  apply set.indicator_one_inj Y _,
+  convert h,
   ext,
   rw locally_constant.ext_iff at h, specialize h x,
   split,

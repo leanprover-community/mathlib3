@@ -61,7 +61,7 @@ def punit (X : Top) : SheafedSpace (discrete punit) :=
 instance : inhabited (SheafedSpace (discrete _root_.punit)) := ⟨punit (Top.of pempty)⟩
 
 instance : category (SheafedSpace C) :=
-(infer_instance : induced_category (PresheafedSpace C) SheafedSpace.to_PresheafedSpace)
+(infer_instance : category (induced_category (PresheafedSpace C) SheafedSpace.to_PresheafedSpace))
 
 /-- Forgetting the sheaf condition is a functor from `SheafedSpace C` to `PresheafedSpace C`. -/
 @[derive [full, faithful]]

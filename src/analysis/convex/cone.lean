@@ -318,7 +318,7 @@ def to_ordered_add_comm_group (h₁ : S.pointed) (h₂ : S.salient) :
       exact hab,
     end,
   ..to_partial_order S h₁ h₂,
-  ..show add_comm_group E, infer_instance }
+  ..(infer_instance : add_comm_group E) }
 
 end add_comm_group
 end ordered_semiring

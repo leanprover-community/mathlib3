@@ -62,7 +62,7 @@ lemma not_countably_generated_nhds_infty_alexandroff :
   ¬is_countably_generated (𝓝 (∞ : ℚ∞)) :=
 begin
   introI,
-  have : is_countably_generated (comap (coe : ℚ → ℚ∞) (𝓝 ∞)), infer_instance,
+  have : is_countably_generated (comap (coe : ℚ → ℚ∞) (𝓝 ∞)) := infer_instance,
   rw [alexandroff.comap_coe_nhds_infty, coclosed_compact_eq_cocompact] at this,
   exact not_countably_generated_cocompact this
 end

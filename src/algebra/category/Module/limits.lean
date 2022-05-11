@@ -53,15 +53,15 @@ def sections_submodule (F : J ⥤ Module.{max v w} R) :
 -- by preventing a bad unfold of `limit_add_comm_group`.
 instance limit_add_comm_monoid (F : J ⥤ Module R) :
   add_comm_monoid (types.limit_cone (F ⋙ forget (Module.{max v w} R))).X :=
-show add_comm_monoid (sections_submodule F), infer_instance
+(infer_instance : add_comm_monoid (sections_submodule F))
 
 instance limit_add_comm_group (F : J ⥤ Module R) :
   add_comm_group (types.limit_cone (F ⋙ forget (Module.{max v w} R))).X :=
-show add_comm_group (sections_submodule F), infer_instance
+(infer_instance : add_comm_group (sections_submodule F))
 
 instance limit_module (F : J ⥤ Module R) :
   module R (types.limit_cone (F ⋙ forget (Module.{max v w} R))).X :=
-show module R (sections_submodule F), infer_instance
+(infer_instance : module R (sections_submodule F))
 
 /-- `limit.π (F ⋙ forget Ring) j` as a `ring_hom`. -/
 def limit_π_linear_map (F : J ⥤ Module R) (j) :

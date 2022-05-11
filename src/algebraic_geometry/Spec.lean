@@ -149,7 +149,7 @@ The spectrum of a commutative ring, as a `LocallyRingedSpace`.
 -/
 @[simps] def Spec.LocallyRingedSpace_obj (R : CommRing) : LocallyRingedSpace :=
 { local_ring := λ x, @@ring_equiv.local_ring _
-    (show local_ring (localization.at_prime _), infer_instance) _
+    (infer_instance : local_ring (localization.at_prime _)) _
     (iso.CommRing_iso_to_ring_equiv $ stalk_iso R x).symm,
   .. Spec.SheafedSpace_obj R }
 

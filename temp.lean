@@ -9,6 +9,7 @@
 `commute.mul_zpow`/`commute.mul_zpow₀` → `commute.mul_zpow`
 `mul_zpow`/`mul_zpow₀` → `mul_zpow`
 `div_zpow`/`div_zpow₀` → `div_zpow`
+`zpow_bit0`/`zpow_bit0₀` → `zpow_bit0`
 `zpow_group_hom`/`zpow_group_hom₀` → `zpow_group_hom`
 `units.coe_inv`/`units.coe_inv'` → `units.coe_inv`
 `units.coe_zpow`/`units.coe_zpow₀` → `units.coe_zpow`

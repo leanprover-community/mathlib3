@@ -72,10 +72,6 @@ variables {G₀ : Type*} [group_with_zero G₀]
 
 local attribute [ematch] le_of_lt
 
-@[simp] theorem one_zpow₀ : ∀ (n : ℤ), (1 : G₀) ^ n = 1
-| (n : ℕ) := by rw [zpow_coe_nat, one_pow]
-| -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, inv_one]
-
 lemma zero_zpow : ∀ z : ℤ, z ≠ 0 → (0 : G₀) ^ z = 0
 | (n : ℕ) h := by { rw [zpow_coe_nat, zero_pow'], simpa using h }
 | -[1+n]  h := by simp
@@ -141,17 +137,9 @@ theorem commute.self_zpow₀ (a : G₀) (n : ℤ) : commute a (a^n) := (commute.
 theorem commute.zpow_zpow_self₀ (a : G₀) (m n : ℤ) : commute (a^m) (a^n) :=
 (commute.refl a).zpow_zpow₀ m n
 
-theorem zpow_bit0₀ (a : G₀) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n :=
-begin
-  apply zpow_add', right,
-  by_cases hn : n = 0,
-  { simp [hn] },
-  { simp [← two_mul, hn, two_ne_zero] }
-end
-
 theorem zpow_bit1₀ (a : G₀) (n : ℤ) : a ^ bit1 n = a ^ n * a ^ n * a :=
 begin
-  rw [← zpow_bit0₀, bit1, zpow_add', zpow_one],
+  rw [← zpow_bit0, bit1, zpow_add', zpow_one],
   right, left,
   apply bit1_ne_zero
 end
@@ -162,9 +150,6 @@ lemma zpow_ne_zero_of_ne_zero {a : G₀} (ha : a ≠ 0) : ∀ (z : ℤ), a ^ z �
 
 lemma zpow_sub₀ {a : G₀} (ha : a ≠ 0) (z1 z2 : ℤ) : a ^ (z1 - z2) = a ^ z1 / a ^ z2 :=
 by rw [sub_eq_add_neg, zpow_add₀ ha, zpow_neg, div_eq_mul_inv]
-
-theorem zpow_bit0' (a : G₀) (n : ℤ) : a ^ bit0 n = (a * a) ^ n :=
-(zpow_bit0₀ a n).trans ((commute.refl a).mul_zpow n).symm
 
 theorem zpow_bit1' (a : G₀) (n : ℤ) : a ^ bit1 n = (a * a) ^ n * a :=
 by rw [zpow_bit1₀, (commute.refl a).mul_zpow]

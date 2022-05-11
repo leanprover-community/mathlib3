@@ -122,6 +122,17 @@ variables [division_monoid α]
 @[to_additive mul_zsmul] lemma zpow_mul' (a : α) (m n : ℤ) : a ^ (m * n) = (a ^ n) ^ m :=
 by rw [mul_comm, zpow_mul]
 
+@[to_additive bit0_zsmul] lemma zpow_bit0 (a : α) : ∀ n : ℤ, a ^ bit0 n = a ^ n * a ^ n
+| (n : ℕ) := by simp only [zpow_coe_nat, ←int.coe_nat_bit0, pow_bit0]
+| -[1+n]  := by { simp [←mul_inv_rev, ←pow_bit0], rw [neg_succ_of_nat_eq, bit0_neg, zpow_neg],
+  norm_cast }
+
+@[to_additive bit0_zsmul'] lemma zpow_bit0' (a : α) (n : ℤ) : a ^ bit0 n = (a * a) ^ n :=
+(zpow_bit0 a n).trans ((commute.refl a).mul_zpow n).symm
+
+@[simp] lemma zpow_bit0_neg [has_distrib_neg α] (x : α) (n : ℤ) : (-x) ^ (bit0 n) = x ^ bit0 n :=
+by rw [zpow_bit0', zpow_bit0', neg_mul_neg]
+
 end division_monoid
 
 section group
@@ -166,9 +177,6 @@ by rw [zpow_add, zpow_one]
 
 @[to_additive] lemma zpow_mul_comm (a : G) (i j : ℤ) : a ^ i * a ^ j = a ^ j * a ^ i :=
 (commute.refl _).zpow_zpow _ _
-
-@[to_additive bit0_zsmul]
-theorem zpow_bit0 (a : G) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n := zpow_add _ _ _
 
 @[to_additive bit1_zsmul]
 theorem zpow_bit1 (a : G) (n : ℤ) : a ^ bit1 n = a ^ n * a ^ n * a :=

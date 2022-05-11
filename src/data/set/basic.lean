@@ -840,6 +840,9 @@ begin
   simp [eq_singleton_iff_nonempty_unique_mem, hs, ne_empty_iff_nonempty.2 hs],
 end
 
+lemma nonempty.subset_singleton_iff (h : s.nonempty) : s ⊆ {a} ↔ s = {a} :=
+subset_singleton_iff_eq.trans $ or_iff_right h.ne_empty
+
 lemma ssubset_singleton_iff {s : set α} {x : α} : s ⊂ {x} ↔ s = ∅ :=
 begin
   rw [ssubset_iff_subset_ne, subset_singleton_iff_eq, or_and_distrib_right, and_not_self, or_false,
@@ -2380,6 +2383,12 @@ lemma nonempty.image2 : s.nonempty → t.nonempty → (image2 f s t).nonempty :=
 
 @[simp] lemma image2_nonempty_iff : (image2 f s t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 ⟨λ ⟨_, a, b, ha, hb, _⟩, ⟨⟨a, ha⟩, b, hb⟩, λ h, h.1.image2 h.2⟩
+
+lemma nonempty.of_image2_left (h : (image2 f s t).nonempty) : s.nonempty :=
+(image2_nonempty_iff.1 h).1
+
+lemma nonempty.of_image2_right (h : (image2 f s t).nonempty) : t.nonempty :=
+(image2_nonempty_iff.1 h).2
 
 @[simp] lemma image2_eq_empty_iff : image2 f s t = ∅ ↔ s = ∅ ∨ t = ∅ :=
 by simp_rw [←not_nonempty_iff_eq_empty, image2_nonempty_iff, not_and_distrib]

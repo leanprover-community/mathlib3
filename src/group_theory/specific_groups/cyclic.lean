@@ -443,9 +443,7 @@ begin
     ... = ∑ m in d.succ.divisors,
         (univ.filter (λ a : α, order_of a = m)).card : _
     ... = (univ.filter (λ a : α, a ^ d.succ = 1)).card : _
-    -- ... = ∑ m in (range d.succ.succ).filter (∣ d.succ), φ m : by
-    --   { exact
-    --   ha ▸ (card_pow_eq_one_eq_order_of_aux hn a).symm ▸ (sum_totient' _).symm }
+    ... = ∑ m in d.succ.divisors, φ m : _
     ... = _ : _,
     --   {
     --     rw [h, ← sum_insert hinsert₁];
@@ -456,6 +454,7 @@ begin
         },
         { rw ←sum_card_order_of_eq_card_pow_eq_one (succ_pos d),
           exact sum_congr (filter_dvd_eq_divisors (succ_ne_zero d)).symm (λ x hx, rfl) },
+        { rw [sum_totient d.succ, ←ha], exact (card_pow_eq_one_eq_order_of_aux hn a) },
         { sorry },
   end,
 

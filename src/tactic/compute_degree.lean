@@ -70,6 +70,15 @@ namespace polynomial
 open_locale polynomial
 variables {R : Type*} [semiring R]
 
+/--  Useful for hiding the `classical` in the proof. -/
+lemma nat_degree_monomial_eq {R : Type*} [semiring R] (i : ℕ) {r : R} (r0 : r ≠ 0) :
+  (monomial i r).nat_degree = i :=
+begin
+  classical,
+  exact eq.trans (nat_degree_monomial _ _) (if_neg r0),
+end
+
+/--  Useful for hiding the `classical` in the proof. -/
 lemma nat_degree_monomial_le (a : R) {m n : ℕ} (mn : m ≤ n) :
   (monomial m a).nat_degree ≤ n :=
 begin
@@ -78,6 +87,7 @@ begin
   split_ifs; simp [mn],
 end
 
+/--  Useful for hiding the `nontriviality` in the proof. -/
 lemma nat_degree_X_pow_le {m n : ℕ} (mn : m ≤ n) :
   (X ^ m : R[X]).nat_degree ≤ n :=
 begin
@@ -93,14 +103,6 @@ begin
     refine (nat_degree_add_le _ _).trans (max_le fn (gm.trans mn)) },
   { rw nat_degree_add_eq_left_of_nat_degree_lt,
     exact gm.trans_lt (not_le.mp fm) }
-end
-
-/--  Useful for hiding the `classical` in the proof. -/
-lemma nat_degree_monomial_eq {R : Type*} [semiring R] (i : ℕ) {r : R} (r0 : r ≠ 0) :
-  (monomial i r).nat_degree = i :=
-begin
-  classical,
-  exact eq.trans (nat_degree_monomial _ _) (if_neg r0),
 end
 
 /-- Useful to expose easy hypotheses:

@@ -967,6 +967,29 @@ end
 
 open asymptotics
 
+lemma asymptotics.is_O_with.rpow
+  {α : Type*} {r c : ℝ} {l : filter α} {f g : α → ℝ} (h : is_O_with c f g l)
+  (hc : 0 ≤ c) (hr : 0 ≤ r) (hf : 0 ≤ᶠ[l] f) (hg : 0 ≤ᶠ[l] g)  :
+  is_O_with (c ^ r) (λ x, f x ^ r) (λ x, g x ^ r) l :=
+begin
+  apply is_O_with.of_bound,
+  filter_upwards [hf, hg, h.bound] with x hfx hgx hx,
+  rw [norm_rpow_of_nonneg hfx, norm_rpow_of_nonneg hgx],
+  exact (rpow_le_rpow (norm_nonneg _) hx hr).trans_eq (mul_rpow hc (norm_nonneg _)),
+end
+
+lemma asymptotics.is_O.rpow {α : Type*} {r : ℝ} {l : filter α} {f g : α → ℝ} (hr : 0 ≤ r)
+  (hf : 0 ≤ᶠ[l] f) (hg : 0 ≤ᶠ[l] g) (h : is_O f g l) :
+  is_O (λ x, f x ^ r) (λ x, g x ^ r) l :=
+let ⟨c, hc, h'⟩ := h.exists_nonneg in (h'.rpow hc hr hf hg).is_O
+
+lemma asymptotics.is_o.rpow {α : Type*} {r : ℝ} {l : filter α} {f g : α → ℝ} (hr : 0 < r)
+  (hf : 0 ≤ᶠ[l] f) (hg : 0 ≤ᶠ[l] g) (h : is_o f g l) :
+  is_o (λ x, f x ^ r) (λ x, g x ^ r) l :=
+is_o.of_is_O_with $ λ c hc, ((h.forall_is_O_with (rpow_pos_of_pos hc r⁻¹)).rpow
+  (rpow_nonneg_of_nonneg hc.le _) hr.le hf hg).congr_const
+    (by rw [←rpow_mul hc.le, inv_mul_cancel hr.ne', rpow_one])
+
 /-- `x ^ s = o(exp(b * x))` as `x → ∞` for any real `s` and positive `b`. -/
 lemma is_o_rpow_exp_pos_mul_at_top (s : ℝ) {b : ℝ} (hb : 0 < b) :
   is_o (λ x : ℝ, x ^ s) (λ x, exp (b * x)) at_top :=
@@ -987,6 +1010,23 @@ is_o_zpow_exp_pos_mul_at_top k hb
 /-- `x ^ s = o(exp x)` as `x → ∞` for any real `s`. -/
 lemma is_o_rpow_exp_at_top (s : ℝ) : is_o (λ x : ℝ, x ^ s) exp at_top :=
 by simpa only [one_mul] using is_o_rpow_exp_pos_mul_at_top s one_pos
+
+lemma is_o_log_rpow_at_top {r : ℝ} (hr : 0 < r) : is_o log (λ x, x ^ r) at_top :=
+begin
+  rw ←is_o_const_mul_left_iff hr.ne',
+  refine (is_o_log_id_at_top.comp_tendsto (tendsto_rpow_at_top hr)).congr' _ eventually_eq.rfl,
+  filter_upwards [eventually_gt_at_top (0 : ℝ)] with x hx using log_rpow hx _,
+end
+
+lemma is_o_log_rpow_rpow_at_top {r s : ℝ} (hr : 0 < r) (hs : 0 < s) :
+  is_o (λ x, log x ^ r) (λ x, x ^ s) at_top :=
+begin
+  refine ((is_o_log_rpow_at_top (div_pos hs hr)).rpow hr _ _).congr' eventually_eq.rfl _,
+  { filter_upwards [eventually_gt_at_top (0 : ℝ)] with x hx using by
+      rw [←rpow_mul hx.le, div_mul_cancel _ hr.ne'] },
+  { exact tendsto_log_at_top.eventually (eventually_ge_at_top 0) },
+  { exact (tendsto_rpow_at_top (div_pos hs hr)).eventually (eventually_ge_at_top 0) },
+end
 
 end limits
 

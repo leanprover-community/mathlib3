@@ -517,19 +517,42 @@ quot.induction_on o $ λ ⟨α, r, wo⟩, @H α r wo
 
 /-! ### The order on ordinals -/
 
+instance : partial_order ordinal :=
+{ le := λ a b, quotient.lift_on₂ a b (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≼i s)) $
+    λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
+    propext ⟨
+      λ ⟨h⟩, ⟨(initial_seg.of_iso f.symm).trans $
+        h.trans (initial_seg.of_iso g)⟩,
+      λ ⟨h⟩, ⟨(initial_seg.of_iso f).trans $
+        h.trans (initial_seg.of_iso g.symm)⟩⟩,
+  lt := λ a b, quotient.lift_on₂ a b (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≺i s)) $
+    λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
+    by exactI propext ⟨
+      λ ⟨h⟩, ⟨principal_seg.equiv_lt f.symm $
+        h.lt_le (initial_seg.of_iso g)⟩,
+      λ ⟨h⟩, ⟨principal_seg.equiv_lt f $
+        h.lt_le (initial_seg.of_iso g.symm)⟩⟩,
+  le_refl := quot.ind $ by exact λ ⟨α, r, wo⟩, ⟨initial_seg.refl _⟩,
+  le_trans := λ a b c, quotient.induction_on₃ a b c $
+    λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩ ⟨g⟩, ⟨f.trans g⟩,
+  lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
+    λ ⟨α, r, _⟩ ⟨β, s, _⟩, by exactI
+      ⟨λ ⟨f⟩, ⟨⟨f⟩, λ ⟨g⟩, (f.lt_le g).irrefl _⟩,
+      λ ⟨⟨f⟩, h⟩, sum.rec_on f.lt_or_eq (λ g, ⟨g⟩)
+      (λ g, (h ⟨initial_seg.of_iso g.symm⟩).elim)⟩,
+  le_antisymm := λ a b,
+    quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨h₁⟩ ⟨h₂⟩,
+    by exactI quot.sound ⟨initial_seg.antisymm h₁ h₂⟩ }
+    
 /-- Ordinal less-equal is defined such that
   well orders `r` and `s` satisfy `type r ≤ type s` if there exists
   a function embedding `r` as an initial segment of `s`. -/
-protected def le (a b : ordinal) : Prop :=
-quotient.lift_on₂ a b (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≼i s)) $
-λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
-propext ⟨
-  λ ⟨h⟩, ⟨(initial_seg.of_iso f.symm).trans $
-    h.trans (initial_seg.of_iso g)⟩,
-  λ ⟨h⟩, ⟨(initial_seg.of_iso f).trans $
-    h.trans (initial_seg.of_iso g.symm)⟩⟩
+add_decl_doc ordinal.partial_order.le
 
-instance : has_le ordinal := ⟨ordinal.le⟩
+/-- Ordinal less-than is defined such that
+  well orders `r` and `s` satisfy `type r < type s` if there exists
+  a function embedding `r` as a principal segment of `s`. -/
+add_decl_doc ordinal.partial_order.lt
 
 theorem type_le {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
@@ -539,38 +562,9 @@ theorem type_le' {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] : type r ≤ type s ↔ nonempty (r ↪r s) :=
 ⟨λ ⟨f⟩, ⟨f⟩, λ ⟨f⟩, ⟨f.collapse⟩⟩
 
-/-- Ordinal less-than is defined such that
-  well orders `r` and `s` satisfy `type r < type s` if there exists
-  a function embedding `r` as a principal segment of `s`. -/
-def lt (a b : ordinal) : Prop :=
-quotient.lift_on₂ a b (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≺i s)) $
-λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
-by exactI propext ⟨
-  λ ⟨h⟩, ⟨principal_seg.equiv_lt f.symm $
-    h.lt_le (initial_seg.of_iso g)⟩,
-  λ ⟨h⟩, ⟨principal_seg.equiv_lt f $
-    h.lt_le (initial_seg.of_iso g.symm)⟩⟩
-
-instance : has_lt ordinal := ⟨ordinal.lt⟩
-
-@[simp] theorem type_lt_iff {α β} {r : α → α → Prop} {s : β → β → Prop}
+theorem type_lt_iff {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
   type r < type s ↔ nonempty (r ≺i s) := iff.rfl
-
-instance : partial_order ordinal :=
-{ le := (≤),
-  lt := (<),
-  le_refl := quot.ind $ by exact λ ⟨α, r, wo⟩, ⟨initial_seg.refl _⟩,
-  le_trans := λ a b c, quotient.induction_on₃ a b c $
-    λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩ ⟨g⟩, ⟨f.trans g⟩,
-  lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
-    λ ⟨α, r, _⟩ ⟨β, s, _⟩, by exactI
-      ⟨λ ⟨f⟩, ⟨⟨f⟩, λ ⟨g⟩, (f.lt_le g).irrefl _⟩,
-      λ ⟨⟨f⟩, h⟩, sum.rec_on f.lt_or_eq (λ g, ⟨g⟩)
-       (λ g, (h ⟨initial_seg.of_iso g.symm⟩).elim)⟩,
-  le_antisymm := λ x b, show x ≤ b → b ≤ x → x = b, from
-    quotient.induction_on₂ x b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨h₁⟩ ⟨h₂⟩,
-    by exactI quot.sound ⟨initial_seg.antisymm h₁ h₂⟩ }
 
 /-- Given two ordinals `α ≤ β`, then `initial_seg_out α β` is the initial segment embedding
 of `α` to `β`, as map from a model type for `α` to a model type for `β`. -/

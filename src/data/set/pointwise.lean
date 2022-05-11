@@ -56,6 +56,30 @@ pointwise subtraction
 
 open function
 
+namespace set
+variables {α α' β β' γ γ' δ δ' ε ε' : Type*} {f f' : α → β → γ} {g g' : α → β → γ → δ}
+variables {s s' : set α} {t t' : set β} {u u' : set γ} {a a' : α} {b b' : β} {c c' : γ} {d d' : δ}
+
+lemma image2_distrib_subset_left {f : α → δ → ε} {g : β → γ → δ} {f₁ : α → β → β'} {f₂ : α → γ → γ'}
+  {g' : β' → γ' → ε} (h_distrib : ∀ a b c, f a (g b c) = g' (f₁ a b) (f₂ a c)) :
+  image2 f s (image2 g t u) ⊆ image2 g' (image2 f₁ s t) (image2 f₂ s u) :=
+begin
+  rintro _ ⟨a, _, ha, ⟨b, c, hb, hc, rfl⟩, rfl⟩,
+  rw h_distrib,
+  exact mem_image2_of_mem (mem_image2_of_mem ha hb) (mem_image2_of_mem ha hc),
+end
+
+lemma image2_distrib_subset_right {f : δ → γ → ε} {g : α → β → δ} {f₁ : α → γ → α'}
+  {f₂ : β → γ → β'} {g' : α' → β' → ε} (h_distrib : ∀ a b c, f (g a b) c = g' (f₁ a c) (f₂ b c)) :
+  image2 f (image2 g s t) u ⊆ image2 g' (image2 f₁ s u) (image2 f₂ t u) :=
+begin
+  rintro _ ⟨_, c, ⟨a, b, ha, hb, rfl⟩, hc, rfl⟩,
+  rw h_distrib,
+  exact mem_image2_of_mem (mem_image2_of_mem ha hc) (mem_image2_of_mem hb hc),
+end
+
+end set
+
 variables {F α β γ : Type*}
 
 namespace set
@@ -530,20 +554,27 @@ operations if `α` is."]
 protected def division_comm_monoid [division_comm_monoid α] : division_comm_monoid (set α) :=
 { ..set.division_monoid, ..set.comm_semigroup }
 
-/-- `set α` is distributive if `α` is. -/
-protected def distrib [distrib α] : set (filter α) :=
-{ left_distrib := image_image2_distrib mul_add
-  right_distrib := image_image2_distrib add_mul,
-  ..set.has_mul, ..set.has_add }
-
 /-- `set α` has distributive negation if `α` has. -/
 protected def has_distrib_neg [has_mul α] [has_distrib_neg α] : has_distrib_neg (set α) :=
-{ neg_mul := image2_image_left_comm neg_mul
-  mul_neg := image2_image_right_comm mul_neg,
-  ..set.has_involutive_inv }
+{ neg_mul := λ _ _, by { simp_rw ←image_neg, exact image2_image_left_comm neg_mul },
+  mul_neg := λ _ _, by { simp_rw ←image_neg, exact image_image2_right_comm mul_neg },
+  ..set.has_involutive_neg }
 
 localized "attribute [instance] set.division_monoid set.subtraction_monoid set.division_comm_monoid
-  set.subtraction_comm_monoid set.distrib set.has_distrib_neg" in pointwise
+  set.subtraction_comm_monoid set.has_distrib_neg" in pointwise
+
+section distrib
+variables [distrib α] (s t u : set α)
+
+/-!
+Note that `set α` is not a `distrib` because `s * t + s * u` has cross terms that `s * (t + u)`
+lacks.
+-/
+
+lemma mul_add_subset : s * (t + u) ⊆ s * t + s * u := image2_distrib_subset_left mul_add
+lemma add_mul_subset : (s + t) * u ⊆ s * u + t * u := image2_distrib_subset_right add_mul
+
+end distrib
 
 section group
 variables [group α] {s t : set α} {a b : α}
@@ -991,8 +1022,11 @@ by simp_rw [←image_smul, ←image_neg, image_image, neg_smul]
 @[simp] lemma smul_set_neg : a • -t = -(a • t) :=
 by simp_rw [←image_smul, ←image_neg, image_image, smul_neg]
 
-@[simp] protected lemma neg_smul : -s • t = -(s • t) := image2_image_left_comm neg_smul
-@[simp] protected lemma smul_neg : s • -t = -(s • t) := image2_image_right_comm smul_neg
+@[simp] protected lemma neg_smul : -s • t = -(s • t) :=
+by { simp_rw ←image_neg, exact image2_image_left_comm neg_smul }
+
+@[simp] protected lemma smul_neg : s • -t = -(s • t) :=
+by { simp_rw ←image_neg, exact image_image2_right_comm smul_neg }
 
 end ring
 

@@ -375,21 +375,28 @@ pointwise operations if `α` is."]
 protected def division_comm_monoid [division_comm_monoid α] : division_comm_monoid (filter α) :=
 { ..filter.division_monoid, ..filter.comm_semigroup }
 
-/-- `filter α` is distributive if `α` is. -/
-protected def distrib [distrib α] : distrib (filter α) :=
-{ left_distrib := map_map₂_distrib mul_add
-  right_distrib := map_map₂_distrib add_mul,
-  ..filter.has_mul, ..filter.has_add }
-
 /-- `filter α` has distributive negation if `α` has. -/
 protected def has_distrib_neg [has_mul α] [has_distrib_neg α] : has_distrib_neg (filter α) :=
-{ neg_mul := map₂_map_left_comm neg_mul
-  mul_neg := map₂_map_right_comm mul_neg,
-  ..filter.has_involutive_inv }
+{ neg_mul := λ _ _, map₂_map_left_comm neg_mul,
+  mul_neg := λ _ _, map_map₂_right_comm mul_neg,
+  ..filter.has_involutive_neg }
 
 localized "attribute [instance] filter.comm_monoid filter.add_comm_monoid filter.division_monoid
   filter.subtraction_monoid filter.division_comm_monoid filter.subtraction_comm_monoid
-  filter.distrib filter.has_distrib_neg" in pointwise
+  filter.has_distrib_neg" in pointwise
+
+section distrib
+variables [distrib α] {f g h : filter α}
+
+/-!
+Note that `filter α` is not a `distrib` because `f * g + f * h` has cross terms that `f * (g + h)`
+lacks.
+-/
+
+lemma mul_add_subset : f * (g + h) ≤ f * g + f * h := map₂_distrib_le_left mul_add
+lemma add_mul_subset : (f + g) * h ≤ f * h + g * h := map₂_distrib_le_right add_mul
+
+end distrib
 
 section group
 variables [group α] [group β] [monoid_hom_class F α β] (m : F) {f g f₁ g₁ : filter α}

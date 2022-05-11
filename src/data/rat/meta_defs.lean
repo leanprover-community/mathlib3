@@ -44,9 +44,9 @@ meta def rat.mk_numeral (type has_zero has_one has_add has_neg has_div : expr) :
 
 /-- `rat.reflect q` represents the rational number `q` as a numeral expression of type `ℚ`. -/
 protected meta def rat.reflect : ℚ → expr :=
-rat.mk_numeral `(ℚ) `((infer_instance : has_zero ℚ))
-         `((infer_instance : has_one ℚ))`((infer_instance : has_add ℚ))
-         `((infer_instance : has_neg ℚ)) `(infer_instance : has_div ℚ)
+rat.mk_numeral `(ℚ) `((by apply_instance : has_zero ℚ))
+         `((by apply_instance : has_one ℚ))`((by apply_instance : has_add ℚ))
+         `((by apply_instance : has_neg ℚ)) `(by apply_instance : has_div ℚ)
 
 section
 local attribute [semireducible] reflected

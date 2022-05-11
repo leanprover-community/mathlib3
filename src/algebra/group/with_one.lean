@@ -359,6 +359,9 @@ instance [division_monoid α] : division_monoid (with_zero α) :=
     end,
   .. with_zero.div_inv_monoid, .. with_zero.has_involutive_inv }
 
+instance [division_comm_monoid α] : division_comm_monoid (with_zero α) :=
+{ .. with_zero.division_monoid, .. with_zero.comm_semigroup }
+
 section group
 variables [group α]
 

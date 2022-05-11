@@ -349,6 +349,8 @@ end
 ------
 
 
+-- (finset.range n.succ).filter (∣ n) = n.divisors
+-- (finset.range n).filter (∣ n) = n.proper_divisors
 
 
 private lemma card_order_of_eq_totient_aux₁ :
@@ -363,26 +365,27 @@ begin
   rcases card_pos.1 hd0 with ⟨a, ha'⟩,
   have ha : order_of a = d.succ, from (mem_filter.1 ha').2,
 
--- (finset.range n.succ).filter (∣ n) = n.divisors
--- (finset.range n).filter (∣ n) = n.proper_divisors
-
   have h_new : ∑ m in d.succ.proper_divisors, (univ.filter (λ a : α, order_of a = m)).card =
     ∑ m in d.succ.proper_divisors, φ m,
   {
     refine finset.sum_congr rfl (λ m hm, _),
     have hmd : m < d.succ, {
-
-
       sorry -- ∀ x n : ℕ, x ∈ n.proper_divisors → x < n
       },
     have hm : m ∣ d.succ, from (mem_filter.1 hm).2,
-    refine card_order_of_eq_totient_aux₁ (hm.trans hd) (finset.card_pos.2 _),
+    have h_div : m ∣ fintype.card α, { exact hm.trans hd },
+    have H_pos : 0 < (filter (λ (a : α), order_of a = m) univ).card,
+    {
+      refine (finset.card_pos.2 _),
     exact ⟨a ^ (d.succ / m), mem_filter.2 ⟨mem_univ _,
             by { rw [order_of_pow a, ha, nat.gcd_eq_right (div_dvd_of_dvd hm),
                   nat.div_div_self hm (succ_pos _)] }⟩⟩,
-     },
+    },
+    exact card_order_of_eq_totient_aux₁ h_div H_pos,
+  },
 
 
+-- Why does `h` work without a complaint about recursion, but `h_new` doesn't?
   have h : ∑ m in (range d.succ).filter (∣ d.succ),
     (univ.filter (λ a : α, order_of a = m)).card =
     ∑ m in (range d.succ).filter (∣ d.succ), φ m,
@@ -396,57 +399,6 @@ begin
                   nat.div_div_self hm (succ_pos _)] }⟩⟩)),
   },
 
-  -- have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
-  --   = (range d.succ.succ).filter (∣ d.succ),
-  -- {
-  --   ext x,
-  --   simp only [mem_insert, mem_filter, mem_range, filter_dvd_eq_divisors, ne.def, succ_ne_zero, not_false_iff, mem_divisors, and_true],
-
-  --   split,
-  --   { intros h, rcases h with rfl | ⟨h1, h2⟩; tauto },
-  --   { intros h, cases eq_or_lt_of_le (le_of_dvd (succ_pos') h); tauto },
-
-  --   -- exact (finset.ext $ λ x, ⟨λ h, (mem_insert.1 h).elim (λ h, by simp [h, range_succ])
-  --   -- (by clear _let_match; simp [range_succ]; tauto),
-  --   --  by clear _let_match; simp [range_succ] {contextual := tt}; tauto⟩),
-  -- },
-
-  -- have hinsert₁ : d.succ ∉ (range d.succ).filter (∣ d.succ),
-  -- { simp [mem_range, zero_le_one, le_succ] },
-
-  have H_pdiv : d.succ.proper_divisors = (range d.succ).filter (∣ d.succ),
-  { exact (finset.filter_dvd_eq_proper_divisors hn (succ_ne_zero d)).symm },
-
-  have H1 :
-    ∑ m in insert d.succ (d.succ.proper_divisors),
-        (univ.filter (λ a : α, order_of a = m)).card
-    =
-    ∑ m in insert d.succ ((range d.succ).filter (∣ d.succ)),
-        (univ.filter (λ a : α, order_of a = m)).card,
-  { apply sum_congr _ (λ x hx, rfl), rw H_pdiv },
-
-  -- have H_orig :
-  -- (filter (λ (a : α), order_of a = d + 1) univ).card + ∑ (m : ℕ) in filter (λ (_x : ℕ), _x ∣ d.succ) (range d.succ), (filter (λ (a : α), order_of a = m) univ).card = (d + 1).totient + ∑ (m : ℕ) in filter (λ (_x : ℕ), _x ∣ d.succ) (range d.succ), (filter (λ (a : α), order_of a = m) univ).card,
-  -- begin
-  --   calc _ = ∑ m in insert d.succ ((range d.succ).filter (∣ d.succ)),
-  --         (univ.filter (λ a : α, order_of a = m)).card :
-  --     eq.symm (finset.sum_insert (by simp [mem_range, zero_le_one, le_succ]))
-  --   ... = ∑ m in (range d.succ.succ).filter (∣ d.succ),
-  --       (univ.filter (λ a : α, order_of a = m)).card : by
-  --     { exact
-  --     sum_congr hinsert (λ _ _, rfl) }
-  --   ... = (univ.filter (λ a : α, a ^ d.succ = 1)).card : by
-  --     { exact
-  --     sum_card_order_of_eq_card_pow_eq_one (succ_pos d) }
-  --   ... = ∑ m in (range d.succ.succ).filter (∣ d.succ), φ m : by
-  --     { exact
-  --     ha ▸ (card_pow_eq_one_eq_order_of_aux hn a).symm ▸ (sum_totient' _).symm }
-  --   ... = _ : by
-  --     {
-  --       rw [h, ← sum_insert hinsert₁];
-  --       exact finset.sum_congr hinsert.symm (λ _ _, rfl)},
-  -- end,
-
   have H_new :
   (filter (λ (a : α), order_of a = d + 1) univ).card
   + ∑ (m : ℕ) in d.succ.proper_divisors, (filter (λ (a : α), order_of a = m) univ).card
@@ -454,10 +406,6 @@ begin
   (d + 1).totient
   + ∑ (m : ℕ) in d.succ.proper_divisors, (filter (λ (a : α), order_of a = m) univ).card,
   begin
-
--- (finset.range n.succ).filter (∣ n) = n.divisors
--- (finset.range n).filter (∣ n) = n.proper_divisors
-
     calc _ = ∑ m in insert d.succ (d.succ.proper_divisors),
           (univ.filter (λ a : α, order_of a = m)).card : _
     ... = ∑ m in d.succ.divisors,
@@ -482,6 +430,7 @@ begin
 
   exact (add_left_inj _).1 H_new,
 end
+-- using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf card⟩]}
 
 #exit
 

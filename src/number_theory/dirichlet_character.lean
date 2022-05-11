@@ -98,9 +98,9 @@ lemma asso_dirichlet_character_eq_iff {R : Type*} [monoid_with_zero R] {n : ℕ}
   (χ : dirichlet_character R n) (ψ : dirichlet_character R n) :
   χ = ψ ↔ asso_dirichlet_character χ = asso_dirichlet_character ψ :=
 ⟨λ h, begin
-  ext, by_cases is_unit x,
-  { repeat { convert asso_dirichlet_character_eq_char _ h.unit, }, },
-  { repeat { rw asso_dirichlet_character_eq_zero _ h, }, },
+  ext, by_cases hx : is_unit x,
+  { simp_rw asso_dirichlet_character_eq_char' _ hx, rw h, },
+  { rw asso_dirichlet_character_eq_zero _ hx, rw asso_dirichlet_character_eq_zero _ hx, },
   end,
 λ h, begin
   ext,

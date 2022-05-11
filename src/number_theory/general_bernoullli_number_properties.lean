@@ -1,176 +1,18 @@
+import number_theory.dirichlet_character_properties
 import number_theory.spl_value
-import number_theory.weight_space -- to make zmod a topo space, not needed ow
 
-variables (d p m : nat) [fact (0 < d)] [fact (nat.prime p)]
-  {R : Type*} [normed_comm_ring R] (χ : dirichlet_character R (d * p^m))
-
-open_locale big_operators
-local attribute [instance] zmod.topological_space
-
-instance (α : Type*) [topological_space α] [discrete_topology α] : discrete_topology αᵒᵖ :=
-discrete_topology_induced opposite.unop_injective
-
-/-- Like disc_top_units but includes k = 0. -/
-lemma disc_top_units' (k : ℕ) : discrete_topology (units (zmod k)) :=
-begin
-  convert @discrete_topology_induced _ _ _ _ _ (embed_product_injective _),
-  apply @prod.discrete_topology _ _ infer_instance infer_instance infer_instance infer_instance,
-  { apply_instance, },
-  { apply_instance, },
-end
-
-open dirichlet_character
-
-lemma dirichlet_character.continuous {R : Type*} [monoid R] [topological_space R]
-  {n : ℕ} (χ : dirichlet_character R n) : continuous χ :=
-begin
-  convert continuous_of_discrete_topology,
-  exact disc_top_units' _,
-end
-
-lemma dirichlet_character.asso_dirichlet_character_continuous
-  {R : Type*} [monoid_with_zero R] [topological_space R] {n : ℕ} (χ : dirichlet_character R n) :
-  continuous (asso_dirichlet_character χ) :=
-begin
-  convert continuous_of_discrete_topology,
-  apply_instance,
-end
-
-/-lemma dirichlet_character.bounded
-  {R : Type*} [monoid R] [normed_group R] {n : ℕ} [fact (0 < n)]
-  (χ : dirichlet_character R n) : ∃ M : ℝ,
-  ∥ ( ⟨χ, dirichlet_character.continuous χ⟩ : C(units (zmod n), units R)) ∥ < M := -/
-
-lemma dirichlet_character.asso_dirichlet_character_bounded
-  {R : Type*} [monoid_with_zero R] [normed_group R] {n : ℕ} [fact (0 < n)]
-  (χ : dirichlet_character R n) : ∃ M : ℝ,
-  ∥ (⟨asso_dirichlet_character χ,
-    dirichlet_character.asso_dirichlet_character_continuous χ⟩ : C(zmod n, R)) ∥ < M :=
-begin
-  refine ⟨(⨆ i : zmod n, ∥asso_dirichlet_character χ i∥) + 1, _⟩,
-  apply lt_of_le_of_lt _ (lt_add_one _),
-  { convert le_refl _, rw continuous_map.norm_eq_supr_norm,
-    simp only [continuous_map.coe_mk], },
-  { apply_instance, },
-end
-
-lemma asso_dirichlet_character_zero_range {R : Type*} [monoid_with_zero R] [normed_group R]
-  (χ : dirichlet_character R 0) : (set.range (λ (i : zmod 0), ∥(asso_dirichlet_character χ) i∥)) =
-    {∥asso_dirichlet_character χ 0∥, ∥asso_dirichlet_character χ 1∥,
-      ∥asso_dirichlet_character χ (-1)∥} :=
-begin
-  ext,
-  simp only [set.mem_insert_iff, set.mem_range, set.mem_singleton_iff],
-  refine ⟨λ h, _, λ h, _⟩,
-  { cases h with y hy,
-    by_cases is_unit y,
-    { suffices h' : y = 1 ∨ y = -1,
-      { cases h',
-        { rw h' at hy,
-          change ∥(asso_dirichlet_character χ) 1∥ = x at hy,
-          right, left, rw ←hy, },
-        { rw h' at hy,
-          change ∥(asso_dirichlet_character χ) (-1)∥ = x at hy,
-          right, right, rw hy, }, },
-      { have := int.units_eq_one_or (is_unit.unit h),
-        cases this,
-        { left, rw ←units.eq_iff at this, rw is_unit.unit_spec at this, rw units.coe_one at this,
-          rw this, },
-        { right, rw ←units.eq_iff at this, rw is_unit.unit_spec at this,
-          rw units.coe_neg_one at this, rw this, }, }, },
-    rw asso_dirichlet_character_eq_zero _ at hy,
-    left, rw ←hy, rw asso_dirichlet_character_eq_zero _,
-    apply @not_is_unit_zero _ _ _, change nontrivial ℤ, apply_instance,
-    { apply h, }, },
-  { cases h,
-    { refine ⟨0, _⟩, rw h, },
-    { cases h,
-      { rw h, refine ⟨1, rfl⟩, },
-      { rw h, refine ⟨-1, rfl⟩, }, }, },
-end
-
-lemma asso_dirichlet_character_zero_range_fin {R : Type*} [monoid_with_zero R] [normed_group R]
-  (χ : dirichlet_character R 0) :
-  (set.range (λ (i : zmod 0), ∥(asso_dirichlet_character χ) i∥)).finite :=
-begin
-  rw asso_dirichlet_character_zero_range,
-  simp only [set.finite_singleton, set.finite.insert],
-end
-
-noncomputable instance dirichlet_character.zero {R : Type*} [monoid_with_zero R] [normed_group R]
-  (χ : dirichlet_character R 0) :
-  fintype (set.range (λ (i : zmod 0), ∥(asso_dirichlet_character χ) i∥)) :=
-begin
-  rw asso_dirichlet_character_zero_range,
-  apply set.fintype_insert (∥asso_dirichlet_character χ 0∥)
-  { ∥asso_dirichlet_character χ 1∥, ∥asso_dirichlet_character χ (-1)∥},
-end
-
-lemma asso_dirichlet_character_range_fin {R : Type*} [monoid_with_zero R] [normed_group R] {n : ℕ}
-  (χ : dirichlet_character R n) :
-  (set.range (λ (i : zmod n), ∥(asso_dirichlet_character χ) i∥)).finite :=
-begin
-  cases n, -- big improvement over by_cases n!
-  { apply asso_dirichlet_character_zero_range_fin _, },
-  { haveI : fact (0 < n.succ) := fact_iff.2 (nat.succ_pos _),
-    exact set.finite_range (λ (i : zmod n.succ), ∥(asso_dirichlet_character χ) i∥), },
-end
-
-lemma asso_dirichlet_character_range_bdd_above {R : Type*} [monoid_with_zero R] [normed_group R]
-  {n : ℕ} (χ : dirichlet_character R n) :
-  bdd_above (set.range (λ (i : zmod n), ∥(asso_dirichlet_character χ) i∥)) :=
-begin
-  apply set.finite.bdd_above _,
-  { apply_instance, },
-  { apply asso_dirichlet_character_range_fin, },
-end
-
-lemma dirichlet_character.asso_dirichlet_character_bounded'
-  {R : Type*} [monoid_with_zero R] [normed_group R] {n : ℕ} --[fact (0 < n)]
-  (χ : dirichlet_character R n) : ∃ M : ℝ, (∀ a, ∥asso_dirichlet_character χ a∥ < M) ∧ 0 < M :=
-begin
-  refine ⟨(⨆ i : zmod n, ∥asso_dirichlet_character χ i∥) + 1, λ a, _, _⟩,
-  { apply lt_of_le_of_lt _ (lt_add_one _),
-    { apply le_cSup _ _,
-      { apply asso_dirichlet_character_range_bdd_above, },
-      { refine ⟨a, rfl⟩, }, },
-    { apply_instance, }, },
-  { apply lt_add_of_le_of_pos _ _,
-    { exact covariant_add_lt_of_contravariant_add_le ℝ, },
---    apply add_nonneg _ _,
---    { apply_instance, },
-    { apply le_csupr_of_le _ _,
-      swap 3, { exact 1, },
-      { apply norm_nonneg _, },
-      { apply asso_dirichlet_character_range_bdd_above, }, },
-    { norm_num, }, },
-end
-
-noncomputable abbreviation dirichlet_character.bound {R : Type*} [monoid_with_zero R]
-  [normed_group R] {n : ℕ} (χ : dirichlet_character R n) : ℝ :=
-classical.some (dirichlet_character.asso_dirichlet_character_bounded' χ)
-
-lemma dirichlet_character.bound_spec {R : Type*} [monoid_with_zero R] [normed_group R] {n : ℕ}
-  (χ : dirichlet_character R n) (a : zmod n) :
-  ∥asso_dirichlet_character χ a∥ < dirichlet_character.bound χ :=
-(classical.some_spec (dirichlet_character.asso_dirichlet_character_bounded' χ)).1 a
-
-lemma dirichlet_character.bound_nonneg {R : Type*} [monoid_with_zero R] [normed_group R] {n : ℕ}
-  (χ : dirichlet_character R n) : 0 < dirichlet_character.bound χ :=
-(classical.some_spec (dirichlet_character.asso_dirichlet_character_bounded' χ)).2
-
-lemma units.coe_map_of_dvd {a b : ℕ} (h : a ∣ b) (x : units (zmod b)) : --(hx : is_unit x) :
+lemma units.coe_map_of_dvd {a b : ℕ} (h : a ∣ b) (x : units (zmod b)) :
   is_unit (x : zmod a) :=
 begin
   change is_unit ((x : zmod b) : zmod a),
   rw ←zmod.cast_hom_apply (x : zmod b),
   swap 3, { refine zmod.char_p _, },
   swap, { apply h, },
-  rw ←ring_hom.coe_monoid_hom,
-  rw ←units.coe_map, apply units.is_unit,
+  rw [←ring_hom.coe_monoid_hom, ←units.coe_map],
+  apply units.is_unit,
 end
 
-lemma is_unit_coe {a b : ℕ} (h : a ∣ b) {x : ℕ} (hx : is_coprime (x : ℤ) b) :
+lemma is_unit_of_is_coprime {a b : ℕ} (h : a ∣ b) {x : ℕ} (hx : is_coprime (x : ℤ) b) :
   is_unit (x : zmod a) :=
 begin
   rw nat.is_coprime_iff_coprime at hx,
@@ -180,6 +22,8 @@ begin
     { change is_unit (y : zmod a),
       apply units.coe_map_of_dvd h _, },
 end
+
+open dirichlet_character
 
 lemma dirichlet_character.mul_eval_coprime {R : Type*} [comm_monoid_with_zero R]
   {n m : ℕ} [fact (0 < n)] (χ : dirichlet_character R n) (ψ : dirichlet_character R m)
@@ -196,7 +40,7 @@ begin
   rw ← this,
   have dvd : lcm n m ∣ n * m,
   { rw lcm_dvd_iff, refine ⟨(dvd_mul_right _ _), (dvd_mul_left _ _)⟩, },
-  rw ←change_level_asso_dirichlet_character_eq' _ (conductor_dvd _) (is_unit_coe dvd ha),
+  rw ←change_level_asso_dirichlet_character_eq' _ (conductor_dvd _) (is_unit_of_is_coprime dvd ha),
   { convert_to asso_dirichlet_character ((χ.change_level (dvd_lcm_left n m) *
       ψ.change_level (dvd_lcm_right n m))) (a : zmod (lcm n m)) = _,
     { delta asso_primitive_character,
@@ -204,10 +48,10 @@ begin
         ψ.change_level (dvd_lcm_right n m)))), },
     rw asso_dirichlet_character_mul,
     rw monoid_hom.mul_apply, congr,
-    { rw change_level_asso_dirichlet_character_eq' _ _ (is_unit_coe dvd ha),
+    { rw change_level_asso_dirichlet_character_eq' _ _ (is_unit_of_is_coprime dvd ha),
       { rw zmod.cast_nat_cast (dvd_lcm_left _ _),
         refine zmod.char_p _, }, },
-    { rw change_level_asso_dirichlet_character_eq' _ _ (is_unit_coe dvd ha),
+    { rw change_level_asso_dirichlet_character_eq' _ _ (is_unit_of_is_coprime dvd ha),
       { rw zmod.cast_nat_cast (dvd_lcm_right _ _),
         refine zmod.char_p _, }, }, },
 end
@@ -290,6 +134,9 @@ begin
   { refl, },
   { rw ←nat.add_sub_assoc (nat.succ_le_succ (nat.zero_le _)), rw nat.succ_mul, rw one_mul, },
 end
+
+variables (d p m : nat) [fact (0 < d)] [fact (nat.prime p)]
+  {R : Type*} [normed_comm_ring R] (χ : dirichlet_character R (d * p^m))
 
 instance {n : ℕ} : has_pow (dirichlet_character R n) ℕ := monoid.has_pow
 
@@ -417,6 +264,7 @@ begin
   { apply nat.succ_le_succ (one_le_mul one_le_two hk), },
 end
 
+open_locale big_operators
 --set_option pp.proofs true
 lemma sum_eq_neg_sum_add_dvd (hχ : χ.is_even) [semi_normed_algebra ℚ_[p] R] [nontrivial R]
   [no_zero_divisors R] [fact (0 < m)] (hp : 2 < p) (k : ℕ) (hk : 1 ≤ k) {x : ℕ} (hx : m ≤ x) :
@@ -523,8 +371,8 @@ begin
   { intros l hl,
     apply le_trans (norm_mul_le _ _) _,
     --rw ← mul_one ((χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound),
-    apply mul_le_mul (le_of_lt (dirichlet_character.bound_spec _ _)) _ (norm_nonneg _)
-      (le_of_lt (dirichlet_character.bound_nonneg _)),
+    apply mul_le_mul (le_of_lt (dirichlet_character.lt_bound _ _)) _ (norm_nonneg _)
+      (le_of_lt (dirichlet_character.bound_pos _)),
     { simp_rw [mul_pow], simp_rw [mul_left_comm], simp_rw [mul_assoc],
       apply le_trans (norm_sum_le _ _) _,
       have : ∀ a ∈ finset.range (k - 1), ∥(-1 : R) ^ (k - 1 - (a + 1)) * (↑(d * p ^ x) ^ a *
@@ -616,7 +464,7 @@ begin
     rw ← mul_assoc,
     apply le_trans (add_le_add (le_refl _) (norm_mul_le _ _)) _,
     apply le_trans (add_le_add (le_refl _) ((mul_le_mul_left _).2
-      (le_of_lt (dirichlet_character.bound_spec _ _)))) _,
+      (le_of_lt (dirichlet_character.lt_bound _ _)))) _,
     { rw lt_iff_le_and_ne,
       refine ⟨norm_nonneg _, λ h, _⟩,
       rw eq_comm at h, rw norm_eq_zero at h,
@@ -725,13 +573,13 @@ begin
     { norm_cast, apply nat.prime.pos, apply fact.out, },
     { norm_num, }, },
   have pos' : 0 < ↑k * (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound,
-  { apply mul_pos _ (dirichlet_character.bound_nonneg _), norm_cast,
+  { apply mul_pos _ (dirichlet_character.bound_pos _), norm_cast,
     apply lt_trans zero_lt_one hk, },
   have pos : 0 < ε / (↑k * (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound),
   { apply div_pos hε pos', },
   refine ⟨classical.some (exists_pow_lt_of_lt_one pos one_div_lt_one), _⟩,
   apply lt_of_le_of_lt (mul_le_mul (norm_two_mul_le d p hk hp _) le_rfl (mul_nonneg (norm_nonneg _)
-    (le_of_lt (dirichlet_character.bound_nonneg _))) (nat.cast_nonneg _)) _,
+    (le_of_lt (dirichlet_character.bound_pos _))) (nat.cast_nonneg _)) _,
   { apply_instance, },
   rw mul_left_comm,
   apply lt_of_le_of_lt (mul_le_mul (norm_mul_pow_le_one_div_pow d p _) le_rfl (le_of_lt pos') _) _,
@@ -746,7 +594,7 @@ begin
     { rw mul_one, },
     { rw mul_eq_zero at h, cases h,
       { norm_cast at h, rw h at hk, simp only [not_lt_zero'] at hk, apply hk, },
-      { have := (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound_nonneg,
+      { have := (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound_pos,
         rw h at this,
         simp only [lt_self_iff_false] at this,
         exact this, }, }, },
@@ -814,7 +662,7 @@ begin
     rw ← add_mul, rw mul_mul_mul_comm,
     apply lt_of_le_of_lt _ hz,
     apply mul_le_mul _ _ (mul_nonneg (norm_nonneg _)
-      (le_of_lt (dirichlet_character.bound_nonneg _))) _,
+      (le_of_lt (dirichlet_character.bound_pos _))) _,
     { apply mul_le_mul le_rfl _ _ (norm_nonneg _),
       { apply add_le_add le_rfl _,
         { exact covariant_swap_add_le_of_covariant_add_le ℝ, },
@@ -829,7 +677,7 @@ begin
             { apply norm_le_of_ge d p (le_trans (le_max_left _ _) hx), apply_instance, }, },
           any_goals { apply_instance, }, }, },
       { apply sub_add_norm_nonneg, assumption, }, },
-    { apply mul_le_mul _ le_rfl (le_of_lt (dirichlet_character.bound_nonneg _)) (norm_nonneg _),
+    { apply mul_le_mul _ le_rfl (le_of_lt (dirichlet_character.bound_pos _)) (norm_nonneg _),
       { apply norm_le_of_ge d p (le_trans (le_max_left _ _) hx), apply_instance, }, },
     { apply mul_nonneg (norm_nonneg _) _,
       apply sub_add_norm_nonneg, assumption, }, },
@@ -859,6 +707,7 @@ lemma aux_one [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
   (algebra_map ℚ R) (bernoulli (k.pred.succ - x_1) * ↑(k.pred.succ.choose x_1) *
   (((y + 1 : ℕ) : ℚ) ^ x_1 / ↑(d * p ^ x) ^ x_1) * ↑(d * p ^ x) ^ k.pred)) :=
 begin
+--  conv_lhs { congr, rw ← ring_hom.to_fun_eq_coe, congr, },
   rw ← (algebra_map ℚ R).map_mul,
   rw bernoulli_poly_def,
   rw polynomial.eval_finset_sum,
@@ -1175,7 +1024,7 @@ lemma norm_asso_dir_char_bound [semi_normed_algebra ℚ_[p] R] [fact (0 < m)] (k
   dirichlet_character.bound (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)) :=
 begin
   rw supr_Prop_eq,
-  refine ⟨0, dirichlet_character.bound_spec _ _⟩,
+  refine ⟨0, dirichlet_character.lt_bound _ _⟩,
 end
 
 lemma zmod.val_le_self (a n : ℕ) : (a : zmod n).val ≤ a :=
@@ -1331,11 +1180,11 @@ lemma N2_spec [nontrivial R] [no_zero_divisors R] [semi_normed_algebra ℚ_[p] R
   (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound < ε :=
 begin
   apply nat_spec _ _ x hx,
-  refine ⟨classical.some (norm_lim_eq_zero' d p hε (le_of_lt (dirichlet_character.bound_nonneg
+  refine ⟨classical.some (norm_lim_eq_zero' d p hε (le_of_lt (dirichlet_character.bound_pos
     (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k))))), λ x hx, _⟩,
   { exact R, },
   any_goals { apply_instance, },
-  apply classical.some_spec (norm_lim_eq_zero' d p hε (le_of_lt (dirichlet_character.bound_nonneg
+  apply classical.some_spec (norm_lim_eq_zero' d p hε (le_of_lt (dirichlet_character.bound_pos
     (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k))))) x hx,
 end
 
@@ -1376,20 +1225,20 @@ begin
     apply lt_of_le_of_lt (add_le_add (le_of_lt (N1_spec d p m χ na hk hχ hp (ε/2) (half_pos hε) x hx))
       (norm_mul_le _ _)) _,
     apply lt_of_le_of_lt (add_le_add le_rfl (mul_le_mul (le_of_lt
-      (dirichlet_character.bound_spec _ _)) le_rfl (norm_nonneg _) (le_of_lt
-      (dirichlet_character.bound_nonneg _)) )) _,
+      (dirichlet_character.lt_bound _ _)) le_rfl (norm_nonneg _) (le_of_lt
+      (dirichlet_character.bound_pos _)) )) _,
     conv { congr, congr, skip, congr, skip, congr, rw add_comm 1 _, rw ← nat.succ_eq_add_one,
       rw nat.succ_pred_eq_of_pos (mul_prime_pow_pos p d x), rw ← nat.succ_pred_eq_of_pos pos,
       rw pow_succ, },
     apply lt_of_le_of_lt (add_le_add le_rfl (mul_le_mul le_rfl (norm_mul_le _ _) _
-      (le_of_lt (dirichlet_character.bound_nonneg _)))) _,
+      (le_of_lt (dirichlet_character.bound_pos _)))) _,
     { apply norm_nonneg _, },
     rw ← mul_assoc,
     rw ← nat.cast_pow,
     apply lt_of_le_of_lt (add_le_add le_rfl (mul_le_mul le_rfl (norm_le_one p _) _ _)) _,
     { apply_instance, },
     { apply norm_nonneg _, },
-    { apply mul_nonneg (le_of_lt (dirichlet_character.bound_nonneg _)) (norm_nonneg _), },
+    { apply mul_nonneg (le_of_lt (dirichlet_character.bound_pos _)) (norm_nonneg _), },
     rw mul_one, rw mul_comm,
     conv { congr, skip, rw ← add_halves ε, },
     rw add_lt_add_iff_left,
@@ -1405,7 +1254,7 @@ lemma aux_three {k : ℕ} (x : ℕ) [nontrivial R] [no_zero_divisors R] [algebra
   (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound :=
 begin
   haveI pred_pos : fact (0 < k.pred), { apply fact_iff.2 (nat.lt_pred_iff.2 hk), },
-  apply mul_nonneg _ (le_of_lt (dirichlet_character.bound_nonneg _)),
+  apply mul_nonneg _ (le_of_lt (dirichlet_character.bound_pos _)),
   apply le_csupr_of_le,
   { apply set.finite.bdd_above _,
     { apply_instance, },
@@ -1446,7 +1295,7 @@ begin
   (bernoulli (k.pred.succ - x_1.val) * ↑(k.pred.succ.choose x_1.val))∥) *
 --  (↑(d * p ^ x) ^ (k.pred - 1) / ↑(d * p ^ x) ^ x_1.val))∥) *
   (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound,
-  { apply mul_nonneg _ (le_of_lt (dirichlet_character.bound_nonneg _)),
+  { apply mul_nonneg _ (le_of_lt (dirichlet_character.bound_pos _)),
     apply le_csupr_of_le,
     { apply set.finite.bdd_above _,
       { apply_instance, },
@@ -1507,19 +1356,19 @@ begin
   rw mul_assoc, rw mul_comm, rw mul_comm M _,
   apply lt_of_le_of_lt (mul_le_mul _ le_rfl (norm_nonneg _) _) _,
   { exact (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound * M, },
-  { apply mul_le_mul _ le_rfl M_nonneg (le_of_lt (dirichlet_character.bound_nonneg _)),
+  { apply mul_le_mul _ le_rfl M_nonneg (le_of_lt (dirichlet_character.bound_pos _)),
     { apply csupr_le (λ y, _),
       { apply_instance, },
-      { apply le_of_lt (dirichlet_character.bound_spec _ _), }, }, },
+      { apply le_of_lt (dirichlet_character.lt_bound _ _), }, }, },
   --{ rw norm_pos_iff, norm_cast, apply ne_zero_of_lt (mul_prime_pow_pos p d x), },
-  { apply mul_nonneg (le_of_lt (dirichlet_character.bound_nonneg _)) M_nonneg, },
+  { apply mul_nonneg (le_of_lt (dirichlet_character.bound_pos _)) M_nonneg, },
   { rw mul_comm,
     apply (classical.some_spec (norm_lim_eq_zero' d p (half_pos hε)
-      (mul_nonneg (le_of_lt (dirichlet_character.bound_nonneg (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)))) M_nonneg) )) x _,
+      (mul_nonneg (le_of_lt (dirichlet_character.bound_pos (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)))) M_nonneg) )) x _,
     { apply_instance, },
     sorry, }, -/
   apply le_trans (mul_le_mul (aux_two d p m _ na hk hχ hp _ _)
-    (le_of_lt (dirichlet_character.bound_spec _ _)) _ _) _,
+    (le_of_lt (dirichlet_character.lt_bound _ _)) _ _) _,
   { apply norm_nonneg _, },
   { apply mul_nonneg (norm_nonneg _) _,
     apply le_csupr_of_le,
@@ -1557,7 +1406,7 @@ begin
         (bernoulli ((nat.pred k).succ - x_1.val) * ↑((nat.pred k).succ.choose x_1.val))∥), }, },
     rw mul_comm, rw mul_assoc,
     apply lt_of_le_of_lt (mul_le_mul this le_rfl _ _) _,
-    { apply mul_nonneg (le_of_lt (dirichlet_character.bound_nonneg _)) (norm_nonneg _), },
+    { apply mul_nonneg (le_of_lt (dirichlet_character.bound_pos _)) (norm_nonneg _), },
     { apply real.Sup_nonneg _ (λ x hx, _), cases hx with y hy, rw ← hy, apply norm_nonneg _, },
     rw mul_comm _ (∥↑(d * p ^ x)∥),
     rw mul_comm, rw mul_assoc,
@@ -1566,7 +1415,7 @@ begin
     -- apply lt_of_le_of_lt this _,
     -- apply classical.some_spec (norm_lim_eq_zero' d p div_four_pos _) _ _,
     -- { apply_instance, },
-    -- { apply mul_nonneg _ (le_of_lt (dirichlet_character.bound_nonneg _)),
+    -- { apply mul_nonneg _ (le_of_lt (dirichlet_character.bound_pos _)),
     --   apply le_csupr_of_le,
     --   { apply set.finite.bdd_above _,
     --     { apply_instance, },
@@ -1596,7 +1445,7 @@ lemma aux_five_aux [algebra ℚ R] [semi_normed_algebra ℚ_[p] R] [fact (0 < m)
   p d R m ^ k.pred.pred.succ.succ)).asso_primitive_character.bound ∧ 0 < ε/3 :=
 begin
   split,
-  { apply mul_nonneg (norm_nonneg _) (le_of_lt (dirichlet_character.bound_nonneg _)), },
+  { apply mul_nonneg (norm_nonneg _) (le_of_lt (dirichlet_character.bound_pos _)), },
   { linarith, },
 end
 
@@ -1654,7 +1503,7 @@ begin
         apply lt_of_le_of_lt (mul_le_mul le_rfl (norm_mul_le _ _) _ (norm_nonneg _)) _,
         { apply norm_nonneg _, },
         { rw ← mul_assoc,
-          apply lt_of_le_of_lt (mul_le_mul le_rfl (le_of_lt (dirichlet_character.bound_spec _ _))
+          apply lt_of_le_of_lt (mul_le_mul le_rfl (le_of_lt (dirichlet_character.lt_bound _ _))
             _ _) _,
           { apply norm_nonneg _, },
           { apply mul_nonneg (norm_nonneg _) (norm_nonneg _), },
@@ -1697,7 +1546,7 @@ begin
     apply ne_zero_of_lt hk, },
   have pos : 0 < ∥(algebra_map ℚ R) (bernoulli 1 * ↑k)∥ *
     (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound,
-  { apply mul_pos (norm_pos_iff.2 nz) (dirichlet_character.bound_nonneg _), },
+  { apply mul_pos (norm_pos_iff.2 nz) (dirichlet_character.bound_pos _), },
   apply nat_spec _ _ x hx,
   refine ⟨classical.some (norm_lim_eq_zero' d p hε (le_of_lt pos)), λ x hx, _⟩,
   { exact R, },
@@ -1717,7 +1566,7 @@ lemma aux_6 [nontrivial R] [no_zero_divisors R] [algebra ℚ R]
   (h4x : x ≥ N4 d p m χ hk (ε / 6) (by linarith)) :
   -- (h2x : x ≥ classical.some (metric.tendsto_at_top.1
   --        (norm_lim_eq_zero d p (((d * p ^ x : ℕ) : R) ^ (k - 1).pred))
-  --        (ε/(4 * ((χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound))) (div_pos hε (mul_pos zero_lt_four (dirichlet_character.bound_nonneg _))) )) :
+  --        (ε/(4 * ((χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound))) (div_pos hε (mul_pos zero_lt_four (dirichlet_character.bound_pos _))) )) :
   ∥(1 / ((d * p ^ x : ℕ) : ℚ)) •
       ∑ (x_1 : ℕ) in finset.range (d * p ^ x).pred, (asso_dirichlet_character (χ.mul
       (teichmuller_character_mod_p_change_level p d R m ^ k))) ↑(x_1.succ) *
@@ -1773,8 +1622,8 @@ begin
       p d R m ^ k)),
     { apply lt_of_le_of_lt (norm_mul_le _ _) _,
       rw ← mul_one (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound,
-      apply mul_lt_mul (dirichlet_character.bound_spec _ _) _ _
-        (le_of_lt (dirichlet_character.bound_nonneg _)),
+      apply mul_lt_mul (dirichlet_character.lt_bound _ _) _ _
+        (le_of_lt (dirichlet_character.bound_pos _)),
       { rw ← nat.cast_pow, rw norm_coe_eq_ring_hom_map p, apply padic_int.norm_le_one,
         apply_instance, },
       { rw norm_pos_iff, rw ← nat.cast_pow, norm_cast,
@@ -1782,14 +1631,14 @@ begin
     apply lt_of_le_of_lt (add_le_add le_rfl (mul_le_mul le_rfl (le_of_lt nlt) _ (norm_nonneg _))) _,
     { apply norm_nonneg _, },
     { apply lt_of_le_of_lt (add_le_add le_rfl (mul_le_mul (norm_mul_le _ _) le_rfl
-        (le_of_lt (dirichlet_character.bound_nonneg _)) _)) _,
+        (le_of_lt (dirichlet_character.bound_pos _)) _)) _,
       { apply mul_nonneg (norm_nonneg _) (norm_nonneg _), },
       rw mul_comm _ (∥↑(d * p ^ x)∥),
       rw mul_assoc,
       have add_six : ε/6 + ε/6 = ε/3, linarith,
       have pos : 0 < ∥(algebra_map ℚ R) (bernoulli 1 * ↑k)∥ *
         (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ k)).bound,
-      { apply mul_pos (norm_pos_iff.2 nz) (dirichlet_character.bound_nonneg _), },
+      { apply mul_pos (norm_pos_iff.2 nz) (dirichlet_character.bound_pos _), },
       rw ← add_six,
       rw add_lt_add_iff_left,
       apply N4_spec d p m χ na hk hχ hp (ε/6) (by linarith) _ h4x, }, },

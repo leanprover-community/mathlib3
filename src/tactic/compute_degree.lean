@@ -5,6 +5,7 @@ Authors: Damiano Testa
 -/
 import tactic.move_add
 import data.polynomial.degree.lemmas
+--import tactic.mwe_showcase_degree
 
 /-! # `compute_degree` a tactic for compute `nat_degree`s of polynomials
 
@@ -12,6 +13,15 @@ This file defines two main tactics `compute_degree` and `compute_degree_le`.
 Applied when the goal is of the form `f.nat_degree = d` or `f.nat_degree ≤ d`, they try to solve it.
 
 See the corresponding doc-strings for more details.
+
+##  Future work
+
+* Add functionality to deal with exponents that are not necessarily natural numbers.
+  It may not be hard to allow an option argument to be passed to `compute_degree` that would
+  let the tactic know which one is the term of highest degree.  This would bypass the step
+  where the exponents get sorted and may make it accessible to continue with the rest of the
+  argument with minimal change.
+* Add functionality to close `monic` goals and compute `leading_coeff`s.
 
 ##  Implementation details
 
@@ -67,6 +77,13 @@ begin
   split_ifs; simp [mn],
 end
 
+lemma nat_degree_X_pow_le {m n : ℕ} (mn : m ≤ n) :
+  (X ^ m : R[X]).nat_degree ≤ n :=
+begin
+  nontriviality R,
+  rwa polynomial.nat_degree_X_pow,
+end
+
 lemma nat_degree_add_le_iff_left {m n : ℕ} (mn : m ≤ n) (f g : R[X]) (gm : g.nat_degree ≤ m) :
   (f + g).nat_degree ≤ n ↔ f.nat_degree ≤ n :=
 begin
@@ -77,11 +94,72 @@ begin
     exact gm.trans_lt (not_le.mp fm) }
 end
 
+/--  Useful for hiding the `classical` in the proof. -/
+lemma nat_degree_monomial_eq {R : Type*} [semiring R] (i : ℕ) {r : R} (r0 : r ≠ 0) :
+  (monomial i r).nat_degree = i :=
+begin
+  classical,
+  exact eq.trans (nat_degree_monomial _ _) (if_neg r0),
+end
+
+/-- Useful to expose easy hypotheses:
+* `df` should be dealt with by `single_term_resolve`,
+* `dg` should be dealt with by `compute_degree_le`.
+-/
+lemma nat_degree_add_left_succ {R : Type*} [semiring R] (n : ℕ) (f g : polynomial R)
+  (df : f.nat_degree = n + 1) (dg : g.nat_degree ≤ n) :
+  (g + f).nat_degree = n + 1 :=
+by rwa nat_degree_add_eq_right_of_nat_degree_lt (dg.trans_lt (nat.lt_of_succ_le df.ge))
+
 end polynomial
 
 namespace tactic.interactive
 open tactic
 setup_tactic_parser
+
+/-- `C_mul_terms e` produces a proof of `e.nat_degree = ??` in the case in which `e` is of the form
+`C a * X (^ n)?`.  It has special support for `C 1`, when there is a `nontrivial` assumption on the
+base-semiring. -/
+meta def C_mul_terms : expr → tactic unit
+| `(has_mul.mul %%C %%X) := match X with
+  | `(@polynomial.X %%R %%inst) := do
+      refine ``(polynomial.nat_degree_C_mul_X _ _),
+      assumption <|> exact ``(one_ne_zero)
+  | `(@has_pow.pow (@polynomial %%R %%nin) %%N %%inst %%mX %%n) := do
+      nontriviality_by_assumption R,
+      refine ``(polynomial.nat_degree_C_mul_X_pow %%n _ _),
+      assumption <|> exact ``(one_ne_zero)
+  | _ := trace "The leading term is not of the form\n`C a * X (^ n)`\n\n"
+  end
+| _ := fail "The leading term is not of the form\n`C a * X (^ n)`\n\n"
+
+--    nontriviality_by_assumption R,
+/--  Let `e` be an expression.  Assume that `e` is either a pure `X`-power or `C a` times a pure
+`X`-power in a polynomial ring over `R`.
+`single_term_resolve e` produces a proof of the goal `e.nat_degree = d`, where `d` is the
+exponent of `X`.
+
+Assumptions: either there is an assumption in context asserting that the constant in front of the
+power of `X` is non-zero, or the tactic `nontriviality R` succeeds. -/
+meta def single_term_resolve (e : expr) : tactic unit :=
+  match e.app_fn with
+  | `(coe_fn $ @polynomial.monomial %%R %%inst %%n) := do
+      refine ``(polynomial.nat_degree_monomial_eq %%n _),
+      assumption <|> exact ``(one_ne_zero)
+  | `(coe_fn $ @polynomial.C %%R %%inst) := do
+      exact ``(polynomial.nat_degree_C _)
+  | a := do C_mul_terms e <|>  -- either `e` is `C a * (X ^ n)` and `C_mul_terms e` handles it or
+    match e with
+    | `(@has_pow.pow (@polynomial %%R %%nin) %%N %%inst %%mX %%n) := do
+        nontriviality_by_assumption R,
+        refine ``(polynomial.nat_degree_X_pow %%n)
+    | `(@polynomial.X %%R %%inst) := do
+      nontriviality_by_assumption R,
+      exact ``(polynomial.nat_degree_X)
+    | _ := tactic.trace "The leading term is not of the form\n`C a * X (^ n)`\n\n"
+    --"`compute_deg` failed to compute the degree of the leading term\n\n"
+    end
+  end
 
 /--  Given an expression `e`, assuming it is a polyomial, `extract_deg_single_term e` tries to guess
 the `nat_degree` of `e`.  Currently, it supports:
@@ -131,13 +209,6 @@ do nat_degs ← summ.mmap extract_deg_single_summand,
   | (some first) := return first
   end
 
-/--  These are the cases in which an easy lemma computes the degree. -/
-meta def single_term_suggestions : tactic unit :=
-do `[ exact nat_degree_X_pow _ ] *> trace "Try this: exact nat_degree_X_pow _" <|>
-   `[ exact nat_degree_C _ ]     *> trace "Try this: exact nat_degree_C _"     <|>
-   `[ exact nat_degree_X ]       *> trace "Try this: exact nat_degree_X"       <|>
-   fail "easy lemmas do not work"
-
 /--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d`, where `d : ℕ` and `f`
 satisfies:
 * `f` is a sum of expression of the form
@@ -149,17 +220,26 @@ then the tactic suggests the degree that it computed.
 
 The tactic also reports when it is used with non-closed natural numbers as exponents. -/
 meta def compute_degree_le : tactic unit :=
-`[repeat { refine (polynomial.nat_degree_add_le_iff_left rfl.le _ _ _).mpr _ },
-  repeat { rw polynomial.monomial_mul_monomial },
-  try { any_goals { refine polynomial.nat_degree_monomial_le _ _  } },
-  try { any_goals { refine (polynomial.nat_degree_C_mul_le _ _).trans _ } },
-  try { any_goals { norm_num } },
-  all_goals { refl } ] <|>
+--Should be written to stay in meta-mode.
+do repeat (refine ``((polynomial.nat_degree_add_le_iff_left rfl.le _ _ _).mpr _)),
+  `[repeat { rw polynomial.monomial_mul_monomial }],
+  try (any_goals' (refine ``(polynomial.nat_degree_monomial_le _ _  ))),
+  repeat (refine ``((polynomial.nat_degree_C_mul_le _ _).trans _)),
+  repeat (refine ``(polynomial.nat_degree_X_pow_le _)),
+  repeat (refine ``(polynomial.nat_degree_X_le.trans _)),
+  `[try {any_goals { norm_num } }] <|>
 do `(polynomial.nat_degree %%tl ≤ %%tr) ← target,
   (lead,m') ← extract_top_degree_term_and_deg tl,
-  td ← eval_expr ℕ tr,
+  td ← eval_expr ℕ tr,trace td, trace m',
   if td < m' then tactic.fail format!"should the degree bound be '{m'}'?\n\n" else
   tactic.fail "sorry, the tactic failed."
+
+/--  These are the cases in which an easy lemma computes the degree. -/
+meta def single_term_suggestions : tactic unit :=
+do exact ``(polynomial.nat_degree_X_pow _)  *> trace "Try this: exact nat_degree_X_pow _" <|>
+   exact ``(polynomial.nat_degree_C _)      *> trace "Try this: exact nat_degree_C _"     <|>
+   exact ``(polynomial.nat_degree_X)      *> trace "Try this: exact nat_degree_X"       <|>
+   fail "easy lemmas do not work"
 
 /--  `compute_degree` tries to solve a goal of the form `f.nat_degree = d`, where `d : ℕ` and `f`
 satisfies:
@@ -182,12 +262,9 @@ do `(polynomial.nat_degree %%tl = %%tr) ← target,
   td ← eval_expr ℕ tr,
   if m' ≠ td then tactic.fail format!"should the degree be '{m'}'?\n\n" else
   move_add_with_errors [(ff, pexpr.of_expr lead)] none,
-  `[rw [polynomial.nat_degree_add_eq_right_of_nat_degree_lt];
-    try { rw polynomial.nat_degree_C_mul_X_pow _ _ ‹_› };
-    try { rw polynomial.nat_degree_C_mul_X _ ‹_› };
-    try { rw [polynomial.nat_degree_X_pow] },
-    refine nat.lt_succ_of_le _ ],
-  compute_degree_le
+    refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _),
+    single_term_resolve lead,
+    compute_degree_le
 
 add_tactic_doc
 { name := "compute_degree_le",

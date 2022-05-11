@@ -54,7 +54,7 @@ by { rw to_pgame_right_moves, apply_instance }
 /-- Converts an ordinal less than `o` into a move for the `pgame` corresponding to `o`, and vice
 versa. -/
 noncomputable def to_left_moves_to_pgame {o : ordinal} : set.Iio o ≃ o.to_pgame.left_moves :=
-(Iio_order_iso_out o).to_equiv.trans (equiv.cast (to_pgame_left_moves o).symm)
+(enum_iso_out o).to_equiv.trans (equiv.cast (to_pgame_left_moves o).symm)
 
 @[simp] theorem to_left_moves_to_pgame_symm_lt {o : ordinal} (i : o.to_pgame.left_moves) :
   ↑(to_left_moves_to_pgame.symm i) < o :=

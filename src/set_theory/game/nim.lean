@@ -108,11 +108,11 @@ by { rw nim_def, refl }
 
 /-- Turns an ordinal less than `O` into a left move for `nim O` and viceversa. -/
 noncomputable def to_left_moves_nim {O : ordinal} : set.Iio O ≃ (nim O).left_moves :=
-(Iio_order_iso_out O).to_equiv.trans (equiv.cast (left_moves_nim O).symm)
+(enum_iso_out O).to_equiv.trans (equiv.cast (left_moves_nim O).symm)
 
 /-- Turns an ordinal less than `O` into a right move for `nim O` and viceversa. -/
 noncomputable def to_right_moves_nim {O : ordinal} : set.Iio O ≃ (nim O).right_moves :=
-(Iio_order_iso_out O).to_equiv.trans (equiv.cast (right_moves_nim O).symm)
+(enum_iso_out O).to_equiv.trans (equiv.cast (right_moves_nim O).symm)
 
 @[simp] theorem to_left_moves_nim_symm_lt {O : ordinal} (i : (nim O).left_moves) :
   ↑(to_left_moves_nim.symm i) < O :=

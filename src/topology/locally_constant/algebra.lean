@@ -91,19 +91,17 @@ lemma char_fn_zero [nontrivial Y] (x : X) (hU : is_clopen U) :
   x ∉ U ↔ char_fn Y hU x = (0 : Y) :=
 by simp [char_fn, indicator_apply, imp_false]
 
-lemma char_fn_inj [nontrivial Y] (hU : is_clopen U) (hV : is_clopen V)
-  (h : char_fn Y hU = char_fn Y hV) : U = V :=
+lemma char_fn_inj (hU : is_clopen U) (hV : is_clopen V)
+  (h : char_fn Y hU = char_fn Y hV) :
+  (set.indicator U 1 : X → Y) = set.indicator V 1 :=
 begin
-  apply set.indicator_one_inj Y _,
-  convert h,
-  ext,
-  rw locally_constant.ext_iff at h, specialize h x,
-  split,
-  { intros h', apply (char_fn_one Y _ _).2,
-    { rw (char_fn_one Y _ _).1 h' at h, rw h.symm, }, },
-  { intros h', apply (char_fn_one Y _ _).2,
-    { rw (char_fn_one Y _ _).1 h' at h, rw h, }, },
+  rw [char_fn, indicator, char_fn, indicator] at h,
+  simp only [coe_one] at h, rw h,
 end
+
+lemma char_fn_ext [nontrivial Y] (hU : is_clopen U) (hV : is_clopen V)
+  (h : char_fn Y hU = char_fn Y hV) : U = V :=
+set.indicator_one_inj Y (char_fn_inj _ _ _ h)
 
 end char_fn
 

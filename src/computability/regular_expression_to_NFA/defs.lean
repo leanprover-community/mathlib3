@@ -29,65 +29,47 @@ namespace regular_expression
 
 /--
 The NFA state type for a particular regular expression.
-
-TODO: The linter wants an inhabited instance for `state`, but it is simply not true for most cases.
-It is possible to use a value other than `empty` for the `zero` case, but that would make things a
-lot less clean. Should I just disable the lint here if there's a way to?
 -/
 def state : regular_expression α → Type _
-| zero := empty
+| zero := unit
 | epsilon := unit
 | (char _) := bool
 | (plus r₁ r₂) := state r₁ ⊕ state r₂
 | (comp r₁ r₂) := state r₁ ⊕ state r₂
 | (star r) := option (state r)
 
+instance {r : regular_expression α} : inhabited r.state :=
+begin
+  induction r,
+  case zero { exact punit.inhabited, },
+  case epsilon { exact punit.inhabited, },
+  case char : a { exact bool.inhabited, },
+  case plus : r₁ r₂ hr₁ hr₂ { exactI sum.inhabited_left, },
+  case comp : r₁ r₂ hr₁ hr₂ { exactI sum.inhabited_left, },
+  case star : r hr { exact option.inhabited _, },
+end
+
 -- NFAs are only real NFAs when the states are fintypes, and the instance is needed for the proofs
 instance {r : regular_expression α} : fintype r.state :=
 begin
   induction r,
-  case zero {
-    unfold state,
-    exact fintype.of_is_empty,
-  },
-  case epsilon {
-    exact unit.fintype,
-  },
-  case char : a {
-    exact bool.fintype,
-  },
-  case plus : r₁ r₂ hr₁ hr₂ {
-    exactI sum.fintype r₁.state r₂.state,
-  },
-  case comp : r₁ r₂ hr₁ hr₂ {
-    exactI sum.fintype r₁.state r₂.state,
-  },
-  case star : r hr {
-    exactI option.fintype,
-  },
+  case zero { exact unit.fintype },
+  case epsilon { exact unit.fintype, },
+  case char : a { exact bool.fintype, },
+  case plus : r₁ r₂ hr₁ hr₂ { exactI sum.fintype r₁.state r₂.state, },
+  case comp : r₁ r₂ hr₁ hr₂ { exactI sum.fintype r₁.state r₂.state, },
+  case star : r hr { exactI option.fintype, },
 end
 
 instance {r : regular_expression α} : decidable_eq r.state :=
 begin
   induction r,
-  case zero {
-    exact empty.decidable_eq,
-  },
-  case epsilon {
-    exact punit.decidable_eq,
-  },
-  case char {
-    exact bool.decidable_eq,
-  },
-  case plus : r₁ r₂ hr₂ hr₂ {
-    exactI sum.decidable_eq r₁.state r₂.state,
-  },
-  case comp : r₁ r₂ hr₂ hr₂ {
-    exactI sum.decidable_eq r₁.state r₂.state,
-  },
-  case star : r hr {
-    exactI option.decidable_eq,
-  },
+  case zero { exact punit.decidable_eq, },
+  case epsilon { exact punit.decidable_eq, },
+  case char { exact bool.decidable_eq, },
+  case plus : r₁ r₂ hr₂ hr₂ { exactI sum.decidable_eq r₁.state r₂.state, },
+  case comp : r₁ r₂ hr₂ hr₂ { exactI sum.decidable_eq r₁.state r₂.state, },
+  case star : r hr { exactI option.decidable_eq, },
 end
 
 /--
@@ -180,175 +162,93 @@ def regular_expression_to_NFA_decidable {r : regular_expression α} :
   × decidable_pred (r.to_NFA.accept) :=
 begin
   induction r,
-  case zero {
-    refine ⟨_, _, _⟩,
-    { assume p a q,
-      exact decidable.false,
-    },
-    { assume q,
-      exact decidable.false,
-    },
-    { assume q,
-      exact decidable.false,
-    },
-  },
-  case epsilon {
-    refine ⟨_, _, _⟩,
-    { assume p a q,
-      exact decidable.false,
-    },
-    { assume q,
-      exact decidable.true,
-    },
-    { assume q,
-      exact decidable.true,
-    },
-  },
-  case char : a {
-    refine ⟨_, _, _⟩,
-    { assume p c q,
-      exact and.decidable,
-    },
-    { assume q,
-      exact set.decidable_set_of ff (eq q),
-    },
-    { assume q,
-      exact set.decidable_set_of tt (eq q),
-    },
-  },
-  case plus : r₁ r₂ hr₁ hr₂ {
-    rcases hr₁ with ⟨hr₁_step, hr₁_start, hr₁_accept⟩,
+  case zero
+  { refine ⟨_, _, _⟩,
+    { assume _ _ _, exact decidable.false, },
+    { assume q, exact decidable.false, },
+    { assume q, exact decidable.false, }, },
+  case epsilon
+  { refine ⟨_, _, _⟩,
+    { assume p a q, exact decidable.false, },
+    { assume q, exact decidable.true, },
+    { assume q, exact decidable.true, }, },
+  case char : a
+  { refine ⟨_, _, _⟩,
+    { assume p c q, exact and.decidable, },
+    { assume q, exact set.decidable_set_of ff (eq q), },
+    { assume q, exact set.decidable_set_of tt (eq q), }, },
+  case plus : r₁ r₂ hr₁ hr₂
+  { rcases hr₁ with ⟨hr₁_step, hr₁_start, hr₁_accept⟩,
     rcases hr₂ with ⟨hr₂_step, hr₂_start, hr₂_accept⟩,
     refine ⟨_, _, _⟩,
     { assume p a q,
       cases p; cases q,
-      case inl inl {
-        exact hr₁_step p a q,
-      },
-      case inl inr {
-        exact decidable.false,
-      },
-      case inr inl {
-        exact decidable.false,
-      },
-      case inr inr {
-        exact hr₂_step p a q,
-      },
-    },
+      case inl inl { exact hr₁_step p a q, },
+      case inl inr { exact decidable.false, },
+      case inr inl { exact decidable.false, },
+      case inr inr { exact hr₂_step p a q, }, },
     { assume q,
       cases q,
-      case inl {
-        exact hr₁_start q,
-      },
-      case inr {
-        exact hr₂_start q,
-      },
-    },
+      case inl { exact hr₁_start q, },
+      case inr { exact hr₂_start q, }, },
     { assume q,
       cases q,
-      case inl {
-        exact hr₁_accept q,
-      },
-      case inr {
-        exact hr₂_accept q,
-      },
-    },
-  },
-  case comp : r₁ r₂ hr₁ hr₂ {
-    rcases hr₁ with ⟨hr₁_step, hr₁_start, hr₁_accept⟩,
+      case inl { exact hr₁_accept q, },
+      case inr { exact hr₂_accept q, }, }, },
+  case comp : r₁ r₂ hr₁ hr₂
+  { rcases hr₁ with ⟨hr₁_step, hr₁_start, hr₁_accept⟩,
     rcases hr₂ with ⟨hr₂_step, hr₂_start, hr₂_accept⟩,
     refine ⟨_, _, _⟩,
     { assume p a q,
       cases p; cases q,
-      case inl inl {
-        exact hr₁_step p a q,
-      },
-      case inl inr {
-        have : decidable (∃ (r : r₁.state), r₁.to_NFA.accept r ∧ r₁.to_NFA.step p a r),
+      case inl inl { exact hr₁_step p a q, },
+      case inl inr
+      { have : decidable (∃ (r : r₁.state), r₁.to_NFA.accept r ∧ r₁.to_NFA.step p a r),
         { have : decidable_pred (λ (r : r₁.state), r₁.to_NFA.accept r ∧ r₁.to_NFA.step p a r),
           { assume r,
             have : decidable (r₁.to_NFA.step p a r),
-            { exact hr₁_step p a r,
-            },
-            exactI and.decidable,
-          },
-          exactI fintype.decidable_exists_fintype,
-        },
-        exactI and.decidable,
-      },
-      case inr inl {
-        exact decidable.false,
-      },
-      case inr inr {
-        exact hr₂_step p a q,
-      },
-    },
+            { exact hr₁_step p a r, },
+            exactI and.decidable, },
+          exactI fintype.decidable_exists_fintype, },
+        exactI and.decidable, },
+      case inr inl { exact decidable.false, },
+      case inr inr { exact hr₂_step p a q, }, },
     { assume q,
       cases q,
-      case inl {
-        exact hr₁_start q,
-      },
-      case inr {
-        exactI and.decidable,
-      },
-    },
+      case inl { exact hr₁_start q, },
+      case inr { exactI and.decidable, }, },
     { assume q,
       cases q,
-      case inl {
-        exactI and.decidable,
-      },
-      case inr {
-        exact hr₂_accept q,
-      },
-    },
-  },
-  case star : r hr {
-    rcases hr with ⟨hr_step, hr_start, hr_accept⟩,
+      case inl { exactI and.decidable, },
+      case inr { exact hr₂_accept q, }, }, },
+  case star : r hr
+  { rcases hr with ⟨hr_step, hr_start, hr_accept⟩,
     refine ⟨_, _, _⟩,
     { assume p a q,
       cases p; cases q,
       case some some {
         have : decidable (r.to_NFA.step p a q),
-        { exact hr_step p a q,
-        },
+        { exact hr_step p a q, },
         have : decidable (∃ (r_1 : r.state), r.to_NFA.accept r_1 ∧ r.to_NFA.step p a r_1 ∧ r.to_NFA.start q),
         { have : decidable_pred (λ (r_1 : r.state), r.to_NFA.accept r_1 ∧ r.to_NFA.step p a r_1 ∧ r.to_NFA.start q),
           { assume s,
             have : decidable (r.to_NFA.step p a s ∧ r.to_NFA.start q),
             { have : decidable (r.to_NFA.step p a s),
-              { exact hr_step p a s,
-              },
-              exactI and.decidable,
-            },
-            exactI and.decidable,
-          },
-          exactI fintype.decidable_exists_fintype,
-        },
-        exactI or.decidable,
-      },
-      all_goals {
-        exact decidable.false,
-      },
+              { exact hr_step p a s, },
+              exactI and.decidable, },
+            exactI and.decidable, },
+          exactI fintype.decidable_exists_fintype, },
+        exactI or.decidable, },
+      all_goals { exact decidable.false, }, },
+    { assume q,
+      cases q,
+      case none { exact decidable.true, },
+      case some { exact hr_start q, },
     },
     { assume q,
       cases q,
-      case none {
-        exact decidable.true,
-      },
-      case some {
-        exact hr_start q,
-      },
-    },
-    { assume q,
-      cases q,
-      case none {
-        exact decidable.true,
-      },
-      case some {
-        exact hr_accept q,
-      },
-    },
-  },
+      case none { exact decidable.true, },
+      case some { exact hr_accept q, }, }, },
 end
 
 instance decidable_step {r : regular_expression α} {p a q} : decidable (r.to_NFA.step p a q) :=

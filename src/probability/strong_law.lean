@@ -72,7 +72,7 @@ begin
 end
 
 lemma abs_truncation_le_bound (f : α → ℝ) (A : ℝ) (x : α) :
-  abs (truncation f A x) ≤ |A| :=
+  |truncation f A x| ≤ |A| :=
 begin
   simp only [truncation, set.indicator, set.mem_Icc, id.def, function.comp_app],
   split_ifs,
@@ -573,7 +573,7 @@ begin
     ... ≤ ennreal.of_real (ε ⁻¹ ^ 2 * C) :
       begin
         apply ennreal.of_real_le_of_real,
-        simp_rw [div_eq_inv_mul, ← inv_pow₀, mul_inv₀, mul_comm _ (ε⁻¹), mul_pow, mul_assoc,
+        simp_rw [div_eq_inv_mul, ← inv_pow₀, mul_inv, mul_comm _ (ε⁻¹), mul_pow, mul_assoc,
           ← mul_sum],
         refine mul_le_mul_of_nonneg_left _ (sq_nonneg _),
         simp_rw [inv_pow₀],

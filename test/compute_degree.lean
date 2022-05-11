@@ -5,13 +5,11 @@ open_locale polynomial
 
 variables {R : Type*} [semiring R] [nontrivial R] {f g h : R[X]} {a b c d e : R}
 
-example {h : C d ≠ 0} (f10 : f.nat_degree ≤ 10) :
-  nat_degree (monomial 5 c * monomial 1 c + monomial 7 d + monomial 9 1 +
+example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d + monomial 9 1 +
     C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X) = 10 :=
 by compute_degree
 
-example {h : C d ≠ 0} (f10 : f.nat_degree ≤ 10) :
-  nat_degree (monomial 1 c + monomial 5 c * monomial 1 c + monomial 7 d + monomial 9 1 +
+example : nat_degree (monomial 1 c + monomial 5 c * monomial 1 c + monomial 7 d + monomial 9 1 +
     C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X) = 10 :=
 by compute_degree
 
@@ -19,7 +17,7 @@ by compute_degree
 example {F} [field F] : nat_degree (X ^ 4 + C 1 : F[X]) = 4 :=
 by compute_degree
 
-example {F} [field F] : nat_degree (X ^ 4 + X + C 1 : F[X]) = 4 :=
+example {F} [field F] : nat_degree (C 1 * X ^ 4 + X + C 1 : F[X]) = 4 :=
 by compute_degree
 
 example {F} [field F] {a : F} (a0 : a ≠ 0) : nat_degree (C a * X + C 1 : F[X]) = 1 :=
@@ -27,6 +25,13 @@ by compute_degree
 
 example {F} [field F] {a : F} (a0 : a ≠ 0) : nat_degree (C a * X ^ 2 + C 1 : F[X]) = 2 :=
 by compute_degree
+
+example : nat_degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) ≤ 3 :=
+by compute_degree_le
+
+example (ha : a ≠ 0) : nat_degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) = 3 :=
+by compute_degree
+
 
 /-
 --  This test produces a suggestion.  I would like to uncomment it, but do not know how to

@@ -32,7 +32,6 @@ by compute_degree_le
 example (ha : a ≠ 0) : nat_degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) = 3 :=
 by compute_degree
 
-
 /-
 --  This test produces a suggestion.  I would like to uncomment it, but do not know how to
 --  prevent a noisy file
@@ -75,9 +74,8 @@ by compute_degree_le
 example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
   C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X : R[X]) = 9 :=
 by compute_degree
---/
 
-/-  fails with error message `should the degree bound be '10'?`
+--  fails with error message `should the degree bound be '10'?`
 example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
   C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X : R[X]) ≤ 9 :=
 by compute_degree_le

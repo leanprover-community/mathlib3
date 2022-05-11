@@ -144,25 +144,20 @@ exponent of `X`.
 
 Assumptions: either there is an assumption in context asserting that the constant in front of the
 power of `X` is non-zero, or the tactic `nontriviality R` succeeds. -/
-meta def single_term_resolve (e : expr) : tactic unit :=
-  match e.app_fn with
-  | `(coe_fn $ @polynomial.monomial %%R %%inst %%n) := do
-      refine ``(polynomial.nat_degree_monomial_eq %%n _),
-      assumption <|> exact ``(one_ne_zero)
-  | `(coe_fn $ @polynomial.C %%R %%inst) := do
-      exact ``(polynomial.nat_degree_C _)
-  | a := do C_mul_terms e <|>  -- either `e` is `C a * (X ^ n)` and `C_mul_terms e` handles it or
-    match e with
-    | `(@has_pow.pow (@polynomial %%R %%nin) %%N %%inst %%mX %%n) := do
-        nontriviality_by_assumption R,
-        refine ``(polynomial.nat_degree_X_pow %%n)
-    | `(@polynomial.X %%R %%inst) := do
-      nontriviality_by_assumption R,
-      exact ``(polynomial.nat_degree_X)
-    | _ := trace "The leading term is not of the form\n`C a * X (^ n)`\n\n"
-    --"`compute_deg` failed to compute the degree of the leading term\n\n"
-    end
-  end
+meta def single_term_resolve : expr → tactic unit
+| (expr.app `(⇑(@polynomial.monomial %%R %%inst %%n)) x) :=
+  refine ``(polynomial.nat_degree_monomial_eq %%n _) *>
+  assumption <|> exact ``(one_ne_zero)
+| (expr.app `(⇑(@polynomial.C %%R %%inst)) x) :=
+  exact ``(polynomial.nat_degree_C _)
+| `(@has_pow.pow (@polynomial %%R %%nin) %%N %%inst %%mX %%n) :=
+    nontriviality_by_assumption R *>
+    refine ``(polynomial.nat_degree_X_pow %%n)
+| `(@polynomial.X %%R %%inst) :=
+  nontriviality_by_assumption R *>
+  exact ``(polynomial.nat_degree_X)
+| e := do C_mul_terms e <|>  -- either `e` is `C a * (X ^ n)` and `C_mul_terms e` handles it or
+  trace "The leading term is not of the form\n`C a * X (^ n)`\n\n"
 
 /--  Given an expression `e`, assuming it is a polyomial, `extract_deg_single_term e` tries to guess
 the `nat_degree` of `e`.  Currently, it supports:

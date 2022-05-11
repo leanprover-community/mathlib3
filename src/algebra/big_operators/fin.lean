@@ -181,11 +181,7 @@ end
 lemma alternating_sum_eq_finset_sum {G : Type*} [add_comm_group G] :
   ∀ (L : list G), alternating_sum L = ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) • L.nth_le i i.is_lt
 | [] := by { rw [alternating_sum, finset.sum_eq_zero], rintro ⟨i, ⟨⟩⟩ }
-| (g :: []) :=
-begin
-  show g = ∑ i : fin 1, (-1 : ℤ) ^ (i : ℕ) • [g].nth_le i i.2,
-  rw [fin.sum_univ_succ], simp,
-end
+| (g :: []) := by simp
 | (g :: h :: L) :=
 calc g + -h + L.alternating_sum
     = g + -h + ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) • L.nth_le i i.2 :

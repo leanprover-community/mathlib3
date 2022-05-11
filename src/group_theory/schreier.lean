@@ -76,7 +76,7 @@ begin
   apply (mem_right_transversals_iff_exists_unique_mul_inv_mem.mp hR r).unique,
   { rw [subtype.coe_mk, mul_inv_self],
     exact H.one_mem },
-  { rw [subtype.coe_mk, one_inv, mul_one],
+  { rw [subtype.coe_mk, inv_one, mul_one],
     exact (H.mul_mem_cancel_left (hU hg)).mp hh },
 end
 

@@ -449,7 +449,7 @@ lemma ball_add_ball_subset (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) (x₁ x₂ : 
   p.ball (x₁ : E) r₁ + p.ball (x₂ : E) r₂ ⊆ p.ball (x₁ + x₂) (r₁ + r₂) :=
 begin
   rintros x ⟨y₁, y₂, hy₁, hy₂, rfl⟩,
-  rw [mem_ball, add_sub_comm],
+  rw [mem_ball, add_sub_add_comm],
   exact (p.triangle _ _).trans_lt (add_lt_add hy₁ hy₂),
 end
 

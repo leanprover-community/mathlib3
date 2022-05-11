@@ -1244,6 +1244,14 @@ def sigma_prod_distrib {ι : Type*} (α : ι → Type*) (β : Type*) :
  λ p, by { rcases p with ⟨⟨_, _⟩, _⟩, refl },
  λ p, by { rcases p with ⟨_, ⟨_, _⟩⟩, refl }⟩
 
+/-- An equivalence that separates out the 0th fiber of `(Σ (n : ℕ), f n)`. -/
+def sigma_nat_succ (f : ℕ → Type u) :
+  (Σ n, f n) ≃ f 0 ⊕ Σ n, f (n + 1) :=
+⟨λ x, @sigma.cases_on ℕ f (λ _, f 0 ⊕ Σ n, f (n + 1)) x (λ n, @nat.cases_on (λ i, f i → (f 0 ⊕
+  Σ (n : ℕ), f (n + 1))) n (λ (x : f 0), sum.inl x) (λ (n : ℕ) (x : f n.succ), sum.inr ⟨n, x⟩)),
+  sum.elim (sigma.mk 0) (sigma.map nat.succ (λ _, id)),
+  by { rintro ⟨(n | n), x⟩; refl }, by { rintro (x | ⟨n, x⟩); refl }⟩
+
 /-- The product `bool × α` is equivalent to `α ⊕ α`. -/
 def bool_prod_equiv_sum (α : Type u) : bool × α ≃ α ⊕ α :=
 calc bool × α ≃ (unit ⊕ unit) × α       : prod_congr bool_equiv_punit_sum_punit (equiv.refl _)

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, François Dupuis
 -/
 import analysis.convex.basic
-import order.order_dual
 import tactic.field_simp
 import tactic.linarith
 import tactic.ring
@@ -367,6 +366,18 @@ variables [ordered_cancel_add_comm_monoid β]
 section distrib_mul_action
 variables [has_scalar 𝕜 E] [distrib_mul_action 𝕜 β] {s : set E} {f g : E → β}
 
+lemma strict_convex_on.add_convex_on (hf : strict_convex_on 𝕜 s f) (hg : convex_on 𝕜 s g) :
+  strict_convex_on 𝕜 s (f + g) :=
+⟨hf.1, λ x y hx hy hxy a b ha hb hab,
+  calc
+    f (a • x + b • y) + g (a • x + b • y) < (a • f x + b • f y) + (a • g x + b • g y)
+      : add_lt_add_of_lt_of_le (hf.2 hx hy hxy ha hb hab) (hg.2 hx hy ha.le hb.le hab)
+    ... = a • (f x + g x) + b • (f y + g y) : by rw [smul_add, smul_add, add_add_add_comm]⟩
+
+lemma convex_on.add_strict_convex_on (hf : convex_on 𝕜 s f) (hg : strict_convex_on 𝕜 s g) :
+  strict_convex_on 𝕜 s (f + g) :=
+(add_comm g f) ▸ hg.add_convex_on hf
+
 lemma strict_convex_on.add (hf : strict_convex_on 𝕜 s f) (hg : strict_convex_on 𝕜 s g) :
   strict_convex_on 𝕜 s (f + g) :=
 ⟨hf.1, λ x y hx hy hxy a b ha hb hab,
@@ -374,6 +385,14 @@ lemma strict_convex_on.add (hf : strict_convex_on 𝕜 s f) (hg : strict_convex_
     f (a • x + b • y) + g (a • x + b • y) < (a • f x + b • f y) + (a • g x + b • g y)
       : add_lt_add (hf.2 hx hy hxy ha hb hab) (hg.2 hx hy hxy ha hb hab)
     ... = a • (f x + g x) + b • (f y + g y) : by rw [smul_add, smul_add, add_add_add_comm]⟩
+
+lemma strict_concave_on.add_concave_on (hf : strict_concave_on 𝕜 s f) (hg : concave_on 𝕜 s g) :
+  strict_concave_on 𝕜 s (f + g) :=
+hf.dual.add_convex_on hg.dual
+
+lemma concave_on.add_strict_concave_on (hf : concave_on 𝕜 s f) (hg : strict_concave_on 𝕜 s g) :
+  strict_concave_on 𝕜 s (f + g) :=
+hf.dual.add_strict_convex_on hg.dual
 
 lemma strict_concave_on.add (hf : strict_concave_on 𝕜 s f) (hg : strict_concave_on 𝕜 s g) :
   strict_concave_on 𝕜 s (f + g) :=
@@ -667,7 +686,7 @@ end module
 end linear_ordered_cancel_add_comm_monoid
 
 section ordered_add_comm_group
-variables [ordered_add_comm_group β] [has_scalar 𝕜 E] [module 𝕜 β] {s : set E} {f : E → β}
+variables [ordered_add_comm_group β] [has_scalar 𝕜 E] [module 𝕜 β] {s : set E} {f g : E → β}
 
 /-- A function `-f` is convex iff `f` is concave. -/
 @[simp] lemma neg_convex_on_iff : convex_on 𝕜 s (-f) ↔ concave_on 𝕜 s f :=
@@ -711,6 +730,36 @@ alias neg_convex_on_iff ↔ _ concave_on.neg
 alias neg_concave_on_iff ↔ _ convex_on.neg
 alias neg_strict_convex_on_iff ↔ _ strict_concave_on.neg
 alias neg_strict_concave_on_iff ↔ _ strict_convex_on.neg
+
+lemma convex_on.sub (hf : convex_on 𝕜 s f) (hg : concave_on 𝕜 s g) : convex_on 𝕜 s (f - g) :=
+(sub_eq_add_neg f g).symm ▸ hf.add hg.neg
+
+lemma concave_on.sub (hf : concave_on 𝕜 s f) (hg : convex_on 𝕜 s g) : concave_on 𝕜 s (f - g) :=
+(sub_eq_add_neg f g).symm ▸ hf.add hg.neg
+
+lemma strict_convex_on.sub (hf : strict_convex_on 𝕜 s f) (hg : strict_concave_on 𝕜 s g) :
+  strict_convex_on 𝕜 s (f - g) :=
+(sub_eq_add_neg f g).symm ▸ hf.add hg.neg
+
+lemma strict_concave_on.sub (hf : strict_concave_on 𝕜 s f) (hg : strict_convex_on 𝕜 s g) :
+  strict_concave_on 𝕜 s (f - g) :=
+(sub_eq_add_neg f g).symm ▸ hf.add hg.neg
+
+lemma convex_on.sub_strict_concave_on (hf : convex_on 𝕜 s f) (hg : strict_concave_on 𝕜 s g) :
+  strict_convex_on 𝕜 s (f - g) :=
+(sub_eq_add_neg f g).symm ▸ hf.add_strict_convex_on hg.neg
+
+lemma concave_on.sub_strict_convex_on (hf : concave_on 𝕜 s f) (hg : strict_convex_on 𝕜 s g) :
+  strict_concave_on 𝕜 s (f - g) :=
+(sub_eq_add_neg f g).symm ▸ hf.add_strict_concave_on hg.neg
+
+lemma strict_convex_on.sub_concave_on (hf : strict_convex_on 𝕜 s f) (hg : concave_on 𝕜 s g) :
+  strict_convex_on 𝕜 s (f - g) :=
+(sub_eq_add_neg f g).symm ▸ hf.add_convex_on hg.neg
+
+lemma strict_concave_on.sub_convex_on (hf : strict_concave_on 𝕜 s f) (hg : convex_on 𝕜 s g) :
+  strict_concave_on 𝕜 s (f - g) :=
+(sub_eq_add_neg f g).symm ▸ hf.add_concave_on hg.neg
 
 end ordered_add_comm_group
 end add_comm_monoid

@@ -365,7 +365,7 @@ begin
   { intros t₁ t₂ ht₁ ht₂, exact submodule.add_mem _ ht₁ ht₂, },
 end
 
-lemma map₂_mk_top_top_eq_top : submodule.map₂ (mk R M N) ⊤ ⊤ = ⊤ :=
+@[simp] lemma map₂_mk_top_top_eq_top : submodule.map₂ (mk R M N) ⊤ ⊤ = ⊤ :=
 begin
   rw [← top_le_iff, ← span_tmul_eq_top, submodule.map₂_eq_span_image2],
   exact submodule.span_mono (λ _ ⟨m, n, h⟩, ⟨m, n, trivial, trivial, h⟩),

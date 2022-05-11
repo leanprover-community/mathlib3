@@ -83,17 +83,14 @@ lemma adjoin_induction₂ {p : A → A → Prop} {a b : A} (ha : a ∈ adjoin R 
   (Hadd_left : ∀ x₁ x₂ y, p x₁ y → p x₂ y → p (x₁ + x₂) y)
   (Hadd_right : ∀ x y₁ y₂, p x y₁ → p x y₂ → p x (y₁ + y₂))
   (Hmul_left : ∀ x₁ x₂ y, p x₁ y → p x₂ y → p (x₁ * x₂) y)
-  (Hmul_right : ∀ x y₁ y₂, p x y₁ → p x y₂ → p x (y₁ * y₂))
-  (Hadd_alg : ∀ x y r, p x (algebra_map R A r) →
-                  p y (algebra_map R A r) → p (x + y) (algebra_map R A r))
-  (Hmul_alg : ∀ x y r, p x (algebra_map R A r) →
-                  p y (algebra_map R A r) → p (x * y) (algebra_map R A r)) : p a b :=
+  (Hmul_right : ∀ x y₁ y₂, p x y₁ → p x y₂ → p x (y₁ * y₂)) : p a b :=
 begin
   refine adjoin_induction hb _ (λ r, _) (Hadd_right a) (Hmul_right a),
   { exact adjoin_induction ha Hs Halg_left (λ x y Hx Hy z hz, Hadd_left x y z (Hx z hz) (Hy z hz))
       (λ x y Hx Hy z hz, Hmul_left x y z (Hx z hz) (Hy z hz)) },
-  { exact adjoin_induction ha (Halg_right r) (λ r', Halg r' r) (λ x y, Hadd_alg x y r)
-      (λ x y, Hmul_alg x y r) },
+  { exact adjoin_induction ha (Halg_right r) (λ r', Halg r' r)
+      (λ x y, Hadd_left x y ((algebra_map R A) r))
+      (λ x y, Hmul_left x y ((algebra_map R A) r)) },
 end
 
 /-- The difference with `algebra.adjoin_induction` is that this acts on the subtype. -/
@@ -236,10 +233,14 @@ def adjoin_comm_semiring_of_comm {s : set A} (hcomm : ∀ (a ∈ s) (b ∈ s), a
       (λ _ _ _ h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
       (λ x₁ x₂ y₁ h₁ h₂, by rw [mul_assoc, h₂, ←mul_assoc y₁, ←h₁, mul_assoc x₁])
       (λ x₁ x₂ y₁ h₁ h₂, by rw [mul_assoc x₂, ←h₂, ←mul_assoc x₂, ←h₁, ←mul_assoc])
-      (λ _ _ _ _ _, by simp only [add_mul, mul_add, commutes])
-      (λ _ _ _ _ _, by rw [commutes])
   end,
   ..(adjoin R s).to_semiring }
+
+lemma adjoin_singleton_one : adjoin R ({1} : set A) = ⊥ :=
+eq_bot_iff.2 $ adjoin_le $ set.singleton_subset_iff.2 $ set_like.mem_coe.2 $ one_mem _
+
+lemma self_mem_adjoin_singleton (x : A) : x ∈ adjoin R ({x} : set A) :=
+algebra.subset_adjoin (set.mem_singleton_iff.mpr rfl)
 
 end semiring
 
@@ -257,9 +258,6 @@ le_antisymm
   (closure_le.2 $ set.union_subset
     (set.range_subset_iff.2 $ λ x, adjoin_mono (set.subset_union_left _ _) x.2)
     (set.subset.trans (set.subset_union_right _ _) subset_adjoin))
-
-lemma adjoin_singleton_one : adjoin R ({1} : set A) = ⊥ :=
-eq_bot_iff.2 $ adjoin_le $ set.singleton_subset_iff.2 $ set_like.mem_coe.2 $ one_mem _
 
 theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t)).to_submodule =
   (adjoin R s).to_submodule * (adjoin R t).to_submodule :=

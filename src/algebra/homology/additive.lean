@@ -151,13 +151,10 @@ lemma map_chain_complex_of (F : V ⥤ W) [F.additive] (X : α → V) (d : Π n, 
   chain_complex.of (λ n, F.obj (X n))
     (λ n, F.map (d n)) (λ n, by rw [ ← F.map_comp, sq n, functor.map_zero]) :=
 begin
-  apply homological_complex.ext,
-  intros i j hij,
-  { have h : j+1=i := hij,
-    subst h,
-    simp only [category_theory.functor.map_homological_complex_obj_d, of_d,
-      eq_to_hom_refl, comp_id, id_comp], },
-  { refl, }
+  refine homological_complex.ext rfl _,
+  rintro i j (rfl : j + 1 = i),
+  simp only [category_theory.functor.map_homological_complex_obj_d, of_d,
+    eq_to_hom_refl, comp_id, id_comp],
 end
 
 end chain_complex

@@ -7,7 +7,7 @@ import algebraic_geometry.AffineScheme
 import ring_theory.nilpotent
 import topology.sheaves.sheaf_condition.sites
 import category_theory.limits.constructions.binary_products
-import algebra.category.CommRing.constructions
+import algebra.category.Ring.constructions
 import ring_theory.integral_domain
 import ring_theory.local_properties
 
@@ -336,7 +336,7 @@ lemma map_injective_of_is_integral [is_integral X] {U V : opens X.carrier} (i : 
   [H : nonempty U] :
   function.injective (X.presheaf.map i.op) :=
 begin
-  rw ring_hom.injective_iff,
+  rw injective_iff_map_eq_zero,
   intros x hx,
   rw ← basic_open_eq_bot_iff at ⊢ hx,
   rw Scheme.basic_open_res at hx,

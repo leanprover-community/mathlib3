@@ -20,10 +20,6 @@ namespace is_noetherian
 
 variables {K : Type u} {V : Type v} [division_ring K] [add_comm_group V] [module K V]
 
--- PROJECT: Show all division rings are noetherian.
--- This is currently annoying because we only have ideal of commutative rings.
-variables [is_noetherian_ring K]
-
 /--
 A module over a division ring is noetherian if and only if
 its dimension (as a cardinal) is strictly less than the first infinite cardinal `ω`.

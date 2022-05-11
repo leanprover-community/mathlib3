@@ -404,7 +404,17 @@ protected def monoid : monoid (set α) := { ..set.semigroup, ..set.mul_one_class
 
 localized "attribute [instance] set.monoid set.add_monoid" in pointwise
 
--- can be generalized to `[fintype s] [fintype t]`
+@[to_additive] lemma pow_mem_pow (ha : a ∈ s) : ∀ n : ℕ, a ^ n ∈ s ^ n
+| 0 := by { rw pow_zero, exact one_mem_one }
+| (n + 1) := by { rw pow_succ, exact mul_mem_mul ha (pow_mem_pow _) }
+
+@[to_additive] lemma pow_subset_pow (hst : s ⊆ t) : ∀ n : ℕ, s ^ n ⊆ t ^ n
+| 0 := by { rw pow_zero, exact subset.rfl }
+| (n + 1) := by { rw pow_succ, exact mul_subset_mul hst (pow_subset_pow _) }
+
+@[to_additive] lemma empty_pow (n : ℕ) (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
+by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
+
 @[to_additive]
 instance decidable_mem_mul [fintype α] [decidable_eq α] [decidable_pred (∈ s)]
   [decidable_pred (∈ t)] :
@@ -420,33 +430,11 @@ begin
   { letI := ih, rw pow_succ, apply_instance }
 end
 
-@[to_additive] lemma pow_mem_pow (ha : a ∈ s) : ∀ n : ℕ, a ^ n ∈ s ^ n
-| 0 := by { rw pow_zero, exact one_mem_one }
-| (n + 1) := by { rw pow_succ, exact mul_mem_mul ha (pow_mem_pow _) }
-
-@[to_additive] lemma pow_subset_pow (hst : s ⊆ t) : ∀ n : ℕ, s ^ n ⊆ t ^ n
-| 0 := by { rw pow_zero, exact subset.rfl }
-| (n + 1) := by { rw pow_succ, exact mul_subset_mul hst (pow_subset_pow _) }
-
-@[simp, to_additive] lemma empty_pow {n : ℕ} (hn : n ≠ 0) : (∅ : set α) ^ n = ∅ :=
-by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
-
 @[simp, to_additive] lemma univ_mul_univ : (univ : set α) * univ = univ :=
 begin
   have : ∀ x, ∃ a b : α, a * b = x := λ x, ⟨x, 1, mul_one x⟩,
   simpa only [mem_mul, eq_univ_iff_forall, mem_univ, true_and]
 end
-
---TODO: `to_additive` trips up on the `1 : ℕ` used in the pattern-matching.
-@[simp] lemma nsmul_univ {α : Type*} [add_monoid α] : ∀ {n : ℕ}, n ≠ 0 → n • (univ : set α) = univ
-| 0 := λ h, (h rfl).elim
-| 1 := λ _, one_nsmul _
-| (n + 2) := λ _, by { rw [succ_nsmul, nsmul_univ n.succ_ne_zero, univ_add_univ] }
-
-@[simp, to_additive nsmul_univ] lemma univ_pow : ∀ {n : ℕ}, n ≠ 0 → (univ : set α) ^ n = univ
-| 0 := λ h, (h rfl).elim
-| 1 := λ _, pow_one _
-| (n + 2) := λ _, by { rw [pow_succ, univ_pow n.succ_ne_zero, univ_mul_univ] }
 
 @[to_additive] protected lemma _root_.is_unit.set : is_unit a → is_unit ({a} : set α) :=
 is_unit.map (singleton_monoid_hom : α →* set α)

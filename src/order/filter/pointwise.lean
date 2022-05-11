@@ -290,29 +290,6 @@ localized "attribute [instance] filter.monoid filter.add_monoid" in pointwise
 | 0 := by { rw pow_zero, exact one_mem_one }
 | (n + 1) := by { rw pow_succ, exact mul_mem_mul hs (pow_mem_pow _) }
 
-@[simp, to_additive nsmul_bot] lemma bot_pow {n : ℕ} (hn : n ≠ 0) : (⊥  : filter α) ^ n = ⊥ :=
-by rw [←tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, bot_mul]
-
-@[simp, to_additive] lemma top_mul_top : (⊤ : filter α) * ⊤ = ⊤ :=
-begin
-  refine top_le_iff.1 _,
-  rintro s ⟨t₁, t₂, h₁, h₂, hs⟩,
-  rw mem_top at *,
-  rw [h₁, h₂, univ_mul_univ] at hs,
-  exact univ_subset_iff.1 hs,
-end
-
-lemma nsmul_top {α : Type*} [add_monoid α] : ∀ {n : ℕ}, n ≠ 0 → n • (⊤ : filter α) = ⊤
-| 0 := λ h, (h rfl).elim
-| 1 := λ _, one_nsmul _
-| (n + 2) := λ _, by { rw [succ_nsmul, nsmul_top n.succ_ne_zero, top_add_top] }
-
---TODO: Why is `to_additive` failing here?
-@[to_additive nsmul_top] lemma top_pow : ∀ {n : ℕ}, n ≠ 0 → (⊤ : filter α) ^ n = ⊤
-| 0 := λ h, (h rfl).elim
-| 1 := λ _, pow_one _
-| (n + 2) := λ _, by { rw [pow_succ, top_pow n.succ_ne_zero, top_mul_top] }
-
 @[to_additive] protected lemma _root_.is_unit.filter : is_unit a → is_unit (pure a : filter α) :=
 is_unit.map (pure_monoid_hom : α →* filter α)
 

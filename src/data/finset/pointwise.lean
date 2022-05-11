@@ -350,27 +350,6 @@ protected def monoid : monoid (finset α) := coe_injective.monoid _ coe_one coe_
 
 localized "attribute [instance] finset.monoid finset.add_monoid" in pointwise
 
-@[to_additive] lemma pow_mem_pow (ha : a ∈ s) : ∀ n : ℕ, a ^ n ∈ s ^ n
-| 0 := by { rw pow_zero, exact one_mem_one }
-| (n + 1) := by { rw pow_succ, exact mul_mem_mul ha (pow_mem_pow _) }
-
-@[to_additive] lemma pow_subset_pow (hst : s ⊆ t) : ∀ n : ℕ, s ^ n ⊆ t ^ n
-| 0 := by { rw pow_zero, exact subset.rfl }
-| (n + 1) := by { rw pow_succ, exact mul_subset_mul hst (pow_subset_pow _) }
-
-@[simp, to_additive] lemma empty_pow {n : ℕ} (hn : n ≠ 0) : (∅ : finset α) ^ n = ∅ :=
-by rw [← tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow_succ, empty_mul]
-
-@[simp, to_additive] lemma univ_mul_univ [fintype α] : (univ : finset α) * univ = univ :=
-begin
-  have : ∀ x, ∃ a b : α, a * b = x := λ x, ⟨x, 1, mul_one x⟩,
-  simpa only [mem_mul, eq_univ_iff_forall, mem_univ, true_and]
-end
-
-@[simp, to_additive nsmul_univ] lemma univ_pow [fintype α] {n : ℕ} (hn : n ≠ 0) :
-  (univ : finset α) ^ n = univ :=
-coe_injective $ by rw [coe_pow, coe_univ, set.univ_pow hn]
-
 @[to_additive] protected lemma _root_.is_unit.finset : is_unit a → is_unit ({a} : finset α) :=
 is_unit.map (singleton_monoid_hom : α →* finset α)
 

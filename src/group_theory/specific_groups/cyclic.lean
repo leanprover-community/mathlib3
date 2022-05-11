@@ -369,7 +369,7 @@ begin
   ).1,
 
   exact
-  (calc _ = ∑ m in insert d.succ (filter (∣ d.succ) (range d.succ)),
+  (calc _ = ∑ m in insert d.succ ((range d.succ).filter (∣ d.succ)),
         (univ.filter (λ a : α, order_of a = m)).card :
     eq.symm (finset.sum_insert (by simp [mem_range, zero_le_one, le_succ]))
   ... = ∑ m in (range d.succ.succ).filter (∣ d.succ),

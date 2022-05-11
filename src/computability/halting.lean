@@ -166,7 +166,7 @@ theorem computable_iff {p : α → Prop} :
 protected theorem not {p : α → Prop}
   (hp : computable_pred p) : computable_pred (λ a, ¬ p a) :=
 by obtain ⟨f, hf, rfl⟩ := computable_iff.1 hp; exact
-  ⟨infer_instance,
+  ⟨by apply_instance,
     (cond hf (const ff) (const tt)).of_eq
       (λ n, by {dsimp, cases f n; refl})⟩
 

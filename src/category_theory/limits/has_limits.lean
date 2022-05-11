@@ -829,7 +829,7 @@ variables (D : L ⥤ K) [has_colimit (D ⋙ E ⋙ F)]
 begin
   ext j,
   rw [←assoc, colimit.ι_pre, colimit.ι_pre],
-  letI : has_colimit ((D ⋙ E) ⋙ F) := show has_colimit (D ⋙ E ⋙ F), infer_instance,
+  letI : has_colimit ((D ⋙ E) ⋙ F) := (infer_instance : has_colimit (D ⋙ E ⋙ F)),
   exact (colimit.ι_pre F (D ⋙ E) j).symm
 end
 

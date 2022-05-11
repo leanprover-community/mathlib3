@@ -159,7 +159,7 @@ meta def single_term_resolve (e : expr) : tactic unit :=
     | `(@polynomial.X %%R %%inst) := do
       nontriviality_by_assumption R,
       exact ``(polynomial.nat_degree_X)
-    | _ := tactic.trace "The leading term is not of the form\n`C a * X (^ n)`\n\n"
+    | _ := trace "The leading term is not of the form\n`C a * X (^ n)`\n\n"
     --"`compute_deg` failed to compute the degree of the leading term\n\n"
     end
   end
@@ -204,10 +204,10 @@ meta def extract_top_degree_term_and_deg (e : expr) : tactic (expr × ℕ) :=
 let summ := get_summands e in
 do nat_degs ← summ.mmap extract_deg_single_summand,
   eval_nat_degs ← nat_degs.mmap (eval_expr ℕ) <|>
-    tactic.fail "Only closed naturals are supported in exponents\n\n",
+    fail "Only closed naturals are supported in exponents\n\n",
   let summ_and_degs := summ.zip eval_nat_degs in
   match summ_and_degs.argmax (λ e : expr × ℕ, e.2) with
-  | none := tactic.fail
+  | none := fail
       "'`compute_degree`' could not find summands: something has gone very wrong!\n\n"
   | (some first) := return first
   end
@@ -223,19 +223,22 @@ then the tactic suggests the degree that it computed.
 
 The tactic also reports when it is used with non-closed natural numbers as exponents. -/
 meta def compute_degree_le : tactic unit :=
---Should be written to stay in meta-mode.
-do repeat (refine ``((polynomial.nat_degree_add_le_iff_left rfl.le _ _ _).mpr _)),
-  `[repeat { rw polynomial.monomial_mul_monomial }],
-  try (any_goals' (refine ``(polynomial.nat_degree_monomial_le _ _  ))),
-  repeat (refine ``((polynomial.nat_degree_C_mul_le _ _).trans _)),
-  repeat (refine ``(polynomial.nat_degree_X_pow_le _)),
-  repeat (refine ``(polynomial.nat_degree_X_le.trans _)),
-  `[try {any_goals { norm_num } }] <|>
-do `(polynomial.nat_degree %%tl ≤ %%tr) ← target,
+do `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
+    fail "Goal is not of the form `f.nat_degree ≤ d\n\n",
   (lead,m') ← extract_top_degree_term_and_deg tl,
-  td ← eval_expr ℕ tr,trace td, trace m',
-  if td < m' then tactic.fail format!"should the degree bound be '{m'}'?\n\n" else
-  tactic.fail "sorry, the tactic failed."
+  td ← eval_expr ℕ tr,
+  if td < m' then
+    do pptl ← pp tl, ppm' ← pp m',
+    trace sformat!"should the degree be '{m'}'?\n\n",
+    trace sformat!"Try this: {pptl}.nat_degree ≤ {ppm'}", failed
+  else
+    do repeat $ refine ``((polynomial.nat_degree_add_le_iff_left rfl.le _ _ _).mpr _),
+      `[repeat { rw polynomial.monomial_mul_monomial }],
+      try $ any_goals' $ refine ``(polynomial.nat_degree_monomial_le _ _  ),
+      repeat $ refine ``((polynomial.nat_degree_C_mul_le _ _).trans _),
+      repeat $ refine ``(polynomial.nat_degree_X_pow_le _),
+      repeat $ refine ``(polynomial.nat_degree_X_le.trans _),
+      `[try { any_goals { norm_num } }]
 
 /--  These are the cases in which an easy lemma computes the degree. -/
 meta def single_term_suggestions : tactic unit :=
@@ -261,13 +264,13 @@ The tactic also reports when it is used with non-closed natural numbers as expon
 meta def compute_degree : tactic unit :=
 single_term_suggestions <|>
 do `(polynomial.nat_degree %%tl = %%tr) ← target |
-    tactic.fail "Goal is not of the form `f.nat_degree = d\n\n",
+    fail "Goal is not of the form `f.nat_degree = d\n\n",
   (lead,m') ← extract_top_degree_term_and_deg tl,
   td ← eval_expr ℕ tr,
   if m' ≠ td then
     do pptl ← pp tl, ppm' ← pp m',
       trace sformat!"should the degree be '{m'}'?\n\n",
-      trace sformat!"Try this: {pptl}.nat_degree = {ppm'}", tactic.failed
+      trace sformat!"Try this: {pptl}.nat_degree = {ppm'}", failed
   else
     move_add_with_errors [(ff, pexpr.of_expr lead)] none,
     refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _),

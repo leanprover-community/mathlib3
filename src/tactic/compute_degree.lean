@@ -151,8 +151,8 @@ meta def single_term_resolve : expr → tactic unit
 | (expr.app `(⇑(@polynomial.C %%R %%inst)) x) :=
   exact ``(polynomial.nat_degree_C _)
 | `(@has_pow.pow (@polynomial %%R %%nin) %%N %%inst %%mX %%n) :=
-    nontriviality_by_assumption R *>
-    refine ``(polynomial.nat_degree_X_pow %%n)
+  nontriviality_by_assumption R *>
+  refine ``(polynomial.nat_degree_X_pow %%n)
 | `(@polynomial.X %%R %%inst) :=
   nontriviality_by_assumption R *>
   exact ``(polynomial.nat_degree_X)

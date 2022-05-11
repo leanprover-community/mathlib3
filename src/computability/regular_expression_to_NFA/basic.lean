@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Russell Emerine. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Russell Emerine
+Authors: Russell Emerine
 -/
 import computability.regular_expression_to_NFA.defs
 import computability.regular_expression_to_NFA.star
@@ -114,8 +114,8 @@ begin
   split,
   { assume hx,
     cases hx,
-    case inl {
-      rw hr₁ at hx, clear hr₁ hr₂,
+    case inl
+    { rw hr₁ at hx, clear hr₁ hr₂,
       rw set.mem_def at *,
       unfold NFA.accepts NFA.eval NFA.eval_from at *,
       rcases hx with ⟨q, accept, eval⟩,
@@ -131,8 +131,8 @@ begin
       rcases mem with ⟨mem, step⟩,
       rw NFA.mem_step_set,
       exact ⟨sum.inl p, ih p mem, step⟩, },
-    case inr {
-      rw hr₂ at hx, clear hr₁ hr₂,
+    case inr
+    { rw hr₂ at hx, clear hr₁ hr₂,
       rw set.mem_def at *,
       unfold NFA.accepts NFA.eval NFA.eval_from at *,
       rcases hx with ⟨q, accept, eval⟩,
@@ -150,8 +150,8 @@ begin
       exact ⟨sum.inr p, ih p mem, step⟩, }, },
   { rintros ⟨q, accept, eval⟩,
     cases q,
-    case inl {
-      left,
+    case inl
+    { left,
       rw hr₁, clear hr₁ hr₂,
       refine ⟨q, accept, _⟩, clear accept,
       revert eval,
@@ -169,8 +169,8 @@ begin
       cases p,
       case inl { exact ⟨p, ih p mem, step⟩, },
       case inr { cases step, }, },
-    case inr {
-      right,
+    case inr
+    { right,
       rw hr₂, clear hr₁ hr₂,
       refine ⟨q, accept, _⟩, clear accept,
       revert eval,
@@ -232,8 +232,8 @@ begin
     cases r,
     case inl { exact ⟨h, p, accept, step⟩, },
     case inr { cases step, }, },
-  case cons : b bs ih {
-    assume h,
+  case cons : b bs ih
+  { assume h,
     simp only [
       list.reverse_cons,
       NFA.eval_append_singleton,
@@ -259,8 +259,8 @@ begin
     rw set.mem_def at *,
     rw ← z.reverse_reverse at *,
     cases z.reverse with b bs,
-    case nil {
-      rcases hy with ⟨q, q_accept, q_eval⟩,
+    case nil
+    { rcases hy with ⟨q, q_accept, q_eval⟩,
       rcases hz with ⟨p, p_accept, p_eval⟩,
       simp only [list.append_nil, NFA.eval_nil, list.reverse_nil] at *,
       rw comp_to_NFA_eval₁ q at q_eval,
@@ -277,8 +277,8 @@ begin
     exact comp_to_NFA_eval₂ p hy mem, },
   { rintros ⟨q, accept, eval⟩,
     cases q,
-    case inl {
-      rcases accept with ⟨accept, nil⟩,
+    case inl
+    { rcases accept with ⟨accept, nil⟩,
       refine ⟨x, [], _, _, by simp⟩,
       { rw hr₁,
         refine ⟨q, accept, _⟩, clear accept,
@@ -301,8 +301,8 @@ begin
       { rw hr₂,
         rcases nil with ⟨q, accept, eval⟩,
         exact ⟨q, accept, eval⟩, }, },
-    case inr {
-      suffices : ∀ x q,
+    case inr
+    { suffices : ∀ x q,
         sum.inr q ∈ (r₁.comp r₂).to_NFA.eval x
         → ∃ y z,
             y ∈ r₁.to_NFA.accepts
@@ -317,8 +317,8 @@ begin
       assume x q,
       rw ← x.reverse_reverse,
       induction x.reverse with a as ih generalizing q,
-      case nil {
-        rintros ⟨start, nil⟩,
+      case nil
+      { rintros ⟨start, nil⟩,
         refine ⟨[], [], _, start, by simp⟩,
         unfold NFA.accepts at *,
         simpa, },
@@ -328,15 +328,15 @@ begin
       rw [NFA.eval_append_singleton, NFA.mem_step_set] at h,
       rcases h with ⟨p, mem, step⟩,
       cases p,
-      case inl {
-        rcases step with ⟨start, r, accept, step⟩,
+      case inl
+      { rcases step with ⟨start, r, accept, step⟩,
         refine ⟨as.reverse ++ [a], [], _, start, by simp⟩,
         refine ⟨r, accept, _⟩,
         rw [NFA.eval_append_singleton, NFA.mem_step_set],
         rw ← comp_to_NFA_eval₁ p at mem,
         exact ⟨p, mem, step⟩, },
-      case inr {
-        rcases ih p mem with ⟨y, z, accepts, eval, append⟩,
+      case inr
+      { rcases ih p mem with ⟨y, z, accepts, eval, append⟩,
         refine ⟨y, z ++ [a], accepts, _, by simp [← append]⟩,
         rw [list.foldl_append, list.foldl_cons, list.foldl_nil, NFA.mem_step_set],
         exact ⟨p, eval, step⟩, }, }, },

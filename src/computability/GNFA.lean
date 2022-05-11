@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Russell Emerine. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Russell Emerine
+Authors: Russell Emerine
 -/
 import computability.regular_expressions
 import computability.NFA
@@ -53,8 +53,8 @@ begin
   { rw ← rs.reverse_reverse,
     induction rs.reverse,
     case nil { rintros ⟨⟩, },
-    case cons : r rs ih {
-      assume hx,
+    case cons : r rs ih
+    { assume hx,
       unfold list.sum at hx,
       simp only [
         list.reverse_cons,
@@ -327,8 +327,8 @@ begin
   split,
   { assume t,
     cases t,
-    case start : x matches {
-      cases matches,
+    case start : x matches
+    { cases matches,
       case inl { exact accepts.start matches, },
       rcases matches with ⟨y, z, y_matches, z_matches, eq⟩,
       rw ← eq, clear eq x, 
@@ -436,7 +436,8 @@ def to_regular_expression : Π {n}, GNFA α n → regular_expression α
 | 0 M := M.step none none
 | (nat.succ n) M := M.rip.to_regular_expression
 
-theorem to_regular_expression_correct (M : GNFA α n) : M.accepts = M.to_regular_expression.matches :=
+theorem to_regular_expression_correct (M : GNFA α n) :
+  M.accepts = M.to_regular_expression.matches :=
 begin
   induction n,
   case zero
@@ -564,8 +565,8 @@ begin
       unfold to_GNFA, simp only [], unfold to_GNFA._match_1,
       rw [set.mem_def, list.reverse_nil, NFA.eval_nil] at hx,
       simp [hx], },
-    case cons : a as ih {
-      assume hx,
+    case cons : a as ih
+    { assume hx,
       rw [list.reverse_cons] at *,
       rw [NFA.eval_append_singleton, NFA.mem_step_set] at hx,
       rcases hx with ⟨p, mem, step⟩,
@@ -657,7 +658,8 @@ TODO:
    that give back just the resulting machine, and have `to_DFA_correct` and `to_NFA_correct`
    separately. Change the name? Find some other way?
 -/
-theorem to_regular_expression (M₀ : NFA α σ) [fintype α] [fintype σ] : ∃ (r : regular_expression α), M₀.accepts = r.matches :=
+theorem to_regular_expression (M₀ : NFA α σ) [fintype α] [fintype σ] :
+  ∃ (r : regular_expression α), M₀.accepts = r.matches :=
 begin
   classical,
   rcases fintype.exists_univ_list α with ⟨as, _, univ⟩,

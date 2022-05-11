@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Russell Emerine. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Russell Emerine
+Authors: Russell Emerine
 -/
 import computability.regular_expressions
 import computability.NFA
@@ -226,11 +226,15 @@ begin
     refine ⟨_, _, _⟩,
     { assume p a q,
       cases p; cases q,
-      case some some {
-        have : decidable (r.to_NFA.step p a q),
+      case some some
+      { have : decidable (r.to_NFA.step p a q),
         { exact hr_step p a q, },
-        have : decidable (∃ (r_1 : r.state), r.to_NFA.accept r_1 ∧ r.to_NFA.step p a r_1 ∧ r.to_NFA.start q),
-        { have : decidable_pred (λ (r_1 : r.state), r.to_NFA.accept r_1 ∧ r.to_NFA.step p a r_1 ∧ r.to_NFA.start q),
+        have :
+          decidable
+            (∃ (r_1 : r.state), r.to_NFA.accept r_1 ∧ r.to_NFA.step p a r_1 ∧ r.to_NFA.start q),
+        { have :
+            decidable_pred
+              (λ (r_1 : r.state), r.to_NFA.accept r_1 ∧ r.to_NFA.step p a r_1 ∧ r.to_NFA.start q),
           { assume s,
             have : decidable (r.to_NFA.step p a s ∧ r.to_NFA.start q),
             { have : decidable (r.to_NFA.step p a s),
@@ -243,8 +247,7 @@ begin
     { assume q,
       cases q,
       case none { exact decidable.true, },
-      case some { exact hr_start q, },
-    },
+      case some { exact hr_start q, }, },
     { assume q,
       cases q,
       case none { exact decidable.true, },

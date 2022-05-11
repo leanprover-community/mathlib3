@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Russell Emerine. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Russell Emerine
+Authors: Russell Emerine
 -/
 import computability.regular_expression_to_NFA.defs
 

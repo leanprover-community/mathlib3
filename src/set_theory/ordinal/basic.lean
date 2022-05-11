@@ -645,9 +645,9 @@ induction_on o (λ β s _ ⟨f⟩, by exactI ⟨f.top, typein_top _⟩) h
 lemma typein_injective (r : α → α → Prop) [is_well_order α r] : injective (typein r) :=
 injective_of_increasing r (<) (typein r) (λ x y, (typein_lt_typein r).2)
 
-theorem typein_inj (r : α → α → Prop) [is_well_order α r]
+@[simp] theorem typein_inj (r : α → α → Prop) [is_well_order α r]
   {a b} : typein r a = typein r b ↔ a = b :=
-injective.eq_iff (typein_injective r)
+(typein_injective r).eq_iff
 
 /-! ### Enumerating elements in a well-order with ordinals. -/
 
@@ -755,7 +755,7 @@ quot.lift_on o (λ a, #a.α) $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, quotien
 @[simp] theorem card_type (r : α → α → Prop) [is_well_order α r] :
   card (type r) = #α := rfl
 
-lemma card_typein {r : α → α → Prop} [wo : is_well_order α r] (x : α) :
+@[simp] lemma card_typein {r : α → α → Prop} [wo : is_well_order α r] (x : α) :
   #{y // r y x} = (typein r x).card := rfl
 
 theorem card_le_card {o₁ o₂ : ordinal} : o₁ ≤ o₂ → card o₁ ≤ card o₂ :=
@@ -1042,7 +1042,7 @@ sum.inr punit.star, λ b, sum.rec_on b
 
 theorem succ_ne_self (o : ordinal.{u}) : succ o ≠ o := (lt_succ_self o).ne'
 
-theorem succ_le {a b : ordinal} : succ a ≤ b ↔ a < b :=
+@[simp] theorem succ_le {a b : ordinal} : succ a ≤ b ↔ a < b :=
 ⟨lt_of_lt_of_le (lt_succ_self _),
 induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, begin
   refine ⟨⟨@rel_embedding.of_monotone (α ⊕ punit) β _ _
@@ -1084,7 +1084,7 @@ instance : is_well_order ordinal (<) := ⟨wf⟩
 
 instance : succ_order ordinal := succ_order.of_succ_le_iff succ (λ _ _, succ_le)
 
-theorem lt_succ {a b : ordinal} : a < succ b ↔ a ≤ b :=
+@[simp] theorem lt_succ {a b : ordinal} : a < succ b ↔ a ≤ b :=
 by rw [← not_le, succ_le, not_lt]
 
 @[simp] lemma typein_le_typein (r : α → α → Prop) [is_well_order α r] {x x' : α} :
@@ -1116,7 +1116,7 @@ theorem le_enum_succ {o : ordinal} (a : o.succ.out.α) :
   a ≤ @enum o.succ.out.α (<) _ o (by { rw type_lt, exact lt_succ_self o }) :=
 by { rw [←enum_typein (<) a, enum_le_enum', ←lt_succ], apply typein_lt_self }
 
-theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordinal} (h₁ : o₁ < type r)
+@[simp] theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordinal} (h₁ : o₁ < type r)
   (h₂ : o₂ < type r) : enum r o₁ h₁ = enum r o₂ h₂ ↔ o₁ = o₂ :=
 ⟨λ h, begin
   by_contra hne,

@@ -170,11 +170,11 @@ the `nat_degree` of `e`.  Currently, it supports:
 The expectation is that the argument of `extract_deg_single_term` is a factor of a summand of an
 expression in a polynomial ring. -/
 meta def extract_deg_single_term : expr → tactic expr
-| `(polynomial.X) := to_expr ``(1)
-| `(polynomial.X ^ %%n) := return n
+| `(polynomial.X)                            := to_expr ``(1)
+| `(polynomial.X ^ %%n)                      := return n
 | (expr.app `(⇑(polynomial.monomial %%n)) x) := return n
-| (expr.app `(⇑polynomial.C) x) := to_expr ``(0)
-| e := to_expr ``(polynomial.nat_degree %%e)
+| (expr.app `(⇑polynomial.C) x)              := to_expr ``(0)
+| e                                          := to_expr ``(polynomial.nat_degree %%e)
 
 /--  `extract_deg_single_summand e` takes apart "factors" in the expression `e` and returns them
 as sums of their "guessed degrees", via `extract_deg_single_term`.  When applied to an expression
@@ -239,8 +239,17 @@ do exact ``(polynomial.nat_degree_X_pow _) *> trace "Try this: exact nat_degree_
    exact ``(polynomial.nat_degree_X)       *> trace "Try this: exact nat_degree_X"       <|>
    fail "easy lemmas do not work"
 
-/--  `compute_degree` tries to solve a goal of the form `f.nat_degree = d`, where `d : ℕ` and `f`
-satisfies:
+/-  `support_for_degree` checks whether the goal is either an equality for the `nat_degree` or
+the `degree` of a polynomial. The output is a triple consisting of
+* a bool, enconding `f.nat_degree = d` with `tt` and `f.degree = d` with `ff`,
+* an `expr`, corresponding to the polynomial `f`;
+* an `expr`, corresponding to the target (nat)degree `d`.
+
+This fails if `f = 0`, that is, if `f.degree = ⊥`.
+-/
+
+/--  `compute_degree` tries to solve a goal of the form `f.nat_degree = d` or  `f.nat_degree = d`,
+where `d : ℕ` and `f` satisfies:
 * `f` is a sum of expression of the form
   `C a * X ^ n, C a * X, C a, X ^ n, X, monomial n a, monomial n a * monomial m b`;
 * all exponents and the `n` in `monomial n a` are *closed* terms of type `ℕ`,
@@ -254,11 +263,9 @@ then the tactic suggests the degree that it computed.
 
 The tactic also reports when it is used with non-closed natural numbers as exponents. -/
 meta def compute_degree : tactic unit :=
-single_term_suggestions <|>
-do `(polynomial.nat_degree %%tl = %%tr) ← target |
-    fail "Goal is not of the form `f.nat_degree = d\n\n",
-  (lead,m') ← extract_top_degree_term_and_deg tl,
-  td ← eval_expr ℕ tr,
+(do `(polynomial.nat_degree %%tl = %%tr) ← target,
+   (lead,m') ← extract_top_degree_term_and_deg tl,
+    td ← eval_expr ℕ tr,
   if m' ≠ td then
     do pptl ← pp tl, ppm' ← pp m',
       trace sformat!"should the degree be '{m'}'?\n\n",
@@ -267,7 +274,22 @@ do `(polynomial.nat_degree %%tl = %%tr) ← target |
     move_add_with_errors [(ff, pexpr.of_expr lead)] none,
     refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _),
     single_term_resolve lead,
-    compute_degree_le
+    compute_degree_le ) <|>
+(do `(polynomial.degree %%tl = %%tr) ← target,
+    refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _),
+    rotate,
+    `(_ = %%tr1) ← target,
+    td ← eval_expr ℕ tr1,
+   (lead,m') ← extract_top_degree_term_and_deg tl,
+  if m' ≠ td then
+    do pptl ← pp tl, ppm' ← pp m',
+      trace sformat!"should the degree be '{m'}'?\n\n",
+      trace sformat!"Try this: {pptl}.nat_degree = {ppm'}", failed
+  else
+    move_add_with_errors [(ff, pexpr.of_expr lead)] none,
+    refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _),
+    single_term_resolve lead,
+    compute_degree_le )
 
 add_tactic_doc
 { name := "compute_degree_le",

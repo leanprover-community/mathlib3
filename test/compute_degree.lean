@@ -32,6 +32,9 @@ by compute_degree_le
 example (ha : a ≠ 0) : nat_degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) = 3 :=
 by compute_degree
 
+example (ha : a ≠ 0) : degree (C a * X ^ 3 + C b * X ^ 2 + C c * X + C d) = 3 :=
+by compute_degree
+
 /-
 --  This test produces a suggestion.  I would like to uncomment it, but do not know how to
 --  prevent a noisy file

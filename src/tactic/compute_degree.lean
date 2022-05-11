@@ -5,7 +5,6 @@ Authors: Damiano Testa
 -/
 import tactic.move_add
 import data.polynomial.degree.lemmas
---import tactic.mwe_showcase_degree
 
 /-! # `compute_degree` a tactic for compute `nat_degree`s of polynomials
 

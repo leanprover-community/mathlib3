@@ -511,19 +511,18 @@ end
 
 /-- Since `alg_hom_of_ultrafilter h_int f` is a bijective `K`-algebra homomorphism `L →ₐ[K] L`,
   it is a `K`-algebra equivalence. Here we define the corresponding term of `L ≃ₐ[K] L`. -/
-noncomputable def equiv_of_ultrafilter (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
-polynomial.splits (algebra_map K L) (minpoly K x)) (f : ultrafilter (L ≃ₐ[K] L)) :
+noncomputable def equiv_of_ultrafilter (h_int : algebra.is_integral K L)
+(f : ultrafilter (L ≃ₐ[K] L)) :
 (L ≃ₐ[K] L) :=
 alg_equiv.of_bijective (alg_hom_of_ultrafilter f h_int) (alg_hom_of_ultrafilter_bijection h_int f)
 
-lemma equiv_of_ultrafilter_to_fun (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
-polynomial.splits (algebra_map K L) (minpoly K x)) (f : ultrafilter (L ≃ₐ[K] L)) :
-(equiv_of_ultrafilter h_int h_splits f).to_fun = f.function h_int :=
+lemma equiv_of_ultrafilter_to_fun (h_int : algebra.is_integral K L) (f : ultrafilter (L ≃ₐ[K] L)) :
+(equiv_of_ultrafilter h_int f).to_fun = f.function h_int :=
 rfl
 
-lemma equiv_of_ultrafilter_to_alg_hom (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
-polynomial.splits (algebra_map K L) (minpoly K x)) (f : ultrafilter (L ≃ₐ[K] L)) :
-(equiv_of_ultrafilter h_int h_splits f).to_alg_hom.to_fun = f.function h_int := rfl
+lemma equiv_of_ultrafilter_to_alg_hom (h_int : algebra.is_integral K L) (f :
+ultrafilter (L ≃ₐ[K] L)) :
+(equiv_of_ultrafilter h_int f).to_alg_hom.to_fun = f.function h_int := rfl
 
 /-- Let `L/K` be a normal algebraic field extension, let `f` be an ultrafilter on
   `L ≃ₐ[K] L`, and let `E/K` be a finite subextension. Then `equiv_of_ultrafilter h_int h_splits f`
@@ -531,15 +530,14 @@ polynomial.splits (algebra_map K L) (minpoly K x)) (f : ultrafilter (L ≃ₐ[K]
   `E →ₐ[K] L`. This Lemma tells us that the underlying maps of these two terms agree on `E`.
     -/
 lemma equiv_restricts_to_alg_hom_of_finite_dimensional (h_int : algebra.is_integral K L)
-(h_splits : ∀ (x : L), polynomial.splits (algebra_map K L) (minpoly K x))
 (f : ultrafilter (L ≃ₐ[K] L)) {E : intermediate_field K L} (h_findim : finite_dimensional K E) :
-((equiv_of_ultrafilter h_int h_splits f).to_alg_hom.comp E.val) = f.alg_hom h_findim :=
+((equiv_of_ultrafilter h_int f).to_alg_hom.comp E.val) = f.alg_hom h_findim :=
 begin
   ext,
-  have h : ((equiv_of_ultrafilter h_int h_splits f).to_alg_hom.comp E.val) x =
-  (equiv_of_ultrafilter h_int h_splits f).to_fun x := rfl,
+  have h : ((equiv_of_ultrafilter h_int f).to_alg_hom.comp E.val) x =
+  (equiv_of_ultrafilter h_int f).to_fun x := rfl,
   rw h,
-  rw equiv_of_ultrafilter_to_fun h_int h_splits f,
+  rw equiv_of_ultrafilter_to_fun h_int f,
   apply ultrafilter.function_spec',
 end
 
@@ -614,9 +612,9 @@ end
 
 lemma sigma_is_limit (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
 polynomial.splits (algebra_map K L) (minpoly K x)) (f : ultrafilter (L ≃ₐ[K] L)) :
-(f : filter (L ≃ₐ[K] L)) ≤ nhds (equiv_of_ultrafilter h_int h_splits f) :=
+(f : filter (L ≃ₐ[K] L)) ≤ nhds (equiv_of_ultrafilter h_int f) :=
 begin
-  let σ := equiv_of_ultrafilter h_int h_splits f,
+  let σ := equiv_of_ultrafilter h_int f,
   intros A hA,
   have hA_coset : left_coset σ⁻¹ A ∈ nhds (1 : L ≃ₐ[K] L),
   { have h_sigma_1 : σ = σ * 1 := by simp,
@@ -656,7 +654,7 @@ begin
   let p : (L ≃ₐ[K] L) → (E →ₐ[K] L) := λ σ, (σ.to_alg_hom.comp E.val),
   have h_principal : f.map p = pure (p σ),
   { have h : p σ = f.alg_hom h_findim :=
-    equiv_restricts_to_alg_hom_of_finite_dimensional h_int h_splits f h_findim,
+    equiv_restricts_to_alg_hom_of_finite_dimensional h_int f h_findim,
     rw h,
     have h2 : f.map p = pure (f.alg_hom h_findim) := f.alg_hom_spec h_findim,
     ext,
@@ -701,8 +699,8 @@ end
 lemma krull_topology_compact (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
 polynomial.splits (algebra_map K L) (minpoly K x)) :
 is_compact (set.univ : set (L ≃ₐ[K] L)) := is_compact_iff_ultrafilter_le_nhds.2
-  (λ f _,  ⟨equiv_of_ultrafilter h_int h_splits f,
-  set.mem_univ (equiv_of_ultrafilter h_int h_splits f),
+  (λ f _,  ⟨equiv_of_ultrafilter h_int f,
+  set.mem_univ (equiv_of_ultrafilter h_int f),
   sigma_is_limit h_int h_splits f⟩)
 
 end compact
@@ -720,7 +718,7 @@ CompHaus :=
 
 /-- The Krull topology on `L ≃ₐ[K] L` is totally disconnected whenever `L/K` is a normal
   extension -/
-def krull_topology_totally_disconnected_space (h_int : ∀ (x : L), is_integral K x) :
+lemma krull_topology_totally_disconnected_space (h_int : ∀ (x : L), is_integral K x) :
 totally_disconnected_space (L ≃ₐ[K] L) :=
 { is_totally_disconnected_univ := krull_topology_totally_disconnected h_int }
 

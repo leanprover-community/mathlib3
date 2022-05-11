@@ -63,7 +63,7 @@ begin
     C c * X ^ 2 + X ^ 10 + C e * X).nat_degree = 10,
   { compute_degree },
   rwa nat_degree_add_eq_left_of_nat_degree_lt,
-  refine ((le_of_eq (by simp : _ = 0)).trans_lt _),
+  refine (le_of_eq (by simp : _ = 0)).trans_lt _,
   exact lt_of_lt_of_le nat.succ_pos' this.ge
 end
 

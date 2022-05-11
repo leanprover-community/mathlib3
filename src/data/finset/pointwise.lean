@@ -423,8 +423,16 @@ pointwise operations if `α` is."]
 protected def division_comm_monoid [division_comm_monoid α] : division_comm_monoid (finset α) :=
 coe_injective.division_comm_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
+/-- `finset α` is distributive if `α` is. -/
+protected def distrib [distrib α] : distrib (finset α) := coe_injective.distrib coe_add coe_mul
+
+/-- `finset α` has distributive negation if `α` has. -/
+protected def has_distrib_neg [has_mul α] [has_distrib_neg α] : has_distrib_neg (finset α) :=
+coe_injective.has_distrib_neg coe_mul coe_neg
+
 localized "attribute [instance] finset.comm_monoid finset.add_comm_monoid finset.division_monoid
-  finset.subtraction_monoid finset.division_comm_monoid finset.subtraction_comm_monoid" in pointwise
+  finset.subtraction_monoid finset.division_comm_monoid finset.subtraction_comm_monoid
+  finset.distrib finset.has_distrib_neg" in pointwise
 
 section group
 variables [group α] {s t : finset α}

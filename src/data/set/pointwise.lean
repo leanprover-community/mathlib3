@@ -530,8 +530,20 @@ operations if `α` is."]
 protected def division_comm_monoid [division_comm_monoid α] : division_comm_monoid (set α) :=
 { ..set.division_monoid, ..set.comm_semigroup }
 
+/-- `set α` is distributive if `α` is. -/
+protected def distrib [distrib α] : set (filter α) :=
+{ left_distrib := image_image2_distrib mul_add
+  right_distrib := image_image2_distrib add_mul,
+  ..set.has_mul, ..set.has_add }
+
+/-- `set α` has distributive negation if `α` has. -/
+protected def has_distrib_neg [has_mul α] [has_distrib_neg α] : has_distrib_neg (set α) :=
+{ neg_mul := image2_image_left_comm neg_mul
+  mul_neg := image2_image_right_comm mul_neg,
+  ..set.has_involutive_inv }
+
 localized "attribute [instance] set.division_monoid set.subtraction_monoid set.division_comm_monoid
-  set.subtraction_comm_monoid" in pointwise
+  set.subtraction_comm_monoid set.distrib set.has_distrib_neg" in pointwise
 
 section group
 variables [group α] {s t : set α} {a b : α}
@@ -979,11 +991,8 @@ by simp_rw [←image_smul, ←image_neg, image_image, neg_smul]
 @[simp] lemma smul_set_neg : a • -t = -(a • t) :=
 by simp_rw [←image_smul, ←image_neg, image_image, smul_neg]
 
-@[simp] protected lemma neg_smul : -s • t = -(s • t) :=
-by simp_rw [←image2_smul, ←image_neg, image2_image_left, image_image2, neg_smul]
-
-@[simp] protected lemma smul_neg : s • -t = -(s • t) :=
-by simp_rw [←image2_smul, ←image_neg, image2_image_right, image_image2, smul_neg]
+@[simp] protected lemma neg_smul : -s • t = -(s • t) := image2_image_left_comm neg_smul
+@[simp] protected lemma smul_neg : s • -t = -(s • t) := image2_image_right_comm smul_neg
 
 end ring
 

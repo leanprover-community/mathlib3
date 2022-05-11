@@ -235,10 +235,6 @@ protected lemma commute.mul_zpow (h : commute a b) : ∀ (i : ℤ), (a * b) ^ i 
 | (n : ℕ) := by simp [h.mul_pow n]
 | -[1+n]  := by simp [h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev]
 
-@[simp, norm_cast] lemma units.coe_zpow (u : αˣ) : ∀ (n : ℤ), ((u ^ n : α) : α) = u ^ n
-| (n : ℕ) := by { rw [zpow_coe_nat, zpow_coe_nat], exact u.coe_pow n }
-| -[1+k] := by rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, units.coe_inv, u.coe_pow]
-
 end division_monoid
 
 section division_comm_monoid

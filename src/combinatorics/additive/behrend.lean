@@ -159,10 +159,6 @@ begin
   exact (sum_le_card_nsmul univ _ _ $ λ i _, this i).trans (by rw [card_fin, smul_eq_mul]),
 end
 
-lemma zero_pow_le_one : ∀ n : ℕ, 0 ^ n ≤ 1
-| 0 := by simp
-| (n + 1) := by simp
-
 lemma digits_sum_eq : ∑ i : fin n, (d - 1) * (2 * d - 1) ^ (i : ℕ) = ((2 * d - 1) ^ n - 1) / 2 :=
 begin
   apply (nat.div_eq_of_eq_mul_left zero_lt_two _).symm,

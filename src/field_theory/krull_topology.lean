@@ -449,12 +449,11 @@ begin
   (finite_dimensional.eq_of_le_of_finrank_eq h_map_le h_finrank_eq)),
 end
 
-lemma alg_hom_of_ultrafilter_surjective (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
-polynomial.splits (algebra_map K L) (minpoly K x)) (f : ultrafilter (L ≃ₐ[K] L)) :
+lemma alg_hom_of_ultrafilter_surjective (h_int : algebra.is_integral K L) (f :
+ultrafilter (L ≃ₐ[K] L)) :
 function.surjective (alg_hom_of_ultrafilter f h_int) :=
 begin
   intro y,
-  specialize h_splits y,
   let p := minpoly K y,
   haveI : decidable_eq L := classical.dec_eq L,
   let S := (p.map (algebra_map K L)).roots.to_finset,
@@ -502,12 +501,12 @@ begin
   exact ⟨a, hay⟩,
 end
 
-lemma alg_hom_of_ultrafilter_bijection (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
-polynomial.splits (algebra_map K L) (minpoly K x)) (f : ultrafilter (L ≃ₐ[K] L)) :
+lemma alg_hom_of_ultrafilter_bijection (h_int : algebra.is_integral K L) (f :
+ultrafilter (L ≃ₐ[K] L)) :
 function.bijective (alg_hom_of_ultrafilter f h_int) :=
 begin
   exact ⟨alg_hom_of_ultrafilter_injective h_int f,
-  alg_hom_of_ultrafilter_surjective h_int h_splits f⟩,
+  alg_hom_of_ultrafilter_surjective h_int f⟩,
 end
 
 /-- Since `alg_hom_of_ultrafilter h_int f` is a bijective `K`-algebra homomorphism `L →ₐ[K] L`,
@@ -515,8 +514,7 @@ end
 noncomputable def equiv_of_ultrafilter (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
 polynomial.splits (algebra_map K L) (minpoly K x)) (f : ultrafilter (L ≃ₐ[K] L)) :
 (L ≃ₐ[K] L) :=
-alg_equiv.of_bijective (alg_hom_of_ultrafilter f h_int) (alg_hom_of_ultrafilter_bijection h_int
-h_splits f)
+alg_equiv.of_bijective (alg_hom_of_ultrafilter f h_int) (alg_hom_of_ultrafilter_bijection h_int f)
 
 lemma equiv_of_ultrafilter_to_fun (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
 polynomial.splits (algebra_map K L) (minpoly K x)) (f : ultrafilter (L ≃ₐ[K] L)) :
@@ -615,8 +613,7 @@ end
 
 
 lemma sigma_is_limit (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
-polynomial.splits (algebra_map K L) (minpoly K x)) (f : ultrafilter (L ≃ₐ[K] L))
-(h_le_princ : ↑f ≤ filter.principal (set.univ : set (L ≃ₐ[K] L))) :
+polynomial.splits (algebra_map K L) (minpoly K x)) (f : ultrafilter (L ≃ₐ[K] L)) :
 (f : filter (L ≃ₐ[K] L)) ≤ nhds (equiv_of_ultrafilter h_int h_splits f) :=
 begin
   let σ := equiv_of_ultrafilter h_int h_splits f,
@@ -704,14 +701,16 @@ end
 lemma krull_topology_compact (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
 polynomial.splits (algebra_map K L) (minpoly K x)) :
 is_compact (set.univ : set (L ≃ₐ[K] L)) := is_compact_iff_ultrafilter_le_nhds.2
-  (λ f hf,  ⟨equiv_of_ultrafilter h_int h_splits f,
+  (λ f _,  ⟨equiv_of_ultrafilter h_int h_splits f,
   set.mem_univ (equiv_of_ultrafilter h_int h_splits f),
-  sigma_is_limit h_int h_splits f hf⟩)
+  sigma_is_limit h_int h_splits f⟩)
 
 end compact
 
 variables {K L : Type*} [field K] [field L] [algebra K L]
 
+/-- The Krull topology on `L ≃ₐ[K] L` is compact and Hausdorff whenever `L/K` is a
+  normal extension -/
 def krull_topology_comphaus (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
 polynomial.splits (algebra_map K L) (minpoly K x)) :
 CompHaus :=
@@ -719,10 +718,13 @@ CompHaus :=
   is_compact := { compact_univ := krull_topology_compact h_int h_splits },
   is_hausdorff := krull_topology_t2 h_int }
 
+/-- The Krull topology on `L ≃ₐ[K] L` is totally disconnected whenever `L/K` is a normal
+  extension -/
 def krull_topology_totally_disconnected_space (h_int : ∀ (x : L), is_integral K x) :
 totally_disconnected_space (L ≃ₐ[K] L) :=
 { is_totally_disconnected_univ := krull_topology_totally_disconnected h_int }
 
+/-- The Krull topology on `L ≃ₐ[K] L` is profinite whenever `L/K` is a normal extension -/
 def krull_topology_profinite (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
 polynomial.splits (algebra_map K L)
 (minpoly K x)) :

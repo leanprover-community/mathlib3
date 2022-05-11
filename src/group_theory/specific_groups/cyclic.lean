@@ -307,30 +307,16 @@ private lemma card_order_of_eq_totient_aux₁ :
   (univ.filter (λ a : α, order_of a = d)).card = φ d :=
 begin
   intros d hd,
-  rcases d.eq_zero_or_pos with rfl | hd0, {
+  rcases d.eq_zero_or_pos with rfl | hd_pos, {
     exfalso,
-    simp at hd,
-
-
-    haveI : nonempty α, { sorry },
-
-    have h1 := fintype.card_eq_zero_equiv_equiv_empty hd,
-
-
-
-    -- have h2 := @nonempty_of_exists _,
-    -- refine nonempty_empty _,
-    refine nonempty_empty (nonempty_of_exists _),
-
-
-
-    haveI : nonempty α, {
-
-      sorry },
-
-
-    -- cases hd,
+    simp only [zero_dvd_iff] at hd,
+  -- α is nonempty since it's a group, but has card 0; contradiction!
     sorry },
+
+  intro hd0,
+
+  -- since the card of the filter-set is pos, there's an element `a` in it
+  rcases card_pos.1 hd0 with ⟨a, ha'⟩,
   sorry,
 end
 

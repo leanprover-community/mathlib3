@@ -1,6 +1,7 @@
 
 
 import category_theory.preadditive.biproducts
+import category_theory.preadditive.schur
 import category_theory.subobject.lattice
 import category_theory.noetherian
 
@@ -10,6 +11,7 @@ open category_theory.limits
 universes v u
 
 noncomputable theory
+open_locale classical big_operators
 
 variables {C : Type u} [category.{v} C] [preadditive C]
 variables [has_binary_biproducts C] [has_kernels C]
@@ -20,22 +22,59 @@ variables [has_binary_biproducts C] [has_kernels C]
 
 variables {ι : Type v} [decidable_eq ι] [fintype ι]
 
+/--
+Given a simple subobject of a direct sum of simple objects,
+one of the components of the inclusion map must be an isomorphism, by Schur's lemma.
+-/
 lemma simple_subobject_of_semisimple_iso_summand (f : ι → C) [has_biproduct f] [∀ i, simple (f i)]
   (V : subobject (⨁ f)) [simple (V : C)] :
-  ∃ (i : ι), nonempty ((V : C) ≅ f i) :=
-sorry
+  ∃ (i : ι), is_iso (V.arrow ≫ biproduct.π _ i) :=
+begin
+  by_cases h : ∀ i, V.arrow ≫ biproduct.π _ i = 0,
+  { have z : V.arrow = 0, { ext, simp [h], },
+    have t : 𝟙 (V : C) = 0, { apply (cancel_mono V.arrow).1, simp [z], },
+    exact false.elim (id_nonzero (V : C) t), },
+  { simp only [not_forall] at h,
+    obtain ⟨i, w⟩ := h,
+    exact ⟨i, is_iso_of_hom_simple w⟩, }
+end
+
+def aux (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
+  (V : subobject (⨁ f)) [simple (V : C)] (i : ι) [is_iso (V.arrow ≫ biproduct.π _ i)] : ⨁ f ⟶ ⨁ f :=
+∑ (k : ι), if k = i then 0 else biproduct.π _ i ≫ inv (V.arrow ≫ biproduct.π _ i) ≫ V.arrow ≫ biproduct.π f k ≫ biproduct.ι f k
+
+@[simp] lemma aux_π (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
+  (V : subobject (⨁ f)) [simple (V : C)] (i : ι) [is_iso (V.arrow ≫ biproduct.π _ i)] (j) :
+  aux f V i ≫ biproduct.π f j = if j = i then 0 else biproduct.π _ i ≫ inv (V.arrow ≫ biproduct.π _ i) ≫ V.arrow ≫ biproduct.π f j := sorry
+
+def aux₃ (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
+  (V : subobject (⨁ f)) [simple (V : C)] (i : ι) [is_iso (V.arrow ≫ biproduct.π _ i)] : ⨁ f ≅ ⨁ f :=
+{ hom := 𝟙 _ - aux f V i,
+  inv := 𝟙 _ + aux f V i,
+  hom_inv_id' := begin
+    apply biproduct.hom_ext,
+    intro j,
+    simp only [preadditive.sub_comp, preadditive.add_comp],
+  end,
+  hom_inv_id' := sorry, }
 
 /--
 Any simple subobject of a direct sum of simple objects is, up to isomorphism,
 one of the summands.
 -/
-lemma simple_subobject_of_semisimple (f : ι → C) [has_biproduct f] [∀ i, simple (f i)]
+lemma simple_subobject_of_semisimple (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
   (V : subobject (⨁ f)) [simple (V : C)] :
   ∃ (i : ι) (j : (V : C) ≅ f i) (k : Aut (⨁ f)), V.arrow ≫ k.hom = j.hom ≫ biproduct.ι f i :=
 begin
-  obtain ⟨i, ⟨j⟩⟩ := simple_subobject_of_semisimple_iso_summand f V,
-  use i, use j,
-  sorry,
+  obtain ⟨i, _⟩ := simple_subobject_of_semisimple_iso_summand f V,
+  resetI,
+  refine ⟨i, as_iso (V.arrow ≫ biproduct.π _ i), _, _⟩,
+  { split,
+
+    sorry,
+    sorry,
+   },
+  { sorry, },
 end
 
 /--

@@ -76,10 +76,14 @@ def exp_series : formal_multilinear_series 𝕂 𝔸 𝔸 :=
 variables {𝔸}
 
 /-- `exp 𝕂 : 𝔸 → 𝔸` is the exponential map determined by the action of `𝕂` on `𝔸`.
-It is defined as the sum of the `formal_multilinear_series` `exp_series 𝕂 𝔸`. -/
+It is defined as the sum of the `formal_multilinear_series` `exp_series 𝕂 𝔸`.
+
+Note that when `𝔸 = matrix n n 𝕂`, this is the **Matrix Exponential**; see
+[`analysis.normed_space.matrix_exponential`](../matrix_exponential) for lemmas specific to that
+case. -/
 noncomputable def exp (x : 𝔸) : 𝔸 := (exp_series 𝕂 𝔸).sum x
 
-variables {𝕂 𝔸}
+variables {𝕂}
 
 lemma exp_series_apply_eq (x : 𝔸) (n : ℕ) : exp_series 𝕂 𝔸 n (λ _, x) = (n!⁻¹ : 𝕂) • x^n :=
 by simp [exp_series]
@@ -105,6 +109,14 @@ begin
   split_ifs with h h;
   simp [h]
 end
+
+@[simp] lemma exp_op [t2_space 𝔸] (x : 𝔸) :
+  exp 𝕂 (mul_opposite.op x) = mul_opposite.op (exp 𝕂 x) :=
+by simp_rw [exp, exp_series_sum_eq, ←mul_opposite.op_pow, ←mul_opposite.op_smul, tsum_op]
+
+@[simp] lemma exp_unop [t2_space 𝔸] (x : 𝔸ᵐᵒᵖ) :
+  exp 𝕂 (mul_opposite.unop x) = mul_opposite.unop (exp 𝕂 x) :=
+by simp_rw [exp, exp_series_sum_eq, ←mul_opposite.unop_pow, ←mul_opposite.unop_smul, tsum_unop]
 
 lemma star_exp [t2_space 𝔸] [star_ring 𝔸] [has_continuous_star 𝔸] (x : 𝔸) :
   star (exp 𝕂 x) = exp 𝕂 (star x) :=

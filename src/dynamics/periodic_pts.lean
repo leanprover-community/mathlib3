@@ -245,7 +245,7 @@ is_periodic_pt_minimal_period f x
 by { rw iterate_add_apply, congr, exact is_periodic_pt_minimal_period f x }
 
 @[simp] lemma iterate_mod_minimal_period_eq : f^[n % minimal_period f x] x = (f^[n] x) :=
-((is_periodic_pt_minimal_period f x).iterate_mod_apply n)
+(is_periodic_pt_minimal_period f x).iterate_mod_apply n
 
 lemma minimal_period_pos_of_mem_periodic_pts (hx : x ∈ periodic_pts f) :
   0 < minimal_period f x :=

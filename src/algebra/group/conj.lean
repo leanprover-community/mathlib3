@@ -50,8 +50,10 @@ end monoid
 
 section cancel_monoid
 
-variables [right_cancel_monoid α]
--- These lemmas also hold for `left_cancel_monoid` - so far this is not necessary.
+variables [cancel_monoid α]
+-- These lemmas hold for `right_cancel_monoid` with the current proofs, but for the sake of
+-- not duplicating code (these lemmas also hold for `left_cancel_monoids`) we leave these
+-- not generalised.
 
 @[simp] lemma is_conj_one_right {a : α} : is_conj 1 a  ↔ a = 1 :=
 ⟨λ ⟨c, hc⟩, mul_right_cancel (hc.symm.trans ((mul_one _).trans (one_mul _).symm)), λ h, by rw [h]⟩

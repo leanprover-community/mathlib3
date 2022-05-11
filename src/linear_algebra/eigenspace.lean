@@ -230,7 +230,6 @@ begin
   -- eigenspaces has sum `0`, then it itself is zero.
   suffices : ∀ l : Π₀ μ, f.eigenspace μ, S l = 0 → l = 0,
   { rw complete_lattice.independent_iff_dfinsupp_lsum_injective,
-    change function.injective S,
     rw ← @linear_map.ker_eq_bot K K (Π₀ μ, (f.eigenspace μ)) V _ _
       (@dfinsupp.add_comm_group K (λ μ, f.eigenspace μ) _),
     rw eq_bot_iff,

@@ -1129,7 +1129,7 @@ end, λ h, by simp_rw h⟩
   inv_fun := λ x, ⟨typein (<) x, typein_lt_self x⟩,
   left_inv := λ ⟨o', h⟩, subtype.ext_val (typein_enum _ _),
   right_inv := λ h, enum_typein _ _,
-  map_rel_iff' := by { rintro ⟨a, ha⟩ ⟨b, hb⟩, apply enum_le_enum' } }
+  map_rel_iff' := by { rintros ⟨a, _⟩ ⟨b, _⟩, apply enum_le_enum' } }
 
 /-- `o.out.α` is an `order_bot` whenever `0 < o`. -/
 def out_order_bot_of_pos {o : ordinal} (ho : 0 < o) : order_bot o.out.α :=

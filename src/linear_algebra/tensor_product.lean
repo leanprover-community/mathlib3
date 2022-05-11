@@ -5,7 +5,7 @@ Authors: Kenny Lau, Mario Carneiro
 -/
 
 import group_theory.congruence
-import algebra.module.submodule_bilinear
+import algebra.module.submodule.bilinear
 
 /-!
 # Tensor product of modules over commutative semirings.

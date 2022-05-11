@@ -1547,7 +1547,7 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
         filter_upwards [prod_is_open.mem_nhds (eventually_abs_sub_lt a δ0)
           (eventually_abs_sub_lt b (sub_pos.2 δε))],
         rintros ⟨x, y⟩ ⟨hx : |x - a| < δ, hy : |y - b| < ε - δ⟩,
-        rw [add_sub_comm],
+        rw [add_sub_add_comm],
         calc |x - a + (y - b)| ≤ |x - a| + |y - b| : abs_add _ _
         ... < δ + (ε - δ) : add_lt_add hx hy
         ... = ε : add_sub_cancel'_right _ _ },

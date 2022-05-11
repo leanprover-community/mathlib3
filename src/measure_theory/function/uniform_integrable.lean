@@ -697,7 +697,7 @@ begin
     begin
       refine add_le_add_left _ _,
       rw [← ennreal.of_real_coe_nnreal, ← ennreal.of_real_mul (nnreal.coe_nonneg _),
-        ← div_div_eq_div_mul, mul_div_cancel' _ (nnreal.coe_pos.2 hCpos).ne.symm],
+        ← div_div, mul_div_cancel' _ (nnreal.coe_pos.2 hCpos).ne.symm],
       exact le_rfl,
     end
     ... ≤ ennreal.of_real ε :

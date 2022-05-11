@@ -30,19 +30,34 @@ def square (n : ℕ) := (finset.range n).product (finset.range n)
 /-- The n-by-n square with a pair of opposite corners removed. -/
 def corners_removed (n : ℕ) := ((square n).erase (0,0)).erase (n-1, n-1)
 
-/-- To show that some predicate `P` does not hold at some term `a`,
+/-- To show that some predicate `P` does not hold at some `a`,
 it suffices to find an "invariant" which has a particular value wherever `P` holds,
 and to show that it has a different value at `a`. -/
 lemma not_of_invariant_ne {α : Type*} (P : α → Prop) (a : α)
   (h : ∃ {β : Type*} (f : α → β) (b : β) (w : ∀ a, P a → f a = b), f a ≠ b) : ¬ P a :=
 by tidy
 
+/-
+This proof is far from "mathlib"-style, but instead keeps lots of metavariables in play.
+Unfortunately the default presentation of a metavariables in the tactic state is confusing
+and hard to keep track of: watch out for all the unhelpfully named `?m_i`.
+
+Because we keep multiple goals active simultaneously, and switch between them,
+we use `work_on_goal i { ... }` frequently to focus on a particular goal,
+but without the obligation to close the goal by the end of the tactic block.
+
+Be aware that `simp` and `rw` are dangerous tools when used in the presence of metavariables:
+they will happily unify the metavariables with concrete terms, if that is what it takes
+to use the relevant lemma. This can be very helpful, but can also lead to confusing behaviour.
+It would be nice to have a clean mechanism for "(un)locking" metavariables,
+to prevent premature unification.
+-/
 theorem corners_removed_not_domino_coverable (n : ℕ) (p : 1 < n) :
   ¬ domino_coverable (corners_removed n) :=
 begin
-  -- We are trying to show some property does not hold.
-  -- Let's guess that we should construct an invariant of terms satisfying this property,
-  -- and calculate it.
+  -- We are trying to show some predicate does not hold.
+  -- Let's guess that we should construct an invariant of terms satisfying this predicate,
+  -- and then calculate it, hoping to get a different answer.
   apply not_of_invariant_ne,
   -- Let's break apart that goal.
   refine ⟨_, _, _, _, _⟩,
@@ -53,8 +68,8 @@ begin
     intros a h,
     -- Since `h` is an inductive predicate, it may be helpful to look at cases:
     induction h,
-    -- The first goal must just specifiy the value of our invariant on the empty set;
-    -- it's not useful by itself.
+    -- The first goal must just specify the value of our invariant on the empty set;
+    -- it's not useful by itself yet.
     rotate,
     -- The first BIG IDEA:
     -- Our condition says something about the value of our invariant on a union of sets,

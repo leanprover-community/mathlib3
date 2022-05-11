@@ -351,36 +351,29 @@ rfl
 @[simp] lemma of_mul_of (x y : α) : of x * of y = of (x * y) := rfl
 lemma of_mul (x y : α) : of (x * y) = of x * of y := rfl
 
-instance : has_distrib_neg (free_abelian_group α) :=
-{ mul_neg := λ x y, (lift _ : free_abelian_group α →+ free_abelian_group α).map_neg _,
-  neg_mul := λ x y,
-  begin
-    unfold has_mul.mul,
-    simp_rw (lift _ : free_abelian_group α →+ free_abelian_group α).map_neg,
-    rw [←pi.neg_def, ←add_monoid_hom.neg_apply],
-    rw lift_neg',
-    assumption,
-  end,
-  ..subtraction_monoid.to_has_involutive_neg _ }
-
 instance : distrib (free_abelian_group α) :=
 { add := (+),
   left_distrib := λ x y z, (lift _).map_add _ _,
   right_distrib := λ x y z, by simp only [(*), (lift _).map_add, ←pi.add_def, lift.add'],
   ..free_abelian_group.has_mul _ }
 
+instance : non_unital_non_assoc_ring (free_abelian_group α) :=
+{ zero_mul := λ a, by { have h : 0 * a + 0 * a = 0 * a, by simp [←add_mul], simpa using h },
+  mul_zero := λ a, rfl,
+  ..free_abelian_group.distrib, ..free_abelian_group.add_comm_group _ }
+
 end has_mul
 
-section monoid
+instance [has_one α] : has_one (free_abelian_group α) := ⟨of 1⟩
 
-variables {R : Type*} [monoid α] [ring R]
-
-instance : semigroup (free_abelian_group α) :=
+instance [semigroup α] : non_unital_ring (free_abelian_group α) :=
 { mul := (*),
   mul_assoc := λ x y z, begin
-    refine free_abelian_group.induction_on z rfl (λ L3, _) (λ L3 ih, _) (λ z₁ z₂ ih₁ ih₂, _),
-    { refine free_abelian_group.induction_on y rfl (λ L2, _) (λ L2 ih, _) (λ y₁ y₂ ih₁ ih₂, _),
-      { refine free_abelian_group.induction_on x rfl (λ L1, _) (λ L1 ih, _) (λ x₁ x₂ ih₁ ih₂, _),
+    refine free_abelian_group.induction_on z (by simp) (λ L3, _) (λ L3 ih, _) (λ z₁ z₂ ih₁ ih₂, _),
+    { refine free_abelian_group.induction_on y (by simp) (λ L2, _) (λ L2 ih, _)
+        (λ y₁ y₂ ih₁ ih₂, _),
+      { refine free_abelian_group.induction_on x (by simp) (λ L1, _) (λ L1 ih, _)
+          (λ x₁ x₂ ih₁ ih₂, _),
         { rw [of_mul_of, of_mul_of, of_mul_of, of_mul_of, mul_assoc] },
         { rw [neg_mul, neg_mul, neg_mul, ih] },
         { rw [add_mul, add_mul, add_mul, ih₁, ih₂] } },
@@ -388,10 +381,15 @@ instance : semigroup (free_abelian_group α) :=
       { rw [add_mul, mul_add, mul_add, add_mul, ih₁, ih₂] } },
     { rw [mul_neg, mul_neg, mul_neg, ih] },
     { rw [mul_add, mul_add, mul_add, ih₁, ih₂] }
-  end }
+  end,
+  .. free_abelian_group.non_unital_non_assoc_ring }
+
+section monoid
+
+variables {R : Type*} [monoid α] [ring R]
 
 instance : ring (free_abelian_group α) :=
-{ one := free_abelian_group.of 1,
+{ mul := (*),
   mul_one := λ x, begin
     unfold has_mul.mul semigroup.mul has_one.one,
     rw lift.of,
@@ -407,9 +405,7 @@ instance : ring (free_abelian_group α) :=
     { intros L ih, rw [(lift _).map_neg, ih] },
     { intros x1 x2 ih1 ih2, rw [(lift _).map_add, ih1, ih2] }
   end,
-  .. free_abelian_group.add_comm_group α,
-  .. free_abelian_group.semigroup α,
-  .. free_abelian_group.distrib }
+  .. free_abelian_group.non_unital_ring _, ..free_abelian_group.has_one _ }
 
 variable {α}
 

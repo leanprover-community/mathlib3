@@ -933,11 +933,11 @@ theorem fast_growing_def
 by { subst x, rw [fast_growing] }
 
 theorem fast_growing_zero' (o : onote) (h : fundamental_seq o = sum.inl none) :
-  fast_growing o = nat.succ := by rw [fast_growing_def h]; refl
+  fast_growing o = nat.succ := by { rw [fast_growing_def h], refl }
 theorem fast_growing_succ (o) {a} (h : fundamental_seq o = sum.inl (some a)) :
-  fast_growing o = λ i, ((fast_growing a)^[i] i) := by rw [fast_growing_def h]; refl
+  fast_growing o = λ i, ((fast_growing a)^[i] i) := by { rw [fast_growing_def h], refl }
 theorem fast_growing_limit (o) {f} (h : fundamental_seq o = sum.inr f) :
-  fast_growing o = λ i, fast_growing (f i) i := by rw [fast_growing_def h]; refl
+  fast_growing o = λ i, fast_growing (f i) i := by { rw [fast_growing_def h], refl }
 
 @[simp] theorem fast_growing_zero : fast_growing 0 = nat.succ := fast_growing_zero' _ rfl
 

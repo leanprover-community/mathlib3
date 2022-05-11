@@ -203,7 +203,7 @@ section nat
 @[simp, to_additive] theorem inv_pow (a : G) (n : ℕ) : (a⁻¹)^n = (a^n)⁻¹ :=
 begin
   induction n with n ih,
-  { rw [pow_zero, pow_zero, one_inv] },
+  { rw [pow_zero, pow_zero, inv_one] },
   { rw [pow_succ', pow_succ, ih, mul_inv_rev] }
 end
 
@@ -227,7 +227,7 @@ end nat
 @[to_additive zsmul_zero, simp]
 theorem one_zpow : ∀ (n : ℤ), (1 : G) ^ n = 1
 | (n : ℕ) := by rw [zpow_coe_nat, one_pow]
-| -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, one_inv]
+| -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, inv_one]
 
 @[simp, to_additive neg_zsmul]
 theorem zpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
@@ -364,6 +364,9 @@ variables [comm_semiring R]
 lemma add_sq (a b : R) : (a + b) ^ 2 = a ^ 2 + 2 * a * b + b ^ 2 :=
 by simp only [sq, add_mul_self_eq]
 
+lemma add_sq' (a b : R) : (a + b) ^ 2 = a ^ 2 + b ^ 2 + 2 * a * b :=
+by rw [add_sq, add_assoc, add_comm _ (b ^ 2), add_assoc]
+
 alias add_sq ← add_pow_two
 
 end comm_semiring
@@ -426,6 +429,9 @@ lemma sub_sq (a b : R) : (a - b) ^ 2 = a ^ 2 - 2 * a * b + b ^ 2 :=
 by rw [sub_eq_add_neg, add_sq, neg_sq, mul_neg, ← sub_eq_add_neg]
 
 alias sub_sq ← sub_pow_two
+
+lemma sub_sq' (a b : R) : (a - b) ^ 2 = a ^ 2 + b ^ 2 - 2 * a * b :=
+by rw [sub_eq_add_neg, add_sq', neg_sq, mul_neg, ← sub_eq_add_neg]
 
 /- Copies of the above comm_ring lemmas for `units R`. -/
 namespace units

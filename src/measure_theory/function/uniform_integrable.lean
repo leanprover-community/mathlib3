@@ -697,7 +697,7 @@ begin
     begin
       refine add_le_add_left _ _,
       rw [← ennreal.of_real_coe_nnreal, ← ennreal.of_real_mul (nnreal.coe_nonneg _),
-        ← div_div_eq_div_mul, mul_div_cancel' _ (nnreal.coe_pos.2 hCpos).ne.symm],
+        ← div_div, mul_div_cancel' _ (nnreal.coe_pos.2 hCpos).ne.symm],
       exact le_rfl,
     end
     ... ≤ ennreal.of_real ε :
@@ -809,7 +809,7 @@ begin
       ((hf i).nnnorm.measurable_set_lt strongly_measurable_const)))
       (strongly_measurable.ae_strongly_measurable ((hf i).indicator
       (strongly_measurable_const.measurable_set_le (hf i).nnnorm))) hp),
-    { rw [indicator, pi.add_apply],
+    { rw [pi.add_apply, indicator_apply],
       split_ifs with hx,
       { rw [indicator_of_not_mem, add_zero],
         simpa using hx },

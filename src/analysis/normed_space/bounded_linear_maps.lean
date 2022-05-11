@@ -51,13 +51,12 @@ artifact, really.
 noncomputable theory
 open_locale classical big_operators topological_space
 
-open filter (tendsto) metric
+open filter (tendsto) metric continuous_linear_map
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
           {E : Type*} [normed_group E] [normed_space 𝕜 E]
           {F : Type*} [normed_group F] [normed_space 𝕜 F]
           {G : Type*} [normed_group G] [normed_space 𝕜 G]
-
 
 /-- A function `f` satisfies `is_bounded_linear_map 𝕜 f` if it is linear and satisfies the
 inequality `∥f x∥ ≤ M * ∥x∥` for some positive constant `M`. -/
@@ -228,6 +227,57 @@ end
 
 section bilinear_map
 
+namespace continuous_linear_map
+
+/-! We prove some computation rules for continuous (semi-)bilinear maps in their first argument.
+  If `f` is a continuuous bilinear map, to use the corresponding rules for the second argument, use
+  `(f _).map_add` and similar.
+
+  We have to assume that `F` and `G` are normed spaces in this section, to use
+  `continuous_linear_map.to_normed_group`, but we don't need to assume this for the first argument
+  of `f`.
+-/
+
+variables {R : Type*}
+variables {𝕜₂ 𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [nondiscrete_normed_field 𝕜₂]
+variables {M : Type*} [topological_space M]
+variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
+variables {G' : Type*} [normed_group G'] [normed_space 𝕜₂ G'] [normed_space 𝕜' G']
+variables [smul_comm_class 𝕜₂ 𝕜' G']
+
+section semiring
+variables [semiring R] [add_comm_monoid M] [module R M] {ρ₁₂ : R →+* 𝕜'}
+
+lemma map_add₂ (f : M →SL[ρ₁₂] F →SL[σ₁₂] G') (x x' : M) (y : F) :
+  f (x + x') y = f x y + f x' y :=
+by rw [f.map_add, add_apply]
+
+lemma map_zero₂ (f : M →SL[ρ₁₂] F →SL[σ₁₂] G') (y : F) : f 0 y = 0 :=
+by rw [f.map_zero, zero_apply]
+
+lemma map_smulₛₗ₂ (f : M →SL[ρ₁₂] F →SL[σ₁₂] G') (c : R) (x : M) (y : F) :
+  f (c • x) y = ρ₁₂ c • f x y :=
+by rw [f.map_smulₛₗ, smul_apply]
+end semiring
+
+section ring
+
+variables [ring R] [add_comm_group M] [module R M] {ρ₁₂ : R →+* 𝕜'}
+
+lemma map_sub₂ (f : M →SL[ρ₁₂] F →SL[σ₁₂] G') (x x' : M) (y : F) :
+  f (x - x') y = f x y - f x' y :=
+by rw [f.map_sub, sub_apply]
+
+lemma map_neg₂ (f : M →SL[ρ₁₂] F →SL[σ₁₂] G') (x : M) (y : F) : f (- x) y = - f x y :=
+by rw [f.map_neg, neg_apply]
+
+end ring
+
+lemma map_smul₂ (f : E →L[𝕜] F →L[𝕜] G) (c : 𝕜) (x : E) (y : F) : f (c • x) y = c • f x y :=
+by rw [f.map_smul, smul_apply]
+
+end continuous_linear_map
+
 variable (𝕜)
 
 /-- A map `f : E × F → G` satisfies `is_bounded_bilinear_map 𝕜 f` if it is bilinear and
@@ -244,10 +294,10 @@ variable {f : E × F → G}
 
 lemma continuous_linear_map.is_bounded_bilinear_map (f : E →L[𝕜] F →L[𝕜] G) :
   is_bounded_bilinear_map 𝕜 (λ x : E × F, f x.1 x.2) :=
-{ add_left := λ x₁ x₂ y, by rw [f.map_add, continuous_linear_map.add_apply],
-  smul_left := λ c x y, by rw [f.map_smul _, continuous_linear_map.smul_apply],
+{ add_left := f.map_add₂,
+  smul_left := f.map_smul₂,
   add_right := λ x, (f x).map_add,
-  smul_right := λ c x y, (f x).map_smul c y,
+  smul_right := λ c x, (f x).map_smul c,
   bound := ⟨max ∥f∥ 1, zero_lt_one.trans_le (le_max_right _ _),
     λ x y, (f.le_op_norm₂ x y).trans $
       by apply_rules [mul_le_mul_of_nonneg_right, norm_nonneg, le_max_left]⟩ }
@@ -278,6 +328,7 @@ calc f (x, y - z) = f (x, y + (-1 : 𝕜) • z) : by simp [sub_eq_add_neg]
 ... = f (x, y) + (-1 : 𝕜) • f (x, z) : by simp only [h.add_right, h.smul_right]
 ... = f (x, y) - f (x, z) : by simp [sub_eq_add_neg]
 
+/-- Useful to use together with `continuous.comp₂`. -/
 lemma is_bounded_bilinear_map.continuous (h : is_bounded_bilinear_map 𝕜 f) :
   continuous f :=
 begin
@@ -316,6 +367,11 @@ h.continuous.comp (continuous_id.prod_mk continuous_const)
 lemma is_bounded_bilinear_map.continuous_right (h : is_bounded_bilinear_map 𝕜 f) {e₁ : E} :
   continuous (λe₂, f (e₁, e₂)) :=
 h.continuous.comp (continuous_const.prod_mk continuous_id)
+
+/-- Useful to use together with `continuous.comp₂`. -/
+lemma continuous_linear_map.continuous₂ (f : E →L[𝕜] F →L[𝕜] G) :
+  continuous (function.uncurry (λ x y, f x y)) :=
+f.is_bounded_bilinear_map.continuous
 
 lemma is_bounded_bilinear_map.is_bounded_linear_map_left (h : is_bounded_bilinear_map 𝕜 f) (y : F) :
   is_bounded_linear_map 𝕜 (λ x, f (x, y)) :=

@@ -274,7 +274,7 @@ variables [group G] [group H]
 lemma one_ker_inv {f : G → H} (hf : is_group_hom f) {a b : G} (h : f (a * b⁻¹) = 1) : f a = f b :=
 begin
   rw [hf.map_mul, hf.map_inv] at h,
-  rw [←inv_inv (f b), eq_inv_of_mul_eq_one h]
+  rw [←inv_inv (f b), eq_inv_of_mul_eq_one_left h]
 end
 
 @[to_additive]
@@ -282,7 +282,7 @@ lemma one_ker_inv' {f : G → H} (hf : is_group_hom f) {a b : G} (h : f (a⁻¹ 
 begin
   rw [hf.map_mul, hf.map_inv] at h,
   apply inv_injective,
-  rw eq_inv_of_mul_eq_one h
+  rw eq_inv_of_mul_eq_one_left h
 end
 
 @[to_additive]
@@ -352,7 +352,7 @@ begin
   intros a₁ a₂ hfa,
   simp [ext_iff, ker, is_subgroup.trivial] at h,
   have ha : a₁ * a₂⁻¹ = 1, by rw ←h; exact hf.inv_ker_one hfa,
-  rw [eq_inv_of_mul_eq_one ha, inv_inv a₂]
+  rw [eq_inv_of_mul_eq_one_left ha, inv_inv a₂]
 end
 
 @[to_additive]
@@ -447,7 +447,7 @@ in_closure.rec_on h
   (λ x _ ⟨L, HL1, HL2⟩, ⟨L.reverse.map has_inv.inv,
     λ x hx, let ⟨y, hy1, hy2⟩ := list.exists_of_mem_map hx in
       hy2 ▸ or.imp id (by rw [inv_inv]; exact id) (HL1 _ $ list.mem_reverse.1 hy1).symm,
-      HL2 ▸ list.rec_on L one_inv.symm (λ hd tl ih,
+      HL2 ▸ list.rec_on L inv_one.symm (λ hd tl ih,
         by rw [list.reverse_cons, list.map_append, list.prod_append, ih, list.map_singleton,
             list.prod_cons, list.prod_nil, mul_one, list.prod_cons, mul_inv_rev])⟩)
   (λ x y hx hy ⟨L1, HL1, HL2⟩ ⟨L2, HL3, HL4⟩, ⟨L1 ++ L2, list.forall_mem_append.2 ⟨HL1, HL3⟩,
@@ -489,7 +489,7 @@ set.subset.antisymm
       (λ x hx, or.cases_on hx (λ hx, monoid.subset_closure $ or.inr $
         show x⁻¹⁻¹ ∈ s, from (inv_inv x).symm ▸ hx)
         (λ hx, monoid.subset_closure $ or.inl hx))
-      ((@one_inv G _).symm ▸ is_submonoid.one_mem (monoid.closure.is_submonoid _))
+      ((@inv_one G _).symm ▸ is_submonoid.one_mem (monoid.closure.is_submonoid _))
       (λ x y hx hy ihx ihy,
         (mul_inv_rev x y).symm ▸ is_submonoid.mul_mem (monoid.closure.is_submonoid _) ihy ihx) }
     (set.subset.trans (set.subset_union_left _ _) monoid.subset_closure))

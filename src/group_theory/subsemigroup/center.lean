@@ -132,10 +132,12 @@ variables {M}
 
 @[to_additive] lemma mem_center_iff {z : M} : z ∈ center M ↔ ∀ g, g * z = z * g := iff.rfl
 
+@[to_additive]
 instance decidable_mem_center [decidable_eq M] [fintype M] : decidable_pred (∈ center M) :=
 λ _, decidable_of_iff' _ mem_center_iff
 
 /-- The center of a semigroup is commutative. -/
+@[to_additive "The center of an additive semigroup is commutative."]
 instance : comm_semigroup (center M) :=
 { mul_comm := λ a b, subtype.ext $ b.prop _,
   .. mul_mem_class.to_semigroup (center M) }
@@ -145,7 +147,7 @@ end
 section
 variables (M) [comm_semigroup M]
 
-@[simp] lemma center_eq_top : center M = ⊤ :=
+@[to_additive, simp] lemma center_eq_top : center M = ⊤ :=
 set_like.coe_injective (set.center_eq_univ M)
 
 end

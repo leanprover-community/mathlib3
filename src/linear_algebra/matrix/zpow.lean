@@ -31,8 +31,8 @@ variables {n' : Type*} [decidable_eq n'] [fintype n'] {R : Type*} [comm_ring R]
 local notation `M` := matrix n' n' R
 
 noncomputable instance : div_inv_monoid M :=
-{ ..(show monoid M, infer_instance),
-  ..(show has_inv M, infer_instance) }
+{ ..(infer_instance : monoid M),
+  ..(infer_instance : has_inv M) }
 
 section nat_pow
 

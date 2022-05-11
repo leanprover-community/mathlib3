@@ -386,10 +386,7 @@ theorem cInf_union (hs : bdd_below s) (sne : s.nonempty) (ht : bdd_below t) (tne
 set, if all sets are bounded above and nonempty.-/
 theorem cSup_inter_le (hs : bdd_above s) (ht : bdd_above t) (hst : (s ∩ t).nonempty) :
   Sup (s ∩ t) ≤ Sup s ⊓ Sup t :=
-cSup_le hst begin
-  simp only [le_inf_iff, and_imp, set.mem_inter_eq],
-  exact λ b hs' ht', ⟨le_cSup hs hs', le_cSup ht ht'⟩
-end
+cSup_le hst $ λ x hx, le_inf (le_cSup hs hx.1) (le_cSup ht hx.2)
 
 /--The infimum of an intersection of two sets is bounded below by the maximum of the
 infima of each set, if all sets are bounded below and nonempty.-/

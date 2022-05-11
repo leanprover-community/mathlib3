@@ -408,7 +408,7 @@ theorem is_fundamental_sequence_id_of_le_cof (h : o ≤ o.cof.ord) :
 
 theorem is_fundamental_sequence_zero {f : Π b < (0 : ordinal), ordinal} :
   is_fundamental_sequence 0 0 f :=
-⟨by rw [cof_zero, ord_zero], λ i j hi, (ordinal.not_lt_zero i hi).elim, blsub_zero rfl f⟩
+⟨by rw [cof_zero, ord_zero], λ i j hi, (ordinal.not_lt_zero i hi).elim, blsub_zero f⟩
 
 theorem is_fundamental_sequence_succ : is_fundamental_sequence o.succ 1 (λ _ _, o) :=
 begin

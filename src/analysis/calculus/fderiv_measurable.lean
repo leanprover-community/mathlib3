@@ -174,7 +174,7 @@ begin
     mul_nonneg (mul_nonneg (by norm_num : (0 : ℝ) ≤ 4) (norm_nonneg _)) hε.le,
   refine op_norm_le_of_shell (half_pos hr) this hc _,
   assume y ley ylt,
-  rw [div_div_eq_div_mul,
+  rw [div_div,
       div_le_iff' (mul_pos (by norm_num : (0 : ℝ) < 2) (zero_lt_one.trans hc))] at ley,
   calc ∥(L₁ - L₂) y∥
         = ∥(f (x + y) - f x - L₂ ((x + y) - x)) - (f (x + y) - f x - L₁ ((x + y) - x))∥ : by simp

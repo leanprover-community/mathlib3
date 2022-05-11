@@ -142,7 +142,7 @@ begin
   simp [hn],
 end
 
-lemma von_mangoldt_upper : ∀ {n : ℕ}, Λ n ≤ real.log (n : ℝ)
+lemma von_mangoldt_le_log : ∀ {n : ℕ}, Λ n ≤ real.log (n : ℝ)
 | 0 := by simp
 | (n+1) :=
   begin

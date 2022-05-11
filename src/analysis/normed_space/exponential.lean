@@ -110,6 +110,14 @@ begin
   simp [h]
 end
 
+@[simp] lemma exp_op [t2_space 𝔸] (x : 𝔸) :
+  exp 𝕂 (mul_opposite.op x) = mul_opposite.op (exp 𝕂 x) :=
+by simp_rw [exp, exp_series_sum_eq, ←mul_opposite.op_pow, ←mul_opposite.op_smul, tsum_op]
+
+@[simp] lemma exp_unop [t2_space 𝔸] (x : 𝔸ᵐᵒᵖ) :
+  exp 𝕂 (mul_opposite.unop x) = mul_opposite.unop (exp 𝕂 x) :=
+by simp_rw [exp, exp_series_sum_eq, ←mul_opposite.unop_pow, ←mul_opposite.unop_smul, tsum_unop]
+
 lemma star_exp [t2_space 𝔸] [star_ring 𝔸] [has_continuous_star 𝔸] (x : 𝔸) :
   star (exp 𝕂 x) = exp 𝕂 (star x) :=
 by simp_rw [exp_eq_tsum, ←star_pow, ←star_inv_nat_cast_smul, ←tsum_star]

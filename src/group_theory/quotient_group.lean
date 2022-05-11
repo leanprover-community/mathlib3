@@ -433,7 +433,7 @@ is the whole additive group."] lemma subgroup_eq_top_of_subsingleton (H : subgro
   (h : subsingleton (G ⧸ H)) : H = ⊤ :=
 top_unique $ λ x _,
   have this : 1⁻¹ * x ∈ H := quotient_group.eq.1 (subsingleton.elim _ _),
-  by rwa [one_inv, one_mul] at this
+  by rwa [inv_one, one_mul] at this
 
 end trivial
 

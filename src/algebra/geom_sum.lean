@@ -343,7 +343,7 @@ have h₂ : x⁻¹ - 1 ≠ 0, from mt sub_eq_zero.1 h₁,
 have h₃ : x - 1 ≠ 0, from mt sub_eq_zero.1 hx1,
 have h₄ : x * (x ^ n)⁻¹ = (x ^ n)⁻¹ * x :=
   nat.rec_on n (by simp)
-  (λ n h, by rw [pow_succ, mul_inv_rev₀, ←mul_assoc, h, mul_assoc, mul_inv_cancel hx0, mul_assoc,
+  (λ n h, by rw [pow_succ, mul_inv_rev, ←mul_assoc, h, mul_assoc, mul_inv_cancel hx0, mul_assoc,
     inv_mul_cancel hx0]),
 begin
   rw [geom_sum_eq h₁, div_eq_iff_mul_eq h₂, ← mul_right_inj' h₃,
@@ -467,7 +467,7 @@ begin
   { have := geom_sum_alternating_of_lt_neg_one hx k.one_lt_succ_succ,
     simp only [h, if_false] at this,
     exact zero_lt_one.trans this },
-  { simp only [eq_neg_of_add_eq_zero hx, h, neg_one_geom_sum, if_false, zero_lt_one] },
+  { simp only [eq_neg_of_add_eq_zero_left hx, h, neg_one_geom_sum, if_false, zero_lt_one] },
   rcases lt_trichotomy x 0 with hx' | rfl | hx',
   { exact (geom_sum_pos_and_lt_one hx' hx k.one_lt_succ_succ).1 },
   { simp only [zero_geom_sum, nat.succ_ne_zero, if_false, zero_lt_one] },

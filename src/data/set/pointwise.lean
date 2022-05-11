@@ -553,8 +553,6 @@ end big_operators
 
 open_locale pointwise
 
-open_locale pointwise
-
 /-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. -/
 protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (set α) := ⟨nsmul_rec⟩
 
@@ -578,7 +576,7 @@ multiplication/division!) of a `set`. -/
 by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev }
 
 protected lemma mul_inv_rev₀ [group_with_zero α] (s t : set α) : (s * t)⁻¹ = t⁻¹ * s⁻¹ :=
-by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev₀ }
+by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev }
 
 /-- `s / t = s * t⁻¹` for all `s t : set α` if `a / b = a * b⁻¹` for all `a b : α`. -/
 @[to_additive "`s - t = s + -t` for all `s t : set α` if `a - b = a + -b` for all `a b : α`."]

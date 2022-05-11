@@ -827,7 +827,6 @@ to 0, then its sum over `f : α →₀ M` is the same as adding the value on any
 lemma mul_prod_erase' (f : α →₀ M) (y : α) (g : α → M → N) (hg : ∀ (i : α), g i 0 = 1) :
   g y (f y) * (erase y f).prod g = f.prod g :=
 begin
-  classical,
   by_cases hyf : y ∈ f.support,
   { exact finsupp.mul_prod_erase f y g hyf },
   { rw [not_mem_support_iff.mp hyf, hg y, erase_of_not_mem_support hyf, one_mul] },

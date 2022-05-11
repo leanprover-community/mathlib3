@@ -1040,7 +1040,6 @@ card_le_one_iff.trans subsingleton_iff.symm
 
 lemma one_lt_card_iff_nontrivial : 1 < card α ↔ nontrivial α :=
 begin
-  classical,
   rw ←not_iff_not,
   push_neg,
   rw [not_nontrivial_iff_subsingleton, card_le_one_iff_subsingleton]
@@ -1925,7 +1924,7 @@ See also: `fintype.exists_ne_map_eq_of_card_lt`, `fintype.exists_infinite_fiber`
 lemma fintype.exists_ne_map_eq_of_infinite [infinite α] [fintype β] (f : α → β) :
   ∃ x y : α, x ≠ y ∧ f x = f y :=
 begin
-  classical, by_contra' hf,
+  by_contra' hf,
   apply not_injective_infinite_fintype f,
   intros x y, contrapose, apply hf,
 end

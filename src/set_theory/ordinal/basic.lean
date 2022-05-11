@@ -1124,7 +1124,7 @@ theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordi
 end, λ h, by simp_rw h⟩
 
 /-- The order isomorphism between ordinals less than `o` and `o.out.α`. -/
-@[simps] noncomputable def out_order_iso_lt (o : ordinal) : {o' : ordinal // o' < o} ≃o o.out.α :=
+@[simps] noncomputable def out_order_iso_lt (o : ordinal) : set.Iio o ≃o o.out.α :=
 { to_fun := λ ⟨o', h⟩, enum (<) o' (by rwa type_lt),
   inv_fun := λ x, ⟨typein (<) x, typein_lt_self x⟩,
   left_inv := λ ⟨o', h⟩, subtype.ext_val (typein_enum _ _),

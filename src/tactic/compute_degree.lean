@@ -21,6 +21,8 @@ See the corresponding doc-strings for more details.
   where the exponents get sorted and may make it accessible to continue with the rest of the
   argument with minimal change.
 * Add functionality to close `monic` goals and compute `leading_coeff`s.
+* Add support for proving goals of the from `f.nat_degree ≠ 0`.
+* Add support for `degree` (as opposed to just `nat_degree`).
 
 ##  Implementation details
 

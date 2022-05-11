@@ -73,8 +73,8 @@ by compute_degree_le
 
 /-  fails with error message `should the degree bound be '10'?`
 example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +
-  C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X : R[X]) ≤ 9 :=
-by compute_degree_le
+  C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X : R[X]) = 9 :=
+by compute_degree
 --/
 
 example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +

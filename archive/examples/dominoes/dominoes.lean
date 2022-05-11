@@ -56,7 +56,7 @@ begin
     -- The first goal must just specifiy the value of our invariant on the empty set;
     -- it's not useful by itself.
     rotate,
-    -- The BIG IDEA:
+    -- The first BIG IDEA:
     -- Our condition says something about the value of our invariant on a union of sets,
     -- so let's try something *additive*.
     -- (Note this idea would be slightly smaller if we could easily see this condition
@@ -105,35 +105,42 @@ begin
   work_on_goal 1 {
     -- Discard irrelevancies:
     clear_dependent a h_s,
+    -- And tidy up a litte:
     rcases h_x with ⟨x, y⟩,
     simp only [prod.mk_add_mk, add_zero],
     rw add_eq_zero_iff_neg_eq,
     symmetry,
+    -- The second BIG IDEA:
     -- This looks really good! If we were defining our function on `ℕ × ℕ` by induction,
     -- we'd see this was determining values!
     -- Let's do the same work on the vertical condition, first.
   },
   work_on_goal 2 {
-    -- Discard irrelevancies:
+    -- Just as before:
     clear_dependent a h_s,
     rcases h_x with ⟨x, y⟩,
     simp only [prod.mk_add_mk, add_zero],
     rw add_eq_zero_iff_neg_eq,
     symmetry,
   },
-  -- Now specify that our valuation function has the desired form.
+  -- Now specify that our valuation function has the desired form,
+  -- i.e. it is obtained by iterating some function in one direction,
+  -- and another function in the other direction.
   work_on_goal 3 {
     apply iterate₂,
   },
   work_on_goal 1 {
-    simp, -- Discharged! Notice this is automatically solving for metavariables.
+    simp,
+    -- We discharged the goal! Notice this is automatically solving for metavariables,
+    -- fixing the function in the vertical direction as `has_neg.neg`.
   },
   work_on_goal 1 {
     simp,
+    -- Similarly for the horizontal direction.
   },
   -- Discharge the proof obligation --a = --a:
   work_on_goal 2 { intros, refl, },
-  -- Cheating for now, and guess we should use 1 at the base square:
+  -- Let's cheating for now, and guess we should use 1 at the base square:
   work_on_goal 1 { exact 1, },
   { -- After that, it's "just" a calculation,
     -- which we'll do for the sake of having a complete proof,

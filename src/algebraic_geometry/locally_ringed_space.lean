@@ -155,9 +155,8 @@ subtype.mk f $ λ x,
 -- Here we need to see that the stalk maps are really local ring homomorphisms.
 -- This can be solved by type class inference, because stalk maps of isomorphisms are isomorphisms
 -- and isomorphisms are local ring homomorphisms.
-show is_local_ring_hom (PresheafedSpace.stalk_map
-  (SheafedSpace.forget_to_PresheafedSpace.map f) x),
-infer_instance
+(infer_instance : is_local_ring_hom (PresheafedSpace.stalk_map
+  (SheafedSpace.forget_to_PresheafedSpace.map f) x))
 
 /--
 Given two locally ringed spaces `X` and `Y`, an isomorphism between `X` and `Y` as _sheafed_

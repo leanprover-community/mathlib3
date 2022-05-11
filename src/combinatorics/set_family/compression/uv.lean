@@ -49,23 +49,11 @@ compression, UV-compression, shadow
 section generalized_boolean_algebra
 variables {α : Type*} [generalized_boolean_algebra α] {x y z : α}
 
-lemma eq_of_sdiff_eq_sdiff (hxz : x ≤ z) (hyz : y ≤ z) (h : z \ x = z \ y) : x = y :=
-by rw [←sdiff_sdiff_eq_self hxz, h, sdiff_sdiff_eq_self hyz]
-
-lemma sdiff_sdiff_le : x \ (x \ y) ≤ y := sdiff_le_iff.2 le_sdiff_sup
-
 lemma disjoint.le_sdiff_of_sup_le_left (hxz : disjoint x z) (h : z ⊔ x ≤ y) : x ≤ y \ z :=
 hxz.symm.sup_sdiff_cancel_left.ge.trans (sdiff_le_sdiff_right h)
 
 lemma inf_sdiff_left_comm : x \ z ⊓ y = (x ⊓ y) \ z :=
 by rw [@inf_comm _ _ x, inf_comm, inf_sdiff_assoc]
-
-lemma sdiff_sup_sdiff_cancel (hyx : y ≤ x) (hzy : z ≤ y) : x \ y ⊔ y \ z = x \ z :=
-by rw [←sup_sdiff_inf (x \ z) y, sdiff_sdiff_left, sup_eq_right.2 hzy, inf_sdiff_left_comm,
-  inf_eq_right.2 hyx]
-
-lemma sdiff_sdiff_eq_sdiff_sup (h : z ≤ x) : x \ (y \ z) = x \ y ⊔ z :=
-by rw [sdiff_sdiff_right', inf_eq_right.2 h]
 
 end generalized_boolean_algebra
 

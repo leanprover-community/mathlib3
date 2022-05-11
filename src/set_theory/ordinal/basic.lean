@@ -1099,8 +1099,9 @@ by { rw typein_le_typein, exact not_lt }
   (ho : o < type r) (ho' : o' < type r) : ¬r (enum r o' ho') (enum r o ho) ↔ o ≤ o' :=
 by rw [←@not_lt _ _ o' o, enum_lt_enum ho']
 
-@[simp] lemma enum_le_enum' (a : ordinal) {o o' : ordinal} (ho : o < a) (ho' : o' < a) :
-  @enum a.out.α (<) _ o (by rwa type_lt) ≤ @enum a.out.α (<) _ o' (by rwa type_lt) ↔ o ≤ o' :=
+@[simp] lemma enum_le_enum' (a : ordinal) {o o' : ordinal}
+  (ho : o < type (<)) (ho' : o' < type (<)) :
+  @enum a.out.α (<) _ o ho ≤ @enum a.out.α (<) _ o' ho' ↔ o ≤ o' :=
 by rw [←enum_le_enum (<), ←not_lt]
 
 theorem enum_zero_le {r : α → α → Prop} [is_well_order α r] (h0 : 0 < type r) (a : α) :
@@ -1113,12 +1114,7 @@ by { rw ←not_lt, apply enum_zero_le }
 
 theorem le_enum_succ {o : ordinal} (a : o.succ.out.α) :
   a ≤ @enum o.succ.out.α (<) _ o (by { rw type_lt, exact lt_succ_self o }) :=
-begin
-  rw ←enum_typein (<) a,
-  apply (enum_le_enum' o.succ _ _).2,
-  rw ←lt_succ,
-  all_goals { apply typein_lt_self }
-end
+by { rw [←enum_typein (<) a, enum_le_enum', ←lt_succ], apply typein_lt_self }
 
 theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordinal} (h₁ : o₁ < type r)
   (h₂ : o₂ < type r) : enum r o₁ h₁ = enum r o₂ h₂ ↔ o₁ = o₂ :=

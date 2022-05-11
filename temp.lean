@@ -18,6 +18,7 @@
 `multiset.prod_map_inv`/`multiset.prod_map_inv₀` → `multiset.prod_map_inv`
 `multiset.prod_map_div`/`multiset.prod_map_div₀` → `multiset.prod_map_div`
 `multiset.prod_map_zpow`/`multiset.prod_map_zpow₀` → `multiset.prod_map_zpow`
+`finset.prod_inv_distrib`/`finset.prod_inv_distrib'` → `finset.prod_inv_distrib`
 `finprod_inv_distrib`/`finprod_inv_distrib₀` → `finprod_inv_distrib`
 `finprod_div_distrib`/`finprod_div_distrib₀` → `finprod_div_distrib`
 `finprod_mem_inv_distrib`/`finprod_mem_inv_distrib₀` → `finprod_mem_inv_distrib`

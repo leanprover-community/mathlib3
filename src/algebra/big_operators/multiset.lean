@@ -205,13 +205,11 @@ end comm_monoid_with_zero
 section division_comm_monoid
 variables [division_comm_monoid α] {m : multiset ι} {f g : ι → α}
 
-@[simp, to_additive]
-lemma prod_map_inv' : (m.map $ λ i, (f i)⁻¹).prod = (m.map f).prod ⁻¹ :=
-by { convert (m.map f).prod_hom (inv_monoid_hom : α →* α), rw map_map, refl }
-
-@[simp, to_additive]
-lemma prod_map_inv (m : multiset α) : (m.map has_inv.inv).prod = m.prod⁻¹ :=
+@[simp, to_additive] lemma prod_map_inv' (m : multiset α) : (m.map has_inv.inv).prod = m.prod⁻¹ :=
 m.prod_hom (inv_monoid_hom : α →* α)
+
+@[simp, to_additive] lemma prod_map_inv : (m.map $ λ i, (f i)⁻¹).prod = (m.map f).prod ⁻¹ :=
+by { convert (m.map f).prod_map_inv', rw map_map }
 
 @[simp, to_additive]
 lemma prod_map_div : (m.map $ λ i, f i / g i).prod = (m.map f).prod / (m.map g).prod :=

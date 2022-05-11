@@ -72,7 +72,7 @@ begin
   { funext,
     have h : ∏ (i : ℕ) in range k, ((2:ℝ) * ↑i + 2) / (2 * ↑i + 1) =
       1 / (∏ (i : ℕ) in range k, (2 * ↑i + 1) / (2 * ↑i + 2)),
-    { rw [one_div, ← finset.prod_inv_distrib'],
+    { rw [one_div, ← finset.prod_inv_distrib],
       refine prod_congr rfl (λ x hx, _),
       field_simp },
     rw [prod_mul_distrib, h],

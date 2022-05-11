@@ -56,30 +56,6 @@ pointwise subtraction
 
 open function
 
-namespace set
-variables {α α' β β' γ γ' δ δ' ε ε' : Type*} {f f' : α → β → γ} {g g' : α → β → γ → δ}
-variables {s s' : set α} {t t' : set β} {u u' : set γ} {a a' : α} {b b' : β} {c c' : γ} {d d' : δ}
-
-lemma image2_distrib_subset_left {f : α → δ → ε} {g : β → γ → δ} {f₁ : α → β → β'} {f₂ : α → γ → γ'}
-  {g' : β' → γ' → ε} (h_distrib : ∀ a b c, f a (g b c) = g' (f₁ a b) (f₂ a c)) :
-  image2 f s (image2 g t u) ⊆ image2 g' (image2 f₁ s t) (image2 f₂ s u) :=
-begin
-  rintro _ ⟨a, _, ha, ⟨b, c, hb, hc, rfl⟩, rfl⟩,
-  rw h_distrib,
-  exact mem_image2_of_mem (mem_image2_of_mem ha hb) (mem_image2_of_mem ha hc),
-end
-
-lemma image2_distrib_subset_right {f : δ → γ → ε} {g : α → β → δ} {f₁ : α → γ → α'}
-  {f₂ : β → γ → β'} {g' : α' → β' → ε} (h_distrib : ∀ a b c, f (g a b) c = g' (f₁ a c) (f₂ b c)) :
-  image2 f (image2 g s t) u ⊆ image2 g' (image2 f₁ s u) (image2 f₂ t u) :=
-begin
-  rintro _ ⟨_, c, ⟨a, b, ha, hb, rfl⟩, hc, rfl⟩,
-  rw h_distrib,
-  exact mem_image2_of_mem (mem_image2_of_mem ha hc) (mem_image2_of_mem hb hc),
-end
-
-end set
-
 variables {F α β γ : Type*}
 
 namespace set

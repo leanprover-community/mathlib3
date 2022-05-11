@@ -113,7 +113,7 @@ section group_with_zero
 variables [group_with_zero R] [star_semigroup R]
 
 @[norm_cast] lemma coe_inv (U : unitary R) : ↑(U⁻¹) = (U⁻¹ : R) :=
-eq_inv_of_mul_right_eq_one (coe_mul_star_self _)
+eq_inv_of_mul_eq_one_right $ coe_mul_star_self _
 
 @[norm_cast] lemma coe_div (U₁ U₂ : unitary R) : ↑(U₁ / U₂) = (U₁ / U₂ : R) :=
 by simp only [div_eq_mul_inv, coe_inv, submonoid.coe_mul]

@@ -32,12 +32,12 @@ namespace submonoid
 noncomputable instance [monoid M] : group (is_unit.submonoid M) :=
 { inv := λ x, ⟨_, (x.prop.unit⁻¹).is_unit⟩,
   mul_left_inv := λ x, subtype.eq x.prop.unit.inv_val,
- ..(show monoid (is_unit.submonoid M), infer_instance) }
+ ..(infer_instance : monoid (is_unit.submonoid M)) }
 
 @[to_additive]
 noncomputable instance [comm_monoid M] : comm_group (is_unit.submonoid M) :=
 { mul_comm := λ a b, mul_comm a b,
- ..(show group (is_unit.submonoid M), infer_instance) }
+ ..(infer_instance : group (is_unit.submonoid M)) }
 
 @[to_additive] lemma is_unit.submonoid.coe_inv [monoid M] (x : is_unit.submonoid M) :
   ↑(x⁻¹) = (↑x.prop.unit⁻¹ : M) := rfl

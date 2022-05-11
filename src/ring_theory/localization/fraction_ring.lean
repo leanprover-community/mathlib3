@@ -126,7 +126,7 @@ noncomputable def to_field : field K :=
   mul_inv_cancel := is_fraction_ring.mul_inv_cancel A,
   inv_zero := dif_pos rfl,
   .. is_fraction_ring.is_domain A,
-  .. show comm_ring K, infer_instance }
+  .. (infer_instance : comm_ring K) }
 
 end comm_ring
 

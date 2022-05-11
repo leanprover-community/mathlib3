@@ -453,7 +453,7 @@ protected def boolean_algebra {α} [decidable_eq α] [lattice α] [bounded_order
         split_ifs with h h;
         simpa [h] }
     end,
-  .. (show bounded_order α, infer_instance),
+  .. (infer_instance : bounded_order α),
   .. is_simple_order.distrib_lattice }
 
 end decidable_eq

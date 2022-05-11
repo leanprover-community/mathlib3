@@ -313,7 +313,7 @@ variables {α : Type*} [topological_space α] [comm_ring α] (N : ideal α)
 open ideal.quotient
 
 instance topological_ring_quotient_topology : topological_space (α ⧸ N) :=
-show topological_space (quotient _), infer_instance
+(infer_instance : topological_space (quotient _))
 
 -- note for the reader: in the following, `mk` is `ideal.quotient.mk`, the canonical map `R → R/I`.
 

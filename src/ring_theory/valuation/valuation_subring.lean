@@ -77,8 +77,7 @@ instance : valuation_ring A :=
       use ⟨b/a,hh⟩, left, ext, field_simp, ring },
   end }
 
-instance : algebra A K :=
-show algebra A.to_subring K, infer_instance
+instance : algebra A K := (infer_instance : algebra A.to_subring K)
 
 @[simp]
 lemma algebra_map_apply (a : A) : algebra_map A K a = a := rfl

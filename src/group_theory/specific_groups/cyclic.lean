@@ -456,7 +456,7 @@ calc a * b = y ^ m * ((y ^ (-m) * a) * y ^ n) * (y ^ (-n) * b) : by simp [mul_as
 def comm_group_of_cycle_center_quotient [is_cyclic H] (f : G →* H)
   (hf : f.ker ≤ center G) : comm_group G :=
 { mul_comm := commutative_of_cyclic_center_quotient f hf,
-  ..show group G, infer_instance }
+  ..(infer_instance : group G) }
 
 end quotient_center
 

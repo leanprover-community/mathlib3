@@ -857,10 +857,10 @@ begin
     simp only [fundamental_seq, fundamental_seq_prop]; rw [e, fundamental_seq_prop] at ihb,
   { rcases e : a.fundamental_seq with ⟨_|a'⟩|f; cases e' : m.nat_pred with m';
       simp only [fundamental_seq, fundamental_seq_prop]; rw [e, fundamental_seq_prop] at iha;
-      try { rw show m = 1, by {
-        have := pnat.nat_pred_add_one m, rw [e'] at this, exact pnat.coe_inj.1 this.symm } };
-      try { rw show m = m'.succ.succ_pnat, by {
-        rw [← e', ← pnat.coe_inj, nat.succ_pnat_coe, ← nat.add_one, pnat.nat_pred_add_one] } };
+      try { rw show m = 1,
+        { have := pnat.nat_pred_add_one m, rw [e'] at this, exact pnat.coe_inj.1 this.symm } };
+      try { rw show m = m'.succ.succ_pnat,
+        { rw [← e', ← pnat.coe_inj, nat.succ_pnat_coe, ← nat.add_one, pnat.nat_pred_add_one] } };
       simp only [repr, iha, ihb, opow_lt_opow_iff_right one_lt_omega,
         add_lt_add_iff_left, add_zero, coe_coe, eq_self_iff_true, lt_add_iff_pos_right,
         lt_def, mul_one, nat.cast_zero, nat.cast_succ, nat.succ_pnat_coe, opow_succ,
@@ -919,8 +919,8 @@ def fast_growing : onote → ℕ → ℕ
     λ i, (fast_growing a)^[i] i
   | sum.inr f, h := λ i, have f i < o, from (h.2.1 i).2.1, fast_growing (f i) i
   end
-using_well_founded {
-  rel_tac := λ _ _, `[exact ⟨_, inv_image.wf repr ordinal.wf⟩],
+using_well_founded
+{ rel_tac := λ _ _, `[exact ⟨_, inv_image.wf repr ordinal.wf⟩],
   dec_tac := `[assumption] }
 
 /-- We can extend the fast growing hierarchy one more step to `ε₀` itself,

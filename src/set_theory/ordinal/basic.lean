@@ -695,7 +695,7 @@ def typein_iso (r : α → α → Prop) [is_well_order α r] : r ≃r subrel (<)
  λ ⟨y, hy⟩, subtype.eq (typein_enum r hy)⟩,
   λ a b, (typein_lt_typein r)⟩
 
-@[simp] theorem enum_lt_enum {r : α → α → Prop} [is_well_order α r]
+theorem enum_lt_enum {r : α → α → Prop} [is_well_order α r]
   {o₁ o₂ : ordinal} (h₁ : o₁ < type r) (h₂ : o₂ < type r) :
   r (enum r o₁ h₁) (enum r o₂ h₂) ↔ o₁ < o₂ :=
 by rw [← typein_lt_typein r, typein_enum, typein_enum]
@@ -1100,8 +1100,7 @@ by { rw typein_le_typein, exact not_lt }
 by rw [←@not_lt _ _ o' o, enum_lt_enum ho']
 
 @[simp] lemma enum_le_enum' (a : ordinal) {o o' : ordinal}
-  (ho : o < type (<)) (ho' : o' < type (<)) :
-  @enum a.out.α (<) _ o ho ≤ @enum a.out.α (<) _ o' ho' ↔ o ≤ o' :=
+  (ho : o < type (<)) (ho' : o' < type (<)) : enum (<) o ho ≤ @enum a.out.α (<) _ o' ho' ↔ o ≤ o' :=
 by rw [←enum_le_enum (<), ←not_lt]
 
 theorem enum_zero_le {r : α → α → Prop} [is_well_order α r] (h0 : 0 < type r) (a : α) :

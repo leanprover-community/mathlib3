@@ -301,6 +301,40 @@ le_antisymm
 
 open_locale nat -- use φ for nat.totient
 
+
+private lemma card_order_of_eq_totient_aux₁ :
+  ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →
+  (univ.filter (λ a : α, order_of a = d)).card = φ d :=
+begin
+  intros d hd,
+  rcases d.eq_zero_or_pos with rfl | hd0, {
+    exfalso,
+    simp at hd,
+
+
+    haveI : nonempty α, { sorry },
+
+    have h1 := fintype.card_eq_zero_equiv_equiv_empty hd,
+
+
+
+    -- have h2 := @nonempty_of_exists _,
+    -- refine nonempty_empty _,
+    refine nonempty_empty (nonempty_of_exists _),
+
+
+
+    haveI : nonempty α, {
+
+      sorry },
+
+
+    -- cases hd,
+    sorry },
+  sorry,
+end
+
+
 private lemma card_order_of_eq_totient_aux₁ :
   ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →
   (univ.filter (λ a : α, order_of a = d)).card = φ d

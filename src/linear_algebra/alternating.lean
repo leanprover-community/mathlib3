@@ -443,9 +443,8 @@ lemma map_add_swap {i j : ι} (hij : i ≠ j) :
   f v + f (v ∘ equiv.swap i j) = 0 :=
 by { rw add_comm, exact f.map_swap_add v hij }
 
-lemma map_swap {i j : ι} (hij : i ≠ j) :
-  g (v ∘ equiv.swap i j) = - g v  :=
-eq_neg_of_add_eq_zero (g.map_swap_add v hij)
+lemma map_swap {i j : ι} (hij : i ≠ j) : g (v ∘ equiv.swap i j) = - g v :=
+eq_neg_of_add_eq_zero_left $ g.map_swap_add v hij
 
 lemma map_perm [fintype ι] (v : ι → M) (σ : equiv.perm ι) :
   g (v ∘ σ) = σ.sign • g v :=

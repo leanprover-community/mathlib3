@@ -270,7 +270,7 @@ end add_comm_monoid
 section add_comm_group
 variables [add_comm_group E] [module 𝕜 E] {x y : E}
 
-lemma star_convex.sub {s : set (E × E)} (hs : star_convex 𝕜 (x, y) s) :
+lemma star_convex.sub' {s : set (E × E)} (hs : star_convex 𝕜 (x, y) s) :
   star_convex 𝕜 (x - y) ((λ x : E × E, x.1 - x.2) '' s) :=
 hs.is_linear_image is_linear_map.is_linear_map_sub
 
@@ -319,7 +319,7 @@ end
 end add_comm_monoid
 
 section add_comm_group
-variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {x y : E} {s : set E}
+variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {x y : E} {s t : set E}
 
 lemma star_convex.add_smul_mem (hs : star_convex 𝕜 x s) (hy : x + y ∈ s) {t : 𝕜} (ht₀ : 0 ≤ t)
   (ht₁ : t ≤ 1) :
@@ -363,11 +363,12 @@ begin
   rw [convex.combo_affine_apply hab, hy'f],
 end
 
-lemma star_convex.neg (hs : star_convex 𝕜 x s) : star_convex 𝕜 (-x) ((λ z, -z) '' s) :=
-hs.is_linear_image is_linear_map.is_linear_map_neg
+lemma star_convex.neg (hs : star_convex 𝕜 x s) : star_convex 𝕜 (-x) (-s) :=
+by { rw ←image_neg, exact hs.is_linear_image is_linear_map.is_linear_map_neg }
 
-lemma star_convex.neg_preimage (hs : star_convex 𝕜 (-x) s) : star_convex 𝕜 x ((λ z, -z) ⁻¹' s) :=
-hs.is_linear_preimage is_linear_map.is_linear_map_neg
+lemma star_convex.sub (hs : star_convex 𝕜 x s) (ht : star_convex 𝕜 y t) :
+  star_convex 𝕜 (x - y) (s - t) :=
+by { simp_rw sub_eq_add_neg, exact hs.add ht.neg }
 
 end add_comm_group
 end ordered_ring

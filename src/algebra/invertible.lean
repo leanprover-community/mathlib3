@@ -97,8 +97,8 @@ left_inv_eq_right_inv (inv_of_mul_self _) hac
 lemma inv_of_eq_left_inv [monoid α] {a b : α} [invertible a] (hac : b * a = 1) : ⅟a = b :=
 (left_inv_eq_right_inv hac (mul_inv_of_self _)).symm
 
-lemma invertible_unique {α : Type u} [monoid α] (a b : α) (h : a = b)
-  [invertible a] [invertible b] :
+lemma invertible_unique {α : Type u} [monoid α] (a b : α) [invertible a] [invertible b]
+  (h : a = b) :
   ⅟a = ⅟b :=
 by { apply inv_of_eq_right_inv, rw [h, mul_inv_of_self], }
 
@@ -177,9 +177,13 @@ by simp only [←two_mul, mul_inv_of_self]
 instance invertible_inv_of [has_one α] [has_mul α] {a : α} [invertible a] : invertible (⅟a) :=
 ⟨ a, mul_inv_of_self a, inv_of_mul_self a ⟩
 
-@[simp] lemma inv_of_inv_of [monoid α] {a : α} [invertible a] [invertible (⅟a)] :
+@[simp] lemma inv_of_inv_of [monoid α] (a : α) [invertible a] [invertible (⅟a)] :
   ⅟(⅟a) = a :=
 inv_of_eq_right_inv (inv_of_mul_self _)
+
+@[simp] lemma inv_of_inj [monoid α] {a b : α} [invertible a] [invertible b] :
+  ⅟ a = ⅟ b ↔ a = b :=
+⟨invertible_unique _ _, invertible_unique _ _⟩
 
 /-- `⅟b * ⅟a` is the inverse of `a * b` -/
 def invertible_mul [monoid α] (a b : α) [invertible a] [invertible b] : invertible (a * b) :=

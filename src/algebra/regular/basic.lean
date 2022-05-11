@@ -241,6 +241,18 @@ lemma not_is_regular_zero [nontrivial R] : ¬ is_regular (0 : R) :=
 
 end mul_zero_class
 
+section mul_one_class
+
+variable [mul_one_class R]
+
+/--  If multiplying by `1` on either side is the identity, `1` is regular. -/
+@[to_additive "If adding `0` on either side is the identity, `0` is regular."]
+lemma is_regular_one : is_regular (1 : R) :=
+⟨λ a b ab, (one_mul a).symm.trans (eq.trans ab (one_mul b)),
+  λ a b ab, (mul_one a).symm.trans (eq.trans ab (mul_one b))⟩
+
+end mul_one_class
+
 section comm_semigroup
 
 variable [comm_semigroup R]
@@ -258,12 +270,6 @@ end comm_semigroup
 section monoid
 
 variables [monoid R]
-
-/--  In a monoid, `1` is regular. -/
-@[to_additive "In an additive monoid, `0` is regular."]
-lemma is_regular_one : is_regular (1 : R) :=
-⟨λ a b ab, (one_mul a).symm.trans (eq.trans ab (one_mul b)),
-  λ a b ab, (mul_one a).symm.trans (eq.trans ab (mul_one b))⟩
 
 /-- An element admitting a left inverse is left-regular. -/
 @[to_additive "An element admitting a left additive opposite is add-left-regular."]

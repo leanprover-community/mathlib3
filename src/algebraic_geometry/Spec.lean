@@ -250,8 +250,9 @@ begin
   apply_instance,
   apply_with is_iso.comp_is_iso { instances := ff },
   /- I do not know why this is defeq to the goal, but I'm happy to accept that it is. -/
-  exact (show is_iso (is_localization.localization_localization_at_prime_iso_localization
-    M x.as_ideal).to_ring_equiv.to_CommRing_iso.hom, infer_instance),
+  exact (infer_instance :
+    is_iso (is_localization.localization_localization_at_prime_iso_localization
+    M x.as_ideal).to_ring_equiv.to_CommRing_iso.hom),
   apply_instance
 end
 

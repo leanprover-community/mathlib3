@@ -53,7 +53,7 @@ begin
   convert complete_lattice.Sup_continuous' (set_of ⁻¹' s) _,
   { ext1 x,
     simp only [Sup_apply, set_of_bijective.surjective.exists, exists_prop, mem_preimage,
-      set_coe.exists, supr_Prop_eq, mem_set_of_eq, subtype.coe_mk] },
+      set_coe.exists, supr_Prop_eq, mem_set_of_eq, subtype.coe_mk, mem_sUnion] },
   { intros p hp,
     convert hs (set_of p) (mem_preimage.1 hp),
     simp only [mem_set_of_eq] },

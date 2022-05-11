@@ -965,9 +965,9 @@ begin
   filter_upwards with x using by simp [exp_neg, inv_div, div_eq_mul_inv _ (exp _)]
 end
 
-open asymptotics
+namespace asymptotics
 
-lemma asymptotics.is_O_with.rpow
+lemma is_O_with.rpow
   {α : Type*} {r c : ℝ} {l : filter α} {f g : α → ℝ} (h : is_O_with c f g l)
   (hc : 0 ≤ c) (hr : 0 ≤ r) (hf : 0 ≤ᶠ[l] f) (hg : 0 ≤ᶠ[l] g)  :
   is_O_with (c ^ r) (λ x, f x ^ r) (λ x, g x ^ r) l :=
@@ -978,17 +978,21 @@ begin
   exact (rpow_le_rpow (norm_nonneg _) hx hr).trans_eq (mul_rpow hc (norm_nonneg _)),
 end
 
-lemma asymptotics.is_O.rpow {α : Type*} {r : ℝ} {l : filter α} {f g : α → ℝ} (hr : 0 ≤ r)
+lemma is_O.rpow {α : Type*} {r : ℝ} {l : filter α} {f g : α → ℝ} (hr : 0 ≤ r)
   (hf : 0 ≤ᶠ[l] f) (hg : 0 ≤ᶠ[l] g) (h : is_O f g l) :
   is_O (λ x, f x ^ r) (λ x, g x ^ r) l :=
 let ⟨c, hc, h'⟩ := h.exists_nonneg in (h'.rpow hc hr hf hg).is_O
 
-lemma asymptotics.is_o.rpow {α : Type*} {r : ℝ} {l : filter α} {f g : α → ℝ} (hr : 0 < r)
+lemma is_o.rpow {α : Type*} {r : ℝ} {l : filter α} {f g : α → ℝ} (hr : 0 < r)
   (hf : 0 ≤ᶠ[l] f) (hg : 0 ≤ᶠ[l] g) (h : is_o f g l) :
   is_o (λ x, f x ^ r) (λ x, g x ^ r) l :=
 is_o.of_is_O_with $ λ c hc, ((h.forall_is_O_with (rpow_pos_of_pos hc r⁻¹)).rpow
   (rpow_nonneg_of_nonneg hc.le _) hr.le hf hg).congr_const
     (by rw [←rpow_mul hc.le, inv_mul_cancel hr.ne', rpow_one])
+
+end asymptotics
+
+open asymptotics
 
 /-- `x ^ s = o(exp(b * x))` as `x → ∞` for any real `s` and positive `b`. -/
 lemma is_o_rpow_exp_pos_mul_at_top (s : ℝ) {b : ℝ} (hb : 0 < b) :

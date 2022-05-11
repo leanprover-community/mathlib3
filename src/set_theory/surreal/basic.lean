@@ -187,10 +187,6 @@ theorem numeric_nat : Π (n : ℕ), numeric n
 | 0 := numeric_zero
 | (n + 1) := (numeric_nat n).add numeric_one
 
-/-- The pre-game omega is numeric. -/
-theorem numeric_omega : numeric omega :=
-⟨by rintros ⟨⟩ ⟨⟩, λ i, numeric_nat i.down, by rintros ⟨⟩⟩
-
 /-- The pre-game `half` is numeric. -/
 theorem numeric_half : numeric half :=
 begin

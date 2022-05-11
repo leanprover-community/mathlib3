@@ -1760,6 +1760,10 @@ protected lemma id {m0 : measurable_space α} (μ : measure α) : quasi_measure_
 
 variables {μa μa' : measure α} {μb μb' : measure β} {μc : measure γ} {f : α → β}
 
+protected lemma _root_.measurable.quasi_measure_preserving {m0 : measurable_space α}
+  (hf : measurable f) (μ : measure α) : quasi_measure_preserving f μ (μ.map f) :=
+⟨hf, absolutely_continuous.rfl⟩
+
 lemma mono_left (h : quasi_measure_preserving f μa μb)
   (ha : μa' ≪ μa) : quasi_measure_preserving f μa' μb :=
 ⟨h.1, (ha.map h.1).trans h.2⟩
@@ -2046,8 +2050,7 @@ variables [partial_order α] {a b : α}
 lemma Iio_ae_eq_Iic' (ha : μ {a} = 0) : Iio a =ᵐ[μ] Iic a :=
 by rw [←Iic_diff_right, diff_ae_eq_self, measure_mono_null (set.inter_subset_right _ _) ha]
 
-lemma Ioi_ae_eq_Ici' (ha : μ {a} = 0) : Ioi a =ᵐ[μ] Ici a :=
-@Iio_ae_eq_Iic' (order_dual α) ‹_› ‹_› _ _ ha
+lemma Ioi_ae_eq_Ici' (ha : μ {a} = 0) : Ioi a =ᵐ[μ] Ici a := @Iio_ae_eq_Iic' αᵒᵈ ‹_› ‹_› _ _ ha
 
 lemma Ioo_ae_eq_Ioc' (hb : μ {b} = 0) : Ioo a b =ᵐ[μ] Ioc a b :=
 (ae_eq_refl _).inter (Iio_ae_eq_Iic' hb)
@@ -3056,6 +3059,9 @@ by rw [← (map_measurable_equiv_injective e).eq_iff, map_map_symm, eq_comm]
 
 lemma restrict_map (e : α ≃ᵐ β) (s : set β) : (μ.map e).restrict s = (μ.restrict $ e ⁻¹' s).map e :=
 e.measurable_embedding.restrict_map _ _
+
+lemma map_ae (f : α ≃ᵐ β) (μ : measure α) : filter.map f μ.ae = (map f μ).ae :=
+by { ext s, simp_rw [mem_map, mem_ae_iff, ← preimage_compl, f.map_apply] }
 
 end measurable_equiv
 

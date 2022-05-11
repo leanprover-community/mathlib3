@@ -211,7 +211,7 @@ by { convert (m.map f).prod_hom (comm_group.inv_monoid_hom : α →* α), rw map
 
 @[simp, to_additive]
 lemma prod_map_div : (m.map $ λ i, f i / g i).prod = (m.map f).prod / (m.map g).prod :=
-m.prod_hom₂ (/) mul_div_comm' (div_one' _) _ _
+m.prod_hom₂ (/) mul_div_mul_comm (div_one _) _ _
 
 @[to_additive]
 lemma prod_map_zpow {n : ℤ} : (m.map $ λ i, f i ^ n).prod = (m.map f).prod ^ n :=
@@ -234,7 +234,7 @@ by { convert (m.map f).prod_hom (inv_monoid_with_zero_hom : α →*₀ α), rw m
 
 @[simp]
 lemma prod_map_div₀ : (m.map $ λ i, f i / g i).prod = (m.map f).prod / (m.map g).prod :=
-m.prod_hom₂ (/) (λ _ _ _ _, (div_mul_div_comm₀ _ _ _ _).symm) (div_one _) _ _
+m.prod_hom₂ (/) (λ _ _ _ _, (div_mul_div_comm _ _ _ _).symm) (div_one _) _ _
 
 lemma prod_map_zpow₀ {n : ℤ} : prod (m.map $ λ i, f i ^ n) = (m.map f).prod ^ n :=
 by { convert (m.map f).prod_hom (zpow_group_hom₀ _ : α →* α), rw map_map, refl }
@@ -318,7 +318,7 @@ prod_le_prod_of_rel_le $ rel_map_left.2 $ rel_refl_of_refl_on h
 
 @[to_additive]
 lemma prod_le_sum_prod (f : α → α) (h : ∀ x, x ∈ s → x ≤ f x) : s.prod ≤ (s.map f).prod :=
-@prod_map_le_prod (order_dual α) _ _ f h
+@prod_map_le_prod αᵒᵈ _ _ f h
 
 @[to_additive card_nsmul_le_sum]
 lemma pow_card_le_prod (h : ∀ x ∈ s, a ≤ x) : a ^ s.card ≤ s.prod :=

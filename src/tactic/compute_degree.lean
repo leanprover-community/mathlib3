@@ -176,13 +176,10 @@ The expectation is that the argument of `extract_deg_single_term` is a factor of
 expression in a polynomial ring. -/
 meta def extract_deg_single_term : expr → tactic expr
 | `(polynomial.X) := to_expr ``(1)
-| e := match e.app_fn with
-  | `(coe_fn $ polynomial.monomial %%n) := return n
-  | `(coe_fn $ polynomial.C) := to_expr ``(0)
-  | a := do e.get_app_args.nth 4 >>= return <|>
-         do val ← to_expr ``(polynomial.nat_degree),
-           return $ expr.mk_app val [e]
-  end
+| `(polynomial.X ^ %%n) := return n
+| (expr.app `(⇑(polynomial.monomial %%n)) x) := return n
+| (expr.app `(⇑polynomial.C) x) := to_expr ``(0)
+| e := to_expr ``(polynomial.nat_degree %%e)
 
 /--  `extract_deg_single_summand e` takes apart "factors" in the expression `e` and returns them
 as sums of their "guessed degrees", via `extract_deg_single_term`.  When applied to an expression

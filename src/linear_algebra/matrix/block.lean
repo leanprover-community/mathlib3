@@ -195,6 +195,10 @@ begin
     exact h ((nat.lt_succ_iff.mp $ hn _).lt_of_ne hj) }
 end
 
+lemma _root_.function.surjective.image_univ {β} [fintype α] [fintype β] [decidable_eq β] {f : α → β}
+  (hf : function.surjective f) : univ.image f = univ :=
+eq_univ_iff_forall.mpr $ λ x, mem_image.mpr $ (exists_congr $ by simp).mp $ hf x
+
 protected lemma block_triangular.det [decidable_eq α] [preorder α] (hM : block_triangular M b) :
   M.det = ∏ a in univ.image b, (M.to_square_block b a).det :=
 begin
@@ -207,12 +211,18 @@ begin
     simp_rw e.symm_symm,
     refine prod_congr _ (λ a ha, _),
     { rw ←image_image,
-      sorry },
+      congr,
+      convert e.surjective.image_univ },
     unfold to_square_block to_square_block_prop to_block,
-    rw minor_minor,
-    sorry
+    rw [minor_minor],
+    have e' : {a₁ // (b ∘ λ (i : α₁), (e.symm.symm) i) a₁ = a} ≃ {a₂ // b a₂ = a} :=
+    { to_fun    := λ a₁, ⟨e a₁, by simpa using a₁.prop⟩,
+      inv_fun   := λ a₂, ⟨e.symm a₂, by simpa using a₂.prop⟩,
+      left_inv  := λ a₁, subtype.ext $ by simp,
+      right_inv := λ a₂, subtype.ext $ by simp },
+    have := det_minor_equiv_self e' (M.minor coe coe),
+    sorry,
   },
-  sorry,
   { simp only [coe_det_is_empty, prod_const_one] },
   rw two_block_triangular_det M (λ i, i ≠ none),
   let n : ℕ := (Sup (univ.image b : set ℕ)).succ,

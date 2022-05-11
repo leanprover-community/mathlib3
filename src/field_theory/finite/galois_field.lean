@@ -62,7 +62,7 @@ instance : is_splitting_field (zmod p) (galois_field p n) (X^(p^n) - X) :=
 polynomial.is_splitting_field.splitting_field _
 
 instance : char_p (galois_field p n) p :=
-(algebra.char_p_iff (zmod p) (galois_field p n) p).mp (infer_instance)
+(algebra.char_p_iff (zmod p) (galois_field p n) p).mp infer_instance
 
 instance : fintype (galois_field p n) := by {dsimp only [galois_field],
   exact finite_dimensional.fintype_of_fintype (zmod p) (galois_field p n) }

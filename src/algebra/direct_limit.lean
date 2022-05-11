@@ -88,7 +88,7 @@ eq.symm $ (submodule.quotient.eq _).2 $ subset_span ⟨i, j, hij, x, rfl⟩
 some component of the directed system. -/
 theorem exists_of [nonempty ι] [is_directed ι (≤)] (z : direct_limit G f) :
   ∃ i x, of R ι G f i x = z :=
-nonempty.elim (infer_instance) $ assume ind : ι,
+nonempty.elim infer_instance $ assume ind : ι,
 quotient.induction_on' z $ λ z, direct_sum.induction_on z
   ⟨ind, 0, linear_map.map_zero _⟩
   (λ i x, ⟨i, x, rfl⟩)
@@ -162,7 +162,7 @@ lemma of.zero_exact_aux [nonempty ι] [is_directed ι (≤)] {x : direct_sum ι 
   (H : submodule.quotient.mk x = (0 : direct_limit G f)) :
   ∃ j, (∀ k ∈ x.support, k ≤ j) ∧
     direct_sum.to_module R ι (G j) (λ i, totalize G f i j) x = (0 : G j) :=
-nonempty.elim (infer_instance) $ assume ind : ι,
+nonempty.elim infer_instance $ assume ind : ι,
 span_induction ((quotient.mk_eq_zero _).1 H)
   (λ x ⟨i, j, hij, y, hxy⟩, let ⟨k, hik, hjk⟩ := exists_ge_ge i j in
     ⟨k, begin
@@ -328,7 +328,7 @@ ideal.quotient.eq.2 $ subset_span $ or.inl ⟨i, j, hij, x, rfl⟩
 some component of the directed system. -/
 theorem exists_of [nonempty ι] [is_directed ι (≤)] (z : direct_limit G f) :
   ∃ i x, of G f i x = z :=
-nonempty.elim (infer_instance) $ assume ind : ι,
+nonempty.elim infer_instance $ assume ind : ι,
 quotient.induction_on' z $ λ x, free_abelian_group.induction_on x
   ⟨ind, 0, (of _ _ ind).map_zero⟩
   (λ s, multiset.induction_on s
@@ -450,7 +450,7 @@ begin
         dsimp only, rw (f' i i _).map_mul,
         exacts [sub_self _, or.inl rfl, or.inr (or.inr rfl),
           or.inr (or.inl rfl)] } } },
-  { refine nonempty.elim (infer_instance) (assume ind : ι, _),
+  { refine nonempty.elim infer_instance (assume ind : ι, _),
     refine ⟨ind, ∅, λ _, false.elim, is_supported_zero, _⟩,
     rw [(restriction _).map_zero, (free_comm_ring.lift _).map_zero] },
   { rintros x y ⟨i, s, hi, hxs, ihs⟩ ⟨j, t, hj, hyt, iht⟩,
@@ -553,7 +553,7 @@ namespace direct_limit
 
 instance nontrivial [directed_system G (λ i j h, f' i j h)] :
   nontrivial (ring.direct_limit G (λ i j h, f' i j h)) :=
-⟨⟨0, 1, nonempty.elim (infer_instance) $ assume i : ι, begin
+⟨⟨0, 1, nonempty.elim infer_instance $ assume i : ι, begin
   change (0 : ring.direct_limit G (λ i j h, f' i j h)) ≠ 1,
   rw ← (ring.direct_limit.of _ _ _).map_one,
   intros H, rcases ring.direct_limit.of.zero_exact H.symm with ⟨j, hij, hf⟩,

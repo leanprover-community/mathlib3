@@ -484,7 +484,7 @@ end
 @[to_additive]
 theorem prime_card [fintype α] : (fintype.card α).prime :=
 begin
-  have h0 : 0 < fintype.card α := fintype.card_pos_iff.2 (infer_instance),
+  have h0 : 0 < fintype.card α := fintype.card_pos_iff.2 infer_instance,
   obtain ⟨g, hg⟩ := is_cyclic.exists_generator α,
   rw nat.prime_def_lt'',
   refine ⟨fintype.one_lt_card_iff_nontrivial.2 infer_instance, λ n hn, _⟩,

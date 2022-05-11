@@ -468,7 +468,7 @@ begin
   { intro ω,
     rw [fintype.card_congr (@subgroup.group_equiv_quotient_times_subgroup α _ (stabilizer α $ φ ω)),
         fintype.card_prod, nat.mul_div_cancel],
-    exact fintype.card_pos_iff.mpr (infer_instance) },
+    exact fintype.card_pos_iff.mpr infer_instance },
   simp_rw [this, ← fintype.card_sigma, fintype.card_congr
             (self_equiv_sigma_orbits_quotient_stabilizer' α β hφ)],
 end

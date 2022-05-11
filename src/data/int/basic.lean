@@ -848,7 +848,7 @@ theorem dvd_nat_abs {a b : ℤ} : a ∣ b.nat_abs ↔ a ∣ b :=
 (nat_abs_eq b).elim (λ e, by rw ← e) (λ e, by rw [← dvd_neg, ← e])
 
 instance decidable_dvd : @decidable_rel ℤ (∣) :=
-assume a n, decidable_of_decidable_of_iff (infer_instance) (dvd_iff_mod_eq_zero _ _).symm
+assume a n, decidable_of_decidable_of_iff infer_instance (dvd_iff_mod_eq_zero _ _).symm
 
 protected theorem div_mul_cancel {a b : ℤ} (H : b ∣ a) : a / b * b = a :=
 div_mul_cancel_of_mod_eq_zero (mod_eq_zero_of_dvd H)

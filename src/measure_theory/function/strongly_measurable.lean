@@ -70,12 +70,12 @@ class second_countable_topology_either
 @[priority 100] instance second_countable_topology_either_of_left
   (α β : Type*) [topological_space α] [topological_space β] [second_countable_topology α] :
   second_countable_topology_either α β :=
-{ out := or.inl (infer_instance) }
+{ out := or.inl infer_instance }
 
 @[priority 100] instance second_countable_topology_either_of_right
   (α β : Type*) [topological_space α] [topological_space β] [second_countable_topology β] :
   second_countable_topology_either α β :=
-{ out := or.inr (infer_instance) }
+{ out := or.inr infer_instance }
 
 variables {α β γ ι : Type*} [encodable ι]
 namespace measure_theory

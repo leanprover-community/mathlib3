@@ -103,7 +103,7 @@ begin
 end
 
 lemma id_nonzero (X : C) [simple.{v} X] : 𝟙 X ≠ 0 :=
-(simple.mono_is_iso_iff_nonzero (𝟙 X)).mp (infer_instance)
+(simple.mono_is_iso_iff_nonzero (𝟙 X)).mp infer_instance
 
 instance (X : C) [simple.{v} X] : nontrivial (End X) :=
 nontrivial_of_ne 1 0 (id_nonzero X)

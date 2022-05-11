@@ -780,7 +780,7 @@ end polynomial
 protected theorem polynomial.is_noetherian_ring [is_noetherian_ring R] :
   is_noetherian_ring R[X] :=
 is_noetherian_ring_iff.2 ⟨assume I : ideal R[X],
-let M := well_founded.min (is_noetherian_iff_well_founded.1 (infer_instance))
+let M := well_founded.min (is_noetherian_iff_well_founded.1 infer_instance)
   (set.range I.leading_coeff_nth) ⟨_, ⟨0, rfl⟩⟩ in
 have hm : M ∈ set.range I.leading_coeff_nth := well_founded.min_mem _ _ _,
 let ⟨N, HN⟩ := hm, ⟨s, hs⟩ := I.is_fg_degree_le N in

@@ -174,7 +174,7 @@ variable [field K]
 
 @[priority 100] -- see Note [lower instance priority]
 instance field.to_division_ring : division_ring K :=
-{ ..show field K, infer_instance }
+{ ..(infer_instance : field K) }
 
 /-- Every field is a `comm_group_with_zero`. -/
 @[priority 100] -- see Note [lower instance priority]

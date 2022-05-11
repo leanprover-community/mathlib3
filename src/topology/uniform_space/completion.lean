@@ -274,7 +274,7 @@ begin
     rw ← e at h₂,
     exact dt ⟨_, h₁, h₂⟩ },
   { intros H,
-    refine separated_def.1 (infer_instance) _ _ (λ t tu, _),
+    refine separated_def.1 infer_instance _ _ (λ t tu, _),
     rcases mem_uniformity_is_closed tu with ⟨d, du, dc, dt⟩,
     refine H {p | (Lim p.1.1, Lim p.2.1) ∈ t}
       (Cauchy.mem_uniformity'.2 ⟨d, du, λ f g h, _⟩),

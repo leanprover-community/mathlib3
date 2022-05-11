@@ -329,7 +329,7 @@ instance pi_setoid {ι : Sort*} {α : ι → Sort*} [∀ i, setoid (α i)] : set
 /-- Given a function `f : Π i, quotient (S i)`, returns the class of functions `Π i, α i` sending
 each `i` to an element of the class `f i`. -/
 noncomputable def quotient.choice {ι : Type*} {α : ι → Type*} [S : Π i, setoid (α i)]
-  (f : Π i, quotient (S i)) : @quotient (Π i, α i) (infer_instance) :=
+  (f : Π i, quotient (S i)) : @quotient (Π i, α i) infer_instance :=
 ⟦λ i, (f i).out⟧
 
 @[simp] theorem quotient.choice_eq {ι : Type*} {α : ι → Type*} [Π i, setoid (α i)]

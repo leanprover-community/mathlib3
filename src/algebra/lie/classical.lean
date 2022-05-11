@@ -261,7 +261,7 @@ invertible_of_right_inverse _ _ (PD_inv l R)
 def type_D_equiv_so' [fintype l] [invertible (2 : R)] :
   type_D l R ≃ₗ⁅R⁆ so' l l R :=
 begin
-  apply (skew_adjoint_matrices_lie_subalgebra_equiv (JD l R) (PD l R) (infer_instance)).trans,
+  apply (skew_adjoint_matrices_lie_subalgebra_equiv (JD l R) (PD l R) infer_instance).trans,
   apply lie_equiv.of_eq,
   ext A,
   rw [JD_transform, ← coe_unit_of_invertible (2 : R), ←units.smul_def, lie_subalgebra.mem_coe,
@@ -343,7 +343,7 @@ end
 def type_B_equiv_so' [invertible (2 : R)] :
   type_B l R ≃ₗ⁅R⁆ so' (unit ⊕ l) l R :=
 begin
-  apply (skew_adjoint_matrices_lie_subalgebra_equiv (JB l R) (PB l R) (infer_instance)).trans,
+  apply (skew_adjoint_matrices_lie_subalgebra_equiv (JB l R) (PB l R) infer_instance).trans,
   symmetry,
   apply (skew_adjoint_matrices_lie_subalgebra_equiv_transpose
     (indefinite_diagonal (unit ⊕ l) l R)

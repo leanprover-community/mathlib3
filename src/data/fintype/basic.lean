@@ -1464,7 +1464,7 @@ corresponding quotient type, then there is a corresponding term in the
 quotient of the product of the setoids indexed by `l`. -/
 def quotient.fin_choice_aux {ι : Type*} [decidable_eq ι]
   {α : ι → Type*} [S : ∀ i, setoid (α i)] :
-  Π (l : list ι), (Π i ∈ l, quotient (S i)) → @quotient (Π i ∈ l, α i) (infer_instance)
+  Π (l : list ι), (Π i ∈ l, quotient (S i)) → @quotient (Π i ∈ l, α i) infer_instance
 | []       f := ⟦λ i, false.elim⟧
 | (i :: l) f := begin
   refine quotient.lift_on₂ (f i (list.mem_cons_self _ _))
@@ -1496,9 +1496,9 @@ quotient type, then there is corresponding term in the quotient of the
 product of the setoids. -/
 def quotient.fin_choice {ι : Type*} [decidable_eq ι] [fintype ι]
   {α : ι → Type*} [S : ∀ i, setoid (α i)]
-  (f : Π i, quotient (S i)) : @quotient (Π i, α i) (infer_instance) :=
+  (f : Π i, quotient (S i)) : @quotient (Π i, α i) infer_instance :=
 quotient.lift_on (@quotient.rec_on _ _ (λ l : multiset ι,
-    @quotient (Π i ∈ l, α i) (infer_instance))
+    @quotient (Π i ∈ l, α i) infer_instance)
     finset.univ.1
     (λ l, quotient.fin_choice_aux l (λ i _, f i))
     (λ a b h, begin

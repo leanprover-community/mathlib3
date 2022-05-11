@@ -333,7 +333,7 @@ variables {C : ℝ} {f g : C₀(α, β)}
 /-- The type of continuous functions vanishing at infinity, with the uniform distance induced by the
 inclusion `zero_at_infinity_continuous_map.to_bcf`, is a metric space. -/
 noncomputable instance : metric_space C₀(α, β) :=
-metric_space.induced _ (to_bcf_injective α β) (infer_instance)
+metric_space.induced _ (to_bcf_injective α β) infer_instance
 
 @[simp]
 lemma dist_to_bcf_eq_dist {f g : C₀(α, β)} : dist f.to_bcf g.to_bcf = dist f g := rfl

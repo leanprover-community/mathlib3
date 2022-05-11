@@ -241,7 +241,7 @@ begin
   { split,
     { exact K },
     { exact f_closed } },
-  exact @closed_embedding.polish_space _ _ (T.induced f) T (infer_instance) _ L
+  exact @closed_embedding.polish_space _ _ (T.induced f) T infer_instance _ L
 end
 
 /-!

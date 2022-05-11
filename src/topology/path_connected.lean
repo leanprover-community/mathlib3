@@ -935,7 +935,7 @@ variables [path_connected_space X]
 lemma exists_path_through_family {n : ℕ} (p : fin (n+1) → X) :
   ∃ γ : path (p 0) (p n), (∀ i, p i ∈ range γ) :=
 begin
-  have : is_path_connected (univ : set X) := path_connected_space_iff_univ.mp (infer_instance),
+  have : is_path_connected (univ : set X) := path_connected_space_iff_univ.mp infer_instance,
   rcases this.exists_path_through_family p (λ i, true.intro) with ⟨γ, -, h⟩,
   exact ⟨γ, h⟩
 end
@@ -943,7 +943,7 @@ end
 lemma exists_path_through_family' {n : ℕ} (p : fin (n+1) → X) :
   ∃ (γ : path (p 0) (p n)) (t : fin (n + 1) → I), ∀ i, γ (t i) = p i :=
 begin
-  have : is_path_connected (univ : set X) := path_connected_space_iff_univ.mp (infer_instance),
+  have : is_path_connected (univ : set X) := path_connected_space_iff_univ.mp infer_instance,
   rcases this.exists_path_through_family' p (λ i, true.intro) with ⟨γ, t, -, h⟩,
   exact ⟨γ, t, h⟩
 end

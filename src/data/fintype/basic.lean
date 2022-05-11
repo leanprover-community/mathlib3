@@ -301,11 +301,11 @@ instance decidable_bijective_fintype [decidable_eq α] [decidable_eq β] [fintyp
 
 instance decidable_right_inverse_fintype [decidable_eq α] [fintype α] (f : α → β) (g : β → α) :
   decidable (function.right_inverse f g) :=
-show decidable (∀ x, g (f x) = x), infer_instance
+(infer_instance : decidable (∀ x, g (f x) = x))
 
 instance decidable_left_inverse_fintype [decidable_eq β] [fintype β] (f : α → β) (g : β → α) :
   decidable (function.left_inverse f g) :=
-show decidable (∀ x, f (g x) = x), infer_instance
+(infer_instance : decidable (∀ x, f (g x) = x))
 
 lemma exists_max [fintype α] [nonempty α] {β : Type*} [linear_order β] (f : α → β) :
   ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=

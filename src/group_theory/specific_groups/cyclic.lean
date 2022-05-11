@@ -306,6 +306,72 @@ private lemma card_order_of_eq_totient_aux₁ :
   (univ.filter (λ a : α, order_of a = d)).card = φ d
 | 0     := λ hd hd0,
 let ⟨a, ha⟩ := card_pos.1 hd0 in absurd (mem_filter.1 ha).2 $ ne_of_gt $ order_of_pos a
+| (d+1) :=
+
+begin
+  intros hd hd0,
+  rcases card_pos.1 hd0 with ⟨a, ha'⟩,
+  have ha : order_of a = d.succ, from (mem_filter.1 ha').2,
+
+  have h : ∑ m in (range d.succ).filter (∣ d.succ),
+    (univ.filter (λ a : α, order_of a = m)).card =
+    ∑ m in (range d.succ).filter (∣ d.succ), φ m,
+  { exact
+      finset.sum_congr rfl
+      (λ m hm, have hmd : m < d.succ, from mem_range.1 (mem_filter.1 hm).1,
+        have hm : m ∣ d.succ, from (mem_filter.1 hm).2,
+        card_order_of_eq_totient_aux₁ (hm.trans hd) (finset.card_pos.2
+          ⟨a ^ (d.succ / m), mem_filter.2 ⟨mem_univ _,
+            by { rw [order_of_pow a, ha, nat.gcd_eq_right (div_dvd_of_dvd hm),
+                  nat.div_div_self hm (succ_pos _)] }⟩⟩)),
+  },
+
+  have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
+    = (range d.succ.succ).filter (∣ d.succ),
+  {
+    ext x,
+    simp only [mem_insert, mem_filter, mem_range, filter_dvd_eq_divisors, ne.def, succ_ne_zero, not_false_iff, mem_divisors, and_true],
+
+    split,
+    { intros h, rcases h with rfl | ⟨h1, h2⟩; tauto },
+    { intros h, cases eq_or_lt_of_le (le_of_dvd (succ_pos') h); tauto },
+
+    -- exact (finset.ext $ λ x, ⟨λ h, (mem_insert.1 h).elim (λ h, by simp [h, range_succ])
+    -- (by clear _let_match; simp [range_succ]; tauto),
+    --  by clear _let_match; simp [range_succ] {contextual := tt}; tauto⟩),
+  },
+
+  have hinsert₁ : d.succ ∉ (range d.succ).filter (∣ d.succ),
+  { simp [mem_range, zero_le_one, le_succ] },
+
+  apply (add_left_inj
+    (∑ m in (range d.succ).filter (∣ d.succ), (univ.filter (λ a : α, order_of a = m)).card)
+  ).1,
+
+  exact
+  (calc _ = ∑ m in insert d.succ (filter (∣ d.succ) (range d.succ)),
+        (univ.filter (λ a : α, order_of a = m)).card :
+    eq.symm (finset.sum_insert (by simp [mem_range, zero_le_one, le_succ]))
+  ... = ∑ m in (range d.succ.succ).filter (∣ d.succ),
+      (univ.filter (λ a : α, order_of a = m)).card :
+    sum_congr hinsert (λ _ _, rfl)
+  ... = (univ.filter (λ a : α, a ^ d.succ = 1)).card :
+    sum_card_order_of_eq_card_pow_eq_one (succ_pos d)
+  ... = ∑ m in (range d.succ.succ).filter (∣ d.succ), φ m :
+    ha ▸ (card_pow_eq_one_eq_order_of_aux hn a).symm ▸ (sum_totient' _).symm
+  ... = _ : by rw [h, ← sum_insert hinsert₁];
+      exact finset.sum_congr hinsert.symm (λ _ _, rfl)),
+
+end
+
+#exit
+
+
+private lemma card_order_of_eq_totient_aux₁ :
+  ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →
+  (univ.filter (λ a : α, order_of a = d)).card = φ d
+| 0     := λ hd hd0,
+let ⟨a, ha⟩ := card_pos.1 hd0 in absurd (mem_filter.1 ha).2 $ ne_of_gt $ order_of_pos a
 | (d+1) := λ hd hd0,
 let ⟨a, ha⟩ := card_pos.1 hd0 in
 have ha : order_of a = d.succ, from (mem_filter.1 ha).2,

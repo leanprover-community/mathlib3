@@ -811,17 +811,17 @@ def fundamental_seq : onote → option onote ⊕ (ℕ → onote)
     end
   end
 
-theorem exists_lt_add {α} [hα : nonempty α] {o : ordinal} {f : α → ordinal}
-  (H : ∀ a, a < o → ∃ i, a < f i) (b : ordinal) (a) (h : a < b + o) : ∃ i, a < b + f i :=
+private theorem exists_lt_add {α} [hα : nonempty α] {o : ordinal} {f : α → ordinal}
+  (H : ∀ ⦃a⦄, a < o → ∃ i, a < f i) {b : ordinal} ⦃a⦄ (h : a < b + o) : ∃ i, a < b + f i :=
 begin
   cases lt_or_le a b with h h',
   { obtain ⟨i⟩ := id hα, exact ⟨i, h.trans_le (le_add_right _ _)⟩ },
   { rw [← ordinal.add_sub_cancel_of_le h', add_lt_add_iff_left] at h,
-    refine (H _ h).imp (λ i H, _),
+    refine (H h).imp (λ i H, _),
     rwa [← ordinal.add_sub_cancel_of_le h', add_lt_add_iff_left] }
 end
 
-theorem exists_lt_mul_omega' {o : ordinal} (a) (h : a < o * ω) : ∃ i : ℕ, a < o * ↑i + o :=
+private theorem exists_lt_mul_omega' {o : ordinal} ⦃a⦄ (h : a < o * ω) : ∃ i : ℕ, a < o * ↑i + o :=
 begin
   obtain ⟨i, hi, h'⟩ := (lt_mul_of_limit omega_is_limit).1 h,
   obtain ⟨i, rfl⟩ := lt_omega.1 hi,
@@ -829,12 +829,12 @@ begin
 end
 
 local infixr ^ := @pow ordinal ordinal ordinal.has_pow
-theorem exists_lt_omega_opow' {α} {o b : ordinal}
+private theorem exists_lt_omega_opow' {α} {o b : ordinal}
   (hb : 1 < b) (ho : o.is_limit) {f : α → ordinal}
-  (H : ∀ a, a < o → ∃ i, a < f i) (a) (h : a < b ^ o) : ∃ i, a < b ^ f i :=
+  (H : ∀ ⦃a⦄, a < o → ∃ i, a < f i) ⦃a⦄ (h : a < b ^ o) : ∃ i, a < b ^ f i :=
 begin
   obtain ⟨d, hd, h'⟩ := (lt_opow_of_limit (ordinal.zero_lt_one.trans hb).ne' ho).1 h,
-  exact (H _ hd).imp (λ i hi, h'.trans $ (opow_lt_opow_iff_right hb).2 hi)
+  exact (H hd).imp (λ i hi, h'.trans $ (opow_lt_opow_iff_right hb).2 hi)
 end
 
 /-- The property satisfied by `fundamental_seq o`:
@@ -867,7 +867,7 @@ begin
         opow_zero, ordinal.mul_add_one, pnat.one_coe, succ_zero, true_and, _root_.zero_add,
         zero_def],
     { apply_instance },
-    { exact ⟨rfl, λ _, by apply_instance⟩ },
+    { exact ⟨rfl, infer_instance⟩ },
     { have := opow_pos _ omega_pos,
       refine ⟨mul_is_limit this omega_is_limit,
         λ i, ⟨this, _, λ H, @NF.oadd_zero _ _ (iha.2 H.fst)⟩, exists_lt_mul_omega'⟩,
@@ -876,7 +876,7 @@ begin
     { have := opow_pos _ omega_pos,
       refine ⟨
         add_is_limit _ (mul_is_limit this omega_is_limit), λ i, ⟨this, _, _⟩,
-        exists_lt_add exists_lt_mul_omega' _⟩,
+        exists_lt_add exists_lt_mul_omega'⟩,
       { rw [← mul_succ, nat_cast_succ, ordinal.mul_lt_mul_iff_left this],
         apply nat_lt_omega },
       { refine λ H, H.fst.oadd _ (NF.below_of_lt' _ (@NF.oadd_zero _ _ (iha.2 H.fst))),
@@ -887,7 +887,7 @@ begin
       obtain ⟨h4, h5, h6⟩ := h2 i, exact ⟨h4, h5, λ H, @NF.oadd_zero _ _ (h6 H.fst)⟩ },
     { rcases iha with ⟨h1, h2, h3⟩,
       refine ⟨add_is_limit _ (opow_is_limit one_lt_omega h1), λ i, _,
-        exists_lt_add (exists_lt_omega_opow' one_lt_omega h1 h3) _⟩,
+        exists_lt_add (exists_lt_omega_opow' one_lt_omega h1 h3)⟩,
       obtain ⟨h4, h5, h6⟩ := h2 i,
       refine ⟨h4, h5, λ H, H.fst.oadd _ (NF.below_of_lt' _ (@NF.oadd_zero _ _ (h6 H.fst)))⟩,
       rwa [repr, repr, add_zero, coe_coe, pnat.one_coe, nat.cast_one, mul_one,
@@ -901,7 +901,7 @@ begin
     exact ⟨ordinal.add_is_limit _ h1,
       λ i, ⟨oadd_lt_oadd_3 (h2 i).1, oadd_lt_oadd_3 (h2 i).2.1, λ H, H.fst.oadd _
         (NF.below_of_lt' (lt_trans (h2 i).2.1 H.snd'.repr_lt) ((h2 i).2.2 H.snd))⟩,
-      exists_lt_add h3 _⟩ }
+      exists_lt_add h3⟩ }
 end
 
 /-- The fast growing hierarchy for ordinal notations `< ε₀`. This is a sequence of
@@ -923,11 +923,58 @@ using_well_founded
 { rel_tac := λ _ _, `[exact ⟨_, inv_image.wf repr ordinal.wf⟩],
   dec_tac := `[assumption] }
 
+theorem fast_growing_def
+  {o : onote} {x} (e : fundamental_seq o = x) :
+    fast_growing o =
+    fast_growing._match_1 o
+      (λ a _ _, a.fast_growing)
+      (λ f _ i _, (f i).fast_growing i)
+      x (e ▸ fundamental_seq_has_prop _) :=
+by { subst x, rw [fast_growing] }
+
+theorem fast_growing_zero' (o : onote) (h : fundamental_seq o = sum.inl none) :
+  fast_growing o = nat.succ := by rw [fast_growing_def h]; refl
+theorem fast_growing_succ (o) {a} (h : fundamental_seq o = sum.inl (some a)) :
+  fast_growing o = λ i, ((fast_growing a)^[i] i) := by rw [fast_growing_def h]; refl
+theorem fast_growing_limit (o) {f} (h : fundamental_seq o = sum.inr f) :
+  fast_growing o = λ i, fast_growing (f i) i := by rw [fast_growing_def h]; refl
+
+@[simp] theorem fast_growing_zero : fast_growing 0 = nat.succ := fast_growing_zero' _ rfl
+
+@[simp] theorem fast_growing_one : fast_growing 1 = (λ n, 2 * n) :=
+begin
+  rw [@fast_growing_succ 1 0 rfl], funext i, rw [two_mul, fast_growing_zero],
+  suffices : ∀ a b, nat.succ^[a] b = b + a, from this _ _,
+  intros a b, induction a; simp [*, function.iterate_succ', nat.add_succ],
+end
+
+section
+local infixr ^ := pow
+@[simp] theorem fast_growing_two : fast_growing 2 = (λ n, 2 ^ n * n) :=
+begin
+  rw [@fast_growing_succ 2 1 rfl], funext i, rw [fast_growing_one],
+  suffices : ∀ a b, (λ (n : ℕ), 2 * n)^[a] b = 2 ^ a * b, from this _ _,
+  intros a b, induction a; simp [*, function.iterate_succ', pow_succ, mul_assoc],
+end
+end
+
 /-- We can extend the fast growing hierarchy one more step to `ε₀` itself,
   using `ω^(ω^...^ω^0)` as the fundamental sequence converging to `ε₀` (which is not an `onote`).
   Extending the fast growing hierarchy beyond this requires a definition of fundamental sequence
   for larger ordinals. -/
-def fast_growing_ε₀ : ℕ → ℕ := λ i, fast_growing ((λ a, a.oadd 1 0)^[i] 0) i
+def fast_growing_ε₀ (i : ℕ) : ℕ := fast_growing ((λ a, a.oadd 1 0)^[i] 0) i
+
+theorem fast_growing_ε₀_zero : fast_growing_ε₀ 0 = 1 := by simp [fast_growing_ε₀]
+
+theorem fast_growing_ε₀_one : fast_growing_ε₀ 1 = 2 :=
+by simp [fast_growing_ε₀, show oadd 0 1 0 = 1, from rfl]
+
+theorem fast_growing_ε₀_two : fast_growing_ε₀ 2 = 2048 :=
+by norm_num [fast_growing_ε₀,
+  show oadd 0 1 0 = 1, from rfl,
+  @fast_growing_limit (oadd 1 1 0) _ rfl,
+  show oadd 0 (2:nat).succ_pnat 0 = 3, from rfl,
+  @fast_growing_succ 3 2 rfl]
 
 end onote
 

@@ -301,10 +301,6 @@ instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
 
 @[simp, to_additive] lemma inv_zero [has_inv α] : (0 : with_zero α)⁻¹ = 0 := rfl
 
-@[simp, to_additive] lemma inv_comp_inv [has_involutive_inv α] :
-  has_inv.inv ∘ has_inv.inv = @id α :=
-inv_involutive.comp_self
-
 @[to_additive] instance [has_involutive_inv α] : has_involutive_inv (with_zero α) :=
 { inv_inv := λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
   ..with_zero.has_inv }

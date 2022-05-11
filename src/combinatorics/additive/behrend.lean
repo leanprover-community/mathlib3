@@ -31,6 +31,7 @@ integer points on that sphere and map them onto `ℕ` in a way that preserves ar
 
 * [Bryan Gillespie, *Behrend’s Construction*]
   (http://www.epsilonsmall.com/resources/behrends-construction/behrend.pdf)
+* Behrend, F. A., "On sets of integers which contain no three terms in arithmetical progression"
 * [Wikipedia, *Salem-Spencer set*](https://en.wikipedia.org/wiki/Salem–Spencer_set)
 
 ## Tags
@@ -66,13 +67,7 @@ quadrant. -/
 def sphere (n d k : ℕ) : finset (fin n → ℕ) := (box n d).filter $ λ x, ∑ i, x i^2 = k
 
 lemma sphere_zero : sphere n d 0 ⊆ 0 :=
-begin
-  intros x hx,
-  simp only [sphere, nat.succ_pos', sum_eq_zero_iff, mem_filter, mem_univ, forall_true_left,
-    pow_eq_zero_iff] at hx,
-  simp only [mem_zero, function.funext_iff],
-  apply hx.2
-end
+λ x, by simp [sphere, function.funext_iff] {contextual := tt}
 
 lemma sphere_subset_box : sphere n d k ⊆ box n d := filter_subset _ _
 
@@ -87,7 +82,7 @@ end
 
 /-- The map that appears in Behrend's bound on Roth numbers. -/
 @[simps] def map (d : ℕ) : (fin n → ℕ) →+ ℕ :=
-{ to_fun := λ a, ∑ i, a i * d^(i : ℕ),
+{ to_fun := λ a, ∑ i, a i * d ^ (i : ℕ),
   map_zero' := by simp_rw [pi.zero_apply, zero_mul, sum_const_zero],
   map_add' := λ a b, by simp_rw [pi.add_apply, add_mul, sum_add_distrib] }
 
@@ -107,15 +102,11 @@ by rw [map_succ, nat.add_mul_mod_self_right]
 lemma map_eq_iff {x₁ x₂ : fin n.succ → ℕ} (hx₁ : ∀ i, x₁ i < d) (hx₂ : ∀ i, x₂ i < d) :
   map d x₁ = map d x₂ ↔ x₁ 0 = x₂ 0 ∧ map d (x₁ ∘ fin.succ) = map d (x₂ ∘ fin.succ) :=
 begin
-  refine ⟨λ h, _, _⟩,
-  { have : map d x₁ % d = map d x₂ % d,
-    { rw h },
-    simp only [map_mod, nat.mod_eq_of_lt (hx₁ _), nat.mod_eq_of_lt (hx₂ _)] at this,
-    refine ⟨this, _⟩,
-    rw [map_succ, map_succ, this, add_right_inj, mul_eq_mul_right_iff] at h,
-    exact h.resolve_right ((nat.zero_le _).trans_lt $ hx₁ 0).ne' },
-  rintro ⟨h₁, h₂⟩,
-  rw [map_succ', map_succ', h₁, h₂],
+  refine ⟨λ h, _, λ h, by rw [map_succ', map_succ', h.1, h.2]⟩,
+  have : x₁ 0 = x₂ 0,
+  { rw [←mod_eq_of_lt (hx₁ _), ←map_mod, ←mod_eq_of_lt (hx₂ _), ←map_mod, h] },
+  rw [map_succ, map_succ, this, add_right_inj, mul_eq_mul_right_iff] at h,
+  exact ⟨this, h.resolve_right (pos_of_gt (hx₁ 0)).ne'⟩,
 end
 
 lemma map_inj_on : {x : fin n → ℕ | ∀ i, x i < d}.inj_on (map d) :=
@@ -125,13 +116,13 @@ begin
   { simp },
   ext i,
   have x := (map_eq_iff hx₁ hx₂).1 h,
-  refine fin.cases x.1 (congr_fun $ ih (λ _, _) (λ _, _) ((map_eq_iff hx₁ hx₂).1 h).2) i,
+  refine fin.cases x.1 (congr_fun $ ih (λ _, _) (λ _, _) x.2) i,
   { exact hx₁ _ },
   { exact hx₂ _ }
 end
 
 lemma map_le_of_mem_box (hx : x ∈ box n d) :
-  map (2 * d - 1) x ≤ ∑ i : fin n, (d - 1) * (2 * d - 1)^(i : ℕ) :=
+  map (2 * d - 1) x ≤ ∑ i : fin n, (d - 1) * (2 * d - 1) ^ (i : ℕ) :=
 map_monotone (2 * d - 1) $ λ _, nat.le_pred_of_lt $ mem_box.1 hx _
 
 lemma add_salem_spencer_sphere : add_salem_spencer (sphere n d k : set (fin n → ℕ)) :=
@@ -151,13 +142,12 @@ lemma add_salem_spencer_image_sphere :
   add_salem_spencer ((sphere n d k).image (map (2 * d - 1)) : set ℕ) :=
 begin
   rw coe_image,
-  refine @add_salem_spencer.image _ (fin n → ℕ) ℕ _ _ (sphere n d k) _ (map (2 * d - 1)) _
-    add_salem_spencer_sphere,
-  refine map_inj_on.mono _,
+  refine @add_salem_spencer.image _ (fin n → ℕ) ℕ _ _ (sphere n d k) _ (map (2 * d - 1))
+   (map_inj_on.mono _) add_salem_spencer_sphere,
   rw set.add_subset_iff,
   rintro a ha b hb i,
-  have hai := succ_le_of_lt (mem_box.1 (sphere_subset_box ha) i),
-  have hbi := succ_le_of_lt (mem_box.1 (sphere_subset_box hb) i),
+  have hai := mem_box.1 (sphere_subset_box ha) i,
+  have hbi := mem_box.1 (sphere_subset_box hb) i,
   rw [lt_tsub_iff_right, ←succ_le_iff, two_mul],
   exact (add_add_add_comm _ _ 1 1).trans_le (add_le_add hai hbi),
 end
@@ -165,31 +155,32 @@ end
 lemma sum_sq_le_of_mem_box (hx : x ∈ box n d) : ∑ i : fin n, (x i)^2 ≤ n * (d - 1)^2 :=
 begin
   rw mem_box at hx,
-  have : ∀ i, x i^2 ≤ (d - 1)^2 := λ i, nat.pow_le_pow_of_le_left (nat.le_pred_of_lt (hx i)) _,
-  refine (sum_le_card_nsmul univ _ _ $ λ i _, this i).trans _,
-  rw [card_fin, smul_eq_mul],
+  have : ∀ i, x i ^ 2 ≤ (d - 1) ^ 2 := λ i, nat.pow_le_pow_of_le_left (nat.le_pred_of_lt (hx i)) _,
+  exact (sum_le_card_nsmul univ _ _ $ λ i _, this i).trans (by rw [card_fin, smul_eq_mul]),
 end
 
-lemma digits_sum_eq : ∑ i : fin n, (d - 1) * (2 * d - 1)^(i : ℕ) = ((2 * d - 1)^n - 1) / 2 :=
+lemma zero_pow_le_one : ∀ n : ℕ, 0 ^ n ≤ 1
+| 0 := by simp
+| (n + 1) := by simp
+
+lemma digits_sum_eq : ∑ i : fin n, (d - 1) * (2 * d - 1) ^ (i : ℕ) = ((2 * d - 1) ^ n - 1) / 2 :=
 begin
   apply (nat.div_eq_of_eq_mul_left zero_lt_two _).symm,
   rcases nat.eq_zero_or_pos d with rfl | hd,
-  { simp only [mul_zero, nat.zero_sub, zero_mul, sum_const_zero, tsub_eq_zero_iff_le, zero_pow_eq],
-    split_ifs; simp },
-  have : ((2 * d - 2) + 1) = 2 * d - 1,
+  { simpa using zero_pow_le_one n },
+  have : (2 * d - 2) + 1 = 2 * d - 1,
   { rw ←tsub_tsub_assoc (nat.le_mul_of_pos_right hd) one_le_two },
-  rw [←sum_range (λ i, (d - 1) * (2 * d - 1)^(i : ℕ)), ←mul_sum, mul_right_comm, tsub_mul,
+  rw [←sum_range (λ i, (d - 1) * (2 * d - 1) ^ (i : ℕ)), ←mul_sum, mul_right_comm, tsub_mul,
     mul_comm d, one_mul, ←this, ←geom_sum_def, ←geom_sum_mul_add, add_tsub_cancel_right, mul_comm],
 end
 
-lemma digits_sum_le (hd : 0 < d) : ∑ i : fin n, (d - 1) * (2 * d - 1)^(i : ℕ) < (2 * d - 1)^n :=
+lemma digits_sum_le (hd : 0 < d) : ∑ i : fin n, (d - 1) * (2 * d - 1) ^ (i : ℕ) < (2 * d - 1) ^ n :=
 begin
   rw digits_sum_eq,
-  exact (nat.div_le_self _ _).trans_lt
-    (nat.pred_lt (pow_pos (hd.trans_le $ le_succ_mul_neg _ _) _).ne'),
+  exact (nat.div_le_self _ 2).trans_lt (pred_lt (pow_pos (hd.trans_le $ le_succ_mul_neg _ _) _).ne')
 end
 
-lemma card_sphere_le_roth_number_nat (hd : 0 < d) (hN : (2 * d - 1)^n ≤ N) :
+lemma card_sphere_le_roth_number_nat (hd : 0 < d) (hN : (2 * d - 1) ^ n ≤ N) :
   (sphere n d k).card ≤ roth_number_nat N :=
 begin
   refine add_salem_spencer_image_sphere.le_roth_number_nat _ _ (card_image_of_inj_on _),

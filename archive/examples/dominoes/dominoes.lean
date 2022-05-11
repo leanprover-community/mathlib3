@@ -1,36 +1,43 @@
-import algebra.big_operators.basic
+import .prelim
 
+/-!
+# An (attempted) "no-cheating" proof of the mutilated chessboard problem.
+
+This file attempts to execute a "no-cheating" proof of the mutilated chessboard problem,
+in which we attempt to "follow our nose",
+not preparing anything aheaad of time as we explore the proof.
+
+The approach follows the discussion in Tim Gower's "How can it be feasible to find proofs?"
+  https://drive.google.com/file/d/1-FFa6nMVg18m1zPtoAQrFalwpx2YaGK4/view
+
+See also https://www.andrew.cmu.edu/user/avigad/Papers/mutilated.pdf.
+-/
+
+/-- We give an inductive definition of the domino coverable sets in `ℕ × ℕ`:
+* the empty set is coverable
+* you can construct a domino coverable set by taking a domino coverable set
+  and adding a disjoint domino, either horizontally or vertically.
+-/
 inductive domino_coverable : finset (ℕ × ℕ) → Prop
 | empty : domino_coverable ∅
-| horizontal (x) (s : finset (ℕ × ℕ)) (w₁ : x ∉ s) (w₂ : (x + (1,0) ∉ s)) (c : domino_coverable s) :
-    domino_coverable (s ∪ {x, x + (1,0)})
-| vertical   (x) (s : finset (ℕ × ℕ)) (w₁ : x ∉ s) (w₂ : (x + (0,1) ∉ s)) (c : domino_coverable s) :
-    domino_coverable (s ∪ {x, x + (0,1)})
+| horizontal (x : ℕ × ℕ) (s : finset (ℕ × ℕ)) (w₁ : x ∉ s) (w₂ : (x + (1,0) ∉ s))
+    (c : domino_coverable s) : domino_coverable (s ∪ {x, x + (1,0)})
+| vertical   (x : ℕ × ℕ) (s : finset (ℕ × ℕ)) (w₁ : x ∉ s) (w₂ : (x + (0,1) ∉ s))
+    (c : domino_coverable s) : domino_coverable (s ∪ {x, x + (0,1)})
 
+/-- The n-by-n square. -/
 def square (n : ℕ) := (finset.range n).product (finset.range n)
+/-- The n-by-n square with a pair of opposite corners removed. -/
 def corners_removed (n : ℕ) := ((square n).erase (0,0)).erase (n-1, n-1)
 
+/-- To show that some predicate `P` does not hold at some term `a`,
+it suffices to find an "invariant" which has a particular value wherever `P` holds,
+and to show that it has a different value at `a`. -/
 lemma not_of_invariant_ne {α : Type*} (P : α → Prop) (a : α)
   (h : ∃ {β : Type*} (f : α → β) (b : β) (w : ∀ a, P a → f a = b), f a ≠ b) : ¬ P a :=
 by tidy
 
-def iterate₂ {α : Type*} (z : α) (f g : α → α) (w : ∀ a, f (g a) = g (f a)) : ℕ × ℕ → α :=
-λ p, f^[p.1] (g^[p.2] z)
-
-@[simp] lemma cf₁ {α : Type*} (z : α) (f g : α → α) (w : ∀ a, f (g a) = g (f a)) (x y : ℕ) :
-  iterate₂ z f g w (x + 1, y) = f (iterate₂ z f g w (x, y)) :=
-function.iterate_succ_apply' _ _ _
-
-@[simp] lemma cf₂ {α : Type*} (z : α) (f g : α → α) (w : ∀ a, f (g a) = g (f a)) (x y : ℕ) :
-  iterate₂ z f g w (x, y + 1) = g (iterate₂ z f g w (x, y)) :=
-begin
-  have w : function.commute f g := w,
-  dsimp [iterate₂],
-  rw [←function.iterate_succ_apply, w.iterate_iterate, w.iterate_iterate,
-    ←function.iterate_succ_apply' g],
-end
-
-theorem corners_removed_not_domino_coverable (n : ℕ) (p : 0 < n) :
+theorem corners_removed_not_domino_coverable (n : ℕ) (p : 1 < n) :
   ¬ domino_coverable (corners_removed n) :=
 begin
   -- We are trying to show some property does not hold.
@@ -122,15 +129,20 @@ begin
     simp, -- Discharged! Notice this is automatically solving for metavariables.
   },
   work_on_goal 1 {
-    simp?,
+    simp,
   },
   -- Discharge the proof obligation --a = --a:
   work_on_goal 2 { intros, refl, },
   -- Cheating for now, and guess we should use 1 at the base square:
   work_on_goal 1 { exact 1, },
-  { dsimp [corners_removed, square],
-    -- after that, it's "just" a calculation,
-    -- but I'm not going to do it now.
-    sorry
-  }
+  { -- After that, it's "just" a calculation,
+    -- which we'll do for the sake of having a complete proof,
+    -- but make no attempt to make it nice or avoid cheating.
+    dsimp [corners_removed, square],
+    erw [finset.sum_erase_eq_sub, finset.sum_erase_eq_sub, finset.sum_product],
+    { simp [iterate₂, ←finset.mul_sum],
+      split_ifs; norm_num, },
+    { simp [p], linarith, },
+    { erw [finset.mem_erase],
+      simpa [p] using nat.pred_lt (by linarith : n ≠ 0), }, }
 end

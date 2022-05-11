@@ -103,7 +103,8 @@ instance [semigroup_with_zero Y] : semigroup_with_zero (locally_constant X Y) :=
 
 @[to_additive] instance [group Y] : group (locally_constant X Y) :=
 { mul_left_inv := by { intros, ext, simp only [mul_apply, inv_apply, one_apply, mul_left_inv] },
-  div_eq_mul_inv := by { intros, ext, simp only [mul_apply, inv_apply, div_apply, div_eq_mul_inv] },
+  div_eq_mul_inv :=
+    by { intros, ext, simp only [mul_apply, inv_apply, div_apply, div_eq_mul_inv] },
   .. locally_constant.monoid, .. locally_constant.has_inv, .. locally_constant.has_div }
 
 @[to_additive] instance [comm_group Y] : comm_group (locally_constant X Y) :=
@@ -114,7 +115,8 @@ instance [distrib Y] : distrib (locally_constant X Y) :=
   right_distrib := by { intros, ext, simp only [mul_apply, add_apply, add_mul] },
   .. locally_constant.has_add, .. locally_constant.has_mul }
 
-instance [non_unital_non_assoc_semiring Y] : non_unital_non_assoc_semiring (locally_constant X Y) :=
+instance [non_unital_non_assoc_semiring Y] :
+  non_unital_non_assoc_semiring (locally_constant X Y) :=
 { .. locally_constant.add_comm_monoid, .. locally_constant.has_mul,
   .. locally_constant.distrib, .. locally_constant.mul_zero_class }
 
@@ -150,7 +152,8 @@ instance [has_scalar R Y] : has_scalar R (locally_constant X Y) :=
   { to_fun := r • f,
     is_locally_constant := ((is_locally_constant f).comp ((•) r) : _), } }
 
-@[simp] lemma coe_smul [has_scalar R Y] (r : R) (f : locally_constant X Y) : ⇑(r • f) = r • f := rfl
+@[simp] lemma coe_smul [has_scalar R Y] (r : R) (f : locally_constant X Y) :
+  ⇑(r • f) = r • f := rfl
 
 lemma smul_apply [has_scalar R Y] (r : R) (f : locally_constant X Y) (x : X) :
   (r • f) x = r • (f x) :=

@@ -370,7 +370,7 @@ begin
   {
     refine finset.sum_congr rfl (λ m hm, _),
     have hmd : m < d.succ, {
-      sorry -- ∀ x n : ℕ, x ∈ n.proper_divisors → x < n
+      exact (mem_proper_divisors.1 hm).2,
       },
     have hm : m ∣ d.succ, from (mem_filter.1 hm).2,
     have h_div : m ∣ fintype.card α, { exact hm.trans hd },
@@ -415,7 +415,7 @@ begin
     ... = _ : _,
     { rw finset.sum_insert proper_divisors.not_self_mem },
     { refine sum_congr _ (λ x hx, rfl),
-      sorry, -- ∀ n : ℕ, insert n n.proper_divisors = n.divisors
+      exact (divisors_eq_proper_divisors_insert_self_of_pos (succ_pos d)).symm,
     },
     { rw ←sum_card_order_of_eq_card_pow_eq_one (succ_pos d),
       exact sum_congr (filter_dvd_eq_divisors (succ_ne_zero d)).symm (λ x hx, rfl) },
@@ -424,7 +424,7 @@ begin
       rw h_new,
       rw ← sum_insert proper_divisors.not_self_mem,
       refine sum_congr _ (λ x hx, rfl),
-      sorry,  -- ∀ n : ℕ, insert n n.proper_divisors = n.divisors
+      exact (divisors_eq_proper_divisors_insert_self_of_pos (succ_pos d)),
       },
   end,
 

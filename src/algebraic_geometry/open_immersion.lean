@@ -885,7 +885,7 @@ begin
 end
 
 instance : LocallyRingedSpace.is_open_immersion (pullback_cone_of_left f g).snd :=
-(infer_instance : PresheafedSpace.is_open_immersion (Y.to_PresheafedSpace.of_restrict _))
+show PresheafedSpace.is_open_immersion (Y.to_PresheafedSpace.of_restrict _), from infer_instance
 
 /-- The constructed `pullback_cone_of_left` is indeed limiting. -/
 def pullback_cone_of_left_is_limit : is_limit (pullback_cone_of_left f g) :=

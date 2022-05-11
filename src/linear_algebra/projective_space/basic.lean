@@ -73,6 +73,10 @@ by { dsimp [mk, mk'], congr' 1, simp }
 lemma quotient_mk_eq_mk (z : V) (h : z ≠ 0) :
   @quotient.mk _ (projectivization_setoid _ _) ⟨z, h⟩ = mk K z h := rfl
 
+@[simp]
+lemma quotient_mk'_eq_mk (z : V) (h : z ≠ 0) :
+  @quotient.mk' _ (projectivization_setoid _ _) ⟨z, h⟩ = mk K z h := rfl
+
 instance [nontrivial V] : nonempty (ℙ K V) :=
 let ⟨v, hv⟩ := exists_ne (0 : V) in ⟨mk K v hv⟩
 
@@ -89,7 +93,7 @@ lemma rep_nonzero (v : ℙ K V) : v.rep ≠ 0 := v.out'.2
 @[simp]
 lemma mk_rep (v : ℙ K V) :
   mk K v.rep v.rep_nonzero = v :=
-by { dsimp [mk, projectivization.rep], simp }
+by simp only [projectivization.rep, mk, subtype.coe_eta, quotient.out_eq']
 
 /-- Wrapper around `quotient.lift_on' with more convenient interface in terms of `mk`. -/
 def lift_on {K V α : Type*} [field K] [add_comm_group V] [module K V]
@@ -291,24 +295,25 @@ begin
   erw [← f.map_smulₛₗ, ha],
 end
 
+@[simp]
+lemma map_mk {σ : K →+* L} (f : V →ₛₗ[σ] W) (hf : function.injective f) (u : V) (hu : u ≠ 0) :
+  map f hf (mk K u hu) = mk L (f u) ((map_ne_zero_iff f hf).mpr hu) :=
+rfl
+
 /-- Mapping with respect to a semilinear map over an isomorphism of fields yields
 an injective map on projective spaces. -/
 lemma map_injective {σ : K →+* L} {τ : L →+* K} [ring_hom_inv_pair σ τ]
   (f : V →ₛₗ[σ] W) (hf : function.injective f) :
   function.injective (map f hf) :=
 begin
-  intros u v h,
-  rw [← u.mk_rep, ← v.mk_rep] at *,
-  apply quotient.sound',
-  dsimp [map, mk] at h,
-  simp only [quotient.eq'] at h,
-  obtain ⟨a,ha⟩ := h,
-  use units.map τ.to_monoid_hom a,
-  dsimp at ⊢ ha,
-  have : (a : L) = σ (τ a), by rw ring_hom_inv_pair.comp_apply_eq₂,
-  change (a : L) • f v.rep = f u.rep at ha,
-  rw [this, ← f.map_smulₛₗ] at ha,
-  exact hf ha,
+  intros u v,
+  induction u using projectivization.ind with u hu,
+  induction v using projectivization.ind with v hv,
+  simp only [map_mk, mk_eq_mk_iff, units.smul_def],
+  rintro ⟨a, ha⟩,
+  refine ⟨units.map τ.to_monoid_hom a, hf _⟩,
+  simpa only [units.map, ring_hom.coe_monoid_hom, ring_hom.to_monoid_hom_eq_coe,
+    monoid_hom.mk'_apply, units.coe_mk, linear_map.map_smulₛₗ, ring_hom_inv_pair.comp_apply_eq₂]
 end
 
 @[simp]

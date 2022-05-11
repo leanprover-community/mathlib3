@@ -260,11 +260,16 @@ then the tactic suggests the degree that it computed.
 The tactic also reports when it is used with non-closed natural numbers as exponents. -/
 meta def compute_degree : tactic unit :=
 single_term_suggestions <|>
-do `(polynomial.nat_degree %%tl = %%tr) ← target,
+do `(polynomial.nat_degree %%tl = %%tr) ← target |
+    tactic.fail "Goal is not of the form `f.nat_degree = d\n\n",
   (lead,m') ← extract_top_degree_term_and_deg tl,
   td ← eval_expr ℕ tr,
-  if m' ≠ td then tactic.fail format!"should the degree be '{m'}'?\n\n" else
-  move_add_with_errors [(ff, pexpr.of_expr lead)] none,
+  if m' ≠ td then
+    do pptl ← pp tl, ppm' ← pp m',
+      trace sformat!"should the degree be '{m'}'?\n\n",
+      trace sformat!"Try this: {pptl}.nat_degree = {ppm'}", tactic.failed
+  else
+    move_add_with_errors [(ff, pexpr.of_expr lead)] none,
     refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _),
     single_term_resolve lead,
     compute_degree_le

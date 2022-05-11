@@ -237,9 +237,9 @@ do `(polynomial.nat_degree %%tl ≤ %%tr) ← target,
 
 /--  These are the cases in which an easy lemma computes the degree. -/
 meta def single_term_suggestions : tactic unit :=
-do exact ``(polynomial.nat_degree_X_pow _)  *> trace "Try this: exact nat_degree_X_pow _" <|>
-   exact ``(polynomial.nat_degree_C _)      *> trace "Try this: exact nat_degree_C _"     <|>
-   exact ``(polynomial.nat_degree_X)      *> trace "Try this: exact nat_degree_X"       <|>
+do exact ``(polynomial.nat_degree_X_pow _) *> trace "Try this: exact nat_degree_X_pow _" <|>
+   exact ``(polynomial.nat_degree_C _)     *> trace "Try this: exact nat_degree_C _"     <|>
+   exact ``(polynomial.nat_degree_X)       *> trace "Try this: exact nat_degree_X"       <|>
    fail "easy lemmas do not work"
 
 /--  `compute_degree` tries to solve a goal of the form `f.nat_degree = d`, where `d : ℕ` and `f`
@@ -271,7 +271,7 @@ add_tactic_doc
 { name := "compute_degree_le",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.compute_degree],
-  tags := ["arithmetic"] }
+  tags := ["arithmetic, finishing"] }
 
 add_tactic_doc
 { name := "compute_degree",

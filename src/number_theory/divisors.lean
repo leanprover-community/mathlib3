@@ -416,7 +416,7 @@ end
 
 @[simp]
 lemma filter_dvd_eq_divisors (h : n ≠ 0) :
-  finset.filter (λ (x : ℕ), x ∣ n) (finset.range (n : ℕ).succ) = (n : ℕ).divisors :=
+  (finset.range n.succ).filter (∣ n) = n.divisors :=
 begin
   ext,
   simp only [divisors, mem_filter, mem_range, mem_Ico, and.congr_left_iff, iff_and_self],
@@ -425,7 +425,7 @@ end
 
 @[simp]
 lemma filter_dvd_eq_proper_divisors (h : n ≠ 0) :
-  finset.filter (λ (x : ℕ), x ∣ n) (finset.range (n : ℕ)) = (n : ℕ).proper_divisors :=
+  (finset.range n).filter (∣ n) = n.proper_divisors :=
 begin
   ext,
   simp only [proper_divisors, mem_filter, mem_range, mem_Ico, and.congr_left_iff, iff_and_self],

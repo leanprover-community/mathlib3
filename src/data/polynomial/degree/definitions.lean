@@ -222,6 +222,14 @@ begin
   { rw [← C_mul_X_pow_eq_monomial, nat_degree_C_mul_X_pow i r hr] }
 end
 
+lemma nat_degree_monomial_le (a : R) {m : ℕ} :
+  (monomial m a).nat_degree ≤ m :=
+begin
+  rw polynomial.nat_degree_monomial,
+  split_ifs,
+  exacts [nat.zero_le _, rfl.le],
+end
+
 lemma coeff_eq_zero_of_degree_lt (h : degree p < n) : coeff p n = 0 :=
 not_not.1 (mt le_degree_of_ne_zero (not_le_of_gt h))
 
@@ -989,7 +997,6 @@ by rw [add_assoc, add_assoc, ← add_assoc (C b * X ^ 2), add_comm, leading_coef
 
 end semiring
 
-
 section nontrivial_semiring
 variables [semiring R] [nontrivial R] {p q : R[X]}
 
@@ -998,6 +1005,12 @@ by rw [X_pow_eq_monomial, degree_monomial _ (@one_ne_zero R _ _)]
 
 @[simp] lemma nat_degree_X_pow (n : ℕ) : nat_degree ((X : R[X]) ^ n) = n :=
 nat_degree_eq_of_degree_eq_some (degree_X_pow n)
+
+lemma nat_degree_X_pow_le (n : ℕ) : (X ^ n : R[X]).nat_degree ≤ n :=
+begin
+  nontriviality R,
+  rwa polynomial.nat_degree_X_pow,
+end
 
 theorem not_is_unit_X : ¬ is_unit (X : R[X]) :=
 λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $

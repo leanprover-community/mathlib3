@@ -334,7 +334,6 @@ begin
     rw [IH _ this h, log_div_base, tsub_add_cancel_of_le],
     rw [succ_le_iff],
     refine log_pos hb' _,
-    rw nat.cast_id,
     contrapose! h,
     rw div_eq_of_lt h }
 end
@@ -433,7 +432,7 @@ begin
     { simp [digits_zero_succ', hn] },
     { simp, },
     { simpa [succ_lt_succ_iff] using hb } },
-  simpa [digits_len, hb, hn] using log_le_log_of_le (le_succ _)
+  simpa [digits_len, hb, hn] using log_mono_right (le_succ _)
 end
 
 lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=

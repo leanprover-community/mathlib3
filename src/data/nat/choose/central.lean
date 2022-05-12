@@ -132,7 +132,7 @@ lemma padic_val_nat_central_binom_of_large_le_one (hp : p.prime) (p_large : 2 * 
   (padic_val_nat p (central_binom n)) ≤ 1 :=
 begin
   have log_weak_bound : log p (2 * n) ≤ 2,
-  { calc log p (2 * n) ≤ log p (p ^ 2) : log_le_log_of_le (le_of_lt p_large)
+  { calc log p (2 * n) ≤ log p (p ^ 2) : log_mono_right (le_of_lt p_large)
     ... = 2 : log_pow hp.one_lt 2, },
 
   have log_bound : log p (2 * n) ≤ 1,
@@ -141,13 +141,13 @@ begin
     { have v : log p (2 * n) = 2 := by linarith,
       cases le_or_lt p (2 * n) with h h,
       { exfalso,
-        rw [log_of_one_lt_of_le' hp.one_lt h, succ_inj', log_eq_one_iff, nat.cast_id] at v,
+        rw [log_of_one_lt_of_le hp.one_lt h, succ_inj', log_eq_one_iff] at v,
         have bad : p ^ 2 ≤ 2 * n,
         { rw pow_two,
           exact (nat.le_div_iff_mul_le _ _ (prime.pos hp)).1 v.2.2, },
         exact lt_irrefl _ (lt_of_le_of_lt bad p_large), },
-      { refine (log_of_lt _).trans_le (zero_le _),
-        rwa nat.cast_id, }, }, },
+      { rw log_of_lt h,
+        exact zero_le 1, }, }, },
 
   exact le_trans (padic_val_nat_central_binom_le hp) log_bound,
 end

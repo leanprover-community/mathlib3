@@ -990,7 +990,7 @@ end
 lemma eventually_ne_of_tendsto_norm_at_top {l : filter α} {f : α → E}
   (h : tendsto (λ y, ∥f y∥) l at_top) (x : E) :
   ∀ᶠ y in l, f y ≠ x :=
-(eventually_ne_of_tendsto_at_top h _).mono $ λ x, ne_of_apply_ne norm
+(h.eventually_ne_at_top _).mono $ λ x, ne_of_apply_ne norm
 
 @[priority 100] -- see Note [lower instance priority]
 instance semi_normed_group.has_lipschitz_add : has_lipschitz_add E :=

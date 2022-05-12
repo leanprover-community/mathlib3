@@ -137,12 +137,16 @@ lemma eventually_ne_at_top [preorder α] [no_max_order α] (a : α) :
   ∀ᶠ x in at_top, x ≠ a :=
 (eventually_gt_at_top a).mono $ λ x, ne_of_gt
 
-lemma eventually_gt_of_tendsto_at_top [preorder β] [no_max_order β] {f : α → β} {l : filter α}
-  (hf : tendsto f l at_top) (c : β) :  ∀ᶠ x in l, c < f x :=
+lemma tendsto.eventually_gt_at_top [preorder β] [no_max_order β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_top) (c : β) : ∀ᶠ x in l, c < f x :=
 hf.eventually (eventually_gt_at_top c)
 
-lemma eventually_ne_of_tendsto_at_top [preorder β] [no_max_order β] {f : α → β} {l : filter α}
-  (hf : tendsto f l at_top) (c : β) :  ∀ᶠ x in l, f x ≠ c :=
+lemma tendsto.eventually_ge_at_top [preorder β] [no_max_order β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_top) (c : β) : ∀ᶠ x in l, c ≤ f x :=
+hf.eventually (eventually_ge_at_top c)
+
+lemma tendsto.eventually_ne_at_top [preorder β] [no_max_order β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_top) (c : β) : ∀ᶠ x in l, f x ≠ c :=
 hf.eventually (eventually_ne_at_top c)
 
 lemma eventually_lt_at_bot [preorder α] [no_min_order α] (a : α) :
@@ -153,11 +157,15 @@ lemma eventually_ne_at_bot [preorder α] [no_min_order α] (a : α) :
   ∀ᶠ x in at_bot, x ≠ a :=
 (eventually_lt_at_bot a).mono $ λ x, ne_of_lt
 
-lemma eventually_lt_of_tendsto_at_bot [preorder β] [no_min_order β] {f : α → β} {l : filter α}
-  (hf : tendsto f l at_bot) (c : β) :  ∀ᶠ x in l, f x < c :=
+lemma tendsto.eventually_lt_at_bot [preorder β] [no_min_order β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_bot) (c : β) : ∀ᶠ x in l, f x < c :=
 hf.eventually (eventually_lt_at_bot c)
 
-lemma eventually_ne_of_tendsto_at_bot [preorder β] [no_min_order β] {f : α → β} {l : filter α}
+lemma tendsto.eventually_le_at_bot [preorder β] [no_min_order β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_bot) (c : β) : ∀ᶠ x in l, f x ≤ c :=
+hf.eventually (eventually_le_at_bot c)
+
+lemma tendsto.eventually_ne_at_bot [preorder β] [no_min_order β] {f : α → β} {l : filter α}
   (hf : tendsto f l at_bot) (c : β) :  ∀ᶠ x in l, f x ≠ c :=
 hf.eventually (eventually_ne_at_bot c)
 

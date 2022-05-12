@@ -1836,15 +1836,11 @@ by { ext, refl }
   comap_domain f (finsupp.single (f a) m) hif = finsupp.single a m :=
 begin
   obtain rfl | hm := eq_or_ne m 0,
-  { simp_rw [single_zero],
-    rw comap_domain_zero },
-  { simp_rw [support_single_ne_zero hm, coe_singleton, set.preimage, set.mem_singleton_iff] at hif,
-    ext x,
-    obtain rfl | hx := eq_or_ne a x,
-    { rw [comap_domain_apply, single_eq_same, single_eq_same] },
-    { rw [comap_domain_apply, single_eq_of_ne (mt _ hx), single_eq_of_ne hx],
-      intro ax,
-      refine hif rfl ax.symm ax } },
+  { simp only [single_zero, comap_domain_zero] },
+  { rw [eq_single_iff, comap_domain_apply, comap_domain_support, ← finset.coe_subset, coe_preimage,
+      support_single_ne_zero hm, coe_singleton, coe_singleton, single_eq_same],
+    rw [support_single_ne_zero hm, coe_singleton] at hif,
+    exact ⟨λ x hx, hif hx rfl hx, rfl⟩ }
 end
 
 end has_zero

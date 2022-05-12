@@ -99,8 +99,7 @@ lemma thickened_indicator_aux_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (
   thickened_indicator_aux δ₁ E ≤ thickened_indicator_aux δ₂ E :=
 λ _, tsub_le_tsub (@rfl ℝ≥0∞ 1).le (ennreal.div_le_div rfl.le (of_real_le_of_real hle))
 
-lemma indicator_le_thickened_indicator_aux
-  {α : Type*} [pseudo_emetric_space α] (δ : ℝ) (E : set α) :
+lemma indicator_le_thickened_indicator_aux (δ : ℝ) (E : set α) :
   E.indicator (λ _, (1 : ℝ≥0∞)) ≤ thickened_indicator_aux δ E :=
 begin
   intro a,
@@ -207,8 +206,7 @@ lemma thickened_indicator_zero
   thickened_indicator δ_pos E x = 0 :=
 by rw [thickened_indicator_apply, thickened_indicator_aux_zero δ_pos E x_out, zero_to_nnreal]
 
-lemma indicator_le_thickened_indicator
-  {α : Type*} [pseudo_emetric_space α] {δ : ℝ} (δ_pos : 0 < δ) (E : set α) :
+lemma indicator_le_thickened_indicator {δ : ℝ} (δ_pos : 0 < δ) (E : set α) :
   E.indicator (λ _, (1 : ℝ≥0)) ≤ thickened_indicator δ_pos E :=
 begin
   intro a,
@@ -255,8 +253,9 @@ end
 
 open measure_theory
 
+variables [measurable_space α]
+
 lemma measure_le_lintegral_thickened_indicator_aux
-  {α : Type*} [measurable_space α] [pseudo_emetric_space α]
   (μ : measure α) {E : set α} (E_mble : measurable_set E) (δ : ℝ) :
   μ E ≤ lintegral μ (λ a, (thickened_indicator_aux δ E a : ℝ≥0∞)) :=
 begin
@@ -269,7 +268,6 @@ begin
 end
 
 lemma measure_le_lintegral_thickened_indicator
-  {α : Type*} [measurable_space α] [pseudo_emetric_space α]
   (μ : measure α) {E : set α} (E_mble : measurable_set E) {δ : ℝ} (δ_pos : 0 < δ) :
   μ E ≤ lintegral μ (λ a, (thickened_indicator δ_pos E a : ℝ≥0∞)) :=
 begin

@@ -247,7 +247,6 @@ lemma T_mul (n : ℤ) (f : R[T;T⁻¹]) : T n * f = f * T n :=
 
 /--  `trunc : R[T;T⁻¹] →+ R[X]` maps a Laurent polynomial `f` to the polynomial whose terms of
 nonnegative degree coincide with the ones of `f`.  The terms of negative degree of `f` "vanish".
-
 `trunc` is a left-inverse to `polynomial.to_laurent`. -/
 def trunc : R[T;T⁻¹] →+ R[X] :=
 ((to_finsupp_iso R).symm.to_add_monoid_hom).comp $

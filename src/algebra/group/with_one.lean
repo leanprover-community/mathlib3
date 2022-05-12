@@ -307,13 +307,6 @@ instance [has_involutive_inv α] : has_involutive_inv (with_zero α) :=
 { inv_inv := λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
   ..with_zero.has_inv }
 
-instance [has_involutive_inv α] : has_involutive_inv (with_zero α) :=
-{ inv_inv := λ a, match a with
-    | none   := rfl
-    | some a := congr_arg some $ inv_inv _
-    end,
-  ..with_zero.has_inv }
-
 instance [has_div α] : has_div (with_zero α) :=
 ⟨λ o₁ o₂, o₁.bind (λ a, option.map (λ b, a / b) o₂)⟩
 

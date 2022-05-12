@@ -1290,8 +1290,9 @@ begin
   rwa eq_of_mem_of_not_mem_erase hx hnx
 end
 
-lemma sum_erase_lt_of_pos {s : finset ℕ} {d : ℕ} (hd : d ∈ s) {f : ℕ → ℕ} (hdf : 0 < f d) :
-  ∑ (m : ℕ) in s.erase d, f m < ∑ (m : ℕ) in s, f m :=
+lemma sum_erase_lt_of_pos [decidable_eq α] {s : finset α} {d : α} (hd : d ∈ s) {f : α → ℕ}
+  (hdf : 0 < f d) :
+  ∑ (m : α) in s.erase d, f m < ∑ (m : α) in s, f m :=
 begin
   nth_rewrite_rhs 0 ←finset.insert_erase hd,
   rw finset.sum_insert (finset.not_mem_erase d s),

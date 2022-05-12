@@ -74,7 +74,7 @@ lemma quotient_mk_eq_mk (z : V) (h : z ≠ 0) :
   @quotient.mk _ (projectivization_setoid _ _) ⟨z, h⟩ = mk K z h := rfl
 
 @[simp]
-lemma quotient_mk'_eq_mk (z : V) (h : z ≠ 0) :
+lemma quotient_mk'_eq_mk {z : V} (h : z ≠ 0) :
   @quotient.mk' _ (projectivization_setoid _ _) ⟨z, h⟩ = mk K z h := rfl
 
 instance [nontrivial V] : nonempty (ℙ K V) :=

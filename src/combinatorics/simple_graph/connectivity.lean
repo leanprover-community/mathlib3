@@ -872,7 +872,9 @@ begin
     exact hp.2 hx, },
 end
 
-lemma is_path_of_map_is_path (hp : (p.map f).is_path) : p.is_path :=
+variable {p}
+
+protected lemma is_path.map (hp : (p.map f).is_path) : p.is_path :=
 begin
   induction p with w u v w huv hvw ih,
   { simp },
@@ -883,6 +885,8 @@ begin
     contrapose! hp2,
     exact list.mem_map_of_mem f hp2, }
 end
+
+variable (p)
 
 lemma map_injective_of_injective {f : G →g G'} (hinj : function.injective f) (u v : V) :
   function.injective (walk.map f : G.walk u v → G'.walk (f u) (f v)) :=
@@ -966,7 +970,7 @@ by induction p; simp [*]
 lemma to_delete_edges_is_path_of_is_path (s : set (sym2 V))
   {v w : V} {p : G.walk v w} (h : p.is_path) (hp) :
   (p.to_delete_edges s hp).is_path :=
-by { rw ← map_to_delete_edges_eq s hp at h, exact is_path_of_map_is_path _ _ h }
+by { rw ← map_to_delete_edges_eq s hp at h, exact h.map _ }
 
 end walk
 

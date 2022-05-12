@@ -171,10 +171,7 @@ end
 lemma pos_of_mem_divisors {m : ℕ} (h : m ∈ n.divisors) : 0 < m :=
 begin
   cases m,
-  { rw [mem_divisors, zero_dvd_iff] at h,
-    rcases h with ⟨rfl, h⟩,
-    exfalso,
-    apply h rfl },
+  { rw [mem_divisors, zero_dvd_iff] at h, cases h.2 h.1 },
   apply nat.succ_pos,
 end
 

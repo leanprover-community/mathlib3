@@ -30,7 +30,7 @@ if_pos pa
 @[simp] lemma countp_cons_of_neg {a : α} (l) (pa : ¬ p a) : countp p (a::l) = countp p l :=
 if_neg pa
 
-lemma countp_cons (a : α) (l) : list.countp p (a :: l) = list.countp p l + ite (p a) 1 0 :=
+lemma countp_cons (a : α) (l) : countp p (a :: l) = countp p l + ite (p a) 1 0 :=
 by { by_cases h : p a; simp [h] }
 
 lemma length_eq_countp_add_countp (l) : length l = countp p l + countp (λ a, ¬p a) l :=
@@ -130,6 +130,9 @@ decidable.by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
 
 lemma not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a ∉ l :=
 λ h', (count_pos.2 h').ne' h
+
+lemma count_eq_zero {a : α} {l} : count a l = 0 ↔ a ∉ l :=
+⟨not_mem_of_count_eq_zero, count_eq_zero_of_not_mem⟩
 
 lemma count_eq_length {a : α} {l} : count a l = l.length ↔ ∀ b ∈ l, a = b :=
 by rw [count, countp_eq_length]

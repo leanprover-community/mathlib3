@@ -303,39 +303,6 @@ le_antisymm
 open_locale nat -- use φ for nat.totient
 
 
-private lemma card_order_of_eq_totient_aux₁ :
-  ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →
-  (univ.filter (λ a : α, order_of a = d)).card = φ d :=
-begin
-  intros d hd,
-  rcases d.eq_zero_or_pos with rfl | hd_pos, {
-    exfalso,
-    simp only [zero_dvd_iff] at hd,
-  -- α is nonempty since it's a group, but has card 0; contradiction!
-    sorry },
-
-  intro hd0,
-
-  -- since the card of the filter-set is pos, there's an element `a` in it
-  rcases card_pos.1 hd0 with ⟨a, ha'⟩,
-
-  have : ∑ (m : ℕ) in d.divisors, (filter (λ (x : α), order_of x = m) univ).card
-    = (filter (λ (x : α), x ^ d = 1) univ).card,
-  {
-    rw ← sum_card_order_of_eq_card_pow_eq_one hd_pos,
-    simp only [filter_dvd_eq_divisors hd_pos.ne'],
-  },
-
-
-  -- have := @sum_card_order_of_eq_card_pow_eq_one α _ _ _ _ hd_pos ,
-  -- simp [filter_dvd_eq_divisors] at this,
-
-  have := card_pow_eq_one_eq_order_of_aux hn,
-
-  sorry,
-end
-
-
 ------
 ------
 lemma finset.filter_dvd_eq_proper_divisors {n : ℕ} (h : n ≠ 0) :

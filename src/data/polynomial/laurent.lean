@@ -47,8 +47,8 @@ Any comments or suggestions for improvements is greatly appreciated!
 ##  Future work
 Lots is missing!
 * (Riccardo) add inclusion into Laurent series.
-* (Riccardo) giving a morphism (as `R`-alg, so in the commutative case)
-  from `R[T,T⁻¹]` to `S` is the same as choosing a unit of `S`.
+* (Riccardo) giving a morphism (as `R`-alg, so in the commutative case)
+  from `R[T,T⁻¹]` to `S` is the same as choosing a unit of `S`.
 * A "better" definition of `trunc` would be as an `R`-linear map.  This works:
   ```
   def trunc : R[T;T⁻¹] →[R] R[X] :=

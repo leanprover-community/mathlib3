@@ -1290,8 +1290,8 @@ begin
   rwa eq_of_mem_of_not_mem_erase hx hnx
 end
 
-lemma sum_erase_lt_of_pos [decidable_eq α] {s : finset α} {d : α} (hd : d ∈ s) {f : α → ℕ}
-  (hdf : 0 < f d) :
+lemma sum_erase_lt_of_pos [decidable_eq α] [ordered_add_comm_monoid β]
+  [covariant_class β β (+) (<)] {s : finset α} {d : α} (hd : d ∈ s) {f : α → β} (hdf : 0 < f d) :
   ∑ (m : α) in s.erase d, f m < ∑ (m : α) in s, f m :=
 begin
   nth_rewrite_rhs 0 ←finset.insert_erase hd,

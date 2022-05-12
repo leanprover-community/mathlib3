@@ -872,6 +872,18 @@ begin
     exact hp.2 hx, },
 end
 
+lemma is_path_of_map_is_path (hp : (p.map f).is_path) : p.is_path :=
+begin
+  induction p with w u v w huv hvw ih,
+  { simp },
+  { rw [map_cons, walk.cons_is_path_iff, support_map] at hp,
+    rw walk.cons_is_path_iff,
+    cases hp with hp1 hp2,
+    refine ⟨ih hp1, _⟩,
+    contrapose! hp2,
+    exact list.mem_map_of_mem f hp2, }
+end
+
 lemma map_injective_of_injective {f : G →g G'} (hinj : function.injective f) (u v : V) :
   function.injective (walk.map f : G.walk u v → G'.walk (f u) (f v)) :=
 begin
@@ -917,6 +929,46 @@ lemma map_embedding_injective (f : G ↪g G') (u v : V) :
 map_injective f.injective u v
 
 end path
+
+/-! ## Deleting edges -/
+
+namespace walk
+variables {G}
+
+/-- Given a walk that avoids a set of edges, produce a walk in the graph
+with those edges deleted. -/
+def to_delete_edges (s : set (sym2 V)) :
+  Π {v w : V} (p : G.walk v w) (hp : ∀ e, e ∈ p.edges → ¬ e ∈ s), (G.delete_edges s).walk v w
+| _ _ nil _ := nil
+| _ _ (cons' u v w h p) hp := cons' u v w (by simpa [h, -quotient.eq] using hp ⟦(u, v)⟧)
+  (to_delete_edges p (λ e he, hp e (by simp only [he, edges_cons, list.mem_cons_iff, or_true])))
+
+@[simp] lemma to_delete_edges_nil {s : set (sym2 V)} {v : V} :
+  (nil : G.walk v v).to_delete_edges s (by simp) = nil := rfl
+
+@[simp] lemma to_delete_edges_cons {s : set (sym2 V)}
+  {u v w : V} {huv : G.adj u v} {p : G.walk v w} {hp} :
+  (cons huv p).to_delete_edges s hp =
+    cons (by simpa [huv, -quotient.eq] using hp ⟦(u, v)⟧)
+      (p.to_delete_edges s (λ e he, hp e (by simp [he]))) := rfl
+
+/-- Given a walk that avoids an edge, create a walk in the subgraph with that edge deleted.
+This is an abbreviation for `simple_graph.walk.to_delete_edges`. -/
+abbreviation to_delete_edge {v w : V} (e : sym2 V) (p : G.walk v w) (hp : e ∉ p.edges) :
+  (G.delete_edges {e}).walk v w :=
+p.to_delete_edges {e} (λ e', by { contrapose!, simp [hp] { contextual := tt } })
+
+@[simp]
+lemma map_to_delete_edges_eq (s : set (sym2 V)) {v w : V} {p : G.walk v w} (hp) :
+  walk.map (hom.map_spanning_subgraphs (G.delete_edges_le s)) (p.to_delete_edges s hp) = p :=
+by induction p; simp [*]
+
+lemma to_delete_edges_is_path_of_is_path (s : set (sym2 V))
+  {v w : V} {p : G.walk v w} (h : p.is_path) (hp) :
+  (p.to_delete_edges s hp).is_path :=
+by { rw ← map_to_delete_edges_eq s hp at h, exact is_path_of_map_is_path _ _ h }
+
+end walk
 
 /-! ## `reachable` and `connected` -/
 

@@ -239,24 +239,17 @@ do exact ``(polynomial.nat_degree_X_pow _) *> trace "Try this: exact nat_degree_
    exact ``(polynomial.nat_degree_X)       *> trace "Try this: exact nat_degree_X"       <|>
    fail "easy lemmas do not work"
 
-/-  `support_for_degree` checks whether the goal is either an equality for the `nat_degree` or
-the `degree` of a polynomial. The output is a triple consisting of
-* a bool, enconding `f.nat_degree = d` with `tt` and `f.degree = d` with `ff`,
-* an `expr`, corresponding to the polynomial `f`;
-* an `expr`, corresponding to the target (nat)degree `d`.
-
-This fails if `f = 0`, that is, if `f.degree = ⊥`.
--/
-
-/--  `compute_degree` tries to solve a goal of the form `f.nat_degree = d` or  `f.nat_degree = d`,
+/--  `compute_degree` tries to solve a goal of the form `f.nat_degree = d` or  `f.degree = d`,
 where `d : ℕ` and `f` satisfies:
-* `f` is a sum of expression of the form
+* `f` is a sum of expressions of the form
   `C a * X ^ n, C a * X, C a, X ^ n, X, monomial n a, monomial n a * monomial m b`;
-* all exponents and the `n` in `monomial n a` are *closed* terms of type `ℕ`,
+* all exponents and the `n` in `monomial n a` are *closed* terms of type `ℕ`;
 * the term with largest exponent is `C a * X ^ n, X ^ n, C a * X, X, C a` and is the unique term of
   its degree (repetitions are allowed in terms of smaller degree);
 * if the leading term involves a product with `C a`, there must be in context the assumption
-  `a ≠ 0`.
+  `a ≠ 0`;
+* if the goal is computing `degree`, instead of `nat_degree`, then the expected degree `d` should
+  not be `⊥`.
 
 If the given degree does not match what the tactic computes,
 then the tactic suggests the degree that it computed.

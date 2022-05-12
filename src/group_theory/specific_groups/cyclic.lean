@@ -320,11 +320,12 @@ end
 -- (finset.range n).filter (∣ n) = n.proper_divisors
 
 -- Version of proof using `d=0` and `0<d` rather than `0` and `d.succ`
-private lemma card_order_of_eq_totient_aux₁ :
+private lemma card_order_of_eq_totient_aux₁' :
   ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →
   (univ.filter (λ a : α, order_of a = d)).card = φ d :=
 begin
   intros d hd hd0,
+  induction d using nat.strong_rec' with d IH,
   rcases d.eq_zero_or_pos with rfl | hd_pos,
   { cases ((@fintype.card_pos_iff α _).2 has_one.nonempty).ne' (zero_dvd_iff.1 hd) },
   rcases card_pos.1 hd0 with ⟨a, ha'⟩,
@@ -336,9 +337,7 @@ begin
     rw (finset.filter_dvd_eq_proper_divisors hn hd_pos.ne').symm,
     refine finset.sum_congr rfl (λ m hm, _),
     simp only [mem_filter, mem_range] at hm,
-    refine
-    ( have hmd : m < d := hm.1,
-      card_order_of_eq_totient_aux₁ hn (hm.2.trans hd) _ ),
+    apply IH m hm.1 (hm.2.trans hd),
     refine finset.card_pos.2 ⟨a ^ (d / m), _⟩,
     simp only [mem_filter, mem_univ, order_of_pow a, ha, true_and],
     rw [nat.gcd_eq_right (div_dvd_of_dvd hm.2)],

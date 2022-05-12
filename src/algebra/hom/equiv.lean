@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import algebra.group.type_tags
 import algebra.group_with_zero.basic
-import data.pi
+import data.pi.algebra
 
 /-!
 # Multiplicative and additive equivs
@@ -680,7 +680,7 @@ def mul_equiv.inv (G : Type*) [comm_group G] : G ≃* G :=
 @[simps apply] def mul_equiv.inv₀ (G : Type*) [comm_group_with_zero G] : G ≃* G :=
 { to_fun   := has_inv.inv,
   inv_fun  := has_inv.inv,
-  map_mul' := λ x y, mul_inv₀,
+  map_mul' := mul_inv,
   ..equiv.inv G }
 
 @[simp] lemma mul_equiv.inv₀_symm (G : Type*) [comm_group_with_zero G] :

@@ -211,6 +211,8 @@
   title  : Theorem of Ceva
 62:
   title  : Fair Games Theorem
+  decl   : measure_theory.submartingale_iff_expected_stopped_value_mono
+  author : Kexing Ying
 63:
   title  : Cantor’s Theorem
   decl   : cardinal.cantor

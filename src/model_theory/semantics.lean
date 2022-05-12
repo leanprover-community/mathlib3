@@ -27,8 +27,8 @@ sentence of `T` is realized in `M`. Also denoted `T ⊨ φ`.
 * `first_order.language.bounded_formula.realize_to_prenex` shows that the prenex normal form of a
 formula has the same realization as the original formula.
 * Several results in this file show that syntactic constructions such as `relabel`, `cast_le`,
-`lift_at`, and the actions of language maps commute with realization of terms, formulas, sentences,
-and theories.
+`lift_at`, `subst`, and the actions of language maps commute with realization of terms, formulas,
+sentences, and theories.
 
 ## Implementation Notes
 * Formulas use a modified version of de Bruijn variables. Specifically, a `L.bounded_formula α n`
@@ -102,6 +102,37 @@ end
 
 lemma realize_con {A : set M} {a : A} {v : α → M} :
   (L.con a).term.realize v = a := rfl
+
+@[simp] lemma realize_subst {t : L.term α} {tf : α → L.term β} {v : β → M} :
+  (t.subst tf).realize v = t.realize (λ a, (tf a).realize v) :=
+begin
+  induction t with _ _ _ _ ih,
+  { refl },
+  { simp [ih] }
+end
+
+@[simp] lemma realize_restrict_var [decidable_eq α] {t : L.term α} {s : set α}
+  (h : ↑t.var_finset ⊆ s) {v : α → M} :
+  (t.restrict_var (set.inclusion h)).realize (v ∘ coe) = t.realize v :=
+begin
+  induction t with _ _ _ _ ih,
+  { refl },
+  { simp_rw [var_finset, finset.coe_bUnion, set.Union_subset_iff] at h,
+    exact congr rfl (funext (λ i, ih i (h i (finset.mem_univ i)))) },
+end
+
+@[simp] lemma realize_restrict_var_left [decidable_eq α] {γ : Type*}
+  {t : L.term (α ⊕ γ)} {s : set α}
+  (h : ↑t.var_finset_left ⊆ s) {v : α → M} {xs : γ → M} :
+  (t.restrict_var_left (set.inclusion h)).realize (sum.elim (v ∘ coe) xs) =
+    t.realize (sum.elim v xs) :=
+begin
+  induction t with a _ _ _ ih,
+  { cases a;
+    refl },
+  { simp_rw [var_finset_left, finset.coe_bUnion, set.Union_subset_iff] at h,
+    exact congr rfl (funext (λ i, ih i (h i (finset.mem_univ i)))) },
+end
 
 end term
 
@@ -323,7 +354,39 @@ begin
   rw [if_pos i.is_lt],
 end
 
-lemma realize_all_lift_at_one_self [nonempty M] {n : ℕ} {φ : L.bounded_formula α n}
+@[simp] lemma realize_subst_aux {tf : α → L.term β} {v : β → M} {xs : fin n → M} :
+  (λ x, term.realize (sum.elim v xs) (sum.elim (term.relabel sum.inl ∘ tf) (var ∘ sum.inr) x)) =
+    sum.elim (λ (a : α), term.realize v (tf a)) xs :=
+funext (λ x, sum.cases_on x (λ x,
+  by simp only [sum.elim_inl, term.realize_relabel, sum.elim_comp_inl]) (λ x, rfl))
+
+lemma realize_subst {φ : L.bounded_formula α n} {tf : α → L.term β} {v : β → M} {xs : fin n → M} :
+  (φ.subst tf).realize v xs ↔ φ.realize (λ a, (tf a).realize v) xs :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih,
+  { refl },
+  { simp only [subst, bounded_formula.realize, realize_subst, realize_subst_aux] },
+  { simp only [subst, bounded_formula.realize, realize_subst, realize_subst_aux] },
+  { simp only [subst, realize_imp, ih1, ih2] },
+  { simp only [ih, subst, realize_all] }
+end
+
+@[simp] lemma realize_restrict_free_var [decidable_eq α] {n : ℕ} {φ : L.bounded_formula α n}
+  {s : set α} (h : ↑φ.free_var_finset ⊆ s) {v : α → M} {xs : fin n → M} :
+  (φ.restrict_free_var (set.inclusion h)).realize (v ∘ coe) xs ↔
+    φ.realize v xs :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp [restrict_free_var, realize] },
+  { simp [restrict_free_var, realize] },
+  { simp [restrict_free_var, realize, ih1, ih2] },
+  { simp [restrict_free_var, realize, ih3] },
+end
+
+variables [nonempty M]
+
+lemma realize_all_lift_at_one_self {n : ℕ} {φ : L.bounded_formula α n}
   {v : α → M} {xs : fin n → M} :
   (φ.lift_at 1 n).all.realize v xs ↔ φ.realize v xs :=
 begin
@@ -335,8 +398,6 @@ begin
   { refine (congr rfl (funext (λ i, _))).mp h,
     simp }
 end
-
-variables [nonempty M]
 
 lemma realize_to_prenex_imp_right {φ ψ : L.bounded_formula α n}
   (hφ : is_qf φ) (hψ : is_prenex ψ) {v : α → M} {xs : fin n → M} :
@@ -567,17 +628,32 @@ variables {M} {T}
 
 instance model_empty : M ⊨ (∅ : L.Theory) := ⟨λ φ hφ, (set.not_mem_empty φ hφ).elim⟩
 
-lemma Theory.model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
+namespace Theory
+
+lemma model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
   M ⊨ T :=
 ⟨λ φ hφ, T'.realize_sentence_of_mem (hs hφ)⟩
 
-lemma Theory.model_singleton_iff {φ : L.sentence} :
+lemma model.union {T' : L.Theory} (h : M ⊨ T) (h' : M ⊨ T') :
+  M ⊨ T ∪ T' :=
+begin
+  simp only [model_iff, set.mem_union_eq] at *,
+  exact λ φ hφ, hφ.elim (h _) (h' _),
+end
+
+@[simp] lemma model_union_iff {T' : L.Theory} :
+  M ⊨ T ∪ T' ↔ M ⊨ T ∧ M ⊨ T' :=
+⟨λ h, ⟨h.mono (T.subset_union_left T'), h.mono (T.subset_union_right T')⟩, λ h, h.1.union h.2⟩
+
+lemma model_singleton_iff {φ : L.sentence} :
   M ⊨ ({φ} : L.Theory) ↔ M ⊨ φ :=
 by simp
 
-theorem Theory.model_iff_subset_complete_theory :
+theorem model_iff_subset_complete_theory :
   M ⊨ T ↔ T ⊆ L.complete_theory M :=
 T.model_iff
+
+end Theory
 
 instance model_complete_theory : M ⊨ L.complete_theory M :=
 Theory.model_iff_subset_complete_theory.2 (subset_refl _)
@@ -736,6 +812,28 @@ by simp only [nonempty_theory, Theory.model_iff, set.mem_singleton_iff, forall_e
 instance model_nonempty [h : nonempty M] :
   M ⊨ L.nonempty_theory :=
 L.model_nonempty_theory_iff.2 h
+
+lemma model_distinct_constants_theory {M : Type w} [L[[α]].Structure M] (s : set α) :
+  M ⊨ L.distinct_constants_theory s ↔ set.inj_on (λ (i : α), (L.con i : M)) s :=
+begin
+  simp only [distinct_constants_theory, set.compl_eq_compl, Theory.model_iff, set.mem_image,
+    set.mem_inter_eq, set.mem_prod, set.mem_compl_eq, prod.exists, forall_exists_index, and_imp],
+  refine ⟨λ h a as b bs ab, _, _⟩,
+  { contrapose! ab,
+    have h' := h _ a b as bs ab rfl,
+    simp only [sentence.realize, formula.realize_not, formula.realize_equal,
+      term.realize_constants] at h',
+    exact h', },
+  { rintros h φ a b as bs ab rfl,
+    simp only [sentence.realize, formula.realize_not, formula.realize_equal,
+      term.realize_constants],
+    exact λ contra, ab (h as bs contra) }
+end
+
+lemma card_le_of_model_distinct_constants_theory (s : set α) (M : Type w) [L[[α]].Structure M]
+  [h : M ⊨ L.distinct_constants_theory s] :
+  cardinal.lift.{w} (# s) ≤ cardinal.lift.{u'} (# M) :=
+lift_mk_le'.2 ⟨⟨_, set.inj_on_iff_injective.1 ((L.model_distinct_constants_theory s).1 h)⟩⟩
 
 end cardinality
 

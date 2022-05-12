@@ -481,7 +481,7 @@ end
 
 end probability_measure
 
-section convergence_implies_limsup_closed
+section convergence_implies_limsup_closed_le
 
 open measure_theory set filter bounded_continuous_function
 open_locale topological_space ennreal nnreal bounded_continuous_function
@@ -521,50 +521,7 @@ begin
   rwa F_closed.closure_eq at key,
 end
 
-lemma indicator_le_thickened_indicator_aux
-  {α : Type*} [pseudo_emetric_space α] (δ : ℝ) (E : set α) :
-  E.indicator (λ _, (1 : ℝ≥0∞)) ≤ thickened_indicator_aux δ E :=
-begin
-  intro a,
-  by_cases a ∈ E,
-  { simp only [h, indicator_of_mem, thickened_indicator_aux_one δ E h, le_refl], },
-  { simp only [h, indicator_of_not_mem, not_false_iff, zero_le], },
-end
-
-lemma indicator_le_thickened_indicator
-  {α : Type*} [pseudo_emetric_space α] {δ : ℝ} (δ_pos : 0 < δ) (E : set α) :
-  E.indicator (λ _, (1 : ℝ≥0)) ≤ thickened_indicator δ_pos E :=
-begin
-  intro a,
-  by_cases a ∈ E,
-  { simp only [h, indicator_of_mem, thickened_indicator_one δ_pos E h, le_refl], },
-  { simp only [h, indicator_of_not_mem, not_false_iff, zero_le], },
-end
-
-lemma measure_le_lintegral_thickened_indicator_aux
-  {α : Type*} [measurable_space α] [pseudo_emetric_space α]
-  (μ : measure α) {E : set α} (E_mble : measurable_set E) (δ : ℝ) :
-  μ E ≤ lintegral μ (λ a, (thickened_indicator_aux δ E a : ℝ≥0∞)) :=
-begin
-  convert_to lintegral μ (E.indicator (λ _, (1 : ℝ≥0∞)))
-              ≤ lintegral μ (thickened_indicator_aux δ E),
-  { rw [lintegral_indicator _ E_mble],
-    simp only [lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter], },
-  { apply lintegral_mono,
-    apply indicator_le_thickened_indicator_aux, },
-end
-
-lemma measure_le_lintegral_thickened_indicator
-  {α : Type*} [measurable_space α] [pseudo_emetric_space α]
-  (μ : measure α) {E : set α} (E_mble : measurable_set E) {δ : ℝ} (δ_pos : 0 < δ) :
-  μ E ≤ lintegral μ (λ a, (thickened_indicator δ_pos E a : ℝ≥0∞)) :=
-begin
-  convert measure_le_lintegral_thickened_indicator_aux μ E_mble δ,
-  dsimp,
-  simp only [thickened_indicator_aux_lt_top.ne, ennreal.coe_to_nnreal, ne.def, not_false_iff],
-end
-
-lemma finite_measure.limsup_measure_closed
+lemma finite_measure.limsup_measure_closed_le
   {α : Type*} [measurable_space α] [pseudo_emetric_space α] [opens_measurable_space α]
   {μ : finite_measure α} {μs : ℕ → finite_measure α}
   (μs_lim : tendsto μs at_top (𝓝 μ)) {F : set α} (F_closed : is_closed F) :
@@ -599,6 +556,6 @@ begin
   simp only [add_assoc, ennreal.add_halves, le_refl],
 end
 
-end convergence_implies_limsup_closed
+end convergence_implies_limsup_closed_le
 
 end measure_theory

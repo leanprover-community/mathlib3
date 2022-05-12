@@ -356,11 +356,16 @@ lemma rpow_nonneg_of_nonneg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : 0 ≤ x ^ y :=
 by rw [rpow_def_of_nonneg hx];
   split_ifs; simp only [zero_le_one, le_refl, le_of_lt (exp_pos _)]
 
+lemma abs_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : |x ^ y| = |x| ^ y :=
+begin
+  have h_rpow_nonneg : 0 ≤ x ^ y, from real.rpow_nonneg_of_nonneg hx_nonneg _,
+  rw [abs_eq_self.mpr hx_nonneg, abs_eq_self.mpr h_rpow_nonneg],
+end
+
 lemma abs_rpow_le_abs_rpow (x y : ℝ) : |x ^ y| ≤ |x| ^ y :=
 begin
-  rcases lt_trichotomy 0 x with (hx|rfl|hx),
-  { rw [abs_of_pos hx, abs_of_pos (rpow_pos_of_pos hx _)] },
-  { rw [abs_zero, abs_of_nonneg (rpow_nonneg_of_nonneg le_rfl _)] },
+  cases le_or_lt 0 x with hx hx,
+  { rw [abs_rpow_of_nonneg hx] },
   { rw [abs_of_neg hx, rpow_def_of_neg hx, rpow_def_of_pos (neg_pos.2 hx), log_neg_eq_log,
       abs_mul, abs_of_pos (exp_pos _)],
     exact mul_le_of_le_one_right (exp_pos _).le (abs_cos_le_one _) }
@@ -372,12 +377,6 @@ begin
   by_cases hx : x = 0,
   { by_cases hy : y = 0; simp [hx, hy, zero_le_one] },
   { rw [rpow_def_of_pos (abs_pos.2 hx), log_abs] }
-end
-
-lemma abs_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : |x ^ y| = |x| ^ y :=
-begin
-  have h_rpow_nonneg : 0 ≤ x ^ y, from real.rpow_nonneg_of_nonneg hx_nonneg _,
-  rw [abs_eq_self.mpr hx_nonneg, abs_eq_self.mpr h_rpow_nonneg],
 end
 
 lemma norm_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : ∥x ^ y∥ = ∥x∥ ^ y :=
@@ -965,6 +964,32 @@ begin
   filter_upwards with x using by simp [exp_neg, inv_div, div_eq_mul_inv _ (exp _)]
 end
 
+namespace asymptotics
+
+variables {α : Type*} {r c : ℝ} {l : filter α} {f g : α → ℝ}
+
+lemma is_O_with.rpow (h : is_O_with c f g l) (hc : 0 ≤ c) (hr : 0 ≤ r) (hg : 0 ≤ᶠ[l] g) :
+  is_O_with (c ^ r) (λ x, f x ^ r) (λ x, g x ^ r) l :=
+begin
+  apply is_O_with.of_bound,
+  filter_upwards [hg, h.bound] with x hgx hx,
+  calc |f x ^ r| ≤ |f x| ^ r         : abs_rpow_le_abs_rpow _ _
+             ... ≤ (c * |g x|) ^ r   : rpow_le_rpow (abs_nonneg _) hx hr
+             ... = c ^ r * |g x ^ r| : by rw [mul_rpow hc (abs_nonneg _), abs_rpow_of_nonneg hgx]
+end
+
+lemma is_O.rpow (hr : 0 ≤ r) (hg : 0 ≤ᶠ[l] g) (h : is_O f g l) :
+  is_O (λ x, f x ^ r) (λ x, g x ^ r) l :=
+let ⟨c, hc, h'⟩ := h.exists_nonneg in (h'.rpow hc hr hg).is_O
+
+lemma is_o.rpow (hr : 0 < r) (hg : 0 ≤ᶠ[l] g) (h : is_o f g l) :
+  is_o (λ x, f x ^ r) (λ x, g x ^ r) l :=
+is_o.of_is_O_with $ λ c hc, ((h.forall_is_O_with (rpow_pos_of_pos hc r⁻¹)).rpow
+  (rpow_nonneg_of_nonneg hc.le _) hr.le hg).congr_const
+    (by rw [←rpow_mul hc.le, inv_mul_cancel hr.ne', rpow_one])
+
+end asymptotics
+
 open asymptotics
 
 /-- `x ^ s = o(exp(b * x))` as `x → ∞` for any real `s` and positive `b`. -/
@@ -987,6 +1012,22 @@ is_o_zpow_exp_pos_mul_at_top k hb
 /-- `x ^ s = o(exp x)` as `x → ∞` for any real `s`. -/
 lemma is_o_rpow_exp_at_top (s : ℝ) : is_o (λ x : ℝ, x ^ s) exp at_top :=
 by simpa only [one_mul] using is_o_rpow_exp_pos_mul_at_top s one_pos
+
+lemma is_o_log_rpow_at_top {r : ℝ} (hr : 0 < r) : is_o log (λ x, x ^ r) at_top :=
+begin
+  rw ←is_o_const_mul_left_iff hr.ne',
+  refine (is_o_log_id_at_top.comp_tendsto (tendsto_rpow_at_top hr)).congr' _ eventually_eq.rfl,
+  filter_upwards [eventually_gt_at_top (0 : ℝ)] with x hx using log_rpow hx _,
+end
+
+lemma is_o_log_rpow_rpow_at_top {r s : ℝ} (hr : 0 < r) (hs : 0 < s) :
+  is_o (λ x, log x ^ r) (λ x, x ^ s) at_top :=
+begin
+  refine ((is_o_log_rpow_at_top (div_pos hs hr)).rpow hr _).congr' eventually_eq.rfl _,
+  { filter_upwards [eventually_ge_at_top (0 : ℝ)] with x hx,
+    rw [← rpow_mul hx, div_mul_cancel _ hr.ne'] },
+  { exact (tendsto_rpow_at_top (div_pos hs hr)).eventually (eventually_ge_at_top 0) },
+end
 
 end limits
 

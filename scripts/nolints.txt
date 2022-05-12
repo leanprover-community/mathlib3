@@ -8,10 +8,6 @@ apply_nolint fin.prod_univ_succ_above to_additive_doc
 
 -- algebra/category/Group/limits.lean
 apply_nolint CommGroup.category_theory.forget₂.category_theory.creates_limit to_additive_doc
-apply_nolint CommGroup.forget_preserves_limits to_additive_doc
-apply_nolint CommGroup.forget₂_CommMon_preserves_limits to_additive_doc
-apply_nolint CommGroup.forget₂_Group_preserves_limits to_additive_doc
-apply_nolint CommGroup.has_limits to_additive_doc
 
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility

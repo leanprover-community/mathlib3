@@ -78,6 +78,14 @@ localized "attribute [instance] finset.has_one finset.has_zero" in pointwise
 @[simp, to_additive]
 lemma image_one [decidable_eq β] {f : α → β} : image f 1 = {f 1} := image_singleton f 1
 
+/-- The singleton operation as a `one_hom`. -/
+@[to_additive "The singleton operation as a `zero_hom`."]
+def singleton_one_hom : one_hom α (finset α) := ⟨singleton, singleton_one⟩
+
+@[simp, to_additive] lemma coe_singleton_one_hom : (singleton_one_hom : α → finset α) = singleton :=
+rfl
+@[simp, to_additive] lemma singleton_one_hom_apply (a : α) : singleton_one_hom a = {a} := rfl
+
 end has_one
 
 /-! ### Finset negation/inversion -/
@@ -189,6 +197,14 @@ image₂_inter_subset_right
 `s'`, `t'` such that `s' ⊆ s`, `t' ⊆ t` and `u ⊆ s' + t'`."]
 lemma subset_mul {s t : set α} : ↑u ⊆ s * t → ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' * t' :=
 subset_image₂
+
+/-- The singleton operation as a `mul_hom`. -/
+@[to_additive "The singleton operation as an `add_hom`."]
+def singleton_mul_hom : α →ₙ* finset α := ⟨singleton, λ a b, (singleton_mul_singleton _ _).symm⟩
+
+@[simp, to_additive] lemma coe_singleton_mul_hom : (singleton_mul_hom : α → finset α) = singleton :=
+rfl
+@[simp, to_additive] lemma singleton_mul_hom_apply (a : α) : singleton_mul_hom a = {a} := rfl
 
 end has_mul
 
@@ -306,6 +322,14 @@ coe_injective.mul_one_class _ (coe_singleton 1) coe_mul
 localized "attribute [instance] finset.semigroup finset.add_semigroup finset.comm_semigroup
   finset.add_comm_semigroup finset.mul_one_class finset.add_zero_class" in pointwise
 
+/-- The singleton operation as a `monoid_hom`. -/
+@[to_additive "The singleton operation as an `add_monoid_hom`."]
+def singleton_monoid_hom : α →* finset α := { ..singleton_mul_hom, ..singleton_one_hom }
+
+@[simp, to_additive] lemma coe_singleton_monoid_hom :
+  (singleton_monoid_hom : α → finset α) = singleton := rfl
+@[simp, to_additive] lemma singleton_monoid_hom_apply (a : α) : singleton_monoid_hom a = {a} := rfl
+
 end mul_one_class
 
 section monoid
@@ -326,6 +350,9 @@ protected def monoid : monoid (finset α) := coe_injective.monoid _ coe_one coe_
 
 localized "attribute [instance] finset.monoid finset.add_monoid" in pointwise
 
+@[to_additive] protected lemma _root_.is_unit.finset : is_unit a → is_unit ({a} : finset α) :=
+is_unit.map (singleton_monoid_hom : α →* finset α)
+
 end monoid
 
 /-- `finset α` is a `comm_monoid` under pointwise operations if `α` is. -/
@@ -333,36 +360,70 @@ end monoid
 protected def comm_monoid [comm_monoid α] : comm_monoid (finset α) :=
 coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 
--- TODO: Generalize the duplicated lemmas and instances below to `division_monoid`
+open_locale pointwise
 
-@[simp, to_additive] lemma coe_zpow [group α] (s : finset α) : ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
+section division_monoid
+variables [division_monoid α] {s t : finset α}
+
+@[simp, to_additive] lemma coe_zpow (s : finset α) : ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
 | (int.of_nat n) := coe_pow _ _
 | (int.neg_succ_of_nat n) :=
   by { refine (coe_inv _).trans _, convert congr_arg has_inv.inv (coe_pow _ _) }
 
-@[simp] lemma coe_zpow' [group_with_zero α] (s : finset α) : ∀ n : ℤ, ↑(s ^ n) = (s ^ n : set α)
-| (int.of_nat n) := coe_pow _ _
-| (int.neg_succ_of_nat n) :=
-  by { refine (coe_inv _).trans _, convert congr_arg has_inv.inv (coe_pow _ _) }
+@[to_additive] protected lemma mul_eq_one_iff : s * t = 1 ↔ ∃ a b, s = {a} ∧ t = {b} ∧ a * b = 1 :=
+by simp_rw [←coe_inj, coe_mul, coe_one, set.mul_eq_one_iff, coe_singleton]
 
-/-- `finset α` is a `div_inv_monoid` under pointwise operations if `α` is. -/
-@[to_additive "`finset α` is an `sub_neg_add_monoid` under pointwise operations if `α` is."]
-protected def div_inv_monoid [group α] : div_inv_monoid (finset α) :=
-coe_injective.div_inv_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
+/-- `finset α` is a division monoid under pointwise operations if `α` is. -/
+@[to_additive subtraction_monoid "`finset α` is a subtraction monoid under pointwise operations if
+`α` is."]
+protected def division_monoid : division_monoid (finset α) :=
+coe_injective.division_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
-/-- `finset α` is a `div_inv_monoid` under pointwise operations if `α` is. -/
-protected def div_inv_monoid' [group_with_zero α] : div_inv_monoid (finset α) :=
-coe_injective.div_inv_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow'
+@[simp, to_additive] lemma is_unit_iff : is_unit s ↔ ∃ a, s = {a} ∧ is_unit a :=
+begin
+  split,
+  { rintro ⟨u, rfl⟩,
+    obtain ⟨a, b, ha, hb, h⟩ := finset.mul_eq_one_iff.1 u.mul_inv,
+    refine ⟨a, ha, ⟨a, b, h, singleton_injective _⟩, rfl⟩,
+    rw [←singleton_mul_singleton, ←ha, ←hb],
+    exact u.inv_mul },
+  { rintro ⟨a, rfl, ha⟩,
+    exact ha.finset }
+end
 
-localized "attribute [instance] finset.comm_monoid finset.add_comm_monoid finset.div_inv_monoid
-  finset.sub_neg_add_monoid finset.div_inv_monoid'" in pointwise
+@[simp, to_additive] lemma is_unit_coe : is_unit (s : set α) ↔ is_unit s :=
+by simp_rw [is_unit_iff, set.is_unit_iff, coe_eq_singleton]
+
+end division_monoid
+
+/-- `finset α` is a commutative division monoid under pointwise operations if `α` is. -/
+@[to_additive subtraction_comm_monoid "`finset α` is a commutative subtraction monoid under
+pointwise operations if `α` is."]
+protected def division_comm_monoid [division_comm_monoid α] : division_comm_monoid (finset α) :=
+coe_injective.division_comm_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
+
+localized "attribute [instance] finset.comm_monoid finset.add_comm_monoid finset.division_monoid
+  finset.subtraction_monoid finset.division_comm_monoid finset.subtraction_comm_monoid" in pointwise
+
+section group
+variables [group α] {s t : finset α}
+
+/-! Note that `finset` is not a `group` because `s / s ≠ 1` in general. -/
+
+@[to_additive] lemma is_unit_singleton (a : α) : is_unit ({a} : finset α) :=
+(group.is_unit a).finset
+
+@[simp] lemma is_unit_iff_singleton : is_unit s ↔ ∃ a, s = {a} :=
+by simp only [is_unit_iff, group.is_unit, and_true]
+
+end group
 
 end instances
 
 section mul_zero_class
 variables [decidable_eq α] [mul_zero_class α] {s t : finset α}
 
-/-! Note that `set` is not a `mul_zero_class` because `0 * ∅ ≠ 0`. -/
+/-! Note that `finset` is not a `mul_zero_class` because `0 * ∅ ≠ 0`. -/
 
 lemma mul_zero_subset (s : finset α) : s * 0 ⊆ 0 := by simp [subset_iff, mem_mul]
 lemma zero_mul_subset (s : finset α) : 0 * s ⊆ 0 := by simp [subset_iff, mem_mul]

@@ -402,8 +402,32 @@ pointwise operations if `α` is."]
 protected def division_comm_monoid [division_comm_monoid α] : division_comm_monoid (finset α) :=
 coe_injective.division_comm_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
+/-- `finset α` has distributive negation if `α` has. -/
+protected def has_distrib_neg [has_mul α] [has_distrib_neg α] : has_distrib_neg (finset α) :=
+coe_injective.has_distrib_neg _ coe_neg coe_mul
+
 localized "attribute [instance] finset.comm_monoid finset.add_comm_monoid finset.division_monoid
-  finset.subtraction_monoid finset.division_comm_monoid finset.subtraction_comm_monoid" in pointwise
+  finset.subtraction_monoid finset.division_comm_monoid finset.subtraction_comm_monoid
+  finset.has_distrib_neg" in pointwise
+
+section distrib
+variables [distrib α] (s t u : finset α)
+
+/-!
+Note that `finset α` is not a `distrib` because `s * t + s * u` has cross terms that `s * (t + u)`
+lacks.
+
+-- `{10, 16, 18, 20, 8, 9}`
+#eval {1, 2} * ({3, 4} + {5, 6} : finset ℕ)
+
+-- `{10, 11, 12, 13, 14, 15, 16, 18, 20, 8, 9}`
+#eval ({1, 2} : finset ℕ) * {3, 4} + {1, 2} * {5, 6}
+-/
+
+lemma mul_add_subset : s * (t + u) ⊆ s * t + s * u := image₂_distrib_subset_left mul_add
+lemma add_mul_subset : (s + t) * u ⊆ s * u + t * u := image₂_distrib_subset_right add_mul
+
+end distrib
 
 section group
 variables [group α] {s t : finset α}

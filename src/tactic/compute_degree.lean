@@ -70,21 +70,17 @@ namespace polynomial
 open_locale polynomial
 variables {R : Type*} [semiring R]
 
-/--  Useful for hiding the `classical` in the proof. -/
-lemma nat_degree_monomial_eq {R : Type*} [semiring R] (i : ℕ) {r : R} (r0 : r ≠ 0) :
-  (monomial i r).nat_degree = i :=
-begin
-  classical,
-  exact eq.trans (nat_degree_monomial _ _) (if_neg r0),
-end
+/--  PR #14095. -/
+lemma nat_degree_monomial_eq (i : ℕ) {r : R} (r0 : r ≠ 0) : (monomial i r).nat_degree = i :=
+by classical; exact eq.trans (nat_degree_monomial _ _) (if_neg r0)
 
 /--  Useful for hiding the `classical` in the proof. -/
-lemma nat_degree_monomial_le (a : R) {m n : ℕ} (mn : m ≤ n) :
-  (monomial m a).nat_degree ≤ n :=
+lemma nat_degree_monomial_le (a : R) {m : ℕ} :
+  (monomial m a).nat_degree ≤ m :=
 begin
   classical,
   rw polynomial.nat_degree_monomial,
-  split_ifs; simp [mn],
+  split_ifs; simp,
 end
 
 /--  Useful for hiding the `nontriviality` in the proof. -/
@@ -226,7 +222,7 @@ do `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
   else
     do repeat $ refine ``((polynomial.nat_degree_add_le_iff_left rfl.le _ _ _).mpr _),
       `[repeat { rw polynomial.monomial_mul_monomial }],
-      try $ any_goals' $ refine ``(polynomial.nat_degree_monomial_le _ _  ),
+      try $ any_goals' $ refine ``((polynomial.nat_degree_monomial_le _).trans _),
       repeat $ refine ``((polynomial.nat_degree_C_mul_le _ _).trans _),
       repeat $ refine ``(polynomial.nat_degree_X_pow_le _),
       repeat $ refine ``(polynomial.nat_degree_X_le.trans _),

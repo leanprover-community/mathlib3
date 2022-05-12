@@ -75,8 +75,7 @@ begin
     { rw [one_div, ← finset.prod_inv_distrib],
       refine prod_congr rfl (λ x hx, _),
       field_simp },
-    rw [prod_mul_distrib, h],
-    field_simp },
+    rw [prod_mul_distrib, h, mul_div_mul_comm, one_div, inv_mul_eq_div] },
   simp only [h, ← integral_sin_pow_even, ← integral_sin_pow_odd],
   exact integral_sin_pow_div_tendsto_one,
 end

@@ -125,7 +125,7 @@ lemma mk_eq_mk_iff (v w : V) (hv : v ≠ 0) (hw : w ≠ 0) :
 quotient.eq'
 
 /-- A specialization of `mk_eq_mk_iff` that is sometimes more convenient to use. -/
-lemma mk_eq_mk_iff_mul_eq_mul (x y : K × K) (hx : x ≠ 0) (hy : y ≠ 0) :
+lemma mk_eq_mk_iff_mul_eq_mul {x y : K × K} (hx : x ≠ 0) (hy : y ≠ 0) :
   mk K x hx = mk K y hy ↔ x.1 * y.2 = x.2 * y.1 :=
 begin
   rw [mk_eq_mk_iff],

@@ -78,7 +78,7 @@ comap_lift'_eq2 monotone_powerset
 
 lemma comap_small_sets (l : filter β) (f : α → set β) :
   comap f l.small_sets = l.lift' (preimage f ∘ powerset) :=
-comap_lift'_eq monotone_powerset
+comap_lift'_eq
 
 lemma small_sets_infi {f : ι → filter α} :
   (infi f).small_sets = (⨅ i, (f i).small_sets) :=

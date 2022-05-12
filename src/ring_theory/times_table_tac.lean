@@ -331,6 +331,44 @@ section matrix
 
 open matrix
 
+section converter
+
+meta structure context :=
+(simps : simp_lemmas)
+
+meta def converter := expr → state_t context tactic (expr × expr)
+
+/-- `trace_error msg t` executes the tactic `t`. If `t` fails, traces `msg` and the failure message
+of `t`. -/
+meta def trace_error {α σ} (msg : string) (t : state_t σ tactic α) : state_t σ tactic α :=
+{ run := λ s ts, match t.run s ts with
+       | (result.success r s') := result.success r s'
+       | (result.exception (some msg') p s') := (trace msg >> trace (msg' ()) >> result.exception
+            (some msg') p) s'
+       | (result.exception none p s') := result.exception none p s'
+       end }
+
+meta def lift {σ α} : tactic α → state_t σ tactic α := state_t.lift
+meta def converter.lift {σ α β} : (α → tactic β) → α → state_t σ tactic β := λ t x, lift (t x)
+
+meta def converter.refl : converter
+| e := lift (refl_conv e)
+
+meta def converter.or_refl : converter → converter
+| c e := c e <|> converter.refl e
+
+meta def converter.trans : converter → converter → converter
+| c d e := do
+  (e', pf_c) ← c.or_refl e,
+  (e'', pf_d) ← d.or_refl e',
+  pf ← lift $ mk_eq_trans pf_c pf_d,
+  pure (e'', pf)
+
+meta def get_context : state_t context tactic context :=
+state_t.get
+
+end converter
+
 namespace tactic.norm_num
 
 /-- Use `norm_num` to decide equality between two expressions.
@@ -457,15 +495,15 @@ by rw [list.map_cons, h₁, h₂]
 of the form `(%%ef %%x), where `ef : expr` is the function to apply and `x : expr` is a list
 element.
 -/
-meta def eval_list_map (ef : expr) (eval_f : expr → tactic (expr × expr)) :
-  list expr → tactic (list expr × expr)
+meta def eval_list_map (ef : expr) (eval_f : converter) :
+  list expr → state_t context tactic (list expr × expr)
 | [] := do
-  eq ← i_to_expr ``(list.map_nil %%ef),
+  eq ← lift $ i_to_expr ``(list.map_nil %%ef),
   pure ([], eq)
 | (x :: xs) := do
   (fx, fx_eq) ← eval_f (expr.app ef x),
   (fxs, fxs_eq) ← eval_list_map xs,
-  eq ← i_to_expr ``(list.map_cons_congr %%ef %%fx_eq %%fxs_eq),
+  eq ← lift $ i_to_expr ``(list.map_cons_congr %%ef %%fx_eq %%fxs_eq),
   pure (fx :: fxs, eq)
 
 lemma multiset.cons_congr {α : Type*} (x : α) {xs : multiset α} {xs' : list α}
@@ -484,35 +522,35 @@ We return a list rather than a finset, so we can more easily iterate over it
 which is in general not true).
 
 -/
-meta def eval_multiset : expr → tactic (list expr × expr)
+meta def eval_multiset : expr → state_t context tactic (list expr × expr)
 | e@`(@has_zero.zero (multiset _) _) := do
-  eq ← mk_eq_refl e,
+  eq ← lift $ mk_eq_refl e,
   pure ([], eq)
 | e@`(has_emptyc.emptyc) := do
-  eq ← mk_eq_refl e,
+  eq ← lift $ mk_eq_refl e,
   pure ([], eq)
 | e@`(has_singleton.singleton %%x) := do
-  eq ← mk_eq_refl e,
+  eq ← lift $ mk_eq_refl e,
   pure ([x], eq)
 | e@`(multiset.cons %%x %%xs) := do
   (xs, xs_eq) ← eval_multiset xs,
-  eq ← i_to_expr ``(multiset.cons_congr %%x %%xs_eq),
+  eq ← lift $ i_to_expr ``(multiset.cons_congr %%x %%xs_eq),
   pure (x :: xs, eq)
 | e@`(@@has_insert.insert multiset.has_insert %%x %%xs) := do
   (xs, xs_eq) ← eval_multiset xs,
-  eq ← i_to_expr ``(multiset.cons_congr %%x %%xs_eq),
+  eq ← lift $ i_to_expr ``(multiset.cons_congr %%x %%xs_eq),
   pure (x :: xs, eq)
 | e@`(multiset.range %%en) := do
-  n ← expr.to_nat en,
-  eis ← (list.range n).mmap (λ i, expr.of_nat `(ℕ) i),
-  eq ← mk_eq_refl e,
+  n ← lift $ expr.to_nat en,
+  eis ← lift $ (list.range n).mmap (λ i, expr.of_nat `(ℕ) i),
+  eq ← lift $ mk_eq_refl e,
   pure (eis, eq)
 | `(@multiset.map %%α %%β %%ef %%exs) := do
   (xs, xs_eq) ← eval_multiset exs,
-  (ys, ys_eq) ← eval_list_map ef (or_refl_conv norm_num.derive) xs,
-  eq ← i_to_expr ``(multiset.map_congr %%ef %%xs_eq %%ys_eq),
+  (ys, ys_eq) ← eval_list_map ef (converter.or_refl $ converter.lift norm_num.derive) xs,
+  eq ← lift $ i_to_expr ``(multiset.map_congr %%ef %%xs_eq %%ys_eq),
   pure (ys, eq)
-| e := fail (to_fmt "Unknown multiset expression" ++ format.line ++ to_fmt e)
+| e := lift $ fail (to_fmt "Unknown multiset expression" ++ format.line ++ to_fmt e)
 
 lemma list.cons_congr {α : Type*} (x : α) {xs : list α} {xs' : list α} (xs_eq : xs' = xs) :
   x :: xs' = x :: xs :=
@@ -524,25 +562,25 @@ lemma list.map_congr {α β : Type*} (f : α → β) {xs xs' : list α}
 by rw [← ys_eq, xs_eq]
 
 /-- Convert an expression denoting a list to a list of elements. -/
-meta def eval_list : expr → tactic (list expr × expr)
+meta def eval_list : expr → state_t context tactic (list expr × expr)
 | e@`(list.nil) := do
-  eq ← mk_eq_refl e,
+  eq ← lift $ mk_eq_refl e,
   pure ([], eq)
 | e@`(list.cons %%x %%xs) := do
   (xs, xs_eq) ← eval_list xs,
-  eq ← i_to_expr ``(list.cons_congr %%x %%xs_eq),
+  eq ← lift $ i_to_expr ``(list.cons_congr %%x %%xs_eq),
   pure (x :: xs, eq)
 | e@`(list.range %%en) := do
-  n ← expr.to_nat en,
-  eis ← (list.range n).mmap (λ i, expr.of_nat `(ℕ) i),
-  eq ← mk_eq_refl e,
+  n ← lift $ expr.to_nat en,
+  eis ← lift $ (list.range n).mmap (λ i, expr.of_nat `(ℕ) i),
+  eq ← lift $ mk_eq_refl e,
   pure (eis, eq)
 | `(@list.map %%α %%β %%ef %%exs) := do
   (xs, xs_eq) ← eval_list exs,
-  (ys, ys_eq) ← eval_list_map ef (or_refl_conv norm_num.derive) xs,
-  eq ← i_to_expr ``(list.map_congr %%ef %%xs_eq %%ys_eq),
+  (ys, ys_eq) ← eval_list_map ef (converter.or_refl $ converter.lift norm_num.derive) xs,
+  eq ← lift $ i_to_expr ``(list.map_congr %%ef %%xs_eq %%ys_eq),
   pure (ys, eq)
-| e := fail (to_fmt "Unknown list expression" ++ format.line ++ to_fmt e)
+| e := lift $ fail (to_fmt "Unknown list expression" ++ format.line ++ to_fmt e)
 
 @[to_additive]
 lemma list.prod_cons_congr {α : Type*} [monoid α] (xs : list α) (x y z : α)
@@ -596,11 +634,11 @@ producing the evaluated expression and an equality proof.
 of the form `(%%ef %%x), where `ef : expr` is the function to apply and `x : expr` is a list
 element.
 -/
-meta def list.prove_prod_map (β ef : expr) (eval_f : expr → tactic (expr × expr))
-  (xs : list expr) : tactic (expr × expr) := do
+meta def list.prove_prod_map (β ef : expr) (eval_f : converter)
+  (xs : list expr) : state_t context tactic (expr × expr) := do
   (fxs, fxs_eq) ← eval_list_map ef eval_f xs,
-  (prod, prod_eq) ← list.prove_prod β fxs,
-  eq ← i_to_expr ``(list.prod_congr %%fxs_eq %%prod_eq),
+  (prod, prod_eq) ← lift $ list.prove_prod β fxs,
+  eq ← lift $ i_to_expr ``(list.prod_congr %%fxs_eq %%prod_eq),
   pure (prod, eq)
 
 /-- Evaluate `(%%xs.map (%%ef : %%α → %%β)).sum`,
@@ -610,11 +648,11 @@ producing the evaluated expression and an equality proof.
 of the form `(%%ef %%x), where `ef : expr` is the function to apply and `x : expr` is a list
 element.
 -/
-meta def list.prove_sum_map (β ef : expr) (eval_f : expr → tactic (expr × expr))
-  (xs : list expr) : tactic (expr × expr) := do
+meta def list.prove_sum_map (β ef : expr) (eval_f : converter)
+  (xs : list expr) : state_t context tactic (expr × expr) := do
   (fxs, fxs_eq) ← eval_list_map ef eval_f xs,
-  (sum, sum_eq) ← list.prove_sum β fxs,
-  eq ← i_to_expr ``(list.sum_congr %%fxs_eq %%sum_eq),
+  (sum, sum_eq) ← lift $ list.prove_sum β fxs,
+  eq ← lift $ i_to_expr ``(list.sum_congr %%fxs_eq %%sum_eq),
   pure (sum, eq)
 
 @[to_additive]
@@ -625,20 +663,20 @@ lemma finset.eval_prod_of_list {β α : Type*} [comm_monoid β]
   s.prod f = x :=
 by rw [← hs, finset.prod_mk, multiset.coe_map, multiset.coe_prod, hx]
 
-meta def eval_finset_sum (eval_f : expr → tactic (expr × expr)) (β ef es : expr) :
-  tactic (expr × expr) := do
-  (xs, list_eq, nodup) ← eval_finset decide_eq es,
-  trace pformat!"eval_finset_sum: xs = {xs}, f = {ef}",
+meta def eval_finset_sum (eval_f : converter) (β ef es : expr) :
+  state_t context tactic (expr × expr) := do
+  (xs, list_eq, nodup) ← lift $ eval_finset decide_eq es,
+  lift $ trace pformat!"eval_finset_sum: xs = {xs}, f = {ef}",
   (result, sum_eq) ← list.prove_sum_map β ef eval_f xs,
-  trace pformat!"eval_finset_sum: result = {result}",
-  pf ← i_to_expr ``(finset.eval_sum_of_list %%es %%ef %%nodup %%list_eq %%sum_eq),
-  pf_ty ← infer_type pf,
-  trace pformat!"eval_finset_sum: pf : {pf_ty}",
+  lift $ trace pformat!"eval_finset_sum: result = {result}",
+  pf ← lift $ i_to_expr ``(finset.eval_sum_of_list %%es %%ef %%nodup %%list_eq %%sum_eq),
+  pf_ty ← lift $ infer_type pf,
+  lift $ trace pformat!"eval_finset_sum: pf : {pf_ty}",
   pure (result, pf)
 
-meta def match_eval_finset_sum (eval_f : expr → tactic (expr × expr)) : expr → tactic (expr × expr)
+meta def match_eval_finset_sum (eval_f : converter) : converter
 | `(@finset.sum %%β %%α %%inst %%es %%ef) := eval_finset_sum eval_f β ef es
-| _ := fail "march_eval_finset_sum: expected ∑ i in s, f i"
+| _ := lift $ fail "march_eval_finset_sum: expected ∑ i in s, f i"
 
 /-- `norm_num` plugin for evaluating big operators:
  * `list.prod`
@@ -648,44 +686,44 @@ meta def match_eval_finset_sum (eval_f : expr → tactic (expr × expr)) : expr 
  * `finset.prod`
  * `finset.sum`
 -/
-@[norm_num] meta def eval_big_operators : expr → tactic (expr × expr)
+meta def eval_big_operators : converter
 | `(@list.prod %%α %%inst1 %%inst2 %%exs) :=
-tactic.trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
+trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
   (xs, list_eq) ← eval_list exs,
-  (result, sum_eq) ← list.prove_prod α xs,
-  pf ← i_to_expr ``(list.prod_congr %%list_eq %%sum_eq),
+  (result, sum_eq) ← lift $ list.prove_prod α xs,
+  pf ← lift $ i_to_expr ``(list.prod_congr %%list_eq %%sum_eq),
   pure (result, pf)
 | `(@list.sum %%α %%inst1 %%inst2 %%exs) :=
-tactic.trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
+trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
   (xs, list_eq) ← eval_list exs,
-  (result, sum_eq) ← list.prove_sum α xs,
-  pf ← i_to_expr ``(list.sum_congr %%list_eq %%sum_eq),
+  (result, sum_eq) ← lift $ list.prove_sum α xs,
+  pf ← lift $ i_to_expr ``(list.sum_congr %%list_eq %%sum_eq),
   pure (result, pf)
 | `(@multiset.prod %%α %%inst %%exs) :=
-tactic.trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
+trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
   (xs, list_eq) ← eval_multiset exs,
-  (result, sum_eq) ← list.prove_prod α xs,
-  pf ← i_to_expr ``(multiset.prod_congr %%list_eq %%sum_eq),
+  (result, sum_eq) ← lift $ list.prove_prod α xs,
+  pf ← lift $ i_to_expr ``(multiset.prod_congr %%list_eq %%sum_eq),
   pure (result, pf)
 | `(@multiset.sum %%α %%inst %%exs) :=
-tactic.trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
+trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
   (xs, list_eq) ← eval_multiset exs,
-  (result, sum_eq) ← list.prove_sum α xs,
-  pf ← i_to_expr ``(multiset.sum_congr %%list_eq %%sum_eq),
+  (result, sum_eq) ← lift $ list.prove_sum α xs,
+  pf ← lift $ i_to_expr ``(multiset.sum_congr %%list_eq %%sum_eq),
   pure (result, pf)
 | `(@finset.prod %%β %%α %%inst %%es %%ef) :=
-tactic.trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
-  (xs, list_eq, nodup) ← eval_finset decide_eq es,
-  (result, sum_eq) ← list.prove_prod_map β ef (or_refl_conv norm_num.derive) xs,
-  pf ← i_to_expr ``(finset.eval_prod_of_list %%es %%ef %%nodup %%list_eq %%sum_eq),
+trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
+  (xs, list_eq, nodup) ← lift $ eval_finset decide_eq es,
+  (result, sum_eq) ← list.prove_prod_map β ef (converter.or_refl $ converter.lift norm_num.derive) xs,
+  pf ← lift $ i_to_expr ``(finset.eval_prod_of_list %%es %%ef %%nodup %%list_eq %%sum_eq),
   pure (result, pf)
 | `(@finset.sum %%β %%α %%inst %%es %%ef) :=
-tactic.trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
-  (xs, list_eq, nodup) ← eval_finset decide_eq es,
-  (result, sum_eq) ← list.prove_sum_map β ef (or_refl_conv norm_num.derive) xs,
-  pf ← i_to_expr ``(finset.eval_sum_of_list %%es %%ef %%nodup %%list_eq %%sum_eq),
+trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
+  (xs, list_eq, nodup) ← lift $ eval_finset decide_eq es,
+  (result, sum_eq) ← list.prove_sum_map β ef (converter.or_refl $ converter.lift norm_num.derive) xs,
+  pf ← lift $ i_to_expr ``(finset.eval_sum_of_list %%es %%ef %%nodup %%list_eq %%sum_eq),
   pure (result, pf)
-| _ := failed
+| _ := lift $ failed
 
 end tactic.norm_num
 
@@ -713,7 +751,7 @@ open tactic.norm_fin
 
 @[norm_num]
 meta def norm_vec_cons : expr → tactic (expr × expr)
-| `(vec_cons %%x %%xs %%i) := trace_error "Internal error in `norm_vec_cons`" $ do
+| `(vec_cons %%x %%xs %%i) := tactic.trace_error "Internal error in `norm_vec_cons`" $ do
   n ← i.to_nat,
   trace pformat! "norm_vec_cons: vec_cons {x} {xs} {i}",
   (y, pf) ← eval_vec_cons n x xs,
@@ -728,11 +766,11 @@ end matrix
 
 /-- Simplify expressions of the form `(t : times_table).basis.repr x k` using lemmas tagged
 `@[times_table_simps]`. -/
-@[norm_num]
-meta def simp_times_table : expr → tactic (expr × expr)
+-- @[norm_num]
+meta def simp_times_table : converter
 | e := do
-  simps ← mk_simp_set tt [`times_table_simps] [],
-  (e', pf, _) ← simplify simps.1 [] e <|>
+  ctx ← get_context,
+  (e', pf, _) ← state_t.lift $ simplify ctx.simps [] e <|>
     fail!"Failed to simplify {e}, are you missing a `@[times_table_simps]` lemma?",
   pure (e', pf)
 
@@ -742,103 +780,110 @@ protected lemma eval_vec_cons_pf {α ι : Type*} (t : ι → ι → ι → α) (
 by rw [ti_pf, tij_pf]
 
 /-- Evaluate `((t : times_table _ _ _).basis.repr e) k` using `norm_num`. -/
-protected meta def eval (ι R S t k : expr) : expr → tactic (expr × expr)
+protected meta def eval (ι R S t k : expr) : converter
 | `(0) := trace_error "zero" $ do
-  e ← expr.of_nat R 0,
-  pf ← i_to_expr ``(tactic.times_table.eval_repr_zero %%t %%k),
+  e ← lift $ expr.of_nat R 0,
+  pf ← lift $ i_to_expr ``(tactic.times_table.eval_repr_zero %%t %%k),
   pure (e, pf)
 | `(bit0 %%e₁) := trace_error "bit0" $ do
   (e₁', e₁_eq) ← eval e₁,
-  (e', e_eq) ← i_to_expr ``(%%e₁' + %%e₁') >>= or_refl_conv norm_num.derive,
-  eq ← i_to_expr ``(tactic.times_table.eval_repr_bit0 %%t %%k %%e₁_eq %%e_eq),
+  (e', e_eq) ← lift $ i_to_expr ``(%%e₁' + %%e₁') >>= or_refl_conv norm_num.derive,
+  eq ← lift $ i_to_expr ``(tactic.times_table.eval_repr_bit0 %%t %%k %%e₁_eq %%e_eq),
   pure (e', eq)
 | `(bit1 %%e₁) := trace_error "bit1" $ do
   (e₁', e₁_eq) ← eval e₁,
-  (one', one_eq) ← expr.of_nat S 1 >>= eval,
-  (e', e_eq) ← i_to_expr ``(%%e₁' + %%e₁' + %%one') >>= or_refl_conv norm_num.derive,
-  eq ← i_to_expr ``(tactic.times_table.eval_repr_bit1 %%t %%k %%e₁_eq %%one_eq %%e_eq),
+  (one', one_eq) ← (lift $ expr.of_nat S 1) >>= eval,
+  (e', e_eq) ← lift $ i_to_expr ``(%%e₁' + %%e₁' + %%one') >>= or_refl_conv norm_num.derive,
+  eq ← lift $ i_to_expr ``(tactic.times_table.eval_repr_bit1 %%t %%k %%e₁_eq %%one_eq %%e_eq),
   pure (e', eq)
 | `(%%e₁ + %%e₂) := trace_error "add" $ do
   (e₁', e₁_eq) ← eval e₁,
   (e₂', e₂_eq) ← eval e₂,
-  (e', e_eq) ← i_to_expr ``(%%e₁' + %%e₂') >>= or_refl_conv norm_num.derive,
-  eq ← i_to_expr ``(tactic.times_table.eval_repr_add %%t %%k %%e₁_eq %%e₂_eq %%e_eq),
+  (e', e_eq) ← lift $ i_to_expr ``(%%e₁' + %%e₂') >>= or_refl_conv norm_num.derive,
+  eq ← lift $ i_to_expr ``(tactic.times_table.eval_repr_add %%t %%k %%e₁_eq %%e₂_eq %%e_eq),
   pure (e', eq)
 | `(%%e₁ - %%e₂) := trace_error "sub" $ do
   (e₁', e₁_eq) ← eval e₁,
   (e₂', e₂_eq) ← eval e₂,
-  (e', e_eq) ← i_to_expr ``(%%e₁' - %%e₂') >>= or_refl_conv norm_num.derive,
-  eq ← i_to_expr ``(tactic.times_table.eval_repr_sub %%t %%k %%e₁_eq %%e₂_eq %%e_eq),
+  (e', e_eq) ← lift $ i_to_expr ``(%%e₁' - %%e₂') >>= or_refl_conv norm_num.derive,
+  eq ← lift $ i_to_expr ``(tactic.times_table.eval_repr_sub %%t %%k %%e₁_eq %%e₂_eq %%e_eq),
   pure (e', eq)
 | `(%%e₁ * %%e₂) := trace_error "mul" $ do
     -- TODO: optimize multiplication with numerals?
     -- Rewrite `repr (e₁ * e₂) k = ∑ i j, table i j k * repr e₁ i * repr e₂ j`,
     -- then use `norm_num.derive` to expand the sum.
     -- TODO: expand the sum here so we don't switch so much between tactics.
-    e ← i_to_expr ``(∑ (i j : %%ι), (%%t).basis.repr %%e₁ i * (%%t).basis.repr %%e₂ j * (%%t).table i j %%k),
-    trace "multiplication becomes " >> trace e,
+    e ← lift $ i_to_expr ``(∑ (i j : %%ι), (%%t).basis.repr %%e₁ i * (%%t).basis.repr %%e₂ j * (%%t).table i j %%k),
+    lift $ trace "multiplication becomes " >> trace e,
     (e', e_eq) ← tactic.norm_num.match_eval_finset_sum -- evaluates the sum over i
-      (head_beta >=> tactic.norm_num.match_eval_finset_sum -- evaluates the sum over j
-        (head_beta >=> λ term, match term with
+      (lift ∘ head_beta >=> tactic.norm_num.match_eval_finset_sum -- evaluates the sum over j
+        (lift ∘ head_beta >=> λ term, match term with
           | `(%%e₁i * %%e₂j * %%tableij) := do
-              trace pformat!"eval_repr_repr_table: (0)    {e₁i} * {e₂j} * {tableij}",
-              (e₁i', e₁i_pf) ← trans_conv simp_times_table norm_vec_cons e₁i,
-              (e₂j', e₂j_pf) ← trans_conv simp_times_table norm_vec_cons e₂j,
-              (tableij', tableij_pf) ← trans_conv simp_times_table (λ e, match e with
+              lift $ trace pformat!"eval_repr_repr_table: (0)    {e₁i} * {e₂j} * {tableij}",
+              (e₁i', e₁i_pf) ← simp_times_table.trans (converter.lift norm_vec_cons) e₁i,
+              (e₂j', e₂j_pf) ← simp_times_table.trans (converter.lift norm_vec_cons) e₂j,
+              (tableij', tableij_pf) ← simp_times_table.trans (λ e, match e with
               | (expr.app (expr.app ti@(expr.app t i) j) k) := do
-                (ti', ti_pf) ← norm_vec_cons ti,
-                (tij', tij_pf) ← norm_vec_cons (expr.app ti' j),
-                pf ← i_to_expr ``(tactic.times_table.eval_vec_cons_pf %%t %%i %%j %%k %%ti_pf %%tij_pf),
+                (ti', ti_pf) ← lift $ norm_vec_cons ti,
+                (tij', tij_pf) ← lift $ norm_vec_cons (expr.app ti' j),
+                pf ← lift $ i_to_expr ``(tactic.times_table.eval_vec_cons_pf %%t %%i %%j %%k %%ti_pf %%tij_pf),
                 pure (expr.app tij' k, pf)
-              | e := pformat!"expected `t.table i j k`, got {e}" >>= fail
+              | e := lift $ pformat!"expected `t.table i j k`, got {e}" >>= fail
               end) tableij,
-              trace pformat!"eval_repr_repr_table: (1) => {e₁i'} * {e₂j'} * {tableij'}",
-              (e', e_pf) ← i_to_expr ``(%%e₁i' * %%e₂j' * %%tableij') >>= or_refl_conv norm_num.derive,
-              trace pformat!"eval_repr_repr_table: (2) => {e'}",
-              infer_type e₁i_pf >>= trace,
-              infer_type e₂j_pf >>= trace,
-              infer_type tableij_pf >>= trace,
-              infer_type e_pf >>= trace,
-              pf ← i_to_expr ``(tactic.times_table.eval_repr_repr_table %%e₁i_pf %%e₂j_pf %%tableij_pf %%e_pf),
-              infer_type pf >>= trace,
+              lift $ trace pformat!"eval_repr_repr_table: (1) => {e₁i'} * {e₂j'} * {tableij'}",
+              (e', e_pf) ← lift $ i_to_expr ``(%%e₁i' * %%e₂j' * %%tableij') >>= or_refl_conv norm_num.derive,
+              lift $ trace pformat!"eval_repr_repr_table: (2) => {e'}",
+              lift $ infer_type e₁i_pf >>= trace,
+              lift $ infer_type e₂j_pf >>= trace,
+              lift $ infer_type tableij_pf >>= trace,
+              lift $ infer_type e_pf >>= trace,
+              pf ← lift $ i_to_expr ``(tactic.times_table.eval_repr_repr_table %%e₁i_pf %%e₂j_pf %%tableij_pf %%e_pf),
+              lift $ infer_type pf >>= trace,
               pure (e', pf)
-          | e := pformat!"expected `t.basis.repr e₁ i * t.basis.repr e₂ j * t.table i j k`, got {e}" >>= fail
+          | e := lift $ pformat!"expected `t.basis.repr e₁ i * t.basis.repr e₂ j * t.table i j k`, got {e}" >>= fail
           end))
       e,
-    trace "derives to " >> infer_type e_eq >>= trace,
-    eq ← trace_error "eval_repr_mul" $ mk_app `tactic.times_table.eval_repr_mul [t, k, e₁, e₂, e', e_eq],
-    trace "proved " >> infer_type eq >>= trace,
+    lift $ trace "derives to " >> infer_type e_eq >>= trace,
+    eq ← trace_error "eval_repr_mul" $ lift $ mk_app `tactic.times_table.eval_repr_mul [t, k, e₁, e₂, e', e_eq],
+    lift $ trace "proved " >> infer_type eq >>= trace,
     pure (e', eq)
 | `(%%e₁ ^ %%n) := trace_error "pow" $ do
   match norm_num.match_numeral n with
   | norm_num.match_numeral_result.zero := do
-    one ← expr.of_nat S 1,
+    one ← lift $ expr.of_nat S 1,
     (one', one_eq) ← eval one,
-    eq ← i_to_expr ``(tactic.times_table.eval_pow_zero %%t %%k %%e₁ %%one_eq),
+    eq ← lift $ i_to_expr ``(tactic.times_table.eval_pow_zero %%t %%k %%e₁ %%one_eq),
     pure (one', eq)
   | norm_num.match_numeral_result.one := do
     (e', e₁_eq) ← eval e₁,
-    eq ← i_to_expr ``(tactic.times_table.eval_pow_one %%t %%k %%e₁_eq),
+    eq ← lift $ i_to_expr ``(tactic.times_table.eval_pow_one %%t %%k %%e₁_eq),
     pure (e', eq)
   | norm_num.match_numeral_result.bit0 b := do
-    e₁' ← i_to_expr ``((%%e₁ ^ %%b) * (%%e₁ ^ %%b)),
+    e₁' ← lift $ i_to_expr ``((%%e₁ ^ %%b) * (%%e₁ ^ %%b)),
     (e', e_eq) ← eval e₁',
-    eq ← i_to_expr ``(tactic.times_table.eval_pow_bit0 %%t %%k %%b %%e_eq),
+    eq ← lift $ i_to_expr ``(tactic.times_table.eval_pow_bit0 %%t %%k %%b %%e_eq),
     pure (e', eq)
   | norm_num.match_numeral_result.bit1 b := do
-    e₁' ← i_to_expr ``((%%e₁ ^ %%b) * (%%e₁ ^ %%b) * %%e₁),
+    e₁' ← lift $ i_to_expr ``((%%e₁ ^ %%b) * (%%e₁ ^ %%b) * %%e₁),
     (e', e_eq) ← eval e₁',
-    eq ← i_to_expr ``(tactic.times_table.eval_pow_bit1 %%t %%k %%b %%e_eq),
+    eq ← lift $ i_to_expr ``(tactic.times_table.eval_pow_bit1 %%t %%k %%b %%e_eq),
     pure (e', eq)
 
-  | _ := failed
+  | _ := lift $ failed
   end
 | e := do
-  trace "fallback: simping",
-  full_e ← i_to_expr ``(basis.repr (times_table.basis %%t) %%e %%k),
+  state_t.lift $ trace "fallback: simping",
+  full_e ← state_t.lift $ i_to_expr ``(basis.repr (times_table.basis %%t) %%e %%k),
   (e', pr) ← simp_times_table full_e,
-  trace "managed to simp to ", infer_type pr >>= trace,
+  state_t.lift $ trace "managed to simp to ",
+  state_t.lift $ infer_type pr >>= trace,
   pure (e', pr)
+
+meta def run_converter : converter → expr → tactic (expr × expr)
+| c e := do
+  (simps, _) ← mk_simp_set tt [`times_table_simps] [],
+  (result, _) ← (c e).run { simps := simps },
+  pure result
 
 set_option eqn_compiler.max_steps 4096
 
@@ -850,7 +895,7 @@ protected meta def norm : expr → tactic (expr × expr)
   ι ← infer_type k,
   S ← infer_type e,
   R ← infer_type ek,
-  (e', pf) ← tactic.trace_error "Internal error in `tactic.times_table.eval`:" $ tactic.times_table.eval ι R S t k e,
+  (e', pf) ← tactic.trace_error "Internal error in `tactic.times_table.eval`:" $ run_converter (tactic.times_table.eval ι R S t k) e,
   pf_ty ← infer_type pf,
   trace pf_ty,
   match pf_ty with
@@ -873,31 +918,6 @@ do e ← instantiate_mvars e,
       `eq e,
     trace "rewrite: " >> trace e >> trace " → " >> trace e',
     return (e', pr)
-
-/-- TODO: integrate into `norm_num` -/
-meta def _root_.tactic.interactive.times_table_eval
-  (hs : interactive.parse tactic.simp_arg_list)
-  (locat : interactive.parse interactive.types.location) : tactic unit := do
-  /-
-  -- Write the term as a product (TODO: efficient handling of exponentiation?)
-  /- repeat { ring_nf SOP }, -/ simp only [pow_succ, pow_zero, mul_one],
-  -- Use the times table for multiplications.
-  simp only [_root_.map_add, finsupp.coe_add, pi.add_apply,
-    _root_.map_sub, finsupp.coe_sub, pi.sub_apply,
-    pi.mul_apply, times_table.unfold_mul],
-  -- Determine what the values in the table refer to.
-  simp only [linear_equiv.map_bit0, linear_equiv.map_bit1, finsupp.bit0_apply, finsupp.add_apply,
-    sqrt_2_sqrt_3.times_table, sqrt_2_sqrt_3.table, repr_one, repr_sqrt_2, repr_sqrt_3],
-  norm_num,
-  -/
-  `[simp only [pow_succ, pow_zero, mul_one]],
-    -- Use the times table for multiplications.
-  `[simp only [_root_.map_add, finsupp.coe_add, pi.add_apply, _root_.map_sub, finsupp.coe_sub,
-    pi.sub_apply, pi.mul_apply, times_table.unfold_mul]],
-  `[simp only [linear_equiv.map_bit0, linear_equiv.map_bit1, finsupp.bit0_apply, finsupp.add_apply]],
-  -- Determine what the values in the table refer to.
-  tactic.interactive.simp none none tt hs [] locat,
-  `[norm_num]
 
 end tactic.times_table
 

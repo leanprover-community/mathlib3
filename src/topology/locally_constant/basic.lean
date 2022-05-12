@@ -432,8 +432,9 @@ open_locale classical
 
 /-- Given a clopen set `U` and a locally constant function `f`, `locally_constant.mul_indicator`
   returns the locally constant function that is `f` on `U` and `1` otherwise. -/
-@[to_additive /-" Given a clopen set `U` and a locally constant function `f`, `locally_constant.indicator`
-  returns the locally constant function that is `f` on `U` and `0` otherwise. "-/]
+@[to_additive /-" Given a clopen set `U` and a locally constant function `f`,
+  `locally_constant.indicator` returns the locally constant function that is `f` on `U` and `0`
+  otherwise. "-/, simps]
 noncomputable def mul_indicator (hU : is_clopen U) :
   locally_constant X R :=
 { to_fun := set.mul_indicator U f,
@@ -453,7 +454,7 @@ noncomputable def mul_indicator (hU : is_clopen U) :
 variables (a : X)
 
 @[to_additive]
-theorem mul_indicator_apply (hU : is_clopen U) :
+theorem mul_indicator_apply_eq_if (hU : is_clopen U) :
   mul_indicator f hU a = if a ∈ U then f a else 1 :=
 set.mul_indicator_apply U f a
 

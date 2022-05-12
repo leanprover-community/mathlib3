@@ -53,8 +53,8 @@ lemma downgrade_vanishing {Y : C} {n : ℕ} {q : ℕ} {φ : Y ⟶ X _[n+1]}
 
 lemma Hσφ_eq_neg_σδφ {Y : C} {n a q : ℕ} (hnaq : n=a+q) {φ : Y ⟶ X _[n+1]}
   (v : higher_faces_vanish q φ) : φ ≫ (Hσ q).f (n+1) =
-  - φ ≫ X.δ ⟨a+1, nat.succ_lt_succ (nat.lt_succ_iff.mpr (nat.le.intro (eq.symm hnaq)))⟩ ≫
-    X.σ ⟨a, nat.lt_succ_iff.mpr (nat.le.intro (eq.symm hnaq))⟩ :=
+  - φ ≫ X.δ ⟨a+1, nat.succ_lt_succ (nat.lt_succ_iff.mpr (nat.le.intro hnaq.symm))⟩ ≫
+    X.σ ⟨a, nat.lt_succ_iff.mpr (nat.le.intro hnaq.symm)⟩ :=
 begin
   have hnaq_shift : Π d : ℕ, n+d=(a+d)+q,
   { intro d, rw [add_assoc, add_comm d, ← add_assoc, hnaq], },

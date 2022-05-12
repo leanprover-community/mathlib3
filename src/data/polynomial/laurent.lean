@@ -45,11 +45,24 @@ I made a *heavy* use of `simp` lemmas, aiming to bring Laurent polynomials to th
 Any comments or suggestions for improvements is greatly appreciated!
 
 ##  Future work
-Lots is missing!  I would certainly like to show that `R[T;T⁻¹]` is the localization of `R[X]`
-inverting `X`.  This should be mostly in place, given `exists_T_pow` (which is part of PR #13415).
-(Riccardo) add inclusion into Laurent series.
-(Riccardo) giving a morphism (as `R`-alg, so in the commutative case)
-from `R[T,T⁻¹]` to `S` is the same as choosing a unit of `S`.
+Lots is missing!
+* (Riccardo) add inclusion into Laurent series.
+* (Riccardo) giving a morphism (as `R`-alg, so in the commutative case)
+  from `R[T,T⁻¹]` to `S` is the same as choosing a unit of `S`.
+* A "better" definition of `trunc` would be as an `R`-linear map.  This works:
+  ```
+  def trunc : R[T;T⁻¹] →[R] R[X] :=
+  begin
+    refine (_ : add_monoid_algebra R ℕ →[R] R[X]).comp _,
+    { exact ⟨(to_finsupp_iso R).symm, by simp⟩ },
+    { refine ⟨λ r, comap_domain _ r (set.inj_on_of_injective (λ a b ab, int.of_nat.inj ab) _), _⟩,
+      exact λ r f, comap_domain_smul _ _ _ }
+  end
+  ```
+  but it would make sense to bundle the maps better, for a smoother user experience.  I (DT) did not
+  have the strength to embark on this (possibly short!) journey, after getting to this stage of the
+  Laurent process!  This would likely involve adding a `comap_domain` analogue of
+  `add_monoid_algebra.map_domain_alg_hom` and an `R`-linear version of `polynomial.to_finsupp_iso`.
 -/
 
 open_locale polynomial big_operators
@@ -293,6 +306,46 @@ left_inverse_trunc_to_laurent.injective
 @[simp] lemma _root_.polynomial.to_laurent_inj (f g : R[X]) :
   f.to_laurent = g.to_laurent ↔ f = g :=
 ⟨λ h, polynomial.to_laurent_injective h, congr_arg _⟩
+
+lemma exists_T_pow (f : R[T;T⁻¹]) :
+  ∃ (n : ℕ) (f' : R[X]), f'.to_laurent = f * T n :=
+begin
+  apply f.induction_on' _ (λ n a, _); clear f,
+  { rintros f g ⟨m, fn, hf⟩ ⟨n, gn, hg⟩,
+    by_cases h : m ≤ n;
+    refine ⟨m + n, fn * X ^ n + gn * X ^ m, _⟩;
+    simp only [hf, hg, add_mul, add_comm (n : ℤ), map_add, map_mul, polynomial.to_laurent_X_pow,
+      mul_T_assoc, int.coe_nat_add] },
+  { cases n with n n,
+    { exact ⟨0, polynomial.C a * X ^ n, by simp⟩ },
+    { refine ⟨n + 1, polynomial.C a, _⟩,
+      simp only [int.neg_succ_of_nat_eq, polynomial.to_laurent_C, int.coe_nat_succ, mul_T_assoc,
+        add_left_neg, T_zero, mul_one] } }
+end
+
+/--  This version of `exists_T_pow` can be called as `rcases f.exists_T_pow' with ⟨n, f', rfl⟩`. -/
+lemma exists_T_pow' (f : R[T;T⁻¹]) :
+  ∃ (n : ℕ) (f' : R[X]), f = f'.to_laurent * T (- n) :=
+begin
+  rcases f.exists_T_pow with ⟨n, f', hf⟩,
+  exact ⟨n, f', by simp [hf]⟩,
+end
+
+/--  Suppose that `Q` is a statement about Laurent polynomials such that
+* `Q` is true on *ordinary* polynomials;
+* `Q (f * T)` implies `Q f`;
+it follow that `Q` is true on all Laurent polynomials. -/
+lemma reduce_to_polynomial_of_mul_T (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
+  (Qf : ∀ (f : R[X]), Q f.to_laurent)
+  (QT : ∀ f, Q (f * T 1) → Q f) :
+  Q f :=
+begin
+  rcases f.exists_T_pow' with ⟨n, f', rfl⟩,
+  induction n with n hn,
+  { simpa using Qf _ },
+  { convert QT _ _,
+    simpa using hn }
+end
 
 end semiring
 

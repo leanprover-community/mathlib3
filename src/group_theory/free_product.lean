@@ -744,8 +744,8 @@ variables (hXnonempty : ∀ i, (X i).nonempty)
 variables (hXdisj : pairwise (λ i j, disjoint (X i) (X j)))
 variables (hYdisj : pairwise (λ i j, disjoint (Y i) (Y j)))
 variables (hXYdisj : ∀ i j, disjoint (X i) (Y j))
-variables (hX : ∀ i, a i • set.compl (Y i) ⊆ X i)
-variables (hY : ∀ i, a⁻¹ i • set.compl (X i) ⊆ Y i)
+variables (hX : ∀ i, a i • (Y i)ᶜ ⊆ X i)
+variables (hY : ∀ i, a⁻¹ i • (X i)ᶜ ⊆ Y i)
 
 include hXnonempty hXdisj hYdisj hXYdisj hX hY
 

@@ -644,7 +644,7 @@ omit σ₁₃
 /-- The negation of a linear map is linear. -/
 instance : has_sub (M →ₛₗ[σ₁₂] N₂) :=
 ⟨λ f g, { to_fun := f - g,
-          map_add' := λ x y, by simp only [pi.sub_apply, map_add, add_sub_comm],
+          map_add' := λ x y, by simp only [pi.sub_apply, map_add, add_sub_add_comm],
           map_smul' := λ r x, by simp [pi.sub_apply, map_smul, smul_sub] }⟩
 
 @[simp] lemma sub_apply (f g : M →ₛₗ[σ₁₂] N₂) (x : M) : (f - g) x = f x - g x := rfl

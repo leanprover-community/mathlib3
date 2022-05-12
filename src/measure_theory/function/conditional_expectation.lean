@@ -37,9 +37,9 @@ The conditional expectation and its properties
   with respect to `m`.
 * `integrable_condexp` : `condexp` is integrable.
 * `strongly_measurable_condexp` : `condexp` is `m`-strongly-measurable.
-* `set_integral_condexp (hf : integrable f μ) (hs : measurable_set[m] s)` : the conditional
-  expectation verifies `∫ x in s, condexp m μ f x ∂μ = ∫ x in s, f x ∂μ` for any `m`-measurable
-  set `s`.
+* `set_integral_condexp (hf : integrable f μ) (hs : measurable_set[m] s)` : if `m ≤ m0` (the
+  σ-algebra over which the measure is defined), then the conditional expectation verifies
+  `∫ x in s, condexp m μ f x ∂μ = ∫ x in s, f x ∂μ` for any `m`-measurable set `s`.
 
 While `condexp` is function-valued, we also define `condexp_L1` with value in `L1` and a continuous
 linear map `condexp_L1_clm` from `L1` to `L1`. `condexp` should be used in most cases.
@@ -1844,12 +1844,12 @@ section condexp
 
 open_locale classical
 
-variables {𝕜} {m m₂ m0 : measurable_space α} {μ : measure α} {f g : α → F'} {s : set α}
+variables {𝕜} {m m0 : measurable_space α} {μ : measure α} {f g : α → F'} {s : set α}
 
-variables (m)
 /-- Conditional expectation of a function. Its value is 0 if the function is not integrable, if
 the σ-algebra is not a sub-σ-algebra or if the measure is not σ-finite on that σ-algebra. -/
-@[irreducible] def condexp (μ : measure α) (f : α → F') :
+@[irreducible]
+def condexp (m : measurable_space α) {m0 : measurable_space α} (μ : measure α) (f : α → F') :
   α → F' :=
 if hm : m ≤ m0
   then if hμ : sigma_finite (μ.trim hm)
@@ -1860,8 +1860,6 @@ if hm : m ≤ m0
     else 0
   else 0
 
-variables {m}
-
 -- We define notation `μ[f|m]` for the conditional expectation of `f` with respect to `m`.
 localized "notation  μ `[` f `|` m `]` := measure_theory.condexp m μ f" in measure_theory
 
@@ -1871,7 +1869,7 @@ lemma condexp_of_not_sigma_finite (hm : m ≤ m0) (hμm_not : ¬ sigma_finite (�
   μ[f|m] = 0 :=
 by rw [condexp, dif_pos hm, dif_neg hμm_not]
 
-lemma condexp_of_sigma_finite (hm : m ≤ m0) (hμm : sigma_finite (μ.trim hm)) :
+lemma condexp_of_sigma_finite (hm : m ≤ m0) [hμm : sigma_finite (μ.trim hm)] :
   μ[f|m] =
   if (strongly_measurable[m] f ∧ integrable f μ)
     then f else ae_strongly_measurable'_condexp_L1.mk (condexp_L1 hm μ f) :=
@@ -1880,8 +1878,8 @@ by rw [condexp, dif_pos hm, dif_pos hμm]
 lemma condexp_of_strongly_measurable (hm : m ≤ m0) [hμm : sigma_finite (μ.trim hm)]
   {f : α → F'} (hf : strongly_measurable[m] f) (hfi : integrable f μ) :
   μ[f|m] = f :=
-by rw [condexp_of_sigma_finite hm hμm,
-  if_pos (⟨hf, hfi⟩ : strongly_measurable[m] f ∧ integrable f μ)]
+by { rw [condexp_of_sigma_finite hm,
+  if_pos (⟨hf, hfi⟩ : strongly_measurable[m] f ∧ integrable f μ)], apply_instance,  }
 
 lemma condexp_const (hm : m ≤ m0) (c : F') [is_finite_measure μ] : μ[(λ x : α, c)|m] = λ _, c :=
 condexp_of_strongly_measurable hm (@strongly_measurable_const _ _ m _ _) (integrable_const c)
@@ -1889,7 +1887,7 @@ condexp_of_strongly_measurable hm (@strongly_measurable_const _ _ m _ _) (integr
 lemma condexp_ae_eq_condexp_L1 (hm : m ≤ m0) [hμm : sigma_finite (μ.trim hm)]
   (f : α → F') : μ[f|m] =ᵐ[μ] condexp_L1 hm μ f :=
 begin
-  rw condexp_of_sigma_finite hm hμm,
+  rw condexp_of_sigma_finite hm,
   by_cases hfm : strongly_measurable[m] f,
   { by_cases hfi : integrable f μ,
     { rw if_pos (⟨hfm, hfi⟩ : strongly_measurable[m] f ∧ integrable f μ),
@@ -1937,7 +1935,8 @@ begin
   by_cases hμm : sigma_finite (μ.trim hm),
   swap, { rw condexp_of_not_sigma_finite hm hμm, exact strongly_measurable_zero, },
   haveI : sigma_finite (μ.trim hm) := hμm,
-  rw condexp_of_sigma_finite hm hμm,
+  rw condexp_of_sigma_finite hm,
+  swap, { apply_instance, },
   by_cases hfm : strongly_measurable[m] f,
   { by_cases hfi : integrable f μ,
     { rwa if_pos (⟨hfm, hfi⟩ : strongly_measurable[m] f ∧ integrable f μ), },
@@ -2057,7 +2056,7 @@ begin
       (strongly_measurable.ae_strongly_measurable' strongly_measurable_condexp),
   intros s hs hμs,
   rw set_integral_condexp (hm₁₂.trans hm₂) integrable_condexp hs,
-  swap, apply_instance,
+  swap, { apply_instance, },
   by_cases hf : integrable f μ,
   { rw [set_integral_condexp (hm₁₂.trans hm₂) hf hs, set_integral_condexp hm₂ hf (hm₁₂ s hs)], },
   { simp_rw integral_congr_ae (ae_restrict_of_ae (condexp_undef hf)), },

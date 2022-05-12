@@ -97,7 +97,7 @@ lemma multiplicity_factorial {p : ℕ} (hp : p.prime) :
   calc multiplicity p (n+1)! = multiplicity p n! + multiplicity p (n+1) :
     by rw [factorial_succ, hp.multiplicity_mul, add_comm]
   ... = (∑ i in Ico 1 b, n / p ^ i : ℕ) + ((finset.Ico 1 b).filter (λ i, p ^ i ∣ n+1)).card :
-    by rw [multiplicity_factorial ((log_le_log_of_le $ le_succ _).trans_lt hb),
+    by rw [multiplicity_factorial ((log_mono_right $ le_succ _).trans_lt hb),
       ← multiplicity_eq_card_pow_dvd hp.ne_one (succ_pos _) hb]
   ... = (∑ i in Ico 1 b, (n / p ^ i + if p^i ∣ n+1 then 1 else 0) : ℕ) :
     by { rw [sum_add_distrib, sum_boole], simp }
@@ -178,8 +178,8 @@ have h₁ : multiplicity p (choose n k) + multiplicity p (k! * (n - k)!) =
   begin
     rw [← hp.multiplicity_mul, ← mul_assoc, choose_mul_factorial_mul_factorial hkn,
         hp.multiplicity_factorial hnb, hp.multiplicity_mul,
-        hp.multiplicity_factorial ((log_le_log_of_le hkn).trans_lt hnb),
-        hp.multiplicity_factorial (lt_of_le_of_lt (log_le_log_of_le tsub_le_self) hnb),
+        hp.multiplicity_factorial ((log_mono_right hkn).trans_lt hnb),
+        hp.multiplicity_factorial (lt_of_le_of_lt (log_mono_right tsub_le_self) hnb),
         multiplicity_choose_aux hp hkn],
     simp [add_comm],
   end,
@@ -198,7 +198,7 @@ else if hn0 : n = 0 then by cases k; simp [hn0, *] at *
 else begin
   rw [multiplicity_choose hp (le_of_not_gt hkn) (lt_succ_self _),
     multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) (nat.pos_of_ne_zero hk0)
-      (lt_succ_of_le (log_le_log_of_le (le_of_not_gt hkn))),
+      (lt_succ_of_le (log_mono_right (le_of_not_gt hkn))),
     multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) (nat.pos_of_ne_zero hn0) (lt_succ_self _),
     ← nat.cast_add, enat.coe_le_coe],
   calc ((Ico 1 (log p n).succ).filter (λ i, p ^ i ∣ n)).card
@@ -226,7 +226,7 @@ le_antisymm
   begin
     rw [multiplicity_choose hp hkn (lt_succ_self _),
       multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) hk0
-        (lt_succ_of_le (log_le_log_of_le hkn)),
+        (lt_succ_of_le (log_mono_right hkn)),
       ← nat.cast_add, enat.coe_le_coe, log_pow hp.one_lt,
       ← card_disjoint_union hdisj, filter_union_right],
     have filter_le_Ico := (Ico 1 n.succ).card_filter_le _,

@@ -10,8 +10,8 @@ import probability.cond_count
 
 This file proves Theorem 30 from the [100 Theorems List](https://www.cs.ru.nl/~freek/100/).
 
-The ballot problem asks, if in an election, candidate A recieves `p` votes whereas candidate B
-recieves `q` votes where `p > q`, what is the probability that candidate A is strictly ahead
+The ballot problem asks, if in an election, candidate A receives `p` votes whereas candidate B
+receives `q` votes where `p > q`, what is the probability that candidate A is strictly ahead
 throughout the count. The probability of this is `(p - q) / (p + q)`.
 
 ## Main definitions

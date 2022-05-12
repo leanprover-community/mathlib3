@@ -176,8 +176,7 @@ corresponding to the evaluation of the induced map `free_abelian_group X → A` 
 def lift_add_group_hom {α} (β) [add_comm_group β] (a : free_abelian_group α) : (α → β) →+ β :=
 add_monoid_hom.mk' (λ f, lift f a) (lift.add' a)
 
-lemma lift_neg' {α β} [add_comm_group β] (a : free_abelian_group α) (f : α → β) :
-  lift (-f) = -lift f :=
+lemma lift_neg' {β} [add_comm_group β] (f : α → β) : lift (-f) = -lift f :=
 add_monoid_hom.ext $ λ _, (lift_add_group_hom _ _ : (α → β) →+ β).map_neg _
 
 section monad

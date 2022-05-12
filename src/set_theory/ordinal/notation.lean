@@ -893,7 +893,7 @@ onote.repr_mul a.1 b.1
 /-- Exponentiation of ordinal notations -/
 def opow (x y : nonote) := mk (x.1.opow y.1)
 
-theorem repr_opow (a b) : repr (opow a b) = (repr a).opow (repr b) :=
+theorem repr_opow (a b) : repr (opow a b) = repr a ^ repr b :=
 onote.repr_opow a.1 b.1
 
 end nonote

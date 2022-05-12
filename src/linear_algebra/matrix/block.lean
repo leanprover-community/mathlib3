@@ -204,6 +204,8 @@ protected lemma block_triangular.det [decidable_eq α] [preorder α] (hM : block
 begin
   unfreezingI { induction ‹fintype m› using fintype.induction_empty_option'
     with α₁ α₂ h₂ e ih m h ih },
+  -- Yael, you're probably not in a potato like me - can you extract this into a lemma?
+  -- (even private, it's quite slow)
   { haveI : fintype α₁ := fintype.of_equiv _ e.symm,
     haveI : decidable_eq α₁ := classical.dec_eq _,
     rw ←det_reindex_self e.symm,
@@ -215,15 +217,14 @@ begin
       convert e.surjective.image_univ },
     unfold to_square_block to_square_block_prop to_block,
     rw [minor_minor],
-    have e' : {a₁ // (b ∘ λ (i : α₁), (e.symm.symm) i) a₁ = a} ≃ {a₂ // b a₂ = a} :=
+    let e' : {a₁ // (b ∘ λ (i : α₁), (e.symm.symm) i) a₁ = a} ≃ {a₂ // b a₂ = a} :=
     { to_fun    := λ a₁, ⟨e a₁, by simpa using a₁.prop⟩,
       inv_fun   := λ a₂, ⟨e.symm a₂, by simpa using a₂.prop⟩,
       left_inv  := λ a₁, subtype.ext $ by simp,
       right_inv := λ a₂, subtype.ext $ by simp },
-    have := det_minor_equiv_self e' (M.minor coe coe),
-    sorry,
-  },
-  { simp only [coe_det_is_empty, prod_const_one] },
+    rw [←det_minor_equiv_self e' (M.minor coe coe), minor_minor],
+    congr' 1 },
+  sorry { simp only [coe_det_is_empty, prod_const_one] },sorry /-
   rw two_block_triangular_det M (λ i, i ≠ none),
   let n : ℕ := (Sup (univ.image b : set ℕ)).succ,
   have hn : ∀ i, b i < n,
@@ -241,7 +242,7 @@ begin
   { refine subtype.is_empty_of_false _,
     rintro a rfl,
     exact hbk (mem_image_of_mem _ $ mem_univ _) },
-  exact det_is_empty }
+  exact det_is_empty } -/
 end
 
 lemma block_triangular.det_fintype [decidable_eq α] [fintype α] [preorder α]

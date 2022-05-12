@@ -969,23 +969,23 @@ open asymptotics
 
 /-- `x ^ s = o(exp(b * x))` as `x → ∞` for any real `s` and positive `b`. -/
 lemma is_o_rpow_exp_pos_mul_at_top (s : ℝ) {b : ℝ} (hb : 0 < b) :
-  is_o (λ x : ℝ, x ^ s) (λ x, exp (b * x)) at_top :=
+  (λ x : ℝ, x ^ s) =o[at_top] (λ x, exp (b * x)) :=
 iff.mpr (is_o_iff_tendsto $ λ x h, absurd h (exp_pos _).ne') $
   by simpa only [div_eq_mul_inv, exp_neg, neg_mul]
     using tendsto_rpow_mul_exp_neg_mul_at_top_nhds_0 s b hb
 
 /-- `x ^ k = o(exp(b * x))` as `x → ∞` for any integer `k` and positive `b`. -/
 lemma is_o_zpow_exp_pos_mul_at_top (k : ℤ) {b : ℝ} (hb : 0 < b) :
-  is_o (λ x : ℝ, x ^ k) (λ x, exp (b * x)) at_top :=
+  (λ x : ℝ, x ^ k) =o[at_top] (λ x, exp (b * x)) :=
 by simpa only [rpow_int_cast] using is_o_rpow_exp_pos_mul_at_top k hb
 
 /-- `x ^ k = o(exp(b * x))` as `x → ∞` for any natural `k` and positive `b`. -/
 lemma is_o_pow_exp_pos_mul_at_top (k : ℕ) {b : ℝ} (hb : 0 < b) :
-  is_o (λ x : ℝ, x ^ k) (λ x, exp (b * x)) at_top :=
+  (λ x : ℝ, x ^ k) =o[at_top] (λ x, exp (b * x)) :=
 is_o_zpow_exp_pos_mul_at_top k hb
 
 /-- `x ^ s = o(exp x)` as `x → ∞` for any real `s`. -/
-lemma is_o_rpow_exp_at_top (s : ℝ) : is_o (λ x : ℝ, x ^ s) exp at_top :=
+lemma is_o_rpow_exp_at_top (s : ℝ) : (λ x : ℝ, x ^ s) =o[at_top] exp :=
 by simpa only [one_mul] using is_o_rpow_exp_pos_mul_at_top s one_pos
 
 end limits

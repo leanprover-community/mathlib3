@@ -2094,7 +2094,7 @@ lemma is_bounded_bilinear_map.has_strict_fderiv_at (h : is_bounded_bilinear_map 
 begin
   rw has_strict_fderiv_at,
   set T := (E × F) × (E × F),
-  have : is_o (λ q : T, b (q.1 - q.2)) (λ q : T, ∥q.1 - q.2∥ * 1) (𝓝 (p, p)),
+  have : (λ q : T, b (q.1 - q.2)) =o[𝓝 (p, p)] (λ q : T, ∥q.1 - q.2∥ * 1),
   { refine (h.is_O'.comp_tendsto le_top).trans_is_o _,
     simp only [(∘)],
     refine (is_O_refl (λ q : T, ∥q.1 - q.2∥) _).mul_is_o (is_o.norm_left $ (is_o_one_iff _).2 _),
@@ -2102,11 +2102,11 @@ begin
     exact continuous_at_fst.sub continuous_at_snd },
   simp only [mul_one, is_o_norm_right] at this,
   refine (is_o.congr_of_sub _).1 this, clear this,
-  convert_to is_o (λ q : T, h.deriv (p - q.2) (q.1 - q.2)) (λ q : T, q.1 - q.2) (𝓝 (p, p)),
+  convert_to (λ q : T, h.deriv (p - q.2) (q.1 - q.2)) =o[𝓝 (p, p)] (λ q : T, q.1 - q.2),
   { ext ⟨⟨x₁, y₁⟩, ⟨x₂, y₂⟩⟩, rcases p with ⟨x, y⟩,
     simp only [is_bounded_bilinear_map_deriv_coe, prod.mk_sub_mk, h.map_sub_left, h.map_sub_right],
     abel },
-  have : is_o (λ q : T, p - q.2) (λ q, (1:ℝ)) (𝓝 (p, p)),
+  have : (λ q : T, p - q.2) =o[𝓝 (p, p)] (λ q, (1:ℝ)),
     from (is_o_one_iff _).2 (sub_self p ▸ tendsto_const_nhds.sub continuous_at_snd),
   apply is_bounded_bilinear_map_apply.is_O_comp.trans_is_o,
   refine is_o.trans_is_O _ (is_O_const_mul_self 1 _ _).of_norm_right,
@@ -2544,8 +2544,7 @@ operation is the linear map `λ t, - x⁻¹ * t * x⁻¹`. -/
 lemma has_fderiv_at_ring_inverse (x : Rˣ) :
   has_fderiv_at ring.inverse (-lmul_left_right 𝕜 R ↑x⁻¹ ↑x⁻¹) x :=
 begin
-  have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹)
-    (λ (t : R), t) (𝓝 0),
+  have h_is_o : (λ (t : R), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹) =o[𝓝 0] (λ (t : R), t),
   { refine (inverse_add_norm_diff_second_order x).trans_is_o ((is_o_norm_norm).mp _),
     simp only [norm_pow, norm_norm],
     have h12 : 1 < 2 := by norm_num,
@@ -2787,8 +2786,8 @@ theorem has_strict_fderiv_at.of_local_left_inverse {f : E → F} {f' : E ≃L[�
 begin
   replace hg := hg.prod_map' hg,
   replace hfg := hfg.prod_mk_nhds hfg,
-  have : is_O (λ p : F × F, g p.1 - g p.2 - f'.symm (p.1 - p.2))
-    (λ p : F × F, f' (g p.1 - g p.2) - (p.1 - p.2)) (𝓝 (a, a)),
+  have : (λ p : F × F, g p.1 - g p.2 - f'.symm (p.1 - p.2)) =O[𝓝 (a, a)]
+    (λ p : F × F, f' (g p.1 - g p.2) - (p.1 - p.2)),
   { refine ((f'.symm : F →L[𝕜] E).is_O_comp _ _).congr (λ x, _) (λ _, rfl),
     simp },
   refine this.trans_is_o _, clear this,
@@ -2812,7 +2811,7 @@ theorem has_fderiv_at.of_local_left_inverse {f : E → F} {f' : E ≃L[𝕜] F} 
   (hfg : ∀ᶠ y in 𝓝 a, f (g y) = y) :
   has_fderiv_at g (f'.symm : F →L[𝕜] E) a :=
 begin
-  have : is_O (λ x : F, g x - g a - f'.symm (x - a)) (λ x : F, f' (g x - g a) - (x - a)) (𝓝 a),
+  have : (λ x : F, g x - g a - f'.symm (x - a)) =O[𝓝 a] (λ x : F, f' (g x - g a) - (x - a)),
   { refine ((f'.symm : F →L[𝕜] E).is_O_comp _ _).congr (λ x, _) (λ _, rfl),
     simp },
   refine this.trans_is_o _, clear this,
@@ -2852,7 +2851,7 @@ lemma has_fderiv_within_at.eventually_ne (h : has_fderiv_within_at f f' s x)
   ∀ᶠ z in 𝓝[s \ {x}] x, f z ≠ f x :=
 begin
   rw [nhds_within, diff_eq, ← inf_principal, ← inf_assoc, eventually_inf_principal],
-  have A : is_O (λ z, z - x) (λ z, f' (z - x)) (𝓝[s] x) :=
+  have A : (λ z, z - x) =O[𝓝[s] x] (λ z, f' (z - x)) :=
     (is_O_iff.2 $ hf'.imp $ λ C hC, eventually_of_forall $ λ z, hC _),
   have : (λ z, f z - f x) ~[𝓝[s] x] (λ z, f' (z - x)) := h.trans_is_O A,
   simpa [not_imp_not, sub_eq_zero] using (A.trans this.is_O_symm).eq_zero_imp

@@ -38,8 +38,8 @@ end
 namespace real
 
 /-- Asymptotic bound for the `Γ` function integrand. -/
-lemma Gamma_integrand_is_O (s : ℝ) : is_O (λ x:ℝ, exp (-x) * x ^ s)
-  (λ x:ℝ, exp (-(1/2) * x)) at_top :=
+lemma Gamma_integrand_is_O (s : ℝ) :
+  (λ x:ℝ, exp (-x) * x ^ s) =O[at_top] (λ x:ℝ, exp (-(1/2) * x)) :=
 begin
   refine is_o.is_O (is_o_of_tendsto _ _),
   { intros x hx, exfalso, exact (exp_pos (-(1 / 2) * x)).ne' hx },

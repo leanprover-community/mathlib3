@@ -73,9 +73,6 @@ open function
 
 universes u v w x
 
-run_cmd do e ← tactic.get_env,
-  tactic.set_env $ e.mk_protected `set.compl
-
 namespace set
 
 variable {α : Type*}

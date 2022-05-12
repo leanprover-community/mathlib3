@@ -25,7 +25,7 @@ import algebra.module.projective
 
 ## Implementation details
 
-We first prove (`is_internal_prime_power_torsion`) a finitely generated torsion module is the
+We first prove (`is_internal_prime_power_torsion`) that a finitely generated torsion module is the
 internal direct sum of its `p i ^ e i`-torsion submodules for some (finitely many) prime powers
 `p i ^ e i`.
 

@@ -1835,7 +1835,7 @@ by { ext, refl }
   (hif : set.inj_on f (f ⁻¹' (single (f a) m).support)) :
   comap_domain f (finsupp.single (f a) m) hif = finsupp.single a m :=
 begin
-  obtain rfl | hm := eq_or_ne m 0,
+  rcases eq_or_ne m 0 with rfl | hm,
   { simp only [single_zero, comap_domain_zero] },
   { rw [eq_single_iff, comap_domain_apply, comap_domain_support, ← finset.coe_subset, coe_preimage,
       support_single_ne_zero hm, coe_singleton, coe_singleton, single_eq_same],

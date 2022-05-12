@@ -49,7 +49,8 @@ def divisors_antidiagonal : finset (ℕ × ℕ) :=
 
 variable {n}
 
-@[simp] lemma filter_dvd_eq_divisors (h : n ≠ 0) :
+@[simp]
+lemma filter_dvd_eq_divisors (h : n ≠ 0) :
   (finset.range n.succ).filter (∣ n) = n.divisors :=
 begin
   ext,
@@ -57,7 +58,8 @@ begin
   exact λ ha _, succ_le_iff.mpr (pos_of_dvd_of_pos ha h.bot_lt),
 end
 
-@[simp] lemma filter_dvd_eq_proper_divisors (h : n ≠ 0) :
+@[simp]
+lemma filter_dvd_eq_proper_divisors (h : n ≠ 0) :
   (finset.range n).filter (∣ n) = n.proper_divisors :=
 begin
   ext,

@@ -7,6 +7,7 @@ import measure_theory.measure.measure_space
 import measure_theory.integral.bochner
 import topology.continuous_function.bounded
 import topology.algebra.module.weak_dual
+import topology.metric_space.thickened_indicator
 
 /-!
 # Weak convergence of (finite) measures
@@ -329,6 +330,40 @@ begin
            ennreal.tendsto_coe, ennreal.to_nnreal_coe],
 end
 
+variables [topological_space α] [opens_measurable_space α]
+
+lemma tendsto_lintegral_nn_of_le_const (μ : finite_measure α)
+  {fs : ℕ → (α →ᵇ ℝ≥0)} {c : ℝ≥0} (fs_le_const : ∀ n a, fs n a ≤ c) {f : α → ℝ≥0}
+  (f_mble : measurable f) (fs_lim : ∀ a, tendsto (λ (n : ℕ), (fs n a)) at_top (𝓝 (f a))) :
+  tendsto (λ (n : ℕ), (∫⁻ a, (fs n a) ∂(μ : measure α))) at_top (𝓝 (∫⁻ a, (f a) ∂(μ : measure α))) :=
+begin
+  have fs_le_const' : (∀ (n : ℕ), (coe : ℝ≥0 → ℝ≥0∞) ∘ (fs n) ≤ᵐ[(μ : measure α)] (λ _, c)),
+  { intro n,
+    apply eventually_of_forall,
+    intro x,
+    simp only [fs_le_const n x, ennreal.coe_le_coe], },
+  have lintegral_const_ne_top : ∫⁻ (a : α), c ∂↑μ ≠ ⊤,
+  { simp only [lintegral_const, ne.def, with_top.mul_eq_top_iff, ennreal.coe_eq_zero,
+               ennreal.coe_ne_top, false_and, or_false, not_and],
+    exact λ _, ne_of_lt (measure_lt_top (μ : measure α) univ), },
+  simpa using tendsto_lintegral_of_dominated_convergence (λ _, c)
+              (λ n, (ennreal.continuous_coe.comp (fs n).continuous).measurable)
+              fs_le_const' lintegral_const_ne_top _,
+  apply eventually_of_forall,
+  simpa [ennreal.tendsto_coe] using fs_lim,
+end
+
+lemma tendsto_test_against_nn_of_le_const {μ : finite_measure α}
+  {fs : ℕ → (α →ᵇ ℝ≥0)} {c : ℝ≥0} (fs_le_const : ∀ n a, fs n a ≤ c) {f : α →ᵇ ℝ≥0}
+  (fs_lim : ∀ a, tendsto (λ (n : ℕ), (fs n a)) at_top (𝓝 (f a))) :
+  tendsto (λ (n : ℕ), μ.test_against_nn (fs n)) at_top (𝓝 (μ.test_against_nn f)) :=
+begin
+  apply (ennreal.tendsto_to_nnreal
+         (μ.lintegral_lt_top_of_bounded_continuous_to_nnreal f).ne).comp,
+  exact finite_measure.tendsto_lintegral_nn_of_le_const
+        μ fs_le_const f.continuous.measurable fs_lim,
+end
+
 end finite_measure
 
 /-- Probability measures are defined as the subtype of measures that have the property of being
@@ -447,5 +482,220 @@ begin
 end
 
 end probability_measure
+
+section convergence_implies_limsup_closed
+
+-- Place in some appropriate file.
+lemma indicator_const_mem_iff_of_zero_not_mem_of_const_mem {α β : Type*} [has_zero β]
+  (E : set α) {F : set β} {c : β} (zero_not_mem : (0 : β) ∉ F) (c_mem : c ∈ F) (a : α) :
+  (E.indicator (λ _, c)) a ∈ F ↔ a ∈ E :=
+by { by_cases a ∈ E; simp [h, zero_not_mem, c_mem], }
+
+-- Place in some appropriate file.
+lemma indicator_const_mem_iff_of_zero_mem_of_const_not_mem {α β : Type*} [has_zero β]
+  (E : set α) {F : set β} {c : β} (zero_mem : (0 : β) ∈ F) (c_not_mem : c ∉ F) (a : α) :
+  (E.indicator (λ _, c)) a ∈ F ↔ a ∉ E :=
+by { by_cases a ∈ E; simp [h, zero_mem, c_not_mem], }
+
+-- Place in some appropriate file.
+lemma indicator_const_mem_of_zero_mem_of_const_mem {α β : Type*} [has_zero β]
+  (E : set α) {F : set β} {c : β} (zero_mem : (0 : β) ∈ F) (c_mem : c ∈ F) (a : α) :
+  (E.indicator (λ _, c)) a ∈ F :=
+by { by_cases a ∈ E; simp [h, zero_mem, c_mem], }
+
+-- Place in some appropriate file.
+lemma indicator_const_mem_of_zero_not_mem_of_const_not_mem {α β : Type*} [has_zero β]
+  (E : set α) {F : set β} {c : β} (zero_not_mem : (0 : β) ∉ F) (c_not_mem : c ∉ F) (a : α) :
+  (E.indicator (λ _, c)) a ∉ F :=
+by { by_cases a ∈ E; simp [h, zero_not_mem, c_not_mem], }
+
+-- Place in some appropriate file.
+lemma preimage_indicator_const_of_zero_not_mem_of_const_mem {α β : Type*} [has_zero β]
+  (E : set α) {F : set β} {c : β} (zero_not_mem : (0 : β) ∉ F) (c_mem : c ∈ F) :
+  (E.indicator (λ _, c)) ⁻¹' F = E :=
+begin
+  ext a,
+  exact indicator_const_mem_iff_of_zero_not_mem_of_const_mem E zero_not_mem c_mem a,
+end
+
+-- Place in some appropriate file.
+lemma preimage_indicator_const_of_zero_mem_of_const_not_mem {α β : Type*} [has_zero β]
+  (E : set α) {F : set β} {c : β} (zero_mem : (0 : β) ∈ F) (c_not_mem : c ∉ F) :
+  (E.indicator (λ _, c)) ⁻¹' F = Eᶜ :=
+begin
+  ext a,
+  exact indicator_const_mem_iff_of_zero_mem_of_const_not_mem E zero_mem c_not_mem a,
+end
+
+-- Place in some appropriate file.
+lemma preimage_indicator_const_of_zero_mem_of_const_mem {α β : Type*} [has_zero β]
+  (E : set α) {F : set β} {c : β} (zero_mem : (0 : β) ∈ F) (c_mem : c ∈ F) :
+  (E.indicator (λ _, c)) ⁻¹' F = univ :=
+begin
+  ext a,
+  simp [indicator_const_mem_of_zero_mem_of_const_mem E zero_mem c_mem a],
+end
+
+-- Place in some appropriate file.
+lemma preimage_indicator_const_of_zero_not_mem_of_const_not_mem {α β : Type*} [has_zero β]
+  (E : set α) {F : set β} {c : β} (zero_not_mem : (0 : β) ∉ F) (c_not_mem : c ∉ F) :
+  (E.indicator (λ _, c)) ⁻¹' F = ∅ :=
+begin
+  ext a,
+  simp [indicator_const_mem_of_zero_not_mem_of_const_not_mem E zero_not_mem c_not_mem a],
+end
+
+-- Place in some other(!) appropriate file, in measure theory folder.
+lemma measurable_indicator_const_iff {α β : Type*}
+  [measurable_space α] [measurable_space β] [has_zero β] [measurable_singleton_class β]
+  (E : set α) (c : β) :
+  measurable (E.indicator (λ _, c)) ↔ measurable_set E ∨ c = 0 :=
+begin
+  by_cases hc₀ : c = 0,
+  { simp only [hc₀, indicator_zero, measurable_const, eq_self_iff_true, or_true], },
+  split,
+  { intro ind_mble,
+    left,
+    convert ind_mble (measurable_set.compl (show measurable_set {(0 : β)},
+      by apply ‹measurable_singleton_class β›.measurable_set_singleton)),
+    rw preimage_indicator_const_of_zero_not_mem_of_const_mem E,
+    { simp only [mem_compl_eq, mem_singleton, not_true, not_false_iff], },
+    { simp only [hc₀, mem_compl_eq, mem_singleton_iff, not_false_iff],  }, },
+  { rintros (E_mble|maybe_c_zero),
+    swap, { contradiction, },
+    intros s s_mble,
+    by_cases hc : c ∈ s,
+    { by_cases hz : (0 : β) ∈ s,
+      { simp only [preimage_indicator_const_of_zero_mem_of_const_mem E hz hc,
+                   measurable_set.univ], },
+      { simp only [preimage_indicator_const_of_zero_not_mem_of_const_mem E hz hc, E_mble], }, },
+    { by_cases hz : (0 : β) ∈ s,
+      { simp only [preimage_indicator_const_of_zero_mem_of_const_not_mem E hz hc, E_mble,
+                   measurable_set.compl_iff], },
+      { simp only [preimage_indicator_const_of_zero_not_mem_of_const_not_mem E hz hc,
+                   measurable_set.empty], }, }, },
+end
+
+open measure_theory set filter bounded_continuous_function
+open_locale topological_space ennreal nnreal bounded_continuous_function
+
+variables [topological_space α] [opens_measurable_space α]
+
+lemma measure_of_cont_bdd_of_tendsto_indicator
+  (μ : finite_measure α) {c : ℝ≥0} {E : set α} (E_mble : measurable_set E)
+  (fs : ℕ → (α →ᵇ ℝ≥0)) (fs_bdd : ∀ n a, fs n a ≤ c)
+  (fs_lim : tendsto (λ (n : ℕ), (coe_fn : (α →ᵇ ℝ≥0) → (α → ℝ≥0)) (fs n))
+            at_top (𝓝 (indicator E (λ x, (1 : ℝ≥0))))) :
+  tendsto (λ n, lintegral (μ : measure α) (λ a, fs n a)) at_top (𝓝 ((μ : measure α) E)) :=
+begin
+  have fs_lim' : ∀ a, tendsto (λ (n : ℕ), (fs n a : ℝ≥0))
+                 at_top (𝓝 (indicator E (λ x, (1 : ℝ≥0)) a)),
+  { rw tendsto_pi_nhds at fs_lim,
+    exact λ a, fs_lim a, },
+  have mble_ind := (measurable_indicator_const_iff E (1 : ℝ≥0)).mpr (or.inl E_mble),
+  convert finite_measure.tendsto_lintegral_nn_of_le_const μ fs_bdd mble_ind fs_lim',
+  have aux : ∀ a, indicator E (λ x, (1 : ℝ≥0∞)) a = ↑(indicator E (λ x, (1 : ℝ≥0)) a),
+  { intro a,
+    simp only [ennreal.coe_indicator, ennreal.coe_one], },
+  simp_rw [←aux, lintegral_indicator _ E_mble],
+  simp only [lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter],
+end
+
+lemma tendsto_lintegral_thickened_indicator_of_is_closed
+  {α : Type*} [measurable_space α] [pseudo_emetric_space α] [opens_measurable_space α]
+  (μ : finite_measure α) {F : set α} (F_closed : is_closed F)
+  {δs : ℕ → ℝ} (δs_pos : ∀ n, 0 < δs n) (δs_decr : antitone δs) (δs_lim : tendsto δs at_top (𝓝 0)) :
+  tendsto (λ n, lintegral (μ : measure α) (λ a, (thickened_indicator (δs_pos n) F a : ℝ≥0∞))) at_top (𝓝 ((μ : measure α) F)) :=
+begin
+  apply measure_of_cont_bdd_of_tendsto_indicator μ F_closed.measurable_set
+          (λ n, thickened_indicator (δs_pos n) F)
+          (λ n a, thickened_indicator_le_one (δs_pos n) F a),
+  have key := thickened_indicator_tendsto_indicator_closure δs_pos δs_lim F,
+  rwa F_closed.closure_eq at key,
+end
+
+lemma indicator_le_thickened_indicator_aux
+  {α : Type*} [pseudo_emetric_space α] (δ : ℝ) (E : set α) :
+  E.indicator (λ _, (1 : ℝ≥0∞)) ≤ thickened_indicator_aux δ E :=
+begin
+  intro a,
+  by_cases a ∈ E,
+  { simp only [h, indicator_of_mem, thickened_indicator_aux_one δ E h, le_refl], },
+  { simp only [h, indicator_of_not_mem, not_false_iff, zero_le], },
+end
+
+lemma indicator_le_thickened_indicator
+  {α : Type*} [pseudo_emetric_space α] {δ : ℝ} (δ_pos : 0 < δ) (E : set α) :
+  E.indicator (λ _, (1 : ℝ≥0)) ≤ thickened_indicator δ_pos E :=
+begin
+  intro a,
+  by_cases a ∈ E,
+  { simp only [h, indicator_of_mem, thickened_indicator_one δ_pos E h, le_refl], },
+  { simp only [h, indicator_of_not_mem, not_false_iff, zero_le], },
+end
+
+lemma measure_le_lintegral_thickened_indicator_aux
+  {α : Type*} [measurable_space α] [pseudo_emetric_space α]
+  (μ : measure α) {E : set α} (E_mble : measurable_set E) (δ : ℝ) :
+  μ E ≤ lintegral μ (λ a, (thickened_indicator_aux δ E a : ℝ≥0∞)) :=
+begin
+  convert_to lintegral μ (E.indicator (λ _, (1 : ℝ≥0∞)))
+              ≤ lintegral μ (thickened_indicator_aux δ E),
+  { rw [lintegral_indicator _ E_mble],
+    simp only [lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter], },
+  { apply lintegral_mono,
+    apply indicator_le_thickened_indicator_aux, },
+end
+
+lemma measure_le_lintegral_thickened_indicator
+  {α : Type*} [measurable_space α] [pseudo_emetric_space α]
+  (μ : measure α) {E : set α} (E_mble : measurable_set E) {δ : ℝ} (δ_pos : 0 < δ) :
+  μ E ≤ lintegral μ (λ a, (thickened_indicator δ_pos E a : ℝ≥0∞)) :=
+begin
+  convert measure_le_lintegral_thickened_indicator_aux μ E_mble δ,
+  dsimp,
+  simp only [thickened_indicator_aux_lt_top.ne, ennreal.coe_to_nnreal, ne.def, not_false_iff],
+end
+
+lemma finite_measure.limsup_measure_closed
+  {α : Type*} [measurable_space α] [pseudo_emetric_space α] [opens_measurable_space α]
+  {μ : finite_measure α} {μs : ℕ → finite_measure α}
+  (μs_lim : tendsto μs at_top (𝓝 μ)) {F : set α} (F_closed : is_closed F) :
+  limsup at_top (λ n, (μs n : measure α) F) ≤ (μ : measure α) F :=
+begin
+  apply ennreal.le_of_forall_pos_le_add,
+  intros ε ε_pos μ_F_finite,
+  set δs := λ (n : ℕ), (1 : ℝ) / (n+1) with def_δs,
+  have δs_pos : ∀ n, 0 < δs n, from λ n, nat.one_div_pos_of_nat,
+  have δs_lim : tendsto δs at_top (𝓝 0), from tendsto_one_div_add_at_top_nhds_0_nat,
+  have δs_anti : antitone δs,
+  { rw def_δs,
+    intros n m hnm,
+    apply (one_div_le_one_div _ _).mpr; norm_cast,
+    { exact add_le_add hnm le_rfl, },
+    { exact nat.succ_pos _, },
+    { exact nat.succ_pos _, }, },
+  have key₁ := tendsto_lintegral_thickened_indicator_of_is_closed μ F_closed δs_pos δs_anti δs_lim,
+  have room₁ : (μ : measure α) F < (μ : measure α) F + ε / 2,
+  { apply ennreal.lt_add_right (measure_lt_top (μ : measure α) F).ne
+          ((ennreal.div_pos_iff.mpr ⟨(ennreal.coe_pos.mpr ε_pos).ne.symm, ennreal.two_ne_top⟩).ne.symm), },
+  rcases eventually_at_top.mp (eventually_lt_of_tendsto_lt room₁ key₁) with ⟨M, hM⟩,
+  have key₂ := finite_measure.tendsto_iff_forall_lintegral_tendsto.mp
+                μs_lim (thickened_indicator (δs_pos M) F),
+  have room₂ : lintegral (μ : measure α) (λ a, thickened_indicator (δs_pos M) F a)
+                < lintegral (μ : measure α) (λ a, thickened_indicator (δs_pos M) F a) + ε / 2,
+  { apply ennreal.lt_add_right (finite_measure.lintegral_lt_top_of_bounded_continuous_to_nnreal μ _).ne
+          ((ennreal.div_pos_iff.mpr ⟨(ennreal.coe_pos.mpr ε_pos).ne.symm, ennreal.two_ne_top⟩).ne.symm), },
+  have ev_near := eventually.mono (eventually_lt_of_tendsto_lt room₂ key₂) (λ n, le_of_lt),
+  have aux := λ n, le_trans (measure_le_lintegral_thickened_indicator
+                            (μs n : measure α) F_closed.measurable_set (δs_pos M)),
+  have ev_near' := eventually.mono ev_near aux,
+  apply (filter.limsup_le_limsup ev_near').trans,
+  rw limsup_const,
+  apply le_trans (add_le_add (hM M rfl.le).le (le_refl (ε/2 : ℝ≥0∞))),
+  simp only [add_assoc, ennreal.add_halves, le_refl],
+end
+
+end convergence_implies_limsup_closed
 
 end measure_theory

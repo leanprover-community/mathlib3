@@ -284,6 +284,14 @@ lemma fork.equalizer_ext (s : fork f g) {W : C} {k l : W ⟶ s.X} (h : k ≫ s.�
 | zero := h
 | one := by rw [s.app_one_eq_ι_comp_left, reassoc_of h]
 
+/-- Every fork is isomorphic to one of the form `fork.of_ι _ _`. -/
+def iso_fork_of_ι (c : fork f g) : c ≅ fork.of_ι c.ι c.condition :=
+begin
+  fapply cones.ext,
+  { simp only [fork.of_ι_X, functor.const.obj_obj] },
+  { intros j, cases j; dsimp; simp }
+end
+
 /-- To check whether two maps are coequalized by both maps of a cofork, it suffices to check it for
     the second map -/
 lemma cofork.coequalizer_ext (s : cofork f g) {W : C} {k l : s.X ⟶ W}
@@ -291,6 +299,14 @@ lemma cofork.coequalizer_ext (s : cofork f g) {W : C} {k l : s.X ⟶ W}
     s.ι.app j ≫ k = s.ι.app j ≫ l
 | zero := by simp only [s.app_zero_eq_comp_π_left, category.assoc, h]
 | one := h
+
+/-- Every cofork is isomorphic to one of the form `cofork.of_π _ _`. -/
+def iso_cofork_of_π (c : cofork f g) : c ≅ cofork.of_π c.π c.condition :=
+begin
+  fapply cocones.ext,
+  { simp only [cofork.of_π_X, functor.const.obj_obj] },
+  { intros j, cases j; dsimp; simp }
+end
 
 lemma fork.is_limit.hom_ext {s : fork f g} (hs : is_limit s) {W : C} {k l : W ⟶ s.X}
   (h : k ≫ fork.ι s = l ≫ fork.ι s) : k = l :=
@@ -1018,7 +1034,7 @@ def split_epi_of_idempotent_of_is_colimit_cofork {X : C} {f : X ⟶ X} (hf : f �
   id' :=
   begin
     letI := epi_of_is_colimit_cofork i,
-    rw [← cancel_epi_id c.π, ← category.assoc, cofork.is_colimit.π_comp_desc, 
+    rw [← cancel_epi_id c.π, ← category.assoc, cofork.is_colimit.π_comp_desc,
       cofork.π_of_π, ← c.condition],
     exact category.id_comp _,
   end }

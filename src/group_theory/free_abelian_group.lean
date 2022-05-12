@@ -353,7 +353,7 @@ lemma of_mul (x y : α) : of (x * y) = of x * of y := rfl
 instance : distrib (free_abelian_group α) :=
 { add := (+),
   left_distrib := λ x y z, (lift _).map_add _ _,
-  right_distrib := λ x y z, by simp only [(*), (lift _).map_add, ←pi.add_def, lift.add'],
+  right_distrib := λ x y z, by simp only [(*), map_add, ←pi.add_def, lift.add'],
   ..free_abelian_group.has_mul _ }
 
 instance : non_unital_non_assoc_ring (free_abelian_group α) :=
@@ -392,17 +392,17 @@ instance : ring (free_abelian_group α) :=
   mul_one := λ x, begin
     unfold has_mul.mul semigroup.mul has_one.one,
     rw lift.of,
-    refine free_abelian_group.induction_on x rfl _ _ _,
-    { intros L, erw [lift.of], congr' 1, exact mul_one L },
-    { intros L ih, rw [map_neg (lift _), ih] },
-    { intros x1 x2 ih1 ih2, rw [(lift _).map_add, ih1, ih2] }
+    refine free_abelian_group.induction_on x rfl (λ L, _) (λ L ih, _) (λ x1 x2 ih1 ih2, _),
+    { erw [lift.of], congr' 1, exact mul_one L },
+    { rw [map_neg, ih] },
+    { rw [map_add, ih1, ih2] }
   end,
   one_mul := λ x, begin
     unfold has_mul.mul semigroup.mul has_one.one,
     refine free_abelian_group.induction_on x rfl _ _ _,
     { intros L, rw [lift.of, lift.of], congr' 1, exact one_mul L },
-    { intros L ih, rw [(lift _).map_neg, ih] },
-    { intros x1 x2 ih1 ih2, rw [(lift _).map_add, ih1, ih2] }
+    { intros L ih, rw [map_neg, ih] },
+    { intros x1 x2 ih1 ih2, rw [map_add, ih1, ih2] }
   end,
   .. free_abelian_group.non_unital_ring _, ..free_abelian_group.has_one _ }
 
@@ -430,7 +430,7 @@ def lift_monoid : (α →* R) ≃ (free_abelian_group α →+* R) :=
         { simp_rw [neg_mul, (lift f).map_neg, neg_mul],
           exact congr_arg has_neg.neg ih },
         { intros x1 x2 ih1 ih2,
-          simp only [add_mul, (lift _).map_add, ih1, ih2] } },
+          simp only [add_mul, map_add, ih1, ih2] } },
       { intros L2 ih,
         rw [mul_neg, add_monoid_hom.map_neg, add_monoid_hom.map_neg,
           mul_neg, ih] },

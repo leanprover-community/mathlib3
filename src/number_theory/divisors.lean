@@ -74,14 +74,8 @@ end
 @[simp]
 lemma mem_proper_divisors {m : ℕ} : n ∈ proper_divisors m ↔ n ∣ m ∧ n < m :=
 begin
-  rw [proper_divisors, finset.mem_filter, finset.mem_Ico, and_comm],
-  apply and_congr_right,
-  rw and_iff_right_iff_imp,
-  intros hdvd hlt,
-  apply nat.pos_of_ne_zero _,
-  rintro rfl,
-  rw zero_dvd_iff.1 hdvd at hlt,
-  apply lt_irrefl 0 hlt,
+  rcases eq_or_ne m 0 with rfl | hm, { simp [proper_divisors] },
+  simp only [and_comm, ←filter_dvd_eq_proper_divisors hm, mem_filter, mem_range],
 end
 
 lemma divisors_eq_proper_divisors_insert_self_of_pos (h : 0 < n):

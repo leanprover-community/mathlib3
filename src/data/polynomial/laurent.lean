@@ -274,21 +274,23 @@ begin
       forall_false_left] }
 end
 
-@[simp]
-lemma _root_.polynomial.trunc_to_laurent (f : R[X]) : trunc f.to_laurent = f :=
+@[simp] lemma left_inverse_trunc_to_laurent :
+  function.left_inverse (trunc : R[T;T⁻¹] → R[X]) polynomial.to_laurent :=
 begin
-  refine f.induction_on' _ _,
+  refine λ f, f.induction_on' _ _,
   { exact λ f g hf hg, by simp only [hf, hg, _root_.map_add] },
   { exact λ n r, by simp only [polynomial.to_laurent_C_mul_T, trunc_C_mul_T, int.coe_nat_nonneg,
       int.to_nat_coe_nat, if_true] }
 end
 
+@[simp] lemma _root_.polynomial.trunc_to_laurent (f : R[X]) : trunc f.to_laurent = f :=
+left_inverse_trunc_to_laurent _
+
 lemma _root_.polynomial.to_laurent_injective :
   function.injective (polynomial.to_laurent : R[X] → R[T;T⁻¹]) :=
-function.has_left_inverse.injective ⟨trunc, polynomial.trunc_to_laurent⟩
+left_inverse_trunc_to_laurent.injective
 
-@[simp]
-lemma _root_.polynomial.to_laurent_inj (f g : R[X]) :
+@[simp] lemma _root_.polynomial.to_laurent_inj (f g : R[X]) :
   f.to_laurent = g.to_laurent ↔ f = g :=
 ⟨λ h, polynomial.to_laurent_injective h, congr_arg _⟩
 

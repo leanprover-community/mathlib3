@@ -587,7 +587,7 @@ begin
   have h : ⟪(c₂ -ᵥ c₁) + (c₂ -ᵥ c₁), p₂ -ᵥ p₁⟫ = 0,
   { conv_lhs { congr, congr, rw ←vsub_sub_vsub_cancel_right c₂ c₁ p₁,
                skip, rw ←vsub_sub_vsub_cancel_right c₂ c₁ p₂ },
-    rw [←add_sub_comm, inner_sub_left],
+    rw [sub_add_sub_comm, inner_sub_left],
     conv_lhs { congr, rw ←vsub_sub_vsub_cancel_right p₂ p₁ c₂,
                skip, rw ←vsub_sub_vsub_cancel_right p₂ p₁ c₁ },
     rw [dist_comm p₁, dist_comm p₂, dist_eq_norm_vsub V _ p₁,

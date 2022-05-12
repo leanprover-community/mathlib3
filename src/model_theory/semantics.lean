@@ -603,7 +603,11 @@ variables (L)
 /-- The complete theory of a structure `M` is the set of all sentences `M` satisfies. -/
 def complete_theory : L.Theory := { φ | M ⊨ φ }
 
-variables {L}
+variables {M L}
+
+@[simp] lemma mem_complete_theory {φ : sentence L} : φ ∈ L.complete_theory M ↔ M ⊨ φ := iff.rfl
+
+variable (M)
 
 /-- A model of a theory is a structure in which every sentence is realized as true. -/
 class Theory.model (T : L.Theory) : Prop :=
@@ -663,10 +667,10 @@ variables (M N)
 theorem realize_iff_of_model_complete_theory [N ⊨ L.complete_theory M] (φ : L.sentence) :
   N ⊨ φ ↔ M ⊨ φ :=
 begin
-  refine ⟨λ h, _, Theory.realize_sentence_of_mem (L.complete_theory M)⟩,
+  refine ⟨λ h, _, (L.complete_theory M).realize_sentence_of_mem⟩,
   contrapose! h,
   rw [← sentence.realize_not] at *,
-  exact Theory.realize_sentence_of_mem (L.complete_theory M) h,
+  exact (L.complete_theory M).realize_sentence_of_mem (mem_complete_theory.2 h)
 end
 
 variables {M N}
@@ -816,7 +820,7 @@ L.model_nonempty_theory_iff.2 h
 lemma model_distinct_constants_theory {M : Type w} [L[[α]].Structure M] (s : set α) :
   M ⊨ L.distinct_constants_theory s ↔ set.inj_on (λ (i : α), (L.con i : M)) s :=
 begin
-  simp only [distinct_constants_theory, set.compl_eq_compl, Theory.model_iff, set.mem_image,
+  simp only [distinct_constants_theory, Theory.model_iff, set.mem_image,
     set.mem_inter_eq, set.mem_prod, set.mem_compl_eq, prod.exists, forall_exists_index, and_imp],
   refine ⟨λ h a as b bs ab, _, _⟩,
   { contrapose! ab,

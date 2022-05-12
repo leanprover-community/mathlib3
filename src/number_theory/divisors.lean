@@ -84,21 +84,12 @@ by rw [divisors, proper_divisors, Ico_succ_right_eq_insert_Ico h, finset.filter_
   if_pos (dvd_refl n)]
 
 @[simp]
-lemma mem_divisors {m : ℕ} :
-  n ∈ divisors m ↔ (n ∣ m ∧ m ≠ 0) :=
+lemma mem_divisors {m : ℕ} : n ∈ divisors m ↔ (n ∣ m ∧ m ≠ 0) :=
 begin
-  cases m,
-  { simp [divisors] },
-  simp only [divisors, finset.mem_Ico, ne.def, finset.mem_filter, succ_ne_zero, and_true,
-             and_iff_right_iff_imp, not_false_iff],
-  intro hdvd,
-  split,
-  { apply nat.pos_of_ne_zero,
-    rintro rfl,
-    apply nat.succ_ne_zero,
-    rwa zero_dvd_iff at hdvd },
-  { rw nat.lt_succ_iff,
-    apply nat.le_of_dvd (nat.succ_pos m) hdvd }
+  rcases eq_or_ne m 0 with rfl | hm, { simp [divisors] },
+  simp only [hm, ne.def, not_false_iff, and_true, ←filter_dvd_eq_divisors hm, mem_filter,
+    mem_range, and_iff_right_iff_imp, lt_succ_iff],
+  exact le_of_dvd hm.bot_lt,
 end
 
 lemma mem_divisors_self (n : ℕ) (h : n ≠ 0) : n ∈ n.divisors := mem_divisors.2 ⟨dvd_rfl, h⟩

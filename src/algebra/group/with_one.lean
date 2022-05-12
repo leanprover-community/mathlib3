@@ -45,10 +45,11 @@ instance : has_one (with_one α) := ⟨none⟩
 @[to_additive]
 instance [has_mul α] : has_mul (with_one α) := ⟨option.lift_or_get (*)⟩
 
-/-- When `α` has multiplicative inverses, `with_one α` also has multiplicative inverses, by defining
-`1⁻¹ = 1`. -/
-@[to_additive "When `α` has a negation, `with_one α` also has a negation, by defining `-0 = 0`."]
-instance [has_inv α] : has_inv (with_one α) := ⟨λ a, option.map has_inv.inv a⟩
+@[to_additive] instance [has_inv α] : has_inv (with_one α) := ⟨λ a, option.map has_inv.inv a⟩
+
+@[to_additive] instance [has_involutive_inv α] : has_involutive_inv (with_one α) :=
+{ inv_inv := λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
+  ..with_one.has_inv }
 
 @[to_additive]
 instance : inhabited (with_one α) := ⟨1⟩
@@ -296,14 +297,13 @@ instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
 
 /-- When `α` has multiplicative inverses, `with_zero α` also has multiplicative inverses, by
 defining `0⁻¹ = 0`. -/
-@[to_additive] instance [has_inv α] : has_inv (with_zero α) := ⟨λ a, option.map has_inv.inv a⟩
+instance [has_inv α] : has_inv (with_zero α) := ⟨λ a, option.map has_inv.inv a⟩
 
-@[simp, norm_cast, to_additive] lemma coe_inv [has_inv α] (a : α) :
-  ((a⁻¹ : α) : with_zero α) = a⁻¹ := rfl
+@[simp, norm_cast] lemma coe_inv [has_inv α] (a : α) : ((a⁻¹ : α) : with_zero α) = a⁻¹ := rfl
 
-@[simp, to_additive] lemma inv_zero [has_inv α] : (0 : with_zero α)⁻¹ = 0 := rfl
+@[simp] lemma inv_zero [has_inv α] : (0 : with_zero α)⁻¹ = 0 := rfl
 
-@[to_additive] instance [has_involutive_inv α] : has_involutive_inv (with_zero α) :=
+instance [has_involutive_inv α] : has_involutive_inv (with_zero α) :=
 { inv_inv := λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
   ..with_zero.has_inv }
 

@@ -14,6 +14,73 @@ open finset
 
 section semiring
 
+variables {R : Type*} [semiring R] {p : R[X]}
+
+lemma card_support_eq_one : p.support.card = 1 ↔ ∃ (k : ℕ) (x : R) (hx : x ≠ 0), p = C x * X ^ k :=
+begin
+  split,
+  { intro h,
+    refine ⟨p.nat_degree, p.leading_coeff, _, _⟩,
+    { rw [ne, leading_coeff_eq_zero, ←card_support_eq_zero, h],
+      exact one_ne_zero },
+    { refine p.erase_lead_add_C_mul_X_pow.symm.trans _,
+      sorry } },
+  { rintros ⟨k, x, hx, rfl⟩,
+    rw [←monomial_eq_C_mul_X, support_monomial k x hx, card_singleton] },
+end
+
+lemma card_support_eq_two : p.support.card = 2 ↔ ∃ (k m : ℕ) (hkm : k < m)
+  (x y : R) (hx : x ≠ 0) (hy : y ≠ 0), p = C x * X ^ k + C y * X ^ m :=
+begin
+  sorry
+end
+
+-- maybe make separate lemma for explict support and card support of trinomial
+lemma card_support_eq_three : p.support.card = 3 ↔ ∃ (k m n : ℕ) (hkm : k < m) (hmn : m < n)
+  (x y z : R) (hx : x ≠ 0) (hy : y ≠ 0) (hz : z ≠ 0), p = C x * X ^ k + C y * X ^ m + C z * X ^ n :=
+begin
+  split,
+  { intro h,
+    have key : p.erase_lead.support.card = 2,
+    { sorry },
+    obtain ⟨k, m, hkm, x, y, hx, hy, hp⟩ := card_support_eq_two.mp key,
+    refine ⟨k, m, p.nat_degree, hkm, _, x, y, p.leading_coeff, hx, hy, _, _⟩,
+    { sorry },
+    { sorry },
+    { rw [←hp, erase_lead_add_C_mul_X_pow] } },
+  { rintros ⟨k, m, n, hkm, hmn, x, y, z, hx, hy, hz, rfl⟩,
+    sorry },
+end
+
+end semiring
+
+
+
+/-
+OLD STUFF
+
+OLD STUFF
+
+OLD STUFF
+
+OLD STUFF
+
+OLD STUFF
+
+OLD STUFF
+
+OLD STUFF
+-/
+
+
+
+
+
+
+
+
+section semiring
+
 variables {R : Type*} [semiring R] (p : R[X]) {k m n : ℕ} {u v w : R}
 
 lemma trinomial_support_le : (C u * X ^ k + C v * X ^ m + C w * X ^ n).support ⊆ {k, m, n} :=
@@ -249,27 +316,6 @@ begin
       λ k hk, is_unit_of_pow_eq_one (p.coeff k) 2 (key1 k hk) zero_lt_two⟩,
     rw [sum_def, sum_congr rfl key1, sum_const, nat.smul_one_eq_coe] at hp,
     exact nat.cast_injective hp },
-end
-
-lemma is_unit_trinomial.irreducible1_aux1 {k m n : ℕ} {u v w x y : ℤ} (hkm : k < m) (hmn : m < n)
-  (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n)
-  (hq : q = C x * X ^ k + C y * X ^ m + C w * X ^ n)
-  (h : p * p.mirror = q * q.mirror) :
-  q = p ∨ q = -p ∨ q = p.mirror ∨ q = -p.mirror :=
-begin
-  -- first deduce u = x (leading coeff)
-  sorry
-end
-
-lemma is_unit_trinomial.irreducible1_aux {k m n : ℕ} {u v w x y z : ℤ} (hkm : k < m) (hmn : m < n)
-  (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n)
-  (hq : q = C x * X ^ k + C y * X ^ m + C z * X ^ n)
-  (h : p * p.mirror = q * q.mirror) :
-  q = p ∨ q = -p ∨ q = p.mirror ∨ q = -p.mirror :=
-begin
-  -- WLOG w = z (after negating)
-  -- Another intriguing option would be to make the middle coefficients match
-  sorry
 end
 
 lemma is_unit_trinomial.irreducible1_aux2 {k m m' n : ℕ} {u v w x z : ℤ}

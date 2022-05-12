@@ -8,7 +8,7 @@ import analysis.normed.normed_field
 /-!
 # Seminorms and norms on (semi)rings
 
-In this file we define classes `is_seminorm` and `is_norm` which indicate that a given function
+In this file we define structures `is_seminorm` and `is_norm` which indicate that a given function
 `f : R → ℝ≥0` is a (semi)norm on the (semi)ring `R`. These clases are useful when one needs to
 consider multiple (semi)norms on a given ring.
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import algebra.big_operators.ring
-import data.real.basic
+import data.real.pointwise
 import algebra.indicator_function
 import algebra.algebra.basic
 import algebra.order.module
@@ -767,28 +767,45 @@ variables {ι : Sort*} {f : ι → ℝ≥0}
 lemma le_to_nnreal_of_coe_le {x : ℝ≥0} {y : ℝ} (h : ↑x ≤ y) : x ≤ y.to_nnreal :=
 (le_to_nnreal_iff_coe_le $ x.2.trans h).2 h
 
-lemma supr_of_not_bdd_above (hf : ¬ bdd_above (range f)) : (⨆ i, f i) = 0 :=
+lemma Sup_of_not_bdd_above {s : set ℝ≥0} (hs : ¬bdd_above s) : has_Sup.Sup s = 0 :=
 begin
-  ext,
-  rw coe_supr,
-  refine supr_of_not_bdd_above _,
-  rintro ⟨r, hr⟩,
-  exact hf ⟨r.to_nnreal, forall_range_iff.2 $ λ i, le_to_nnreal_of_coe_le $ hr $ mem_range_self _⟩,
+  rw [← bdd_above_coe] at hs,
+  rw [← nnreal.coe_eq, coe_Sup],
+  exact Sup_of_not_bdd_above hs,
 end
 
--- generalize `bdd_above_smul_iff_of_pos` to linear semifields
+lemma supr_of_not_bdd_above (hf : ¬ bdd_above (range f)) : (⨆ i, f i) = 0 :=
+Sup_of_not_bdd_above hf
+
+lemma infi_empty [is_empty ι] (f : ι → ℝ≥0) : (⨅ i, f i) = 0 :=
+by { rw [← nnreal.coe_eq, coe_infi], exact real.cinfi_empty _, }
+
+@[simp] lemma infi_const_zero {α : Sort*} : (⨅ i : α, (0 : ℝ≥0)) = 0 :=
+by { rw [← nnreal.coe_eq, coe_infi], exact real.cinfi_const_zero, }
+
+lemma infi_mul_of_ne (f : ι → ℝ≥0) {a : ℝ≥0} (h0 : a ≠ 0) :
+  infi f * a = ⨅ i, f i * a :=
+begin
+  rw [← nnreal.coe_eq, nnreal.coe_mul, coe_infi, coe_infi],
+  exact real.infi_mul_of_nonneg (nnreal.coe_nonneg _) _,
+end
+
+lemma infi_mul (f : ι → ℝ≥0) (a : ℝ≥0)  :
+  infi f * a = ⨅ i, f i * a :=
+begin
+  by_cases h0 : a = 0,
+  { simp only [h0, mul_zero], exact infi_const_zero.symm },
+  { exact infi_mul_of_ne f h0 }
+end
+
+lemma mul_infi (f : ι → ℝ≥0) (a : ℝ≥0) :
+  a * infi f = ⨅ i, a * f i :=
+by simpa only [mul_comm] using infi_mul f a
 
 lemma mul_supr (f : ι → ℝ≥0) (a : ℝ≥0) : a * (⨆ i, f i) = ⨆ i, a * f i :=
 begin
-  casesI is_empty_or_nonempty ι,
-  { simp only [csupr_of_empty, bot_eq_zero, mul_zero] },
-  by_cases ha : a = 0,
-  { simp_rw [ha, zero_mul, csupr_const] },
-  by_cases hf : bdd_above (set.range f),
-  { exact order_iso.map_csupr (order_iso.mul_left₀' _ (zero_lt_iff.mpr ha)) hf },
-  { rw [supr_of_not_bdd_above hf, mul_zero, supr_of_not_bdd_above],
-    simp_rw [←smul_eq_mul, ←smul_set_range, bdd_above_smul_iff_of_pos (pos_iff_ne_zero.2 ha)],
-    exact hf }
+  rw [← nnreal.coe_eq, nnreal.coe_mul, nnreal.coe_supr, nnreal.coe_supr],
+  exact real.mul_supr_of_nonneg (nnreal.coe_nonneg _) _,
 end
 
 lemma supr_mul (f : ι → ℝ≥0) (a : ℝ≥0) : (⨆ i, f i) * a = ⨆ i, f i * a :=
@@ -797,19 +814,12 @@ by { rw [mul_comm, mul_supr], simp_rw [mul_comm] }
 lemma supr_div (f : ι → ℝ≥0) (a : ℝ≥0) : (⨆ i, f i) / a = ⨆ i, f i / a :=
 by simp only [div_eq_mul_inv, supr_mul]
 
-lemma div_infi (f : ι → ℝ≥0) (a : ℝ≥0) : a / (⨅ i, f i) = ⨆ i, a / f i := sorry
-
 variable [nonempty ι]
 
 lemma le_mul_infi {a : ℝ≥0} {g : ℝ≥0} {h : ι → ℝ≥0} (H : ∀ j, a ≤ g * h j) : a ≤ g * infi h :=
 begin
-  by_cases hg : g = 0,
-  { simp_rw [hg, zero_mul] at H ⊢,
-    exact H (nonempty.some _inst_1) },
-  { rw [mul_comm, ← mul_inv_le_iff₀ hg],
-    apply le_cinfi,
-    simp_rw [mul_inv_le_iff₀ hg, mul_comm],
-    exact H }
+  rw [mul_infi],
+  exact le_cinfi H,
 end
 
 lemma mul_supr_le {a : ℝ≥0} {g : ℝ≥0} {h : ι → ℝ≥0} (H : ∀ j, g * h j ≤ a) : g * supr h ≤ a :=

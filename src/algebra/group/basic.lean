@@ -191,6 +191,9 @@ eq_comm.trans $ eq_inv_iff_eq_inv.trans eq_comm
 
 variables (G)
 
+@[simp, to_additive] lemma inv_comp_inv : has_inv.inv ∘ has_inv.inv = @id G :=
+inv_involutive.comp_self
+
 @[to_additive] lemma left_inverse_inv : left_inverse (λ a : G, a⁻¹) (λ a, a⁻¹) := inv_inv
 @[to_additive] lemma right_inverse_inv : left_inverse (λ a : G, a⁻¹) (λ a, a⁻¹) := inv_inv
 

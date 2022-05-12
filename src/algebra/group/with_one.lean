@@ -45,8 +45,11 @@ instance : has_one (with_one α) := ⟨none⟩
 @[to_additive]
 instance [has_mul α] : has_mul (with_one α) := ⟨option.lift_or_get (*)⟩
 
-@[to_additive]
-instance [has_inv α] : has_inv (with_one α) := ⟨λ a, option.map has_inv.inv a⟩
+@[to_additive] instance [has_inv α] : has_inv (with_one α) := ⟨λ a, option.map has_inv.inv a⟩
+
+@[to_additive] instance [has_involutive_inv α] : has_involutive_inv (with_one α) :=
+{ inv_inv := λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
+  ..with_one.has_inv }
 
 @[to_additive]
 instance : inhabited (with_one α) := ⟨1⟩
@@ -296,11 +299,13 @@ instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
   on `with_zero α` sending `0` to `0`-/
 instance [has_inv α] : has_inv (with_zero α) := ⟨λ a, option.map has_inv.inv a⟩
 
-@[simp, norm_cast] lemma coe_inv [has_inv α] (a : α) :
-  ((a⁻¹ : α) : with_zero α) = a⁻¹ := rfl
+@[simp, norm_cast] lemma coe_inv [has_inv α] (a : α) : ((a⁻¹ : α) : with_zero α) = a⁻¹ := rfl
 
-@[simp] lemma inv_zero [has_inv α] :
-  (0 : with_zero α)⁻¹ = 0 := rfl
+@[simp] lemma inv_zero [has_inv α] : (0 : with_zero α)⁻¹ = 0 := rfl
+
+instance [has_involutive_inv α] : has_involutive_inv (with_zero α) :=
+{ inv_inv := λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
+  ..with_zero.has_inv }
 
 instance [has_involutive_inv α] : has_involutive_inv (with_zero α) :=
 { inv_inv := λ a, match a with
@@ -362,6 +367,9 @@ instance [division_monoid α] : division_monoid (with_zero α) :=
     | some a, some b := λ h, congr_arg some $ inv_eq_of_mul_eq_one_right $ option.some_injective _ h
     end,
   .. with_zero.div_inv_monoid, .. with_zero.has_involutive_inv }
+
+instance [division_comm_monoid α] : division_comm_monoid (with_zero α) :=
+{ .. with_zero.division_monoid, .. with_zero.comm_semigroup }
 
 section group
 variables [group α]

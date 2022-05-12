@@ -302,12 +302,12 @@ begin
   exact univ_subset_iff.1 hs,
 end
 
+--TODO: `to_additive` trips up on the `1 : ℕ` used in the pattern-matching.
 lemma nsmul_top {α : Type*} [add_monoid α] : ∀ {n : ℕ}, n ≠ 0 → n • (⊤ : filter α) = ⊤
 | 0 := λ h, (h rfl).elim
 | 1 := λ _, one_nsmul _
 | (n + 2) := λ _, by { rw [succ_nsmul, nsmul_top n.succ_ne_zero, top_add_top] }
 
---TODO: Why is `to_additive` failing here?
 @[to_additive nsmul_top] lemma top_pow : ∀ {n : ℕ}, n ≠ 0 → (⊤ : filter α) ^ n = ⊤
 | 0 := λ h, (h rfl).elim
 | 1 := λ _, pow_one _

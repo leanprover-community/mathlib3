@@ -1363,6 +1363,19 @@ begin
   simpa [mul_div_assoc] using t
 end
 
+lemma abs_exp_sub_one_le {x : ℝ} (hx : |x| ≤ 1) : |exp x - 1| ≤ 2 * |x| :=
+begin
+  have : complex.abs x ≤ 1 := by exact_mod_cast hx,
+  exact_mod_cast complex.abs_exp_sub_one_le this,
+end
+
+lemma abs_exp_sub_one_sub_id_le {x : ℝ} (hx : |x| ≤ 1) : |exp x - 1 - x| ≤ x ^ 2 :=
+begin
+  rw ←_root_.sq_abs,
+  have : complex.abs x ≤ 1 := by exact_mod_cast hx,
+  exact_mod_cast complex.abs_exp_sub_one_sub_id_le this,
+end
+
 /-- A finite initial segment of the exponential series, followed by an arbitrary tail.
 For fixed `n` this is just a linear map wrt `r`, and each map is a simple linear function
 of the previous (see `exp_near_succ`), with `exp_near n x r ⟶ exp x` as `n ⟶ ∞`,
@@ -1603,7 +1616,7 @@ by rw [← of_real_exp]; exact abs_of_nonneg (le_of_lt (real.exp_pos _))
 @[simp] lemma abs_exp_of_real_mul_I (x : ℝ) : abs (exp (x * I)) = 1 :=
 by rw [exp_mul_I, abs_cos_add_sin_mul_I]
 
-lemma abs_exp (z : ℂ) : abs (exp z) = real.exp (z.re) :=
+lemma abs_exp (z : ℂ) : abs (exp z) = real.exp z.re :=
 by rw [exp_eq_exp_re_mul_sin_add_cos, abs_mul, abs_exp_of_real, abs_cos_add_sin_mul_I, mul_one]
 
 lemma abs_exp_eq_iff_re_eq {x y : ℂ} : abs (exp x) = abs (exp y) ↔ x.re = y.re :=

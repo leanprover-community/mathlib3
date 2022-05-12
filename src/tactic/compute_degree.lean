@@ -173,9 +173,9 @@ as sums of their "guessed degrees", via `extract_deg_single_term`.  When applied
 that is a summand in a polynomial, it should correctly guess its `nat_degree`. -/
 meta def extract_deg_single_summand : expr → tactic expr
 | `(has_mul.mul %%a %%b) := do
-                              ga ← extract_deg_single_summand a,
-                              gb ← extract_deg_single_summand b,
-                              mk_app `has_add.add [ga, gb] >>= return
+  ga ← extract_deg_single_summand a,
+  gb ← extract_deg_single_summand b,
+  mk_app `has_add.add [ga, gb] >>= return
 | e := extract_deg_single_term e >>= return
 
 /-- `extract_top_degree_term_and_deg e` takes an expression `e` looks for summands in `e`
@@ -207,22 +207,24 @@ then the tactic suggests the degree that it computed.
 
 The tactic also reports when it is used with non-closed natural numbers as exponents. -/
 meta def compute_degree_le : tactic unit :=
+do repeat $ refine ``((polynomial.nat_degree_add_le_iff_left _ _ _).mpr _),
+  `[repeat { rw polynomial.monomial_mul_monomial }],
+  try $ any_goals' $ refine ``((polynomial.nat_degree_monomial_le _).trans _),
+  repeat $ refine ``((polynomial.nat_degree_C_mul_le _ _).trans _),
+  repeat $ refine ``((polynomial.nat_degree_X_pow_le _).trans _),
+  repeat $ refine ``(polynomial.nat_degree_X_le.trans _),
+  `[try { any_goals { norm_num } }] <|>
 do `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
     fail "Goal is not of the form `f.nat_degree ≤ d\n\n",
   (lead,m') ← extract_top_degree_term_and_deg tl,
-  td ← eval_expr ℕ tr,
+  td ← eval_expr ℕ tr | fail
+    "currently, there is no support for some of the terms appearing in the polynomial",
+  trace td,
   if td < m' then
     do pptl ← pp tl, ppm' ← pp m',
     trace sformat!"should the degree be '{m'}'?\n\n",
     trace sformat!"Try this: {pptl}.nat_degree ≤ {ppm'}", failed
-  else
-    do repeat $ refine ``((polynomial.nat_degree_add_le_iff_left _ _ _).mpr _),
-      `[repeat { rw polynomial.monomial_mul_monomial }],
-      try $ any_goals' $ refine ``((polynomial.nat_degree_monomial_le _).trans _),
-      repeat $ refine ``((polynomial.nat_degree_C_mul_le _ _).trans _),
-      repeat $ refine ``((polynomial.nat_degree_X_pow_le _).trans _),
-      repeat $ refine ``(polynomial.nat_degree_X_le.trans _),
-      `[try { any_goals { norm_num } }]
+  else fail "sorry, the tactic failed, but I do not know why."
 
 /--  These are the cases in which an easy lemma computes the degree. -/
 meta def single_term_suggestions : tactic unit :=
@@ -248,33 +250,39 @@ then the tactic suggests the degree that it computed.
 
 The tactic also reports when it is used with non-closed natural numbers as exponents. -/
 meta def compute_degree : tactic unit :=
-(do `(polynomial.nat_degree %%tl = %%tr) ← target,
-   (lead,m') ← extract_top_degree_term_and_deg tl,
+do t ← target,
+  match t with
+  | `(polynomial.nat_degree %%tl = %%tr) := do
+    (lead,m') ← extract_top_degree_term_and_deg tl <|> fail
+      "currently, there is no support for some of the terms appearing in the polynomial",
     td ← eval_expr ℕ tr,
-  if m' ≠ td then
-    do pptl ← pp tl, ppm' ← pp m',
-      trace sformat!"should the degree be '{m'}'?\n\n",
-      trace sformat!"Try this: {pptl}.nat_degree = {ppm'}", failed
-  else
-    move_add_with_errors [(ff, pexpr.of_expr lead)] none,
-    refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _),
-    single_term_resolve lead,
-    compute_degree_le ) <|>
-(do `(polynomial.degree %%tl = %%tr) ← target,
+    if m' ≠ td then
+      do pptl ← pp tl, ppm' ← pp m',
+        trace sformat!"should the nat_degree be '{m'}'?\n\n",
+        trace sformat!"Try this: {pptl}.nat_degree = {ppm'}", failed
+    else
+      move_add_with_errors [(ff, pexpr.of_expr lead)] none,
+      refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _),
+      single_term_resolve lead,
+      compute_degree_le
+  | `(polynomial.degree %%tl = %%tr) := do
     refine ``((polynomial.degree_eq_iff_nat_degree_eq_of_pos _).mpr _),
     rotate,
     `(_ = %%tr1) ← target,
     td ← eval_expr ℕ tr1,
-   (lead,m') ← extract_top_degree_term_and_deg tl,
-  if m' ≠ td then
-    do pptl ← pp tl, ppm' ← pp m',
-      trace sformat!"should the degree be '{m'}'?\n\n",
-      trace sformat!"Try this: {pptl}.nat_degree = {ppm'}", failed
-  else
-    move_add_with_errors [(ff, pexpr.of_expr lead)] none,
-    refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _),
-    single_term_resolve lead,
-    compute_degree_le )
+    (lead,m') ← extract_top_degree_term_and_deg tl <|> fail
+      "currently, there is no support for some of the terms appearing in the polynomial",
+    if m' ≠ td then
+      do pptl ← pp tl, ppm' ← pp m',
+        trace sformat!"should the degree be '{m'}'?\n\n",
+        trace sformat!"Try this: {pptl}.degree = {ppm'}", failed
+    else
+      move_add_with_errors [(ff, pexpr.of_expr lead)] none,
+      refine ``(polynomial.nat_degree_add_left_succ _ %%lead _ _ _),
+      single_term_resolve lead,
+      compute_degree_le
+  |_ := fail "Goals is not of the form\n`f.nat_degree = d` or `f.degree = d`"
+  end
 
 add_tactic_doc
 { name := "compute_degree_le",

@@ -17,6 +17,15 @@ by compute_degree
 example {F} [field F] : nat_degree (X ^ 4 + C 1 : F[X]) = 4 :=
 by compute_degree
 
+example {F} [ring F] [nontrivial F] : nat_degree (X ^ 4 + bit1 1 : F[X]) ≤ 4 :=
+by compute_degree_le
+
+example {F} [ring F] : nat_degree (X ^ 4 + bit1 1 : F[X]) ≤ 4 :=
+by compute_degree_le
+
+example {F} [ring F] [nontrivial F] : degree (X ^ 4 + C (- 1) : F[X]) = 4 :=
+by compute_degree
+
 example {F} [field F] : nat_degree (C 1 * X ^ 4 + X + C 1 : F[X]) = 4 :=
 by compute_degree
 

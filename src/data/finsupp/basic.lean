@@ -1782,6 +1782,7 @@ section comap_domain
 /-- Given `f : α → β`, `l : β →₀ M` and a proof `hf` that `f` is injective on
 the preimage of `l.support`, `comap_domain f l hf` is the finitely supported function
 from `α` to `M` given by composing `l` with `f`. -/
+@[simps support]
 def comap_domain [has_zero M] (f : α → β) (l : β →₀ M) (hf : set.inj_on f (f ⁻¹' ↑l.support)) :
   α →₀ M :=
 { support := l.support.preimage f hf,
@@ -1834,16 +1835,12 @@ by { ext, refl }
   (hif : set.inj_on f (f ⁻¹' (single (f a) m).support)) :
   comap_domain f (finsupp.single (f a) m) hif = finsupp.single a m :=
 begin
-  obtain rfl | hm := eq_or_ne m 0,
-  { simp_rw [single_zero],
-    rw comap_domain_zero },
-  { simp_rw [support_single_ne_zero hm, coe_singleton, set.preimage, set.mem_singleton_iff] at hif,
-    ext x,
-    obtain rfl | hx := eq_or_ne a x,
-    { rw [comap_domain_apply, single_eq_same, single_eq_same] },
-    { rw [comap_domain_apply, single_eq_of_ne (mt _ hx), single_eq_of_ne hx],
-      intro ax,
-      refine hif rfl ax.symm ax } },
+  rcases eq_or_ne m 0 with rfl | hm,
+  { simp only [single_zero, comap_domain_zero] },
+  { rw [eq_single_iff, comap_domain_apply, comap_domain_support, ← finset.coe_subset, coe_preimage,
+      support_single_ne_zero hm, coe_singleton, coe_singleton, single_eq_same],
+    rw [support_single_ne_zero hm, coe_singleton] at hif,
+    exact ⟨λ x hx, hif hx rfl hx, rfl⟩ }
 end
 
 end has_zero

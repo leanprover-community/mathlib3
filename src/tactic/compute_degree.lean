@@ -70,11 +70,11 @@ namespace polynomial
 open_locale polynomial
 variables {R : Type*} [semiring R]
 
-/--  PR #14095. -/
+/-  PR #14095. -/
 lemma nat_degree_monomial_eq (i : ℕ) {r : R} (r0 : r ≠ 0) : (monomial i r).nat_degree = i :=
 by classical; exact eq.trans (nat_degree_monomial _ _) (if_neg r0)
 
-/--  Useful for hiding the `classical` in the proof. -/
+/-  PR #14098. -/
 lemma nat_degree_monomial_le (a : R) {n : ℕ} :
   (monomial n a).nat_degree ≤ n :=
 begin
@@ -83,7 +83,7 @@ begin
   split_ifs; simp,
 end
 
-/--  Useful for hiding the `nontriviality` in the proof. -/
+/-  PR #14098. -/
 lemma nat_degree_X_pow_le (n : ℕ) :
   (X ^ n : R[X]).nat_degree ≤ n :=
 begin
@@ -91,14 +91,20 @@ begin
   rwa polynomial.nat_degree_X_pow,
 end
 
-lemma nat_degree_add_le_iff_left {m n : ℕ} (mn : m ≤ n) (f g : R[X]) (gm : g.nat_degree ≤ m) :
+lemma nat_degree_add_le_iff_left {n : ℕ} (f g : R[X]) (gn : g.nat_degree ≤ n) :
   (f + g).nat_degree ≤ n ↔ f.nat_degree ≤ n :=
 begin
-  by_cases fm : f.nat_degree ≤ m,
-  { refine ⟨λ h, fm.trans mn, λ fn, _⟩,
-    refine (nat_degree_add_le _ _).trans (max_le fn (gm.trans mn)) },
-  { rw nat_degree_add_eq_left_of_nat_degree_lt,
-    exact gm.trans_lt (not_le.mp fm) }
+  refine ⟨λ h, _, λ h, nat_degree_add_le_of_degree_le h gn⟩,
+  refine nat_degree_le_iff_coeff_eq_zero.mpr (λ m hm, _),
+  convert nat_degree_le_iff_coeff_eq_zero.mp h m hm using 1,
+  rw [coeff_add, nat_degree_le_iff_coeff_eq_zero.mp gn _ hm, add_zero],
+end
+
+lemma nat_degree_add_le_iff_right {n : ℕ} (f g : R[X]) (fn : f.nat_degree ≤ n) :
+  (f + g).nat_degree ≤ n ↔ g.nat_degree ≤ n :=
+begin
+  rw add_comm,
+  exact nat_degree_add_le_iff_left _ _ fn,
 end
 
 /-- Useful to expose easy hypotheses:
@@ -220,7 +226,7 @@ do `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
     trace sformat!"should the degree be '{m'}'?\n\n",
     trace sformat!"Try this: {pptl}.nat_degree ≤ {ppm'}", failed
   else
-    do repeat $ refine ``((polynomial.nat_degree_add_le_iff_left rfl.le _ _ _).mpr _),
+    do repeat $ refine ``((polynomial.nat_degree_add_le_iff_left _ _ _).mpr _),
       `[repeat { rw polynomial.monomial_mul_monomial }],
       try $ any_goals' $ refine ``((polynomial.nat_degree_monomial_le _).trans _),
       repeat $ refine ``((polynomial.nat_degree_C_mul_le _ _).trans _),

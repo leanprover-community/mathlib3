@@ -967,7 +967,7 @@ lemma map_to_delete_edges_eq (s : set (sym2 V)) {v w : V} {p : G.walk v w} (hp) 
   walk.map (hom.map_spanning_subgraphs (G.delete_edges_le s)) (p.to_delete_edges s hp) = p :=
 by induction p; simp [*]
 
-lemma to_delete_edges_is_path_of_is_path (s : set (sym2 V))
+lemma is_path.to_delete_edges (s : set (sym2 V))
   {v w : V} {p : G.walk v w} (h : p.is_path) (hp) :
   (p.to_delete_edges s hp).is_path :=
 by { rw ← map_to_delete_edges_eq s hp at h, exact h.map _ }

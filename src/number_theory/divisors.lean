@@ -66,10 +66,7 @@ begin
 end
 
 lemma proper_divisors.not_self_mem : ¬ n ∈ proper_divisors n :=
-begin
-  rw proper_divisors,
-  simp,
-end
+by simp [proper_divisors]
 
 @[simp]
 lemma mem_proper_divisors {m : ℕ} : n ∈ proper_divisors m ↔ n ∣ m ∧ n < m :=

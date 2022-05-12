@@ -90,7 +90,7 @@ instance : group (quaternion_group n) :=
       rintros (i | i) (j | j) (k | k);
       simp only [mul];
       abel,
-      simp only [neg_mul_eq_neg_mul_symm, one_mul, int.cast_one, zsmul_eq_mul, int.cast_neg,
+      simp only [neg_mul, one_mul, int.cast_one, zsmul_eq_mul, int.cast_neg,
                  add_right_inj],
       calc -(n : zmod (2 * n)) = 0 - n : by rw zero_sub
         ... = 2 * n - n : by { norm_cast, simp, }
@@ -183,11 +183,9 @@ end
 
 @[simp] lemma a_one_pow_n : (a 1 : quaternion_group n)^(2 * n) = 1 :=
 begin
-  cases n,
-  { simp_rw [mul_zero, pow_zero] },
-  { rw [a_one_pow, one_def],
-    congr' 1,
-    exact zmod.nat_cast_self _ }
+  rw [a_one_pow, one_def],
+  congr' 1,
+  exact zmod.nat_cast_self _
 end
 
 @[simp] lemma xa_sq (i : zmod (2 * n)) : xa i ^ 2 = a n :=

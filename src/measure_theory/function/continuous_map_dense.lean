@@ -5,8 +5,9 @@ Authors: Heather Macbeth
 -/
 
 import measure_theory.measure.regular
-import measure_theory.function.simple_func_dense
+import measure_theory.function.simple_func_dense_lp
 import topology.urysohns_lemma
+import measure_theory.function.l1_space
 
 /-!
 # Approximation in Lᵖ by continuous functions
@@ -45,8 +46,8 @@ open_locale ennreal nnreal topological_space bounded_continuous_function
 open measure_theory topological_space continuous_map
 
 variables {α : Type*} [measurable_space α] [topological_space α] [normal_space α] [borel_space α]
-variables (E : Type*) [measurable_space E] [normed_group E] [borel_space E]
-  [second_countable_topology E]
+variables (E : Type*) [normed_group E]
+  [second_countable_topology_either α E]
 variables {p : ℝ≥0∞} [_i : fact (1 ≤ p)] (hp : p ≠ ∞) (μ : measure α)
 
 include _i hp
@@ -110,9 +111,7 @@ begin
       from μu.trans (ennreal.add_lt_add_right ennreal.coe_ne_top μF),
     convert this.le using 1,
     { rw [add_comm, ← measure_union, set.diff_union_of_subset (Fs.trans su)],
-      { exact disjoint_sdiff_self_left },
-      { exact (u_open.sdiff F_closed).measurable_set },
-      { exact F_closed.measurable_set } },
+      exacts [disjoint_sdiff_self_left, F_closed.measurable_set] },
     have : (2:ℝ≥0∞) * η = η + η := by simpa using add_mul (1:ℝ≥0∞) 1 η,
     rw this,
     abel },
@@ -147,7 +146,8 @@ begin
   have gc_cont : continuous (λ x, g x • c) := g.continuous.smul continuous_const,
   have gc_mem_ℒp : mem_ℒp (λ x, g x • c) p μ,
   { have : mem_ℒp ((λ x, g x • c) - s.indicator (λ x, c)) p μ :=
-    ⟨(gc_cont.ae_measurable μ).sub (measurable_const.indicator hs).ae_measurable,
+    ⟨gc_cont.ae_strongly_measurable.sub (strongly_measurable_const.indicator hs)
+        .ae_strongly_measurable,
       gc_snorm.trans_lt ennreal.coe_lt_top⟩,
     simpa using this.add (mem_ℒp_indicator_const p hs c (or.inr hsμ.ne)) },
   refine ⟨gc_mem_ℒp.to_Lp _, _, _⟩,
@@ -165,8 +165,7 @@ end
 
 end measure_theory.Lp
 
-variables (𝕜 : Type*) [measurable_space 𝕜] [normed_field 𝕜] [opens_measurable_space 𝕜]
-  [normed_algebra ℝ 𝕜] [normed_space 𝕜 E]
+variables (𝕜 : Type*) [normed_field 𝕜] [normed_algebra ℝ 𝕜] [normed_space 𝕜 E]
 
 namespace bounded_continuous_function
 

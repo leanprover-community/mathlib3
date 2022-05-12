@@ -3,9 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.equiv.mul_add
-import tactic.norm_num
+import algebra.hom.equiv
 import data.part
+import tactic.norm_num
 
 /-!
 # Natural numbers with infinity
@@ -160,7 +160,7 @@ def coe_hom : ℕ →+ enat := ⟨coe, nat.cast_zero, nat.cast_add⟩
 
 instance : partial_order enat :=
 { le          := (≤),
-  le_refl     := λ x, ⟨id, λ _, le_refl _⟩,
+  le_refl     := λ x, ⟨id, λ _, le_rfl⟩,
   le_trans    := λ x y z ⟨hxy₁, hxy₂⟩ ⟨hyz₁, hyz₂⟩,
     ⟨hxy₁ ∘ hyz₁, λ _, le_trans (hxy₂ _) (hyz₂ _)⟩,
   le_antisymm := λ x y ⟨hxy₁, hxy₂⟩ ⟨hyx₁, hyx₂⟩, part.ext' ⟨hyx₁, hxy₁⟩
@@ -196,8 +196,7 @@ lemma le_coe_iff (x : enat) (n : ℕ) : x ≤ n ↔ ∃ h : x.dom, x.get h ≤ n
 begin
   rw [← some_eq_coe],
   show (∃ (h : true → x.dom), _) ↔ ∃ h : x.dom, x.get h ≤ n,
-  simp only [forall_prop_of_true, some_eq_coe, dom_coe, get_coe'],
-  split; rintro ⟨_, _⟩; refine ⟨_, _⟩; intros; try { assumption }
+  simp only [forall_prop_of_true, some_eq_coe, dom_coe, get_coe']
 end
 
 lemma lt_coe_iff (x : enat) (n : ℕ) : x < n ↔ ∃ h : x.dom, x.get h < n :=
@@ -270,12 +269,17 @@ lemma pos_iff_one_le {x : enat} : 0 < x ↔ 1 ≤ x :=
 enat.cases_on x (by simp only [iff_true, le_top, coe_lt_top, ← @nat.cast_zero enat]) $
   λ n, by { rw [← nat.cast_zero, ← nat.cast_one, enat.coe_lt_coe, enat.coe_le_coe], refl }
 
-noncomputable instance : linear_order enat :=
-{ le_total := λ x y, enat.cases_on x
+instance : is_total enat (≤) :=
+{ total := λ x y, enat.cases_on x
     (or.inr le_top) (enat.cases_on y (λ _, or.inl le_top)
       (λ x y, (le_total x y).elim (or.inr ∘ coe_le_coe.2)
-        (or.inl ∘ coe_le_coe.2))),
+        (or.inl ∘ coe_le_coe.2))) }
+
+noncomputable instance : linear_order enat :=
+{ le_total := is_total.total,
   decidable_le := classical.dec_rel _,
+  max := (⊔),
+  max_def := @sup_eq_max_default _ _ (id _) _,
   ..enat.partial_order }
 
 instance : bounded_order enat :=
@@ -288,12 +292,6 @@ noncomputable instance : lattice enat :=
   inf_le_right := min_le_right,
   le_inf := λ _ _ _, le_min,
   ..enat.semilattice_sup }
-
-lemma sup_eq_max {a b : enat} : a ⊔ b = max a b :=
-le_antisymm (sup_le (le_max_left _ _) (le_max_right _ _))
-  (max_le le_sup_left le_sup_right)
-
-lemma inf_eq_min {a b : enat} : a ⊓ b = min a b := rfl
 
 instance : ordered_add_comm_monoid enat :=
 { add_le_add_left := λ a b ⟨h₁, h₂⟩ c,
@@ -405,7 +403,7 @@ by convert to_with_top_zero
 lemma to_with_top_some (n : ℕ) : to_with_top (some n) = n := rfl
 
 lemma to_with_top_coe (n : ℕ) {_ : decidable (n : enat).dom} : to_with_top n = n :=
-by { simp only [← some_eq_coe, ← to_with_top_some], congr }
+by simp only [← some_eq_coe, ← to_with_top_some]
 
 @[simp] lemma to_with_top_coe' (n : ℕ) {h : decidable (n : enat).dom} :
   to_with_top (n : enat) = n :=
@@ -426,14 +424,7 @@ section with_top_equiv
 open_locale classical
 
 @[simp] lemma to_with_top_add {x y : enat} : to_with_top (x + y) = to_with_top x + to_with_top y :=
-begin
-  apply enat.cases_on y; apply enat.cases_on x,
-  { simp },
-  { simp },
-  { simp },
-  -- not sure why `simp` can't do this
-  { intros, rw [to_with_top_coe', to_with_top_coe'], norm_cast, exact to_with_top_coe' _ }
-end
+by apply enat.cases_on y; apply enat.cases_on x; simp [← nat.cast_add, ← with_top.coe_add]
 
 /-- `equiv` between `enat` and `with_top ℕ` (for the order isomorphism see `with_top_order_iso`). -/
 noncomputable def with_top_equiv : enat ≃ with_top ℕ :=

@@ -99,6 +99,43 @@ instance : inhabited (continuous_multilinear_map R M₁ M₂) := ⟨0⟩
 
 @[simp] lemma zero_apply (m : Πi, M₁ i) : (0 : continuous_multilinear_map R M₁ M₂) m = 0 := rfl
 
+@[simp] lemma to_multilinear_map_zero :
+  (0 : continuous_multilinear_map R M₁ M₂).to_multilinear_map = 0 :=
+rfl
+section has_scalar
+
+variables {R' R'' A : Type*} [monoid R'] [monoid R''] [semiring A]
+  [Π i, module A (M₁ i)] [module A M₂]
+  [distrib_mul_action R' M₂] [has_continuous_const_smul R' M₂] [smul_comm_class A R' M₂]
+  [distrib_mul_action R'' M₂] [has_continuous_const_smul R'' M₂] [smul_comm_class A R'' M₂]
+
+instance : has_scalar R' (continuous_multilinear_map A M₁ M₂) :=
+⟨λ c f, { cont := f.cont.const_smul c, .. c • f.to_multilinear_map }⟩
+
+@[simp] lemma smul_apply (f : continuous_multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
+  (c • f) m = c • f m := rfl
+
+@[simp] lemma to_multilinear_map_smul (c : R') (f : continuous_multilinear_map A M₁ M₂) :
+  (c • f).to_multilinear_map = c • f.to_multilinear_map :=
+rfl
+
+instance [smul_comm_class R' R'' M₂] :
+  smul_comm_class R' R'' (continuous_multilinear_map A M₁ M₂) :=
+⟨λ c₁ c₂ f, ext $ λ x, smul_comm _ _ _⟩
+
+instance [has_scalar R' R''] [is_scalar_tower R' R'' M₂] :
+  is_scalar_tower R' R'' (continuous_multilinear_map A M₁ M₂) :=
+⟨λ c₁ c₂ f, ext $ λ x, smul_assoc _ _ _⟩
+
+instance [distrib_mul_action R'ᵐᵒᵖ M₂] [is_central_scalar R' M₂] :
+  is_central_scalar R' (continuous_multilinear_map A M₁ M₂) :=
+⟨λ c₁ f, ext $ λ x, op_smul_eq_smul _ _⟩
+
+instance : mul_action R' (continuous_multilinear_map A M₁ M₂) :=
+function.injective.mul_action to_multilinear_map to_multilinear_map_inj (λ _ _, rfl)
+
+end has_scalar
+
 section has_continuous_add
 variable [has_continuous_add M₂]
 
@@ -112,7 +149,7 @@ instance : has_add (continuous_multilinear_map R M₁ M₂) :=
 rfl
 
 instance add_comm_monoid : add_comm_monoid (continuous_multilinear_map R M₁ M₂) :=
-to_multilinear_map_inj.add_comm_monoid _ rfl (λ _ _, rfl)
+to_multilinear_map_inj.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- Evaluation of a `continuous_multilinear_map` at a vector as an `add_monoid_hom`. -/
 def apply_add_hom (m : Π i, M₁ i) : continuous_multilinear_map R M₁ M₂ →+ M₂ :=
@@ -293,7 +330,8 @@ instance : has_sub (continuous_multilinear_map R M₁ M₂) :=
 @[simp] lemma sub_apply (m : Πi, M₁ i) : (f - f') m = f m - f' m := rfl
 
 instance : add_comm_group (continuous_multilinear_map R M₁ M₂) :=
-to_multilinear_map_inj.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+to_multilinear_map_inj.add_comm_group _
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 end topological_add_group
 
@@ -317,61 +355,102 @@ lemma map_smul_univ [fintype ι] (c : ι → R) (m : Πi, M₁ i) :
   f (λ i, c i • m i) = (∏ i, c i) • f m :=
 f.to_multilinear_map.map_smul_univ _ _
 
-variables {R' A : Type*} [comm_semiring R'] [semiring A] [algebra R' A]
-  [Π i, module A (M₁ i)] [module R' M₂] [module A M₂] [is_scalar_tower R' A M₂]
-  [topological_space R'] [has_continuous_smul R' M₂]
+end comm_semiring
 
-instance : has_scalar R' (continuous_multilinear_map A M₁ M₂) :=
-⟨λ c f, { cont := continuous_const.smul f.cont, .. c • f.to_multilinear_map }⟩
+section distrib_mul_action
 
-@[simp] lemma smul_apply (f : continuous_multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
-  (c • f) m = c • f m := rfl
+variables {R' R'' A : Type*} [monoid R'] [monoid R''] [semiring A]
+  [Π i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
+  [Π i, topological_space (M₁ i)] [topological_space M₂]
+  [Π i, module A (M₁ i)] [module A M₂]
+  [distrib_mul_action R' M₂] [has_continuous_const_smul R' M₂] [smul_comm_class A R' M₂]
+  [distrib_mul_action R'' M₂] [has_continuous_const_smul R'' M₂] [smul_comm_class A R'' M₂]
 
-@[simp] lemma to_multilinear_map_smul (c : R') (f : continuous_multilinear_map A M₁ M₂) :
-  (c • f).to_multilinear_map = c • f.to_multilinear_map :=
-rfl
+instance [has_continuous_add M₂] : distrib_mul_action R' (continuous_multilinear_map A M₁ M₂) :=
+function.injective.distrib_mul_action
+  ⟨to_multilinear_map, to_multilinear_map_zero, to_multilinear_map_add⟩
+  to_multilinear_map_inj (λ _ _, rfl)
 
-instance {R''} [comm_semiring R''] [has_scalar R' R''] [algebra R'' A]
-  [module R'' M₂] [is_scalar_tower R'' A M₂] [is_scalar_tower R' R'' M₂]
-  [topological_space R''] [has_continuous_smul R'' M₂]:
-  is_scalar_tower R' R'' (continuous_multilinear_map A M₁ M₂) :=
-⟨λ c₁ c₂ f, ext $ λ x, smul_assoc _ _ _⟩
+end distrib_mul_action
 
-variable [has_continuous_add M₂]
+section module
+
+variables {R' A : Type*} [semiring R'] [semiring A]
+  [Π i, add_comm_monoid (M₁ i)] [add_comm_monoid M₂]
+  [Π i, topological_space (M₁ i)] [topological_space M₂] [has_continuous_add M₂]
+  [Π i, module A (M₁ i)] [module A M₂]
+  [module R' M₂] [has_continuous_const_smul R' M₂] [smul_comm_class A R' M₂]
 
 /-- The space of continuous multilinear maps over an algebra over `R` is a module over `R`, for the
 pointwise addition and scalar multiplication. -/
 instance : module R' (continuous_multilinear_map A M₁ M₂) :=
-{ one_smul := λ f, ext $ λ x, one_smul _ _,
-  mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul _ _ _,
-  smul_zero := λ r, ext $ λ x, smul_zero _,
-  smul_add := λ r f₁ f₂, ext $ λ x, smul_add _ _ _,
-  add_smul := λ r₁ r₂ f, ext $ λ x, add_smul _ _ _,
-  zero_smul := λ f, ext $ λ x, zero_smul _ _ }
+function.injective.module _ ⟨to_multilinear_map, to_multilinear_map_zero, to_multilinear_map_add⟩
+  to_multilinear_map_inj (λ _ _, rfl)
 
 /-- Linear map version of the map `to_multilinear_map` associating to a continuous multilinear map
 the corresponding multilinear map. -/
 @[simps] def to_multilinear_map_linear :
-  (continuous_multilinear_map A M₁ M₂) →ₗ[R'] (multilinear_map A M₁ M₂) :=
-{ to_fun    := λ f, f.to_multilinear_map,
-  map_add'  := λ f g, rfl,
-  map_smul' := λ c f, rfl }
+  continuous_multilinear_map A M₁ M₂ →ₗ[R'] multilinear_map A M₁ M₂ :=
+{ to_fun    := to_multilinear_map,
+  map_add'  := to_multilinear_map_add,
+  map_smul' := to_multilinear_map_smul }
 
 /-- `continuous_multilinear_map.pi` as a `linear_equiv`. -/
 @[simps {simp_rhs := tt}]
 def pi_linear_equiv {ι' : Type*} {M' : ι' → Type*}
   [Π i, add_comm_monoid (M' i)] [Π i, topological_space (M' i)] [∀ i, has_continuous_add (M' i)]
-  [Π i, module R' (M' i)] [Π i, module A (M' i)] [∀ i, is_scalar_tower R' A (M' i)]
-  [Π i, has_continuous_smul R' (M' i)] :
-  -- typeclass search doesn't find this instance, presumably due to struggles converting
-  -- `Π i, module R (M' i)` to `Π i, has_scalar R (M' i)` in dependent arguments.
-  let inst : has_continuous_smul R' (Π i, M' i) := pi.has_continuous_smul in
+  [Π i, module R' (M' i)] [Π i, module A (M' i)] [∀ i, smul_comm_class A R' (M' i)]
+  [Π i, has_continuous_const_smul R' (M' i)] :
   (Π i, continuous_multilinear_map A M₁ (M' i)) ≃ₗ[R']
     continuous_multilinear_map A M₁ (Π i, M' i) :=
 { map_add' := λ x y, rfl,
   map_smul' := λ c x, rfl,
   .. pi_equiv }
 
-end comm_semiring
+end module
+
+section comm_algebra
+
+variables (R ι) (A : Type*) [fintype ι] [comm_semiring R] [comm_semiring A] [algebra R A]
+  [topological_space A] [has_continuous_mul A]
+
+/-- The continuous multilinear map on `A^ι`, where `A` is a normed commutative algebra
+over `𝕜`, associating to `m` the product of all the `m i`.
+
+See also `continuous_multilinear_map.mk_pi_algebra_fin`. -/
+protected def mk_pi_algebra : continuous_multilinear_map R (λ i : ι, A) A :=
+{ cont := continuous_finset_prod _ $ λ i hi, continuous_apply _,
+  to_multilinear_map := multilinear_map.mk_pi_algebra R ι A}
+
+@[simp] lemma mk_pi_algebra_apply (m : ι → A) :
+  continuous_multilinear_map.mk_pi_algebra R ι A m = ∏ i, m i :=
+rfl
+
+end comm_algebra
+
+section algebra
+
+variables (R n) (A : Type*) [comm_semiring R] [semiring A] [algebra R A]
+  [topological_space A] [has_continuous_mul A]
+
+/-- The continuous multilinear map on `A^n`, where `A` is a normed algebra over `𝕜`, associating to
+`m` the product of all the `m i`.
+
+See also: `continuous_multilinear_map.mk_pi_algebra`. -/
+protected def mk_pi_algebra_fin : A [×n]→L[R] A :=
+{ cont := begin
+    change continuous (λ m, (list.of_fn m).prod),
+    simp_rw list.of_fn_eq_map,
+    exact continuous_list_prod _ (λ i hi, continuous_apply _),
+  end,
+  to_multilinear_map := multilinear_map.mk_pi_algebra_fin R n A}
+
+variables {R n A}
+
+@[simp] lemma mk_pi_algebra_fin_apply (m : fin n → A) :
+  continuous_multilinear_map.mk_pi_algebra_fin R n A m = (list.of_fn m).prod :=
+rfl
+
+end algebra
 
 end continuous_multilinear_map

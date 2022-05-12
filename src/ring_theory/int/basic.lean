@@ -76,7 +76,7 @@ section normalization_monoid
 
 instance : normalization_monoid ℤ :=
 { norm_unit      := λa:ℤ, if 0 ≤ a then 1 else -1,
-  norm_unit_zero := if_pos (le_refl _),
+  norm_unit_zero := if_pos le_rfl,
   norm_unit_mul  := assume a b hna hnb,
   begin
     cases hna.lt_or_lt with ha ha; cases hnb.lt_or_lt with hb hb;
@@ -149,7 +149,7 @@ begin
   cases (nat_abs_eq a) with h,
   { use [1, is_unit_one], rw [← h, one_mul], },
   { use [-1, is_unit_one.neg], rw [ ← neg_eq_iff_neg_eq.mp (eq.symm h)],
-    simp only [neg_mul_eq_neg_mul_symm, one_mul] }
+    simp only [neg_mul, one_mul] }
 end
 
 lemma gcd_eq_nat_abs {a b : ℤ} : int.gcd a b = nat.gcd a.nat_abs b.nat_abs := rfl
@@ -200,14 +200,6 @@ begin
 end
 
 end int
-
-lemma nat.prime_iff_prime_int {p : ℕ} : p.prime ↔ _root_.prime (p : ℤ) :=
-⟨λ hp, ⟨int.coe_nat_ne_zero_iff_pos.2 hp.pos, mt int.is_unit_iff_nat_abs_eq.1 hp.ne_one,
-  λ a b h, by rw [← int.dvd_nat_abs, int.coe_nat_dvd, int.nat_abs_mul, hp.dvd_mul] at h;
-    rwa [← int.dvd_nat_abs, int.coe_nat_dvd, ← int.dvd_nat_abs, int.coe_nat_dvd]⟩,
-  λ hp, nat.prime_iff.2 ⟨int.coe_nat_ne_zero.1 hp.1,
-      mt nat.is_unit_iff.1 $ λ h, by simpa [h, not_prime_one] using hp,
-    λ a b, by simpa only [int.coe_nat_dvd, (int.coe_nat_mul _ _).symm] using hp.2.2 a b⟩⟩
 
 /-- Maps an associate class of integers consisting of `-n, n` to `n : ℕ` -/
 def associates_int_equiv_nat : associates ℤ ≃ ℕ :=
@@ -263,9 +255,9 @@ begin
     exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}
 end
 
-lemma int.exists_prime_and_dvd {n : ℤ} (n2 : 2 ≤ n.nat_abs) : ∃ p, prime p ∧ p ∣ n :=
+lemma int.exists_prime_and_dvd {n : ℤ} (hn : n.nat_abs ≠ 1) : ∃ p, prime p ∧ p ∣ n :=
 begin
-  obtain ⟨p, pp, pd⟩ := nat.exists_prime_and_dvd n2,
+  obtain ⟨p, pp, pd⟩ := nat.exists_prime_and_dvd hn,
   exact ⟨p, nat.prime_iff_prime_int.mp pp, int.coe_nat_dvd_left.mpr pd⟩,
 end
 
@@ -276,7 +268,7 @@ begin
   cases n, { simp },
   rw [← multiset.rel_eq, ← associated_eq_eq],
   apply factors_unique (irreducible_of_normalized_factor) _,
-  { rw [multiset.coe_prod, nat.prod_factors (nat.succ_pos _)],
+  { rw [multiset.coe_prod, nat.prod_factors n.succ_ne_zero],
     apply normalized_factors_prod (nat.succ_ne_zero _) },
   { apply_instance },
   { intros x hx,

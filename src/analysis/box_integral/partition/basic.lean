@@ -169,7 +169,7 @@ lemma Union_def : π.Union = ⋃ J ∈ π, ↑J := rfl
 
 lemma Union_def' : π.Union = ⋃ J ∈ π.boxes, ↑J := rfl
 
-@[simp] lemma mem_Union : x ∈ π.Union ↔ ∃ J ∈ π, x ∈ J := set.mem_bUnion_iff
+@[simp] lemma mem_Union : x ∈ π.Union ↔ ∃ J ∈ π, x ∈ J := set.mem_Union₂
 
 @[simp] lemma Union_single (h : J ≤ I) : (single I J h).Union = J := by simp [Union_def]
 
@@ -182,7 +182,7 @@ by simp [← injective_boxes.eq_iff, finset.ext_iff, prepartition.Union, imp_fal
 
 lemma subset_Union (h : J ∈ π) : ↑J ⊆ π.Union := subset_bUnion_of_mem h
 
-lemma Union_subset : π.Union ⊆ I := bUnion_subset π.le_of_mem'
+lemma Union_subset : π.Union ⊆ I := Union₂_subset π.le_of_mem'
 
 @[mono] lemma Union_mono (h : π₁ ≤ π₂) : π₁.Union ⊆ π₂.Union :=
 λ x hx, let ⟨J₁, hJ₁, hx⟩ := π₁.mem_Union.1 hx, ⟨J₂, hJ₂, hle⟩ := h hJ₁
@@ -344,7 +344,7 @@ lemma of_with_bot_le {boxes : finset (with_bot (box ι))}
   (H : ∀ J ∈ boxes, J ≠ ⊥ → ∃ J' ∈ π, J ≤ ↑J') :
   of_with_bot boxes le_of_mem pairwise_disjoint ≤ π :=
 have ∀ (J : box ι), ↑J ∈ boxes → ∃ J' ∈ π, J ≤ J',
-  from λ J hJ, by simpa only [with_bot.coe_le_coe] using H J hJ (with_bot.coe_ne_bot J),
+  from λ J hJ, by simpa only [with_bot.coe_le_coe] using H J hJ with_bot.coe_ne_bot,
 by simpa [of_with_bot, le_def]
 
 lemma le_of_with_bot {boxes : finset (with_bot (box ι))}
@@ -355,7 +355,7 @@ lemma le_of_with_bot {boxes : finset (with_bot (box ι))}
 begin
   intros J hJ,
   rcases H J hJ with ⟨J', J'mem, hle⟩,
-  lift J' to box ι using ne_bot_of_le_ne_bot (with_bot.coe_ne_bot _) hle,
+  lift J' to box ι using ne_bot_of_le_ne_bot with_bot.coe_ne_bot hle,
   exact ⟨J', mem_of_with_bot.2 J'mem, with_bot.coe_le_coe.1 hle⟩
 end
 
@@ -368,7 +368,7 @@ lemma of_with_bot_mono {boxes₁ : finset (with_bot (box ι))}
   (H : ∀ J ∈ boxes₁, J ≠ ⊥ → ∃ J' ∈ boxes₂, J ≤ J') :
   of_with_bot boxes₁ le_of_mem₁ pairwise_disjoint₁ ≤
     of_with_bot boxes₂ le_of_mem₂ pairwise_disjoint₂ :=
-le_of_with_bot _ $ λ J hJ, H J (mem_of_with_bot.1 hJ) (with_bot.coe_ne_bot _)
+le_of_with_bot _ $ λ J hJ, H J (mem_of_with_bot.1 hJ) with_bot.coe_ne_bot
 
 lemma sum_of_with_bot {M : Type*} [add_comm_monoid M]
   (boxes : finset (with_bot (box ι)))
@@ -625,8 +625,8 @@ is_partition_iff_Union_eq.2 $ by simp [h₁.Union_eq, h₂.Union_eq]
 end is_partition
 
 lemma Union_bUnion_partition (h : ∀ J ∈ π, (πi J).is_partition) : (π.bUnion πi).Union = π.Union :=
-(Union_bUnion _ _).trans $ Union_congr id surjective_id $ λ J, Union_congr id surjective_id $ λ hJ,
-  (h J hJ).Union_eq
+(Union_bUnion _ _).trans $ Union_congr_of_surjective id surjective_id $ λ J,
+  Union_congr_of_surjective id surjective_id $ λ hJ, (h J hJ).Union_eq
 
 lemma is_partition_disj_union_of_eq_diff (h : π₂.Union = I \ π₁.Union) :
   is_partition (π₁.disj_union π₂ (h.symm ▸ disjoint_diff)) :=

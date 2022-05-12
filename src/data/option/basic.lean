@@ -68,6 +68,9 @@ theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → o
 lemma get_or_else_of_ne_none {x : option α} (hx : x ≠ none) (y : α) : some (x.get_or_else y) = x :=
 by cases x; [contradiction, rw get_or_else_some]
 
+@[simp] lemma coe_get {o : option α} (h : o.is_some) : ((option.get h : α) : option α) = o :=
+option.some_get h
+
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
 
@@ -152,9 +155,13 @@ theorem map_none {α β} {f : α → β} : f <$> none = none := rfl
 
 theorem map_some {α β} {a : α} {f : α → β} : f <$> some a = some (f a) := rfl
 
+theorem map_coe {α β} {a : α} {f : α → β} : f <$> (a : option α) = ↑(f a) := rfl
+
 @[simp] theorem map_none' {f : α → β} : option.map f none = none := rfl
 
 @[simp] theorem map_some' {a : α} {f : α → β} : option.map f (some a) = some (f a) := rfl
+
+@[simp] theorem map_coe' {a : α} {f : α → β} : option.map f (a : option α) = ↑(f a) := rfl
 
 theorem map_eq_some {α β} {x : option α} {f : α → β} {b : β} :
   f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
@@ -379,9 +386,11 @@ theorem iget_of_mem [inhabited α] {a : α} : ∀ {o : option α}, a ∈ o → o
   guard p a = some b ↔ a = b ∧ p a :=
 by by_cases p a; simp [option.guard, h]; intro; contradiction
 
-@[simp] theorem guard_eq_some' {p : Prop} [decidable p] :
-  ∀ u, _root_.guard p = some u ↔ p
-| () := by by_cases p; simp [guard, h, pure]; intro; contradiction
+@[simp] theorem guard_eq_some' {p : Prop} [decidable p] (u) : _root_.guard p = some u ↔ p :=
+begin
+  cases u,
+  by_cases p; simp [_root_.guard, h]; refl <|> contradiction,
+end
 
 theorem lift_or_get_choice {f : α → α → α} (h : ∀ a b, f a b = a ∨ f a b = b) :
   ∀ o₁ o₂, lift_or_get f o₁ o₂ = o₁ ∨ lift_or_get f o₁ o₂ = o₂
@@ -480,5 +489,12 @@ rfl
 
 @[simp] lemma to_list_none (α : Type*) : (none : option α).to_list = [] :=
 rfl
+
+--TODO: Swap arguments to `option.elim` so that it is exactly `option.cons`
+/-- Functions from `option` can be combined similarly to `vector.cons`. -/
+def cons (a : β) (f : α → β) : option α → β := λ o, o.elim a f
+
+@[simp] lemma cons_none_some (f : option α → β) : cons (f none) (f ∘ some) = f :=
+funext $ λ o, by cases o; refl
 
 end option

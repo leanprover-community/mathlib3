@@ -65,13 +65,16 @@ namespace subgraph
 
 variables {V : Type u} {G : simple_graph V}
 
+protected lemma loopless (G' : subgraph G) : irreflexive G'.adj :=
+λ v h, G.loopless v (G'.adj_sub h)
+
 lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
 ⟨λ x, G'.symm x, λ x, G'.symm x⟩
 
 @[symm] lemma adj_symm (G' : subgraph G) {u v : V} (h : G'.adj u v) : G'.adj v u := G'.symm h
 
 /-- Coercion from `G' : subgraph G` to a `simple_graph ↥G'.verts`. -/
-@[simps] def coe (G' : subgraph G) : simple_graph G'.verts :=
+@[simps] protected def coe (G' : subgraph G) : simple_graph G'.verts :=
 { adj := λ v w, G'.adj v w,
   symm := λ v w h, G'.symm h,
   loopless := λ v h, loopless G v (G'.adj_sub h) }
@@ -88,13 +91,13 @@ set.eq_univ_iff_forall.symm
 /-- Coercion from `subgraph G` to `simple_graph V`.  If `G'` is a spanning
 subgraph, then `G'.spanning_coe` yields an isomorphic graph.
 In general, this adds in all vertices from `V` as isolated vertices. -/
-@[simps] def spanning_coe (G' : subgraph G) : simple_graph V :=
+@[simps] protected def spanning_coe (G' : subgraph G) : simple_graph V :=
 { adj := G'.adj,
   symm := G'.symm,
   loopless := λ v hv, G.loopless v (G'.adj_sub hv) }
 
-@[simp] lemma spanning_coe_adj_sub (H : subgraph G) (u v : H.verts) (h : H.spanning_coe.adj u v) :
-  G.adj u v := H.adj_sub h
+@[simp] lemma adj.of_spanning_coe {G' : subgraph G} {u v : G'.verts}
+  (h : G'.spanning_coe.adj u v) : G.adj u v := G'.adj_sub h
 
 /-- `spanning_coe` is equivalent to `coe` for a subgraph that `is_spanning`.  -/
 @[simps] def spanning_coe_equiv_coe_of_spanning (G' : subgraph G) (h : G'.is_spanning) :
@@ -122,6 +125,9 @@ def neighbor_set (G' : subgraph G) (v : V) : set V := set_of (G'.adj v)
 
 lemma neighbor_set_subset (G' : subgraph G) (v : V) : G'.neighbor_set v ⊆ G.neighbor_set v :=
 λ w h, G'.adj_sub h
+
+lemma neighbor_set_subset_verts (G' : subgraph G) (v : V) : G'.neighbor_set v ⊆ G'.verts :=
+λ _ h, G'.edge_vert (adj_symm G' h)
 
 @[simp] lemma mem_neighbor_set (G' : subgraph G) (v w : V) : w ∈ G'.neighbor_set v ↔ G'.adj v w :=
 iff.rfl
@@ -374,9 +380,17 @@ def finite_at_of_subgraph {G' G'' : subgraph G} [decidable_rel G'.adj]
    fintype (G'.neighbor_set v) :=
 set.fintype_subset (G''.neighbor_set v) (neighbor_set_subset_of_subgraph h v)
 
+instance (G' : subgraph G) [fintype G'.verts]
+  (v : V) [decidable_pred (∈ G'.neighbor_set v)] : fintype (G'.neighbor_set v) :=
+set.fintype_subset G'.verts (neighbor_set_subset_verts G' v)
+
 instance coe_finite_at {G' : subgraph G} (v : G'.verts) [fintype (G'.neighbor_set v)] :
   fintype (G'.coe.neighbor_set v) :=
 fintype.of_equiv _ (coe_neighbor_set_equiv v).symm
+
+lemma is_spanning.card_verts [fintype V] {G' : subgraph G} [fintype G'.verts]
+  (h : G'.is_spanning) : G'.verts.to_finset.card = fintype.card V :=
+by { rw is_spanning_iff at h, simpa [h] }
 
 /-- The degree of a vertex in a subgraph. It's zero for vertices outside the subgraph. -/
 def degree (G' : subgraph G) (v : V) [fintype (G'.neighbor_set v)] : ℕ :=
@@ -406,12 +420,100 @@ begin
   exact fintype.card_congr (coe_neighbor_set_equiv v),
 end
 
+@[simp] lemma degree_spanning_coe {G' : G.subgraph} (v : V) [fintype (G'.neighbor_set v)]
+  [fintype (G'.spanning_coe.neighbor_set v)] :
+  G'.spanning_coe.degree v = G'.degree v :=
+by { rw [← card_neighbor_set_eq_degree, subgraph.degree], congr }
+
 lemma degree_eq_one_iff_unique_adj {G' : subgraph G} {v : V} [fintype (G'.neighbor_set v)] :
   G'.degree v = 1 ↔ ∃! (w : V), G'.adj v w :=
 begin
   rw [← finset_card_neighbor_set_eq_degree, finset.card_eq_one, finset.singleton_iff_unique_mem],
   simp only [set.mem_to_finset, mem_neighbor_set],
 end
+
+/-! ## Edge deletion -/
+
+/-- Given a subgraph `G'` and a set of vertex pairs, remove all of the corresponding edges
+from its edge set, if present.
+
+See also: `simple_graph.delete_edges`. -/
+def delete_edges (G' : G.subgraph) (s : set (sym2 V)) : G.subgraph :=
+{ verts := G'.verts,
+  adj := G'.adj \ sym2.to_rel s,
+  adj_sub := λ a b h', G'.adj_sub h'.1,
+  edge_vert := λ a b h', G'.edge_vert h'.1,
+  symm := λ a b, by simp [G'.adj_comm, sym2.eq_swap] }
+
+section delete_edges
+variables {G' : G.subgraph} (s : set (sym2 V))
+
+@[simp] lemma delete_edges_verts : (G'.delete_edges s).verts = G'.verts := rfl
+
+@[simp] lemma delete_edges_adj (v w : V) :
+  (G'.delete_edges s).adj v w ↔ G'.adj v w ∧ ¬ ⟦(v, w)⟧ ∈ s := iff.rfl
+
+@[simp] lemma delete_edges_delete_edges (s s' : set (sym2 V)) :
+  (G'.delete_edges s).delete_edges s' = G'.delete_edges (s ∪ s') :=
+by ext; simp [and_assoc, not_or_distrib]
+
+@[simp] lemma delete_edges_empty_eq : G'.delete_edges ∅ = G' :=
+by ext; simp
+
+@[simp] lemma delete_edges_spanning_coe_eq :
+  G'.spanning_coe.delete_edges s = (G'.delete_edges s).spanning_coe :=
+by { ext, simp }
+
+lemma delete_edges_coe_eq (s : set (sym2 G'.verts)) :
+  G'.coe.delete_edges s = (G'.delete_edges (sym2.map coe '' s)).coe :=
+begin
+  ext ⟨v, hv⟩ ⟨w, hw⟩,
+  simp only [simple_graph.delete_edges_adj, coe_adj, subtype.coe_mk, delete_edges_adj,
+    set.mem_image, not_exists, not_and, and.congr_right_iff],
+  intro h,
+  split,
+  { intros hs,
+    refine sym2.ind _,
+    rintro ⟨v', hv'⟩ ⟨w', hw'⟩,
+    simp only [sym2.map_pair_eq, subtype.coe_mk, quotient.eq],
+    contrapose!,
+    rintro (_ | _); simpa [sym2.eq_swap], },
+  { intros h' hs,
+    exact h' _ hs rfl, },
+end
+
+lemma coe_delete_edges_eq (s : set (sym2 V)) :
+  (G'.delete_edges s).coe = G'.coe.delete_edges (sym2.map coe ⁻¹' s) :=
+by { ext ⟨v, hv⟩ ⟨w, hw⟩, simp }
+
+lemma delete_edges_le : G'.delete_edges s ≤ G' :=
+by split; simp { contextual := tt }
+
+lemma delete_edges_le_of_le {s s' : set (sym2 V)} (h : s ⊆ s') :
+  G'.delete_edges s' ≤ G'.delete_edges s :=
+begin
+  split;
+  simp only [delete_edges_verts, delete_edges_adj, true_and, and_imp] {contextual := tt},
+  exact λ v w hvw hs' hs, hs' (h hs),
+end
+
+@[simp] lemma delete_edges_inter_edge_set_left_eq :
+  G'.delete_edges (G'.edge_set ∩ s) = G'.delete_edges s :=
+by ext; simp [imp_false] { contextual := tt }
+
+@[simp] lemma delete_edges_inter_edge_set_right_eq :
+  G'.delete_edges (s ∩ G'.edge_set) = G'.delete_edges s :=
+by ext; simp [imp_false] { contextual := tt }
+
+lemma coe_delete_edges_le :
+  (G'.delete_edges s).coe ≤ (G'.coe : simple_graph G'.verts) :=
+λ v w, by simp { contextual := tt }
+
+lemma spanning_coe_delete_edges_le (G' : G.subgraph) (s : set (sym2 V)) :
+  (G'.delete_edges s).spanning_coe ≤ G'.spanning_coe :=
+spanning_coe_le_of_le (delete_edges_le s)
+
+end delete_edges
 
 end subgraph
 

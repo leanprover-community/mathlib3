@@ -3,9 +3,9 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.metric_space.basic
-import topology.algebra.ordered.monotone_convergence
 import data.set.intervals.monotone
+import topology.algebra.order.monotone_convergence
+import topology.metric_space.basic
 
 /-!
 # Rectangular boxes in `ℝⁿ`
@@ -77,6 +77,7 @@ variables (I J : box ι) {x y : ι → ℝ}
 instance : inhabited (box ι) := ⟨⟨0, 1, λ i, zero_lt_one⟩⟩
 
 lemma lower_le_upper : I.lower ≤ I.upper := λ i, (I.lower_lt_upper i).le
+lemma lower_ne_upper (i) : I.lower i ≠ I.upper i := (I.lower_lt_upper i).ne
 
 instance : has_mem (ι → ℝ) (box ι) := ⟨λ x I, ∀ i, x i ∈ Ioc (I.lower i) (I.upper i)⟩
 instance : has_coe_t (box ι) (set $ ι → ℝ) := ⟨λ I, {x | x ∈ I}⟩
@@ -110,7 +111,9 @@ lemma le_tfae :
     J.lower ≤ I.lower ∧ I.upper ≤ J.upper] :=
 begin
   tfae_have : 1 ↔ 2, from iff.rfl,
-  tfae_have : 2 → 3, from λ h, by simpa [coe_eq_pi, closure_pi_set] using closure_mono h,
+  tfae_have : 2 → 3,
+  { intro h,
+    simpa [coe_eq_pi, closure_pi_set, lower_ne_upper] using closure_mono h },
   tfae_have : 3 ↔ 4, from Icc_subset_Icc_iff I.lower_le_upper,
   tfae_have : 4 → 2, from λ h x hx i, Ioc_subset_Ioc (h.1 i) (h.2 i) (hx i),
   tfae_finish

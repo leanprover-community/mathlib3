@@ -259,7 +259,7 @@ lemma f_succ_apply (v : V (n+1)) :
 begin
   cases v,
   rw f,
-  simp only [linear_map.id_apply, linear_map.prod_apply, prod.mk.inj_iff,
+  simp only [linear_map.id_apply, linear_map.prod_apply, pi.prod, prod.mk.inj_iff,
     linear_map.neg_apply, sub_eq_add_neg, linear_map.coprod_apply],
   exact ⟨rfl, rfl⟩
 end
@@ -311,7 +311,7 @@ lemma g_injective : injective (g m) :=
 begin
   rw g,
   intros x₁ x₂ h,
-  simp only [linear_map.prod_apply, linear_map.id_apply, prod.mk.inj_iff] at h,
+  simp only [linear_map.prod_apply, linear_map.id_apply, prod.mk.inj_iff, pi.prod] at h,
   exact h.right
 end
 
@@ -366,7 +366,7 @@ begin
     rw ← dim_eq_of_injective (g m) g_injective,
     apply dim_V },
   have dimW : dim W = card H,
-  { have li : linear_independent ℝ (set.restrict e H),
+  { have li : linear_independent ℝ (H.restrict e),
     { convert (dual_pair_e_ε _).basis.linear_independent.comp _ subtype.val_injective,
       rw (dual_pair_e_ε _).coe_basis },
     have hdW := dim_span li,

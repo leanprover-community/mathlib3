@@ -69,10 +69,10 @@ different distances. -/
 def pi_Lp {ι : Type*} (p : ℝ) (α : ι → Type*) : Type* := Π (i : ι), α i
 
 instance {ι : Type*} (p : ℝ) (α : ι → Type*) [∀ i, inhabited (α i)] : inhabited (pi_Lp p α) :=
-⟨λ i, default (α i)⟩
+⟨λ i, default⟩
 
-lemma fact_one_le_one_real : fact ((1:ℝ) ≤ 1) := ⟨rfl.le⟩
-lemma fact_one_le_two_real : fact ((1:ℝ) ≤ 2) := ⟨one_le_two⟩
+instance fact_one_le_one_real : fact ((1:ℝ) ≤ 1) := ⟨rfl.le⟩
+instance fact_one_le_two_real : fact ((1:ℝ) ≤ 2) := ⟨one_le_two⟩
 
 namespace pi_Lp
 
@@ -82,6 +82,9 @@ variables (p : ℝ) [fact_one_le_p : fact (1 ≤ p)] (α : ι → Type*) (β : �
 to compare the `L^p` and `L^∞` distances through it. -/
 protected def equiv : pi_Lp p α ≃ Π (i : ι), α i :=
 equiv.refl _
+
+@[simp] lemma equiv_apply (x : pi_Lp p α) (i : ι) : pi_Lp.equiv p α x i = x i := rfl
+@[simp] lemma equiv_symm_apply (x : Π i, α i) (i : ι) : (pi_Lp.equiv p α).symm x i = x i := rfl
 
 section
 /-!
@@ -285,6 +288,11 @@ lemma norm_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [∀i, semi_normed_group (β i)] (f : pi_Lp p β) :
   ∥f∥ = (∑ (i : ι), ∥f i∥ ^ p) ^ (1/p) := rfl
 
+lemma nnnorm_eq {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
+  [∀i, semi_normed_group (β i)] (f : pi_Lp p β) :
+  ∥f∥₊ = (∑ (i : ι), ∥f i∥₊ ^ p) ^ (1/p) :=
+by { ext, simp [nnreal.coe_sum, norm_eq] }
+
 lemma norm_eq_of_nat {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
   [∀i, semi_normed_group (β i)] (n : ℕ) (h : p = n) (f : pi_Lp p β) :
   ∥f∥ = (∑ (i : ι), ∥f i∥ ^ n) ^ (1/(n : ℝ)) :=
@@ -293,9 +301,9 @@ include fact_one_le_p
 
 variables (𝕜 : Type*) [normed_field 𝕜]
 
-/-- The product of finitely many seminormed spaces is a seminormed space, with the `L^p` norm. -/
-instance semi_normed_space [∀i, semi_normed_group (β i)] [∀i, semi_normed_space 𝕜 (β i)] :
-  semi_normed_space 𝕜 (pi_Lp p β) :=
+/-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
+instance normed_space [∀i, semi_normed_group (β i)] [∀i, normed_space 𝕜 (β i)] :
+  normed_space 𝕜 (pi_Lp p β) :=
 { norm_smul_le :=
   begin
     assume c f,
@@ -307,19 +315,55 @@ instance semi_normed_space [∀i, semi_normed_group (β i)] [∀i, semi_normed_s
   end,
   .. pi.module ι β 𝕜 }
 
-/-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
-instance normed_space [∀i, normed_group (α i)] [∀i, normed_space 𝕜 (α i)] :
-  normed_space 𝕜 (pi_Lp p α) :=
-{ ..pi_Lp.semi_normed_space p α 𝕜 }
-
 /- Register simplification lemmas for the applications of `pi_Lp` elements, as the usual lemmas
 for Pi types will not trigger. -/
-variables {𝕜 p α}
-[∀i, semi_normed_group (β i)] [∀i, semi_normed_space 𝕜 (β i)] (c : 𝕜) (x y : pi_Lp p β) (i : ι)
+variables {𝕜 p α} [Π i, semi_normed_group (β i)] [Π i, normed_space 𝕜 (β i)] (c : 𝕜)
+variables (x y : pi_Lp p β) (x' y' : Π i, β i) (i : ι)
 
+@[simp] lemma zero_apply : (0 : pi_Lp p β) i = 0 := rfl
 @[simp] lemma add_apply : (x + y) i = x i + y i := rfl
 @[simp] lemma sub_apply : (x - y) i = x i - y i := rfl
 @[simp] lemma smul_apply : (c • x) i = c • x i := rfl
 @[simp] lemma neg_apply : (-x) i = - (x i) := rfl
+
+@[simp] lemma equiv_zero : pi_Lp.equiv p β 0 = 0 := rfl
+@[simp] lemma equiv_symm_zero : (pi_Lp.equiv p β).symm 0 = 0 := rfl
+
+@[simp] lemma equiv_add :
+  pi_Lp.equiv p β (x + y) = pi_Lp.equiv p β x + pi_Lp.equiv p β y := rfl
+@[simp] lemma equiv_symm_add :
+  (pi_Lp.equiv p β).symm (x' + y') = (pi_Lp.equiv p β).symm x' + (pi_Lp.equiv p β).symm y' := rfl
+
+@[simp] lemma equiv_sub : pi_Lp.equiv p β (x - y) = pi_Lp.equiv p β x - pi_Lp.equiv p β y := rfl
+@[simp] lemma equiv_symm_sub :
+  (pi_Lp.equiv p β).symm (x' - y') = (pi_Lp.equiv p β).symm x' - (pi_Lp.equiv p β).symm y' := rfl
+
+@[simp] lemma equiv_neg : pi_Lp.equiv p β (-x) = -pi_Lp.equiv p β x := rfl
+@[simp] lemma equiv_symm_neg : (pi_Lp.equiv p β).symm (-x') = -(pi_Lp.equiv p β).symm x' := rfl
+
+@[simp] lemma equiv_smul : pi_Lp.equiv p β (c • x) = c • pi_Lp.equiv p β x := rfl
+@[simp] lemma equiv_symm_smul :
+  (pi_Lp.equiv p β).symm (c • x') = c • (pi_Lp.equiv p β).symm x' := rfl
+
+lemma nnnorm_equiv_symm_const {β} [semi_normed_group β] (b : β) :
+  ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥₊ = fintype.card ι ^ (1 / p) * ∥b∥₊ :=
+begin
+  have : p ≠ 0 := (zero_lt_one.trans_le (fact.out $ 1 ≤ p)).ne',
+  simp_rw [pi_Lp.nnnorm_eq, equiv_symm_apply, function.const_apply, finset.sum_const,
+    finset.card_univ, nsmul_eq_mul, nnreal.mul_rpow, ←nnreal.rpow_mul, mul_one_div_cancel this,
+    nnreal.rpow_one],
+end
+
+lemma norm_equiv_symm_const {β} [semi_normed_group β] (b : β) :
+  ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥ = fintype.card ι ^ (1 / p) * ∥b∥ :=
+(congr_arg coe $ nnnorm_equiv_symm_const b).trans $ by simp
+
+lemma nnnorm_equiv_symm_one {β} [semi_normed_group β] [has_one β] :
+  ∥(pi_Lp.equiv p (λ _ : ι, β)).symm 1∥₊ = fintype.card ι ^ (1 / p) * ∥(1 : β)∥₊ :=
+(nnnorm_equiv_symm_const (1 : β)).trans rfl
+
+lemma norm_equiv_symm_one {β} [semi_normed_group β] [has_one β] :
+  ∥(pi_Lp.equiv p (λ _ : ι, β)).symm 1∥ = fintype.card ι ^ (1 / p) * ∥(1 : β)∥ :=
+(norm_equiv_symm_const (1 : β)).trans rfl
 
 end pi_Lp

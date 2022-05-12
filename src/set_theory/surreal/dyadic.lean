@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Apurva Nakade
 -/
 import algebra.algebra.basic
-import group_theory.monoid_localization
+import ring_theory.localization.away
 import set_theory.surreal.basic
 
 /-!
@@ -41,13 +41,13 @@ def pow_half : ℕ → pgame
 by cases n; refl
 
 @[simp] lemma pow_half_right_moves {n} : (pow_half (n + 1)).right_moves = punit :=
-by cases n; refl
+rfl
 
 @[simp] lemma pow_half_move_left {n i} : (pow_half n).move_left i = 0 :=
 by cases n; cases i; refl
 
 @[simp] lemma pow_half_move_right {n i} : (pow_half (n + 1)).move_right i = pow_half n :=
-by cases n; cases i; refl
+rfl
 
 lemma pow_half_move_left' (n) :
   (pow_half n).move_left (equiv.cast (pow_half_left_moves.symm) punit.star) = 0 :=
@@ -66,12 +66,12 @@ begin
     { rintro ⟨ ⟩ ⟨ ⟩,
       dsimp only [pi.zero_apply],
       rw ← pow_half_move_left' n,
-      apply hn.move_left_lt },
+      apply pgame.move_left_lt },
     { exact ⟨λ _, numeric_zero, λ _, hn⟩ } }
 end
 
 theorem pow_half_succ_lt_pow_half {n : ℕ} : pow_half (n + 1) < pow_half n :=
-(@numeric_pow_half (n + 1)).lt_move_right punit.star
+pgame.lt_move_right punit.star
 
 theorem pow_half_succ_le_pow_half {n : ℕ} : pow_half (n + 1) ≤ pow_half n :=
 le_of_lt numeric_pow_half numeric_pow_half pow_half_succ_lt_pow_half
@@ -97,19 +97,19 @@ begin
       right,
       use sum.inl punit.star,
       calc pow_half (n.succ) + pow_half (n.succ + 1)
-          ≤ pow_half (n.succ) + pow_half (n.succ) : add_le_add_left pow_half_succ_le_pow_half
+          ≤ pow_half (n.succ) + pow_half (n.succ) : add_le_add_left pow_half_succ_le_pow_half _
       ... ≈ pow_half n                            : hn },
     { rintro ⟨ ⟩,
       calc 0 ≈ 0 + 0                                        : (add_zero_equiv _).symm
-        ... ≤ pow_half (n.succ + 1) + 0                     : add_le_add_right zero_le_pow_half
-        ... < pow_half (n.succ + 1) + pow_half (n.succ + 1) : add_lt_add_left zero_lt_pow_half },
+        ... ≤ pow_half (n.succ + 1) + 0                     : add_le_add_right zero_le_pow_half _
+        ... < pow_half (n.succ + 1) + pow_half (n.succ + 1) : add_lt_add_left zero_lt_pow_half _ },
     { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
       { calc pow_half n.succ
-            ≈ pow_half n.succ + 0                           : (add_zero_equiv _).symm
-        ... < pow_half (n.succ) + pow_half (n.succ + 1)     : add_lt_add_left zero_lt_pow_half },
+            ≈ pow_half n.succ + 0                        : (add_zero_equiv _).symm
+        ... < pow_half (n.succ) + pow_half (n.succ + 1)  : add_lt_add_left zero_lt_pow_half _ },
       { calc pow_half n.succ
-            ≈ 0 + pow_half n.succ                           : (zero_add_equiv _).symm
-        ... < pow_half (n.succ + 1) + pow_half (n.succ)     : add_lt_add_right zero_lt_pow_half }}}
+            ≈ 0 + pow_half n.succ                        : (zero_add_equiv _).symm
+        ... < pow_half (n.succ + 1) + pow_half (n.succ)  : add_lt_add_right zero_lt_pow_half _ } } }
 end
 
 end pgame
@@ -178,33 +178,62 @@ begin
     linarith },
 end
 
-/-- The map `dyadic_map` sends ⟦⟨m, 2^n⟩⟧ to m • half ^ n. -/
-def dyadic_map (x : localization (submonoid.powers (2 : ℤ))) : surreal :=
-localization.lift_on x (λ x y, x • pow_half (submonoid.log y)) $
+/-- The additive monoid morphism `dyadic_map` sends ⟦⟨m, 2^n⟩⟧ to m • half ^ n. -/
+def dyadic_map : localization.away (2 : ℤ) →+ surreal :=
+{ to_fun :=
+  λ x, localization.lift_on x (λ x y, x • pow_half (submonoid.log y)) $
+  begin
+    intros m₁ m₂ n₁ n₂ h₁,
+    obtain ⟨⟨n₃, y₃, hn₃⟩, h₂⟩ := localization.r_iff_exists.mp h₁,
+    simp only [subtype.coe_mk, mul_eq_mul_right_iff] at h₂,
+    cases h₂,
+    { simp only,
+      obtain ⟨a₁, ha₁⟩ := n₁.prop,
+      obtain ⟨a₂, ha₂⟩ := n₂.prop,
+      have hn₁ : n₁ = submonoid.pow 2 a₁ := subtype.ext ha₁.symm,
+      have hn₂ : n₂ = submonoid.pow 2 a₂ := subtype.ext ha₂.symm,
+      have h₂ : 1 < (2 : ℤ).nat_abs, from one_lt_two,
+      rw [hn₁, hn₂, submonoid.log_pow_int_eq_self h₂, submonoid.log_pow_int_eq_self h₂],
+      apply dyadic_aux,
+      rwa [ha₁, ha₂] },
+    { have := nat.one_le_pow y₃ 2 nat.succ_pos',
+      linarith }
+    end,
+  map_zero' := localization.lift_on_zero _ _,
+  map_add' := λ x y, localization.induction_on₂ x y $
+  begin
+    rintro ⟨a, ⟨b, ⟨b', rfl⟩⟩⟩ ⟨c, ⟨d, ⟨d', rfl⟩⟩⟩,
+    have h₂ : 1 < (2 : ℤ).nat_abs, from one_lt_two,
+    have hpow₂ := submonoid.log_pow_int_eq_self h₂,
+    simp_rw submonoid.pow_apply at hpow₂,
+    simp_rw [localization.add_mk, localization.lift_on_mk, subtype.coe_mk,
+      submonoid.log_mul (int.pow_right_injective h₂), hpow₂],
+    calc (2 ^ b' * c + 2 ^ d' * a) • pow_half (b' + d')
+        = (c * 2 ^ b') • pow_half (b' + d') + (a * 2 ^ d') • pow_half (d' + b')
+        : by simp only [add_smul, mul_comm,add_comm]
+    ... = c • pow_half d' + a • pow_half b' : by simp only [zsmul_pow_two_pow_half]
+    ... = a • pow_half b' + c • pow_half d' : add_comm _ _,
+  end }
+
+@[simp] lemma dyadic_map_apply (m : ℤ) (p : submonoid.powers (2 : ℤ)) :
+  dyadic_map (is_localization.mk' (localization (submonoid.powers 2)) m p) =
+  m • pow_half (submonoid.log p) :=
 begin
-  intros m₁ m₂ n₁ n₂ h₁,
-  obtain ⟨⟨n₃, y₃, hn₃⟩, h₂⟩ := localization.r_iff_exists.mp h₁,
-  simp only [subtype.coe_mk, mul_eq_mul_right_iff] at h₂,
-  cases h₂,
-  { simp only,
-    obtain ⟨a₁, ha₁⟩ := n₁.prop,
-    obtain ⟨a₂, ha₂⟩ := n₂.prop,
-    have hn₁ : n₁ = submonoid.pow 2 a₁ := subtype.ext ha₁.symm,
-    have hn₂ : n₂ = submonoid.pow 2 a₂ := subtype.ext ha₂.symm,
-    have h₂ : 1 < (2 : ℤ).nat_abs, from dec_trivial,
-    rw [hn₁, hn₂, submonoid.log_pow_int_eq_self h₂, submonoid.log_pow_int_eq_self h₂],
-    apply dyadic_aux,
-    rwa [ha₁, ha₂] },
-  { have := nat.one_le_pow y₃ 2 nat.succ_pos',
-    linarith }
+  rw ← localization.mk_eq_mk',
+  refl,
 end
+
+@[simp] lemma dyadic_map_apply_pow (m : ℤ) (n : ℕ) :
+  dyadic_map (is_localization.mk' (localization (submonoid.powers 2)) m (submonoid.pow 2 n)) =
+  m • pow_half n :=
+by rw [dyadic_map_apply, @submonoid.log_pow_int_eq_self 2 one_lt_two]
 
 /-- We define dyadic surreals as the range of the map `dyadic_map`. -/
 def dyadic : set surreal := set.range dyadic_map
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 
--- TODO show that the map from dyadic rationals to surreals is a group homomorphism, and injective
+-- TODO show that the map from dyadic rationals to surreals is injective
 
 -- TODO map the reals into the surreals, using dyadic Dedekind cuts
 -- TODO show this is a group homomorphism, and injective

@@ -3,8 +3,8 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.equiv.local_equiv
-import topology.opens
+import logic.equiv.local_equiv
+import topology.sets.opens
 
 /-!
 # Local homeomorphisms
@@ -830,7 +830,7 @@ lemma continuous_on_iff_continuous_on_comp_right {f : β → γ} {s : set β} (h
   continuous_on f s ↔ continuous_on (f ∘ e) (e.source ∩ e ⁻¹' s) :=
 begin
   simp only [← e.symm_image_eq_source_inter_preimage h, continuous_on, ball_image_iff],
-  refine forall_congr (λ x, forall_congr $ λ hx, _),
+  refine forall₂_congr (λ x hx, _),
   rw [e.continuous_within_at_iff_continuous_within_at_comp_right (h hx),
     e.symm_image_eq_source_inter_preimage h, inter_comm, continuous_within_at_inter],
   exact is_open.mem_nhds e.open_source (e.map_target (h hx))
@@ -867,8 +867,17 @@ end
 on the left is continuous on the corresponding set. -/
 lemma continuous_on_iff_continuous_on_comp_left {f : γ → α} {s : set γ} (h : s ⊆ f ⁻¹' e.source) :
   continuous_on f s ↔ continuous_on (e ∘ f) s :=
-forall_congr $ λ x, forall_congr $ λ hx, e.continuous_within_at_iff_continuous_within_at_comp_left
+forall₂_congr $ λ x hx, e.continuous_within_at_iff_continuous_within_at_comp_left
   (h hx) (mem_of_superset self_mem_nhds_within h)
+
+/-- A function is continuous if and only if its composition with a local homeomorphism
+on the left is continuous and its image is contained in the source. -/
+lemma continuous_iff_continuous_comp_left {f : γ → α} (h : f ⁻¹' e.source = univ) :
+  continuous f ↔ continuous (e ∘ f) :=
+begin
+  simp only [continuous_iff_continuous_on_univ],
+  exact e.continuous_on_iff_continuous_on_comp_left (eq.symm h).subset,
+end
 
 end continuity
 
@@ -1003,7 +1012,7 @@ noncomputable def subtype_restr : local_homeomorph s β := s.local_homeomorph_su
 lemma subtype_restr_def : e.subtype_restr s = s.local_homeomorph_subtype_coe.trans e := rfl
 
 @[simp, mfld_simps] lemma subtype_restr_coe : ((e.subtype_restr s : local_homeomorph s β) : s → β)
-  = set.restrict (e : α → β) s := rfl
+  = set.restrict ↑s (e : α → β) := rfl
 
 @[simp, mfld_simps] lemma subtype_restr_source : (e.subtype_restr s).source = coe ⁻¹' e.source :=
 by simp only [subtype_restr_def] with mfld_simps

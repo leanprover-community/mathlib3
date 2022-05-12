@@ -360,7 +360,7 @@ begin
   { simp },
   { rw [list.prod_cons, list.map_cons, list.foldr_cons],
     refine (support_mul_le hd tl.prod).trans _,
-    exact sup_le_sup (le_refl _) hl }
+    exact sup_le_sup le_rfl hl }
 end
 
 lemma support_zpow_le (σ : perm α) (n : ℤ) :

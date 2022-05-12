@@ -24,7 +24,7 @@ begin
       simp [this] },
     calc (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n.succ) ≥
       (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n + 1) :
-      by { refine div_le_div (integral_sin_pow_pos _).le (le_refl _) (integral_sin_pow_pos _) _,
+      by { refine div_le_div (integral_sin_pow_pos _).le le_rfl (integral_sin_pow_pos _) _,
         convert integral_sin_pow_succ_le (2 * n + 1) using 1 }
     ... = 2 * ↑(n.succ) / (2 * ↑(n.succ) + 1) :
       by { rw div_eq_iff (integral_sin_pow_pos (2 * n + 1)).ne',
@@ -63,7 +63,7 @@ begin
     (((2:ℝ) * i + 2) / (2 * i + 1)) * ((2 * i + 2) / (2 * i + 3))) at_top (𝓝 1),
   { have := tendsto.const_mul (π / 2) h,
     have h : π / 2 ≠ 0, norm_num [pi_ne_zero],
-    simp only [← mul_assoc, ← @inv_div _ _ π 2, mul_inv_cancel h, one_mul, mul_one] at this,
+    simp only [← mul_assoc, ←inv_div π 2, mul_inv_cancel h, one_mul, mul_one] at this,
     exact this },
   have h : (λ (k : ℕ), (2:ℝ) / π * ∏ (i : ℕ) in range k,
     ((2 * i + 2) / (2 * i + 1)) * ((2 * i + 2) / (2 * i + 3))) =

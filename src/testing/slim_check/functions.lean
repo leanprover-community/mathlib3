@@ -66,7 +66,7 @@ inductive total_function (α : Type u) (β : Type v) : Type (max u v)
 | with_default : list (Σ _ : α, β) → β → total_function
 
 instance total_function.inhabited [inhabited β] : inhabited (total_function α β) :=
-⟨ total_function.with_default ∅ (default _) ⟩
+⟨ total_function.with_default ∅ default ⟩
 
 namespace total_function
 
@@ -114,9 +114,9 @@ variables [decidable_eq α]
 
 /-- Shrink a total function by shrinking the lists that represent it. -/
 protected def shrink : shrink_fn (total_function α β)
-| ⟨m, x⟩ := (sampleable.shrink (m, x)).map $ λ ⟨⟨m', x'⟩, h⟩, ⟨⟨list.erase_dupkeys m', x'⟩,
+| ⟨m, x⟩ := (sampleable.shrink (m, x)).map $ λ ⟨⟨m', x'⟩, h⟩, ⟨⟨list.dedupkeys m', x'⟩,
             lt_of_le_of_lt
-              (by unfold_wf; refine @list.sizeof_erase_dupkeys _ _ _ (@sampleable.wf _ _) _) h ⟩
+              (by unfold_wf; refine @list.sizeof_dedupkeys _ _ _ (@sampleable.wf _ _) _) h ⟩
 
 variables [has_repr α] [has_repr β]
 
@@ -144,7 +144,7 @@ variables [decidable_eq α] [decidable_eq β]
 @[simp]
 def zero_default_supp : total_function α β → finset α
 | (with_default A y) :=
-  list.to_finset $ (A.erase_dupkeys.filter (λ ab, sigma.snd ab ≠ 0)).map sigma.fst
+  list.to_finset $ (A.dedupkeys.filter (λ ab, sigma.snd ab ≠ 0)).map sigma.fst
 
 /-- Create a finitely supported function from a total function by taking the default value to
 zero. -/
@@ -158,16 +158,16 @@ def apply_finsupp (tf : total_function α β) : α →₀ β :=
       list.mem_to_finset, exists_eq_right, sigma.exists, ne.def, zero_default],
     split,
     { rintro ⟨od, hval, hod⟩,
-      have := list.mem_lookup (list.nodupkeys_erase_dupkeys A) hval,
+      have := list.mem_lookup (list.nodupkeys_dedupkeys A) hval,
       rw (_ : list.lookup a A = od),
       { simpa, },
-      { simpa [list.lookup_erase_dupkeys, with_top.some_eq_coe], }, },
+      { simpa [list.lookup_dedupkeys, with_top.some_eq_coe], }, },
     { intro h,
       use (A.lookup a).get_or_else (0 : β),
-      rw ← list.lookup_erase_dupkeys at h ⊢,
-      simp only [h, ←list.mem_lookup_iff A.nodupkeys_erase_dupkeys,
+      rw ← list.lookup_dedupkeys at h ⊢,
+      simp only [h, ←list.mem_lookup_iff A.nodupkeys_dedupkeys,
         and_true, not_false_iff, option.mem_def],
-      cases list.lookup a A.erase_dupkeys,
+      cases list.lookup a A.dedupkeys,
       { simpa using h, },
       { simp, }, }
   end }
@@ -381,7 +381,7 @@ def perm.slice [decidable_eq α] (n m : ℕ) :
   let xs' := list.slice n m xs in
   have h₀ : xs' ~ ys.inter xs',
     from perm.slice_inter _ _ h h',
-  ⟨xs', ys.inter xs', h₀, nodup_inter_of_nodup _ h'⟩
+  ⟨xs', ys.inter xs', h₀, h'.inter _⟩
 
 /--
 A lazy list, in decreasing order, of sizes that should be
@@ -474,7 +474,7 @@ instance pi_injective.sampleable_ext : sampleable_ext { f : ℤ → ℤ // funct
     have Hinj : injective (λ (r : ℕ), -(2*sz + 2 : ℤ) + ↑r),
       from λ x y h, int.coe_nat_inj (add_right_injective _ h),
     let r : injective_function ℤ :=
-      injective_function.mk.{0} xs' ys.1 ys.2 (ys.2.nodup_iff.1 $ nodup_map Hinj (nodup_range _)) in
+      injective_function.mk.{0} xs' ys.1 ys.2 (ys.2.nodup_iff.1 $ (nodup_range _).map Hinj) in
     pure r },
   shrink := @injective_function.shrink ℤ _ _ }
 

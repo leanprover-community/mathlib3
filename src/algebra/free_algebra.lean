@@ -3,7 +3,7 @@ Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Adam Topaz
 -/
-import algebra.algebra.subalgebra
+import algebra.algebra.subalgebra.basic
 import algebra.monoid_algebra.basic
 
 /-!
@@ -337,10 +337,10 @@ lemma algebra_map_left_inverse :
 algebra_map_left_inverse.injective.eq_iff
 
 @[simp] lemma algebra_map_eq_zero_iff (x : R) : algebra_map R (free_algebra R X) x = 0 ↔ x = 0 :=
-algebra_map_inj x 0
+map_eq_zero_iff (algebra_map _ _) algebra_map_left_inverse.injective
 
 @[simp] lemma algebra_map_eq_one_iff (x : R) : algebra_map R (free_algebra R X) x = 1 ↔ x = 1 :=
-algebra_map_inj x 1
+map_eq_one_iff (algebra_map _ _) algebra_map_left_inverse.injective
 
 -- this proof is copied from the approach in `free_abelian_group.of_injective`
 lemma ι_injective [nontrivial R] : function.injective (ι R : X → free_algebra R X) :=
@@ -411,27 +411,5 @@ begin
   exact of_id a,
 end
 
-/-- The star ring formed by reversing the elements of products -/
-instance : star_ring (free_algebra R X) :=
-{ star := mul_opposite.unop ∘ lift R (mul_opposite.op ∘ ι R),
-  star_involutive := λ x, by
-  { unfold has_star.star,
-    simp only [function.comp_apply],
-    refine free_algebra.induction R X _ _ _ _ x; intros; simp [*] },
-  star_mul := λ a b, by simp,
-  star_add := λ a b, by simp }
-
-@[simp]
-lemma star_ι (x : X) : star (ι R x) = (ι R x) :=
-by simp [star, has_star.star]
-
-@[simp]
-lemma star_algebra_map (r : R) : star (algebra_map R (free_algebra R X) r) = (algebra_map R _ r) :=
-by simp [star, has_star.star]
-
-/-- `star` as an `alg_equiv` -/
-def star_hom : free_algebra R X ≃ₐ[R] (free_algebra R X)ᵐᵒᵖ :=
-{ commutes' := λ r, by simp [star_algebra_map],
-  ..star_ring_equiv }
 
 end free_algebra

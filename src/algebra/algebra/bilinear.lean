@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.algebra.basic
+import algebra.hom.iterate
 import linear_algebra.tensor_product
-import algebra.iterate_hom
 
 /-!
 # Facts about algebras involving bilinear maps and tensor products
@@ -51,9 +51,17 @@ variables (R)
 def lmul_left (r : A) : A →ₗ[R] A :=
 lmul R A r
 
+@[simp] lemma lmul_left_to_add_monoid_hom (r : A) :
+  (lmul_left R r : A →+ A) = add_monoid_hom.mul_left r :=
+fun_like.coe_injective rfl
+
 /-- The multiplication on the right in an algebra is a linear map. -/
 def lmul_right (r : A) : A →ₗ[R] A :=
 (lmul R A).to_linear_map.flip r
+
+@[simp] lemma lmul_right_to_add_monoid_hom (r : A) :
+  (lmul_right R r : A →+ A) = add_monoid_hom.mul_right r :=
+fun_like.coe_injective rfl
 
 /-- Simultaneous multiplication on the left and right is a linear map. -/
 def lmul_left_right (vw: A × A) : A →ₗ[R] A :=

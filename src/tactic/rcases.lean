@@ -169,7 +169,7 @@ meta def tuple₁_core : listΠ rcases_patt → listΠ rcases_patt
 `tuple₁_core` but it produces a pattern instead of a tuple pattern list, converting `[n]` to `n`
 instead of `⟨n⟩` and `[]` to `_`, and otherwise just converting `[a, b, c]` to `⟨a, b, c⟩`. -/
 meta def tuple₁ : listΠ rcases_patt → rcases_patt
-| [] := default _
+| [] := default
 | [one n] := one n
 | ps := tuple (tuple₁_core ps)
 
@@ -236,7 +236,7 @@ tactics. -/
 meta def rcases.process_constructor :
   nat → listΠ rcases_patt → listΠ name × listΠ rcases_patt
 | 0     ps  := ([], [])
-| 1     []  := ([`_], [default _])
+| 1     []  := ([`_], [default])
 | 1     [p] := ([p.name.get_or_else `_], [p])
 
 -- The interesting case: we matched the last field against multiple
@@ -908,11 +908,11 @@ If `type` is omitted, `:= proof` is required.
 -/
 meta def obtain : parse obtain_parse → tactic unit
 | ((pat, _), some (sum.inr val)) :=
-  tactic.rcases_many val (pat.get_or_else (default _))
+  tactic.rcases_many val (pat.get_or_else default)
 | ((pat, none), some (sum.inl val)) :=
-  tactic.rcases none val (pat.get_or_else (default _))
+  tactic.rcases none val (pat.get_or_else default)
 | ((pat, some tp), some (sum.inl val)) :=
-  tactic.rcases none val $ (pat.get_or_else (default _)).typed tp
+  tactic.rcases none val $ (pat.get_or_else default).typed tp
 | ((pat, some tp), none) := do
   nm ← mk_fresh_name,
   e ← to_expr tp >>= assert nm,

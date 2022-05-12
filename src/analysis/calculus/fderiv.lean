@@ -1048,7 +1048,6 @@ by { refine eq₂.triangle (eq₁.congr_left (λ x', _)), simp }
 /- A readable version of the previous theorem,
    a general form of the chain rule. -/
 
-#check trans_rel_left
 example {g : F → G} {g' : F →L[𝕜] G}
   (hg : has_fderiv_at_filter g g' (f x) (L.map f))
   (hf : has_fderiv_at_filter f f' x L) :
@@ -1059,21 +1058,10 @@ begin
     hg.comp_tendsto le_rfl
   ... =O[L] (λ x', x' - x) : hf.is_O_sub,
   refine this.triangle _,
-  have := calc (λ x' : E, g' (f x' - f x) - g'.comp f' (x' - x)) = (λ x', g' (f x' - f x - f' (x' - x))) :
-    _
-  -- ... =O[L] (λ x', f x' - f x - f' (x' - x)) : g'.is_O_comp _ _
-  ... =o[L] λ x', x' - x : _ ,
-  convert this,
-
-  -- have eq₂ : (λ x', f x' - f x - f' (x' - x)) =o[L] (λ x', x' - x),
-  --   from hf,
-  -- have : (λ x', g' (f x' - f x - f' (x' - x))) =O[L] (λ x', f x' - f x - f' (x' - x)),
-  --   from g'.is_O_comp _ _,
-  -- have : (λ x', g' (f x' - f x - f' (x' - x))) =o[L] (λ x', x' - x),
-  --   from this.trans_is_o eq₂,
-  -- have eq₃ : (λ x', g' (f x' - f x) - (g' (f' (x' - x)))) =o[L] (λ x', x' - x),
-  --   by { refine this.congr_left _, simp},
-  -- exact eq₁.triangle eq₃
+  calc (λ x' : E, g' (f x' - f x) - g'.comp f' (x' - x))
+      =ᶠ[L] λ x', g' (f x' - f x - f' (x' - x)) : eventually_of_forall (λ x', by simp)
+  ... =O[L] λ x', f x' - f x - f' (x' - x)      : g'.is_O_comp _ _
+  ... =o[L] λ x', x' - x                        : hf
 end
 
 theorem has_fderiv_within_at.comp {g : F → G} {g' : F →L[𝕜] G} {t : set F}

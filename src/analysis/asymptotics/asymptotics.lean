@@ -253,6 +253,22 @@ h.congr hf (λ _, rfl)
 theorem is_o.congr_right (h : f =o[l] g₁) (hg : ∀ x, g₁ x = g₂ x) : f =o[l] g₂ :=
 h.congr (λ _, rfl) hg
 
+@[trans] theorem _root_.filter.eventually_eq.trans_is_O {f₁ f₂ : α → E} {g : α → F}
+  (hf : f₁ =ᶠ[l] f₂) (h : f₂ =O[l] g) : f₁ =O[l] g :=
+h.congr' hf.symm eventually_eq.rfl
+
+@[trans] theorem _root_.filter.eventually_eq.trans_is_o {f₁ f₂ : α → E} {g : α → F}
+  (hf : f₁ =ᶠ[l] f₂) (h : f₂ =o[l] g) : f₁ =o[l] g :=
+h.congr' hf.symm eventually_eq.rfl
+
+@[trans] theorem is_O.trans_eventually_eq {f : α → E} {g₁ g₂ : α → F}
+  (h : f =O[l] g₁) (hg : g₁ =ᶠ[l] g₂) : f =O[l] g₂ :=
+h.congr' eventually_eq.rfl hg
+
+@[trans] theorem is_o.trans_eventually_eq {f : α → E} {g₁ g₂ : α → F}
+  (h : f =o[l] g₁) (hg : g₁ =ᶠ[l] g₂) : f =o[l] g₂ :=
+h.congr' eventually_eq.rfl hg
+
 end congr
 
 /-! ### Filter operations and transitivity -/

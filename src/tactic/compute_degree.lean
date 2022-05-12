@@ -75,8 +75,8 @@ lemma nat_degree_monomial_eq (i : ℕ) {r : R} (r0 : r ≠ 0) : (monomial i r).n
 by classical; exact eq.trans (nat_degree_monomial _ _) (if_neg r0)
 
 /--  Useful for hiding the `classical` in the proof. -/
-lemma nat_degree_monomial_le (a : R) {m : ℕ} :
-  (monomial m a).nat_degree ≤ m :=
+lemma nat_degree_monomial_le (a : R) {n : ℕ} :
+  (monomial n a).nat_degree ≤ n :=
 begin
   classical,
   rw polynomial.nat_degree_monomial,
@@ -84,8 +84,8 @@ begin
 end
 
 /--  Useful for hiding the `nontriviality` in the proof. -/
-lemma nat_degree_X_pow_le {m n : ℕ} (mn : m ≤ n) :
-  (X ^ m : R[X]).nat_degree ≤ n :=
+lemma nat_degree_X_pow_le (n : ℕ) :
+  (X ^ n : R[X]).nat_degree ≤ n :=
 begin
   nontriviality R,
   rwa polynomial.nat_degree_X_pow,
@@ -224,7 +224,7 @@ do `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
       `[repeat { rw polynomial.monomial_mul_monomial }],
       try $ any_goals' $ refine ``((polynomial.nat_degree_monomial_le _).trans _),
       repeat $ refine ``((polynomial.nat_degree_C_mul_le _ _).trans _),
-      repeat $ refine ``(polynomial.nat_degree_X_pow_le _),
+      repeat $ refine ``((polynomial.nat_degree_X_pow_le _).trans _),
       repeat $ refine ``(polynomial.nat_degree_X_le.trans _),
       `[try { any_goals { norm_num } }]
 

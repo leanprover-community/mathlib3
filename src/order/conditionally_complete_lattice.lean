@@ -313,14 +313,9 @@ lemma not_mem_of_cSup_lt {x : α} {s : set α} (h : Sup s < x) (hs : bdd_above s
 is larger than all elements of `s`, and that this is not the case of any `w<b`.
 See `Sup_eq_of_forall_le_of_forall_lt_exists_gt` for a version in complete lattices. -/
 theorem cSup_eq_of_forall_le_of_forall_lt_exists_gt (hs : s.nonempty)
-  (H : ∀ a ∈ s, a ≤ b) (H' : ∀ w, w < b → (∃ a ∈ s, w < a)) : Sup s = b :=
-have hs' : bdd_above s := ⟨b, by assumption⟩,
-have (Sup s < b) ∨ (Sup s = b) := lt_or_eq_of_le (cSup_le hs H),
-have h : ¬(Sup s < b) := λ hb,
-  let ⟨a, ha, ha'⟩ := (H' (Sup s) hb) in  /- a ∈ s, Sup s < a-/
-  have Sup s < Sup s := lt_of_lt_of_le ha' (le_cSup hs' ha),
-  show false, by { exact lt_irrefl (Sup s) this },
-show Sup s = b, by { cases this with h1, { cases h h1 }, { assumption } }
+  (H : ∀ a ∈ s, a ≤ b) (H' : ∀ w, w < b → ∃ a ∈ s, w < a) : Sup s = b :=
+eq_of_le_of_not_lt (cSup_le hs H) $ λ hb, let ⟨a, ha, ha'⟩ := H' _ hb in
+  lt_irrefl _ $ ha'.trans_le $ le_cSup ⟨b, H⟩ ha
 
 /--Introduction rule to prove that `b` is the infimum of `s`: it suffices to check that `b`
 is smaller than all elements of `s`, and that this is not the case of any `w>b`.

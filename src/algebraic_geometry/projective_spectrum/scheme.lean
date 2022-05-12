@@ -120,31 +120,37 @@ def degree_zero_part {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) : subring (away f)
   zero_mem' := ⟨0, ⟨0, (mk_zero _).symm⟩⟩,
   neg_mem' := λ x ⟨n, ⟨a, h⟩⟩, h.symm ▸ ⟨n, ⟨-a, neg_mk _ _⟩⟩ }
 
+end
+
 local notation `A⁰_` f_deg := degree_zero_part f_deg
 
-instance (f : A) {m : ℕ} (f_deg : f ∈ 𝒜 m) : comm_ring (degree_zero_part f_deg) :=
+section
+
+variable {𝒜}
+
+instance (f : A) {m : ℕ} (f_deg : f ∈ 𝒜 m) : comm_ring (A⁰_ f_deg) :=
 (degree_zero_part f_deg).to_comm_ring
 
 /--
 Every element in the degree zero part of `Aₓ` can be written as `a/x^n` for some `a` and `n : ℕ`,
 `degree_zero_part.deg` picks this natural number `n`
 -/
-def degree_zero_part.deg {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x : A⁰_ f_deg) : ℕ :=
+def degree_zero_part.deg {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m} (x : A⁰_ f_deg) : ℕ :=
 x.2.some
 
 /--
 Every element in the degree zero part of `Aₓ` can be written as `a/x^n` for some `a` and `n : ℕ`,
 `degree_zero_part.deg` picks the numerator `a`
 -/
-def degree_zero_part.num {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x : A⁰_ f_deg) : A :=
+def degree_zero_part.num {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m} (x : A⁰_ f_deg) : A :=
 x.2.some_spec.some.1
 
-lemma degree_zero_part.num_mem {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x : A⁰_ f_deg) :
-  degree_zero_part.num f_deg x ∈ 𝒜 (m * degree_zero_part.deg f_deg x) :=
+lemma degree_zero_part.num_mem {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m} (x : A⁰_ f_deg) :
+  degree_zero_part.num x ∈ 𝒜 (m * degree_zero_part.deg x) :=
 x.2.some_spec.some.2
 
-lemma degree_zero_part.eq {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x : A⁰_ f_deg) :
-  x.1 = mk (degree_zero_part.num f_deg x) ⟨f^(degree_zero_part.deg f_deg x), ⟨_, rfl⟩⟩ :=
+lemma degree_zero_part.eq {f : A} {m : ℕ} {f_deg : f ∈ 𝒜 m} (x : A⁰_ f_deg) :
+  x.1 = mk (degree_zero_part.num x) ⟨f^(degree_zero_part.deg x), ⟨_, rfl⟩⟩ :=
 x.2.some_spec.some_spec
 
 lemma degree_zero_part.mul_val {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x y : A⁰_ f_deg) :
@@ -191,7 +197,7 @@ namespace forward
 -- So for any `x` in `Proj| (pbo f)`, we need some point in `Spec A⁰_f`, i.e. a prime ideal,
 -- and we need this correspondence to be continuous in their Zariski topology.
 
-variables {𝒜} {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) (x : Proj| (pbo f))
+variables {𝒜} {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) (x : Proj| (pbo f))
 
 /--For any `x` in `Proj| (pbo f)`, the corresponding ideal in `Spec A⁰_f`. This fact that this ideal
 is prime is proven in `Top_component.forward.to_fun`-/
@@ -200,13 +206,13 @@ ideal.comap (algebra_map (A⁰_ f_deg) (away f))
   (ideal.span { y | ∃ (g : A), g ∈ x.1.as_homogeneous_ideal.1 ∧ y = (mk g 1 : away f) })
 
 lemma mem_carrier_iff (z : A⁰_ f_deg) :
-  z ∈ carrier m f_deg x ↔
+  z ∈ carrier f_deg x ↔
   z.1 ∈ ideal.span { y | ∃ (g : A), g ∈ x.1.as_homogeneous_ideal.1 ∧ y = (mk g 1 : away f) } :=
 iff.rfl
 
 lemma carrier_ne_top :
   ((x.1.as_homogeneous_ideal.1 : set A) ∩ (submonoid.powers f : set A)) = ∅ →
-  carrier m f_deg x ≠ ⊤ := λ eq_top,
+  carrier f_deg x ≠ ⊤ := λ eq_top,
 begin
   haveI : decidable_eq (localization.away f) := classical.dec_eq _,
   contrapose! eq_top,
@@ -309,7 +315,7 @@ end
 `Spec A⁰_f`. The fact that this function is continuous is proven in `Top_component.forward`.
 -/
 def to_fun : (Proj.T| (pbo f)) → (Spec.T (A⁰_ f_deg)) := λ x,
-⟨carrier m f_deg x,
+⟨carrier f_deg x,
   ⟨begin
     classical,
     apply carrier_ne_top,
@@ -436,7 +442,7 @@ def to_fun : (Proj.T| (pbo f)) → (Spec.T (A⁰_ f_deg)) := λ x,
 
 lemma preimage_eq (a : A) (n : ℕ)
   (a_mem_degree_zero : (mk a ⟨f ^ n, ⟨n, rfl⟩⟩ : away f) ∈ A⁰_ f_deg) :
-  to_fun 𝒜 m f_deg ⁻¹'
+  to_fun 𝒜 f_deg ⁻¹'
       (sbo (⟨mk a ⟨f ^ n, ⟨_, rfl⟩⟩, a_mem_degree_zero⟩ : A⁰_ f_deg)).1
   = {x | x.1 ∈ (pbo f) ⊓ (pbo a)} :=
 begin
@@ -610,7 +616,7 @@ open set in `Spec A⁰_f`.
 -/
 def forward {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) :
   (Proj.T| (pbo f)) ⟶ (Spec.T (A⁰_ f_deg)) :=
-{ to_fun := forward.to_fun 𝒜 m f_deg,
+{ to_fun := forward.to_fun 𝒜 f_deg,
   continuous_to_fun := begin
     apply is_topological_basis.continuous (prime_spectrum.is_topological_basis_basic_opens),
     rintros _ ⟨⟨g, hg⟩, rfl⟩,
@@ -632,7 +638,7 @@ def forward {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) :
         change _ ∧ _ at hz,
         erw set.mem_preimage,
         exact hz, }, },
-    suffices : set1 = forward.to_fun 𝒜 m f_deg ⁻¹'
+    suffices : set1 = forward.to_fun 𝒜 f_deg ⁻¹'
       (prime_spectrum.basic_open (⟨mk a ⟨f ^ n, _⟩, hg⟩ : A⁰_ f_deg)).1,
     { erw ←this, exact o1, },
     { symmetry, apply forward.preimage_eq },

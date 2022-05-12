@@ -317,24 +317,22 @@ do
   set_goal_to_hleft_eq_tleft hsum_on_left,
   prove_equal_if_desired config
 
-meta def _root_.expr.get_frozen_name (e : pexpr) : name :=
-match e.is_annotation with
-| some (`frozen_name, expr.const n _) := n
-| _ := name.anonymous
-end
-
-meta def pexpr.get_app_args : pexpr → opt_param (list pexpr) [] → pexpr × list pexpr
-| (expr.app e1 e2) r := pexpr.get_app_args e1 (e2::r)
-| e1 r := (e1, r)
-
+/-- `mk_mul [p₀, p₁, ..., pₙ]` produces the pexpr `p₀ * p₁ * ... * pₙ`. -/
 meta def mk_mul : list pexpr → pexpr
 | [] := ``(1)
 | [e] := e
 | (e::es) := ``(%%e * %%(mk_mul es))
 
+/--
+`as_linear_combo neg ms e` is used to parse the argument to `linear_combination`.
+This argument is a sequence of literals `x`, `-x`, or `c*x` combined with `+` or `-`,
+given by the pexpr `e`.
+The `neg` and `ms` arguments are used recursively; called at the top level, its usage should be
+`as_linear_combo ff [] e`.
+-/
 meta def as_linear_combo : bool → list pexpr → pexpr → list (pexpr × pexpr)
 | neg ms e :=
-  let (head, args) := pexpr.get_app_args e in
+  let (head, args) := pexpr.get_app_fn_args e in
   match head.get_frozen_name, args with
   | ``has_add.add, [e1, e2] := as_linear_combo neg ms e1 ++ as_linear_combo neg ms e2
   | ``has_sub.sub, [e1, e2] := as_linear_combo neg ms e1 ++ as_linear_combo (bnot neg) ms e2

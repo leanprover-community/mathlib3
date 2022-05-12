@@ -1193,7 +1193,9 @@ begin
     exact hyp },
 end
 
--- The following lemma is probably wrong
+/-
+-- The following lemma is wrong
+-- The proven direction is equivalent to is_preprimitive_of_two_pretransitive
 lemma is_preprimitive_iff_is_pretransitive_of_stabilizer (hGX : is_pretransitive G X) (a : X) :
   is_pretransitive (stabilizer G a) (sub_mul_action_of_stabilizer G X a)
   ↔ is_preprimitive G X :=
@@ -1254,11 +1256,22 @@ begin
     use x, exact ⟨hx, hgax⟩ },
 
   { intro hG, apply is_pretransitive.mk,
+    rintros ⟨x, hx⟩ ⟨y, hy⟩,
+-- g tel que g • x = y
+-- b := g • a
+-- ? h tel que (h * g) • a = a, (h * g) • x = y,
+-- h • y = y, h • b = a…
+-- propriété où a est remplacé par y
+
+-- γ • y = a
+--
   sorry },
 end
 
+-/
+
 /-- Theorem 8.4 : if the action of a subgroup H on an orbit is primitive,
-   and if that orbit is small enough, then the action of G is primitive -/
+   and if that orbit is not too small, then the action of G is primitive -/
 theorem is_primitive_of_subgroup' [hfX : fintype X] [decidable_eq X] (htGX : is_pretransitive G X)
   (H : subgroup G) {C : sub_mul_action H X} (hH : is_preprimitive H C)
   (hC : 2 * C.carrier.to_finset.card > fintype.card X) :

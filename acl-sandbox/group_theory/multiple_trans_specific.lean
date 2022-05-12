@@ -191,17 +191,184 @@ end
 
 section Jordan
 
+example (s : set α) : cardinal.mk s = ↑(fintype.card s) :=
+begin
+  exact cardinal.mk_fintype ↥s
+end
+
 variables (G : subgroup (equiv.perm α))
 
--- α = Ω, s = Δ
+lemma normal_closure_of_stabilizer_eq_top
+  (hsn' : 2 < fintype.card α) (hG' : is_multiply_pretransitive G α 2)
+  {a : α} : subgroup.normal_closure (stabilizer G a).carrier = ⊤ :=
+begin
+  have hG : is_pretransitive G α,
+  { rw is_pretransitive_iff_is_one_pretransitive,
+    apply is_multiply_pretransitive_of_higher,
+    exact hG',
+    norm_num,
+    rw cardinal.mk_fintype, apply le_of_lt, rw cardinal.nat_cast_lt, exact hsn' },
+  let hG_eq := hG.exists_smul_eq,
+
+  suffices : (stabilizer G a).is_maximal,
+    rw subgroup.is_maximal_def at this,
+    apply this.right,
+
+  { --  unfold subgroup.normal_closure,
+    split,
+    { intros g hg, apply subgroup.closure_le_normal_closure,
+      apply subgroup.subset_closure, exact hg },
+    { intro hyp,
+
+      -- prendre b, c ≠ a
+      have : ∃ (b c : sub_mul_action_of_stabilizer G α a), b ≠ c,
+      { rw ← nontrivial_iff ,
+        rw ← cardinal.one_lt_iff_nontrivial,
+        change 1 < cardinal.mk (sub_mul_action_of_stabilizer G α a).carrier,
+        rw sub_mul_action_of_stabilizer_def,
+        rw [← nat.cast_one, cardinal.mk_fintype, cardinal.nat_cast_lt],
+        rw ← add_lt_add_iff_left 1,
+        refine lt_of_lt_of_le hsn' (le_of_eq _),
+        rw ← fintype.card_of_subsingleton _,
+        apply cardinal.nat_cast_injective,
+
+        rw [← cardinal.mk_fintype, nat.cast_add, ← cardinal.mk_fintype],
+        simp only [← cardinal.mk_fintype],
+        rw cardinal.mk_sum_compl ,
+        { use a, exact set.mem_singleton a },
+        exact unique.subsingleton },
+      obtain ⟨⟨b, hb⟩, ⟨c, hc⟩, hbc⟩ := this,
+      simp only [ne.def, subtype.mk_eq_mk] at hbc,
+
+      have hatrans : is_pretransitive (stabilizer G a) (sub_mul_action_of_stabilizer G α a),
+      { rw is_pretransitive_iff_is_one_pretransitive,
+        exact (stabilizer.is_multiply_pretransitive G α hG).mp hG' },
+      let hatrans_eq := hatrans.exists_smul_eq,
+
+      -- trouver g ∈ stabilizer G a, g • b = c,
+      obtain ⟨⟨g, hg⟩, hgbc⟩ := hatrans_eq ⟨b, hb⟩ ⟨c, hc⟩,
+      have hgbc' : g • b = c,
+      { rw ← set_like.coe_eq_coe at hgbc, exact hgbc },
+
+      -- trouver h ∈ G, h⁻¹ • a = b,
+      obtain ⟨h : G, hinvab : h • b = a⟩ := hG_eq b a,
+
+      suffices : (h * g * h⁻¹) • a ≠ a,
+      -- h * g * h⁻¹ ∈ subgroup.normal_closure (stabilizer G a)
+      { apply this,
+        rw ← mem_stabilizer_iff,
+        apply hyp,
+        refine (subgroup.normal_closure_normal).conj_mem _ _ _,
+        apply subgroup.subset_normal_closure,
+        exact hg },
+
+      -- h * g * h⁻¹ • a = h • g • b = h • c ≠ h • b = a
+      suffices : (h * g * h⁻¹) • a = h • c,
+      { rw this, rw ← hinvab,
+        intro z,
+        apply hbc, apply mul_action.injective h, exact z.symm },
+
+      simp only [← smul_smul],
+      rw ← hgbc',
+      refine congr_arg2 _ rfl _,
+      refine congr_arg2 _ rfl _,
+      rw inv_smul_eq_iff, exact hinvab.symm } },
+
+    rw @maximal_stabilizer_iff_primitive G α _ _
+      (begin
+        rw [← cardinal.one_lt_iff_nontrivial,
+          cardinal.mk_fintype, ← nat.cast_one, cardinal.nat_cast_lt],
+        exact lt_trans (lt_add_one 1) hsn',
+        end) hG a,
+    apply is_preprimitive_of_two_pretransitive,
+    exact hG'
+end
+
+theorem jordan0_init (hG : is_preprimitive G α)
+  {a : α} (hsn' : 2 < fintype.card α)
+  (hs_trans : is_pretransitive (stabilizer G a) (sub_mul_action_of_stabilizer G α a)) :
+  is_multiply_pretransitive (subgroup.normal_closure (stabilizer G a).carrier) α 2 :=
+begin
+  let hG_eq := hG.exists_smul_eq,
+  have hG' : is_multiply_pretransitive G α 2,
+  { rw stabilizer.is_multiply_pretransitive,
+    { rw ← is_pretransitive_iff_is_one_pretransitive,
+      exact hs_trans, },
+    exact hG.to_is_pretransitive },
+
+  rw normal_closure_of_stabilizer_eq_top α G hsn' hG',
+  let j : mul_action_bihom G α ↥(⊤ : subgroup G) α := {
+  to_fun := id,
+  to_monoid_hom := {
+    to_fun := λ m, ⟨m, subgroup.mem_top m⟩,
+    map_one' := rfl,
+    map_mul' := λ m n, rfl },
+  map_smul' := λ m x, rfl, },
+  suffices : function.surjective j.to_fun,
+  apply is_multiply_pretransitive_via_surjective_bihom this hG',
+  exact function.surjective_id,
+end
+
+theorem card_eq_one_iff_is_singleton (s : set α) (hs : fintype.card s = 1) :
+  ∃ (a : α), s = {a} :=
+begin
+  obtain ⟨⟨a,ha⟩, ha'⟩ := fintype.card_eq_one_iff.mp hs,
+  use a,
+  rw set.eq_singleton_iff_unique_mem,
+  apply and.intro ha,
+  intros x hx,
+  exact subtype.mk_eq_mk.mp  (ha' ⟨x, hx⟩)
+end
+
+-- α = Ω, s = Δ, α \ s = Γ
 theorem jordan0 (hG : is_preprimitive G α)
-  {s : set α} (hs : 1 ≤ fintype.card s) (hs' : 2 + fintype.card (s) ≤ fintype.card α)
+  {s : set α} {n : ℕ}  (hsn : fintype.card s = n.succ)
+  (hsn' : 1 + n.succ < fintype.card α)
   (hs_trans : is_pretransitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
-  is_multiply_pretransitive (subgroup.normal_closure (fixing_subgroup G s).carrier) α 2 := sorry
+  is_multiply_pretransitive (subgroup.normal_closure (fixing_subgroup G s).carrier) α 2 :=
+begin
+  let hG_eq := hG.to_is_pretransitive.exists_smul_eq,
+  induction n with n hrec,
+  -- Initialization : n = 0
+  { -- s = {a}
+    obtain ⟨a, hsa⟩ := card_eq_one_iff_is_singleton α s hsn,
+    rw hsa at *,
+
+    have hG' : is_multiply_pretransitive G α 2,
+    { rw stabilizer.is_multiply_pretransitive G α hG.to_is_pretransitive,
+      rw ← is_pretransitive_iff_is_one_pretransitive,
+      -- is_pretransitive (stabilizer G a) (sub_mul_action_of_stabilizer G α a),
+      refine is_pretransitive_of_bihom
+        (sub_mul_action_of_fixing_subgroup_of_singleton_bihom G a)
+        (function.bijective.surjective
+          (sub_mul_action_of_fixing_subgroup_of_singleton_bihom_bijective G a))
+        hs_trans, },
+
+    suffices : stabilizer G a = fixing_subgroup G ({a} : set α),
+    rw [← this],
+
+    refine jordan0_init α G hG _ _,
+    apply lt_of_eq_of_lt _ hsn', norm_num,
+    rw is_pretransitive_iff_is_one_pretransitive,
+    exact (stabilizer.is_multiply_pretransitive G α hG.to_is_pretransitive).mp hG',
+
+    -- stabilizer G a = fixing_subgroup G ({a} : set α),
+    { ext g,  split,
+      intro hg, rw mem_fixing_subgroup_iff, intros x hx,
+        rw (set.mem_singleton_iff.mp hx), exact hg,
+      intro hg, exact (mem_fixing_subgroup_iff G).mp hg a (set.mem_singleton a) } },
+
+  -- Induction step
+  {
+
+
+
+    sorry },
+end
 
 theorem jordan0' (hG : is_preprimitive G α)
-  {s : set α} (hs : 1 ≤ fintype.card s) (hs' : 2 + fintype.card (s) ≤ fintype.card α)
-  (hs_trans : is_preprimitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
+  {s : set α} {n : ℕ} (hsn : fintype.card s = n.succ) (hsn' : 1 + n.succ < fintype.card α)
+  (hs_prim : is_preprimitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
   is_multiply_preprimitive (subgroup.normal_closure (fixing_subgroup G s).carrier) α 2 := sorry
 
 theorem jordan1 (hG : is_preprimitive G α)
@@ -209,22 +376,66 @@ theorem jordan1 (hG : is_preprimitive G α)
   (hs_trans : is_pretransitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
   is_multiply_pretransitive G α 2 :=
 begin
+ -- We can deduce it from jordan0
   apply is_pretransitive_of_subgroup,
-  apply jordan0 α G hG hs hs' hs_trans,
+  obtain ⟨n,hn : fintype.card ↥s = n.succ⟩ := nat.exists_eq_succ_of_ne_zero
+    (nat.one_le_iff_ne_zero.mp hs),
+  apply jordan0 α G hG hn
+    (begin rw hn at hs', apply lt_of_lt_of_le _ hs', norm_num,  end)
+    hs_trans,
 end
 
 theorem jordan1' (hG : is_preprimitive G α)
   {s : set α} (hs : 1 ≤ fintype.card s) (hs' : 2 + fintype.card (s) ≤ fintype.card α)
-  (hs_trans : is_preprimitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
+  (hs_prim : is_preprimitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
   is_multiply_preprimitive G α 2 :=
 begin
-    apply is_multiply_preprimitive_of_subgroup,
-  apply jordan0' α G hG hs hs' hs_trans,
+ -- We can deduce it from jordan0'
+  obtain ⟨n,hn : fintype.card ↥s = n.succ⟩ := nat.exists_eq_succ_of_ne_zero
+    (nat.one_le_iff_ne_zero.mp hs),
+  apply is_multiply_preprimitive_of_subgroup,
+  norm_num,
+  refine jordan0' α G hG hn
+    (begin rw hn at hs', apply lt_of_lt_of_le _ hs', norm_num,  end)
+    hs_prim
 end
 
+-- Wielandt : s = Δ, n - m = #s, n = #α, m = #sᶜ, 1 < m < n
+-- 1 + #s < n , #s ≥ 1
+
 theorem jordan2 (hG : is_preprimitive G α)
-  {s : set α} (hs : 1 ≤ fintype.card s) (hs' : 2 + fintype.card s ≤ fintype.card α) :
-  is_multiply_preprimitive G α (fintype.card s + 1) := sorry
+  {s : set α} {m n : ℕ} (hsn : fintype.card s = n.succ) (hsn' : 1 + n.succ < fintype.card α)
+  (hprim : is_preprimitive (fixing_subgroup G s) (sub_mul_action_of_fixing_subgroup G s)) :
+  is_multiply_preprimitive G α (1 + n.succ) :=
+begin
+  let hG_eq := hG.exists_smul_eq,
+  induction n with n hrec,
+  { obtain ⟨a, hsa⟩ := card_eq_one_iff_is_singleton α s hsn,
+    rw hsa at *,
+    split,
+    { rw stabilizer.is_multiply_pretransitive,
+      rw ← is_pretransitive_iff_is_one_pretransitive,
+      refine is_pretransitive_of_bihom
+        (sub_mul_action_of_fixing_subgroup_of_singleton_bihom G a)
+        (function.bijective.surjective (sub_mul_action_of_fixing_subgroup_of_singleton_bihom_bijective G a))
+        hprim.to_is_pretransitive,
+        exact hG.to_is_pretransitive, },
+    { intros t h,
+      suffices ht' : fintype.card t = 1,
+      { obtain ⟨b, htb⟩ := card_eq_one_iff_is_singleton α t ht',
+        rw htb at *,
+        obtain ⟨g, hg⟩ := hG_eq a b,
+        have hst : g • {a} = {b}, sorry,
+        apply is_preprimitive_of_bihom _
+          (function.bijective.surjective
+            (sub_mul_action_of_fixing_subgroup_conj_bihom_bijective G hst))
+          hprim },
+      { rw [cardinal.mk_fintype, ← nat.cast_one, ← nat.cast_add,
+          cardinal.nat_cast_inj, add_left_inj] at h,
+        exact h } } },
+  -- Induction step
+  sorry
+end
 
 theorem jordan_perm (hG : is_preprimitive G α)
   {g : equiv.perm α} (h2g : equiv.perm.is_swap g) (hg : g ∈ G) : G = ⊤  :=

@@ -188,20 +188,23 @@ begin
     simp },
 end
 
+
 /-- A pretransitive  action is n.succ-fold preprimitive  iff
   the action of stabilizers is n-fold preprimitive -/
-theorem is_multiply_preprimitive_of_stabilizer {n : ℕ} (hn : n ≥ 1) (h : is_pretransitive M α) : -- (hα : (n.succ : cardinal) ≤ #α):
+theorem is_multiply_preprimitive_of_stabilizer {n : ℕ} (hn : n ≥ 1)
+  (h : is_pretransitive M α) {a : α} : -- (hα : (n.succ : cardinal) ≤ #α):
   is_multiply_preprimitive M α n.succ ↔
-  ∀ (a : α), is_multiply_preprimitive (stabilizer M a) (sub_mul_action_of_stabilizer M α a) n :=
+  is_multiply_preprimitive (stabilizer M a) (sub_mul_action_of_stabilizer M α a) n :=
 begin
+  let h_eq := h.exists_smul_eq,
   split,
-  { intros hn a,
+  { intros hn,
     cases nat.lt_or_ge n 1 with h0 h1,
     { rw nat.lt_one_iff at h0, rw h0, apply is_multiply_preprimitive_zero, },
 
     split,
     -- n-pretransitive
-    exact (stabilizer.is_multiply_pretransitive M α h).mp hn.left a,
+    exact (stabilizer.is_multiply_pretransitive M α h).mp hn.left,
 
     -- multiple preprimitivity property
     intros s hs,
@@ -226,6 +229,102 @@ begin
   { intro hn_0,
     split,
     { rw (stabilizer.is_multiply_pretransitive M α h),
+      exact (hn_0).left },
+    { suffices : ∀ (s : set α) (hs : #s + 1 = n.succ) (has : a ∈ s),
+        is_preprimitive (fixing_subgroup M s) (sub_mul_action_of_fixing_subgroup M s),
+      { intros s hs,
+        -- rw [← nat.cast_one, nat.cast_add n 1] at hs,
+        -- let hs := cardinal.add_cancel hs,
+        have : ∃ (b : α), b ∈ s,
+        { rw [← set.nonempty_def, ← set.ne_empty_iff_nonempty ],
+          intro h,
+          rw cardinal.mk_emptyc_iff.mpr h at hs,
+          rw [zero_add, ← nat.cast_one, cardinal.nat_cast_inj] at hs,
+          rw hs at hn,
+          exact nat.not_succ_le_self n hn, },
+        obtain ⟨b, hb⟩ := this,
+        obtain ⟨g, hg : g • b = a⟩ := h_eq b a,
+        apply is_preprimitive_of_bihom _
+          (function.bijective.surjective
+            (sub_mul_action_of_fixing_subgroup_conj_bihom_bijective M (inv_smul_smul g s))),
+        refine this (g • s) _ _,
+        { change # ((λ x, g • x) '' s) + 1 = _,
+          rw cardinal.mk_image_eq (mul_action.injective g),
+          exact hs,  },
+        exact ⟨b, hb, hg⟩ },
+
+      intros s hs has,
+      rw [← nat.cast_one, nat.cast_add n 1] at hs,
+      let hs := cardinal.add_cancel hs,
+
+      let t : set (sub_mul_action_of_stabilizer M α a) := coe ⁻¹' s,
+      have hst : s = set.insert a (coe '' t),
+      { ext,
+        split,
+        { intro hxs,
+          cases classical.em (x = a) with hxa hxa,
+          rw hxa, apply set.mem_insert,
+          apply set.mem_insert_of_mem,  use x,
+          refine and.intro _ rfl,
+          simp only [set.mem_preimage, sub_mul_action.coe_mk], exact hxs },
+        { intro hxat,
+          cases set.mem_insert_iff.mp hxat with hxa hxt,
+          rw hxa, exact has,
+          obtain ⟨y, hy, rfl⟩ := hxt,
+          simpa only using hy } },
+      rw hst,
+
+      apply is_preprimitive_of_bihom _,
+      exact (sub_mul_action_of_fixing_subgroup_of_stabilizer_bihom'_bijective M a t).right,
+
+      apply (hn_0).right t,
+      rw hst at hs,
+
+      have ha : a ∉ (coe '' t : set α),
+      { rintro ⟨x, hx⟩,
+        apply x.prop, rw hx.right, simp only [set.mem_singleton] },
+      let z : # ↥(set.insert a (coe '' t)) = _ := cardinal.mk_insert ha,
+      rw [← hs, z, cardinal.mk_image_eq  subtype.coe_injective] }  },
+end
+
+/-- A pretransitive  action is n.succ-fold preprimitive  iff
+  the action of stabilizers is n-fold preprimitive -/
+theorem is_multiply_preprimitive_of_stabilizer' {n : ℕ} (hn : n ≥ 1) (h : is_pretransitive M α) : -- (hα : (n.succ : cardinal) ≤ #α):
+  is_multiply_preprimitive M α n.succ ↔
+  ∀ (a : α), is_multiply_preprimitive (stabilizer M a) (sub_mul_action_of_stabilizer M α a) n :=
+begin
+  split,
+  { intros hn a,
+    cases nat.lt_or_ge n 1 with h0 h1,
+    { rw nat.lt_one_iff at h0, rw h0, apply is_multiply_preprimitive_zero, },
+
+    split,
+    -- n-pretransitive
+    exact (stabilizer.is_multiply_pretransitive' M α h).mp hn.left a,
+
+    -- multiple preprimitivity property
+    intros s hs,
+
+--    let j := sub_mul_action_of_fixing_subgroup_of_stabilizer_bihom M a s,
+
+    apply is_preprimitive_of_bihom _,
+    exact (sub_mul_action_of_fixing_subgroup_of_stabilizer_bihom_bijective M a s).right,
+    apply hn.right,
+
+    suffices : # (set.insert a (coe '' s)) = # s + 1,
+    rw [this, hs, ← nat.cast_one, ←  nat.cast_add],
+
+    suffices : a ∉ coe '' s,
+    let z : # ↥(set.insert a (coe '' s)) = _ := cardinal.mk_insert this,
+    rw z,
+    rw cardinal.mk_image_eq  subtype.coe_injective,
+
+    rintro ⟨x, hx, hx'⟩,
+    apply x.prop, simp only [set.mem_singleton_iff],
+    exact hx' },
+  { intro hn_0,
+    split,
+    { rw (stabilizer.is_multiply_pretransitive' M α h),
       intro a, exact (hn_0 a).left },
     { intros s hs,
       rw [← nat.cast_one, nat.cast_add n 1] at hs,
@@ -338,20 +437,8 @@ begin
 end
 
 
--- PROBABLEMENT FAUX !
-lemma is_multiply_preprimitive_of_higher {n : ℕ}
-  {m : ℕ} (hmn : m ≤ n) (hα : ↑n ≤ #α)
-  (hn : is_multiply_preprimitive M α n) :
-  is_multiply_preprimitive M α m :=
-begin
-  apply and.intro (is_multiply_pretransitive_of_higher M α hn.left hmn hα),
-  intros s hs,
---  is_preprimitive (mul_action.stabilizer M a) (sub_mul_action_of_stabilizer M α a)
-  sorry
-end
-
 /-- The fixator of a subset of cardinal d in an n-primitive action
-acts (n-d) primitively on the remaining (d ≤ n)-/
+  acts (n-d) primitively on the remaining (d ≤ n)-/
 lemma remaining_primitivity {n : ℕ} (h : is_multiply_preprimitive M α n)
   {d : ℕ} (hdn : d ≤ n) {s : set α} (hs : #s = d) :
   is_multiply_preprimitive (fixing_subgroup M s) (sub_mul_action_of_fixing_subgroup M s) (n-d) :=
@@ -375,9 +462,12 @@ begin
 end
 
 /-- n.succ-fold pretransitivity implies n-fold preprimitivity -/
-theorem is_multiply_preprimitive_of_multiply_pretransitive_succ {n : ℕ} (hn : 1 ≤ n) (hα : ↑n.succ ≤ #α)
+theorem is_multiply_preprimitive_of_multiply_pretransitive_succ {n : ℕ}
+  (hα : ↑n.succ ≤ #α)
   (h : is_multiply_pretransitive M α n.succ) : is_multiply_preprimitive M α n :=
 begin
+  cases nat.eq_zero_or_pos n with hn hn,
+  { rw hn, apply is_multiply_preprimitive_zero, },
   split,
   apply is_multiply_pretransitive_of_higher M α h,
   exact nat.le_succ n,
@@ -398,6 +488,92 @@ begin
   norm_num,
 end
 
+/-- An n-fold preprimitive action is m-fold preprimitive for m ≤ n -/
+lemma is_multiply_preprimitive_of_higher {n : ℕ}
+  {m : ℕ} (hmn : m ≤ n) (hα : ↑n ≤ #α)
+  (hn : is_multiply_preprimitive M α n) :
+  is_multiply_preprimitive M α m :=
+begin
+  cases nat.eq_zero_or_pos m with hm hm,
+  { rw hm, apply is_multiply_preprimitive_zero, },
+  induction n with n hrec,
+  { exfalso, apply lt_irrefl 0,
+  apply lt_of_lt_of_le, exact hm, exact hmn },
+  cases nat.eq_or_lt_of_le hmn with hmn hmn',
+  { rw hmn, exact hn, },
+
+  apply hrec (nat.lt_succ_iff.mp hmn'),
+  refine le_trans _ hα,
+  rw cardinal.nat_cast_le,
+  exact nat.le_succ n,
+
+  apply is_multiply_preprimitive_of_multiply_pretransitive_succ
+    M α hα hn.left,
+end
+
+variables {M α}
+theorem is_multiply_preprimitive_via_bijective_bihom {N β : Type*} [group N] [mul_action N β] {n : ℕ}
+  {j : mul_action_bihom M α N β} (hj : function.bijective j.to_fun)
+  (h : is_multiply_preprimitive M α n) : is_multiply_preprimitive N β n :=
+begin
+  split,
+  apply is_multiply_pretransitive_via_surjective_bihom hj.right h.left,
+  intros t ht,
+  let s := j.to_fun ⁻¹' t,
+  have hs' : j.to_fun '' s = t := set.image_preimage_eq t hj.right,
+  have hs : #s + 1 = n,
+  { rw [← cardinal.lift_inj, cardinal.lift_add] at ht ⊢,
+    apply le_antisymm,
+    { let z1 := cardinal.add_le_add
+        (cardinal.mk_preimage_of_injective_lift j.to_fun t hj.left)
+        (le_refl 1),
+      simp only [cardinal.lift_one, cardinal.lift_nat_cast] at ht z1 ⊢,
+      apply le_trans z1,
+      apply le_of_eq ht},
+    { let z1 := cardinal.add_le_add cardinal.mk_image_le_lift (le_refl 1),
+      rw hs' at z1,
+      simp only [cardinal.lift_one, cardinal.lift_nat_cast] at z1 ht ⊢,
+      apply le_trans _ z1,
+      apply le_of_eq ht.symm } },
+
+  let js : mul_action_bihom (fixing_subgroup M s) (sub_mul_action_of_fixing_subgroup M s)
+    (fixing_subgroup N t) (sub_mul_action_of_fixing_subgroup N t) := {
+  to_fun := λ ⟨x, hx⟩, ⟨j.to_fun x, λ h, hx (set.mem_preimage.mp h)⟩,
+  to_monoid_hom := {
+    to_fun := λ ⟨m, hm⟩, ⟨j.to_monoid_hom m, λ ⟨y, hy⟩,
+    begin
+      rw [← hs', set.mem_image_iff_bex] at hy,
+      obtain ⟨x, hx, hx'⟩ := hy,
+      simp only [subtype.coe_mk],
+      rw ← hx',
+      rw j.map_smul' m x,
+      apply congr_arg,
+      rw mem_fixing_subgroup_iff at hm,
+      exact hm x hx
+    end⟩,
+    map_one' :=
+    begin
+      rw ← set_like.coe_eq_coe,
+      exact j.to_monoid_hom.map_one',
+    end,
+    map_mul' := λ ⟨m, hm⟩ ⟨n, hn⟩,
+    begin
+      rw ← set_like.coe_eq_coe,
+      exact j.to_monoid_hom.map_mul' m n
+    end },
+  map_smul' := λ ⟨m, hm⟩ ⟨x, hx⟩,
+  begin
+    rw ← set_like.coe_eq_coe,
+    exact j.map_smul' m x,
+  end },
+  have hjs: function.surjective js.to_fun,
+  { rintros ⟨y, hy⟩, obtain ⟨x, hx⟩ := hj.right y,
+    use x,
+    { intro h, apply hy, rw ← hs', exact ⟨x, h, hx⟩ },
+    simp only [subtype.mk_eq_mk],
+    exact hx },
+  exact is_preprimitive_of_bihom js hjs (h.right s hs)
+end
 
 end MultiplePrimitivity
 

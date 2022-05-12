@@ -208,8 +208,9 @@ def is_multiply_pretransitive' (M α : Type*) [has_scalar M α] (n : ℕ) :=
 def is_multiply_pretransitive (n : ℕ) :=
   is_pretransitive M (fin n ↪ α)
 
-lemma is_multiply_pretransitive_bihom (n : ℕ) (N β : Type*) [group N] [mul_action N β]
-  (j : mul_action_bihom M α N β) (hj : function.surjective j.to_fun)
+variables {M α}
+lemma is_multiply_pretransitive_via_surjective_bihom {N β : Type*} [group N] [mul_action N β] {n : ℕ}
+  {j : mul_action_bihom M α N β} (hj : function.surjective j.to_fun)
   (h : is_multiply_pretransitive M α n) : is_multiply_pretransitive N β n :=
 begin
   let h_eq := h.exists_smul_eq,
@@ -242,6 +243,7 @@ begin
   simp only [to_fun_eq_coe, smul_apply]
 end
 
+variables (M α)
 lemma is_zero_pretransitive : is_multiply_pretransitive M α 0 :=
 begin
   apply is_pretransitive.mk,
@@ -351,7 +353,7 @@ end
 /-- Multiple transitivity of a pretransitive action
   is equivalent to one less transitivity of stabilizer of a point
   (Wielandt, th. 9.1, 1st part)-/
-theorem stabilizer.is_multiply_pretransitive
+theorem stabilizer.is_multiply_pretransitive'
   (hα' : is_pretransitive M α)
   {n : ℕ} :
   -- (hα0 : ↑n ≤ #α) /- (hα : card_ge α n.succ) -/  :
@@ -432,6 +434,108 @@ begin
     -- g • x1 = y1,
 
     let hna_eq := (hn a).exists_smul_eq,
+
+    obtain ⟨g, hg⟩ := hna_eq x1 y1,
+
+    use gy⁻¹ * g * gx,
+    ext ⟨i, hi⟩,
+    rw mul_smul, simp only [smul_apply],
+    cases lt_or_eq_of_le (le_of_lt_succ hi) with hi' hi',
+    { rw ← function.embedding.ext_iff at hgx hgy hg,
+      specialize hgx ⟨i, hi'⟩, specialize hgy ⟨i, hi'⟩, specialize hg ⟨i, hi'⟩,
+      simp only [trans_apply, rel_embedding.coe_fn_to_embedding, fin.cast_le_mk, smul_apply,
+        function.embedding.coe_subtype] at hgx hgy hg,
+      rw [hgx, mul_smul, inv_smul_eq_iff, hgy, ← hg], refl },
+    { simp only [hi'],
+      rw [hga, mul_smul, inv_smul_eq_iff, hgb],
+      rw ← mem_stabilizer_iff, exact set_like.coe_mem g } }
+end
+
+
+/-- Multiple transitivity of a pretransitive action
+  is equivalent to one less transitivity of stabilizer of a point
+  (Wielandt, th. 9.1, 1st part)-/
+theorem stabilizer.is_multiply_pretransitive
+  (hα' : is_pretransitive M α)
+  {n : ℕ}
+  {a : α}:
+  -- (hα0 : ↑n ≤ #α) /- (hα : card_ge α n.succ) -/  :
+  is_multiply_pretransitive M α n.succ ↔
+  is_multiply_pretransitive (stabilizer M a) (sub_mul_action_of_stabilizer M α a) n :=
+begin
+  let hα'eq := hα'.exists_smul_eq,
+  split,
+  { intros hn, let hn_eq := hn.exists_smul_eq,
+    apply is_pretransitive.mk,
+    intros x y,
+
+    obtain ⟨x', hx', hx'a⟩ := may_extend_with (x.trans (subtype _)) a _,
+    swap,
+    { rintro ⟨u, hu⟩,
+      simp only [to_fun_eq_coe, trans_apply, function.embedding.coe_subtype] at hu,
+      exact (sub_mul_action_of_stabilizer_neq M α a (x u)) hu },
+
+    obtain ⟨y', hy', hy'a⟩ := may_extend_with (y.trans (subtype _)) a _,
+    swap,
+    { rintro ⟨u, hu⟩,
+      simp only [to_fun_eq_coe, trans_apply, function.embedding.coe_subtype] at hu,
+      exact (sub_mul_action_of_stabilizer_neq M α a (y u)) hu },
+
+    obtain ⟨g, hg'⟩ := hn_eq x' y',
+    have hg : g ∈ stabilizer M a,
+    { rw mem_stabilizer_iff,
+      conv_lhs { rw ← hx'a },
+      rw [← hy'a, ← hg', smul_apply] },
+
+    use ⟨g, hg⟩,
+    ext ⟨i, hi⟩,
+    simp only [smul_apply, sub_mul_action.coe_smul_of_tower],
+    rw ← function.embedding.ext_iff at hx' hy',
+    specialize hx' ⟨i, hi⟩, specialize hy' ⟨i, hi⟩,
+    simp only [trans_apply, rel_embedding.coe_fn_to_embedding, fin.cast_le_mk,
+      function.embedding.coe_subtype] at hx' hy',
+    rw [← hx', ← hy', ← hg'], refl, },
+    --
+  { intro hn,
+
+    have aux_fun : ∀ (a : α) (x : fin n.succ ↪ α),
+      ∃ (g : M) (x1 : fin n ↪ ↥(sub_mul_action_of_stabilizer M α a)),
+        (fin.cast_le (nat.le_succ n)).to_embedding.trans (g • x)
+          = function.embedding.trans x1 (subtype _)
+        ∧ g • (x ⟨n, nat.lt_succ_self n⟩) = a,
+    { intros a x,
+      obtain ⟨g, hgx⟩ := hα'eq (x ⟨n, nat.lt_succ_self n⟩) a,
+      use g,
+      have zgx : ∀ (i : fin n),
+        g • (x i) ∈ sub_mul_action_of_stabilizer M α a,
+      { rintros ⟨i, hi⟩,
+        change _ ∈  (sub_mul_action_of_stabilizer M α a).carrier ,
+        rw sub_mul_action_of_stabilizer_def,
+        simp only [set.mem_compl_eq, set.mem_singleton_iff],
+        rw ← hgx,
+        simp only [← smul_apply],
+        intro h, apply ne_of_lt hi,
+        let h' := function.embedding.injective (g • x) h,
+        simpa using h' },
+      let x1 : fin n → sub_mul_action_of_stabilizer M α a :=
+        λ i, ⟨g • (x i), zgx i⟩,
+      use x1,
+      { intros i j,
+        simp only [subtype.mk_eq_mk, fin.coe_eq_cast_succ, smul_left_cancel_iff,
+          embedding_like.apply_eq_iff_eq,
+          order_embedding.eq_iff_eq, imp_self] },
+      refine and.intro _ hgx,
+      { ext i, simp, refl, } },
+
+
+    apply is_pretransitive.mk,
+    intro x, -- obtain gx : gx • x = x1 :: a
+    obtain ⟨gx, x1, hgx, hga⟩ := aux_fun a x,
+    intro y, -- obtain gy : gy • y = y1 :: a
+    obtain ⟨gy, y1, hgy, hgb⟩ := aux_fun a y,
+    -- g • x1 = y1,
+
+    let hna_eq := hn.exists_smul_eq,
 
     obtain ⟨g, hg⟩ := hna_eq x1 y1,
 

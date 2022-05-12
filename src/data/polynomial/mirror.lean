@@ -128,14 +128,16 @@ by rw [leading_coeff, trailing_coeff, mirror_nat_trailing_degree, coeff_mirror,
 lemma mirror_leading_coeff : p.mirror.leading_coeff = p.trailing_coeff :=
 by rw [←p.mirror_mirror, mirror_trailing_coeff, p.mirror_mirror]
 
-lemma mirror_neg {R : Type*} [ring R] (p : R[X]) : (-p).mirror = -(p.mirror) :=
-by rw [mirror, mirror, reverse_neg, nat_trailing_degree_neg, neg_mul_eq_neg_mul]
-
 end semiring
 
-section domain
+section ring
 
-variables {R : Type*} [ring R] [is_domain R] (p q : R[X])
+variables {R : Type*} [ring R] (p q : R[X])
+
+lemma mirror_neg : (-p).mirror = -(p.mirror) :=
+by rw [mirror, mirror, reverse_neg, nat_trailing_degree_neg, neg_mul_eq_neg_mul]
+
+variables [is_domain R]
 
 lemma mirror_mul_of_domain : (p * q).mirror = p.mirror * q.mirror :=
 begin
@@ -162,9 +164,9 @@ begin
   rw [coeff_mirror, ←rev_at_le (finset.mem_range_succ_iff.mp hn), rev_at_invol, ←sq],
 end
 
-end domain
+end ring
 
-section comm_domain
+section comm_ring
 
 variables {R : Type*} [comm_ring R] [is_domain R] {f : R[X]}
 
@@ -199,6 +201,6 @@ begin
     { exact or.inl (h3 g g_dvd_f (by rwa [eq_neg_iff_eq_neg.mp hk, dvd_neg])) } },
 end
 
-end comm_domain
+end comm_ring
 
 end polynomial

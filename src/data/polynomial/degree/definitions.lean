@@ -222,6 +222,13 @@ begin
   { rw [← C_mul_X_pow_eq_monomial, nat_degree_C_mul_X_pow i r hr] }
 end
 
+lemma nat_degree_monomial_eq (i : ℕ) {r : R} (r0 : r ≠ 0) :
+  (monomial i r).nat_degree = i :=
+begin
+  classical,
+  exact eq.trans (nat_degree_monomial _ _) (if_neg r0),
+end
+
 lemma coeff_eq_zero_of_degree_lt (h : degree p < n) : coeff p n = 0 :=
 not_not.1 (mt le_degree_of_ne_zero (not_le_of_gt h))
 

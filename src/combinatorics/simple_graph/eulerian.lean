@@ -43,65 +43,89 @@ begin
   rw [is_trail_def, list.nodup_iff_count_le_one],
   intro e,
   by_cases he : e ∈ p.edges,
-  { specialize h e (edges_subset_edge_set _ he),
-    rw h, },
-  { simp [he], },
+  { exact (h e (edges_subset_edge_set _ he)).le },
+  { simp [he] },
 end
 
-lemma length_of_eulerian [fintype V] [decidable_rel G.adj]
-  {u v : V} (p : G.walk u v) (h : p.is_eulerian) :
-  p.length = G.edge_finset.card :=
+lemma is_eulerian.complete {u v : V} {p : G.walk u v}
+  (h : p.is_eulerian) {e : sym2 V} (he : e ∈ G.edge_set) : e ∈ p.edges :=
+by simpa using (h e he).ge
+
+/-- The edges of a trail as a finset. -/
+@[reducible] def is_trail.edges' {u v : V} {p : G.walk u v}
+  (h : p.is_trail) : finset (sym2 V) :=
+⟨p.edges, h.edges_nodup⟩
+
+lemma is_trail.length_eq_card_edges' {u v : V} {p : G.walk u v}
+  (h : p.is_trail) : p.length = h.edges'.card :=
+by simp only [finset.card_mk, multiset.coe_card, length_edges]
+
+lemma is_trail.complete_iff_length_eq [fintype G.edge_set]
+  {u v : V} {p : G.walk u v} (h : p.is_trail) :
+  (∀ e, e ∈ G.edge_set → e ∈ p.edges) ↔ p.length = G.edge_finset.card :=
 begin
-  rw [←length_edges, ←multiset.coe_card],
-  have hnd := h.is_trail,
-  rw is_trail_def at hnd,
-  let f := finset.mk (p.edges : multiset (sym2 V)) hnd,
-  change f.card = _,
-  congr',
+  rw h.length_eq_card_edges',
+  split,
+  { intro hc,
+    congr',
+    ext e,
+    simp only [finset.mem_mk, multiset.mem_coe, mem_edge_finset],
+    exact ⟨λ h, p.edges_subset_edge_set h, hc e⟩ },
+  { intros h e,
+    rw [← mem_edge_finset, ← finset.eq_of_subset_of_card_le _ h.ge],
+    { simp },
+    { intro e',
+      simp,
+      exact λ h, p.edges_subset_edge_set h, } }
+end
+
+lemma is_eulerian.edges'_eq [fintype G.edge_set]
+  {u v : V} {p : G.walk u v} (h : p.is_eulerian) :
+  h.is_trail.edges' = G.edge_finset :=
+begin
   ext e,
   simp only [finset.mem_mk, multiset.mem_coe, mem_edge_finset],
   split,
-  apply edges_subset_edge_set p,
-  intro he,
-  specialize h e he,
-  rw ←list.count_pos,
-  simp [h],
+  { apply p.edges_subset_edge_set },
+  { apply h.complete }
 end
 
-lemma is_eulerian_of_max_trail [fintype V] [decidable_rel G.adj]
-  {u v : V} (p : G.walk u v) (h : p.is_trail) (hl : p.length = G.edge_finset.card) :
-  p.is_eulerian :=
+lemma is_eulerian.length_eq_card_edge_finset [fintype G.edge_set] {u v : V} {p : G.walk u v}
+  (h : p.is_eulerian) : p.length = G.edge_finset.card :=
+by simp only [h.is_trail.length_eq_card_edges', h.edges'_eq]
+
+/-- The edge set of an Eulerian graph is finite. -/
+def is_eulerian.fintype {u v : V} {p : G.walk u v}
+  (h : p.is_eulerian) : fintype G.edge_set :=
 begin
-  intros e he,
-  apply list.count_eq_one_of_mem h.edges_nodup,
-  rw [←length_edges, ←multiset.coe_card] at hl,
-  let f := finset.mk (p.edges : multiset (sym2 V)) h.edges_nodup,
-  change f.card = _ at hl,
-  have : f ⊆ G.edge_finset,
-  { intros e he,
-    rw mem_edge_finset,
-    simp only [finset.mem_mk, multiset.mem_coe] at he,
-    exact edges_subset_edge_set p he, },
-  have : f = G.edge_finset,
-  { apply finset.eq_of_subset_of_card_le this,
-    rw hl, },
-  rw [←mem_edge_finset, ←this] at he,
-  exact he,
+  refine ⟨h.is_trail.edges'.attach.image (λ x, ⟨x, p.edges_subset_edge_set x.property⟩), _⟩,
+  rintro ⟨e, he⟩,
+  simp only [h.complete he, finset.mem_image, finset.mem_attach, subtype.mk_eq_mk,
+    exists_true_left, subtype.exists, finset.mem_mk, multiset.mem_coe, subtype.coe_mk,
+    exists_prop, exists_eq_right, true_and],
 end
 
-lemma is_eulerian_iff [fintype V] [decidable_rel G.adj]
+lemma is_eulerian.length_eq_card_edge_set [fintype G.edge_set] {u v : V} {p : G.walk u v}
+  (h : p.is_eulerian) : p.length = fintype.card G.edge_set :=
+by simp [h.length_eq_card_edge_finset, edge_finset, set.to_finset_card]
+
+lemma is_trail.is_eulerian_of_complete [fintype G.edge_set]
+  {u v : V} {p : G.walk u v} (h : p.is_trail) (hc : ∀ e, e ∈ G.edge_set → e ∈ p.edges) :
+  p.is_eulerian :=
+λ e he, list.count_eq_one_of_mem h.edges_nodup (hc e he)
+
+lemma is_eulerian_iff [fintype G.edge_set]
   {u v : V} (p : G.walk u v) :
-  p.is_eulerian ↔ p.is_trail ∧ p.length = G.edge_finset.card :=
+  p.is_eulerian ↔ p.is_trail ∧ ∀ e, e ∈ G.edge_set → e ∈ p.edges :=
 begin
   split,
   { intro h,
-    use h.is_trail,
-    apply length_of_eulerian _ h, },
+    exact ⟨h.is_trail, λ _, h.complete⟩, },
   { rintro ⟨h, hl⟩,
-    exact is_eulerian_of_max_trail _ h hl, },
+    exact h.is_eulerian_of_complete hl, },
 end
 
-theorem list.countp_cons {α : Type*} (p : α → Prop) [decidable_pred p] (a : α) (l : list α) :
+theorem _root_.list.countp_cons {α : Type*} (p : α → Prop) [decidable_pred p] (a : α) (l : list α) :
   list.countp p (a :: l) = list.countp p l + ite (p a) 1 0 :=
 by { by_cases h : p a; simp [h] }
 
@@ -136,7 +160,8 @@ begin
         simpa using h } } },
 end
 
-lemma incidence_finset_eq_filter [fintype V] (x : V) [fintype (G.neighbor_set x)] [decidable_rel G.adj] :
+lemma incidence_finset_eq_filter [fintype V] (x : V)
+  [fintype (G.neighbor_set x)] [decidable_rel G.adj] :
   G.incidence_finset x = G.edge_finset.filter (has_mem.mem x) :=
 begin
   ext e,
@@ -149,23 +174,12 @@ lemma is_eulerian.even_degree_iff {x u v : V} {p : G.walk u v} (ht : p.is_euleri
   even (G.degree x) ↔ (u ≠ v → x ≠ u ∧ x ≠ v) :=
 begin
   convert ht.is_trail.even_countp_edges_iff x,
-  let edges : finset (sym2 V) := finset.mk ↑p.edges ht.is_trail.edges_nodup,
   rw [← multiset.coe_countp, multiset.countp_eq_card_filter, ← card_incidence_finset_eq_degree],
   change multiset.card _ = _,
   congr' 1,
-  convert_to _ = (edges.filter (has_mem.mem x)).val,
+  convert_to _ = (ht.is_trail.edges'.filter (has_mem.mem x)).val,
   congr' 1,
-  rw [incidence_finset_eq_filter],
-  congr,
-  have h1 : edges ⊆ G.edge_finset,
-  { intro e,
-    simp only [finset.mem_mk, multiset.mem_coe, mem_edge_finset],
-    intro he,
-    exact edges_subset_edge_set p he, },
-  have h2 : edges.card = G.edge_finset.card,
-  { rw is_eulerian_iff at ht,
-    simp [ht], },
-  exact (finset.eq_of_subset_of_card_le h1 h2.ge).symm,
+  rw [ht.edges'_eq, ← incidence_finset_eq_filter],
 end
 
 lemma is_eulerian.card_odd_degree [fintype V] [decidable_rel G.adj]
@@ -462,7 +476,7 @@ lemma eulerian_trails_eq (u v : V) :
 begin
   rw trail_of_len_eq,
   ext p,
-  simp [walk.is_eulerian_iff, and_comm],
+  simp [walk.is_eulerian_iff, and_comm, walk.is_trail.complete_iff_length_eq] { contextual := tt },
 end
 
 /-

@@ -459,25 +459,18 @@ begin
   simp [indicator_apply, ← ite_and],
 end
 
-variables [nontrivial M]
+variables (M) [nontrivial M]
 
 lemma indicator_eq_zero_iff_not_mem {U : set α} {x : α} :
-  x ∉ U ↔ indicator U 1 x = (0 : M) :=
-by simp [indicator_apply, imp_false]
+  indicator U 1 x = (0 : M) ↔ x ∉ U :=
+by { classical, simp [indicator_apply, imp_false] }
 
 lemma indicator_eq_one_iff_mem {U : set α} {x : α} :
-  x ∈ U ↔ indicator U 1 x = (1 : M) :=
-by simp [indicator_apply, imp_false]
+  indicator U 1 x = (1 : M) ↔ x ∈ U :=
+by { classical, simp [indicator_apply, imp_false] }
 
 lemma indicator_one_inj {U V : set α} (h : indicator U (1 : α → M) = indicator V 1) : U = V :=
-begin
-  ext,
-  refine ⟨(λ h', (indicator_eq_one_iff_mem M).2 _), λ h', (indicator_eq_one_iff_mem M).2 _⟩,
-  { rw ← h, apply (indicator_eq_one_iff_mem M).1 h', },
-  { rw h, apply (indicator_eq_one_iff_mem M).1 h', },
-end
-
-end mul_zero_one_class
+by { ext, simp_rw [← indicator_eq_one_iff_mem M, h] }
 
 end mul_zero_one_class
 

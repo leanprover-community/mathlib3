@@ -99,13 +99,16 @@ by rw [sub_eq_add_neg, cpow_add _ _ hx, cpow_neg, div_eq_mul_inv]
 lemma cpow_neg_one (x : ℂ) : x ^ (-1 : ℂ) = x⁻¹ :=
 by simpa using cpow_neg x 1
 
-@[simp] lemma cpow_nat_cast (x : ℂ) : ∀ (n : ℕ), x ^ (n : ℂ) = x ^ n
+@[simp, norm_cast] lemma cpow_nat_cast (x : ℂ) : ∀ (n : ℕ), x ^ (n : ℂ) = x ^ n
 | 0       := by simp
 | (n + 1) := if hx : x = 0 then by simp only [hx, pow_succ,
     complex.zero_cpow (nat.cast_ne_zero.2 (nat.succ_ne_zero _)), zero_mul]
   else by simp [cpow_add, hx, pow_add, cpow_nat_cast n]
 
-@[simp] lemma cpow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = x ^ n
+@[simp] lemma cpow_two (x : ℂ) : x ^ (2 : ℂ) = x ^ 2 :=
+by { rw ← cpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
+
+@[simp, norm_cast] lemma cpow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = x ^ n
 | (n : ℕ) := by simp; refl
 | -[1+ n] := by rw zpow_neg_succ_of_nat;
   simp only [int.neg_succ_of_nat_coe, int.cast_neg, complex.cpow_neg, inv_eq_one_div,
@@ -353,11 +356,16 @@ lemma rpow_nonneg_of_nonneg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : 0 ≤ x ^ y :=
 by rw [rpow_def_of_nonneg hx];
   split_ifs; simp only [zero_le_one, le_refl, le_of_lt (exp_pos _)]
 
+lemma abs_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : |x ^ y| = |x| ^ y :=
+begin
+  have h_rpow_nonneg : 0 ≤ x ^ y, from real.rpow_nonneg_of_nonneg hx_nonneg _,
+  rw [abs_eq_self.mpr hx_nonneg, abs_eq_self.mpr h_rpow_nonneg],
+end
+
 lemma abs_rpow_le_abs_rpow (x y : ℝ) : |x ^ y| ≤ |x| ^ y :=
 begin
-  rcases lt_trichotomy 0 x with (hx|rfl|hx),
-  { rw [abs_of_pos hx, abs_of_pos (rpow_pos_of_pos hx _)] },
-  { rw [abs_zero, abs_of_nonneg (rpow_nonneg_of_nonneg le_rfl _)] },
+  cases le_or_lt 0 x with hx hx,
+  { rw [abs_rpow_of_nonneg hx] },
   { rw [abs_of_neg hx, rpow_def_of_neg hx, rpow_def_of_pos (neg_pos.2 hx), log_neg_eq_log,
       abs_mul, abs_of_pos (exp_pos _)],
     exact mul_le_of_le_one_right (exp_pos _).le (abs_cos_le_one _) }
@@ -371,12 +379,6 @@ begin
   { rw [rpow_def_of_pos (abs_pos.2 hx), log_abs] }
 end
 
-lemma abs_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : |x ^ y| = |x| ^ y :=
-begin
-  have h_rpow_nonneg : 0 ≤ x ^ y, from real.rpow_nonneg_of_nonneg hx_nonneg _,
-  rw [abs_eq_self.mpr hx_nonneg, abs_eq_self.mpr h_rpow_nonneg],
-end
-
 lemma norm_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : ∥x ^ y∥ = ∥x∥ ^ y :=
 by { simp_rw real.norm_eq_abs, exact abs_rpow_of_nonneg hx_nonneg, }
 
@@ -386,6 +388,17 @@ namespace complex
 
 lemma of_real_cpow {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : ((x ^ y : ℝ) : ℂ) = (x : ℂ) ^ (y : ℂ) :=
 by simp [real.rpow_def_of_nonneg hx, complex.cpow_def]; split_ifs; simp [complex.of_real_log hx]
+
+lemma of_real_cpow_of_nonpos {x : ℝ} (hx : x ≤ 0) (y : ℂ) :
+  (x : ℂ) ^ y = ((-x) : ℂ) ^ y * exp (π * I * y) :=
+begin
+  rcases hx.eq_or_lt with rfl|hlt,
+  { rcases eq_or_ne y 0 with rfl|hy; simp * },
+  have hne : (x : ℂ) ≠ 0, from of_real_ne_zero.mpr hlt.ne,
+  rw [cpow_def_of_ne_zero hne, cpow_def_of_ne_zero (neg_ne_zero.2 hne), ← exp_add, ← add_mul,
+    log, log, abs_neg, arg_of_real_of_neg hlt, ← of_real_neg,
+    arg_of_real_of_nonneg (neg_nonneg.2 hx), of_real_zero, zero_mul, add_zero]
+end
 
 lemma abs_cpow_of_ne_zero {z : ℂ} (hz : z ≠ 0) (w : ℂ) :
   abs (z ^ w) = abs z ^ w.re / real.exp (arg z * im w) :=
@@ -412,7 +425,7 @@ by rw [abs_cpow_of_ne_zero (of_real_ne_zero.mpr hx.ne'), arg_of_real_of_nonneg h
   real.exp_zero, div_one, abs_of_nonneg hx.le]
 
 lemma abs_cpow_eq_rpow_re_of_nonneg {x : ℝ} (hx : 0 ≤ x) {y : ℂ} (hy : re y ≠ 0) :
-  abs (x ^ y) = x ^ y.re :=
+  abs (x ^ y) = x ^ re y :=
 begin
   rcases hx.eq_or_lt with rfl|hlt,
   { rw [of_real_zero, zero_cpow, abs_zero, real.zero_rpow hy],
@@ -518,6 +531,9 @@ by simp only [rpow_def, ← complex.of_real_zpow, complex.cpow_int_cast,
 @[simp, norm_cast] lemma rpow_nat_cast (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
 rpow_int_cast x n
 
+@[simp] lemma rpow_two (x : ℝ) : x ^ (2 : ℝ) = x ^ 2 :=
+by { rw ← rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
+
 lemma rpow_neg_one (x : ℝ) : x ^ (-1 : ℝ) = x⁻¹ :=
 begin
   suffices H : x ^ ((-1 : ℤ) : ℝ) = x⁻¹, by exact_mod_cast H,
@@ -592,7 +608,7 @@ begin
 end
 
 @[simp] lemma rpow_lt_rpow_left_iff (hx : 1 < x) : x ^ y < x ^ z ↔ y < z :=
-by rw [lt_iff_not_ge', rpow_le_rpow_left_iff hx, lt_iff_not_ge']
+by rw [lt_iff_not_le, rpow_le_rpow_left_iff hx, lt_iff_not_le]
 
 lemma rpow_lt_rpow_of_exponent_gt (hx0 : 0 < x) (hx1 : x < 1) (hyz : z < y) :
   x^y < x^z :=
@@ -617,7 +633,7 @@ end
 
 @[simp] lemma rpow_lt_rpow_left_iff_of_base_lt_one (hx0 : 0 < x) (hx1 : x < 1) :
   x ^ y < x ^ z ↔ z < y :=
-by rw [lt_iff_not_ge', rpow_le_rpow_left_iff_of_base_lt_one hx0 hx1, lt_iff_not_ge']
+by rw [lt_iff_not_le, rpow_le_rpow_left_iff_of_base_lt_one hx0 hx1, lt_iff_not_le]
 
 lemma rpow_lt_one {x z : ℝ} (hx1 : 0 ≤ x) (hx2 : x < 1) (hz : 0 < z) : x^z < 1 :=
 by { rw ← one_rpow z, exact rpow_lt_rpow hx1 hx2 hz }
@@ -708,6 +724,15 @@ end
 
 lemma rpow_le_one_iff_of_pos (hx : 0 < x) : x ^ y ≤ 1 ↔ 1 ≤ x ∧ y ≤ 0 ∨ x ≤ 1 ∧ 0 ≤ y :=
 by rw [rpow_def_of_pos hx, exp_le_one_iff, mul_nonpos_iff, log_nonneg_iff hx, log_nonpos_iff hx]
+
+/-- Bound for `|log x * x ^ t|` in the interval `(0, 1]`, for positive real `t`. -/
+lemma abs_log_mul_self_rpow_lt (x t : ℝ) (h1 : 0 < x) (h2 : x ≤ 1) (ht : 0 < t) :
+  |log x * x ^ t| < 1 / t :=
+begin
+  rw lt_div_iff ht,
+  have := abs_log_mul_self_lt (x ^ t) (rpow_pos_of_pos h1 t) (rpow_le_one h1.le h2 ht.le),
+  rwa [log_rpow h1, mul_assoc, abs_mul, abs_of_pos ht, mul_comm] at this
+end
 
 lemma pow_nat_rpow_nat_inv {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
   (x ^ n) ^ (n⁻¹ : ℝ) = x :=
@@ -966,7 +991,7 @@ end limits
 
 namespace complex
 
-/-- See also `complex.continuous_at_cpow`. -/
+/-- See also `complex.continuous_at_cpow` and `complex.continuous_at_cpow_of_re_pos`. -/
 lemma continuous_at_cpow_zero_of_re_pos {z : ℂ} (hz : 0 < z.re) :
   continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) (0, z) :=
 begin
@@ -985,6 +1010,39 @@ begin
     rw _root_.abs_mul,
     exact mul_le_mul (abs_le.2 ⟨(neg_pi_lt_arg _).le, arg_le_pi _⟩) hz.le
       (_root_.abs_nonneg _) real.pi_pos.le }
+end
+
+/-- See also `complex.continuous_at_cpow` for a version that assumes `p.1 ≠ 0` but makes no
+assumptions about `p.2`. -/
+lemma continuous_at_cpow_of_re_pos {p : ℂ × ℂ} (h₁ : 0 ≤ p.1.re ∨ p.1.im ≠ 0) (h₂ : 0 < p.2.re) :
+  continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) p :=
+begin
+  cases p with z w,
+  rw [← not_lt_zero_iff, lt_iff_le_and_ne, not_and_distrib, ne.def, not_not, not_le_zero_iff] at h₁,
+  rcases h₁ with h₁|(rfl : z = 0),
+  exacts [continuous_at_cpow h₁, continuous_at_cpow_zero_of_re_pos h₂]
+end
+
+/-- See also `complex.continuous_at_cpow_const` for a version that assumes `z ≠ 0` but makes no
+assumptions about `w`. -/
+lemma continuous_at_cpow_const_of_re_pos {z w : ℂ} (hz : 0 ≤ re z ∨ im z ≠ 0) (hw : 0 < re w) :
+  continuous_at (λ x, x ^ w) z :=
+tendsto.comp (@continuous_at_cpow_of_re_pos (z, w) hz hw)
+  (continuous_at_id.prod continuous_at_const)
+
+lemma continuous_of_real_cpow_const {y : ℂ} (hs : 0 < y.re) : continuous (λ x, x ^ y : ℝ → ℂ) :=
+begin
+  rw continuous_iff_continuous_at, intro x,
+  cases le_or_lt 0 x with hx hx,
+  { refine (continuous_at_cpow_const_of_re_pos _ hs).comp continuous_of_real.continuous_at,
+    exact or.inl hx },
+  { suffices : continuous_on (λ x, x ^ y : ℝ → ℂ) (set.Iio 0),
+      from continuous_on.continuous_at this (Iio_mem_nhds hx),
+    have : eq_on (λ x, x ^ y : ℝ → ℂ) (λ x, ((-x) : ℂ) ^ y * exp (π * I * y)) (set.Iio 0),
+      from λ y hy, of_real_cpow_of_nonpos (le_of_lt hy) _,
+    refine (continuous_on.mul (λ y hy, _) continuous_on_const).congr this,
+    refine continuous_of_real.continuous_within_at.neg.cpow continuous_within_at_const _,
+    left, simpa using hy }
 end
 
 end complex
@@ -1064,6 +1122,9 @@ end
 
 @[simp, norm_cast] lemma rpow_nat_cast (x : ℝ≥0) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
 nnreal.eq $ by simpa only [coe_rpow, coe_pow] using real.rpow_nat_cast x n
+
+@[simp] lemma rpow_two (x : ℝ≥0) : x ^ (2 : ℝ) = x ^ 2 :=
+by { rw ← rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
 
 lemma mul_rpow {x y : ℝ≥0} {z : ℝ}  : (x*y)^z = x^z * y^z :=
 nnreal.eq $ real.mul_rpow x.2 y.2
@@ -1401,6 +1462,9 @@ begin
   { simp [coe_rpow_of_nonneg _ (nat.cast_nonneg n)] }
 end
 
+@[simp] lemma rpow_two (x : ℝ≥0∞) : x ^ (2 : ℝ) = x ^ 2 :=
+by { rw ← rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
+
 lemma mul_rpow_eq_ite (x y : ℝ≥0∞) (z : ℝ) :
   (x * y) ^ z = if (x = 0 ∧ y = ⊤ ∨ x = ⊤ ∧ y = 0) ∧ z < 0 then ⊤ else x ^ z * y ^ z :=
 begin
@@ -1440,7 +1504,7 @@ begin
   replace hy := hy.lt_or_lt,
   rcases eq_or_ne x 0 with rfl|h0, { cases hy; simp * },
   rcases eq_or_ne x ⊤ with rfl|h_top, { cases hy; simp * },
-  apply eq_inv_of_mul_eq_one,
+  apply eq_inv_of_mul_eq_one_left,
   rw [← mul_rpow_of_ne_zero (inv_ne_zero.2 h_top) h0, inv_mul_cancel h0 h_top, one_rpow]
 end
 

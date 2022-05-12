@@ -120,15 +120,11 @@ def degree_zero_part {f : A} {m : ℕ} (f_deg : f ∈ 𝒜 m) : subring (away f)
   zero_mem' := ⟨0, ⟨0, (mk_zero _).symm⟩⟩,
   neg_mem' := λ x ⟨n, ⟨a, h⟩⟩, h.symm ▸ ⟨n, ⟨-a, neg_mk _ _⟩⟩ }
 
+local notation `A⁰_` f_deg := degree_zero_part f_deg
+
 instance (f : A) {m : ℕ} (f_deg : f ∈ 𝒜 m) : comm_ring (degree_zero_part f_deg) :=
 (degree_zero_part f_deg).to_comm_ring
 
-end
-
-local notation `A⁰_` f_deg := degree_zero_part f_deg
-
-section
-variable {𝒜}
 /--
 Every element in the degree zero part of `Aₓ` can be written as `a/x^n` for some `a` and `n : ℕ`,
 `degree_zero_part.deg` picks this natural number `n`

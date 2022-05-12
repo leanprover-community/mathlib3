@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl, Sander Dahmen, Scott Morrison
 -/
 import linear_algebra.dfinsupp
-import linear_algebra.std_basis
-import linear_algebra.isomorphisms
-import set_theory.cofinality
 import linear_algebra.invariant_basis_number
+import linear_algebra.isomorphisms
+import linear_algebra.std_basis
+import set_theory.cardinal.cofinality
 
 /-!
 # Dimension of modules and vector spaces
@@ -1035,7 +1035,6 @@ end division_ring
 section field
 variables [field K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
 variables [add_comm_group V'] [module K V']
-variables {K V}
 
 theorem dim_quotient_add_dim (p : submodule K V) :
   module.rank K (V ⧸ p) + module.rank K p = module.rank K V :=
@@ -1105,8 +1104,7 @@ dim_add_dim_split (of_le le_sup_left) (of_le le_sup_right) (of_le inf_le_left) (
   begin ext ⟨x, hx⟩, refl end
   begin
     rintros ⟨b₁, hb₁⟩ ⟨b₂, hb₂⟩ eq,
-    have : b₁ = b₂ := congr_arg subtype.val eq,
-    subst this,
+    obtain rfl : b₁ = b₂ := congr_arg subtype.val eq,
     exact ⟨⟨b₁, hb₁, hb₂⟩, rfl, rfl⟩
   end
 
@@ -1120,35 +1118,22 @@ lemma exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : 0 < module.rank K s
   ∃ b : V, b ∈ s ∧ b ≠ 0 :=
 exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [eq, dim_bot] at h; exact lt_irrefl _ h
 
+end field
+
 section rank
 
--- TODO This definition, and some of the results about it, could be generalized to arbitrary rings.
+section
+variables [ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
+variables [add_comm_group V'] [module K V']
+
 /-- `rank f` is the rank of a `linear_map f`, defined as the dimension of `f.range`. -/
 def rank (f : V →ₗ[K] V') : cardinal := module.rank K f.range
-
-lemma rank_le_domain (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V :=
-by { rw [← dim_range_add_dim_ker f], exact self_le_add_right _ _ }
 
 lemma rank_le_range (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V₁ :=
 dim_submodule_le _
 
-lemma rank_add_le (f g : V →ₗ[K] V') : rank (f + g) ≤ rank f + rank g :=
-calc rank (f + g) ≤ module.rank K (f.range ⊔ g.range : submodule K V') :
-  begin
-    refine dim_le_of_submodule _ _ _,
-    exact (linear_map.range_le_iff_comap.2 $ eq_top_iff'.2 $
-      assume x, show f x + g x ∈ (f.range ⊔ g.range : submodule K V'), from
-        mem_sup.2 ⟨_, ⟨x, rfl⟩, _, ⟨x, rfl⟩, rfl⟩)
-  end
-  ... ≤ rank f + rank g : dim_add_le_dim_add_dim _ _
-
-@[simp] lemma rank_zero : rank (0 : V →ₗ[K] V') = 0 :=
+@[simp] lemma rank_zero [nontrivial K] : rank (0 : V →ₗ[K] V') = 0 :=
 by rw [rank, linear_map.range_zero, dim_bot]
-
-lemma rank_finset_sum_le {η} (s : finset η) (f : η → V →ₗ[K] V') :
-  rank (∑ d in s, f d) ≤ ∑ d in s, rank (f d) :=
-@finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) f (λ d, rank (f d)) s (le_of_eq rank_zero)
-      (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left h _))
 
 variables [add_comm_group V''] [module K V'']
 
@@ -1164,10 +1149,36 @@ variables [add_comm_group V'₁] [module K V'₁]
 lemma rank_comp_le2 (g : V →ₗ[K] V') (f : V' →ₗ[K] V'₁) : rank (f.comp g) ≤ rank g :=
 by rw [rank, rank, linear_map.range_comp]; exact dim_map_le _ _
 
+end
+
+section field
+variables [field K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
+variables [add_comm_group V'] [module K V']
+
+lemma rank_le_domain (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V :=
+by { rw [← dim_range_add_dim_ker f], exact self_le_add_right _ _ }
+
+lemma rank_add_le (f g : V →ₗ[K] V') : rank (f + g) ≤ rank f + rank g :=
+calc rank (f + g) ≤ module.rank K (f.range ⊔ g.range : submodule K V') :
+  begin
+    refine dim_le_of_submodule _ _ _,
+    exact (linear_map.range_le_iff_comap.2 $ eq_top_iff'.2 $
+      assume x, show f x + g x ∈ (f.range ⊔ g.range : submodule K V'), from
+        mem_sup.2 ⟨_, ⟨x, rfl⟩, _, ⟨x, rfl⟩, rfl⟩)
+  end
+  ... ≤ rank f + rank g : dim_add_le_dim_add_dim _ _
+
+lemma rank_finset_sum_le {η} (s : finset η) (f : η → V →ₗ[K] V') :
+  rank (∑ d in s, f d) ≤ ∑ d in s, rank (f d) :=
+@finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) f (λ d, rank (f d)) s (le_of_eq rank_zero)
+      (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left h _))
+
+end field
+
 end rank
 
--- TODO The remainder of this file could be generalized to arbitrary rings.
-
+section division_ring
+variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V'] [module K V']
 
 /-- The `ι` indexed basis on `V`, where `ι` is an empty type and `V` is zero-dimensional.
 
@@ -1203,40 +1214,6 @@ lemma le_dim_iff_exists_linear_independent_finset {n : ℕ} :
     ∃ s : finset V, s.card = n ∧ linear_independent K (coe : (s : set V) → V) :=
 begin
   simp only [le_dim_iff_exists_linear_independent, cardinal.mk_eq_nat_iff_finset],
-  split,
-  { rintro ⟨s, ⟨t, rfl, rfl⟩, si⟩,
-    exact ⟨t, rfl, si⟩ },
-  { rintro ⟨s, rfl, si⟩,
-    exact ⟨s, ⟨s, rfl, rfl⟩, si⟩ }
-end
-
-lemma le_rank_iff_exists_linear_independent {c : cardinal} {f : V →ₗ[K] V'} :
-  c ≤ rank f ↔
-  ∃ s : set V, cardinal.lift.{v'} (#s) = cardinal.lift.{v} c ∧
-    linear_independent K (λ x : s, f x) :=
-begin
-  rcases f.range_restrict.exists_right_inverse_of_surjective f.range_range_restrict with ⟨g, hg⟩,
-  have fg : left_inverse f.range_restrict g, from linear_map.congr_fun hg,
-  refine ⟨λ h, _, _⟩,
-  { rcases le_dim_iff_exists_linear_independent.1 h with ⟨s, rfl, si⟩,
-    refine ⟨g '' s, cardinal.mk_image_eq_lift _ _ fg.injective, _⟩,
-    replace fg : ∀ x, f (g x) = x, by { intro x, convert congr_arg subtype.val (fg x) },
-    replace si : linear_independent K (λ x : s, f (g x)),
-      by simpa only [fg] using si.map' _ (ker_subtype _),
-    exact si.image_of_comp s g f },
-  { rintro ⟨s, hsc, si⟩,
-    have : linear_independent K (λ x : s, f.range_restrict x),
-      from linear_independent.of_comp (f.range.subtype) (by convert si),
-    convert cardinal_le_dim_of_linear_independent this.image,
-    rw [← cardinal.lift_inj, ← hsc, cardinal.mk_image_eq_of_inj_on_lift],
-    exact inj_on_iff_injective.2 this.injective }
-end
-
-lemma le_rank_iff_exists_linear_independent_finset {n : ℕ} {f : V →ₗ[K] V'} :
-  ↑n ≤ rank f ↔ ∃ s : finset V, s.card = n ∧ linear_independent K (λ x : (s : set V), f x) :=
-begin
-  simp only [le_rank_iff_exists_linear_independent, cardinal.lift_nat_cast,
-    cardinal.lift_eq_nat_iff, cardinal.mk_eq_nat_iff_finset],
   split,
   { rintro ⟨s, ⟨t, rfl, rfl⟩, si⟩,
     exact ⟨t, rfl, si⟩ },
@@ -1314,6 +1291,45 @@ begin
     { push_neg at hw,
       rw ←submodule.eq_bot_iff at hw,
       simp [hw] } }
+end
+
+end division_ring
+
+section field
+variables [field K] [add_comm_group V] [module K V] [add_comm_group V'] [module K V']
+
+lemma le_rank_iff_exists_linear_independent {c : cardinal} {f : V →ₗ[K] V'} :
+  c ≤ rank f ↔
+  ∃ s : set V, cardinal.lift.{v'} (#s) = cardinal.lift.{v} c ∧
+    linear_independent K (λ x : s, f x) :=
+begin
+  rcases f.range_restrict.exists_right_inverse_of_surjective f.range_range_restrict with ⟨g, hg⟩,
+  have fg : left_inverse f.range_restrict g, from linear_map.congr_fun hg,
+  refine ⟨λ h, _, _⟩,
+  { rcases le_dim_iff_exists_linear_independent.1 h with ⟨s, rfl, si⟩,
+    refine ⟨g '' s, cardinal.mk_image_eq_lift _ _ fg.injective, _⟩,
+    replace fg : ∀ x, f (g x) = x, by { intro x, convert congr_arg subtype.val (fg x) },
+    replace si : linear_independent K (λ x : s, f (g x)),
+      by simpa only [fg] using si.map' _ (ker_subtype _),
+    exact si.image_of_comp s g f },
+  { rintro ⟨s, hsc, si⟩,
+    have : linear_independent K (λ x : s, f.range_restrict x),
+      from linear_independent.of_comp (f.range.subtype) (by convert si),
+    convert cardinal_le_dim_of_linear_independent this.image,
+    rw [← cardinal.lift_inj, ← hsc, cardinal.mk_image_eq_of_inj_on_lift],
+    exact inj_on_iff_injective.2 this.injective }
+end
+
+lemma le_rank_iff_exists_linear_independent_finset {n : ℕ} {f : V →ₗ[K] V'} :
+  ↑n ≤ rank f ↔ ∃ s : finset V, s.card = n ∧ linear_independent K (λ x : (s : set V), f x) :=
+begin
+  simp only [le_rank_iff_exists_linear_independent, cardinal.lift_nat_cast,
+    cardinal.lift_eq_nat_iff, cardinal.mk_eq_nat_iff_finset],
+  split,
+  { rintro ⟨s, ⟨t, rfl, rfl⟩, si⟩,
+    exact ⟨t, rfl, si⟩ },
+  { rintro ⟨s, rfl, si⟩,
+    exact ⟨s, ⟨s, rfl, rfl⟩, si⟩ }
 end
 
 end field

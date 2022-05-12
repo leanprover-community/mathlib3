@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Yaël Dillies
 -/
 import order.compare
-import order.order_dual
+import order.max
 import order.rel_classes
 
 /-!
@@ -339,7 +339,19 @@ lemma injective_of_le_imp_le [partial_order α] [preorder β] (f : α → β)
 λ x y hxy, (h hxy.le).antisymm (h hxy.ge)
 
 section preorder
-variables [preorder α] [preorder β] {f g : α → β}
+variables [preorder α] [preorder β] {f g : α → β} {a : α}
+
+lemma strict_mono.is_max_of_apply (hf : strict_mono f) (ha : is_max (f a)) : is_max a :=
+of_not_not $ λ h, let ⟨b, hb⟩ := not_is_max_iff.1 h in (hf hb).not_is_max ha
+
+lemma strict_mono.is_min_of_apply (hf : strict_mono f) (ha : is_min (f a)) : is_min a :=
+of_not_not $ λ h, let ⟨b, hb⟩ := not_is_min_iff.1 h in (hf hb).not_is_min ha
+
+lemma strict_anti.is_max_of_apply (hf : strict_anti f) (ha : is_min (f a)) : is_max a :=
+of_not_not $ λ h, let ⟨b, hb⟩ := not_is_max_iff.1 h in (hf hb).not_is_min ha
+
+lemma strict_anti.is_min_of_apply (hf : strict_anti f) (ha : is_max (f a)) : is_min a :=
+of_not_not $ λ h, let ⟨b, hb⟩ := not_is_min_iff.1 h in (hf hb).not_is_max ha
 
 protected lemma strict_mono.ite' (hf : strict_mono f) (hg : strict_mono g) {p : α → Prop}
   [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)
@@ -545,7 +557,7 @@ protected theorem strict_mono_on.compares (hf : strict_mono_on f s) {a b : α} (
 protected theorem strict_anti_on.compares (hf : strict_anti_on f s) {a b : α} (ha : a ∈ s)
   (hb : b ∈ s) {o : ordering} :
   o.compares (f a) (f b) ↔ o.compares b a :=
-order_dual.dual_compares.trans $ hf.dual_right.compares hb ha
+to_dual_compares_to_dual.trans $ hf.dual_right.compares hb ha
 
 protected theorem strict_mono.compares (hf : strict_mono f) {a b : α} {o : ordering} :
   o.compares (f a) (f b) ↔ o.compares a b :=
@@ -625,17 +637,14 @@ lemma monotone_nat_of_le_succ {f : ℕ → α} (hf : ∀ n, f n ≤ f (n + 1)) :
   monotone f :=
 nat.rel_of_forall_rel_succ_of_le (≤) hf
 
-lemma antitone_nat_of_succ_le {f : ℕ → α} (hf : ∀ n, f (n + 1) ≤ f n) :
-  antitone f :=
-@monotone_nat_of_le_succ (order_dual α) _ _ hf
+lemma antitone_nat_of_succ_le {f : ℕ → α} (hf : ∀ n, f (n + 1) ≤ f n) : antitone f :=
+@monotone_nat_of_le_succ αᵒᵈ _ _ hf
 
-lemma strict_mono_nat_of_lt_succ {f : ℕ → α} (hf : ∀ n, f n < f (n + 1)) :
-  strict_mono f :=
+lemma strict_mono_nat_of_lt_succ {f : ℕ → α} (hf : ∀ n, f n < f (n + 1)) : strict_mono f :=
 nat.rel_of_forall_rel_succ_of_lt (<) hf
 
-lemma strict_anti_nat_of_succ_lt {f : ℕ → α} (hf : ∀ n, f (n + 1) < f n) :
-  strict_anti f :=
-@strict_mono_nat_of_lt_succ (order_dual α) _ f hf
+lemma strict_anti_nat_of_succ_lt {f : ℕ → α} (hf : ∀ n, f (n + 1) < f n) : strict_anti f :=
+@strict_mono_nat_of_lt_succ αᵒᵈ _ f hf
 
 lemma int.rel_of_forall_rel_succ_of_lt (r : β → β → Prop) [is_trans β r]
   {f : ℤ → β} (h : ∀ n, r (f n) (f (n + 1))) ⦃a b : ℤ⦄ (hab : a < b) : r (f a) (f b) :=

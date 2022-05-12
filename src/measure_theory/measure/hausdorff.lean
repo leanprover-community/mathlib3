@@ -542,7 +542,7 @@ lemma mk_metric_le_liminf_sum {β : Type*} {ι : β → Type*} [hι : ∀ n, fin
   (m : ℝ≥0∞ → ℝ≥0∞) :
   mk_metric m s ≤ liminf l (λ n, ∑ i, m (diam (t n i))) :=
 begin
-  haveI : ∀ n, encodable (ι n), from λ n, fintype.encodable _,
+  haveI : ∀ n, encodable (ι n), from λ n, fintype.to_encodable _,
   simpa only [tsum_fintype] using mk_metric_le_liminf_tsum s r hr t ht hst m,
 end
 

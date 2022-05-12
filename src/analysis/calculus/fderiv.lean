@@ -272,7 +272,7 @@ have h : ∀ x', ∥x' - x∥ = 0 → ∥f x' - f x - f' (x' - x)∥ = 0, from �
 begin
   unfold has_fderiv_at_filter,
   rw [←is_o_norm_left, ←is_o_norm_right, is_o_iff_tendsto h],
-  exact tendsto_congr (λ _, div_eq_inv_mul),
+  exact tendsto_congr (λ _, div_eq_inv_mul _ _),
 end
 
 theorem has_fderiv_within_at_iff_tendsto : has_fderiv_within_at f f' s x ↔
@@ -1230,8 +1230,16 @@ lemma has_fderiv_within_at.prod
 hf₁.prod hf₂
 
 lemma has_fderiv_at.prod (hf₁ : has_fderiv_at f₁ f₁' x) (hf₂ : has_fderiv_at f₂ f₂' x) :
-  has_fderiv_at (λx, (f₁ x, f₂ x)) (continuous_linear_map.prod f₁' f₂') x :=
+  has_fderiv_at (λx, (f₁ x, f₂ x)) (f₁'.prod f₂') x :=
 hf₁.prod hf₂
+
+lemma has_fderiv_at_prod_mk_left (e₀ : E) (f₀ : F) :
+  has_fderiv_at (λ e : E, (e, f₀)) (inl 𝕜 E F) e₀ :=
+(has_fderiv_at_id e₀).prod (has_fderiv_at_const f₀ e₀)
+
+lemma has_fderiv_at_prod_mk_right (e₀ : E) (f₀ : F) :
+  has_fderiv_at (λ f : F, (e₀, f)) (inr 𝕜 E F) f₀ :=
+(has_fderiv_at_const e₀ f₀).prod (has_fderiv_at_id f₀)
 
 lemma differentiable_within_at.prod
   (hf₁ : differentiable_within_at 𝕜 f₁ s x) (hf₂ : differentiable_within_at 𝕜 f₂ s x) :

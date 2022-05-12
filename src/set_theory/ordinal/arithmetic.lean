@@ -763,14 +763,11 @@ theorem smul_eq_mul : ∀ (n : ℕ) (a : ordinal), n • a = a * n
 
 /-! ### Division on ordinals -/
 
-protected lemma div_aux (a b : ordinal.{u}) (h : b ≠ 0) : set.nonempty {o | a < b * succ o} :=
+/-- The set in the definition of division is nonempty. -/
+theorem div_nonempty {a b : ordinal.{u}} (h : b ≠ 0) : {o | a < b * succ o}.nonempty :=
 ⟨a, succ_le.1 $
   by simpa only [succ_zero, one_mul]
     using mul_le_mul_right' (succ_le.2 (ordinal.pos_iff_ne_zero.2 h)) (succ a)⟩
-
-/-- The set in the definition of division is nonempty. -/
-theorem div_nonempty {a b : ordinal.{u}} (h : b ≠ 0) : {o | a < b * succ o}.nonempty :=
-ordinal.div_aux a b h
 
 /-- `a / b` is the unique ordinal `o` satisfying `a = b * o + o'` with `o' < b`. -/
 instance : has_div ordinal := ⟨λ a b, if h : b = 0 then 0 else Inf {o | a < b * succ o}⟩

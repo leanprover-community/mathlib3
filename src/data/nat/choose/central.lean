@@ -117,11 +117,11 @@ bounds in the central binomial coeffcicient. These include:
 * `nat.factorization_central_binom_le`: a logarithmic upper bound on the multiplicity of a prime in
   the central binomial coefficient.
 * `nat.factorization_central_binom_of_large_le_one`: Primes above `sqrt (2 * n)` appear at most once
-  in the factorisation of the `n`th central binomial coefficient.
+  in the factorization of the `n`th central binomial coefficient.
 * `nat.factorization_central_binom_of_two_mul_self_lt_3_mul_prime`: Primes from `2 * n / 3` to `n`
 do not appear in the factorization of the `n`th central binomial coefficient.
 * `nat.factorization_central_binom_eq_zero_of_two_mul_lt_prime`: Primes greater than `2 * n` do not
-  appear in the factorisation of the `n`th central binomial coefficient.
+  appear in the factorization of the `n`th central binomial coefficient.
 
 These results appear in the [Erdős proof of Bertrand's postulate](aigner1999proofs).
 -/
@@ -179,7 +179,7 @@ begin
 end
 
 /--
-Primes greater than about `2 * n / 3` and less than `n` do not appear in the factorisation of
+Primes greater than about `2 * n / 3` and less than `n` do not appear in the factorization of
 `central_binom n`.
 -/
 lemma factorization_central_binom_of_two_mul_self_lt_3_mul_prime

@@ -368,35 +368,14 @@ begin
   have h_new : ∑ m in d.succ.proper_divisors, (univ.filter (λ a : α, order_of a = m)).card =
     ∑ m in d.succ.proper_divisors, φ m,
   {
+    rw (finset.filter_dvd_eq_proper_divisors hn (succ_ne_zero d)).symm,
     refine finset.sum_congr rfl (λ m hm, _),
-    have hmd : m < d.succ, {
-      exact (mem_proper_divisors.1 hm).2,
-      },
-    have hm : m ∣ d.succ, from (mem_filter.1 hm).2,
-    have h_div : m ∣ fintype.card α, { exact hm.trans hd },
-    have H_pos : 0 < (filter (λ (a : α), order_of a = m) univ).card,
-    {
-      refine (finset.card_pos.2 _),
-    exact ⟨a ^ (d.succ / m), mem_filter.2 ⟨mem_univ _,
-            by { rw [order_of_pow a, ha, nat.gcd_eq_right (div_dvd_of_dvd hm),
-                  nat.div_div_self hm (succ_pos _)] }⟩⟩,
-    },
-    exact card_order_of_eq_totient_aux₁ h_div H_pos,
-  },
-
-
--- Why does `h` work without a complaint about recursion, but `h_new` doesn't?
-  have h : ∑ m in (range d.succ).filter (∣ d.succ),
-    (univ.filter (λ a : α, order_of a = m)).card =
-    ∑ m in (range d.succ).filter (∣ d.succ), φ m,
-  { exact
-      finset.sum_congr rfl
-      (λ m hm, have hmd : m < d.succ, from mem_range.1 (mem_filter.1 hm).1,
-        have hm : m ∣ d.succ, from (mem_filter.1 hm).2,
-        card_order_of_eq_totient_aux₁ (hm.trans hd) (finset.card_pos.2
-          ⟨a ^ (d.succ / m), mem_filter.2 ⟨mem_univ _,
-            by { rw [order_of_pow a, ha, nat.gcd_eq_right (div_dvd_of_dvd hm),
-                  nat.div_div_self hm (succ_pos _)] }⟩⟩)),
+    simp only [mem_filter, mem_range] at hm,
+    refine
+    ( have hmd : m < d.succ := hm.1, card_order_of_eq_totient_aux₁ (hm.2.trans hd) _ ),
+    refine finset.card_pos.2 ⟨a ^ (d.succ / m), _⟩,
+    simp only [mem_filter, mem_univ, order_of_pow a, ha, true_and],
+    rw [nat.gcd_eq_right (div_dvd_of_dvd hm.2), nat.div_div_self hm.2 (succ_pos d)],
   },
 
   have H_new :

@@ -205,7 +205,7 @@ begin
     ((tendsto_zero_iff_abs_tendsto_zero _).1 hk.inv_tendsto_at_top),
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le' h1 h2
     (eventually_of_forall (λ x, abs_nonneg _)) ((eventually_map.1 hm).mp _),
-  refine ((eventually_ne_of_tendsto_at_top hk 0).mono $ λ x hk0 hx, _),
+  refine ((hk.eventually_ne_at_top hk 0).mono $ λ x hk0 hx, _),
   refine eq.trans_le _ (mul_le_mul_of_nonneg_left hx $ abs_nonneg (k x)⁻¹),
   rw [← abs_mul, ← mul_assoc, pow_succ, ← mul_assoc, inv_mul_cancel hk0, one_mul],
 end

@@ -133,7 +133,7 @@ is designed to be specialized for `L = 𝓝 x` (in `has_fderiv_at`), giving rise
 of Fréchet derivative, and for `L = 𝓝[s] x` (in `has_fderiv_within_at`), giving rise to
 the notion of Fréchet derivative along the set `s`. -/
 def has_fderiv_at_filter (f : E → F) (f' : E →L[𝕜] F) (x : E) (L : filter E) :=
-is_o (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) L
+(λ x', f x' - f x - f' (x' - x)) =o[L] (λ x', x' - x)
 
 /-- A function `f` has the continuous linear map `f'` as derivative at `x` within a set `s` if
 `f x' = f x + f' (x' - x) + o (x' - x)` when `x'` tends to `x` inside `s`. -/
@@ -150,7 +150,7 @@ if `f x - f y - f' (x - y) = o(x - y)` as `x, y → a`. This form of differentia
 e.g., by the inverse function theorem. Any `C^1` function on a vector space over `ℝ` is strictly
 differentiable but this definition works, e.g., for vector spaces over `p`-adic numbers. -/
 def has_strict_fderiv_at (f : E → F) (f' : E →L[𝕜] F) (x : E) :=
-is_o (λ p : E × E, f p.1 - f p.2 - f' (p.1 - p.2)) (λ p : E × E, p.1 - p.2) (𝓝 (x, x))
+(λ p : E × E, f p.1 - f p.2 - f' (p.1 - p.2)) =o[𝓝 (x, x)] (λ p : E × E, p.1 - p.2)
 
 variables (𝕜)
 
@@ -221,13 +221,13 @@ begin
     split,
     { apply tendsto_const_nhds.add (tangent_cone_at.lim_zero l clim cdlim) },
     { rwa tendsto_principal } },
-  have : is_o (λ y, f y - f x - f' (y - x)) (λ y, y - x) (𝓝[s] x) := h,
-  have : is_o (λ n, f (x + d n) - f x - f' ((x + d n) - x)) (λ n, (x + d n)  - x) l :=
+  have : (λ y, f y - f x - f' (y - x)) =o[𝓝[s] x] (λ y, y - x) := h,
+  have : (λ n, f (x + d n) - f x - f' ((x + d n) - x)) =o[l] (λ n, (x + d n)  - x) :=
     this.comp_tendsto tendsto_arg,
-  have : is_o (λ n, f (x + d n) - f x - f' (d n)) d l := by simpa only [add_sub_cancel'],
-  have : is_o (λn, c n • (f (x + d n) - f x - f' (d n))) (λn, c n • d n) l :=
+  have : (λ n, f (x + d n) - f x - f' (d n)) =o[l] d := by simpa only [add_sub_cancel'],
+  have : (λ n, c n • (f (x + d n) - f x - f' (d n))) =o[l] (λ n, c n • d n) :=
     (is_O_refl c l).smul_is_o this,
-  have : is_o (λn, c n • (f (x + d n) - f x - f' (d n))) (λn, (1:ℝ)) l :=
+  have : (λ n, c n • (f (x + d n) - f x - f' (d n))) =o[l] (λ n, (1:ℝ)) :=
     this.trans_is_O (is_O_one_of_tendsto ℝ cdlim),
   have L1 : tendsto (λn, c n • (f (x + d n) - f x - f' (d n))) l (𝓝 0) :=
     (is_o_one_iff ℝ).1 this,
@@ -284,7 +284,7 @@ theorem has_fderiv_at_iff_tendsto : has_fderiv_at f f' x ↔
 has_fderiv_at_filter_iff_tendsto
 
 theorem has_fderiv_at_iff_is_o_nhds_zero : has_fderiv_at f f' x ↔
-  is_o (λh, f (x + h) - f x - f' h) (λh, h) (𝓝 0) :=
+  (λ h : E, f (x + h) - f x - f' h) =o[𝓝 0] (λh, h) :=
 begin
   rw [has_fderiv_at, has_fderiv_at_filter, ← map_add_left_nhds_zero x, is_o_map],
   simp [(∘)]
@@ -343,11 +343,11 @@ lemma has_fderiv_at.differentiable_at (h : has_fderiv_at f f' x) : differentiabl
 by { simp only [has_fderiv_within_at, nhds_within_univ], refl }
 
 lemma has_strict_fderiv_at.is_O_sub (hf : has_strict_fderiv_at f f' x) :
-  is_O (λ p : E × E, f p.1 - f p.2) (λ p : E × E, p.1 - p.2) (𝓝 (x, x)) :=
+  (λ p : E × E, f p.1 - f p.2) =O[𝓝 (x, x)] (λ p : E × E, p.1 - p.2) :=
 hf.is_O.congr_of_sub.2 (f'.is_O_comp _ _)
 
 lemma has_fderiv_at_filter.is_O_sub (h : has_fderiv_at_filter f f' x L) :
-  is_O (λ x', f x' - f x) (λ x', x' - x) L :=
+  (λ x', f x' - f x) =O[L] (λ x', x' - x) :=
 h.is_O.congr_of_sub.2 (f'.is_O_sub _ _)
 
 protected lemma has_strict_fderiv_at.has_fderiv_at (hf : has_strict_fderiv_at f f' x) :
@@ -668,14 +668,14 @@ hf.has_fderiv_at.continuous_at
 
 lemma has_strict_fderiv_at.is_O_sub_rev {f' : E ≃L[𝕜] F}
   (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) x) :
-  is_O (λ p : E × E, p.1 - p.2) (λ p : E × E, f p.1 - f p.2) (𝓝 (x, x)) :=
+  (λ p : E × E, p.1 - p.2) =O[𝓝 (x, x)](λ p : E × E, f p.1 - f p.2) :=
 ((f'.is_O_comp_rev _ _).trans (hf.trans_is_O (f'.is_O_comp_rev _ _)).right_is_O_add).congr
 (λ _, rfl) (λ _, sub_add_cancel _ _)
 
 lemma has_fderiv_at_filter.is_O_sub_rev (hf : has_fderiv_at_filter f f' x L) {C}
   (hf' : antilipschitz_with C f') :
-  is_O (λ x', x' - x) (λ x', f x' - f x) L :=
-have is_O (λ x', x' - x) (λ x', f' (x' - x)) L,
+  (λ x', x' - x) =O[L] (λ x', f x' - f x) :=
+have (λ x', x' - x) =O[L] (λ x', f' (x' - x)),
   from is_O_iff.2 ⟨C, eventually_of_forall $ λ x', f'.to_linear_map.bound_of_antilipschitz hf' _⟩,
 (this.trans (hf.trans_is_O this).right_is_O_add).congr (λ _, rfl) (λ _, sub_add_cancel _ _)
 
@@ -1048,26 +1048,32 @@ by { refine eq₂.triangle (eq₁.congr_left (λ x', _)), simp }
 /- A readable version of the previous theorem,
    a general form of the chain rule. -/
 
+#check trans_rel_left
 example {g : F → G} {g' : F →L[𝕜] G}
   (hg : has_fderiv_at_filter g g' (f x) (L.map f))
   (hf : has_fderiv_at_filter f f' x L) :
   has_fderiv_at_filter (g ∘ f) (g'.comp f') x L :=
 begin
   unfold has_fderiv_at_filter at hg,
-  have : is_o (λ x', g (f x') - g (f x) - g' (f x' - f x)) (λ x', f x' - f x) L,
-    from hg.comp_tendsto le_rfl,
-  have eq₁ : is_o (λ x', g (f x') - g (f x) - g' (f x' - f x)) (λ x', x' - x) L,
-    from this.trans_is_O hf.is_O_sub,
-  have eq₂ : is_o (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) L,
-    from hf,
-  have : is_O
-    (λ x', g' (f x' - f x - f' (x' - x))) (λ x', f x' - f x - f' (x' - x)) L,
-    from g'.is_O_comp _ _,
-  have : is_o (λ x', g' (f x' - f x - f' (x' - x))) (λ x', x' - x) L,
-    from this.trans_is_o eq₂,
-  have eq₃ : is_o (λ x', g' (f x' - f x) - (g' (f' (x' - x)))) (λ x', x' - x) L,
-    by { refine this.congr_left _, simp},
-  exact eq₁.triangle eq₃
+  have := calc (λ x', g (f x') - g (f x) - g' (f x' - f x)) =o[L] (λ x', f x' - f x) :
+    hg.comp_tendsto le_rfl
+  ... =O[L] (λ x', x' - x) : hf.is_O_sub,
+  refine this.triangle _,
+  have := calc (λ x' : E, g' (f x' - f x) - g'.comp f' (x' - x)) = (λ x', g' (f x' - f x - f' (x' - x))) :
+    _
+  -- ... =O[L] (λ x', f x' - f x - f' (x' - x)) : g'.is_O_comp _ _
+  ... =o[L] λ x', x' - x : _ ,
+  convert this,
+
+  -- have eq₂ : (λ x', f x' - f x - f' (x' - x)) =o[L] (λ x', x' - x),
+  --   from hf,
+  -- have : (λ x', g' (f x' - f x - f' (x' - x))) =O[L] (λ x', f x' - f x - f' (x' - x)),
+  --   from g'.is_O_comp _ _,
+  -- have : (λ x', g' (f x' - f x - f' (x' - x))) =o[L] (λ x', x' - x),
+  --   from this.trans_is_o eq₂,
+  -- have eq₃ : (λ x', g' (f x' - f x) - (g' (f' (x' - x)))) =o[L] (λ x', x' - x),
+  --   by { refine this.congr_left _, simp},
+  -- exact eq₁.triangle eq₃
 end
 
 theorem has_fderiv_within_at.comp {g : F → G} {g' : F →L[𝕜] G} {t : set F}

@@ -47,6 +47,7 @@ Any comments or suggestions for improvements is greatly appreciated!
 ##  Future work
 Lots is missing!  I would certainly like to show that `R[T;T⁻¹]` is the localization of `R[X]`
 inverting `X`.  This should be mostly in place, given `exists_T_pow` (which is part of PR #13415).
+(Riccardo) add inclusion into Laurent series.
 (Riccardo) giving a morphism (as `R`-alg, so in the commutative case)
 from `R[T,T⁻¹]` to `S` is the same as choosing a unit of `S`.
 -/

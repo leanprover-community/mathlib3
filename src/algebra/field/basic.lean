@@ -70,7 +70,7 @@ local attribute [simp]
 
 lemma one_div_neg_one_eq_neg_one : (1:K) / (-1) = -1 :=
 have (-1) * (-1) = (1:K), by rw [neg_mul_neg, one_mul],
-eq.symm (eq_one_div_of_mul_eq_one this)
+eq.symm (eq_one_div_of_mul_eq_one_right this)
 
 lemma one_div_neg_eq_neg_one_div (a : K) : 1 / (- a) = - (1 / a) :=
 calc

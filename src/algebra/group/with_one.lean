@@ -45,7 +45,9 @@ instance : has_one (with_one α) := ⟨none⟩
 @[to_additive]
 instance [has_mul α] : has_mul (with_one α) := ⟨option.lift_or_get (*)⟩
 
-@[to_additive]
+/-- When `α` has multiplicative inverses, `with_one α` also has multiplicative inverses, by defining
+`1⁻¹ = 1`. -/
+@[to_additive "When `α` has a negation, `with_one α` also has a negation, by defining `-0 = 0`."]
 instance [has_inv α] : has_inv (with_one α) := ⟨λ a, option.map has_inv.inv a⟩
 
 @[to_additive]
@@ -292,8 +294,8 @@ instance [monoid α] : monoid_with_zero (with_zero α) :=
 instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
 { ..with_zero.monoid_with_zero, ..with_zero.comm_semigroup }
 
-/-- Given an inverse operation on `α` there is an inverse operation
-  on `with_zero α` sending `0` to `0`-/
+/-- When `α` has multiplicative inverses, `with_zero α` also has multiplicative inverses, by
+defining `0⁻¹ = 0`. -/
 @[to_additive] instance [has_inv α] : has_inv (with_zero α) := ⟨λ a, option.map has_inv.inv a⟩
 
 @[simp, norm_cast, to_additive] lemma coe_inv [has_inv α] (a : α) :

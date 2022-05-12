@@ -5,8 +5,7 @@ Authors: Kenny Lau, Mario Carneiro
 -/
 
 import group_theory.congruence
-import linear_algebra.bilinear_map
-import linear_algebra.span
+import algebra.module.submodule.bilinear
 
 /-!
 # Tensor product of modules over commutative semirings.
@@ -364,6 +363,12 @@ begin
   { exact submodule.zero_mem _, },
   { intros m n, apply submodule.subset_span, use [m, n], },
   { intros t₁ t₂ ht₁ ht₂, exact submodule.add_mem _ ht₁ ht₂, },
+end
+
+@[simp] lemma map₂_mk_top_top_eq_top : submodule.map₂ (mk R M N) ⊤ ⊤ = ⊤ :=
+begin
+  rw [← top_le_iff, ← span_tmul_eq_top, submodule.map₂_eq_span_image2],
+  exact submodule.span_mono (λ _ ⟨m, n, h⟩, ⟨m, n, trivial, trivial, h⟩),
 end
 
 end module

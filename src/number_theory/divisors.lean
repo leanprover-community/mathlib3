@@ -49,6 +49,22 @@ def divisors_antidiagonal : finset (ℕ × ℕ) :=
 
 variable {n}
 
+@[simp] lemma filter_dvd_eq_divisors (h : n ≠ 0) :
+  (finset.range n.succ).filter (∣ n) = n.divisors :=
+begin
+  ext,
+  simp only [divisors, mem_filter, mem_range, mem_Ico, and.congr_left_iff, iff_and_self],
+  exact λ ha _, succ_le_iff.mpr (pos_of_dvd_of_pos ha h.bot_lt),
+end
+
+@[simp] lemma filter_dvd_eq_proper_divisors (h : n ≠ 0) :
+  (finset.range n).filter (∣ n) = n.proper_divisors :=
+begin
+  ext,
+  simp only [proper_divisors, mem_filter, mem_range, mem_Ico, and.congr_left_iff, iff_and_self],
+  exact λ ha _, succ_le_iff.mpr (pos_of_dvd_of_pos ha h.bot_lt),
+end
+
 lemma proper_divisors.not_self_mem : ¬ n ∈ proper_divisors n :=
 begin
   rw proper_divisors,
@@ -412,24 +428,6 @@ lemma prod_divisors_antidiagonal' {M : Type*} [comm_monoid M] (f : ℕ → ℕ �
 begin
   rw [←map_swap_divisors_antidiagonal, finset.prod_map],
   exact prod_divisors_antidiagonal (λ i j, f j i),
-end
-
-@[simp]
-lemma filter_dvd_eq_divisors (h : n ≠ 0) :
-  (finset.range n.succ).filter (∣ n) = n.divisors :=
-begin
-  ext,
-  simp only [divisors, mem_filter, mem_range, mem_Ico, and.congr_left_iff, iff_and_self],
-  exact λ ha _, succ_le_iff.mpr (pos_of_dvd_of_pos ha h.bot_lt),
-end
-
-@[simp]
-lemma filter_dvd_eq_proper_divisors (h : n ≠ 0) :
-  (finset.range n).filter (∣ n) = n.proper_divisors :=
-begin
-  ext,
-  simp only [proper_divisors, mem_filter, mem_range, mem_Ico, and.congr_left_iff, iff_and_self],
-  exact λ ha _, succ_le_iff.mpr (pos_of_dvd_of_pos ha h.bot_lt),
 end
 
 /-- The factors of `n` are the prime divisors -/

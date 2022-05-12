@@ -70,10 +70,6 @@ namespace polynomial
 open_locale polynomial
 variables {R : Type*} [semiring R]
 
-/-  PR #14095. -/
-lemma nat_degree_monomial_eq (i : ℕ) {r : R} (r0 : r ≠ 0) : (monomial i r).nat_degree = i :=
-by classical; exact eq.trans (nat_degree_monomial _ _) (if_neg r0)
-
 /-  PR #14098. -/
 lemma nat_degree_monomial_le (a : R) {n : ℕ} :
   (monomial n a).nat_degree ≤ n :=
@@ -91,6 +87,7 @@ begin
   rwa polynomial.nat_degree_X_pow,
 end
 
+/- PR #14100. -/
 lemma nat_degree_add_le_iff_left {n : ℕ} (f g : R[X]) (gn : g.nat_degree ≤ n) :
   (f + g).nat_degree ≤ n ↔ f.nat_degree ≤ n :=
 begin
@@ -98,13 +95,6 @@ begin
   refine nat_degree_le_iff_coeff_eq_zero.mpr (λ m hm, _),
   convert nat_degree_le_iff_coeff_eq_zero.mp h m hm using 1,
   rw [coeff_add, nat_degree_le_iff_coeff_eq_zero.mp gn _ hm, add_zero],
-end
-
-lemma nat_degree_add_le_iff_right {n : ℕ} (f g : R[X]) (fn : f.nat_degree ≤ n) :
-  (f + g).nat_degree ≤ n ↔ g.nat_degree ≤ n :=
-begin
-  rw add_comm,
-  exact nat_degree_add_le_iff_left _ _ fn,
 end
 
 /-- Useful to expose easy hypotheses:

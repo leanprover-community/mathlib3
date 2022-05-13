@@ -371,6 +371,7 @@ module.comp_hom _ polynomial.to_laurent
 end semiring
 
 section comm_semiring
+variable [comm_semiring R]
 
 instance algebra_polynomial (R : Type*) [comm_semiring R] : algebra R[X] R[T;T⁻¹] :=
 { commutes' := λ f l, by simp [mul_comm],
@@ -378,17 +379,18 @@ instance algebra_polynomial (R : Type*) [comm_semiring R] : algebra R[X] R[T;T�
   .. ((map_domain_ring_hom R int.of_nat_hom).comp
     (to_finsupp_iso R).to_ring_hom : R[X] →+* R[T;T⁻¹]) }
 
-lemma algebra_map_X_pow (n : ℕ) :
-  @algebra_map R[X] R[T;T⁻¹] _ _ (algebra_polynomial R) (X ^ n) = T n :=
+instance (R : Type*) [comm_semiring R] : is_scalar_tower R[X] R[X] R[T;T⁻¹] :=
+{ smul_assoc := λ x y z, by simp only [has_scalar.smul, has_scalar.comp.smul, map_mul, mul_assoc] }
+
+lemma algebra_map_X_pow (n : ℕ) : algebra_map R[X] R[T;T⁻¹] (X ^ n) = T n :=
 polynomial.to_laurent_X_pow n
 
 @[simp]
-lemma algebra_map_eq_to_laurent (f : R[X]) :
-  @algebra_map R[X] R[T;T⁻¹] _ _ (algebra_polynomial R) f = f.to_laurent :=
+lemma algebra_map_eq_to_laurent (f : R[X]) : algebra_map R[X] R[T;T⁻¹] f = f.to_laurent :=
 rfl
 
 lemma is_localization :
-  @is_localization _ _ (submonoid.closure ({X} : set R[X])) R[T;T⁻¹] _ (algebra_polynomial R) :=
+  is_localization (submonoid.closure ({X} : set R[X])) R[T;T⁻¹] :=
 { map_units := λ t, begin
     cases t with t ht,
     rcases submonoid.mem_closure_singleton.mp ht with ⟨n, rfl⟩,
@@ -411,8 +413,6 @@ lemma is_localization :
       rw [mul_comm, mul_comm _ ↑_] at h,
       exact mul_X_pow_injective n h }
   end }
-instance (R : Type*) [comm_semiring R] : is_scalar_tower R[X] R[X] R[T;T⁻¹] :=
-{ smul_assoc := λ x y z, by simp only [has_scalar.smul, has_scalar.comp.smul, map_mul, mul_assoc] }
 
 end comm_semiring
 

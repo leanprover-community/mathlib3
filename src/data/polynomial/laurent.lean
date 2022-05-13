@@ -399,7 +399,7 @@ lemma is_localization :
   end,
   surj := λ f, begin
     induction f using laurent_polynomial.induction_on_mul_T with f n,
-    have := (submonoid.closure ({X} : set R[X])).pow_mem (submonoid.mem_closure_singleton_self) n,
+    have := (submonoid.closure ({X} : set R[X])).pow_mem submonoid.mem_closure_singleton_self n,
     refine ⟨(f, ⟨_, this⟩), _⟩,
     simp only [set_like.coe_mk, algebra_map_eq_to_laurent, polynomial.to_laurent_X_pow, mul_T_assoc,
       add_left_neg, T_zero, mul_one],

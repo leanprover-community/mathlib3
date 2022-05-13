@@ -109,4 +109,4 @@ lemma normed_ring.to_is_norm (R : Type*) [normed_ring R] :
   is_norm (λ r : R, ∥r∥₊) :=
 { zero    := nnnorm_zero,
   mul     := nnnorm_mul_le,
-  ne_zero :=  λ x hx, by { rw [pos_iff_ne_zero, ne.def, nnnorm_eq_zero], exact hx }}
+  ne_zero :=  λ x hx, nnnorm_pos_iff.mpr hx }

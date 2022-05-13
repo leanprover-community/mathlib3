@@ -167,12 +167,9 @@ end
 
 lemma sum_totient' (n : ℕ) : ∑ m in (range n.succ).filter (∣ n), φ m = n :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
-  nth_rewrite_rhs 0 ←sum_totient n,
-  apply sum_congr _ (λ x hx, rfl),
-  ext,
-  simp only [divisors, mem_filter, mem_range, mem_Ico, and.congr_left_iff, iff_and_self],
-  exact λ ha1 _, succ_le_iff.mpr (pos_of_dvd_of_pos ha1 hn0),
+  convert sum_totient _ using 1,
+  simp only [nat.divisors, sum_filter, range_eq_Ico],
+  rw sum_eq_sum_Ico_succ_bot; simp
 end
 
 /-- When `p` is prime, then the totient of `p ^ (n + 1)` is `p ^ n * (p - 1)` -/

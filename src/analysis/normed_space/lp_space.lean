@@ -649,11 +649,10 @@ instance : has_mul (lp B ∞) :=
 
 @[simp] lemma infty_coe_fn_mul (f g : lp B ∞) : ⇑(f * g) = f * g := rfl
 
-
-
 instance : non_unital_ring (lp B ∞) :=
-function.injective.non_unital_ring lp.has_coe_to_fun.coe (by ext) (lp.coe_fn_zero B ∞)
-  lp.coe_fn_add infty_coe_fn_mul lp.coe_fn_neg lp.coe_fn_sub (λ _ _, rfl) (λ _ _,rfl)
+function.injective.non_unital_ring lp.has_coe_to_fun.coe (subtype.coe_injective)
+  (lp.coe_fn_zero B ∞) lp.coe_fn_add infty_coe_fn_mul lp.coe_fn_neg lp.coe_fn_sub
+  (λ _ _, rfl) (λ _ _,rfl)
 
 instance : non_unital_normed_ring (lp B ∞) :=
 { norm_mul := λ f g, lp.norm_le_of_forall_le (mul_nonneg (norm_nonneg f) (norm_nonneg g))
@@ -689,19 +688,15 @@ begin
 end
 
 instance [nonempty I] : norm_one_class (lp B ∞) :=
-begin
-  split,
-  rw lp.norm_eq_csupr,
-  convert csupr_const,
-  simp only [infty_coe_fn_one, pi.one_apply, norm_one],
-  apply_instance
-end
+{ norm_one := by simp_rw [lp.norm_eq_csupr, infty_coe_fn_one, pi.one_apply, norm_one, csupr_const]}
 
+instance : has_pow (lp B ∞) ℕ := { pow := λ f n, ⟨_, f.prop.infty_pow n⟩ }
+
+@[simp] lemma infty_coe_fn_pow (f : lp B ∞) (n : ℕ) : ⇑(f ^ n) = f ^ n := rfl
 instance : ring (lp B ∞) :=
-{ one_mul := λ f, by { ext1, rw lp.infty_coe_fn_mul, simp only [infty_coe_fn_one, one_mul] },
-  mul_one := λ f, by { ext1, rw lp.infty_coe_fn_mul, simp only [infty_coe_fn_one, mul_one] },
-  .. lp.non_unital_ring,
-  .. lp.has_one }
+function.injective.ring lp.has_coe_to_fun.coe subtype.coe_injective
+  (lp.coe_fn_zero B ∞) (infty_coe_fn_one) lp.coe_fn_add infty_coe_fn_mul
+  lp.coe_fn_neg lp.coe_fn_sub (λ _ _, rfl) (λ _ _, rfl) infty_coe_fn_pow
 
 instance : normed_ring (lp B ∞) :=
 { .. lp.ring, .. lp.non_unital_normed_ring }

@@ -163,11 +163,9 @@ unified.
 This definition is useful to streamline error catching. -/
 meta def move_add_with_errors (ll : list (bool × pexpr)) : option name → tactic (bool × list bool)
 | (some hyp) := do
-  lhyp ← get_local hyp,
-  thyp ←  infer_type lhyp,
+  thyp ← get_local hyp >>= infer_type,
   is_unused ← recurse_on_expr hyp ll thyp,
-  nhyp ← get_local hyp,
-  nthyp ← infer_type nhyp,
+  nthyp ← get_local hyp >>= infer_type,
   if (thyp = nthyp) then return (tt, is_unused) else return (ff, is_unused)
 | none       := do
   t ← target,

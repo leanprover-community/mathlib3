@@ -610,8 +610,7 @@ begin
 end
 
 
-lemma sigma_is_limit (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
-polynomial.splits (algebra_map K L) (minpoly K x)) (f : ultrafilter (L ≃ₐ[K] L)) :
+lemma sigma_is_limit (h_int : algebra.is_integral K L) (f : ultrafilter (L ≃ₐ[K] L)) :
 (f : filter (L ≃ₐ[K] L)) ≤ nhds (equiv_of_ultrafilter h_int f) :=
 begin
   let σ := equiv_of_ultrafilter h_int f,
@@ -701,7 +700,7 @@ polynomial.splits (algebra_map K L) (minpoly K x)) :
 is_compact (set.univ : set (L ≃ₐ[K] L)) := is_compact_iff_ultrafilter_le_nhds.2
   (λ f _,  ⟨equiv_of_ultrafilter h_int f,
   set.mem_univ (equiv_of_ultrafilter h_int f),
-  sigma_is_limit h_int h_splits f⟩)
+  sigma_is_limit h_int f⟩)
 
 end compact
 

@@ -158,7 +158,7 @@ begin
 end
 
 lemma geom_sum_X_comp_X_add_one_eq_sum (n : ℕ) :
-  (geom_sum (X : R[X]) n).comp (X + 1) =
+  (∑ i in range n, (X : R[X]) ^ i).comp (X + 1) =
   (finset.range n).sum (λ (i : ℕ), (n.choose (i + 1) : R[X]) * X ^ i) :=
 begin
   ext i,
@@ -175,7 +175,7 @@ begin
 end
 
 lemma monic.geom_sum {P : R[X]}
-  (hP : P.monic) (hdeg : 0 < P.nat_degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
+  (hP : P.monic) (hdeg : 0 < P.nat_degree) {n : ℕ} (hn : n ≠ 0) : (∑ i in range n, P ^ i).monic :=
 begin
   nontriviality R,
   cases n, { exact (hn rfl).elim },
@@ -191,11 +191,11 @@ begin
 end
 
 lemma monic.geom_sum' {P : R[X]}
-  (hP : P.monic) (hdeg : 0 < P.degree) {n : ℕ} (hn : n ≠ 0) : (geom_sum P n).monic :=
+  (hP : P.monic) (hdeg : 0 < P.degree) {n : ℕ} (hn : n ≠ 0) : (∑ i in range n, P ^ i).monic :=
 hP.geom_sum (nat_degree_pos_iff_degree_pos.2 hdeg) hn
 
 lemma monic_geom_sum_X {n : ℕ} (hn : n ≠ 0) :
-  (geom_sum (X : R[X]) n).monic :=
+  (∑ i in range n, (X : R[X]) ^ i).monic :=
 begin
   nontriviality R,
   apply monic_X.geom_sum _ hn,

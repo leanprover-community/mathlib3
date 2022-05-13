@@ -117,10 +117,7 @@ lemma is_cau_geo_series {β : Type*} [ring β] [nontrivial β] {abv : β → α}
 have hx1' : abv x ≠ 1 := λ h, by simpa [h, lt_irrefl] using hx1,
 is_cau_series_of_abv_cau
 begin
-  simp only [abv_pow abv] {eta := ff},
-  have : (λ (m : ℕ), ∑ n in range m, (abv x) ^ n) =
-   λ m, geom_sum (abv x) m := rfl,
-  simp only [this, geom_sum_eq hx1'] {eta := ff},
+  simp only [abv_pow abv, geom_sum_eq hx1'],
   conv in (_ / _) { rw [← neg_div_neg_eq, neg_sub, neg_sub] },
   refine @is_cau_of_mono_bounded _ _ _ _ ((1 : α) / (1 - abv x)) 0 _ _,
   { assume n hn,
@@ -1238,7 +1235,7 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
     from mul_ne_zero (nat.cast_ne_zero.2 (pos_iff_ne_zero.1 (nat.factorial_pos _)))
     (nat.cast_ne_zero.2 (pos_iff_ne_zero.1 hn)),
   have h₄ : (n.succ - 1 : α) = n, by simp,
-  by rw [← geom_sum_def, geom_sum_inv h₁ h₂, eq_div_iff_mul_eq h₃,
+  by rw [geom_sum_inv h₁ h₂, eq_div_iff_mul_eq h₃,
       mul_comm _ (n! * n : α), ← mul_assoc (n!⁻¹ : α), ← mul_inv_rev, h₄,
       ← mul_assoc (n! * n : α), mul_comm (n : α) n!, mul_inv_cancel h₃];
     simp [mul_add, add_mul, mul_assoc, mul_comm]
@@ -1309,7 +1306,7 @@ begin
   { rw [←mul_sum],
     apply mul_le_mul_of_nonneg_left,
     { simp_rw [←div_pow],
-      rw [←geom_sum_def, geom_sum_eq, div_le_iff_of_neg],
+      rw [geom_sum_eq, div_le_iff_of_neg],
       { transitivity (-1 : ℝ),
         { linarith },
         { simp only [neg_le_sub_iff_le_add, div_pow, nat.cast_succ, le_add_iff_nonneg_left],

@@ -632,7 +632,8 @@ section non_unital_normed_ring
 
 variables {I : Type*} {B : I → Type*} [Π i, non_unital_normed_ring (B i)]
 
-lemma _root_.mem_ℓp.infty_mul {f g : Π i, B i} (hf : mem_ℓp f ∞) (hg : mem_ℓp g ∞) : mem_ℓp (f * g) ∞ :=
+lemma _root_.mem_ℓp.infty_mul {f g : Π i, B i} (hf : mem_ℓp f ∞) (hg : mem_ℓp g ∞) :
+  mem_ℓp (f * g) ∞ :=
 begin
   rw mem_ℓp_infty_iff,
   obtain ⟨⟨Cf, hCf⟩, ⟨Cg, hCg⟩⟩ := ⟨hf.bdd_above, hg.bdd_above⟩,
@@ -643,25 +644,16 @@ begin
                                       ((norm_nonneg _).trans (hCf ⟨i, rfl⟩))
 end
 
-noncomputable instance : has_mul (lp B ∞) :=
-{ mul := λ f g, ⟨λ i, f i * g i, f.property.infty_mul g.property⟩ }
+instance : has_mul (lp B ∞) :=
+{ mul := λ f g, ⟨(f  * g : Π i, B i) , f.property.infty_mul g.property⟩}
 
-@[simp] lemma lp.infty_coe_fn_mul {f g : lp B ∞} : ⇑(f * g) = f * g := rfl
+@[simp] lemma infty_coe_fn_mul (f g : lp B ∞) : ⇑(f * g) = f * g := rfl
 
-noncomputable instance : non_unital_ring (lp B ∞) :=
-{ zero_mul := λ f,
-    by { ext, rw [lp.infty_coe_fn_mul, pi.mul_apply, lp.coe_fn_zero, pi.zero_apply, zero_mul] },
-  mul_zero := λ f,
-    by { ext, rw [lp.infty_coe_fn_mul, pi.mul_apply, lp.coe_fn_zero, pi.zero_apply, mul_zero] },
-  mul_assoc := λ f g h, by { ext1, simp only [lp.infty_coe_fn_mul, mul_assoc] },
-  left_distrib := λ f g h,
-    by { ext1, iterate { rw lp.infty_coe_fn_mul <|> rw lp.coe_fn_add }, rw mul_add, },
-  right_distrib := λ f g h,
-    by { ext1, iterate { rw lp.infty_coe_fn_mul <|> rw lp.coe_fn_add }, rw add_mul, },
-  .. lp.normed_group.to_add_comm_group,
-  .. lp.has_mul }
+instance : non_unital_ring (lp B ∞) :=
+function.injective.non_unital_ring lp.has_coe_to_fun.coe (by ext) (lp.coe_fn_zero B ∞)
+  lp.coe_fn_add infty_coe_fn_mul lp.coe_fn_neg lp.coe_fn_sub (λ _ _, rfl) (λ _ _,rfl)
 
-noncomputable instance : non_unital_normed_ring (lp B ∞) :=
+instance : non_unital_normed_ring (lp B ∞) :=
 { norm_mul := λ f g, lp.norm_le_of_forall_le (mul_nonneg (norm_nonneg f) (norm_nonneg g))
     (λ i, calc ∥(f * g) i∥ ≤ ∥f i∥ * ∥g i∥ : norm_mul_le _ _
     ...                    ≤ ∥f∥ * ∥g∥
@@ -681,21 +673,23 @@ instance : has_one (lp B ∞) :=
 { one := ⟨λ i, 1, ⟨1, by { rintros _ ⟨i, rfl⟩, exact norm_one.le,}⟩⟩ }
 
 @[simp] lemma infty_coe_fn_one : ⇑(1 : lp B ∞) = 1 := rfl
-@[simp] lemma infty_norm_one [nonempty I] : ∥(1 : lp B ∞)∥ = 1 :=
+
+instance [nonempty I] : norm_one_class (lp B ∞) :=
 begin
+  split,
   rw lp.norm_eq_csupr,
   convert csupr_const,
   simp only [infty_coe_fn_one, pi.one_apply, norm_one],
   apply_instance
 end
 
-noncomputable instance : ring (lp B ∞) :=
+instance : ring (lp B ∞) :=
 { one_mul := λ f, by { ext1, rw lp.infty_coe_fn_mul, simp only [infty_coe_fn_one, one_mul] },
   mul_one := λ f, by { ext1, rw lp.infty_coe_fn_mul, simp only [infty_coe_fn_one, mul_one] },
   .. lp.non_unital_ring,
   .. lp.has_one }
 
-noncomputable instance : normed_ring (lp B ∞) :=
+instance : normed_ring (lp B ∞) :=
 { .. lp.ring, .. lp.non_unital_normed_ring }
 
 end normed_ring
@@ -704,11 +698,11 @@ section normed_comm_ring
 
 variables  {I : Type*} {B : I → Type*} [Π i, normed_comm_ring (B i)] [Π i, norm_one_class (B i)]
 
-noncomputable instance : comm_ring (lp B ∞) :=
+instance : comm_ring (lp B ∞) :=
 { mul_comm := λ f g, by { ext, simp only [lp.infty_coe_fn_mul, pi.mul_apply, mul_comm] },
   .. lp.ring }
 
-noncomputable instance : normed_comm_ring (lp B ∞) :=
+instance : normed_comm_ring (lp B ∞) :=
 { .. lp.comm_ring, .. lp.normed_ring }
 
 end normed_comm_ring

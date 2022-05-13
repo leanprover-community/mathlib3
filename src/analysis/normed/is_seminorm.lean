@@ -101,12 +101,12 @@ def is_pow_mul {R : Type*} [ring R] (f : R → ℝ≥0) :=
 ∀ (r : R) {n : ℕ} (hn : 1 ≤ n), f (r ^ n) = (f r) ^ n
 
 lemma seminormed_ring.to_is_seminorm (R : Type*) [semi_normed_ring R] :
-  is_seminorm (λ r : R, (⟨∥r∥, norm_nonneg _⟩ : ℝ≥0)) :=
-{ zero   := by simp only [norm_zero, nonneg.mk_eq_zero],
-  mul    := by {simp only [nonneg.mk_mul_mk, subtype.mk_le_mk], exact norm_mul_le }}
+  is_seminorm (λ r : R, ∥r∥₊) :=
+{ zero := nnnorm_zero,
+  mul  := nnnorm_mul_le }
 
 lemma normed_ring.to_is_norm (R : Type*) [normed_ring R] :
-  is_norm (λ r : R, (⟨∥r∥, norm_nonneg _⟩ : ℝ≥0)) :=
-{ zero    := by simp only [norm_zero, nonneg.mk_eq_zero],
-  mul     := by { simp only [nonneg.mk_mul_mk, subtype.mk_le_mk], exact norm_mul_le },
-  ne_zero := λ x hx, by { rw [pos_iff_ne_zero, ne.def, nonneg.mk_eq_zero, norm_eq_zero], exact hx }}
+  is_norm (λ r : R, ∥r∥₊) :=
+{ zero    := nnnorm_zero,
+  mul     := nnnorm_mul_le,
+  ne_zero :=  λ x hx, by { rw [pos_iff_ne_zero, ne.def, nnnorm_eq_zero], exact hx }}

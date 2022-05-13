@@ -84,9 +84,9 @@ lemma is_unit_or_is_unit_of_is_unit_add {a b : R} (h : is_unit (a + b)) :
   is_unit a ∨ is_unit b :=
 begin
   rcases h with ⟨u, hu⟩,
-  replace hu : ↑u⁻¹ * a + ↑u⁻¹ * b = 1, from by rw [←mul_add, ←hu, units.inv_mul],
-  cases is_unit_or_is_unit_of_add_one hu; [left, right];
-    exact (is_unit_of_mul_is_unit_right (by assumption))
+  rw [eq_iff_inv_mul, mul_add] at hu,
+  apply or.imp _ _ (is_unit_or_is_unit_of_add_one hu);
+    exact is_unit_of_mul_is_unit_right,
 end
 
 lemma nonunits_add {a b : R} (ha : a ∈ nonunits R) (hb : b ∈ nonunits R) : a + b ∈ nonunits R:=

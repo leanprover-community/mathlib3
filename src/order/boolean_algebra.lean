@@ -840,6 +840,9 @@ instance : boolean_algebra bool := boolean_algebra.of_core
   top_le_sup_compl := λ a, a.bor_bnot_self.ge,
   ..bool.linear_order, ..bool.bounded_order }
 
+protected theorem is_irrefl.compl (r) [is_irrefl α r] : is_refl α rᶜ := ⟨@irrefl α r _⟩
+protected theorem is_refl.compl (r) [is_refl α r] : is_irrefl α rᶜ := ⟨λ a, not_not_intro (refl a)⟩
+
 section lift
 
 /-- Pullback a `generalized_boolean_algebra` along an injection. -/

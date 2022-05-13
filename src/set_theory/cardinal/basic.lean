@@ -479,8 +479,8 @@ instance : linear_order cardinal.{u} :=
 instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
 { le_total     := by { rintros ⟨α⟩ ⟨β⟩, exact embedding.total },
   decidable_le := classical.dec_rel _,
-  .. (infer_instance : canonically_ordered_add_monoid cardinal),
-  .. cardinal.partial_order }
+  ..(infer_instance : canonically_ordered_add_monoid cardinal),
+  ..cardinal.partial_order }
 
 -- short-circuit type class inference
 instance : distrib_lattice cardinal.{u} := by apply_instance

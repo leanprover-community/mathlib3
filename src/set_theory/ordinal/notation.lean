@@ -453,8 +453,8 @@ def mul : onote → onote → onote
 
 instance : has_mul onote := ⟨mul⟩
 
-@[simp] theorem zero_mul (o : onote) : 0 * o = 0 := by cases o; refl
-@[simp] theorem mul_zero (o : onote) : o * 0 = 0 := by cases o; refl
+@[simp] protected theorem zero_mul (o : onote) : 0 * o = 0 := by cases o; refl
+@[simp] protected theorem mul_zero (o : onote) : o * 0 = 0 := by cases o; refl
 
 theorem oadd_mul (e₁ n₁ a₁ e₂ n₂ a₂) : oadd e₁ n₁ a₁ * oadd e₂ n₂ a₂ =
   if e₂ = 0 then oadd e₁ (n₁ * n₂) a₁ else
@@ -481,8 +481,8 @@ instance mul_NF : ∀ o₁ o₂ [NF o₁] [NF o₂], NF (o₁ * o₂)
   ⟨⟨_, oadd_mul_NF_below hb₁ hb₂⟩⟩
 
 @[simp] theorem repr_mul : ∀ o₁ o₂ [NF o₁] [NF o₂], repr (o₁ * o₂) = repr o₁ * repr o₂
-| 0               o               h₁ h₂ := by cases o; exact (ordinal.zero_mul _).symm
-| (oadd e₁ n₁ a₁) 0               h₁ h₂ := (ordinal.mul_zero _).symm
+| 0               o               h₁ h₂ := by cases o; exact (zero_mul _).symm
+| (oadd e₁ n₁ a₁) 0               h₁ h₂ := (mul_zero _).symm
 | (oadd e₁ n₁ a₁) (oadd e₂ n₂ a₂) h₁ h₂ := begin
   have IH : repr (mul _ _) = _ := @repr_mul _ _ h₁ h₂.snd,
   conv {to_lhs, simp [(*)]},

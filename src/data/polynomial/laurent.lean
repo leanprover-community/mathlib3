@@ -323,14 +323,18 @@ begin
         add_left_neg, T_zero, mul_one] } }
 end
 
-/--  This version of `exists_T_pow` can be called as `rcases f.exists_T_pow' with ⟨n, f', rfl⟩`. -/
+lemma T_sub (m n : ℤ) : (T m * T (-n) : R[T;T⁻¹]) = T (m - n) :=
+by rw [← T_add, sub_eq_add_neg]
+
+/--  This is a version of `exists_T_pow` stated as an induction principle. -/
 lemma induction_on_mul_T (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
-  (Qf : ∀ (f : R[X]) (n), Q (f.to_laurent * T n)) :
+  (Qf : ∀ {f : R[X]} {n : ℕ}, Q (f.to_laurent * T (- n))) :
   Q f :=
-  ∃ (n : ℕ) (f' : R[X]), f = f'.to_laurent * T (- n) :=
 begin
   rcases f.exists_T_pow with ⟨n, f', hf⟩,
-  exact ⟨n, f', by simp [hf]⟩,
+  rw [← mul_one f, ← T_zero, ← nat.cast_zero, ← nat.sub_self n, nat.cast_sub rfl.le, ← T_sub,
+    ← mul_assoc, int.nat_cast_eq_coe_nat, ← hf],
+  exact Qf,
 end
 
 /--  Suppose that `Q` is a statement about Laurent polynomials such that
@@ -342,9 +346,9 @@ lemma reduce_to_polynomial_of_mul_T (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
   (QT : ∀ f, Q (f * T 1) → Q f) :
   Q f :=
 begin
-  rcases f.exists_T_pow' with ⟨n, f', rfl⟩,
+  refine f.induction_on_mul_T (λ f n, _),
   induction n with n hn,
-  { simpa using Qf _ },
+  { simpa only [int.coe_nat_zero, neg_zero', T_zero, mul_one] using Qf _ },
   { convert QT _ _,
     simpa using hn }
 end

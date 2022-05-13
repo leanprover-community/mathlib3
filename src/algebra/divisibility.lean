@@ -99,7 +99,7 @@ dvd_refl a
 
 instance : is_refl α (∣) := ⟨dvd_refl⟩
 
-theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (one_mul _)
+@[simp] theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (one_mul _)
 
 end monoid
 

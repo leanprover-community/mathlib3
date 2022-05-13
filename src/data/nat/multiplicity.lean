@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes
+Authors: Chris Hughes, Xavier Xarles
 -/
 import algebra.big_operators.intervals
 import algebra.geom_sum
@@ -85,6 +85,63 @@ multiplicity_self (prime_iff.mp hp).not_unit hp.ne_zero
 
 lemma multiplicity_pow_self {p n : ℕ} (hp : p.prime) : multiplicity p (p ^ n) = n :=
 multiplicity_pow_self hp.ne_zero (prime_iff.mp hp).not_unit n
+
+
+
+lemma multiplicity_min_coprime {p m n : ℕ} (hp : p.prime)(h: nat.coprime m n):
+    min (multiplicity p m) (multiplicity p n) =0:=
+begin
+  cases le_total (multiplicity p m) (multiplicity p n) with hle hle,
+  rw multiplicity_eq_zero_of_coprime (nat.prime.ne_one hp) hle h,
+  exact min_eq_left (zero_le (multiplicity p n)),
+  rw coprime_comm at h,
+  rw  multiplicity_eq_zero_of_coprime (nat.prime.ne_one hp) hle h,
+  exact min_eq_right (zero_le (multiplicity p m)),
+end
+
+
+/-- The multiplicity of a prime in the gcd of two numbers is the minimum of
+the multiplicity of the two numbers-/
+lemma multiplicity_gcd {p m n : ℕ} (hp : p.prime):
+  multiplicity p (nat.gcd m n) = min (multiplicity p m) (multiplicity p n) :=
+begin
+  have h:=nat.eq_zero_or_pos m,
+  cases h with h0 hm0,
+    rw h0,
+    norm_num,
+  let d:=nat.gcd m n,
+  have h :=nat.gcd_pos_of_pos_left n hm0,
+  rcases nat.exists_coprime h with ⟨m',n',hmn,hm,hn⟩,
+  change nat.gcd m n with d at hm hn ⊢,
+  rw [hn, hm, nat.prime.multiplicity_mul hp, nat.prime.multiplicity_mul hp,
+       min_add_add_right, multiplicity_min_coprime hp hmn],
+  simp only [zero_add],
+end
+
+/-- The multiplicity of a prime in the lcm of two numbers is the maximum of
+the multiplicity of the two numbers-/
+lemma multiplicity_lcm {p m n : ℕ} (hp : p.prime):
+  multiplicity p (nat.lcm m n) = max (multiplicity p m) (multiplicity p n) :=
+begin
+  have h:=nat.eq_zero_or_pos m,
+  cases h with h0 hm0,
+    rw h0,
+    norm_num,
+  have hmn:=nat.gcd_mul_lcm m n,
+  apply_fun (multiplicity p) at hmn,
+  rw [nat.prime.multiplicity_mul hp,nat.prime.multiplicity_mul hp,
+    multiplicity_gcd hp, ←min_add_max (multiplicity p m) (multiplicity p n)] at hmn,
+  have hm: multiplicity p m ≠⊤,
+     {rw  multiplicity.ne_top_iff_finite,
+     rw multiplicity.finite_nat_iff, exact ⟨(nat.prime.ne_one hp),hm0⟩,},
+  have hmin: min (multiplicity p m) (multiplicity p n) ≠⊤,
+     {simp, norm_cast at *},
+  rw enat.add_left_cancel_iff hmin at hmn,
+  assumption,
+end
+
+
+
 
 /-- **Legendre's Theorem**
 

@@ -204,7 +204,7 @@ begin
     left,
     obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm,
     rw pow_succ,
-    apply dvd_mul_of_dvd_left dvd_rfl _ },
+    exact dvd_mul_of_dvd_left dvd_rfl _ },
   { rw [multiset.prod_repeat], exact (classical.some_spec (spec.2 hx)), }
 end
 

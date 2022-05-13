@@ -67,31 +67,11 @@ The tactics report that
 -/
 
 namespace polynomial
-open_locale polynomial
-variables {R : Type*} [semiring R]
-
-/-  PR #14098. -/
-lemma nat_degree_monomial_le (a : R) {n : ℕ} :
-  (monomial n a).nat_degree ≤ n :=
-begin
-  classical,
-  rw polynomial.nat_degree_monomial,
-  split_ifs; simp,
-end
-
-/-  PR #14098. -/
-lemma nat_degree_X_pow_le (n : ℕ) :
-  (X ^ n : R[X]).nat_degree ≤ n :=
-begin
-  nontriviality R,
-  rwa polynomial.nat_degree_X_pow,
-end
-
 /-- Useful to expose easy hypotheses:
 * `df` should be dealt with by `single_term_resolve`,
 * `dg` should be dealt with by `compute_degree_le`.
 -/
-lemma nat_degree_add_left_succ (n : ℕ) (f g : polynomial R)
+lemma polynomial.nat_degree_add_left_succ {R : Type*} [semiring R] (n : ℕ) (f g : polynomial R)
   (df : f.nat_degree = n + 1) (dg : g.nat_degree ≤ n) :
   (g + f).nat_degree = n + 1 :=
 by rwa nat_degree_add_eq_right_of_nat_degree_lt (dg.trans_lt (nat.lt_of_succ_le df.ge))

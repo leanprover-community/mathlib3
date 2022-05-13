@@ -48,11 +48,11 @@ lemma tendsto_small_sets_iff {f : α → set β} :
 (has_basis_small_sets lb).tendsto_right_iff
 
 lemma eventually_small_sets {p : set α → Prop} :
-  (∀ᶠ s in l.lift' powerset, p s) ↔ ∃ s ∈ l, ∀ t ⊆ s, p t :=
+  (∀ᶠ s in l.small_sets, p s) ↔ ∃ s ∈ l, ∀ t ⊆ s, p t :=
 eventually_lift'_iff monotone_powerset
 
 lemma eventually_small_sets' {p : set α → Prop} (hp : ∀ ⦃s t⦄, s ⊆ t → p t → p s) :
-  (∀ᶠ s in l.lift' powerset, p s) ↔ ∃ s ∈ l, p s :=
+  (∀ᶠ s in l.small_sets, p s) ↔ ∃ s ∈ l, p s :=
 eventually_small_sets.trans $ exists₂_congr $ λ s hsf,
   ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
 

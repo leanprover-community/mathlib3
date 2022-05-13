@@ -293,23 +293,6 @@ le_antisymm
 
 open_locale nat -- use φ for nat.totient
 
-
-------
-------
-lemma finset.filter_dvd_eq_proper_divisors {n : ℕ} (h : n ≠ 0) :
-  (finset.range n).filter (∣ n) = n.proper_divisors :=
-begin
-  ext,
-  simp only [proper_divisors, mem_filter, mem_range, mem_Ico, and.congr_left_iff, iff_and_self],
-  exact λ ha _, succ_le_iff.mpr (pos_of_dvd_of_pos ha h.bot_lt),
-end
-------
-------
-
-
--- (finset.range n.succ).filter (∣ n) = n.divisors
--- (finset.range n).filter (∣ n) = n.proper_divisors
-
 -- Version of proof using `d=0` and `0<d` rather than `0` and `d.succ`
 private lemma card_order_of_eq_totient_aux₁' :
   ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →
@@ -353,7 +336,7 @@ begin
   have h_new : ∑ m in d.succ.proper_divisors, (univ.filter (λ a : α, order_of a = m)).card =
     ∑ m in d.succ.proper_divisors, φ m,
   {
-    rw (finset.filter_dvd_eq_proper_divisors hn (succ_ne_zero d)).symm,
+    rw (filter_dvd_eq_proper_divisors (succ_ne_zero d)).symm,
     refine finset.sum_congr rfl (λ m hm, _),
     simp only [mem_filter, mem_range] at hm,
     refine
@@ -394,7 +377,6 @@ begin
 
   exact (add_left_inj _).1 H_new,
 end
--- using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf card⟩]}
 
 private lemma card_order_of_eq_totient_aux₁ :
   ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →

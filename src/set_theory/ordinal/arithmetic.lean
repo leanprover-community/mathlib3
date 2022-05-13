@@ -126,14 +126,15 @@ by rw [←succ_zero, lt_succ, ordinal.le_zero]
 private theorem add_lt_add_iff_left' (a) {b c : ordinal} : a + b < a + c ↔ b < c :=
 by rw [← not_le, ← not_le, add_le_add_iff_left]
 
-instance : covariant_class ordinal.{u} ordinal.{u} (+) (<) :=
+instance has_lt.lt.add_covariant_class : covariant_class ordinal.{u} ordinal.{u} (+) (<) :=
 ⟨λ a b c, (add_lt_add_iff_left' a).2⟩
 
-instance : contravariant_class ordinal.{u} ordinal.{u} (+) (<) :=
+instance has_lt.lt.add_contravariant_class : contravariant_class ordinal.{u} ordinal.{u} (+) (<) :=
 ⟨λ a b c, (add_lt_add_iff_left' a).1⟩
 
-theorem lt_of_add_lt_add_right {a b c : ordinal} : a + b < c + b → a < c :=
-lt_imp_lt_of_le_imp_le (λ h, add_le_add_right h _)
+instance has_lt.lt.add_swap_contravariant_class :
+  contravariant_class ordinal.{u} ordinal.{u} (swap (+)) (<) :=
+⟨λ a b c, lt_imp_lt_of_le_imp_le (λ h, add_le_add_right h _)⟩
 
 @[simp] theorem succ_lt_succ {a b : ordinal} : succ a < succ b ↔ a < b :=
 by rw [lt_succ, succ_le]

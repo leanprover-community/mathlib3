@@ -978,7 +978,7 @@ instance : add_monoid ordinal.{u} :=
       simp only [sum_assoc_apply_inl_inl, sum_assoc_apply_inl_inr, sum_assoc_apply_inr,
         sum.lex_inl_inl, sum.lex_inr_inr, sum.lex.sep, sum.lex_inr_inl] end⟩⟩ }
 
-instance has_le.le.add_covariant_class : covariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
+instance add_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
 ⟨λ c a b h, begin
   revert h c, exact (
   induction_on a $ λ α₁ r₁ _, induction_on b $ λ α₂ r₂ _ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,
@@ -998,8 +998,7 @@ instance has_le.le.add_covariant_class : covariant_class ordinal.{u} ordinal.{u}
     end⟩⟩)
 end⟩
 
-instance has_le.le.add_swap_covariant_class :
-  covariant_class ordinal.{u} ordinal.{u} (function.swap (+)) (≤) :=
+instance add_swap_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (swap (+)) (≤) :=
 ⟨λ c a b h, begin
   revert h c, exact (
   induction_on a $ λ α₁ r₁ hr₁, induction_on b $ λ α₂ r₂ hr₂ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,

@@ -71,7 +71,7 @@ quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
 @[simp] theorem lift_succ (a) : lift (succ a) = succ (lift a) :=
 by unfold succ; simp only [lift_add, lift_one]
 
-instance has_le.le.add_contravariant_class : contravariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
+instance add_contravariant_class_le : contravariant_class ordinal.{u} ordinal.{u} (+) (≤) :=
 ⟨λ a b c, induction_on a $ λ α r hr, induction_on b $ λ β₁ s₁ hs₁, induction_on c $ λ β₂ s₂ hs₂ ⟨f⟩,
   ⟨have fl : ∀ a, f (sum.inl a) = sum.inl a := λ a,
     by simpa only [initial_seg.trans_apply, initial_seg.le_add_apply]
@@ -126,13 +126,13 @@ by rw [←succ_zero, lt_succ, ordinal.le_zero]
 private theorem add_lt_add_iff_left' (a) {b c : ordinal} : a + b < a + c ↔ b < c :=
 by rw [← not_le, ← not_le, add_le_add_iff_left]
 
-instance has_lt.lt.add_covariant_class : covariant_class ordinal.{u} ordinal.{u} (+) (<) :=
+instance add_covariant_class_lt : covariant_class ordinal.{u} ordinal.{u} (+) (<) :=
 ⟨λ a b c, (add_lt_add_iff_left' a).2⟩
 
-instance has_lt.lt.add_contravariant_class : contravariant_class ordinal.{u} ordinal.{u} (+) (<) :=
+instance add_contravariant_class_lt : contravariant_class ordinal.{u} ordinal.{u} (+) (<) :=
 ⟨λ a b c, (add_lt_add_iff_left' a).1⟩
 
-instance has_lt.lt.add_swap_contravariant_class :
+instance add_swap_contravariant_class_lt :
   contravariant_class ordinal.{u} ordinal.{u} (swap (+)) (<) :=
 ⟨λ a b c, lt_imp_lt_of_le_imp_le (λ h, add_le_add_right h _)⟩
 
@@ -649,7 +649,7 @@ by rw [mul_add, mul_one]
 theorem mul_two (a : ordinal) : a * 2 = a + a :=
 by { change a * (succ 1) = a + a, rw [mul_succ, mul_one] }
 
-instance has_le.le.mul_covariant_class : covariant_class ordinal.{u} ordinal.{u} (*) (≤) :=
+instance mul_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (*) (≤) :=
 ⟨λ c a b, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
   resetI,
   refine type_le'.2 ⟨rel_embedding.of_monotone
@@ -660,8 +660,7 @@ instance has_le.le.mul_covariant_class : covariant_class ordinal.{u} ordinal.{u}
   { exact prod.lex.right _ h' }
 end⟩
 
-instance has_le.le.mul_swap_covariant_class :
-  covariant_class ordinal.{u} ordinal.{u} (function.swap (*)) (≤) :=
+instance mul_swap_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (swap (*)) (≤) :=
 ⟨λ c a b, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
   resetI,
   refine type_le'.2 ⟨rel_embedding.of_monotone

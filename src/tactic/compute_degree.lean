@@ -91,7 +91,7 @@ end
 * `df` should be dealt with by `single_term_resolve`,
 * `dg` should be dealt with by `compute_degree_le`.
 -/
-lemma nat_degree_add_left_succ {R : Type*} [semiring R] (n : ℕ) (f g : polynomial R)
+lemma nat_degree_add_left_succ (n : ℕ) (f g : polynomial R)
   (df : f.nat_degree = n + 1) (dg : g.nat_degree ≤ n) :
   (g + f).nat_degree = n + 1 :=
 by rwa nat_degree_add_eq_right_of_nat_degree_lt (dg.trans_lt (nat.lt_of_succ_le df.ge))
@@ -118,7 +118,6 @@ meta def C_mul_terms : expr → tactic unit
   end
 | _ := fail "The leading term is not of the form\n`C a * X (^ n)`\n\n"
 
---    nontriviality_by_assumption R,
 /--  Let `e` be an expression.  Assume that `e` is either a pure `X`-power or `C a` times a pure
 `X`-power in a polynomial ring over `R`.
 `single_term_resolve e` produces a proof of the goal `e.nat_degree = d`, where `d` is the
@@ -143,10 +142,10 @@ meta def single_term_resolve : expr → tactic unit
 
 /--  Given an expression `e`, assuming it is a polyomial, `extract_deg_single_term e` tries to guess
 the `nat_degree` of `e`.  Currently, it supports:
-* `monomial n r`, guessing `n`,
-* `C a`, guessing `0`,
-* `polynomial.X`, guessing `1`,
-* `X ^ n`, guessing `n`,
+* `monomial n r`,  guessing `n`,
+* `C a`,           guessing `0`,
+* `polynomial.X`,  guessing `1`,
+* `X ^ n`,         guessing `n`,
 * everything else, guessing `e.nat_degree`.
 
 The expectation is that the argument of `extract_deg_single_term` is a factor of a summand of an

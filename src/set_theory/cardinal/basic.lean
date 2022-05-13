@@ -248,6 +248,9 @@ lift_order_embedding.lt_iff_lt
 theorem lift_strict_mono : strict_mono lift :=
 λ a b, lift_lt.2
 
+theorem lift_monotone : monotone lift :=
+lift_strict_mono.monotone
+
 instance : has_zero cardinal.{u} := ⟨#pempty⟩
 
 instance : inhabited cardinal.{u} := ⟨0⟩
@@ -661,7 +664,7 @@ end⟩
 /-- The indexed supremum of cardinals is the smallest cardinal above
   everything in the family. -/
 def sup {ι : Type u} (f : ι → cardinal.{max u v}) : cardinal :=
-Sup (set.range f)
+supr f
 
 theorem le_sup {ι} (f : ι → cardinal.{max u v}) (i) : f i ≤ sup f :=
 le_cSup (bdd_above_range f) (mem_range_self i)
@@ -695,7 +698,7 @@ begin
   simp only [mk_sum, mk_out, lift_id, mk_sigma],
 end
 
-theorem sup_eq_zero {ι} {f : ι → cardinal} [is_empty ι] : sup f = 0 :=
+@[simp] theorem sup_eq_zero {ι} {f : ι → cardinal} [is_empty ι] : sup f = 0 :=
 by { rw ←nonpos_iff_eq_zero, exact sup_le is_empty_elim }
 
 /-- The indexed product of cardinals is the cardinality of the Pi type
@@ -735,7 +738,7 @@ end
 begin
   rcases eq_empty_or_nonempty s with rfl | hs,
   { simp },
-  { exact (monotone.map_Inf lift_strict_mono.monotone hs).symm }
+  { exact (monotone.map_Inf lift_monotone hs).symm }
 end
 
 theorem lift_down {a : cardinal.{u}} {b : cardinal.{max u v}} :
@@ -772,18 +775,10 @@ le_antisymm
 by rw [←lift_lift, ←lift_lift, lift_inj]
 
 @[simp] theorem lift_min {a b : cardinal} : lift (min a b) = min (lift a) (lift b) :=
-begin
-  cases le_total a b,
-  { rw [min_eq_left h, min_eq_left (lift_le.2 h)] },
-  { rw [min_eq_right h, min_eq_right (lift_le.2 h)] }
-end
+monotone.map_min lift_monotone
 
 @[simp] theorem lift_max {a b : cardinal} : lift (max a b) = max (lift a) (lift b) :=
-begin
-  cases le_total a b,
-  { rw [max_eq_right h, max_eq_right (lift_le.2 h)] },
-  { rw [max_eq_left h, max_eq_left (lift_le.2 h)] }
-end
+monotone.map_max lift_monotone
 
 protected lemma le_sup_iff {ι : Type v} {f : ι → cardinal.{max v w}} {c : cardinal} :
   (c ≤ sup f) ↔ (∀ b, (∀ i, f i ≤ b) → c ≤ b) :=

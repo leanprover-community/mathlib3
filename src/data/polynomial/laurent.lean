@@ -299,4 +299,17 @@ module.comp_hom _ polynomial.to_laurent
 
 end semiring
 
+section comm_semiring
+
+instance algebra_polynomial (R : Type*) [comm_semiring R] : algebra R[X] R[T;T⁻¹] :=
+{ commutes' := λ f l, by simp [mul_comm],
+  smul_def' := λ f l, rfl,
+  .. ((map_domain_ring_hom R int.of_nat_hom).comp
+    (to_finsupp_iso R).to_ring_hom : R[X] →+* R[T;T⁻¹]) }
+
+instance (R : Type*) [comm_semiring R] : is_scalar_tower R[X] R[X] R[T;T⁻¹] :=
+{ smul_assoc := λ x y z, by simp only [has_scalar.smul, has_scalar.comp.smul, map_mul, mul_assoc] }
+
+end comm_semiring
+
 end laurent_polynomial

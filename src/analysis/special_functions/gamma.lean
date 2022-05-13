@@ -347,7 +347,7 @@ def dGamma_integrand (s : ℂ) (x : ℝ) : ℂ := exp (-x) * log x * x ^ (s - 1)
 /-- Integrand for the absolute value of the derivative of the `Γ` function -/
 def dGamma_integrand_real (s x : ℝ) : ℝ := |exp (-x) * log x * x ^ (s - 1)|
 
-lemma dGamma_integrand_is_O_at_top (s : ℝ) :
+lemma dGamma_integrand_is_o_at_top (s : ℝ) :
   (λ x : ℝ, exp (-x) * log x * x ^ (s - 1)) =o[at_top] (λ x, exp (-(1/2) * x)) :=
 begin
   refine is_o_of_tendsto (λ x hx, _) _,

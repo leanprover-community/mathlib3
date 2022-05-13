@@ -315,6 +315,28 @@ begin
   exact surjective.of_comp h,
 end
 
+lemma pow_apply_mem_of_forall_mem {p : submodule R M}
+  (n : ℕ) (h : ∀ x ∈ p, f' x ∈ p) (x : M) (hx : x ∈ p) :
+  (f'^n) x ∈ p :=
+begin
+  revert x,
+  induction n with n ih,
+  { simp, },
+  { intros x hx,
+    simpa only [linear_map.iterate_succ, coe_comp, function.comp_app, restrict_apply] using
+      ih _ (h _ hx), },
+end
+
+lemma pow_restrict {p : submodule R M} (n : ℕ)
+  (h : ∀ x ∈ p, f' x ∈ p) (h' := pow_apply_mem_of_forall_mem n h) :
+  (f'.restrict h)^n = ((f'^n).restrict) h' :=
+begin
+  induction n with n ih;
+  ext,
+  { simp [restrict_apply], },
+  { simp [restrict_apply, linear_map.iterate_succ, -linear_map.pow_apply, ih], },
+end
+
 end
 
 section

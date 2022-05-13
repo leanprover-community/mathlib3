@@ -330,17 +330,6 @@ begin
            ennreal.tendsto_coe, ennreal.to_nnreal_coe],
 end
 
-lemma set_lintegral_const_lt_top {α : Type*} [measurable_space α] {μ : measure α} [is_finite_measure μ] (s : set α) {c : ℝ≥0∞} (hc : c < ∞) :
-  ∫⁻ a in s, c ∂μ < ⊤ :=
-begin
-  rw lintegral_const,
-  exact ennreal.mul_lt_top hc.ne (measure_lt_top (μ.restrict s) univ).ne,
-end
-
-lemma lintegral_const_lt_top {α : Type*} [measurable_space α] {μ : measure α} [is_finite_measure μ] {c : ℝ≥0∞} (hc : c < ∞) :
-  ∫⁻ a, c ∂μ < ⊤ :=
-by simpa only [measure.restrict_univ] using set_lintegral_const_lt_top univ hc
-
 lemma tendsto_lintegral_nn_of_le_const (μ : finite_measure α)
   {fs : ℕ → (α →ᵇ ℝ≥0)} {c : ℝ≥0} (fs_le_const : ∀ n a, fs n a ≤ c) {f : α → ℝ≥0}
   (fs_lim : ∀ a, tendsto (λ (n : ℕ), (fs n a)) at_top (𝓝 (f a))) :

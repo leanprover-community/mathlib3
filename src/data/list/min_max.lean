@@ -136,21 +136,12 @@ list.reverse_rec_on l rfl $ λ hd tl ih, begin
     rw [← cons_append, argmax_concat, ih, argmax_concat],
     cases h : argmax f hd with m,
     { simp [h] },
-    simp [h], dsimp,
-    by_cases ham : f a < f m,
-    { rw if_pos ham, dsimp,
-      by_cases hmtl : f m < f tl,
-      { rw if_pos hmtl,
-        dsimp,
-        rw if_pos (ham.trans hmtl) },
-      { rw if_neg hmtl,
-        dsimp,
-        rw if_pos ham } },
-    { rw if_neg ham, dsimp,
-      by_cases hmtl : f m < f tl,
-      { rw if_pos hmtl },
-      { rw if_neg hmtl, dsimp,
-        rw [if_neg ham, if_neg ((not_lt.mp hmtl).trans $ not_lt.mp ham).not_lt] } }
+    dsimp,
+    rw [←apply_ite, ←apply_ite],
+    dsimp,
+    split_ifs; try { refl },
+    { exact absurd (lt_trans ‹f a < f m› ‹_›) ‹_› },
+    { cases (‹f a < f tl›.lt_or_lt _).elim ‹_› ‹_› }
   end
 
 theorem argmin_cons (f : α → β) (a : α) (l : list α) : argmin f (a :: l) =
@@ -167,26 +158,16 @@ theorem index_of_argmax : Π {l : list α} {m : α}, m ∈ argmax f l →
   cases h : argmax f tl,
   { rw h at hm,
     simp * at * },
-  { rw h at hm,
-    dsimp only at hm,
-    cases ha with hahd hatl,
-    { clear index_of_argmax,
-      subst hahd,
-      split_ifs at hm,
-      { exfalso, subst hm,
-        apply lt_irrefl _ (lt_of_le_of_lt ham h_1) },
-      { subst hm } },
-    { have := index_of_argmax h hatl, clear index_of_argmax,
-      split_ifs at *,
-      iterate 4 { simp },
-      { subst hm, subst h_2,
-        apply lt_irrefl _ (lt_of_le_of_lt ham h_3) },
-      { exfalso,
-        apply h_1 (eq.symm hm) },
-      { subst hm,
-        apply nat.succ_le_succ (this ham) },
-      { exfalso,
-        apply h_1 (eq.symm hm) } } }
+  rw h at hm,
+  dsimp only at hm,
+  obtain rfl | ha := ha; split_ifs at hm; subst hm,
+  { cases not_le_of_lt ‹_› ‹_› },
+  { rw [if_neg, if_neg],
+    exact nat.succ_le_succ (index_of_argmax h ha ham),
+    { exact ne_of_apply_ne f (lt_of_lt_of_le ‹_› ‹_›).ne' },
+    { exact ne_of_apply_ne _ ‹f hd < f val›.ne' } },
+  { rw if_pos rfl,
+    exact bot_le }
 end
 
 theorem index_of_argmin : Π {l : list α} {m : α}, m ∈ argmin f l →
@@ -275,20 +256,10 @@ variable [linear_order α]
 
 theorem maximum_concat (a : α) (l : list α) : maximum (l ++ [a]) = max (maximum l) a :=
 begin
-  rw max_comm,
   simp only [maximum, argmax_concat, id],
   cases h : argmax id l,
-  { rw [max_eq_left], refl, exact bot_le },
-  change (coe : α → with_bot α) with some,
-  rw [max_comm],
-  simp [max_def],
-  split_ifs,
-  { exfalso,
-    exact lt_irrefl _ (lt_of_lt_of_le h_1 h_2) },
-  swap 3,
-  { exfalso,
-    apply h_1 (not_le.mp h_2) },
-  all_goals { refl }
+  { exact (max_eq_right bot_le).symm },
+  { simp [option.coe_def, max_def, ←not_lt] }
 end
 
 theorem le_maximum_of_mem {a m : α} {l : list α} : a ∈ l → (maximum l : with_bot α) = m → a ≤ m :=

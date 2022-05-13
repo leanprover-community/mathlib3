@@ -7,6 +7,7 @@ import algebra.category.Group.basic
 import category_theory.limits.shapes.kernels
 import category_theory.linear
 import linear_algebra.basic
+import category_theory.conj
 
 /-!
 # The category of `R`-modules
@@ -122,7 +123,7 @@ instance of_unique {X : Type v} [add_comm_group X] [module R X] [i : unique X] :
   unique (of R X) := i
 
 @[simp]
-lemma coe_of (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
+lemma coe_of (X : Type v) [add_comm_group X] [module R X] : (of R X : Type v) = X := rfl
 
 variables {R}
 
@@ -262,6 +263,14 @@ instance : linear S (Module.{v} S) :=
 { hom_module := λ X Y, linear_map.module,
   smul_comp' := by { intros, ext, simp },
   comp_smul' := by { intros, ext, simp }, }
+
+variables {X Y X' Y' : Module.{v} S}
+
+lemma iso.hom_congr_eq_arrow_congr (i : X ≅ X') (j : Y ≅ Y') (f : X ⟶ Y) :
+  iso.hom_congr i j f = linear_equiv.arrow_congr i.to_linear_equiv j.to_linear_equiv f := rfl
+
+lemma iso.conj_eq_conj (i : X ≅ X') (f : End X) :
+  iso.conj i f = linear_equiv.conj i.to_linear_equiv f := rfl
 
 end
 

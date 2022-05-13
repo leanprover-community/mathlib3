@@ -67,6 +67,8 @@ end
   (subobject.mk f).factors g ↔ (mono_over.mk' f).factors g :=
 iff.rfl
 
+lemma mk_factors_self (f : X ⟶ Y) [mono f] : (mk f).factors f := ⟨𝟙 _, by simp⟩
+
 lemma factors_iff {X Y : C} (P : subobject Y) (f : X ⟶ Y) :
   P.factors f ↔ (representative.obj P).factors f :=
 quot.induction_on P $ λ a, mono_over.factors_congr _ (representative_iso _).symm
@@ -106,6 +108,10 @@ classical.some_spec ((factors_iff _ _).mp h)
 
 @[simp] lemma factor_thru_self {X : C} (P : subobject X) (h) :
   P.factor_thru P.arrow h = 𝟙 P :=
+by { ext, simp, }
+
+@[simp] lemma factor_thru_mk_self (f : X ⟶ Y) [mono f] :
+  (mk f).factor_thru f (mk_factors_self f) = (underlying_iso f).inv :=
 by { ext, simp, }
 
 @[simp] lemma factor_thru_comp_arrow {X Y : C} {P : subobject Y} (f : X ⟶ P) (h) :

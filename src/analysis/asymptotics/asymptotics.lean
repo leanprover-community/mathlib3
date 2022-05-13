@@ -177,6 +177,12 @@ is_O_iff_is_O_with.trans
 lemma is_O_iff_eventually : is_O f g' l ↔ ∀ᶠ c in at_top, ∀ᶠ x in l, ∥f x∥ ≤ c * ∥g' x∥ :=
 is_O_iff_eventually_is_O_with.trans $ by simp only [is_O_with]
 
+lemma is_O.exists_mem_basis {ι} {p : ι → Prop} {s : ι → set α} (h : is_O f g' l)
+  (hb : l.has_basis p s) :
+  ∃ (c : ℝ) (hc : 0 < c) (i : ι) (hi : p i), ∀ x ∈ s i, ∥f x∥ ≤ c * ∥g' x∥ :=
+flip Exists₂.imp h.exists_pos $ λ c hc h,
+  by simpa only [is_O_with_iff, hb.eventually_iff, exists_prop] using h
+
 /-! ### Subsingleton -/
 
 @[nontriviality] lemma is_o_of_subsingleton [subsingleton E'] : is_o f' g' l :=
@@ -340,11 +346,8 @@ end
 theorem is_O.trans_is_o (hfg : is_O f g' l) (hgk : is_o g' k l) : is_o f k l :=
 let ⟨c, cpos, hc⟩ := hfg.exists_pos in hc.trans_is_o hgk cpos
 
-theorem is_o.trans (hfg : is_o f g l) (hgk : is_o g k' l) : is_o f k' l :=
-hfg.trans_is_O hgk.is_O
-
-theorem is_o.trans' (hfg : is_o f g' l) (hgk : is_o g' k l) : is_o f k l :=
-hfg.is_O.trans_is_o hgk
+theorem is_o.trans (hfg : is_o f g l) (hgk : is_o g k l) : is_o f k l :=
+hfg.trans_is_O_with hgk.is_O_with one_pos
 
 section
 
@@ -1048,7 +1051,7 @@ begin
   { refine (h₀ $ norm_le_zero_iff.1 _).elim,
     exact hle.trans (mul_nonpos_of_nonpos_of_nonneg hc $ norm_nonneg _) },
   { replace hle := inv_le_inv_of_le (norm_pos_iff.2 h₀) hle,
-    simpa only [norm_inv, mul_inv₀, ← div_eq_inv_mul, div_le_iff hc] using hle }
+    simpa only [norm_inv, mul_inv, ← div_eq_inv_mul, div_le_iff hc] using hle }
 end
 
 theorem is_O.inv_rev {f : α → 𝕜} {g : α → 𝕜'} (h : is_O f g l)

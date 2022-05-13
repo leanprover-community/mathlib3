@@ -424,6 +424,32 @@ lemma continuous_on.pow {f : X → M} {s : set X} (hf : continuous_on f s) (n : 
   continuous_on (λ x, f x ^ n) s :=
 λ x hx, (hf x hx).pow n
 
+/-- If `R` acts on `A` via `A`, then continuous multiplication implies continuous scalar
+multiplication by constants.
+
+Notably, this instances applies when `R = A`, or when `[algebra R A]` is available. -/
+@[priority 100]
+instance is_scalar_tower.has_continuous_const_smul {R A : Type*} [monoid A] [has_scalar R A]
+  [is_scalar_tower R A A] [topological_space A] [has_continuous_mul A] :
+  has_continuous_const_smul R A :=
+{ continuous_const_smul := λ q, begin
+    simp only [←smul_one_mul q (_ : A)] { single_pass := tt },
+    exact continuous_const.mul continuous_id,
+  end }
+
+/-- If the action of `R` on `A` commutes with left-multiplication, then continuous multiplication
+implies continuous scalar multiplication by constants.
+
+Notably, this instances applies when `R = Aᵐᵒᵖ` -/
+@[priority 100]
+instance smul_comm_class.has_continuous_const_smul {R A : Type*} [monoid A] [has_scalar R A]
+  [smul_comm_class R A A] [topological_space A] [has_continuous_mul A] :
+  has_continuous_const_smul R A :=
+{ continuous_const_smul := λ q, begin
+    simp only [←mul_smul_one q (_ : A)] { single_pass := tt },
+    exact continuous_id.mul continuous_const,
+  end }
+
 end has_continuous_mul
 
 namespace mul_opposite

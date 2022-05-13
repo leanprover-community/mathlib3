@@ -328,7 +328,7 @@ begin
 end
 
 /--  This is a version of `exists_T_pow` stated as an induction principle. -/
-lemma induction_on_mul_T (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
+@[elab_as_eliminator] lemma induction_on_mul_T {Q : R[T;T⁻¹] → Prop} (f : R[T;T⁻¹])
   (Qf : ∀ {f : R[X]} {n : ℕ}, Q (f.to_laurent * T (- n))) :
   Q f :=
 begin
@@ -347,7 +347,7 @@ lemma reduce_to_polynomial_of_mul_T (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
   (QT : ∀ f, Q (f * T 1) → Q f) :
   Q f :=
 begin
-  refine f.induction_on_mul_T (λ f n, _),
+  induction f using laurent_polynomial.induction_on_mul_T with f n,
   induction n with n hn,
   { simpa only [int.coe_nat_zero, neg_zero', T_zero, mul_one] using Qf _ },
   { convert QT _ _,

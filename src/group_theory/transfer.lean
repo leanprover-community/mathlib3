@@ -23,31 +23,23 @@ In this file we construct the transfer homomorphism.
 section equiv_stuff
 
 -- PRed
-noncomputable def zpowers_quotient_stabilizer_equiv
-  {α β : Type*} [group α] (a : α) [mul_action α β] (b : β) :
-  subgroup.zpowers a ⧸ mul_action.stabilizer (subgroup.zpowers a) b ≃*
-  multiplicative (zmod (function.minimal_period ((•) a) b)) :=
-let f := add_action.zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b in
-⟨f.to_fun, f.inv_fun, f.left_inv, f.right_inv, f.map_add'⟩
-
--- PR1
 noncomputable def orbit_zpowers_equiv
   {α β : Type*} [group α] (a : α) [mul_action α β] (b : β) :
   mul_action.orbit (subgroup.zpowers a) b ≃ zmod (function.minimal_period ((•) a) b) :=
 (mul_action.orbit_equiv_quotient_stabilizer (subgroup.zpowers a) b).trans
-  (zpowers_quotient_stabilizer_equiv a b).to_equiv
+  (mul_action.zpowers_quotient_stabilizer_equiv a b).to_equiv
 
--- PR1
+-- PRed
 noncomputable def orbit_zmultiples_equiv
   {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β) :
   add_action.orbit (add_subgroup.zmultiples a) b ≃ zmod (function.minimal_period ((+ᵥ) a) b) :=
 (add_action.orbit_equiv_quotient_stabilizer (add_subgroup.zmultiples a) b).trans
   (add_action.zmultiples_quotient_stabilizer_equiv a b).to_equiv
 
--- PR1
+-- PRed
 attribute [to_additive orbit_zmultiples_equiv] orbit_zpowers_equiv
 
--- PR1
+-- PRed
 @[to_additive orbit_zmultiples_equiv_symm_apply']
 lemma orbit_zpowers_equiv_symm_apply' {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
   (k : zmod (function.minimal_period ((•) a) b)) :

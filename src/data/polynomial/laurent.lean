@@ -366,13 +366,7 @@ def degree (f : R[T;T⁻¹]) : with_bot ℤ := f.support.max
 end degrees
 
 instance : module R[X] R[T;T⁻¹] :=
-{ smul      := λ f l, f.to_laurent * l,
-  one_smul  := λ f,     by simp only [map_one, one_mul],
-  mul_smul  := λ f g l, by simp only [mul_assoc, _root_.map_mul],
-  smul_add  := λ f x y, by simp only [mul_add],
-  smul_zero := λ f,     by simp only [mul_zero],
-  add_smul  := λ f g x, by simp only [add_mul, _root_.map_add],
-  zero_smul := λ f,     by simp only [_root_.map_zero, zero_mul] }
+module.comp_hom _ polynomial.to_laurent
 
 end semiring
 

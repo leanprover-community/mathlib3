@@ -199,13 +199,18 @@ lemma _root_.function.surjective.image_univ {β} [fintype α] [fintype β] [deci
   (hf : function.surjective f) : univ.image f = univ :=
 eq_univ_iff_forall.mpr $ λ x, mem_image.mpr $ (exists_congr $ by simp).mp $ hf x
 
+-- there's already an `equiv.subtype_congr`; I feel like it's misnamed though.
+@[simps?] def equiv.subtype_congr {α₁ α₂ : Type*} (e : α₁ ≃ α₂) (p : α₂ → Prop) : {a₁ // p (e a₁)} ≃ {a₂ // p a₂} :=
+{ to_fun    := λ a₁, ⟨e a₁, a₁.prop⟩,
+  inv_fun   := λ a₂, ⟨e.symm a₂, by simpa using a₂.prop⟩,
+  left_inv  := λ a₁, subtype.ext $ by simp,
+  right_inv := λ a₂, subtype.ext $ by simp }
+
 protected lemma block_triangular.det [decidable_eq α] [preorder α] (hM : block_triangular M b) :
   M.det = ∏ a in univ.image b, (M.to_square_block b a).det :=
 begin
   unfreezingI { induction ‹fintype m› using fintype.induction_empty_option'
     with α₁ α₂ h₂ e ih m h ih },
-  -- Yael, you're probably not in a potato like me - can you extract this into a lemma?
-  -- (even private, it's quite slow)
   { haveI : fintype α₁ := fintype.of_equiv _ e.symm,
     haveI : decidable_eq α₁ := classical.dec_eq _,
     rw ←det_reindex_self e.symm,
@@ -217,12 +222,9 @@ begin
       convert e.surjective.image_univ },
     unfold to_square_block to_square_block_prop to_block,
     rw [minor_minor],
-    let e' : {a₁ // (b ∘ λ (i : α₁), (e.symm.symm) i) a₁ = a} ≃ {a₂ // b a₂ = a} :=
-    { to_fun    := λ a₁, ⟨e a₁, by simpa using a₁.prop⟩,
-      inv_fun   := λ a₂, ⟨e.symm a₂, by simpa using a₂.prop⟩,
-      left_inv  := λ a₁, subtype.ext $ by simp,
-      right_inv := λ a₂, subtype.ext $ by simp },
-    rw [←det_minor_equiv_self e' (M.minor coe coe), minor_minor],
+    let e' : {a₁ // (b ∘ e.symm.symm) a₁ = a} ≃ {a₂ // b a₂ = a} :=
+      equiv.subtype_congr e.symm.symm (λ x, b x = a),
+    rw [←det_minor_equiv_self e' $ M.minor coe coe, minor_minor],
     congr' 1 },
   sorry { simp only [coe_det_is_empty, prod_const_one] },sorry /-
   rw two_block_triangular_det M (λ i, i ≠ none),

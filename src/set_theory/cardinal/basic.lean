@@ -667,10 +667,10 @@ def sup {ι : Type u} (f : ι → cardinal.{max u v}) : cardinal :=
 supr f
 
 theorem le_sup {ι} (f : ι → cardinal.{max u v}) (i) : f i ≤ sup f :=
-le_cSup (bdd_above_range f) (mem_range_self i)
+le_csupr (bdd_above_range f) i
 
 theorem sup_le_iff {ι} {f : ι → cardinal} {a} : sup f ≤ a ↔ ∀ i, f i ≤ a :=
-(cSup_le_iff' (bdd_above_range f)).trans (by simp)
+csupr_le_iff' (bdd_above_range f)
 
 theorem sup_le {ι} {f : ι → cardinal} {a} : (∀ i, f i ≤ a) → sup f ≤ a :=
 sup_le_iff.2

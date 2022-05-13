@@ -268,8 +268,7 @@ begin
   filter_upwards [eventually_ne_at_top (0 : ℝ)] with x h₁ h₂ using (h₁ h₂).elim,
 end
 
-lemma is_o_log_id_at_top : asymptotics.is_o log id at_top :=
-is_o_pow_log_id_at_top.congr_left (λ x, pow_one _)
+lemma is_o_log_id_at_top : log =o[at_top] id := is_o_pow_log_id_at_top.congr_left (λ x, pow_one _)
 
 end real
 

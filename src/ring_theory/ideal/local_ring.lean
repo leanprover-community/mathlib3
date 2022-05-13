@@ -84,7 +84,7 @@ lemma is_unit_or_is_unit_of_is_unit_add {a b : R} (h : is_unit (a + b)) :
   is_unit a ∨ is_unit b :=
 begin
   rcases h with ⟨u, hu⟩,
-  rw [eq_iff_inv_mul, mul_add] at hu,
+  rw [units.eq_iff_inv_mul, mul_add] at hu,
   apply or.imp _ _ (is_unit_or_is_unit_of_add_one hu);
     exact is_unit_of_mul_is_unit_right,
 end
@@ -302,7 +302,7 @@ begin
   intros a b hab,
   obtain ⟨a, rfl⟩ := hf a,
   obtain ⟨b, rfl⟩ := hf b,
-  replace hab : is_unit (f (a + b)), from by simpa only [map_add] using hab,
+  rw ←map_add at hab,
   exact (is_unit_or_is_unit_of_is_unit_add $ is_local_ring_hom.map_nonunit _ hab).imp
     f.is_unit_map f.is_unit_map
 end

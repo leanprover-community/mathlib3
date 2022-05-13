@@ -611,18 +611,18 @@ end⟩
 lemma mem_prod_self_iff {s} : s ∈ l ×ᶠ l ↔ ∃ t ∈ l, t ×ˢ t ⊆ s :=
 l.basis_sets.prod_self.mem_iff
 
+lemma has_basis.forall_mem_mem (h : has_basis l p s) {x : α} :
+  (∀ t ∈ l, x ∈ t) ↔ ∀ i, p i → x ∈ s i :=
+begin
+  simp only [h.mem_iff, exists_imp_distrib],
+  exact ⟨λ h i hi, h (s i) i hi subset.rfl, λ h t i hi ht, ht (h i hi)⟩
+end
+
 lemma has_basis.sInter_sets (h : has_basis l p s) :
   ⋂₀ l.sets = ⋂ i (hi : p i), s i :=
 begin
   ext x,
-  suffices : (∀ t ∈ l, x ∈ t) ↔ ∀ i, p i → x ∈ s i,
-    by simpa only [mem_Inter, mem_set_of_eq, mem_sInter],
-  simp_rw h.mem_iff,
-  split,
-  { intros h i hi,
-    exact h (s i) ⟨i, hi, subset.refl _⟩ },
-  { rintros h _ ⟨i, hi, sub⟩,
-    exact sub (h i hi) },
+  simp only [mem_Inter, mem_sInter, filter.mem_sets, h.forall_mem_mem],
 end
 
 variables {ι'' : Type*} [preorder ι''] (l) (s'' : ι'' → set α)

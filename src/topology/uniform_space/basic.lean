@@ -1064,7 +1064,7 @@ def uniform_space.comap (f : α → β) (u : uniform_space β) : uniform_space �
     begin
       rw [comap_lift'_eq, comap_lift'_eq2],
       exact (lift'_mono' $ assume s hs ⟨a₁, a₂⟩ ⟨x, h₁, h₂⟩, ⟨f x, h₁, h₂⟩),
-      repeat { exact monotone_comp_rel monotone_id monotone_id }
+      exact monotone_comp_rel monotone_id monotone_id
     end
     (comap_mono u.comp),
   is_open_uniformity := λ s, begin

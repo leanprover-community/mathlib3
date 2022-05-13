@@ -328,20 +328,12 @@ begin
     simp only [mem_filter, mem_range, mem_proper_divisors] at hm,
     refine IH m hm.2 (hm.1.trans hd) (finset.card_pos.2 ⟨a ^ (d / m), _⟩),
     simp only [mem_filter, mem_univ, order_of_pow a, ha, true_and,
-      nat.gcd_eq_right (div_dvd_of_dvd hm.1), nat.div_div_self hm.1 hd_pos],
-  },
+      nat.gcd_eq_right (div_dvd_of_dvd hm.1), nat.div_div_self hm.1 hd_pos] },
 
   have h2 : ∑ m in d.divisors, (univ.filter (λ a : α, order_of a = m)).card =
     ∑ m in d.divisors, φ m,
-    {
-      rw ← filter_dvd_eq_divisors hd_pos.ne',
-      rw sum_card_order_of_eq_card_pow_eq_one hd_pos,
-      have := card_pow_eq_one_eq_order_of_aux hn a,
-      rw ha at this,
-      rw this,
-      rw filter_dvd_eq_divisors hd_pos.ne',
-      rw sum_totient,
-    },
+    { rw [←filter_dvd_eq_divisors hd_pos.ne', sum_card_order_of_eq_card_pow_eq_one hd_pos,
+      filter_dvd_eq_divisors hd_pos.ne', sum_totient, ←ha, card_pow_eq_one_eq_order_of_aux hn a] },
 
   simpa [divisors_eq_proper_divisors_insert_self_of_pos hd_pos, ←h1] using h2,
 end

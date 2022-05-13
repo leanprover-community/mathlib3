@@ -65,7 +65,7 @@ is complex differentiable on `s \ {c}`, and $f(z) - f(c)=o((z-c)^{-1})$, then `f
 equal to `lim (𝓝[≠] c) f` at `c` is complex differentiable on `s`. -/
 lemma differentiable_on_update_lim_of_is_o {f : ℂ → E} {s : set ℂ} {c : ℂ}
   (hc : s ∈ 𝓝 c) (hd : differentiable_on ℂ f (s \ {c}))
-  (ho : (λ z, f z - f c) =o[𝓝[≠] c)] (λ z, (z - c)⁻¹) :
+  (ho : (λ z, f z - f c) =o[𝓝[≠] c] (λ z, (z - c)⁻¹)) :
   differentiable_on ℂ (update f c (lim (𝓝[≠] c) f)) s :=
 begin
   set F : ℂ → E := λ z, (z - c) • f z with hF,

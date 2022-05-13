@@ -363,7 +363,6 @@ def degree (f : R[T;T⁻¹]) : with_bot ℤ := f.support.max
 
 @[simp] lemma degree_zero : degree (0 : R[T;T⁻¹]) = ⊥ := rfl
 
-
 end degrees
 
 instance : module R[X] R[T;T⁻¹] :=
@@ -405,9 +404,9 @@ lemma is_localization :
     simp only [is_unit_T n, set_like.coe_mk, algebra_map_eq_to_laurent, polynomial.to_laurent_X_pow]
   end,
   surj := λ f, begin
-    rcases f.exists_T_pow' with ⟨n, f', rfl⟩,
+    induction f using laurent_polynomial.induction_on_mul_T with f n,
     have := (submonoid.closure ({X} : set R[X])).pow_mem (submonoid.mem_closure_singleton_self) n,
-    refine ⟨(f', ⟨_, this⟩), _⟩,
+    refine ⟨(f, ⟨_, this⟩), _⟩,
     simp only [set_like.coe_mk, algebra_map_eq_to_laurent, polynomial.to_laurent_X_pow, mul_T_assoc,
       add_left_neg, T_zero, mul_one],
   end,

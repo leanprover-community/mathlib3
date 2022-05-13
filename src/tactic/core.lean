@@ -1720,10 +1720,14 @@ add_tactic_doc
 
 /-- Makes the declaration `classical.prop_decidable` available to type class inference.
 This asserts that all propositions are decidable, but does not have computational content. -/
-meta def classical : tactic unit :=
-do h ← get_unused_name `_inst,
-   mk_const `classical.prop_decidable >>= note h none,
-   reset_instance_cache
+meta def classical (aggressive : bool := ff) : tactic unit :=
+if aggressive then do
+  h ← get_unused_name `_inst,
+  mk_const `classical.prop_decidable >>= note h none,
+  reset_instance_cache
+else
+  -- `9` is what we use in the `classical` locale
+  tactic.set_basic_attribute `instance `classical.prop_decidable ff (some 9)
 
 open expr
 

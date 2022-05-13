@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Adam Topaz
 -/
 
-import category_theory.concrete_category.bundled
+import category_theory.concrete_category.basic
 import category_theory.full_subcategory
 import category_theory.skeletal
 import data.fin.basic

@@ -61,7 +61,7 @@ begin
   { have : a ∈ l₂ := p.subset (mem_cons_self _ _),
     rcases mem_split this with ⟨u₂, v₂, rfl⟩,
     have p' := (perm_cons a).1 (p.trans perm_middle),
-    have := IH p' (s₂.sublist $ by simp), subst l₁,
+    obtain rfl := IH p' (s₂.sublist $ by simp),
     change a::u₂ ++ v₂ = u₂ ++ ([a] ++ v₂), rw ← append_assoc, congr,
     have : ∀ (x : α) (h : x ∈ u₂), x = a := λ x m,
       antisymm ((pairwise_append.1 s₂).2.2 _ m a (mem_cons_self _ _))

@@ -153,7 +153,7 @@ begin
 end
 
 protected lemma lipschitz (hf : approximates_linear_on f f' s c) :
-  lipschitz_with (nnnorm f' + c) (s.restrict f) :=
+  lipschitz_with (∥f'∥₊ + c) (s.restrict f) :=
 by simpa only [restrict_apply, add_sub_cancel'_right]
   using (f'.lipschitz.restrict s).add hf.lipschitz_sub
 
@@ -356,7 +356,7 @@ We also assume that either `E = {0}`, or `c < ∥f'⁻¹∥⁻¹`. We use `N` as
 
 variables {f' : E ≃L[𝕜] F} {s : set E} {c : ℝ≥0}
 
-local notation `N` := nnnorm (f'.symm : F →L[𝕜] E)
+local notation `N` := ∥(f'.symm : F →L[𝕜] E)∥₊
 
 protected lemma antilipschitz (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c)
   (hc : subsingleton E ∨ c < N⁻¹) :
@@ -572,7 +572,7 @@ variables [cs : complete_space E] {f : E → F} {f' : E ≃L[𝕜] F} {a : E}
 
 lemma approximates_deriv_on_open_nhds (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) :
   ∃ (s : set E) (hs : a ∈ s ∧ is_open s),
-    approximates_linear_on f (f' : E →L[𝕜] F) s ((nnnorm (f'.symm : F →L[𝕜] E))⁻¹ / 2) :=
+    approximates_linear_on f (f' : E →L[𝕜] F) s (∥(f'.symm : F →L[𝕜] E)∥₊⁻¹ / 2) :=
 begin
   refine ((nhds_basis_opens a).exists_iff _).1 _,
   exact (λ s t, approximates_linear_on.mono_set),

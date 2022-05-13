@@ -1026,6 +1026,11 @@ lemma continuous.if {p : α → Prop} {f g : α → β} [∀ a, decidable (p a)]
   continuous (λ a, if p a then f a else g a) :=
 continuous_if hp hf.continuous_on hg.continuous_on
 
+lemma continuous.if_const (p : Prop) {f g : α → β} [decidable p]
+  (hf : continuous f) (hg : continuous g) :
+  continuous (λ a, if p then f a else g a) :=
+continuous_if (if h : p then by simp [h] else by simp [h]) hf.continuous_on hg.continuous_on
+
 lemma continuous_piecewise {s : set α} {f g : α → β} [∀ a, decidable (a ∈ s)]
   (hs : ∀ a ∈ frontier s, f a = g a) (hf : continuous_on f (closure s))
   (hg : continuous_on g (closure sᶜ)) :
@@ -1080,6 +1085,12 @@ lemma continuous_on_piecewise_ite {s s' t : set α} {f f' : α → β} [∀ x, d
   continuous_on (t.piecewise f f') (t.ite s s') :=
 continuous_on_piecewise_ite' (h.mono (inter_subset_left _ _)) (h'.mono (inter_subset_left _ _))
   H Heq
+
+lemma frontier_inter_open_inter {s t : set α} (ht : is_open t) :
+  frontier (s ∩ t) ∩ t = frontier s ∩ t :=
+by simp only [← subtype.preimage_coe_eq_preimage_coe_iff,
+  ht.is_open_map_subtype_coe.preimage_frontier_eq_frontier_preimage continuous_subtype_coe,
+  subtype.preimage_coe_inter_self]
 
 lemma continuous_on_fst {s : set (α × β)} : continuous_on prod.fst s :=
 continuous_fst.continuous_on

@@ -408,7 +408,8 @@ lemma pmul_comm [comm_monoid_with_zero R] (f g : arithmetic_function R) :
   f.pmul g = g.pmul f :=
 by { ext, simp [mul_comm] }
 
-variable [semiring R]
+section non_assoc_semiring
+variable [non_assoc_semiring R]
 
 @[simp]
 lemma pmul_zeta (f : arithmetic_function R) : f.pmul ↑ζ = f :=
@@ -425,6 +426,10 @@ begin
   cases x;
   simp [nat.succ_ne_zero],
 end
+
+end non_assoc_semiring
+
+variables [semiring R]
 
 /-- This is the pointwise power of `arithmetic_function`s. -/
 def ppow (f : arithmetic_function R) (k : ℕ) :
@@ -775,7 +780,7 @@ end
 
 open unique_factorization_monoid
 
-@[simp] lemma coe_moebius_mul_coe_zeta [comm_ring R] : (μ * ζ : arithmetic_function R) = 1 :=
+@[simp] lemma coe_moebius_mul_coe_zeta [ring R] : (μ * ζ : arithmetic_function R) = 1 :=
 begin
   ext x,
   cases x,
@@ -883,15 +888,14 @@ begin
     rw (if_neg (ne_of_gt (nat.pos_of_mem_divisors (snd_mem_divisors_of_mem_antidiagonal hx)))) },
 end
 
-/-- Möbius inversion for functions to a `comm_ring`. -/
-theorem sum_eq_iff_sum_mul_moebius_eq [comm_ring R] {f g : ℕ → R} :
+/-- Möbius inversion for functions to a `ring`. -/
+theorem sum_eq_iff_sum_mul_moebius_eq [ring R] {f g : ℕ → R} :
   (∀ (n : ℕ), 0 < n → ∑ i in (n.divisors), f i = g n) ↔
     ∀ (n : ℕ), 0 < n → ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal, (μ x.fst : R) * g x.snd = f n :=
 begin
   rw sum_eq_iff_sum_smul_moebius_eq,
   apply forall_congr,
-  intro a,
-  apply imp_congr (iff.refl _) (eq.congr_left (sum_congr rfl (λ x hx, _))),
+  refine λ a, imp_congr_right (λ _, (sum_congr rfl $ λ x hx, _).congr_left),
   rw [zsmul_eq_mul],
 end
 

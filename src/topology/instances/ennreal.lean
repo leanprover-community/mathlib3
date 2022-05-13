@@ -371,6 +371,14 @@ continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_const_mul (or.inl h
 protected lemma continuous_mul_const {a : ℝ≥0∞} (ha : a ≠ ⊤) : continuous (λ x, x * a) :=
 continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_mul_const (or.inl ha)
 
+protected lemma continuous_div_const (c : ℝ≥0∞) (c_ne_zero : c ≠ 0) :
+  continuous (λ (x : ℝ≥0∞), x / c) :=
+begin
+  simp_rw [div_eq_mul_inv, continuous_iff_continuous_at],
+  intro x,
+  exact ennreal.continuous_at_mul_const (or.intro_left _ (inv_ne_top.mpr c_ne_zero)),
+end
+
 @[continuity]
 lemma continuous_pow (n : ℕ) : continuous (λ a : ℝ≥0∞, a ^ n) :=
 begin
@@ -385,6 +393,49 @@ begin
   { simp only [H, pow_eq_top_iff, zero_ne_top, false_or, eq_self_iff_true,
                not_true, ne.def, not_false_iff, false_and], },
   { simp only [H, true_or, ne.def, not_false_iff] }
+end
+
+lemma continuous_on_sub :
+  continuous_on (λ p : ℝ≥0∞ × ℝ≥0∞, p.fst - p.snd) { p : ℝ≥0∞ × ℝ≥0∞ | p ≠ ⟨∞, ∞⟩ } :=
+begin
+  rw continuous_on,
+  rintros ⟨x, y⟩ hp,
+  simp only [ne.def, set.mem_set_of_eq, prod.mk.inj_iff] at hp,
+  refine tendsto_nhds_within_of_tendsto_nhds (tendsto_sub (not_and_distrib.mp hp)),
+end
+
+lemma continuous_sub_left {a : ℝ≥0∞} (a_ne_top : a ≠ ⊤) :
+  continuous (λ x, a - x) :=
+begin
+  rw (show (λ x, a - x) = (λ p : ℝ≥0∞ × ℝ≥0∞, p.fst - p.snd) ∘ (λ x, ⟨a, x⟩), by refl),
+  apply continuous_on.comp_continuous continuous_on_sub (continuous.prod.mk a),
+  intro x,
+  simp only [a_ne_top, ne.def, mem_set_of_eq, prod.mk.inj_iff, false_and, not_false_iff],
+end
+
+lemma continuous_nnreal_sub {a : ℝ≥0} :
+  continuous (λ (x : ℝ≥0∞), (a : ℝ≥0∞) - x) :=
+continuous_sub_left coe_ne_top
+
+lemma continuous_on_sub_left (a : ℝ≥0∞) :
+  continuous_on (λ x, a - x) {x : ℝ≥0∞ | x ≠ ∞} :=
+begin
+  rw (show (λ x, a - x) = (λ p : ℝ≥0∞ × ℝ≥0∞, p.fst - p.snd) ∘ (λ x, ⟨a, x⟩), by refl),
+  apply continuous_on.comp continuous_on_sub (continuous.continuous_on (continuous.prod.mk a)),
+  rintros _ h (_|_),
+  exact h none_eq_top,
+end
+
+lemma continuous_sub_right (a : ℝ≥0∞) :
+  continuous (λ x : ℝ≥0∞, x - a) :=
+begin
+  by_cases a_infty : a = ∞,
+  { simp [a_infty, continuous_const], },
+  { rw (show (λ x, x - a) = (λ p : ℝ≥0∞ × ℝ≥0∞, p.fst - p.snd) ∘ (λ x, ⟨x, a⟩), by refl),
+    apply continuous_on.comp_continuous
+      continuous_on_sub (continuous_id'.prod_mk continuous_const),
+    intro x,
+    simp only [a_infty, ne.def, mem_set_of_eq, prod.mk.inj_iff, and_false, not_false_iff], },
 end
 
 protected lemma tendsto.pow {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} {n : ℕ}
@@ -670,7 +721,7 @@ begin
   rw [ennreal.tsum_eq_supr_nat, filter.liminf_eq_supr_infi_of_nat],
   congr,
   refine funext (λ n, le_antisymm _ _),
-  { refine le_binfi (λ i hi, finset.sum_le_sum_of_subset_of_nonneg _ (λ _ _ _, zero_le _)),
+  { refine le_infi₂ (λ i hi, finset.sum_le_sum_of_subset_of_nonneg _ (λ _ _ _, zero_le _)),
     simpa only [finset.range_subset, add_le_add_iff_right] using hi, },
   { refine le_trans (infi_le _ n) _,
     simp [le_refl n, le_refl ((finset.range n).sum f)], },
@@ -787,7 +838,7 @@ lemma tsum_sub {f : ℕ → ℝ≥0∞} {g : ℕ → ℝ≥0∞} (h₁ : ∑' i,
   ∑' i, (f i - g i) = (∑' i, f i) - (∑' i, g i) :=
 begin
   have h₃: ∑' i, (f i - g i) = ∑' i, (f i - g i + g i) - ∑' i, g i,
-  { rw [ennreal.tsum_add, add_sub_self h₁]},
+  { rw [ennreal.tsum_add, ennreal.add_sub_cancel_right h₁]},
   have h₄:(λ i, (f i - g i) + (g i)) = f,
   { ext n, rw tsub_add_cancel_of_le (h₂ n)},
   rw h₄ at h₃, apply h₃,
@@ -798,12 +849,7 @@ lemma tsum_mono_subtype (f : α → ℝ≥0∞) {s t : set α} (h : s ⊆ t) :
 begin
   simp only [tsum_subtype],
   apply ennreal.tsum_le_tsum,
-  assume x,
-  split_ifs,
-  { exact le_rfl },
-  { exact (h_2 (h h_1)).elim },
-  { exact zero_le _ },
-  { exact le_rfl }
+  exact indicator_le_indicator_of_subset h (λ _, zero_le _),
 end
 
 lemma tsum_union_le (f : α → ℝ≥0∞) (s t : set α) :

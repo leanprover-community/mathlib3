@@ -510,7 +510,7 @@ begin
   conv in k { rw ← nat.div_add_mod k (2^n) },
   refine nat.modeq.add_right _ _,
   conv { congr, skip, skip, rw ← one_mul (k/2^n) },
-  exact (nat.modeq_sub $ pow_pos (by norm_num : 0 < 2) _).mul_right _,
+  exact (nat.modeq_sub $ nat.succ_le_of_lt $ pow_pos zero_lt_two _).mul_right _,
 end
 
 -- It's hard to know what the limiting factor for large Mersenne primes would be.

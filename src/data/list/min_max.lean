@@ -23,7 +23,7 @@ namespace list
 
 variables {α β : Type*}
 section preorder
-variables [preorder β] [@decidable_rel β (<)]
+variables [preorder β] [@decidable_rel β (<)] {f : α → β} {l : list α} {o : option α} {a m : α}
 
 /-- Auxiliary definition to define `argmax` -/
 def argmax₂ (f : α → β) (a : option α) (b : α) : option α :=
@@ -32,27 +32,22 @@ option.cases_on a (some b) (λ c, if f c < f b then some b else some c)
 /-- `argmax f l` returns `some a`, where `a` of `l` that maximises `f a`. If there are `a b` such
 that `f a = f b`, it returns whichever of `a` or `b` comes first in the list.
 `argmax f []` = none` -/
-def argmax (f : α → β) (l : list α) : option α :=
-l.foldl (argmax₂ f) none
+def argmax (f : α → β) (l : list α) : option α := l.foldl (argmax₂ f) none
 
 /-- `argmin f l` returns `some a`, where `a` of `l` that minimises `f a`. If there are `a b` such
 that `f a = f b`, it returns whichever of `a` or `b` comes first in the list.
 `argmin f []` = none` -/
-def argmin (f : α → β) (l : list α) :=
-@argmax _ (order_dual β) _ _ f l
+def argmin (f : α → β) (l : list α) := @argmax _ βᵒᵈ _ _ f l
 
-@[simp] lemma argmax_two_self (f : α → β) (a : α) : argmax₂ f (some a) a = a :=
-if_neg (lt_irrefl _)
+@[simp] lemma argmax₂_self (f : α → β) (a : α) : argmax₂ f (some a) a = a := if_neg $ lt_irrefl _
 
 @[simp] lemma argmax_nil (f : α → β) : argmax f [] = none := rfl
-
 @[simp] lemma argmin_nil (f : α → β) : argmin f [] = none := rfl
 
-@[simp] lemma argmax_singleton {f : α → β} {a : α} : argmax f [a] = some a := rfl
-
+@[simp] lemma argmax_singleton {f : α → β} {a : α} : argmax f [a] = a := rfl
 @[simp] lemma argmin_singleton {f : α → β} {a : α} : argmin f [a] = a := rfl
 
-@[simp] lemma foldl_argmax₂_eq_none {f : α → β} {l : list α} {o : option α} :
+@[simp] lemma foldl_argmax₂_eq_none :
   l.foldl (argmax₂ f) o = none ↔ l = [] ∧ o = none :=
 list.reverse_rec_on l (by simp) $
   (assume tl hd, by simp [argmax₂];
@@ -75,8 +70,8 @@ list.reverse_rec_on l (by simp [eq_comm])
           exact (option.mem_some_iff.mp hm ▸ H)} }}
   end
 
-theorem not_lt_of_foldl_argmax₂ {f : α → β} {l} : Π {a m : α} {o : option α}, a ∈ l →
-  m ∈ foldl (argmax₂ f) o l → ¬ (f m < f a) :=
+theorem not_lt_of_foldl_argmax₂ : Π {a m : α} {o : option α}, a ∈ l →
+  m ∈ foldl (argmax₂ f) o l → ¬ f m < f a :=
 list.reverse_rec_on l
   (λ _ _ _ h, absurd h $ not_mem_nil _)
   begin
@@ -101,13 +96,10 @@ list.reverse_rec_on l
         simp [*, le_of_lt] at * }}
   end
 
-theorem not_lt_argmax_of_mem {f : α → β} {a m : α} {l : list α} :
-  a ∈ l → m ∈ argmax f l → ¬ (f m < f a) :=
-not_lt_of_foldl_argmax₂
+theorem not_lt_argmax_of_mem : a ∈ l → m ∈ argmax f l → ¬ f m < f a := not_lt_of_foldl_argmax₂
 
-theorem argmin_not_lt_of_mem {f : α → β} {a m : α} {l : list α} :
-  a ∈ l → m ∈ argmin f l → ¬ (f a < f m):=
-@not_lt_argmax_of_mem _ (order_dual β) _ _ _ _ _ _
+theorem argmin_not_lt_of_mem : a ∈ l → m ∈ argmin f l → ¬ f a < f m :=
+@not_lt_argmax_of_mem _ βᵒᵈ _ _ _ _ _ _
 
 theorem argmax_concat (f : α → β) (a : α) (l : list α) : argmax f (l ++ [a]) =
   option.cases_on (argmax f l) (some a) (λ c, if f c < f a then some a else some c) :=
@@ -115,35 +107,28 @@ by rw [argmax, argmax]; simp [argmax₂]
 
 theorem argmin_concat (f : α → β) (a : α) (l : list α) : argmin f (l ++ [a]) =
   option.cases_on (argmin f l) (some a) (λ c, if f a < f c then some a else some c) :=
-@argmax_concat _ (order_dual β) _ _ _ _ _
+@argmax_concat _ βᵒᵈ _ _ _ _ _
 
-theorem argmax_mem {f : α → β} : Π {l : list α} {m : α}, m ∈ argmax f l → m ∈ l
+theorem argmax_mem : Π {l : list α} {m : α}, m ∈ argmax f l → m ∈ l
 | [] m       := by simp
 | (hd::tl) m := by simpa [argmax, argmax₂] using foldl_argmax₂_mem f tl hd m
 
-theorem argmin_mem {f : α → β} : Π {l : list α} {m : α}, m ∈ argmin f l → m ∈ l :=
-@argmax_mem _ (order_dual β) _ _ _
+theorem argmin_mem : Π {l : list α} {m : α}, m ∈ argmin f l → m ∈ l := @argmax_mem _ βᵒᵈ _ _ _
 
-@[simp] theorem argmax_eq_none {f : α → β} {l : list α} : l.argmax f = none ↔ l = [] :=
-by simp [argmax]
-
-@[simp] theorem argmin_eq_none {f : α → β} {l : list α} : l.argmin f = none ↔ l = [] :=
-@argmax_eq_none _ (order_dual β) _ _ _ _
+@[simp] theorem argmax_eq_none : l.argmax f = none ↔ l = [] := by simp [argmax]
+@[simp] theorem argmin_eq_none : l.argmin f = none ↔ l = [] := @argmax_eq_none _ βᵒᵈ _ _ _ _
 
 end preorder
 
 section linear_order
-variables [linear_order β]
+variables [linear_order β] {f : α → β} {l : list α} {o : option α} {a m : α}
 
-theorem le_of_foldl_argmax₂ {f : α → β} {l} : Π {a m : α} {o : option α}, a ∈ l →
+theorem le_of_foldl_argmax₂ : Π {a m : α} {o : option α}, a ∈ l →
   m ∈ foldl (argmax₂ f) o l → f a ≤ f m :=
 λ _ _ _ ha hm, le_of_not_lt $ not_lt_of_foldl_argmax₂ ha hm
 
-theorem le_argmax_of_mem {f : α → β} {a m : α} {l : list α} : a ∈ l → m ∈ argmax f l → f a ≤ f m :=
-le_of_foldl_argmax₂
-
-theorem argmin_le_of_mem {f : α → β} {a m : α} {l : list α} : a ∈ l → m ∈ argmin f l → f m ≤ f a :=
-@le_argmax_of_mem _ (order_dual β) _ _ _ _ _
+theorem le_argmax_of_mem : a ∈ l → m ∈ argmax f l → f a ≤ f m := le_of_foldl_argmax₂
+theorem argmin_le_of_mem : a ∈ l → m ∈ argmin f l → f m ≤ f a := @le_argmax_of_mem _ βᵒᵈ _ _ _ _ _
 
 theorem argmax_cons (f : α → β) (a : α) (l : list α) : argmax f (a :: l) =
   option.cases_on (argmax f l) (some a) (λ c, if f a < f c then some c else some a) :=
@@ -170,9 +155,11 @@ list.reverse_rec_on l rfl $ λ hd tl ih, begin
 
 theorem argmin_cons (f : α → β) (a : α) (l : list α) : argmin f (a :: l) =
   option.cases_on (argmin f l) (some a) (λ c, if f c < f a then some c else some a) :=
-by convert @argmax_cons _ (order_dual β) _ _ _ _
+by convert @argmax_cons _ βᵒᵈ _ _ _ _
 
-theorem index_of_argmax [decidable_eq α] {f : α → β} : Π {l : list α} {m : α}, m ∈ argmax f l →
+variables [decidable_eq α]
+
+theorem index_of_argmax : Π {l : list α} {m : α}, m ∈ argmax f l →
   ∀ {a}, a ∈ l → f m ≤ f a → l.index_of m ≤ l.index_of a
 | []       m _  _ _  _   := by simp
 | (hd::tl) m hm a ha ham := begin
@@ -202,13 +189,13 @@ theorem index_of_argmax [decidable_eq α] {f : α → β} : Π {l : list α} {m 
         apply h_1 (eq.symm hm) } } }
 end
 
-theorem index_of_argmin [decidable_eq α] {f : α → β} : Π {l : list α} {m : α}, m ∈ argmin f l →
+theorem index_of_argmin : Π {l : list α} {m : α}, m ∈ argmin f l →
   ∀ {a}, a ∈ l → f a ≤ f m → l.index_of m ≤ l.index_of a :=
-@index_of_argmax _ (order_dual β) _ _ _
+@index_of_argmax _ βᵒᵈ _ _ _
 
-theorem mem_argmax_iff [decidable_eq α] {f : α → β} {m : α} {l : list α} :
+theorem mem_argmax_iff :
   m ∈ argmax f l ↔ m ∈ l ∧ (∀ a ∈ l, f a ≤ f m) ∧
-    (∀ a ∈ l, f m ≤ f a → l.index_of m ≤ l.index_of a) :=
+    ∀ a ∈ l, f m ≤ f a → l.index_of m ≤ l.index_of a :=
 ⟨λ hm, ⟨argmax_mem hm, λ a ha, le_argmax_of_mem ha hm, λ _, index_of_argmax hm⟩,
   begin
     rintros ⟨hml, ham, hma⟩,
@@ -219,18 +206,18 @@ theorem mem_argmax_iff [decidable_eq α] {f : α → β} {m : α} {l : list α} 
       rw [(index_of_inj hml (argmax_mem harg)).1 this, option.mem_def] }
   end⟩
 
-theorem argmax_eq_some_iff [decidable_eq α] {f : α → β} {m : α} {l : list α} :
+theorem argmax_eq_some_iff :
   argmax f l = some m ↔ m ∈ l ∧ (∀ a ∈ l, f a ≤ f m) ∧
-    (∀ a ∈ l, f m ≤ f a → l.index_of m ≤ l.index_of a) := mem_argmax_iff
+    ∀ a ∈ l, f m ≤ f a → l.index_of m ≤ l.index_of a := mem_argmax_iff
 
-theorem mem_argmin_iff [decidable_eq α] {f : α → β} {m : α} {l : list α} :
+theorem mem_argmin_iff :
   m ∈ argmin f l ↔ m ∈ l ∧ (∀ a ∈ l, f m ≤ f a) ∧
-    (∀ a ∈ l, f a ≤ f m → l.index_of m ≤ l.index_of a) :=
-@mem_argmax_iff _ (order_dual β) _ _ _ _ _
+    ∀ a ∈ l, f a ≤ f m → l.index_of m ≤ l.index_of a :=
+@mem_argmax_iff _ βᵒᵈ _ _ _ _ _
 
-theorem argmin_eq_some_iff [decidable_eq α] {f : α → β} {m : α} {l : list α} :
+theorem argmin_eq_some_iff :
   argmin f l = some m ↔ m ∈ l ∧ (∀ a ∈ l, f m ≤ f a) ∧
-    (∀ a ∈ l, f a ≤ f m → l.index_of m ≤ l.index_of a) := mem_argmin_iff
+    ∀ a ∈ l, f a ≤ f m → l.index_of m ≤ l.index_of a := mem_argmin_iff
 
 end linear_order
 
@@ -278,7 +265,7 @@ begin
 end
 
 theorem not_lt_minimum_of_mem' {a : α} {l : list α} (ha : a ∈ l) : ¬ (a : with_top α) < minimum l :=
-@not_lt_maximum_of_mem' (order_dual α) _ _ _ _ ha
+@not_lt_maximum_of_mem' αᵒᵈ _ _ _ _ ha
 
 end preorder
 
@@ -314,17 +301,17 @@ theorem le_maximum_of_mem' {a : α} {l : list α} (ha : a ∈ l) : (a : with_bot
 le_of_not_lt $ not_lt_maximum_of_mem' ha
 
 theorem le_minimum_of_mem' {a : α} {l : list α} (ha : a ∈ l) : minimum l ≤ (a : with_top α) :=
-@le_maximum_of_mem' (order_dual α) _ _ _ ha
+@le_maximum_of_mem' αᵒᵈ _ _ _ ha
 
 theorem minimum_concat (a : α) (l : list α) : minimum (l ++ [a]) = min (minimum l) a :=
-@maximum_concat (order_dual α) _ _ _
+@maximum_concat αᵒᵈ _ _ _
 
 theorem maximum_cons (a : α) (l : list α) : maximum (a :: l) = max a (maximum l) :=
 list.reverse_rec_on l (by simp [@max_eq_left (with_bot α) _ _ _ bot_le])
   (λ tl hd ih, by rw [← cons_append, maximum_concat, ih, maximum_concat, max_assoc])
 
 theorem minimum_cons (a : α) (l : list α) : minimum (a :: l) = min a (minimum l) :=
-@maximum_cons (order_dual α) _ _ _
+@maximum_cons αᵒᵈ _ _ _
 
 theorem maximum_eq_coe_iff {m : α} {l : list α} :
   maximum l = m ↔ m ∈ l ∧ (∀ a ∈ l, a ≤ m) :=
@@ -340,7 +327,7 @@ end
 
 theorem minimum_eq_coe_iff {m : α} {l : list α} :
   minimum l = m ↔ m ∈ l ∧ (∀ a ∈ l, m ≤ a) :=
-@maximum_eq_coe_iff (order_dual α) _ _ _
+@maximum_eq_coe_iff αᵒᵈ _ _ _
 
 end linear_order
 end maximum_minimum
@@ -374,10 +361,10 @@ section order_top
 variables [order_top α] {l : list α}
 
 @[simp] lemma foldr_min_of_ne_nil (h : l ≠ []) : ↑(l.foldr min ⊤) = l.minimum :=
-@foldr_max_of_ne_nil (order_dual α) _ _ _ h
+@foldr_max_of_ne_nil αᵒᵈ _ _ _ h
 
 lemma le_min_of_forall_le (l : list α) (a : α) (h : ∀ x ∈ l, a ≤ x) : a ≤ l.foldr min ⊤ :=
-@max_le_of_forall_le (order_dual α) _ _ _ _ h
+@max_le_of_forall_le αᵒᵈ _ _ _ _ h
 
 end order_top
 end fold

@@ -117,4 +117,8 @@ by simpa only [inf_top_eq, eventually_top] using @eventually_small_sets_eventual
 
 alias eventually_small_sets_forall ↔ filter.eventually.of_small_sets filter.eventually.small_sets
 
+@[simp] lemma eventually_small_sets_subset {s : set α} :
+  (∀ᶠ t in l.small_sets, t ⊆ s) ↔ s ∈ l :=
+eventually_small_sets_forall
+
 end filter

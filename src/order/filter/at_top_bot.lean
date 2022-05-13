@@ -1280,7 +1280,10 @@ tendsto_at_bot_of_monotone_of_filter h (tendsto_map' H)
 condition for comparison of the filter `at_top.map (λ s, ∏ b in s, f b)` with
 `at_top.map (λ s, ∏ b in s, g b)`. This is useful to compare the set of limit points of
 `Π b in s, f b` as `s → at_top` with the similar set for `g`. -/
-@[to_additive]
+@[to_additive "Let `f` and `g` be two maps to the same commutative additive monoid. This lemma gives
+a sufficient condition for comparison of the filter `at_top.map (λ s, ∑ b in s, f b)` with
+`at_top.map (λ s, ∑ b in s, g b)`. This is useful to compare the set of limit points of
+`∑ b in s, f b` as `s → at_top` with the similar set for `g`."]
 lemma map_at_top_finset_prod_le_of_prod_eq [comm_monoid α] {f : β → α} {g : γ → α}
   (h_eq : ∀u:finset γ, ∃v:finset β, ∀v', v ⊆ v' → ∃u', u ⊆ u' ∧ ∏ x in u', g x = ∏ b in v', f b) :
   at_top.map (λs:finset β, ∏ b in s, f b) ≤ at_top.map (λs:finset γ, ∏ x in s, g x) :=

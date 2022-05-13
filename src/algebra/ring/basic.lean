@@ -1035,8 +1035,8 @@ protected def function.surjective.non_unital_non_assoc_ring
 instance non_unital_non_assoc_ring.to_has_distrib_neg : has_distrib_neg α :=
 { neg := has_neg.neg,
   neg_neg := neg_neg,
-  neg_mul := λ a b, (neg_eq_of_add_eq_zero $ by rw [← right_distrib, add_right_neg, zero_mul]).symm,
-  mul_neg := λ a b, (neg_eq_of_add_eq_zero $ by rw [← left_distrib, add_right_neg, mul_zero]).symm }
+  neg_mul := λ a b, eq_neg_of_add_eq_zero_left $ by rw [←right_distrib, add_left_neg, zero_mul],
+  mul_neg := λ a b, eq_neg_of_add_eq_zero_left $ by rw [←left_distrib, add_left_neg, mul_zero] }
 
 lemma mul_sub_left_distrib (a b c : α) : a * (b - c) = a * b - a * c :=
 by simpa only [sub_eq_add_neg, neg_mul_eq_mul_neg] using mul_add a b (-c)
@@ -1381,8 +1381,7 @@ local attribute [simp] add_assoc add_comm add_left_comm mul_comm
 lemma Vieta_formula_quadratic {b c x : α} (h : x * x - b * x + c = 0) :
   ∃ y : α, y * y - b * y + c = 0 ∧ x + y = b ∧ x * y = c :=
 begin
-  have : c = -(x * x - b * x) := (neg_eq_of_add_eq_zero h).symm,
-  have : c = x * (b - x), by subst this; simp [mul_sub, mul_comm],
+  have : c = x * (b - x) := (eq_neg_of_add_eq_zero_right h).trans (by simp [mul_sub, mul_comm]),
   refine ⟨b - x, _, by simp, by rw this⟩,
   rw [this, sub_add, ← sub_mul, sub_self]
 end

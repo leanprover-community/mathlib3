@@ -8,18 +8,17 @@ import analysis.normed.normed_field
 /-!
 # Seminorms and norms on (semi)rings
 
-In this file we define structures `is_seminorm` and `is_norm` which indicate that a given function
-`f : R → ℝ≥0` is a (semi)norm on the (semi)ring `R`. These definitions are useful when one needs to
-consider multiple (semi)norms on a given ring.
+In this file we define structures `is_ring_seminorm` and `is_ring_norm` which indicate that a given
+function `f : R → ℝ≥0` is a (semi)norm on the (semi)ring `R`. These definitions are useful when one
+needs to consider multiple (semi)norms on a given ring.
 
 ## References
 
 * [S. Bosch, U. Güntzer, R. Remmert, *Non-Archimedean Analysis*][bosch-guntzer-remmert]
 
 ## Tags
-is_seminorm, is_norm
+is_ring_seminorm, is_ring_norm
 -/
-
 
 noncomputable theory
 
@@ -27,26 +26,28 @@ open_locale topological_space nnreal
 
 /-- A function `f : R → ℝ≥0` is a seminorm if `f 0 = 0` and it satisfies the inequality
   `f (r * s) ≤ f r * f s`. -/
-structure is_seminorm {R : Type*} [semiring R] (f : R → ℝ≥0) : Prop :=
+structure is_ring_seminorm {R : Type*} [semiring R] (f : R → ℝ≥0) : Prop :=
 (zero : f 0 = 0)
+(add : ∀ r s, f (r + s) ≤ f r + f s)
 (mul : ∀ r s, f (r * s) ≤ f r * f s)
 
-lemma is_seminorm.pow_le {R : Type*} [semiring R] {f : R → ℝ≥0} (hf : is_seminorm f) (r : R) :
+
+lemma is_ring_seminorm.pow_le {R : Type*} [semiring R] {f : R → ℝ≥0} (hf : is_ring_seminorm f) (r : R) :
   ∀ {n : ℕ}, 0 < n → f (r ^ n) ≤ (f r) ^ n
 | 1 h := by simp only [pow_one]
 | (n + 2) h := by simpa [pow_succ _ (n + 1)] using le_trans (hf.mul r _)
-    (mul_le_mul_left' (is_seminorm.pow_le n.succ_pos) _)
+    (mul_le_mul_left' (is_ring_seminorm.pow_le n.succ_pos) _)
 
-/-- A function `f : R → ℝ≥0` satisfies `is_norm_le_one_class` if `f 1 ≤ 1`. -/
-def is_norm_le_one_class {R : Type*} [semiring R] (f : R → ℝ≥0) : Prop := f 1 ≤ 1
+/-- A function `f : R → ℝ≥0` satisfies `is_ring_norm_le_one_class` if `f 1 ≤ 1`. -/
+def is_ring_norm_le_one_class {R : Type*} [semiring R] (f : R → ℝ≥0) : Prop := f 1 ≤ 1
 
-/-- A function `f : R → ℝ≥0` satisfies `is_norm_one_class` if `f 1 = 1`. -/
-def is_norm_one_class {R : Type*} [semiring R] (f : R → ℝ≥0) : Prop := f 1 = 1
+/-- A function `f : R → ℝ≥0` satisfies `is_ring_norm_one_class` if `f 1 = 1`. -/
+def is_ring_norm_one_class {R : Type*} [semiring R] (f : R → ℝ≥0) : Prop := f 1 = 1
 
-lemma is_norm_one_class_iff_nontrivial {R : Type*} [semiring R] {f : R → ℝ≥0} (hsn : is_seminorm f)
-  (hf1 : f 1 ≤ 1) : is_norm_one_class f ↔ ∃ r : R, f r ≠ 0 :=
+lemma is_ring_norm_one_class_iff_nontrivial {R : Type*} [semiring R] {f : R → ℝ≥0} (hsn : is_ring_seminorm f)
+  (hf1 : f 1 ≤ 1) : is_ring_norm_one_class f ↔ ∃ r : R, f r ≠ 0 :=
 begin
-  rw is_norm_one_class,
+  rw is_ring_norm_one_class,
   refine ⟨λ h, _, λ h, _⟩,
   { use 1,
     rw h, exact one_ne_zero, },
@@ -66,11 +67,11 @@ begin
 end
 
 /-- A function `f : R → ℝ≥0` is a norm if it is a seminorm and `f x = 0` implies `x = 0`. -/
-structure is_norm {R : Type*} [semiring R] (f : R → ℝ≥0) extends (is_seminorm f) : Prop :=
+structure is_ring_norm {R : Type*} [semiring R] (f : R → ℝ≥0) extends (is_ring_seminorm f) : Prop :=
 (ne_zero : ∀ r, r ≠ 0 → 0 < f r)
 
-lemma field.is_norm_of_is_seminorm {R : Type*} [field R] {f : R → ℝ≥0} (hf : is_seminorm f)
-  (hnt : ∃ r : R, 0 ≠ f r) : is_norm f :=
+lemma field.is_ring_norm_of_is_ring_seminorm {R : Type*} [field R] {f : R → ℝ≥0} (hf : is_ring_seminorm f)
+  (hnt : ∃ r : R, 0 ≠ f r) : is_ring_norm f :=
 { ne_zero := λ x hx, begin
     obtain ⟨c, hc⟩ := hnt,
     have hfx : 0 ≠ f x,
@@ -86,8 +87,8 @@ lemma field.is_norm_of_is_seminorm {R : Type*} [field R] {f : R → ℝ≥0} (hf
 
 /-- Given a ring `R` with a norm `f` and an `R`-algebra `A`, a function `g : A → ℝ≥0` is an algebra
   norm if it is a norm on `A` and `g ((algebra_map R A r) * a) = f r * g a`. -/
-structure is_algebra_norm (R : Type*) [comm_ring R] {f : R → ℝ≥0} (hf : is_norm f)
-  {A : Type*} [ring A] [algebra R A] (g : A → ℝ≥0) extends (is_norm g) : Prop :=
+structure is_algebra_norm (R : Type*) [comm_ring R] {f : R → ℝ≥0} (hf : is_ring_norm f)
+  {A : Type*} [ring A] [algebra R A] (g : A → ℝ≥0) extends (is_ring_norm g) : Prop :=
 (smul : ∀ (r : R) (a : A) , g ((algebra_map R A r) * a) = f r * g a)
 
 /-- A function `f : R → ℝ≥0` is nonarchimedean if it satisfies the inequality
@@ -100,13 +101,15 @@ def is_nonarchimedean {R : Type*} [ring R] (f : R → ℝ≥0) : Prop :=
 def is_pow_mul {R : Type*} [ring R] (f : R → ℝ≥0) :=
 ∀ (r : R) {n : ℕ} (hn : 1 ≤ n), f (r ^ n) = (f r) ^ n
 
-lemma seminormed_ring.to_is_seminorm (R : Type*) [semi_normed_ring R] :
-  is_seminorm (λ r : R, ∥r∥₊) :=
+lemma seminormed_ring.to_is_ring_seminorm (R : Type*) [semi_normed_ring R] :
+  is_ring_seminorm (λ r : R, ∥r∥₊) :=
 { zero := nnnorm_zero,
+  add  := nnnorm_add_le,
   mul  := nnnorm_mul_le }
 
-lemma normed_ring.to_is_norm (R : Type*) [normed_ring R] :
-  is_norm (λ r : R, ∥r∥₊) :=
+lemma normed_ring.to_is_ring_norm (R : Type*) [normed_ring R] :
+  is_ring_norm (λ r : R, ∥r∥₊) :=
 { zero    := nnnorm_zero,
+  add     := nnnorm_add_le,
   mul     := nnnorm_mul_le,
   ne_zero :=  λ x hx, nnnorm_pos_iff.mpr hx }

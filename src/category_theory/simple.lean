@@ -216,10 +216,7 @@ open_locale zero_object
 open subobject
 
 instance {X : C} [simple X] : nontrivial (subobject X) :=
-⟨⟨mk (0 : 0 ⟶ X), mk (𝟙 X), λ h, begin
-  haveI := simple.of_iso (iso_of_mk_eq_mk _ _ h),
-  exact zero_not_simple C,
-end⟩⟩
+nontrivial_of_not_is_zero (simple.not_is_zero X)
 
 instance {X : C} [simple X] : is_simple_order (subobject X) :=
 { eq_bot_or_eq_top := begin
@@ -250,6 +247,12 @@ end
 lemma simple_iff_subobject_is_simple_order (X : C) : simple X ↔ is_simple_order (subobject X) :=
 ⟨by { introI h, apply_instance, },
  by { introI h, exact simple_of_is_simple_order_subobject X, }⟩
+
+/-- A subobject is simple iff it is an atom in the subobject lattice. -/
+lemma subobject_simple_iff_is_atom {X : C} (Y : subobject X) : simple (Y : C) ↔ is_atom Y :=
+(simple_iff_subobject_is_simple_order _).trans
+  ((order_iso.is_simple_order_iff (subobject_order_iso Y)).trans
+    set.is_simple_order_Iic_iff_is_atom)
 
 end subobject
 

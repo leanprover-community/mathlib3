@@ -603,7 +603,7 @@ def with_constants (S : L.substructure M) {A : set M} (h : A ⊆ S) : L[[A]].sub
     { exact S.fun_mem f },
     { cases n,
       { exact λ _ _, h f.2 },
-      { exact pempty.elim f } }
+      { exact is_empty_elim f } }
   end }
 
 variables {A : set M} {s : set M} (h : A ⊆ S)

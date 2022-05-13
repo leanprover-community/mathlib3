@@ -167,12 +167,9 @@ end
 
 lemma sum_totient' (n : ℕ) : ∑ m in (range n.succ).filter (∣ n), φ m = n :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
-  nth_rewrite_rhs 0 ←sum_totient n,
-  apply sum_congr _ (λ x hx, rfl),
-  ext,
-  simp only [divisors, mem_filter, mem_range, mem_Ico, and.congr_left_iff, iff_and_self],
-  exact λ ha1 _, succ_le_iff.mpr (pos_of_dvd_of_pos ha1 hn0),
+  convert sum_totient _ using 1,
+  simp only [nat.divisors, sum_filter, range_eq_Ico],
+  rw sum_eq_sum_Ico_succ_bot; simp
 end
 
 /-- When `p` is prime, then the totient of `p ^ (n + 1)` is `p ^ n * (p - 1)` -/
@@ -331,7 +328,7 @@ begin
   { rw [←cast_prod, cast_ne_zero, ←zero_lt_iff, ←prod_factorization_eq_prod_factors],
     exact prod_pos (λ p hp, pos_of_mem_factorization hp) },
   simp only [totient_eq_div_factors_mul n, prod_prime_factors_dvd n, cast_mul, cast_prod,
-      cast_div_char_zero, mul_comm_div', mul_right_inj' hn', div_eq_iff hpQ, ←prod_mul_distrib],
+      cast_div_char_zero, mul_comm_div, mul_right_inj' hn', div_eq_iff hpQ, ←prod_mul_distrib],
   refine prod_congr rfl (λ p hp, _),
   have hp := pos_of_mem_factors (list.mem_to_finset.mp hp),
   have hp' : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hp.ne.symm,

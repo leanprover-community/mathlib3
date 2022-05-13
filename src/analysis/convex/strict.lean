@@ -281,7 +281,7 @@ section ordered_ring
 variables [ordered_ring 𝕜] [topological_space E] [topological_space F]
 
 section add_comm_group
-variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s : set E} {x y : E}
+variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s t : set E} {x y : E}
 
 lemma strict_convex.eq_of_open_segment_subset_frontier [nontrivial 𝕜] [densely_ordered 𝕜]
   (hs : strict_convex 𝕜 s) (hx : x ∈ s) (hy : y ∈ s) (h : open_segment 𝕜 x y ⊆ frontier s) :
@@ -339,13 +339,14 @@ begin
     convex.combo_affine_apply hab⟩⟩,
 end
 
-lemma strict_convex.neg [topological_add_group E] (hs : strict_convex 𝕜 s) :
-  strict_convex 𝕜 ((λ z, -z) '' s) :=
-hs.is_linear_image is_linear_map.is_linear_map_neg (homeomorph.neg E).is_open_map
+variables [topological_add_group E]
 
-lemma strict_convex.neg_preimage [topological_add_group E] (hs : strict_convex 𝕜 s) :
-  strict_convex 𝕜 ((λ z, -z) ⁻¹' s) :=
+lemma strict_convex.neg (hs : strict_convex 𝕜 s) : strict_convex 𝕜 (-s) :=
 hs.is_linear_preimage is_linear_map.is_linear_map_neg continuous_id.neg neg_injective
+
+lemma strict_convex.sub (hs : strict_convex 𝕜 s) (ht : strict_convex 𝕜 t) :
+  strict_convex 𝕜 (s - t) :=
+(sub_eq_add_neg s t).symm ▸ hs.add ht.neg
 
 end add_comm_group
 end ordered_ring

@@ -1006,7 +1006,9 @@ by rw [X_pow_eq_monomial, degree_monomial _ (@one_ne_zero R _ _)]
 @[simp] lemma nat_degree_X_pow (n : ℕ) : nat_degree ((X : R[X]) ^ n) = n :=
 nat_degree_eq_of_degree_eq_some (degree_X_pow n)
 
-lemma nat_degree_X_pow_le (n : ℕ) : (X ^ n : R[X]).nat_degree ≤ n :=
+/-  This lemma explicitly does not require the `nontrivial R` assumption. -/
+lemma nat_degree_X_pow_le {R : Type*} [semiring R] (n : ℕ) :
+  (X ^ n : R[X]).nat_degree ≤ n :=
 begin
   nontriviality R,
   rwa polynomial.nat_degree_X_pow,

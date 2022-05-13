@@ -649,6 +649,8 @@ instance : has_mul (lp B ∞) :=
 
 @[simp] lemma infty_coe_fn_mul (f g : lp B ∞) : ⇑(f * g) = f * g := rfl
 
+
+
 instance : non_unital_ring (lp B ∞) :=
 function.injective.non_unital_ring lp.has_coe_to_fun.coe (by ext) (lp.coe_fn_zero B ∞)
   lp.coe_fn_add infty_coe_fn_mul lp.coe_fn_neg lp.coe_fn_sub (λ _ _, rfl) (λ _ _,rfl)
@@ -669,10 +671,22 @@ section normed_ring
 
 variables  {I : Type*} {B : I → Type*} [Π i, normed_ring (B i)] [Π i, norm_one_class (B i)]
 
+lemma _root_.mem_ℓp.infty_one : mem_ℓp (1 : Π i, B i) ∞ :=
+⟨1, by { rintros i ⟨i, rfl⟩, exact norm_one.le,}⟩
+
 instance : has_one (lp B ∞) :=
-{ one := ⟨λ i, 1, ⟨1, by { rintros _ ⟨i, rfl⟩, exact norm_one.le,}⟩⟩ }
+{ one := ⟨(1 : Π i, B i), mem_ℓp.infty_one⟩ }
 
 @[simp] lemma infty_coe_fn_one : ⇑(1 : lp B ∞) = 1 := rfl
+
+lemma _root_.mem_ℓp.infty_pow {f : Π i, B i} (hf : mem_ℓp f ∞) (n : ℕ) : mem_ℓp (f ^ n) ∞ :=
+begin
+  induction n with n hn,
+  rw pow_zero,
+  exact mem_ℓp.infty_one,
+  rw pow_succ,
+  exact hf.infty_mul hn,
+end
 
 instance [nonempty I] : norm_one_class (lp B ∞) :=
 begin

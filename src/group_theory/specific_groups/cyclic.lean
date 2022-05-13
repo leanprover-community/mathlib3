@@ -293,7 +293,6 @@ le_antisymm
 
 open_locale nat -- use φ for nat.totient
 
--- Version of proof using `d=0` and `0<d` rather than `0` and `d.succ`
 private lemma card_order_of_eq_totient_aux₁ :
   ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →
   (univ.filter (λ a : α, order_of a = d)).card = φ d :=
@@ -304,7 +303,6 @@ begin
   { cases ((@fintype.card_pos_iff α _).2 has_one.nonempty).ne' (zero_dvd_iff.1 hd) },
   rcases card_pos.1 hd0 with ⟨a, ha'⟩,
   have ha : order_of a = d := (mem_filter.1 ha').2,
-
   have h1 : ∑ m in d.proper_divisors, (univ.filter (λ a : α, order_of a = m)).card =
     ∑ m in d.proper_divisors, φ m,
   { refine finset.sum_congr rfl (λ m hm, _),
@@ -312,111 +310,12 @@ begin
     refine IH m hm.2 (hm.1.trans hd) (finset.card_pos.2 ⟨a ^ (d / m), _⟩),
     simp only [mem_filter, mem_univ, order_of_pow a, ha, true_and,
       nat.gcd_eq_right (div_dvd_of_dvd hm.1), nat.div_div_self hm.1 hd_pos] },
-
   have h2 : ∑ m in d.divisors, (univ.filter (λ a : α, order_of a = m)).card =
     ∑ m in d.divisors, φ m,
     { rw [←filter_dvd_eq_divisors hd_pos.ne', sum_card_order_of_eq_card_pow_eq_one hd_pos,
       filter_dvd_eq_divisors hd_pos.ne', sum_totient, ←ha, card_pow_eq_one_eq_order_of_aux hn a] },
-
   simpa [divisors_eq_proper_divisors_insert_self_of_pos hd_pos, ←h1] using h2,
 end
-
--- private lemma card_order_of_eq_totient_aux₁ :
---   ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →
---   (univ.filter (λ a : α, order_of a = d)).card = φ d
--- | 0     := λ hd hd0,
--- let ⟨a, ha⟩ := card_pos.1 hd0 in absurd (mem_filter.1 ha).2 $ ne_of_gt $ order_of_pos a
--- | (d+1) :=
-
--- begin
---   intros hd hd0,
---   rcases card_pos.1 hd0 with ⟨a, ha'⟩,
---   have ha : order_of a = d.succ, from (mem_filter.1 ha').2,
-
---   have h_new : ∑ m in d.succ.proper_divisors, (univ.filter (λ a : α, order_of a = m)).card =
---     ∑ m in d.succ.proper_divisors, φ m,
---   {
---     rw (filter_dvd_eq_proper_divisors (succ_ne_zero d)).symm,
---     refine finset.sum_congr rfl (λ m hm, _),
---     simp only [mem_filter, mem_range] at hm,
---     refine
---     ( have hmd : m < d.succ := hm.1, card_order_of_eq_totient_aux₁ (hm.2.trans hd) _ ),
---     refine finset.card_pos.2 ⟨a ^ (d.succ / m), _⟩,
---     simp only [mem_filter, mem_univ, order_of_pow a, ha, true_and],
---     rw [nat.gcd_eq_right (div_dvd_of_dvd hm.2), nat.div_div_self hm.2 (succ_pos d)],
---   },
-
---   have H_new :
---   (filter (λ (a : α), order_of a = d + 1) univ).card
---   + ∑ (m : ℕ) in d.succ.proper_divisors, (filter (λ (a : α), order_of a = m) univ).card
---   =
---   (d + 1).totient
---   + ∑ (m : ℕ) in d.succ.proper_divisors, (filter (λ (a : α), order_of a = m) univ).card,
---   begin
---     calc _ = ∑ m in insert d.succ (d.succ.proper_divisors),
---           (univ.filter (λ a : α, order_of a = m)).card : _
---     ... = ∑ m in d.succ.divisors,
---         (univ.filter (λ a : α, order_of a = m)).card : _
---     ... = (univ.filter (λ a : α, a ^ d.succ = 1)).card : _
---     ... = ∑ m in d.succ.divisors, φ m : _
---     ... = _ : _,
---     { rw finset.sum_insert proper_divisors.not_self_mem },
---     { refine sum_congr _ (λ x hx, rfl),
---       exact (divisors_eq_proper_divisors_insert_self_of_pos (succ_pos d)).symm,
---     },
---     { rw ←sum_card_order_of_eq_card_pow_eq_one (succ_pos d),
---       exact sum_congr (filter_dvd_eq_divisors (succ_ne_zero d)).symm (λ x hx, rfl) },
---     { rw [sum_totient d.succ, ←ha], exact (card_pow_eq_one_eq_order_of_aux hn a) },
---     {
---       rw h_new,
---       rw ← sum_insert proper_divisors.not_self_mem,
---       refine sum_congr _ (λ x hx, rfl),
---       exact (divisors_eq_proper_divisors_insert_self_of_pos (succ_pos d)),
---       },
---   end,
-
---   exact (add_left_inj _).1 H_new,
--- end
-
--- private lemma card_order_of_eq_totient_aux₁ :
---   ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →
---   (univ.filter (λ a : α, order_of a = d)).card = φ d
--- | 0     := λ hd hd0,
--- let ⟨a, ha⟩ := card_pos.1 hd0 in absurd (mem_filter.1 ha).2 $ ne_of_gt $ order_of_pos a
--- | (d+1) := λ hd hd0,
--- let ⟨a, ha⟩ := card_pos.1 hd0 in
--- have ha : order_of a = d.succ, from (mem_filter.1 ha).2,
--- have h : ∑ m in (range d.succ).filter (∣ d.succ),
---     (univ.filter (λ a : α, order_of a = m)).card =
---     ∑ m in (range d.succ).filter (∣ d.succ), φ m, from
---   finset.sum_congr rfl
---     (λ m hm, have hmd : m < d.succ, from mem_range.1 (mem_filter.1 hm).1,
---       have hm : m ∣ d.succ, from (mem_filter.1 hm).2,
---       card_order_of_eq_totient_aux₁ (hm.trans hd) (finset.card_pos.2
---         ⟨a ^ (d.succ / m), mem_filter.2 ⟨mem_univ _,
---           by { rw [order_of_pow a, ha, nat.gcd_eq_right (div_dvd_of_dvd hm),
---                 nat.div_div_self hm (succ_pos _)] }⟩⟩)),
--- have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
---     = (range d.succ.succ).filter (∣ d.succ),
---   from (finset.ext $ λ x, ⟨λ h, (mem_insert.1 h).elim (λ h, by simp [h, range_succ])
---     (by clear _let_match; simp [range_succ]; tauto),
---      by clear _let_match; simp [range_succ] {contextual := tt}; tauto⟩),
--- have hinsert₁ : d.succ ∉ (range d.succ).filter (∣ d.succ),
---   by simp [mem_range, zero_le_one, le_succ],
--- (add_left_inj (∑ m in (range d.succ).filter (∣ d.succ),
---   (univ.filter (λ a : α, order_of a = m)).card)).1
---   (calc _ = ∑ m in insert d.succ (filter (∣ d.succ) (range d.succ)),
---         (univ.filter (λ a : α, order_of a = m)).card :
---     eq.symm (finset.sum_insert (by simp [mem_range, zero_le_one, le_succ]))
---   ... = ∑ m in (range d.succ.succ).filter (∣ d.succ),
---       (univ.filter (λ a : α, order_of a = m)).card :
---     sum_congr hinsert (λ _ _, rfl)
---   ... = (univ.filter (λ a : α, a ^ d.succ = 1)).card :
---     sum_card_order_of_eq_card_pow_eq_one (succ_pos d)
---   ... = ∑ m in (range d.succ.succ).filter (∣ d.succ), φ m :
---     ha ▸ (card_pow_eq_one_eq_order_of_aux hn a).symm ▸ (sum_totient' _).symm
---   ... = _ : by rw [h, ← sum_insert hinsert₁];
---       exact finset.sum_congr hinsert.symm (λ _ _, rfl))
 
 lemma card_order_of_eq_totient_aux₂ {d : ℕ} (hd : d ∣ fintype.card α) :
   (univ.filter (λ a : α, order_of a = d)).card = φ d :=
@@ -446,41 +345,6 @@ begin
   sum_erase_lt_of_pos (mem_divisors.2 ⟨hd, hc0.ne'⟩) (totient_pos (pos_of_dvd_of_pos hd hc0))
    ... = c : sum_totient _
 end
-
-
--- lemma card_order_of_eq_totient_aux₂ {d : ℕ} (hd : d ∣ fintype.card α) :
---   (univ.filter (λ a : α, order_of a = d)).card = φ d :=
--- by_contradiction $ λ h,
--- have h0 : (univ.filter (λ a : α , order_of a = d)).card = 0 :=
---   not_not.1 (mt pos_iff_ne_zero.2 (mt (card_order_of_eq_totient_aux₁' hn hd) h)),
--- let c := fintype.card α in
--- have hc0 : 0 < c, from fintype.card_pos_iff.2 ⟨1⟩,
--- lt_irrefl c $
---   calc c = (univ.filter (λ a : α, a ^ c = 1)).card :
---     congr_arg card $ by simp [finset.ext_iff, c]
---   ... = ∑ m in (range c.succ).filter (∣ c),
---       (univ.filter (λ a : α, order_of a = m)).card :
---     (sum_card_order_of_eq_card_pow_eq_one hc0).symm
---   ... = ∑ m in ((range c.succ).filter (∣ c)).erase d,
---       (univ.filter (λ a : α, order_of a = m)).card :
---     eq.symm (sum_subset (erase_subset _ _) (λ m hm₁ hm₂,
---       have m = d, by simp at *; cc,
---       by simp [*, finset.ext_iff] at *; exact h0))
---   ... ≤ ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m :
---     sum_le_sum (λ m hm,
---       have hmc : m ∣ c, by simp at hm; tauto,
---       (imp_iff_not_or.1 (card_order_of_eq_totient_aux₁' hn hmc)).elim
---         (λ h, by simp [nat.le_zero_iff.1 (le_of_not_gt h), nat.zero_le])
---         (λ h, by rw h))
---   ... < φ d + ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m :
---     lt_add_of_pos_left _ (totient_pos (nat.pos_of_ne_zero
---       (λ h, pos_iff_ne_zero.1 hc0 (eq_zero_of_zero_dvd $ h ▸ hd))))
---   ... = ∑ m in insert d (((range c.succ).filter (∣ c)).erase d), φ m :
---     eq.symm (sum_insert (by simp))
---   ... = ∑ m in (range c.succ).filter (∣ c), φ m : finset.sum_congr
---       (finset.insert_erase (mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd hc0 hd)), hd⟩))
---                            (λ _ _, rfl)
---   ... = c : sum_totient' _
 
 lemma is_cyclic_of_card_pow_eq_one_le : is_cyclic α :=
 have (univ.filter (λ a : α, order_of a = fintype.card α)).nonempty,

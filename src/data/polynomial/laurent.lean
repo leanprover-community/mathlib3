@@ -63,6 +63,7 @@ Lots is missing!
   have the strength to embark on this (possibly short!) journey, after getting to this stage of the
   Laurent process!  This would likely involve adding a `comap_domain` analogue of
   `add_monoid_algebra.map_domain_alg_hom` and an `R`-linear version of `polynomial.to_finsupp_iso`.
+* Add `degree, int_degree, int_trailing_degree, leading_coeff, trailing_coeff,...`.
 -/
 
 open_locale polynomial big_operators
@@ -141,6 +142,9 @@ lemma T_zero : (T 0 : R[T;T⁻¹]) = 1 := rfl
 
 lemma T_add (m n : ℤ) : (T (m + n) : R[T;T⁻¹]) = T m * T n :=
 by { convert single_mul_single.symm, simp [T] }
+
+lemma T_sub (m n : ℤ) : (T (m - n) : R[T;T⁻¹]) = T m * T (-n) :=
+by rw [← T_add, sub_eq_add_neg]
 
 @[simp]
 lemma T_pow (m : ℤ) (n : ℕ) : (T m ^ n : R[T;T⁻¹]) = T (n * m) :=
@@ -323,12 +327,15 @@ begin
         add_left_neg, T_zero, mul_one] } }
 end
 
-/--  This version of `exists_T_pow` can be called as `rcases f.exists_T_pow' with ⟨n, f', rfl⟩`. -/
-lemma exists_T_pow' (f : R[T;T⁻¹]) :
-  ∃ (n : ℕ) (f' : R[X]), f = f'.to_laurent * T (- n) :=
+/--  This is a version of `exists_T_pow` stated as an induction principle. -/
+@[elab_as_eliminator] lemma induction_on_mul_T {Q : R[T;T⁻¹] → Prop} (f : R[T;T⁻¹])
+  (Qf : ∀ {f : R[X]} {n : ℕ}, Q (f.to_laurent * T (- n))) :
+  Q f :=
 begin
   rcases f.exists_T_pow with ⟨n, f', hf⟩,
-  exact ⟨n, f', by simp [hf]⟩,
+  rw [← mul_one f, ← T_zero, ← nat.cast_zero, ← nat.sub_self n, nat.cast_sub rfl.le, T_sub,
+    ← mul_assoc, int.nat_cast_eq_coe_nat, ← hf],
+  exact Qf,
 end
 
 /--  Suppose that `Q` is a statement about Laurent polynomials such that
@@ -340,9 +347,9 @@ lemma reduce_to_polynomial_of_mul_T (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
   (QT : ∀ f, Q (f * T 1) → Q f) :
   Q f :=
 begin
-  rcases f.exists_T_pow' with ⟨n, f', rfl⟩,
+  induction f using laurent_polynomial.induction_on_mul_T with f n,
   induction n with n hn,
-  { simpa using Qf _ },
+  { simpa only [int.coe_nat_zero, neg_zero', T_zero, mul_one] using Qf _ },
   { convert QT _ _,
     simpa using hn }
 end

@@ -968,8 +968,8 @@ namespace asymptotics
 
 variables {α : Type*} {r c : ℝ} {l : filter α} {f g : α → ℝ}
 
-lemma is_O_with.rpow (h : is_O_with c f g l) (hc : 0 ≤ c) (hr : 0 ≤ r) (hg : 0 ≤ᶠ[l] g) :
-  is_O_with (c ^ r) (λ x, f x ^ r) (λ x, g x ^ r) l :=
+lemma is_O_with.rpow (h : is_O_with c l f g) (hc : 0 ≤ c) (hr : 0 ≤ r) (hg : 0 ≤ᶠ[l] g) :
+  is_O_with (c ^ r) l (λ x, f x ^ r) (λ x, g x ^ r) :=
 begin
   apply is_O_with.of_bound,
   filter_upwards [hg, h.bound] with x hgx hx,

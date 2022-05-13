@@ -354,6 +354,18 @@ begin
     simpa using hn }
 end
 
+section degrees
+
+/--  The degree of a Laurent polynomial takes values in `with_bot ℤ`.
+If `f : R[T;T⁻¹]` is a Laurent polynomial, then `f.degree` is the maximum of its support of `f`,
+or `⊥`, if `f = 0`. -/
+def degree (f : R[T;T⁻¹]) : with_bot ℤ := f.support.max
+
+@[simp] lemma degree_zero : degree (0 : R[T;T⁻¹]) = ⊥ := rfl
+
+
+end degrees
+
 instance : module R[X] R[T;T⁻¹] :=
 { smul      := λ f l, f.to_laurent * l,
   one_smul  := λ f,     by simp only [map_one, one_mul],

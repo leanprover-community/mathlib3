@@ -63,6 +63,7 @@ Lots is missing!
   have the strength to embark on this (possibly short!) journey, after getting to this stage of the
   Laurent process!  This would likely involve adding a `comap_domain` analogue of
   `add_monoid_algebra.map_domain_alg_hom` and an `R`-linear version of `polynomial.to_finsupp_iso`.
+* Add `degree, int_degree, int_trailing_degree, leading_coeff, trailing_coeff,...`.
 -/
 
 open_locale polynomial big_operators

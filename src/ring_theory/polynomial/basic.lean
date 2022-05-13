@@ -180,7 +180,7 @@ lemma monic.geom_sum {P : R[X]}
 begin
   nontriviality R,
   cases n, { exact (hn rfl).elim },
-  rw [geom_sum_succ', geom_sum_def],
+  rw [geom_sum_succ'],
   refine (hP.pow _).add_of_left _,
   refine lt_of_le_of_lt (degree_sum_le _ _) _,
   rw [finset.sup_lt_iff],

@@ -178,7 +178,7 @@ begin
   simp only [algebra_tensor_module.curry_apply, to_fun_eq_coe, curry_apply,
   coe_restrict_scalars_eq_coe, compl₁₂_apply, compr₂_apply, map_bilinear_apply,
   trace_eq_contract_apply, contract_left_apply, lsmul_apply, algebra.id.smul_eq_mul,
-  map_dual_tensor_hom, dual_tensor_dual_map_apply],
+  map_dual_tensor_hom, dual_distrib_apply],
 end
 
 theorem trace_comp_comm :

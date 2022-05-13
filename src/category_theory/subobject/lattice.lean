@@ -674,6 +674,35 @@ instance {B : C} : complete_lattice (subobject B) :=
 
 end complete_lattice
 
+section zero_object
+variables [has_zero_morphisms C] [has_zero_object C]
+open_locale zero_object
+
+/-- A nonzero object has nontrivial subobject lattice. -/
+lemma nontrivial_of_not_is_zero {X : C} (h : ¬ is_zero X) : nontrivial (subobject X) :=
+⟨⟨mk (0 : 0 ⟶ X), mk (𝟙 X), λ w, h (is_zero.of_iso (is_zero_zero C) (iso_of_mk_eq_mk _ _ w).symm)⟩⟩
+
+end zero_object
+
+section subobject_subobject
+
+/-- The subobject lattice of a subobject `Y` is order isomorphic to the interval `set.Iic Y`. -/
+def subobject_order_iso {X : C} (Y : subobject X) : subobject (Y : C) ≃o set.Iic Y :=
+{ to_fun := λ Z, ⟨subobject.mk (Z.arrow ≫ Y.arrow),
+    set.mem_Iic.mpr (le_of_comm ((underlying_iso _).hom ≫ Z.arrow) (by simp))⟩,
+  inv_fun := λ Z, subobject.mk (of_le _ _ Z.2),
+  left_inv := λ Z, mk_eq_of_comm _ (underlying_iso _) (by { ext, simp, }),
+  right_inv := λ Z, subtype.ext (mk_eq_of_comm _ (underlying_iso _)
+    (by { dsimp, simp [←iso.eq_inv_comp], })),
+  map_rel_iff' := λ W Z,
+    ⟨λ h, le_of_comm
+      ((underlying_iso _).inv ≫ of_le _ _ (subtype.mk_le_mk.mp h) ≫ (underlying_iso _).hom)
+      (by { ext, simp, }),
+     λ h, subtype.mk_le_mk.mpr
+       (le_of_comm ((underlying_iso _).hom ≫ of_le _ _ h ≫ (underlying_iso _).inv) (by simp))⟩, }
+
+end subobject_subobject
+
 end subobject
 
 end category_theory

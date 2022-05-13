@@ -329,7 +329,7 @@ begin
     by simp [pow_succ, mul_left_comm _ r, tsum_mul_left]
   ... = r / (1 - r) ^ 2 :
     by simp [add_mul, tsum_add A B.summable, mul_add, B.tsum_eq, ← div_eq_mul_inv, sq,
-      div_div_eq_div_mul]
+      div_div]
 end
 
 /-- If `∥r∥ < 1`, then `∑' n : ℕ, n * r ^ n = r / (1 - r) ^ 2`. -/
@@ -622,7 +622,7 @@ end
 ### Factorial
 -/
 
-/-- The series `∑' n, x ^ n / n!` is summable of any `x : ℝ`. See also `exp_series_field_summable`
+/-- The series `∑' n, x ^ n / n!` is summable of any `x : ℝ`. See also `exp_series_div_summable`
 for a version that also works in `ℂ`, and `exp_series_summable'` for a version that works in
 any normed algebra over `ℝ` or `ℂ`. -/
 lemma real.summable_pow_div_factorial (x : ℝ) :
@@ -637,7 +637,7 @@ begin
   -- Finally, we prove the upper estimate
   intros n hn,
   calc ∥x ^ (n + 1) / (n + 1)!∥ = (∥x∥ / (n + 1)) * ∥x ^ n / n!∥ :
-    by rw [pow_succ, nat.factorial_succ, nat.cast_mul, ← div_mul_div_comm₀,
+    by rw [pow_succ, nat.factorial_succ, nat.cast_mul, ← div_mul_div_comm,
       norm_mul, norm_div, real.norm_coe_nat, nat.cast_succ]
   ... ≤ (∥x∥ / (⌊∥x∥⌋₊ + 1)) * ∥x ^ n / n!∥ :
     by mono* with [0 ≤ ∥x ^ n / n!∥, 0 ≤ ∥x∥]; apply norm_nonneg

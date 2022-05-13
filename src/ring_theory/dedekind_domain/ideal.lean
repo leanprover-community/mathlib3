@@ -184,7 +184,7 @@ begin
     ((generator (I : submodule R₁ K))⁻¹)) hI).symm
 end
 
-@[simp] lemma one_inv : (1⁻¹ : fractional_ideal R₁⁰ K) = 1 :=
+@[simp] lemma inv_one : (1⁻¹ : fractional_ideal R₁⁰ K) = 1 :=
 fractional_ideal.div_one
 
 end fractional_ideal
@@ -428,7 +428,7 @@ lemma mul_inv_cancel_of_le_one [h : is_dedekind_domain A]
 begin
   -- Handle a few trivial cases.
   by_cases hI1 : I = ⊤,
-  { rw [hI1, coe_ideal_top, one_mul, fractional_ideal.one_inv] },
+  { rw [hI1, coe_ideal_top, one_mul, fractional_ideal.inv_one] },
   by_cases hNF : is_field A,
   { letI := hNF.to_field, rcases hI1 (I.eq_bot_or_top.resolve_left hI0) },
   -- We'll show a contradiction with `exists_not_mem_one_of_ne_bot`:

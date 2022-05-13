@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
 
+import set_theory.game.ordinal
 import set_theory.ordinal.arithmetic
-import set_theory.game.pgame
 
 /-!
 # Birthdays of games
@@ -26,6 +26,8 @@ prove the basic properties about these.
 
 universe u
 
+open ordinal
+
 namespace pgame
 
 /-- The birthday of a pre-game is inductively defined as the least strict upper bound of the
@@ -33,20 +35,20 @@ birthdays of its left and right games. It may be thought as the "step" in which 
 constructed. -/
 noncomputable def birthday : pgame.{u} → ordinal.{u}
 | ⟨xl, xr, xL, xR⟩ :=
-    max (ordinal.lsub.{u u} $ λ i, birthday (xL i)) (ordinal.lsub.{u u} $ λ i, birthday (xR i))
+    max (lsub.{u u} $ λ i, birthday (xL i)) (lsub.{u u} $ λ i, birthday (xR i))
 
 theorem birthday_def (x : pgame) : birthday x = max
-  (ordinal.lsub.{u u} (λ i, birthday (x.move_left i)))
-  (ordinal.lsub.{u u} (λ i, birthday (x.move_right i))) :=
+  (lsub.{u u} (λ i, birthday (x.move_left i)))
+  (lsub.{u u} (λ i, birthday (x.move_right i))) :=
 by { cases x, rw birthday, refl }
 
 theorem birthday_move_left_lt {x : pgame} (i : x.left_moves) :
   (x.move_left i).birthday < x.birthday :=
-by { cases x, rw birthday, exact lt_max_of_lt_left (ordinal.lt_lsub _ i) }
+by { cases x, rw birthday, exact lt_max_of_lt_left (lt_lsub _ i) }
 
 theorem birthday_move_right_lt {x : pgame} (i : x.right_moves) :
   (x.move_right i).birthday < x.birthday :=
-by { cases x, rw birthday, exact lt_max_of_lt_right (ordinal.lt_lsub _ i) }
+by { cases x, rw birthday, exact lt_max_of_lt_right (lt_lsub _ i) }
 
 theorem lt_birthday_iff {x : pgame} {o : ordinal} : o < x.birthday ↔
   (∃ i : x.left_moves, o ≤ (x.move_left i).birthday) ∨
@@ -57,9 +59,9 @@ begin
     intro h,
     cases lt_max_iff.1 h with h' h',
     { left,
-      rwa ordinal.lt_lsub_iff at h' },
+      rwa lt_lsub_iff at h' },
     { right,
-      rwa ordinal.lt_lsub_iff at h' } },
+      rwa lt_lsub_iff at h' } },
   { rintro (⟨i, hi⟩ | ⟨i, hi⟩),
     { exact hi.trans_lt (birthday_move_left_lt i) },
     { exact hi.trans_lt (birthday_move_right_lt i) } }
@@ -70,7 +72,7 @@ theorem relabelling.birthday_congr : ∀ {x y : pgame.{u}}, relabelling x y → 
   rw [birthday, birthday],
   congr' 1,
   all_goals
-  { apply ordinal.lsub_eq_of_range_eq.{u u u},
+  { apply lsub_eq_of_range_eq.{u u u},
     ext i,
     split },
   { rintro ⟨j, rfl⟩,
@@ -96,7 +98,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 @[simp] theorem birthday_eq_zero (x : pgame) :
   birthday x = 0 ↔ is_empty x.left_moves ∧ is_empty x.right_moves :=
-by rw [birthday_def, ordinal.max_eq_zero, ordinal.lsub_eq_zero_iff, ordinal.lsub_eq_zero_iff]
+by rw [birthday_def, max_eq_zero, lsub_eq_zero_iff, lsub_eq_zero_iff]
 
 @[simp] theorem birthday_zero : birthday 0 = 0 :=
 by { rw birthday_eq_zero, split; apply_instance }
@@ -104,8 +106,32 @@ by { rw birthday_eq_zero, split; apply_instance }
 @[simp] theorem birthday_one : birthday 1 = 1 :=
 begin
   have : (λ i, (move_left 1 i).birthday) = λ i, 0 := funext (λ x, by simp),
-  rw [birthday_def, @ordinal.lsub_empty (right_moves 1), this, ordinal.lsub_const, zero_add],
-  exact max_bot_right 1
+  rw [birthday_def, @lsub_empty (right_moves 1), this, lsub_const, succ_zero, max_zero_right]
 end
+
+@[simp] theorem neg_birthday : ∀ x : pgame, (-x).birthday = x.birthday
+| ⟨xl, xr, xL, xR⟩ := begin
+  rw [birthday_def, birthday_def, max_comm],
+  congr; funext; apply neg_birthday
+end
+
+@[simp] theorem to_pgame_birthday (o : ordinal) : o.to_pgame.birthday = o :=
+begin
+  induction o using ordinal.induction with o IH,
+  rw [to_pgame_def, pgame.birthday],
+  convert max_eq_left_iff.2 (ordinal.zero_le _),
+  { apply lsub_empty },
+  { nth_rewrite 0 ←lsub_typein o,
+    congr,
+    exact funext (λ x, (IH _ (typein_lt_self x)).symm) }
+end
+
+theorem le_birthday : ∀ x : pgame, x ≤ x.birthday.to_pgame
+| ⟨xl, _, xL, _⟩ :=
+le_def.2 ⟨λ i, or.inl ⟨to_left_moves_to_pgame ⟨_, birthday_move_left_lt i⟩,
+  by simp [le_birthday (xL i)]⟩, is_empty_elim⟩
+
+theorem neg_birthday_le (x : pgame) : -x.birthday.to_pgame ≤ x :=
+let h := le_birthday (-x) in by rwa [neg_birthday, le_iff_neg_ge, neg_neg] at h
 
 end pgame

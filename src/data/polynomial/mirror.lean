@@ -170,8 +170,7 @@ section comm_ring
 
 variables {R : Type*} [comm_ring R] [is_domain R] {f : R[X]}
 
-lemma irreducible_of_mirror
-  (h1 : ¬ is_unit f)
+lemma irreducible_of_mirror (h1 : ¬ is_unit f)
   (h2 : ∀ k, f * f.mirror = k * k.mirror → k = f ∨ k = -f ∨ k = f.mirror ∨ k = -f.mirror)
   (h3 : ∀ g, g ∣ f → g ∣ f.mirror → is_unit g) : irreducible f :=
 begin

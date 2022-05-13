@@ -978,12 +978,12 @@ begin
              ... = c ^ r * |g x ^ r| : by rw [mul_rpow hc (abs_nonneg _), abs_rpow_of_nonneg hgx]
 end
 
-lemma is_O.rpow (hr : 0 ≤ r) (hg : 0 ≤ᶠ[l] g) (h : is_O f g l) :
-  is_O (λ x, f x ^ r) (λ x, g x ^ r) l :=
+lemma is_O.rpow (hr : 0 ≤ r) (hg : 0 ≤ᶠ[l] g) (h : f =O[l] g) :
+  (λ x, f x ^ r) =O[l] (λ x, g x ^ r) :=
 let ⟨c, hc, h'⟩ := h.exists_nonneg in (h'.rpow hc hr hg).is_O
 
-lemma is_o.rpow (hr : 0 < r) (hg : 0 ≤ᶠ[l] g) (h : is_o f g l) :
-  is_o (λ x, f x ^ r) (λ x, g x ^ r) l :=
+lemma is_o.rpow (hr : 0 < r) (hg : 0 ≤ᶠ[l] g) (h : f =o[l] g) :
+  (λ x, f x ^ r) =o[l] (λ x, g x ^ r) :=
 is_o.of_is_O_with $ λ c hc, ((h.forall_is_O_with (rpow_pos_of_pos hc r⁻¹)).rpow
   (rpow_nonneg_of_nonneg hc.le _) hr.le hg).congr_const
     (by rw [←rpow_mul hc.le, inv_mul_cancel hr.ne', rpow_one])
@@ -1013,7 +1013,7 @@ is_o_zpow_exp_pos_mul_at_top k hb
 lemma is_o_rpow_exp_at_top (s : ℝ) : (λ x : ℝ, x ^ s) =o[at_top] exp :=
 by simpa only [one_mul] using is_o_rpow_exp_pos_mul_at_top s one_pos
 
-lemma is_o_log_rpow_at_top {r : ℝ} (hr : 0 < r) : is_o log (λ x, x ^ r) at_top :=
+lemma is_o_log_rpow_at_top {r : ℝ} (hr : 0 < r) : log =o[at_top] (λ x, x ^ r) :=
 begin
   rw ←is_o_const_mul_left_iff hr.ne',
   refine (is_o_log_id_at_top.comp_tendsto (tendsto_rpow_at_top hr)).congr' _ eventually_eq.rfl,
@@ -1021,7 +1021,7 @@ begin
 end
 
 lemma is_o_log_rpow_rpow_at_top {r s : ℝ} (hr : 0 < r) (hs : 0 < s) :
-  is_o (λ x, log x ^ r) (λ x, x ^ s) at_top :=
+  (λ x, log x ^ r) =o[at_top] (λ x, x ^ s) :=
 begin
   refine ((is_o_log_rpow_at_top (div_pos hs hr)).rpow hr _).congr' eventually_eq.rfl _,
   { filter_upwards [eventually_ge_at_top (0 : ℝ)] with x hx,

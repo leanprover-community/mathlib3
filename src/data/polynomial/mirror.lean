@@ -128,15 +128,6 @@ by rw [leading_coeff, trailing_coeff, mirror_nat_trailing_degree, coeff_mirror,
 lemma mirror_leading_coeff : p.mirror.leading_coeff = p.trailing_coeff :=
 by rw [←p.mirror_mirror, mirror_trailing_coeff, p.mirror_mirror]
 
-end semiring
-
-section ring
-
-variables {R : Type*} [ring R] (p q : R[X])
-
-lemma mirror_neg : (-p).mirror = -(p.mirror) :=
-by rw [mirror, mirror, reverse_neg, nat_trailing_degree_neg, neg_mul_eq_neg_mul]
-
 lemma coeff_mul_mirror :
   (p * p.mirror).coeff (p.nat_degree + p.nat_trailing_degree) = p.sum (λ n, (^ 2)) :=
 begin
@@ -146,6 +137,15 @@ begin
     ((le_nat_degree_of_mem_supp n hn).trans (nat.le_add_right _ _)))).symm,
   rw [coeff_mirror, ←rev_at_le (finset.mem_range_succ_iff.mp hn), rev_at_invol, ←sq],
 end
+
+end semiring
+
+section ring
+
+variables {R : Type*} [ring R] (p q : R[X])
+
+lemma mirror_neg : (-p).mirror = -(p.mirror) :=
+by rw [mirror, mirror, reverse_neg, nat_trailing_degree_neg, neg_mul_eq_neg_mul]
 
 variables [is_domain R]
 

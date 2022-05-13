@@ -525,7 +525,7 @@ ultrafilter (L ≃ₐ[K] L)) :
 (equiv_of_ultrafilter h_int f).to_alg_hom.to_fun = f.function h_int := rfl
 
 /-- Let `L/K` be a normal algebraic field extension, let `f` be an ultrafilter on
-  `L ≃ₐ[K] L`, and let `E/K` be a finite subextension. Then `equiv_of_ultrafilter h_int h_splits f`
+  `L ≃ₐ[K] L`, and let `E/K` be a finite subextension. Then `equiv_of_ultrafilter h_int f`
   is a term of `L ≃ₐ[K] L`, and `alg_hom_of_finite_dimensional_of_ultrafilter h_findim f` is a term
   `E →ₐ[K] L`. This Lemma tells us that the underlying maps of these two terms agree on `E`.
     -/
@@ -695,8 +695,7 @@ begin
 end
 
 
-lemma krull_topology_compact (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
-polynomial.splits (algebra_map K L) (minpoly K x)) :
+lemma krull_topology_compact (h_int : algebra.is_integral K L) :
 is_compact (set.univ : set (L ≃ₐ[K] L)) := is_compact_iff_ultrafilter_le_nhds.2
   (λ f _,  ⟨equiv_of_ultrafilter h_int f,
   set.mem_univ (equiv_of_ultrafilter h_int f),
@@ -708,11 +707,10 @@ variables {K L : Type*} [field K] [field L] [algebra K L]
 
 /-- The Krull topology on `L ≃ₐ[K] L` is compact and Hausdorff whenever `L/K` is a
   normal extension -/
-def krull_topology_comphaus (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
-polynomial.splits (algebra_map K L) (minpoly K x)) :
+def krull_topology_comphaus (h_int : algebra.is_integral K L) :
 CompHaus :=
 { to_Top := Top.of (L ≃ₐ[K] L),
-  is_compact := { compact_univ := krull_topology_compact h_int h_splits },
+  is_compact := { compact_univ := krull_topology_compact h_int },
   is_hausdorff := krull_topology_t2 h_int }
 
 /-- The Krull topology on `L ≃ₐ[K] L` is totally disconnected whenever `L/K` is a normal
@@ -722,9 +720,7 @@ totally_disconnected_space (L ≃ₐ[K] L) :=
 { is_totally_disconnected_univ := krull_topology_totally_disconnected h_int }
 
 /-- The Krull topology on `L ≃ₐ[K] L` is profinite whenever `L/K` is a normal extension -/
-def krull_topology_profinite (h_int : algebra.is_integral K L) (h_splits : ∀ (x : L),
-polynomial.splits (algebra_map K L)
-(minpoly K x)) :
+def krull_topology_profinite (h_int : algebra.is_integral K L) :
 Profinite :=
-{ to_CompHaus := krull_topology_comphaus h_int h_splits,
+{ to_CompHaus := krull_topology_comphaus h_int,
   is_totally_disconnected := krull_topology_totally_disconnected_space h_int }

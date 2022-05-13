@@ -32,22 +32,22 @@ structure is_ring_seminorm {R : Type*} [semiring R] (f : R → ℝ≥0) : Prop :
 (mul : ∀ r s, f (r * s) ≤ f r * f s)
 
 
-lemma is_ring_seminorm.pow_le {R : Type*} [semiring R] {f : R → ℝ≥0} (hf : is_ring_seminorm f) (r : R) :
-  ∀ {n : ℕ}, 0 < n → f (r ^ n) ≤ (f r) ^ n
+lemma is_ring_seminorm.pow_le {R : Type*} [semiring R] {f : R → ℝ≥0} (hf : is_ring_seminorm f)
+  (r : R) : ∀ {n : ℕ}, 0 < n → f (r ^ n) ≤ (f r) ^ n
 | 1 h := by simp only [pow_one]
 | (n + 2) h := by simpa [pow_succ _ (n + 1)] using le_trans (hf.mul r _)
     (mul_le_mul_left' (is_ring_seminorm.pow_le n.succ_pos) _)
 
-/-- A function `f : R → ℝ≥0` satisfies `is_ring_norm_le_one_class` if `f 1 ≤ 1`. -/
-def is_ring_norm_le_one_class {R : Type*} [semiring R] (f : R → ℝ≥0) : Prop := f 1 ≤ 1
+/-- A function `f : R → ℝ≥0` satisfies `is_norm_le_one_class` if `f 1 ≤ 1`. -/
+def is_norm_le_one_class {R : Type*} [semiring R] (f : R → ℝ≥0) : Prop := f 1 ≤ 1
 
-/-- A function `f : R → ℝ≥0` satisfies `is_ring_norm_one_class` if `f 1 = 1`. -/
-def is_ring_norm_one_class {R : Type*} [semiring R] (f : R → ℝ≥0) : Prop := f 1 = 1
+/-- A function `f : R → ℝ≥0` satisfies `is_norm_one_class` if `f 1 = 1`. -/
+def is_norm_one_class {R : Type*} [semiring R] (f : R → ℝ≥0) : Prop := f 1 = 1
 
-lemma is_ring_norm_one_class_iff_nontrivial {R : Type*} [semiring R] {f : R → ℝ≥0} (hsn : is_ring_seminorm f)
-  (hf1 : f 1 ≤ 1) : is_ring_norm_one_class f ↔ ∃ r : R, f r ≠ 0 :=
+lemma is_ring_norm_one_class_iff_nontrivial {R : Type*} [semiring R] {f : R → ℝ≥0}
+  (hsn : is_ring_seminorm f) (hf1 : f 1 ≤ 1) : is_norm_one_class f ↔ ∃ r : R, f r ≠ 0 :=
 begin
-  rw is_ring_norm_one_class,
+  rw is_norm_one_class,
   refine ⟨λ h, _, λ h, _⟩,
   { use 1,
     rw h, exact one_ne_zero, },
@@ -70,8 +70,8 @@ end
 structure is_ring_norm {R : Type*} [semiring R] (f : R → ℝ≥0) extends (is_ring_seminorm f) : Prop :=
 (ne_zero : ∀ r, r ≠ 0 → 0 < f r)
 
-lemma field.is_ring_norm_of_is_ring_seminorm {R : Type*} [field R] {f : R → ℝ≥0} (hf : is_ring_seminorm f)
-  (hnt : ∃ r : R, 0 ≠ f r) : is_ring_norm f :=
+lemma field.is_ring_norm_of_is_ring_seminorm {R : Type*} [field R] {f : R → ℝ≥0}
+  (hf : is_ring_seminorm f) (hnt : ∃ r : R, 0 ≠ f r) : is_ring_norm f :=
 { ne_zero := λ x hx, begin
     obtain ⟨c, hc⟩ := hnt,
     have hfx : 0 ≠ f x,

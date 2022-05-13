@@ -417,25 +417,25 @@ open sum
 protected theorem zero_le : ∀ a : cardinal, 0 ≤ a :=
 by rintro ⟨α⟩; exact ⟨embedding.of_is_empty⟩
 
-protected theorem add_le_add : ∀ {a b c d : cardinal}, a ≤ b → c ≤ d → a + c ≤ b + d :=
+private theorem add_le_add' : ∀ {a b c d : cardinal}, a ≤ b → c ≤ d → a + c ≤ b + d :=
 by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨δ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.sum_map e₂⟩
 
-protected theorem add_le_add_left (a) {b c : cardinal} : b ≤ c → a + b ≤ a + c :=
-cardinal.add_le_add le_rfl
+instance add_covariant_class : covariant_class cardinal cardinal (+) (≤) :=
+⟨λ a b c, add_le_add' le_rfl⟩
 
-protected theorem le_iff_exists_add {a b : cardinal} : a ≤ b ↔ ∃ c, b = a + c :=
-⟨induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,
-  have (α ⊕ ((range f)ᶜ : set β)) ≃ β, from
-    (equiv.sum_congr (equiv.of_injective f hf) (equiv.refl _)).trans $
-    (equiv.set.sum_compl (range f)),
-  ⟨#↥(range f)ᶜ, mk_congr this.symm⟩,
- λ ⟨c, e⟩, add_zero a ▸ e.symm ▸ cardinal.add_le_add_left _ (cardinal.zero_le _)⟩
+instance add_swap_covariant_class : covariant_class cardinal cardinal (swap (+)) (≤) :=
+⟨λ a b c h, add_le_add' h le_rfl⟩
 
 instance : canonically_ordered_comm_semiring cardinal.{u} :=
 { bot                   := 0,
   bot_le                := cardinal.zero_le,
-  add_le_add_left       := λ a b h c, cardinal.add_le_add_left _ h,
-  le_iff_exists_add     := @cardinal.le_iff_exists_add,
+  add_le_add_left       := λ a b, add_le_add_left,
+  le_iff_exists_add     := λ a b, ⟨induction_on₂ a b $ λ α β ⟨⟨f, hf⟩⟩,
+    have (α ⊕ ((range f)ᶜ : set β)) ≃ β, from
+      (equiv.sum_congr (equiv.of_injective f hf) (equiv.refl _)).trans $
+      (equiv.set.sum_compl (range f)),
+    ⟨#↥(range f)ᶜ, mk_congr this.symm⟩,
+    λ ⟨c, e⟩, add_zero a ▸ e.symm ▸ add_le_add_left (cardinal.zero_le _) _⟩,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ a b, induction_on₂ a b $ λ α β,
     by simpa only [mul_def, mk_eq_zero_iff, is_empty_prod] using id,
   ..cardinal.comm_semiring, ..cardinal.partial_order }

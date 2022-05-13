@@ -229,6 +229,10 @@ begin
   exacts [nat.zero_le _, rfl.le],
 end
 
+lemma nat_degree_monomial_eq (i : ℕ) {r : R} (r0 : r ≠ 0) :
+  (monomial i r).nat_degree = i :=
+eq.trans (nat_degree_monomial _ _) (if_neg r0)
+
 lemma coeff_eq_zero_of_degree_lt (h : degree p < n) : coeff p n = 0 :=
 not_not.1 (mt le_degree_of_ne_zero (not_le_of_gt h))
 

@@ -331,7 +331,7 @@ begin
   rcases card_pos.1 hd0 with ⟨a, ha'⟩,
   have ha : order_of a = d := (mem_filter.1 ha').2,
 
-  have h_new : ∑ m in d.proper_divisors, (univ.filter (λ a : α, order_of a = m)).card =
+  have h1 : ∑ m in d.proper_divisors, (univ.filter (λ a : α, order_of a = m)).card =
     ∑ m in d.proper_divisors, φ m,
   {
     refine finset.sum_congr rfl (λ m hm, _),
@@ -344,37 +344,27 @@ begin
     rw [nat.div_div_self hm.1 hd_pos],
   },
 
-  have H_new :
-  (filter (λ (a : α), order_of a = d) univ).card
-  + ∑ (m : ℕ) in d.proper_divisors, (filter (λ (a : α), order_of a = m) univ).card
-  =
-  d.totient
-  + ∑ (m : ℕ) in d.proper_divisors, (filter (λ (a : α), order_of a = m) univ).card,
-  begin
-    calc _ = ∑ m in insert d (d.proper_divisors),
-          (univ.filter (λ a : α, order_of a = m)).card : _
-    ... = ∑ m in d.divisors,
-        (univ.filter (λ a : α, order_of a = m)).card : _
-    ... = (univ.filter (λ a : α, a ^ d = 1)).card : _
-    ... = ∑ m in d.divisors, φ m : _
-    ... = _ : _,
-    { rw finset.sum_insert proper_divisors.not_self_mem },
-    { refine sum_congr _ (λ x hx, rfl),
-      exact (divisors_eq_proper_divisors_insert_self_of_pos hd_pos).symm,
-    },
-    { rw ←sum_card_order_of_eq_card_pow_eq_one hd_pos,
-      exact sum_congr (filter_dvd_eq_divisors hd_pos.ne').symm (λ x hx, rfl) },
-    { rw [sum_totient d, ←ha],
-      exact (card_pow_eq_one_eq_order_of_aux hn a) },
-    {
-      rw h_new,
-      rw ← sum_insert proper_divisors.not_self_mem,
-      refine sum_congr _ (λ x hx, rfl),
-      exact (divisors_eq_proper_divisors_insert_self_of_pos hd_pos),
-      },
-  end,
+  rw ←add_left_inj
+    ∑ (m : ℕ) in d.proper_divisors, (filter (λ (a : α), order_of a = m) univ).card,
 
-  exact (add_left_inj _).1 H_new,
+  calc _ = ∑ m in insert d (d.proper_divisors),
+        (univ.filter (λ a : α, order_of a = m)).card : _
+  ... = ∑ m in d.divisors,
+      (univ.filter (λ a : α, order_of a = m)).card : _
+  ... = (univ.filter (λ a : α, a ^ d = 1)).card : _
+  ... = ∑ m in d.divisors, φ m : _
+  ... = _ : _,
+  { rw finset.sum_insert proper_divisors.not_self_mem },
+  { refine sum_congr _ (λ x hx, rfl),
+    exact (divisors_eq_proper_divisors_insert_self_of_pos hd_pos).symm },
+  { rw ←sum_card_order_of_eq_card_pow_eq_one hd_pos,
+    exact sum_congr (filter_dvd_eq_divisors hd_pos.ne').symm (λ x hx, rfl) },
+  { rw [sum_totient d, ←ha],
+    exact (card_pow_eq_one_eq_order_of_aux hn a) },
+  { rw h1,
+    rw ← sum_insert proper_divisors.not_self_mem,
+    refine sum_congr _ (λ x hx, rfl),
+    exact (divisors_eq_proper_divisors_insert_self_of_pos hd_pos) },
 end
 
 #exit

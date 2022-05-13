@@ -163,6 +163,21 @@ begin
   exact hx this
 end
 
+/-- A strict affine subspace has measure zero. -/
+lemma add_haar_affine_subspace
+  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
+  (s : affine_subspace ℝ E) (hs : s ≠ ⊤) : μ s = 0 :=
+begin
+  rcases s.eq_bot_or_nonempty with rfl|hne,
+  { rw [affine_subspace.bot_coe, measure_empty] },
+  rw [ne.def, ← affine_subspace.direction_eq_top_iff_of_nonempty hne] at hs,
+  rcases hne with ⟨x, hx : x ∈ s⟩,
+  simpa only [affine_subspace.coe_direction_eq_vsub_set_right hx, vsub_eq_sub,
+    sub_eq_add_neg, image_add_right, neg_neg, measure_preimage_add_right]
+    using add_haar_submodule μ s.direction hs
+end
+
 /-!
 ### Applying a linear map rescales Haar measure by the determinant
 
@@ -180,9 +195,8 @@ begin
   /- We have already proved the result for the Lebesgue product measure, using matrices.
   We deduce it for any Haar measure by uniqueness (up to scalar multiplication). -/
   have := add_haar_measure_unique μ (pi_Icc01 ι),
-  rw this,
-  simp [add_haar_measure_eq_volume_pi, real.map_linear_map_volume_pi_eq_smul_volume_pi hf,
-    smul_smul, mul_comm],
+  rw [this, add_haar_measure_eq_volume_pi, map_smul,
+    real.map_linear_map_volume_pi_eq_smul_volume_pi hf, smul_comm],
 end
 
 lemma map_linear_map_add_haar_eq_smul_add_haar
@@ -345,6 +359,13 @@ begin
     simp only [h, zero_mul, ennreal.of_real_zero, abs_zero, ne.def, not_false_iff, zero_pow',
       measure_singleton] }
 end
+
+@[simp] lemma add_haar_image_homothety (x : E) (r : ℝ) (s : set E) :
+  μ (affine_map.homothety x r '' s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
+calc μ (affine_map.homothety x r '' s) = μ ((λ y, y + x) '' (r • ((λ y, y + (-x)) '' s))) :
+  by { simp only [← image_smul, image_image, ← sub_eq_add_neg], refl }
+... = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :
+  by simp only [image_add_right, measure_preimage_add_right, add_haar_smul]
 
 /-! We don't need to state `map_add_haar_neg` here, because it has already been proved for
 general Haar measures on general commutative groups. -/

@@ -276,7 +276,7 @@ begin
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
                   : by field_simp [-mul_re, inner_conj_sym, hT, ring_hom.map_div, h₁, h₃]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
-                  : by rw [div_mul_eq_mul_div_comm, ←mul_div_assoc]
+                  : by rw ←mul_div_right_comm
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)
                   : by conv_lhs { rw [h₄] }
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫) / re ⟪y, y⟫
@@ -635,7 +635,7 @@ begin
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
                   : by field_simp [-mul_re, hT, ring_hom.map_div, h₁, h₃, inner_conj_sym]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
-                  : by rw [div_mul_eq_mul_div_comm, ←mul_div_assoc]
+                  : by rw ←mul_div_right_comm
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / re ⟪y, y⟫)
                   : by conv_lhs { rw [h₄] }
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫) / re ⟪y, y⟫
@@ -1012,6 +1012,9 @@ end
 lemma norm_inner_le_norm (x y : E) : ∥⟪x, y⟫∥ ≤ ∥x∥ * ∥y∥ :=
 (is_R_or_C.norm_eq_abs _).le.trans (abs_inner_le_norm x y)
 
+lemma nnnorm_inner_le_nnnorm (x y : E) : ∥⟪x, y⟫∥₊ ≤ ∥x∥₊ * ∥y∥₊ :=
+norm_inner_le_norm x y
+
 lemma re_inner_le_norm (x y : E) : re ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
 le_trans (re_le_abs (inner x y)) (abs_inner_le_norm x y)
 
@@ -1024,18 +1027,19 @@ lemma real_inner_le_norm (x y : F) : ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
 le_trans (le_abs_self _) (abs_real_inner_le_norm _ _)
 
 include 𝕜
-lemma parallelogram_law_with_norm {x y : E} :
+lemma parallelogram_law_with_norm (x y : E) :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
 begin
   simp only [← inner_self_eq_norm_mul_norm],
   rw [← re.map_add, parallelogram_law, two_mul, two_mul],
   simp only [re.map_add],
 end
-omit 𝕜
 
-lemma parallelogram_law_with_norm_real {x y : F} :
-  ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
-by { have h := @parallelogram_law_with_norm ℝ F _ _ x y, simpa using h }
+lemma parallelogram_law_with_nnnorm (x y : E) :
+  ∥x + y∥₊ * ∥x + y∥₊ + ∥x - y∥₊ * ∥x - y∥₊ = 2 * (∥x∥₊ * ∥x∥₊ + ∥y∥₊ * ∥y∥₊) :=
+subtype.ext $ parallelogram_law_with_norm x y
+
+omit 𝕜
 
 /-- Polarization identity: The real part of the  inner product, in terms of the norm. -/
 lemma re_inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two (x y : E) :
@@ -1356,8 +1360,8 @@ begin
   have hr' : abs r ≠ 0 := by simp [is_R_or_C.abs_eq_zero, hr],
   rw [inner_smul_right, is_R_or_C.abs_mul, ←inner_self_re_abs, inner_self_eq_norm_mul_norm,
       norm_smul],
-  rw [is_R_or_C.norm_eq_abs, ←mul_assoc, ←div_div_eq_div_mul, mul_div_cancel _ hx',
-     ←div_div_eq_div_mul, mul_comm, mul_div_cancel _ hr', div_self hx'],
+  rw [is_R_or_C.norm_eq_abs, ←mul_assoc, ←div_div, mul_div_cancel _ hx',
+     ←div_div, mul_comm, mul_div_cancel _ hr', div_self hx'],
 end
 
 /-- The inner product of a nonzero vector with a nonzero multiple of
@@ -2199,7 +2203,7 @@ variables (𝕜 E)
 /-- `submodule.orthogonal` gives a `galois_connection` between
 `submodule 𝕜 E` and its `order_dual`. -/
 lemma submodule.orthogonal_gc :
-  @galois_connection (submodule 𝕜 E) (order_dual $ submodule 𝕜 E) _ _
+  @galois_connection (submodule 𝕜 E) (submodule 𝕜 E)ᵒᵈ _ _
     submodule.orthogonal submodule.orthogonal :=
 λ K₁ K₂, ⟨λ h v hv u hu, submodule.inner_left_of_mem_orthogonal hv (h hu),
           λ h v hv u hu, submodule.inner_left_of_mem_orthogonal hv (h hu)⟩

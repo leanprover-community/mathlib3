@@ -134,7 +134,7 @@ end
 lemma cantor_function_injective (h1 : 0 < c) (h2 : c < 1 / 2) :
   function.injective (cantor_function c) :=
 begin
-  intros f g hfg, classical, by_contra h, revert hfg,
+  intros f g hfg, classical!, by_contra h, revert hfg,
   have : ∃n, f n ≠ g n,
   { rw [←not_forall], intro h', apply h, ext, apply h' },
   let n := nat.find this,

@@ -1068,7 +1068,7 @@ end with_top_bot
 
 section group
 
-variables [nonempty ι] [conditionally_complete_lattice α] [group α]
+variables {ι' : Sort*} [nonempty ι] [nonempty ι'] [conditionally_complete_lattice α] [group α]
 
 @[to_additive]
 lemma le_mul_cinfi [covariant_class α α (*) (≤)] {a : α} {g : α} {h : ι → α}
@@ -1092,12 +1092,12 @@ lemma csupr_mul_le [covariant_class α α (function.swap (*)) (≤)] {a : α} {g
 
 @[to_additive]
 lemma le_cinfi_mul_cinfi [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
-  {a : α} {g h : ι → α} (H : ∀ i j, a ≤ g i * h j) : a ≤ infi g * infi h :=
+  {a : α} {g : ι → α} {h : ι' → α} (H : ∀ i j, a ≤ g i * h j) : a ≤ infi g * infi h :=
 le_cinfi_mul $ λ i, le_mul_cinfi $ H _
 
 @[to_additive]
 lemma csupr_mul_csupr_le [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
-  {a : α} {g h : ι → α} (H : ∀ i j, g i * h j ≤ a) : supr g * supr h ≤ a :=
+  {a : α} {g : ι → α} {h : ι' → α} (H : ∀ i j, g i * h j ≤ a) : supr g * supr h ≤ a :=
 csupr_mul_le $ λ i, mul_csupr_le $ H _
 
 end group

@@ -155,7 +155,7 @@ meta def recurse_on_expr (hyp : option name) (ll : list (bool × pexpr)) : expr 
 
 /-- Passes the user input `ll` to `recurse_on_expr` at a single location, that could either be
 `none` (referring to the goal) or `some name` (referring to hypothesis `name`).  Returns a pair
-consisting of a boolean and a further list of booleans.  The single boolean is `tt` if the tactic
+consisting of a boolean and a further list of booleans.  The single boolean is `tt` iff the tactic
 did *not* change the goal on which it was acting.  The list of booleans records which variable in
 `ll` has been unified in the application: `tt` means that the corresponding variable has *not* been
 unified.

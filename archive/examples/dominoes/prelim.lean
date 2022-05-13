@@ -5,7 +5,7 @@ import algebra.geom_sum
 
 @[simp] lemma sum_neg_one_pow {α : Type*} [ring α] (n : ℕ) :
   (finset.range n).sum (λ i, (-1 : α)^i) = if even n then 0 else 1 :=
-neg_one_geom_sum
+by simp
 
 @[simp] lemma neg_one_pow_mul_neg_one_pow {α : Type*} [monoid α] [has_distrib_neg α] (n : ℕ) :
   (-1 : α)^n * (-1 : α)^n = 1 :=

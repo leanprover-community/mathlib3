@@ -58,6 +58,8 @@ local attribute [simp] mul_assoc mul_comm mul_left_comm
 @[trans] theorem dvd_trans : a ∣ b → b ∣ c → a ∣ c
 | ⟨d, h₁⟩ ⟨e, h₂⟩ := ⟨d * e, h₁ ▸ h₂.trans $ mul_assoc a d e⟩
 
+instance : is_trans α (∣) := ⟨λ a b c, dvd_trans⟩
+
 alias dvd_trans ← has_dvd.dvd.trans
 
 @[simp] theorem dvd_mul_right (a b : α) : a ∣ a * b := dvd.intro b rfl
@@ -94,6 +96,8 @@ dvd.intro 1 (mul_one _)
 
 lemma dvd_rfl {a : α} : a ∣ a :=
 dvd_refl a
+
+instance : is_refl α (∣) := ⟨dvd_refl⟩
 
 theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (one_mul _)
 

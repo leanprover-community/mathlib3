@@ -349,6 +349,24 @@ instance preserves_binary_products_of_preserves_kernels
   preserves_limits_of_shape (discrete walking_pair) F :=
 { preserves_limit := λ p, preserves_limit_of_iso_diagram F (diagram_iso_pair p).symm }
 
+example [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] {X Y : C}
+  (f g : X ⟶ Y) : preserves_limit (parallel_pair f g) F :=
+begin
+  letI := preserves_binary_biproducts_of_preserves_binary_products F,
+  letI := additive_of_preserves_binary_biproducts F,
+  constructor, intros c i,
+  have c' := is_limit_kernel_fork_of_fork (is_limit.of_iso_limit i (iso_fork_of_ι c)),
+  simp only [kernel_fork_of_fork_of_ι] at c',
+  have iFc := is_limit_fork_map_of_is_limit' F _ c', clear c',
+  apply is_limit.of_iso_limit _ ((cones.functoriality _ F).map_iso (iso_fork_of_ι c).symm),
+  apply (is_limit_map_cone_fork_equiv F (fork.condition c)).inv_fun,
+  -- should use `is_limit_fork_of_kernel_fork iFc`, but need to rw along F(f - g) = F f - F g
+end
+
+#check is_limit_fork_of_kernel_fork
+
+--#find map_cone _ _ ≅ map_cone _ _
+
 /--
 A functor from a preadditive category to an abelian category which preserves cokernels,
 preserves finite coproducts.

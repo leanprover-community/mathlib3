@@ -87,17 +87,20 @@ end map_dvd
 
 end semigroup
 
+section dvd_refl
+
+variables [has_dvd α] [is_refl α (∣)]
+
+@[refl, simp] theorem dvd_refl (a : α) : a ∣ a := refl a
+theorem dvd_rfl {a : α} : a ∣ a := refl a
+
+end dvd_refl
+
 section monoid
 
 variables [monoid α]
 
-@[refl, simp] theorem dvd_refl (a : α) : a ∣ a :=
-dvd.intro 1 (mul_one _)
-
-lemma dvd_rfl {a : α} : a ∣ a :=
-dvd_refl a
-
-instance : is_refl α (∣) := ⟨dvd_refl⟩
+instance : is_refl α (∣) := ⟨λ a, dvd.intro 1 (mul_one a)⟩
 
 @[simp] theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (one_mul _)
 

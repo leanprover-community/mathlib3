@@ -95,7 +95,7 @@ structure split : Prop :=
 
 variables [has_kernels 𝒜] [has_images 𝒜]
 
-lemma exact_of_split {A B C : 𝒜} (f : A ⟶ B) (g : B ⟶ C) (χ : C ⟶ B) (φ : B ⟶ A)
+lemma exact_of_split {A B C : 𝒜} {f : A ⟶ B} {g : B ⟶ C} {χ : C ⟶ B} {φ : B ⟶ A}
   (hfg : f ≫ g = 0) (H : φ ≫ f + g ≫ χ = 𝟙 B) : exact f g :=
 { w := hfg,
   epi :=
@@ -118,7 +118,7 @@ section
 variables {f g}
 
 lemma split.exact (h : split f g) : exact f g :=
-by { obtain ⟨φ, χ, -, -, h1, -, h2⟩ := h, exact exact_of_split f g χ φ h1 h2 }
+by { obtain ⟨φ, χ, -, -, h1, -, h2⟩ := h, exact exact_of_split h1 h2 }
 
 lemma split.left_split (h : split f g) : left_split f g :=
 { left_split := by { obtain ⟨φ, χ, h1, -⟩ := h, exact ⟨φ, h1⟩, },
@@ -155,12 +155,12 @@ end
 /-- The sequence `A ⟶ A ⊞ B ⟶ B` is exact. -/
 lemma exact_inl_snd [has_binary_biproducts 𝒜] (A B : 𝒜) :
   exact (biprod.inl : A ⟶ A ⊞ B) biprod.snd :=
-exact_of_split _ _ biprod.inr biprod.fst biprod.inl_snd biprod.total
+exact_of_split biprod.inl_snd biprod.total
 
 /-- The sequence `B ⟶ A ⊞ B ⟶ A` is exact. -/
 lemma exact_inr_fst [has_binary_biproducts 𝒜] (A B : 𝒜) :
   exact (biprod.inr : B ⟶ A ⊞ B) biprod.fst :=
-exact_of_split _ _ biprod.inl biprod.snd biprod.inr_fst ((add_comm _ _).trans biprod.total)
+exact_of_split biprod.inr_fst ((add_comm _ _).trans biprod.total)
 
 end preadditive
 

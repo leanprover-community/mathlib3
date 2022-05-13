@@ -783,23 +783,13 @@ by { rw [← nnreal.coe_eq, coe_infi], exact real.cinfi_empty _, }
 @[simp] lemma infi_const_zero {α : Sort*} : (⨅ i : α, (0 : ℝ≥0)) = 0 :=
 by { rw [← nnreal.coe_eq, coe_infi], exact real.cinfi_const_zero, }
 
-lemma infi_mul_of_ne (f : ι → ℝ≥0) {a : ℝ≥0} (h0 : a ≠ 0) :
-  infi f * a = ⨅ i, f i * a :=
+lemma infi_mul (f : ι → ℝ≥0) (a : ℝ≥0)  : infi f * a = ⨅ i, f i * a :=
 begin
   rw [← nnreal.coe_eq, nnreal.coe_mul, coe_infi, coe_infi],
   exact real.infi_mul_of_nonneg (nnreal.coe_nonneg _) _,
 end
 
-lemma infi_mul (f : ι → ℝ≥0) (a : ℝ≥0)  :
-  infi f * a = ⨅ i, f i * a :=
-begin
-  by_cases h0 : a = 0,
-  { simp only [h0, mul_zero], exact infi_const_zero.symm },
-  { exact infi_mul_of_ne f h0 }
-end
-
-lemma mul_infi (f : ι → ℝ≥0) (a : ℝ≥0) :
-  a * infi f = ⨅ i, a * f i :=
+lemma mul_infi (f : ι → ℝ≥0) (a : ℝ≥0) : a * infi f = ⨅ i, a * f i :=
 by simpa only [mul_comm] using infi_mul f a
 
 lemma mul_supr (f : ι → ℝ≥0) (a : ℝ≥0) : a * (⨆ i, f i) = ⨆ i, a * f i :=

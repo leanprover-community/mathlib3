@@ -338,8 +338,6 @@ begin
   simpa [divisors_eq_proper_divisors_insert_self_of_pos hd_pos, ←h1] using h2,
 end
 
-#exit
-
 private lemma card_order_of_eq_totient_aux₁ :
   ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →
   (univ.filter (λ a : α, order_of a = d)).card = φ d
@@ -398,9 +396,6 @@ begin
 end
 -- using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf card⟩]}
 
-#exit
-
-
 private lemma card_order_of_eq_totient_aux₁ :
   ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →
   (univ.filter (λ a : α, order_of a = d)).card = φ d
@@ -446,7 +441,7 @@ lemma card_order_of_eq_totient_aux₂'' {d : ℕ} (hd : d ∣ fintype.card α) :
 begin
   let c := fintype.card α,
   have hc0 : 0 < c := fintype.card_pos_iff.2 ⟨1⟩,
-  apply card_order_of_eq_totient_aux₁ hn hd,
+  apply card_order_of_eq_totient_aux₁' hn hd,
   by_contradiction h0,
   simp only [not_lt, _root_.le_zero_iff, card_eq_zero] at h0,
   apply lt_irrefl c,
@@ -464,22 +459,18 @@ begin
   { refine sum_le_sum (λ m hm, _),
     have hmc : m ∣ c, { simp only [mem_erase, mem_divisors] at hm, tauto },
     rcases (filter (λ (a : α), order_of a = m) univ).card.eq_zero_or_pos with h1 | h1,
-    { simp [h1] }, { simp [card_order_of_eq_totient_aux₁ hn hmc h1] } }
+    { simp [h1] }, { simp [card_order_of_eq_totient_aux₁' hn hmc h1] } }
   ... < ∑ m in c.divisors, φ m :
   sum_erase_lt_of_pos (mem_divisors.2 ⟨hd, hc0.ne'⟩) (totient_pos (pos_of_dvd_of_pos hd hc0))
    ... = c : sum_totient _
 end
-#exit
-
-
-
 
 
 lemma card_order_of_eq_totient_aux₂ {d : ℕ} (hd : d ∣ fintype.card α) :
   (univ.filter (λ a : α, order_of a = d)).card = φ d :=
 by_contradiction $ λ h,
 have h0 : (univ.filter (λ a : α , order_of a = d)).card = 0 :=
-  not_not.1 (mt pos_iff_ne_zero.2 (mt (card_order_of_eq_totient_aux₁ hn hd) h)),
+  not_not.1 (mt pos_iff_ne_zero.2 (mt (card_order_of_eq_totient_aux₁' hn hd) h)),
 let c := fintype.card α in
 have hc0 : 0 < c, from fintype.card_pos_iff.2 ⟨1⟩,
 lt_irrefl c $
@@ -496,7 +487,7 @@ lt_irrefl c $
   ... ≤ ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m :
     sum_le_sum (λ m hm,
       have hmc : m ∣ c, by simp at hm; tauto,
-      (imp_iff_not_or.1 (card_order_of_eq_totient_aux₁ hn hmc)).elim
+      (imp_iff_not_or.1 (card_order_of_eq_totient_aux₁' hn hmc)).elim
         (λ h, by simp [nat.le_zero_iff.1 (le_of_not_gt h), nat.zero_le])
         (λ h, by rw h))
   ... < φ d + ∑ m in ((range c.succ).filter (∣ c)).erase d, φ m :
@@ -508,7 +499,7 @@ lt_irrefl c $
       (finset.insert_erase (mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd hc0 hd)), hd⟩))
                            (λ _ _, rfl)
   ... = c : sum_totient' _
-#exit
+
 lemma is_cyclic_of_card_pow_eq_one_le : is_cyclic α :=
 have (univ.filter (λ a : α, order_of a = fintype.card α)).nonempty,
 from (card_pos.1 $

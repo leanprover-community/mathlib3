@@ -137,6 +137,16 @@ variables {R : Type*} [ring R] (p q : R[X])
 lemma mirror_neg : (-p).mirror = -(p.mirror) :=
 by rw [mirror, mirror, reverse_neg, nat_trailing_degree_neg, neg_mul_eq_neg_mul]
 
+lemma coeff_mul_mirror :
+  (p * p.mirror).coeff (p.nat_degree + p.nat_trailing_degree) = p.sum (λ n, (^ 2)) :=
+begin
+  rw [coeff_mul, finset.nat.sum_antidiagonal_eq_sum_range_succ_mk],
+  refine (finset.sum_congr rfl (λ n hn, _)).trans (p.sum_eq_of_subset (λ n, (^ 2))
+    (λ n, zero_pow zero_lt_two) _ (λ n hn, finset.mem_range_succ_iff.mpr
+    ((le_nat_degree_of_mem_supp n hn).trans (nat.le_add_right _ _)))).symm,
+  rw [coeff_mirror, ←rev_at_le (finset.mem_range_succ_iff.mp hn), rev_at_invol, ←sq],
+end
+
 variables [is_domain R]
 
 lemma mirror_mul_of_domain : (p * q).mirror = p.mirror * q.mirror :=
@@ -153,16 +163,6 @@ end
 
 lemma mirror_smul (a : R) : (a • p).mirror = a • p.mirror :=
 by rw [←C_mul', ←C_mul', mirror_mul_of_domain, mirror_C]
-
-lemma coeff_mul_mirror :
-  (p * p.mirror).coeff (p.nat_degree + p.nat_trailing_degree) = p.sum (λ n, (^ 2)) :=
-begin
-  rw [coeff_mul, finset.nat.sum_antidiagonal_eq_sum_range_succ_mk],
-  refine (finset.sum_congr rfl (λ n hn, _)).trans (p.sum_eq_of_subset (λ n, (^ 2))
-    (λ n, zero_pow zero_lt_two) _ (λ n hn, finset.mem_range_succ_iff.mpr
-    ((le_nat_degree_of_mem_supp n hn).trans (nat.le_add_right _ _)))).symm,
-  rw [coeff_mirror, ←rev_at_le (finset.mem_range_succ_iff.mp hn), rev_at_invol, ←sq],
-end
 
 end ring
 

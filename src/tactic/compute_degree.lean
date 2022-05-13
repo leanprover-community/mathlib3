@@ -208,7 +208,6 @@ do `(polynomial.nat_degree %%tl ≤ %%tr) ← target |
   (lead,m') ← extract_top_degree_term_and_deg tl,
   td ← eval_expr ℕ tr | fail
     "currently, there is no support for some of the terms appearing in the polynomial",
-  trace td,
   if td < m' then
     do pptl ← pp tl, ppm' ← pp m',
     trace sformat!"should the degree be '{m'}'?\n\n",

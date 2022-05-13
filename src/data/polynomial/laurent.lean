@@ -143,7 +143,7 @@ lemma T_zero : (T 0 : R[T;T⁻¹]) = 1 := rfl
 lemma T_add (m n : ℤ) : (T (m + n) : R[T;T⁻¹]) = T m * T n :=
 by { convert single_mul_single.symm, simp [T] }
 
-lemma T_sub (m n : ℤ) : (T m * T (-n) : R[T;T⁻¹]) = T (m - n) :=
+lemma T_sub (m n : ℤ) : (T (m - n) : R[T;T⁻¹]) = T m * T (-n) :=
 by rw [← T_add, sub_eq_add_neg]
 
 @[simp]
@@ -333,7 +333,7 @@ lemma induction_on_mul_T (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
   Q f :=
 begin
   rcases f.exists_T_pow with ⟨n, f', hf⟩,
-  rw [← mul_one f, ← T_zero, ← nat.cast_zero, ← nat.sub_self n, nat.cast_sub rfl.le, ← T_sub,
+  rw [← mul_one f, ← T_zero, ← nat.cast_zero, ← nat.sub_self n, nat.cast_sub rfl.le, T_sub,
     ← mul_assoc, int.nat_cast_eq_coe_nat, ← hf],
   exact Qf,
 end

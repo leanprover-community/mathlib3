@@ -130,7 +130,7 @@ begin
     rw [← lift_le, lift_lift, lift_le, add_comm, add_eq_max, max_le_iff, lift_id'],
     { refine ⟨h1, _, _⟩,
       { refine (lift_le.2 card_functions_sum_skolem₁_le).trans _,
-        rw [lift_max', lift_omega, max_le_iff, ← lift_lift, lift_id],
+        rw [lift_max, lift_omega, max_le_iff, ← lift_lift, lift_id],
         exact ⟨h1, h3⟩, },
       { refine ((lift_le.2 (mk_union_le _ _)).trans _),
         rw [lift_add, add_comm, mk_image_eq_lift _ _ equiv.ulift.injective, ← lift_lift, lift_id',

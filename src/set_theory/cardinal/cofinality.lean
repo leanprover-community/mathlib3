@@ -114,7 +114,7 @@ order.cof (swap r)ᶜ
 
 /-- The set in the definition of `order.strict_order.cof` is nonempty. -/
 theorem strict_order.cof_nonempty (r : α → α → Prop) [is_irrefl α r] :
-  {c | ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ #S = c}.nonempty :=
+  {c | ∃ S : set α, unbounded r S ∧ #S = c}.nonempty :=
 @order.cof_nonempty α _ (is_refl.swap rᶜ)
 
 /-! ### Cofinality of ordinals -/
@@ -127,7 +127,7 @@ namespace ordinal
   `cof 0 = 0` and `cof (succ o) = 1`, so it is only really
   interesting on limit ordinals (when it is an infinite cardinal). -/
 def cof (o : ordinal.{u}) : cardinal.{u} :=
-quot.lift_on o (λ a, strict_order.cof a.r)
+o.lift_on (λ a, strict_order.cof a.r)
 begin
   rintros ⟨α, r, wo₁⟩ ⟨β, s, wo₂⟩ ⟨⟨f, hf⟩⟩,
   haveI := wo₁, haveI := wo₂,
@@ -140,11 +140,11 @@ end
 lemma cof_type (r : α → α → Prop) [is_well_order α r] : (type r).cof = strict_order.cof r := rfl
 
 theorem le_cof_type [is_well_order α r] {c} : c ≤ cof (type r) ↔
-  ∀ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) → c ≤ #S :=
+  ∀ S : set α, unbounded r S → c ≤ #S :=
 (le_cInf_iff'' (strict_order.cof_nonempty r)).trans ⟨λ H S h, H _ ⟨S, h, rfl⟩,
   by { rintros H d ⟨S, h, rfl⟩, exact H _ h }⟩
 
-theorem cof_type_le [is_well_order α r] (S : set α) (h : ∀ a, ∃ b ∈ S, ¬ r b a) :
+theorem cof_type_le [is_well_order α r] (S : set α) (h : unbounded r S) :
   cof (type r) ≤ #S :=
 le_cof_type.1 le_rfl S h
 
@@ -153,11 +153,11 @@ theorem lt_cof_type [is_well_order α r] (S : set α) (hl : #S < cof (type r)) :
 not_forall_not.1 $ λ h, not_le_of_lt hl $ cof_type_le S (λ a, not_ball.1 (h a))
 
 theorem cof_eq (r : α → α → Prop) [is_well_order α r] :
-  ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ #S = cof (type r) :=
+  ∃ S : set α, unbounded r S ∧ #S = cof (type r) :=
 Inf_mem (strict_order.cof_nonempty r)
 
 theorem ord_cof_eq (r : α → α → Prop) [is_well_order α r] :
-  ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ type (subrel r S) = (cof (type r)).ord :=
+  ∃ S : set α, unbounded r S ∧ type (subrel r S) = (cof (type r)).ord :=
 let ⟨S, hS, e⟩ := cof_eq r, ⟨s, _, e'⟩ := cardinal.ord_eq S,
     T : set α := {a | ∃ aS : a ∈ S, ∀ b : S, s b ⟨_, aS⟩ → r b a} in
 begin

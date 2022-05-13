@@ -76,6 +76,7 @@ lemma karoubi_has_finite_biproducts [has_finite_biproducts C] :
   has_finite_biproducts (karoubi C) :=
 { has_biproducts_of_shape := λ J hJ,
   { has_biproduct := λ F, begin
+      classical,
       letI := hJ,
       apply has_biproduct_of_total (biproducts.bicone F),
       ext1, ext1,

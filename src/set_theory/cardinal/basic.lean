@@ -303,7 +303,7 @@ theorem mul_def (α β : Type u) : #α * #β = #(α × β) := rfl
   #(α × β) = lift.{v u} (#α) * lift.{u v} (#β) :=
 mk_congr (equiv.ulift.symm.prod_congr (equiv.ulift).symm)
 
-protected theorem mul_comm (a b : cardinal.{u}) : a * b = b * a :=
+private theorem mul_comm' (a b : cardinal.{u}) : a * b = b * a :=
 induction_on₂ a b $ λ α β, mk_congr $ equiv.prod_comm α β
 
 instance : has_pow cardinal cardinal :=
@@ -347,12 +347,12 @@ instance : comm_semiring cardinal.{u} :=
   one_mul       := λ a, induction_on a $ λ α, mk_congr $ equiv.punit_prod α,
   mul_one       := λ a, induction_on a $ λ α, mk_congr $ equiv.prod_punit α,
   mul_assoc     := λ a b c, induction_on₃ a b c $ λ α β γ, mk_congr $ equiv.prod_assoc α β γ,
-  mul_comm      := cardinal.mul_comm,
+  mul_comm      := mul_comm',
   left_distrib  := λ a b c, induction_on₃ a b c $ λ α β γ, mk_congr $ equiv.prod_sum_distrib α β γ,
   right_distrib := λ a b c, induction_on₃ a b c $ λ α β γ, mk_congr $ equiv.sum_prod_distrib α β γ,
   npow          := λ n c, c ^ n,
   npow_zero'    := @power_zero,
-  npow_succ'    := λ n c, by rw [nat.cast_succ, power_add, power_one, cardinal.mul_comm] }
+  npow_succ'    := λ n c, by rw [nat.cast_succ, power_add, power_one, mul_comm'] }
 
 theorem power_bit0 (a b : cardinal) : a ^ (bit0 b) = a ^ b * a ^ b :=
 power_add

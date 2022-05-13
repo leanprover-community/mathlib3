@@ -410,9 +410,10 @@ end
 
 lemma mul_eq_max' {a b : cardinal} (h : ω ≤ a * b) : a * b = max a b :=
 begin
-  rcases omega_le_mul_iff.mp h with ⟨ha, hb, h⟩,
-  wlog h : ω ≤ a := h using [a b],
-  exact mul_eq_max_of_omega_le_left h hb
+  rcases omega_le_mul_iff.mp h with ⟨ha, hb, ha' | hb'⟩,
+  { exact mul_eq_max_of_omega_le_left ha' hb },
+  { rw [mul_comm, max_comm],
+    exact mul_eq_max_of_omega_le_left hb' ha }
 end
 
 theorem mul_le_max (a b : cardinal) : a * b ≤ max (max a b) ω :=

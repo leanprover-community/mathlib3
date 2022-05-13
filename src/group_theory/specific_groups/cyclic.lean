@@ -46,15 +46,6 @@ section cyclic
 
 open_locale big_operators
 
-
-lemma finset.sum_erase_lt_of_pos {s : finset ℕ} {d : ℕ} (hd : d ∈ s) {f : ℕ → ℕ} (hdf : 0 < f d) :
-  ∑ (m : ℕ) in s.erase d, f m < ∑ (m : ℕ) in s, f m :=
-begin
-  nth_rewrite_rhs 0 ←finset.insert_erase hd,
-  rw finset.sum_insert (finset.not_mem_erase d s),
-  exact lt_add_of_pos_left _ hdf,
-end
-
 local attribute [instance] set_fintype
 
 open subgroup
@@ -344,27 +335,19 @@ begin
     rw [nat.div_div_self hm.1 hd_pos],
   },
 
-  rw ←add_left_inj
-    ∑ (m : ℕ) in d.proper_divisors, (filter (λ (a : α), order_of a = m) univ).card,
+  have h2 : ∑ m in d.divisors, (univ.filter (λ a : α, order_of a = m)).card =
+    ∑ m in d.divisors, φ m,
+    {
+      rw ← filter_dvd_eq_divisors hd_pos.ne',
+      rw sum_card_order_of_eq_card_pow_eq_one hd_pos,
+      have := card_pow_eq_one_eq_order_of_aux hn a,
+      rw ha at this,
+      rw this,
+      rw filter_dvd_eq_divisors hd_pos.ne',
+      rw sum_totient,
+    },
 
-  calc _ = ∑ m in insert d (d.proper_divisors),
-        (univ.filter (λ a : α, order_of a = m)).card : _
-  ... = ∑ m in d.divisors,
-      (univ.filter (λ a : α, order_of a = m)).card : _
-  ... = (univ.filter (λ a : α, a ^ d = 1)).card : _
-  ... = ∑ m in d.divisors, φ m : _
-  ... = _ : _,
-  { rw finset.sum_insert proper_divisors.not_self_mem },
-  { refine sum_congr _ (λ x hx, rfl),
-    exact (divisors_eq_proper_divisors_insert_self_of_pos hd_pos).symm },
-  { rw ←sum_card_order_of_eq_card_pow_eq_one hd_pos,
-    exact sum_congr (filter_dvd_eq_divisors hd_pos.ne').symm (λ x hx, rfl) },
-  { rw [sum_totient d, ←ha],
-    exact (card_pow_eq_one_eq_order_of_aux hn a) },
-  { rw h1,
-    rw ← sum_insert proper_divisors.not_self_mem,
-    refine sum_congr _ (λ x hx, rfl),
-    exact (divisors_eq_proper_divisors_insert_self_of_pos hd_pos) },
+  simpa [divisors_eq_proper_divisors_insert_self_of_pos hd_pos, ←h1] using h2,
 end
 
 #exit

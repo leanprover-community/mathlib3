@@ -87,16 +87,6 @@ begin
   rwa polynomial.nat_degree_X_pow,
 end
 
-/- PR #14100. -/
-lemma nat_degree_add_le_iff_left {n : ℕ} (f g : R[X]) (gn : g.nat_degree ≤ n) :
-  (f + g).nat_degree ≤ n ↔ f.nat_degree ≤ n :=
-begin
-  refine ⟨λ h, _, λ h, nat_degree_add_le_of_degree_le h gn⟩,
-  refine nat_degree_le_iff_coeff_eq_zero.mpr (λ m hm, _),
-  convert nat_degree_le_iff_coeff_eq_zero.mp h m hm using 1,
-  rw [coeff_add, nat_degree_le_iff_coeff_eq_zero.mp gn _ hm, add_zero],
-end
-
 /-- Useful to expose easy hypotheses:
 * `df` should be dealt with by `single_term_resolve`,
 * `dg` should be dealt with by `compute_degree_le`.

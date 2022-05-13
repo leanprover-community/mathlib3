@@ -153,10 +153,6 @@ end linear_order_α
 
 section finite_intervals
 
-variables [linear_order α] [topological_space α] [order_closed_topology α]
-  [opens_measurable_space α] {a b : ι → α} {A B : α}
-  (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B))
-
 /-- If two measurable sets are `ae_eq`, then an `ae_cover` of one is an `ae_cover` of the other -/
 lemma ae_cover_restrict_of_ae_eq {φ : ι → set α} {s t : set α} (hs : measurable_set s)
   (ht : measurable_set t) (hst : s =ᵐ[μ] t) :
@@ -165,6 +161,10 @@ lemma ae_cover_restrict_of_ae_eq {φ : ι → set α} {s t : set α} (hs : measu
   λ h, ⟨restrict_eq_of_ae_eq_of_restrict_eq hs ht hst h.ae_eventually_mem, h.measurable⟩,
   λ h, ⟨restrict_eq_of_ae_eq_of_restrict_eq ht hs hst.symm h.ae_eventually_mem, h.measurable⟩,
 ⟩
+
+variables [linear_order α] [topological_space α] [order_closed_topology α]
+  [opens_measurable_space α]{a b : ι → α} {A B : α}
+  (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B))
 
 lemma ae_cover_Ioo_of_Icc :
   ae_cover (μ.restrict $ Ioo A B) l (λ i, Icc (a i) (b i)) :=

@@ -649,7 +649,7 @@ by rw [mul_add, mul_one]
 theorem mul_two (a : ordinal) : a * 2 = a + a :=
 by { change a * (succ 1) = a + a, rw [mul_succ, mul_one] }
 
-instance mul_covariant_class : covariant_class ordinal.{u} ordinal.{u} (*) (≤) :=
+instance has_le.le.mul_covariant_class : covariant_class ordinal.{u} ordinal.{u} (*) (≤) :=
 ⟨λ c a b, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
   resetI,
   refine type_le'.2 ⟨rel_embedding.of_monotone
@@ -660,7 +660,7 @@ instance mul_covariant_class : covariant_class ordinal.{u} ordinal.{u} (*) (≤)
   { exact prod.lex.right _ h' }
 end⟩
 
-instance mul_swap_covariant_class :
+instance has_le.le.mul_swap_covariant_class :
   covariant_class ordinal.{u} ordinal.{u} (function.swap (*)) (≤) :=
 ⟨λ c a b, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
   resetI,

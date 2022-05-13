@@ -451,10 +451,14 @@ def mul : onote → onote → onote
   if e₂ = 0 then oadd e₁ (n₁ * n₂) a₁ else
   oadd (e₁ + e₂) n₂ (mul o₁ a₂)
 
+-- Better unfolding.
 instance : has_mul onote := ⟨mul⟩
 
-@[simp] protected theorem zero_mul (o : onote) : 0 * o = 0 := by cases o; refl
-@[simp] protected theorem mul_zero (o : onote) : o * 0 = 0 := by cases o; refl
+instance : mul_zero_class onote :=
+{ mul := (*),
+  zero := 0,
+  zero_mul := λ o, by cases o; refl,
+  mul_zero := λ o, by cases o; refl }
 
 theorem oadd_mul (e₁ n₁ a₁ e₂ n₂ a₂) : oadd e₁ n₁ a₁ * oadd e₂ n₂ a₂ =
   if e₂ = 0 then oadd e₁ (n₁ * n₂) a₁ else

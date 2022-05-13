@@ -334,14 +334,14 @@ begin
   have h_new : ∑ m in d.proper_divisors, (univ.filter (λ a : α, order_of a = m)).card =
     ∑ m in d.proper_divisors, φ m,
   {
-    rw (finset.filter_dvd_eq_proper_divisors hn hd_pos.ne').symm,
     refine finset.sum_congr rfl (λ m hm, _),
     simp only [mem_filter, mem_range] at hm,
-    apply IH m hm.1 (hm.2.trans hd),
+    rw mem_proper_divisors at hm,
+    apply IH m hm.2 (hm.1.trans hd),
     refine finset.card_pos.2 ⟨a ^ (d / m), _⟩,
     simp only [mem_filter, mem_univ, order_of_pow a, ha, true_and],
-    rw [nat.gcd_eq_right (div_dvd_of_dvd hm.2)],
-    rw [nat.div_div_self hm.2 hd_pos],
+    rw [nat.gcd_eq_right (div_dvd_of_dvd hm.1)],
+    rw [nat.div_div_self hm.1 hd_pos],
   },
 
   have H_new :

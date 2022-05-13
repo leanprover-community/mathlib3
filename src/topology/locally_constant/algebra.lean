@@ -80,24 +80,19 @@ variables (Y) [mul_zero_one_class Y] {U V : set X}
   where `U` is a clopen set, and `0` otherwise. -/
 noncomputable def char_fn (hU : is_clopen U) : locally_constant X Y := indicator 1 hU
 
-lemma char_fn_one [mul_zero_one_class X] [nontrivial X] [nontrivial Y] (x : X) (hU : is_clopen U) :
-  x ∈ U ↔ char_fn Y hU x = (1 : Y) :=
-begin
-  convert set.indicator_eq_one_iff_mem _,
-  apply_instance,
-end
+lemma coe_char_fn (hU : is_clopen U) : (char_fn Y hU : X → Y) = set.indicator U 1 :=
+rfl
+
+lemma char_fn_one [nontrivial Y] (x : X) (hU : is_clopen U) :
+  char_fn Y hU x = (1 : Y) ↔ x ∈ U := set.indicator_eq_one_iff_mem _
 
 lemma char_fn_zero [nontrivial Y] (x : X) (hU : is_clopen U) :
-  x ∉ U ↔ char_fn Y hU x = (0 : Y) :=
-by simp [char_fn, indicator_apply, imp_false]
+  char_fn Y hU x = (0 : Y) ↔ x ∉ U := set.indicator_eq_zero_iff_not_mem _
 
 lemma char_fn_inj (hU : is_clopen U) (hV : is_clopen V)
   (h : char_fn Y hU = char_fn Y hV) :
   (set.indicator U 1 : X → Y) = set.indicator V 1 :=
-begin
-  rw [char_fn, indicator, char_fn, indicator] at h,
-  simp only [coe_one] at h, rw h,
-end
+by { rw [←coe_inj, coe_char_fn, coe_char_fn] at h, simp [h], }
 
 lemma char_fn_ext [nontrivial Y] (hU : is_clopen U) (hV : is_clopen V)
   (h : char_fn Y hU = char_fn Y hV) : U = V :=

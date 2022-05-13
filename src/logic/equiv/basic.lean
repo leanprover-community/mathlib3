@@ -1317,12 +1317,12 @@ open subtype
 /-- If `α` is equivalent to `β` and the predicates `p : α → Prop` and `q : β → Prop` are equivalent
 at corresponding points, then `{a // p a}` is equivalent to `{b // q b}`.
 For the statement where `α = β`, that is, `e : perm α`, see `perm.subtype_perm`. -/
-def subtype_equiv {p : α → Prop} {q : β → Prop}
+@[simps] def subtype_equiv {p : α → Prop} {q : β → Prop}
   (e : α ≃ β) (h : ∀ a, p a ↔ q (e a)) : {a : α // p a} ≃ {b : β // q b} :=
-⟨λ x, ⟨e x, (h _).1 x.2⟩,
- λ y, ⟨e.symm y, (h _).2 (by { simp, exact y.2 })⟩,
- λ ⟨x, h⟩, subtype.ext_val $ by simp,
- λ ⟨y, h⟩, subtype.ext_val $ by simp⟩
+{ to_fun    := λ a₁, ⟨e a₁, (h _).mp a₁.prop⟩,
+  inv_fun   := λ a₂, ⟨e.symm a₂, (h _).mpr ((e.apply_symm_apply a₂).symm ▸ a₂.prop)⟩,
+  left_inv  := λ a₁, subtype.ext $ by simp,
+  right_inv := λ a₂, subtype.ext $ by simp }
 
 @[simp] lemma subtype_equiv_refl {p : α → Prop}
   (h : ∀ a, p a ↔ p (equiv.refl _ a) := λ a, iff.rfl) :

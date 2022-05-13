@@ -214,7 +214,7 @@ nat_degree_eq_of_degree_eq_some (degree_C_mul_X_pow n ha)
 @[simp] lemma nat_degree_C_mul_X (a : R) (ha : a ≠ 0) : nat_degree (C a * X) = 1 :=
 by simpa only [pow_one] using nat_degree_C_mul_X_pow 1 a ha
 
-@[simp] lemma nat_degree_monomial [decidable_eq R] (i : ℕ) (r : R)  :
+@[simp] lemma nat_degree_monomial [decidable_eq R] (i : ℕ) (r : R) :
   nat_degree (monomial i r) = if r = 0 then 0 else i :=
 begin
   split_ifs with hr,
@@ -222,8 +222,7 @@ begin
   { rw [← C_mul_X_pow_eq_monomial, nat_degree_C_mul_X_pow i r hr] }
 end
 
-lemma nat_degree_monomial_le (a : R) {m : ℕ} :
-  (monomial m a).nat_degree ≤ m :=
+lemma nat_degree_monomial_le (a : R) {m : ℕ} : (monomial m a).nat_degree ≤ m :=
 begin
   rw polynomial.nat_degree_monomial,
   split_ifs,

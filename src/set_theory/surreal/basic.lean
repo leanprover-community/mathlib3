@@ -89,6 +89,16 @@ end
 theorem le_of_lt {x y : pgame} (ox : numeric x) (oy : numeric y) (h : x < y) : x ≤ y :=
 not_lt.1 (lt_asymm ox oy h)
 
+/-- `<` is transitive when both sides of the left inequality are numeric -/
+theorem lt_trans {x y z : pgame} (ox : numeric x) (oy : numeric y) (h₁ : x < y)
+  (h₂ : y < z) : x < z :=
+lt_of_le_of_lt (le_of_lt ox oy h₁) h₂
+
+/-- `<` is transitive when both sides of the right inequality are numeric -/
+theorem lt_trans' {x y z : pgame} (oy : numeric y) (oz : numeric z) (h₁ : x < y)
+  (h₂ : y < z) : x < z :=
+lt_of_lt_of_le h₁ (le_of_lt oy oz h₂)
+
 /-- On numeric pre-games, `<` and `≤` satisfy the axioms of a partial order (even though they
 don't on all pre-games). -/
 theorem lt_iff_le_not_le {x y : pgame} (ox : numeric x) (oy : numeric y) :
@@ -176,10 +186,6 @@ lemma numeric.sub {x y : pgame} (ox : numeric x) (oy : numeric y) : numeric (x -
 theorem numeric_nat : Π (n : ℕ), numeric n
 | 0 := numeric_zero
 | (n + 1) := (numeric_nat n).add numeric_one
-
-/-- The pre-game omega is numeric. -/
-theorem numeric_omega : numeric omega :=
-⟨by rintros ⟨⟩ ⟨⟩, λ i, numeric_nat i.down, by rintros ⟨⟩⟩
 
 /-- The pre-game `half` is numeric. -/
 theorem numeric_half : numeric half :=

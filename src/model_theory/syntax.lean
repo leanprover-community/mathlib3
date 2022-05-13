@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
 import data.list.prod_sigma
+import data.set.prod
 import logic.equiv.fin
 import model_theory.language_map
 
@@ -112,6 +113,9 @@ def functions.apply₁ (f : L.functions 1) (t : L.term α) : L.term α := func f
 def functions.apply₂ (f : L.functions 2) (t₁ t₂ : L.term α) : L.term α := func f ![t₁, t₂]
 
 namespace term
+
+instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
+⟨var default⟩
 
 instance inhabited_of_constant [inhabited L.constants] : inhabited (L.term α) :=
 ⟨(default : L.constants).term⟩
@@ -700,6 +704,41 @@ def infinite_theory : L.Theory := set.range (sentence.card_ge L)
 
 /-- A theory that indicates a structure is nonempty. -/
 def nonempty_theory : L.Theory := {sentence.card_ge L 1}
+
+/-- A theory indicating that each of a set of constants is distinct. -/
+def distinct_constants_theory (s : set α) : L[[α]].Theory :=
+((s ×ˢ s) ∩ (set.diagonal α).compl).image (λ ab, (((L.con ab.1).term.equal (L.con ab.2).term).not))
+
+variables {L} {α}
+
+open set
+
+lemma monotone_distinct_constants_theory :
+  monotone (L.distinct_constants_theory : set α → L[[α]].Theory) :=
+λ s t st, (image_subset _ (inter_subset_inter_left _ (prod_mono st st)))
+
+lemma directed_distinct_constants_theory :
+  directed (⊆) (L.distinct_constants_theory : set α → L[[α]].Theory) :=
+monotone.directed_le monotone_distinct_constants_theory
+
+lemma distinct_constants_theory_eq_Union (s : set α) :
+  L.distinct_constants_theory s = ⋃ (t : finset s), L.distinct_constants_theory
+    (t.map (function.embedding.subtype (λ x, x ∈ s))) :=
+begin
+  classical,
+  simp only [distinct_constants_theory],
+  rw [← image_Union, ← Union_inter],
+  refine congr rfl (congr (congr rfl _) rfl),
+  ext ⟨i, j⟩,
+  simp only [prod_mk_mem_set_prod_eq, finset.coe_map, function.embedding.coe_subtype, mem_Union,
+    mem_image, finset.mem_coe, subtype.exists, subtype.coe_mk, exists_and_distrib_right,
+    exists_eq_right],
+  refine ⟨λ h, ⟨{⟨i, h.1⟩, ⟨j, h.2⟩}, ⟨h.1, _⟩, ⟨h.2, _⟩⟩, _⟩,
+  { simp },
+  { simp },
+  { rintros ⟨t, ⟨is, _⟩, ⟨js, _⟩⟩,
+    exact ⟨is, js⟩ }
+end
 
 end cardinality
 

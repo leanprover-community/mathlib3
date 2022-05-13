@@ -32,14 +32,6 @@ local notation f ` ⟶ ` limit := tendsto f at_top (𝓝 limit)
 section topological_space
 variables [topological_space α] [topological_space β]
 
-/-- A sequence converges in the sence of topological spaces iff the associated statement for filter
-holds. -/
-lemma topological_space.seq_tendsto_iff {x : ℕ → α} {limit : α} :
-  tendsto x at_top (𝓝 limit) ↔
-    ∀ U : set α, limit ∈ U → is_open U → ∃ N, ∀ n ≥ N, (x n) ∈ U :=
-(at_top_basis.tendsto_iff (nhds_basis_opens limit)).trans $
-  by simp only [and_imp, exists_prop, true_and, set.mem_Ici, ge_iff_le, id]
-
 /-- The sequential closure of a subset M ⊆ α of a topological space α is
 the set of all p ∈ α which arise as limit of sequences in M. -/
 def sequential_closure (M : set α) : set α :=

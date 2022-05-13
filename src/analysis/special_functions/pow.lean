@@ -1014,20 +1014,18 @@ lemma is_o_rpow_exp_at_top (s : ℝ) : (λ x : ℝ, x ^ s) =o[at_top] exp :=
 by simpa only [one_mul] using is_o_rpow_exp_pos_mul_at_top s one_pos
 
 lemma is_o_log_rpow_at_top {r : ℝ} (hr : 0 < r) : log =o[at_top] (λ x, x ^ r) :=
-begin
-  rw ←is_o_const_mul_left_iff hr.ne',
-  refine (is_o_log_id_at_top.comp_tendsto (tendsto_rpow_at_top hr)).congr' _ eventually_eq.rfl,
-  filter_upwards [eventually_gt_at_top (0 : ℝ)] with x hx using log_rpow hx _,
-end
+calc log =O[at_top] (λ x, r * log x)   : is_O_self_const_mul _ hr.ne' _ _
+     ... =ᶠ[at_top] (λ x, log (x ^ r)) :
+  (eventually_gt_at_top 0).mono $ λ x hx, (log_rpow hx _).symm
+     ... =o[at_top] (λ x, x ^ r)       : is_o_log_id_at_top.comp_tendsto (tendsto_rpow_at_top hr)
 
 lemma is_o_log_rpow_rpow_at_top {r s : ℝ} (hr : 0 < r) (hs : 0 < s) :
   (λ x, log x ^ r) =o[at_top] (λ x, x ^ s) :=
-begin
-  refine ((is_o_log_rpow_at_top (div_pos hs hr)).rpow hr _).congr' eventually_eq.rfl _,
-  { filter_upwards [eventually_ge_at_top (0 : ℝ)] with x hx,
-    rw [← rpow_mul hx, div_mul_cancel _ hr.ne'] },
-  { exact (tendsto_rpow_at_top (div_pos hs hr)).eventually (eventually_ge_at_top 0) },
-end
+have H : 0 < s / r, from div_pos hs hr,
+calc (λ x, log x ^ r) =o[at_top] (λ x, (x ^ (s / r)) ^ r) :
+  (is_o_log_rpow_at_top H).rpow hr $ (tendsto_rpow_at_top H).eventually $ eventually_ge_at_top 0
+                  ... =ᶠ[at_top] (λ x, x ^ s) :
+  (eventually_ge_at_top 0).mono $ λ x hx, by simp only [← rpow_mul hx, div_mul_cancel _ hr.ne']
 
 end limits
 

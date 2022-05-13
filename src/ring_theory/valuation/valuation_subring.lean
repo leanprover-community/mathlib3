@@ -396,7 +396,7 @@ end
 
 /-- `A.unit_group` agrees with the units of `A`. -/
 def unit_group_equiv : A.unit_group ≃* Aˣ :=
-{ to_fun := λ x, ⟨⟨x,sorry⟩,⟨x⁻¹,sorry⟩,sorry,sorry⟩,
+{ to_fun := λ x, ⟨⟨x,(A.valuation_le_one_iff _).1 (le_of_eq x.2)⟩,⟨x⁻¹,sorry⟩,sorry,sorry⟩,
   inv_fun := λ x, ⟨⟨x,(x : K)⁻¹,sorry,sorry⟩,sorry⟩,
   left_inv := λ a, by { ext, refl },
   right_inv := λ a, by { ext, refl },
@@ -412,10 +412,27 @@ lemma coe_unit_group_equiv_symm_apply (a : Aˣ) :
 
 def maximal_ideal : subsemigroup K :=
 { carrier := { x | A.valuation x < 1 },
-  mul_mem' := sorry }
+  mul_mem' := begin
+    intros a b ha hb,
+    refine lt_of_le_of_lt _ (max_lt ha ha),
+    have l := A.valuation.map_add (a * b - a) a,
+    have n := A.valuation.map_one_sub_of_lt hb,
+    rw [← A.valuation.map_neg, neg_sub] at n,
+    rwa [← (show A.valuation (a * b) = A.valuation (a * b - a + a), by ring_nf),
+         (show a * b - a = a * (b - 1), by ring_nf),
+         A.valuation.map_mul _ (b - 1), n, mul_one] at l,
+  end }
 
 lemma eq_iff_maximal_ideal (A B : valuation_subring K) :
-  A = B ↔ A.maximal_ideal = B.maximal_ideal := sorry
+  A = B ↔ A.maximal_ideal = B.maximal_ideal :=
+begin
+  have : A.valuation.is_equiv B.valuation ↔ ∀ {x : K}, (A.valuation) x < 1 ↔ (B.valuation) x < 1,
+    sorry,
+  rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
+      ← valuation.is_equiv_iff_valuation_subring, this,
+      A.valuation_subring_valuation, B.valuation_subring_valuation, set_like.ext_iff],
+  simpa,
+end
 
 /-- `A.maximal_ideal` agrees with the maximal ideal of `A`. -/
 def maximal_ideal_equiv : A.maximal_ideal ≃ local_ring.maximal_ideal A :=
@@ -443,15 +460,56 @@ lemma maximal_ideal_equiv_symm_map_smul (a b : local_ring.maximal_ideal A) :
 
 def principal_unit_group : subgroup Kˣ :=
 { carrier := { x | A.valuation (x - 1) < 1 },
-  mul_mem' := sorry,
-  one_mem' := sorry,
-  inv_mem' := sorry }
+  mul_mem' := begin
+    intros a b ha hb,
+    refine lt_of_le_of_lt _ (max_lt hb ha),
+    have s := A.valuation.map_one_add_of_lt ha,
+      simp only [add_sub_cancel'_right] at s,
+    have q := A.valuation.map_add (a * b - a) (a - 1),
+    rwa [←(show A.valuation ((a : K) * (b : K) - 1) = A.valuation ((a * b - a) + (a - 1)), by ring_nf),
+          (show (a : K) * (b : K) - a = a * (b - 1), by ring_nf),
+          A.valuation.map_mul, s, one_mul] at q,
+  end,
+  one_mem' := begin
+    simp only [set.mem_set_of_eq, units.coe_one, sub_self],
+    rw [← subring.coe_zero, ← valuation_lt_one_iff, local_ring.mem_maximal_ideal,
+      zero_mem_nonunits],
+    exact zero_ne_one,
+  end,
+  inv_mem' := begin
+    intros a ha,
+    dsimp at *,
+    have := A.valuation.map_one_add_of_lt ha,
+    simp only [add_sub_cancel'_right] at this,
+    have k : A.valuation (a⁻¹ - 1) = A.valuation (a⁻¹ - 1) * A.valuation a, rw [this, mul_one],
+    rw [← valuation.map_mul, sub_eq_add_neg, right_distrib] at k,
+    simp only [units.inv_mul', neg_mul, one_mul] at k,
+    repeat {rw ← sub_eq_add_neg at k},
+    have l := A.valuation.map_neg (a - 1),
+    simp only [neg_sub] at l,
+    rw l at k, rw ← k at ha, push_cast, exact ha,
+  end }
 
 lemma eq_iff_principal_unit_group (A B : valuation_subring K) :
-  A = B ↔ A.principal_unit_group = B.principal_unit_group := sorry
+  A = B ↔ A.principal_unit_group = B.principal_unit_group :=
+begin
+  have : A.valuation.is_equiv B.valuation ↔ ∀ {x : K}, (A.valuation) x < 1 ↔ (B.valuation) x < 1,
+    sorry,
+  rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation],
+  rw ← valuation.is_equiv_iff_valuation_subring,
+  rw this,
+  rw [A.valuation_subring_valuation, B.valuation_subring_valuation],
+  split,
+  intro h,
+  sorry,
+
+end
 
 lemma principal_units_le_units : A.principal_unit_group ≤ A.unit_group :=
-sorry
+begin
+  intros a h,
+  simpa using A.valuation.map_one_add_of_lt h,
+end
 
 /-
 TODO:

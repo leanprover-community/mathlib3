@@ -94,6 +94,12 @@ lemma monovary_on_const_left (g : ι → β) (a : α) (s : set ι) : monovary_on
 lemma antivary_on_const_left (g : ι → β) (a : α) (s : set ι) : antivary_on (const ι a) g s :=
 λ i _ j _ _, le_rfl
 
+lemma monovary_on_const_right (f : ι → α) (b : β) (s : set ι) : monovary_on f (const ι b) s :=
+λ i _ j _ h, (h.ne rfl).elim
+
+lemma antivary_on_const_right (f : ι → α) (b : β) (s : set ι) : antivary_on f (const ι b) s :=
+λ i _ j _ h, (h.ne rfl).elim
+
 lemma monovary.comp_right (h : monovary f g) (k : ι' → ι) : monovary (f ∘ k) (g ∘ k) :=
 λ i j hij, h hij
 

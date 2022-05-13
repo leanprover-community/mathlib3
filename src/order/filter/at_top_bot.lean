@@ -141,7 +141,7 @@ lemma tendsto.eventually_gt_at_top [preorder β] [no_max_order β] {f : α → �
   (hf : tendsto f l at_top) (c : β) : ∀ᶠ x in l, c < f x :=
 hf.eventually (eventually_gt_at_top c)
 
-lemma tendsto.eventually_ge_at_top [preorder β] [no_max_order β] {f : α → β} {l : filter α}
+lemma tendsto.eventually_ge_at_top [preorder β] {f : α → β} {l : filter α}
   (hf : tendsto f l at_top) (c : β) : ∀ᶠ x in l, c ≤ f x :=
 hf.eventually (eventually_ge_at_top c)
 
@@ -161,7 +161,7 @@ lemma tendsto.eventually_lt_at_bot [preorder β] [no_min_order β] {f : α → �
   (hf : tendsto f l at_bot) (c : β) : ∀ᶠ x in l, f x < c :=
 hf.eventually (eventually_lt_at_bot c)
 
-lemma tendsto.eventually_le_at_bot [preorder β] [no_min_order β] {f : α → β} {l : filter α}
+lemma tendsto.eventually_le_at_bot [preorder β] {f : α → β} {l : filter α}
   (hf : tendsto f l at_bot) (c : β) : ∀ᶠ x in l, f x ≤ c :=
 hf.eventually (eventually_le_at_bot c)
 

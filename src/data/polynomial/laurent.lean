@@ -143,6 +143,9 @@ lemma T_zero : (T 0 : R[T;T⁻¹]) = 1 := rfl
 lemma T_add (m n : ℤ) : (T (m + n) : R[T;T⁻¹]) = T m * T n :=
 by { convert single_mul_single.symm, simp [T] }
 
+lemma T_sub (m n : ℤ) : (T m * T (-n) : R[T;T⁻¹]) = T (m - n) :=
+by rw [← T_add, sub_eq_add_neg]
+
 @[simp]
 lemma T_pow (m : ℤ) (n : ℕ) : (T m ^ n : R[T;T⁻¹]) = T (n * m) :=
 by rw [T, T, single_pow n, one_pow, nsmul_eq_mul, int.nat_cast_eq_coe_nat]
@@ -323,9 +326,6 @@ begin
       simp only [int.neg_succ_of_nat_eq, polynomial.to_laurent_C, int.coe_nat_succ, mul_T_assoc,
         add_left_neg, T_zero, mul_one] } }
 end
-
-lemma T_sub (m n : ℤ) : (T m * T (-n) : R[T;T⁻¹]) = T (m - n) :=
-by rw [← T_add, sub_eq_add_neg]
 
 /--  This is a version of `exists_T_pow` stated as an induction principle. -/
 lemma induction_on_mul_T (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}

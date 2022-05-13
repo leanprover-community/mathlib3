@@ -656,7 +656,7 @@ is_least.cInf_eq ⟨argmin_on_mem _ _ _ _, λ a ha, argmin_on_le id _ _ ha⟩
 lemma is_least_Inf (hs : s.nonempty) : is_least s (Inf s) :=
 by { rw Inf_eq_argmin_on hs, exact ⟨argmin_on_mem _ _ _ _, λ a ha, argmin_on_le id _ _ ha⟩ }
 
-lemma le_cInf_iff' (hs : s.nonempty) : a ≤ Inf s ↔ a ∈ lower_bounds s :=
+lemma le_cInf_iff' (hs : s.nonempty) : b ≤ Inf s ↔ b ∈ lower_bounds s :=
 le_is_glb_iff (is_least_Inf hs).is_glb
 
 lemma Inf_mem (hs : s.nonempty) : Inf s ∈ s := (is_least_Inf hs).1

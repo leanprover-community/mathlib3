@@ -59,7 +59,7 @@ instance monoidal_category : monoidal_category (FinVect K) :=
 monoidal_category.full_monoidal_subcategory
   (λ V, finite_dimensional K V)
   (finite_dimensional.finite_dimensional_self K)
-  (λ X Y hX hY, by exactI finite_dimensional_tensor_product X Y)
+  (λ X Y hX hY, by exactI module.finite.tensor_product K X Y)
 
 variables (V : FinVect K)
 

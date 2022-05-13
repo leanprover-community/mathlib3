@@ -64,7 +64,8 @@ lemma map_dual_tensor_hom (f : module.dual R M) (p : P) (g : module.dual R N) (q
   dual_tensor_hom R (M ⊗[R] N) (P ⊗[R] Q) (dual_distrib R M N (f ⊗ₜ g) ⊗ₜ[R] (p ⊗ₜ[R] q)) :=
 begin
   ext m n, simp only [compr₂_apply, mk_apply, map_tmul, dual_tensor_hom_apply,
-  dual_distrib_apply, mul_smul_tmul],
+  dual_distrib_apply, ←smul_tmul_smul],
+end
 
 @[simp] lemma comp_dual_tensor_hom (f : module.dual R M) (n : N) (g : module.dual R N) (p : P) :
   (dual_tensor_hom R N P (g ⊗ₜ[R] p)) ∘ₗ (dual_tensor_hom R M N (f ⊗ₜ[R] n)) =

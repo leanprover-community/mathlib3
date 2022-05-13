@@ -27,6 +27,7 @@ import ring_theory.unique_factorization_domain
 
 noncomputable theory
 open_locale classical big_operators polynomial
+open finset
 
 universes u v w
 variables {R : Type u} {S : Type*}

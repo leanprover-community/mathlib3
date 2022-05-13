@@ -38,10 +38,12 @@ open_locale big_operators
 section semiring
 variable [semiring α]
 
-lemma geom_sum_succ {x : α} {n : ℕ} : ∑ i in range (n + 1), x ^ i = x * ∑ i in range n, x ^ i + 1 :=
+lemma geom_sum_succ {x : α} {n : ℕ} :
+  ∑ i in range (n + 1), x ^ i = x * ∑ i in range n, x ^ i + 1 :=
 by simp only [mul_sum, ←pow_succ, sum_range_succ', pow_zero]
 
-lemma geom_sum_succ' {x : α} {n : ℕ} : ∑ i in range (n + 1), x ^ i = x ^ n + ∑ i in range n, x ^ i :=
+lemma geom_sum_succ' {x : α} {n : ℕ} :
+  ∑ i in range (n + 1), x ^ i = x ^ n + ∑ i in range n, x ^ i :=
 (sum_range_succ _ _).trans (add_comm _ _)
 
 theorem geom_sum_zero (x : α) :

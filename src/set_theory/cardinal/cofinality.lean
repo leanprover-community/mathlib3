@@ -64,8 +64,7 @@ theorem cof_nonempty (r : α → α → Prop) [is_refl α r] :
   {c | ∃ S : set α, (∀ a, ∃ b ∈ S, r a b) ∧ #S = c}.nonempty :=
 ⟨_, set.univ, λ a, ⟨a, ⟨⟩, refl _⟩, rfl⟩
 
-lemma cof_le (r : α → α → Prop) {S : set α} (h : ∀ a, ∃ b ∈ S, r a b) :
-  order.cof r ≤ #S :=
+lemma cof_le (r : α → α → Prop) {S : set α} (h : ∀ a, ∃ b ∈ S, r a b) : order.cof r ≤ #S :=
 cInf_le' ⟨S, h, rfl⟩
 
 lemma le_cof {r : α → α → Prop} [is_refl α r] (c : cardinal) :
@@ -97,7 +96,7 @@ end
 theorem rel_iso.cof_eq_lift {α : Type u} {β : Type v} {r s}
   [is_refl α r] [is_refl β s] (f : r ≃r s) :
   cardinal.lift.{(max u v)} (order.cof r) = cardinal.lift.{(max u v)} (order.cof s) :=
-le_antisymm (rel_iso.cof_le_lift f) (rel_iso.cof_le_lift f.symm)
+(rel_iso.cof_le_lift f).antisymm (rel_iso.cof_le_lift f.symm)
 
 theorem rel_iso.cof_le {α β : Type u} {r : α → α → Prop} {s} [is_refl β s] (f : r ≃r s) :
   order.cof r ≤ order.cof s :=
@@ -220,7 +219,7 @@ begin
     exact hb'.trans_lt (lt_lsub.{u u} f ⟨b, hb⟩) }
 end
 
-theorem lift_cof (o) : (cof o).lift = cof o.lift :=
+@[simp] theorem lift_cof (o) : (cof o).lift = cof o.lift :=
 induction_on o $ begin introsI α r _,
   cases lift_type r with _ e, rw e,
   apply le_antisymm,

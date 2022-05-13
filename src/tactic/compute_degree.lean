@@ -71,7 +71,7 @@ namespace polynomial
 * `df` should be dealt with by `single_term_resolve`,
 * `dg` should be dealt with by `compute_degree_le`.
 -/
-lemma polynomial.nat_degree_add_left_succ {R : Type*} [semiring R] (n : ℕ) (f g : polynomial R)
+lemma nat_degree_add_left_succ {R : Type*} [semiring R] (n : ℕ) (f g : polynomial R)
   (df : f.nat_degree = n + 1) (dg : g.nat_degree ≤ n) :
   (g + f).nat_degree = n + 1 :=
 by rwa nat_degree_add_eq_right_of_nat_degree_lt (dg.trans_lt (nat.lt_of_succ_le df.ge))

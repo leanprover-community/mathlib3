@@ -110,7 +110,12 @@ lift_inj.1 (rel_iso.cof_eq_lift f)
 /-- Cofinality of a strict order `≺`. This is the smallest cardinality of a set `S : set α` such
 that `∀ a, ∃ b ∈ S, ¬ b ≺ a`. -/
 def strict_order.cof (r : α → α → Prop) : cardinal :=
-order.cof rᶜ
+order.cof (swap r)ᶜ
+
+/-- The set in the definition of `order.strict_order.cof` is nonempty. -/
+theorem strict_order.cof_nonempty (r : α → α → Prop) [is_irrefl α r] :
+  {c | ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ #S = c}.nonempty :=
+@order.cof_nonempty α _ (is_refl.swap rᶜ)
 
 /-! ### Cofinality of ordinals -/
 
@@ -136,7 +141,7 @@ lemma cof_type (r : α → α → Prop) [is_well_order α r] : (type r).cof = st
 
 theorem le_cof_type [is_well_order α r] {c} : c ≤ cof (type r) ↔
   ∀ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) → c ≤ #S :=
-(le_cInf_iff'' (order.cof_nonempty _)).trans ⟨λ H S h, H _ ⟨S, h, rfl⟩,
+(le_cInf_iff'' (strict_order.cof_nonempty r)).trans ⟨λ H S h, H _ ⟨S, h, rfl⟩,
   by { rintros H d ⟨S, h, rfl⟩, exact H _ h }⟩
 
 theorem cof_type_le [is_well_order α r] (S : set α) (h : ∀ a, ∃ b ∈ S, ¬ r b a) :
@@ -149,7 +154,7 @@ not_forall_not.1 $ λ h, not_le_of_lt hl $ cof_type_le S (λ a, not_ball.1 (h a)
 
 theorem cof_eq (r : α → α → Prop) [is_well_order α r] :
   ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ #S = cof (type r) :=
-Inf_mem (order.cof_nonempty _)
+Inf_mem (strict_order.cof_nonempty r)
 
 theorem ord_cof_eq (r : α → α → Prop) [is_well_order α r] :
   ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ type (subrel r S) = (cof (type r)).ord :=

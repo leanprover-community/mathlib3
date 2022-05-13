@@ -840,8 +840,8 @@ instance : boolean_algebra bool := boolean_algebra.of_core
   top_le_sup_compl := λ a, a.bor_bnot_self.ge,
   ..bool.linear_order, ..bool.bounded_order }
 
-instance (r) [is_irrefl α r] : is_refl α rᶜ := ⟨@irrefl α r _⟩
-instance (r) [is_refl α r] : is_irrefl α rᶜ := ⟨λ a, not_not_intro (refl a)⟩
+instance is_irrefl.compl (r) [is_irrefl α r] : is_refl α rᶜ := ⟨@irrefl α r _⟩
+instance is_refl.compl (r) [is_refl α r] : is_irrefl α rᶜ := ⟨λ a, not_not_intro (refl a)⟩
 
 section lift
 

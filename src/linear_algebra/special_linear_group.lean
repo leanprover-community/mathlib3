@@ -203,7 +203,7 @@ instance : has_neg (special_linear_group n R) :=
 rfl
 
 instance : has_distrib_neg (special_linear_group n R) :=
-subtype.coe_injective.has_distrib_neg coe_neg coe_mul
+subtype.coe_injective.has_distrib_neg _ coe_neg coe_mul
 
 @[simp] lemma coe_int_neg (g : (special_linear_group n ℤ)) :
   ↑(-g) = (-↑g : special_linear_group n R) :=

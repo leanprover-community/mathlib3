@@ -20,6 +20,8 @@ variables {α : Type u} {β : Type v} {r : α → α → Prop} {s : β → β �
 
 open function
 
+lemma of_eq [is_refl α r] : ∀ {a b}, a = b → r a b | _ _ ⟨h⟩ := refl _
+
 lemma comm [is_symm α r] {a b : α} : r a b ↔ r b a := ⟨symm, symm⟩
 lemma antisymm' [is_antisymm α r] {a b : α} : r a b → r b a → b = a := λ h h', antisymm h' h
 
@@ -74,14 +76,6 @@ protected theorem is_asymm.is_irrefl [is_asymm α r] : is_irrefl α r :=
 protected theorem is_total.is_trichotomous (r) [is_total α r] : is_trichotomous α r :=
 ⟨λ a b, or.left_comm.1 (or.inr $ total_of r a b)⟩
 
-instance is_refl_of_irrefl {α : Type u} (r : α → α → Prop) [is_irrefl α r] :
-  is_refl α (λ x y, ¬ r y x) :=
-⟨@is_irrefl.irrefl α r _⟩
-
-instance is_irrefl_of_refl {α : Type u} (r : α → α → Prop) [is_refl α r] :
-  is_irrefl α (λ x y, ¬ r y x) :=
-⟨λ a, not_not_intro (is_refl.refl a)⟩
-
 @[priority 100]  -- see Note [lower instance priority]
 instance is_total.to_is_refl (r) [is_total α r] : is_refl α r :=
 ⟨λ a, (or_self _).1 $ total_of r a a⟩
@@ -102,6 +96,8 @@ begin
   intros h₁ h₂, rcases trichotomous_of r b c with h₃|h₃|h₃,
   exact trans h₁ h₃, rw ←h₃, exact h₁, exfalso, exact h₂ h₃
 end
+
+lemma transitive_of_trans (r : α → α → Prop) [is_trans α r] : transitive r := λ _ _ _, trans
 
 /-- Construct a partial order from a `is_strict_order` relation.
 
@@ -457,7 +453,15 @@ instance [linear_order α] : is_order_connected α (<) := by apply_instance
 instance [linear_order α] : is_incomp_trans α (<) := by apply_instance
 instance [linear_order α] : is_strict_weak_order α (<) := by apply_instance
 
-instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total (order_dual α) (≤) :=
+lemma transitive_le [preorder α] : transitive (@has_le.le α _) := transitive_of_trans _
+lemma transitive_lt [preorder α] : transitive (@has_lt.lt α _) := transitive_of_trans _
+lemma transitive_ge [preorder α] : transitive (@ge α _) := transitive_of_trans _
+lemma transitive_gt [preorder α] : transitive (@gt α _) := transitive_of_trans _
+
+instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total αᵒᵈ (≤) :=
 @is_total.swap α _ _
 
 instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩
+
+instance [linear_order α] [h : is_well_order α (<)] : is_well_order αᵒᵈ (>) := h
+instance [linear_order α] [h : is_well_order α (>)] : is_well_order αᵒᵈ (<) := h

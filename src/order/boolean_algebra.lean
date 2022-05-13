@@ -761,7 +761,7 @@ section boolean_algebra
 variables [boolean_algebra α]
 
 --TODO@Yaël: Once we have co-Heyting algebras, we won't need to go through `boolean_algebra.of_core`
-instance : boolean_algebra (order_dual α) :=
+instance : boolean_algebra αᵒᵈ :=
 boolean_algebra.of_core
 { compl := λ a, to_dual (of_dual a)ᶜ,
   inf_compl_le_bot := λ _, sup_compl_eq_top.ge,
@@ -839,6 +839,9 @@ instance : boolean_algebra bool := boolean_algebra.of_core
   inf_compl_le_bot := λ a, a.band_bnot_self.le,
   top_le_sup_compl := λ a, a.bor_bnot_self.ge,
   ..bool.linear_order, ..bool.bounded_order }
+
+instance is_irrefl.compl (r) [is_irrefl α r] : is_refl α rᶜ := ⟨@irrefl α r _⟩
+instance is_refl.compl (r) [is_refl α r] : is_irrefl α rᶜ := ⟨λ a, not_not_intro (refl a)⟩
 
 section lift
 

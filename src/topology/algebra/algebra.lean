@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.algebra.subalgebra.basic
 import topology.algebra.module.basic
+import topology.algebra.field
 
 /-!
 # Topological (sub)algebras
@@ -149,3 +150,13 @@ begin
 end
 
 end ring
+
+section division_ring
+
+/-- The action induced by `algebra_rat` is continuous. -/
+instance division_ring.has_continuous_const_smul_rat
+  {A} [division_ring A] [topological_space A] [has_continuous_mul A] [char_zero A] :
+  has_continuous_const_smul ℚ A :=
+⟨λ r, continuous_const.mul continuous_id⟩
+
+end division_ring

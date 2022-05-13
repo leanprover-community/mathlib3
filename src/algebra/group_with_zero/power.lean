@@ -45,7 +45,7 @@ section nat_pow
 begin
   induction n with n ih,
   { rw [pow_zero, pow_zero], exact inv_one.symm },
-  { rw [pow_succ', pow_succ, ih, mul_inv_rev₀] }
+  { rw [pow_succ', pow_succ, ih, mul_inv_rev] }
 end
 
 theorem pow_sub₀ (a : G₀) {m n : ℕ} (ha : a ≠ 0) (h : n ≤ m) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
@@ -100,7 +100,7 @@ end
 | -[1+ n] := by { rw [zpow_neg_succ_of_nat, inv_inv, ← zpow_coe_nat], refl }
 
 lemma mul_zpow_neg_one₀ (a b : G₀) : (a * b) ^ (-1 : ℤ) = b ^ (-1 : ℤ) * a ^ (-1 : ℤ) :=
-by simp only [mul_inv_rev₀, zpow_one, zpow_neg₀]
+by simp only [mul_inv_rev, zpow_one, zpow_neg₀]
 
 lemma zpow_neg_one₀ (x : G₀) : x ^ (-1 : ℤ) = x⁻¹ :=
 by { rw [← congr_arg has_inv.inv (pow_one x), zpow_neg₀, ← zpow_coe_nat], refl }
@@ -112,7 +112,7 @@ theorem inv_zpow₀ (a : G₀) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 lemma zpow_add_one₀ {a : G₀} (ha : a ≠ 0) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
 | (n : ℕ)    := by simp [← int.coe_nat_succ, pow_succ']
 | -[1+n] := by rw [int.neg_succ_of_nat_eq, zpow_neg₀, neg_add, neg_add_cancel_right, zpow_neg₀,
-  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ n, mul_inv_rev₀, mul_assoc,
+  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ n, mul_inv_rev, mul_assoc,
   inv_mul_cancel ha, mul_one]
 
 lemma zpow_sub_one₀ {a : G₀} (ha : a ≠ 0) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
@@ -205,7 +205,7 @@ by rw [sub_eq_add_neg, zpow_add₀ ha, zpow_neg₀, div_eq_mul_inv]
 lemma commute.mul_zpow₀ {a b : G₀} (h : commute a b) :
   ∀ (i : ℤ), (a * b) ^ i = (a ^ i) * (b ^ i)
 | (n : ℕ) := by simp [h.mul_pow n]
-| -[1+n]  := by simp [h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev₀]
+| -[1+n]  := by simp [h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev]
 
 theorem zpow_bit0' (a : G₀) (n : ℤ) : a ^ bit0 n = (a * a) ^ n :=
 (zpow_bit0₀ a n).trans ((commute.refl a).mul_zpow₀ n).symm

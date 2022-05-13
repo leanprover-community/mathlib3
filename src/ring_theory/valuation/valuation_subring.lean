@@ -284,8 +284,7 @@ def prime_spectrum_equiv :
 
 /-- An ordered variant of `prime_spectrum_equiv`. -/
 @[simps]
-def prime_spectrum_order_equiv :
-  order_dual (prime_spectrum A) ≃o { S | A ≤ S } :=
+def prime_spectrum_order_equiv : (prime_spectrum A)ᵒᵈ ≃o {S | A ≤ S} :=
 { map_rel_iff' := λ P Q,
     ⟨ λ h, begin
         have := ideal_of_le_le_of_le A _ _ _ _ h,
@@ -302,5 +301,64 @@ instance linear_order_overring : linear_order { S | A ≤ S } :=
   ..(infer_instance : partial_order _) }
 
 end order
+
+end valuation_subring
+
+namespace valuation
+
+variables {K} {Γ Γ₁ Γ₂ : Type*}
+  [linear_ordered_comm_group_with_zero Γ]
+  [linear_ordered_comm_group_with_zero Γ₁]
+  [linear_ordered_comm_group_with_zero Γ₂]
+  (v : valuation K Γ)
+  (v₁ : valuation K Γ₁)
+  (v₂ : valuation K Γ₂)
+
+/-- The valuation subring associated to a valuation. -/
+def valuation_subring : valuation_subring K :=
+{ mem_or_inv_mem' := begin
+    intros x,
+    cases le_or_lt (v x) 1,
+    { left, exact h },
+    { right, change v x⁻¹ ≤ 1,
+      rw [v.map_inv, ← inv_one, inv_le_inv₀],
+      { exact le_of_lt h },
+      { intro c, simpa [c] using h },
+      { exact one_ne_zero } }
+  end,
+  .. v.integer }
+
+@[simp]
+lemma mem_valuation_subring_iff (x : K) : x ∈ v.valuation_subring ↔ v x ≤ 1 := iff.refl _
+
+lemma is_equiv_iff_valuation_subring : v₁.is_equiv v₂ ↔
+  v₁.valuation_subring = v₂.valuation_subring :=
+begin
+  split,
+  { intros h, ext x, specialize h x 1, simpa using h },
+  { intros h, apply is_equiv_of_val_le_one,
+    intros x,
+    have : x ∈ v₁.valuation_subring ↔ x ∈ v₂.valuation_subring, by rw h,
+    simpa using this }
+end
+
+lemma is_equiv_valuation_valuation_subring :
+  v.is_equiv v.valuation_subring.valuation :=
+begin
+  rw [is_equiv_iff_val_le_one],
+  intro x,
+  rw valuation_subring.valuation_le_one_iff,
+  refl,
+end
+
+end valuation
+
+namespace valuation_subring
+
+variables {K} (A : valuation_subring K)
+
+@[simp]
+lemma valuation_subring_valuation : A.valuation.valuation_subring = A :=
+by { ext, rw ← A.valuation_le_one_iff, refl }
 
 end valuation_subring

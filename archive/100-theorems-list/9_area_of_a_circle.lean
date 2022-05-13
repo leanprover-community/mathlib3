@@ -95,7 +95,7 @@ begin
       ((has_deriv_at_const x (r:ℝ)⁻¹).mul (has_deriv_at_id' x)))).add
         ((has_deriv_at_id' x).mul (((has_deriv_at_id' x).pow.const_sub ((r:ℝ)^2)).sqrt _)),
     { have h : sqrt (1 - x ^ 2 / r ^ 2) * r = sqrt (r ^ 2 - x ^ 2),
-      { rw [← sqrt_sq hle, ← sqrt_mul, sub_mul, sqrt_sq hle, div_mul_eq_mul_div_comm,
+      { rw [← sqrt_sq hle, ← sqrt_mul, sub_mul, sqrt_sq hle, mul_comm_div,
             div_self (pow_ne_zero 2 hlt.ne'), one_mul, mul_one],
         simpa [sqrt_sq hle, div_le_one (pow_pos hlt 2)] using sq_le_sq' hx1.le hx2.le },
       field_simp,

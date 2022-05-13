@@ -389,8 +389,7 @@ polynomial.to_laurent_X_pow n
 lemma algebra_map_eq_to_laurent (f : R[X]) : algebra_map R[X] R[T;T⁻¹] f = f.to_laurent :=
 rfl
 
-lemma is_localization :
-  is_localization (submonoid.closure ({X} : set R[X])) R[T;T⁻¹] :=
+lemma is_localization : is_localization (submonoid.closure ({X} : set R[X])) R[T;T⁻¹] :=
 { map_units := λ t, begin
     cases t with t ht,
     rcases submonoid.mem_closure_singleton.mp ht with ⟨n, rfl⟩,

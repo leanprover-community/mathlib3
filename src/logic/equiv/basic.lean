@@ -1319,10 +1319,10 @@ at corresponding points, then `{a // p a}` is equivalent to `{b // q b}`.
 For the statement where `α = β`, that is, `e : perm α`, see `perm.subtype_perm`. -/
 @[simps] def subtype_equiv {p : α → Prop} {q : β → Prop}
   (e : α ≃ β) (h : ∀ a, p a ↔ q (e a)) : {a : α // p a} ≃ {b : β // q b} :=
-{ to_fun    := λ a₁, ⟨e a₁, (h _).mp a₁.prop⟩,
-  inv_fun   := λ a₂, ⟨e.symm a₂, (h _).mpr ((e.apply_symm_apply a₂).symm ▸ a₂.prop)⟩,
-  left_inv  := λ a₁, subtype.ext $ by simp,
-  right_inv := λ a₂, subtype.ext $ by simp }
+{ to_fun    := λ a, ⟨e a, (h _).mp a.prop⟩,
+  inv_fun   := λ b, ⟨e.symm b, (h _).mpr ((e.apply_symm_apply b).symm ▸ b.prop)⟩,
+  left_inv  := λ a, subtype.ext $ by simp,
+  right_inv := λ b, subtype.ext $ by simp }
 
 @[simp] lemma subtype_equiv_refl {p : α → Prop}
   (h : ∀ a, p a ↔ p (equiv.refl _ a) := λ a, iff.rfl) :

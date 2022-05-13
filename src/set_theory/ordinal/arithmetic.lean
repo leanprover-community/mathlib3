@@ -596,7 +596,20 @@ instance : monoid ordinal.{u} :=
     simp only [prod.lex_def, empty_relation, and_false, or_false]; refl⟩⟩ }
 
 @[simp] theorem type_mul {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
-  [is_well_order α r] [is_well_order β s] : type r * type s = type (prod.lex s r) := rfl
+  [is_well_order α r] [is_well_order β s] : type (prod.lex s r) = type r * type s := rfl
+
+theorem mul_eq_zero_iff {a b : ordinal} : a * b = 0 ↔ (a = 0 ∨ b = 0) :=
+induction_on a $ λ α _ _, induction_on b $ λ β _ _, begin
+  simp_rw [←type_mul, type_eq_zero_iff_is_empty],
+  rw or_comm,
+  exact is_empty_prod
+end
+
+instance : monoid_with_zero ordinal :=
+{ zero := 0,
+  mul_zero := λ a, mul_eq_zero_iff.2 $ or.inr rfl,
+  zero_mul := λ a, mul_eq_zero_iff.2 $ or.inl rfl,
+  ..ordinal.monoid }
 
 @[simp] theorem lift_mul (a b) : lift (a * b) = lift a * lift b :=
 quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩,
@@ -608,19 +621,7 @@ quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
 quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩,
 mul_comm (mk β) (mk α)
 
-theorem mul_eq_zero_iff {a b : ordinal} : a * b = 0 ↔ (a = 0 ∨ b = 0) :=
-induction_on a $ λ α _ _, induction_on b $ λ β _ _, begin
-  simp_rw [type_mul, type_eq_zero_iff_is_empty],
-  rw or_comm,
-  exact is_empty_prod
-end
-
-@[simp] theorem mul_zero (a : ordinal) : a * 0 = 0 :=
-mul_eq_zero_iff.2 $ or.inr rfl
-
-@[simp] theorem zero_mul (a : ordinal) : 0 * a = 0 :=
-mul_eq_zero_iff.2 $ or.inl rfl
-
+/-- Ordinal multiplication is right-distributive over addition. -/
 theorem mul_add (a b c : ordinal) : a * (b + c) = a * b + a * c :=
 quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩,
 quotient.sound ⟨⟨sum_prod_distrib _ _ _, begin

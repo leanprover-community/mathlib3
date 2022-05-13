@@ -203,7 +203,7 @@ protected lemma block_triangular.det [decidable_eq α] [preorder α] (hM : block
   M.det = ∏ a in univ.image b, (M.to_square_block b a).det :=
 begin
   unfreezingI { induction ‹fintype m› using fintype.induction_empty_option'
-    with α₁ α₂ h₂ e ih m h ih },
+    with α₁ α₂ h₂ e ih t h ih },
   { haveI : fintype α₁ := fintype.of_equiv _ e.symm,
     haveI : decidable_eq α₁ := classical.dec_eq _,
     rw ←det_reindex_self e.symm,
@@ -219,25 +219,9 @@ begin
       @equiv.subtype_equiv_of_subtype _ _ (λ x, b x = a) _,
     rw [←det_minor_equiv_self e' $ M.minor coe coe, minor_minor],
     congr' 1 },
-  sorry { simp only [coe_det_is_empty, prod_const_one] },sorry /-
-  rw two_block_triangular_det M (λ i, i ≠ none),
-  let n : ℕ := (Sup (univ.image b : set ℕ)).succ,
-  have hn : ∀ i, b i < n,
-  { intro i,
-    dsimp only [n],
-    apply nat.lt_succ_iff.mpr,
-    exact le_cSup (finset.bdd_above _) (mem_image_of_mem _ $ mem_univ _) },
-  rw det_of_block_triangular M b h n hn,
-  refine (prod_subset (λ a ha, _) $ λ k hk hbk, _).symm,
-  { apply mem_range.mpr,
-    obtain ⟨i, hi, hbi⟩ := mem_image.mp ha,
-    rw ←hbi,
-    exact hn i },
-{ haveI : is_empty {a // b a = k},
-  { refine subtype.is_empty_of_false _,
-    rintro a rfl,
-    exact hbk (mem_image_of_mem _ $ mem_univ _) },
-  exact det_is_empty } -/
+  { simp only [coe_det_is_empty, prod_const_one] },
+  rw block_triangular at hM,
+  let k := (univ.image b).max,
 end
 
 lemma block_triangular.det_fintype [decidable_eq α] [fintype α] [preorder α]

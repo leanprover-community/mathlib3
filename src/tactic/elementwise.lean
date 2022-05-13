@@ -54,8 +54,8 @@ where `f g : X ⟶ Y` for some objects `X Y : V` with `[S : category V]`,
 extract the expression for `S`.
 -/
 meta def extract_category : expr → tactic expr
-| `(@eq (@_root_.quiver.hom ._ (@_root_.category_theory.category_struct.to_quiver _
-     (@_root_.category_theory.category.to_category_struct _ %%S)) _ _) _ _) := pure S
+| `(@eq (@quiver.hom ._ (@category_struct.to_quiver _
+     (@category.to_category_struct _ %%S)) _ _) _ _) := pure S
 | _ := failed
 
 /-- (internals for `@[elementwise]`)
@@ -75,20 +75,20 @@ do
    (vs,t) ← infer_type h >>= open_pis,
    (f, g) ← match_eq t,
    S ← extract_category t <|> fail "no morphism equation found in statement",
-   `(@_root_.quiver.hom _ %%H %%X %%Y) ← infer_type f,
+   `(@quiver.hom _ %%H %%X %%Y) ← infer_type f,
    C ← infer_type X,
-   CC_type ← to_expr ``(@_root_.category_theory.concrete_category %%C %%S),
+   CC_type ← to_expr ``(@concrete_category %%C %%S),
    (CC, CC_found) ← (do CC ← mk_instance CC_type, pure (CC, tt)) <|>
      (do CC ← mk_local' `I binder_info.inst_implicit CC_type, pure (CC, ff)),
    -- This is need to fill in universe levels fixed by `mk_instance`:
    CC_type ← instantiate_mvars CC_type,
    x_type ← to_expr ``(@coe_sort %%C _
-     (@_root_.category_theory.concrete_category.has_coe_to_sort %%C %%S %%CC) %%X),
+     (@category_theory.concrete_category.has_coe_to_sort %%C %%S %%CC) %%X),
    x ← mk_local_def `x x_type,
-   t' ← to_expr ``(@coe_fn (@_root_.quiver.hom %%C %%H %%X %%Y) _
-     (@_root_.category_theory.concrete_category.has_coe_to_fun %%C %%S %%CC %%X %%Y) %%f %%x =
-       @coe_fn (@_root_.quiver.hom %%C %%H %%X %%Y) _
-         (@_root_.category_theory.concrete_category.has_coe_to_fun %%C %%S %%CC %%X %%Y) %%g %%x),
+   t' ← to_expr ``(@coe_fn (@quiver.hom %%C %%H %%X %%Y) _
+     (@category_theory.concrete_category.has_coe_to_fun %%C %%S %%CC %%X %%Y) %%f %%x =
+       @coe_fn (@quiver.hom %%C %%H %%X %%Y) _
+         (@category_theory.concrete_category.has_coe_to_fun %%C %%S %%CC %%X %%Y) %%g %%x),
    let c' := h.mk_app vs,
    (_,pr) ← solve_aux t' (rewrite_target c'; reflexivity),
    -- The codomain of forget lives in a new universe, which may be now a universe metavariable
@@ -108,13 +108,13 @@ do
    -- Now the key step: replace morphism composition with function composition,
    -- and identity morphisms with nothing.
    let s := simp_lemmas.mk,
-   s ← s.add_simp ``_root_.category_theory.id_apply,
-   s ← s.add_simp ``_root_.category_theory.comp_apply,
+   s ← s.add_simp ``id_apply,
+   s ← s.add_simp ``comp_apply,
    (t'', pr', _) ← simplify s [] t' {fail_if_unchanged := ff},
    pr' ← mk_eq_mp pr' pr,
    -- Further, if we're in `Type`, get rid of the coercions entirely.
    let s := simp_lemmas.mk,
-   s ← s.add_simp ``_root_.category_theory.concrete_category.has_coe_to_fun_Type,
+   s ← s.add_simp ``concrete_category.has_coe_to_fun_Type,
    (t'', pr'', _) ← simplify s [] t'' {fail_if_unchanged := ff},
    pr'' ← mk_eq_mp pr'' pr',
    t'' ← pis (vs ++ (if CC_found then [x] else [CC, x])) t'',

@@ -331,7 +331,7 @@ variables [has_product I.left] [has_product I.right]
 
 @[simp, reassoc]
 lemma pi_condition : pi.lift K.ι ≫ I.fst_pi_map = pi.lift K.ι ≫ I.snd_pi_map :=
-by { ext, discrete.discrete_cases, simp, }
+by { ext, discrete_cases, simp, }
 
 /-- Given a multifork, we may obtain a fork over `∏ I.left ⇉ ∏ I.right`. -/
 @[simps X] noncomputable
@@ -495,7 +495,7 @@ variables [has_coproduct I.left] [has_coproduct I.right]
 @[simp, reassoc]
 lemma sigma_condition :
   I.fst_sigma_map ≫ sigma.desc K.π = I.snd_sigma_map ≫ sigma.desc K.π :=
-by { ext, discrete.discrete_cases, simp, }
+by { ext, discrete_cases, simp, }
 
 /-- Given a multicofork, we may obtain a cofork over `∐ I.left ⇉ ∐ I.right`. -/
 @[simps X] noncomputable

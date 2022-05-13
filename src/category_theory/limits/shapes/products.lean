@@ -184,7 +184,7 @@ limit.lift_π _ (discrete.mk b)
 lemma map_lift_pi_comparison [has_product f] [has_product (λ b, G.obj (f b))]
   (P : C) (g : Π j, P ⟶ f j) :
   G.map (pi.lift g) ≫ pi_comparison G f = pi.lift (λ j, G.map (g j)) :=
-by { ext, discrete.discrete_cases, simp [← G.map_comp] }
+by { ext, discrete_cases, simp [← G.map_comp] }
 
 /-- The comparison morphism for the coproduct of `f`. This is an iso iff `G` preserves the coproduct
 of `f`, see `preserves_coproduct.of_iso_comparison`. -/
@@ -201,7 +201,7 @@ colimit.ι_desc _ (discrete.mk b)
 lemma sigma_comparison_map_desc [has_coproduct f] [has_coproduct (λ b, G.obj (f b))]
   (P : C) (g : Π j, f j ⟶ P) :
   sigma_comparison G f ≫ G.map (sigma.desc g) = sigma.desc (λ j, G.map (g j)) :=
-by { ext, discrete.discrete_cases, simp [← G.map_comp] }
+by { ext, discrete_cases, simp [← G.map_comp] }
 
 end comparison
 

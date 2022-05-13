@@ -73,7 +73,7 @@ def build_is_limit (t₁ : is_limit c₁) (t₂ : is_limit c₂) (hi : is_limit 
     { refine t₁.lift (fan.mk _ (λ j, _)),
       apply q.π.app j },
     { apply t₂.hom_ext,
-      intro j, discrete.discrete_cases,
+      intro j, discrete_cases,
       simp [hs, ht] },
   end,
   uniq' := λ q m w, hi.hom_ext (i.equalizer_ext (t₁.hom_ext
@@ -257,7 +257,7 @@ def build_is_colimit (t₁ : is_colimit c₁) (t₂ : is_colimit c₂) (hi : is_
     { refine t₂.desc (cofan.mk _ (λ j, _)),
       apply q.ι.app j },
     { apply t₁.hom_ext,
-      intro j, discrete.discrete_cases,
+      intro j, discrete_cases,
       simp [reassoc_of hs, reassoc_of ht] },
   end,
   uniq' := λ q m w, hi.hom_ext (i.coequalizer_ext (t₂.hom_ext

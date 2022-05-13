@@ -117,7 +117,7 @@ def of_limit_cone {f : J → C} {t : cone (discrete.functor f)} (ht : is_limit t
 
 lemma ι_of_is_limit {f : J → C} {t : bicone f} (ht : is_limit t.to_cone) (j : J) :
   t.ι j = ht.lift (fan.mk _ (λ j', if h : j = j' then eq_to_hom (congr_arg f h) else 0)) :=
-ht.hom_ext (λ j', by { rw ht.fac, discrete.discrete_cases, simp [t.ι_π] })
+ht.hom_ext (λ j', by { rw ht.fac, discrete_cases, simp [t.ι_π] })
 
 /-- We can turn any colimit cocone over a discrete collection of objects into a bicone. -/
 @[simps]
@@ -130,7 +130,7 @@ def of_colimit_cocone {f : J → C} {t : cocone (discrete.functor f)} (ht : is_c
 
 lemma π_of_is_colimit {f : J → C} {t : bicone f} (ht : is_colimit t.to_cocone) (j : J) :
   t.π j = ht.desc (cofan.mk _ (λ j', if h : j' = j then eq_to_hom (congr_arg f h) else 0)) :=
-ht.hom_ext (λ j', by { rw ht.fac, discrete.discrete_cases, simp [t.ι_π] })
+ht.hom_ext (λ j', by { rw ht.fac, discrete_cases, simp [t.ι_π] })
 
 /-- Structure witnessing that a bicone is both a limit cone and a colimit cocone. -/
 @[nolint has_inhabited_instance]
@@ -584,7 +584,7 @@ lemma biproduct.cone_point_unique_up_to_iso_inv (f : J → C) [has_biproduct f] 
   (hb.is_limit.cone_point_unique_up_to_iso (biproduct.is_limit _)).inv = biproduct.desc b.ι :=
 begin
   refine biproduct.hom_ext' _ _ (λ j, hb.is_limit.hom_ext (λ j', _)),
-  discrete.discrete_cases,
+  discrete_cases,
   rw [category.assoc, is_limit.cone_point_unique_up_to_iso_inv_comp, bicone.to_cone_π_app,
     biproduct.bicone_π, biproduct.ι_desc, biproduct.ι_π, b.to_cone_π_app, b.ι_π]
 end

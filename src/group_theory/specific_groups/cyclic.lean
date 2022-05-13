@@ -324,15 +324,11 @@ begin
 
   have h1 : ∑ m in d.proper_divisors, (univ.filter (λ a : α, order_of a = m)).card =
     ∑ m in d.proper_divisors, φ m,
-  {
-    refine finset.sum_congr rfl (λ m hm, _),
-    simp only [mem_filter, mem_range] at hm,
-    rw mem_proper_divisors at hm,
-    apply IH m hm.2 (hm.1.trans hd),
-    refine finset.card_pos.2 ⟨a ^ (d / m), _⟩,
-    simp only [mem_filter, mem_univ, order_of_pow a, ha, true_and],
-    rw [nat.gcd_eq_right (div_dvd_of_dvd hm.1)],
-    rw [nat.div_div_self hm.1 hd_pos],
+  { refine finset.sum_congr rfl (λ m hm, _),
+    simp only [mem_filter, mem_range, mem_proper_divisors] at hm,
+    refine IH m hm.2 (hm.1.trans hd) (finset.card_pos.2 ⟨a ^ (d / m), _⟩),
+    simp only [mem_filter, mem_univ, order_of_pow a, ha, true_and,
+      nat.gcd_eq_right (div_dvd_of_dvd hm.1), nat.div_div_self hm.1 hd_pos],
   },
 
   have h2 : ∑ m in d.divisors, (univ.filter (λ a : α, order_of a = m)).card =

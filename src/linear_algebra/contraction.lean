@@ -65,6 +65,13 @@ lemma map_dual_tensor_hom (f : module.dual R M) (p : P) (g : module.dual R N) (q
 begin
   ext m n, simp only [compr₂_apply, mk_apply, map_tmul, dual_tensor_hom_apply,
   dual_tensor_dual_map_apply, mul_smul_tmul],
+  
+@[simp] lemma comp_dual_tensor_hom (f : module.dual R M) (n : N) (g : module.dual R N) (p : P) :
+  (dual_tensor_hom R N P (g ⊗ₜ[R] p)) ∘ₗ (dual_tensor_hom R M N (f ⊗ₜ[R] n)) =
+  g n • dual_tensor_hom R M P (f ⊗ₜ p) :=
+begin
+  ext m, simp only [coe_comp, function.comp_app, dual_tensor_hom_apply, map_smulₛₗ,
+  ring_hom.id_apply, smul_apply], rw smul_comm,
 end
 
 /-- As a matrix, `dual_tensor_hom` evaluated on a basis element of `M* ⊗ N` is a matrix with a

@@ -155,7 +155,7 @@ lemma nat_degree_lt_iff_degree_lt (hp : p ≠ 0) :
   p.nat_degree < n ↔ p.degree < ↑n :=
 with_bot.get_or_else_bot_lt_iff $ degree_eq_bot.not.mpr hp
 
-alias polynomial.nat_degree_le_iff_degree_le ↔ . .
+alias polynomial.nat_degree_le_iff_degree_le ↔ ..
 
 lemma nat_degree_le_nat_degree [semiring S] {q : S[X]} (hpq : p.degree ≤ q.degree) :
   p.nat_degree ≤ q.nat_degree :=
@@ -221,6 +221,10 @@ begin
   { simp [hr] },
   { rw [← C_mul_X_pow_eq_monomial, nat_degree_C_mul_X_pow i r hr] }
 end
+
+lemma nat_degree_monomial_eq (i : ℕ) {r : R} (r0 : r ≠ 0) :
+  (monomial i r).nat_degree = i :=
+eq.trans (nat_degree_monomial _ _) (if_neg r0)
 
 lemma coeff_eq_zero_of_degree_lt (h : degree p < n) : coeff p n = 0 :=
 not_not.1 (mt le_degree_of_ne_zero (not_le_of_gt h))

@@ -681,13 +681,6 @@ enum_type (principal_seg.of_element r a)
 let ⟨a, e⟩ := typein_surj r h in
 by clear _let_match; subst e; rw enum_typein
 
-/-- A well order `r` is order isomorphic to the set of ordinals strictly smaller than the
-ordinal version of `r`. -/
-def typein_iso (r : α → α → Prop) [is_well_order α r] : r ≃r subrel (<) (< type r) :=
-⟨⟨λ x, ⟨typein r x, typein_lt_type r x⟩, λ x, enum r x.1 x.2, λ y, enum_typein r y,
- λ ⟨y, hy⟩, subtype.eq (typein_enum r hy)⟩,
-  λ a b, (typein_lt_typein r)⟩
-
 theorem enum_lt_enum {r : α → α → Prop} [is_well_order α r]
   {o₁ o₂ : ordinal} (h₁ : o₁ < type r) (h₂ : o₂ < type r) :
   r (enum r o₁ h₁) (enum r o₂ h₂) ↔ o₁ < o₂ :=
@@ -1123,6 +1116,22 @@ theorem enum_inj {r : α → α → Prop} [is_well_order α r] {o₁ o₂ : ordi
     { change _ < _ at hlt, rwa [←@enum_lt_enum α r _ o₂ o₁ h₂ h₁, h] at hlt }
 end, λ h, by simp_rw h⟩
 
+/-- A well order `r` is order isomorphic to the set of ordinals smaller than `type r`. -/
+@[simps] def enum_iso (r : α → α → Prop) [is_well_order α r] : subrel (<) (< type r) ≃r r :=
+{ to_fun := λ ⟨o, h⟩, enum r o h,
+  inv_fun := λ x, ⟨typein r x, typein_lt_type r x⟩,
+  left_inv := λ ⟨o, h⟩, subtype.ext_val (typein_enum _ _),
+  right_inv := λ h, enum_typein _ _,
+  map_rel_iff' := by { rintros ⟨a, _⟩ ⟨b, _⟩, apply enum_lt_enum } }
+
+/-- The order isomorphism between ordinals less than `o` and `o.out.α`. -/
+@[simps] noncomputable def enum_iso_out (o : ordinal.{u}) : set.Iio o ≃o o.out.α :=
+{ to_fun := λ ⟨o', h⟩, enum (<) o' (by rwa type_lt),
+  inv_fun := λ x, ⟨typein (<) x, typein_lt_self x⟩,
+  left_inv := λ ⟨o', h⟩, subtype.ext_val (typein_enum _ _),
+  right_inv := λ h, enum_typein _ _,
+  map_rel_iff' := by { rintros ⟨a, _⟩ ⟨b, _⟩, apply enum_le_enum' } }
+
 /-- `o.out.α` is an `order_bot` whenever `0 < o`. -/
 def out_order_bot_of_pos {o : ordinal} (ho : 0 < o) : order_bot o.out.α :=
 ⟨_, enum_zero_le' ho⟩
@@ -1202,6 +1211,10 @@ wf.conditionally_complete_linear_order_with_bot 0 $ le_antisymm (ordinal.zero_le
   not_lt.1 (wf.not_lt_min set.univ ⟨0, mem_univ _⟩ (mem_univ 0))
 
 @[simp] lemma bot_eq_zero : (⊥ : ordinal) = 0 := rfl
+
+@[simp] lemma max_zero_left : ∀ a : ordinal, max 0 a = a := max_bot_left
+@[simp] lemma max_zero_right : ∀ a : ordinal, max a 0 = a := max_bot_right
+@[simp] lemma max_eq_zero {a b : ordinal} : max a b = 0 ↔ a = 0 ∧ b = 0 := max_eq_bot
 
 protected theorem not_lt_zero (o : ordinal) : ¬ o < 0 :=
 not_lt_bot

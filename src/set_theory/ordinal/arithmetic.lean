@@ -615,11 +615,11 @@ induction_on a $ λ α _ _, induction_on b $ λ β _ _, begin
   exact is_empty_prod
 end
 
-@[simp] theorem mul_zero (a : ordinal) : a * 0 = 0 :=
-mul_eq_zero_iff.2 $ or.inr rfl
-
-@[simp] theorem zero_mul (a : ordinal) : 0 * a = 0 :=
-mul_eq_zero_iff.2 $ or.inl rfl
+instance : monoid_with_zero ordinal :=
+{ zero := 0,
+  zero_mul := λ a, mul_eq_zero_iff.2 $ or.inl rfl,
+  mul_zero := λ a,  mul_eq_zero_iff.2 $ or.inr rfl,
+  ..ordinal.monoid }
 
 theorem mul_add (a b c : ordinal) : a * (b + c) = a * b + a * c :=
 quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩,

@@ -56,6 +56,8 @@ prod_cons
 
 lemma form_perm_pair (x y : α) : form_perm [x, y] = swap x y := rfl
 
+variables {l} {x : α}
+
 lemma form_perm_apply_of_not_mem (x : α) (l : list α) (h : x ∉ l) :
   form_perm l x = x :=
 begin
@@ -68,12 +70,8 @@ begin
     simp [IH, swap_apply_of_ne_of_ne, h] }
 end
 
-theorem mem_of_form_perm_apply_ne (x : α) (l : list α)
-  (h : l.form_perm x ≠ x) : x ∈ l :=
-begin
-  contrapose! h,
-  exact list.form_perm_apply_of_not_mem _ _ h
-end
+lemma mem_of_form_perm_apply_ne (x : α) (l : list α) : l.form_perm x ≠ x → x ∈ l :=
+not_imp_comm.2 $ list.form_perm_apply_of_not_mem _ _
 
 lemma form_perm_apply_mem_of_mem (x : α) (l : list α) (h : x ∈ l) :
   form_perm l x ∈ l :=
@@ -90,8 +88,7 @@ begin
       simp [form_perm_apply_of_not_mem _ _ hx, ←h] } }
 end
 
-theorem mem_of_form_perm_apply_mem (x : α) (l : list α) (h : l.form_perm x ∈ l) :
-  x ∈ l :=
+lemma mem_of_form_perm_apply_mem (x : α) (l : list α) (h : l.form_perm x ∈ l) : x ∈ l :=
 begin
   cases l with y l,
   { simpa },
@@ -111,9 +108,8 @@ begin
         cc }}}
 end
 
-theorem form_perm_mem_iff_mem (x : α) (l : list α) :
-  l.form_perm x ∈ l ↔ x ∈ l :=
-by exact ⟨λ h, l.form_perm_apply_mem_of_mem x h, λ h, l.form_perm_mem_of_apply_mem x h⟩
+lemma form_perm_mem_iff_mem : l.form_perm x ∈ l ↔ x ∈ l :=
+⟨l.mem_of_form_perm_apply_mem x, l.form_perm_apply_mem_of_mem x⟩
 
 @[simp] lemma form_perm_cons_concat_apply_last (x y : α) (xs : list α) :
   form_perm (x :: (xs ++ [y])) y = x :=
@@ -146,6 +142,8 @@ begin
   { simp },
   { simpa using form_perm_apply_head _ _ _ h }
 end
+
+variables (l)
 
 lemma form_perm_eq_head_iff_eq_last (x y : α) :
   form_perm (y :: l) x = y ↔ x = last (y :: l) (cons_ne_nil _ _) :=

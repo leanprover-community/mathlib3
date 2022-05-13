@@ -245,6 +245,9 @@ lift_injective.eq_iff
 @[simp] theorem lift_lt {a b : cardinal} : lift a < lift b ↔ a < b :=
 lift_order_embedding.lt_iff_lt
 
+theorem lift_strict_mono : strict_mono lift :=
+λ a b, lift_lt.2
+
 instance : has_zero cardinal.{u} := ⟨#pempty⟩
 
 instance : inhabited cardinal.{u} := ⟨0⟩
@@ -730,18 +733,9 @@ end
 
 @[simp] theorem lift_Inf (s : set cardinal) : lift (Inf s) = Inf (lift '' s) :=
 begin
-  by_cases hs : s.nonempty,
-  { have hs' := nonempty_image_iff.2 hs,
-    apply le_antisymm,
-    { rw le_cInf_iff'' hs',
-      rintros a ⟨b, hb, rfl⟩,
-      exact lift_le.2 (cInf_le' hb) },
-    { rcases Inf_mem hs' with ⟨a, ha, ha'⟩,
-      rw ←ha',
-      apply lift_le.2 (le_cInf hs (λ b hb, lift_le.1 _)),
-      rw ha',
-      exact cInf_le' ⟨b, hb, rfl⟩ } },
-  simp [not_nonempty_iff_eq_empty.1 hs]
+  rcases eq_empty_or_nonempty s with rfl | hs,
+  { simp },
+  { exact (monotone.map_Inf lift_strict_mono.monotone hs).symm }
 end
 
 theorem lift_down {a : cardinal.{u}} {b : cardinal.{max u v}} :

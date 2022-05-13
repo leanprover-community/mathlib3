@@ -132,7 +132,7 @@ preserves multiplication when the target is commutative. -/
 @[to_additive]
 lemma inv {α β} [mul_one_class α] [comm_group β] {f : α → β} (hf : is_monoid_hom f) :
   is_monoid_hom (λ a, (f a)⁻¹) :=
-{ map_one := hf.map_one.symm ▸ one_inv,
+{ map_one := hf.map_one.symm ▸ inv_one,
   map_mul := λ a b, (hf.map_mul a b).symm ▸ mul_inv _ _ }
 
 end is_monoid_hom
@@ -214,7 +214,10 @@ lemma map_one : f 1 = 1 := hf.to_is_monoid_hom.map_one
 /-- A group homomorphism sends inverses to inverses. -/
 @[to_additive]
 theorem map_inv (hf : is_group_hom f) (a : α) : f a⁻¹ = (f a)⁻¹ :=
-eq_inv_of_mul_eq_one $ by rw [← hf.map_mul, inv_mul_self, hf.map_one]
+eq_inv_of_mul_eq_one_left $ by rw [← hf.map_mul, inv_mul_self, hf.map_one]
+
+@[to_additive] lemma map_div (hf : is_group_hom f) (a b : α) : f (a / b) = f a / f b :=
+by simp_rw [div_eq_mul_inv, hf.map_mul, hf.map_inv]
 
 /-- The identity is a group homomorphism. -/
 @[to_additive]
@@ -231,9 +234,7 @@ lemma comp (hf : is_group_hom f) {γ} [group γ] {g : β → γ} (hg : is_group_
 lemma injective_iff {f : α → β} (hf : is_group_hom f) :
   function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
 ⟨λ h _, by rw ← hf.map_one; exact @h _ _,
-  λ h x y hxy, by rw [← inv_inv (f x), inv_eq_iff_mul_eq_one, ← hf.map_inv,
-      ← hf.map_mul] at hxy;
-    simpa using inv_eq_of_mul_eq_one (h _ hxy)⟩
+  λ h x y hxy, eq_of_div_eq_one $ h _ $ by rwa [hf.map_div, div_eq_one]⟩
 
 /-- The product of group homomorphisms is a group homomorphism if the target is commutative. -/
 @[to_additive]
@@ -283,18 +284,6 @@ end ring_hom
 "Negation is an `add_group` homomorphism if the `add_group` is commutative."]
 lemma inv.is_group_hom [comm_group α] : is_group_hom (has_inv.inv : α → α) :=
 { map_mul := mul_inv }
-
-namespace is_add_group_hom
-variables [add_group α] [add_group β] {f : α → β} (hf : is_add_group_hom f)
-
-/-- Additive group homomorphisms commute with subtraction. -/
-lemma map_sub (a b) : f (a - b) = f a - f b :=
-calc f (a - b) = f (a + -b)   : congr_arg f (sub_eq_add_neg a b)
-           ... = f a + f (-b) : hf.map_add _ _
-           ... = f a + -f b   : by rw [hf.map_neg]
-           ... = f a - f b    : (sub_eq_add_neg _ _).symm
-
-end is_add_group_hom
 
 /-- The difference of two additive group homomorphisms is an additive group
 homomorphism if the target is commutative. -/

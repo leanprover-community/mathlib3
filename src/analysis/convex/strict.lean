@@ -36,7 +36,7 @@ interior. This basically means "convex and not flat on the boundary". -/
 def strict_convex : Prop :=
 s.pairwise $ λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 → a • x + b • y ∈ interior s
 
-variables {𝕜 s} {x y : E}
+variables {𝕜 s} {x y : E} {a b : 𝕜}
 
 lemma strict_convex_iff_open_segment_subset :
   strict_convex 𝕜 s ↔ s.pairwise (λ x y, open_segment 𝕜 x y ⊆ interior s) :=
@@ -55,6 +55,10 @@ begin
   rw interior_univ,
   exact mem_univ _,
 end
+
+protected lemma strict_convex.eq (hs : strict_convex 𝕜 s) (hx : x ∈ s) (hy : y ∈ s) (ha : 0 < a)
+  (hb : 0 < b) (hab : a + b = 1) (h : a • x + b • y ∉ interior s) : x = y :=
+hs.eq hx hy $ λ H, h $ H ha hb hab
 
 protected lemma strict_convex.inter {t : set E} (hs : strict_convex 𝕜 s) (ht : strict_convex 𝕜 t) :
   strict_convex 𝕜 (s ∩ t) :=
@@ -149,8 +153,7 @@ begin
   { exact add_lt_add (smul_lt_smul_of_pos hx ha) (smul_lt_smul_of_pos hy hb) }
 end
 
-lemma strict_convex_Ici (r : β) : strict_convex 𝕜 (Ici r) :=
-@strict_convex_Iic 𝕜 (order_dual β) _ _ _ _ _ _ r
+lemma strict_convex_Ici (r : β) : strict_convex 𝕜 (Ici r) := @strict_convex_Iic 𝕜 βᵒᵈ _ _ _ _ _ _ r
 
 lemma strict_convex_Icc (r s : β) : strict_convex 𝕜 (Icc r s) :=
 (strict_convex_Ici r).inter $ strict_convex_Iic s
@@ -278,7 +281,7 @@ section ordered_ring
 variables [ordered_ring 𝕜] [topological_space E] [topological_space F]
 
 section add_comm_group
-variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s : set E} {x y : E}
+variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s t : set E} {x y : E}
 
 lemma strict_convex.eq_of_open_segment_subset_frontier [nontrivial 𝕜] [densely_ordered 𝕜]
   (hs : strict_convex 𝕜 s) (hx : x ∈ s) (hy : y ∈ s) (h : open_segment 𝕜 x y ⊆ frontier s) :
@@ -336,13 +339,14 @@ begin
     convex.combo_affine_apply hab⟩⟩,
 end
 
-lemma strict_convex.neg [topological_add_group E] (hs : strict_convex 𝕜 s) :
-  strict_convex 𝕜 ((λ z, -z) '' s) :=
-hs.is_linear_image is_linear_map.is_linear_map_neg (homeomorph.neg E).is_open_map
+variables [topological_add_group E]
 
-lemma strict_convex.neg_preimage [topological_add_group E] (hs : strict_convex 𝕜 s) :
-  strict_convex 𝕜 ((λ z, -z) ⁻¹' s) :=
+lemma strict_convex.neg (hs : strict_convex 𝕜 s) : strict_convex 𝕜 (-s) :=
 hs.is_linear_preimage is_linear_map.is_linear_map_neg continuous_id.neg neg_injective
+
+lemma strict_convex.sub (hs : strict_convex 𝕜 s) (ht : strict_convex 𝕜 t) :
+  strict_convex 𝕜 (s - t) :=
+(sub_eq_add_neg s t).symm ▸ hs.add ht.neg
 
 end add_comm_group
 end ordered_ring

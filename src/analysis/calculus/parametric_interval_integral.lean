@@ -18,9 +18,8 @@ open_locale topological_space filter interval
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {μ : measure ℝ}
           {E : Type*} [normed_group E] [normed_space ℝ E] [normed_space 𝕜 E]
-          [complete_space E] [second_countable_topology E]
-          [measurable_space E] [borel_space E]
-          {H : Type*} [normed_group H] [normed_space 𝕜 H] [second_countable_topology $ H →L[𝕜] E]
+          [complete_space E]
+          {H : Type*} [normed_group H] [normed_space 𝕜 H]
           {a b ε : ℝ} {bound : ℝ → ℝ}
 
 namespace interval_integral
@@ -31,9 +30,9 @@ namespace interval_integral
 for `x` in a possibly smaller neighborhood of `x₀`. -/
 lemma has_fderiv_at_integral_of_dominated_loc_of_lip {F : H → ℝ → E} {F' : ℝ → (H →L[𝕜] E)} {x₀ : H}
   (ε_pos : 0 < ε)
-  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) (μ.restrict (Ι a b)))
+  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (F x) (μ.restrict (Ι a b)))
   (hF_int : interval_integrable (F x₀) μ a b)
-  (hF'_meas : ae_measurable F' (μ.restrict (Ι a b)))
+  (hF'_meas : ae_strongly_measurable F' (μ.restrict (Ι a b)))
   (h_lip : ∀ᵐ t ∂μ, t ∈ Ι a b → lipschitz_on_with (real.nnabs $ bound t) (λ x, F x t) (ball x₀ ε))
   (bound_integrable : interval_integrable bound μ a b)
   (h_diff : ∀ᵐ t ∂μ, t ∈ Ι a b → has_fderiv_at (λ x, F x t) (F' t) x₀) :
@@ -53,9 +52,9 @@ derivative norm uniformly bounded by an integrable function (the ball radius is 
 and `F x` is ae-measurable for `x` in a possibly smaller neighborhood of `x₀`. -/
 lemma has_fderiv_at_integral_of_dominated_of_fderiv_le {F : H → ℝ → E} {F' : H → ℝ → (H →L[𝕜] E)}
   {x₀ : H} (ε_pos : 0 < ε)
-  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) (μ.restrict (Ι a b)))
+  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (F x) (μ.restrict (Ι a b)))
   (hF_int : interval_integrable (F x₀) μ a b)
-  (hF'_meas : ae_measurable (F' x₀) (μ.restrict (Ι a b)))
+  (hF'_meas : ae_strongly_measurable (F' x₀) (μ.restrict (Ι a b)))
   (h_bound : ∀ᵐ t ∂μ, t ∈ Ι a b → ∀ x ∈ ball x₀ ε, ∥F' x t∥ ≤ bound t)
   (bound_integrable : interval_integrable bound μ a b)
   (h_diff : ∀ᵐ t ∂μ, t ∈ Ι a b → ∀ x ∈ ball x₀ ε, has_fderiv_at (λ x, F x t) (F' x t) x) :
@@ -73,9 +72,9 @@ assuming `F x₀` is integrable, `x ↦ F x a` is locally Lipschitz on a ball ar
 ae-measurable for `x` in a possibly smaller neighborhood of `x₀`. -/
 lemma has_deriv_at_integral_of_dominated_loc_of_lip {F : 𝕜 → ℝ → E} {F' : ℝ → E} {x₀ : 𝕜}
   (ε_pos : 0 < ε)
-  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) (μ.restrict (Ι a b)))
+  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (F x) (μ.restrict (Ι a b)))
   (hF_int : interval_integrable (F x₀) μ a b)
-  (hF'_meas : ae_measurable F' (μ.restrict (Ι a b)))
+  (hF'_meas : ae_strongly_measurable F' (μ.restrict (Ι a b)))
   (h_lipsch : ∀ᵐ t ∂μ, t ∈ Ι a b →
     lipschitz_on_with (real.nnabs $ bound t) (λ x, F x t) (ball x₀ ε))
   (bound_integrable : interval_integrable (bound : ℝ → ℝ) μ a b)
@@ -96,9 +95,9 @@ assuming `F x₀` is integrable, `x ↦ F x a` is differentiable on an interval 
 function, and `F x` is ae-measurable for `x` in a possibly smaller neighborhood of `x₀`. -/
 lemma has_deriv_at_integral_of_dominated_loc_of_deriv_le {F : 𝕜 → ℝ → E} {F' : 𝕜 → ℝ → E} {x₀ : 𝕜}
   (ε_pos : 0 < ε)
-  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_measurable (F x) (μ.restrict (Ι a b)))
+  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (F x) (μ.restrict (Ι a b)))
   (hF_int : interval_integrable (F x₀) μ a b)
-  (hF'_meas : ae_measurable (F' x₀) (μ.restrict (Ι a b)))
+  (hF'_meas : ae_strongly_measurable (F' x₀) (μ.restrict (Ι a b)))
   (h_bound : ∀ᵐ t ∂μ, t ∈ Ι a b → ∀ x ∈ ball x₀ ε, ∥F' x t∥ ≤ bound t)
   (bound_integrable : interval_integrable bound μ a b)
   (h_diff : ∀ᵐ t ∂μ, t ∈ Ι a b → ∀ x ∈ ball x₀ ε, has_deriv_at (λ x, F x t) (F' x t) x) :

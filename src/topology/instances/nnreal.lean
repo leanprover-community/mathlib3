@@ -16,7 +16,7 @@ The natural topology on `ℝ≥0` (the one induced from `ℝ`), and a basic API.
 Instances for the following typeclasses are defined:
 
 * `topological_space ℝ≥0`
-* `topological_ring ℝ≥0`
+* `topological_semiring ℝ≥0`
 * `second_countable_topology ℝ≥0`
 * `order_topology ℝ≥0`
 * `has_continuous_sub ℝ≥0`
@@ -52,7 +52,7 @@ open_locale nnreal big_operators filter
 
 instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
-instance : topological_ring ℝ≥0 :=
+instance : topological_semiring ℝ≥0 :=
 { continuous_mul := continuous_subtype_mk _ $
     (continuous_subtype_val.comp continuous_fst).mul (continuous_subtype_val.comp continuous_snd),
   continuous_add := continuous_subtype_mk _ $
@@ -187,9 +187,7 @@ by rw [←nnreal.coe_eq, coe_tsum, nnreal.coe_add, coe_sum, coe_tsum,
 
 lemma infi_real_pos_eq_infi_nnreal_pos [complete_lattice α] {f : ℝ → α} :
   (⨅ (n : ℝ) (h : 0 < n), f n) = (⨅ (n : ℝ≥0) (h : 0 < n), f n) :=
-le_antisymm
-  (infi_le_infi2 $ assume r, ⟨r, infi_le_infi $ assume hr, le_rfl⟩)
-  (le_infi $ assume r, le_infi $ assume hr, infi_le_of_le ⟨r, hr.le⟩ $ infi_le _ hr)
+le_antisymm (infi_mono' $ λ r, ⟨r, le_rfl⟩) (infi₂_mono' $ λ r hr, ⟨⟨r, hr.le⟩, hr, le_rfl⟩)
 
 end coe
 

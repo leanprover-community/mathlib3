@@ -199,13 +199,6 @@ lemma _root_.function.surjective.image_univ {β} [fintype α] [fintype β] [deci
   (hf : function.surjective f) : univ.image f = univ :=
 eq_univ_iff_forall.mpr $ λ x, mem_image.mpr $ (exists_congr $ by simp).mp $ hf x
 
--- there's already an `equiv.subtype_congr`; I feel like it's misnamed though.
-@[simps?] def equiv.subtype_congr {α₁ α₂ : Type*} (e : α₁ ≃ α₂) (p : α₂ → Prop) : {a₁ // p (e a₁)} ≃ {a₂ // p a₂} :=
-{ to_fun    := λ a₁, ⟨e a₁, a₁.prop⟩,
-  inv_fun   := λ a₂, ⟨e.symm a₂, by simpa using a₂.prop⟩,
-  left_inv  := λ a₁, subtype.ext $ by simp,
-  right_inv := λ a₂, subtype.ext $ by simp }
-
 protected lemma block_triangular.det [decidable_eq α] [preorder α] (hM : block_triangular M b) :
   M.det = ∏ a in univ.image b, (M.to_square_block b a).det :=
 begin
@@ -223,7 +216,7 @@ begin
     unfold to_square_block to_square_block_prop to_block,
     rw [minor_minor],
     let e' : {a₁ // (b ∘ e.symm.symm) a₁ = a} ≃ {a₂ // b a₂ = a} :=
-      equiv.subtype_congr e.symm.symm (λ x, b x = a),
+      @equiv.subtype_equiv_of_subtype _ _ (λ x, b x = a) _,
     rw [←det_minor_equiv_self e' $ M.minor coe coe, minor_minor],
     congr' 1 },
   sorry { simp only [coe_det_is_empty, prod_const_one] },sorry /-

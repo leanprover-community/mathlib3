@@ -43,9 +43,30 @@ def aux (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
   (V : subobject (⨁ f)) [simple (V : C)] (i : ι) [is_iso (V.arrow ≫ biproduct.π _ i)] : ⨁ f ⟶ ⨁ f :=
 ∑ (k : ι), if k = i then 0 else biproduct.π _ i ≫ inv (V.arrow ≫ biproduct.π _ i) ≫ V.arrow ≫ biproduct.π f k ≫ biproduct.ι f k
 
-@[simp] lemma aux_π (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
+@[simp] lemma comp_ite {P : Prop} [decidable P]
+  {X Y Z : C} (f : X ⟶ Y) (g g' : (Y ⟶ Z)) :
+  (f ≫ if P then g else g') = (if P then f ≫ g else f ≫ g') :=
+by { split_ifs; refl }
+
+@[simp] lemma ite_comp {P : Prop} [decidable P]
+  {X Y Z : C} (f f' : (X ⟶ Y))  (g : Y ⟶ Z) :
+  (if P then f else f') ≫ g = (if P then f ≫ g else f' ≫ g) :=
+by { split_ifs; refl }
+
+lemma ite_dite {P Q : Prop} [decidable P] [decidable Q] {α : Type*} (a : α) (b : Q → α) (c : ¬Q → α) :
+  (if P then a else (if h : Q then b h else c h)) = if h : Q then (if P then a else b h) else (if P then a else c h) :=
+sorry
+
+@[simp, reassoc] lemma aux_π (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
   (V : subobject (⨁ f)) [simple (V : C)] (i : ι) [is_iso (V.arrow ≫ biproduct.π _ i)] (j) :
-  aux f V i ≫ biproduct.π f j = if j = i then 0 else biproduct.π _ i ≫ inv (V.arrow ≫ biproduct.π _ i) ≫ V.arrow ≫ biproduct.π f j := sorry
+  aux f V i ≫ biproduct.π f j = if j = i then 0 else biproduct.π _ i ≫ inv (V.arrow ≫ biproduct.π _ i) ≫ V.arrow ≫ biproduct.π f j :=
+begin
+  simp_rw [aux, preadditive.sum_comp, ite_comp, category.assoc, zero_comp, biproduct.ι_π, comp_dite,
+    comp_zero, ite_dite, if_t_t, finset.sum_dite_eq', finset.mem_univ, if_true, eq_to_hom_refl,
+    category.comp_id],
+end
+
+attribute [irreducible] aux
 
 def aux₃ (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
   (V : subobject (⨁ f)) [simple (V : C)] (i : ι) [is_iso (V.arrow ≫ biproduct.π _ i)] : ⨁ f ≅ ⨁ f :=
@@ -54,9 +75,19 @@ def aux₃ (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
   hom_inv_id' := begin
     apply biproduct.hom_ext,
     intro j,
-    simp only [preadditive.sub_comp, preadditive.add_comp],
+    simp only [preadditive.sub_comp, preadditive.comp_sub, preadditive.add_comp, preadditive.comp_add,
+      category.id_comp, category.comp_id, category.assoc],
+    simp only [aux_π],
+    split_ifs; simp,
   end,
-  hom_inv_id' := sorry, }
+  inv_hom_id' := begin
+    apply biproduct.hom_ext,
+    intro j,
+    simp only [preadditive.sub_comp, preadditive.comp_sub, preadditive.add_comp, preadditive.comp_add,
+      category.id_comp, category.comp_id, category.assoc],
+    simp only [aux_π],
+    split_ifs; simp,
+  end, }
 
 /--
 Any simple subobject of a direct sum of simple objects is, up to isomorphism,

@@ -330,26 +330,28 @@ begin
            ennreal.tendsto_coe, ennreal.to_nnreal_coe],
 end
 
+lemma set_lintegral_const_lt_top {α : Type*} [measurable_space α] {μ : measure α} [is_finite_measure μ] (s : set α) {c : ℝ≥0∞} (hc : c < ∞) :
+  ∫⁻ a in s, c ∂μ < ⊤ :=
+begin
+  rw lintegral_const,
+  exact ennreal.mul_lt_top hc.ne (measure_lt_top (μ.restrict s) univ).ne,
+end
+
+lemma lintegral_const_lt_top {α : Type*} [measurable_space α] {μ : measure α} [is_finite_measure μ] {c : ℝ≥0∞} (hc : c < ∞) :
+  ∫⁻ a, c ∂μ < ⊤ :=
+by simpa only [measure.restrict_univ] using set_lintegral_const_lt_top univ hc
+
 lemma tendsto_lintegral_nn_of_le_const (μ : finite_measure α)
   {fs : ℕ → (α →ᵇ ℝ≥0)} {c : ℝ≥0} (fs_le_const : ∀ n a, fs n a ≤ c) {f : α → ℝ≥0}
   (fs_lim : ∀ a, tendsto (λ (n : ℕ), (fs n a)) at_top (𝓝 (f a))) :
   tendsto (λ (n : ℕ), (∫⁻ a, (fs n a) ∂(μ : measure α))) at_top
           (𝓝 (∫⁻ a, (f a) ∂(μ : measure α))) :=
 begin
-  have fs_le_const' : (∀ (n : ℕ), (coe : ℝ≥0 → ℝ≥0∞) ∘ (fs n) ≤ᵐ[(μ : measure α)] (λ _, c)),
-  { intro n,
-    apply eventually_of_forall,
-    intro x,
-    simp only [fs_le_const n x, ennreal.coe_le_coe], },
-  have lintegral_const_ne_top : ∫⁻ (a : α), c ∂↑μ ≠ ⊤,
-  { simp only [lintegral_const, ne.def, with_top.mul_eq_top_iff, ennreal.coe_eq_zero,
-               ennreal.coe_ne_top, false_and, or_false, not_and],
-    exact λ _, ne_of_lt (measure_lt_top (μ : measure α) univ), },
-  simpa using tendsto_lintegral_of_dominated_convergence (λ _, c)
-              (λ n, (ennreal.continuous_coe.comp (fs n).continuous).measurable)
-              fs_le_const' lintegral_const_ne_top _,
-  apply eventually_of_forall,
-  simpa [ennreal.tendsto_coe] using fs_lim,
+  simpa only using tendsto_lintegral_of_dominated_convergence (λ _, c)
+            (λ n, (ennreal.continuous_coe.comp (fs n).continuous).measurable)
+            (λ n, eventually_of_forall (λ x, by simp only [fs_le_const n x, ennreal.coe_le_coe]))
+            ((@lintegral_const_lt_top _ _ (μ : measure α) _ _ (@ennreal.coe_lt_top c)).ne) _,
+  exact eventually_of_forall (by simpa only [ennreal.tendsto_coe] using fs_lim),
 end
 
 lemma tendsto_test_against_nn_of_le_const {μ : finite_measure α}
@@ -501,8 +503,7 @@ begin
     exact λ a, fs_lim a, },
   convert finite_measure.tendsto_lintegral_nn_of_le_const μ fs_bdd fs_lim',
   have aux : ∀ a, indicator E (λ x, (1 : ℝ≥0∞)) a = ↑(indicator E (λ x, (1 : ℝ≥0)) a),
-  { intro a,
-    simp only [ennreal.coe_indicator, ennreal.coe_one], },
+  from λ a, by simp only [ennreal.coe_indicator, ennreal.coe_one],
   simp_rw [←aux, lintegral_indicator _ E_mble],
   simp only [lintegral_one, measure.restrict_apply, measurable_set.univ, univ_inter],
 end
@@ -522,10 +523,11 @@ begin
 end
 
 lemma finite_measure.limsup_measure_closed_le
-  {α : Type*} [measurable_space α] [pseudo_emetric_space α] [opens_measurable_space α]
-  {μ : finite_measure α} {μs : ℕ → finite_measure α}
-  (μs_lim : tendsto μs at_top (𝓝 μ)) {F : set α} (F_closed : is_closed F) :
-  limsup at_top (λ n, (μs n : measure α) F) ≤ (μ : measure α) F :=
+  {α ι : Type*} {L : filter ι} [ne_bot L]
+  [measurable_space α] [pseudo_emetric_space α] [opens_measurable_space α]
+  {μ : finite_measure α} {μs : ι → finite_measure α}
+  (μs_lim : tendsto μs L (𝓝 μ)) {F : set α} (F_closed : is_closed F) :
+  L.limsup (λ i, (μs i : measure α) F) ≤ (μ : measure α) F :=
 begin
   apply ennreal.le_of_forall_pos_le_add,
   intros ε ε_pos μ_F_finite,

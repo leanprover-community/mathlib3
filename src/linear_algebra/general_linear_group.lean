@@ -155,15 +155,15 @@ instance : has_neg (GL_pos n R) :=
     exact g.prop,
   end⟩⟩
 
-@[simp] lemma GL_pos.coe_neg (g : GL_pos n R) : ↑(- g) = - (↑g : matrix n n R) :=
-rfl
+@[simp] lemma GL_pos.coe_neg_GL (g : GL_pos n R) : ↑(-g) = -(g : GL n R) := rfl
+@[simp] lemma GL_pos.coe_neg (g : GL_pos n R) : ↑(-g) = -(g : matrix n n R) := rfl
 
 @[simp] lemma GL_pos.coe_neg_apply (g : GL_pos n R) (i j : n) :
   (↑(-g) : matrix n n R) i j = -((↑g : matrix n n R) i j) :=
 rfl
 
 instance : has_distrib_neg (GL_pos n R) :=
-subtype.coe_injective.has_distrib_neg _ GL_pos.coe_neg (GL_pos n R).coe_mul
+subtype.coe_injective.has_distrib_neg _ GL_pos.coe_neg_GL (GL_pos n R).coe_mul
 
 end has_neg
 

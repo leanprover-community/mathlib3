@@ -18,13 +18,6 @@ This file determines the values of the geometric series $\sum_{i=0}^{n-1} x^i$ a
 $\sum_{i=0}^{n-1} x^i y^{n-1-i}$ and variants thereof. We also provide some bounds on the
 "geometric" sum of `a/b^i` where `a b : ℕ`.
 
-## Main definitions
-
-* `geom_sum` defines for each $x$ in a semiring and each natural number $n$ the partial sum
-  $\sum_{i=0}^{n-1} x^i$ of the geometric series.
-* `geom_sum₂` defines for each $x,y$ in a semiring and each natural number $n$ the partial sum
-  $\sum_{i=0}^{n-1} x^i y^{n-1-i}$ of the geometric series.
-
 ## Main statements
 
 * `geom_sum_Ico` proves that $\sum_{i=m}^{n-1} x^i=\frac{x^n-x^m}{x-1}$ in a division ring.
@@ -44,13 +37,6 @@ open_locale big_operators
 
 section semiring
 variable [semiring α]
-
-/-- Sum of the finite geometric series $\sum_{i=0}^{n-1} x^i$. -/
--- def geom_sum (x : α) (n : ℕ) :=
--- ∑ i in range n, x ^ i
-
--- theorem geom_sum_def (x : α) (n : ℕ) :
---   geom_sum x n = ∑ i in range n, x ^ i := rfl
 
 lemma geom_sum_succ {x : α} {n : ℕ} : ∑ i in range (n + 1), x ^ i = x * ∑ i in range n, x ^ i + 1 :=
 by simp only [mul_sum, ←pow_succ, sum_range_succ', pow_zero]
@@ -79,13 +65,6 @@ by simp
 @[simp] lemma op_geom_sum (x : α) (n : ℕ) :
   op (∑ i in range n, x ^ i) = ∑ i in range n, (op x) ^ i :=
 by simp
-
--- /-- Sum of the finite geometric series $\sum_{i=0}^{n-1} x^i y^{n-1-i}$. -/
--- def geom_sum₂ (x y : α) (n : ℕ) :=
--- ∑ i in range n, x ^ i * (y ^ (n - 1 - i))
-
--- theorem geom_sum₂_def (x y : α) (n : ℕ) :
---   ∑ i in range n, x ^ i * (y ^ (n - 1 - i)) = ∑ i in range n, x ^ i * y ^ (n - 1 - i) := rfl
 
 @[simp] lemma op_geom_sum₂ (x y : α) (n : ℕ) :
   op (∑ i in range n, x ^ i * (y ^ (n - 1 - i))) =

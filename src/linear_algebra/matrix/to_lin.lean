@@ -72,7 +72,7 @@ instance {n m} [fintype m] [decidable_eq m] [fintype n] [decidable_eq n] (R) [fi
 
 section to_matrix_right
 
-variables {R : Type*} [ring R]
+variables {R : Type*} [semiring R]
 variables {l m n : Type*}
 
 /-- `matrix.vec_mul M` is a linear map. -/
@@ -138,7 +138,7 @@ by { ext, simp [linear_map.one_apply, std_basis_apply] }
 /-- If `M` and `M'` are each other's inverse matrices, they provide an equivalence between `n → A`
 and `m → A` corresponding to `M.vec_mul` and `M'.vec_mul`. -/
 @[simps]
-def matrix.to_linear_map_right'_of_inv [fintype n] [decidable_eq n]
+def matrix.to_linear_equiv_right'_of_inv [fintype n] [decidable_eq n]
   {M : matrix m n R} {M' : matrix n m R}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   (n → R) ≃ₗ[R] (m → R) :=
@@ -241,7 +241,7 @@ by { ext, rw [matrix.one_apply, linear_map.to_matrix'_apply, id_apply] }
 
 @[simp] lemma matrix.to_lin'_mul [fintype m] [decidable_eq m] (M : matrix l m R)
   (N : matrix m n R) : matrix.to_lin' (M ⬝ N) = (matrix.to_lin' M).comp (matrix.to_lin' N) :=
-by { ext, simp, }
+by { ext, simp }
 
 /-- Shortcut lemma for `matrix.to_lin'_mul` and `linear_map.comp_apply` -/
 lemma matrix.to_lin'_mul_apply [fintype m] [decidable_eq m] (M : matrix l m R)

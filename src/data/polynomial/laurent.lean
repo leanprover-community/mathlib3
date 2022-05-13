@@ -324,7 +324,9 @@ begin
 end
 
 /--  This version of `exists_T_pow` can be called as `rcases f.exists_T_pow' with ⟨n, f', rfl⟩`. -/
-lemma exists_T_pow' (f : R[T;T⁻¹]) :
+lemma induction_on_mul_T (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
+  (Qf : ∀ (f : R[X]) (n), Q (f.to_laurent * T n)) :
+  Q f :=
   ∃ (n : ℕ) (f' : R[X]), f = f'.to_laurent * T (- n) :=
 begin
   rcases f.exists_T_pow with ⟨n, f', hf⟩,

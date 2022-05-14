@@ -503,10 +503,6 @@ protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).
 
 namespace units
 
-@[simp, to_additive] lemma coe_inv [group G] (u : Gˣ) :
-  ↑u⁻¹ = (u⁻¹ : G) :=
-to_units.symm.map_inv u
-
 variables [monoid M] [monoid N] [monoid P]
 
 /-- A multiplicative equivalence of monoids defines a multiplicative equivalence

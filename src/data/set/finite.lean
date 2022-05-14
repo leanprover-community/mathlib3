@@ -327,7 +327,7 @@ by { classical, casesI hs, apply finite.intro' }
 theorem finite.of_diff {s t : set α} (hd : finite (s \ t)) (ht : finite t) : finite s :=
 (hd.union ht).subset $ subset_diff_union _ _
 
-theorem finite.Union [fintype (plift ι)] {f : ι → set α} (H : ∀ i, (f i).finite) :
+theorem finite_Union [fintype (plift ι)] {f : ι → set α} (H : ∀ i, (f i).finite) :
   (⋃ i, f i).finite :=
 by { classical, haveI := λ i, (H i).fintype, apply finite.intro' }
 
@@ -342,7 +342,7 @@ by { classical, casesI hs,
 /-- Dependent version of `finite.bUnion`. -/
 theorem finite.bUnion' {ι} {s : set ι} (hs : s.finite)
   {t : Π (i ∈ s), set α} (ht : ∀ i ∈ s, (t i ‹_›).finite) : (⋃(i ∈ s), t i ‹_›).finite :=
-by { casesI hs, rw [bUnion_eq_Union], apply finite.Union (λ (i : s), ht i.1 i.2), }
+by { casesI hs, rw [bUnion_eq_Union], apply finite_Union (λ (i : s), ht i.1 i.2), }
 
 theorem finite.sInter {α : Type*} {s : set (set α)} {t : set α} (ht : t ∈ s)
   (hf : t.finite) : (⋂₀ s).finite :=

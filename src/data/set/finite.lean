@@ -582,10 +582,10 @@ end
 begin
   split,
   { intros h x,
-    rw [←finite.mem_to_finset hs, ←finite.mem_to_finset ht],
+    rw [← hs.mem_to_finset, ← ht.mem_to_finset],
     exact λ hx, h hx },
   { intros h x,
-    rw [finite.mem_to_finset hs, finite.mem_to_finset ht],
+    rw [hs.mem_to_finset, ht.mem_to_finset],
     exact λ hx, h hx }
 end
 

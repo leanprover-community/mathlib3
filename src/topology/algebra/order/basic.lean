@@ -983,18 +983,18 @@ section linear_order
 variables [topological_space α] [linear_order α]
 
 section order_closed_topology
-variables [order_closed_topology α]
+variables [order_closed_topology α] {a b : α}
 
-lemma eventually_le_nhds (a b : α) (hab : a < b) : ∀ᶠ (x : α) in (nhds a), x ≤ b :=
+lemma eventually_le_nhds (hab : a < b) : ∀ᶠ (x : α) in (nhds a), x ≤ b :=
 eventually_iff.mpr (mem_nhds_iff.mpr ⟨Iio b, Iio_subset_Iic_self, is_open_Iio, hab⟩)
 
-lemma eventually_lt_nhds (a b : α) (hab : a < b) : ∀ᶠ (x : α) in (nhds a), x < b :=
+lemma eventually_lt_nhds (hab : a < b) : ∀ᶠ (x : α) in (nhds a), x < b :=
 eventually_iff.mpr (mem_nhds_iff.mpr ⟨Iio b, rfl.subset, is_open_Iio, hab⟩)
 
-lemma eventually_ge_nhds (a b : α) (hab : b < a) : ∀ᶠ (x : α) in (nhds a), b ≤ x :=
+lemma eventually_ge_nhds (hab : b < a) : ∀ᶠ (x : α) in (nhds a), b ≤ x :=
 eventually_iff.mpr (mem_nhds_iff.mpr ⟨Ioi b, Ioi_subset_Ici_self, is_open_Ioi, hab⟩)
 
-lemma eventually_gt_nhds (a b : α) (hab : b < a) : ∀ᶠ (x : α) in (nhds a), b < x :=
+lemma eventually_gt_nhds (hab : b < a) : ∀ᶠ (x : α) in (nhds a), b < x :=
 eventually_iff.mpr (mem_nhds_iff.mpr ⟨Ioi b, rfl.subset, is_open_Ioi, hab⟩)
 
 end order_closed_topology

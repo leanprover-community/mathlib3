@@ -154,15 +154,15 @@ end linear_order_α
 section finite_intervals
 
 variables [linear_order α] [topological_space α] [order_closed_topology α]
-  [opens_measurable_space α]{a b : ι → α} {A B : α}
+  [opens_measurable_space α] {a b : ι → α} {A B : α}
   (ha : tendsto a l (nhds A)) (hb : tendsto b l (nhds B))
 
 lemma ae_cover_Ioo_of_Icc :
   ae_cover (μ.restrict $ Ioo A B) l (λ i, Icc (a i) (b i)) :=
 { ae_eventually_mem := (ae_restrict_iff' measurable_set_Ioo).mpr (
     ae_of_all μ (λ x hx,
-    (ha.eventually $ eventually_le_nhds A x hx.left).mp $
-    (hb.eventually $eventually_ge_nhds B x hx.right).mono $
+    (ha.eventually $ eventually_le_nhds hx.left).mp $
+    (hb.eventually $ eventually_ge_nhds hx.right).mono $
     λ i hbi hai, ⟨hai, hbi⟩)),
   measurable := λ i, measurable_set_Icc, }
 
@@ -170,8 +170,8 @@ lemma ae_cover_Ioo_of_Ico :
   ae_cover (μ.restrict $ Ioo A B) l (λ i, Ico (a i) (b i)) :=
 { ae_eventually_mem := (ae_restrict_iff' measurable_set_Ioo).mpr (
     ae_of_all μ (λ x hx,
-    (ha.eventually $ eventually_le_nhds A x hx.left).mp $
-    (hb.eventually $ eventually_gt_nhds B x hx.right).mono $
+    (ha.eventually $ eventually_le_nhds hx.left).mp $
+    (hb.eventually $ eventually_gt_nhds hx.right).mono $
     λ i hbi hai, ⟨hai, hbi⟩)),
   measurable := λ i, measurable_set_Ico, }
 
@@ -179,8 +179,8 @@ lemma ae_cover_Ioo_of_Ioc :
   ae_cover (μ.restrict $ Ioo A B) l (λ i, Ioc (a i) (b i)) :=
 { ae_eventually_mem := (ae_restrict_iff' measurable_set_Ioo).mpr (
     ae_of_all μ (λ x hx,
-    (ha.eventually $ eventually_lt_nhds A x hx.left).mp $
-    (hb.eventually $ eventually_ge_nhds B x hx.right).mono $
+    (ha.eventually $ eventually_lt_nhds hx.left).mp $
+    (hb.eventually $ eventually_ge_nhds hx.right).mono $
     λ i hbi hai, ⟨hai, hbi⟩)),
   measurable := λ i, measurable_set_Ioc, }
 
@@ -188,8 +188,8 @@ lemma ae_cover_Ioo_of_Ioo :
   ae_cover (μ.restrict $ Ioo A B) l (λ i, Ioo (a i) (b i)) :=
 { ae_eventually_mem := (ae_restrict_iff' measurable_set_Ioo).mpr (
     ae_of_all μ (λ x hx,
-    (ha.eventually $ eventually_lt_nhds A x hx.left).mp $
-    (hb.eventually $ eventually_gt_nhds B x hx.right).mono $
+    (ha.eventually $ eventually_lt_nhds hx.left).mp $
+    (hb.eventually $ eventually_gt_nhds hx.right).mono $
     λ i hbi hai, ⟨hai, hbi⟩)),
   measurable := λ i, measurable_set_Ioo, }
 

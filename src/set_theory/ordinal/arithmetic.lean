@@ -625,29 +625,17 @@ quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
 quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩,
 mul_comm (mk β) (mk α)
 
-/-- Ordinal multiplication is left-distributive over addition. -/
-theorem mul_add (a b c : ordinal) : a * (b + c) = a * b + a * c :=
-quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩,
+instance : is_left_distrib ordinal (*) (+) :=
+⟨quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩,
 quotient.sound ⟨⟨sum_prod_distrib _ _ _, begin
   rintro ⟨a₁|a₁, a₂⟩ ⟨b₁|b₁, b₂⟩;
   simp only [prod.lex_def,
     sum.lex_inl_inl, sum.lex.sep, sum.lex_inr_inl, sum.lex_inr_inr,
     sum_prod_distrib_apply_left, sum_prod_distrib_apply_right];
   simp only [sum.inl.inj_iff, true_or, false_and, false_or]
-end⟩⟩
+end⟩⟩⟩
 
-instance : is_left_distrib ordinal (*) (+) := ⟨mul_add⟩
-
-@[simp] theorem mul_add_one (a b : ordinal) : a * (b + 1) = a * b + a :=
-by rw [mul_add, mul_one]
-
-@[simp] theorem mul_one_add (a b : ordinal) : a * (1 + b) = a + a * b :=
-by rw [mul_add, mul_one]
-
-@[simp] theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one _ _
-
-theorem mul_two (a : ordinal) : a * 2 = a + a :=
-by { change a * (succ 1) = a + a, rw [mul_succ, mul_one] }
+@[simp] theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one a b
 
 instance mul_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (*) (≤) :=
 ⟨λ c a b, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin

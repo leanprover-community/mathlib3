@@ -234,6 +234,17 @@ begin
     exact ϕ.map_one },
 end
 
+lemma silly_lemma {G α : Type*} [group G] [mul_action G α] (g : G) [fintype α] :
+  ∏ (q : quotient (mul_action.orbit_rel (zpowers g) α)),
+    (⟨g, mem_zpowers g⟩ : zpowers g) ^ function.minimal_period ((•) g) q.out' =
+      (⟨g, mem_zpowers g⟩ : zpowers g) ^ fintype.card α :=
+begin
+  rw [finset.prod_pow_eq_pow_sum],
+  congr,
+  simp only [lem0, ←fintype.card_sigma],
+  convert fintype.card_congr (mul_action.self_equiv_sigma_orbits (zpowers g) α).symm,
+end
+
 lemma transfer_eq_pow'_aux (g : G)
   (key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g₀⁻¹ * g ^ k * g₀ = g ^ k) :
   g ^ H.index ∈ H :=
@@ -250,14 +261,7 @@ begin
   have key := @subgroup.prod_mem (zpowers g) _ (H.subgroup_of (zpowers g))
     (quotient (mul_action.orbit_rel (zpowers g) (G ⧸ H))) finset.univ
     (λ q, (⟨g, mem_zpowers g⟩ : zpowers g) ^ function.minimal_period ((•) g) q.out') key,
-  rw [finset.prod_pow_eq_pow_sum] at key,
-  change (⟨g, mem_zpowers g⟩ : zpowers g) ^ H.index ∈ H.subgroup_of (zpowers g),
-  refine (_root_.congr_arg (∈ H) _).mp key,
-  congr,
-  simp only [lem0, ←fintype.card_sigma],
-  rw [index_eq_card],
-  have key := mul_action.self_equiv_sigma_orbits (zpowers g) (G ⧸ H),
-  convert fintype.card_congr key.symm,
+  rwa [silly_lemma, ←index_eq_card] at key,
 end
 
 lemma transfer_eq_pow' (g : G)
@@ -278,14 +282,7 @@ begin
   { intros k hk,
     refl },
   simp only [key],
-  rw [list.prod_map_hom],
-  apply congr_arg (zpowers g).subtype,
-  rw [finset.prod_to_list, finset.prod_pow_eq_pow_sum],
-  congr,
-  simp only [lem0, ←fintype.card_sigma],
-  rw [index_eq_card],
-  have key := mul_action.self_equiv_sigma_orbits (zpowers g) (G ⧸ H),
-  convert fintype.card_congr key.symm,
+  rw [list.prod_map_hom, finset.prod_to_list, silly_lemma, index_eq_card],
 end
 
 end explicit_computation

@@ -234,6 +234,60 @@ begin
     exact ϕ.map_one },
 end
 
+lemma transfer_eq_pow'_aux (g : G)
+  (key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g₀⁻¹ * g ^ k * g₀ = g ^ k) :
+  g ^ H.index ∈ H :=
+begin
+  replace key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g ^ k ∈ H :=
+  λ k g₀ hk, (_root_.congr_arg (∈ H) (key k g₀ hk)).mp hk,
+  replace key : ∀ q : G ⧸ H, g ^ function.minimal_period ((•) g) q ∈ H :=
+  λ q, key (function.minimal_period ((•) g) q) q.out' (by rw [mul_assoc, ←quotient_group.eq',
+    ←smul_eq_mul, mul_action.quotient.mk_smul_out',
+    quotient_group.out_eq', eq_comm, mul_action.pow_smul_eq_iff_minimal_period_dvd]),
+  replace key : ∀ (q : quotient (mul_action.orbit_rel (zpowers g) (G ⧸ H))), q ∈ finset.univ →
+    (⟨g, mem_zpowers g⟩ : zpowers g) ^ function.minimal_period ((•) g) q.out' ∈ H.subgroup_of (zpowers g) :=
+  λ q hq, key q.out',
+  have key := @subgroup.prod_mem (zpowers g) _ (H.subgroup_of (zpowers g))
+    (quotient (mul_action.orbit_rel (zpowers g) (G ⧸ H))) finset.univ
+    (λ q, (⟨g, mem_zpowers g⟩ : zpowers g) ^ function.minimal_period ((•) g) q.out') key,
+  rw [finset.prod_pow_eq_pow_sum] at key,
+  change (⟨g, mem_zpowers g⟩ : zpowers g) ^ H.index ∈ H.subgroup_of (zpowers g),
+  refine (_root_.congr_arg (∈ H) _).mp key,
+  congr,
+  simp only [lem0, ←fintype.card_sigma],
+  rw [index_eq_card],
+  have key := mul_action.self_equiv_sigma_orbits (zpowers g) (G ⧸ H),
+  convert fintype.card_congr key.symm,
+end
+
+lemma transfer_eq_pow' (g : G)
+  (key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g₀⁻¹ * g ^ k * g₀ = g ^ k) :
+  transfer ϕ g = ϕ ⟨g ^ H.index, transfer_eq_pow'_aux H g key⟩ :=
+begin
+  have key : ∀ (k : ℕ) (g₀ : G) (hk : g₀⁻¹ * g ^ k * g₀ ∈ H),
+    (⟨g₀⁻¹ * g ^ k * g₀, hk⟩ : H) = (⟨g ^ k, (_root_.congr_arg (∈ H) (key k g₀ hk)).mp hk⟩ : H) :=
+  λ k g₀ hg, subtype.ext (key k g₀ hg),
+  rw transfer_computation,
+  simp only [key],
+  rw [←finset.prod_to_list, list.prod_map_hom],
+  apply congr_arg ϕ,
+  apply (show function.injective H.subtype, from subtype.coe_injective),
+  rw [←list.prod_map_hom],
+  change (list.map (λ q, _) _).prod = _,
+  have key : ∀ (k : ℕ) (hk : g ^ k ∈ H), H.subtype ⟨g ^ k, hk⟩ = (zpowers g).subtype (⟨g, mem_zpowers g⟩ ^ k),
+  { intros k hk,
+    refl },
+  simp only [key],
+  rw [list.prod_map_hom],
+  apply congr_arg (zpowers g).subtype,
+  rw [finset.prod_to_list, finset.prod_pow_eq_pow_sum],
+  congr,
+  simp only [lem0, ←fintype.card_sigma],
+  rw [index_eq_card],
+  have key := mul_action.self_equiv_sigma_orbits (zpowers g) (G ⧸ H),
+  convert fintype.card_congr key.symm,
+end
+
 end explicit_computation
 
 section center_transfer
@@ -241,32 +295,10 @@ section center_transfer
 lemma transfer_eq_pow [fintype (G ⧸ center G)] (g : G) :
   transfer (monoid_hom.id (center G)) g = ⟨g ^ (center G).index, (center G).pow_index_mem g⟩ :=
 begin
-  classical,
-  rw transfer_computation,
-  simp only [monoid_hom.id_apply],
-  change ∏ q : quotient (mul_action.orbit_rel _ (G ⧸ center G)),
-    (⟨q.out'.out'⁻¹ * g ^ function.minimal_period ((•) g) q.out' * q.out'.out', _⟩ : center G) =
-    (⟨g ^ (center G).index, (center G).pow_index_mem g⟩ : center G),
-  have key : Π (h : G) (k : ℕ) (hg : h⁻¹ * g ^ k * h ∈ center G),
-    (center G).subtype ⟨h⁻¹ * g ^ k * h, hg⟩ = (zpowers g).subtype (⟨g, mem_zpowers g⟩ ^ k),
-  { intros h k hg,
-    rw [normal.mem_comm_iff, mul_inv_cancel_left] at hg,
-    { simp_rw [mul_assoc, ←hg h, inv_mul_cancel_left],
-      refl },
-    { apply_instance } },
-  simp only [key],
-  apply (show function.injective (center G).subtype, from subtype.coe_injective),
-  rw [←finset.prod_to_list, ←list.prod_map_hom],
-  change (list.map (λ q, _) _).prod = (zpowers g).subtype (⟨g, mem_zpowers g⟩ ^ (center G).index),
-  simp only [key],
-  rw [list.prod_map_hom, finset.prod_to_list],
-  apply congr_arg (zpowers g).subtype,
-  rw finset.prod_pow_eq_pow_sum,
-  congr,
-  simp only [lem0, ←fintype.card_sigma],
-  rw [index_eq_card],
-  have key := mul_action.self_equiv_sigma_orbits (zpowers g) (G ⧸ center G),
-  convert fintype.card_congr key.symm,
+  refine transfer_eq_pow' (center G) (monoid_hom.id (center G)) g (λ k g₀ hk, _),
+  rw [normal.mem_comm_iff, mul_inv_cancel_left] at hk,
+  { rw [mul_assoc, ←hk g₀, inv_mul_cancel_left] },
+  { apply_instance },
 end
 
 noncomputable def transfer_pow [fintype (G ⧸ center G)] : G →* center G :=

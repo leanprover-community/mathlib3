@@ -160,13 +160,13 @@ begin
 end
 
 lemma le_zero_iff {G : pgame} [G.impartial] : G ≤ 0 ↔ 0 ≤ G :=
-by rw [←zero_le_neg_iff, le_congr (refl 0) (neg_equiv_self G)]
+by rw [←zero_le_neg_iff, le_congr equiv_rfl (neg_equiv_self G)]
 
 lemma lf_zero_iff {G : pgame} [G.impartial] : G ⧏ 0 ↔ 0 ⧏ G :=
-by rw [←zero_lf_neg_iff, lf_congr (refl 0) (neg_equiv_self G)]
+by rw [←zero_lf_neg_iff, lf_congr equiv_rfl (neg_equiv_self G)]
 
 lemma lt_zero_iff {G : pgame} [G.impartial] : G < 0 ↔ 0 < G :=
-by rw [←zero_lt_neg_iff, lt_congr (refl 0) (neg_equiv_self G)]
+by rw [←zero_lt_neg_iff, lt_congr equiv_rfl (neg_equiv_self G)]
 
 lemma first_loses_symm (G : pgame) [G.impartial] : G.first_loses ↔ G ≤ 0 :=
 ⟨and.left, λ h, ⟨h, le_zero_iff.1 h⟩⟩

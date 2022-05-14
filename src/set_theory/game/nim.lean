@@ -244,7 +244,7 @@ begin
     use (left_moves_add _ _).symm (sum.inl i),
     rw [add_move_left_inl, move_left_mk],
     apply first_loses_of_equiv
-      (add_congr (symm (equiv_nim_grundy_value (G.move_left i))) equiv_rfl),
+      (add_congr (equiv_nim_grundy_value (G.move_left i)).symm equiv_rfl),
     simpa only [hi] using impartial.add_self (nim (grundy_value (G.move_left i))) }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
@@ -252,7 +252,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 @[simp] lemma grundy_value_eq_iff_equiv_nim (G : pgame) [G.impartial] (O : ordinal) :
   grundy_value G = O ↔ G ≈ nim O :=
 ⟨by { rintro rfl, exact equiv_nim_grundy_value G },
-  by { intro h, rw ←nim.equiv_iff_eq, exact trans (symm (equiv_nim_grundy_value G)) h }⟩
+  by { intro h, rw ←nim.equiv_iff_eq, exact (equiv_nim_grundy_value G).symm.trans h }⟩
 
 lemma nim.grundy_value (O : ordinal.{u}) : grundy_value (nim O) = O :=
 by simp
@@ -348,7 +348,7 @@ lemma grundy_value_add (G H : pgame) [G.impartial] [H.impartial] {n m : ℕ} (hG
   (hH : grundy_value H = m) : grundy_value (G + H) = nat.lxor n m :=
 begin
   rw [←nim.grundy_value (nat.lxor n m), grundy_value_eq_iff_equiv],
-  refine trans _ nim_add_nim_equiv,
+  refine equiv.trans _ nim_add_nim_equiv,
   convert add_congr (equiv_nim_grundy_value G) (equiv_nim_grundy_value H);
   simp only [hG, hH]
 end

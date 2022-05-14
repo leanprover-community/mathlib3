@@ -256,7 +256,9 @@ fintype.of_finset (finset.range n) $ by simp
 instance fintype_le_nat (n : ℕ) : fintype {i | i ≤ n} :=
 by simpa [nat.lt_succ_iff] using set.fintype_lt_nat (n+1)
 
-instance nat.fintype_Iio (n : ℕ) : fintype (Iio n) :=
+/-- This is not an instance so that it does not conflict with the one
+in src/order/locally_finite. -/
+def nat.fintype_Iio (n : ℕ) : fintype (Iio n) :=
 set.fintype_lt_nat n
 
 instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] : fintype (s ×ˢ t : set (α × β)) :=
@@ -294,7 +296,7 @@ section set_finite_constructors
 theorem finite.of_fintype [fintype α] (s : set α) : s.finite :=
 by { classical, apply finite.intro' }
 
-theorem finite.univ [fintype α] : (@univ α).finite := finite.intro' _
+theorem finite_univ [fintype α] : (@univ α).finite := finite.intro' _
 
 theorem finite.union {s t : set α} (hs : s.finite) (ht : t.finite) : (s ∪ t).finite :=
 by { classical, casesI hs, casesI ht, apply finite.intro' }
@@ -350,9 +352,9 @@ theorem finite.bind {α β} {s : set α} {f : α → set β} (h : s.finite) (hf 
   finite (s >>= f) :=
 h.bUnion hf
 
-@[simp] theorem finite.empty : (∅ : set α).finite := finite.intro' _
+@[simp] theorem finite_empty : (∅ : set α).finite := finite.intro' _
 
-@[simp] theorem finite.singleton (a : α) : ({a} : set α).finite := finite.intro' _
+@[simp] theorem finite_singleton (a : α) : ({a} : set α).finite := finite.intro' _
 
 theorem finite_pure (a : α) : (pure a : set α).finite := finite.intro' _
 
@@ -362,12 +364,12 @@ by { classical, casesI hs, apply finite.intro' }
 theorem finite.image {s : set α} (f : α → β) (hs : s.finite) : (f '' s).finite :=
 by { classical, casesI hs, apply finite.intro' }
 
-theorem finite.range (f : ι → α) [fintype (plift ι)] : (range f).finite :=
+theorem finite_range (f : ι → α) [fintype (plift ι)] : (range f).finite :=
 by { classical, apply finite.intro' }
 
 lemma finite.dependent_image {s : set α} (hs : s.finite) (F : Π i ∈ s, β) :
   finite {y : β | ∃ x (hx : x ∈ s), F x hx = y} :=
-by { casesI hs, simpa [range] using finite.range (λ x : s, F x x.2) }
+by { casesI hs, simpa [range] using finite_range (λ x : s, F x x.2) }
 
 theorem finite.map {α β} {s : set α} : ∀ (f : α → β), finite s → finite (f <$> s) :=
 finite.image
@@ -388,11 +390,9 @@ theorem finite.preimage {s : set β} {f : α → β}
 theorem finite.preimage_embedding {s : set β} (f : α ↪ β) (h : s.finite) : (f ⁻¹' s).finite :=
 h.preimage (λ _ _ _ _ h', f.injective h')
 
-lemma finite.lt_nat (n : ℕ) : finite {i | i < n} := finite.intro' _
+lemma finite_lt_nat (n : ℕ) : finite {i | i < n} := finite.intro' _
 
-lemma finite.le_nat (n : ℕ) : finite {i | i ≤ n} := finite.intro' _
-
-lemma finite.Iio (n : ℕ) : finite (Iio n) := finite.intro' _
+lemma finite_le_nat (n : ℕ) : finite {i | i ≤ n} := finite.intro' _
 
 lemma finite.prod {s : set α} {t : set β} (hs : s.finite) (ht : t.finite) : (s ×ˢ t : set (α × β)).finite :=
 by { classical, casesI hs, casesI ht, apply finite.intro' }
@@ -412,7 +412,7 @@ hf.seq hs
 theorem finite.mem_finset (s : finset α) : finite {a | a ∈ s} := finite.intro' _
 
 lemma subsingleton.finite {s : set α} (h : s.subsingleton) : finite s :=
-h.induction_on finite.empty finite.singleton
+h.induction_on finite_empty finite_singleton
 
 theorem exists_finite_iff_finset {p : set α → Prop} :
   (∃ s : set α, s.finite ∧ p s) ↔ ∃ s : finset α, p ↑s :=
@@ -446,14 +446,14 @@ lemma finite_range_ite {p : α → Prop} [decidable_pred p] {f g : α → β} (h
 (hf.union hg).subset range_ite_subset
 
 lemma finite_range_const {c : β} : finite (range (λ x : α, c)) :=
-(finite.singleton c).subset range_const_subset
+(finite_singleton c).subset range_const_subset
 
 end set_finite_constructors
 
 
 /-! ### Properties -/
 
-instance finite.inhabited : inhabited {s : set α // s.finite} := ⟨⟨∅, finite.empty⟩⟩
+instance finite.inhabited : inhabited {s : set α // s.finite} := ⟨⟨∅, finite_empty⟩⟩
 
 @[simp] lemma finite_union {s t : set α} : finite (s ∪ t) ↔ finite s ∧ finite t :=
 ⟨λ h, ⟨h.subset (subset_union_left _ _), h.subset (subset_union_right _ _)⟩,
@@ -465,7 +465,7 @@ theorem finite_image_iff {s : set α} {f : α → β} (hi : inj_on f s) :
 
 lemma univ_finite_iff_nonempty_fintype :
   (univ : set α).finite ↔ nonempty (fintype α) :=
-⟨λ h, ⟨fintype_of_finite_univ h⟩, λ ⟨_i⟩, by exactI finite.univ⟩
+⟨λ h, ⟨fintype_of_finite_univ h⟩, λ ⟨_i⟩, by exactI finite_univ⟩
 
 lemma finite.fin_embedding {s : set α} (h : finite s) : ∃ (n : ℕ) (f : fin n ↪ α), range f = s :=
 ⟨_, (fintype.equiv_fin (h.to_finset : set α)).symm.as_embedding, by simp⟩
@@ -493,7 +493,7 @@ lemma finite_subset_Union {s : set α} (hs : finite s)
 begin
   casesI hs,
   choose f hf using show ∀ x : s, ∃ i, x.1 ∈ t i, {simpa [subset_def] using h},
-  refine ⟨range f, finite.range f, λ x hx, _⟩,
+  refine ⟨range f, finite_range f, λ x hx, _⟩,
   rw [bUnion_range, mem_Union],
   exact ⟨⟨x, hx⟩, hf _⟩
 end
@@ -537,12 +537,15 @@ end
 
 @[elab_as_eliminator]
 theorem finite.dinduction_on {C : ∀s:set α, finite s → Prop} {s : set α} (h : finite s)
-  (H0 : C ∅ finite.empty)
+  (H0 : C ∅ finite_empty)
   (H1 : ∀ {a s}, a ∉ s → ∀ h : finite s, C s h → C (insert a s) (h.insert a)) :
   C s h :=
 have ∀ h : finite s, C s h,
   from finite.induction_on h (λ h, H0) (λ a s has hs ih h, H1 has hs (ih _)),
 this h
+
+section
+local attribute [instance] nat.fintype_Iio
 
 /--
 If `P` is some relation between terms of `γ` and sets in `γ`,
@@ -558,7 +561,7 @@ lemma seq_of_forall_finite_exists  {γ : Type*}
   ∃ u : ℕ → γ, ∀ n, P (u n) (u '' Iio n) :=
 ⟨λ n, @nat.strong_rec_on' (λ _, γ) n $ λ n ih, classical.some $ h
     (range $ λ m : Iio n, ih m.1 m.2)
-    (finite.range _),
+    (finite_range _),
 λ n, begin
   classical,
   refine nat.strong_rec_on' n (λ n ih, _),
@@ -568,6 +571,7 @@ lemma seq_of_forall_finite_exists  {γ : Type*}
   { rintros ⟨⟨m, hmn⟩, rfl⟩, exact ⟨m, hmn, rfl⟩ }
 end⟩
 
+end
 
 /-! ### More `set.to_finset` properties -/
 
@@ -697,7 +701,7 @@ end
 /-! ### Infinite sets -/
 
 theorem infinite_univ_iff : (@univ α).infinite ↔ infinite α :=
-⟨λ h₁, ⟨λ h₂, h₁ $ @finite.univ α h₂⟩, λ ⟨h₁⟩ h₂, h₁ (fintype_of_finite_univ h₂)⟩
+⟨λ h₁, ⟨λ h₂, h₁ $ @finite_univ α h₂⟩, λ ⟨h₁⟩ h₂, h₁ (fintype_of_finite_univ h₂)⟩
 
 theorem infinite_univ [h : infinite α] : (@univ α).infinite :=
 infinite_univ_iff.2 h
@@ -763,7 +767,7 @@ theorem infinite_of_injective_forall_mem [infinite α] {s : set β} {f : α → 
 by { rw ←range_subset_iff at hf, exact (infinite_range_of_injective hi).mono hf }
 
 lemma infinite.exists_nat_lt {s : set ℕ} (hs : s.infinite) (n : ℕ) : ∃ m ∈ s, n < m :=
-let ⟨m, hm⟩ := (hs.diff $ set.finite.le_nat n).nonempty in ⟨m, by simpa using hm⟩
+let ⟨m, hm⟩ := (hs.diff $ set.finite_le_nat n).nonempty in ⟨m, by simpa using hm⟩
 
 lemma infinite.exists_not_mem_finset {s : set α} (hs : s.infinite) (f : finset α) :
   ∃ a ∈ s, a ∉ f :=

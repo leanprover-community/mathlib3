@@ -7,7 +7,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Fréd�
 import algebra.big_operators.pi
 import algebra.module.hom
 import algebra.module.prod
-import algebra.module.submodule_lattice
+import algebra.module.submodule.lattice
 import data.dfinsupp.basic
 import data.finsupp.basic
 import order.compactly_generated

@@ -535,7 +535,7 @@ linear_map.to_add_monoid_hom_injective $ add_hom_ext $ λ n, linear_map.congr_fu
 lemma eq_zero_of_eq_zero (h : (0 : R) = (1 : R)) (p : R[X]) : p = 0 :=
 by rw [←one_smul R p, ←h, zero_smul]
 
-lemma support_monomial (n) (a : R) (H : a ≠ 0) : (monomial n a).support = singleton n :=
+lemma support_monomial (n) {a : R} (H : a ≠ 0) : (monomial n a).support = singleton n :=
 by rw [←of_finsupp_single, support, finsupp.support_single_ne_zero H]
 
 lemma support_monomial' (n) (a : R) : (monomial n a).support ⊆ singleton n :=
@@ -555,7 +555,7 @@ calc monomial n a = monomial n (a * 1) : by simp
 
 lemma support_X_pow (H : ¬ (1:R) = 0) (n : ℕ) : (X^n : R[X]).support = singleton n :=
 begin
-  convert support_monomial n 1 H,
+  convert support_monomial n H,
   exact X_pow_eq_monomial n,
 end
 

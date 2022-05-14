@@ -47,7 +47,7 @@ It turns out to be quite convenient to define various relations on top of these.
 or fuzzy relation `x ⧏ y` as `¬ y ≤ x`, the equivalence relation `x ≈ y` as `x ≤ y ∧ y ≤ x`, and
 the fuzzy relation `x ∥ y` as `x ⧏ y ∧ y ⧏ x`. If `0 ⧏ x`, then `x` can be won by Left as the
 first player. If `x ≈ 0`, then `x` can be won by the second player. If `x ∥ 0`, then `x` can be won
-by the the first player.
+by the first player.
 
 Statements like `zero_le`, `zero_lf`, etc. unfold these definitions. The theorems `le_def` and
 `lf_def` give a recursive characterisation of each relation in terms of

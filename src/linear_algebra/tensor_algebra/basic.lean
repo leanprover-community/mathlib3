@@ -6,6 +6,7 @@ Authors: Adam Topaz
 import algebra.free_algebra
 import algebra.ring_quot
 import algebra.triv_sq_zero_ext
+import algebra.algebra.operations
 
 /-!
 # Tensor Algebras

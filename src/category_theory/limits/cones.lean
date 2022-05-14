@@ -670,7 +670,6 @@ The category of cocones on `F`
 is equivalent to the opposite category of
 the category of cones on the opposite of `F`.
 -/
-@[simps]
 def cocone_equivalence_op_cone_op : cocone F ≌ (cone F.op)ᵒᵖ :=
 { functor :=
   { obj := λ c, op (cocone.op c),
@@ -688,6 +687,8 @@ def cocone_equivalence_op_cone_op : cocone F ≌ (cone F.op)ᵒᵖ :=
          dsimp, apply iso.op, exact cones.ext (iso.refl _) (by tidy), })
     (λ X Y f, quiver.hom.unop_inj (cone_morphism.ext _ _ (by { dsimp, simp }))),
   functor_unit_iso_comp' := λ c, begin apply quiver.hom.unop_inj, ext, dsimp, simp, end }
+
+attribute [simps] cocone_equivalence_op_cone_op
 
 end
 

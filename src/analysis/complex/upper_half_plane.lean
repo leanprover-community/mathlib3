@@ -35,12 +35,14 @@ local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 
 /-- The open upper half plane -/
-abbreviation upper_half_plane :=
-{point : ℂ // 0 < point.im}
+@[derive [topological_space, λ α, has_coe α ℂ]]
+def upper_half_plane := {point : ℂ // 0 < point.im}
 
 localized "notation `ℍ` := upper_half_plane" in upper_half_plane
 
 namespace upper_half_plane
+
+instance : inhabited ℍ := ⟨⟨complex.I, by simp⟩⟩
 
 /-- Imaginary part -/
 def im (z : ℍ) := (z : ℂ).im
@@ -155,6 +157,15 @@ begin
   field_simp [denom_ne_zero, -denom, -num],
   simp,
   ring,
+end
+
+lemma c_mul_im_sq_le_norm_sq_denom (z : ℍ) (g : SL(2, ℝ)) :
+  ((↑ₘg 1 0 : ℝ) * (z.im))^2 ≤ complex.norm_sq (denom g z) :=
+begin
+  let c := (↑ₘg 1 0 : ℝ),
+  let d := (↑ₘg 1 1 : ℝ),
+  calc (c * z.im)^2 ≤ (c * z.im)^2 + (c * z.re + d)^2 : by nlinarith
+                ... = complex.norm_sq (denom g z) : by simp [complex.norm_sq]; ring,
 end
 
 end upper_half_plane

@@ -15,7 +15,7 @@ We define the natural- and integer-valued floor and ceil functions on linearly o
 
 ## Main Definitions
 
-* `floor_semiring`: A linearly ordered semiring with natural-valued floor and ceil.
+* `floor_semiring`: An ordered semiring with natural-valued floor and ceil.
 * `nat.floor a`: Greatest natural `n` such that `n ≤ a`. Equal to `0` if `a < 0`.
 * `nat.ceil a`: Least natural `n` such that `a ≤ n`.
 
@@ -51,8 +51,9 @@ variables {α : Type*}
 
 /-! ### Floor semiring -/
 
-/-- A `floor_semiring` is a linear ordered semiring over `α` with a function
-`floor : α → ℕ` satisfying `∀ (n : ℕ) (x : α), n ≤ ⌊x⌋ ↔ (n : α) ≤ x)`. -/
+/-- A `floor_semiring` is an ordered semiring over `α` with a function
+`floor : α → ℕ` satisfying `∀ (n : ℕ) (x : α), n ≤ ⌊x⌋ ↔ (n : α) ≤ x)`.
+Note that many lemmas require a `linear_order`. Please see the above `TODO`. -/
 class floor_semiring (α) [ordered_semiring α] :=
 (floor : α → ℕ)
 (ceil : α → ℕ)
@@ -78,6 +79,9 @@ def floor : α → ℕ := floor_semiring.floor
 /-- `⌈a⌉₊` is the least natural `n` such that `a ≤ n` -/
 def ceil : α → ℕ := floor_semiring.ceil
 
+@[simp] lemma floor_nat : (nat.floor : ℕ → ℕ) = id := rfl
+@[simp] lemma ceil_nat : (nat.ceil : ℕ → ℕ) = id := rfl
+
 notation `⌊` a `⌋₊` := nat.floor a
 notation `⌈` a `⌉₊` := nat.ceil a
 
@@ -92,7 +96,7 @@ lemma le_floor (h : (n : α) ≤ a) : n ≤ ⌊a⌋₊ := (le_floor_iff $ n.cast
 
 lemma floor_lt (ha : 0 ≤ a) : ⌊a⌋₊ < n ↔ a < n := lt_iff_lt_of_le_iff_le $ le_floor_iff ha
 
-lemma lt_of_floor_lt (h : ⌊a⌋₊ < n) : a < n := lt_of_not_ge' $ λ h', (le_floor h').not_lt h
+lemma lt_of_floor_lt (h : ⌊a⌋₊ < n) : a < n := lt_of_not_le $ λ h', (le_floor h').not_lt h
 
 lemma floor_le (ha : 0 ≤ a) : (⌊a⌋₊ : α) ≤ a := (le_floor_iff ha).1 le_rfl
 
@@ -125,6 +129,9 @@ begin
       (not_le_of_lt $ ha.trans_lt $ cast_pos.2 $ nat.pos_of_ne_zero hn) },
   { exact le_floor_iff ha }
 end
+
+@[simp] lemma one_le_floor_iff (x : α) : 1 ≤ ⌊x⌋₊ ↔ 1 ≤ x :=
+by exact_mod_cast (@le_floor_iff' α _ _ x 1 one_ne_zero)
 
 lemma floor_lt' (hn : n ≠ 0) : ⌊a⌋₊ < n ↔ a < n := lt_iff_lt_of_le_iff_le $ le_floor_iff' hn
 
@@ -378,6 +385,10 @@ def ceil : α → ℤ := floor_ring.ceil
 
 /-- `int.fract a`, the fractional part of `a`, is `a` minus its floor. -/
 def fract (a : α) : α := a - floor a
+
+@[simp] lemma floor_int : (int.floor : ℤ → ℤ) = id := rfl
+@[simp] lemma ceil_int : (int.ceil : ℤ → ℤ) = id := rfl
+@[simp] lemma fract_int : (int.fract : ℤ → ℤ) = 0 := funext $ λ x, by simp [fract]
 
 notation `⌊` a `⌋` := int.floor a
 notation `⌈` a `⌉` := int.ceil a
@@ -684,6 +695,9 @@ instance _root_.floor_ring.to_floor_semiring : floor_semiring α :=
 lemma int.floor_to_nat (a : α) : ⌊a⌋.to_nat = ⌊a⌋₊ := rfl
 
 lemma int.ceil_to_nat  (a : α) : ⌈a⌉.to_nat = ⌈a⌉₊ := rfl
+
+@[simp] lemma nat.floor_int : (nat.floor : ℤ → ℕ) = int.to_nat := rfl
+@[simp] lemma nat.ceil_int : (nat.ceil : ℤ → ℕ) = int.to_nat := rfl
 
 variables {a : α}
 

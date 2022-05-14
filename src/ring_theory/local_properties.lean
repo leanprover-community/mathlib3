@@ -3,8 +3,8 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import data.equiv.transfer_instance
 import group_theory.submonoid.pointwise
+import logic.equiv.transfer_instance
 import ring_theory.finiteness
 import ring_theory.localization.at_prime
 import ring_theory.localization.away
@@ -484,7 +484,7 @@ begin
     (submonoid.map (algebra_map R S : R →* S) M) s : set S)).smul_mem hx' a using 1,
   convert ha₂.symm,
   { rw [mul_comm (y' ^ n • x), subtype.coe_mk, submonoid.smul_def, submonoid.coe_mul, ← smul_smul,
-    algebra.smul_def, submonoid.coe_pow], refl },
+        algebra.smul_def, submonoid_class.coe_pow], refl },
   { rw mul_comm, exact algebra.smul_def _ _ }
 end
 

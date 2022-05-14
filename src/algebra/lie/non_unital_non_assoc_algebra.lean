@@ -3,8 +3,8 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
+import algebra.hom.non_unital_alg
 import algebra.lie.basic
-import algebra.non_unital_alg_hom
 
 /-!
 # Lie algebras as non-unital, non-associative algebras
@@ -66,14 +66,14 @@ variables {R L} {L₂ : Type w} [lie_ring L₂] [lie_algebra R L₂]
 /-- Regarding the `lie_ring` of a `lie_algebra` as a `non_unital_non_assoc_semiring`, we can
 regard a `lie_hom` as a `non_unital_alg_hom`. -/
 @[simps]
-def to_non_unital_alg_hom (f : L →ₗ⁅R⁆ L₂) : non_unital_alg_hom R L L₂ :=
+def to_non_unital_alg_hom (f : L →ₗ⁅R⁆ L₂) : L →ₙₐ[R] L₂ :=
 { to_fun := f,
   map_zero' := f.map_zero,
   map_mul'  := f.map_lie,
   ..f }
 
 lemma to_non_unital_alg_hom_injective :
-  function.injective (to_non_unital_alg_hom : _ → non_unital_alg_hom R L L₂) :=
+  function.injective (to_non_unital_alg_hom : _ → (L →ₙₐ[R] L₂)) :=
 λ f g h, ext $ non_unital_alg_hom.congr_fun h
 
 end lie_hom

@@ -566,12 +566,13 @@ do
       (a, e', pr) ← ext_simplify_core a {}
         simp_lemmas.mk (λ _, failed) (λ a _ _ _ e, do
           write_ref atoms a,
+          (new_e, pr) ← eval' red atoms e,
           (new_e, pr) ← match mode with
-          | normalize_mode.raw := eval' red atoms
-          | normalize_mode.horner := trans_conv (eval' red atoms)
-                                      (λ e, do (e', prf, _) ← simplify lemmas [] e, pure (e', prf))
+          | normalize_mode.raw := λ _, pure (new_e, pr)
+          | normalize_mode.horner := trans_conv (λ _, pure (new_e, pr))
+            (λ e, do (e', prf, _) ← simplify lemmas [] e, pure (e', prf))
           | normalize_mode.SOP :=
-            trans_conv (eval' red atoms) $
+            trans_conv (λ _, pure (new_e, pr)) $
             trans_conv (λ e, do (e', prf, _) ← simplify lemmas [] e, pure (e', prf)) $
             simp_bottom_up' (λ e, norm_num.derive e <|> pow_lemma.rewrite e)
           end e,

@@ -379,7 +379,7 @@ end
 
 @[simp] lemma lie_module.is_nilpotent_of_top_iff :
   is_nilpotent R (⊤ : lie_subalgebra R L) M ↔ is_nilpotent R L M :=
-equiv.lie_module_is_nilpotent_iff lie_subalgebra.top_equiv_self (1 : M ≃ₗ[R] M) (λ x m, rfl)
+equiv.lie_module_is_nilpotent_iff lie_subalgebra.top_equiv (1 : M ≃ₗ[R] M) (λ x m, rfl)
 
 end morphisms
 
@@ -544,7 +544,7 @@ begin
 end
 
 instance [h : lie_algebra.is_nilpotent R L] : lie_algebra.is_nilpotent R (⊤ : lie_subalgebra R L) :=
-lie_subalgebra.top_equiv_self.nilpotent_iff_equiv_nilpotent.mpr h
+lie_subalgebra.top_equiv.nilpotent_iff_equiv_nilpotent.mpr h
 
 end nilpotent_algebras
 

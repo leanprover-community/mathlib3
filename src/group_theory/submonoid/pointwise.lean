@@ -112,20 +112,58 @@ end submonoid
 
 namespace submonoid
 
-variables [comm_group G] {N : Type*} [comm_monoid N]
+section monoid
+
+open_locale pointwise
+
+variables [comm_monoid G]
 
 /-- The submonoid of powers of a natural number of a commutative submonoid.
 
 This is available as an instance in the `pointwise` locale. -/
-protected def pointwise_has_pow : has_pow (submonoid N) ℕ := ⟨λ S n, S.map $ pow_monoid_hom n⟩
+protected def pointwise_has_pow : has_pow (submonoid G) ℕ :=
+{ pow := λ S n,
+  { carrier  := (S : set G) ^ n,
+    one_mem' := by { rw [← one_pow n], exact set.pow_mem_pow S.one_mem n },
+    mul_mem' :=
+    begin
+      induction n with _ hn,
+      { intros _ _ ha hb,
+        rw [pow_zero, set.mem_one] at *,
+        rw [ha, hb, one_mul] },
+      { rintro _ _ ⟨a1, a2, ha1, ha2, rfl⟩ ⟨b1, b2, hb1, hb2, rfl⟩,
+        exact ⟨a1 * b1, a2 * b2, S.mul_mem ha1 hb1, hn ha2 hb2,
+               by rw [← mul_assoc, ← mul_assoc, mul_assoc a1, mul_comm b1, ← mul_assoc]⟩ },
+    end } }
+
+localized "attribute [instance] submonoid.pointwise_has_pow" in pointwise
+
+@[simp] lemma coe_pointwise_pow (S : submonoid G) (n : ℕ) : ↑(S ^ n) = (S : set G) ^ n := rfl
+
+lemma pow_mem_pointwise_pow {g : G} {S : submonoid G} {n : ℕ} : g ∈ S → g ^ n ∈ S ^ n :=
+λ hg, set.pow_mem_pow hg n
+
+@[simp] lemma pointwise_pow_le_pointwise_pow_iff {S T : submonoid G} {n : ℕ} :
+  S ≤ T → S ^ n ≤ T ^ n :=
+λ h, set.pow_subset_pow h n
+
+end monoid
+
+section group
+
+open_locale pointwise
+
+variables [comm_group G]
 
 /-- The submonoid of powers of an integer of a commutative subgroup.
 
 This is available as an instance in the `pointwise` locale. -/
-protected def pointwise_has_zpow : has_pow (submonoid G) ℤ := ⟨λ S n, S.map $ zpow_group_hom n⟩
+protected def pointwise_has_zpow : has_pow (submonoid G) ℤ :=
+{ pow := λ S n, if n < 0 then S⁻¹ ^ int.to_nat (-n) else S ^ int.to_nat n }
 
-localized "attribute [instance] submonoid.pointwise_has_pow submonoid.pointwise_has_zpow"
-  in pointwise
+localized "attribute [instance] submonoid.pointwise_has_zpow" in pointwise
+
+end group
 
 end submonoid
 
@@ -151,7 +189,7 @@ open_locale pointwise
 lemma smul_mem_pointwise_smul (m : M) (a : α) (S : submonoid M) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set M))
 
-lemma mem_smul_pointwise_iff_exists (m : M) (a : α) (S : submonoid M) :
+lemma mem_pointwise_smul_iff_exists (m : M) (a : α) (S : submonoid M) :
   m ∈ a • S ↔ ∃ (s : M), s ∈ S ∧ a • s = m :=
 (set.mem_smul_set : m ∈ a • (S : set M) ↔ _)
 
@@ -181,10 +219,10 @@ mem_inv_smul_set_iff
   a • S ≤ a • T ↔ S ≤ T :=
 set_smul_subset_set_smul_iff
 
-lemma pointwise_smul_subset_iff {a : α} {S T : submonoid M} : a • S ≤ T ↔ S ≤ a⁻¹ • T :=
+lemma pointwise_smul_le_iff {a : α} {S T : submonoid M} : a • S ≤ T ↔ S ≤ a⁻¹ • T :=
 set_smul_subset_iff
 
-lemma subset_pointwise_smul_iff {a : α} {S T : submonoid M} : S ≤ a • T ↔ a⁻¹ • S ≤ T :=
+lemma le_pointwise_smul_iff {a : α} {S T : submonoid M} : S ≤ a • T ↔ a⁻¹ • S ≤ T :=
 subset_set_smul_iff
 
 end group
@@ -266,7 +304,7 @@ lemma mem_pointwise_smul_iff_inv_smul_mem {a : α} {S : add_submonoid A} {x : A}
   x ∈ a • S ↔ a⁻¹ • x ∈ S :=
 mem_smul_set_iff_inv_smul_mem
 
-lemma mem_smul_pointwise_iff_exists (m : A) (a : α) (S : add_submonoid A) :
+lemma mem_pointwise_smul_iff_exists (m : A) (a : α) (S : add_submonoid A) :
   m ∈ a • S ↔ ∃ (s : A), s ∈ S ∧ a • s = m :=
 (set.mem_smul_set : m ∈ a • (S : set A) ↔ _)
 

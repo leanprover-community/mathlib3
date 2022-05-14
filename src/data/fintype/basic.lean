@@ -670,13 +670,52 @@ by simp [finset.subset_iff, set.subset_def]
   s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
 by simp only [finset.ssubset_def, to_finset_mono, ssubset_def]
 
+lemma subset_iff_to_finset_subset (s t : set α) [fintype s] [fintype t] :
+  s ⊆ t ↔ s.to_finset ⊆ t.to_finset :=
+by simp only [to_finset_mono]
+
 @[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
 by simp only [disjoint_iff_disjoint_coe, coe_to_finset]
 
+lemma to_finset_inter {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∩ t : set α)]
+  [fintype s] [fintype t] : (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
+by { ext, simp }
+
+lemma to_finset_union {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∪ t : set α)]
+  [fintype s] [fintype t] : (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
+by { ext, simp }
+
+lemma to_finset_diff {α : Type*} [decidable_eq α] (s t : set α) [fintype s] [fintype t]
+  [fintype (s \ t : set α)] : (s \ t).to_finset = s.to_finset \ t.to_finset :=
+by { ext, simp }
+
+lemma to_finset_ne_eq_erase {α : Type*} [decidable_eq α] [fintype α] (a : α)
+  [fintype {x : α | x ≠ a}] : {x : α | x ≠ a}.to_finset = finset.univ.erase a :=
+by { ext, simp }
+
 theorem to_finset_compl [decidable_eq α] [fintype α] (s : set α) [fintype s] [fintype ↥sᶜ] :
   (sᶜ).to_finset = s.to_finsetᶜ :=
-by { ext a, simp }
+by { ext, simp }
+
+/- TODO Without the coercion arrow (`↥`) there is an elaboration bug;
+it essentially infers `fintype.{v} (set.univ.{u} : set α)` with `v` and `u` distinct.
+Reported in leanprover-community/lean#672 -/
+@[simp] lemma to_finset_univ [fintype ↥(set.univ : set α)] [fintype α] :
+  (set.univ : set α).to_finset = finset.univ :=
+by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
+
+@[simp] lemma to_finset_range [decidable_eq α] [fintype β] (f : β → α) [fintype (set.range f)] :
+  (set.range f).to_finset = finset.univ.image f :=
+by { ext, simp }
+
+lemma to_finset_singleton (a : α) [fintype ↥({a} : set α)] : ({a} : set α).to_finset = {a} :=
+by { ext, simp }
+
+@[simp] lemma to_finset_insert [decidable_eq α] {a : α} {s : set α}
+  [fintype ↥(insert a s : set α)] [fintype s] :
+  (insert a s).to_finset = insert a s.to_finset :=
+by { ext, simp }
 
 lemma filter_mem_univ_eq_to_finset [fintype α] (s : set α) [fintype s] [decidable_pred (∈ s)] :
   finset.univ.filter (∈ s) = s.to_finset :=
@@ -1170,22 +1209,11 @@ instance Prop.fintype : fintype Prop :=
 instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
 fintype.subtype (univ.filter p) (by simp)
 
-/- TODO Without the coercion arrow (`↥`) there is an elaboration bug;
-it essentially infers `fintype.{v} (set.univ.{u} : set α)` with `v` and `u` distinct.
-Reported in leanprover-community/lean#672 -/
-@[simp] lemma set.to_finset_univ [fintype ↥(set.univ : set α)] [fintype α] :
-  (set.univ : set α).to_finset = finset.univ :=
-by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
-
 @[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] : s.to_finset = ∅ ↔ s = ∅ :=
-by simp [ext_iff, set.ext_iff]
+by { simp only [ext_iff, set.ext_iff, set.mem_to_finset, not_mem_empty, set.mem_empty_eq]}
 
 @[simp] lemma set.to_finset_empty : (∅ : set α).to_finset = ∅ :=
 set.to_finset_eq_empty_iff.mpr rfl
-
-@[simp] lemma set.to_finset_range [decidable_eq α] [fintype β] (f : β → α) [fintype (set.range f)] :
-  (set.range f).to_finset = finset.univ.image f :=
-by simp [ext_iff]
 
 /-- A set on a fintype, when coerced to a type, is a fintype. -/
 def set_fintype [fintype α] (s : set α) [decidable_pred (∈ s)] : fintype s :=

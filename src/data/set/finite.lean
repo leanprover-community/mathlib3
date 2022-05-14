@@ -575,23 +575,9 @@ end⟩
 
 end
 
-/-! ### More `set.to_finset` properties -/
+/-! ### More `set.finite.to_finset` properties -/
 
-lemma to_finset_insert [decidable_eq α] {a : α} {s : set α} (hs : finite s) :
-  (hs.insert a).to_finset = insert a hs.to_finset :=
-finset.ext $ by simp
-
-@[simp] lemma insert_to_finset [decidable_eq α] {a : α} {s : set α} [fintype s] :
-  (insert a s).to_finset = insert a s.to_finset :=
-by simp [finset.ext_iff, mem_insert_iff]
-
-lemma to_finset_singleton (a : α) : ({a} : set α).to_finset = {a} := rfl
-
-lemma subset_iff_to_finset_subset (s t : set α) [fintype s] [fintype t] :
-  s ⊆ t ↔ s.to_finset ⊆ t.to_finset :=
-by simp
-
-@[simp, mono] lemma finite.to_finset_mono {s t : set α} {hs : finite s} {ht : finite t} :
+@[simp, mono] lemma finite.to_finset_mono {s t : set α} {hs : s.finite} {ht : t.finite} :
   hs.to_finset ⊆ ht.to_finset ↔ s ⊆ t :=
 begin
   split,
@@ -603,28 +589,16 @@ begin
     exact λ hx, h hx }
 end
 
-@[simp, mono] lemma finite.to_finset_strict_mono {s t : set α} {hs : finite s} {ht : finite t} :
+@[simp, mono] lemma finite.to_finset_strict_mono {s t : set α} {hs : s.finite} {ht : t.finite} :
   hs.to_finset ⊂ ht.to_finset ↔ s ⊂ t :=
 begin
   rw [←lt_eq_ssubset, ←finset.lt_iff_ssubset, lt_iff_le_and_ne, lt_iff_le_and_ne],
   simp
 end
 
-lemma to_finset_inter {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∩ t : set α)]
-  [fintype s] [fintype t] : (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
-by ext; simp
-
-lemma to_finset_union {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∪ t : set α)]
-  [fintype s] [fintype t] : (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
-by ext; simp
-
-lemma to_finset_diff {α : Type*} [decidable_eq α] (s t : set α) [fintype s] [fintype t]
-  [fintype (s \ t : set α)] : (s \ t).to_finset = s.to_finset \ t.to_finset :=
-by ext; simp
-
-lemma to_finset_ne_eq_erase {α : Type*} [decidable_eq α] [fintype α] (a : α)
-  [fintype {x : α | x ≠ a}] : {x : α | x ≠ a}.to_finset = finset.univ.erase a :=
-by ext; simp
+lemma finite.to_finset_insert [decidable_eq α] {a : α} {s : set α} (hs : s.finite) :
+  (hs.insert a).to_finset = insert a hs.to_finset :=
+finset.ext $ by simp
 
 
 /-! ### Cardinality -/

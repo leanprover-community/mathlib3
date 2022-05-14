@@ -5,6 +5,19 @@ import category_theory.preadditive.schur
 import category_theory.subobject.lattice
 import category_theory.noetherian
 
+/-!
+# Semisimple objects
+
+We prove the fundamental result about semisimple objects
+in a preadditive category with biproducts and kernels,
+namely that the following conditions on `X` are equivalent:
+* `X` is a direct sum of simple objects
+* every subobject of `X` is complemented.
+
+These then give the definition of a semisimple object.
+
+-/
+
 open category_theory
 open category_theory.limits
 
@@ -15,10 +28,6 @@ open_locale classical big_operators
 
 variables {C : Type u} [category.{v} C] [preadditive C]
 variables [has_binary_biproducts C] [has_kernels C]
-
--- def W' {W V V' : C} (i : W ⟶ V ⊞ V') [mono i] (j : V ⟶ W) [mono j] (w : j ≫ i = biprod.inl) :
---   C :=
--- kernel (i ≫ biprod.fst)
 
 variables {ι : Type v} [decidable_eq ι] [fintype ι]
 
@@ -53,16 +62,22 @@ by { split_ifs; refl }
   (if P then f else f') ≫ g = (if P then f ≫ g else f' ≫ g) :=
 by { split_ifs; refl }
 
-lemma ite_dite {P Q : Prop} [decidable P] [decidable Q] {α : Type*} (a : α) (b : Q → α) (c : ¬Q → α) :
+
+lemma ite_then_dite {P Q : Prop} [decidable P] [decidable Q] {α : Type*} (a : α) (b : Q → α) (c : ¬Q → α) :
+  (if P then (if h : Q then b h else c h) else a) = if h : Q then (if P then b h else a) else (if P then c h else a) :=
+by split_ifs; refl
+
+lemma ite_else_dite {P Q : Prop} [decidable P] [decidable Q] {α : Type*} (a : α) (b : Q → α) (c : ¬Q → α) :
   (if P then a else (if h : Q then b h else c h)) = if h : Q then (if P then a else b h) else (if P then a else c h) :=
-sorry
+by split_ifs; refl
+
 
 @[simp, reassoc] lemma aux_π (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
   (V : subobject (⨁ f)) [simple (V : C)] (i : ι) [is_iso (V.arrow ≫ biproduct.π _ i)] (j) :
   aux f V i ≫ biproduct.π f j = if j = i then 0 else biproduct.π _ i ≫ inv (V.arrow ≫ biproduct.π _ i) ≫ V.arrow ≫ biproduct.π f j :=
 begin
   simp_rw [aux, preadditive.sum_comp, ite_comp, category.assoc, zero_comp, biproduct.ι_π, comp_dite,
-    comp_zero, ite_dite, if_t_t, finset.sum_dite_eq', finset.mem_univ, if_true, eq_to_hom_refl,
+    comp_zero, ite_else_dite, if_t_t, finset.sum_dite_eq', finset.mem_univ, if_true, eq_to_hom_refl,
     category.comp_id],
 end
 
@@ -142,35 +157,49 @@ lemma subobject_of_semisimple [noetherian C] (f : ι → C) [has_finite_biproduc
       biprod.snd ≫ W'.arrow ≫ biproduct.from_subtype _ _) :=
 subobject_of_semisimple' f W sorry
 
-def biproduct.π_le {p q : set ι} [decidable_pred (∈p)] [decidable_pred (∈q)] (h : p ⊆ q) (f : ι → C) [has_finite_biproducts C] :
+def biproduct.π_le {p q : set ι} (h : p ⊆ q) (f : ι → C) [has_finite_biproducts C] :
   (⨁ (λ i : q, f i)) ⟶ (⨁ (λ i : p, f i)) :=
 biproduct.lift (λ i, biproduct.π _ (⟨i.1, h i.2⟩ : q))
 
-def biproduct.ι_le {p q : set ι} [decidable_pred (∈p)] [decidable_pred (∈q)] (h : p ⊆ q) (f : ι → C) [has_finite_biproducts C] :
+@[simp] lemma biproduct.π_le_π {p q : set ι} (h : p ⊆ q) (f : ι → C) [has_finite_biproducts C] (j : p) :
+  biproduct.π_le h f ≫ biproduct.π (λ i : p, f i) j = biproduct.π (λ i : q, f i) ⟨j.1, h j.2⟩ :=
+by { simp [biproduct.π_le], }
+
+def biproduct.ι_le {p q : set ι} (h : p ⊆ q) (f : ι → C) [has_finite_biproducts C] :
   (⨁ (λ i : p, f i)) ⟶ (⨁ (λ i : q, f i)) :=
 biproduct.desc (λ i, biproduct.ι (λ (i : q), f i) (⟨i.1, h i.2⟩ : q))
 
-instance fsdf {ι : Type*} [decidable_eq ι] (p : set ι) [decidable_pred (∈p)] (i : ι) : decidable_pred (∈(insert i p)) := sorry
-
 @[simps]
-def biproduct.select (p : set ι) [decidable_pred (∈p)] (i : ι) (h : i ∉ p) (f : ι → C) [has_finite_biproducts C] :
+def biproduct.select (p : set ι) (i : ι) (h : i ∉ p) (f : ι → C) [has_finite_biproducts C] :
   ⨁ (λ j : insert i p, f j) ≅ f i ⊞ (⨁ (λ j : p, f j)) :=
 { hom := begin
     apply biprod.lift,
     exact biproduct.π _ (⟨i, set.mem_insert i p⟩ : insert i p),
     apply biproduct.π_le,
     exact set.subset_insert i p,
-end,
- inv := begin
-   apply biprod.desc,
+  end,
+  inv := begin
+    apply biprod.desc,
     exact biproduct.ι (λ (j : (insert i p)), f j) (⟨i, set.mem_insert i p⟩ : insert i p),
     apply biproduct.ι_le,
     exact set.subset_insert i p,
- end,
- hom_inv_id' := sorry,
- inv_hom_id' := sorry, }
+  end,
+  hom_inv_id' := begin
+    simp only [biprod.lift_desc],
+    ext ⟨j, rfl|jm⟩ ⟨k, rfl|km⟩,
+    { dsimp, simp,
+      erw [biproduct.ι_π_self, biproduct.ι_π_self_assoc],
+      dsimp,
+      simp, },
+    sorry,
+    sorry,
+    sorry,
+  end ,
+  inv_hom_id' := begin
+    ext; simp,
+  end, }
 
-def biproduct.reindex {β γ : Type v} [fintype β] [decidable_eq β] [fintype γ] [decidable_eq γ] (ε : β ≃ γ) (f : γ → C) [has_biproduct f] [has_biproduct (f ∘ ε)] :
+def biproduct.reindex {β γ : Type v} [fintype β] [fintype γ] (ε : β ≃ γ) (f : γ → C) [has_biproduct f] [has_biproduct (f ∘ ε)] :
   (⨁ (f ∘ ε)) ≅ (⨁ f) :=
 { hom := biproduct.desc (λ b, biproduct.ι f (ε b)),
   inv := biproduct.lift (λ b, biproduct.π f (ε b)),

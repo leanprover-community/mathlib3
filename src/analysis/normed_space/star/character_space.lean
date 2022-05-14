@@ -32,7 +32,7 @@ variables {𝕜 : Type*} {A : Type*}
 namespace weak_dual
 namespace character_space
 
-variables [nondiscrete_normed_field 𝕜] [proper_space 𝕜] [normed_ring A]
+variables [nondiscrete_normed_field 𝕜] [normed_ring A]
   [normed_algebra 𝕜 A] [complete_space A] [norm_one_class A]
 
 lemma norm_one (φ : character_space 𝕜 A) : ∥to_normed_dual (φ : weak_dual 𝕜 A)∥ = 1 :=
@@ -44,7 +44,7 @@ begin
     simpa only [norm_one, mul_one, map_one] using this },
 end
 
-instance : compact_space (character_space 𝕜 A) :=
+instance [proper_space 𝕜] : compact_space (character_space 𝕜 A) :=
 begin
   rw [←is_compact_iff_compact_space],
   have h : character_space 𝕜 A ⊆ to_normed_dual ⁻¹' metric.closed_ball 0 1,

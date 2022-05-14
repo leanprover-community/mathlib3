@@ -346,11 +346,8 @@ end
 theorem is_O.trans_is_o (hfg : is_O f g' l) (hgk : is_o g' k l) : is_o f k l :=
 let ⟨c, cpos, hc⟩ := hfg.exists_pos in hc.trans_is_o hgk cpos
 
-theorem is_o.trans (hfg : is_o f g l) (hgk : is_o g k' l) : is_o f k' l :=
-hfg.trans_is_O hgk.is_O
-
-theorem is_o.trans' (hfg : is_o f g' l) (hgk : is_o g' k l) : is_o f k l :=
-hfg.is_O.trans_is_o hgk
+theorem is_o.trans (hfg : is_o f g l) (hgk : is_o g k l) : is_o f k l :=
+hfg.trans_is_O_with hgk.is_O_with one_pos
 
 section
 

@@ -150,18 +150,25 @@ variables {F E}
   bot_equiv F E (algebra_map F (⊥ : intermediate_field F E) x) = x :=
 alg_equiv.commutes (bot_equiv F E) x
 
+@[simp] lemma bot_equiv_symm (x : F) :
+  (bot_equiv F E).symm x = algebra_map F _ x :=
+rfl
+
 noncomputable instance algebra_over_bot : algebra (⊥ : intermediate_field F E) F :=
 (intermediate_field.bot_equiv F E).to_alg_hom.to_ring_hom.to_algebra
+
+lemma coe_algebra_map_over_bot :
+  (algebra_map (⊥ : intermediate_field F E) F : (⊥ : intermediate_field F E) → F) =
+    (intermediate_field.bot_equiv F E) :=
+rfl
 
 instance is_scalar_tower_over_bot : is_scalar_tower (⊥ : intermediate_field F E) F E :=
 is_scalar_tower.of_algebra_map_eq
 begin
   intro x,
-  let ϕ := algebra.of_id F (⊥ : subalgebra F E),
-  let ψ := alg_equiv.of_bijective ϕ ((algebra.bot_equiv F E).symm.bijective),
-  change (↑x : E) = ↑(ψ (ψ.symm ⟨x, _⟩)),
-  rw alg_equiv.apply_symm_apply ψ ⟨x, _⟩,
-  refl
+  obtain ⟨y, rfl⟩ := (bot_equiv F E).symm.surjective x,
+  rw [coe_algebra_map_over_bot, (bot_equiv F E).apply_symm_apply, bot_equiv_symm,
+      is_scalar_tower.algebra_map_apply F (⊥ : intermediate_field F E) E]
 end
 
 /-- The top intermediate_field is isomorphic to the field.

@@ -79,7 +79,7 @@ begin
   introsI hG hH,
   rw impartial_def,
   split,
-  { apply equiv_trans _ (equiv_symm (neg_add_relabelling G H).equiv),
+  { apply equiv_trans _ (neg_add_relabelling G H).equiv.symm,
     exact add_congr (neg_equiv_self _) (neg_equiv_self _) },
   split,
   all_goals
@@ -99,7 +99,7 @@ begin
   rw impartial_def,
   refine ⟨_, λ i, _, λ i, _⟩,
   { rw neg_neg,
-    exact equiv_symm (neg_equiv_self G) },
+    exact (neg_equiv_self G).symm },
   { rw move_left_neg',
     apply impartial_neg },
   { rw move_right_neg',
@@ -140,34 +140,32 @@ lemma not_first_loses (G : pgame) [G.impartial] : ¬G.first_loses ↔ G.first_wi
 iff.symm $ iff_not_comm.1 $ iff.symm $ not_first_wins G
 
 lemma add_self (G : pgame) [G.impartial] : (G + G).first_loses :=
-first_loses_is_zero.2 $
-  equiv_trans (add_congr (neg_equiv_self G) (equiv_rfl)) (add_left_neg_equiv G)
+first_loses_is_zero.2 $ equiv_trans (add_congr_left (neg_equiv_self G)) (add_left_neg_equiv G)
 
 lemma equiv_iff_sum_first_loses (G H : pgame) [G.impartial] [H.impartial] :
   G ≈ H ↔ (G + H).first_loses :=
 begin
   split,
   { intro heq,
-    exact first_loses_of_equiv (add_congr equiv_rfl heq) (add_self G) },
+    exact first_loses_of_equiv (add_congr_right heq) (add_self G) },
   { intro hGHp,
     split,
     { rw le_iff_sub_nonneg,
-      exact le_trans hGHp.2
-        (le_trans add_comm_le $ le_of_le_of_equiv le_rfl $ add_congr equiv_rfl
-        (neg_equiv_self G)) },
+      exact hGHp.2.trans
+        (add_comm_le.trans $ le_of_le_of_equiv le_rfl $ add_congr_right (neg_equiv_self G)) },
     { rw le_iff_sub_nonneg,
-      exact le_trans hGHp.2
-        (le_of_le_of_equiv le_rfl $ add_congr equiv_rfl (neg_equiv_self H)) } }
+      exact hGHp.2.trans
+        (le_of_le_of_equiv le_rfl $ add_congr_right (neg_equiv_self H)) } }
 end
 
 lemma le_zero_iff {G : pgame} [G.impartial] : G ≤ 0 ↔ 0 ≤ G :=
-by rw [←zero_le_neg_iff, le_congr equiv_rfl (neg_equiv_self G)]
+by rw [←zero_le_neg_iff, le_congr_right (neg_equiv_self G)]
 
 lemma lf_zero_iff {G : pgame} [G.impartial] : G ⧏ 0 ↔ 0 ⧏ G :=
-by rw [←zero_lf_neg_iff, lf_congr equiv_rfl (neg_equiv_self G)]
+by rw [←zero_lf_neg_iff, lf_congr_right (neg_equiv_self G)]
 
 lemma lt_zero_iff {G : pgame} [G.impartial] : G < 0 ↔ 0 < G :=
-by rw [←zero_lt_neg_iff, lt_congr equiv_rfl (neg_equiv_self G)]
+by rw [←zero_lt_neg_iff, lt_congr_right (neg_equiv_self G)]
 
 lemma first_loses_symm (G : pgame) [G.impartial] : G.first_loses ↔ G ≤ 0 :=
 ⟨and.left, λ h, ⟨h, le_zero_iff.1 h⟩⟩

@@ -427,11 +427,11 @@ def mk' [non_assoc_semiring α] [non_assoc_ring β] (f : α →* β)
 { ..add_monoid_hom.mk' f map_add, ..f }
 
 section semiring
-variables [semiring α] [semiring β] (f : α →+* β) {a b : α}
+variables [semiring α] [semiring β]
 
-lemma is_unit_map : is_unit a → is_unit (f a) := is_unit.map f
+lemma is_unit_map (f : α →+* β) {a : α} : is_unit a → is_unit (f a) := is_unit.map f
 
-protected lemma map_dvd : a ∣ b → f a ∣ f b := map_dvd f
+protected lemma map_dvd (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b := map_dvd f
 
 end semiring
 

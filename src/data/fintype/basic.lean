@@ -641,6 +641,13 @@ by simp [to_finset]
 @[simp] theorem mem_to_finset_val {s : set α} [fintype s] {a : α} : a ∈ s.to_finset.1 ↔ a ∈ s :=
 mem_to_finset
 
+/-- Membership of a set with a `fintype` instance is decidable.
+
+Using this as an instance leads to potential loops with `subtype.fintype` under certain decidability
+assumptions, so it should only be declared a local instance. -/
+def decidable_mem_of_fintype [decidable_eq α] (s : set α) [fintype s] (a) : decidable (a ∈ s) :=
+decidable_of_iff _ mem_to_finset
+
 -- We use an arbitrary `[fintype s]` instance here,
 -- not necessarily coming from a `[fintype α]`.
 @[simp]
@@ -1406,6 +1413,26 @@ begin
   convert fintype.card_congr (subtype_or_equiv p q h),
   simp
 end
+
+@[simp]
+lemma fintype.card_subtype_compl [fintype α]
+  (p : α → Prop) [fintype {x // p x}] [fintype {x // ¬ p x}] :
+  fintype.card {x // ¬ p x} = fintype.card α - fintype.card {x // p x} :=
+begin
+  classical,
+  rw [fintype.card_of_subtype (set.to_finset pᶜ), set.to_finset_compl p, finset.card_compl,
+      fintype.card_of_subtype (set.to_finset p)];
+    intros; simp; refl
+end
+
+/-- If two subtypes of a fintype have equal cardinality, so do their complements. -/
+lemma fintype.card_compl_eq_card_compl [fintype α]
+  (p q : α → Prop)
+  [fintype {x // p x}] [fintype {x // ¬ p x}]
+  [fintype {x // q x}] [fintype {x // ¬ q x}]
+  (h : fintype.card {x // p x} = fintype.card {x // q x}) :
+  fintype.card {x // ¬ p x} = fintype.card {x // ¬ q x} :=
+by simp only [fintype.card_subtype_compl, h]
 
 theorem fintype.card_quotient_le [fintype α] (s : setoid α) [decidable_rel ((≈) : α → α → Prop)] :
   fintype.card (quotient s) ≤ fintype.card α :=

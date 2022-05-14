@@ -306,6 +306,9 @@ lemma nonempty_def : s.nonempty ↔ ∃ x, x ∈ s := iff.rfl
 
 lemma nonempty_of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
 
+lemma nonempty_congr (h : ∀ x, x ∈ s ↔ x ∈ t) : s.nonempty ↔ t.nonempty :=
+exists_congr h
+
 theorem nonempty.not_subset_empty : s.nonempty → ¬(s ⊆ ∅)
 | ⟨x, hx⟩ hs := hs hx
 

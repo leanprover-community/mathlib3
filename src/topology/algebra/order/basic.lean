@@ -1517,6 +1517,7 @@ begin
 end
 
 end order_topology
+
 end linear_order
 
 section linear_ordered_add_comm_group

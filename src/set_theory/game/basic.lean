@@ -82,6 +82,9 @@ by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_le }
 @[simp] theorem not_lf : ∀ {x y : game}, ¬ x ⧏ y ↔ y ≤ x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_lf }
 
+instance : is_trichotomous game (⧏) :=
+⟨by { rintro ⟨x⟩ ⟨y⟩, change _ ∨ ⟦x⟧ = ⟦y⟧ ∨ _, rw quotient.eq, apply lf_or_equiv_or_gf }⟩
+
 /-- The fuzzy, confused, or incomparable relation on games.
 
 If `x ∥ 0`, then the first player can always win `x`. -/

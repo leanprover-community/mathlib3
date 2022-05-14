@@ -49,9 +49,9 @@ the fuzzy relation `x ∥ y` as `x ⧏ y ∧ y ⧏ x`. If `0 ⧏ x`, then `x` ca
 first player. If `x ≈ 0`, then `x` can be won by the second player. If `x ∥ 0`, then `x` can be won
 by the first player.
 
-Statements like `zero_le`, `zero_lf`, etc. unfold these definitions. The theorems `le_def` and
-`lf_def` give a recursive characterisation of each relation in terms of
-themselves two moves later.
+Statements like `zero_le_lf`, `zero_lf_le`, etc. unfold these definitions. The theorems `le_def` and
+`lf_def` give a recursive characterisation of each relation in terms of themselves two moves later.
+The theorems `zero_le`, `zero_lf`, etc. also take into account that `0` has no moves.
 
 Later, games will be defined as the quotient by the `≈` relation; that is to say, the
 `antisymmetrization` of `pgame`.
@@ -249,7 +249,8 @@ instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 instance unique_one_left_moves : unique (left_moves 1) := punit.unique
 instance is_empty_one_right_moves : is_empty (right_moves 1) := pempty.is_empty
 
-/-- Define simultaneously by mutual induction the `≤` relation and its converse `⧏` on pre-games.
+/-- Define simultaneously by mutual induction the `≤` relation and its swapped converse `⧏` on
+  pre-games.
 
   The ZFC definition says that `x = {xL | xR}` is less or equal to `y = {yL | yR}` if
   `∀ x₁ ∈ xL, x₁ ⧏ y` and `∀ y₂ ∈ yR, x ⧏ y₂`, where `x ⧏ y` means `¬ y ≤ x`. This is a tricky
@@ -562,6 +563,7 @@ local infix ` ∥ `:50 := fuzzy
 
 @[symm] theorem fuzzy.swap {x y : pgame} : x ∥ y → y ∥ x := and.swap
 instance : is_symm _ (∥) := ⟨λ x y, fuzzy.swap⟩
+theorem fuzzy.swap_iff {x y : pgame} : x ∥ y ↔ y ∥ x := ⟨fuzzy.swap, fuzzy.swap⟩
 
 theorem fuzzy_irrefl (x : pgame) : ¬ x ∥ x := λ h, lf_irrefl x h.1
 instance : is_irrefl _ (∥) := ⟨fuzzy_irrefl⟩
@@ -1232,6 +1234,7 @@ theorem le_iff_sub_nonneg {x y : pgame} : x ≤ y ↔ 0 ≤ y - x :=
      ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
      ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
      ... ≤ y : (add_zero_relabelling y).le⟩
+
 theorem lf_iff_sub_zero_lf {x y : pgame} : x ⧏ y ↔ 0 ⧏ y - x :=
 ⟨λ h, lf_of_le_of_lf (zero_le_add_right_neg x) (add_lf_add_right h _),
  λ h,
@@ -1240,6 +1243,7 @@ theorem lf_iff_sub_zero_lf {x y : pgame} : x ⧏ y ↔ 0 ⧏ y - x :=
      ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
      ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
      ... ≤ y : (add_zero_relabelling y).le⟩
+
 theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
 ⟨λ h, lt_of_le_of_lt (zero_le_add_right_neg x) (add_lt_add_right h _),
  λ h,

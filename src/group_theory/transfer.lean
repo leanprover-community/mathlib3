@@ -8,6 +8,7 @@ import data.zmod.quotient
 import group_theory.complement
 import group_theory.group_action.basic
 import group_theory.index
+import group_theory.sylow
 
 /-!
 # The Transfer Homomorphism
@@ -310,5 +311,66 @@ begin
 end
 
 end center_transfer
+
+section burnside_transfer
+
+lemma key_sylow_lemma {p : ℕ} {G : Type*} [group G] (g : G) [fintype (sylow p G)] (P : sylow p G)
+  {x : G} (hx : x ∈ (P.1.subtype.comp P.1.center.subtype).range) (hy : g⁻¹ * x * g ∈
+    (P.1.subtype.comp P.1.center.subtype).range) : ∃ n ∈ P.1.normalizer, g⁻¹ * x * g = n⁻¹ * x * n :=
+begin
+  /-
+  We know that `P ≤ C(x)` and `P ≤ C(g⁻¹ * x * g)`.
+  Then `g • P ≤ C(g⁻¹ * x * g)` and `P ≤ C(g⁻¹ * x * g)`.
+  Then `h • g • P
+  -/
+  sorry
+end
+
+#print sylow.mul_action.is_pretransitive
+
+lemma key_sylow_lemma' {p : ℕ} {G : Type*} [group G] (g : G) [fintype (sylow p G)] (P : sylow p G)
+  (hP : P.1.is_commutative)
+  {x : G} (hx : x ∈ P.1) (hy : g⁻¹ * x * g ∈ P.1) : ∃ n ∈ P.1.normalizer, g⁻¹ * x * g = n⁻¹ * x * n :=
+begin
+  suffices : (P.1.subtype.comp P.1.center.subtype).range = P.1,
+  { rw ← this at hx hy,
+    exact key_sylow_lemma g P hx hy },
+  rw [comm_group.center_eq_top, range_eq_map, ←map_map, ←range_eq_map, subtype_range,
+      ←range_eq_map, subtype_range],
+end
+
+noncomputable def burnside_transfer {p : ℕ} {G : Type*} [group G] (P : sylow p G)
+  [fintype (G ⧸ P.1)] (hP : P.1.normalizer ≤ P.1.centralizer) : G →* P.1 :=
+begin
+  haveI : P.1.is_commutative := ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩,
+  exact transfer (monoid_hom.id P.1),
+end
+
+lemma burnside_transfer_surjective {p : ℕ} {G : Type*} [group G] (P : sylow p G)
+  [fintype (G ⧸ P.1)] [fintype G]
+  (hP : P.1.normalizer ≤ P.1.centralizer) : function.surjective (burnside_transfer P hP) :=
+begin
+  classical,
+  haveI P_comm : P.1.is_commutative := ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩,
+  suffices : P.1 ⊓ (burnside_transfer P hP).ker = ⊥,
+  { -- todo: make this a separate lemma
+    sorry },
+  refine le_bot_iff.mp (λ g hg, _),
+  rw [mem_inf, mem_ker] at hg,
+  have key := transfer_eq_pow' P.1 (monoid_hom.id P.1) g (λ k g₀ hk, begin
+    obtain ⟨n, hn, key⟩ := key_sylow_lemma' g₀ P P_comm (P.1.pow_mem hg.1 k) hk,
+    rw [key, mul_assoc, hP hn (g ^ k) (P.1.pow_mem hg.1 k), inv_mul_cancel_left],
+  end),
+  have key' : (fintype.card P.1).coprime P.1.index,
+  { -- todo: make this a lemma
+    sorry },
+  let ϕ := pow_coprime key',
+  have : ϕ ⟨g, hg.1⟩ = 1 := key.symm.trans hg.2,
+  replace this := this.trans (pow_coprime_one key').symm,
+  replace this := ϕ.injective this,
+  exact subtype.ext_iff.mp this,
+end
+
+end burnside_transfer
 
 end monoid_hom

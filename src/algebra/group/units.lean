@@ -192,7 +192,7 @@ calc ↑u⁻¹ = ↑u⁻¹ * 1 : by rw mul_one
       ... = a : by rw [u.inv_mul, one_mul]
 
 @[to_additive] lemma eq_iff_inv_mul {u : αˣ} {a : α} : ↑u = a ↔ ↑u⁻¹ * a = 1 :=
-⟨inv_mul_of_eq, λ h, by rwa [inv_mul_eq_iff_eq_mul, mul_one, eq_comm] at h⟩
+⟨inv_mul_of_eq, inv_inv u ▸ inv_eq_of_mul_eq_one_right⟩
 
 lemma inv_unique {u₁ u₂ : αˣ} (h : (↑u₁ : α) = ↑u₂) : (↑u₁⁻¹ : α) = ↑u₂⁻¹ :=
 inv_eq_of_mul_eq_one_right $ by rw [h, u₂.mul_inv]

@@ -340,12 +340,14 @@ open submodule
 /--
 A linear endomorphism of a module `E` is a projection onto a submodule `p` if it sends every element
 of `E` to `p` and fixes every element of `p`.
+The definition allow more generally any `fun_like` type and not just linear maps, so that it can be
+used for example with `continuous_linear_map` or `matrix`.
 -/
-structure is_proj (f : E →ₗ[R] E) : Prop :=
+structure is_proj {F : Type*} [fun_like F E (λ _, E)] (f : F) : Prop :=
 (map_mem : ∀ x, f x ∈ p)
 (map_id : ∀ x ∈ p, f x = x)
 
-lemma is_proj_iff_idempotent (f : E →ₗ[R] E) : (∃ p, is_proj p f) ↔ f ∘ₗ f = f :=
+lemma is_proj_iff_idempotent (f : E →ₗ[R] E) : (∃ p : submodule R E, is_proj p f) ↔ f ∘ₗ f = f :=
 begin
   split,
   { intro h, obtain ⟨p, hp⟩ := h, ext, rw comp_apply, exact hp.map_id (f x) (hp.map_mem x), },

@@ -244,16 +244,20 @@ dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left
 
 end distrib_semigroup
 
-section distrib_monoid
-variables [has_add α] [monoid α]
+section distrib_mul_one_class
+variables [has_add α] [mul_one_class α]
 
-lemma add_one_mul [is_right_distrib α (*) (+)] (a b : α) : (a + 1) * b = a * b + b :=
+lemma add_one_mul [is_right_distrib α (*) (+)] (a b : α) :
+  (a + 1) * b = a * b + b :=
 by rw [add_mul, one_mul]
-lemma mul_add_one [is_left_distrib α (*) (+)] (a b : α) : a * (b + 1) = a * b + a :=
+lemma mul_add_one [is_left_distrib α (*) (+)] (a b : α) :
+  a * (b + 1) = a * b + a :=
 by rw [mul_add, mul_one]
-lemma one_add_mul [is_right_distrib α (*) (+)] (a b : α) : (1 + a) * b = b + a * b :=
+lemma one_add_mul [is_right_distrib α (*) (+)] (a b : α) :
+  (1 + a) * b = b + a * b :=
 by rw [add_mul, one_mul]
-lemma mul_one_add [is_left_distrib α (*) (+)](a b : α) : a * (1 + b) = a + a * b :=
+lemma mul_one_add [is_left_distrib α (*) (+)] (a b : α) :
+  a * (1 + b) = a + a * b :=
 by rw [mul_add, mul_one]
 
 theorem two_mul [is_right_distrib α (*) (+)] (n : α) : 2 * n = n + n :=
@@ -265,7 +269,7 @@ theorem bit0_eq_two_mul [is_right_distrib α (*) (+)] (n : α) : bit0 n = 2 * n 
 theorem mul_two [is_left_distrib α (*) (+)] (n : α) : n * 2 = n + n :=
 (left_distrib n 1 1).trans (by simp)
 
-end distrib_monoid
+end distrib_mul_one_class
 
 section semiring
 variables [semiring α]

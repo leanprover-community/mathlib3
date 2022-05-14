@@ -66,12 +66,12 @@ begin
     { rintro ⟨ ⟩ ⟨ ⟩,
       dsimp only [pi.zero_apply],
       rw ← pow_half_move_left' n,
-      apply hn.move_left_lt },
+      apply pgame.move_left_lt },
     { exact ⟨λ _, numeric_zero, λ _, hn⟩ } }
 end
 
 theorem pow_half_succ_lt_pow_half {n : ℕ} : pow_half (n + 1) < pow_half n :=
-(@numeric_pow_half (n + 1)).lt_move_right punit.star
+pgame.lt_move_right punit.star
 
 theorem pow_half_succ_le_pow_half {n : ℕ} : pow_half (n + 1) ≤ pow_half n :=
 le_of_lt numeric_pow_half numeric_pow_half pow_half_succ_lt_pow_half
@@ -97,19 +97,19 @@ begin
       right,
       use sum.inl punit.star,
       calc pow_half (n.succ) + pow_half (n.succ + 1)
-          ≤ pow_half (n.succ) + pow_half (n.succ) : add_le_add_left pow_half_succ_le_pow_half
+          ≤ pow_half (n.succ) + pow_half (n.succ) : add_le_add_left pow_half_succ_le_pow_half _
       ... ≈ pow_half n                            : hn },
     { rintro ⟨ ⟩,
       calc 0 ≈ 0 + 0                                        : (add_zero_equiv _).symm
-        ... ≤ pow_half (n.succ + 1) + 0                     : add_le_add_right zero_le_pow_half
-        ... < pow_half (n.succ + 1) + pow_half (n.succ + 1) : add_lt_add_left zero_lt_pow_half },
+        ... ≤ pow_half (n.succ + 1) + 0                     : add_le_add_right zero_le_pow_half _
+        ... < pow_half (n.succ + 1) + pow_half (n.succ + 1) : add_lt_add_left zero_lt_pow_half _ },
     { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
       { calc pow_half n.succ
-            ≈ pow_half n.succ + 0                           : (add_zero_equiv _).symm
-        ... < pow_half (n.succ) + pow_half (n.succ + 1)     : add_lt_add_left zero_lt_pow_half },
+            ≈ pow_half n.succ + 0                        : (add_zero_equiv _).symm
+        ... < pow_half (n.succ) + pow_half (n.succ + 1)  : add_lt_add_left zero_lt_pow_half _ },
       { calc pow_half n.succ
-            ≈ 0 + pow_half n.succ                           : (zero_add_equiv _).symm
-        ... < pow_half (n.succ + 1) + pow_half (n.succ)     : add_lt_add_right zero_lt_pow_half }}}
+            ≈ 0 + pow_half n.succ                        : (zero_add_equiv _).symm
+        ... < pow_half (n.succ + 1) + pow_half (n.succ)  : add_lt_add_right zero_lt_pow_half _ } } }
 end
 
 end pgame

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.algebra.bilinear
-import algebra.module.submodule_pointwise
+import algebra.module.submodule.pointwise
+import algebra.module.submodule.bilinear
 import algebra.module.opposites
 import data.finset.pointwise
 
@@ -89,22 +90,19 @@ by rw [←comap_equiv_eq_map_symm, comap_op_one]
   comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) (1 : submodule R A) = 1 :=
 by rw [←map_equiv_eq_comap_symm, map_op_one]
 
+
 /-- Multiplication of sub-R-modules of an R-algebra A. The submodule `M * N` is the
 smallest R-submodule of `A` containing the elements `m * n` for `m ∈ M` and `n ∈ N`. -/
-instance : has_mul (submodule R A) :=
-⟨λ M N, ⨆ s : M, N.map $ algebra.lmul R A s.1⟩
+instance : has_mul (submodule R A) := ⟨submodule.map₂ (algebra.lmul R A).to_linear_map⟩
 
-theorem mul_mem_mul (hm : m ∈ M) (hn : n ∈ N) : m * n ∈ M * N :=
-(le_supr _ ⟨m, hm⟩ : _ ≤ M * N) ⟨n, hn, rfl⟩
+theorem mul_mem_mul (hm : m ∈ M) (hn : n ∈ N) : m * n ∈ M * N := apply_mem_map₂ _ hm hn
 
-theorem mul_le : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ N), m * n ∈ P :=
-⟨λ H m hm n hn, H $ mul_mem_mul hm hn,
-λ H, supr_le $ λ ⟨m, hm⟩, map_le_iff_le_comap.2 $ λ n hn, H m hm n hn⟩
+theorem mul_le : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ N), m * n ∈ P := map₂_le
 
 lemma mul_to_add_submonoid : (M * N).to_add_submonoid = M.to_add_submonoid * N.to_add_submonoid :=
 begin
   dsimp [has_mul.mul],
-  simp_rw [←algebra.lmul_left_to_add_monoid_hom R, algebra.lmul_left, ←map_to_add_submonoid],
+  simp_rw [←algebra.lmul_left_to_add_monoid_hom R, algebra.lmul_left, ←map_to_add_submonoid, map₂],
   rw supr_to_add_submonoid,
   refl,
 end
@@ -130,20 +128,7 @@ begin
 end
 
 variables R
-theorem span_mul_span : span R S * span R T = span R (S * T) :=
-begin
-  apply le_antisymm,
-  { rw mul_le, intros a ha b hb,
-    apply span_induction ha,
-    work_on_goal 1 { intros, apply span_induction hb,
-      work_on_goal 1 { intros, exact subset_span ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
-    all_goals { intros, simp only [mul_zero, zero_mul, zero_mem,
-        left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc],
-      solve_by_elim [add_mem _ _, zero_mem _, smul_mem _ _ _]
-        { max_depth := 4, discharger := tactic.interactive.apply_instance } } },
-  { rw span_le, rintros _ ⟨a, b, ha, hb, rfl⟩,
-    exact mul_mem_mul (subset_span ha) (subset_span hb) }
-end
+theorem span_mul_span : span R S * span R T = span R (S * T) := map₂_span_span _ _ _ _
 variables {R}
 
 
@@ -158,11 +143,9 @@ le_antisymm (mul_le.2 $ λ mn hmn p hp,
   mul_le.2 $ λ n hn p hp, show m * (n * p) ∈ M * N * P, from
   mul_assoc m n p ▸ mul_mem_mul (mul_mem_mul hm hn) hp)
 
-@[simp] theorem mul_bot : M * ⊥ = ⊥ :=
-eq_bot_iff.2 $ mul_le.2 $ λ m hm n hn, by rw [submodule.mem_bot] at hn ⊢; rw [hn, mul_zero]
+@[simp] theorem mul_bot : M * ⊥ = ⊥ := map₂_bot_right _ _
 
-@[simp] theorem bot_mul : ⊥ * M = ⊥ :=
-eq_bot_iff.2 $ mul_le.2 $ λ m hm n hn, by rw [submodule.mem_bot] at hm ⊢; rw [hm, zero_mul]
+@[simp] theorem bot_mul : ⊥ * M = ⊥ := map₂_bot_left _ _
 
 @[simp] protected theorem one_mul : (1 : submodule R A) * M = M :=
 by { conv_lhs { rw [one_eq_span, ← span_eq M] }, erw [span_mul_span, one_mul, span_eq] }
@@ -172,28 +155,19 @@ by { conv_lhs { rw [one_eq_span, ← span_eq M] }, erw [span_mul_span, mul_one, 
 
 variables {M N P Q}
 
-@[mono] theorem mul_le_mul (hmp : M ≤ P) (hnq : N ≤ Q) : M * N ≤ P * Q :=
-mul_le.2 $ λ m hm n hn, mul_mem_mul (hmp hm) (hnq hn)
+@[mono] theorem mul_le_mul (hmp : M ≤ P) (hnq : N ≤ Q) : M * N ≤ P * Q := map₂_le_map₂ hmp hnq
 
-theorem mul_le_mul_left (h : M ≤ N) : M * P ≤ N * P :=
-mul_le_mul h (le_refl P)
+theorem mul_le_mul_left (h : M ≤ N) : M * P ≤ N * P := map₂_le_map₂_left h
 
-theorem mul_le_mul_right (h : N ≤ P) : M * N ≤ M * P :=
-mul_le_mul (le_refl M) h
+theorem mul_le_mul_right (h : N ≤ P) : M * N ≤ M * P := map₂_le_map₂_right h
 
 variables (M N P)
-theorem mul_sup : M * (N ⊔ P) = M * N ⊔ M * P :=
-le_antisymm (mul_le.2 $ λ m hm np hnp, let ⟨n, hn, p, hp, hnp⟩ := mem_sup.1 hnp in
-  mem_sup.2 ⟨_, mul_mem_mul hm hn, _, mul_mem_mul hm hp, hnp ▸ (mul_add m n p).symm⟩)
-(sup_le (mul_le_mul_right le_sup_left) (mul_le_mul_right le_sup_right))
+theorem mul_sup : M * (N ⊔ P) = M * N ⊔ M * P := map₂_sup_right _ _ _ _
 
-theorem sup_mul : (M ⊔ N) * P = M * P ⊔ N * P :=
-le_antisymm (mul_le.2 $ λ mn hmn p hp, let ⟨m, hm, n, hn, hmn⟩ := mem_sup.1 hmn in
-  mem_sup.2 ⟨_, mul_mem_mul hm hp, _, mul_mem_mul hn hp, hmn ▸ (add_mul m n p).symm⟩)
-(sup_le (mul_le_mul_left le_sup_left) (mul_le_mul_left le_sup_right))
+theorem sup_mul : (M ⊔ N) * P = M * P ⊔ N * P := map₂_sup_left _ _ _ _
 
 lemma mul_subset_mul : (↑M : set A) * (↑N : set A) ⊆ (↑(M * N) : set A) :=
-by { rintros _ ⟨i, j, hi, hj, rfl⟩, exact mul_mem_mul hi hj }
+image2_subset_map₂ (algebra.lmul R A).to_linear_map M N
 
 protected lemma map_mul {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
   map f.to_linear_map (M * N) = map f.to_linear_map M * map f.to_linear_map N :=
@@ -305,21 +279,13 @@ end
 end decidable_eq
 
 lemma mul_eq_span_mul_set (s t : submodule R A) : s * t = span R ((s : set A) * (t : set A)) :=
-by rw [← span_mul_span, span_eq, span_eq]
+map₂_eq_span_image2 _ s t
 
 lemma supr_mul (s : ι → submodule R A) (t : submodule R A) : (⨆ i, s i) * t = ⨆ i, s i * t :=
-begin
-  suffices : (⨆ i, span R (s i : set A)) * span R t = (⨆ i, span R (s i) * span R t),
-  { simpa only [span_eq] using this },
-  simp_rw [span_mul_span, ← span_Union, span_mul_span, set.Union_mul],
-end
+map₂_supr_left _ s t
 
 lemma mul_supr (t : submodule R A) (s : ι → submodule R A) : t * (⨆ i, s i) = ⨆ i, t * s i :=
-begin
-  suffices : span R (t : set A) * (⨆ i, span R (s i)) = (⨆ i, span R t * span R (s i)),
-  { simpa only [span_eq] using this },
-  simp_rw [span_mul_span, ← span_Union, span_mul_span, set.mul_Union],
-end
+map₂_supr_right _ t s
 
 lemma mem_span_mul_finite_of_mem_mul {P Q : submodule R A} {x : A} (hx : x ∈ P * Q) :
   ∃ (T T' : finset A), (T : set A) ⊆ P ∧ (T' : set A) ⊆ Q ∧ x ∈ span R (T * T' : set A) :=

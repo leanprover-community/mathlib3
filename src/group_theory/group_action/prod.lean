@@ -93,7 +93,7 @@ section bundled_smul
 @[simps]
 def smul_mul_hom [monoid α] [has_mul β] [mul_action α β] [is_scalar_tower α β β]
   [smul_comm_class α β β] :
-  mul_hom (α × β) β :=
+  (α × β) →ₙ* β :=
 { to_fun := λ a, a.1 • a.2,
   map_mul' := λ a b, (smul_mul_smul _ _ _ _).symm }
 

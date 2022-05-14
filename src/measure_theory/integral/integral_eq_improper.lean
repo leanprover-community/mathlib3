@@ -647,4 +647,68 @@ end
 
 end integral_of_interval_integral
 
+section FTC_nonneg
+
+/-- Fundamental theorem of calculus-2: If `f : ℝ → ℝ` has a derivative `f' x` for all `x` in
+  `(a, b)` and is continuous on `[a, b]`, and `f'` is continuous and non-negative on `(a, b)`, then
+  `∫ y in a..b, f' y` exists. -/
+theorem interval_integral.integrable_of_has_deriv_at_of_nonneg {a b : ℝ} {f f' : ℝ → ℝ}
+  (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hpos : ∀ x ∈ Ioo a b, 0 ≤ f' x)
+  (hcontf : continuous_on f $ Icc a b) (hcontf' : continuous_on f' $ Ioo a b) :
+  integrable_on f' (Ioc a b) :=
+begin
+  by_cases h_lt : a < b, swap, -- first deal with trivial case of empty interval
+  { convert integrable_on_empty, exact Ioc_eq_empty h_lt },
+  have f_incr : monotone_on f (Icc a b),
+  { refine convex.monotone_on_of_deriv_nonneg (convex_Icc a b) hcontf _ _,
+    { rw interior_Icc, intros x hx, apply differentiable_at.differentiable_within_at,
+      apply has_deriv_at.differentiable_at, exact hderiv x hx, },
+    { rw interior_Icc, intros x hx,
+      rw has_deriv_at.deriv (hderiv x hx), exact hpos x hx,} },
+  let A := λ n:ℕ, a + 1 / (n + 1),
+  let B := λ n:ℕ, b - 1 / (n + 1),
+  have t0 : ∀ (n : ℕ), 0 < (1 / (n + 1) : ℝ),
+  { intro n, rw one_div_pos, refine add_pos_of_nonneg_of_pos _ zero_lt_one, simp },
+  have Icc_sub : ∀ (n : ℕ), Icc (A n) (B n) ⊆ Ioo a b,
+  { intro n, apply Icc_subset_Ioo ((lt_add_iff_pos_right _).mpr $ t0 n) (sub_lt_self _ $ t0 n) },
+  have t1 : tendsto A at_top (𝓝 a),
+  { rw (by simp : 𝓝 a = 𝓝 (a + 0)),
+    exact tendsto.const_add _ tendsto_one_div_add_at_top_nhds_0_nat },
+  have t2 : tendsto B at_top (𝓝 b),
+  { rw (by simp : 𝓝 b = 𝓝 (b - 0)),
+    exact tendsto.const_sub _ tendsto_one_div_add_at_top_nhds_0_nat, },
+  refine integrable_on_Ioc_of_interval_integral_norm_bounded _ t1 t2 (eventually_of_forall _),
+  exact (f b - f a),
+  { intro n, exact ((hcontf'.mono $ Icc_sub n).integrable_on_Icc).mono_set Ioc_subset_Icc_self, },
+  { intro n,
+    -- clean up silly case when interval is empty
+    by_cases u : A n ≤ B n, swap,
+    { push_neg at u,
+      rw [Ioc_eq_empty_of_le u.le, integral_empty, le_sub, sub_zero],
+      apply f_incr,
+      { rw mem_Icc, split, tauto, exact h_lt.le, },
+      { rw mem_Icc, split, exact h_lt.le, tauto, },
+      exact h_lt.le, },
+    -- now main case
+    have : ∫ (x : ℝ) in Ioc (A n) (B n), ∥f' x∥ = ∫ (x : ℝ) in Ioc (A n) (B n), f' x,
+    { apply set_integral_congr, { exact measurable_set_Ioc },
+      intros x hx, dsimp only,
+      exact real.norm_of_nonneg (hpos _ $ subset_trans Ioc_subset_Icc_self (Icc_sub n) hx),},
+    rw this,
+    rw [←interval_integral.integral_of_le u, interval_integral.integral_eq_sub_of_has_deriv_at],
+    swap,
+    { intros x hx, rw interval_of_le u at hx, apply hderiv x, apply Icc_sub n, exact hx, },
+    { have t1a : a ≤ A n, { simp only [le_add_iff_nonneg_right], exact (t0 n).le, },
+      have t1b : B n ≤ b, { apply sub_le_self, exact (t0 n).le, },
+      have t3 : f (B n) ≤ f b,
+      { apply f_incr, exact ⟨le_trans t1a u, t1b⟩, rw mem_Icc, simpa using h_lt.le, exact t1b },
+      have t4 : f a ≤ f (A n),
+      { apply f_incr, rw mem_Icc, simpa using h_lt.le, exact ⟨t1a, le_trans u t1b⟩, exact t1a, },
+      exact sub_le_sub t3 t4, },
+    { refine (continuous_on.mono hcontf' _).interval_integrable,
+      rw interval_of_le u, exact Icc_sub n, }, }
+  end
+
+end FTC_nonneg
+
 end measure_theory

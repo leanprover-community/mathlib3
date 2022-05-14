@@ -2,7 +2,7 @@
 
 import category_theory.preadditive.biproducts
 import category_theory.preadditive.schur
-import category_theory.subobject.lattice
+import category_theory.subobject.limits
 import category_theory.noetherian
 
 /-!
@@ -16,12 +16,29 @@ namely that the following conditions on `X` are equivalent:
 
 These then give the definition of a semisimple object.
 
+The proof proceeds through the following sequence of observations:
+* `simple_subobject_of_semisimple_iso_summand`:
+  if a simple object includes into a direct sum of simples,
+  one of the components of the inclusion map must be an isomorphism
+* `simple_subobject_of_semisimple`
+  if a simple object includes into a direct sum of simples,
+  then after composing with isomorphisms on either side
+  we can realise this inclusion as the inclusion of one of the summands.
 -/
 
 open category_theory
 open category_theory.limits
 
 universes v u
+
+-- Perhaps Yael is PR'ing these? https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/ite_then_ite
+lemma ite_then_dite {P Q : Prop} [decidable P] [decidable Q] {α : Type*} (a : α) (b : Q → α) (c : ¬Q → α) :
+  (if P then (if h : Q then b h else c h) else a) = if h : Q then (if P then b h else a) else (if P then c h else a) :=
+by split_ifs; refl
+
+lemma ite_else_dite {P Q : Prop} [decidable P] [decidable Q] {α : Type*} (a : α) (b : Q → α) (c : ¬Q → α) :
+  (if P then a else (if h : Q then b h else c h)) = if h : Q then (if P then a else b h) else (if P then a else c h) :=
+by split_ifs; refl
 
 noncomputable theory
 open_locale classical big_operators
@@ -30,6 +47,17 @@ variables {C : Type u} [category.{v} C] [preadditive C]
 variables [has_binary_biproducts C] [has_kernels C]
 
 variables {ι : Type v} [decidable_eq ι] [fintype ι]
+
+-- PR'd as #14143
+@[simp] lemma comp_ite {P : Prop} [decidable P]
+  {X Y Z : C} (f : X ⟶ Y) (g g' : (Y ⟶ Z)) :
+  (f ≫ if P then g else g') = (if P then f ≫ g else f ≫ g') :=
+by { split_ifs; refl }
+
+@[simp] lemma ite_comp {P : Prop} [decidable P]
+  {X Y Z : C} (f f' : (X ⟶ Y))  (g : Y ⟶ Z) :
+  (if P then f else f') ≫ g = (if P then f ≫ g else f' ≫ g) :=
+by { split_ifs; refl }
 
 /--
 Given a simple subobject of a direct sum of simple objects,
@@ -48,59 +76,48 @@ begin
     exact ⟨i, is_iso_of_hom_simple w⟩, }
 end
 
-def aux (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
-  (V : subobject (⨁ f)) [simple (V : C)] (i : ι) [is_iso (V.arrow ≫ biproduct.π _ i)] : ⨁ f ⟶ ⨁ f :=
-∑ (k : ι), if k = i then 0 else biproduct.π _ i ≫ inv (V.arrow ≫ biproduct.π _ i) ≫ V.arrow ≫ biproduct.π f k ≫ biproduct.ι f k
+/-- An auxiliary definition for `simple_subobject_of_semisimple`. -/
+def simple_subobject_of_semisimple_iso_hom (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
+  (V : subobject (⨁ f)) [simple (V : C)] (i : ι) [is_iso (V.arrow ≫ biproduct.π _ i)] :
+  ⨁ f ⟶ ⨁ f :=
+∑ (k : ι), if k = i then 0 else
+  biproduct.π _ i ≫ inv (V.arrow ≫ biproduct.π _ i) ≫ V.arrow ≫ biproduct.π f k ≫ biproduct.ι f k
 
-@[simp] lemma comp_ite {P : Prop} [decidable P]
-  {X Y Z : C} (f : X ⟶ Y) (g g' : (Y ⟶ Z)) :
-  (f ≫ if P then g else g') = (if P then f ≫ g else f ≫ g') :=
-by { split_ifs; refl }
-
-@[simp] lemma ite_comp {P : Prop} [decidable P]
-  {X Y Z : C} (f f' : (X ⟶ Y))  (g : Y ⟶ Z) :
-  (if P then f else f') ≫ g = (if P then f ≫ g else f' ≫ g) :=
-by { split_ifs; refl }
-
-
-lemma ite_then_dite {P Q : Prop} [decidable P] [decidable Q] {α : Type*} (a : α) (b : Q → α) (c : ¬Q → α) :
-  (if P then (if h : Q then b h else c h) else a) = if h : Q then (if P then b h else a) else (if P then c h else a) :=
-by split_ifs; refl
-
-lemma ite_else_dite {P Q : Prop} [decidable P] [decidable Q] {α : Type*} (a : α) (b : Q → α) (c : ¬Q → α) :
-  (if P then a else (if h : Q then b h else c h)) = if h : Q then (if P then a else b h) else (if P then a else c h) :=
-by split_ifs; refl
-
-
-@[simp, reassoc] lemma aux_π (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
+@[simp, reassoc] lemma simple_subobject_of_semisimple_iso_hom_π
+  (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
   (V : subobject (⨁ f)) [simple (V : C)] (i : ι) [is_iso (V.arrow ≫ biproduct.π _ i)] (j) :
-  aux f V i ≫ biproduct.π f j = if j = i then 0 else biproduct.π _ i ≫ inv (V.arrow ≫ biproduct.π _ i) ≫ V.arrow ≫ biproduct.π f j :=
+  simple_subobject_of_semisimple_iso_hom f V i ≫ biproduct.π f j =
+    if j = i then 0 else
+      biproduct.π _ i ≫ inv (V.arrow ≫ biproduct.π _ i) ≫ V.arrow ≫ biproduct.π f j :=
 begin
-  simp_rw [aux, preadditive.sum_comp, ite_comp, category.assoc, zero_comp, biproduct.ι_π, comp_dite,
+  simp_rw [simple_subobject_of_semisimple_iso_hom, preadditive.sum_comp, ite_comp, category.assoc,
+    zero_comp, biproduct.ι_π, comp_dite,
     comp_zero, ite_else_dite, if_t_t, finset.sum_dite_eq', finset.mem_univ, if_true, eq_to_hom_refl,
     category.comp_id],
 end
 
-attribute [irreducible] aux
+attribute [irreducible] simple_subobject_of_semisimple_iso_hom
 
-def aux₃ (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
-  (V : subobject (⨁ f)) [simple (V : C)] (i : ι) [is_iso (V.arrow ≫ biproduct.π _ i)] : ⨁ f ≅ ⨁ f :=
-{ hom := 𝟙 _ - aux f V i,
-  inv := 𝟙 _ + aux f V i,
+/-- An auxiliary definition for `simple_subobject_of_semisimple`. -/
+def simple_subobject_of_semisimple_iso (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
+  (V : subobject (⨁ f)) [simple (V : C)] (i : ι) [is_iso (V.arrow ≫ biproduct.π _ i)] :
+    ⨁ f ≅ ⨁ f :=
+{ hom := 𝟙 _ - simple_subobject_of_semisimple_iso_hom f V i,
+  inv := 𝟙 _ + simple_subobject_of_semisimple_iso_hom f V i,
   hom_inv_id' := begin
     apply biproduct.hom_ext,
     intro j,
-    simp only [preadditive.sub_comp, preadditive.comp_sub, preadditive.add_comp, preadditive.comp_add,
-      category.id_comp, category.comp_id, category.assoc],
-    simp only [aux_π],
+    simp only [preadditive.sub_comp, preadditive.comp_sub, preadditive.add_comp,
+      preadditive.comp_add, category.id_comp, category.comp_id, category.assoc],
+    simp only [simple_subobject_of_semisimple_iso_hom_π],
     split_ifs; simp,
   end,
   inv_hom_id' := begin
     apply biproduct.hom_ext,
     intro j,
-    simp only [preadditive.sub_comp, preadditive.comp_sub, preadditive.add_comp, preadditive.comp_add,
-      category.id_comp, category.comp_id, category.assoc],
-    simp only [aux_π],
+    simp only [preadditive.sub_comp, preadditive.comp_sub, preadditive.add_comp,
+      preadditive.comp_add, category.id_comp, category.comp_id, category.assoc],
+    simp only [simple_subobject_of_semisimple_iso_hom_π],
     split_ifs; simp,
   end, }
 
@@ -114,19 +131,76 @@ lemma simple_subobject_of_semisimple (f : ι → C) [has_finite_biproducts C] [�
 begin
   obtain ⟨i, _⟩ := simple_subobject_of_semisimple_iso_summand f V,
   resetI,
-  refine ⟨i, as_iso (V.arrow ≫ biproduct.π _ i), _, _⟩,
-  { split,
-
-    sorry,
-    sorry,
-   },
-  { sorry, },
+  refine ⟨i, as_iso (V.arrow ≫ biproduct.π _ i), simple_subobject_of_semisimple_iso f V i, _⟩,
+  ext,
+  simp only [simple_subobject_of_semisimple_iso, simple_subobject_of_semisimple_iso_hom_π,
+    as_iso_hom, category.comp_id, category.assoc,
+    comp_ite, comp_zero, preadditive.comp_sub, preadditive.sub_comp],
+  split_ifs with w w,
+  { unfreezingI { subst w, }, simp, },
+  { simp only [←category.assoc, is_iso.hom_inv_id],
+    simp [biproduct.ι_π_ne f (ne.symm w)], },
 end
 
 /--
+If we have `V` inside `W`, and an inclusion of `W` into `V ⊞ Z`,
+so that `V` is taken identically to `V`,
+then `V` is complemented in `W`.
+-/
+def complement {W V Z : C} (i : V ⟶ W) [mono i] (j : W ⟶ V ⊞ Z) [mono j]
+  (w : i ≫ j = biprod.inl) :
+  W ≅ V ⊞ kernel (j ≫ biprod.fst) :=
+{ hom := j ≫ biprod.fst ≫ biprod.inl +
+    kernel.lift _ (𝟙 W - j ≫ biprod.fst ≫ i) (by simp [reassoc_of w]) ≫ biprod.inr,
+  inv := biprod.fst ≫ i + biprod.snd ≫ kernel.ι _,
+  hom_inv_id' := by tidy,
+  inv_hom_id' := begin
+    ext, -- Check each entry of the 2x2 matrix separately.
+    { simp [reassoc_of w], },
+    { simp [reassoc_of w], },
+    { simp, },
+    { simp only [category.assoc, category.id_comp, category.comp_id,
+        preadditive.add_comp, preadditive.comp_add, preadditive.comp_sub, zero_comp, comp_zero,
+        biprod.inr_fst_assoc, biprod.inl_snd, biprod.inr_snd, biprod.inr_snd_assoc,
+        zero_add, kernel.lift_ι],
+      simp only [sub_eq_self],
+      slice_lhs 1 3 { simp only [kernel.condition], },
+      simp only [zero_comp], }
+  end, }.
+
+@[simp, reassoc]
+lemma foo {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso (f ≫ g)] :
+  f ≫ g ≫ inv (f ≫ g) = 𝟙 X :=
+by { rw [←category.assoc, is_iso.hom_inv_id], }
+
+@[simp]
+lemma kernel_subobject_comp_arrow_comp
+  {W X Y Z : C} (f : W ⟶ X) (g : X ⟶ Y) [has_kernel (f ≫ g)] (k : Y ⟶ Z) :
+  (kernel_subobject (f ≫ g)).arrow ≫ f ≫ g ≫ k = 0 :=
+begin
+  slice_lhs 1 3 { rw kernel_subobject_arrow_comp, },
+  rw zero_comp,
+end
+
+def complement' {X Y : C} {V W : subobject (X ⊞ Y)} (h : V ≤ W) [is_iso (V.arrow ≫ biprod.fst)] :
+  (W : C) ≅ V ⊞ kernel_subobject (W.arrow ≫ biprod.fst) :=
+{ hom := W.arrow ≫ biprod.fst ≫ inv (V.arrow ≫ biprod.fst) ≫ biprod.inl +
+    factor_thru_kernel_subobject (W.arrow ≫ biprod.fst)
+      (𝟙 W - W.arrow ≫ biprod.fst ≫ inv (V.arrow ≫ biprod.fst) ≫ (subobject.of_le _ _ h))
+      (by simp) ≫
+    biprod.inr,
+  inv := biprod.fst ≫ (subobject.of_le _ _ h) + biprod.snd ≫ (kernel_subobject _).arrow,
+  hom_inv_id' := by simp,
+  inv_hom_id' := begin
+    ext; -- Check each entry of the 2x2 matrix separately.
+    simp,
+  end, }
+
+/--
 A subobject `W` of a direct sum of simple objects `⨁ f`
-which itself contains a simple subobject can be written as
-`W ≅ f i ⊞ W'` for some `i`, so that the inclusion takes `f i` to the corresponding summand,
+which itself contains a simple subobject
+can be written as `W ≅ f i ⊞ W'` for some `i`,
+so that the inclusion takes `f i` to the corresponding summand,
 and `W'` is a subobject of the other summands.
 
 (In `subobject_of_semisimple` we further assume that the category is noetherian,
@@ -142,6 +216,12 @@ begin
   obtain ⟨V, h, _⟩ := w, resetI,
   obtain ⟨i, j, k, w⟩ := simple_subobject_of_semisimple f V,
   use i,
+  refine ⟨kernel_subobject (biproduct.from_subtype _ _ ≫ k.hom ≫ biproduct.π _ i), _, _⟩,
+  fsplit,
+  apply biprod.lift,
+  exact W.arrow ≫ biproduct.π _ _,
+  apply factor_thru_kernel_subobject _ (W.arrow ≫ biproduct.to_subtype _ _),
+
   sorry
 end
 
@@ -247,32 +327,7 @@ begin
   sorry { simp [z, t, r'], rw dif_neg, rw dif_neg, simp, ext, simp, simp, ext, simp, sorry, sorry, sorry, }
 end
 
-/--
-If we have `V` inside `W`, and an inclusion of `W` into `V ⊞ Z`,
-so that `V` is taken identically to `V`,
-then `V` is complemented in `W`.
--/
-def complement {W V Z : C} (i : V ⟶ W) [mono i] (j : W ⟶ V ⊞ Z) [mono j]
-  (w : i ≫ j = biprod.inl) :
-  W ≅ V ⊞ kernel (j ≫ biprod.fst) :=
-sorry
--- { hom := j ≫ biprod.fst ≫ biprod.inl +
---     kernel.lift _ (𝟙 W - j ≫ biprod.fst ≫ i) (by simp [reassoc_of w]) ≫ biprod.inr,
---   inv := biprod.fst ≫ i + biprod.snd ≫ kernel.ι _,
---   hom_inv_id' := by tidy,
---   inv_hom_id' := begin
---     ext, -- Check each entry of the 2x2 matrix separately.
---     { simp [reassoc_of w], },
---     { simp [reassoc_of w], },
---     { simp, },
---     { simp only [category.assoc, category.id_comp, category.comp_id,
---         preadditive.add_comp, preadditive.comp_add, preadditive.comp_sub, zero_comp, comp_zero,
---         biprod.inr_fst_assoc, biprod.inl_snd, biprod.inr_snd, biprod.inr_snd_assoc,
---         zero_add, kernel.lift_ι],
---       simp only [sub_eq_self],
---       slice_lhs 1 3 { simp only [kernel.condition], },
---       simp only [zero_comp], }
---   end, }.
+
 
 #print is_complemented
 

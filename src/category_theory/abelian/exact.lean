@@ -360,7 +360,13 @@ begin
   have iFc := is_limit_fork_map_of_is_limit' F _ c', clear c',
   apply is_limit.of_iso_limit _ ((cones.functoriality _ F).map_iso (iso_fork_of_ι c).symm),
   apply (is_limit_map_cone_fork_equiv F (fork.condition c)).inv_fun,
-  -- should use `is_limit_fork_of_kernel_fork iFc`, but need to rw along F(f - g) = F f - F g
+  let p : parallel_pair (F.map (f - g)) 0 ≅ parallel_pair (F.map f - F.map g) 0,
+  { exact parallel_pair.ext (iso.refl _) (iso.refl _) (by simp) (by simp) },
+  refine is_limit.of_iso_limit (is_limit_fork_of_kernel_fork
+    ((limits.is_limit.postcompose_hom_equiv p _).symm iFc)) _,
+  refine fork.ext (iso.refl _) _,
+  dsimp only [p, fork_of_kernel_fork, cones.postcompose, ← limits.fork.app_zero_eq_ι],
+  simp [- fork.app_zero_eq_ι]
 end
 
 #check is_limit_fork_of_kernel_fork

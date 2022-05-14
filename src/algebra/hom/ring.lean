@@ -376,16 +376,16 @@ protected lemma map_zero (f : α →+* β) : f 0 = 0 := map_zero f
 protected lemma map_one (f : α →+* β) : f 1 = 1 := map_one f
 
 /-- Ring homomorphisms preserve addition. -/
-protected lemma map_add (f : α →+* β) (a b : α) : f (a + b) = f a + f b := map_add f a b
+protected lemma map_add (f : α →+* β) : ∀ a b, f (a + b) = f a + f b := map_add f
 
 /-- Ring homomorphisms preserve multiplication. -/
-protected lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := map_mul f a b
+protected lemma map_mul (f : α →+* β) : ∀ a b, f (a * b) = f a * f b := map_mul f
 
 /-- Ring homomorphisms preserve `bit0`. -/
-protected lemma map_bit0 (f : α →+* β) (a : α) : f (bit0 a) = bit0 (f a) := map_add _ _ _
+protected lemma map_bit0 (f : α →+* β) : ∀ a, f (bit0 a) = bit0 (f a) := map_bit0 f
 
 /-- Ring homomorphisms preserve `bit1`. -/
-protected lemma map_bit1 (f : α →+* β) (a : α) : f (bit1 a) = bit1 (f a) := map_bit1 _ _
+protected lemma map_bit1 (f : α →+* β) : ∀ a, f (bit1 a) = bit1 (f a) := map_bit1 f
 
 /-- `f : α →+* β` has a trivial codomain iff `f 1 = 0`. -/
 lemma codomain_trivial_iff_map_one_eq_zero : (0 : β) = 1 ↔ f 1 = 0 := by rw [map_one, eq_comm]
@@ -426,8 +426,14 @@ def mk' [non_assoc_semiring α] [non_assoc_ring β] (f : α →* β)
   α →+* β :=
 { ..add_monoid_hom.mk' f map_add, ..f }
 
-lemma is_unit_map [semiring α] [semiring β] (f : α →+* β) {a : α} (h : is_unit a) : is_unit (f a) :=
-h.map f
+section semiring
+variables [semiring α] [semiring β] (f : α →+* β) {a b : α}
+
+lemma is_unit_map : is_unit a → is_unit (f a) := is_unit.map f
+
+protected lemma map_dvd : a ∣ b → f a ∣ f b := map_dvd f
+
+end semiring
 
 /-- The identity ring homomorphism from a semiring to itself. -/
 def id (α : Type*) [non_assoc_semiring α] : α →+* α := by refine {to_fun := id, ..}; intros; refl

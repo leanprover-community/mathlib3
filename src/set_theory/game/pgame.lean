@@ -215,7 +215,7 @@ instance : is_trans _ subsequent := trans_gen.is_trans
 @[trans] theorem subsequent.trans : ∀ {x y z}, subsequent x y → subsequent y z → subsequent x z :=
 @trans_gen.trans _ _
 
-theorem wf_subsequent : well_founded subsequent := well_founded.trans_gen wf_is_option
+theorem wf_subsequent : well_founded subsequent := wf_is_option.trans_gen
 
 instance : has_well_founded pgame := ⟨_, wf_subsequent⟩
 
@@ -601,6 +601,8 @@ end
 `relabelling x y` says that `x` and `y` are really the same game, just dressed up differently.
 Specifically, there is a bijection between the moves for Left in `x` and in `y`, and similarly
 for Right, and under these bijections we inductively have `relabelling`s for the consequent games.
+
+In ZFC, relabellings would indeed be the same games.
 -/
 inductive relabelling : pgame.{u} → pgame.{u} → Type (u+1)
 | mk : Π {x y : pgame} (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves),
@@ -1198,9 +1200,6 @@ by { rw zero_lt, use default, rintros ⟨⟩ }
 
 @[simp] theorem neg_star : -star = star :=
 by simp [star]
-
-/-- The pre-game `ω`. (In fact all ordinals have game and surreal representatives.) -/
-def omega : pgame := ⟨ulift ℕ, pempty, λ n, ↑n.1, pempty.elim⟩
 
 @[simp] theorem zero_lt_one : (0 : pgame) < 1 :=
 by { rw zero_lt, use default, rintro ⟨⟩ }

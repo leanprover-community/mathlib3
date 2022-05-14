@@ -87,17 +87,13 @@ end
 
 @[simp] lemma iff_eq_zero_or_one {p : G₀}  : is_idempotent_elem p ↔ p = 0 ∨ p = 1 :=
 begin
-  split,
-  { intro h,
-    by_cases hp : p = 0,
-    { finish, },
-    { rw ← mul_inv_cancel hp,
-      nth_rewrite_rhs 1 ← h.eq,
-      rw [mul_assoc, mul_inv_cancel hp, mul_one, eq_self_iff_true, or_true],
-      finish, } },
+  refine ⟨λ h, or_iff_not_imp_left.mpr (λ hp, _), _⟩,
+  { rw ← mul_inv_cancel hp,
+    nth_rewrite_rhs 0 ← h.eq,
+    rw [mul_assoc, mul_inv_cancel hp, mul_one] },
    { rintro (h₁ | h₂),
-    { rw h₁, apply zero, },
-    { rw h₂, apply one, } }
+    { rw h₁, exact zero, },
+    { rw h₂, exact one, } }
 end
 
 /-! ### Instances on `subtype is_idempotent_elem` -/

@@ -16,7 +16,7 @@ Also `V.ρ` gives the homomorphism `G →* (V →ₗ[k] V)`.
 Conversely, given a homomorphism `ρ : G →* (V →ₗ[k] V)`,
 you can construct the bundled representation as `Rep.of ρ`.
 
-We verify that `fdRep k G` is a `k`-linear monoidal category, and rigid when `G` is a group.
+We verify that `fdRep k G` is a `k`-linear monoidal category, and right rigid when `G` is a group.
 
 ## TODO
 * `fdRep k G ≌ { V : Rep k G // finite_dimensional k V }`
@@ -24,6 +24,7 @@ We verify that `fdRep k G` is a `k`-linear monoidal category, and rigid when `G`
 * `fdRep k G` has all finite (co)limits.
 * `fdRep k G` is abelian.
 * `fdRep k G ≌ FinVect (monoid_algebra k G)` (this will require generalising `FinVect` first).
+
 -/
 
 universes u

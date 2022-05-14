@@ -21,7 +21,6 @@ set consists of all previous ordinals.
 # Todo
 
 - Extend this map to `game` and `surreal`.
-- Prove that `birthday o.to_pgame = o`.
 -/
 
 local infix ` ≈ ` := pgame.equiv
@@ -54,8 +53,8 @@ by { rw to_pgame_right_moves, apply_instance }
 
 /-- Converts an ordinal less than `o` into a move for the `pgame` corresponding to `o`, and vice
 versa. -/
-noncomputable def to_left_moves_to_pgame {o : ordinal} : {o' // o' < o} ≃ o.to_pgame.left_moves :=
-(out_equiv_lt o).trans (equiv.cast (to_pgame_left_moves o).symm)
+noncomputable def to_left_moves_to_pgame {o : ordinal} : set.Iio o ≃ o.to_pgame.left_moves :=
+(enum_iso_out o).to_equiv.trans (equiv.cast (to_pgame_left_moves o).symm)
 
 @[simp] theorem to_left_moves_to_pgame_symm_lt {o : ordinal} (i : o.to_pgame.left_moves) :
   ↑(to_left_moves_to_pgame.symm i) < o :=
@@ -78,7 +77,8 @@ by { convert pgame.move_left_lt (to_left_moves_to_pgame ⟨a, h⟩), rw to_pgame
 
 theorem to_pgame_le {a b : ordinal} (h : a ≤ b) : a.to_pgame ≤ b.to_pgame :=
 pgame.le_def.2 ⟨λ i, or.inl ⟨to_left_moves_to_pgame
-  ⟨_, (to_left_moves_to_pgame_symm_lt i).trans_le h⟩, by simp⟩, is_empty_elim⟩
+  ⟨(to_left_moves_to_pgame.symm i).val, (to_left_moves_to_pgame_symm_lt i).trans_le h⟩, by simp⟩,
+  is_empty_elim⟩
 
 @[simp] theorem to_pgame_lt_iff {a b : ordinal} : a.to_pgame < b.to_pgame ↔ a < b :=
 ⟨by { contrapose, rw [not_lt, pgame.not_lt], exact to_pgame_le }, to_pgame_lt⟩

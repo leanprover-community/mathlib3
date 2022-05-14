@@ -174,8 +174,8 @@ instance fintype_Union [decidable_eq α] [fintype (plift ι)]
   (f : ι → set α) [∀ i, fintype (f i)] : fintype (⋃ i, f i) :=
 fintype.of_finset (finset.univ.bUnion (λ i : plift ι, (f i.down).to_finset)) $ by simp
 
-instance fintype_sUnion [decidable_eq α] {s : set (set α)} [fintype s] [H : ∀ (t : s), fintype (t : set α)] :
-  fintype (⋃₀ s) :=
+instance fintype_sUnion [decidable_eq α] {s : set (set α)}
+  [fintype s] [H : ∀ (t : s), fintype (t : set α)] : fintype (⋃₀ s) :=
 by { rw sUnion_eq_Union, exact @set.fintype_Union _ _ _ _ _ H }
 
 /-- A union of sets with `fintype` structure over a set with `fintype` structure has a `fintype`
@@ -261,7 +261,8 @@ in src/order/locally_finite. -/
 def nat.fintype_Iio (n : ℕ) : fintype (Iio n) :=
 set.fintype_lt_nat n
 
-instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] : fintype (s ×ˢ t : set (α × β)) :=
+instance fintype_prod (s : set α) (t : set β) [fintype s] [fintype t] :
+  fintype (s ×ˢ t : set (α × β)) :=
 fintype.of_finset (s.to_finset.product t.to_finset) $ by simp
 
 /-- `image2 f s t` is `fintype` if `s` and `t` are. -/
@@ -394,7 +395,8 @@ lemma finite_lt_nat (n : ℕ) : finite {i | i < n} := finite.intro' _
 
 lemma finite_le_nat (n : ℕ) : finite {i | i ≤ n} := finite.intro' _
 
-lemma finite.prod {s : set α} {t : set β} (hs : s.finite) (ht : t.finite) : (s ×ˢ t : set (α × β)).finite :=
+lemma finite.prod {s : set α} {t : set β} (hs : s.finite) (ht : t.finite) :
+  (s ×ˢ t : set (α × β)).finite :=
 by { classical, casesI hs, casesI ht, apply finite.intro' }
 
 lemma finite.image2 (f : α → β → γ) {s : set α} {t : set β} (hs : s.finite) (ht : t.finite) :

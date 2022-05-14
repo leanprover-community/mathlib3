@@ -1320,6 +1320,10 @@ lemma image2_Inter₂_subset_right (s : set α) (t : Π i, κ i → set β) :
   image2 f s (⋂ i j, t i j) ⊆ ⋂ i j, image2 f s (t i j) :=
 by { simp_rw [image2_subset_iff, mem_Inter], exact λ x hx y hy i j, mem_image2_of_mem hx (hy _ _) }
 
+/-- The `set.image2` version of `set.image_eq_Union` -/
+lemma image2_eq_Union (s : set α) (t : set β) : image2 f s t = ⋃ (i ∈ s) (j ∈ t), {f i j} :=
+by simp_rw [←image_eq_Union, Union_image_left]
+
 end image2
 
 section seq
@@ -1658,4 +1662,9 @@ lemma supr_Union (s : ι → set α) (f : α → β) : (⨆ a ∈ (⋃ i, s i), 
 by { rw supr_comm, simp_rw [mem_Union, supr_exists] }
 
 lemma infi_Union (s : ι → set α) (f : α → β) : (⨅ a ∈ (⋃ i, s i), f a) = ⨅ i (a ∈ s i), f a :=
-by { rw infi_comm, simp_rw [mem_Union, infi_exists] }
+@supr_Union α βᵒᵈ _ _ s f
+
+lemma Sup_sUnion (s : set (set β)) : Sup (⋃₀ s) = ⨆ t ∈ s, Sup t :=
+by simp only [sUnion_eq_bUnion, Sup_eq_supr, supr_Union]
+
+lemma Inf_sUnion (s : set (set β)) : Inf (⋃₀ s) = ⨅ t ∈ s, Inf t := @Sup_sUnion βᵒᵈ _ _

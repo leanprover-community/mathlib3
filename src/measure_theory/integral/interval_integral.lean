@@ -316,6 +316,10 @@ lemma smul [normed_field 𝕜] [normed_space 𝕜 E]
   interval_integrable (λ x, f x - g x) μ a b :=
 ⟨hf.1.sub hg.1, hf.2.sub hg.2⟩
 
+lemma sum (s : finset ι) {f : ι → ℝ → E} (h : ∀ i ∈ s, interval_integrable (f i) μ a b) :
+  interval_integrable (∑ i in s, f i) μ a b :=
+⟨integrable_finset_sum' s (λ i hi, (h i hi).1), integrable_finset_sum' s (λ i hi, (h i hi).2)⟩
+
 lemma mul_continuous_on {f g : ℝ → ℝ}
   (hf : interval_integrable f μ a b) (hg : continuous_on g [a, b]) :
   interval_integrable (λ x, f x * g x) μ a b :=
@@ -762,7 +766,7 @@ lemma integral_add_adjacent_intervals_cancel (hab : interval_integrable f μ a b
   ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ + ∫ x in c..a, f x ∂μ = 0 :=
 begin
   have hac := hab.trans hbc,
-  simp only [interval_integral, ← add_sub_comm, sub_eq_zero],
+  simp only [interval_integral, sub_add_sub_comm, sub_eq_zero],
   iterate 4 { rw ← integral_union },
   { suffices : Ioc a b ∪ Ioc b c ∪ Ioc c a = Ioc b a ∪ Ioc c b ∪ Ioc a c, by rw this,
     rw [Ioc_union_Ioc_union_Ioc_cycle, union_right_comm, Ioc_union_Ioc_union_Ioc_cycle,

@@ -107,12 +107,12 @@ lemma move_right_nim_heq (O : ordinal) : (nim O).move_right == λ i : O.out.α, 
 by { rw nim_def, refl }
 
 /-- Turns an ordinal less than `O` into a left move for `nim O` and viceversa. -/
-noncomputable def to_left_moves_nim {O : ordinal} : {O' // O' < O} ≃ (nim O).left_moves :=
-(out_equiv_lt O).trans (equiv.cast (left_moves_nim O).symm)
+noncomputable def to_left_moves_nim {O : ordinal} : set.Iio O ≃ (nim O).left_moves :=
+(enum_iso_out O).to_equiv.trans (equiv.cast (left_moves_nim O).symm)
 
 /-- Turns an ordinal less than `O` into a right move for `nim O` and viceversa. -/
-noncomputable def to_right_moves_nim {O : ordinal} : {O' // O' < O} ≃ (nim O).right_moves :=
-(out_equiv_lt O).trans (equiv.cast (right_moves_nim O).symm)
+noncomputable def to_right_moves_nim {O : ordinal} : set.Iio O ≃ (nim O).right_moves :=
+(enum_iso_out O).to_equiv.trans (equiv.cast (right_moves_nim O).symm)
 
 @[simp] theorem to_left_moves_nim_symm_lt {O : ordinal} (i : (nim O).left_moves) :
   ↑(to_left_moves_nim.symm i) < O :=

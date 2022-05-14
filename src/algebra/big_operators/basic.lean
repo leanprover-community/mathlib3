@@ -1290,6 +1290,15 @@ begin
   rwa eq_of_mem_of_not_mem_erase hx hnx
 end
 
+lemma sum_erase_lt_of_pos {γ : Type*} [decidable_eq α] [ordered_add_comm_monoid γ]
+  [covariant_class γ γ (+) (<)] {s : finset α} {d : α} (hd : d ∈ s) {f : α → γ} (hdf : 0 < f d) :
+  ∑ (m : α) in s.erase d, f m < ∑ (m : α) in s, f m :=
+begin
+  nth_rewrite_rhs 0 ←finset.insert_erase hd,
+  rw finset.sum_insert (finset.not_mem_erase d s),
+  exact lt_add_of_pos_left _ hdf,
+end
+
 /-- If a product is 1 and the function is 1 except possibly at one
 point, it is 1 everywhere on the `finset`. -/
 @[to_additive "If a sum is 0 and the function is 0 except possibly at one

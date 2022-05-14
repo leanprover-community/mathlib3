@@ -7,26 +7,26 @@ import category_theory.limits.shapes.images
 import category_theory.filtered
 import tactic.equiv_rw
 
-universes u
+universes v u
 
 open category_theory
 open category_theory.limits
 
 namespace category_theory.limits.types
 
-variables {J : Type u} [small_category J]
+variables {J : Type v} [small_category J]
 
 /--
 (internal implementation) the limit cone of a functor,
 implemented as flat sections of a pi type
 -/
-def limit_cone (F : J ⥤ Type u) : cone F :=
+def limit_cone (F : J ⥤ Type (max v u)) : cone F :=
 { X := F.sections,
   π := { app := λ j u, u.val j } }
 
 local attribute [elab_simple] congr_fun
 /-- (internal implementation) the fact that the proposed limit cone is the limit -/
-def limit_cone_is_limit (F : J ⥤ Type u) : is_limit (limit_cone F) :=
+def limit_cone_is_limit (F : J ⥤ Type (max v u)) : is_limit (limit_cone F) :=
 { lift := λ s v, ⟨λ j, s.π.app j v, λ j j' f, congr_fun (cone.w s f) _⟩,
   uniq' := by { intros, ext x j, exact congr_fun (w j) x } }
 
@@ -35,28 +35,30 @@ The category of types has all limits.
 
 See <https://stacks.math.columbia.edu/tag/002U>.
 -/
-instance : has_limits (Type u) :=
+instance has_limits_of_size : has_limits_of_size.{v} (Type (max v u)) :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit.mk
     { cone := limit_cone F, is_limit := limit_cone_is_limit F } } }
+
+instance : has_limits (Type u) := types.has_limits_of_size.{u u}
 
 /--
 The equivalence between a limiting cone of `F` in `Type u` and the "concrete" definition as the
 sections of `F`.
 -/
-def is_limit_equiv_sections {F : J ⥤ Type u} {c : cone F} (t : is_limit c) :
+def is_limit_equiv_sections {F : J ⥤ Type (max v u)} {c : cone F} (t : is_limit c) :
   c.X ≃ F.sections :=
 (is_limit.cone_point_unique_up_to_iso t (limit_cone_is_limit F)).to_equiv
 
 @[simp]
 lemma is_limit_equiv_sections_apply
-  {F : J ⥤ Type u} {c : cone F} (t : is_limit c) (j : J) (x : c.X) :
+  {F : J ⥤ Type (max v u)} {c : cone F} (t : is_limit c) (j : J) (x : c.X) :
   (((is_limit_equiv_sections t) x) : Π j, F.obj j) j = c.π.app j x :=
 rfl
 
 @[simp]
 lemma is_limit_equiv_sections_symm_apply
-  {F : J ⥤ Type u} {c : cone F} (t : is_limit c) (x : F.sections) (j : J) :
+  {F : J ⥤ Type (max v u)} {c : cone F} (t : is_limit c) (x : F.sections) (j : J) :
   c.π.app j ((is_limit_equiv_sections t).symm x) = (x : Π j, F.obj j) j :=
 begin
   equiv_rw (is_limit_equiv_sections t).symm at x,
@@ -68,17 +70,22 @@ The equivalence between the abstract limit of `F` in `Type u`
 and the "concrete" definition as the sections of `F`.
 -/
 noncomputable
-def limit_equiv_sections (F : J ⥤ Type u) : (limit F : Type u) ≃ F.sections :=
+def limit_equiv_sections (F : J ⥤ Type (max v u)) : (limit F : Type (max v u)) ≃ F.sections :=
 is_limit_equiv_sections (limit.is_limit _)
 
 @[simp]
-lemma limit_equiv_sections_apply (F : J ⥤ Type u) (x : limit F) (j : J) :
+lemma limit_equiv_sections_apply (F : J ⥤ Type (max v u)) (x : limit F) (j : J) :
   (((limit_equiv_sections F) x) : Π j, F.obj j) j = limit.π F j x :=
 rfl
 
 @[simp]
-lemma limit_equiv_sections_symm_apply (F : J ⥤ Type u) (x : F.sections) (j : J) :
+lemma limit_equiv_sections_symm_apply (F : J ⥤ Type (max v u)) (x : F.sections) (j : J) :
   limit.π F j ((limit_equiv_sections F).symm x) = (x : Π j, F.obj j) j :=
+is_limit_equiv_sections_symm_apply _ _ _
+
+@[simp]
+lemma limit_equiv_sections_symm_apply' (F : J ⥤ Type v) (x : F.sections) (j : J) :
+  limit.π F j ((limit_equiv_sections.{v v} F).symm x) = (x : Π j, F.obj j) j :=
 is_limit_equiv_sections_symm_apply _ _ _
 
 /--
@@ -87,19 +94,24 @@ which are "coherent": `∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j'`.
 -/
 @[ext]
 noncomputable
-def limit.mk (F : J ⥤ Type u) (x : Π j, F.obj j) (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') :
-  (limit F : Type u) :=
+def limit.mk (F : J ⥤ Type (max v u)) (x : Π j, F.obj j)
+  (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') : (limit F : Type (max v u)) :=
 (limit_equiv_sections F).symm ⟨x, h⟩
 
 @[simp]
-lemma limit.π_mk
-  (F : J ⥤ Type u) (x : Π j, F.obj j) (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') (j) :
-  limit.π F j (limit.mk F x h) = x j :=
+lemma limit.π_mk (F : J ⥤ Type (max v u)) (x : Π j, F.obj j)
+  (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') (j) : limit.π F j (limit.mk F x h) = x j :=
+by { dsimp [limit.mk], simp, }
+
+@[simp]
+lemma limit.π_mk' (F : J ⥤ Type v) (x : Π j, F.obj j)
+  (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') (j) :
+  limit.π F j (limit.mk.{v v} F x h) = x j :=
 by { dsimp [limit.mk], simp, }
 
 -- PROJECT: prove this for concrete categories where the forgetful functor preserves limits
 @[ext]
-lemma limit_ext (F : J ⥤ Type u) (x y : limit F) (w : ∀ j, limit.π F j x = limit.π F j y) :
+lemma limit_ext (F : J ⥤ Type (max v u)) (x y : limit F) (w : ∀ j, limit.π F j x = limit.π F j y) :
   x = y :=
 begin
   apply (limit_equiv_sections F).injective,
@@ -107,7 +119,20 @@ begin
   simp [w j],
 end
 
-lemma limit_ext_iff (F : J ⥤ Type u) (x y : limit F) :
+@[ext]
+lemma limit_ext' (F : J ⥤ Type v) (x y : limit F) (w : ∀ j, limit.π F j x = limit.π F j y) :
+  x = y :=
+begin
+  apply (limit_equiv_sections.{v v} F).injective,
+  ext j,
+  simp [w j],
+end
+
+lemma limit_ext_iff (F : J ⥤ Type (max v u)) (x y : limit F) :
+  x = y ↔ (∀ j, limit.π F j x = limit.π F j y) :=
+⟨λ t _, t ▸ rfl, limit_ext _ _ _⟩
+
+lemma limit_ext_iff' (F : J ⥤ Type v) (x y : limit F) :
   x = y ↔ (∀ j, limit.π F j x = limit.π F j y) :=
 ⟨λ t _, t ▸ rfl, limit_ext _ _ _⟩
 
@@ -116,17 +141,32 @@ lemma limit_ext_iff (F : J ⥤ Type u) (x y : limit F) :
 -- PROJECT: prove these for any concrete category where the forgetful functor preserves limits?
 
 @[simp]
-lemma limit.w_apply {F : J ⥤ Type u} {j j' : J} {x : limit F} (f : j ⟶ j') :
+lemma limit.w_apply {F : J ⥤ Type (max v u)} {j j' : J} {x : limit F} (f : j ⟶ j') :
   F.map f (limit.π F j x) = limit.π F j' x :=
 congr_fun (limit.w F f) x
 
 @[simp]
-lemma limit.lift_π_apply (F : J ⥤ Type u) (s : cone F) (j : J) (x : s.X) :
+lemma limit.lift_π_apply (F : J ⥤ Type (max v u)) (s : cone F) (j : J) (x : s.X) :
   limit.π F j (limit.lift F s x) = s.π.app j x :=
 congr_fun (limit.lift_π s j) x
 
 @[simp]
-lemma limit.map_π_apply {F G : J ⥤ Type u} (α : F ⟶ G) (j : J) (x) :
+lemma limit.map_π_apply {F G : J ⥤ Type (max v u)} (α : F ⟶ G) (j : J) (x) :
+  limit.π G j (lim_map α x) = α.app j (limit.π F j x) :=
+congr_fun (lim_map_π α j) x
+
+@[simp]
+lemma limit.w_apply' {F : J ⥤ Type v} {j j' : J} {x : limit F} (f : j ⟶ j') :
+  F.map f (limit.π F j x) = limit.π F j' x :=
+congr_fun (limit.w F f) x
+
+@[simp]
+lemma limit.lift_π_apply' (F : J ⥤ Type v) (s : cone F) (j : J) (x : s.X) :
+  limit.π F j (limit.lift F s x) = s.π.app j x :=
+congr_fun (limit.lift_π s j) x
+
+@[simp]
+lemma limit.map_π_apply' {F G : J ⥤ Type v} (α : F ⟶ G) (j : J) (x) :
   limit.π G j (lim_map α x) = α.app j (limit.π F j x) :=
 congr_fun (lim_map_π α j) x
 
@@ -134,7 +174,7 @@ congr_fun (lim_map_π α j) x
 The relation defining the quotient type which implements the colimit of a functor `F : J ⥤ Type u`.
 See `category_theory.limits.types.quot`.
 -/
-def quot.rel (F : J ⥤ Type u) : (Σ j, F.obj j) → (Σ j, F.obj j) → Prop :=
+def quot.rel (F : J ⥤ Type (max v u)) : (Σ j, F.obj j) → (Σ j, F.obj j) → Prop :=
 (λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2)
 
 /--
@@ -143,14 +183,14 @@ as pairs `⟨j, x⟩` where `x : F.obj j`, modulo the equivalence relation gener
 `⟨j, x⟩ ~ ⟨j', x'⟩` whenever there is a morphism `f : j ⟶ j'` so `F.map f x = x'`.
 -/
 @[nolint has_inhabited_instance]
-def quot (F : J ⥤ Type u) : Type u :=
+def quot (F : J ⥤ Type (max v u)) : Type (max v u) :=
 @quot (Σ j, F.obj j) (quot.rel F)
 
 /--
 (internal implementation) the colimit cocone of a functor,
 implemented as a quotient of a sigma type
 -/
-def colimit_cocone (F : J ⥤ Type u) : cocone F :=
+def colimit_cocone (F : J ⥤ Type (max v u)) : cocone F :=
 { X := quot F,
   ι :=
   { app := λ j x, quot.mk _ ⟨j, x⟩,
@@ -159,7 +199,7 @@ def colimit_cocone (F : J ⥤ Type u) : cocone F :=
 local attribute [elab_with_expected_type] quot.lift
 
 /-- (internal implementation) the fact that the proposed colimit cocone is the colimit -/
-def colimit_cocone_is_colimit (F : J ⥤ Type u) : is_colimit (colimit_cocone F) :=
+def colimit_cocone_is_colimit (F : J ⥤ Type (max v u)) : is_colimit (colimit_cocone F) :=
 { desc := λ s, quot.lift (λ (p : Σ j, F.obj j), s.ι.app p.1 p.2)
     (assume ⟨j, x⟩ ⟨j', x'⟩ ⟨f, hf⟩, by rw hf; exact (congr_fun (cocone.w s f) x).symm) }
 
@@ -168,28 +208,30 @@ The category of types has all colimits.
 
 See <https://stacks.math.columbia.edu/tag/002U>.
 -/
-instance : has_colimits (Type u) :=
+instance has_colimits_of_size : has_colimits_of_size.{v} (Type (max v u)) :=
 { has_colimits_of_shape := λ J 𝒥, by exactI
   { has_colimit := λ F, has_colimit.mk
     { cocone := colimit_cocone F, is_colimit := colimit_cocone_is_colimit F } } }
+
+instance : has_colimits (Type u) := types.has_colimits_of_size.{u u}
 
 /--
 The equivalence between the abstract colimit of `F` in `Type u`
 and the "concrete" definition as a quotient.
 -/
 noncomputable
-def colimit_equiv_quot (F : J ⥤ Type u) : (colimit F : Type u) ≃ quot F :=
+def colimit_equiv_quot (F : J ⥤ Type (max v u)) : (colimit F : Type (max v u)) ≃ quot F :=
 (is_colimit.cocone_point_unique_up_to_iso
   (colimit.is_colimit F)
   (colimit_cocone_is_colimit F)).to_equiv
 
 @[simp]
-lemma colimit_equiv_quot_symm_apply (F : J ⥤ Type u) (j : J) (x : F.obj j) :
+lemma colimit_equiv_quot_symm_apply (F : J ⥤ Type (max v u)) (j : J) (x : F.obj j) :
   (colimit_equiv_quot F).symm (quot.mk _ ⟨j, x⟩) = colimit.ι F j x :=
 rfl
 
 @[simp]
-lemma colimit_equiv_quot_apply (F : J ⥤ Type u) (j : J) (x : F.obj j) :
+lemma colimit_equiv_quot_apply (F : J ⥤ Type (max v u)) (j : J) (x : F.obj j) :
   (colimit_equiv_quot F) (colimit.ι F j x) = quot.mk _ ⟨j, x⟩ :=
 begin
   apply (colimit_equiv_quot F).symm.injective,
@@ -197,45 +239,60 @@ begin
 end
 
 @[simp]
-lemma colimit.w_apply {F : J ⥤ Type u} {j j' : J} {x : F.obj j} (f : j ⟶ j') :
+lemma colimit.w_apply {F : J ⥤ Type (max v u)} {j j' : J} {x : F.obj j} (f : j ⟶ j') :
   colimit.ι F j' (F.map f x) = colimit.ι F j x :=
 congr_fun (colimit.w F f) x
 
 @[simp]
-lemma colimit.ι_desc_apply (F : J ⥤ Type u) (s : cocone F) (j : J) (x : F.obj j) :
+lemma colimit.ι_desc_apply (F : J ⥤ Type (max v u)) (s : cocone F) (j : J) (x : F.obj j) :
   colimit.desc F s (colimit.ι F j x) = s.ι.app j x :=
 congr_fun (colimit.ι_desc s j) x
 
 @[simp]
-lemma colimit.ι_map_apply {F G : J ⥤ Type u} (α : F ⟶ G) (j : J) (x) :
+lemma colimit.ι_map_apply {F G : J ⥤ Type (max v u)} (α : F ⟶ G) (j : J) (x) :
+  colim.map α (colimit.ι F j x) = colimit.ι G j (α.app j x) :=
+congr_fun (colimit.ι_map α j) x
+
+@[simp]
+lemma colimit.w_apply' {F : J ⥤ Type v} {j j' : J} {x : F.obj j} (f : j ⟶ j') :
+  colimit.ι F j' (F.map f x) = colimit.ι F j x :=
+congr_fun (colimit.w F f) x
+
+@[simp]
+lemma colimit.ι_desc_apply' (F : J ⥤ Type v) (s : cocone F) (j : J) (x : F.obj j) :
+  colimit.desc F s (colimit.ι F j x) = s.ι.app j x :=
+congr_fun (colimit.ι_desc s j) x
+
+@[simp]
+lemma colimit.ι_map_apply' {F G : J ⥤ Type v} (α : F ⟶ G) (j : J) (x) :
   colim.map α (colimit.ι F j x) = colimit.ι G j (α.app j x) :=
 congr_fun (colimit.ι_map α j) x
 
 lemma colimit_sound
-  {F : J ⥤ Type u} {j j' : J} {x : F.obj j} {x' : F.obj j'} (f : j ⟶ j') (w : F.map f x = x') :
-  colimit.ι F j x = colimit.ι F j' x' :=
+  {F : J ⥤ Type (max v u)} {j j' : J} {x : F.obj j} {x' : F.obj j'}
+  (f : j ⟶ j') (w : F.map f x = x') : colimit.ι F j x = colimit.ι F j' x' :=
 begin
   rw [←w],
   simp,
 end
 
 lemma colimit_sound'
-  {F : J ⥤ Type u} {j j' : J} {x : F.obj j} {x' : F.obj j'} {j'' : J} (f : j ⟶ j'') (f' : j' ⟶ j'')
-  (w : F.map f x = F.map f' x') :
+  {F : J ⥤ Type (max v u)} {j j' : J} {x : F.obj j} {x' : F.obj j'} {j'' : J}
+  (f : j ⟶ j'') (f' : j' ⟶ j'') (w : F.map f x = F.map f' x') :
   colimit.ι F j x = colimit.ι F j' x' :=
 begin
   rw [←colimit.w _ f, ←colimit.w _ f'],
   rw [types_comp_apply, types_comp_apply, w],
 end
 
-lemma colimit_eq {F : J ⥤ Type u } {j j' : J} {x : F.obj j} {x' : F.obj j'}
+lemma colimit_eq {F : J ⥤ Type (max v u)} {j j' : J} {x : F.obj j} {x' : F.obj j'}
   (w : colimit.ι F j x = colimit.ι F j' x') : eqv_gen (quot.rel F) ⟨j, x⟩ ⟨j', x'⟩ :=
 begin
   apply quot.eq.1,
   simpa using congr_arg (colimit_equiv_quot F) w,
 end
 
-lemma jointly_surjective (F : J ⥤ Type u) {t : cocone F} (h : is_colimit t)
+lemma jointly_surjective (F : J ⥤ Type (max v u)) {t : cocone F} (h : is_colimit t)
   (x : t.X) : ∃ j y, t.ι.app j y = x :=
 begin
   suffices : (λ (x : t.X), ulift.up (∃ j y, t.ι.app j y = x)) = (λ _, ulift.up true),
@@ -250,7 +307,7 @@ begin
 end
 
 /-- A variant of `jointly_surjective` for `x : colimit F`. -/
-lemma jointly_surjective' {F : J ⥤ Type u}
+lemma jointly_surjective' {F : J ⥤ Type (max v u)}
   (x : colimit F) : ∃ j y, colimit.ι F j y = x :=
 jointly_surjective F (colimit.is_colimit _) x
 
@@ -259,7 +316,7 @@ namespace filtered_colimit
   of the equivalence relation generated by the relation used to form
   the colimit.  -/
 
-variables (F : J ⥤ Type u)
+variables (F : J ⥤ Type (max v u))
 
 /--
 An alternative relation on `Σ j, F.obj j`,

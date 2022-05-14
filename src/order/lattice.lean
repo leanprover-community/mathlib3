@@ -708,6 +708,25 @@ instance linear_order.to_distrib_lattice {α : Type u} [o : linear_order α] :
 instance nat.distrib_lattice : distrib_lattice ℕ :=
 by apply_instance
 
+/-! ### Dual order -/
+
+open order_dual
+
+@[simp] lemma of_dual_inf [has_sup α] (a b:  αᵒᵈ) : of_dual (a ⊓ b) = of_dual a ⊔ of_dual b := rfl
+@[simp] lemma of_dual_sup [has_inf α] (a b : αᵒᵈ) : of_dual (a ⊔ b) = of_dual a ⊓ of_dual b := rfl
+@[simp] lemma to_dual_inf [has_inf α] (a b : α) : to_dual (a ⊓ b) = to_dual a ⊔ to_dual b := rfl
+@[simp] lemma to_dual_sup [has_sup α] (a b : α) : to_dual (a ⊔ b) = to_dual a ⊓ to_dual b := rfl
+
+section linear_order
+variables [linear_order α]
+
+@[simp] lemma of_dual_min (a b : αᵒᵈ) : of_dual (min a b) = max (of_dual a) (of_dual b) := rfl
+@[simp] lemma of_dual_max (a b : αᵒᵈ) : of_dual (max a b) = min (of_dual a) (of_dual b) := rfl
+@[simp] lemma to_dual_min (a b : α) : to_dual (min a b) = max (to_dual a) (to_dual b) := rfl
+@[simp] lemma to_dual_max (a b : α) : to_dual (max a b) = min (to_dual a) (to_dual b) := rfl
+
+end linear_order
+
 /-! ### Function lattices -/
 
 namespace pi

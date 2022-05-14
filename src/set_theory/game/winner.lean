@@ -31,7 +31,7 @@ def left_wins (G : pgame) : Prop := 0 < G
 /-- The right player can always win -/
 def right_wins (G : pgame) : Prop := G < 0
 
-theorem zero_first_loses : first_loses 0 := refl 0
+theorem zero_first_loses : first_loses 0 := equiv_rfl
 theorem one_left_wins : left_wins 1 := zero_lt_one
 
 theorem star_first_wins : first_wins star := star_fuzzy_zero
@@ -42,7 +42,7 @@ lt_or_equiv_or_gt_or_fuzzy G 0
 lemma first_loses_is_zero {G : pgame} : G.first_loses ↔ G ≈ 0 := by refl
 
 lemma first_loses_of_equiv {G H : pgame} (h : G ≈ H) : G.first_loses → H.first_loses :=
-h.symm.trans
+equiv_trans $ equiv_symm h
 lemma first_wins_of_equiv {G H : pgame} (h : G ≈ H) : G.first_wins → H.first_wins :=
 (fuzzy_congr_left h).1
 lemma left_wins_of_equiv {G H : pgame} (h : G ≈ H) : G.left_wins → H.left_wins :=
@@ -51,7 +51,7 @@ lemma right_wins_of_equiv {G H : pgame} (h : G ≈ H) : G.right_wins → H.right
 (lt_congr_left h).1
 
 lemma first_loses_of_equiv_iff {G H : pgame} (h : G ≈ H) : G.first_loses ↔ H.first_loses :=
-⟨h.symm.trans, h.trans⟩
+⟨first_loses_of_equiv h, equiv_trans h⟩
 lemma first_wins_of_equiv_iff {G H : pgame} : G ≈ H → (G.first_wins ↔ H.first_wins) :=
 fuzzy_congr_left
 lemma left_wins_of_equiv_iff {G H : pgame} : G ≈ H → (G.left_wins ↔ H.left_wins) :=

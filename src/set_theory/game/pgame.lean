@@ -357,7 +357,8 @@ instance : preorder pgame :=
   end,
   ..pgame.has_le }
 
-instance : is_irrefl _ (⧏) := ⟨λ a, pgame.not_lf.2 le_rfl⟩
+theorem lf_irrefl (x : pgame) : ¬ x ⧏ x := pgame.not_lf.2 le_rfl
+instance : is_irrefl _ (⧏) := ⟨lf_irrefl⟩
 
 @[trans] theorem lf_of_le_of_lf {x y z : pgame} (h₁ : x ≤ y) (h₂ : y ⧏ z) : x ⧏ z :=
 by { rw ←pgame.not_le at h₂ ⊢, exact λ h₃, h₂ (h₃.trans h₁) }
@@ -462,15 +463,11 @@ def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
 
 local infix ` ≈ ` := pgame.equiv
 
-instance : is_equiv _ equiv :=
-{ refl := λ x, ⟨le_rfl, le_rfl⟩,
-  symm := λ x y, and.symm,
-  trans := λ x y z ⟨xy, yx⟩ ⟨yz, zy⟩, ⟨xy.trans yz, zy.trans yx⟩ }
-
-@[refl, simp] theorem equiv_refl (x : pgame) : x ≈ x := refl x
-theorem equiv_rfl {x : pgame} : x ≈ x := refl x
-@[symm] protected theorem equiv.symm {x y : pgame} : x ≈ y → y ≈ x := symm
-@[trans] protected theorem equiv.trans {x y z : pgame} : x ≈ y → y ≈ z → x ≈ z := trans
+@[refl, simp] theorem equiv_refl (x : pgame) : x ≈ x := ⟨le_rfl, le_rfl⟩
+theorem equiv_rfl {x : pgame} : x ≈ x := equiv_refl x
+@[symm] theorem equiv_symm {x y : pgame} : x ≈ y → y ≈ x := and.symm
+@[trans] theorem equiv_trans {x y z : pgame} : x ≈ y → y ≈ z → x ≈ z :=
+λ ⟨xy, yx⟩ ⟨yz, zy⟩, ⟨xy.trans yz, zy.trans yx⟩
 
 @[trans] theorem le_of_le_of_equiv {x y z} (h₁ : x ≤ y) (h₂ : y ≈ z) : x ≤ z := h₁.trans h₂.1
 @[trans] theorem le_of_equiv_of_le {x y z} (h₁ : x ≈ y) : y ≤ z → x ≤ z := h₁.1.trans
@@ -478,7 +475,7 @@ theorem equiv_rfl {x : pgame} : x ≈ x := refl x
 theorem le_congr_imp {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) (h : x₁ ≤ y₁) : x₂ ≤ y₂ :=
 hx.2.trans (h.trans hy.1)
 theorem le_congr {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ ≤ y₁ ↔ x₂ ≤ y₂ :=
-⟨le_congr_imp hx hy, le_congr_imp hx.symm hy.symm⟩
+⟨le_congr_imp hx hy, le_congr_imp (equiv_symm hx) (equiv_symm hy)⟩
 theorem le_congr_left {x₁ x₂ y} (hx : x₁ ≈ x₂) : x₁ ≤ y ↔ x₂ ≤ y :=
 le_congr hx equiv_rfl
 theorem le_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x ≤ y₁ ↔ x ≤ y₂ :=
@@ -496,7 +493,7 @@ lf_congr equiv_rfl hy
 @[trans] theorem lf_of_lf_of_equiv {x y z} (h₁ : x ⧏ y) (h₂ : y ≈ z) : x ⧏ z :=
 lf_congr_imp equiv_rfl h₂ h₁
 @[trans] theorem lf_of_equiv_of_lf {x y z} (h₁ : x ≈ y) : y ⧏ z → x ⧏ z :=
-lf_congr_imp h₁.symm equiv_rfl
+lf_congr_imp (equiv_symm h₁) equiv_rfl
 
 @[trans] theorem lt_of_lt_of_equiv {x y z} (h₁ : x < y) (h₂ : y ≈ z) : x < z := h₁.trans_le h₂.1
 @[trans] theorem lt_of_equiv_of_lt {x y z} (h₁ : x ≈ y) : y < z → x < z := h₁.1.trans_lt
@@ -504,7 +501,7 @@ lf_congr_imp h₁.symm equiv_rfl
 theorem lt_congr_imp {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) (h : x₁ < y₁) : x₂ < y₂ :=
 hx.2.trans_lt (h.trans_le hy.1)
 theorem lt_congr {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ < y₁ ↔ x₂ < y₂ :=
-⟨lt_congr_imp hx hy, lt_congr_imp hx.symm hy.symm⟩
+⟨lt_congr_imp hx hy, lt_congr_imp (equiv_symm hx) (equiv_symm hy)⟩
 theorem lt_congr_left {x₁ x₂ y} (hx : x₁ ≈ x₂) : x₁ < y ↔ x₂ < y :=
 lt_congr hx equiv_rfl
 theorem lt_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x < y₁ ↔ x < y₂ :=
@@ -520,16 +517,16 @@ begin
   { right,
     cases (lf_or_equiv_of_le (pgame.not_lf.1 h)) with h' h',
     { exact or.inr h' },
-    { exact or.inl h'.symm } }
+    { exact or.inl (equiv_symm h') } }
 end
 
 theorem equiv_congr_left {y₁ y₂} : y₁ ≈ y₂ ↔ ∀ x₁, x₁ ≈ y₁ ↔ x₁ ≈ y₂ :=
-⟨λ h x₁, ⟨λ h', h'.trans h, λ h', h'.trans (symm h)⟩,
+⟨λ h x₁, ⟨λ h', equiv_trans h' h, λ h', equiv_trans h' (equiv_symm h)⟩,
  λ h, (h y₁).1 $ equiv_rfl⟩
 
 theorem equiv_congr_right {x₁ x₂} : x₁ ≈ x₂ ↔ ∀ y₁, x₁ ≈ y₁ ↔ x₂ ≈ y₁ :=
-⟨λ h y₁, ⟨λ h', h.symm.trans h', λ h', h.trans h'⟩,
- λ h, (h x₂).2 $ equiv_rfl⟩
+⟨λ h y₁, ⟨λ h', equiv_trans (equiv_symm h) h', λ h', equiv_trans h h'⟩,
+ λ h, (h x₂).2 $ equiv_refl _⟩
 
 theorem equiv_of_mk_equiv {x y : pgame}
   (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves)
@@ -559,8 +556,11 @@ def fuzzy (x y : pgame) : Prop := x ⧏ y ∧ y ⧏ x
 
 local infix ` ∥ `:50 := fuzzy
 
-instance : is_irrefl _ (∥) := ⟨λ x h, (@irrefl _ (⧏) _ x) h.1⟩
-instance : is_symm _ (∥) := ⟨λ x y h, h.swap⟩
+@[symm] theorem fuzzy.swap {x y : pgame} : x ∥ y → y ∥ x := and.swap
+instance : is_symm _ (∥) := ⟨λ x y, fuzzy.swap⟩
+
+theorem fuzzy_irrefl (x : pgame) : ¬ x ∥ x := λ h, lf_irrefl x h.1
+instance : is_irrefl _ (∥) := ⟨fuzzy_irrefl⟩
 
 theorem lf_iff_lt_or_fuzzy {x y : pgame} : x ⧏ y ↔ x < y ∨ x ∥ y :=
 by { simp only [lt_iff_le_and_lf, fuzzy, ←pgame.not_le], tauto! }
@@ -1313,7 +1313,7 @@ begin
     left,
     use (sum.inl punit.star),
     calc 0 ≤ half : pgame.zero_lt_half.le
-    ... ≈ 0 + half : (zero_add_equiv half).symm
+    ... ≈ 0 + half : equiv_symm (zero_add_equiv half)
     ... = (half + half).move_left (sum.inl punit.star) : by fsplit },
   { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); left,
     { exact ⟨sum.inr punit.star, le_of_le_of_equiv (le_rfl) (add_zero_equiv _).symm⟩ },

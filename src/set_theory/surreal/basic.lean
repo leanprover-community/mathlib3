@@ -202,8 +202,8 @@ open pgame
 instance surreal.setoid : setoid {x // pgame.numeric x} :=
 ⟨λ x y, x.1 ≈ y.1,
  λ x, equiv_refl x.1,
- λ x y, pgame.equiv.symm,
- λ x y z, pgame.equiv.trans⟩
+ λ x y, pgame.equiv_symm,
+ λ x y z, pgame.equiv_trans⟩
 
 /-- The type of surreal numbers. These are the numeric pre-games quotiented
 by the equivalence relation `x ≈ y ↔ x ≤ y ∧ y ≤ x`. In the quotient,

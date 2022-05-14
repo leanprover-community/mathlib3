@@ -389,28 +389,31 @@ end, λ ⟨a, e⟩, by simp [e]⟩
 def is_fundamental_sequence (a o : ordinal.{u}) (f : Π b < o, ordinal.{u}) : Prop :=
 o ≤ a.cof.ord ∧ (∀ {i j} (hi hj), i < j → f i hi < f j hj) ∧ blsub.{u u} o f = a
 
-section fundamental_sequence
-variables {a o : ordinal.{u}} {f : Π b < o, ordinal.{u}} (hf : is_fundamental_sequence a o f)
+namespace is_fundamental_sequence
+variables {a o : ordinal.{u}} {f : Π b < o, ordinal.{u}}
 
-theorem is_fundamental_sequence.cof_eq : a.cof.ord = o :=
-hf.1.antisymm' (by { rw ←hf.2.2, exact (ord_le_ord.2 (cof_blsub_le f)).trans (ord_card_le o) })
+protected theorem cof_eq (hf : is_fundamental_sequence a o f) : a.cof.ord = o :=
+hf.1.antisymm' $ by { rw ←hf.2.2, exact (ord_le_ord.2 (cof_blsub_le f)).trans (ord_card_le o) }
 
-theorem is_fundamental_sequence.strict_mono :
-  ∀ {i j : ordinal} (hi : i < o) (hj : j < o), i < j → f i hi < f j hj :=
+protected theorem strict_mono (hf : is_fundamental_sequence a o f) :
+  ∀ {i j} (hi) (hj), i < j → f i hi < f j hj :=
 hf.2.1
 
-theorem is_fundamental_sequence.blsub_eq : blsub.{u u} o f = a :=
+theorem blsub_eq (hf : is_fundamental_sequence a o f) : blsub.{u u} o f = a :=
 hf.2.2
 
-theorem is_fundamental_sequence_id_of_le_cof (h : o ≤ o.cof.ord) :
-  is_fundamental_sequence o o (λ a _, a) :=
+theorem ord_cof (hf : is_fundamental_sequence a o f) :
+  is_fundamental_sequence a a.cof.ord (λ i hi, f i (hi.trans_le (by rw hf.cof_eq))) :=
+by { have H := hf.cof_eq, subst H, exact hf }
+
+theorem id_of_le_cof (h : o ≤ o.cof.ord) : is_fundamental_sequence o o (λ a _, a) :=
 ⟨h, λ _ _ _ _, id, blsub_id o⟩
 
-theorem is_fundamental_sequence_zero {f : Π b < (0 : ordinal), ordinal} :
+protected theorem zero {f : Π b < (0 : ordinal), ordinal} :
   is_fundamental_sequence 0 0 f :=
-⟨by rw [cof_zero, ord_zero], λ i j hi, (ordinal.not_lt_zero i hi).elim, blsub_zero rfl f⟩
+⟨by rw [cof_zero, ord_zero], λ i j hi, (ordinal.not_lt_zero i hi).elim, blsub_zero f⟩
 
-theorem is_fundamental_sequence_succ : is_fundamental_sequence o.succ 1 (λ _ _, o) :=
+protected theorem succ : is_fundamental_sequence o.succ 1 (λ _ _, o) :=
 begin
   refine ⟨_, λ i j hi hj h, _, blsub_const ordinal.one_ne_zero o⟩,
   { rw [cof_succ, ord_one] },
@@ -419,18 +422,15 @@ begin
     exact h.false.elim }
 end
 
-include hf
-theorem is_fundamental_sequence.monotone {i j : ordinal} (hi : i < o) (hj : j < o) (hij : i ≤ j) :
-  f i hi ≤ f j hj :=
+protected theorem monotone (hf : is_fundamental_sequence a o f) {i j : ordinal} (hi : i < o)
+  (hj : j < o) (hij : i ≤ j) : f i hi ≤ f j hj :=
 begin
   rcases lt_or_eq_of_le hij with hij | rfl,
   { exact le_of_lt (hf.2.1 hi hj hij) },
   { refl }
 end
 
-end fundamental_sequence
-
-theorem is_fundamental_sequence.trans {a o o' : ordinal.{u}} {f : Π b < o, ordinal.{u}}
+theorem trans {a o o' : ordinal.{u}} {f : Π b < o, ordinal.{u}}
   (hf : is_fundamental_sequence a o f) {g : Π b < o', ordinal.{u}}
   (hg : is_fundamental_sequence o o' g) :
   is_fundamental_sequence a o' (λ i hi, f (g i hi) (by { rw ←hg.2.2, apply lt_blsub })) :=
@@ -442,14 +442,15 @@ begin
     exact hf.2.2 }
 end
 
+end is_fundamental_sequence
+
 /-- Every ordinal has a fundamental sequence. -/
 theorem exists_fundamental_sequence (a : ordinal.{u}) :
   ∃ f, is_fundamental_sequence a a.cof.ord f :=
 begin
   suffices : ∃ o f, is_fundamental_sequence a o f,
   { rcases this with ⟨o, f, hf⟩,
-    convert exists.intro f hf;
-    rw hf.cof_eq },
+    exact ⟨_, hf.ord_cof⟩ },
   rcases exists_lsub_cof a with ⟨ι, f, hf, hι⟩,
   rcases ord_eq ι with ⟨r, wo, hr⟩,
   haveI := wo,

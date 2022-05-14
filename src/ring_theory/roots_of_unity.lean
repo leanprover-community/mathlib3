@@ -79,7 +79,7 @@ def roots_of_unity (k : ℕ+) (M : Type*) [comm_monoid M] : subgroup Mˣ :=
 { carrier := { ζ | ζ ^ (k : ℕ) = 1 },
   one_mem' := one_pow _,
   mul_mem' := λ ζ ξ hζ hξ, by simp only [*, set.mem_set_of_eq, mul_pow, one_mul] at *,
-  inv_mem' := λ ζ hζ, by simp only [*, set.mem_set_of_eq, inv_pow, one_inv] at * }
+  inv_mem' := λ ζ hζ, by simp only [*, set.mem_set_of_eq, inv_pow, inv_one] at * }
 
 @[simp] lemma mem_roots_of_unity (k : ℕ+) (ζ : Mˣ) :
   ζ ∈ roots_of_unity k M ↔ ζ ^ (k : ℕ) = 1 := iff.rfl
@@ -454,16 +454,16 @@ begin
     lift -l to ℕ using this with l' hl',
     rw [← dvd_neg, ← hl'],
     norm_cast,
-    rw [← h.pow_eq_one_iff_dvd, ← inv_inj, ← zpow_neg, ← hl', zpow_coe_nat, one_inv] }
+    rw [← h.pow_eq_one_iff_dvd, ← inv_inj, ← zpow_neg, ← hl', zpow_coe_nat, inv_one] }
 end
 
 lemma inv (h : is_primitive_root ζ k) : is_primitive_root ζ⁻¹ k :=
-{ pow_eq_one := by simp only [h.pow_eq_one, one_inv, eq_self_iff_true, inv_pow],
+{ pow_eq_one := by simp only [h.pow_eq_one, inv_one, eq_self_iff_true, inv_pow],
   dvd_of_pow_eq_one :=
   begin
     intros l hl,
     apply h.dvd_of_pow_eq_one l,
-    rw [← inv_inj, ← inv_pow, hl, one_inv]
+    rw [← inv_inj, ← inv_pow, hl, inv_one]
   end }
 
 @[simp] lemma inv_iff : is_primitive_root ζ⁻¹ k ↔ is_primitive_root ζ k :=
@@ -865,12 +865,10 @@ begin
     rw [hd, pow_mul, ha.pow_eq_one, one_pow] },
   { apply le_of_eq,
     rw [h.card_nth_roots_finset, finset.card_bUnion],
-    { rw [← nat.sum_totient n, nat.filter_dvd_eq_divisors (pnat.ne_zero n), sum_congr rfl]
-        { occs := occurrences.pos [1] },
-      simp only [finset.mem_filter, finset.mem_range, nat.mem_divisors],
-      rintro k ⟨H, hk⟩,
-      have hdvd := H,
-      rcases H with ⟨d, hd⟩,
+    { nth_rewrite_lhs 0 ← nat.sum_totient n,
+      refine sum_congr rfl _,
+      simp only [nat.mem_divisors],
+      rintro k ⟨⟨d, hd⟩, -⟩,
       rw mul_comm at hd,
       rw (h.pow n.pos hd).card_primitive_roots },
     { intros i hi j hj hdiff,

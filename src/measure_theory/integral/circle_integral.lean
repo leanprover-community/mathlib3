@@ -515,7 +515,7 @@ begin
     refine has_sum.smul_const _,
     have : ∥w / (circle_map c R θ - c)∥ < 1, by simpa [abs_of_pos hR] using hwR.2,
     convert (has_sum_geometric_of_norm_lt_1 this).mul_right _,
-    simp [← sub_sub, ← mul_inv₀, sub_mul, div_mul_cancel _ (circle_map_ne_center hR.ne')] }
+    simp [← sub_sub, ← mul_inv, sub_mul, div_mul_cancel _ (circle_map_ne_center hR.ne')] }
 end
 
 /-- For any circle integrable function `f`, the power series `cauchy_power_series f c R`, `R > 0`,

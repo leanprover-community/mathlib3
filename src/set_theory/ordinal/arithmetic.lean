@@ -374,7 +374,7 @@ lemma type_subrel_lt (o : ordinal.{u}) :
 begin
   refine quotient.induction_on o _,
   rintro ⟨α, r, wo⟩, resetI, apply quotient.sound,
-  constructor, symmetry, refine (rel_iso.preimage equiv.ulift r).trans (typein_iso r)
+  constructor, symmetry, refine (rel_iso.preimage equiv.ulift r).trans (enum_iso r).symm
 end
 
 lemma mk_initial_seg (o : ordinal.{u}) :

@@ -388,8 +388,8 @@ theorem finite_range (f : ι → α) [fintype (plift ι)] : (range f).finite :=
 by { classical, apply finite.intro' }
 
 lemma finite.dependent_image {s : set α} (hs : s.finite) (F : Π i ∈ s, β) :
-  finite {y : β | ∃ x (hx : x ∈ s), F x hx = y} :=
-by { casesI hs, simpa [range] using finite_range (λ x : s, F x x.2) }
+  finite {y : β | ∃ x (hx : x ∈ s), y = F x hx} :=
+by { casesI hs, simpa [range, eq_comm] using finite_range (λ x : s, F x x.2) }
 
 theorem finite.map {α β} {s : set α} : ∀ (f : α → β), finite s → finite (f <$> s) :=
 finite.image

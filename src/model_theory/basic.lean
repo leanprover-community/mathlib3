@@ -93,8 +93,6 @@ end
 
 end sequence₂
 
-instance {a₀ a₁ a₂ : Type u} {n : ℕ} : is_empty (sequence₂ a₀ a₁ a₂ (n + 3)) := pempty.is_empty
-
 @[simp] lemma sum_card_sequence₂ (a₀ a₁ a₂ : Type u) :
   cardinal.sum (λ i, # (sequence₂ a₀ a₁ a₂ i)) = # a₀ + # a₁ + # a₂ :=
 begin

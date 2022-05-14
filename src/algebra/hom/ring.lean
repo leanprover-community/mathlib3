@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2022 Amelia Livingston. All rights reserved.
+Copyright (c) 2019 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Jireh Loreaux
 -/
@@ -501,7 +501,8 @@ namespace add_monoid_hom
 variables [comm_ring α] [is_domain α] [comm_ring β]
 
 /-- Make a ring homomorphism from an additive group homomorphism from a commutative ring to an
-integral domain that commutes with self multiplication, assumes that two is nonzero and one is sento one. -/
+integral domain that commutes with self multiplication, assumes that two is nonzero and one is sent
+to one. -/
 def mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α)
   (h : ∀ x, f (x * x) = f x * f x) (h_two : (2 : α) ≠ 0) (h_one : f 1 = 1) : β →+* α :=
 { map_one' := h_one,

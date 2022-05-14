@@ -440,6 +440,7 @@ begin
   { intro l,
     rw [←fintype.card_congr (equiv.subtype_subtype_equiv_subtype_inter _ _),
         fintype.card_subtype_compl, ←nat.card_eq_fintype_card],
+    any_goals { apply_instance },
     refine tsub_eq_of_eq_add ((point_count_eq P l.1).trans _),
     rw ← fintype.card_subtype_eq (⟨p, l.2⟩ : {q : P // q ∈ l.1}),
     simp_rw subtype.ext_iff_val },

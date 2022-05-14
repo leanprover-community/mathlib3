@@ -63,17 +63,23 @@ class distrib (R : Type*) extends has_mul R, has_add R :=
 (left_distrib : ∀ a b c : R, a * (b + c) = (a * b) + (a * c))
 (right_distrib : ∀ a b c : R, (a + b) * c = (a * c) + (b * c))
 
-lemma left_distrib [distrib R] (a b c : R) : a * (b + c) = a * b + a * c :=
-distrib.left_distrib a b c
+instance [distrib R] : is_left_distrib R (*) (+) := ⟨distrib.left_distrib⟩
+instance [distrib R] : is_right_distrib R (*) (+) := ⟨distrib.right_distrib⟩
+
+lemma left_distrib [has_mul R] [has_add R] [is_left_distrib R (*) (+)] (a b c : R) :
+  a * (b + c) = a * b + a * c :=
+is_left_distrib.left_distrib a b c
 
 alias left_distrib ← mul_add
 
-lemma right_distrib [distrib R] (a b c : R) : (a + b) * c = a * c + b * c :=
-distrib.right_distrib a b c
+lemma right_distrib [has_mul R] [has_add R] [is_right_distrib R (*) (+)] (a b c : R) :
+  (a + b) * c = a * c + b * c :=
+is_right_distrib.right_distrib a b c
 
 alias right_distrib ← add_mul
 
-lemma distrib_three_right [distrib R] (a b c d : R) : (a + b + c) * d = a * d + b * d + c * d :=
+lemma distrib_three_right [has_mul R] [has_add R] [is_right_distrib R (*) (+)] (a b c d : R) :
+  (a + b + c) * d = a * d + b * d + c * d :=
 by simp [right_distrib]
 
 /-- Pullback a `distrib` instance along an injective function.
@@ -226,41 +232,40 @@ section has_one_has_add
 
 variables [has_one α] [has_add α]
 
-lemma one_add_one_eq_two : 1 + 1 = (2 : α) :=
-by unfold bit0
+lemma one_add_one_eq_two : 1 + 1 = (2 : α) := rfl
 
 end has_one_has_add
 
-section non_unital_semiring
-variables [non_unital_semiring α]
+section distrib_semigroup
+variables [has_add α] [semigroup α]
 
-theorem dvd_add {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
+theorem dvd_add [is_left_distrib α (*) (+)] {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
 dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
 
-end non_unital_semiring
+end distrib_semigroup
 
-section non_assoc_semiring
-variables [non_assoc_semiring α]
+section distrib_monoid
+variables [has_add α] [monoid α]
 
-lemma add_one_mul (a b : α) : (a + 1) * b = a * b + b :=
+lemma add_one_mul [is_right_distrib α (*) (+)] (a b : α) : (a + 1) * b = a * b + b :=
 by rw [add_mul, one_mul]
-lemma mul_add_one (a b : α) : a * (b + 1) = a * b + a :=
+lemma mul_add_one [is_left_distrib α (*) (+)] (a b : α) : a * (b + 1) = a * b + a :=
 by rw [mul_add, mul_one]
-lemma one_add_mul (a b : α) : (1 + a) * b = b + a * b :=
+lemma one_add_mul [is_right_distrib α (*) (+)] (a b : α) : (1 + a) * b = b + a * b :=
 by rw [add_mul, one_mul]
-lemma mul_one_add (a b : α) : a * (1 + b) = a + a * b :=
+lemma mul_one_add [is_left_distrib α (*) (+)](a b : α) : a * (1 + b) = a + a * b :=
 by rw [mul_add, mul_one]
 
-theorem two_mul (n : α) : 2 * n = n + n :=
+theorem two_mul [is_right_distrib α (*) (+)] (n : α) : 2 * n = n + n :=
 eq.trans (right_distrib 1 1 n) (by simp)
 
-theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
+theorem bit0_eq_two_mul [is_right_distrib α (*) (+)] (n : α) : bit0 n = 2 * n :=
 (two_mul _).symm
 
-theorem mul_two (n : α) : n * 2 = n + n :=
+theorem mul_two [is_left_distrib α (*) (+)] (n : α) : n * 2 = n + n :=
 (left_distrib n 1 1).trans (by simp)
 
-end non_assoc_semiring
+end distrib_monoid
 
 section semiring
 variables [semiring α]

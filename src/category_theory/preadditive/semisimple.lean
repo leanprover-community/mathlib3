@@ -142,31 +142,31 @@ begin
     simp [biproduct.ι_π_ne f (ne.symm w)], },
 end
 
-/--
-If we have `V` inside `W`, and an inclusion of `W` into `V ⊞ Z`,
-so that `V` is taken identically to `V`,
-then `V` is complemented in `W`.
--/
-def complement {W V Z : C} (i : V ⟶ W) [mono i] (j : W ⟶ V ⊞ Z) [mono j]
-  (w : i ≫ j = biprod.inl) :
-  W ≅ V ⊞ kernel (j ≫ biprod.fst) :=
-{ hom := j ≫ biprod.fst ≫ biprod.inl +
-    kernel.lift _ (𝟙 W - j ≫ biprod.fst ≫ i) (by simp [reassoc_of w]) ≫ biprod.inr,
-  inv := biprod.fst ≫ i + biprod.snd ≫ kernel.ι _,
-  hom_inv_id' := by tidy,
-  inv_hom_id' := begin
-    ext, -- Check each entry of the 2x2 matrix separately.
-    { simp [reassoc_of w], },
-    { simp [reassoc_of w], },
-    { simp, },
-    { simp only [category.assoc, category.id_comp, category.comp_id,
-        preadditive.add_comp, preadditive.comp_add, preadditive.comp_sub, zero_comp, comp_zero,
-        biprod.inr_fst_assoc, biprod.inl_snd, biprod.inr_snd, biprod.inr_snd_assoc,
-        zero_add, kernel.lift_ι],
-      simp only [sub_eq_self],
-      slice_lhs 1 3 { simp only [kernel.condition], },
-      simp only [zero_comp], }
-  end, }.
+-- /--
+-- If we have `V` inside `W`, and an inclusion of `W` into `V ⊞ Z`,
+-- so that `V` is taken identically to `V`,
+-- then `V` is complemented in `W`.
+-- -/
+-- def complement {W V Z : C} (i : V ⟶ W) [mono i] (j : W ⟶ V ⊞ Z) [mono j]
+--   (w : i ≫ j = biprod.inl) :
+--   W ≅ V ⊞ kernel (j ≫ biprod.fst) :=
+-- { hom := j ≫ biprod.fst ≫ biprod.inl +
+--     kernel.lift _ (𝟙 W - j ≫ biprod.fst ≫ i) (by simp [reassoc_of w]) ≫ biprod.inr,
+--   inv := biprod.fst ≫ i + biprod.snd ≫ kernel.ι _,
+--   hom_inv_id' := by tidy,
+--   inv_hom_id' := begin
+--     ext, -- Check each entry of the 2x2 matrix separately.
+--     { simp [reassoc_of w], },
+--     { simp [reassoc_of w], },
+--     { simp, },
+--     { simp only [category.assoc, category.id_comp, category.comp_id,
+--         preadditive.add_comp, preadditive.comp_add, preadditive.comp_sub, zero_comp, comp_zero,
+--         biprod.inr_fst_assoc, biprod.inl_snd, biprod.inr_snd, biprod.inr_snd_assoc,
+--         zero_add, kernel.lift_ι],
+--       simp only [sub_eq_self],
+--       slice_lhs 1 3 { simp only [kernel.condition], },
+--       simp only [zero_comp], }
+--   end, }.
 
 @[simp, reassoc]
 lemma foo {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso (f ≫ g)] :
@@ -182,11 +182,27 @@ begin
   rw zero_comp,
 end
 
-def complement' {X Y : C} {V W : subobject (X ⊞ Y)} (h : V ≤ W) [is_iso (V.arrow ≫ biprod.fst)] :
-  (W : C) ≅ V ⊞ kernel_subobject (W.arrow ≫ biprod.fst) :=
-{ hom := W.arrow ≫ biprod.fst ≫ inv (V.arrow ≫ biprod.fst) ≫ biprod.inl +
-    factor_thru_kernel_subobject (W.arrow ≫ biprod.fst)
-      (𝟙 W - W.arrow ≫ biprod.fst ≫ inv (V.arrow ≫ biprod.fst) ≫ (subobject.of_le _ _ h))
+-- def complement' {X Y : C} {V W : subobject (X ⊞ Y)} (h : V ≤ W) [is_iso (V.arrow ≫ biprod.fst)] :
+--   (W : C) ≅ V ⊞ kernel_subobject (W.arrow ≫ biprod.fst) :=
+-- { hom := W.arrow ≫ biprod.fst ≫ inv (V.arrow ≫ biprod.fst) ≫ biprod.inl +
+--     factor_thru_kernel_subobject (W.arrow ≫ biprod.fst)
+--       (𝟙 W - W.arrow ≫ biprod.fst ≫ inv (V.arrow ≫ biprod.fst) ≫ (subobject.of_le _ _ h))
+--       (by simp) ≫
+--     biprod.inr,
+--   inv := biprod.fst ≫ (subobject.of_le _ _ h) + biprod.snd ≫ (kernel_subobject _).arrow,
+--   hom_inv_id' := by simp,
+--   inv_hom_id' := begin
+--     ext; -- Check each entry of the 2x2 matrix separately.
+--     simp,
+--   end, }.
+
+
+def complement'' (f : ι → C) [has_finite_biproducts C]
+  {V W : subobject (⨁ f)} (h : V ≤ W) (i : ι) [is_iso (V.arrow ≫ biproduct.π f i)] :
+  (W : C) ≅ V ⊞ kernel_subobject (W.arrow ≫ biproduct.π f i) :=
+{ hom := W.arrow ≫ biproduct.π f i ≫ inv (V.arrow ≫ biproduct.π f i) ≫ biprod.inl +
+    factor_thru_kernel_subobject (W.arrow ≫ biproduct.π f i)
+      (𝟙 W - W.arrow ≫ biproduct.π f i ≫ inv (V.arrow ≫ biproduct.π f i) ≫ (subobject.of_le _ _ h))
       (by simp) ≫
     biprod.inr,
   inv := biprod.fst ≫ (subobject.of_le _ _ h) + biprod.snd ≫ (kernel_subobject _).arrow,
@@ -194,7 +210,7 @@ def complement' {X Y : C} {V W : subobject (X ⊞ Y)} (h : V ≤ W) [is_iso (V.a
   inv_hom_id' := begin
     ext; -- Check each entry of the 2x2 matrix separately.
     simp,
-  end, }
+  end, }.
 
 /--
 A subobject `W` of a direct sum of simple objects `⨁ f`

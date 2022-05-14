@@ -252,7 +252,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 @[simp] lemma grundy_value_eq_iff_equiv_nim (G : pgame) [G.impartial] (O : ordinal) :
   grundy_value G = O ↔ G ≈ nim O :=
 ⟨by { rintro rfl, exact equiv_nim_grundy_value G },
-  by { intro h, rw ←nim.equiv_iff_eq, exact (equiv_nim_grundy_value G).symm.trans h }⟩
+  by { intro h, rw ←nim.equiv_iff_eq, exact equiv_trans (equiv_symm (equiv_nim_grundy_value G)) h }⟩
 
 lemma nim.grundy_value (O : ordinal.{u}) : grundy_value (nim O) = O :=
 by simp
@@ -348,7 +348,7 @@ lemma grundy_value_add (G H : pgame) [G.impartial] [H.impartial] {n m : ℕ} (hG
   (hH : grundy_value H = m) : grundy_value (G + H) = nat.lxor n m :=
 begin
   rw [←nim.grundy_value (nat.lxor n m), grundy_value_eq_iff_equiv],
-  refine equiv.trans _ nim_add_nim_equiv,
+  refine equiv_trans _ nim_add_nim_equiv,
   convert add_congr (equiv_nim_grundy_value G) (equiv_nim_grundy_value H);
   simp only [hG, hH]
 end

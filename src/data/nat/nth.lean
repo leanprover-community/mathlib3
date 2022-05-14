@@ -108,7 +108,7 @@ lemma nth_set_nonempty_of_lt_card {n : ℕ} (hp : (set_of p).finite) (hlt: n < h
 begin
   have hp': {i : ℕ | p i ∧ ∀ (k : ℕ), k < n → nth p k < i}.finite,
   { exact hp.subset (λ x hx, hx.1) },
-  rw [←hp'^.to_finset.nonempty, ←finset.card_pos, nth_set_card p hp],
+  rw [←hp'.nonempty_to_finset, ←finset.card_pos, nth_set_card p hp],
   exact nat.sub_pos_of_lt hlt,
 end
 

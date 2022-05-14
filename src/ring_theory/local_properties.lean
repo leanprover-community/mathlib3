@@ -142,9 +142,9 @@ lemma ideal_eq_zero_of_localization (I : ideal R)
    (h : ∀ (J : ideal R) (hJ : J.is_maximal),
       by exactI is_localization.coe_submodule (localization.at_prime J) I = 0) : I = 0 :=
 begin
-  by_contradiction hI,
-  obtain ⟨x, hx, hx'⟩ := set.exists_of_ssubset (bot_lt_iff_ne_bot.mpr hI),
-  rw [submodule.bot_coe, set.mem_singleton_iff] at hx',
+  by_contradiction hI, change I ≠ ⊥ at hI,
+  obtain ⟨x, hx, hx'⟩ := set_like.exists_of_lt hI.bot_lt,
+  rw [submodule.mem_bot] at hx',
   have H : (ideal.span ({x} : set R)).annihilator ≠ ⊤,
   { rw [ne.def, submodule.annihilator_eq_top_iff],
     by_contra,

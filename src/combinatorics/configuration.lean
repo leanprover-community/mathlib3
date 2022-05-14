@@ -435,7 +435,7 @@ begin
   classical,
   have h1 : fintype.card {q // q ≠ p} + 1 = fintype.card P,
   { apply (eq_tsub_iff_add_eq_of_le (nat.succ_le_of_lt (fintype.card_pos_iff.mpr ⟨p⟩))).mp,
-    convert (fintype.card_subtype_compl).trans (congr_arg _ (fintype.card_subtype_eq p)) },
+    convert (fintype.card_subtype_compl _).trans (congr_arg _ (fintype.card_subtype_eq p)) },
   have h2 : ∀ l : {l : L // p ∈ l}, fintype.card {q // q ∈ l.1 ∧ q ≠ p} = order P L,
   { intro l,
     rw [←fintype.card_congr (equiv.subtype_subtype_equiv_subtype_inter _ _),

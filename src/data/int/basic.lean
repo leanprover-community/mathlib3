@@ -913,6 +913,13 @@ end
 lemma sub_div_of_dvd_sub {a b c : ℤ} (hcab : c ∣ (a - b)) : (a - b) / c = a / c - b / c :=
 by rw [eq_sub_iff_add_eq, ← int.add_div_of_dvd_left hcab, sub_add_cancel]
 
+@[simp]
+protected lemma div_left_inj {a b d : ℤ} (hda : d ∣ a) (hdb : d ∣ b) : a / d = b / d ↔ a = b :=
+begin
+  refine ⟨λ h, _, congr_arg _⟩,
+  rw [←int.mul_div_cancel' hda, ←int.mul_div_cancel' hdb, h],
+end
+
 lemma nat_abs_sign (z : ℤ) :
   z.sign.nat_abs = if z = 0 then 0 else 1 :=
 by rcases z with (_ | _) | _; refl

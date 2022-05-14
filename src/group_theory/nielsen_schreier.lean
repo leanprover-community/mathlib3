@@ -207,7 +207,7 @@ def End_is_free : is_free_group (End (root' T)) := is_free_group.of_unique_lift
       intros,
       suffices : ∀ {a} (p : path (root' T) a), F'.map (hom_of_path T p) = 1,
       { simp only [this, tree_hom, comp_as_mul, inv_as_inv, loop_of_hom,
-        one_inv, mul_one, one_mul, functor.map_inv, functor.map_comp] },
+        inv_one, mul_one, one_mul, functor.map_inv, functor.map_comp] },
       intros a p, induction p with b c p e ih,
       { rw [hom_of_path, F'.map_id, id_as_one] },
       rw [hom_of_path, F'.map_comp, comp_as_mul, ih, mul_one],

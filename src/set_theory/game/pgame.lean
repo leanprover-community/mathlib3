@@ -215,7 +215,7 @@ instance : is_trans _ subsequent := trans_gen.is_trans
 @[trans] theorem subsequent.trans : ∀ {x y z}, subsequent x y → subsequent y z → subsequent x z :=
 @trans_gen.trans _ _
 
-theorem wf_subsequent : well_founded subsequent := well_founded.trans_gen wf_is_option
+theorem wf_subsequent : well_founded subsequent := wf_is_option.trans_gen
 
 instance : has_well_founded pgame := ⟨_, wf_subsequent⟩
 

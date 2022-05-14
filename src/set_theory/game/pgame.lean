@@ -464,10 +464,13 @@ local infix ` ≈ ` := pgame.equiv
 
 instance : is_equiv _ equiv :=
 { refl := λ x, ⟨le_rfl, le_rfl⟩,
-  symm := λ x y ⟨xy, yx⟩, ⟨yx, xy⟩,
+  symm := λ x y, and.symm,
   trans := λ x y z ⟨xy, yx⟩ ⟨yz, zy⟩, ⟨xy.trans yz, zy.trans yx⟩ }
 
-@[refl, simp] theorem equiv_rfl {x : pgame} : x ≈ x := refl _
+@[refl, simp] theorem equiv_refl (x : pgame) : x ≈ x := refl x
+@[refl, simp] theorem equiv_rfl {x : pgame} : x ≈ x := refl x
+@[symm] protected theorem equiv.symm {x y : pgame} : x ≈ y → y ≈ x := symm
+@[trans] protected theorem equiv.trans {x y z : pgame} : x ≈ y → y ≈ z → x ≈ z := trans
 
 @[trans] theorem le_of_le_of_equiv {x y z} (h₁ : x ≤ y) (h₂ : y ≈ z) : x ≤ z := h₁.trans h₂.1
 @[trans] theorem le_of_equiv_of_le {x y z} (h₁ : x ≈ y) : y ≤ z → x ≤ z := h₁.1.trans
@@ -477,23 +480,23 @@ hx.2.trans (h.trans hy.1)
 theorem le_congr {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ ≤ y₁ ↔ x₂ ≤ y₂ :=
 ⟨le_congr_imp hx hy, le_congr_imp hx.symm hy.symm⟩
 theorem le_congr_left {x₁ x₂ y} (hx : x₁ ≈ x₂) : x₁ ≤ y ↔ x₂ ≤ y :=
-le_congr hx (refl _)
+le_congr hx equiv_rfl
 theorem le_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x ≤ y₁ ↔ x ≤ y₂ :=
-le_congr (refl _) hy
+le_congr equiv_rfl hy
 
 theorem lf_congr {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ ⧏ y₁ ↔ x₂ ⧏ y₂ :=
 pgame.not_le.symm.trans $ (not_congr (le_congr hy hx)).trans pgame.not_le
 theorem lf_congr_imp {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ ⧏ y₁ → x₂ ⧏ y₂ :=
 (lf_congr hx hy).1
 theorem lf_congr_left {x₁ x₂ y} (hx : x₁ ≈ x₂) : x₁ ⧏ y ↔ x₂ ⧏ y :=
-lf_congr hx (refl _)
+lf_congr hx equiv_rfl
 theorem lf_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x ⧏ y₁ ↔ x ⧏ y₂ :=
-lf_congr (refl _) hy
+lf_congr equiv_rfl hy
 
 @[trans] theorem lf_of_lf_of_equiv {x y z} (h₁ : x ⧏ y) (h₂ : y ≈ z) : x ⧏ z :=
-lf_congr_imp (refl _) h₂ h₁
+lf_congr_imp equiv_rfl h₂ h₁
 @[trans] theorem lf_of_equiv_of_lf {x y z} (h₁ : x ≈ y) : y ⧏ z → x ⧏ z :=
-lf_congr_imp h₁.symm (refl _)
+lf_congr_imp h₁.symm equiv_rfl
 
 @[trans] theorem lt_of_lt_of_equiv {x y z} (h₁ : x < y) (h₂ : y ≈ z) : x < z := h₁.trans_le h₂.1
 @[trans] theorem lt_of_equiv_of_lt {x y z} (h₁ : x ≈ y) : y < z → x < z := h₁.1.trans_lt
@@ -503,9 +506,9 @@ hx.2.trans_lt (h.trans_le hy.1)
 theorem lt_congr {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ < y₁ ↔ x₂ < y₂ :=
 ⟨lt_congr_imp hx hy, lt_congr_imp hx.symm hy.symm⟩
 theorem lt_congr_left {x₁ x₂ y} (hx : x₁ ≈ x₂) : x₁ < y ↔ x₂ < y :=
-lt_congr hx (refl _)
+lt_congr hx equiv_rfl
 theorem lt_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x < y₁ ↔ x < y₂ :=
-lt_congr (refl _) hy
+lt_congr equiv_rfl hy
 
 theorem lf_or_equiv_of_le {x y : pgame} (h : x ≤ y) : x ⧏ y ∨ x ≈ y :=
 or_iff_not_imp_left.2 $ λ h', ⟨h, pgame.not_lf.1 h'⟩
@@ -521,12 +524,12 @@ begin
 end
 
 theorem equiv_congr_left {y₁ y₂} : y₁ ≈ y₂ ↔ ∀ x₁, x₁ ≈ y₁ ↔ x₁ ≈ y₂ :=
-⟨λ h x₁, ⟨λ h', trans h' h, λ h', trans h' (symm h)⟩,
- λ h, (h y₁).1 $ refl _⟩
+⟨λ h x₁, ⟨λ h', h'.trans h, λ h', h'.trans (symm h)⟩,
+ λ h, (h y₁).1 $ equiv_rfl⟩
 
 theorem equiv_congr_right {x₁ x₂} : x₁ ≈ x₂ ↔ ∀ y₁, x₁ ≈ y₁ ↔ x₂ ≈ y₁ :=
-⟨λ h y₁, ⟨λ h', trans (symm h) h', λ h', trans h h'⟩,
- λ h, (h x₂).2 $ refl _⟩
+⟨λ h y₁, ⟨λ h', h.symm.trans h', λ h', h.trans h'⟩,
+ λ h, (h x₂).2 $ equiv_rfl⟩
 
 theorem equiv_of_mk_equiv {x y : pgame}
   (L : x.left_moves ≃ y.left_moves) (R : x.right_moves ≃ y.right_moves)
@@ -568,7 +571,6 @@ lf_iff_lt_or_fuzzy.2 (or.inr h)
 theorem lt_or_fuzzy_of_lf {x y : pgame} : x ⧏ y → x < y ∨ x ∥ y :=
 lf_iff_lt_or_fuzzy.1
 
-
 theorem fuzzy.not_equiv {x y : pgame} (h : x ∥ y) : ¬ x ≈ y :=
 λ h', not_lf.2 h'.1 h.2
 theorem fuzzy.not_equiv' {x y : pgame} (h : x ∥ y) : ¬ y ≈ x :=
@@ -589,9 +591,9 @@ show _ ∧ _ ↔ _ ∧ _, by rw [lf_congr hx hy, lf_congr hy hx]
 theorem fuzzy_congr_imp {x₁ y₁ x₂ y₂ : pgame} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ ∥ y₁ → x₂ ∥ y₂ :=
 (fuzzy_congr hx hy).1
 theorem fuzzy_congr_left {x₁ x₂ y} (hx : x₁ ≈ x₂) : x₁ ∥ y ↔ x₂ ∥ y :=
-fuzzy_congr hx (refl _)
+fuzzy_congr hx equiv_rfl
 theorem fuzzy_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x ∥ y₁ ↔ x ∥ y₂ :=
-fuzzy_congr (refl _) hy
+fuzzy_congr equiv_rfl hy
 
 @[trans] theorem fuzzy_of_fuzzy_of_equiv {x y z} (h₁ : x ∥ y) (h₂ : y ≈ z) : x ∥ z :=
 (fuzzy_congr_right h₂).1 h₁
@@ -1112,10 +1114,10 @@ theorem add_left_neg_equiv (x : pgame) : -x + x ≈ 0 :=
 ⟨add_left_neg_le_zero x, zero_le_add_left_neg x⟩
 
 theorem add_right_neg_le_zero (x : pgame) : x + -x ≤ 0 :=
-le_trans add_comm_le (add_left_neg_le_zero x)
+add_comm_le.trans (add_left_neg_le_zero x)
 
 theorem zero_le_add_right_neg (x : pgame) : 0 ≤ x + -x :=
-le_trans (zero_le_add_left_neg x) add_comm_le
+(zero_le_add_left_neg x).trans add_comm_le
 
 theorem add_right_neg_equiv (x : pgame) : x + -x ≈ 0 :=
 ⟨add_right_neg_le_zero x, zero_le_add_right_neg x⟩
@@ -1204,22 +1206,22 @@ theorem add_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w + y �
   (add_le_add_left h₂.2 x).trans (add_le_add_right h₁.2 y)⟩
 
 theorem add_congr_left {x y z : pgame} (h : x ≈ y) : x + z ≈ y + z :=
-add_congr h (refl _)
+add_congr h equiv_rfl
 
 theorem add_congr_right {x y z : pgame} : y ≈ z → x + y ≈ x + z :=
-add_congr (refl _)
+add_congr equiv_rfl
 
 theorem sub_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w - y ≈ x - z :=
 add_congr h₁ (neg_congr h₂)
 
 theorem sub_congr_left {x y z : pgame} (h : x ≈ y) : x - z ≈ y - z :=
-sub_congr h (refl _)
+sub_congr h equiv_rfl
 
 theorem sub_congr_right {x y z : pgame} : y ≈ z → x - y ≈ x - z :=
-sub_congr (refl _)
+sub_congr equiv_rfl
 
 theorem le_iff_sub_nonneg {x y : pgame} : x ≤ y ↔ 0 ≤ y - x :=
-⟨λ h, le_trans (zero_le_add_right_neg x) (add_le_add_right h _),
+⟨λ h, (zero_le_add_right_neg x).trans (add_le_add_right h _),
  λ h,
   calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
      ... ≤ y - x + x : add_le_add_right h _

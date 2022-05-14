@@ -197,11 +197,13 @@ end pgame
 /-- The equivalence on numeric pre-games. -/
 def surreal.equiv (x y : {x // pgame.numeric x}) : Prop := x.1.equiv y.1
 
+open pgame
+
 instance surreal.setoid : setoid {x // pgame.numeric x} :=
 ⟨λ x y, x.1 ≈ y.1,
- λ x, @refl _ (≈) _ x.val,
- λ x y, @symm _ (≈) _ x.val y.val,
- λ x y z, @trans _ (≈) _ x.val y.val z.val⟩
+ λ x, equiv_refl x.1,
+ λ x y, pgame.equiv.symm,
+ λ x y z, pgame.equiv.trans⟩
 
 /-- The type of surreal numbers. These are the numeric pre-games quotiented
 by the equivalence relation `x ≈ y ↔ x ≤ y ∧ y ≤ x`. In the quotient,
@@ -209,7 +211,6 @@ the order becomes a total order. -/
 def surreal := quotient surreal.setoid
 
 namespace surreal
-open pgame
 
 /-- Construct a surreal number from a numeric pre-game. -/
 def mk (x : pgame) (h : x.numeric) : surreal := quotient.mk ⟨x, h⟩
@@ -230,8 +231,8 @@ quotient.lift (λ x : {x // numeric x}, f x.1 x.2) (λ x y, H x.2 y.2)
 def lift₂ {α} (f : ∀ x y, numeric x → numeric y → α)
   (H : ∀ {x₁ y₁ x₂ y₂} (ox₁ : numeric x₁) (oy₁ : numeric y₁) (ox₂ : numeric x₂) (oy₂ : numeric y₂),
     x₁.equiv x₂ → y₁.equiv y₂ → f x₁ y₁ ox₁ oy₁ = f x₂ y₂ ox₂ oy₂) : surreal → surreal → α :=
-lift (λ x ox, lift (λ y oy, f x y ox oy) (λ y₁ y₂ oy₁ oy₂ h, H _ _ _ _ (refl _) h))
-  (λ x₁ x₂ ox₁ ox₂ h, funext $ quotient.ind $ by exact λ ⟨y, oy⟩, H _ _ _ _ h (refl _))
+lift (λ x ox, lift (λ y oy, f x y ox oy) (λ y₁ y₂ oy₁ oy₂ h, H _ _ _ _ equiv_rfl h))
+  (λ x₁ x₂ ox₁ ox₂ h, funext $ quotient.ind $ by exact λ ⟨y, oy⟩, H _ _ _ _ h equiv_rfl)
 
 instance : has_le surreal :=
 ⟨lift₂ (λ x y _ _, x ≤ y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext (le_congr hx hy))⟩

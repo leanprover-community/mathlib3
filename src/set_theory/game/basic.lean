@@ -71,9 +71,11 @@ quotient.lift₂ lf (λ x₁ y₁ x₂ y₂ hx hy, propext (lf_congr hx hy))
 
 local infix ` ⧏ `:50 := lf
 
+/-- On `pgame`, simp-normal inequalities should use as few negations as possible. -/
 @[simp] theorem not_le : ∀ {x y : game}, ¬ x ≤ y ↔ y ⧏ x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_le }
 
+/-- On `pgame`, simp-normal inequalities should use as few negations as possible. -/
 @[simp] theorem not_lf : ∀ {x y : game}, ¬ x ⧏ y ↔ y ≤ x :=
 by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_lf }
 

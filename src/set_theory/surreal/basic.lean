@@ -117,6 +117,8 @@ lt_of_lf o (o.move_right j) (pgame.lf_move_right j)
 theorem numeric.le_move_right {x : pgame} (o : numeric x) (j) : x ≤ x.move_right j :=
 (o.lt_move_right j).le
 
+-- TODO: this can be generalized to `add_lf_add_of_lf_of_lt`, which doesn't depend on any `numeric`
+-- hypotheses.
 theorem add_lf_add
   {w x y z : pgame.{u}} (oy : numeric y) (oz : numeric z)
   (hwx : w ⧏ x) (hyz : y ⧏ z) : w + y ⧏ x + z :=

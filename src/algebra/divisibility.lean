@@ -102,7 +102,7 @@ variables [monoid α]
 
 instance : is_refl α (∣) := ⟨λ a, dvd.intro 1 (mul_one a)⟩
 
-@[simp] theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (one_mul _)
+theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (one_mul _)
 
 end monoid
 

@@ -468,7 +468,7 @@ instance : is_equiv _ equiv :=
   trans := λ x y z ⟨xy, yx⟩ ⟨yz, zy⟩, ⟨xy.trans yz, zy.trans yx⟩ }
 
 @[refl, simp] theorem equiv_refl (x : pgame) : x ≈ x := refl x
-@[refl, simp] theorem equiv_rfl {x : pgame} : x ≈ x := refl x
+theorem equiv_rfl {x : pgame} : x ≈ x := refl x
 @[symm] protected theorem equiv.symm {x y : pgame} : x ≈ y → y ≈ x := symm
 @[trans] protected theorem equiv.trans {x y z : pgame} : x ≈ y → y ≈ z → x ≈ z := trans
 

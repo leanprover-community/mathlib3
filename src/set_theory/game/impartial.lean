@@ -64,7 +64,7 @@ theorem impartial_congr : ∀ {G H : pgame} (e : relabelling G H) [G.impartial],
 | G H e := begin
   introI h,
   rw impartial_def,
-  refine ⟨trans e.symm.equiv (trans (neg_equiv_self G) (neg_congr e.equiv)),
+  refine ⟨e.symm.equiv.trans ((neg_equiv_self G).trans (neg_congr e.equiv)),
     λ i, _, λ j, _⟩;
   cases e with _ _ L R hL hR,
   { convert impartial_congr (hL (L.symm i)),
@@ -79,7 +79,7 @@ begin
   introsI hG hH,
   rw impartial_def,
   split,
-  { apply trans _ (symm (neg_add_relabelling G H).equiv),
+  { apply equiv.trans _ (neg_add_relabelling G H).equiv.symm,
     exact add_congr (neg_equiv_self _) (neg_equiv_self _) },
   split,
   all_goals
@@ -140,23 +140,23 @@ lemma not_first_loses (G : pgame) [G.impartial] : ¬G.first_loses ↔ G.first_wi
 iff.symm $ iff_not_comm.1 $ iff.symm $ not_first_wins G
 
 lemma add_self (G : pgame) [G.impartial] : (G + G).first_loses :=
-first_loses_is_zero.2 $ trans (add_congr (neg_equiv_self G) (refl G)) (add_left_neg_equiv G)
+first_loses_is_zero.2 $ (add_congr (neg_equiv_self G) (refl G)).trans (add_left_neg_equiv G)
 
 lemma equiv_iff_sum_first_loses (G H : pgame) [G.impartial] [H.impartial] :
   G ≈ H ↔ (G + H).first_loses :=
 begin
   split,
   { intro heq,
-    exact first_loses_of_equiv (add_congr (refl _) heq) (add_self G) },
+    exact first_loses_of_equiv (add_congr equiv_rfl heq) (add_self G) },
   { intro hGHp,
     split,
     { rw le_iff_sub_nonneg,
       exact le_trans hGHp.2
-        (le_trans add_comm_le $ le_of_le_of_equiv le_rfl $ add_congr (refl _)
+        (le_trans add_comm_le $ le_of_le_of_equiv le_rfl $ add_congr equiv_rfl
         (neg_equiv_self G)) },
     { rw le_iff_sub_nonneg,
       exact le_trans hGHp.2
-        (le_of_le_of_equiv le_rfl $ add_congr (refl _) (neg_equiv_self H)) } }
+        (le_of_le_of_equiv le_rfl $ add_congr equiv_rfl (neg_equiv_self H)) } }
 end
 
 lemma le_zero_iff {G : pgame} [G.impartial] : G ≤ 0 ↔ 0 ≤ G :=

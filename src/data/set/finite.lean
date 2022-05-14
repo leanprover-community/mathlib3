@@ -125,6 +125,25 @@ by rw [← finset.coe_subset, ht.coe_to_finset]
   h.to_finset = ∅ ↔ s = ∅ :=
 by simp only [←finset.coe_inj, finite.coe_to_finset, finset.coe_empty]
 
+@[simp, mono] lemma finite.to_finset_mono {s t : set α} {hs : s.finite} {ht : t.finite} :
+  hs.to_finset ⊆ ht.to_finset ↔ s ⊆ t :=
+begin
+  split,
+  { intros h x,
+    rw [← hs.mem_to_finset, ← ht.mem_to_finset],
+    exact λ hx, h hx },
+  { intros h x,
+    rw [hs.mem_to_finset, ht.mem_to_finset],
+    exact λ hx, h hx }
+end
+
+@[simp, mono] lemma finite.to_finset_strict_mono {s t : set α} {hs : s.finite} {ht : t.finite} :
+  hs.to_finset ⊂ ht.to_finset ↔ s ⊂ t :=
+begin
+  rw [←lt_eq_ssubset, ←finset.lt_iff_ssubset, lt_iff_le_and_ne, lt_iff_le_and_ne],
+  simp
+end
+
 end finite_to_finset
 
 
@@ -457,41 +476,45 @@ end set_finite_constructors
 
 instance finite.inhabited : inhabited {s : set α // s.finite} := ⟨⟨∅, finite_empty⟩⟩
 
-@[simp] lemma finite_union {s t : set α} : finite (s ∪ t) ↔ finite s ∧ finite t :=
+@[simp] lemma finite_union {s t : set α} : (s ∪ t).finite ↔ s.finite ∧ t.finite :=
 ⟨λ h, ⟨h.subset (subset_union_left _ _), h.subset (subset_union_right _ _)⟩,
  λ ⟨hs, ht⟩, hs.union ht⟩
 
 theorem finite_image_iff {s : set α} {f : α → β} (hi : inj_on f s) :
-  finite (f '' s) ↔ finite s :=
+  (f '' s).finite ↔ s.finite :=
 ⟨λ h, h.of_finite_image hi, finite.image _⟩
 
 lemma univ_finite_iff_nonempty_fintype :
   (univ : set α).finite ↔ nonempty (fintype α) :=
 ⟨λ h, ⟨fintype_of_finite_univ h⟩, λ ⟨_i⟩, by exactI finite_univ⟩
 
+lemma finite.to_finset_insert [decidable_eq α] {a : α} {s : set α} (hs : s.finite) :
+  (hs.insert a).to_finset = insert a hs.to_finset :=
+finset.ext $ by simp
+
 lemma finite.fin_embedding {s : set α} (h : finite s) : ∃ (n : ℕ) (f : fin n ↪ α), range f = s :=
 ⟨_, (fintype.equiv_fin (h.to_finset : set α)).symm.as_embedding, by simp⟩
 
-lemma finite.fin_param {s : set α} (h : finite s) :
+lemma finite.fin_param {s : set α} (h : s.finite) :
   ∃ (n : ℕ) (f : fin n → α), injective f ∧ range f = s :=
 let ⟨n, f, hf⟩ := h.fin_embedding in ⟨n, f, f.injective, hf⟩
 
-lemma finite_option {s : set (option α)} : finite s ↔ finite {x : α | some x ∈ s} :=
+lemma finite_option {s : set (option α)} : s.finite ↔ finite {x : α | some x ∈ s} :=
 ⟨λ h, h.preimage_embedding embedding.some,
   λ h, ((h.image some).insert none).subset $
     λ x, option.cases_on x (λ _, or.inl rfl) (λ x hx, or.inr $ mem_image_of_mem _ hx)⟩
 
 lemma finite_image_fst_and_snd_iff {s : set (α × β)} :
-  finite (prod.fst '' s) ∧ finite (prod.snd '' s) ↔ finite s :=
+  (prod.fst '' s).finite ∧ (prod.snd '' s).finite ↔ s.finite :=
 ⟨λ h, (h.1.prod h.2).subset $ λ x h, ⟨mem_image_of_mem _ h, mem_image_of_mem _ h⟩,
   λ h, ⟨h.image _, h.image _⟩⟩
 
 lemma forall_finite_image_eval_iff {δ : Type*} [fintype δ] {κ : δ → Type*} {s : set (Π d, κ d)} :
-  (∀ d, finite (eval d '' s)) ↔ finite s :=
+  (∀ d, (eval d '' s).finite) ↔ s.finite :=
 ⟨λ h, (finite.pi h).subset $ subset_pi_eval_image _ _, λ h d, h.image _⟩
 
 lemma finite_subset_Union {s : set α} (hs : finite s)
-  {ι} {t : ι → set α} (h : s ⊆ ⋃ i, t i) : ∃ I : set ι, finite I ∧ s ⊆ ⋃ i ∈ I, t i :=
+  {ι} {t : ι → set α} (h : s ⊆ ⋃ i, t i) : ∃ I : set ι, I.finite ∧ s ⊆ ⋃ i ∈ I, t i :=
 begin
   casesI hs,
   choose f hf using show ∀ x : s, ∃ i, x.1 ∈ t i, {simpa [subset_def] using h},
@@ -500,10 +523,10 @@ begin
   exact ⟨⟨x, hx⟩, hf _⟩
 end
 
-lemma eq_finite_Union_of_finite_subset_Union  {ι} {s : ι → set α} {t : set α} (tfin : finite t)
+lemma eq_finite_Union_of_finite_subset_Union  {ι} {s : ι → set α} {t : set α} (tfin : t.finite)
   (h : t ⊆ ⋃ i, s i) :
-  ∃ I : set ι, (finite I) ∧ ∃ σ : {i | i ∈ I} → set α,
-     (∀ i, finite (σ i)) ∧ (∀ i, σ i ⊆ s i) ∧ t = ⋃ i, σ i :=
+  ∃ I : set ι, I.finite ∧ ∃ σ : {i | i ∈ I} → set α,
+     (∀ i, (σ i).finite) ∧ (∀ i, σ i ⊆ s i) ∧ t = ⋃ i, σ i :=
 let ⟨I, Ifin, hI⟩ := finite_subset_Union tfin h in
 ⟨I, Ifin, λ x, s x ∩ t,
     λ i, tfin.subset (inter_subset_right _ _),
@@ -520,7 +543,7 @@ let ⟨I, Ifin, hI⟩ := finite_subset_Union tfin h in
     end⟩
 
 @[elab_as_eliminator]
-theorem finite.induction_on {C : set α → Prop} {s : set α} (h : finite s)
+theorem finite.induction_on {C : set α → Prop} {s : set α} (h : s.finite)
   (H0 : C ∅) (H1 : ∀ {a s}, a ∉ s → finite s → C s → C (insert a s)) : C s :=
 let ⟨t⟩ := h in by exactI
 match s.to_finset, @mem_to_finset _ s _ with
@@ -538,7 +561,7 @@ match s.to_finset, @mem_to_finset _ s _ with
 end
 
 @[elab_as_eliminator]
-theorem finite.dinduction_on {C : ∀s:set α, finite s → Prop} {s : set α} (h : finite s)
+theorem finite.dinduction_on {C : ∀ (s : set α), s.finite → Prop} {s : set α} (h : s.finite)
   (H0 : C ∅ finite_empty)
   (H1 : ∀ {a s}, a ∉ s → ∀ h : finite s, C s h → C (insert a s) (h.insert a)) :
   C s h :=
@@ -574,31 +597,6 @@ lemma seq_of_forall_finite_exists  {γ : Type*}
 end⟩
 
 end
-
-/-! ### More `set.finite.to_finset` properties -/
-
-@[simp, mono] lemma finite.to_finset_mono {s t : set α} {hs : s.finite} {ht : t.finite} :
-  hs.to_finset ⊆ ht.to_finset ↔ s ⊆ t :=
-begin
-  split,
-  { intros h x,
-    rw [← hs.mem_to_finset, ← ht.mem_to_finset],
-    exact λ hx, h hx },
-  { intros h x,
-    rw [hs.mem_to_finset, ht.mem_to_finset],
-    exact λ hx, h hx }
-end
-
-@[simp, mono] lemma finite.to_finset_strict_mono {s t : set α} {hs : s.finite} {ht : t.finite} :
-  hs.to_finset ⊂ ht.to_finset ↔ s ⊂ t :=
-begin
-  rw [←lt_eq_ssubset, ←finset.lt_iff_ssubset, lt_iff_le_and_ne, lt_iff_le_and_ne],
-  simp
-end
-
-lemma finite.to_finset_insert [decidable_eq α] {a : α} {s : set α} (hs : s.finite) :
-  (hs.insert a).to_finset = insert a hs.to_finset :=
-finset.ext $ by simp
 
 
 /-! ### Cardinality -/

@@ -409,7 +409,7 @@ theorem finite.seq' {α β : Type u} {f : set (α → β)} {s : set α} (hf : f.
   finite (f <*> s) :=
 hf.seq hs
 
-theorem finite.mem_finset (s : finset α) : finite {a | a ∈ s} := finite.intro' _
+theorem finite_mem_finset (s : finset α) : finite {a | a ∈ s} := finite.intro' _
 
 lemma subsingleton.finite {s : set α} (h : s.subsingleton) : finite s :=
 h.induction_on finite_empty finite_singleton
@@ -417,7 +417,7 @@ h.induction_on finite_empty finite_singleton
 theorem exists_finite_iff_finset {p : set α → Prop} :
   (∃ s : set α, s.finite ∧ p s) ↔ ∃ s : finset α, p ↑s :=
 ⟨λ ⟨s, hs, hps⟩, ⟨hs.to_finset, hs.coe_to_finset.symm ▸ hps⟩,
-  λ ⟨s, hs⟩, ⟨↑s, finite.mem_finset s, hs⟩⟩
+  λ ⟨s, hs⟩, ⟨↑s, finite_mem_finset s, hs⟩⟩
 
 /-- There are finitely many subsets of a given finite set -/
 lemma finite.finite_subsets {α : Type u} {a : set α} (h : finite a) : finite {b | b ⊆ a} :=

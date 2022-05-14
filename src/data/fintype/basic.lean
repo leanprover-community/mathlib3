@@ -703,7 +703,7 @@ it essentially infers `fintype.{v} (set.univ.{u} : set α)` with `v` and `u` dis
 Reported in leanprover-community/lean#672 -/
 @[simp] lemma to_finset_univ [fintype ↥(set.univ : set α)] [fintype α] :
   (set.univ : set α).to_finset = finset.univ :=
-by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
+by { ext, simp }
 
 @[simp] lemma to_finset_range [decidable_eq α] [fintype β] (f : β → α) [fintype (set.range f)] :
   (set.range f).to_finset = finset.univ.image f :=

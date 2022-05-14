@@ -568,7 +568,7 @@ Probability Theory:
     Chebychev inequality: 'probability_theory.meas_ge_le_variance_div_sq'
     Levy's theorem: ''
     weak law of large numbers: ''
-    strong law of large numbers: ''
+    strong law of large numbers: 'probability_theory.strong_law_ae'
     central limit theorem: ''
 
 # 12.

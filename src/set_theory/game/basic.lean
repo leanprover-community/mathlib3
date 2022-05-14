@@ -30,9 +30,9 @@ local infix ` ≈ ` := pgame.equiv
 
 instance pgame.setoid : setoid pgame :=
 ⟨λ x y, x ≈ y,
- λ x, pgame.equiv_refl _,
- λ x y, pgame.equiv_symm,
- λ x y z, pgame.equiv_trans⟩
+ λ x, pgame.equiv_rfl,
+ λ x y, pgame.equiv.symm,
+ λ x y z, pgame.equiv.trans⟩
 
 /-- The type of combinatorial games. In ZFC, a combinatorial game is constructed from
   two sets of combinatorial games that have been constructed at an earlier

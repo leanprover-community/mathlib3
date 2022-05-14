@@ -65,7 +65,33 @@ structure language :=
 | 2 := a₂
 | _ := pempty
 
-instance {a₀ a₁ a₂ : Type u} [h : inhabited a₀] : inhabited (sequence₂ a₀ a₁ a₂ 0) := h
+namespace sequence₂
+
+variables (a₀ a₁ a₂ : Type u)
+
+instance inhabited₀ [h : inhabited a₀] : inhabited (sequence₂ a₀ a₁ a₂ 0) := h
+
+instance inhabited₁ [h : inhabited a₁] : inhabited (sequence₂ a₀ a₁ a₂ 1) := h
+
+instance inhabited₂ [h : inhabited a₂] : inhabited (sequence₂ a₀ a₁ a₂ 2) := h
+
+instance {n : ℕ} : is_empty (sequence₂ a₀ a₁ a₂ (n + 3)) := pempty.is_empty
+
+@[simp] lemma lift_mk {i : ℕ} :
+  cardinal.lift (# (sequence₂ a₀ a₁ a₂ i)) = # (sequence₂ (ulift a₀) (ulift a₁) (ulift a₂) i) :=
+begin
+  rcases i with (_ | _ | _ | i);
+  simp only [sequence₂, mk_ulift, mk_fintype, fintype.card_of_is_empty, nat.cast_zero, lift_zero],
+end
+
+@[simp] lemma sum_card :
+  cardinal.sum (λ i, # (sequence₂ a₀ a₁ a₂ i)) = # a₀ + # a₁ + # a₂ :=
+begin
+  rw [sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ],
+  simp [add_assoc],
+end
+
+end sequence₂
 
 instance {a₀ a₁ a₂ : Type u} {n : ℕ} : is_empty (sequence₂ a₀ a₁ a₂ (n + 3)) := pempty.is_empty
 

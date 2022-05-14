@@ -5,7 +5,7 @@ import deprecated.subring
 -- This was not the cases on commit `df4500242eb6aa6ee20b315b185b0f97a9b359c5`.
 -- You would get a timeout.
 
-import algebra.module.submodule
+import algebra.module.submodule.basic
 
 variables {R M N P Q : Type*} [comm_ring R]
 variables [add_comm_group M] [module R M]

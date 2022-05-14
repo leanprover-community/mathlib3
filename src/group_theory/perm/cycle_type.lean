@@ -426,7 +426,7 @@ by appending the inverse of the product of `v`. -/
     by rw [mem_iff, vector.to_list_cons, list.prod_cons, inv_mul_self]⟩,
   inv_fun := λ v, v.1.tail,
   left_inv := λ v, v.tail_cons v.to_list.prod⁻¹,
-  right_inv := λ v, subtype.ext ((congr_arg2 vector.cons (eq_inv_of_mul_eq_one (by
+  right_inv := λ v, subtype.ext ((congr_arg2 vector.cons (eq_inv_of_mul_eq_one_left (by
   { rw [←list.prod_cons, ←vector.to_list_cons, v.1.cons_head_tail],
     exact v.2 })).symm rfl).trans v.1.cons_head_tail) }
 

@@ -209,7 +209,7 @@ calc ∥x' x∥ ≤ ∥x'∥ * ∥x∥ : x'.le_op_norm x
 ... ≤ r⁻¹ * r :
   mul_le_mul (mem_closed_ball_zero_iff.1 hx') (mem_closed_ball_zero_iff.1 hx)
     (norm_nonneg _) (dist_nonneg.trans hx')
-... = r / r : div_eq_inv_mul.symm
+... = r / r : inv_mul_eq_div _ _
 ... ≤ 1 : div_self_le_one r
 
 /-- The `polar` of closed ball in a normed space `E` is the closed ball of the dual with

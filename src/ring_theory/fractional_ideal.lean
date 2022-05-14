@@ -913,7 +913,7 @@ begin
     exact (algebra.smul_def _ _).symm }
 end
 
-theorem eq_one_div_of_mul_eq_one (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) :
+theorem eq_one_div_of_mul_eq_one_right (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) :
   J = 1 / I :=
 begin
   have hI : I ≠ 0 := ne_zero_of_mul_eq_one I J h,
@@ -935,7 +935,7 @@ end
 
 theorem mul_div_self_cancel_iff {I : fractional_ideal R₁⁰ K} :
   I * (1 / I) = 1 ↔ ∃ J, I * J = 1 :=
-⟨λ h, ⟨(1 / I), h⟩, λ ⟨J, hJ⟩, by rwa [← eq_one_div_of_mul_eq_one I J hJ]⟩
+⟨λ h, ⟨(1 / I), h⟩, λ ⟨J, hJ⟩, by rwa [← eq_one_div_of_mul_eq_one_right I J hJ]⟩
 
 variables {K' : Type*} [field K'] [algebra R₁ K'] [is_fraction_ring R₁ K']
 
@@ -1188,7 +1188,7 @@ variables [is_domain R₁]
 
 lemma one_div_span_singleton (x : K) :
   1 / span_singleton R₁⁰ x = span_singleton R₁⁰ (x⁻¹) :=
-if h : x = 0 then by simp [h] else (eq_one_div_of_mul_eq_one _ _ (by simp [h])).symm
+if h : x = 0 then by simp [h] else (eq_one_div_of_mul_eq_one_right _ _ (by simp [h])).symm
 
 @[simp] lemma div_span_singleton (J : fractional_ideal R₁⁰ K) (d : K) :
   J / span_singleton R₁⁰ d = span_singleton R₁⁰ (d⁻¹) * J :=

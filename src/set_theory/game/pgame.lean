@@ -461,10 +461,14 @@ classical.some_spec $ (zero_le.1 h) j
 If `x ≈ 0`, then the second player can always win `x`. -/
 def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
 
+-- TODO: add `equiv.le` and `equiv.ge` synonyms for `equiv.1` and `equiv.2`.
+
 local infix ` ≈ ` := pgame.equiv
 
 @[refl, simp] theorem equiv_rfl {x} : x ≈ x := ⟨le_rfl, le_rfl⟩
 theorem equiv_refl (x) : x ≈ x := equiv_rfl
+
+-- TODO: use dot notation on these.
 @[symm] theorem equiv_symm {x y} : x ≈ y → y ≈ x | ⟨xy, yx⟩ := ⟨yx, xy⟩
 @[trans] theorem equiv_trans {x y z} : x ≈ y → y ≈ z → x ≈ z
 | ⟨xy, yx⟩ ⟨yz, zy⟩ := ⟨le_trans xy yz, le_trans zy yx⟩
@@ -1316,8 +1320,8 @@ begin
     ... ≈ 0 + half : equiv_symm (zero_add_equiv half)
     ... = (half + half).move_left (sum.inl punit.star) : by fsplit },
   { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); left,
-    { exact ⟨sum.inr punit.star, le_of_le_of_equiv (le_rfl) (add_zero_equiv _).symm⟩ },
-    { exact ⟨sum.inl punit.star, le_of_le_of_equiv (le_rfl) (zero_add_equiv _).symm⟩ } }
+    { exact ⟨sum.inr punit.star, (add_zero_equiv _).2⟩ },
+    { exact ⟨sum.inl punit.star, (zero_add_equiv _).2⟩ } }
 end
 
 end pgame

@@ -43,8 +43,8 @@ Pregames have both a `≤` and a `<` relation, satisfying the usual properties o
 relation `0 < x` means that `x` can always be won by Left, while `0 ≤ x` means that `x` can be won
 by Left as the second player.
 
-It turns out to be quite convenient to define various relations on top of these. We define the less
-or fuzzy relation `x ⧏ y` as `¬ y ≤ x`, the equivalence relation `x ≈ y` as `x ≤ y ∧ y ≤ x`, and
+It turns out to be quite convenient to define various relations on top of these. We define the "less
+or fuzzy" relation `x ⧏ y` as `¬ y ≤ x`, the equivalence relation `x ≈ y` as `x ≤ y ∧ y ≤ x`, and
 the fuzzy relation `x ∥ y` as `x ⧏ y ∧ y ⧏ x`. If `0 ⧏ x`, then `x` can be won by Left as the
 first player. If `x ≈ 0`, then `x` can be won by the second player. If `x ∥ 0`, then `x` can be won
 by the first player.

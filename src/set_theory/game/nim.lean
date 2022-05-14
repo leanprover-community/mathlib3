@@ -219,8 +219,7 @@ begin
   introI hG,
   rw [impartial.equiv_iff_sum_first_loses, ←impartial.no_good_left_moves_iff_first_loses],
   intro i,
-  rw ←to_left_moves_add.apply_symm_apply i,
-  cases to_left_moves_add.symm i with i₁ i₂,
+  rcases left_moves_add_cases i with ⟨i₁, rfl⟩ | ⟨i₂, rfl⟩,
   { rw add_move_left_inl,
     apply first_wins_of_equiv
      (add_congr (equiv_nim_grundy_value (G.move_left i₁)).symm (equiv_refl _)),
@@ -291,8 +290,7 @@ begin
     intro i,
 
     -- The move operates either on the left pile or on the right pile.
-    rw ←to_left_moves_add.apply_symm_apply i,
-    cases to_left_moves_add.symm i with a a,
+    rcases left_moves_add_cases i with ⟨a, rfl⟩ | ⟨a, rfl⟩,
 
     all_goals
     { -- One of the piles is reduced to `k` stones, with `k < n` or `k < m`.

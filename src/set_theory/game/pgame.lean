@@ -928,6 +928,24 @@ rfl
   (x + y).move_right (to_right_moves_add (sum.inr i)) = x + y.move_right i :=
 by { cases x, cases y, refl }
 
+lemma left_moves_add_cases {x y : pgame} (i : (x + y).left_moves) :
+  (∃ j, i = to_left_moves_add (sum.inl j)) ∨ ∃ j, i = to_left_moves_add (sum.inr j) :=
+begin
+  rw ←to_left_moves_add.apply_symm_apply i,
+  cases to_left_moves_add.symm i with j j,
+  { exact or.inl ⟨j, rfl⟩ },
+  { exact or.inr ⟨j, rfl⟩ }
+end
+
+lemma right_moves_add_cases {x y : pgame} (i : (x + y).right_moves) :
+  (∃ j, i = to_right_moves_add (sum.inl j)) ∨ ∃ j, i = to_right_moves_add (sum.inr j) :=
+begin
+  rw ←to_right_moves_add.apply_symm_apply i,
+  cases to_right_moves_add.symm i with j j,
+  { exact or.inl ⟨j, rfl⟩ },
+  { exact or.inr ⟨j, rfl⟩ }
+end
+
 instance is_empty_nat_right_moves : ∀ n : ℕ, is_empty (right_moves n)
 | 0 := pempty.is_empty
 | (n + 1) := begin

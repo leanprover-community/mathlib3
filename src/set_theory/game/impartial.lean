@@ -78,13 +78,11 @@ begin
   rw impartial_def,
   refine ⟨equiv_trans (add_congr (neg_equiv_self _) (neg_equiv_self _))
     (neg_add_relabelling _ _).equiv.symm, λ i, _, λ i, _⟩,
-  { rw ←to_left_moves_add.apply_symm_apply i,
-    cases to_left_moves_add.symm i,
+  { rcases left_moves_add_cases i with ⟨j, rfl⟩ | ⟨j, rfl⟩,
     all_goals
     { simp only [add_move_left_inl, add_move_left_inr],
       apply impartial_add } },
-  { rw ←to_right_moves_add.apply_symm_apply i,
-    cases to_right_moves_add.symm i,
+  { rcases right_moves_add_cases i with ⟨j, rfl⟩ | ⟨j, rfl⟩,
     all_goals
     { simp only [add_move_right_inl, add_move_right_inr],
       apply impartial_add } }

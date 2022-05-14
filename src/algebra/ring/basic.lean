@@ -1,50 +1,31 @@
 /-
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, Yury Kudryashov,
-Neil Strickland
+Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Yury Kudryashov, Neil Strickland
 -/
 import algebra.divisibility
 import algebra.regular.basic
 import data.pi.algebra
 
 /-!
-# Properties and homomorphisms of semirings and rings
+# Semirings and rings
 
-This file proves simple properties of semirings, rings and domains and their unit groups. It also
-defines bundled homomorphisms of semirings and rings. As with monoid and groups, we use the same
-structure `ring_hom a β`, a.k.a. `α →+* β`, for both homomorphism types.
-
-The unbundled homomorphisms are defined in `deprecated/ring`. They are deprecated and the plan is to
-slowly remove them from mathlib.
+This file defines semirings, rings and domains. This is analogous to `algebra.group.defs` and
+`algebra.group.basic`, the difference being that the former is about `+` and `*` separately, while
+the present file is about their interaction.
 
 ## Main definitions
 
-ring_hom, nonzero, domain, is_domain
-
-## Notations
-
-* `→+*` for bundled ring homs (also use for semiring homs)
-* `→ₙ+*` for bundled non-unital ring homs (also use for non-unital semiring homs)
-
-## Implementation notes
-
-* There's a coercion from bundled homs to fun, and the canonical notation is to
-  use the bundled hom as a function via this coercion.
-
-* There is no `semiring_hom` -- the idea is that `ring_hom` is used.
-  The constructor for a `ring_hom` between semirings needs a proof of `map_zero`,
-  `map_one` and `map_add` as well as `map_mul`; a separate constructor
-  `ring_hom.mk'` will construct ring homs between rings from monoid homs given
-  only a proof that addition is preserved.
-
-* To avoid repeating lemmas for `units`, this introduces a `has_distrib_neg` typeclass
-  which both `R` and `units R` satisfy.
+* `distrib`: Typeclass for distributivity of multiplication over addition.
+* `has_distrib_neg`: Typeclass for commutativity of negation and multiplication. This is useful when
+  dealing with multiplicative submonoids which are closed under negation without being closed under
+  addition, for example `units`.
+* `(non_unital_)(non_assoc_)(semi)ring`: Typeclasses for possibly non-unital or non-associative
+  rings and semirings. Some combinations are not defined yet because they haven't found use.
 
 ## Tags
 
-`ring_hom`, `semiring_hom`, `semiring`, `comm_semiring`, `ring`, `comm_ring`, `domain`,
-`is_domain`, `nonzero`, `units`
+`semiring`, `comm_semiring`, `ring`, `comm_ring`, `domain`, `is_domain`, `nonzero`, `units`
 -/
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {R : Type x}

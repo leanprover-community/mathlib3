@@ -1,4 +1,46 @@
+/-
+Copyright (c) 2022 Amelia Livingston. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Amelia Livingston, Jireh Loreaux
+-/
 import algebra.ring.basic
+
+/-!
+# Homomorphisms of semirings and rings
+
+This file defines bundled homomorphisms of (non-unital) semirings and rings. As with monoid and
+groups, we use the same structure `ring_hom a β`, a.k.a. `α →+* β`, for both types of homomorphisms.
+
+The unbundled homomorphisms are defined in `deprecated.ring`. They are deprecated and the plan is to
+slowly remove them from mathlib.
+
+## Main definitions
+
+* `non_unital_ring_hom`: Non-unital (semi)ring homomorphisms. Additive monoid homomorphism which
+  preserve multiplication.
+* `ring_hom`: (Semi)ring homomorphisms. Monoid homomorphisms which are also additive monoid
+  homomorphism.
+
+## Notations
+
+* `→ₙ+*`: Non-unital (semi)ring homs
+* `→+*`: (Semi)ring homs
+
+## Implementation notes
+
+* There's a coercion from bundled homs to fun, and the canonical notation is to
+  use the bundled hom as a function via this coercion.
+
+* There is no `semiring_hom` -- the idea is that `ring_hom` is used.
+  The constructor for a `ring_hom` between semirings needs a proof of `map_zero`,
+  `map_one` and `map_add` as well as `map_mul`; a separate constructor
+  `ring_hom.mk'` will construct ring homs between rings from monoid homs given
+  only a proof that addition is preserved.
+
+## Tags
+
+`ring_hom`, `semiring_hom`
+-/
 
 set_option old_structure_cmd true
 

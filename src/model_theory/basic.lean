@@ -93,21 +93,6 @@ end
 
 end sequence₂
 
-@[simp] lemma sum_card_sequence₂ (a₀ a₁ a₂ : Type u) :
-  cardinal.sum (λ i, # (sequence₂ a₀ a₁ a₂ i)) = # a₀ + # a₁ + # a₂ :=
-begin
-  rw [sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ],
-  simp [add_assoc],
-end
-
-@[simp] lemma sum_lift_card_sequence₂ (a₀ a₁ a₂ : Type u) :
-  (cardinal.sum (λ i, (# (sequence₂ a₀ a₁ a₂ i)).lift) : cardinal.{max u v}) =
-    (# a₀).lift + (# a₁).lift + (# a₂).lift :=
-begin
-  rw [sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ, sum_nat_eq_add_sum_succ],
-  simp [add_assoc],
-end
-
 namespace language
 
 /-- A constructor for languages with only constants, unary and binary functions, and

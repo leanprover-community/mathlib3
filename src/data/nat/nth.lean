@@ -83,7 +83,7 @@ begin
   apply finset.card_erase_of_mem,
   rw [nth, set.finite.mem_to_finset],
   apply Inf_mem,
-  rwa [←set.finite.to_finset.nonempty hp'', ←finset.card_pos, hk],
+  rwa [←set.finite.nonempty_to_finset hp'', ←finset.card_pos, hk],
 end
 
 lemma nth_set_card {n : ℕ} (hp : (set_of p).finite)

@@ -25,11 +25,6 @@ corresponding to any element. We also provide `to_clm` which provides the elemen
 continuous linear map. (Even though `weak_dual 𝕜 A` is a type copy of `A →L[𝕜] 𝕜`, this is
 often more convenient.)
 
-## TODO
-
-* Prove that the character space is a compact subset of the weak dual. This requires the
-  Banach-Alaoglu theorem.
-
 ## Tags
 
 character space, Gelfand transform, functional calculus

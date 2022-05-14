@@ -17,11 +17,13 @@ This file contains basic facts about the character space of normed algebras.
 
 * We show that the character space of a normed algebra is compact using the Banach-Alaoglu theorem.
 
-## Notations
+## TODO
 
-## References
+* Show compactness for topological vector spaces; this requires the TVS version of Banach-Alaoglu.
 
 ## Tags
+
+character space, continuous functional calculus
 
 -/
 
@@ -35,25 +37,22 @@ variables [nondiscrete_normed_field 𝕜] [proper_space 𝕜] [normed_ring A]
 
 lemma norm_one (φ : character_space 𝕜 A) : ∥to_normed_dual (φ : weak_dual 𝕜 A)∥ = 1 :=
 begin
-  refine continuous_linear_map.op_norm_eq_of_bounds zero_le_one _ _,
-  { intros a,
-    rw [one_mul],
+  refine continuous_linear_map.op_norm_eq_of_bounds zero_le_one (λ a, _) (λ x hx h, _),
+  { rw [one_mul],
     exact spectrum.norm_le_norm_of_mem (apply_mem_spectrum φ a) },
-  { intros x hx h,
-    have : ∥φ 1∥ ≤ x * ∥(1 : A)∥ := h 1,
+  { have : ∥φ 1∥ ≤ x * ∥(1 : A)∥ := h 1,
     simpa only [norm_one, mul_one, map_one] using this },
 end
 
 instance : compact_space (character_space 𝕜 A) :=
 begin
   rw [←is_compact_iff_compact_space],
-  have h₁ := is_compact_closed_ball 𝕜 (0 : normed_space.dual 𝕜 A) 1,
-  have h₂ : character_space 𝕜 A ⊆ to_normed_dual ⁻¹' metric.closed_ball 0 1,
+  have h : character_space 𝕜 A ⊆ to_normed_dual ⁻¹' metric.closed_ball 0 1,
   { intros φ hφ,
     rw [set.mem_preimage, mem_closed_ball_zero_iff],
     have := le_of_eq (norm_one ⟨φ, ⟨hφ.1, hφ.2⟩⟩),
     exact this },
-  exact compact_of_is_closed_subset (is_compact_closed_ball 𝕜 0 1) is_closed h₂,
+  exact compact_of_is_closed_subset (is_compact_closed_ball 𝕜 0 1) is_closed h,
 end
 
 end character_space

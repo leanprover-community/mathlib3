@@ -758,11 +758,100 @@ begin
   refine ne_zero_of_eq_one _,
   have h : f.comp (K ∙ x).subtype = (linear_pmap.mk_span_singleton x 1 hx).to_fun :=
     classical.some_spec (linear_pmap.mk_span_singleton x (1 : K) hx).to_fun.exists_extend,
-  rw linear_map.ext_iff at h,
-  convert h ⟨x, submodule.mem_span_singleton_self x⟩,
-  exact (linear_pmap.mk_span_singleton_apply' K hx 1).symm,
+  exact (fun_like.congr_fun h _).trans (linear_pmap.mk_span_singleton_apply _ hx _),
 end
 
 end field
 
 end linear_map
+
+namespace tensor_product
+
+variables (R) (M : Type*) (N : Type*)
+variables [add_comm_group M] [add_comm_group N]
+variables [module R M] [module R N]
+
+variables {ι κ : Type*}
+variables [decidable_eq ι] [decidable_eq κ]
+variables [fintype ι] [fintype κ]
+
+open_locale big_operators
+open_locale tensor_product
+
+local attribute [ext] tensor_product.ext
+
+open tensor_product
+open linear_map
+open module (dual)
+
+/--
+The canonical linear map from `dual M ⊗ dual N` to `dual (M ⊗ N)`,
+sending `f ⊗ g` to the composition of `tensor_product.map f g` with
+the natural isomorphism `R ⊗ R ≃ R`.
+-/
+def dual_distrib : (dual R M) ⊗[R] (dual R N) →ₗ[R] dual R (M ⊗[R] N) :=
+(comp_right ↑(tensor_product.lid R R)) ∘ₗ hom_tensor_hom_map R M N R R
+
+variables {R M N}
+
+/--
+An inverse to `dual_tensor_dual_map` given bases.
+-/
+noncomputable
+def dual_distrib_inv_of_basis (b : basis ι R M) (c : basis κ R N) :
+  dual R (M ⊗[R] N) →ₗ[R] (dual R M) ⊗[R] (dual R N) :=
+∑ i j, (ring_lmap_equiv_self R ℕ _).symm (b.dual_basis i ⊗ₜ c.dual_basis j)
+    ∘ₗ applyₗ (c j) ∘ₗ applyₗ (b i) ∘ₗ (lcurry R M N R)
+
+@[simp]
+lemma dual_distrib_apply (f : dual R M) (g : dual R N) (m : M) (n : N) :
+  dual_distrib R M N (f ⊗ₜ g) (m ⊗ₜ n) = f m * g n :=
+by simp only [dual_distrib, coe_comp, function.comp_app, hom_tensor_hom_map_apply,
+  comp_right_apply, linear_equiv.coe_coe, map_tmul, lid_tmul, algebra.id.smul_eq_mul]
+
+@[simp]
+lemma dual_distrib_inv_of_basis_apply (b : basis ι R M) (c : basis κ R N)
+  (f : dual R (M ⊗[R] N)) : dual_distrib_inv_of_basis b c f =
+  ∑ i j, (f (b i ⊗ₜ c j)) • (b.dual_basis i ⊗ₜ c.dual_basis j) :=
+by simp [dual_distrib_inv_of_basis]
+
+/--
+A linear equivalence between `dual M ⊗ dual N` and `dual (M ⊗ N)` given bases for `M` and `N`.
+It sends `f ⊗ g` to the composition of `tensor_product.map f g` with the natural
+isomorphism `R ⊗ R ≃ R`.
+-/
+@[simps]
+noncomputable def dual_distrib_equiv_of_basis (b : basis ι R M) (c : basis κ R N) :
+  (dual R M) ⊗[R] (dual R N) ≃ₗ[R] dual R (M ⊗[R] N) :=
+begin
+  refine linear_equiv.of_linear
+    (dual_distrib R M N) (dual_distrib_inv_of_basis b c) _ _,
+  { ext f m n,
+    have h : ∀ (r s : R), r • s = s • r := is_commutative.comm,
+    simp only [compr₂_apply, mk_apply, comp_apply, id_apply, dual_distrib_inv_of_basis_apply,
+      linear_map.map_sum, map_smul, sum_apply, smul_apply, dual_distrib_apply, h (f _) _,
+      ← f.map_smul, ←f.map_sum, ←smul_tmul_smul, ←tmul_sum, ←sum_tmul, basis.coe_dual_basis,
+      basis.coord_apply, basis.sum_repr] },
+  { ext f g,
+    simp only [compr₂_apply, mk_apply, comp_apply, id_apply, dual_distrib_inv_of_basis_apply,
+      dual_distrib_apply, ←smul_tmul_smul, ←tmul_sum, ←sum_tmul, basis.coe_dual_basis,
+      basis.sum_dual_apply_smul_coord] }
+end
+
+variables (R M N)
+variables [module.finite R M] [module.finite R N] [module.free R M] [module.free R N]
+variables [nontrivial R]
+
+open_locale classical
+
+/--
+A linear equivalence between `dual M ⊗ dual N` and `dual (M ⊗ N)` when `M` and `N` are finite free
+modules. It sends `f ⊗ g` to the composition of `tensor_product.map f g` with the natural
+isomorphism `R ⊗ R ≃ R`.
+-/
+@[simp]
+noncomputable
+def dual_distrib_equiv : (dual R M) ⊗[R] (dual R N) ≃ₗ[R] dual R (M ⊗[R] N) :=
+dual_distrib_equiv_of_basis (module.free.choose_basis R M) (module.free.choose_basis R N)
+
+end tensor_product

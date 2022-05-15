@@ -241,7 +241,7 @@ lemma sup_sup_distrib_right (a b c : α) : (a ⊔ b) ⊔ c = (a ⊔ c) ⊔ (b �
 by rw [sup_sup_sup_comm, sup_idem]
 
 lemma is_max.is_top {a : α} (ha : is_max a) : is_top a :=
-λ b, of_not_not (λ hb,  ha.not_lt (left_lt_sup.2 hb))
+λ b, of_not_not (λ hb, ha.not_lt (left_lt_sup.2 hb))
 
 lemma is_top_or_exists_gt (a : α) : is_top a ∨ (∃ b, a < b) :=
 (em (is_max a)).imp is_max.is_top not_is_max_iff.mp

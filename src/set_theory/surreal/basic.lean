@@ -82,8 +82,8 @@ begin
   refine numeric_rec (λ yl yr yL yR hy oyl oyr IHyl IHyr, _),
   rw [mk_lf_mk, mk_lf_mk], rintro (⟨i, h₁⟩ | ⟨j, h₁⟩) (⟨i, h₂⟩ | ⟨j, h₂⟩),
   { exact IHxl _ _ (oyl _) (move_left_lf_of_le _ h₁) (move_left_lf_of_le _ h₂) },
-  { exact not_lf.2 (le_trans h₂ h₁) (lf_of_lt (hy _ _)) },
-  { exact not_lf.2 (le_trans h₁ h₂) (lf_of_lt (hx _ _)) },
+  { exact (le_trans h₂ h₁).not_lf (lf_of_lt (hy _ _)) },
+  { exact (le_trans h₁ h₂).not_lf (lf_of_lt (hx _ _)) },
   { exact IHxr _ _ (oyr _) (lf_move_right_of_le _ h₁) (lf_move_right_of_le _ h₂) },
 end
 
@@ -97,7 +97,7 @@ theorem lf_iff_lt {x y : pgame} (ox : numeric x) (oy : numeric y) : x ⧏ y ↔ 
 ⟨lt_of_lf ox oy, lf_of_lt⟩
 
 theorem not_fuzzy {x y : pgame} (ox : numeric x) (oy : numeric y) : ¬ fuzzy x y :=
-λ h, not_lf.2 (le_of_lf ox oy (lf_of_fuzzy h)) h.2
+λ h, (le_of_lf ox oy h.lf).not_lf h.2
 
 theorem numeric_zero : numeric 0 :=
 ⟨by rintros ⟨⟩ ⟨⟩, ⟨by rintros ⟨⟩, by rintros ⟨⟩⟩⟩

@@ -308,6 +308,8 @@ end
 
 @[simp] protected theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y ⧏ x := not_le_lf.1
 @[simp] theorem not_lf {x y : pgame} : ¬ x ⧏ y ↔ y ≤ x := not_le_lf.2
+theorem _root_.has_le.le.not_lf {x y : pgame} : x ≤ y → ¬ y ⧏ x := not_lf.2
+theorem lf.not_le {x y : pgame} : x ⧏ y → ¬ y ≤ x := pgame.not_le.2
 
 theorem le_or_gf (x y : pgame) : x ≤ y ∨ y ⧏ x :=
 by { rw ←pgame.not_le, apply em }
@@ -335,8 +337,8 @@ private theorem le_trans_aux
   mk xl xr xL xR ≤ mk zl zr zL zR :=
 by simp only [mk_le_mk] at *; exact
 λ ⟨xLy, xyR⟩ ⟨yLz, yzR⟩, ⟨
-  λ i, pgame.not_le.1 (λ h, not_lf.2 (h₁ _ ⟨yLz, yzR⟩ h) (xLy _)),
-  λ i, pgame.not_le.1 (λ h, not_lf.2 (h₂ _ h ⟨xLy, xyR⟩) (yzR _))⟩
+  λ i, pgame.not_le.1 (λ h, (h₁ _ ⟨yLz, yzR⟩ h).not_lf (xLy _)),
+  λ i, pgame.not_le.1 (λ h, (h₂ _ h ⟨xLy, xyR⟩).not_lf (yzR _))⟩
 
 instance : preorder pgame :=
 { le_refl := λ x, begin
@@ -357,14 +359,16 @@ instance : preorder pgame :=
   end,
   ..pgame.has_le }
 
-theorem lf_irrefl (x : pgame) : ¬ x ⧏ x := pgame.not_lf.2 le_rfl
+theorem lf_irrefl (x : pgame) : ¬ x ⧏ x := le_rfl.not_lf
 instance : is_irrefl _ (⧏) := ⟨lf_irrefl⟩
 
 @[trans] theorem lf_of_le_of_lf {x y z : pgame} (h₁ : x ≤ y) (h₂ : y ⧏ z) : x ⧏ z :=
 by { rw ←pgame.not_le at h₂ ⊢, exact λ h₃, h₂ (h₃.trans h₁) }
-
 @[trans] theorem lf_of_lf_of_le {x y z : pgame} (h₁ : x ⧏ y) (h₂ : y ≤ z) : x ⧏ z :=
 by { rw ←pgame.not_le at h₁ ⊢, exact λ h₃, h₁ (h₂.trans h₃) }
+
+alias lf_of_le_of_lf ← has_le.le.trans_lf
+alias lf_of_lf_of_le ← pgame.lf.trans_le
 
 theorem move_left_lf {x : pgame} (i) : x.move_left i ⧏ x :=
 move_left_lf_of_le i le_rfl
@@ -378,8 +382,8 @@ by rw [lt_iff_le_not_le, pgame.not_le]
 theorem lt_of_le_of_lf {x y : pgame} (h₁ : x ≤ y) (h₂ : x ⧏ y) : x < y :=
 lt_iff_le_and_lf.2 ⟨h₁, h₂⟩
 
-theorem lf_of_lt {x y : pgame} (h : x < y) : x ⧏ y :=
-(lt_iff_le_and_lf.1 h).2
+theorem lf_of_lt {x y : pgame} (h : x < y) : x ⧏ y := (lt_iff_le_and_lf.1 h).2
+alias lf_of_lt ← has_lt.lt.lf
 
 /-- The definition of `x ≤ y` on pre-games, in terms of `≤` two moves later. -/
 theorem le_def {x y : pgame} : x ≤ y ↔
@@ -461,20 +465,20 @@ classical.some_spec $ (zero_le.1 h) j
 If `x ≈ 0`, then the second player can always win `x`. -/
 def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
 
--- TODO: add `equiv.le` and `equiv.ge` synonyms for `equiv.1` and `equiv.2`.
-
 local infix ` ≈ ` := pgame.equiv
 
 instance : is_equiv _ (≈) :=
 { refl := λ x, ⟨le_rfl, le_rfl⟩,
-  trans := λ x y z ⟨xy, yx⟩ ⟨yz, zy⟩, ⟨le_trans xy yz, le_trans zy yx⟩,
+  trans := λ x y z ⟨xy, yx⟩ ⟨yz, zy⟩, ⟨xy.trans yz, zy.trans yx⟩,
   symm := λ x y, and.symm }
+
+theorem equiv.le {x y : pgame} (h : x ≈ y) : x ≤ y := h.1
+theorem equiv.ge {x y : pgame} (h : x ≈ y) : y ≤ x := h.2
 
 @[refl, simp] theorem equiv_rfl {x} : x ≈ x := refl x
 theorem equiv_refl (x) : x ≈ x := refl x
-@[symm] protected theorem equiv.symm {x y} : x ≈ y → y ≈ x | ⟨xy, yx⟩ := ⟨yx, xy⟩
-@[trans] protected theorem equiv.trans {x y z} : x ≈ y → y ≈ z → x ≈ z
-| ⟨xy, yx⟩ ⟨yz, zy⟩ := ⟨le_trans xy yz, le_trans zy yx⟩
+@[symm] protected theorem equiv.symm {x y} : x ≈ y → y ≈ x := symm
+@[trans] protected theorem equiv.trans {x y z} : x ≈ y → y ≈ z → x ≈ z := trans
 
 @[trans] theorem le_of_le_of_equiv {x y z} (h₁ : x ≤ y) (h₂ : y ≈ z) : x ≤ z := h₁.trans h₂.1
 @[trans] theorem le_of_equiv_of_le {x y z} (h₁ : x ≈ y) : y ≤ z → x ≤ z := h₁.1.trans
@@ -572,21 +576,21 @@ instance : is_irrefl _ (∥) := ⟨fuzzy_irrefl⟩
 theorem lf_iff_lt_or_fuzzy {x y : pgame} : x ⧏ y ↔ x < y ∨ x ∥ y :=
 by { simp only [lt_iff_le_and_lf, fuzzy, ←pgame.not_le], tauto! }
 
-theorem lf_of_fuzzy {x y : pgame} (h : x ∥ y) : x ⧏ y :=
-lf_iff_lt_or_fuzzy.2 (or.inr h)
+theorem lf_of_fuzzy {x y : pgame} (h : x ∥ y) : x ⧏ y := lf_iff_lt_or_fuzzy.2 (or.inr h)
+alias lf_of_fuzzy ← pgame.fuzzy.lf
 
 theorem lt_or_fuzzy_of_lf {x y : pgame} : x ⧏ y → x < y ∨ x ∥ y :=
 lf_iff_lt_or_fuzzy.1
 
 theorem fuzzy.not_equiv {x y : pgame} (h : x ∥ y) : ¬ x ≈ y :=
-λ h', not_lf.2 h'.1 h.2
+λ h', h'.1.not_lf h.2
 theorem fuzzy.not_equiv' {x y : pgame} (h : x ∥ y) : ¬ y ≈ x :=
-λ h', not_lf.2 h'.2 h.2
+λ h', h'.2.not_lf h.2
 
 theorem not_fuzzy_of_le {x y : pgame} (h : x ≤ y) : ¬ x ∥ y :=
-λ h', pgame.not_le.2 h'.2 h
+λ h', h'.2.not_le h
 theorem not_fuzzy_of_ge {x y : pgame} (h : y ≤ x) : ¬ x ∥ y :=
-λ h', pgame.not_le.2 h'.1 h
+λ h', h'.1.not_le h
 
 theorem equiv.not_fuzzy {x y : pgame} (h : x ≈ y) : ¬ x ∥ y :=
 not_fuzzy_of_le h.1
@@ -1245,7 +1249,7 @@ theorem le_iff_sub_nonneg {x y : pgame} : x ≤ y ↔ 0 ≤ y - x :=
      ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
      ... ≤ y : (add_zero_relabelling y).le⟩
 theorem lf_iff_sub_zero_lf {x y : pgame} : x ⧏ y ↔ 0 ⧏ y - x :=
-⟨λ h, lf_of_le_of_lf (zero_le_add_right_neg x) (add_lf_add_right h _),
+⟨λ h, (zero_le_add_right_neg x).trans_lf (add_lf_add_right h _),
  λ h,
   calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
      ... ⧏ y - x + x : add_lf_add_right h _
@@ -1283,10 +1287,10 @@ by simp [star]
 lt_of_le_of_lf (zero_le_of_is_empty_right_moves 1) (zero_lf_le.2 ⟨default, le_rfl⟩)
 
 @[simp] theorem zero_le_one : (0 : pgame) ≤ 1 :=
-le_of_lt zero_lt_one
+zero_lt_one.le
 
 @[simp] theorem zero_lf_one : (0 : pgame) ⧏ 1 :=
-lf_of_lt zero_lt_one
+zero_lt_one.lf
 
 /-- The pre-game `half` is defined as `{0 | 1}`. -/
 def half : pgame := ⟨punit, punit, 0, 1⟩

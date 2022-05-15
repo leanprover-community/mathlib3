@@ -47,6 +47,7 @@ using_well_founded { dec_tac := tactic.assumption }
 namespace pgame
 
 local infix ` ≈ ` := equiv
+local infix ` ≡r `:50 := relabelling
 
 namespace nim
 
@@ -69,22 +70,21 @@ by { rw nim_def, exact α.unique }
 noncomputable instance : unique (right_moves (nim 1)) :=
 by { rw nim_def, exact α.unique }
 
-/-- `0` has exactly the same moves as `nim 0`. -/
-def nim_zero_relabelling : relabelling 0 (nim 0) :=
-(relabelling.is_empty _).symm
+/-- `nim 0` has exactly the same moves as `0`. -/
+def nim_zero_relabelling : nim 0 ≡r 0 := relabelling.is_empty _
 
-@[simp] theorem nim_zero_equiv : 0 ≈ nim 0 := nim_zero_relabelling.equiv
+@[simp] theorem nim_zero_equiv : nim 0 ≈ 0 := nim_zero_relabelling.equiv
 
-/-- `nim 1` has exactly the same moves as `star`. -/
-noncomputable def nim_one_relabelling : relabelling star (nim 1) :=
+/-- `star` has exactly the same moves as `nim 1`. -/
+noncomputable def star_relabelling : relabelling star (nim 1) :=
 begin
   rw nim_def,
   refine ⟨_, _, λ i,  _, λ j, _⟩,
   any_goals { dsimp, apply equiv_of_unique_of_unique },
-  all_goals { simp, exact nim_zero_relabelling }
+  all_goals { simp, exact nim_zero_relabelling.symm }
 end
 
-@[simp] theorem nim_one_equiv : star ≈ nim 1 := nim_one_relabelling.equiv
+@[simp] theorem star_equiv : star ≈ nim 1 := star_relabelling.equiv
 
 @[simp] lemma nim_birthday (O : ordinal) : (nim O).birthday = O :=
 begin
@@ -261,7 +261,7 @@ by simp
 (grundy_value_eq_iff_equiv_nim _ _).trans (equiv_congr_left.1 (equiv_nim_grundy_value H) _).symm
 
 lemma grundy_value_zero : grundy_value 0 = 0 :=
-by simp
+by simp [equiv_symm nim.nim_zero_equiv]
 
 @[simp] lemma grundy_value_iff_equiv_zero (G : pgame) [G.impartial] : grundy_value G = 0 ↔ G ≈ 0 :=
 by rw [←grundy_value_eq_iff_equiv, grundy_value_zero]

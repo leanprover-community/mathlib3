@@ -1917,3 +1917,42 @@ lemma continuous_linear_map.closed_complemented_ker_of_right_inverse {R : Type*}
   (h : function.right_inverse f₂ f₁) :
   f₁.ker.closed_complemented :=
 ⟨f₁.proj_ker_of_right_inverse f₂ h, f₁.proj_ker_of_right_inverse_apply_idem f₂ h⟩
+
+section quotient
+
+namespace submodule
+
+variables {R M : Type*} [ring R] [add_comm_group M] [module R M] [topological_space M]
+  (S : submodule R M)
+
+lemma is_open_map_mkq [topological_add_group M] : is_open_map S.mkq :=
+quotient_add_group.is_open_map_coe S.to_add_subgroup
+
+instance topological_add_group_quotient [topological_add_group M] :
+  topological_add_group (M ⧸ S) :=
+topological_add_group_quotient S.to_add_subgroup
+
+instance has_continuous_smul_quotient [topological_space R] [topological_add_group M]
+  [has_continuous_smul R M] :
+  has_continuous_smul R (M ⧸ S) :=
+begin
+  split,
+  have quot : quotient_map (λ au : R × M, (au.1, S.mkq au.2)),
+    from is_open_map.to_quotient_map
+      (is_open_map.id.prod S.is_open_map_mkq)
+      (continuous_id.prod_map continuous_quot_mk)
+      (function.surjective_id.prod_map $ surjective_quot_mk _),
+  rw quot.continuous_iff,
+  exact continuous_quot_mk.comp continuous_smul
+end
+
+instance regular_quotient_of_is_closed [topological_add_group M] [is_closed (S : set M)] :
+  regular_space (M ⧸ S) :=
+begin
+  letI : is_closed (S.to_add_subgroup : set M) := ‹_›,
+  exact S.to_add_subgroup.regular_quotient_of_is_closed
+end
+
+end submodule
+
+end quotient

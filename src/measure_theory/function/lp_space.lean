@@ -1362,6 +1362,10 @@ def to_Lp (f : α → E) (h_mem_ℒp : mem_ℒp f p μ) : Lp E p μ :=
 lemma coe_fn_to_Lp {f : α → E} (hf : mem_ℒp f p μ) : hf.to_Lp f =ᵐ[μ] f :=
 ae_eq_fun.coe_fn_mk _ _
 
+lemma to_Lp_congr {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) (hfg : f =ᵐ[μ] g) :
+  hf.to_Lp f = hg.to_Lp g :=
+by simp [to_Lp, hfg]
+
 @[simp] lemma to_Lp_eq_to_Lp_iff {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
   hf.to_Lp f = hg.to_Lp g ↔ f =ᵐ[μ] g :=
 by simp [to_Lp]
@@ -2379,7 +2383,7 @@ begin
     one_div_one_div p],
   simp_rw snorm' at hn,
   have h_nnnorm_nonneg :
-    (λ a, (nnnorm (∑ i in finset.range (n + 1), ∥f (i + 1) a - f i a∥) : ℝ≥0∞) ^ p)
+    (λ a, (∥∑ i in finset.range (n + 1), ∥f (i + 1) a - f i a∥∥₊ : ℝ≥0∞) ^ p)
     = λ a, (∑ i in finset.range (n + 1), (∥f (i + 1) a - f i a∥₊ : ℝ≥0∞)) ^ p,
   { ext1 a,
     congr,

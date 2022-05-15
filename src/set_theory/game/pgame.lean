@@ -1142,21 +1142,18 @@ theorem add_assoc_equiv {x y z : pgame} : (x + y) + z ≈ x + (y + z) :=
 
 theorem add_left_neg_le_zero : ∀ (x : pgame), -x + x ≤ 0
 | ⟨xl, xr, xL, xR⟩ :=
-begin
-  rw le_def,
-  refine ⟨λ i : xr ⊕ xl, _, is_empty_elim⟩,
+le_zero.2 $ λ i, begin
   cases i,
   { -- If Left played in -x, Right responds with the same move in x.
-    refine or.inr ⟨@to_right_moves_add _ ⟨_, _, _, _⟩ (sum.inr i), _⟩,
+    refine ⟨@to_right_moves_add _ ⟨_, _, _, _⟩ (sum.inr i), _⟩,
     convert @add_left_neg_le_zero (xR i),
     apply add_move_right_inr },
   { -- If Left in x, Right responds with the same move in -x.
     dsimp,
-    refine or.inr ⟨@to_right_moves_add ⟨_, _, _, _⟩ _ (sum.inl i), _⟩,
+    refine ⟨@to_right_moves_add ⟨_, _, _, _⟩ _ (sum.inl i), _⟩,
     convert @add_left_neg_le_zero (xL i),
     apply add_move_right_inl }
 end
-using_well_founded { dec_tac := pgame_wf_tac }
 
 theorem zero_le_add_left_neg (x : pgame) : 0 ≤ -x + x :=
 begin

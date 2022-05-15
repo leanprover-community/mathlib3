@@ -54,6 +54,16 @@ set multiplication, set addition, pointwise addition, pointwise multiplication,
 pointwise subtraction
 -/
 
+/--
+Pointwise monoids (`set`, `finset`, `filter`) have derived pointwise actions of the form
+`has_scalar α β → has_scalar α (set β)`. When `α` is `ℕ` or `ℤ`, this action conflicts with the
+nat or int action coming from `set β` being a `monoid` or `div_inv_monoid`.
+
+Because the pointwise can easily be spelled out in such cases, we give higher priority to the nat
+and int actions.
+-/
+library_note "pointwise nat action"
+
 open function
 
 variables {F α β γ : Type*}
@@ -450,22 +460,25 @@ localized "attribute [instance] set.comm_monoid set.add_comm_monoid" in pointwis
 
 open_locale pointwise
 
-/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. -/
+/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. See
+Note [pointwise nat action].-/
 protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (set α) := ⟨nsmul_rec⟩
 
 /-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
-`set`. -/
+`set`. See Note [pointwise nat action]. -/
 @[to_additive]
 protected def has_npow [has_one α] [has_mul α] : has_pow (set α) ℕ := ⟨λ s n, npow_rec n s⟩
 
 /-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
-addition/subtraction!) of a `set`. -/
+addition/subtraction!) of a `set`. See Note [pointwise nat action]. -/
 protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (set α) := ⟨zsmul_rec⟩
 
 /-- Repeated pointwise multiplication/division (not the same as pointwise repeated
-multiplication/division!) of a `set`. -/
+multiplication/division!) of a `set`. See Note [pointwise nat action]. -/
 @[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (set α) ℤ :=
 ⟨λ s n, zpow_rec n s⟩
+
+localized "attribute [instance] set.has_nsmul set.has_npow set.has_zsmul set.has_zpow" in pointwise
 
 section division_monoid
 variables [division_monoid α] {s t : set α}

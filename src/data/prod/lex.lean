@@ -10,6 +10,10 @@ import order.synonym
 
 This file defines the lexicographic relation for pairs of orders, partial orders and linear orders.
 
+## Main declarations
+
+* `prod.lex.<pre/partial_/linear_>order`: Instances lifting the orders on `α` and `β` to `α ×ₗ β`.
+
 ## Notation
 
 * `α ×ₗ β`: `α × β` equipped with the lexicographic order

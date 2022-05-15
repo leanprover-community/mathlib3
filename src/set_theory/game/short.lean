@@ -22,6 +22,8 @@ universes u
 
 namespace pgame
 
+local infix ` ⧏ `:50 := lf
+
 /-- A short game is a game with a finite set of moves at every turn. -/
 inductive short : pgame.{u} → Type (u+1)
 | mk : Π {α β : Type u} {L : α → pgame.{u}} {R : β → pgame.{u}}
@@ -182,7 +184,7 @@ We build `decidable (x ≤ y)` and `decidable (x ⧏ y)` in a simultaneous induc
 Instances for the two projections separately are provided below.
 -/
 def le_lf_decidable : Π (x y : pgame.{u}) [short x] [short y],
-  decidable (x ≤ y) × decidable (lf x y)
+  decidable (x ≤ y) × decidable (x ⧏ y)
 | (mk xl xr xL xR) (mk yl yr yL yR) shortx shorty :=
 begin
   resetI,
@@ -209,7 +211,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 instance le_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ≤ y) :=
 (le_lf_decidable x y).1
 
-instance lf_decidable (x y : pgame.{u}) [short x] [short y] : decidable (lf x y) :=
+instance lf_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ⧏ y) :=
 (le_lf_decidable x y).2
 
 instance lt_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x < y) :=

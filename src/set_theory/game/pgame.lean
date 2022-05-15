@@ -382,7 +382,7 @@ by { rw ←pgame.not_le at h₁ ⊢, exact λ h₃, h₁ (h₂.trans h₃) }
 @[trans] theorem lf_of_lt_of_lf {x y z : pgame} (h₁ : x < y) (h₂ : y ⧏ z) : x ⧏ z :=
 lf_of_le_of_lf h₁.le h₂
 
-@[trans] theorem lf_of_lt_of_le {x y z : pgame} (h₁ : x ⧏ y) (h₂ : y < z) : x ⧏ z :=
+@[trans] theorem lf_of_lf_of_lt {x y z : pgame} (h₁ : x ⧏ y) (h₂ : y < z) : x ⧏ z :=
 lf_of_lf_of_le h₁ h₂.le
 
 theorem move_left_lf {x : pgame} (i) : x.move_left i ⧏ x :=

@@ -189,7 +189,7 @@ open_locale pointwise
 lemma smul_mem_pointwise_smul (m : M) (a : α) (S : submonoid M) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set M))
 
-lemma mem_pointwise_smul_iff_exists (m : M) (a : α) (S : submonoid M) :
+lemma mem_smul_pointwise_iff_exists (m : M) (a : α) (S : submonoid M) :
   m ∈ a • S ↔ ∃ (s : M), s ∈ S ∧ a • s = m :=
 (set.mem_smul_set : m ∈ a • (S : set M) ↔ _)
 
@@ -219,10 +219,10 @@ mem_inv_smul_set_iff
   a • S ≤ a • T ↔ S ≤ T :=
 set_smul_subset_set_smul_iff
 
-lemma pointwise_smul_le_iff {a : α} {S T : submonoid M} : a • S ≤ T ↔ S ≤ a⁻¹ • T :=
+lemma pointwise_smul_subset_iff {a : α} {S T : submonoid M} : a • S ≤ T ↔ S ≤ a⁻¹ • T :=
 set_smul_subset_iff
 
-lemma le_pointwise_smul_iff {a : α} {S T : submonoid M} : S ≤ a • T ↔ a⁻¹ • S ≤ T :=
+lemma subset_pointwise_smul_iff {a : α} {S T : submonoid M} : S ≤ a • T ↔ a⁻¹ • S ≤ T :=
 subset_set_smul_iff
 
 end group
@@ -304,7 +304,7 @@ lemma mem_pointwise_smul_iff_inv_smul_mem {a : α} {S : add_submonoid A} {x : A}
   x ∈ a • S ↔ a⁻¹ • x ∈ S :=
 mem_smul_set_iff_inv_smul_mem
 
-lemma mem_pointwise_smul_iff_exists (m : A) (a : α) (S : add_submonoid A) :
+lemma mem_smul_pointwise_iff_exists (m : A) (a : α) (S : add_submonoid A) :
   m ∈ a • S ↔ ∃ (s : A), s ∈ S ∧ a • s = m :=
 (set.mem_smul_set : m ∈ a • (S : set A) ↔ _)
 

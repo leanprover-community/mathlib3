@@ -94,7 +94,7 @@ pgame.lt_of_le_of_lf (to_pgame_le h.le) (to_pgame_lf h)
 ⟨by { contrapose, rw not_lt, exact λ h, not_lt_of_le (to_pgame_le h) }, to_pgame_lt⟩
 
 @[simp] theorem to_pgame_equiv_iff {a b : ordinal} : a.to_pgame ≈ b.to_pgame ↔ a = b :=
-by rw [pgame.equiv, le_antisymm_iff, to_pgame_le_iff, to_pgame_le_iff]
+by rw [pgame.equiv_iff, le_antisymm_iff, to_pgame_le_iff, to_pgame_le_iff]
 
 theorem to_pgame_injective : function.injective ordinal.to_pgame :=
 λ a b h, begin

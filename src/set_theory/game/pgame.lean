@@ -491,6 +491,8 @@ def equiv : pgame → pgame → Prop := @antisymm_rel pgame (≤)
 
 local infix ` ≈ ` := pgame.equiv
 
+theorem equiv_iff {x y : pgame} : x ≈ y ↔ x ≤ y ∧ y ≤ x := iff.rfl
+
 @[refl, simp] theorem equiv_rfl {x} : x ≈ x := antisymm_rel_refl _ x
 theorem equiv_refl (x) : x ≈ x := equiv_rfl
 

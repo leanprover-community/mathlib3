@@ -453,6 +453,10 @@ protected theorem div_mem {x y : G} (hx : x ∈ H) (hy : y ∈ H) : x / y ∈ H 
 @[to_additive] protected lemma div_mem_comm_iff {a b : G} : a / b ∈ H ↔ b / a ∈ H :=
 div_mem_comm_iff
 
+-- Often times it's hard to write `hK h` directly because Lean seems to be unable to synthesize
+-- the type of `hK` even though `H` and `K` are known?
+@[to_additive] lemma mem_of_le {x : G} {H K : subgroup G} (hK : H ≤ K) (h : x ∈ H) : x ∈ K := hK h
+
 @[to_additive] protected theorem inv_coe_set : (H : set G)⁻¹ = H := by { ext, simp }
 
 @[to_additive] protected lemma exists_inv_mem_iff_exists_mem  (K : subgroup G) {P : G → Prop} :
@@ -796,6 +800,28 @@ show S i ≤ supr S, from le_supr _ _
 lemma mem_Sup_of_mem {S : set (subgroup G)} {s : subgroup G}
   (hs : s ∈ S) : ∀ {x : G}, x ∈ s → x ∈ Sup S :=
 show s ≤ Sup S, from le_Sup hs
+
+/--
+Unfortunately the `mem_sup` down below only works with `comm_(add)group G`,
+so for now we must bear with the confusing names.
+-/
+@[to_additive "Unfortunately the `mem_sup` down below only works with `add_comm_group G`,
+so for now we must bear with the confusing names."]
+lemma mem_sup_iff {H K : subgroup G} {g : G} (h : ↑(H ⊔ K) = (H : set G) * K) :
+  g ∈ H ⊔ K ↔ ∃ x y, x ∈ H ∧ y ∈ K ∧ x * y = g :=
+set.ext_iff.1 h g
+
+/--
+Unfortunately the `mem_sup'` down below only works with `comm_group G`,
+so for now we must bear with the confusing names.
+-/
+@[to_additive "Unfortunately the `mem_sup'` down below only works with `add_comm_group G`,
+so for now we must bear with the confusing names."]
+lemma mem_sup_iff' {H K : subgroup G} {g : G} (h : ↑(H ⊔ K) = (H : set G) * K) :
+  g ∈ H ⊔ K ↔ ∃ (x : H) (y : K), (x * y : G) = g :=
+(set.ext_iff.1 h g).trans
+  ⟨λ ⟨a, b, ha, hb, h⟩, ⟨⟨a, ha⟩, ⟨b, hb⟩, h⟩,
+  λ ⟨⟨a, ha⟩, ⟨b, hb⟩, h⟩, ⟨a, b, ha, hb, h⟩⟩
 
 @[simp, to_additive]
 lemma subsingleton_iff : subsingleton (subgroup G) ↔ subsingleton G :=
@@ -2957,6 +2983,26 @@ begin
     (ker_le_comap _ _) (le_trans (ker_le_comap B.subtype _) le_sup_left) _,
   { simp only [subgroup_of, map_comap_eq, map_sup, subtype_range],
     rw [inf_of_le_right (sup_le hA hA'), inf_of_le_right hA', inf_of_le_right hA] },
+end
+
+@[to_additive] lemma coe_sup_of_normal_left
+  {A B C : subgroup G} (hA : A ≤ C) [hN : (A.subgroup_of C).normal] (hB : B ≤ C) :
+  ((A ⊔ B : subgroup G) : set G) = A * B :=
+begin
+  suffices h : ((A ⊔ B).subgroup_of C : set C) = A.subgroup_of C * B.subgroup_of C,
+  have key : C.subtype ⁻¹' (↑A * ↑B) = C.subtype ⁻¹' ↑A * C.subtype ⁻¹' ↑B,
+  { refine set.preimage_mul_of_injective C.subtype subtype.coe_injective _ _;
+    simp only [← monoid_hom.coe_range, subtype_range]; assumption, },
+  have hsub : (A : set G) * B ⊆ C,
+  { rintro _ ⟨p, q, hp, hq, rfl⟩,
+    exact mul_mem _ (hA hp) (hB hq) },
+  apply_fun set.image (C.subtype) at h,
+  simp only [subgroup_of, coe_comap, ← key] at h,
+  simp only [subtype.image_preimage_coe ↑C _, subgroup.coe_subtype,
+    set.inter_eq_self_of_subset_left hsub, inf_of_le_left (sup_le hA hB),
+    set.inter_eq_self_of_subset_left (set_like.coe_subset_coe.mpr (sup_le hA hB))] at h,
+  exact h,
+  simp [subgroup_of_sup A B C hA hB, normal_mul],
 end
 
 @[to_additive] lemma subgroup_normal.mem_comm {H K : subgroup G}

@@ -259,6 +259,10 @@ add_decl_doc ring_hom.to_monoid_hom
 The `simp`-normal form is `(f : α →+ β)`. -/
 add_decl_doc ring_hom.to_add_monoid_hom
 
+/-- Reinterpret a ring homomorphism `f : α →+* β` as a non-unital ring homomorphism `α →ₙ+* β`. The
+`simp`-normal form is `(f : α →ₙ+* β)`. -/
+add_decl_doc ring_hom.to_non_unital_ring_hom
+
 section ring_hom_class
 
 /-- `ring_hom_class F α β` states that `F` is a type of (semi)ring homomorphisms.
@@ -504,16 +508,15 @@ protected theorem function.injective.is_domain [ring α] [is_domain α] [ring β
 { .. pullback_nonzero f f.map_zero f.map_one, .. hf.no_zero_divisors f f.map_zero f.map_mul }
 
 namespace add_monoid_hom
-variables [comm_ring α] [is_domain α] [comm_ring β]
+variables [comm_ring α] [is_domain α] [comm_ring β] (f : β →+ α)
 
 /-- Make a ring homomorphism from an additive group homomorphism from a commutative ring to an
-integral domain that commutes with self multiplication, assumes that two is nonzero and one is sent
-to one. -/
-def mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α)
-  (h : ∀ x, f (x * x) = f x * f x) (h_two : (2 : α) ≠ 0) (h_one : f 1 = 1) : β →+* α :=
+integral domain that commutes with self multiplication, assumes that two is nonzero and `1` is sent
+to `1`. -/
+def mk_ring_hom_of_mul_self_of_two_ne_zero (h : ∀ x, f (x * x) = f x * f x) (h_two : (2 : α) ≠ 0)
+  (h_one : f 1 = 1) : β →+* α :=
 { map_one' := h_one,
-  map_mul' := begin
-    intros x y,
+  map_mul' := λ x y, begin
     have hxy := h (x + y),
     rw [mul_add, add_mul, add_mul, f.map_add, f.map_add, f.map_add, f.map_add, h x, h y, add_mul,
       mul_add, mul_add, ← sub_eq_zero, add_comm, ← sub_sub, ← sub_sub, ← sub_sub,
@@ -525,13 +528,11 @@ def mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α)
   end,
   ..f }
 
-@[simp] lemma add_monoid_hom.coe_fn_mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β]
-  (f : β →+ α) (h h_two h_one) :
+@[simp] lemma coe_fn_mk_ring_hom_of_mul_self_of_two_ne_zero (h h_two h_one) :
   (f.mk_ring_hom_of_mul_self_of_two_ne_zero h h_two h_one : β → α) = f := rfl
 
-@[simp] lemma coe_add_monoid_hom_mk_ring_hom_of_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α)
-  (h h_two h_one) :
+@[simp] lemma coe_add_monoid_hom_mk_ring_hom_of_mul_self_of_two_ne_zero (h h_two h_one) :
   (f.mk_ring_hom_of_mul_self_of_two_ne_zero h h_two h_one : β →+ α) = f :=
-by { ext, simp }
+by { ext, refl }
 
 end add_monoid_hom

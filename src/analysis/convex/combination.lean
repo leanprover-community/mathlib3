@@ -381,7 +381,7 @@ by simp_rw [sub_eq_add_neg, convex_hull_add, convex_hull_neg]
 
 variables (ι) [fintype ι] {f : ι → R}
 
-/-- `std_simplex R ι` is the convex hull of the canonical basis in `ι → R`. -/
+/-- `std_simplex 𝕜 ι` is the convex hull of the canonical basis in `ι → 𝕜`. -/
 lemma convex_hull_basis_eq_std_simplex :
   convex_hull R (range $ λ(i j:ι), if i = j then (1:R) else 0) = std_simplex R ι :=
 begin
@@ -413,7 +413,7 @@ begin
   simp [linear_map.sum_apply, ite_smul, finset.filter_eq]
 end
 
-/-- All values of a function `f ∈ std_simplex R ι` belong to `[0, 1]`. -/
+/-- All values of a function `f ∈ std_simplex 𝕜 ι` belong to `[0, 1]`. -/
 lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex R ι) (x) :
   f x ∈ Icc (0 : R) 1 :=
 ⟨hf.1 x, hf.2 ▸ finset.single_le_sum (λ y hy, hf.1 y) (finset.mem_univ x)⟩

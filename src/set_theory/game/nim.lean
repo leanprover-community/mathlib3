@@ -76,7 +76,7 @@ def nim_zero_relabelling : nim 0 ≡r 0 := relabelling.is_empty _
 @[simp] theorem nim_zero_equiv : nim 0 ≈ 0 := nim_zero_relabelling.equiv
 
 /-- `star` has exactly the same moves as `nim 1`. -/
-noncomputable def star_relabelling : relabelling star (nim 1) :=
+noncomputable def star_relabelling : star ≡r nim 1 :=
 begin
   rw nim_def,
   refine ⟨_, _, λ i,  _, λ j, _⟩,

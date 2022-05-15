@@ -308,7 +308,7 @@ end semilattice_inf_bot
 @[ancestor order_top order_bot]
 class bounded_order (α : Type u) [has_le α] extends order_top α, order_bot α.
 
-instance [has_le α] [bounded_order α] : bounded_order αᵒᵈ :=
+instance (α : Type u) [has_le α] [bounded_order α] : bounded_order αᵒᵈ :=
 { .. order_dual.order_top α, .. order_dual.order_bot α }
 
 theorem bounded_order.ext {α} [partial_order α] {A B : bounded_order α} : A = B :=

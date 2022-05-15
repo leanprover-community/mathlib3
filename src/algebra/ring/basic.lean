@@ -929,6 +929,7 @@ by simp
 
 /-- A type endowed with `-` and `*` has distributive negation, if it admits an injective map that
 preserves `-` and `*` to a type which has distributive negation. -/
+@[reducible] -- See note [reducible non-instances]
 protected def function.injective.has_distrib_neg [has_neg β] [has_mul β] (f : β → α)
   (hf : injective f) (neg :  ∀ a, f (-a) = -f a) (mul : ∀ a b, f (a * b) = f a * f b) :
   has_distrib_neg β :=
@@ -938,6 +939,7 @@ protected def function.injective.has_distrib_neg [has_neg β] [has_mul β] (f : 
 
 /-- A type endowed with `-` and `*` has distributive negation, if it admits a surjective map that
 preserves `-` and `*` from a type which has distributive negation. -/
+@[reducible] -- See note [reducible non-instances]
 protected def function.surjective.has_distrib_neg [has_neg β] [has_mul β] (f : α → β)
   (hf : surjective f) (neg :  ∀ a, f (-a) = -f a) (mul : ∀ a b, f (a * b) = f a * f b) :
   has_distrib_neg β :=

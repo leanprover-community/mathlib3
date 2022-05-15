@@ -8,7 +8,8 @@ import tactic.split_ifs
 /-!
 # More basic logic properties
 
-A few more lemmas that could not be in `logic.basic` because of import cycles.
+A few more logic lemmas. These are in their own file, rather than `logic.basic`, because it is
+convenient to be able to use the `split_ifs` tactic.
 -/
 
 variables {α : Type*} {p q r : Prop} [decidable p] [decidable q] {a b c : α}

@@ -188,7 +188,7 @@ add_tactic_doc
 
 /-- Make every proposition in the context decidable.
 
-`classical!` does this more agressively, such that even if a decidable instance is already
+`classical!` does this more aggressively, such that even if a decidable instance is already
 available for a specific proposition, the noncomputable one will be used instead. -/
 meta def classical (bang : parse $ (tk "!")?) :=
 tactic.classical bang.is_some

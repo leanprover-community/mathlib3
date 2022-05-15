@@ -165,6 +165,9 @@ sup_eq_left.2 h
 @[simp] theorem left_eq_sup : a = a ⊔ b ↔ b ≤ a :=
 eq_comm.trans sup_eq_left
 
+@[simp] theorem left_lt_sup : a < a ⊔ b ↔ ¬b ≤ a :=
+le_sup_left.lt_iff_ne.trans $ not_congr left_eq_sup
+
 @[simp] theorem sup_eq_right : a ⊔ b = b ↔ a ≤ b :=
 le_antisymm_iff.trans $ by simp [le_refl]
 
@@ -173,6 +176,12 @@ sup_eq_right.2 h
 
 @[simp] theorem right_eq_sup : b = a ⊔ b ↔ a ≤ b :=
 eq_comm.trans sup_eq_right
+
+@[simp] theorem right_lt_sup : b < a ⊔ b ↔ ¬a ≤ b :=
+le_sup_right.lt_iff_ne.trans $ not_congr right_eq_sup
+
+lemma left_or_right_lt_sup (h : a ≠ b) : (a < a ⊔ b ∨ b < a ⊔ b) :=
+h.not_le_or_not_le.symm.imp left_lt_sup.2 right_lt_sup.2
 
 theorem sup_le_sup (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊔ c ≤ b ⊔ d :=
 sup_le (le_sup_of_le_left h₁) (le_sup_of_le_right h₂)
@@ -231,11 +240,11 @@ by rw [sup_sup_sup_comm, sup_idem]
 lemma sup_sup_distrib_right (a b c : α) : (a ⊔ b) ⊔ c = (a ⊔ c) ⊔ (b ⊔ c) :=
 by rw [sup_sup_sup_comm, sup_idem]
 
-lemma forall_le_or_exists_lt_sup (a : α) : (∀b, b ≤ a) ∨ (∃b, a < b) :=
-suffices (∃b, ¬b ≤ a) → (∃b, a < b),
-  by rwa [or_iff_not_imp_left, not_forall],
-assume ⟨b, hb⟩,
-⟨a ⊔ b, lt_of_le_of_ne le_sup_left $ mt left_eq_sup.1 hb⟩
+lemma is_max.is_top {a : α} (ha : is_max a) : is_top a :=
+λ b, of_not_not (λ hb,  ha.not_lt (left_lt_sup.2 hb))
+
+lemma is_top_or_exists_gt (a : α) : is_top a ∨ (∃ b, a < b) :=
+(em (is_max a)).imp is_max.is_top not_is_max_iff.mp
 
 /-- If `f` is monotone, `g` is antitone, and `f ≤ g`, then for all `a`, `b` we have `f a ≤ g b`. -/
 theorem monotone.forall_le_of_antitone {β : Type*} [preorder β] {f g : α → β}
@@ -263,8 +272,8 @@ end
 theorem exists_lt_of_sup (α : Type*) [semilattice_sup α] [nontrivial α] : ∃ a b : α, a < b :=
 begin
   rcases exists_pair_ne α with ⟨a, b, hne⟩,
-  rcases forall_le_or_exists_lt_sup b with (hb|H),
-  exacts [⟨a, b, (hb a).lt_of_ne hne⟩, ⟨b, H⟩]
+  rcases left_or_right_lt_sup hne with h|h,
+  exacts [⟨_, _, h⟩, ⟨_, _, h⟩]
 end
 
 lemma ite_le_sup (s s' : α) (P : Prop) [decidable P] : ite P s s' ≤ s ⊔ s' :=
@@ -335,6 +344,8 @@ lt_of_le_of_lt inf_le_right h
 @[simp] theorem inf_eq_left : a ⊓ b = a ↔ a ≤ b :=
 le_antisymm_iff.trans $ by simp [le_refl]
 
+@[simp] theorem inf_lt_left : a ⊓ b < a ↔ ¬a ≤ b := @left_lt_sup αᵒᵈ _ _ _
+
 theorem inf_of_le_left (h : a ≤ b) : a ⊓ b = a :=
 inf_eq_left.2 h
 
@@ -343,6 +354,11 @@ eq_comm.trans inf_eq_left
 
 @[simp] theorem inf_eq_right : a ⊓ b = b ↔ b ≤ a :=
 le_antisymm_iff.trans $ by simp [le_refl]
+
+@[simp] theorem inf_lt_right : a ⊓ b < b ↔ ¬b ≤ a := @right_lt_sup αᵒᵈ _ _ _
+
+theorem inf_lt_left_or_right (h : a ≠ b) : a ⊓ b < a ∨ a ⊓ b < b :=
+@left_or_right_lt_sup αᵒᵈ _ _ _ h
 
 theorem inf_of_le_right (h : b ≤ a) : a ⊓ b = b :=
 inf_eq_right.2 h
@@ -398,8 +414,10 @@ lemma inf_inf_distrib_left (a b c : α) : a ⊓ (b ⊓ c) = (a ⊓ b) ⊓ (a ⊓
 lemma inf_inf_distrib_right (a b c : α) : (a ⊓ b) ⊓ c = (a ⊓ c) ⊓ (b ⊓ c) :=
 @sup_sup_distrib_right αᵒᵈ _ _ _ _
 
-lemma forall_le_or_exists_lt_inf (a : α) : (∀b, a ≤ b) ∨ (∃b, b < a) :=
-@forall_le_or_exists_lt_sup αᵒᵈ _ a
+lemma is_min.is_bot {a : α} (ha : is_min a) : is_bot a := ha.to_dual.is_top
+
+lemma is_bot_or_exists_lt (a : α) : is_bot a ∨ (∃ b, b < a) :=
+@is_top_or_exists_gt αᵒᵈ _ a
 
 theorem semilattice_inf.ext_inf {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)

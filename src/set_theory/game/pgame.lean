@@ -501,6 +501,11 @@ theorem equiv_refl (x) : x ≈ x := equiv_rfl
 @[trans] theorem le_of_le_of_equiv {x y z} (h₁ : x ≤ y) (h₂ : y ≈ z) : x ≤ z := h₁.trans h₂.1
 @[trans] theorem le_of_equiv_of_le {x y z} (h₁ : x ≈ y) : y ≤ z → x ≤ z := h₁.1.trans
 
+theorem lf.not_equiv {x y} (h : x ⧏ y) : ¬ x ≈ y := λ h', pgame.not_le.2 h h'.2
+theorem lf.not_equiv' {x y} (h : x ⧏ y) : ¬ y ≈ x := λ h', pgame.not_le.2 h h'.1
+
+theorem lf.not_lt {x y} (h : x ⧏ y) : ¬ y < x := λ h', pgame.not_le.2 h h'.le
+
 theorem le_congr_imp {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) (h : x₁ ≤ y₁) : x₂ ≤ y₂ :=
 hx.2.trans (h.trans hy.1)
 theorem le_congr {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ ≤ y₁ ↔ x₂ ≤ y₂ :=

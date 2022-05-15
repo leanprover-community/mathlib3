@@ -537,8 +537,6 @@ end
 
 theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
 
-set_option pp.universes true
-
 /-- `inv' 1` has exactly the same moves as `1`. -/
 def inv'_one : relabelling (inv' 1) (1 : pgame.{u}) :=
 begin
@@ -555,7 +553,7 @@ theorem inv'_one_equiv : inv' 1 ≈ 1 := inv'_one.equiv
 
 /-- The inverse of a pre-game in terms of the inverse on positive pre-games. -/
 noncomputable instance : has_inv pgame :=
-⟨by { classical, exact λ x, if x ≈ 0 then 0 else if 0 ⧏ x then inv' x else inv' (-x) }⟩
+⟨by { classical, exact λ x, if x ≈ 0 then 0 else if 0 < x then inv' x else inv' (-x) }⟩
 
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 
@@ -565,24 +563,24 @@ by { apply if_pos, exact h }
 @[simp] theorem inv_zero : (0 : pgame)⁻¹ = 0 :=
 inv_eq_of_equiv_zero (equiv_refl _)
 
-theorem inv_eq_of_zero_lf {x : pgame} (h : 0 ⧏ x) : x⁻¹ = inv' x :=
-begin
-  convert if_neg _,
-  { apply eq.symm (if_pos _), exact h },
-  { exact λ h', not_lf.2 h'.1 h }
-end
-
-theorem inv_eq_of_neg {x : pgame} (h : x < 0) : x⁻¹ = inv' (-x) :=
+theorem inv_eq_of_pos {x : pgame} (h : 0 < x) : x⁻¹ = inv' x :=
 begin
   cases lt_iff_le_and_lf.1 h with h₁ h₂,
   convert if_neg _,
-  { apply eq.symm (if_neg _), exact not_lf.2 h₁ },
-  { exact λ h', not_lf.2 h'.2 h₂ }
+  { apply eq.symm (if_pos _), exact h },
+  { exact h₂.not_equiv' }
+end
+
+theorem inv_eq_of_lf_zero {x : pgame} (h : x ⧏ 0) : x⁻¹ = inv' (-x) :=
+begin
+  convert if_neg _,
+  { apply eq.symm (if_neg _), exact h.not_lt },
+  { exact λ h', not_lf.2 h'.2 h }
 end
 
 /-- `1⁻¹` has exactly the same moves as `1`. -/
 def inv_one : relabelling (1 : pgame)⁻¹ 1 :=
-by { rw inv_eq_of_zero_lf zero_lf_one, exact inv'_one }
+by { rw inv_eq_of_pos zero_lt_one, exact inv'_one }
 
 theorem inv_one_equiv : (1 : pgame)⁻¹ ≈ 1 := inv_one.equiv
 

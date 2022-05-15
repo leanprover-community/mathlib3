@@ -34,11 +34,11 @@ coeff_monomial
 
 @[simp]
 lemma coeff_add (p q : R[X]) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n :=
-by { rcases p, rcases q, simp [coeff, add_to_finsupp] }
+by { rcases p, rcases q, simp_rw [←of_finsupp_add, coeff], exact finsupp.add_apply _ _ _ }
 
 @[simp] lemma coeff_smul [monoid S] [distrib_mul_action S R] (r : S) (p : R[X]) (n : ℕ) :
   coeff (r • p) n = r • coeff p n :=
-by { rcases p, simp [coeff, smul_to_finsupp] }
+by { rcases p, simp_rw [←of_finsupp_smul, coeff], exact finsupp.smul_apply _ _ _ }
 
 lemma support_smul [monoid S] [distrib_mul_action S R] (r : S) (p : R[X]) :
   support (r • p) ⊆ support p :=
@@ -87,7 +87,7 @@ lemma coeff_mul (p q : R[X]) (n : ℕ) :
   coeff (p * q) n = ∑ x in nat.antidiagonal n, coeff p x.1 * coeff q x.2 :=
 begin
   rcases p, rcases q,
-  simp only [coeff, mul_to_finsupp],
+  simp_rw [←of_finsupp_mul, coeff],
   exact add_monoid_algebra.mul_apply_antidiagonal p q n _ (λ x, nat.mem_antidiagonal)
 end
 
@@ -108,16 +108,22 @@ lemma coeff_C_mul_X (x : R) (n : ℕ) : coeff (C x * X : R[X]) n = if n = 1 then
 by rw [← pow_one X, coeff_C_mul_X_pow]
 
 @[simp] lemma coeff_C_mul (p : R[X]) : coeff (C a * p) n = a * coeff p n :=
-by { rcases p, simp only [C, monomial, monomial_fun, mul_to_finsupp, ring_hom.coe_mk,
-  coeff, add_monoid_algebra.single_zero_mul_apply p a n] }
+begin
+  rcases p,
+  simp_rw [←monomial_zero_left, ←of_finsupp_single, ←of_finsupp_mul, coeff],
+  exact add_monoid_algebra.single_zero_mul_apply p a n
+end
 
 lemma C_mul' (a : R) (f : R[X]) : C a * f = a • f :=
 by { ext, rw [coeff_C_mul, coeff_smul, smul_eq_mul] }
 
 @[simp] lemma coeff_mul_C (p : R[X]) (n : ℕ) (a : R) :
   coeff (p * C a) n = coeff p n * a :=
-by { rcases p, simp only [C, monomial, monomial_fun, mul_to_finsupp, ring_hom.coe_mk,
-  coeff, add_monoid_algebra.mul_single_zero_apply p a n] }
+begin
+  rcases p,
+  simp_rw [←monomial_zero_left, ←of_finsupp_single, ←of_finsupp_mul, coeff],
+  exact add_monoid_algebra.mul_single_zero_apply p a n
+end
 
 lemma coeff_X_pow (k n : ℕ) :
   coeff (X^k : R[X]) n = if n = k then 1 else 0 :=
@@ -178,7 +184,7 @@ begin
 end
 
 lemma mul_X_injective : function.injective (λ P : R[X], X * P) :=
-by simpa only [pow_one] using mul_X_pow_injective 1
+pow_one (X : R[X]) ▸ mul_X_pow_injective 1
 
 lemma C_mul_X_pow_eq_monomial (c : R) (n : ℕ) : C c * X^n = monomial n c :=
 by { ext1, rw [monomial_eq_smul_X, coeff_smul, coeff_C_mul, smul_eq_mul] }
@@ -284,5 +290,8 @@ begin
 end
 
 end cast
+
+instance [char_zero R] : char_zero R[X] :=
+{ cast_injective := λ x y, nat_cast_inj.mp }
 
 end polynomial

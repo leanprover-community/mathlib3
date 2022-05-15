@@ -9,7 +9,7 @@ import data.rat.denumerable
 import field_theory.finite.galois_field
 import logic.equiv.transfer_instance
 import ring_theory.localization.cardinality
-import set_theory.cardinal_divisibility
+import set_theory.cardinal.divisibility
 
 /-!
 # Cardinality of Fields

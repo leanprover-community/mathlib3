@@ -55,11 +55,8 @@ exists.elim H₁ H₂
 
 local attribute [simp] mul_assoc mul_comm mul_left_comm
 
-@[trans] theorem dvd_trans (h₁ : a ∣ b) (h₂ : b ∣ c) : a ∣ c :=
-match h₁, h₂ with
-| ⟨d, (h₃ : b = a * d)⟩, ⟨e, (h₄ : c = b * e)⟩ :=
-  ⟨d * e, show c = a * (d * e), by simp [h₃, h₄]⟩
-end
+@[trans] theorem dvd_trans : a ∣ b → b ∣ c → a ∣ c
+| ⟨d, h₁⟩ ⟨e, h₂⟩ := ⟨d * e, h₁ ▸ h₂.trans $ mul_assoc a d e⟩
 
 alias dvd_trans ← has_dvd.dvd.trans
 
@@ -80,7 +77,7 @@ variables {M N : Type*} [monoid M] [monoid N]
 lemma map_dvd {F : Type*} [mul_hom_class F M N] (f : F) {a b} : a ∣ b → f a ∣ f b
 | ⟨c, h⟩ := ⟨f c, h.symm ▸ map_mul f a c⟩
 
-lemma mul_hom.map_dvd (f : mul_hom M N) {a b} : a ∣ b → f a ∣ f b := map_dvd f
+lemma mul_hom.map_dvd (f : M →ₙ* N) {a b} : a ∣ b → f a ∣ f b := map_dvd f
 
 lemma monoid_hom.map_dvd (f : M →* N) {a b} : a ∣ b → f a ∣ f b := map_dvd f
 

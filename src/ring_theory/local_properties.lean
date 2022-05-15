@@ -484,7 +484,7 @@ begin
     (submonoid.map (algebra_map R S : R →* S) M) s : set S)).smul_mem hx' a using 1,
   convert ha₂.symm,
   { rw [mul_comm (y' ^ n • x), subtype.coe_mk, submonoid.smul_def, submonoid.coe_mul, ← smul_smul,
-    algebra.smul_def, submonoid.coe_pow], refl },
+        algebra.smul_def, submonoid_class.coe_pow], refl },
   { rw mul_comm, exact algebra.smul_def _ _ }
 end
 

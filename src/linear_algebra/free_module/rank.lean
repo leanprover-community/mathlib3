@@ -70,25 +70,25 @@ end
   module.rank R (Π i, M i) = cardinal.sum (λ i, module.rank R (M i)) :=
 by { rw [← (direct_sum.linear_equiv_fun_on_fintype _ _ M).dim_eq, rank_direct_sum] }
 
-/-- If `n` and `m` are `fintype`, the rank of `n × m` matrices is `(# n).lift * (# m).lift`. -/
-@[simp] lemma rank_matrix (n : Type v) [fintype n] (m : Type w) [fintype m] :
-  module.rank R (matrix n m R) = (lift.{(max v w u) v} (# n)) * (lift.{(max v w u) w} (# m)) :=
+/-- If `m` and `n` are `fintype`, the rank of `m × n` matrices is `(# m).lift * (# n).lift`. -/
+@[simp] lemma rank_matrix (m : Type v) (n : Type w) [fintype m] [fintype n] :
+  module.rank R (matrix m n R) = (lift.{(max v w u) v} (# m)) * (lift.{(max v w u) w} (# n)) :=
 begin
-  have h := (matrix.std_basis R n m).mk_eq_dim,
+  have h := (matrix.std_basis R m n).mk_eq_dim,
   rw [← lift_lift.{(max v w u) (max v w)}, lift_inj] at h,
   simpa using h.symm,
 end
 
-/-- If `n` and `m` are `fintype` that lie in the same universe, the rank of `n × m` matrices is
+/-- If `m` and `n` are `fintype` that lie in the same universe, the rank of `m × n` matrices is
   `(# n * # m).lift`. -/
-@[simp] lemma rank_matrix' (n : Type v) [fintype n] (m : Type v) [fintype m] :
-  module.rank R (matrix n m R) =  (# n * # m).lift :=
+@[simp] lemma rank_matrix' (m n : Type v) [fintype m] [fintype n] :
+  module.rank R (matrix m n R) =  (# m * # n).lift :=
 by rw [rank_matrix, lift_mul, lift_umax]
 
-/-- If `n` and `m` are `fintype` that lie in the same universe as `R`, the rank of `n × m` matrices
-  is `# n * # m`. -/
-@[simp] lemma rank_matrix'' (n : Type u) [fintype n] (m : Type u) [fintype m] :
-  module.rank R (matrix n m R) =  # n * # m := by simp
+/-- If `m` and `n` are `fintype` that lie in the same universe as `R`, the rank of `m × n` matrices
+  is `# m * # n`. -/
+@[simp] lemma rank_matrix'' (m n : Type u) [fintype m] [fintype n] :
+  module.rank R (matrix m n R) =  # m * # n := by simp
 
 end ring
 

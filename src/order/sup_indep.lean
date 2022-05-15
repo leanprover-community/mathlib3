@@ -12,13 +12,22 @@ import data.set.finite
 In this file, we define supremum independence of indexed sets. An indexed family `f : ι → α` is
 sup-independent if, for all `a`, `f a` and the supremum of the rest are disjoint.
 
-In distributive lattices, this is equivalent to being pairwise disjoint.
-
 ## Main definitions
 
 * `finset.sup_indep s f`: a family of elements `f` are supremum independent on the finite set `s`.
 * `complete_lattice.set_independent s`: a set of elements are supremum independent.
 * `complete_lattice.independent f`: a family of elements are supremum independent.
+
+## Main statements
+
+* In a distributive lattice, supremum independence is equivalent to pairwise disjointness:
+  * `finset.sup_indep_iff_pairwise_disjoint`
+  * `complete_lattice.set_independent_iff_pairwise_disjoint`
+  * `complete_lattice.independent_iff_pairwise_disjoint`
+* Otherwise, supremum independence is stronger than pairwise disjointness:
+  * `finset.sup_indep.pairwise_disjoint`
+  * `complete_lattice.set_independent.pairwise_disjoint`
+  * `complete_lattice.independent.pairwise_disjoint`
 
 ## Implementation notes
 
@@ -169,15 +178,15 @@ theorem set_independent.mono {t : set α} (hst : t ⊆ s) :
 λ a ha, (hs (hst ha)).mono_right (Sup_le_Sup (diff_subset_diff_left hst))
 
 /-- If the elements of a set are independent, then any pair within that set is disjoint. -/
-lemma set_independent.disjoint {x y : α} (hx : x ∈ s) (hy : y ∈ s) (h : x ≠ y) : disjoint x y :=
-disjoint_Sup_right (hs hx) ((mem_diff y).mpr ⟨hy, by simp [h.symm]⟩)
+lemma set_independent.pairwise_disjoint : s.pairwise_disjoint id :=
+λ x hx y hy h, disjoint_Sup_right (hs hx) ((mem_diff y).mpr ⟨hy, h.symm⟩)
 
 lemma set_independent_pair {a b : α} (hab : a ≠ b) :
   set_independent ({a, b} : set α) ↔ disjoint a b :=
 begin
   split,
   { intro h,
-    exact h.disjoint (mem_insert _ _) (mem_insert_of_mem _ (mem_singleton _)) hab, },
+    exact h.pairwise_disjoint (mem_insert _ _) (mem_insert_of_mem _ (mem_singleton _)) hab, },
   { rintros h c ((rfl : c = a) | (rfl : c = b)),
     { convert h using 1,
       simp [hab, Sup_singleton] },
@@ -241,22 +250,22 @@ lemma independent_empty (t : empty → α) : independent t.
 lemma independent_pempty (t : pempty → α) : independent t.
 
 /-- If the elements of a set are independent, then any pair within that set is disjoint. -/
-lemma independent.disjoint {x y : ι} (h : x ≠ y) : disjoint (t x) (t y) :=
-disjoint_Sup_right (ht x) ⟨y, by simp [h.symm]⟩
+lemma independent.pairwise_disjoint : pairwise (disjoint on t) :=
+λ x y h, disjoint_Sup_right (ht x) ⟨y, supr_pos h.symm⟩
 
 lemma independent.mono {ι : Type*} {α : Type*} [complete_lattice α]
   {s t : ι → α} (hs : independent s) (hst : t ≤ s) :
   independent t :=
-λ i, (hs i).mono (hst i) (supr_le_supr $ λ j, supr_le_supr $ λ _, hst j)
+λ i, (hs i).mono (hst i) $ supr₂_mono $ λ j _, hst j
 
 /-- Composing an independent indexed family with an injective function on the index results in
 another indepedendent indexed family. -/
 lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
   {s : ι → α} (hs : independent s) (f : ι' → ι) (hf : function.injective f) :
   independent (s ∘ f) :=
-λ i, (hs (f i)).mono_right begin
-  refine (supr_le_supr $ λ i, _).trans (supr_comp_le _ f),
-  exact supr_le_supr_const hf.ne,
+λ i, (hs (f i)).mono_right $ begin
+  refine (supr_mono $ λ i, _).trans (supr_comp_le _ f),
+  exact supr_const_mono hf.ne,
 end
 
 lemma independent_pair {i j : ι} (hij : i ≠ j) (huniv : ∀ k, k = i ∨ k = j):
@@ -264,7 +273,7 @@ lemma independent_pair {i j : ι} (hij : i ≠ j) (huniv : ∀ k, k = i ∨ k = 
 begin
   split,
   { intro h,
-    exact h.disjoint hij, },
+    exact h.pairwise_disjoint _ _ hij, },
   { rintros h k,
     obtain rfl | rfl := huniv k,
     { refine h.mono_right (supr_le $ λ i, supr_le $ λ hi, eq.le _),
@@ -278,7 +287,7 @@ another indepedendent indexed family. -/
 lemma independent.map_order_iso {ι : Sort*} {α β : Type*}
   [complete_lattice α] [complete_lattice β] (f : α ≃o β) {a : ι → α} (ha : independent a) :
   independent (f ∘ a) :=
-λ i, ((ha i).map_order_iso f).mono_right (f.monotone.le_map_supr2 _)
+λ i, ((ha i).map_order_iso f).mono_right (f.monotone.le_map_supr₂ _)
 
 @[simp] lemma independent_map_order_iso_iff {ι : Sort*} {α β : Type*}
   [complete_lattice α] [complete_lattice β] (f : α ≃o β) {a : ι → α} :
@@ -292,7 +301,7 @@ subset of the rest. -/
 lemma independent.disjoint_bsupr {ι : Type*} {α : Type*} [complete_lattice α]
   {t : ι → α} (ht : independent t) {x : ι} {y : set ι} (hx : x ∉ y) :
   disjoint (t x) (⨆ i ∈ y, t i) :=
-disjoint.mono_right (bsupr_le_bsupr' $ λ i hi, (ne_of_mem_of_not_mem hi hx : _)) (ht x)
+disjoint.mono_right (bsupr_mono $ λ i hi, (ne_of_mem_of_not_mem hi hx : _)) (ht x)
 
 end complete_lattice
 
@@ -322,3 +331,23 @@ end
 
 alias complete_lattice.independent_iff_sup_indep_univ ↔ complete_lattice.independent.sup_indep_univ
   finset.sup_indep.independent_of_univ
+
+section frame
+
+namespace complete_lattice
+variables [order.frame α]
+
+lemma set_independent_iff_pairwise_disjoint {s : set α} :
+  set_independent s ↔ s.pairwise_disjoint id :=
+⟨set_independent.pairwise_disjoint, λ hs i hi, disjoint_Sup_iff.2 $ λ j hj,
+  hs hi hj.1 $ ne.symm hj.2⟩
+
+alias set_independent_iff_pairwise_disjoint ↔ _ set.pairwise_disjoint.set_independent
+
+lemma independent_iff_pairwise_disjoint {f : ι → α} : independent f ↔ pairwise (disjoint on f) :=
+⟨independent.pairwise_disjoint, λ hs i, disjoint_supr_iff.2 $ λ j, disjoint_supr_iff.2 $ λ hij,
+  hs _ _ hij.symm⟩
+
+end complete_lattice
+
+end frame

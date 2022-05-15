@@ -71,6 +71,11 @@ def preinclusion (B : Type u) [quiver.{v+1} B] :
   map   := λ a b, (inclusion_path a b).obj,
   map₂  := λ a b, (inclusion_path a b).map }
 
+@[simp]
+lemma preinclusion_obj (a : B) :
+  (preinclusion B).obj a = a :=
+rfl
+
 /--
 The normalization of the composition of `p : path a b` and `f : hom b c`.
 `p` will eventually be taken to be `nil` and we then get the normalization
@@ -135,7 +140,7 @@ end
 
 /-- The 2-isomorphism `normalize_iso p f` is natural in `f`. -/
 lemma normalize_naturality {a b c : B} (p : path a b) {f g : hom b c} (η : f ⟶ g) :
-  ((preinclusion B).map p ◁ η) ≫ (normalize_iso p g).hom =
+  (preinclusion B).map p ◁ η ≫ (normalize_iso p g).hom =
     (normalize_iso p f).hom ≫ eq_to_hom (congr_arg _ (normalize_aux_congr p η)) :=
 begin
   rcases η, induction η,
@@ -146,37 +151,14 @@ begin
     slice_lhs 1 2 { rw ihf },
     simp },
   case whisker_left : _ _ _ _ _ _ _ ih
-  { dsimp,
-    slice_lhs 1 2 { rw associator_inv_naturality_right },
-    slice_lhs 2 3 { rw whisker_exchange },
-    slice_lhs 3 4 { erw ih }, /- p ≠ nil required! See the docstring of `normalize_aux`. -/
-    simp only [assoc] },
+  /- p ≠ nil required! See the docstring of `normalize_aux`. -/
+  { dsimp, simp_rw [associator_inv_naturality_right_assoc, whisker_exchange_assoc, ih, assoc] },
   case whisker_right : _ _ _ _ _ h η ih
   { dsimp,
-    slice_lhs 1 2 { rw associator_inv_naturality_middle },
-    slice_lhs 2 3 { erw [←bicategory.whisker_right_comp, ih, bicategory.whisker_right_comp] },
+    rw [associator_inv_naturality_middle_assoc, ←comp_whisker_right_assoc, ih, comp_whisker_right],
     have := dcongr_arg (λ x, (normalize_iso x h).hom) (normalize_aux_congr p (quot.mk _ η)),
     dsimp at this, simp [this] },
-  case associator
-  { dsimp,
-    slice_lhs 3 4 { erw associator_inv_naturality_left },
-    slice_lhs 1 3 { erw pentagon_hom_inv_inv_inv_inv },
-    simpa only [assoc, bicategory.whisker_right_comp, comp_id] },
-  case associator_inv
-  { dsimp,
-    slice_rhs 2 3 { erw associator_inv_naturality_left },
-    slice_rhs 1 2 { erw ←pentagon_inv },
-    simpa only [bicategory.whisker_right_comp, assoc, comp_id] },
-  case left_unitor { erw [comp_id, ←triangle_assoc_comp_right_assoc], refl },
-  case left_unitor_inv
-  { dsimp,
-    slice_lhs 1 2 { erw triangle_assoc_comp_left_inv },
-    rw [inv_hom_whisker_right, id_comp, comp_id] },
-  case right_unitor
-  { erw [comp_id, whisker_left_right_unitor, assoc, ←right_unitor_naturality], refl },
-  case right_unitor_inv
-  { erw [comp_id, whisker_left_right_unitor_inv, assoc, iso.hom_inv_id_assoc,
-      right_unitor_conjugation] }
+  all_goals { dsimp, dsimp [id_def, comp_def], simp }
 end
 
 @[simp]

@@ -27,7 +27,8 @@ theorem mod_two_ne_zero : ¬ n % 2 = 0 ↔ n % 2 = 1 :=
 by cases mod_two_eq_zero_or_one n with h h; simp [h]
 
 theorem even_iff : even n ↔ n % 2 = 0 :=
-⟨λ ⟨m, hm⟩, by simp [hm], λ h, ⟨n / 2, (mod_add_div n 2).symm.trans (by simp [h])⟩⟩
+⟨λ ⟨m, hm⟩, by simp [← two_mul, hm], λ h, ⟨n / 2, (mod_add_div n 2).symm.trans
+  (by simp [← two_mul, h])⟩⟩
 
 theorem odd_iff : odd n ↔ n % 2 = 1 :=
 ⟨λ ⟨m, hm⟩, by { rw [hm, add_mod], norm_num },
@@ -52,7 +53,7 @@ lemma even_or_odd (n : ℤ) : even n ∨ odd n :=
 or.imp_right odd_iff_not_even.2 $ em $ even n
 
 lemma even_or_odd' (n : ℤ) : ∃ k, n = 2 * k ∨ n = 2 * k + 1 :=
-by simpa only [exists_or_distrib, ← odd, ← even] using even_or_odd n
+by simpa only [← two_mul, exists_or_distrib, ← odd, ← even] using even_or_odd n
 
 lemma even_xor_odd (n : ℤ) : xor (even n) (odd n) :=
 begin
@@ -65,20 +66,17 @@ lemma even_xor_odd' (n : ℤ) : ∃ k, xor (n = 2 * k) (n = 2 * k + 1) :=
 begin
   rcases even_or_odd n with ⟨k, rfl⟩ | ⟨k, rfl⟩;
   use k,
-  { simpa only [xor, true_and, eq_self_iff_true, not_true, or_false, and_false]
+  { simpa only [← two_mul, xor, true_and, eq_self_iff_true, not_true, or_false, and_false]
       using (succ_ne_self (2*k)).symm },
   { simp only [xor, add_right_eq_self, false_or, eq_self_iff_true, not_true, not_false_iff,
                one_ne_zero, and_self] },
 end
 
 @[simp] theorem two_dvd_ne_zero : ¬ 2 ∣ n ↔ n % 2 = 1 :=
-not_even_iff
+even_iff_two_dvd.symm.not.trans not_even_iff
 
-instance : decidable_pred (even : ℤ → Prop) :=
-λ n, decidable_of_decidable_of_iff (by apply_instance) even_iff.symm
-
-instance decidable_pred_odd : decidable_pred (odd : ℤ → Prop) :=
-λ n, decidable_of_decidable_of_iff (by apply_instance) odd_iff_not_even.symm
+instance : decidable_pred (even : ℤ → Prop) := λ n, decidable_of_iff _ even_iff.symm
+instance : decidable_pred (odd : ℤ → Prop) := λ n, decidable_of_iff _ odd_iff_not_even.symm
 
 @[simp] theorem not_even_one : ¬ even (1 : ℤ) :=
 by rw even_iff; norm_num
@@ -96,7 +94,7 @@ by rw [even_add, even_iff_not_odd, even_iff_not_odd, not_iff_not]
 by simp [bit1] with parity_simps
 
 lemma two_not_dvd_two_mul_add_one (n : ℤ) : ¬(2 ∣ 2 * n + 1) :=
-by convert not_even_bit1 n; exact two_mul n
+by { simp [add_mod], refl }
 
 @[parity_simps] theorem even_sub : even (m - n) ↔ (even m ↔ even n) :=
 by simp [sub_eq_add_neg] with parity_simps
@@ -157,10 +155,15 @@ by rw_mod_cast [even_iff, nat.even_iff]
 by rw [odd_iff_not_even, nat.odd_iff_not_even, even_coe_nat]
 
 @[simp] theorem nat_abs_even : even n.nat_abs ↔ even n :=
-coe_nat_dvd_left.symm
+by simp [even_iff_two_dvd, dvd_nat_abs, coe_nat_dvd_left.symm]
 
 @[simp] theorem nat_abs_odd : odd n.nat_abs ↔ odd n :=
 by rw [odd_iff_not_even, nat.odd_iff_not_even, nat_abs_even]
+
+alias nat_abs_even ↔ _ even.nat_abs
+alias nat_abs_odd ↔ _ odd.nat_abs
+
+attribute [protected] even.nat_abs odd.nat_abs
 
 lemma four_dvd_add_or_sub_of_odd {a b : ℤ} (ha : odd a) (hb : odd b) : 4 ∣ a + b ∨ 4 ∣ a - b :=
 begin
@@ -171,7 +174,7 @@ begin
     rw [int.even_add, ←int.even_sub] at h,
     obtain ⟨k, hk⟩ := h,
     convert dvd_mul_right 4 k,
-    rw [eq_add_of_sub_eq hk, mul_add, add_assoc, add_sub_cancel, ←mul_assoc],
+    rw [eq_add_of_sub_eq hk, mul_add, add_assoc, add_sub_cancel, ← two_mul, ←mul_assoc],
     refl },
   { left,
     obtain ⟨k, hk⟩ := h,
@@ -182,9 +185,11 @@ begin
     refl },
 end
 
-lemma two_mul_div_two_of_even : even n → 2 * (n / 2) = n := int.mul_div_cancel'
+lemma two_mul_div_two_of_even : even n → 2 * (n / 2) = n :=
+λ h, int.mul_div_cancel' (even_iff_two_dvd.mp h)
 
-lemma div_two_mul_two_of_even : even n → n / 2 * 2 = n := int.div_mul_cancel
+lemma div_two_mul_two_of_even : even n → n / 2 * 2 = n := --int.div_mul_cancel
+λ h, int.div_mul_cancel (even_iff_two_dvd.mp h)
 
 lemma two_mul_div_two_add_one_of_odd : odd n → 2 * (n / 2) + 1 = n :=
 by { rintro ⟨c, rfl⟩, rw mul_comm, convert int.div_add_mod' _ _, simpa [int.add_mod] }

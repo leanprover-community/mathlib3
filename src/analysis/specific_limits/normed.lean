@@ -329,7 +329,7 @@ begin
     by simp [pow_succ, mul_left_comm _ r, tsum_mul_left]
   ... = r / (1 - r) ^ 2 :
     by simp [add_mul, tsum_add A B.summable, mul_add, B.tsum_eq, ← div_eq_mul_inv, sq,
-      div_div_eq_div_mul]
+      div_div]
 end
 
 /-- If `∥r∥ < 1`, then `∑' n : ℕ, n * r ^ n = r / (1 - r) ^ 2`. -/
@@ -551,9 +551,9 @@ variables {b : ℝ} {f : ℕ → ℝ} {z : ℕ → E}
 /-- **Dirichlet's Test** for monotone sequences. -/
 theorem monotone.cauchy_seq_series_mul_of_tendsto_zero_of_bounded
   (hfa : monotone f) (hf0 : tendsto f at_top (𝓝 0)) (hgb : ∀ n, ∥∑ i in range n, z i∥ ≤ b) :
-  cauchy_seq (λ n, ∑ i in range (n+1), (f i) • z i) :=
+  cauchy_seq (λ n, ∑ i in range (n + 1), (f i) • z i) :=
 begin
-  simp_rw [finset.sum_range_by_parts _ _ (nat.succ_pos _), sub_eq_add_neg,
+  simp_rw [finset.sum_range_by_parts _ _ (nat.succ _), sub_eq_add_neg,
            nat.succ_sub_succ_eq_sub, tsub_zero],
   apply (normed_field.tendsto_zero_smul_of_tendsto_zero_of_bounded hf0
     ⟨b, eventually_map.mpr $ eventually_of_forall $ λ n, hgb $ n+1⟩).cauchy_seq.add,
@@ -622,7 +622,7 @@ end
 ### Factorial
 -/
 
-/-- The series `∑' n, x ^ n / n!` is summable of any `x : ℝ`. See also `exp_series_field_summable`
+/-- The series `∑' n, x ^ n / n!` is summable of any `x : ℝ`. See also `exp_series_div_summable`
 for a version that also works in `ℂ`, and `exp_series_summable'` for a version that works in
 any normed algebra over `ℝ` or `ℂ`. -/
 lemma real.summable_pow_div_factorial (x : ℝ) :
@@ -637,7 +637,7 @@ begin
   -- Finally, we prove the upper estimate
   intros n hn,
   calc ∥x ^ (n + 1) / (n + 1)!∥ = (∥x∥ / (n + 1)) * ∥x ^ n / n!∥ :
-    by rw [pow_succ, nat.factorial_succ, nat.cast_mul, ← div_mul_div_comm₀,
+    by rw [pow_succ, nat.factorial_succ, nat.cast_mul, ← div_mul_div_comm,
       norm_mul, norm_div, real.norm_coe_nat, nat.cast_succ]
   ... ≤ (∥x∥ / (⌊∥x∥⌋₊ + 1)) * ∥x ^ n / n!∥ :
     by mono* with [0 ≤ ∥x ^ n / n!∥, 0 ≤ ∥x∥]; apply norm_nonneg

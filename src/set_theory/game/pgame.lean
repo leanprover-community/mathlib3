@@ -391,11 +391,11 @@ move_left_lf_of_le i le_rfl
 theorem lf_move_right {x : pgame} (j) : x ⧏ x.move_right j :=
 lf_move_right_of_le j le_rfl
 
-theorem lf_mk {xl xr} (xL : xl → pgame) (xR i) : xL i ⧏ mk xl xr xL xR :=
+theorem lf_mk {xl xr} (xL : xl → pgame) (xR : xr → pgame) (i) : xL i ⧏ mk xl xr xL xR :=
 @move_left_lf (mk _ _ _ _) i
 
-theorem mk_lf {xl xr} (xL xR) : ∀ j, mk xl xr xL xR ⧏ xR j :=
-@lf_move_right (mk _ _ _ _)
+theorem mk_lf {xl xr} (xL : xl → pgame) (xR : xr → pgame) (j) : mk xl xr xL xR ⧏ xR j :=
+@lf_move_right (mk _ _ _ _) j
 
 theorem lt_iff_le_and_lf {x y : pgame} : x < y ↔ x ≤ y ∧ x ⧏ y :=
 by rw [lt_iff_le_not_le, pgame.not_le]

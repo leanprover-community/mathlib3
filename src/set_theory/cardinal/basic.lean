@@ -161,6 +161,8 @@ induction_on a $ λ α, mk_congr equiv.ulift
 induction_on a $ λ α,
 (equiv.ulift.trans $ equiv.ulift.trans equiv.ulift.symm).cardinal_eq
 
+/-- We define the order on cardinal numbers by `#α ≤ #β` if and only if
+  there exists an embedding (injective function) from α to β. -/
 instance : partial_order cardinal.{u} :=
 { le          := λ q₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, nonempty $ α ↪ β) $
                  λ α β γ δ ⟨e₁⟩ ⟨e₂⟩,
@@ -168,10 +170,6 @@ instance : partial_order cardinal.{u} :=
   le_refl     := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,
   le_trans    := by rintros ⟨α⟩ ⟨β⟩ ⟨γ⟩ ⟨e₁⟩ ⟨e₂⟩; exact ⟨e₁.trans e₂⟩,
   le_antisymm := by { rintros ⟨α⟩ ⟨β⟩ ⟨e₁⟩ ⟨e₂⟩, exact quotient.sound (e₁.antisymm e₂) } }
-
-/-- We define the order on cardinal numbers by `#α ≤ #β` if and only if
-  there exists an embedding (injective function) from α to β. -/
-add_decl_doc cardinal.partial_order.le
 
 theorem le_def (α β : Type u) : #α ≤ #β ↔ nonempty (α ↪ β) :=
 iff.rfl
@@ -307,7 +305,7 @@ private theorem mul_comm' (a b : cardinal.{u}) : a * b = b * a :=
 induction_on₂ a b $ λ α β, mk_congr $ equiv.prod_comm α β
 
 instance : has_pow cardinal cardinal :=
-⟨λ a b, map₂ (λ α β : Type u, β → α) (λ α β γ δ e₁ e₂, e₂.arrow_congr e₁) a b⟩
+⟨map₂ (λ α β : Type u, β → α) (λ α β γ δ e₁ e₂, e₂.arrow_congr e₁)⟩
 
 /-- The cardinal exponential. `#α ^ #β` is the cardinal of `β → α`. -/
 add_decl_doc cardinal.has_pow.pow
@@ -379,7 +377,7 @@ theorem mul_power {a b c : cardinal} : (a * b) ^ c = a ^ c * b ^ c :=
 induction_on₃ a b c $ λ α β γ, mk_congr $ equiv.arrow_prod_equiv_prod_arrow α β γ
 
 theorem power_mul {a b c : cardinal} : a ^ (b * c) = (a ^ b) ^ c :=
-by { rw [mul_comm b c], exact (induction_on₃ a b c $ λ α β γ, mk_congr $ equiv.curry γ β α) }
+by { rw [mul_comm b c], exact induction_on₃ a b c (λ α β γ, mk_congr $ equiv.curry γ β α) }
 
 @[simp] lemma pow_cast_right (a : cardinal.{u}) (n : ℕ) : (a ^ (↑n : cardinal.{u})) = a ^ℕ n :=
 rfl
@@ -470,11 +468,6 @@ end
 
 instance : no_max_order cardinal.{u} :=
 { exists_gt := λ a, ⟨_, cantor a⟩, ..cardinal.partial_order }
-
-instance : linear_order cardinal.{u} :=
-{ le_total    := by rintros ⟨α⟩ ⟨β⟩; exact embedding.total,
-  decidable_le := classical.dec_rel _,
-  .. cardinal.partial_order }
 
 instance : canonically_linear_ordered_add_monoid cardinal.{u} :=
 { le_total     := by { rintros ⟨α⟩ ⟨β⟩, exact embedding.total },

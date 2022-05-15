@@ -3,10 +3,10 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johan Commelin
 -/
+import algebra.hom.equiv
 import algebra.ring.basic
-import data.equiv.basic
-import data.equiv.mul_add
-import data.equiv.option
+import logic.equiv.basic
+import logic.equiv.option
 
 /-!
 # Adjoining a zero/one to semigroups and related algebraic structures
@@ -29,6 +29,13 @@ def with_one (α) := option α
 
 namespace with_one
 
+instance [has_repr α] : has_repr (with_zero α) :=
+⟨λ o, match o with | none := "0" | (some a) := "↑" ++ repr a end⟩
+
+@[to_additive]
+instance [has_repr α] : has_repr (with_one α) :=
+⟨λ o, match o with | none := "1" | (some a) := "↑" ++ repr a end⟩
+
 @[to_additive]
 instance : monad with_one := option.monad
 
@@ -38,8 +45,11 @@ instance : has_one (with_one α) := ⟨none⟩
 @[to_additive]
 instance [has_mul α] : has_mul (with_one α) := ⟨option.lift_or_get (*)⟩
 
-@[to_additive]
-instance [has_inv α] : has_inv (with_one α) := ⟨λ a, option.map has_inv.inv a⟩
+@[to_additive] instance [has_inv α] : has_inv (with_one α) := ⟨λ a, option.map has_inv.inv a⟩
+
+@[to_additive] instance [has_involutive_inv α] : has_involutive_inv (with_one α) :=
+{ inv_inv := λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
+  ..with_one.has_inv }
 
 @[to_additive]
 instance : inhabited (with_one α) := ⟨1⟩
@@ -109,7 +119,7 @@ section
 local attribute [irreducible] with_one with_zero
 /-- `coe` as a bundled morphism -/
 @[to_additive "`coe` as a bundled morphism", simps apply]
-def coe_mul_hom [has_mul α] : mul_hom α (with_one α) :=
+def coe_mul_hom [has_mul α] : α →ₙ* (with_one α) :=
 { to_fun := coe, map_mul' := λ x y, rfl }
 
 end
@@ -120,7 +130,7 @@ variables [has_mul α] [mul_one_class β]
 
 /-- Lift a semigroup homomorphism `f` to a bundled monoid homorphism. -/
 @[to_additive "Lift an add_semigroup homomorphism `f` to a bundled add_monoid homorphism."]
-def lift : mul_hom α β ≃ (with_one α →* β) :=
+def lift : (α →ₙ* β) ≃ (with_one α →* β) :=
 { to_fun := λ f,
   { to_fun := λ x, option.cases_on x 1 f,
     map_one' := rfl,
@@ -132,7 +142,7 @@ def lift : mul_hom α β ≃ (with_one α →* β) :=
   left_inv := λ f, mul_hom.ext $ λ x, rfl,
   right_inv := λ F, monoid_hom.ext $ λ x, with_one.cases_on x F.map_one.symm $ λ x, rfl }
 
-variables (f : mul_hom α β)
+variables (f : α →ₙ* β)
 
 @[simp, to_additive]
 lemma lift_coe (x : α) : lift f x = f x := rfl
@@ -156,10 +166,10 @@ variables [has_mul α] [has_mul β] [has_mul γ]
   from `with_one α` to `with_one β` -/
 @[to_additive "Given an additive map from `α → β` returns an add_monoid homomorphism
   from `with_zero α` to `with_zero β`"]
-def map (f : mul_hom α β) : with_one α →* with_one β :=
+def map (f : α →ₙ* β) : with_one α →* with_one β :=
 lift (coe_mul_hom.comp f)
 
-@[simp, to_additive] lemma map_coe (f : mul_hom α β) (a : α) : map f (a : with_one α) = f a :=
+@[simp, to_additive] lemma map_coe (f : α →ₙ* β) (a : α) : map f (a : with_one α) = f a :=
 lift_coe _ _
 
 @[simp, to_additive]
@@ -167,12 +177,12 @@ lemma map_id : map (mul_hom.id α) = monoid_hom.id (with_one α) :=
 by { ext, induction x using with_one.cases_on; refl }
 
 @[to_additive]
-lemma map_map (f : mul_hom α β) (g : mul_hom β γ) (x) :
+lemma map_map (f : α →ₙ* β) (g : β →ₙ* γ) (x) :
   map g (map f x) = map (g.comp f) x :=
 by { induction x using with_one.cases_on; refl }
 
 @[simp, to_additive]
-lemma map_comp (f : mul_hom α β) (g : mul_hom β γ) :
+lemma map_comp (f : α →ₙ* β) (g : β →ₙ* γ) :
   map (g.comp f) = (map g).comp (map f) :=
 monoid_hom.ext $ λ x, (map_map f g x).symm
 
@@ -289,11 +299,13 @@ instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
   on `with_zero α` sending `0` to `0`-/
 instance [has_inv α] : has_inv (with_zero α) := ⟨λ a, option.map has_inv.inv a⟩
 
-@[simp, norm_cast] lemma coe_inv [has_inv α] (a : α) :
-  ((a⁻¹ : α) : with_zero α) = a⁻¹ := rfl
+@[simp, norm_cast] lemma coe_inv [has_inv α] (a : α) : ((a⁻¹ : α) : with_zero α) = a⁻¹ := rfl
 
-@[simp] lemma inv_zero [has_inv α] :
-  (0 : with_zero α)⁻¹ = 0 := rfl
+@[simp] lemma inv_zero [has_inv α] : (0 : with_zero α)⁻¹ = 0 := rfl
+
+instance [has_involutive_inv α] : has_involutive_inv (with_zero α) :=
+{ inv_inv := λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
+  ..with_zero.has_inv }
 
 instance [has_div α] : has_div (with_zero α) :=
 ⟨λ o₁ o₂, o₁.bind (λ a, option.map (λ b, a / b) o₂)⟩
@@ -334,6 +346,23 @@ instance [div_inv_monoid α] : div_inv_monoid (with_zero α) :=
   .. with_zero.has_inv,
   .. with_zero.monoid_with_zero, }
 
+instance [division_monoid α] : division_monoid (with_zero α) :=
+{ mul_inv_rev := λ a b, match a, b with
+    | none,   none   := rfl
+    | none,   some b := rfl
+    | some a, none   := rfl
+    | some a, some b := congr_arg some $ mul_inv_rev _ _
+    end,
+  inv_eq_of_mul := λ a b, match a, b with
+    | none,   none   := λ _, rfl
+    | none,   some b := by contradiction
+    | some a, none   := by contradiction
+    | some a, some b := λ h, congr_arg some $ inv_eq_of_mul_eq_one_right $ option.some_injective _ h
+    end,
+  .. with_zero.div_inv_monoid, .. with_zero.has_involutive_inv }
+
+instance [division_comm_monoid α] : division_comm_monoid (with_zero α) :=
+{ .. with_zero.division_monoid, .. with_zero.comm_semigroup }
 
 section group
 variables [group α]

@@ -104,7 +104,7 @@ by rw [nth_le_cons_length, form_perm_apply_last]
 
 lemma form_perm_apply_head (x y : α) (xs : list α) (h : nodup (x :: y :: xs)) :
   form_perm (x :: y :: xs) x = y :=
-by simp [form_perm_apply_of_not_mem _ _ (not_mem_of_nodup_cons h)]
+by simp [form_perm_apply_of_not_mem _ _ h.not_mem]
 
 lemma form_perm_apply_nth_le_zero (l : list α) (h : nodup l) (hl : 1 < l.length) :
   form_perm l (l.nth_le 0 (zero_lt_one.trans hl)) = l.nth_le 1 hl :=
@@ -173,7 +173,7 @@ begin
   { rcases xs with (_|⟨x, _|⟨y, l⟩⟩),
     { simp },
     { simp },
-    { specialize IH (y :: l) (nodup_of_nodup_cons h) _,
+    { specialize IH (y :: l) h.of_cons _,
       { simpa [nat.succ_lt_succ_iff] using hn },
       simp only [swap_apply_eq_iff, coe_mul, form_perm_cons_cons, nth_le],
       generalize_proofs at IH,

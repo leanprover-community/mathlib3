@@ -117,8 +117,7 @@ by conv_rhs { rw [←vsub_vadd p1 p2, map_vadd, vadd_vsub] }
 begin
   rcases f with ⟨f, f_linear, f_add⟩,
   rcases g with ⟨g, g_linear, g_add⟩,
-  have : f = g := funext h,
-  subst g,
+  obtain rfl : f = g := funext h,
   congr' with v,
   cases (add_torsor.nonempty : nonempty P1) with p,
   apply vadd_right_cancel (f p),
@@ -589,9 +588,13 @@ by { ext p, simp [homothety_apply] }
 
 @[simp] lemma homothety_apply_same (c : P1) (r : k) : homothety c r c = c := line_map_same_apply c r
 
+lemma homothety_mul_apply (c : P1) (r₁ r₂ : k) (p : P1) :
+  homothety c (r₁ * r₂) p = homothety c r₁ (homothety c r₂ p) :=
+by simp [homothety_apply, mul_smul]
+
 lemma homothety_mul (c : P1) (r₁ r₂ : k) :
   homothety c (r₁ * r₂) = (homothety c r₁).comp (homothety c r₂) :=
-by { ext p, simp [homothety_apply, mul_smul] }
+ext $ homothety_mul_apply c r₁ r₂
 
 @[simp] lemma homothety_zero (c : P1) : homothety c (0:k) = const k P1 c :=
 by { ext p, simp [homothety_apply] }

@@ -5,8 +5,8 @@ Authors: Chris Hughes
 -/
 import order.lattice
 import data.list.sort
-import data.equiv.fin
-import data.equiv.functor
+import logic.equiv.fin
+import logic.equiv.functor
 /-!
 # Jordan-Hölder Theorem
 

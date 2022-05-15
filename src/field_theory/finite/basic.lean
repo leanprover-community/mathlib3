@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
 import tactic.apply_fun
-import data.equiv.ring
+import algebra.ring.equiv
 import data.zmod.algebra
 import linear_algebra.finite_dimensional
 import ring_theory.integral_domain
 import field_theory.separable
-import field_theory.splitting_field
 
 /-!
 # Finite fields
@@ -20,7 +19,7 @@ and `q` is notation for the cardinality of `K`.
 
 See `ring_theory.integral_domain` for the fact that the unit group of a finite field is a
 cyclic group, as well as the fact that every finite integral domain is a field
-(`field_of_is_domain`).
+(`fintype.field_of_domain`).
 
 ## Main results
 

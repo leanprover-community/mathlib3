@@ -5,7 +5,7 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
 
 import algebra.algebra.basic
-import algebra.category.CommRing.basic
+import algebra.category.Ring.basic
 import ring_theory.ideal.operations
 
 /-!
@@ -240,7 +240,7 @@ lemma is_local_ring_hom_of_iso {R S : CommRing} (f : R ≅ S) : is_local_ring_ho
 { map_nonunit := λ a ha,
   begin
     convert f.inv.is_unit_map ha,
-    rw category_theory.coe_hom_inv_id,
+    rw category_theory.iso.hom_inv_id_apply,
   end }
 
 @[priority 100] -- see Note [lower instance priority]

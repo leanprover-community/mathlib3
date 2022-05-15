@@ -1246,16 +1246,16 @@ begin
   rw lf_def_le at *,
   rcases hwx with ⟨ix, hix⟩|⟨jw, hjw⟩;
   rcases hyz with ⟨hyz, ⟨iz, hiz⟩|⟨jy, hjy⟩⟩,
-  { refine or.inl ⟨(left_moves_add x z).symm (sum.inl ix), _⟩,
+  { refine or.inl ⟨to_left_moves_add (sum.inl ix), _⟩,
     simp only [add_move_left_inl],
     exact (add_le_add_right hix y).trans (add_le_add_left hyz _) },
-  { refine or.inl ⟨(left_moves_add x z).symm (sum.inl ix), _⟩,
+  { refine or.inl ⟨to_left_moves_add (sum.inl ix), _⟩,
     simp only [add_move_left_inl],
     exact (add_le_add_right hix y).trans (add_le_add_left hyz _) },
-  { refine or.inr ⟨(right_moves_add w y).symm (sum.inl jw), _⟩,
+  { refine or.inr ⟨to_right_moves_add (sum.inl jw), _⟩,
     simp only [add_move_right_inl],
     exact (add_le_add_right hjw y).trans (add_le_add_left hyz x) },
-  { refine or.inr ⟨(right_moves_add w y).symm (sum.inl jw), _⟩,
+  { refine or.inr ⟨to_right_moves_add (sum.inl jw), _⟩,
     simp only [add_move_right_inl],
     exact (add_le_add_right hjw y).trans (add_le_add_left hyz x) }
 end

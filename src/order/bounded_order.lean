@@ -569,15 +569,16 @@ by { lift x to α using id h, refl  }
   (x : with_bot α).unbot h = x := rfl
 
 section has_le
+
+protected def le (r : α → α → Prop) : with_bot α → with_bot α → Prop
+| ⊥       _       := true
+| (a : α) ⊥       := false
+| (a : α) (b : α) := r a b
+
 variables [has_le α]
 
 @[priority 10]
-instance : has_le (with_bot α) := ⟨λ a b,
-  match a, b with
-  ⊥, _             := true,
-  (a : α), ⊥       := false,
-  (a : α), (b : α) := a ≤ b
-  end⟩
+instance : has_le (with_bot α) := ⟨with_bot.le (≤)⟩
 
 @[simp, norm_cast] lemma coe_le_coe : (a : with_bot α) ≤ b ↔ a ≤ b := iff.rfl
 
@@ -970,6 +971,26 @@ instance [has_lt α] [no_min_order α] [nonempty α] : no_min_order (with_top α
 order_dual.no_min_order _
 
 end with_top
+
+section mono
+
+variables [preorder α] [preorder β] {f : α → β}
+
+protected lemma monotone.with_bot (hf : monotone f) : monotone (with_bot.map f)
+| ⊥       _       h           := bot_le
+| (a : α) (b : α) (h : a ≤ b) := hf h
+
+protected lemma monotone.with_top (hf : monotone f) : monotone (with_top.map f) :=
+hf.dual.with_bot.dual
+
+protected lemma strict_mono.with_bot (hf : strict_mono f) : strict_mono (with_bot.map f)
+| ⊥       (a : α) h           := with_bot.bot_lt_coe _
+| (a : α) (b : α) (h : a < b) := hf h
+
+protected lemma strict_mono.with_top (hf : strict_mono f) : strict_mono (with_top.map f) :=
+hf.dual.with_bot.dual
+
+end mono
 
 /-! ### Subtype, order dual, product lattices -/
 

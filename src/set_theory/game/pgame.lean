@@ -1231,10 +1231,10 @@ instance covariant_class_add_lt : covariant_class pgame pgame (+) (<) :=
   exact ⟨add_le_add_left h.1 x, add_lf_add_left h.2 x⟩
 end⟩
 
-theorem add_lf_add_of_lf_of_le {w x y z : pgame.{u}} (hwx : w ⧏ x) (hyz : y ≤ z) : w + y ⧏ x + z :=
+theorem add_lf_add_of_lf_of_le {w x y z : pgame} (hwx : w ⧏ x) (hyz : y ≤ z) : w + y ⧏ x + z :=
 lf_of_lf_of_le (add_lf_add_right hwx y) (add_le_add_left hyz x)
 
-theorem add_lf_add_of_le_of_lf {w x y z : pgame.{u}} (hwx : w ≤ x) (hyz : y ⧏ z) : w + y ⧏ x + z :=
+theorem add_lf_add_of_le_of_lf {w x y z : pgame} (hwx : w ≤ x) (hyz : y ⧏ z) : w + y ⧏ x + z :=
 lf_of_le_of_lf (add_le_add_right hwx y) (add_lf_add_left hyz x)
 
 theorem add_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w + y ≈ x + z :=

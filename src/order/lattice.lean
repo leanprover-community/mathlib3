@@ -240,12 +240,6 @@ by rw [sup_sup_sup_comm, sup_idem]
 lemma sup_sup_distrib_right (a b c : α) : (a ⊔ b) ⊔ c = (a ⊔ c) ⊔ (b ⊔ c) :=
 by rw [sup_sup_sup_comm, sup_idem]
 
-lemma is_max.is_top {a : α} (ha : is_max a) : is_top a :=
-λ b, of_not_not (λ hb, ha.not_lt (left_lt_sup.2 hb))
-
-lemma is_top_or_exists_gt (a : α) : is_top a ∨ (∃ b, a < b) :=
-(em (is_max a)).imp is_max.is_top not_is_max_iff.mp
-
 /-- If `f` is monotone, `g` is antitone, and `f ≤ g`, then for all `a`, `b` we have `f a ≤ g b`. -/
 theorem monotone.forall_le_of_antitone {β : Type*} [preorder β] {f g : α → β}
   (hf : monotone f) (hg : antitone g) (h : f ≤ g) (m n : α) :
@@ -267,13 +261,6 @@ begin
   have ss := funext (λ x, funext $ semilattice_sup.ext_sup H x),
   casesI A, casesI B,
   injection this; congr'
-end
-
-theorem exists_lt_of_sup (α : Type*) [semilattice_sup α] [nontrivial α] : ∃ a b : α, a < b :=
-begin
-  rcases exists_pair_ne α with ⟨a, b, hne⟩,
-  rcases left_or_right_lt_sup hne with h|h,
-  exacts [⟨_, _, h⟩, ⟨_, _, h⟩]
 end
 
 lemma ite_le_sup (s s' : α) (P : Prop) [decidable P] : ite P s s' ≤ s ⊔ s' :=
@@ -413,11 +400,6 @@ lemma inf_inf_distrib_left (a b c : α) : a ⊓ (b ⊓ c) = (a ⊓ b) ⊓ (a ⊓
 
 lemma inf_inf_distrib_right (a b c : α) : (a ⊓ b) ⊓ c = (a ⊓ c) ⊓ (b ⊓ c) :=
 @sup_sup_distrib_right αᵒᵈ _ _ _ _
-
-lemma is_min.is_bot {a : α} (ha : is_min a) : is_bot a := ha.to_dual.is_top
-
-lemma is_bot_or_exists_lt (a : α) : is_bot a ∨ (∃ b, b < a) :=
-@is_top_or_exists_gt αᵒᵈ _ a
 
 theorem semilattice_inf.ext_inf {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)

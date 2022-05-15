@@ -64,30 +64,21 @@ quot.sound ⟨e⟩
 @[elab_as_eliminator] theorem induction_on {p : rgame → Prop} (x : rgame) : (∀ a, p (mk a)) → p x :=
 quotient.induction_on' x
 
-instance : has_le rgame :=
-⟨lift₂ (λ x y, x ≤ y) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx.equiv hy.equiv))⟩
+instance : preorder rgame :=
+{ le := lift₂ (≤) (λ x₁ y₁ x₂ y₂ hx hy, propext (le_congr hx.equiv hy.equiv)),
+  le_refl := by { rintro ⟨x⟩, apply @le_rfl pgame },
+  le_trans := by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, apply @le_trans pgame } }
 
-theorem le_rfl : ∀ {x : rgame}, x ≤ x :=
-by { rintro ⟨x⟩, exact pgame.le_rfl }
-theorem le_refl (x : rgame) : x ≤ x :=
-le_rfl
-theorem le_trans : ∀ x y z : rgame, x ≤ y → y ≤ z → x ≤ z :=
-by { rintro ⟨x⟩ ⟨y⟩ ⟨z⟩, apply pgame.le_trans }
+def lf : rgame → rgame → Prop :=
+lift₂ lf (λ x₁ y₁ x₂ y₂ hx hy, propext (lf_congr hx.equiv hy.equiv))
 
-instance : is_preorder rgame (≤) :=
-{ refl := le_refl,
-  trans := @le_trans }
+local infix ` ⧏ `:50 := lf
 
-/-- This instance is incompatible with that provided by `game.partial_order`, which is why it's made
-into a `def` instead. -/
-instance : has_lt rgame :=
-⟨lift₂ (λ x y, x < y) (λ x₁ y₁ x₂ y₂ hx hy, propext (lt_congr hx.equiv hy.equiv))⟩
+@[simp] theorem not_le : ∀ {x y : rgame}, ¬ x ≤ y ↔ y ⧏ x :=
+by { rintro ⟨x⟩ ⟨y⟩, exact pgame.not_le }
 
-@[simp] theorem not_le : ∀ {x y : rgame}, ¬ x ≤ y ↔ y < x :=
-by { rintro ⟨x⟩ ⟨y⟩, exact not_le }
-
-@[simp] theorem not_lt : ∀ {x y : rgame}, ¬ x < y ↔ y ≤ x :=
-by { rintro ⟨x⟩ ⟨y⟩, exact not_lt }
+@[simp] theorem not_lf : ∀ {x y : rgame}, ¬ x ⧏ y ↔ y ≤ x :=
+by { rintro ⟨x⟩ ⟨y⟩, exact not_lf }
 
 instance : has_zero rgame := ⟨mk 0⟩
 instance : inhabited rgame := ⟨0⟩
@@ -120,23 +111,13 @@ instance : has_sub rgame :=
 @[simp] lemma sub_zero (x : rgame) : x - 0 = x + 0 :=
 show x + -0 = x + 0, by rw neg_zero
 
-instance : add_semigroup rgame :=
-{ add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, exact sound (add_assoc_relabelling x y z) },
-  ..rgame.has_add }
-
-instance : add_monoid rgame :=
-{ add_zero := by { rintro ⟨x⟩, exact sound (add_zero_relabelling x) },
-  zero_add := by { rintro ⟨x⟩, exact sound (zero_add_relabelling x) },
-  ..rgame.has_zero,
-  ..rgame.add_semigroup }
-
-instance : add_comm_semigroup rgame :=
-{ add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact sound (add_comm_relabelling x y) },
-  ..rgame.add_semigroup }
-
 instance : add_comm_monoid rgame :=
-{ ..rgame.add_monoid,
-  ..rgame.add_comm_semigroup }
+{ zero := 0,
+  add := (+),
+  add_assoc := by { rintros ⟨x⟩ ⟨y⟩ ⟨z⟩, exact sound (add_assoc_relabelling x y z) },
+  add_zero := by { rintro ⟨x⟩, exact sound (add_zero_relabelling x) },
+  zero_add := by { rintro ⟨x⟩, exact sound (zero_add_relabelling x) },
+  add_comm := by { rintros ⟨x⟩ ⟨y⟩, exact sound (add_comm_relabelling x y) } }
 
 instance covariant_class_add_le : covariant_class rgame rgame (+) (≤) :=
 ⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a }⟩

@@ -25,6 +25,7 @@ open function
 universes u
 
 local infix ` ≈ ` := pgame.equiv
+local infix ` ⧏ `:50 := pgame.lf
 
 instance pgame.setoid : setoid pgame :=
 ⟨λ x y, x ≈ y,
@@ -520,41 +521,41 @@ def inv' : pgame → pgame
   ⟨inv_ty l' r ff, inv_ty l' r tt,
     inv_val L' R IHl' IHr, inv_val L' R IHl' IHr⟩
 
-theorem inv'_pos : ∀ {x : pgame}, 0 < inv' x
-| ⟨xl, xr, xL, xR⟩ := by { convert lt_mk inv_ty.zero, refl }
+theorem zero_lf_inv' : ∀ {x : pgame}, 0 ⧏ inv' x
+| ⟨xl, xr, xL, xR⟩ := by { convert lf_mk _ _ inv_ty.zero, refl }
 
 /-- `inv' 0` has exactly the same moves as `1`. -/
 def inv'_zero : relabelling (inv' 0) 1 :=
 begin
   change relabelling (inv' (mk _ _ _ _)) 1,
   rw inv',
-  refine ⟨_, _, λ i, _, is_empty_elim⟩,
-  { dsimp, apply equiv_punit_of_unique },
-  { dsimp, apply equiv.equiv_pempty },
-  { simp }
+  refine ⟨_, _, λ i, _, is_empty_elim⟩;
+  simp,
+  { apply equiv_punit_of_unique },
+  { apply equiv.equiv_pempty }
 end
 
 theorem inv'_zero_equiv : inv' 0 ≈ 1 := inv'_zero.equiv
 
+set_option pp.universes true
+
 /-- `inv' 1` has exactly the same moves as `1`. -/
-def inv'_one : relabelling (inv' 1) 1 :=
+def inv'_one : relabelling (inv' 1) (1 : pgame.{u}) :=
 begin
   change relabelling (inv' (mk _ _ _ _)) 1,
   rw inv',
-  haveI H : is_empty {i : punit // (0 : pgame) < 0} := ⟨λ ⟨_, h⟩, pgame.lt_irrefl 0 h⟩,
-  refine ⟨_, _, λ i, _, is_empty_elim⟩,
-  { simp, apply @equiv_punit_of_unique _ (pgame.unique_inv_ty _ _),
-    { exact H },
-    { apply_instance } },
-  { dsimp, apply equiv.equiv_pempty },
-  { simp }
+  haveI : is_empty {i : punit.{u+1} // (0 : pgame.{u}) < 0} := by { simp, apply_instance },
+  refine ⟨_, _, λ i, _, is_empty_elim⟩;
+  simp,
+  { apply equiv_punit_of_unique },
+  { apply equiv.equiv_pempty }
 end
 
 theorem inv'_one_equiv : inv' 1 ≈ 1 := inv'_one.equiv
 
 /-- The inverse of a pre-game in terms of the inverse on positive pre-games. -/
 noncomputable instance : has_inv pgame :=
-⟨by { classical, exact λ x, if x ≈ 0 then 0 else if 0 < x then inv' x else inv' (-x) }⟩
+⟨by { classical, exact λ x, if x ≈ 0 then 0 else if 0 ⧏ x then inv' x else inv' (-x) }⟩
 
 noncomputable instance : has_div pgame := ⟨λ x y, x * y⁻¹⟩
 
@@ -564,23 +565,24 @@ by { apply if_pos, exact h }
 @[simp] theorem inv_zero : (0 : pgame)⁻¹ = 0 :=
 inv_eq_of_equiv_zero (equiv_refl _)
 
-theorem inv_eq_of_pos {x : pgame} (h : 0 < x) : x⁻¹ = inv' x :=
+theorem inv_eq_of_zero_lf {x : pgame} (h : 0 ⧏ x) : x⁻¹ = inv' x :=
 begin
   convert if_neg _,
   { apply eq.symm (if_pos _), exact h },
-  { exact λ h', not_lt.2 h'.1 h }
+  { exact λ h', not_lf.2 h'.1 h }
 end
 
-theorem inv_eq_of_not_pos {x : pgame} (h₁ : x ≤ 0) (h₂ : x < 0) : x⁻¹ = inv' (-x) :=
+theorem inv_eq_of_neg {x : pgame} (h : x < 0) : x⁻¹ = inv' (-x) :=
 begin
+  cases lt_iff_le_and_lf.1 h with h₁ h₂,
   convert if_neg _,
-  { apply eq.symm (if_neg _), exact not_lt.2 h₁ },
-  { exact λ h', not_lt.2 h'.2 h₂ }
+  { apply eq.symm (if_neg _), exact not_lf.2 h₁ },
+  { exact λ h', not_lf.2 h'.2 h₂ }
 end
 
 /-- `1⁻¹` has exactly the same moves as `1`. -/
 def inv_one : relabelling (1 : pgame)⁻¹ 1 :=
-by { rw inv_eq_of_pos zero_lt_one, exact inv'_one }
+by { rw inv_eq_of_zero_lf zero_lf_one, exact inv'_one }
 
 theorem inv_one_equiv : (1 : pgame)⁻¹ ≈ 1 := inv_one.equiv
 

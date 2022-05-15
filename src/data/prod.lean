@@ -29,6 +29,10 @@ prod.forall
 theorem exists' {p : α → β → Prop} : (∃ x : α × β, p x.1 x.2) ↔ ∃ a b, p a b :=
 prod.exists
 
+@[simp] lemma snd_comp_mk (x : α) : prod.snd ∘ (prod.mk x : β → α × β) = id := rfl
+
+@[simp] lemma fst_comp_mk (x : α) : prod.fst ∘ (prod.mk x : β → α × β) = function.const β x := rfl
+
 @[simp] lemma map_mk (f : α → γ) (g : β → δ) (a : α) (b : β) : map f g (a, b) = (f a, g b) := rfl
 
 lemma map_fst (f : α → γ) (g : β → δ) (p : α × β) : (map f g p).1 = f (p.1) := rfl
@@ -149,6 +153,56 @@ instance lex.decidable [decidable_eq α]
   (r : α → α → Prop) (s : β → β → Prop) [decidable_rel r] [decidable_rel s] :
   decidable_rel (prod.lex r s) :=
 λ p q, decidable_of_decidable_of_iff (by apply_instance) (lex_def r s).symm
+
+@[refl] lemma lex.refl_left (r : α → α → Prop) (s : β → β → Prop) [is_refl α r] :
+  ∀ x, prod.lex r s x x
+| (x₁, x₂) := lex.left _ _ (refl _)
+
+instance is_refl_left {r : α → α → Prop} {s : β → β → Prop} [is_refl α r] :
+  is_refl (α × β) (lex r s) :=
+⟨lex.refl_left _ _⟩
+
+@[refl] lemma lex.refl_right (r : α → α → Prop) (s : β → β → Prop) [is_refl β s] :
+  ∀ x, prod.lex r s x x
+| (x₁, x₂) := lex.right _ (refl _)
+
+instance is_refl_right {r : α → α → Prop} {s : β → β → Prop} [is_refl β s] :
+  is_refl (α × β) (lex r s) :=
+⟨lex.refl_right _ _⟩
+
+@[trans] lemma lex.trans {r : α → α → Prop} {s : β → β → Prop} [is_trans α r] [is_trans β s] :
+  ∀ {x y z : α × β}, prod.lex r s x y → prod.lex r s y z → prod.lex r s x z
+| (x₁, x₂) (y₁, y₂) (z₁, z₂) (lex.left _ _ hxy₁) (lex.left _ _ hyz₁) :=
+    lex.left _ _ (trans hxy₁ hyz₁)
+| (x₁, x₂) (y₁, y₂) (z₁, z₂) (lex.left _ _ hxy₁) (lex.right _ hyz₂) := lex.left _ _ hxy₁
+| (x₁, x₂) (y₁, y₂) (z₁, z₂) (lex.right _ _) (lex.left _ _ hyz₁) := lex.left _ _ hyz₁
+| (x₁, x₂) (y₁, y₂) (z₁, z₂) (lex.right _ hxy₂) (lex.right _ hyz₂) := lex.right _ (trans hxy₂ hyz₂)
+
+instance {r : α → α → Prop} {s : β → β → Prop} [is_trans α r] [is_trans β s] :
+  is_trans (α × β) (lex r s) :=
+⟨λ _ _ _, lex.trans⟩
+
+instance {r : α → α → Prop} {s : β → β → Prop} [is_strict_order α r] [is_antisymm β s] :
+  is_antisymm (α × β) (lex r s) :=
+⟨λ x₁ x₂ h₁₂ h₂₁, match x₁, x₂, h₁₂, h₂₁ with
+  | (a₁, b₁), (a₂, b₂), lex.left _ _ hr₁, lex.left _ _ hr₂ := (irrefl a₁ (trans hr₁ hr₂)).elim
+  | (a₁, b₁), (a₂, b₂), lex.left _ _ hr₁, lex.right _ _ := (irrefl _ hr₁).elim
+  | (a₁, b₁), (a₂, b₂), lex.right _ _, lex.left _ _ hr₂ := (irrefl _ hr₂).elim
+  | (a₁, b₁), (a₂, b₂), lex.right _ hs₁, lex.right _ hs₂ := antisymm hs₁ hs₂ ▸ rfl
+end⟩
+
+instance is_total_left {r : α → α → Prop} {s : β → β → Prop} [is_total α r] :
+  is_total (α × β) (lex r s) :=
+⟨λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, (is_total.total a₁ a₂).imp (lex.left _ _) (lex.left _ _)⟩
+
+instance is_total_right {r : α → α → Prop} {s : β → β → Prop} [is_trichotomous α r] [is_total β s] :
+  is_total (α × β) (lex r s) :=
+⟨λ ⟨i, a⟩ ⟨j, b⟩, begin
+  obtain hij | rfl | hji := trichotomous_of r i j,
+  { exact or.inl (lex.left _ _ hij) },
+  { exact (total_of (s) a b).imp (lex.right _) (lex.right _), },
+  { exact or.inr (lex.left _ _ hji) }
+end⟩
 
 end prod
 

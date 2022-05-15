@@ -3,7 +3,7 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import data.fin
+import data.fin.basic
 import data.fintype.basic
 /-!
 # The structure of `fintype (fin n)`
@@ -29,7 +29,7 @@ begin
   split,
   { refine cases _ _ i,
     { rintro ⟨⟨⟩⟩ },
-    { intros i _, exact ⟨i, mem_univ _, rfl⟩ } },
+    { intros j _, exact ⟨j, rfl⟩ } },
   { rintro ⟨i, _, rfl⟩,
     exact succ_pos _ },
 end
@@ -46,9 +46,8 @@ begin
   { refine cases _ _ i,
     { rintro ⟨⟨⟩⟩ },
     { intros i hi,
-      exact ⟨i, mem_filter.mpr ⟨mem_univ _, succ_lt_succ_iff.mp hi⟩, rfl⟩ } },
-  { rintro ⟨i, hi, rfl⟩,
-    exact succ_lt_succ_iff.mpr (mem_filter.mp hi).2 },
+      refine ⟨i, succ_lt_succ_iff.mp hi, rfl⟩ } },
+  { rintro ⟨i, hi, rfl⟩, simpa },
 end
 
 end fin

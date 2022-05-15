@@ -66,8 +66,8 @@ abstract over occurrences of the `jᵢ` in `e`.
 meta def step1 (md : transparency) (unify : bool)
   (e : expr) (to_generalize : list (name × expr)) : tactic (expr × list expr) := do
   let go : name × expr → expr × list expr → tactic (expr × list expr) :=
-        λ ⟨n, j⟩ ⟨e, ks⟩, do {
-          J ← infer_type j,
+        λ ⟨n, j⟩ ⟨e, ks⟩, do
+        { J ← infer_type j,
           k ← mk_local' n binder_info.default J,
           e ← kreplace e j k md unify,
           ks ← ks.mmap $ λ k', kreplace k' j k md unify,
@@ -175,8 +175,7 @@ meta def generalizes_intro (args : list (name × option name × expr))
 
 namespace interactive
 
-open interactive
-open lean.parser
+setup_tactic_parser
 
 private meta def generalizes_arg_parser_eq : pexpr → lean.parser (pexpr × name)
 | (app (app (macro _ [const `eq _ ])  e) (local_const x _ _ _)) := pure (e, x)
@@ -240,8 +239,8 @@ will then raise an error.
 -/
 meta def generalizes (args : parse generalizes_args_parser) : tactic unit :=
 propagate_tags $ do
-  args ← args.mmap $ λ ⟨arg_name, hyp_name, arg⟩, do {
-    arg ← to_expr arg,
+  args ← args.mmap $ λ ⟨arg_name, hyp_name, arg⟩, do
+  { arg ← to_expr arg,
     pure (arg_name, hyp_name, arg) },
   generalizes_intro args,
   pure ()

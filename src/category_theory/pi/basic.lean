@@ -133,7 +133,7 @@ end pi
 namespace functor
 
 variables {C}
-variables {D : I → Type u₁} [∀ i, category.{v₁} (D i)]
+variables {D : I → Type u₁} [∀ i, category.{v₁} (D i)] {A : Type u₁} [category.{u₁} A]
 
 /--
 Assemble an `I`-indexed family of functors into a functor between the pi types.
@@ -143,8 +143,41 @@ def pi (F : Π i, C i ⥤ D i) : (Π i, C i) ⥤ (Π i, D i) :=
 { obj := λ f i, (F i).obj (f i),
   map := λ f g α i, (F i).map (α i) }
 
+
+/--
+Similar to `pi`, but all functors come from the same category `A`
+-/
+@[simps]
+def pi' (f : Π i, A ⥤ C i) : A ⥤ Π i, C i :=
+{ obj := λ a i, (f i).obj a,
+  map := λ a₁ a₂ h i, (f i).map h, }
+
+section eq_to_hom
+
+@[simp] lemma eq_to_hom_proj {x x' : Π i, C i} (h : x = x') (i : I) :
+  (eq_to_hom h : x ⟶ x') i = eq_to_hom (function.funext_iff.mp h i) := by { subst h, refl, }
+
+end eq_to_hom
+
 -- One could add some natural isomorphisms showing
 -- how `functor.pi` commutes with `pi.eval` and `pi.comap`.
+
+@[simp] lemma pi'_eval (f : Π i, A ⥤ C i) (i : I) : (pi' f) ⋙ (pi.eval C i) = f i :=
+begin
+  apply functor.ext; intros,
+  { simp, }, { refl, }
+end
+
+/-- Two functors to a product category are equal iff they agree on every coordinate. -/
+lemma pi_ext (f f' : A ⥤ Π i, C i) (h : ∀ i, f ⋙ (pi.eval C i) = f' ⋙ (pi.eval C i)) :
+  f = f' :=
+begin
+  apply functor.ext, swap,
+  { intro X, ext i, specialize h i,
+    have := congr_obj h X, simpa, },
+  { intros x y p, ext i, specialize h i,
+    have := congr_hom h p, simpa, }
+end
 
 end functor
 

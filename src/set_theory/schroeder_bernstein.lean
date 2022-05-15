@@ -43,7 +43,7 @@ begin
   casesI is_empty_or_nonempty β with hβ hβ,
   { haveI : is_empty α, from function.is_empty f,
     exact ⟨_, ((equiv.equiv_empty α).trans (equiv.equiv_empty β).symm).bijective⟩ },
-  set F : set α →ₘ set α :=
+  set F : set α →o set α :=
   { to_fun := λ s, (g '' (f '' s)ᶜ)ᶜ,
     monotone' := λ s t hst, compl_subset_compl.mpr $ image_subset _ $
      compl_subset_compl.mpr $ image_subset _ hst },
@@ -88,7 +88,7 @@ there is an element that injects into the others. See `cardinal.linear_order` fo
 lattice instance. -/
 theorem min_injective (I : nonempty ι) : ∃ i, nonempty (∀ j, β i ↪ β j) :=
 let ⟨s, hs, ms⟩ := show ∃ s ∈ sets, ∀ a ∈ sets, s ⊆ a → a = s, from
-  zorn.zorn_subset sets (λ c hc hcc, ⟨⋃₀ c,
+  zorn_subset sets (λ c hc hcc, ⟨⋃₀ c,
     λ x ⟨p, hpc, hxp⟩ y ⟨q, hqc, hyq⟩ i hi, (hcc.total hpc hqc).elim
       (λ h, hc hqc x (h hxp) y hyq i hi) (λ h, hc hpc x hxp y (h hyq) i hi),
   λ _, subset_sUnion_of_mem⟩) in

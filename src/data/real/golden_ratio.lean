@@ -5,7 +5,7 @@ Authors: Anatole Dedecker, Alexey Soloyev, Junyan Xu
 -/
 import data.real.irrational
 import data.nat.fib
-import data.matrix.notation
+import data.fin.vec_notation
 import tactic.ring_exp
 import algebra.linear_recurrence
 
@@ -43,7 +43,7 @@ end
 /-- The opposite of the golden ratio is the inverse of its conjugate. -/
 lemma inv_gold_conj : ψ⁻¹ = -φ :=
 begin
-  rw [inv_eq_iff, ← neg_inv, neg_eq_iff_neg_eq],
+  rw [inv_eq_iff_inv_eq, ← neg_inv, neg_eq_iff_neg_eq],
   exact inv_gold.symm,
 end
 
@@ -153,7 +153,7 @@ begin
   rw fib_rec,
   intros n,
   simp only,
-  rw [nat.fib_succ_succ, add_comm],
+  rw [nat.fib_add_two, add_comm],
   simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ'],
 end
 

@@ -174,14 +174,14 @@ begin
   case nat.primrec.succ { exact succ },
   case nat.primrec.left { exact left },
   case nat.primrec.right { exact right },
-  case nat.primrec.pair : f g hf hg pf pg {
-    refine (pf.pair pg).of_eq_tot (λ n, _),
+  case nat.primrec.pair : f g hf hg pf pg
+  { refine (pf.pair pg).of_eq_tot (λ n, _),
     simp [has_seq.seq] },
-  case nat.primrec.comp : f g hf hg pf pg {
-    refine (pf.comp pg).of_eq_tot (λ n, _),
+  case nat.primrec.comp : f g hf hg pf pg
+  { refine (pf.comp pg).of_eq_tot (λ n, _),
     simp },
-  case nat.primrec.prec : f g hf hg pf pg {
-    refine (pf.prec pg).of_eq_tot (λ n, _),
+  case nat.primrec.prec : f g hf hg pf pg
+  { refine (pf.prec pg).of_eq_tot (λ n, _),
     simp,
     induction n.unpair.2 with m IH, {simp},
     simp, exact ⟨_, IH, rfl⟩ },
@@ -696,7 +696,7 @@ begin
     { refine ⟨k.succ, _, λ m mk km, ⟨a₂, _⟩⟩,
       { simp [F], exact or.inr ⟨_, hk, h₂⟩ },
       { rwa le_antisymm (nat.le_of_lt_succ mk) km } },
-    { rcases IH _ fa₃ am₃ k.succ _ with ⟨n, hn₁, hn₂⟩,
+    { rcases IH _ am₃ k.succ _ with ⟨n, hn₁, hn₂⟩,
       { refine ⟨n, hn₁, λ m mn km, _⟩,
         cases km.lt_or_eq_dec with km km,
         { exact hn₂ _ mn km },

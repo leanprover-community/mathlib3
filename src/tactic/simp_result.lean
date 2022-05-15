@@ -97,7 +97,7 @@ intercept_result (λ g, prod.fst <$>
   g.simp cfg discharger no_defaults attr_names hs) t
 
 namespace interactive
-open interactive interactive.types
+setup_tactic_parser
 
 /--
 `dsimp_result { tac }`

@@ -28,7 +28,7 @@ namespace ctop
 section
 variables (F : ctop α σ)
 
-instance : has_coe_to_fun (ctop α σ) := ⟨_, ctop.f⟩
+instance : has_coe_to_fun (ctop α σ) (λ _, σ → set α) := ⟨ctop.f⟩
 
 @[simp] theorem coe_mk (f T h₁ I h₂ h₃ a) : (@ctop.mk α σ f T h₁ I h₂ h₃) a = f a := rfl
 

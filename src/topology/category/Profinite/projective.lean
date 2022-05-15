@@ -25,7 +25,7 @@ Let `X` be a profinite set.
 
 noncomputable theory
 
-universe variables u v w
+universes u v w
 open category_theory function
 
 namespace Profinite

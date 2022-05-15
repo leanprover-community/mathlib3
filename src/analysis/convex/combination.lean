@@ -5,7 +5,7 @@ Authors: Yury Kudriashov
 -/
 import algebra.big_operators.order
 import analysis.convex.hull
-import linear_algebra.affine_space.barycentric_coords
+import linear_algebra.affine_space.basis
 
 /-!
 # Linear combinations
@@ -333,7 +333,49 @@ begin
     { apply t.linear_combination_mem_convex_hull hw₀,
       { simp only [hw₁, zero_lt_one] },
       { exact λ i hi, finset.mem_coe.2 (finset.mem_image_of_mem _ hi) } } },
-   { exact Union_subset (λ i, Union_subset convex_hull_mono) }
+  { exact Union₂_subset (λ i, convex_hull_mono) }
+end
+
+lemma convex_hull_prod (s : set E) (t : set F) :
+  convex_hull R (s ×ˢ t) = convex_hull R s ×ˢ convex_hull R t :=
+begin
+  refine set.subset.antisymm _ _,
+  { exact convex_hull_min (set.prod_mono (subset_convex_hull _ _) $ subset_convex_hull _ _)
+    ((convex_convex_hull _ _).prod $ convex_convex_hull _ _) },
+  rintro ⟨x, y⟩ ⟨hx, hy⟩,
+  rw convex_hull_eq at ⊢ hx hy,
+  obtain ⟨ι, a, w, S, hw, hw', hS, hSp⟩ := hx,
+  obtain ⟨κ, b, v, T, hv, hv', hT, hTp⟩ := hy,
+  have h_sum : ∑ (i : ι × κ) in a.product b, w i.fst * v i.snd = 1,
+  { rw [finset.sum_product, ← hw'],
+    congr,
+    ext i,
+    have : ∑ (y : κ) in b, w i * v y = ∑ (y : κ) in b, v y * w i,
+    { congr, ext, simp [mul_comm] },
+    rw [this, ← finset.sum_mul, hv'],
+    simp },
+  refine ⟨ι × κ, a.product b, λ p, (w p.1) * (v p.2), λ p, (S p.1, T p.2),
+    λ p hp, _, h_sum, λ p hp, _, _⟩,
+  { rw mem_product at hp,
+    exact mul_nonneg (hw p.1 hp.1) (hv p.2 hp.2) },
+  { rw mem_product at hp,
+    exact ⟨hS p.1 hp.1, hT p.2 hp.2⟩ },
+  ext,
+  { rw [←hSp, finset.center_mass_eq_of_sum_1 _ _ hw', finset.center_mass_eq_of_sum_1 _ _ h_sum],
+    simp_rw [prod.fst_sum, prod.smul_mk],
+    rw finset.sum_product,
+    congr,
+    ext i,
+    have : ∑ (j : κ) in b, (w i * v j) • S i = ∑ (j : κ) in b, v j • w i • S i,
+    { congr, ext, rw [mul_smul, smul_comm] },
+    rw [this, ←finset.sum_smul, hv', one_smul] },
+  { rw [←hTp, finset.center_mass_eq_of_sum_1 _ _ hv', finset.center_mass_eq_of_sum_1 _ _ h_sum],
+    simp_rw [prod.snd_sum, prod.smul_mk],
+    rw [finset.sum_product, finset.sum_comm],
+    congr,
+    ext j,
+    simp_rw mul_smul,
+    rw [←finset.sum_smul, hw', one_smul] }
 end
 
 end linear_ordered_field
@@ -384,25 +426,25 @@ lemma mem_Icc_of_mem_std_simplex {f : ι → 𝕜} (hf : f ∈ std_simplex 𝕜 
 
 /-- The convex hull of an affine basis is the intersection of the half-spaces defined by the
 corresponding barycentric coordinates. -/
-lemma convex_hull_affine_basis_eq_nonneg_barycentric {ι : Type*}
-  {p : ι → E} (h_ind : affine_independent R p) (h_tot : affine_span R (range p) = ⊤) :
-  convex_hull R (range p) = { x | ∀ i, 0 ≤ barycentric_coord h_ind h_tot i x } :=
+lemma convex_hull_affine_basis_eq_nonneg_barycentric {ι : Type*} (b : affine_basis ι R E) :
+  convex_hull R (range b.points) = { x | ∀ i, 0 ≤ b.coord i x } :=
 begin
   rw convex_hull_range_eq_exists_affine_combination,
   ext x,
   split,
   { rintros ⟨s, w, hw₀, hw₁, rfl⟩ i,
     by_cases hi : i ∈ s,
-    { rw barycentric_coord_apply_combination_of_mem h_ind h_tot hi hw₁,
+    { rw b.coord_apply_combination_of_mem hi hw₁,
       exact hw₀ i hi, },
-    { rw barycentric_coord_apply_combination_of_not_mem h_ind h_tot hi hw₁, }, },
+    { rw b.coord_apply_combination_of_not_mem hi hw₁, }, },
   { intros hx,
-    have hx' : x ∈ affine_span R (range p), { rw h_tot, exact affine_subspace.mem_top R E x, },
+    have hx' : x ∈ affine_span R (range b.points),
+    { rw b.tot, exact affine_subspace.mem_top R E x, },
     obtain ⟨s, w, hw₁, rfl⟩ := (mem_affine_span_iff_eq_affine_combination R E).mp hx',
     refine ⟨s, w, _, hw₁, rfl⟩,
     intros i hi,
     specialize hx i,
-    rw barycentric_coord_apply_combination_of_mem h_ind h_tot hi hw₁ at hx,
+    rw b.coord_apply_combination_of_mem hi hw₁ at hx,
     exact hx, },
 end
 

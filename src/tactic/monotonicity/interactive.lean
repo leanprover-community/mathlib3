@@ -3,10 +3,10 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import tactic.monotonicity.basic
-import control.traversable
 import control.traversable.derive
+import control.traversable.lemmas
 import data.dlist
+import tactic.monotonicity.basic
 
 variables {a b c p : Prop}
 
@@ -62,7 +62,7 @@ do fn  ← pp ctx.function,
    l   ← pp ctx.left,
    r   ← pp ctx.right,
    rel ← pp ctx.rel_def,
-   return format!"{{ function := {fn}\n, left  := {l}\n, right := {r}\n, rel_def := {rel} }"
+   return format!"{{ function := {fn}\n, left  := {l}\n, right := {r}\n, rel_def := {rel} }}"
 
 meta instance has_to_tactic_format_mono_ctx : has_to_tactic_format ac_mono_ctx :=
 { to_tactic_format := ac_mono_ctx.to_tactic_format }
@@ -407,8 +407,8 @@ exception that meta variables -/
 private meta def monotonicity.generalize' (h : name) (v : expr) (x : name) : tactic (expr × expr) :=
 do tgt ← target,
    t ← infer_type v,
-   tgt' ← do {
-     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize v x >> target),
+   tgt' ← do
+   { ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize v x >> target),
      to_expr ``(λ y : %%t, Π x, y = x → %%(tgt'.binding_body.lift_vars 0 1)) }
    <|> to_expr ``(λ y : %%t, Π x, %%v = x → %%tgt),
    t ← head_beta (tgt' v) >>= assert h,
@@ -609,7 +609,7 @@ meta def assert_or_rule : lean.parser (pexpr ⊕ pexpr) :=
 (tk ":=" *> inl <$> texpr <|> (tk ":" *> inr <$> texpr))
 
 meta def arity : lean.parser rep_arity :=
-rep_arity.many <$ tk "*" <|>
+tk "*" *> pure rep_arity.many <|>
 rep_arity.exactly <$> (tk "^" *> small_nat) <|>
 pure rep_arity.one
 

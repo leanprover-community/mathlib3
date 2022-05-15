@@ -3,9 +3,9 @@ Copyright (c) 2020 Alexander Bentkamp, Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Sébastien Gouëzel, Eric Wieser
 -/
-import algebra.module.ordered
+import algebra.order.smul
 import data.complex.basic
-import data.matrix.notation
+import data.fin.vec_notation
 import field_theory.tower
 
 /-!
@@ -35,6 +35,8 @@ It also provides a universal property of the complex numbers `complex.lift`, whi
 
 namespace complex
 
+open_locale complex_conjugate
+
 variables {R : Type*} {S : Type*}
 
 section
@@ -60,6 +62,10 @@ instance [has_scalar R S] [has_scalar R ℝ] [has_scalar S ℝ] [is_scalar_tower
   is_scalar_tower R S ℂ :=
 { smul_assoc := λ r s x, by ext; simp [smul_re, smul_im, smul_assoc] }
 
+instance [has_scalar R ℝ] [has_scalar Rᵐᵒᵖ ℝ] [is_central_scalar R ℝ] :
+  is_central_scalar R ℂ :=
+{ op_smul_eq_smul := λ r x, by ext; simp [smul_re, smul_im, op_smul_eq_smul] }
+
 instance [monoid R] [mul_action R ℝ] : mul_action R ℂ :=
 { one_smul := λ x, by ext; simp [smul_re, smul_im, one_smul],
   mul_smul := λ r s x, by ext; simp [smul_re, smul_im, mul_smul] }
@@ -77,6 +83,9 @@ instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
   smul_def' := λ r x, by ext; simp [smul_re, smul_im, algebra.smul_def],
   commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
   ..complex.of_real.comp (algebra_map R ℝ) }
+
+instance : star_module ℝ ℂ :=
+⟨λ r x, by simp only [star_def, star_trivial, real_smul, map_mul, conj_of_real]⟩
 
 @[simp] lemma coe_algebra_map : (algebra_map ℝ ℂ : ℝ → ℂ) = coe := rfl
 
@@ -119,7 +128,8 @@ basis.of_equiv_fun
   left_inv := λ z, by simp,
   right_inv := λ c, by { ext i, fin_cases i; simp },
   map_add' := λ z z', by simp,
-  map_smul' := λ c z, by simp }
+  -- why does `simp` not know how to apply `smul_cons`, which is a `@[simp]` lemma, here?
+  map_smul' := λ c z, by simp [matrix.smul_cons c z.re, matrix.smul_cons c z.im] }
 
 @[simp] lemma coe_basis_one_I_repr (z : ℂ) : ⇑(basis_one_I.repr z) = ![z.re, z.im] := rfl
 
@@ -177,7 +187,15 @@ lemma finrank_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
   finite_dimensional.finrank ℝ E = 2 * finite_dimensional.finrank ℂ E :=
 by rw [← finite_dimensional.finrank_mul_finrank ℝ ℂ E, complex.finrank_real_complex]
 
+@[priority 900]
+instance star_module.complex_to_real {E : Type*} [add_comm_group E] [has_star E] [module ℂ E]
+  [star_module ℂ E] : star_module ℝ E :=
+⟨λ r a, by rw [star_trivial r, restrict_scalars_smul_def, restrict_scalars_smul_def, star_smul,
+  complex.coe_algebra_map, complex.star_def, complex.conj_of_real]⟩
+
 namespace complex
+
+open_locale complex_conjugate
 
 /-- Linear map version of the real part function, from `ℂ` to `ℝ`. -/
 def re_lm : ℂ →ₗ[ℝ] ℝ :=
@@ -203,12 +221,21 @@ def of_real_am : ℝ →ₐ[ℝ] ℂ := algebra.of_id ℝ ℂ
 /-- `ℝ`-algebra isomorphism version of the complex conjugation function from `ℂ` to `ℂ` -/
 def conj_ae : ℂ ≃ₐ[ℝ] ℂ :=
 { inv_fun := conj,
-  left_inv := conj_conj,
-  right_inv := conj_conj,
+  left_inv := star_star,
+  right_inv := star_star,
   commutes' := conj_of_real,
   .. conj }
 
 @[simp] lemma conj_ae_coe : ⇑conj_ae = conj := rfl
+
+/-- The matrix representation of `conj_ae`. -/
+@[simp] lemma to_matrix_conj_ae :
+  linear_map.to_matrix basis_one_I basis_one_I conj_ae.to_linear_map = ![![1, 0], ![0, -1]] :=
+begin
+  ext i j,
+  simp [linear_map.to_matrix_apply],
+  fin_cases i; fin_cases j; simp
+end
 
 section lift
 

@@ -67,8 +67,8 @@ begin
   suffices : ∃ i, r < (ab i).1 ∨ s < (ab i).2,
   { obtain ⟨i, hi⟩ := this,
     apply or.imp _ _ hi,
-    work_on_goal 0 { have : (ab i).1 ∈ _ := max'_mem _ _ },
-    work_on_goal 1 { have : (ab i).2 ∈ _ := max'_mem _ _ },
+    work_on_goal 1 { have : (ab i).1 ∈ _ := max'_mem _ _ },
+    work_on_goal 2 { have : (ab i).2 ∈ _ := max'_mem _ _ },
     all_goals
     { intro hi,
       rw mem_image at this,
@@ -84,8 +84,8 @@ begin
     -- We have two cases: `f i < f j` or `f j < f i`.
     -- In the former we'll show `a_i < a_j`, and in the latter we'll show `b_i < b_j`.
     cases lt_or_gt_of_ne (λ _, ne_of_lt ‹i < j› (hf ‹f i = f j›)),
-    work_on_goal 0 { apply ne_of_lt _ q₁, have : (ab i).1 ∈ _ := max'_mem _ _ },
-    work_on_goal 1 { apply ne_of_lt _ q₂, have : (ab i).2 ∈ _ := max'_mem _ _ },
+    work_on_goal 1 { apply ne_of_lt _ q₁, have : (ab i).1 ∈ _ := max'_mem _ _ },
+    work_on_goal 2 { apply ne_of_lt _ q₂, have : (ab i).2 ∈ _ := max'_mem _ _ },
     all_goals
     { -- Reduce to showing there is a subsequence of length `a_i + 1` which ends at `j`.
       rw nat.lt_iff_add_one_le,
@@ -150,10 +150,10 @@ begin
     refine ⟨_, _⟩,
     -- Need to get `a_i ≤ r`, here phrased as: there is some `a < r` with `a+1 = a_i`.
     { refine ⟨(ab i).1 - 1, _, nat.succ_pred_eq_of_pos z.1⟩,
-      rw nat.sub_lt_right_iff_lt_add z.1,
+      rw tsub_lt_iff_right z.1,
       apply nat.lt_succ_of_le q.1 },
     { refine ⟨(ab i).2 - 1, _, nat.succ_pred_eq_of_pos z.2⟩,
-      rw nat.sub_lt_right_iff_lt_add z.2,
+      rw tsub_lt_iff_right z.2,
       apply nat.lt_succ_of_le q.2 } },
   -- To get our contradiction, it suffices to prove `n ≤ r * s`
   apply not_le_of_lt hn,

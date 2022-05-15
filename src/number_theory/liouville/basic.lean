@@ -87,7 +87,7 @@ It is stated in more general form than needed: in the intended application, `Z =
 root of `f`, `ε` is small, `M` is a bound on the Lipschitz constant of `f` near `α`, `n` is
 the degree of the polynomial `f`.
 -/
-lemma exists_one_le_pow_mul_dist {Z N R : Type*} [metric_space R]
+lemma exists_one_le_pow_mul_dist {Z N R : Type*} [pseudo_metric_space R]
   {d : N → ℝ} {j : Z → N → R} {f : R → R} {α : R} {ε M : ℝ}
 -- denominators are positive
   (d0 : ∀ (a : N), 1 ≤ d a)
@@ -146,7 +146,7 @@ begin
   { exact λ a, one_le_pow_of_one_le ((le_add_iff_nonneg_left 1).mpr a.cast_nonneg) _ },
   -- 2: the polynomial `fR` is Lipschitz at `α` -- as its derivative continuous;
   { rw mul_comm,
-    rw real.closed_ball_eq at hy,
+    rw real.closed_ball_eq_Icc at hy,
     -- apply the Mean Value Theorem: the bound on the derivative comes from differentiability.
     refine convex.norm_image_sub_le_of_norm_deriv_le (λ _ _, fR.differentiable_at)
       (λ y h, by { rw fR.deriv, exact hM _ h }) (convex_Icc _ _) hy (mem_Icc_iff_abs_le.mp _),

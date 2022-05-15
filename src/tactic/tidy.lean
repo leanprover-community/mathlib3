@@ -12,10 +12,9 @@ namespace tactic
 namespace tidy
 /-- Tag interactive tactics (locally) with `[tidy]` to add them to the list of default tactics
 called by `tidy`. -/
-@[user_attribute] meta def tidy_attribute : user_attribute := {
-  name := `tidy,
-  descr := "A tactic that should be called by `tidy`."
-}
+@[user_attribute] meta def tidy_attribute : user_attribute :=
+{ name := `tidy,
+  descr := "A tactic that should be called by `tidy`." }
 
 add_tactic_doc
 { name                     := "tidy",
@@ -74,7 +73,7 @@ end tidy
 meta def tidy (cfg : tidy.cfg := {}) := tactic.tidy.core cfg >> skip
 
 namespace interactive
-open lean.parser interactive
+setup_tactic_parser
 
 /-- Use a variety of conservative tactics to solve goals.
 

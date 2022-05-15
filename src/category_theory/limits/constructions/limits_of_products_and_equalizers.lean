@@ -7,6 +7,7 @@ import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.preserves.shapes.products
 import category_theory.limits.preserves.shapes.equalizers
+import category_theory.limits.preserves.finite
 
 /-!
 # Constructing limits from products and equalizers.
@@ -81,15 +82,15 @@ end has_limit_of_has_products_of_has_equalizers
 open has_limit_of_has_products_of_has_equalizers
 
 /--
-Given the existence of the appropriate (possibly finite) products and equalizers, we know a limit of
-`F` exists.
+Given the existence of the appropriate (possibly finite) products and equalizers,
+we can construct a limit cone for `F`.
 (This assumes the existence of all equalizers, which is technically stronger than needed.)
 -/
-lemma has_limit_of_equalizer_and_product (F : J ⥤ C)
+noncomputable
+def limit_cone_of_equalizer_and_product (F : J ⥤ C)
   [has_limit (discrete.functor F.obj)]
   [has_limit (discrete.functor (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2))]
-  [has_equalizers C] : has_limit F :=
-has_limit.mk
+  [has_equalizers C] : limit_cone F :=
 { cone := _,
   is_limit :=
     build_is_limit
@@ -102,9 +103,30 @@ has_limit.mk
       (limit.is_limit _) }
 
 /--
+Given the existence of the appropriate (possibly finite) products and equalizers, we know a limit of
+`F` exists.
+(This assumes the existence of all equalizers, which is technically stronger than needed.)
+-/
+lemma has_limit_of_equalizer_and_product (F : J ⥤ C)
+  [has_limit (discrete.functor F.obj)]
+  [has_limit (discrete.functor (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2))]
+  [has_equalizers C] : has_limit F :=
+has_limit.mk (limit_cone_of_equalizer_and_product F)
+
+/-- A limit can be realised as a subobject of a product. -/
+noncomputable
+def limit_subobject_product [has_limits C] (F : J ⥤ C) :
+  limit F ⟶ ∏ (λ j, F.obj j) :=
+(limit.iso_limit_cone (limit_cone_of_equalizer_and_product F)).hom ≫ equalizer.ι _ _
+
+instance limit_subobject_product_mono [has_limits C] (F : J ⥤ C) :
+  mono (limit_subobject_product F) :=
+mono_comp _ _
+
+/--
 Any category with products and equalizers has all limits.
 
-See https://stacks.math.columbia.edu/tag/002N.
+See <https://stacks.math.columbia.edu/tag/002N>.
 -/
 lemma limits_from_equalizers_and_products
   [has_products C] [has_equalizers C] : has_limits C :=
@@ -114,7 +136,7 @@ lemma limits_from_equalizers_and_products
 /--
 Any category with finite products and equalizers has all finite limits.
 
-See https://stacks.math.columbia.edu/tag/002O.
+See <https://stacks.math.columbia.edu/tag/002O>.
 -/
 lemma finite_limits_from_equalizers_and_finite_products
   [has_finite_products C] [has_equalizers C] : has_finite_limits C :=
@@ -125,13 +147,13 @@ noncomputable theory
 
 section
 
-variables [has_limits_of_shape (discrete J) C]
-          [has_limits_of_shape (discrete (Σ p : J × J, p.1 ⟶ p.2)) C]
+variables [has_limits_of_shape (discrete.{v} J) C]
+          [has_limits_of_shape (discrete.{v} (Σ p : J × J, p.1 ⟶ p.2)) C]
           [has_equalizers C]
 variables (G : C ⥤ D)
-          [preserves_limits_of_shape walking_parallel_pair G]
-          [preserves_limits_of_shape (discrete J) G]
-          [preserves_limits_of_shape (discrete (Σ p : J × J, p.1 ⟶ p.2)) G]
+          [preserves_limits_of_shape walking_parallel_pair.{v} G]
+          [preserves_limits_of_shape (discrete.{v} J) G]
+          [preserves_limits_of_shape (discrete.{v} (Σ p : J × J, p.1 ⟶ p.2)) G]
 
 /-- If a functor preserves equalizers and the appropriate products, it preserves limits. -/
 def preserves_limit_of_preserves_equalizers_and_product :
@@ -176,17 +198,16 @@ end
 /-- If G preserves equalizers and finite products, it preserves finite limits. -/
 def preserves_finite_limits_of_preserves_equalizers_and_finite_products
   [has_equalizers C] [has_finite_products C]
-  (G : C ⥤ D) [preserves_limits_of_shape walking_parallel_pair G]
-  [∀ J [fintype J], preserves_limits_of_shape (discrete J) G]
-  (J : Type v) [small_category J] [fin_category J] :
-preserves_limits_of_shape J G :=
-preserves_limit_of_preserves_equalizers_and_product G
+  (G : C ⥤ D) [preserves_limits_of_shape walking_parallel_pair.{v} G]
+  [∀ J [fintype J], preserves_limits_of_shape (discrete.{v} J) G] :
+  preserves_finite_limits G :=
+⟨λ _ _ _, by exactI preserves_limit_of_preserves_equalizers_and_product G⟩
 
 /-- If G preserves equalizers and products, it preserves all limits. -/
 def preserves_limits_of_preserves_equalizers_and_products
   [has_equalizers C] [has_products C]
-  (G : C ⥤ D) [preserves_limits_of_shape walking_parallel_pair G]
-  [∀ J, preserves_limits_of_shape (discrete J) G] :
+  (G : C ⥤ D) [preserves_limits_of_shape walking_parallel_pair.{v} G]
+  [∀ J, preserves_limits_of_shape (discrete.{v} J) G] :
 preserves_limits G :=
 { preserves_limits_of_shape := λ J 𝒥,
   by exactI preserves_limit_of_preserves_equalizers_and_product G }
@@ -244,14 +265,14 @@ open has_colimit_of_has_coproducts_of_has_coequalizers
 
 /--
 Given the existence of the appropriate (possibly finite) coproducts and coequalizers,
-we know a colimit of `F` exists.
+we can construct a colimit cocone for `F`.
 (This assumes the existence of all coequalizers, which is technically stronger than needed.)
 -/
-lemma has_colimit_of_coequalizer_and_coproduct (F : J ⥤ C)
+noncomputable
+def colimit_cocone_of_coequalizer_and_coproduct (F : J ⥤ C)
   [has_colimit (discrete.functor F.obj)]
   [has_colimit (discrete.functor (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.1))]
-  [has_coequalizers C] : has_colimit F :=
-has_colimit.mk
+  [has_coequalizers C] : colimit_cocone F :=
 { cocone := _,
   is_colimit :=
     build_is_colimit
@@ -263,10 +284,32 @@ has_colimit.mk
       (colimit.is_colimit _)
       (colimit.is_colimit _) }
 
+
+/--
+Given the existence of the appropriate (possibly finite) coproducts and coequalizers,
+we know a colimit of `F` exists.
+(This assumes the existence of all coequalizers, which is technically stronger than needed.)
+-/
+lemma has_colimit_of_coequalizer_and_coproduct (F : J ⥤ C)
+  [has_colimit (discrete.functor F.obj)]
+  [has_colimit (discrete.functor (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.1))]
+  [has_coequalizers C] : has_colimit F :=
+has_colimit.mk (colimit_cocone_of_coequalizer_and_coproduct F)
+
+/-- A colimit can be realised as a quotient of a coproduct. -/
+noncomputable
+def colimit_quotient_coproduct [has_colimits C] (F : J ⥤ C) :
+  ∐ (λ j, F.obj j) ⟶ colimit F :=
+coequalizer.π _ _ ≫ (colimit.iso_colimit_cocone (colimit_cocone_of_coequalizer_and_coproduct F)).inv
+
+instance colimit_quotient_coproduct_epi [has_colimits C] (F : J ⥤ C) :
+  epi (colimit_quotient_coproduct F) :=
+epi_comp _ _
+
 /--
 Any category with coproducts and coequalizers has all colimits.
 
-See https://stacks.math.columbia.edu/tag/002P.
+See <https://stacks.math.columbia.edu/tag/002P>.
 -/
 lemma colimits_from_coequalizers_and_coproducts
   [has_coproducts C] [has_coequalizers C] : has_colimits C :=
@@ -276,7 +319,7 @@ lemma colimits_from_coequalizers_and_coproducts
 /--
 Any category with finite coproducts and coequalizers has all finite colimits.
 
-See https://stacks.math.columbia.edu/tag/002Q.
+See <https://stacks.math.columbia.edu/tag/002Q>.
 -/
 lemma finite_colimits_from_coequalizers_and_finite_coproducts
   [has_finite_coproducts C] [has_coequalizers C] : has_finite_colimits C :=
@@ -286,13 +329,13 @@ noncomputable theory
 
 section
 
-variables [has_colimits_of_shape (discrete J) C]
-          [has_colimits_of_shape (discrete (Σ p : J × J, p.1 ⟶ p.2)) C]
+variables [has_colimits_of_shape (discrete.{v} J) C]
+          [has_colimits_of_shape (discrete.{v} (Σ p : J × J, p.1 ⟶ p.2)) C]
           [has_coequalizers C]
 variables (G : C ⥤ D)
-          [preserves_colimits_of_shape walking_parallel_pair G]
-          [preserves_colimits_of_shape (discrete J) G]
-          [preserves_colimits_of_shape (discrete (Σ p : J × J, p.1 ⟶ p.2)) G]
+          [preserves_colimits_of_shape walking_parallel_pair.{v} G]
+          [preserves_colimits_of_shape (discrete.{v} J) G]
+          [preserves_colimits_of_shape (discrete.{v} (Σ p : J × J, p.1 ⟶ p.2)) G]
 
 /-- If a functor preserves coequalizers and the appropriate coproducts, it preserves colimits. -/
 def preserves_colimit_of_preserves_coequalizers_and_coproduct :
@@ -337,17 +380,16 @@ end
 /-- If G preserves coequalizers and finite coproducts, it preserves finite colimits. -/
 def preserves_finite_colimits_of_preserves_coequalizers_and_finite_coproducts
   [has_coequalizers C] [has_finite_coproducts C]
-  (G : C ⥤ D) [preserves_colimits_of_shape walking_parallel_pair G]
-  [∀ J [fintype J], preserves_colimits_of_shape (discrete J) G]
-  (J : Type v) [small_category J] [fin_category J] :
-preserves_colimits_of_shape J G :=
-preserves_colimit_of_preserves_coequalizers_and_coproduct G
+  (G : C ⥤ D) [preserves_colimits_of_shape walking_parallel_pair.{v} G]
+  [∀ J [fintype J], preserves_colimits_of_shape (discrete.{v} J) G] :
+  preserves_finite_colimits G :=
+⟨λ _ _ _, by exactI preserves_colimit_of_preserves_coequalizers_and_coproduct G⟩
 
 /-- If G preserves coequalizers and coproducts, it preserves all colimits. -/
 def preserves_colimits_of_preserves_coequalizers_and_coproducts
   [has_coequalizers C] [has_coproducts C]
-  (G : C ⥤ D) [preserves_colimits_of_shape walking_parallel_pair G]
-  [∀ J, preserves_colimits_of_shape (discrete J) G] :
+  (G : C ⥤ D) [preserves_colimits_of_shape walking_parallel_pair.{v} G]
+  [∀ J, preserves_colimits_of_shape (discrete.{v} J) G] :
 preserves_colimits G :=
 { preserves_colimits_of_shape := λ J 𝒥,
   by exactI preserves_colimit_of_preserves_coequalizers_and_coproduct G }

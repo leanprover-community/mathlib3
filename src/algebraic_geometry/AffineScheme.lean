@@ -37,6 +37,8 @@ universe u
 
 namespace algebraic_geometry
 
+open Spec (structure_sheaf)
+
 /-- The category of affine schemes -/
 def AffineScheme := Scheme.Spec.ess_image
 
@@ -67,7 +69,7 @@ by { rw [← mem_AffineScheme] at h ⊢, exact functor.ess_image.of_iso (as_iso 
 namespace AffineScheme
 
 /-- The `Spec` functor into the category of affine schemes. -/
-@[derive [full, faithful, ess_surj], simps]
+@[derive [full, faithful, ess_surj]]
 def Spec : CommRingᵒᵖ ⥤ AffineScheme := Scheme.Spec.to_ess_image
 
 /-- The forgetful functor `AffineScheme ⥤ Scheme`. -/

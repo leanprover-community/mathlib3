@@ -70,7 +70,7 @@ begin
   ring
 end
 
-example {α : Type*} [comm_ring α] (A : matrix (fin 3) (fin 3) α) {a b c d e f g h i : α} :
+example {α : Type*} [comm_ring α] {a b c d e f g h i : α} :
         matrix.det ![![a, b, c], ![d, e, f], ![g, h, i]] =
           a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g :=
 begin

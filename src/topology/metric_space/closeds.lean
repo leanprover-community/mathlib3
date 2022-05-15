@@ -3,9 +3,9 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import analysis.specific_limits.basic
 import topology.metric_space.hausdorff_distance
-import topology.compacts
-import analysis.specific_limits
+import topology.sets.compacts
 
 /-!
 # Closed subsets

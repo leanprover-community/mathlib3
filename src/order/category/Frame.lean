@@ -6,7 +6,7 @@ Authors: Yaël Dillies
 import order.category.Lattice
 import order.hom.complete_lattice
 import topology.category.CompHaus
-import topology.opens
+import topology.sets.opens
 
 /-!
 # The category of frames

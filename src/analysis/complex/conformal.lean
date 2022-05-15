@@ -42,8 +42,8 @@ section conformal_into_complex_normed
 variables {E : Type*} [normed_group E] [normed_space ℝ E] [normed_space ℂ E]
   {z : ℂ} {g : ℂ →L[ℝ] E} {f : ℂ → E}
 
-lemma is_conformal_map_complex_linear
-  {map : ℂ →L[ℂ] E} (nonzero : map ≠ 0) : is_conformal_map (map.restrict_scalars ℝ) :=
+lemma is_conformal_map_complex_linear {map : ℂ →L[ℂ] E} (nonzero : map ≠ 0) :
+  is_conformal_map (map.restrict_scalars ℝ) :=
 begin
   have minor₁ : ∥map 1∥ ≠ 0,
   { simpa [ext_ring_iff] using nonzero },
@@ -56,8 +56,7 @@ begin
     simp only [map.coe_coe, map.map_smul, norm_smul, norm_inv, norm_norm],
     field_simp [minor₁], },
   { ext1,
-    rw [← linear_isometry.coe_to_linear_map],
-    simp [minor₁], },
+    simp [minor₁] },
 end
 
 lemma is_conformal_map_complex_linear_conj
@@ -77,23 +76,21 @@ lemma is_conformal_map.is_complex_or_conj_linear (h : is_conformal_map g) :
   (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g) ∨
   (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g ∘L ↑conj_cle) :=
 begin
-  rcases h with ⟨c, hc, li, hg⟩,
-  rcases linear_isometry_complex (li.to_linear_isometry_equiv rfl) with ⟨a, ha⟩,
-  let rot := c • (a : ℂ) • continuous_linear_map.id ℂ ℂ,
-  cases ha,
-  { refine or.intro_left _ ⟨rot, _⟩,
+  rcases h with ⟨c, hc, li, rfl⟩,
+  obtain ⟨li, rfl⟩ : ∃ li' : ℂ ≃ₗᵢ[ℝ] ℂ, li'.to_linear_isometry = li,
+    from ⟨li.to_linear_isometry_equiv rfl, by { ext1, refl }⟩,
+  rcases linear_isometry_complex li with ⟨a, rfl|rfl⟩,
+  -- let rot := c • (a : ℂ) • continuous_linear_map.id ℂ ℂ,
+  { refine or.inl ⟨c • (a : ℂ) • continuous_linear_map.id ℂ ℂ, _⟩,
     ext1,
-    simp only [coe_restrict_scalars', hg, ← li.coe_to_linear_isometry_equiv, ha,
-               pi.smul_apply, continuous_linear_map.smul_apply, rotation_apply,
-               continuous_linear_map.id_apply, smul_eq_mul], },
-  { refine or.intro_right _ ⟨rot, _⟩,
+    simp only [coe_restrict_scalars', smul_apply, linear_isometry.coe_to_continuous_linear_map,
+      linear_isometry_equiv.coe_to_linear_isometry, rotation_apply, id_apply, smul_eq_mul] },
+  { refine or.inr ⟨c • (a : ℂ) • continuous_linear_map.id ℂ ℂ, _⟩,
     ext1,
-    rw [continuous_linear_map.coe_comp', hg, ← li.coe_to_linear_isometry_equiv, ha],
-    simp only [coe_restrict_scalars', function.comp_app, pi.smul_apply,
-               linear_isometry_equiv.coe_trans, conj_lie_apply,
-               rotation_apply, continuous_linear_equiv.coe_apply, conj_cle_apply],
-    simp only [continuous_linear_map.smul_apply, continuous_linear_map.id_apply,
-               smul_eq_mul, conj_conj], },
+    simp only [coe_restrict_scalars', smul_apply, linear_isometry.coe_to_continuous_linear_map,
+      linear_isometry_equiv.coe_to_linear_isometry, rotation_apply, id_apply, smul_eq_mul,
+      comp_apply, linear_isometry_equiv.trans_apply, continuous_linear_equiv.coe_coe,
+      conj_cle_apply, conj_lie_apply, conj_conj] },
 end
 
 /-- A real continuous linear map on the complex plane is conformal if and only if the map or its

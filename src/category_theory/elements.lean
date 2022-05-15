@@ -68,9 +68,11 @@ noncomputable
 instance groupoid_of_elements {G : Type u} [groupoid.{v} G] (F : G ⥤ Type w) :
   groupoid F.elements :=
 { inv := λ p q f, ⟨inv f.val,
-      calc F.map (inv f.val) q.2 = F.map (inv f.val) (F.map f.val p.2) : by rw f.2
-                             ... = (F.map f.val ≫ F.map (inv f.val)) p.2 : by simp
-                             ... = p.2 : by {rw ←functor.map_comp, simp}⟩, }
+    calc F.map (inv f.val) q.2 = F.map (inv f.val) (F.map f.val p.2) : by rw f.2
+                           ... = (F.map f.val ≫ F.map (inv f.val)) p.2 : rfl
+                           ... = p.2 : by {rw ← F.map_comp, simp} ⟩,
+  inv_comp' := λ _ _ _, by { ext, simp },
+  comp_inv' := λ _ _ _, by { ext, simp } }
 
 namespace category_of_elements
 variable (F : C ⥤ Type w)

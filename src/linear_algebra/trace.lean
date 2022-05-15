@@ -8,6 +8,7 @@ import linear_algebra.matrix.trace
 import linear_algebra.contraction
 import linear_algebra.tensor_product_basis
 import linear_algebra.free_module.strong_rank_condition
+import linear_algebra.projection
 
 /-!
 # Trace of a linear map
@@ -166,6 +167,10 @@ begin
   simp,
 end
 
+/-- The trace of the identity endomorphism is the dimension of the free module -/
+@[simp] theorem trace_id : trace R M id = (finrank R M : R) :=
+by rw [←one_eq_id, trace_one]
+
 theorem trace_prod_map :
   trace R (M × N) ∘ₗ prod_map_linear R M N M N R =
   (coprod id id : R × R →ₗ[R] R) ∘ₗ prod_map (trace R M) (trace R N) :=
@@ -227,5 +232,15 @@ by rw [e.conj_apply, trace_comp_comm', ←comp_assoc, linear_equiv.comp_coe,
   linear_equiv.self_trans_symm, linear_equiv.refl_to_linear_map, id_comp]
 
 end
+
+section field
+
+variables {k E : Type*} [field k] [add_comm_group E] [module k E] [finite_dimensional k E]
+
+theorem is_proj.trace {p : submodule k E} {f : E →ₗ[k] E} (h : is_proj p f) :
+  trace k E f = (finrank k p : k) :=
+by rw [h.eq_conj_prod_map, trace_conj', trace_prod_map', trace_id, map_zero, add_zero]
+
+end field
 
 end linear_map

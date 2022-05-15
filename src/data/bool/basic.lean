@@ -226,7 +226,7 @@ by cases b; simp only [of_nat,to_nat]; exact dec_trivial
   λ H x y hxy, by { cases x; cases y, exacts [rfl, (H hxy).elim, (H hxy.symm).elim, rfl] }⟩
 
 /-- **Kaminski's Equation** -/
-@[simp] theorem apply_apply_apply (f : bool → bool) (x : bool) : f (f (f x)) = f x :=
+theorem apply_apply_apply (f : bool → bool) (x : bool) : f (f (f x)) = f x :=
 by cases x; cases h₁ : f tt; cases h₂ : f ff; simp only [h₁, h₂]
 
 end bool

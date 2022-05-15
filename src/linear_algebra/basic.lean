@@ -7,7 +7,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Fréd�
 import algebra.big_operators.pi
 import algebra.module.hom
 import algebra.module.prod
-import algebra.module.submodule_lattice
+import algebra.module.submodule.lattice
 import data.dfinsupp.basic
 import data.finsupp.basic
 import order.compactly_generated
@@ -920,6 +920,9 @@ def range [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) : subm
 theorem range_coe [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) :
   (range f : set M₂) = set.range f := rfl
 
+lemma range_to_add_submonoid [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) :
+  f.range.to_add_submonoid = f.to_add_monoid_hom.mrange := rfl
+
 @[simp] theorem mem_range [ring_hom_surjective τ₁₂]
   {f : M →ₛₗ[τ₁₂] M₂} {x} : x ∈ range f ↔ ∃ y, f y = x :=
 iff.rfl
@@ -1003,6 +1006,9 @@ def ker (f : M →ₛₗ[τ₁₂] M₂) : submodule R M := comap f ⊥
 @[simp] theorem ker_id : ker (linear_map.id : M →ₗ[R] M) = ⊥ := rfl
 
 @[simp] theorem map_coe_ker (f : M →ₛₗ[τ₁₂] M₂) (x : ker f) : f x = 0 := mem_ker.1 x.2
+
+lemma ker_to_add_submonoid (f : M →ₛₗ[τ₁₂] M₂) :
+  f.ker.to_add_submonoid = f.to_add_monoid_hom.mker := rfl
 
 lemma comp_ker_subtype (f : M →ₛₗ[τ₁₂] M₂) : f.comp f.ker.subtype = 0 :=
 linear_map.ext $ λ x, suffices f x = 0, by simp [this], mem_ker.1 x.2
@@ -1115,6 +1121,12 @@ variables [ring_hom_comp_triple τ₁₂ τ₂₃ τ₁₃]
 variables {f : M →ₛₗ[τ₁₂] M₂}
 include R
 open submodule
+
+lemma range_to_add_subgroup [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) :
+  f.range.to_add_subgroup = f.to_add_monoid_hom.range := rfl
+
+lemma ker_to_add_subgroup (f : M →ₛₗ[τ₁₂] M₂) :
+  f.ker.to_add_subgroup = f.to_add_monoid_hom.ker := rfl
 
 theorem sub_mem_ker_iff {x y} : x - y ∈ f.ker ↔ f x = f y :=
 by rw [mem_ker, map_sub, sub_eq_zero]

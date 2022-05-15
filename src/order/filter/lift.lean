@@ -100,22 +100,14 @@ have monotone (map m ∘ g),
 filter.ext $ λ s,
   by simp only [mem_lift_sets hg, mem_lift_sets this, exists_prop, mem_map, function.comp_app]
 
-lemma comap_lift_eq {m : γ → β} (hg : monotone g) : comap m (f.lift g) = f.lift (comap m ∘ g) :=
-have monotone (comap m ∘ g),
-  from comap_mono.comp hg,
-begin
-  ext,
-  simp only [mem_lift_sets hg, mem_lift_sets this, mem_comap, exists_prop, mem_lift_sets],
-  exact ⟨λ ⟨b, ⟨a, ha, hb⟩, hs⟩, ⟨a, ha, b, hb, hs⟩, λ ⟨a, ha, b, hb, hs⟩, ⟨b, ⟨a, ha, hb⟩, hs⟩⟩
-end
+lemma comap_lift_eq {m : γ → β} : comap m (f.lift g) = f.lift (comap m ∘ g) :=
+by simp only [filter.lift, comap_infi]
 
 theorem comap_lift_eq2 {m : β → α} {g : set β → filter γ} (hg : monotone g) :
   (comap m f).lift g = f.lift (g ∘ preimage m) :=
 le_antisymm
-  (le_infi $ assume s, le_infi $ assume hs,
-    infi_le_of_le (preimage m s) $ infi_le _ ⟨s, hs, subset.refl _⟩)
-  (le_infi $ assume s, le_infi $ assume ⟨s', hs', (h_sub : preimage m s' ⊆ s)⟩,
-    infi_le_of_le s' $ infi_le_of_le hs' $ hg h_sub)
+  (le_infi₂ $ λ s hs, infi₂_le (m ⁻¹' s) ⟨s, hs, subset.rfl⟩)
+  (le_infi₂ $ λ s ⟨s', hs', (h_sub : m ⁻¹' s' ⊆ s)⟩, infi₂_le_of_le s' hs' $ hg h_sub)
 
 lemma map_lift_eq2 {g : set β → filter γ} {m : α → β} (hg : monotone g) :
   (map m f).lift g = f.lift (g ∘ image m) :=
@@ -269,12 +261,8 @@ lemma map_lift'_eq2 {g : set β → set γ} {m : α → β} (hg : monotone g) :
   (map m f).lift' g = f.lift' (g ∘ image m) :=
 map_lift_eq2 $ monotone_principal.comp hg
 
-theorem comap_lift'_eq {m : γ → β} (hh : monotone h) :
-  comap m (f.lift' h) = f.lift' (preimage m ∘ h) :=
-calc comap m (f.lift' h) = f.lift (comap m ∘ 𝓟 ∘ h) :
-    comap_lift_eq $ monotone_principal.comp hh
-  ... = f.lift' (preimage m ∘ h) :
-    by simp only [(∘), filter.lift', comap_principal, eq_self_iff_true]
+theorem comap_lift'_eq {m : γ → β} : comap m (f.lift' h) = f.lift' (preimage m ∘ h) :=
+by simp only [filter.lift', comap_lift_eq, (∘), comap_principal]
 
 theorem comap_lift'_eq2 {m : β → α} {g : set β → set γ} (hg : monotone g) :
   (comap m f).lift' g = f.lift' (g ∘ preimage m) :=
@@ -379,8 +367,8 @@ have ∀(s:set α) (t : set β),
   by simp only [principal_eq_iff_eq, comap_principal, inf_principal]; intros; refl,
 begin
   simp only [filter.lift', function.comp, this, lift_inf, lift_const, lift_inf],
-  rw [← comap_lift_eq monotone_principal, ← comap_lift_eq monotone_principal],
-  simp only [filter.prod, lift_principal2, eq_self_iff_true]
+  rw [← comap_lift_eq, ← comap_lift_eq],
+  simp only [filter.prod, lift_principal2]
 end
 
 lemma prod_same_eq : f ×ᶠ f = f.lift' (λ t : set α, t ×ˢ t) :=

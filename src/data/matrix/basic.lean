@@ -9,6 +9,7 @@ import algebra.big_operators.ring
 import algebra.module.linear_map
 import algebra.module.pi
 import algebra.ring.equiv
+import algebra.star.module
 import algebra.star.pi
 import data.fintype.card
 
@@ -35,7 +36,7 @@ universes u u' v w
 
 open_locale big_operators
 
-/-- `matrix m n` is the type of matrices whose rows are indexed by `m`
+/-- `matrix m n R` is the type of matrices with entries in `R`, whose rows are indexed by `m`
 and whose columns are indexed by `n`. -/
 def matrix (m : Type u) (n : Type u') (α : Type v) : Type (max u u' v) :=
 m → n → α
@@ -1335,8 +1336,63 @@ matrix.ext $ by simp
   (M - N)ᴴ = Mᴴ - Nᴴ :=
 matrix.ext $ by simp
 
-@[simp] lemma conj_transpose_smul [comm_semigroup α] [star_semigroup α] (c : α) (M : matrix m n α) :
-  (c • M)ᴴ = (star c) • Mᴴ :=
+/-- Note that `star_module` is quite a strong requirement; as such we also provide the following
+variants which this lemma would not apply to:
+* `matrix.conj_transpose_smul_non_comm`
+* `matrix.conj_transpose_nsmul`
+* `matrix.conj_transpose_zsmul`
+* `matrix.conj_transpose_nat_cast_smul`
+* `matrix.conj_transpose_int_cast_smul`
+* `matrix.conj_transpose_inv_nat_cast_smul`
+* `matrix.conj_transpose_inv_int_cast_smul`
+* `matrix.conj_transpose_rat_smul`
+* `matrix.conj_transpose_rat_cast_smul`
+-/
+@[simp] lemma conj_transpose_smul [has_star R] [has_star α] [has_scalar R α] [star_module R α]
+  (c : R) (M : matrix m n α) :
+  (c • M)ᴴ = star c • Mᴴ :=
+matrix.ext $ λ i j, star_smul _ _
+
+@[simp] lemma conj_transpose_smul_non_comm [has_star R] [has_star α]
+  [has_scalar R α] [has_scalar Rᵐᵒᵖ α] (c : R) (M : matrix m n α)
+  (h : ∀ (r : R) (a : α), star (r • a) = mul_opposite.op (star r) • star a) :
+  (c • M)ᴴ = mul_opposite.op (star c) • Mᴴ :=
+matrix.ext $ by simp [h]
+
+@[simp] lemma conj_transpose_smul_self [semigroup α] [star_semigroup α] (c : α)
+  (M : matrix m n α) : (c • M)ᴴ = mul_opposite.op (star c) • Mᴴ :=
+conj_transpose_smul_non_comm c M star_mul
+
+@[simp] lemma conj_transpose_nsmul [add_monoid α] [star_add_monoid α] (c : ℕ) (M : matrix m n α) :
+  (c • M)ᴴ = c • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_zsmul [add_group α] [star_add_monoid α] (c : ℤ) (M : matrix m n α) :
+  (c • M)ᴴ = c • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_nat_cast_smul [semiring R] [add_comm_monoid α]
+  [star_add_monoid α] [module R α] (c : ℕ) (M : matrix m n α) : ((c : R) • M)ᴴ = (c : R) • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_int_cast_smul [ring R] [add_comm_group α]
+  [star_add_monoid α] [module R α] (c : ℤ) (M : matrix m n α) : ((c : R) • M)ᴴ = (c : R) • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_inv_nat_cast_smul [division_ring R] [add_comm_group α]
+  [star_add_monoid α] [module R α] (c : ℕ) (M : matrix m n α) : ((c : R)⁻¹ • M)ᴴ = (c : R)⁻¹ • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_inv_int_cast_smul [division_ring R] [add_comm_group α]
+  [star_add_monoid α] [module R α] (c : ℤ) (M : matrix m n α) : ((c : R)⁻¹ • M)ᴴ = (c : R)⁻¹ • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_rat_cast_smul [division_ring R] [add_comm_group α] [star_add_monoid α]
+  [module R α] (c : ℚ) (M : matrix m n α) : ((c : R) • M)ᴴ = (c : R) • Mᴴ :=
+matrix.ext $ by simp
+
+@[simp] lemma conj_transpose_rat_smul [add_comm_group α] [star_add_monoid α] [module ℚ α] (c : ℚ)
+  (M : matrix m n α) : (c • M)ᴴ = c • Mᴴ :=
 matrix.ext $ by simp
 
 @[simp] lemma conj_transpose_mul [fintype n] [non_unital_semiring α] [star_ring α]

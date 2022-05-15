@@ -8,8 +8,10 @@ import data.set.pointwise
 /-!
 # Sets as a semiring under union
 
-We define `set_semiring α`, an alias of `set α`, which we endow with `∪` as addition and `*` as
-multiplication. If `α` is a (commutative) monoid, `set_semiring α` is a (commutative) semiring.-/
+This file defines `set_semiring α`, an alias of `set α`, which we endow with `∪` as addition and
+pointwise `*` as multiplication. If `α` is a (commutative) monoid, `set_semiring α` is a
+(commutative) semiring.
+-/
 
 open function set
 open_locale pointwise

@@ -54,9 +54,8 @@ instance covariant_class_add : covariant_class (set_semiring α) (set_semiring �
 section has_mul
 variables [has_mul α]
 
-@[nolint check_reducibility]
 instance : non_unital_non_assoc_semiring (set_semiring α) :=
-{ mul := λ s t, (s.down * t.down).up,
+{ mul := λ s t, (image2 (*) s.down t.down).up,
   zero_mul := λ s, empty_mul,
   mul_zero := λ s, mul_empty,
   left_distrib := λ _ _ _, mul_union,
@@ -76,31 +75,24 @@ instance covariant_class_mul_right :
 
 end has_mul
 
-@[nolint check_reducibility]
 instance [mul_one_class α] : non_assoc_semiring (set_semiring α) :=
 { ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class }
 
-@[nolint check_reducibility]
 instance [semigroup α] : non_unital_semiring (set_semiring α) :=
 { ..set_semiring.non_unital_non_assoc_semiring, ..set.semigroup }
 
-@[nolint check_reducibility]
 instance [monoid α] : semiring (set_semiring α) :=
 { ..set_semiring.non_assoc_semiring, ..set_semiring.non_unital_semiring }
 
-@[nolint check_reducibility]
 instance [comm_semigroup α] : non_unital_comm_semiring (set_semiring α) :=
 { ..set_semiring.non_unital_semiring, ..set.comm_semigroup }
 
-@[nolint check_reducibility]
 instance [comm_monoid α] : canonically_ordered_comm_semiring (set_semiring α) :=
 { add_le_add_left := λ a b, add_le_add_left,
   le_iff_exists_add := λ a b, ⟨λ ab, ⟨b, (union_eq_right_iff_subset.2 ab).symm⟩,
     by { rintro ⟨c, rfl⟩, exact subset_union_left _ _ }⟩,
-  ..set.comm_monoid, ..set_semiring.semiring ,
-  ..(infer_instance : partial_order (set_semiring α)),
-  ..(infer_instance : order_bot (set_semiring α)),
-  ..(infer_instance : no_zero_divisors (set_semiring α)) }
+  ..set_semiring.semiring, ..set.comm_monoid, ..set_semiring.partial_order _,
+  ..set_semiring.order_bot _, ..set_semiring.no_zero_divisors }
 
 /-- The image of a set under a multiplicative homomorphism is a ring homomorphism
 with respect to the pointwise operations on sets. -/
@@ -108,7 +100,7 @@ def image_hom [mul_one_class α] [mul_one_class β] (f : α →* β) :
   set_semiring α →+* set_semiring β :=
 { to_fun := image f,
   map_zero' := image_empty _,
-  map_one' := by simp only [← singleton_one, image_singleton, f.map_one],
+  map_one' := by rw [image_one, map_one, singleton_one],
   map_add' := image_union _,
   map_mul' := λ _ _, image_mul f }
 

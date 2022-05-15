@@ -325,6 +325,18 @@ by { cases x, cases y, rw mk_lf_mk, tauto }
 theorem lf_of_le_move_left {x y : pgame} {i} : x ≤ y.move_left i → x ⧏ y :=
 by { cases x, cases y, rw mk_lf_mk, exact λ h, or.inl ⟨_, h⟩ }
 
+theorem lf_of_le_mk {xl xr xL xR y} : ∀ i, mk xl xr xL xR ≤ y → xL i ⧏ y :=
+@move_left_lf_of_le (mk _ _ _ _) y
+
+theorem lf_of_mk_le {x yl yr yL yR} : ∀ j, x ≤ mk yl yr yL yR → x ⧏ yR j :=
+@lf_move_right_of_le x (mk _ _ _ _)
+
+theorem mk_lf_of_le {xl xr y j} (xL) {xR : xr → pgame} : xR j ≤ y → mk xl xr xL xR ⧏ y :=
+@lf_of_move_right_le (mk _ _ _ _) y j
+
+theorem lf_mk_of_le {x yl yr} {yL : yl → pgame} (yR) {i} : x ≤ yL i → x ⧏ mk yl yr yL yR :=
+@lf_of_le_move_left x (mk _ _ _ _) i
+
 private theorem le_trans_aux
   {xl xr} {xL : xl → pgame} {xR : xr → pgame}
   {yl yr} {yL : yl → pgame} {yR : yr → pgame}
@@ -372,6 +384,12 @@ move_left_lf_of_le i le_rfl
 
 theorem lf_move_right {x : pgame} (j) : x ⧏ x.move_right j :=
 lf_move_right_of_le j le_rfl
+
+theorem lf_mk {xl xr} (xL : xl → pgame) (xR i) : xL i ⧏ mk xl xr xL xR :=
+@move_left_lf (mk _ _ _ _) i
+
+theorem mk_lf {xl xr} (xL xR) : ∀ j, mk xl xr xL xR ⧏ xR j :=
+@lf_move_right (mk _ _ _ _)
 
 theorem lt_iff_le_and_lf {x y : pgame} : x < y ↔ x ≤ y ∧ x ⧏ y :=
 by rw [lt_iff_le_not_le, pgame.not_le]

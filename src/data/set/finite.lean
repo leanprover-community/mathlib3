@@ -172,11 +172,11 @@ instance fintype_inter (s t : set α) [decidable_eq α] [fintype s] [fintype t] 
 
 /-- A `fintype` instance for set intersection where the left set has a `fintype` instance. -/
 instance fintype_inter_of_left (s t : set α) [fintype s] [decidable_pred (∈ t)] :
-  fintype (s ∩ t : set α) := set.fintype_sep s t
+  fintype (s ∩ t : set α) := fintype.of_finset (s.to_finset.filter (∈ t)) $ by simp
 
 /-- A `fintype` instance for set intersection where the right set has a `fintype` instance. -/
 instance fintype_inter_of_right (s t : set α) [fintype t] [decidable_pred (∈ s)] :
-  fintype (s ∩ t : set α) := by { rw [inter_comm], apply_instance }
+  fintype (s ∩ t : set α) := fintype.of_finset (t.to_finset.filter (∈ s)) $ by simp [and_comm]
 
 /-- A `fintype` structure on a set defines a `fintype` structure on its subset. -/
 def fintype_subset (s : set α) {t : set α} [fintype s] [decidable_pred (∈ t)] (h : t ⊆ s) :
@@ -187,7 +187,7 @@ instance fintype_diff [decidable_eq α] (s t : set α) [fintype s] [fintype t] :
   fintype (s \ t : set α) := fintype.of_finset (s.to_finset \ t.to_finset) $ by simp
 
 instance fintype_diff_left (s t : set α) [fintype s] [decidable_pred (∈ t)] :
-  fintype (s \ t : set α) := set.fintype_sep s tᶜ
+  fintype (s \ t : set α) := set.fintype_sep s (∈ tᶜ)
 
 instance fintype_Union [decidable_eq α] [fintype (plift ι)]
   (f : ι → set α) [∀ i, fintype (f i)] : fintype (⋃ i, f i) :=

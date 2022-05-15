@@ -75,8 +75,9 @@ variables (R)
 theorem adj_matrix_sq_of_ne {v w : V} (hvw : v ≠ w) :
   ((G.adj_matrix R) ^ 2) v w = 1 :=
 begin
-  rw [sq, ← nat.cast_one, ← hG hvw, fintype.card_of_finset],
-  simp [common_neighbors, neighbor_finset_eq_filter, finset.filter_filter, and_comm],
+  rw [sq, ← nat.cast_one, ← hG hvw],
+  simp [common_neighbors, neighbor_finset_eq_filter, finset.filter_filter,
+    and_comm, ← neighbor_finset_def],
 end
 
 /-- This calculation amounts to counting the number of length 3 walks between nonadjacent vertices.

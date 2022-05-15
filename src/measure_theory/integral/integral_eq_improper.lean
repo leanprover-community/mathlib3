@@ -647,12 +647,12 @@ end
 
 end integral_of_interval_integral
 
+end measure_theory
+
 section FTC_nonneg
 
-/-- Fundamental theorem of calculus-2: If `f : ℝ → ℝ` has a derivative `f' x` for all `x` in
-  `(a, b)` and is continuous on `[a, b]`, and `f'` is continuous and non-negative on `(a, b)`, then
-  `∫ y in a..b, f' y` exists. -/
-theorem interval_integral.integrable_of_has_deriv_at_of_nonneg {a b : ℝ} {f f' : ℝ → ℝ}
+/-- Integrability result for FTC-2 under nonnegativity assumptions. -/
+lemma interval_integral.integrable_of_has_deriv_at_of_nonneg {a b : ℝ} {f f' : ℝ → ℝ}
   (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hpos : ∀ x ∈ Ioo a b, 0 ≤ f' x)
   (hcontf : continuous_on f $ Icc a b) (hcontf' : continuous_on f' $ Ioo a b) :
   integrable_on f' (Ioc a b) :=
@@ -677,8 +677,8 @@ begin
   have t2 : tendsto B at_top (𝓝 b),
   { rw (by simp : 𝓝 b = 𝓝 (b - 0)),
     exact tendsto.const_sub _ tendsto_one_div_add_at_top_nhds_0_nat, },
-  refine integrable_on_Ioc_of_interval_integral_norm_bounded _ t1 t2 (eventually_of_forall _),
-  exact (f b - f a),
+  refine measure_theory.integrable_on_Ioc_of_interval_integral_norm_bounded _ t1 t2
+    (eventually_of_forall _), exact (f b - f a),
   { intro n, exact ((hcontf'.mono $ Icc_sub n).integrable_on_Icc).mono_set Ioc_subset_Icc_self, },
   { intro n,
     -- clean up silly case when interval is empty
@@ -709,6 +709,15 @@ begin
       rw interval_of_le u, exact Icc_sub n, }, }
   end
 
-end FTC_nonneg
+/-- Fundamental theorem of calculus-2: If `f : ℝ → ℝ` has a derivative `f' x` for all `x` in
+  `(a, b)` and is continuous on `[a, b]`, and `f'` is continuous and non-negative on `(a, b)`, then
+  `∫ y in a..b, f' y = f(b) - f(a)`. -/
+theorem interval_integral.integral_eq_sub_of_has_deriv_at_of_nonneg {a b : ℝ} {f f' : ℝ → ℝ}
+  (hderiv : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hpos : ∀ x ∈ Ioo a b, 0 ≤ f' x)
+  (hcontf : continuous_on f $ Icc a b) (hcontf' : continuous_on f' $ Ioo a b) (hab : a ≤ b) :
+  ∫ y in a..b, f' y = f b - f a :=
+interval_integral.integral_eq_sub_of_has_deriv_at_of_le hab hcontf hderiv (
+  (interval_integrable_iff_integrable_Ioc_of_le hab).mpr
+  (interval_integral.integrable_of_has_deriv_at_of_nonneg hderiv hpos hcontf hcontf'))
 
-end measure_theory
+end FTC_nonneg

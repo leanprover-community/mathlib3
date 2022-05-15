@@ -231,7 +231,7 @@ lemma localization_finite : ring_hom.localization_preserves @ring_hom.finite :=
 begin
   introv R hf,
   -- Setting up the `algebra` and `is_scalar_tower` instances needed
-  classical,
+  classical!,
   letI := f.to_algebra,
   letI := ((algebra_map S S').comp f).to_algebra,
   let f' : R' →+* S' := is_localization.map S' f (submonoid.le_comap_map M),

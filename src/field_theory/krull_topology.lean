@@ -391,7 +391,8 @@ begin
   intros x y hxy,
   let E := intermediate_field.adjoin K ({x, y} : set L),
   let S := ({x, y} : finset L),
-  have hE := intermediate_field.adjoin.finite_dimensional_of_finite_set (finset.finite_to_set S) (λ a ha, h_int a),
+  have hE := intermediate_field.adjoin.finite_dimensional_of_finite_set (finset.finite_to_set S)
+  (λ a ha, h_int a),
   have hS_equiv_def : (S : set L) = {x, y} := by simp,
   rw hS_equiv_def at hE,
   change finite_dimensional K E at hE,

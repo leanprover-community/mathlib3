@@ -849,7 +849,7 @@ def relabelling.neg_congr : ∀ {x y : pgame}, x ≡r y → -x ≡r -y
     λ i, relabelling.neg_congr (by simpa using hL (L.symm i))⟩
 
 @[simp] theorem neg_le_iff : Π {x y : pgame}, -y ≤ -x ↔ x ≤ y
-| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ :=
+| (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
   rw [le_def, le_def], dsimp,
   refine ⟨λ h, ⟨λ i, _, λ j, _⟩, λ h, ⟨λ i, _, λ j, _⟩⟩,

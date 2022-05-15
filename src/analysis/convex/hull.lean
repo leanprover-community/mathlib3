@@ -20,6 +20,7 @@ while the impact on writing code is minimal as `convex_hull 𝕜 s` is automatic
 -/
 
 open set
+open_locale pointwise
 
 variables {𝕜 E F : Type*}
 
@@ -108,21 +109,6 @@ begin
     by { rintro (rfl : y = x), exact hx hy }⟩),
 end
 
-lemma is_linear_map.image_convex_hull {f : E → F} (hf : is_linear_map 𝕜 f) :
-  f '' (convex_hull 𝕜 s) = convex_hull 𝕜 (f '' s) :=
-begin
-  apply set.subset.antisymm ,
-  { rw set.image_subset_iff,
-    exact convex_hull_min (set.image_subset_iff.1 $ subset_convex_hull 𝕜 $ f '' s)
-      ((convex_convex_hull 𝕜 (f '' s)).is_linear_preimage hf) },
-  { exact convex_hull_min (set.image_subset _ $ subset_convex_hull 𝕜 s)
-     ((convex_convex_hull 𝕜 s).is_linear_image hf) }
-end
-
-lemma linear_map.image_convex_hull (f : E →ₗ[𝕜] F) :
-  f '' (convex_hull 𝕜 s) = convex_hull 𝕜 (f '' s) :=
-f.is_linear.image_convex_hull
-
 lemma is_linear_map.convex_hull_image {f : E → F} (hf : is_linear_map 𝕜 f) (s : set E) :
   convex_hull 𝕜 (f '' s) = f '' convex_hull 𝕜 s :=
 set.subset.antisymm (convex_hull_min (image_subset _ (subset_convex_hull 𝕜 s)) $
@@ -137,6 +123,14 @@ f.is_linear.convex_hull_image s
 
 end add_comm_monoid
 end ordered_semiring
+
+section ordered_comm_semiring
+variables [ordered_comm_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
+
+lemma convex_hull_smul (a : 𝕜) (s : set E) : convex_hull 𝕜 (a • s) = a • convex_hull 𝕜 s :=
+(linear_map.lsmul _ _ a).convex_hull_image _
+
+end ordered_comm_semiring
 
 section ordered_ring
 variables [ordered_ring 𝕜]

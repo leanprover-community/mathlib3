@@ -296,9 +296,11 @@ let ⟨a, _⟩ := h in ⟨units.op_equiv.symm (op a), by simpa⟩
 lemma is_unit.unop {M} [monoid M] {x : Mᵐᵒᵖ} (h : is_unit x) : is_unit (unop x) :=
 let ⟨a, _⟩ := h in ⟨unop a.op_equiv, by simpa⟩
 
+@[simp]
 lemma is_unit_op_iff_is_unit {M} [monoid M] {a : M} : is_unit (op a) ↔ is_unit a :=
 ⟨λ h, unop_op a ▸ h.unop, is_unit.op⟩
 
+@[simp]
 lemma is_unit_unop_iff_is_unit {M} [monoid M] {x : Mᵐᵒᵖ} : is_unit (unop x) ↔ is_unit x :=
 ⟨λ h, op_unop x ▸ h.op, is_unit.unop⟩
 

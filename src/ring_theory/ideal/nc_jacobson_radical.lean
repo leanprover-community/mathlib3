@@ -181,6 +181,7 @@ begin
   tfae_finish,
 end
 
+open mul_opposite
 /-- The Jacobson radical of `R` coincides with that of its opposite ring `Rᵐᵒᵖ`. -/
 theorem nc_jacobson_op {x : R} :
   x ∈ nc_jacobson R ↔ op x ∈ nc_jacobson Rᵐᵒᵖ :=

@@ -247,11 +247,14 @@ end
 end ultrafilter
 
 namespace filter
+variables {f : filter α} {s : set α} {a : α}
 
 open ultrafilter
 
-lemma mem_iff_ultrafilter {s : set α} {f : filter α} :
-  s ∈ f ↔ ∀ g : ultrafilter α, ↑g ≤ f → s ∈ g :=
+protected lemma ne_bot.le_pure_iff (hf : f.ne_bot) : f ≤ pure a ↔ f = pure a :=
+⟨ultrafilter.unique (pure a), le_of_eq⟩
+
+lemma mem_iff_ultrafilter : s ∈ f ↔ ∀ g : ultrafilter α, ↑g ≤ f → s ∈ g :=
 begin
   refine ⟨λ hf g hg, hg hf, λ H, by_contra $ λ hf, _⟩,
   set g : filter ↥sᶜ := comap coe f,

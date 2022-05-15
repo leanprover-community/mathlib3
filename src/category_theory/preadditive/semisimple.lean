@@ -309,6 +309,18 @@ biproduct.desc (λ i, biproduct.ι (λ (i : q), f i) (⟨i.1, h i.2⟩ : q))
   biproduct.ι (λ i : p, f i) j ≫ biproduct.ι_le h f = biproduct.ι (λ i : q, f i) ⟨j.1, h j.2⟩ :=
 by { simp [biproduct.ι_le], }
 
+lemma biproduct.ι_le_π {p q : set ι} (h : p ⊆ q) (f : ι → C) [has_finite_biproducts C] (j : q) :
+  biproduct.ι_le h f ≫ biproduct.π (λ i : q, f i) j =
+    if h : j.1 ∈ p then biproduct.π (λ i : p, f i) ⟨j.1, h⟩ else 0 :=
+begin
+  rcases j with ⟨j, jm⟩,
+  ext ⟨k, km⟩,
+  simp only [biproduct.ι_le, biproduct.ι_π, comp_dite, subtype.mk_eq_mk, biproduct.ι_desc_assoc, comp_zero],
+  by_cases t : k = j,
+  { subst t, dsimp, simp [km], },
+  { simp only [dif_neg t], dsimp, simp, }
+end
+
 @[simps]
 def biproduct.select (p : set ι) (i : ι) (h : i ∉ p) (f : ι → C) [has_finite_biproducts C] :
   ⨁ (λ j : insert i p, f j) ≅ f i ⊞ (⨁ (λ j : p, f j)) :=
@@ -339,6 +351,7 @@ def biproduct.select (p : set ι) (i : ι) (h : i ∉ p) (f : ι → C) [has_fin
     ext; simp,
   end, }
 
+@[simps]
 def biproduct.reindex {β γ : Type v} [fintype β] [fintype γ] (ε : β ≃ γ) (f : γ → C) [has_biproduct f] [has_biproduct (f ∘ ε)] :
   (⨁ (f ∘ ε)) ≅ (⨁ f) :=
 { hom := biproduct.desc (λ b, biproduct.ι f (ε b)),
@@ -361,9 +374,7 @@ def biproduct_is_zero_of_is_empty [is_empty ι] (f : ι → C) [has_biproduct f]
 def subobject_is_zero_of_is_zero {X : C} (h : is_zero X) (Y : subobject X) : is_zero (Y : C) := sorry
 
 def subobject.bot_is_zero [has_finite_biproducts C] (X : C) : is_zero ((⊥ : subobject X) : C) := sorry
-#print ne_of_mem_of_not_mem
-lemma ne_of_mem_of_not_mem {α : Type*} (s : set α) (a b : α) (ha : a ∈ s) (hb : b ∉ s) : a ≠ b :=
-by { rintro rfl, exact hb ha, }
+
 
 /--
 Up to isomorphism, any subobject of a direct sum of simple objects is just a subset of the summands.
@@ -372,58 +383,82 @@ lemma subobject_of_semisimple'' [noetherian C] (f : ι → C) [has_finite_biprod
   (W : subobject (⨁ f)) :
   ∃ (p : set ι) (j : (W : C) ≅ ⨁ (λ i : p, f i)), W.arrow = j.hom ≫ biproduct.from_subtype _ _ :=
 begin
+  -- We prove this by induction on `n`, the cardinality of `ι`.
   set n := fintype.card ι with h,
   clear_value n,
   unfreezingI { induction n with n ih generalizing ι, },
-  { haveI : is_empty ι := sorry,
+  { -- The base case of the induction, when `ι` is empty
+    haveI : is_empty ι := fintype.card_eq_zero_iff.mp h.symm,
     have zS : is_zero (⨁ f) := biproduct_is_zero_of_is_empty f,
     have zW : is_zero (W : C) := subobject_is_zero_of_is_zero zS _,
     exact ⟨∅, ⟨is_zero.iso zW (biproduct_is_zero_of_is_empty _), zW.eq_of_src _ _⟩⟩, },
+  -- First we deal easily with the possibility that `W` is trivial.
   by_cases w : W = ⊥,
   { subst w,
     have zW := subobject.bot_is_zero (⨁ f),
     exact ⟨∅, ⟨is_zero.iso zW (biproduct_is_zero_of_is_empty _), zW.eq_of_src _ _⟩⟩, },
+  -- Otherwise, we see that `W` must be isomorphic to one of the summands,
+  -- plus some subobject `W'` of the other summands.
   obtain ⟨i, W', j₁, z⟩ := subobject_of_semisimple f W w, clear w,
+  -- We then apply the inductive hypothesis to the other summand.
   obtain ⟨p', j₂, r'⟩ := ih (λ j : ({i}ᶜ : set ι), f j) W' (by simp only
     [←h, fintype.card_compl_set, tsub_zero, nat.succ_sub_succ_eq_sub, set.card_singleton]),
   clear ih h,
-  let r : ({i}ᶜ : set ι) ↪ ι := ⟨λ x, x.1, by tidy⟩,
+  -- We now have all the ingredients.
+  -- We preparing the set of summands `p`, and the isomorphism `j`.
+  let r : ({i}ᶜ : set ι) ↪ ι := function.embedding.subtype _,
   let ε : p' ≃ r '' p' := equiv.set.image r.1 p' r.2,
-  let j₃ : (⨁ λ (j : p'), (λ (j : ({i}ᶜ : set ι)), f j) j) ≅ (⨁ λ j : r '' p', f j) :=
-    biproduct.reindex ε (λ j : r '' p', f j),
   have m : i ∉ r '' p',
   { rintro ⟨⟨h, v⟩, ⟨q, t⟩⟩,
     simp only [r, function.embedding.coe_fn_mk, subtype.coe_mk] at t,
     simpa only [set.mem_singleton, not_true, t, set.mem_compl_eq] using v, },
-  use insert i (r '' p'),
-  refine ⟨_, _⟩,
-  refine j₁.trans _,
-  refine (biprod.map_iso (iso.refl _) (j₂.trans j₃)).trans _,
-  refine (biproduct.select _ _ m _).symm,
+  refine ⟨insert i (r '' p'),
+    j₁.trans ((biprod.map_iso (iso.refl _)
+      (j₂.trans (biproduct.reindex ε (λ j : r '' p', f j)))).trans (biproduct.select _ _ m _).symm),
+    _⟩,
+  -- Finally, we need to calculate that `W.arrow = j.hom ≫ biproduct.from_subtype _ _`.
   ext j,
-  by_cases t : i = j,
-  sorry { subst t,
-    -- This is just `simp [z]`:
-    simp only [z, set.mem_insert_iff, set.mem_compl_eq, set.mem_singleton_iff, not_true,
-      set.mem_image, function.embedding.coe_fn_mk, subtype.val_eq_coe, set_coe.exists,
-      subtype.coe_mk, exists_and_distrib_right, exists_eq_right, exists_false_left, or_false,
-      preadditive.add_comp, category.assoc, biproduct.ι_π_self, category.comp_id, not_false_iff,
-      biproduct.from_subtype_π, dif_neg, comp_zero, add_zero, iso.trans_hom, biprod.map_iso_hom,
-      iso.refl_hom, iso.symm_hom, biproduct.select_inv, dif_pos, iso.cancel_iso_hom_left],
+  simp only [z, r', set.mem_compl_eq, set.mem_singleton_iff, set.mem_insert_iff, set.mem_image,
+    function.embedding.coe_subtype, set_coe.exists, subtype.coe_mk, exists_and_distrib_right,
+    exists_eq_right, category.assoc, preadditive.comp_add, preadditive.add_comp,
+    biproduct.from_subtype_π, dite_not, iso.trans_hom, biprod.map_iso_hom, iso.refl_hom,
+    iso.symm_hom, biproduct.select_inv],
+  by_cases t : j = i,
+  { subst t,
+    simp only [eq_self_iff_true, not_true, exists_false_left, or_false, biproduct.ι_π_self,
+      category.comp_id, dif_pos, comp_zero, add_zero, iso.cancel_iso_hom_left],
     ext,
-    { simp only [not_true, exists_false_left, or_false, not_false_iff, dif_neg, dif_pos,
-        eq_self_iff_true, comp_zero, add_zero,
-        biprod.inl_fst, biprod.inl_map_assoc, biprod.inl_desc_assoc, category.id_comp],
+    { simp only [biprod.inl_fst, biprod.inl_map_assoc, biprod.inl_desc_assoc, category.id_comp],
       symmetry, exact (biproduct.ι_π_self _ _), },
-    { simp only [not_true, exists_false_left, or_false, not_false_iff, dif_neg, dif_pos,
-       eq_self_iff_true, comp_zero, add_zero,
-       biprod.inr_fst, biprod.inr_map_assoc, biprod.inr_desc_assoc,
-       category.assoc, zero_eq_iso_comp_iff, preadditive.is_iso.comp_left_eq_zero],
-      ext,
+    { simp only [biprod.inr_fst, biprod.inr_map_assoc, biprod.inr_desc_assoc, category.assoc,
+        zero_eq_iso_comp_iff, preadditive.is_iso.comp_left_eq_zero],
+      ext k,
       simp only [biproduct.ι_ι_le_assoc, comp_zero],
       refine biproduct.ι_π_ne _ _,
-      simpa only [subtype.mk_eq_mk, ne.def, subtype.val_eq_coe] using ne_of_mem_of_not_mem j.2 m, }, },
-  sorry { simp [z, t, r'], rw dif_neg, rw dif_neg, simp, ext, simp, simp, ext, simp, sorry, sorry, sorry, }
+      simpa only [subtype.mk_eq_mk, ne.def, subtype.val_eq_coe]
+        using ne_of_mem_of_not_mem k.2 m, }, },
+  { simp only [t, not_false_iff, exists_true_left, false_or, dif_neg],
+    simp only [biproduct.ι_π_ne _ (ne.symm t), comp_zero, zero_add, iso.cancel_iso_hom_left],
+    ext,
+    { simp only [biprod.inl_snd_assoc, zero_comp, biprod.inl_map_assoc, biprod.inl_desc_assoc,
+        category.id_comp],
+      split_ifs,
+      { erw [biproduct.ι_π, dif_neg], simpa using (ne.symm t), },
+      { simp only [comp_zero], },},
+    { simp only [biprod.inr_snd_assoc, biprod.inr_map_assoc, biprod.inr_desc_assoc,
+        category.assoc, iso.cancel_iso_hom_left, biproduct.reindex_hom],
+      split_ifs with h h,
+      { erw [biproduct.from_subtype_π, biproduct.ι_le_π, dif_pos h],
+        simp only [h, t, set.mem_compl_eq, set.mem_singleton_iff, not_false_iff, set.mem_image,
+          function.embedding.coe_subtype, set_coe.exists, subtype.coe_mk,
+          exists_and_distrib_right, exists_eq_right, exists_true_left, dif_pos],
+        ext ⟨⟨k, kh₁⟩, kh₂⟩,
+        simp only [biproduct.ι_π, function.embedding.coe_subtype, subtype.coe_mk,
+          subtype.mk_eq_mk, function.embedding.to_fun_eq_coe, equiv.set.image_apply,
+          biproduct.ι_desc_assoc],
+        refl, },
+      { simp only [comp_zero],
+        erw [biproduct.from_subtype_π, dif_neg h], }, }, },
 end
 
 

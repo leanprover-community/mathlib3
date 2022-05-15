@@ -155,7 +155,7 @@ begin
   tfae_have : 2 → 3,
   { intros hx a,
     obtain ⟨c, hc⟩ := hx a,
-    apply is_unit_of_has_left_inv_of_has_left_inv hc,
+    apply is_unit_of_left_inv_of_has_left_inv hc,
     suffices : c = 1 + ( -c * a * x),
     { rw this, apply hx },
     { calc c = c * (1 + a * x) + ( -c * a * x) : by noncomm_ring

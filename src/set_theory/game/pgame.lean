@@ -1235,7 +1235,7 @@ theorem add_lf_add_of_lf_of_le {w x y z : pgame.{u}} (hwx : w ⧏ x) (hyz : y �
 lf_of_lf_of_le (add_lf_add_right hwx y) (add_le_add_left hyz x)
 
 theorem add_lf_add_of_le_of_lf {w x y z : pgame.{u}} (hwx : w ≤ x) (hyz : y ⧏ z) : w + y ⧏ x + z :=
-(lf_congr add_comm_equiv add_comm_equiv).1 $ add_lf_add_of_lf_of_le hyz hwx
+lf_of_le_of_lf (add_le_add_right hwx y) (add_lf_add_left hyz x)
 
 theorem add_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w + y ≈ x + z :=
 ⟨(add_le_add_left h₂.1 w).trans (add_le_add_right h₁.1 z),

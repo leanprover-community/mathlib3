@@ -136,33 +136,16 @@ lemma linear_map.convex_hull_image (f : E →ₗ[𝕜] F) (s : set E) :
   convex_hull 𝕜 (f '' s) = f '' convex_hull 𝕜 s :=
 f.is_linear.convex_hull_image s
 
+lemma mk_mem_convex_hull_prod {t : set F} {y : F} (hx : x ∈ convex_hull 𝕜 s)
+  (hy : y ∈ convex_hull 𝕜 t) :
+  (x, y) ∈ convex_hull 𝕜 (s ×ˢ t) :=
+sorry
+
 @[simp] lemma convex_hull_prod (s : set E) (t : set F) :
   convex_hull 𝕜 (s ×ˢ t) = convex_hull 𝕜 s ×ˢ convex_hull 𝕜 t :=
-begin
-  obtain rfl | hs := s.eq_empty_or_nonempty,
-  { simp only [empty_prod, convex_hull_empty] },
-  obtain rfl | ht := t.eq_empty_or_nonempty,
-  { simp only [prod_empty, convex_hull_empty] },
-  refine subset.antisymm _ _,
-  refine convex_hull_min (prod_mono (subset_convex_hull _ _) $ subset_convex_hull _ _)
-    ((convex_convex_hull _ _).prod $ convex_convex_hull _ _),
-  refine prod_subset_iff.2 (λ x hx y hy, _),
-
-  have : (λ x, prod.mk x y) '' convex_hull 𝕜 s ⊆ convex_hull 𝕜 (s ×ˢ t),
-  { rw ←is_linear_map.convex_hull_image,
-    rw (convex_convex_hull _ _).convex_hull_subset_iff,
-    refine convex_hull_min _ _,
-    refine convex_hull_min (subset.trans _ $ image_subset _ $ subset_convex_hull _ _)
-      ((convex_convex_hull _ _).linear_image $ linear_map.fst _ _ _),
-    rw fst_image_prod _ ht },
-  -- have : convex_hull 𝕜 s ⊆ prod.fst '' convex_hull 𝕜 (s ×ˢ t),
-  -- { refine convex_hull_min (subset.trans _ $ image_subset _ $ subset_convex_hull _ _)
-  --     ((convex_convex_hull _ _).linear_image $ linear_map.fst _ _ _),
-  --   rw fst_image_prod _ ht },
-    rw mem_convex_hull_iff,
-    rintro u h hu,
-    obtain ⟨c, hc, rfl⟩ := this hx,
-end
+subset.antisymm (convex_hull_min (prod_mono (subset_convex_hull _ _) $ subset_convex_hull _ _) $
+  (convex_convex_hull _ _).prod $ convex_convex_hull _ _) $
+    prod_subset_iff.2 $ λ x hx y, mk_mem_convex_hull_prod hx
 
 lemma convex_hull_add (s t : set E) : convex_hull 𝕜 (s + t) = convex_hull 𝕜 s + convex_hull 𝕜 t :=
 begin
@@ -180,7 +163,7 @@ section add_comm_group
 variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] (s : set E)
 
 lemma affine_map.image_convex_hull (f : E →ᵃ[𝕜] F) :
-  f '' (convex_hull 𝕜 s) = convex_hull 𝕜 (f '' s) :=
+  f '' convex_hull 𝕜 s = convex_hull 𝕜 (f '' s) :=
 begin
   apply set.subset.antisymm,
   { rw set.image_subset_iff,
@@ -202,6 +185,7 @@ begin
 end
 
 lemma convex_hull_neg (s : set E) : convex_hull 𝕜 (-s) = -convex_hull 𝕜 s :=
+by { simp_rw ←image_neg, exact (affine_map.image_convex_hull _ $ -1).symm }
 
 lemma convex_hull_sub (s t : set E) : convex_hull 𝕜 (s - t) = convex_hull 𝕜 s - convex_hull 𝕜 t :=
 by simp_rw [sub_eq_add_neg, convex_hull_add, convex_hull_neg]

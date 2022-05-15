@@ -85,15 +85,6 @@ instance : is_integral_closure R R K := (is_integrally_closed_iff_is_integral_cl
 lemma is_integral_iff {x : K} : is_integral R x ↔ ∃ y, algebra_map R K y = x :=
 is_integral_closure.is_integral_iff
 
-lemma is_integral_of_pow {x : K} {n : ℕ} (hn : 0 < n) (hx : is_integral R $ x ^ n) :
-  is_integral R x :=
-let h := is_integral_iff.mp hx in ⟨_, ⟨polynomial.monic_X_pow_sub_C h.some $ ne_zero_of_lt hn,
-  by rw [polynomial.eval₂_sub, polynomial.eval₂_X_pow, polynomial.eval₂_C, h.some_spec, sub_self]⟩⟩
-
-@[simp] lemma is_integral_pow_iff {x : K} {n : ℕ} (hn : 0 < n) :
-  is_integral R (x ^ n) ↔ is_integral R x :=
-⟨is_integral_of_pow hn, λ hx, is_integral.pow hx n⟩
-
 omit iic ifr
 
 lemma exists_algebra_map_eq_of_pow_mem {S : subalgebra R K} [is_domain S] [is_integrally_closed S]

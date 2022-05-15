@@ -420,10 +420,6 @@ theorem semilattice_inf.dual_dual (α : Type*) [H : semilattice_inf α] :
   order_dual.semilattice_inf αᵒᵈ = H :=
 semilattice_inf.ext $ λ _ _, iff.rfl
 
-theorem exists_lt_of_inf (α : Type*) [semilattice_inf α] [nontrivial α] :
-  ∃ a b : α, a < b :=
-let ⟨a, b, h⟩ := exists_lt_of_sup αᵒᵈ in ⟨b, a, h⟩
-
 lemma inf_le_ite (s s' : α) (P : Prop) [decidable P] : s ⊓ s' ≤ ite P s s' :=
 if h : P then inf_le_left.trans_eq (if_pos h).symm else inf_le_right.trans_eq (if_neg h).symm
 

@@ -24,7 +24,7 @@ lemmas unconditional on the sum of the weights being `1`.
 -/
 
 open set
-open_locale big_operators classical
+open_locale big_operators classical pointwise
 
 universes u u'
 variables {R E F ι ι' : Type*} [linear_ordered_field R] [add_comm_group E] [add_comm_group F]
@@ -325,13 +325,10 @@ begin
   { exact Union_subset (λ i, Union_subset convex_hull_mono), },
 end
 
-lemma convex_hull_prod (s : set E) (t : set F) :
-  convex_hull R (s ×ˢ t) = convex_hull R s ×ˢ convex_hull R t :=
+lemma mk_mem_convex_hull_prod {t : set F} {x : E} {y : F} (hx : x ∈ convex_hull R s)
+  (hy : y ∈ convex_hull R t) :
+  (x, y) ∈ convex_hull R (s ×ˢ t) :=
 begin
-  refine set.subset.antisymm _ _,
-  { exact convex_hull_min (set.prod_mono (subset_convex_hull _ _) $ subset_convex_hull _ _)
-    ((convex_convex_hull _ _).prod $ convex_convex_hull _ _) },
-  rintro ⟨x, y⟩ ⟨hx, hy⟩,
   rw convex_hull_eq at ⊢ hx hy,
   obtain ⟨ι, a, w, S, hw, hw', hS, hSp⟩ := hx,
   obtain ⟨κ, b, v, T, hv, hv', hT, hTp⟩ := hy,
@@ -367,11 +364,24 @@ begin
     rw [←finset.sum_smul, hw', one_smul] }
 end
 
+@[simp] lemma convex_hull_prod (s : set E) (t : set F) :
+  convex_hull R (s ×ˢ t) = convex_hull R s ×ˢ convex_hull R t :=
+subset.antisymm (convex_hull_min (prod_mono (subset_convex_hull _ _) $ subset_convex_hull _ _) $
+  (convex_convex_hull _ _).prod $ convex_convex_hull _ _) $
+    prod_subset_iff.2 $ λ x hx y, mk_mem_convex_hull_prod hx
+
+lemma convex_hull_add (s t : set E) : convex_hull R (s + t) = convex_hull R s + convex_hull R t :=
+by simp_rw [←image2_add, ←image_prod, is_linear_map.is_linear_map_add.convex_hull_image,
+  convex_hull_prod]
+
+lemma convex_hull_sub (s t : set E) : convex_hull R (s - t) = convex_hull R s - convex_hull R t :=
+by simp_rw [sub_eq_add_neg, convex_hull_add, convex_hull_neg]
+
 /-! ### `std_simplex` -/
 
 variables (ι) [fintype ι] {f : ι → R}
 
-/-- `std_simplex 𝕜 ι` is the convex hull of the canonical basis in `ι → 𝕜`. -/
+/-- `std_simplex R ι` is the convex hull of the canonical basis in `ι → R`. -/
 lemma convex_hull_basis_eq_std_simplex :
   convex_hull R (range $ λ(i j:ι), if i = j then (1:R) else 0) = std_simplex R ι :=
 begin
@@ -403,7 +413,7 @@ begin
   simp [linear_map.sum_apply, ite_smul, finset.filter_eq]
 end
 
-/-- All values of a function `f ∈ std_simplex 𝕜 ι` belong to `[0, 1]`. -/
+/-- All values of a function `f ∈ std_simplex R ι` belong to `[0, 1]`. -/
 lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex R ι) (x) :
   f x ∈ Icc (0 : R) 1 :=
 ⟨hf.1 x, hf.2 ▸ finset.single_le_sum (λ y hy, hf.1 y) (finset.mem_univ x)⟩

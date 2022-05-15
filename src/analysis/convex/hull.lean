@@ -20,7 +20,6 @@ while the impact on writing code is minimal as `convex_hull 𝕜 s` is automatic
 -/
 
 open set
-open_locale pointwise
 
 variables {𝕜 E F : Type*}
 
@@ -136,23 +135,6 @@ lemma linear_map.convex_hull_image (f : E →ₗ[𝕜] F) (s : set E) :
   convex_hull 𝕜 (f '' s) = f '' convex_hull 𝕜 s :=
 f.is_linear.convex_hull_image s
 
-lemma mk_mem_convex_hull_prod {t : set F} {y : F} (hx : x ∈ convex_hull 𝕜 s)
-  (hy : y ∈ convex_hull 𝕜 t) :
-  (x, y) ∈ convex_hull 𝕜 (s ×ˢ t) :=
-sorry
-
-@[simp] lemma convex_hull_prod (s : set E) (t : set F) :
-  convex_hull 𝕜 (s ×ˢ t) = convex_hull 𝕜 s ×ˢ convex_hull 𝕜 t :=
-subset.antisymm (convex_hull_min (prod_mono (subset_convex_hull _ _) $ subset_convex_hull _ _) $
-  (convex_convex_hull _ _).prod $ convex_convex_hull _ _) $
-    prod_subset_iff.2 $ λ x hx y, mk_mem_convex_hull_prod hx
-
-lemma convex_hull_add (s t : set E) : convex_hull 𝕜 (s + t) = convex_hull 𝕜 s + convex_hull 𝕜 t :=
-begin
-  simp_rw [←image2_add, ←image_prod],
-  rw [is_linear_map.is_linear_map_add.convex_hull_image, convex_hull_prod],
-end
-
 end add_comm_monoid
 end ordered_semiring
 
@@ -186,9 +168,6 @@ end
 
 lemma convex_hull_neg (s : set E) : convex_hull 𝕜 (-s) = -convex_hull 𝕜 s :=
 by { simp_rw ←image_neg, exact (affine_map.image_convex_hull _ $ -1).symm }
-
-lemma convex_hull_sub (s t : set E) : convex_hull 𝕜 (s - t) = convex_hull 𝕜 s - convex_hull 𝕜 t :=
-by simp_rw [sub_eq_add_neg, convex_hull_add, convex_hull_neg]
 
 end add_comm_group
 end ordered_ring

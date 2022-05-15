@@ -1232,11 +1232,6 @@ begin
   rw mul_div_cancel' h0 hI, exact le_refl b
 end
 
-lemma mul_div_assoc : a * b / c = a * (b / c) :=
-begin
-  rw [div_eq_mul_inv,  mul_assoc, ← div_eq_mul_inv],
-end
-
 lemma eq_div_iff (ha : a ≠ 0) (ha' : a ≠ ∞) :
   b = c / a ↔ a * b = c :=
 ⟨λ h, by rw [h, mul_div_cancel' ha ha'],

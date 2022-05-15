@@ -293,29 +293,47 @@ lemma subobject_of_semisimple [noetherian C] (f : ι → C) [has_finite_biproduc
       biprod.snd ≫ W'.arrow ≫ biproduct.from_subtype _ _) :=
 subobject_of_semisimple' f W sorry
 
-def biproduct.π_le {p q : set ι} (h : p ⊆ q) (f : ι → C) [has_finite_biproducts C] :
+def biproduct.π_le (f : ι → C) {p q : set ι} (h : p ⊆ q) [has_finite_biproducts C] :
   (⨁ (λ i : q, f i)) ⟶ (⨁ (λ i : p, f i)) :=
 biproduct.lift (λ i, biproduct.π _ (⟨i.1, h i.2⟩ : q))
 
-@[simp, reassoc] lemma biproduct.π_le_π {p q : set ι} (h : p ⊆ q) (f : ι → C) [has_finite_biproducts C] (j : p) :
-  biproduct.π_le h f ≫ biproduct.π (λ i : p, f i) j = biproduct.π (λ i : q, f i) ⟨j.1, h j.2⟩ :=
+@[simp, reassoc] lemma biproduct.π_le_π (f : ι → C) {p q : set ι} (h : p ⊆ q) [has_finite_biproducts C] (j : p) :
+  biproduct.π_le f h ≫ biproduct.π (λ i : p, f i) j = biproduct.π (λ i : q, f i) ⟨j.1, h j.2⟩ :=
 by { simp [biproduct.π_le], }
 
-def biproduct.ι_le {p q : set ι} (h : p ⊆ q) (f : ι → C) [has_finite_biproducts C] :
+def biproduct.ι_le (f : ι → C) {p q : set ι} (h : p ⊆ q) [has_finite_biproducts C] :
   (⨁ (λ i : p, f i)) ⟶ (⨁ (λ i : q, f i)) :=
 biproduct.desc (λ i, biproduct.ι (λ (i : q), f i) (⟨i.1, h i.2⟩ : q))
 
-@[simp, reassoc] lemma biproduct.ι_ι_le {p q : set ι} (h : p ⊆ q) (f : ι → C) [has_finite_biproducts C] (j : p) :
-  biproduct.ι (λ i : p, f i) j ≫ biproduct.ι_le h f = biproduct.ι (λ i : q, f i) ⟨j.1, h j.2⟩ :=
+@[simp, reassoc] lemma biproduct.ι_ι_le (f : ι → C) {p q : set ι} (h : p ⊆ q) [has_finite_biproducts C] (j : p) :
+  biproduct.ι (λ i : p, f i) j ≫ biproduct.ι_le f h = biproduct.ι (λ i : q, f i) ⟨j.1, h j.2⟩ :=
 by { simp [biproduct.ι_le], }
 
-lemma biproduct.ι_le_π {p q : set ι} (h : p ⊆ q) (f : ι → C) [has_finite_biproducts C] (j : q) :
-  biproduct.ι_le h f ≫ biproduct.π (λ i : q, f i) j =
+@[reassoc]
+lemma biproduct.ι_π_le (f : ι → C) {p q : set ι} (h : p ⊆ q) [has_finite_biproducts C] (j : q) :
+  biproduct.ι (λ i : q, f i) j ≫ biproduct.π_le f h =
+    if h : j.1 ∈ p then biproduct.ι (λ i : p, f i) ⟨j.1, h⟩ else 0 :=
+begin
+  rcases j with ⟨j, jm⟩,
+  ext ⟨k, km⟩,
+  simp only [biproduct.π_le, biproduct.ι_π, subtype.mk_eq_mk, category.assoc, biproduct.lift_π],
+  by_cases t : j = k,
+  { subst t, dsimp, simp [km], dsimp, simp, },
+  { simp only [dif_neg t], dsimp,
+    split_ifs,
+    { rw [biproduct.ι_π_ne], simpa using t, },
+    { simp, }, },
+end
+
+@[reassoc]
+lemma biproduct.ι_le_π (f : ι → C) {p q : set ι} (h : p ⊆ q) [has_finite_biproducts C] (j : q) :
+  biproduct.ι_le f h ≫ biproduct.π (λ i : q, f i) j =
     if h : j.1 ∈ p then biproduct.π (λ i : p, f i) ⟨j.1, h⟩ else 0 :=
 begin
   rcases j with ⟨j, jm⟩,
   ext ⟨k, km⟩,
-  simp only [biproduct.ι_le, biproduct.ι_π, comp_dite, subtype.mk_eq_mk, biproduct.ι_desc_assoc, comp_zero],
+  simp only [biproduct.ι_le, biproduct.ι_π, comp_dite, subtype.mk_eq_mk, biproduct.ι_desc_assoc,
+    comp_zero],
   by_cases t : k = j,
   { subst t, dsimp, simp [km], },
   { simp only [dif_neg t], dsimp, simp, }
@@ -324,31 +342,49 @@ end
 @[simps]
 def biproduct.select (p : set ι) (i : ι) (h : i ∉ p) (f : ι → C) [has_finite_biproducts C] :
   ⨁ (λ j : insert i p, f j) ≅ f i ⊞ (⨁ (λ j : p, f j)) :=
-{ hom := begin
-    apply biprod.lift,
-    exact biproduct.π _ (⟨i, set.mem_insert i p⟩ : insert i p),
-    apply biproduct.π_le,
-    exact set.subset_insert i p,
-  end,
-  inv := begin
-    apply biprod.desc,
-    exact biproduct.ι (λ (j : (insert i p)), f j) (⟨i, set.mem_insert i p⟩ : insert i p),
-    apply biproduct.ι_le,
-    exact set.subset_insert i p,
-  end,
+{ hom := biprod.lift
+    (biproduct.π _ (⟨i, set.mem_insert i p⟩ : insert i p))
+    (biproduct.π_le _ (set.subset_insert i p)),
+  inv := biprod.desc
+    (biproduct.ι (λ (j : (insert i p)), f j) (⟨i, set.mem_insert i p⟩ : insert i p))
+    (biproduct.ι_le _ (set.subset_insert i p)),
   hom_inv_id' := begin
     simp only [biprod.lift_desc],
     ext ⟨j, rfl|jm⟩ ⟨k, rfl|km⟩,
-    { dsimp, simp,
-      erw [biproduct.ι_π_self, biproduct.ι_π_self_assoc],
-      dsimp,
-      simp, },
-    sorry,
-    sorry,
-    sorry,
-  end ,
+    { dsimp,
+      simp only [preadditive.comp_add, preadditive.add_comp, category.assoc, category.comp_id,
+        biproduct.ι_π_self],
+      erw [biproduct.ι_π_self, biproduct.ι_π_self_assoc, biproduct.ι_le_π, dif_neg h],
+      dsimp, simp, },
+    { dsimp,
+      simp only [preadditive.comp_add, preadditive.add_comp, category.assoc, category.comp_id],
+      erw [biproduct.ι_π_self_assoc, biproduct.ι_π_le_assoc, dif_neg h],
+      simp, refl, },
+    { dsimp,
+      simp only [preadditive.comp_add, category.comp_id],
+      rw [biproduct.ι_π_ne_assoc, biproduct.ι_π_le_assoc, dif_pos jm, biproduct.ι_ι_le, zero_comp,
+        zero_add],
+      { refl, },
+      { simpa using ne_of_mem_of_not_mem jm h, }, },
+  end,
   inv_hom_id' := begin
-    ext; simp,
+    ext,
+    { simp only [biprod.inl_desc_assoc, category.assoc, biprod.lift_fst, biproduct.ι_π_self,
+        category.comp_id, biprod.inl_fst],
+      refl, },
+    { simp only [biprod.inl_desc_assoc, category.assoc, biprod.lift_snd, biproduct.π_le_π,
+        category.comp_id, biprod.inl_snd, zero_comp],
+      rw [biproduct.ι_π_ne],
+      simpa using ne.symm (ne_of_mem_of_not_mem j.2 h), },
+    { simp only [biprod.inr_desc_assoc, category.assoc, biprod.lift_fst,
+        biproduct.ι_ι_le_assoc, category.comp_id, biprod.inr_fst, comp_zero],
+      rw [biproduct.ι_π_ne],
+      simpa using ne_of_mem_of_not_mem j.2 h, },
+    { simp only [biprod.inr_desc_assoc, category.assoc, biprod.lift_snd,
+         biproduct.ι_ι_le_assoc, biproduct.π_le_π, category.comp_id, biprod.inr_snd],
+      rw [biproduct.ι_π, biproduct.ι_π],
+      cases j, cases j_1,
+      simp, refl, },
   end, }
 
 @[simps]

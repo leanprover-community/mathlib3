@@ -327,7 +327,7 @@ have hinsert₁ : d.succ ∉ (range d.succ).filter (∣ d.succ),
   ... = (univ.filter (λ a : α, a ^ d.succ = 1)).card :
     sum_card_order_of_eq_card_pow_eq_one (succ_pos d)
   ... = ∑ m in (range d.succ.succ).filter (∣ d.succ), φ m :
-    ha ▸ (card_pow_eq_one_eq_order_of_aux hn a).symm ▸ (sum_totient _).symm
+    ha ▸ (card_pow_eq_one_eq_order_of_aux hn a).symm ▸ (sum_totient' _).symm
   ... = _ : by rw [h, ← sum_insert hinsert₁];
       exact finset.sum_congr hinsert.symm (λ _ _, rfl))
 
@@ -363,7 +363,7 @@ lt_irrefl c $
   ... = ∑ m in (range c.succ).filter (∣ c), φ m : finset.sum_congr
       (finset.insert_erase (mem_filter.2 ⟨mem_range.2 (lt_succ_of_le (le_of_dvd hc0 hd)), hd⟩))
                            (λ _ _, rfl)
-  ... = c : sum_totient _
+  ... = c : sum_totient' _
 
 lemma is_cyclic_of_card_pow_eq_one_le : is_cyclic α :=
 have (univ.filter (λ a : α, order_of a = fintype.card α)).nonempty,

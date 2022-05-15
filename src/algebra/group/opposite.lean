@@ -98,13 +98,23 @@ We also generate additive structures on `αᵃᵒᵖ` using `to_additive`
 @[to_additive] instance [cancel_comm_monoid α] : cancel_comm_monoid αᵐᵒᵖ :=
 { .. mul_opposite.cancel_monoid α, .. mul_opposite.comm_monoid α }
 
-@[to_additive] instance [div_inv_monoid α] : div_inv_monoid αᵐᵒᵖ :=
+@[to_additive add_opposite.sub_neg_monoid] instance [div_inv_monoid α] : div_inv_monoid αᵐᵒᵖ :=
 { zpow := λ n x, op $ x.unop ^ n,
   zpow_zero' := λ x, unop_injective $ div_inv_monoid.zpow_zero' x.unop,
   zpow_succ' := λ n x, unop_injective $
     by rw [unop_op, zpow_of_nat, zpow_of_nat, pow_succ', unop_mul, unop_op],
   zpow_neg' := λ z x, unop_injective $ div_inv_monoid.zpow_neg' z x.unop,
   .. mul_opposite.monoid α, .. mul_opposite.has_inv α }
+
+@[to_additive add_opposite.subtraction_monoid] instance [division_monoid α] :
+  division_monoid αᵐᵒᵖ :=
+{ mul_inv_rev := λ a b, unop_injective $ mul_inv_rev _ _,
+  inv_eq_of_mul := λ a b h, unop_injective $ inv_eq_of_mul_eq_one_left $ congr_arg unop h,
+  .. mul_opposite.div_inv_monoid α, .. mul_opposite.has_involutive_inv α }
+
+@[to_additive add_opposite.subtraction_comm_monoid] instance [division_comm_monoid α] :
+  division_comm_monoid αᵐᵒᵖ :=
+{ ..mul_opposite.division_monoid α, ..mul_opposite.comm_semigroup α }
 
 @[to_additive] instance [group α] : group αᵐᵒᵖ :=
 { mul_left_inv := λ x, unop_injective $ mul_inv_self $ unop x,

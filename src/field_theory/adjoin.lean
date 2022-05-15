@@ -547,6 +547,22 @@ noncomputable def adjoin.power_basis {x : L} (hx : is_integral K x) :
 lemma adjoin.finite_dimensional {x : L} (hx : is_integral K x) : finite_dimensional K K⟮x⟯ :=
 power_basis.finite_dimensional (adjoin.power_basis hx)
 
+lemma adjoin.finite_dimensional_of_finite_set {S : set L} (hS : S.finite)
+  (h_int : ∀ x ∈ S, is_integral K x) :
+  finite_dimensional K (intermediate_field.adjoin K S) :=
+begin
+  rw ←hS.coe_to_finset,
+  refine intermediate_field.induction_on_adjoin_finset hS.to_finset
+    (λ E : intermediate_field K L, finite_dimensional K E) _ (λ E x hx, _),
+  { refine finite_dimensional.finite_dimensional_of_finrank _,
+    rw intermediate_field.finrank_bot,
+    exact zero_lt_one },
+  { introI h,
+    haveI h2 : finite_dimensional ↥E (↥E)⟮x⟯ := intermediate_field.adjoin.finite_dimensional
+      (is_integral_of_is_scalar_tower _ $ h_int _ $ hS.mem_to_finset.1 hx),
+    simpa using finite_dimensional.trans K ↥E ↥(↥E)⟮x⟯ }
+end
+
 lemma adjoin.finrank {x : L} (hx : is_integral K x) :
   finite_dimensional.finrank K K⟮x⟯ = (minpoly K x).nat_degree :=
 begin

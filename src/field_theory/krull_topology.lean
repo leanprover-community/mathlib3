@@ -294,22 +294,6 @@ section compact
 
 variables {K L : Type*} [field K] [field L] [algebra K L] {E F : intermediate_field K L}
 
-lemma set.finite.adjoin_finite_dimensional {S : set L} (hS : S.finite)
-  (h_int : ∀ x ∈ S, is_integral K x) :
-  finite_dimensional K (intermediate_field.adjoin K S) :=
-begin
-  rw ←hS.coe_to_finset,
-  refine intermediate_field.induction_on_adjoin_finset hS.to_finset
-    (λ E : intermediate_field K L, finite_dimensional K E) _ (λ E x hx, _),
-  { refine finite_dimensional.finite_dimensional_of_finrank _,
-    rw intermediate_field.finrank_bot,
-    exact zero_lt_one },
-  { introI h,
-    haveI h2 : finite_dimensional ↥E (↥E)⟮x⟯ := intermediate_field.adjoin.finite_dimensional
-      (is_integral_of_is_scalar_tower _ $ h_int _ $ hS.mem_to_finset.1 hx),
-    simpa using finite_dimensional.trans K ↥E ↥(↥E)⟮x⟯ }
-end
-
 /-- Let `E` be an intermediate field of `L/K` with `E/K` finite, and let `f` be an ultrafilter
 on `L ≃ₐ[K] L`. Then the restriction map `(L ≃ₐ[K] L) → (E →ₐ[K] L)` pushes `f` forward to an
 ultrafilter on `E →ₐ[K] L`. Since `E →ₐ[K] L` is a finite set, this ultrafilter is principal. The
@@ -375,8 +359,8 @@ noncomputable def alg_hom_of_ultrafilter (f : ultrafilter (L ≃ₐ[K] L))
     have h_sub := intermediate_field.gc.le_u_l {x, y},
     have hx := h_sub (mem_insert x _),
     have hy := h_sub (mem_insert_of_mem _ $ mem_singleton _),
-    have hE : finite_dimensional K E := ((finite_singleton _).insert _).adjoin_finite_dimensional
-      (λ a _, h_int a),
+    have hE : finite_dimensional K E := intermediate_field.adjoin.finite_dimensional_of_finite_set
+    ((finite_singleton _).insert _) (λ a _, h_int a),
     rw [f.function_spec h_int hE hx, f.function_spec h_int hE hy,
       f.function_spec h_int hE (E.mul_mem hx hy)],
     exact map_mul (f.alg_hom hE) ⟨x, hx⟩ ⟨y, hy⟩,
@@ -387,8 +371,8 @@ noncomputable def alg_hom_of_ultrafilter (f : ultrafilter (L ≃ₐ[K] L))
     have h_sub := intermediate_field.gc.le_u_l {x, y},
     have hx := h_sub (mem_insert x _),
     have hy := h_sub (mem_insert_of_mem _ $ mem_singleton _),
-    have hE : finite_dimensional K E := ((finite_singleton _).insert _).adjoin_finite_dimensional
-      (λ a _, h_int a),
+    have hE : finite_dimensional K E := intermediate_field.adjoin.finite_dimensional_of_finite_set
+    ((finite_singleton _).insert _) (λ a _, h_int a),
     rw [f.function_spec h_int hE hx, f.function_spec h_int hE hy,
       f.function_spec h_int hE (E.add_mem hx hy)],
     exact map_add (f.alg_hom hE) ⟨x, hx⟩ ⟨y, hy⟩,
@@ -407,7 +391,7 @@ begin
   intros x y hxy,
   let E := intermediate_field.adjoin K ({x, y} : set L),
   let S := ({x, y} : finset L),
-  have hE := set.finite.adjoin_finite_dimensional (finset.finite_to_set S) (λ a ha, h_int a),
+  have hE := intermediate_field.adjoin.finite_dimensional_of_finite_set (finset.finite_to_set S) (λ a ha, h_int a),
   have hS_equiv_def : (S : set L) = {x, y} := by simp,
   rw hS_equiv_def at hE,
   change finite_dimensional K E at hE,
@@ -447,8 +431,9 @@ begin
   let p := minpoly K y,
   let S := (p.map (algebra_map K L)).roots.to_finset,
   let E := intermediate_field.adjoin K (S : set L),
-  have hE_findim : finite_dimensional K E := set.finite.adjoin_finite_dimensional
-    (finset.finite_to_set S) (λ x hx, h_int x),
+  have hE_findim : finite_dimensional K E :=
+  intermediate_field.adjoin.finite_dimensional_of_finite_set  (finset.finite_to_set S)
+  (λ x hx, h_int x),
   let σ := alg_hom_of_ultrafilter f h_int,
   have hσSS : σ '' S ⊆ S,
   { rintros x ⟨a, ha, hax⟩,

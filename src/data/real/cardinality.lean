@@ -130,8 +130,6 @@ begin
   apply add_lt_add_left, rw mul_lt_mul_left h1, exact ih (λ k hk, hn _ $ nat.succ_lt_succ hk) fn gn
 end
 
-local attribute [-instance] decidable_eq_of_decidable_le
-
 /-- `cantor_function c` is injective if `0 < c < 1/2`. -/
 lemma cantor_function_injective (h1 : 0 < c) (h2 : c < 1 / 2) :
   function.injective (cantor_function c) :=

@@ -1176,34 +1176,24 @@ theorem add_right_neg_equiv (x : pgame) : x + -x ≈ 0 :=
 private lemma add_le_add_right' : ∀ {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
 λ h, begin
-  rw le_def,
-  refine ⟨λ i : xl ⊕ zl, _, λ j : yr ⊕ zr, _⟩,
-  { -- if Left plays first
-    cases i,
-    { -- either they play in x
-      rw le_def at h,
-      cases h,
-      have t := h_left i,
-      rcases t with ⟨i', ih⟩ | ⟨j, jh⟩,
-      { exact or.inl ⟨to_left_moves_add (sum.inl i'), add_le_add_right' ih⟩ },
-      { refine or.inr ⟨to_right_moves_add (sum.inl j), _⟩,
-        convert add_le_add_right' jh,
-        apply add_move_right_inl } },
-    { -- or play in z
-      exact or.inl ⟨@to_left_moves_add _ ⟨_, _, _, _⟩ (sum.inr i), add_le_add_right' h⟩ } },
-  { -- if Right plays first
-    cases j,
-    { -- either they play in y
-      rw le_def at h,
-      cases h,
-      have t := h_right j,
-      rcases t with ⟨i, ih⟩ | ⟨j', jh⟩,
-      { refine or.inl ⟨to_left_moves_add (sum.inl i), _⟩,
-        convert add_le_add_right' ih,
-        apply add_move_left_inl },
-      { exact or.inr ⟨to_right_moves_add (sum.inl j'), add_le_add_right' jh⟩ } },
-    { -- or play in z
-      exact or.inr ⟨@to_right_moves_add _ ⟨_, _, _, _⟩ (sum.inr j), add_le_add_right' h⟩ } }
+  refine le_def.2 ⟨λ i, _, λ i, _⟩;
+  cases i,
+  { rw le_def at h,
+    cases h,
+    rcases h_left i with ⟨i', ih⟩ | ⟨j, jh⟩,
+    { exact or.inl ⟨to_left_moves_add (sum.inl i'), add_le_add_right' ih⟩ },
+    { refine or.inr ⟨to_right_moves_add (sum.inl j), _⟩,
+      convert add_le_add_right' jh,
+      apply add_move_right_inl } },
+  { exact or.inl ⟨@to_left_moves_add _ ⟨_, _, _, _⟩ (sum.inr i), add_le_add_right' h⟩ },
+  { rw le_def at h,
+    cases h,
+    rcases h_right i with ⟨i, ih⟩ | ⟨j', jh⟩,
+    { refine or.inl ⟨to_left_moves_add (sum.inl i), _⟩,
+      convert add_le_add_right' ih,
+      apply add_move_left_inl },
+    { exact or.inr ⟨to_right_moves_add (sum.inl j'), add_le_add_right' jh⟩ } },
+  { exact or.inr ⟨@to_right_moves_add _ ⟨_, _, _, _⟩ (sum.inr i), add_le_add_right' h⟩ }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
@@ -1231,6 +1221,7 @@ instance covariant_class_swap_add_lt : covariant_class pgame pgame (swap (+)) (<
   rw lt_iff_le_and_lf at h ⊢,
   exact ⟨add_le_add_right h.1 x, add_lf_add_right h.2 x⟩
 end⟩
+
 instance covariant_class_add_lt : covariant_class pgame pgame (+) (<) :=
 ⟨λ x y z h, begin
   rw lt_iff_le_and_lf at h ⊢,

@@ -47,8 +47,8 @@ the equality of the corresponding locations in `lhs, rhs`.
 Otherwise, `congrm` keeps scanning deeper into the expressions, until either the expressions finish
 or there is a mismatch between their shapes.
 
-*Note:* `congrm` does no check to make sure that the functions that it is matching are equal, or even
-defeq.  For instance,
+*Note:* `congrm` does no check to make sure that the functions that it is matching are equal,
+or even defeq.  For instance,
 ```lean
 example : (nat.pred 5) * nat.succ 7 = (nat.pred 8) + nat.pred 12 :=
 begin

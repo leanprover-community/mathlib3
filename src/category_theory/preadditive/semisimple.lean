@@ -257,7 +257,7 @@ can be written as `W ≅ f i ⊞ W'` for some `i`,
 so that the inclusion takes `f i` to the corresponding summand,
 and `W'` is a subobject of the other summands.
 
-(In `subobject_of_semisimple` we further assume that the category is noetherian,
+(In `subobject_of_semisimple` we further assume that the category is artinian,
 and replace the hypothesis that `W` contains a simple subobject with
 the hypothesis `W ≠ ⊥`.)
 -/
@@ -286,12 +286,12 @@ A nonzero subobject `W` of a direct sum of simple objects `⨁ f` can be written
 `W ≅ f i ⊞ W'` for some `i`, so that the inclusion takes `f i` to the corresponding summand,
 and `W'` is a subobject of the other summands.
 -/
-lemma subobject_of_semisimple [noetherian C] (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
+lemma subobject_of_semisimple [artinian C] (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
   (W : subobject (⨁ f)) (w : W ≠ ⊥) :
   ∃ (i : ι) (W' : subobject (⨁ (λ j : ({i}ᶜ : set ι), f j))) (j : (W : C) ≅ f i ⊞ W'),
     W.arrow = j.hom ≫ (biprod.fst ≫ biproduct.ι _ i +
       biprod.snd ≫ W'.arrow ≫ biproduct.from_subtype _ _) :=
-subobject_of_semisimple' f W sorry
+subobject_of_semisimple' f W (exists_simple_subobject_le W w)
 
 def biproduct.π_le (f : ι → C) {p q : set ι} (h : p ⊆ q) [has_finite_biproducts C] :
   (⨁ (λ i : q, f i)) ⟶ (⨁ (λ i : p, f i)) :=

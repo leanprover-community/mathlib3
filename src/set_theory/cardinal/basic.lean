@@ -164,7 +164,7 @@ induction_on a $ λ α,
 /-- We define the order on cardinal numbers by `#α ≤ #β` if and only if
   there exists an embedding (injective function) from α to β. -/
 instance : partial_order cardinal.{u} :=
-{ le          := λ q₁ q₂, quotient.lift_on₂ q₁ q₂ (λα β, nonempty $ α ↪ β) $
+{ le          := λ q₁ q₂, quotient.lift_on₂ q₁ q₂ (λ α β, nonempty $ α ↪ β) $
                  λ α β γ δ ⟨e₁⟩ ⟨e₂⟩,
                    propext ⟨λ ⟨e⟩, ⟨e.congr e₁ e₂⟩, λ ⟨e⟩, ⟨e.congr e₁.symm e₂.symm⟩⟩,
   le_refl     := by rintros ⟨α⟩; exact ⟨embedding.refl _⟩,

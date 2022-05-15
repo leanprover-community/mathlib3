@@ -673,11 +673,11 @@ lemma coe_sup [semilattice_sup α] (a b : α) : ((a ⊔ b : α) : with_bot α) =
 instance [semilattice_inf α] : semilattice_inf (with_bot α) :=
 { inf          := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a ⊓ b)),
   inf_le_left  := λ o₁ o₂ a ha, begin
-    simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
+    simp [map] at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
     exact ⟨_, rfl, inf_le_left⟩
   end,
   inf_le_right := λ o₁ o₂ a ha, begin
-    simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
+    simp [map] at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
     exact ⟨_, rfl, inf_le_right⟩
   end,
   le_inf       := λ o₁ o₂ o₃ h₁ h₂ a ha, begin
@@ -938,11 +938,11 @@ lemma coe_inf [semilattice_inf α] (a b : α) : ((a ⊓ b : α) : with_top α) =
 instance [semilattice_sup α] : semilattice_sup (with_top α) :=
 { sup          := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a ⊔ b)),
   le_sup_left  := λ o₁ o₂ a ha, begin
-    simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
+    simp [map] at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
     exact ⟨_, rfl, le_sup_left⟩
   end,
   le_sup_right := λ o₁ o₂ a ha, begin
-    simp at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
+    simp [map] at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
     exact ⟨_, rfl, le_sup_right⟩
   end,
   sup_le       := λ o₁ o₂ o₃ h₁ h₂ a ha, begin

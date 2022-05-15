@@ -378,7 +378,7 @@ lemma dist_le_of_le_geometric_two_of_tendsto {a : α} (ha : tendsto f at_top (�
   dist (f n) a ≤ C / 2^n :=
 begin
   convert dist_le_tsum_of_dist_le_of_tendsto _ hu₂ (summable_geometric_two' C) ha n,
-  simp only [add_comm n, pow_add, ← div_div_eq_div_mul],
+  simp only [add_comm n, pow_add, ← div_div],
   symmetry,
   exact ((has_sum_geometric_two' C).div_const _).tsum_eq
 end

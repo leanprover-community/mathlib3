@@ -132,7 +132,7 @@ mt circle_map_eq_center_iff.1 hR
 lemma has_deriv_at_circle_map (c : ℂ) (R : ℝ) (θ : ℝ) :
   has_deriv_at (circle_map c R) (circle_map 0 R θ * I) θ :=
 by simpa only [mul_assoc, one_mul, of_real_clm_apply, circle_map, of_real_one, zero_add]
- using ((of_real_clm.has_deriv_at.mul_const I).cexp_real.const_mul (R : ℂ)).const_add c
+ using ((of_real_clm.has_deriv_at.mul_const I).cexp.const_mul (R : ℂ)).const_add c
 
 /- TODO: prove `cont_diff ℝ (circle_map c R)`. This needs a version of `cont_diff.mul`
 for multiplication in a normed algebra over the base field. -/
@@ -515,7 +515,7 @@ begin
     refine has_sum.smul_const _,
     have : ∥w / (circle_map c R θ - c)∥ < 1, by simpa [abs_of_pos hR] using hwR.2,
     convert (has_sum_geometric_of_norm_lt_1 this).mul_right _,
-    simp [← sub_sub, ← mul_inv₀, sub_mul, div_mul_cancel _ (circle_map_ne_center hR.ne')] }
+    simp [← sub_sub, ← mul_inv, sub_mul, div_mul_cancel _ (circle_map_ne_center hR.ne')] }
 end
 
 /-- For any circle integrable function `f`, the power series `cauchy_power_series f c R`, `R > 0`,

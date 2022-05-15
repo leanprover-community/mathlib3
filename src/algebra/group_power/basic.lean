@@ -203,7 +203,7 @@ section nat
 @[simp, to_additive] theorem inv_pow (a : G) (n : ℕ) : (a⁻¹)^n = (a^n)⁻¹ :=
 begin
   induction n with n ih,
-  { rw [pow_zero, pow_zero, one_inv] },
+  { rw [pow_zero, pow_zero, inv_one] },
   { rw [pow_succ', pow_succ, ih, mul_inv_rev] }
 end
 
@@ -227,7 +227,7 @@ end nat
 @[to_additive zsmul_zero, simp]
 theorem one_zpow : ∀ (n : ℤ), (1 : G) ^ n = 1
 | (n : ℕ) := by rw [zpow_coe_nat, one_pow]
-| -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, one_inv]
+| -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, inv_one]
 
 @[simp, to_additive neg_zsmul]
 theorem zpow_neg (a : G) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹

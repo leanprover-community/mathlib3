@@ -298,7 +298,7 @@ by rw [← map_mul, h, map_one]
 @[simp, to_additive "Additive group homomorphisms preserve negation."]
 theorem map_inv [group G] [group H] [monoid_hom_class F G H]
   (f : F) (g : G) : f g⁻¹ = (f g)⁻¹ :=
-eq_inv_of_mul_eq_one $ map_mul_eq_one f $ inv_mul_self g
+eq_inv_of_mul_eq_one_left $ map_mul_eq_one f $ inv_mul_self g
 
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive "Additive group homomorphisms preserve subtraction."]
@@ -700,7 +700,7 @@ end monoid_hom
 monoid homomorphism."]
 def comm_group.inv_monoid_hom {G : Type*} [comm_group G] : G →* G :=
 { to_fun := has_inv.inv,
-  map_one' := one_inv,
+  map_one' := inv_one,
   map_mul' := mul_inv }
 
 /-- The identity map from a type with 1 to itself. -/
@@ -1125,7 +1125,7 @@ def of_map_mul_inv {H : Type*} [group H] (f : G → H)
   (map_div : ∀ a b : G, f (a * b⁻¹) = f a * (f b)⁻¹) :
   G →* H :=
 mk' f $ λ x y,
-calc f (x * y) = f x * (f $ 1 * 1⁻¹ * y⁻¹)⁻¹ : by simp only [one_mul, one_inv, ← map_div, inv_inv]
+calc f (x * y) = f x * (f $ 1 * 1⁻¹ * y⁻¹)⁻¹ : by simp only [one_mul, inv_one, ← map_div, inv_inv]
 ... = f x * f y : by { simp only [map_div], simp only [mul_right_inv, one_mul, inv_inv] }
 
 @[simp, to_additive] lemma coe_of_map_mul_inv {H : Type*} [group H] (f : G → H)

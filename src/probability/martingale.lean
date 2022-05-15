@@ -11,11 +11,11 @@ import probability.stopping
 
 A family of functions `f : ι → α → E` is a martingale with respect to a filtration `ℱ` if every
 `f i` is integrable, `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
-`μ[f j | ℱ.le i] =ᵐ[μ] f i`. On the other hand, `f : ι → α → E` is said to be a supermartingale
+`μ[f j | ℱ i] =ᵐ[μ] f i`. On the other hand, `f : ι → α → E` is said to be a supermartingale
 with respect to the filtration `ℱ` if `f i` is integrable, `f` is adapted with resepct to `ℱ`
-and for all `i ≤ j`, `μ[f j | ℱ.le i] ≤ᵐ[μ] f i`. Finally, `f : ι → α → E` is said to be a
+and for all `i ≤ j`, `μ[f j | ℱ i] ≤ᵐ[μ] f i`. Finally, `f : ι → α → E` is said to be a
 submartingale with respect to the filtration `ℱ` if `f i` is integrable, `f` is adapted with
-resepct to `ℱ` and for all `i ≤ j`, `f i ≤ᵐ[μ] μ[f j | ℱ.le i]`.
+resepct to `ℱ` and for all `i ≤ j`, `f i ≤ᵐ[μ] μ[f j | ℱ i]`.
 
 The definitions of filtration and adapted can be found in `probability.stopping`.
 
@@ -43,30 +43,27 @@ namespace measure_theory
 variables {α E ι : Type*} [preorder ι]
   {m0 : measurable_space α} {μ : measure α}
   [normed_group E] [normed_space ℝ E] [complete_space E]
-  {f g : ι → α → E} {ℱ : filtration ι m0} [sigma_finite_filtration μ ℱ]
+  {f g : ι → α → E} {ℱ : filtration ι m0}
 
 /-- A family of functions `f : ι → α → E` is a martingale with respect to a filtration `ℱ` if `f`
-is adapted with respect to `ℱ` and for all `i ≤ j`, `μ[f j | ℱ.le i] =ᵐ[μ] f i`. -/
-def martingale (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α)
-  [sigma_finite_filtration μ ℱ] : Prop :=
-adapted ℱ f ∧ ∀ i j, i ≤ j → μ[f j | ℱ i, ℱ.le i] =ᵐ[μ] f i
+is adapted with respect to `ℱ` and for all `i ≤ j`, `μ[f j | ℱ i] =ᵐ[μ] f i`. -/
+def martingale (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α) : Prop :=
+adapted ℱ f ∧ ∀ i j, i ≤ j → μ[f j | ℱ i] =ᵐ[μ] f i
 
 /-- A family of integrable functions `f : ι → α → E` is a supermartingale with respect to a
 filtration `ℱ` if `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
 `μ[f j | ℱ.le i] ≤ᵐ[μ] f i`. -/
-def supermartingale [has_le E] (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α)
-  [sigma_finite_filtration μ ℱ] : Prop :=
-adapted ℱ f ∧ (∀ i j, i ≤ j → μ[f j | ℱ i, ℱ.le i] ≤ᵐ[μ] f i) ∧ ∀ i, integrable (f i) μ
+def supermartingale [has_le E] (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α) : Prop :=
+adapted ℱ f ∧ (∀ i j, i ≤ j → μ[f j | ℱ i] ≤ᵐ[μ] f i) ∧ ∀ i, integrable (f i) μ
 
 /-- A family of integrable functions `f : ι → α → E` is a submartingale with respect to a
 filtration `ℱ` if `f` is adapted with respect to `ℱ` and for all `i ≤ j`,
 `f i ≤ᵐ[μ] μ[f j | ℱ.le i]`. -/
-def submartingale [has_le E] (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α)
-  [sigma_finite_filtration μ ℱ] : Prop :=
-adapted ℱ f ∧ (∀ i j, i ≤ j → f i ≤ᵐ[μ] μ[f j | ℱ i, ℱ.le i]) ∧ ∀ i, integrable (f i) μ
+def submartingale [has_le E] (f : ι → α → E) (ℱ : filtration ι m0) (μ : measure α) : Prop :=
+adapted ℱ f ∧ (∀ i j, i ≤ j → f i ≤ᵐ[μ] μ[f j | ℱ i]) ∧ ∀ i, integrable (f i) μ
 
 variables (E)
-lemma martingale_zero (ℱ : filtration ι m0) (μ : measure α) [sigma_finite_filtration μ ℱ] :
+lemma martingale_zero (ℱ : filtration ι m0) (μ : measure α) :
   martingale (0 : ι → α → E) ℱ μ :=
 ⟨adapted_zero E ℱ, λ i j hij, by { rw [pi.zero_apply, condexp_zero], simp, }⟩
 variables {E}
@@ -81,18 +78,18 @@ lemma strongly_measurable (hf : martingale f ℱ μ) (i : ι) : strongly_measura
 hf.adapted i
 
 lemma condexp_ae_eq (hf : martingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
-  μ[f j | ℱ i, ℱ.le i] =ᵐ[μ] f i :=
+  μ[f j | ℱ i] =ᵐ[μ] f i :=
 hf.2 i j hij
 
 @[protected]
 lemma integrable (hf : martingale f ℱ μ) (i : ι) : integrable (f i) μ :=
 integrable_condexp.congr (hf.condexp_ae_eq (le_refl i))
 
-lemma set_integral_eq (hf : martingale f ℱ μ) {i j : ι} (hij : i ≤ j) {s : set α}
-  (hs : measurable_set[ℱ i] s) :
+lemma set_integral_eq [sigma_finite_filtration μ ℱ] (hf : martingale f ℱ μ) {i j : ι} (hij : i ≤ j)
+  {s : set α} (hs : measurable_set[ℱ i] s) :
   ∫ x in s, f i x ∂μ = ∫ x in s, f j x ∂μ :=
 begin
-  rw ← @set_integral_condexp _ _ _ _ _ (ℱ i) m0 _ (ℱ.le i) _ _ _ (hf.integrable j) hs,
+  rw ← @set_integral_condexp _ _ _ _ _ (ℱ i) m0 _ _ _ (ℱ.le i) _ (hf.integrable j) hs,
   refine set_integral_congr_ae (ℱ.le i s hs) _,
   filter_upwards [hf.2 i j hij] with _ heq _ using heq.symm,
 end
@@ -132,8 +129,8 @@ lemma martingale_iff [partial_order E] : martingale f ℱ μ ↔
 
 lemma martingale_condexp (f : α → E) (ℱ : filtration ι m0) (μ : measure α)
   [sigma_finite_filtration μ ℱ] :
-  martingale (λ i, μ[f | ℱ i, ℱ.le i]) ℱ μ :=
-⟨λ i, strongly_measurable_condexp, λ i j hij, condexp_condexp_of_le (ℱ.mono hij) _⟩
+  martingale (λ i, μ[f | ℱ i]) ℱ μ :=
+⟨λ i, strongly_measurable_condexp, λ i j hij, condexp_condexp_of_le (ℱ.mono hij) (ℱ.le j)⟩
 
 namespace supermartingale
 
@@ -149,10 +146,10 @@ hf.adapted i
 lemma integrable [has_le E] (hf : supermartingale f ℱ μ) (i : ι) : integrable (f i) μ := hf.2.2 i
 
 lemma condexp_ae_le [has_le E] (hf : supermartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
-  μ[f j | ℱ i, ℱ.le i] ≤ᵐ[μ] f i :=
+  μ[f j | ℱ i] ≤ᵐ[μ] f i :=
 hf.2.1 i j hij
 
-lemma set_integral_le {f : ι → α → ℝ} (hf : supermartingale f ℱ μ)
+lemma set_integral_le [sigma_finite_filtration μ ℱ] {f : ι → α → ℝ} (hf : supermartingale f ℱ μ)
   {i j : ι} (hij : i ≤ j) {s : set α} (hs : measurable_set[ℱ i] s) :
   ∫ x in s, f j x ∂μ ≤ ∫ x in s, f i x ∂μ :=
 begin
@@ -200,7 +197,7 @@ hf.adapted i
 lemma integrable [has_le E] (hf : submartingale f ℱ μ) (i : ι) : integrable (f i) μ := hf.2.2 i
 
 lemma ae_le_condexp [has_le E] (hf : submartingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
-  f i ≤ᵐ[μ] μ[f j | ℱ i, ℱ.le i] :=
+  f i ≤ᵐ[μ] μ[f j | ℱ i] :=
 hf.2.1 i j hij
 
 lemma add [preorder E] [covariant_class E E (+) (≤)]
@@ -226,7 +223,7 @@ begin
 end
 
 /-- The converse of this lemma is `measure_theory.submartingale_of_set_integral_le`. -/
-lemma set_integral_le {f : ι → α → ℝ} (hf : submartingale f ℱ μ)
+lemma set_integral_le [sigma_finite_filtration μ ℱ] {f : ι → α → ℝ} (hf : submartingale f ℱ μ)
   {i j : ι} (hij : i ≤ j) {s : set α} (hs : measurable_set[ℱ i] s) :
   ∫ x in s, f i x ∂μ ≤ ∫ x in s, f j x ∂μ :=
 begin
@@ -253,9 +250,9 @@ lemma submartingale_of_set_integral_le [is_finite_measure μ]
   submartingale f ℱ μ :=
 begin
   refine ⟨hadp, λ i j hij, _, hint⟩,
-  suffices : f i ≤ᵐ[μ.trim (ℱ.le i)] μ[f j| ℱ.le i],
+  suffices : f i ≤ᵐ[μ.trim (ℱ.le i)] μ[f j| ℱ i],
   { exact ae_le_of_ae_le_trim this },
-  suffices : 0 ≤ᵐ[μ.trim (ℱ.le i)] μ[f j| ℱ.le i] - f i,
+  suffices : 0 ≤ᵐ[μ.trim (ℱ.le i)] μ[f j| ℱ i] - f i,
   { filter_upwards [this] with x hx,
     rwa ← sub_nonneg },
   refine ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure
@@ -264,7 +261,7 @@ begin
   specialize hf i j hij s hs,
   rwa [← set_integral_trim _ (strongly_measurable_condexp.sub $ hadp i) hs,
     integral_sub' integrable_condexp.integrable_on (hint i).integrable_on, sub_nonneg,
-    set_integral_condexp _ (hint j) hs],
+    set_integral_condexp (ℱ.le i) (hint j) hs],
 end
 
 end
@@ -336,7 +333,7 @@ end submartingale
 
 section nat
 
-variables {𝒢 : filtration ℕ m0} [sigma_finite_filtration μ 𝒢]
+variables {𝒢 : filtration ℕ m0}
 
 namespace submartingale
 
@@ -351,7 +348,8 @@ integrable_stopped_value hτ hf.integrable hbdd
 /-- Given a submartingale `f` and bounded stopping times `τ` and `π` such that `τ ≤ π`, the
 expectation of `stopped_value f τ` is less than or equal to the expectation of `stopped_value f π`.
 This is the forward direction of the optional stopping theorem. -/
-lemma expected_stopped_value_mono {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ π : α → ℕ}
+lemma expected_stopped_value_mono [sigma_finite_filtration μ 𝒢]
+  {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ π : α → ℕ}
   (hτ : is_stopping_time 𝒢 τ) (hπ : is_stopping_time 𝒢 π) (hle : τ ≤ π)
   {N : ℕ} (hbdd : ∀ x, π x ≤ N) :
   μ[stopped_value f τ] ≤ μ[stopped_value f π] :=

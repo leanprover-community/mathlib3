@@ -75,19 +75,20 @@ section pullback
 
 variable {B' : Type*}
 
-/-- Type synonym to avoid type class loops. -/
-@[simp, nolint has_inhabited_instance] def pullback (f : B' → B) (E : B → Type*) := λ x, E (f x)
+/-- The pullback of a bundle `E` over a base `B` under a map `f : B' → B`, denoted by `pullback f E`
+or `f *ᵖ E`,  is the bundle over `B'` whose fiber over `b'` is `E (f b')`. -/
+@[nolint has_inhabited_instance] def pullback (f : B' → B) (E : B → Type*) := λ x, E (f x)
 
 notation f ` *ᵖ ` E := pullback f E
 
 /-- Natural embedding of the total space of `f *ᵖ E` into `B' × total_space E`. -/
-@[simp] def pullback_total_space_embedding (f : B' → B) :
-  total_space (f *ᵖ E) → B' × total_space E :=
-λ z, (proj (f *ᵖ E) z, total_space_mk E (f (proj (f *ᵖ E) z)) z.2)
+@[simp] def pullback_total_space_embedding (f : B' → B) (p : total_space (f *ᵖ E)) :
+  B' × total_space E :=
+(proj (f *ᵖ E) p, total_space_mk E (f (proj (f *ᵖ E) p)) p.2)
 
 /-- The base map `f : B' → B` lifts to a canonical map on the total spaces. -/
-def pullback.lift (f : B' → B) : total_space (f *ᵖ E) → total_space E :=
-λ z, total_space_mk E (f (proj (f *ᵖ E) z)) z.2
+def pullback.lift (f : B' → B) (p : total_space (f *ᵖ E)) : total_space E :=
+total_space_mk E (f (proj (f *ᵖ E) p)) p.2
 
 @[simp] lemma pullback.proj_lift (f : B' → B) (x : total_space (f *ᵖ E)) :
   proj E (pullback.lift E f x) = f x.1 :=

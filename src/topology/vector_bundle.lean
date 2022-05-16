@@ -224,6 +224,48 @@ lemma proj_symm_coe {x : B} {y : F}
   proj E ((e.to_local_homeomorph.symm) (x, y)) = x :=
 e.proj_symm_apply' h
 
+
+/-- The function `F → E x` that induces a local inverse `B × F → total_space E` of `e` on
+  `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
+protected def symm (e : trivialization R F E) (x : B) (y : F) : E x :=
+if hx : x ∈ e.base_set
+then cast (congr_arg E (e.proj_symm_coe hx)) (e.to_local_homeomorph.symm (x, y)).2
+else 0
+
+lemma symm_apply (e : trivialization R F E) {x : B} (hx : x ∈ e.base_set) (y : F) :
+  e.symm x y = cast (congr_arg E (e.symm_coe_fst' hx)) (e.to_local_homeomorph.symm (x, y)).2 :=
+dif_pos hx
+
+lemma mk_symm (e : trivialization R F E) {x : B} (hx : x ∈ e.base_set) (y : F) :
+  total_space_mk E x (e.symm x y) = e.to_local_homeomorph.symm (x, y) :=
+by rw [e.symm_apply hx, total_space.mk_cast, total_space.eta]
+
+lemma symm_proj_apply (e : trivialization R F E) (z : total_space E)
+  (hz : proj E z ∈ e.base_set) : e.symm (proj E z) (e z).2 = z.2 :=
+by rw [e.symm_apply hz, cast_eq_iff_heq, e.mk_proj_snd' hz,
+  e.symm_apply_apply (e.mem_source.mpr hz)]
+
+lemma symm_apply_apply_mk (e : trivialization R F E) {x : B} (hx : x ∈ e.base_set) (y : E x) :
+  e.symm x (e (total_space_mk E x y)).2 = y :=
+e.symm_proj_apply (total_space_mk E x y) hx
+
+lemma apply_mk_symm (e : trivialization R F E) {x : B} (hx : x ∈ e.base_set) (y : F) :
+  e (total_space_mk E x (e.symm x y)) = (x, y) :=
+by rw [e.mk_symm hx, e.apply_symm_apply (e.mk_mem_target.mpr hx)]
+
+lemma continuous_on_symm (e : trivialization R F E) :
+  continuous_on (λ z : B × F, total_space_mk E z.1 (e.symm z.1 z.2))
+    (e.base_set ×ˢ (univ : set F)) :=
+begin
+  have : ∀ (z : B × F) (hz : z ∈ e.base_set ×ˢ (univ : set F)),
+    total_space_mk E z.1 (e.symm z.1 z.2) = e.to_local_homeomorph.symm z,
+  { rintro x ⟨hx : x.1 ∈ e.base_set, _⟩, simp_rw [e.mk_symm hx, prod.mk.eta] },
+  refine continuous_on.congr _ this,
+  rw [← e.target_eq],
+  exact e.to_local_homeomorph.continuous_on_symm
+end
+
+
 end topological_vector_bundle.trivialization
 
 end topological_vector_space
@@ -315,46 +357,6 @@ end
 attribute [irreducible] coord_change
 
 namespace trivialization
-
-/-- The function `F → E x` that induces a local inverse `B × F → total_space E` of `e` on
-  `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
-protected def symm (e : trivialization R F E) (x : B) (y : F) : E x :=
-if hx : x ∈ e.base_set
-then cast (congr_arg E (e.proj_symm_coe hx)) (e.to_local_homeomorph.symm (x, y)).2
-else 0
-
-lemma symm_apply (e : trivialization R F E) {x : B} (hx : x ∈ e.base_set) (y : F) :
-  e.symm x y = cast (congr_arg E (e.symm_coe_fst' hx)) (e.to_local_homeomorph.symm (x, y)).2 :=
-dif_pos hx
-
-lemma mk_symm (e : trivialization R F E) {x : B} (hx : x ∈ e.base_set) (y : F) :
-  total_space_mk E x (e.symm x y) = e.to_local_homeomorph.symm (x, y) :=
-by rw [e.symm_apply hx, total_space.mk_cast, total_space.eta]
-
-lemma symm_apply_apply' (e : trivialization R F E) (z : total_space E)
-  (hz : proj E z ∈ e.base_set) : e.symm (proj E z) (e z).2 = z.2 :=
-by rw [e.symm_apply hz, cast_eq_iff_heq, e.mk_proj_snd' hz,
-  e.symm_apply_apply (e.mem_source.mpr hz)]
-
-lemma symm_apply_apply_mk (e : trivialization R F E) {x : B} (hx : x ∈ e.base_set) (y : E x) :
-  e.symm x (e (total_space_mk E x y)).2 = y :=
-e.symm_apply_apply' (total_space_mk E x y) hx
-
-lemma apply_mk_symm (e : trivialization R F E) {x : B} (hx : x ∈ e.base_set) (y : F) :
-  e (total_space_mk E x (e.symm x y)) = (x, y) :=
-by rw [e.mk_symm hx, e.apply_symm_apply (e.mk_mem_target.mpr hx)]
-
-lemma continuous_on_symm (e : trivialization R F E) :
-  continuous_on (λ z : B × F, total_space_mk E z.1 (e.symm z.1 z.2))
-    (e.base_set ×ˢ (univ : set F)) :=
-begin
-  have : ∀ (z : B × F) (hz : z ∈ e.base_set ×ˢ (univ : set F)),
-    total_space_mk E z.1 (e.symm z.1 z.2) = e.to_local_homeomorph.symm z,
-  { rintro x ⟨hx : x.1 ∈ e.base_set, _⟩, simp_rw [e.mk_symm hx, prod.mk.eta] },
-  refine continuous_on.congr _ this,
-  rw [← e.target_eq],
-  exact e.to_local_homeomorph.continuous_on_symm
-end
 
 /-- In a topological vector bundle, a trivialization in the fiber (which is a priori only linear)
 is in fact a continuous linear equiv between the fibers and the model fiber. -/

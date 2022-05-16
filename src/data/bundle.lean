@@ -39,12 +39,26 @@ instance [inhabited B] [inhabited (E default)] :
 @[simp, reducible] def total_space_mk (E : B → Type*) (b : B) (a : E b) :
   bundle.total_space E := ⟨b, a⟩
 
-instance {x : B} : has_coe_t (E x) (total_space E) := ⟨sigma.mk x⟩
+lemma total_space.proj_mk {x : B} {y : E x} : proj E (total_space_mk E x y) = x :=
+rfl
+
+lemma sigma_mk_eq_total_space_mk {x : B} {y : E x} : sigma.mk x y = total_space_mk E x y :=
+rfl
+
+lemma total_space.mk_cast {x x' : B} (h : x = x') (b : E x) :
+  total_space_mk E x' (cast (congr_arg E h) b) = total_space_mk E x b :=
+by { subst h, refl }
+
+lemma total_space.eta {B} {E : B → Type*} (z : total_space E) :
+  total_space_mk E (proj E z) z.2 = z :=
+sigma.eta z
+
+instance {x : B} : has_coe_t (E x) (total_space E) := ⟨total_space_mk E x⟩
 
 @[simp] lemma coe_fst (x : B) (v : E x) : (v : total_space E).fst = x := rfl
 @[simp] lemma coe_snd {x : B} {y : E x} : (y : total_space E).snd = y := rfl
 
-lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = ⟨x, v⟩ := rfl
+lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = total_space_mk E x v := rfl
 
 -- notation for the direct sum of two bundles over the same base
 notation E₁ `×ᵇ`:100 E₂ := λ x, E₁ x × E₂ x
@@ -55,12 +69,7 @@ def trivial (B : Type*) (F : Type*) : B → Type* := function.const B F
 instance {F : Type*} [inhabited F] {b : B} : inhabited (bundle.trivial B F b) := ⟨(default : F)⟩
 
 /-- The trivial bundle, unlike other bundles, has a canonical projection on the fiber. -/
-def trivial.proj_snd (B : Type*) (F : Type*) : (total_space (bundle.trivial B F)) → F := sigma.snd
-
--- do we really need this?
-lemma total_space_mk_cast {E} {x : B} (y : total_space E) (h : y.1 = x) :
-  total_space_mk E x (cast (congr_arg E h) y.2) = y :=
-by { rcases ⟨h, y⟩ with ⟨rfl, y1, y2⟩, refl }
+def trivial.proj_snd (B : Type*) (F : Type*) : total_space (bundle.trivial B F) → F := sigma.snd
 
 section pullback
 
@@ -74,15 +83,11 @@ notation f ` *ᵖ ` E := pullback f E
 /-- Natural embedding of the total space of `f *ᵖ E` into `B' × total_space E`. -/
 @[simp] def pullback_total_space_embedding (f : B' → B) :
   total_space (f *ᵖ E) → B' × total_space E :=
-λ z, (z.1, total_space_mk E (f z.1) z.2)
+λ z, (proj (f *ᵖ E) z, total_space_mk E (f (proj (f *ᵖ E) z)) z.2)
 
 /-- The base map `f : B' → B` lifts to a canonical map on the total spaces. -/
 def pullback.lift (f : B' → B) : total_space (f *ᵖ E) → total_space E :=
-λ z, total_space_mk E (f z.fst) z.snd
-
-lemma pullback.lift_def (f : B' → B) (x : total_space (f *ᵖ E)) :
-  pullback.lift E f x = total_space_mk E (f x.1) x.2 :=
-rfl
+λ z, total_space_mk E (f (proj (f *ᵖ E) z)) z.2
 
 @[simp] lemma pullback.proj_lift (f : B' → B) (x : total_space (f *ᵖ E)) :
   proj E (pullback.lift E f x) = f x.1 :=
@@ -95,7 +100,6 @@ rfl
 @[simp] lemma pullback_total_space_embedding_snd (f : B' → B) (x : total_space (f *ᵖ E)) :
   (pullback_total_space_embedding E f x).2 = pullback.lift E f x :=
 rfl
-
 
 end pullback
 

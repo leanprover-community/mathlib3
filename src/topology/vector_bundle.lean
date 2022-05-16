@@ -136,7 +136,8 @@ e.to_fiber_bundle_pretrivialization.preimage_symm_proj_base_set
 
 @[simp, mfld_simps] lemma symm_coe_fst' {x : B} {y : F}
   (e : pretrivialization R F E) (h : x ∈ e.base_set) :
-  ((e.to_local_equiv.symm) (x, y)).fst = x := e.proj_symm_apply' h
+  proj E ((e.to_local_equiv.symm) (x, y)) = x :=
+e.proj_symm_apply' h
 
 end topological_vector_bundle.pretrivialization
 
@@ -315,61 +316,62 @@ attribute [irreducible] coord_change
 
 namespace trivialization
 
+/-- The function `F → E x` that induces a local inverse `B × F → total_space E` of `e` on
+  `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
+protected def symm (e : trivialization R F E) (x : B) (y : F) : E x :=
+if hx : x ∈ e.base_set
+then cast (congr_arg E (e.proj_symm_coe hx)) (e.to_local_homeomorph.symm (x, y)).2
+else 0
+
+lemma symm_apply (e : trivialization R F E) {x : B} (hx : x ∈ e.base_set) (y : F) :
+  e.symm x y = cast (congr_arg E (e.symm_coe_fst' hx)) (e.to_local_homeomorph.symm (x, y)).2 :=
+dif_pos hx
+
+lemma mk_symm (e : trivialization R F E) {x : B} (hx : x ∈ e.base_set) (y : F) :
+  total_space_mk E x (e.symm x y) = e.to_local_homeomorph.symm (x, y) :=
+by rw [e.symm_apply hx, total_space.mk_cast, total_space.eta]
+
+lemma symm_apply_apply' (e : trivialization R F E) (z : total_space E)
+  (hz : proj E z ∈ e.base_set) : e.symm (proj E z) (e z).2 = z.2 :=
+by rw [e.symm_apply hz, cast_eq_iff_heq, e.mk_proj_snd' hz,
+  e.symm_apply_apply (e.mem_source.mpr hz)]
+
+lemma symm_apply_apply_mk (e : trivialization R F E) {x : B} (hx : x ∈ e.base_set) (y : E x) :
+  e.symm x (e (total_space_mk E x y)).2 = y :=
+e.symm_apply_apply' (total_space_mk E x y) hx
+
+lemma apply_mk_symm (e : trivialization R F E) {x : B} (hx : x ∈ e.base_set) (y : F) :
+  e (total_space_mk E x (e.symm x y)) = (x, y) :=
+by rw [e.mk_symm hx, e.apply_symm_apply (e.mk_mem_target.mpr hx)]
+
+lemma continuous_on_symm (e : trivialization R F E) :
+  continuous_on (λ z : B × F, total_space_mk E z.1 (e.symm z.1 z.2))
+    (e.base_set ×ˢ (univ : set F)) :=
+begin
+  have : ∀ (z : B × F) (hz : z ∈ e.base_set ×ˢ (univ : set F)),
+    total_space_mk E z.1 (e.symm z.1 z.2) = e.to_local_homeomorph.symm z,
+  { rintro x ⟨hx : x.1 ∈ e.base_set, _⟩, simp_rw [e.mk_symm hx, prod.mk.eta] },
+  refine continuous_on.congr _ this,
+  rw [← e.target_eq],
+  exact e.to_local_homeomorph.continuous_on_symm
+end
+
 /-- In a topological vector bundle, a trivialization in the fiber (which is a priori only linear)
 is in fact a continuous linear equiv between the fibers and the model fiber. -/
 def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) : E b ≃L[R] F :=
 { to_fun := λ y, (e ⟨b, y⟩).2,
-  inv_fun := λ z, cast (congr_arg E (e.proj_symm_apply' hb)) (e.to_local_homeomorph.symm (b, z)).2,
-  left_inv := begin
-    assume v,
-    rw [← heq_iff_eq],
-    apply (cast_heq _ _).trans,
-    have A : (b, (e ⟨b, v⟩).snd) = e ⟨b, v⟩,
-    { refine prod.ext _ rfl,
-      symmetry,
-      exact topological_fiber_bundle.trivialization.coe_fst' _ hb },
-    have B : e.to_local_homeomorph.symm (e ⟨b, v⟩) = ⟨b, v⟩,
-    { apply local_homeomorph.left_inv_on,
-      rw topological_fiber_bundle.trivialization.mem_source,
-      exact hb },
-    rw [A, B],
-  end,
-  right_inv := begin
-    assume v,
-    have B : e (e.to_local_homeomorph.symm (b, v)) = (b, v),
-    { apply local_homeomorph.right_inv_on,
-      rw topological_fiber_bundle.trivialization.mem_target,
-      exact hb },
-    have C : (e (e.to_local_homeomorph.symm (b, v))).2 = v, by rw [B],
-    conv_rhs { rw ← C },
-    dsimp,
-    congr,
-    ext,
-    { exact (topological_fiber_bundle.trivialization.proj_symm_apply' _ hb).symm },
-    { exact (cast_heq _ _).trans (by refl) },
-  end,
+  inv_fun := e.symm b,
+  left_inv := e.symm_apply_apply_mk hb,
+  right_inv := λ v, by simp_rw [e.apply_mk_symm hb v],
   map_add' := λ v w, (e.linear _ hb).map_add v w,
   map_smul' := λ c v, (e.linear _ hb).map_smul c v,
-  continuous_to_fun := begin
-    refine continuous_snd.comp _,
-    apply continuous_on.comp_continuous e.to_local_homeomorph.continuous_on
-      (topological_vector_bundle.total_space_mk_inducing R F E b).continuous (λ x, _),
-    rw topological_fiber_bundle.trivialization.mem_source,
-    exact hb,
-  end,
+  continuous_to_fun := continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
+    (total_space_mk_inducing R F E b).continuous (λ x, e.mem_source.mpr hb)),
   continuous_inv_fun := begin
     rw (topological_vector_bundle.total_space_mk_inducing R F E b).continuous_iff,
-    dsimp,
-    have : continuous (λ (z : F), e.to_fiber_bundle_trivialization.to_local_homeomorph.symm (b, z)),
-    { apply e.to_local_homeomorph.symm.continuous_on.comp_continuous
-        (continuous_const.prod_mk continuous_id') (λ z, _),
-      simp only [topological_fiber_bundle.trivialization.mem_target, hb, local_equiv.symm_source,
-        local_homeomorph.symm_to_local_equiv] },
-    convert this,
-    ext z,
-    { exact (topological_fiber_bundle.trivialization.proj_symm_apply' _ hb).symm },
-    { exact cast_heq _ _ },
+    exact e.continuous_on_symm.comp_continuous (continuous_const.prod_mk continuous_id)
+      (λ x, mk_mem_prod hb (mem_univ x)),
   end }
 
 @[simp] lemma continuous_linear_equiv_at_apply (e : trivialization R F E) (b : B)
@@ -930,68 +932,10 @@ begin
     function.comp, pullback.lift, inf_le_right],
 end
 
-
 lemma pullback_total_space_embedding_def {B B' : Type*} {E : B → Type*} (f : B' → B)
   (x : total_space (f *ᵖ E)) : pullback_total_space_embedding E f x =
   (proj (f *ᵖ E) x, total_space_mk E (f (proj (f *ᵖ E) x)) x.2) :=
 rfl
-
--- todo: move
-@[mfld_simps] lemma total_space.proj_mk {B} {E : B → Type*} {x : B} {y : E x} :
-  proj E (total_space_mk E x y) = x :=
-rfl
-
-lemma total_space.eta {B} {E : B → Type*} (z : total_space E) :
-  total_space_mk E (proj E z) z.2 = z :=
-sigma.eta z
-
-lemma total_space.mk_cast {B} {E : B → Type*} {x x' : B} (h : x = x') (b : E x) :
-  total_space_mk E x' (cast (congr_arg E h) b) = total_space_mk E x b :=
-by { subst h, refl }
-
-def topological_vector_bundle.trivialization.symm (e : trivialization R F E)
-  (x : B) (y : F) : E x :=
-if hx : x ∈ e.base_set
-then cast (congr_arg E (e.proj_symm_coe hx)) (e.to_local_homeomorph.symm (x, y)).2
-else 0
-
-lemma topological_vector_bundle.trivialization.symm_apply (e : trivialization R F E)
-  {x : B} (hx : x ∈ e.base_set) (y : F) :
-  e.symm x y = cast (congr_arg E (e.symm_coe_fst' hx)) (e.to_local_homeomorph.symm (x, y)).2 :=
-dif_pos hx
-
-lemma topological_vector_bundle.trivialization.mk_symm (e : trivialization R F E)
-  {x : B} (hx : x ∈ e.base_set) (y : F) :
-  total_space_mk E x (e.symm x y) = e.to_local_homeomorph.symm (x, y) :=
-by rw [e.symm_apply hx, total_space.mk_cast, total_space.eta]
-
-lemma topological_vector_bundle.trivialization.symm_apply_apply' (e : trivialization R F E)
-  (z : total_space E) (hz : proj E z ∈ e.base_set) :
-  e.symm (proj E z) (e z).2 = z.2 :=
-by rw [e.symm_apply hz, cast_eq_iff_heq, e.mk_proj_snd' hz,
-  e.symm_apply_apply (e.mem_source.mpr hz)]
-
-lemma topological_vector_bundle.trivialization.symm_apply_apply_mk (e : trivialization R F E)
-  {x : B} (hx : x ∈ e.base_set) (y : E x) :
-  e.symm x (e (total_space_mk E x y)).2 = y :=
-e.symm_apply_apply' (total_space_mk E x y) hx
-
-lemma topological_vector_bundle.trivialization.apply_mk_symm (e : trivialization R F E)
-  {x : B} (hx : x ∈ e.base_set) (y : F) :
-  e (total_space_mk E x (e.symm x y)) = (x, y) :=
-by rw [e.mk_symm hx, e.apply_symm_apply (e.mk_mem_target.mpr hx)]
-
-lemma topological_vector_bundle.trivialization.continuous_on_symm (e : trivialization R F E) :
-  continuous_on (λ z : B × F, total_space_mk E z.1 (e.symm z.1 z.2))
-    (e.base_set ×ˢ (univ : set F)) :=
-begin
-  have : ∀ (z : B × F) (hz : z ∈ e.base_set ×ˢ (univ : set F)),
-    total_space_mk E z.1 (e.symm z.1 z.2) = e.to_local_homeomorph.symm z,
-  { rintro x ⟨hx : x.1 ∈ e.base_set, _⟩, simp_rw [e.mk_symm hx, prod.mk.eta] },
-  refine continuous_on.congr _ this,
-  rw [← e.target_eq],
-  exact e.to_local_homeomorph.continuous_on_symm
-end
 
 /-- A vector bundle trivialization can be pulled back to a trivialization on the pullback bundle. -/
 def topological_vector_bundle.trivialization.pullback (e : trivialization R F E) (f : C(B', B)) :
@@ -1039,7 +983,22 @@ instance pullback [∀ x, topological_space (E x)] [topological_vector_bundle R 
   trivialization_at := λ x, (trivialization_at R F E (f x)).pullback f,
   mem_base_set_trivialization_at := λ x, mem_base_set_trivialization_at R F E (f x),
   trivialization_mem_atlas := λ x, mem_image_of_mem _ (trivialization_mem_atlas R F E (f x)),
-  continuous_coord_change := sorry }
+  continuous_coord_change := begin
+    rintro _ ⟨e, he, rfl⟩ _ ⟨e', he', rfl⟩,
+    refine ⟨f ⁻¹' e.base_set ∩ f ⁻¹' e'.base_set, _, _, _, _, _⟩,
+    { ext ⟨x, y⟩, simp only [topological_vector_bundle.trivialization.pullback, pullback.lift_mk,
+        e'.source_eq] with mfld_simps, },
+    { ext ⟨x, y⟩, simp only [topological_vector_bundle.trivialization.pullback, pullback.lift_mk,
+        e.source_eq, and_comm] with mfld_simps, },
+    { exact λ x, coord_change he he' (f x) },
+    { exact (continuous_on_coord_change he he').comp f.continuous.continuous_on (subset.rfl : _) },
+    { rintro b hb v,
+      rw [← preimage_inter, mem_preimage] at hb,
+      simp only [topological_vector_bundle.trivialization.pullback, pullback.lift_mk]
+        with mfld_simps,
+      dsimp only,
+      simp_rw [total_space.sigma_mk_eq, e.mk_symm hb.1, trans_eq_coord_change he he' hb v] },
+  end }
 
 end pullback
 

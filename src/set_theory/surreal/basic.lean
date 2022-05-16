@@ -518,13 +518,22 @@ end
   have HR₁ := λ {jx₁}, result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ oy,
   have HR₂ := λ {ix₂}, result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) oy,
 
+  have HS₁ := λ jx₁ iy, HN₁.lt_move_right (sum.inr (jx₁, iy)),
+  have HS₂ := λ jx₁ iy, HN₁.move_left_lt (sum.inr (jx₁, iy)),
+
   have HT₁ := λ iy, (result (P2 _ _ _) ox₁ ox₂ (oy.move_left iy)).1,
   have HT₂ := λ jy, (result (P2 _ _ _) ox₁ ox₂ (oy.move_right jy)).1,
   have HT₃ := λ iy, (result (P2 _ _ _) ox₂ ox₁ (oy.move_left iy)).1,
   have HT₄ := λ jy, (result (P2 _ _ _) ox₂ ox₁ (oy.move_right jy)).1,
 
-  have HS₁ := λ jx₁ iy, HN₁.lt_move_right (sum.inr (jx₁, iy)),
-  have HS₂ := λ jx₁ iy, HN₁.move_left_lt (sum.inr (jx₁, iy)),
+  have HU₁ := λ ix₁ h, (result (P2 _ _ _) (ox₁.move_left ix₁) ox₂ oy).2
+    ((ox₁.move_left_lt ix₁).trans_le h),
+  have HU₂ := λ ix₂ h, (result (P2 _ _ _) (ox₂.move_left ix₂) ox₁ oy).2
+    ((ox₂.move_left_lt ix₂).trans_le h),
+  have HU₃ := λ jx₁ (h : _ ≤ _), (result (P2 _ _ _) ox₂ (ox₁.move_right jx₁) oy).2
+    (h.trans_lt (ox₁.lt_move_right jx₁)),
+  have HU₄ := λ jx₂ (h : _ ≤ _), (result (P2 _ _ _) ox₁ (ox₂.move_right jx₂) oy).2
+    (h.trans_lt (ox₂.lt_move_right jx₂)),
 
   -- Prove that if `x₁ ≈ x₂`, then `x₁ * y ≈ x₂ * y`.
   refine ⟨λ h, ⟨le_def_lf.2 ⟨_, _⟩, le_def_lf.2 ⟨_, _⟩⟩, _⟩,
@@ -534,26 +543,22 @@ end
     { have H : ⟦x₁ * _⟧ = ⟦_⟧ := quot.sound (HT₁ iy h),
       dsimp at H,
       rw [sub_lt_iff_lt_add, H, add_comm₂],
-      apply ((result (P2 _ _ _) (ox₁.move_left ix₁) ox₂ oy).2
-        ((ox₁.move_left_lt ix₁).trans_le h.1)).1 },
+      apply (HU₁ ix₁ h.1).1 },
     { have H : ⟦x₁ * _⟧ = ⟦_⟧ := quot.sound (HT₂ jy h),
       dsimp at H,
       rw [sub_lt_iff_lt_add, H],
-      apply ((result (P2 _ _ _) ox₂ (ox₁.move_right jx₁) oy).2
-        (h.2.trans_lt (ox₁.lt_move_right jx₁))).2 } },
+      apply (HU₃ jx₁ h.2).2 } },
   { rintro (⟨ix₂, jy⟩ | ⟨jx₂, iy⟩);
     apply lf_of_lt;
     change (⟦_⟧ : game) < ⟦_⟧; dsimp,
     { have H : ⟦x₁ * _⟧ = ⟦_⟧ := quot.sound (HT₂ jy h),
       dsimp at H,
       rw [lt_sub_iff_add_lt, ←H],
-      apply ((result (P2 _ _ _) (ox₂.move_left ix₂) ox₁ oy).2
-        ((ox₂.move_left_lt ix₂).trans_le h.2)).2 },
+      apply (HU₂ ix₂ h.2).2 },
     { have H : ⟦x₁ * _⟧ = ⟦_⟧ := quot.sound (HT₁ iy h),
       dsimp at H,
       rw [lt_sub_iff_add_lt, ←H, add_comm₂],
-      apply ((result (P2 _ _ _) ox₁ (ox₂.move_right jx₂) oy).2
-        (h.1.trans_lt (ox₂.lt_move_right jx₂))).1 } },
+      apply (HU₄ jx₂ h.1).1 } },
   -- These are just the same but with `x₁` and `x₂` swapped.
   { rintro (⟨ix₂, iy⟩ | ⟨jx₂, jy⟩);
     apply lf_of_lt;
@@ -561,26 +566,22 @@ end
     { have H : ⟦x₂ * _⟧ = ⟦_⟧ := quot.sound (HT₃ iy h.symm),
       dsimp at H,
       rw [sub_lt_iff_lt_add, H, add_comm₂],
-      apply ((result (P2 _ _ _) (ox₂.move_left ix₂) ox₁ oy).2
-        ((ox₂.move_left_lt ix₂).trans_le h.2)).1 },
+      apply (HU₂ ix₂ h.2).1 },
     { have H : ⟦x₂ * _⟧ = ⟦_⟧ := quot.sound (HT₄ jy h.symm),
       dsimp at H,
       rw [sub_lt_iff_lt_add, H],
-      apply ((result (P2 _ _ _) ox₁ (ox₂.move_right jx₂) oy).2
-        (h.1.trans_lt (ox₂.lt_move_right jx₂))).2 } },
+      apply (HU₄ jx₂ h.1).2 } },
   { rintro (⟨ix₁, jy⟩ | ⟨jx₁, iy⟩);
     apply lf_of_lt;
     change (⟦_⟧ : game) < ⟦_⟧; dsimp,
     { have H : ⟦x₂ * _⟧ = ⟦_⟧ := quot.sound (HT₄ jy h.symm),
       dsimp at H,
       rw [lt_sub_iff_add_lt, ←H],
-      apply ((result (P2 _ _ _) (ox₁.move_left ix₁) ox₂ oy).2
-        ((ox₁.move_left_lt ix₁).trans_le h.1)).2 },
+      apply (HU₁ ix₁ h.1).2 },
     { have H : ⟦x₂ * _⟧ = ⟦_⟧ := quot.sound (HT₃ iy h.symm),
       dsimp at H,
       rw [lt_sub_iff_add_lt, ←H, add_comm₂],
-      apply ((result (P2 _ _ _) ox₂ (ox₁.move_right jx₁) oy).2
-        (h.2.trans_lt (ox₁.lt_move_right jx₁))).1 } },
+      apply (HU₃ jx₁ h.2).1 } },
 
   intro h,
   rcases lf_def_le.1 h.lf with ⟨ix₂, h⟩ | ⟨jx₁, h⟩,

@@ -311,8 +311,8 @@ end fintype_instances
 Every constructor here should have a corresponding `fintype` instance in the previous section
 (or in the `fintype` module).
 
-The implementation of these constructors ideally should be no more than `set.finite_of_fintype`, after
-possibly setting up some `fintype` and classical `decidable` instances.
+The implementation of these constructors ideally should be no more than `set.finite_of_fintype`,
+after possibly setting up some `fintype` and classical `decidable` instances.
 -/
 section set_finite_constructors
 

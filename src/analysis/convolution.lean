@@ -243,7 +243,7 @@ begin
     exact integral_nonneg (λ x, norm_nonneg _) }
 end
 
-lemma integrable.ae_convolution_exists (hf : integrable f μ) (hg : integrable g μ) :
+lemma measure_theory.integrable.ae_convolution_exists (hf : integrable f μ) (hg : integrable g μ) :
   ∀ᵐ x ∂μ, convolution_exists_at f g x L μ :=
 ((integrable_prod_iff $ hf.ae_strongly_measurable.convolution_integrand L
   hg.ae_strongly_measurable).mp $ hf.convolution_integrand L hg).1
@@ -350,7 +350,8 @@ end convolution_exists
 
 variables [normed_space ℝ F] [complete_space F]
 
-/-- The convolution of two functions `f` and `g`. -/
+/-- The convolution of two functions `f` and `g` with respect to a continuous bilinear map `L` and
+  measure `μ`. It is defined to be `(f ⋆[L, μ] g) x = ∫ t, L (f t) (g (x - t)) ∂μ`. -/
 noncomputable def convolution [has_sub G] (f : G → E) (g : G → E') (L : E →L[𝕜] E' →L[𝕜] F)
   (μ : measure G . volume_tac) : G → F :=
 λ x, ∫ t, L (f t) (g (x - t)) ∂μ
@@ -365,7 +366,7 @@ lemma convolution_def [has_sub G] : (f ⋆[L, μ] g) x = ∫ t, L (f t) (g (x - 
 
 /-- The definition of convolution where the bilinear operator is scalar multiplication.
 Note: it often helps the elaborator to give the type of the convolution explicitly. -/
-lemma convolution_lsmul [has_sub G] {f : G → 𝕜} {g : G → F}:
+lemma convolution_lsmul [has_sub G] {f : G → 𝕜} {g : G → F} :
   (f ⋆[lsmul 𝕜 𝕜, μ] g : G → F) x = ∫ t, f t • g (x - t) ∂μ := rfl
 
 /-- The definition of convolution where the bilinear operator is multiplication. -/
@@ -491,7 +492,7 @@ end
 
 variables [sigma_finite μ] [is_add_right_invariant μ]
 
-lemma integrable.integrable_convolution (hf : integrable f μ) (hg : integrable g μ) :
+lemma measure_theory.integrable.integrable_convolution (hf : integrable f μ) (hg : integrable g μ) :
   integrable (f ⋆[L, μ] g) μ :=
 (hf.convolution_integrand L hg).integral_prod_left
 

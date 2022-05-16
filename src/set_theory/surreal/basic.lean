@@ -134,10 +134,10 @@ theorem numeric.add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeri
 ⟨begin
    rintros (ix|iy) (jx|jy),
    { exact add_lt_add_right (ox.1 ix jx) _ },
-   { apply lt_of_lf ((ox.move_left ix).add oy) (ox.add (oy.move_right jy))
-      (add_lf_add_of_lf_of_le (pgame.move_left_lf ix) (oy.le_move_right jy)) },
-   { apply lt_of_lf (ox.add (oy.move_left iy)) ((ox.move_right jx).add oy)
-      (add_lf_add_of_lf_of_le (pgame.lf_move_right jx) (oy.move_left_le iy)) },
+   { exact (add_lf_add_of_lf_of_le (pgame.lf_mk _ _ ix) (oy.le_move_right jy)).lt
+     ((ox.move_left ix).add oy) (ox.add (oy.move_right jy)) },
+   { exact (add_lf_add_of_lf_of_le (pgame.mk_lf _ _ jx) (oy.move_left_le iy)).lt
+      (ox.add (oy.move_left iy)) ((ox.move_right jx).add oy) },
    { exact add_lt_add_left (oy.1 iy jy) ⟨xl, xr, xL, xR⟩ }
  end,
  begin
@@ -250,7 +250,7 @@ instance : ordered_add_comm_group surreal :=
 
 noncomputable instance : linear_ordered_add_comm_group surreal :=
 { le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact
-    or_iff_not_imp_left.2 (λ h, le_of_lf oy ox (pgame.not_le.1 h)),
+    or_iff_not_imp_left.2 (λ h, (pgame.not_le.1 h).le oy ox),
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
 

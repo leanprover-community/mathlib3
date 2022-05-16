@@ -1,10 +1,22 @@
+/-
+Copyright (c) 2022 Pierre-Alexandre Bazin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Pierre-Alexandre Bazin
+-/
 import linear_algebra.dfinsupp
 import ring_theory.ideal.operations
+
+/-!
+# An additional lemma about coprime ideals
+
+This lemma generalises `exists_sum_eq_one_iff_pairwise_coprime` to the case of non-principal ideals.
+It is on a separate file due to import requirements.
+-/
 
 namespace ideal
 variables {ι R : Type*} [comm_semiring R]
 
-lemma supr_infi_eq_top_iff_pairwise' {t : finset ι} (h : t.nonempty) (I : ι → ideal R) :
+lemma supr_infi_eq_top_iff_pairwise {t : finset ι} (h : t.nonempty) (I : ι → ideal R) :
   (⨆ i ∈ t, ⨅ j (hj : j ∈ t) (ij : j ≠ i), I j) = ⊤ ↔
     (t : set ι).pairwise (λ i j, I i ⊔ I j = ⊤) :=
 begin

@@ -308,8 +308,10 @@ begin
   { refine ⟨dfinsupp.mk s _, _⟩,
     { rintro ⟨i, hi⟩, refine ⟨μ i, _⟩,
       rw supr_pos, { exact coe_mem _ }, { exact hi } },
-    simp [dfinsupp.sum],
-    sorry }
+    simp only [dfinsupp.sum],
+    rw [finset.sum_subset support_mk_subset, ← hμ],
+    exact finset.sum_congr rfl (λ x hx, congr_arg coe $ mk_of_mem hx),
+    { intros x _ hx, rw [mem_support_iff, not_ne_iff] at hx, rw hx, refl } }
 end
 
 end submodule

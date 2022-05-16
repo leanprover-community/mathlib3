@@ -330,7 +330,7 @@ section cut_expand
 variable {α : Type*}
 
 def cut_expand (r : α → α → Prop) (s' s : multiset α) : Prop :=
-∃ (t : multiset α) a, (∀ a' ∈ t, r a' a) ∧ s' + {a} = s + t
+∃ t a, (∀ a' ∈ t, r a' a) ∧ s' + {a} = s + t
 
 variable {r : α → α → Prop}
 

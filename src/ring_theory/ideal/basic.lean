@@ -256,6 +256,31 @@ begin
   rwa ← span_eq I,
 end
 
+lemma has_left_inv_iff_span_top {x : α} :
+  has_left_inv x ↔ span ({x} : set α) = ⊤ :=
+begin
+  split,
+  { rintro ⟨a, hax⟩,
+    apply eq_top_of_unit_mem _ x a _ hax,
+    apply submodule.mem_span_singleton_self },
+  { intro h,
+    have : (1 : α) ∈ span ({x} : set α) := by { rw h, exact submodule.mem_top },
+    exact (mem_span_singleton').mp this },
+end
+
+lemma not_has_left_inv_iff_mem_maximal {x : α} :
+  ¬has_left_inv x ↔ ∃ I : ideal α, I.is_maximal ∧ x ∈ I :=
+begin
+  rw has_left_inv_iff_span_top,
+  split,
+  { intro hx,
+    obtain ⟨I, hImax, hxI⟩ := exists_le_maximal _ hx,
+    exact ⟨I, hImax, by {apply hxI, apply submodule.mem_span_singleton_self}⟩ },
+  { rintro ⟨I, hImax, hxI⟩ hcontra,
+    refine hImax.ne_top _,
+    rwa [eq_top_iff, ←hcontra, span_le, set.singleton_subset_iff] },
+end
+
 section lattice
 variables {R : Type u} [semiring R]
 

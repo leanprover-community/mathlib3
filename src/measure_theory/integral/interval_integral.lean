@@ -316,6 +316,10 @@ lemma smul [normed_field 𝕜] [normed_space 𝕜 E]
   interval_integrable (λ x, f x - g x) μ a b :=
 ⟨hf.1.sub hg.1, hf.2.sub hg.2⟩
 
+lemma sum (s : finset ι) {f : ι → ℝ → E} (h : ∀ i ∈ s, interval_integrable (f i) μ a b) :
+  interval_integrable (∑ i in s, f i) μ a b :=
+⟨integrable_finset_sum' s (λ i hi, (h i hi).1), integrable_finset_sum' s (λ i hi, (h i hi).2)⟩
+
 lemma mul_continuous_on {f g : ℝ → ℝ}
   (hf : interval_integrable f μ a b) (hg : continuous_on g [a, b]) :
   interval_integrable (λ x, f x * g x) μ a b :=

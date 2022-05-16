@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.algebra.bilinear
-import algebra.module.submodule_pointwise
-import algebra.module.submodule_bilinear
+import algebra.module.submodule.pointwise
+import algebra.module.submodule.bilinear
 import algebra.module.opposites
 import data.finset.pointwise
 

@@ -583,14 +583,22 @@ instance : has_le (with_bot α) := ⟨with_bot.le (≤)⟩
 
 instance : order_bot (with_bot α) := { bot_le := λ a, trivial, bot := ⊥ }
 
+lemma not_coe_le_bot (a : α) : ¬ (a : with_bot α) ≤ ⊥ := not_false
+
+protected lemma _root_.is_top.with_bot (h : is_top a) : is_top (a : with_bot α)
+| ⊥       := bot_le
+| (b : α) := coe_le_coe.2 $ h b
+
+protected lemma _root_.is_max.with_bot (h : is_max a) : is_max (a : with_bot α)
+| ⊥ _       := bot_le
+| (b : α) hb := coe_le_coe.2 $ h $ coe_le_coe.1 hb
+
 instance [order_top α] : order_top (with_bot α) :=
 { top := (⊤ : α),
-  le_top := λ a, rec_bot_coe bot_le (λ a, coe_le_coe.mpr le_top) a }
+  le_top := is_top_top.with_bot }
 
 instance [order_top α] : bounded_order (with_bot α) :=
 { ..with_bot.order_top, ..with_bot.order_bot }
-
-lemma not_coe_le_bot (a : α) : ¬ (a : with_bot α) ≤ ⊥ := not_false
 
 @[simp] lemma le_bot_iff : ∀ {a : with_bot α}, a ≤ ⊥ ↔ a = ⊥
 | ⊥       := iff_of_true bot_le rfl
@@ -606,9 +614,12 @@ lemma le_coe_iff : ∀ {x : with_bot α}, x ≤ b ↔ ∀ a, x = ↑a → a ≤ 
 | (b : α) := by simp [coe_eq_coe]
 | ⊥       := by simp
 
-protected lemma _root_.is_max.with_bot (h : is_max a) : is_max (a : with_bot α)
-| ⊥ _       := bot_le
-| (b : α) hb := coe_le_coe.2 $ h $ coe_le_coe.1 hb
+lemma le_iff' : ∀ {a b : with_bot α}, a ≤ b ↔ ∀ x : α, a = x → ↑x ≤ b
+| ⊥       _       := by simp
+| (a : α) b       := by simp [coe_eq_coe]
+
+lemma le_iff {a b : with_bot α} : a ≤ b ↔ ∀ x : α, a = x → ∃ y : α, b = y ∧ x ≤ y :=
+by simp only [le_iff', coe_le_iff]
 
 instance decidable_le [h : @decidable_rel α (≤)] : @decidable_rel (with_bot α) (≤)
 | ⊥ x := is_true bot_le
@@ -870,6 +881,11 @@ instance : has_le (with_top α) := order_dual.has_le _
 @[simp, norm_cast] lemma coe_le_coe : (a : with_top α) ≤ b ↔ a ≤ b := iff.rfl
 
 @[simp] protected lemma le_top {a : with_top α} : a ≤ ⊤ := trivial
+
+lemma le_iff' {a b : with_top α} : a ≤ b ↔ ∀ y : α, b = y → a ≤ y := with_bot.le_iff'
+
+lemma le_iff {a b : with_top α} : a ≤ b ↔ ∀ y : α, b = y → ∃ x : α, a = x ∧ x ≤ y :=
+with_bot.le_iff
 
 instance : order_top (with_top α) := order_dual.order_top _
 

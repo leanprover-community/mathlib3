@@ -835,106 +835,104 @@ by { induction x using with_top.rec_top_coe; simp [← coe_add, -with_zero.coe_a
 @[simp] lemma coe_add_eq_top_iff {y : with_top α} : ↑x + y = ⊤ ↔ y = ⊤ :=
 by { induction y using with_top.rec_top_coe; simp [← coe_add, -with_zero.coe_add] }
 
-variables [preorder α]
-
-instance covariant_class_add_le [covariant_class α α (+) (≤)] :
+instance covariant_class_add_le [has_le α] [covariant_class α α (+) (≤)] :
   covariant_class (with_top α) (with_top α) (+) (≤) :=
 ⟨λ a b c h, begin
   cases a; cases c; try { exact le_top },
-  cases b,
-  { exact (not_top_le_coe _ h).elim },
-  { exact some_le_some.2 (add_le_add_left (some_le_some.1 h) _) }
+  rcases le_coe_iff.1 h with ⟨b, rfl, h'⟩,
+  exact coe_le_coe.2 (add_le_add_left (coe_le_coe.1 h) _)
 end⟩
 
-instance covariant_class_swap_add_le [covariant_class α α (swap (+)) (≤)] :
+instance covariant_class_swap_add_le [has_le α] [covariant_class α α (swap (+)) (≤)] :
   covariant_class (with_top α) (with_top α) (swap (+)) (≤) :=
 ⟨λ a b c h, begin
   cases a; cases c; try { exact le_top },
-  cases b,
-  { exact (not_top_le_coe _ h).elim },
-  { exact some_le_some.2 (add_le_add_right (some_le_some.1 h) _) }
+  rcases le_coe_iff.1 h with ⟨b, rfl, h'⟩,
+  exact coe_le_coe.2 (add_le_add_right (coe_le_coe.1 h) _)
 end⟩
 
-instance contravariant_class_add_lt [contravariant_class α α (+) (<)] :
+instance contravariant_class_add_lt [has_lt α] [contravariant_class α α (+) (<)] :
   contravariant_class (with_top α) (with_top α) (+) (<) :=
 ⟨λ a b c h, begin
-  cases a; cases b; try { exact (not_top_lt h).elim },
+  induction a using with_top.rec_top_coe;
+    induction b using with_top.rec_top_coe; try { exact (not_top_lt _ h).elim },
   cases c,
   { exact coe_lt_top _ },
-  { exact some_lt_some.2 (lt_of_add_lt_add_left $ some_lt_some.1 h) }
+  { exact coe_lt_coe.2 (lt_of_add_lt_add_left $ coe_lt_coe.1 h) }
 end⟩
 
-instance contravariant_class_swap_add_lt [contravariant_class α α (swap (+)) (<)] :
+instance contravariant_class_swap_add_lt [has_lt α] [contravariant_class α α (swap (+)) (<)] :
   contravariant_class (with_top α) (with_top α) (swap (+)) (<) :=
 ⟨λ a b c h, begin
-  cases a; cases b; try { exact (not_top_lt h).elim },
+  cases a; cases b; try { exact (not_top_lt _ h).elim },
   cases c,
   { exact coe_lt_top _ },
-  { exact some_lt_some.2 (lt_of_add_lt_add_right $ some_lt_some.1 h) }
+  { exact coe_lt_coe.2 (lt_of_add_lt_add_right $ coe_lt_coe.1 h) }
 end⟩
 
-protected lemma le_of_add_le_add_left [contravariant_class α α (+) (≤)] (ha : a ≠ ⊤)
+protected lemma le_of_add_le_add_left [has_le α] [contravariant_class α α (+) (≤)] (ha : a ≠ ⊤)
   (h : a + b ≤ a + c) : b ≤ c :=
 begin
   lift a to α using ha,
-  cases c; try {exact le_top},
-  cases b, exact (not_top_le_coe _ h).elim,
-  simp only [some_eq_coe, ← coe_add, coe_le_coe] at h, rw some_le_some,
+  induction c using with_top.rec_top_coe, { exact le_top },
+  induction b using with_top.rec_top_coe, { exact (not_top_le_coe _ h).elim },
+  simp only [← coe_add, coe_le_coe] at h ⊢,
   exact le_of_add_le_add_left h
 end
 
-protected lemma le_of_add_le_add_right [contravariant_class α α (swap (+)) (≤)] (ha : a ≠ ⊤)
-  (h : b + a ≤ c + a) : b ≤ c :=
+protected lemma le_of_add_le_add_right [has_le α] [contravariant_class α α (swap (+)) (≤)]
+  (ha : a ≠ ⊤) (h : b + a ≤ c + a) : b ≤ c :=
 begin
   lift a to α using ha,
   cases c,
   { exact le_top },
   cases b,
   { exact (not_top_le_coe _ h).elim },
-  { exact some_le_some.2 (le_of_add_le_add_right $ some_le_some.1 h) }
+  { exact coe_le_coe.2 (le_of_add_le_add_right $ coe_le_coe.1 h) }
 end
 
-protected lemma add_lt_add_left [covariant_class α α (+) (<)] (ha : a ≠ ⊤) (h : b < c) :
+protected lemma add_lt_add_left [has_lt α] [covariant_class α α (+) (<)] (ha : a ≠ ⊤) (h : b < c) :
   a + b < a + c :=
 begin
   lift a to α using ha,
-  lift b to α using (h.trans_le le_top).ne,
+  rcases lt_iff_exists_coe.1 h with ⟨b, rfl, h'⟩,
   cases c,
   { exact coe_lt_top _ },
-  { exact some_lt_some.2 (add_lt_add_left (some_lt_some.1 h) _) }
+  { exact coe_lt_coe.2 (add_lt_add_left (coe_lt_coe.1 h) _) }
 end
 
-protected lemma add_lt_add_right [covariant_class α α (swap (+)) (<)] (ha : a ≠ ⊤) (h : b < c) :
+protected lemma add_lt_add_right [has_lt α] [covariant_class α α (swap (+)) (<)] (ha : a ≠ ⊤) (h : b < c) :
   b + a < c + a :=
 begin
   lift a to α using ha,
-  lift b to α using (h.trans_le le_top).ne,
+  rcases lt_iff_exists_coe.1 h with ⟨b, rfl, h'⟩,
   cases c,
   { exact coe_lt_top _ },
-  { exact some_lt_some.2 (add_lt_add_right (some_lt_some.1 h) _) }
+  { exact coe_lt_coe.2 (add_lt_add_right (coe_lt_coe.1 h) _) }
 end
 
-protected lemma add_le_add_iff_left [covariant_class α α (+) (≤)] [contravariant_class α α (+) (≤)]
+protected lemma add_le_add_iff_left [has_le α] [covariant_class α α (+) (≤)]
+  [contravariant_class α α (+) (≤)]
   (ha : a ≠ ⊤) : a + b ≤ a + c ↔ b ≤ c :=
 ⟨with_top.le_of_add_le_add_left ha, λ h, add_le_add_left h a⟩
 
-protected lemma add_le_add_iff_right [covariant_class α α (swap (+)) (≤)]
+protected lemma add_le_add_iff_right [has_le α] [covariant_class α α (swap (+)) (≤)]
   [contravariant_class α α (swap (+)) (≤)] (ha : a ≠ ⊤) : b + a ≤ c + a ↔ b ≤ c :=
 ⟨with_top.le_of_add_le_add_right ha, λ h, add_le_add_right h a⟩
 
-protected lemma add_lt_add_iff_left [covariant_class α α (+) (<)] [contravariant_class α α (+) (<)]
-  (ha : a ≠ ⊤) : a + b < a + c ↔ b < c :=
+protected lemma add_lt_add_iff_left [has_lt α] [covariant_class α α (+) (<)]
+  [contravariant_class α α (+) (<)] (ha : a ≠ ⊤) : a + b < a + c ↔ b < c :=
 ⟨lt_of_add_lt_add_left, with_top.add_lt_add_left ha⟩
 
-protected lemma add_lt_add_iff_right [covariant_class α α (swap (+)) (<)]
+protected lemma add_lt_add_iff_right [has_lt α] [covariant_class α α (swap (+)) (<)]
   [contravariant_class α α (swap (+)) (<)] (ha : a ≠ ⊤) : b + a < c + a ↔ b < c :=
 ⟨lt_of_add_lt_add_right, with_top.add_lt_add_right ha⟩
 
-protected lemma add_lt_add_of_le_of_lt [covariant_class α α (+) (<)]
+protected lemma add_lt_add_of_le_of_lt [preorder α] [covariant_class α α (+) (<)]
   [covariant_class α α (swap (+)) (≤)] (ha : a ≠ ⊤) (hab : a ≤ b) (hcd : c < d) : a + c < b + d :=
 (with_top.add_lt_add_left ha hcd).trans_le $ add_le_add_right hab _
 
-protected lemma add_lt_add_of_lt_of_le [covariant_class α α (+) (≤)]
+protected lemma add_lt_add_of_lt_of_le [preorder α] [covariant_class α α (+) (≤)]
   [covariant_class α α (swap (+)) (<)] (hc : c ≠ ⊤) (hab : a < b) (hcd : c ≤ d) : a + c < b + d :=
 (with_top.add_lt_add_right hc hab).trans_le $ add_le_add_left hcd _
 
@@ -1047,23 +1045,6 @@ instance [add_zero_class α] : add_zero_class (with_bot α) := with_top.add_zero
 instance [add_monoid α] : add_monoid (with_bot α) := with_top.add_monoid
 instance [add_comm_monoid α] : add_comm_monoid (with_bot α) :=  with_top.add_comm_monoid
 
-instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_bot α) :=
-begin
-  suffices, refine
-  { add_le_add_left := this,
-    ..with_bot.partial_order,
-    ..with_bot.add_comm_monoid, ..},
-  { intros a b h c ca h₂,
-    cases c with c, {cases h₂},
-    cases a with a; cases h₂,
-    cases b with b, {cases le_antisymm h bot_le},
-    simp at h,
-    exact ⟨_, rfl, add_le_add_left h _⟩, }
-end
-
-instance [linear_ordered_add_comm_monoid α] : linear_ordered_add_comm_monoid (with_bot α) :=
-{ ..with_bot.linear_order, ..with_bot.ordered_add_comm_monoid }
-
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
 @[to_additive]
 lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
@@ -1157,6 +1138,15 @@ protected lemma add_lt_add_of_lt_of_le [covariant_class α α (+) (≤)]
 @with_top.add_lt_add_of_lt_of_le αᵒᵈ _ _ _ _ _ _ _ _ hd hab hcd
 
 end has_add
+
+instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_bot α) :=
+{ add_le_add_left := λ a b h c, add_le_add_left h c,
+  ..with_bot.partial_order,
+  ..with_bot.add_comm_monoid }
+
+instance [linear_ordered_add_comm_monoid α] : linear_ordered_add_comm_monoid (with_bot α) :=
+{ ..with_bot.linear_order, ..with_bot.ordered_add_comm_monoid }
+
 end with_bot
 
 /-! ### `additive`/`multiplicative` -/

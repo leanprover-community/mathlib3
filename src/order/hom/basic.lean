@@ -820,7 +820,7 @@ variables [partial_order α] [partial_order β] [partial_order γ]
 @[simps apply]
 def with_top_congr (e : α ≃o β) : with_top α ≃o with_top β :=
 { to_equiv := e.to_equiv.option_congr,
-  .. e.to_order_embedding.with_top }
+  .. e.to_order_embedding.with_top_map }
 
 @[simp] lemma with_top_congr_refl : (order_iso.refl α).with_top_congr = order_iso.refl _ :=
 rel_iso.to_equiv_injective equiv.option_congr_refl

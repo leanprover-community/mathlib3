@@ -340,6 +340,9 @@ sorry
 theorem multiset.pair_comm {x y : α} : ({x, y} : multiset α) = {y, x} :=
 multiset.cons_swap x y ∅
 
+theorem multiset.swap_three {x y z : α} : ({x, y, z} : multiset α) = {z, x, y} :=
+add_comm {x, y} {z}
+
 theorem cut_expand_add_left {x s} (h : ∀ x' ∈ s, r x' x) (t) : cut_expand r (s + t) ({x} + t) :=
 ⟨s, x, h, by rw [add_comm s, add_assoc, add_comm s, ←add_assoc, add_comm t]⟩
 
@@ -403,53 +406,60 @@ def hypothesis : mul_args → Prop
                       (∀ i, x₂ * y.move_left i + x₁ * y  < x₁ * y.move_left i + x₂ * y) ∧
                        ∀ j, x₂ * y + x₁ * y.move_right j < x₁ * y + x₂ * y.move_right j)
 
-/-- We say that `x < y` for two `mul_args` whenever one can get from the multiset of parameters of
-`y` to the multiset of parameters of `x` by repeatedly:
+/-- The relation we define on the arguments of `mul_args.hyopthesis`.
 
-- Removing some parameter from `y`.
+We say that `arg_rel x y` whenever one can get from the multiset `y` to the multiset `x` by
+repeatedly:
+
+- Removing some element from `y`.
 - Replacing it with an arbitrary multiset of subsequent games.
 
 This relation is well-founded, and is used in the proof of `mul_args.result`. -/
-instance : has_lt mul_args :=
-⟨inv_image (trans_gen $ cut_expand subsequent) to_multiset⟩
+def arg_rel : multiset pgame → multiset pgame → Prop := trans_gen $ cut_expand subsequent
 
-instance : is_trans mul_args (<) :=
-⟨by apply inv_image.trans _ _ transitive_trans_gen⟩
+theorem arg_rel_trans : transitive arg_rel := transitive_trans_gen
 
 instance : has_well_founded mul_args :=
-{ r := (<),
+{ r := inv_image arg_rel to_multiset,
   wf := inv_image.wf _ (cut_expand.wf wf_subsequent).trans_gen }
 
-theorem lt_of_cut_expand {x y : mul_args} :
-  cut_expand subsequent x.to_multiset y.to_multiset → x < y :=
+theorem arg_rel_of_cut_expand {x y : multiset pgame} : cut_expand subsequent x y → arg_rel x y :=
 trans_gen.single
 
-theorem cut_left_lt_P1 {x x'} (h : subsequent x' x) (y) : P1 x' y < P1 x y :=
-lt_of_cut_expand $ cut_pair_left h y
+theorem cut_left_lt_P1 {x x'} (h : subsequent x' x) (y) : arg_rel {x', y} {x, y} :=
+arg_rel_of_cut_expand $ cut_pair_left h y
 
-theorem cut_right_lt_P1 (x) {y y'} (h : subsequent y' y) : P1 x y' < P1 x y :=
-lt_of_cut_expand $ cut_pair_right x h
+theorem cut_right_lt_P1 (x) {y y'} (h : subsequent y' y) : arg_rel {x, y'} {x, y} :=
+arg_rel_of_cut_expand $ cut_pair_right x h
 
 theorem cut_both_lt_P1 {x x' y y'} (hx : subsequent x' x) (hy : subsequent y' y) :
-  P1 x' y' < P1 x y :=
-trans (cut_left_lt_P1 hx y') (cut_right_lt_P1 _ hy)
+  arg_rel {x', y'} {x, y} :=
+arg_rel_trans (cut_left_lt_P1 hx y') (cut_right_lt_P1 _ hy)
 
-theorem cut_right_lt_P2 (x₁ x₂) {y y'} (h : subsequent y' y) : P2 x₁ x₂ y' < P2 x₁ x₂ y :=
-lt_of_cut_expand $ cut_add_singleton_right {x₁, x₂} h
+theorem cut_right_lt_P2 (x₁ x₂) {y y'} (h : subsequent y' y) : arg_rel {x₁, x₂, y'} {x₁, x₂, y} :=
+arg_rel_of_cut_expand $ cut_add_singleton_right {x₁, x₂} h
 
 theorem cut_expand_left_lt_P1 {x₁ x₂ x} (hx₁ : subsequent x₁ x) (hx₂ : subsequent x₂ x) (y) :
-  P2 x₁ x₂ y < P1 x y :=
+  arg_rel {x₁, x₂, y} {x, y} :=
 begin
-  refine lt_of_cut_expand (cut_expand_pair_left (λ a ∈ {x₁, x₂}, _) y),
+  refine arg_rel_of_cut_expand (cut_expand_pair_left (λ a ∈ {x₁, x₂}, _) y),
   fin_cases H; assumption
 end
 
 theorem cut_expand_right_lt_P1 (x) {y₁ y₂ y} (hy₁ : subsequent y₁ y) (hy₂ : subsequent y₂ y) :
-  P2 x y₁ y₂ < P1 x y :=
+  arg_rel {x, y₁, y₂} {x, y} :=
 begin
-  refine lt_of_cut_expand (cut_expand_pair_right x (λ a ∈ {y₁, y₂}, _)),
+  refine arg_rel_of_cut_expand (cut_expand_pair_right x (λ a ∈ {y₁, y₂}, _)),
   fin_cases H; assumption
 end
+
+theorem cut_expand_left_swap_lt_P1 {x₁ x₂ x} (y) (hx₁ : subsequent x₁ x) (hx₂ : subsequent x₂ x) :
+  arg_rel {y, x₁, x₂} {x, y} :=
+by { rw ←multiset.swap_three, exact cut_expand_left_lt_P1 hx₁ hx₂ y }
+
+theorem cut_expand_right_swap_lt_P1 {y₁ y₂ y} (hy₁ : subsequent y₁ y) (hy₂ : subsequent y₂ y) (x) :
+  arg_rel {y₁, y₂, x} {x, y} :=
+by { rw multiset.swap_three, exact cut_expand_right_lt_P1 x hy₁ hy₂ }
 
 /-- The hypothesis is true for any arguments. -/
 theorem result : ∀ x : mul_args, x.hypothesis
@@ -458,28 +468,31 @@ theorem result : ∀ x : mul_args, x.hypothesis
   let y : pgame := ⟨yl, yr, yL, yR⟩,
 
   -- Reused applications of the inductive hypothesis.
-  have HR₁ := λ {ix ix'}, let wf : P2 (xL ix) (xL ix') y < P1 x y :=
+  have HR₁ := λ {ix ix'}, let wf : arg_rel {xL ix, xL ix', y} {x, y} :=
     cut_expand_left_lt_P1 (subsequent.mk_left _ _ ix) (subsequent.mk_left _ _ ix') y in
     result (P2 _ _ _) (ox.move_left ix)  (ox.move_left ix')  oy,
-  have HR₂ := λ {iy iy'}, let wf : P2 (yL iy) (yL iy') x < P1 x y := sorry in
+  have HR₂ := λ {iy iy'}, let wf : arg_rel {yL iy, yL iy', x} {x, y} :=
+    cut_expand_right_swap_lt_P1 (subsequent.mk_left _ _ iy) (subsequent.mk_left _ _ iy') x in
     result (P2 _ _ _) (oy.move_left iy)  (oy.move_left iy')  ox,
-  have HR₃ := λ {jx jx'}, let wf : P2 (xR jx) (xR jx') y < P1 x y :=
+  have HR₃ := λ {jx jx'}, let wf : arg_rel {xR jx, xR jx', y} {x, y} :=
     cut_expand_left_lt_P1 (subsequent.mk_right _ _ jx) (subsequent.mk_right _ _ jx') y in
     result (P2 _ _ _) (ox.move_right jx) (ox.move_right jx') oy,
-  have HR₄ := λ {jy jy'}, let wf : P2 (yR jy) (yR jy') x < P1 x y := sorry in
+  have HR₄ := λ {jy jy'}, let wf : arg_rel {yR jy, yR jy', x} {x, y} :=
+    cut_expand_right_swap_lt_P1 (subsequent.mk_right _ _ jy) (subsequent.mk_right _ _ jy') x in
     result (P2 _ _ _) (oy.move_right jy) (oy.move_right jy') ox,
 
-  have HS₃ := λ {ix jx}, let wf : P2 (xL ix) (xR jx) y < P1 x y :=
+  have HS₃ := λ {ix jx}, let wf : arg_rel {xL ix, xR jx, y} {x, y} :=
     cut_expand_left_lt_P1 (subsequent.mk_left _ _ ix) (subsequent.mk_right _ _ jx) y in
     (result (P2 _ _ _) (ox.move_left ix) (ox.move_right jx) oy).2 (ox.left_lt_right ix jx),
-  have HS₄ := λ {iy jy}, let wf : P2 (yL iy) (yR jy) x < P1 x y := sorry in
+  have HS₄ := λ {iy jy}, let wf : arg_rel {yL iy, yR jy, x} {x, y} :=
+    cut_expand_right_swap_lt_P1 (subsequent.mk_left _ _ iy) (subsequent.mk_right _ _ jy) x in
     (result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2 (oy.left_lt_right iy jy),
 
   have HN₁ := λ {ix},
-    let wf : P1 (xL ix) y < P1 x y := cut_left_lt_P1 (subsequent.mk_left _ _ ix) y in
+    let wf : arg_rel {xL ix, y} {x, y} := cut_left_lt_P1 (subsequent.mk_left _ _ ix) y in
     result (P1 _ _) (ox.move_left ix)  oy,
   have HN₂ := λ {jx},
-    let wf : P1 (xR jx) y < P1 x y := cut_left_lt_P1 (subsequent.mk_right _ _ jx) y in
+    let wf : arg_rel {xR jx, y} {x, y} := cut_left_lt_P1 (subsequent.mk_right _ _ jx) y in
     result (P1 _ _) (ox.move_right jx) oy,
 
   refine (numeric_def _).2 ⟨_, _, _⟩,
@@ -498,7 +511,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
         exact H₁.trans H₂ },
       { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
         have H₁ : ⟦xL ix * _⟧ = ⟦xL ix' * _⟧ := quot.sound (HR₁.1 h),
-        let wf : P2 (xL ix) (xL ix') (yR jy') < P1 x y := sorry,
+        let wf : arg_rel {xL ix, xL ix', yR jy'} {x, y} := sorry,
         have H₂ : ⟦xL ix * yR jy'⟧ = ⟦xL ix' * yR jy'⟧ := quot.sound
           ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') (oy.move_right jy')).1 h),
         rw [H₁, ←H₂, sub_lt_sub_iff, add_add_lt_cancel_left, add_comm₂, quot_mul_comm₄],
@@ -528,7 +541,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
           exact quot.sound (HR₂.1 h) },
         have H₂ : ⟦xR jx' * yL iy⟧ = ⟦xR jx' * yL iy'⟧,
         { rw quot_mul_comm₂,
-          let wf : P2 (yL iy) (yL iy') (xR jx') < P1 x y := sorry,
+          let wf : arg_rel {yL iy, yL iy', xR jx'} {x, y} := sorry,
           exact quot.sound
             ((result (P2 _ _ _) (oy.move_left iy) (oy.move_left iy') (ox.move_right jx')).1 h) },
         rw [H₁, ←H₂, sub_lt_sub_iff, add_add_lt_cancel_mid, add_comm₂],
@@ -559,7 +572,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
           exact quot.sound (HR₄.1 h) },
         have H₂ : ⟦xL ix' * yR jy'⟧ = ⟦xL ix' * yR jy⟧,
         { rw quot_mul_comm₂,
-          let wf : P2 (yR jy') (yR jy) (xL ix') < P1 x y := sorry,
+          let wf : arg_rel {yR jy', yR jy, xL ix'} {x, y} := sorry,
           exact quot.sound
             ((result (P2 _ _ _) (oy.move_right jy') (oy.move_right jy) (ox.move_left ix')).1 h) },
         rw [H₁, H₂, sub_lt_sub_iff, add_add_lt_cancel_mid],
@@ -585,7 +598,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
         exact H₁.trans H₂ },
       { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
         have H₁ : ⟦xR jx' * _⟧ = ⟦xR jx * _⟧ := quot.sound (HR₃.1 h),
-        let wf : P2 (xR jx') (xR jx) (yL iy') < P1 x y := sorry,
+        let wf : arg_rel {xR jx', xR jx, yL iy'} {x, y} := sorry,
         have H₂ : ⟦xR jx' * yL iy'⟧ = ⟦xR jx * yL iy'⟧ := quot.sound
           ((result (P2 _ _ _) (ox.move_right jx') (ox.move_right jx) (oy.move_left iy')).1 h),
         rw [H₁, H₂, sub_lt_sub_iff, add_add_lt_cancel_left, quot_mul_comm₄],
@@ -602,24 +615,24 @@ theorem result : ∀ x : mul_args, x.hypothesis
 
   -- Prove that all options of `x * y` are numeric.
   { rintro (⟨ix, iy⟩ | ⟨jx, jy⟩),
-    { let wf₁ : P1 x (yL iy) < P1 x y := cut_right_lt_P1 x (subsequent.mk_left _ _ iy),
-      let wf₂ : P1 (xL ix) (yL iy) < P1 x y :=
+    { let wf₁ : arg_rel {x, yL iy} {x, y} := cut_right_lt_P1 x (subsequent.mk_left _ _ iy),
+      let wf₂ : arg_rel {xL ix, yL iy} {x, y} :=
         cut_both_lt_P1 (subsequent.mk_left _ _ ix) (subsequent.mk_left _ _ iy),
       exact (HN₁.add (result (P1 _ _) ox (oy.move_left iy))).sub
         (result (P1 _ _) (ox.move_left ix) (oy.move_left iy)) },
-    { let wf₁ : P1 x (yR jy) < P1 x y := cut_right_lt_P1 x (subsequent.mk_right _ _ jy),
-      let wf₂ : P1 (xR jx) (yR jy) < P1 x y :=
+    { let wf₁ : arg_rel {x, yR jy} {x, y} := cut_right_lt_P1 x (subsequent.mk_right _ _ jy),
+      let wf₂ : arg_rel {xR jx, yR jy} {x, y} :=
         cut_both_lt_P1 (subsequent.mk_right _ _ jx) (subsequent.mk_right _ _ jy),
       exact (HN₂.add (result (P1 _ _) ox (oy.move_right jy))).sub
         (result (P1 _ _) (ox.move_right jx) (oy.move_right jy)) } },
   { rintro (⟨ix, jy⟩ | ⟨jx, iy⟩),
-    { let wf₁ : P1 x (yR jy) < P1 x y := cut_right_lt_P1 x (subsequent.mk_right _ _ jy),
-      let wf₂ : P1 (xL ix) (yR jy) < P1 x y :=
+    { let wf₁ : arg_rel {x, yR jy} {x, y} := cut_right_lt_P1 x (subsequent.mk_right _ _ jy),
+      let wf₂ : arg_rel {xL ix, yR jy} {x, y} :=
         cut_both_lt_P1 (subsequent.mk_left _ _ ix) (subsequent.mk_right _ _ jy),
       exact (HN₁.add (result (P1 _ _) ox (oy.move_right jy))).sub
         (result (P1 _ _) (ox.move_left ix) (oy.move_right jy)) },
-    { let wf₁ : P1 x (yL iy) < P1 x y := cut_right_lt_P1 x (subsequent.mk_left _ _ iy),
-      let wf₂ : P1 (xR jx) (yL iy) < P1 x y :=
+    { let wf₁ : arg_rel {x, yL iy} {x, y} := cut_right_lt_P1 x (subsequent.mk_left _ _ iy),
+      let wf₂ : arg_rel {xR jx, yL iy} {x, y} :=
         cut_both_lt_P1 (subsequent.mk_right _ _ jx) (subsequent.mk_left _ _ iy),
       exact (HN₂.add (result (P1 _ _) ox (oy.move_left iy))).sub
         (result (P1 _ _) (ox.move_right jx) (oy.move_left iy)) } }
@@ -630,16 +643,16 @@ end
   let y  : pgame := ⟨yl, yr, yL, yR⟩,
 
   -- Reused applications of the inductive hypothesis.
-  let wf₁ : P1 x₁ y < P2 x₁ x₂ y := sorry,
+  let wf₁ : arg_rel {x₁, y} {x₁, x₂, y} := sorry,
   have HN₁ := result (P1 x₁ y) ox₁ oy,
-  let wf₂ : P1 x₂ y < P2 x₁ x₂ y := sorry,
+  let wf₂ : arg_rel {x₂, y} {x₁, x₂, y} := sorry,
   have HN₂ := result (P1 x₂ y) ox₂ oy,
 
   have HR₁ := λ {jx₁},
-    let wf : P2 (x₁R jx₁) x₂ y < P2 x₁ x₂ y := sorry in
+    let wf : arg_rel {x₁R jx₁, x₂, y} {x₁, x₂, y} := sorry in
     result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ oy,
   have HR₂ := λ {ix₂},
-    let wf : P2 x₁ (x₂L ix₂) y < P2 x₁ x₂ y := sorry in
+    let wf : arg_rel {x₁, x₂L ix₂, y} {x₁, x₂, y} := sorry in
     result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) oy,
 
   have HS₁ := λ ix₂ iy, HN₂.move_left_lt (sum.inl (ix₂, iy)),
@@ -647,28 +660,28 @@ end
   have HS₃ := λ jx₁ iy, HN₁.lt_move_right (sum.inr (jx₁, iy)),
   have HS₄ := λ jx₁ jy, HN₁.move_left_lt (sum.inr (jx₁, jy)),
 
-  have HT₁ := λ iy, let wf : P2 x₁ x₂ (yL iy) < P2 x₁ x₂ y :=
+  have HT₁ := λ iy, let wf : arg_rel {x₁, x₂, yL iy} {x₁, x₂, y} :=
     cut_right_lt_P2 x₁ x₂ (subsequent.mk_left _ _ iy) in
     (result (P2 _ _ _) ox₁ ox₂ (oy.move_left iy)).1,
-  have HT₂ := λ jy, let wf : P2 x₁ x₂ (yR jy) < P2 x₁ x₂ y :=
+  have HT₂ := λ jy, let wf : arg_rel {x₁, x₂, yR jy} {x₁, x₂, y} :=
     cut_right_lt_P2 x₁ x₂ (subsequent.mk_right _ _ jy) in
     (result (P2 _ _ _) ox₁ ox₂ (oy.move_right jy)).1,
-  have HT₃ := λ iy, let wf : P2 x₂ x₁ (yL iy) < P2 x₁ x₂ y := sorry in
+  have HT₃ := λ iy, let wf : arg_rel {x₂, x₁, yL iy} {x₁, x₂, y} := sorry in
     (result (P2 _ _ _) ox₂ ox₁ (oy.move_left iy)).1,
-  have HT₄ := λ jy, let wf : P2 x₂ x₁ (yR jy) < P2 x₁ x₂ y := sorry in
+  have HT₄ := λ jy, let wf : arg_rel {x₂, x₁, yR jy} {x₁, x₂, y} := sorry in
     (result (P2 _ _ _) ox₂ ox₁ (oy.move_right jy)).1,
 
   have HU₁ := λ ix₁ h,
-    let wf : P2 (x₁L ix₁) x₂ y < P2 x₁ x₂ y := sorry in
+    let wf : arg_rel {x₁L ix₁, x₂, y} {x₁, x₂, y} := sorry in
     (result (P2 _ _ _) (ox₁.move_left ix₁) ox₂ oy).2 ((ox₁.move_left_lt ix₁).trans_le h),
   have HU₂ := λ ix₂ h,
-    let wf : P2 (x₂L ix₂) x₁ y < P2 x₁ x₂ y := sorry in
+    let wf : arg_rel {x₂L ix₂, x₁, y} {x₁, x₂, y} := sorry in
     (result (P2 _ _ _) (ox₂.move_left ix₂) ox₁ oy).2 ((ox₂.move_left_lt ix₂).trans_le h),
   have HU₃ := λ jx₁ (h : _ ≤ _),
-    let wf : P2 x₂ (x₁R jx₁) y < P2 x₁ x₂ y := sorry in
+    let wf : arg_rel {x₂, x₁R jx₁, y} {x₁, x₂, y} := sorry in
     (result (P2 _ _ _) ox₂ (ox₁.move_right jx₁) oy).2 (h.trans_lt (ox₁.lt_move_right jx₁)),
   have HU₄ := λ jx₂ (h : _ ≤ _),
-    let wf : P2 x₁ (x₂R jx₂) y < P2 x₁ x₂ y := sorry in
+    let wf : arg_rel {x₁, x₂R jx₂, y} {x₁, x₂, y} := sorry in
     (result (P2 _ _ _) ox₁ (ox₂.move_right jx₂) oy).2 (h.trans_lt (ox₂.lt_move_right jx₂)),
 
   -- Prove that if `x₁ ≈ x₂`, then `x₁ * y ≈ x₂ * y`.
@@ -734,14 +747,14 @@ end
         add_comm ⟦_ * yR jy⟧] at H },
     { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₁ ix₂ iy,
       have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound (HR₂.1 h),
-      let wf : P2 x₁ (x₂L ix₂) (yL iy) < P2 x₁ x₂ y := sorry,
+      let wf : arg_rel {x₁, x₂L ix₂, yL iy} {x₁, x₂, y} := sorry,
       have H₃ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
         ((result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) (oy.move_left iy)).1 h),
       dsimp at H₁ H₂ H₃,
       rwa [sub_lt_iff_lt_add, ←H₂, ←H₃, add_comm₂] at H₁ },
     { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₂ ix₂ jy,
       have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound (HR₂.1 h),
-      let wf : P2 x₁ (x₂L ix₂) (yR jy) < P2 x₁ x₂ y := sorry,
+      let wf : arg_rel {x₁, x₂L ix₂, yR jy} {x₁, x₂, y} := sorry,
       have H₃ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
         ((result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) (oy.move_right jy)).1 h),
       dsimp at H₁ H₂ H₃,
@@ -758,14 +771,14 @@ end
         add_comm] at H },
     { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₃ jx₁ iy,
       have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound (HR₁.1 h),
-      let wf : P2 (x₁R jx₁) x₂ (yL iy) < P2 x₁ x₂ y := sorry,
+      let wf : arg_rel {x₁R jx₁, x₂, yL iy} {x₁, x₂, y} := sorry,
       have H₃ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
         ((result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ (oy.move_left iy)).1 h),
       dsimp at H₁ H₂ H₃,
       rwa [lt_sub_iff_add_lt, H₂, H₃, add_comm₂] at H₁ },
     { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₄ jx₁ jy,
       have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound (HR₁.1 h),
-      let wf : P2 (x₁R jx₁) x₂ (yR jy) < P2 x₁ x₂ y := sorry,
+      let wf : arg_rel {x₁R jx₁, x₂, yR jy} {x₁, x₂, y} := sorry,
       have H₃ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
         ((result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ (oy.move_right jy)).1 h),
       dsimp at H₁ H₂ H₃,

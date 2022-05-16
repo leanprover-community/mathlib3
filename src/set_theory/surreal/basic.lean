@@ -412,6 +412,10 @@ lt_of_cut_expand $ cut_left_pair h y
 theorem lt_cut_right_P1 (x) {y y'} (h : subsequent y' y) : P1 x y' < P1 x y :=
 lt_of_cut_expand $ cut_right_pair x h
 
+theorem lt_cut_both_P1 {x x' y y'} (hx : subsequent x' x) (hy : subsequent y' y) :
+  P1 x' y' < P1 x y :=
+trans (lt_cut_left_P1 hx y') (lt_cut_right_P1 _ hy)
+
 /-- The hypothesis is true for any arguments. -/
 theorem result : ∀ x : mul_args, x.hypothesis
 | (P1 ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩) := λ ox oy, begin
@@ -568,20 +572,24 @@ theorem result : ∀ x : mul_args, x.hypothesis
   -- Prove that all options of `x * y` are numeric.
   { rintro (⟨ix, iy⟩ | ⟨jx, jy⟩),
     { let wf₁ : P1 x (yL iy) < P1 x y := lt_cut_right_P1 x (subsequent.mk_left _ _ iy),
-      let wf₂ : P1 (xL ix) (yL iy) < P1 x y := sorry,
+      let wf₂ : P1 (xL ix) (yL iy) < P1 x y :=
+        lt_cut_both_P1 (subsequent.mk_left _ _ ix) (subsequent.mk_left _ _ iy),
       exact (HN₁.add (result (P1 _ _) ox (oy.move_left iy))).sub
         (result (P1 _ _) (ox.move_left ix) (oy.move_left iy)) },
     { let wf₁ : P1 x (yR jy) < P1 x y := lt_cut_right_P1 x (subsequent.mk_right _ _ jy),
-      let wf₂ : P1 (xR jx) (yR jy) < P1 x y := sorry,
+      let wf₂ : P1 (xR jx) (yR jy) < P1 x y :=
+        lt_cut_both_P1 (subsequent.mk_right _ _ jx) (subsequent.mk_right _ _ jy),
       exact (HN₂.add (result (P1 _ _) ox (oy.move_right jy))).sub
         (result (P1 _ _) (ox.move_right jx) (oy.move_right jy)) } },
   { rintro (⟨ix, jy⟩ | ⟨jx, iy⟩),
     { let wf₁ : P1 x (yR jy) < P1 x y := lt_cut_right_P1 x (subsequent.mk_right _ _ jy),
-      let wf₂ : P1 (xL ix) (yR jy) < P1 x y := sorry,
+      let wf₂ : P1 (xL ix) (yR jy) < P1 x y :=
+        lt_cut_both_P1 (subsequent.mk_left _ _ ix) (subsequent.mk_right _ _ jy),
       exact (HN₁.add (result (P1 _ _) ox (oy.move_right jy))).sub
         (result (P1 _ _) (ox.move_left ix) (oy.move_right jy)) },
     { let wf₁ : P1 x (yL iy) < P1 x y := lt_cut_right_P1 x (subsequent.mk_left _ _ iy),
-      let wf₂ : P1 (xR jx) (yL iy) < P1 x y := sorry,
+      let wf₂ : P1 (xR jx) (yL iy) < P1 x y :=
+        lt_cut_both_P1 (subsequent.mk_right _ _ jx) (subsequent.mk_left _ _ iy),
       exact (HN₂.add (result (P1 _ _) ox (oy.move_left iy))).sub
         (result (P1 _ _) (ox.move_right jx) (oy.move_left iy)) } }
 end

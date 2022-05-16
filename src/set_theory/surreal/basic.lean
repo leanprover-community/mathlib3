@@ -597,7 +597,18 @@ end
       dsimp at H, abel at H,
       rwa [←add_assoc ⟦x₂ * y⟧, add_comm ⟦x₂ * y⟧, add_assoc, add_lt_add_iff_left,
         add_comm ⟦_ * yR jy⟧] at H },
-      all_goals { sorry } },
+    { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₁ ix₂ iy,
+      have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound (HR₂.1 h),
+      have H₃ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
+        ((result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) (oy.move_left iy)).1 h),
+      dsimp at H₁ H₂ H₃,
+      rwa [sub_lt_iff_lt_add, ←H₂, ←H₃, add_comm₂] at H₁ },
+    { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₂ ix₂ jy,
+      have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound (HR₂.1 h),
+      have H₃ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
+        ((result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) (oy.move_right jy)).1 h),
+      dsimp at H₁ H₂ H₃,
+      rwa [lt_sub_iff_add_lt, ←H₂, ←H₃] at H₁ } },
   { cases lt_or_equiv_of_le h (ox₁.move_right jx₁) ox₂ with h h;
     refine ⟨λ iy, _, λ jy, _⟩,
     { have H : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add ((HR₁.2 h).1 iy) (HS₃ jx₁ iy),

@@ -780,13 +780,6 @@ begin
     refl }
 end
 
-lemma list.repeat_dedup {α : Type*} [decidable_eq α] {x : α} :
-  ∀ {k}, k ≠ 0 → (list.repeat x k).dedup = [x]
-| 0 h := (h rfl).elim
-| 1 _ := rfl
-| (n+2) _ := by rw [list.repeat_succ, list.dedup_cons_of_mem
-  (list.mem_repeat.2 ⟨n.succ_ne_zero, rfl⟩), list.repeat_dedup n.succ_ne_zero]
-
 @[simp] lemma card_distinct_factors_apply_prime_pow {p k : ℕ} (hp : p.prime) (hk : k ≠ 0) :
   ω (p ^ k) = 1 :=
 by rw [card_distinct_factors_apply, hp.factors_pow, list.repeat_dedup hk, list.length_singleton]

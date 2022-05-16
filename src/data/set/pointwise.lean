@@ -1324,7 +1324,7 @@ begin
   { refine λ k hk, fintype.card_congr _,
     rw [hS, empty_pow _ (ne_of_gt (lt_of_lt_of_le hG hk)), empty_pow _ (ne_of_gt hG)] },
   obtain ⟨a, ha⟩ := set.ne_empty_iff_nonempty.mp hS,
-  classical,
+  classical!,
   have key : ∀ a (s t : set G), (∀ b : G, b ∈ s → a * b ∈ t) → fintype.card s ≤ fintype.card t,
   { refine λ a s t h, fintype.card_le_of_injective (λ ⟨b, hb⟩, ⟨a * b, h b hb⟩) _,
     rintro ⟨b, hb⟩ ⟨c, hc⟩ hbc,

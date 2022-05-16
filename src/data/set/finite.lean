@@ -17,6 +17,9 @@ about finite sets and gives ways to manipulate `set.finite` expressions.
 
 * `set.finite : set α → Prop`
 * `set.infinite : set α → Prop`
+* `set.to_finite` to prove `set.finite` for a `set` from a `fintype` instance.
+* `set.finite.to_finset` to noncomputably produce a `finset` from a `set.finite` proof.
+  (See `set.to_finset` for a computable version.)
 
 ## Implementation
 
@@ -26,9 +29,9 @@ exists.
 
 There are two components to finiteness constructions. The first is `fintype` instances for each
 construction. This gives a way to actually compute a `finset` that represents the set, and these
-may be accessed using `set.to_finset`, which gets the `finset` in the correct form (since otherwise
-`finset.univ : finset s` is a `finset` for the subtype for `s`). The second component are
-"constructors" for `set.finite` that give (classical) proofs that `fintype` instances exist, given
+may be accessed using `set.to_finset`. This gets the `finset` in the correct form, since otherwise
+`finset.univ : finset s` is a `finset` for the subtype for `s`. The second component is
+"constructors" for `set.finite` that give proofs that `fintype` instances exist classically given
 other `set.finite` proofs. Unlike the `fintype` instances, these *do not* use any decidability
 instances since they do not compute anything.
 
@@ -51,7 +54,7 @@ inductive finite (s : set α) : Prop
 | intro : fintype s → finite
 
 /-- Constructor for `set.finite` with the `fintype` as an instance argument. -/
-theorem finite.intro' (s : set α) [h : fintype s] : s.finite := ⟨h⟩
+theorem to_finite (s : set α) [h : fintype s] : s.finite := ⟨h⟩
 
 lemma finite_def {s : set α} : s.finite ↔ nonempty (fintype s) := ⟨λ ⟨h⟩, ⟨h⟩, λ ⟨h⟩, ⟨h⟩⟩
 
@@ -308,29 +311,29 @@ end fintype_instances
 Every constructor here should have a corresponding `fintype` instance in the previous section
 (or in the `fintype` module).
 
-The implementation of these constructors ideally should be no more than `finite.intro'`, after
+The implementation of these constructors ideally should be no more than `set.to_finite`, after
 possibly setting up some `fintype` and classical `decidable` instances.
 -/
 section set_finite_constructors
 
 theorem finite.of_fintype [fintype α] (s : set α) : s.finite :=
-by { classical, apply finite.intro' }
+by { classical, apply to_finite }
 
-theorem finite_univ [fintype α] : (@univ α).finite := finite.intro' _
+theorem finite_univ [fintype α] : (@univ α).finite := to_finite _
 
 theorem finite.union {s t : set α} (hs : s.finite) (ht : t.finite) : (s ∪ t).finite :=
-by { classical, casesI hs, casesI ht, apply finite.intro' }
+by { classical, casesI hs, casesI ht, apply to_finite }
 
 lemma finite.sup {s t : set α} : finite s → finite t → finite (s ⊔ t) := finite.union
 
 theorem finite.sep {s : set α} (hs : s.finite) (p : α → Prop) : {a ∈ s | p a}.finite :=
-by { classical, casesI hs, apply finite.intro' }
+by { classical, casesI hs, apply to_finite }
 
 theorem finite.inter_of_left {s : set α} (hs : s.finite) (t : set α) : (s ∩ t).finite :=
-by { classical, casesI hs, apply finite.intro' }
+by { classical, casesI hs, apply to_finite }
 
 theorem finite.inter_of_right {s : set α} (hs : s.finite) (t : set α) : (t ∩ s).finite :=
-by { classical, casesI hs, apply finite.intro' }
+by { classical, casesI hs, apply to_finite }
 
 theorem finite.inf_of_left {s : set α} (h : finite s) (t : set α) : finite (s ⊓ t) :=
 h.inter_of_left t
@@ -339,25 +342,25 @@ theorem finite.inf_of_right {s : set α} (h : finite s) (t : set α) : finite (t
 h.inter_of_right t
 
 theorem finite.subset {s : set α} (hs : s.finite) {t : set α} (ht : t ⊆ s) : t.finite :=
-by { classical, casesI hs, haveI := set.fintype_subset _ ht, apply finite.intro' }
+by { classical, casesI hs, haveI := set.fintype_subset _ ht, apply to_finite }
 
 theorem finite.diff {s : set α} (hs : s.finite) (t : set α) : (s \ t).finite :=
-by { classical, casesI hs, apply finite.intro' }
+by { classical, casesI hs, apply to_finite }
 
 theorem finite.of_diff {s t : set α} (hd : finite (s \ t)) (ht : finite t) : finite s :=
 (hd.union ht).subset $ subset_diff_union _ _
 
 theorem finite_Union [fintype (plift ι)] {f : ι → set α} (H : ∀ i, (f i).finite) :
   (⋃ i, f i).finite :=
-by { classical, haveI := λ i, (H i).fintype, apply finite.intro' }
+by { classical, haveI := λ i, (H i).fintype, apply to_finite }
 
 theorem finite.sUnion {s : set (set α)} (hs : s.finite) (H : ∀ t ∈ s, finite t) : (⋃₀ s).finite :=
-by { classical, casesI hs, haveI := λ (i : s), (H i i.2).fintype, apply finite.intro' }
+by { classical, casesI hs, haveI := λ (i : s), (H i i.2).fintype, apply to_finite }
 
 theorem finite.bUnion {ι} {s : set ι} (hs : s.finite)
   {t : ι → set α} (ht : ∀ i ∈ s, (t i).finite) : (⋃(i ∈ s), t i).finite :=
 by { classical, casesI hs,
-     haveI := fintype_bUnion s t (λ i hi, (ht i hi).fintype), apply finite.intro' }
+     haveI := fintype_bUnion s t (λ i hi, (ht i hi).fintype), apply to_finite }
 
 /-- Dependent version of `finite.bUnion`. -/
 theorem finite.bUnion' {ι} {s : set ι} (hs : s.finite)
@@ -372,20 +375,20 @@ theorem finite.bind {α β} {s : set α} {f : α → set β} (h : s.finite) (hf 
   finite (s >>= f) :=
 h.bUnion hf
 
-@[simp] theorem finite_empty : (∅ : set α).finite := finite.intro' _
+@[simp] theorem finite_empty : (∅ : set α).finite := to_finite _
 
-@[simp] theorem finite_singleton (a : α) : ({a} : set α).finite := finite.intro' _
+@[simp] theorem finite_singleton (a : α) : ({a} : set α).finite := to_finite _
 
-theorem finite_pure (a : α) : (pure a : set α).finite := finite.intro' _
+theorem finite_pure (a : α) : (pure a : set α).finite := to_finite _
 
 @[simp] theorem finite.insert (a : α) {s : set α} (hs : s.finite) : (insert a s).finite :=
-by { classical, casesI hs, apply finite.intro' }
+by { classical, casesI hs, apply to_finite }
 
 theorem finite.image {s : set α} (f : α → β) (hs : s.finite) : (f '' s).finite :=
-by { classical, casesI hs, apply finite.intro' }
+by { classical, casesI hs, apply to_finite }
 
 theorem finite_range (f : ι → α) [fintype (plift ι)] : (range f).finite :=
-by { classical, apply finite.intro' }
+by { classical, apply to_finite }
 
 lemma finite.dependent_image {s : set α} (hs : s.finite) (F : Π i ∈ s, β) :
   finite {y : β | ∃ x (hx : x ∈ s), y = F x hx} :=
@@ -410,27 +413,27 @@ theorem finite.preimage {s : set β} {f : α → β}
 theorem finite.preimage_embedding {s : set β} (f : α ↪ β) (h : s.finite) : (f ⁻¹' s).finite :=
 h.preimage (λ _ _ _ _ h', f.injective h')
 
-lemma finite_lt_nat (n : ℕ) : finite {i | i < n} := finite.intro' _
+lemma finite_lt_nat (n : ℕ) : finite {i | i < n} := to_finite _
 
-lemma finite_le_nat (n : ℕ) : finite {i | i ≤ n} := finite.intro' _
+lemma finite_le_nat (n : ℕ) : finite {i | i ≤ n} := to_finite _
 
 lemma finite.prod {s : set α} {t : set β} (hs : s.finite) (ht : t.finite) :
   (s ×ˢ t : set (α × β)).finite :=
-by { classical, casesI hs, casesI ht, apply finite.intro' }
+by { classical, casesI hs, casesI ht, apply to_finite }
 
 lemma finite.image2 (f : α → β → γ) {s : set α} {t : set β} (hs : s.finite) (ht : t.finite) :
   finite (image2 f s t) :=
-by { classical, casesI hs, casesI ht, apply finite.intro' }
+by { classical, casesI hs, casesI ht, apply to_finite }
 
 theorem finite.seq {f : set (α → β)} {s : set α} (hf : f.finite) (hs : s.finite) :
   finite (f.seq s) :=
-by { classical, casesI hf, casesI hs, apply finite.intro' }
+by { classical, casesI hf, casesI hs, apply to_finite }
 
 theorem finite.seq' {α β : Type u} {f : set (α → β)} {s : set α} (hf : f.finite) (hs : s.finite) :
   finite (f <*> s) :=
 hf.seq hs
 
-theorem finite_mem_finset (s : finset α) : finite {a | a ∈ s} := finite.intro' _
+theorem finite_mem_finset (s : finset α) : finite {a | a ∈ s} := to_finite _
 
 lemma subsingleton.finite {s : set α} (h : s.subsingleton) : finite s :=
 h.induction_on finite_empty finite_singleton
@@ -454,13 +457,13 @@ begin
   lift t to Π d, finset (κ d) using ht,
   classical,
   rw ← fintype.coe_pi_finset,
-  exact finite.intro' (fintype.pi_finset t),
+  exact to_finite (fintype.pi_finset t),
 end
 
 /-- A finite union of finsets is finite. -/
 lemma union_finset_finite_of_range_finite (f : α → finset β) (h : (range f).finite) :
   (⋃ a, (f a : set β)).finite :=
-by { rw ← bUnion_range, exact h.bUnion (λ y hy, finite.intro' y) }
+by { rw ← bUnion_range, exact h.bUnion (λ y hy, to_finite y) }
 
 lemma finite_range_ite {p : α → Prop} [decidable_pred p] {f g : α → β} (hf : finite (range f))
   (hg : finite (range g)) : finite (range (λ x, if p x then f x else g x)) :=
@@ -745,7 +748,7 @@ let ⟨m, hm⟩ := (hs.diff $ set.finite_le_nat n).nonempty in ⟨m, by simpa us
 
 lemma infinite.exists_not_mem_finset {s : set α} (hs : s.infinite) (f : finset α) :
   ∃ a ∈ s, a ∉ f :=
-let ⟨a, has, haf⟩ := (hs.diff (finite.intro' f)).nonempty in ⟨a, has, λ h, haf $ finset.mem_coe.1 h⟩
+let ⟨a, has, haf⟩ := (hs.diff (to_finite f)).nonempty in ⟨a, has, λ h, haf $ finset.mem_coe.1 h⟩
 
 
 /-! ### Order properties -/
@@ -830,7 +833,7 @@ by { rw range_subset_iff, intro x, simp [nat.lt_succ_iff, nat.find_greatest_le] 
 
 lemma finite_range_find_greatest {P : α → ℕ → Prop} [∀ x, decidable_pred (P x)] {b : ℕ} :
   finite (range (λ x, nat.find_greatest (P x) b)) :=
-(finite.intro' ↑(finset.range (b + 1))).subset range_find_greatest_subset
+(to_finite ↑(finset.range (b + 1))).subset range_find_greatest_subset
 
 lemma finite.exists_maximal_wrt [partial_order β] (f : α → β) (s : set α) (h : set.finite s) :
   s.nonempty → ∃ a ∈ s, ∀ a' ∈ s, f a ≤ f a' → f a = f a' :=
@@ -905,12 +908,12 @@ namespace finset
 /-- A finset is bounded above. -/
 protected lemma bdd_above [semilattice_sup α] [nonempty α] (s : finset α) :
   bdd_above (↑s : set α) :=
-(set.finite.intro' ↑s).bdd_above
+(set.to_finite ↑s).bdd_above
 
 /-- A finset is bounded below. -/
 protected lemma bdd_below [semilattice_inf α] [nonempty α] (s : finset α) :
   bdd_below (↑s : set α) :=
-(set.finite.intro' ↑s).bdd_below
+(set.to_finite ↑s).bdd_below
 
 end finset
 
@@ -944,8 +947,8 @@ end
 namespace finset
 
 /-- Gives a `set.finite` for the `finset` coerced to a `set`.
-This is a wrapper around `set.finite.intro'`. -/
-lemma finite_to_set (s : finset α) : (s : set α).finite := set.finite.intro' _
+This is a wrapper around `set.to_finite`. -/
+lemma finite_to_set (s : finset α) : (s : set α).finite := set.to_finite _
 
 @[simp] lemma finite_to_set_to_finset {α : Type*} (s : finset α) :
   s.finite_to_set.to_finset = s :=

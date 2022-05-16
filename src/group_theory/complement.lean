@@ -464,7 +464,7 @@ lemma transfer_transversal_apply'
 by rw [transfer_transversal_apply, transfer_function_apply,
   ←quotient_equiv_sigma_zmod_symm_apply, apply_symm_apply]
 
-lemma key_transversal_apply'' (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
+lemma transfer_transversal_apply'' (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
   (k : zmod (function.minimal_period ((•) g) q.out')) :
   ↑(to_equiv (g • transfer_transversal H g).2 (g ^ (k : ℤ) • q.out')) =
     if k = 0 then g ^ minimal_period ((•) g) q.out' * q.out'.out' else g ^ (k : ℤ) * q.out'.out' :=

@@ -22,7 +22,7 @@ In this file we construct the transfer homomorphism.
 
 section equiv_stuff
 
--- Auxillary PR
+-- PRed
 lemma orbit_zpowers_equiv_symm_apply' {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
   (k : ℤ) :
   (mul_action.orbit_zpowers_equiv a b).symm k =
@@ -35,81 +35,7 @@ begin
   apply dvd_mul_right,
 end
 
-universe u
-
--- PR2
-noncomputable def key_equiv {G : Type u} [group G] (H : subgroup G) (g : G) :
-  G ⧸ H ≃ Σ (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H))),
-  zmod (function.minimal_period ((•) g) q.out') :=
-(mul_action.self_equiv_sigma_orbits (subgroup.zpowers g) (G ⧸ H)).trans
-  (equiv.sigma_congr_right (λ q, mul_action.orbit_zpowers_equiv g q.out'))
-
--- PR2
-lemma key_equiv_symm_apply {G : Type u} [group G] (H : subgroup G) (g : G)
-  (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
-  (k : zmod (function.minimal_period ((•) g) q.out')) :
-  (key_equiv H g).symm ⟨q, k⟩ = g ^ (k : ℤ) • q.out' :=
-rfl
-
--- PR2
-lemma key_equiv_apply {G : Type u} [group G] (H : subgroup G) (g : G)
-  (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
-  (k : ℤ) :
-  key_equiv H g (g ^ k • q.out') = ⟨q, k⟩ :=
-begin
-  rw [equiv.apply_eq_iff_eq_symm_apply, key_equiv_symm_apply],
-  rw [←inv_smul_eq_iff, ←zpow_neg_one, ←zpow_mul, mul_neg_one, ←mul_smul, ←zpow_add, add_comm,
-    ←sub_eq_add_neg, mul_action.zpow_smul_eq_iff_minimal_period_dvd, ←zmod.int_coe_eq_int_coe_iff_dvd_sub],
-  rw [zmod.int_cast_cast, zmod.cast_int_cast'],
-end
-
 end equiv_stuff
-
-section transversal_stuff
-
--- PR3
-def key_transversal_set {G : Type*} [group G] (H : subgroup G) (g : G) : set G :=
-set.range (λ q, g ^ ((key_equiv H g q).2 : ℤ)  * (key_equiv H g q).1.out'.out')
-
--- PR3
-def key_transversal {G : Type*} [group G] (H : subgroup G) (g : G) : subgroup.left_transversals (H : set G) :=
-⟨key_transversal_set H g, subgroup.range_mem_left_transversals (λ q, by rw [←smul_eq_mul,
-  mul_action.quotient.coe_smul_out', ←key_equiv_symm_apply, sigma.eta, equiv.symm_apply_apply])⟩
-
--- PR3
-lemma key_transversal_apply {G : Type*} [group G] (H : subgroup G) (g : G) (q : G ⧸ H) :
-  ↑(subgroup.mem_left_transversals.to_equiv (key_transversal H g).2 q) =
-    g ^ ((key_equiv H g q).2 : ℤ) * (key_equiv H g q).1.out'.out' :=
-subgroup.mem_left_transversals.to_equiv_apply (λ q, by rw [←smul_eq_mul, mul_action.quotient.coe_smul_out',
-  ←key_equiv_symm_apply, sigma.eta, equiv.symm_apply_apply]) q
-
--- PR3
-lemma key_transversal_apply' {G : Type*} [group G] (H : subgroup G)
-  (g : G) (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
-  (k : zmod (function.minimal_period ((•) g) q.out')) :
-  ↑(subgroup.mem_left_transversals.to_equiv (key_transversal H g).2 (g ^ (k : ℤ) • q.out')) =
-    g ^ (k : ℤ) * q.out'.out' :=
-by rw [key_transversal_apply, ←key_equiv_symm_apply, equiv.apply_symm_apply]
-
--- PR4
-lemma key_transversal_apply'' {G : Type*} [group G] (H : subgroup G)
-  (g : G) (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H)))
-  (k : zmod (function.minimal_period ((•) g) q.out')) :
-  ↑(subgroup.mem_left_transversals.to_equiv (g • key_transversal H g).2 (g ^ (k : ℤ) • q.out')) =
-    if k = 0 then g ^ function.minimal_period ((•) g) q.out' * q.out'.out'
-      else g ^ (k : ℤ) * q.out'.out' :=
-begin
-  rw [subgroup.smul_apply_eq_smul_apply_inv_smul, key_transversal_apply, ←mul_smul, ←zpow_neg_one,
-      ←zpow_add, key_equiv_apply, smul_eq_mul, ←mul_assoc, ←zpow_one_add,
-      int.cast_add, int.cast_neg, int.cast_one, zmod.int_cast_cast, zmod.cast_id', id.def],
-
-  rw [←sub_eq_neg_add, zmod.cast_sub_one, add_sub_cancel'_right],
-  by_cases hk : k = 0,
-  { rw [if_pos hk, if_pos hk, int.nat_cast_eq_coe_nat, zpow_coe_nat] },
-  { rw [if_neg hk, if_neg hk] },
-end
-
-end transversal_stuff
 
 open_locale big_operators
 
@@ -175,6 +101,7 @@ section explicit_computation
 
 variables (H)
 
+-- PRed
 @[to_additive] lemma lem0 {α β : Type*} [group α] [mul_action α β] (a : α) (b : β)
   [fintype (mul_action.orbit (zpowers a) b)] :
   function.minimal_period ((•) a) b = fintype.card (mul_action.orbit (zpowers a) b) :=
@@ -190,18 +117,19 @@ end⟩
 
 open_locale classical
 
+
 lemma transfer_computation (g : G) : transfer ϕ g =
   ∏ (q : quotient (mul_action.orbit_rel (zpowers g) (G ⧸ H))),
     ϕ ⟨q.out'.out'⁻¹ * g ^ (function.minimal_period ((•) g) q.out') * q.out'.out',
       by rw [mul_assoc, ←quotient_group.eq', ←smul_eq_mul, mul_action.quotient.mk_smul_out',
         quotient_group.out_eq', eq_comm, mul_action.pow_smul_eq_iff_minimal_period_dvd]⟩ :=
 begin
-  calc transfer ϕ g = ∏ (q : G ⧸ H), _ : transfer_def ϕ (key_transversal H g) g
-  ... = _ : ((key_equiv H g).symm.prod_comp _).symm
+  calc transfer ϕ g = ∏ (q : G ⧸ H), _ : transfer_def ϕ (transfer_transversal H g) g
+  ... = _ : ((quotient_equiv_sigma_zmod H g).symm.prod_comp _).symm
   ... = _ : finset.prod_sigma _ _ _
   ... = _ : fintype.prod_congr _ _ (λ q, _),
   simp only,
-  simp only [key_equiv_symm_apply, key_transversal_apply', key_transversal_apply''],
+  simp only [quotient_equiv_sigma_zmod_symm_apply, transfer_transversal_apply', transfer_transversal_apply''],
   rw fintype.prod_eq_single (0 : zmod (function.minimal_period ((•) g) q.out')),
   { simp only [if_pos, zmod.cast_zero, zpow_zero, one_mul, mul_assoc] },
   { intros k hk,

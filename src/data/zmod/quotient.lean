@@ -128,8 +128,8 @@ lemma orbit_zpowers_equiv_symm_apply
   (⟨a, mem_zpowers a⟩ : zpowers a) ^ (k : ℤ) • ⟨b, mem_orbit_self b⟩ :=
 rfl
 
-@[to_additive] lemma minimal_period_eq_card [fintype (mul_action.orbit (zpowers a) b)] :
-  function.minimal_period ((•) a) b = fintype.card (mul_action.orbit (zpowers a) b) :=
-by rw [←fintype.of_equiv_card (mul_action.orbit_zpowers_equiv a b), zmod.card]
+@[to_additive] lemma minimal_period_eq_card [fintype (orbit (zpowers a) b)] :
+  minimal_period ((•) a) b = fintype.card (orbit (zpowers a) b) :=
+by rw [←fintype.of_equiv_card (orbit_zpowers_equiv a b), zmod.card]
 
 end mul_action

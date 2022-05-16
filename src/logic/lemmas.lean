@@ -10,9 +10,14 @@ import tactic.split_ifs
 
 A few more logic lemmas. These are in their own file, rather than `logic.basic`, because it is
 convenient to be able to use the `split_ifs` tactic.
+
+## Implementation notes
+
+We spell those lemmas out with `dite` and `ite` rather than the `if then else` notation because this
+would result in less delta-reduced statements.
 -/
 
-variables {α : Type*} {p q r : Prop} [decidable p] [decidable q] {a b c : α}
+variables {α : Sort*} {p q r : Prop} [decidable p] [decidable q] {a b c : α}
 
 lemma dite_dite_distrib_left {a : p → α} {b : ¬ p → q → α} {c : ¬ p → ¬ q → α} :
   dite p a (λ hp, dite q (b hp) (c hp)) =

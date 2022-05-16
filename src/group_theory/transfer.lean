@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import data.zmod.quotient
 import group_theory.complement
 import group_theory.group_action.basic
 import group_theory.index
@@ -23,39 +22,14 @@ In this file we construct the transfer homomorphism.
 
 section equiv_stuff
 
--- PRed
-noncomputable def orbit_zpowers_equiv
-  {α β : Type*} [group α] (a : α) [mul_action α β] (b : β) :
-  mul_action.orbit (subgroup.zpowers a) b ≃ zmod (function.minimal_period ((•) a) b) :=
-(mul_action.orbit_equiv_quotient_stabilizer (subgroup.zpowers a) b).trans
-  (mul_action.zpowers_quotient_stabilizer_equiv a b).to_equiv
-
--- PRed
-noncomputable def orbit_zmultiples_equiv
-  {α β : Type*} [add_group α] (a : α) [add_action α β] (b : β) :
-  add_action.orbit (add_subgroup.zmultiples a) b ≃ zmod (function.minimal_period ((+ᵥ) a) b) :=
-(add_action.orbit_equiv_quotient_stabilizer (add_subgroup.zmultiples a) b).trans
-  (add_action.zmultiples_quotient_stabilizer_equiv a b).to_equiv
-
--- PRed
-attribute [to_additive orbit_zmultiples_equiv] orbit_zpowers_equiv
-
--- PRed
-@[to_additive orbit_zmultiples_equiv_symm_apply']
-lemma orbit_zpowers_equiv_symm_apply' {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
-  (k : zmod (function.minimal_period ((•) a) b)) :
-  (orbit_zpowers_equiv a b).symm k =
-  (⟨a, subgroup.mem_zpowers a⟩ : subgroup.zpowers a) ^ (k : ℤ) • ⟨b, mul_action.mem_orbit_self b⟩ :=
-rfl
-
 -- Auxillary PR
-lemma orbit_zpowers_equiv_symm_apply {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
+lemma orbit_zpowers_equiv_symm_apply' {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
   (k : ℤ) :
-  (orbit_zpowers_equiv a b).symm k =
+  (mul_action.orbit_zpowers_equiv a b).symm k =
   (⟨a, subgroup.mem_zpowers a⟩ : subgroup.zpowers a) ^ k • ⟨b, mul_action.mem_orbit_self b⟩ :=
 begin
   conv_rhs { rw ← int.mod_add_div k (function.minimal_period ((•) a) b) },
-  rw [zpow_add, mul_smul, orbit_zpowers_equiv_symm_apply', zmod.coe_int_cast, smul_left_cancel_iff,
+  rw [zpow_add, mul_smul, mul_action.orbit_zpowers_equiv_symm_apply, zmod.coe_int_cast, smul_left_cancel_iff,
       subtype.ext_iff, mul_action.orbit.coe_smul, subtype.coe_mk, eq_comm,
       mul_action.zpow_smul_eq_iff_minimal_period_dvd],
   apply dvd_mul_right,
@@ -68,7 +42,7 @@ noncomputable def key_equiv {G : Type u} [group G] (H : subgroup G) (g : G) :
   G ⧸ H ≃ Σ (q : quotient (mul_action.orbit_rel (subgroup.zpowers g) (G ⧸ H))),
   zmod (function.minimal_period ((•) g) q.out') :=
 (mul_action.self_equiv_sigma_orbits (subgroup.zpowers g) (G ⧸ H)).trans
-  (equiv.sigma_congr_right (λ q, orbit_zpowers_equiv g q.out'))
+  (equiv.sigma_congr_right (λ q, mul_action.orbit_zpowers_equiv g q.out'))
 
 -- PR2
 lemma key_equiv_symm_apply {G : Type u} [group G] (H : subgroup G) (g : G)
@@ -204,7 +178,7 @@ variables (H)
 @[to_additive] lemma lem0 {α β : Type*} [group α] [mul_action α β] (a : α) (b : β)
   [fintype (mul_action.orbit (zpowers a) b)] :
   function.minimal_period ((•) a) b = fintype.card (mul_action.orbit (zpowers a) b) :=
-by rw [←fintype.of_equiv_card (orbit_zpowers_equiv a b), zmod.card]
+by rw [←fintype.of_equiv_card (mul_action.orbit_zpowers_equiv a b), zmod.card]
 
 @[to_additive] instance {α β : Type*} [group α] [mul_action α β] (a : α) (b : β)
   [fintype (mul_action.orbit (zpowers a) b)] :

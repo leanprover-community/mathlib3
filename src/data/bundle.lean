@@ -57,9 +57,10 @@ instance {F : Type*} [inhabited F] {b : B} : inhabited (bundle.trivial B F b) :=
 /-- The trivial bundle, unlike other bundles, has a canonical projection on the fiber. -/
 def trivial.proj_snd (B : Type*) (F : Type*) : (total_space (bundle.trivial B F)) → F := sigma.snd
 
-@[simp] lemma total_space_mk_cast {E} {x : B} (y : total_space E) (h : y.1 = x) :
+-- do we really need this?
+lemma total_space_mk_cast {E} {x : B} (y : total_space E) (h : y.1 = x) :
   total_space_mk E x (cast (congr_arg E h) y.2) = y :=
-by { ext, exact h.symm, simp only [cast_heq], }
+by { rcases ⟨h, y⟩ with ⟨rfl, y1, y2⟩, refl }
 
 section pullback
 
@@ -68,16 +69,33 @@ variable {B' : Type*}
 /-- Type synonym to avoid type class loops. -/
 @[simp, nolint has_inhabited_instance] def pullback (f : B' → B) (E : B → Type*) := λ x, E (f x)
 
-notation f `*ᵖ` E := pullback f E
+notation f ` *ᵖ ` E := pullback f E
 
-/-- Natural embedding of the total space of `f *ᵖ E` into `B' × (total_space E)`. -/
-@[reducible, simp] def pullback_total_space_embedding (f : B' → B) :
-  total_space (f *ᵖ E) → B' × (total_space E) :=
-λ z : total_space (f *ᵖ E), (z.1, total_space_mk E (f z.1) z.2)
+/-- Natural embedding of the total space of `f *ᵖ E` into `B' × total_space E`. -/
+@[simp] def pullback_total_space_embedding (f : B' → B) :
+  total_space (f *ᵖ E) → B' × total_space E :=
+λ z, (z.1, total_space_mk E (f z.1) z.2)
 
 /-- The base map `f : B' → B` lifts to a canonical map on the total spaces. -/
-@[reducible, simp] def pullback.lift (f : B' → B) :=
-λ z : total_space (f *ᵖ E), total_space_mk E (f z.fst) z.snd
+def pullback.lift (f : B' → B) : total_space (f *ᵖ E) → total_space E :=
+λ z, total_space_mk E (f z.fst) z.snd
+
+lemma pullback.lift_def (f : B' → B) (x : total_space (f *ᵖ E)) :
+  pullback.lift E f x = total_space_mk E (f x.1) x.2 :=
+rfl
+
+@[simp] lemma pullback.proj_lift (f : B' → B) (x : total_space (f *ᵖ E)) :
+  proj E (pullback.lift E f x) = f x.1 :=
+rfl
+
+@[simp] lemma pullback.lift_mk (f : B' → B) (x : B') (y : E (f x)) :
+  pullback.lift E f (total_space_mk (f *ᵖ E) x y) = total_space_mk E (f x) y :=
+rfl
+
+@[simp] lemma pullback_total_space_embedding_snd (f : B' → B) (x : total_space (f *ᵖ E)) :
+  (pullback_total_space_embedding E f x).2 = pullback.lift E f x :=
+rfl
+
 
 end pullback
 

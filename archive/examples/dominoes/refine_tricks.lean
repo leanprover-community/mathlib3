@@ -19,6 +19,19 @@ begin
     exact e),
 end
 
+example (α : Type) : finset ℕ → α :=
+begin
+  (do
+    let e : pexpr := ``(λ s : finset ℕ, s.sum _),
+    tgt ← target,
+    e ← to_expr e,
+    infer_type e >>= unify tgt,
+    exact e),
+  sorry,
+  sorry,
+end
+
+
 example : Σ {α : Type}, finset ℕ → α :=
 begin
   split,
@@ -39,8 +52,6 @@ begin
   -- If I try the same thing using the `let α := _` trick to name the type,
   let α := _,
   refine ⟨α, _⟩,
-  refine (λ s : (id _), @finset.sum (id _) (id _) (id _) s (id _)), -- FAILS
-
   refine (λ s, s.sum _), -- FAILS
   -- "failed to synthesize type class instance for `add_comm_monoid α`"
   -- The problem here is that `refine` runs
@@ -80,9 +91,11 @@ namespace tactic
 
 /-- The same as `exact` except you can add proof holes. -/
 meta def refine' (e : pexpr) : tactic unit :=
-do tgt : expr ← target,
-   e ← to_expr ``(%%e : %%tgt) tt,
-   apply_core e >> skip
+do
+  tgt ← target,
+  e ← to_expr e,
+  infer_type e >>= unify tgt,
+  exact e
 
 namespace interactive
 
@@ -93,9 +106,20 @@ end interactive
 
 end tactic
 
-example (α : Type*) : finset ℕ → α :=
+example : Σ (α : Type), finset ℕ → α :=
 begin
-  refine (λ s, s.sum _),
+  let α := _,
+  haveI : add_comm_monoid α := sorry,
+  refine ⟨α, λ s : finset ℕ, s.sum _⟩,
+  show ℕ → α, exact id,
+  apply_instance,
+end
+
+
+example : Σ (α : Type), list ℕ → α :=
+begin
+  let α := _,
+  refine ⟨α, λ L, (L.map _).sum⟩,
   show ℕ → α, exact id,
   apply_instance,
 end

@@ -24,10 +24,12 @@ In fact, the surreals form a complete ordered field, containing a copy of the re
 besides!) but we do not yet have a complete development.
 
 ## Order properties
+
 Surreal numbers inherit the relations `≤` and `<` from games, and these relations satisfy the axioms
-of a partial order (recall that `x < y ↔ x ≤ y ∧ ¬ y ≤ x` did not hold for games).
+of a partial order.
 
 ## Algebraic operations
+
 We show that the surreals form a linear ordered commutative group.
 
 One can also map all the ordinals into the surreals!

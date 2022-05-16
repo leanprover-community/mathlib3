@@ -138,6 +138,10 @@ begin
   { exact or.inr (or.inr (h.lt oy ox)) }
 end
 
+theorem lt_or_equiv_of_le {x y : pgame} (h : x ≤ y) (ox : x.numeric) (oy : y.numeric) :
+  x < y ∨ x ≈ y :=
+by { rw ←lf_iff_lt ox oy, exact lf_or_equiv_of_le h }
+
 theorem numeric_zero : numeric 0 :=
 ⟨by rintros ⟨⟩ ⟨⟩, ⟨by rintros ⟨⟩, by rintros ⟨⟩⟩⟩
 theorem numeric_one : numeric 1 :=
@@ -363,21 +367,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
   let x : pgame := ⟨xl, xr, xL, xR⟩,
   let y : pgame := ⟨yl, yr, yL, yR⟩,
 
-  -- Deduce numeric games from inductive hypothesis.
-  have HN₁ : ∀ {ix iy}, (xL ix * y + x * yL iy - xL ix * yL iy).numeric :=
-  λ ix iy, ((result (P1 _ _) (ox.move_left ix) oy).add (result (P1 _ _) ox (oy.move_left iy))).sub
-    (result (P1 _ _) (ox.move_left ix) (oy.move_left iy)),
-  have HN₂ : ∀ {jx jy}, (xR jx * y + x * yR jy - xR jx * yR jy).numeric :=
-  λ jx jy, ((result (P1 _ _) (ox.move_right jx) oy).add (result (P1 _ _) ox (oy.move_right jy))).sub
-    (result (P1 _ _) (ox.move_right jx) (oy.move_right jy)),
-  have HN₃ : ∀ {ix jy}, (xL ix * y + x * yR jy - xL ix * yR jy).numeric :=
-  λ ix jy, ((result (P1 _ _) (ox.move_left ix) oy).add (result (P1 _ _) ox (oy.move_right jy))).sub
-    (result (P1 _ _) (ox.move_left ix) (oy.move_right jy)),
-  have HN₄ : ∀ {jx iy}, (xR jx * y + x * yL iy - xR jx * yL iy).numeric :=
-  λ jx iy, ((result (P1 _ _) (ox.move_right jx) oy).add (result (P1 _ _) ox (oy.move_left iy))).sub
-    (result (P1 _ _) (ox.move_right jx) (oy.move_left iy)),
-
-  -- Other applications of the inductive hypothesis.
+  -- Reused applications of the inductive hypothesis.
   have HR₁ := λ {ix ix'}, result (P2 _ _ _) (ox.move_left ix)  (ox.move_left ix')  oy,
   have HR₂ := λ {iy iy'}, result (P2 _ _ _) (oy.move_left iy)  (oy.move_left iy')  ox,
   have HR₃ := λ {jx jx'}, result (P2 _ _ _) (ox.move_right jx) (ox.move_right jx') oy,
@@ -504,11 +494,15 @@ theorem result : ∀ x : mul_args, x.hypothesis
 
   -- Prove that all options of `x * y` are numeric.
   { rintro (⟨ix, iy⟩ | ⟨jx, jy⟩),
-    { exact HN₁ },
-    { exact HN₂ } },
+    { exact ((result (P1 _ _) (ox.move_left ix) oy).add (result (P1 _ _) ox (oy.move_left iy))).sub
+        (result (P1 _ _) (ox.move_left ix) (oy.move_left iy)) },
+    { exact ((result (P1 _ _) (ox.move_right jx) oy).add (result (P1 _ _) ox (oy.move_right jy))).sub
+        (result (P1 _ _) (ox.move_right jx) (oy.move_right jy)) } },
   { rintro (⟨ix, jy⟩ | ⟨jx, iy⟩),
-    { exact HN₃ },
-    { exact HN₄ } }
+    { exact ((result (P1 _ _) (ox.move_left ix) oy).add (result (P1 _ _) ox (oy.move_right jy))).sub
+        (result (P1 _ _) (ox.move_left ix) (oy.move_right jy)) },
+    { exact ((result (P1 _ _) (ox.move_right jx) oy).add (result (P1 _ _) ox (oy.move_left iy))).sub
+        (result (P1 _ _) (ox.move_right jx) (oy.move_left iy)) } }
 end
 | (P2 ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩) := begin
   let x₁ : pgame := ⟨x₁l, x₁r, x₁L, x₁R⟩,
@@ -516,67 +510,73 @@ end
   let y  : pgame := ⟨yl, yr, yL, yR⟩,
 
   -- Prove that if `x₁ ≈ x₂`, then `x₁ * y ≈ x₂ * y`.
-  refine λ ox₁ ox₂ oy, ⟨λ h, ⟨(le_def_lt _ _).2 ⟨_, _⟩, (le_def_lt _ _).2 ⟨_, _⟩⟩, _⟩,
+  refine λ ox₁ ox₂ oy, ⟨λ h, ⟨le_def_lf.2 ⟨_, _⟩, le_def_lf.2 ⟨_, _⟩⟩, _⟩,
   { rintro (⟨ix₁, iy⟩ | ⟨jx₁, jy⟩);
-    change game.lf (⟦_⟧ : game) ⟦_⟧; dsimp,
+    apply lf_of_lt;
+    change (⟦_⟧ : game) < ⟦_⟧; dsimp,
     { have H : ⟦x₁ * _⟧ = ⟦_⟧ :=
         quot.sound ((result (P2 _ _ (yL iy)) ox₁ ox₂ (oy.move_left iy)).1 h),
       rw [sub_lt_iff_lt_add, H, add_comm₂],
       apply ((result (P2 _ _ _) (ox₁.move_left ix₁) ox₂ oy).2
-        (lt_of_lt_of_le (move_left_lt ix₁) h.1)).1 },
+        ((ox₁.move_left_lt ix₁).trans_le h.1)).1 },
     { have H : ⟦x₁ * _⟧ = ⟦_⟧ :=
         quot.sound ((result (P2 _ _ (yR jy)) ox₁ ox₂ (oy.move_right jy)).1 h),
       rw [sub_lt_iff_lt_add, H],
       apply ((result (P2 _ _ _) ox₂ (ox₁.move_right jx₁) oy).2
-        (lt_of_le_of_lt h.2 (lt_move_right jx₁))).2 } },
+        (lt_of_le_of_lt h.2 (ox₁.lt_move_right jx₁))).2 } },
   { rintro (⟨ix₂, jy⟩ | ⟨jx₂, iy⟩);
+    apply lf_of_lt;
     change (⟦_⟧ : game) < ⟦_⟧; dsimp,
     { have H : ⟦x₁ * _⟧ = ⟦_⟧ :=
         quot.sound ((result (P2 _ _ (yR jy)) ox₁ ox₂ (oy.move_right jy)).1 h),
       rw [lt_sub_iff_add_lt, ←H],
       apply ((result (P2 _ _ _) (ox₂.move_left ix₂) ox₁ oy).2
-        (lt_of_lt_of_le (move_left_lt ix₂) h.2)).2 },
+        (lt_of_lt_of_le (ox₂.move_left_lt ix₂) h.2)).2 },
     { have H : ⟦x₁ * _⟧ = ⟦_⟧ :=
         quot.sound ((result (P2 _ _ (yL iy)) ox₁ ox₂ (oy.move_left iy)).1 h),
       rw [lt_sub_iff_add_lt, ←H, add_comm₂],
       apply ((result (P2 _ _ _) ox₁ (ox₂.move_right jx₂) oy).2
-        (lt_of_le_of_lt h.1 (lt_move_right jx₂))).1 } },
+        (lt_of_le_of_lt h.1 (ox₂.lt_move_right jx₂))).1 } },
   -- These are just the same but with `x₁` and `x₂` swapped.
   { rintro (⟨ix₂, iy⟩ | ⟨jx₂, jy⟩);
+    apply lf_of_lt;
     change (⟦_⟧ : game) < ⟦_⟧; dsimp,
     { have H : ⟦x₂ * _⟧ = ⟦_⟧ :=
         quot.sound ((result (P2 _ _ (yL iy)) ox₂ ox₁ (oy.move_left iy)).1 h.symm),
       rw [sub_lt_iff_lt_add, H, add_comm₂],
       apply ((result (P2 _ _ _) (ox₂.move_left ix₂) ox₁ oy).2
-        (lt_of_lt_of_le (move_left_lt ix₂) h.2)).1 },
+        (lt_of_lt_of_le (ox₂.move_left_lt ix₂) h.2)).1 },
     { have H : ⟦x₂ * _⟧ = ⟦_⟧ :=
         quot.sound ((result (P2 _ _ (yR jy)) ox₂ ox₁ (oy.move_right jy)).1 h.symm),
       rw [sub_lt_iff_lt_add, H],
       apply ((result (P2 _ _ _) ox₁ (ox₂.move_right jx₂) oy).2
-        (lt_of_le_of_lt h.1 (lt_move_right jx₂))).2 } },
+        (lt_of_le_of_lt h.1 (ox₂.lt_move_right jx₂))).2 } },
   { rintro (⟨ix₁, jy⟩ | ⟨jx₁, iy⟩);
+    apply lf_of_lt;
     change (⟦_⟧ : game) < ⟦_⟧; dsimp,
     { have H : ⟦x₂ * _⟧ = ⟦_⟧ :=
         quot.sound ((result (P2 _ _ (yR jy)) ox₂ ox₁ (oy.move_right jy)).1 h.symm),
       rw [lt_sub_iff_add_lt, ←H],
       apply ((result (P2 _ _ _) (ox₁.move_left ix₁) ox₂ oy).2
-        (lt_of_lt_of_le (move_left_lt ix₁) h.1)).2 },
+        (lt_of_lt_of_le (ox₁.move_left_lt ix₁) h.1)).2 },
     { have H : ⟦x₂ * _⟧ = ⟦_⟧ :=
         quot.sound ((result (P2 _ _ (yL iy)) ox₂ ox₁ (oy.move_left iy)).1 h.symm),
       rw [lt_sub_iff_add_lt, ←H, add_comm₂],
       apply ((result (P2 _ _ _) ox₂ (ox₁.move_right jx₁) oy).2
-        (lt_of_le_of_lt h.2 (lt_move_right jx₁))).1 } },
+        (lt_of_le_of_lt h.2 (ox₁.lt_move_right jx₁))).1 } },
 
   -- Deduce numeric games from inductive hypothesis.
   have HN₁ := result (P1 x₁ y) ox₁ oy,
   have HN₂ := result (P1 x₂ y) ox₂ oy,
 
-  intro h;
-  rcases lt_def_le.1 h with ⟨ix₂, h⟩ | ⟨j, h⟩;
-  cases lt_or_equiv_of_le h with h h,
-  { have H₁ := (result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) oy).2 h,
-    have H₂ := HN₂.left_lt_right,
-  }
+  intro h,
+  rcases lf_def_le.1 h.lf with ⟨ix₂, h⟩ | ⟨jx₁, h⟩,
+  { cases lt_or_equiv_of_le h ox₁ (ox₂.move_left ix₂) with h h,
+    { have H₁ := (result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) oy).2 h,
+      have H₂ := HN₂.left_lt_right,
+      sorry },
+    sorry },
+  sorry
 end
 using_well_founded { dec_tac := sorry }
 
@@ -591,12 +591,11 @@ theorem mul_congr_left {x₁ x₂ y : pgame} (ox₁ : numeric x₁) (ox₂ : num
 
 theorem mul_congr_right {x y₁ y₂ : pgame} (ox : numeric x) (oy₁ : numeric y₁) (oy₂ : numeric y₂)
   (h : y₁ ≈ y₂) : x * y₁ ≈ x * y₂ :=
-pgame.equiv_trans (mul_comm_equiv _ _)
-  (pgame.equiv_trans (mul_congr_left oy₁ oy₂ ox h) (mul_comm_equiv _ _))
+(mul_comm_equiv _ _).trans ((mul_congr_left oy₁ oy₂ ox h).trans (mul_comm_equiv _ _))
 
 theorem mul_congr {x₁ x₂ y₁ y₂ : pgame} (ox₁ : numeric x₁) (ox₂ : numeric x₂) (oy₁ : numeric y₁)
   (oy₂ : numeric y₂) (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ * y₁ ≈ x₂ * y₂ :=
-pgame.equiv_trans (mul_congr_left ox₁ ox₂ oy₁ hx) (mul_congr_right ox₂ oy₁ oy₂ hy)
+(mul_congr_left ox₁ ox₂ oy₁ hx).trans (mul_congr_right ox₂ oy₁ oy₂ hy)
 
 end pgame
 

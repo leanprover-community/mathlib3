@@ -301,20 +301,20 @@ by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul, hf]
 
 /-- Group homomorphisms preserve inverse. -/
 @[simp, to_additive "Additive group homomorphisms preserve negation."]
-theorem map_inv [group G] [division_monoid H] [monoid_hom_class F G H] (f : F) (g : G) :
-  f g⁻¹ = (f g)⁻¹ :=
-eq_inv_of_mul_eq_one_left $ map_mul_eq_one f $ inv_mul_self g
+lemma map_inv [group G] [division_monoid H] [monoid_hom_class F G H] (f : F) (a : G) :
+  f a⁻¹ = (f a)⁻¹ :=
+eq_inv_of_mul_eq_one_left $ map_mul_eq_one f $ inv_mul_self _
 
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive "Additive group homomorphisms preserve subtraction."]
-theorem map_mul_inv [group G] [division_monoid H] [monoid_hom_class F G H] (f : F) (g h : G) :
-  f (g * h⁻¹) = f g * (f h)⁻¹ :=
+lemma map_mul_inv [group G] [division_monoid H] [monoid_hom_class F G H] (f : F) (a b : G) :
+  f (a * b⁻¹) = f a * (f b)⁻¹ :=
 by rw [map_mul, map_inv]
 
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive "Additive group homomorphisms preserve subtraction."]
 lemma map_div [group G] [division_monoid H] [monoid_hom_class F G H] (f : F) :
-  ∀ x y, f (x / y) = f x / f y :=
+  ∀ a b, f (a / b) = f a / f b :=
 map_div' _ $ map_inv f
 
 -- to_additive puts the arguments in the wrong order, so generate an auxiliary lemma, then
@@ -1063,9 +1063,9 @@ left_inv_eq_right_inv (map_mul_eq_one f $ inv_mul_self x) $
   h.symm ▸ map_mul_eq_one g $ mul_inv_self x
 
 /-- Group homomorphisms preserve inverse. -/
-@[to_additive] protected lemma map_inv [group α] [division_monoid β] (f : α →* β) :
-  ∀ a, f a⁻¹ = (f a)⁻¹ :=
-map_inv f
+@[to_additive "Additive group homomorphisms preserve negation."]
+protected lemma map_inv [group α] [division_monoid β] (f : α →* β) (a : α) : f a⁻¹ = (f a)⁻¹ :=
+map_inv f _
 
 /-- Group homomorphisms preserve integer power. -/
 @[to_additive "Additive group homomorphisms preserve integer scaling."]
@@ -1080,7 +1080,7 @@ protected theorem map_div {G H} [group G] [division_monoid H] (f : G →* H) (g 
 map_div f g h
 
 /-- Group homomorphisms preserve division. -/
-@[to_additive]
+@[to_additive "Additive group homomorphisms preserve subtraction."]
 protected theorem map_mul_inv {G H} [group G] [division_monoid H] (f : G →* H) (g h : G) :
   f (g * h⁻¹) = (f g) * (f h)⁻¹ :=
 map_mul_inv f g h

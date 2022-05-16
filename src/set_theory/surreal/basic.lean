@@ -362,7 +362,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
 
   -- Prove all left options of `x * y` are less than the right options.
   { rintro (⟨ix, iy⟩ | ⟨jx, jy⟩) (⟨ix', jy'⟩ | ⟨jx', iy'⟩),
-    { rcases lt_or_equiv_or_gt (xL ix) (xL ix') with h | h | h,
+    { rcases lt_or_equiv_or_gt (ox.move_left ix) (ox.move_left ix') with h | h | h,
       { have H₁ : ⟦xL ix * y⟧ + ⟦x * yL iy⟧ - ⟦xL ix * yL iy⟧ <
           ⟦xL ix' * y⟧ + ⟦x * yL iy⟧ - ⟦xL ix' * yL iy⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_mid, add_comm₂],
@@ -371,7 +371,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
           ⟦xL ix' * y⟧ + ⟦x * yR jy'⟧ - ⟦xL ix' * yR jy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_left, add_comm₂, quot_mul_comm₄],
           apply HS₂.1 },
-        exact lt_trans HN₁ HN₁ H₁ H₂ },
+        exact H₁.trans H₂ },
       { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
         have H₁ : ⟦xL ix * _⟧ = ⟦xL ix' * _⟧ := quot.sound (HR₁.1 h),
         have H₂ : ⟦xL ix * yR jy'⟧ = ⟦xL ix' * yR jy'⟧ := quot.sound
@@ -386,8 +386,8 @@ theorem result : ∀ x : mul_args, x.hypothesis
           ⟦xL ix' * y⟧ + ⟦x * yR jy'⟧ - ⟦xL ix' * yR jy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_mid],
           apply (HR₁.2 h).2 },
-        exact lt_trans HN₁ HN₃ H₁ H₂ } },
-    { rcases lt_or_equiv_or_gt (yL iy) (yL iy') with h | h | h,
+        exact H₁.trans H₂ } },
+    { rcases lt_or_equiv_or_gt (oy.move_left iy) (oy.move_left iy') with h | h | h,
       { have H₁ : ⟦xL ix * y⟧ + ⟦x * yL iy⟧ - ⟦xL ix * yL iy⟧ <
           ⟦xL ix * y⟧ + ⟦x * yL iy'⟧ - ⟦xL ix * yL iy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_left, add_comm₂, quot_mul_comm₄],
@@ -396,7 +396,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
           ⟦xR jx' * y⟧ + ⟦x * yL iy'⟧ - ⟦xR jx' * yL iy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_mid, add_comm₂],
           apply HS₁.1 },
-        exact lt_trans HN₁ HN₁ H₁ H₂ },
+        exact H₁.trans H₂ },
       { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
         have H₁ : ⟦x * yL iy⟧ = ⟦x * yL iy'⟧,
         { rw quot_mul_comm₂,
@@ -415,9 +415,9 @@ theorem result : ∀ x : mul_args, x.hypothesis
           ⟦xR jx' * y⟧ + ⟦x * yL iy'⟧ - ⟦xR jx' * yL iy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_left, quot_mul_comm₄],
           apply (HR₂.2 h).2 },
-        exact lt_trans HN₁ HN₄ H₁ H₂ } },
+        exact H₁.trans H₂ } },
     -- These are pretty similar to the previous cases in inverse, just changing `L` with `R`.
-    { rcases lt_or_equiv_or_gt (yR jy') (yR jy) with h | h | h,
+    { rcases lt_or_equiv_or_gt (oy.move_right jy') (oy.move_right jy) with h | h | h,
       { have H₁ : ⟦xR jx * y⟧ + ⟦x * yR jy⟧ - ⟦xR jx * yR jy⟧ <
           ⟦xR jx * y⟧ + ⟦x * yR jy'⟧ - ⟦xR jx * yR jy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_left, quot_mul_comm₄],
@@ -426,7 +426,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
           ⟦xL ix' * y⟧ + ⟦x * yR jy'⟧ - ⟦xL ix' * yR jy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_mid],
           apply HS₁.2 },
-        exact lt_trans HN₂ HN₂ H₁ H₂ },
+        exact H₁.trans H₂ },
       { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
         have H₁ : ⟦x * yR jy'⟧ = ⟦x * yR jy⟧,
         { rw quot_mul_comm₂,
@@ -445,8 +445,8 @@ theorem result : ∀ x : mul_args, x.hypothesis
           ⟦xL ix' * y⟧ + ⟦x * yR jy'⟧ - ⟦xL ix' * yR jy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_left, add_comm₂, quot_mul_comm₄],
           apply (HR₄.2 h).1 },
-        exact lt_trans HN₂ HN₃ H₁ H₂ } },
-    { rcases lt_or_equiv_or_gt (xR jx') (xR jx) with h | h | h,
+        exact H₁.trans H₂ } },
+    { rcases lt_or_equiv_or_gt (ox.move_right jx') (ox.move_right jx) with h | h | h,
       { have H₁ : ⟦xR jx * y⟧ + ⟦x * yR jy⟧ - ⟦xR jx * yR jy⟧ <
           ⟦xR jx' * y⟧ + ⟦x * yR jy⟧ - ⟦xR jx' * yR jy⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_mid],
@@ -455,7 +455,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
           ⟦xR jx' * y⟧ + ⟦x * yL iy'⟧ - ⟦xR jx' * yL iy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_left, quot_mul_comm₄],
           apply HS₂.2 },
-        exact lt_trans HN₂ HN₂ H₁ H₂ },
+        exact H₁.trans H₂ },
       { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
         have H₁ : ⟦xR jx' * _⟧ = ⟦xR jx * _⟧ := quot.sound (HR₃.1 h),
         have H₂ : ⟦xR jx' * yL iy'⟧ = ⟦xR jx * yL iy'⟧ := quot.sound
@@ -470,7 +470,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
           ⟦xR jx' * y⟧ + ⟦x * yL iy'⟧ - ⟦xR jx' * yL iy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_mid, add_comm₂],
           apply (HR₃.2 h).1 },
-        exact lt_trans HN₂ HN₄ H₁ H₂ } } },
+        exact H₁.trans H₂ } } },
 
   -- Prove that all options of `x * y` are numeric.
   { rintro (⟨ix, iy⟩ | ⟨jx, jy⟩),
@@ -486,9 +486,9 @@ end
   let y  : pgame := ⟨yl, yr, yL, yR⟩,
 
   -- Prove that if `x₁ ≈ x₂`, then `x₁ * y ≈ x₂ * y`.
-  refine λ ox₁ ox₂ oy, ⟨λ h, ⟨le_def_lt.2 ⟨_, _⟩, le_def_lt.2 ⟨_, _⟩⟩, _⟩,
+  refine λ ox₁ ox₂ oy, ⟨λ h, ⟨(le_def_lt _ _).2 ⟨_, _⟩, (le_def_lt _ _).2 ⟨_, _⟩⟩, _⟩,
   { rintro (⟨ix₁, iy⟩ | ⟨jx₁, jy⟩);
-    change (⟦_⟧ : game) < ⟦_⟧; dsimp,
+    change game.lf (⟦_⟧ : game) ⟦_⟧; dsimp,
     { have H : ⟦x₁ * _⟧ = ⟦_⟧ :=
         quot.sound ((result (P2 _ _ (yL iy)) ox₁ ox₂ (oy.move_left iy)).1 h),
       rw [sub_lt_iff_lt_add, H, add_comm₂],

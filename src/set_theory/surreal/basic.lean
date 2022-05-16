@@ -223,40 +223,26 @@ def lift₂ {α} (f : ∀ x y, numeric x → numeric y → α)
 lift (λ x ox, lift (λ y, f x y ox) (λ y₁ y₂ oy₁ oy₂, H _ _ _ _ equiv_rfl))
   (λ x₁ x₂ ox₁ ox₂ h, funext $ quotient.ind $ by exact λ ⟨y, oy⟩, H _ _ _ _ h equiv_rfl)
 
-instance : has_le surreal :=
-⟨lift₂ (λ x y _ _, x ≤ y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext (le_congr hx hy))⟩
-
-instance : has_lt surreal :=
-⟨lift₂ (λ x y _ _, x < y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext (lt_congr hx hy))⟩
-
-/-- Addition on surreals is inherited from pre-game addition:
-the sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
-instance : has_add surreal  :=
-⟨lift₂
-  (λ x y ox oy, ⟦⟨x + y, ox.add oy⟩⟧)
-  (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound (pgame.add_congr hx hy))⟩
-
-/-- Negation for surreal numbers is inherited from pre-game negation:
-the negation of `{L | R}` is `{-R | -L}`. -/
-instance : has_neg surreal  :=
-⟨lift (λ x ox, ⟦⟨-x, ox.neg⟩⟧) (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))⟩
-
 instance : ordered_add_comm_group surreal :=
-{ add               := (+),
+{ add               := lift₂ (λ x y ox oy, ⟦⟨x + y, ox.add oy⟩⟧)
+                         (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound (pgame.add_congr hx hy)),
   add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
   zero              := mk 0 numeric_zero,
   zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv a) },
   add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv a) },
-  neg               := has_neg.neg,
+  neg               := lift (λ x ox, ⟦⟨-x, ox.neg⟩⟧)
+                         (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a)),
   add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_left_neg_equiv a) },
   add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
-  le                := (≤),
-  lt                := (<),
+  le                := lift₂ (λ x y _ _, x ≤ y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy,
+                         propext (le_congr hx hy)),
+  lt                := lift₂ (λ x y _ _, x < y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy,
+                         propext (lt_congr hx hy)),
   le_refl           := by { rintros ⟨_⟩, apply @le_rfl pgame },
   le_trans          := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, apply @le_trans pgame },
   lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact lt_iff_le_not_le },
   le_antisymm       := by { rintros ⟨_⟩ ⟨_⟩ h₁ h₂, exact quotient.sound ⟨h₁, h₂⟩ },
-  add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, exact @add_le_add_left pgame _ _ _ _ _ hx _ } }
+  add_le_add_left   := by { rintros ⟨_⟩ ⟨_⟩ hx ⟨_⟩, apply @add_le_add_left pgame _ _ _ _ _ hx } }
 
 noncomputable instance : linear_ordered_add_comm_group surreal :=
 { le_total := by rintro ⟨⟨x, ox⟩⟩ ⟨⟨y, oy⟩⟩; classical; exact

@@ -38,7 +38,7 @@ variables (n : ℕ)
 
 /-- `nE(F)` is a subgroup of `ιₚ⁻¹(nE(K))`. -/
 lemma range_le_comap_range : (E⟮F⟯⬝n) ≤ add_subgroup.comap ιₚ E⟮K⟯⬝n :=
-by { rintro _ ⟨Q, rfl⟩, exact ⟨ιₚ Q, (map_nsmul ιₚ Q n).symm⟩ }
+by { rintro _ ⟨Q, rfl⟩, exact ⟨ιₚ Q, (map_nsmul ιₚ n Q).symm⟩ }
 
 /-- The kernel `Φ` of the cokernel map `E(F)/nE(F) → E(K)/nE(K)` induced by `ιₚ : E(F) ↪ E(K)`. -/
 def Φ (E : EllipticCurve F) (K : Type u) [field K] [algebra F K] : add_subgroup E⟮F⟯/n :=
@@ -171,10 +171,10 @@ begin
   { rintro ⟨Q, rfl⟩,
     change δ ha₁ ha₃ h3 (2 • Q) = 0,
     rw [map_nsmul],
-    change ((δ ha₁ ha₃ h3 Q).1 ^ 2, (δ ha₁ ha₃ h3 Q).2 ^ 2) = 1,
+    change ((δ ha₁ ha₃ h3 Q).fst ^ 2, (δ ha₁ ha₃ h3 Q).snd ^ 2) = 1,
     apply prod.ext,
-    all_goals { rw [← quotient_group.out_eq' (δ ha₁ ha₃ h3 Q).1,
-                    ← quotient_group.out_eq' (δ ha₁ ha₃ h3 Q).2],
+    all_goals { rw [← quotient_group.out_eq' (δ ha₁ ha₃ h3 Q).fst,
+                    ← quotient_group.out_eq' (δ ha₁ ha₃ h3 Q).snd],
                 exact (quotient_group.eq_one_iff _).mpr ⟨quotient.out' _, rfl⟩ } }
 end
 

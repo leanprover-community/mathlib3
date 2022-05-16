@@ -47,7 +47,7 @@ begin
   induction z using int.induction_on with w _ w _,
   { rwa [← zero_mul] },
   all_goals { rw [zpow_mul₀'] at hI },
-  any_goals { rw [← neg_add', zpow_neg₀, inv_eq_one₀] at hI ⊢ },
+  any_goals { rw [← neg_add', zpow_neg₀, inv_eq_one] at hI ⊢ },
   all_goals { rw [zpow_coe_nat, ← fractional_ideal.coe_ideal_pow] at hI,
               rw [int.coe_nat_add_one_out, zpow_coe_nat, ← fractional_ideal.coe_ideal_pow,
                   fractional_ideal.coe_ideal_eq_one_iff, ideal.one_eq_top, ideal.eq_top_iff_one]
@@ -89,13 +89,7 @@ lemma associates.eq_val_of_ne_zero (p : height_one_spectrum $ 𝓞 K) (x : Kˣ) 
         {((is_localization.mk'_surjective (𝓞 K)⁰ (x : K)).some_spec.some : 𝓞 K)} : ℤ)
   = -(val_of_ne_zero p x).to_add :=
 begin
-  change _ = -classical.some _,
-  rw [← neg_neg_sub_neg, neg_inj, ← with_zero.coe_inj,
-      (with_zero.ne_zero_iff_exists.mp (_ : (with_zero $ multiplicative ℤ)ˣ).ne_zero).some_spec],
-  change _ = ite _ _ _ / ite _ _ _,
-  simpa only [if_neg (is_localization.mk'_num_ne_zero_of_ne_zero
-                      (is_localization.mk'_surjective _ x.val).some_spec.some_spec.symm x.ne_zero),
-              if_neg (non_zero_divisors.coe_ne_zero (_ : (𝓞 K)⁰))]
+  sorry
 end
 
 lemma fractional_ideal.factorization_of_ne_zero (x : Kˣ) :
@@ -191,7 +185,7 @@ def K_S_n : subgroup (Kˣ ⧸ (n⬝Kˣ)) :=
 { carrier  := {b : Kˣ ⧸ (n⬝Kˣ) | ∀ p ∉ S, val_of_ne_zero_mod p b = 1},
   one_mem' := λ _ _, by rw [map_one],
   mul_mem' := λ _ _ hx hy p hp, by rw [map_mul, hx p hp, hy p hp, one_mul],
-  inv_mem' := λ _ hx p hp, by rw [map_inv, hx p hp, one_inv] }
+  inv_mem' := λ _ hx p hp, by rw [map_inv, hx p hp, inv_one] }
 
 notation K⟮S, n⟯ := @K_S_n K _ _ S n
 

@@ -3,7 +3,7 @@ Copyright (c) 2022 María Inés de Frutos-Fernández. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: María Inés de Frutos-Fernández
 -/
-import algebraic_geometry.EllipticCurve.valuation
+import ring_theory.dedekind_domain.adic_valuation
 import topology.algebra.uniform_group
 
 /-!
@@ -73,13 +73,6 @@ topological_group_is_uniform
 
 variables [is_fraction_ring R K]
 
-lemma fractional_ideal.coe_ideal_eq_one_iff {I : ideal R} :
-  (I : fractional_ideal (non_zero_divisors R) K) = 1 ↔ I = 1 :=
-begin
-  rw [← fractional_ideal.coe_ideal_top, ideal.one_eq_top],
-  exact injective.eq_iff fractional_ideal.coe_ideal_injective,
-end
-
 /-- If `I` is a nonzero fractional ideal, `a ∈ R`, and `J` is an ideal of `R` such that
 `I = a⁻¹J`, then `J` is nonzero. -/
 lemma fractional_ideal.ideal_factor_ne_zero {I : fractional_ideal (non_zero_divisors R) K}
@@ -109,10 +102,6 @@ open is_dedekind_domain
 
 variables [is_domain R] [is_dedekind_domain R] (v : height_one_spectrum R)
 
-@[simp] lemma height_one_spectrum.ext (w : height_one_spectrum R) :
-  v = w ↔ v.as_ideal = w.as_ideal :=
-by { rcases ⟨v, w⟩ with ⟨⟨_, _⟩, ⟨_, _⟩⟩, simp only }
-
 /-- Only finitely many maximal ideals of `R` divide a given nonzero ideal. -/
 lemma ideal.finite_factors {I : ideal R} (hI : I ≠ 0) :
   finite { v : height_one_spectrum R | v.as_ideal ∣ I } :=
@@ -136,7 +125,7 @@ begin
   { intros v w hvw,
     dsimp only at hvw,
     rw [hv v, hv w] at hvw,
-    exact (height_one_spectrum.ext v w).mpr hvw },
+    ext, rw hvw, },
   exact finite.preimage_embedding ⟨(λ v : height_one_spectrum R, v.as_ideal), hv_inj⟩
     (finite_mem_finset (f')),
 end
@@ -205,7 +194,7 @@ lemma ideal.finite_mul_support_inv {I : ideal R} (hI : I ≠ 0):
   -((associates.mk v.as_ideal).count (associates.mk I).factors : ℤ))).finite :=
 begin
   rw mul_support,
-  simp_rw [zpow_neg₀, ne.def, inv_eq_one₀],
+  simp_rw [zpow_neg₀, ne.def, inv_eq_one],
   exact ideal.finite_mul_support_coe hI,
 end
 
@@ -227,7 +216,7 @@ begin
   have hw_prime : prime w.as_ideal := ideal.prime_of_is_prime w.ne_bot w.is_prime,
   have hvw := prime.dvd_of_dvd_pow hv_prime hvw',
   rw [prime.dvd_prime_iff_associated hv_prime hw_prime, associated_iff_eq] at hvw,
-  exact (finset.mem_erase.mp hw).1 ((height_one_spectrum.ext w v).mpr (eq.symm hvw)),
+  exact (finset.mem_erase.mp hw).1 (height_one_spectrum.ext w v (eq.symm hvw)),
 end
 
 lemma associates.finprod_ne_zero (I : ideal R) :
@@ -249,7 +238,7 @@ lemma ideal.finprod_count (I : ideal R) (hI : I ≠ 0) :
     (associates.mk v.as_ideal).count (associates.mk I).factors :=
 begin
   have h_ne_zero := associates.finprod_ne_zero I,
-  have hv : irreducible (associates.mk v.as_ideal) := height_one_spectrum.associates.irreducible v,
+  have hv : irreducible (associates.mk v.as_ideal) := v.associates_irreducible,
   have h_dvd := finprod_mem_dvd _ (ideal.finite_mul_support hI),
   have h_not_dvd := ideal.finprod_not_dvd v I hI,
   rw [← associates.mk_dvd_mk, associates.dvd_eq_le, associates.mk_pow,
@@ -403,7 +392,7 @@ lemma fractional_ideal.count_mul {I I' : fractional_ideal (non_zero_divisors R) 
   fractional_ideal.count K v (I') :=
 begin
   have hv : irreducible (associates.mk v.as_ideal),
-  { apply height_one_spectrum.associates.irreducible v },
+  { apply v.associates_irreducible },
   obtain ⟨a, J, ha, haJ⟩ := fractional_ideal.exists_eq_span_singleton_mul I,
   have ha_ne_zero : associates.mk (ideal.span {a} : ideal R) ≠ 0,
   { rw [ne.def, associates.mk_eq_zero, ideal.zero_eq_bot, ideal.span_singleton_eq_bot], exact ha },
@@ -418,7 +407,7 @@ begin
     ((algebra_map R K) (a*a'))⁻¹ * ↑(J*J'),
     { rw [haJ, haJ', mul_assoc, mul_comm ↑J, mul_assoc, ← mul_assoc,
       fractional_ideal.span_singleton_mul_span_singleton,
-      fractional_ideal.coe_ideal_mul, ring_hom.map_mul, mul_inv₀, mul_comm ↑J] },
+      fractional_ideal.coe_ideal_mul, ring_hom.map_mul, mul_inv, mul_comm ↑J] },
   rw [fractional_ideal.count_well_defined K v hI haJ,
     fractional_ideal.count_well_defined K v hI' haJ',
     fractional_ideal.count_well_defined K v (mul_ne_zero hI hI') h_prod,
@@ -486,7 +475,7 @@ begin
     ↑(v.as_ideal),
   { rw [(algebra_map R K).map_one, inv_one, fractional_ideal.span_singleton_one, one_mul], },
   have hv_irred : irreducible (associates.mk v.as_ideal),
-  { apply height_one_spectrum.associates.irreducible v },
+  { apply v.associates_irreducible },
   rw [fractional_ideal.count_well_defined K v hv h_self, associates.count_self hv_irred,
     ideal.span_singleton_one, ← ideal.one_eq_top, associates.mk_one, associates.factors_one,
     associates.count_zero hv_irred, int.coe_nat_zero, sub_zero, int.coe_nat_one],
@@ -541,16 +530,16 @@ begin
   { rw fractional_ideal.coe_ideal_ne_zero_iff,
     exact w.ne_bot  },
   have hv : irreducible (associates.mk v.as_ideal) :=
-  by apply height_one_spectrum.associates.irreducible v,
+  by apply v.associates_irreducible,
   have hw' : irreducible (associates.mk w.as_ideal) :=
-  by apply height_one_spectrum.associates.irreducible w,
+  by apply w.associates_irreducible,
   rw [fractional_ideal.count_well_defined K v hw_ne_zero hw_fact, ideal.span_singleton_one,
     ← ideal.one_eq_top, associates.mk_one, associates.factors_one, associates.count_zero hv,
     int.coe_nat_zero, sub_zero, int.coe_nat_eq_zero, ← pow_one (associates.mk w.as_ideal),
     associates.factors_prime_pow hw', associates.count_some hv, multiset.repeat_one,
     multiset.count_eq_zero, multiset.mem_singleton],
   simp only [subtype.val_eq_coe],
-  rw [associates.mk_eq_mk_iff_associated, associated_iff_eq, ← height_one_spectrum.ext],
+  rw [associates.mk_eq_mk_iff_associated, associated_iff_eq, ← height_one_spectrum.ext_iff],
   exact ne.symm hw,
 end
 

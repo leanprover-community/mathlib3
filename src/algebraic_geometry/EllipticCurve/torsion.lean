@@ -306,7 +306,7 @@ begin
       by { intros, ring1 },
       have half_sub_fourth : ((1 : K) - 2⁻¹) * 2⁻¹ = 4⁻¹ :=
       by { nth_rewrite 0 [← mul_inv_cancel $ two_ne_zero K _inst_8],
-           rw [two_mul, add_sub_cancel, ← mul_inv₀], norm_num1 },
+           rw [two_mul, add_sub_cancel, ← mul_inv], norm_num1 },
       rw [lhs_rw, half_sub_fourth] },
     rw [inv_mul_eq_iff_eq_mul₀ $ four_ne_zero K _inst_8, neg_eq_iff_add_eq_zero,
         ← ψ₂_x.mem_roots_iff],

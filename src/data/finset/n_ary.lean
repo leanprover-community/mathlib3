@@ -25,8 +25,8 @@ open function set
 namespace finset
 
 variables {α α' β β' γ γ' δ δ' ε ε' : Type*}
-  [decidable_eq α'] [decidable_eq β'] [decidable_eq γ] [decidable_eq δ] [decidable_eq δ']
-  [decidable_eq ε] [decidable_eq ε']
+  [decidable_eq α'] [decidable_eq β'] [decidable_eq γ] [decidable_eq γ'] [decidable_eq δ]
+  [decidable_eq δ'] [decidable_eq ε] [decidable_eq ε']
   {f f' : α → β → γ} {g g' : α → β → γ → δ} {s s' : finset α} {t t' : finset β} {u u' : finset γ}
   {a a' : α} {b b' : β} {c : γ}
 
@@ -212,6 +212,20 @@ lemma image_image₂_right_comm {f : α → β' → γ} {g : β → β'} {f' : �
   (h_right_comm : ∀ a b, f a (g b) = g' (f' a b)) :
   image₂ f s (t.image g) = (image₂ f' s t).image g' :=
 (image_image₂_distrib_right $ λ a b, (h_right_comm a b).symm).symm
+
+/-- The other direction does not hold because of the `s`-`s` cross terms on the RHS. -/
+lemma image₂_distrib_subset_left {γ : Type*} {u : finset γ} {f : α → δ → ε} {g : β → γ → δ}
+  {f₁ : α → β → β'} {f₂ : α → γ → γ'} {g' : β' → γ' → ε}
+  (h_distrib : ∀ a b c, f a (g b c) = g' (f₁ a b) (f₂ a c)) :
+  image₂ f s (image₂ g t u) ⊆ image₂ g' (image₂ f₁ s t) (image₂ f₂ s u) :=
+coe_subset.1 $ by { push_cast, exact set.image2_distrib_subset_left h_distrib }
+
+/-- The other direction does not hold because of the `u`-`u` cross terms on the RHS. -/
+lemma image₂_distrib_subset_right {γ : Type*} {u : finset γ} {f : δ → γ → ε} {g : α → β → δ}
+  {f₁ : α → γ → α'} {f₂ : β → γ → β'} {g' : α' → β' → ε}
+  (h_distrib : ∀ a b c, f (g a b) c = g' (f₁ a c) (f₂ b c)) :
+  image₂ f (image₂ g s t) u ⊆ image₂ g' (image₂ f₁ s u) (image₂ f₂ t u) :=
+coe_subset.1 $ by { push_cast, exact set.image2_distrib_subset_right h_distrib }
 
 lemma image_image₂_antidistrib {g : γ → δ} {f' : β' → α' → δ} {g₁ : β → β'} {g₂ : α → α'}
   (h_antidistrib : ∀ a b, g (f a b) = f' (g₁ b) (g₂ a)) :

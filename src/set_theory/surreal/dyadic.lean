@@ -66,44 +66,44 @@ begin
     { rintro ⟨ ⟩ ⟨ ⟩,
       dsimp only [pi.zero_apply],
       rw ← pow_half_move_left' n,
-      apply pgame.move_left_lt },
+      apply hn.move_left_lt },
     { exact ⟨λ _, numeric_zero, λ _, hn⟩ } }
 end
 
 theorem pow_half_succ_lt_pow_half {n : ℕ} : pow_half (n + 1) < pow_half n :=
-pgame.lt_move_right punit.star
+numeric.lt_move_right numeric_pow_half punit.star
 
 theorem pow_half_succ_le_pow_half {n : ℕ} : pow_half (n + 1) ≤ pow_half n :=
-le_of_lt numeric_pow_half numeric_pow_half pow_half_succ_lt_pow_half
+pow_half_succ_lt_pow_half.le
 
 theorem zero_lt_pow_half {n : ℕ} : 0 < pow_half n :=
-by cases n; rw lt_def_le; use ⟨punit.star, pgame.le_refl 0⟩
+by cases n; rw [←lf_iff_lt numeric_zero numeric_pow_half, zero_lf_le]; exact ⟨punit.star, le_rfl⟩
 
 theorem zero_le_pow_half {n : ℕ} : 0 ≤ pow_half n :=
-le_of_lt numeric_zero numeric_pow_half zero_lt_pow_half
+zero_lt_pow_half.le
 
 theorem add_pow_half_succ_self_eq_pow_half {n} : pow_half (n + 1) + pow_half (n + 1) ≈ pow_half n :=
 begin
   induction n with n hn,
   { exact half_add_half_equiv_one },
-  { split; rw le_def_lt; split,
-    { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
+  { split; rw le_def_lf; split,
+    { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); apply lf_of_lt,
       { calc 0 + pow_half (n.succ + 1) ≈ pow_half (n.succ + 1) : zero_add_equiv _
                                    ... < pow_half n.succ       : pow_half_succ_lt_pow_half },
       { calc pow_half (n.succ + 1) + 0 ≈ pow_half (n.succ + 1) : add_zero_equiv _
                                    ... < pow_half n.succ       : pow_half_succ_lt_pow_half } },
     { rintro ⟨ ⟩,
-      rw lt_def_le,
+      rw lf_def_le,
       right,
       use sum.inl punit.star,
       calc pow_half (n.succ) + pow_half (n.succ + 1)
           ≤ pow_half (n.succ) + pow_half (n.succ) : add_le_add_left pow_half_succ_le_pow_half _
       ... ≈ pow_half n                            : hn },
-    { rintro ⟨ ⟩,
+    { rintro ⟨ ⟩, apply lf_of_lt,
       calc 0 ≈ 0 + 0                                        : (add_zero_equiv _).symm
         ... ≤ pow_half (n.succ + 1) + 0                     : add_le_add_right zero_le_pow_half _
         ... < pow_half (n.succ + 1) + pow_half (n.succ + 1) : add_lt_add_left zero_lt_pow_half _ },
-    { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
+    { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); apply lf_of_lt,
       { calc pow_half n.succ
             ≈ pow_half n.succ + 0                        : (add_zero_equiv _).symm
         ... < pow_half (n.succ) + pow_half (n.succ + 1)  : add_lt_add_left zero_lt_pow_half _ },

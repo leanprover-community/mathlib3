@@ -242,7 +242,7 @@ begin
     exact integral_nonneg (λ x, norm_nonneg _) }
 end
 
-lemma integrable.ae_convolution_exists (hf : integrable f μ) (hg : integrable g μ) :
+lemma measure_theory.integrable.ae_convolution_exists (hf : integrable f μ) (hg : integrable g μ) :
   ∀ᵐ x ∂μ, convolution_exists_at f g x L μ :=
 ((integrable_prod_iff $ hf.ae_strongly_measurable.convolution_integrand L
   hg.ae_strongly_measurable).mp $ hf.convolution_integrand L hg).1

@@ -161,14 +161,12 @@ section gc
 variable (R)
 
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
-lemma gc : @galois_connection
-  (ideal R) (order_dual (set (prime_spectrum R))) _ _
+lemma gc : @galois_connection (ideal R) (set (prime_spectrum R))ᵒᵈ _ _
   (λ I, zero_locus I) (λ t, vanishing_ideal t) :=
 λ I t, subset_zero_locus_iff_le_vanishing_ideal t I
 
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
-lemma gc_set : @galois_connection
-  (set R) (order_dual (set (prime_spectrum R))) _ _
+lemma gc_set : @galois_connection (set R) (set (prime_spectrum R))ᵒᵈ _ _
   (λ s, zero_locus s) (λ t, vanishing_ideal t) :=
 have ideal_gc : galois_connection (ideal.span) coe := (submodule.gi R R).gc,
 by simpa [zero_locus_span, function.comp] using ideal_gc.compose (gc R)
@@ -417,7 +415,7 @@ begin
       (is_closed_singleton_iff_is_maximal _).1 (t1_space.t1 ⟨⊥, hbot⟩)) (not_not.2 rfl)) },
   { refine ⟨λ x, (is_closed_singleton_iff_is_maximal x).2 _⟩,
     by_cases hx : x.as_ideal = ⊥,
-    { exact hx.symm ▸ @ideal.bot_is_maximal R (@field.to_division_ring _ $ is_field.to_field R h) },
+    { exact hx.symm ▸ @ideal.bot_is_maximal R (@field.to_division_ring _ h.to_field) },
     { exact absurd h (ring.not_is_field_iff_exists_prime.2 ⟨x.as_ideal, ⟨hx, x.2⟩⟩) } }
 end
 
@@ -718,8 +716,6 @@ section order
 
 We endow `prime_spectrum R` with a partial order,
 where `x ≤ y` if and only if `y ∈ closure {x}`.
-
-TODO: maybe define sober topological spaces, and generalise this instance to those
 -/
 
 instance : partial_order (prime_spectrum R) :=

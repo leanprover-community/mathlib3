@@ -69,7 +69,7 @@ open function
 universes u v w
 
 section
-variables (R : Type u) [ring R]
+variables (R : Type u) [semiring R]
 
 /-- We say that `R` satisfies the strong rank condition if `(fin n → R) →ₗ[R] (fin m → R)` injective
     implies `n ≤ m`. -/
@@ -164,7 +164,7 @@ instance invariant_basis_number_of_rank_condition [rank_condition R] : invariant
 end
 
 section
-variables (R : Type u) [ring R] [invariant_basis_number R]
+variables (R : Type u) [semiring R] [invariant_basis_number R]
 
 lemma eq_of_fin_equiv {n m : ℕ} : ((fin n → R) ≃ₗ[R] (fin m → R)) → n = m :=
 invariant_basis_number.eq_of_fin_equiv
@@ -240,6 +240,7 @@ private def induced_map (I : ideal R) (e : (ι → R) →ₗ[R] (ι' → R)) :
 λ x, quotient.lift_on' x (λ y, ideal.quotient.mk _ (e y))
 begin
   refine λ a b hab, ideal.quotient.eq.2 (λ h, _),
+  rw submodule.quotient_rel_r_def at hab,
   rw ←linear_map.map_sub,
   exact ideal.map_pi _ _ hab e h,
 end

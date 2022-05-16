@@ -38,13 +38,12 @@ def cast_embedding : ℕ ↪ R := ⟨coe, cast_injective⟩
 by { rw [←cast_pow, cast_eq_one], exact pow_eq_one_iff hn }
 
 @[simp, norm_cast]
-theorem cast_dvd_char_zero {k : Type*} [field k] [char_zero k] {m n : ℕ}
+theorem cast_div_char_zero {k : Type*} [field k] [char_zero k] {m n : ℕ}
   (n_dvd : n ∣ m) : ((m / n : ℕ) : k) = m / n :=
 begin
-  by_cases hn : n = 0,
-  { subst hn,
-    simp },
-  { exact cast_dvd n_dvd (cast_ne_zero.mpr hn), },
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  { exact cast_div n_dvd (cast_ne_zero.2 hn), },
 end
 
 end nat
@@ -66,7 +65,7 @@ by rwa [nat.cast_two] at this
 end
 
 section
-variables {R : Type*} [semiring R] [no_zero_divisors R] [char_zero R]
+variables {R : Type*} [non_assoc_semiring R] [no_zero_divisors R] [char_zero R]
 
 @[simp]
 lemma add_self_eq_zero {a : R} : a + a = 0 ↔ a = 0 :=
@@ -80,7 +79,7 @@ by { rw [eq_comm], exact bit0_eq_zero }
 end
 
 section
-variables {R : Type*} [ring R] [no_zero_divisors R] [char_zero R]
+variables {R : Type*} [non_assoc_ring R] [no_zero_divisors R] [char_zero R]
 
 lemma neg_eq_self_iff {a : R} : -a = a ↔ a = 0 :=
 neg_eq_iff_add_eq_zero.trans add_self_eq_zero
@@ -153,7 +152,7 @@ end with_top
 
 section ring_hom
 
-variables {R S : Type*} [semiring R] [semiring S]
+variables {R S : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
 
 lemma ring_hom.char_zero (ϕ : R →+* S) [hS : char_zero S] : char_zero R :=
 ⟨λ a b h, char_zero.cast_injective (by rw [←map_nat_cast ϕ, ←map_nat_cast ϕ, h])⟩

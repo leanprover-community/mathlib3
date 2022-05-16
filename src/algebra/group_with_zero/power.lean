@@ -45,7 +45,7 @@ section nat_pow
 begin
   induction n with n ih,
   { rw [pow_zero, pow_zero], exact inv_one.symm },
-  { rw [pow_succ', pow_succ, ih, mul_inv_rev₀] }
+  { rw [pow_succ', pow_succ, ih, mul_inv_rev] }
 end
 
 theorem pow_sub₀ (a : G₀) {m n : ℕ} (ha : a ≠ 0) (h : n ≤ m) : a ^ (m - n) = a ^ m * (a ^ n)⁻¹ :=
@@ -100,7 +100,7 @@ end
 | -[1+ n] := by { rw [zpow_neg_succ_of_nat, inv_inv, ← zpow_coe_nat], refl }
 
 lemma mul_zpow_neg_one₀ (a b : G₀) : (a * b) ^ (-1 : ℤ) = b ^ (-1 : ℤ) * a ^ (-1 : ℤ) :=
-by simp only [mul_inv_rev₀, zpow_one, zpow_neg₀]
+by simp only [mul_inv_rev, zpow_one, zpow_neg₀]
 
 lemma zpow_neg_one₀ (x : G₀) : x ^ (-1 : ℤ) = x⁻¹ :=
 by { rw [← congr_arg has_inv.inv (pow_one x), zpow_neg₀, ← zpow_coe_nat], refl }
@@ -113,7 +113,7 @@ lemma zpow_add_one₀ {a : G₀} (ha : a ≠ 0) : ∀ n : ℤ, a ^ (n + 1) = a ^
 | (n : ℕ)    := by simp only [← int.coe_nat_succ, zpow_coe_nat, pow_succ']
 | -[1+0]     := by erw [zpow_zero, zpow_neg_succ_of_nat, pow_one, inv_mul_cancel ha]
 | -[1+(n+1)] := by rw [int.neg_succ_of_nat_eq, zpow_neg₀, neg_add, neg_add_cancel_right, zpow_neg₀,
-  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev₀, mul_assoc,
+  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev, mul_assoc,
   inv_mul_cancel ha, mul_one]
 
 lemma zpow_sub_one₀ {a : G₀} (ha : a ≠ 0) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
@@ -206,7 +206,7 @@ by rw [sub_eq_add_neg, zpow_add₀ ha, zpow_neg₀, div_eq_mul_inv]
 lemma commute.mul_zpow₀ {a b : G₀} (h : commute a b) :
   ∀ (i : ℤ), (a * b) ^ i = (a ^ i) * (b ^ i)
 | (n : ℕ) := by simp [h.mul_pow n]
-| -[1+n]  := by simp [h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev₀]
+| -[1+n]  := by simp [h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev]
 
 theorem zpow_bit0' (a : G₀) (n : ℤ) : a ^ bit0 n = (a * a) ^ n :=
 (zpow_bit0₀ a n).trans ((commute.refl a).mul_zpow₀ n).symm
@@ -216,6 +216,14 @@ by rw [zpow_bit1₀, (commute.refl a).mul_zpow₀]
 
 lemma zpow_eq_zero {x : G₀} {n : ℤ} (h : x ^ n = 0) : x = 0 :=
 classical.by_contradiction $ λ hx, zpow_ne_zero_of_ne_zero hx n h
+
+lemma zpow_eq_zero_iff {a : G₀} {n : ℤ} (hn : 0 < n) :
+  a ^ n = 0 ↔ a = 0 :=
+begin
+  refine ⟨zpow_eq_zero, _⟩,
+  rintros rfl,
+  exact zero_zpow _ hn.ne'
+end
 
 lemma zpow_ne_zero {x : G₀} (n : ℤ) : x ≠ 0 → x ^ n ≠ 0 :=
 mt zpow_eq_zero

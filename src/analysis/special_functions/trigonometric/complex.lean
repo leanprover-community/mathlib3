@@ -107,7 +107,7 @@ begin
         ← div_div_div_cancel_right (sin x * cos y + cos x * sin y)
             (mul_ne_zero (cos_ne_zero_iff.mpr h1) (cos_ne_zero_iff.mpr h2)),
         add_div, sub_div],
-    simp only [←div_mul_div_comm₀, ←tan, mul_one, one_mul,
+    simp only [←div_mul_div_comm, ←tan, mul_one, one_mul,
               div_self (cos_ne_zero_iff.mpr h1), div_self (cos_ne_zero_iff.mpr h2)] },
   { obtain ⟨t, hx, hy, hxy⟩ := ⟨tan_int_mul_pi_div_two, t (2*k+1), t (2*l+1), t (2*k+1+(2*l+1))⟩,
     simp only [int.cast_add, int.cast_bit0, int.cast_mul, int.cast_one, hx, hy] at hx hy hxy,
@@ -217,7 +217,7 @@ by simpa [mul_comm x] using strict_concave_on_sin_Icc.concave_on.2 ⟨le_rfl, pi
 lemma mul_lt_sin {x : ℝ} (hx : 0 < x) (hx' : x < π / 2) : (2 / π) * x < sin x :=
 begin
   rw [←inv_div],
-  simpa [pi_div_two_pos.ne', mul_nonneg, inv_nonneg] using @lt_sin_mul ((π / 2)⁻¹ * x) _ _,
+  simpa [-inv_div, pi_div_two_pos.ne'] using @lt_sin_mul ((π / 2)⁻¹ * x) _ _,
   { exact mul_pos (inv_pos.2 pi_div_two_pos) hx },
   { rwa [←div_eq_inv_mul, div_lt_one pi_div_two_pos] },
 end
@@ -227,7 +227,7 @@ of Jordan's inequality, the other half is `real.sin_lt` -/
 lemma mul_le_sin {x : ℝ} (hx : 0 ≤ x) (hx' : x ≤ π / 2) : (2 / π) * x ≤ sin x :=
 begin
   rw [←inv_div],
-  simpa [pi_div_two_pos.ne', mul_nonneg, inv_nonneg] using @le_sin_mul ((π / 2)⁻¹ * x) _ _,
+  simpa [-inv_div, pi_div_two_pos.ne'] using @le_sin_mul ((π / 2)⁻¹ * x) _ _,
   { exact mul_nonneg (inv_nonneg.2 pi_div_two_pos.le) hx },
   { rwa [←div_eq_inv_mul, div_le_one pi_div_two_pos] },
 end

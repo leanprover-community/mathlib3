@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import tactic.apply_fun
 import algebra.field.opposite
 import algebra.field_power
-import data.equiv.ring_aut
+import algebra.ring.aut
 import group_theory.group_action.units
 import group_theory.group_action.opposite
 import algebra.ring.comp_typeclasses
@@ -217,11 +217,11 @@ star_eq_zero.not
   star (r - s) = star r - star s :=
 (star_add_equiv : R ≃+ R).map_sub _ _
 
-@[simp] lemma star_nsmul [add_comm_monoid R] [star_add_monoid R] (x : R) (n : ℕ) :
+@[simp] lemma star_nsmul [add_monoid R] [star_add_monoid R] (x : R) (n : ℕ) :
   star (n • x) = n • star x :=
 (star_add_equiv : R ≃+ R).to_add_monoid_hom.map_nsmul _ _
 
-@[simp] lemma star_zsmul [add_comm_group R] [star_add_monoid R] (x : R) (n : ℤ) :
+@[simp] lemma star_zsmul [add_group R] [star_add_monoid R] (x : R) (n : ℤ) :
   star (n • x) = n • star x :=
 (star_add_equiv : R ≃+ R).to_add_monoid_hom.map_zsmul _ _
 
@@ -264,7 +264,7 @@ def star_ring_equiv [non_unital_semiring R] [star_ring R] : R ≃+* Rᵐᵒᵖ :
 
 @[simp, norm_cast] lemma star_rat_cast [division_ring R] [char_zero R] [star_ring R] (r : ℚ) :
   star (r : R) = r :=
-(congr_arg unop ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_rat_cast r)).trans (unop_rat_cast _)
+(congr_arg unop $ map_rat_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) r).trans (unop_rat_cast _)
 
 /-- `star` as a ring automorphism, for commutative `R`. -/
 @[simps apply]

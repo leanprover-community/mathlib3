@@ -148,8 +148,8 @@ begin
   { simp },
   { simp only [geom_sum_succ', nat.even_succ, hk],
     split_ifs,
-    { rw [nat.neg_one_pow_of_even h, add_zero] },
-    { rw [nat.neg_one_pow_of_odd (nat.odd_iff_not_even.mpr h), neg_add_self] } }
+    { rw [h.neg_one_pow, add_zero] },
+    { rw [(nat.odd_iff_not_even.2 h).neg_one_pow, neg_add_self] } }
 end
 
 theorem geom_sum₂_self {α : Type*} [comm_ring α] (x : α) (n : ℕ) :
@@ -322,6 +322,20 @@ theorem geom_sum_Ico' [division_ring α] {x : α} (hx : x ≠ 1) {m n : ℕ} (hm
   ∑ i in finset.Ico m n, x ^ i = (x ^ m - x ^ n) / (1 - x) :=
 by { simp only [geom_sum_Ico hx hmn], convert neg_div_neg_eq (x^m - x^n) (1-x); abel }
 
+lemma geom_sum_Ico_le_of_lt_one [linear_ordered_field α]
+  {x : α} (hx : 0 ≤ x) (h'x : x < 1) {m n : ℕ} :
+  ∑ i in Ico m n, x ^ i ≤ x ^ m / (1 - x) :=
+begin
+  rcases le_or_lt m n with hmn | hmn,
+  { rw geom_sum_Ico' h'x.ne hmn,
+    apply div_le_div (pow_nonneg hx _) _ (sub_pos.2 h'x) le_rfl,
+    simpa using pow_nonneg hx _ },
+  { rw [Ico_eq_empty, sum_empty],
+    { apply div_nonneg (pow_nonneg hx _),
+      simpa using h'x.le },
+    { simpa using hmn.le } },
+end
+
 lemma geom_sum_inv [division_ring α] {x : α} (hx1 : x ≠ 1) (hx0 : x ≠ 0) (n : ℕ) :
   (geom_sum x⁻¹ n) = (x - 1)⁻¹ * (x - x⁻¹ ^ n * x) :=
 have h₁ : x⁻¹ ≠ 1, by rwa [inv_eq_one_div, ne.def, div_eq_iff_mul_eq hx0, one_mul],
@@ -329,7 +343,7 @@ have h₂ : x⁻¹ - 1 ≠ 0, from mt sub_eq_zero.1 h₁,
 have h₃ : x - 1 ≠ 0, from mt sub_eq_zero.1 hx1,
 have h₄ : x * (x ^ n)⁻¹ = (x ^ n)⁻¹ * x :=
   nat.rec_on n (by simp)
-  (λ n h, by rw [pow_succ, mul_inv_rev₀, ←mul_assoc, h, mul_assoc, mul_inv_cancel hx0, mul_assoc,
+  (λ n h, by rw [pow_succ, mul_inv_rev, ←mul_assoc, h, mul_assoc, mul_inv_cancel hx0, mul_assoc,
     inv_mul_cancel hx0]),
 begin
   rw [geom_sum_eq h₁, div_eq_iff_mul_eq h₂, ← mul_right_inj' h₃,
@@ -429,7 +443,7 @@ lemma geom_sum_alternating_of_lt_neg_one [ordered_ring α] (hx : x + 1 < 0) (hn 
 begin
   have hx0 : x < 0, from ((le_add_iff_nonneg_right _).2 (@zero_le_one α _)).trans_lt hx,
   refine nat.le_induction _ _ n (show 2 ≤ n, from hn),
-  { simp only [geom_sum_two, hx, true_or, nat.even_bit0, if_true_left_eq_or] },
+  { simp only [geom_sum_two, hx, true_or, even_bit0, if_true_left_eq_or] },
   clear hn n,
   intros n hn ihn,
   simp only [nat.even_succ, geom_sum_succ],
@@ -453,7 +467,7 @@ begin
   { have := geom_sum_alternating_of_lt_neg_one hx k.one_lt_succ_succ,
     simp only [h, if_false] at this,
     exact zero_lt_one.trans this },
-  { simp only [eq_neg_of_add_eq_zero hx, h, neg_one_geom_sum, if_false, zero_lt_one] },
+  { simp only [eq_neg_of_add_eq_zero_left hx, h, neg_one_geom_sum, if_false, zero_lt_one] },
   rcases lt_trichotomy x 0 with hx' | rfl | hx',
   { exact (geom_sum_pos_and_lt_one hx' hx k.one_lt_succ_succ).1 },
   { simp only [zero_geom_sum, nat.succ_ne_zero, if_false, zero_lt_one] },

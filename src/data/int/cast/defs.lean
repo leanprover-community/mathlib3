@@ -124,4 +124,8 @@ by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
 lemma cast_two : ((2 : ℤ) : R) = 2 := by simp
 
+lemma cast_three : ((3 : ℤ) : R) = 3 := by simp
+
+lemma cast_four : ((4 : ℤ) : R) = 4 := by simp
+
 end int

@@ -3,9 +3,9 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.equiv.fintype
 import data.finset.noncomm_prod
 import group_theory.perm.sign
+import logic.equiv.fintype
 /-!
 # Cyclic permutations
 
@@ -500,20 +500,45 @@ begin
     exact support_pow_le _ n hx }
 end
 
-lemma is_cycle.pow_eq_one_iff [fintype α] {f : perm α} (hf : is_cycle f) {n : ℕ} :
-  f ^ n = 1 ↔ ∃ (x ∈ f.support), (f ^ n) x = x :=
+lemma is_cycle.pow_eq_one_iff [fintype β] {f : perm β} (hf : is_cycle f) {n : ℕ} :
+  f ^ n = 1 ↔ ∃ x, f x ≠ x ∧ (f ^ n) x = x :=
 begin
+  classical,
   split,
   { intro h,
     obtain ⟨x, hx, -⟩ := id hf,
-    exact ⟨x, mem_support.mpr hx, by simp [h]⟩ },
+    exact ⟨x, hx, by simp [h]⟩ },
   { rintro ⟨x, hx, hx'⟩,
     by_cases h : support (f ^ n) = support f,
-    { rw [←h, mem_support] at hx,
+    { rw [← mem_support, ← h, mem_support] at hx,
       contradiction },
     { rw [hf.support_pow_eq_iff, not_not] at h,
       obtain ⟨k, rfl⟩ := h,
       rw [pow_mul, pow_order_of_eq_one, one_pow] } }
+end
+
+lemma is_cycle.pow_eq_pow_iff [fintype β] {f : perm β} (hf : is_cycle f) {a b : ℕ} :
+  f ^ a = f ^ b ↔ ∃ x, f x ≠ x ∧ (f ^ a) x = (f ^ b) x :=
+begin
+  classical,
+  split,
+  { intro h,
+    obtain ⟨x, hx, -⟩ := id hf,
+    exact ⟨x, hx, by simp [h]⟩ },
+  { rintro ⟨x, hx, hx'⟩,
+    wlog hab : a ≤ b,
+    suffices : f ^ (b - a) = 1,
+    { rw [pow_sub _ hab, mul_inv_eq_one] at this,
+      rw this },
+    rw hf.pow_eq_one_iff,
+    by_cases hfa : (f ^ a) x ∈ f.support,
+    { refine ⟨(f ^ a) x, mem_support.mp hfa, _⟩,
+      simp only [pow_sub _ hab, equiv.perm.coe_mul, function.comp_app,
+        inv_apply_self, ← hx'] },
+    { have h := @equiv.perm.zpow_apply_comm _ f 1 a x,
+      simp only [zpow_one, zpow_coe_nat] at h,
+      rw [not_mem_support, h, function.injective.eq_iff (f ^ a).injective] at hfa,
+      contradiction }}
 end
 
 lemma is_cycle.mem_support_pos_pow_iff_of_lt_order_of [fintype α] {f : perm α} (hf : is_cycle f)
@@ -897,7 +922,7 @@ begin
   simp only [noncomm_prod_to_finset, hl, exists_prop, list.mem_to_finset, and.congr_left_iff,
              and.congr_right_iff, list.map_id, ne.def],
   intros,
-  exact ⟨list.forall_of_pairwise disjoint.symmetric, hl.pairwise_of_forall_ne⟩
+  exact ⟨list.pairwise.forall disjoint.symmetric, hl.pairwise_of_forall_ne⟩
 end
 
 lemma cycle_factors_finset_pairwise_disjoint (p : perm α) (hp : p ∈ cycle_factors_finset f)
@@ -1084,7 +1109,7 @@ begin
       (disjoint_prod_right _ (list.pairwise_cons.mp h2).1)
       (h1 _ (list.mem_cons_self _ _))
       (base_cycles σ (h1 σ (l.mem_cons_self σ)))
-      (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2)) },
+      (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) h2.of_cons) }
 end
 
 lemma cycle_factors_finset_mul_inv_mem_eq_sdiff [fintype α] {f g : perm α}

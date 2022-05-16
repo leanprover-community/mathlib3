@@ -194,6 +194,58 @@ lemma component.of (i j : ι) (b : M j) :
   if h : j = i then eq.rec_on h b else 0 :=
 dfinsupp.single_apply
 
+omit dec_ι
+section congr_left
+variables {κ : Type*}
+
+/--Reindexing terms of a direct sum is linear.-/
+def lequiv_congr_left (h : ι ≃ κ) : (⨁ i, M i) ≃ₗ[R] ⨁ k, M (h.symm k) :=
+{ map_smul' := dfinsupp.comap_domain'_smul _ _,
+  ..equiv_congr_left h }
+
+@[simp] lemma lequiv_congr_left_apply (h : ι ≃ κ) (f : ⨁ i, M i) (k : κ) :
+lequiv_congr_left R h f k = f (h.symm k) := equiv_congr_left_apply _ _ _
+
+end congr_left
+
+section sigma
+variables {α : ι → Type u} {δ : Π i, α i → Type w}
+variables [Π i j, add_comm_monoid (δ i j)] [Π i j, module R (δ i j)]
+
+/--`curry` as a linear map.-/
+noncomputable def sigma_lcurry : (⨁ (i : Σ i, _), δ i.1 i.2) →ₗ[R] ⨁ i j, δ i j :=
+{ map_smul' := λ r, by convert (@dfinsupp.sigma_curry_smul _ _ _ δ _ _ _ r),
+  ..sigma_curry }
+
+@[simp] lemma sigma_lcurry_apply (f : ⨁ (i : Σ i, _), δ i.1 i.2) (i : ι) (j : α i) :
+  sigma_lcurry R f i j = f ⟨i, j⟩ := sigma_curry_apply f i j
+
+/--`uncurry` as a linear map.-/
+noncomputable def sigma_luncurry : (⨁ i j, δ i j) →ₗ[R] ⨁ (i : Σ i, _), δ i.1 i.2 :=
+{ map_smul' := dfinsupp.sigma_uncurry_smul,
+  ..sigma_uncurry }
+
+@[simp] lemma sigma_luncurry_apply (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
+  sigma_luncurry R f ⟨i, j⟩ = f i j := sigma_uncurry_apply f i j
+
+/--`curry_equiv` as a linear equiv.-/
+noncomputable def sigma_lcurry_equiv : (⨁ (i : Σ i, _), δ i.1 i.2) ≃ₗ[R] ⨁ i j, δ i j :=
+{ ..sigma_curry_equiv, ..sigma_lcurry R }
+
+end sigma
+
+section option
+variables {α : option ι → Type w} [Π i, add_comm_monoid (α i)] [Π i, module R (α i)]
+include dec_ι
+
+/--Linear isomorphism obtained by separating the term of index `none` of a direct sum over
+`option ι`.-/
+@[simps] noncomputable def lequiv_prod_direct_sum : (⨁ i, α i) ≃ₗ[R] α none × ⨁ i, α (some i) :=
+{ map_smul' := dfinsupp.equiv_prod_dfinsupp_smul,
+  ..add_equiv_prod_direct_sum }
+
+end option
+
 end general
 
 section submodule
@@ -274,6 +326,14 @@ lemma submodule_is_internal.collected_basis_mem
   h.collected_basis v a ∈ A a.1 :=
 by simp
 
+/-- When indexed by only two distinct elements, `direct_sum.submodule_is_internal` implies
+the two submodules are complementary. Over a `ring R`, this is true as an iff, as
+`direct_sum.submodule_is_internal_iff_is_compl`. --/
+lemma submodule_is_internal.is_compl {A : ι → submodule R M} {i j : ι} (hij : i ≠ j)
+  (h : (set.univ : set ι) = {i, j}) (hi : submodule_is_internal A) : is_compl (A i) (A j) :=
+⟨hi.independent.pairwise_disjoint _ _ hij, eq.le $ hi.supr_eq_top.symm.trans $
+  by rw [←Sup_pair, supr, ←set.image_univ, h, set.image_insert_eq, set.image_singleton]⟩
+
 end semiring
 
 section ring
@@ -300,6 +360,19 @@ lemma submodule_is_internal_iff_independent_and_supr_eq_top (A : ι → submodul
     submodule_is_internal A ↔ complete_lattice.independent A ∧ supr A = ⊤ :=
 ⟨λ i, ⟨i.independent, i.supr_eq_top⟩,
  and.rec submodule_is_internal_of_independent_of_supr_eq_top⟩
+
+/-- If a collection of submodules has just two indices, `i` and `j`, then
+`direct_sum.submodule_is_internal` is equivalent to `is_compl`. -/
+lemma submodule_is_internal_iff_is_compl (A : ι → submodule R M) {i j : ι} (hij : i ≠ j)
+  (h : (set.univ : set ι) = {i, j}) :
+  submodule_is_internal A ↔ is_compl (A i) (A j) :=
+begin
+  have : ∀ k, k = i ∨ k = j := λ k, by simpa using set.ext_iff.mp h k,
+  rw [submodule_is_internal_iff_independent_and_supr_eq_top,
+    supr, ←set.image_univ, h, set.image_insert_eq, set.image_singleton, Sup_pair,
+    complete_lattice.independent_pair hij this],
+  exact ⟨λ ⟨hd, ht⟩, ⟨hd, ht.ge⟩, λ ⟨hd, ht⟩, ⟨hd, eq_top_iff.mpr ht⟩⟩,
+end
 
 /-! Now copy the lemmas for subgroup and submonoids. -/
 

@@ -37,13 +37,12 @@ def cast_add_monoid_hom (α : Type*) [add_monoid_with_one α] : ℕ →+ α :=
   ((m * n : ℕ) : α) = m * n :=
 by induction n; simp [mul_succ, mul_add, *]
 
-@[simp] theorem cast_dvd {α : Type*} [field α] {m n : ℕ} (n_dvd : n ∣ m) (n_nonzero : (n:α) ≠ 0) :
+@[simp] theorem cast_div [field α] {m n : ℕ} (n_dvd : n ∣ m) (n_nonzero : (n : α) ≠ 0) :
   ((m / n : ℕ) : α) = m / n :=
 begin
   rcases n_dvd with ⟨k, rfl⟩,
   have : n ≠ 0, {rintro rfl, simpa using n_nonzero},
-  rw nat.mul_div_cancel_left _ (pos_iff_ne_zero.2 this),
-  rw [nat.cast_mul, mul_div_cancel_left _ n_nonzero],
+  rw [nat.mul_div_cancel_left _ this.bot_lt, cast_mul, mul_div_cancel_left _ n_nonzero],
 end
 
 /-- `coe : ℕ → α` as a `ring_hom` -/
@@ -190,7 +189,8 @@ lemma eq_nat_cast' [add_monoid_hom_class F ℕ A] (f : F) (h1 : f 1 = 1) :
 | 0     := by simp
 | (n+1) := by rw [map_add, h1, eq_nat_cast' n, nat.cast_add_one]
 
-lemma map_nat_cast' [add_monoid_hom_class F A B] (f : F) (h : f 1 = 1) : ∀ (n : ℕ), f n = n
+lemma map_nat_cast' {A} [add_monoid_with_one A] [add_monoid_hom_class F A B]
+                    (f : F) (h : f 1 = 1) : ∀ (n : ℕ), f n = n
 | 0     := by simp
 | (n+1) := by rw [nat.cast_add, map_add, nat.cast_add, map_nat_cast', nat.cast_one, h, nat.cast_one]
 
@@ -198,7 +198,7 @@ end add_monoid_hom_class
 
 section monoid_with_zero_hom_class
 
-variables {A F : Type*} [monoid_with_zero A]
+variables {A F : Type*} [mul_zero_one_class A]
 
 /-- If two `monoid_with_zero_hom`s agree on the positive naturals they are equal. -/
 theorem ext_nat'' [monoid_with_zero_hom_class F ℕ A] (f g : F)
@@ -230,15 +230,25 @@ ext_nat' f g $ by simp only [map_one]
 
 end ring_hom_class
 
+namespace ring_hom
+
+/-- This is primed to match `ring_hom.eq_int_cast'`. -/
+lemma eq_nat_cast' {R} [non_assoc_semiring R] (f : ℕ →+* R) : f = nat.cast_ring_hom R :=
+ring_hom.ext $ eq_nat_cast f
+
+end ring_hom
+
 @[simp, norm_cast] theorem nat.cast_id (n : ℕ) : ↑n = n :=
 rfl
 
-theorem nat.cast_with_bot (n : ℕ) :
+@[simp] lemma nat.cast_ring_hom_nat : nat.cast_ring_hom ℕ = ring_hom.id ℕ := rfl
+
+@[simp] theorem nat.cast_with_bot (n : ℕ) :
   @coe ℕ (with_bot ℕ) (@coe_to_lift _ _ nat.cast_coe) n = n := rfl
 
 -- I don't think `ring_hom_class` is good here, because of the `subsingleton` TC slowness
-instance nat.subsingleton_ring_hom {R : Type*} [non_assoc_semiring R] : subsingleton (ℕ →+* R) :=
-⟨ext_nat⟩
+instance nat.unique_ring_hom {R : Type*} [non_assoc_semiring R] : unique (ℕ →+* R) :=
+{ default := nat.cast_ring_hom R, uniq := ring_hom.eq_nat_cast' }
 
 namespace mul_opposite
 

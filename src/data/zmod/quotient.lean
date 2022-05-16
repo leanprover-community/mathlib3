@@ -123,9 +123,17 @@ noncomputable def _root_.add_action.orbit_zmultiples_equiv
 attribute [to_additive orbit_zmultiples_equiv] orbit_zpowers_equiv
 
 @[to_additive orbit_zmultiples_equiv_symm_apply]
-lemma orbit_zpowers_equiv_symm_apply {α β : Type*} [group α] (a : α) [mul_action α β] (b : β)
+lemma orbit_zpowers_equiv_symm_apply
   (k : zmod (minimal_period ((•) a) b)) : (orbit_zpowers_equiv a b).symm k =
   (⟨a, mem_zpowers a⟩ : zpowers a) ^ (k : ℤ) • ⟨b, mem_orbit_self b⟩ :=
 rfl
+
+@[to_additive] lemma minimal_period_eq_card [fintype (mul_action.orbit (zpowers a) b)] :
+  function.minimal_period ((•) a) b = fintype.card (mul_action.orbit (zpowers a) b) :=
+by rw [←fintype.of_equiv_card (mul_action.orbit_zpowers_equiv a b), zmod.card]
+
+@[to_additive] instance [fintype (mul_action.orbit (zpowers a) b)] :
+  fact (0 < function.minimal_period ((•) a) b) :=
+⟨by rw [minimal_period_eq_card, fintype.card_pos_iff]; exact (orbit_nonempty b).to_subtype⟩
 
 end mul_action

@@ -41,6 +41,9 @@ protected def lex (x y : Π i, β i) : Prop :=
 
 notation `Πₗ` binders `, ` r:(scoped p, lex (Π i, p i)) := r
 
+@[simp] lemma to_lex_apply (x : Π i, β i) (i : ι) : to_lex x i = x i := rfl
+@[simp] lemma of_lex_apply (x : Πₗ i, β i) (i : ι) : of_lex x i = x i := rfl
+
 instance [has_lt ι] [∀ a, has_lt (β a)] : has_lt (Πₗ i, β i) := ⟨pi.lex (<) (λ _, (<))⟩
 
 instance lex.is_strict_order [linear_order ι] [∀ a, partial_order (β a)] :

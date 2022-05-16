@@ -837,7 +837,7 @@ rel_iso.to_equiv_injective $ e₁.to_equiv.option_congr_trans e₂.to_equiv
 def with_bot_congr (e : α ≃o β) :
   with_bot α ≃o with_bot β :=
 { to_equiv := e.to_equiv.option_congr,
-  .. e.to_order_embedding.with_bot }
+  .. e.to_order_embedding.with_bot_map }
 
 @[simp] lemma with_bot_congr_refl : (order_iso.refl α).with_bot_congr = order_iso.refl _ :=
 rel_iso.to_equiv_injective equiv.option_congr_refl

@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison, Violeta Hernández Palacios, Junyan Xu
 -/
 
-import data.prod.lex
 import set_theory.game.basic
-import set_theory.game.birthday
-import tactic.linarith
+import tactic.fin_cases
 
 /-!
 # Surreal numbers
@@ -44,6 +42,8 @@ universes u
 
 local infix ` ≈ ` := pgame.equiv
 local infix ` ⧏ `:50 := pgame.lf
+
+open relation
 
 namespace pgame
 
@@ -300,9 +300,9 @@ We simultaneously prove two assertions on numeric pre-games:
 - - - For every left move `yL`, `x₂ * yL + x₁ * y < x₁ * yL + x₂ * y`,
 - - - For every right move `yR`, `x₂ * y + x₁ * yR < x₁ * y + x₂ * yR`.
 
-We prove this by defining a well-founded "depth" on `P1` and `P2`, and showing that each statement
-follows from statements of lesser depth. This auxiliary type represents either the assertion `P1` on
-two games, or the assertion `P2` on three games. -/
+We prove this by providing a well-founded relation on `mul_args` such that each proposition depends
+only on propositions with lesser arguments. See `mul_args.has_lt.lt` for a description of this
+relation. -/
 inductive mul_args : Type (u+1)
 | P1 (x y : pgame.{u}) : mul_args
 | P2 (x₁ x₂ y : pgame.{u}) : mul_args
@@ -327,13 +327,34 @@ by abel
 end comm_lemmas
 
 section cut_expand
-variables {α : Type*}
+variable {α : Type*}
 
 def cut_expand (r : α → α → Prop) (s' s : multiset α) : Prop :=
 ∃ (t : multiset α) (a ∈ s), (∀ a' ∈ t, r a' a) ∧ s' + {a} = s + t
 
-theorem cut_expand.wf {r : α → α → Prop} (h : well_founded r) : well_founded (cut_expand r) :=
+variable {r : α → α → Prop}
+
+theorem cut_expand.wf (h : well_founded r) : well_founded (cut_expand r) :=
 sorry
+
+theorem multiset.pair_comm {x y : α} : ({x, y} : multiset α) = {y, x} :=
+multiset.cons_swap x y ∅
+
+theorem cut_left_pair {x x'} (h : r x' x) (y) : cut_expand r {x', y} {x, y} :=
+begin
+  refine ⟨{x'}, x, set.mem_insert x _, _, _⟩,
+  { simp [h] },
+  { rw [add_comm, add_comm {x, y}],
+    exact multiset.cons_swap x x' {y} }
+end
+
+theorem cut_right_pair (x) {y y'} (h : r y' y) : cut_expand r {x, y'} {x, y} :=
+begin
+  refine ⟨{y'}, y, list.mem_of_mem_last' rfl, _, _⟩,
+  { simp [h] },
+  { change {x} + {y', y} = {x} + {y, y'},
+    rw multiset.pair_comm }
+end
 
 end cut_expand
 
@@ -349,7 +370,8 @@ by rw [quot_mul_comm a, quot_mul_comm c, quot_mul_comm e, quot_mul_comm g]
 
 namespace mul_args
 
-/-- The depth function on the type. See the docstring for `mul_args`. -/
+/-- The multiset of arguments to either `P1` or `P2`. This is used in defining the well-founded
+relation on `pgame`. -/
 def to_multiset : mul_args → multiset pgame
 | (P1 x y) := {x, y}
 | (P2 x₁ x₂ y) := {x₁, x₂, y}
@@ -363,12 +385,32 @@ def hypothesis : mul_args → Prop
                       (∀ i, x₂ * y.move_left i + x₁ * y  < x₁ * y.move_left i + x₂ * y) ∧
                        ∀ j, x₂ * y + x₁ * y.move_right j < x₁ * y + x₂ * y.move_right j)
 
+/-- We say that `x < y` for two `mul_args` whenever one can get from the multiset of parameters of
+`y` to the multiset of parameters of `x` by repeatedly:
+
+- Removing some parameter from `y`.
+- Replacing it with an arbitrary multiset of subsequent games.
+
+This relation is well-founded, and is used in the proof of `mul_args.result`. -/
 instance : has_lt mul_args :=
-⟨inv_image (relation.trans_gen $ cut_expand subsequent) to_multiset⟩
+⟨inv_image (trans_gen $ cut_expand subsequent) to_multiset⟩
+
+instance : is_trans mul_args (<) :=
+⟨by apply inv_image.trans _ _ transitive_trans_gen⟩
 
 instance : has_well_founded mul_args :=
 { r := (<),
   wf := inv_image.wf _ (cut_expand.wf wf_subsequent).trans_gen }
+
+theorem lt_of_cut_expand {x y : mul_args} :
+  cut_expand subsequent x.to_multiset y.to_multiset → x < y :=
+trans_gen.single
+
+theorem lt_cut_left_P1 {x x'} (h : subsequent x' x) (y) : P1 x' y < P1 x y :=
+lt_of_cut_expand $ cut_left_pair h y
+
+theorem lt_cut_right_P1 (x) {y y'} (h : subsequent y' y) : P1 x y' < P1 x y :=
+lt_of_cut_expand $ cut_right_pair x h
 
 /-- The hypothesis is true for any arguments. -/
 theorem result : ∀ x : mul_args, x.hypothesis
@@ -399,10 +441,10 @@ theorem result : ∀ x : mul_args, x.hypothesis
     (result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2 (oy.left_lt_right iy jy),
 
   have HN₁ := λ {ix},
-    let wf : P1 (xL ix) y < P1 x y := sorry in
+    let wf : P1 (xL ix) y < P1 x y := lt_cut_left_P1 (subsequent.mk_left _ _ ix) y in
     result (P1 _ _) (ox.move_left ix)  oy,
   have HN₂ := λ {jx},
-    let wf : P1 (xR jx) y < P1 x y := sorry in
+    let wf : P1 (xR jx) y < P1 x y := lt_cut_left_P1 (subsequent.mk_right _ _ jx) y in
     result (P1 _ _) (ox.move_right jx) oy,
 
   refine (numeric_def _).2 ⟨_, _, _⟩,
@@ -525,20 +567,20 @@ theorem result : ∀ x : mul_args, x.hypothesis
 
   -- Prove that all options of `x * y` are numeric.
   { rintro (⟨ix, iy⟩ | ⟨jx, jy⟩),
-    { let wf₁ : P1 x (yL iy) < P1 x y := sorry,
+    { let wf₁ : P1 x (yL iy) < P1 x y := lt_cut_right_P1 x (subsequent.mk_left _ _ iy),
       let wf₂ : P1 (xL ix) (yL iy) < P1 x y := sorry,
       exact (HN₁.add (result (P1 _ _) ox (oy.move_left iy))).sub
         (result (P1 _ _) (ox.move_left ix) (oy.move_left iy)) },
-    { let wf₁ : P1 x (yR jy) < P1 x y := sorry,
+    { let wf₁ : P1 x (yR jy) < P1 x y := lt_cut_right_P1 x (subsequent.mk_right _ _ jy),
       let wf₂ : P1 (xR jx) (yR jy) < P1 x y := sorry,
       exact (HN₂.add (result (P1 _ _) ox (oy.move_right jy))).sub
         (result (P1 _ _) (ox.move_right jx) (oy.move_right jy)) } },
   { rintro (⟨ix, jy⟩ | ⟨jx, iy⟩),
-    { let wf₁ : P1 x (yR jy) < P1 x y := sorry,
+    { let wf₁ : P1 x (yR jy) < P1 x y := lt_cut_right_P1 x (subsequent.mk_right _ _ jy),
       let wf₂ : P1 (xL ix) (yR jy) < P1 x y := sorry,
       exact (HN₁.add (result (P1 _ _) ox (oy.move_right jy))).sub
         (result (P1 _ _) (ox.move_left ix) (oy.move_right jy)) },
-    { let wf₁ : P1 x (yL iy) < P1 x y := sorry,
+    { let wf₁ : P1 x (yL iy) < P1 x y := lt_cut_right_P1 x (subsequent.mk_left _ _ iy),
       let wf₂ : P1 (xR jx) (yL iy) < P1 x y := sorry,
       exact (HN₂.add (result (P1 _ _) ox (oy.move_left iy))).sub
         (result (P1 _ _) (ox.move_right jx) (oy.move_left iy)) } }

@@ -580,14 +580,16 @@ end
       dsimp at *,
       sorry }, all_goals { sorry } },
   { cases lt_or_equiv_of_le h (ox₁.move_right jx₁) ox₂ with h h;
-    refine ⟨λ iy, _, λ iy, _⟩,
-    { have H₁ := ((result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ oy).2 h).1 iy,
-      have H₂ := HN₁.lt_move_right (sum.inr (jx₁, iy)),
-      have H₃ : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add H₁ H₂,
-      dsimp at H₃, abel at H₃,
-      rw [←add_assoc, add_comm ⟦_ * y⟧, add_assoc ⟦x₁R jx₁ * _⟧, add_lt_add_iff_left,
-        add_comm] at H₃,
-      exact H₃ },
+    refine ⟨λ iy, _, λ iy, _⟩;
+    try { have H := (result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ oy).2 h },
+    { have H' : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add (H.1 iy) (HN₁.lt_move_right (sum.inr (jx₁, iy))),
+      dsimp at H', abel at H',
+      rwa [←add_assoc, add_comm ⟦_ * y⟧, add_assoc ⟦x₁R jx₁ * _⟧, add_lt_add_iff_left,
+        add_comm] at H' },
+    { have H' : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add (H.2 iy) (HN₁.move_left_lt (sum.inr (jx₁, iy))),
+      dsimp at H', abel at H',
+      rwa [←add_assoc ⟦x₁ * _⟧, add_comm ⟦x₁ * y⟧, add_assoc ⟦x₁R jx₁ * _⟧, add_lt_add_iff_left,
+        add_comm] at H' },
     all_goals { sorry } },
 end
 using_well_founded { dec_tac := sorry }

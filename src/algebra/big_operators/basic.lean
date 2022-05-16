@@ -818,7 +818,12 @@ lemma prod_ite_index (p : Prop) [decidable p] (s t : finset α) (f : α → β) 
 apply_ite (λ s, ∏ x in s, f x) _ _ _
 
 @[simp, to_additive]
-lemma prod_dite_irrel (p : Prop) [decidable p] (s : finset α) (f : p → α → β) (g : ¬p → α → β):
+lemma prod_ite_irrel (p : Prop) [decidable p] (s : finset α) (f g : α → β) :
+  (∏ x in s, if p then f x else g x) = if p then ∏ x in s, f x else ∏ x in s, g x :=
+by { split_ifs with h; refl }
+
+@[simp, to_additive]
+lemma prod_dite_irrel (p : Prop) [decidable p] (s : finset α) (f : p → α → β) (g : ¬p → α → β) :
   (∏ x in s, if h : p then f h x else g h x) = if h : p then ∏ x in s, f h x else ∏ x in s, g h x :=
 by { split_ifs with h; refl }
 
@@ -1411,12 +1416,22 @@ lemma prod_zpow (f : α → β) (s : finset α) (n : ℤ) :
   (∏ a in s, f a) ^ n = ∏ a in s, (f a) ^ n :=
 multiset.prod_map_zpow.symm
 
+@[simp, to_additive]
+lemma prod_sdiff_eq_div [decidable_eq α] (h : s₁ ⊆ s₂) :
+  (∏ x in (s₂ \ s₁), f x) = (∏ x in s₂, f x) / (∏ x in s₁, f x) :=
+by rw [eq_div_iff_mul_eq', prod_sdiff h]
+
 @[to_additive]
 lemma prod_sdiff_div_prod_sdiff [decidable_eq α] :
-  (∏ (x : α) in s₂ \ s₁, f x) / (∏ (x : α) in s₁ \ s₂, f x)
-  = (∏ (x : α) in s₂, f x) / (∏ (x : α) in s₁, f x) :=
+  (∏ x in s₂ \ s₁, f x) / (∏ x in s₁ \ s₂, f x)
+  = (∏ x in s₂, f x) / (∏ x in s₁, f x) :=
 by simp [← finset.prod_sdiff (@inf_le_left _ _ s₁ s₂),
   ← finset.prod_sdiff (@inf_le_right _ _ s₁ s₂)]
+
+@[simp, to_additive]
+lemma prod_erase_eq_div [decidable_eq α] {a : α} (h : a ∈ s) :
+  (∏ x in s.erase a, f x) = (∏ x in s, f x) / f a :=
+by rw [eq_div_iff_mul_eq', prod_erase_mul _ _ h]
 
 end comm_group
 

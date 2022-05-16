@@ -396,8 +396,14 @@ end
 
 /-- `A.unit_group` agrees with the units of `A`. -/
 def unit_group_equiv : A.unit_group ≃* Aˣ :=
-{ to_fun := λ x, ⟨⟨x,(A.valuation_le_one_iff _).1 (le_of_eq x.2)⟩,⟨x⁻¹,sorry⟩,sorry,sorry⟩,
-  inv_fun := λ x, ⟨⟨x,(x : K)⁻¹,sorry,sorry⟩,sorry⟩,
+{ to_fun := λ x, ⟨⟨x,(A.valuation_le_one_iff _).1 (le_of_eq x.2)⟩,⟨x⁻¹,
+begin
+    rw ← A.valuation_le_one_iff,
+    apply le_of_eq,
+    rw [A.valuation.map_inv, inv_eq_one₀],
+    exact x.2,
+  end⟩,sorry,sorry⟩,
+  inv_fun := λ x, ⟨⟨x,(x : K)⁻¹, by { simp }, by { simp }⟩,sorry⟩,
   left_inv := λ a, by { ext, refl },
   right_inv := λ a, by { ext, refl },
   map_mul' := λ a b, by { ext, refl } }
@@ -423,21 +429,64 @@ def maximal_ideal : subsemigroup K :=
          A.valuation.map_mul _ (b - 1), n, mul_one] at l,
   end }
 
+lemma eq_iff_lt_one (A B : valuation_subring K) :
+  A.valuation.is_equiv B.valuation ↔ ∀ {x : K}, (A.valuation) x < 1 ↔ (B.valuation) x < 1 :=
+begin
+  split,
+      { intros h x,
+        have k := h,
+        rw valuation.is_equiv_iff_val_le_one A.valuation B.valuation at h,
+        rw valuation.is_equiv_iff_val_eq_one A.valuation B.valuation at k,
+        specialize h, exact x, specialize k, exact x,
+        simp [lt_iff_le_and_ne, h, k],
+      },
+      { intro hx,
+        by_contra,
+        have s := ((valuation.is_equiv_iff_val_eq_one A.valuation B.valuation).not).1 h,
+        rw not_forall at s,
+        cases s with x t,
+        by_cases u : B.valuation x = 1,
+          { rw not_iff at t,
+            have r := t.2 u,
+            rw [← ne.def, ne_iff_lt_or_gt] at r,
+            cases r with i j,
+              { exact (lt_iff_le_and_ne.1 (hx.1 i)).2 u},
+              { have y := ((A.valuation_le_one_iff x).not).1,
+                rw not_le at y,
+                have := (A.valuation_le_one_iff _).2 ((or_iff_right (y j)).1 (A.mem_or_inv_mem x)),
+                have k : A.valuation x⁻¹ < 1,
+                have := gt_iff_lt.1 j, sorry,
+                have p := hx.1 k,
+                rw B.valuation.map_inv at p,
+                have g := inv_one,
+                rw ← u at g,
+                rw g at p,
+                exact ne_of_lt p u,
+              },
+          },
+          { rw not_iff at t,
+            have r := not_not.1 ((t.not).2 u),
+            rw [← ne.def, ne_iff_lt_or_gt] at u,
+            cases u with i j,
+              { exact (lt_iff_le_and_ne.1 (hx.2 i)).2 r},
+              { sorry},
+          },
+      },
+end
+
 lemma eq_iff_maximal_ideal (A B : valuation_subring K) :
   A = B ↔ A.maximal_ideal = B.maximal_ideal :=
 begin
-  have : A.valuation.is_equiv B.valuation ↔ ∀ {x : K}, (A.valuation) x < 1 ↔ (B.valuation) x < 1,
-    sorry,
   rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
-      ← valuation.is_equiv_iff_valuation_subring, this,
+      ← valuation.is_equiv_iff_valuation_subring, eq_iff_lt_one,
       A.valuation_subring_valuation, B.valuation_subring_valuation, set_like.ext_iff],
   simpa,
 end
 
 /-- `A.maximal_ideal` agrees with the maximal ideal of `A`. -/
 def maximal_ideal_equiv : A.maximal_ideal ≃ local_ring.maximal_ideal A :=
-{ to_fun := λ a, ⟨⟨a,sorry⟩,sorry⟩,
-  inv_fun := λ a, ⟨a,sorry⟩,
+{ to_fun := λ a, ⟨⟨a,(A.valuation_le_one_iff _).1 (le_of_lt a.2)⟩,(A.valuation_lt_one_iff _).2 a.2⟩,
+  inv_fun := λ a, ⟨a,(A.valuation_lt_one_iff _).1 a.2⟩,
   left_inv := λ a, by { ext, refl },
   right_inv := λ a, by { ext, refl } }
 
@@ -464,7 +513,7 @@ def principal_unit_group : subgroup Kˣ :=
     intros a b ha hb,
     refine lt_of_le_of_lt _ (max_lt hb ha),
     have s := A.valuation.map_one_add_of_lt ha,
-      simp only [add_sub_cancel'_right] at s,
+    simp only [add_sub_cancel'_right] at s,
     have q := A.valuation.map_add (a * b - a) (a - 1),
     rwa [←(show A.valuation ((a : K) * (b : K) - 1) = A.valuation ((a * b - a) + (a - 1)), by ring_nf),
           (show (a : K) * (b : K) - a = a * (b - 1), by ring_nf),
@@ -493,16 +542,32 @@ def principal_unit_group : subgroup Kˣ :=
 lemma eq_iff_principal_unit_group (A B : valuation_subring K) :
   A = B ↔ A.principal_unit_group = B.principal_unit_group :=
 begin
-  have : A.valuation.is_equiv B.valuation ↔ ∀ {x : K}, (A.valuation) x < 1 ↔ (B.valuation) x < 1,
-    sorry,
-  rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation],
-  rw ← valuation.is_equiv_iff_valuation_subring,
-  rw this,
-  rw [A.valuation_subring_valuation, B.valuation_subring_valuation],
+  rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
+      ← valuation.is_equiv_iff_valuation_subring, eq_iff_lt_one,
+      A.valuation_subring_valuation, B.valuation_subring_valuation, set_like.ext_iff],
+  repeat {rw principal_unit_group},
+  simp only [subgroup.mem_mk, set.mem_set_of_eq],
   split,
-  intro h,
-  sorry,
+    { intros h x,
+      specialize h,
+      exact ((x : K) - 1),
+      exact h,
+    },
+    { intros h x,
+      by_cases hx : x = 0,
+        { rw [hx, A.valuation.map_zero, B.valuation.map_zero],
 
+          sorry,
+        },
+        { have xi := units.mk0 x hx,
+          have k : ¬(1 + (x : K)) = 0,
+          by_contra, rw add_eq_zero_iff_eq_neg at h,
+          sorry,
+          have := (h (units.mk0 _ k)),
+          simp only [units.coe_mk0, add_sub_cancel'] at this,
+          exact this,
+        },
+    },
 end
 
 lemma principal_units_le_units : A.principal_unit_group ≤ A.unit_group :=

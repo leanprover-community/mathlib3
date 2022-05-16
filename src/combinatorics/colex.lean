@@ -37,7 +37,7 @@ Related files are:
 * `data.list.lex`: Lexicographic order on lists.
 * `data.psigma.order`: Lexicographic order on `Σ' i, α i`.
 * `data.sigma.order`: Lexicographic order on `Σ i, α i`.
-* `order.lexicographic`: Lexicographic order on `α × β`.
+* `data.prod.lex`: Lexicographic order on `α × β`.
 
 ## Tags
 colex, colexicographic, binary

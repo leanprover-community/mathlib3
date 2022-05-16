@@ -8,12 +8,10 @@ import order.synonym
 /-!
 # Lexicographic order
 
-This file defines the lexicographic relation for pairs and dependent pairs of orders, partial orders
-and linear orders.
+This file defines the lexicographic relation for pairs of orders, partial orders and linear orders.
 
 ## Main declarations
 
-* `lex α`: A type synonym of `α` to equip it with its lexicographic order.
 * `prod.lex.<pre/partial_/linear_>order`: Instances lifting the orders on `α` and `β` to `α ×ₗ β`.
 
 ## Notation

@@ -755,7 +755,7 @@ have one_mem : (1 : G) ∈ (S ^ fintype.card G) := by
   rw ← pow_card_eq_one,
   exact set.pow_mem_pow ha (fintype.card G) },
 subgroup_of_idempotent (S ^ (fintype.card G)) ⟨1, one_mem⟩ begin
-  classical,
+  classical!,
   refine (set.eq_of_subset_of_card_le (set.subset_mul_left _ one_mem) (ge_of_eq _)).symm,
   simp_rw [← pow_add, group.card_pow_eq_card_pow_card_univ S (fintype.card G) le_rfl,
       group.card_pow_eq_card_pow_card_univ S (fintype.card G + fintype.card G) le_add_self],

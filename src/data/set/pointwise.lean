@@ -518,8 +518,27 @@ operations if `α` is."]
 protected def division_comm_monoid [division_comm_monoid α] : division_comm_monoid (set α) :=
 { ..set.division_monoid, ..set.comm_semigroup }
 
+/-- `set α` has distributive negation if `α` has. -/
+protected def has_distrib_neg [has_mul α] [has_distrib_neg α] : has_distrib_neg (set α) :=
+{ neg_mul := λ _ _, by { simp_rw ←image_neg, exact image2_image_left_comm neg_mul },
+  mul_neg := λ _ _, by { simp_rw ←image_neg, exact image_image2_right_comm mul_neg },
+  ..set.has_involutive_neg }
+
 localized "attribute [instance] set.division_monoid set.subtraction_monoid set.division_comm_monoid
-  set.subtraction_comm_monoid" in pointwise
+  set.subtraction_comm_monoid set.has_distrib_neg" in pointwise
+
+section distrib
+variables [distrib α] (s t u : set α)
+
+/-!
+Note that `set α` is not a `distrib` because `s * t + s * u` has cross terms that `s * (t + u)`
+lacks.
+-/
+
+lemma mul_add_subset : s * (t + u) ⊆ s * t + s * u := image2_distrib_subset_left mul_add
+lemma add_mul_subset : (s + t) * u ⊆ s * u + t * u := image2_distrib_subset_right add_mul
+
+end distrib
 
 section group
 variables [group α] {s t : set α} {a b : α}
@@ -968,10 +987,10 @@ by simp_rw [←image_smul, ←image_neg, image_image, neg_smul]
 by simp_rw [←image_smul, ←image_neg, image_image, smul_neg]
 
 @[simp] protected lemma neg_smul : -s • t = -(s • t) :=
-by simp_rw [←image2_smul, ←image_neg, image2_image_left, image_image2, neg_smul]
+by { simp_rw ←image_neg, exact image2_image_left_comm neg_smul }
 
 @[simp] protected lemma smul_neg : s • -t = -(s • t) :=
-by simp_rw [←image2_smul, ←image_neg, image2_image_right, image_image2, smul_neg]
+by { simp_rw ←image_neg, exact image_image2_right_comm smul_neg }
 
 end ring
 
@@ -1305,7 +1324,7 @@ begin
   { refine λ k hk, fintype.card_congr _,
     rw [hS, empty_pow _ (ne_of_gt (lt_of_lt_of_le hG hk)), empty_pow _ (ne_of_gt hG)] },
   obtain ⟨a, ha⟩ := set.ne_empty_iff_nonempty.mp hS,
-  classical,
+  classical!,
   have key : ∀ a (s t : set G), (∀ b : G, b ∈ s → a * b ∈ t) → fintype.card s ≤ fintype.card t,
   { refine λ a s t h, fintype.card_le_of_injective (λ ⟨b, hb⟩, ⟨a * b, h b hb⟩) _,
     rintro ⟨b, hb⟩ ⟨c, hc⟩ hbc,

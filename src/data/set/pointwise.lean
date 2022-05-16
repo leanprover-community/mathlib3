@@ -57,7 +57,8 @@ pointwise subtraction
 /--
 Pointwise monoids (`set`, `finset`, `filter`) have derived pointwise actions of the form
 `has_scalar α β → has_scalar α (set β)`. When `α` is `ℕ` or `ℤ`, this action conflicts with the
-nat or int action coming from `set β` being a `monoid` or `div_inv_monoid`.
+nat or int action coming from `set β` being a `monoid` or `div_inv_monoid`. For example,
+`2 • {a, b}` can both be `{2 • a, 2 • b}` and `{a + a, a + b, b + a, b + b}`.
 
 Because the pointwise can easily be spelled out in such cases, we give higher priority to the nat
 and int actions.
@@ -364,6 +365,28 @@ image2_Inter₂_subset_right _ _ _
 
 end has_div
 
+open_locale pointwise
+
+/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. See
+Note [pointwise nat action].-/
+protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (set α) := ⟨nsmul_rec⟩
+
+/-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
+`set`. See Note [pointwise nat action]. -/
+@[to_additive]
+protected def has_npow [has_one α] [has_mul α] : has_pow (set α) ℕ := ⟨λ s n, npow_rec n s⟩
+
+/-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
+addition/subtraction!) of a `set`. See Note [pointwise nat action]. -/
+protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (set α) := ⟨zsmul_rec⟩
+
+/-- Repeated pointwise multiplication/division (not the same as pointwise repeated
+multiplication/division!) of a `set`. See Note [pointwise nat action]. -/
+@[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (set α) ℤ :=
+⟨λ s n, zpow_rec n s⟩
+
+localized "attribute [instance] set.has_nsmul set.has_npow set.has_zsmul set.has_zpow" in pointwise
+
 /-- `set α` is a `semigroup` under pointwise operations if `α` is. -/
 @[to_additive "`set α` is an `add_semigroup` under pointwise operations if `α` is."]
 protected def semigroup [semigroup α] : semigroup (set α) :=
@@ -410,7 +433,7 @@ variables [monoid α] {s t : set α} {a : α}
 
 /-- `set α` is a `monoid` under pointwise operations if `α` is. -/
 @[to_additive "`set α` is an `add_monoid` under pointwise operations if `α` is."]
-protected def monoid : monoid (set α) := { ..set.semigroup, ..set.mul_one_class }
+protected def monoid : monoid (set α) := { ..set.semigroup, ..set.mul_one_class, ..set.has_npow }
 
 localized "attribute [instance] set.monoid set.add_monoid" in pointwise
 
@@ -460,26 +483,6 @@ localized "attribute [instance] set.comm_monoid set.add_comm_monoid" in pointwis
 
 open_locale pointwise
 
-/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. See
-Note [pointwise nat action].-/
-protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (set α) := ⟨nsmul_rec⟩
-
-/-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
-`set`. See Note [pointwise nat action]. -/
-@[to_additive]
-protected def has_npow [has_one α] [has_mul α] : has_pow (set α) ℕ := ⟨λ s n, npow_rec n s⟩
-
-/-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
-addition/subtraction!) of a `set`. See Note [pointwise nat action]. -/
-protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (set α) := ⟨zsmul_rec⟩
-
-/-- Repeated pointwise multiplication/division (not the same as pointwise repeated
-multiplication/division!) of a `set`. See Note [pointwise nat action]. -/
-@[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (set α) ℤ :=
-⟨λ s n, zpow_rec n s⟩
-
-localized "attribute [instance] set.has_nsmul set.has_npow set.has_zsmul set.has_zpow" in pointwise
-
 section division_monoid
 variables [division_monoid α] {s t : set α}
 
@@ -509,7 +512,7 @@ protected def division_monoid : division_monoid (set α) :=
   end,
   div_eq_mul_inv := λ s t,
     by { rw [←image_id (s / t), ←image_inv], exact image_image2_distrib_right div_eq_mul_inv },
-  ..set.monoid, ..set.has_involutive_inv, ..set.has_div }
+  ..set.monoid, ..set.has_involutive_inv, ..set.has_div, ..set.has_zpow }
 
 @[simp, to_additive] lemma is_unit_iff : is_unit s ↔ ∃ a, s = {a} ∧ is_unit a :=
 begin

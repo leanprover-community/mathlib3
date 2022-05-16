@@ -177,7 +177,7 @@ lemma single_comp_single {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (r s : R) :
   (single f r ≫ single g s : (Free.of R X) ⟶ (Free.of R Z)) = single (f ≫ g) (r * s) :=
 by { dsimp, simp, }
 
-instance : preadditive (Free R C) :=
+instance Free.preadditive : preadditive (Free R C) :=
 { hom_group := λ X Y, finsupp.add_comm_group,
   add_comp' := λ X Y Z f f' g, begin
     dsimp,
@@ -192,7 +192,7 @@ instance : preadditive (Free R C) :=
     { simp [mul_add], },
   end, }
 
-instance : linear R (Free R C) :=
+instance Free.linear : linear R (Free R C) :=
 { hom_module := λ X Y, finsupp.module (X ⟶ Y) R,
   smul_comp' := λ X Y Z r f g, begin
     dsimp,

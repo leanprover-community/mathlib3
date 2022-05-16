@@ -76,8 +76,8 @@ abbreviation arrow (f : mono_over X) : (f : C) ⟶ X := ((forget X).obj f).hom
 @[simp]
 lemma forget_obj_hom {f} : ((forget X).obj f).hom = f.arrow := rfl
 
-instance : full (forget X) := full_subcategory.full _
-instance : faithful (forget X) := full_subcategory.faithful _
+instance full : full (forget X) := full_subcategory.full _
+instance faithful : faithful (forget X) := full_subcategory.faithful _
 
 instance mono (f : mono_over X) : mono f.arrow := f.property
 

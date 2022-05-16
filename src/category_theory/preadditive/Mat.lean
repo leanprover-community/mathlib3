@@ -89,7 +89,7 @@ end hom
 section
 local attribute [simp] hom.id hom.comp
 
-instance : category.{v₁} (Mat_ C) :=
+instance category : category.{v₁} (Mat_ C) :=
 { hom := hom,
   id := hom.id,
   comp := λ M N K f g, f.comp g,
@@ -127,7 +127,7 @@ instance (M N : Mat_ C) : inhabited (M ⟶ N) := ⟨λ i j, (0 : M.X i ⟶ N.X j
 
 end
 
-instance : preadditive (Mat_ C) :=
+instance preadditive : preadditive (Mat_ C) :=
 { hom_group := λ M N, by { change add_comm_group (dmatrix M.ι N.ι _), apply_instance, },
   add_comp' := λ M N K f f' g, by { ext, simp [finset.sum_add_distrib], },
   comp_add' := λ M N K f g g', by { ext, simp [finset.sum_add_distrib], }, }
@@ -264,13 +264,13 @@ def embedding : C ⥤ Mat_ C :=
 
 namespace embedding
 
-instance : faithful (embedding C) :=
+instance faithful : faithful (embedding C) :=
 { map_injective' := λ X Y f g h, congr_fun (congr_fun h punit.star) punit.star, }
 
-instance : full (embedding C) :=
+instance full : full (embedding C) :=
 { preimage := λ X Y f, f punit.star punit.star, }
 
-instance : functor.additive (embedding C) := {}
+instance additive : functor.additive (embedding C) := {}
 
 end embedding
 

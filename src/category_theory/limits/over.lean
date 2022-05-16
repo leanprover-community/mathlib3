@@ -112,8 +112,8 @@ instance has_limit_of_has_limit_comp_forget
   (F : J ⥤ under X) [i : has_limit (F ⋙ forget X)] : has_limit F :=
 @@structured_arrow.has_limit _ _ _ _ i _
 
-instance [has_limits_of_shape J C] : has_limits_of_shape J (under X) := {}
-instance [has_limits C] : has_limits (under X) := ⟨infer_instance⟩
+instance has_limits_of_shape [has_limits_of_shape J C] : has_limits_of_shape J (under X) := {}
+instance has_limits [has_limits C] : has_limits (under X) := ⟨infer_instance⟩
 
 instance creates_limits : creates_limits (forget X) := structured_arrow.creates_limits
 

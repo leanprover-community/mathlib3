@@ -17,15 +17,15 @@ necessary instances and define `uniform_space.completion.to_complₗᵢ` - coerc
 
 noncomputable theory
 
-namespace uniform_space
-namespace completion
-
 variables (𝕜 E : Type*) [normed_field 𝕜] [normed_group E] [normed_space 𝕜 E]
 
 @[priority 100]
 instance normed_space.to_has_uniform_continuous_const_smul :
   has_uniform_continuous_const_smul 𝕜 E :=
 ⟨λ c, (lipschitz_with_smul c).uniform_continuous⟩
+
+namespace uniform_space
+namespace completion
 
 instance : normed_space 𝕜 (completion E) :=
 { smul := (•),

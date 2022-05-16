@@ -31,7 +31,7 @@ def Cat := bundled category.{v u}
 
 namespace Cat
 
-instance : inhabited Cat := ⟨⟨Type u, category_theory.types⟩⟩
+instance : inhabited Cat := ⟨⟨Type u, Type.category⟩⟩
 
 instance : has_coe_to_sort Cat (Type u) := ⟨bundled.α⟩
 

@@ -77,7 +77,7 @@ def comp : Π {o₁ o₂ o₃ : pairwise ι} (f : hom o₁ o₂) (g : hom o₂ o
 section
 local attribute [tidy] tactic.case_bash
 
-instance : category (pairwise ι) :=
+instance category : category (pairwise ι) :=
 { hom := hom,
   id := id,
   comp := λ X Y Z f g, comp f g, }

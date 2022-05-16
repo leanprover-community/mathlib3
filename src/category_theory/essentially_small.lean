@@ -133,7 +133,7 @@ variables (C) [locally_small.{w} C]
 
 @[simps]
 noncomputable
-instance : category.{w} (shrink_homs C) :=
+instance category : category.{w} (shrink_homs C) :=
 { hom := λ X Y, shrink (from_shrink_homs X ⟶ from_shrink_homs Y),
   id := λ X, equiv_shrink _ (𝟙 (from_shrink_homs X)),
   comp := λ X Y Z f g,

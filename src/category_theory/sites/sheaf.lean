@@ -229,7 +229,7 @@ structure hom (X Y : Sheaf J A) :=
 (val : X.val ⟶ Y.val)
 
 @[simps]
-instance : category (Sheaf J A) :=
+instance category : category (Sheaf J A) :=
 { hom := hom,
   id := λ X, ⟨𝟙 _⟩,
   comp := λ X Y Z f g, ⟨f.val ≫ g.val⟩,

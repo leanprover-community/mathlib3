@@ -57,7 +57,7 @@ end category_theory
 
 open category_theory
 
-namespace category_theory.linear
+namespace category_theory
 
 variables {C : Type u} [category.{v} C] [preadditive C]
 
@@ -69,13 +69,14 @@ instance preadditive_int_linear : linear ℤ C :=
 { smul_comp' := λ X Y Z r f g, (preadditive.right_comp X g).map_zsmul f r,
   comp_smul' := λ X Y Z f r g, (preadditive.left_comp Z f).map_zsmul g r, }
 
-section End
+namespace End
 
 variables {R : Type w} [comm_ring R] [linear R C]
 
-instance (X : C) : module R (End X) := by { dsimp [End], apply_instance, }
+instance module (X : C) : module R (End X) :=
+by { dsimp [End], apply_instance, }
 
-instance (X : C) : algebra R (End X) :=
+instance algebra (X : C) : algebra R (End X) :=
 algebra.of_module (λ r f g, comp_smul _ _ _ _ _ _) (λ r f g, smul_comp _ _ _ _ _ _)
 
 end End
@@ -83,11 +84,11 @@ end End
 section
 variables {R : Type w} [semiring R] [linear R C]
 
-section induced_category
+namespace induced_category
 universes u'
 variables {C} {D : Type u'} (F : D → C)
 
-instance induced_category.category : linear.{w v} R (induced_category C F) :=
+instance linear : linear.{w v} R (induced_category C F) :=
 { hom_module := λ X Y, @linear.hom_module R _ C _ _ _ (F X) (F Y),
   smul_comp' := λ P Q R f f' g, smul_comp' _ _ _ _ _ _,
   comp_smul' := λ P Q R f g g', comp_smul' _ _ _ _ _ _, }

@@ -425,7 +425,7 @@ lemma prod.diag_map_fst_snd_comp  [has_limits_of_shape (discrete walking_pair.{v
   diag (X ⨯ X') ≫ prod.map (prod.fst ≫ g) (prod.snd ≫ g') = prod.map g g' :=
 by simp
 
-instance {X : C} [has_binary_product X X] : split_mono (diag X) :=
+instance split_mono {X : C} [has_binary_product X X] : split_mono (diag X) :=
 { retraction := prod.fst }
 
 end prod_lemmas

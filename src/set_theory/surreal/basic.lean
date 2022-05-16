@@ -101,7 +101,7 @@ theorem not_fuzzy {x y : pgame} (ox : numeric x) (oy : numeric y) : ¬ fuzzy x y
 
 theorem numeric_of_is_empty (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] :
   numeric x :=
-by refine (numeric_def x).2 ⟨_, _, _⟩; exact is_empty_elim
+(numeric_def x).2 ⟨is_empty_elim, is_empty_elim, is_empty_elim⟩
 
 theorem numeric_of_is_empty_left_moves (x : pgame) [is_empty x.left_moves]
   (H : ∀ j, numeric (x.move_right j)) : numeric x :=
@@ -230,24 +230,40 @@ quotient.lift (λ x : {x // _}, f x.1 x.2) (λ x y, H x.2 y.2)
 def lift₂ {α} (f : ∀ x y, numeric x → numeric y → α)
   (H : ∀ {x₁ y₁ x₂ y₂} (ox₁ : numeric x₁) (oy₁ : numeric y₁) (ox₂ : numeric x₂) (oy₂ : numeric y₂),
     x₁.equiv x₂ → y₁.equiv y₂ → f x₁ y₁ ox₁ oy₁ = f x₂ y₂ ox₂ oy₂) : surreal → surreal → α :=
-lift (λ x ox, lift (λ y, f x y ox) (λ y₁ y₂ oy₁ oy₂, H _ _ _ _ equiv_rfl))
+lift (λ x ox, lift (λ y oy, f x y ox oy) (λ y₁ y₂ oy₁ oy₂, H _ _ _ _ equiv_rfl))
   (λ x₁ x₂ ox₁ ox₂ h, funext $ quotient.ind $ by exact λ ⟨y, oy⟩, H _ _ _ _ h equiv_rfl)
 
+instance : has_le surreal :=
+⟨lift₂ (λ x y _ _, x ≤ y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext (le_congr hx hy))⟩
+
+instance : has_lt surreal :=
+⟨lift₂ (λ x y _ _, x < y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, propext (lt_congr hx hy))⟩
+
+/-- Addition on surreals is inherited from pre-game addition:
+the sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
+instance : has_add surreal  :=
+⟨surreal.lift₂
+  (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, ox.add oy⟩⟧)
+  (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound (pgame.add_congr hx hy))⟩
+
+/-- Negation for surreal numbers is inherited from pre-game negation:
+the negation of `{L | R}` is `{-R | -L}`. -/
+instance : has_neg surreal  :=
+⟨surreal.lift
+  (λ x ox, ⟦⟨-x, ox.neg⟩⟧)
+  (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))⟩
+
 instance : ordered_add_comm_group surreal :=
-{ add               := lift₂ (λ x y ox oy, ⟦⟨x + y, ox.add oy⟩⟧)
-                         (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound (pgame.add_congr hx hy)),
+{ add               := (+),
   add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
   zero              := mk 0 numeric_zero,
   zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv a) },
   add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv a) },
-  neg               := lift (λ x ox, ⟦⟨-x, ox.neg⟩⟧)
-                         (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a)),
+  neg               := has_neg.neg,
   add_left_neg      := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_left_neg_equiv a) },
   add_comm          := by { rintros ⟨_⟩ ⟨_⟩, exact quotient.sound pgame.add_comm_equiv },
-  le                := lift₂ (λ x y _ _, x ≤ y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy,
-                         propext (le_congr hx hy)),
-  lt                := lift₂ (λ x y _ _, x < y) (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy,
-                         propext (lt_congr hx hy)),
+  le                := (≤),
+  lt                := (<),
   le_refl           := by { rintros ⟨_⟩, apply @le_rfl pgame },
   le_trans          := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, apply @le_trans pgame },
   lt_iff_le_not_le  := by { rintros ⟨_, ox⟩ ⟨_, oy⟩, exact lt_iff_le_not_le },

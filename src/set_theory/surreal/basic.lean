@@ -372,9 +372,9 @@ theorem result : ∀ x : mul_args, x.hypothesis
   have HR₃ := λ {jx jx'}, result (P2 _ _ _) (ox.move_right jx) (ox.move_right jx') oy,
   have HR₄ := λ {jy jy'}, result (P2 _ _ _) (oy.move_right jy) (oy.move_right jy') ox,
 
-  have HS₁ := λ {ix jx}, (result (P2 _ _ _) (ox.move_left ix) (ox.move_right jx) oy).2
+  have HS₃ := λ {ix jx}, (result (P2 _ _ _) (ox.move_left ix) (ox.move_right jx) oy).2
     (ox.left_lt_right ix jx),
-  have HS₂ := λ {iy jy}, (result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2
+  have HS₄ := λ {iy jy}, (result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2
     (oy.left_lt_right iy jy),
 
   have HN₁ := λ {ix}, result (P1 _ _) (ox.move_left ix)  oy,
@@ -392,18 +392,18 @@ theorem result : ∀ x : mul_args, x.hypothesis
         have H₂ : ⟦xL ix' * y⟧ + ⟦x * yL iy⟧ - ⟦xL ix' * yL iy⟧ <
           ⟦xL ix' * y⟧ + ⟦x * yR jy'⟧ - ⟦xL ix' * yR jy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_left, add_comm₂, quot_mul_comm₄],
-          apply HS₂.1 },
+          apply HS₄.1 },
         exact H₁.trans H₂ },
       { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
         have H₁ : ⟦xL ix * _⟧ = ⟦xL ix' * _⟧ := quot.sound (HR₁.1 h),
         have H₂ : ⟦xL ix * yR jy'⟧ = ⟦xL ix' * yR jy'⟧ := quot.sound
           ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') (oy.move_right jy')).1 h),
         rw [H₁, ←H₂, sub_lt_sub_iff, add_add_lt_cancel_left, add_comm₂, quot_mul_comm₄],
-        apply HS₂.1 },
+        apply HS₄.1 },
       { have H₁ : ⟦xL ix * y⟧ + ⟦x * yL iy⟧ - ⟦xL ix * yL iy⟧ <
           ⟦xL ix * y⟧ + ⟦x * yR jy'⟧ - ⟦xL ix * yR jy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_left, add_comm₂, quot_mul_comm₄],
-          apply HS₂.1 },
+          apply HS₄.1 },
         have H₂ : ⟦xL ix * y⟧ + ⟦x * yR jy'⟧ - ⟦xL ix * yR jy'⟧ <
           ⟦xL ix' * y⟧ + ⟦x * yR jy'⟧ - ⟦xL ix' * yR jy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_mid],
@@ -417,7 +417,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
         have H₂ : ⟦xL ix * y⟧ + ⟦x * yL iy'⟧ - ⟦xL ix * yL iy'⟧ <
           ⟦xR jx' * y⟧ + ⟦x * yL iy'⟧ - ⟦xR jx' * yL iy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_mid, add_comm₂],
-          apply HS₁.1 },
+          apply HS₃.1 },
         exact H₁.trans H₂ },
       { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
         have H₁ : ⟦x * yL iy⟧ = ⟦x * yL iy'⟧,
@@ -428,11 +428,11 @@ theorem result : ∀ x : mul_args, x.hypothesis
           exact quot.sound
             ((result (P2 _ _ _) (oy.move_left iy) (oy.move_left iy') (ox.move_right jx')).1 h) },
         rw [H₁, ←H₂, sub_lt_sub_iff, add_add_lt_cancel_mid, add_comm₂],
-        apply HS₁.1 },
+        apply HS₃.1 },
       { have H₁ : ⟦xL ix * y⟧ + ⟦x * yL iy⟧ - ⟦xL ix * yL iy⟧ <
           ⟦xR jx' * y⟧ + ⟦x * yL iy⟧ - ⟦xR jx' * yL iy⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_mid, add_comm₂],
-          apply HS₁.1 },
+          apply HS₃.1 },
         have H₂ : ⟦xR jx' * y⟧ + ⟦x * yL iy⟧ - ⟦xR jx' * yL iy⟧ <
           ⟦xR jx' * y⟧ + ⟦x * yL iy'⟧ - ⟦xR jx' * yL iy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_left, quot_mul_comm₄],
@@ -447,7 +447,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
         have H₂ : ⟦xR jx * y⟧ + ⟦x * yR jy'⟧ - ⟦xR jx * yR jy'⟧ <
           ⟦xL ix' * y⟧ + ⟦x * yR jy'⟧ - ⟦xL ix' * yR jy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_mid],
-          apply HS₁.2 },
+          apply HS₃.2 },
         exact H₁.trans H₂ },
       { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
         have H₁ : ⟦x * yR jy'⟧ = ⟦x * yR jy⟧,
@@ -458,11 +458,11 @@ theorem result : ∀ x : mul_args, x.hypothesis
           exact quot.sound
             ((result (P2 _ _ _) (oy.move_right jy') (oy.move_right jy) (ox.move_left ix')).1 h) },
         rw [H₁, H₂, sub_lt_sub_iff, add_add_lt_cancel_mid],
-        apply HS₁.2 },
+        apply HS₃.2 },
       { have H₁ : ⟦xR jx * y⟧ + ⟦x * yR jy⟧ - ⟦xR jx * yR jy⟧ <
           ⟦xL ix' * y⟧ + ⟦x * yR jy⟧ - ⟦xL ix' * yR jy⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_mid],
-          apply HS₁.2 },
+          apply HS₃.2 },
         have H₂ : ⟦xL ix' * y⟧ + ⟦x * yR jy⟧ - ⟦xL ix' * yR jy⟧ <
           ⟦xL ix' * y⟧ + ⟦x * yR jy'⟧ - ⟦xL ix' * yR jy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_left, add_comm₂, quot_mul_comm₄],
@@ -476,18 +476,18 @@ theorem result : ∀ x : mul_args, x.hypothesis
         have H₂ : ⟦xR jx' * y⟧ + ⟦x * yR jy⟧ - ⟦xR jx' * yR jy⟧ <
           ⟦xR jx' * y⟧ + ⟦x * yL iy'⟧ - ⟦xR jx' * yL iy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_left, quot_mul_comm₄],
-          apply HS₂.2 },
+          apply HS₄.2 },
         exact H₁.trans H₂ },
       { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
         have H₁ : ⟦xR jx' * _⟧ = ⟦xR jx * _⟧ := quot.sound (HR₃.1 h),
         have H₂ : ⟦xR jx' * yL iy'⟧ = ⟦xR jx * yL iy'⟧ := quot.sound
           ((result (P2 _ _ _) (ox.move_right jx') (ox.move_right jx) (oy.move_left iy')).1 h),
         rw [H₁, H₂, sub_lt_sub_iff, add_add_lt_cancel_left, quot_mul_comm₄],
-        apply HS₂.2 },
+        apply HS₄.2 },
       { have H₁ : ⟦xR jx * y⟧ + ⟦x * yR jy⟧ - ⟦xR jx * yR jy⟧ <
           ⟦xR jx * y⟧ + ⟦x * yL iy'⟧ - ⟦xR jx * yL iy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_left, quot_mul_comm₄],
-          apply HS₂.2 },
+          apply HS₄.2 },
         have H₂ : ⟦xR jx * y⟧ + ⟦x * yL iy'⟧ - ⟦xR jx * yL iy'⟧ <
           ⟦xR jx' * y⟧ + ⟦x * yL iy'⟧ - ⟦xR jx' * yL iy'⟧,
         { rw [sub_lt_sub_iff, add_add_lt_cancel_mid, add_comm₂],
@@ -518,8 +518,10 @@ end
   have HR₁ := λ {jx₁}, result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ oy,
   have HR₂ := λ {ix₂}, result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) oy,
 
-  have HS₁ := λ jx₁ iy, HN₁.lt_move_right (sum.inr (jx₁, iy)),
-  have HS₂ := λ jx₁ iy, HN₁.move_left_lt (sum.inr (jx₁, iy)),
+  have HS₁ := λ ix₂ iy, HN₂.move_left_lt (sum.inl (ix₂, iy)),
+  have HS₂ := λ ix₂ jy, HN₂.lt_move_right (sum.inl (ix₂, jy)),
+  have HS₃ := λ jx₁ iy, HN₁.lt_move_right (sum.inr (jx₁, iy)),
+  have HS₄ := λ jx₁ jy, HN₁.move_left_lt (sum.inr (jx₁, jy)),
 
   have HT₁ := λ iy, (result (P2 _ _ _) ox₁ ox₂ (oy.move_left iy)).1,
   have HT₂ := λ jy, (result (P2 _ _ _) ox₁ ox₂ (oy.move_right jy)).1,
@@ -586,28 +588,33 @@ end
   intro h,
   rcases lf_def_le.1 h.lf with ⟨ix₂, h⟩ | ⟨jx₁, h⟩,
   { cases lt_or_equiv_of_le h ox₁ (ox₂.move_left ix₂) with h h;
-    refine ⟨λ iy, _, λ iy, _⟩,
-    { have H₁ := (result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) oy).2 h,
-      have H₂ := HN₂.lt_move_right,
-      dsimp at *,
-      sorry }, all_goals { sorry } },
+    refine ⟨λ iy, _, λ jy, _⟩,
+    { have H : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add ((HR₂.2 h).1 iy) (HS₁ ix₂ iy),
+      dsimp at H, abel at H,
+      rwa [←add_assoc ⟦x₂ * y⟧, add_comm ⟦x₂ * y⟧, add_assoc, add_lt_add_iff_left,
+        add_comm ⟦_ * y⟧] at H },
+    { have H : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add ((HR₂.2 h).2 jy) (HS₂ ix₂ jy),
+      dsimp at H, abel at H,
+      rwa [←add_assoc ⟦x₂ * y⟧, add_comm ⟦x₂ * y⟧, add_assoc, add_lt_add_iff_left,
+        add_comm ⟦_ * yR jy⟧] at H },
+      all_goals { sorry } },
   { cases lt_or_equiv_of_le h (ox₁.move_right jx₁) ox₂ with h h;
     refine ⟨λ iy, _, λ jy, _⟩,
-    { have H : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add ((HR₁.2 h).1 iy) (HS₁ jx₁ iy),
+    { have H : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add ((HR₁.2 h).1 iy) (HS₃ jx₁ iy),
       dsimp at H, abel at H,
       rwa [←add_assoc, add_comm ⟦_ * y⟧, add_assoc ⟦x₁R jx₁ * _⟧, add_lt_add_iff_left,
         add_comm] at H },
-    { have H : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add ((HR₁.2 h).2 jy) (HS₂ jx₁ jy),
+    { have H : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add ((HR₁.2 h).2 jy) (HS₄ jx₁ jy),
       dsimp at H, abel at H,
       rwa [←add_assoc ⟦x₁ * _⟧, add_comm ⟦x₁ * y⟧, add_assoc ⟦x₁R jx₁ * _⟧, add_lt_add_iff_left,
         add_comm] at H },
-    { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₁ jx₁ iy,
+    { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₃ jx₁ iy,
       have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound (HR₁.1 h),
       have H₃ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
         ((result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ (oy.move_left iy)).1 h),
       dsimp at H₁ H₂ H₃,
       rwa [lt_sub_iff_add_lt, H₂, H₃, add_comm₂] at H₁ },
-    { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₂ jx₁ jy,
+    { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₄ jx₁ jy,
       have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound (HR₁.1 h),
       have H₃ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
         ((result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ (oy.move_right jy)).1 h),

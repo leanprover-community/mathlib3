@@ -100,9 +100,9 @@ theorem not_fuzzy {x y : pgame} (ox : numeric x) (oy : numeric y) : ¬ fuzzy x y
 λ h, not_lf.2 (le_of_lf ox oy (lf_of_fuzzy h)) h.2
 
 theorem numeric_zero : numeric 0 :=
-⟨by rintros ⟨⟩ ⟨⟩, ⟨by rintros ⟨⟩, by rintros ⟨⟩⟩⟩
+by refine ⟨_, _, _⟩; exact is_empty_elim
 theorem numeric_one : numeric 1 :=
-⟨by rintros ⟨⟩ ⟨⟩, ⟨λ x, numeric_zero, by rintros ⟨⟩⟩⟩
+⟨λ _, is_empty_elim, λ _, numeric_zero, is_empty_elim⟩
 
 theorem numeric.neg : Π {x : pgame} (o : numeric x), numeric (-x)
 | ⟨l, r, L, R⟩ o := ⟨λ j i, neg_lt_iff.2 (o.1 i j), λ j, (o.2.2 j).neg, λ i, (o.2.1 i).neg⟩
@@ -183,14 +183,7 @@ theorem numeric_nat : Π (n : ℕ), numeric n
 
 /-- The pre-game `half` is numeric. -/
 theorem numeric_half : numeric half :=
-begin
-  split,
-  { rintros ⟨ ⟩ ⟨ ⟩,
-    exact zero_lt_one },
-  split; rintro ⟨ ⟩,
-  { exact numeric_zero },
-  { exact numeric_one }
-end
+⟨λ _ _, zero_lt_one, λ _, numeric_zero, λ _, numeric_one⟩
 
 end pgame
 
@@ -213,25 +206,21 @@ def surreal := quotient surreal.setoid
 namespace surreal
 
 /-- Construct a surreal number from a numeric pre-game. -/
-def mk (x : pgame) (h : x.numeric) : surreal := quotient.mk ⟨x, h⟩
+def mk (x : pgame) (h : x.numeric) : surreal := ⟦⟨x, h⟩⟧
 
-instance : has_zero surreal :=
-{ zero := ⟦⟨0, numeric_zero⟩⟧ }
 instance : has_one surreal :=
-{ one := ⟦⟨1, numeric_one⟩⟧ }
-
-instance : inhabited surreal := ⟨0⟩
+{ one := mk 1 numeric_one }
 
 /-- Lift an equivalence-respecting function on pre-games to surreals. -/
 def lift {α} (f : ∀ x, numeric x → α)
   (H : ∀ {x y} (hx : numeric x) (hy : numeric y), x.equiv y → f x hx = f y hy) : surreal → α :=
-quotient.lift (λ x : {x // numeric x}, f x.1 x.2) (λ x y, H x.2 y.2)
+quotient.lift (λ x : {x // _}, f x.1 x.2) (λ x y, H x.2 y.2)
 
 /-- Lift a binary equivalence-respecting function on pre-games to surreals. -/
 def lift₂ {α} (f : ∀ x y, numeric x → numeric y → α)
   (H : ∀ {x₁ y₁ x₂ y₂} (ox₁ : numeric x₁) (oy₁ : numeric y₁) (ox₂ : numeric x₂) (oy₂ : numeric y₂),
     x₁.equiv x₂ → y₁.equiv y₂ → f x₁ y₁ ox₁ oy₁ = f x₂ y₂ ox₂ oy₂) : surreal → surreal → α :=
-lift (λ x ox, lift (λ y oy, f x y ox oy) (λ y₁ y₂ oy₁ oy₂ h, H _ _ _ _ equiv_rfl h))
+lift (λ x ox, lift (λ y, f x y ox) (λ y₁ y₂ oy₁ oy₂, H _ _ _ _ equiv_rfl))
   (λ x₁ x₂ ox₁ ox₂ h, funext $ quotient.ind $ by exact λ ⟨y, oy⟩, H _ _ _ _ h equiv_rfl)
 
 instance : has_le surreal :=
@@ -243,21 +232,19 @@ instance : has_lt surreal :=
 /-- Addition on surreals is inherited from pre-game addition:
 the sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 instance : has_add surreal  :=
-⟨surreal.lift₂
-  (λ (x y : pgame) (ox) (oy), ⟦⟨x + y, ox.add oy⟩⟧)
+⟨lift₂
+  (λ x y ox oy, ⟦⟨x + y, ox.add oy⟩⟧)
   (λ x₁ y₁ x₂ y₂ _ _ _ _ hx hy, quotient.sound (pgame.add_congr hx hy))⟩
 
 /-- Negation for surreal numbers is inherited from pre-game negation:
 the negation of `{L | R}` is `{-R | -L}`. -/
 instance : has_neg surreal  :=
-⟨surreal.lift
-  (λ x ox, ⟦⟨-x, ox.neg⟩⟧)
-  (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))⟩
+⟨lift (λ x ox, ⟦⟨-x, ox.neg⟩⟧) (λ _ _ _ _ a, quotient.sound (pgame.neg_congr a))⟩
 
 instance : ordered_add_comm_group surreal :=
 { add               := (+),
   add_assoc         := by { rintros ⟨_⟩ ⟨_⟩ ⟨_⟩, exact quotient.sound add_assoc_equiv },
-  zero              := 0,
+  zero              := mk 0 numeric_zero,
   zero_add          := by { rintros ⟨_⟩, exact quotient.sound (pgame.zero_add_equiv a) },
   add_zero          := by { rintros ⟨_⟩, exact quotient.sound (pgame.add_zero_equiv a) },
   neg               := has_neg.neg,
@@ -276,6 +263,8 @@ noncomputable instance : linear_ordered_add_comm_group surreal :=
     or_iff_not_imp_left.2 (λ h, le_of_lf oy ox (pgame.not_le.1 h)),
   decidable_le := classical.dec_rel _,
   ..surreal.ordered_add_comm_group }
+
+instance : inhabited surreal := ⟨0⟩
 
 -- We conclude with some ideas for further work on surreals; these would make fun projects.
 

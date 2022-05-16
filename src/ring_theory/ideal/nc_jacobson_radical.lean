@@ -3,9 +3,8 @@ Copyright (c) 2022 Haruhisa Enomoto. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Haruhisa Enomoto
 -/
-import ring_theory.ideal.basic
 import ring_theory.jacobson_ideal
-import tactic.noncomm_ring
+import ring_theory.inverses
 /-!
 # Noncommutative Jacobson radical
 
@@ -32,42 +31,7 @@ all maximal *right* ideals, so it is a two-sided ideal.
 
 universe u
 
-section ring
-variables {R : Type u} {a : R} {b : R} [ring R]
-/-! ### Some lemmas on inverses in rings -/
-
-lemma has_left_inv.one_add_mul_swap
-  (h : has_left_inv (1 + a * b)) : has_left_inv (1 + b * a) :=
-begin
-  obtain ⟨u, hu⟩ := h,
-  existsi 1 - b * u * a,
-  calc (1 - b * u * a) * (1 + b * a)
-        = 1 + b * a - b * (u * (1 + a * b)) * a : by noncomm_ring
-    ... = 1 : by rw [hu, mul_one, add_sub_cancel],
-end
-
-lemma has_right_inv.one_add_mul_swap
-  (h : has_right_inv (1 + a * b)) : has_right_inv (1 + b * a) :=
-begin
-  obtain ⟨u, hu⟩ := h,
-  existsi 1 - b * u * a,
-  calc (1 + b * a) * (1 - b * u * a)
-        = 1 + b * a - b * ((1 + a * b ) * u) * a : by noncomm_ring
-    ... = 1 : by rw [hu, mul_one, add_sub_cancel],
-end
-
-lemma is_unit.one_add_mul_swap
-  (h : is_unit (1 + a * b)) : is_unit (1 + b * a) :=
-begin
-  rw is_unit_iff_has_left_inv_right_inv at *,
-  obtain ⟨h₁, h₂⟩ := h,
-  exact ⟨h₁.one_add_mul_swap, h₂.one_add_mul_swap⟩,
-end
-
-end ring
-
 namespace ideal
-section nc_jacobson_radical
 variables {R : Type u} [ring R]
 /-! ### Jacobson radical of a ring -/
 
@@ -136,7 +100,7 @@ end
 /-- Characterizations of the Jacobson radical of a ring.
 
 The following are equivalent for an element `x` in a ring `R`.
-* 0: `x` is in the Jacobson radical of `R`, that is, contained in every mximal left ideal.
+* 0: `x` is in the Jacobson radical of `R`, that is, contained in every maximal left ideal.
 * 1: `1 + a * x` has a left inverse for any `a : R`.
 * 2: `1 + a * x` is a unit for any `a : R`.
 * 3: `1 + x * b` is a unit for any `b : R`.
@@ -201,5 +165,4 @@ end
 -- TODO: state and prove more direct statement saying that the intersection of maximal left ideals
 -- coincides with that of maximal right ideals.
 
-end nc_jacobson_radical
 end ideal

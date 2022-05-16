@@ -653,9 +653,9 @@ localized "notation `σ` := nat.arithmetic_function.sigma" in arithmetic_functio
 
 lemma sigma_apply {k n : ℕ} : σ k n = ∑ d in divisors n, d ^ k := rfl
 
-lemma sigma_one_apply {n : ℕ} : σ 1 n = ∑ d in divisors n, d := by simp [sigma_apply]
+lemma sigma_one_apply (n : ℕ) : σ 1 n = ∑ d in divisors n, d := by simp [sigma_apply]
 
-lemma sigma_zero_apply {n : ℕ} : σ 0 n = (divisors n).card := by simp [sigma_apply]
+lemma sigma_zero_apply (n : ℕ) : σ 0 n = (divisors n).card := by simp [sigma_apply]
 
 lemma sigma_zero_apply_prime_pow {p i : ℕ} (hp : p.prime) :
   σ 0 (p ^ i) = i + 1 :=

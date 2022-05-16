@@ -120,9 +120,9 @@ begin
 end
 
 @[simp, norm_cast] theorem cast_ite [has_zero α] [has_one α] [has_add α] [has_neg α]
-  (P : Prop) [decidable P] :
-  ∀ m n, ((ite P m n : ℤ) : α) = ite P m n :=
-apply_ite _ _
+  (P : Prop) [decidable P] (m n : ℕ) :
+  ((ite P m n : ℤ) : α) = ite P m n :=
+apply_ite _ _ _ _
 
 /-- `coe : ℤ → α` as an `add_monoid_hom`. -/
 def cast_add_hom (α : Type*) [add_group α] [has_one α] : ℤ →+ α := ⟨coe, cast_zero, cast_add⟩

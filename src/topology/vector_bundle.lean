@@ -867,7 +867,7 @@ open topological_space topological_vector_bundle
 variables {R F E} {B' : Type*}
 variables [nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
   [normed_group F] [normed_space R F] [topological_space B] [topological_space B']
-  [topological_space (total_space E)] [∀ x, topological_space (E x)] -- we really need all this?
+  [topological_space (total_space E)]
 
 
 section
@@ -930,6 +930,12 @@ begin
     function.comp, pullback.lift, inf_le_right],
 end
 
+
+lemma pullback_total_space_embedding_def {B B' : Type*} {E : B → Type*} (f : B' → B)
+  (x : total_space (f *ᵖ E)) : pullback_total_space_embedding E f x =
+  (proj (f *ᵖ E) x, total_space_mk E (f (proj (f *ᵖ E) x)) x.2) :=
+rfl
+
 -- todo: move
 @[mfld_simps] lemma total_space.proj_mk {B} {E : B → Type*} {x : B} {y : E x} :
   proj E (total_space_mk E x y) = x :=
@@ -954,6 +960,11 @@ lemma topological_vector_bundle.trivialization.symm_apply (e : trivialization R 
   e.symm x y = cast (congr_arg E (e.symm_coe_fst' hx)) (e.to_local_homeomorph.symm (x, y)).2 :=
 dif_pos hx
 
+lemma topological_vector_bundle.trivialization.mk_symm (e : trivialization R F E)
+  {x : B} (hx : x ∈ e.base_set) (y : F) :
+  total_space_mk E x (e.symm x y) = e.to_local_homeomorph.symm (x, y) :=
+by rw [e.symm_apply hx, total_space.mk_cast, total_space.eta]
+
 lemma topological_vector_bundle.trivialization.symm_apply_apply' (e : trivialization R F E)
   (z : total_space E) (hz : proj E z ∈ e.base_set) :
   e.symm (proj E z) (e z).2 = z.2 :=
@@ -968,14 +979,18 @@ e.symm_apply_apply' (total_space_mk E x y) hx
 lemma topological_vector_bundle.trivialization.apply_mk_symm (e : trivialization R F E)
   {x : B} (hx : x ∈ e.base_set) (y : F) :
   e (total_space_mk E x (e.symm x y)) = (x, y) :=
-by rw [e.symm_apply hx, total_space.mk_cast, total_space.eta,
-  e.apply_symm_apply (e.mk_mem_target.mpr hx)]
+by rw [e.mk_symm hx, e.apply_symm_apply (e.mk_mem_target.mpr hx)]
 
 lemma topological_vector_bundle.trivialization.continuous_on_symm (e : trivialization R F E) :
   continuous_on (λ z : B × F, total_space_mk E z.1 (e.symm z.1 z.2))
     (e.base_set ×ˢ (univ : set F)) :=
 begin
-  sorry,
+  have : ∀ (z : B × F) (hz : z ∈ e.base_set ×ˢ (univ : set F)),
+    total_space_mk E z.1 (e.symm z.1 z.2) = e.to_local_homeomorph.symm z,
+  { rintro x ⟨hx : x.1 ∈ e.base_set, _⟩, simp_rw [e.mk_symm hx, prod.mk.eta] },
+  refine continuous_on.congr _ this,
+  rw [← e.target_eq],
+  exact e.to_local_homeomorph.continuous_on_symm
 end
 
 /-- A vector bundle trivialization can be pulled back to a trivialization on the pullback bundle. -/
@@ -1002,43 +1017,14 @@ def topological_vector_bundle.trivialization.pullback (e : trivialization R F E)
     .comp_continuous_on $ e.continuous_on.comp pullback.continuous_lift.continuous_on subset.rfl),
   continuous_inv_fun := begin
     dsimp only,
-    sorry,
-    have h := e.continuous_inv_fun,
-    rw e.target_eq at h,
-    rw continuous_on_iff at ⊢ h,
-    intros x h2 s hs h3,
-    simp only [and_true, mem_univ, mem_prod, mem_preimage] at h2,
-    simp only [total_space_mk, dif_pos h2, trivialization.symm_coe_fst'] at h3,
-    simp only [prod_mk_mem_set_prod_eq, and_true, local_homeomorph.inv_fun_eq_coe, mem_univ,
-      prod.forall] at h,
-    rw is_open_induced_iff at hs,
-    obtain ⟨t, ht, rfl⟩ := hs,
-    rw is_open_prod_iff at ht,
-    simp only [mem_preimage, pullback_total_space_embedding, e.symm_coe_fst',
-      total_space_mk_cast _ (e.symm_coe_fst' h2)] at h3,
-    obtain ⟨a, b, ha1, hb1, ha2, hb2, hab⟩:= ht x.1 (e.to_local_equiv.symm (f x.1, x.2)) h3,
-    obtain ⟨u, hu1, hu2, hu3⟩ := h (f x.fst) x.snd h2 (b ∩ e.source) (hb1.inter e.open_source)
-      ⟨hb2, e.map_target (e.mk_mem_target.mpr h2)⟩,
-    rw is_open_prod_iff at hu1,
-    obtain ⟨c, d , hc1, hd1, hc2, hd2, hcd⟩ := hu1 (f x.1) x.2 hu2,
-      refine ⟨(f ⁻¹' (c ∩ e.base_set) ∩ a) ×ˢ d, ((continuous.is_open_preimage f.continuous _
-        (hc1.inter e.open_base_set)).inter ha1).prod hd1, ⟨_, hd2⟩, _⟩,
-    { exact ⟨⟨hc2, h2⟩, ha2⟩, },
-    { rw subset_def,
-      rintros z ⟨⟨⟨⟨hz1, hz2⟩, hz3⟩, hz4⟩, hz5⟩,
-      simp only [and_true, mem_univ, mem_prod, mem_preimage] at hz5,
-      simp only [mem_preimage, trivialization.symm_coe_fst', pullback_total_space_embedding],
-      rw [dif_pos hz5],
-      refine mem_of_subset_of_mem hab ⟨hz3, _⟩,
-      rw total_space_mk_cast _ (e.symm_coe_fst' hz2),
-      apply @mem_of_mem_inter_left _ _ _ e.source,
-      rw ←image_subset_iff at hu3,
-      refine mem_of_subset_of_mem hu3 _,
-      simp only [mem_image, local_homeomorph.coe_coe_symm, mem_inter_eq, and_true, mem_univ,
-        mem_prod, prod.exists],
-      exact ⟨f z.1, z.2, ⟨mem_of_subset_of_mem hcd ⟨hz1, hz4⟩, hz2⟩, rfl⟩, },
+    simp_rw [inducing_pullback_total_space_embedding.continuous_on_iff, function.comp,
+      pullback_total_space_embedding_def, total_space.proj_mk],
+    dsimp only [total_space.proj_mk],
+    refine continuous_on_fst.prod (e.continuous_on_symm.comp
+      (f.continuous.continuous_on.prod_map continuous_on_id)
+      (subset.rfl : (f ⁻¹' e.base_set) ×ˢ (univ : set F) ⊆ _))
   end,
-  source_eq := by { dsimp only [total_space_mk, proj], rw e.source_eq, refl, },
+  source_eq := by { dsimp only, rw e.source_eq, refl, },
   target_eq := rfl,
   proj_to_fun := λ y h, rfl,
   linear' := λ x h, e.linear (f x) h }
@@ -1048,14 +1034,11 @@ instance pullback [∀ x, topological_space (E x)] [topological_vector_bundle R 
   topological_vector_bundle R F (f *ᵖ E) :=
 { total_space_mk_inducing := λ x, inducing_of_inducing_compose
     (pullback.continuous_total_space_mk R F) pullback.continuous_lift
-    (topological_vector_bundle.total_space_mk_inducing R F E (f x)),
-  trivialization_atlas := {e | ∃ e' ∈ trivialization_atlas R F E,
-    e = topological_vector_bundle.trivialization.pullback e' f},
-  trivialization_at := λ x, (topological_vector_bundle.trivialization_at R F E (f x)).pullback f,
-  mem_base_set_trivialization_at :=
-    λ x, topological_vector_bundle.mem_base_set_trivialization_at R F E (f x),
-  trivialization_mem_atlas := λ x, ⟨topological_vector_bundle.trivialization_at R F E (f x),
-    topological_vector_bundle.trivialization_mem_atlas R F E (f x), rfl⟩,
+    (total_space_mk_inducing R F E (f x)),
+  trivialization_atlas := (λ e : trivialization R F E, e.pullback f) '' trivialization_atlas R F E,
+  trivialization_at := λ x, (trivialization_at R F E (f x)).pullback f,
+  mem_base_set_trivialization_at := λ x, mem_base_set_trivialization_at R F E (f x),
+  trivialization_mem_atlas := λ x, mem_image_of_mem _ (trivialization_mem_atlas R F E (f x)),
   continuous_coord_change := sorry }
 
 end pullback

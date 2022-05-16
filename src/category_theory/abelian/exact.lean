@@ -349,13 +349,17 @@ instance preserves_binary_products_of_preserves_kernels
   preserves_limits_of_shape (discrete walking_pair) F :=
 { preserves_limit := λ p, preserves_limit_of_iso_diagram F (diagram_iso_pair p).symm }
 
-example [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] {X Y : C}
+/--
+A functor from a preadditive category into an abelian category preserves the equalizer of two
+morphisms if it preserves all kernels. -/
+def preserves_equalizer_of_preserves_kernels
+  [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] {X Y : C}
   (f g : X ⟶ Y) : preserves_limit (parallel_pair f g) F :=
 begin
   letI := preserves_binary_biproducts_of_preserves_binary_products F,
   letI := additive_of_preserves_binary_biproducts F,
   constructor, intros c i,
-  have c' := is_limit_kernel_fork_of_fork (is_limit.of_iso_limit i (iso_fork_of_ι c)),
+  have c' := is_limit_kernel_fork_of_fork (i.of_iso_limit (iso_fork_of_ι c)),
   simp only [kernel_fork_of_fork_of_ι] at c',
   have iFc := is_limit_fork_map_of_is_limit' F _ c', clear c',
   apply is_limit.of_iso_limit _ ((cones.functoriality _ F).map_iso (iso_fork_of_ι c).symm),
@@ -363,15 +367,34 @@ begin
   let p : parallel_pair (F.map (f - g)) 0 ≅ parallel_pair (F.map f - F.map g) 0,
   { exact parallel_pair.ext (iso.refl _) (iso.refl _) (by simp) (by simp) },
   refine is_limit.of_iso_limit (is_limit_fork_of_kernel_fork
-    ((limits.is_limit.postcompose_hom_equiv p _).symm iFc)) _,
+    ((is_limit.postcompose_hom_equiv p _).symm iFc)) _,
   refine fork.ext (iso.refl _) _,
-  dsimp only [p, fork_of_kernel_fork, cones.postcompose, ← limits.fork.app_zero_eq_ι],
+  dsimp only [p, fork_of_kernel_fork, cones.postcompose, ← fork.app_zero_eq_ι],
   simp [- fork.app_zero_eq_ι]
 end
 
-#check is_limit_fork_of_kernel_fork
+/--
+A functor from a preadditive category into an abelian category preserves all equalizers if it
+preserves all kernels.
+-/
+def preserves_equalizers_of_preserves_kernels
+  [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] :
+  preserves_limits_of_shape walking_parallel_pair F :=
+{ preserves_limit := λ K,
+  begin
+    letI := preserves_equalizer_of_preserves_kernels F
+      (K.map walking_parallel_pair_hom.left) (K.map walking_parallel_pair_hom.right),
+    eapply preserves_limit_of_iso_diagram F (diagram_iso_parallel_pair K).symm,
+  end }
 
---#find map_cone _ _ ≅ map_cone _ _
+def preserves_finite_limits_of_preserves_kernels
+  [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] :
+  preserves_finite_limits F :=
+begin
+  letI := preserves_equalizers_of_preserves_kernels F,
+  letI := Π (J : Type v₁) [_inst_8 : fintype J], preserves_limits_of_shape (discrete J) F,
+  { sorry },
+end
 
 /--
 A functor from a preadditive category to an abelian category which preserves cokernels,
@@ -408,6 +431,44 @@ instance preserves_binary_coproducts_of_preserves_cokernels
   preserves_colimits_of_shape (discrete walking_pair) F :=
 { preserves_colimit := λ p, preserves_colimit_of_iso_diagram F (diagram_iso_pair p).symm }
 
+/--
+A functor from a preadditive category into an abelian category preserves the coequalizer of two
+morphisms if it preserves all cokernels. -/
+def preserves_coequalizer_of_preserves_cokernels
+  [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] {X Y : C}
+  (f g : X ⟶ Y) : preserves_colimit (parallel_pair f g) F :=
+begin
+  letI := preserves_binary_biproducts_of_preserves_binary_coproducts F,
+  letI := additive_of_preserves_binary_biproducts F,
+  constructor, intros c i,
+  have c' := is_colimit_cokernel_cofork_of_cofork (i.of_iso_colimit (iso_cofork_of_π c)),
+  simp only [cokernel_cofork_of_cofork_of_π] at c',
+  have iFc := is_colimit_cofork_map_of_is_colimit' F _ c', clear c',
+  apply is_colimit.of_iso_colimit _ ((cocones.functoriality _ F).map_iso (iso_cofork_of_π c).symm),
+  apply (is_colimit_map_cocone_cofork_equiv F (cofork.condition c)).inv_fun,
+  let p : parallel_pair (F.map (f - g)) 0 ≅ parallel_pair (F.map f - F.map g) 0,
+  { exact parallel_pair.ext (iso.refl _) (iso.refl _) (by simp) (by simp) },
+  refine is_colimit.of_iso_colimit (is_colimit_cofork_of_cokernel_cofork
+    ((is_colimit.precompose_hom_equiv p.symm _).symm iFc)) _,
+  refine cofork.ext (iso.refl _) _,
+  dsimp only [p, cofork_of_cokernel_cofork, cocones.precompose, ← cofork.app_one_eq_π],
+  squeeze_dsimp [- cofork.app_one_eq_π], simp
+end
+
+/--
+A functor from a preadditive category into an abelian category preserves all coequalizers if it
+preserves all kernels.
+-/
+def preserves_coequalizers_of_preserves_cokernels
+  [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] :
+  preserves_limits_of_shape walking_parallel_pair F :=
+{ preserves_limit := λ K,
+  begin
+    letI := preserves_equalizer_of_preserves_kernels F
+      (K.map limits.walking_parallel_pair_hom.left)
+      (K.map limits.walking_parallel_pair_hom.right),
+    eapply preserves_limit_of_iso_diagram F (diagram_iso_parallel_pair K).symm,
+  end }
 end
 
 end functor

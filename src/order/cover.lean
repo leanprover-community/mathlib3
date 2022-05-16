@@ -84,7 +84,7 @@ lemma set.ord_connected.apply_wcovby_apply_iff (f : α ↪o β) (h : (range f).o
 @[simp] lemma to_dual_wcovby_to_dual_iff : to_dual b ⩿ to_dual a ↔ a ⩿ b :=
 and_congr_right' $ forall_congr $ λ c, forall_swap
 
-@[simp] lemma of_dual_wcovby_of_dual_iff {a b : order_dual α} :
+@[simp] lemma of_dual_wcovby_of_dual_iff {a b : αᵒᵈ} :
   of_dual a ⩿ of_dual b ↔ b ⩿ a :=
 and_congr_right' $ forall_congr $ λ c, forall_swap
 
@@ -148,8 +148,7 @@ lemma densely_ordered_iff_forall_not_covby : densely_ordered α ↔ ∀ a b : α
 @[simp] lemma to_dual_covby_to_dual_iff : to_dual b ⋖ to_dual a ↔ a ⋖ b :=
 and_congr_right' $ forall_congr $ λ c, forall_swap
 
-@[simp] lemma of_dual_covby_of_dual_iff {a b : order_dual α} :
-  of_dual a ⋖ of_dual b ↔ b ⋖ a :=
+@[simp] lemma of_dual_covby_of_dual_iff {a b : αᵒᵈ} : of_dual a ⋖ of_dual b ↔ b ⋖ a :=
 and_congr_right' $ forall_congr $ λ c, forall_swap
 
 alias to_dual_covby_to_dual_iff ↔ _ covby.to_dual
@@ -225,14 +224,24 @@ h.wcovby.Icc_eq
 end partial_order
 
 section linear_order
-
-variables [linear_order α] {a b : α}
+variables [linear_order α] {a b c : α}
 
 lemma covby.Ioi_eq (h : a ⋖ b) : Ioi a = Ici b :=
 by rw [← Ioo_union_Ici_eq_Ioi h.lt, h.Ioo_eq, empty_union]
 
 lemma covby.Iio_eq (h : a ⋖ b) : Iio b = Iic a :=
 by rw [← Iic_union_Ioo_eq_Iio h.lt, h.Ioo_eq, union_empty]
+
+lemma wcovby.le_of_lt (hab : a ⩿ b) (hcb : c < b) : c ≤ a := not_lt.1 $ λ hac, hab.2 hac hcb
+lemma wcovby.ge_of_gt (hab : a ⩿ b) (hac : a < c) : b ≤ c := not_lt.1 $ hab.2 hac
+lemma covby.le_of_lt (hab : a ⋖ b) : c < b → c ≤ a := hab.wcovby.le_of_lt
+lemma covby.ge_of_gt (hab : a ⋖ b) : a < c → b ≤ c := hab.wcovby.ge_of_gt
+
+lemma covby.unique_left (ha : a ⋖ c) (hb : b ⋖ c) : a = b :=
+(hb.le_of_lt ha.lt).antisymm $ ha.le_of_lt hb.lt
+
+lemma covby.unique_right (hb : a ⋖ b) (hc : a ⋖ c) : b = c :=
+(hb.ge_of_gt hc.lt).antisymm $ hc.ge_of_gt hb.lt
 
 end linear_order
 

@@ -101,6 +101,11 @@ lemma separated_equiv : equivalence (λx y, (x, y) ∈ 𝓢 α) :=
     h_ts $ show (x, z) ∈ comp_rel t t,
       from ⟨y, hxy t ht, hyz t ht⟩⟩
 
+lemma filter.has_basis.mem_separation_rel {ι : Sort*} {p : ι → Prop} {s : ι → set (α × α)}
+  (h : (𝓤 α).has_basis p s) {a : α × α} :
+  a ∈ 𝓢 α ↔ ∀ i, p i → a ∈ s i :=
+h.forall_mem_mem
+
 /-- A uniform space is separated if its separation relation is trivial (each point
 is related only to itself). -/
 class separated_space (α : Type u) [uniform_space α] : Prop := (out : 𝓢 α = id_rel)

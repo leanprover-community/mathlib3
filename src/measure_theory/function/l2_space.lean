@@ -98,7 +98,7 @@ instance : has_inner 𝕜 (α →₂[μ] E) := ⟨λ f g, ∫ a, ⟪f a, g a⟫ 
 lemma inner_def (f g : α →₂[μ] E) : ⟪f, g⟫ = ∫ a : α, ⟪f a, g a⟫ ∂μ := rfl
 
 lemma integral_inner_eq_sq_snorm (f : α →₂[μ] E) :
-  ∫ a, ⟪f a, f a⟫ ∂μ = ennreal.to_real ∫⁻ a, (nnnorm (f a) : ℝ≥0∞) ^ (2:ℝ) ∂μ :=
+  ∫ a, ⟪f a, f a⟫ ∂μ = ennreal.to_real ∫⁻ a, (∥f a∥₊ : ℝ≥0∞) ^ (2:ℝ) ∂μ :=
 begin
   simp_rw inner_self_eq_norm_sq_to_K,
   norm_cast,

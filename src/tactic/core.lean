@@ -16,7 +16,7 @@ universe u
 
 attribute [derive [has_reflect, decidable_eq]] tactic.transparency
 
--- Rather than import order.lexicographic here, we can get away with defining the order by hand.
+-- Rather than import data.prod.lex here, we can get away with defining the order by hand.
 instance : has_lt pos :=
 { lt := λ x y, x.line < y.line ∨ x.line = y.line ∧ x.column < y.column }
 

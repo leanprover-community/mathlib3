@@ -169,7 +169,7 @@ variables (α)
 
 /-- `antisymmetrization` and `order_dual` commute. -/
 def order_iso.dual_antisymmetrization :
-  order_dual (antisymmetrization α (≤)) ≃o antisymmetrization (order_dual α) (≤) :=
+  (antisymmetrization α (≤))ᵒᵈ ≃o antisymmetrization αᵒᵈ (≤) :=
 { to_fun := quotient.map' id $ λ _ _, and.symm,
   inv_fun := quotient.map' id $ λ _ _, and.symm,
   left_inv := λ a, quotient.induction_on' a $ λ a, by simp_rw [quotient.map'_mk', id],

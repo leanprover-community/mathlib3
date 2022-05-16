@@ -522,7 +522,6 @@ option.rec h₁ h₂
 /-- Lift a map `f : α → β` to `with_bot α → with_bot β`. Implemented using `option.map`. -/
 def map (f : α → β) : with_bot α → with_bot β := option.map f
 
--- the `by exact` here forces the type of the equality to be `@eq (with_bot α)`
 @[simp] lemma map_bot (f : α → β) : map f ⊥ = ⊥ := rfl
 @[simp] lemma map_coe (f : α → β) (a : α) : map f a = f a := rfl
 

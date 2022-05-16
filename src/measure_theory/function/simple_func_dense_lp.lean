@@ -419,8 +419,8 @@ i.e. has no scalar action). -/
 
 variables [normed_field 𝕜] [normed_space 𝕜 E]
 
-/-- If `E` is a normed space, `Lp.simple_func E p μ` is a `has_scalar`. Not declared as an
-instance as it is (as of writing) used only in the construction of the Bochner integral. -/
+/-- If `E` is a normed space over `𝕜`, `Lp.simple_func E p μ` inherits its action. Not declared as
+an instance as it is (as of writing) used only in the construction of the Bochner integral. -/
 protected def has_scalar : has_scalar 𝕜 (Lp.simple_func E p μ) := ⟨λ k f, ⟨k • f,
 begin
   rcases f with ⟨f, ⟨s, hs⟩⟩,
@@ -432,7 +432,9 @@ end ⟩⟩
 
 local attribute [instance] simple_func.has_scalar
 
-/-- The right action inherited from `measure_theory.Lp`. -/
+/-- If `E` is a normed space over `𝕜`, `Lp.simple_func E p μ` inherits its right action. Not
+declared as an instance as it is (as of writing) used only in the construction of the Bochner
+integral. -/
 protected def has_op_scalar : has_scalar 𝕜ᵐᵒᵖ (Lp.simple_func E p μ) :=
 ⟨λk f, ⟨k • f, begin
   induction k using mul_opposite.rec,

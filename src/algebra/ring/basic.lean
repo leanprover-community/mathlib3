@@ -931,7 +931,7 @@ by simp
 preserves `-` and `*` to a type which has distributive negation. -/
 @[reducible] -- See note [reducible non-instances]
 protected def function.injective.has_distrib_neg [has_neg β] [has_mul β] (f : β → α)
-  (hf : injective f) (neg :  ∀ a, f (-a) = -f a) (mul : ∀ a b, f (a * b) = f a * f b) :
+  (hf : injective f) (neg : ∀ a, f (-a) = -f a) (mul : ∀ a b, f (a * b) = f a * f b) :
   has_distrib_neg β :=
 { neg_mul := λ x y, hf $ by erw [neg, mul, neg, neg_mul, mul],
   mul_neg := λ x y, hf $ by erw [neg, mul, neg, mul_neg, mul],
@@ -941,7 +941,7 @@ protected def function.injective.has_distrib_neg [has_neg β] [has_mul β] (f : 
 preserves `-` and `*` from a type which has distributive negation. -/
 @[reducible] -- See note [reducible non-instances]
 protected def function.surjective.has_distrib_neg [has_neg β] [has_mul β] (f : α → β)
-  (hf : surjective f) (neg :  ∀ a, f (-a) = -f a) (mul : ∀ a b, f (a * b) = f a * f b) :
+  (hf : surjective f) (neg : ∀ a, f (-a) = -f a) (mul : ∀ a b, f (a * b) = f a * f b) :
   has_distrib_neg β :=
 { neg_mul := hf.forall₂.2 $ λ x y, by { erw [←neg, ← mul, neg_mul, neg, mul], refl },
   mul_neg := hf.forall₂.2 $ λ x y, by { erw [←neg, ← mul, mul_neg, neg, mul], refl },

@@ -417,11 +417,13 @@ variables [distrib α] (s t u : finset α)
 Note that `finset α` is not a `distrib` because `s * t + s * u` has cross terms that `s * (t + u)`
 lacks.
 
--- `{10, 16, 18, 20, 8, 9}`
+```lean
+-- {10, 16, 18, 20, 8, 9}
 #eval {1, 2} * ({3, 4} + {5, 6} : finset ℕ)
 
--- `{10, 11, 12, 13, 14, 15, 16, 18, 20, 8, 9}`
+-- {10, 11, 12, 13, 14, 15, 16, 18, 20, 8, 9}
 #eval ({1, 2} : finset ℕ) * {3, 4} + {1, 2} * {5, 6}
+```
 -/
 
 lemma mul_add_subset : s * (t + u) ⊆ s * t + s * u := image₂_distrib_subset_left mul_add

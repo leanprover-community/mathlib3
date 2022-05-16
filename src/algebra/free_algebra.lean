@@ -65,28 +65,21 @@ instance : inhabited (pre R X) := ⟨of_scalar 0⟩
 
 -- Note: These instances are only used to simplify the notation.
 /-- Coercion from `X` to `pre R X`. Note: Used for notation only. -/
-@[reducible]
 def has_coe_generator : has_coe X (pre R X) := ⟨of⟩
 /-- Coercion from `R` to `pre R X`. Note: Used for notation only. -/
-@[reducible]
 def has_coe_semiring : has_coe R (pre R X) := ⟨of_scalar⟩
 /-- Multiplication in `pre R X` defined as `pre.mul`. Note: Used for notation only. -/
-@[reducible]
 def has_mul : has_mul (pre R X) := ⟨mul⟩
 /-- Addition in `pre R X` defined as `pre.add`. Note: Used for notation only. -/
-@[reducible]
 def has_add : has_add (pre R X) := ⟨add⟩
 /-- Zero in `pre R X` defined as the image of `0` from `R`. Note: Used for notation only. -/
-@[reducible]
 def has_zero : has_zero (pre R X) := ⟨of_scalar 0⟩
 /-- One in `pre R X` defined as the image of `1` from `R`. Note: Used for notation only. -/
-@[reducible]
 def has_one : has_one (pre R X) := ⟨of_scalar 1⟩
 /--
 Scalar multiplication defined as multiplication by the image of elements from `R`.
 Note: Used for notation only.
 -/
-@[reducible]
 def has_scalar : has_scalar R (pre R X) := ⟨λ r m, mul (of_scalar r) m⟩
 
 end pre
@@ -144,7 +137,7 @@ local attribute [instance]
   pre.has_coe_generator pre.has_coe_semiring pre.has_mul pre.has_add pre.has_zero
   pre.has_one pre.has_scalar
 
-instance : add_comm_monoid (free_algebra R X) :=
+instance : semiring (free_algebra R X) :=
 { add := quot.map₂ (+) (λ _ _ _, rel.add_compat_right) (λ _ _ _, rel.add_compat_left),
   add_assoc := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact quot.sound rel.add_assoc },
   zero := quot.mk _ 0,
@@ -154,21 +147,16 @@ instance : add_comm_monoid (free_algebra R X) :=
     change quot.mk _ _ = _,
     rw [quot.sound rel.add_comm, quot.sound rel.zero_add],
   end,
-  add_comm := by { rintros ⟨⟩ ⟨⟩, exact quot.sound rel.add_comm } }
-
-instance : monoid (free_algebra R X) :=
-{ mul := quot.map₂ (*) (λ _ _ _, rel.mul_compat_right) (λ _ _ _, rel.mul_compat_left),
+  add_comm := by { rintros ⟨⟩ ⟨⟩, exact quot.sound rel.add_comm },
+  mul := quot.map₂ (*) (λ _ _ _, rel.mul_compat_right) (λ _ _ _, rel.mul_compat_left),
   mul_assoc := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact quot.sound rel.mul_assoc },
   one := quot.mk _ 1,
   one_mul := by { rintros ⟨⟩, exact quot.sound rel.one_mul },
-  mul_one := by { rintros ⟨⟩, exact quot.sound rel.mul_one } }
-
-instance : semiring (free_algebra R X) :=
-{ left_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact quot.sound rel.left_distrib },
+  mul_one := by { rintros ⟨⟩, exact quot.sound rel.mul_one },
+  left_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact quot.sound rel.left_distrib },
   right_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact quot.sound rel.right_distrib },
   zero_mul := by { rintros ⟨⟩, exact quot.sound rel.zero_mul },
-  mul_zero := by { rintros ⟨⟩, exact quot.sound rel.mul_zero },
-  .. free_algebra.add_comm_monoid R X, .. free_algebra.monoid R X, .. add_monoid_with_one.unary }
+  mul_zero := by { rintros ⟨⟩, exact quot.sound rel.mul_zero } }
 
 instance : inhabited (free_algebra R X) := ⟨0⟩
 

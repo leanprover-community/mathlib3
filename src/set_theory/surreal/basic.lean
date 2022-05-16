@@ -453,11 +453,7 @@ begin
   fin_cases H; assumption
 end
 
-theorem cut_expand_left_swap_lt_P1 {x₁ x₂ x} (y) (hx₁ : subsequent x₁ x) (hx₂ : subsequent x₂ x) :
-  arg_rel {y, x₁, x₂} {x, y} :=
-by { rw ←multiset.swap_three, exact cut_expand_left_lt_P1 hx₁ hx₂ y }
-
-theorem cut_expand_right_swap_lt_P1 {y₁ y₂ y} (hy₁ : subsequent y₁ y) (hy₂ : subsequent y₂ y) (x) :
+theorem cut_expand_swap_lt_P1 {y₁ y₂ y} (hy₁ : subsequent y₁ y) (hy₂ : subsequent y₂ y) (x) :
   arg_rel {y₁, y₂, x} {x, y} :=
 by { rw multiset.swap_three, exact cut_expand_right_lt_P1 x hy₁ hy₂ }
 
@@ -472,20 +468,20 @@ theorem result : ∀ x : mul_args, x.hypothesis
     cut_expand_left_lt_P1 (subsequent.mk_left _ _ ix) (subsequent.mk_left _ _ ix') y in
     result (P2 _ _ _) (ox.move_left ix)  (ox.move_left ix')  oy,
   have HR₂ := λ {iy iy'}, let wf : arg_rel {yL iy, yL iy', x} {x, y} :=
-    cut_expand_right_swap_lt_P1 (subsequent.mk_left _ _ iy) (subsequent.mk_left _ _ iy') x in
+    cut_expand_swap_lt_P1 (subsequent.mk_left _ _ iy) (subsequent.mk_left _ _ iy') x in
     result (P2 _ _ _) (oy.move_left iy)  (oy.move_left iy')  ox,
   have HR₃ := λ {jx jx'}, let wf : arg_rel {xR jx, xR jx', y} {x, y} :=
     cut_expand_left_lt_P1 (subsequent.mk_right _ _ jx) (subsequent.mk_right _ _ jx') y in
     result (P2 _ _ _) (ox.move_right jx) (ox.move_right jx') oy,
   have HR₄ := λ {jy jy'}, let wf : arg_rel {yR jy, yR jy', x} {x, y} :=
-    cut_expand_right_swap_lt_P1 (subsequent.mk_right _ _ jy) (subsequent.mk_right _ _ jy') x in
+    cut_expand_swap_lt_P1 (subsequent.mk_right _ _ jy) (subsequent.mk_right _ _ jy') x in
     result (P2 _ _ _) (oy.move_right jy) (oy.move_right jy') ox,
 
   have HS₃ := λ {ix jx}, let wf : arg_rel {xL ix, xR jx, y} {x, y} :=
     cut_expand_left_lt_P1 (subsequent.mk_left _ _ ix) (subsequent.mk_right _ _ jx) y in
     (result (P2 _ _ _) (ox.move_left ix) (ox.move_right jx) oy).2 (ox.left_lt_right ix jx),
   have HS₄ := λ {iy jy}, let wf : arg_rel {yL iy, yR jy, x} {x, y} :=
-    cut_expand_right_swap_lt_P1 (subsequent.mk_left _ _ iy) (subsequent.mk_right _ _ jy) x in
+    cut_expand_swap_lt_P1 (subsequent.mk_left _ _ iy) (subsequent.mk_right _ _ jy) x in
     (result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2 (oy.left_lt_right iy jy),
 
   have HN₁ := λ {ix},

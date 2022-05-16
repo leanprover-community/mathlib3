@@ -99,10 +99,20 @@ theorem lf_iff_lt {x y : pgame} (ox : numeric x) (oy : numeric y) : x ⧏ y ↔ 
 theorem not_fuzzy {x y : pgame} (ox : numeric x) (oy : numeric y) : ¬ fuzzy x y :=
 λ h, not_lf.2 (le_of_lf ox oy (lf_of_fuzzy h)) h.2
 
-theorem numeric_zero : numeric 0 :=
-by refine ⟨_, _, _⟩; exact is_empty_elim
-theorem numeric_one : numeric 1 :=
-⟨λ _, is_empty_elim, λ _, numeric_zero, is_empty_elim⟩
+theorem numeric_of_is_empty (x : pgame) [is_empty x.left_moves] [is_empty x.right_moves] :
+  numeric x :=
+by refine (numeric_def x).2 ⟨_, _, _⟩; exact is_empty_elim
+
+theorem numeric_of_is_empty_left_moves (x : pgame) [is_empty x.left_moves]
+  (H : ∀ j, numeric (x.move_right j)) : numeric x :=
+(numeric_def x).2 ⟨is_empty_elim, is_empty_elim, H⟩
+
+theorem numeric_of_is_empty_right_moves (x : pgame) [is_empty x.right_moves]
+  (H : ∀ i, numeric (x.move_left i)) : numeric x :=
+(numeric_def x).2 ⟨λ _, is_empty_elim, H, is_empty_elim⟩
+
+theorem numeric_zero : numeric 0 := numeric_of_is_empty 0
+theorem numeric_one : numeric 1 := numeric_of_is_empty_right_moves 1 $ λ _, numeric_zero
 
 theorem numeric.neg : Π {x : pgame} (o : numeric x), numeric (-x)
 | ⟨l, r, L, R⟩ o := ⟨λ j i, neg_lt_iff.2 (o.1 i j), λ j, (o.2.2 j).neg, λ i, (o.2.1 i).neg⟩

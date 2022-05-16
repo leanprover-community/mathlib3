@@ -78,7 +78,9 @@ instance covariant_class_mul_right :
 end has_mul
 
 instance [mul_one_class α] : non_assoc_semiring (set_semiring α) :=
-{ ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class }
+{ one := 1,
+  mul := (*),
+  ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class }
 
 instance [semigroup α] : non_unital_semiring (set_semiring α) :=
 { ..set_semiring.non_unital_non_assoc_semiring, ..set.semigroup }

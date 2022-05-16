@@ -103,31 +103,110 @@ def to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) : G →* Mˣ 
 
 end monoid_hom
 
-section is_unit
-variables {M : Type*} {N : Type*}
+namespace is_unit
+variables {F α M N : Type*}
 
-@[to_additive] lemma is_unit.map {F : Type*} [monoid M] [monoid N] [monoid_hom_class F M N]
-  (f : F) {x : M} (h : is_unit x) : is_unit (f x) :=
+section monoid
+variables [monoid M] [monoid N]
+
+@[to_additive] lemma map [monoid_hom_class F M N] (f : F) {x : M} (h : is_unit x) : is_unit (f x) :=
 by rcases h with ⟨y, rfl⟩; exact (units.map (f : M →* N) y).is_unit
 
 /-- If a homomorphism `f : M →* N` sends each element to an `is_unit`, then it can be lifted
 to `f : M →* Nˣ`. See also `units.lift_right` for a computable version. -/
 @[to_additive "If a homomorphism `f : M →+ N` sends each element to an `is_add_unit`, then it can be
 lifted to `f : M →+ add_units N`. See also `add_units.lift_right` for a computable version."]
-noncomputable def is_unit.lift_right [monoid M] [monoid N] (f : M →* N)
-  (hf : ∀ x, is_unit (f x)) : M →* Nˣ :=
+noncomputable def lift_right (f : M →* N) (hf : ∀ x, is_unit (f x)) : M →* Nˣ :=
 units.lift_right f (λ x, (hf x).unit) $ λ x, rfl
 
-@[to_additive] lemma is_unit.coe_lift_right [monoid M] [monoid N] (f : M →* N)
-  (hf : ∀ x, is_unit (f x)) (x) :
+@[to_additive] lemma coe_lift_right (f : M →* N) (hf : ∀ x, is_unit (f x)) (x) :
   (is_unit.lift_right f hf x : N) = f x := rfl
 
-@[simp, to_additive] lemma is_unit.mul_lift_right_inv [monoid M] [monoid N] (f : M →* N)
-  (h : ∀ x, is_unit (f x)) (x) : f x * ↑(is_unit.lift_right f h x)⁻¹ = 1 :=
+@[simp, to_additive] lemma mul_lift_right_inv (f : M →* N) (h : ∀ x, is_unit (f x)) (x) :
+  f x * ↑(is_unit.lift_right f h x)⁻¹ = 1 :=
 units.mul_lift_right_inv (λ y, rfl) x
 
-@[simp, to_additive] lemma is_unit.lift_right_inv_mul [monoid M] [monoid N] (f : M →* N)
-  (h : ∀ x, is_unit (f x)) (x) : ↑(is_unit.lift_right f h x)⁻¹ * f x = 1 :=
+@[simp, to_additive] lemma lift_right_inv_mul (f : M →* N) (h : ∀ x, is_unit (f x)) (x) :
+  ↑(is_unit.lift_right f h x)⁻¹ * f x = 1 :=
 units.lift_right_inv_mul (λ y, rfl) x
+
+end monoid
+
+section division_monoid
+variables [division_monoid α] {a b c : α}
+
+@[simp, to_additive] protected lemma inv_mul_cancel : is_unit a → a⁻¹ * a = 1 :=
+by { rintro ⟨u, rfl⟩, rw [←units.coe_inv, units.inv_mul] }
+
+@[simp, to_additive] protected lemma mul_inv_cancel : is_unit a → a * a⁻¹ = 1 :=
+by { rintro ⟨u, rfl⟩, rw [←units.coe_inv, units.mul_inv] }
+
+/-- The element of the group of units, corresponding to an element of a monoid which is a unit. -/
+@[to_additive "The element of the additive group of additive units, corresponding to an element of
+an additive monoid which is an additive unit.", simps]
+def unit' (h : is_unit a) : αˣ := ⟨a, a⁻¹, h.mul_inv_cancel, h.inv_mul_cancel⟩
+
+@[simp, to_additive] protected lemma mul_inv_cancel_left (h : is_unit a) : ∀ b, a * (a⁻¹ * b) = b :=
+h.unit'.mul_inv_cancel_left
+
+@[simp, to_additive] protected lemma inv_mul_cancel_left (h : is_unit a) : ∀ b, a⁻¹ * (a * b) = b :=
+h.unit'.inv_mul_cancel_left
+
+@[simp, to_additive] protected lemma mul_inv_cancel_right (h : is_unit b) (a : α) :
+  a * b * b⁻¹ = a :=
+h.unit'.mul_inv_cancel_right _
+
+@[simp, to_additive] protected lemma inv_mul_cancel_right (h : is_unit b) (a : α) : a * b⁻¹ * b = a :=
+h.unit'.inv_mul_cancel_right _
+
+@[to_additive] protected lemma eq_mul_inv_iff_mul_eq (h : is_unit c) : a = b * c⁻¹ ↔ a * c = b :=
+h.unit'.eq_mul_inv_iff_mul_eq
+
+@[to_additive] protected lemma eq_inv_mul_iff_mul_eq (h : is_unit b) : a = b⁻¹ * c ↔ b * a = c :=
+h.unit'.eq_inv_mul_iff_mul_eq
+
+@[to_additive] protected lemma inv_mul_eq_iff_eq_mul (h : is_unit a) : a⁻¹ * b = c ↔ b = a * c :=
+h.unit'.inv_mul_eq_iff_eq_mul
+
+@[to_additive] protected lemma mul_inv_eq_iff_eq_mul (h : is_unit b) : a * b⁻¹ = c ↔ a = c * b :=
+h.unit'.mul_inv_eq_iff_eq_mul
+
+@[to_additive] protected lemma mul_inv_eq_one (h : is_unit b) : a * b⁻¹ = 1 ↔ a = b :=
+@units.mul_inv_eq_one _ _ h.unit' _
+
+@[to_additive] protected lemma inv_mul_eq_one (h : is_unit a) : a⁻¹ * b = 1 ↔ a = b :=
+@units.inv_mul_eq_one _ _ h.unit' _
+
+@[to_additive] protected lemma mul_eq_one_iff_eq_inv (h : is_unit b) : a * b = 1 ↔ a = b⁻¹ :=
+@units.mul_eq_one_iff_eq_inv _ _ h.unit' _
+
+@[to_additive] protected lemma mul_eq_one_iff_inv_eq (h : is_unit a) : a * b = 1 ↔ a⁻¹ = b :=
+@units.mul_eq_one_iff_inv_eq _ _ h.unit' _
+
+@[simp, to_additive] protected lemma div_mul_cancel (h : is_unit b) (a : α) : a / b * b = a :=
+by rw [div_eq_mul_inv, h.inv_mul_cancel_right]
+
+@[simp, to_additive] protected lemma mul_div_cancel (a : α) (h : is_unit b) : a * b / b = a :=
+by rw [div_eq_mul_inv, h.mul_inv_cancel_right]
+
+@[to_additive] protected lemma mul_one_div_cancel (h : is_unit a) : a * (1 / a) = 1 := by simp [h]
+@[to_additive] protected lemma one_div_mul_cancel (h : is_unit a) : (1 / a) * a = 1 := by simp [h]
+
+@[to_additive] lemma inv : is_unit a → is_unit a⁻¹ :=
+by { rintro ⟨u, rfl⟩, rw ←units.coe_inv, exact units.is_unit _ }
+
+@[to_additive] lemma div (ha : is_unit a) (hb : is_unit b) : is_unit (a / b) :=
+by { rw div_eq_mul_inv, exact ha.mul hb.inv }
+
+@[to_additive] protected lemma div_left_inj (h : is_unit c) : a / c = b / c ↔ a = b :=
+by { simp_rw div_eq_mul_inv, exact units.mul_left_inj h.inv.unit' }
+
+lemma div_eq_iff_eq_mul (h : is_unit b) : a / b = c ↔ a = c * b :=
+by rw [div_eq_mul_inv, h.mul_inv_eq_iff_eq_mul]
+
+lemma eq_div_iff_mul_eq (h : is_unit c) : a = b / c ↔ a * c = b :=
+by rw [div_eq_mul_inv, h.eq_mul_inv_iff_mul_eq]
+
+end division_monoid
 
 end is_unit

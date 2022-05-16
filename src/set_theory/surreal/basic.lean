@@ -96,6 +96,29 @@ theorem lt_of_lf {x y : pgame} (ox : numeric x) (oy : numeric y) (h : x ⧏ y) :
 theorem lf_iff_lt {x y : pgame} (ox : numeric x) (oy : numeric y) : x ⧏ y ↔ x < y :=
 ⟨lt_of_lf ox oy, lf_of_lt⟩
 
+/-- Definition of `x ≤ y` on numeric pre-games, in terms of `<` -/
+theorem le_def_lt {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
+  x ≤ y ↔ (∀ i, x.move_left i < y) ∧ ∀ j, x < y.move_right j :=
+begin
+  rw le_def_lf,
+  convert iff.rfl;
+  refine propext (forall_congr $ λ i, (lf_iff_lt _ _).symm),
+  assumption',
+  { exact ox.move_left i },
+  { exact oy.move_right i }
+end
+
+/-- Definition of `x < y` on numeric pre-games, in terms of `≤` -/
+theorem lt_def_le {x y : pgame} (ox : x.numeric) (oy : y.numeric) :
+  x < y ↔ (∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y :=
+by rw [←lf_iff_lt ox oy, lf_def_le]
+
+/-- The definition of `x < y` on pre-games, in terms of `<` two moves later. -/
+theorem lf_def {x y : pgame} : x ⧏ y ↔
+  (∃ i, (∀ i', x.move_left i' ⧏ y.move_left i)  ∧ ∀ j, x ⧏ (y.move_left i).move_right j) ∨
+   ∃ j, (∀ i, (x.move_right j).move_left i ⧏ y) ∧ ∀ j', x.move_right j ⧏ y.move_right j' :=
+by { rw lf_def_le, conv { to_lhs, simp only [le_def_lf] } }
+
 theorem not_fuzzy {x y : pgame} (ox : numeric x) (oy : numeric y) : ¬ fuzzy x y :=
 λ h, not_lf.2 (le_of_lf ox oy (lf_of_fuzzy h)) h.2
 

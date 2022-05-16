@@ -515,6 +515,11 @@ end
   have HN₁ := result (P1 x₁ y) ox₁ oy,
   have HN₂ := result (P1 x₂ y) ox₂ oy,
 
+  have HR₁ := λ {jx₁}, (result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ oy).2,
+
+  have HS₁ := λ jx₁ iy, HN₁.lt_move_right (sum.inr (jx₁, iy)),
+  have HS₂ := λ jx₁ iy, HN₁.move_left_lt (sum.inr (jx₁, iy)),
+
   -- Prove that if `x₁ ≈ x₂`, then `x₁ * y ≈ x₂ * y`.
   refine ⟨λ h, ⟨le_def_lf.2 ⟨_, _⟩, le_def_lf.2 ⟨_, _⟩⟩, _⟩,
   { rintro (⟨ix₁, iy⟩ | ⟨jx₁, jy⟩);
@@ -575,21 +580,36 @@ end
   rcases lf_def_le.1 h.lf with ⟨ix₂, h⟩ | ⟨jx₁, h⟩,
   { cases lt_or_equiv_of_le h ox₁ (ox₂.move_left ix₂) with h h;
     refine ⟨λ iy, _, λ iy, _⟩,
-    { have H₁ := (result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) oy).2 h ,
+    { have H₁ := (result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) oy).2 h,
       have H₂ := HN₂.lt_move_right,
       dsimp at *,
       sorry }, all_goals { sorry } },
   { cases lt_or_equiv_of_le h (ox₁.move_right jx₁) ox₂ with h h;
-    refine ⟨λ iy, _, λ iy, _⟩;
-    try { have H := (result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ oy).2 h },
-    { have H' : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add (H.1 iy) (HN₁.lt_move_right (sum.inr (jx₁, iy))),
-      dsimp at H', abel at H',
+    refine ⟨λ iy, _, λ jy, _⟩,
+    { have H : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add ((HR₁ h).1 iy) (HS₁ jx₁ iy),
+      dsimp at H, abel at H,
       rwa [←add_assoc, add_comm ⟦_ * y⟧, add_assoc ⟦x₁R jx₁ * _⟧, add_lt_add_iff_left,
-        add_comm] at H' },
-    { have H' : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add (H.2 iy) (HN₁.move_left_lt (sum.inr (jx₁, iy))),
-      dsimp at H', abel at H',
+        add_comm] at H },
+    { have H : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add ((HR₁ h).2 jy) (HS₂ jx₁ jy),
+      dsimp at H, abel at H,
       rwa [←add_assoc ⟦x₁ * _⟧, add_comm ⟦x₁ * y⟧, add_assoc ⟦x₁R jx₁ * _⟧, add_lt_add_iff_left,
-        add_comm] at H' },
+        add_comm] at H },
+    { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₁ jx₁ iy,
+      have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
+        ((result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ oy).1 h),
+      have H₃ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
+        ((result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ (oy.move_left iy)).1 h),
+      change (⟦_⟧ : game) < ⟦_⟧,
+      dsimp at H₁ H₂ H₃,
+      rwa [lt_sub_iff_add_lt, H₂, H₃, add_comm₂] at H₁ },
+    { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₂ jx₁ jy,
+      have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
+        ((result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ oy).1 h),
+      have H₃ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
+        ((result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ (oy.move_right jy)).1 h),
+      change (⟦_⟧ : game) < ⟦_⟧,
+      dsimp at H₁ H₂ H₃,
+      rwa [sub_lt_iff_lt_add, H₂, H₃] at H₁ },
     all_goals { sorry } },
 end
 using_well_founded { dec_tac := sorry }

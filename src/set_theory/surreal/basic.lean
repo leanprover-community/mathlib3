@@ -21,21 +21,27 @@ In fact, the surreals form a complete ordered field, containing a copy of the re
 besides!) but we do not yet have a complete development.
 
 ## Order properties
-Surreal numbers inherit the relations `≤` and `<` from games, and these relations satisfy the axioms
-of a partial order (recall that `x < y ↔ x ≤ y ∧ ¬ y ≤ x` did not hold for games).
+
+Surreal numbers inherit the relations `≤` and `<` from games (`surreal.has_le` and
+`surreal.has_lt`), and these relations satisfy the axioms of a partial order.
 
 ## Algebraic operations
+
 We show that the surreals form a linear ordered commutative group.
 
 One can also map all the ordinals into the surreals!
 
 ### Multiplication of surreal numbers
-The definition of multiplication for surreal numbers is surprisingly difficult and is currently
+
+The proof that multiplication lifts to surreal numbers is surprisingly difficult and is currently
 missing in the library. A sample proof can be found in Theorem 3.8 in the second reference below.
 The difficulty lies in the length of the proof and the number of theorems that need to proven
 simultaneously. This will make for a fun and challenging project.
 
+The branch `surreal_mul` contains some progress on this proof.
+
 ## References
+
 * [Conway, *On numbers and games*][conway2001]
 * [Schleicher, Stoll, *An introduction to Conway's games and numbers*][schleicher_stoll]
 -/

@@ -285,7 +285,7 @@ show (le_lf _ _).1 ↔ _, by { rw le_lf, refl }
 
 /-- Definition of `x ≤ y` on pre-games, in terms of `⧏` -/
 theorem le_def_lf {x y : pgame} : x ≤ y ↔ (∀ i, x.move_left i ⧏ y) ∧ ∀ j, x ⧏ y.move_right j :=
-by { cases x, cases y, rw mk_le_mk, refl }
+by { cases x, cases y, exact mk_le_mk }
 
 /-- Definition of `x ⧏ y` on pre-games built using the constructor. -/
 @[simp] theorem mk_lf_mk {xl xr xL xR yl yr yL yR} :
@@ -295,7 +295,7 @@ show (le_lf _ _).2 ↔ _, by { rw le_lf, refl }
 
 /-- Definition of `x ⧏ y` on pre-games, in terms of `≤` -/
 theorem lf_def_le {x y : pgame} : x ⧏ y ↔ (∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y :=
-by { cases x, cases y, rw mk_lf_mk, refl }
+by { cases x, cases y, exact mk_lf_mk }
 
 private theorem not_le_lf {x y : pgame} :
   (¬ x ≤ y ↔ y ⧏ x) ∧ (¬ x ⧏ y ↔ y ≤ x) :=

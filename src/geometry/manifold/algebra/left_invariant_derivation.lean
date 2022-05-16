@@ -128,8 +128,7 @@ instance : add_comm_group (left_invariant_derivation I G) :=
 coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 instance : has_scalar 𝕜 (left_invariant_derivation I G) :=
-{ smul := λ r X, ⟨r • X, λ g, by simp only [derivation.smul_apply, smul_eq_mul,
-            mul_eq_mul_left_iff, linear_map.map_smul, left_invariant']⟩ }
+{ smul := λ r X, ⟨r • X, λ g, by simp_rw [linear_map.map_smul, left_invariant']⟩ }
 
 -- TODO: generalize this if `smooth_map.has_scalar` is generalized.
 instance has_op_scalar : has_scalar 𝕜ᵐᵒᵖ (left_invariant_derivation I G) :=

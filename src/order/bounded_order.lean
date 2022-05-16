@@ -761,7 +761,8 @@ have acc_bot : acc ((<) : with_bot α → with_bot α → Prop) ⊥ :=
 lemma well_founded_gt [preorder α] (h : @well_founded α (>)) : @well_founded (with_bot α) (>) :=
 have acc_coe : ∀ a : α, acc (>) (a : with_bot α) :=
 λ a, acc.intro _ (well_founded.induction h a
-  (show ∀ b : α, (∀ (c > b) (d > (↑c : with_bot α)),  acc (>) d) → ∀ y > (↑b : with_bot α), acc (>) y,
+  (show ∀ b : α, (∀ (c > b) (d > (↑c : with_bot α)),  acc (>) d) →
+    ∀ y > (↑b : with_bot α), acc (>) y,
   from λ b ih c, option.rec_on c (λ hc, (not_lt_of_ge bot_le hc).elim)
     (λ c hc, acc.intro _ (ih _ (hc))))),
 ⟨λ a, option.rec_on a (acc.intro _ (λ y, option.rec_on y (λ h, (lt_irrefl _ h).elim)

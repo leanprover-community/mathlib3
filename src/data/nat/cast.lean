@@ -172,8 +172,11 @@ variables [ordered_semiring α]
 variable [nontrivial α]
 
 theorem strict_mono_cast : strict_mono (coe : ℕ → α) :=
-λ m n h, nat.le_induction (lt_add_of_pos_right _ zero_lt_one)
-  (λ n _ h, lt_add_of_lt_of_pos' h zero_lt_one) _ h
+strict_mono_nat_of_lt_succ $ λ n, lt_add_one (n : α)
+
+/-- `coe : ℕ → α` as an `order_embedding` -/
+@[simps { fully_applied := ff }] def cast_order_embedding : ℕ ↪o α :=
+order_embedding.of_strict_mono coe strict_mono_cast
 
 @[simp, norm_cast] theorem cast_le {m n : ℕ} :
   (m : α) ≤ n ↔ m ≤ n :=

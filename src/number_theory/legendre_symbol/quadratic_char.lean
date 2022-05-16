@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
 import number_theory.legendre_symbol.zmod_char
---import tactic.basic
---import number_theory.legendre_symbol.auxiliary
---import data.int.range
 
 /-!
 # Quadratic characters of finite fields

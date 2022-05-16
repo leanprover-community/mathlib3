@@ -119,7 +119,7 @@ by { ext, refl, }
   f (update m i (x + y)) = f (update m i x) + f (update m i y) :=
 f.map_add' m i x y
 
-@[simp] lemma map_smul (m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i) :
+@[simp] protected lemma map_smul (m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i) :
   f (update m i (c • x)) = c • f (update m i x) :=
 f.map_smul' m i c x
 
@@ -871,7 +871,7 @@ instance : has_sub (multilinear_map R M₁ M₂) :=
 ⟨λ f g,
   ⟨λ m, f m - g m,
    λ m i x y, by { simp only [multilinear_map.map_add, sub_eq_add_neg, neg_add], cc },
-   λ m i c x, by { simp only [map_smul, smul_sub] }⟩⟩
+   λ m i c x, by { simp only [multilinear_map.map_smul, smul_sub] }⟩⟩
 
 @[simp] lemma sub_apply (m : Πi, M₁ i) : (f - g) m = f m - g m := rfl
 
@@ -978,7 +978,7 @@ def linear_map.uncurry_left
       revert x,
       rw ← succ_pred i h,
       assume x,
-      rw [tail_update_succ, tail_update_succ, map_smul] }
+      rw [tail_update_succ, tail_update_succ, multilinear_map.map_smul] }
   end }
 
 @[simp] lemma linear_map.uncurry_left_apply
@@ -1066,12 +1066,12 @@ def multilinear_map.uncurry_right
       revert x,
       rw [(cast_succ_cast_lt i h).symm],
       assume x,
-      rw [init_update_cast_succ, init_update_cast_succ, map_smul, linear_map.smul_apply] },
+      rw [init_update_cast_succ, init_update_cast_succ, multilinear_map.map_smul,
+          linear_map.smul_apply] },
     { revert x,
       rw eq_last_of_not_lt h,
       assume x,
-      rw [update_same, update_same, init_update_last, init_update_last,
-          linear_map.map_smul] }
+      rw [update_same, update_same, init_update_last, init_update_last, map_smul] }
   end }
 
 @[simp] lemma multilinear_map.uncurry_right_apply
@@ -1166,8 +1166,8 @@ def uncurry_sum (f : multilinear_map R (λ x : ι, M') (multilinear_map R (λ x 
     simp only [multilinear_map.map_add, add_apply, sum.update_inl_comp_inl, sum.update_inl_comp_inr,
       sum.update_inr_comp_inl, sum.update_inr_comp_inr],
   map_smul' := λ u i c x, by cases i;
-    simp only [map_smul, smul_apply, sum.update_inl_comp_inl, sum.update_inl_comp_inr,
-      sum.update_inr_comp_inl, sum.update_inr_comp_inr] }
+    simp only [multilinear_map.map_smul, smul_apply, sum.update_inl_comp_inl,
+      sum.update_inl_comp_inr, sum.update_inr_comp_inl, sum.update_inr_comp_inr] }
 
 @[simp] lemma uncurry_sum_aux_apply
   (f : multilinear_map R (λ x : ι, M') (multilinear_map R (λ x : ι', M') M₂)) (u : ι ⊕ ι' → M') :

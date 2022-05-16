@@ -35,6 +35,7 @@ fixed size. If the size is 3, colex on ℕ starts
 
 Related files are:
 * `data.list.lex`: Lexicographic order on lists.
+* `data.pi.lex`: Lexicographic order on `Πₗ i, α i`.
 * `data.psigma.order`: Lexicographic order on `Σ' i, α i`.
 * `data.sigma.order`: Lexicographic order on `Σ i, α i`.
 * `data.prod.lex`: Lexicographic order on `α × β`.

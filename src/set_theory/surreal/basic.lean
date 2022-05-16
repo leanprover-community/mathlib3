@@ -126,50 +126,15 @@ theorem numeric.lt_move_right {x : pgame} (o : numeric x) (j) : x < x.move_right
 theorem numeric.le_move_right {x : pgame} (o : numeric x) (j) : x ≤ x.move_right j :=
 (o.lt_move_right j).le
 
--- TODO: this can be generalized to `add_lf_add_of_lf_of_lt`, which doesn't depend on any `numeric`
--- hypotheses.
-theorem add_lf_add
-  {w x y z : pgame.{u}} (oy : numeric y) (oz : numeric z)
-  (hwx : w ⧏ x) (hyz : y ⧏ z) : w + y ⧏ x + z :=
-begin
-  rw lf_def_le at *,
-  rcases hwx with ⟨ix, hix⟩|⟨jw, hjw⟩;
-  rcases hyz with ⟨iz, hiz⟩|⟨jy, hjy⟩,
-  { left,
-    use (left_moves_add x z).symm (sum.inl ix),
-    simp only [add_move_left_inl],
-    calc w + y ≤ move_left x ix + y : add_le_add_right hix _
-            ... ≤ move_left x ix + move_left z iz : add_le_add_left hiz _
-            ... ≤ move_left x ix + z : add_le_add_left (oz.move_left_le iz) _ },
-  { left,
-    use (left_moves_add x z).symm (sum.inl ix),
-    simp only [add_move_left_inl],
-    calc w + y ≤ move_left x ix + y : add_le_add_right hix _
-            ... ≤ move_left x ix + move_right y jy : add_le_add_left (oy.le_move_right jy) _
-            ... ≤ move_left x ix + z : add_le_add_left hjy _ },
-  { right,
-    use (right_moves_add w y).symm (sum.inl jw),
-    simp only [add_move_right_inl],
-    calc move_right w jw + y ≤ x + y : add_le_add_right hjw _
-            ... ≤ x + move_left z iz : add_le_add_left hiz _
-            ... ≤ x + z : add_le_add_left (oz.move_left_le iz) _ },
-  { right,
-    use (right_moves_add w y).symm (sum.inl jw),
-    simp only [add_move_right_inl],
-    calc move_right w jw + y ≤ x + y : add_le_add_right hjw _
-            ... ≤ x + move_right y jy : add_le_add_left (oy.le_move_right jy) _
-            ... ≤ x + z : add_le_add_left hjy _ },
-end
-
 theorem numeric.add : Π {x y : pgame} (ox : numeric x) (oy : numeric y), numeric (x + y)
 | ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ ox oy :=
 ⟨begin
    rintros (ix|iy) (jx|jy),
    { exact add_lt_add_right (ox.1 ix jx) _ },
    { apply lt_of_lf ((ox.move_left ix).add oy) (ox.add (oy.move_right jy))
-      (add_lf_add oy (oy.move_right jy) (pgame.move_left_lf ix) (pgame.lf_move_right jy)) },
+      (add_lf_add_of_lf_of_le (pgame.move_left_lf ix) (oy.le_move_right jy)) },
    { apply lt_of_lf (ox.add (oy.move_left iy)) ((ox.move_right jx).add oy)
-      (add_lf_add (oy.move_left iy) oy (pgame.lf_move_right jx) (pgame.move_left_lf iy)) },
+      (add_lf_add_of_lf_of_le (pgame.lf_move_right jx) (oy.move_left_le iy)) },
    { exact add_lt_add_left (oy.1 iy jy) ⟨xl, xr, xL, xR⟩ }
  end,
  begin

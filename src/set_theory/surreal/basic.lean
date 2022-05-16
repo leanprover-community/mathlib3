@@ -3,6 +3,8 @@ Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison, Violeta Hernández Palacios
 -/
+
+import data.prod.lex
 import set_theory.game.basic
 import set_theory.game.birthday
 
@@ -82,17 +84,29 @@ begin
   { exact IHxr _ _ (oyr _) (lf_move_right_of_le _ h₁) (lf_move_right_of_le _ h₂) },
 end
 
-theorem le_of_lf {x y : pgame} (ox : numeric x) (oy : numeric y) (h : x ⧏ y) : x ≤ y :=
+theorem le_of_lf {x y : pgame} (h : x ⧏ y) (ox : numeric x) (oy : numeric y) : x ≤ y :=
 not_lf.1 (lf_asymm ox oy h)
 
-theorem lt_of_lf {x y : pgame} (ox : numeric x) (oy : numeric y) (h : x ⧏ y) : x < y :=
-(lt_or_fuzzy_of_lf h).resolve_right (not_fuzzy_of_le (le_of_lf ox oy h))
+alias le_of_lf ← pgame.lf.le
+
+theorem lt_of_lf {x y : pgame} (h : x ⧏ y) (ox : numeric x) (oy : numeric y) : x < y :=
+(lt_or_fuzzy_of_lf h).resolve_right (not_fuzzy_of_le (h.le ox oy))
+
+alias lt_of_lf ← pgame.lf.lt
 
 theorem lf_iff_lt {x y : pgame} (ox : numeric x) (oy : numeric y) : x ⧏ y ↔ x < y :=
-⟨lt_of_lf ox oy, lf_of_lt⟩
+⟨λ h, h.lt ox oy, lf_of_lt⟩
 
 theorem not_fuzzy {x y : pgame} (ox : numeric x) (oy : numeric y) : ¬ fuzzy x y :=
-λ h, not_lf.2 (le_of_lf ox oy (lf_of_fuzzy h)) h.2
+λ h, not_lf.2 ((lf_of_fuzzy h).le ox oy) h.2
+
+theorem lt_or_equiv_or_gt {x y : pgame} (ox : numeric x) (oy : numeric y) : x < y ∨ x ≈ y ∨ y < x :=
+begin
+  rcases lf_or_equiv_or_gf x y with h | h | h,
+  { exact or.inl (h.lt ox oy) },
+  { exact or.inr (or.inl h) },
+  { exact or.inr (or.inr (h.lt oy ox)) }
+end
 
 theorem numeric_zero : numeric 0 :=
 ⟨by rintros ⟨⟩ ⟨⟩, ⟨by rintros ⟨⟩, by rintros ⟨⟩⟩⟩
@@ -103,12 +117,12 @@ theorem numeric.neg : Π {x : pgame} (o : numeric x), numeric (-x)
 | ⟨l, r, L, R⟩ o := ⟨λ j i, neg_lt_iff.2 (o.1 i j), λ j, (o.2.2 j).neg, λ i, (o.2.1 i).neg⟩
 
 theorem numeric.move_left_lt {x : pgame} (o : numeric x) (i) : x.move_left i < x :=
-lt_of_lf (o.move_left i) o (pgame.move_left_lf i)
+(pgame.move_left_lf i).lt (o.move_left i) o
 theorem numeric.move_left_le {x : pgame} (o : numeric x) (i) : x.move_left i ≤ x :=
 (o.move_left_lt i).le
 
 theorem numeric.lt_move_right {x : pgame} (o : numeric x) (j) : x < x.move_right j :=
-lt_of_lf o (o.move_right j) (pgame.lf_move_right j)
+(pgame.lf_move_right j).lt o (o.move_right j)
 theorem numeric.le_move_right {x : pgame} (o : numeric x) (j) : x ≤ x.move_right j :=
 (o.lt_move_right j).le
 

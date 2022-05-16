@@ -1033,20 +1033,20 @@ section mono
 
 variables [preorder α] [preorder β] {f : α → β}
 
-protected lemma monotone.with_bot (hf : monotone f) : monotone (with_bot.map f)
+protected lemma monotone.with_bot_map (hf : monotone f) : monotone (with_bot.map f)
 | ⊥       _       h := bot_le
 | (a : α) ⊥       h := (with_bot.not_coe_le_bot _ h).elim
 | (a : α) (b : α) h := with_bot.coe_le_coe.2 (hf (with_bot.coe_le_coe.1 h))
 
-protected lemma monotone.with_top (hf : monotone f) : monotone (with_top.map f) :=
-hf.dual.with_bot.dual
+protected lemma monotone.with_top_map (hf : monotone f) : monotone (with_top.map f) :=
+hf.dual.with_bot_map.dual
 
-protected lemma strict_mono.with_bot (hf : strict_mono f) : strict_mono (with_bot.map f)
+protected lemma strict_mono.with_bot_map (hf : strict_mono f) : strict_mono (with_bot.map f)
 | ⊥       (a : α) h := with_bot.bot_lt_coe _
 | (a : α) (b : α) h := with_bot.coe_lt_coe.mpr (hf $ with_bot.coe_lt_coe.mp h)
 
-protected lemma strict_mono.with_top (hf : strict_mono f) : strict_mono (with_top.map f) :=
-hf.dual.with_bot.dual
+protected lemma strict_mono.with_top_map (hf : strict_mono f) : strict_mono (with_top.map f) :=
+hf.dual.with_bot_map.dual
 
 end mono
 

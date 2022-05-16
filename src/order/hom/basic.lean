@@ -365,13 +365,13 @@ def dual_iso (α β : Type*) [preorder α] [preorder β] : (α →o β) ≃o (α
 
 /-- Lift an order homomorphism `f : α →o β` to an order homomorphism `with_bot α →o with_bot β`. -/
 @[simps { fully_applied := ff }]
-protected def with_bot (f : α →o β) : with_bot α →o with_bot β :=
-⟨with_bot.map f, f.mono.with_bot⟩
+protected def with_bot_map (f : α →o β) : with_bot α →o with_bot β :=
+⟨with_bot.map f, f.mono.with_bot_map⟩
 
 /-- Lift an order homomorphism `f : α →o β` to an order homomorphism `with_top α →o with_top β`. -/
 @[simps { fully_applied := ff }]
-protected def with_top (f : α →o β) : with_top α →o with_top β :=
-⟨with_top.map f, f.mono.with_top⟩
+protected def with_top_map (f : α →o β) : with_top α →o with_top β :=
+⟨with_top.map f, f.mono.with_top_map⟩
 
 end order_hom
 
@@ -423,7 +423,7 @@ protected def dual : αᵒᵈ ↪o βᵒᵈ :=
 
 /-- A version of `with_bot.map` for order embeddings. -/
 @[simps { fully_applied := ff }]
-protected def with_bot (f : α ↪o β) : with_bot α ↪o with_bot β :=
+protected def with_bot_map (f : α ↪o β) : with_bot α ↪o with_bot β :=
 { to_fun := with_bot.map f,
   map_rel_iff' := λ a b, by cases a; cases b; simp [with_bot.none_eq_bot, with_bot.some_eq_coe,
     with_bot.not_coe_le_bot],
@@ -431,9 +431,9 @@ protected def with_bot (f : α ↪o β) : with_bot α ↪o with_bot β :=
 
 /-- A version of `with_top.map` for order embeddings. -/
 @[simps { fully_applied := ff }]
-protected def with_top (f : α ↪o β) : with_top α ↪o with_top β :=
+protected def with_top_map (f : α ↪o β) : with_top α ↪o with_top β :=
 { to_fun := with_top.map f,
-  .. f.dual.with_bot.dual }
+  .. f.dual.with_bot_map.dual }
 
 /--
 To define an order embedding from a partial order to a preorder it suffices to give a function

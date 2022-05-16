@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Scott Morrison, Violeta Hernández Palacios
+Authors: Mario Carneiro, Scott Morrison, Violeta Hernández Palacios, Junyan Xu
 -/
 
 import data.prod.lex
@@ -326,6 +326,17 @@ by abel
 
 end comm_lemmas
 
+section cut_expand
+variables {α : Type*}
+
+def cut_expand (r : α → α → Prop) (s' s : multiset α) : Prop :=
+∃ (t : multiset α) (a ∈ s), (∀ a' ∈ t, r a' a) ∧ s' + {a} = s + t
+
+theorem cut_expand.wf {r : α → α → Prop} (h : well_founded r) : well_founded (cut_expand r) :=
+sorry
+
+end cut_expand
+
 namespace pgame
 
 private theorem quot_mul_comm₂ {a b c d : pgame} :
@@ -339,10 +350,9 @@ by rw [quot_mul_comm a, quot_mul_comm c, quot_mul_comm e, quot_mul_comm g]
 namespace mul_args
 
 /-- The depth function on the type. See the docstring for `mul_args`. -/
-noncomputable def depth : mul_args → ordinal ×ₗ ordinal
-| (P1 x y) := ((x + y).birthday, 0)
-| (P2 x₁ x₂ y) := (max ((x₁ + y).birthday) ((x₂ + y).birthday),
-                    (min x₁.birthday x₂.birthday).succ)
+def to_multiset : mul_args → multiset pgame
+| (P1 x y) := {x, y}
+| (P2 x₁ x₂ y) := {x₁, x₂, y}
 
 /-- This is the statement we wish to prove. -/
 def hypothesis : mul_args → Prop
@@ -353,11 +363,12 @@ def hypothesis : mul_args → Prop
                       (∀ i, x₂ * y.move_left i + x₁ * y  < x₁ * y.move_left i + x₂ * y) ∧
                        ∀ j, x₂ * y + x₁ * y.move_right j < x₁ * y + x₂ * y.move_right j)
 
-instance : has_lt mul_args := ⟨λ x y, x.depth < y.depth⟩
+instance : has_lt mul_args :=
+⟨inv_image (relation.trans_gen $ cut_expand subsequent) to_multiset⟩
 
 instance : has_well_founded mul_args :=
 { r := (<),
-  wf := inv_image.wf _ (prod.lex_wf ordinal.wf ordinal.wf) }
+  wf := inv_image.wf _ (cut_expand.wf wf_subsequent).trans_gen }
 
 /-- The hypothesis is true for any arguments. -/
 theorem result : ∀ x : mul_args, x.hypothesis
@@ -367,18 +378,32 @@ theorem result : ∀ x : mul_args, x.hypothesis
   let y : pgame := ⟨yl, yr, yL, yR⟩,
 
   -- Reused applications of the inductive hypothesis.
-  have HR₁ := λ {ix ix'}, result (P2 _ _ _) (ox.move_left ix)  (ox.move_left ix')  oy,
-  have HR₂ := λ {iy iy'}, result (P2 _ _ _) (oy.move_left iy)  (oy.move_left iy')  ox,
-  have HR₃ := λ {jx jx'}, result (P2 _ _ _) (ox.move_right jx) (ox.move_right jx') oy,
-  have HR₄ := λ {jy jy'}, result (P2 _ _ _) (oy.move_right jy) (oy.move_right jy') ox,
+  have HR₁ := λ {ix ix'},
+    let wf : P2 (xL ix) (xL ix') y < P1 x y := sorry in
+    result (P2 _ _ _) (ox.move_left ix)  (ox.move_left ix')  oy,
+  have HR₂ := λ {iy iy'},
+    let wf : P2 (yL iy) (yL iy') x < P1 x y := sorry in
+    result (P2 _ _ _) (oy.move_left iy)  (oy.move_left iy')  ox,
+  have HR₃ := λ {jx jx'},
+    let wf : P2 (xR jx) (xR jx') y < P1 x y := sorry in
+    result (P2 _ _ _) (ox.move_right jx) (ox.move_right jx') oy,
+  have HR₄ := λ {jy jy'},
+    let wf : P2 (yR jy) (yR jy') x < P1 x y := sorry in
+    result (P2 _ _ _) (oy.move_right jy) (oy.move_right jy') ox,
 
-  have HS₃ := λ {ix jx}, (result (P2 _ _ _) (ox.move_left ix) (ox.move_right jx) oy).2
-    (ox.left_lt_right ix jx),
-  have HS₄ := λ {iy jy}, (result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2
-    (oy.left_lt_right iy jy),
+  have HS₃ := λ {ix jx},
+    let wf : P2 (xL ix) (xR jx) y < P1 x y := sorry in
+    (result (P2 _ _ _) (ox.move_left ix) (ox.move_right jx) oy).2 (ox.left_lt_right ix jx),
+  have HS₄ := λ {iy jy},
+    let wf : P2 (yL iy) (yR jy) x < P1 x y := sorry in
+    (result (P2 _ _ _) (oy.move_left iy) (oy.move_right jy) ox).2 (oy.left_lt_right iy jy),
 
-  have HN₁ := λ {ix}, result (P1 _ _) (ox.move_left ix)  oy,
-  have HN₂ := λ {jx}, result (P1 _ _) (ox.move_right jx) oy,
+  have HN₁ := λ {ix},
+    let wf : P1 (xL ix) y < P1 x y := sorry in
+    result (P1 _ _) (ox.move_left ix)  oy,
+  have HN₂ := λ {jx},
+    let wf : P1 (xR jx) y < P1 x y := sorry in
+    result (P1 _ _) (ox.move_right jx) oy,
 
   refine (numeric_def _).2 ⟨_, _, _⟩,
 
@@ -396,6 +421,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
         exact H₁.trans H₂ },
       { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
         have H₁ : ⟦xL ix * _⟧ = ⟦xL ix' * _⟧ := quot.sound (HR₁.1 h),
+        let wf : P2 (xL ix) (xL ix') (yR jy') < P1 x y := sorry,
         have H₂ : ⟦xL ix * yR jy'⟧ = ⟦xL ix' * yR jy'⟧ := quot.sound
           ((result (P2 _ _ _) (ox.move_left ix) (ox.move_left ix') (oy.move_right jy')).1 h),
         rw [H₁, ←H₂, sub_lt_sub_iff, add_add_lt_cancel_left, add_comm₂, quot_mul_comm₄],
@@ -425,6 +451,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
           exact quot.sound (HR₂.1 h) },
         have H₂ : ⟦xR jx' * yL iy⟧ = ⟦xR jx' * yL iy'⟧,
         { rw quot_mul_comm₂,
+          let wf : P2 (yL iy) (yL iy') (xR jx') < P1 x y := sorry,
           exact quot.sound
             ((result (P2 _ _ _) (oy.move_left iy) (oy.move_left iy') (ox.move_right jx')).1 h) },
         rw [H₁, ←H₂, sub_lt_sub_iff, add_add_lt_cancel_mid, add_comm₂],
@@ -455,6 +482,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
           exact quot.sound (HR₄.1 h) },
         have H₂ : ⟦xL ix' * yR jy'⟧ = ⟦xL ix' * yR jy⟧,
         { rw quot_mul_comm₂,
+          let wf : P2 (yR jy') (yR jy) (xL ix') < P1 x y := sorry,
           exact quot.sound
             ((result (P2 _ _ _) (oy.move_right jy') (oy.move_right jy) (ox.move_left ix')).1 h) },
         rw [H₁, H₂, sub_lt_sub_iff, add_add_lt_cancel_mid],
@@ -480,6 +508,7 @@ theorem result : ∀ x : mul_args, x.hypothesis
         exact H₁.trans H₂ },
       { change (⟦_⟧ : game) < ⟦_⟧, dsimp,
         have H₁ : ⟦xR jx' * _⟧ = ⟦xR jx * _⟧ := quot.sound (HR₃.1 h),
+        let wf : P2 (xR jx') (xR jx) (yL iy') < P1 x y := sorry,
         have H₂ : ⟦xR jx' * yL iy'⟧ = ⟦xR jx * yL iy'⟧ := quot.sound
           ((result (P2 _ _ _) (ox.move_right jx') (ox.move_right jx) (oy.move_left iy')).1 h),
         rw [H₁, H₂, sub_lt_sub_iff, add_add_lt_cancel_left, quot_mul_comm₄],
@@ -496,14 +525,22 @@ theorem result : ∀ x : mul_args, x.hypothesis
 
   -- Prove that all options of `x * y` are numeric.
   { rintro (⟨ix, iy⟩ | ⟨jx, jy⟩),
-    { exact (HN₁.add (result (P1 _ _) ox (oy.move_left iy))).sub
+    { let wf₁ : P1 x (yL iy) < P1 x y := sorry,
+      let wf₂ : P1 (xL ix) (yL iy) < P1 x y := sorry,
+      exact (HN₁.add (result (P1 _ _) ox (oy.move_left iy))).sub
         (result (P1 _ _) (ox.move_left ix) (oy.move_left iy)) },
-    { exact (HN₂.add (result (P1 _ _) ox (oy.move_right jy))).sub
+    { let wf₁ : P1 x (yR jy) < P1 x y := sorry,
+      let wf₂ : P1 (xR jx) (yR jy) < P1 x y := sorry,
+      exact (HN₂.add (result (P1 _ _) ox (oy.move_right jy))).sub
         (result (P1 _ _) (ox.move_right jx) (oy.move_right jy)) } },
   { rintro (⟨ix, jy⟩ | ⟨jx, iy⟩),
-    { exact (HN₁.add (result (P1 _ _) ox (oy.move_right jy))).sub
+    { let wf₁ : P1 x (yR jy) < P1 x y := sorry,
+      let wf₂ : P1 (xL ix) (yR jy) < P1 x y := sorry,
+      exact (HN₁.add (result (P1 _ _) ox (oy.move_right jy))).sub
         (result (P1 _ _) (ox.move_left ix) (oy.move_right jy)) },
-    { exact (HN₂.add (result (P1 _ _) ox (oy.move_left iy))).sub
+    { let wf₁ : P1 x (yL iy) < P1 x y := sorry,
+      let wf₂ : P1 (xR jx) (yL iy) < P1 x y := sorry,
+      exact (HN₂.add (result (P1 _ _) ox (oy.move_left iy))).sub
         (result (P1 _ _) (ox.move_right jx) (oy.move_left iy)) } }
 end
 | (P2 ⟨x₁l, x₁r, x₁L, x₁R⟩ ⟨x₂l, x₂r, x₂L, x₂R⟩ ⟨yl, yr, yL, yR⟩) := λ ox₁ ox₂ oy, begin
@@ -512,30 +549,48 @@ end
   let y  : pgame := ⟨yl, yr, yL, yR⟩,
 
   -- Reused applications of the inductive hypothesis.
+  let wf₁ : P1 x₁ y < P2 x₁ x₂ y := sorry,
   have HN₁ := result (P1 x₁ y) ox₁ oy,
+  let wf₂ : P1 x₂ y < P2 x₁ x₂ y := sorry,
   have HN₂ := result (P1 x₂ y) ox₂ oy,
 
-  have HR₁ := λ {jx₁}, result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ oy,
-  have HR₂ := λ {ix₂}, result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) oy,
+  have HR₁ := λ {jx₁},
+    let wf : P2 (x₁R jx₁) x₂ y < P2 x₁ x₂ y := sorry in
+    result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ oy,
+  have HR₂ := λ {ix₂},
+    let wf : P2 x₁ (x₂L ix₂) y < P2 x₁ x₂ y := sorry in
+    result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) oy,
 
   have HS₁ := λ ix₂ iy, HN₂.move_left_lt (sum.inl (ix₂, iy)),
   have HS₂ := λ ix₂ jy, HN₂.lt_move_right (sum.inl (ix₂, jy)),
   have HS₃ := λ jx₁ iy, HN₁.lt_move_right (sum.inr (jx₁, iy)),
   have HS₄ := λ jx₁ jy, HN₁.move_left_lt (sum.inr (jx₁, jy)),
 
-  have HT₁ := λ iy, (result (P2 _ _ _) ox₁ ox₂ (oy.move_left iy)).1,
-  have HT₂ := λ jy, (result (P2 _ _ _) ox₁ ox₂ (oy.move_right jy)).1,
-  have HT₃ := λ iy, (result (P2 _ _ _) ox₂ ox₁ (oy.move_left iy)).1,
-  have HT₄ := λ jy, (result (P2 _ _ _) ox₂ ox₁ (oy.move_right jy)).1,
+  have HT₁ := λ iy,
+    let wf : P2 x₁ x₂ (yL iy) < P2 x₁ x₂ y := sorry in
+    (result (P2 _ _ _) ox₁ ox₂ (oy.move_left iy)).1,
+  have HT₂ := λ jy,
+    let wf : P2 x₁ x₂ (yR jy) < P2 x₁ x₂ y := sorry in
+    (result (P2 _ _ _) ox₁ ox₂ (oy.move_right jy)).1,
+  have HT₃ := λ iy,
+    let wf : P2 x₂ x₁ (yL iy) < P2 x₁ x₂ y := sorry in
+    (result (P2 _ _ _) ox₂ ox₁ (oy.move_left iy)).1,
+  have HT₄ := λ jy,
+    let wf : P2 x₂ x₁ (yR jy) < P2 x₁ x₂ y := sorry in
+    (result (P2 _ _ _) ox₂ ox₁ (oy.move_right jy)).1,
 
-  have HU₁ := λ ix₁ h, (result (P2 _ _ _) (ox₁.move_left ix₁) ox₂ oy).2
-    ((ox₁.move_left_lt ix₁).trans_le h),
-  have HU₂ := λ ix₂ h, (result (P2 _ _ _) (ox₂.move_left ix₂) ox₁ oy).2
-    ((ox₂.move_left_lt ix₂).trans_le h),
-  have HU₃ := λ jx₁ (h : _ ≤ _), (result (P2 _ _ _) ox₂ (ox₁.move_right jx₁) oy).2
-    (h.trans_lt (ox₁.lt_move_right jx₁)),
-  have HU₄ := λ jx₂ (h : _ ≤ _), (result (P2 _ _ _) ox₁ (ox₂.move_right jx₂) oy).2
-    (h.trans_lt (ox₂.lt_move_right jx₂)),
+  have HU₁ := λ ix₁ h,
+    let wf : P2 (x₁L ix₁) x₂ y < P2 x₁ x₂ y := sorry in
+    (result (P2 _ _ _) (ox₁.move_left ix₁) ox₂ oy).2 ((ox₁.move_left_lt ix₁).trans_le h),
+  have HU₂ := λ ix₂ h,
+    let wf : P2 (x₂L ix₂) x₁ y < P2 x₁ x₂ y := sorry in
+    (result (P2 _ _ _) (ox₂.move_left ix₂) ox₁ oy).2 ((ox₂.move_left_lt ix₂).trans_le h),
+  have HU₃ := λ jx₁ (h : _ ≤ _),
+    let wf : P2 x₂ (x₁R jx₁) y < P2 x₁ x₂ y := sorry in
+    (result (P2 _ _ _) ox₂ (ox₁.move_right jx₁) oy).2 (h.trans_lt (ox₁.lt_move_right jx₁)),
+  have HU₄ := λ jx₂ (h : _ ≤ _),
+    let wf : P2 x₁ (x₂R jx₂) y < P2 x₁ x₂ y := sorry in
+    (result (P2 _ _ _) ox₁ (ox₂.move_right jx₂) oy).2 (h.trans_lt (ox₂.lt_move_right jx₂)),
 
   -- Prove that if `x₁ ≈ x₂`, then `x₁ * y ≈ x₂ * y`.
   refine ⟨λ h, ⟨le_def_lf.2 ⟨_, _⟩, le_def_lf.2 ⟨_, _⟩⟩, λ h, _⟩,
@@ -600,12 +655,14 @@ end
         add_comm ⟦_ * yR jy⟧] at H },
     { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₁ ix₂ iy,
       have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound (HR₂.1 h),
+      let wf : P2 x₁ (x₂L ix₂) (yL iy) < P2 x₁ x₂ y := sorry,
       have H₃ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
         ((result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) (oy.move_left iy)).1 h),
       dsimp at H₁ H₂ H₃,
       rwa [sub_lt_iff_lt_add, ←H₂, ←H₃, add_comm₂] at H₁ },
     { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₂ ix₂ jy,
       have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound (HR₂.1 h),
+      let wf : P2 x₁ (x₂L ix₂) (yR jy) < P2 x₁ x₂ y := sorry,
       have H₃ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
         ((result (P2 _ _ _) ox₁ (ox₂.move_left ix₂) (oy.move_right jy)).1 h),
       dsimp at H₁ H₂ H₃,
@@ -622,18 +679,20 @@ end
         add_comm] at H },
     { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₃ jx₁ iy,
       have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound (HR₁.1 h),
+      let wf : P2 (x₁R jx₁) x₂ (yL iy) < P2 x₁ x₂ y := sorry,
       have H₃ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
         ((result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ (oy.move_left iy)).1 h),
       dsimp at H₁ H₂ H₃,
       rwa [lt_sub_iff_add_lt, H₂, H₃, add_comm₂] at H₁ },
     { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₄ jx₁ jy,
       have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound (HR₁.1 h),
+      let wf : P2 (x₁R jx₁) x₂ (yR jy) < P2 x₁ x₂ y := sorry,
       have H₃ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
         ((result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ (oy.move_right jy)).1 h),
       dsimp at H₁ H₂ H₃,
       rwa [sub_lt_iff_lt_add, H₂, H₃] at H₁ } }
 end
-using_well_founded { dec_tac := sorry }
+using_well_founded { dec_tac := tactic.assumption }
 
 end mul_args
 

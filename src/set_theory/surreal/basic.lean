@@ -330,7 +330,7 @@ section cut_expand
 variable {α : Type*}
 
 def cut_expand (r : α → α → Prop) (s' s : multiset α) : Prop :=
-∃ (t : multiset α) (a ∈ s), (∀ a' ∈ t, r a' a) ∧ s' + {a} = s + t
+∃ (t : multiset α) a, (∀ a' ∈ t, r a' a) ∧ s' + {a} = s + t
 
 variable {r : α → α → Prop}
 
@@ -341,16 +341,10 @@ theorem multiset.pair_comm {x y : α} : ({x, y} : multiset α) = {y, x} :=
 multiset.cons_swap x y ∅
 
 theorem cut_expand_add_left {x s} (h : ∀ x' ∈ s, r x' x) (t) : cut_expand r (s + t) ({x} + t) :=
-begin
-  refine ⟨s, x, multiset.mem_cons_self x t, h, _⟩,
-  rw [add_comm s, add_assoc, add_comm s, ←add_assoc, add_comm t]
-end
+⟨s, x, h, by rw [add_comm s, add_assoc, add_comm s, ←add_assoc, add_comm t]⟩
 
 theorem cut_expand_add_right {x t} (s) (h : ∀ x' ∈ t, r x' x) : cut_expand r (s + t) (s + {x}) :=
-begin
-  refine ⟨t, x, multiset.mem_add.2 (or.inr (multiset.mem_singleton_self x)), h, _⟩,
-  rw [add_assoc, add_comm t, ←add_assoc]
-end
+⟨t, x, h, by rw [add_assoc, add_comm t, ←add_assoc]⟩
 
 theorem cut_add_singleton_left {x x'} (h : r x' x) (t) :
   cut_expand r ({x'} + t) ({x} + t) :=

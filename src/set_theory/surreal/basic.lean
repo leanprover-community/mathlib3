@@ -538,7 +538,7 @@ end
     (h.trans_lt (ox₂.lt_move_right jx₂)),
 
   -- Prove that if `x₁ ≈ x₂`, then `x₁ * y ≈ x₂ * y`.
-  refine ⟨λ h, ⟨le_def_lf.2 ⟨_, _⟩, le_def_lf.2 ⟨_, _⟩⟩, _⟩,
+  refine ⟨λ h, ⟨le_def_lf.2 ⟨_, _⟩, le_def_lf.2 ⟨_, _⟩⟩, λ h, _⟩,
   { rintro (⟨ix₁, iy⟩ | ⟨jx₁, jy⟩);
     apply lf_of_lt;
     change (⟦_⟧ : game) < ⟦_⟧; dsimp,
@@ -585,7 +585,8 @@ end
       rw [lt_sub_iff_add_lt, ←H, add_comm₂],
       apply (HU₃ jx₁ h.2).1 } },
 
-  intro h,
+  -- Prove that if `x₁ < x₂`, then `x₂ * yL + x₁ * y < x₁ * yL + x₂ * y` and
+  -- `x₂ * y + x₁ * yR < x₁ * y + x₂ * yR`.
   rcases lf_def_le.1 h.lf with ⟨ix₂, h⟩ | ⟨jx₁, h⟩,
   { cases lt_or_equiv_of_le h ox₁ (ox₂.move_left ix₂) with h h;
     refine ⟨λ iy, _, λ jy, _⟩,

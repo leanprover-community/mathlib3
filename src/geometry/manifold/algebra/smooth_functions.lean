@@ -210,12 +210,6 @@ instance module {V : Type*} [normed_group V] [normed_space 𝕜 V] :
   module 𝕜 C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 function.injective.module 𝕜 coe_fn_add_monoid_hom cont_mdiff_map.coe_inj coe_smul
 
-/-- A special case of `pi.module` for non-dependent types. Lean get stuck on the definition
-below without this. -/
-instance _root_.function.module (I : Type*) {R : Type*} (A : Type*) {r : semiring R}
-  [add_comm_monoid A] [module R A] : module R (I → A) :=
-pi.module _ _ _
-
 instance op_module {V : Type*} [normed_group V] [normed_space 𝕜 V] :
   module 𝕜ᵐᵒᵖ C^∞⟮I, N; 𝓘(𝕜, V), V⟯ :=
 function.injective.module 𝕜ᵐᵒᵖ coe_fn_add_monoid_hom cont_mdiff_map.coe_inj coe_op_smul

@@ -471,9 +471,6 @@ instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : normed_group E] :
 instance : normed_space 𝕜 (restrict_scalars 𝕜 𝕜' E) :=
 { norm_smul_le := λ c x, (normed_space.norm_smul_le (algebra_map 𝕜 𝕜' c) (_ : E)).trans_eq $
     by rw norm_algebra_map',
-  to_is_central_scalar := begin  -- TODO: remove?
-    refine ⟨λ _ _, (op_smul_eq_smul (algebra_map _ _ _) _ : _)⟩,
-  end,
   ..restrict_scalars.module 𝕜 𝕜' E }
 
 /--

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
+import data.zmod.quotient
 import group_theory.order_of_element
 
 /-!

@@ -515,7 +515,7 @@ end
   have HN₁ := result (P1 x₁ y) ox₁ oy,
   have HN₂ := result (P1 x₂ y) ox₂ oy,
 
-  have HR₁ := λ {jx₁}, (result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ oy).2,
+  have HR₁ := λ {jx₁}, result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ oy,
 
   have HS₁ := λ jx₁ iy, HN₁.lt_move_right (sum.inr (jx₁, iy)),
   have HS₂ := λ jx₁ iy, HN₁.move_left_lt (sum.inr (jx₁, iy)),
@@ -586,31 +586,28 @@ end
       sorry }, all_goals { sorry } },
   { cases lt_or_equiv_of_le h (ox₁.move_right jx₁) ox₂ with h h;
     refine ⟨λ iy, _, λ jy, _⟩,
-    { have H : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add ((HR₁ h).1 iy) (HS₁ jx₁ iy),
+    { have H : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add ((HR₁.2 h).1 iy) (HS₁ jx₁ iy),
       dsimp at H, abel at H,
       rwa [←add_assoc, add_comm ⟦_ * y⟧, add_assoc ⟦x₁R jx₁ * _⟧, add_lt_add_iff_left,
         add_comm] at H },
-    { have H : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add ((HR₁ h).2 jy) (HS₂ jx₁ jy),
+    { have H : (⟦_⟧ : game) < ⟦_⟧ := add_lt_add ((HR₁.2 h).2 jy) (HS₂ jx₁ jy),
       dsimp at H, abel at H,
       rwa [←add_assoc ⟦x₁ * _⟧, add_comm ⟦x₁ * y⟧, add_assoc ⟦x₁R jx₁ * _⟧, add_lt_add_iff_left,
         add_comm] at H },
     { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₁ jx₁ iy,
-      have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
-        ((result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ oy).1 h),
+      have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound (HR₁.1 h),
       have H₃ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
         ((result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ (oy.move_left iy)).1 h),
       change (⟦_⟧ : game) < ⟦_⟧,
       dsimp at H₁ H₂ H₃,
       rwa [lt_sub_iff_add_lt, H₂, H₃, add_comm₂] at H₁ },
     { have H₁ : (⟦_⟧ : game) < ⟦_⟧ := HS₂ jx₁ jy,
-      have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
-        ((result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ oy).1 h),
+      have H₂ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound (HR₁.1 h),
       have H₃ : (⟦_⟧ : game) = ⟦_⟧ := quot.sound
         ((result (P2 _ _ _) (ox₁.move_right jx₁) ox₂ (oy.move_right jy)).1 h),
       change (⟦_⟧ : game) < ⟦_⟧,
       dsimp at H₁ H₂ H₃,
-      rwa [sub_lt_iff_lt_add, H₂, H₃] at H₁ },
-    all_goals { sorry } },
+      rwa [sub_lt_iff_lt_add, H₂, H₃] at H₁ } }
 end
 using_well_founded { dec_tac := sorry }
 

@@ -295,8 +295,8 @@ lemma map_mul_eq_one [monoid_hom_class F M N] (f : F) {a b : M} (h : a * b = 1) 
 by rw [← map_mul, h, map_one]
 
 @[to_additive]
-theorem map_div' [div_inv_monoid G] [div_inv_monoid H] [monoid_hom_class F G H] (f : F)
-  (hf : ∀ x, f (x⁻¹) = (f x)⁻¹) (a b : G) : f (a / b) = f a / f b :=
+lemma map_div' [div_inv_monoid G] [div_inv_monoid H] [monoid_hom_class F G H] (f : F)
+  (hf : ∀ a, f a⁻¹ = (f a)⁻¹) (a b : G) : f (a / b) = f a / f b :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul, hf]
 
 /-- Group homomorphisms preserve inverse. -/
@@ -1069,19 +1069,19 @@ map_inv f _
 
 /-- Group homomorphisms preserve integer power. -/
 @[to_additive "Additive group homomorphisms preserve integer scaling."]
-protected theorem map_zpow {G H} [group G] [division_monoid H] (f : G →* H) (g : G) (n : ℤ) :
+protected theorem map_zpow [group α] [division_monoid β] (f : α →* β) (g : α) (n : ℤ) :
   f (g ^ n) = (f g) ^ n :=
 map_zpow f g n
 
 /-- Group homomorphisms preserve division. -/
 @[to_additive "Additive group homomorphisms preserve subtraction."]
-protected theorem map_div {G H} [group G] [division_monoid H] (f : G →* H) (g h : G) :
+protected theorem map_div [group α] [division_monoid β] (f : α →* β) (g h : α) :
   f (g / h) = f g / f h :=
 map_div f g h
 
 /-- Group homomorphisms preserve division. -/
 @[to_additive "Additive group homomorphisms preserve subtraction."]
-protected theorem map_mul_inv {G H} [group G] [division_monoid H] (f : G →* H) (g h : G) :
+protected theorem map_mul_inv [group α] [division_monoid β] (f : α →* β) (g h : α) :
   f (g * h⁻¹) = (f g) * (f h)⁻¹ :=
 map_mul_inv f g h
 

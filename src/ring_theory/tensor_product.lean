@@ -806,7 +806,8 @@ namespace module
 
 variables {R M N : Type*} [comm_semiring R]
 variables [add_comm_monoid M] [add_comm_monoid N]
-variables [module R M] [module R N]
+variables [module R M] [module R N] [module Rᵐᵒᵖ M] [module Rᵐᵒᵖ N]
+variables [is_central_scalar R M] [is_central_scalar R N]
 
 /-- The algebra homomorphism from `End M ⊗ End N` to `End (M ⊗ N)` sending `f ⊗ₜ g` to
 the `tensor_product.map f g`, the tensor product of the two maps. -/

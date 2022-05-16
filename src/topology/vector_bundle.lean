@@ -909,11 +909,12 @@ lemma pullback.continuous_total_space_mk {f : B' → B} {x : B'}
   [∀ x, topological_space (E x)] [topological_vector_bundle R F E] :
   continuous (total_space_mk (f *ᵖ E) x) :=
 begin
-  simp only [continuous_iff_le_induced, pullback.total_space.topological_space, induced_compose,
-    pullback_total_space_embedding, prod.topological_space, le_inf_iff, induced_inf, function.comp],
-  have h := (topological_vector_bundle.total_space_mk_inducing R F E (f x)).induced,
-  simp only at h,
-  exact ⟨by {rw induced_const, exact le_top}, by {rw h, exact le_of_eq rfl}⟩,
+  simp_rw [continuous_iff_le_induced, pullback.total_space.topological_space,
+    prod.topological_space, induced_inf, induced_compose, pullback_total_space_embedding,
+    function.comp, total_space.proj_mk, le_inf_iff, bundle.pullback.topological_space,
+    induced_const, le_top, true_and],
+  dsimp only [total_space.proj_mk],
+  simp_rw [← (topological_vector_bundle.total_space_mk_inducing R F E (f x)).induced, le_rfl]
 end
 
 variables {R F}
@@ -999,7 +1000,7 @@ instance pullback [∀ x, topological_space (E x)] [topological_vector_bundle R 
       simp only [topological_vector_bundle.trivialization.pullback, pullback.lift_mk]
         with mfld_simps,
       dsimp only,
-      simp_rw [total_space.sigma_mk_eq, e.mk_symm hb.1, trans_eq_coord_change he he' hb v] },
+      simp_rw [sigma_mk_eq_total_space_mk, e.mk_symm hb.1, trans_eq_coord_change he he' hb v] },
   end }
 
 end pullback

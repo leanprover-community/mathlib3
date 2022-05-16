@@ -32,9 +32,6 @@ As an unfortunate side effect, this means that `n • s`, where `n : ℕ`, is am
 pointwise scaling and repeated pointwise addition; the former has `(2 : ℕ) • {1, 2} = {2, 4}`, while
 the latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`.
 
-We define `set_semiring α`, an alias of `set α`, which we endow with `∪` as addition and `*` as
-multiplication. If `α` is a (commutative) monoid, `set_semiring α` is a (commutative) semiring.
-
 Appropriate definitions and results are also transported to the additive theory via `to_additive`.
 
 ## Implementation notes
@@ -994,61 +991,6 @@ by { simp_rw ←image_neg, exact image_image2_right_comm smul_neg }
 
 end ring
 
-section monoid
-
-/-! ### `set α` as a `(∪, *)`-semiring -/
-
-/-- An alias for `set α`, which has a semiring structure given by `∪` as "addition" and pointwise
-  multiplication `*` as "multiplication". -/
-@[derive [inhabited, partial_order, order_bot]] def set_semiring (α : Type*) : Type* := set α
-
-/-- The identity function `set α → set_semiring α`. -/
-protected def up (s : set α) : set_semiring α := s
-/-- The identity function `set_semiring α → set α`. -/
-protected def set_semiring.down (s : set_semiring α) : set α := s
-@[simp] protected lemma down_up {s : set α} : s.up.down = s := rfl
-@[simp] protected lemma up_down {s : set_semiring α} : s.down.up = s := rfl
-
-/- This lemma is not tagged `simp`, since otherwise the linter complains. -/
-lemma up_le_up {s t : set α} : s.up ≤ t.up ↔ s ⊆ t := iff.rfl
-/- This lemma is not tagged `simp`, since otherwise the linter complains. -/
-lemma up_lt_up {s t : set α} : s.up < t.up ↔ s ⊂ t := iff.rfl
-
-@[simp] lemma down_subset_down {s t : set_semiring α} : s.down ⊆ t.down ↔ s ≤ t := iff.rfl
-@[simp] lemma down_ssubset_down {s t : set_semiring α} : s.down ⊂ t.down ↔ s < t := iff.rfl
-
-instance set_semiring.add_comm_monoid : add_comm_monoid (set_semiring α) :=
-{ add := λ s t, (s ∪ t : set α),
-  zero := (∅ : set α),
-  add_assoc := union_assoc,
-  zero_add := empty_union,
-  add_zero := union_empty,
-  add_comm := union_comm, }
-
-instance set_semiring.non_unital_non_assoc_semiring [has_mul α] :
-  non_unital_non_assoc_semiring (set_semiring α) :=
-{ zero_mul := λ s, empty_mul,
-  mul_zero := λ s, mul_empty,
-  left_distrib := λ _ _ _, mul_union,
-  right_distrib := λ _ _ _, union_mul,
-  ..set.has_mul, ..set_semiring.add_comm_monoid }
-
-instance set_semiring.non_assoc_semiring [mul_one_class α] : non_assoc_semiring (set_semiring α) :=
-{ ..set_semiring.non_unital_non_assoc_semiring, ..set.mul_one_class }
-
-instance set_semiring.non_unital_semiring [semigroup α] : non_unital_semiring (set_semiring α) :=
-{ ..set_semiring.non_unital_non_assoc_semiring, ..set.semigroup }
-
-instance set_semiring.semiring [monoid α] : semiring (set_semiring α) :=
-{ ..set_semiring.non_assoc_semiring, ..set_semiring.non_unital_semiring }
-
-instance set_semiring.non_unital_comm_semiring [comm_semigroup α] :
-  non_unital_comm_semiring (set_semiring α) :=
-{ ..set_semiring.non_unital_semiring, ..set.comm_semigroup }
-
-instance set_semiring.comm_semiring [comm_monoid α] : comm_semiring (set_semiring α) :=
-{ ..set.comm_monoid, ..set_semiring.semiring }
-
 section mul_hom
 
 variables [has_mul α] [has_mul β] [mul_hom_class F α β] (m : F) {s t : set α}
@@ -1060,51 +1002,7 @@ lemma image_mul : (m : α → β) '' (s * t) = m '' s * m '' t := image_image2_d
 lemma preimage_mul_preimage_subset {s t : set β} : (m : α → β) ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
 by { rintro _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (map_mul m _ _).symm ⟩ }
 
-instance set_semiring.no_zero_divisors : no_zero_divisors (set_semiring α) :=
-⟨λ a b ab, a.eq_empty_or_nonempty.imp_right $ λ ha, b.eq_empty_or_nonempty.resolve_right $
-  λ hb, nonempty.ne_empty ⟨_, mul_mem_mul ha.some_mem hb.some_mem⟩ ab⟩
-
-/- Since addition on `set_semiring` is commutative (it is set union), there is no need
-to also have the instance `covariant_class (set_semiring α) (set_semiring α) (swap (+)) (≤)`. -/
-instance set_semiring.covariant_class_add :
-  covariant_class (set_semiring α) (set_semiring α) (+) (≤) :=
-{ elim := λ a b c, union_subset_union_right _ }
-
-instance set_semiring.covariant_class_mul_left :
-  covariant_class (set_semiring α) (set_semiring α) (*) (≤) :=
-{ elim := λ a b c, mul_subset_mul_left }
-
-instance set_semiring.covariant_class_mul_right :
-  covariant_class (set_semiring α) (set_semiring α) (swap (*)) (≤) :=
-{ elim := λ a b c, mul_subset_mul_right }
-
 end mul_hom
-
-/-- The image of a set under a multiplicative homomorphism is a ring homomorphism
-with respect to the pointwise operations on sets. -/
-def image_hom [monoid α] [monoid β] (f : α →* β) : set_semiring α →+* set_semiring β :=
-{ to_fun := image f,
-  map_zero' := image_empty _,
-  map_one' := by simp only [← singleton_one, image_singleton, f.map_one],
-  map_add' := image_union _,
-  map_mul' := λ _ _, image_mul f }
-
-end monoid
-
-section comm_monoid
-
-variable [comm_monoid α]
-
-instance : canonically_ordered_comm_semiring (set_semiring α) :=
-{ add_le_add_left := λ a b, add_le_add_left,
-  le_iff_exists_add := λ a b, ⟨λ ab, ⟨b, (union_eq_right_iff_subset.2 ab).symm⟩,
-    by { rintro ⟨c, rfl⟩, exact subset_union_left _ _ }⟩,
-  ..(infer_instance : comm_semiring (set_semiring α)),
-  ..(infer_instance : partial_order (set_semiring α)),
-  ..(infer_instance : order_bot (set_semiring α)),
-  ..(infer_instance : no_zero_divisors (set_semiring α)) }
-
-end comm_monoid
 
 end set
 

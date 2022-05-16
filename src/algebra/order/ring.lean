@@ -1596,7 +1596,7 @@ instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_top 
   map_mul' := λ x y,
     begin
       have : ∀ z, map f z = 0 ↔ z = 0,
-        from λ z, (option.map_injective hf).eq_iff' f.to_zero_hom.with_top.map_zero,
+        from λ z, (option.map_injective hf).eq_iff' f.to_zero_hom.with_top_map.map_zero,
       rcases eq_or_ne x 0 with rfl|hx, { simp },
       rcases eq_or_ne y 0 with rfl|hy, { simp },
       induction x using with_top.rec_top_coe, { simp [hy, this] },

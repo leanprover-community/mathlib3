@@ -560,6 +560,11 @@ lemma comap_incl_eq_top : N₂.comap N.incl = ⊤ ↔ N ≤ N₂ :=
 by simpa only [← lie_submodule.coe_to_submodule_eq_iff, lie_submodule.coe_submodule_comap,
   lie_submodule.incl_coe, lie_submodule.top_coe_submodule, submodule.comap_subtype_eq_top]
 
+lemma comap_incl_eq_bot : N₂.comap N.incl = ⊥ ↔ N ⊓ N₂ = ⊥ :=
+by simpa only [_root_.eq_bot_iff, ← lie_submodule.coe_to_submodule_eq_iff,
+  lie_submodule.coe_submodule_comap, lie_submodule.incl_coe, lie_submodule.bot_coe_submodule,
+  ← submodule.disjoint_iff_comap_eq_bot]
+
 end lie_submodule
 
 namespace lie_ideal

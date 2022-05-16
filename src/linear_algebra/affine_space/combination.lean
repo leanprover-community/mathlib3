@@ -319,6 +319,13 @@ by rw [attach_affine_combination_of_injective s w (coe : s → P) subtype.coe_in
 
 omit S
 
+/-- Viewing a module as an affine space modelled on itself, a `weighted_vsub` is just a linear
+combination. -/
+@[simp] lemma weighted_vsub_eq_linear_combination
+  {ι} (s : finset ι) {w : ι → k} {p : ι → V} (hw : s.sum w = 0) :
+  s.weighted_vsub p w = ∑ i in s, w i • p i :=
+by simp [s.weighted_vsub_apply, vsub_eq_sub, smul_sub, ← finset.sum_smul, hw]
+
 /-- Viewing a module as an affine space modelled on itself, affine combinations are just linear
 combinations. -/
 @[simp] lemma affine_combination_eq_linear_combination (s : finset ι) (p : ι → V) (w : ι → k)

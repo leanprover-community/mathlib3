@@ -126,7 +126,7 @@ lemma split_lower_ne_split_upper (I : box ι) (i : ι) (x : ℝ) :
   I.split_lower i x ≠ I.split_upper i x :=
 begin
   cases le_or_lt x (I.lower i),
-  { rw [split_upper_eq_self.2 h, split_lower_eq_bot.2 h], exact with_bot.bot_ne_coe _ },
+  { rw [split_upper_eq_self.2 h, split_lower_eq_bot.2 h], exact with_bot.bot_ne_coe },
   { refine (disjoint_split_lower_split_upper I i x).ne _,
     rwa [ne.def, split_lower_eq_bot, not_le] }
 end

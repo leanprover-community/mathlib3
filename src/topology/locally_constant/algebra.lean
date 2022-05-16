@@ -133,11 +133,27 @@ instance [semiring Y] : semiring (locally_constant X Y) :=
 { .. locally_constant.add_comm_monoid, .. locally_constant.monoid,
   .. locally_constant.distrib, .. locally_constant.mul_zero_class }
 
+instance [non_unital_comm_semiring Y] : non_unital_comm_semiring (locally_constant X Y) :=
+{ .. locally_constant.non_unital_semiring, .. locally_constant.comm_semigroup }
+
 instance [comm_semiring Y] : comm_semiring (locally_constant X Y) :=
 { .. locally_constant.semiring, .. locally_constant.comm_monoid }
 
+instance [non_unital_non_assoc_ring Y] : non_unital_non_assoc_ring (locally_constant X Y) :=
+{ .. locally_constant.add_comm_group, .. locally_constant.has_mul,
+  .. locally_constant.distrib, .. locally_constant.mul_zero_class }
+
+instance [non_unital_ring Y] : non_unital_ring (locally_constant X Y) :=
+{ .. locally_constant.semigroup, .. locally_constant.non_unital_non_assoc_ring }
+
+instance [non_assoc_ring Y] : non_assoc_ring (locally_constant X Y) :=
+{ .. locally_constant.mul_one_class, .. locally_constant.non_unital_non_assoc_ring }
+
 instance [ring Y] : ring (locally_constant X Y) :=
 { .. locally_constant.semiring, .. locally_constant.add_comm_group }
+
+instance [non_unital_comm_ring Y] : non_unital_comm_ring (locally_constant X Y) :=
+{ .. locally_constant.non_unital_comm_semiring, .. locally_constant.non_unital_ring }
 
 instance [comm_ring Y] : comm_ring (locally_constant X Y) :=
 { .. locally_constant.comm_semiring, .. locally_constant.ring }

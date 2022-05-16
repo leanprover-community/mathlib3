@@ -326,6 +326,16 @@ meta def nat.to_pexpr : ℕ → pexpr
 | 0 := ``(0)
 | 1 := ``(1)
 | n := if n % 2 = 0 then ``(bit0 %%(nat.to_pexpr (n/2))) else ``(bit1 %%(nat.to_pexpr (n/2)))
+
+/--
+`int.to_pexpr n` creates a `pexpr` that will evaluate to `n`.
+The `pexpr` does not hold any typing information:
+`to_expr ``((%%(int.to_pexpr (-5)) : ℚ))` will create a native `ℚ` numeral `(-5 : ℚ)`.
+-/
+meta def int.to_pexpr : ℤ → pexpr
+| (int.of_nat k) := k.to_pexpr
+| (int.neg_succ_of_nat k) := ``(-%%((k+1).to_pexpr))
+
 namespace expr
 
 /--

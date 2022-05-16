@@ -155,7 +155,7 @@ lemma integrable_iff_integrable_mul_pdf [is_finite_measure ℙ] {X : α → E} [
   {f : E → ℝ} (hf : measurable f) :
   integrable (λ x, f (X x)) ℙ ↔ integrable (λ x, f x * (pdf X ℙ μ x).to_real) μ :=
 begin
-  rw [← integrable_map_measure hf.ae_strongly_measurable (has_pdf.measurable X ℙ μ),
+  rw [← integrable_map_measure hf.ae_strongly_measurable (has_pdf.measurable X ℙ μ).ae_measurable,
       map_eq_with_density_pdf X ℙ μ,
       integrable_with_density_iff (measurable_pdf _ _ _) ae_lt_top],
   apply_instance
@@ -169,7 +169,7 @@ lemma integral_fun_mul_eq_integral [is_finite_measure ℙ]
   ∫ x, f x * (pdf X ℙ μ x).to_real ∂μ = ∫ x, f (X x) ∂ℙ :=
 begin
   by_cases hpdf : integrable (λ x, f x * (pdf X ℙ μ x).to_real) μ,
-  { rw [← integral_map (has_pdf.measurable X ℙ μ) hf.ae_strongly_measurable,
+  { rw [← integral_map (has_pdf.measurable X ℙ μ).ae_measurable hf.ae_strongly_measurable,
         map_eq_with_density_pdf X ℙ μ,
         integral_eq_lintegral_pos_part_sub_lintegral_neg_part hpdf,
         integral_eq_lintegral_pos_part_sub_lintegral_neg_part,

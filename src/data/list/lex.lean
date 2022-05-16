@@ -19,7 +19,7 @@ Related files are:
 * `data.finset.colex`: Colexicographic order on finite sets.
 * `data.psigma.order`: Lexicographic order on `Σ' i, α i`.
 * `data.sigma.order`: Lexicographic order on `Σ i, α i`.
-* `order.lexicographic`: Lexicographic order on `α × β`.
+* `data.prod.lex`: Lexicographic order on `α × β`.
 -/
 
 namespace list

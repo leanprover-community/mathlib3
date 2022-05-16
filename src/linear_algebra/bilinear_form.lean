@@ -444,7 +444,7 @@ by { ext, refl }
   B.comp linear_map.id linear_map.id = B :=
 by { ext, refl }
 
-lemma comp_injective (B₁ B₂ : bilin_form R M') {l r : M →ₗ[R] M'}
+lemma comp_inj (B₁ B₂ : bilin_form R M') {l r : M →ₗ[R] M'}
   (hₗ : function.surjective l) (hᵣ : function.surjective r) :
   B₁.comp l r = B₂.comp l r ↔ B₁ = B₂ :=
 begin
@@ -795,7 +795,7 @@ begin
   have he : function.surjective (⇑(↑e : M₃' →ₗ[R₃] M₃) : M₃' → M₃) := e.surjective,
   show bilin_form.is_adjoint_pair _ _ _ _  ↔ bilin_form.is_adjoint_pair _ _ _ _,
   rw [is_adjoint_pair_iff_comp_left_eq_comp_right, is_adjoint_pair_iff_comp_left_eq_comp_right,
-      hᵣ, hₗ, comp_injective _ _ he he],
+      hᵣ, hₗ, comp_inj _ _ he he],
 end
 
 /-- An endomorphism of a module is self-adjoint with respect to a bilinear form if it serves as an
@@ -976,10 +976,10 @@ end
 lemma nondegenerate.ker_eq_bot {B : bilin_form R₂ M₂} (h : B.nondegenerate) :
   B.to_lin.ker = ⊥ := nondegenerate_iff_ker_eq_bot.mp h
 
-/-- The restriction of a nondegenerate bilinear form `B` onto a submodule `W` is
+/-- The restriction of a reflexive bilinear form `B` onto a submodule `W` is
 nondegenerate if `disjoint W (B.orthogonal W)`. -/
 lemma nondegenerate_restrict_of_disjoint_orthogonal
-  (B : bilin_form R₁ M₁) (b : B.is_symm)
+  (B : bilin_form R₁ M₁) (b : B.is_refl)
   {W : submodule R₁ M₁} (hW : disjoint W (B.orthogonal W)) :
   (B.restrict W).nondegenerate :=
 begin
@@ -987,7 +987,8 @@ begin
   rw [submodule.mk_eq_zero, ← submodule.mem_bot R₁],
   refine hW ⟨hx, λ y hy, _⟩,
   specialize b₁ ⟨y, hy⟩,
-  rwa [restrict_apply, submodule.coe_mk, submodule.coe_mk, b] at b₁
+  rw [restrict_apply, submodule.coe_mk, submodule.coe_mk] at b₁,
+  exact is_ortho_def.mpr (b x y b₁),
 end
 
 /-- An orthogonal basis with respect to a nondegenerate bilinear form has no self-orthogonal
@@ -1032,7 +1033,7 @@ end
 section
 
 lemma to_lin_restrict_ker_eq_inf_orthogonal
-  (B : bilin_form K V) (W : subspace K V) (b : B.is_symm) :
+  (B : bilin_form K V) (W : subspace K V) (b : B.is_refl) :
   (B.to_lin.dom_restrict W).ker.map W.subtype = (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
   ext x, split; intro hx,
@@ -1069,7 +1070,7 @@ variable [finite_dimensional K V]
 open finite_dimensional
 
 lemma finrank_add_finrank_orthogonal
-  {B : bilin_form K V} {W : subspace K V} (b₁ : B.is_symm) :
+  {B : bilin_form K V} {W : subspace K V} (b₁ : B.is_refl) :
   finrank K W + finrank K (B.orthogonal W) =
   finrank K V + finrank K (W ⊓ B.orthogonal ⊤ : subspace K V) :=
 begin
@@ -1083,10 +1084,10 @@ begin
 end
 
 /-- A subspace is complement to its orthogonal complement with respect to some
-bilinear form if that bilinear form restricted on to the subspace is nondegenerate. -/
+reflexive bilinear form if that bilinear form restricted on to the subspace is nondegenerate. -/
 lemma restrict_nondegenerate_of_is_compl_orthogonal
   {B : bilin_form K V} {W : subspace K V}
-  (b₁ : B.is_symm) (b₂ : (B.restrict W).nondegenerate) :
+  (b₁ : B.is_refl) (b₂ : (B.restrict W).nondegenerate) :
   is_compl W (B.orthogonal W) :=
 begin
   have : W ⊓ B.orthogonal W = ⊥,
@@ -1107,10 +1108,10 @@ begin
     exact nat.le.intro rfl }
 end
 
-/-- A subspace is complement to its orthogonal complement with respect to some bilinear form
-if and only if that bilinear form restricted on to the subspace is nondegenerate. -/
+/-- A subspace is complement to its orthogonal complement with respect to some reflexive bilinear
+form if and only if that bilinear form restricted on to the subspace is nondegenerate. -/
 theorem restrict_nondegenerate_iff_is_compl_orthogonal
-  {B : bilin_form K V} {W : subspace K V} (b₁ : B.is_symm) :
+  {B : bilin_form K V} {W : subspace K V} (b₁ : B.is_refl) :
   (B.restrict W).nondegenerate ↔ is_compl W (B.orthogonal W) :=
 ⟨λ b₂, restrict_nondegenerate_of_is_compl_orthogonal b₁ b₂,
  λ h, B.nondegenerate_restrict_of_disjoint_orthogonal b₁ h.1⟩
@@ -1162,10 +1163,10 @@ lemma below since the below lemma does not require `V` to be finite dimensional.
 `bilin_form.restrict_nondegenerate_iff_is_compl_orthogonal` does not require `B` to be nondegenerate
 on the whole space. -/
 
-/-- The restriction of a symmetric, non-degenerate bilinear form on the orthogonal complement of
+/-- The restriction of a reflexive, non-degenerate bilinear form on the orthogonal complement of
 the span of a singleton is also non-degenerate. -/
 lemma restrict_orthogonal_span_singleton_nondegenerate (B : bilin_form K V)
-  (b₁ : B.nondegenerate) (b₂ : B.is_symm) {x : V} (hx : ¬ B.is_ortho x x) :
+  (b₁ : B.nondegenerate) (b₂ : B.is_refl) {x : V} (hx : ¬ B.is_ortho x x) :
   nondegenerate $ B.restrict $ B.orthogonal (K ∙ x) :=
 begin
   refine λ m hm, submodule.coe_eq_zero.1 (b₁ m.1 (λ n, _)),

@@ -9,7 +9,7 @@ import data.list.big_operators
 # Join of a list of lists
 
 This file proves basic properties of `list.join`, which concatenates a list of lists. It is defined
-in [`data.list.defs`](./data/list/defs).
+in [`data.list.defs`](./defs).
 -/
 
 variables {α β : Type*}

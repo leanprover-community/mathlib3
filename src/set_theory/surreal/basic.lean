@@ -22,8 +22,8 @@ besides!) but we do not yet have a complete development.
 
 ## Order properties
 
-Surreal numbers inherit the relations `≤` and `<` from games, and these relations satisfy the axioms
-of a partial order.
+Surreal numbers inherit the relations `≤` and `<` from games (`surreal.has_le` and
+`surreal.has_lt`), and these relations satisfy the axioms of a partial order.
 
 ## Algebraic operations
 

@@ -14,7 +14,7 @@ import analysis.calculus.specific_functions
 This file defines the convolution on two functions, i.e. `x ↦ ∫ f(t)g(x - t) ∂t`.
 In the general case, these functions can be vector-valued, and have an arbitrary (additive)
 group as domain. We use a continuous bilinear operation `L` on these function values as
-"multiplication". The domain must be equipped with a measure Haar measure `μ`
+"multiplication". The domain must be equipped with a Haar measure `μ`
 (though many individual results have weaker conditions on `μ`).
 
 For many applications we can take `L = lsmul ℝ ℝ` or `L = lmul ℝ ℝ`.
@@ -46,7 +46,7 @@ This generality has several advantages
 
 # Main Definitions
 * `convolution f g L μ x = (f ⋆[L, μ] g) x = ∫ t, L (f t) (g (x - t)) ∂μ` is the convolution of
-  `f` and `g` w.r.t. the continuous bilinear map `L` and.
+  `f` and `g` w.r.t. the continuous bilinear map `L` and measure `μ`.
 * `convolution_exists_at f g x L μ` states that the convolution `(f ⋆[L, μ] g) x` is well-defined
   (i.e. the integral exists).
 * `convolution_exists f g L μ` states that the convolution `f ⋆[L, μ] g` is well-defined at each
@@ -167,6 +167,12 @@ lemma measure_theory.ae_strongly_measurable.convolution_integrand_swap_snd'
   (hg : ae_strongly_measurable g μ) : ae_strongly_measurable (λ t, L (f (x - t)) (g t)) μ :=
 L.ae_strongly_measurable_comp₂ (hf.comp_measurable $ measurable_id.const_sub x) hg
 
+/-- A sufficient condition to prove that `f ⋆[L, μ] g` exists.
+We assume that the integrand has compact support and `g` is bounded on this support (note that
+both properties hold if `g` is continuous with compact support). We also require that `f` is
+integrable on the support of the integrand, and that both functions are strongly measurable.
+
+Note: we could weaken the measurability condition to hold only for `μ.restrict s`. -/
 lemma bdd_above.convolution_exists_at' {x₀ : G}
   {s : set G} (hs : measurable_set s) (h2s : support (λ t, L (f t) (g (x₀ - t))) ⊆ s)
   (hf : integrable_on f s μ)
@@ -285,6 +291,13 @@ section measurable_group
 
 variables [has_measurable_add₂ G] [has_measurable_neg G] [is_add_left_invariant μ]
 
+/-- A sufficient condition to prove that `f ⋆[L, μ] g` exists.
+We assume that the integrand has compact support and `g` is bounded on this support (note that
+both properties hold if `g` is continuous with compact support). We also require that `f` is
+integrable on the support of the integrand, and that both functions are strongly measurable.
+
+This is a variant of `bdd_above.convolution_exists_at'` in an abelian group with a left-invariant
+measure. This allows us to state the boundedness and measurability of `g` in a more natural way. -/
 lemma bdd_above.convolution_exists_at [sigma_finite μ] {x₀ : G}
   {s : set G} (hs : measurable_set s) (h2s : support (λ t, L (f t) (g (x₀ - t))) ⊆ s)
   (hf : integrable_on f s μ)

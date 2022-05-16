@@ -999,7 +999,7 @@ instance has_le.le.add_covariant_class : covariant_class ordinal.{u} ordinal.{u}
 end⟩
 
 instance has_le.le.add_swap_covariant_class :
-  covariant_class ordinal.{u} ordinal.{u} (function.swap (+)) (≤) :=
+  covariant_class ordinal.{u} ordinal.{u} (swap (+)) (≤) :=
 ⟨λ c a b h, begin
   revert h c, exact (
   induction_on a $ λ α₁ r₁ hr₁, induction_on b $ λ α₂ r₂ hr₂ ⟨⟨⟨f, fo⟩, fi⟩⟩ c,

@@ -11,13 +11,55 @@ namespace tactic.interactive
 open tactic interactive
 setup_tactic_parser
 
+private meta def extract_subgoals : list expr → list congr_arg_kind → list expr →
+  tactic (list (expr × expr))
+| (_ :: _ :: g :: prf_args) (congr_arg_kind.eq :: kinds) (pat :: pat_args) :=
+  (λ rest, (g, pat) :: rest) <$> extract_subgoals prf_args kinds pat_args
+| (_ :: prf_args) (congr_arg_kind.fixed :: kinds) (_ :: pat_args) :=
+  extract_subgoals prf_args kinds pat_args
+| prf_args (congr_arg_kind.fixed_no_param :: kinds) (_ :: pat_args) :=
+  extract_subgoals prf_args kinds pat_args
+| (_ :: _ :: prf_args) (congr_arg_kind.cast :: kinds) (_ :: pat_args) :=
+  extract_subgoals prf_args kinds pat_args
+| _ _ [] := pure []
+| _ _ _ := fail "unsupported congr lemma"
+
+meta def equate_with_pattern_core : expr → tactic (list expr) | pat :=
+(applyc ``subsingleton.elim >> pure []) <|>
+(applyc ``rfl >> pure []) <|>
+if pat.is_mvar || pat.get_delayed_abstraction_locals.is_some then
+  get_goals <* set_goals []
+else if pat.is_app && pat.get_app_fn.is_constant then do
+  cl ← mk_specialized_congr_lemma pat,
+  [prf] ← get_goals,
+  tactic.apply cl.proof,
+  prf ← instantiate_mvars prf,
+  set_goals [],
+  subgoals ← extract_subgoals prf.get_app_args cl.arg_kinds pat.get_app_args,
+  subgoals ← subgoals.mmap (λ ⟨subgoal, subpat⟩, do
+    set_goals [subgoal],
+    equate_with_pattern_core subpat),
+  pure subgoals.join
+else if pat.is_lambda then do
+  applyc ``_root_.funext,
+  x ← tactic.intro pat.binding_name,
+  equate_with_pattern_core $ pat.lambda_body.instantiate_var x
+else do
+  pat ← pp pat,
+  fail $ to_fmt "unsupported pattern:\n" ++ pat
+
+meta def equate_with_pattern (pat : expr) : tactic unit := do
+congr_subgoals ← tactic.solve1 (equate_with_pattern_core pat),
+gs ← get_goals,
+set_goals $ congr_subgoals ++ gs
+
 /--  Scans three `expr`s `e, lhs, rhs` in parallel.
 Currently, `equate_with_pattern` has three behaviours at each location:
 produce a goal, recurse, or skip.
 
 See the doc-string for `tactic.interactive.dap` for more details.
 -/
-meta def equate_with_pattern : expr → expr → expr → tactic unit
+meta def equate_with_pattern_1 : expr → expr → expr → tactic unit
 | (expr.app f e) (expr.app f0 e0) (expr.app f1 e1) := do
   match e with
   | (expr.mvar _ _ _) := do
@@ -26,8 +68,8 @@ meta def equate_with_pattern : expr → expr → expr → tactic unit
     assert n el,
     rotate,
     get_local n >>= rewrite_target,
-    equate_with_pattern f f0 f1
-  | _ := do equate_with_pattern e e0 e1 *> equate_with_pattern f f0 f1
+    equate_with_pattern_1 f f0 f1
+  | _ := do equate_with_pattern_1 e e0 e1 *> equate_with_pattern_1 f f0 f1
   end
 | _ _ _ := skip
 
@@ -82,7 +124,7 @@ meta def congrm (arg : parse texpr) : tactic unit :=
 do ta ← to_expr arg tt ff,
   tgt ← target,
   (lhs, rhs) ← match_eq tgt,
-  equate_with_pattern ta lhs rhs,
+  equate_with_pattern_1 ta lhs rhs,
   try refl,
   rev_goals
 

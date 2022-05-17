@@ -58,6 +58,12 @@ def is_limit_of_has_terminal_of_preserves_limit [preserves_limit (functor.empty.
   is_terminal (G.obj (⊤_ C)) :=
 terminal_is_terminal.is_terminal_obj G (⊤_ C)
 
+/-- Preserving the terminal object implies preserving all limits of the empty diagram. -/
+def preserves_limits_of_shape_pempty_of_preserves_terminal
+  [preserves_limit (functor.empty.{v₁} C) G] : preserves_limits_of_shape (discrete pempty) G :=
+{ preserves_limit := λ K,
+    preserves_limit_of_iso_diagram.{v₁ v₁} G (functor.empty_ext (functor.empty C) _) }
+
 /--
 If `C` has a terminal object and `G` preserves terminal objects, then `D` has a terminal object
 also.
@@ -117,12 +123,6 @@ begin
   apply_instance,
 end
 
-/-- Preserving the terminal object implies preserving all limits of the empty diagram. -/
-def preserves_limits_of_shape_pempty_of_preserves_terminal :
-  preserves_limits_of_shape (discrete pempty) G :=
-{ preserves_limit := λ K,
-    preserves_limit_of_iso_diagram.{v₁ v₁} G (functor.empty_ext (functor.empty C) _) }
-
 end terminal
 
 section initial
@@ -152,6 +152,12 @@ object is initial.
 def is_colimit_of_has_initial_of_preserves_colimit [preserves_colimit (functor.empty.{v₁} C) G] :
   is_initial (G.obj (⊥_ C)) :=
 initial_is_initial.is_initial_obj G (⊥_ C)
+
+/-- Preserving the initial object implies preserving all colimits of the empty diagram. -/
+def preserves_colimits_of_shape_pempty_of_preserves_initial
+  [preserves_colimit (functor.empty.{v₁} C) G] : preserves_colimits_of_shape (discrete pempty) G :=
+{ preserves_colimit := λ K,
+    preserves_colimit_of_iso_diagram.{v₁ v₁} G (functor.empty_ext (functor.empty C) _) }
 
 /--
 If `C` has a initial object and `G` preserves initial objects, then `D` has a initial object
@@ -210,12 +216,6 @@ begin
   rw ← preserves_initial.iso_hom,
   apply_instance,
 end
-
-/-- Preserving the initial object implies preserving all colimits of the empty diagram. -/
-def preserves_colimits_of_shape_pempty_of_preserves_initial :
-  preserves_colimits_of_shape (discrete pempty) G :=
-{ preserves_colimit := λ K,
-    preserves_colimit_of_iso_diagram.{v₁ v₁} G (functor.empty_ext (functor.empty C) _) }
 
 end initial
 

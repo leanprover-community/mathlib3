@@ -24,33 +24,28 @@ instance {α : Type*} [ordered_semiring α] : monoid (Icc (0:α) 1) := {
 
 
 instance {α : Type*} [ordered_comm_semiring α] : comm_monoid_with_zero (Icc (0:α) 1) :=
-{
-  mul_comm :=
-begin
-  refine λ p q, _,
-  apply subtype.mk_eq_mk.2,
-  apply mul_comm,
-end ,
+{ mul_comm :=
+  begin
+    exact λ p q, subtype.mk_eq_mk.2 (mul_comm _ _),
+  end,
 
-  zero := ⟨0,left_mem_Icc.2 zero_le_one⟩,
+  zero := ⟨0, left_mem_Icc.2 zero_le_one⟩,
 
   zero_mul :=
-begin
-  refine λ p, _,
-  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
-  suffices : (⟨0 * p1, _⟩ : (Icc (0:α) 1)) = ⟨0, _⟩ * ⟨p1, _⟩,
-  { rw ←this, simp only [zero_mul] },
-  refl,
-end ,
+  begin
+    rintros ⟨p1, ⟨_,_⟩⟩,
+    have : (⟨0 * p1, _⟩ : (Icc (0:α) 1)) = ⟨0, _⟩ * ⟨p1, _⟩, { refl },
+    rw ←this,
+    simp only [zero_mul],
+  end,
 
   mul_zero :=
-begin
-  refine λ p, _,
-  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
-  suffices : (⟨p1 * 0, _⟩ : (Icc (0:α) 1)) = ⟨p1, _⟩ * ⟨0, _⟩,
-  {rw ←this, simp only [mul_zero] },
-  refl,
-end ,
+  begin
+    rintros ⟨p1, ⟨_,_⟩⟩,
+    have : (⟨p1 * 0, _⟩ : (Icc (0:α) 1)) = ⟨p1, _⟩ * ⟨0, _⟩, { refl },
+    rw ←this,
+    simp only [mul_zero],
+  end,
 
   ..(show monoid (Icc (0:α) 1), by apply_instance)
 }

@@ -16,6 +16,7 @@ open_locale pointwise
 
 variables {α β : Type*} [add_group α] [decidable_eq α] [group β] [decidable_eq β]
 
+-- It is ok for the proofs to stop being `rfl`, but these statements should remain true
 example (s : set α) (n : ℕ) : n • s = nsmul_rec n s := rfl
 example (s : set α) (n : ℤ) : n • s = zsmul_rec n s := rfl
 example (s : set β) (n : ℕ) : s ^ n = npow_rec n s := rfl

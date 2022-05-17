@@ -392,14 +392,14 @@ instance : has_add (multiset α) := ⟨multiset.add⟩
 
 theorem singleton_add (a : α) (s : multiset α) : {a} + s = a ::ₘ s := rfl
 
-private theorem add_le_add_iff_left' (s) {t u : multiset α} : s + t ≤ s + u ↔ t ≤ u :=
+private theorem add_le_add_iff_left' {s t u : multiset α} : s + t ≤ s + u ↔ t ≤ u :=
 quotient.induction_on₃ s t u $ λ l₁ l₂ l₃, subperm_append_left _
 
 instance : covariant_class (multiset α) (multiset α) (+) (≤) :=
-⟨λ s t u, (add_le_add_iff_left' s).2⟩
+⟨λ s t u, add_le_add_iff_left'.2⟩
 
 instance : contravariant_class (multiset α) (multiset α) (+) (≤) :=
-⟨λ s t u, (add_le_add_iff_left' s).1⟩
+⟨λ s t u, add_le_add_iff_left'.1⟩
 
 instance : ordered_cancel_add_comm_monoid (multiset α) :=
 { zero                  := 0,

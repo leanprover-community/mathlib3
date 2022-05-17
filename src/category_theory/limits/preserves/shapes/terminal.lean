@@ -117,8 +117,9 @@ begin
   apply_instance,
 end
 
-instance preserves_limits_of_shape_pempty_of_preserves_terminal :
-  preserves_limits_of_shape  (discrete pempty) G :=
+/-- Preserving the terminal object implies preserving all limits of the empty diagram. -/
+def preserves_limits_of_shape_pempty_of_preserves_terminal :
+  preserves_limits_of_shape (discrete pempty) G :=
 { preserves_limit := λ K,
     preserves_limit_of_iso_diagram.{v₁ v₁} G (functor.empty_ext (functor.empty C) _) }
 
@@ -210,8 +211,9 @@ begin
   apply_instance,
 end
 
-instance preserves_colimits_of_shape_pempty_of_preserves_initial :
-  preserves_colimits_of_shape  (discrete pempty) G :=
+/-- Preserving the initial object implies preserving all colimits of the empty diagram. -/
+def preserves_colimits_of_shape_pempty_of_preserves_initial :
+  preserves_colimits_of_shape (discrete pempty) G :=
 { preserves_colimit := λ K,
     preserves_colimit_of_iso_diagram.{v₁ v₁} G (functor.empty_ext (functor.empty C) _) }
 

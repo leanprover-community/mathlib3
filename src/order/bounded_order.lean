@@ -1135,15 +1135,14 @@ end prod
 section linear_order
 variables [linear_order α]
 
-lemma min_top_left [order_top α] (a : α) : min (⊤ : α) a = a := min_eq_right le_top
-lemma min_top_right [order_top α] (a : α) : min a ⊤ = a := min_eq_left le_top
-lemma max_bot_left [order_bot α] (a : α) : max (⊥ : α) a = a := max_eq_right bot_le
-lemma max_bot_right [order_bot α] (a : α) : max a ⊥ = a := max_eq_left bot_le
-
 -- `simp` can prove these, so they shouldn't be simp-lemmas.
 lemma min_bot_left [order_bot α] (a : α) : min ⊥ a = ⊥ := min_eq_left bot_le
-lemma min_bot_right [order_bot α] (a : α) : min a ⊥ = ⊥ := min_eq_right bot_le
 lemma max_top_left [order_top α] (a : α) : max ⊤ a = ⊤ := max_eq_left le_top
+lemma min_top_left [order_top α] (a : α) : min ⊤ a = a := min_eq_right le_top
+lemma max_bot_left [order_bot α] (a : α) : max ⊥ a = a := max_eq_right bot_le
+lemma min_top_right [order_top α] (a : α) : min a ⊤ = a := min_eq_left le_top
+lemma max_bot_right [order_bot α] (a : α) : max a ⊥ = a := max_eq_left bot_le
+lemma min_bot_right [order_bot α] (a : α) : min a ⊥ = ⊥ := min_eq_right bot_le
 lemma max_top_right [order_top α] (a : α) : max a ⊤ = ⊤ := max_eq_right le_top
 
 @[simp] lemma min_eq_bot [order_bot α] {a b : α} : min a b = ⊥ ↔ a = ⊥ ∨ b = ⊥ :=
@@ -1201,6 +1200,8 @@ lemma disjoint.ne (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
 lemma disjoint.eq_bot_of_le (hab : disjoint a b) (h : a ≤ b) : a = ⊥ :=
 eq_bot_iff.2 (by rwa ←inf_eq_left.2 h)
 
+lemma disjoint.eq_bot_of_ge (hab : disjoint a b) : b ≤ a → b = ⊥ := hab.symm.eq_bot_of_le
+
 lemma disjoint.of_disjoint_inf_of_le (h : disjoint (a ⊓ b) c) (hle : a ≤ c) : disjoint a b :=
 disjoint_iff.2 $ h.eq_bot_of_le $ inf_le_of_left_le hle
 
@@ -1210,13 +1211,7 @@ disjoint_iff.2 $ h.eq_bot_of_le $ inf_le_of_right_le hle
 end semilattice_inf_bot
 
 section lattice
-variables [lattice α]
-
-lemma eq_bot_of_disjoint_absorbs [order_bot α] {a b : α} (hab : disjoint a b) (h : a ⊔ b = a) :
-  b = ⊥ :=
-by rwa [←hab.eq_bot, right_eq_inf, ←sup_eq_left]
-
-variables [bounded_order α] {a : α}
+variables [lattice α] [bounded_order α] {a : α}
 
 @[simp] theorem disjoint_top : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
 @[simp] theorem top_disjoint : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]

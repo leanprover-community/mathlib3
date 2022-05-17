@@ -121,6 +121,22 @@ instance preserves_zero_morphisms_of_preserves_terminal_object
 preserves_zero_morphisms_of_map_zero_object $ (F.map_iso has_zero_object.zero_iso_terminal).trans $
     (preserves_terminal.iso F).trans has_zero_object.zero_iso_terminal.symm
 
+/-- Preserving zero morphisms implies preserving terminal objects. -/
+def preserves_terminal_object_of_preserves_zero_morphisms
+  [preserves_zero_morphisms F] : preserves_limit (functor.empty.{v₁} C) F :=
+preserves_terminal_of_iso F $
+  (F.map_iso has_zero_object.zero_iso_terminal.symm).trans $
+  (map_zero_object F).trans $
+  has_zero_object.zero_iso_terminal
+
+/-- Preserving zero morphisms implies preserving terminal objects. -/
+def preserves_initial_object_of_preserves_zero_morphisms
+  [preserves_zero_morphisms F] : preserves_colimit (functor.empty.{v₁} C) F :=
+preserves_initial_of_iso F $
+  has_zero_object.zero_iso_initial.symm.trans $
+  (map_zero_object F).symm.trans $
+  (F.map_iso has_zero_object.zero_iso_initial.symm).symm
+
 end zero_object
 
 end category_theory.functor

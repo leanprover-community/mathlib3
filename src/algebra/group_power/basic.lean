@@ -196,28 +196,25 @@ end div_inv_monoid
 section division_monoid
 variables [division_monoid α] {a b : α}
 
-@[simp, to_additive] lemma inv_pow (a : α) : ∀ n : ℕ, (a⁻¹)^n = (a^n)⁻¹
+@[simp, to_additive] lemma inv_pow (a : α) : ∀ n : ℕ, (a⁻¹) ^ n = (a ^ n)⁻¹
 | 0       := by rw [pow_zero, pow_zero, inv_one]
 | (n + 1) := by rw [pow_succ', pow_succ, inv_pow, mul_inv_rev]
 
 -- the attributes are intentionally out of order. `smul_zero` proves `zsmul_zero`.
-@[to_additive zsmul_zero, simp]
-lemma one_zpow : ∀ (n : ℤ), (1 : α) ^ n = 1
+@[to_additive zsmul_zero, simp] lemma one_zpow : ∀ (n : ℤ), (1 : α) ^ n = 1
 | (n : ℕ) := by rw [zpow_coe_nat, one_pow]
 | -[1+ n] := by rw [zpow_neg_succ_of_nat, one_pow, inv_one]
 
-@[simp, to_additive neg_zsmul]
-lemma zpow_neg (a : α) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
+@[simp, to_additive neg_zsmul] lemma zpow_neg (a : α) : ∀ (n : ℤ), a ^ -n = (a ^ n)⁻¹
 | (n+1:ℕ) := div_inv_monoid.zpow_neg' _ _
 | 0       := by { change a ^ (0 : ℤ) = (a ^ (0 : ℤ))⁻¹, simp }
 | -[1+ n] := by { rw [zpow_neg_succ_of_nat, inv_inv, ← zpow_coe_nat], refl }
 
 @[to_additive neg_one_zsmul_add]
-lemma mul_zpow_neg_one (a b : α) : (a * b) ^ (-(1:ℤ)) = b ^ (-(1:ℤ)) * a ^ (-(1:ℤ)) :=
+lemma mul_zpow_neg_one (a b : α) : (a * b) ^ (-1 : ℤ) = b ^ (-1 : ℤ) * a ^ (-1 : ℤ) :=
 by simp_rw [zpow_neg_one, mul_inv_rev]
 
-@[to_additive zsmul_neg]
-lemma inv_zpow (a : α) : ∀ n : ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
+@[to_additive zsmul_neg] lemma inv_zpow (a : α) : ∀ n : ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 | (n : ℕ) := by rw [zpow_coe_nat, zpow_coe_nat, inv_pow]
 | -[1+ n] := by rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, inv_pow]
 
@@ -231,7 +228,7 @@ lemma one_div_pow (a : α) (n : ℕ) : (1 / a) ^ n = 1 / a ^ n := by simp_rw [on
 lemma one_div_zpow (a : α) (n : ℤ) :  (1 / a) ^ n = 1 / a ^ n := by simp_rw [one_div, inv_zpow]
 
 @[to_additive add_commute.zsmul_add]
-protected lemma commute.mul_zpow (h : commute a b) : ∀ (i : ℤ), (a * b) ^ i = (a ^ i) * (b ^ i)
+protected lemma commute.mul_zpow (h : commute a b) : ∀ (i : ℤ), (a * b) ^ i = a ^ i * b ^ i
 | (n : ℕ) := by simp [h.mul_pow n]
 | -[1+n]  := by simp [h.mul_pow, (h.pow_pow _ _).eq, mul_inv_rev]
 
@@ -263,19 +260,14 @@ end division_comm_monoid
 section group
 variables [group G] [group H] [add_group A] [add_group B]
 
-open int
-
 @[to_additive sub_nsmul] lemma pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a^(m - n) = a^m * (a^n)⁻¹ :=
-have h1 : m - n + n = m, from tsub_add_cancel_of_le h,
-have h2 : a^(m - n) * a^n = a^m, by rw [←pow_add, h1],
-eq_mul_inv_of_mul_eq h2
+eq_mul_inv_of_mul_eq $ by rw [←pow_add, tsub_add_cancel_of_le h]
 
-@[to_additive]
-theorem pow_inv_comm (a : G) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
-(commute.refl a).inv_left.pow_pow m n
+@[to_additive] lemma pow_inv_comm (a : G) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
+(commute.refl a).inv_left.pow_pow _ _
 
 @[to_additive sub_nsmul_neg]
-theorem inv_pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a⁻¹^(m - n) = (a^m)⁻¹ * a^n :=
+lemma inv_pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a⁻¹^(m - n) = (a^m)⁻¹ * a^n :=
 by rw [pow_sub a⁻¹ h, inv_pow, inv_pow, inv_inv]
 
 end group

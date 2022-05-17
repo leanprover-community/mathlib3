@@ -929,8 +929,9 @@ by simp
 
 /-- A type endowed with `-` and `*` has distributive negation, if it admits an injective map that
 preserves `-` and `*` to a type which has distributive negation. -/
+@[reducible] -- See note [reducible non-instances]
 protected def function.injective.has_distrib_neg [has_neg β] [has_mul β] (f : β → α)
-  (hf : injective f) (neg :  ∀ a, f (-a) = -f a) (mul : ∀ a b, f (a * b) = f a * f b) :
+  (hf : injective f) (neg : ∀ a, f (-a) = -f a) (mul : ∀ a b, f (a * b) = f a * f b) :
   has_distrib_neg β :=
 { neg_mul := λ x y, hf $ by erw [neg, mul, neg, neg_mul, mul],
   mul_neg := λ x y, hf $ by erw [neg, mul, neg, mul_neg, mul],
@@ -938,8 +939,9 @@ protected def function.injective.has_distrib_neg [has_neg β] [has_mul β] (f : 
 
 /-- A type endowed with `-` and `*` has distributive negation, if it admits a surjective map that
 preserves `-` and `*` from a type which has distributive negation. -/
+@[reducible] -- See note [reducible non-instances]
 protected def function.surjective.has_distrib_neg [has_neg β] [has_mul β] (f : α → β)
-  (hf : surjective f) (neg :  ∀ a, f (-a) = -f a) (mul : ∀ a b, f (a * b) = f a * f b) :
+  (hf : surjective f) (neg : ∀ a, f (-a) = -f a) (mul : ∀ a b, f (a * b) = f a * f b) :
   has_distrib_neg β :=
 { neg_mul := hf.forall₂.2 $ λ x y, by { erw [←neg, ← mul, neg_mul, neg, mul], refl },
   mul_neg := hf.forall₂.2 $ λ x y, by { erw [←neg, ← mul, mul_neg, neg, mul], refl },
@@ -1265,11 +1267,7 @@ instance : has_neg αˣ := ⟨λu, ⟨-↑u, -↑u⁻¹, by simp, by simp⟩ ⟩
 
 @[simp, norm_cast] protected theorem coe_neg_one : ((-1 : αˣ) : α) = -1 := rfl
 
-instance : has_distrib_neg αˣ :=
-{ neg := has_neg.neg,
-  neg_neg := λ u, units.ext $ neg_neg _,
-  neg_mul := λ u₁ u₂, units.ext $ neg_mul _ _,
-  mul_neg := λ u₁ u₂, units.ext $ mul_neg _ _, }
+instance : has_distrib_neg αˣ := units.ext.has_distrib_neg _ units.coe_neg units.coe_mul
 
 end units
 

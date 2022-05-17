@@ -8,6 +8,7 @@ import algebra.module.submodule.pointwise
 import algebra.module.submodule.bilinear
 import algebra.module.opposites
 import data.finset.pointwise
+import data.set.semiring
 
 /-!
 # Multiplication and division of submodules of an algebra.

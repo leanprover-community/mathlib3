@@ -87,7 +87,7 @@ instance has_le.le.add_contravariant_class : contravariant_class ordinal.{u} ord
   ⟨⟨⟨g, λ x y h, by injection f.inj'
     (by rw [fr, fr, h] : f (sum.inr x) = f (sum.inr y))⟩,
     λ a b, by simpa only [sum.lex_inr_inr, fr, rel_embedding.coe_fn_to_embedding,
-        initial_seg.coe_fn_to_rel_embedding, function.embedding.coe_fn_mk]
+        initial_seg.coe_fn_to_rel_embedding, embedding.coe_fn_mk]
       using @rel_embedding.map_rel_iff _ _ _ _ f.to_rel_embedding (sum.inr a) (sum.inr b)⟩,
     λ a b H, begin
       rcases f.init' (by rw fr; exact sum.lex_inr_inr.2 H) with ⟨a'|a', h⟩,
@@ -374,7 +374,7 @@ lemma type_subrel_lt (o : ordinal.{u}) :
 begin
   refine quotient.induction_on o _,
   rintro ⟨α, r, wo⟩, resetI, apply quotient.sound,
-  constructor, symmetry, refine (rel_iso.preimage equiv.ulift r).trans (typein_iso r)
+  constructor, symmetry, refine (rel_iso.preimage equiv.ulift r).trans (enum_iso r).symm
 end
 
 lemma mk_initial_seg (o : ordinal.{u}) :
@@ -653,7 +653,7 @@ instance has_le.le.mul_covariant_class : covariant_class ordinal.{u} ordinal.{u}
 end⟩
 
 instance has_le.le.mul_swap_covariant_class :
-  covariant_class ordinal.{u} ordinal.{u} (function.swap (*)) (≤) :=
+  covariant_class ordinal.{u} ordinal.{u} (swap (*)) (≤) :=
 ⟨λ c a b, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
   resetI,
   refine type_le'.2 ⟨rel_embedding.of_monotone
@@ -1597,7 +1597,7 @@ begin
   apply not_le_of_lt (cardinal.lt_succ_self (#ι)),
   have H := λ a, exists_of_lt_mex ((typein_lt_self a).trans_le h),
   let g : (#ι).succ.ord.out.α → ι := λ a, classical.some (H a),
-  have hg : function.injective g := λ a b h', begin
+  have hg : injective g := λ a b h', begin
     have Hf : ∀ x, f (g x) = typein (<) x := λ a, classical.some_spec (H a),
     apply_fun f at h',
     rwa [Hf, Hf, typein_inj] at h'
@@ -1648,18 +1648,18 @@ end ordinal
 
 /-! ### Results about injectivity and surjectivity -/
 
-lemma not_surjective_of_ordinal {α : Type u} (f : α → ordinal.{u}) : ¬ function.surjective f :=
+lemma not_surjective_of_ordinal {α : Type u} (f : α → ordinal.{u}) : ¬ surjective f :=
 λ h, ordinal.lsub_not_mem_range.{u u} f (h _)
 
-lemma not_injective_of_ordinal {α : Type u} (f : ordinal.{u} → α) : ¬ function.injective f :=
+lemma not_injective_of_ordinal {α : Type u} (f : ordinal.{u} → α) : ¬ injective f :=
 λ h, not_surjective_of_ordinal _ (inv_fun_surjective h)
 
 lemma not_surjective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : α → ordinal.{u}) :
-  ¬ function.surjective f :=
+  ¬ surjective f :=
 λ h, not_surjective_of_ordinal _ (h.comp (equiv_shrink _).symm.surjective)
 
 lemma not_injective_of_ordinal_of_small {α : Type v} [small.{u} α] (f : ordinal.{u} → α) :
-  ¬ function.injective f :=
+  ¬ injective f :=
 λ h, not_injective_of_ordinal _ ((equiv_shrink _).injective.comp h)
 
 /-- The type of ordinals in universe `u` is not `small.{u}`. This is the type-theoretic analog of

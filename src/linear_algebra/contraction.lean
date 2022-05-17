@@ -60,8 +60,8 @@ by { dunfold dual_tensor_hom, rw uncurry_apply, refl, }
   (dual_tensor_hom R N P (g ⊗ₜ[R] p)) ∘ₗ (dual_tensor_hom R M N (f ⊗ₜ[R] n)) =
   g n • dual_tensor_hom R M P (f ⊗ₜ p) :=
 begin
-  ext m, simp only [coe_comp, function.comp_app, dual_tensor_hom_apply, map_smulₛₗ,
-  ring_hom.id_apply, smul_apply], rw smul_comm,
+  ext m, simp only [coe_comp, function.comp_app, dual_tensor_hom_apply, linear_map.map_smul,
+                    ring_hom.id_apply, smul_apply], rw smul_comm,
 end
 
 /-- As a matrix, `dual_tensor_hom` evaluated on a basis element of `M* ⊗ N` is a matrix with a

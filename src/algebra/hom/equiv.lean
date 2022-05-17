@@ -502,6 +502,7 @@ def to_units [group G] : G ≃* Gˣ :=
 protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
 
 namespace units
+
 variables [monoid M] [monoid N] [monoid P]
 
 /-- A multiplicative equivalence of monoids defines a multiplicative equivalence

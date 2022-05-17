@@ -51,7 +51,7 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group
 `λ x, ∥f x∥` -/
 def to_seminorm (f : E →ₗ[𝕜] 𝕜) : seminorm 𝕜 E :=
 { to_fun := λ x, ∥f x∥,
-  smul' := λ a x, by simp only [map_smulₛₗ, ring_hom.id_apply, smul_eq_mul, norm_mul],
+  smul' := λ a x, by simp only [map_smul, ring_hom.id_apply, smul_eq_mul, norm_mul],
   triangle' := λ x x', by { simp only [map_add, add_apply], exact norm_add_le _ _ } }
 
 lemma coe_to_seminorm {f : E →ₗ[𝕜] 𝕜} :

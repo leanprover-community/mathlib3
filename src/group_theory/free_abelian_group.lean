@@ -392,10 +392,10 @@ instance : ring (free_abelian_group α) :=
   mul_one := λ x, begin
     unfold has_mul.mul semigroup.mul has_one.one,
     rw lift.of,
-    refine free_abelian_group.induction_on x rfl _ _ _,
-    { intros L, erw [lift.of], congr' 1, exact mul_one L },
-    { intros L ih, rw [map_neg, ih] },
-    { intros x1 x2 ih1 ih2, rw [map_add, ih1, ih2] }
+    refine free_abelian_group.induction_on x rfl (λ L, _) (λ L ih, _) (λ x1 x2 ih1 ih2, _),
+    { erw [lift.of], congr' 1, exact mul_one L },
+    { rw [map_neg, ih] },
+    { rw [map_add, ih1, ih2] }
   end,
   one_mul := λ x, begin
     unfold has_mul.mul semigroup.mul has_one.one,

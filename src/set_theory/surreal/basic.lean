@@ -24,8 +24,8 @@ besides!) but we do not yet have a complete development.
 
 ## Order properties
 
-Surreal numbers inherit the relations `≤` and `<` from games, and these relations satisfy the axioms
-of a partial order.
+Surreal numbers inherit the relations `≤` and `<` from games (`surreal.has_le` and
+`surreal.has_lt`), and these relations satisfy the axioms of a partial order.
 
 ## Algebraic operations
 
@@ -34,6 +34,7 @@ We show that the surreals form a linear ordered commutative group.
 One can also map all the ordinals into the surreals!
 
 ## References
+
 * [Conway, *On numbers and games*][conway2001]
 * [Schleicher, Stoll, *An introduction to Conway's games and numbers*][schleicher_stoll]
 -/
@@ -336,9 +337,6 @@ variable {r : α → α → Prop}
 
 theorem cut_expand.wf (h : well_founded r) : well_founded (cut_expand r) :=
 sorry
-
-theorem multiset.pair_comm {x y : α} : ({x, y} : multiset α) = {y, x} :=
-multiset.cons_swap x y ∅
 
 theorem multiset.swap_three {x y z : α} : ({x, y, z} : multiset α) = {z, x, y} :=
 add_comm {x, y} {z}

@@ -35,6 +35,7 @@ fixed size. If the size is 3, colex on ℕ starts
 
 Related files are:
 * `data.list.lex`: Lexicographic order on lists.
+* `data.pi.lex`: Lexicographic order on `Πₗ i, α i`.
 * `data.psigma.order`: Lexicographic order on `Σ' i, α i`.
 * `data.sigma.order`: Lexicographic order on `Σ i, α i`.
 * `data.prod.lex`: Lexicographic order on `α × β`.
@@ -93,7 +94,7 @@ lemma nat.sum_two_pow_lt {k : ℕ} {A : finset ℕ} (h₁ : ∀ {x}, x ∈ A →
 begin
   apply lt_of_le_of_lt (sum_le_sum_of_subset (λ t, mem_range.2 ∘ h₁)),
   have z := geom_sum_mul_add 1 k,
-  rw [geom_sum, mul_one, one_add_one_eq_two] at z,
+  rw [mul_one, one_add_one_eq_two] at z,
   rw ← z,
   apply nat.lt_succ_self,
 end

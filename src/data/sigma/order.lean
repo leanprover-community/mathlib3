@@ -27,6 +27,7 @@ type synonym.
 Related files are:
 * `data.finset.colex`: Colexicographic order on finite sets.
 * `data.list.lex`: Lexicographic order on lists.
+* `data.pi.lex`: Lexicographic order on `Πₗ i, α i`.
 * `data.psigma.order`: Lexicographic order on `Σₗ' i, α i`. Basically a twin of this file.
 * `data.prod.lex`: Lexicographic order on `α × β`.
 

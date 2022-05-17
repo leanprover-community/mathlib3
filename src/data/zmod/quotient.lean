@@ -132,4 +132,8 @@ rfl
   minimal_period ((•) a) b = fintype.card (orbit (zpowers a) b) :=
 by rw [←fintype.of_equiv_card (orbit_zpowers_equiv a b), zmod.card]
 
+@[to_additive] instance minimal_period_pos [fintype (orbit (zpowers a) b)] :
+  fact (0 < minimal_period ((•) a) b) :=
+⟨by rw [minimal_period_eq_card, fintype.card_pos_iff]; exact (orbit_nonempty b).to_subtype⟩
+
 end mul_action

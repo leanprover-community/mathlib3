@@ -47,6 +47,7 @@ Any comments or suggestions for improvements is greatly appreciated!
 ##  Future work
 Lots is missing!  I would certainly like to show that `R[T;T⁻¹]` is the localization of `R[X]`
 inverting `X`.  This should be mostly in place, given `exists_T_pow` (which is part of PR #13415).
+(Riccardo) add inclusion into Laurent series.
 (Riccardo) giving a morphism (as `R`-alg, so in the commutative case)
 from `R[T,T⁻¹]` to `S` is the same as choosing a unit of `S`.
 -/
@@ -246,6 +247,68 @@ show T n * _ = _, by
 lemma T_mul (n : ℤ) (f : R[T;T⁻¹]) : T n * f = f * T n :=
 (commute_T n f).eq
 
+/--  `trunc : R[T;T⁻¹] →+ R[X]` maps a Laurent polynomial `f` to the polynomial whose terms of
+nonnegative degree coincide with the ones of `f`.  The terms of negative degree of `f` "vanish".
+`trunc` is a left-inverse to `polynomial.to_laurent`. -/
+def trunc : R[T;T⁻¹] →+ R[X] :=
+((to_finsupp_iso R).symm.to_add_monoid_hom).comp $
+  comap_domain.add_monoid_hom $ λ a b, int.of_nat.inj
+
+@[simp]
+lemma trunc_C_mul_T (n : ℤ) (r : R) : trunc (C r * T n) = ite (0 ≤ n) (monomial n.to_nat r) 0 :=
+begin
+  apply (to_finsupp_iso R).injective,
+  rw [← single_eq_C_mul_T, trunc, add_monoid_hom.coe_comp, function.comp_app,
+    comap_domain.add_monoid_hom_apply, to_finsupp_iso_apply],
+  by_cases n0 : 0 ≤ n,
+  { lift n to ℕ using n0,
+    erw [comap_domain_single, to_finsupp_iso_symm_apply],
+    simp only [int.coe_nat_nonneg, int.to_nat_coe_nat, if_true, to_finsupp_iso_apply,
+      to_finsupp_monomial] },
+  { lift (- n) to ℕ using (neg_pos.mpr (not_le.mp n0)).le with m,
+    rw [to_finsupp_iso_apply, to_finsupp_inj, if_neg n0],
+    erw to_finsupp_iso_symm_apply,
+    ext a,
+    have := ((not_le.mp n0).trans_le (int.coe_zero_le a)).ne',
+    simp only [coeff, comap_domain_apply, int.of_nat_eq_coe, coeff_zero, single_apply_eq_zero, this,
+      forall_false_left] }
+end
+
+@[simp] lemma left_inverse_trunc_to_laurent :
+  function.left_inverse (trunc : R[T;T⁻¹] → R[X]) polynomial.to_laurent :=
+begin
+  refine λ f, f.induction_on' _ _,
+  { exact λ f g hf hg, by simp only [hf, hg, _root_.map_add] },
+  { exact λ n r, by simp only [polynomial.to_laurent_C_mul_T, trunc_C_mul_T, int.coe_nat_nonneg,
+      int.to_nat_coe_nat, if_true] }
+end
+
+@[simp] lemma _root_.polynomial.trunc_to_laurent (f : R[X]) : trunc f.to_laurent = f :=
+left_inverse_trunc_to_laurent _
+
+lemma _root_.polynomial.to_laurent_injective :
+  function.injective (polynomial.to_laurent : R[X] → R[T;T⁻¹]) :=
+left_inverse_trunc_to_laurent.injective
+
+@[simp] lemma _root_.polynomial.to_laurent_inj (f g : R[X]) :
+  f.to_laurent = g.to_laurent ↔ f = g :=
+⟨λ h, polynomial.to_laurent_injective h, congr_arg _⟩
+
+instance : module R[X] R[T;T⁻¹] :=
+module.comp_hom _ polynomial.to_laurent
+
+instance (R : Type*) [semiring R] : is_scalar_tower R[X] R[X] R[T;T⁻¹] :=
+{ smul_assoc := λ x y z, by simp only [has_scalar.smul, has_scalar.comp.smul, map_mul, mul_assoc] }
+
 end semiring
+
+section comm_semiring
+
+instance algebra_polynomial (R : Type*) [comm_semiring R] : algebra R[X] R[T;T⁻¹] :=
+{ commutes' := λ f l, by simp [mul_comm],
+  smul_def' := λ f l, rfl,
+  .. polynomial.to_laurent }
+
+end comm_semiring
 
 end laurent_polynomial

@@ -3,9 +3,7 @@ Copyright (c) 2022 Michael Stoll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
-import tactic.basic
-import number_theory.legendre_symbol.auxiliary
-import data.int.range
+import number_theory.legendre_symbol.zmod_char
 
 /-!
 # Quadratic characters of finite fields
@@ -224,75 +222,6 @@ end
 end quadratic_char
 
 end char
-
-/-!
-### Quadratic characters mod 4 and 8
-
-We define the primitive quadratic characters `χ₄`on `zmod 4`
-and `χ₈`, `χ₈'` on `zmod 8`.
--/
-
-namespace zmod
-
-section quad_char_mod_p
-
-/-- Define the nontrivial quadratic character on `zmod 4`, `χ₄`.
-It corresponds to the extension `ℚ(√-1)/ℚ`. -/
-@[simps] def χ₄ : (zmod 4) →*₀ ℤ :=
-{ to_fun := (![0,1,0,-1] : (zmod 4 → ℤ)),
-  map_zero' := rfl, map_one' := rfl, map_mul' := dec_trivial }
-
-/-- An explicit description of `χ₄` on integers / naturals -/
-lemma χ₄_int_eq_if_mod_four (n : ℤ) : χ₄ n = if n % 2 = 0 then 0 else if n % 4 = 1 then 1 else -1 :=
-begin
-  have help : ∀ (m : ℤ), 0 ≤ m → m < 4 → χ₄ m = if m % 2 = 0 then 0 else if m = 1 then 1 else -1 :=
-  dec_trivial,
-  rw [← int.mod_mod_of_dvd n (by norm_num : (2 : ℤ) ∣ 4), ← zmod.int_cast_mod n 4],
-  exact help (n % 4) (int.mod_nonneg n (by norm_num)) (int.mod_lt n (by norm_num)),
-end
-
-lemma χ₄_nat_eq_if_mod_four (n : ℕ) : χ₄ n = if n % 2 = 0 then 0 else if n % 4 = 1 then 1 else -1 :=
-by exact_mod_cast χ₄_int_eq_if_mod_four n
-
-/-- Alternative description for odd `n : ℕ` in terms of powers of `-1` -/
-lemma χ₄_eq_neg_one_pow {n : ℕ} (hn : n % 2 = 1) : χ₄ n = (-1)^(n / 2) :=
-begin
-  rw χ₄_nat_eq_if_mod_four,
-  simp only [hn, nat.one_ne_zero, if_false],
-  have h := (nat.div_add_mod n 4).symm,
-  cases (nat.odd_mod_four_iff.mp hn) with h4 h4,
-  { split_ifs,
-    rw h4 at h,
-    rw [h],
-    nth_rewrite 0 (by norm_num : 4 = 2 * 2),
-    rw [mul_assoc, add_comm, nat.add_mul_div_left _ _ (by norm_num : 0 < 2), pow_add, pow_mul],
-    norm_num, },
-  { split_ifs,
-    { exfalso,
-      rw h4 at h_1,
-      norm_num at h_1, },
-    { rw h4 at h,
-      rw [h],
-      nth_rewrite 0 (by norm_num : 4 = 2 * 2),
-      rw [mul_assoc, add_comm, nat.add_mul_div_left _ _ (by norm_num : 0 < 2), pow_add, pow_mul],
-      norm_num, }, },
-end
-
-/-- Define the first primitive quadratic character on `zmod 8`, `χ₈`.
-It corresponds to the extension `ℚ(√2)/ℚ`. -/
-@[simps] def χ₈ : (zmod 8) →*₀ ℤ :=
-{ to_fun := (![0,1,0,-1,0,-1,0,1] : (zmod 8 → ℤ)),
-  map_zero' := rfl, map_one' := rfl, map_mul' := by dec_trivial }
-
-/-- Define the second primitive quadratic character on `zmod 8`, `χ₈'`.
-It corresponds to the extension `ℚ(√-2)/ℚ`. -/
-@[simps] def χ₈' : (zmod 8) →*₀ ℤ :=
-{ to_fun := (![0,1,0,1,0,-1,0,-1] : (zmod 8 → ℤ)),
-  map_zero' := rfl, map_one' := rfl, map_mul' := by dec_trivial }
-
-end quad_char_mod_p
-
-end zmod
 
 /-!
 ### Special values of the quadratic character

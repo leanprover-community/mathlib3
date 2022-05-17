@@ -39,35 +39,22 @@ obligations in inductive proofs relying on this relation.
 
 ## Order properties
 
-Pregames have both a `≤` and a `<` relation, which are related in quite a subtle way. In particular,
-it is worth noting that in Lean's (perhaps unfortunate?) definition of a `preorder`, we have
-`lt_iff_le_not_le : ∀ a b : α, a < b ↔ (a ≤ b ∧ ¬ b ≤ a)`, but this is _not_ satisfied by the usual
-`≤` and `<` relations on pregames. (It is satisfied once we restrict to the surreal numbers.) In
-particular, `<` is not transitive; there is an example below showing `0 < star ∧ star < 0`.
+Pregames have both a `≤` and a `<` relation, satisfying the usual properties of a `preorder`. The
+relation `0 < x` means that `x` can always be won by Left, while `0 ≤ x` means that `x` can be won
+by Left as the second player.
 
-We do have
-```
-theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y < x := ...
-theorem not_lt {x y : pgame} : ¬ x < y ↔ y ≤ x := ...
-```
+It turns out to be quite convenient to define various relations on top of these. We define the "less
+or fuzzy" relation `x ⧏ y` as `¬ y ≤ x`, the equivalence relation `x ≈ y` as `x ≤ y ∧ y ≤ x`, and
+the fuzzy relation `x ∥ y` as `x ⧏ y ∧ y ⧏ x`. If `0 ⧏ x`, then `x` can be won by Left as the
+first player. If `x ≈ 0`, then `x` can be won by the second player. If `x ∥ 0`, then `x` can be won
+by the first player.
 
-The statement `0 ≤ x` means that Left has a good response to any move by Right; in particular, the
-theorem `zero_le` below states
-```
-0 ≤ x ↔ ∀ j : x.right_moves, ∃ i : (x.move_right j).left_moves, 0 ≤ (x.move_right j).move_left i
-```
-On the other hand the statement `0 < x` means that Left has a good move right now; in particular the
-theorem `zero_lt` below states
-```
-0 < x ↔ ∃ i : left_moves x, ∀ j : right_moves (x.move_left i), 0 < (x.move_left i).move_right j
-```
+Statements like `zero_le_lf`, `zero_lf_le`, etc. unfold these definitions. The theorems `le_def` and
+`lf_def` give a recursive characterisation of each relation in terms of themselves two moves later.
+The theorems `zero_le`, `zero_lf`, etc. also take into account that `0` has no moves.
 
-The theorems `le_def`, `lt_def`, give a recursive characterisation of each relation, in terms of
-themselves two moves later. The theorems `le_def_lt` and `lt_def_lt` give recursive
-characterisations of each relation in terms of the other relation one move later.
-
-We define an equivalence relation `equiv p q ↔ p ≤ q ∧ q ≤ p`. Later, games will be defined as the
-quotient by this relation.
+Later, games will be defined as the quotient by the `≈` relation; that is to say, the
+`antisymmetrization` of `pgame`.
 
 ## Algebraic structures
 
@@ -87,6 +74,7 @@ equivalence relations at the level of pregames, we introduce the notion of a `re
 game, and show, for example, that there is a relabelling between `x + (y + z)` and `(x + y) + z`.
 
 ## Future work
+
 * The theory of dominated and reversible positions, and unique normal form for short games.
 * Analysis of basic domineering positions.
 * Hex.
@@ -261,205 +249,95 @@ instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 instance unique_one_left_moves : unique (left_moves 1) := punit.unique
 instance is_empty_one_right_moves : is_empty (right_moves 1) := pempty.is_empty
 
-/-- Define simultaneously by mutual induction the `<=` and `<`
-  relation on pre-games. The ZFC definition says that `x = {xL | xR}`
-  is less or equal to `y = {yL | yR}` if `∀ x₁ ∈ xL, x₁ < y`
-  and `∀ y₂ ∈ yR, x < y₂`, where `x < y` is the same as `¬ y <= x`.
-  This is a tricky induction because it only decreases one side at
-  a time, and it also swaps the arguments in the definition of `<`.
-  The solution is to define `x < y` and `x <= y` simultaneously. -/
-def le_lt : Π (x y : pgame), Prop × Prop
+/-- Define simultaneously by mutual induction the `≤` relation and its swapped converse `⧏` on
+  pre-games.
+
+  The ZFC definition says that `x = {xL | xR}` is less or equal to `y = {yL | yR}` if
+  `∀ x₁ ∈ xL, x₁ ⧏ y` and `∀ y₂ ∈ yR, x ⧏ y₂`, where `x ⧏ y` means `¬ y ≤ x`. This is a tricky
+  induction because it only decreases one side at a time, and it also swaps the arguments in the
+  definition of `≤`. The solution is to define `x ≤ y` and `x ⧏ y` simultaneously. -/
+def le_lf : Π (x y : pgame.{u}), Prop × Prop
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
   -- the orderings of the clauses here are carefully chosen so that
   --   and.left/or.inl refer to moves by Left, and
   --   and.right/or.inr refer to moves by Right.
-((∀ i : xl, (le_lt (xL i) ⟨yl, yr, yL, yR⟩).2) ∧ (∀ j : yr, (le_lt ⟨xl, xr, xL, xR⟩ (yR j)).2),
-  (∃ i : yl, (le_lt ⟨xl, xr, xL, xR⟩ (yL i)).1) ∨ (∃ j : xr, (le_lt (xR j) ⟨yl, yr, yL, yR⟩).1))
+((∀ i, (le_lf (xL i) ⟨yl, yr, yL, yR⟩).2) ∧ ∀ j, (le_lf ⟨xl, xr, xL, xR⟩ (yR j)).2,
+ (∃ i, (le_lf ⟨xl, xr, xL, xR⟩ (yL i)).1) ∨ ∃ j, (le_lf (xR j) ⟨yl, yr, yL, yR⟩).1)
 using_well_founded { dec_tac := pgame_wf_tac }
 
-instance : has_le pgame := ⟨λ x y, (le_lt x y).1⟩
-instance : has_lt pgame := ⟨λ x y, (le_lt x y).2⟩
+/-- The less or equal relation on pre-games.
+
+If `0 ≤ x`, then Left can win `x` as the second player. -/
+instance : has_le pgame := ⟨λ x y, (le_lf x y).1⟩
+
+/-- The less or fuzzy relation on pre-games.
+
+If `0 ⧏ x`, then Left can win `x` as the first player. -/
+def lf (x y : pgame) : Prop := (le_lf x y).2
+
+local infix ` ⧏ `:50 := lf
 
 /-- Definition of `x ≤ y` on pre-games built using the constructor. -/
 @[simp] theorem mk_le_mk {xl xr xL xR yl yr yL yR} :
-  (⟨xl, xr, xL, xR⟩ : pgame) ≤ ⟨yl, yr, yL, yR⟩ ↔
-  (∀ i, xL i < ⟨yl, yr, yL, yR⟩) ∧
-  (∀ j, (⟨xl, xr, xL, xR⟩ : pgame) < yR j) :=
-show (le_lt _ _).1 ↔ _, by { rw le_lt, refl }
+  mk xl xr xL xR ≤ mk yl yr yL yR ↔
+  (∀ i, xL i ⧏ mk yl yr yL yR) ∧ ∀ j, mk xl xr xL xR ⧏ yR j :=
+show (le_lf _ _).1 ↔ _, by { rw le_lf, refl }
 
-/-- Definition of `x ≤ y` on pre-games, in terms of `<` -/
-theorem le_def_lt {x y : pgame} : x ≤ y ↔
-  (∀ i : x.left_moves, x.move_left i < y) ∧
-  (∀ j : y.right_moves, x < y.move_right j) :=
-by { cases x, cases y, rw mk_le_mk, refl }
+/-- Definition of `x ≤ y` on pre-games, in terms of `⧏` -/
+theorem le_def_lf {x y : pgame} : x ≤ y ↔ (∀ i, x.move_left i ⧏ y) ∧ ∀ j, x ⧏ y.move_right j :=
+by { cases x, cases y, exact mk_le_mk }
 
-/-- Definition of `x < y` on pre-games built using the constructor. -/
-@[simp] theorem mk_lt_mk {xl xr xL xR yl yr yL yR} :
-  (⟨xl, xr, xL, xR⟩ : pgame) < ⟨yl, yr, yL, yR⟩ ↔
-  (∃ i, (⟨xl, xr, xL, xR⟩ : pgame) ≤ yL i) ∨
-  (∃ j, xR j ≤ ⟨yl, yr, yL, yR⟩) :=
-show (le_lt _ _).2 ↔ _, by { rw le_lt, refl }
+/-- Definition of `x ⧏ y` on pre-games built using the constructor. -/
+@[simp] theorem mk_lf_mk {xl xr xL xR yl yr yL yR} :
+  mk xl xr xL xR ⧏ mk yl yr yL yR ↔
+  (∃ i, mk xl xr xL xR ≤ yL i) ∨ ∃ j, xR j ≤ mk yl yr yL yR :=
+show (le_lf _ _).2 ↔ _, by { rw le_lf, refl }
 
-/-- Definition of `x < y` on pre-games, in terms of `≤` -/
-theorem lt_def_le {x y : pgame} : x < y ↔
-  (∃ i : y.left_moves, x ≤ y.move_left i) ∨
-  (∃ j : x.right_moves, x.move_right j ≤ y) :=
-by { cases x, cases y, rw mk_lt_mk, refl }
+/-- Definition of `x ⧏ y` on pre-games, in terms of `≤` -/
+theorem lf_def_le {x y : pgame} : x ⧏ y ↔ (∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y :=
+by { cases x, cases y, exact mk_lf_mk }
 
-/-- The definition of `x ≤ y` on pre-games, in terms of `≤` two moves later. -/
-theorem le_def {x y : pgame} : x ≤ y ↔
-  (∀ i : x.left_moves,
-   (∃ i' : y.left_moves, x.move_left i ≤ y.move_left i') ∨
-   (∃ j : (x.move_left i).right_moves, (x.move_left i).move_right j ≤ y)) ∧
-  (∀ j : y.right_moves,
-   (∃ i : (y.move_right j).left_moves, x ≤ (y.move_right j).move_left i) ∨
-   (∃ j' : x.right_moves, x.move_right j' ≤ y.move_right j)) :=
-begin
-  rw [le_def_lt],
-  conv { to_lhs, simp only [lt_def_le] },
-end
-
-/-- The definition of `x < y` on pre-games, in terms of `<` two moves later. -/
-theorem lt_def {x y : pgame} : x < y ↔
-  (∃ i : y.left_moves,
-    (∀ i' : x.left_moves, x.move_left i' < y.move_left i) ∧
-    (∀ j : (y.move_left i).right_moves, x < (y.move_left i).move_right j)) ∨
-  (∃ j : x.right_moves,
-    (∀ i : (x.move_right j).left_moves, (x.move_right j).move_left i < y) ∧
-    (∀ j' : y.right_moves, x.move_right j < y.move_right j')) :=
-begin
-  rw [lt_def_le],
-  conv { to_lhs, simp only [le_def_lt] },
-end
-
-/-- The definition of `x ≤ 0` on pre-games, in terms of `≤ 0` two moves later. -/
-theorem le_zero {x : pgame} : x ≤ 0 ↔
-  ∀ i : x.left_moves, ∃ j : (x.move_left i).right_moves, (x.move_left i).move_right j ≤ 0 :=
-by { rw le_def, dsimp, simp [forall_pempty, exists_pempty] }
-
-/-- The definition of `0 ≤ x` on pre-games, in terms of `0 ≤` two moves later. -/
-theorem zero_le {x : pgame} : 0 ≤ x ↔
-  ∀ j : x.right_moves, ∃ i : (x.move_right j).left_moves, 0 ≤ (x.move_right j).move_left i :=
-by { rw le_def, dsimp, simp [forall_pempty, exists_pempty] }
-
-/-- The definition of `x < 0` on pre-games, in terms of `< 0` two moves later. -/
-theorem lt_zero {x : pgame} : x < 0 ↔
-  ∃ j : x.right_moves, ∀ i : (x.move_right j).left_moves, (x.move_right j).move_left i < 0 :=
-by { rw lt_def, dsimp, simp [forall_pempty, exists_pempty] }
-
-/-- The definition of `0 < x` on pre-games, in terms of `< x` two moves later. -/
-theorem zero_lt {x : pgame} : 0 < x ↔
-  ∃ i : x.left_moves, ∀ j : (x.move_left i).right_moves, 0 < (x.move_left i).move_right j :=
-by { rw lt_def, dsimp, simp [forall_pempty, exists_pempty] }
-
-@[simp] theorem le_zero_of_is_empty_left_moves (x : pgame) [is_empty x.left_moves] : x ≤ 0 :=
-le_zero.2 is_empty_elim
-
-@[simp] theorem zero_le_of_is_empty_right_moves (x : pgame) [is_empty x.right_moves] : 0 ≤ x :=
-zero_le.2 is_empty_elim
-
-/-- Given a right-player-wins game, provide a response to any move by left. -/
-noncomputable def right_response {x : pgame} (h : x ≤ 0) (i : x.left_moves) :
-  (x.move_left i).right_moves :=
-classical.some $ (le_zero.1 h) i
-
-/-- Show that the response for right provided by `right_response`
-    preserves the right-player-wins condition. -/
-lemma right_response_spec {x : pgame} (h : x ≤ 0) (i : x.left_moves) :
-  (x.move_left i).move_right (right_response h i) ≤ 0 :=
-classical.some_spec $ (le_zero.1 h) i
-
-/-- Given a left-player-wins game, provide a response to any move by right. -/
-noncomputable def left_response {x : pgame} (h : 0 ≤ x) (j : x.right_moves) :
-  (x.move_right j).left_moves :=
-classical.some $ (zero_le.1 h) j
-
-/-- Show that the response for left provided by `left_response`
-    preserves the left-player-wins condition. -/
-lemma left_response_spec {x : pgame} (h : 0 ≤ x) (j : x.right_moves) :
-  0 ≤ (x.move_right j).move_left (left_response h j) :=
-classical.some_spec $ (zero_le.1 h) j
-
-theorem lt_of_le_mk {xl xr xL xR y i} :
-  (⟨xl, xr, xL, xR⟩ : pgame) ≤ y → xL i < y :=
-by { cases y, rw mk_le_mk, tauto }
-
-theorem lt_of_mk_le {x : pgame} {yl yr yL yR i} :
-  x ≤ ⟨yl, yr, yL, yR⟩ → x < yR i :=
-by { cases x, rw mk_le_mk, tauto }
-
-theorem mk_lt_of_le {xl xr xL xR y i} :
-  ((xR : xr → pgame) i ≤ y) → (⟨xl, xr, xL, xR⟩ : pgame) < y :=
-by { cases y, rw mk_lt_mk, tauto }
-
-theorem lt_mk_of_le {x : pgame} {yl yr : Type*} {yL : yl → pgame} {yR i} :
-  (x ≤ yL i) → x < ⟨yl, yr, yL, yR⟩ :=
-by { cases x, rw mk_lt_mk, exact λ h, or.inl ⟨_, h⟩ }
-
-theorem move_left_lt_of_le {x y : pgame} {i} :
-  x ≤ y → x.move_left i < y :=
-by { cases x, exact lt_of_le_mk }
-
-theorem lt_move_right_of_le {x y : pgame} {i} :
-  x ≤ y → x < y.move_right i :=
-by { cases y, exact lt_of_mk_le }
-
-theorem lt_of_move_right_le {x y : pgame} {i} :
-  x.move_right i ≤ y → x < y :=
-by { cases x, rw move_right_mk, exact mk_lt_of_le }
-
-theorem lt_of_le_move_left {x y : pgame} {i} :
-  x ≤ y.move_left i → x < y :=
-by { cases y, rw move_left_mk, exact lt_mk_of_le }
-
-private theorem not_le_lt {x y : pgame} :
-  (¬ x ≤ y ↔ y < x) ∧ (¬ x < y ↔ y ≤ x) :=
+private theorem not_le_lf {x y : pgame} :
+  (¬ x ≤ y ↔ y ⧏ x) ∧ (¬ x ⧏ y ↔ y ≤ x) :=
 begin
   induction x with xl xr xL xR IHxl IHxr generalizing y,
   induction y with yl yr yL yR IHyl IHyr,
-  classical,
-  simp only [mk_le_mk, mk_lt_mk,
+  simp only [mk_le_mk, mk_lf_mk, IHxl, IHxr, IHyl, IHyr,
     not_and_distrib, not_or_distrib, not_forall, not_exists,
-    and_comm, or_comm, IHxl, IHxr, IHyl, IHyr, iff_self, and_self]
+    and_comm, or_comm, iff_self, and_self]
 end
 
-@[simp] theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y < x := not_le_lt.1
-@[simp] theorem not_lt {x y : pgame} : ¬ x < y ↔ y ≤ x := not_le_lt.2
+@[simp] protected theorem not_le {x y : pgame} : ¬ x ≤ y ↔ y ⧏ x := not_le_lf.1
+@[simp] theorem not_lf {x y : pgame} : ¬ x ⧏ y ↔ y ≤ x := not_le_lf.2
 
-@[refl] protected theorem le_rfl : ∀ {x : pgame}, x ≤ x
-| ⟨l, r, L, R⟩ := by rw mk_le_mk; exact
-⟨λ i, lt_mk_of_le le_rfl, λ i, mk_lt_of_le le_rfl⟩
+theorem le_or_gf (x y : pgame) : x ≤ y ∨ y ⧏ x :=
+by { rw ←pgame.not_le, apply em }
 
-protected theorem le_refl (x : pgame) : x ≤ x :=
-pgame.le_rfl
+theorem move_left_lf_of_le {x y : pgame} (i) : x ≤ y → x.move_left i ⧏ y :=
+by { cases x, cases y, rw mk_le_mk, tauto }
 
-protected theorem lt_irrefl (x : pgame) : ¬ x < x :=
-not_lt.2 pgame.le_rfl
+theorem lf_move_right_of_le {x y : pgame} (j) : x ≤ y → x ⧏ y.move_right j :=
+by { cases x, cases y, rw mk_le_mk, tauto }
 
-protected theorem ne_of_lt : ∀ {x y : pgame}, x < y → x ≠ y
-| x _ h rfl := pgame.lt_irrefl x h
+theorem lf_of_move_right_le {x y : pgame} {j} : x.move_right j ≤ y → x ⧏ y :=
+by { cases x, cases y, rw mk_lf_mk, tauto }
 
-/-- In general, `xL i ≤ x` isn't true. It is true however for `numeric` games, see
-`numeric.move_left_le`. -/
-theorem lt_mk {xl xr : Type u} {xL : xl → pgame} {xR : xr → pgame} (i) : xL i < mk xl xr xL xR :=
-lt_mk_of_le pgame.le_rfl
+theorem lf_of_le_move_left {x y : pgame} {i} : x ≤ y.move_left i → x ⧏ y :=
+by { cases x, cases y, rw mk_lf_mk, exact λ h, or.inl ⟨_, h⟩ }
 
-/-- In general, `x ≤ xR i` isn't true. It is true however for `numeric` games, see
-`numeric.move_right_le`. -/
-theorem mk_lt {xl xr : Type u} {xL : xl → pgame} {xR : xr → pgame} (i) : mk xl xr xL xR < xR i :=
-mk_lt_of_le pgame.le_rfl
+theorem lf_of_le_mk {xl xr xL xR y} : ∀ i, mk xl xr xL xR ≤ y → xL i ⧏ y :=
+@move_left_lf_of_le (mk _ _ _ _) y
 
-/-- In general, `x.move_left i ≤ x` isn't true. It is true however for `numeric` games, see
-`numeric.move_left_le`. -/
-theorem move_left_lt {x : pgame} (i) : x.move_left i < x :=
-move_left_lt_of_le pgame.le_rfl
+theorem lf_of_mk_le {x yl yr yL yR} : ∀ j, x ≤ mk yl yr yL yR → x ⧏ yR j :=
+@lf_move_right_of_le x (mk _ _ _ _)
 
-/-- In general, `x ≤ x.move_right i` isn't true. It is true however for `numeric` games, see
-`numeric.move_right_le`. -/
-theorem lt_move_right {x : pgame} (i) : x < x.move_right i :=
-lt_move_right_of_le pgame.le_rfl
+theorem mk_lf_of_le {xl xr y j} (xL) {xR : xr → pgame} : xR j ≤ y → mk xl xr xL xR ⧏ y :=
+@lf_of_move_right_le (mk _ _ _ _) y j
 
-theorem le_trans_aux
+theorem lf_mk_of_le {x yl yr} {yL : yl → pgame} (yR) {i} : x ≤ yL i → x ⧏ mk yl yr yL yR :=
+@lf_of_le_move_left x (mk _ _ _ _) i
+
+private theorem le_trans_aux
   {xl xr} {xL : xl → pgame} {xR : xr → pgame}
   {yl yr} {yL : yl → pgame} {yR : yr → pgame}
   {zl zr} {zL : zl → pgame} {zR : zr → pgame}
@@ -470,78 +348,210 @@ theorem le_trans_aux
   mk xl xr xL xR ≤ mk zl zr zL zR :=
 by simp only [mk_le_mk] at *; exact
 λ ⟨xLy, xyR⟩ ⟨yLz, yzR⟩, ⟨
-  λ i, not_le.1 (λ h, not_lt.2 (h₁ _ ⟨yLz, yzR⟩ h) (xLy _)),
-  λ i, not_le.1 (λ h, not_lt.2 (h₂ _ h ⟨xLy, xyR⟩) (yzR _))⟩
+  λ i, pgame.not_le.1 (λ h, not_lf.2 (h₁ _ ⟨yLz, yzR⟩ h) (xLy _)),
+  λ i, pgame.not_le.1 (λ h, not_lf.2 (h₂ _ h ⟨xLy, xyR⟩) (yzR _))⟩
 
-@[trans] theorem le_trans {x y z : pgame} : x ≤ y → y ≤ z → x ≤ z :=
-suffices ∀ {x y z : pgame},
-  (x ≤ y → y ≤ z → x ≤ z) ∧ (y ≤ z → z ≤ x → y ≤ x) ∧ (z ≤ x → x ≤ y → z ≤ y),
-from this.1, begin
-  clear x y z, intros,
-  induction x with xl xr xL xR IHxl IHxr generalizing y z,
-  induction y with yl yr yL yR IHyl IHyr generalizing z,
-  induction z with zl zr zL zR IHzl IHzr,
-  exact ⟨
-    le_trans_aux (λ i, (IHxl _).2.1) (λ i, (IHzr _).2.2),
-    le_trans_aux (λ i, (IHyl _).2.2) (λ i, (IHxr _).1),
-    le_trans_aux (λ i, (IHzl _).1) (λ i, (IHyr _).2.1)⟩,
-end
+instance : preorder pgame :=
+{ le_refl := λ x, begin
+    induction x with _ _ _ _ IHl IHr,
+    exact le_def_lf.2 ⟨λ i, lf_of_le_move_left (IHl i), λ i, lf_of_move_right_le (IHr i)⟩
+  end,
+  le_trans := λ x y z, suffices ∀ {x y z : pgame},
+    (x ≤ y → y ≤ z → x ≤ z) ∧ (y ≤ z → z ≤ x → y ≤ x) ∧ (z ≤ x → x ≤ y → z ≤ y),
+  from this.1, begin
+    clear x y z, intros,
+    induction x with xl xr xL xR IHxl IHxr generalizing y z,
+    induction y with yl yr yL yR IHyl IHyr generalizing z,
+    induction z with zl zr zL zR IHzl IHzr,
+    exact ⟨
+      le_trans_aux (λ i, (IHxl _).2.1) (λ i, (IHzr _).2.2),
+      le_trans_aux (λ i, (IHyl _).2.2) (λ i, (IHxr _).1),
+      le_trans_aux (λ i, (IHzl _).1) (λ i, (IHyr _).2.1)⟩,
+  end,
+  ..pgame.has_le }
 
-@[trans] theorem lt_of_le_of_lt {x y z : pgame} (hxy : x ≤ y) (hyz : y < z) : x < z :=
-begin
-  rw ←not_le at ⊢ hyz,
-  exact mt (λ H, le_trans H hxy) hyz
-end
+theorem lf_irrefl (x : pgame) : ¬ x ⧏ x := pgame.not_lf.2 le_rfl
+instance : is_irrefl _ (⧏) := ⟨lf_irrefl⟩
 
-@[trans] theorem lt_of_lt_of_le {x y z : pgame} (hxy : x < y) (hyz : y ≤ z) : x < z :=
-begin
-  rw ←not_le at ⊢ hxy,
-  exact mt (λ H, le_trans hyz H) hxy
-end
+@[trans] theorem lf_of_le_of_lf {x y z : pgame} (h₁ : x ≤ y) (h₂ : y ⧏ z) : x ⧏ z :=
+by { rw ←pgame.not_le at h₂ ⊢, exact λ h₃, h₂ (h₃.trans h₁) }
 
-/-- Define the equivalence relation on pre-games. Two pre-games
-  `x`, `y` are equivalent if `x ≤ y` and `y ≤ x`. -/
+@[trans] theorem lf_of_lf_of_le {x y z : pgame} (h₁ : x ⧏ y) (h₂ : y ≤ z) : x ⧏ z :=
+by { rw ←pgame.not_le at h₁ ⊢, exact λ h₃, h₁ (h₂.trans h₃) }
+
+@[trans] theorem lf_of_lt_of_lf {x y z : pgame} (h₁ : x < y) (h₂ : y ⧏ z) : x ⧏ z :=
+lf_of_le_of_lf h₁.le h₂
+
+@[trans] theorem lf_of_lf_of_lt {x y z : pgame} (h₁ : x ⧏ y) (h₂ : y < z) : x ⧏ z :=
+lf_of_lf_of_le h₁ h₂.le
+
+theorem move_left_lf {x : pgame} (i) : x.move_left i ⧏ x :=
+move_left_lf_of_le i le_rfl
+
+theorem lf_move_right {x : pgame} (j) : x ⧏ x.move_right j :=
+lf_move_right_of_le j le_rfl
+
+theorem lf_mk {xl xr} (xL : xl → pgame) (xR : xr → pgame) (i) : xL i ⧏ mk xl xr xL xR :=
+@move_left_lf (mk _ _ _ _) i
+
+theorem mk_lf {xl xr} (xL : xl → pgame) (xR : xr → pgame) (j) : mk xl xr xL xR ⧏ xR j :=
+@lf_move_right (mk _ _ _ _) j
+
+theorem lt_iff_le_and_lf {x y : pgame} : x < y ↔ x ≤ y ∧ x ⧏ y :=
+by rw [lt_iff_le_not_le, pgame.not_le]
+
+theorem lt_of_le_of_lf {x y : pgame} (h₁ : x ≤ y) (h₂ : x ⧏ y) : x < y :=
+lt_iff_le_and_lf.2 ⟨h₁, h₂⟩
+
+theorem lf_of_lt {x y : pgame} (h : x < y) : x ⧏ y :=
+(lt_iff_le_and_lf.1 h).2
+
+/-- The definition of `x ≤ y` on pre-games, in terms of `≤` two moves later. -/
+theorem le_def {x y : pgame} : x ≤ y ↔
+  (∀ i, (∃ i', x.move_left i ≤ y.move_left i')  ∨ ∃ j, (x.move_left i).move_right j ≤ y) ∧
+   ∀ j, (∃ i, x ≤ (y.move_right j).move_left i) ∨ ∃ j', x.move_right j' ≤ y.move_right j :=
+by { rw le_def_lf, conv { to_lhs, simp only [lf_def_le] } }
+
+/-- The definition of `x ⧏ y` on pre-games, in terms of `⧏` two moves later. -/
+theorem lf_def {x y : pgame} : x ⧏ y ↔
+  (∃ i, (∀ i', x.move_left i' ⧏ y.move_left i)  ∧ ∀ j, x ⧏ (y.move_left i).move_right j) ∨
+   ∃ j, (∀ i, (x.move_right j).move_left i ⧏ y) ∧ ∀ j', x.move_right j ⧏ y.move_right j' :=
+by { rw lf_def_le, conv { to_lhs, simp only [le_def_lf] } }
+
+/-- The definition of `0 ≤ x` on pre-games, in terms of `0 ⧏`. -/
+theorem zero_le_lf {x : pgame} : 0 ≤ x ↔ ∀ j, 0 ⧏ x.move_right j :=
+by { rw le_def_lf, dsimp, simp }
+
+/-- The definition of `x ≤ 0` on pre-games, in terms of `⧏ 0`. -/
+theorem le_zero_lf {x : pgame} : x ≤ 0 ↔ ∀ i, x.move_left i ⧏ 0 :=
+by { rw le_def_lf, dsimp, simp }
+
+/-- The definition of `0 ⧏ x` on pre-games, in terms of `0 ≤`. -/
+theorem zero_lf_le {x : pgame} : 0 ⧏ x ↔ ∃ i, 0 ≤ x.move_left i :=
+by { rw lf_def_le, dsimp, simp }
+
+/-- The definition of `x ⧏ 0` on pre-games, in terms of `≤ 0`. -/
+theorem lf_zero_le {x : pgame} : x ⧏ 0 ↔ ∃ j, x.move_right j ≤ 0 :=
+by { rw lf_def_le, dsimp, simp }
+
+/-- The definition of `0 ≤ x` on pre-games, in terms of `0 ≤` two moves later. -/
+theorem zero_le {x : pgame} : 0 ≤ x ↔ ∀ j, ∃ i, 0 ≤ (x.move_right j).move_left i :=
+by { rw le_def, dsimp, simp }
+
+/-- The definition of `x ≤ 0` on pre-games, in terms of `≤ 0` two moves later. -/
+theorem le_zero {x : pgame} : x ≤ 0 ↔ ∀ i, ∃ j, (x.move_left i).move_right j ≤ 0 :=
+by { rw le_def, dsimp, simp }
+
+/-- The definition of `0 ⧏ x` on pre-games, in terms of `0 ⧏` two moves later. -/
+theorem zero_lf {x : pgame} : 0 ⧏ x ↔ ∃ i, ∀ j, 0 ⧏ (x.move_left i).move_right j :=
+by { rw lf_def, dsimp, simp }
+
+/-- The definition of `x ⧏ 0` on pre-games, in terms of `⧏ 0` two moves later. -/
+theorem lf_zero {x : pgame} : x ⧏ 0 ↔ ∃ j, ∀ i, (x.move_right j).move_left i ⧏ 0 :=
+by { rw lf_def, dsimp, simp }
+
+@[simp] theorem zero_le_of_is_empty_right_moves (x : pgame) [is_empty x.right_moves] : 0 ≤ x :=
+zero_le.2 is_empty_elim
+
+@[simp] theorem le_zero_of_is_empty_left_moves (x : pgame) [is_empty x.left_moves] : x ≤ 0 :=
+le_zero.2 is_empty_elim
+
+/-- Given a game won by the right player when they play second, provide a response to any move by
+left. -/
+noncomputable def right_response {x : pgame} (h : x ≤ 0) (i : x.left_moves) :
+  (x.move_left i).right_moves :=
+classical.some $ (le_zero.1 h) i
+
+/-- Show that the response for right provided by `right_response` preserves the right-player-wins
+condition. -/
+lemma right_response_spec {x : pgame} (h : x ≤ 0) (i : x.left_moves) :
+  (x.move_left i).move_right (right_response h i) ≤ 0 :=
+classical.some_spec $ (le_zero.1 h) i
+
+/-- Given a game won by the left player when they play second, provide a response to any move by
+right. -/
+noncomputable def left_response {x : pgame} (h : 0 ≤ x) (j : x.right_moves) :
+  (x.move_right j).left_moves :=
+classical.some $ (zero_le.1 h) j
+
+/-- Show that the response for left provided by `left_response` preserves the left-player-wins
+condition. -/
+lemma left_response_spec {x : pgame} (h : 0 ≤ x) (j : x.right_moves) :
+  0 ≤ (x.move_right j).move_left (left_response h j) :=
+classical.some_spec $ (zero_le.1 h) j
+
+/-- The equivalence relation on pre-games. Two pre-games `x`, `y` are equivalent if `x ≤ y` and
+`y ≤ x`.
+
+If `x ≈ 0`, then the second player can always win `x`. -/
 def equiv (x y : pgame) : Prop := x ≤ y ∧ y ≤ x
+
+-- TODO: add `equiv.le` and `equiv.ge` synonyms for `equiv.1` and `equiv.2`.
 
 local infix ` ≈ ` := pgame.equiv
 
-@[refl, simp] theorem equiv_rfl {x} : x ≈ x := ⟨pgame.le_rfl, pgame.le_rfl⟩
+@[refl, simp] theorem equiv_rfl {x} : x ≈ x := ⟨le_rfl, le_rfl⟩
 theorem equiv_refl (x) : x ≈ x := equiv_rfl
+
+-- TODO: use dot notation on these.
 @[symm] theorem equiv_symm {x y} : x ≈ y → y ≈ x | ⟨xy, yx⟩ := ⟨yx, xy⟩
 @[trans] theorem equiv_trans {x y z} : x ≈ y → y ≈ z → x ≈ z
 | ⟨xy, yx⟩ ⟨yz, zy⟩ := ⟨le_trans xy yz, le_trans zy yx⟩
 
-@[trans]
-theorem lt_of_lt_of_equiv {x y z} (h₁ : x < y) (h₂ : y ≈ z) : x < z := lt_of_lt_of_le h₁ h₂.1
-@[trans]
-theorem le_of_le_of_equiv {x y z} (h₁ : x ≤ y) (h₂ : y ≈ z) : x ≤ z := le_trans h₁ h₂.1
-@[trans]
-theorem lt_of_equiv_of_lt {x y z} (h₁ : x ≈ y) (h₂ : y < z) : x < z := lt_of_le_of_lt h₁.1 h₂
-@[trans]
-theorem le_of_equiv_of_le {x y z} (h₁ : x ≈ y) (h₂ : y ≤ z) : x ≤ z := le_trans h₁.1 h₂
+@[trans] theorem le_of_le_of_equiv {x y z} (h₁ : x ≤ y) (h₂ : y ≈ z) : x ≤ z := h₁.trans h₂.1
+@[trans] theorem le_of_equiv_of_le {x y z} (h₁ : x ≈ y) : y ≤ z → x ≤ z := h₁.1.trans
 
-theorem le_congr {x₁ y₁ x₂ y₂} : x₁ ≈ x₂ → y₁ ≈ y₂ → (x₁ ≤ y₁ ↔ x₂ ≤ y₂)
-| ⟨x12, x21⟩ ⟨y12, y21⟩ := ⟨λ h, le_trans x21 (le_trans h y12), λ h, le_trans x12 (le_trans h y21)⟩
+theorem le_congr_imp {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) (h : x₁ ≤ y₁) : x₂ ≤ y₂ :=
+hx.2.trans (h.trans hy.1)
+theorem le_congr {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ ≤ y₁ ↔ x₂ ≤ y₂ :=
+⟨le_congr_imp hx hy, le_congr_imp (equiv_symm hx) (equiv_symm hy)⟩
+theorem le_congr_left {x₁ x₂ y} (hx : x₁ ≈ x₂) : x₁ ≤ y ↔ x₂ ≤ y :=
+le_congr hx equiv_rfl
+theorem le_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x ≤ y₁ ↔ x ≤ y₂ :=
+le_congr equiv_rfl hy
 
+theorem lf_congr {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ ⧏ y₁ ↔ x₂ ⧏ y₂ :=
+pgame.not_le.symm.trans $ (not_congr (le_congr hy hx)).trans pgame.not_le
+theorem lf_congr_imp {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ ⧏ y₁ → x₂ ⧏ y₂ :=
+(lf_congr hx hy).1
+theorem lf_congr_left {x₁ x₂ y} (hx : x₁ ≈ x₂) : x₁ ⧏ y ↔ x₂ ⧏ y :=
+lf_congr hx equiv_rfl
+theorem lf_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x ⧏ y₁ ↔ x ⧏ y₂ :=
+lf_congr equiv_rfl hy
+
+@[trans] theorem lf_of_lf_of_equiv {x y z} (h₁ : x ⧏ y) (h₂ : y ≈ z) : x ⧏ z :=
+lf_congr_imp equiv_rfl h₂ h₁
+@[trans] theorem lf_of_equiv_of_lf {x y z} (h₁ : x ≈ y) : y ⧏ z → x ⧏ z :=
+lf_congr_imp (equiv_symm h₁) equiv_rfl
+
+@[trans] theorem lt_of_lt_of_equiv {x y z} (h₁ : x < y) (h₂ : y ≈ z) : x < z := h₁.trans_le h₂.1
+@[trans] theorem lt_of_equiv_of_lt {x y z} (h₁ : x ≈ y) : y < z → x < z := h₁.1.trans_lt
+
+theorem lt_congr_imp {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) (h : x₁ < y₁) : x₂ < y₂ :=
+hx.2.trans_lt (h.trans_le hy.1)
 theorem lt_congr {x₁ y₁ x₂ y₂} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ < y₁ ↔ x₂ < y₂ :=
-not_le.symm.trans $ (not_congr (le_congr hy hx)).trans not_le
+⟨lt_congr_imp hx hy, lt_congr_imp (equiv_symm hx) (equiv_symm hy)⟩
+theorem lt_congr_left {x₁ x₂ y} (hx : x₁ ≈ x₂) : x₁ < y ↔ x₂ < y :=
+lt_congr hx equiv_rfl
+theorem lt_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x < y₁ ↔ x < y₂ :=
+lt_congr equiv_rfl hy
 
-theorem lt_or_equiv_of_le {x y : pgame} (h : x ≤ y) : x < y ∨ x ≈ y :=
-or_iff_not_imp_left.2 $ λ h', ⟨h, not_lt.1 h'⟩
+theorem lf_or_equiv_of_le {x y : pgame} (h : x ≤ y) : x ⧏ y ∨ x ≈ y :=
+or_iff_not_imp_left.2 $ λ h', ⟨h, pgame.not_lf.1 h'⟩
 
-theorem lt_or_equiv_or_gt (x y : pgame) : x < y ∨ x ≈ y ∨ y < x :=
+theorem lf_or_equiv_or_gf (x y : pgame) : x ⧏ y ∨ x ≈ y ∨ y ⧏ x :=
 begin
-  by_cases h : x < y,
+  by_cases h : x ⧏ y,
   { exact or.inl h },
   { right,
-    cases (lt_or_equiv_of_le (not_lt.1 h)) with h' h',
+    cases (lf_or_equiv_of_le (pgame.not_lf.1 h)) with h' h',
     { exact or.inr h' },
-    { exact or.inl h'.symm } }
+    { exact or.inl (equiv_symm h') } }
 end
 
 theorem equiv_congr_left {y₁ y₂} : y₁ ≈ y₂ ↔ ∀ x₁, x₁ ≈ y₁ ↔ x₁ ≈ y₂ :=
 ⟨λ h x₁, ⟨λ h', equiv_trans h' h, λ h', equiv_trans h' (equiv_symm h)⟩,
- λ h, (h y₁).1 $ equiv_refl _⟩
+ λ h, (h y₁).1 $ equiv_rfl⟩
 
 theorem equiv_congr_right {x₁ x₂} : x₁ ≈ x₂ ↔ ∀ y₁, x₁ ≈ y₁ ↔ x₂ ≈ y₁ :=
 ⟨λ h y₁, ⟨λ h', equiv_trans (equiv_symm h) h', λ h', equiv_trans h h'⟩,
@@ -566,6 +576,69 @@ begin
       specialize hr (R j),
       simp only [move_right_mk, equiv.symm_apply_apply] at hr,
       use ⟨R j, hr.2⟩ } }
+end
+
+/-- The fuzzy, confused, or incomparable relation on pre-games.
+
+If `x ∥ 0`, then the first player can always win `x`. -/
+def fuzzy (x y : pgame) : Prop := x ⧏ y ∧ y ⧏ x
+
+local infix ` ∥ `:50 := fuzzy
+
+@[symm] theorem fuzzy.swap {x y : pgame} : x ∥ y → y ∥ x := and.swap
+instance : is_symm _ (∥) := ⟨λ x y, fuzzy.swap⟩
+theorem fuzzy.swap_iff {x y : pgame} : x ∥ y ↔ y ∥ x := ⟨fuzzy.swap, fuzzy.swap⟩
+
+theorem fuzzy_irrefl (x : pgame) : ¬ x ∥ x := λ h, lf_irrefl x h.1
+instance : is_irrefl _ (∥) := ⟨fuzzy_irrefl⟩
+
+theorem lf_iff_lt_or_fuzzy {x y : pgame} : x ⧏ y ↔ x < y ∨ x ∥ y :=
+by { simp only [lt_iff_le_and_lf, fuzzy, ←pgame.not_le], tauto! }
+
+theorem lf_of_fuzzy {x y : pgame} (h : x ∥ y) : x ⧏ y :=
+lf_iff_lt_or_fuzzy.2 (or.inr h)
+
+theorem lt_or_fuzzy_of_lf {x y : pgame} : x ⧏ y → x < y ∨ x ∥ y :=
+lf_iff_lt_or_fuzzy.1
+
+theorem fuzzy.not_equiv {x y : pgame} (h : x ∥ y) : ¬ x ≈ y :=
+λ h', not_lf.2 h'.1 h.2
+theorem fuzzy.not_equiv' {x y : pgame} (h : x ∥ y) : ¬ y ≈ x :=
+λ h', not_lf.2 h'.2 h.2
+
+theorem not_fuzzy_of_le {x y : pgame} (h : x ≤ y) : ¬ x ∥ y :=
+λ h', pgame.not_le.2 h'.2 h
+theorem not_fuzzy_of_ge {x y : pgame} (h : y ≤ x) : ¬ x ∥ y :=
+λ h', pgame.not_le.2 h'.1 h
+
+theorem equiv.not_fuzzy {x y : pgame} (h : x ≈ y) : ¬ x ∥ y :=
+not_fuzzy_of_le h.1
+theorem equiv.not_fuzzy' {x y : pgame} (h : x ≈ y) : ¬ y ∥ x :=
+not_fuzzy_of_le h.2
+
+theorem fuzzy_congr {x₁ y₁ x₂ y₂ : pgame} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ ∥ y₁ ↔ x₂ ∥ y₂ :=
+show _ ∧ _ ↔ _ ∧ _, by rw [lf_congr hx hy, lf_congr hy hx]
+theorem fuzzy_congr_imp {x₁ y₁ x₂ y₂ : pgame} (hx : x₁ ≈ x₂) (hy : y₁ ≈ y₂) : x₁ ∥ y₁ → x₂ ∥ y₂ :=
+(fuzzy_congr hx hy).1
+theorem fuzzy_congr_left {x₁ x₂ y} (hx : x₁ ≈ x₂) : x₁ ∥ y ↔ x₂ ∥ y :=
+fuzzy_congr hx equiv_rfl
+theorem fuzzy_congr_right {x y₁ y₂} (hy : y₁ ≈ y₂) : x ∥ y₁ ↔ x ∥ y₂ :=
+fuzzy_congr equiv_rfl hy
+
+@[trans] theorem fuzzy_of_fuzzy_of_equiv {x y z} (h₁ : x ∥ y) (h₂ : y ≈ z) : x ∥ z :=
+(fuzzy_congr_right h₂).1 h₁
+@[trans] theorem fuzzy_of_equiv_of_fuzzy {x y z} (h₁ : x ≈ y) (h₂ : y ∥ z) : x ∥ z :=
+(fuzzy_congr_left h₁).2 h₂
+
+/-- Exactly one of the following is true (although we don't prove this here). -/
+theorem lt_or_equiv_or_gt_or_fuzzy (x y : pgame) : x < y ∨ x ≈ y ∨ y < x ∨ x ∥ y :=
+begin
+  cases le_or_gf x y with h₁ h₁;
+  cases le_or_gf y x with h₂ h₂,
+  { right, left, exact ⟨h₁, h₂⟩ },
+  { left, exact lt_of_le_of_lf h₁ h₂ },
+  { right, right, left, exact lt_of_le_of_lf h₂ h₁ },
+  { right, right, right, exact ⟨h₂, h₁⟩ }
 end
 
 /-- `restricted x y` says that Left always has no more moves in `x` than in `y`,
@@ -663,6 +736,9 @@ r.restricted.le
 /-- A relabelling lets us prove equivalence of games. -/
 theorem relabelling.equiv {x y : pgame} (r : relabelling x y) : x ≈ y :=
 ⟨r.le, r.symm.le⟩
+
+theorem equiv.is_empty (x : pgame) [is_empty (x.left_moves)] [is_empty (x.right_moves)] : x ≈ 0 :=
+(relabelling.is_empty x).equiv
 
 instance {x y : pgame} : has_coe (relabelling x y) (x ≈ y) := ⟨relabelling.equiv⟩
 
@@ -790,55 +866,58 @@ def relabelling.neg_congr : ∀ {x y : pgame}, x.relabelling y → (-x).relabell
     λ i, relabelling.neg_congr (by simpa using R_relabelling (R_equiv i)),
     λ i, relabelling.neg_congr (by simpa using L_relabelling (L_equiv.symm i))⟩
 
-theorem le_iff_neg_ge : Π {x y : pgame}, x ≤ y ↔ -y ≤ -x
+@[simp] theorem neg_le_iff : Π {x y : pgame}, -y ≤ -x ↔ x ≤ y
 | (mk xl xr xL xR) (mk yl yr yL yR) :=
 begin
-  rw [le_def, le_def],
-  dsimp [neg],
+  rw [le_def, le_def], dsimp,
   refine ⟨λ h, ⟨λ i, _, λ j, _⟩, λ h, ⟨λ i, _, λ j, _⟩⟩,
   { rcases h.right i with ⟨w, h⟩ | ⟨w, h⟩,
-    { refine or.inr ⟨to_right_moves_neg w, _⟩,
-      convert le_iff_neg_ge.1 h,
-      rw move_right_neg },
-    { exact or.inl ⟨w, le_iff_neg_ge.1 h⟩ } },
-  { rcases h.left j with ⟨w, h⟩ | ⟨w, h⟩,
-    { exact or.inr ⟨w, le_iff_neg_ge.1 h⟩ },
-    { refine or.inl ⟨to_left_moves_neg w, _⟩,
-      convert le_iff_neg_ge.1 h,
-      rw move_left_neg } },
-  { rcases h.right i with ⟨w, h⟩ | ⟨w, h⟩,
-    { refine or.inr ⟨to_left_moves_neg.symm w, le_iff_neg_ge.2 _⟩,
+    { refine or.inr ⟨to_left_moves_neg.symm w, neg_le_iff.1 _⟩,
       rwa [move_right_neg_symm, neg_neg] },
-    { exact or.inl ⟨w, le_iff_neg_ge.2 h⟩ } },
+    { exact or.inl ⟨w, neg_le_iff.1 h⟩ } },
   { rcases h.left j with ⟨w, h⟩ | ⟨w, h⟩,
-    { exact or.inr ⟨w, le_iff_neg_ge.2 h⟩ },
-    { refine or.inl ⟨to_right_moves_neg.symm w, le_iff_neg_ge.2 _⟩,
+    { exact or.inr ⟨w, neg_le_iff.1 h⟩ },
+    { refine or.inl ⟨to_right_moves_neg.symm w, neg_le_iff.1 _⟩,
       rwa [move_left_neg_symm, neg_neg] } },
+  { rcases h.right i with ⟨w, h⟩ | ⟨w, h⟩,
+    { refine or.inr ⟨to_right_moves_neg w, _⟩,
+      convert neg_le_iff.2 h,
+      rw move_right_neg },
+    { exact or.inl ⟨w, neg_le_iff.2 h⟩ } },
+  { rcases h.left j with ⟨w, h⟩ | ⟨w, h⟩,
+    { exact or.inr ⟨w, neg_le_iff.2 h⟩ },
+    { refine or.inl ⟨to_left_moves_neg w, _⟩,
+      convert neg_le_iff.2 h,
+      rw move_left_neg } }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
 theorem neg_congr {x y : pgame} (h : x ≈ y) : -x ≈ -y :=
-⟨le_iff_neg_ge.1 h.2, le_iff_neg_ge.1 h.1⟩
+⟨neg_le_iff.2 h.2, neg_le_iff.2 h.1⟩
 
-theorem lt_iff_neg_gt : Π {x y : pgame}, x < y ↔ -y < -x :=
-begin
-  classical,
-  intros,
-  rw [←not_le, ←not_le, not_iff_not],
-  apply le_iff_neg_ge
-end
+@[simp] theorem neg_lf_iff {x y : pgame} : -y ⧏ -x ↔ x ⧏ y :=
+by rw [←pgame.not_le, ←pgame.not_le, not_iff_not, neg_le_iff]
 
-theorem zero_le_iff_neg_le_zero {x : pgame} : 0 ≤ x ↔ -x ≤ 0 :=
-begin
-  convert le_iff_neg_ge,
-  rw pgame.neg_zero
-end
+@[simp] theorem neg_lt_iff {x y : pgame} : -y < -x ↔ x < y :=
+by rw [lt_iff_le_and_lf, lt_iff_le_and_lf, neg_le_iff, neg_lf_iff]
 
-theorem le_zero_iff_zero_le_neg {x : pgame} : x ≤ 0 ↔ 0 ≤ -x :=
-begin
-  convert le_iff_neg_ge,
-  rw pgame.neg_zero
-end
+@[simp] theorem neg_le_zero_iff {x : pgame} : -x ≤ 0 ↔ 0 ≤ x :=
+by { convert neg_le_iff, rw pgame.neg_zero }
+
+@[simp] theorem zero_le_neg_iff {x : pgame} : 0 ≤ -x ↔ x ≤ 0 :=
+by { convert neg_le_iff, rw pgame.neg_zero }
+
+@[simp] theorem neg_lf_zero_iff {x : pgame} : -x ⧏ 0 ↔ 0 ⧏ x :=
+by { convert neg_lf_iff, rw pgame.neg_zero }
+
+@[simp] theorem zero_lf_neg_iff {x : pgame} : 0 ⧏ -x ↔ x ⧏ 0 :=
+by { convert neg_lf_iff, rw pgame.neg_zero }
+
+@[simp] theorem neg_lt_zero_iff {x : pgame} : -x < 0 ↔ 0 < x :=
+by { convert neg_lt_iff, rw pgame.neg_zero }
+
+@[simp] theorem zero_lt_neg_iff {x : pgame} : 0 < -x ↔ x < 0 :=
+by { convert neg_lt_iff, rw pgame.neg_zero }
 
 /-- The sum of `x = {xL | xR}` and `y = {yL | yR}` is `{xL + y, x + yL | xR + y, x + yR}`. -/
 def add (x y : pgame) : pgame :=
@@ -1032,82 +1111,6 @@ using_well_founded { dec_tac := pgame_wf_tac }
 theorem add_assoc_equiv {x y z : pgame} : (x + y) + z ≈ x + (y + z) :=
 (add_assoc_relabelling x y z).equiv
 
-private lemma add_le_add_right : ∀ {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
-| (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
-begin
-  intros h,
-  rw le_def,
-  split,
-  { -- if Left plays first
-    intros i,
-    change xl ⊕ zl at i,
-    cases i,
-    { -- either they play in x
-      rw le_def at h,
-      cases h,
-      have t := h_left i,
-      rcases t with ⟨i', ih⟩ | ⟨j, jh⟩,
-      { left,
-        refine ⟨(left_moves_add _ _).inv_fun (sum.inl i'), _⟩,
-        exact add_le_add_right ih, },
-      { right,
-        refine ⟨(right_moves_add _ _).inv_fun (sum.inl j), _⟩,
-        convert add_le_add_right jh,
-        apply add_move_right_inl } },
-    { -- or play in z
-      left,
-      refine ⟨(left_moves_add _ _).inv_fun (sum.inr i), _⟩,
-      exact add_le_add_right h, }, },
-  { -- if Right plays first
-    intros j,
-    change yr ⊕ zr at j,
-    cases j,
-    { -- either they play in y
-      rw le_def at h,
-      cases h,
-      have t := h_right j,
-      rcases t with ⟨i, ih⟩ | ⟨j', jh⟩,
-      { left,
-        refine ⟨(left_moves_add _ _).inv_fun (sum.inl i), _⟩,
-        convert add_le_add_right ih,
-        apply add_move_left_inl },
-      { right,
-        refine ⟨(right_moves_add _ _).inv_fun (sum.inl j'), _⟩,
-        exact add_le_add_right jh } },
-    { -- or play in z
-      right,
-      refine ⟨(right_moves_add _ _).inv_fun (sum.inr j), _⟩,
-      exact add_le_add_right h } }
-end
-using_well_founded { dec_tac := pgame_wf_tac }
-
-instance covariant_class_swap_add_le : covariant_class pgame pgame (swap (+)) (≤) :=
-⟨λ x y z, add_le_add_right⟩
-
-instance covariant_class_add_le : covariant_class pgame pgame (+) (≤) :=
-⟨λ x y z h, calc x + y ≤ y + x : add_comm_le
-                   ... ≤ z + x : add_le_add_right h _
-                   ... ≤ x + z : add_comm_le⟩
-
-theorem add_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w + y ≈ x + z :=
-⟨le_trans (add_le_add_left h₂.1 w) (add_le_add_right h₁.1 z),
-  le_trans (add_le_add_left h₂.2 x) (add_le_add_right h₁.2 y)⟩
-
-theorem add_congr_left {x y z : pgame} (h : x ≈ y) : x + z ≈ y + z :=
-add_congr h equiv_rfl
-
-theorem add_congr_right {x y z : pgame} : y ≈ z → x + y ≈ x + z :=
-add_congr equiv_rfl
-
-theorem sub_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w - y ≈ x - z :=
-add_congr h₁ (neg_congr h₂)
-
-theorem sub_congr_left {x y z : pgame} (h : x ≈ y) : x - z ≈ y - z :=
-sub_congr h equiv_rfl
-
-theorem sub_congr_right {x y z : pgame} : y ≈ z → x - y ≈ x - z :=
-sub_congr equiv_rfl
-
 theorem add_left_neg_le_zero : ∀ (x : pgame), -x + x ≤ 0
 | ⟨xl, xr, xL, xR⟩ :=
 begin
@@ -1133,45 +1136,138 @@ using_well_founded { dec_tac := pgame_wf_tac }
 
 theorem zero_le_add_left_neg (x : pgame) : 0 ≤ -x + x :=
 begin
-  rw [le_iff_neg_ge, pgame.neg_zero],
-  exact le_trans neg_add_le (add_left_neg_le_zero _)
+  rw [←neg_le_iff, pgame.neg_zero],
+  exact neg_add_le.trans (add_left_neg_le_zero _)
 end
 
 theorem add_left_neg_equiv (x : pgame) : -x + x ≈ 0 :=
 ⟨add_left_neg_le_zero x, zero_le_add_left_neg x⟩
 
 theorem add_right_neg_le_zero (x : pgame) : x + -x ≤ 0 :=
-le_trans add_comm_le (add_left_neg_le_zero x)
+add_comm_le.trans (add_left_neg_le_zero x)
 
 theorem zero_le_add_right_neg (x : pgame) : 0 ≤ x + -x :=
-le_trans (zero_le_add_left_neg x) add_comm_le
+(zero_le_add_left_neg x).trans add_comm_le
 
 theorem add_right_neg_equiv (x : pgame) : x + -x ≈ 0 :=
 ⟨add_right_neg_le_zero x, zero_le_add_right_neg x⟩
 
-instance covariant_class_swap_add_lt : covariant_class pgame pgame (swap (+)) (<) :=
-⟨λ x y z h, suffices z + x ≤ y + x → z ≤ y, by { rw ←not_le at ⊢ h, exact mt this h }, λ w,
+private lemma add_le_add_right_aux : ∀ {x y z : pgame} (h : x ≤ y), x + z ≤ y + z
+| (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
+begin
+  intros h,
+  rw le_def,
+  split,
+  { -- if Left plays first
+    intros i,
+    change xl ⊕ zl at i,
+    cases i,
+    { -- either they play in x
+      rw le_def at h,
+      cases h,
+      have t := h_left i,
+      rcases t with ⟨i', ih⟩ | ⟨j, jh⟩,
+      { left,
+        refine ⟨(left_moves_add _ _).inv_fun (sum.inl i'), _⟩,
+        exact add_le_add_right_aux ih, },
+      { right,
+        refine ⟨(right_moves_add _ _).inv_fun (sum.inl j), _⟩,
+        convert add_le_add_right_aux jh,
+        apply add_move_right_inl } },
+    { -- or play in z
+      left,
+      refine ⟨(left_moves_add _ _).inv_fun (sum.inr i), _⟩,
+      exact add_le_add_right_aux h, }, },
+  { -- if Right plays first
+    intros j,
+    change yr ⊕ zr at j,
+    cases j,
+    { -- either they play in y
+      rw le_def at h,
+      cases h,
+      have t := h_right j,
+      rcases t with ⟨i, ih⟩ | ⟨j', jh⟩,
+      { left,
+        refine ⟨(left_moves_add _ _).inv_fun (sum.inl i), _⟩,
+        convert add_le_add_right_aux ih,
+        apply add_move_left_inl },
+      { right,
+        refine ⟨(right_moves_add _ _).inv_fun (sum.inl j'), _⟩,
+        exact add_le_add_right_aux jh } },
+    { -- or play in z
+      right,
+      refine ⟨(right_moves_add _ _).inv_fun (sum.inr j), _⟩,
+      exact add_le_add_right_aux h } }
+end
+using_well_founded { dec_tac := pgame_wf_tac }
+
+instance covariant_class_swap_add_le : covariant_class pgame pgame (swap (+)) (≤) :=
+⟨λ x y z, add_le_add_right_aux⟩
+
+instance covariant_class_add_le : covariant_class pgame pgame (+) (≤) :=
+⟨λ x y z h, (add_comm_le.trans (add_le_add_right h x)).trans add_comm_le⟩
+
+theorem add_lf_add_right {y z : pgame} (h : y ⧏ z) (x) : y + x ⧏ z + x :=
+suffices z + x ≤ y + x → z ≤ y, by { rw ←pgame.not_le at ⊢ h, exact mt this h }, λ w,
   calc z ≤ z + 0        : (add_zero_relabelling _).symm.le
      ... ≤ z + (x + -x) : add_le_add_left (zero_le_add_right_neg x) _
      ... ≤ z + x + -x   : (add_assoc_relabelling _ _ _).symm.le
      ... ≤ y + x + -x   : add_le_add_right w _
      ... ≤ y + (x + -x) : (add_assoc_relabelling _ _ _).le
      ... ≤ y + 0        : add_le_add_left (add_right_neg_le_zero x) _
-     ... ≤ y            : (add_zero_relabelling _).le⟩
+     ... ≤ y            : (add_zero_relabelling _).le
 
+theorem add_lf_add_left {y z : pgame} (h : y ⧏ z) (x) : x + y ⧏ x + z :=
+by { rw lf_congr add_comm_equiv add_comm_equiv, apply add_lf_add_right h }
+
+instance covariant_class_swap_add_lt : covariant_class pgame pgame (swap (+)) (<) :=
+⟨λ x y z h, begin
+  rw lt_iff_le_and_lf at h ⊢,
+  exact ⟨add_le_add_right h.1 x, add_lf_add_right h.2 x⟩
+end⟩
 instance covariant_class_add_lt : covariant_class pgame pgame (+) (<) :=
-⟨λ x y z h, calc x + y ≤ y + x : add_comm_le
-                   ... < z + x   : add_lt_add_right h _
-                   ... ≤ x + z   : add_comm_le⟩
+⟨λ x y z h, begin
+  rw lt_iff_le_and_lf at h ⊢,
+  exact ⟨add_le_add_left h.1 x, add_lf_add_left h.2 x⟩
+end⟩
+
+theorem add_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w + y ≈ x + z :=
+⟨(add_le_add_left h₂.1 w).trans (add_le_add_right h₁.1 z),
+  (add_le_add_left h₂.2 x).trans (add_le_add_right h₁.2 y)⟩
+
+theorem add_congr_left {x y z : pgame} (h : x ≈ y) : x + z ≈ y + z :=
+add_congr h equiv_rfl
+
+theorem add_congr_right {x y z : pgame} : y ≈ z → x + y ≈ x + z :=
+add_congr equiv_rfl
+
+theorem sub_congr {w x y z : pgame} (h₁ : w ≈ x) (h₂ : y ≈ z) : w - y ≈ x - z :=
+add_congr h₁ (neg_congr h₂)
+
+theorem sub_congr_left {x y z : pgame} (h : x ≈ y) : x - z ≈ y - z :=
+sub_congr h equiv_rfl
+
+theorem sub_congr_right {x y z : pgame} : y ≈ z → x - y ≈ x - z :=
+sub_congr equiv_rfl
 
 theorem le_iff_sub_nonneg {x y : pgame} : x ≤ y ↔ 0 ≤ y - x :=
-⟨λ h, le_trans (zero_le_add_right_neg x) (add_le_add_right h _),
+⟨λ h, (zero_le_add_right_neg x).trans (add_le_add_right h _),
  λ h,
   calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
      ... ≤ y - x + x : add_le_add_right h _
      ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
      ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
      ... ≤ y : (add_zero_relabelling y).le⟩
+
+theorem lf_iff_sub_zero_lf {x y : pgame} : x ⧏ y ↔ 0 ⧏ y - x :=
+⟨λ h, lf_of_le_of_lf (zero_le_add_right_neg x) (add_lf_add_right h _),
+ λ h,
+  calc x ≤ 0 + x : (zero_add_relabelling x).symm.le
+     ... ⧏ y - x + x : add_lf_add_right h _
+     ... ≤ y + (-x + x) : (add_assoc_relabelling _ _ _).le
+     ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
+     ... ≤ y : (add_zero_relabelling y).le⟩
+
 theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
 ⟨λ h, lt_of_le_of_lt (zero_le_add_right_neg x) (add_lt_add_right h _),
  λ h,
@@ -1181,7 +1277,7 @@ theorem lt_iff_sub_pos {x y : pgame} : x < y ↔ 0 < y - x :=
      ... ≤ y + 0 : add_le_add_left (add_left_neg_le_zero x) _
      ... ≤ y : (add_zero_relabelling y).le⟩
 
-/-- The pre-game `star`, which is fuzzy/confused with zero. -/
+/-- The pre-game `star`, which is fuzzy with zero. -/
 def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩
 
 @[simp] theorem star_left_moves : star.left_moves = punit := rfl
@@ -1193,19 +1289,20 @@ def star : pgame.{u} := ⟨punit, punit, λ _, 0, λ _, 0⟩
 instance unique_star_left_moves : unique star.left_moves := punit.unique
 instance unique_star_right_moves : unique star.right_moves := punit.unique
 
-theorem star_lt_zero : star < 0 :=
-by { rw lt_zero, use default, rintros ⟨⟩ }
-theorem zero_lt_star : 0 < star :=
-by { rw zero_lt, use default, rintros ⟨⟩ }
+theorem star_fuzzy_zero : star ∥ 0 :=
+⟨by { rw lf_zero, use default, rintros ⟨⟩ }, by { rw zero_lf, use default, rintros ⟨⟩ }⟩
 
 @[simp] theorem neg_star : -star = star :=
 by simp [star]
 
 @[simp] theorem zero_lt_one : (0 : pgame) < 1 :=
-by { rw zero_lt, use default, rintro ⟨⟩ }
+lt_of_le_of_lf (zero_le_of_is_empty_right_moves 1) (zero_lf_le.2 ⟨default, le_rfl⟩)
 
-theorem zero_le_one : (0 : pgame) ≤ 1 :=
-zero_le_of_is_empty_right_moves 1
+@[simp] theorem zero_le_one : (0 : pgame) ≤ 1 :=
+le_of_lt zero_lt_one
+
+@[simp] theorem zero_lf_one : (0 : pgame) ⧏ 1 :=
+lf_of_lt zero_lt_one
 
 /-- The pre-game `half` is defined as `{0 | 1}`. -/
 def half : pgame := ⟨punit, punit, 0, 1⟩
@@ -1219,15 +1316,40 @@ instance unique_half_left_moves : unique half.left_moves := punit.unique
 instance unique_half_right_moves : unique half.right_moves := punit.unique
 
 protected theorem zero_lt_half : 0 < half :=
-by { rw zero_lt, use default, rintro ⟨⟩ }
+lt_of_le_of_lf (zero_le.2 (λ j, ⟨punit.star, le_rfl⟩))
+  (zero_lf.2 ⟨default, is_empty.elim pempty.is_empty⟩)
 
 theorem half_lt_one : half < 1 :=
+lt_of_le_of_lf (le_def_lf.2 ⟨by simp, is_empty_elim⟩) (lf_def_le.2 (or.inr ⟨default, le_rfl⟩))
+
+theorem half_add_half_equiv_one : half + half ≈ 1 :=
 begin
-  rw lt_def,
-  right,
-  use default,
-  split; rintro ⟨⟩,
-  exact zero_lt_one
+  split; rw le_def; split,
+  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩),
+    { right,
+      use (sum.inr punit.star),
+      calc ((half + half).move_left (sum.inl punit.star)).move_right (sum.inr punit.star)
+          = (half.move_left punit.star + half).move_right (sum.inr punit.star) : by fsplit
+      ... = (0 + half).move_right (sum.inr punit.star) : by fsplit
+      ... ≈ 1 : zero_add_equiv 1
+      ... ≤ 1 : le_rfl },
+    { right,
+      use (sum.inl punit.star),
+      calc ((half + half).move_left (sum.inr punit.star)).move_right (sum.inl punit.star)
+          = (half + half.move_left punit.star).move_right (sum.inl punit.star) : by fsplit
+      ... = (half + 0).move_right (sum.inl punit.star) : by fsplit
+      ... ≈ 1 : add_zero_equiv 1
+      ... ≤ 1 : le_rfl } },
+  { rintro ⟨ ⟩ },
+  { rintro ⟨ ⟩,
+    left,
+    use (sum.inl punit.star),
+    calc 0 ≤ half : pgame.zero_lt_half.le
+    ... ≈ 0 + half : equiv_symm (zero_add_equiv half)
+    ... = (half + half).move_left (sum.inl punit.star) : by fsplit },
+  { rintro (⟨⟨ ⟩⟩ | ⟨⟨ ⟩⟩); left,
+    { exact ⟨sum.inr punit.star, (add_zero_equiv _).2⟩ },
+    { exact ⟨sum.inl punit.star, (zero_add_equiv _).2⟩ } }
 end
 
 end pgame

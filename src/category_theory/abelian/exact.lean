@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Adam Topaz, Johan Commelin, Jakob von Raumer
 -/
 import category_theory.abelian.opposite
+import category_theory.limits.constructions.finite_products_of_binary_products
 import category_theory.limits.preserves.shapes.zero
 import category_theory.limits.preserves.shapes.kernels
-import category_theory.limits.preserves.shapes.binary_products
 import category_theory.adjunction.limits
 import algebra.homology.exact
 import tactic.tfae
@@ -356,7 +356,7 @@ def preserves_equalizer_of_preserves_kernels
   [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] {X Y : C}
   (f g : X ⟶ Y) : preserves_limit (parallel_pair f g) F :=
 begin
-  letI := preserves_binary_biproducts_of_preserves_binary_products F,
+  haveI := preserves_binary_biproducts_of_preserves_binary_products F,
   letI := additive_of_preserves_binary_biproducts F,
   constructor, intros c i,
   have c' := is_limit_kernel_fork_of_fork (i.of_iso_limit (iso_fork_of_ι c)),
@@ -384,20 +384,26 @@ def preserves_equalizers_of_preserves_kernels
   begin
     letI := preserves_equalizer_of_preserves_kernels F
       (K.map walking_parallel_pair_hom.left) (K.map walking_parallel_pair_hom.right),
-    eapply preserves_limit_of_iso_diagram F (diagram_iso_parallel_pair K).symm,
+    apply preserves_limit_of_iso_diagram F (diagram_iso_parallel_pair K).symm,
   end }
 
+/--
+A functor from a preadditive category to an abelian category which preserves kernels preserves
+all finite limits.
+-/
 def preserves_finite_limits_of_preserves_kernels
-  [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] :
-  preserves_finite_limits F :=
+  [∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] : preserves_finite_limits F :=
 begin
-  letI := preserves_equalizers_of_preserves_kernels F,
-  letI := Π (J : Type v₁) [_inst_8 : fintype J], preserves_limits_of_shape (discrete J) F,
-  { sorry },
+  haveI := preserves_equalizers_of_preserves_kernels F,
+  haveI := preserves_terminal_object_of_preserves_zero_morphisms F,
+  haveI := preserves_limits_of_shape_pempty_of_preserves_terminal F,
+  haveI p_prod := preserves_finite_products_of_preserves_binary_and_terminal F,
+  apply @preserves_finite_limits_of_preserves_equalizers_and_finite_products _ _
+    _ _ _ _ _ _ @p_prod,
 end
 
 /--
-A functor from a preadditive category to an abelian category which preserves cokernels,
+A functor from a preadditive category to an abelian category which preserves cokernels
 preserves finite coproducts.
 -/
 def is_colimit_map_cocone_binary_cofan_of_preserves_cokernels
@@ -438,8 +444,8 @@ def preserves_coequalizer_of_preserves_cokernels
   [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] {X Y : C}
   (f g : X ⟶ Y) : preserves_colimit (parallel_pair f g) F :=
 begin
-  letI := preserves_binary_biproducts_of_preserves_binary_coproducts F,
-  letI := additive_of_preserves_binary_biproducts F,
+  haveI := preserves_binary_biproducts_of_preserves_binary_coproducts F,
+  haveI := additive_of_preserves_binary_biproducts F,
   constructor, intros c i,
   have c' := is_colimit_cokernel_cofork_of_cofork (i.of_iso_colimit (iso_cofork_of_π c)),
   simp only [cokernel_cofork_of_cofork_of_π] at c',
@@ -452,7 +458,7 @@ begin
     ((is_colimit.precompose_hom_equiv p.symm _).symm iFc)) _,
   refine cofork.ext (iso.refl _) _,
   dsimp only [p, cofork_of_cokernel_cofork, cocones.precompose, ← cofork.app_one_eq_π],
-  squeeze_dsimp [- cofork.app_one_eq_π], simp
+  dsimp [- cofork.app_one_eq_π], simp
 end
 
 /--
@@ -460,15 +466,32 @@ A functor from a preadditive category into an abelian category preserves all coe
 preserves all kernels.
 -/
 def preserves_coequalizers_of_preserves_cokernels
-  [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F] :
-  preserves_limits_of_shape walking_parallel_pair F :=
-{ preserves_limit := λ K,
+  [pres_kernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] :
+  preserves_colimits_of_shape walking_parallel_pair F :=
+{ preserves_colimit := λ K,
   begin
-    letI := preserves_equalizer_of_preserves_kernels F
+    haveI := preserves_coequalizer_of_preserves_cokernels F
       (K.map limits.walking_parallel_pair_hom.left)
       (K.map limits.walking_parallel_pair_hom.right),
-    eapply preserves_limit_of_iso_diagram F (diagram_iso_parallel_pair K).symm,
+    apply preserves_colimit_of_iso_diagram F (diagram_iso_parallel_pair K).symm,
   end }
+
+/--
+A functor from a preadditive category to an abelian category which preserves kernels preserves
+all finite limits.
+-/
+def preserves_finite_colimits_of_preserves_cokernels
+  [pres_cokernels : ∀ {X Y} (f : X ⟶ Y), preserves_colimit (parallel_pair f 0) F] :
+  preserves_finite_colimits F :=
+begin
+  haveI := preserves_coequalizers_of_preserves_cokernels F,
+  haveI := preserves_initial_object_of_preserves_zero_morphisms F,
+  haveI := preserves_colimits_of_shape_pempty_of_preserves_initial F,
+  haveI p_prod := preserves_finite_coproducts_of_preserves_binary_and_initial F,
+  apply @preserves_finite_colimits_of_preserves_coequalizers_and_finite_coproducts C _
+    _ _ _ _ _ _ @p_prod,
+end
+
 end
 
 end functor

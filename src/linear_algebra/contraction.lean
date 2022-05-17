@@ -148,7 +148,7 @@ section comm_ring
 variables [comm_ring R] [module R M] [module R N] [module R P] [module R Q]
 variables [free R M] [finite R M] [free R N] [finite R N] [nontrivial R]
 
-/-- When `M` is a finite free module, them map `ltensor_hom_to_hom_ltensor` is an equivalence. Note
+/-- When `M` is a finite free module, the map `ltensor_hom_to_hom_ltensor` is an equivalence. Note
 that `ltensor_hom_equiv_hom_ltensor` is not defined directly in terms of
 `ltensor_hom_to_hom_ltensor`, but the equivalence between the two is given by
 `ltensor_hom_equiv_hom_ltensor_to_linear_map` and `ltensor_hom_equiv_hom_ltensor_apply`. -/

@@ -117,6 +117,11 @@ begin
   apply_instance,
 end
 
+instance preserves_limits_of_shape_pempty_of_preserves_terminal :
+  preserves_limits_of_shape  (discrete pempty) G :=
+{ preserves_limit := λ K,
+    preserves_limit_of_iso_diagram.{v₁ v₁} G (functor.empty_ext (functor.empty C) _) }
+
 end terminal
 
 section initial
@@ -204,6 +209,11 @@ begin
   rw ← preserves_initial.iso_hom,
   apply_instance,
 end
+
+instance preserves_colimits_of_shape_pempty_of_preserves_initial :
+  preserves_colimits_of_shape  (discrete pempty) G :=
+{ preserves_colimit := λ K,
+    preserves_colimit_of_iso_diagram.{v₁ v₁} G (functor.empty_ext (functor.empty C) _) }
 
 end initial
 

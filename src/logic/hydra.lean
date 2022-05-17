@@ -75,7 +75,7 @@ lemma game_add_le_lex : game_add rα rβ ≤ prod.lex rα rβ :=
 
 /-- `prod.rprod` is a subrelation of the transitive closure of `game_add`. -/
 lemma rprod_le_trans_gen_game_add : prod.rprod rα rβ ≤ trans_gen (game_add rα rβ) :=
-λ _ _ h, h.rec $ begin
+λ _ _ h, h.rec begin
   intros _ _ _ _ hα hβ,
   exact trans_gen.tail (trans_gen.single $ game_add.fst hα) (game_add.snd hβ),
 end

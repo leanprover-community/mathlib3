@@ -89,13 +89,27 @@ setup_tactic_parser
 
 namespace tactic
 
-/-- The same as `exact` except you can add proof holes. -/
+meta def equate_with_pattern : expr → expr → expr → tactic unit
+| (expr.app f e) (expr.app f0 e0) (expr.app f1 e1) := do
+  match e with
+  | (expr.mvar _ _ _) := do
+    el ← mk_app `eq [e0, e1],
+    n ← get_unused_name "h",
+    assert n el,
+    interactive.rotate,
+    get_local n >>= rewrite_target,
+    equate_with_pattern f f0 f1
+  | _ := do equate_with_pattern e e0 e1 *> equate_with_pattern f f0 f1
+  end
+| _ _ _ := skip
+
 meta def refine' (e : pexpr) : tactic unit :=
 do
   tgt ← target,
-  e ← to_expr e,
-  infer_type e >>= unify tgt,
-  exact e
+  e' ← to_expr e tt ff >>= infer_type,   --    <---  added the ascription `tt ff` to `to_expr`
+  equate_with_pattern e' tgt e',
+  unify e' tgt,  --  added unification, since I mistakenly removed it from the copied code
+  apply e' >> skip --  `apply` not `exact`!
 
 namespace interactive
 
@@ -109,8 +123,8 @@ end tactic
 example : Σ (α : Type), finset ℕ → α :=
 begin
   let α := _,
-  haveI : add_comm_monoid α := sorry,
-  refine ⟨α, λ s : finset ℕ, s.sum _⟩,
+  refine ⟨α, _⟩,
+  refine' λ s : finset ℕ, s.sum _,
   show ℕ → α, exact id,
   apply_instance,
 end

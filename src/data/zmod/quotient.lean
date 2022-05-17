@@ -105,8 +105,7 @@ let f := zmultiples_quotient_stabilizer_equiv (additive.of_mul a) b in
 ⟨f.to_fun, f.inv_fun, f.left_inv, f.right_inv, f.map_add'⟩
 
 lemma zpowers_quotient_stabilizer_equiv_symm_apply (n : zmod (minimal_period ((•) a) b)) :
-  (zpowers_quotient_stabilizer_equiv a b).symm n =
-    (⟨a, mem_zpowers a⟩ : zpowers a) ^ (n : ℤ) :=
+  (zpowers_quotient_stabilizer_equiv a b).symm n = (⟨a, mem_zpowers a⟩ : zpowers a) ^ (n : ℤ) :=
 rfl
 
 /-- The orbit `(a ^ ℤ) • b` is a cycle of order `minimal_period ((•) a) b`. -/
@@ -131,7 +130,7 @@ rfl
 lemma orbit_zpowers_equiv_symm_apply' (k : ℤ) : (orbit_zpowers_equiv a b).symm k =
   (⟨a, mem_zpowers a⟩ : zpowers a) ^ k • ⟨b, mem_orbit_self b⟩ :=
 begin
-  conv_rhs { rw ← int.mod_add_div k (function.minimal_period ((•) a) b) },
+  conv_rhs { rw ← int.mod_add_div k (minimal_period ((•) a) b) },
   rw [zpow_add, mul_smul, orbit_zpowers_equiv_symm_apply, zmod.coe_int_cast, smul_left_cancel_iff,
       subtype.ext_iff, orbit.coe_smul, eq_comm, zpow_smul_eq_iff_minimal_period_dvd],
   apply dvd_mul_right,
@@ -142,11 +141,10 @@ lemma _root_.add_action.orbit_zmultiples_equiv_symm_apply'
   (add_action.orbit_zmultiples_equiv a b).symm k =
     (k • (⟨a, mem_zmultiples a⟩ : zmultiples a)) +ᵥ ⟨b, add_action.mem_orbit_self b⟩ :=
 begin
-  conv_rhs { rw ← int.mod_add_div k (function.minimal_period ((+ᵥ) a) b) },
+  conv_rhs { rw ← int.mod_add_div k (minimal_period ((+ᵥ) a) b) },
   rw [add_zsmul, add_vadd, add_action.orbit_zmultiples_equiv_symm_apply, zmod.coe_int_cast,
-      vadd_left_cancel_iff, subtype.ext_iff, orbit.coe_vadd, eq_comm,
-      zsmul_vadd_eq_iff_minimal_period_dvd],
-  apply dvd_mul_right,
+      vadd_left_cancel_iff, eq_comm],
+  exact subtype.ext (zsmul_vadd_eq_iff_minimal_period_dvd.mpr (dvd_mul_right _ _)),
 end
 
 attribute [to_additive orbit_zmultiples_equiv_symm_apply'] orbit_zpowers_equiv_symm_apply'

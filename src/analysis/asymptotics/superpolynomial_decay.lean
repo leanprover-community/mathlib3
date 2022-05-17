@@ -306,7 +306,7 @@ begin
     from is_O.trans_tendsto this hk.inv_tendsto_at_top,
     refine ((is_O_refl (λ a, (k a) ^ z) l).mul (h (- (z + 1)))).trans
       (is_O.of_bound 1 $ hk0.mono (λ a ha0, _)),
-    simp only [one_mul, neg_add z 1, zpow_add₀ ha0, ← mul_assoc, zpow_neg₀,
+    simp only [one_mul, neg_add z 1, zpow_add₀ ha0, ← mul_assoc, zpow_neg,
       mul_inv_cancel (zpow_ne_zero z ha0), zpow_one] }
 end
 

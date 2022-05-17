@@ -151,4 +151,8 @@ end
 
 attribute [to_additive orbit_zmultiples_equiv_symm_apply'] orbit_zpowers_equiv_symm_apply'
 
+@[to_additive] lemma minimal_period_eq_card [fintype (orbit (zpowers a) b)] :
+  minimal_period ((•) a) b = fintype.card (orbit (zpowers a) b) :=
+by rw [←fintype.of_equiv_card (orbit_zpowers_equiv a b), zmod.card]
+
 end mul_action

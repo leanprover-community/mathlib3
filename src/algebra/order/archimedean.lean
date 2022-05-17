@@ -166,7 +166,7 @@ lemma exists_mem_Ico_zpow [archimedean α]
 by classical; exact
 let ⟨N, hN⟩ := pow_unbounded_of_one_lt x⁻¹ hy in
   have he: ∃ m : ℤ, y ^ m ≤ x, from
-    ⟨-N, le_of_lt (by { rw [zpow_neg₀ y (↑N), zpow_coe_nat],
+    ⟨-N, le_of_lt (by { rw [zpow_neg y (↑N), zpow_coe_nat],
     exact (inv_lt hx (lt_trans (inv_pos.2 hx) hN)).1 hN })⟩,
 let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
   have hb: ∃ b : ℤ, ∀ m, y ^ m ≤ x → m ≤ b, from
@@ -185,8 +185,8 @@ lemma exists_mem_Ioc_zpow [archimedean α]
 let ⟨m, hle, hlt⟩ := exists_mem_Ico_zpow (inv_pos.2 hx) hy in
 have hyp : 0 < y, from lt_trans zero_lt_one hy,
 ⟨-(m+1),
-by rwa [zpow_neg₀, inv_lt (zpow_pos_of_pos hyp _) hx],
-by rwa [neg_add, neg_add_cancel_right, zpow_neg₀,
+by rwa [zpow_neg, inv_lt (zpow_pos_of_pos hyp _) hx],
+by rwa [neg_add, neg_add_cancel_right, zpow_neg,
         le_inv hx (zpow_pos_of_pos hyp _)]⟩
 
 /-- For any `y < 1` and any positive `x`, there exists `n : ℕ` with `y ^ n < x`. -/
@@ -197,7 +197,7 @@ begin
   { use 1, simp only [pow_one], linarith, },
   rw [not_le] at y_pos,
   rcases pow_unbounded_of_one_lt (x⁻¹) (one_lt_inv y_pos hy) with ⟨q, hq⟩,
-  exact ⟨q, by rwa [inv_pow₀, inv_lt_inv hx (pow_pos y_pos _)] at hq⟩
+  exact ⟨q, by rwa [inv_pow, inv_lt_inv hx (pow_pos y_pos _)] at hq⟩
 end
 
 /-- Given `x` and `y` between `0` and `1`, `x` is between two successive powers of `y`.
@@ -209,8 +209,8 @@ begin
   rcases exists_nat_pow_near (one_le_inv_iff.2 ⟨xpos, hx⟩) (one_lt_inv_iff.2 ⟨ypos, hy⟩)
     with ⟨n, hn, h'n⟩,
   refine ⟨n, _, _⟩,
-  { rwa [inv_pow₀, inv_lt_inv xpos (pow_pos ypos _)] at h'n },
-  { rwa [inv_pow₀, inv_le_inv (pow_pos ypos _) xpos] at hn }
+  { rwa [inv_pow, inv_lt_inv xpos (pow_pos ypos _)] at h'n },
+  { rwa [inv_pow, inv_le_inv (pow_pos ypos _) xpos] at hn }
 end
 
 variables [floor_ring α]

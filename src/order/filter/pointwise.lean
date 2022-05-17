@@ -219,6 +219,28 @@ end div
 
 open_locale pointwise
 
+/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `filter`. See
+Note [pointwise nat action].-/
+protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (filter α) := ⟨nsmul_rec⟩
+
+/-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
+`filter`. See Note [pointwise nat action]. -/
+@[to_additive]
+protected def has_npow [has_one α] [has_mul α] : has_pow (filter α) ℕ := ⟨λ s n, npow_rec n s⟩
+
+/-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
+addition/subtraction!) of a `filter`. See Note [pointwise nat action]. -/
+protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (filter α) :=
+⟨zsmul_rec⟩
+
+/-- Repeated pointwise multiplication/division (not the same as pointwise repeated
+multiplication/division!) of a `filter`. See Note [pointwise nat action]. -/
+@[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (filter α) ℤ :=
+⟨λ s n, zpow_rec n s⟩
+
+localized "attribute [instance] filter.has_nsmul filter.has_npow filter.has_zsmul filter.has_zpow"
+  in pointwise
+
 /-- `filter α` is a `semigroup` under pointwise operations if `α` is.-/
 @[to_additive "`filter α` is an `add_semigroup` under pointwise operations if `α` is."]
 protected def semigroup [semigroup α] : semigroup (filter α) :=
@@ -282,7 +304,7 @@ variables [monoid α] {f g : filter α} {s : set α} {a : α}
 /-- `filter α` is a `monoid` under pointwise operations if `α` is. -/
 @[to_additive "`filter α` is an `add_monoid` under pointwise operations if `α` is."]
 protected def monoid : monoid (filter α) :=
-{ ..filter.mul_one_class, ..filter.semigroup }
+{ ..filter.mul_one_class, ..filter.semigroup, ..filter.has_npow }
 
 localized "attribute [instance] filter.monoid filter.add_monoid" in pointwise
 
@@ -330,7 +352,7 @@ protected def division_monoid : division_monoid (filter α) :=
     rw [inv_pure, inv_eq_of_mul_eq_one_right hab],
   end,
   div_eq_mul_inv := λ f g, map_map₂_distrib_right div_eq_mul_inv,
-  ..filter.monoid, ..filter.has_involutive_inv, ..filter.has_div }
+  ..filter.monoid, ..filter.has_involutive_inv, ..filter.has_div, ..filter.has_zpow }
 
 @[to_additive] lemma is_unit_iff : is_unit f ↔ ∃ a, f = pure a ∧ is_unit a :=
 begin

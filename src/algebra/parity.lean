@@ -341,8 +341,8 @@ by { obtain ⟨k, rfl⟩ := h, exact zpow_bit0_neg _ _ }
 lemma odd.neg_zpow (h : odd n) (a : K) : (-a) ^ n = - a ^ n :=
 by { obtain ⟨k, rfl⟩ := h.exists_bit1, exact zpow_bit1_neg _ _ }
 
-lemma even.neg_one_zpow (h : even n) : (-1 : K) ^ n = 1 := by rw [h.neg_zpow, one_zpow₀]
-lemma odd.neg_one_zpow (h : odd n) : (-1 : K) ^ n = -1 := by rw [h.neg_zpow, one_zpow₀]
+lemma even.neg_one_zpow (h : even n) : (-1 : K) ^ n = 1 := by rw [h.neg_zpow, one_zpow]
+lemma odd.neg_one_zpow (h : odd n) : (-1 : K) ^ n = -1 := by rw [h.neg_zpow, one_zpow]
 
 end division_ring
 

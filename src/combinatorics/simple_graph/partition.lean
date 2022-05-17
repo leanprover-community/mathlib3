@@ -127,7 +127,7 @@ begin
   { rintro ⟨P, hf, h⟩,
     haveI : fintype P.parts := hf.fintype,
     rw set.finite.card_to_finset at h,
-    apply P.to_colorable.of_le h, },
+    apply P.to_colorable.mono h, },
   { rintro ⟨C⟩,
     refine ⟨C.to_partition, C.color_classes_finite_of_fintype, le_trans _ (fintype.card_fin n).le⟩,
     generalize_proofs h,

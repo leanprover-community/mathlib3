@@ -3,7 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Reid Barton, Simon Hudon, Kenny Lau
 -/
-import data.equiv.basic
+import logic.equiv.basic
 
 /-!
 # Opposites
@@ -84,7 +84,7 @@ equiv_to_opposite.apply_eq_iff_eq_symm_apply
 lemma unop_eq_iff_eq_op {x} {y : α} : unop x = y ↔ x = op y :=
 equiv_to_opposite.symm.apply_eq_iff_eq_symm_apply
 
-instance [inhabited α] : inhabited αᵒᵖ := ⟨op (default _)⟩
+instance [inhabited α] : inhabited αᵒᵖ := ⟨op default⟩
 
 /-- A recursor for `opposite`. Use as `induction x using opposite.rec`. -/
 @[simp]

@@ -549,10 +549,10 @@ do
   | normalize_mode.SOP :=
     [``horner_def', ``add_zero, ``mul_one, ``mul_add, ``mul_sub,
     ``mul_assoc_rev, ``pow_add_rev, ``pow_add_rev_right,
-    ``mul_neg_eq_neg_mul_symm, ``add_neg_eq_sub]
+    ``mul_neg, ``add_neg_eq_sub]
   | normalize_mode.horner :=
     [``horner.equations._eqn_1, ``add_zero, ``one_mul, ``pow_one,
-    ``neg_mul_eq_neg_mul_symm, ``add_neg_eq_sub]
+    ``neg_mul, ``add_neg_eq_sub]
   | _ := []
   end,
   lemmas ← lemmas.mfoldl simp_lemmas.add_simp simp_lemmas.mk,
@@ -566,12 +566,13 @@ do
       (a, e', pr) ← ext_simplify_core a {}
         simp_lemmas.mk (λ _, failed) (λ a _ _ _ e, do
           write_ref atoms a,
+          (new_e, pr) ← eval' red atoms e,
           (new_e, pr) ← match mode with
-          | normalize_mode.raw := eval' red atoms
-          | normalize_mode.horner := trans_conv (eval' red atoms)
-                                      (λ e, do (e', prf, _) ← simplify lemmas [] e, pure (e', prf))
+          | normalize_mode.raw := λ _, pure (new_e, pr)
+          | normalize_mode.horner := trans_conv (λ _, pure (new_e, pr))
+            (λ e, do (e', prf, _) ← simplify lemmas [] e, pure (e', prf))
           | normalize_mode.SOP :=
-            trans_conv (eval' red atoms) $
+            trans_conv (λ _, pure (new_e, pr)) $
             trans_conv (λ e, do (e', prf, _) ← simplify lemmas [] e, pure (e', prf)) $
             simp_bottom_up' (λ e, norm_num.derive e <|> pow_lemma.rewrite e)
           end e,

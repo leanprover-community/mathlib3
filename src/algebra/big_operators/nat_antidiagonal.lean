@@ -64,7 +64,8 @@ end
 
 /-- This lemma matches more generally than `finset.nat.prod_antidiagonal_eq_prod_range_succ_mk` when
 using `rw ←`. -/
-@[to_additive]
+@[to_additive "This lemma matches more generally than
+`finset.nat.sum_antidiagonal_eq_sum_range_succ_mk` when using `rw ←`."]
 lemma prod_antidiagonal_eq_prod_range_succ {M : Type*} [comm_monoid M] (f : ℕ → ℕ → M) (n : ℕ) :
   ∏ ij in finset.nat.antidiagonal n, f ij.1 ij.2 = ∏ k in range n.succ, f k (n - k) :=
 prod_antidiagonal_eq_prod_range_succ_mk _ _

@@ -63,7 +63,7 @@ instance normed_lattice_add_comm_group_to_ordered_add_comm_group {α : Type*}
 Let `α` be a normed group with a partial order. Then the order dual is also a normed group.
 -/
 @[priority 100] -- see Note [lower instance priority]
-instance {α : Type*} : Π [normed_group α], normed_group (order_dual α) := id
+instance {α : Type*} : Π [normed_group α], normed_group αᵒᵈ := id
 
 variables {α : Type*} [normed_lattice_add_comm_group α]
 open lattice_ordered_comm_group
@@ -76,8 +76,7 @@ begin
   rw ← neg_inf_eq_sup_neg,
   rw abs_eq_sup_neg,
   nth_rewrite 0 ← neg_neg b,
-  rw ← neg_inf_eq_sup_neg,
-  finish,
+  rwa [← neg_inf_eq_sup_neg, neg_le_neg_iff, @inf_comm _ _ _ b, @inf_comm _ _ _ a],
 end
 
 /--
@@ -85,7 +84,7 @@ Let `α` be a normed lattice ordered group, then the order dual is also a
 normed lattice ordered group.
 -/
 @[priority 100] -- see Note [lower instance priority]
-instance : normed_lattice_add_comm_group (order_dual α) :=
+instance : normed_lattice_add_comm_group αᵒᵈ :=
 { add_le_add_left := begin
     intros a b h₁ c,
     rw ← order_dual.dual_le,
@@ -96,7 +95,7 @@ instance : normed_lattice_add_comm_group (order_dual α) :=
     intros a b h₂,
     apply dual_solid,
     rw ← order_dual.dual_le at h₂,
-    finish,
+    exact h₂,
   end, }
 
 lemma norm_abs_eq_norm (a : α) : ∥|a|∥ = ∥a∥ :=
@@ -151,7 +150,7 @@ end
 instance normed_lattice_add_comm_group_has_continuous_sup {α : Type*}
   [normed_lattice_add_comm_group α] :
   has_continuous_sup α :=
-order_dual.has_continuous_sup (order_dual α)
+order_dual.has_continuous_sup αᵒᵈ
 
 /--
 Let `α` be a normed lattice ordered group. Then `α` is a topological lattice in the norm topology.
@@ -163,3 +162,45 @@ topological_lattice.mk
 lemma norm_abs_sub_abs (a b : α) :
   ∥ |a| - |b| ∥ ≤ ∥a-b∥ :=
 solid (lattice_ordered_comm_group.abs_abs_sub_abs_le _ _)
+
+lemma norm_sup_sub_sup_le_norm (x y z : α) : ∥x ⊔ z - (y ⊔ z)∥ ≤ ∥x - y∥ :=
+solid (abs_sup_sub_sup_le_abs x y z)
+
+lemma norm_inf_sub_inf_le_norm (x y z : α) : ∥x ⊓ z - (y ⊓ z)∥ ≤ ∥x - y∥ :=
+solid (abs_inf_sub_inf_le_abs x y z)
+
+lemma lipschitz_with_sup_right (z : α) : lipschitz_with 1 (λ x, x ⊔ z) :=
+lipschitz_with.of_dist_le_mul $ λ x y, by
+{ rw [nonneg.coe_one, one_mul, dist_eq_norm, dist_eq_norm], exact norm_sup_sub_sup_le_norm x y z, }
+
+lemma lipschitz_with_pos : lipschitz_with 1 (has_pos_part.pos : α → α) :=
+lipschitz_with_sup_right 0
+
+lemma continuous_pos : continuous (has_pos_part.pos : α → α) :=
+lipschitz_with.continuous lipschitz_with_pos
+
+lemma continuous_neg' : continuous (has_neg_part.neg : α → α) :=
+continuous_pos.comp continuous_neg
+
+lemma is_closed_nonneg {E} [normed_lattice_add_comm_group E] : is_closed {x : E | 0 ≤ x} :=
+begin
+  suffices : {x : E | 0 ≤ x} = has_neg_part.neg ⁻¹' {(0 : E)},
+  by { rw this, exact is_closed.preimage continuous_neg' is_closed_singleton, },
+  ext1 x,
+  simp only [set.mem_preimage, set.mem_singleton_iff, set.mem_set_of_eq, neg_eq_zero_iff],
+end
+
+lemma is_closed_le_of_is_closed_nonneg {G} [ordered_add_comm_group G] [topological_space G]
+  [has_continuous_sub G] (h : is_closed {x : G | 0 ≤ x}) :
+  is_closed {p : G × G | p.fst ≤ p.snd} :=
+begin
+  have : {p : G × G | p.fst ≤ p.snd} = (λ p : G × G, p.snd - p.fst) ⁻¹' {x : G | 0 ≤ x},
+    by { ext1 p, simp only [sub_nonneg, set.preimage_set_of_eq], },
+  rw this,
+  exact is_closed.preimage (continuous_snd.sub continuous_fst) h,
+end
+
+@[priority 100]  -- See note [lower instance priority]
+instance normed_lattice_add_comm_group.order_closed_topology {E} [normed_lattice_add_comm_group E] :
+  order_closed_topology E :=
+⟨is_closed_le_of_is_closed_nonneg is_closed_nonneg⟩

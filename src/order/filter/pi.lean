@@ -41,8 +41,7 @@ by simp only [pi, tendsto_infi, tendsto_comap_iff]
 
 lemma le_pi {g : filter (Π i, α i)} : g ≤ pi f ↔ ∀ i, tendsto (eval i) g (f i) := tendsto_pi
 
-@[mono] lemma pi_mono (h : ∀ i, f₁ i ≤ f₂ i) : pi f₁ ≤ pi f₂ :=
-infi_le_infi $ λ i, comap_mono $ h i
+@[mono] lemma pi_mono (h : ∀ i, f₁ i ≤ f₂ i) : pi f₁ ≤ pi f₂ := infi_mono $ λ i, comap_mono $ h i
 
 lemma mem_pi_of_mem (i : ι) {s : set (α i)} (hs : s ∈ f i) :
   eval i ⁻¹' s ∈ pi f :=
@@ -62,7 +61,7 @@ begin
   split,
   { simp only [pi, mem_infi', mem_comap, pi_def],
     rintro ⟨I, If, V, hVf, hVI, rfl, -⟩, choose t htf htV using hVf,
-    exact ⟨I, If, t, htf, bInter_mono (λ i _, htV i)⟩ },
+    exact ⟨I, If, t, htf, Inter₂_mono (λ i _, htV i)⟩ },
   { rintro ⟨I, If, t, htf, hts⟩,
     exact mem_of_superset (pi_mem_pi If $ λ i _, htf i) hts }
 end
@@ -87,6 +86,17 @@ end
   I.pi s ∈ pi f ↔ ∀ i ∈ I, s i ∈ f i :=
 ⟨λ h i hi, mem_of_pi_mem_pi h hi, pi_mem_pi hI⟩
 
+lemma has_basis_pi {ι' : ι → Type} {s : Π i, ι' i → set (α i)} {p : Π i, ι' i → Prop}
+  (h : ∀ i, (f i).has_basis (p i) (s i)) :
+  (pi f).has_basis (λ If : set ι × Π i, ι' i, finite If.1 ∧ ∀ i ∈ If.1, p i (If.2 i))
+    (λ If : set ι × Π i, ι' i, If.1.pi (λ i, s i $ If.2 i)) :=
+begin
+  have : (pi f).has_basis _ _ := has_basis_infi (λ i, (h i).comap (eval i : (Π j, α j) → α i)),
+  convert this,
+  ext,
+  simp
+end
+
 @[simp] lemma pi_inf_principal_univ_pi_eq_bot :
   pi f ⊓ 𝓟 (set.pi univ s) = ⊥ ↔ ∃ i, f i ⊓ 𝓟 (s i) = ⊥ :=
 begin
@@ -98,8 +108,7 @@ begin
     exact hts (λ i hi, hxt i) (mem_univ_pi.2 hxs) },
   { simp only [inf_principal_eq_bot],
     rintro ⟨i, hi⟩,
-    filter_upwards [mem_pi_of_mem i hi],
-    exact λ x, mt (λ h, h i trivial) }
+    filter_upwards [mem_pi_of_mem i hi] with x using mt (λ h, h i trivial), },
 end
 
 @[simp] lemma pi_inf_principal_pi_eq_bot [Π i, ne_bot (f i)] {I : set ι} :
@@ -144,13 +153,9 @@ lemma mem_Coprod_iff {s : set (Π i, α i)} :
   (s ∈ filter.Coprod f) ↔ (∀ i : ι, (∃ t₁ ∈ f i, eval i ⁻¹' t₁ ⊆ s)) :=
 by simp [filter.Coprod]
 
-lemma compl_mem_Coprod_iff {s : set (Π i, α i)} :
-  sᶜ ∈ filter.Coprod f ↔ ∃ t : Π i, set (α i), (∀ i, (t i)ᶜ ∈ f i) ∧ s ⊆ set.pi univ (λ i, t i) :=
-begin
-  rw [(surjective_pi_map (λ i, @compl_surjective (set (α i)) _)).exists],
-  simp_rw [mem_Coprod_iff, classical.skolem, exists_prop, @subset_compl_comm _ _ s,
-    ← preimage_compl, ← subset_Inter_iff, ← univ_pi_eq_Inter, compl_compl]
-end
+lemma compl_mem_Coprod {s : set (Π i, α i)} :
+  sᶜ ∈ filter.Coprod f ↔ ∀ i, (eval i '' s)ᶜ ∈ f i :=
+by simp only [filter.Coprod, mem_supr, compl_mem_comap]
 
 lemma Coprod_ne_bot_iff' :
   ne_bot (filter.Coprod f) ↔ (∀ i, nonempty (α i)) ∧ ∃ d, ne_bot (f d) :=
@@ -159,6 +164,17 @@ by simp only [filter.Coprod, supr_ne_bot, ← exists_and_distrib_left, ← comap
 @[simp] lemma Coprod_ne_bot_iff [∀ i, nonempty (α i)] :
   ne_bot (filter.Coprod f) ↔ ∃ d, ne_bot (f d) :=
 by simp [Coprod_ne_bot_iff', *]
+
+lemma Coprod_eq_bot_iff' : filter.Coprod f = ⊥ ↔ (∃ i, is_empty (α i)) ∨ f = ⊥ :=
+by simpa [not_and_distrib, funext_iff] using not_congr Coprod_ne_bot_iff'
+
+@[simp] lemma Coprod_eq_bot_iff [∀ i, nonempty (α i)] : filter.Coprod f = ⊥ ↔ f = ⊥ :=
+by simpa [funext_iff] using not_congr Coprod_ne_bot_iff
+
+@[simp] lemma Coprod_bot' : filter.Coprod (⊥ : Π i, filter (α i)) = ⊥ :=
+Coprod_eq_bot_iff'.2 (or.inr rfl)
+
+@[simp] lemma Coprod_bot : filter.Coprod (λ _, ⊥ : Π i, filter (α i)) = ⊥ := Coprod_bot'
 
 lemma ne_bot.Coprod [∀ i, nonempty (α i)] {i : ι} (h : ne_bot (f i)) :
   ne_bot (filter.Coprod f) :=
@@ -169,7 +185,7 @@ Coprod_ne_bot_iff.2 ⟨i, h⟩
 (H (classical.arbitrary ι)).Coprod
 
 @[mono] lemma Coprod_mono (hf : ∀ i, f₁ i ≤ f₂ i) : filter.Coprod f₁ ≤ filter.Coprod f₂ :=
-supr_le_supr $ λ i, comap_mono (hf i)
+supr_mono $ λ i, comap_mono (hf i)
 
 variables {β : ι → Type*} {m : Π i, α i → β i}
 

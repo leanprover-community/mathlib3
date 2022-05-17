@@ -20,7 +20,7 @@ namespace stream
 variables {α : Type u} {β : Type v} {δ : Type w}
 
 instance {α} [inhabited α] : inhabited (stream α) :=
-⟨stream.const (default _)⟩
+⟨stream.const default⟩
 
 protected theorem eta (s : stream α) : head s :: tail s = s :=
 funext (λ i, begin cases i; refl end)

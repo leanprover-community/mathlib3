@@ -17,21 +17,22 @@ or parser from a given character or character range.
 
 ## Main definitions
 
-* 'numeral` : The parser which uses `nat.cast` to map the result of `parser.nat` to the desired `α`
-* `numeral.of_fintype` :  The parser which `guard`s to make sure the parsed numeral is within the
-  cardinality of the target `fintype` type `α`.
+* `parser.numeral` : The parser which uses `nat.cast`
+  to map the result of `parser.nat` to the desired `α`
+* `parser.numeral.of_fintype` :  The parser which `guard`s to make sure the parsed
+  numeral is within the cardinality of the target `fintype` type `α`.
 
 ## Implementation details
 
-When the `numeral` or related parsers are invoked, the desired type is provided explicitly. In many
-cases, it can be inferred, so one can write, for example
+When the `parser.numeral` or related parsers are invoked, the desired type is provided explicitly.
+In many cases, it can be inferred, so one can write, for example
 ```lean
 def get_fin : string → fin 5 :=
 sum.elim (λ _, 0) id ∘ parser.run_string (parser.numeral.of_fintype _)
 ```
 
-In the definitions of the parsers (except for `numeral`), there is an explicit `nat.bin_cast`
-instead an explicit or implicit `nat.cast`
+In the definitions of the parsers (except for `parser.numeral`), there is an
+explicit `nat.bin_cast` instead an explicit or implicit `nat.cast`.
 -/
 
 open parser parse_result

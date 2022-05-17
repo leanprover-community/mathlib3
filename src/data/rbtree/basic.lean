@@ -198,7 +198,7 @@ lemma depth_min : ∀ {c n} {t : rbnode α}, is_red_black t c n → n ≤ depth 
 begin
   intros c n' t h,
   induction h,
-  case leaf_rb {apply le_refl},
+  case leaf_rb {exact le_refl _},
   case red_rb { simp [depth],
     have : min (depth min h_l) (depth min h_r) ≥ h_n,
     { apply le_min; assumption },
@@ -213,7 +213,7 @@ private def upper : color → nat → nat
 | black n := 2*n
 
 private lemma upper_le : ∀ c n, upper c n ≤ 2 * n + 1
-| red n   := by apply le_refl
+| red n   := by exact le_refl _
 | black n := by apply le_succ
 
 lemma depth_max' : ∀ {c n} {t : rbnode α}, is_red_black t c n → depth max t ≤ upper c n :=

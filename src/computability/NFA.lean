@@ -3,8 +3,8 @@ Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
-
 import computability.DFA
+import data.set.functor
 
 /-!
 # Nondeterministic Finite Automata
@@ -16,6 +16,8 @@ exponential number of states.
 Note that this definition allows for Automaton with infinite states, a `fintype` instance must be
 supplied for true NFA's.
 -/
+
+open set
 
 universes u v
 
@@ -35,21 +37,34 @@ namespace NFA
 instance : inhabited (NFA α σ) := ⟨ NFA.mk (λ _ _, ∅) ∅ ∅ ⟩
 
 /-- `M.step_set S a` is the union of `M.step s a` for all `s ∈ S`. -/
-def step_set : set σ → α → set σ :=
-λ Ss a, Ss >>= (λ S, (M.step S a))
+def step_set (S : set σ) (a : α) : set σ := ⋃ s ∈ S, M.step s a
 
-lemma mem_step_set (s : σ) (S : set σ) (a : α) :
-  s ∈ M.step_set S a ↔ ∃ t ∈ S, s ∈ M.step t a :=
-by simp only [step_set, set.mem_Union, set.bind_def]
+lemma mem_step_set (s : σ) (S : set σ) (a : α) : s ∈ M.step_set S a ↔ ∃ t ∈ S, s ∈ M.step t a :=
+mem_Union₂
+
+@[simp] lemma step_set_empty (a : α) : M.step_set ∅ a = ∅ :=
+by simp_rw [step_set, Union_false, Union_empty]
 
 /-- `M.eval_from S x` computes all possible paths though `M` with input `x` starting at an element
   of `S`. -/
 def eval_from (start : set σ) : list α → set σ :=
 list.foldl M.step_set start
 
+@[simp] lemma eval_from_nil (S : set σ) : M.eval_from S [] = S := rfl
+@[simp] lemma eval_from_singleton (S : set σ) (a : α) : M.eval_from S [a] = M.step_set S a := rfl
+@[simp] lemma eval_from_append_singleton (S : set σ) (x : list α) (a : α) :
+  M.eval_from S (x ++ [a]) = M.step_set (M.eval_from S x) a :=
+by simp only [eval_from, list.foldl_append, list.foldl_cons, list.foldl_nil]
+
 /-- `M.eval x` computes all possible paths though `M` with input `x` starting at an element of
   `M.start`. -/
-def eval := M.eval_from M.start
+def eval : list α → set σ := M.eval_from M.start
+
+@[simp] lemma eval_nil : M.eval [] = M.start := rfl
+@[simp] lemma eval_singleton (a : α) : M.eval [a] = M.step_set M.start a := rfl
+@[simp] lemma eval_append_singleton (x : list α) (a : α) :
+  M.eval (x ++ [a]) = M.step_set (M.eval x) a :=
+eval_from_append_singleton _ _ _ _
 
 /-- `M.accepts` is the language of `x` such that there is an accept state in `M.eval x`. -/
 def accepts : language α :=
@@ -68,7 +83,7 @@ begin
   ext x,
   rw [accepts, DFA.accepts, eval, DFA.eval],
   change list.foldl _ _ _ ∈ {S | _} ↔ _,
-  finish
+  split; { exact λ ⟨w, h2, h3⟩, ⟨w, h3, h2⟩ },
 end
 
 lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
@@ -97,11 +112,8 @@ begin
   change list.foldl M.to_NFA.step_set {start} s = {list.foldl M.step start s},
   induction s with a s ih generalizing start,
   { tauto },
-  { rw [list.foldl, list.foldl],
-    have h : M.to_NFA.step_set {start} a = {M.step start a},
-    { rw NFA.step_set,
-      finish },
-    rw h,
+  { rw [list.foldl, list.foldl,
+        show M.to_NFA.step_set {start} a = {M.step start a}, by simpa [NFA.step_set]],
     tauto }
 end
 
@@ -113,12 +125,8 @@ begin
   rw to_NFA_eval_from_match,
   split,
   { rintro ⟨ S, hS₁, hS₂ ⟩,
-    rw set.mem_singleton_iff at hS₂,
-    rw hS₂ at hS₁,
-    assumption },
-  { intro h,
-    use M.eval x,
-    finish }
+    rwa set.mem_singleton_iff.mp hS₂ at hS₁ },
+  { exact λ h, ⟨M.eval x, h, rfl⟩ }
 end
 
 end DFA

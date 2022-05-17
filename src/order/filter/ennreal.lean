@@ -30,7 +30,7 @@ begin
   { rw eventually_countable_forall,
     refine λ n, eventually_lt_of_limsup_lt _,
     nth_rewrite 0 ←add_zero (f.limsup u),
-    exact (add_lt_add_iff_left hx_top).mpr (by simp), },
+    exact (ennreal.add_lt_add_iff_left hx_top).mpr (by simp), },
   refine h_forall_le.mono (λ y hy, le_of_forall_pos_le_add (λ r hr_pos hx_top, _)),
   have hr_ne_zero : (r : ℝ≥0∞) ≠ 0,
   { rw [ne.def, coe_eq_zero],
@@ -67,7 +67,7 @@ begin
       (λ _ _ _, by rwa mul_le_mul_left ha_zero ha_top) hg_bij.1,
   let g_iso := strict_mono.order_iso_of_surjective g hg_mono hg_bij.2,
   refine (order_iso.limsup_apply g_iso _ _ _ _).symm,
-  all_goals { by is_bounded_default },
+  all_goals { is_bounded_default },
 end
 
 lemma limsup_const_mul [countable_Inter_filter f] {u : α → ℝ≥0∞} {a : ℝ≥0∞} :

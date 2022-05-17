@@ -72,7 +72,7 @@ begin
     ∧ ∀ a ∈ t, ∀ b ∈ u, set.nonempty (a ∩ b) → ∃ c ∈ u, (a ∩ c).nonempty ∧ δ a ≤ τ * δ c},
   -- By Zorn, choose a maximal family in the good set `T` of disjoint families.
   obtain ⟨u, uT, hu⟩ : ∃ u ∈ T, ∀ v ∈ T, u ⊆ v → v = u,
-  { refine zorn.zorn_subset _ (λ U UT hU, _),
+  { refine zorn_subset _ (λ U UT hU, _),
     refine ⟨⋃₀ U, _, λ s hs, subset_sUnion_of_mem hs⟩,
     simp only [set.sUnion_subset_iff, and_imp, exists_prop, forall_exists_index,
                 set.mem_set_of_eq],
@@ -274,7 +274,7 @@ begin
       calc 20 * min 1 (R / 20) ≤ 20 * (R/20) :
         mul_le_mul_of_nonneg_left (min_le_right _ _) (by norm_num)
       ... = R : by ring } },
-  choose r hr using this,
+  choose r hr0 hr1 hrμ,
   -- we restrict to a subfamily `t'` of `t`, made of elements small enough to ensure that
   -- they only see a finite part of the measure.
   let t' := {a ∈ t | ∃ x, a ⊆ closed_ball x (r x)},
@@ -283,10 +283,9 @@ begin
     ∀ a ∈ t', ∃ b ∈ u, set.nonempty (a ∩ b) ∧ diam a ≤ 2 * diam b,
   { have A : ∀ (a : set α), a ∈ t' → diam a ≤ 2,
     { rintros a ⟨hat, ⟨x, hax⟩⟩,
-      calc diam a ≤ diam (closed_ball x (r x)) : diam_mono hax bounded_closed_ball
-      ... ≤ 2 * r x : diam_closed_ball (hr x).1.le
-      ... ≤ 2 * 1 : mul_le_mul_of_nonneg_left (hr x).2.1 zero_le_two
-      ... = 2 : by norm_num },
+      calc diam a ≤ 2 * 1 : diam_le_of_subset_closed_ball zero_le_one
+        (hax.trans $ closed_ball_subset_closed_ball $ hr1 x)
+      ... = 2 : mul_one _ },
     have B : ∀ (a : set α), a ∈ t' → a.nonempty :=
       λ a hat', set.nonempty.mono interior_subset (ht a hat'.1),
     exact exists_disjoint_subfamily_covering_enlargment t' diam 2 one_lt_two
@@ -316,14 +315,14 @@ begin
     have R0_bdd : bdd_above ((λ a, r (y a)) '' v),
     { refine ⟨1, λ r' hr', _⟩,
       rcases (mem_image _ _ _).1 hr' with ⟨b, hb, rfl⟩,
-      exact (hr _).2.1 },
+      exact hr1 _ },
     rcases le_total R0 (r x) with H|H,
-    { refine ⟨20 * r x, (hr x).2.2, λ a au hax, _⟩,
+    { refine ⟨20 * r x, hrμ x, λ a au hax, _⟩,
       refine (hy a au).trans _,
       apply closed_ball_subset_closed_ball',
       have : r (y a) ≤ R0 := le_cSup R0_bdd (mem_image_of_mem _ ⟨au, hax⟩),
-      linarith [(hr (y a)).1.le, (hr x).1.le, Idist_v a ⟨au, hax⟩] },
-    { have R0pos : 0 < R0 := (hr x).1.trans_le H,
+      linarith [(hr0 (y a)).le, (hr0 x).le, Idist_v a ⟨au, hax⟩] },
+    { have R0pos : 0 < R0 := (hr0 x).trans_le H,
       have vnonempty : v.nonempty,
       { by_contra,
         rw [← ne_empty_iff_nonempty, not_not] at h,
@@ -335,7 +334,7 @@ begin
         rcases (mem_image _ _ _).1 r'mem with ⟨a, hav, rfl⟩,
         exact ⟨a, hav, hr'⟩ },
       refine ⟨8 * R0, _, _⟩,
-      { apply lt_of_le_of_lt (measure_mono _) (hr (y a)).2.2,
+      { apply lt_of_le_of_lt (measure_mono _) (hrμ (y a)),
         apply closed_ball_subset_closed_ball',
         rw dist_comm,
         linarith [Idist_v a hav] },
@@ -345,9 +344,8 @@ begin
         have : r (y b) ≤ R0 := le_cSup R0_bdd (mem_image_of_mem _ ⟨bu, hbx⟩),
         linarith [Idist_v b ⟨bu, hbx⟩] } } },
   -- we will show that, in `ball x (r x)`, almost all `s` is covered by the family `u`.
-  refine ⟨ball x (r x), _, le_antisymm (le_of_forall_le_of_dense (λ ε εpos, _)) bot_le⟩,
-  { apply mem_nhds_within_of_mem_nhds (is_open_ball.mem_nhds _),
-    simp only [(hr x).left, mem_ball, dist_self] },
+  refine ⟨_ ∩ ball x (r x), inter_mem_nhds_within _ (ball_mem_nhds _ (hr0 _)),
+    nonpos_iff_eq_zero.mp (le_of_forall_le_of_dense (λ ε εpos, _))⟩,
   -- the elements of `v` are disjoint and all contained in a finite volume ball, hence the sum
   -- of their measures is finite.
   have I : ∑' (a : v), μ a < ∞,
@@ -355,7 +353,7 @@ begin
       rw measure_bUnion (u_count.mono vu) _ (λ a ha, (h't _ (vu.trans ut ha)).measurable_set),
       exact u_disj.subset vu
     end
-    ... ≤ μ (closed_ball x R) : measure_mono (bUnion_subset (λ a ha, hR a (vu ha) ha.2))
+    ... ≤ μ (closed_ball x R) : measure_mono (Union₂_subset (λ a ha, hR a (vu ha) ha.2))
     ... < ∞ : μR },
   -- we can obtain a finite subfamily of `v`, such that the measures of the remaining elements
   -- add up to an arbitrarily small number, say `ε / C`.
@@ -466,20 +464,20 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
       exact ⟨a, mem_bUnion xs xa, (fsubset x xs xa).1, hax⟩ },
     have A₂ : ∀ a ∈ t, (interior a).nonempty,
     { rintros a ha,
-      rcases mem_bUnion_iff.1 ha with ⟨x, xs, xa⟩,
+      rcases mem_Union₂.1 ha with ⟨x, xs, xa⟩,
       exact (fsubset x xs xa).2.2.1 },
     have A₃ : ∀ a ∈ t, is_closed a,
     { rintros a ha,
-      rcases mem_bUnion_iff.1 ha with ⟨x, xs, xa⟩,
+      rcases mem_Union₂.1 ha with ⟨x, xs, xa⟩,
       exact (fsubset x xs xa).2.1 },
     have A₄ : ∀ a ∈ t, ∃ x ∈ a, μ (closed_ball x (3 * diam a)) ≤ C * μ a,
     { rintros a ha,
-      rcases mem_bUnion_iff.1 ha with ⟨x, xs, xa⟩,
+      rcases mem_Union₂.1 ha with ⟨x, xs, xa⟩,
       exact ⟨x, (fsubset x xs xa).1, (fsubset x xs xa).2.2.2⟩ },
     obtain ⟨u, ut, u_count, u_disj, μu⟩ :
       ∃ u ⊆ t, u.countable ∧ u.pairwise disjoint ∧ μ (s \ ⋃ a ∈ u, a) = 0 :=
         exists_disjoint_covering_ae μ s t A₁ A₂ A₃ C A₄,
-    have : ∀ a ∈ u, ∃ x ∈ s, a ∈ f x := λ a ha, mem_bUnion_iff.1 (ut ha),
+    have : ∀ a ∈ u, ∃ x ∈ s, a ∈ f x := λ a ha, mem_Union₂.1 (ut ha),
     choose! x hx using this,
     have inj_on_x : inj_on x u,
     { assume a ha b hb hab,
@@ -496,15 +494,16 @@ protected def vitali_family [metric_space α] [measurable_space α] [opens_measu
       exact (hx a au).1 },
     { rw [inj_on_x.pairwise_disjoint_image],
       assume a ha b hb hab,
-      simp only [function.on_fun, function.inv_fun_on_eq' inj_on_x, ha, hb, (∘)],
+      simp only [function.on_fun, inj_on_x.left_inv_on_inv_fun_on ha,
+                 inj_on_x.left_inv_on_inv_fun_on hb, (∘)],
       exact u_disj ha hb hab },
     { assume y hy,
       rcases (mem_image _ _ _).1 hy with ⟨a, ha, rfl⟩,
-      rw function.inv_fun_on_eq' inj_on_x ha,
+      rw inj_on_x.left_inv_on_inv_fun_on ha,
       exact (hx a ha).2 },
     { rw [bUnion_image],
       convert μu using 3,
-      exact bUnion_congr (λ a ha, function.inv_fun_on_eq' inj_on_x ha) }
+      exact Union₂_congr (λ a ha, inj_on_x.left_inv_on_inv_fun_on ha) }
   end }
 
 end vitali

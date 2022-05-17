@@ -140,14 +140,14 @@ by rw [← (supr_prod : (⨆ i : ℕ × ℕ, f i.1 i.2) = _), ← nat.surjective
 
 lemma infi_unpair {α} [complete_lattice α] (f : ℕ → ℕ → α) :
   (⨅ n : ℕ, f n.unpair.1 n.unpair.2) = ⨅ i j : ℕ, f i j :=
-supr_unpair (show ℕ → ℕ → order_dual α, from f)
+supr_unpair (show ℕ → ℕ → αᵒᵈ, from f)
 
 end complete_lattice
 
 namespace set
 
 lemma Union_unpair_prod {α β} {s : ℕ → set α} {t : ℕ → set β} :
-  (⋃ n : ℕ, (s n.unpair.fst).prod (t n.unpair.snd)) = (⋃ n, s n).prod (⋃ n, t n) :=
+  (⋃ n : ℕ, s n.unpair.fst ×ˢ t n.unpair.snd) = (⋃ n, s n) ×ˢ (⋃ n, t n) :=
 by { rw [← Union_prod], convert surjective_unpair.Union_comp _, refl }
 
 lemma Union_unpair {α} (f : ℕ → ℕ → set α) :

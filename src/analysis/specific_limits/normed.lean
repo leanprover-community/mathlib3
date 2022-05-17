@@ -262,8 +262,7 @@ begin
   have xi_ne_one : ξ ≠ 1, by { contrapose! h, simp [h] },
   have A : tendsto (λn, (ξ ^ n - 1) * (ξ - 1)⁻¹) at_top (𝓝 ((0 - 1) * (ξ - 1)⁻¹)),
     from ((tendsto_pow_at_top_nhds_0_of_norm_lt_1 h).sub tendsto_const_nhds).mul tendsto_const_nhds,
-  have B : (λ n, (∑ i in range n, ξ ^ i)) = (λ n, geom_sum ξ n) := rfl,
-  rw [has_sum_iff_tendsto_nat_of_summable_norm, B],
+  rw [has_sum_iff_tendsto_nat_of_summable_norm],
   { simpa [geom_sum_eq, xi_ne_one, neg_inv, div_eq_mul_inv] using A },
   { simp [norm_pow, summable_geometric_of_lt_1 (norm_nonneg _) h] }
 end
@@ -453,7 +452,7 @@ begin
   { simpa using tendsto_const_nhds.sub (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
   convert ← this,
   ext n,
-  rw [←geom_sum_mul_neg, geom_sum_def, finset.sum_mul],
+  rw [←geom_sum_mul_neg, finset.sum_mul],
 end
 
 lemma mul_neg_geom_series (x : R) (h : ∥x∥ < 1) :
@@ -466,7 +465,7 @@ begin
       (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
   convert ← this,
   ext n,
-  rw [←mul_neg_geom_sum, geom_sum_def, finset.mul_sum]
+  rw [←mul_neg_geom_sum, finset.mul_sum]
 end
 
 end normed_ring_geometric
@@ -581,7 +580,7 @@ begin
 end
 
 lemma norm_sum_neg_one_pow_le (n : ℕ) : ∥∑ i in range n, (-1 : ℝ) ^ i∥ ≤ 1 :=
-by { rw [←geom_sum_def, neg_one_geom_sum], split_ifs; norm_num }
+by { rw [neg_one_geom_sum], split_ifs; norm_num }
 
 /-- The **alternating series test** for monotone sequences.
 See also `tendsto_alternating_series_of_monotone_tendsto_zero`. -/

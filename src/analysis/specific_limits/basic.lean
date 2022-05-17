@@ -138,7 +138,6 @@ lemma has_sum_geometric_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
 have r ≠ 1, from ne_of_lt h₂,
 have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (𝓝 ((0 - 1) * (r - 1)⁻¹)),
   from ((tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂).sub tendsto_const_nhds).mul tendsto_const_nhds,
-have (λ n, (∑ i in range n, r ^ i)) = (λ n, geom_sum r n) := rfl,
 (has_sum_iff_tendsto_nat_of_nonneg (pow_nonneg h₁) _).mpr $
   by simp [neg_inv, geom_sum_eq, div_eq_mul_inv, *] at *
 

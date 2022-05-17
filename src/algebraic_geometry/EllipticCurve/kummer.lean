@@ -84,9 +84,9 @@ group.with_zero_units.to_monoid_hom.comp $ units.map $
 
 lemma associates.eq_val_of_ne_zero (p : height_one_spectrum $ 𝓞 K) (x : Kˣ) :
   ((associates.mk p.as_ideal).count $ associates.factors $ associates.mk $ ideal.span
-    {(is_localization.mk'_surjective (𝓞 K)⁰ (x : K)).some} : ℤ)
+    {(is_localization.mk'_surjective (𝓞 K)⁰ x.val).some} : ℤ)
     - ((associates.mk p.as_ideal).count $ associates.factors $ associates.mk $ ideal.span
-        {((is_localization.mk'_surjective (𝓞 K)⁰ (x : K)).some_spec.some : 𝓞 K)} : ℤ)
+        {((is_localization.mk'_surjective (𝓞 K)⁰ x.val).some_spec.some : 𝓞 K)} : ℤ)
   = -(val_of_ne_zero p x).to_add :=
 begin
   sorry

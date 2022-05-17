@@ -64,13 +64,21 @@ variables (rα rβ)
   `rα a' a` means that `a ⟶ a'` is a valid move in game `α`, and `rβ b' b` means that `b ⟶ b'`
   is a valid move in game `β`, then `game_add rα rβ` specifies the valid moves in the juxtaposition
   of `α` and `β`: the player is free to choose one of the games and make a move in it,
-  while leaving the other game unchanged.
-
-  This relation is a `subrelation` of `prod.lex`, but neither contains nor is contained in
-  `prod.rprod`. -/
+  while leaving the other game unchanged. -/
 inductive game_add : α × β → α × β → Prop
 | fst {a' a b} : rα a' a → game_add (a',b) (a,b)
 | snd {a b' b} : rβ b' b → game_add (a,b') (a,b)
+
+/-- `game_add` is a `subrelation` of `prod.lex`. -/
+lemma game_add_le_lex : game_add rα rβ ≤ prod.lex rα rβ :=
+λ _ _ h, h.rec (λ _ _ b, prod.lex.left b b) (λ a _ _, prod.lex.right a)
+
+/-- `prod.rprod` is a subrelation of the transitive closure of `game_add`. -/
+lemma rprod_le_trans_gen_game_add : prod.rprod rα rβ ≤ trans_gen (game_add rα rβ) :=
+λ _ _ h, h.rec $ begin
+  intros _ _ _ _ hα hβ,
+  exact trans_gen.tail (trans_gen.single $ game_add.fst hα) (game_add.snd hβ),
+end
 
 variables {rα rβ}
 /-- If `a` is accessible under `rα` and `b` is accessible under `rβ`, then `(a, b)` is

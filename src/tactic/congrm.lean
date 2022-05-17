@@ -22,6 +22,13 @@ private meta def extract_subgoals : list expr → list congr_arg_kind → list e
 | _ _ [] := pure []
 | _ _ _ := fail "unsupported congr lemma"
 
+/--
+`equate_with_pattern_core pat` solves a single goal of the form `lhs = rhs`
+(assuming that `lhs` and `rhs` are unifiable with `pat`)
+by applying congruence lemmas until `pat` is a metavariable.
+Returns the list of metavariables for the new subgoals at the leafs.
+Calls `set_goals []` at the end.
+-/
 meta def equate_with_pattern_core : expr → tactic (list expr) | pat :=
 (applyc ``subsingleton.elim >> pure []) <|>
 (applyc ``rfl >> pure []) <|>
@@ -53,6 +60,12 @@ else do
   pat ← pp pat,
   fail $ to_fmt "unsupported pattern:\n" ++ pat
 
+/--
+`equate_with_pattern pat` solves a single goal of the form `lhs = rhs`
+(assuming that `lhs` and `rhs` are unifiable with `pat`)
+by applying congruence lemmas until `pat` is a metavariable.
+The subgoals for the leafs are prepended to the goals.
+--/
 meta def equate_with_pattern (pat : expr) : tactic unit := do
 congr_subgoals ← solve1 (equate_with_pattern_core pat),
 gs ← get_goals,
@@ -139,6 +152,31 @@ do ta ← to_expr arg tt ff,
   try refl,
   rev_goals
 
+/--
+`congrm e` assumes that the goal is of the form `lhs = rhs`.
+`congrm e` scans `e, lhs, rhs` in parallel.
+Assuming that the three expressions are successions of function applications, `congrm e`
+uses `e` as a pattern to decide what to do in corresponding places of `lhs` and `rhs`.
+
+If `e` has a meta-variable in a location, then the tactic produces a side-goal with
+the equality of the corresponding locations in `lhs, rhs`.
+
+If `e` is a function application, it applies the automatically generateed congruence lemma
+(like `tactic.congr`).
+
+If `e` is a lambda abstraction, it applies `funext`.  If `e` is a pi, it applies `pi_congr`.
+
+Subexpressions that are defeq or whose type is a subsingleton are skipped.
+
+```
+example {a b : ℕ} (h : a = b) : (λ y : ℕ, ∀ z, a + a = z) = (λ x, ∀ z, b + a = z) :=
+begin
+  congrm λ x, ∀ w, _ + a = w,
+  -- produces one goal for the underscore: ⊢ a = b
+  exact h,
+end
+```
+-/
 meta def congrm (arg : parse texpr) : tactic unit := do
 `(@eq %%ty _ _) ← target,
 ta ← to_expr ``((%%arg : %%ty)) tt ff,

@@ -64,7 +64,7 @@ begin
   exact h,
 end
 
-example (h : a = b) : (λ y : ℕ, ∀ z, a + a = z) = (λ x, ∀ z, b + a = z) :=
+example {a b : ℕ} (h : a = b) : (λ y : ℕ, ∀ z, a + a = z) = (λ x, ∀ z, b + a = z) :=
 begin
   congrm λ x, ∀ w, _ + a = w,
   exact h,

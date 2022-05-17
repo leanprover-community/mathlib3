@@ -760,19 +760,21 @@ by rw [← fin.succ_above_last, fin.image_succ_above_univ]
 
 /-- Embed `fin n` into `fin (n + 1)` by prepending zero to the `univ` -/
 lemma fin.univ_succ (n : ℕ) :
-  (univ : finset (fin (n + 1))) = insert 0 (univ.image fin.succ) :=
-by simp
+  (univ : finset (fin (n + 1))) =
+    cons 0 (univ.map ⟨fin.succ, fin.succ_injective _⟩) (by simp [map_eq_image]) :=
+by simp [map_eq_image]
 
 /-- Embed `fin n` into `fin (n + 1)` by appending a new `fin.last n` to the `univ` -/
 lemma fin.univ_cast_succ (n : ℕ) :
-  (univ : finset (fin (n + 1))) = insert (fin.last n) (univ.image fin.cast_succ) :=
-by simp
+  (univ : finset (fin (n + 1))) =
+    cons (fin.last n) (univ.map fin.cast_succ.to_embedding) (by simp [map_eq_image]) :=
+by simp [map_eq_image]
 
 /-- Embed `fin n` into `fin (n + 1)` by inserting
 around a specified pivot `p : fin (n + 1)` into the `univ` -/
 lemma fin.univ_succ_above (n : ℕ) (p : fin (n + 1)) :
-  (univ : finset (fin (n + 1))) = insert p (univ.image (fin.succ_above p)) :=
-by simp
+  (univ : finset (fin (n + 1))) = cons p (univ.map $ (fin.succ_above p).to_embedding) (by simp) :=
+by simp [map_eq_image]
 
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
 fintype.of_subsingleton default

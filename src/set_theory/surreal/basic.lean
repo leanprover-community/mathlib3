@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Scott Morrison, Violeta Hernández Palacios, Junyan Xu
 -/
 
+import logic.hydra
 import set_theory.game.basic
 import tactic.fin_cases
 
@@ -296,10 +297,10 @@ We simultaneously prove two assertions on numeric pre-games:
 
 - `P1 x y` means `x * y` is numeric.
 - `P2 x₁ x₂ y` means all of the following hold:
-- - If `x₁ ≈ x₂` then `x₁ * y ≈ x₂ * y`,
-- - If `x₁ < x₂`, then
-- - - For every left move `yL`, `x₂ * yL + x₁ * y < x₁ * yL + x₂ * y`,
-- - - For every right move `yR`, `x₂ * y + x₁ * yR < x₁ * y + x₂ * yR`.
+  - If `x₁ ≈ x₂` then `x₁ * y ≈ x₂ * y`,
+  - If `x₁ < x₂`, then
+    - For every left move `yL`, `x₂ * yL + x₁ * y < x₁ * yL + x₂ * y`,
+    - For every right move `yR`, `x₂ * y + x₁ * yR < x₁ * y + x₂ * yR`.
 
 We prove this by providing a well-founded relation on `mul_args` such that each proposition depends
 only on propositions with lesser arguments. See `mul_args.has_lt.lt` for a description of this
@@ -328,10 +329,22 @@ by abel
 end comm_lemmas
 
 section cut_expand
-variable {α : Type*} {r : α → α → Prop}
+variables {α : Type*} {r : α → α → Prop}
 
 theorem multiset.swap_three {x y z : α} : ({x, y, z} : multiset α) = {z, x, y} :=
 add_comm {x, y} {z}
+
+theorem not_cut_expand_zero (hr : irreflexive r) (s) : ¬ cut_expand r s 0 :=
+begin
+  rintro ⟨t, a, h, h'⟩,
+  rw zero_add at h',
+  apply hr a (h a _),
+  rw ←h',
+  exact multiset.mem_add.2 (or.inr (multiset.mem_singleton_self a))
+end
+
+theorem cut_expand_singleton {s x} (h : ∀ x' ∈ s, r x' x) : cut_expand r s {x} :=
+⟨s, x, h, add_comm s _⟩
 
 theorem cut_expand_add_left {x s} (h : ∀ x' ∈ s, r x' x) (t) : cut_expand r (s + t) ({x} + t) :=
 ⟨s, x, h, by rw [add_comm s, add_assoc, add_comm s, ←add_assoc, add_comm t]⟩
@@ -411,7 +424,7 @@ theorem arg_rel_trans : transitive arg_rel := transitive_trans_gen
 
 instance : has_well_founded mul_args :=
 { r := inv_image arg_rel to_multiset,
-  wf := inv_image.wf _ (cut_expand.wf wf_subsequent).trans_gen }
+  wf := inv_image.wf _ (wf_subsequent.cut_expand _).trans_gen }
 
 theorem arg_rel_of_cut_expand {x y : multiset pgame} : cut_expand subsequent x y → arg_rel x y :=
 trans_gen.single

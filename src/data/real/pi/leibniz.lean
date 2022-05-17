@@ -92,7 +92,7 @@ begin
     convert (has_deriv_at_arctan x).sub (has_deriv_at.sum has_deriv_at_b),
     have g_sum :=
       @geom_sum_eq _ _ (-x^2) ((neg_nonpos.mpr (sq_nonneg x)).trans_lt zero_lt_one).ne k,
-    simp only [geom_sum, f'] at g_sum ⊢,
+    simp only [f'] at g_sum ⊢,
     rw [g_sum, ← neg_add' (x^2) 1, add_comm (x^2) 1, sub_eq_add_neg, neg_div', neg_div_neg_eq],
     ring },
   have hderiv1 : ∀ x ∈ Icc (U:ℝ) 1, has_deriv_within_at f (f' x) (Icc (U:ℝ) 1) x :=

@@ -174,8 +174,7 @@ end
 
 /-- `cut_expand r` is well-founded when `r` is. -/
 theorem _root_.well_founded.cut_expand (hr : well_founded r) : well_founded (cut_expand r) :=
-⟨λ s, acc_of_singleton r hr.is_irrefl.irrefl s $
- λ a _, (hr.apply a).cut_expand r hr.is_irrefl.irrefl a⟩
+⟨λ s, acc_of_singleton r hr.is_irrefl.1 s $ λ a _, (hr.apply a).cut_expand r hr.is_irrefl.1 a⟩
 
 end hydra
 

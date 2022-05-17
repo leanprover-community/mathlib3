@@ -696,7 +696,7 @@ let ⟨y, hy⟩ := hx in ⟨f y, map_mul_eq_one f hy⟩
 end monoid_hom
 
 section division_comm_monoid
-variables {α : Type*} [division_comm_monoid α]
+variables [division_comm_monoid α]
 
 /-- Inversion on a commutative group, considered as a monoid homomorphism. -/
 @[to_additive "Negation on a commutative additive group, considered as an additive monoid

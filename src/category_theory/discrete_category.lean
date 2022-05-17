@@ -64,6 +64,9 @@ by { dsimp [discrete], apply_instance }
 instance [subsingleton α] : subsingleton (discrete α) :=
 by { dsimp [discrete], apply_instance }
 
+instance [unique α] : unique (discrete α) :=
+by { dsimp [discrete], apply_instance }
+
 /-- Extract the equation from a morphism in a discrete category. -/
 lemma eq_of_hom {X Y : discrete α} (i : X ⟶ Y) : X = Y := i.down.down
 

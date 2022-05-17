@@ -6,6 +6,7 @@ Authors: Johan Commelin, Riccardo Brasca
 import analysis.normed.group.hom
 import category_theory.limits.shapes.zero_morphisms
 import category_theory.concrete_category.bundled_hom
+import category_theory.elementwise
 
 /-!
 # The category of seminormed groups
@@ -69,7 +70,7 @@ begin
   apply normed_group_hom.isometry_of_norm,
   intro v,
   apply le_antisymm (h1 v),
-  calc ∥v∥ = ∥i.inv (i.hom v)∥ : by rw [coe_hom_inv_id]
+  calc ∥v∥ = ∥i.inv (i.hom v)∥ : by rw [iso.hom_inv_id_apply]
   ... ≤ ∥i.hom v∥ : h2 _,
 end
 
@@ -166,7 +167,7 @@ begin
   apply normed_group_hom.isometry_of_norm,
   intro v,
   apply le_antisymm (i.hom.2 v),
-  calc ∥v∥ = ∥i.inv (i.hom v)∥ : by rw [coe_hom_inv_id]
+  calc ∥v∥ = ∥i.inv (i.hom v)∥ : by rw [iso.hom_inv_id_apply]
       ... ≤ ∥i.hom v∥ : i.inv.2 _,
 end
 

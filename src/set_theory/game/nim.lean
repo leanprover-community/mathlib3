@@ -165,7 +165,7 @@ equiv.is_empty _
 
 lemma non_zero_first_wins {O : ordinal} (hO : O ≠ 0) : (nim O).first_wins :=
 begin
-  rw [impartial.first_wins_symm, nim_def, lf_def_le],
+  rw [impartial.first_wins_symm, nim_def, lf_iff_forall_le],
   rw ←ordinal.pos_iff_ne_zero at hO,
   exact or.inr ⟨(ordinal.principal_seg_out hO).top, by simp⟩
 end
@@ -179,7 +179,7 @@ begin
     wlog h' : O₁ ≤ O₂ using [O₁ O₂, O₂ O₁],
     { exact ordinal.le_total O₁ O₂ },
     { have h : O₁ < O₂ := lt_of_le_of_ne h' h,
-      rw [impartial.first_wins_symm', lf_def_le, nim_def O₂],
+      rw [impartial.first_wins_symm', lf_iff_forall_le, nim_def O₂],
       refine or.inl ⟨(left_moves_add (nim O₁) _).symm (sum.inr _), _⟩,
       { exact (ordinal.principal_seg_out h).top },
       { simpa using (impartial.add_self (nim O₁)).2 } },

@@ -284,8 +284,13 @@ local infix ` ⧏ `:50 := lf
 show (le_lf _ _).1 ↔ _, by { rw le_lf, refl }
 
 /-- Definition of `x ≤ y` on pre-games, in terms of `⧏` -/
-theorem le_def_lf {x y : pgame} : x ≤ y ↔ (∀ i, x.move_left i ⧏ y) ∧ ∀ j, x ⧏ y.move_right j :=
+theorem le_iff_forall_lf {x y : pgame} :
+  x ≤ y ↔ (∀ i, x.move_left i ⧏ y) ∧ ∀ j, x ⧏ y.move_right j :=
 by { cases x, cases y, exact mk_le_mk }
+
+theorem le_of_forall_lf {x y : pgame} :
+  ((∀ i, x.move_left i ⧏ y) ∧ ∀ j, x ⧏ y.move_right j) → x ≤ y :=
+le_iff_forall_lf.2
 
 /-- Definition of `x ⧏ y` on pre-games built using the constructor. -/
 @[simp] theorem mk_lf_mk {xl xr xL xR yl yr yL yR} :
@@ -294,8 +299,13 @@ by { cases x, cases y, exact mk_le_mk }
 show (le_lf _ _).2 ↔ _, by { rw le_lf, refl }
 
 /-- Definition of `x ⧏ y` on pre-games, in terms of `≤` -/
-theorem lf_def_le {x y : pgame} : x ⧏ y ↔ (∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y :=
+theorem lf_iff_forall_le {x y : pgame} :
+  x ⧏ y ↔ (∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y :=
 by { cases x, cases y, exact mk_lf_mk }
+
+theorem lf_of_forall_le {x y : pgame} :
+  ((∃ i, x ≤ y.move_left i) ∨ ∃ j, x.move_right j ≤ y) → x ⧏ y :=
+lf_iff_forall_le.2
 
 private theorem not_le_lf {x y : pgame} :
   (¬ x ≤ y ↔ y ⧏ x) ∧ (¬ x ⧏ y ↔ y ≤ x) :=
@@ -354,7 +364,7 @@ by simp only [mk_le_mk] at *; exact
 instance : preorder pgame :=
 { le_refl := λ x, begin
     induction x with _ _ _ _ IHl IHr,
-    exact le_def_lf.2 ⟨λ i, lf_of_le_move_left (IHl i), λ i, lf_of_move_right_le (IHr i)⟩
+    exact le_of_forall_lf ⟨λ i, lf_of_le_move_left (IHl i), λ i, lf_of_move_right_le (IHr i)⟩
   end,
   le_trans := λ x y z, suffices ∀ {x y z : pgame},
     (x ≤ y → y ≤ z → x ≤ z) ∧ (y ≤ z → z ≤ x → y ≤ x) ∧ (z ≤ x → x ≤ y → z ≤ y),
@@ -410,29 +420,29 @@ theorem lf_of_lt {x y : pgame} (h : x < y) : x ⧏ y :=
 theorem le_def {x y : pgame} : x ≤ y ↔
   (∀ i, (∃ i', x.move_left i ≤ y.move_left i')  ∨ ∃ j, (x.move_left i).move_right j ≤ y) ∧
    ∀ j, (∃ i, x ≤ (y.move_right j).move_left i) ∨ ∃ j', x.move_right j' ≤ y.move_right j :=
-by { rw le_def_lf, conv { to_lhs, simp only [lf_def_le] } }
+by { rw le_iff_forall_lf, conv { to_lhs, simp only [lf_iff_forall_le] } }
 
 /-- The definition of `x ⧏ y` on pre-games, in terms of `⧏` two moves later. -/
 theorem lf_def {x y : pgame} : x ⧏ y ↔
   (∃ i, (∀ i', x.move_left i' ⧏ y.move_left i)  ∧ ∀ j, x ⧏ (y.move_left i).move_right j) ∨
    ∃ j, (∀ i, (x.move_right j).move_left i ⧏ y) ∧ ∀ j', x.move_right j ⧏ y.move_right j' :=
-by { rw lf_def_le, conv { to_lhs, simp only [le_def_lf] } }
+by { rw lf_iff_forall_le, conv { to_lhs, simp only [le_iff_forall_lf] } }
 
 /-- The definition of `0 ≤ x` on pre-games, in terms of `0 ⧏`. -/
 theorem zero_le_lf {x : pgame} : 0 ≤ x ↔ ∀ j, 0 ⧏ x.move_right j :=
-by { rw le_def_lf, dsimp, simp }
+by { rw le_iff_forall_lf, dsimp, simp }
 
 /-- The definition of `x ≤ 0` on pre-games, in terms of `⧏ 0`. -/
 theorem le_zero_lf {x : pgame} : x ≤ 0 ↔ ∀ i, x.move_left i ⧏ 0 :=
-by { rw le_def_lf, dsimp, simp }
+by { rw le_iff_forall_lf, dsimp, simp }
 
 /-- The definition of `0 ⧏ x` on pre-games, in terms of `0 ≤`. -/
 theorem zero_lf_le {x : pgame} : 0 ⧏ x ↔ ∃ i, 0 ≤ x.move_left i :=
-by { rw lf_def_le, dsimp, simp }
+by { rw lf_iff_forall_le, dsimp, simp }
 
 /-- The definition of `x ⧏ 0` on pre-games, in terms of `≤ 0`. -/
 theorem lf_zero_le {x : pgame} : x ⧏ 0 ↔ ∃ j, x.move_right j ≤ 0 :=
-by { rw lf_def_le, dsimp, simp }
+by { rw lf_iff_forall_le, dsimp, simp }
 
 /-- The definition of `0 ≤ x` on pre-games, in terms of `0 ≤` two moves later. -/
 theorem zero_le {x : pgame} : 0 ≤ x ↔ ∀ j, ∃ i, 0 ≤ (x.move_right j).move_left i :=
@@ -1320,7 +1330,7 @@ lt_of_le_of_lf (zero_le.2 (λ j, ⟨punit.star, le_rfl⟩))
   (zero_lf.2 ⟨default, is_empty.elim pempty.is_empty⟩)
 
 theorem half_lt_one : half < 1 :=
-lt_of_le_of_lf (le_def_lf.2 ⟨by simp, is_empty_elim⟩) (lf_def_le.2 (or.inr ⟨default, le_rfl⟩))
+lt_of_le_of_lf (le_of_forall_lf ⟨by simp, is_empty_elim⟩) (lf_of_forall_le (or.inr ⟨default, le_rfl⟩))
 
 theorem half_add_half_equiv_one : half + half ≈ 1 :=
 begin

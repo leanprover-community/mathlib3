@@ -251,7 +251,7 @@ and `W'` is a subobject of the other summands.
 and replace the hypothesis that `W` contains a simple subobject with
 the hypothesis `W ≠ ⊥`.)
 -/
-lemma subobject_of_semisimple' [has_images C] (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
+lemma subobject_of_semisimple' (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
   (W : subobject (⨁ f)) (w : ∃ V, V ≤ W ∧ simple (V : C)) :
   ∃ (i : ι) (W' : subobject (⨁ (λ j : ({i}ᶜ : set ι), f j))) (j : (W : C) ≅ f i ⊞ W'),
     W.arrow = j.hom ≫ (biprod.fst ≫ biproduct.ι _ i +
@@ -263,21 +263,22 @@ begin
   use i,
   let := complement'' f h i,
   refine ⟨_, (complement'' f h i) ≪≫ biprod.map_iso (as_iso (V.arrow ≫ biproduct.π _ i)) _, _⟩,
-  exact image_subobject (W.arrow ≫ k.hom ≫ biproduct.to_subtype _ _),
-  { fsplit,
-    refine (kernel_subobject _).arrow ≫ _, exact factor_thru_image_subobject _,
-    apply factor_thru_kernel_subobject, },
-  swap 2,
-  simp only [iso.trans_hom, complement''_hom, biprod.map_iso_hom, as_iso_hom, category.assoc, biprod.inl_map, biprod.inr_map,
-  preadditive.comp_add, preadditive.add_comp_assoc, biprod.inl_fst, category.comp_id, is_iso.inv_hom_id, biprod.inr_fst,
-  comp_zero, add_zero, biprod.inl_snd, biprod.inr_snd, zero_add],
-  ext,
-  simp only [biproduct.ι_π, set.mem_compl_eq, set.mem_singleton_iff, preadditive.add_comp, category.assoc,
-  biproduct.from_subtype_π, dite_not],
-  simp only [@eq_comm _ j i],
-  split_ifs with h h,
-  { subst h, simp, },
-  { simp, sorry, },
+  sorry, sorry, sorry,
+  -- exact image_subobject (W.arrow ≫ k.hom ≫ biproduct.to_subtype _ _),
+  -- { fsplit,
+  --   refine (kernel_subobject _).arrow ≫ _, exact factor_thru_image_subobject _,
+  --   apply factor_thru_kernel_subobject, },
+  -- swap 2,
+  -- simp only [iso.trans_hom, complement''_hom, biprod.map_iso_hom, as_iso_hom, category.assoc, biprod.inl_map, biprod.inr_map,
+  -- preadditive.comp_add, preadditive.add_comp_assoc, biprod.inl_fst, category.comp_id, is_iso.inv_hom_id, biprod.inr_fst,
+  -- comp_zero, add_zero, biprod.inl_snd, biprod.inr_snd, zero_add],
+  -- ext,
+  -- simp only [biproduct.ι_π, set.mem_compl_eq, set.mem_singleton_iff, preadditive.add_comp, category.assoc,
+  -- biproduct.from_subtype_π, dite_not],
+  -- simp only [@eq_comm _ j i],
+  -- split_ifs with h h,
+  -- { subst h, simp, },
+  -- { simp, sorry, },
   -- simp,
   -- refine ⟨kernel_subobject (biproduct.from_subtype _ _ ≫ k.hom ≫ biproduct.π _ i), _, _⟩,
   -- refine complement'' f h i ≪≫ _,
@@ -395,8 +396,69 @@ def biproduct.select (p : set ι) (i : ι) (h : i ∉ p) (f : ι → C) [has_fin
       rw [biproduct.ι_π, biproduct.ι_π],
       cases j, cases j_1,
       simp, refl, },
-  end, }
+  end, }.
 
+section
+variables {β γ : Type v} (ε : β ≃ γ) (f : γ → C) [has_product f] [has_product (f ∘ ε)]
+
+/-- Reindex a categorical product via an equivalence of the index types. -/
+def pi.reindex : pi_obj (f ∘ ε) ≅ pi_obj f :=
+has_limit.iso_of_equivalence (discrete.equivalence ε) (discrete.nat_iso (λ i, iso.refl _))
+
+@[simp, reassoc]
+lemma pi.reindex_hom_π (b : β) : (pi.reindex ε f).hom ≫ pi.π f (ε b) = pi.π (f ∘ ε) b :=
+begin
+  dsimp [pi.reindex],
+  simp only [has_limit.iso_of_equivalence_hom_π, discrete.nat_iso_inv_app,
+    equivalence.equivalence_mk'_counit, discrete.equivalence_counit_iso, discrete.nat_iso_hom_app,
+    eq_to_iso.hom, eq_to_hom_map],
+  dsimp,
+  simpa using limit.w (discrete.functor (f ∘ ε)) (eq_to_hom (ε.symm_apply_apply b)),
+end
+
+@[simp, reassoc]
+lemma pi.reindex_inv_π (b : β) : (pi.reindex ε f).inv ≫ pi.π (f ∘ ε) b = pi.π f (ε b) :=
+begin
+  dsimp [pi.reindex],
+  simp only [has_limit.iso_of_equivalence_inv_π, discrete.nat_iso_hom_app],
+  dsimp,
+  simp,
+end
+
+end
+
+section
+variables {β γ : Type v} (ε : β ≃ γ) (f : γ → C) [has_coproduct f] [has_coproduct (f ∘ ε)]
+
+/-- Reindex a categorical coproduct via an equivalence of the index types. -/
+def sigma.reindex : sigma_obj (f ∘ ε) ≅ sigma_obj f :=
+has_colimit.iso_of_equivalence (discrete.equivalence ε) (discrete.nat_iso (λ i, iso.refl _))
+
+@[simp, reassoc]
+lemma sigma.ι_reindex_inv (b : β) : sigma.ι f (ε b) ≫ (sigma.reindex ε f).inv = sigma.ι (f ∘ ε) b :=
+begin
+  dsimp [sigma.reindex],
+  simp only [has_colimit.iso_of_equivalence_inv_π, equivalence.equivalence_mk'_counit_inv,
+    discrete.equivalence_counit_iso, discrete.nat_iso_inv_app, eq_to_iso.inv, eq_to_hom_map,
+    discrete.nat_iso_hom_app],
+  dsimp,
+  simp [←colimit.w (discrete.functor (f ∘ ε)) (eq_to_hom (ε.symm_apply_apply b))],
+end
+
+@[simp, reassoc]
+lemma sigma.ι_reindex_hom (b : β) : sigma.ι (f ∘ ε) b ≫ (sigma.reindex ε f).hom = sigma.ι f (ε b) :=
+begin
+  dsimp [sigma.reindex],
+  simp only [has_colimit.iso_of_equivalence_hom_π, equivalence.equivalence_mk'_unit,
+    discrete.equivalence_unit_iso, discrete.nat_iso_hom_app, eq_to_iso.hom, eq_to_hom_map,
+    discrete.nat_iso_inv_app],
+  dsimp,
+  simp [←colimit.w (discrete.functor f) (eq_to_hom (ε.apply_symm_apply (ε b)))],
+end
+
+end
+
+/-- Reindex a categorical biproduct via an equivalence of the index types. -/
 @[simps]
 def biproduct.reindex {β γ : Type v} [fintype β] [fintype γ] (ε : β ≃ γ) (f : γ → C) [has_biproduct f] [has_biproduct (f ∘ ε)] :
   (⨁ (f ∘ ε)) ≅ (⨁ f) :=

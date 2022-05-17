@@ -195,7 +195,7 @@ abbreviation has_coproducts := Π (J : Type v), has_colimits_of_shape (discrete 
 (Co)products over a type with a unique term.
 -/
 section unique
-variables [unique β] (f : β → C)
+variables {C} [unique β] (f : β → C)
 
 /-- The limit cone for the product over an index type with exactly one term. -/
 def limit_cone_of_unique : limit_cone (discrete.functor f) :=

@@ -706,7 +706,7 @@ by { refine ⟨⟨biproduct pempty.elim, λ X, ⟨⟨⟨0⟩, _⟩⟩, λ X, ⟨
 end
 
 section
-variables [unique J]
+variables [unique J] (f : J → C)
 
 /-- The limit bicone for the biproduct over an index type with exactly one term. -/
 def limit_bicone_of_unique : limit_bicone f :=

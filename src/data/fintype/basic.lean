@@ -758,6 +758,9 @@ by rw [← fin.succ_above_zero, fin.image_succ_above_univ]
   (univ : finset (fin n)).image fin.cast_succ = {fin.last n}ᶜ :=
 by rw [← fin.succ_above_last, fin.image_succ_above_univ]
 
+/- The following three lemmas use `finset.cons` instead of `insert` and `finset.map` instead of
+`finset.image` to reduce proof obligations downstream. -/
+
 /-- Embed `fin n` into `fin (n + 1)` by prepending zero to the `univ` -/
 lemma fin.univ_succ (n : ℕ) :
   (univ : finset (fin (n + 1))) =

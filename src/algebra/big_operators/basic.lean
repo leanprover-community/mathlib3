@@ -1118,17 +1118,6 @@ begin
     simp [← ih] }
 end
 
-@[to_additive] lemma prod_fin_succ (f : fin (n + 1) → β) : ∏ i, f i = f 0 * ∏ i, f (fin.succ i) :=
-by { rw [univ_succ, prod_cons, prod_map], refl }
-
-@[to_additive]
-lemma prod_fin_cast_succ (f : fin (n + 1) → β) : ∏ i, f i = (∏ i, f (cast_succ i)) * f (last n) :=
-by { rw [univ_cast_succ, prod_cons, prod_map], exact mul_comm _ _ }
-
-@[to_additive] lemma prod_fin_succ_above (f : fin (n + 1) → β) (p : fin (n + 1)) :
-  ∏ i, f i = f p * ∏ i, f (succ_above p i) :=
-by { rw [univ_succ_above, prod_cons, prod_map], refl }
-
 @[to_additive]
 lemma prod_involution {s : finset α} {f : α → β} :
   ∀ (g : Π a ∈ s, α)

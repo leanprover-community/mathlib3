@@ -1898,7 +1898,7 @@ is_compl_range_inl_range_inr.symm.compl_eq
 @[simp] theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
 (surjective_quot_mk r).range_eq
 
-instance set.can_lift [can_lift α β] : can_lift (set α) (set β) :=
+instance can_lift [can_lift α β] : can_lift (set α) (set β) :=
 { coe := λ s, can_lift.coe '' s,
   cond := λ s, ∀ x ∈ s, can_lift.cond β x,
   prf := λ s hs, subset_range_iff_exists_image_eq.mp (λ x hx, can_lift.prf _ (hs x hx)) }

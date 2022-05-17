@@ -313,7 +313,7 @@ begin
   intro θ,
   simp [circle_integral_transform],
   ring_nf,
-  simp,
+  simp only [abs_mul, abs_inv, abs_I, mul_one, abs_circle_map_zero, abs_two, abs_of_real],
 end
 
 lemma circle_integral_transform_sub_bound (R : ℝ) (hR: 0 < R) (f : ℂ → ℂ) (z w : ℂ) (r : ℝ)

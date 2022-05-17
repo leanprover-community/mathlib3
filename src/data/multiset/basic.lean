@@ -390,32 +390,28 @@ instance : has_add (multiset α) := ⟨multiset.add⟩
 
 @[simp] theorem coe_add (s t : list α) : (s + t : multiset α) = (s ++ t : list α) := rfl
 
-protected theorem add_comm (s t : multiset α) : s + t = t + s :=
-quotient.induction_on₂ s t $ λ l₁ l₂, quot.sound perm_append_comm
-
-protected theorem zero_add (s : multiset α) : 0 + s = s :=
-quot.induction_on s $ λ l, rfl
-
 theorem singleton_add (a : α) (s : multiset α) : {a} + s = a ::ₘ s := rfl
 
-protected theorem add_le_add_left (s) {t u : multiset α} : s + t ≤ s + u ↔ t ≤ u :=
+private theorem add_le_add_iff_left' (s) {t u : multiset α} : s + t ≤ s + u ↔ t ≤ u :=
 quotient.induction_on₃ s t u $ λ l₁ l₂ l₃, subperm_append_left _
 
-protected theorem add_left_cancel (s) {t u : multiset α} (h : s + t = s + u) : t = u :=
-le_antisymm ((multiset.add_le_add_left _).1 (le_of_eq h))
-  ((multiset.add_le_add_left _).1 (le_of_eq h.symm))
+instance : covariant_class (multiset α) (multiset α) (+) (≤) :=
+⟨λ s t u, (add_le_add_iff_left' s).2⟩
+
+instance : contravariant_class (multiset α) (multiset α) (+) (≤) :=
+⟨λ s t u, (add_le_add_iff_left' s).1⟩
 
 instance : ordered_cancel_add_comm_monoid (multiset α) :=
 { zero                  := 0,
   add                   := (+),
-  add_comm              := multiset.add_comm,
+  add_comm              := λ s t, quotient.induction_on₂ s t $ λ l₁ l₂, quot.sound perm_append_comm,
   add_assoc             := λ s₁ s₂ s₃, quotient.induction_on₃ s₁ s₂ s₃ $ λ l₁ l₂ l₃,
     congr_arg coe $ append_assoc l₁ l₂ l₃,
-  zero_add              := multiset.zero_add,
-  add_zero              := λ s, by rw [multiset.add_comm, multiset.zero_add],
-  add_left_cancel       := multiset.add_left_cancel,
-  add_le_add_left       := λ s₁ s₂ h s₃, (multiset.add_le_add_left _).2 h,
-  le_of_add_le_add_left := λ s₁ s₂ s₃, (multiset.add_le_add_left _).1,
+  zero_add              := λ s, quot.induction_on s $ λ l, rfl,
+  add_zero              := λ s, quot.induction_on s $ λ l, congr_arg (quot.mk _) (append_nil l),
+  add_left_cancel       := λ a b c, add_left_cancel'',
+  add_le_add_left       := λ s₁ s₂, add_le_add_left,
+  le_of_add_le_add_left := λ s₁ s₂ s₃, le_of_add_le_add_left,
   ..@multiset.partial_order α }
 
 theorem le_add_right (s t : multiset α) : s ≤ s + t :=

@@ -246,7 +246,7 @@ theorem not_lt_minimum_of_mem' (ha : a ∈ l) : ¬ (a : with_top α) < minimum l
 end preorder
 
 section linear_order
-variable [linear_order α]
+variables [linear_order α] {l : list α} {a m : α}
 
 theorem maximum_concat (a : α) (l : list α) : maximum (l ++ [a]) = max (maximum l) a :=
 begin
@@ -275,8 +275,7 @@ list.reverse_rec_on l (by simp [@max_eq_left (with_bot α) _ _ _ bot_le])
 theorem minimum_cons (a : α) (l : list α) : minimum (a :: l) = min a (minimum l) :=
 @maximum_cons αᵒᵈ _ _ _
 
-theorem maximum_eq_coe_iff {m : α} {l : list α} :
-  maximum l = m ↔ m ∈ l ∧ (∀ a ∈ l, a ≤ m) :=
+lemma maximum_eq_coe_iff : maximum l = m ↔ m ∈ l ∧ ∀ a ∈ l, a ≤ m :=
 begin
   unfold_coes,
   simp only [maximum, argmax_eq_some_iff, id],
@@ -287,8 +286,7 @@ begin
     rw [le_antisymm hma (h.2 a hal)] }
 end
 
-theorem minimum_eq_coe_iff {m : α} {l : list α} :
-  minimum l = m ↔ m ∈ l ∧ (∀ a ∈ l, m ≤ a) :=
+lemma minimum_eq_coe_iff : minimum l = m ↔ m ∈ l ∧ ∀ a ∈ l, m ≤ a :=
 @maximum_eq_coe_iff αᵒᵈ _ _ _
 
 end linear_order

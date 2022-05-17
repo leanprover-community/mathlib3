@@ -310,6 +310,15 @@ theorem pairwise_iff_nth_le {R} : ∀ {l : list α},
     exact H _ _ (succ_lt_succ h) (succ_pos _) }
 end
 
+lemma pairwise.rel_last (hl : pairwise R l) (ha : a ∈ l) (hRa : R a a) (hne : l ≠ [] := ne_nil_of_mem ha) :
+  R a (l.last hne) :=
+begin
+  rcases mem_iff_nth_le.1 ha with ⟨k, hk, rfl⟩,
+  rw last_eq_nth_le,
+  rcases (nat.le_pred_of_lt hk).eq_or_lt with rfl|hk',
+  exacts [hRa, pairwise_iff_nth_le.1 hl _ _ _ hk']
+end
+
 theorem pairwise.sublists' {R} : ∀ {l : list α}, pairwise R l →
   pairwise (lex (swap R)) (sublists' l)
 | _ pairwise.nil := pairwise_singleton _ _

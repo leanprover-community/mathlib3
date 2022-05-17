@@ -62,6 +62,12 @@ zip_with_nil_right _ l
    length (zip l₁ l₂) = min (length l₁) (length l₂) :=
 length_zip_with _
 
+@[simp] theorem zip_with_repeat : ∀ (a : α) (m : ℕ) (b : β) (n : ℕ) (f : α → β → γ),
+  zip_with f (repeat a m) (repeat b n) = repeat (f a b) (min m n)
+| a 0 b n f := by simp
+| a m b 0 f := by simp
+| a (m + 1) b (n + 1) f := by simp [min_add_add_right, zip_with_repeat]
+
 theorem all₂_zip_with {f : α → β → γ} {p : γ → Prop} :
   ∀ {l₁ : list α} {l₂ : list β} (h : length l₁ = length l₂),
   all₂ p (zip_with f l₁ l₂) ↔ forall₂ (λ x y, p (f x y)) l₁ l₂

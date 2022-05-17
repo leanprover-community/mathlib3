@@ -1416,11 +1416,6 @@ multiset.prod_map_inv
 lemma prod_div_distrib : (∏ x in s, f x / g x) = (∏ x in s, f x) / ∏ x in s, g x :=
 multiset.prod_map_div
 
-@[simp, to_additive]
-lemma prod_sdiff_eq_div [decidable_eq α] (h : s₁ ⊆ s₂) :
-  (∏ x in (s₂ \ s₁), f x) = (∏ x in s₂, f x) / (∏ x in s₁, f x) :=
-by rw [eq_div_iff_mul_eq', prod_sdiff h]
-
 @[to_additive]
 lemma prod_zpow (f : α → β) (s : finset α) (n : ℤ) : ∏ a in s, (f a) ^ n = (∏ a in s, f a) ^ n :=
 multiset.prod_map_zpow
@@ -1429,6 +1424,10 @@ end division_comm_monoid
 
 section comm_group
 variables [comm_group β] [decidable_eq α]
+
+@[simp, to_additive] lemma prod_sdiff_eq_div (h : s₁ ⊆ s₂) :
+ (∏ x in (s₂ \ s₁), f x) = (∏ x in s₂, f x) / (∏ x in s₁, f x) :=
+by rw [eq_div_iff_mul_eq', prod_sdiff h]
 
 @[to_additive] lemma prod_sdiff_div_prod_sdiff :
   (∏ x in s₂ \ s₁, f x) / (∏ x in s₁ \ s₂, f x) = (∏ x in s₂, f x) / (∏ x in s₁, f x) :=

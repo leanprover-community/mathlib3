@@ -427,11 +427,80 @@ subobject.mk (biproduct.from_subtype f s)
 -- { cone := kernel_fork.of_ι (biproduct.ι f i) (by sorry),
 --   is_limit := is_limit.of_ι _ _ (λ W g h, g ≫ biproduct.π f i) (by sorry) (by tidy), }
 
+instance [unique ι] : unique (discrete ι) :=
+{ default := (default : ι),
+  uniq := λ i, unique.eq_default (i : ι), }
+
+/-- The limit cone for the product over an index type with exactly one term. -/
+def limit_cone_of_unique [unique ι] : limit_cone (discrete.functor f) :=
+{ cone :=
+  { X := f default,
+    π := { app := λ j, eq_to_hom (by { dsimp, congr, }), }, },
+  is_limit :=
+  { lift := λ s, s.π.app default,
+    fac' := λ s j, begin
+      have w := (s.π.naturality (eq_to_hom (unique.default_eq _))).symm,
+      dsimp at w,
+      simpa using w,
+    end,
+    uniq' := λ s m w, begin
+      specialize w default,
+      dsimp at w,
+      simpa using w,
+    end, }, }
+
+instance has_product_unique [unique ι] : has_product f :=
+has_limit.mk (limit_cone_of_unique f)
+
+/-- A product over a index type with exactly one term is just the object over that term. -/
+@[simps]
+def product_unique_iso [unique ι] : ∏ f ≅ f default :=
+is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (limit_cone_of_unique f).is_limit
+
+/-- The colimit cocone for the coproduct over an index type with exactly one term. -/
+def colimit_cocone_of_unique [unique ι] : colimit_cocone (discrete.functor f) :=
+{ cocone :=
+  { X := f default,
+    ι := { app := λ j, eq_to_hom (by { dsimp, congr, }), }, },
+  is_colimit :=
+  { desc := λ s, s.ι.app default,
+    fac' := λ s j, begin
+      have w := (s.ι.naturality (eq_to_hom (unique.eq_default _))),
+      dsimp at w,
+      simpa using w,
+    end,
+    uniq' := λ s m w, begin
+      specialize w default,
+      dsimp at w,
+      simpa using w,
+    end, }, }
+
+instance has_coproduct_unique [unique ι] : has_coproduct f :=
+has_colimit.mk (colimit_cocone_of_unique f)
+
+/-- A coproduct over a index type with exactly one term is just the object over that term. -/
+@[simps]
+def coproduct_unique_iso [unique ι] : ∐ f ≅ f default :=
+is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _)
+  (colimit_cocone_of_unique f).is_colimit
+
+/-- The limit bicone for the biproduct over an index type with exactly one term. -/
+def limit_bicone_of_unique [unique ι] : limit_bicone f :=
+{ bicone :=
+  { X := f default,
+    π := λ j, eq_to_hom (by congr),
+    ι := λ j, eq_to_hom (by congr), },
+  is_bilimit :=
+  { is_limit := (limit_cone_of_unique f).is_limit,
+    is_colimit := (colimit_cocone_of_unique f).is_colimit, }, }
+
+instance has_biproduct_unique [unique ι] : has_biproduct f :=
+has_biproduct.mk (limit_bicone_of_unique f)
+
 /-- A biproduct over a index type with exactly one term is just the object over that term. -/
+@[simps]
 def biproduct_unique_iso [unique ι] : ⨁ f ≅ f default :=
-{ hom := biproduct.π _ _,
-  inv := biproduct.ι _ _,
-  hom_inv_id' := by { ext, simp [biproduct.ι_π, biproduct.ι_π_assoc], }}
+(biproduct.unique_up_to_iso _ (limit_bicone_of_unique f).is_bilimit).symm
 
 example (i : ι) : unique ({i} : set ι) := by apply_instance
 
@@ -445,8 +514,6 @@ def kernel_biproduct_to_subtype_complement_iso (i : ι) :
   kernel (biproduct.to_subtype f ({i}ᶜ : set ι)) ≅ f i :=
 (kernel_biproduct_to_subtype_iso f _).trans begin apply biproduct_unique_iso (subtype.restrict ({i}ᶜᶜ : set ι) f), end
 
-instance (i : ι) : has_kernel (biproduct.π f i) :=
-has_limit.mk ⟨_, biproduct.is_limit_from_subtype f i⟩
 
 
 lemma kernel_subobject_biproduct_π (i : ι) :
@@ -461,7 +528,7 @@ lemma kernel_subobject_biproduct_to_subtype_complement (i : ι) :
 (eq_of_comm
   (((underlying_iso _).trans (kernel_biproduct_to_subtype_complement_iso f i).symm).trans
     (kernel_subobject_iso _).symm)
-  (by tidy)).symm
+  (by sorry)).symm
 
 end biproduct
 

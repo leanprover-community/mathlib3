@@ -130,7 +130,8 @@ begin
     coprime_of_irreducible_pow _ irred (λ i j assoc, subtype.coe_injective
       (by { rw [← hp ↑i, ← hp ↑j, associates.mk_eq_mk_iff_associated], exact assoc })) _,
   apply @torsion_is_internal _ _ _ _ _ _ (λ i, p i ^ P.count i) _ coprime,
-  rw [eq_top_iff, ← h, span_le], intros s hs, rw set_like.mem_coe,
+  rw [is_torsion_by_iff_torsion_by_eq_top, eq_top_iff, ← h, span_le],
+  intros s hs, rw set_like.mem_coe,
   refine torsion_by_le_torsion_by_of_dvd ↑_ _ _ (classical.some_spec $ @hM s),
   rw [← (principal_ideal_ring.factors_spec (_ : R)
     (non_zero_divisors.coe_ne_zero _)).right.dvd_iff_dvd_left,

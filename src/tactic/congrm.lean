@@ -178,7 +178,8 @@ end
 ```
 -/
 meta def congrm (arg : parse texpr) : tactic unit := do
-`(@eq %%ty _ _) ← target,
+try $ applyc ``_root_.eq.to_iff,
+`(@eq %%ty _ _) ← target | fail "congrm: goal must be an equality or iff",
 ta ← to_expr ``((%%arg : %%ty)) tt ff,
 equate_with_pattern ta
 

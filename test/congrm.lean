@@ -75,3 +75,9 @@ begin
   congrm ⟨_ + 1, _⟩,
   exact h,
 end
+
+example : true ∧ false ↔ (true ∧ true) ∧ false :=
+begin
+  congrm _ ∧ _,
+  exact (true_and true).symm,
+end

@@ -62,24 +62,41 @@ namespace is_hermitian
 
 variables (hA : A.is_hermitian)
 
-noncomputable def eigenvalues : fin (fintype.card n) → ℝ :=
+noncomputable def eigenvalues₀ : fin (fintype.card n) → ℝ :=
 @inner_product_space.is_self_adjoint.eigenvalues 𝕜 _ _ (pi_Lp 2 (λ (_ : n), 𝕜)) _ A.to_lin'
   (is_hermitian_iff_is_self_adjoint.1 hA) _ (fintype.card n) finrank_euclidean_space
 
-noncomputable def diagonalization_basis : basis (fin (fintype.card n)) 𝕜 (n → 𝕜) :=
-basis.of_equiv_fun (@inner_product_space.is_self_adjoint.diagonalization_basis 𝕜 _ _
+noncomputable def eigenvalues : n → ℝ :=
+  λ i, hA.eigenvalues₀ $ fintype.equiv_of_card_eq (fintype.card_fin _).symm i
+
+noncomputable def diagonalization_basis :=
+  (@inner_product_space.is_self_adjoint.eigenvector_basis 𝕜 _ _
   (pi_Lp 2 (λ (_ : n), 𝕜)) _ A.to_lin' (is_hermitian_iff_is_self_adjoint.1 hA) _ (fintype.card n)
-    finrank_euclidean_space).to_linear_equiv
+  finrank_euclidean_space).reindex (fintype.equiv_of_card_eq (fintype.card_fin _))
 
-#check (diagonalization_basis hA).to_matrix
-#check (diagonalization_basis hA).to_matrix⁻¹
-#check matrix.det_diagonal
+noncomputable def diagonalization_matrix : matrix n n 𝕜 :=
+  (diagonalization_basis hA).to_matrix (1 : matrix n n 𝕜)
 
-#check linear_map.to_matrix
+local notation `𝓚` := algebra_map ℝ _
 
-#check inner_product_space.is_self_adjoint.diagonalization_basis
+theorem spectral_theorem : A =
+       hA.diagonalization_matrix⁻¹
+        ⬝ (diagonal (𝓚 ∘ hA.eigenvalues))
+        ⬝ hA.diagonalization_matrix :=
+begin
+  ext i j,
+  have := @inner_product_space.is_self_adjoint.diagonalization_basis_apply_self_apply 𝕜 _ _
+  (pi_Lp 2 (λ (_ : n), 𝕜)) _ A.to_lin' (is_hermitian_iff_is_self_adjoint.1 hA) _ (fintype.card n)
+  finrank_euclidean_space (euclidean_space.single i 1)
+  ((fintype.equiv_of_card_eq (fintype.card_fin _).symm) j),
+end
+
+
+
 
 #check  @inner_product_space.is_self_adjoint.diagonalization_basis_apply_self_apply
+
+#check matrix.det_diagonal
 
 end is_self_adjoint
 

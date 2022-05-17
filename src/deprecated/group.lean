@@ -5,8 +5,8 @@ Authors: Yury Kudryashov
 -/
 import algebra.group.type_tags
 import algebra.hom.equiv
+import algebra.hom.ring
 import algebra.hom.units
-import algebra.ring.basic
 
 /-!
 # Unbundled monoid and group homomorphisms

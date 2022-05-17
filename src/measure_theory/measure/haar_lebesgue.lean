@@ -195,7 +195,7 @@ begin
   /- We have already proved the result for the Lebesgue product measure, using matrices.
   We deduce it for any Haar measure by uniqueness (up to scalar multiplication). -/
   have := add_haar_measure_unique μ (pi_Icc01 ι),
-  rw [this, add_haar_measure_eq_volume_pi, map_smul,
+  rw [this, add_haar_measure_eq_volume_pi, measure.map_smul,
     real.map_linear_map_volume_pi_eq_smul_volume_pi hf, smul_comm],
 end
 
@@ -228,7 +228,7 @@ begin
   haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
   have ecomp : (e.symm) ∘ e = id,
     by { ext x, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
-  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), map_smul,
+  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), measure.map_smul,
     map_map Cesymm.measurable Ce.measurable, ecomp, measure.map_id]
 end
 
@@ -314,7 +314,7 @@ equal to `μ s` times the absolute value of the determinant of `f`. -/
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (f : E ≃L[ℝ] E) (s : set E) :
   μ (f '' s) = ennreal.of_real (abs (f : E →ₗ[ℝ] E).det) * μ s :=
-add_haar_image_linear_map μ _ s
+μ.add_haar_image_linear_map (f : E →ₗ[ℝ] E) s
 
 /-!
 ### Basic properties of Haar measures on real vector spaces
@@ -347,7 +347,7 @@ calc μ (((•) r) ⁻¹' s) = measure.map ((•) r) μ s :
   μ (r • s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
 begin
   rcases ne_or_eq r 0 with h|rfl,
-  { rw [← preimage_smul_inv₀ h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow₀, inv_inv] },
+  { rw [← preimage_smul_inv₀ h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow, inv_inv] },
   rcases eq_empty_or_nonempty s with rfl|hs,
   { simp only [measure_empty, mul_zero, smul_set_empty] },
   rw [zero_smul_set hs, ← singleton_zero],
@@ -584,7 +584,7 @@ begin
   { apply tendsto_add_haar_inter_smul_zero_of_density_zero_aux1 μ s x h
       t' u',
     { simp only [h'u, (pow_pos Rpos _).ne', abs_nonpos_iff, add_haar_smul, not_false_iff,
-        ennreal.of_real_eq_zero, inv_eq_zero, inv_pow₀, ne.def, or_self, mul_eq_zero] },
+        ennreal.of_real_eq_zero, inv_eq_zero, inv_pow, ne.def, or_self, mul_eq_zero] },
     { convert smul_set_mono t_bound,
       rw [smul_closed_ball _ _ Rpos.le, smul_zero, real.norm_of_nonneg (inv_nonneg.2 Rpos.le),
         inv_mul_cancel Rpos.ne'] } },

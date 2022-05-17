@@ -292,6 +292,7 @@ lemma mem_bsupr_iff_exists_dfinsupp (p : ι → Prop) [decidable_pred p] (S : ι
 set_like.ext_iff.mp (bsupr_eq_range_dfinsupp_lsum p S) x
 
 open_locale big_operators
+omit dec_ι
 lemma mem_supr_finset_iff_exists_sum {s : finset ι} (p : ι → submodule R N) (a : N) :
   a ∈ (⨆ i ∈ s, p i) ↔ ∃ μ : Π i, p i, ∑ i in s, (μ i : N) = a :=
 begin

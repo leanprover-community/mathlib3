@@ -120,7 +120,7 @@ begin
 end
 
 @[simp, norm_cast] theorem cast_ite [has_zero α] [has_one α] [has_add α] [has_neg α]
-  (P : Prop) [decidable P] (m n : ℕ) :
+  (P : Prop) [decidable P] (m n : ℤ) :
   ((ite P m n : ℤ) : α) = ite P m n :=
 apply_ite _ _ _ _
 

@@ -161,7 +161,7 @@ This should eventually be remedied.
 
 section to_matrix'
 
-variables {R : Type*} [comm_ring R]
+variables {R : Type*} [comm_semiring R]
 variables {l m n : Type*}
 
 /-- `matrix.mul_vec M` is a linear map. -/
@@ -242,7 +242,7 @@ by { ext, rw [matrix.one_apply, linear_map.to_matrix'_apply, id_apply] }
 
 @[simp] lemma matrix.to_lin'_mul [fintype m] [decidable_eq m] (M : matrix l m R)
   (N : matrix m n R) : matrix.to_lin' (M ⬝ N) = (matrix.to_lin' M).comp (matrix.to_lin' N) :=
-by { ext, simp }
+by { ext, simp, }
 
 /-- Shortcut lemma for `matrix.to_lin'_mul` and `linear_map.comp_apply` -/
 lemma matrix.to_lin'_mul_apply [fintype m] [decidable_eq m] (M : matrix l m R)

@@ -215,7 +215,7 @@ def limit_cone_of_unique : limit_cone (discrete.functor f) :=
       simpa using w,
     end, }, }
 
-instance has_product_unique : has_product f :=
+@[priority 100] instance has_product_unique : has_product f :=
 has_limit.mk (limit_cone_of_unique f)
 
 /-- A product over a index type with exactly one term is just the object over that term. -/
@@ -241,7 +241,7 @@ def colimit_cocone_of_unique : colimit_cocone (discrete.functor f) :=
       simpa using w,
     end, }, }
 
-instance has_coproduct_unique : has_coproduct f :=
+@[priority 100] instance has_coproduct_unique : has_coproduct f :=
 has_colimit.mk (colimit_cocone_of_unique f)
 
 /-- A coproduct over a index type with exactly one term is just the object over that term. -/

@@ -49,7 +49,6 @@ ring_hom, nonzero, domain, is_domain
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {R : Type x}
 
-set_option old_structure_cmd true
 open function
 
 /-!
@@ -57,31 +56,35 @@ open function
 -/
 
 /-- A typeclass stating that multiplication is left distributive over addition. -/
-@[protect_proj, ancestor has_mul has_add]
-class left_distrib_class (R : Type*) extends has_mul R, has_add R :=
+@[protect_proj]
+class left_distrib_class (R : Type*) [has_mul R] [has_add R] :=
 (left_distrib : ∀ a b c : R, a * (b + c) = a * b + a * c)
 
 /-- A typeclass stating that multiplication is right distributive over addition. -/
-@[protect_proj, ancestor has_mul has_add]
-class right_distrib_class (R : Type*) extends has_mul R, has_add R :=
+@[protect_proj]
+class right_distrib_class (R : Type*) [has_mul R] [has_add R] :=
 (right_distrib : ∀ a b c : R, (a + b) * c = a * c + b * c)
 
 /-- A typeclass stating that multiplication is left and right distributive
 over addition. -/
-@[protect_proj, ancestor left_distrib right_distrib]
-class distrib (R : Type*) extends left_distrib_class R, right_distrib_class R
+@[protect_proj, ancestor has_mul has_add left_distrib right_distrib]
+class distrib (R : Type*) extends has_mul R, has_add R, left_distrib_class R, right_distrib_class R
 
-lemma left_distrib [left_distrib_class R] (a b c : R) : a * (b + c) = a * b + a * c :=
+set_option old_structure_cmd true
+
+lemma left_distrib [has_mul R] [has_add R] [left_distrib_class R] (a b c : R) :
+  a * (b + c) = a * b + a * c :=
 left_distrib_class.left_distrib a b c
 
 alias left_distrib ← mul_add
 
-lemma right_distrib [right_distrib_class R] (a b c : R) : (a + b) * c = a * c + b * c :=
+lemma right_distrib [has_mul R] [has_add R] [right_distrib_class R] (a b c : R) :
+  (a + b) * c = a * c + b * c :=
 right_distrib_class.right_distrib a b c
 
 alias right_distrib ← add_mul
 
-lemma distrib_three_right [right_distrib_class R] (a b c d : R) :
+lemma distrib_three_right [has_mul R] [has_add R] [right_distrib_class R] (a b c d : R) :
   (a + b + c) * d = a * d + b * d + c * d :=
 by simp [right_distrib]
 
@@ -240,7 +243,7 @@ lemma one_add_one_eq_two : 1 + 1 = (2 : α) := rfl
 end has_one_has_add
 
 section distrib_semigroup
-variables [semigroup α]
+variables [has_add α] [semigroup α]
 
 theorem dvd_add [left_distrib_class α] {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
 dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
@@ -248,7 +251,7 @@ dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left
 end distrib_semigroup
 
 section distrib_mul_one_class
-variables [mul_one_class α]
+variables [has_add α] [mul_one_class α]
 
 lemma add_one_mul [right_distrib_class α] (a b : α) : (a + 1) * b = a * b + b :=
 by rw [add_mul, one_mul]

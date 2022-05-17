@@ -35,6 +35,7 @@ around a sum.
 * Add optional different operations than `+`, most notably `*`?
 * Add functionality for moving terms across the two sides of an in/dis/equality.
   E.g. it might be desirable to have `to_lhs [a]` that converts `b + c = a + d` to `a + b + c = d`.
+* Add a non-recursive version for use in `conv` mode.
 * Add more tests.
 -/
 

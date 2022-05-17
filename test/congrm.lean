@@ -39,3 +39,33 @@ begin
   congrm_1 j₂ (j₁ _) (j₁ _); -- the main goal becomes
   assumption,                -- `nat.succ 1 + nat.pred 3 = nat.succ 1 * nat.pred 3` and `refl`
 end                          -- closes it!
+
+example (H : a = b) (H' : c + (f a) = c + (f d)) (H'' : f d = f b) :
+  f (f a) * (f d + (c + f a)) = f (f b) * (f b + (c + f d)) :=
+begin
+  congrm f (f _) * (_ + _),
+  { exact H },
+  { exact H'' },
+  { exact H' },
+end
+
+example (H' : c + (f a) = c + (f d)) (H'' : f d = f b) :
+  f (f a) * (f d + (c + f a)) = f (f a) * (f b + (c + f d)) :=
+begin
+  congrm f (f _) * (_ + _),
+  { exact H'' },
+  { exact H' },
+end
+
+example {p q} [decidable p] [decidable q] (h : p = q) :
+  ite p 0 1 = ite q 0 1 :=
+begin
+  congrm ite _ 0 1,
+  exact h,
+end
+
+example (h : a = b) : (λ y : ℕ, a + a) = (λ x, b + a) :=
+begin
+  congrm λ x, _ + a,
+  exact h,
+end

@@ -29,7 +29,7 @@ meta def equate_with_pattern_core : expr → tactic (list expr) | pat :=
 (applyc ``rfl >> pure []) <|>
 if pat.is_mvar || pat.get_delayed_abstraction_locals.is_some then
   get_goals <* set_goals []
-else if pat.is_app && pat.get_app_fn.is_constant then do
+else if pat.is_app then do
   cl ← mk_specialized_congr_lemma pat,
   [prf] ← get_goals,
   tactic.apply cl.proof,

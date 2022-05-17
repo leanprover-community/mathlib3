@@ -131,10 +131,52 @@ by rw [← e.coe_fst ex, prod.mk.eta, ← e.coe_coe, e.to_local_equiv.left_inv e
   (e.to_local_equiv.symm ⁻¹' (proj E ⁻¹' e.base_set)) ∩ e.target  = e.target :=
 e.to_fiber_bundle_pretrivialization.preimage_symm_proj_base_set
 
-@[simp, mfld_simps] lemma symm_coe_fst' {x : B} {y : F}
-  (e : pretrivialization R F E) (h : x ∈ e.base_set) :
+lemma symm_coe_fst' {x : B} {y : F} (e : pretrivialization R F E) (h : x ∈ e.base_set) :
   proj E ((e.to_local_equiv.symm) (x, y)) = x :=
 e.proj_symm_apply' h
+
+/-- A fiberwise inverse to `e`. This is the function `F → E b` that induces a local inverse
+`B × F → total_space E` of `e` on `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
+protected def symm (e : pretrivialization R F E) (b : B) (y : F) : E b :=
+if hb : b ∈ e.base_set
+then cast (congr_arg E (e.proj_symm_apply' hb)) (e.to_local_equiv.symm (b, y)).2
+else 0
+
+lemma symm_apply (e : pretrivialization R F E) {b : B} (hb : b ∈ e.base_set) (y : F) :
+  e.symm b y = cast (congr_arg E (e.symm_coe_fst' hb)) (e.to_local_equiv.symm (b, y)).2 :=
+dif_pos hb
+
+lemma symm_apply_of_not_mem (e : pretrivialization R F E) {b : B} (hb : b ∉ e.base_set) (y : F) :
+  e.symm b y = 0 :=
+dif_neg hb
+
+lemma mk_symm (e : pretrivialization R F E) {b : B} (hb : b ∈ e.base_set) (y : F) :
+  total_space_mk E b (e.symm b y) = e.to_local_equiv.symm (b, y) :=
+by rw [e.symm_apply hb, total_space.mk_cast, total_space.eta]
+
+lemma symm_proj_apply (e : pretrivialization R F E) (z : total_space E)
+  (hz : proj E z ∈ e.base_set) : e.symm (proj E z) (e z).2 = z.2 :=
+by rw [e.symm_apply hz, cast_eq_iff_heq, e.mk_proj_snd' hz,
+  e.symm_apply_apply (e.mem_source.mpr hz)]
+
+lemma symm_apply_apply_mk (e : pretrivialization R F E) {b : B} (hb : b ∈ e.base_set) (y : E b) :
+  e.symm b (e (total_space_mk E b y)).2 = y :=
+e.symm_proj_apply (total_space_mk E b y) hb
+
+lemma apply_mk_symm (e : pretrivialization R F E) {b : B} (hb : b ∈ e.base_set) (y : F) :
+  e (total_space_mk E b (e.symm b y)) = (b, y) :=
+by rw [e.mk_symm hb, e.apply_symm_apply (e.mk_mem_target.mpr hb)]
+
+/-- A pretrivialization for a topological vector bundle defines linear equivalences between the
+fibers and the model space. -/
+def linear_equiv_at (e : pretrivialization R F E) (b : B)
+  (hb : b ∈ e.base_set) : E b ≃ₗ[R] F :=
+{ to_fun := λ y, (e ⟨b, y⟩).2,
+  inv_fun := e.symm b,
+  left_inv := e.symm_apply_apply_mk hb,
+  right_inv := λ v, by simp_rw [e.apply_mk_symm hb v],
+  map_add' := λ v w, (e.linear _ hb).map_add v w,
+  map_smul' := λ c v, (e.linear _ hb).map_smul c v }
 
 end topological_vector_bundle.pretrivialization
 
@@ -216,39 +258,34 @@ e.to_local_equiv.left_inv hx
   (e : trivialization R F E) (h : x ∈ e.base_set) :
   ((e.to_local_homeomorph.symm) (x, y)).fst = x := e.proj_symm_apply' h
 
-lemma proj_symm_coe {x : B} {y : F}
-  (e : trivialization R F E) (h : x ∈ e.base_set) :
-  proj E ((e.to_local_homeomorph.symm) (x, y)) = x :=
-e.proj_symm_apply' h
+/-- A fiberwise inverse to `e`. The function `F → E x` that induces a local inverse
+  `B × F → total_space E` of `e` on `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
+protected def symm (e : trivialization R F E) (b : B) (y : F) : E b :=
+e.to_pretrivialization.symm b y
 
+lemma symm_apply (e : trivialization R F E) {b : B} (hb : b ∈ e.base_set) (y : F) :
+  e.symm b y = cast (congr_arg E (e.symm_coe_fst' hb)) (e.to_local_homeomorph.symm (b, y)).2 :=
+dif_pos hb
 
-/-- The function `F → E x` that induces a local inverse `B × F → total_space E` of `e` on
-  `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
-protected def symm (e : trivialization R F E) (x : B) (y : F) : E x :=
-if hx : x ∈ e.base_set
-then cast (congr_arg E (e.proj_symm_coe hx)) (e.to_local_homeomorph.symm (x, y)).2
-else 0
+lemma symm_apply_of_not_mem (e : trivialization R F E) {b : B} (hb : b ∉ e.base_set) (y : F) :
+  e.symm b y = 0 :=
+dif_neg hb
 
-lemma symm_apply (e : trivialization R F E) {x : B} (hx : x ∈ e.base_set) (y : F) :
-  e.symm x y = cast (congr_arg E (e.symm_coe_fst' hx)) (e.to_local_homeomorph.symm (x, y)).2 :=
-dif_pos hx
-
-lemma mk_symm (e : trivialization R F E) {x : B} (hx : x ∈ e.base_set) (y : F) :
-  total_space_mk E x (e.symm x y) = e.to_local_homeomorph.symm (x, y) :=
-by rw [e.symm_apply hx, total_space.mk_cast, total_space.eta]
+lemma mk_symm (e : trivialization R F E) {b : B} (hb : b ∈ e.base_set) (y : F) :
+  total_space_mk E b (e.symm b y) = e.to_local_homeomorph.symm (b, y) :=
+e.to_pretrivialization.mk_symm hb y
 
 lemma symm_proj_apply (e : trivialization R F E) (z : total_space E)
   (hz : proj E z ∈ e.base_set) : e.symm (proj E z) (e z).2 = z.2 :=
-by rw [e.symm_apply hz, cast_eq_iff_heq, e.mk_proj_snd' hz,
-  e.symm_apply_apply (e.mem_source.mpr hz)]
+e.to_pretrivialization.symm_proj_apply z hz
 
-lemma symm_apply_apply_mk (e : trivialization R F E) {x : B} (hx : x ∈ e.base_set) (y : E x) :
-  e.symm x (e (total_space_mk E x y)).2 = y :=
-e.symm_proj_apply (total_space_mk E x y) hx
+lemma symm_apply_apply_mk (e : trivialization R F E) {b : B} (hb : b ∈ e.base_set) (y : E b) :
+  e.symm b (e (total_space_mk E b y)).2 = y :=
+e.symm_proj_apply (total_space_mk E b y) hb
 
-lemma apply_mk_symm (e : trivialization R F E) {x : B} (hx : x ∈ e.base_set) (y : F) :
-  e (total_space_mk E x (e.symm x y)) = (x, y) :=
-by rw [e.mk_symm hx, e.apply_symm_apply (e.mk_mem_target.mpr hx)]
+lemma apply_mk_symm (e : trivialization R F E) {b : B} (hb : b ∈ e.base_set) (y : F) :
+  e (total_space_mk E b (e.symm b y)) = (b, y) :=
+e.to_pretrivialization.apply_mk_symm hb y
 
 lemma continuous_on_symm (e : trivialization R F E) :
   continuous_on (λ z : B × F, total_space_mk E z.1 (e.symm z.1 z.2))
@@ -261,7 +298,6 @@ begin
   rw [← e.target_eq],
   exact e.to_local_homeomorph.continuous_on_symm
 end
-
 
 end topological_vector_bundle.trivialization
 
@@ -361,17 +397,14 @@ def continuous_linear_equiv_at (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) : E b ≃L[R] F :=
 { to_fun := λ y, (e ⟨b, y⟩).2,
   inv_fun := e.symm b,
-  left_inv := e.symm_apply_apply_mk hb,
-  right_inv := λ v, by simp_rw [e.apply_mk_symm hb v],
-  map_add' := λ v w, (e.linear _ hb).map_add v w,
-  map_smul' := λ c v, (e.linear _ hb).map_smul c v,
   continuous_to_fun := continuous_snd.comp (e.to_local_homeomorph.continuous_on.comp_continuous
     (total_space_mk_inducing R F E b).continuous (λ x, e.mem_source.mpr hb)),
   continuous_inv_fun := begin
     rw (topological_vector_bundle.total_space_mk_inducing R F E b).continuous_iff,
     exact e.continuous_on_symm.comp_continuous (continuous_const.prod_mk continuous_id)
       (λ x, mk_mem_prod hb (mem_univ x)),
-  end }
+  end,
+  .. e.to_pretrivialization.linear_equiv_at b hb }
 
 @[simp] lemma continuous_linear_equiv_at_apply (e : trivialization R F E) (b : B)
   (hb : b ∈ e.base_set) (y : E b) : e.continuous_linear_equiv_at b hb y = (e ⟨b, y⟩).2 := rfl
@@ -385,10 +418,10 @@ lemma apply_eq_prod_continuous_linear_equiv_at (e : trivialization R F E) (b : B
   e.to_local_homeomorph ⟨b, z⟩ = (b, e.continuous_linear_equiv_at b hb z) :=
 begin
   ext,
-  { convert e.coe_fst _,
+  { refine e.coe_fst _,
     rw e.source_eq,
     exact hb },
-  { simp }
+  { simp only [coe_coe, continuous_linear_equiv_at_apply] }
 end
 
 lemma symm_apply_eq_mk_continuous_linear_equiv_at_symm (e : trivialization R F E) (b : B)
@@ -400,9 +433,9 @@ begin
   { rw e.target_eq,
     exact ⟨hb, mem_univ _⟩ },
   apply e.to_local_homeomorph.inj_on (e.to_local_homeomorph.map_target h),
-  { simp [e.source_eq, hb] },
-  simp [-continuous_linear_equiv_at_apply, e.apply_eq_prod_continuous_linear_equiv_at b hb,
-    e.to_local_homeomorph.right_inv h],
+  { simp only [e.source_eq, hb, mem_preimage]},
+  simp_rw [e.apply_eq_prod_continuous_linear_equiv_at b hb, e.to_local_homeomorph.right_inv h,
+    continuous_linear_equiv.apply_symm_apply],
 end
 
 lemma comp_continuous_linear_equiv_at_eq_coord_change {e e' : trivialization R F E}
@@ -415,7 +448,7 @@ begin
   suffices :
     (b, e'.continuous_linear_equiv_at b hb.2 ((e.continuous_linear_equiv_at b hb.1).symm v))
     = (b, coord_change he he' b v),
-  { simpa using this },
+  { simpa only [prod.mk.inj_iff, eq_self_iff_true, true_and] using this },
   rw [← trans_eq_coord_change he he' hb, ← apply_eq_prod_continuous_linear_equiv_at,
     symm_apply_eq_mk_continuous_linear_equiv_at_symm],
   refl,

@@ -120,12 +120,19 @@ produces the same three goals as above
 ⊢ (nat.pred 8) * nat.succ 12 = (nat.pred 8) + nat.pred 12
 ```
 -/
-meta def congrm (arg : parse texpr) : tactic unit :=
+meta def congrm_1 (arg : parse texpr) : tactic unit :=
 do ta ← to_expr arg tt ff,
   tgt ← target,
   (lhs, rhs) ← match_eq tgt,
   equate_with_pattern_1 ta lhs rhs,
   try refl,
   rev_goals
+
+meta def congrm (arg : parse texpr) : tactic unit :=
+do ta ← to_expr arg tt ff,
+  tgt ← target,
+  (lhs, rhs) ← match_eq tgt,
+  equate_with_pattern ta
+  --,  try refl,  rev_goals
 
 end tactic.interactive

@@ -10,7 +10,7 @@ example {A : Type*} (j₂ : A → A → A) (j₁ : A → A)
   (H : true → a = b) (H' : true → c + (f a) = c + (f d)) (H'' : true → f d = f b) :
   f (f a) * (f d + (c + f a)) = f (f b) * (f b + (c + f d)) :=
 begin
-  congrm j₂ (j₁ (j₁ _)) (j₂ _ _),
+  congrm_1 j₂ (j₁ (j₁ _)) (j₂ _ _),
   { exact H trivial },
   { exact H'' trivial },
   { exact H' trivial },
@@ -20,7 +20,7 @@ example {A : Type*} (j₂ : A → A → A) (j₁ : A → A) (w : A)
   (H : true → a = b) (H' : true → c + (f a) = c + (f d)) (H'' : true → f d = f b) :
   f (f a) * (f d + (c + f a)) = f (f a) * (f b + (c + f d)) :=
 begin
-  congrm j₂ (j₁ (j₁ w)) (j₂ _ _),
+  congrm_1 j₂ (j₁ (j₁ w)) (j₂ _ _),
   { exact H'' trivial },
   { exact H' trivial },
 end

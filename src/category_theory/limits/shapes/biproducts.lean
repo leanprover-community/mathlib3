@@ -1159,6 +1159,38 @@ rfl
 def biprod.is_cokernel_inr_cokernel_fork : is_colimit (biprod.inr_cokernel_fork X Y) :=
 cofork.is_colimit.mk' _ $ λ s, ⟨biprod.inl ≫ s.π, by ext; simp, λ m hm, by simp [← hm]⟩
 
+instance : has_kernel (biprod.fst : X ⊞ Y ⟶ X) :=
+has_limit.mk ⟨_, biprod.is_kernel_fst_kernel_fork X Y⟩
+
+/-- The kernel of `biprod.fst : X ⊞ Y ⟶ X` is `Y`. -/
+@[simps]
+def kernel_biprod_fst_iso : kernel (biprod.fst : X ⊞ Y ⟶ X) ≅ Y :=
+limit.iso_limit_cone ⟨_, biprod.is_kernel_fst_kernel_fork X Y⟩
+
+instance : has_kernel (biprod.snd : X ⊞ Y ⟶ Y) :=
+has_limit.mk ⟨_, biprod.is_kernel_snd_kernel_fork X Y⟩
+
+/-- The kernel of `biprod.snd : X ⊞ Y ⟶ Y` is `X`. -/
+@[simps]
+def kernel_biprod_snd_iso : kernel (biprod.snd : X ⊞ Y ⟶ Y) ≅ X :=
+limit.iso_limit_cone ⟨_, biprod.is_kernel_snd_kernel_fork X Y⟩
+
+instance : has_cokernel (biprod.inl : X ⟶ X ⊞ Y) :=
+has_colimit.mk ⟨_, biprod.is_cokernel_inl_cokernel_fork X Y⟩
+
+/-- The cokernel of `biprod.inl : X ⟶ X ⊞ Y` is `Y`. -/
+@[simps]
+def cokernel_biprod_inl_iso : cokernel (biprod.inl : X ⟶ X ⊞ Y) ≅ Y :=
+colimit.iso_colimit_cocone ⟨_, biprod.is_cokernel_inl_cokernel_fork X Y⟩
+
+instance : has_cokernel (biprod.inr : Y ⟶ X ⊞ Y) :=
+has_colimit.mk ⟨_, biprod.is_cokernel_inr_cokernel_fork X Y⟩
+
+/-- The cokernel of `biprod.inr : Y ⟶ X ⊞ Y` is `X`. -/
+@[simps]
+def cokernel_biprod_inr_iso : cokernel (biprod.inr : Y ⟶ X ⊞ Y) ≅ X :=
+colimit.iso_colimit_cocone ⟨_, biprod.is_cokernel_inr_cokernel_fork X Y⟩
+
 end biprod_kernel
 
 section

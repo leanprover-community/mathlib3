@@ -65,15 +65,15 @@ instance {E : Type*} [category E] [preadditive E] (G : D ⥤ E) [functor.additiv
 
 @[simp]
 lemma map_neg {X Y : C} {f : X ⟶ Y} : F.map (-f) = - F.map f :=
-F.map_add_hom.map_neg _
+(F.map_add_hom : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y)).map_neg _
 
 @[simp]
 lemma map_sub {X Y : C} {f g : X ⟶ Y} : F.map (f - g) = F.map f - F.map g :=
-F.map_add_hom.map_sub _ _
+(F.map_add_hom : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y)).map_sub _ _
 
 -- You can alternatively just use `functor.map_smul` here, with an explicit `(r : ℤ)` argument.
 lemma map_zsmul {X Y : C} {f : X ⟶ Y} {r : ℤ} : F.map (r • f) = r • F.map f :=
-F.map_add_hom.map_zsmul _ _
+(F.map_add_hom : (X ⟶ Y) →+ (F.obj X ⟶ F.obj Y)).map_zsmul _ _
 
 open_locale big_operators
 

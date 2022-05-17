@@ -195,9 +195,10 @@ abbreviation has_coproducts := Π (J : Type v), has_colimits_of_shape (discrete 
 (Co)products over a type with a unique term.
 -/
 section unique
+variables [unique β] (f : β → C)
 
 /-- The limit cone for the product over an index type with exactly one term. -/
-def limit_cone_of_unique [unique ι] : limit_cone (discrete.functor f) :=
+def limit_cone_of_unique : limit_cone (discrete.functor f) :=
 { cone :=
   { X := f default,
     π := { app := λ j, eq_to_hom (by { dsimp, congr, }), }, },
@@ -214,16 +215,16 @@ def limit_cone_of_unique [unique ι] : limit_cone (discrete.functor f) :=
       simpa using w,
     end, }, }
 
-instance has_product_unique [unique ι] : has_product f :=
+instance has_product_unique : has_product f :=
 has_limit.mk (limit_cone_of_unique f)
 
 /-- A product over a index type with exactly one term is just the object over that term. -/
 @[simps]
-def product_unique_iso [unique ι] : ∏ f ≅ f default :=
+def product_unique_iso : ∏ f ≅ f default :=
 is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (limit_cone_of_unique f).is_limit
 
 /-- The colimit cocone for the coproduct over an index type with exactly one term. -/
-def colimit_cocone_of_unique [unique ι] : colimit_cocone (discrete.functor f) :=
+def colimit_cocone_of_unique : colimit_cocone (discrete.functor f) :=
 { cocone :=
   { X := f default,
     ι := { app := λ j, eq_to_hom (by { dsimp, congr, }), }, },
@@ -240,12 +241,12 @@ def colimit_cocone_of_unique [unique ι] : colimit_cocone (discrete.functor f) :
       simpa using w,
     end, }, }
 
-instance has_coproduct_unique [unique ι] : has_coproduct f :=
+instance has_coproduct_unique : has_coproduct f :=
 has_colimit.mk (colimit_cocone_of_unique f)
 
 /-- A coproduct over a index type with exactly one term is just the object over that term. -/
 @[simps]
-def coproduct_unique_iso [unique ι] : ∐ f ≅ f default :=
+def coproduct_unique_iso : ∐ f ≅ f default :=
 is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _)
   (colimit_cocone_of_unique f).is_colimit
 

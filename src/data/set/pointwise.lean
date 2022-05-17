@@ -58,10 +58,12 @@ pointwise subtraction
 Pointwise monoids (`set`, `finset`, `filter`) have derived pointwise actions of the form
 `has_scalar α β → has_scalar α (set β)`. When `α` is `ℕ` or `ℤ`, this action conflicts with the
 nat or int action coming from `set β` being a `monoid` or `div_inv_monoid`. For example,
-`2 • {a, b}` can both be `{2 • a, 2 • b}` and `{a + a, a + b, b + a, b + b}`.
+`2 • {a, b}` can both be `{2 • a, 2 • b}` (pointwise action, pointwise repeated addition,
+`set.has_scalar_set`) and `{a + a, a + b, b + a, b + b}` (nat or int action, repeated pointwise
+addition, `set.has_nsmul`).
 
-Because the pointwise can easily be spelled out in such cases, we give higher priority to the nat
-and int actions.
+Because the pointwise action can easily be spelled out in such cases, we give higher priority to the
+nat and int actions.
 -/
 library_note "pointwise nat action"
 
@@ -368,20 +370,20 @@ end has_div
 open_locale pointwise
 
 /-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. See
-Note [pointwise nat action].-/
+note [pointwise nat action].-/
 protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (set α) := ⟨nsmul_rec⟩
 
 /-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
-`set`. See Note [pointwise nat action]. -/
+`set`. See note [pointwise nat action]. -/
 @[to_additive]
 protected def has_npow [has_one α] [has_mul α] : has_pow (set α) ℕ := ⟨λ s n, npow_rec n s⟩
 
 /-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
-addition/subtraction!) of a `set`. See Note [pointwise nat action]. -/
+addition/subtraction!) of a `set`. See note [pointwise nat action]. -/
 protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (set α) := ⟨zsmul_rec⟩
 
 /-- Repeated pointwise multiplication/division (not the same as pointwise repeated
-multiplication/division!) of a `set`. See Note [pointwise nat action]. -/
+multiplication/division!) of a `set`. See note [pointwise nat action]. -/
 @[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (set α) ℤ :=
 ⟨λ s n, zpow_rec n s⟩
 

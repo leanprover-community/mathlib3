@@ -1033,9 +1033,9 @@ coe_lt_top 0
   (0 : with_top α) < a ↔ 0 < a :=
 coe_lt_coe
 
-/-- A version of `with_top.map` for `zero_hom`s. -/
-@[to_additive, simps { fully_applied := ff }] protected def _root_.one_hom.with_top_map
-  {M N : Type*} [has_one M] [has_one N] (f : one_hom M N) :
+/-- A version of `with_top.map` for `one_hom`s. -/
+@[to_additive "A version of `with_top.map` for `zero_hom`s", simps { fully_applied := ff }]
+protected def _root_.one_hom.with_top_map {M N : Type*} [has_one M] [has_one N] (f : one_hom M N) :
   one_hom (with_top M) (with_top N) :=
 { to_fun := with_top.map f,
   map_one' := by rw [with_top.map_one, map_one, coe_one] }

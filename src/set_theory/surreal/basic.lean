@@ -328,15 +328,7 @@ by abel
 end comm_lemmas
 
 section cut_expand
-variable {α : Type*}
-
-def cut_expand (r : α → α → Prop) (s' s : multiset α) : Prop :=
-∃ t a, (∀ a' ∈ t, r a' a) ∧ s' + {a} = s + t
-
-variable {r : α → α → Prop}
-
-theorem cut_expand.wf (h : well_founded r) : well_founded (cut_expand r) :=
-sorry
+variable {α : Type*} {r : α → α → Prop}
 
 theorem multiset.swap_three {x y z : α} : ({x, y, z} : multiset α) = {z, x, y} :=
 add_comm {x, y} {z}

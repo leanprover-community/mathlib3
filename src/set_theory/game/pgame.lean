@@ -1330,7 +1330,8 @@ lt_of_le_of_lf (zero_le.2 (λ j, ⟨punit.star, le_rfl⟩))
   (zero_lf.2 ⟨default, is_empty.elim pempty.is_empty⟩)
 
 theorem half_lt_one : half < 1 :=
-lt_of_le_of_lf (le_of_forall_lf ⟨by simp, is_empty_elim⟩) (lf_of_forall_le (or.inr ⟨default, le_rfl⟩))
+lt_of_le_of_lf
+  (le_of_forall_lf ⟨by simp, is_empty_elim⟩) (lf_of_forall_le (or.inr ⟨default, le_rfl⟩))
 
 theorem half_add_half_equiv_one : half + half ≈ 1 :=
 begin

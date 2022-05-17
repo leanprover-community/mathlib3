@@ -12,8 +12,8 @@ import order.well_founded
 This file deals with the following version of the hydra game: each head of the hydra is
 labelled by an element in a type `α`, and when you cut off one head with label `a`, it
 grows back an arbitrary but finite number of heads, all labelled by elements smaller than
-`a` with respect to a well-founded relation `r` on `α`. We show that no matter how (in\
-what order) you cut off the heads, the game always terminates, i.e. all heads will
+`a` with respect to a well-founded relation `r` on `α`. We show that no matter how (in
+what order) you choose cut off the heads, the game always terminates, i.e. all heads will
 eventually be cut off (but of course it can last arbitrarily long, i.e. takes an
 arbitrary finite number of steps).
 
@@ -132,7 +132,7 @@ begin
     { rw [add_assoc s₁, erase_add_left_pos _ h, add_right_comm, add_assoc] } },
   { refine ⟨(s₁, (s₂ + t).erase a), snd ⟨t, a, hr, _⟩, _⟩,
     { rw [add_comm, singleton_add, cons_erase h] },
-    { rw add_assoc, exact (erase_add_right_pos _ h).symm } },
+    { rw [add_assoc, erase_add_right_pos _ h] } },
 end
 
 /-- A multiset is accessible under `cut_expand` if all its singleton subsets are,
@@ -145,8 +145,8 @@ begin
     rintro ⟨t, a, hr, he⟩, rw zero_add at he,
     classical, exact (h _ $ hr _ (add_singleton_eq_iff.1 he).1).elim },
   { intros a s ih hacc, rw ← s.singleton_add a,
-    apply acc.of_fibration _ (cut_expand_fibration r)
-      ((hacc a $ s.mem_cons_self a).game_add $ ih $ λ a ha, hacc a $ mem_cons_of_mem ha) },
+    exact ((hacc a $ s.mem_cons_self a).game_add $ ih $ λ a ha,
+      hacc a $ mem_cons_of_mem ha).of_fibration _ (cut_expand_fibration r) },
 end
 
 /-- A singleton `{a}` is accessible under `cut_expand r` if `a` is accessible under `r`,

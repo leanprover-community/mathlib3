@@ -107,6 +107,7 @@ variables (H)
   function.minimal_period ((•) a) b = fintype.card (mul_action.orbit (zpowers a) b) :=
 by rw [←fintype.of_equiv_card (mul_action.orbit_zpowers_equiv a b), zmod.card]
 
+-- PRed
 @[to_additive] instance {α β : Type*} [group α] [mul_action α β] (a : α) (b : β)
   [fintype (mul_action.orbit (zpowers a) b)] :
   fact (0 < function.minimal_period ((•) a) b) :=
@@ -158,12 +159,10 @@ begin
   λ q, key (function.minimal_period ((•) g) q) q.out' (by rw [mul_assoc, ←quotient_group.eq',
     ←smul_eq_mul, mul_action.quotient.mk_smul_out',
     quotient_group.out_eq', eq_comm, mul_action.pow_smul_eq_iff_minimal_period_dvd]),
-  replace key : ∀ (q : quotient (mul_action.orbit_rel (zpowers g) (G ⧸ H))), q ∈ finset.univ →
-    (⟨g, mem_zpowers g⟩ : zpowers g) ^ function.minimal_period ((•) g) q.out' ∈ H.subgroup_of (zpowers g) :=
-  λ q hq, key q.out',
-  have key := @subgroup.prod_mem (zpowers g) _ (H.subgroup_of (zpowers g))
+  replace key := @subgroup.prod_mem (zpowers g) _ (H.subgroup_of (zpowers g))
     (quotient (mul_action.orbit_rel (zpowers g) (G ⧸ H))) finset.univ
-    (λ q, (⟨g, mem_zpowers g⟩ : zpowers g) ^ function.minimal_period ((•) g) q.out') key,
+    (λ q, (⟨g, mem_zpowers g⟩ : zpowers g) ^ function.minimal_period ((•) g) q.out')
+    (λ q hq, key q.out'),
   rwa [silly_lemma, ←index_eq_card] at key,
 end
 
@@ -196,9 +195,7 @@ lemma transfer_eq_pow [fintype (G ⧸ center G)] (g : G) :
   transfer (monoid_hom.id (center G)) g = ⟨g ^ (center G).index, (center G).pow_index_mem g⟩ :=
 begin
   refine transfer_eq_pow' (center G) (monoid_hom.id (center G)) g (λ k g₀ hk, _),
-  rw [normal.mem_comm_iff, mul_inv_cancel_left] at hk,
-  { rw [mul_assoc, ←hk g₀, inv_mul_cancel_left] },
-  { apply_instance },
+  rw [←mul_right_inj g₀⁻¹, hk, mul_inv_cancel_right],
 end
 
 noncomputable def transfer_pow [fintype (G ⧸ center G)] : G →* center G :=
@@ -227,8 +224,6 @@ begin
   -/
   sorry
 end
-
-#print sylow.mul_action.is_pretransitive
 
 lemma key_sylow_lemma' {p : ℕ} {G : Type*} [group G] (g : G) [fintype (sylow p G)] (P : sylow p G)
   (hP : P.1.is_commutative)

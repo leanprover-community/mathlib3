@@ -5,6 +5,8 @@ Authors: Eric Wieser
 -/
 import algebra.big_operators.fin
 import data.finset.nat_antidiagonal
+import data.fin.vec_notation
+import logic.equiv.fin
 
 /-!
 # Collections of tuples of naturals with the same sum

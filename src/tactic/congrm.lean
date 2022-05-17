@@ -31,10 +31,12 @@ if pat.is_mvar || pat.get_delayed_abstraction_locals.is_some then
   get_goals <* set_goals []
 else if pat.is_app then do
   cl ← mk_specialized_congr_lemma pat,
+  H_congr_lemma ← assertv `H_congr_lemma cl.type cl.proof,
   [prf] ← get_goals,
-  tactic.apply cl.proof,
-  prf ← instantiate_mvars prf,
+  tactic.apply H_congr_lemma,
+  all_goals' $ try $ tactic.clear H_congr_lemma,
   set_goals [],
+  prf ← instantiate_mvars prf,
   subgoals ← extract_subgoals prf.get_app_args cl.arg_kinds pat.get_app_args,
   subgoals ← subgoals.mmap (λ ⟨subgoal, subpat⟩, do
     set_goals [subgoal],
@@ -128,11 +130,9 @@ do ta ← to_expr arg tt ff,
   try refl,
   rev_goals
 
-meta def congrm (arg : parse texpr) : tactic unit :=
-do ta ← to_expr arg tt ff,
-  tgt ← target,
-  (lhs, rhs) ← match_eq tgt,
-  equate_with_pattern ta
-  --,  try refl,  rev_goals
+meta def congrm (arg : parse texpr) : tactic unit := do
+`(@eq %%ty _ _) ← target,
+ta ← to_expr ``((%%arg : %%ty)) tt ff,
+equate_with_pattern ta
 
 end tactic.interactive

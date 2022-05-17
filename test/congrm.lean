@@ -69,3 +69,9 @@ begin
   congrm λ x, _ + a,
   exact h,
 end
+
+example (h : 5 = 3) : (⟨5 + 1, dec_trivial⟩ : fin 10) = ⟨3 + 1, dec_trivial⟩ :=
+begin
+  congrm ⟨_ + 1, _⟩,
+  exact h,
+end

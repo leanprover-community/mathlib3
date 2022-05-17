@@ -50,7 +50,7 @@ list.reverse_rec_on l (by simp [eq_comm])
         rcases ih _ _ hf with rfl | H,
         { simp only [mem_cons_iff, mem_append, mem_singleton, option.mem_def], tauto },
         { apply λ hm, or.inr (list.mem_append.mpr $ or.inl _),
-          exact (option.mem_some_iff.mp hm ▸ H)} }}
+          exact (option.mem_some_iff.mp hm ▸ H)} } }
   end
 
 @[simp] lemma arg_aux_self (hr₀ : irreflexive r) (a : α) : arg_aux r (some a) a = a :=
@@ -83,12 +83,12 @@ variables [preorder β] [@decidable_rel β (<)] {f : α → β} {l : list α} {o
 
 /-- `argmax f l` returns `some a`, where `f a` is maximal among the elements of `l`, in the sense
 that there is no `b ∈ l` with `f a < f b`. If `a`, `b` are such that `f a = f b`, it returns
-whichever of `a` or `b` comes first in the list. `argmax f []` = none` -/
+whichever of `a` or `b` comes first in the list. `argmax f []` = none`. -/
 def argmax (f : α → β) (l : list α) : option α := l.foldl (arg_aux $ λ b c, f c < f b) none
 
-/-- `argmin f l` returns `some a`, where `f a` minimal among the elements of `l`, in the sense that
-there is no `b ∈ l` with `f b < f a`. If `a`, `b` are such that `f a = f b`, it returns whichever of
-`a` or `b` comes first in the list. `argmin f []` = none` -/
+/-- `argmin f l` returns `some a`, where `f a` is minimal among the elements of `l`, in the sense
+that there is no `b ∈ l` with `f b < f a`. If `a`, `b` are such that `f a = f b`, it returns
+whichever of `a` or `b` comes first in the list. `argmin f []` = none`. -/
 def argmin (f : α → β) (l : list α) := l.foldl (arg_aux $ λ b c, f b < f c) none
 
 @[simp] lemma argmax_nil (f : α → β) : argmax f [] = none := rfl
@@ -230,28 +230,22 @@ theorem minimum_mem {l : list α} {m : α} : (minimum l : with_bot α) = m → m
 
 @[simp] theorem minimum_eq_none {l : list α} : l.minimum = none ↔ l = [] := argmin_eq_none
 
-theorem not_lt_maximum_of_mem :
-  a ∈ l → (maximum l : with_bot α) = m → ¬ m < a :=
-not_lt_of_mem_argmax
+lemma not_lt_maximum_of_mem : a ∈ l → (maximum l : with_bot α) = m → ¬ m < a := not_lt_of_mem_argmax
+lemma minimum_not_lt_of_mem : a ∈ l → (minimum l : with_top α) = m → ¬ a < m := not_lt_of_mem_argmin
 
-theorem minimum_not_lt_of_mem {a m : α} {l : list α} :
-  a ∈ l → (minimum l : with_top α) = m → ¬ a < m :=
-not_lt_of_mem_argmin
-
-theorem not_lt_maximum_of_mem' {a : α} {l : list α} (ha : a ∈ l) : ¬ maximum l < (a : with_bot α) :=
+theorem not_lt_maximum_of_mem' (ha : a ∈ l) : ¬ maximum l < (a : with_bot α) :=
 begin
   cases h : l.maximum,
   { simp * at * },
   { simp_rw [with_bot.some_eq_coe, with_bot.coe_lt_coe, not_lt_maximum_of_mem ha h, not_false_iff] }
 end
 
-theorem not_lt_minimum_of_mem' {a : α} {l : list α} (ha : a ∈ l) : ¬ (a : with_top α) < minimum l :=
+theorem not_lt_minimum_of_mem' (ha : a ∈ l) : ¬ (a : with_top α) < minimum l :=
 @not_lt_maximum_of_mem' αᵒᵈ _ _ _ _ ha
 
 end preorder
 
 section linear_order
-
 variable [linear_order α]
 
 theorem maximum_concat (a : α) (l : list α) : maximum (l ++ [a]) = max (maximum l) a :=
@@ -262,16 +256,13 @@ begin
   { simp [option.coe_def, max_def, ←not_lt] }
 end
 
-theorem le_maximum_of_mem {a m : α} {l : list α} : a ∈ l → (maximum l : with_bot α) = m → a ≤ m :=
-le_of_mem_argmax
+lemma le_maximum_of_mem : a ∈ l → (maximum l : with_bot α) = m → a ≤ m := le_of_mem_argmax
+lemma minimum_le_of_mem : a ∈ l → (minimum l : with_top α) = m → m ≤ a := le_of_mem_argmin
 
-theorem minimum_le_of_mem {a m : α} {l : list α} : a ∈ l → (minimum l : with_top α) = m → m ≤ a :=
-le_of_mem_argmin
-
-theorem le_maximum_of_mem' {a : α} {l : list α} (ha : a ∈ l) : (a : with_bot α) ≤ maximum l :=
+lemma le_maximum_of_mem' (ha : a ∈ l) : (a : with_bot α) ≤ maximum l :=
 le_of_not_lt $ not_lt_maximum_of_mem' ha
 
-theorem le_minimum_of_mem' {a : α} {l : list α} (ha : a ∈ l) : minimum l ≤ (a : with_top α) :=
+lemma le_minimum_of_mem' (ha : a ∈ l) : minimum l ≤ (a : with_top α) :=
 @le_maximum_of_mem' αᵒᵈ _ _ _ ha
 
 theorem minimum_concat (a : α) (l : list α) : minimum (l ++ [a]) = min (minimum l) a :=

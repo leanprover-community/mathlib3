@@ -95,8 +95,9 @@ end
   of_direct_sum x.to_direct_sum = x :=
 alg_hom.congr_fun of_direct_sum_comp_to_direct_sum x
 
-@[simp] lemma graded_monoid.mk_eq_one {ι} {A : ι → Type*} [has_zero ι] [graded_monoid.ghas_one A] (i : ι)
-  (x : A i) : graded_monoid.mk i x = 1 ↔ ∃ h : i = 0, x = h.symm.rec graded_monoid.ghas_one.one :=
+@[simp] lemma graded_monoid.mk_eq_one {ι} {A : ι → Type*} [has_zero ι] [graded_monoid.ghas_one A]
+  (i : ι) (x : A i) :
+  graded_monoid.mk i x = 1 ↔ ∃ h : i = 0, x = h.symm.rec graded_monoid.ghas_one.one :=
 begin
   split,
   { rintro (h : _ = graded_monoid.mk _ _),
@@ -108,8 +109,9 @@ begin
     refl }
 end
 
-@[simp] lemma graded_monoid.one_eq_mk {ι} {A : ι → Type*} [has_zero ι] [graded_monoid.ghas_one A] (i : ι)
-  (x : A i) : 1 = graded_monoid.mk i x ↔ ∃ h : 0 = i, h.rec graded_monoid.ghas_one.one = x :=
+@[simp] lemma graded_monoid.one_eq_mk {ι} {A : ι → Type*} [has_zero ι] [graded_monoid.ghas_one A]
+  (i : ι) (x : A i) :
+    1 = graded_monoid.mk i x ↔ ∃ h : 0 = i, h.rec graded_monoid.ghas_one.one = x :=
 by simp [graded_monoid.mk_eq_one, eq_comm]
 
 @[simp] lemma mk_reindex_cast {n m : ℕ} (h : n = m) (x : ⨂[R]^n M) :
@@ -150,16 +152,14 @@ begin
         refine congr_arg x _,
         ext,
         simp,},
-      { simp [he],
-        refine congr_arg x _,
-        ext,
-        simp,} },
+      { simp [he] } },
     conv_rhs {rw [this, ←pi_tensor_product.reindex_tprod e] },
-    refine (graded_monoid.mk_mul_mk _ _ _).symm.trans _,
-    rw [hx', ← tensor_power.tprod_mul_tprod, ←tensor_power.ghas_mul_def, he, mk_reindex_fin_cast,
-        ←graded_monoid.mk_mul_mk],
+    dsimp only [list.dprod_index_cons],
+    rw [←graded_monoid.mk_mul_mk,hx', ← tensor_power.tprod_mul_tprod, ←tensor_power.ghas_mul_def,
+        he, mk_reindex_fin_cast, ←graded_monoid.mk_mul_mk],
     congr' 1,
     rw ←n_ih (x ∘ fin.succ) _ rfl,
+    dsimp only,
     rw [graded_monoid.mk_list_dprod, graded_monoid.mk_list_dprod, list.map_map] },
 end
 
@@ -169,7 +169,7 @@ begin
   rw [tprod_apply, alg_hom.map_list_prod, list.map_of_fn, function.comp],
   simp_rw to_direct_sum_ι,
   dsimp only,
-  rw  direct_sum.list_prod_of_fn_of_eq_dprod,
+  rw direct_sum.list_prod_of_fn_of_eq_dprod,
   apply direct_sum.of_eq_of_graded_monoid_eq,
   rw tensor_power.graded_monoid_mk_prod_single,
 end

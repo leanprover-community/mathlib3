@@ -6,8 +6,8 @@ Authors: Adam Topaz
 import algebra.free_algebra
 import algebra.ring_quot
 import algebra.triv_sq_zero_ext
-import linear_algebra.multilinear.basic
 import algebra.algebra.operations
+import linear_algebra.multilinear.basic
 
 /-!
 # Tensor Algebras
@@ -87,8 +87,10 @@ def lift {A : Type*} [semiring A] [algebra R A] : (M →ₗ[R] A) ≃ (tensor_al
 { to_fun := ring_quot.lift_alg_hom R ∘ λ f,
     ⟨free_algebra.lift R ⇑f, λ x y (h : rel R M x y), by induction h; simp [algebra.smul_def]⟩,
   inv_fun := λ F, F.to_linear_map.comp (ι R),
-  left_inv := λ f, by { ext, simp [ι], },
-  right_inv := λ F, by { ext, simp [ι], } }
+  left_inv := λ f, linear_map.ext $ λ x,
+    (ring_quot.lift_alg_hom_mk_alg_hom_apply _ _ _ _).trans (free_algebra.lift_ι_apply f x),
+  right_inv := λ F, ring_quot.ring_quot_ext' _ _ _ $ free_algebra.hom_ext $ funext $ λ x,
+    (ring_quot.lift_alg_hom_mk_alg_hom_apply _ _ _ _).trans (free_algebra.lift_ι_apply _ _) }
 
 variables {R}
 

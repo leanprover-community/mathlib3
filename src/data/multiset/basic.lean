@@ -408,7 +408,7 @@ instance : ordered_cancel_add_comm_monoid (multiset α) :=
   add_assoc             := λ s₁ s₂ s₃, quotient.induction_on₃ s₁ s₂ s₃ $ λ l₁ l₂ l₃,
     congr_arg coe $ append_assoc l₁ l₂ l₃,
   zero_add              := λ s, quot.induction_on s $ λ l, rfl,
-  add_zero              := λ s, quot.induction_on s $ λ l, congr_arg (quot.mk _) (append_nil l),
+  add_zero              := λ s, quotient.induction_on s $ λ l, congr_arg coe $ append_nil l,
   add_left_cancel       := λ a b c, add_left_cancel'',
   add_le_add_left       := λ s₁ s₂, add_le_add_left,
   le_of_add_le_add_left := λ s₁ s₂ s₃, le_of_add_le_add_left,

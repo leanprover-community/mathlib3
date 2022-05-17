@@ -12,7 +12,7 @@ import algebra.hom.group
 universes u v w
 
 namespace units
-variables {M : Type u} {N : Type v} {P : Type w} [monoid M] [monoid N] [monoid P]
+variables {α : Type*} {M : Type u} {N : Type v} {P : Type w} [monoid M] [monoid N] [monoid P]
 
 /-- The group homomorphism on units induced by a `monoid_hom`. -/
 @[to_additive "The `add_group` homomorphism on `add_unit`s induced by an `add_monoid_hom`."]
@@ -48,9 +48,16 @@ variable {M}
 lemma coe_pow (u : Mˣ) (n : ℕ) : ((u ^ n : Mˣ) : M) = u ^ n :=
 (units.coe_hom M).map_pow u n
 
-@[simp, norm_cast, to_additive]
-lemma coe_zpow {G} [group G] (u : Gˣ) (n : ℤ) : ((u ^ n : Gˣ) : G) = u ^ n :=
-(units.coe_hom G).map_zpow u n
+section division_monoid
+variables [division_monoid α]
+
+@[simp, norm_cast, to_additive] lemma coe_inv : ∀ u : αˣ, ↑u⁻¹ = (u⁻¹ : α) :=
+(units.coe_hom α).map_inv
+
+@[simp, norm_cast, to_additive] lemma coe_zpow : ∀ (u : αˣ) (n : ℤ), ((u ^ n : αˣ) : α) = u ^ n :=
+(units.coe_hom α).map_zpow
+
+end division_monoid
 
 /-- If a map `g : M → Nˣ` agrees with a homomorphism `f : M →* N`, then
 this map is a monoid homomorphism too. -/

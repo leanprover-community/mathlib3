@@ -247,6 +247,7 @@ lemma has_image.of_arrow_iso {f g : arrow C} [h : has_image f.hom] (sq : f ⟶ g
   has_image g.hom :=
 ⟨⟨h.exists_image.some.of_arrow_iso sq⟩⟩
 
+@[priority 100]
 instance mono_has_image (f : X ⟶ Y) [mono f] : has_image f :=
 has_image.mk ⟨_, is_image.self f⟩
 

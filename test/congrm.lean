@@ -1,13 +1,12 @@
 import tactic.congrm
 
-variables {X : Type*} [has_add X] [has_mul X] (a b c d : X) (f : X → X)
+variables {A X : Type*} (w : A) [has_add X] [has_mul X] (a b c d : X) (f : X → X)
 
-def j₁ : unit → unit | _ := unit.star
-def j₂ : unit → unit → unit | _ _ := unit.star
-def w : unit := unit.star
+def j₁ : A → A | _ := w
+def j₂ : A → A → A | _ _ := w
+def w : A := w
 
-example {A : Type*} (j₂ : A → A → A) (j₁ : A → A)
-  (H : true → a = b) (H' : true → c + (f a) = c + (f d)) (H'' : true → f d = f b) :
+example (H : true → a = b) (H' : true → c + (f a) = c + (f d)) (H'' : true → f d = f b) :
   f (f a) * (f d + (c + f a)) = f (f b) * (f b + (c + f d)) :=
 begin
   congrm_1 j₂ (j₁ (j₁ _)) (j₂ _ _),
@@ -16,8 +15,7 @@ begin
   { exact H' trivial },
 end
 
-example {A : Type*} (j₂ : A → A → A) (j₁ : A → A) (w : A)
-  (H : true → a = b) (H' : true → c + (f a) = c + (f d)) (H'' : true → f d = f b) :
+example (H : true → a = b) (H' : true → c + (f a) = c + (f d)) (H'' : true → f d = f b) :
   f (f a) * (f d + (c + f a)) = f (f a) * (f b + (c + f d)) :=
 begin
   congrm_1 j₂ (j₁ (j₁ w)) (j₂ _ _),

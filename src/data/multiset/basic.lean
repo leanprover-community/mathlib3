@@ -377,7 +377,7 @@ ne_of_gt (lt_cons_self _ _)
 ⟨λ h, mem_of_le h (mem_singleton_self _),
  λ h, let ⟨t, e⟩ := exists_cons_of_mem h in e.symm ▸ cons_le_cons _ (zero_le _)⟩
 
-theorem pair_comm {x y : α} : ({x, y} : multiset α) = {y, x} :=
+theorem pair_comm (x y : α) : ({x, y} : multiset α) = {y, x} :=
 multiset.cons_swap x y ∅
 
 /-! ### Additive monoid -/

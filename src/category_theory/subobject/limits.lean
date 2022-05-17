@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Scott Morrison
 -/
 import category_theory.subobject.lattice
+import category_theory.limits.shapes.biproducts
 
 /-!
 # Specific subobjects
@@ -328,6 +329,9 @@ by simp [image_subobject_comp_iso]
 
 end
 
+lemma image_subobject_mono (f : X ⟶ Y) [mono f] : image_subobject f = mk f :=
+eq_of_comm (image_subobject_iso f ≪≫ image_mono_iso_source f ≪≫ (underlying_iso f).symm) (by simp)
+
 /-- Precomposing by an isomorphism does not change the image subobject. -/
 lemma image_subobject_iso_comp [has_equalizers C]
   {X' : C} (h : X' ⟶ X) [is_iso h] (f : X ⟶ Y) [has_image f] :
@@ -365,6 +369,164 @@ begin
 end
 
 end image
+
+section binary_biproduct
+variables [has_zero_morphisms C]
+variables (X Y) [has_binary_biproduct X Y]
+
+/-- `X` as a subobject of `X ⊞ Y`. -/
+abbreviation binary_biproduct_left_subobject : subobject (X ⊞ Y) :=
+subobject.mk biprod.inl
+
+/-- `Y` as a subobject of `X ⊞ Y`. -/
+abbreviation binary_biproduct_right_subobject : subobject (X ⊞ Y) :=
+subobject.mk biprod.inr
+
+/-- The limit cone exhibiting `Y` as the kernel of `biprod.fst : X ⊞ Y ⟶ X` -/
+@[simps]
+def kernel_fork_biprod_fst : limit_cone (parallel_pair (biprod.fst : X ⊞ Y ⟶ X) 0) :=
+{ cone := kernel_fork.of_ι biprod.inr (by simp),
+  is_limit := is_limit.of_ι _ _ (λ W g h, g ≫ biprod.snd) (by tidy) (by tidy), }
+
+instance : has_kernel (biprod.fst : X ⊞ Y ⟶ X) :=
+has_limit.mk (kernel_fork_biprod_fst X Y)
+
+/-- The kernel of `biprod.fst : X ⊞ Y ⟶ X` is `Y`. -/
+@[simps]
+def kernel_biprod_fst_iso : kernel (biprod.fst : X ⊞ Y ⟶ X) ≅ Y :=
+limit.iso_limit_cone (kernel_fork_biprod_fst X Y)
+
+/-- The limit cone exhibiting `X` as the kernel of `biprod.snd : X ⊞ Y ⟶ Y` -/
+@[simps]
+def kernel_fork_biprod_snd : limit_cone (parallel_pair (biprod.snd : X ⊞ Y ⟶ Y) 0) :=
+{ cone := kernel_fork.of_ι biprod.inl (by simp),
+  is_limit := is_limit.of_ι _ _ (λ W g h, g ≫ biprod.fst) (by tidy) (by tidy), }
+
+instance : has_kernel (biprod.snd : X ⊞ Y ⟶ Y) :=
+has_limit.mk (kernel_fork_biprod_snd X Y)
+
+/-- The kernel of `biprod.snd : X ⊞ Y ⟶ Y` is `X`. -/
+@[simps]
+def kernel_biprod_snd_iso : kernel (biprod.snd : X ⊞ Y ⟶ Y) ≅ X :=
+limit.iso_limit_cone (kernel_fork_biprod_snd X Y)
+
+@[simp]
+lemma kernel_subobject_biprod_snd :
+  kernel_subobject biprod.snd = binary_biproduct_left_subobject X Y :=
+(eq_of_comm
+  (((underlying_iso _).trans (kernel_biprod_snd_iso X Y).symm).trans (kernel_subobject_iso _).symm)
+  (by simp)).symm
+
+@[simp]
+lemma kernel_subobject_biprod_fst :
+  kernel_subobject biprod.fst = binary_biproduct_right_subobject X Y :=
+(eq_of_comm
+  (((underlying_iso _).trans (kernel_biprod_fst_iso X Y).symm).trans (kernel_subobject_iso _).symm)
+  (by simp)).symm
+
+@[simp]
+lemma image_subobject_biprod_inl :
+  image_subobject biprod.inl = binary_biproduct_left_subobject X Y :=
+eq_of_comm (iso_of_eq _ _ (image_subobject_mono _)) (by simp)
+
+@[simp]
+lemma image_subobject_biprod_inr :
+  image_subobject biprod.inr = binary_biproduct_right_subobject X Y :=
+eq_of_comm (iso_of_eq _ _ (image_subobject_mono _)) (by simp)
+
+end binary_biproduct
+
+section biproduct
+variables [has_zero_morphisms C]
+variables {ι : Type v} [fintype ι] (f : ι → C) [has_finite_biproducts C]
+
+open_locale classical
+
+abbreviation biproduct_subobject (i : ι) : subobject (⨁ f) :=
+subobject.mk (biproduct.ι f i)
+
+abbreviation biproduct_subtype_subobject (s : set ι) : subobject (⨁ f) :=
+subobject.mk (biproduct.from_subtype f s)
+
+/-- The limit cone exhibiting `⨁ subtype.restrict pᶜ f` as the kernel of `biproduct.to_subtype f p` -/
+@[simps]
+def kernel_fork_biproduct_to_subtype (p : set ι) :
+  limit_cone (parallel_pair (biproduct.to_subtype f p) 0) :=
+{ cone := kernel_fork.of_ι (biproduct.from_subtype f pᶜ) begin
+    ext j k,
+    simp only [biproduct.ι_from_subtype_assoc, biproduct.ι_to_subtype, comp_zero, zero_comp],
+    erw [dif_neg j.2],
+    simp only [zero_comp],
+  end,
+  is_limit := is_limit.of_ι _ _ (λ W g h, g ≫ biproduct.to_subtype f pᶜ)
+    begin
+      intros W' g' w,
+      ext j,
+      simp only [assoc, biproduct.to_subtype_from_subtype, pi.compl_apply, biproduct.map_π],
+      split_ifs,
+      { simp, },
+      { replace w := w =≫ biproduct.π _ ⟨j, not_not.mp h⟩, simpa using w.symm, },
+    end
+    (by tidy), }
+
+instance (p : set ι) : has_kernel (biproduct.to_subtype f p) :=
+has_limit.mk (kernel_fork_biproduct_to_subtype f p)
+
+/-- The kernel of `biproduct.to_subtype f p` is `⨁ subtype.restrict pᶜ f`. -/
+@[simps]
+def kernel_biproduct_to_subtype_iso (p : set ι) :
+  kernel (biproduct.to_subtype f p) ≅ ⨁ subtype.restrict pᶜ f :=
+limit.iso_limit_cone (kernel_fork_biproduct_to_subtype f p)
+
+-- /-- The limit cone exhibiting `f i` as the kernel of `biproduct.to_subtype f {i}ᶜ` -/
+-- @[simps]
+-- def kernel_fork_biproduct_to_subtype_complement (i : ι) :
+--   limit_cone (parallel_pair (biproduct.to_subtype f ({i}ᶜ : set ι)) 0) :=
+-- { cone := kernel_fork.of_ι (biproduct.ι f i) (by sorry),
+--   is_limit := is_limit.of_ι _ _ (λ W g h, g ≫ biproduct.π f i) (by sorry) (by tidy), }
+
+/-- A biproduct over a index type with exactly one term is just the object over that term. -/
+def biproduct_unique_iso [unique ι] : ⨁ f ≅ f default :=
+{ hom := biproduct.π _ _,
+  inv := biproduct.ι _ _,
+  hom_inv_id' := by { ext, simp [biproduct.ι_π, biproduct.ι_π_assoc], }}
+
+example (i : ι) : unique ({i} : set ι) := by apply_instance
+
+instance (p : set ι) [unique p] : unique (subtype pᶜᶜ) :=
+{ default := ⟨(default : p), not_not.mpr (default : p).2⟩,
+  uniq := λ a, begin ext, dsimp, have := congr_arg subtype.val (unique.eq_default (⟨a.1, not_not.mp a.2⟩ : p)), exact this, end, }
+
+/-- The kernel of `biproduct.to_subtype f {i}ᶜ` is `f i`. -/
+@[simps]
+def kernel_biproduct_to_subtype_complement_iso (i : ι) :
+  kernel (biproduct.to_subtype f ({i}ᶜ : set ι)) ≅ f i :=
+(kernel_biproduct_to_subtype_iso f _).trans begin apply biproduct_unique_iso (subtype.restrict ({i}ᶜᶜ : set ι) f), end
+
+instance (i : ι) : has_kernel (biproduct.π f i) :=
+has_limit.mk ⟨_, biproduct.is_limit_from_subtype f i⟩
+
+/-- The kernel of `biproduct.π i` is `⨁ subtype.restrict {i}ᶜ f`. -/
+@[simps]
+def kernel_biproduct_π_iso (i : ι) :
+  kernel (biproduct.π f i) ≅ ⨁ subtype.restrict (λ j, i ≠ j) f :=
+limit.iso_limit_cone ⟨_, biproduct.is_limit_from_subtype f i⟩
+
+lemma kernel_subobject_biproduct_π (i : ι) :
+  kernel_subobject (biproduct.π f i) = biproduct_subtype_subobject f {i}ᶜ :=
+sorry
+-- (eq_of_comm
+--   (((underlying_iso _).trans (kernel_biproduct_π_iso f i).symm).trans (kernel_subobject_iso _).symm)
+--   (begin end)).symm
+
+lemma kernel_subobject_biproduct_to_subtype_complement (i : ι) :
+  kernel_subobject (biproduct.to_subtype f ({i}ᶜ : set ι)) = biproduct_subobject f i :=
+(eq_of_comm
+  (((underlying_iso _).trans (kernel_biproduct_to_subtype_complement_iso f i).symm).trans
+    (kernel_subobject_iso _).symm)
+  (by tidy)).symm
+
+end biproduct
 
 end limits
 

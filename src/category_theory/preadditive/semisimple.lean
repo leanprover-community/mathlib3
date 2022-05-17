@@ -48,17 +48,6 @@ variables [has_binary_biproducts C] [has_kernels C]
 
 variables {ι : Type v} [decidable_eq ι] [fintype ι]
 
--- PR'd as #14143
-@[simp] lemma comp_ite {P : Prop} [decidable P]
-  {X Y Z : C} (f : X ⟶ Y) (g g' : (Y ⟶ Z)) :
-  (f ≫ if P then g else g') = (if P then f ≫ g else f ≫ g') :=
-by { split_ifs; refl }
-
-@[simp] lemma ite_comp {P : Prop} [decidable P]
-  {X Y Z : C} (f f' : (X ⟶ Y))  (g : Y ⟶ Z) :
-  (if P then f else f') ≫ g = (if P then f ≫ g else f' ≫ g) :=
-by { split_ifs; refl }
-
 /--
 Given a simple subobject of a direct sum of simple objects,
 one of the components of the inclusion map must be an isomorphism, by Schur's lemma.
@@ -238,6 +227,7 @@ begin
       factor_thru_kernel_subobject_comp_arrow, kernel_subobject_comp_arrow_comp], },
 end
 
+@[simps]
 def complement'' (f : ι → C) [has_finite_biproducts C]
   {V W : subobject (⨁ f)} (h : V ≤ W) (i : ι) [is_iso (V.arrow ≫ biproduct.π f i)] :
   (W : C) ≅ V ⊞ kernel_subobject (W.arrow ≫ biproduct.π f i) :=
@@ -261,18 +251,38 @@ and `W'` is a subobject of the other summands.
 and replace the hypothesis that `W` contains a simple subobject with
 the hypothesis `W ≠ ⊥`.)
 -/
-lemma subobject_of_semisimple' (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
+lemma subobject_of_semisimple' [has_images C] (f : ι → C) [has_finite_biproducts C] [∀ i, simple (f i)]
   (W : subobject (⨁ f)) (w : ∃ V, V ≤ W ∧ simple (V : C)) :
   ∃ (i : ι) (W' : subobject (⨁ (λ j : ({i}ᶜ : set ι), f j))) (j : (W : C) ≅ f i ⊞ W'),
     W.arrow = j.hom ≫ (biprod.fst ≫ biproduct.ι _ i +
       biprod.snd ≫ W'.arrow ≫ biproduct.from_subtype _ _) :=
 begin
   obtain ⟨V, h, _⟩ := w, resetI,
-  obtain ⟨i, j, k, w⟩ := simple_subobject_of_semisimple f V,
+  obtain ⟨i, _, k, w⟩ := simple_subobject_of_semisimple f V,
   resetI,
   use i,
-  refine ⟨kernel_subobject (biproduct.from_subtype _ _ ≫ k.hom ≫ biproduct.π _ i), _, _⟩,
-  refine complement'' f h i ≪≫ _,
+  let := complement'' f h i,
+  refine ⟨_, (complement'' f h i) ≪≫ biprod.map_iso (as_iso (V.arrow ≫ biproduct.π _ i)) _, _⟩,
+  exact image_subobject (W.arrow ≫ k.hom ≫ biproduct.to_subtype _ _),
+  { fsplit,
+    refine (kernel_subobject _).arrow ≫ _, exact factor_thru_image_subobject _,
+    apply factor_thru_kernel_subobject, },
+  swap 2,
+  simp only [iso.trans_hom, complement''_hom, biprod.map_iso_hom, as_iso_hom, category.assoc, biprod.inl_map, biprod.inr_map,
+  preadditive.comp_add, preadditive.add_comp_assoc, biprod.inl_fst, category.comp_id, is_iso.inv_hom_id, biprod.inr_fst,
+  comp_zero, add_zero, biprod.inl_snd, biprod.inr_snd, zero_add],
+  ext,
+  simp only [biproduct.ι_π, set.mem_compl_eq, set.mem_singleton_iff, preadditive.add_comp, category.assoc,
+  biproduct.from_subtype_π, dite_not],
+  simp only [@eq_comm _ j i],
+  split_ifs with h h,
+  { subst h, simp, },
+  { simp, sorry, },
+  -- simp,
+  -- refine ⟨kernel_subobject (biproduct.from_subtype _ _ ≫ k.hom ≫ biproduct.π _ i), _, _⟩,
+  -- refine complement'' f h i ≪≫ _,
+  -- refine biprod.map_iso _ _,
+  -- exact as_iso (V.arrow ≫ biproduct.π _ i),
   -- fsplit,
   -- apply biprod.lift,
   -- exact W.arrow ≫ biproduct.π _ _,

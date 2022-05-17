@@ -456,6 +456,12 @@ begin
   rw [category.assoc, biproduct.to_subtype_π, biproduct.from_subtype_π_subtype, category.id_comp]
 end
 
+instance : split_mono (biproduct.from_subtype f p) :=
+{ retraction := biproduct.to_subtype f p, }
+
+instance : split_epi (biproduct.to_subtype f p) :=
+{ section_ := biproduct.from_subtype f p, }
+
 @[simp, reassoc]
 lemma biproduct.to_subtype_from_subtype [decidable_pred p] :
   biproduct.to_subtype f p ≫ biproduct.from_subtype f p =

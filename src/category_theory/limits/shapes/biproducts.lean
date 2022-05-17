@@ -1530,9 +1530,8 @@ end
 
 /-- Reindex a categorical biproduct via an equivalence of the index types. -/
 @[simps]
-def biproduct.reindex {β γ : Type v} [fintype β] [decidable_eq β] [fintype γ] [decidable_eq γ]
-  (ε : β ≃ γ) (f : γ → C) [has_biproduct f] [has_biproduct (f ∘ ε)] :
-  (⨁ (f ∘ ε)) ≅ (⨁ f) :=
+def biproduct.reindex {β γ : Type v} [fintype β] [decidable_eq β] [decidable_eq γ]
+  (ε : β ≃ γ) (f : γ → C) [has_biproduct f] [has_biproduct (f ∘ ε)] : (⨁ (f ∘ ε)) ≅ (⨁ f) :=
 { hom := biproduct.desc (λ b, biproduct.ι f (ε b)),
   inv := biproduct.lift (λ b, biproduct.π f (ε b)),
   hom_inv_id' := by { ext b b', by_cases h : b = b', { subst h, simp, }, { simp [h], }, },
@@ -1541,7 +1540,7 @@ def biproduct.reindex {β γ : Type v} [fintype β] [decidable_eq β] [fintype �
     by_cases h : g = g';
     simp [preadditive.sum_comp, preadditive.comp_sum, biproduct.ι_π, biproduct.ι_π_assoc, comp_dite,
       equiv.apply_eq_iff_eq_symm_apply, finset.sum_dite_eq' finset.univ (ε.symm g') _, h],
-  end, }.
+  end, }
 
 /--
 In a preadditive category, we can construct a binary biproduct for `X Y : C` from

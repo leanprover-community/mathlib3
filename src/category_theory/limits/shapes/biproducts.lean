@@ -718,7 +718,7 @@ def limit_bicone_of_unique : limit_bicone f :=
   { is_limit := (limit_cone_of_unique f).is_limit,
     is_colimit := (colimit_cocone_of_unique f).is_colimit, }, }
 
-instance has_biproduct_unique : has_biproduct f :=
+@[priority 100] instance has_biproduct_unique : has_biproduct f :=
 has_biproduct.mk (limit_bicone_of_unique f)
 
 /-- A biproduct over a index type with exactly one term is just the object over that term. -/

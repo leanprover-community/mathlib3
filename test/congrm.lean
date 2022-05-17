@@ -57,16 +57,16 @@ begin
   { exact H' },
 end
 
-example {p q} [decidable p] [decidable q] (h : p = q) :
+example {p q} [decidable p] [decidable q] (h : p ↔ q) :
   ite p 0 1 = ite q 0 1 :=
 begin
   congrm ite _ 0 1,
   exact h,
 end
 
-example (h : a = b) : (λ y : ℕ, a + a) = (λ x, b + a) :=
+example (h : a = b) : (λ y : ℕ, ∀ z, a + a = z) = (λ x, ∀ z, b + a = z) :=
 begin
-  congrm λ x, _ + a,
+  congrm λ x, ∀ w, _ + a = w,
   exact h,
 end
 

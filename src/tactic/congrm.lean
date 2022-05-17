@@ -7,9 +7,7 @@ import tactic.interactive
 
 /-!  `congrm`: `congr` with pattern-matching -/
 
-namespace tactic.interactive
-open tactic interactive
-setup_tactic_parser
+namespace tactic
 
 private meta def extract_subgoals : list expr → list congr_arg_kind → list expr →
   tactic (list (expr × expr))
@@ -27,14 +25,15 @@ private meta def extract_subgoals : list expr → list congr_arg_kind → list e
 meta def equate_with_pattern_core : expr → tactic (list expr) | pat :=
 (applyc ``subsingleton.elim >> pure []) <|>
 (applyc ``rfl >> pure []) <|>
-if pat.is_mvar || pat.get_delayed_abstraction_locals.is_some then
+if pat.is_mvar || pat.get_delayed_abstraction_locals.is_some then do
+  try $ applyc ``_root_.propext,
   get_goals <* set_goals []
 else if pat.is_app then do
   cl ← mk_specialized_congr_lemma pat,
   H_congr_lemma ← assertv `H_congr_lemma cl.type cl.proof,
   [prf] ← get_goals,
-  tactic.apply H_congr_lemma,
-  all_goals' $ try $ tactic.clear H_congr_lemma,
+  apply H_congr_lemma,
+  all_goals' $ try $ clear H_congr_lemma,
   set_goals [],
   prf ← instantiate_mvars prf,
   subgoals ← extract_subgoals prf.get_app_args cl.arg_kinds pat.get_app_args,
@@ -44,16 +43,26 @@ else if pat.is_app then do
   pure subgoals.join
 else if pat.is_lambda then do
   applyc ``_root_.funext,
-  x ← tactic.intro pat.binding_name,
+  x ← intro pat.binding_name,
   equate_with_pattern_core $ pat.lambda_body.instantiate_var x
+else if pat.is_pi then do
+  applyc ``_root_.pi_congr,
+  x ← intro pat.binding_name,
+  equate_with_pattern_core $ pat.pi_codomain.instantiate_var x
 else do
   pat ← pp pat,
   fail $ to_fmt "unsupported pattern:\n" ++ pat
 
 meta def equate_with_pattern (pat : expr) : tactic unit := do
-congr_subgoals ← tactic.solve1 (equate_with_pattern_core pat),
+congr_subgoals ← solve1 (equate_with_pattern_core pat),
 gs ← get_goals,
 set_goals $ congr_subgoals ++ gs
+
+end tactic
+
+namespace tactic.interactive
+open tactic interactive
+setup_tactic_parser
 
 /--  Scans three `expr`s `e, lhs, rhs` in parallel.
 Currently, `equate_with_pattern` has three behaviours at each location:

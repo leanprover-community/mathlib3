@@ -123,6 +123,7 @@ lemma valuation_le_iff (x y : K) : A.valuation x ≤ A.valuation y ↔
 
 lemma valuation_surjective : function.surjective A.valuation := surjective_quot_mk _
 
+@[simp]
 lemma valuation_unit (a : Aˣ) : A.valuation a = 1 :=
 by { rw [← A.valuation.map_one, valuation_eq_iff], use a, simp }
 
@@ -380,6 +381,8 @@ def unit_group : subgroup Kˣ :=
     rw [A.valuation.map_inv, ha, inv_one],
   end }
 
+lemma mem_unit_group_iff (x : Kˣ) : x ∈ A.unit_group ↔ A.valuation x = 1 := iff.refl _
+
 lemma eq_iff_unit_group (A B : valuation_subring K) :
   A = B ↔ A.unit_group = B.unit_group :=
 begin
@@ -396,14 +399,21 @@ end
 
 /-- `A.unit_group` agrees with the units of `A`. -/
 def unit_group_equiv : A.unit_group ≃* Aˣ :=
-{ to_fun := λ x, ⟨⟨x,(A.valuation_le_one_iff _).1 (le_of_eq x.2)⟩,⟨x⁻¹,
+{ to_fun := λ x,
+  ⟨⟨x, (A.valuation_le_one_iff _).1 (le_of_eq x.2)⟩,⟨x⁻¹,
   begin
     rw ← A.valuation_le_one_iff,
     apply le_of_eq,
     rw [A.valuation.map_inv, inv_eq_one₀],
     exact x.2,
-  end⟩,sorry,sorry⟩,
-  inv_fun := λ x, ⟨⟨x,(x : K)⁻¹, by { simp }, by { simp }⟩,sorry⟩,
+  end⟩,
+    by { ext, exact mul_inv_cancel x.1.ne_zero },
+    by { ext, exact inv_mul_cancel x.1.ne_zero }⟩,
+  inv_fun := λ x, ⟨⟨x, (x : K)⁻¹,
+    mul_inv_cancel ((units.map A.subtype.to_monoid_hom x).ne_zero),
+    inv_mul_cancel ((units.map A.subtype.to_monoid_hom x).ne_zero)⟩, begin
+      rw mem_unit_group_iff, simpa using A.valuation_unit x,
+    end⟩,
   left_inv := λ a, by { ext, refl },
   right_inv := λ a, by { ext, refl },
   map_mul' := λ a b, by { ext, refl } }
@@ -428,14 +438,17 @@ def maximal_ideal : subsemigroup K :=
          mul_one] at this,
   end }
 
+lemma mem_maximal_ideal_iff (x : K) : x ∈ A.maximal_ideal ↔ A.valuation x := iff.refl _
+
 lemma eq_iff_maximal_ideal (A B : valuation_subring K) :
   A = B ↔ A.maximal_ideal = B.maximal_ideal :=
 begin
   rw [← A.valuation_subring_valuation, ← B.valuation_subring_valuation,
       ← valuation.is_equiv_iff_valuation_subring,
       A.valuation_subring_valuation, B.valuation_subring_valuation, set_like.ext_iff],
-  repeat {rw maximal_ideal},
-  simp,
+  repeat {rw maximal_ideal}, -- use mem_maximal_ideal_iff
+  -- use `simp_rw` instead of `repeat { rw ... }`.
+  simp, -- non terminal simp
   split,
       { intros h x,
         have k := h,

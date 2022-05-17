@@ -412,6 +412,22 @@ begin
       { rw ← h at hx', exact le_of_eq hx' } } }
 end
 
+lemma is_equiv_iff_lt_one
+  [linear_ordered_comm_group_with_zero Γ₀]
+  [linear_ordered_comm_group_with_zero Γ'₀]
+  {K : Type*} [division_ring K]
+  (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
+  v.is_equiv v' ↔ ∀ {x : K}, v x < 1 ↔ v' x < 1 :=
+sorry
+
+lemma is_equiv_iff_sub_one_lt_one
+  [linear_ordered_comm_group_with_zero Γ₀]
+  [linear_ordered_comm_group_with_zero Γ'₀]
+  {K : Type*} [division_ring K]
+  (v : valuation K Γ₀) (v' : valuation K Γ'₀) :
+  v.is_equiv v' ↔ ∀ {x : K}, v (x - 1) < 1 ↔ v' (x - 1) < 1 :=
+sorry
+
 end
 
 section supp

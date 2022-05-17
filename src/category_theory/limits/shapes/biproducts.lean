@@ -542,7 +542,8 @@ section
 open_locale classical
 variables [fintype J] [has_finite_biproducts C] (f : J → C)
 
-/-- The limit cone exhibiting `⨁ subtype.restrict pᶜ f` as the kernel of `biproduct.to_subtype f p` -/
+/-- The limit cone exhibiting `⨁ subtype.restrict pᶜ f` as the kernel of
+`biproduct.to_subtype f p` -/
 @[simps]
 def kernel_fork_biproduct_to_subtype (p : set J) :
   limit_cone (parallel_pair (biproduct.to_subtype f p) 0) :=

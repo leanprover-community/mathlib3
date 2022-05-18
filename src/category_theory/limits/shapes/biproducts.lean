@@ -604,6 +604,7 @@ section
 variables [unique J] (f : J → C)
 
 /-- The limit bicone for the biproduct over an index type with exactly one term. -/
+@[simps]
 def limit_bicone_of_unique : limit_bicone f :=
 { bicone :=
   { X := f default,

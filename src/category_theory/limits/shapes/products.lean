@@ -198,6 +198,7 @@ section unique
 variables {C} [unique β] (f : β → C)
 
 /-- The limit cone for the product over an index type with exactly one term. -/
+@[simps]
 def limit_cone_of_unique : limit_cone (discrete.functor f) :=
 { cone :=
   { X := f default,
@@ -224,6 +225,7 @@ def product_unique_iso : ∏ f ≅ f default :=
 is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (limit_cone_of_unique f).is_limit
 
 /-- The colimit cocone for the coproduct over an index type with exactly one term. -/
+@[simps]
 def colimit_cocone_of_unique : colimit_cocone (discrete.functor f) :=
 { cocone :=
   { X := f default,

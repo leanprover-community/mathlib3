@@ -61,10 +61,9 @@ is the product of `f x`, for some `x : fin (n + 1)` times the remaining product 
 @[to_additive
 /- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the sum of `f x`, for some `x : fin (n + 1)` plus the remaining product -/]
-theorem prod_univ_succ_above [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β)
-  (x : fin (n + 1)) :
+theorem prod_univ_succ_above [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) (x : fin (n + 1)) :
   ∏ i, f i = f x * ∏ i : fin n, f (x.succ_above i) :=
-by { rw [univ_succ_above, prod_cons, finset.prod_map], refl }
+by rw [univ_succ_above, prod_cons, finset.prod_map, rel_embedding.coe_fn_to_embedding]
 
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the product of `f 0` plus the remaining product -/

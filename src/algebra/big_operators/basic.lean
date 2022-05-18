@@ -192,7 +192,7 @@ namespace finset
 section comm_monoid
 variables [comm_monoid β]
 
-@[simp, to_additive] lemma prod_empty : (∏ x in (∅:finset α), f x) = 1 := rfl
+@[simp, to_additive] lemma prod_empty : ∏ x in ∅, f x = 1 := rfl
 @[to_additive] lemma prod_of_empty [is_empty α] : ∏ i, f i = 1 := by rw [univ_eq_empty, prod_empty]
 
 @[simp, to_additive]
@@ -704,7 +704,7 @@ lemma prod_finset_coe (f : α → β) (s : finset α) :
   ∏ (i : (s : set α)), f i = ∏ i in s, f i :=
 prod_coe_sort s f
 
-variables {f s} {n : ℕ}
+variables {f s}
 
 @[to_additive]
 lemma prod_subtype {p : α → Prop} {F : fintype (subtype p)} (s : finset α)

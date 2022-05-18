@@ -16,6 +16,10 @@ section semiring
 
 variables {R : Type*} [semiring R] {p : R[X]}
 
+#print support_C_mul_X_pow
+#print support_C_mul_X_pow'
+#print support_C_mul_X_pow_nonzero
+
 lemma support_binomial_le {k m : ℕ} {x y : R} :
   (C x * X ^ k + C y * X ^ m).support ⊆ {k, m} :=
 support_add.trans (union_subset ((support_C_mul_X_pow x k).trans
@@ -38,7 +42,6 @@ begin
     coeff_X_pow_self, mul_one, coeff_X_pow, if_neg hkm.ne, if_neg hkm.ne',
     mul_zero, zero_add, add_zero, ne.def, hx, hy, and_self, not_false_iff],
 end
-
 
 lemma support_trinomial_eq {k m n : ℕ} (hkm : k < m) (hmn : m < n) {x y z : R} (hx : x ≠ 0)
   (hy : y ≠ 0) (hz : z ≠ 0) : (C x * X ^ k + C y * X ^ m + C z * X ^ n).support = {k, m, n} :=
@@ -360,19 +363,16 @@ begin
   by_cases h2 : a = d,
   { rw [h2, add_comm, add_left_inj] at h,
     exact or.inr ⟨h2, h⟩ },
-  by_cases h3 : b = c,
-  { rw [h3, add_comm, add_right_inj] at h,
-    exact or.inr ⟨h, h3⟩ },
-  by_cases h4 : b = d,
-  { rw [h4, add_left_inj] at h,
-    exact or.inl ⟨h, h4⟩ },
+  by_cases h3 : b = d,
+  { rw [h3, add_left_inj] at h,
+    exact or.inl ⟨h, h3⟩ },
   rcases int.is_unit_eq_one_or hd with rfl | rfl,
   { rw (int.is_unit_eq_one_or ha).resolve_left h2 at h h1,
-    rw (int.is_unit_eq_one_or hb).resolve_left h4 at h,
+    rw (int.is_unit_eq_one_or hb).resolve_left h3 at h,
     rw (int.is_unit_eq_one_or hc).resolve_right (ne.symm h1) at h,
     norm_num at h },
   { rw (int.is_unit_eq_one_or ha).resolve_right h2 at h h1,
-    rw (int.is_unit_eq_one_or hb).resolve_right h4 at h,
+    rw (int.is_unit_eq_one_or hb).resolve_right h3 at h,
     rw (int.is_unit_eq_one_or hc).resolve_left (ne.symm h1) at h,
     norm_num at h },
 end

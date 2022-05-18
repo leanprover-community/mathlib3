@@ -1480,6 +1480,20 @@ instance [fintype n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
 lemma star_mul [fintype n] [non_unital_semiring α] [star_ring α] (M N : matrix n n α) :
   star (M ⬝ N) = star N ⬝ star M := conj_transpose_mul _ _
 
+lemma star_mul_vec [fintype n] [semiring α] [star_ring α] (M : matrix n n α) (v : n → α) :
+  star (M.mul_vec v) = (star M).vec_mul (star v) :=
+begin
+  ext i,
+  calc star (M.mul_vec v) i = star (M i ⬝ᵥ v) :
+    by simp only [mul_vec, pi.star_apply]
+  ... = star v ⬝ᵥ star (λ j, M i j) :
+    by rw [← star_dot_product_star]
+  ... = star v ⬝ᵥ λ (i_1 : n), Mᴴ i_1 i :
+    by simp only [conj_transpose_apply, star]
+  ... = (star M).vec_mul (star v) i :
+    by simp only [vec_mul, (star_apply _ _ _).symm, conj_transpose_apply]
+end
+
 end star
 
 /-- Given maps `(r_reindex : l → m)` and  `(c_reindex : o → n)` reindexing the rows and columns of

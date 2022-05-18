@@ -39,7 +39,7 @@ open_locale big_operators uniformity topological_space nnreal ennreal complex_co
 
 noncomputable theory
 
-variables {ι : Type*}
+variables {ι : Type*} {ι' : Type}
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {E : Type*} [inner_product_space 𝕜 E]
 variables {E' : Type*} [inner_product_space 𝕜 E']
 variables {F : Type*} [inner_product_space ℝ F]
@@ -82,6 +82,10 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
 @[simp] lemma pi_Lp.inner_apply {ι : Type*} [fintype ι] {f : ι → Type*}
   [Π i, inner_product_space 𝕜 (f i)] (x y : pi_Lp 2 f) :
   ⟪x, y⟫ = ∑ i, ⟪x i, y i⟫ :=
+rfl
+
+lemma pi_Lp.inner_eq_star_dot_product (x y : ι → 𝕜) [fintype ι] :
+  ⟪x, y⟫ = matrix.dot_product (star x) y :=
 rfl
 
 lemma pi_Lp.norm_eq_of_L2 {ι : Type*} [fintype ι] {f : ι → Type*}
@@ -475,5 +479,19 @@ lemma inner_matrix_row_row (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin n)) :
 /-- The inner product of a column of A and a column of B is an entry of Aᴴ ⬝ B -/
 lemma inner_matrix_col_col (A B : matrix (fin n) (fin m) 𝕜) (i j : (fin m)) :
   ⟪Aᵀ i, Bᵀ j⟫ₙ = (Aᴴ ⬝ B) i j := rfl
+
+variables [fintype ι] [fintype ι'] [decidable_eq ι] [decidable_eq ι'] (i : ι) (j : ι')
+
+@[simp] lemma euclidean_space.mul_vec_single_apply (A : matrix ι ι' 𝕜) :
+  A.mul_vec (euclidean_space.single j 1) i = A i j :=
+matrix.mul_vec_std_basis A i j
+
+@[simp] lemma euclidean_space.mul_vec_single (A : matrix ι ι' 𝕜) :
+  A.mul_vec (euclidean_space.single j 1) = λ i, A i j :=
+by ext; apply euclidean_space.mul_vec_single_apply
+
+@[simp] lemma euclidean_space.vec_mul_single (A : matrix ι ι' 𝕜) :
+  A.vec_mul (euclidean_space.single i 1) j = A i j :=
+matrix.vec_mul_std_basis A i j
 
 end matrix

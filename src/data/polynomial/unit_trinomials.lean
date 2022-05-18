@@ -14,7 +14,13 @@ open finset
 
 section semiring
 
-variables {R : Type*} [semiring R] {p : R[X]}
+variables {R : Type*} [semiring R] {p q : R[X]}
+
+lemma mirror_eq_iff : p.mirror = q ↔ p = q.mirror :=
+⟨λ h, h ▸ p.mirror_mirror.symm, λ h, h.symm ▸ q.mirror_mirror⟩
+
+lemma mirror_inj : p.mirror = q.mirror ↔ p = q :=
+by rw [mirror_eq_iff, mirror_mirror]
 
 lemma support_binomial_le {k m : ℕ} {x y : R} :
   (C x * X ^ k + C y * X ^ m).support ⊆ {k, m} :=
@@ -60,11 +66,12 @@ end
 lemma card_support_trinomial_eq {k m n : ℕ} (hkm : k < m) (hmn : m < n) {x y z : R} (hx : x ≠ 0)
   (hy : y ≠ 0) (hz : z ≠ 0) : (C x * X ^ k + C y * X ^ m + C z * X ^ n).support.card = 3 :=
 begin
-  rw [support_trinomial_eq hkm hmn hx hy hz, card_insert_of_not_mem, card_insert_of_not_mem, card_singleton],
-  rw [mem_singleton],
-  exact hmn.ne,
-  rw [mem_insert, mem_singleton, not_or_distrib],
-  refine ⟨hkm.ne, (hkm.trans hmn).ne⟩,
+  rw [support_trinomial_eq hkm hmn hx hy hz, card_insert_of_not_mem, card_insert_of_not_mem,
+      card_singleton],
+  { rw [mem_singleton],
+    exact hmn.ne },
+  { rw [mem_insert, mem_singleton, not_or_distrib],
+    exact ⟨hkm.ne, (hkm.trans hmn).ne⟩ },
 end
 
 lemma card_support_eq_one : p.support.card = 1 ↔ ∃ (k : ℕ) (x : R) (hx : x ≠ 0), p = C x * X ^ k :=
@@ -307,11 +314,7 @@ begin
 end
 
 lemma int.sq_eq_one' {x : ℤ} (h1 : x ^ 2 ≤ 3) (h2 : x ≠ 0) : x ^ 2 = 1 :=
-begin
-  refine int.sq_eq_one _ h2,
-  refine lt_of_le_of_lt h1 _,
-  norm_num,
-end
+int.sq_eq_one (lt_of_le_of_lt h1 (int.lt_succ_self 3)) h2
 
 lemma is_unit_trinomial_iff' : p.is_unit_trinomial ↔ (p * p.mirror).coeff
   (((p * p.mirror).nat_degree + (p * p.mirror).nat_trailing_degree) / 2) = 3 :=
@@ -324,7 +327,7 @@ begin
       sum_insert (mt mem_insert.mp (not_or hkm.ne (mt mem_singleton.mp (hkm.trans hmn).ne))),
       sum_insert (mt mem_singleton.mp hmn.ne), sum_singleton,
       trinomial_coeff_k hkm hmn, trinomial_coeff_m hkm hmn, trinomial_coeff_n hkm hmn],
-    simp only [*, int.is_unit_sq, bit0, bit1, add_assoc] },
+    simp only [hu, hv, hw, int.is_unit_sq, bit0, bit1, add_assoc] },
   { have key : ∀ k ∈ p.support, (p.coeff k) ^ 2 = 1 :=
     λ k hk, int.sq_eq_one' ((single_le_sum (λ k hk, sq_nonneg (p.coeff k)) hk).trans hp.le)
         (mem_support_iff.mp hk),
@@ -338,7 +341,15 @@ lemma is_unit_trinomial_iff'' (h : p * p.mirror = q * q.mirror) :
   p.is_unit_trinomial ↔ q.is_unit_trinomial :=
 by rw [is_unit_trinomial_iff', is_unit_trinomial_iff', h]
 
-lemma is_unit_trinomial.irreducible1_aux3 {k m m' n : ℕ} {u v w : ℤ}
+lemma sublemma2 {k m n : ℕ} {u v w : ℤ} (hkm : k < m) (hmn : m < n) (hu : is_unit u)
+  (hv : is_unit v) (hw : is_unit w) (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n) :
+  C v * (C u * X ^ (m + n) + C w * X ^ (n - m + k + n)) =
+    ⟨finsupp.filter (set.Ioo (k + n) (n + n)) (p * p.mirror).to_finsupp⟩ :=
+begin
+  sorry
+end
+
+lemma irreducible1_aux3 {k m m' n : ℕ} {u v w : ℤ}
   (hkm : k < m) (hmn : m < n) (hkm' : k < m') (hmn' : m' < n)
   (hu : is_unit u) (hv : is_unit v) (hw : is_unit w)
   (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n)
@@ -346,7 +357,14 @@ lemma is_unit_trinomial.irreducible1_aux3 {k m m' n : ℕ} {u v w : ℤ}
   (h : p * p.mirror = q * q.mirror) :
   q = p ∨ q = p.mirror :=
 begin
-  -- Now use the Ioo trick, along with `binomial_eq_binomial`.
+  let f : polynomial ℤ → polynomial ℤ :=
+  λ p, ⟨finsupp.filter (set.Ioo (k + n) (n + n)) p.to_finsupp⟩,
+  replace h : f (p * p.mirror) = f (q * q.mirror) := congr_arg f h,
+  replace h := (sublemma2 hkm hmn hu hv hw hp).trans h,
+  replace h := h.trans (sublemma2 hkm' hmn' hu hv hw hq).symm,
+  rw (is_unit_C.mpr hv).mul_right_inj at h,
+
+  -- now use `binomial_eq_binomial` to finish off!
   sorry,
 end
 
@@ -373,7 +391,7 @@ begin
     norm_num at h },
 end
 
-lemma is_unit_trinomial.irreducible1_aux2 {k m m' n : ℕ} {u v w x z : ℤ}
+lemma irreducible1_aux2 {k m m' n : ℕ} {u v w x z : ℤ}
   (hkm : k < m) (hmn : m < n) (hkm' : k < m') (hmn' : m' < n)
   (hu : is_unit u) (hv : is_unit v) (hw : is_unit w) (hx : is_unit x) (hz : is_unit z)
   (hp : p = C u * X ^ k + C v * X ^ m + C w * X ^ n)
@@ -400,17 +418,17 @@ begin
   rw [mul_right_inj' (show (2 : ℤ) ≠ (0 : ℤ), from two_ne_zero), mul_right_inj' hv.ne_zero] at key1,
 
   rcases sublemma hu hw hx hz key1 with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩,
-  { exact is_unit_trinomial.irreducible1_aux3 hkm hmn hkm' hmn' hu hv hw hp hq h },
+  { exact irreducible1_aux3 hkm hmn hkm' hmn' hu hv hw hp hq h },
   { replace hq := congr_arg mirror hq,
     rw [trinomial_mirror hkm' hmn' hw.ne_zero hu.ne_zero] at hq,
-    have key := is_unit_trinomial.irreducible1_aux3 hkm hmn _ _ hu hv hw hp hq _,
-    { sorry },
+    have key := irreducible1_aux3 hkm hmn _ _ hu hv hw hp hq _,
+    { rwa [mirror_inj, mirror_eq_iff, or_comm] at key },
     { rwa [lt_add_iff_pos_left, tsub_pos_iff_lt] },
-    { sorry },
+    { rwa [←lt_tsub_iff_right, tsub_lt_tsub_iff_left_of_le hmn'.le] },
     { rwa [mirror_mirror, mul_comm _ q] } },
 end
 
-lemma is_unit_trinomial.irreducible1 (hp : p.is_unit_trinomial)
+lemma irreducible1 (hp : p.is_unit_trinomial)
   (h : ∀ q : ℤ[X], q ∣ p → q ∣ p.mirror → is_unit q) :
   irreducible p :=
 begin
@@ -429,17 +447,17 @@ begin
   subst hk,
   subst hn,
   rcases eq_or_eq_neg_of_sq_eq_sq y v ((int.is_unit_sq hy).trans (int.is_unit_sq hv).symm) with rfl | rfl,
-  { rcases is_unit_trinomial.irreducible1_aux2 hkm hmn hkm' hmn' hu hv hw hx hz hp hq hpq with rfl | rfl,
+  { rcases irreducible1_aux2 hkm hmn hkm' hmn' hu hv hw hx hz hp hq hpq with rfl | rfl,
     { exact or.inl rfl },
     { exact or.inr (or.inr (or.inl rfl)) } },
   { rw [←neg_inj, neg_add, neg_add, ←neg_mul, ←neg_mul, ←neg_mul, ←C_neg, ←C_neg, ←C_neg] at hp,
-    rcases is_unit_trinomial.irreducible1_aux2 hkm hmn hkm' hmn' hu.neg hv.neg hw.neg hx hz hp hq _ with rfl | rfl,
+    rcases irreducible1_aux2 hkm hmn hkm' hmn' hu.neg hv.neg hw.neg hx hz hp hq _ with rfl | rfl,
     { exact or.inr (or.inl rfl) },
     { exact or.inr (or.inr (or.inr p.mirror_neg)) },
     { rwa [mirror_neg, neg_mul_neg] } },
 end
 
-lemma is_unit_trinomial.irreducible2 (hp : is_unit_trinomial p)
+lemma irreducible2 (hp : is_unit_trinomial p)
   (h : ∀ z : ℂ, ¬ (aeval z p = 0 ∧ aeval z (mirror p) = 0)) : irreducible p :=
 begin
   refine hp.irreducible1 (λ q hq hq', _),
@@ -465,12 +483,14 @@ end
 
 -- figure out what the most "user-friendly" statement is (it's probably not the one below)
 
-lemma is_unit_trinomial.irreducible3 (hp : is_unit_trinomial p)
+lemma irreducible3 (hp : is_unit_trinomial p)
   (hp1 : ¬ X ∣ p) (hp2 : ¬ X ^ 2 + X + 1 ∣ p) (hp3 : ¬ X ^ 2 - X + 1 ∣ p) : irreducible p :=
 begin
   refine hp.irreducible2 (λ z hz, _),
   sorry,
 end
+
+end is_unit_trinomial
 
 lemma selmer_irreducible {n : ℕ} (hn : 1 < n) : irreducible (X ^ n - X - 1 : ℤ[X]) :=
 begin

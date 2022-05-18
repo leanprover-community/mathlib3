@@ -6,8 +6,7 @@ Authors: Andreas Swerdlow
 import deprecated.subring
 import algebra.group_with_zero.power
 
-/-
-
+/-!
 # Unbundled subfields (deprecated)
 
 This file is deprecated, and is no longer imported by anything in mathlib other than other
@@ -27,6 +26,9 @@ is_subfield
 -/
 variables {F : Type*} [field F] (S : set F)
 
+/-- `is_subfield (S : set F)` is the predicate saying that a given subset of a field is
+the set underlying a subfield. This structure is deprecated; use the bundled variant
+`subfield F` to model subfields of a field. -/
 structure is_subfield extends is_subring S : Prop :=
 (inv_mem : ∀ {x : F}, x ∈ S → x⁻¹ ∈ S)
 

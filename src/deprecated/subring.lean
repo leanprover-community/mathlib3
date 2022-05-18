@@ -7,8 +7,7 @@ import deprecated.subgroup
 import deprecated.group
 import ring_theory.subring.basic
 
-/-
-
+/-!
 # Unbundled subrings (deprecated)
 
 This file is deprecated, and is no longer imported by anything in mathlib other than other
@@ -86,6 +85,8 @@ lemma is_subring_Union_of_directed {ι : Type*} [hι : nonempty ι]
 
 namespace ring
 
+/-- The smallest subring containing a given subset of a ring, considered as a set. This function
+is deprecated; use `subring.closure`. -/
 def closure (s : set R) := add_group.closure (monoid.closure s)
 
 variable {s : set R}

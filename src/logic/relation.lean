@@ -373,7 +373,7 @@ end
 
 end trans_gen
 
-lemma well_founded.trans_gen {α} {r : α → α → Prop} (h : well_founded r) :
+lemma _root_.well_founded.trans_gen {α} {r : α → α → Prop} (h : well_founded r) :
   well_founded (trans_gen r) :=
 ⟨λ a, h.induction a (λ x H, acc.intro x (λ y hy, begin
   cases hy with _ hyx z _ hyz hzx,

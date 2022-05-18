@@ -591,7 +591,7 @@ instance add_group.int_smul_comm_class' : smul_comm_class M ℤ A :=
 smul_comm_class.symm _ _ _
 
 @[simp] theorem smul_neg (r : M) (x : A) : r • (-x) = -(r • x) :=
-eq_neg_of_add_eq_zero $ by rw [← smul_add, neg_add_self, smul_zero]
+eq_neg_of_add_eq_zero_left $ by rw [← smul_add, neg_add_self, smul_zero]
 
 theorem smul_sub (r : M) (x y : A) : r • (x - y) = r • x - r • y :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, smul_add, smul_neg]

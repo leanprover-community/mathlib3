@@ -190,7 +190,7 @@ begin
   { have : (n:ℂ) ≠ 0 := by exact_mod_cast hn,
     field_simp,
     ring },
-  simp [mul_zpow₀, ← complex.exp_int_mul, complex.exp_pi_mul_I, this]
+  simp [mul_zpow, ← complex.exp_int_mul, complex.exp_pi_mul_I, this]
 end
 
 /-- The monomials `z ^ n` are an orthonormal set with respect to Haar measure on the circle. -/

@@ -189,7 +189,7 @@ begin
   refine (integral2_divergence_prod_of_has_fderiv_within_at_off_countable
       (λ p, -(I • F p)) F (λ p, - (I • F' p)) F' z.re w.im w.re z.im t (hs.preimage e.injective)
       (htc.const_smul _).neg htc (λ p hp, ((htd p hp).const_smul I).neg) htd _).symm,
-  rw [← volume_preserving_equiv_real_prod.symm.integrable_on_comp_preimage
+  rw [← (volume_preserving_equiv_real_prod.symm _).integrable_on_comp_preimage
     (measurable_equiv.measurable_embedding _)] at Hi,
   simpa only [hF'] using Hi.neg
 end

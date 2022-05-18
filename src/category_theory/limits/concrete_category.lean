@@ -31,8 +31,8 @@ lemma concrete.to_product_injective_of_is_limit {D : cone F} (hD : is_limit D) :
 begin
   let E := (forget C).map_cone D,
   let hE : is_limit E := is_limit_of_preserves _ hD,
-  let G := types.limit_cone (F ⋙ forget C),
-  let hG := types.limit_cone_is_limit (F ⋙ forget C),
+  let G := types.limit_cone.{v v} (F ⋙ forget C),
+  let hG := types.limit_cone_is_limit.{v v} (F ⋙ forget C),
   let T : E.X ≅ G.X := hE.cone_point_unique_up_to_iso hG,
   change function.injective (T.hom ≫ (λ x j, G.π.app j x)),
   have h : function.injective T.hom,
@@ -133,7 +133,7 @@ def concrete.multiequalizer_equiv (I : multicospan_index C) [has_multiequalizer 
     { x : Π (i : I.L), I.left i // ∀ (i : I.R), I.fst i (x _) = I.snd i (x _) } :=
 let h1 := (limit.is_limit I.multicospan),
     h2 := (is_limit_of_preserves (forget C) h1),
-    E := h2.cone_point_unique_up_to_iso (types.limit_cone_is_limit _) in
+    E := h2.cone_point_unique_up_to_iso (types.limit_cone_is_limit.{v v} _) in
 equiv.trans E.to_equiv (concrete.multiequalizer_equiv_aux I)
 
 @[simp]
@@ -168,8 +168,8 @@ begin
   intro ff,
   let E := (forget C).map_cocone D,
   let hE : is_colimit E := is_colimit_of_preserves _ hD,
-  let G := types.colimit_cocone (F ⋙ forget C),
-  let hG := types.colimit_cocone_is_colimit (F ⋙ forget C),
+  let G := types.colimit_cocone.{v v} (F ⋙ forget C),
+  let hG := types.colimit_cocone_is_colimit.{v v} (F ⋙ forget C),
   let T : E ≅ G := hE.unique_up_to_iso hG,
   let TX : E.X ≅ G.X := (cocones.forget _).map_iso T,
   suffices : function.surjective (TX.hom ∘ ff),
@@ -205,8 +205,8 @@ lemma concrete.is_colimit_rep_eq_of_exists {D : cocone F} {i j : J} (hD : is_col
 begin
   let E := (forget C).map_cocone D,
   let hE : is_colimit E := is_colimit_of_preserves _ hD,
-  let G := types.colimit_cocone (F ⋙ forget C),
-  let hG := types.colimit_cocone_is_colimit (F ⋙ forget C),
+  let G := types.colimit_cocone.{v v} (F ⋙ forget C),
+  let hG := types.colimit_cocone_is_colimit.{v v} (F ⋙ forget C),
   let T : E ≅ G := hE.unique_up_to_iso hG,
   let TX : E.X ≅ G.X := (cocones.forget _).map_iso T,
   apply_fun TX.hom,
@@ -236,8 +236,8 @@ lemma concrete.is_colimit_exists_of_rep_eq {D : cocone F} {i j : J} (hD : is_col
 begin
   let E := (forget C).map_cocone D,
   let hE : is_colimit E := is_colimit_of_preserves _ hD,
-  let G := types.colimit_cocone (F ⋙ forget C),
-  let hG := types.colimit_cocone_is_colimit (F ⋙ forget C),
+  let G := types.colimit_cocone.{v v} (F ⋙ forget C),
+  let hG := types.colimit_cocone_is_colimit.{v v} (F ⋙ forget C),
   let T : E ≅ G := hE.unique_up_to_iso hG,
   let TX : E.X ≅ G.X := (cocones.forget _).map_iso T,
   apply_fun TX.hom at h,
@@ -245,7 +245,7 @@ begin
   erw [T.hom.w, T.hom.w] at h,
   replace h := quot.exact _ h,
   suffices : ∀ (a b : Σ j, F.obj j)
-    (h : eqv_gen (limits.types.quot.rel (F ⋙ forget C)) a b),
+    (h : eqv_gen (limits.types.quot.rel.{v v} (F ⋙ forget C)) a b),
     ∃ k (f : a.1 ⟶ k) (g : b.1 ⟶ k), F.map f a.2 = F.map g b.2,
   { exact this ⟨i,x⟩ ⟨j,y⟩ h },
   intros a b h,

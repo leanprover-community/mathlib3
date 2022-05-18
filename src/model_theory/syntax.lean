@@ -326,16 +326,16 @@ open finset
 | n (all f) := f.free_var_finset
 
 /-- Casts `L.bounded_formula α m` as `L.bounded_formula α n`, where `m ≤ n`. -/
-def cast_le : ∀ {m n : ℕ} (h : m ≤ n), L.bounded_formula α m → L.bounded_formula α n
+@[simp] def cast_le : ∀ {m n : ℕ} (h : m ≤ n), L.bounded_formula α m → L.bounded_formula α n
 | m n h falsum := falsum
-| m n h (equal t₁ t₂) := (t₁.relabel (sum.map id (fin.cast_le h))).bd_equal
+| m n h (equal t₁ t₂) := equal (t₁.relabel (sum.map id (fin.cast_le h)))
     (t₂.relabel (sum.map id (fin.cast_le h)))
-| m n h (rel R ts) := R.bounded_formula (term.relabel (sum.map id (fin.cast_le h)) ∘ ts)
+| m n h (rel R ts) := rel R (term.relabel (sum.map id (fin.cast_le h)) ∘ ts)
 | m n h (imp f₁ f₂) := (f₁.cast_le h).imp (f₂.cast_le h)
 | m n h (all f) := (f.cast_le (add_le_add_right h 1)).all
 
 /-- A function to help relabel the variables in bounded formulas. -/
-def relabel_aux (g : α → (β ⊕ fin n)) (k : ℕ) :
+def relabel_aux (g : α → β ⊕ fin n) (k : ℕ) :
   α ⊕ fin k → β ⊕ fin (n + k) :=
 (sum.map id fin_sum_fin_equiv) ∘ (equiv.sum_assoc _ _ _) ∘ (sum.map g id)
 
@@ -352,14 +352,36 @@ begin
   { simp [bounded_formula.relabel_aux] }
 end
 
+@[simp] lemma relabel_aux_sum_inl (k : ℕ) :
+  relabel_aux (sum.inl : α → α ⊕ fin n) k =
+  sum.map id (nat_add n) :=
+begin
+  ext x,
+  cases x;
+  { simp [relabel_aux] },
+end
+
 /-- Relabels a bounded formula's variables along a particular function. -/
-def relabel (g : α → (β ⊕ fin n)) :
+@[simp] def relabel (g : α → (β ⊕ fin n)) :
   ∀ {k : ℕ}, L.bounded_formula α k → L.bounded_formula β (n + k)
 | k falsum := falsum
-| k (equal t₁ t₂) := (t₁.relabel (relabel_aux g k)).bd_equal (t₂.relabel (relabel_aux g k))
-| k (rel R ts) := R.bounded_formula (term.relabel (relabel_aux g k) ∘ ts)
+| k (equal t₁ t₂) := equal (t₁.relabel (relabel_aux g k)) (t₂.relabel (relabel_aux g k))
+| k (rel R ts) := rel R (term.relabel (relabel_aux g k) ∘ ts)
 | k (imp f₁ f₂) := f₁.relabel.imp f₂.relabel
 | k (all f) := f.relabel.all
+
+@[simp] lemma relabel_sum_inl (φ : L.bounded_formula α n) :
+  (φ.relabel sum.inl : L.bounded_formula α (0 + n)) =
+  φ.cast_le (ge_of_eq (zero_add n)) :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp [fin.nat_add_zero, cast_le_of_eq] },
+  { simp [fin.nat_add_zero, cast_le_of_eq] },
+  { simp [ih1, ih2] },
+  { simp only [ih3, relabel, cast_le],
+    refl, },
+end
 
 /-- Restricts a bounded formula to only use a particular set of free variables. -/
 def restrict_free_var [decidable_eq α] : Π {n : ℕ} (φ : L.bounded_formula α n)
@@ -442,6 +464,15 @@ end, begin
   { simp [constants_to_vars, vars_to_constants, ih1, ih2] },
   { simp [constants_to_vars, vars_to_constants, ih3] }
 end⟩
+
+/-- Turns the extra variables of a bounded formula into free variables. -/
+@[simp] def to_formula : ∀ {n : ℕ}, L.bounded_formula α n → L.formula (α ⊕ fin n)
+| n falsum := falsum
+| n (equal t₁ t₂) := t₁.equal t₂
+| n (rel R ts) := R.formula ts
+| n (imp φ₁ φ₂) := φ₁.to_formula.imp φ₂.to_formula
+| n (all φ) := (φ.to_formula.relabel
+  (sum.elim (sum.inl ∘ sum.inl) ((sum.map sum.inr id) ∘ fin_sum_fin_equiv.symm))).all
 
 variables {l : ℕ} {φ ψ : L.bounded_formula α l} {θ : L.bounded_formula α l.succ}
 variables {v : α → M} {xs : fin l → M}

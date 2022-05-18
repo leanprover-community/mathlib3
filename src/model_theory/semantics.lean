@@ -697,6 +697,33 @@ begin
       exact ⟨_, _, h⟩ } }
 end
 
+@[simp] lemma realize_to_formula (φ : L.bounded_formula α n) (v : (α ⊕ fin n) → M) :
+  φ.to_formula.realize v ↔ φ.realize (v ∘ sum.inl) (v ∘ sum.inr) :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3 a8 a9 a0,
+  { refl },
+  { simp [bounded_formula.realize] },
+  { simp [bounded_formula.realize] },
+  { rw [to_formula, formula.realize, realize_imp, ← formula.realize, ih1, ← formula.realize, ih2,
+      realize_imp], },
+  { rw [to_formula, formula.realize, realize_all, realize_all],
+    refine forall_congr (λ a, _),
+    have h := ih3 (sum.elim (v ∘ sum.inl) (snoc (v ∘ sum.inr) a)),
+    simp only [sum.elim_comp_inl, sum.elim_comp_inr] at h,
+    rw [← h, realize_relabel, formula.realize, iff_eq_eq],
+    rcongr,
+    { cases x,
+      { simp },
+      { refine fin.last_cases _ (λ i, _) x,
+        { rw [sum.elim_inr, snoc_last, function.comp_app, sum.elim_inr, function.comp_app,
+            fin_sum_fin_equiv_symm_last, sum.map_inr, sum.elim_inr, function.comp_app],
+          exact (congr rfl (subsingleton.elim _ _)).trans (snoc_last _ _) },
+        { simp only [cast_succ, function.comp_app, sum.elim_inr,
+            fin_sum_fin_equiv_symm_apply_cast_add, sum.map_inl, sum.elim_inl],
+          rw [← cast_succ, snoc_cast_succ] } } },
+    { exact subsingleton.elim _ _ } }
+end
+
 end bounded_formula
 
 namespace equiv

@@ -387,10 +387,10 @@ by rw [←tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow
 eq_univ_iff_forall.2 $ λ a, mem_mul.2 ⟨_, _, hs, mem_univ _, one_mul _⟩
 
 @[to_additive] lemma univ_mul_of_one_mem [fintype α] (ht : (1 : α) ∈ t) : univ * t = univ :=
-mul_univ_of_one_mem $ mem_univ _
+eq_univ_iff_forall.2 $ λ a, mem_mul.2 ⟨_, _, mem_univ _, ht, mul_one _⟩
 
 @[simp, to_additive] lemma univ_mul_univ [fintype α] : (univ : finset α) * univ = univ :=
-by { simp only [mem_mul, eq_univ_iff_forall, mem_univ, true_and], exact λ x, ⟨x, 1, mul_one x⟩ }
+mul_univ_of_one_mem $ mem_univ _
 
 @[simp, to_additive nsmul_univ] lemma univ_pow [fintype α] (hn : n ≠ 0) :
   (univ : finset α) ^ n = univ :=

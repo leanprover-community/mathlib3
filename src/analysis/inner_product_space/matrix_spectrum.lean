@@ -1,46 +1,5 @@
 import analysis.inner_product_space.spectrum
 
-
-namespace basis
-
-variables {ι ι' κ κ' : Type*}
-variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
-
-open_locale big_operators
-
-/-- From a basis `e : ι → M`, build a linear equivalence between families of vectors `v : ι → M`,
-and matrices, making the matrix whose columns are the vectors `v i` written in the basis `e`. -/
-noncomputable def to_matrix_equiv' [fintype ι] (e : basis ι R M) : (ι' → M) ≃ₗ[R] matrix ι ι' R :=
-{ to_fun := e.to_matrix,
-  map_add' := λ v w, begin
-    ext i j,
-    change _ = _ + _,
-    rw [e.to_matrix_apply, pi.add_apply, linear_equiv.map_add],
-    refl
-  end,
-  map_smul' := begin
-    intros c v,
-    ext i j,
-    rw [e.to_matrix_apply, pi.smul_apply, linear_equiv.map_smul],
-    refl
-  end,
-  inv_fun := λ m j, ∑ i, (m i j) • e i,
-  left_inv := begin
-    intro v,
-    ext j,
-    exact e.sum_to_matrix_smul_self v j
-  end,
-  right_inv := begin
-    intros m,
-    ext k l,
-    simp only [e.to_matrix_apply, ← e.equiv_fun_apply, ← e.equiv_fun_symm_apply,
-               linear_equiv.apply_symm_apply],
-  end }
-
-end basis
-
-#check @inner_product_space.is_self_adjoint.diagonalization_basis_apply_self_apply
-
 namespace matrix
 
 variables {𝕜 : Type*} [is_R_or_C 𝕜] [decidable_eq 𝕜]
@@ -109,7 +68,7 @@ noncomputable def eigenvalues₀ : fin (fintype.card n) → ℝ :=
   (is_hermitian_iff_is_self_adjoint.1 hA) _ (fintype.card n) finrank_euclidean_space
 
 noncomputable def eigenvalues : n → ℝ :=
-  λ i, hA.eigenvalues₀ $ fintype.equiv_of_card_eq (fintype.card_fin _).symm i
+  λ i, hA.eigenvalues₀ $ (fintype.equiv_of_card_eq (fintype.card_fin _)).symm i
 
 noncomputable def diagonalization_basis : basis n 𝕜 (n → 𝕜) :=
   (@inner_product_space.is_self_adjoint.eigenvector_basis 𝕜 _ _
@@ -126,14 +85,20 @@ lemma diagonalization_matrix_mul_inv :
   hA.diagonalization_matrix ⬝ hA.diagonalization_matrix_inv = 1 :=
 by apply basis.to_matrix_mul_to_matrix_flip
 
-local notation `𝓚` := algebra_map ℝ _
-
 -- TODO: move
 lemma basis_to_matrix_mul (b₁ : basis n 𝕜 (n → 𝕜)) (b₂ : basis n 𝕜 (n → 𝕜)) (b₃ : basis n 𝕜 (n → 𝕜)) :
   b₁.to_matrix b₂ ⬝ A = linear_map.to_matrix b₃ b₁ (to_lin b₃ b₂ A) :=
 begin
   have := basis_to_matrix_mul_linear_map_to_matrix b₃ b₁ b₂ (matrix.to_lin b₃ b₂ A),
   rwa [linear_map.to_matrix_to_lin] at this
+end
+
+-- TODO: move
+lemma mul_basis_to_matrix (b₁ : basis n 𝕜 (n → 𝕜)) (b₂ : basis n 𝕜 (n → 𝕜)) (b₃ : basis n 𝕜 (n → 𝕜)) :
+  A ⬝ b₁.to_matrix b₂ = linear_map.to_matrix b₂ b₃ (to_lin b₁ b₃ A) :=
+begin
+  have := linear_map_to_matrix_mul_basis_to_matrix b₂ b₁ b₃ (matrix.to_lin b₁ b₃ A),
+  rwa [linear_map.to_matrix_to_lin] at this,
 end
 
 -- TODO: move
@@ -147,9 +112,9 @@ begin
   rw [linear_map.to_matrix_apply, matrix.to_lin'_apply, pi.basis_fun_apply, this]
 end
 
-lemma spectral_theorem_1 :
+theorem spectral_theorem :
   hA.diagonalization_matrix_inv ⬝ A
-    = diagonal (𝓚 ∘ hA.eigenvalues) ⬝ hA.diagonalization_matrix_inv :=
+    = diagonal (coe ∘ hA.eigenvalues) ⬝ hA.diagonalization_matrix_inv :=
 begin
   rw [diagonalization_matrix_inv, basis_to_matrix_basis_fun_mul],
   ext i j,
@@ -161,15 +126,12 @@ begin
       basis.coe_to_orthonormal_basis_repr, basis.equiv_fun_apply, to_lin'_apply, basis.to_matrix],
     rw [basis.reindex_repr, euclidean_space.mul_vec_single],
     congr' },
-  { sorry }
+  { simp only [diagonal_mul, (∘), eigenvalues, diagonalization_basis,
+      inner_product_space.is_self_adjoint.diagonalization_basis],
+    rw [basis.to_matrix_apply, basis.coe_to_orthonormal_basis_repr, basis.reindex_repr,
+      basis.equiv_fun_apply, pi.basis_fun_apply],
+    refl }
 end
-
-theorem spectral_theorem : A =
-       hA.diagonalization_matrix⁻¹
-        ⬝ diagonal (𝓚 ∘ hA.eigenvalues)
-        ⬝ hA.diagonalization_matrix := sorry
-
-#check matrix.det_diagonal
 
 end is_hermitian
 

@@ -378,6 +378,7 @@ def lift_at : ∀ {n : ℕ} (n' m : ℕ), L.bounded_formula α n → L.bounded_f
 | n (imp φ₁ φ₂) tf := (φ₁.subst tf).imp (φ₂.subst tf)
 | n (all φ) tf := (φ.subst tf).all
 
+/-- Turns the extra variables of a bounded formula into free variables. -/
 @[simp] def to_formula : ∀ {n : ℕ}, L.bounded_formula α n → L.formula (α ⊕ fin n)
 | n falsum := falsum
 | n (equal t₁ t₂) := t₁.equal t₂
@@ -790,3 +791,4 @@ end cardinality
 
 end language
 end first_order
+#lint

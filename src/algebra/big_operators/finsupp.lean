@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
+import data.finsupp.basic
 import algebra.big_operators.pi
 import algebra.big_operators.ring
-import data.finsupp
+import algebra.big_operators.order
 
 /-!
 # Big operators for finsupps
@@ -34,7 +35,7 @@ open_locale classical
 
 theorem finsupp.sum_sum_index' : (∑ x in s, f x).sum t = ∑ x in s, (f x).sum t :=
 finset.induction_on s rfl $ λ a s has ih,
-by simp_rw [finset.sum_insert has, finsupp.sum_add_index h0 h1, ih]
+by simp_rw [finset.sum_insert has, finsupp.sum_add_index' h0 h1, ih]
 
 end
 
@@ -50,3 +51,11 @@ lemma finsupp.mul_sum (b : S) (s : α →₀ R) {f : α → R → S} :
 by simp only [finsupp.sum, finset.mul_sum]
 
 end
+
+namespace nat
+
+/-- If `0 : ℕ` is not in the support of `f : ℕ →₀ ℕ` then `0 < ∏ x in f.support, x ^ (f x)`. -/
+lemma prod_pow_pos_of_zero_not_mem_support {f : ℕ →₀ ℕ} (hf : 0 ∉ f.support) : 0 < f.prod pow :=
+finset.prod_pos (λ a ha, pos_iff_ne_zero.mpr (pow_ne_zero _ (λ H, by {subst H, exact hf ha})))
+
+end nat

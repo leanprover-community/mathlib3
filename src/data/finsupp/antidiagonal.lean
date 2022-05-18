@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import data.finsupp.basic
+import data.finsupp.multiset
 import data.multiset.antidiagonal
 
 /-!
@@ -51,8 +51,8 @@ begin
   suffices : a = g → (a + b = f ↔ g ≤ f ∧ b = f - g),
   { simpa [apply_ite ((∈) (a, b)), ← and.assoc, @and.right_comm _ (a = _), and.congr_left_iff] },
   unfreezingI {rintro rfl}, split,
-  { rintro rfl, exact ⟨le_add_right le_rfl, (nat_add_sub_cancel_left _ _).symm⟩ },
-  { rintro ⟨h, rfl⟩, exact nat_add_sub_of_le h }
+  { rintro rfl, exact ⟨le_add_right le_rfl, (add_tsub_cancel_left _ _).symm⟩ },
+  { rintro ⟨h, rfl⟩, exact add_tsub_cancel_of_le h }
 end
 
 lemma antidiagonal_filter_snd_eq (f g : α →₀ ℕ)
@@ -63,8 +63,8 @@ begin
   suffices : b = g → (a + b = f ↔ g ≤ f ∧ a = f - g),
   { simpa [apply_ite ((∈) (a, b)), ← and.assoc, and.congr_left_iff] },
   unfreezingI {rintro rfl}, split,
-  { rintro rfl, exact ⟨le_add_left le_rfl, (nat_add_sub_cancel _ _).symm⟩ },
-  { rintro ⟨h, rfl⟩, exact nat_sub_add_cancel h }
+  { rintro rfl, exact ⟨le_add_left le_rfl, (add_tsub_cancel_right _ _).symm⟩ },
+  { rintro ⟨h, rfl⟩, exact tsub_add_cancel_of_le h }
 end
 
 @[simp] lemma antidiagonal_zero : antidiagonal (0 : α →₀ ℕ) = singleton (0,0) :=
@@ -77,27 +77,5 @@ lemma prod_antidiagonal_swap {M : Type*} [comm_monoid M] (n : α →₀ ℕ)
 finset.prod_bij (λ p hp, p.swap) (λ p, swap_mem_antidiagonal.2) (λ p hp, rfl)
   (λ p₁ p₂ _ _ h, prod.swap_injective h)
   (λ p hp, ⟨p.swap, swap_mem_antidiagonal.2 hp, p.swap_swap.symm⟩)
-
-/-- The set `{m : α →₀ ℕ | m ≤ n}` as a `finset`. -/
-def Iic_finset (n : α →₀ ℕ) : finset (α →₀ ℕ) :=
-(antidiagonal n).image prod.fst
-
-@[simp] lemma mem_Iic_finset {m n : α →₀ ℕ} : m ∈ Iic_finset n ↔ m ≤ n :=
-by simp [Iic_finset, le_iff_exists_add, eq_comm]
-
-@[simp] lemma coe_Iic_finset (n : α →₀ ℕ) : ↑(Iic_finset n) = set.Iic n :=
-by { ext, simp }
-
-/-- Let `n : α →₀ ℕ` be a finitely supported function.
-The set of `m : α →₀ ℕ` that are coordinatewise less than or equal to `n`,
-is a finite set. -/
-lemma finite_le_nat (n : α →₀ ℕ) : set.finite {m | m ≤ n} :=
-by simpa using (Iic_finset n).finite_to_set
-
-/-- Let `n : α →₀ ℕ` be a finitely supported function.
-The set of `m : α →₀ ℕ` that are coordinatewise less than or equal to `n`,
-but not equal to `n` everywhere, is a finite set. -/
-lemma finite_lt_nat (n : α →₀ ℕ) : set.finite {m | m < n} :=
-(finite_le_nat n).subset $ λ m, le_of_lt
 
 end finsupp

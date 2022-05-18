@@ -92,8 +92,8 @@ instance completion.has_inv : has_inv (hat K) := ⟨λ x, if x = 0 then 0 else h
 variables [topological_division_ring K]
 
 lemma hat_inv_extends {x : K} (h : x ≠ 0) : hat_inv (x : hat K) = coe (x⁻¹ : K) :=
-dense_inducing_coe.extend_eq_at _
-    ((continuous_coe K).continuous_at.comp (topological_division_ring.continuous_inv x h))
+dense_inducing_coe.extend_eq_at
+    ((continuous_coe K).continuous_at.comp (continuous_at_inv₀ h))
 
 variables [completable_top_field K]
 
@@ -104,15 +104,14 @@ begin
   { rw [h, inv_zero],
     dsimp [has_inv.inv],
     norm_cast,
-    simp [if_pos] },
+    simp },
   { conv_lhs { dsimp [has_inv.inv] },
-    norm_cast,
     rw if_neg,
     { exact hat_inv_extends h },
     { exact λ H, h (dense_embedding_coe.inj H) } }
 end
 
-variables [uniform_add_group K] [topological_ring K]
+variables [uniform_add_group K]
 
 lemma mul_hat_inv_cancel {x : hat K} (x_ne : x ≠ 0) : x*hat_inv x = 1 :=
 begin
@@ -156,7 +155,7 @@ instance field_completion : field (hat K) :=
   ..(by apply_instance : comm_ring (hat K)) }
 
 instance topological_division_ring_completion : topological_division_ring (hat K) :=
-{ continuous_inv := begin
+{ continuous_at_inv₀ := begin
     intros x x_ne,
     have : {y | hat_inv y = y⁻¹ } ∈ 𝓝 x,
     { have : {(0 : hat K)}ᶜ ⊆ {y : hat K | hat_inv y = y⁻¹ },

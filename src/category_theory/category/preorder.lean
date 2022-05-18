@@ -3,11 +3,8 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
-
-import category_theory.category.Cat
-import category_theory.category.default
-import category_theory.opposites
-import order.category.Preorder
+import category_theory.adjunction.basic
+import order.galois_connection
 
 /-!
 
@@ -42,7 +39,7 @@ Because we don't allow morphisms to live in `Prop`,
 we have to define `X ⟶ Y` as `ulift (plift (X ≤ Y))`.
 See `category_theory.hom_of_le` and `category_theory.le_of_hom`.
 
-See https://stacks.math.columbia.edu/tag/00D3.
+See <https://stacks.math.columbia.edu/tag/00D3>.
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance small_category (α : Type u) [preorder α] : small_category α :=
@@ -84,6 +81,9 @@ by { cases h, cases h, refl, }
 def op_hom_of_le {x y : Xᵒᵖ} (h : unop x ≤ unop y) : y ⟶ x := h.hom.op
 
 lemma le_of_op_hom {x y : Xᵒᵖ} (h : x ⟶ y) : unop y ≤ unop x := h.unop.le
+
+instance unique_to_top [order_top X] {x : X} : unique (x ⟶ ⊤) := by tidy
+instance unique_from_bot [order_bot X] {x : X} : unique (⊥ ⟶ x) := by tidy
 
 end category_theory
 
@@ -128,23 +128,6 @@ An adjunction between preorder categories induces a galois connection.
 lemma adjunction.gc {L : X ⥤ Y} {R : Y ⥤ X} (adj : L ⊣ R) :
   galois_connection L.obj R.obj :=
 λ x y, ⟨λ h, ((adj.hom_equiv x y).to_fun h.hom).le, λ h, ((adj.hom_equiv x y).inv_fun h.hom).le⟩
-
-/--
-The embedding of `Preorder` into `Cat`.
--/
-@[simps]
-def Preorder_to_Cat : Preorder.{u} ⥤ Cat :=
-{ obj := λ X, Cat.of X.1,
-  map := λ X Y f, f.monotone.functor,
-  map_id' := λ X, begin apply category_theory.functor.ext, tidy end,
-  map_comp' := λ X Y Z f g, begin apply category_theory.functor.ext, tidy end }
-
-instance : faithful Preorder_to_Cat.{u} :=
-{ map_injective' := λ X Y f g h, begin ext x, exact functor.congr_obj h x end }
-
-instance : full Preorder_to_Cat.{u} :=
-{ preimage := λ X Y f, ⟨f.obj, f.monotone⟩,
-  witness' := λ X Y f, begin apply category_theory.functor.ext, tidy end }
 
 end preorder
 

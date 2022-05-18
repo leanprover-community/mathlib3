@@ -115,7 +115,7 @@ begin
       simp },
     { intros i j,
       simp only [smul_eq_mul, pi.add_apply, fin.coe_succ, fin.coe_cast_succ, pi.smul_apply],
-      rw [finset.sum_range_succ, add_comm, nat.sub_self, pow_zero, mul_one, finset.mul_sum],
+      rw [finset.sum_range_succ, add_comm, tsub_self, pow_zero, mul_one, finset.mul_sum],
       congr' 1,
       refine finset.sum_congr rfl (λ i' hi', _),
       rw [mul_left_comm (v 0), nat.succ_sub, pow_succ],

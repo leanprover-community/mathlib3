@@ -4,6 +4,28 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Scott Morrison, David Wärn
 -/
 import category_theory.full_subcategory
+import category_theory.products.basic
+import category_theory.pi.basic
+
+/-!
+# Groupoids
+
+We define `groupoid` as a typeclass extending `category`,
+asserting that all morphisms have inverses.
+
+The instance `is_iso.of_groupoid (f : X ⟶ Y) : is_iso f` means that you can then write
+`inv f` to access the inverse of any morphism `f`.
+
+`groupoid.iso_equiv_hom : (X ≅ Y) ≃ (X ⟶ Y)` provides the equivalence between
+isomorphisms and morphisms in a groupoid.
+
+We provide a (non-instance) constructor `groupoid.of_is_iso` from an existing category
+with `is_iso f` for every `f`.
+
+## See also
+
+See also `category_theory.core` for the groupoid of isomorphisms in a category.
+-/
 
 namespace category_theory
 
@@ -59,6 +81,10 @@ noncomputable
 def groupoid.of_is_iso (all_is_iso : ∀ {X Y : C} (f : X ⟶ Y), is_iso f) : groupoid.{v} C :=
 { inv := λ X Y f, inv f }
 
+/-- A category with a unique morphism between any two objects is a groupoid -/
+def groupoid.of_hom_unique (all_unique : ∀ {X Y : C}, unique (X ⟶ Y)) : groupoid.{v} C :=
+{ inv := λ X Y f, all_unique.default }
+
 end
 
 instance induced_category.groupoid {C : Type u} (D : Type u₂) [groupoid.{v} D] (F : C → D) :
@@ -67,5 +93,17 @@ instance induced_category.groupoid {C : Type u} (D : Type u₂) [groupoid.{v} D]
   inv_comp' := λ X Y f, groupoid.inv_comp f,
   comp_inv' := λ X Y f, groupoid.comp_inv f,
   .. induced_category.category F }
+
+section
+
+instance groupoid_pi {I : Type u} {J : I → Type u₂} [∀ i, groupoid.{v} (J i)] :
+  groupoid.{max u v} (Π i : I, J i) :=
+{ inv := λ (x y : Π i, J i) (f : Π i, x i ⟶ y i), (λ i : I, groupoid.inv (f i)), }
+
+instance groupoid_prod {α : Type u} {β : Type v} [groupoid.{u₂} α] [groupoid.{v₂} β] :
+  groupoid.{max u₂ v₂} (α × β) :=
+{ inv := λ (x y : α × β) (f : x ⟶ y), (groupoid.inv f.1, groupoid.inv f.2) }
+
+end
 
 end category_theory

@@ -1,124 +1,109 @@
 /-
-Copyright (c) 2020 Scott Morrison. All rights reserved.
+Copyright (c) 2021 Riccardo Brasca. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Riccardo Brasca
 -/
-import tactic.apply_fun
-import ring_theory.matrix_algebra
-import ring_theory.polynomial_algebra
-import linear_algebra.matrix.nonsingular_inverse
-import linear_algebra.matrix.reindex
-import tactic.squeeze
+
+import linear_algebra.free_module.finite.basic
+import linear_algebra.matrix.charpoly.coeff
+import field_theory.minpoly
 
 /-!
-# Characteristic polynomials and the Cayley-Hamilton theorem
 
-We define characteristic polynomials of matrices and
-prove the Cayley–Hamilton theorem over arbitrary commutative rings.
+# Characteristic polynomial
 
-## Main definitions
+We define the characteristic polynomial of `f : M →ₗ[R] M`, where `M` is a finite and
+free `R`-module. The proof that `f.charpoly` is the characteristic polynomial of the matrix of `f`
+in any basis is in `linear_algebra/charpoly/to_matrix`.
 
-* `matrix.charpoly` is the characteristic polynomial of a matrix.
+## Main definition
 
-## Implementation details
+* `linear_map.charpoly f` : the characteristic polynomial of `f : M →ₗ[R] M`.
 
-We follow a nice proof from http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
 -/
-
-noncomputable theory
 
 universes u v w
 
-open polynomial matrix
-open_locale big_operators
+variables {R : Type u} {M : Type v} [comm_ring R] [nontrivial R]
+variables [add_comm_group M] [module R M] [module.free R M] [module.finite R M] (f : M →ₗ[R] M)
 
-variables {R : Type u} [comm_ring R]
-variables {n : Type w} [decidable_eq n] [fintype n]
+open_locale classical matrix polynomial
 
-open finset
+noncomputable theory
 
 
-/--
-The "characteristic matrix" of `M : matrix n n R` is the matrix of polynomials $t I - M$.
-The determinant of this matrix is the characteristic polynomial.
--/
-def charmatrix (M : matrix n n R) : matrix n n (polynomial R) :=
-matrix.scalar n (X : polynomial R) - (C : R →+* polynomial R).map_matrix M
+open module.free polynomial matrix
 
-@[simp] lemma charmatrix_apply_eq (M : matrix n n R) (i : n) :
-  charmatrix M i i = (X : polynomial R) - C (M i i) :=
-by simp only [charmatrix, sub_left_inj, pi.sub_apply, scalar_apply_eq,
-  ring_hom.map_matrix_apply, map_apply, dmatrix.sub_apply]
+namespace linear_map
 
-@[simp] lemma charmatrix_apply_ne (M : matrix n n R) (i j : n) (h : i ≠ j) :
-  charmatrix M i j = - C (M i j) :=
-by simp only [charmatrix, pi.sub_apply, scalar_apply_ne _ _ _ h, zero_sub,
-  ring_hom.map_matrix_apply, map_apply, dmatrix.sub_apply]
+section basic
 
-lemma mat_poly_equiv_charmatrix (M : matrix n n R) :
-  mat_poly_equiv (charmatrix M) = X - C M :=
+/-- The characteristic polynomial of `f : M →ₗ[R] M`. -/
+def charpoly : R[X] :=
+(to_matrix (choose_basis R M) (choose_basis R M) f).charpoly
+
+lemma charpoly_def :
+  f.charpoly = (to_matrix (choose_basis R M) (choose_basis R M) f).charpoly := rfl
+
+end basic
+
+section coeff
+
+lemma charpoly_monic : f.charpoly.monic := charpoly_monic _
+
+end coeff
+
+section cayley_hamilton
+
+/-- The **Cayley-Hamilton Theorem**, that the characteristic polynomial of a linear map, applied
+to the linear map itself, is zero.
+
+See `matrix.aeval_self_charpoly` for the equivalent statement about matrices. -/
+lemma aeval_self_charpoly : aeval f f.charpoly = 0 :=
 begin
-  ext k i j,
-  simp only [mat_poly_equiv_coeff_apply, coeff_sub, pi.sub_apply],
-  by_cases h : i = j,
-  { subst h, rw [charmatrix_apply_eq, coeff_sub],
-    simp only [coeff_X, coeff_C],
-    split_ifs; simp, },
-  { rw [charmatrix_apply_ne _ _ _ h, coeff_X, coeff_neg, coeff_C, coeff_C],
-    split_ifs; simp [h], }
+  apply (linear_equiv.map_eq_zero_iff (alg_equiv_matrix _).to_linear_equiv).1,
+  rw [alg_equiv.to_linear_equiv_apply, ← alg_equiv.coe_alg_hom,
+    ← polynomial.aeval_alg_hom_apply _ _ _, charpoly_def],
+  exact aeval_self_charpoly _,
 end
 
-lemma charmatrix_reindex {m : Type v} [decidable_eq m] [fintype m] (e : n ≃ m)
-  (M : matrix n n R) : charmatrix (reindex e e M) = reindex e e (charmatrix M) :=
+lemma is_integral : is_integral R f := ⟨f.charpoly, ⟨charpoly_monic f, aeval_self_charpoly f⟩⟩
+
+lemma minpoly_dvd_charpoly {K : Type u} {M : Type v} [field K] [add_comm_group M] [module K M]
+  [finite_dimensional K M] (f : M →ₗ[K] M) : minpoly K f ∣ f.charpoly :=
+minpoly.dvd _ _ (aeval_self_charpoly f)
+
+/-- Any endomorphism polynomial `p` is equivalent under evaluation to `p %ₘ f.charpoly`; that is,
+`p` is equivalent to a polynomial with degree less than the dimension of the module. -/
+lemma aeval_eq_aeval_mod_charpoly (p : R[X]) : aeval f p = aeval f (p %ₘ f.charpoly) :=
+(aeval_mod_by_monic_eq_self_of_root f.charpoly_monic f.aeval_self_charpoly).symm
+
+/-- Any endomorphism power can be computed as the sum of endomorphism powers less than the
+dimension of the module. -/
+lemma pow_eq_aeval_mod_charpoly (k : ℕ) : f^k = aeval f (X^k %ₘ f.charpoly) :=
+by rw [←aeval_eq_aeval_mod_charpoly, map_pow, aeval_X]
+
+variable {f}
+
+lemma minpoly_coeff_zero_of_injective (hf : function.injective f) : (minpoly R f).coeff 0 ≠ 0 :=
 begin
-  ext i j x,
-  by_cases h : i = j,
-  all_goals { simp [h] }
+  intro h,
+  obtain ⟨P, hP⟩ := X_dvd_iff.2 h,
+  have hdegP : P.degree < (minpoly R f).degree,
+  { rw [hP, mul_comm],
+    refine degree_lt_degree_mul_X (λ h, _),
+    rw [h, mul_zero] at hP,
+    exact minpoly.ne_zero (is_integral f) hP },
+  have hPmonic : P.monic,
+  { suffices : (minpoly R f).monic,
+    { rwa [monic.def, hP, mul_comm, leading_coeff_mul_X, ← monic.def] at this },
+    exact minpoly.monic (is_integral f) },
+  have hzero : aeval f (minpoly R f) = 0 := minpoly.aeval _ _,
+  simp only [hP, mul_eq_comp, ext_iff, hf, aeval_X, map_eq_zero_iff, coe_comp, alg_hom.map_mul,
+    zero_apply] at hzero,
+  exact not_le.2 hdegP (minpoly.min _ _ hPmonic (ext hzero)),
 end
 
-/--
-The characteristic polynomial of a matrix `M` is given by $\det (t I - M)$.
--/
-def matrix.charpoly (M : matrix n n R) : polynomial R :=
-(charmatrix M).det
+end cayley_hamilton
 
-lemma matrix.charpoly_reindex {m : Type v} [decidable_eq m] [fintype m] (e : n ≃ m)
-  (M : matrix n n R) : (reindex e e M).charpoly = M.charpoly :=
-begin
-  unfold matrix.charpoly,
-  rw [charmatrix_reindex, matrix.det_reindex_self]
-end
-
-/--
-The **Cayley-Hamilton Theorem**, that the characteristic polynomial of a matrix,
-applied to the matrix itself, is zero.
-
-This holds over any commutative ring.
--/
--- This proof follows http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
-theorem aeval_self_charpoly (M : matrix n n R) :
-  aeval M M.charpoly = 0 :=
-begin
-  -- We begin with the fact $χ_M(t) I = adjugate (t I - M) * (t I - M)$,
-  -- as an identity in `matrix n n (polynomial R)`.
-  have h : M.charpoly • (1 : matrix n n (polynomial R)) =
-    adjugate (charmatrix M) * (charmatrix M) :=
-    (adjugate_mul _).symm,
-  -- Using the algebra isomorphism `matrix n n (polynomial R) ≃ₐ[R] polynomial (matrix n n R)`,
-  -- we have the same identity in `polynomial (matrix n n R)`.
-  apply_fun mat_poly_equiv at h,
-  simp only [mat_poly_equiv.map_mul,
-    mat_poly_equiv_charmatrix] at h,
-  -- Because the coefficient ring `matrix n n R` is non-commutative,
-  -- evaluation at `M` is not multiplicative.
-  -- However, any polynomial which is a product of the form $N * (t I - M)$
-  -- is sent to zero, because the evaluation function puts the polynomial variable
-  -- to the right of any coefficients, so everything telescopes.
-  apply_fun (λ p, p.eval M) at h,
-  rw eval_mul_X_sub_C at h,
-  -- Now $χ_M (t) I$, when thought of as a polynomial of matrices
-  -- and evaluated at some `N` is exactly $χ_M (N)$.
-  rw [mat_poly_equiv_smul_one, eval_map] at h,
-  -- Thus we have $χ_M(M) = 0$, which is the desired result.
-  exact h,
-end
+end linear_map

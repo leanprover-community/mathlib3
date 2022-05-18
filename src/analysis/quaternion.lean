@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import algebra.quaternion
-import analysis.normed_space.inner_product
+import analysis.inner_product_space.basic
 
 /-!
 # Quaternions as a normed algebra
@@ -49,26 +49,24 @@ inner_product_space.of_core
   smul_left := λ x y r, by simp [inner_def] }
 
 lemma norm_sq_eq_norm_sq (a : ℍ) : norm_sq a = ∥a∥ * ∥a∥ :=
-by rw [← inner_self, real_inner_self_eq_norm_sq]
+by rw [← inner_self, real_inner_self_eq_norm_mul_norm]
 
 instance : norm_one_class ℍ :=
 ⟨by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq.map_one, real.sqrt_one]⟩
 
-@[simp] lemma norm_mul (a b : ℍ) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
-begin
-  simp only [norm_eq_sqrt_real_inner, inner_self, norm_sq.map_mul],
-  exact real.sqrt_mul norm_sq_nonneg _
-end
-
 @[simp, norm_cast] lemma norm_coe (a : ℝ) : ∥(a : ℍ)∥ = ∥a∥ :=
 by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sq_eq_abs, real.norm_eq_abs]
 
-noncomputable instance : normed_ring ℍ :=
+@[simp, norm_cast] lemma nnnorm_coe (a : ℝ) : ∥(a : ℍ)∥₊ = ∥a∥₊ :=
+subtype.ext $ norm_coe a
+
+noncomputable instance : normed_division_ring ℍ :=
 { dist_eq := λ _ _, rfl,
-  norm_mul := λ a b, (norm_mul a b).le }
+  norm_mul' := λ a b, by { simp only [norm_eq_sqrt_real_inner, inner_self, norm_sq.map_mul],
+                           exact real.sqrt_mul norm_sq_nonneg _ } }
 
 noncomputable instance : normed_algebra ℝ ℍ :=
-{ norm_algebra_map_eq := norm_coe,
+{ norm_smul_le := λ a x, (norm_smul a x).le,
   to_algebra := quaternion.algebra }
 
 instance : has_coe ℂ ℍ := ⟨λ z, ⟨z.re, z.im, 0, 0⟩⟩

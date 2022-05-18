@@ -114,7 +114,7 @@ h.sub modeq.rfl
 protected theorem mul_left (c : ℤ) (h : a ≡ b [ZMOD n]) : c * a ≡ c * b [ZMOD n] :=
 or.cases_on (le_total 0 c)
 (λ hc, (h.mul_left' hc).modeq_of_dvd (dvd_mul_left _ _) )
-(λ hc, by rw [← neg_neg c, ← neg_mul_eq_neg_mul, ← neg_mul_eq_neg_mul _ b];
+(λ hc, by rw [← neg_neg c, neg_mul, neg_mul _ b];
     exact ((h.mul_left' $ neg_nonneg.2 hc).modeq_of_dvd (dvd_mul_left _ _)).neg)
 
 protected theorem mul_right (c : ℤ) (h : a ≡ b [ZMOD n]) : a * c ≡ b * c [ZMOD n] :=
@@ -173,7 +173,7 @@ lemma mod_coprime {a b : ℕ} (hab : nat.coprime a b) : ∃ y : ℤ, a * y ≡ 1
 
 lemma exists_unique_equiv (a : ℤ) {b : ℤ} (hb : 0 < b) : ∃ z : ℤ, 0 ≤ z ∧ z < b ∧ z ≡ a [ZMOD b] :=
 ⟨ a % b, mod_nonneg _ (ne_of_gt hb),
-  have a % b < abs b, from mod_lt _ (ne_of_gt hb),
+  have a % b < |b|, from mod_lt _ (ne_of_gt hb),
   by rwa abs_of_pos hb at this,
   by simp [modeq] ⟩
 

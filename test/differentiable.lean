@@ -1,4 +1,5 @@
-import analysis.special_functions.trigonometric
+import analysis.special_functions.trigonometric.deriv
+import analysis.special_functions.log.deriv
 
 namespace real
 
@@ -34,7 +35,6 @@ by simp [h]
 
 end real
 
-
 namespace complex
 
 example : differentiable ℂ  (λ (x : ℂ), exp x) :=
@@ -64,22 +64,23 @@ by simp [exp_ne_zero]
 end complex
 
 namespace polynomial
+open_locale polynomial
 
 variables {R : Type*} [comm_semiring R]
 
-example : (2 : polynomial R).derivative = 0 :=
+example : (2 : R[X]).derivative = 0 :=
 by conv_lhs { simp }
 
-example : (3 + X : polynomial R).derivative = 1 :=
+example : (3 + X : R[X]).derivative = 1 :=
 by conv_lhs { simp }
 
-example : (2 * X ^ 2 : polynomial R).derivative = 4 * X :=
+example : (2 * X ^ 2 : R[X]).derivative = 4 * X :=
 by conv_lhs { simp, ring_nf, }
 
-example : (X ^ 2 : polynomial R).derivative = 2 * X :=
+example : (X ^ 2 : R[X]).derivative = 2 * X :=
 by conv_lhs { simp }
 
-example : ((C 2 * X ^ 3).derivative : polynomial R) = 6 * X ^ 2 :=
+example : ((C 2 * X ^ 3).derivative : R[X]) = 6 * X ^ 2 :=
 by conv_lhs { simp, ring_nf, }
 
 end polynomial

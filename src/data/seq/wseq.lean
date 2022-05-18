@@ -3,8 +3,9 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.seq.seq
 import data.dlist
+import data.list.basic
+import data.seq.seq
 
 open function
 universes u v w

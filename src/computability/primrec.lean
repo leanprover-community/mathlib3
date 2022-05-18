@@ -3,7 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.equiv.list
+import data.list.join
+import logic.equiv.list
 import logic.function.iterate
 
 /-!
@@ -524,7 +525,7 @@ theorem option_map₁ {f : α → σ} (hf : primrec f) : primrec (option.map f) 
 option_map primrec.id (hf.comp snd).to₂
 
 theorem option_iget [inhabited α] : primrec (@option.iget α _) :=
-(option_cases primrec.id (const $ default α) primrec₂.right).of_eq $
+(option_cases primrec.id (const $ @default α _) primrec₂.right).of_eq $
 λ o, by cases o; refl
 
 theorem option_is_some : primrec (@option.is_some α) :=
@@ -571,7 +572,7 @@ theorem nat_le : primrec_rel ((≤) : ℕ → ℕ → Prop) :=
 λ p, begin
   dsimp [swap],
   cases e : p.1 - p.2 with n,
-  { simp [nat.sub_eq_zero_iff_le.1 e] },
+  { simp [tsub_eq_zero_iff_le.1 e] },
   { simp [not_le.2 (nat.lt_of_sub_eq_succ e)] }
 end
 
@@ -1198,12 +1199,12 @@ begin
   induction pf,
   case nat.primrec'.zero { exact const 0 },
   case nat.primrec'.succ { exact primrec.succ.comp vector_head },
-  case nat.primrec'.nth : n i {
-    exact vector_nth.comp primrec.id (const i) },
-  case nat.primrec'.comp : m n f g _ _ hf hg {
-    exact hf.comp (vector_of_fn (λ i, hg i)) },
-  case nat.primrec'.prec : n f g _ _ hf hg {
-    exact nat_elim' vector_head (hf.comp vector_tail) (hg.comp $
+  case nat.primrec'.nth : n i
+  { exact vector_nth.comp primrec.id (const i) },
+  case nat.primrec'.comp : m n f g _ _ hf hg
+  { exact hf.comp (vector_of_fn (λ i, hg i)) },
+  case nat.primrec'.prec : n f g _ _ hf hg
+  { exact nat_elim' vector_head (hf.comp vector_tail) (hg.comp $
       vector_cons.comp (fst.comp snd) $
       vector_cons.comp (snd.comp snd) $
       (@vector_tail _ _ (n+1)).comp fst).to₂ },
@@ -1283,7 +1284,7 @@ theorem if_lt {n a b f g}
 (prec' (sub.comp₂ _ hb ha) hg (tail $ tail hf)).of_eq $
 λ v, begin
   cases e : b v - a v,
-  { simp [not_lt.2 (nat.le_of_sub_eq_zero e)] },
+  { simp [not_lt.2 (tsub_eq_zero_iff_le.mp e)] },
   { simp [nat.lt_of_sub_eq_succ e] }
 end
 
@@ -1348,12 +1349,12 @@ suffices ∀ f, nat.primrec f → @primrec' 1 (λ v, f v.head), from
   case nat.primrec.succ { exact succ },
   case nat.primrec.left { exact unpair₁ head },
   case nat.primrec.right { exact unpair₂ head },
-  case nat.primrec.pair : f g _ _ hf hg {
-    exact mkpair.comp₂ _ hf hg },
-  case nat.primrec.comp : f g _ _ hf hg {
-    exact hf.comp₁ _ hg },
-  case nat.primrec.prec : f g _ _ hf hg {
-    simpa using prec' (unpair₂ head)
+  case nat.primrec.pair : f g _ _ hf hg
+  { exact mkpair.comp₂ _ hf hg },
+  case nat.primrec.comp : f g _ _ hf hg
+  { exact hf.comp₁ _ hg },
+  case nat.primrec.prec : f g _ _ hf hg
+  { simpa using prec' (unpair₂ head)
       (hf.comp₁ _ (unpair₁ head))
       (hg.comp₁ _ $ mkpair.comp₂ _ (unpair₁ $ tail $ tail head)
         (mkpair.comp₂ _ head (tail head))) },

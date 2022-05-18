@@ -3,11 +3,12 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.fintype.basic
 import category_theory.fin_category
-import category_theory.limits.shapes.products
+import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.equalizers
+import category_theory.limits.shapes.wide_pullbacks
 import category_theory.limits.shapes.pullbacks
+import data.fintype.basic
 
 /-!
 # Categories with finite limits.
@@ -15,7 +16,7 @@ import category_theory.limits.shapes.pullbacks
 A typeclass for categories with all finite (co)limits.
 -/
 
-universes v u
+universes v' u' v u
 
 open category_theory
 
@@ -39,9 +40,15 @@ instance has_limits_of_shape_of_has_finite_limits
   (J : Type v) [small_category J] [fin_category J] [has_finite_limits C] :
   has_limits_of_shape J C := has_finite_limits.out J
 
+@[priority 100]
+instance has_finite_limits_of_has_limits_of_size [has_limits_of_size.{v' u'} C] :
+  has_finite_limits C :=
+⟨λ J hJ hJ', by { haveI := has_limits_of_size_shrink.{0 0} C,
+  exact has_limits_of_shape_of_equivalence (fin_category.equiv_as_type J) }⟩
+
 /-- If `C` has all limits, it has finite limits. -/
-lemma has_finite_limits_of_has_limits [has_limits C] : has_finite_limits C :=
-⟨λ J 𝒥₁ 𝒥₂, by apply_instance⟩
+@[priority 100]
+instance has_finite_limits_of_has_limits [has_limits C] : has_finite_limits C := infer_instance
 
 /--
 A category has all finite colimits if every functor `J ⥤ C` with a `fin_category J` instance
@@ -57,9 +64,16 @@ instance has_limits_of_shape_of_has_finite_colimits
   (J : Type v) [small_category J] [fin_category J] [has_finite_colimits C] :
   has_colimits_of_shape J C := has_finite_colimits.out J
 
+@[priority 100]
+instance has_finite_colimits_of_has_colimits_of_size [has_colimits_of_size.{v' u'} C] :
+  has_finite_colimits C :=
+⟨λ J hJ hJ', by { haveI := has_colimits_of_size_shrink.{0 0} C,
+  exact has_colimits_of_shape_of_equivalence (fin_category.equiv_as_type J) }⟩
+
 /-- If `C` has all colimits, it has finite colimits. -/
-lemma has_finite_colimits_of_has_colimits [has_colimits C] : has_finite_colimits C :=
-⟨λ J 𝒥₁ 𝒥₂, by apply_instance⟩
+@[priority 100]
+instance has_finite_colimits_of_has_colimits [has_colimits C] : has_finite_colimits C :=
+infer_instance
 
 section
 

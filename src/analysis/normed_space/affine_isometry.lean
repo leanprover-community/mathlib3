@@ -5,7 +5,6 @@ Authors: Heather Macbeth
 -/
 import analysis.normed_space.add_torsor
 import analysis.normed_space.linear_isometry
-import linear_algebra.affine_space.affine_subspace
 
 /-!
 # Affine isometries
@@ -18,7 +17,7 @@ We also prove basic lemmas and provide convenience constructors.  The choice of 
 constructors is closely modelled on those for the `linear_isometry` and `affine_map` theories.
 
 Since many elementary properties don't require `∥x∥ = 0 → x = 0` we initially set up the theory for
-`semi_normed_add_torsor` and specialize to `normed_add_torsor` only when needed.
+`semi_normed_group` and specialize to `normed_group` only when needed.
 
 ## Notation
 
@@ -33,14 +32,14 @@ open function set
 
 variables (𝕜 : Type*) {V V₁ V₂ V₃ V₄ : Type*} {P₁ : Type*} (P P₂ : Type*) {P₃ P₄ : Type*}
     [normed_field 𝕜]
-  [semi_normed_group V] [normed_group V₁] [semi_normed_group V₂] [semi_normed_group V₃]
+  [semi_normed_group V] [semi_normed_group V₁] [semi_normed_group V₂] [semi_normed_group V₃]
     [semi_normed_group V₄]
-  [semi_normed_space 𝕜 V] [normed_space 𝕜 V₁] [semi_normed_space 𝕜 V₂] [semi_normed_space 𝕜 V₃]
-    [semi_normed_space 𝕜 V₄]
+  [normed_space 𝕜 V] [normed_space 𝕜 V₁] [normed_space 𝕜 V₂] [normed_space 𝕜 V₃]
+    [normed_space 𝕜 V₄]
   [pseudo_metric_space P] [metric_space P₁] [pseudo_metric_space P₂] [pseudo_metric_space P₃]
     [pseudo_metric_space P₄]
-  [semi_normed_add_torsor V P] [normed_add_torsor V₁ P₁] [semi_normed_add_torsor V₂ P₂]
-    [semi_normed_add_torsor V₃ P₃] [semi_normed_add_torsor V₄ P₄]
+  [normed_add_torsor V P] [normed_add_torsor V₁ P₁] [normed_add_torsor V₂ P₂]
+    [normed_add_torsor V₃ P₃] [normed_add_torsor V₄ P₄]
 
 include V V₂
 
@@ -67,7 +66,7 @@ protected def linear_isometry : V →ₗᵢ[𝕜] V₂ :=
 by { ext, refl }
 
 include V V₂
-instance : has_coe_to_fun (P →ᵃⁱ[𝕜] P₂) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (P →ᵃⁱ[𝕜] P₂) (λ _, P → P₂) := ⟨λ f, f.to_fun⟩
 omit V V₂
 
 @[simp] lemma coe_to_affine_map : ⇑f.to_affine_map = f := rfl
@@ -193,7 +192,7 @@ instance : monoid (P →ᵃⁱ[𝕜] P) :=
   one_mul := id_comp,
   mul_one := comp_id }
 
-@[simp] lemma coe_one : ⇑(1 : P →ᵃⁱ[𝕜] P) = id := rfl
+@[simp] lemma coe_one : ⇑(1 : P →ᵃⁱ[𝕜] P) = _root_.id := rfl
 @[simp] lemma coe_mul (f g : P →ᵃⁱ[𝕜] P) : ⇑(f * g) = f ∘ g := rfl
 
 end affine_isometry
@@ -228,7 +227,7 @@ protected def linear_isometry_equiv : V ≃ₗᵢ[𝕜] V₂ :=
 by { ext, refl }
 
 include V V₂
-instance : has_coe_to_fun (P ≃ᵃⁱ[𝕜] P₂) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (P ≃ᵃⁱ[𝕜] P₂) (λ _, P → P₂) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_mk (e : P ≃ᵃ[𝕜] P₂) (he : ∀ x, ∥e.linear x∥ = ∥x∥) :
   ⇑(mk e he) = e :=
@@ -356,8 +355,8 @@ omit V V₂ V₃
 
 @[simp] lemma trans_refl : e.trans (refl 𝕜 P₂) = e := ext $ λ x, rfl
 @[simp] lemma refl_trans : (refl 𝕜 P).trans e = e := ext $ λ x, rfl
-@[simp] lemma trans_symm : e.trans e.symm = refl 𝕜 P := ext e.symm_apply_apply
-@[simp] lemma symm_trans : e.symm.trans e = refl 𝕜 P₂ := ext e.apply_symm_apply
+@[simp] lemma self_trans_symm : e.trans e.symm = refl 𝕜 P := ext e.symm_apply_apply
+@[simp] lemma symm_trans_self : e.symm.trans e = refl 𝕜 P₂ := ext e.apply_symm_apply
 
 include V V₂ V₃
 @[simp] lemma coe_symm_trans (e₁ : P ≃ᵃⁱ[𝕜] P₂) (e₂ : P₂ ≃ᵃⁱ[𝕜] P₃) :
@@ -378,7 +377,7 @@ instance : group (P ≃ᵃⁱ[𝕜] P) :=
   one_mul := trans_refl,
   mul_one := refl_trans,
   mul_assoc := λ _ _ _, trans_assoc _ _ _,
-  mul_left_inv := trans_symm }
+  mul_left_inv := self_trans_symm }
 
 @[simp] lemma coe_one : ⇑(1 : P ≃ᵃⁱ[𝕜] P) = id := rfl
 @[simp] lemma coe_mul (e e' : P ≃ᵃⁱ[𝕜] P) : ⇑(e * e') = e ∘ e' := rfl
@@ -520,7 +519,7 @@ lemma point_reflection_fixed_iff [invertible (2:𝕜)] {x y : P} :
   point_reflection 𝕜 x y = y ↔ y = x :=
 affine_equiv.point_reflection_fixed_iff_of_module 𝕜
 
-variables [semi_normed_space ℝ V]
+variables [normed_space ℝ V]
 
 lemma dist_point_reflection_self_real (x y : P) :
   dist (point_reflection ℝ x y) y = 2 * dist x y :=
@@ -539,15 +538,29 @@ end constructions
 end affine_isometry_equiv
 
 include V V₂
+
 /-- If `f` is an affine map, then its linear part is continuous iff `f` is continuous. -/
 lemma affine_map.continuous_linear_iff {f : P →ᵃ[𝕜] P₂} :
   continuous f.linear ↔ continuous f :=
 begin
   inhabit P,
   have : (f.linear : V → V₂) =
-    (affine_isometry_equiv.vadd_const 𝕜 $ f $ default P).to_homeomorph.symm ∘ f ∘
-      (affine_isometry_equiv.vadd_const 𝕜 $ default P).to_homeomorph,
+    (affine_isometry_equiv.vadd_const 𝕜 $ f default).to_homeomorph.symm ∘ f ∘
+      (affine_isometry_equiv.vadd_const 𝕜 default).to_homeomorph,
   { ext v, simp },
   rw this,
   simp only [homeomorph.comp_continuous_iff, homeomorph.comp_continuous_iff'],
+end
+
+/-- If `f` is an affine map, then its linear part is an open map iff `f` is an open map. -/
+lemma affine_map.is_open_map_linear_iff {f : P →ᵃ[𝕜] P₂} :
+  is_open_map f.linear ↔ is_open_map f :=
+begin
+  inhabit P,
+  have : (f.linear : V → V₂) =
+    (affine_isometry_equiv.vadd_const 𝕜 $ f default).to_homeomorph.symm ∘ f ∘
+      (affine_isometry_equiv.vadd_const 𝕜 default).to_homeomorph,
+  { ext v, simp },
+  rw this,
+  simp only [homeomorph.comp_is_open_map_iff, homeomorph.comp_is_open_map_iff'],
 end

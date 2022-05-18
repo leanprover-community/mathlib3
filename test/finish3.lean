@@ -2,10 +2,15 @@
 Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
-
-Examples from the tutorial.
 -/
 import tactic.finish
+
+/-!
+# Examples for `finish`
+
+Those come from the tutorial.
+-/
+
 open auto
 
 section

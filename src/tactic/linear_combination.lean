@@ -345,23 +345,6 @@ section interactive_mode
 setup_tactic_parser
 
 /--
-A parser that matches a pair in parentheses (where the first item in the pair
-is an identifier and the second item in the pair is a `pexpr`) or an identifier
-by itself.  If the identifier is by itself, this parser behaves as though it
-was given a `pexpr ` of ``(1) along with the identifier.
-
-* Input: None
-
-* Output: a `lean.parser (name × pexpr)`
--/
-meta def parse_name_pexpr_pair : lean.parser (pexpr × pexpr) :=
-with_desc "(pexpr, pexpr) <|> (pexpr)" $ do
-  tk "(",
-  pe ← parser.pexpr 0,
-  (tk ")" >> return (pe, ``(1))) <|>
-  (do tk ",", cf ← parser.pexpr 0, tk ")", return (pe, cf))
-
-/--
 `linear_combination` attempts to prove the target by creating and applying a
   linear combination of a list of equalities.  The tactic will create a linear
   combination by adding the equalities together from left to right, so the order
@@ -375,10 +358,14 @@ Note: The left and right sides of all the equalities should have the same
   instances of `has_mul` and `add_group` for this type.
 
 * Input:
-  * `input` : the pairs of hypotheses and their corresponding coefficients.
-      If no coefficient is given with a hypothesis, then the coefficient for
-      that hypothesis will be set to 1.
-  * `config` : a linear_combination_config, which determines the tactic used
+  * `input` : the linear combination of proofs of equalities, given as a sum/difference
+      of coefficients multiplied by expressions. The coefficients may be arbitrary
+      pre-expressions; if a coefficient is an application of `+` or `-` it should be
+      surrounded by parentheses. The expressions can be arbitrary proof terms proving
+      equalities. Most commonly they are hypothesis names `h1, h2, ...`.
+
+      If a coefficient is omitted, it is taken to be `1`.
+  * `config` : a `linear_combination_config`, which determines the tactic used
       for normalization; by default, this value is the standard configuration
       for a linear_combination_config.  In the standard configuration,
       `normalize` is set to tt (meaning this tactic is set to use
@@ -388,28 +375,33 @@ Example Usage:
 ```
 example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
   x*y = -2*y + 1 :=
-by linear_combination (h1, 1) (h2, -2)
+by linear_combination 1*h1 - 2*h2
 
 example (x y : ℤ) (h1 : x*y + 2*x = 1) (h2 : x = y) :
   x*y = -2*y + 1 :=
-by linear_combination (h1) (h2, -2)
+by linear_combination h1 - 2*h2
 
 example (x y z : ℝ) (ha : x + 2*y - z = 4) (hb : 2*x + y + z = -2)
     (hc : x + 2*y + z = 2) :
   -3*x - 3*y - 4*z = 2 :=
-by linear_combination (ha, 1) (hb, -1) (hc, -2)
+by linear_combination ha - hb - 2*hc
 
 example (x y : ℚ) (h1 : x + y = 3) (h2 : 3*x = 7) :
   x*x*y + y*x*y + 6*x = 3*x*y + 14 :=
-by linear_combination (h1, x*y) (h2, 2)
+by linear_combination x*y*h1 + 2*h2
 
 example (x y : ℤ) (h1 : x = -3) (h2 : y = 10) :
   2*x = -6 :=
 begin
-  linear_combination (h1, 2) {normalize := ff},
+  linear_combination 2*h1 with {normalize := ff},
   simp,
   norm_cast
 end
+
+constants (qc : ℚ) (hqc : qc = 2*qc)
+
+example (a b : ℚ) (h : ∀ p q : ℚ, p = q) : 3*a + qc = 3*b + 2*qc :=
+by linear_combination 3 * h a b + hqc
 ```
 -/
 meta def _root_.tactic.interactive.linear_combination

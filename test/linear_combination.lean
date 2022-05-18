@@ -6,7 +6,7 @@ import data.real.basic
 
 example (x y : ℤ) (h1 : 3*x + 2*y = 10):
   3*x + 2*y = 10 :=
-by linear_combination 1*h1 -- (h1, 1)
+by linear_combination 1*h1
 
 example (x y : ℤ) (h1 : 3*x + 2*y = 10):
   3*x + 2*y = 10 :=
@@ -110,6 +110,11 @@ constants (qc : ℚ) (hqc : qc = 2*qc)
 
 example (a b : ℚ) (h : ∀ p q : ℚ, p = q) : 3*a + qc = 3*b + 2*qc :=
 by linear_combination 3 * h a b + hqc
+
+constant bad (q : ℚ) : q = 0
+
+example (a b : ℚ) : a + b^3 = 0 :=
+by linear_combination bad a + b * bad (b*b)
 
 /-! ### Cases with arbitrary coefficients -/
 

@@ -8,7 +8,7 @@ import data.real.basic
 import analysis.normed_space.basic
 
 /-!
-# IMO 1972 B2
+# IMO 1972 Q5
 
 Problem: `f` and `g` are real-valued functions defined on the real line. For all `x` and `y`,
 `f(x + y) + f(x - y) = 2f(x)g(y)`. `f` is not identically zero and `|f(x)| ≤ 1` for all `x`.
@@ -30,7 +30,6 @@ example (f g : ℝ → ℝ)
   (y : ℝ) :
   ∥g(y)∥ ≤ 1 :=
 begin
-  classical,
   set S := set.range (λ x, ∥f x∥),
   -- Introduce `k`, the supremum of `f`.
   let k : ℝ := Sup (S),
@@ -86,7 +85,7 @@ begin
 end
 
 
-/-- IMO 1972 B2
+/-- IMO 1972 Q5
 
 Problem: `f` and `g` are real-valued functions defined on the real line. For all `x` and `y`,
 `f(x + y) + f(x - y) = 2f(x)g(y)`. `f` is not identically zero and `|f(x)| ≤ 1` for all `x`.

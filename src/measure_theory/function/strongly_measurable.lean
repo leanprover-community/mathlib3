@@ -744,10 +744,8 @@ lemma measurable_set_eq_fun {m : measurable_space α} {E} [topological_space E] 
   {f g : α → E} (hf : strongly_measurable f) (hg : strongly_measurable g) :
   measurable_set {x | f x = g x} :=
 begin
-  letI := metrizable_space_metric E,
-  have : {x | f x = g x} = {x | dist (f x) (g x) = 0}, by { ext x, simp },
-  rw this,
-  exact (hf.dist hg).measurable (measurable_set_singleton (0 : ℝ)),
+  borelize E × E,
+  exact (hf.prod_mk hg).measurable is_closed_diagonal.measurable_set
 end
 
 lemma measurable_set_lt {m : measurable_space α} [topological_space β]
@@ -755,35 +753,17 @@ lemma measurable_set_lt {m : measurable_space α} [topological_space β]
   {f g : α → β} (hf : strongly_measurable f) (hg : strongly_measurable g) :
   measurable_set {a | f a < g a} :=
 begin
-  letI := metrizable_space_metric β,
-  let β' : Type* := (range f ∪ range g : set β),
-  haveI : second_countable_topology β',
-  { suffices : separable_space (range f ∪ range g : set β),
-      by exactI uniform_space.second_countable_of_separable _,
-    apply (hf.is_separable_range.union hg.is_separable_range).separable_space },
-  let f' : α → β' := cod_restrict f _ (by simp),
-  let g' : α → β' := cod_restrict g _ (by simp),
-  change measurable_set {a | f' a < g' a},
-  borelize β,
-  exact measurable_set_lt hf.measurable.subtype_mk hg.measurable.subtype_mk,
+  borelize β × β,
+  exact (hf.prod_mk hg).measurable is_open_lt_prod.measurable_set
 end
 
 lemma measurable_set_le {m : measurable_space α} [topological_space β]
-  [linear_order β] [order_closed_topology β] [metrizable_space β]
+  [preorder β] [order_closed_topology β] [metrizable_space β]
   {f g : α → β} (hf : strongly_measurable f) (hg : strongly_measurable g) :
   measurable_set {a | f a ≤ g a} :=
 begin
-  letI := metrizable_space_metric β,
-  let β' : Type* := (range f ∪ range g : set β),
-  haveI : second_countable_topology β',
-  { suffices : separable_space (range f ∪ range g : set β),
-      by exactI uniform_space.second_countable_of_separable _,
-    apply (hf.is_separable_range.union hg.is_separable_range).separable_space },
-  let f' : α → β' := cod_restrict f _ (by simp),
-  let g' : α → β' := cod_restrict g _ (by simp),
-  change measurable_set {a | f' a ≤ g' a},
-  borelize β,
-  exact measurable_set_le hf.measurable.subtype_mk hg.measurable.subtype_mk,
+  borelize β × β,
+  exact (hf.prod_mk hg).measurable is_closed_le_prod.measurable_set
 end
 
 end strongly_measurable
@@ -1299,6 +1279,11 @@ lemma comp_measurable {γ : Type*} {mγ : measurable_space γ} {mα : measurable
   ae_strongly_measurable (g ∘ f) μ :=
 hg.comp_ae_measurable hf.ae_measurable
 
+lemma comp_measurable' {γ : Type*} {mγ : measurable_space γ} {mα : measurable_space α} {f : γ → α}
+  {μ : measure γ} {ν : measure α} (hg : ae_strongly_measurable g ν) (hf : measurable f)
+  (h : μ.map f ≪ ν) : ae_strongly_measurable (g ∘ f) μ :=
+(hg.mono' h).comp_measurable hf
+
 lemma is_separable_ae_range (hf : ae_strongly_measurable f μ) :
   ∃ (t : set β), is_separable t ∧ ∀ᵐ x ∂μ, f x ∈ t :=
 begin
@@ -1513,10 +1498,12 @@ lemma apply_continuous_linear_map {φ : α → F →L[𝕜] E}
   ae_strongly_measurable (λ a, φ a v) μ :=
 (continuous_linear_map.apply 𝕜 E v).continuous.comp_ae_strongly_measurable hφ
 
-lemma ae_strongly_measurable_comp₂ (L : E →L[𝕜] F →L[𝕜] G) {f : α → E} {g : α → F}
+lemma _root_.continuous_linear_map.ae_strongly_measurable_comp₂ (L : E →L[𝕜] F →L[𝕜] G)
+  {f : α → E} {g : α → F}
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
   ae_strongly_measurable (λ x, L (f x) (g x)) μ :=
 L.continuous₂.comp_ae_strongly_measurable $ hf.prod_mk hg
+
 end continuous_linear_map_nondiscrete_normed_field
 
 lemma _root_.ae_strongly_measurable_with_density_iff {E : Type*} [normed_group E] [normed_space ℝ E]

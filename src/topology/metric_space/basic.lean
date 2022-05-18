@@ -1044,6 +1044,20 @@ lemma pseudo_metric_space.replace_uniformity_eq {α} [U : uniform_space α]
   m.replace_uniformity H = m :=
 by { ext, refl }
 
+/-- Build a new pseudo metric space from an old one where the bundled topological structure is
+provably (but typically non-definitionaly) equal to some given topological structure.
+See Note [forgetful inheritance].
+-/
+@[reducible] def pseudo_metric_space.replace_topology {γ} [U : topological_space γ]
+  (m : pseudo_metric_space γ) (H : U = m.to_uniform_space.to_topological_space) :
+  pseudo_metric_space γ :=
+@pseudo_metric_space.replace_uniformity γ (m.to_uniform_space.replace_topology H) m rfl
+
+lemma pseudo_metric_space.replace_topology_eq {γ} [U : topological_space γ]
+  (m : pseudo_metric_space γ) (H : U = m.to_uniform_space.to_topological_space) :
+  m.replace_topology H = m :=
+by { ext, refl }
+
 /-- One gets a pseudometric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
 uniformity are defeq in the pseudometric space and the pseudoemetric space. In this definition, the
@@ -1086,17 +1100,8 @@ theorem metric.complete_of_convergent_controlled_sequences (B : ℕ → real) (h
   (H : ∀u : ℕ → α, (∀N n m : ℕ, N ≤ n → N ≤ m → dist (u n) (u m) < B N) →
     ∃x, tendsto u at_top (𝓝 x)) :
   complete_space α :=
-begin
-  -- this follows from the same criterion in emetric spaces. We just need to translate
-  -- the convergence assumption from `dist` to `edist`
-  apply emetric.complete_of_convergent_controlled_sequences (λn, ennreal.of_real (B n)),
-  { simp [hB] },
-  { assume u Hu,
-    apply H,
-    assume N n m hn hm,
-    rw [← ennreal.of_real_lt_of_real_iff (hB N), ← edist_dist],
-    exact Hu N n m hn hm }
-end
+uniform_space.complete_of_convergent_controlled_sequences
+  (λ n, {p:α×α | dist p.1 p.2 < B n}) (λ n, dist_mem_uniformity $ hB n) H
 
 theorem metric.complete_of_cauchy_seq_tendsto :
   (∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) → complete_space α :=
@@ -1339,6 +1344,13 @@ def pseudo_metric_space.induced {α β} (f : α → β)
       exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
+/-- Pull back a pseudometric space structure by an inducing map. This is a version of
+`pseudo_metric_space.induced` useful in case if the domain already has a `topological_space`
+structure. -/
+def inducing.comap_pseudo_metric_space {α β} [topological_space α] [pseudo_metric_space β]
+  {f : α → β} (hf : inducing f) : pseudo_metric_space α :=
+(pseudo_metric_space.induced f ‹_›).replace_topology hf.induced
+
 /-- Pull back a pseudometric space structure by a uniform inducing map. This is a version of
 `pseudo_metric_space.induced` useful in case if the domain already has a `uniform_space`
 structure. -/
@@ -1366,20 +1378,19 @@ end mul_opposite
 
 section nnreal
 
-noncomputable instance : pseudo_metric_space ℝ≥0 := by unfold nnreal; apply_instance
+noncomputable instance : pseudo_metric_space ℝ≥0 := subtype.pseudo_metric_space
 
 lemma nnreal.dist_eq (a b : ℝ≥0) : dist a b = |(a:ℝ) - b| := rfl
 
 lemma nnreal.nndist_eq (a b : ℝ≥0) :
   nndist a b = max (a - b) (b - a) :=
 begin
-  wlog h : a ≤ b,
-  { apply nnreal.coe_eq.1,
-    rw [tsub_eq_zero_iff_le.2 h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
-      nnreal.coe_sub h, abs_eq_max_neg, neg_sub],
-    apply max_eq_right,
-    linarith [nnreal.coe_le_coe.2 h] },
-  rwa [nndist_comm, max_comm]
+  /- WLOG, `b ≤ a`. `wlog h : b ≤ a` works too but it is much slower because Lean tries to prove one
+  case from the other and fails; `tactic.skip` tells Lean not to try. -/
+  wlog h : b ≤ a := le_total b a using [a b, b a] tactic.skip,
+  { rw [← nnreal.coe_eq, ← dist_nndist, nnreal.dist_eq, tsub_eq_zero_iff_le.2 h,
+      max_eq_left (zero_le $ a - b), ← nnreal.coe_sub h, abs_of_nonneg (a - b).coe_nonneg] },
+  { rwa [nndist_comm, max_comm] }
 end
 
 @[simp] lemma nnreal.nndist_zero_eq_val (z : ℝ≥0) : nndist 0 z = z :=
@@ -1544,23 +1555,12 @@ subset.antisymm
 
 lemma dense_iff {s : set α} :
   dense s ↔ ∀ x, ∀ r > 0, (ball x r ∩ s).nonempty :=
-begin
-  apply forall_congr (λ x, _),
-  rw mem_closure_iff,
-  refine forall_congr (λ ε, forall_congr (λ h, exists_congr (λ y, _))),
-  rw [mem_inter_iff, mem_ball', exists_prop, and_comm]
-end
+forall_congr $ λ x, by simp only [mem_closure_iff, set.nonempty, exists_prop, mem_inter_eq,
+  mem_ball', and_comm]
 
 lemma dense_range_iff {f : β → α} :
   dense_range f ↔ ∀ x, ∀ r > 0, ∃ y, dist x (f y) < r :=
-begin
-  rw [dense_range, metric.dense_iff],
-  refine forall_congr (λ x, forall_congr (λ r, forall_congr (λ rpos, ⟨_, _⟩))),
-  { rintros ⟨-, hz, ⟨z, rfl⟩⟩,
-    exact ⟨z, metric.mem_ball'.1 hz⟩ },
-  { rintros ⟨z, hz⟩,
-    exact ⟨f z, metric.mem_ball'.1 hz, mem_range_self _⟩ }
-end
+forall_congr $ λ x, by simp only [mem_closure_iff, exists_range_iff]
 
 /-- If a set `s` is separable, then the corresponding subtype is separable in a metric space.
 This is not obvious, as the countable set whose closure covers `s` does not need in general to
@@ -1651,7 +1651,7 @@ begin
 end
 
 lemma nndist_pi_def (f g : Πb, π b) : nndist f g = sup univ (λb, nndist (f b) (g b)) :=
-subtype.eta _ _
+nnreal.eq rfl
 
 lemma dist_pi_def (f g : Πb, π b) :
   dist f g = (sup univ (λb, nndist (f b) (g b)) : ℝ≥0) := rfl
@@ -2521,12 +2521,7 @@ See Note [forgetful inheritance].
 @[reducible] def metric_space.replace_topology {γ} [U : topological_space γ] (m : metric_space γ)
   (H : U = m.to_pseudo_metric_space.to_uniform_space.to_topological_space) :
   metric_space γ :=
-begin
-  let t := m.to_pseudo_metric_space.to_uniform_space.replace_topology H,
-  letI : uniform_space γ := t,
-  have : @uniformity _ t = @uniformity _ m.to_pseudo_metric_space.to_uniform_space := rfl,
-  exact m.replace_uniformity this
-end
+@metric_space.replace_uniformity γ (m.to_uniform_space.replace_topology H) m rfl
 
 lemma metric_space.replace_topology_eq {γ} [U : topological_space γ] (m : metric_space γ)
   (H : U = m.to_pseudo_metric_space.to_uniform_space.to_topological_space) :

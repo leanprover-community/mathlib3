@@ -175,7 +175,7 @@ begin
   { have hroot := aeval A (algebra_map A B a),
     rw [hrw, add_comm] at hroot,
     simp only [aeval_C, aeval_X, aeval_add] at hroot,
-    replace hroot := eq_neg_of_add_eq_zero hroot,
+    replace hroot := eq_neg_of_add_eq_zero_left hroot,
     rw [←ring_hom.map_neg _ a] at hroot,
     exact (hf hroot) },
   rw hrw,

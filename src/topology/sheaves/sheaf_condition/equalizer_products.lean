@@ -6,7 +6,6 @@ Authors: Scott Morrison
 import category_theory.full_subcategory
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.products
-import tactic.elementwise
 import topology.sheaves.presheaf
 
 /-!

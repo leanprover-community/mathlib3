@@ -17,8 +17,6 @@ apply_nolint freiman_hom.has_coe_to_fun to_additive_doc
 
 -- algebra/hom/group.lean
 apply_nolint monoid_hom.ext_iff to_additive_doc
-apply_nolint monoid_hom.map_inv to_additive_doc
-apply_nolint monoid_hom.map_mul_inv to_additive_doc
 apply_nolint mul_hom.ext_iff to_additive_doc
 apply_nolint one_hom.comp_assoc to_additive_doc
 
@@ -381,11 +379,6 @@ apply_nolint wseq.lift_rel_o doc_blame
 apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
-
--- data/set/pointwise.lean
-apply_nolint set.set_semiring.comm_semiring check_reducibility
-apply_nolint set.set_semiring.non_assoc_semiring check_reducibility
-apply_nolint set.set_semiring.non_unital_non_assoc_semiring check_reducibility
 
 -- data/stream/defs.lean
 apply_nolint stream.corec doc_blame

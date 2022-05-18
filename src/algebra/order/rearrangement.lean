@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mantas Bakšys
 -/
 import algebra.order.module
+import data.prod.lex
 import group_theory.perm.support
-import order.lexicographic
 import order.monovary
 import tactic.abel
 

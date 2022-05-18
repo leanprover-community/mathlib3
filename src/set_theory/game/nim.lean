@@ -150,7 +150,7 @@ instance nim_impartial (O : ordinal) : impartial (nim O) :=
 begin
   induction O using ordinal.induction with O IH,
   rw [impartial_def, neg_nim],
-  refine ⟨equiv_refl _, λ i, _, λ i, _⟩;
+  refine ⟨equiv_rfl, λ i, _, λ i, _⟩;
   simpa using IH _ (typein_lt_self _)
 end
 
@@ -161,14 +161,11 @@ lemma exists_move_left_eq {O O' : ordinal} (h : O' < O) : ∃ i, (nim O).move_le
 ⟨to_left_moves_nim ⟨O', h⟩, by simp⟩
 
 @[simp] lemma zero_first_loses : (nim (0 : ordinal)).first_loses :=
-begin
-  rw [impartial.first_loses_symm, nim_def, le_def_lt],
-  exact ⟨@is_empty_elim (0 : ordinal).out.α _ _, @is_empty_elim pempty _ _⟩
-end
+equiv.is_empty _
 
 lemma non_zero_first_wins {O : ordinal} (hO : O ≠ 0) : (nim O).first_wins :=
 begin
-  rw [impartial.first_wins_symm, nim_def, lt_def_le],
+  rw [impartial.first_wins_symm, nim_def, lf_def_le],
   rw ←ordinal.pos_iff_ne_zero at hO,
   exact or.inr ⟨(ordinal.principal_seg_out hO).top, by simp⟩
 end
@@ -180,9 +177,9 @@ begin
     intro h,
     rw [impartial.not_first_loses],
     wlog h' : O₁ ≤ O₂ using [O₁ O₂, O₂ O₁],
-    { exact ordinal.le_total O₁ O₂ },
+    { exact le_total O₁ O₂ },
     { have h : O₁ < O₂ := lt_of_le_of_ne h' h,
-      rw [impartial.first_wins_symm', lt_def_le, nim_def O₂],
+      rw [impartial.first_wins_symm', lf_def_le, nim_def O₂],
       refine or.inl ⟨(left_moves_add (nim O₁) _).symm (sum.inr _), _⟩,
       { exact (ordinal.principal_seg_out h).top },
       { simpa using (impartial.add_self (nim O₁)).2 } },
@@ -196,7 +193,7 @@ by rw [iff_not_comm, impartial.not_first_wins, sum_first_loses_iff_eq]
 
 @[simp] lemma equiv_iff_eq (O₁ O₂ : ordinal) : nim O₁ ≈ nim O₂ ↔ O₁ = O₂ :=
 ⟨λ h, (sum_first_loses_iff_eq _ _).1 $
-  by rw [first_loses_of_equiv_iff (add_congr h (equiv_refl _)), sum_first_loses_iff_eq],
+  by rw [first_loses_of_equiv_iff (add_congr_left h), sum_first_loses_iff_eq],
  by { rintro rfl, refl }⟩
 
 end nim
@@ -222,8 +219,7 @@ begin
   equiv_rw left_moves_add G (nim (grundy_value G)) at i,
   cases i with i₁ i₂,
   { rw add_move_left_inl,
-    apply first_wins_of_equiv
-     (add_congr (equiv_nim_grundy_value (G.move_left i₁)).symm (equiv_refl _)),
+    apply first_wins_of_equiv (add_congr_left (equiv_nim_grundy_value (G.move_left i₁)).symm),
     rw nim.sum_first_wins_iff_neq,
     intro heq,
     rw [eq_comm, grundy_value_def G] at heq,
@@ -247,7 +243,7 @@ begin
     use (left_moves_add _ _).symm (sum.inl i),
     rw [add_move_left_inl, move_left_mk],
     apply first_loses_of_equiv
-      (add_congr (equiv_symm (equiv_nim_grundy_value (G.move_left i))) (equiv_refl _)),
+      (add_congr_left (equiv_nim_grundy_value (G.move_left i)).symm),
     simpa only [hi] using impartial.add_self (nim (grundy_value (G.move_left i))) }
 end
 using_well_founded { dec_tac := pgame_wf_tac }

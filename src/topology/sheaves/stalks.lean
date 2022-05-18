@@ -17,11 +17,8 @@ import algebra.category.Ring
 # Stalks
 
 For a presheaf `F` on a topological space `X`, valued in some category `C`, the *stalk* of `F`
-at the point `x : X` is defined as the colimit of the following functor
-
-(nhds x)ᵒᵖ ⥤ (opens X)ᵒᵖ ⥤ C
-
-where the functor on the left is the inclusion of categories and the functor on the right is `F`.
+at the point `x : X` is defined as the colimit of the composition of the inclusion of categories
+`(nhds x)ᵒᵖ ⥤ (opens X)ᵒᵖ` and the functor `F : (opens X)ᵒᵖ ⥤ C`.
 For an open neighborhood `U` of `x`, we define the map `F.germ x : F.obj (op U) ⟶ F.stalk x` as the
 canonical morphism into this colimit.
 

@@ -24,6 +24,7 @@ set consists of all previous ordinals.
 -/
 
 local infix ` ≈ ` := pgame.equiv
+local infix ` ⧏ `:50 := pgame.lf
 
 universe u
 
@@ -72,19 +73,25 @@ theorem to_pgame_move_left {o : ordinal} (i) :
   o.to_pgame.move_left (to_left_moves_to_pgame i) = i.val.to_pgame :=
 by simp
 
-theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
-by { convert pgame.move_left_lt (to_left_moves_to_pgame ⟨a, h⟩), rw to_pgame_move_left }
+theorem to_pgame_lf {a b : ordinal} (h : a < b) : a.to_pgame ⧏ b.to_pgame :=
+by { convert pgame.move_left_lf (to_left_moves_to_pgame ⟨a, h⟩), rw to_pgame_move_left }
 
 theorem to_pgame_le {a b : ordinal} (h : a ≤ b) : a.to_pgame ≤ b.to_pgame :=
 pgame.le_def.2 ⟨λ i, or.inl ⟨to_left_moves_to_pgame
   ⟨(to_left_moves_to_pgame.symm i).val, (to_left_moves_to_pgame_symm_lt i).trans_le h⟩, by simp⟩,
   is_empty_elim⟩
 
-@[simp] theorem to_pgame_lt_iff {a b : ordinal} : a.to_pgame < b.to_pgame ↔ a < b :=
-⟨by { contrapose, rw [not_lt, pgame.not_lt], exact to_pgame_le }, to_pgame_lt⟩
+theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
+pgame.lt_of_le_of_lf (to_pgame_le h.le) (to_pgame_lf h)
+
+@[simp] theorem to_pgame_lf_iff {a b : ordinal} : a.to_pgame ⧏ b.to_pgame ↔ a < b :=
+⟨by { contrapose, rw [not_lt, pgame.not_lf], exact to_pgame_le }, to_pgame_lf⟩
 
 @[simp] theorem to_pgame_le_iff {a b : ordinal} : a.to_pgame ≤ b.to_pgame ↔ a ≤ b :=
-⟨by { contrapose, rw [not_le, pgame.not_le], exact to_pgame_lt }, to_pgame_le⟩
+⟨by { contrapose, rw [not_le, pgame.not_le], exact to_pgame_lf }, to_pgame_le⟩
+
+@[simp] theorem to_pgame_lt_iff {a b : ordinal} : a.to_pgame < b.to_pgame ↔ a < b :=
+⟨by { contrapose, rw not_lt, exact λ h, not_lt_of_le (to_pgame_le h) }, to_pgame_lt⟩
 
 @[simp] theorem to_pgame_equiv_iff {a b : ordinal} : a.to_pgame ≈ b.to_pgame ↔ a = b :=
 by rw [pgame.equiv, le_antisymm_iff, to_pgame_le_iff, to_pgame_le_iff]
@@ -95,7 +102,7 @@ theorem to_pgame_injective : function.injective ordinal.to_pgame :=
   cases lt_or_gt_of_ne hne with hlt hlt;
   { have := to_pgame_lt hlt,
     rw h at this,
-    exact pgame.lt_irrefl _ this }
+    exact lt_irrefl _ this }
 end
 
 /-- The order embedding version of `to_pgame`. -/

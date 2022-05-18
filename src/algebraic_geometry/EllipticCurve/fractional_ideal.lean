@@ -545,7 +545,8 @@ end
 
 /-- `val_v(∏_{w ≠ v} w^{exps w}) = 0`. -/
 lemma fractional_ideal.count_finprod_coprime (exps : height_one_spectrum R → ℤ) :
-  fractional_ideal.count K v (∏ᶠ (w : height_one_spectrum R) (H : w ≠ v), ↑(w.as_ideal) ^ exps w) = 0 :=
+  fractional_ideal.count K v (∏ᶠ (w : height_one_spectrum R) (H : w ≠ v), ↑(w.as_ideal) ^ exps w)
+    = 0 :=
 begin
   apply finprod_mem_induction (λ I, fractional_ideal.count K v I = 0),
   { exact fractional_ideal.count_one K v },

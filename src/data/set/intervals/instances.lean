@@ -4,12 +4,16 @@ import algebra.group_power.order
 
 open set
 
+instance {α : Type*} [ordered_semiring α] : semigroup (Icc (0:α) 1) := {
+  mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1, mul_le_one p.2.2 q.2.1 q.2.2⟩⟩,
+  mul_assoc := λ p q r, subtype.mk_eq_mk.2 (mul_assoc p q r) }
+
 instance {α : Type*} [ordered_semiring α] : monoid (Icc (0:α) 1) := {
   mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1, mul_le_one p.2.2 q.2.1 q.2.2⟩⟩,
   mul_assoc := λ p q r, subtype.mk_eq_mk.2 (mul_assoc p q r),
   one := ⟨1, right_mem_Icc.2 zero_le_one⟩,
-  one_mul := λ p, (by simp),
-  mul_one := λ p, (by simp),
+  one_mul := λ p, (by simp only [subtype.coe_mk, one_mul, subtype.coe_eta]),
+  mul_one := λ p, (by simp only [subtype.coe_mk, mul_one, subtype.coe_eta]),
   npow := λ n p, ⟨p.1 ^ n, ⟨pow_nonneg p.2.1 n, pow_le_one n p.2.1 p.2.2⟩⟩,
   npow_zero' := λ p, (by simp [has_one.one]),
   npow_succ' :=

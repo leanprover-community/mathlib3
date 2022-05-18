@@ -262,7 +262,7 @@ theorem subset_zero {s : multiset α} : s ⊆ 0 ↔ s = 0 :=
 ⟨eq_zero_of_subset_zero, λ xeq, xeq.symm ▸ subset.refl 0⟩
 
 lemma induction_on' {p : multiset α → Prop} (S : multiset α)
-  (h₁ : p ∅) (h₂ : ∀ {a s}, a ∈ S → s ⊆ S → p s → p (insert a s)) : p S :=
+  (h₁ : p 0) (h₂ : ∀ {a s}, a ∈ S → s ⊆ S → p s → p (insert a s)) : p S :=
 @multiset.induction_on α (λ T, T ⊆ S → p T) S (λ _, h₁) (λ a s hps hs,
   let ⟨hS, sS⟩ := cons_subset.1 hs in h₂ hS sS (hps sS)) (subset.refl S)
 
@@ -377,7 +377,7 @@ ne_of_gt (lt_cons_self _ _)
 ⟨λ h, mem_of_le h (mem_singleton_self _),
  λ h, let ⟨t, e⟩ := exists_cons_of_mem h in e.symm ▸ cons_le_cons _ (zero_le _)⟩
 
-theorem pair_comm (x y : α) : ({x, y} : multiset α) = {y, x} := cons_swap x y ∅
+theorem pair_comm (x y : α) : ({x, y} : multiset α) = {y, x} := cons_swap x y 0
 
 /-! ### Additive monoid -/
 

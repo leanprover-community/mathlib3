@@ -4,6 +4,8 @@ import algebra.group_power.order
 
 open set
 
+/-- Instances for `(Icc 0 1)` -/
+
 instance {α : Type*} [ordered_semiring α] : monoid (Icc (0:α) 1) := {
   mul := λ p q, ⟨p*q, ⟨mul_nonneg p.2.1 q.2.1, mul_le_one p.2.2 q.2.1 q.2.2⟩⟩,
   mul_assoc := λ p q r, subtype.mk_eq_mk.2 (mul_assoc p q r),
@@ -37,6 +39,8 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_monoid_with_zero (Icc (0
   ..(show monoid (Icc (0:α) 1), by apply_instance) }
 
 
+/-- Instances for `(Ico 0 1)` -/
+
 instance {α : Type*} [ordered_semiring α] : semigroup (Ico (0:α) 1) := {
   mul :=
   begin
@@ -64,6 +68,81 @@ instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ico (0:α) 1)
   ..(show semigroup (Ico (0:α) 1), by apply_instance)
 }
 
+
+/-- Instances for `(Ioc 0 1)` -/
+
+instance {α : Type*} [ordered_comm_semiring α] : comm_monoid (Ioc (0:α) 1) := {
+  mul :=
+begin
+  refine λ p q, _,
+  rcases p with ⟨p1, ⟨p21,p22⟩⟩,
+  rcases q with ⟨q1, ⟨q21,q22⟩⟩,
+  use p1*q1,
+  simp only [mem_Ioc, canonically_ordered_comm_semiring.mul_pos],
+
+
+  sorry,
+end ,
+  mul_assoc := sorry,
+  one := sorry,
+  one_mul := sorry,
+  mul_one := sorry,
+  npow := sorry,
+  npow_zero' := sorry,
+  npow_succ' := sorry,
+  mul_comm := sorry }
+
+
+
+/-- Instances for `(Ioo 0 1)` : `comm_semigroup (Ioo 0 1)` -/
+
+instance {α : Type*} [ordered_comm_semiring α] : comm_semigroup (Ioo (0:α) 1) := {
+  mul := sorry,
+  mul_assoc := sorry,
+  mul_comm := sorry }
+
+
+
+/-- Instances for `(Icc (-1) 1)`: `comm_monoid_with_zero (Icc (-1) 1)` -/
+instance {α : Type*} [ordered_comm_semiring α] :
+  comm_monoid_with_zero (Icc (-1:α) 1) := {
+  mul := sorry,
+  mul_assoc := sorry,
+  one := sorry,
+  one_mul := sorry,
+  mul_one := sorry,
+  npow := sorry,
+  npow_zero' := sorry,
+  npow_succ' := sorry,
+  mul_comm := sorry,
+  zero := sorry,
+  zero_mul := sorry,
+  mul_zero := sorry }
+
+
+/-- Instances for `(Ioc (-1) 1`: `comm_monoid_with_zero (Ioc (-1) 1` -/
+instance {α : Type*} [ordered_comm_semiring α] [has_neg α] :
+  comm_monoid_with_zero (Ioc (-1:α) 1) := {
+  mul := sorry,
+  mul_assoc := sorry,
+  one := sorry,
+  one_mul := sorry,
+  mul_one := sorry,
+  npow := sorry,
+  npow_zero' := sorry,
+  npow_succ' := sorry,
+  mul_comm := sorry,
+  zero := sorry,
+  zero_mul := sorry,
+  mul_zero := sorry }
+
+
+/-- Instances for `(Ioo (-1) 1)`: `comm_semigroup_with_zero (Ioo (-1) 1)` -/
+instance {α : Type*} [ordered_comm_semiring α] [has_neg α] :
+  comm_semigroup (Ioo (-1:α) 1) := {
+  mul := sorry,
+  mul_assoc := sorry,
+  mul_comm := sorry }
 
 
 
